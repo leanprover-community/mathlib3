@@ -124,16 +124,22 @@ def map (f : M →ₗ⁅R,L⁆ P) (g : N →ₗ⁅R,L⁆ Q) : M ⊗[R] N →ₗ�
       { intros t₁ t₂ ht₁ ht₂, simp only [ht₁, ht₂, lie_add, linear_map.map_add], }, },
   .. map (f : M →ₗ[R] P) (g : N →ₗ[R] Q), }
 
+@[simp] lemma coe_linear_map_map (f : M →ₗ⁅R,L⁆ P) (g : N →ₗ⁅R,L⁆ Q) :
+  (map f g : M ⊗[R] N →ₗ[R] P ⊗[R] Q) = tensor_product.map (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :=
+rfl
+
 @[simp] lemma map_tmul (f : M →ₗ⁅R,L⁆ P) (g : N →ₗ⁅R,L⁆ Q) (m : M) (n : N) :
   map f g (m ⊗ₜ n) = (f m) ⊗ₜ (g n) :=
 map_tmul f g m n
-
-variables (R L M N)
 
 /-- Foo -/
 def map_incl (M' : lie_submodule R L M) (N' : lie_submodule R L N) :
   M' ⊗[R] N' →ₗ⁅R,L⁆ M ⊗[R] N :=
 map M'.incl N'.incl
+
+@[simp] lemma map_incl_def (M' : lie_submodule R L M) (N' : lie_submodule R L N) :
+  map_incl M' N' = map M'.incl N'.incl :=
+rfl
 
 end lie_module
 
@@ -164,6 +170,9 @@ namespace lie_submodule
 
 open_locale tensor_product
 
+open tensor_product.lie_module
+open lie_module
+
 variables {L : Type v} {M : Type w}
 variables [lie_ring L] [lie_algebra R L]
 variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
@@ -175,24 +184,17 @@ Given a Lie ideal `I ⊆ L` and a Lie submodule `N ⊆ M`, by tensoring the incl
 applying the action of `L` on `M`, we obtain morphism of Lie modules `f : I ⊗ N → L ⊗ M → M`.
 
 This lemma states that `⁅I, N⁆ = range f`. -/
-lemma lie_ideal_oper_eq_tensor_map_range : ⁅I, N⁆ = ((lie_module.to_module_hom R L M).comp
-  (tensor_product.lie_module.map (incl I) N.incl)).range :=
--- TODO `(lie_module.to_module_hom R L M).comp (tensor_product.lie_module.map_incl R L L M I N : ↥I ⊗ ↥N →ₗ⁅R,L⁆ L ⊗ M)`
+lemma lie_ideal_oper_eq_tensor_map_range :
+  ⁅I, N⁆ = ((to_module_hom R L M).comp (map_incl I N : ↥I ⊗ ↥N →ₗ⁅R,L⁆ L ⊗ M)).range :=
 begin
-  rw [← coe_to_submodule_eq_iff, lie_ideal_oper_eq_linear_span, lie_module_hom.coe_submodule_range],
-  change _ = (linear_map.comp _ (tensor_product.map _ _)).range,
-  rw [linear_map.range_comp, tensor_product.map_range_eq_span_tmul, submodule.map_span],
-  simp only [lie_module_hom.coe_to_linear_map, incl_apply],
-  congr,
-  ext m,
-  simp only [set.mem_set_of_eq],
-  split,
+  rw [← coe_to_submodule_eq_iff, lie_ideal_oper_eq_linear_span, lie_module_hom.coe_submodule_range,
+    lie_module_hom.coe_linear_map_comp, linear_map.range_comp, map_incl_def, coe_linear_map_map,
+    tensor_product.map_range_eq_span_tmul, submodule.map_span],
+  congr, ext m, split,
   { rintros ⟨⟨x, hx⟩, ⟨n, hn⟩, rfl⟩, use x ⊗ₜ n, split,
-    { use [⟨x, hx⟩, ⟨n, hn⟩], refl, },
-    { change lie_module.to_module_hom R L M (x ⊗ₜ n) = _, simp, }, },
-  { rintros ⟨t, ⟨⟨x, hx⟩, ⟨n, hn⟩, rfl⟩, h⟩, rw ← h,
-    use [⟨x, hx⟩, ⟨n, hn⟩],
-    change _ = lie_module.to_module_hom R L M (x ⊗ₜ n), simp, },
+    { use [⟨x, hx⟩, ⟨n, hn⟩], simp, },
+    { simp, }, },
+  { rintros ⟨t, ⟨⟨x, hx⟩, ⟨n, hn⟩, rfl⟩, h⟩, rw ← h, use [⟨x, hx⟩, ⟨n, hn⟩], simp, },
 end
 
 end lie_submodule

@@ -50,6 +50,7 @@ instance has_bracket : has_bracket (lie_ideal R L) (lie_submodule R L M) :=
 lemma lie_ideal_oper_eq_span :
   ⁅I, N⁆ = lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } := rfl
 
+/-- See also `lie_submodule.lie_ideal_oper_eq_tensor_map_range`. -/
 lemma lie_ideal_oper_eq_linear_span :
   (↑⁅I, N⁆ : submodule R M) = submodule.span R { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } :=
 begin

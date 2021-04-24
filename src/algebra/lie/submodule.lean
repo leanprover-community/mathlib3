@@ -742,10 +742,11 @@ variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L 
 variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
 variables (f : M →ₗ⁅R,L⁆ N)
 
+/-- The range of a morphism of Lie modules `f : M → N` is a Lie submodule of `N`. -/
 def range : lie_submodule R L N :=
 (lie_submodule.map f ⊤).copy (set.range f) set.image_univ.symm
 
-/-- Note that `linear_map.range` is deliberately defined in a way that makes this true by `rfl`,
+/-- Note that `lie_module_hom.range` is deliberately defined in a way that makes this true by `rfl`,
 as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
 obligations.
 

@@ -8,7 +8,7 @@ import topology.continuous_function.weierstrass
 /-!
 # The Stone-Weierstrass theorem
 
-If a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact Hausdorff space,
+If a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact topological space,
 separates points, then it is dense.
 
 We argue as follows.
@@ -35,7 +35,7 @@ the real and imaginary parts using the real subalgebra of real-valued functions 
 (which still separates points, by taking the norm-square of a separating function).
 
 Extend to cover the case of subalgebras of the continuous functions vanishing at infinity,
-on non-compact Hausdorff spaces.
+on non-compact spaces.
 
 -/
 
@@ -288,11 +288,9 @@ begin
     apply lt_h, },
 end
 
-variables [t2_space X]
-
 /--
 The Stone-Weierstrass approximation theorem,
-that a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact Hausdorff space,
+that a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact topological space,
 is dense if it separates points.
 -/
 theorem subalgebra_topological_closure_eq_top_of_separates_points
@@ -319,7 +317,7 @@ end
 /--
 An alternative statement of the Stone-Weierstrass theorem.
 
-If `A` is a subalgebra of `C(X, ℝ)` which separates points,
+If `A` is a subalgebra of `C(X, ℝ)` which separates points (and `X` is compact),
 every real-valued continuous function on `X` is a uniform limit of elements of `A`.
 -/
 theorem continuous_map_mem_subalgebra_closure_of_separates_points
@@ -335,12 +333,12 @@ end
 An alternative statement of the Stone-Weierstrass theorem,
 for those who like their epsilons.
 
-If `A` is a subalgebra of `C(X, ℝ)` which separates points,
+If `A` is a subalgebra of `C(X, ℝ)` which separates points (and `X` is compact),
 every real-valued continuous function on `X` is within any `ε > 0` of some element of `A`.
 -/
 theorem exists_mem_subalgebra_near_continuous_map_of_separates_points
   (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points)
-  (f : C(X, ℝ)) (ε : ℝ) (pos : ε > 0) :
+  (f : C(X, ℝ)) (ε : ℝ) (pos : 0 < ε) :
   ∃ (g : A), ∥(g : C(X, ℝ)) - f∥ < ε :=
 begin
   have w := mem_closure_iff_frequently.mp

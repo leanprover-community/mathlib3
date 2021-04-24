@@ -67,7 +67,7 @@ instance lie_module : lie_module R L (M ⊗[R] N) :=
       linear_map.ltensor_smul, lie_hom.map_smul, linear_map.add_apply], },
   lie_smul := λ c x, linear_map.map_smul _ c, }
 
-@[simp] lemma lie_tensor_right (x : L) (m : M) (n : N) :
+@[simp] lemma lie_tmul_right (x : L) (m : M) (n : N) :
   ⁅x, m ⊗ₜ[R] n⁆ = ⁅x, m⁆ ⊗ₜ n + m ⊗ₜ ⁅x, n⁆ :=
 show has_bracket_aux x (m ⊗ₜ[R] n) = _,
 by simp only [has_bracket_aux, linear_map.rtensor_tmul, to_endomorphism_apply_apply,
@@ -79,7 +79,7 @@ variables (R L M N P Q)
 tensor-hom adjunction is equivariant with respect to the `L` action. -/
 def lift : (M →ₗ[R] N →ₗ[R] P) ≃ₗ⁅R,L⁆ (M ⊗[R] N →ₗ[R] P) :=
 { map_lie'  := λ x f, by
-    { ext m n, simp only [mk_apply, linear_map.compr₂_apply, lie_tensor_right, linear_map.sub_apply,
+    { ext m n, simp only [mk_apply, linear_map.compr₂_apply, lie_tmul_right, linear_map.sub_apply,
         lift.equiv_apply, linear_equiv.to_fun_eq_coe, lie_hom.lie_apply, linear_map.map_add],
       abel, },
   ..tensor_product.lift.equiv R M N P }
@@ -104,8 +104,8 @@ begin
   { rw [← this, lie_module_hom.coe_to_linear_map], },
   ext m n,
   simp only [lift_lie, linear_equiv.trans_apply, lie_module_equiv.coe_to_linear_equiv,
-    coe_maximal_trivial_linear_map_equiv_lie_module_hom_apply, coe_maximal_trivial_equiv_apply,
-    coe_maximal_trivial_linear_map_equiv_lie_module_hom_symm_apply],
+    coe_linear_map_maximal_trivial_linear_map_equiv_lie_module_hom, coe_maximal_trivial_equiv_apply,
+    coe_linear_map_maximal_trivial_linear_map_equiv_lie_module_hom_symm],
 end
 
 lemma lift_lie_apply (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (m : M) (n : N) :
@@ -119,7 +119,7 @@ def map (f : M →ₗ⁅R,L⁆ P) (g : N →ₗ⁅R,L⁆ Q) : M ⊗[R] N →ₗ�
     { simp only [linear_map.to_fun_eq_coe],
       apply t.induction_on,
       { simp only [linear_map.map_zero, lie_zero], },
-      { intros m n, simp only [lie_module_hom.coe_to_linear_map, lie_tensor_right,
+      { intros m n, simp only [lie_module_hom.coe_to_linear_map, lie_tmul_right,
           lie_module_hom.map_lie, map_tmul, linear_map.map_add], },
       { intros t₁ t₂ ht₁ ht₂, simp only [ht₁, ht₂, lie_add, linear_map.map_add], }, },
   .. map (f : M →ₗ[R] P) (g : N →ₗ[R] Q), }
@@ -132,7 +132,7 @@ rfl
   map f g (m ⊗ₜ n) = (f m) ⊗ₜ (g n) :=
 map_tmul f g m n
 
-/-- Foo -/
+/-- Given Lie submodules `M' ⊆ M` and `N' ⊆ N`, this is the natural map: `M' ⊗ N' → M ⊗ N`. -/
 def map_incl (M' : lie_submodule R L M) (N' : lie_submodule R L N) :
   M' ⊗[R] N' →ₗ⁅R,L⁆ M ⊗[R] N :=
 map M'.incl N'.incl

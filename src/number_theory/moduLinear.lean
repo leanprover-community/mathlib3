@@ -175,20 +175,20 @@ end
 
 variables {k U V : Type*} [nondiscrete_normed_field k] [complete_space k]
   [normed_group U] [normed_group V] [normed_space k U] [normed_space k V]
-  {f : continuous_linear_map k U V}
+  {f : linear_map k U V}
 
 -- for `analysis.normed_space.finite_dimension`
 /-- An injective linear map with finite-dimensional domain is a closed embedding. -/
 lemma linear_equiv.closed_embedding_of_injective (hf : f.ker = ⊥) [finite_dimensional k U] :
   closed_embedding ⇑f :=
-let g := linear_equiv.of_injective f.to_linear_map hf in
+let g := linear_equiv.of_injective f hf in
 { closed_range := begin
-    haveI := f.to_linear_map.finite_dimensional_range,
-    simpa [f.to_linear_map.range_coe] using f.to_linear_map.range.closed_of_finite_dimensional
+    haveI := f.finite_dimensional_range,
+    simpa [f.range_coe] using f.range.closed_of_finite_dimensional
   end,
   .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
 
-variables {W : Type*} [normed_group W] [normed_space k W] {g : continuous_linear_map k U W}
+variables {W : Type*} [normed_group W] [normed_space k W] {g : linear_map k U W}
 
 /-- Here's how to do the big theorem, although this is a bit too specific to actually join the library -/
 theorem big_thm [finite_dimensional k U] (p : W) (h₁ : (f.prod g).ker = ⊥) :

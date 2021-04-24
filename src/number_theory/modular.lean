@@ -8,6 +8,7 @@ import algebra.ordered_ring
 import ring_theory.int.basic
 import data.real.sqrt
 import linear_algebra.affine_space.affine_subspace
+import number_theory.moduLinear
 
 open complex
 open matrix
@@ -371,20 +372,13 @@ open filter
  -- topological_space (matrix n m α) :=
 --Pi.topological_space
 
-instance {α : Type*} [ring α] [metric_space α] {n m : Type*} [fintype n] [fintype m] :
-  metric_space (matrix n m α) :=
-metric_space_pi
+instance {α : Type*} [normed_ring α] {n m : Type*} [fintype n] [fintype m] :
+  normed_group (matrix n m α) :=
+pi.normed_group
 
-
-/- NOpe it's already there. This needs to be added to mathlib!!! There is `preimage_subset_preimage_iff` but it
-    requires `(hs : s ⊆ range f)`, which is only needed in the other direction! -/
-lemma preimage_subset_preimage {α β : Type*} {s t : set α} {f : β → α} (h: s ⊆ t) :
-   f ⁻¹' s ⊆ f ⁻¹' t :=
-begin
-  exact set.preimage_mono h,
---  intros  x,
- -- apply h,
-end
+instance {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
+  normed_space α (matrix n m α) :=
+pi.normed_space
 
 -- for `order.filter.basic`
 lemma filter.tendsto.of_tendsto_comp {β A B : Type*} {lβ : filter β} {lA : filter A}
@@ -420,46 +414,7 @@ begin
   tidy,
 end
 
-/- This is CRAP. Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
-lemma tendsto_inverse_image_fun {α β A B : Type*} [topological_space β] [topological_space B]
-  {f : α → β} {g : A → B} {mA : A → α} {mB : B → β}
-  (hmA : function.injective mA) (hmB : continuous mB) (h : f ∘ mA = mB ∘ g)
-  --(h : ∀ x, f (mA x) = mB (g x))
-  (hf : tendsto f cofinite (cocompact _)) :
-  tendsto g cofinite (cocompact _) :=
-begin
-  refine filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
-  simpa [h] using hf.comp hmA.tendsto_cofinite,
-  -- rintros s hK,
-  -- rw mem_cocompact' at hK,
-  -- obtain ⟨K, hK1, hK2⟩ := hK,
-  -- have diag_chase : mA '' (g ⁻¹' K) ⊆ f ⁻¹' (mB '' K) := by tidy,
-  -- have : (mB '' K)ᶜ ∈ cocompact β ,
-  -- { rw mem_cocompact',
-  --   refine ⟨mB '' K, is_compact.image hK1 hmB, _⟩,
-  --   rw compl_compl },
-  -- have : (f ⁻¹' (mB '' K)).finite,
-  -- { convert (filter.mem_cofinite.mp (hf this)),
-  --   simp only [set.preimage_compl, compl_compl] },
-  -- have : (mA '' (g ⁻¹' K)).finite := set.finite.subset this diag_chase,
-  -- have : (g ⁻¹' K).finite,
-  -- { convert set.finite.preimage _ this,
-  --   exact (function.injective.preimage_image hmA (g ⁻¹' K)).symm,
-  --   exact set.inj_on_of_injective hmA _ },
-  -- exact set.finite.subset this (preimage_subset_preimage hK2),
-end
 
-
-
-/- Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
-lemma tendsto_inverse_image_fun' {α β : Type*} [topological_space β] (A : set α) (B : set β)
-  {f : α → β} (hf₁ : ∀ x ∈ A, f x ∈ B ) (hf₂ : tendsto f cofinite (cocompact _)) :
-  tendsto (subtype.map f (λ x h, set.mem_def.mp (hf₁ x h))) cofinite (cocompact _) :=
-begin
---  refine tendsto_inverse_image_fun subtype.coe_injective continuous_subtype_coe _ hf₂,
-  refine filter.tendsto.of_tendsto_comp _ (comap_cocompact continuous_subtype_coe),
-  simpa [hf₁] using hf₂.comp subtype.coe_injective.tendsto_cofinite,
-end
 
 /- Non-crap lemma but put it elsewhere ?  Maybe cocompact in discrete is cofinite -/
 lemma cocompact_ℝ_to_cofinite_ℤ (ι : Type*) [fintype ι] :
@@ -479,174 +434,6 @@ begin
   { exact Coprod_cocompact.symm }
 end
 
-
-/-- method 1 -/
-def line (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
-  {g | g 1 0 = (cd : ℤ × ℤ).1 ∧ g 1 1 = (cd : ℤ × ℤ).2 ∧ det g = 1}
-
-/- Do we need this? Maybe delete
-lemma line_proper (cd : coprime_ints) :
-  map coe (cocompact (line cd)) = cocompact (matrix (fin 2) (fin 2) ℝ) :=
-begin
-
-  sorry
-end
--/
-
-
--- make `line` an affine subspace of 2x2 matrices, using the following lemma
-lemma line_det (cd : coprime_ints) {g : matrix _ _ ℝ} (hg : g ∈ line cd) :
-  g 0 0 * cd.1.2 - g 0 1 * cd.1.1 = 1 :=
-begin
-  convert hg.2.2,
-  rw [det2, hg.1, hg.2.1],
-  ring,
-end
-
-lemma in_line (cd : coprime_ints) {g : SL(2, ℤ)} (hg : bottom_row g = cd) :
-  ↑(g : SL(2, ℝ)) ∈ line cd :=
-begin
-  rw line,
-  rw set.mem_set_of_eq,
-  rw bottom_row at hg,
-  simp only [subtype.val_eq_coe] at hg,
-  split,
-  simp [hg],
-  sorry,
-  split,
-  simp [hg],
-  sorry,
-  exact (g: SL(2,ℝ)).2,
-end
-
-def to_line (cd : coprime_ints) (g : bottom_row ⁻¹' {cd}) : line cd :=
-⟨↑(g : SL(2, ℝ)), in_line cd g.2⟩
-
-/- Can be deduced from ...
-lemma tendsto_line (cd : coprime_ints) : tendsto (to_line cd) cofinite (cocompact _) :=
-begin
-
-  sorry
-end
--/
-
-/-
-def lattice_intersect (A : set (matrix (fin 2) (fin 2) ℝ)) :
-  set (matrix (fin 2) (fin 2) ℤ) :=
-(int.cast_ring_hom ℝ).map_matrix ⁻¹' (A : set (matrix (fin 2) (fin 2) ℝ))
-
-
-example (cd : coprime_ints) : bottom_row ⁻¹' {cd} → (lattice_intersect (line cd)) :=
-set.cod_restrict (coe : bottom_row ⁻¹' {cd} → (matrix (fin 2) (fin 2) ℤ)) (lattice_intersect (line cd))
-begin
-  rintros ⟨⟨g, hg'⟩, hg⟩,
-  simp [lattice_intersect, line] at *,
-  sorry
-end
-
-def lattice_intersect_fun (A : set (matrix (fin 2) (fin 2) ℝ)) :
-  lattice_intersect A → A :=
-inverse_image_fun A (int.cast_ring_hom ℝ).map_matrix
-
-/-- lemma about intersection of affine subspaces with integer lattice -/
-lemma tendsto_lattice_intersect_fun (A : set (matrix (fin 2) (fin 2) ℝ)) :
-  tendsto (lattice_intersect_fun A) cofinite (cocompact _) :=
-begin
-  apply tendsto_inverse_image_fun,
-  { sorry },
-  { exact  pi_prod_cofinite (λ i, (pi_prod_cofinite (λ j, int.tendsto_coe_cofinite))) }
-end
-
--/
-
-
-
-def smul_aux' : (matrix (fin 2) (fin 2) ℝ) → ℂ → ℂ := sorry
-
-def acbd : (matrix (fin 2) (fin 2) ℝ) → ℝ := λ g, (g 0 0) * (g 1 0) + (g 0 1)*(g 1 1)
-
-
-lemma something1 (cd : coprime_ints) (z : H) (g : line cd) :
-∃ w , (smul_aux' ↑g z).re = (acbd g)/(real.sqrt ((cd.1.1)^2+(cd.1.2)^2)) + w :=
-begin
-  sorry,
-end
-
-
-/- Needed: Conditions on a linear transformation for a given linear functional to be
- tendsto cocompact cocompact
-on the kernel of the linear transformation
-
-Answer: Injective on kernel
-
-If funcitonal is injective on the kernel of a linear transformation
-
-Equivalently, f⊕L is injective...
-
-In the application, f= a c + b d, L = (ad -bc, c, d)
-
-a d0 - b c0 = 1, c=c0, d=d0
-L : ad0 - bc0, c, d
-L⁻¹ (1,c0,d0)
-f : a c0 + b d0
-
-f⊕ L = injective?
-
-f⊕ L = yes, injective
- -/
-
-
-
-lemma tendsto_acbd (cd : coprime_ints):
-  tendsto (λ g, acbd (↑g)) (cocompact (line cd)) (cocompact ℝ) :=
-begin
-  let cabs := _root_.abs cd.1.1,
-  let dabs := _root_.abs cd.1.2,
-  let maxCD := max cabs dabs,
-  intros K hK ,
-  rw mem_cocompact at hK,
-
-  obtain ⟨ K1, hK1, hK2⟩  := hK,
-
-  obtain ⟨ t, ht⟩  := (metric.bounded_iff_subset_ball 0).mp (is_compact.bounded hK1),
-  rw mem_map,
-  rw mem_cocompact,
-  refine ⟨
-  ((coe : line cd → (matrix (fin 2) (fin 2) ℝ)) ⁻¹'
-   (metric.closed_ball (0: matrix (fin 2) (fin 2) ℝ) (max (2*(_root_.abs t)+1) maxCD) )),
-   sorry, _⟩ ,
-   --simp,
-  rw set.compl_subset_comm,
-  rw set.compl_subset_comm at hK2,
-  intros g hg,
-  simp [dist_eq_norm] at hg,
-  simp only [set.mem_preimage, metric.mem_closed_ball,  int_cast_abs, subtype.val_eq_coe],
-  have : acbd ↑g ∈ metric.closed_ball (0:ℝ) t,
-  {
-    apply ht,
-    apply hK2,
-    exact hg,
-  },
-  rw dist_pi_def,
-  let a : nnreal := nnreal.of_real (max (2 * |t| + 1) ↑maxCD),
-  rw ← nnreal.coe_of_real (max (2 * |t| + 1) ↑maxCD),
-  norm_cast,
-  have : (∀ (b : fin 2), b ∈ finset.univ → (λ (b : fin 2), nndist ((↑g: matrix _ _ ℝ) b) 0) b ≤ a) := sorry,
-  refine @finset.sup_le nnreal (fin 2) _ (finset.univ) ((λ (b : fin 2), nndist ((↑g: matrix _ _ ℝ) b) (0))) a _,
-
-  sorry
-end
-
-/- Non-crap lemma: given the line of cd, the real part of the action of g on z is cocompact -/
-lemma tendsto_action (cd : coprime_ints) (z : H) :
-  tendsto (λ g, (smul_aux' ↑g z).re) (cocompact (line cd)) (cocompact ℝ) :=
-begin
-  -- let g : ℝ → matrix (fin 2) (fin 2) ℝ :=
-
-  have := something1 cd z,
-  sorry
-end
-
 /- Non-crap lemma: Absolute value function is cocompact -/
 lemma tendsto_at_top_abs :
   tendsto _root_.abs (cocompact ℝ) at_top :=
@@ -658,29 +445,83 @@ begin
   { apply_instance }
 end
 
-lemma sddsf (cd : coprime_ints) (z : ℂ) :
-  tendsto (λ g : lattice_intersect (line cd), _root_.abs (smul_aux' ↑(lattice_intersect_fun _ g) z).re)
-    cofinite at_top :=
-(tendsto_at_top_abs.comp (tendsto_action cd z)).comp (tendsto_lattice_intersect_fun (line cd))
 
-/-- method 2 -/
-def line' (cd : coprime_ints) : set (ℝ × ℝ) :=
-  {ab | ab.1 * (cd : ℤ × ℤ).2 - ab.2 * (cd : ℤ × ℤ).1 = 1}
+/- generalize to arbitrary matrix index sets -/
+def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
+(linear_map.proj 0 : (fin 2 → ℝ) →ₗ[ℝ] _).comp (linear_map.proj 0)
 
-def in_line' (cd : coprime_ints) {g : SL(2, ℤ)} (hg : bottom_row g = cd) :
-  (↑(g 0 0), ↑(g 0 1)) ∈ line' cd :=
-sorry
+def acbd (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
+cd.1.1 • matrix.coord 0 0 + cd.1.2 • matrix.coord 0 1
 
-def to_line' (cd : coprime_ints) (g : bottom_row ⁻¹' {cd}) : line' cd :=
-⟨(g 0 0, g 0 1), in_line' cd g.2⟩
 
-lemma tendsto_line' (cd : coprime_ints) : tendsto (to_line' cd) cofinite (cocompact _) := sorry
+/-- map sending the matrix [a b; c d] to `(ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)` -/
+def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] (ℝ × (fin 2 → ℝ)) :=
+((cd.1.2 : ℝ) • matrix.coord 0 0 - (cd.1.1 : ℝ) • matrix.coord 0 1).prod (linear_map.proj 1)
 
-lemma inv_image_eq_line (cd : coprime_ints) :
-  bottom_row ⁻¹' {cd} = (prod.map coe coe : ℤ × ℤ → ℝ × ℝ) ⁻¹' line cd :=
-sorry
-
+lemma lin_indep_acbd (cd : coprime_ints) : ((acbd cd).prod (line_map cd)).ker = ⊥ :=
+begin
+  sorry
 end
+
+def new_line_def (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
+(line_map cd) ⁻¹' {((1, λ i, if i = 0 then cd.1.1 else cd.1.2) : ℝ × (fin 2 → ℝ))}
+
+/-- Big filter theorem -/
+theorem big_thm' (cd : coprime_ints) (w : ℝ) :
+  tendsto (λ A : bottom_row ⁻¹' {cd}, acbd cd ↑A + w) cofinite (cocompact ℝ) :=
+begin
+  let cd' : fin 2 → ℤ :=  λ i, if i = 0 then cd.1.1 else cd.1.2,
+  let l := bottom_row ⁻¹' {cd},
+  let f : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
+  have hf : tendsto f cofinite (cocompact _) :=
+    cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
+  have hl : ∀ g ∈ l, f g ∈ new_line_def cd,
+  { intros g hg,
+    simp [new_line_def, line_map, matrix.coord, f],
+    split,
+    { norm_cast,
+      convert g.det_coe_matrix using 1,
+      sorry },
+    { sorry } },
+  let f' : l → new_line_def cd := subtype.map f hl,
+  have h₁ : tendsto f' cofinite (cocompact _),
+  { refine filter.tendsto.of_tendsto_comp _ (comap_cocompact continuous_subtype_coe),
+    simpa [hl] using hf.comp subtype.coe_injective.tendsto_cofinite },
+  have h₂ : tendsto (λ A, acbd cd ↑A + w) (cocompact (new_line_def cd)) (cocompact ℝ),
+  { let hf := linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd),
+    let p : ℝ × (fin 2 → ℝ) := (1, λ i, if i = 0 then cd.1.1 else cd.1.2),
+    let hs : is_closed (prod.snd ⁻¹' {p} : set (ℝ × (ℝ × (fin 2 → ℝ)))) :=
+      is_closed_singleton.preimage continuous_snd,
+    have := (hf.comp (closed_embedding_subtype_coe (hs.preimage hf.continuous))).cod_restrict hs (by simp),
+    have := ((fibre_embed_homeomorph p).trans (homeomorph.add_right w)).closed_embedding.comp this,
+    exact this.tendsto_cocompact },
+  have := h₂.comp h₁,
+  convert this,
+end
+
+
+
+
+def smul_aux' : (matrix (fin 2) (fin 2) ℝ) → ℂ → ℂ := sorry
+
+lemma something1 (cd : coprime_ints) (z : H) (g : line cd) :
+∃ w , (smul_aux' ↑g z).re = (acbd cd g)/(real.sqrt ((cd.1.1)^2+(cd.1.2)^2)) + w :=
+begin
+  sorry,
+end
+
+
+/- Non-crap lemma: given the line of cd, the real part of the action of g on z is cocompact -/
+lemma tendsto_action (cd : coprime_ints) (z : H) :
+  tendsto (λ g, (smul_aux' ↑g z).re) (cocompact (line cd)) (cocompact ℝ) :=
+begin
+  -- let g : ℝ → matrix (fin 2) (fin 2) ℝ :=
+
+  have := something1 cd z,
+  sorry
+end
+
+
 
 /- Non-crap lemma but content-free; should be combination of building blocks -/
 lemma something' (z:H) (cd : coprime_ints) :
@@ -1242,3 +1083,126 @@ end
 -- @[simp] lemma expand_sum_01 {R : Type*} [ring R] (f : fin 2 → R ) :
 -- (∑ (x : fin 2), f x) = f 0 + f 1 :=
 -- by simp [fin.sum_univ_succ]
+
+
+-- /-- method 1 -/
+-- def line (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
+--   {g | g 1 0 = (cd : ℤ × ℤ).1 ∧ g 1 1 = (cd : ℤ × ℤ).2 ∧ det g = 1}
+
+/- Do we need this? Maybe delete
+lemma line_proper (cd : coprime_ints) :
+  map coe (cocompact (line cd)) = cocompact (matrix (fin 2) (fin 2) ℝ) :=
+begin
+
+  sorry
+end
+-/
+
+
+-- -- make `line` an affine subspace of 2x2 matrices, using the following lemma
+-- lemma line_det (cd : coprime_ints) {g : matrix _ _ ℝ} (hg : g ∈ line cd) :
+--   g 0 0 * cd.1.2 - g 0 1 * cd.1.1 = 1 :=
+-- begin
+--   convert hg.2.2,
+--   rw [det2, hg.1, hg.2.1],
+--   ring,
+-- end
+
+-- lemma in_line (cd : coprime_ints) {g : SL(2, ℤ)} (hg : bottom_row g = cd) :
+--   ↑(g : SL(2, ℝ)) ∈ line cd :=
+-- begin
+--   rw line,
+--   rw set.mem_set_of_eq,
+--   rw bottom_row at hg,
+--   simp only [subtype.val_eq_coe] at hg,
+--   split,
+--   simp [hg],
+--   sorry,
+--   split,
+--   simp [hg],
+--   sorry,
+--   exact (g: SL(2,ℝ)).2,
+-- end
+
+-- def to_line (cd : coprime_ints) (g : bottom_row ⁻¹' {cd}) : line cd :=
+-- ⟨↑(g : SL(2, ℝ)), in_line cd g.2⟩
+
+
+
+
+-- lemma sddsf (cd : coprime_ints) (z : ℂ) :
+--   tendsto (λ g : lattice_intersect (line cd), _root_.abs (smul_aux' ↑(lattice_intersect_fun _ g) z).re)
+--     cofinite at_top :=
+-- (tendsto_at_top_abs.comp (tendsto_action cd z)).comp (tendsto_lattice_intersect_fun (line cd))
+
+-- /-- method 2 -/
+-- def line' (cd : coprime_ints) : set (ℝ × ℝ) :=
+--   {ab | ab.1 * (cd : ℤ × ℤ).2 - ab.2 * (cd : ℤ × ℤ).1 = 1}
+
+-- def in_line' (cd : coprime_ints) {g : SL(2, ℤ)} (hg : bottom_row g = cd) :
+--   (↑(g 0 0), ↑(g 0 1)) ∈ line' cd :=
+-- sorry
+
+-- def to_line' (cd : coprime_ints) (g : bottom_row ⁻¹' {cd}) : line' cd :=
+-- ⟨(g 0 0, g 0 1), in_line' cd g.2⟩
+
+-- lemma tendsto_line' (cd : coprime_ints) : tendsto (to_line' cd) cofinite (cocompact _) := sorry
+
+-- lemma inv_image_eq_line (cd : coprime_ints) :
+--   bottom_row ⁻¹' {cd} = (prod.map coe coe : ℤ × ℤ → ℝ × ℝ) ⁻¹' line cd :=
+-- sorry
+
+-- end
+
+
+
+
+-- lemma tendsto_acbd (cd : coprime_ints):
+--   tendsto (λ g, acbd (↑g)) (cocompact (line cd)) (cocompact ℝ) :=
+-- begin
+--   let cabs := _root_.abs cd.1.1,
+--   let dabs := _root_.abs cd.1.2,
+--   let maxCD := max cabs dabs,
+--   intros K hK ,
+--   rw mem_cocompact at hK,
+
+--   obtain ⟨ K1, hK1, hK2⟩  := hK,
+
+--   obtain ⟨ t, ht⟩  := (metric.bounded_iff_subset_ball 0).mp (is_compact.bounded hK1),
+--   rw mem_map,
+--   rw mem_cocompact,
+--   refine ⟨
+--   ((coe : line cd → (matrix (fin 2) (fin 2) ℝ)) ⁻¹'
+--    (metric.closed_ball (0: matrix (fin 2) (fin 2) ℝ) (max (2*(_root_.abs t)+1) maxCD) )),
+--    sorry, _⟩ ,
+--    --simp,
+--   rw set.compl_subset_comm,
+--   rw set.compl_subset_comm at hK2,
+--   intros g hg,
+--   simp [dist_eq_norm] at hg,
+--   simp only [set.mem_preimage, metric.mem_closed_ball,  int_cast_abs, subtype.val_eq_coe],
+--   have : acbd ↑g ∈ metric.closed_ball (0:ℝ) t,
+--   {
+--     apply ht,
+--     apply hK2,
+--     exact hg,
+--   },
+--   rw dist_pi_def,
+--   let a : nnreal := nnreal.of_real (max (2 * |t| + 1) ↑maxCD),
+--   rw ← nnreal.coe_of_real (max (2 * |t| + 1) ↑maxCD),
+--   norm_cast,
+--   have : (∀ (b : fin 2), b ∈ finset.univ → (λ (b : fin 2), nndist ((↑g: matrix _ _ ℝ) b) 0) b ≤ a) := sorry,
+--   refine @finset.sup_le nnreal (fin 2) _ (finset.univ) ((λ (b : fin 2), nndist ((↑g: matrix _ _ ℝ) b) (0))) a _,
+
+--   sorry
+-- end
+
+-- /- Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
+-- lemma tendsto_inverse_image_fun' {α β : Type*} [topological_space β] (A : set α) (B : set β)
+--   {f : α → β} (hf₁ : ∀ x ∈ A, f x ∈ B ) (hf₂ : tendsto f cofinite (cocompact _)) :
+--   tendsto (subtype.map f (λ x h, set.mem_def.mp (hf₁ x h))) cofinite (cocompact _) :=
+-- begin
+-- --  refine tendsto_inverse_image_fun subtype.coe_injective continuous_subtype_coe _ hf₂,
+--   refine filter.tendsto.of_tendsto_comp _ (comap_cocompact continuous_subtype_coe),
+--   simpa [hf₁] using hf₂.comp subtype.coe_injective.tendsto_cofinite,
+-- end

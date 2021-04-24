@@ -22,6 +22,8 @@ In this file we define the cycle type of a partition.
 
 - `sum_cycle_type` : The sum of `σ.cycle_type` equals `σ.support.card`
 - `lcm_cycle_type` : The lcm of `σ.cycle_type` equals `order_of σ`
+- `is_conj_iff_cycle_type_eq` : Two permutations are conjugate if and only if they have the same
+  cycle type.
 -/
 
 namespace equiv.perm

@@ -43,7 +43,7 @@ end
 
 /-- Let `{x | p x}` be an additive subsemigroup of an additive commutative monoid `M`. Let `f : M →
 N` be a map subadditive on `{x | p x}`, i.e., `p x → p y → f (x + y) ≤ f x + f y`. Let `g i`, `i ∈
-s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then 
+s`, be a nonempty finite family of elements of `M` such that `∀ i ∈ s, p (g i)`. Then
 `f (∑ i in s, g i) ≤ ∏ i in s, f (g i)`. -/
 add_decl_doc le_sum_nonempty_of_subadditive_on_pred
 
@@ -135,6 +135,11 @@ calc (∏ i in s, f i) ≤ (∏ i in t \ s, f i) * (∏ i in s, f i) :
 @[to_additive sum_mono_set_of_nonneg]
 lemma prod_mono_set_of_one_le' (hf : ∀ x, 1 ≤ f x) : monotone (λ s, ∏ x in s, f x) :=
 λ s t hst, prod_le_prod_of_subset_of_one_le' hst $ λ x _ _, hf x
+
+@[to_additive sum_le_univ_sum_of_nonneg]
+lemma prod_le_univ_prod_of_one_le' [fintype ι] {s : finset ι} (w : ∀ x, 1 ≤ f x) :
+  ∏ x in s, f x ≤ ∏ x, f x :=
+prod_le_prod_of_subset_of_one_le' (subset_univ s) (λ a _ _, w a)
 
 @[to_additive sum_eq_zero_iff_of_nonneg]
 lemma prod_eq_one_iff_of_one_le' : (∀ i ∈ s, 1 ≤ f i) → (∏ i in s, f i = 1 ↔ ∀ i ∈ s, f i = 1) :=

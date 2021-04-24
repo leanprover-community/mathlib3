@@ -52,7 +52,7 @@ where `f g : X ⟶ Y` for some objects `X Y : V` with `[S : category V]`,
 extract the expression for `S`.
 -/
 meta def extract_category : expr → tactic expr
-| `(@eq (@has_hom.hom ._ (@category_struct.to_has_hom _
+| `(@eq (@quiver.hom ._ (@category_struct.to_quiver _
      (@category.to_category_struct _ %%S)) _ _) _ _) := pure S
 | _ := failed
 
@@ -73,7 +73,7 @@ do
    (vs,t) ← infer_type h >>= open_pis,
    (f, g) ← match_eq t,
    S ← extract_category t <|> fail "no morphism equation found in statement",
-   `(@has_hom.hom _ %%H %%X %%Y) ← infer_type f,
+   `(@quiver.hom _ %%H %%X %%Y) ← infer_type f,
    C ← infer_type X,
    CC_type ← to_expr ``(@concrete_category %%C %%S),
    (CC, CC_found) ← (do CC ← mk_instance CC_type, pure (CC, tt)) <|>
@@ -83,9 +83,9 @@ do
    x_type ← to_expr ``(@coe_sort %%C
      (@category_theory.concrete_category.has_coe_to_sort %%C %%S %%CC) %%X),
    x ← mk_local_def `x x_type,
-   t' ← to_expr ``(@coe_fn (@category_theory.has_hom.hom %%C %%H %%X %%Y)
+   t' ← to_expr ``(@coe_fn (@quiver.hom %%C %%H %%X %%Y)
      (@category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%f %%x =
-       @coe_fn (@category_theory.has_hom.hom %%C %%H %%X %%Y)
+       @coe_fn (@quiver.hom %%C %%H %%X %%Y)
          (@category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%g %%x),
    let c' := h.mk_app vs,
    (_,pr) ← solve_aux t' (rewrite_target c'; reflexivity),
@@ -108,11 +108,16 @@ do
    let s := simp_lemmas.mk,
    s ← s.add_simp ``coe_id,
    s ← s.add_simp ``coe_comp,
-   (t'', pr', _) ← simplify s [] t',
+   (t'', pr', _) ← simplify s [] t' {fail_if_unchanged := ff},
    pr' ← mk_eq_mp pr' pr,
+   -- Further, if we're in `Type`, get rid of the coercions entirely.
+   let s := simp_lemmas.mk,
+   s ← s.add_simp ``concrete_category.has_coe_to_fun_Type,
+   (t'', pr'', _) ← simplify s [] t'' {fail_if_unchanged := ff},
+   pr'' ← mk_eq_mp pr'' pr',
    t'' ← pis (vs ++ (if CC_found then [x] else [CC, x])) t'',
-   pr' ← lambdas (vs ++ (if CC_found then [x] else [CC, x])) pr',
-   pure (t'', pr', n)
+   pr'' ← lambdas (vs ++ (if CC_found then [x] else [CC, x])) pr'',
+   pure (t'', pr'', n)
 
 /-- (implementation for `@[elementwise]`)
 Given a declaration named `n` of the form `∀ ..., f = g`, proves a new lemma named `n'`

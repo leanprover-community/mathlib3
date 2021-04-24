@@ -72,7 +72,7 @@ open finite_dimensional
 
 variables {𝕜 : Type*} [field 𝕜] [is_alg_closed 𝕜]
 
--- set_option pp.all true
+set_option pp.all true
 
 /--
 Schur's lemma for `𝕜`-linear categories
@@ -84,8 +84,7 @@ begin
   suffices : ∀ f : X ⟶ X, ∃ c : 𝕜, f = c • 𝟙 X,
   { sorry, },
   intro f,
-  haveI : finite_dimensional 𝕜 (End X) := {..I},
-  obtain ⟨c, nu⟩ := exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 (End.of f),
+  obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _ I (End.of f),
   use c,
   rw ←is_iso_iff_is_unit at nu,
   rw is_iso_iff_nonzero at nu,

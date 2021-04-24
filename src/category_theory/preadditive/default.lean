@@ -86,10 +86,12 @@ instance induced_category.category : preadditive.{v} (induced_category C F) :=
 
 end induced_category
 
+instance (X : C) : add_comm_group (End X) := by { dsimp [End], apply_instance, }
+
 instance (X : C) : ring (End X) :=
 { left_distrib := λ f g h, preadditive.add_comp X X X g h f,
   right_distrib := λ f g h, preadditive.comp_add X X X h f g,
-  ..(infer_instance : add_comm_group (X ⟶ X)),
+  ..(infer_instance : add_comm_group (End X)),
   ..(infer_instance : monoid (End X)) }
 
 /-- Composition by a fixed left argument as a group homomorphism -/

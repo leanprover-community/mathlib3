@@ -41,7 +41,8 @@ begin
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   have hdeg := degree_C u.ne_zero,
   rw [hu, degree_map' hinj] at hdeg,
-  rw [eq_C_of_degree_eq_zero hdeg, is_primitive, content_C, normalize_eq_one] at hf,
+  rw [eq_C_of_degree_eq_zero hdeg, is_primitive_iff_content_eq_one,
+      content_C, normalize_eq_one] at hf,
   rwa [eq_C_of_degree_eq_zero hdeg, is_unit_C],
 end
 

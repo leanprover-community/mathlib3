@@ -159,7 +159,7 @@ begin
     ext,
     simp [mul_div_assoc, mul_div_cancel' _ hne] },
   rw integral_deriv_eq_sub' _ hderiv;
-  norm_num [div_sub_div_same, (continuous_pow n).continuous_on],
+  norm_num [div_sub_div_same, continuous_on_pow],
 end
 
 @[simp]
@@ -172,7 +172,7 @@ by simp
 
 @[simp]
 lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
-by rw integral_deriv_eq_sub'; norm_num [continuous_exp.continuous_on]
+by rw integral_deriv_eq_sub'; norm_num [continuous_on_exp]
 
 @[simp]
 lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x in a..b, x⁻¹ = log (b / a) :=

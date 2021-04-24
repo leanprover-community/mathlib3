@@ -1183,7 +1183,7 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
 /-- The range of an injective group homomorphism is isomorphic to its domain. -/
-def injective_range_equiv {G H : Type*} [group G] [group H] {f : G →* H}
+noncomputable def injective_range_equiv {G H : Type*} [group G] [group H] {f : G →* H}
   (hf : function.injective f) : f.range ≃* G :=
 (mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
   ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩).symm

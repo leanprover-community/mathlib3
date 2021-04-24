@@ -343,6 +343,21 @@ end
 
 end is_basis
 
+lemma is_basis_singleton_iff {R : Type*} [division_ring R] [module R M]
+  (ι : Type*) [unique ι] (x : M) :
+  is_basis R (λ (_ : ι), x) ↔ x ≠ 0 ∧ ∀ y : M, ∃ r : R, r • x = y :=
+begin
+  fsplit,
+  rintro ⟨li, sp⟩,
+  fsplit,
+  apply linear_independent.ne_zero (default ι) li,
+  simpa [span_singleton_eq_top_iff] using sp,
+  rintro ⟨nz, w⟩,
+  fsplit,
+  simpa [linear_independent_unique_iff] using nz,
+  simpa [span_singleton_eq_top_iff] using w,
+end
+
 lemma is_basis_singleton_one (R : Type*) [unique ι] [ring R] :
   is_basis R (λ (_ : ι), (1 : R)) :=
 begin

@@ -63,7 +63,6 @@ section End
 
 variables {R : Type w} [comm_ring R] [linear R C]
 
--- @[priority 10] -- Prefer to get the instance via the algebra.
 instance (X : C) : module R (End X) := by { dsimp [End], apply_instance, }
 
 instance (X : C) : algebra R (End X) :=

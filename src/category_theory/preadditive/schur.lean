@@ -51,7 +51,7 @@ end
 As a corollary of Schur's lemma,
 any morphism between simple objects is (exclusively) either an isomorphism or zero.
 -/
-lemma is_iso_iff_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] {f : X ⟶ Y} :
+lemma is_iso_iff_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] (f : X ⟶ Y) :
   is_iso.{v} f ↔ f ≠ 0 :=
 ⟨λ I,
   begin
@@ -72,7 +72,26 @@ open finite_dimensional
 
 variables {𝕜 : Type*} [field 𝕜] [is_alg_closed 𝕜]
 
-set_option pp.all true
+-- TODO try out Sebastien's workaround
+local attribute [ext] add_comm_group semimodule distrib_mul_action mul_action has_scalar
+
+lemma findim_endomorphism_eq_one
+  [linear 𝕜 C] {X : C} (is_iso_iff_nonzero : ∀ f : X ⟶ X, is_iso f ↔ f ≠ 0)
+  [I : finite_dimensional 𝕜 (X ⟶ X)] :
+  findim 𝕜 (X ⟶ X) = 1 :=
+begin
+  have id_nonzero := (is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance),
+  apply findim_eq_one (𝟙 X),
+  exact id_nonzero,
+  intro f,
+  haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
+  obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _
+    (by { convert I, ext; refl, ext; refl, }) (End.of f),
+  use c,
+  rw [←is_iso_iff_is_unit, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
+    algebra.algebra_map_eq_smul_one] at nu,
+  exact nu.symm,
+end
 
 /--
 Schur's lemma for `𝕜`-linear categories
@@ -80,21 +99,11 @@ Schur's lemma for `𝕜`-linear categories
 lemma findim_endomorphism_simple_eq_one
   [linear 𝕜 C] {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
   findim 𝕜 (X ⟶ X) = 1 :=
-begin
-  suffices : ∀ f : X ⟶ X, ∃ c : 𝕜, f = c • 𝟙 X,
-  { sorry, },
-  intro f,
-  obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _ I (End.of f),
-  use c,
-  rw ←is_iso_iff_is_unit at nu,
-  rw is_iso_iff_nonzero at nu,
-  sorry,
-end
+findim_endomorphism_eq_one is_iso_iff_nonzero
 
 lemma findim_hom_simple_simple_le_one
   [linear 𝕜 C] {X Y : C} [finite_dimensional 𝕜 (X ⟶ X)] [simple.{v} X] [simple.{v} Y] :
   findim 𝕜 (X ⟶ Y) ≤ 1 :=
 sorry
-
 
 end category_theory

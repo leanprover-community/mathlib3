@@ -153,6 +153,8 @@ begin
     simp only [neg_mul_eq_neg_mul_symm, one_mul] }
 end
 
+lemma gcd_eq_nat_abs {a b : ℤ} : int.gcd a b = nat.gcd a.nat_abs b.nat_abs := rfl
+
 lemma gcd_eq_one_iff_coprime {a b : ℤ} : int.gcd a b = 1 ↔ is_coprime a b :=
 begin
   split,
@@ -162,20 +164,18 @@ begin
     use [(nat.gcd_a (int.nat_abs a) (int.nat_abs b)) * ua,
         (nat.gcd_b (int.nat_abs a) (int.nat_abs b)) * ub],
     rw [mul_assoc, ← ha, mul_assoc, ← hb, mul_comm, mul_comm _ (int.nat_abs b : ℤ),
-      ← nat.gcd_eq_gcd_ab],
-    norm_cast,
-    exact hg },
+      ← nat.gcd_eq_gcd_ab, ←gcd_eq_nat_abs, hg, int.coe_nat_one] },
   { rintro ⟨r, s, h⟩,
     by_contradiction hg,
     obtain ⟨p, ⟨hp, ha, hb⟩⟩ := nat.prime.not_coprime_iff_dvd.mp hg,
     apply nat.prime.not_dvd_one hp,
-    apply coe_nat_dvd.mp,
-    change (p : ℤ) ∣ 1,
-    rw [← h],
+    rw [←coe_nat_dvd, int.coe_nat_one, ← h],
     exact dvd_add (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr ha) _)
-      (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr hb) _),
-  }
+      (dvd_mul_of_dvd_right (coe_nat_dvd_left.mpr hb) _) }
 end
+
+lemma coprime_iff_nat_coprime {a b : ℤ} : is_coprime a b ↔ nat.coprime a.nat_abs b.nat_abs :=
+by rw [←gcd_eq_one_iff_coprime, nat.coprime_iff_gcd_eq_one, gcd_eq_nat_abs]
 
 lemma sqr_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
@@ -328,12 +328,7 @@ lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_ab
 by simp only [finite_def, ← int.nat_abs_dvd_abs_iff, int.nat_abs_pow]
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
-begin
-  have := int.nat_abs_eq a,
-  have := @int.nat_abs_ne_zero_of_ne_zero b,
-  rw [finite_int_iff_nat_abs_finite, finite_nat_iff, pos_iff_ne_zero],
-  split; finish
-end
+by rw [finite_int_iff_nat_abs_finite, finite_nat_iff, pos_iff_ne_zero, int.nat_abs_ne_zero]
 
 instance decidable_nat : decidable_rel (λ a b : ℕ, (multiplicity a b).dom) :=
 λ a b, decidable_of_iff _ finite_nat_iff.symm

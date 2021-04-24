@@ -73,6 +73,9 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 @[continuity] lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
 
+lemma continuous_on_exp {s : set ℂ} : continuous_on exp s :=
+continuous_exp.continuous_on
+
 lemma times_cont_diff_exp : ∀ {n}, times_cont_diff ℂ n exp :=
 begin
   refine times_cont_diff_all_iff_nat.2 (λ n, _),
@@ -202,6 +205,9 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 
 @[continuity] lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
+
+lemma continuous_on_exp {s : set ℝ} : continuous_on exp s :=
+continuous_exp.continuous_on
 
 lemma measurable_exp : measurable exp := continuous_exp.measurable
 

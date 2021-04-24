@@ -114,6 +114,8 @@ by simp only [coe_lift_lie_eq_lift_coe, lie_module_hom.coe_to_linear_map, lift_a
 
 variables {R L M N P Q}
 
+/-- A pair of Lie module morphisms `f : M → P` and `g : N → Q`, induce a Lie module morphism:
+`M ⊗ N → P ⊗ Q`. -/
 def map (f : M →ₗ⁅R,L⁆ P) (g : N →ₗ⁅R,L⁆ Q) : M ⊗[R] N →ₗ⁅R,L⁆ P ⊗[R] Q :=
 { map_lie' := λ x t, by
     { simp only [linear_map.to_fun_eq_coe],

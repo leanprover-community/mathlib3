@@ -165,8 +165,9 @@ open set
 
 noncomputable theory
 
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
-lemma continuous_at_of_exists_open {E : Type*} [normed_group E] [normed_space ℝ E]
+lemma continuous_at_of_exists_open
   (f : E →ₗ[ℝ] ℝ) (hf : ∀ ε, 0 < ε → ∃ (U : set E), (0:E) ∈ U ∧ is_open U ∧ ∀ x ∈ U, ∥f x∥ < ε) :
   continuous_at f (0:E) :=
 begin
@@ -186,7 +187,8 @@ end
 Given a set `C` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is a
 continuous linear functional `f` which sends `x₀` to 1 and all of `C` to values strictly below 1.
 -/
-lemma separate_convex_open_set {C : set E} (zero_mem : (0:E) ∈ C) (hC : convex C) (hC₂ : is_open C)
+lemma separate_convex_open_set
+  {C : set E} (zero_mem : (0:E) ∈ C) (hC : convex C) (hC₂ : is_open C)
   (x₀ : E) (hx₀ : x₀ ∉ C) :
 ∃ (f : E →L[ℝ] ℝ), f x₀ = 1 ∧ ∀ x ∈ C, f x < 1 :=
 begin
@@ -198,7 +200,7 @@ begin
     simp },
   rcases exists_extension_of_le_sublinear f (gauge C) _ _ _ with ⟨φ, hφ₁, hφ₂⟩,
   { refine ⟨⟨φ, _⟩, _, _⟩,
-    { refine (uniform_continuous_add_group_hom_of_continuous_at_zero φ.to_add_monoid_hom _).continuous,
+    { refine (φ.to_add_monoid_hom.uniform_continuous_of_continuous_at_zero _).continuous,
       apply continuous_at_of_exists_open,
       intros ε hε,
       refine ⟨(ε • C) ∩ (-ε • C), ⟨_, _⟩, _, _⟩,
@@ -232,7 +234,7 @@ begin
   { intros c hc x,
     apply gauge_mul_nonneg (le_of_lt hc) },
   { intros x y,
-    apply gauge_subadditive hC (convex_open_zero_mem_is_absorbing zero_mem hC₂) },
+    apply gauge_subadditive hC (absorbent_nhds_zero (mem_nhds_sets hC₂ zero_mem)) },
   { rintro ⟨x, hx⟩,
     obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,
     rw linear_pmap.mk_span_singleton_apply,

@@ -46,9 +46,7 @@ instance category : large_category.{max v u} Quiv.{v u} :=
 @[simps]
 def forget : Cat.{v u} ⥤ Quiv.{v u} :=
 { obj := λ C, Quiv.of C,
-  map := λ C D F,
-  { obj := λ X, F.obj X,
-    map := λ X Y f, F.map f, }, }
+  map := λ C D F, F.to_prefunctor, }
 
 end Quiv
 

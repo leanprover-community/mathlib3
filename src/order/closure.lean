@@ -118,6 +118,28 @@ c.closure_top
 lemma closure_le_closed_iff_le {x y : α} (hy : c.closed y) : x ≤ y ↔ c x ≤ y :=
 by rw [← c.closure_eq_self_of_mem_closed hy, le_closure_iff]
 
+lemma closure_closure_union_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
+  (x y : α) :
+  c (c x ⊔ y) = c (x ⊔ y) :=
+le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (sup_le (c.monotone le_sup_left)
+  (le_trans le_sup_right (le_closure _ _)))) (c.monotone (sup_le_sup_right (le_closure _ _) _))
+
+lemma closure_closure_union_right {α : Type u} [semilattice_sup α] (c : closure_operator α)
+  (x y : α) :
+  c (x ⊔ c y) = c (x ⊔ y) :=
+by {rw [sup_comm, closure_closure_union_left, sup_comm]}
+
+lemma closure_closure_union {α : Type u} [semilattice_sup α] (c : closure_operator α)
+  (x y : α) :
+  c (c x ⊔ c y) = c (x ⊔ y) :=
+by {rw [closure_closure_union_left, closure_closure_union_right]}
+
+lemma closure_closure_bUnion {α : Type u} [complete_lattice α] (c : closure_operator α)
+  (s : set α) :
+  c (⨆ x ∈ s, c x) = c (⨆ x ∈ s, x) :=
+le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (bsupr_le (λ x hx, c.monotone
+  (le_bsupr_of_le x hx (le_refl x))))) (c.monotone (bsupr_le_bsupr (λ x hx, le_closure _ _)))
+
 /-- The set of closed elements has a Galois insertion to the underlying type. -/
 def gi : galois_insertion c.to_closed coe :=
 { choice := λ x hx, ⟨x, le_antisymm hx (c.le_closure x)⟩,

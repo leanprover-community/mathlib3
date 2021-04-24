@@ -198,6 +198,9 @@ theorem length_pos_of_ne_nil {l : list α} : l ≠ [] → 0 < length l :=
 theorem length_pos_iff_ne_nil {l : list α} : 0 < length l ↔ l ≠ [] :=
 ⟨ne_nil_of_length_pos, length_pos_of_ne_nil⟩
 
+lemma exists_mem_of_ne_nil (l : list α) (h : l ≠ []) : ∃ x, x ∈ l :=
+exists_mem_of_length_pos (length_pos_of_ne_nil h)
+
 theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
 ⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
@@ -590,6 +593,10 @@ reverse_involutive.injective
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff
 
+lemma reverse_eq_iff {l l' : list α} :
+  l.reverse = l' ↔ l = l'.reverse :=
+reverse_involutive.eq_iff
+
 @[simp] theorem reverse_eq_nil {l : list α} : reverse l = [] ↔ l = [] :=
 @reverse_inj _ l []
 
@@ -770,6 +777,14 @@ begin
 end
 
 @[simp] theorem head'_map (f : α → β) (l) : head' (map f l) = (head' l).map f := by cases l; refl
+
+lemma tail_append_of_ne_nil (l l' : list α) (h : l ≠ []) :
+  (l ++ l').tail = l.tail ++ l' :=
+begin
+  cases l,
+  { contradiction },
+  { simp }
+end
 
 /-! ### Induction from the right -/
 
@@ -1164,6 +1179,14 @@ lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
 | []     a := rfl
 | (b::l) a := by rw [cons_append, length_cons, nth, nth_concat_length]
 
+lemma nth_le_cons_length (x : α) (xs : list α) (n : ℕ) (h : n = xs.length) :
+  (x :: xs).nth_le n (by simp [h]) = (x :: xs).last (cons_ne_nil x xs) :=
+begin
+  rw last_eq_nth_le,
+  congr,
+  simp [h]
+end
+
 @[ext]
 theorem ext : ∀ {l₁ l₂ : list α}, (∀n, nth l₁ n = nth l₂ n) → l₁ = l₂
 | []      []       h := rfl
@@ -1222,6 +1245,15 @@ theorem nth_le_reverse_aux2 : ∀ (l r : list α) (i : nat) (h1) (h2),
 @[simp] theorem nth_le_reverse (l : list α) (i : nat) (h1 h2) :
   nth_le (reverse l) (length l - 1 - i) h1 = nth_le l i h2 :=
 nth_le_reverse_aux2 _ _ _ _ _
+
+lemma nth_le_reverse' (l : list α) (n : ℕ) (hn : n < l.reverse.length) (hn') :
+  l.reverse.nth_le n hn = l.nth_le (l.length - 1 - n) hn' :=
+begin
+  rw eq_comm,
+  convert nth_le_reverse l.reverse _ _ _ using 1,
+  { simp },
+  { simpa }
+end
 
 lemma eq_cons_of_length_one {l : list α} (h : l.length = 1) :
   l = [l.nth_le 0 (h.symm ▸ zero_lt_one)] :=

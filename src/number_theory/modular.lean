@@ -206,10 +206,24 @@ section finite_pairs
 
 open filter continuous_linear_map
 
+-- this lemma and the next are about the properness of certain standard functions on `ℝ`/`ℂ`, where
+-- should they live?
+/-- The `norm_sq` function on `ℂ` is proper. -/
 lemma tendsto_at_top_norm_sq : tendsto norm_sq (cocompact ℂ) at_top :=
 begin
   convert tendsto_norm_cocompact_at_top.at_top_mul_at_top tendsto_norm_cocompact_at_top,
   { simp [mul_self_abs] },
+  { apply_instance },
+  { apply_instance }
+end
+
+/-- The `abs` function on `ℝ` is proper. -/
+lemma tendsto_at_top_abs :
+  tendsto _root_.abs (cocompact ℝ) at_top :=
+begin
+  rw has_basis_cocompact.tendsto_iff at_top_basis_Ioi,
+  { refine λ b _, ⟨set.Icc (-b) b, compact_Icc, λ x hx, _⟩,
+    simpa [lt_abs, or_comm, lt_neg, not_and_distrib] using hx },
   { apply_instance },
   { apply_instance }
 end
@@ -434,46 +448,16 @@ begin
   sorry
 end
 
-section
-variables {k U V : Type*} [nondiscrete_normed_field k] [complete_space k]
-  [normed_group U] [normed_group V] [normed_space k U] [normed_space k V]
-  {f : linear_map k U V}
-
--- for `analysis.normed_space.finite_dimension`
-/-- An injective linear map with finite-dimensional domain is a closed embedding. -/
-lemma linear_equiv.closed_embedding_of_injective (hf : f.ker = ⊥) [finite_dimensional k U] :
-  closed_embedding ⇑f :=
-let g := linear_equiv.of_injective f hf in
-{ closed_range := begin
-    haveI := f.finite_dimensional_range,
-    simpa [f.range_coe] using f.range.closed_of_finite_dimensional
-  end,
-  .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
-
-end
-
-/- Non-crap lemma: Absolute value function is cocompact -/
-lemma tendsto_at_top_abs :
-  tendsto _root_.abs (cocompact ℝ) at_top :=
-begin
-  rw has_basis_cocompact.tendsto_iff at_top_basis_Ioi,
-  { refine λ b _, ⟨set.Icc (-b) b, compact_Icc, λ x hx, _⟩,
-    simpa [lt_abs, or_comm, lt_neg, not_and_distrib] using hx },
-  { apply_instance },
-  { apply_instance }
-end
-
-
 
 def acbd (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 cd.1.1 • matrix.coord 0 0 + cd.1.2 • matrix.coord 0 1
 
 
 /-- map sending the matrix [a b; c d] to `(ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)` -/
-def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] (ℝ × (fin 2 → ℝ)) :=
-((cd.1.2 : ℝ) • matrix.coord 0 0 - (cd.1.1 : ℝ) • matrix.coord 0 1).prod (linear_map.proj 1)
+def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((ℝ × ℝ) × (fin 2 → ℝ)) :=
+((acbd cd).prod ((cd.1.2 : ℝ) • matrix.coord 0 0 - (cd.1.1 : ℝ) • matrix.coord 0 1)).prod (linear_map.proj 1)
 
-lemma lin_indep_acbd (cd : coprime_ints) : ((acbd cd).prod (line_map cd)).ker = ⊥ :=
+lemma lin_indep_acbd (cd : coprime_ints) : (line_map cd).ker = ⊥ :=
 begin
   -- ALEX HOMEWORK? (but might be hard)
   -- the nice theorem about the matrix `[c d; -d c]` being invertible
@@ -485,19 +469,19 @@ theorem big_thm (cd : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {cd}, acbd cd ↑g) cofinite (cocompact ℝ) :=
 begin
   let cd' : fin 2 → ℤ :=  λ i, if i = 0 then cd.1.1 else cd.1.2,
-  let mB : ℝ → ℝ × (ℝ × (fin 2 → ℝ)) := λ t, (t, (1, coe ∘ cd')),
-  have hmB : continuous mB := continuous_id.prod_mk continuous_const,
+  let mB : ℝ → ((ℝ × ℝ) × (fin 2 → ℝ)) := λ t, ((t, 1), coe ∘ cd'),
+  have hmB : continuous mB := sorry, --continuous_id.prod_mk continuous_const,
   convert filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
-  let f₂ : matrix (fin 2) (fin 2) ℝ → ℝ × (ℝ × (fin 2 → ℝ)) := (acbd cd).prod (line_map cd),
+  let f₂ : (matrix (fin 2) (fin 2) ℝ) → ((ℝ × ℝ) × (fin 2 → ℝ)) := line_map cd,
   have hf₂ : tendsto f₂ (cocompact _) (cocompact _) :=
     (linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd)).tendsto_cocompact,
   convert hf₂.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   funext g,
   obtain ⟨g, hg⟩ := g,
-  simp [mB, f₁, f₂, cd', line_map, matrix.coord],
+  simp [mB, f₁, cd', line_map, matrix.coord],
   simp [bottom_row] at hg,
   split,
   { norm_cast,

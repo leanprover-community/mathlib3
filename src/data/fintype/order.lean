@@ -106,14 +106,14 @@ section decidable_Sup_Inf
 
 local attribute [instance] fintype.complete_lattice
 
-/-- The `Sup` induced by `fintype.complete_semilattice` unfolds to `finset.sup`. -/
+/-- The `Sup` induced by `fintype.complete_lattice` unfolds to `finset.sup`. -/
 lemma fintype.Sup_eq {α : Type*} [fintype α] [bounded_lattice α] (s : set α)
   [decidable_pred (∈ s)] : Sup s = s.to_finset.sup id :=
-by {convert rfl}
+by convert rfl
 
-/-- The `Inf` induced by `fintype.complete_semilattice` unfolds to `finset.inf`. -/
+/-- The `Inf` induced by `fintype.complete_lattice` unfolds to `finset.inf`. -/
 lemma fintype.Inf_eq {α : Type*} [fintype α] [bounded_lattice α] (s : set α)
   [decidable_pred (∈ s)] : Inf s = s.to_finset.inf id :=
-by {convert rfl}
+by convert rfl
 
 end decidable_Sup_Inf

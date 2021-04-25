@@ -252,6 +252,17 @@ let ⟨m, hm⟩ := @exists_maximal_of_nonempty_chains_bounded α (≤) _ h (λ a
 ⟨m, λ a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)
+  (ih : ∀ c ⊆ s, chain (≤) c → ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) :
+  ∃ m ∈ s, ∀ z ∈ s, m ≤ z → z = m :=
+let ⟨⟨m, hms⟩, h⟩ := @zorn_partial_order {m // m ∈ s} _
+  (λ c hc,
+    let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (λ _ ⟨⟨x, hx⟩, _, h⟩, h ▸ hx)
+      (by { rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
+        refine hc _ hpc _ hqc (λ t, hpq (subtype.ext_iff.1 t)) })
+    in ⟨⟨ub, hubs⟩, λ ⟨y, hy⟩ hc, hub _ ⟨_, hc, rfl⟩⟩)
+in ⟨m, hms, λ z hzs hmz, congr_arg subtype.val (h ⟨z, hzs⟩ hmz)⟩
+
+theorem zorn_nonempty_partial_order₀ {α : Type u} [partial_order α] (s : set α)
   (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub)
   (x : α) (hxs : x ∈ s) : ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
 let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _
@@ -268,33 +279,12 @@ let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m}
 theorem zorn_subset {α : Type u} (S : set (set α))
   (h : ∀ c ⊆ S, chain (⊆) c → ∃ ub ∈ S, ∀ s ∈ c, s ⊆ ub) :
   ∃ m ∈ S, ∀ a ∈ S, m ⊆ a → a = m :=
-begin
-  letI : partial_order S := partial_order.lift subtype.val (λ _ _, subtype.ext_val),
-  suffices : ∀ c : set S, @chain S (≤) c → ∃ ub, ∀ a ∈ c, a ≤ ub,
-  { obtain ⟨⟨m, mS⟩, hm⟩ := zorn_partial_order this,
-    exact ⟨m, mS, λ a aS ha, congr_arg subtype.val (hm ⟨a, aS⟩ ha)⟩ },
-  intros c hc,
-  obtain ⟨s, sS, hs⟩ := h (subtype.val '' c) (image_subset_iff.2 _) _,
-  { exact ⟨⟨s, sS⟩, λ ⟨x, hx⟩ H, hs _ (mem_image_of_mem _ H)⟩ },
-  { exact λ ⟨x, hx⟩ _, hx },
-  rintro _ ⟨x, cx, rfl⟩ _ ⟨y, cy, rfl⟩ xy,
-  exact hc x cx y cy (mt (congr_arg _) xy),
-end
+zorn_partial_order₀ S h
 
-theorem zorn_subset₀ {α : Type u} (S : set (set α))
-  (H : ∀ c ⊆ S, chain (⊆) c → c.nonempty → ∃ ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
-  ∃ m ∈ S, x ⊆ m ∧ ∀ a ∈ S, m ⊆ a → a = m :=
-begin
-  let T := {s ∈ S | x ⊆ s},
-  obtain ⟨m, ⟨mS, mx⟩, hm⟩ := zorn_subset T _,
-  { exact ⟨m, mS, mx, λ a ha ha', hm a ⟨ha, subset.trans mx ha'⟩ ha'⟩ },
-  intros c cT hc,
-  cases c.eq_empty_or_nonempty with c0 c0,
-  { rw c0, exact ⟨x, ⟨hx, subset.refl _⟩, λ _, false.elim⟩ },
-  obtain ⟨ub, us, h⟩ := H _ (subset.trans cT (sep_subset _ _)) hc c0,
-  obtain ⟨s, hs⟩ := c0,
-  exact ⟨ub, ⟨us, subset.trans (cT hs).2 (h _ hs)⟩, h⟩,
-end
+theorem zorn_subset_nonempty {α : Type u} (S : set (set α))
+  (H : ∀c ⊆ S, chain (⊆) c → c.nonempty → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
+  ∃ m ∈ S, x ⊆ m ∧ ∀a ∈ S, m ⊆ a → a = m :=
+zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx
 
 theorem zorn_superset {α : Type*} (S : set (set α))
   (h : ∀ c ⊆ S, zorn.chain (⊆) c → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
@@ -312,7 +302,7 @@ begin
   exact ⟨⟨_, ht₁⟩, λ a ha, ht₂ a ⟨_, ha, rfl⟩⟩,
 end
 
-theorem zorn_superset₀ {α : Type u} (S : set (set α))
+theorem zorn_superset_nonempty {α : Type u} (S : set (set α))
   (H : ∀ c ⊆ S, chain (⊆) c → c.nonempty → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) (x) (hx : x ∈ S) :
   ∃ m ∈ S, m ⊆ x ∧ ∀ a ∈ S, a ⊆ m → a = m :=
 begin

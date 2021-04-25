@@ -151,8 +151,6 @@ begin
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
 end
 
-variable [decidable_eq α]
-
 lemma support_pow_coprime {σ : perm α} {n : ℕ} (h : nat.coprime n (order_of σ)) :
   (σ ^ n).support = σ.support :=
 begin
@@ -160,6 +158,8 @@ begin
   exact le_antisymm (support_pow_le σ n) (le_trans (ge_of_eq (congr_arg support hm))
     (support_pow_le (σ ^ n) m)),
 end
+
+variable [decidable_eq α]
 
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y

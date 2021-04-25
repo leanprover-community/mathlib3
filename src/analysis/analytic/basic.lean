@@ -182,23 +182,44 @@ lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h
 in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
 
-lemma le_radius_of_summable (p : formal_multilinear_series 𝕜 E F)
+lemma le_radius_of_tendsto (p : formal_multilinear_series 𝕜 E F) {l : ℝ}
+  (h : tendsto (λ n, ∥p n∥ * r^n) at_top (𝓝 l)) : ↑r ≤ p.radius :=
+p.le_radius_of_is_O (is_O_one_of_tendsto _ h)
+
+lemma le_radius_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
   (hs : summable (λ n, ∥p n∥ * r^n)) : ↑r ≤ p.radius :=
+p.le_radius_of_tendsto hs.tendsto_at_top_zero
+
+lemma not_summable_norm_of_radius_lt_nnnorm (p : formal_multilinear_series 𝕜 E F) {x : E}
+  (h : p.radius < nnnorm x) : ¬ summable (λ n, ∥p n∥ * ∥x∥^n) :=
+λ hs, not_le_of_lt h (p.le_radius_of_summable_norm hs)
+
+lemma summable_norm_of_lt_radius (p : formal_multilinear_series 𝕜 E F)
+  (h : ↑r < p.radius) : summable (λ n, ∥p n∥ * r^n) :=
 begin
-  suffices : tendsto (λ n, ∥p n∥ * r ^ n) at_top (𝓝 0),
-  { exact le_radius_of_is_O p (is_O_one_of_tendsto _ this) },
-  exact hs.tendsto_at_top_zero
+  obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
+    p.norm_mul_pow_le_mul_pow_of_lt_radius h,
+  refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
+    ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)),
+  specialize hp n,
+  rwa real.norm_of_nonneg (mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg n))
 end
 
-lemma not_summable_of_radius_lt_nnnorm (p : formal_multilinear_series 𝕜 E F) {x : E}
-  (h : p.radius < nnnorm x) : ¬ summable (λ n, ∥p n∥ * ∥x∥^n) :=
-λ hs, not_le_of_lt h (le_radius_of_summable p hs)
+lemma summable_of_nnnorm_lt_radius (p : formal_multilinear_series 𝕜 E F) [complete_space F]
+  {x : E} (h : ↑(nnnorm x) < p.radius) : summable (λ n, p n (λ i, x)) :=
+begin
+  refine summable_of_norm_bounded (λ n, ∥p n∥ * (nnnorm x)^n) (p.summable_norm_of_lt_radius h) _,
+  intros n,
+  calc ∥(p n) (λ (i : fin n), x)∥
+      ≤ ∥p n∥ * (∏ i : fin n, ∥x∥) : continuous_multilinear_map.le_op_norm _ _
+      ... = ∥p n∥ * (nnnorm x)^n : by simp
+end
 
-lemma radius_eq_top_of_summable (p : formal_multilinear_series 𝕜 E F)
+lemma radius_eq_top_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
   (hs : ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n)) : p.radius = ⊤ :=
-ennreal.eq_top_of_forall_nnreal_le (λ r, p.le_radius_of_summable (hs r))
+ennreal.eq_top_of_forall_nnreal_le (λ r, p.le_radius_of_summable_norm (hs r))
 
-lemma radius_eq_top_iff_summable (p : formal_multilinear_series 𝕜 E F) :
+lemma radius_eq_top_iff_summable_norm (p : formal_multilinear_series 𝕜 E F) :
   p.radius = ⊤ ↔ ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n) :=
 begin
   split,
@@ -210,7 +231,7 @@ begin
       ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)),
     specialize hp n,
     rwa real.norm_of_nonneg (mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg n)) },
-  { exact radius_eq_top_of_summable p }
+  { exact p.radius_eq_top_of_summable_norm }
 end
 
 /-- If the radius of `p` is positive, then `∥pₙ∥` grows at most geometrically. -/
@@ -620,14 +641,7 @@ lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
     rw zero_add,
     replace hy : (nnnorm y : ℝ≥0∞) < p.radius,
       by { convert hy, exact (edist_eq_coe_nnnorm _).symm },
-    obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
-      p.norm_mul_pow_le_mul_pow_of_lt_radius hy,
-    refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
-      ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)).has_sum,
-    calc ∥(p n) (λ (i : fin n), y)∥
-      ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) : continuous_multilinear_map.le_op_norm _ _
-      ... = ∥p n∥ * (nnnorm y)^n : by simp
-      ... ≤ C * a ^ n : hp n
+    exact (p.summable_of_nnnorm_lt_radius hy).has_sum
   end }
 
 lemma has_fpower_series_on_ball.sum [complete_space F] (h : has_fpower_series_on_ball f p x r)

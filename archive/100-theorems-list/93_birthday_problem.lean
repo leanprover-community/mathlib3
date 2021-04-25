@@ -49,10 +49,6 @@ def embedding_of_subtype (α β) [fintype α] [fintype β] : (α ↪ β) ≃ {f 
 noncomputable instance fintype.embedding {α β} [fintype α] [fintype β] : fintype (α ↪ β) :=
 fintype.of_equiv {f : α → β // injective f} (embedding_of_subtype α β).symm
 
--- I can never quite figure out ▸ :(
-lemma less_injs {α β} [fintype α] [fintype β] : ‖α ↪ β‖ ≤ ‖α → β‖ :=
-by {rw fintype.of_equiv_card, exact fintype.card_subtype_le injective}
-
 lemma card_inj' (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) : ‖fin n ↪ β‖ = desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,

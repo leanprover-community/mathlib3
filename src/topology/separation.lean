@@ -734,33 +734,17 @@ section regularity
 class regular_space (α : Type u) [topological_space α] extends t0_space α : Prop :=
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
-def regular_property (α : Type u) [topological_space α] := ∀ {x} {F : set α} (hF : is_closed F)
-  (hxF: x ∉ F), ∃ (U V : set α) (hU : is_open U) (hV : is_open V) (hUV : U ∩ V = ∅),
-  (x ∈ U) ∧ (F ⊆ V)
-
-lemma regular_property_iff_regular_space.regular (α : Type u) [topological_space α] :
-regular_property α ↔ ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥ :=
-⟨λ h x F hF hxF,
-  let ⟨U, V, hU, hV, hUV, hh⟩ := h hF hxF,
-    hhUV := inter_mem_inf_sets (mem_nhds_sets hU hh.1) (mem_principal_self V) in
-  ⟨V, hV, hh.2, empty_in_sets_eq_bot.mp (by rwa[← hUV])⟩,
-λ h F x hF hFx,
-  let ⟨U, hU, hhU⟩ := h hF hFx,
-    ⟨V, H, hV⟩ := mem_nhds_sets_iff.1 (filter.inf_principal_eq_bot.1 hhU.2) in
-  ⟨V, U, hV.1, hU, subset_compl_iff_disjoint.mp H, hV.2, hhU.1⟩⟩
-
 @[priority 100] -- see Note [lower instance priority]
 instance regular_space.t1_space [regular_space α] : t1_space α :=
 begin
   apply t1_characterisation.mpr ,
   intros x y hxy,
-  obtain ⟨U, hU, hh⟩ := t0_space.t0 x y hxy,
-  cases hh,
-  {exact ⟨U, hU, hh⟩},
-  { obtain ⟨T, V, hT, hV, hTV, hhh⟩ := (regular_property_iff_regular_space.regular α).2
-      (@regular_space.regular α _inst_1 _inst_2) (is_closed_compl_iff.mpr hU) (not_not.mpr hh.1),
-    exact ⟨V, hV, hhh.2 (mem_compl hh.2), (mem_compl_iff V y).mp
-      (subset_compl_iff_disjoint.2 hTV hhh.1)⟩},
+  obtain ⟨U, hU, h⟩ := t0_space.t0 x y hxy,
+  cases h,
+  { exact ⟨U, hU, h⟩},
+  { obtain ⟨R, hR, hh⟩ := regular_space.regular (is_closed_compl_iff.mpr hU) (not_not.mpr h.1),
+    obtain ⟨V, hV, hhh⟩ := mem_nhds_sets_iff.1 (filter.inf_principal_eq_bot.1 hh.2),
+    exact ⟨R, hR, hh.1 (mem_compl h.2), hV hhh.2⟩}
 end
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
@@ -802,15 +786,14 @@ eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
 @[priority 100] -- see Note [lower instance priority]
 instance regular_space.t2_5_space [regular_space α] : t2_5_space α :=
 ⟨λ x y hxy,
-let ⟨U, V, hU, hV, hh_1, hh_2, hUV⟩ := t2_space.t2 x y hxy, hxcV := not_not.mpr
-    ((@interior_maximal α _inst_1 Vᶜ U (subset_compl_iff_disjoint.mpr hUV) hU) x hh_1),
-  ⟨A, B, hA, hB, hAB, hh2⟩ := (regular_property_iff_regular_space.regular α).2
-    (@regular_space.regular α _inst_1 _inst_2) is_closed_closure
-(by rwa closure_eq_compl_interior_compl),
-  hcA := subset.trans (closure_minimal (subset_compl_iff_disjoint.mpr hAB)
-    (is_closed_compl_iff.mpr hB)) (compl_subset_compl.2 hh2.2) in
-⟨A, V, hA, hV, subset_eq_empty ((closure V).inter_subset_inter_left hcA)
-  (compl_inter_self (closure V)), hh2.1, hh_2⟩⟩
+let ⟨U, V, hU, hV, hh_1, hh_2, hUV⟩ := t2_space.t2 x y hxy,
+  hxcV := not_not.mpr ((@interior_maximal α _inst_1 Vᶜ U
+    (subset_compl_iff_disjoint.mpr hUV) hU) x hh_1),
+  ⟨R, hR, hh⟩ := regular_space.regular is_closed_closure (by rwa closure_eq_compl_interior_compl),
+  ⟨A, hA, hhh⟩ := mem_nhds_sets_iff.1 (filter.inf_principal_eq_bot.1 hh.2) in
+⟨A, V, hhh.1, hV, subset_eq_empty ((closure V).inter_subset_inter_left
+  (subset.trans (closure_minimal hA (is_closed_compl_iff.mpr hR)) (compl_subset_compl.mpr hh.1)))
+  (compl_inter_self (closure V)), hhh.2, hh_2⟩⟩
 
 variable {α}
 

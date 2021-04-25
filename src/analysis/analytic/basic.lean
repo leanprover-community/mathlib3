@@ -82,8 +82,9 @@ namespace formal_multilinear_series
 
 variables (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
 
-/-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ pₙ yⁿ`
-converges for all `∥y∥ < r`. -/
+/-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ ∥pₙ∥ ∥y∥ⁿ`
+converges for all `∥y∥ < r`. This implies that `Σ pₙ yⁿ` converges for all `∥y∥ < r`, but these
+definitions are *not* equivalent in general. -/
 def radius (p : formal_multilinear_series 𝕜 E F) : ℝ≥0∞ :=
 ⨆ (r : ℝ≥0) (C : ℝ) (hr : ∀ n, ∥p n∥ * r ^ n ≤ C), (r : ℝ≥0∞)
 

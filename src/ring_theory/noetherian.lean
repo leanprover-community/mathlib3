@@ -75,7 +75,7 @@ lemma fg_iff_add_monoid_fg :
 begin
   split,
   { rintro ⟨S, hS⟩,
-    refine ⟨S, _⟩,
+    refine add_monoid.fg_def.2 ⟨S, _⟩,
     rw [← submodule.span_nat_eq_add_submonoid_closure],
     simp only [hS, submodule.top_to_add_submonoid] },
   { rintro ⟨S, hS⟩,

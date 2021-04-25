@@ -595,7 +595,7 @@ reverse_injective.eq_iff
 
 lemma reverse_eq_iff {l l' : list α} :
   l.reverse = l' ↔ l = l'.reverse :=
-by rw [←reverse_reverse l', reverse_inj, reverse_reverse]
+reverse_involutive.eq_iff
 
 @[simp] theorem reverse_eq_nil {l : list α} : reverse l = [] ↔ l = [] :=
 @reverse_inj _ l []
@@ -770,13 +770,19 @@ theorem head_mem_head' [inhabited α] : ∀ {l : list α} (h : l ≠ []), head l
 theorem cons_head_tail [inhabited α] {l : list α} (h : l ≠ []) : (head l)::(tail l) = l :=
 cons_head'_tail (head_mem_head' h)
 
+lemma head_mem_self [inhabited α] {l : list α} (h : l ≠ nil) : l.head ∈ l :=
+begin
+  have h' := mem_cons_self l.head l.tail,
+  rwa cons_head_tail h at h',
+end
+
 @[simp] theorem head'_map (f : α → β) (l) : head' (map f l) = (head' l).map f := by cases l; refl
 
 lemma tail_append_of_ne_nil (l l' : list α) (h : l ≠ []) :
   (l ++ l').tail = l.tail ++ l' :=
 begin
   cases l,
-  { simpa using h },
+  { contradiction },
   { simp }
 end
 
@@ -3561,7 +3567,9 @@ theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop
 
 theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
 
-theorem tail_subset (l : list α) : tail l ⊆ l := (sublist_of_suffix (tail_suffix l)).subset
+lemma tail_sublist (l : list α) : l.tail <+ l := sublist_of_suffix (tail_suffix l)
+
+theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
 
 theorem prefix_iff_eq_append {l₁ l₂ : list α} : l₁ <+: l₂ ↔ l₁ ++ drop (length l₁) l₂ = l₂ :=
 ⟨by rintros ⟨r, rfl⟩; rw drop_left, λ e, ⟨_, e⟩⟩

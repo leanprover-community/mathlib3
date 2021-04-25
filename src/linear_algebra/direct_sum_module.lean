@@ -21,14 +21,14 @@ All of this file assumes that
 * `R` is a commutative ring,
 * `ι` is a discrete type,
 * `S` is a finite set in `ι`,
-* `M` is a family of `R` semimodules indexed over `ι`.
+* `M` is a family of `R` modules indexed over `ι`.
 -/
 
 universes u v w u₁
 
 variables (R : Type u) [semiring R]
 variables (ι : Type v) [dec_ι : decidable_eq ι] (M : ι → Type w)
-variables [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
+variables [Π i, add_comm_monoid (M i)] [Π i, module R (M i)]
 include R
 
 namespace direct_sum
@@ -36,10 +36,10 @@ open_locale direct_sum
 
 variables {R ι M}
 
-instance : semimodule R (⨁ i, M i) := dfinsupp.semimodule
-instance {S : Type*} [semiring S] [Π i, semimodule S (M i)] [Π i, smul_comm_class R S (M i)] :
+instance : module R (⨁ i, M i) := dfinsupp.module
+instance {S : Type*} [semiring S] [Π i, module S (M i)] [Π i, smul_comm_class R S (M i)] :
   smul_comm_class R S (⨁ i, M i) := dfinsupp.smul_comm_class
-instance {S : Type*} [semiring S] [has_scalar R S] [Π i, semimodule S (M i)]
+instance {S : Type*} [semiring S] [has_scalar R S] [Π i, module S (M i)]
   [Π i, is_scalar_tower R S (M i)] :
   is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
 
@@ -49,7 +49,7 @@ lemma smul_apply (b : R) (v : ⨁ i, M i) (i : ι) :
 include dec_ι
 
 variables R ι M
-/-- Create the direct sum given a family `M` of `R` semimodules indexed over `ι`. -/
+/-- Create the direct sum given a family `M` of `R` modules indexed over `ι`. -/
 def lmk : Π s : finset ι, (Π i : (↑s : set ι), M i.val) →ₗ[R] (⨁ i, M i) :=
 dfinsupp.lmk
 
@@ -73,7 +73,7 @@ variables {R}
 lemma support_smul [Π (i : ι) (x : M i), decidable (x ≠ 0)]
   (c : R) (v : ⨁ i, M i) : (c • v).support ⊆ v.support := dfinsupp.support_smul _ _
 
-variables {N : Type u₁} [add_comm_monoid N] [semimodule R N]
+variables {N : Type u₁} [add_comm_monoid N] [module R N]
 variables (φ : Π i, M i →ₗ[R] N)
 
 variables (R ι N φ)
@@ -112,7 +112,7 @@ to_module R _ _ $ λ i, lof R T (λ (i : subtype T), M i) ⟨i, H i.prop⟩
 omit dec_ι
 
 /-- The natural linear equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
-protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [semimodule R M]
+protected def lid (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [module R M]
   [unique ι] :
   (⨁ (_ : ι), M) ≃ₗ M :=
 { .. direct_sum.id M ι,

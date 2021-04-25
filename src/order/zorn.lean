@@ -40,7 +40,7 @@ match H.total_of_refl hx hy with
 | or.inr h := ⟨x, hx, refl _, h⟩
 end
 
-theorem chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀ b∈c, b ≠ a → a ≺ b ∨ b ≺ a) :
+theorem chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀ b ∈ c, b ≠ a → a ≺ b ∨ b ≺ a) :
   chain (insert a c) :=
 forall_insert_of_forall
   (assume x hx, forall_insert_of_forall (hc x hx) (assume hneq, (ha x hx hneq).symm))
@@ -88,7 +88,7 @@ else by simp [succ_chain, dif_neg, h, subset.refl]
 /-- Set of sets reachable from `∅` using `succ_chain` and `⋃₀`. -/
 inductive chain_closure : set α → Prop
 | succ : ∀ {s}, chain_closure s → chain_closure (succ_chain s)
-| union : ∀ {s}, (∀ a∈s, chain_closure a) → chain_closure (⋃₀ s)
+| union : ∀ {s}, (∀ a ∈ s, chain_closure a) → chain_closure (⋃₀ s)
 
 theorem chain_closure_empty : chain_closure ∅ :=
 have chain_closure (⋃₀ ∅),
@@ -147,7 +147,8 @@ begin
     { exact (h₁ $ subset.trans succ_increasing h) } }
 end
 
-theorem chain_closure_total (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂) : c₁ ⊆ c₂ ∨ c₂ ⊆ c₁ :=
+theorem chain_closure_total (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂) :
+  c₁ ⊆ c₂ ∨ c₂ ⊆ c₁ :=
 have c₁ ⊆ c₂ ∨ succ_chain c₂ ⊆ c₁,
   from chain_closure_succ_total_aux hc₁ hc₂ $ assume c₃ hc₃, chain_closure_succ_total hc₃ hc₂,
 or.imp_right (assume : succ_chain c₂ ⊆ c₁, subset.trans succ_increasing this) this
@@ -181,7 +182,7 @@ begin
   case succ : c hc h {
     exact chain_succ h },
   case union : s hs h {
-    have h : ∀ c∈s, zorn.chain c := h,
+    have h : ∀ c ∈ s, zorn.chain c := h,
     exact assume c₁ ⟨t₁, ht₁, (hc₁ : c₁ ∈ t₁)⟩ c₂ ⟨t₂, ht₂, (hc₂ : c₂ ∈ t₂)⟩ hneq,
       have t₁ ⊆ t₂ ∨ t₂ ⊆ t₁, from chain_closure_total (hs _ ht₁) (hs _ ht₂),
       or.elim this
@@ -211,11 +212,11 @@ h₃ this.symm
 
 If every chain has an upper bound, then there is a maximal element -/
 theorem exists_maximal_of_chains_bounded
-  (h : ∀ c, chain c → ∃ ub, ∀ a∈c, a ≺ ub) (trans : ∀ {a b c}, a ≺ b → b ≺ c → a ≺ c) :
+  (h : ∀ c, chain c → ∃ ub, ∀ a ∈ c, a ≺ ub) (trans : ∀ {a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃ m, ∀ a, m ≺ a → a ≺ m :=
-have ∃ ub, ∀ a∈max_chain, a ≺ ub,
+have ∃ ub, ∀ a ∈ max_chain, a ≺ ub,
   from h _ $ max_chain_spec.left,
-let ⟨ub, (hub : ∀ a∈max_chain, a ≺ ub)⟩ := this in
+let ⟨ub, (hub : ∀ a ∈ max_chain, a ≺ ub)⟩ := this in
 ⟨ub, assume a ha,
   have chain (insert a max_chain),
     from chain_insert max_chain_spec.left $ assume b hb _, or.inr $ trans (hub b hb) ha,
@@ -229,7 +230,8 @@ If every nonempty chain of a nonempty type has an upper bound, then there is a m
 (A variant of Zorn's lemma.)
 -/
 theorem exists_maximal_of_nonempty_chains_bounded [nonempty α]
-  (h : ∀ c, chain c → c.nonempty → ∃ ub, ∀ a∈c, a ≺ ub) (trans : ∀ {a b c}, a ≺ b → b ≺ c → a ≺ c) :
+  (h : ∀ c, chain c → c.nonempty → ∃ ub, ∀ a ∈ c, a ≺ ub)
+   (trans : ∀ {a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃ m, ∀ a, m ≺ a → a ≺ m :=
 exists_maximal_of_chains_bounded
   (λ c hc,
@@ -240,8 +242,14 @@ exists_maximal_of_chains_bounded
 
 end chain
 
+--This lemma isn't under section `chain` because `parameters` messes up with it. Feel free to fix it
+theorem chain.symm {α : Type u} {s : set α} {q : α → α → Prop} (h : chain q s) :
+  chain (flip q) s :=
+h.mono' (λ _ _, or.symm)
+
 theorem zorn_partial_order {α : Type u} [partial_order α]
-  (h : ∀ c:set α, chain (≤) c → ∃ ub, ∀ a∈c, a ≤ ub) : ∃ m:α, ∀ a, m ≤ a → a = m :=
+  (h : ∀ c : set α, chain (≤) c → ∃ ub, ∀ a ∈ c, a ≤ ub) :
+  ∃ m : α, ∀ a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
@@ -286,37 +294,16 @@ theorem zorn_subset_nonempty {α : Type u} (S : set (set α))
   ∃ m ∈ S, x ⊆ m ∧ ∀a ∈ S, m ⊆ a → a = m :=
 zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx
 
-theorem zorn_superset {α : Type*} (S : set (set α))
+theorem zorn_superset {α : Type u} (S : set (set α))
   (h : ∀ c ⊆ S, zorn.chain (⊆) c → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
   ∃ m ∈ S, ∀ a ∈ S, a ⊆ m → a = m :=
-begin
-  let rev : S → S → Prop := λ X Y, Y.1 ⊆ X.1,
-  suffices hS : ∀ (c : set S), zorn.chain rev c → ∃ ub, ∀ a ∈ c, rev a ub,
-  { obtain ⟨m, hm₁⟩ := zorn.exists_maximal_of_chains_bounded hS (λ x y z xy yz,
-    set.subset.trans yz xy),
-    exact ⟨m, m.prop, λ a ha ha₂, set.subset.antisymm ha₂ (hm₁ ⟨a, ha⟩ ha₂)⟩ },
-  intros c hc,
-  obtain ⟨t, ht₁, ht₂⟩ := h (coe '' c) (by simp)
-    (by { rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ ne,
-          exact (hc _ hx _ hy (λ t, ne (congr_arg coe t))).symm }),
-  exact ⟨⟨_, ht₁⟩, λ a ha, ht₂ a ⟨_, ha, rfl⟩⟩,
-end
+@zorn_partial_order₀ (order_dual (set α)) _ S $ λ c cS hc, h c cS (chain.symm hc)
 
 theorem zorn_superset_nonempty {α : Type u} (S : set (set α))
   (H : ∀ c ⊆ S, chain (⊆) c → c.nonempty → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) (x) (hx : x ∈ S) :
   ∃ m ∈ S, m ⊆ x ∧ ∀ a ∈ S, a ⊆ m → a = m :=
-begin
-  let T := {s ∈ S | s ⊆ x},
-  obtain ⟨m, ⟨mS, mx⟩, hm⟩ := zorn_superset T _,
-  { exact ⟨m, mS, mx, λ a ha ha', hm a ⟨ha, subset.trans ha' mx⟩ ha'⟩ },
-  intros c cT hc,
-  cases c.eq_empty_or_nonempty with c0 c0,
-  { rw c0, exact ⟨x, ⟨hx, subset.refl _⟩, λ _, false.elim⟩ },
-  obtain ⟨lb, ls, h⟩ := H _ (subset.trans cT (sep_subset _ _)) hc c0,
-  obtain ⟨s, hs⟩ := c0,
-  exact ⟨lb, ⟨ls, subset.trans (h _ hs) (cT hs).2⟩, h⟩,
-end
-
+@zorn_nonempty_partial_order₀ (order_dual (set α)) _ S (λ c cS hc y yc, H _ cS
+  (chain.symm hc) ⟨y, yc⟩) _ hx
 theorem chain.total {α : Type u} [preorder α]
   {c : set α} (H : chain (≤) c) :
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=

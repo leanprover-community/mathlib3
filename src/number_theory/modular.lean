@@ -214,6 +214,7 @@ begin
   { apply_instance }
 end
 
+-- this lemma should disappear and its uses be replaced by `closed_embedding.tendsto_cocompact`
 lemma tendsto_cocompact_of_left_inverse {α β : Type*} [topological_space α] [topological_space β]
   {f : α → β} {g : β → α} (hg : continuous g) (hfg : function.left_inverse g f) :
   tendsto f (cocompact α) (cocompact β) :=
@@ -258,7 +259,7 @@ begin
   { convert tendsto_at_top_norm_sq.comp (h₁.comp h₂),
     ext,
     simp },
-  exact (h₃.comp (tendsto_embedding_cofinite (function.embedding.subtype _))),
+  exact h₃.comp subtype.coe_injective.tendsto_cofinite,
 end
 
 end finite_pairs
@@ -375,22 +376,6 @@ instance {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
   normed_space α (matrix n m α) :=
 pi.normed_space
 
--- for `order.filter.basic`
-lemma filter.tendsto.of_tendsto_comp {β A B : Type*} {lβ : filter β} {lA : filter A}
-  {lB : filter B} {g : A → B} {mB : B → β}
-  (hAβ : tendsto (mB ∘ g) lA lβ) (hBβ : comap mB lβ ≤ lB) :
-  tendsto g lA lB :=
-begin
-  rw tendsto_iff_comap at hAβ ⊢,
-  calc lA ≤ comap (mB ∘ g) lβ : hAβ
-  ... ≤ comap g lB : by simpa [comap_comap] using comap_mono hBβ
-end
-
--- for `order.filter.cofinite`
-lemma function.injective.tendsto_cofinite {α A : Type*} {mA : A → α} (hmA : function.injective mA) :
-  tendsto mA cofinite cofinite :=
-λ s h, h.preimage (hmA.inj_on _)
-
 -- ugly, clean up somehow?
 -- for `topology.subset_properties`
 lemma comap_cocompact {β B : Type*} [topological_space β] [topological_space B] {mB : B → β}
@@ -415,7 +400,7 @@ end
 lemma cocompact_ℝ_to_cofinite_ℤ (ι : Type*) [fintype ι] :
   tendsto ((λ (p : ι → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact (ι → ℝ)) :=
 by simpa [←Coprod_cofinite,←Coprod_cocompact]
-  using tendsto.prod_map_Coprod (λ i, int.tendsto_coe_cofinite)
+  using tendsto.pi_map_Coprod (λ i, int.tendsto_coe_cofinite)
 
 
 
@@ -423,8 +408,7 @@ by simpa [←Coprod_cofinite,←Coprod_cocompact]
 lemma cocompact_ℝ_to_cofinite_ℤ_matrix {ι ι' : Type*} [fintype ι] [fintype ι']  :
   tendsto (λ m, matrix.map m (coe : ℤ → ℝ)) cofinite (cocompact (matrix ι ι' ℝ)) :=
 begin
---  convert tendsto.pi_map_Coprod (λ i, cocompact_ℝ_to_cofinite_ℤ ι'),
-  convert tendsto.prod_map_Coprod (λ i, cocompact_ℝ_to_cofinite_ℤ ι'),
+  convert tendsto.pi_map_Coprod (λ i, cocompact_ℝ_to_cofinite_ℤ ι'),
   { exact Coprod_cofinite.symm },
   { exact Coprod_cocompact.symm }
 end

@@ -6,7 +6,7 @@ open function
 open filter
 
 
-/-- Note:  hopefully all useful material has now been extracted from this file, so it can be
+/- Note:  hopefully all useful material has now been extracted from this file, so it can be
 disregarded. -/
 
 section

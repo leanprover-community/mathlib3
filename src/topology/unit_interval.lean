@@ -90,8 +90,8 @@ The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.
 -/
 -- We only need the ordering on `𝕜` here to avoid talking about flipping the interval over.
 -- At the end of the day I only care about `ℝ`, so I'm hesitant to put work into generalizing.
-lemma affine_homeomorph_image_I (a b : 𝕜) (h : 0 < a) (w) :
-  affine_homeomorph a b w '' set.Icc 0 1 = set.Icc b (a + b) :=
+lemma affine_homeomorph_image_I (a b : 𝕜) (h : 0 < a) :
+  affine_homeomorph a b h.ne.symm '' set.Icc 0 1 = set.Icc b (a + b) :=
 by simp [h]
 
 /--

@@ -283,6 +283,7 @@ let ⟨B, hB, B_fin⟩ := exists_is_basis_finite K V, ⟨g, hg⟩ := finite_dime
 
 variables {K V}
 
+/-- A module with dimension 1 has a basis of the form `{v}` for some `v : V`. -/
 lemma exists_is_basis_singleton (h : finrank K V = 1) :
   ∃ (v : V), is_basis K (coe : ({v} : set V) → V) :=
 begin

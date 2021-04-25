@@ -1251,6 +1251,18 @@ lemma finrank_eq_one_iff_of_nonzero (v : V) (nz : v ≠ 0) :
 ⟨singleton_is_basis v nz, λ b, by convert finrank_eq_card_basis b⟩
 
 /--
+A module with a nonzero vector `v` has dimension 1 iff every vector is a multiple of `v`.
+-/
+lemma finrank_eq_one_iff_of_nonzero' (v : V) (nz : v ≠ 0) :
+  finrank K V = 1 ↔ ∀ w : V, ∃ c : K, c • v = w :=
+begin
+  rw finrank_eq_one_iff_of_nonzero v nz,
+  convert (is_basis_singleton_iff ({v} : set V) v),
+  { ext ⟨x, ⟨⟩⟩, refl, },
+  { simp [nz], }
+end
+
+/--
 A module has dimension 1 iff there is some `v : V` so `{v}` is a basis.
 -/
 lemma finrank_eq_one_iff :

@@ -73,7 +73,7 @@ nontrivial_of_ne 1 0 (id_nonzero X)
 
 open finite_dimensional
 
-variables {𝕜 : Type*} [field 𝕜] [is_alg_closed 𝕜]
+variables (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
 
 -- TODO try out Sebastien's workaround
 local attribute [ext] add_comm_group module distrib_mul_action mul_action has_scalar
@@ -109,13 +109,14 @@ end
 Schur's lemma for endomorphisms in `𝕜`-linear categories.
 -/
 lemma finrank_endomorphism_simple_eq_one
-  [linear 𝕜 C] {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
+  [linear 𝕜 C] (X : C) [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
   finrank 𝕜 (X ⟶ X) = 1 :=
-finrank_endomorphism_eq_one is_iso_iff_nonzero
+finrank_endomorphism_eq_one 𝕜 is_iso_iff_nonzero
 
 lemma endomorphism_simple_eq_smul_id
   [linear 𝕜 C] {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] (f : X ⟶ X) :
   ∃ c : 𝕜, c • 𝟙 X = f :=
+(finrank_eq_one_iff_of_nonzero' (𝟙 X) (id_nonzero X)).mp (finrank_endomorphism_simple_eq_one 𝕜 X) f
 
 /--
 Schur's lemma for `𝕜`-linear categories.
@@ -132,10 +133,8 @@ begin
     haveI fi := (is_iso_iff_nonzero f).mpr nz,
     apply finrank_le_one f,
     intro g,
-    by_cases z : g = 0,
-    { exact ⟨0, by simp [z]⟩, },
-    { haveI gi := (is_iso_iff_nonzero g).mpr z, }
-     }
+    obtain ⟨c, w⟩ := endomorphism_simple_eq_smul_id 𝕜 (g ≫ inv f),
+    exact ⟨c, by simpa using w =≫ f⟩, },
 end
 
 end category_theory

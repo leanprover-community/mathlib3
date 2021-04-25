@@ -385,6 +385,10 @@ by rwa [is_three_cycle, cycle_type_inv]
 @[simp] lemma inv_iff {f : perm α} : is_three_cycle (f⁻¹) ↔ is_three_cycle f :=
 ⟨by { rw ← inv_inv f, apply inv }, inv⟩
 
+lemma is_conj {f g : perm α} (hf : is_three_cycle f) (hg : is_three_cycle g) :
+  is_conj f g :=
+by rw [is_conj_iff_cycle_type_eq, hf.cycle_type, hg.cycle_type]
+
 end is_three_cycle
 
 section

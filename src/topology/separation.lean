@@ -150,11 +150,13 @@ instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p 
 instance t1_space.t0_space [t1_space α] : t0_space α :=
 ⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
 
-lemma t1_characterisation : t1_space α ↔ ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
+lemma t1_characterisation : t1_space α ↔
+  ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
 begin
   split;intro h,
   { intros x y hxy,
-    exact ⟨{y}ᶜ,is_open_compl_iff.mpr (@t1_space.t1 α _inst_1 h y), mem_compl_singleton_iff.mpr hxy, not_not.mpr rfl⟩},
+    exact ⟨{y}ᶜ,is_open_compl_iff.mpr (@t1_space.t1 α _inst_1 h y), mem_compl_singleton_iff.mpr hxy,
+      not_not.mpr rfl⟩},
   { fconstructor,
     intro x,
     fconstructor,
@@ -733,7 +735,8 @@ class regular_space (α : Type u) [topological_space α] extends t0_space α : P
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 
 def regular_property (α : Type u) [topological_space α] := ∀ {x} {F : set α} (hF : is_closed F)
-  (hxF: x ∉ F), ∃ (U V : set α) (hU : is_open U) (hV : is_open V) (hUV : U ∩ V = ∅), (x ∈ U) ∧ (F ⊆ V)
+  (hxF: x ∉ F), ∃ (U V : set α) (hU : is_open U) (hV : is_open V) (hUV : U ∩ V = ∅),
+  (x ∈ U) ∧ (F ⊆ V)
 
 lemma regular_property_iff_regular_space.regular (α : Type u) [topological_space α] :
 regular_property α ↔ ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥ :=
@@ -756,7 +759,8 @@ begin
   {exact ⟨U, hU, hh⟩},
   { obtain ⟨T, V, hT, hV, hTV, hhh⟩ := (regular_property_iff_regular_space.regular α).2
       (@regular_space.regular α _inst_1 _inst_2) (is_closed_compl_iff.mpr hU) (not_not.mpr hh.1),
-    exact ⟨V, hV, hhh.2 (mem_compl hh.2), (mem_compl_iff V y).mp (subset_compl_iff_disjoint.2 hTV hhh.1)⟩},
+    exact ⟨V, hV, hhh.2 (mem_compl hh.2), (mem_compl_iff V y).mp
+      (subset_compl_iff_disjoint.2 hTV hhh.1)⟩},
 end
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
@@ -795,6 +799,7 @@ let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
 ⟨v, s, hv, hs, hxv, singleton_subset_iff.1 hys,
 eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance regular_space.t2_5_space [regular_space α] : t2_5_space α :=
 ⟨λ x y hxy,
 let ⟨U, V, hU, hV, hh_1, hh_2, hUV⟩ := t2_space.t2 x y hxy, hxcV := not_not.mpr

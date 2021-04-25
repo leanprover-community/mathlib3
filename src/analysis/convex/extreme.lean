@@ -112,12 +112,8 @@ subset_empty_iff.1 extreme_points_subset
 @[simp]
 lemma extreme_points_singleton :
   ({x} : set E).extreme_points = {x} :=
-begin
-  refine subset.antisymm extreme_points_subset (singleton_subset_iff.2 ⟨mem_singleton x,
-  λ x₁ _ hx₁ _ _, _⟩),
-  left,
-  exact hx₁,
-end
+subset.antisymm extreme_points_subset $ 
+  singleton_subset_iff.2 ⟨mem_singleton x, λ x₁ _ hx₁ _ _, or.inl hx₁⟩
 
 lemma inter_extreme_of_extreme (hAB : is_extreme A B) (hAC : is_extreme A C) :
   is_extreme A (B ∩ C) :=

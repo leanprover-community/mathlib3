@@ -111,7 +111,7 @@ begin
   rintros ⟨⟨ha, hb, heq⟩, h2⟩,
   split,
   { apply and.intro ha (and.intro hb _),
-    rw heq, exact (neg_square c).symm },
+    rw heq, exact (neg_sq c).symm },
   rwa (int.nat_abs_neg c),
 end
 

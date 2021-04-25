@@ -53,39 +53,39 @@ deduce corresponding results for Euclidean affine spaces.
 variables {V : Type*} [inner_product_space ℝ V]
 
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/
-lemma norm_add_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two (x y : V) :
+lemma norm_add_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two (x y : V) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
 begin
-  rw norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero,
+  rw norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero,
   exact inner_eq_zero_iff_angle_eq_pi_div_two x y
 end
 
 /-- Pythagorean theorem, vector angle form. -/
-lemma norm_add_square_eq_norm_square_add_norm_square' (x y : V) (h : angle x y = π / 2) :
+lemma norm_add_sq_eq_norm_sq_add_norm_sq' (x y : V) (h : angle x y = π / 2) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
-(norm_add_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two x y).2 h
+(norm_add_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two x y).2 h
 
 /-- Pythagorean theorem, subtracting vectors, if-and-only-if vector angle form. -/
-lemma norm_sub_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two (x y : V) :
+lemma norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two (x y : V) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
 begin
-  rw norm_sub_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero,
+  rw norm_sub_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero,
   exact inner_eq_zero_iff_angle_eq_pi_div_two x y
 end
 
 /-- Pythagorean theorem, subtracting vectors, vector angle form. -/
-lemma norm_sub_square_eq_norm_square_add_norm_square' (x y : V) (h : angle x y = π / 2) :
+lemma norm_sub_sq_eq_norm_sq_add_norm_sq' (x y : V) (h : angle x y = π / 2) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
-(norm_sub_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two x y).2 h
+(norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two x y).2 h
 
 /-- Law of cosines (cosine rule), vector angle form. -/
-lemma norm_sub_square_eq_norm_square_add_norm_square_sub_two_mul_norm_mul_norm_mul_cos_angle
+lemma norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle
     (x y : V) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) :=
 by rw [(show 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) =
              2 * (real.cos (angle x y) * (∥x∥ * ∥y∥)), by ring),
-       cos_angle_mul_norm_mul_norm, ←real_inner_self_eq_norm_square,
-       ←real_inner_self_eq_norm_square, ←real_inner_self_eq_norm_square, real_inner_sub_sub_self,
+       cos_angle_mul_norm_mul_norm, ←real_inner_self_eq_norm_sq,
+       ←real_inner_self_eq_norm_sq, ←real_inner_self_eq_norm_sq, real_inner_sub_sub_self,
        sub_add_eq_add_sub]
 
 /-- Pons asinorum, vector angle form. -/
@@ -94,8 +94,8 @@ lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
 begin
   refine real.inj_on_cos ⟨angle_nonneg _ _, angle_le_pi _ _⟩ ⟨angle_nonneg _ _, angle_le_pi _ _⟩ _,
   rw [cos_angle, cos_angle, h, ←neg_sub, norm_neg, neg_sub,
-    inner_sub_right, inner_sub_right, real_inner_self_eq_norm_square,
-    real_inner_self_eq_norm_square, h, real_inner_comm x y]
+    inner_sub_right, inner_sub_right, real_inner_self_eq_norm_sq,
+    real_inner_self_eq_norm_sq, h, real_inner_comm x y]
 end
 
 /-- Converse of pons asinorum, vector angle form. -/
@@ -111,8 +111,8 @@ begin
         mul_inv_rev', mul_inv_rev', ←mul_assoc, ←mul_assoc] at h,
     replace h :=
       mul_right_cancel' (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
-    rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_square,
-        real_inner_self_eq_norm_square, mul_sub_right_distrib, mul_sub_right_distrib,
+    rw [inner_sub_right, inner_sub_right, real_inner_comm x y, real_inner_self_eq_norm_sq,
+        real_inner_self_eq_norm_sq, mul_sub_right_distrib, mul_sub_right_distrib,
         mul_self_mul_inv, mul_self_mul_inv, sub_eq_sub_iff_sub_eq_sub,
         ←mul_sub_left_distrib] at h,
     by_cases hx0 : x = 0,
@@ -161,7 +161,7 @@ begin
         sin_angle_mul_norm_mul_norm, norm_sub_rev y x, inner_sub_left, inner_sub_left,
         inner_sub_right, inner_sub_right, inner_sub_right, inner_sub_right, real_inner_comm x y, H2,
         H3, real.mul_self_sqrt (sub_nonneg_of_le (real_inner_mul_inner_self_le x y)),
-        real_inner_self_eq_norm_square, real_inner_self_eq_norm_square,
+        real_inner_self_eq_norm_sq, real_inner_self_eq_norm_sq,
         real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
     field_simp [hxn, hyn, hxyn],
     ring }
@@ -199,8 +199,8 @@ begin
         sin_angle_mul_norm_mul_norm, norm_sub_rev x y, H2, sin_angle_mul_norm_mul_norm,
         norm_sub_rev y x, mul_assoc (real.sin (angle x y)), sin_angle_mul_norm_mul_norm,
         inner_sub_left, inner_sub_left, inner_sub_right, inner_sub_right, inner_sub_right,
-        inner_sub_right, real_inner_comm x y, H3, H4, real_inner_self_eq_norm_square,
-        real_inner_self_eq_norm_square,
+        inner_sub_right, real_inner_comm x y, H3, H4, real_inner_self_eq_norm_sq,
+        real_inner_self_eq_norm_sq,
         real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two],
     field_simp [hxn, hyn, hxyn],
     ring }
@@ -293,16 +293,16 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
 include V
 
 /-- Pythagorean theorem, if-and-only-if angle-at-point form. -/
-lemma dist_square_eq_dist_square_add_dist_square_iff_angle_eq_pi_div_two (p1 p2 p3 : P) :
+lemma dist_sq_eq_dist_sq_add_dist_sq_iff_angle_eq_pi_div_two (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 = dist p1 p2 * dist p1 p2 + dist p3 p2 * dist p3 p2 ↔
     ∠ p1 p2 p3 = π / 2 :=
 by erw [pseudo_metric_space.dist_comm p3 p2, dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2,
         dist_eq_norm_vsub V p2 p3,
-        ←norm_sub_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two,
+        ←norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two,
         vsub_sub_vsub_cancel_right p1, ←neg_vsub_eq_vsub_rev p2 p3, norm_neg]
 
 /-- Law of cosines (cosine rule), angle-at-point form. -/
-lemma dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle
+lemma dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle
     (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 =
     dist p1 p2 * dist p1 p2 + dist p3 p2 * dist p3 p2 -
@@ -310,7 +310,7 @@ lemma dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_c
 begin
   rw [dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2, dist_eq_norm_vsub V p3 p2],
   unfold angle,
-  convert norm_sub_square_eq_norm_square_add_norm_square_sub_two_mul_norm_mul_norm_mul_cos_angle
+  convert norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle
           (p1 -ᵥ p2 : V) (p3 -ᵥ p2 : V),
   { exact (vsub_sub_vsub_cancel_right p1 p3 p2).symm },
   { exact (vsub_sub_vsub_cancel_right p1 p3 p2).symm }

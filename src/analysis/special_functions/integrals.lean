@@ -254,7 +254,7 @@ begin
   calc  ∫ x in 0..π, sin x ^ (n + 2)
       = ∫ x in 0..π, sin x ^ (n + 1) * sin x : by simp only [pow_succ']
   ... = (n + 1) * ∫ x in 0..π, cos x ^ 2 * sin x ^ n : by simp [H, h, pow_two]
-  ... = (n + 1) * ∫ x in 0..π, sin x ^ n - sin x ^ (n + 2) : by simp [cos_square', sub_mul,
+  ... = (n + 1) * ∫ x in 0..π, sin x ^ n - sin x ^ (n + 2) : by simp [cos_sq', sub_mul,
                                                                       ← pow_add, add_comm]
   ... = _ : by rw [integral_sub, mul_sub]; apply continuous.interval_integrable; continuity,
   all_goals { apply continuous.continuous_on, continuity },

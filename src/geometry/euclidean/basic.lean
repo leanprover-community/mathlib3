@@ -130,7 +130,7 @@ end
 @[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
 begin
   unfold angle,
-  rw [←real_inner_self_eq_norm_square, div_self (λ h, hx (inner_self_eq_zero.1 h)),
+  rw [←real_inner_self_eq_norm_sq, div_self (λ h, hx (inner_self_eq_zero.1 h)),
       real.arccos_one]
 end
 
@@ -187,8 +187,8 @@ begin
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
       ←real.sqrt_mul' _ (mul_self_nonneg _), pow_two,
       real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      real_inner_self_eq_norm_square,
-      real_inner_self_eq_norm_square],
+      real_inner_self_eq_norm_sq,
+      real_inner_self_eq_norm_sq],
   by_cases h : (∥x∥ * ∥y∥) = 0,
   { rw [(show ∥x∥ * ∥x∥ * (∥y∥ * ∥y∥) = (∥x∥ * ∥y∥) * (∥x∥ * ∥y∥), by ring), h, mul_zero, mul_zero,
         zero_sub],
@@ -357,7 +357,7 @@ lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → �
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
   rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
-      ←inner_self_eq_norm_square, finset.affine_combination_vsub],
+      ←inner_self_eq_norm_sq, finset.affine_combination_vsub],
   have h : ∑ i in s, (w₁ - w₂) i = 0,
   { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
   exact inner_weighted_vsub p h p h
@@ -386,11 +386,11 @@ end
 /-- The squared distance between points on a line (expressed as a
 multiple of a fixed vector added to a point) and another point,
 expressed as a quadratic. -/
-lemma dist_smul_vadd_square (r : ℝ) (v : V) (p₁ p₂ : P) :
+lemma dist_smul_vadd_sq (r : ℝ) (v : V) (p₁ p₂ : P) :
   dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
     ⟪v, v⟫ * r * r + 2 * ⟪v, p₁ -ᵥ p₂⟫ * r + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ :=
 begin
-  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_square, vadd_vsub_assoc,
+  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_sq, vadd_vsub_assoc,
     real_inner_add_add_self, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
   ring
 end
@@ -400,9 +400,9 @@ another point. -/
 lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
   dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * ⟪v, p₁ -ᵥ p₂⟫ / ⟪v, v⟫) :=
 begin
-  conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_square,
+  conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_sq,
                  ←sub_eq_zero, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
-                 ←real_inner_self_eq_norm_square, sub_self] },
+                 ←real_inner_self_eq_norm_sq, sub_self] },
   have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
   have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
     (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
@@ -723,7 +723,7 @@ orthogonal_projection_vadd_eq_self hp
 /-- The square of the distance from a point in `s` to `p2` equals the
 sum of the squares of the distances of the two points to the
 `orthogonal_projection`. -/
-lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+lemma dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
   {s : affine_subspace ℝ P} [nonempty s] [complete_space s.direction] {p1 : P}
   (p2 : P) (hp1 : p1 ∈ s) :
   dist p1 p2 * dist p1 p2 =
@@ -732,7 +732,7 @@ lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_proje
 begin
   rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
-    norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero],
+    norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal
     (vsub_orthogonal_projection_mem_direction p2 hp1)
     (orthogonal_projection_vsub_mem_direction_orthogonal s p2),
@@ -741,7 +741,7 @@ end
 /-- The square of the distance between two points constructed by
 adding multiples of the same orthogonal vector to points in the same
 subspace. -/
-lemma dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ P}
+lemma dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ P}
     {p1 p2 : P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) (r1 r2 : ℝ) {v : V}
     (hv : v ∈ s.directionᗮ) :
   dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) =
@@ -751,7 +751,7 @@ calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 �
   : by { rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul],
          abel }
 ... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
-  : norm_add_square_eq_norm_square_add_norm_square_real
+  : norm_add_sq_eq_norm_sq_add_norm_sq_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
         (submodule.smul_mem _ _ hv))
 ... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + abs (r1 - r2) * abs (r1 - r2) * ∥v∥ * ∥v∥
@@ -780,7 +780,7 @@ def reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direct
     intros p₁ p₂,
     rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_eq_norm_vsub V
           ((↑(orthogonal_projection s p₁) -ᵥ p₁) +ᵥ ↑(orthogonal_projection s p₁)),
-        dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square],
+        dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq],
     calc
       ⟪((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
       ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),

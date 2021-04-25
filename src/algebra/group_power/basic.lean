@@ -752,11 +752,11 @@ begin
   exact neg_zero
 end
 
-@[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
+@[simp] lemma neg_sq {α} [ring α] (z : α) : (-z)^2 = z^2 :=
 by simp [pow_two]
 
 lemma sub_pow_two {R} [comm_ring R] (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
-by rw [sub_eq_add_neg, add_pow_two, neg_square, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
+by rw [sub_eq_add_neg, add_pow_two, neg_sq, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
 
 /-- Arithmetic mean-geometric mean (AM-GM) inequality for linearly ordered commutative rings. -/
 lemma two_mul_le_add_pow_two {R} [linear_ordered_comm_ring R] (a b : R) :

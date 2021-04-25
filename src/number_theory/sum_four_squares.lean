@@ -26,7 +26,7 @@ open_locale big_operators
 
 namespace int
 
-lemma sum_two_squares_of_two_mul_sum_two_squares {m x y : ℤ} (h : 2 * m =  x^2 + y^2) :
+lemma sq_add_sq_of_two_mul_sq_add_sq {m x y : ℤ} (h : 2 * m = x^2 + y^2) :
   m = ((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2 :=
 have even (x^2 + y^2), by simp [h.symm, even_mul],
 have hxaddy : even (x + y), by simpa [pow_two] with parity_simps,
@@ -38,10 +38,10 @@ calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
   by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
-lemma exists_sum_two_squares_add_one_eq_k (p : ℕ) [hp : fact p.prime] :
+lemma exists_sq_add_sq_add_one_eq_k (p : ℕ) [hp : fact p.prime] :
   ∃ (a b : ℤ) (k : ℕ), a^2 + b^2 + 1 = k * p ∧ k < p :=
 hp.1.eq_two_or_odd.elim (λ hp2, hp2.symm ▸ ⟨1, 0, 1, rfl, dec_trivial⟩) $ λ hp1,
-let ⟨a, b, hab⟩ := zmod.sum_two_squares p (-1) in
+let ⟨a, b, hab⟩ := zmod.sq_add_sq p (-1) in
 have hab' : (p : ℤ) ∣ a.val_min_abs ^ 2 + b.val_min_abs ^ 2 + 1,
   from (char_p.int_cast_eq_zero_iff (zmod p) p _).1 $ by simpa [eq_neg_iff_add_eq_zero] using hab,
 let ⟨k, hk⟩ := hab' in
@@ -95,8 +95,8 @@ have h23 : 2 ∣ f (σ 2) ^ 2 + f (σ 3) ^ 2,
 let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
 ⟨(f (σ 0) - f (σ 1)) / 2, (f (σ 0) + f (σ 1)) / 2, (f (σ 2) - f (σ 3)) / 2, (f (σ 2) + f (σ 3)) / 2,
   begin
-    rw [← int.sum_two_squares_of_two_mul_sum_two_squares hx.symm, add_assoc,
-      ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
+    rw [← int.sq_add_sq_of_two_mul_sq_add_sq hx.symm, add_assoc,
+      ← int.sq_add_sq_of_two_mul_sq_add_sq hy.symm,
       ← mul_right_inj' (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
     { conv_rhs { rw ← σ.sum_comp } },
@@ -107,7 +107,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
 private lemma prime_sum_four_squares (p : ℕ) [hp : _root_.fact p.prime] :
   ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = p :=
 have hm : ∃ m < p, 0 < m ∧ ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = m * p,
-  from let ⟨a, b, k, hk⟩ := exists_sum_two_squares_add_one_eq_k p in
+  from let ⟨a, b, k, hk⟩ := exists_sq_add_sq_add_one_eq_k p in
   ⟨k, hk.2, nat.pos_of_ne_zero $
     (λ hk0, by { rw [hk0, int.coe_nat_zero, zero_mul] at hk,
       exact ne_of_gt (show a^2 + b^2 + 1 > 0, from add_pos_of_nonneg_of_pos

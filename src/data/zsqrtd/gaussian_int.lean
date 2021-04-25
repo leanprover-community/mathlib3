@@ -249,7 +249,7 @@ hp.1.eq_two_or_odd.elim
       clear_aux_decl, tauto
     end)
 
-lemma sum_two_squares_of_nat_prime_of_not_irreducible (p : ℕ) [hp : fact p.prime]
+lemma sq_add_sq_of_nat_prime_of_not_irreducible (p : ℕ) [hp : fact p.prime]
   (hpi : ¬irreducible (p : ℤ[i])) : ∃ a b, a^2 + b^2 = p :=
 have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
   by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
@@ -267,7 +267,7 @@ have hnap : (norm a).nat_abs = p, from ((hp.1.mul_eq_prime_pow_two_iff
 lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3 : p % 4 = 3) :
   prime (p : ℤ[i]) :=
 irreducible_iff_prime.1 $ classical.by_contradiction $ λ hpi,
-  let ⟨a, b, hab⟩ := sum_two_squares_of_nat_prime_of_not_irreducible p hpi in
+  let ⟨a, b, hab⟩ := sq_add_sq_of_nat_prime_of_not_irreducible p hpi in
 have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod 4 p, hp3]; exact dec_trivial,
 this a b (hab ▸ by simp)
 

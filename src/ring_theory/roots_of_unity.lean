@@ -457,7 +457,7 @@ begin
 end
 
 lemma neg_one (p : ℕ) [char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
-mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_square]) $
+mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_sq]) $
 begin
   intros l hl0 hl2,
   obtain rfl : l = 1,

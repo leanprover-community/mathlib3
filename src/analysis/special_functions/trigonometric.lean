@@ -1444,7 +1444,7 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
   begin
     have : (2 : ℝ) ≠ 0 := two_ne_zero,
     symmetry, rw [div_eq_iff_mul_eq this], symmetry,
-    rw [sqrt_two_add_series, sqrt_eq_iff_sqr_eq, mul_pow, cos_square, ←mul_div_assoc,
+    rw [sqrt_two_add_series, sqrt_eq_iff_sqr_eq, mul_pow, cos_sq, ←mul_div_assoc,
       nat.add_succ, pow_succ, mul_div_mul_left _ _ this, cos_pi_over_two_pow, add_mul],
     congr, { norm_num },
     rw [mul_comm, pow_two, mul_assoc, ←mul_div_assoc, mul_div_cancel_left, ←mul_div_assoc,
@@ -1458,14 +1458,14 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
     apply pow_lt_pow, norm_num, apply nat.succ_lt_succ, apply nat.succ_pos, all_goals {norm_num}
   end
 
-lemma sin_square_pi_over_two_pow (n : ℕ) :
+lemma sin_sq_pi_over_two_pow (n : ℕ) :
   sin (π / 2 ^ (n+1)) ^ 2 = 1 - (sqrt_two_add_series 0 n / 2) ^ 2 :=
-by rw [sin_square, cos_pi_over_two_pow]
+by rw [sin_sq, cos_pi_over_two_pow]
 
-lemma sin_square_pi_over_two_pow_succ (n : ℕ) :
+lemma sin_sq_pi_over_two_pow_succ (n : ℕ) :
   sin (π / 2 ^ (n+2)) ^ 2 = 1 / 2 - sqrt_two_add_series 0 n / 4 :=
 begin
-  rw [sin_square_pi_over_two_pow, sqrt_two_add_series, div_pow, sqr_sqrt, add_div, ←sub_sub],
+  rw [sin_sq_pi_over_two_pow, sqrt_two_add_series, div_pow, sqr_sqrt, add_div, ←sub_sub],
   congr, norm_num, norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg,
 end
 
@@ -1473,7 +1473,7 @@ end
   sin (π / 2 ^ (n+2)) = sqrt (2 - sqrt_two_add_series 0 n) / 2 :=
 begin
   symmetry, rw [div_eq_iff_mul_eq], symmetry,
-  rw [sqrt_eq_iff_sqr_eq, mul_pow, sin_square_pi_over_two_pow_succ, sub_mul],
+  rw [sqrt_eq_iff_sqr_eq, mul_pow, sin_sq_pi_over_two_pow_succ, sub_mul],
   { congr, norm_num, rw [mul_comm], convert mul_div_cancel' _ _, norm_num, norm_num },
   { rw [sub_nonneg], apply le_of_lt, apply sqrt_two_add_series_lt_two },
   apply le_of_lt, apply mul_pos, apply sin_pos_of_pos_of_lt_pi,
@@ -1526,10 +1526,10 @@ end
 
 /-- The square of the cosine of `π / 6` is `3 / 4` (this is sometimes more convenient than the
 result for cosine itself). -/
-lemma square_cos_pi_div_six : cos (π / 6) ^ 2 = 3 / 4 :=
+lemma sq_cos_pi_div_six : cos (π / 6) ^ 2 = 3 / 4 :=
 begin
   have h1 : cos (π / 6) ^ 2 = 1 / 2 + 1 / 2 / 2,
-  { convert cos_square (π / 6),
+  { convert cos_sq (π / 6),
     have h2 : 2 * (π / 6) = π / 3 := by cancel_denoms,
     rw [h2, cos_pi_div_three] },
   rw ← sub_eq_zero at h1 ⊢,
@@ -1543,7 +1543,7 @@ begin
   suffices : sqrt 3 = cos (π / 6) * 2,
   { field_simp [(by norm_num : 0 ≠ 2)], exact this.symm },
   rw sqrt_eq_iff_sqr_eq,
-  { have h1 := (mul_right_inj' (by norm_num : (4:ℝ) ≠ 0)).mpr square_cos_pi_div_six,
+  { have h1 := (mul_right_inj' (by norm_num : (4:ℝ) ≠ 0)).mpr sq_cos_pi_div_six,
     rw ← sub_eq_zero at h1 ⊢,
     convert h1 using 1,
     ring },
@@ -1562,9 +1562,9 @@ end
 
 /-- The square of the sine of `π / 3` is `3 / 4` (this is sometimes more convenient than the
 result for cosine itself). -/
-lemma square_sin_pi_div_three : sin (π / 3) ^ 2 = 3 / 4 :=
+lemma sq_sin_pi_div_three : sin (π / 3) ^ 2 = 3 / 4 :=
 begin
-  rw [← cos_pi_div_two_sub, ← square_cos_pi_div_six],
+  rw [← cos_pi_div_two_sub, ← sq_cos_pi_div_six],
   congr,
   ring
 end

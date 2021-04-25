@@ -117,7 +117,7 @@ end
 
 lemma times_cont_diff_stereo_inv_fun_aux : times_cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
 begin
-  have h₀ : times_cont_diff ℝ ⊤ (λ w : E, ∥w∥ ^ 2) := times_cont_diff_norm_square,
+  have h₀ : times_cont_diff ℝ ⊤ (λ w : E, ∥w∥ ^ 2) := times_cont_diff_norm_sq,
   have h₁ : times_cont_diff ℝ ⊤ (λ w : E, (∥w∥ ^ 2 + 4)⁻¹),
   { refine (h₀.add times_cont_diff_const).inv _,
     intros x,
@@ -147,7 +147,7 @@ begin
     { refine (inv_mul_lt_iff' _).mpr _,
       { nlinarith },
       linarith },
-    simpa [real_inner_comm, inner_add_right, inner_smul_right, real_inner_self_eq_norm_square, hw,
+    simpa [real_inner_comm, inner_add_right, inner_smul_right, real_inner_self_eq_norm_sq, hw,
       hv] using hw' },
   { simpa using stereo_inv_fun_aux_mem hv w.2 }
 end
@@ -171,7 +171,7 @@ begin
   have hvy : ⟪v, y⟫_ℝ = 0 := inner_right_of_mem_orthogonal_singleton v y.2,
   have pythag : 1 = a ^ 2 + ∥y∥ ^ 2,
   { have hvy' : ⟪a • v, y⟫_ℝ = 0 := by simp [inner_smul_left, hvy],
-    convert norm_add_square_eq_norm_square_add_norm_square_of_inner_eq_zero _ _ hvy' using 2,
+    convert norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero _ _ hvy' using 2,
     { simp [← split] },
     { simp [norm_smul, hv, real.norm_eq_abs, ← pow_two, sqr_abs] },
     { exact pow_two _ } },
@@ -197,7 +197,7 @@ begin
   -- deduce the result
   convert congr_arg2 has_add.add (congr_arg (λ t, t • (y:E)) h₁) (congr_arg (λ t, t • v) h₂)
     using 1,
-  { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_square, hv, mul_smul,
+  { simp [inner_add_right, inner_smul_right, hvy, real_inner_self_eq_norm_sq, hv, mul_smul,
       mul_pow, real.norm_eq_abs, sqr_abs, norm_smul] },
   { simp [split, add_comm] }
 end
@@ -216,7 +216,7 @@ begin
     have h₂ : orthogonal_projection (ℝ ∙ v)ᗮ w = w :=
       orthogonal_projection_mem_subspace_eq_self w,
     have h₃ : inner_right v w = (0:ℝ) := inner_right_of_mem_orthogonal_singleton v w.2,
-    have h₄ : inner_right v v = (1:ℝ) := by simp [real_inner_self_eq_norm_square, hv],
+    have h₄ : inner_right v v = (1:ℝ) := by simp [real_inner_self_eq_norm_sq, hv],
     simp [h₁, h₂, h₃, h₄, continuous_linear_map.map_add, continuous_linear_map.map_smul,
       mul_smul] },
   { simp }

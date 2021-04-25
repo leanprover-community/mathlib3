@@ -607,13 +607,13 @@ by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
 lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_zero]
 
-lemma cosh_square : cosh x ^ 2 = sinh x ^ 2 + 1 :=
+lemma cosh_sq : cosh x ^ 2 = sinh x ^ 2 + 1 :=
 begin
   rw ← cosh_sq_sub_sinh_sq x,
   ring
 end
 
-lemma sinh_square : sinh x ^ 2 = cosh x ^ 2 - 1 :=
+lemma sinh_sq : sinh x ^ 2 = cosh x ^ 2 - 1 :=
 begin
   rw ← cosh_sq_sub_sinh_sq x,
   ring
@@ -634,7 +634,7 @@ begin
   rw [← h1, cosh_add x (2 * x)],
   simp only [cosh_two_mul, sinh_two_mul],
   have h2 : sinh x * (2 * sinh x * cosh x) = 2 * cosh x * sinh x ^ 2, by ring,
-  rw [h2, sinh_square],
+  rw [h2, sinh_sq],
   ring
 end
 
@@ -644,7 +644,7 @@ begin
   rw [← h1, sinh_add x (2 * x)],
   simp only [cosh_two_mul, sinh_two_mul],
   have h2 : cosh x * (2 * sinh x * cosh x) = 2 * sinh x * cosh x ^ 2, by ring,
-  rw [h2, cosh_square],
+  rw [h2, cosh_sq],
   ring,
 end
 
@@ -829,13 +829,13 @@ by rw [cos_two_mul', eq_sub_iff_add_eq.2 (sin_sq_add_cos_sq x),
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
 
-lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+lemma cos_sq : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div]
 
-lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
+lemma cos_sq' : cos x ^ 2 = 1 - sin x ^ 2 :=
 by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
-lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+lemma sin_sq : sin x ^ 2 = 1 - cos x ^ 2 :=
 by rw [←sin_sq_add_cos_sq x, add_sub_cancel]
 
 lemma inv_one_add_tan_sq {x : ℂ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2 :=
@@ -852,7 +852,7 @@ begin
   rw [← h1, cos_add x (2 * x)],
   simp only [cos_two_mul, sin_two_mul, mul_add, mul_sub, mul_one, pow_two],
   have h2 : 4 * cos x ^ 3 = 2 * cos x * cos x * cos x + 2 * cos x * cos x ^ 2, by ring,
-  rw [h2, cos_square'],
+  rw [h2, cos_sq'],
   ring
 end
 
@@ -860,9 +860,9 @@ lemma sin_three_mul : sin (3 * x) = 3 * sin x - 4 * sin x ^ 3 :=
 begin
   have h1 : x + 2 * x = 3 * x, by ring,
   rw [← h1, sin_add x (2 * x)],
-  simp only [cos_two_mul, sin_two_mul, cos_square'],
+  simp only [cos_two_mul, sin_two_mul, cos_sq'],
   have h2 : cos x * (2 * sin x * cos x) = 2 * sin x * cos x ^ 2, by ring,
-  rw [h2, cos_square'],
+  rw [h2, cos_sq'],
   ring
 end
 
@@ -1026,22 +1026,22 @@ by rw ← of_real_inj; simp [cos_two_mul']
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw ← of_real_inj; simp [sin_two_mul]
 
-lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
-of_real_inj.1 $ by simpa using cos_square x
+lemma cos_sq : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+of_real_inj.1 $ by simpa using cos_sq x
 
-lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
+lemma cos_sq' : cos x ^ 2 = 1 - sin x ^ 2 :=
 by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
-lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+lemma sin_sq : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
 
 lemma abs_sin_eq_sqrt_one_sub_cos_sq (x : ℝ) :
   abs' (sin x) = sqrt (1 - cos x ^ 2) :=
-by rw [← sin_square, sqrt_sqr_eq_abs]
+by rw [← sin_sq, sqrt_sqr_eq_abs]
 
 lemma abs_cos_eq_sqrt_one_sub_sin_sq (x : ℝ) :
   abs' (cos x) = sqrt (1 - sin x ^ 2) :=
-by rw [← cos_square', sqrt_sqr_eq_abs]
+by rw [← cos_sq', sqrt_sqr_eq_abs]
 
 lemma inv_one_add_tan_sq {x : ℝ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2  :=
 have complex.cos x ≠ 0, from mt (congr_arg re) hx,
@@ -1113,11 +1113,11 @@ by rw ← of_real_inj; simp [sinh_add_cosh]
 lemma cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 by rw ← of_real_inj; simp [cosh_sq_sub_sinh_sq]
 
-lemma cosh_square : cosh x ^ 2 = sinh x ^ 2 + 1 :=
-by rw ← of_real_inj; simp [cosh_square]
+lemma cosh_sq : cosh x ^ 2 = sinh x ^ 2 + 1 :=
+by rw ← of_real_inj; simp [cosh_sq]
 
-lemma sinh_square : sinh x ^ 2 = cosh x ^ 2 - 1 :=
-by rw ← of_real_inj; simp [sinh_square]
+lemma sinh_sq : sinh x ^ 2 = cosh x ^ 2 - 1 :=
+by rw ← of_real_inj; simp [sinh_sq]
 
 lemma cosh_two_mul : cosh (2 * x) = cosh x ^ 2 + sinh x ^ 2 :=
 by rw ← of_real_inj; simp [cosh_two_mul]

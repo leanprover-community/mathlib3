@@ -591,8 +591,8 @@ A local representation of a section `s` as fractions `a i / h i` on finitely man
 `basic_open (h i)` can be "normalized" in such a way that `a i * h j = h i * a j` for all `i, j`
 -/
 lemma normalize_finite_fraction_representation (U : opens (Spec.Top R))
-  (s : (structure_sheaf R).presheaf.obj (op U)) {ι : Type*} (t : finset ι) (ht : t.nonempty)
-  (a h : ι → R) (iDh : Π i : ι, basic_open (h i) ⟶ U)
+  (s : (structure_sheaf R).presheaf.obj (op U)) {ι : Type*} (a h : ι → R)
+  (iDh : Π i : ι, basic_open (h i) ⟶ U) (t : finset ι)
   (h_cover : U.1 ⊆ ⋃ i ∈ t, (basic_open (h i)).1)
   (hs : ∀ i : ι, const R (a i) (h i) (basic_open (h i)) (λ y hy, hy) =
     (structure_sheaf R).presheaf.map (iDh i).op s) :
@@ -628,7 +628,7 @@ begin
   have exists_power : ∀ (i j : ι), ∃ n : ℕ,
     a i * h j * (h i * h j) ^ n = h i * a j * (h i * h j) ^ n,
   { intros i j,
-    obtain ⟨⟨c,n,rfl⟩,hc⟩ := (localization_map.eq _).mp (fractions_eq i j),
+    obtain ⟨⟨c, n, rfl⟩, hc⟩ := (localization_map.eq _).mp (fractions_eq i j),
     use (n+1),
     rw pow_succ,
     dsimp at hc,
@@ -636,9 +636,8 @@ begin
   let n := λ (p : ι × ι), (exists_power p.1 p.2).some,
   have n_spec := λ (p : ι × ι), (exists_power p.fst p.snd).some_spec,
   -- We need one power `(h i * h j) ^ N` that works for *all* pairs `(i,j)`
-  -- Since there are only finitely many indices involved, we can pick the maximum.
-  choose arg_max h_mem h_max using (t.product t).exists_max_image n (finset.nonempty_product ht ht),
-  let N := n arg_max,
+  -- Since there are only finitely many indices involved, we can pick the supremum.
+  let N := (t.product t).sup n,
   have basic_opens_eq : ∀ i : ι, basic_open ((h i) ^ (N+1)) = basic_open (h i) :=
     λ i, basic_open_pow _ _ (by linarith),
   -- Expanding the fraction `a i / h i` by the power `(h i) ^ N` gives the desired normalization
@@ -649,7 +648,8 @@ begin
     -- Here we need to show that our new fractions `a i / h i` satisfy the normalization condition
     -- Of course, the power `N` we used to expand the fractions might be bigger than the power
     -- `n (i, j)` which was originally chosen. We denote their difference by `k`
-    obtain ⟨k, (hk : n (i, j) + k = N)⟩ := nat.le.dest (h_max ⟨i,j⟩ (finset.mem_product.mpr ⟨hi,hj⟩)),
+    have n_le_N : n (i, j) ≤ N := finset.le_sup (finset.mem_product.mpr ⟨hi, hj⟩),
+    rcases nat.le.dest n_le_N with ⟨k, hk⟩,
     simp only [← hk, pow_add, pow_one],
     -- To accommodate for the difference `k`, we multiply both sides of the equation `n_spec (i, j)`
     -- by `(h i * h j) ^ k`
@@ -669,18 +669,8 @@ end
 open_locale classical
 open_locale big_operators
 
-/-
-NOTE: The assumption `basic_open f ≠ ⊥` shouldn't be necessary.
-Without it, the isomorphism should also hold, both sides would be the trivial ring.
-I think this case needs special examination, possibly it needs preparatory work, namely:
-
-1) That a sheaf evaluated on the empty set is a terminal object
-2) That the localization at a monoid containing zero is the trivial ring
-
-Both of these statements I couldn't find in mathlib, so I left this case out for the moment
--/
-lemma to_basic_open_surjective (f : R) (hf : basic_open f ≠ ∅) :
-  function.surjective (to_basic_open R f) :=
+-- The proof here follows the argument in Hartshorne's Algebraic Geometry, Proposition II.2.2.
+lemma to_basic_open_surjective (f : R) : function.surjective (to_basic_open R f) :=
 begin
   intro s,
   -- In this proof, `basic_open f` will play two distinct roles: Firstly, it is an open set in the
@@ -698,19 +688,9 @@ begin
   { -- Here, we need to show that our basic opens actually form a cover of `basic_open f`
     rw set.mem_Union,
     exact ⟨⟨x,hx⟩, hxDh' ⟨x, hx⟩⟩ },
-  -- Next, we use the normalization lemma above
+  -- Next, we use the normalization lemma from above
   obtain ⟨a, h, iDh, ht_cover, ha_ah, s_eq⟩ := normalize_finite_fraction_representation R
-    (basic_open f) s t _ a' h' iDh' ht_cover' s_eq',
-  swap,
-  { -- Here we show that `t` is nonempty
-    rw finset.nonempty_iff_ne_empty,
-    rintro rfl,
-    apply hf,
-    apply topological_space.opens.ext,
-    rw [← finset.set_bUnion_coe, finset.coe_empty, set.bUnion_empty] at ht_cover',
-    exact set.subset_empty_iff.mp ht_cover' },
-
-  -- Some cleaning up
+    (basic_open f) s a' h' iDh' t ht_cover' s_eq',
   clear s_eq' iDh' hxDh' ht_cover' a' h',
   -- Next we show that some power of `f` is a linear combination of the `h i`
   obtain ⟨n, hn⟩ : f ∈ (ideal.span (finset.image h t : set R)).radical,
@@ -727,7 +707,7 @@ begin
   -- holds for a nonzero power `n`
   replace hn := ideal.mul_mem_left _ f hn,
   erw [← pow_succ, mem_span_finset] at hn,
-  obtain ⟨b, hb⟩ := hn,
+  cases hn with b hb,
 
   rw finset.sum_image at hb,
   swap,
@@ -736,6 +716,7 @@ begin
     (∑ (i : ι) in t, b (h i) * a i) ⟨f ^ (n+1), n+1, rfl⟩,
   rw to_basic_open_mk',
   let tt := ((t : set (basic_open f)) : Type u),
+
   -- The rest of this proof would be a little nicer if we could write
   -- `(structure_sheaf R).eq_of_locally_eq'`. For that, the API on unique gluing should be
   -- extended to more general (algebraic?) categories, rather than only work with sheaves of types
@@ -767,17 +748,16 @@ begin
   ring,
 end
 
-def is_iso_to_basic_open (f : R) (hf : basic_open f ≠ ∅) :
-  is_iso (to_basic_open R f) :=
+instance is_iso_to_basic_open (f : R) : is_iso (to_basic_open R f) :=
 begin
   haveI : is_iso ((forget CommRing).map (to_basic_open R f)) := (is_iso_iff_bijective _).mpr
-    ⟨to_basic_open_injective R f, to_basic_open_surjective R f hf⟩,
+    ⟨to_basic_open_injective R f, to_basic_open_surjective R f⟩,
   exact is_iso_of_reflects_iso _ (forget CommRing),
 end
 
 def structure_sheaf_basic_open_iso (f : R) (hf : basic_open f ≠ ∅) :
   (structure_sheaf R).presheaf.obj (op (basic_open f)) ≅
   CommRing.of (localization (submonoid.powers f)) :=
-(@as_iso _ _ _ _ (to_basic_open R f) (is_iso_to_basic_open R f hf)).symm
+(as_iso (to_basic_open R f)).symm
 
 end algebraic_geometry

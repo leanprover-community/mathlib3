@@ -26,7 +26,7 @@ by coercion, see `closure_operator.gi`.
 * https://en.wikipedia.org/wiki/Closure_operator#Closure_operators_on_partially_ordered_sets
 
 -/
-universe u
+universes u v
 
 variables (α : Type u) [partial_order α]
 
@@ -87,11 +87,11 @@ lemma le_closure_iff (x y : α) : x ≤ c y ↔ c x ≤ c y :=
 lemma closure_top {α : Type u} [order_top α] (c : closure_operator α) : c ⊤ = ⊤ :=
 le_antisymm le_top (c.le_closure _)
 
-lemma closure_inter_le {α : Type u} [semilattice_inf α] (c : closure_operator α) (x y : α) :
+lemma closure_inf_le {α : Type u} [semilattice_inf α] (c : closure_operator α) (x y : α) :
   c (x ⊓ y) ≤ c x ⊓ c y :=
 c.monotone.map_inf_le _ _
 
-lemma closure_union_closure_le {α : Type u} [semilattice_sup α] (c : closure_operator α) (x y : α) :
+lemma closure_sup_closure_le {α : Type u} [semilattice_sup α] (c : closure_operator α) (x y : α) :
   c x ⊔ c y ≤ c (x ⊔ y) :=
 c.monotone.le_map_sup _ _
 
@@ -138,27 +138,27 @@ def mk₃ (f : α → α) (hf : ∀ x, x ≤ f x) (hmin : ∀ ⦃x y⦄, x ≤ f
   le_closure' := hf,
   idempotent' := λ x, le_antisymm (hmin (le_refl _)) (hf _) }
 
-lemma closure_closure_union_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
+lemma closure_closure_sup_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :
   c (c x ⊔ y) = c (x ⊔ y) :=
 le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (sup_le (c.monotone le_sup_left)
   (le_trans le_sup_right (le_closure _ _)))) (c.monotone (sup_le_sup_right (le_closure _ _) _))
 
-lemma closure_closure_union_right {α : Type u} [semilattice_sup α] (c : closure_operator α)
+lemma closure_closure_sup_right {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :
   c (x ⊔ c y) = c (x ⊔ y) :=
-by {rw [sup_comm, closure_closure_union_left, sup_comm]}
+by { rw [sup_comm, closure_closure_sup_left, sup_comm] }
 
-lemma closure_closure_union {α : Type u} [semilattice_sup α] (c : closure_operator α)
+lemma closure_closure_sup {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :
   c (c x ⊔ c y) = c (x ⊔ y) :=
-by {rw [closure_closure_union_left, closure_closure_union_right]}
+by { rw [closure_closure_sup_left, closure_closure_sup_right] }
 
-lemma closure_closure_bUnion {α : Type u} [complete_lattice α] (c : closure_operator α)
-  (s : set α) :
-  c (⨆ x ∈ s, c x) = c (⨆ x ∈ s, x) :=
-le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (bsupr_le (λ x hx, c.monotone
-  (le_bsupr_of_le x hx (le_refl x))))) (c.monotone (bsupr_le_bsupr (λ x hx, le_closure _ _)))
+lemma closure_closure_Sup {α : Type u} {ι : Type v} [complete_lattice α] (c : closure_operator α)
+  (x : ι → α) :
+  c (⨆ i, c (x i)) = c (⨆ i, x i) :=
+le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (supr_le (λ i, c.monotone
+  (le_supr _ _)))) (c.monotone (supr_le_supr (λ i, c.le_closure _)))
 
 /-- The set of closed elements has a Galois insertion to the underlying type. -/
 def gi : galois_insertion c.to_closed coe :=

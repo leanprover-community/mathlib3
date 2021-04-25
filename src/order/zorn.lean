@@ -297,7 +297,7 @@ zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx
 theorem zorn_superset {α : Type u} (S : set (set α))
   (h : ∀ c ⊆ S, zorn.chain (⊆) c → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
   ∃ m ∈ S, ∀ a ∈ S, a ⊆ m → a = m :=
-@zorn_partial_order₀ (order_dual (set α)) _ S $ λ c cS hc, h c cS (chain.symm hc)
+@zorn_partial_order₀ (order_dual (set α)) _ S $ λ c cS hc, h c cS hc.symm
 
 theorem zorn_superset_nonempty {α : Type u} (S : set (set α))
   (H : ∀ c ⊆ S, chain (⊆) c → c.nonempty → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) (x) (hx : x ∈ S) :

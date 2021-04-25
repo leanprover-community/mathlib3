@@ -27,6 +27,16 @@ begin
   unfold desc_fac, rw [ht, zero_add, factorial_succ]
 end
 
+lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n + k + 1) * desc_fac n k := rfl
+
+lemma succ_desc_fac {n k : ℕ} : (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k :=
+begin
+  induction k with t ht, simp!, rw desc_fac_succ, rw desc_fac_succ,
+  have : (n + 1) * ((n.succ + t + 1) * desc_fac n.succ t)
+       = (n.succ + t + 1) * ((n + 1) * desc_fac n.succ t), by ac_refl,
+  rw this, rw ht, repeat {rw succ_eq_add_one}, ring
+end
+
 theorem eval_desc_fac (n : ℕ) : ∀ k : ℕ, (n + k)! = n! * desc_fac n k
 | 0 := by simp!
 | (k + 1) := by unfold desc_fac; rw [←mul_assoc, mul_comm n!, mul_assoc, ←eval_desc_fac]; simp!
@@ -89,9 +99,8 @@ begin
       intros g g_equiv, simp [first, extend] at g_equiv ⊢, obtain ⟨k, g_equiv⟩ := g_equiv,
       have : g 0 = k, by rw [←g_equiv, fin.cons_zero],
       intros x eq, have : g x.succ = g 0, by rw [←eq, ←g_equiv, fin.cons_succ],
-      apply fin.succ_ne_zero x, exact g.injective this }, -/
-    {
-      let extended : finset (fin n.succ ↪ β) :=
+      apply fin.succ_ne_zero x, exact g.injective this },
+    { let extended : finset (fin n.succ ↪ β) :=
         finset.map ⟨λ x : {x // x ∈ poss_vals}, ⟨extend f x, _⟩, _⟩ poss_vals.attach,
       rotate,
       { intros a₁ a₂ eq, simp only [extend] at eq, sorry },
@@ -103,12 +112,21 @@ begin
       simp only [extend, true_and, mem_filter, mem_univ],
       use g 0, ext t, revert t,
       refine fin.induction (by rw fin.cons_zero) _,
-      rintros i -, sorry
-    }
-  },
-  rw [←card_univ, all_injf_covered, card_bUnion], simp [equiv_class_size], unfold desc_fac,
-  -- use hn and stuff
-  sorry, sorry,
+      rintros i -, simp at g_extended, -- `squeeze_simp` isn't helpful here - would love some advice
+      obtain ⟨k, untouched, g_extended⟩ := g_extended,
+      rw ←g_extended, simp [extend] -/ sorry },
+  rw [←card_univ, all_injf_covered, card_bUnion], swap, -- card_bUnion has a disjointness req
+  { rintros g - j - g_ne_j, rw disjoint_iff_ne, intros a a_equiv b b_equiv,
+    intro a_eq_b, apply g_ne_j, simp only [true_and, mem_filter, mem_univ] at a_equiv b_equiv,
+    obtain ⟨k₁, a_equiv⟩ := a_equiv, obtain ⟨k₂, b_equiv⟩ := b_equiv,
+    simp only [extend] at a_equiv b_equiv, subst a_eq_b, rw ←b_equiv at a_equiv,
+    apply_fun fin.tail at a_equiv, repeat { rw fin.tail_cons at a_equiv },
+    ext, rw a_equiv },
+  unfold desc_fac, simp [equiv_class_size, card_univ], rw hn (lt_of_succ_le h).le,
+  set t := ‖β‖ - n.succ with ht,
+  have : ‖β‖ - n = t.succ,
+  { rw ht, repeat{rw succ_eq_add_one}, rw succ_eq_add_one at h, sorry },
+  rw [this, mul_comm, succ_desc_fac]
 end
 
 /-

@@ -343,6 +343,8 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
+  decl   : fintype.card_inj
+  author : Eric Rodriguez
 94:
   title  : The Law of Cosines
   decl   : euclidean_geometry.dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle

@@ -32,12 +32,14 @@ variables {M : Type*} {N : Type*} {G : Type*} {H : Type*}
 /-- An auxiliary lemma that can be used to prove `⇑(f ^ n) = (⇑f^[n])`. -/
 lemma hom_coe_pow {F : Type*} [monoid F] (c : F → M → M) (h1 : c 1 = id)
   (hmul : ∀ f g, c (f * g) = c f ∘ c g) (f : F) : ∀ n, c (f ^ n) = (c f^[n])
-| 0 := h1
+| 0 := by { rw [pow_zero, h1], refl }
 | (n + 1) := by rw [pow_succ, iterate_succ', hmul, hom_coe_pow]
 
 namespace monoid_hom
 
-variables [monoid M] [monoid N] [group G] [group H]
+section
+
+variables [mul_one_class M] [mul_one_class N]
 
 @[simp, to_additive]
 theorem iterate_map_one (f : M →* M) (n : ℕ) : f^[n] 1 = 1 :=
@@ -47,6 +49,10 @@ iterate_fixed f.map_one n
 theorem iterate_map_mul (f : M →* M) (n : ℕ) (x y) :
   f^[n] (x * y) = (f^[n] x) * (f^[n] y) :=
 semiconj₂.iterate f.map_mul n x y
+
+end
+
+variables [monoid M] [monoid N] [group G] [group H]
 
 @[simp, to_additive]
 theorem iterate_map_inv (f : G →* G) (n : ℕ) (x) :
@@ -74,7 +80,7 @@ theorem iterate_map_sub (f : G →+ G) (n : ℕ) (x y) :
 semiconj₂.iterate f.map_sub n x y
 
 theorem iterate_map_smul (f : M →+ M) (n m : ℕ) (x : M) :
-  f^[n] (m •ℕ x) = m •ℕ (f^[n] x) :=
+  f^[n] (m • x) = m • (f^[n] x) :=
 f.to_multiplicative.iterate_map_pow x n m
 
 theorem iterate_map_gsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
@@ -106,7 +112,7 @@ theorem iterate_map_pow (a) (n m : ℕ) : f^[n] (a^m) = (f^[n] a)^m :=
 f.to_monoid_hom.iterate_map_pow a n m
 
 theorem iterate_map_smul (n m : ℕ) (x : R) :
-  f^[n] (m •ℕ x) = m •ℕ (f^[n] x) :=
+  f^[n] (m • x) = m • (f^[n] x) :=
 f.to_add_monoid_hom.iterate_map_smul n m x
 
 end semiring
@@ -132,7 +138,7 @@ hom_coe_pow _ rfl (λ _ _, rfl) _ _
 nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
 funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
 
-@[simp] lemma add_left_iterate [add_monoid M] (a : M) (n : ℕ) : ((+) a)^[n] = (+) (n •ℕ a) :=
+@[simp] lemma add_left_iterate [add_monoid M] (a : M) (n : ℕ) : ((+) a)^[n] = (+) (n • a) :=
 @mul_left_iterate (multiplicative M) _ a n
 
 @[simp] lemma mul_right_iterate [monoid M] (a : M) (n : ℕ) :
@@ -141,5 +147,5 @@ nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
 funext $ λ x, by simp [iterate_succ, ihn, pow_succ, mul_assoc]
 
 @[simp] lemma add_right_iterate [add_monoid M] (a : M) (n : ℕ) :
-  (λ x, x + a)^[n] = λ x, x + (n •ℕ a) :=
+  (λ x, x + a)^[n] = λ x, x + (n • a) :=
 @mul_right_iterate (multiplicative M) _ a n

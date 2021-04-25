@@ -489,7 +489,7 @@ theorem radical_pow (n : ℕ) (H : n > 0) : radical (I^n) = radical I :=
 nat.rec_on n (not.elim dec_trivial) (λ n ih H,
 or.cases_on (lt_or_eq_of_le $ nat.le_of_lt_succ H)
   (λ H, calc radical (I^(n+1))
-           = radical I ⊓ radical (I^n) : radical_mul _ _
+           = radical I ⊓ radical (I^n) : by { rw pow_succ, exact radical_mul _ _ }
        ... = radical I ⊓ radical I : by rw ih H
        ... = radical I : inf_idem)
   (λ H, H ▸ (pow_one I).symm ▸ rfl)) H
@@ -1434,7 +1434,7 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 -- It is even a semialgebra. But those aren't in mathlib yet.
 
-instance semimodule_submodule : semimodule (ideal R) (submodule R M) :=
+instance module_submodule : module (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
   add_smul := sup_smul,
   mul_smul := submodule.smul_assoc,

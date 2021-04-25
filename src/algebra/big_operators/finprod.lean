@@ -12,9 +12,9 @@ import data.indicator_function
 /-!
 # Finite products and sums over types and sets
 
-We define products and sums over types and subsets of types, with no finiteness hypotheses. 
+We define products and sums over types and subsets of types, with no finiteness hypotheses.
 All infinite products and sums are defined to be junk values (i.e. one or zero).
-This approach is sometimes easier to use than `finset.sum`, 
+This approach is sometimes easier to use than `finset.sum`,
 when issues arise with `finset` and `fintype` being data.
 
 ## Main definitions
@@ -169,6 +169,15 @@ by { subst q, exact finprod_congr hfg }
 
 attribute [congr] finsum_congr_Prop
 
+lemma finprod_nonneg {R : Type*} [ordered_comm_semiring R] {f : α → R} (hf : ∀ x, 0 ≤ f x) :
+  0 ≤ ∏ᶠ x, f x :=
+begin
+  rw finprod,
+  split_ifs,
+  { exact finset.prod_nonneg (λ x _, hf _) },
+  { exact zero_le_one }
+end
+
 @[to_additive] lemma monoid_hom.map_finprod_plift (f : M →* N) (g : α → M)
   (h : finite (mul_support $ g ∘ plift.down)) :
   f (∏ᶠ x, g x) = ∏ᶠ x, f (g x) :=
@@ -240,13 +249,14 @@ by { classical, rw [finprod_def, dif_pos hf] }
   ∏ᶠ i : α, f i = ∏ i, f i :=
 finprod_eq_prod_of_mul_support_to_finset_subset _ (finite.of_fintype _) $ finset.subset_univ _
 
-@[to_additive] lemma finprod_mem_eq_prod_of_mem_iff (f : α → M) {s : set α} {t : finset α}
-  (h : ∀ {x}, f x ≠ 1 → (x ∈ s ↔ x ∈ t)) :
-  ∏ᶠ i ∈ s, f i = ∏ i in t, f i :=
+@[to_additive] lemma finprod_cond_eq_prod_of_cond_iff (f : α → M) {p : α → Prop} {t : finset α}
+  (h : ∀ {x}, f x ≠ 1 → (p x ↔ x ∈ t)) :
+  ∏ᶠ i (hi : p i), f i = ∏ i in t, f i :=
 begin
+  set s := {x | p x},
   have : mul_support (s.mul_indicator f) ⊆ t,
   { rw [set.mul_support_mul_indicator], intros x hx, exact (h hx.2).1 hx.1 },
-  rw [finprod_mem_def, finprod_eq_prod_of_mul_support_subset _ this],
+  erw [finprod_mem_def, finprod_eq_prod_of_mul_support_subset _ this],
   refine finset.prod_congr rfl (λ x hx, mul_indicator_apply_eq_self.2 $ λ hxs, _),
   contrapose! hxs,
   exact (h hxs).2 hx
@@ -255,12 +265,12 @@ end
 @[to_additive] lemma finprod_mem_eq_prod_of_inter_mul_support_eq (f : α → M) {s : set α}
   {t : finset α} (h : s ∩ mul_support f = t ∩ mul_support f) :
   ∏ᶠ i ∈ s, f i = ∏ i in t, f i :=
-finprod_mem_eq_prod_of_mem_iff _ $ by simpa [set.ext_iff] using h
+finprod_cond_eq_prod_of_cond_iff _ $ by simpa [set.ext_iff] using h
 
 @[to_additive] lemma finprod_mem_eq_prod_of_subset (f : α → M) {s : set α} {t : finset α}
   (h₁ : s ∩ mul_support f ⊆ t) (h₂ : ↑t ⊆ s) :
   ∏ᶠ i ∈ s, f i = ∏ i in t, f i :=
-finprod_mem_eq_prod_of_mem_iff _ $ λ x hx, ⟨λ h, h₁ ⟨h, hx⟩, λ h, h₂ h⟩
+finprod_cond_eq_prod_of_cond_iff _ $ λ x hx, ⟨λ h, h₁ ⟨h, hx⟩, λ h, h₂ h⟩
 
 @[to_additive] lemma finprod_mem_eq_prod (f : α → M) {s : set α}
   (hf : (s ∩ mul_support f).finite) :
@@ -432,25 +442,25 @@ end
 
 /-- A more general version of `finprod_mem_union` that requires `s ∩ mul_support f` and
 `t ∩ mul_support f` instead of `s` and `t` to be finite. -/
-@[to_additive] lemma finprod_mem_union' (hs : (s ∩ mul_support f).finite)
-  (ht : (t ∩ mul_support f).finite) (hst : disjoint s t) :
+@[to_additive] lemma finprod_mem_union' (hst : disjoint s t) (hs : (s ∩ mul_support f).finite)
+  (ht : (t ∩ mul_support f).finite) :
   ∏ᶠ i ∈ s ∪ t, f i = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t, f i :=
 by rw [← finprod_mem_union_inter' hs ht, disjoint_iff_inter_eq_empty.1 hst, finprod_mem_empty,
   mul_one]
 
 /-- Given two finite disjoint sets `s` and `t`, the product of `f i` over `i ∈ s ∪ t` equals the
 product of `f i` over `i ∈ s` times the product of `f i` over `i ∈ t`. -/
-@[to_additive] lemma finprod_mem_union (hs : s.finite) (ht : t.finite) (hst : disjoint s t) :
+@[to_additive] lemma finprod_mem_union (hst : disjoint s t) (hs : s.finite) (ht : t.finite) :
   ∏ᶠ i ∈ s ∪ t, f i = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t, f i :=
-finprod_mem_union' (hs.inter_of_left _) (ht.inter_of_left _) hst
+finprod_mem_union' hst (hs.inter_of_left _) (ht.inter_of_left _)
 
 /-- A more general version of `finprod_mem_union'` that requires `s ∩ mul_support f` and
 `t ∩ mul_support f` instead of `s` and `t` to be disjoint -/
-@[to_additive] lemma finprod_mem_union'' (hs : (s ∩ mul_support f).finite)
-  (ht : (t ∩ mul_support f).finite) (hst : disjoint (s ∩ mul_support f) (t ∩ mul_support f)) :
+@[to_additive] lemma finprod_mem_union'' (hst : disjoint (s ∩ mul_support f) (t ∩ mul_support f))
+  (hs : (s ∩ mul_support f).finite) (ht : (t ∩ mul_support f).finite) :
   ∏ᶠ i ∈ s ∪ t, f i = (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t, f i :=
 by rw [← finprod_mem_inter_mul_support f s, ← finprod_mem_inter_mul_support f t,
-  ← finprod_mem_union hs ht hst, ← union_inter_distrib_right, finprod_mem_inter_mul_support]
+  ← finprod_mem_union hst hs ht, ← union_inter_distrib_right, finprod_mem_inter_mul_support]
 
 /-- The product of `f i` over `i ∈ {a}` equals `f a`. -/
 @[to_additive] lemma finprod_mem_singleton : ∏ᶠ i ∈ ({a} : set α), f i = f a :=
@@ -468,7 +478,7 @@ by simp [@eq_comm _ a]
   (hs : (s ∩ mul_support f).finite) :
   ∏ᶠ i ∈ insert a s, f i = f a * ∏ᶠ i ∈ s, f i :=
 begin
-  rw [insert_eq, finprod_mem_union' _ hs, finprod_mem_singleton],
+  rw [insert_eq, finprod_mem_union' _ _ hs, finprod_mem_singleton],
   { rwa disjoint_singleton_left },
   { exact (finite_singleton a).inter_of_left _ }
 end
@@ -559,35 +569,35 @@ end
   ∏ᶠ j : subtype p, f j = ∏ᶠ i (hi : p i), f i :=
 finprod_set_coe_eq_finprod_mem {i | p i}
 
-@[to_additive] lemma finprod_mem_inter_mul_diff' (h : (s ∩ mul_support f).finite) :
+@[to_additive] lemma finprod_mem_inter_mul_diff' (t : set α) (h : (s ∩ mul_support f).finite) :
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
 begin
   rw [← finprod_mem_union', inter_union_diff],
-  exacts [h.subset (λ x hx, ⟨hx.1.1, hx.2⟩), h.subset (λ x hx, ⟨hx.1.1, hx.2⟩),
-    λ x hx, hx.2.2 hx.1.2]
+  exacts [λ x hx, hx.2.2 hx.1.2, h.subset (λ x hx, ⟨hx.1.1, hx.2⟩),
+    h.subset (λ x hx, ⟨hx.1.1, hx.2⟩)],
 end
 
-@[to_additive] lemma finprod_mem_inter_mul_diff (h : s.finite) :
+@[to_additive] lemma finprod_mem_inter_mul_diff (t : set α) (h : s.finite) :
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
-finprod_mem_inter_mul_diff' $ h.inter_of_left _
+finprod_mem_inter_mul_diff' _ $ h.inter_of_left _
 
 /-- A more general version of `finprod_mem_mul_diff` that requires `t ∩ mul_support f` instead of
   `t` to be finite. -/
-@[to_additive] lemma finprod_mem_mul_diff' (ht : (t ∩ mul_support f).finite) (hst : s ⊆ t) :
+@[to_additive] lemma finprod_mem_mul_diff' (hst : s ⊆ t) (ht : (t ∩ mul_support f).finite) :
   (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t \ s, f i = ∏ᶠ i ∈ t, f i :=
-by rw [← finprod_mem_inter_mul_diff' ht, inter_eq_self_of_subset_right hst]
+by rw [← finprod_mem_inter_mul_diff' _ ht, inter_eq_self_of_subset_right hst]
 
 /-- Given a finite set `t` and a subset `s` of `t`, the product of `f i` over `i ∈ s`
 times the product of `f i` over `t \ s` equals the product of `f i` over `i ∈ t`. -/
-@[to_additive] lemma finprod_mem_mul_diff (ht : t.finite) (hst : s ⊆ t) :
+@[to_additive] lemma finprod_mem_mul_diff (hst : s ⊆ t) (ht : t.finite) :
   (∏ᶠ i ∈ s, f i) * ∏ᶠ i ∈ t \ s, f i = ∏ᶠ i ∈ t, f i :=
-finprod_mem_mul_diff' (ht.inter_of_left _) hst
+finprod_mem_mul_diff' hst (ht.inter_of_left _)
 
 /-- Given a family of pairwise disjoint finite sets `t i` indexed by a finite type,
 the product of `f a` over the union `⋃ i, t i` is equal to the product over all indexes `i`
 of the products of `f a` over `a ∈ t i`. -/
 @[to_additive] lemma finprod_mem_Union [fintype ι] {t : ι → set α}
-  (ht : ∀ i, (t i).finite) (h : pairwise (disjoint on t)) :
+  (h : pairwise (disjoint on t)) (ht : ∀ i, (t i).finite) :
   ∏ᶠ a ∈ (⋃ i : ι, t i), f a = ∏ᶠ i, (∏ᶠ a ∈ t i, f a) :=
 begin
   unfreezingI { lift t to ι → finset α using ht },
@@ -602,21 +612,21 @@ end
 sets `t i`, `i ∈ I`, are finite, if all `t i`, `i ∈ I`, are pairwise disjoint, then
 the product of `f a` over `a ∈ ⋃ i ∈ I, t i` is equal to the product over `i ∈ I`
 of the products of `f a` over `a ∈ t i`. -/
-@[to_additive] lemma finprod_mem_bUnion {I : set ι} {t : ι → set α} (hI : I.finite)
-  (ht : ∀ i ∈ I, (t i).finite) (h : pairwise_on I (disjoint on t)) :
+@[to_additive] lemma finprod_mem_bUnion {I : set ι} {t : ι → set α}
+  (h : pairwise_on I (disjoint on t)) (hI : I.finite) (ht : ∀ i ∈ I, (t i).finite) :
   ∏ᶠ a ∈ ⋃ x ∈ I, t x, f a = ∏ᶠ i ∈ I, ∏ᶠ j ∈ t i, f j :=
 begin
   haveI := hI.fintype,
   rw [← Union_subtype, finprod_mem_Union, ← finprod_set_coe_eq_finprod_mem],
-  exacts [λ b, ht b b.2, λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy)]
+  exacts [λ x y hxy, h x x.2 y y.2 (subtype.coe_injective.ne hxy), λ b, ht b b.2]
 end
 
 /-- If `t` is a finite set of pairwise disjoint finite sets, then the product of `f a`
 over `a ∈ ⋃₀ t` is the product over `s ∈ t` of the products of `f a` over `a ∈ s`. -/
-@[to_additive] lemma finprod_mem_sUnion {t : set (set α)} (ht₀ : t.finite)
-  (ht₁ : ∀ x ∈ t, set.finite x) (h : pairwise_on t disjoint):
+@[to_additive] lemma finprod_mem_sUnion {t : set (set α)} (h : pairwise_on t disjoint)
+  (ht₀ : t.finite) (ht₁ : ∀ x ∈ t, set.finite x):
   ∏ᶠ a ∈ ⋃₀ t, f a = ∏ᶠ s ∈ t, ∏ᶠ a ∈ s, f a :=
-by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion ht₀ ht₁ h]
+by rw [set.sUnion_eq_bUnion, finprod_mem_bUnion h ht₀ ht₁]
 
 /-- If `s : set α` and `t : set β` are finite sets, then the product over `s` commutes
 with the product over `t`. -/
@@ -640,6 +650,21 @@ begin
     refine finset.prod_induction _ p hp₁ hp₀ (λ x hx, hp₂ x _),
     rw hs.mem_to_finset at hx, exact hx.1 },
   { exact (finprod_mem_eq_one_of_infinite hs).symm ▸ hp₀ }
+end
+
+lemma finprod_cond_nonneg {R : Type*} [ordered_comm_semiring R] {p : α → Prop} {f : α → R}
+  (hf : ∀ x, p x → 0 ≤ f x) :
+  0 ≤ ∏ᶠ x (h : p x), f x :=
+finprod_nonneg $ λ x, finprod_nonneg $ hf x
+
+lemma finprod_eq_zero {M₀ : Type*} [comm_monoid_with_zero M₀] (f : α → M₀) (x : α)
+  (hx : f x = 0) (hf : finite (mul_support f)) :
+  ∏ᶠ x, f x = 0 :=
+begin
+  nontriviality,
+  rw [finprod_eq_prod f hf],
+  refine finset.prod_eq_zero (hf.mem_to_finset.2 _) hx,
+  simp [hx]
 end
 
 end type

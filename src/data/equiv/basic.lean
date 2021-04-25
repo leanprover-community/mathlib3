@@ -125,9 +125,12 @@ instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 @[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : α ≃ β) : β → α := e.symm
+def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
+
+-- Generate the `simps` projections for previously defined equivs.
+attribute [simps] function.involutive.to_equiv
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
@@ -718,7 +721,7 @@ def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 @[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
 
 /-- Sum with `empty` is equivalent to the original type. -/
-def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
+@[simps symm_apply] def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
 ⟨sum.elim id (empty.rec _),
  inl,
  λ s, by { rcases s with _ | ⟨⟨⟩⟩, refl },
@@ -727,13 +730,13 @@ def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
 @[simp] lemma sum_empty_apply_inl {α} (a) : sum_empty α (sum.inl a) = a := rfl
 
 /-- The sum of `empty` with any `Sort*` is equivalent to the right summand. -/
-def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
+@[simps symm_apply] def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_empty _
 
 @[simp] lemma empty_sum_apply_inr {α} (a) : empty_sum α (sum.inr a) = a := rfl
 
 /-- Sum with `pempty` is equivalent to the original type. -/
-def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
+@[simps symm_apply] def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
 ⟨sum.elim id (pempty.rec _),
  inl,
  λ s, by { rcases s with _ | ⟨⟨⟩⟩, refl },
@@ -742,7 +745,7 @@ def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
 @[simp] lemma sum_pempty_apply_inl {α} (a) : sum_pempty α (sum.inl a) = a := rfl
 
 /-- The sum of `pempty` with any `Sort*` is equivalent to the right summand. -/
-def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
+@[simps symm_apply] def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_pempty _
 
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl
@@ -831,6 +834,13 @@ def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
 @[simp] lemma sum_compl_apply_symm_of_neg {α : Type*} (p : α → Prop) [decidable_pred p]
   (a : α) (h : ¬ p a) :
   (sum_compl p).symm a = sum.inr ⟨a, h⟩ := dif_neg h
+
+/-- Combines an `equiv` between two subtypes with an `equiv` between their complements to form a
+  permutation. -/
+def subtype_congr {α : Type*} {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+  (e : {x // p x} ≃ {x // q x}) (f : {x // ¬p x} ≃ {x // ¬q x}) : perm α :=
+(sum_compl p).symm.trans ((sum_congr e f).trans
+  (sum_compl q))
 
 open equiv
 
@@ -1345,6 +1355,7 @@ by { cases a, cases a_val, refl }
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/
+@[simps apply symm_apply]
 def subtype_univ_equiv {α : Type u} {p : α → Prop} (h : ∀ x, p x) :
   subtype p ≃ α :=
 ⟨λ x, x, λ x, ⟨x, h x⟩, λ x, subtype.eq rfl, λ x, rfl⟩
@@ -1456,6 +1467,18 @@ lemma subtype_equiv_codomain_symm_apply_ne (f : {x' // x' ≠ x} → Y) (y : Y) 
 dif_pos h
 
 end subtype_equiv_codomain
+
+/--
+A set is equivalent to its image under an equivalence.
+-/
+-- We could construct this using `equiv.set.image e s e.injective`,
+-- but this definition provides an explicit inverse.
+@[simps]
+def image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
+{ to_fun := λ x, ⟨e x.1, by simp⟩,
+  inv_fun := λ y, ⟨e.symm y.1, by { rcases y with ⟨-, ⟨a, ⟨m, rfl⟩⟩⟩, simpa using m, }⟩,
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp, }.
 
 namespace set
 open set
@@ -1870,6 +1893,8 @@ by simp [swap_apply_def] {contextual := tt}
 @[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 ext $ λ x, swap_core_swap_core _ _ _
 
+@[simp] lemma symm_swap (a b : α) : (swap a b).symm = swap a b := rfl
+
 @[simp] lemma swap_eq_refl_iff {x y : α} : swap x y = equiv.refl _ ↔ x = y :=
 begin
   refine ⟨λ h, (equiv.refl _).injective _, λ h, h ▸ (swap_self _)⟩,
@@ -1912,6 +1937,10 @@ begin
   by_cases hj : k = j, { rw [hj, swap_apply_right, hv] },
   rw swap_apply_of_ne_of_ne hi hj,
 end
+
+lemma swap_apply_eq_iff {x y z w : α} :
+  swap x y z = w ↔ z = swap x y w :=
+by rw [apply_eq_iff_eq_symm_apply, symm_swap]
 
 namespace perm
 

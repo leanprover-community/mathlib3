@@ -7,9 +7,9 @@ import data.finsupp.basic
 import linear_algebra.basic
 
 /-!
-# Properties of the semimodule `α →₀ M`
+# Properties of the module `α →₀ M`
 
-Given an `R`-semimodule `M`, the `R`-semimodule structure on `α →₀ M` is defined in
+Given an `R`-module `M`, the `R`-module structure on `α →₀ M` is defined in
 `data.finsupp.basic`.
 
 In this file we define `finsupp.supported s` to be the set `{f : α →₀ M | f.support ⊆ s}`
@@ -47,7 +47,7 @@ interpreted as a submodule of `α →₀ M`. We also define `linear_map` version
 
 ## Tags
 
-function with finite support, semimodule, linear algebra
+function with finite support, module, linear algebra
 -/
 
 noncomputable theory
@@ -59,9 +59,9 @@ open_locale classical big_operators
 namespace finsupp
 
 variables {α : Type*} {M : Type*} {N : Type*} {P : Type*} {R : Type*} {S : Type*}
-variables [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M]
-variables [add_comm_monoid N] [semimodule R N]
-variables [add_comm_monoid P] [semimodule R P]
+variables [semiring R] [semiring S] [add_comm_monoid M] [module R M]
+variables [add_comm_monoid N] [module R N]
+variables [add_comm_monoid P] [module R P]
 
 /-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
@@ -126,7 +126,7 @@ lemma supr_lsingle_range : (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range)
 begin
   refine (eq_top_iff.2 $ set_like.le_def.2 $ assume f _, _),
   rw [← sum_single f],
-  refine sum_mem _ (assume a ha, submodule.mem_supr_of_mem a $ set.mem_image_of_mem _ trivial)
+  exact sum_mem _ (assume a ha, submodule.mem_supr_of_mem a ⟨_, rfl⟩),
 end
 
 lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
@@ -218,11 +218,8 @@ end
 
 theorem range_restrict_dom (s : set α) :
   (restrict_dom M R s).range = ⊤ :=
-begin
-  have := linear_map.range_comp (submodule.subtype _) (restrict_dom M R s),
-  rw [restrict_dom_comp_subtype, linear_map.range_id] at this,
-  exact eq_top_mono (submodule.map_mono le_top) this.symm
-end
+range_eq_top.2 $ function.right_inverse.surjective $
+  linear_map.congr_fun (restrict_dom_comp_subtype s)
 
 theorem supported_mono {s t : set α} (st : s ⊆ t) :
   supported M R s ≤ supported M R t :=
@@ -292,7 +289,7 @@ end
 
 section lsum
 
-variables (S) [semimodule S N] [smul_comm_class R S N]
+variables (S) [module S N] [smul_comm_class R S N]
 
 /-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map from `α →₀ M` to
 `N` using `finsupp.sum`. This is an upgraded version of `finsupp.lift_add_hom`.
@@ -408,7 +405,7 @@ end lmap_domain
 
 section total
 variables (α) {α' : Type*} (M) {M' : Type*} (R)
-          [add_comm_monoid M'] [semimodule R M']
+          [add_comm_monoid M'] [module R M']
           (v : α → M) {v' : α' → M'}
 
 /-- Interprets (l : α →₀ R) as linear combination of the elements in the family (v : α → M) and
@@ -516,9 +513,11 @@ linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supp
 variables {α} {M} {v}
 
 theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ :=
-by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict,
-  ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype];
-    exact le_of_eq (span_eq_map_total _ _)
+begin
+  rw [finsupp.total_on, linear_map.range_eq_map, linear_map.map_cod_restrict,
+    ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype],
+  exact (span_eq_map_total _ _).le
+end
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=
@@ -702,7 +701,7 @@ end sum
 end finsupp
 
 variables {R : Type*} {M : Type*} {N : Type*}
-variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
+variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
 
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :

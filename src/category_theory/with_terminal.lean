@@ -202,6 +202,9 @@ lift_unique F (λ z, hZ.from _) (λ x y f, hZ.hom_ext _ _) G h hG (λ x, hZ.hom_
 @[simp]
 def hom_from (X : C) : incl.obj X ⟶ star := star_terminal.from _
 
+instance is_iso_of_from_star {X : with_terminal C} (f : star ⟶ X) : is_iso f :=
+by tidy
+
 end with_terminal
 
 namespace with_initial
@@ -360,6 +363,9 @@ lift_unique F (λ z, hZ.to _) (λ x y f, hZ.hom_ext _ _) G h hG (λ x, hZ.hom_ex
 /-- Constructs a morphism from `star` to `of X`. -/
 @[simp]
 def hom_to (X : C) : star ⟶ incl.obj X := star_initial.to _
+
+instance is_iso_of_to_star {X : with_initial C} (f : X ⟶ star) : is_iso f :=
+by tidy
 
 end with_initial
 

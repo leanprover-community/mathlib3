@@ -12,14 +12,14 @@ import group_theory.perm.sign
 /-!
 # Exterior Algebras
 
-We construct the exterior algebra of a semimodule `M` over a commutative semiring `R`.
+We construct the exterior algebra of a module `M` over a commutative semiring `R`.
 
 ## Notation
 
-The exterior algebra of the `R`-semimodule `M` is denoted as `exterior_algebra R M`.
+The exterior algebra of the `R`-module `M` is denoted as `exterior_algebra R M`.
 It is endowed with the structure of an `R`-algebra.
 
-Given a linear morphism `f : M → A` from a semimodule `M` to another `R`-algebra `A`, such that
+Given a linear morphism `f : M → A` from a module `M` to another `R`-algebra `A`, such that
 `cond : ∀ m : M, f m * f m = 0`, there is a (unique) lift of `f` to an `R`-algebra morphism,
 which is denoted `exterior_algebra.lift R f cond`.
 
@@ -45,8 +45,10 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 
 -/
 
-variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+universes u1 u2 u3
+
+variables (R : Type u1) [comm_semiring R]
+variables (M : Type u2) [add_comm_monoid M] [module R M]
 
 namespace exterior_algebra
 open tensor_algebra
@@ -61,7 +63,7 @@ inductive rel : tensor_algebra R M → tensor_algebra R M → Prop
 end exterior_algebra
 
 /--
-The exterior algebra of an `R`-semimodule `M`.
+The exterior algebra of an `R`-module `M`.
 -/
 @[derive [inhabited, semiring, algebra R]]
 def exterior_algebra := ring_quot (exterior_algebra.rel R M)
@@ -70,10 +72,8 @@ namespace exterior_algebra
 
 variables {M}
 
--- typeclass resolution times out here, so we give it a hand
-instance {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
-let i : ring (tensor_algebra S M) := infer_instance in
-@ring_quot.ring (tensor_algebra S M) i (exterior_algebra.rel S M)
+instance {S : Type u3} [comm_ring S] [module S M] : ring (exterior_algebra S M) :=
+ring_quot.ring (exterior_algebra.rel S M)
 
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.

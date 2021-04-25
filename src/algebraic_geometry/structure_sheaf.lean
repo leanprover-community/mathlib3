@@ -14,9 +14,10 @@ import ring_theory.subring
 /-!
 # The structure sheaf on `prime_spectrum R`.
 
-We define the structure sheaf on `Top.of (prime_spectrum R)`, for a commutative ring `R`.
-We define this as a subsheaf of the sheaf of dependent functions into the localizations,
-cut out by the condition that the function must be locally equal to a ratio of elements of `R`.
+We define the structure sheaf on `Top.of (prime_spectrum R)`, for a commutative ring `R` and prove
+basic properties of it. We define this as a subsheaf of the sheaf of dependent functions into the
+localizations, cut out by the condition that the function must be locally equal to a ratio of
+elements of `R`.
 
 Because the condition "is equal to a fraction" passes to smaller open subsets,
 the subset of functions satisfying this condition is automatically a subpresheaf.
@@ -30,6 +31,19 @@ which pick out sub-presheaves and sub-sheaves of these sheaves.)
 
 We also set up the ring structure, obtaining
 `structure_sheaf R : sheaf CommRing (Top.of (prime_spectrum R))`.
+
+## Main statements
+
+* `stalk_iso`: The stalk of the structure sheaf at a point `p : prime_spectrum R` is isomorphic
+  (as a commutative ring) to the localization of `R` at the prime ideal `p`.
+* `basic_open_iso`: The structure sheaf on `basic_open f` is isomorphic (as a commutative ring) to
+  the localization of `R` at the submonoid of powers of `f`.
+
+## References
+
+* [Robin Hartshorne, *Algebraic Geometry*][Har77]
+
+
 -/
 
 universe u
@@ -467,7 +481,7 @@ ring_hom.ext_iff.1 (to_stalk_comp_stalk_to_fiber_ring_hom R x) _
 
 /-- The ring isomorphism between the stalk of the structure sheaf of `R` at a point `p`
 corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
-def structure_sheaf_stalk_iso (x : Spec.Top R) :
+def stalk_iso (x : Spec.Top R) :
   (structure_sheaf R).presheaf.stalk x ≅ CommRing.of (localization.at_prime x.as_ideal) :=
 { hom := stalk_to_fiber_ring_hom R x,
   inv := localization_to_stalk R x,
@@ -755,7 +769,7 @@ begin
   exact is_iso_of_reflects_iso _ (forget CommRing),
 end
 
-def structure_sheaf_basic_open_iso (f : R) (hf : basic_open f ≠ ∅) :
+def basic_open_iso (f : R) (hf : basic_open f ≠ ∅) :
   (structure_sheaf R).presheaf.obj (op (basic_open f)) ≅
   CommRing.of (localization (submonoid.powers f)) :=
 (as_iso (to_basic_open R f)).symm

@@ -86,7 +86,11 @@ noncomputable def fintype.complete_lattice_of_lattice (α : Type*) [fintype α] 
   [lattice α] : complete_lattice α :=
 @fintype.complete_lattice _ _ (@fintype.bounded_lattice α ⟨i.some⟩ _ _)
 
-/-- A nonempty finite linear order is complete -/
+/-- A nonempty finite linear order is complete.
+
+If the lattice is already a `bounded_lattice`, then build this object manually instead by combining
+`fintype.complete_lattice` and an appropriate `linear_order` instance, as this gives definitional
+equality for `⊥` and `⊤` -/
 noncomputable def fintype.complete_linear_order (α : Type*)
   [fintype α] [nonempty α] [linear_order α] : complete_linear_order α :=
 { .. fintype.complete_lattice_of_lattice α,

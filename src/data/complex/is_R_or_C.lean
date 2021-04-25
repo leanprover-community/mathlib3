@@ -306,7 +306,7 @@ by simp [-mul_re, norm_sq_add, add_comm, add_left_comm, sub_eq_add_neg]
 
 lemma sqrt_norm_sq_eq_norm {z : K} : real.sqrt (norm_sq z) = ∥z∥ :=
 begin
-  have h₂ : ∥z∥ = real.sqrt (∥z∥^2) := (real.sqrt_sqr (norm_nonneg z)).symm,
+  have h₂ : ∥z∥ = real.sqrt (∥z∥^2) := (real.sqrt_sq (norm_nonneg z)).symm,
   rw [h₂],
   exact congr_arg real.sqrt (norm_sq_eq_def' z)
 end
@@ -558,10 +558,10 @@ by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
 lemma re_eq_abs_of_mul_conj (x : K) : re (x * (conj x)) = abs (x * (conj x)) :=
 by rw [mul_conj, of_real_re, abs_of_real, norm_sq_eq_abs, pow_two, _root_.abs_mul, abs_abs]
 
-lemma abs_sqr_re_add_conj (x : K) : (abs (x + x†))^2 = (re (x + x†))^2 :=
+lemma abs_sq_re_add_conj (x : K) : (abs (x + x†))^2 = (re (x + x†))^2 :=
 by simp [pow_two, ←norm_sq_eq_abs, norm_sq]
 
-lemma abs_sqr_re_add_conj' (x : K) : (abs (x† + x))^2 = (re (x† + x))^2 :=
+lemma abs_sq_re_add_conj' (x : K) : (abs (x† + x))^2 = (re (x† + x))^2 :=
 by simp [pow_two, ←norm_sq_eq_abs, norm_sq]
 
 lemma conj_mul_eq_norm_sq_left (x : K) : x† * x = ((norm_sq x) : K) :=
@@ -692,7 +692,7 @@ local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 @[simp] lemma im_to_real {x : ℝ} : imR x = 0 := rfl
 @[simp] lemma conj_to_real {x : ℝ} : conjR x = x := rfl
 @[simp] lemma I_to_real : IR = 0 := rfl
-@[simp] lemma norm_sq_to_real {x : ℝ} : norm_sqR x = x*x := by simp [is_R_or_C.norm_sq]
+@[simp] lemma norm_sq_to_real {x : ℝ} : norm_sq x = x*x := by simp [is_R_or_C.norm_sq]
 @[simp] lemma abs_to_real {x : ℝ} : absR x = _root_.abs x :=
 by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 

@@ -1418,7 +1418,7 @@ lemma sqrt_two_add_series_lt_two : ∀(n : ℕ), sqrt_two_add_series 0 n < 2
 | 0     := by norm_num
 | (n+1) :=
   begin
-    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sqr $ le_of_lt zero_lt_two),
+    refine lt_of_lt_of_le _ (le_of_eq $ sqrt_sq $ le_of_lt zero_lt_two),
     rw [sqrt_two_add_series, sqrt_lt, ← lt_sub_iff_add_lt'],
     { refine (sqrt_two_add_series_lt_two n).trans_le _, norm_num },
     { exact add_nonneg zero_le_two (sqrt_two_add_series_zero_nonneg n) }
@@ -1444,7 +1444,7 @@ lemma sqrt_two_add_series_monotone_left {x y : ℝ} (h : x ≤ y) :
   begin
     have : (2 : ℝ) ≠ 0 := two_ne_zero,
     symmetry, rw [div_eq_iff_mul_eq this], symmetry,
-    rw [sqrt_two_add_series, sqrt_eq_iff_sqr_eq, mul_pow, cos_sq, ←mul_div_assoc,
+    rw [sqrt_two_add_series, sqrt_eq_iff_sq_eq, mul_pow, cos_sq, ←mul_div_assoc,
       nat.add_succ, pow_succ, mul_div_mul_left _ _ this, cos_pi_over_two_pow, add_mul],
     congr, { norm_num },
     rw [mul_comm, pow_two, mul_assoc, ←mul_div_assoc, mul_div_cancel_left, ←mul_div_assoc,
@@ -1465,7 +1465,7 @@ by rw [sin_sq, cos_pi_over_two_pow]
 lemma sin_sq_pi_over_two_pow_succ (n : ℕ) :
   sin (π / 2 ^ (n+2)) ^ 2 = 1 / 2 - sqrt_two_add_series 0 n / 4 :=
 begin
-  rw [sin_sq_pi_over_two_pow, sqrt_two_add_series, div_pow, sqr_sqrt, add_div, ←sub_sub],
+  rw [sin_sq_pi_over_two_pow, sqrt_two_add_series, div_pow, sq_sqrt, add_div, ←sub_sub],
   congr, norm_num, norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg,
 end
 
@@ -1473,7 +1473,7 @@ end
   sin (π / 2 ^ (n+2)) = sqrt (2 - sqrt_two_add_series 0 n) / 2 :=
 begin
   symmetry, rw [div_eq_iff_mul_eq], symmetry,
-  rw [sqrt_eq_iff_sqr_eq, mul_pow, sin_sq_pi_over_two_pow_succ, sub_mul],
+  rw [sqrt_eq_iff_sq_eq, mul_pow, sin_sq_pi_over_two_pow_succ, sub_mul],
   { congr, norm_num, rw [mul_comm], convert mul_div_cancel' _ _, norm_num, norm_num },
   { rw [sub_nonneg], apply le_of_lt, apply sqrt_two_add_series_lt_two },
   apply le_of_lt, apply mul_pos, apply sin_pos_of_pos_of_lt_pi,
@@ -1542,7 +1542,7 @@ end
 begin
   suffices : sqrt 3 = cos (π / 6) * 2,
   { field_simp [(by norm_num : 0 ≠ 2)], exact this.symm },
-  rw sqrt_eq_iff_sqr_eq,
+  rw sqrt_eq_iff_sq_eq,
   { have h1 := (mul_right_inj' (by norm_num : (4:ℝ) ≠ 0)).mpr sq_cos_pi_div_six,
     rw ← sub_eq_zero at h1 ⊢,
     convert h1 using 1,
@@ -3167,7 +3167,7 @@ eq.symm $ arcsin_eq_of_sin_eq (sin_arctan x) (mem_Icc_of_Ioo $ arctan_mem_Ioo x)
 lemma arcsin_eq_arctan {x : ℝ} (h : x ∈ Ioo (-(1:ℝ)) 1) :
   arcsin x = arctan (x / sqrt (1 - x ^ 2)) :=
 begin
-  rw [arctan_eq_arcsin, div_pow, sqr_sqrt, one_add_div, div_div_eq_div_mul,
+  rw [arctan_eq_arcsin, div_pow, sq_sqrt, one_add_div, div_div_eq_div_mul,
       ← sqrt_mul, mul_div_cancel', sub_add_cancel, sqrt_one, div_one];
   nlinarith [h.1, h.2],
 end

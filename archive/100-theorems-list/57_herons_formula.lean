@@ -58,7 +58,7 @@ begin
                                                       simp [angle_nonneg, angle_le_pi]
   ... = 1/4 * √((2*a*b)^2 - (a*a + b*b - c*c)^2)  : by { field_simp [ab2_nonneg], ring }
   ... = 1/4 * √(s * (s-a) * (s-b) * (s-c) * 4^2)  : by { simp only [s], ring_nf }
-  ... = √(s * (s-a) * (s-b) * (s-c))              : by rw [sqrt_mul', sqrt_sqr, div_mul_eq_mul_div,
+  ... = √(s * (s-a) * (s-b) * (s-c))              : by rw [sqrt_mul', sqrt_sq, div_mul_eq_mul_div,
                                                           one_mul, mul_div_cancel];
                                                       norm_num,
 end

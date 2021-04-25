@@ -59,7 +59,7 @@ begin
   ... = ∥r - 1∥ * ∥r + 1∥ * ∥y∥ ^ 2         : by ring
   ... = abs ((r - 1) * (r + 1) * ∥y∥ ^ 2) : by simp [abs_mul, norm_eq_abs]
   ... = abs (r ^ 2 * ∥y∥ ^ 2 - ∥y∥ ^ 2)    : by ring_nf
-  ... = abs (∥x∥ ^ 2 - ∥y∥ ^ 2)            : by simp [hxy, norm_smul, mul_pow, norm_eq_abs, sqr_abs]
+  ... = abs (∥x∥ ^ 2 - ∥y∥ ^ 2)            : by simp [hxy, norm_smul, mul_pow, norm_eq_abs, sq_abs]
   ... = abs (∥z + y∥ ^ 2 - ∥z - x∥ ^ 2)    : by simp [norm_add_pow_two_real, norm_sub_pow_two_real,
                                                     hzy, hzx, abs_sub],
 end

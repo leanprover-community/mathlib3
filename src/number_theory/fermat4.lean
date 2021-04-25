@@ -145,18 +145,18 @@ end
 
 end fermat_42
 
-lemma int.coprime_of_sqr_sum {r s : ℤ} (h2 : is_coprime s r) :
+lemma int.coprime_of_sq_sum {r s : ℤ} (h2 : is_coprime s r) :
   is_coprime (r ^ 2 + s ^ 2) r :=
 begin
   rw [pow_two, pow_two],
   exact (is_coprime.mul_left h2 h2).mul_add_left_left r
 end
 
-lemma int.coprime_of_sqr_sum' {r s : ℤ} (h : is_coprime r s) :
+lemma int.coprime_of_sq_sum' {r s : ℤ} (h : is_coprime r s) :
   is_coprime (r ^ 2 + s ^ 2) (r * s) :=
 begin
-  apply is_coprime.mul_right (int.coprime_of_sqr_sum (is_coprime_comm.mp h)),
-  rw add_comm, apply int.coprime_of_sqr_sum h
+  apply is_coprime.mul_right (int.coprime_of_sq_sum (is_coprime_comm.mp h)),
+  rw add_comm, apply int.coprime_of_sq_sum h
 end
 
 namespace fermat_42
@@ -208,7 +208,7 @@ begin
   -- m and r * s are coprime because m = r ^ 2 + s ^ 2 and r and s are coprime.
   have hcp : int.gcd m (r * s) = 1,
   { rw htt3,
-    exact int.gcd_eq_one_iff_coprime.mpr (int.coprime_of_sqr_sum'
+    exact int.gcd_eq_one_iff_coprime.mpr (int.coprime_of_sq_sum'
       (int.gcd_eq_one_iff_coprime.mp htt4)) },
   -- b is even because b ^ 2 = 2 * m * n.
   have hb2 : 2 ∣ b,
@@ -227,7 +227,7 @@ begin
   have h2b0 : b' ≠ 0,
   { apply ne_zero_pow (dec_trivial : 2 ≠ 0),
     rw hs, apply mul_ne_zero, { exact ne_of_gt h4}, { exact hrsz } },
-  obtain ⟨i, hi⟩ := int.sqr_of_gcd_eq_one hcp hs.symm,
+  obtain ⟨i, hi⟩ := int.sq_of_gcd_eq_one hcp hs.symm,
   -- use m is positive to exclude m = - i ^ 2
   have hi' : ¬ m = - i ^ 2,
   { by_contradiction h1,
@@ -238,7 +238,7 @@ begin
   rw mul_comm at hs,
   rw [int.gcd_comm] at hcp,
   -- obtain d such that r * s = d ^ 2
-  obtain ⟨d, hd⟩ := int.sqr_of_gcd_eq_one hcp hs.symm,
+  obtain ⟨d, hd⟩ := int.sq_of_gcd_eq_one hcp hs.symm,
   -- (b / 2) ^ 2 and m are positive so r * s is positive
   have hd' : ¬ r * s = - d ^ 2,
   { by_contradiction h1,
@@ -250,14 +250,14 @@ begin
     exact absurd (lt_of_le_of_ne h2' (ne.symm (pow_ne_zero _ h2b0))) (not_lt.mpr h2) },
   replace hd : r * s = d ^ 2, { apply or.resolve_right hd hd' },
   -- r = +/- j ^ 2
-  obtain ⟨j, hj⟩ := int.sqr_of_gcd_eq_one htt4 hd,
+  obtain ⟨j, hj⟩ := int.sq_of_gcd_eq_one htt4 hd,
   have hj0 : j ≠ 0,
   { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hj,
     apply left_ne_zero_of_mul hrsz hj },
   rw mul_comm at hd,
   rw [int.gcd_comm] at htt4,
   -- s = +/- k ^ 2
-  obtain ⟨k, hk⟩ := int.sqr_of_gcd_eq_one htt4 hd,
+  obtain ⟨k, hk⟩ := int.sq_of_gcd_eq_one htt4 hd,
   have hk0 : k ≠ 0,
   { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hk,
     apply right_ne_zero_of_mul hrsz hk },

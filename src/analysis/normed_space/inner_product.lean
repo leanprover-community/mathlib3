@@ -371,7 +371,7 @@ begin
     begin
       have h₁ : ∥x∥^2 = (sqrt (re (c.inner x x))) ^ 2 := rfl,
       have h₂ : 0 ≤ re (c.inner x x) := inner_product_space.of_core.inner_self_nonneg,
-      simp [h₁, sqr_sqrt, h₂],
+      simp [h₁, sq_sqrt, h₂],
     end,
     ..c }
 end
@@ -1617,7 +1617,7 @@ hf.norm_sq
 
 lemma times_cont_diff_at_norm {x : E} (hx : x ≠ 0) : times_cont_diff_at ℝ n norm x :=
 have ∥id x∥ ^ 2 ≠ 0, from pow_ne_zero _ (norm_pos_iff.2 hx).ne',
-by simpa only [id, sqrt_sqr, norm_nonneg] using times_cont_diff_at_id.norm_sq.sqrt this
+by simpa only [id, sqrt_sq, norm_nonneg] using times_cont_diff_at_id.norm_sq.sqrt this
 
 lemma times_cont_diff_at.norm (hf : times_cont_diff_at ℝ n f x) (h0 : f x ≠ 0) :
   times_cont_diff_at ℝ n (λ y, ∥f y∥) x :=

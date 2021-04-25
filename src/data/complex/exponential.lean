@@ -1037,11 +1037,11 @@ eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
 
 lemma abs_sin_eq_sqrt_one_sub_cos_sq (x : ℝ) :
   abs' (sin x) = sqrt (1 - cos x ^ 2) :=
-by rw [← sin_sq, sqrt_sqr_eq_abs]
+by rw [← sin_sq, sqrt_sq_eq_abs]
 
 lemma abs_cos_eq_sqrt_one_sub_sin_sq (x : ℝ) :
   abs' (cos x) = sqrt (1 - sin x ^ 2) :=
-by rw [← cos_sq', sqrt_sqr_eq_abs]
+by rw [← cos_sq', sqrt_sq_eq_abs]
 
 lemma inv_one_add_tan_sq {x : ℝ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2  :=
 have complex.cos x ≠ 0, from mt (congr_arg re) hx,
@@ -1053,7 +1053,7 @@ by simp only [← tan_mul_cos hx, mul_pow, ← inv_one_add_tan_sq hx, div_eq_mul
 
 lemma inv_sqrt_one_add_tan_sq {x : ℝ} (hx : 0 < cos x) :
   (sqrt (1 + tan x ^ 2))⁻¹ = cos x :=
-by rw [← sqrt_sqr hx.le, ← sqrt_inv, inv_one_add_tan_sq hx.ne']
+by rw [← sqrt_sq hx.le, ← sqrt_inv, inv_one_add_tan_sq hx.ne']
 
 lemma tan_div_sqrt_one_add_tan_sq {x : ℝ} (hx : 0 < cos x) :
   tan x / sqrt (1 + tan x ^ 2) = sin x :=

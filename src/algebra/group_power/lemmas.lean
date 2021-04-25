@@ -372,21 +372,21 @@ variable [ordered_semiring R]
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
-theorem one_add_mul_le_pow' {a : R} (Hsqr : 0 ≤ a * a) (Hsqr' : 0 ≤ (1 + a) * (1 + a))
+theorem one_add_mul_le_pow' {a : R} (Hsq : 0 ≤ a * a) (Hsq' : 0 ≤ (1 + a) * (1 + a))
   (H : 0 ≤ 2 + a) :
   ∀ (n : ℕ), 1 + (n : R) * a ≤ (1 + a) ^ n
 | 0     := by simp
 | 1     := by simp
 | (n+2) :=
 have 0 ≤ (n : R) * (a * a * (2 + a)) + a * a,
-  from add_nonneg (mul_nonneg n.cast_nonneg (mul_nonneg Hsqr H)) Hsqr,
+  from add_nonneg (mul_nonneg n.cast_nonneg (mul_nonneg Hsq H)) Hsq,
 calc 1 + (↑(n + 2) : R) * a ≤ 1 + ↑(n + 2) * a + (n * (a * a * (2 + a)) + a * a) :
   (le_add_iff_nonneg_right _).2 this
 ... = (1 + a) * (1 + a) * (1 + n * a) :
   by { simp [add_mul, mul_add, bit0, mul_assoc, (n.cast_commute (_ : R)).left_comm],
        ac_refl }
 ... ≤ (1 + a) * (1 + a) * (1 + a)^n :
-  mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) Hsqr'
+  mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) Hsq'
 ... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
 private lemma pow_lt_pow_of_lt_one_aux {a : R} (h : 0 < a) (ha : a < 1) (i : ℕ) :

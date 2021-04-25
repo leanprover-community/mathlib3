@@ -65,14 +65,14 @@ lemma one_sub_gold : 1 - ψ = φ := by linarith [gold_add_gold_conj]
 begin
   rw [golden_ratio, ←sub_eq_zero],
   ring_exp,
-  rw real.sqr_sqrt; norm_num,
+  rw real.sq_sqrt; norm_num,
 end
 
 @[simp] lemma gold_conj_sq : ψ^2 = ψ + 1 :=
 begin
   rw [golden_conj, ←sub_eq_zero],
   ring_exp,
-  rw real.sqr_sqrt; norm_num,
+  rw real.sq_sqrt; norm_num,
 end
 
 lemma gold_pos : 0 < φ :=

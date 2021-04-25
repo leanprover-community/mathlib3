@@ -72,13 +72,13 @@ begin
   have hreal₃ : k₀ ^ 2 + 4 ≥ p₀,  { assumption_mod_cast },
 
   have hreal₄ : k₀ ≥ sqrt(p₀ - 4),
-  { calc k₀ = sqrt(k₀ ^ 2) : eq.symm (sqrt_sqr (nat.cast_nonneg k))
+  { calc k₀ = sqrt(k₀ ^ 2) : eq.symm (sqrt_sq (nat.cast_nonneg k))
     ...     ≥ sqrt(p₀ - 4) : sqrt_le_sqrt (by linarith [hreal₃]) },
 
   have hreal₅ : k₀ > 4,
   { calc k₀ ≥ sqrt(p₀ - 4) : hreal₄
     ...     > sqrt(4 ^ 2)  : (sqrt_lt (by linarith)).mpr (by linarith [hreal₂])
-    ...     = 4            : sqrt_sqr (by linarith) },
+    ...     = 4            : sqrt_sq (by linarith) },
 
   have hreal₆ : p₀ > 2 * n₀ + sqrt(2 * n),
   { calc p₀ = 2 * n₀ + k₀                    : hreal₁

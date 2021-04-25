@@ -195,7 +195,7 @@ begin
   simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
   field_simp,
   erw [le_div_iff (pow_pos f.modulus_pos 2), one_mul],
-  apply sqr_le_sqr,
+  apply sq_le_sq,
   rw abs_eq_self.mpr (le_of_lt f.modulus_pos),
   rw [dist_comm] at m,
   exact m,

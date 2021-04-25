@@ -61,7 +61,7 @@ begin
 end
 
 @[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
-by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sqr_eq_abs, real.norm_eq_abs]
+by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
 noncomputable instance : normed_ring ℍ :=
 { dist_eq := λ _ _, rfl,

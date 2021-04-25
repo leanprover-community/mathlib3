@@ -42,7 +42,7 @@ end
 
 private lemma b_lt_sqrt_b_one_add_sq (b : ℝ) : b < sqrt (1 + b ^ 2) :=
 calc  b
-    ≤ sqrt (b ^ 2)     : le_sqrt_of_sqr_le $ le_refl _
+    ≤ sqrt (b ^ 2)     : le_sqrt_of_sq_le $ le_refl _
 ... < sqrt (1 + b ^ 2) : (sqrt_lt (pow_two_nonneg _)).2 (lt_one_add _)
 
 private lemma add_sqrt_one_add_pow_two_pos (b : ℝ) : 0 < b + sqrt (1 + b ^ 2) :=
@@ -69,7 +69,7 @@ begin
   have H := real.cosh_sq_sub_sinh_sq x,
   have G : cosh x ^ 2 - sinh x ^ 2 + sinh x ^ 2 = 1 + sinh x ^ 2 := by rw H,
   rw sub_add_cancel at G,
-  rw [←G, sqrt_sqr],
+  rw [←G, sqrt_sq],
   exact le_of_lt (cosh_pos x),
 end
 

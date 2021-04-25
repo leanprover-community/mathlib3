@@ -131,6 +131,13 @@ lemma mk₂.closed_of_prop {f : α → α} {p : α → Prop} (hf : ∀ x, x ≤ 
   (mk₂ f p hf hfp hmin).closed x :=
 le_antisymm (hmin (le_refl _) hx) (hf _)
 
+def mk₃ (f : α → α) (hf : ∀ x, x ≤ f x) (hmin : ∀ ⦃x y⦄, x ≤ f y → f x ≤ f y) :
+  closure_operator α :=
+{ to_fun := f,
+  monotone' := λ x y hxy, hmin (le_trans hxy (hf y)),
+  le_closure' := hf,
+  idempotent' := λ x, le_antisymm (hmin (le_refl _)) (hf _) }
+
 lemma closure_closure_union_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :
   c (c x ⊔ y) = c (x ⊔ y) :=

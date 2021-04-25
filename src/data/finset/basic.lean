@@ -2411,10 +2411,6 @@ theorem product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,
   and.left_comm, exists_and_distrib_left, exists_eq_right, exists_eq_left]
 
-theorem nonempty_product {s : finset α} (hs : s.nonempty) {t : finset β} (ht : t.nonempty) :
-  (s.product t).nonempty :=
-let ⟨x, hx⟩ := hs, ⟨y, hy⟩ := ht in ⟨⟨x, y⟩, finset.mem_product.mpr ⟨hx, hy⟩⟩
-
 @[simp] theorem card_product (s : finset α) (t : finset β) : card (s.product t) = card s * card t :=
 multiset.card_product _ _
 

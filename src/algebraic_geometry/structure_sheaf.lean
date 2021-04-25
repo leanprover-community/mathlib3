@@ -605,9 +605,8 @@ A local representation of a section `s` as fractions `a i / h i` on finitely man
 `basic_open (h i)` can be "normalized" in such a way that `a i * h j = h i * a j` for all `i, j`
 -/
 lemma normalize_finite_fraction_representation (U : opens (Spec.Top R))
-  (s : (structure_sheaf R).presheaf.obj (op U)) {ι : Type*} (a h : ι → R)
-  (iDh : Π i : ι, basic_open (h i) ⟶ U) (t : finset ι)
-  (h_cover : U.1 ⊆ ⋃ i ∈ t, (basic_open (h i)).1)
+  (s : (structure_sheaf R).presheaf.obj (op U)) {ι : Type*} (t : finset ι) (a h : ι → R)
+  (iDh : Π i : ι, basic_open (h i) ⟶ U)  (h_cover : U.1 ⊆ ⋃ i ∈ t, (basic_open (h i)).1)
   (hs : ∀ i : ι, const R (a i) (h i) (basic_open (h i)) (λ y hy, hy) =
     (structure_sheaf R).presheaf.map (iDh i).op s) :
   ∃ (a' h' : ι → R) (iDh' : Π i : ι, (basic_open (h' i)) ⟶ U),
@@ -704,7 +703,7 @@ begin
     exact ⟨⟨x,hx⟩, hxDh' ⟨x, hx⟩⟩ },
   -- Next, we use the normalization lemma from above
   obtain ⟨a, h, iDh, ht_cover, ha_ah, s_eq⟩ := normalize_finite_fraction_representation R
-    (basic_open f) s a' h' iDh' t ht_cover' s_eq',
+    (basic_open f) s t a' h' iDh' ht_cover' s_eq',
   clear s_eq' iDh' hxDh' ht_cover' a' h',
   -- Next we show that some power of `f` is a linear combination of the `h i`
   obtain ⟨n, hn⟩ : f ∈ (ideal.span (finset.image h t : set R)).radical,

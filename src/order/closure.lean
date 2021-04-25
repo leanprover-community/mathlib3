@@ -76,7 +76,7 @@ def mk' (f : α → α) (hf₁ : monotone f) (hf₂ : ∀ x, x ≤ f x) (hf₃ :
 @[mono] lemma monotone : monotone c := c.monotone'
 /--
 Every element is less than its closure. This property is sometimes referred to as extensivity or
-inflationary.
+inflationarity.
 -/
 lemma le_closure (x : α) : x ≤ c x := c.le_closure' x
 @[simp] lemma idempotent (x : α) : c (c x) = c x := c.idempotent' x
@@ -117,6 +117,19 @@ c.closure_top
 
 lemma closure_le_closed_iff_le {x y : α} (hy : c.closed y) : x ≤ y ↔ c x ≤ y :=
 by rw [← c.closure_eq_self_of_mem_closed hy, le_closure_iff]
+
+def mk₂ (f : α → α) (p : α → Prop) (hf : ∀ x, x ≤ f x) (hfp : ∀ x, p (f x))
+  (hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y) :
+  closure_operator α :=
+{ to_fun := f,
+  monotone' := λ x y hxy, hmin (le_trans hxy (hf y)) (hfp y),
+  le_closure' := hf,
+  idempotent' := λ x, le_antisymm (hmin (le_refl _) (hfp x)) (hf _) }
+
+lemma mk₂.closed_of_prop {f : α → α} {p : α → Prop} (hf : ∀ x, x ≤ f x) (hfp : ∀ x, p (f x))
+  (hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y) {x : α} (hx : p x) :
+  (mk₂ f p hf hfp hmin).closed x :=
+le_antisymm (hmin (le_refl _) hx) (hf _)
 
 lemma closure_closure_union_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :

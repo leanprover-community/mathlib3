@@ -42,7 +42,7 @@ section
 
 variables
 (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-{E : Type*} [add_comm_group E] [vector_space 𝕜 E]
+{E : Type*} [add_comm_group E] [module 𝕜 E]
 
 open set normed_field
 open_locale topological_space
@@ -139,14 +139,14 @@ end
 the reals that is positive semidefinite, positive homogeneous, and
 subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*)
-  [normed_field 𝕜] [add_comm_group E] [vector_space 𝕜 E] :=
+  [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] :=
 (to_fun    : E → ℝ)
 (smul'     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
 (triangle' : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
 
 variables
 {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [add_comm_group E] [vector_space 𝕜 E]
+{E : Type*} [add_comm_group E] [module 𝕜 E]
 
 instance : inhabited (seminorm 𝕜 E) :=
 ⟨{ to_fun     := λ _, 0,

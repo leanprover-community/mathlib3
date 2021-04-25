@@ -27,12 +27,16 @@ variables {A B : Type*}
 section min_poly_def
 variables (A) [comm_ring A] [ring B] [algebra A B]
 
-/-- Let `B` be an `A`-algebra, and `x` an element of `B` that is integral over `A`
-so we have some term `hx : is_integral A x`.
-The minimal polynomial `minpoly A x` of `x` is a monic polynomial of smallest degree
-that has `x` as its root.
-For instance, if `V` is a `K`-vector space for some field `K`, and `f : V →ₗ[K] V` then
-the minimal polynomial of `f` is `minpoly f.is_integral`. -/
+/--
+Suppose `x : B`, where `B` is an `A`-algebra.
+
+The minimal polynomial `minpoly A x` of `x`
+is a monic polynomial with coefficients in `A` of smallest degree that has `x` as its root,
+if such exists (`is_integral A x`) or zero otherwise.
+
+For example, if `V` is a `𝕜`-vector space for some field `𝕜` and `f : V →ₗ[𝕜] V` then
+the minimal polynomial of `f` is `minpoly 𝕜 f`.
+-/
 noncomputable def minpoly (x : B) : polynomial A :=
 if hx : is_integral A x then well_founded.min degree_lt_wf _ hx else 0
 
@@ -44,7 +48,7 @@ section ring
 variables [comm_ring A] [ring B] [algebra A B]
 variables {x : B}
 
-/--A minimal polynomial is monic.-/
+/-- A minimal polynomial is monic. -/
 lemma monic (hx : is_integral A x) : monic (minpoly A x) :=
 by { delta minpoly, rw dif_pos hx, exact (well_founded.min_mem degree_lt_wf _ hx).1 }
 
@@ -57,7 +61,7 @@ dif_neg hx
 
 variables (A x)
 
-/--An element is a root of its minimal polynomial.-/
+/-- An element is a root of its minimal polynomial. -/
 @[simp] lemma aeval : aeval x (minpoly A x) = 0 :=
 begin
   delta minpoly, split_ifs with hx,
@@ -74,11 +78,11 @@ begin
   have key := minpoly.aeval A x,
   rw [eq_X_add_C_of_degree_eq_one hx, (minpoly.monic h).leading_coeff, C_1, one_mul, aeval_add,
       aeval_C, aeval_X, ←eq_neg_iff_add_eq_zero, ←ring_hom.map_neg] at key,
-  exact ⟨-(minpoly A x).coeff 0, subring.mem_top (-(minpoly A x).coeff 0), key.symm⟩,
+  exact ⟨-(minpoly A x).coeff 0, key.symm⟩,
 end
 
-/--The defining property of the minimal polynomial of an element x:
-it is the monic polynomial with smallest degree that has x as its root.-/
+/-- The defining property of the minimal polynomial of an element `x`:
+it is the monic polynomial with smallest degree that has `x` as its root. -/
 lemma min {p : polynomial A} (pmonic : p.monic) (hp : polynomial.aeval x p = 0) :
   degree (minpoly A x) ≤ degree p :=
 begin
@@ -86,14 +90,6 @@ begin
   { exact le_of_not_lt (well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩) },
   { simp only [degree_zero, bot_le] }
 end
-
--- TODO(Commelin, Brasca): this is a duplicate
-/-- If an element `x` is a root of a nonzero monic polynomial `p`,
-then the degree of `p` is at least the degree of the minimal polynomial of `x`. -/
-lemma degree_le_of_monic
-  {p : polynomial A} (hmonic : p.monic) (hp : polynomial.aeval x p = 0) :
-  degree (minpoly A x) ≤ degree p :=
-min A x hmonic (by simp [hp])
 
 end ring
 
@@ -192,7 +188,7 @@ begin
   exact_mod_cast lt_add_of_pos_right _ degbzero,
 end
 
-/--A minimal polynomial is irreducible.-/
+/-- A minimal polynomial is irreducible. -/
 lemma irreducible (hx : is_integral A x) : irreducible (minpoly A x) :=
 begin
   cases irreducible_or_factor (minpoly A x) (not_is_unit A x) with hirr hred,
@@ -247,9 +243,9 @@ calc degree (minpoly A x) ≤ degree (p * C (leading_coeff p)⁻¹) :
     min A x (monic_mul_leading_coeff_inv pnz) (by simp [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
-/-- The minimal polynomial of an element x is uniquely characterized by its defining property:
-if there is another monic polynomial of minimal degree that has x as a root,
-then this polynomial is equal to the minimal polynomial of x. -/
+/-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
+if there is another monic polynomial of minimal degree that has `x` as a root,
+then this polynomial is equal to the minimal polynomial of `x`. -/
 lemma unique {p : polynomial A}
   (pmonic : p.monic) (hp : polynomial.aeval x p = 0)
   (pmin : ∀ q : polynomial A, q.monic → polynomial.aeval x q = 0 → degree p ≤ degree q) :
@@ -266,8 +262,8 @@ begin
       (pmin (minpoly A x) (monic hx) (aeval A x)) }
 end
 
-/-- If an element x is a root of a polynomial p,
-then the minimal polynomial of x divides p. -/
+/-- If an element `x` is a root of a polynomial `p`,
+then the minimal polynomial of `x` divides `p`. -/
 lemma dvd {p : polynomial A} (hp : polynomial.aeval x p = 0) : minpoly A x ∣ p :=
 begin
   by_cases hp0 : p = 0,
@@ -426,7 +422,7 @@ eq_of_monic_of_associated (monic hx) (monic_X_sub_C y) (associated_of_dvd_dvd
   (dvd_iff_is_root.2 h)),
 by { have := aeval A x, rwa [key, alg_hom.map_sub, aeval_X, aeval_C, sub_eq_zero, eq_comm] at this }
 
-/--The constant coefficient of the minimal polynomial of `x` is `0` if and only if `x = 0`. -/
+/-- The constant coefficient of the minimal polynomial of `x` is `0` if and only if `x = 0`. -/
 @[simp] lemma coeff_zero_eq_zero (hx : is_integral A x) : coeff (minpoly A x) 0 = 0 ↔ x = 0 :=
 begin
   split,
@@ -437,7 +433,7 @@ begin
   { rintro rfl, simp }
 end
 
-/--The minimal polynomial of a nonzero element has nonzero constant coefficient. -/
+/-- The minimal polynomial of a nonzero element has nonzero constant coefficient. -/
 lemma coeff_zero_ne_zero (hx : is_integral A x) (h : x ≠ 0) : coeff (minpoly A x) 0 ≠ 0 :=
 by { contrapose! h, simpa only [hx, coeff_zero_eq_zero] using h }
 

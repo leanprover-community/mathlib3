@@ -251,10 +251,10 @@ instance [smul_comm_class R S V] :
 
 end distrib_mul_action
 
-section semimodule
-variables [linear_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V]
+section module
+variables [linear_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [module R V]
 
-instance : semimodule R (hahn_series Γ V) :=
+instance : module R (hahn_series Γ V) :=
 { zero_smul := λ _, by { ext, simp },
   add_smul := λ _ _ _, by { ext, simp [add_smul] },
   .. hahn_series.distrib_mul_action }
@@ -269,7 +269,7 @@ instance : semimodule R (hahn_series Γ V) :=
 { map_smul' := λ r s, rfl,
   ..coeff.add_monoid_hom g }
 
-end semimodule
+end module
 
 section multiplication
 
@@ -915,7 +915,7 @@ instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
 lemma smul_apply {x : hahn_series Γ R} {s : summable_family Γ R α} {a : α} :
   (x • s) a = x * (s a) := rfl
 
-instance : semimodule (hahn_series Γ R) (summable_family Γ R α) :=
+instance : module (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := (•),
   smul_zero := λ x, ext (λ a, mul_zero _),
   zero_smul := λ x, ext (λ a, zero_mul _),

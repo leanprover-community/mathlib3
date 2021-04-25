@@ -120,7 +120,7 @@ tactic.pi_instance_derive_field
 instance [has_mul α] : has_scalar α (holor α ds) :=
   ⟨λ a x, λ t, a * x t⟩
 
-instance [semiring α] : semimodule α (holor α ds) := pi.semimodule _ _ _
+instance [semiring α] : module α (holor α ds) := pi.module _ _ _
 
 /-- The tensor product of two holors. -/
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=

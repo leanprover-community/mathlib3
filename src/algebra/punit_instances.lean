@@ -26,6 +26,7 @@ by refine_struct
   inv := λ _, star,
   div := λ _ _, star,
   npow := λ _ _, star,
+  gpow := λ _ _, star,
   .. };
 intros; exact subsingleton.elim _ _
 

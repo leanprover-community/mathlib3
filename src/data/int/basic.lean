@@ -34,7 +34,12 @@ instance : comm_ring int :=
   sub            := int.sub,
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
-  mul_comm       := int.mul_comm }
+  mul_comm       := int.mul_comm,
+  gsmul          := (*),
+  gsmul_zero'    := int.zero_mul,
+  gsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
+                                  int.one_mul],
+  gsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
 /-! ### Extra instances to short-circuit type class resolution -/
 -- instance : has_sub int            := by apply_instance -- This is in core

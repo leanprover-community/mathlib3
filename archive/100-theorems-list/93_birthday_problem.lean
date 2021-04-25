@@ -5,12 +5,10 @@ Authors: Eric Rodriguez
 -/
 import data.fintype.card
 import data.nat.factorial
-import data.equiv.fin
 import tactic
 open_locale classical nat
 
 open finset function nat
-variables {α β : Type*} [fintype α] [fintype β]
 local notation `|` x `|` := finset.card x
 local notation `‖` x `‖` := fintype.card x
 
@@ -60,7 +58,7 @@ begin
   induction n with n hn,
     rw [desc_fac_zero], nontriviality (fin 0 ↪ β),
     obtain ⟨f, g, ne⟩ := exists_pair_ne (fin 0 ↪ β),
-    exfalso, apply ne, ext x, exact fin.elim0 x,
+    exfalso, apply ne, ext x, exact x.elim0,
 
   let extend : (fin n → β) → β → fin n.succ → β :=
     λ f : fin n → β, λ b : β, fin.cons b f,
@@ -98,6 +96,7 @@ begin
         refine fin.induction _ _,
           exact x_y_agree,
         rintros t -, rw [←x_equiv, ←y_equiv, fin.cons_succ, fin.cons_succ] },
+
       apply finset.exists_ne_map_eq_of_card_lt_of_maps_to,
       push_neg at card_too_big, rw ←num_poss_vals at card_too_big, exact card_too_big,
 
@@ -106,6 +105,7 @@ begin
       have : g 0 = k, by rw [←g_equiv, fin.cons_zero],
       intros x eq, have : g x.succ = g 0, by rw [←eq, ←g_equiv, fin.cons_succ],
       apply fin.succ_ne_zero x, exact g.injective this },
+
     { let extended : finset (fin n.succ ↪ β) :=
         finset.map ⟨λ x : {x // x ∈ poss_vals}, ⟨extend f x, _⟩, _⟩ poss_vals.attach,
       rotate,
@@ -119,8 +119,8 @@ begin
         have := x.prop, rw mem_poss_vals at this, exfalso, apply this i, exact eq},
         -- how can I undo this duplication?
         { rintros i₂ - i₁ -, simp only [extend, fin.cons_succ, fin.succ_inj],
-          intro eq, exact f.injective eq }
-      },
+          intro eq, exact f.injective eq } },
+
       { intros a₁ a₂ eq, simp only [extend] at eq,
         ext, rw funext_iff at eq,
         specialize eq 0, rwa [fin.cons_zero, fin.cons_zero] at eq },
@@ -140,6 +140,7 @@ begin
       rintros i -,
       obtain ⟨k, untouched, g_extended⟩ := mem_extended g_extended,
       rw ←g_extended, simp [extend] } },
+
   rw [←card_univ, all_injf_covered, card_bUnion], swap, -- card_bUnion has a disjointness req
   { rintros g - j - g_ne_j, rw disjoint_iff_ne, intros a a_equiv b b_equiv,
     intro a_eq_b, apply g_ne_j, rw mem_equiv at a_equiv b_equiv,

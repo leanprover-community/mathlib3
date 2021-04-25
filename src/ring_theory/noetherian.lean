@@ -69,7 +69,7 @@ theorem fg_def {N : submodule R M} :
   exact ⟨t, rfl⟩
 end⟩
 
-lemma fg_iff_exists_fin_generating_fam {N : submodule R M} :
+lemma fg_iff_exists_fin_generating_family {N : submodule R M} :
   N.fg ↔ ∃ (n : ℕ) (s : fin n → M), span R (range s) = N :=
 begin
   rw fg_def,

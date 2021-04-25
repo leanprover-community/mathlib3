@@ -16,6 +16,7 @@ import algebra.module.ordered
 In a real vector space, we define the following objects and properties.
 
 * `segment x y` is the closed segment joining `x` and `y`.
+* `open_segment x y` is the open segment joining `x` and `y`.
 * A set `s` is `convex` if for any two points `x y ∈ s` it includes `segment x y`;
 * A function `f : E → β` is `convex_on` a set `s` if `s` is itself a convex set, and for any two
   points `x y ∈ s` the segment joining `(x, f x)` to `(y, f y)` is (non-strictly) above the graph
@@ -64,7 +65,7 @@ def segment (x y : E) : set E :=
 
 local notation `[`x `, ` y `]` := segment x y
 
-lemma segment_symm (x y : E) : [x, y] = [y, x] :=
+lemma segment_symm (x y : E) : ]x, y[ = ]y, xy[ :=
 set.ext $ λ z,
 ⟨λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩,
   λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩⟩
@@ -80,17 +81,17 @@ set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   by simpa only [(add_smul _ _ _).symm, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
   λ h, mem_singleton_iff.1 h ▸ left_mem_segment z z⟩
 
-lemma segment_eq_image (x y : E) : segment x y = (λ (θ : ℝ), (1 - θ) • x + θ • y) '' I :=
+lemma segment_eq_image (x y : E) : [x, y] = (λ (θ : ℝ), (1 - θ) • x + θ • y) '' I :=
 set.ext $ λ z,
   ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
     ⟨b, ⟨hb, hab ▸ le_add_of_nonneg_left ha⟩, hab ▸ hz ▸ by simp only [add_sub_cancel]⟩,
     λ ⟨θ, ⟨hθ₀, hθ₁⟩, hz⟩, ⟨1-θ, θ, sub_nonneg.2 hθ₁, hθ₀, sub_add_cancel _ _, hz⟩⟩
 
-lemma segment_eq_image' (x y : E) : segment x y = (λ (θ : ℝ), x + θ • (y - x)) '' I :=
+lemma segment_eq_image' (x y : E) : [x, y] = (λ (θ : ℝ), x + θ • (y - x)) '' I :=
 by { convert segment_eq_image x y, ext θ, simp only [smul_sub, sub_smul, one_smul], abel }
 
 lemma segment_eq_image₂ (x y : E) :
-  segment x y = (λ p:ℝ×ℝ, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
+  [x, y] = (λ p:ℝ×ℝ, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
 by simp only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
 
 lemma segment_eq_Icc {a b : ℝ} (h : a ≤ b) : [a, b] = Icc a b :=
@@ -117,7 +118,7 @@ end
 lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b, a + c] = [b, c] :=
 set.ext $ λ x, mem_segment_translate a
 
-lemma segment_translate_image (a b c: E) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
+lemma segment_translate_image (a b c : E) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
 segment_translate_preimage a b c ▸ image_preimage_eq _ $ add_left_surjective a
 
 lemma segment_image (f : E →ₗ[ℝ] F) (a b : E) : f '' [a, b] = [f a, f b] :=
@@ -143,6 +144,10 @@ begin
 end
 
 lemma convex_iff_segment_subset : convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → [x, y] ⊆ s :=
+by simp only [convex, segment_eq_image₂, subset_def, ball_image_iff, prod.forall,
+  mem_set_of_eq, and_imp]
+
+lemma convex_iff_open_segment_subset : convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → ]x, y[ ⊆ s :=
 by simp only [convex, segment_eq_image₂, subset_def, ball_image_iff, prod.forall,
   mem_set_of_eq, and_imp]
 

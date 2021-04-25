@@ -74,6 +74,10 @@ meta def continuity_tactics (md : transparency := reducible) : list (tactic stri
   apply_continuous.comp >> pure "refine continuous.comp _ _"
 ]
 
+/-- Tactic to apply `continuous.continuous_on` when appropriate. -/
+meta def apply_continuous.continuous_on : tactic unit :=
+`[{ apply continuous.continuous_on }]
+
 namespace interactive
 setup_tactic_parser
 
@@ -90,6 +94,12 @@ trace_fn continuity_core
 
 /-- Version of `continuity` for use with auto_param. -/
 meta def continuity' : tactic unit := continuity none none {}
+
+/-- Version of `continuity` that can deal with `continuous_on`. -/
+meta def continuity'' : tactic unit :=
+do
+  try apply_continuous.continuous_on,
+  continuity'
 
 /--
 `continuity` solves goals of the form `continuous f` by applying lemmas tagged with the

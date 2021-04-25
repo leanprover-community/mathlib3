@@ -283,6 +283,16 @@ let ⟨B, hB, B_fin⟩ := exists_is_basis_finite K V, ⟨g, hg⟩ := finite_dime
 
 variables {K V}
 
+lemma exists_is_basis_singleton (h : finrank K V = 1) :
+  ∃ (v : V), is_basis K (coe : ({v} : set V) → V) :=
+begin
+  haveI := finite_dimensional_of_finrank (_root_.zero_lt_one.trans_le h.symm.le),
+  obtain ⟨s, b⟩ := exists_is_basis_finset K V,
+  obtain ⟨v, rfl⟩ := finset.card_eq_one.mp ((finrank_eq_card_finset_basis b).symm.trans h),
+  use v,
+  convert b; simp,
+end
+
 lemma cardinal_mk_le_finrank_of_linear_independent
   [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : linear_independent K b) :
   cardinal.mk ι ≤ finrank K V :=
@@ -353,6 +363,28 @@ lemma finrank_eq_one (v : V) (n : v ≠ 0) (h : ∀ w : V, ∃ c : K, c • v = 
 begin
   convert finrank_eq_card_basis ((is_basis_singleton_iff punit v).mpr _),
   exact ⟨n, h⟩,
+end
+
+lemma finrank_eq_one_iff :
+  finrank K V = 1 ↔ ∃ (v : V), is_basis K (λ x : ({v} : set V), (x : V)) :=
+begin
+  fsplit,
+  { intro h,
+    haveI := finite_dimensional_of_finrank (_root_.zero_lt_one.trans_le h.symm.le),
+    exact exists_is_basis_singleton h, },
+  { rintro ⟨v, b⟩,
+    convert finrank_eq_card_basis b, }
+end
+
+lemma finrank_eq_one_iff' :
+  finrank K V = 1 ↔ ∃ (v : V) (n : v ≠ 0), ∀ w : V, ∃ c : K, c • v = w :=
+begin
+  convert finrank_eq_one_iff,
+  funext v,
+  simp only [exists_prop, eq_iff_iff, ne.def],
+  convert (is_basis_singleton_iff ({v} : set V) v).symm,
+  ext ⟨x, ⟨⟩⟩,
+  refl,
 end
 
 lemma finrank_le_one (v : V) (h : ∀ w : V, ∃ c : K, c • v = w) :

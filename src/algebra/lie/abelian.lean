@@ -186,13 +186,18 @@ def maximal_trivial_linear_map_equiv_lie_module_hom :
 { to_fun    := λ f,
     { map_lie' := λ x m, by
       { have hf : ⁅x, f.val⁆ m = 0, { rw [f.property x, linear_map.zero_apply], },
-        rw [bracket_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, },
+        rw [lie_hom.lie_apply, sub_eq_zero, ← linear_map.to_fun_eq_coe] at hf, exact hf.symm, },
       ..f.val, },
   map_add'  := λ f g, by { ext, simp, },
   map_smul' := λ F G, by { ext, simp, },
   inv_fun   := λ F, ⟨F, λ x, by { ext, simp, }⟩,
   left_inv  := λ f, by simp,
   right_inv := λ F, by simp, }
+
+@[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom
+  (f : maximal_trivial_submodule R L (M →ₗ[R] N)) :
+  ((maximal_trivial_linear_map_equiv_lie_module_hom f) : M → N) = f :=
+by { ext, refl, }
 
 @[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom_apply
   (f : maximal_trivial_submodule R L (M →ₗ[R] N)) :

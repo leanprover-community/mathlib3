@@ -7,6 +7,7 @@ Amelia Livingston, Yury Kudryashov
 import group_theory.submonoid.operations
 import algebra.big_operators.basic
 import algebra.free_monoid
+import algebra.pointwise
 
 /-!
 # Submonoids: membership criteria
@@ -314,6 +315,24 @@ submonoid `S` is contained in the additive closure of `S`. -/
 lemma mul_left_mem_add_closure (ha : a ∈ S) (hb : b ∈ add_submonoid.closure (S : set R)) :
   a * b ∈ add_submonoid.closure (S : set R) :=
 S.mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
+
+@[to_additive]
+lemma mem_closure_inv {G : Type*} [group G] (S : set G) (x : G) :
+  x ∈ submonoid.closure S⁻¹ ↔ x⁻¹ ∈ submonoid.closure S :=
+begin
+  suffices : ∀ (S : set G) (x : G), x ∈ submonoid.closure S⁻¹ → x⁻¹ ∈ submonoid.closure S,
+  { refine ⟨this S x, _⟩,
+    have := this S⁻¹ x⁻¹,
+    rw [inv_inv, set.inv_inv] at this,
+    exact this, },
+  intros S x hx,
+  refine submonoid.closure_induction hx (λ x hx, _) _ (λ x y hx hy, _),
+  { exact submonoid.subset_closure (set.mem_inv.mp hx), },
+  { rw one_inv,
+    exact submonoid.one_mem _ },
+  { rw mul_inv_rev x y,
+    exact submonoid.mul_mem _ hy hx },
+end
 
 end submonoid
 

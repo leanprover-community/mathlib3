@@ -1434,7 +1434,7 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 -- It is even a semialgebra. But those aren't in mathlib yet.
 
-instance semimodule_submodule : semimodule (ideal R) (submodule R M) :=
+instance module_submodule : module (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
   add_smul := sup_smul,
   mul_smul := submodule.smul_assoc,

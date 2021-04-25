@@ -108,6 +108,19 @@ theorem fin.prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
 by simp [fin.univ_def, finset.fin_range]
 
 @[to_additive]
+theorem finset.prod_range [comm_monoid β] {n : ℕ} (f : ℕ → β) :
+  ∏ i in finset.range n, f i = ∏ i : fin n, f i :=
+begin
+  fapply @finset.prod_bij' _ _ _ _ _ _,
+  exact λ k w, ⟨k, (by simpa using w)⟩,
+  swap 3,
+  exact λ a m, a,
+  swap 3,
+  exact λ a m, by simpa using a.2,
+  all_goals { tidy, },
+end
+
+@[to_additive]
 theorem fin.prod_of_fn [comm_monoid β] {n : ℕ} (f : fin n → β) :
   (list.of_fn f).prod = ∏ i, f i :=
 by rw [list.of_fn_eq_map, fin.prod_univ_def]

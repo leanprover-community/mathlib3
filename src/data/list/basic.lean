@@ -198,6 +198,9 @@ theorem length_pos_of_ne_nil {l : list α} : l ≠ [] → 0 < length l :=
 theorem length_pos_iff_ne_nil {l : list α} : 0 < length l ↔ l ≠ [] :=
 ⟨ne_nil_of_length_pos, length_pos_of_ne_nil⟩
 
+lemma exists_mem_of_ne_nil (l : list α) (h : l ≠ []) : ∃ x, x ∈ l :=
+exists_mem_of_length_pos (length_pos_of_ne_nil h)
+
 theorem length_eq_one {l : list α} : length l = 1 ↔ ∃ a, l = [a] :=
 ⟨match l with [a], _ := ⟨a, rfl⟩ end, λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
@@ -590,6 +593,10 @@ reverse_involutive.injective
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff
 
+lemma reverse_eq_iff {l l' : list α} :
+  l.reverse = l' ↔ l = l'.reverse :=
+reverse_involutive.eq_iff
+
 @[simp] theorem reverse_eq_nil {l : list α} : reverse l = [] ↔ l = [] :=
 @reverse_inj _ l []
 
@@ -770,6 +777,14 @@ begin
 end
 
 @[simp] theorem head'_map (f : α → β) (l) : head' (map f l) = (head' l).map f := by cases l; refl
+
+lemma tail_append_of_ne_nil (l l' : list α) (h : l ≠ []) :
+  (l ++ l').tail = l.tail ++ l' :=
+begin
+  cases l,
+  { contradiction },
+  { simp }
+end
 
 /-! ### Induction from the right -/
 
@@ -1164,6 +1179,14 @@ lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
 | []     a := rfl
 | (b::l) a := by rw [cons_append, length_cons, nth, nth_concat_length]
 
+lemma nth_le_cons_length (x : α) (xs : list α) (n : ℕ) (h : n = xs.length) :
+  (x :: xs).nth_le n (by simp [h]) = (x :: xs).last (cons_ne_nil x xs) :=
+begin
+  rw last_eq_nth_le,
+  congr,
+  simp [h]
+end
+
 @[ext]
 theorem ext : ∀ {l₁ l₂ : list α}, (∀n, nth l₁ n = nth l₂ n) → l₁ = l₂
 | []      []       h := rfl
@@ -1222,6 +1245,15 @@ theorem nth_le_reverse_aux2 : ∀ (l r : list α) (i : nat) (h1) (h2),
 @[simp] theorem nth_le_reverse (l : list α) (i : nat) (h1 h2) :
   nth_le (reverse l) (length l - 1 - i) h1 = nth_le l i h2 :=
 nth_le_reverse_aux2 _ _ _ _ _
+
+lemma nth_le_reverse' (l : list α) (n : ℕ) (hn : n < l.reverse.length) (hn') :
+  l.reverse.nth_le n hn = l.nth_le (l.length - 1 - n) hn' :=
+begin
+  rw eq_comm,
+  convert nth_le_reverse l.reverse _ _ _ using 1,
+  { simp },
+  { simpa }
+end
 
 lemma eq_cons_of_length_one {l : list α} (h : l.length = 1) :
   l = [l.nth_le 0 (h.symm ▸ zero_lt_one)] :=
@@ -2518,12 +2550,22 @@ end
 
 attribute [simp] join
 
-theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
+@[simp] theorem join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []     := iff_of_true rfl (forall_mem_nil _)
 | (l::L) := by simp only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
 
 @[simp] theorem join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+
+@[simp] theorem join_filter_empty_eq_ff [decidable_pred (λ l : list α, l.empty = ff)] :
+  ∀ {L : list (list α)}, join (L.filter (λ l, l.empty = ff)) = L.join
+| [] := rfl
+| ([]::L) := by simp [@join_filter_empty_eq_ff L]
+| ((a::l)::L) := by simp [@join_filter_empty_eq_ff L]
+
+@[simp] theorem join_filter_ne_nil [decidable_pred (λ l : list α, l ≠ [])] {L : list (list α)} :
+  join (L.filter (λ l, l ≠ [])) = L.join :=
+by simp [join_filter_empty_eq_ff, ← empty_iff_eq_nil]
 
 lemma join_join (l : list (list (list α))) : l.join.join = (l.map join).join :=
 by { induction l, simp, simp [l_ih] }
@@ -3495,6 +3537,19 @@ theorem suffix_or_suffix_of_suffix {l₁ l₂ l₃ : list α}
 (prefix_or_prefix_of_prefix (reverse_prefix.2 h₁) (reverse_prefix.2 h₂)).imp
   reverse_prefix.1 reverse_prefix.1
 
+theorem suffix_cons_iff {x : α} {l₁ l₂ : list α} :
+  l₁ <:+ x :: l₂ ↔ l₁ = x :: l₂ ∨ l₁ <:+ l₂ :=
+begin
+  split,
+  { rintro ⟨⟨hd, tl⟩, hl₃⟩,
+    { exact or.inl hl₃ },
+    { simp only [cons_append] at hl₃,
+      exact or.inr ⟨_, hl₃.2⟩ } },
+  { rintro (rfl | hl₁),
+    { exact (x :: l₂).suffix_refl },
+    { exact hl₁.trans (l₂.suffix_cons _) } }
+end
+
 theorem infix_of_mem_join : ∀ {L : list (list α)} {l}, l ∈ L → l <:+: join L
 | (_  :: L) l (or.inl rfl) := infix_append [] _ _
 | (l' :: L) l (or.inr h)   :=
@@ -3512,7 +3567,7 @@ theorem drop_suffix (n) (l : list α) : drop n l <:+ l := ⟨_, take_append_drop
 
 theorem tail_suffix (l : list α) : tail l <:+ l := by rw ← drop_one; apply drop_suffix
 
-lemma tail_sublist (l : list α) : l.tail <+ l := (sublist_of_suffix (tail_suffix l))
+lemma tail_sublist (l : list α) : l.tail <+ l := sublist_of_suffix (tail_suffix l)
 
 theorem tail_subset (l : list α) : tail l ⊆ l := (tail_sublist l).subset
 

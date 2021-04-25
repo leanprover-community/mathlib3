@@ -34,10 +34,12 @@ def is_extreme (A B : set E) :
   Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ segment x₁ x₂ → x₁ ≠ x → x₂ ≠ x → x₁ ∈ B ∧ x₂ ∈ B
 
+@[refl]
 lemma is_extreme.refl :
   reflexive (is_extreme : set E → set E → Prop) :=
 λ A, ⟨subset.refl _, λ x₁ x₂ hx₁A hx₂A x hxA hx hxx₁ hxx₂, ⟨hx₁A, hx₂A⟩⟩
 
+@[trans]
 lemma is_extreme.trans :
   transitive (is_extreme : set E → set E → Prop) :=
 begin
@@ -57,7 +59,7 @@ instance : is_partial_order (set E) is_extreme :=
   trans := is_extreme.trans,
   antisymm := is_extreme.antisymm }
 
-lemma convex_diff_of_extreme (hA : convex A) (hAB : is_extreme A B) :
+lemma is_extreme.convex_diff (hA : convex A) (hAB : is_extreme A B) :
   convex (A \ B) :=
 begin
   rw convex_iff_segment_subset,
@@ -112,10 +114,10 @@ subset_empty_iff.1 extreme_points_subset
 @[simp]
 lemma extreme_points_singleton :
   ({x} : set E).extreme_points = {x} :=
-subset.antisymm extreme_points_subset $ 
+subset.antisymm extreme_points_subset $
   singleton_subset_iff.2 ⟨mem_singleton x, λ x₁ _ hx₁ _ _, or.inl hx₁⟩
 
-lemma inter_extreme_of_extreme (hAB : is_extreme A B) (hAC : is_extreme A C) :
+lemma is_extreme.inter (hAB : is_extreme A B) (hAC : is_extreme A C) :
   is_extreme A (B ∩ C) :=
 begin
   use subset.trans (inter_subset_left _ _) hAB.1,
@@ -125,7 +127,7 @@ begin
   exact ⟨⟨hx₁B, hx₁C⟩, hx₂B, hx₂C⟩,
 end
 
-lemma bInter_extreme_of_extreme {F : set (set E)} (hF : F.nonempty)
+lemma is_extreme.bInter {F : set (set E)} (hF : F.nonempty)
   (hAF : ∀ B ∈ F, is_extreme A B) :
   is_extreme A (⋂ B ∈ F, B) :=
 begin
@@ -138,7 +140,7 @@ begin
   exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end
 
-lemma sInter_extreme_of_extreme {F : set (set E)} (hF : F.nonempty)
+lemma is_extreme.sInter_extreme {F : set (set E)} (hF : F.nonempty)
   (hAF : ∀ B ∈ F, is_extreme A B) :
   is_extreme A (⋂₀ F) :=
 begin
@@ -151,7 +153,7 @@ begin
   exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end
 
-lemma Inter_extreme_of_extreme {ι : Type*} [nonempty ι] {F : ι → set E}
+lemma is_extreme.Inter {ι : Type*} [nonempty ι] {F : ι → set E}
   (hAF : ∀ i : ι, is_extreme A (F i)) :
   is_extreme A (⋂ i : ι, F i) :=
 begin
@@ -164,11 +166,11 @@ begin
   exact ⟨λ i, (h i).1, λ i, (h i).2⟩,
 end
 
-lemma extreme_mono (hAC : is_extreme A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
+lemma is_extreme.mono (hAC : is_extreme A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
   is_extreme B C :=
 ⟨hCB, λ x₁ x₂ hx₁B hx₂B x hxC hx hxx₁ hxx₂, hAC.2 x₁ x₂ (hBA hx₁B) (hBA hx₂B) x hxC hx hxx₁ hxx₂⟩
 
-lemma extreme_points_eq_inter_extreme_points_of_extreme (hAB : is_extreme A B) :
+lemma is_extreme.extreme_points_eq (hAB : is_extreme A B) :
   B.extreme_points = B ∩ A.extreme_points :=
 begin
   ext x,
@@ -177,10 +179,10 @@ begin
     hxA.2 x₁ x₂ (hAB.1 hx₁B) (hAB.1 hx₂B) hx⟩⟩,
 end
 
-lemma extreme_points_subset_extreme_points_of_extreme (hAB : is_extreme A B) :
+lemma is_extreme.extreme_points_subset_extreme_points (hAB : is_extreme A B) :
   B.extreme_points ⊆ A.extreme_points :=
 begin
-  rw extreme_points_eq_inter_extreme_points_of_extreme hAB,
+  rw extreme_points_eq hAB,
   exact inter_subset_right _ _,
 end
 

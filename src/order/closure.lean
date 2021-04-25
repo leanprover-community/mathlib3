@@ -154,11 +154,17 @@ lemma closure_closure_sup {α : Type u} [semilattice_sup α] (c : closure_operat
   c (c x ⊔ c y) = c (x ⊔ y) :=
 by { rw [closure_closure_sup_left, closure_closure_sup_right] }
 
-lemma closure_closure_Sup {α : Type u} {ι : Type v} [complete_lattice α] (c : closure_operator α)
+lemma closure_closure_supr {α : Type u} {ι : Type v} [complete_lattice α] (c : closure_operator α)
   (x : ι → α) :
   c (⨆ i, c (x i)) = c (⨆ i, x i) :=
 le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (supr_le (λ i, c.monotone
   (le_supr _ _)))) (c.monotone (supr_le_supr (λ i, c.le_closure _)))
+
+lemma closure_closure_bsupr {α : Type u} [complete_lattice α] (c : closure_operator α)
+  (s : set α) :
+  c (⨆ x ∈ s, c x) = c (⨆ x ∈ s, x) :=
+le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (bsupr_le (λ x hx, c.monotone
+  (le_bsupr_of_le x hx (le_refl x))))) (c.monotone (bsupr_le_bsupr (λ x hx, le_closure _ _)))
 
 /-- The set of closed elements has a Galois insertion to the underlying type. -/
 def gi : galois_insertion c.to_closed coe :=

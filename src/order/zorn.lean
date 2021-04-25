@@ -243,6 +243,7 @@ exists_maximal_of_chains_bounded
 end chain
 
 --This lemma isn't under section `chain` because `parameters` messes up with it. Feel free to fix it
+/-- This can be used to turn `zorn.chain (≥)` into `zorn.chain (≤)` and vice-versa. -/
 theorem chain.symm {α : Type u} {s : set α} {q : α → α → Prop} (h : chain q s) :
   chain (flip q) s :=
 h.mono' (λ _ _, or.symm)
@@ -295,7 +296,7 @@ theorem zorn_subset_nonempty {α : Type u} (S : set (set α))
 zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx
 
 theorem zorn_superset {α : Type u} (S : set (set α))
-  (h : ∀ c ⊆ S, zorn.chain (⊆) c → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
+  (h : ∀ c ⊆ S, chain (⊆) c → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
   ∃ m ∈ S, ∀ a ∈ S, a ⊆ m → a = m :=
 @zorn_partial_order₀ (order_dual (set α)) _ S $ λ c cS hc, h c cS hc.symm
 

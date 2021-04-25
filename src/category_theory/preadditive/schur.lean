@@ -63,7 +63,10 @@ lemma is_iso_iff_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] (f : X ⟶ Y) :
 
 -- TODO move to `category_theory.endomorphism`
 lemma is_iso_iff_is_unit {X : C} (f : End X) : is_iso f ↔ is_unit (f : End X) :=
-sorry
+⟨λ h, by exactI ⟨⟨f, inv f, by simp, by simp⟩, rfl⟩,
+  λ h, { out := ⟨h.unit.inv,
+    ⟨by { convert h.unit.inv_val, exact h.unit_spec.symm, },
+      by { convert h.unit.val_inv, exact h.unit_spec.symm, }⟩⟩ }⟩
 
 instance (X : C) [simple.{v} X] : nontrivial (End X) :=
 nontrivial_of_ne 1 0 (id_nonzero X)
@@ -75,6 +78,15 @@ variables {𝕜 : Type*} [field 𝕜] [is_alg_closed 𝕜]
 -- TODO try out Sebastien's workaround
 local attribute [ext] add_comm_group semimodule distrib_mul_action mul_action has_scalar
 
+/--
+An auxiliary lemma for Schur's lemma.
+
+If `X ⟶ X` is finite dimensional, and every nonzero endomorphism is invertible,
+then `X ⟶ X` is 1-dimensional.
+-/
+-- We prove this with the explicit `is_iso_iff_nonzero` assumption,
+-- rather than just `[simple X]`, as this form is useful for
+-- Müger's formulation of semisimplicity.
 lemma findim_endomorphism_eq_one
   [linear 𝕜 C] {X : C} (is_iso_iff_nonzero : ∀ f : X ⟶ X, is_iso f ↔ f ≠ 0)
   [I : finite_dimensional 𝕜 (X ⟶ X)] :
@@ -82,28 +94,49 @@ lemma findim_endomorphism_eq_one
 begin
   have id_nonzero := (is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance),
   apply findim_eq_one (𝟙 X),
-  exact id_nonzero,
-  intro f,
-  haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
-  obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _
-    (by { convert I, ext; refl, ext; refl, }) (End.of f),
-  use c,
-  rw [←is_iso_iff_is_unit, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
-    algebra.algebra_map_eq_smul_one] at nu,
-  exact nu.symm,
+  { exact id_nonzero, },
+  { intro f,
+    haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
+    obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _
+      (by { convert I, ext; refl, ext; refl, }) (End.of f),
+    use c,
+    rw [←is_iso_iff_is_unit, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
+      algebra.algebra_map_eq_smul_one] at nu,
+    exact nu.symm, },
 end
 
 /--
-Schur's lemma for `𝕜`-linear categories
+Schur's lemma for endomorphisms in `𝕜`-linear categories.
 -/
 lemma findim_endomorphism_simple_eq_one
   [linear 𝕜 C] {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
   findim 𝕜 (X ⟶ X) = 1 :=
 findim_endomorphism_eq_one is_iso_iff_nonzero
 
+lemma endomorphism_simple_eq_smul_id
+  [linear 𝕜 C] {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] (f : X ⟶ X) :
+  ∃ c : 𝕜, c • 𝟙 X = f :=
+
+
+/--
+Schur's lemma for `𝕜`-linear categories.
+-/
 lemma findim_hom_simple_simple_le_one
   [linear 𝕜 C] {X Y : C} [finite_dimensional 𝕜 (X ⟶ X)] [simple.{v} X] [simple.{v} Y] :
   findim 𝕜 (X ⟶ Y) ≤ 1 :=
-sorry
+begin
+  cases subsingleton_or_nontrivial (X ⟶ Y) with h,
+  { resetI,
+    convert zero_le_one,
+    exact findim_zero_of_subsingleton, },
+  { obtain ⟨f, nz⟩ := (nontrivial_iff_exists_ne 0).mp h,
+    haveI fi := (is_iso_iff_nonzero f).mpr nz,
+    apply findim_le_one f,
+    intro g,
+    by_cases z : g = 0,
+    { exact ⟨0, by simp [z]⟩, },
+    { haveI gi := (is_iso_iff_nonzero g).mpr z, }
+     }
+end
 
 end category_theory

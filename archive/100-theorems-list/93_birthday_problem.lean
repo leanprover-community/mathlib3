@@ -7,7 +7,7 @@ import data.fintype.card
 import data.nat.factorial
 import tactic
 
-/--!
+/-!
 # Birthday Problem
 
 This file proves Theorem 93 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).

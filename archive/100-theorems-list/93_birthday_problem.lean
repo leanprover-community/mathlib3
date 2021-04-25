@@ -61,12 +61,12 @@ noncomputable instance fintype.embedding {α β} [fintype α] [fintype β] : fin
 fintype.of_equiv {f : α → β // injective f} (embedding_of_subtype α β).symm
 
 /-- Establishes the cardinality of the type of injective functions `fin n ↪ β`. -/
-lemma card_inj' (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) : ‖fin n ↪ β‖ = desc_fac (‖β‖ - n) n :=
+lemma fintype.card_inj' (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) : ‖fin n ↪ β‖ = desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,
-    rw [desc_fac_zero], nontriviality (fin 0 ↪ β),
+  { rw [desc_fac_zero], nontriviality (fin 0 ↪ β),
     obtain ⟨f, g, ne⟩ := exists_pair_ne (fin 0 ↪ β),
-    exfalso, apply ne, ext x, exact x.elim0,
+    exfalso, apply ne, ext x, exact x.elim0 },
 
   let extend : (fin n → β) → β → fin n.succ → β :=
     λ f : fin n → β, λ b : β, fin.cons b f,
@@ -77,12 +77,12 @@ begin
   have mem_equiv : ∀ f g, g ∈ equiv_classes f ↔ ∃ k : β, extend f k = g, by simp [equiv_classes],
 
   have all_injf_covered : univ = univ.bUnion equiv_classes,
-    apply subset.antisymm,
+  { apply subset.antisymm,
     { rintros f -, rw mem_bUnion,
       refine ⟨⟨fin.tail f, λ _ _ h, fin.succ_inj.mp $ f.injective h⟩, _⟩,
       suffices : ∃ (a : β), extend (fin.tail ⇑f) a = ⇑f, by simpa,
       use f 0, simp [extend] },
-    { exact subset_univ _ },
+    { exact subset_univ _ } },
 
   have equiv_class_size : ∀ f : fin n ↪ β, |equiv_classes f| = ‖β‖ - n,
   {
@@ -159,7 +159,7 @@ begin
   unfold desc_fac,
 
   suffices : ‖fin n ↪ β‖ * (‖β‖ - n) = (‖β‖ - n.succ + n + 1) * desc_fac (‖β‖ - n.succ) n,
-    by simpa [equiv_class_size, card_univ],
+  { simpa [equiv_class_size, card_univ] },
 
   rw hn (lt_of_succ_le h).le,
   set t := ‖β‖ - n.succ with ht,
@@ -169,7 +169,7 @@ begin
 end
 
 theorem birthday : 2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ :=
-  by norm_num [card_inj', desc_fac]
+  by norm_num [fintype.card_inj', desc_fac]
 
 lemma birthday' : 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ :=
-  by norm_num [card_inj', desc_fac]
+  by norm_num [fintype.card_inj', desc_fac]

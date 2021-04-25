@@ -27,7 +27,7 @@ variables [decidable_eq α] (l : list α)
 
 open equiv equiv.perm
 
-/-
+/--
 A list `l : list α` can be interpreted as a `equiv.perm α` where each element in the list
 is permuted to the next one, defined as `form_perm`. When we have that `nodup l`,
 we prove that `equiv.perm.support (form_perm l) = l.to_finset`, and that

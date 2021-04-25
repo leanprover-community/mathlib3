@@ -358,6 +358,8 @@ lemma finrank_zero_of_subsingleton [h : subsingleton V] :
   finrank K V = 0 :=
 finrank_zero_iff.2 h
 
+/-- If there is a nonzero vector and every other vector is a multiple of it,
+then the module has dimensions one. -/
 lemma finrank_eq_one (v : V) (n : v ≠ 0) (h : ∀ w : V, ∃ c : K, c • v = w) :
   finrank K V = 1 :=
 begin
@@ -365,6 +367,9 @@ begin
   exact ⟨n, h⟩,
 end
 
+/--
+A module has dimension 1 iff there so some `v : V` so `{v}` is a basis.
+-/
 lemma finrank_eq_one_iff :
   finrank K V = 1 ↔ ∃ (v : V), is_basis K (λ x : ({v} : set V), (x : V)) :=
 begin
@@ -376,6 +381,9 @@ begin
     convert finrank_eq_card_basis b, }
 end
 
+/--
+A module has dimension 1 iff there is some nonzero `v : V` so every vector is a multiple of `v`.
+-/
 lemma finrank_eq_one_iff' :
   finrank K V = 1 ↔ ∃ (v : V) (n : v ≠ 0), ∀ w : V, ∃ c : K, c • v = w :=
 begin
@@ -387,6 +395,9 @@ begin
   refl,
 end
 
+/--
+If every vector is a multiple of some `v : V`, then `V` has dimension at most one.
+-/
 lemma finrank_le_one (v : V) (h : ∀ w : V, ∃ c : K, c • v = w) :
   finrank K V ≤ 1 :=
 begin

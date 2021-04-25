@@ -84,11 +84,11 @@ variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 
-section semimodule
+section module
 
 variables {v : ι → M}
 variables [semiring R] [add_comm_monoid M] [add_comm_monoid M'] [add_comm_monoid M'']
-variables [semimodule R M] [semimodule R M'] [semimodule R M'']
+variables [module R M] [module R M'] [module R M'']
 variables {a b : R} {x y : M}
 
 variables (R) (v)
@@ -268,12 +268,12 @@ begin
   simpa only [this, zero_smul, zero_add] using total_eq
 end
 
-/-- A set of linearly independent vectors in a semimodule `M` over a semiring `K` is also linearly
+/-- A set of linearly independent vectors in a module `M` over a semiring `K` is also linearly
 independent over a subring `R` of `K`.
 The implementation uses minimal assumptions about the relationship between `R`, `K` and `M`.
 The version where `K` is an `R`-algebra is `linear_independent.restrict_scalars_algebras`.
  -/
-lemma linear_independent.restrict_scalars [semiring K] [smul_with_zero R K] [semimodule K M]
+lemma linear_independent.restrict_scalars [semiring K] [smul_with_zero R K] [module K M]
   [is_scalar_tower R K M]
   (hinj : function.injective (λ r : R, r • (1 : K))) (li : linear_independent K v) :
   linear_independent R v :=
@@ -391,7 +391,7 @@ linear_independent_Union_of_directed (directed_comp.2 $ hs.directed_coe) (by sim
 
 end subtype
 
-end semimodule
+end module
 
 /-! ### Properties which require `ring R` -/
 
@@ -865,13 +865,13 @@ end module
 /-!
 ### Properties which require `division_ring K`
 
-These can be considered generalizations of properties of linear independence in `vector_space`s.
+These can be considered generalizations of properties of linear independence in vector spaces.
 -/
 
-section vector_space
+section module
 
 variables [division_ring K] [add_comm_group V] [add_comm_group V']
-variables [semimodule K V] [semimodule K V']
+variables [module K V] [module K V']
 variables {v : ι → V} {s t : set V} {x y z : V}
 
 open submodule
@@ -982,7 +982,7 @@ lemma linear_independent_fin_snoc {n} {v : fin n → V} :
 by rw [fin.snoc_eq_cons_rotate, linear_independent_equiv, linear_independent_fin_cons]
 
 /-- See `linear_independent.fin_cons'` for an uglier version that works if you
-only have a semimodule. -/
+only have a module over a semiring. -/
 lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)
   (hx : x ∉ submodule.span K (range v)) :
   linear_independent K (fin.cons x v : fin (n + 1) → V) :=
@@ -1085,4 +1085,4 @@ let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs thi
 have finite s, from u.finite_to_set.subset hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
-end vector_space
+end module

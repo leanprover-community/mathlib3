@@ -100,7 +100,7 @@ namespace functor
 variables {D : Type u'} [category.{v'} D] (f : C ⥤ D) (X)
 
 /-- `f.map` as a monoid hom between endomorphism monoids. -/
-def map_End : End X →* End (f.obj X) :=
+@[simps] def map_End : End X →* End (f.obj X) :=
 { to_fun := functor.map f,
   map_mul' := λ x y, f.map_comp y x,
   map_one' := f.map_id X }

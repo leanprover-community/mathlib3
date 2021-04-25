@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.preserves.shapes.binary_products
+import category_theory.limits.shapes.constructions.finite_products_of_binary_products
 import category_theory.monad.limits
 import category_theory.adjunction.fully_faithful
 import category_theory.adjunction.reflective
@@ -15,11 +16,13 @@ import category_theory.subterminal
 
 An exponential ideal of a cartesian closed category `C` is a subcategory `D ⊆ C` if for any `B : D`
 and `A : C`, the exponential `B^^A` is in `D` - resembling ring theoretic ideals. We define the
-notion here for inclusion functors `i : D ⥤ C` rather than explicit subcategories.
+notion here for inclusion functors `i : D ⥤ C` rather than explicit subcategories to preserve the
+principle of equivalence.
 
-We give alternate conditions for an exponential ideal, particularly when the subcategory is
-reflective.
-
+We additionally show that if `C` is cartesian closed and `i : D ⥤ C` is a reflective functor, the
+following are equivalent.
+* The left adjoint to `i` preserves binary (equivalently, finite) products.
+* `i` is an exponential ideal.
 -/
 universes v₁ v₂ u₁ u₂
 
@@ -173,7 +176,8 @@ This bijection has two key properties:
 * When `X = LA ⨯ LB`, then the backwards direction sends the identity morphism to the product
   comparison morphism: See `bijection_symm_apply_id`.
 
-Together these help show that `L` preserves binary products.
+Together these help show that `L` preserves binary products. This should be considered
+*internal implementation* towards `preserves_binary_products_of_exponential_ideal`.
 -/
 noncomputable def bijection (A B : C) (X : D) :
   ((left_adjoint i).obj (A ⨯ B) ⟶ X) ≃ ((left_adjoint i).obj A ⨯ (left_adjoint i).obj B ⟶ X) :=
@@ -250,8 +254,6 @@ local attribute [instance] prod_comparison_iso
 If a reflective subcategory is an exponential ideal, then the reflector preserves binary products.
 This is the converse of `exponential_ideal_of_preserves_binary_products`.
 -/
--- TODO: Show that the reflector also preserves the terminal object and hence that it preserves
--- finite products.
 noncomputable def preserves_binary_products_of_exponential_ideal :
   preserves_limits_of_shape (discrete walking_pair) (left_adjoint i) :=
 { preserves_limit := λ K,
@@ -259,6 +261,17 @@ noncomputable def preserves_binary_products_of_exponential_ideal :
     apply limits.preserves_limit_of_iso_diagram _ (diagram_iso_pair K).symm,
     apply preserves_pair.of_iso_comparison,
   end }
+
+/--
+If a reflective subcategory is an exponential ideal, then the reflector preserves finite products.
+-/
+noncomputable def preserves_finite_products_of_exponential_ideal (J : Type*) [fintype J] :
+  preserves_limits_of_shape (discrete J) (left_adjoint i) :=
+begin
+  letI := preserves_binary_products_of_exponential_ideal i,
+  letI := left_adjoint_preserves_terminal_of_reflective i,
+  apply preserves_finite_products_of_preserves_binary_and_terminal (left_adjoint i) J
+end
 
 end
 

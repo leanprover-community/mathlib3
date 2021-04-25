@@ -194,6 +194,25 @@ lemma not_summable_of_radius_lt_nnnorm (p : formal_multilinear_series 𝕜 E F) 
   (h : p.radius < nnnorm x) : ¬ summable (λ n, ∥p n∥ * ∥x∥^n) :=
 λ hs, not_le_of_lt h (le_radius_of_summable p hs)
 
+lemma radius_eq_top_of_summable (p : formal_multilinear_series 𝕜 E F)
+  (hs : ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n)) : p.radius = ⊤ :=
+ennreal.eq_top_of_forall_nnreal_le (λ r, p.le_radius_of_summable (hs r))
+
+lemma radius_eq_top_iff_summable (p : formal_multilinear_series 𝕜 E F) :
+  p.radius = ⊤ ↔ ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n) :=
+begin
+  split,
+  { intros h r,
+    obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
+      p.norm_mul_pow_le_mul_pow_of_lt_radius
+      (show (r:ℝ≥0∞) < p.radius, from h.symm ▸ ennreal.coe_lt_top),
+    refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
+      ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)),
+    specialize hp n,
+    rwa real.norm_of_nonneg (mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg n)) },
+  { exact radius_eq_top_of_summable p }
+end
+
 /-- If the radius of `p` is positive, then `∥pₙ∥` grows at most geometrically. -/
 lemma le_mul_pow_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
   ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ n, ∥p n∥ ≤ C * r ^ n :=

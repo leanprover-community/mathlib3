@@ -7,12 +7,6 @@ import geometry.euclidean.basic
 import linear_algebra.affine_space.finite_dimensional
 import tactic.derive_fintype
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
-
 /-!
 # Circumcenter and circumradius
 
@@ -32,6 +26,12 @@ the circumcenter.
 * https://en.wikipedia.org/wiki/Circumscribed_circle
 
 -/
+
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real
+open_locale real_inner_product_space
 
 namespace euclidean_geometry
 
@@ -694,7 +694,7 @@ cospherical_iff_exists_mem_of_complete h
 subspace have the same circumradius. -/
 lemma exists_circumradius_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
   (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
-  (hd : findim ℝ s.direction = n) (hc : cospherical ps) :
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) :
   ∃ r : ℝ, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumradius = r :=
 begin
   rw cospherical_iff_exists_mem_of_finite_dimensional h at hc,
@@ -702,7 +702,7 @@ begin
   use r,
   intros sx hsxps,
   have hsx : affine_span ℝ (set.range sx.points) = s,
-  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_findim_add_one sx.independent
+  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_finrank_add_one sx.independent
       (span_points_subset_coe_of_subset_coe (set.subset.trans hsxps h)) _,
     simp [hd] },
   have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
@@ -715,7 +715,7 @@ end
 subspace have the same circumradius. -/
 lemma circumradius_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
   (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
-  (hd : findim ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
   (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
   sx₁.circumradius = sx₂.circumradius :=
 begin
@@ -726,11 +726,11 @@ end
 /-- All n-simplices among cospherical points in n-space have the same
 circumradius. -/
 lemma exists_circumradius_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
-  (hd : findim ℝ V = n) (hc : cospherical ps) :
+  (hd : finrank ℝ V = n) (hc : cospherical ps) :
   ∃ r : ℝ, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumradius = r :=
 begin
   haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
-  rw [←findim_top, ←direction_top ℝ V P] at hd,
+  rw [←finrank_top, ←direction_top ℝ V P] at hd,
   refine exists_circumradius_eq_of_cospherical_subset _ hd hc,
   exact set.subset_univ _
 end
@@ -738,7 +738,7 @@ end
 /-- Two n-simplices among cospherical points in n-space have the same
 circumradius. -/
 lemma circumradius_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
-  (hd : findim ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hd : finrank ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
   (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
   sx₁.circumradius = sx₂.circumradius :=
 begin
@@ -750,7 +750,7 @@ end
 subspace have the same circumcenter. -/
 lemma exists_circumcenter_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
   (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
-  (hd : findim ℝ s.direction = n) (hc : cospherical ps) :
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) :
   ∃ c : P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumcenter = c :=
 begin
   rw cospherical_iff_exists_mem_of_finite_dimensional h at hc,
@@ -758,7 +758,7 @@ begin
   use c,
   intros sx hsxps,
   have hsx : affine_span ℝ (set.range sx.points) = s,
-  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_findim_add_one sx.independent
+  { refine affine_span_eq_of_le_of_affine_independent_of_card_eq_finrank_add_one sx.independent
       (span_points_subset_coe_of_subset_coe (set.subset.trans hsxps h)) _,
     simp [hd] },
   have hc : c ∈ affine_span ℝ (set.range sx.points) := hsx.symm ▸ hc,
@@ -771,7 +771,7 @@ end
 subspace have the same circumcenter. -/
 lemma circumcenter_eq_of_cospherical_subset {s : affine_subspace ℝ P} {ps : set P}
   (h : ps ⊆ s) [nonempty s] {n : ℕ} [finite_dimensional ℝ s.direction]
-  (hd : findim ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hd : finrank ℝ s.direction = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
   (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
   sx₁.circumcenter = sx₂.circumcenter :=
 begin
@@ -782,11 +782,11 @@ end
 /-- All n-simplices among cospherical points in n-space have the same
 circumcenter. -/
 lemma exists_circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
-  (hd : findim ℝ V = n) (hc : cospherical ps) :
+  (hd : finrank ℝ V = n) (hc : cospherical ps) :
   ∃ c : P, ∀ sx : simplex ℝ P n, set.range sx.points ⊆ ps → sx.circumcenter = c :=
 begin
   haveI : nonempty (⊤ : affine_subspace ℝ P) := set.univ.nonempty,
-  rw [←findim_top, ←direction_top ℝ V P] at hd,
+  rw [←finrank_top, ←direction_top ℝ V P] at hd,
   refine exists_circumcenter_eq_of_cospherical_subset _ hd hc,
   exact set.subset_univ _
 end
@@ -794,7 +794,7 @@ end
 /-- Two n-simplices among cospherical points in n-space have the same
 circumcenter. -/
 lemma circumcenter_eq_of_cospherical {ps : set P} {n : ℕ} [finite_dimensional ℝ V]
-  (hd : findim ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
+  (hd : finrank ℝ V = n) (hc : cospherical ps) {sx₁ sx₂ : simplex ℝ P n}
   (hsx₁ : set.range sx₁.points ⊆ ps) (hsx₂ : set.range sx₂.points ⊆ ps) :
   sx₁.circumcenter = sx₂.circumcenter :=
 begin

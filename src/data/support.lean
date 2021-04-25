@@ -166,12 +166,12 @@ lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B 
   support (b • f) ⊆ support f :=
 λ x hbf hf, hbf $ by rw [pi.smul_apply, hf, smul_zero]
 
-lemma support_smul_subset_left [semiring R] [add_comm_monoid M] [semimodule R M]
+lemma support_smul_subset_left [semiring R] [add_comm_monoid M] [module R M]
   (f : α → R) (g : α → M) :
   support (f • g) ⊆ support f :=
 λ x hfg hf, hfg $ by rw [pi.smul_apply', hf, zero_smul]
 
-lemma support_smul [semiring R] [add_comm_monoid M] [semimodule R M]
+lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
   [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
   support (f • g) = support f ∩ support g :=
 ext $ λ x, smul_ne_zero
@@ -228,6 +228,18 @@ mul_support_one_sub' f
 
 end function
 
+namespace set
+
+open function
+
+variables {α β M : Type*} [has_one M] {f : α → M}
+
+@[to_additive] lemma image_inter_mul_support_eq {s : set β} {g : β → α} :
+  (g '' s ∩ mul_support f) = g '' (s ∩ mul_support (f ∘ g)) :=
+by rw [mul_support_comp_eq_preimage f g, image_inter_preimage]
+
+end set
+
 namespace pi
 variables {A : Type*} {B : Type*} [decidable_eq A] [has_zero B] {a : A} {b : B}
 
@@ -253,8 +265,7 @@ lemma support_single_subset : function.support (pi.single a b) ⊆ {a} :=
 begin
   classical,
   rw support_single,
-  split_ifs;
-  simp
+  split_ifs; simp
 end
 
 lemma support_single_disjoint {b' : B} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : A} :

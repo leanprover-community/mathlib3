@@ -269,7 +269,7 @@ lemma hom_ext [perfect_ring R p] {S : Type u₂} [comm_semiring S] [char_p S p]
 variables {R P} (p) {S : Type u₂} [comm_semiring S] [char_p S p]
 variables {Q : Type u₄} [comm_semiring Q] [char_p Q p] [perfect_ring Q p]
 
-/-- A ring homomorphism `R →+* S` induces `P →+* Q`, a map of the respective perfections -/
+/-- A ring homomorphism `R →+* S` induces `P →+* Q`, a map of the respective perfections. -/
 @[nolint unused_arguments]
 noncomputable def map {π : P →+* R} (m : perfection_map p π) {σ : Q →+* S} (n : perfection_map p σ)
   (φ : R →+* S) : P →+* Q :=
@@ -284,7 +284,8 @@ lemma map_map {π : P →+* R} (m : perfection_map p π) {σ : Q →+* S} (n : p
 ring_hom.ext_iff.1 (comp_map p m n φ) x
 
 -- Why is this slow?
-lemma map_eq_map (φ : R →+* S) : map p (of p R) (of p S) φ = perfection.map p φ :=
+lemma map_eq_map (φ : R →+* S) :
+  @map p _ R _ _ _ _ _ _ S _ _ _ _ _ _ _ (of p R) _ (of p S) φ = perfection.map p φ :=
 hom_ext _ (of p S) $ λ f, by rw [map_map, perfection.coeff_map]
 
 end perfection_map
@@ -455,7 +456,7 @@ lemma val_aux_zero : val_aux K v O hv p 0 = 0 :=
 dif_neg $ λ ⟨n, hn⟩, hn rfl
 
 lemma val_aux_one : val_aux K v O hv p 1 = 1 :=
-(val_aux_eq $ by exact one_ne_zero).trans $
+(val_aux_eq $ show coeff (mod_p K v O hv p) p 0 1 ≠ 0, from one_ne_zero).trans $
 by { rw [pow_zero, pow_one, ring_hom.map_one, ← (ideal.quotient.mk _).map_one, mod_p.pre_val_mk,
     ring_hom.map_one, v.map_one], exact @one_ne_zero (mod_p K v O hv p) _ _ }
 

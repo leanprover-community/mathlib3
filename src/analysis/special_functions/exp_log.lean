@@ -70,8 +70,11 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-lemma continuous_exp : continuous exp :=
+@[continuity] lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
+
+lemma continuous_on_exp {s : set ℂ} : continuous_on exp s :=
+continuous_exp.continuous_on
 
 lemma times_cont_diff_exp : ∀ {n}, times_cont_diff ℂ n exp :=
 begin
@@ -200,8 +203,11 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-lemma continuous_exp : continuous exp :=
+@[continuity] lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
+
+lemma continuous_on_exp {s : set ℝ} : continuous_on exp s :=
+continuous_exp.continuous_on
 
 lemma measurable_exp : measurable exp := continuous_exp.measurable
 
@@ -513,7 +519,7 @@ begin
   exact exp_order_iso.symm.continuous.comp (continuous_subtype_mk _ continuous_subtype_coe.norm)
 end
 
-lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
+@[continuity] lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
 continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, ne_of_gt hx
 
 lemma continuous_at_log (hx : x ≠ 0) : continuous_at log x :=

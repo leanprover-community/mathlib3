@@ -899,8 +899,7 @@ lemma to_Lp_add {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
 lemma to_Lp_neg {f : α → E} (hf : mem_ℒp f p μ) : hf.neg.to_Lp (-f) = - hf.to_Lp f := rfl
 
 lemma to_Lp_sub {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
-  (hf.sub hg).to_Lp (f - g) = hf.to_Lp f - hg.to_Lp g :=
-by { convert hf.to_Lp_add hg.neg, exact sub_eq_add_neg f g }
+  (hf.sub hg).to_Lp (f - g) = hf.to_Lp f - hg.to_Lp g := rfl
 
 end mem_ℒp
 
@@ -1125,8 +1124,8 @@ variables {E p μ 𝕜}
 
 lemma coe_Lp_submodule : (Lp_submodule E p μ 𝕜).to_add_subgroup = Lp E p μ := rfl
 
-instance : semimodule 𝕜 (Lp E p μ) :=
-{ .. (Lp_submodule E p μ 𝕜).semimodule }
+instance : module 𝕜 (Lp E p μ) :=
+{ .. (Lp_submodule E p μ 𝕜).module }
 
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p μ) : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 

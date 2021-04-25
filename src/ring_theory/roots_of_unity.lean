@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import data.nat.parity
 import data.polynomial.ring_division
-import group_theory.order_of_element
+import group_theory.specific_groups.cyclic
 import ring_theory.integral_domain
 import number_theory.divisors
 import data.zmod.basic
@@ -868,9 +868,8 @@ begin
     minpoly.irreducible ((h.pow_of_prime hprime.1 hdiv).is_integral hpos),
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
-  { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
-      ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm).is_primitive)).2,
-    rw [map_mul],
+  { rw [(is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
+      (monic_X_pow_sub_C (1 : ℤ) (ne_of_gt hpos)).is_primitive), map_mul],
     refine is_coprime.mul_dvd _ _ _,
     { have aux := is_primitive.int.irreducible_iff_irreducible_map_cast Pmonic.is_primitive,
       refine (dvd_or_coprime _ _ (aux.1 Pirr)).resolve_left _,

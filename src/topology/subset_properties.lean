@@ -192,6 +192,20 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) (λ i, (hZc i).is_op
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
     exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
 
+/-- If `s` is a compact set in a topological space `α` and `f : ι → set α` is a locally finite
+family of sets, then `f i ∩ s` is nonempty only for a finitely many `i`. -/
+lemma locally_finite.finite_nonempty_inter_compact {ι : Type*} {f : ι → set α}
+  (hf : locally_finite f) {s : set α} (hs : is_compact s) :
+  finite {i | (f i ∩ s).nonempty} :=
+begin
+  choose U hxU hUf using hf,
+  rcases hs.elim_nhds_subcover U (λ x _, hxU x) with ⟨t, -, hsU⟩,
+  refine (t.finite_to_set.bUnion (λ x _, hUf x)).subset _,
+  rintro i ⟨x, hx⟩,
+  rcases mem_bUnion_iff.1 (hsU hx.2) with ⟨c, hct, hcx⟩,
+  exact mem_bUnion hct ⟨x, hx.1, hcx⟩
+end
+
 /-- To show that a compact set intersects the intersection of a family of closed sets,
   it is sufficient to show that it intersects every finite subfamily. -/
 lemma is_compact.inter_Inter_nonempty {s : set α} {ι : Type v} (hs : is_compact s)
@@ -492,6 +506,14 @@ lemma cluster_point_of_compact [compact_space α] (f : filter α) [ne_bot f] :
   ∃ x, cluster_pt x f :=
 by simpa using compact_univ (show f ≤ 𝓟 univ, by simp)
 
+lemma compact_space.elim_nhds_subcover {α : Type*} [topological_space α] [compact_space α]
+  (U : α → set α) (hU : ∀ x, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (⋃ x ∈ t, U x) = ⊤ :=
+begin
+  obtain ⟨t, -, s⟩ := is_compact.elim_nhds_subcover compact_univ U (λ x m, hU x),
+  exact ⟨t, by { rw eq_top_iff, exact s }⟩,
+end
+
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     (⋂ i, Z i) = ∅ → ∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅) :
@@ -529,15 +551,7 @@ many nonempty elements. -/
 lemma locally_finite.finite_nonempty_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
   (hf : locally_finite f) :
   finite {i | (f i).nonempty} :=
-begin
-  choose U hxU hUf using hf,
-  rcases finite_cover_nhds hxU with ⟨t, ht⟩,
-  refine (t.finite_to_set.bUnion (λ x _, hUf x)).subset _,
-  rintro i ⟨x, hx⟩,
-  simp only [eq_univ_iff_forall, mem_Union] at ht ⊢,
-  rcases ht x with ⟨j, hjt, hjx⟩,
-  exact ⟨j, hjt, x, hx, hjx⟩
-end
+by simpa only [inter_univ]  using hf.finite_nonempty_inter_compact compact_univ
 
 /-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
 finitely many elements, `set.finite` version. -/
@@ -921,6 +935,36 @@ end
 @[mono] lemma compact_covering_subset ⦃m n : ℕ⦄ (h : m ≤ n) :
   compact_covering α m ⊆ compact_covering α n :=
 monotone_accumulate h
+
+variable {α}
+
+/-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have
+only countably many elements, `set.countable` version. -/
+lemma locally_finite.countable_of_sigma_compact {ι : Type*} {f : ι → set α} (hf : locally_finite f)
+  (hne : ∀ i, (f i).nonempty) :
+  countable (univ : set ι) :=
+begin
+  have := λ n, hf.finite_nonempty_inter_compact (is_compact_compact_covering α n),
+  refine (countable_Union (λ n, (this n).countable)).mono (λ i hi, _),
+  rcases hne i with ⟨x, hx⟩,
+  rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
+  exact mem_Union.2 ⟨n, x, hx, hn⟩
+end
+
+/-- In a topological space with sigma compact topology, if `f` is a function that sends each
+point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
+`x ∈ s`, cover the whole space. -/
+lemma countable_cover_nhds_of_sigma_compact {f : α → set α}
+  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
+begin
+  choose t ht hsub using λ n, (is_compact_compact_covering α n).elim_nhds_subcover f (λ x _, hf x),
+  refine ⟨⋃ n, (t n : set α), countable_Union $ λ n, (t n).countable_to_set, _⟩,
+  simp only [eq_univ_iff_forall, mem_Union, exists_prop],
+  intro x,
+  rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
+  rcases mem_bUnion_iff.1 (hsub n hn) with ⟨c, hct, hfx⟩,
+  exact ⟨c, ⟨n, hct⟩, hfx⟩
+end
 
 end compact
 

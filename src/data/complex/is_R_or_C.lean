@@ -712,7 +712,7 @@ noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
 
 /-- The real part in a `is_R_or_C` field, as a continuous linear map. -/
 noncomputable def re_clm : K →L[ℝ] ℝ :=
-re_lm.mk_continuous 1 $ by
+linear_map.mk_continuous re_lm 1 $ by
 { simp only [norm_eq_abs, re_lm_coe, one_mul, abs_to_real], exact abs_re_le_abs, }
 
 @[simp] lemma re_clm_norm : ∥(re_clm : K →L[ℝ] ℝ)∥ = 1 :=
@@ -736,7 +736,7 @@ noncomputable def im_lm : K →ₗ[ℝ] ℝ :=
 
 /-- The imaginary part in a `is_R_or_C` field, as a continuous linear map. -/
 noncomputable def im_clm : K →L[ℝ] ℝ :=
-im_lm.mk_continuous 1 $ by
+linear_map.mk_continuous im_lm 1 $ by
 { simp only [norm_eq_abs, re_lm_coe, one_mul, abs_to_real], exact abs_im_le_abs, }
 
 @[simp, norm_cast] lemma im_clm_coe : ((im_clm : K →L[ℝ] ℝ) : K →ₗ[ℝ] ℝ) = im_lm := rfl
@@ -764,7 +764,8 @@ noncomputable def conj_clm : K →L[ℝ] K := conj_li.to_continuous_linear_map
 
 @[simp] lemma conj_clm_apply : (conj_clm : K → K) = conj := rfl
 
-@[simp] lemma conj_clm_norm : ∥(conj_clm : K →L[ℝ] K)∥ = 1 := conj_li.norm_to_continuous_linear_map
+@[simp] lemma conj_clm_norm : ∥(conj_clm : K →L[ℝ] K)∥ = 1 :=
+linear_isometry.norm_to_continuous_linear_map conj_li
 
 @[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_li.continuous
 
@@ -788,7 +789,7 @@ noncomputable def of_real_clm : ℝ →L[ℝ] K := of_real_li.to_continuous_line
 @[simp] lemma of_real_clm_apply : (of_real_clm : ℝ → K) = coe := rfl
 
 @[simp] lemma of_real_clm_norm : ∥(of_real_clm : ℝ →L[ℝ] K)∥ = 1 :=
-of_real_li.norm_to_continuous_linear_map
+linear_isometry.norm_to_continuous_linear_map of_real_li
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
 

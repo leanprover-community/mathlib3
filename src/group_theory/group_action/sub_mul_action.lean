@@ -52,6 +52,12 @@ iff.rfl
 
 @[ext] theorem ext {p q : sub_mul_action R M} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
 
+/-- Copy of a sub_mul_action with a new `carrier` equal to the old one. Useful to fix definitional
+equalities.-/
+protected def copy (p : sub_mul_action R M) (s : set M) (hs : s = ↑p) : sub_mul_action R M :=
+{ carrier := s,
+  smul_mem' := hs.symm ▸ p.smul_mem' }
+
 instance : has_bot (sub_mul_action R M) :=
 ⟨{ carrier := ∅, smul_mem' := λ c, set.not_mem_empty}⟩
 
@@ -122,26 +128,26 @@ instance : mul_action R p := p.mul_action'
 
 end mul_action
 
-section semimodule
+section module
 
 variables [semiring R] [add_comm_monoid M]
-variables [semimodule R M]
+variables [module R M]
 variables (p : sub_mul_action R M)
 
 lemma zero_mem (h : (p : set M).nonempty) : (0 : M) ∈ p :=
 let ⟨x, hx⟩ := h in zero_smul R (x : M) ▸ p.smul_mem 0 hx
 
-/-- If the scalar product forms a `semimodule`, and the `sub_mul_action` is not `⊥`, then the
+/-- If the scalar product forms a `module`, and the `sub_mul_action` is not `⊥`, then the
 subset inherits the zero. -/
 instance [n_empty : nonempty p] : has_zero p :=
 { zero := ⟨0, n_empty.elim $ λ x, p.zero_mem ⟨x, x.prop⟩⟩ }
 
-end semimodule
+end module
 
 section add_comm_group
 
 variables [ring R] [add_comm_group M]
-variables [semimodule R M]
+variables [module R M]
 variables (p p' : sub_mul_action R M)
 variables {r : R} {x y : M}
 

@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel
 import measure_theory.simple_func_dense
 import analysis.normed_space.bounded_linear_maps
 import measure_theory.l1_space
+import measure_theory.group
 import topology.sequences
 
 /-!
@@ -486,15 +487,15 @@ local attribute [instance, priority 10000] simple_func.has_scalar
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
   Bochner integral. -/
-protected def semimodule : semimodule 𝕜 (α →₁ₛ[μ] E) :=
+protected def module : module 𝕜 (α →₁ₛ[μ] E) :=
 { one_smul  := λf, simple_func.eq (by { simp only [coe_smul], exact one_smul _ _ }),
   mul_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
-  smul_add  := λx f g, simple_func.eq (by { simp only [coe_smul, coe_add], exact smul_add _ _ _ }),
-  smul_zero := λx, simple_func.eq (by { simp only [coe_zero, coe_smul], exact smul_zero _ }),
+  smul_add  := λx f g, simple_func.eq (by { simp only [coe_smul], exact smul_add _ _ _ }),
+  smul_zero := λx, simple_func.eq (by { simp only [coe_smul], exact smul_zero _ }),
   add_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, simple_func.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-local attribute [instance] simple_func.normed_group simple_func.semimodule
+local attribute [instance] simple_func.normed_group simple_func.module
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
 Bochner integral. -/
@@ -916,7 +917,7 @@ lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - int
 map_sub integral_clm f g
 
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
-map_smul c (integral_clm' 𝕜) f
+map_smul (integral_clm' 𝕜) c f
 
 local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _ _
 local notation `sIntegral` := @simple_func.integral_clm α E _ _ _ _ _ μ _
@@ -1095,8 +1096,7 @@ by { simp_rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to
   exact norm_integral_le_lintegral_norm f }
 
 lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂μ = 0 :=
-if hfm : ae_measurable f μ then by simp [integral_congr_ae hf, integral_zero]
-else integral_non_ae_measurable hfm
+by simp [integral_congr_ae hf, integral_zero]
 
 /-- If `f` has finite integral, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
 to zero as `μ s` tends to zero. -/
@@ -1549,6 +1549,17 @@ let g := hfm.mk f in calc
 ... = ∫ x, g (φ x) ∂μ : integral_map_of_measurable hφ hfm.measurable_mk
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
 
+lemma integral_map_of_closed_embedding {β} [topological_space α] [borel_space α]
+  [topological_space β] [measurable_space β] [borel_space β]
+  {φ : α → β} (hφ : closed_embedding φ) (f : β → E) :
+  ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
+begin
+  by_cases hfm : ae_measurable f (measure.map φ μ),
+  { exact integral_map hφ.continuous.measurable hfm },
+  { rw [integral_non_ae_measurable hfm, integral_non_ae_measurable],
+    rwa ae_measurable_comp_right_iff_of_closed_embedding hφ }
+end
+
 lemma integral_dirac' (f : α → E) (a : α) (hfm : measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
@@ -1562,6 +1573,74 @@ calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
 ... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties
+
+section group
+
+variables {G : Type*} [measurable_space G] [topological_space G] [group G] [has_continuous_mul G]
+  [borel_space G]
+variables {μ : measure G}
+
+open measure
+
+/-- Translating a function by left-multiplication does not change its integral with respect to a
+left-invariant measure. -/
+@[to_additive]
+lemma integral_mul_left_eq_self (hμ : is_mul_left_invariant μ) {f : G → E} (g : G) :
+  ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
+begin
+  have hgμ : measure.map (has_mul.mul g) μ = μ,
+  { rw ← map_mul_left_eq_self at hμ,
+    exact hμ g },
+  have h_mul : closed_embedding (λ x, g * x) := (homeomorph.mul_left g).closed_embedding,
+  rw [← integral_map_of_closed_embedding h_mul, hgμ]
+end
+
+/-- Translating a function by right-multiplication does not change its integral with respect to a
+right-invariant measure. -/
+@[to_additive]
+lemma integral_mul_right_eq_self (hμ : is_mul_right_invariant μ) {f : G → E} (g : G) :
+  ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
+begin
+  have hgμ : measure.map (λ x, x * g) μ = μ,
+  { rw ← map_mul_right_eq_self at hμ,
+    exact hμ g },
+  have h_mul : closed_embedding (λ x, x * g) := (homeomorph.mul_right g).closed_embedding,
+  rw [← integral_map_of_closed_embedding h_mul, hgμ]
+end
+
+/-- If some left-translate of a function negates it, then the integral of the function with respect
+to a left-invariant measure is 0. -/
+@[to_additive]
+lemma integral_zero_of_mul_left_eq_neg (hμ : is_mul_left_invariant μ) {f : G → E} {g : G}
+  (hf' : ∀ x, f (g * x) = - f x) :
+  ∫ x, f x ∂μ = 0 :=
+begin
+  refine eq_zero_of_eq_neg ℝ (eq.symm _),
+  have : ∫ x, f (g * x) ∂μ = ∫ x, - f x ∂μ,
+  { congr,
+    ext x,
+    exact hf' x },
+  convert integral_mul_left_eq_self hμ g using 1,
+  rw [this, integral_neg]
+end
+
+/-- If some right-translate of a function negates it, then the integral of the function with respect
+to a right-invariant measure is 0. -/
+@[to_additive]
+lemma integral_zero_of_mul_right_eq_neg (hμ : is_mul_right_invariant μ) {f : G → E} {g : G}
+  (hf' : ∀ x, f (x * g) = - f x) :
+  ∫ x, f x ∂μ = 0 :=
+begin
+  refine eq_zero_of_eq_neg ℝ (eq.symm _),
+  have : ∫ x, f (x * g) ∂μ = ∫ x, - f x ∂μ,
+  { congr,
+    ext x,
+    exact hf' x },
+  convert integral_mul_right_eq_self hμ g using 1,
+  rw [this, integral_neg]
+end
+
+end group
 
 mk_simp_attribute integral_simps "Simp set for integral rules."
 

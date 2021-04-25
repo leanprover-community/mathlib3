@@ -59,10 +59,11 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
-@[simp] lemma eq_iff_true_of_subsingleton [subsingleton α] (x y : α) :
+@[simp] lemma eq_iff_true_of_subsingleton {α : Sort*} [subsingleton α] (x y : α) :
   x = y ↔ true :=
 by cc
 
+/-- If all points are equal to a given point `x`, then `α` is a subsingleton. -/
 lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
 ⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
 
@@ -689,6 +690,9 @@ lemma heq_of_cast_eq :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : cast e a = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
 
+lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
+⟨heq_of_cast_eq _, λ h, by cases h; refl⟩
+
 lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h : x == y) :
   @eq.rec α a C x b eq == y :=
 by subst eq; exact h
@@ -879,6 +883,18 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 @[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
   (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
 ⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
+
+@[simp] lemma exists_or_eq_left (y : α) (p : α → Prop) : ∃ (x : α), x = y ∨ p x :=
+⟨y, or.inl rfl⟩
+
+@[simp] lemma exists_or_eq_right (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ x = y :=
+⟨y, or.inr rfl⟩
+
+@[simp] lemma exists_or_eq_left' (y : α) (p : α → Prop) : ∃ (x : α), y = x ∨ p x :=
+⟨y, or.inl rfl⟩
+
+@[simp] lemma exists_or_eq_right' (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ y = x :=
+⟨y, or.inr rfl⟩
 
 @[simp] theorem forall_apply_eq_imp_iff {f : α → β} {p : β → Prop} :
   (∀ a, ∀ b, f a = b → p b) ↔ (∀ a, p (f a)) :=
@@ -1216,7 +1232,7 @@ iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
 @[simp] lemma nonempty_Prop {p : Prop} : nonempty p ↔ p :=
 iff.intro (assume ⟨h⟩, h) (assume h, ⟨h⟩)
 
-lemma not_nonempty_iff_imp_false : ¬ nonempty α ↔ α → false :=
+lemma not_nonempty_iff_imp_false {α : Sort*} : ¬ nonempty α ↔ α → false :=
 ⟨λ h a, h ⟨a⟩, λ h ⟨a⟩, h a⟩
 
 @[simp] lemma nonempty_sigma : nonempty (Σa:α, γ a) ↔ (∃a:α, nonempty (γ a)) :=
@@ -1303,6 +1319,9 @@ instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
 h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 end nonempty
+
+lemma subsingleton_of_not_nonempty {α : Sort*} (h : ¬ nonempty α) : subsingleton α :=
+⟨λ x, false.elim $ not_nonempty_iff_imp_false.mp h x⟩
 
 section ite
 

@@ -144,7 +144,51 @@ end
 
 section
 
-variables [monoid_with_zero M₀] [nontrivial M₀] {a b : M₀}
+variables [mul_zero_one_class M₀]
+
+/-- Pullback a `mul_zero_one_class` instance along an injective function. -/
+protected def function.injective.mul_zero_one_class [has_mul M₀'] [has_zero M₀'] [has_one M₀']
+  (f : M₀' → M₀)
+  (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ a b, f (a * b) = f a * f b) :
+  mul_zero_one_class M₀' :=
+{ ..hf.mul_zero_class f zero mul, ..hf.mul_one_class f one mul }
+
+/-- Pushforward a `mul_zero_one_class` instance along an surjective function. -/
+protected def function.surjective.mul_zero_one_class [has_mul M₀'] [has_zero M₀'] [has_one M₀']
+  (f : M₀ → M₀')
+  (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ a b, f (a * b) = f a * f b) :
+  mul_zero_one_class M₀' :=
+{ ..hf.mul_zero_class f zero mul, ..hf.mul_one_class f one mul }
+
+/-- In a monoid with zero, if zero equals one, then zero is the only element. -/
+lemma eq_zero_of_zero_eq_one (h : (0 : M₀) = 1) (a : M₀) : a = 0 :=
+by rw [← mul_one a, ← h, mul_zero]
+
+/-- In a monoid with zero, if zero equals one, then zero is the unique element.
+
+Somewhat arbitrarily, we define the default element to be `0`.
+All other elements will be provably equal to it, but not necessarily definitionally equal. -/
+def unique_of_zero_eq_one (h : (0 : M₀) = 1) : unique M₀ :=
+{ default := 0, uniq := eq_zero_of_zero_eq_one h }
+
+/-- In a monoid with zero, zero equals one if and only if all elements of that semiring
+are equal. -/
+theorem subsingleton_iff_zero_eq_one : (0 : M₀) = 1 ↔ subsingleton M₀ :=
+⟨λ h, @unique.subsingleton _ (unique_of_zero_eq_one h), λ h, @subsingleton.elim _ h _ _⟩
+
+alias subsingleton_iff_zero_eq_one ↔ subsingleton_of_zero_eq_one _
+
+lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
+@subsingleton.elim _ (subsingleton_of_zero_eq_one h) a b
+
+/-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
+lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=
+not_or_of_imp eq_zero_of_zero_eq_one
+end
+
+section
+
+variables [mul_zero_one_class M₀] [nontrivial M₀] {a b : M₀}
 
 /-- In a nontrivial monoid with zero, zero and one are different. -/
 @[simp] lemma zero_ne_one : 0 ≠ (1:M₀) :=
@@ -246,27 +290,6 @@ let ⟨u, hu⟩ := hb in hu ▸ u.mul_left_eq_zero
 
 end is_unit
 
-/-- In a monoid with zero, if zero equals one, then zero is the only element. -/
-lemma eq_zero_of_zero_eq_one (h : (0 : M₀) = 1) (a : M₀) : a = 0 :=
-by rw [← mul_one a, ← h, mul_zero]
-
-/-- In a monoid with zero, if zero equals one, then zero is the unique element.
-
-Somewhat arbitrarily, we define the default element to be `0`.
-All other elements will be provably equal to it, but not necessarily definitionally equal. -/
-def unique_of_zero_eq_one (h : (0 : M₀) = 1) : unique M₀ :=
-{ default := 0, uniq := eq_zero_of_zero_eq_one h }
-
-/-- In a monoid with zero, zero equals one if and only if all elements of that semiring
-are equal. -/
-theorem subsingleton_iff_zero_eq_one : (0 : M₀) = 1 ↔ subsingleton M₀ :=
-⟨λ h, @unique.subsingleton _ (unique_of_zero_eq_one h), λ h, @subsingleton.elim _ h _ _⟩
-
-alias subsingleton_iff_zero_eq_one ↔ subsingleton_of_zero_eq_one _
-
-lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
-@subsingleton.elim _ (subsingleton_of_zero_eq_one h) a b
-
 @[simp] theorem is_unit_zero_iff : is_unit (0 : M₀) ↔ (0:M₀) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
  λ h, @is_unit_of_subsingleton _ _ (subsingleton_of_zero_eq_one h) 0⟩
@@ -275,10 +298,6 @@ lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 mt is_unit_zero_iff.1 zero_ne_one
 
 variable (M₀)
-
-/-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
-lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=
-not_or_of_imp eq_zero_of_zero_eq_one
 
 end monoid_with_zero
 
@@ -331,51 +350,29 @@ alias div_eq_mul_inv ← division_def
 
 /-- Pullback a `group_with_zero` class along an injective function. -/
 protected def function.injective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
-  [has_inv G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
-  group_with_zero G₀' :=
-{ inv := has_inv.inv,
-  inv_zero := hf $ by erw [inv, zero, inv_zero],
-  mul_inv_cancel := λ x hx, hf $ by erw [one, mul, inv, mul_inv_cancel ((hf.ne_iff' zero).2 hx)],
-  .. hf.monoid_with_zero f zero one mul,
-  .. pullback_nonzero f zero one }
-
-/-- Pullback a `group_with_zero` class along an injective function. This is a version of
-`function.injective.group_with_zero` that uses a specified `/` instead of the default
-`a / b = a * b⁻¹`. -/
-protected def function.injective.group_with_zero_div [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] [has_div G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) :
   group_with_zero G₀' :=
-{ .. hf.monoid_with_zero f zero one mul,
+{ inv_zero := hf $ by erw [inv, zero, inv_zero],
+  mul_inv_cancel := λ x hx, hf $ by erw [one, mul, inv, mul_inv_cancel ((hf.ne_iff' zero).2 hx)],
+  .. hf.monoid_with_zero f zero one mul,
   .. hf.div_inv_monoid f one mul inv div,
-  .. pullback_nonzero f zero one,
-  .. hf.group_with_zero f zero one mul inv }
+  .. pullback_nonzero f zero one, }
 
 /-- Pushforward a `group_with_zero` class along an surjective function. -/
 protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
-  [has_inv G₀'] (h01 : (0:G₀') ≠ 1)
-  (f : G₀ → G₀') (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
-  group_with_zero G₀' :=
-{ inv := has_inv.inv,
-  inv_zero := by erw [← zero, ← inv, inv_zero],
-  mul_inv_cancel := hf.forall.2 $ λ x hx,
-    by erw [← inv, ← mul, mul_inv_cancel (mt (congr_arg f) $ trans_rel_left ne hx zero.symm)];
-      exact one,
-  exists_pair_ne := ⟨0, 1, h01⟩,
-  .. hf.monoid_with_zero f zero one mul }
-
-/-- Pushforward a `group_with_zero` class along a surjective function. This is a version of
-`function.surjective.group_with_zero` that uses a specified `/` instead of the default
-`a / b = a * b⁻¹`. -/
-protected def function.surjective.group_with_zero_div [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] [has_div G₀'] (h01 : (0:G₀') ≠ 1) (f : G₀ → G₀') (hf : surjective f)
   (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f x⁻¹ = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
   group_with_zero G₀' :=
-{ .. hf.div_inv_monoid f one mul inv div, .. hf.group_with_zero h01 f zero one mul inv }
+{ inv_zero := by erw [← zero, ← inv, inv_zero],
+  mul_inv_cancel := hf.forall.2 $ λ x hx,
+    by erw [← inv, ← mul, mul_inv_cancel (mt (congr_arg f) $ trans_rel_left ne hx zero.symm)];
+      exact one,
+  exists_pair_ne := ⟨0, 1, h01⟩,
+  .. hf.monoid_with_zero f zero one mul,
+  .. hf.div_inv_monoid f one mul inv div }
 
 @[simp] lemma mul_inv_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :
   (a * b) * b⁻¹ = a :=
@@ -394,6 +391,14 @@ assume a_eq_0, by simpa [a_eq_0] using mul_inv_cancel h
 calc a⁻¹ * a = (a⁻¹ * a) * a⁻¹ * a⁻¹⁻¹ : by simp [inv_ne_zero h]
          ... = a⁻¹ * a⁻¹⁻¹             : by simp [h]
          ... = 1                       : by simp [inv_ne_zero h]
+
+lemma group_with_zero.mul_left_injective {x : G₀} (h : x ≠ 0) :
+  function.injective (λ y, x * y) :=
+λ y y' w, by simpa only [←mul_assoc, inv_mul_cancel h, one_mul] using congr_arg (λ y, x⁻¹ * y) w
+
+lemma group_with_zero.mul_right_injective {x : G₀} (h : x ≠ 0) :
+  function.injective (λ y, y * x) :=
+λ y y' w, by simpa only [mul_assoc, mul_inv_cancel h, mul_one] using congr_arg (λ y, y * x⁻¹) w
 
 @[simp] lemma inv_mul_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :
   (a * b⁻¹) * b = a :=
@@ -684,34 +689,19 @@ instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_
 
 /-- Pullback a `comm_group_with_zero` class along an injective function. -/
 protected def function.injective.comm_group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
-  [has_inv G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
-  comm_group_with_zero G₀' :=
-{ .. hf.group_with_zero f zero one mul inv, .. hf.comm_semigroup f mul }
-
-/-- Pullback a `comm_group_with_zero` class along an injective function. -/
-protected def function.injective.comm_group_with_zero_div [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] [has_div G₀'] (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) :
   comm_group_with_zero G₀' :=
-{ .. hf.group_with_zero_div f zero one mul inv div, .. hf.comm_semigroup f mul }
-
-/-- Pushforward a `comm_group_with_zero` class along an surjective function. -/
-protected def function.surjective.comm_group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
-  [has_inv G₀'] (h01 : (0:G₀') ≠ 1)
-  (f : G₀ → G₀') (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
-  comm_group_with_zero G₀' :=
-{ .. hf.group_with_zero h01 f zero one mul inv, .. hf.comm_semigroup f mul }
+{ .. hf.group_with_zero f zero one mul inv div, .. hf.comm_semigroup f mul }
 
 /-- Pushforward a `comm_group_with_zero` class along a surjective function. -/
-protected def function.surjective.comm_group_with_zero_div [has_zero G₀'] [has_mul G₀']
+protected def function.surjective.comm_group_with_zero [has_zero G₀'] [has_mul G₀']
   [has_one G₀'] [has_inv G₀'] [has_div G₀'] (h01 : (0:G₀') ≠ 1) (f : G₀ → G₀') (hf : surjective f)
   (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) :
   comm_group_with_zero G₀' :=
-{ .. hf.group_with_zero_div h01 f zero one mul inv div, .. hf.comm_semigroup f mul }
+{ .. hf.group_with_zero h01 f zero one mul inv div, .. hf.comm_semigroup f mul }
 
 lemma mul_inv' : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 by rw [mul_inv_rev', mul_comm]

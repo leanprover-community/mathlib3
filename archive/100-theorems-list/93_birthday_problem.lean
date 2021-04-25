@@ -61,7 +61,8 @@ noncomputable instance fintype.embedding {α β} [fintype α] [fintype β] : fin
 fintype.of_equiv {f : α → β // injective f} (embedding_of_subtype α β).symm
 
 /-- Establishes the cardinality of the type of injective functions `fin n ↪ β`. -/
-lemma fintype.card_inj' (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) : ‖fin n ↪ β‖ = desc_fac (‖β‖ - n) n :=
+lemma fintype.card_inj' (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
+  ‖fin n ↪ β‖ = desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,
   { rw [desc_fac_zero], nontriviality (fin 0 ↪ β),

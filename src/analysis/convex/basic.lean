@@ -8,6 +8,7 @@ import data.set.intervals.image_preimage
 import data.complex.module
 import linear_algebra.affine_space.affine_map
 import algebra.module.ordered
+import order.closure
 
 
 /-!
@@ -1086,9 +1087,20 @@ section convex_hull
 variable {t : set E}
 
 /-- The convex hull of a set `s` is the minimal convex set that includes `s`. -/
-def convex_hull (s : set E) : set E :=
-⋂ (t : set E) (hst : s ⊆ t) (ht : convex t), t
+def convex_hull : closure_operator (set E) :=
+{ to_fun := λ s, ⋂ (t : set E) (hst : s ⊆ t) (ht : convex t), t,
+  monotone' := begin
+    rintro s t hst,
+    sorry
+    --exact convex_hull_min (set.subset.trans hst $ subset_convex_hull t) (convex_convex_hull t)
+  end,
+  le_closure' :=
+    λ s, set.subset_Inter (λ t, set.subset_Inter $ λ hst, set.subset_Inter $ λ ht, hst),
+  idempotent' := begin
+    sorry
+  end }
 
+#exit
 variable (s)
 
 lemma subset_convex_hull : s ⊆ convex_hull s :=

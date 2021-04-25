@@ -65,7 +65,7 @@ def segment (x y : E) : set E :=
 
 local notation `[`x `, ` y `]` := segment x y
 
-lemma segment_symm (x y : E) : ]x, y[ = ]y, xy[ :=
+lemma segment_symm (x y : E) : [x, y] = [y, x] :=
 set.ext $ λ z,
 ⟨λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩,
   λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩⟩
@@ -81,7 +81,7 @@ set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   by simpa only [(add_smul _ _ _).symm, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
   λ h, mem_singleton_iff.1 h ▸ left_mem_segment z z⟩
 
-lemma segment_eq_image (x y : E) : [x, y] = (λ (θ : ℝ), (1 - θ) • x + θ • y) '' I :=
+lemma segment_eq_image (x y : E) : [x, y] = (λ θ : ℝ, (1 - θ) • x + θ • y) '' I :=
 set.ext $ λ z,
   ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
     ⟨b, ⟨hb, hab ▸ le_add_of_nonneg_left ha⟩, hab ▸ hz ▸ by simp only [add_sub_cancel]⟩,
@@ -91,7 +91,7 @@ lemma segment_eq_image' (x y : E) : [x, y] = (λ (θ : ℝ), x + θ • (y - x))
 by { convert segment_eq_image x y, ext θ, simp only [smul_sub, sub_smul, one_smul], abel }
 
 lemma segment_eq_image₂ (x y : E) :
-  [x, y] = (λ p:ℝ×ℝ, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
+  [x, y] = (λ p : ℝ×ℝ, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
 by simp only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
 
 lemma segment_eq_Icc {a b : ℝ} (h : a ≤ b) : [a, b] = Icc a b :=
@@ -124,6 +124,84 @@ segment_translate_preimage a b c ▸ image_preimage_eq _ $ add_left_surjective a
 lemma segment_image (f : E →ₗ[ℝ] F) (a b : E) : f '' [a, b] = [f a, f b] :=
 set.ext (λ x, by simp [segment_eq_image])
 
+/-- Open segment in a vector space. Note that `open_segment x x = {x}` instead of being `∅`. -/
+def open_segment (x y : E) :
+  set E :=
+{z : E | ∃ (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1), a • x + b • y = z}
+
+local notation `]`x `, ` y `[` := open_segment x y
+
+lemma open_segment_symm (x y : E) :
+  ]x, y[ = ]y, x[ :=
+set.ext $ λ z,
+⟨λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩,
+  λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩⟩
+
+lemma open_segment_same (x : E) :
+  ]x, x[ = {x} :=
+set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
+  by simpa only [(add_smul _ _ _).symm, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
+  λ h, mem_singleton_iff.1 h ▸ left_mem_segment z z⟩
+
+lemma left_mem_open_segment_iff_eq (x y : E) :
+  x ∈ ]x, y[ ↔ x = y :=
+begin
+  sorry
+end
+
+lemma right_mem_open_segment_iff_eq (x y : E) :
+  y ∈ ]x, y[ ↔ x = y :=
+begin
+  sorry
+end
+
+lemma open_segment_eq_image (x y : E) :
+  ]x, y[ = (λ (θ : ℝ), (1 - θ) • x + θ • y) '' I :=
+set.ext $ λ z,
+  ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
+    ⟨b, ⟨hb, hab ▸ le_add_of_nonneg_left ha⟩, hab ▸ hz ▸ by simp only [add_sub_cancel]⟩,
+    λ ⟨θ, ⟨hθ₀, hθ₁⟩, hz⟩, ⟨1-θ, θ, sub_nonneg.2 hθ₁, hθ₀, sub_add_cancel _ _, hz⟩⟩
+
+lemma open_segment_eq_image' (x y : E) :
+  ]x, y[ = (λ (θ : ℝ), x + θ • (y - x)) '' (Ioo (0 : ℝ) 1) :=
+by { convert open_segment_eq_image x y, ext θ, simp only [smul_sub, sub_smul, one_smul], abel }
+
+lemma open_segment_eq_image₂ (x y : E) :
+  ]x, y[ = (λ p:ℝ×ℝ, p.1 • x + p.2 • y) '' {p | 0 < p.1 ∧ 0 < p.2 ∧ p.1 + p.2 = 1} :=
+by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+
+lemma open_segment_eq_Ioo {a b : ℝ} (h : a < b) :
+  ]a, b[ = Ioo a b :=
+begin
+  rw [segment_eq_image'],
+  show (((+) a) ∘ (λ t, t * (b - a))) '' Ioo 0 1 = Ioo a b,
+  rw [image_comp, image_mul_right_Ioo (@zero_lt_one ℝ _) (sub_pos.2 h), image_const_add_Ioo],
+  simp
+end
+
+lemma open_segment_eq_Ioo' (a b : ℝ) :
+  ]a, b[ = Ioo (min a b) (max a b) :=
+by cases le_total a b; [skip, rw open_segment_symm]; simp [open_segment_eq_Ioo, *]
+
+lemma mem_open_segment_translate (a : E) {x b c} :
+  a + x ∈ ]a + b, a + c[ ↔ x ∈ ]b, c[ :=
+begin
+  rw [open_segment_eq_image', open_segment_eq_image'],
+  refine exists_congr (λ θ, and_congr iff.rfl _),
+  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj]
+end
+
+lemma open_segment_translate_preimage (a b c : E) :
+  (λ x, a + x) ⁻¹' ]a + b, a + c[ = ]b, c[ :=
+set.ext $ λ x, mem_open_segment_translate a
+
+lemma open_segment_translate_image (a b c : E) :
+  (λ x, a + x) '' ]b, c[ = ]a + b, a + c[ :=
+open_segment_translate_preimage a b c ▸ image_preimage_eq _ $ add_left_surjective a
+
+lemma open_segment_image (f : E →ₗ[ℝ] F) (a b : E) : f '' ]a, b[ = ]f a, f b[ :=
+set.ext (λ x, by simp [segment_eq_image])
+
 /-! ### Convexity of sets -/
 
 /-- Convexity of sets. -/
@@ -148,7 +226,7 @@ by simp only [convex, segment_eq_image₂, subset_def, ball_image_iff, prod.fora
   mem_set_of_eq, and_imp]
 
 lemma convex_iff_open_segment_subset : convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → ]x, y[ ⊆ s :=
-by simp only [convex, segment_eq_image₂, subset_def, ball_image_iff, prod.forall,
+by simp only [convex, open_segment_eq_image₂, subset_def, ball_image_iff, prod.forall,
   mem_set_of_eq, and_imp]
 
 lemma convex.segment_subset (h : convex s) {x y:E} (hx : x ∈ s) (hy : y ∈ s) : [x, y] ⊆ s :=

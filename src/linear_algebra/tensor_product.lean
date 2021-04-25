@@ -8,11 +8,11 @@ import group_theory.congruence
 import linear_algebra.basic
 
 /-!
-# Tensor product of semimodules over commutative semirings.
+# Tensor product of modules over commutative semirings.
 
-This file constructs the tensor product of semimodules over commutative semirings. Given a semiring
-`R` and semimodules over it `M` and `N`, the standard construction of the tensor product is
-`tensor_product R M N`. It is also a semimodule over `R`.
+This file constructs the tensor product of modules over commutative semirings. Given a semiring
+`R` and modules over it `M` and `N`, the standard construction of the tensor product is
+`tensor_product R M N`. It is also a module over `R`.
 
 It comes with a canonical bilinear map `M → N → tensor_product R M N`.
 
@@ -42,8 +42,8 @@ variables {M' : Type*} {N' : Type*} {P' : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
 variables [add_comm_group M'] [add_comm_group N'] [add_comm_group P']
-variables [semimodule R M] [semimodule S N] [semimodule R P] [semimodule S P]
-variables [semimodule R M'] [semimodule S N'] [semimodule R P'] [semimodule S P']
+variables [module R M] [module S N] [module R P] [module S P]
+variables [module R M'] [module S N'] [module R P'] [module S P']
 variables [smul_comm_class S R P] [smul_comm_class S R P']
 include R
 
@@ -118,7 +118,7 @@ variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
-variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q]
+variables [module R M] [module R N] [module R P] [module R Q]
 
 variables (R)
 
@@ -219,8 +219,8 @@ variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
   [add_comm_monoid S]
-variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
-variables [semimodule R' M] [semimodule R' N]
+variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+variables [module R' M] [module R' N]
 include R
 
 variables (M N)
@@ -249,7 +249,7 @@ end tensor_product
 
 variables (R)
 
-/-- The tensor product of two semimodules `M` and `N` over the same commutative semiring `R`.
+/-- The tensor product of two modules `M` and `N` over the same commutative semiring `R`.
 The localized notations are `M ⊗ N` and `M ⊗[R] N`, accessed by `open_locale tensor_product`. -/
 def tensor_product : Type* :=
 (add_con_gen (tensor_product.eqv R M N)).quotient
@@ -319,7 +319,7 @@ This typeclass is generated automatically from a `is_scalar_tower` instance, but
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
 `R` does not support negation.
 
-Note that `semimodule R' (M ⊗[R] N)` is available even without this typeclass on `R'`; it's only
+Note that `module R' (M ⊗[R] N)` is available even without this typeclass on `R'`; it's only
 needed if `tensor_product.smul_tmul`, `tensor_product.smul_tmul'`, or `tensor_product.tmul_smul` is
 used.
 -/
@@ -415,7 +415,7 @@ instance : add_comm_monoid (M ⊗[R] N) :=
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance semimodule' : semimodule R' (M ⊗[R] N) :=
+instance module' : module R' (M ⊗[R] N) :=
 have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
@@ -428,7 +428,7 @@ have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
   smul_zero := tensor_product.smul_zero,
   zero_smul := tensor_product.zero_smul }
 
-instance : semimodule R (M ⊗[R] N) := tensor_product.semimodule'
+instance : module R (M ⊗[R] N) := tensor_product.module'
 
 -- note that we don't actually need `compatible_smul` here, but we include it for symmetry
 -- with `tmul_smul` to avoid exposing our asymmetric definition.
@@ -477,6 +477,19 @@ begin
   { simp, },
   { simp [finset.sum_insert has, tmul_add, ih], },
 end
+end
+
+variables (R M N)
+
+/-- The simple (aka pure) elements span the tensor product. -/
+lemma span_tmul_eq_top :
+  submodule.span R { t : M ⊗[R] N | ∃ m n, m ⊗ₜ n = t } = ⊤ :=
+begin
+  ext t, simp only [submodule.mem_top, iff_true],
+  apply t.induction_on,
+  { exact submodule.zero_mem _, },
+  { intros m n, apply submodule.subset_span, use [m, n], },
+  { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
 end
 
 end module
@@ -719,10 +732,21 @@ lift $ comp (compl₂ (mk _ _ _) g) f
   map f g (m ⊗ₜ n) = f m ⊗ₜ g n :=
 rfl
 
+lemma map_range_eq_span_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  (map f g).range = submodule.span R { t | ∃ m n, (f m) ⊗ₜ (g n) = t } :=
+begin
+  simp only [← submodule.map_top, ← span_tmul_eq_top, submodule.map_span, set.mem_image,
+    set.mem_set_of_eq],
+  congr, ext t,
+  split,
+  { rintros ⟨_, ⟨⟨m, n, rfl⟩, rfl⟩⟩, use [m, n], simp only [map_tmul], },
+  { rintros ⟨m, n, rfl⟩, use [m ⊗ₜ n, m, n], simp only [map_tmul], },
+end
+
 section
 variables {P' Q' : Type*}
-variables [add_comm_monoid P'] [semimodule R P']
-variables [add_comm_monoid Q'] [semimodule R Q']
+variables [add_comm_monoid P'] [module R P']
+variables [add_comm_monoid Q'] [module R Q']
 
 lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
   map (f₂.comp f₁) (g₂.comp g₁) = (map f₂ g₂).comp (map f₁ g₁) :=
@@ -862,7 +886,7 @@ variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
   [add_comm_group S]
-variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
+variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 
 namespace tensor_product
 
@@ -925,13 +949,13 @@ lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R
 /--
 While the tensor product will automatically inherit a ℤ-module structure from
 `add_comm_group.int_module`, that structure won't be compatible with lemmas like `tmul_smul` unless
-we use a `ℤ-module` instance provided by `tensor_product.semimodule'`.
+we use a `ℤ-module` instance provided by `tensor_product.module'`.
 
 When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int [semimodule ℤ M] [semimodule ℤ N] : compatible_smul R ℤ M N :=
+instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)

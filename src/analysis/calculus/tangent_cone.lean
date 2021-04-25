@@ -37,7 +37,7 @@ open_locale topological_space
 
 section tangent_cone
 
-variables {E : Type*} [add_comm_monoid E] [semimodule 𝕜 E] [topological_space E]
+variables {E : Type*} [add_comm_monoid E] [module 𝕜 E] [topological_space E]
 
 /-- The set of all tangent directions to the set `s` at the point `x`. -/
 def tangent_cone_at (s : set E) (x : E) : set E :=

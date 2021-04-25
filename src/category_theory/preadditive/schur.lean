@@ -117,7 +117,6 @@ lemma endomorphism_simple_eq_smul_id
   [linear 𝕜 C] {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] (f : X ⟶ X) :
   ∃ c : 𝕜, c • 𝟙 X = f :=
 
-
 /--
 Schur's lemma for `𝕜`-linear categories.
 -/

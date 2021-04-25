@@ -359,57 +359,6 @@ lemma finrank_zero_of_subsingleton [h : subsingleton V] :
   finrank K V = 0 :=
 finrank_zero_iff.2 h
 
-/-- If there is a nonzero vector and every other vector is a multiple of it,
-then the module has dimensions one. -/
-lemma finrank_eq_one (v : V) (n : v ≠ 0) (h : ∀ w : V, ∃ c : K, c • v = w) :
-  finrank K V = 1 :=
-begin
-  convert finrank_eq_card_basis ((is_basis_singleton_iff punit v).mpr _),
-  exact ⟨n, h⟩,
-end
-
-/--
-A module has dimension 1 iff there so some `v : V` so `{v}` is a basis.
--/
-lemma finrank_eq_one_iff :
-  finrank K V = 1 ↔ ∃ (v : V), is_basis K (λ x : ({v} : set V), (x : V)) :=
-begin
-  fsplit,
-  { intro h,
-    haveI := finite_dimensional_of_finrank (_root_.zero_lt_one.trans_le h.symm.le),
-    exact exists_is_basis_singleton h, },
-  { rintro ⟨v, b⟩,
-    convert finrank_eq_card_basis b, }
-end
-
-/--
-A module has dimension 1 iff there is some nonzero `v : V` so every vector is a multiple of `v`.
--/
-lemma finrank_eq_one_iff' :
-  finrank K V = 1 ↔ ∃ (v : V) (n : v ≠ 0), ∀ w : V, ∃ c : K, c • v = w :=
-begin
-  convert finrank_eq_one_iff,
-  funext v,
-  simp only [exists_prop, eq_iff_iff, ne.def],
-  convert (is_basis_singleton_iff ({v} : set V) v).symm,
-  ext ⟨x, ⟨⟩⟩,
-  refl,
-end
-
-/--
-If every vector is a multiple of some `v : V`, then `V` has dimension at most one.
--/
-lemma finrank_le_one (v : V) (h : ∀ w : V, ∃ c : K, c • v = w) :
-  finrank K V ≤ 1 :=
-begin
-  by_cases n : v = 0,
-  { subst n,
-    convert zero_le_one,
-    haveI := subsingleton_of_forall_eq (0 : V) (λ w, by { obtain ⟨c, rfl⟩ := h w, simp, }),
-    exact finrank_zero_of_subsingleton, },
-  { exact (finrank_eq_one v n h).le, }
-end
-
 section
 open_locale big_operators
 open finset
@@ -1259,7 +1208,95 @@ lemma set_is_basis_of_linear_independent_of_card_eq_finrank
   is_basis K (coe : s → V) :=
 is_basis_of_linear_independent_of_card_eq_finrank lin_ind (trans s.to_finset_card.symm card_eq)
 
+lemma singleton_is_basis (v : V) (nz : v ≠ 0) (h : finrank K V = 1) :
+  is_basis K (coe : ({v} : set V) → V) :=
+set_is_basis_of_linear_independent_of_card_eq_finrank
+  (linear_independent_singleton nz) (by simp [h])
+
 end is_basis
+
+/-!
+We now give characterisations of `finrank K V = 1` and `finrank K V ≤ 1`.
+-/
+section finrank_eq_one
+
+/-- If there is a nonzero vector and every other vector is a multiple of it,
+then the module has dimensions one. -/
+lemma finrank_eq_one (v : V) (n : v ≠ 0) (h : ∀ w : V, ∃ c : K, c • v = w) :
+  finrank K V = 1 :=
+begin
+  convert finrank_eq_card_basis ((is_basis_singleton_iff punit v).mpr _),
+  exact ⟨n, h⟩,
+end
+
+/--
+If every vector is a multiple of some `v : V`, then `V` has dimension at most one.
+-/
+lemma finrank_le_one (v : V) (h : ∀ w : V, ∃ c : K, c • v = w) :
+  finrank K V ≤ 1 :=
+begin
+  by_cases n : v = 0,
+  { subst n,
+    convert zero_le_one,
+    haveI := subsingleton_of_forall_eq (0 : V) (λ w, by { obtain ⟨c, rfl⟩ := h w, simp, }),
+    exact finrank_zero_of_subsingleton, },
+  { exact (finrank_eq_one v n h).le, }
+end
+
+/--
+A module with a nonzero vector `v` has dimension 1 iff `{v}` is a basis.
+-/
+lemma finrank_eq_one_iff_of_nonzero (v : V) (nz : v ≠ 0) :
+  finrank K V = 1 ↔ is_basis K (λ x : ({v} : set V), (x : V)) :=
+⟨singleton_is_basis v nz, λ b, by convert finrank_eq_card_basis b⟩
+
+/--
+A module has dimension 1 iff there is some `v : V` so `{v}` is a basis.
+-/
+lemma finrank_eq_one_iff :
+  finrank K V = 1 ↔ ∃ (v : V), is_basis K (λ x : ({v} : set V), (x : V)) :=
+begin
+  fsplit,
+  { intro h,
+    haveI := finite_dimensional_of_finrank (_root_.zero_lt_one.trans_le h.symm.le),
+    exact exists_is_basis_singleton h, },
+  { rintro ⟨v, b⟩,
+    convert finrank_eq_card_basis b, }
+end
+
+/--
+A module has dimension 1 iff there is some nonzero `v : V` so every vector is a multiple of `v`.
+-/
+lemma finrank_eq_one_iff' :
+  finrank K V = 1 ↔ ∃ (v : V) (n : v ≠ 0), ∀ w : V, ∃ c : K, c • v = w :=
+begin
+  convert finrank_eq_one_iff,
+  funext v,
+  simp only [exists_prop, eq_iff_iff, ne.def],
+  convert (is_basis_singleton_iff ({v} : set V) v).symm,
+  ext ⟨x, ⟨⟩⟩,
+  refl,
+end
+
+/--
+A finite dimensional module has dimension at most 1 iff
+there is some `v : V` so every vector is a multiple of `v`.
+-/
+lemma finrank_le_one_iff [finite_dimensional K V] :
+  finrank K V ≤ 1 ↔ ∃ (v : V), ∀ w : V, ∃ c : K, c • v = w :=
+begin
+  fsplit,
+  { intro h,
+    by_cases h' : finrank K V = 0,
+    { use 0, intro w, use 0, haveI := finrank_zero_iff.mp h', apply subsingleton.elim, },
+    { replace h' := zero_lt_iff.mpr h', have : finrank K V = 1, { linarith },
+      obtain ⟨v, -, p⟩ := finrank_eq_one_iff'.mp this,
+      use ⟨v, p⟩, }, },
+  { rintro ⟨v, p⟩,
+    exact finrank_le_one v p, }
+end
+
+end finrank_eq_one
 
 section subalgebra_dim
 open module

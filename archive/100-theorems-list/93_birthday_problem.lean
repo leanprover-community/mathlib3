@@ -1,18 +1,28 @@
 /-
-Copyright (c) 2020 Eric Rodriguez. All rights reserved.
+Copyright (c) 2021 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 import data.fintype.card
 import data.nat.factorial
 import tactic
+
+/--!
+# Birthday Problem
+
+This file proves Theorem 93 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
+
+As of writing, probability is not implemented in Lean, so we instead state the birthday problem
+in terms of injective functions. We instead prove a general result about ‖α ↪ β‖.
+-/
+
 open_locale classical nat
 
 open finset function nat
 local notation `|` x `|` := finset.card x
 local notation `‖` x `‖` := fintype.card x
 
-/-- desc_fac n k = (n + k)! / n! with no divisions -/
+/-- desc_fac n k = (n + k)! / n!, but implemented in a recursive way for calculation. -/
 def desc_fac (n : ℕ) : ℕ → ℕ
 | 0 := 1
 | (k + 1) := (n + k + 1) * desc_fac k
@@ -35,6 +45,7 @@ begin
   rw this, rw ht, repeat {rw succ_eq_add_one}, ring
 end
 
+/-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/
 theorem eval_desc_fac (n : ℕ) : ∀ k : ℕ, (n + k)! = n! * desc_fac n k
 | 0 := by simp!
 | (k + 1) := by unfold desc_fac; rw [←mul_assoc, mul_comm n!, mul_assoc, ←eval_desc_fac]; simp!
@@ -49,6 +60,7 @@ def embedding_of_subtype (α β) [fintype α] [fintype β] : (α ↪ β) ≃ {f 
 noncomputable instance fintype.embedding {α β} [fintype α] [fintype β] : fintype (α ↪ β) :=
 fintype.of_equiv {f : α → β // injective f} (embedding_of_subtype α β).symm
 
+/-- Establishes the cardinality of the type of injective functions `fin n ↪ β`. -/
 lemma card_inj' (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) : ‖fin n ↪ β‖ = desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,
@@ -159,5 +171,5 @@ end
 theorem birthday : 2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ :=
   by norm_num [card_inj', desc_fac]
 
-theorem birthday' : 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ :=
+lemma birthday' : 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ :=
   by norm_num [card_inj', desc_fac]

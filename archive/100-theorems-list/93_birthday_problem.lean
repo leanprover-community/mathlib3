@@ -68,24 +68,29 @@ begin
   let equiv_classes : (fin n ↪ β) → finset (fin n.succ ↪ β) :=
     λ f : fin n ↪ β, univ.filter (λ g : fin n.succ ↪ β, ∃ k : β, extend f k = g),
 
-  have all_injf_covered : univ = univ.bUnion equiv_classes, sorry, /-
+  have mem_equiv : ∀ f g, g ∈ equiv_classes f ↔ ∃ k : β, extend f k = g, by simp [equiv_classes],
+
+  have all_injf_covered : univ = univ.bUnion equiv_classes,
     apply subset.antisymm,
     { rintros f -, rw mem_bUnion,
       refine ⟨⟨fin.tail f, λ _ _ h, fin.succ_inj.mp $ f.injective h⟩, _⟩,
       suffices : ∃ (a : β), extend (fin.tail ⇑f) a = ⇑f, by simpa,
-      use f 0, simp only [extend], exact fin.cons_self_tail _ },
-    { exact subset_univ _ }, -/
+      use f 0, simp [extend] },
+    { exact subset_univ _ },
 
   have equiv_class_size : ∀ f : fin n ↪ β, |equiv_classes f| = ‖β‖ - n,
   {
     intro f, let poss_vals := univ \ finset.map ⟨f, f.inj'⟩ univ,
+
     have num_poss_vals : |poss_vals| = ‖β‖ - n, by simp [poss_vals, card_univ, card_sdiff],
-    apply le_antisymm, sorry, /-
+    have mem_poss_vals : ∀ t, t ∈ poss_vals ↔ ∀ (x : fin n), ¬f x = t, by simp [poss_vals],
+
+    apply le_antisymm,
     { by_contra card_too_big, let first := λ g : fin n.succ ↪ β, g 0,
       -- (if I just write down x 0 = y 0, it won't work! need this shim)
       suffices : ∃ x ∈ equiv_classes f, ∃ y ∈ equiv_classes f, x ≠ y ∧ first x = first y,
       { obtain ⟨x, x_equiv, y, y_equiv, x_ne_y, x_y_agree⟩ := this,
-        simp only [true_and, mem_filter, mem_univ, fin.coe_eq_cast_succ] at x_equiv y_equiv,
+        rw [mem_equiv] at x_equiv y_equiv,
         obtain ⟨x_zero, x_equiv⟩ := x_equiv, obtain ⟨y_zero, y_equiv⟩ := y_equiv,
         simp only [extend, first] at x_y_agree x_equiv y_equiv,
 
@@ -96,52 +101,66 @@ begin
       apply finset.exists_ne_map_eq_of_card_lt_of_maps_to,
       push_neg at card_too_big, rw ←num_poss_vals at card_too_big, exact card_too_big,
 
-      intros g g_equiv, simp [first, extend] at g_equiv ⊢, obtain ⟨k, g_equiv⟩ := g_equiv,
+      intros g g_equiv, rw mem_equiv at g_equiv, obtain ⟨k, g_equiv⟩ := g_equiv,
+      simp only [first, mem_poss_vals], simp only [extend] at g_equiv,
       have : g 0 = k, by rw [←g_equiv, fin.cons_zero],
       intros x eq, have : g x.succ = g 0, by rw [←eq, ←g_equiv, fin.cons_succ],
       apply fin.succ_ne_zero x, exact g.injective this },
     { let extended : finset (fin n.succ ↪ β) :=
         finset.map ⟨λ x : {x // x ∈ poss_vals}, ⟨extend f x, _⟩, _⟩ poss_vals.attach,
       rotate,
-      { intros a₁ a₂ eq, simp only [extend] at eq, sorry },
+      { intros a₁ a₂, apply fin.induction_on a₁; apply fin.induction_on a₂,
+        -- not sure how to do this `induction_on` using the `induction` tactic
+        -- (all variants of `induction using fin.something` didn't work for me)
+        { intro _, refl },
+        { rintros i - eq, simp only [extend, fin.cons_zero, fin.cons_succ] at eq,
+        have := x.prop, rw mem_poss_vals at this, exfalso, apply this i, exact eq.symm},
+        { rintros i - eq, simp only [extend, fin.cons_zero, fin.cons_succ] at eq,
+        have := x.prop, rw mem_poss_vals at this, exfalso, apply this i, exact eq},
+        -- how can I undo this duplication?
+        { rintros i₂ - i₁ -, simp only [extend, fin.cons_succ, fin.succ_inj],
+          intro eq, exact f.injective eq }
+      },
       { intros a₁ a₂ eq, simp only [extend] at eq,
         ext, rw funext_iff at eq,
         specialize eq 0, rwa [fin.cons_zero, fin.cons_zero] at eq },
+      -- simp is getting hung up on `bex_def` here sadly, so have to do it manually
+      have mem_extended : ∀ {g : fin n.succ ↪ β}, g ∈ extended → ∃ a ∈ poss_vals, extend ⇑f a = g,
+        intros g g_extended, simp only [extended, mem_map] at g_extended,
+        obtain ⟨⟨a, a_poss⟩, -, g_extended⟩ := g_extended,
+        simp only [embedding.coe_fn_mk, subtype.coe_mk] at g_extended,
+        refine ⟨a, a_poss, _⟩, rw ←g_extended, simp,
+
       have : |extended| = ‖β‖ - n, by simp [extended, poss_vals, card_sdiff, card_univ],
+
       rw ←this, apply card_le_of_subset, rintros g g_extended,
-      simp only [extend, true_and, mem_filter, mem_univ],
+      simp only [extend, mem_equiv],
       use g 0, ext t, revert t,
       refine fin.induction (by rw fin.cons_zero) _,
-      rintros i -, simp at g_extended, -- `squeeze_simp` isn't helpful here - would love some advice
-      obtain ⟨k, untouched, g_extended⟩ := g_extended,
-      rw ←g_extended, simp [extend] -/ sorry },
+      rintros i -,
+      obtain ⟨k, untouched, g_extended⟩ := mem_extended g_extended,
+      rw ←g_extended, simp [extend] } },
   rw [←card_univ, all_injf_covered, card_bUnion], swap, -- card_bUnion has a disjointness req
   { rintros g - j - g_ne_j, rw disjoint_iff_ne, intros a a_equiv b b_equiv,
-    intro a_eq_b, apply g_ne_j, simp only [true_and, mem_filter, mem_univ] at a_equiv b_equiv,
+    intro a_eq_b, apply g_ne_j, rw mem_equiv at a_equiv b_equiv,
     obtain ⟨k₁, a_equiv⟩ := a_equiv, obtain ⟨k₂, b_equiv⟩ := b_equiv,
     simp only [extend] at a_equiv b_equiv, subst a_eq_b, rw ←b_equiv at a_equiv,
     apply_fun fin.tail at a_equiv, repeat { rw fin.tail_cons at a_equiv },
     ext, rw a_equiv },
-  unfold desc_fac, simp [equiv_class_size, card_univ], rw hn (lt_of_succ_le h).le,
+  unfold desc_fac,
+
+  suffices : ‖fin n ↪ β‖ * (‖β‖ - n) = (‖β‖ - n.succ + n + 1) * desc_fac (‖β‖ - n.succ) n,
+    by simpa [equiv_class_size, card_univ],
+
+  rw hn (lt_of_succ_le h).le,
   set t := ‖β‖ - n.succ with ht,
   have : ‖β‖ - n = t.succ,
-  { rw ht, repeat{rw succ_eq_add_one}, rw succ_eq_add_one at h, sorry },
+  { rw [ht, succ_eq_add_one, ←nat.sub_sub_assoc, succ_sub_one], exact h, exact nat.succ_pos _ },
   rw [this, mul_comm, succ_desc_fac]
 end
 
-/-
 theorem birthday : 2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ :=
-begin
-  rw [card_inj, fintype.card_fun, fintype.card_fin, fintype.card_fin],
-  norm_num [desc_fac],
-  norm_num,
-end
+  by norm_num [card_inj', desc_fac]
 
 theorem birthday' : 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ :=
-begin
-  rw [card_inj, fintype.card_fun, fintype.card_fin, fintype.card_fin],
-  norm_num [desc_fac],
-  norm_num,
-end
-
--/
+  by norm_num [card_inj', desc_fac]

@@ -352,7 +352,7 @@ begin
   let sI : I → N := λ i, ⟨s i.1, subset_span (mem_range_self i)⟩, -- `s` restricted to `I`
   have sI_basis : is_basis R sI, -- `s` restricted to `I` is a basis of `N`
     from is_basis_span indepI,
-  -- Ou first goal is to build `A ≠ 0` such that `A • M ⊆ N`
+  -- Our first goal is to build `A ≠ 0` such that `A • M ⊆ N`
   have exists_a : ∀ i : ι, ∃ a : R, a ≠ 0 ∧ a • s i ∈ N,
   { intro i,
     by_cases hi : i ∈ I,

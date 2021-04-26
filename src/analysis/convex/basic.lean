@@ -183,7 +183,7 @@ lemma open_segment_eq_Ioo {a b : ℝ} (h : a < b) :
 begin
   rw [open_segment_eq_image'],
   show (((+) a) ∘ (λ t, t * (b - a))) '' Ioo 0 1 = Ioo a b,
-  rw [image_comp, image_mul_right_Ioo (@zero_lt_one ℝ _) (sub_pos.2 h), image_const_add_Ioo],
+  rw [image_comp, image_mul_right_Ioo (@zero_le_one ℝ _) (sub_pos.2 h), image_const_add_Ioo],
   simp
 end
 

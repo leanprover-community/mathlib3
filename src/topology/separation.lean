@@ -741,7 +741,7 @@ begin
   intros x y hxy,
   obtain ⟨U, hU, h⟩ := t0_space.t0 x y hxy,
   cases h,
-  { exact ⟨U, hU, h⟩},
+  { exact ⟨U, hU, h⟩ },
   { obtain ⟨R, hR, hh⟩ := regular_space.regular (is_closed_compl_iff.mpr hU) (not_not.mpr h.1),
     obtain ⟨V, hV, hhh⟩ := mem_nhds_sets_iff.1 (filter.inf_principal_eq_bot.1 hh.2),
     exact ⟨R, hR, hh.1 (mem_compl h.2), hV hhh.2⟩}

@@ -234,7 +234,7 @@ section
 variables {S : Type u} [comm_ring S]
 
 instance : linear S (Module.{v} S) :=
-{ hom_module := λ X Y, linear_map.semimodule,
+{ hom_module := λ X Y, linear_map.module,
   smul_comp' := by { intros, ext, simp },
   comp_smul' := by { intros, ext, simp }, }
 

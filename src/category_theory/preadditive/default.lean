@@ -147,7 +147,7 @@ instance preadditive_has_zero_morphisms : has_zero_morphisms C :=
   comp_zero' := λ P Q f R, map_zero $ left_comp R f,
   zero_comp' := λ P Q R f, map_zero $ right_comp P f }
 
-@[simp] lemma comp_smul {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (r : ℤ) :
+@[simp] lemma comp_gsmul {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (r : ℤ) :
   f ≫ (r • g) = r • (f ≫ g) :=
 begin
   change left_comp _ _ (r • g) = _,
@@ -155,7 +155,7 @@ begin
   refl,
 end
 
-@[simp] lemma smul_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (r : ℤ) :
+@[simp] lemma gsmul_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (r : ℤ) :
   (r • f) ≫ g = r • (f ≫ g) :=
 begin
   change right_comp _ _ (r • f) = _,

@@ -1109,8 +1109,11 @@ section nat
 
 variables {R : Type*} [semiring R]
 
+-- Lower the priority so that `algebra.id` is picked most of the time when working with
+-- `ℕ`-algebras. This is only an issue since `algebra.id` and `algebra_nat` are not yet defeq.
+-- TODO: fix this by adding an `of_nat` field to semirings.
 /-- Semiring ⥤ ℕ-Alg -/
-instance algebra_nat : algebra ℕ R :=
+@[priority 99] instance algebra_nat : algebra ℕ R :=
 { commutes' := nat.cast_commute,
   smul_def' := λ _ _, nsmul_eq_mul _ _,
   to_ring_hom := nat.cast_ring_hom R }
@@ -1273,8 +1276,11 @@ section int
 
 variables (R : Type*) [ring R]
 
+-- Lower the priority so that `algebra.id` is picked most of the time when working with
+-- `ℤ`-algebras. This is only an issue since `algebra.id ℤ` and `algebra_int ℤ` are not yet defeq.
+-- TODO: fix this by adding an `of_int` field to rings.
 /-- Ring ⥤ ℤ-Alg -/
-instance algebra_int : algebra ℤ R :=
+@[priority 99] instance algebra_int : algebra ℤ R :=
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, gsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }

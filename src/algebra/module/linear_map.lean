@@ -250,13 +250,12 @@ instance : is_add_group_hom f :=
 { map_add := map_add f }
 
 instance compatible_smul.int_module
-  {S : Type*} [semiring S] [module ℤ M]
-  [module S M] [module ℤ M₂] [module S M₂] : compatible_smul M M₂ ℤ S :=
+  {S : Type*} [semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
 ⟨λ f c x, begin
   induction c using int.induction_on,
   case hz : { simp },
-  case hp : n ih { simpa [add_smul] using ih },
-  case hn : n ih { simpa [sub_smul] using ih }
+  case hp : n ih { simp [add_smul, ih] },
+  case hn : n ih { simp [sub_smul, ih] }
 end⟩
 
 end add_comm_group

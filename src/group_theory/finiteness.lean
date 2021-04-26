@@ -16,7 +16,8 @@ finitely-generated modules.
 ## Main definition
 
 * `submonoid.fg S`, `add_submonoid.fg S` : A submonoid `S` is finitely generated.
-* `monoid.fg M`, `add_submonoid.fg M` : A typeclass indicating a type `M` is finitely generated as a monoid.
+* `monoid.fg M`, `add_submonoid.fg M` : A typeclass indicating a type `M` is finitely generated as
+a monoid.
 
 -/
 

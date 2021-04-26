@@ -34,7 +34,7 @@ for the binary operation `m : X → X → X`. -/
 structure is_unital (m : X → X → X) (e : X) extends is_left_id _ m e, is_right_id _ m e : Prop.
 
 @[to_additive eckmann_hilton.add_zero_class.is_unital]
-def mul_one_class.is_unital [G : mul_one_class X] : is_unital (*) (1 : X) :=
+lemma mul_one_class.is_unital [G : mul_one_class X] : is_unital (*) (1 : X) :=
 is_unital.mk (by apply_instance) (by apply_instance)
 
 variables {m₁ m₂ : X → X → X} {e₁ e₂ : X}
@@ -77,6 +77,8 @@ In fact, they give a commutative monoid structure, see `eckmann_hilton.comm_mono
 lemma mul_assoc : is_associative _ m₂ :=
 ⟨λ a b c, by simpa [mul h₁ h₂ distrib, h₂.left_id, h₂.right_id] using distrib a b e₂ c⟩
 
+omit h₁ h₂ distrib
+
 /-- If a type carries a unital magma structure that distributes over a unital binary
 operations, then the magma structure is a commutative monoid. -/
 @[to_additive "If a type carries a unital additive magma structure that distributes over a
@@ -88,8 +90,6 @@ def comm_monoid [h : mul_one_class X]
   mul_comm := (mul_comm h₁ mul_one_class.is_unital distrib).comm,
   mul_assoc := (mul_assoc h₁ mul_one_class.is_unital distrib).assoc,
   ..h }
-
-omit h₁ h₂ distrib
 
 /-- If a type carries a group structure that distributes over a unital binary operation,
 then the group is commutative. -/

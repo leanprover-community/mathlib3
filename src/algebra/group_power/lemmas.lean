@@ -365,7 +365,7 @@ begin
 end
 
 lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
-by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
+by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [sq]
 
 section ordered_semiring
 variable [ordered_semiring R]
@@ -535,19 +535,27 @@ theorem nat.cast_le_pow_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H 
 
 namespace int
 
-lemma units_pow_two (u : units ℤ) : u ^ 2 = 1 :=
-(pow_two u).symm ▸ units_mul_self u
+lemma units_sq (u : units ℤ) : u ^ 2 = 1 :=
+(sq u).symm ▸ units_mul_self u
+
+alias units_sq ← units_pow_two
 
 lemma units_pow_eq_pow_mod_two (u : units ℤ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
-by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_pow_two, one_pow, mul_one]
+by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, one_pow, mul_one]
 
-@[simp] lemma nat_abs_pow_two (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
-by rw [pow_two, int.nat_abs_mul_self', pow_two]
+@[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
+by rw [sq, int.nat_abs_mul_self', sq]
 
-lemma abs_le_self_pow_two (a : ℤ) : (int.nat_abs a : ℤ) ≤ a ^ 2 :=
-by { rw [← int.nat_abs_pow_two a, pow_two], norm_cast, apply nat.le_mul_self }
+alias nat_abs_sq ← nat_abs_pow_two
 
-lemma le_self_pow_two (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_pow_two _)
+lemma abs_le_self_sq (a : ℤ) : (int.nat_abs a : ℤ) ≤ a ^ 2 :=
+by { rw [← int.nat_abs_sq a, sq], norm_cast, apply nat.le_mul_self }
+
+alias abs_le_self_sq ← abs_le_self_pow_two
+
+lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_sq _)
+
+alias le_self_sq ← le_self_pow_two
 
 end int
 

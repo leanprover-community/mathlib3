@@ -211,7 +211,7 @@ hp.1.eq_two_or_odd.elim
         revert this hp3 hp1,
         generalize : p % 4 = m, dec_trivial!,
       end,
-    let ⟨k, hk⟩ := (zmod.exists_pow_two_eq_neg_one_iff_mod_four_ne_three p).2 $
+    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).2 $
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
@@ -219,7 +219,7 @@ hp.1.eq_two_or_odd.elim
       have hpk : p ∣ k ^ 2 + 1,
         by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
-        by simp [pow_two, zsqrtd.ext],
+        by simp [sq, zsqrtd.ext],
       have hpne1 : p ≠ 1 := ne_of_gt hp.1.one_lt,
       have hkltp : 1 + k * k < p * p,
         from calc 1 + k * k ≤ k + k * k :
@@ -257,12 +257,12 @@ have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
   by simpa [irreducible_iff, hpu, not_forall, not_or_distrib] using hpi,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
-have hnap : (norm a).nat_abs = p, from ((hp.1.mul_eq_prime_pow_two_iff
+have hnap : (norm a).nat_abs = p, from ((hp.1.mul_eq_prime_sq_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
-  by rw [← int.coe_nat_inj', int.coe_nat_pow, pow_two,
+  by rw [← int.coe_nat_inj', int.coe_nat_pow, sq,
     ← @norm_nat_cast (-1), hpab];
     simp).1,
-⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, pow_two] using hnap⟩
+⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, sq] using hnap⟩
 
 lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3 : p % 4 = 3) :
   prime (p : ℤ[i]) :=

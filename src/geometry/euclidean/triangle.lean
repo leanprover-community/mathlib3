@@ -212,7 +212,7 @@ lemma cos_angle_add_angle_sub_add_angle_sub_eq_neg_one {x y : V} (hx : x ≠ 0) 
   real.cos (angle x y + angle x (x - y) + angle y (y - x)) = -1 :=
 by rw [add_assoc, real.cos_add, cos_angle_sub_add_angle_sub_rev_eq_neg_cos_angle hx hy,
        sin_angle_sub_add_angle_sub_rev_eq_sin_angle hx hy, ←neg_mul_eq_mul_neg, ←neg_add',
-       add_comm, ←pow_two, ←pow_two, real.sin_sq_add_cos_sq]
+       add_comm, ←sq, ←sq, real.sin_sq_add_cos_sq]
 
 /-- The sine of the sum of the angles of a possibly degenerate
 triangle (where two given sides are nonzero), vector angle form. -/

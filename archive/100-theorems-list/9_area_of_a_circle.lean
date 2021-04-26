@@ -60,7 +60,7 @@ begin
   simp only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
   split;
   intro h,
-  { cases abs_lt_of_sq_lt_sq' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) r.2,
+  { cases abs_lt_of_sq_lt_sq' (lt_of_add_lt_of_nonneg_left h (sq_nonneg p.2)) r.2,
     rw [add_comm, ← lt_sub_iff_add_lt] at h,
     exact ⟨⟨left, right.le⟩, sq_lt.mp h⟩ },
   { rw [add_comm, ← lt_sub_iff_add_lt],
@@ -98,7 +98,7 @@ begin
             div_self (pow_ne_zero 2 hlt.ne'), one_mul, mul_one],
         simpa [sqrt_sq hle, div_le_one (pow_pos hlt 2)] using sq_le_sq' hx1.le hx2.le },
       field_simp,
-      rw [h, mul_left_comm, ← pow_two, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
+      rw [h, mul_left_comm, ← sq, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
           add_left_comm, div_add_div_same, tactic.ring.add_neg_eq_sub, div_sqrt, two_mul] },
     { suffices : -(1:ℝ) < r⁻¹ * x, by exact this.ne',
       calc -(1:ℝ) = r⁻¹ * -r : by simp [hlt.ne']

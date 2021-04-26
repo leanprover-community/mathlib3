@@ -50,7 +50,7 @@ begin
   { have frac_nonneg: 0 ≤ numerator / denominator := by linarith [split_to_frac, cos_sq_le_one γ],
     cases div_nonneg_iff.mp frac_nonneg,
     { exact h.left },
-    { simpa [h1, h2] using le_antisymm h.right (pow_two_nonneg _) } },
+    { simpa [h1, h2] using le_antisymm h.right (sq_nonneg _) } },
   have ab2_nonneg : 0 ≤ (2 * a * b) := by norm_num [mul_nonneg, dist_nonneg],
   calc  1/2 * a * b * sin γ
       = 1/2 * a * b * (√numerator / √denominator) : by rw [sin_eq_sqrt_one_sub_cos_sq,

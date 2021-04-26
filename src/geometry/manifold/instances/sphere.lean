@@ -110,7 +110,7 @@ begin
   suffices : ∥(4:ℝ) • w + (∥w∥ ^ 2 - 4) • v∥ ^ 2 = (∥w∥ ^ 2 + 4) ^ 2,
   { have h₃ : 0 ≤ ∥stereo_inv_fun_aux v w∥ := norm_nonneg _,
     simpa [h₁, h₃, -one_pow] using this },
-  simp [norm_add_pow_two_real, norm_smul, inner_smul_left, inner_smul_right,
+  simp [norm_add_sq_real, norm_smul, inner_smul_left, inner_smul_right,
     inner_left_of_mem_orthogonal_singleton _ hw, mul_pow, real.norm_eq_abs, hv],
   ring
 end
@@ -173,8 +173,8 @@ begin
   { have hvy' : ⟪a • v, y⟫_ℝ = 0 := by simp [inner_smul_left, hvy],
     convert norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero _ _ hvy' using 2,
     { simp [← split] },
-    { simp [norm_smul, hv, real.norm_eq_abs, ← pow_two, sq_abs] },
-    { exact pow_two _ } },
+    { simp [norm_smul, hv, real.norm_eq_abs, ← sq, sq_abs] },
+    { exact sq _ } },
   -- two facts which will be helpful for clearing denominators in the main calculation
   have ha : 1 - a ≠ 0,
   { have : a < 1 := (inner_lt_one_iff_real_of_norm_one hv (by simp)).mpr hx.symm,
@@ -182,7 +182,7 @@ begin
   have : 2 ^ 2 * ∥y∥ ^ 2 + 4 * (1 - a) ^ 2 ≠ 0,
   { refine ne_of_gt _,
     have := norm_nonneg (y:E),
-    have : 0 < (1 - a) ^ 2 := pow_two_pos_of_ne_zero (1 - a) ha,
+    have : 0 < (1 - a) ^ 2 := sq_pos_of_ne_zero (1 - a) ha,
     nlinarith },
   -- the core of the problem is these two algebraic identities:
   have h₁ : (2 ^ 2 / (1 - a) ^ 2 * ∥y∥ ^ 2 + 4)⁻¹ * 4 * (2 / (1 - a)) = 1,

@@ -296,7 +296,7 @@ begin
                                   : mul_le_mul_of_nonneg_left
                                       (finset.sum_le_univ_sum_of_nonneg
                                         (λ k, mul_nonneg
-                                          (mul_nonneg pow_minus_two_nonneg (pow_two_nonneg _))
+                                          (mul_nonneg pow_minus_two_nonneg (sq_nonneg _))
                                           bernstein_nonneg)) w₁
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
                                   : by conv_rhs {

@@ -38,7 +38,7 @@ lemma bound (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   a ^ 4 / (a ^ 4 + b ^ 4 + c ^ 4) ≤
   a ^ 3 / sqrt ((a ^ 3) ^ 2 + 8 * b ^ 3 * c ^ 3) :=
 begin
-  have hsqrt := add_pos_of_nonneg_of_pos (pow_two_nonneg (a ^ 3))
+  have hsqrt := add_pos_of_nonneg_of_pos (sq_nonneg (a ^ 3))
     (mul_pos (mul_pos (bit0_pos zero_lt_four) (pow_pos hb 3)) (pow_pos hc 3)),
   have hdenom := denom_pos ha hb hc,
   rw div_le_div_iff hdenom (sqrt_pos.mpr hsqrt),
@@ -49,8 +49,8 @@ begin
   calc  (a ^ 4 + b ^ 4 + c ^ 4) ^ 2 - a ^ 2 * ((a ^ 3) ^ 2 + 8 * b ^ 3 * c ^ 3)
       = 2 * (a ^ 2 * (b ^ 2 - c ^ 2)) ^ 2 + (b ^ 4 - c ^ 4) ^ 2 +
         (2 * (a ^ 2 * b * c - b ^ 2 * c ^ 2)) ^ 2 : by ring
-  ... ≥ 0 : add_nonneg (add_nonneg (mul_nonneg zero_le_two (pow_two_nonneg _))
-              (pow_two_nonneg _)) (pow_two_nonneg _)
+  ... ≥ 0 : add_nonneg (add_nonneg (mul_nonneg zero_le_two (sq_nonneg _))
+              (sq_nonneg _)) (sq_nonneg _)
 end
 
 theorem imo2001_q2' (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :

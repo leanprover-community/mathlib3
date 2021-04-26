@@ -32,14 +32,14 @@ lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (h
 begin
   haveI := fact.mk hpp,
   have hp_mod_4_ne_3 : p % 4 ≠ 3, { linarith [(show p % 4 = 1, by exact hp_mod_4_eq_1)] },
-  obtain ⟨y, hy⟩ := (zmod.exists_pow_two_eq_neg_one_iff_mod_four_ne_three p).mpr hp_mod_4_ne_3,
+  obtain ⟨y, hy⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).mpr hp_mod_4_ne_3,
 
   let m := zmod.val_min_abs y,
   let n := int.nat_abs m,
 
   have hnat₁ : p ∣ n ^ 2 + 1,
   { refine int.coe_nat_dvd.mp _,
-    simp only [int.nat_abs_pow_two, int.coe_nat_pow, int.coe_nat_succ, int.coe_nat_dvd.mp],
+    simp only [int.nat_abs_sq, int.coe_nat_pow, int.coe_nat_succ, int.coe_nat_dvd.mp],
     refine (zmod.int_coe_zmod_eq_zero_iff_dvd (m ^ 2 + 1) p).mp _,
     simp only [int.cast_pow, int.cast_add, int.cast_one, zmod.coe_val_min_abs],
     rw hy, exact add_left_neg 1 },
@@ -100,7 +100,7 @@ begin
   obtain ⟨n, hnat, hreal⟩ := p_lemma p hpp hpmod4 (by linarith [hineq₁, nat.zero_le (N ^ 2)]),
 
   have hineq₂  : n ^ 2 + 1 ≥ p := nat.le_of_dvd (n ^ 2).succ_pos hnat,
-  have hineq₃  : n * n ≥ N * N, { linarith [hineq₁, hineq₂, (pow_two n), (pow_two N)] },
+  have hineq₃  : n * n ≥ N * N, { linarith [hineq₁, hineq₂, (sq n), (sq N)] },
   have hn_ge_N : n ≥ N := nat.mul_self_le_mul_self_iff.mpr hineq₃,
 
   exact ⟨n, hn_ge_N, p, hpp, hnat, hreal⟩,

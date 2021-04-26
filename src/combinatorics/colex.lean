@@ -87,7 +87,7 @@ lemma colex.le_def [has_lt α] (A B : finset α) :
 iff.rfl
 
 /-- If everything in A is less than k, we can bound the sum of powers. -/
-lemma nat.sum_pow_two_lt {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A → x < k) :
+lemma nat.sum_sq_lt {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A → x < k) :
   A.sum (pow 2) < 2^k :=
 begin
   apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
@@ -96,6 +96,8 @@ begin
   rw ← z,
   apply nat.lt_succ_self,
 end
+
+alias nat.sum_sq_lt ← nat.sum_pow_two_lt
 
 namespace colex
 
@@ -318,7 +320,7 @@ begin
 end
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
-lemma sum_pow_two_lt_iff_lt (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) ↔
+lemma sum_sq_lt_iff_lt (A B : finset ℕ) : A.sum (pow 2) < B.sum (pow 2) ↔
   A.to_colex < B.to_colex :=
 begin
   have z : ∀ (A B : finset ℕ), A.to_colex < B.to_colex → A.sum (pow 2) < B.sum (pow 2),
@@ -329,7 +331,7 @@ begin
     conv_rhs { rw ← sdiff_union_inter B A },
     rw [sum_union (disjoint_sdiff_inter _ _), sum_union (disjoint_sdiff_inter _ _),
         inter_comm, add_lt_add_iff_right],
-    apply lt_of_lt_of_le (@nat.sum_pow_two_lt k (A \ B) _),
+    apply lt_of_lt_of_le (@nat.sum_sq_lt k (A \ B) _),
     { apply single_le_sum (λ _ _, nat.zero_le _) kB },
     intros x hx,
     apply lt_of_le_of_ne (le_of_not_lt (λ kx, _)),
@@ -342,5 +344,7 @@ begin
   rintro rfl,
   apply irrefl _ h
 end
+
+alias sum_sq_lt_iff_lt ← sum_pow_two_lt_iff_lt
 
 end colex

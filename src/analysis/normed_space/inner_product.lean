@@ -692,7 +692,7 @@ begin
       have h' : ∥v i∥ ^ 2 = 1 ^ 2 := by simp [norm_sq_eq_inner, h i i],
       have h₁ : 0 ≤ ∥v i∥ := norm_nonneg _,
       have h₂ : (0:ℝ) ≤ 1 := by norm_num,
-      rwa eq_of_pow_two_eq_pow_two h₁ h₂ at h' },
+      rwa eq_of_sq_eq_sq h₁ h₂ at h' },
     { intros i j hij,
       simpa [hij] using h i j } }
 end
@@ -851,30 +851,34 @@ by { have h := @inner_self_eq_norm_sq ℝ F _ _ x, simpa using h }
 
 
 /-- Expand the square -/
-lemma norm_add_pow_two {x y : E} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
+lemma norm_add_sq {x y : E} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
 begin
-  repeat {rw [pow_two, ←inner_self_eq_norm_sq]},
+  repeat {rw [sq, ←inner_self_eq_norm_sq]},
   rw[inner_add_add_self, two_mul],
   simp only [add_assoc, add_left_inj, add_right_inj, add_monoid_hom.map_add],
   rw [←inner_conj_sym, conj_re],
 end
 
+alias norm_add_sq ← norm_add_pow_two
+
 /-- Expand the square -/
-lemma norm_add_pow_two_real {x y : F} : ∥x + y∥^2 = ∥x∥^2 + 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
-by { have h := @norm_add_pow_two ℝ F _ _, simpa using h }
+lemma norm_add_sq_real {x y : F} : ∥x + y∥^2 = ∥x∥^2 + 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
+by { have h := @norm_add_sq ℝ F _ _, simpa using h }
+
+alias norm_add_sq_real ← norm_add_pow_two_real
 
 /-- Expand the square -/
 lemma norm_add_mul_self {x y : E} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * (re ⟪x, y⟫) + ∥y∥ * ∥y∥ :=
-by { repeat {rw [← pow_two]}, exact norm_add_pow_two }
+by { repeat {rw [← sq]}, exact norm_add_sq }
 
 /-- Expand the square -/
 lemma norm_add_mul_self_real {x y : F} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * ⟪x, y⟫_ℝ + ∥y∥ * ∥y∥ :=
 by { have h := @norm_add_mul_self ℝ F _ _, simpa using h }
 
 /-- Expand the square -/
-lemma norm_sub_pow_two {x y : E} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
+lemma norm_sub_sq {x y : E} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
 begin
-  repeat {rw [pow_two, ←inner_self_eq_norm_sq]},
+  repeat {rw [sq, ←inner_self_eq_norm_sq]},
   rw[inner_sub_sub_self],
   calc
     re (⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫)
@@ -885,13 +889,17 @@ begin
     ... = re ⟪x, x⟫ - 2*re ⟪x, y⟫ + re ⟪y, y⟫ : by ring
 end
 
+alias norm_sub_sq ← norm_sub_pow_two
+
 /-- Expand the square -/
-lemma norm_sub_pow_two_real {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
-norm_sub_pow_two
+lemma norm_sub_sq_real {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
+norm_sub_sq
+
+alias norm_sub_sq_real ← norm_sub_pow_two_real
 
 /-- Expand the square -/
 lemma norm_sub_mul_self {x y : E} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * re ⟪x, y⟫ + ∥y∥ * ∥y∥ :=
-by { repeat {rw [← pow_two]}, exact norm_sub_pow_two }
+by { repeat {rw [← sq]}, exact norm_sub_sq }
 
 /-- Expand the square -/
 lemma norm_sub_mul_self_real {x y : F} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * ⟪x, y⟫_ℝ + ∥y∥ * ∥y∥ :=
@@ -957,7 +965,7 @@ begin
   rw [← re_add_im ⟪x, y⟫, re_inner_eq_norm_add_mul_self_sub_norm_sub_mul_self_div_four,
     im_inner_eq_norm_sub_I_smul_mul_self_sub_norm_add_I_smul_mul_self_div_four],
   push_cast,
-  simp only [pow_two, ← mul_div_right_comm, ← add_div]
+  simp only [sq, ← mul_div_right_comm, ← add_div]
 end
 
 section
@@ -1167,7 +1175,7 @@ begin
     have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
     { rw [eq_of_div_eq_one h] },
     replace h2 : ⟪r • x, r • x⟫ = ⟪t, t⟫ + ⟪t, r • x⟫ + ⟪r • x, t⟫ + ⟪r • x, r • x⟫,
-    { rw [pow_two, pow_two, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq ] at h2,
+    { rw [sq, sq, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq ] at h2,
       have h2' := congr_arg (λ z : ℝ, (z : 𝕜)) h2,
       simp_rw [inner_self_re_to_K, inner_add_add_self] at h2',
       exact h2' },
@@ -1599,7 +1607,7 @@ lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ 
 
 lemma times_cont_diff_norm_sq : times_cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
 begin
-  simp only [pow_two, ← inner_self_eq_norm_sq],
+  simp only [sq, ← inner_self_eq_norm_sq],
   exact (re_clm : 𝕜 →L[ℝ] ℝ).times_cont_diff.comp (times_cont_diff_id.inner times_cont_diff_id)
 end
 
@@ -1987,7 +1995,7 @@ begin
     calc
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin
-        simp only [pow_two], apply mul_self_le_mul_self (norm_nonneg _),
+        simp only [sq], apply mul_self_le_mul_self (norm_nonneg _),
         rw [eq], apply δ_le',
         apply h hw hv,
         exacts [le_of_lt hθ₁, sub_nonneg.2 hθ₂, add_sub_cancel'_right _ _],
@@ -2001,8 +2009,8 @@ begin
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :
       begin
-        rw [norm_sub_pow_two, inner_smul_right, norm_smul],
-        simp only [pow_two],
+        rw [norm_sub_sq, inner_smul_right, norm_smul],
+        simp only [sq],
         show ∥u-v∥*∥u-v∥-2*(θ*inner(u-v)(w-v))+absR (θ)*∥w-v∥*(absR (θ)*∥w-v∥)=
                 ∥u-v∥*∥u-v∥-2*θ*inner(u-v)(w-v)+θ*θ*(∥w-v∥*∥w-v∥),
         rw abs_of_pos hθ₁, ring
@@ -2021,11 +2029,11 @@ begin
       linarith,
     exact this },
   { have q_pos : 0 < q,
-      apply lt_of_le_of_ne, exact pow_two_nonneg _, intro h, exact hq h.symm,
+      apply lt_of_le_of_ne, exact sq_nonneg _, intro h, exact hq h.symm,
     by_contradiction hp, rw not_le at hp,
     let θ := min (1:ℝ) (p / q),
     have eq₁ : θ*q ≤ p := calc
-      θ*q ≤ (p/q) * q : mul_le_mul_of_nonneg_right (min_le_right _ _) (pow_two_nonneg _)
+      θ*q ≤ (p/q) * q : mul_le_mul_of_nonneg_right (min_le_right _ _) (sq_nonneg _)
       ... = p : div_mul_cancel _ hq,
     have : 2 * p ≤ p := calc
       2 * p ≤ θ*q : by { refine this θ (lt_min (by norm_num) (div_pos hp q_pos)) (by norm_num) }
@@ -2042,10 +2050,10 @@ begin
     exact calc
       ∥u - v∥ * ∥u - v∥ ≤ ∥u - v∥ * ∥u - v∥ - 2 * inner (u - v) ((w:F) - v) : by linarith
       ... ≤ ∥u - v∥^2 - 2 * inner (u - v) ((w:F) - v) + ∥(w:F) - v∥^2 :
-        by { rw pow_two, refine le_add_of_nonneg_right _, exact pow_two_nonneg _ }
-      ... = ∥(u - v) - (w - v)∥^2 : norm_sub_pow_two.symm
+        by { rw sq, refine le_add_of_nonneg_right _, exact sq_nonneg _ }
+      ... = ∥(u - v) - (w - v)∥^2 : norm_sub_sq.symm
       ... = ∥u - w∥ * ∥u - w∥ :
-        by { have : (u - v) - (w - v) = u - w, abel, rw [this, pow_two] } },
+        by { have : (u - v) - (w - v) = u - w, abel, rw [this, sq] } },
   { show (⨅ (w : K), ∥u - w∥) ≤ (λw:K, ∥u - w∥) ⟨v, hv⟩,
       apply cinfi_le, use 0, rintros y ⟨z, rfl⟩, exact norm_nonneg _ }
 end

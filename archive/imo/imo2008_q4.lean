@@ -61,7 +61,7 @@ begin
     norm_num at H₂,
     simp only [← two_mul] at H₂,
     rw mul_div_mul_left (f(1) ^ 2) (f 1) two_ne_zero at H₂,
-    rwa ← (div_eq_iff h₀).mpr (pow_two (f 1)) },
+    rwa ← (div_eq_iff h₀).mpr (sq (f 1)) },
 
   have h₂ : ∀ x > 0, (f(x) - x) * (f(x) - 1 / x) = 0,
   { intros x hx,

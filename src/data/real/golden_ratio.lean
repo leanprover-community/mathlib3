@@ -83,7 +83,7 @@ lemma gold_ne_zero : φ ≠ 0 := ne_of_gt gold_pos
 lemma one_lt_gold : 1 < φ :=
 begin
   refine lt_of_mul_lt_mul_left _ (le_of_lt gold_pos),
-  simp [← pow_two, gold_pos, zero_lt_one]
+  simp [← sq, gold_pos, zero_lt_one]
 end
 
 lemma gold_conj_neg : ψ < 0 := by linarith [one_sub_gold_conj, one_lt_gold]

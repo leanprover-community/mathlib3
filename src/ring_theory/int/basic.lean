@@ -289,7 +289,7 @@ begin
   { apply or.intro_left,
     exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
   { apply or.intro_right,
-    rw [pow_two, int.nat_abs_mul] at hpp,
+    rw [sq, int.nat_abs_mul] at hpp,
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 

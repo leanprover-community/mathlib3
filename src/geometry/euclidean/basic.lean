@@ -185,7 +185,7 @@ begin
   rw [real.sin_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
                       (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2,
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      ←real.sqrt_mul' _ (mul_self_nonneg _), pow_two,
+      ←real.sqrt_mul' _ (mul_self_nonneg _), sq,
       real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
       real_inner_self_eq_norm_sq,
       real_inner_self_eq_norm_sq],

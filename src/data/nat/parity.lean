@@ -221,7 +221,7 @@ theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔
 
 @[simp] theorem neg_one_sq : (-1 : R) ^ 2 = 1 := by simp
 
-alias neg_one_sq ← neg_one_pow_two
+alias nat.neg_one_sq ← nat.neg_one_pow_two
 
 theorem neg_one_pow_of_even : even n → (-1 : R) ^ n = 1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_mul] }

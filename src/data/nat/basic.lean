@@ -1272,7 +1272,7 @@ strict_mono.injective (pow_left_strict_mono k)
 theorem sq_sub_sq (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by { rw [sq, sq], exact nat.mul_self_sub_mul_self_eq a b }
 
-alias sq_sub_sq ← pow_two_sub_pow_two
+alias nat.sq_sub_sq ← nat.pow_two_sub_pow_two
 
 /-! ### `pow` and `mod` / `dvd` -/
 

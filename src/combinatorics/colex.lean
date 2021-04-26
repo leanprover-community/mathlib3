@@ -345,6 +345,4 @@ begin
   apply irrefl _ h
 end
 
-alias sum_sq_lt_iff_lt ← sum_pow_two_lt_iff_lt
-
 end colex

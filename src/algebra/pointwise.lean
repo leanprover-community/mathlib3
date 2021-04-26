@@ -255,7 +255,7 @@ lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :
 by { rw [← inv_subset_inv, set.inv_inv] }
 
 @[to_additive] lemma finite.inv [group α] {s : set α} (hs : finite s) : finite s⁻¹ :=
-set.finite.preimage (set.inj_on_of_injective inv_injective _) hs
+hs.preimage $ inv_injective.inj_on _
 
 /-! ### Properties about scalar multiplication -/
 

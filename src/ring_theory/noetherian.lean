@@ -75,6 +75,16 @@ lemma fg_iff_add_submonoid_fg (P : submodule ℕ M) :
 ⟨λ ⟨S, hS⟩, ⟨S, by simpa [← span_nat_eq_add_submonoid_closure] using hS⟩,
   λ ⟨S, hS⟩, ⟨S, by simpa [← span_nat_eq_add_submonoid_closure] using hS⟩⟩
 
+lemma fg_iff_add_subgroup_fg {G : Type*} [add_comm_group G] (P : submodule ℤ G) :
+  P.fg ↔ P.to_add_subgroup.fg :=
+begin
+  refine ⟨λ ⟨S, hS⟩, ⟨S, by simp [← span_int_eq_add_subgroup_closure, hS]⟩, _⟩,
+  rintro ⟨S, hS⟩,
+  refine ⟨S, _⟩,
+  rw [← span_int_eq_add_subgroup_closure] at hS,
+  exact submodule.to_add_subgroup_injective hS,
+end
+
 lemma fg_iff_exists_fin_generating_family {N : submodule R M} :
   N.fg ↔ ∃ (n : ℕ) (s : fin n → M), span R (range s) = N :=
 begin

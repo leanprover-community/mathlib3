@@ -145,7 +145,7 @@ end
   : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.equiv_fin α with eq,
-  rw fintype.card_congr (function.embedding.equiv eq (equiv.refl β)),
+  rw fintype.card_congr (equiv.embedding_congr eq (equiv.refl β)),
   exact card_embedding_aux _ _ h,
 end
 

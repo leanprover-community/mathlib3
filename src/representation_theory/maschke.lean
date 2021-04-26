@@ -3,10 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.monoid_algebra
 import algebra.char_p.invertible
 import linear_algebra.basis
 import ring_theory.simple_module
+import representation_theory.subrepresentation_lattice
 
 /-!
 # Maschke's theorem
@@ -32,7 +32,7 @@ It's not so far to give the usual statement, that every finite dimensional repre
 of a finite group is semisimple (i.e. a direct sum of irreducibles).
 -/
 
-universes u
+universes u v w
 
 noncomputable theory
 open module
@@ -43,11 +43,11 @@ section
 
 -- At first we work with any `[comm_ring k]`, and add the assumption that
 -- `[invertible (fintype.card G : k)]` when it is required.
-variables {k : Type u} [comm_ring k] {G : Type u} [group G]
+variables {k : Type u} [comm_ring k] {G : Type v} [group G]
 
-variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+variables {V : Type w} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
 variables [is_scalar_tower k (monoid_algebra k G) V]
-variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+variables {W : Type w} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
 variables [is_scalar_tower k (monoid_algebra k G) W]
 
 /-!
@@ -154,11 +154,11 @@ end char_zero
 namespace monoid_algebra
 
 -- Now we work over a `[field k]`.
-variables {k : Type u} [field k] {G : Type u} [fintype G] [invertible (fintype.card G : k)]
+variables {k : Type u} [field k] {G : Type v} [fintype G] [invertible (fintype.card G : k)]
 variables [group G]
-variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+variables {V : Type w} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
 variables [is_scalar_tower k (monoid_algebra k G) V]
-variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+variables {W : Type w} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
 variables [is_scalar_tower k (monoid_algebra k G) W]
 
 lemma exists_left_inverse_of_injective
@@ -189,4 +189,24 @@ instance is_complemented : is_complemented (submodule (monoid_algebra k G) V) :=
 ⟨exists_is_compl⟩
 
 end submodule
+
 end monoid_algebra
+
+namespace subrepresentation
+variables {k : Type u} {G : Type v} {V : Type w}
+variables [field k] [group G] [add_comm_group V]
+variables [module k V] [distrib_mul_action G V]
+variables [fintype G] [invertible (fintype.card G : k)]
+
+instance maschke [representation k G V] : is_complemented (subrepresentation k G V) :=
+{ exists_is_compl := λ p,
+  begin
+    let p' := p.to_monoid_algebra_submodule,
+    cases monoid_algebra.submodule.exists_is_compl p' with q' hq',
+    use q'.of_monoid_algebra_submodule,
+    rw @order_iso.is_compl_iff (subrepresentation k G V) (submodule (monoid_algebra k G) V)
+      _ _ order_iso_monoid_algebra_submodule,
+    simp [hq'],
+  end}
+
+end subrepresentation

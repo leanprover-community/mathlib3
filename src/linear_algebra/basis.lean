@@ -343,7 +343,8 @@ end
 
 end is_basis
 
-lemma is_basis_singleton_iff {R : Type*} [division_ring R] [module R M]
+lemma is_basis_singleton_iff
+  {R : Type*} [ring R] [nontrivial R] [module R M] [no_zero_smul_divisors R M]
   (ι : Type*) [unique ι] (x : M) :
   is_basis R (λ (_ : ι), x) ↔ x ≠ 0 ∧ ∀ y : M, ∃ r : R, r • x = y :=
 begin

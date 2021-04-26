@@ -1221,11 +1221,12 @@ We now give characterisations of `finrank K V = 1` and `finrank K V ≤ 1`.
 section finrank_eq_one
 
 /-- If there is a nonzero vector and every other vector is a multiple of it,
-then the module has dimensions one. -/
+then the module has dimension one. -/
 lemma finrank_eq_one (v : V) (n : v ≠ 0) (h : ∀ w : V, ∃ c : K, c • v = w) :
   finrank K V = 1 :=
 begin
   convert finrank_eq_card_basis ((is_basis_singleton_iff punit v).mpr _),
+  apply_instance, apply_instance, -- Not sure why these aren't found automatically.
   exact ⟨n, h⟩,
 end
 
@@ -1244,11 +1245,12 @@ begin
 end
 
 /--
-A module with a nonzero vector `v` has dimension 1 iff `{v}` is a basis.
+A module with a nonzero vector `v` has dimension 1 iff `v` spans.
 -/
 lemma finrank_eq_one_iff_of_nonzero (v : V) (nz : v ≠ 0) :
-  finrank K V = 1 ↔ is_basis K (λ x : ({v} : set V), (x : V)) :=
-⟨singleton_is_basis v nz, λ b, by convert finrank_eq_card_basis b⟩
+  finrank K V = 1 ↔ span K ({v} : set V) = ⊤ :=
+⟨λ h, by { convert (singleton_is_basis v nz h).2, simp },
+  λ s, finrank_eq_card_basis ⟨linear_independent_singleton nz, by { convert s, simp }⟩⟩
 
 /--
 A module has dimension 1 iff there is some `v : V` so `{v}` is a basis.
@@ -1276,6 +1278,7 @@ begin
   convert (is_basis_singleton_iff ({v} : set V) v).symm,
   ext ⟨x, ⟨⟩⟩,
   refl,
+  apply_instance, apply_instance, -- Not sure why this aren't found automatically.
 end
 
 /--

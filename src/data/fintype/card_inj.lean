@@ -135,7 +135,7 @@ begin
 end
 
 /- Establishes the cardinality of the type of all injections, if any exist.  -/
-@[simp] theorem card_inj {α β} [fintype α] [fintype β] [decidable_eq α] (h : ‖α‖ ≤ ‖β‖)
+@[simp] theorem card_inj {α β} [fintype α] [fintype β] (h : ‖α‖ ≤ ‖β‖)
   : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.equiv_fin α with eq,

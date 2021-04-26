@@ -38,7 +38,10 @@ usage. In the opposite direction, the implication
 holds (note the `co*ntra*` assumption and the `(≤)`-relation).
 -/
 -- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
-
+-- TODO: relationship with add_con
+-- include equivalence of `left_cancel_semigroup` with
+-- `semigroup partial_order contravariant_class α α (*) (≤)`?
+-- use ⇒, as per Eric's suggestion?
 section variants
 
 variables {M N : Type*} (μ : M → N → N) (r s : N → N → Prop) (m : M) {a b c : N}

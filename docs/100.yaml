@@ -343,7 +343,7 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
-  decl   : fintype.card_inj'
+  decl   : fintype.card_inj
   author : Eric Rodriguez
 94:
   title  : The Law of Cosines

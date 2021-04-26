@@ -169,6 +169,25 @@ begin
   rw [this, mul_comm, succ_desc_fac]
 end
 
+def equiv.embedding {α β γ δ : Type*} (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
+{ to_fun := λ f,
+    ⟨h' ∘ f ∘ h.symm, (h'.comp_injective _).mpr $ (h.symm.injective_comp _).mpr f.injective⟩,
+  inv_fun := λ f,
+    ⟨h'.symm ∘ f ∘ h, (h'.symm.comp_injective _).mpr $ (h.injective_comp _).mpr f.injective⟩,
+  left_inv := λ x, by {ext, simp},
+  right_inv := λ x, by {ext, simp} }
+
+theorem fintype.card_inj {α β} [fintype α] [fintype β] (h : ‖α‖ ≤ ‖β‖)
+  : ‖α ↪ β‖ = (desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
+begin
+  trunc_cases fintype.equiv_fin α with eq,
+  rw fintype.card_congr (equiv.embedding eq (equiv.refl β)),
+  exact fintype.card_inj' _ _ h,
+end
+
+-- just realised; is it worth registering `subsingleton` instances for `‖α ↪ β‖`
+-- for when they either have equal cards or `α` is empty?
+
 theorem birthday : 2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ :=
   by norm_num [fintype.card_inj', desc_fac]
 

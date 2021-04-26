@@ -163,14 +163,14 @@ end
 
 lemma subgroup.fg_iff_add_fg (P : subgroup G) : subgroup.fg P ↔ add_subgroup.fg P.to_add_subgroup :=
 begin
-  rw [subgroup.fg_iff_submonoid.fg, add_subgroup.fg_iff_add_submonoid.fg],
+  rw [subgroup.fg_iff_submonoid_fg, add_subgroup.fg_iff_add_submonoid.fg],
   exact (subgroup.to_submonoid P).fg_iff_add_fg
 end
 
 lemma add_subgroup.fg_iff_mul_fg (P : add_subgroup H) :
   add_subgroup.fg P ↔ subgroup.fg P.to_subgroup :=
 begin
-  rw [add_subgroup.fg_iff_add_submonoid.fg, subgroup.fg_iff_submonoid.fg],
+  rw [add_subgroup.fg_iff_add_submonoid.fg, subgroup.fg_iff_submonoid_fg],
   exact add_submonoid.fg_iff_mul_fg (add_subgroup.to_add_submonoid P)
 end
 
@@ -202,8 +202,8 @@ lemma group.fg_iff : group.fg G ↔
 
 /-- A group is finitely generated if and only if it is finitely generated as a monoid. -/
 lemma group.fg_iff_monoid.fg : group.fg G ↔ monoid.fg G :=
-⟨λ h, monoid.fg_def.2 $ (subgroup.fg_iff_submonoid.fg ⊤).1 (group.fg_def.1 h),
-    λ h, group.fg_def.2 $ (subgroup.fg_iff_submonoid.fg ⊤).2 (monoid.fg_def.1 h)⟩
+⟨λ h, monoid.fg_def.2 $ (subgroup.fg_iff_submonoid_fg ⊤).1 (group.fg_def.1 h),
+    λ h, group.fg_def.2 $ (subgroup.fg_iff_submonoid_fg ⊤).2 (monoid.fg_def.1 h)⟩
 
 /-- An additive group is finitely generated if and only if it is finitely generated as an
 additive monoid. -/

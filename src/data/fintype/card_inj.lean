@@ -20,11 +20,17 @@ local notation `‖` x `‖` := fintype.card x
 
 namespace fintype
 
+private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injective f} ≃ (α ↪ β) :=
+{ to_fun := λ f, ⟨f.val, f.property⟩,
+  inv_fun := λ f, ⟨f, f.injective⟩,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by {ext, simp} }
+
 -- `decidable_pred (@injective α β)` and various variations didn't give me an instance 🤷‍♂️
 noncomputable instance embedding {α β} [fintype α] [fintype β] : fintype (α ↪ β) :=
-fintype.of_equiv {f : α → β // function.injective f} (function.embedding.equiv_inj_subtype α β)
+  fintype.of_equiv {f : α → β // function.injective f} (equiv_inj_subtype α β)
 
-private lemma card_inj_aux (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
+private lemma card_embedding_aux (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,
@@ -135,31 +141,29 @@ begin
 end
 
 /- Establishes the cardinality of the type of all injections, if any exist.  -/
-@[simp] theorem card_inj {α β} [fintype α] [fintype β] (h : ‖α‖ ≤ ‖β‖)
+@[simp] theorem card_embedding {α β} [fintype α] [fintype β] (h : ‖α‖ ≤ ‖β‖)
   : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.equiv_fin α with eq,
   rw fintype.card_congr (function.embedding.equiv eq (equiv.refl β)),
-  exact card_inj_aux _ _ h,
+  exact card_embedding_aux _ _ h,
 end
 
 /-- If `‖β‖ < ‖α‖` there is no embeddings `α ↪ β`. This is the pigeonhole principle. -/
-@[simp] theorem card_inj' {α β} [fintype α] [fintype β] (h : ‖β‖ < ‖α‖) : ‖α ↪ β‖ = 0 :=
+@[simp] theorem card_embedding_eq_zero {α β} [fintype α] [fintype β] (h : ‖β‖ < ‖α‖)
+  : ‖α ↪ β‖ = 0 :=
 begin
   rw card_eq_zero_iff, intro f,
   obtain ⟨x, y, eq, fne⟩ := fintype.exists_ne_map_eq_of_card_lt f h,
   have := f.injective fne, contradiction
 end
 
-theorem card_inj'' {α β} [fintype α] [fintype β] :
+theorem card_embedding_eq_iff {α β} [fintype α] [fintype β] :
   ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
 begin
   split_ifs with h,
-    exact card_inj h,
-    exact card_inj' (not_le.mp h)
+    exact card_embedding h,
+    exact card_embedding_eq_zero (not_le.mp h)
 end
 
 end fintype
-
--- just realised; is it worth registering `subsingleton` instances for `‖α ↪ β‖`
--- for when they either have equal cards or `α` is empty?

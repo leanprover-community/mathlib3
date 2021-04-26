@@ -762,10 +762,24 @@ lemma map_span (f : M →ₗ[R] M₂) (s : set M) :
 eq.symm $ span_eq_of_le _ (set.image_subset f subset_span) $
 map_le_iff_le_comap.2 $ span_le.2 $ λ x hx, subset_span ⟨x, hx, rfl⟩
 
+alias submodule.map_span ← linear_map.map_span
+
+lemma map_span_le {R M M₂ : Type*} [semiring R] [add_comm_monoid M]
+  [add_comm_monoid M₂] [module R M] [module R M₂] (f : M →ₗ[R] M₂)
+  (s : set M) (N : submodule R M₂) : map f (span R s) ≤ N ↔ ∀ m ∈ s, f m ∈ N :=
+begin
+  rw [f.map_span, span_le, set.image_subset_iff],
+  exact iff.rfl
+end
+
+alias submodule.map_span_le ← linear_map.map_span_le
+
 /- See also `span_preimage_eq` below. -/
 lemma span_preimage_le (f : M →ₗ[R] M₂) (s : set M₂) :
   span R (f ⁻¹' s) ≤ (span R s).comap f :=
 by { rw [span_le, comap_coe], exact preimage_mono (subset_span), }
+
+alias submodule.span_preimage_le  ← linear_map.span_preimage_le
 
 /-- An induction principle for span membership. If `p` holds for 0 and all elements of `s`, and is
 preserved under addition and scalar multiplication, then `p` holds for all elements of the span of
@@ -1148,7 +1162,7 @@ ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, f.map_neg x⟩,
 
 @[simp] lemma span_neg (s : set M) : span R (-s) = span R s :=
 calc span R (-s) = span R ((-linear_map.id : M →ₗ[R] M) '' s) : by simp
- ... = map (-linear_map.id) (span R s) : (map_span _ _).symm
+ ... = map (-linear_map.id) (span R s) : ((-linear_map.id).map_span _).symm
 ... = span R s : by simp
 
 lemma mem_span_insert' {y} {s : set M} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y ∈ span R s :=

@@ -152,6 +152,14 @@ section add_comm_group
 
 variables (R M) [semiring R] [add_comm_group M]
 
+instance add_comm_group.int_module : module ℤ M :=
+{ one_smul := one_gsmul,
+  mul_smul := λ m n a, mul_gsmul a m n,
+  smul_add := λ n a b, gsmul_add a b n,
+  smul_zero := gsmul_zero,
+  zero_smul := zero_gsmul,
+  add_smul := λ r s x, add_gsmul x r s }
+
 /-- A structure containing most informations as in a module, except the fields `zero_smul`
 and `smul_zero`. As these fields can be deduced from the other ones when `M` is an `add_comm_group`,
 this provides a way to construct a module structure by checking less properties, in
@@ -294,31 +302,32 @@ begin
 end
 end
 
-/-- `gsmul` is equal to any `ℤ`-module structure. -/
-lemma gsmul_eq_smul [module ℤ M] (n : ℤ) (b : M) : n •ℤ b = n • b :=
-by rw [gsmul_eq_smul_cast ℤ, n.cast_id]
+/-- Convert back any exotic `ℤ`-smul to the canonical instance. This should not be needed since in
+mathlib all `add_comm_group`s should normally have exactly one `ℤ`-module structure by design. -/
+lemma int_smul_eq_gsmul (h : module ℤ M) (n : ℤ) (x : M) :
+  @has_scalar.smul ℤ M h.to_has_scalar n x = n • x :=
+by rw [gsmul_eq_smul_cast ℤ n x, int.cast_id]
 
-/-- All `ℤ`-module structures are equal. -/
-instance add_comm_group.int_module.subsingleton : subsingleton (module ℤ M) :=
-⟨λ P Q, by {
-  ext n,
-  rw [←gsmul_eq_smul, ←gsmul_eq_smul], }⟩
+/-- All `ℤ`-module structures are equal. Not an instance since in mathlib all `add_comm_group`
+should normally have exactly one `ℤ`-module structure by design. -/
+def add_comm_group.int_module.unique : unique (module ℤ M) :=
+{ default := by apply_instance,
+  uniq := λ P, module_ext P _ $ λ n, int_smul_eq_gsmul P n }
 
-instance add_comm_group.int_is_scalar_tower [module ℤ R] [module ℤ M] :
-  is_scalar_tower ℤ R M :=
+instance add_comm_group.int_is_scalar_tower : is_scalar_tower ℤ R M :=
 { smul_assoc := λ n x y, int.induction_on n
     (by simp only [zero_smul])
     (λ n ih, by simp only [one_smul, add_smul, ih])
     (λ n ih, by simp only [one_smul, sub_smul, ih]) }
 
-instance add_comm_group.int_smul_comm_class [module ℤ M] : smul_comm_class ℤ S M :=
+instance add_comm_group.int_smul_comm_class : smul_comm_class ℤ S M :=
 { smul_comm := λ n x y, int.induction_on n
     (by simp only [zero_smul, smul_zero])
     (λ n ih, by simp only [one_smul, add_smul, smul_add, ih])
     (λ n ih, by simp only [one_smul, sub_smul, smul_sub, ih]) }
 
 -- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_group.int_smul_comm_class' [module ℤ M] : smul_comm_class S ℤ M :=
+instance add_comm_group.int_smul_comm_class' : smul_comm_class S ℤ M :=
 smul_comm_class.symm _ _ _
 
 end add_comm_group
@@ -371,6 +380,7 @@ for the vanishing of elements (especially in modules over division rings).
 -/
 
 /-- `no_zero_smul_divisors R M` states that a scalar multiple is `0` only if either argument is `0`.
+This a version of saying that `M` is torsion free, without assuming `R` is zero-divisor free.
 
 The main application of `no_zero_smul_divisors R M`, when `M` is a module,
 is the result `smul_eq_zero`: a scalar multiple is `0` iff either argument is `0`.
@@ -470,14 +480,10 @@ end division_ring
 
 end no_zero_smul_divisors
 
--- We finally turn on these instances globally. By doing this here, we ensure that none of the
--- lemmas about nat modules above are specific to these instances.
-attribute [instance] add_comm_group.int_module
-
 @[simp] lemma nat.smul_one_eq_coe {R : Type*} [semiring R] (m : ℕ) :
   m • (1 : R) = ↑m :=
 by rw [nsmul_eq_mul, mul_one]
 
-@[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] [module ℤ R] (m : ℤ) :
+@[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
 by rw [gsmul_eq_mul, mul_one]

@@ -38,7 +38,7 @@ and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplicat
 
 * (nothing)
 * `direct_sum.grade_zero.has_scalar (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
-* `direct_sum.grade_zero.semimodule (A 0)`
+* `direct_sum.grade_zero.module (A 0)`
 * (nothing)
 
 Note that in the presence of these instances, `⨁ i, A i` itself inherits an `A 0`-action.
@@ -497,13 +497,13 @@ function.injective.semiring (of A 0) dfinsupp.single_injective
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
 { map_one' := of_zero_one A, map_mul' := of_zero_mul A, ..(of _ 0) }
 
-/-- Each grade `A i` derives a `A 0`-semimodule structure from `gmonoid A`. Note that this results
-in an overall `semimodule (A 0) (⨁ i, A i)` structure via `direct_sum.semimodule`.
+/-- Each grade `A i` derives a `A 0`-module structure from `gmonoid A`. Note that this results
+in an overall `module (A 0) (⨁ i, A i)` structure via `direct_sum.module`.
 -/
-instance grade_zero.semimodule {i} : semimodule (A 0) (A i) :=
+instance grade_zero.module {i} : module (A 0) (A i) :=
 begin
-  letI := semimodule.comp_hom (⨁ i, A i) (of_zero_ring_hom A),
-  exact dfinsupp.single_injective.semimodule (A 0) (of A i) (λ a, of_zero_smul A a),
+  letI := module.comp_hom (⨁ i, A i) (of_zero_ring_hom A),
+  exact dfinsupp.single_injective.module (A 0) (of A i) (λ a, of_zero_smul A a),
 end
 
 end semiring

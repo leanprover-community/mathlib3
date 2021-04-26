@@ -89,6 +89,15 @@ begin
   { rw h, },
 end
 
+/-- Copy of a lie_submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
+{ carrier := s,
+  zero_mem' := hs.symm ▸ N.zero_mem',
+  add_mem'  := hs.symm ▸ N.add_mem',
+  smul_mem' := hs.symm ▸ N.smul_mem',
+  lie_mem   := hs.symm ▸ N.lie_mem, }
+
 instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },
@@ -416,6 +425,10 @@ lemma map_le_iff_le_comap {f : M →ₗ⁅R,L⁆ M'} {N : lie_submodule R L M} {
 lemma gc_map_comap (f : M →ₗ⁅R,L⁆ M') : galois_connection (map f) (comap f) :=
 λ N N', map_le_iff_le_comap
 
+@[simp] lemma mem_map (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M) (m' : M') :
+  m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
+submodule.mem_map
+
 end lie_submodule
 
 namespace lie_ideal
@@ -506,10 +519,14 @@ variables (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L) (J : lie_ideal R L')
 def ker : lie_ideal R L := lie_ideal.comap f ⊥
 
 /-- The range of a morphism of Lie algebras as an ideal in the codomain. -/
-def ideal_range : lie_ideal R L' := lie_ideal.map f ⊤
+def ideal_range : lie_ideal R L' := lie_submodule.lie_span R L' f.range
 
 lemma ideal_range_eq_lie_span_range :
   f.ideal_range = lie_submodule.lie_span R L' f.range := rfl
+
+lemma ideal_range_eq_map :
+  f.ideal_range = lie_ideal.map f ⊤ :=
+by { ext, simp only [ideal_range, range_eq_map], refl }
 
 /-- The condition that the image of a morphism of Lie algebras is an ideal. -/
 def is_ideal_morphism : Prop := (f.ideal_range : lie_subalgebra R L') = f.range
@@ -532,7 +549,11 @@ end
 
 lemma range_subset_ideal_range : (f.range : set L') ⊆ f.ideal_range := lie_submodule.subset_lie_span
 
-lemma map_le_ideal_range : I.map f ≤ f.ideal_range := lie_ideal.map_mono le_top
+lemma map_le_ideal_range : I.map f ≤ f.ideal_range :=
+begin
+  rw f.ideal_range_eq_map,
+  exact lie_ideal.map_mono le_top,
+end
 
 lemma ker_le_comap : f.ker ≤ J.comap f := lie_ideal.comap_mono bot_le
 
@@ -542,7 +563,11 @@ lemma ker_le_comap : f.ker ≤ J.comap f := lie_ideal.comap_mono bot_le
 show x ∈ (f.ker : submodule R L) ↔ _,
 by simp only [ker_coe_submodule, linear_map.mem_ker, coe_to_linear_map]
 
-lemma mem_ideal_range {x : L} : f x ∈ ideal_range f := lie_ideal.mem_map (lie_submodule.mem_top x)
+lemma mem_ideal_range {x : L} : f x ∈ ideal_range f :=
+begin
+  rw ideal_range_eq_map,
+  exact lie_ideal.mem_map (lie_submodule.mem_top x)
+end
 
 @[simp] lemma mem_ideal_range_iff (h : is_ideal_morphism f) {y : L'} :
   y ∈ ideal_range f ↔ ∃ (x : L), f x = y :=
@@ -663,7 +688,7 @@ begin
   { rw le_inf_iff, exact ⟨f.map_le_ideal_range _, map_comap_le⟩, },
   { rw f.is_ideal_morphism_def at h,
     rw [lie_submodule.le_def, lie_submodule.inf_coe, ← coe_to_subalgebra, h],
-    rintros y ⟨⟨x, h₁, h₂⟩, h₃⟩, rw ← h₂ at h₃ ⊢, exact mem_map h₃, },
+    rintros y ⟨⟨x, h₁⟩, h₂⟩, rw ← h₁ at h₂ ⊢, exact mem_map h₂, },
 end
 
 @[simp] lemma comap_map_eq (h : ↑(map f I) = f '' I) : comap f (map f I) = I ⊔ f.ker :=
@@ -706,6 +731,31 @@ end
 end lie_ideal
 
 end lie_submodule_map_and_comap
+
+namespace lie_module_hom
+
+variables {R : Type u} {L : Type v} {M : Type w} {N : Type w₁}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L]
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
+variables (f : M →ₗ⁅R,L⁆ N)
+
+/-- The range of a morphism of Lie modules `f : M → N` is a Lie submodule of `N`.
+See Note [range copy pattern]. -/
+def range : lie_submodule R L N :=
+(lie_submodule.map f ⊤).copy (set.range f) set.image_univ.symm
+
+@[simp] lemma coe_range : (f.range : set N) = set.range f := rfl
+
+@[simp] lemma coe_submodule_range : (f.range : submodule R N) = (f : M →ₗ[R] N).range := rfl
+
+@[simp] lemma mem_range (n : N) : n ∈ f.range ↔ ∃ m, f m = n :=
+iff.rfl
+
+lemma map_top : lie_submodule.map f ⊤ = f.range :=
+by { ext, simp, }
+
+end lie_module_hom
 
 section top_equiv_self
 

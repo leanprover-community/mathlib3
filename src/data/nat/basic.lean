@@ -3,7 +3,7 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.group_power.basic
+import algebra.group.hom_instances
 import algebra.order_functions
 import algebra.ordered_monoid
 
@@ -22,9 +22,6 @@ This file contains:
 -/
 
 universes u v
-
-lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
-by rw [nat.succ_eq_add_one, nat.add_comm]
 
 /-! ### instances -/
 
@@ -947,6 +944,15 @@ nat.dvd_add_right (dvd_refl m)
   m ∣ n + m ↔ m ∣ n :=
 nat.dvd_add_left (dvd_refl m)
 
+-- TODO: update `nat.dvd_sub` in core
+lemma dvd_sub' {k m n : ℕ} (h₁ : k ∣ m) (h₂ : k ∣ n) : k ∣ m - n :=
+begin
+  cases le_total n m with H H,
+  { exact dvd_sub H h₁ h₂ },
+  { rw nat.sub_eq_zero_of_le H,
+    exact dvd_zero k },
+end
+
 lemma not_dvd_of_pos_of_lt {a b : ℕ} (h1 : 0 < b) (h2 : b < a) : ¬ a ∣ b :=
 begin
   rintros ⟨c, rfl⟩,
@@ -1263,6 +1269,9 @@ strict_mono.lt_iff_lt (pow_left_strict_mono k)
 lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
 strict_mono.injective (pow_left_strict_mono k)
 
+theorem pow_two_sub_pow_two (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by { rw [pow_two, pow_two], exact nat.mul_self_sub_mul_self_eq a b }
+
 /-! ### `pow` and `mod` / `dvd` -/
 
 theorem mod_pow_succ {b : ℕ} (b_pos : 0 < b) (w m : ℕ)
@@ -1349,6 +1358,18 @@ begin
     refine ⟨m / n, lt_add_of_pos_left _ h, _⟩,
     rw [add_comm _ 1, left_distrib, mul_one], exact add_lt_add_right (mod_lt _ hn) _ }
 end
+
+/-- Two natural numbers are equal if and only if the have the same multiples. -/
+lemma dvd_right_iff_eq {m n : ℕ} : (∀ a : ℕ, m ∣ a ↔ n ∣ a) ↔ m = n :=
+⟨λ h, dvd_antisymm ((h _).mpr (dvd_refl _)) ((h _).mp (dvd_refl _)), λ h n, by rw h⟩
+
+/-- Two natural numbers are equal if and only if the have the same divisors. -/
+lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n :=
+⟨λ h, dvd_antisymm ((h _).mp (dvd_refl _)) ((h _).mpr (dvd_refl _)), λ h n, by rw h⟩
+
+/-- `dvd` is injective in the left argument -/
+lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
+λ m n h, dvd_right_iff_eq.mp $ λ a, iff_of_eq (congr_fun h a)
 
 /-! ### `find` -/
 section find

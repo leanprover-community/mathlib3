@@ -1035,6 +1035,14 @@ by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
 
+lemma abs_sin_eq_sqrt_one_sub_cos_sq (x : ℝ) :
+  abs' (sin x) = sqrt (1 - cos x ^ 2) :=
+by rw [← sin_square, sqrt_sqr_eq_abs]
+
+lemma abs_cos_eq_sqrt_one_sub_sin_sq (x : ℝ) :
+  abs' (cos x) = sqrt (1 - sin x ^ 2) :=
+by rw [← cos_square', sqrt_sqr_eq_abs]
+
 lemma inv_one_add_tan_sq {x : ℝ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2  :=
 have complex.cos x ≠ 0, from mt (congr_arg re) hx,
 of_real_inj.1 $ by simpa using complex.inv_one_add_tan_sq this

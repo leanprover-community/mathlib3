@@ -140,6 +140,8 @@ lemma monoid_hom.coe_prod [mul_one_class β] [comm_monoid γ] (f : α → β →
   ⇑(∏ x in s, f x) = ∏ x in s, f x :=
 (monoid_hom.coe_fn β γ).map_prod _ _
 
+-- See also `finset.prod_apply`, with the same conclusion
+-- but with the weaker hypothesis `f : α → β → γ`.
 @[simp, to_additive]
 lemma monoid_hom.finset_prod_apply [mul_one_class β] [comm_monoid γ] (f : α → β →* γ)
   (s : finset α) (b : β) : (∏ x in s, f x) b = ∏ x in s, f x b :=
@@ -515,6 +517,17 @@ begin
 end
 
 @[to_additive]
+lemma prod_finset_coe (f : α → β) (s : finset α) :
+  ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
+prod_attach
+
+@[to_additive]
+lemma prod_subtype {p : α → Prop} {F : fintype (subtype p)} (s : finset α)
+  (h : ∀ x, x ∈ s ↔ p x) (f : α → β) :
+  ∏ a in s, f a = ∏ a : subtype p, f a :=
+have (∈ s) = p, from set.ext h, by { substI p, rw [←prod_finset_coe], congr }
+
+@[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : (∏ x in s, f x) = 1 :=
 calc (∏ x in s, f x) = ∏ x in s, 1 : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
@@ -559,6 +572,24 @@ by simp [prod_apply_dite _ _ (λ x, x)]
   (∏ x in s, if p x then f x else g x) =
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬ p x), g x) :=
 by simp [prod_apply_ite _ _ (λ x, x)]
+
+@[to_additive] lemma prod_ite_of_false {p : α → Prop} {hp : decidable_pred p} (f g : α → β)
+  (h : ∀ x ∈ s, ¬p x) : (∏ x in s, if p x then f x else g x) = (∏ x in s, g x) :=
+by { rw prod_ite, simp [filter_false_of_mem h, filter_true_of_mem h] }
+
+@[to_additive] lemma prod_ite_of_true {p : α → Prop} {hp : decidable_pred p} (f g : α → β)
+  (h : ∀ x ∈ s, p x) : (∏ x in s, if p x then f x else g x) = (∏ x in s, f x) :=
+by { simp_rw ←(ite_not (p _)), apply prod_ite_of_false, simpa }
+
+@[to_additive] lemma prod_apply_ite_of_false {p : α → Prop} {hp : decidable_pred p} (f g : α → γ)
+  (k : γ → β) (h : ∀ x ∈ s, ¬p x) :
+  (∏ x in s, k (if p x then f x else g x)) = (∏ x in s, k (g x)) :=
+by { simp_rw apply_ite k, exact prod_ite_of_false _ _ h }
+
+@[to_additive] lemma prod_apply_ite_of_true {p : α → Prop} {hp : decidable_pred p} (f g : α → γ)
+  (k : γ → β) (h : ∀ x ∈ s, p x) :
+  (∏ x in s, k (if p x then f x else g x)) = (∏ x in s, k (f x)) :=
+by { simp_rw apply_ite k, exact prod_ite_of_true _ _ h }
 
 @[to_additive]
 lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
@@ -607,6 +638,11 @@ prod_dite_eq' s a (λ x _, b x)
 lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) :
   (∏ x in if p then s else t, f x) = if p then ∏ x in s, f x else ∏ x in t, f x :=
 apply_ite (λ s, ∏ x in s, f x) _ _ _
+
+@[simp, to_additive]
+lemma prod_dite_irrel (p : Prop) [decidable p] (s : finset α) (f : p → α → β) (g : ¬p → α → β):
+  (∏ x in s, if h : p then f h x else g h x) = if h : p then ∏ x in s, f h x else ∏ x in s, g h x :=
+by { split_ifs with h; refl }
 
 @[simp] lemma sum_pi_single' {ι M : Type*} [decidable_eq ι] [add_comm_monoid M]
   (i : ι) (x : M) (s : finset ι) :
@@ -1300,17 +1336,22 @@ prod_bij
 /-- `fintype.prod_equiv` is a specialization of `finset.prod_bij` that
 automatically fills in most arguments.
 
-See `equiv.prod_comp` for a version without `h`. 
+See `equiv.prod_comp` for a version without `h`.
 -/
 @[to_additive "`fintype.sum_equiv` is a specialization of `finset.sum_bij` that
 automatically fills in most arguments.
 
-See `equiv.sum_comp` for a version without `h`. 
+See `equiv.sum_comp` for a version without `h`.
 "]
 lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
   (e : α ≃ β) (f : α → M) (g : β → M) (h : ∀ x, f x = g (e x)) :
   ∏ x : α, f x = ∏ x : β, g x :=
 prod_bijective e e.bijective f g h
+
+@[to_additive]
+lemma prod_finset_coe [comm_monoid β] :
+  ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
+(finset.prod_subtype s (λ _, iff.rfl) f).symm
 
 end fintype
 

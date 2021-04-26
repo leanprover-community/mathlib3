@@ -198,8 +198,8 @@ def single (a : α) (b : M) : α →₀ M :=
   { exact ⟨λ H _, h H.symm, λ H, (H rfl).elim⟩ }
 end⟩
 
-lemma single_apply : single a b a' = if a = a' then b else 0 :=
-rfl
+lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
+by convert rfl
 
 lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
 by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
@@ -242,6 +242,8 @@ by rcases em (a = x) with (rfl|hx); [simp, simp [single_eq_of_ne hx]]
 lemma range_single_subset : set.range (single a b) ⊆ {0, b} :=
 set.range_subset_iff.2 single_apply_mem
 
+/-- `finsupp.single a b` is injective in `b`. For the statement that it is injective in `a`, see
+`finsupp.single_left_injective` -/
 lemma single_injective (a : α) : function.injective (single a : M → α →₀ M) :=
 assume b₁ b₂ eq,
 have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq,
@@ -281,11 +283,13 @@ begin
     { rw [single_zero, single_zero] } }
 end
 
-lemma single_left_inj (h : b ≠ 0) :
-  single a b = single a' b ↔ a = a' :=
-⟨λ H, by simpa only [h, single_eq_single_iff,
-  and_false, or_false, eq_self_iff_true, and_true] using H,
- λ H, by rw [H]⟩
+/-- `finsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
+`finsupp.single_injective` -/
+lemma single_left_injective (h : b ≠ 0) : function.injective (λ a : α, single a b) :=
+λ a a' H, (((single_eq_single_iff _ _ _ _).mp H).resolve_right $ λ hb, h hb.1).left
+
+lemma single_left_inj (h : b ≠ 0) : single a b = single a' b ↔ a = a' :=
+(single_left_injective h).eq_iff
 
 lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=
@@ -951,6 +955,12 @@ instance [add_group G] : add_group (α →₀ G) :=
   sub            := has_sub.sub,
   sub_eq_add_neg := λ x y, ext (λ i, sub_eq_add_neg _ _),
   add_left_neg   := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
+  gsmul := λ n v, v.map_range ((•) n) (gsmul_zero _),
+  gsmul_zero' := λ v, by { ext i, simp },
+  gsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_gsmul] },
+  gsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
+    gsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
+    add_gsmul, add_nsmul, one_gsmul, gsmul_coe_nat, one_nsmul] },
   .. finsupp.add_monoid }
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
@@ -1660,17 +1670,17 @@ to_multiset.map_add m n
 
 lemma to_multiset_apply (f : α →₀ ℕ) : f.to_multiset = f.sum (λ a n, n • {a}) := rfl
 
+@[simp]
+lemma to_multiset_symm_apply (s : multiset α) (x : α) :
+  finsupp.to_multiset.symm s x = s.count x :=
+rfl
+
 @[simp] lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n • {a} :=
 by rw [to_multiset_apply, sum_single_index]; apply zero_nsmul
 
 lemma to_multiset_sum {ι : Type*} {f : ι → α →₀ ℕ} (s : finset ι) :
   finsupp.to_multiset (∑ i in s, f i) = ∑ i in s, finsupp.to_multiset (f i) :=
-begin
-  apply finset.induction_on s,
-  { simp },
-  { intros i s hi,
-    simp [hi] }
-end
+add_equiv.map_sum _ _ _
 
 lemma to_multiset_sum_single {ι : Type*} (s : finset ι) (n : ℕ) :
   finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=
@@ -1971,7 +1981,7 @@ lemma comap_smul_apply (g : G) (f : α →₀ M) (a : α) :
 end
 
 section
-instance [semiring R] [add_comm_monoid M] [semimodule R M] : has_scalar R (α →₀ M) :=
+instance [semiring R] [add_comm_monoid M] [module R M] : has_scalar R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
 /-!
@@ -1979,14 +1989,14 @@ Throughout this section, some `semiring` arguments are specified with `{}` inste
 See note [implicit instance arguments].
 -/
 
-@[simp] lemma coe_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+@[simp] lemma coe_smul {_ : semiring R} [add_comm_monoid M] [module R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
-lemma smul_apply {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+lemma smul_apply {_ : semiring R} [add_comm_monoid M] [module R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
 
 variables (α M)
 
-instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (α →₀ M) :=
+instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) :=
 { smul      := (•),
   smul_add  := λ a x y, ext $ λ _, smul_add _ _ _,
   add_smul  := λ a x y, ext $ λ _, add_smul _ _ _,
@@ -1995,19 +2005,19 @@ instance [semiring R] [add_comm_monoid M] [semimodule R M] : semimodule R (α �
   zero_smul := λ x, ext $ λ _, zero_smul _ _,
   smul_zero := λ x, ext $ λ _, smul_zero _ }
 
-instance [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M] [semimodule S M]
+instance [semiring R] [semiring S] [add_comm_monoid M] [module R M] [module S M]
   [has_scalar R S] [is_scalar_tower R S M] :
   is_scalar_tower R S (α →₀ M) :=
 { smul_assoc := λ r s a, ext $ λ _, smul_assoc _ _ _ }
 
-instance [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M] [semimodule S M]
+instance [semiring R] [semiring S] [add_comm_monoid M] [module R M] [module S M]
   [smul_comm_class R S M] :
   smul_comm_class R S (α →₀ M) :=
 { smul_comm := λ r s a, ext $ λ _, smul_comm _ _ _ }
 
 variables {α M} {R}
 
-lemma support_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M] {b : R} {g : α →₀ M} :
+lemma support_smul {_ : semiring R} [add_comm_monoid M] [module R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by simp only [smul_apply, mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
 
@@ -2015,13 +2025,13 @@ section
 
 variables {p : α → Prop}
 
-@[simp] lemma filter_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+@[simp] lemma filter_smul {_ : semiring R} [add_comm_monoid M] [module R M]
   {b : R} {v : α →₀ M} : (b • v).filter p = b • v.filter p :=
 coe_fn_injective $ set.indicator_smul {x | p x} b v
 
 end
 
-lemma map_domain_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+lemma map_domain_smul {_ : semiring R} [add_comm_monoid M] [module R M]
    {f : α → β} (b : R) (v : α →₀ M) : map_domain f (b • v) = b • map_domain f v :=
 begin
   change map_domain f (map_range _ _ _) = map_range _ _ _,
@@ -2032,7 +2042,7 @@ begin
   apply smul_add
 end
 
-@[simp] lemma smul_single {_ : semiring R} [add_comm_monoid M] [semimodule R M]
+@[simp] lemma smul_single {_ : semiring R} [add_comm_monoid M] [module R M]
   (c : R) (a : α) (b : M) : c • finsupp.single a b = finsupp.single a (c • b) :=
 map_range_single
 
@@ -2040,8 +2050,8 @@ map_range_single
   (c : R) (a : α) (b : R) : c • finsupp.single a b = finsupp.single a (c * b) :=
 smul_single _ _ _
 
-lemma map_range_smul {_ : semiring R} [add_comm_monoid M] [semimodule R M]
-  [add_comm_monoid N] [semimodule R N]
+lemma map_range_smul {_ : semiring R} [add_comm_monoid M] [module R M]
+  [add_comm_monoid N] [module R N]
   {f : M → N} {hf : f 0 = 0} (c : R) (v : α →₀ M) (hsmul : ∀ x, f (c • x) = c • f x) :
   map_range f hf (c • v) = c • map_range f hf v :=
 begin
@@ -2061,19 +2071,19 @@ lemma sum_smul_index [semiring R] [add_comm_monoid M] {g : α →₀ R} {b : R} 
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
 finsupp.sum_map_range_index h0
 
-lemma sum_smul_index' [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N]
+lemma sum_smul_index' [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N]
   {g : α →₀ M} {b : R} {h : α → M → N} (h0 : ∀i, h i 0 = 0) :
   (b • g).sum h = g.sum (λi c, h i (b • c)) :=
 finsupp.sum_map_range_index h0
 
 /-- A version of `finsupp.sum_smul_index'` for bundled additive maps. -/
 lemma sum_smul_index_add_monoid_hom
-  [semiring R] [add_comm_monoid M] [add_comm_monoid N] [semimodule R M]
+  [semiring R] [add_comm_monoid M] [add_comm_monoid N] [module R M]
   {g : α →₀ M} {b : R} {h : α → M →+ N} :
   (b • g).sum (λ a, h a) = g.sum (λ i c, h i (b • c)) :=
 sum_map_range_index (λ i, (h i).map_zero)
 
-instance [semiring R] [add_comm_monoid M] [semimodule R M] {ι : Type*}
+instance [semiring R] [add_comm_monoid M] [module R M] {ι : Type*}
   [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=
 ⟨λ c f h, or_iff_not_imp_left.mpr (λ hc, finsupp.ext
   (λ i, (smul_eq_zero.mp (finsupp.ext_iff.mp h i)).resolve_left hc))⟩

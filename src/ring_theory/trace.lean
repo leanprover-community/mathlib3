@@ -85,14 +85,14 @@ omit hb
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`.
 
-(If `L` is not finite-dimensional over `K`, then `trace` and `findim` return `0`.)
+(If `L` is not finite-dimensional over `K`, then `trace` and `finrank` return `0`.)
 -/
 @[simp]
-lemma trace_algebra_map (x : K) : trace K L (algebra_map K L x) = findim K L • x :=
+lemma trace_algebra_map (x : K) : trace K L (algebra_map K L x) = finrank K L • x :=
 begin
   by_cases H : ∃ s : finset L, is_basis K (λ x, x : (↑s : set L) → L),
-  { rw [trace_algebra_map_of_basis H.some_spec, findim_eq_card_basis H.some_spec] },
-  { simp [trace_eq_zero_of_not_exists_basis K H, findim_eq_zero_of_not_exists_basis H] },
+  { rw [trace_algebra_map_of_basis H.some_spec, finrank_eq_card_basis H.some_spec] },
+  { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis H] },
 end
 
 section trace_form

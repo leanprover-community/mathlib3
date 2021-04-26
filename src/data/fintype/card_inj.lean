@@ -7,6 +7,12 @@ import data.fintype.card
 import data.nat.factorial
 import tactic
 
+/-!
+# Birthday Problem
+
+This file establishes the cardinality of `α ↪ β` in full generality.begin
+-/
+
 open_locale classical nat
 
 open finset function

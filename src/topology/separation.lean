@@ -173,8 +173,7 @@ begin
       { obtain ⟨U, hU, hh⟩ := h t x (mem_compl_singleton_iff.mp ht),
         exact ⟨U, ⟨hh.2, hU⟩, hh.1⟩}},
     rw ← p,
-    have c : ∀ B ∈ {U : set α | (x ∉ U) ∧ (is_open U)}, is_open B, by finish,
-    exact is_open_sUnion c}
+    exact is_open_sUnion (λ B hB, hB.2)}
 end
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=

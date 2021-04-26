@@ -737,7 +737,7 @@ class regular_space (α : Type u) [topological_space α] extends t0_space α : P
 @[priority 100] -- see Note [lower instance priority]
 instance regular_space.t1_space [regular_space α] : t1_space α :=
 begin
-  apply t1_characterisation.mpr ,
+  apply t1_characterisation.mpr,
   intros x y hxy,
   obtain ⟨U, hU, h⟩ := t0_space.t0 x y hxy,
   cases h,

@@ -174,7 +174,8 @@ have hb : b ≠ 0 := ne_zero_of_lt hab,
 have hd : d ≠ 0 := ne_zero_of_lt hcd,
 if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero hb hd } else
 if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero hb hd } else
-@mul_lt_mul''' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) hab hcd
+@mul_lt_mul''' _
+  (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) _ _ _ _ _ _ hab hcd
 
 lemma mul_inv_lt_of_lt_mul' (h : x < y * z) : x * z⁻¹ < y :=
 have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,

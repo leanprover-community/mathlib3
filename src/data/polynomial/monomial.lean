@@ -27,6 +27,8 @@ by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
 @[simp] lemma monomial_mul_C : monomial n a * C b = monomial n (a * b) :=
 by simp only [←monomial_zero_left, monomial_mul_monomial, add_zero]
 
+lemma smul_eq_C_mul (a : R) : a • p = C a * p := by simp [ext_iff]
+
 instance [nontrivial R] : infinite (polynomial R) :=
 infinite.of_injective (λ i, monomial i 1)
 begin

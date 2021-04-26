@@ -26,6 +26,11 @@ namespace list
 
 variables {α : Type*} [decidable_eq α]
 
+/--
+Given an element `x : α` of `l : list α` such that `x ∈ l`, get the next
+element of `l`. This works from head to tail, (including a check for last element)
+so it will match on first hit, ignoring later duplicates.
+-/
 def next: Π (l : list α) (x : α) (h : x ∈ l), α
 | []             _ h := by simpa using h
 | [y]            _ _ := y
@@ -33,6 +38,11 @@ def next: Π (l : list α) (x : α) (h : x ∈ l), α
   if x = (y :: z :: xs).last (cons_ne_nil _ _) then y
     else next (z :: xs) x (by simpa [hx] using h)
 
+/--
+Given an element `x : α` of `l : list α` such that `x ∈ l`, get the previous
+element of `l`. This works from head to tail, (including a check for last element)
+so it will match on first hit, ignoring later duplicates.
+-/
 def prev : Π (l : list α) (x : α) (h : x ∈ l), α
 | []             _ h := by simpa using h
 | [y]            _ _ := y
@@ -267,6 +277,10 @@ end list
 
 open list
 
+/--
+`cycle α` is the quotient of `list α` by cyclic permutation.
+Duplicates are allowed.
+-/
 def cycle (α : Type*) : Type* := quotient (is_rotated.setoid α)
 
 namespace cycle
@@ -281,6 +295,11 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
 @[simp] lemma mk_eq_coe (l : list α) :
   quot.mk _ l = (l : cycle α) := rfl
 
+instance : inhabited (cycle α) := ⟨(([] : list α) : cycle α)⟩
+
+/--
+For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`.
+-/
 def mem (a : α) (s : cycle α) : Prop :=
 quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.mem_iff)
 
@@ -293,6 +312,9 @@ instance [decidable_eq α] : decidable_eq (cycle α) :=
 λ s₁ s₂, quotient.rec_on_subsingleton₂' s₁ s₂ (λ l₁ l₂,
   decidable_of_iff' _ quotient.eq')
 
+/--
+Reverse a `s : cycle α` by reversing the underlying `list`.
+-/
 def reverse (s : cycle α) : cycle α :=
 quot.map reverse (λ l₁ l₂ (e : l₁ ~r l₂), e.reverse) s
 
@@ -303,6 +325,9 @@ lemma coe_reverse (l : list α) :
   a ∈ s.reverse ↔ a ∈ s :=
 quot.induction_on s (λ _, mem_reverse)
 
+/--
+The length of the `s : cycle α`, which is the number of elements, counting duplicates.
+-/
 def length (s : cycle α) : ℕ :=
 quot.lift_on s length (λ l₁ l₂ (e : l₁ ~r l₂), e.perm.length_eq)
 
@@ -313,6 +338,9 @@ quot.lift_on s length (λ l₁ l₂ (e : l₁ ~r l₂), e.perm.length_eq)
   s.reverse.length = s.length :=
 quot.induction_on s length_reverse
 
+/--
+A `s : cycle α` that is at most one element.
+-/
 def subsingleton (s : cycle α) : Prop :=
 s.length ≤ 1
 
@@ -323,6 +351,9 @@ lemma length_subsingleton_iff {s : cycle α} :
   s.reverse.subsingleton ↔ s.subsingleton :=
 by simp [length_subsingleton_iff]
 
+/--
+A `s : cycle α` that is made up of at least two unique elements.
+-/
 def nontrivial (s : cycle α) : Prop := ∃ (x y : α) (h : x ≠ y), x ∈ s ∧ y ∈ s
 
 @[simp] lemma nontrivial_reverse_iff {s : cycle α} :
@@ -341,6 +372,9 @@ begin
   { simp [bit0] }
 end
 
+/--
+The `s : cycle α` contains no duplicates.
+-/
 def nodup (s : cycle α) : Prop :=
 quot.lift_on s nodup (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.nodup_iff)
 
@@ -364,4 +398,4 @@ end
 instance [decidable_eq α] {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
 
- cycle
+end cycle

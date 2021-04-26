@@ -31,13 +31,13 @@ open category_theory.limits
 
 universes v u
 variables {C : Type u} [category.{v} C]
-variables [preadditive C] [has_kernels C]
+variables [preadditive C]
 
 /--
-Schur's Lemma (for a general preadditive category),
+Schur's Lemma (for a general preadditive category with kernels),
 that a nonzero morphism between simple objects is an isomorphism.
 -/
-lemma is_iso_of_hom_simple {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
+lemma is_iso_of_hom_simple [has_kernels C] {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   is_iso f :=
 begin
   haveI : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),
@@ -48,7 +48,7 @@ end
 As a corollary of Schur's lemma for preadditive categories,
 any morphism between simple objects is (exclusively) either an isomorphism or zero.
 -/
-lemma is_iso_iff_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] (f : X ⟶ Y) :
+lemma is_iso_iff_nonzero [has_kernels C] {X Y : C} [simple.{v} X] [simple.{v} Y] (f : X ⟶ Y) :
   is_iso.{v} f ↔ f ≠ 0 :=
 ⟨λ I,
   begin
@@ -58,26 +58,16 @@ lemma is_iso_iff_nonzero {X Y : C} [simple.{v} X] [simple.{v} Y] (f : X ⟶ Y) :
   end,
   λ w, is_iso_of_hom_simple w⟩
 
--- TODO move to `category_theory.endomorphism`
-lemma is_iso_iff_is_unit {X : C} (f : End X) : is_iso f ↔ is_unit (f : End X) :=
-⟨λ h, by exactI ⟨⟨f, inv f, by simp, by simp⟩, rfl⟩,
-  λ h, { out := ⟨h.unit.inv,
-    ⟨by { convert h.unit.inv_val, exact h.unit_spec.symm, },
-      by { convert h.unit.val_inv, exact h.unit_spec.symm, }⟩⟩ }⟩
-
-instance (X : C) [simple.{v} X] : nontrivial (End X) :=
-nontrivial_of_ne 1 0 (id_nonzero X)
-
 open finite_dimensional
 
-variables (𝕜 : Type*) [field 𝕜] [is_alg_closed 𝕜]
+variables (𝕜 : Type*) [field 𝕜]
 
 /--
 Part of Schur's lemma for `𝕜`-linear categories:
 the hom space between two non-isomorphic simple objects is 0-dimensional.
 -/
 lemma finrank_hom_simple_simple_eq_zero_of_not_iso
-  [linear 𝕜 C] {X Y : C} [simple.{v} X] [simple.{v} Y]
+  [has_kernels C] [linear 𝕜 C] {X Y : C} [simple.{v} X] [simple.{v} Y]
   (h : (X ≅ Y) → false):
   finrank 𝕜 (X ⟶ Y) = 0 :=
 begin
@@ -88,6 +78,8 @@ begin
   end),
   exact finrank_zero_of_subsingleton,
 end
+
+variables [is_alg_closed 𝕜] [linear 𝕜 C]
 
 -- In the proof below we have some difficulty using `I : finite_dimensional 𝕜 (X ⟶ X)`
 -- where we need a `finite_dimensional 𝕜 (End X)`.
@@ -107,7 +99,7 @@ then `X ⟶ X` is 1-dimensional.
 -- rather than just `[simple X]`, as this form is useful for
 -- Müger's formulation of semisimplicity.
 lemma finrank_endomorphism_eq_one
-  [linear 𝕜 C] {X : C} (is_iso_iff_nonzero : ∀ f : X ⟶ X, is_iso f ↔ f ≠ 0)
+  {X : C} (is_iso_iff_nonzero : ∀ f : X ⟶ X, is_iso f ↔ f ≠ 0)
   [I : finite_dimensional 𝕜 (X ⟶ X)] :
   finrank 𝕜 (X ⟶ X) = 1 :=
 begin
@@ -119,21 +111,23 @@ begin
     obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _
       (by { convert I, ext; refl, ext; refl, }) (End.of f),
     use c,
-    rw [←is_iso_iff_is_unit, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
+    rw [is_unit_iff_is_iso, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
       algebra.algebra_map_eq_smul_one] at nu,
     exact nu.symm, },
 end
+
+variables [has_kernels C]
 
 /--
 Schur's lemma for endomorphisms in `𝕜`-linear categories.
 -/
 lemma finrank_endomorphism_simple_eq_one
-  [linear 𝕜 C] (X : C) [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
+  (X : C) [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
   finrank 𝕜 (X ⟶ X) = 1 :=
 finrank_endomorphism_eq_one 𝕜 is_iso_iff_nonzero
 
 lemma endomorphism_simple_eq_smul_id
-  [linear 𝕜 C] {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] (f : X ⟶ X) :
+  {X : C} [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] (f : X ⟶ X) :
   ∃ c : 𝕜, c • 𝟙 X = f :=
 (finrank_eq_one_iff_of_nonzero' (𝟙 X) (id_nonzero X)).mp (finrank_endomorphism_simple_eq_one 𝕜 X) f
 
@@ -147,7 +141,7 @@ for the refinements when we know whether or not the simples are isomorphic.
 -- We don't really need `[∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)]` here,
 -- just at least one of `[finite_dimensional 𝕜 (X ⟶ X)]` or `[finite_dimensional 𝕜 (Y ⟶ Y)]`.
 lemma finrank_hom_simple_simple_le_one
-  [linear 𝕜 C] (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
+  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
   finrank 𝕜 (X ⟶ Y) ≤ 1 :=
 begin
   cases subsingleton_or_nontrivial (X ⟶ Y) with h,
@@ -163,7 +157,7 @@ begin
 end
 
 lemma finrank_hom_simple_simple_eq_one_iff
-  [linear 𝕜 C] (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
+  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
   finrank 𝕜 (X ⟶ Y) = 1 ↔ nonempty (X ≅ Y) :=
 begin
   fsplit,
@@ -180,7 +174,7 @@ begin
 end
 
 lemma finrank_hom_simple_simple_eq_zero_iff
-  [linear 𝕜 C] (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
+  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
   finrank 𝕜 (X ⟶ Y) = 0 ↔ ¬ nonempty (X ≅ Y) :=
 begin
   rw ←not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y),
@@ -190,6 +184,5 @@ begin
   { exact h', },
   { exact false.elim (h h'), },
 end
-
 
 end category_theory

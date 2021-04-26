@@ -55,6 +55,13 @@ instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
 
 end End
 
+lemma is_unit_iff_is_iso {C : Type u} [category.{v} C] {X : C} (f : End X) :
+  is_unit (f : End X) ↔ is_iso f :=
+⟨λ h, { out := ⟨h.unit.inv,
+  ⟨by { convert h.unit.inv_val, exact h.unit_spec.symm, },
+    by { convert h.unit.val_inv, exact h.unit_spec.symm, }⟩⟩ },
+  λ h, by exactI ⟨⟨f, inv f, by simp, by simp⟩, rfl⟩⟩
+
 variables {C : Type u} [category.{v} C] (X : C)
 
 /--

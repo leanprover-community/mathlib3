@@ -250,9 +250,9 @@ begin
   let C := sin a ^ (n + 1) * cos a - sin b ^ (n + 1) * cos b,
   have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
   have hu : ∀ x ∈ _, has_deriv_at (λ y, sin y ^ (n + 1)) ((n + 1) * cos x * sin x ^ n) x :=
-    λ x hx, by simpa [mul_right_comm] using (has_deriv_at_pow _ _).comp x (has_deriv_at_sin x),
+    λ x hx, by simpa [mul_right_comm] using (has_deriv_at_sin x).pow,
   have hv : ∀ x ∈ interval a b, has_deriv_at (-cos) (sin x) x :=
-    λ x hx, by simpa using (has_deriv_at_cos x).neg,
+    λ x hx, by simpa only [neg_neg] using (has_deriv_at_cos x).neg,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, sin x ^ (n + 2)
       = ∫ x in a..b, sin x ^ (n + 1) * sin x : by simp only [pow_succ']

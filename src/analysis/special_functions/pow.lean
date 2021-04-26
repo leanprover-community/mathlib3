@@ -92,7 +92,7 @@ by simpa using cpow_neg x 1
 
 @[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
-| -[1+ n] := by rw fpow_neg_succ_of_nat;
+| -[1+ n] := by rw gpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
 
@@ -518,7 +518,7 @@ by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, fpow_one, fpow_neg],
+  simp only [rpow_int_cast, gpow_one, fpow_neg],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=

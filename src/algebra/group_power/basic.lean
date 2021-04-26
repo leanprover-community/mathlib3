@@ -24,8 +24,8 @@ Further lemmas can be found in `algebra.group_power.lemmas`.
 The class `has_pow α β` provides the notation `a^b` for powers.
 We define instances of `has_pow M ℕ`, for monoids `M`, and `has_pow G ℤ` for groups `G`.
 
-We also define infix operators `•` and `•ℤ` for scalar multiplication by a natural and an integer
-numbers, respectively.
+Scalar multiplication by naturals and integers is handled by the `•` (`has_scalar.smul`)
+notation defined elsewhere.
 
 ## Implementation details
 
@@ -46,9 +46,18 @@ instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨λ x n, npow n x⟩
 
 instance add_monoid.has_scalar_nat [add_monoid M] : has_scalar ℕ M := ⟨nsmul⟩
 
+instance div_inv_monoid.has_pow [div_inv_monoid M] : has_pow M ℤ := ⟨λ x n, gpow n x⟩
+
+instance sub_neg_monoid.has_scalar_int [sub_neg_monoid M] : has_scalar ℤ M := ⟨gsmul⟩
+
 @[simp] lemma npow_eq_pow {M : Type*} [monoid M] (n : ℕ) (x : M) : npow n x = x^n := rfl
 
 @[simp] lemma nsmul_eq_smul {M : Type*} [add_monoid M] (n : ℕ) (x : M) : nsmul n x = n • x := rfl
+
+@[simp] lemma gpow_eq_pow {M : Type*} [div_inv_monoid M] (n : ℤ) (x : M) : gpow n x = x^n := rfl
+
+@[simp] lemma gsmul_eq_smul {M : Type*} [sub_neg_monoid M] (n : ℤ) (x : M) : gsmul n x = n • x :=
+rfl
 
 /-!
 ### Commutativity
@@ -256,32 +265,38 @@ lemma dvd_pow {x y : M} :
 
 end comm_monoid
 
+section div_inv_monoid
+variable [div_inv_monoid G]
+
+open int
+
+@[simp, norm_cast] theorem gpow_coe_nat (a : G) (n : ℕ) : a ^ (n:ℤ) = a ^ n :=
+begin
+  induction n with n ih,
+  { change gpow 0 a = a ^ 0, rw [div_inv_monoid.gpow_zero', pow_zero] },
+  { change gpow (of_nat n) a = a ^ n at ih,
+    change gpow (of_nat n.succ) a = a ^ n.succ,
+    rw [div_inv_monoid.gpow_succ', pow_succ, ih] }
+end
+
+theorem gpow_of_nat (a : G) (n : ℕ) : a ^ of_nat n = a ^ n :=
+gpow_coe_nat _ _
+
+@[simp] theorem gpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ :=
+by { rw ← gpow_coe_nat, exact div_inv_monoid.gpow_neg' n a }
+
+@[simp] theorem gpow_zero (a : G) : a ^ (0:ℤ) = 1 :=
+by { convert pow_zero a using 1, exact gpow_coe_nat a 0 }
+
+@[simp] theorem gpow_one (a : G) : a ^ (1:ℤ) = a :=
+by { convert pow_one a using 1, exact gpow_coe_nat a 1 }
+
+end div_inv_monoid
+
 section group
 variables [group G] [group H] [add_group A] [add_group B]
 
 open int
-
-/--
-The power operation in a group. This extends `monoid.pow` to negative integers
-with the definition `a^(-n) = (a^n)⁻¹`.
--/
-def gpow (a : G) : ℤ → G
-| (of_nat n) := a^n
-| -[1+n]     := (a^(nat.succ n))⁻¹
-
-/--
-The scalar multiplication by integers on an additive group.
-This extends `nsmul` to negative integers
-with the definition `(-n) •ℤ a = -(n • a)`.
--/
-def gsmul (n : ℤ) (a : A) : A :=
-@gpow (multiplicative A) _ a n
-
-instance group.has_pow : has_pow G ℤ := ⟨gpow⟩
-
-infix ` •ℤ `:70 := gsmul
-
-@[simp] lemma group.gpow_eq_has_pow (a : G) (n : ℤ) : gpow a n = a ^ n := rfl
 
 section nat
 
@@ -311,58 +326,56 @@ theorem nsmul_neg_comm : ∀ (a : A) (m n : ℕ), m • (-a) + n • a = n • a
 
 end nat
 
-@[simp] theorem gpow_coe_nat (a : G) (n : ℕ) : a ^ (n:ℤ) = a ^ n := rfl
 
-@[simp] theorem gsmul_coe_nat (a : A) (n : ℕ) : n •ℤ a = n • a := rfl
+@[simp, norm_cast] theorem gsmul_coe_nat (a : A) (n : ℕ) : (n : ℤ) • a = n • a :=
+@gpow_coe_nat (multiplicative A) _ _ _
 
-theorem gpow_of_nat (a : G) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
+theorem gsmul_of_nat (a : A) (n : ℕ) : of_nat n • a = n • a :=
+gsmul_coe_nat _ _
 
-theorem gsmul_of_nat (a : A) (n : ℕ) : of_nat n •ℤ a = n • a := rfl
+@[simp] theorem gsmul_neg_succ_of_nat (a : A) (n : ℕ) : -[1+n] • a = - (n.succ • a) :=
+@gpow_neg_succ_of_nat (multiplicative A) _ _ _
 
-@[simp] theorem gpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
+@[simp] theorem zero_gsmul (a : A) : (0:ℤ) • a = 0 :=
+@gpow_zero (multiplicative A) _ _
 
-@[simp] theorem gsmul_neg_succ_of_nat (a : A) (n : ℕ) : -[1+n] •ℤ a = - (n.succ • a) := rfl
-
-@[simp] theorem gpow_zero (a : G) : a ^ (0:ℤ) = 1 := pow_zero _
-
-@[simp] theorem zero_gsmul (a : A) : (0:ℤ) •ℤ a = 0 := zero_nsmul _
-
-@[simp] theorem gpow_one (a : G) : a ^ (1:ℤ) = a := pow_one a
-
-@[simp] theorem one_gsmul (a : A) : (1:ℤ) •ℤ a = a := one_nsmul a
+@[simp] theorem one_gsmul (a : A) : (1:ℤ) • a = a :=
+@gpow_one (multiplicative A) _ _
 
 @[simp] theorem one_gpow : ∀ (n : ℤ), (1 : G) ^ n = 1
-| (n : ℕ) := one_pow _
-| -[1+ n] := show _⁻¹=(1:G), by rw [one_pow, one_inv]
+| (n : ℕ) := by rw [gpow_coe_nat, one_pow]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, one_pow, one_inv]
 
-@[simp] theorem gsmul_zero : ∀ (n : ℤ), n •ℤ (0 : A) = 0 :=
+@[simp] theorem gsmul_zero : ∀ (n : ℤ), n • (0 : A) = 0 :=
 @one_gpow (multiplicative A) _
 
 @[simp] theorem gpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
-| (n+1:ℕ) := rfl
-| 0       := by { change a ^ 0 = (a ^ 0)⁻¹, rw [pow_zero, one_inv] }
-| -[1+ n] := (inv_inv _).symm
+| (n+1:ℕ) := div_inv_monoid.gpow_neg' _ _
+| 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
+| -[1+ n] := by { rw [gpow_neg_succ_of_nat, inv_inv, ← gpow_coe_nat], refl }
 
 lemma mul_gpow_neg_one (a b : G) : (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
 by simp only [mul_inv_rev, gpow_one, gpow_neg]
 
-@[simp] theorem neg_gsmul : ∀ (a : A) (n : ℤ), -n •ℤ a = -(n •ℤ a) :=
+@[simp] theorem neg_gsmul : ∀ (a : A) (n : ℤ), -n • a = -(n • a) :=
 @gpow_neg (multiplicative A) _
 
-theorem gpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x
+theorem gpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ :=
+by { rw [← congr_arg has_inv.inv (pow_one x), gpow_neg, ← gpow_coe_nat], refl }
 
-theorem neg_one_gsmul (x : A) : (-1:ℤ) •ℤ x = -x := congr_arg has_neg.neg $ one_nsmul x
+theorem neg_one_gsmul (x : A) : (-1:ℤ) • x = -x :=
+@gpow_neg_one (multiplicative A) _ _
 
 theorem inv_gpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
-| (n : ℕ) := inv_pow a n
-| -[1+ n] := congr_arg has_inv.inv $ inv_pow a (n+1)
+| (n : ℕ) := by rw [gpow_coe_nat, gpow_coe_nat, inv_pow]
+| -[1+ n] := by rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, inv_pow]
 
-theorem gsmul_neg (a : A) (n : ℤ) : gsmul n (- a) = - gsmul n a :=
+theorem gsmul_neg (a : A) (n : ℤ) : n • (- a) = - (n • a) :=
 @inv_gpow (multiplicative A) _ a n
 
 theorem commute.mul_gpow {a b : G} (h : commute a b) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n
-| (n : ℕ) := h.mul_pow n
-| -[1+n] := by simp [h.mul_pow, (h.pow_pow n.succ n.succ).inv_inv.symm.eq]
+| (n : ℕ) := by simp [gpow_coe_nat, h.mul_pow n]
+| -[1+n]  := by simp [h.mul_pow, (h.pow_pow n.succ n.succ).inv_inv.symm.eq]
 
 end group
 
@@ -371,10 +384,10 @@ variables [comm_group G] [add_comm_group A]
 
 theorem mul_gpow (a b : G) (n : ℤ) : (a * b)^n = a^n * b^n := (commute.all a b).mul_gpow n
 
-theorem gsmul_add : ∀ (a b : A) (n : ℤ), n •ℤ (a + b) = n •ℤ a + n •ℤ b :=
+theorem gsmul_add : ∀ (a b : A) (n : ℤ), n • (a + b) = n • a + n • b :=
 @mul_gpow (multiplicative A) _
 
-theorem gsmul_sub (a b : A) (n : ℤ) : gsmul n (a - b) = gsmul n a - gsmul n b :=
+theorem gsmul_sub (a b : A) (n : ℤ) : n • (a - b) = n • a - n • b :=
 by simp only [gsmul_add, gsmul_neg, sub_eq_add_neg]
 
 instance gpow.is_group_hom (n : ℤ) : is_group_hom ((^ n) : G → G) :=
@@ -509,10 +522,11 @@ section add_group
 variable [ordered_add_comm_group A]
 
 theorem gsmul_nonneg {a : A} (H : 0 ≤ a) {n : ℤ} (hn : 0 ≤ n) :
-  0 ≤ n •ℤ a :=
+  0 ≤ n • a :=
 begin
   lift n to ℕ using hn,
-  apply nsmul_nonneg H
+  rw gsmul_coe_nat,
+  apply nsmul_nonneg H,
 end
 
 end add_group
@@ -753,19 +767,18 @@ lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
 
 lemma of_add_gsmul [add_group A] (x : A) (n : ℤ) :
-  multiplicative.of_add (n •ℤ x) = (multiplicative.of_add x)^n := rfl
+  multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
 
 lemma of_mul_pow {A : Type*} [monoid A] (x : A) (n : ℕ) :
-  additive.of_mul (x ^ n) = n • (additive.of_mul x) :=
-(congr_arg additive.of_mul (of_add_nsmul (additive.of_mul x) n)).symm
+  additive.of_mul (x ^ n) = n • (additive.of_mul x) := rfl
 
-lemma of_mul_gpow [group G] (x : G) (n : ℤ) : additive.of_mul (x ^ n) = n •ℤ additive.of_mul x :=
-by { cases n; simp [gsmul_of_nat, gpow_of_nat, of_mul_pow] }
+lemma of_mul_gpow [group G] (x : G) (n : ℤ) : additive.of_mul (x ^ n) = n • additive.of_mul x :=
+rfl
 
 @[simp] lemma semiconj_by.gpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
-| (n : ℕ) := h.pow_right n
-| -[1+n] := (h.pow_right n.succ).inv_right
+| (n : ℕ) := by simp [gpow_coe_nat, h.pow_right n]
+| -[1+n] := by simp [(h.pow_right n.succ).inv_right]
 
 namespace commute
 
@@ -779,7 +792,7 @@ h.gpow_right m
 
 lemma gpow_gpow (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) := (h.gpow_left m).gpow_right n
 
-variables (a) (m n : ℕ)
+variables (a) (m n : ℤ)
 
 @[simp] theorem self_gpow : commute a (a ^ n) := (commute.refl a).gpow_right n
 @[simp] theorem gpow_self : commute (a ^ n) a := (commute.refl a).gpow_left n

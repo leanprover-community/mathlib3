@@ -335,3 +335,27 @@ equiv.ext $ λ n, by { simp only [swap_apply_def, perm.mul_apply], split_ifs; cc
 end swap
 
 end equiv
+
+namespace function.embedding
+
+open equiv equiv.perm
+
+variables {α β : Type*} (f : α ↪ β) [decidable_pred (λ (x : β), x ∈ set.range ⇑f)]
+
+/-- The injective homomorphism between two permutation groups given by embedding the domain of one
+  into the domain of the other. -/
+@[simps] noncomputable def extend_perm_domain : perm α →* perm β :=
+⟨λ g, g.extend_domain (equiv.of_injective f f.injective), extend_domain_one _,
+  λ a b, (extend_domain_mul _ a b).symm⟩
+
+lemma extend_perm_domain_injective : function.injective (f.extend_perm_domain) :=
+begin
+  rw monoid_hom.injective_iff,
+  intros g hg,
+  ext x,
+  have h := (equiv.ext_iff.1 hg) ((equiv.of_injective f f.injective) x),
+  rw [extend_perm_domain_apply, extend_domain_apply_image, one_apply] at h,
+  refine (equiv.of_injective f f.injective).injective (subtype.coe_injective h),
+end
+
+end function.embedding

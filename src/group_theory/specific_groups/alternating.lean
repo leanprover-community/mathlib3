@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import group_theory.perm.cycle_type
+import group_theory.perm.fin
 
 /-!
 # Alternating Groups
@@ -34,6 +35,42 @@ alternating group permutation
 
 open equiv equiv.perm subgroup fintype
 variables (α : Type*) [fintype α] [decidable_eq α]
+
+lemma is_simple_group_iff_normal_closure {G : Type*} [group G] [nt : nontrivial G] :
+  is_simple_group G ↔ ∀ g : G, g = 1 ∨ subgroup.normal_closure ({g} : set G) = ⊤ :=
+begin
+  split,
+  { intros h g,
+    haveI := h,
+    refine (subgroup.normal_closure_normal : (subgroup.normal_closure
+      ({g} : set G)).normal).eq_bot_or_eq_top.imp (λ h, _) id,
+    rw [← subgroup.mem_bot, ← h],
+    exact subgroup.subset_normal_closure (set.mem_singleton g) },
+  { intro h,
+    refine ⟨exists_pair_ne _, λ H Hn, _⟩,
+    haveI : H.normal := Hn,
+    by_cases Hb : H = ⊥,
+    { exact or.intro_left _ Hb },
+    right,
+    rw subgroup.eq_bot_iff_forall at Hb,
+    push_neg at Hb,
+    obtain ⟨g, hgH, hg1⟩ := Hb,
+    rw [eq_top_iff, ← (h g).resolve_left hg1],
+    refine subgroup.normal_closure_le_normal _,
+    rw [set.singleton_subset_iff, set_like.mem_coe],
+    exact hgH }
+end
+
+namespace subgroup
+
+lemma is_simple_group_iff {G : Type*} [group G] {S : subgroup G} :
+  is_simple_group S ↔ S ≠ ⊥ ∧
+    ∀ (g : G) (hg : g ∈ S), g = 1 ∨ normal_closure ({⟨g, hg⟩} : set S) = ⊤ :=
+begin
+  sorry
+end
+
+end subgroup
 
 /-- The alternating group on a finite type, realized as a subgroup of `equiv.perm`.
   For $A_n$, use `alternating_group (fin n)`. -/
@@ -110,6 +147,15 @@ namespace alternating_group
 
 open equiv.perm
 
+lemma nontrivial_of_three_le_card (h3 : 3 ≤ card α) : nontrivial (alternating_group α) :=
+begin
+  haveI := fintype.one_lt_card_iff_nontrivial.1 (lt_trans dec_trivial h3),
+  rw ← fintype.one_lt_card_iff_nontrivial,
+  refine lt_of_mul_lt_mul_left _ (le_of_lt nat.prime_two.pos),
+  rw [two_mul_card_alternating_group, card_perm, ← nat.succ_le_iff],
+  exact le_trans h3 (card α).self_le_factorial,
+end
+
 lemma is_conj_of {σ τ : alternating_group α}
   (hc : is_conj (σ : perm α) (τ : perm α)) (hσ : (σ : perm α).support.card + 2 ≤ fintype.card α) :
     is_conj σ τ :=
@@ -141,22 +187,6 @@ lemma is_three_cycle_is_conj (h5 : 5 ≤ fintype.card α)
   is_conj σ τ :=
 alternating_group.is_conj_of (hσ.is_conj hτ) (by { rw hσ.card_support, exact h5 })
 
-lemma is_simple_group_iff_forall_normal_closure [group α] :
-  is_simple_group α ↔ ∀ a : α, a ≠ 1 → normal_closure ({a} : set α) = ⊤ :=
-begin
-  split,
-  { intros h a ha,
-    haveI := h,
-    have hn : normal (normal_closure ({a} : set α)) := subgroup.normal_closure_normal,
-    apply hn.eq_bot_or_eq_top.resolve_left,
-    cases hn.eq_bot_or_eq_top with hb ht,
-    { contrapose! ha,
-      rw [normal_closure, closure_eq_bot_iff] at hb,
-      exact set.mem_singleton_iff.2 (hb (group.subset_conjugates_of_set (set.mem_singleton a))) },
-    exact ht },
-
-end
-
 lemma closure_three_cycles :
   closure {σ : alternating_group α | is_three_cycle (σ : perm α)} = ⊤ :=
 begin
@@ -181,7 +211,7 @@ begin
   simp,
 end
 
-lemma alternating_group.normal_subgroup_eq_top_of_exists_three_cycle_mem
+lemma normal_subgroup_eq_top_of_exists_three_cycle_mem
   (h5 : 5 ≤ fintype.card α)
   {S : subgroup (alternating_group α)} (hn : S.normal)
   (he : ∃ σ : S, is_three_cycle (σ : perm α)) : S = ⊤ :=
@@ -192,27 +222,164 @@ begin
   exact alternating_group.is_three_cycle_is_conj h5 hσ hτ,
 end
 
+def good (σ : perm α) : Prop :=
+  ∃ f : perm α, is_three_cycle f ∧ f ∈ closure ((λ g, g * σ * g⁻¹) '' alternating_group α)
+
+lemma normal_closure_eq_top_of_good (h5 : 5 ≤ fintype.card α)
+  {g : alternating_group α} (hg : good (g : perm α)) :
+  normal_closure ({g} : set (alternating_group α)) = ⊤ :=
+begin
+  obtain ⟨f, hf1, hf2⟩ := hg,
+  apply normal_subgroup_eq_top_of_exists_three_cycle_mem h5 subgroup.normal_closure_normal,
+  refine ⟨⟨⟨f, hf1.mem_alternating_group⟩, _⟩, hf1⟩,
+  rw [← coe_mk _ f hf1.mem_alternating_group, ← subgroup.coe_subtype] at hf2,
+  have h : (λ (g_1 : perm α), g_1 * ↑g * g_1⁻¹) '' ↑(alternating_group α) ⊆
+    (alternating_group α).subtype '' (group.conjugates_of_set {g}),
+  { intro x,
+    simp only [subgroup.coe_subtype, set.mem_image, set_like.mem_coe],
+    rintros ⟨y, hy, rfl⟩,
+    refine ⟨⟨y, hy⟩ * g * ⟨y, hy⟩⁻¹, group.conj_mem_conjugates_of_set
+      (group.subset_conjugates_of_set (set.mem_singleton _)), _⟩,
+    simp },
+  have h := closure_mono h hf2,
+  rw [← monoid_hom.map_closure, mem_map] at h,
+  obtain ⟨x, hx, hxf⟩ := h,
+  rwa [subtype.coe_injective hxf] at hx,
+end
+
+section extend_domain
+
+variables {β : Type*} [fintype β] {p : β → Prop} [decidable_pred p] [decidable_eq β]
+
+lemma _root_.equiv.perm.is_three_cycle.extend_domain {g : perm α}
+  (h : is_three_cycle g) (f : α ≃ subtype p) :
+  is_three_cycle (g.extend_domain f) :=
+by rw [is_three_cycle, cycle_type_extend_domain, h.cycle_type]
+
+
+lemma good_of_good_commutator {g1 g2 : perm α} (a b : α) (hab : a ≠ b) (hg1ab : g1 a ≠ b)
+  (ha : a ∈ g1.support) (hb : b ∈ g1.support)
+  (hd : disjoint g1 g2)
+  (hgood : good (g1 * ((swap a b) * (swap a (g1 a))) * g1⁻¹ * ((swap a b) * (swap a (g1 a))) ⁻¹)) :
+  good (g1 * g2) :=
+begin
+  refine le_trans hgood _,
+  rw [closure_le],
+  rintro _ ⟨g, hg, rfl⟩,
+  dsimp,
+  let g3 := (swap a b) * (swap a (g1 a)),
+  have hd' : disjoint g2 g3,
+  { rw disjoint_iff_disjoint_support at *,
+    refine finset.disjoint_of_subset_right _ hd.symm,
+    refine le_trans (support_mul_le _ _) _,
+    simp only [hab, finset.le_eq_subset, finset.sup_eq_union, finset.insert_union, ne.def,
+      not_false_iff, support_swap, finset.insert_subset],
+    refine ⟨ha, finset.union_subset (finset.singleton_subset_iff.2 hb) _⟩,
+    rw [swap_comm, support_swap (mem_support.1 ha), finset.insert_subset,
+      finset.singleton_subset_iff, apply_mem_support],
+    exact ⟨ha, ha⟩ },
+  have h : g1 * g3 * g1⁻¹ * g3⁻¹ = (g1 * g2) * g3 * (g1 * g2)⁻¹ * g3⁻¹,
+  { rw [mul_inv_rev g1, mul_assoc g1 g2, mul_assoc g1 (g2 * g3), hd'.mul_comm, mul_assoc g3,
+      ← mul_assoc g2, mul_inv_self, one_mul],
+    simp only [mul_assoc] },
+  rw [h, set_like.mem_coe, mul_assoc (g1 * g2), mul_assoc (g1 * g2), ← conj_mul],
+  refine mul_mem _ (subset_closure ⟨g, hg, rfl⟩) _,
+  rw [← inv_mem_iff],
+  simp only [mul_inv_rev, inv_inv],
+  refine subset_closure ⟨g * g3, _, _⟩,
+  { rw set_like.mem_coe at *,
+    refine mul_mem _ hg (is_three_cycle_swap_mul_swap_same hab _ hg1ab.symm).mem_alternating_group,
+    exact (mem_support.1 ha).symm },
+  { rw hd.mul_comm,
+    simp only [mul_assoc, mul_inv_rev] }
+end
+
+lemma foo {g1 g2 : perm α} {g3 : perm β}
+  (f : α ≃ subtype p) (h : g2 ∈ alternating_group α) (hd : ∀ x ∈ g3.support, ¬ p x)
+  (h : good (g1 * g2 * g1⁻¹ * g2⁻¹)) :
+  good ((g1.extend_domain f) * g3) :=
+begin
+  have hd : disjoint (g2.extend_domain f) g3 := sorry,
+  have h' : (g1.extend_domain f * g3) * (g2.extend_domain f) * (g1.extend_domain f * g3)⁻¹ *
+    (g2.extend_domain f)⁻¹ = (g1 * g2 * g1⁻¹ * g2⁻¹).extend_domain f,
+  { rw [mul_assoc (g1.extend_domain f), mul_assoc (g1.extend_domain f), mul_inv_rev, ← hd.mul_comm,
+      mul_assoc _ g3, ← mul_assoc g3, mul_inv_self, one_mul],
+    simp only [extend_domain_mul, extend_domain_inv, mul_assoc] },
+  obtain ⟨t, ht, ht'⟩ := h,
+  refine ⟨t.extend_domain f, ht.extend_domain f, _⟩,
+  rw [mul_assoc (g1.extend_domain f * g3), mul_assoc (g1.extend_domain f * g3)] at h',
+  have h : t.extend_domain f ∈ (closure ((λ (g : perm α), g * (g1 * g2 * g1⁻¹ * g2⁻¹) * g⁻¹) '' ↑(alternating_group α))).map
+    (⟨λ g, extend_domain g f, extend_domain_one f, λ a b, (extend_domain_mul f a b).symm⟩ : monoid_hom _ _) :=
+    mem_map.2 ⟨_, ht', rfl⟩,
+  rw monoid_hom.map_closure at h,
+  refine (closure_mono _) h,
+  intro x,
+  simp only [and_imp, set.mem_image, mem_alternating_group, exists_exists_and_eq_and,
+    set_like.mem_coe, monoid_hom.coe_mk, exists_imp_distrib],
+  rintro y hy rfl,
+  refine ⟨y.extend_domain f, sorry, _⟩,
+  sorry,
+end
+
+end extend_domain
+
+lemma good_of_good_of_is_conj {f : perm α} (g : perm α) (hg : good g) (fg : is_conj f g) :
+  good f :=
+begin
+  rw good at *,
+  obtain ⟨g', rfl⟩ := is_conj_iff.1 fg,
+  have h : (alternating_group α).map (mul_aut.conj g').to_monoid_hom = alternating_group α,
+  { rw [alternating_group],
+    have h : function.surjective ((mul_aut.conj g').to_monoid_hom) :=
+      (mul_aut.conj g').surjective,
+    conv_rhs { rw ← map_comap_eq_self_of_surjective h sign.ker },
+    rw monoid_hom.comap_ker,
+    refine congr rfl (congr rfl _),
+    ext,
+    simp only [sign_inv, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, sign_mul,
+      function.comp_app, monoid_hom.coe_comp, units.coe_mul],
+    rw [mul_comm, ← mul_assoc, ← units.coe_mul, int.units_mul_self, units.coe_one, one_mul] },
+  have hg' := map_mono hg,
+  rw [h, monoid_hom.map_closure, set.image_image] at hg',
+  refine le_trans hg' (le_of_eq (congr rfl _)),
+end
+
+lemma good_of_four_le_mem_cycle_type (h5 : 5 ≤ fintype.card α)
+  {g : perm α} {n : ℕ} (hn : 4 ≤ n) (h : n ∈ g.cycle_type) :
+  good g :=
+begin
+  sorry,
+end
+
+lemma good_of_two_le_cycle_type_count_three
+  {g : perm α} (h : 2 ≤ g.cycle_type.count 3) :
+  good g :=
+begin
+  sorry,
+end
+
 theorem alternating_group.is_simple_group (h5 : 5 ≤ fintype.card α) :
   is_simple_group (alternating_group α) :=
-⟨begin
-  haveI := alternating_group.nontrivial (le_trans (by dec_trivial) h5),
-  apply nontrivial.exists_pair_ne,
-end, begin
-  intros S hn,
-  rcases S.bot_or_exists_ne_one with rfl | ⟨⟨x, hx⟩, hxS, hx1⟩, { simp },
-  right,
-  refine alternating_group.normal_subgroup_eq_top_of_exists_three_cycle_mem h5 hn _,
-  obtain ⟨l, rfl, hlc, hld⟩ := trunc_cycle_factors x,
-  by_cases h4 : ∃ g : (perm α), g ∈ l ∧ 4 ≤ g.support.card,
-  { obtain ⟨g, gl, g4⟩ := h4,
-    obtain ⟨a, ha, ha'⟩ := hlc g gl,
-    let c := swap (g a) ((g^2) a) * swap (g a) a,
-    refine ⟨⟨⟨c * g * c⁻¹ * g⁻¹, _⟩, _⟩, _⟩,
-    { rw mem_alternating_group,
-
-    },
-
-  },
-end⟩
+begin
+  rw subgroup.is_simple_group_iff,
+  refine ⟨λ con, _, _⟩,
+  { have h := alternating_group.nontrivial_of_three_le_card (le_trans dec_trivial h5),
+    rw [con, nontrivial_iff_exists_ne_one] at h,
+    obtain ⟨g, hg, g1⟩ := h,
+    exact g1 (mem_bot.1 hg) },
+  intros g hg,
+  by_cases h4 : ∃ n, n ∈ cycle_type g ∧ 4 ≤ n,
+  { right,
+    obtain ⟨n, h, hn⟩ := h4,
+    exact normal_closure_eq_top_of_good (apply good_of_four_le_mem_cycle_type h5 n hn h) },
+  push_neg at h4,
+  by_cases h23 : 2 ≤ g.cycle_type.count 3,
+  { right,
+    apply good_of_two_le_cycle_type_count_three },
+  by_cases h3 : 3 ∈ g.cycle_type,
+  { right,
+    sorry },
+  have he : 2 ∣ g.cycle_type.length := sorry,
+end
 
 end alternating_group

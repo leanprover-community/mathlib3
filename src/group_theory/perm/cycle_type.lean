@@ -264,6 +264,13 @@ theorem is_conj_iff_cycle_type_eq {σ τ : perm α} :
   rw cycle_type_conj,
 end, is_conj_of_cycle_type_eq⟩
 
+@[simp]
+lemma cycle_type_extend_perm_domain {β : Type*} {g : perm α} (f : α ↪ β) :
+  (f.extend_perm_domain g).cycle_type = g.cycle_type :=
+begin
+  sorry,
+end
+
 end cycle_type
 
 lemma is_cycle_of_prime_order' {σ : perm α} (h1 : (order_of σ).prime)

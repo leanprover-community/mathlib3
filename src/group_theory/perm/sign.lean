@@ -480,6 +480,23 @@ is_conj_iff.2 (have h : ∀ {y z : α}, y ≠ z → w ≠ z →
     ⟨swap w z * swap x y, by rw [swap_comm y z, h hyz.symm hwy]⟩
   else ⟨swap w y * swap x z, h hyz hwz⟩)
 
+@[simp] lemma conj_swap (f : perm α) (x y : α) :
+  f * swap x y * f⁻¹ = swap (f x) (f y) :=
+begin
+  ext z,
+  simp only [perm.mul_apply],
+  by_cases xz : f x = z,
+  { rw [xz, swap_apply_left, ← xz],
+    simp },
+  by_cases yz : f y = z,
+  { rw [yz, swap_apply_right, ← yz],
+    simp },
+  rw ← ne.def at *,
+  rw [swap_apply_of_ne_of_ne xz.symm yz.symm],
+  rw [ne.def, ← eq_inv_iff_eq, ← ne.def] at xz yz,
+  rw [swap_apply_of_ne_of_ne xz.symm yz.symm, apply_inv_self],
+end
+
 /-- set of all pairs (⟨a, b⟩ : Σ a : fin n, fin n) such that b < a -/
 def fin_pairs_lt (n : ℕ) : finset (Σ a : fin n, fin n) :=
 (univ : finset (fin n)).sigma (λ a, (range a).attach_fin

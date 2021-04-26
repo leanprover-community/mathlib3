@@ -145,6 +145,25 @@ begin
   convert fintype.card_congr (is_cycle.gpowers_equiv_support hσ),
 end
 
+lemma is_cycle.apply_pow_eq_self {f : perm β} (hf : is_cycle f) {x : β} (hx : f x ≠ x) {n : ℕ} :
+  (f ^ n) x = x ↔ (order_of f ∣ n) :=
+begin
+  rw order_of_dvd_iff_pow_eq_one,
+  split,
+  { intro h,
+    ext y,
+    by_cases hy : f y = y,
+    { clear h,
+      induction n with n ih,
+      { rw [pow_zero] },
+      { rw [pow_succ, perm.mul_apply, ih, one_apply, hy] } },
+    obtain ⟨i, rfl⟩ := hf.exists_gpow_eq hy hx,
+    rwa [← perm.mul_apply, ← gpow_of_nat, ← gpow_add, add_comm, gpow_add, gpow_of_nat,
+      perm.mul_apply, equiv.apply_eq_iff_eq] at h },
+  { intro h,
+    rw [h, one_apply] }
+end
+
 lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}
   (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),
   ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b

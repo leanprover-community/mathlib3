@@ -11,7 +11,8 @@ import group_theory.subgroup
 /-!
 # Finitely generated monoid.
 
-We define finitely generated monoids. See also `module.finite` for finitely-generated modules.
+We define finitely generated monoids. See also `submodule.fg` and `module.finite` for
+finitely-generated modules.
 
 ## Main definition
 
@@ -79,17 +80,17 @@ lemma monoid.fg_iff : monoid.fg M ↔
   ∃ S : set M, submonoid.closure S = (⊤ : submonoid M) ∧ S.finite :=
 ⟨λ h, (submonoid.fg_iff ⊤).1 h.out, λ h, ⟨(submonoid.fg_iff ⊤).2 h⟩⟩
 
-lemma monoid_fg_iff_add_fg : monoid.fg M ↔ add_monoid.fg (additive M) :=
+lemma monoid.fg_iff_add_fg : monoid.fg M ↔ add_monoid.fg (additive M) :=
 ⟨λ h, ⟨(submonoid.fg_iff_add_fg ⊤).1 h.out⟩, λ h, ⟨(submonoid.fg_iff_add_fg ⊤).2 h.out⟩⟩
 
-lemma add_monoid_fg_iff_mul_fg : add_monoid.fg N ↔ monoid.fg (multiplicative N) :=
+lemma add_monoid.fg_iff_mul_fg : add_monoid.fg N ↔ monoid.fg (multiplicative N) :=
 ⟨λ h, ⟨(add_submonoid.fg_iff_mul_fg ⊤).1 h.out⟩, λ h, ⟨(add_submonoid.fg_iff_mul_fg ⊤).2 h.out⟩⟩
 
 instance add_monoid.fg_of_monoid_fg [monoid.fg M] : add_monoid.fg (additive M) :=
-monoid_fg_iff_add_fg.1 ‹_›
+monoid.fg_iff_add_fg.1 ‹_›
 
 instance monoid.fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicative N) :=
-add_monoid_fg_iff_mul_fg.1 ‹_›
+add_monoid.fg_iff_mul_fg.1 ‹_›
 
 end monoid
 

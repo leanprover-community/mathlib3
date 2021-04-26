@@ -97,7 +97,7 @@ then the group is commutative. -/
 over a unital binary operation, then the additive group is commutative."]
 def comm_group [G : group X]
   (distrib : ∀ a b c d, ((a * b) <m₁> (c * d)) = ((a <m₁> c) * (b <m₁> d))) : comm_group X :=
-{ ..(eckmann_hilton.comm_monoid h₁ mul_one_class.is_unital distrib),
+{ ..(eckmann_hilton.comm_monoid h₁ distrib),
   ..G }
 
 end eckmann_hilton

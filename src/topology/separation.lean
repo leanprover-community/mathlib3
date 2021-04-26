@@ -162,7 +162,7 @@ begin
     fconstructor,
     have p : ⋃₀ {U : set α | (x ∉ U) ∧ (is_open U)} = {x}ᶜ,
     { apply subset.antisymm; intros t ht,
-      { rcases ht with ⟨A,⟨hxA, hA⟩, htA⟩,
+      { rcases ht with ⟨A, ⟨hxA, hA⟩, htA⟩,
         simp only [mem_singleton_iff, mem_compl_eq],
         intro htx,
         simpa [*] using htA},

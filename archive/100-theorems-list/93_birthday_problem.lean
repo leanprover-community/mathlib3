@@ -190,6 +190,21 @@ begin
   exact fintype.card_inj_aux _ _ h,
 end
 
+theorem fintype.card_inj' {α β} [fintype α] [fintype β] (h : ‖β‖ < ‖α‖) : ‖α ↪ β‖ = 0 :=
+begin
+  rw fintype.card_eq_zero_iff, intro f,
+  obtain ⟨x, y, eq, fne⟩ := fintype.exists_ne_map_eq_of_card_lt f h,
+  have := f.injective fne, contradiction
+end
+
+theorem fintype.card_inj'' {α β} [fintype α] [fintype β] :
+  ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
+begin
+  split_ifs with h,
+    exact fintype.card_inj h,
+    exact fintype.card_inj' (not_le.mp h)
+end
+
 -- just realised; is it worth registering `subsingleton` instances for `‖α ↪ β‖`
 -- for when they either have equal cards or `α` is empty?
 

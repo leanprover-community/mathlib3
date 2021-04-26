@@ -168,6 +168,7 @@ calc _ ⊆ closure (a • A) : image_closure_subset_closure_image (continuous_id
 
 end
 
+section
 /-!
 ### Seminorms
 -/
@@ -243,14 +244,15 @@ end
 
 -- TODO: convexity and absorbent/balanced sets in vector spaces over ℝ
 end seminorm
+end
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F]
 noncomputable theory
+variables {E : Type*} [add_comm_group E] [vector_space ℝ E]
 
-def gauge (K : set F) (x : F) : ℝ :=
+def gauge (K : set E) (x : E) : ℝ :=
 Inf {y ∈ set.Ioi 0 | x ∈ y • K}
 
-variables {K : set F} {x : F}
+variables {K : set E} {x : E}
 
 lemma gauge_def : gauge K x = Inf {y ∈ set.Ioi 0 | x ∈ y • K} := rfl
 lemma gauge_def' : gauge K x = Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ K} :=
@@ -280,12 +282,12 @@ lemma gauge_zero :
   gauge K 0 = 0 :=
 begin
   rw gauge_def',
-  by_cases (0:F) ∈ K,
+  by_cases (0:E) ∈ K,
   { simp [h] },
   { simp [h, real.Inf_empty] },
 end
 
-lemma smul_mem_of_convex (hK : convex K) (zero_mem : (0:F) ∈ K)
+lemma smul_mem_of_convex (hK : convex K) (zero_mem : (0:E) ∈ K)
   {θ : ℝ} (hθ₁ : 0 ≤ θ) (hθ₂ : θ ≤ 1)
   (hx : x ∈ K) : θ • x ∈ K :=
 begin
@@ -294,11 +296,11 @@ begin
   apply this ⟨_, ⟨‹0 ≤ θ›, ‹_›⟩, by simp⟩,
 end
 
-lemma gauge_nonneg (x : F) :
+lemma gauge_nonneg (x : E) :
   0 ≤ gauge K x :=
 real.Inf_nonneg _ (λ x hx, le_of_lt hx.1)
 
-lemma gauge_le_one_eq (hK : convex K) (zero_mem : (0:F) ∈ K)
+lemma gauge_le_one_eq (hK : convex K) (zero_mem : (0:E) ∈ K)
   (absorbing : absorbent ℝ K) :
   {x | gauge K x ≤ 1} = ⋂ (θ ∈ set.Ioi (1:ℝ)), θ • K :=
 begin
@@ -323,7 +325,7 @@ begin
     exact ⟨by { simp, linarith }, h _ (by linarith)⟩ }
 end
 
-lemma gauge_lt_one_eq (hK : convex K) (zero_mem : (0:F) ∈ K)
+lemma gauge_lt_one_eq (hK : convex K) (zero_mem : (0:E) ∈ K)
   (absorbing : absorbent ℝ K) :
   {x | gauge K x < 1} = ⋃ (θ ∈ set.Ioo 0 (1:ℝ)), θ • K :=
 begin
@@ -337,7 +339,7 @@ begin
     apply cInf_lt_of_lt gauge_set_bdd_below ⟨‹0 < θ›, ‹_›⟩ ‹θ < 1› }
 end
 
-lemma gauge_lt_one_subset_self (hK : convex K) (zero_mem : (0:F) ∈ K)
+lemma gauge_lt_one_subset_self (hK : convex K) (zero_mem : (0:E) ∈ K)
   (absorbing : absorbent ℝ K) :
   {x | gauge K x < 1} ⊆ K :=
 begin
@@ -351,7 +353,7 @@ begin
   simp,
 end
 
-lemma gauge_le_one_convex (hK : convex K) (zero_mem : (0:F) ∈ K)
+lemma gauge_le_one_convex (hK : convex K) (zero_mem : (0:E) ∈ K)
   (absorbing : absorbent ℝ K) :
   convex {x | gauge K x ≤ 1} :=
 begin
@@ -359,26 +361,27 @@ begin
   refine convex_Inter (λ i, convex_Inter (λ (hi : _ < _), convex.smul _ hK)),
 end
 
-lemma gauge_le_one_of_mem (x : F) (hx : x ∈ K) : gauge K x ≤ 1 :=
+lemma gauge_le_one_of_mem (x : E) (hx : x ∈ K) : gauge K x ≤ 1 :=
 real.Inf_le _ ⟨0, λ y hy, le_of_lt hy.1⟩ ⟨by norm_num, by simpa⟩
 
-lemma gauge_le_of_mem (x : F) {θ : ℝ} (hθ : 0 < θ) (hx : x ∈ θ • K) :
+lemma gauge_le_of_mem (x : E) {θ : ℝ} (hθ : 0 < θ) (hx : x ∈ θ • K) :
   gauge K x ≤ θ :=
 cInf_le gauge_set_bdd_below ⟨hθ, hx⟩
 
--- lemma convex_open_zero_mem_is_absorbing (zero_mem : (0:F) ∈ K)
+-- lemma convex_open_zero_mem_is_absorbing (zero_mem : (0:E) ∈ K)
 --   (hC₂ : is_open K) :
 --   absorbent ℝ K :=
 -- absorbent_nhds_zero (mem_nhds_sets hC₂ zero_mem)
 
-lemma gauge_lt_one_eq_self_of_open (hK : convex K) (zero_mem : (0:F) ∈ K)
+lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul ℝ E]
+  (hK : convex K) (zero_mem : (0:E) ∈ K)
   (hC₂ : is_open K) :
   {x | gauge K x < 1} = K :=
 begin
   apply set.subset.antisymm,
   { apply gauge_lt_one_subset_self hK ‹_› (absorbent_nhds_zero (mem_nhds_sets hC₂ zero_mem)) },
   intros x hx,
-  let f : ℝ → F := λ t, t • x,
+  let f : ℝ → E := λ t, t • x,
   have : continuous f,
   { continuity },
   let K' := f ⁻¹' K,
@@ -404,13 +407,15 @@ begin
   linarith
 end
 
-lemma gauge_lt_one_of_mem_of_open (hK : convex K) (zero_mem : (0:F) ∈ K)
-  (hK₂ : is_open K) (x : F) (hx : x ∈ K) :
+lemma gauge_lt_one_of_mem_of_open [topological_space E] [has_continuous_smul ℝ E]
+  (hK : convex K) (zero_mem : (0:E) ∈ K)
+  (hK₂ : is_open K) (x : E) (hx : x ∈ K) :
   gauge K x < 1 :=
 by rwa ←gauge_lt_one_eq_self_of_open hK zero_mem hK₂ at hx
 
-lemma one_le_gauge_of_not_mem (hK : convex K) (zero_mem : (0:F) ∈ K)
-  (hK₂ : is_open K) (x : F) (hx : x ∉ K) :
+lemma one_le_gauge_of_not_mem [topological_space E] [has_continuous_smul ℝ E]
+  (hK : convex K) (zero_mem : (0:E) ∈ K)
+  (hK₂ : is_open K) (x : E) (hx : x ∉ K) :
   1 ≤ gauge K x :=
 begin
   rw ←gauge_lt_one_eq_self_of_open hK zero_mem hK₂ at hx,
@@ -448,7 +453,7 @@ begin
       exact ⟨_, hz, smul_eq_mul _⟩ } },
 end
 
-lemma gauge_neg (symmetric : ∀ x ∈ K, -x ∈ K) (x : F) :
+lemma gauge_neg (symmetric : ∀ x ∈ K, -x ∈ K) (x : E) :
   gauge K (-x) = gauge K x :=
 begin
   have : ∀ x, -x ∈ K ↔ x ∈ K := λ x, ⟨λ h, by simpa using symmetric _ h, symmetric x⟩,
@@ -457,7 +462,7 @@ begin
 end
 
 lemma gauge_mul_nonneg
-  {θ : ℝ} (hθ : 0 ≤ θ) (x : F) :
+  {θ : ℝ} (hθ : 0 ≤ θ) (x : E) :
 gauge K (θ • x) = θ * gauge K x :=
 begin
   rcases eq_or_lt_of_le hθ with (rfl | hθ'),
@@ -479,7 +484,7 @@ begin
 end
 
 lemma gauge_homogeneous (symmetric : ∀ x ∈ K, -x ∈ K)
-  (θ : ℝ) (x : F) :
+  (θ : ℝ) (x : E) :
   gauge K (θ • x) = abs θ * gauge K x :=
 begin
   rw ←gauge_mul_nonneg (abs_nonneg θ),
@@ -489,7 +494,7 @@ begin
 end
 
 lemma gauge_subadditive (hK : convex K)
-  (absorbing : absorbent ℝ K) (x y : F) :
+  (absorbing : absorbent ℝ K) (x y : E) :
   gauge K (x + y) ≤ gauge K x + gauge K y :=
 begin
   apply le_of_forall_pos_lt_add,

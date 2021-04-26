@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Hanting Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Hanting Zhang
+-/
 import representation_theory.basic
 import ring_theory.simple_module
 
@@ -10,8 +15,13 @@ variables (k : Type u) (G : Type v) (M : Type w)
 variables [semiring k] [monoid G] [add_comm_monoid M]
 variables [module k M] [distrib_mul_action G M]
 
+/-- A subrepresentation `N` of a `representation k G M` is a `k`-submodule of `M`
+fixed by the action of `G`, i.e. `∀ g, g • N ⊆ N`-/
 structure subrepresentation [representation k G M] extends submodule k M :=
 (group_smul_mem' : ∀ (c : G) {x : M}, x ∈ carrier → c • x ∈ carrier)
+
+/-- Reinterpret a `submodule` as an `add_submonoid`. -/
+add_decl_doc subrepresentation.to_submodule
 
 end subrepresentation
 
@@ -43,13 +53,13 @@ protected def copy
   smul_mem' := hs.symm ▸ p.smul_mem', },
   by { cases hs, exact p.group_smul_mem', } ⟩
 
-theorem to_submodule_injective {p q : subrepresentation k G M} :
+theorem to_submodule_injective :
   injective (to_submodule : subrepresentation k G M → submodule k M) :=
 λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
 
 @[simp] theorem to_submodule_eq {p q : subrepresentation k G M} :
   p.to_submodule = q.to_submodule ↔ p = q :=
-injective.eq_iff $ @to_submodule_injective _ _ _ _ _ _ _ _ _ p q
+injective.eq_iff $ to_submodule_injective
 
 @[mono] lemma to_submodule_strict_mono :
   strict_mono (to_submodule : subrepresentation k G M → submodule k M) := λ _ _, id
@@ -61,6 +71,7 @@ to_submodule_strict_mono.monotone
 @[simp] theorem coe_to_submodule (p : subrepresentation k G M) :
   (p.to_submodule : set M) = p := rfl
 
+/-- Reinterpret a `subrepresentation` as an `sub_mul_action`. -/
 def to_sub_mul_action (p : subrepresentation k G M) : sub_mul_action G M :=
 { carrier := p.carrier,
   smul_mem' := λ g m, p.group_smul_mem' g }
@@ -87,7 +98,7 @@ to_sub_mul_action_strict_mono.monotone
 end definitions
 
 section subrepresentation
-variables {k : Type u} {G : Type v} {M : Type w} {ι : Type w}
+variables {k : Type u} {G : Type v} {M : Type w} {ι : Type*}
 variables [semiring k] [monoid G] [add_comm_monoid M]
 variables [module k M] [distrib_mul_action G M]
 variables {representation_M : representation k G M} (p : subrepresentation k G M)
@@ -162,6 +173,7 @@ variables (k : Type u) (G : Type v) (M N: Type w)
 variables [ring k] [monoid G] [add_comm_group M]
 variables [module k M] [distrib_mul_action G M]
 
+/-- A representation is irreducible if it has no nontrivial subrepresentations. -/
 abbreviation is_irreducible [representation k G M] := is_simple_module (monoid_algebra k G) M
 
 end reducible
@@ -173,15 +185,12 @@ variables (k : Type u) (G : Type v) (M N: Type w)
 variables [semiring k] [monoid G] [add_comm_monoid M] [add_comm_monoid N]
 variables [module k M] [distrib_mul_action G M] [module k N] [distrib_mul_action G N]
 
+/-- A homomorphism between representations `M` and `N` over `k` and `G` is a
+`k`-linear map which commutes with the `G`-action. -/
 structure rep_hom [representation k G M] [representation k G N] extends linear_map k M N :=
 (commutes' : ∀ (g : G) (m : M), to_fun (g • m) = g • to_fun m)
 
 infixr ` →ᵣ `:25 := rep_hom _
 notation M ` →ᵣ[`:25 k `, ` G `] ` N := rep_hom k G M N
-
-end rep_hom
-
-namespace rep_hom
-
 
 end rep_hom

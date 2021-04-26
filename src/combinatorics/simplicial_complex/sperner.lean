@@ -7,7 +7,7 @@ import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import analysis.convex.topology
 import combinatorics.simplicial_complex.dump
-import combinatorics.simplicial_complex.extreme_point
+import combinatorics.simplicial_complex.extreme
 import combinatorics.simplicial_complex.basic
 import combinatorics.simplicial_complex.topology
 import data.nat.parity
@@ -211,10 +211,11 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
   begin
     rintro _ ⟨X, hX₁, rfl, hX₂⟩,
     let f : ((finset.image matrix.vec_tail X : set (fin m → ℝ))) → (X : set (fin (m+1) → ℝ)),
-    { rintro ⟨t, ht⟩,
+    { intro t,
+      refine ⟨matrix.vec_cons 0 t.1, _⟩,
+      rcases t with ⟨t, ht⟩,
       simp only [set.mem_image, finset.mem_coe, finset.coe_image] at ht,
-      refine ⟨matrix.vec_cons 0 t, _⟩,
-      obtain ⟨x, hx, rfl⟩ := ht,
+      rcases ht with ⟨x, hx, rfl⟩,
       suffices : matrix.vec_head x = 0,
       { rw ← this,
         simpa },
@@ -230,7 +231,8 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
     { convert affine_independent_embedding_of_affine_independent ⟨f, hf⟩ this,
       ext p,
       dsimp,
-      simp },
+      simp
+      },
     rintro ⟨i, hi⟩,
     apply hX₂ _ hi,
   end,

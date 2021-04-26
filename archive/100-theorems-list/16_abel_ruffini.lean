@@ -86,6 +86,22 @@ begin
       { exact is_alg_closed.splits_codomain q },
       { exact nodup_roots ((separable_map _).mpr q_irred.separable) } },
     have h2 : fintype.card (q.root_set ℝ) = 3,
-    { sorry },
+    { exact complex_roots_poly a b hab },
     rw [h1, h2] },
 end
+
+theorem tada (x : ℂ) (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
+  (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b))
+  (hx : aeval x (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) = 0) :
+  ¬ is_solvable_by_rad ℚ x :=
+begin
+  let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
+  change aeval x q = 0 at hx,
+  have q_irred : irreducible q,
+  { have key := irreducible_poly a b p hp hpa hpb,
+     },
+  /-have q_minpoly : q = minpoly ℚ x,
+  { have key := minpoly.unique' q_irred ha, },-/
+end
+
+#check solvable_by_rad.is_solvable

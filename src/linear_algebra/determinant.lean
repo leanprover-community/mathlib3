@@ -63,12 +63,7 @@ multilinear_map.alternatization_apply _ M
 -- This is what the old definition was. We use it to avoid having to change the old proofs below
 lemma det_apply' (M : matrix n n R) :
   M.det = ∑ σ : perm n, ε σ * ∏ i, M (σ i) i :=
-begin
-  rw det_apply,
-  have : ∀ (r : R) (z : ℤ), z • r = (z : R) * r := λ r z, by
-    rw [←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast],
-  simp only [this],
-end
+by simp [det_apply]
 
 @[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = ∏ i, d i :=
 begin
@@ -187,11 +182,7 @@ end
 
 /-- Permuting the columns changes the sign of the determinant. -/
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
-begin
-  have : (σ.sign : ℤ) • M.det = (σ.sign * M.det : R),
-  { rw [coe_coe, ←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast] },
-  exact ((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans this,
-end
+((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans (by simp)
 
 /-- Permuting rows and columns with the same equivalence has no effect. -/
 @[simp]
@@ -437,11 +428,13 @@ begin
   rw [equiv.perm.decompose_fin.symm_sign, if_neg (fin.succ_ne_zero i)],
   calc ((-1) * σ.sign : ℤ) • ∏ i', A (equiv.perm.decompose_fin.symm (fin.succ i, σ) i') i'
       = ((-1) * σ.sign : ℤ) • (A (fin.succ i) 0 *
-        ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) : _
-  ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
-        ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) : by simp,
-  simp only [fin.prod_univ_succ, fin.succ_above_cycle_range,
+        ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
+    by simp only [fin.prod_univ_succ, fin.succ_above_cycle_range,
       equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
+  ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
+        ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
+    by simp only [mul_assoc, mul_comm, neg_mul_eq_neg_mul_symm, one_mul, gsmul_eq_mul, neg_inj,
+      neg_smul, fin.succ_above_cycle_range],
 end
 
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row 0. -/

@@ -1008,7 +1008,7 @@ by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
 lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=
 begin
-  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
+  rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     by_contra hn,

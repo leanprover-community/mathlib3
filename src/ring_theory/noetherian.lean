@@ -70,12 +70,12 @@ theorem fg_def {N : submodule R M} :
   exact ⟨t, rfl⟩
 end⟩
 
-lemma fg_iff_add_submonoid_fg (S : submodule ℕ M) :
-  S.fg ↔ S.to_add_submonoid.fg :=
+lemma fg_iff_add_submonoid_fg (P : submodule ℕ M) :
+  P.fg ↔ P.to_add_submonoid.fg :=
 begin
   split,
   { rintro ⟨S, hS⟩,
-    refine add_monoid.fg_def.2 ⟨S, _⟩,
+    refine ⟨S, _⟩,
     rw [← submodule.span_nat_eq_add_submonoid_closure],
     simp only [hS, submodule.top_to_add_submonoid] },
   { rintro ⟨S, hS⟩,

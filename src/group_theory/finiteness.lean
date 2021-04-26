@@ -120,7 +120,7 @@ lemma subgroup.fg_iff (P : subgroup G) : subgroup.fg P ↔
 ⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
 
 /-- A subgroup is finitely generated if and only if it is finitely generated as a submonoid. -/
-lemma subgroup.fg_iff_submonoid.fg (P : subgroup G) : subgroup.fg P ↔ submonoid.fg P.to_submonoid :=
+lemma subgroup.fg_iff_submonoid_fg (P : subgroup G) : subgroup.fg P ↔ P.to_submonoid.fg :=
 begin
   split,
   { rintro ⟨S, hS⟩,

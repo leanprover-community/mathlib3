@@ -12,7 +12,6 @@ import group_theory.subgroup
 # Finitely generated monoid.
 
 We define finitely generated monoids and groups. See also `submodule.fg` and `module.finite` for
-We define finitely generated monoids. See also `submodule.fg` and `module.finite` for
 finitely-generated modules.
 
 ## Main definition

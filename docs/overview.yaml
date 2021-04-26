@@ -134,7 +134,7 @@ Linear algebra:
     module: 'module'
     linear map: 'linear_map'
     the category of modules over a ring: 'Module'
-    vector space: 'vector_space'
+    vector space: 'module'
     quotient space: 'submodule.quotient'
     tensor product: 'tensor_product'
     noetherian module: 'is_noetherian'
@@ -148,7 +148,7 @@ Linear algebra:
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'module_equiv_finsupp'
-    isomorphism with bidual: 'vector_space.eval_equiv'
+    isomorphism with bidual: 'module.eval_equiv'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'

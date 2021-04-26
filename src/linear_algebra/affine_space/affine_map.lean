@@ -417,7 +417,7 @@ end
 section
 
 variables {ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [Π i, add_comm_group (V i)]
-  [Π i, semimodule k (V i)] [Π i, add_torsor (V i) (P i)]
+  [Π i, module k (V i)] [Π i, add_torsor (V i) (P i)]
 
 include V
 

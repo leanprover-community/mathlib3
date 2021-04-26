@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2021 Hanting Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Hanting Zhang
+-/
 import representation_theory.subrepresentation
 
 universes u v w
@@ -119,8 +124,14 @@ noncomputable def to_monoid_algebra_submodule (p : subrepresentation k G M) :
   add_mem' := p.add_mem',
   smul_mem' := λ x m hm,
   begin
-    simp,
-    sorry
+    rw ← finsupp.sum_single x,
+    rw representation.sum_smul,
+    rw finsupp.sum,
+    refine sum_mem _ (λ g hg, _),
+    have hmul := @monoid_algebra.single_mul_single k G _ _ g 1 1 (x g),
+    rw [one_mul, mul_one] at hmul,
+    rw [← hmul, mul_smul, ← monoid_algebra.of_apply, of_smul, ← of'_apply, of'_smul],
+    exact gsmul_mem p g (smul_mem p (x g) hm),
   end }
 end
 
@@ -138,11 +149,12 @@ def of_monoid_algebra_submodule (N : submodule (monoid_algebra k G) M) :
   zero_mem' := N.zero_mem,
   add_mem' := N.add_mem',
   smul_mem' := λ r m hm,
-  by { sorry },
+  by { have := N.smul_mem' (of' k G r) hm, rwa of'_smul at this, },
   group_smul_mem' := λ g m hm,
   begin
     simp only at *,
-    sorry
+    have := N.smul_mem' (monoid_algebra.of k G g) hm,
+    rwa of_smul at this,
   end }
 
 end submodule
@@ -160,6 +172,7 @@ by { apply set_like.ext', refl }
   p.of_monoid_algebra_submodule.to_monoid_algebra_submodule = p :=
 by { apply set_like.ext', refl }
 
+/-- The natural lattice isomorphism between subrepresentations and `FG`-submodules. -/
 noncomputable def order_iso_monoid_algebra_submodule :
   order_iso (subrepresentation k G M) (submodule (monoid_algebra k G) M) :=
 { to_fun := to_monoid_algebra_submodule,
@@ -170,6 +183,5 @@ noncomputable def order_iso_monoid_algebra_submodule :
 
 @[simp] lemma order_iso_monoid_algebra_submodule_apply (p : subrepresentation k G M) :
   order_iso_monoid_algebra_submodule p = p.to_monoid_algebra_submodule := rfl
-
 
 end subrepresentation

@@ -1,35 +1,22 @@
+/-
+Copyright (c) 2021 Hanting Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Hanting Zhang
+-/
 import linear_algebra.basic
 import algebra.monoid_algebra
 import algebra.module.submodule
 
 universes u v w
 
+/-- A `representation k G M` is a `add_comm_monoid M` with a `k`-scalar multiplication
+and a `G`-action which commute with each other. -/
 class representation (k : Type u) (G : Type v) (M : Type w)
   [semiring k] [monoid G] [add_comm_monoid M]
   [module k M] [distrib_mul_action G M] extends smul_comm_class k G M : Type (max u v w).
 
 
 namespace representation
-variables (k : Type u) (G : Type v) (M : Type w)
-variables [semiring k] [monoid G] [add_comm_monoid M]
-variables [module k M] [distrib_mul_action G M]
-
-instance [representation k G M] : smul_comm_class k G M := by apply_instance
-
-end representation
-
-section subrepresentation
-variables (k : Type u) (G : Type v) (M : Type w)
-variables [semiring k] [monoid G] [add_comm_monoid M]
-variables [module k M] [distrib_mul_action G M]
-
-structure subrepresentation [representation k G M] extends submodule k M :=
-(group_smul_mem' : ∀ (c : G) {x : M}, x ∈ carrier → c • x ∈ carrier)
-
-end subrepresentation
-
-section extend_scalars
-
 variables (k : Type u) (G : Type v) (M : Type w)
 variables [semiring k] [monoid G] [add_comm_monoid M]
 variables [module k M] [distrib_mul_action G M]
@@ -77,7 +64,7 @@ begin
 end
 
 /-- Turn the two `smul`s into a `FG`-module -/
-noncomputable instance to_monoid_algebra_module [representation k G M] :
+noncomputable instance [representation k G M] :
   module (monoid_algebra k G) M :=
 { smul := λ x m, x • m,
   add_smul := λ x y m, add_smul' k G M x y m,
@@ -87,7 +74,7 @@ noncomputable instance to_monoid_algebra_module [representation k G M] :
   one_smul := λ m, by simp [(•), monoid_algebra.one_def],
   mul_smul := λ x y m, mul_smul' k G M x y m _inst_6.smul_comm }
 
-end extend_scalars
+end representation
 
 section monoid_algebra_actions
 variables (k : Type u) (G : Type v) (M : Type w)
@@ -110,6 +97,21 @@ noncomputable instance group_monoid_algebra_action : distrib_mul_action G (monoi
 lemma of_smul (g : G) (m : M) : (monoid_algebra.of k G g) • m = g • m :=
 begin
   simp [(•)],
+end
+
+/-- Inclusion of `k` into `monoid_algebra k G` as a ring homomorphism. -/
+noncomputable def of' : k →+* monoid_algebra k G :=
+{ to_fun := λ k, finsupp.single 1 k,
+  map_one' := monoid_algebra.one_def,
+  map_mul' := λ r s, by { simp only [mul_one, monoid_algebra.single_mul_single]},
+  map_zero' := finsupp.single_zero,
+  map_add' := λ r s, finsupp.single_add }
+
+@[simp] lemma of'_apply (r : k) : of' k G r = finsupp.single 1 r := rfl
+
+lemma of'_smul (r : k) (m : M) : (of' k G r) • m = r • m :=
+begin
+  simp [(•), of'],
 end
 
 /-- Scalar tower stuff -/

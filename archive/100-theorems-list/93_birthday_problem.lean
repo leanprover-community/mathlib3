@@ -16,6 +16,6 @@ in terms of injective functions. We instead prove a general result about ‖α �
 
 local notation `‖` x `‖` := fintype.card x
 
-theorem birthday : 2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ := by norm_num [desc_fac]
+theorem birthday : 2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ := by norm_num [nat.desc_fac]
 
-lemma birthday' : 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ := by norm_num [desc_fac]
+lemma birthday' : 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ := by norm_num [nat.desc_fac]

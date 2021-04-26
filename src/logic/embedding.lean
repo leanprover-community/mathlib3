@@ -83,6 +83,16 @@ protected def congr {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
   (e₁ : α ≃ β) (e₂ : γ ≃ δ) (f : α ↪ γ) : (β ↪ δ) :=
 (equiv.to_embedding e₁.symm).trans (f.trans e₂.to_embedding)
 
+/-- Embeddings are equivalent under equivalences. -/
+protected def equiv {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
+  (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
+{ to_fun := λ f,
+    ⟨h' ∘ f ∘ h.symm, (h'.comp_injective _).mpr $ (h.symm.injective_comp _).mpr f.injective⟩,
+  inv_fun := λ f,
+    ⟨h'.symm ∘ f ∘ h, (h'.symm.comp_injective _).mpr $ (h.injective_comp _).mpr f.injective⟩,
+  left_inv := λ x, by {ext, simp},
+  right_inv := λ x, by {ext, simp} }
+
 /-- A right inverse `surj_inv` of a surjective function as an `embedding`. -/
 protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjective f) :
   α ↪ β :=
@@ -92,6 +102,14 @@ protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjecti
 protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
 equiv.of_bijective f ⟨f.injective, hf⟩
+
+/-- An equivalence between all injective functions and all embeddings. -/
+def equiv_inj_subtype (α : Sort u) (β : Sort v)
+  : {f : α → β // function.injective f} ≃ (α ↪ β) :=
+{ to_fun := λ f, ⟨f.val, f.property⟩,
+  inv_fun := λ f, ⟨f, f.injective⟩,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by {ext, simp} }
 
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩

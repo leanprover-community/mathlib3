@@ -5,67 +5,30 @@ Authors: Eric Rodriguez
 -/
 import data.fintype.card
 import data.nat.factorial
-import tactic
 
 /-!
 # Birthday Problem
 
-This file establishes the cardinality of `α ↪ β` in full generality.begin
+This file establishes the cardinality of `α ↪ β` in full generality.
 -/
 
-open_locale classical nat
+open_locale classical
+open finset nat
 
-open finset function
 local notation `|` x `|` := finset.card x
 local notation `‖` x `‖` := fintype.card x
 
--- is there some way to tell only `norm_num` to expand this out, but not `simp`?
-
-/-- desc_fac n k = (n + k)! / n!, but implemented in a recursive way for calculation. -/
-def desc_fac (n : ℕ) : ℕ → ℕ
-| 0 := 1
-| (k + 1) := (n + k + 1) * desc_fac k
-
-@[simp] lemma desc_fac_zero (n : ℕ) : desc_fac n 0 = 1 := rfl
-
-@[simp] lemma zero_desc_fac (k : ℕ) : desc_fac 0 k = k! :=
-begin
-  induction k with t ht, refl,
-  unfold desc_fac, rw [ht, zero_add, nat.factorial_succ]
-end
-
-lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n + k + 1) * desc_fac n k := rfl
-
-lemma succ_desc_fac {n k : ℕ} : (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k :=
-begin
-  induction k with t ht, simp!, rw desc_fac_succ, rw desc_fac_succ,
-  have : (n + 1) * ((n.succ + t + 1) * desc_fac n.succ t)
-       = (n.succ + t + 1) * ((n + 1) * desc_fac n.succ t), by ac_refl,
-  rw this, rw ht, repeat {rw nat.succ_eq_add_one}, ac_refl
-end
-
-/-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/
-theorem eval_desc_fac (n : ℕ) : ∀ k : ℕ, (n + k)! = n! * desc_fac n k
-| 0 := by simp!
-| (k + 1) := by unfold desc_fac; rw [←mul_assoc, mul_comm n!, mul_assoc, ←eval_desc_fac]; simp!
-
-/-- An equivalence between all injective functions and all embeddings. -/
-def embedding.equiv_inj_subtype (α β) : {f : α → β // injective f} ≃ (α ↪ β) :=
-{ to_fun := λ f, ⟨f.val, f.property⟩,
-  inv_fun := λ f, ⟨f, f.injective⟩,
-  left_inv := λ f, by simp,
-  right_inv := λ f, by {ext, simp} }
+namespace fintype
 
 -- `decidable_pred (@injective α β)` and various variations didn't give me an instance 🤷‍♂️
-noncomputable instance fintype.embedding {α β} [fintype α] [fintype β] : fintype (α ↪ β) :=
-fintype.of_equiv {f : α → β // injective f} (embedding.equiv_inj_subtype α β)
+noncomputable instance embedding {α β} [fintype α] [fintype β] : fintype (α ↪ β) :=
+fintype.of_equiv {f : α → β // function.injective f} (embedding.equiv_inj_subtype α β)
 
-/-- Establishes the cardinality of the type of injective functions `fin n ↪ β`. -/
-lemma fintype.card_inj_aux (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
-  ‖fin n ↪ β‖ = desc_fac (‖β‖ - n) n :=
+private lemma card_inj_aux (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
+  ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,
-  { rw [desc_fac_zero], nontriviality (fin 0 ↪ β),
+  { rw [nat.desc_fac_zero], nontriviality (fin 0 ↪ β),
     obtain ⟨f, g, ne⟩ := exists_pair_ne (fin 0 ↪ β),
     exfalso, apply ne, ext x, exact x.elim0 },
 
@@ -132,13 +95,13 @@ begin
           intro eq, exact f.injective eq } },
 
       { intros a₁ a₂ eq, simp only [extend] at eq,
-        ext, rw funext_iff at eq,
+        ext, rw function.funext_iff at eq,
         specialize eq 0, rwa [fin.cons_zero, fin.cons_zero] at eq },
       -- simp is getting hung up on `bex_def` here sadly, so have to do it manually
       have mem_extended : ∀ {g : fin n.succ ↪ β}, g ∈ extended → ∃ a ∈ poss_vals, extend ⇑f a = g,
         intros g g_extended, simp only [extended, mem_map] at g_extended,
         obtain ⟨⟨a, a_poss⟩, -, g_extended⟩ := g_extended,
-        simp only [embedding.coe_fn_mk, subtype.coe_mk] at g_extended,
+        simp only [function.embedding.coe_fn_mk, subtype.coe_mk] at g_extended,
         refine ⟨a, a_poss, _⟩, rw ←g_extended, simp,
 
       have : |extended| = ‖β‖ - n, by simp [extended, poss_vals, card_sdiff, card_univ],
@@ -158,9 +121,9 @@ begin
     simp only [extend] at a_equiv b_equiv, subst a_eq_b, rw ←b_equiv at a_equiv,
     apply_fun fin.tail at a_equiv, repeat { rw fin.tail_cons at a_equiv },
     ext, rw a_equiv },
-  unfold desc_fac,
+  unfold nat.desc_fac,
 
-  suffices : ‖fin n ↪ β‖ * (‖β‖ - n) = (‖β‖ - n.succ + n + 1) * desc_fac (‖β‖ - n.succ) n,
+  suffices : ‖fin n ↪ β‖ * (‖β‖ - n) = (‖β‖ - n.succ + n + 1) * nat.desc_fac (‖β‖ - n.succ) n,
   { simpa [equiv_class_size, card_univ] },
 
   rw hn (nat.lt_of_succ_le h).le,
@@ -168,41 +131,35 @@ begin
   have : ‖β‖ - n = t.succ,
   { rw [ht, nat.succ_eq_add_one, ←nat.sub_sub_assoc, nat.succ_sub_one],
     exact h, exact nat.succ_pos _ },
-  rw [this, mul_comm, succ_desc_fac]
+  rw [this, mul_comm, nat.succ_desc_fac]
 end
-
-/-- Embeddings are equivalent under equivalences. -/
-def equiv.embedding {α β γ δ : Type*} (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
-{ to_fun := λ f,
-    ⟨h' ∘ f ∘ h.symm, (h'.comp_injective _).mpr $ (h.symm.injective_comp _).mpr f.injective⟩,
-  inv_fun := λ f,
-    ⟨h'.symm ∘ f ∘ h, (h'.symm.comp_injective _).mpr $ (h.injective_comp _).mpr f.injective⟩,
-  left_inv := λ x, by {ext, simp},
-  right_inv := λ x, by {ext, simp} }
 
 /- The cardinality of the type of all embeddings is given by the size of  -/
-@[simp] theorem fintype.card_inj {α β} [fintype α] [fintype β] (h : ‖α‖ ≤ ‖β‖)
-  : ‖α ↪ β‖ = (desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
+@[simp] theorem card_inj {α β} [fintype α] [fintype β] [decidable_eq α] (h : ‖α‖ ≤ ‖β‖)
+  : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.equiv_fin α with eq,
-  rw fintype.card_congr (equiv.embedding eq (equiv.refl β)),
-  exact fintype.card_inj_aux _ _ h,
+  rw fintype.card_congr (embedding.equiv eq (equiv.refl β)),
+  exact card_inj_aux _ _ h,
 end
 
-theorem fintype.card_inj' {α β} [fintype α] [fintype β] (h : ‖β‖ < ‖α‖) : ‖α ↪ β‖ = 0 :=
+/-- If `‖β‖ < ‖α‖` there is no embeddings `α ↪ β`. This is the pigeonhole principle. -/
+@[simp] theorem card_inj' {α β} [fintype α] [fintype β] (h : ‖β‖ < ‖α‖) : ‖α ↪ β‖ = 0 :=
 begin
-  rw fintype.card_eq_zero_iff, intro f,
+  rw card_eq_zero_iff, intro f,
   obtain ⟨x, y, eq, fne⟩ := fintype.exists_ne_map_eq_of_card_lt f h,
   have := f.injective fne, contradiction
 end
 
-theorem fintype.card_inj'' {α β} [fintype α] [fintype β] :
-  ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
+theorem card_inj'' {α β} [fintype α] [fintype β] :
+  ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
 begin
   split_ifs with h,
-    exact fintype.card_inj h,
-    exact fintype.card_inj' (not_le.mp h)
+    exact card_inj h,
+    exact card_inj' (not_le.mp h)
 end
+
+end fintype
 
 -- just realised; is it worth registering `subsingleton` instances for `‖α ↪ β‖`
 -- for when they either have equal cards or `α` is empty?

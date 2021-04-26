@@ -73,6 +73,21 @@ def mk' (f : α → α) (hf₁ : monotone f) (hf₂ : ∀ x, x ≤ f x) (hf₃ :
   le_closure' := hf₂,
   idempotent' := λ x, le_antisymm (hf₃ x) (hf₁ (hf₂ x)) }
 
+/-- Constructor for a closure operator using the weaker minimality axiom: `x ≤ f y → f x ≤ f y`. -/
+@[simps]
+def mk₂ (f : α → α) (hf : ∀ x, x ≤ f x) (hmin : ∀ ⦃x y⦄, x ≤ f y → f x ≤ f y) :
+  closure_operator α :=
+{ to_fun := f,
+  monotone' := λ x y hxy, hmin (le_trans hxy (hf y)),
+  le_closure' := hf,
+  idempotent' := λ x, le_antisymm (hmin (le_refl _)) (hf _) }
+
+/-- Expanded out version of `mk₂`. `p` implies being closed. -/
+def mk₃ (f : α → α) (p : α → Prop) (hf : ∀ x, x ≤ f x) (hfp : ∀ x, p (f x))
+  (hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y) :
+  closure_operator α :=
+mk₂ f hf (λ x y hxy, hmin hxy (hfp y))
+
 @[mono] lemma monotone : monotone c := c.monotone'
 /--
 Every element is less than its closure. This property is sometimes referred to as extensivity or
@@ -112,31 +127,16 @@ set.ext $ λ x, ⟨λ h, ⟨x, h⟩, by { rintro ⟨y, rfl⟩, apply c.idempoten
 /-- Send an `x` to an element of the set of closed elements (by taking the closure). -/
 def to_closed (x : α) : c.closed := ⟨c x, c.closure_is_closed x⟩
 
+lemma mk₃.to_closed {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
+  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x : α} {hx : p x} :
+  (mk₃ f p hf hfp hmin).closed x :=
+le_antisymm (hmin (le_refl _) hx) (hf _)
+
 lemma top_mem_closed {α : Type u} [order_top α] (c : closure_operator α) : ⊤ ∈ c.closed :=
 c.closure_top
 
 lemma closure_le_closed_iff_le {x y : α} (hy : c.closed y) : x ≤ y ↔ c x ≤ y :=
 by rw [← c.closure_eq_self_of_mem_closed hy, le_closure_iff]
-
-def mk₂ (f : α → α) (p : α → Prop) (hf : ∀ x, x ≤ f x) (hfp : ∀ x, p (f x))
-  (hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y) :
-  closure_operator α :=
-{ to_fun := f,
-  monotone' := λ x y hxy, hmin (le_trans hxy (hf y)) (hfp y),
-  le_closure' := hf,
-  idempotent' := λ x, le_antisymm (hmin (le_refl _) (hfp x)) (hf _) }
-
-lemma mk₂.closed_of_prop {f : α → α} {p : α → Prop} (hf : ∀ x, x ≤ f x) (hfp : ∀ x, p (f x))
-  (hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y) {x : α} (hx : p x) :
-  (mk₂ f p hf hfp hmin).closed x :=
-le_antisymm (hmin (le_refl _) hx) (hf _)
-
-def mk₃ (f : α → α) (hf : ∀ x, x ≤ f x) (hmin : ∀ ⦃x y⦄, x ≤ f y → f x ≤ f y) :
-  closure_operator α :=
-{ to_fun := f,
-  monotone' := λ x y hxy, hmin (le_trans hxy (hf y)),
-  le_closure' := hf,
-  idempotent' := λ x, le_antisymm (hmin (le_refl _)) (hf _) }
 
 lemma closure_closure_sup_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :

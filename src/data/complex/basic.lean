@@ -192,6 +192,10 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
+lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
+⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
+  λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
+
 instance : star_ring ℂ :=
 { star := λ z, conj z,
   star_involutive := λ z, by simp,

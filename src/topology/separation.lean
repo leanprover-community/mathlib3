@@ -153,11 +153,14 @@ instance t1_space.t0_space [t1_space α] : t0_space α :=
 lemma t1_characterisation : t1_space α ↔
   ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
 begin
-  split;intro h,
-  { intros x y hxy,
-    exact ⟨{y}ᶜ,is_open_compl_iff.mpr (@t1_space.t1 α _inst_1 h y), mem_compl_singleton_iff.mpr hxy,
-      not_not.mpr rfl⟩},
-  { fconstructor,
+  split,
+  { introI t1,
+    intros x y hxy,
+    exact ⟨{y}ᶜ, is_open_compl_iff.mpr (t1_space.t1 y),
+            mem_compl_singleton_iff.mpr hxy,
+            not_not.mpr rfl⟩},
+  { intro h,
+    fconstructor,
     intro x,
     fconstructor,
     have p : ⋃₀ {U : set α | (x ∉ U) ∧ (is_open U)} = {x}ᶜ,

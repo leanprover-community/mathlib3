@@ -22,7 +22,7 @@ local infix ` ≺ `:50  := r
 
 /-- A chain is a subset `c` satisfying
   `x ≺ y ∨ x = y ∨ y ≺ x` for all `x y ∈ c`. -/
-def chain (c : set α) := pairwise_on c (λx y, x ≺ y ∨ y ≺ x)
+def chain (c : set α) := pairwise_on c (λ x y, x ≺ y ∨ y ≺ x)
 parameters {r}
 
 theorem chain.total_of_refl [is_refl α r]
@@ -30,10 +30,12 @@ theorem chain.total_of_refl [is_refl α r]
   x ≺ y ∨ y ≺ x :=
 if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
 
-theorem chain.mono {c c'} : c' ⊆ c → chain c → chain c' :=
+theorem chain.mono {c c'} :
+  c' ⊆ c → chain c → chain c' :=
 pairwise_on.mono
 
-theorem chain.directed_on [is_refl α r] {c} (H : chain c) : directed_on (≺) c :=
+theorem chain.directed_on [is_refl α r] {c} (H : chain c) :
+  directed_on (≺) c :=
 assume x hx y hy,
 match H.total_of_refl hx hy with
 | or.inl h := ⟨y, hy, h, refl _⟩
@@ -65,7 +67,8 @@ have chain c ∧ super_chain c (some h),
   from @some_spec _ (λc', chain c ∧ super_chain c c') _,
 by simp [succ_chain, dif_pos, h, this.right]
 
-theorem chain_succ {c : set α} (hc : chain c) : chain (succ_chain c) :=
+theorem chain_succ {c : set α} (hc : chain c) :
+  chain (succ_chain c) :=
 if h : ∃ c', chain c ∧ super_chain c c' then
   (succ_spec h).left
 else
@@ -79,7 +82,8 @@ begin
   exact succ_spec ⟨c', hc₁, hc'⟩
 end
 
-theorem succ_increasing {c : set α} : c ⊆ succ_chain c :=
+theorem succ_increasing {c : set α} :
+  c ⊆ succ_chain c :=
 if h : ∃ c', chain c ∧ super_chain c c' then
   have super_chain c (succ_chain c), from succ_spec h,
   this.right.left
@@ -90,12 +94,14 @@ inductive chain_closure : set α → Prop
 | succ : ∀ {s}, chain_closure s → chain_closure (succ_chain s)
 | union : ∀ {s}, (∀ a ∈ s, chain_closure a) → chain_closure (⋃₀ s)
 
-theorem chain_closure_empty : chain_closure ∅ :=
+theorem chain_closure_empty :
+  chain_closure ∅ :=
 have chain_closure (⋃₀ ∅),
   from chain_closure.union $ assume a h, h.rec _,
 by simp at this; assumption
 
-theorem chain_closure_closure : chain_closure (⋃₀ chain_closure) :=
+theorem chain_closure_closure :
+  chain_closure (⋃₀ chain_closure) :=
 chain_closure.union $ assume s hs, hs
 
 variables {c c₁ c₂ c₃ : set α}
@@ -154,7 +160,8 @@ have c₁ ⊆ c₂ ∨ succ_chain c₂ ⊆ c₁,
 or.imp_right (assume : succ_chain c₂ ⊆ c₁, subset.trans succ_increasing this) this
 
 theorem chain_closure_succ_fixpoint (hc₁ : chain_closure c₁) (hc₂ : chain_closure c₂)
-  (h_eq : succ_chain c₂ = c₂) : c₁ ⊆ c₂ :=
+  (h_eq : succ_chain c₂ = c₂) :
+  c₁ ⊆ c₂ :=
 begin
   induction hc₁,
   case succ : c₁ hc₁ h {
@@ -176,7 +183,8 @@ theorem chain_closure_succ_fixpoint_iff (hc : chain_closure c) :
       ... = c : this.symm)
     succ_increasing⟩
 
-theorem chain_chain_closure (hc : chain_closure c) : chain c :=
+theorem chain_chain_closure (hc : chain_closure c) :
+  chain c :=
 begin
   induction hc,
   case succ : c hc h {
@@ -197,7 +205,8 @@ def max_chain := ⋃₀ chain_closure
 
 There exists a maximal totally ordered subset of `α`.
 Note that we do not require `α` to be partially ordered by `r`. -/
-theorem max_chain_spec : is_max_chain max_chain :=
+theorem max_chain_spec :
+  is_max_chain max_chain :=
 classical.by_contradiction $
 assume : ¬ is_max_chain (⋃₀ chain_closure),
 have super_chain (⋃₀ chain_closure) (succ_chain (⋃₀ chain_closure)),
@@ -211,8 +220,8 @@ h₃ this.symm
 /-- Zorn's lemma
 
 If every chain has an upper bound, then there is a maximal element -/
-theorem exists_maximal_of_chains_bounded
-  (h : ∀ c, chain c → ∃ ub, ∀ a ∈ c, a ≺ ub) (trans : ∀ {a b c}, a ≺ b → b ≺ c → a ≺ c) :
+theorem exists_maximal_of_chains_bounded (h : ∀ c, chain c → ∃ ub, ∀ a ∈ c, a ≺ ub)
+  (trans : ∀ {a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃ m, ∀ a, m ≺ a → a ≺ m :=
 have ∃ ub, ∀ a ∈ max_chain, a ≺ ub,
   from h _ $ max_chain_spec.left,
@@ -231,7 +240,7 @@ If every nonempty chain of a nonempty type has an upper bound, then there is a m
 -/
 theorem exists_maximal_of_nonempty_chains_bounded [nonempty α]
   (h : ∀ c, chain c → c.nonempty → ∃ ub, ∀ a ∈ c, a ≺ ub)
-   (trans : ∀ {a b c}, a ≺ b → b ≺ c → a ≺ c) :
+  (trans : ∀ {a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃ m, ∀ a, m ≺ a → a ≺ m :=
 exists_maximal_of_chains_bounded
   (λ c hc,
@@ -272,8 +281,8 @@ let ⟨⟨m, hms⟩, h⟩ := @zorn_partial_order {m // m ∈ s} _
 in ⟨m, hms, λ z hzs hmz, congr_arg subtype.val (h ⟨z, hzs⟩ hmz)⟩
 
 theorem zorn_nonempty_partial_order₀ {α : Type u} [partial_order α] (s : set α)
-  (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub)
-  (x : α) (hxs : x ∈ s) : ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
+  (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub) (x : α) (hxs : x ∈ s) :
+  ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
 let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _
   (λ c hc, c.eq_empty_or_nonempty.elim
     (assume hce, hce.symm ▸ ⟨⟨x, hxs, le_refl _⟩, λ _, false.elim⟩)
@@ -291,8 +300,8 @@ theorem zorn_subset {α : Type u} (S : set (set α))
 zorn_partial_order₀ S h
 
 theorem zorn_subset_nonempty {α : Type u} (S : set (set α))
-  (H : ∀c ⊆ S, chain (⊆) c → c.nonempty → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
-  ∃ m ∈ S, x ⊆ m ∧ ∀a ∈ S, m ⊆ a → a = m :=
+  (H : ∀ c ⊆ S, chain (⊆) c → c.nonempty → ∃ ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
+  ∃ m ∈ S, x ⊆ m ∧ ∀ a ∈ S, m ⊆ a → a = m :=
 zorn_nonempty_partial_order₀ _ (λ c cS hc y yc, H _ cS hc ⟨y, yc⟩) _ hx
 
 theorem zorn_superset {α : Type u} (S : set (set α))
@@ -304,16 +313,15 @@ theorem zorn_superset_nonempty {α : Type u} (S : set (set α))
   (H : ∀ c ⊆ S, chain (⊆) c → c.nonempty → ∃ lb ∈ S, ∀ s ∈ c, lb ⊆ s) (x) (hx : x ∈ S) :
   ∃ m ∈ S, m ⊆ x ∧ ∀ a ∈ S, a ⊆ m → a = m :=
 @zorn_nonempty_partial_order₀ (order_dual (set α)) _ S (λ c cS hc y yc, H _ cS
-  (chain.symm hc) ⟨y, yc⟩) _ hx
-theorem chain.total {α : Type u} [preorder α]
-  {c : set α} (H : chain (≤) c) :
+  hc.symm ⟨y, yc⟩) _ hx
+
+theorem chain.total {α : Type u} [preorder α] {c : set α} (H : chain (≤) c) :
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
 λ x y, H.total_of_refl
 
-theorem chain.image {α β : Type*} (r : α → α → Prop)
-  (s : β → β → Prop) (f : α → β)
-  (h : ∀ x y, r x y → s (f x) (f y))
-  {c : set α} (hrc : chain r c) : chain s (f '' c) :=
+theorem chain.image {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) (f : α → β)
+  (h : ∀ x y, r x y → s (f x) (f y)) {c : set α} (hrc : chain r c) :
+  chain s (f '' c) :=
 λ x ⟨a, ha₁, ha₂⟩ y ⟨b, hb₁, hb₂⟩, ha₂ ▸ hb₂ ▸ λ hxy,
   (hrc a ha₁ b hb₁ (mt (congr_arg f) $ hxy)).elim
     (or.inl ∘ h _ _) (or.inr ∘ h _ _)
@@ -322,7 +330,7 @@ end zorn
 
 theorem directed_of_chain {α β r} [is_refl β r] {f : α → β} {c : set α}
   (h : zorn.chain (f ⁻¹'o r) c) :
-  directed r (λx:{a:α // a ∈ c}, f x) :=
+  directed r (λx : {a : α // a ∈ c}, f x) :=
 assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
   (assume : a = b, by simp only [this, exists_prop, and_self, subtype.exists];
     exact ⟨b, hb, refl _⟩)

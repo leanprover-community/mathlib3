@@ -11,13 +11,16 @@ import group_theory.subgroup
 /-!
 # Finitely generated monoid.
 
-We define finitely generated monoids. See also `submodule.fg` and `module.finite` for
+We define finitely generated monoids and groups. See also `submodule.fg` and `module.finite` for
 finitely-generated modules.
 
 ## Main definition
 
 * `submonoid.fg S`, `add_submonoid.fg S` : A submonoid `S` is finitely generated.
 * `monoid.fg M`, `add_submonoid.fg M` : A typeclass indicating a type `M` is finitely generated as a monoid.
+* `subgroup.fg S`, `add_subgroup.fg S` : A subgroup `S` is finitely generated.
+* `group.fg M`, `add_group.fg M` : A typeclass indicating a type `M` is finitely generated as a
+group.
 
 -/
 
@@ -94,9 +97,9 @@ add_monoid.fg_iff_mul_fg.1 ‹_›
 
 end monoid
 
-section group
-
 variables {G H : Type*} [group G] [add_group H]
+
+section subgroup
 
 /-- A subgroup of `G` is finitely generated if it is the closure of a finite subset of `G`. -/
 @[to_additive]
@@ -106,34 +109,12 @@ def subgroup.fg (P : subgroup G) : Prop := ∃ S : finset G, subgroup.closure �
 `H`. -/
 add_decl_doc add_subgroup.fg
 
-variables (G H)
-
-/-- A group is finitely generated if it is finitely generated as a submonoid of itself. -/
-class group.fg : Prop := (out : (⊤ : subgroup G).fg)
-
-/-- An additive group is finitely generated if it is finitely generated as an additive submonoid of
-itself. -/
-class add_group.fg : Prop := (out : (⊤ : add_subgroup H).fg)
-
-variables {G H}
-
-lemma group.fg_def : group.fg G ↔ (⊤ : subgroup G).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
-
-lemma add_group.fg_def : add_group.fg H ↔ (⊤ : add_subgroup H).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
-
 /-- An equivalent expression of `subgroup.fg` in terms of `set.finite` instead of `finset`. -/
 @[to_additive "An equivalent expression of `add_subgroup.fg` in terms of `set.finite` instead of
 `finset`."]
 lemma subgroup.fg_iff (P : subgroup G) : subgroup.fg P ↔
   ∃ S : set G, subgroup.closure S = P ∧ S.finite :=
 ⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
-
-/-- An equivalent expression of `group.fg` in terms of `set.finite` instead of `finset`. -/
-@[to_additive "An equivalent expression of `add_group.fg` in terms of `set.finite` instead of
-`finset`."]
-lemma group.fg_iff : group.fg G ↔
-  ∃ S : set G, subgroup.closure S = (⊤ : subgroup G) ∧ S.finite :=
-⟨λ h, (subgroup.fg_iff ⊤).1 h.out, λ h, ⟨(subgroup.fg_iff ⊤).2 h⟩⟩
 
 /-- A subgroup is finitely generated if and only if it is finitely generated as a submonoid. -/
 lemma subgroup.fg_iff_submonoid.fg (P : subgroup G) : subgroup.fg P ↔ submonoid.fg P.to_submonoid :=
@@ -177,6 +158,45 @@ begin
       exact add_subgroup.subset_closure } }
 end
 
+lemma subgroup.fg_iff_add_fg (P : subgroup G) : subgroup.fg P ↔ add_subgroup.fg P.to_add_subgroup :=
+begin
+  rw [subgroup.fg_iff_submonoid.fg, add_subgroup.fg_iff_add_submonoid.fg],
+  exact (subgroup.to_submonoid P).fg_iff_add_fg
+end
+
+lemma add_subgroup.fg_iff_mul_fg (P : add_subgroup H) :
+  add_subgroup.fg P ↔ subgroup.fg P.to_subgroup :=
+begin
+  rw [add_subgroup.fg_iff_add_submonoid.fg, subgroup.fg_iff_submonoid.fg],
+  exact add_submonoid.fg_iff_mul_fg (add_subgroup.to_add_submonoid P)
+end
+
+end subgroup
+
+section group
+
+variables (G H)
+
+/-- A group is finitely generated if it is finitely generated as a submonoid of itself. -/
+class group.fg : Prop := (out : (⊤ : subgroup G).fg)
+
+/-- An additive group is finitely generated if it is finitely generated as an additive submonoid of
+itself. -/
+class add_group.fg : Prop := (out : (⊤ : add_subgroup H).fg)
+
+variables {G H}
+
+lemma group.fg_def : group.fg G ↔ (⊤ : subgroup G).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+lemma add_group.fg_def : add_group.fg H ↔ (⊤ : add_subgroup H).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+/-- An equivalent expression of `group.fg` in terms of `set.finite` instead of `finset`. -/
+@[to_additive "An equivalent expression of `add_group.fg` in terms of `set.finite` instead of
+`finset`."]
+lemma group.fg_iff : group.fg G ↔
+  ∃ S : set G, subgroup.closure S = (⊤ : subgroup G) ∧ S.finite :=
+⟨λ h, (subgroup.fg_iff ⊤).1 h.out, λ h, ⟨(subgroup.fg_iff ⊤).2 h⟩⟩
+
 /-- A group is finitely generated if and only if it is finitely generated as a monoid. -/
 lemma group.fg_iff_monoid.fg : group.fg G ↔ monoid.fg G :=
 ⟨λ h, monoid.fg_def.2 $ (subgroup.fg_iff_submonoid.fg ⊤).1 (group.fg_def.1 h),
@@ -188,29 +208,16 @@ lemma add_group.fg_iff_add_monoid.fg : add_group.fg H ↔ add_monoid.fg H :=
 ⟨λ h, add_monoid.fg_def.2 $ (add_subgroup.fg_iff_add_submonoid.fg ⊤).1 (add_group.fg_def.1 h),
     λ h, add_group.fg_def.2 $ (add_subgroup.fg_iff_add_submonoid.fg ⊤).2 (add_monoid.fg_def.1 h)⟩
 
-lemma subgroup.fg_iff_add_fg (P : subgroup G) : subgroup.fg P ↔ add_subgroup.fg P.to_add_subgroup :=
-begin
-  rw [subgroup.fg_iff_submonoid.fg, add_subgroup.fg_iff_add_submonoid.fg],
-  exact (subgroup.to_submonoid P).fg_iff_add_fg
-end
-
-lemma add_subgroup.fg_iff_mul_fg (P : add_subgroup H) :
-  add_subgroup.fg P ↔ subgroup.fg P.to_subgroup :=
-begin
-  rw [add_subgroup.fg_iff_add_submonoid.fg, subgroup.fg_iff_submonoid.fg],
-  exact add_submonoid_fg_iff_mul_fg (add_subgroup.to_add_submonoid P)
-end
-
-lemma group_fg_iff_add_fg : group.fg G ↔ add_group.fg (additive G) :=
+lemma group_fg.iff_add_fg : group.fg G ↔ add_group.fg (additive G) :=
 ⟨λ h, ⟨(subgroup.fg_iff_add_fg ⊤).1 h.out⟩, λ h, ⟨(subgroup.fg_iff_add_fg ⊤).2 h.out⟩⟩
 
-lemma add_group_fg_iff_mul_fg : add_group.fg H ↔ group.fg (multiplicative H) :=
+lemma add_group.fg_iff_mul_fg : add_group.fg H ↔ group.fg (multiplicative H) :=
 ⟨λ h, ⟨(add_subgroup.fg_iff_mul_fg ⊤).1 h.out⟩, λ h, ⟨(add_subgroup.fg_iff_mul_fg ⊤).2 h.out⟩⟩
 
-instance add_fg_of_group_fg [group.fg G] : add_group.fg (additive G) :=
-group_fg_iff_add_fg.1 ‹_›
+instance add_group.fg_of_group_fg [group.fg G] : add_group.fg (additive G) :=
+group_fg.iff_add_fg.1 ‹_›
 
-instance fg_of_mul_group_fg [add_group.fg H] : group.fg (multiplicative H) :=
-add_group_fg_iff_mul_fg.1 ‹_›
+instance group.fg_of_mul_group_fg [add_group.fg H] : group.fg (multiplicative H) :=
+add_group.fg_iff_mul_fg.1 ‹_›
 
 end group

@@ -166,7 +166,7 @@ sub_lt_self _ zero_lt_one
 theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
-@add_le_add_iff_right _ _ a b 1
+@add_le_add_iff_right _ a b _ _ _ _ 1
 
 @[simp] lemma succ_coe_nat_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
 lt_add_one_iff.mpr (by simp)

@@ -134,7 +134,7 @@ begin
   rw [this, mul_comm, nat.succ_desc_fac]
 end
 
-/- The cardinality of the type of all embeddings is given by the size of  -/
+/- Establishes the cardinality of the type of all injections, if any exist.  -/
 @[simp] theorem card_inj {α β} [fintype α] [fintype β] [decidable_eq α] (h : ‖α‖ ≤ ‖β‖)
   : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin

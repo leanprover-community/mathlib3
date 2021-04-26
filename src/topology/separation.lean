@@ -166,7 +166,7 @@ begin
     have p : ⋃₀ {U : set α | (x ∉ U) ∧ (is_open U)} = {x}ᶜ,
     { apply subset.antisymm; intros t ht,
       { rcases ht with ⟨A, ⟨hxA, hA⟩, htA⟩,
-        simp only [mem_singleton_iff, mem_compl_eq],
+        rw [mem_compl_eq, mem_singleton_iff],
         intro htx,
         simpa [*] using htA},
       { obtain ⟨U, hU, hh⟩ := h t x (mem_compl_singleton_iff.mp ht),

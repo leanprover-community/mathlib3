@@ -475,9 +475,7 @@ begin
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
     cocompact_ℝ_to_cofinite_ℤ_matrix.comp subtype.coe_injective.tendsto_cofinite,
-  let f₂ : (matrix (fin 2) (fin 2) ℝ) → ((ℝ × ℝ) × (fin 2 → ℝ)) := line_map cd,
-  have hf₂ : tendsto f₂ (cocompact _) (cocompact _) :=
-    (linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd)).tendsto_cocompact,
+  have hf₂ := (linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd)).tendsto_cocompact,
   convert hf₂.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   funext g,
   obtain ⟨g, hg⟩ := g,

@@ -22,6 +22,8 @@ open finset function nat
 local notation `|` x `|` := finset.card x
 local notation `‖` x `‖` := fintype.card x
 
+-- is there some way to tell only `norm_num` to expand this out, but not `simp`?
+
 /-- desc_fac n k = (n + k)! / n!, but implemented in a recursive way for calculation. -/
 def desc_fac (n : ℕ) : ℕ → ℕ
 | 0 := 1
@@ -50,18 +52,19 @@ theorem eval_desc_fac (n : ℕ) : ∀ k : ℕ, (n + k)! = n! * desc_fac n k
 | 0 := by simp!
 | (k + 1) := by unfold desc_fac; rw [←mul_assoc, mul_comm n!, mul_assoc, ←eval_desc_fac]; simp!
 
-def embedding_of_subtype (α β) [fintype α] [fintype β] : (α ↪ β) ≃ {f : α → β // injective f} :=
-{ to_fun := λ f, ⟨f, f.injective⟩,
-  inv_fun := λ f, ⟨f.val, f.property⟩,
-  left_inv := λ f, by {ext, simp},
-  right_inv := λ f, by simp }
+/-- An equivalence between all injective functions and all embeddings. -/
+def embedding.equiv_inj_subtype (α β) : {f : α → β // injective f} ≃ (α ↪ β) :=
+{ to_fun := λ f, ⟨f.val, f.property⟩,
+  inv_fun := λ f, ⟨f, f.injective⟩,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by {ext, simp} }
 
 -- `decidable_pred (@injective α β)` and various variations didn't give me an instance 🤷‍♂️
 noncomputable instance fintype.embedding {α β} [fintype α] [fintype β] : fintype (α ↪ β) :=
-fintype.of_equiv {f : α → β // injective f} (embedding_of_subtype α β).symm
+fintype.of_equiv {f : α → β // injective f} (embedding.equiv_inj_subtype α β)
 
 /-- Establishes the cardinality of the type of injective functions `fin n ↪ β`. -/
-lemma fintype.card_inj' (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
+lemma fintype.card_inj_aux (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,
@@ -169,6 +172,7 @@ begin
   rw [this, mul_comm, succ_desc_fac]
 end
 
+/-- Embeddings are equivalent under equivalences. -/
 def equiv.embedding {α β γ δ : Type*} (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
 { to_fun := λ f,
     ⟨h' ∘ f ∘ h.symm, (h'.comp_injective _).mpr $ (h.symm.injective_comp _).mpr f.injective⟩,
@@ -177,19 +181,18 @@ def equiv.embedding {α β γ δ : Type*} (h : α ≃ β) (h' : γ ≃ δ) : (α
   left_inv := λ x, by {ext, simp},
   right_inv := λ x, by {ext, simp} }
 
-theorem fintype.card_inj {α β} [fintype α] [fintype β] (h : ‖α‖ ≤ ‖β‖)
+/- The cardinality of the type of all embeddings is given by the size of  -/
+@[simp] theorem fintype.card_inj {α β} [fintype α] [fintype β] (h : ‖α‖ ≤ ‖β‖)
   : ‖α ↪ β‖ = (desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.equiv_fin α with eq,
   rw fintype.card_congr (equiv.embedding eq (equiv.refl β)),
-  exact fintype.card_inj' _ _ h,
+  exact fintype.card_inj_aux _ _ h,
 end
 
 -- just realised; is it worth registering `subsingleton` instances for `‖α ↪ β‖`
 -- for when they either have equal cards or `α` is empty?
 
-theorem birthday : 2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ :=
-  by norm_num [fintype.card_inj', desc_fac]
+theorem birthday : 2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ := by norm_num [desc_fac]
 
-lemma birthday' : 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ :=
-  by norm_num [fintype.card_inj', desc_fac]
+lemma birthday' : 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ := by norm_num [desc_fac]

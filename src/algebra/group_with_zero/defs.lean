@@ -54,12 +54,14 @@ class no_zero_divisors (M₀ : Type*) [has_mul M₀] [has_zero M₀] : Prop :=
 
 export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
 
-/-- A typeclass for non-associative monoids with zero elements. -/
-@[protect_proj] class mul_zero_one_class (M₀ : Type*) extends mul_one_class M₀, mul_zero_class M₀.
-
 /-- A type `S₀` is a "semigroup with zero” if it is a semigroup with zero element, and `0` is left
 and right absorbing. -/
 @[protect_proj] class semigroup_with_zero (S₀ : Type*) extends semigroup S₀, mul_zero_class S₀.
+
+/- By defining this _after_ `semigroup_with_zero`, we ensure that searches for `mul_zero_class` find
+this class first. -/
+/-- A typeclass for non-associative monoids with zero elements. -/
+@[protect_proj] class mul_zero_one_class (M₀ : Type*) extends mul_one_class M₀, mul_zero_class M₀.
 
 /-- A type `M₀` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
 and right absorbing. -/

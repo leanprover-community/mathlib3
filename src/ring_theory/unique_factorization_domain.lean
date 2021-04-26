@@ -438,7 +438,7 @@ begin
   { intros x hx,
     exfalso,
     apply multiset.not_mem_zero x hx },
-  { simp [factors_prod (@one_ne_zero α _ _)] },
+  { simp [factors_prod one_ne_zero] },
   apply_instance
 end
 

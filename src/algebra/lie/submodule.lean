@@ -89,6 +89,15 @@ begin
   { rw h, },
 end
 
+/-- Copy of a lie_submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
+{ carrier := s,
+  zero_mem' := hs.symm ▸ N.zero_mem',
+  add_mem'  := hs.symm ▸ N.add_mem',
+  smul_mem' := hs.symm ▸ N.smul_mem',
+  lie_mem   := hs.symm ▸ N.lie_mem, }
+
 instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },
@@ -416,6 +425,10 @@ lemma map_le_iff_le_comap {f : M →ₗ⁅R,L⁆ M'} {N : lie_submodule R L M} {
 lemma gc_map_comap (f : M →ₗ⁅R,L⁆ M') : galois_connection (map f) (comap f) :=
 λ N N', map_le_iff_le_comap
 
+@[simp] lemma mem_map (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M) (m' : M') :
+  m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
+submodule.mem_map
+
 end lie_submodule
 
 namespace lie_ideal
@@ -718,6 +731,31 @@ end
 end lie_ideal
 
 end lie_submodule_map_and_comap
+
+namespace lie_module_hom
+
+variables {R : Type u} {L : Type v} {M : Type w} {N : Type w₁}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L]
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
+variables (f : M →ₗ⁅R,L⁆ N)
+
+/-- The range of a morphism of Lie modules `f : M → N` is a Lie submodule of `N`.
+See Note [range copy pattern]. -/
+def range : lie_submodule R L N :=
+(lie_submodule.map f ⊤).copy (set.range f) set.image_univ.symm
+
+@[simp] lemma coe_range : (f.range : set N) = set.range f := rfl
+
+@[simp] lemma coe_submodule_range : (f.range : submodule R N) = (f : M →ₗ[R] N).range := rfl
+
+@[simp] lemma mem_range (n : N) : n ∈ f.range ↔ ∃ m, f m = n :=
+iff.rfl
+
+lemma map_top : lie_submodule.map f ⊤ = f.range :=
+by { ext, simp, }
+
+end lie_module_hom
 
 section top_equiv_self
 

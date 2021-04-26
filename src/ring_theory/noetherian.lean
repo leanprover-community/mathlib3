@@ -70,19 +70,10 @@ theorem fg_def {N : submodule R M} :
   exact ⟨t, rfl⟩
 end⟩
 
-lemma fg_iff_add_monoid_fg :
-  (⊤ : submodule ℕ M).fg ↔ add_monoid.fg M :=
-begin
-  split,
-  { rintro ⟨S, hS⟩,
-    refine add_monoid.fg_def.2 ⟨S, _⟩,
-    rw [← submodule.span_nat_eq_add_submonoid_closure],
-    simp only [hS, submodule.top_to_add_submonoid] },
-  { rintro ⟨S, hS⟩,
-    refine ⟨S, _⟩,
-    rw [← submodule.span_nat_eq_add_submonoid_closure] at hS,
-    exact submodule.to_add_submonoid_injective hS }
-end
+lemma fg_iff_add_submonoid_fg (P : submodule ℕ M) :
+  P.fg ↔ P.to_add_submonoid.fg :=
+⟨λ ⟨S, hS⟩, ⟨S, by simpa [← span_nat_eq_add_submonoid_closure] using hS⟩,
+  λ ⟨S, hS⟩, ⟨S, by simpa [← span_nat_eq_add_submonoid_closure] using hS⟩⟩
 
 lemma fg_iff_exists_fin_generating_family {N : submodule R M} :
   N.fg ↔ ∃ (n : ℕ) (s : fin n → M), span R (range s) = N :=

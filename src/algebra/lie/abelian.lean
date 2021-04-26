@@ -199,12 +199,17 @@ def maximal_trivial_linear_map_equiv_lie_module_hom :
   ((maximal_trivial_linear_map_equiv_lie_module_hom f) : M → N) = f :=
 by { ext, refl, }
 
-@[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom_apply
+@[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom_symm
+  (f : M →ₗ⁅R,L⁆ N) :
+  ((maximal_trivial_linear_map_equiv_lie_module_hom.symm f) : M → N) = f :=
+rfl
+
+@[simp] lemma coe_linear_map_maximal_trivial_linear_map_equiv_lie_module_hom
   (f : maximal_trivial_submodule R L (M →ₗ[R] N)) :
   ((maximal_trivial_linear_map_equiv_lie_module_hom f) : M →ₗ[R] N) = (f : M →ₗ[R] N) :=
 by { ext, refl, }
 
-@[simp] lemma coe_maximal_trivial_linear_map_equiv_lie_module_hom_symm_apply
+@[simp] lemma coe_linear_map_maximal_trivial_linear_map_equiv_lie_module_hom_symm
   (f : M →ₗ⁅R,L⁆ N) :
   ((maximal_trivial_linear_map_equiv_lie_module_hom.symm f) : M →ₗ[R] N) = (f : M →ₗ[R] N) :=
 rfl

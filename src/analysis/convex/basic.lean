@@ -144,7 +144,7 @@ set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   λ h, mem_singleton_iff.1 h ▸ ⟨1/2, 1/2, one_half_pos, one_half_pos, add_halves 1,
     by rw [←add_smul, add_halves _, one_smul]⟩⟩
 
-lemma left_mem_open_segment_iff (x y : E) [ordered_add_comm_monoid E] :
+lemma left_mem_open_segment_iff (x y : E) :
   x ∈ open_segment x y ↔ x = y :=
 begin
   split,
@@ -159,13 +159,8 @@ end
 lemma right_mem_open_segment_iff (x y : E) :
   y ∈ open_segment x y ↔ x = y :=
 begin
-  split,
-  { rintro ⟨a, b, ha, hb, hab, hy⟩,
-    refine smul_injective (ne_of_gt ha) ((add_left_inj (b • y)).1 _),
-    rw [hy, ←add_smul, hab, one_smul] },
-  rintro rfl,
-  rw open_segment_same x,
-  exact mem_singleton _,
+  rw [open_segment_symm, left_mem_open_segment_iff],
+  exact ⟨eq.symm, eq.symm⟩,
 end
 
 lemma open_segment_eq_image (x y : E) :
@@ -188,9 +183,8 @@ lemma open_segment_eq_Ioo {a b : ℝ} (h : a < b) :
 begin
   rw [open_segment_eq_image'],
   show (((+) a) ∘ (λ t, t * (b - a))) '' Ioo 0 1 = Ioo a b,
-  sorry
-  --rw [image_comp, image_mul_right_Ioo (@zero_lt_one ℝ _) (sub_pos.2 h), image_const_add_Ioo],
-  --simp
+  rw [image_comp, image_mul_right_Ioo (@zero_lt_one ℝ _) (sub_pos.2 h), image_const_add_Ioo],
+  simp
 end
 
 lemma open_segment_eq_Ioo' {a b : ℝ} (hab : a ≠ b) :

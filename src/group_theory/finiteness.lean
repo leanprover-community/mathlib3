@@ -78,9 +78,9 @@ lemma add_monoid_fg_iff_mul_fg : add_monoid.fg N ↔ monoid.fg (multiplicative N
 ⟨λ h, ⟨(add_submonoid_fg_iff_mul_fg ⊤).1 h.out⟩, λ h, ⟨(add_submonoid_fg_iff_mul_fg ⊤).2 h.out⟩⟩
 
 instance add_fg_of_monoid_fg [monoid.fg M] : add_monoid.fg (additive M) :=
-monoid_fg_iff_add_fg.1 _inst_3
+monoid_fg_iff_add_fg.1 ‹_›
 
 instance fg_of_add_monoid_fg [add_monoid.fg N] : monoid.fg (multiplicative N) :=
-add_monoid_fg_iff_mul_fg.1 _inst_3
+add_monoid_fg_iff_mul_fg.1 ‹_›
 
 end monoid

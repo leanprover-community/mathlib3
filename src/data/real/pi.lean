@@ -280,17 +280,6 @@ end
 
 open finset interval_integral
 
-lemma integral_sin_pow_antimono (n : ℕ) :
-  ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) ≤ ∫ (x : ℝ) in 0..π, sin x ^ n :=
-begin
-  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
-  { exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π },
-  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
-  refine pow_le_pow_of_le_one _ (sin_le_one x) (nat.le_add_right n 1),
-  rw interval_of_le pi_pos.le at hx,
-  exact sin_nonneg_of_mem_Icc hx,
-end
-
 lemma integral_sin_pow_div_tendsto_one :
   tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
 begin

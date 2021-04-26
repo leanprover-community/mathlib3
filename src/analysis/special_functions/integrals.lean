@@ -12,8 +12,9 @@ This file contains proofs of the integrals of various specific functions. This i
 * Integrals of simple functions, such as `id`, `pow`, `exp`, `inv`
 * Integrals of some trigonometric functions, such as `sin`, `cos`, `1 / (1 + x^2)`
 * The integral of `cos x ^ 2 - sin x ^ 2`
-* The reduction formula for `∫ x in 0..π, sin x ^ n` for `n ≥ 2`
-* The computation of `∫ x in 0..π, sin x ^ n` as a product for even and odd `n`
+* The reduction of the integral of `sin x ^ n` for `n ≥ 2`
+* The computation of `∫ x in 0..π, sin x ^ n` as a product for even and odd `n` (used in proving the
+  Wallis product for pi)
 
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
 See `test/integration.lean` for specific examples.
@@ -240,7 +241,7 @@ end
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp only [one_div, integral_inv_one_add_sq]
 
-/-! ### Reduction of `∫ x in 0..π, sin x ^ n` -/
+/-! ### Integral of `sin x ^ n` -/
 
 lemma integral_sin_pow_aux :
   ∫ x in a..b, sin x ^ (n + 2) = sin a ^ (n + 1) * cos a - sin b ^ (n + 1) * cos b
@@ -263,7 +264,7 @@ begin
   all_goals { apply continuous.continuous_on, continuity },
 end
 
-/-- The reduction formula for the integral of `sin x ^ n` for all natural `n ≥ 2`. -/
+/-- The reduction formula for the integral of `sin x ^ n` for any natural `n ≥ 2`. -/
 lemma integral_sin_pow :
   ∫ x in a..b, sin x ^ (n + 2) = (sin a ^ (n + 1) * cos a - sin b ^ (n + 1) * cos b) / (n + 2)
     + (n + 1) / (n + 2) * ∫ x in a..b, sin x ^ n :=
@@ -303,4 +304,14 @@ begin
   refine mul_pos (by norm_num [pi_pos]) (prod_pos (λ n hn, div_pos _ _));
   norm_cast;
   linarith,
+end
+
+lemma integral_sin_pow_antimono :
+  ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
+begin
+  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
+  { exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π },
+  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
+  { refine pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc _) (sin_le_one x) (nat.le_add_right n 1),
+    rwa interval_of_le pi_pos.le at hx },
 end

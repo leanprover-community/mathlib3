@@ -15,19 +15,33 @@ variables {E : Type u₁} [add_comm_group E] [vector_space ℝ E]
 variables {ι : Type u₂}
 
 def convex_independent (p : ι → E) : Prop :=
-∀ (s : finset ι) (x : ι), p x ∈ convex_hull (p '' s) → x ∈ s
+∀ (s : set ι) (x : ι), p x ∈ convex_hull (p '' s) → x ∈ s
 
 lemma convex_independent_set_iff (A : set E) :
-  convex_independent (λ p, p : A → E) ↔ ∀ s : finset E, ↑s ⊆ A → A ∩ convex_hull ↑s ⊆ ↑s :=
+  convex_independent (λ p, p : A → E) ↔ ∀ s, s ⊆ A → A ∩ convex_hull s ⊆ s :=
 begin
   split,
   { rintro h s hs x ⟨hx₁, hx₂⟩,
-    simpa using h (s.attach.image (λ x, ⟨x.1, hs x.2⟩)) ⟨_, hx₁⟩ _,
-    convert hx₂,
-    ext y,
-    simpa [←and_assoc] using @hs y },
+    --simpa using h (s.attach.image (λ x, ⟨x.1, hs x.2⟩)) ⟨_, hx₁⟩ _,
+    --convert hx₂,
+    --ext y,
+    --simpa [←and_assoc] using @hs y
+    sorry
+    },
   { intros h s x hs,
     simpa using h (s.image coe) (by simp) ⟨x.2, by simpa using hs⟩ }
+end
+
+lemma convex_independent_set_iff' (A : set E) :
+  convex_independent (λ p, p : A → E) ↔ ∀ x ∈ A, x ∉ convex_hull (A \ {x}) :=
+begin
+  rw convex_independent_set_iff,
+  split,
+  { rintro hA x hxA hx,
+    exact (hA _ (set.diff_subset _ _) ⟨hxA, hx⟩).2 (set.mem_singleton _) },
+  rintro hA s hs x ⟨hxA, hxs⟩,
+  by_contra h,
+  exact hA _ hxA (convex_hull_mono (set.subset_diff_singleton hs h) hxs),
 end
 
 -- TODO (Bhavik): move these two, and use them to prove the old versions

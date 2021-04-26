@@ -237,21 +237,19 @@ begin
   exact λ hx, ⟨hx.1, convex_remove_of_extreme hA (extreme_point_iff_extreme_singleton.1 hx)⟩,
 end
 
-lemma extreme_points_convex_independent :
+lemma stuff (hBA : B ⊆ convex_hull A) (hCB : C ⊆ convex_hull B) (hC : finite C) :
+  B \ C ⊆ convex_hull (A \ C) :=
+begin
+  rintro x ⟨hxB, hxC⟩,
+  have := hBA hxB,
+  sorry
+end
+
+lemma extreme_points_convex_independent (hA : convex A) :
   convex_independent (λ p, p : A.extreme_points → E) :=
 begin
-  rw convex_independent_set_iff,
-  rintro X hX x hxA,
-  simp,
-  have : x ∈ (convex_hull (X : set E)).extreme_points,--true?
-  {
-    use hxA.2,
-    rintro x₁ x₂ hx₁ hx₂ hx,
-    refine hxA.1.2 x₁ x₂ _ _ hx,
-    sorry,
-    sorry,
-  },
-
+  rw convex_independent_set_iff',
+  rintro x hxA hx,
   sorry
 end
 
@@ -261,18 +259,22 @@ begin
   split,
   { rintro h,
     rw h,
-    exact extreme_points_convex_independent },
+    exact extreme_points_convex_independent (convex_convex_hull _) },
   rintro hA,
+  rw convex_independent_set_iff' at hA,
   ext x,
   split,
-  {
-    rintro hxA,
+  { rintro hxA,
     use subset_convex_hull _ hxA,
-    rintro x₁ x₂ hx₂ hx₂ hx,
-    rw convex_independent_set_iff at hA,
-    --have := hA {x₁, x₂},
+    by_contra h,
+    push_neg at h,
+    obtain ⟨x₁, x₂, hx₁, hx₂, hx⟩ := h,
+    apply hA _ hxA,
+    suffices h : x₁ ∈ convex_hull (A \ {x}) ∧ x₂ ∈ convex_hull (A \ {x}),
+    { exact convex_iff_segment_subset.1 (convex_convex_hull _) h.1 h.2 hx.1 },
     sorry
   },
+  rintro hxA,
   sorry
 end
 

@@ -22,7 +22,7 @@ namespace fintype
 
 -- `decidable_pred (@injective α β)` and various variations didn't give me an instance 🤷‍♂️
 noncomputable instance embedding {α β} [fintype α] [fintype β] : fintype (α ↪ β) :=
-fintype.of_equiv {f : α → β // function.injective f} (embedding.equiv_inj_subtype α β)
+fintype.of_equiv {f : α → β // function.injective f} (function.embedding.equiv_inj_subtype α β)
 
 private lemma card_inj_aux (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
@@ -139,7 +139,7 @@ end
   : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.equiv_fin α with eq,
-  rw fintype.card_congr (embedding.equiv eq (equiv.refl β)),
+  rw fintype.card_congr (function.embedding.equiv eq (equiv.refl β)),
   exact card_inj_aux _ _ h,
 end
 

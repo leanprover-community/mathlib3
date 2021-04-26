@@ -14,7 +14,8 @@ We define finitely generated monoids. See also `module.finite` for finitely-gene
 
 ## Main definition
 
-* `monoid.fg`, `add_monoid.fg` : A monoid is finitely generated.
+* `submonoid.fg S`, `add_submonoid.fg S` : A submonoid `S` is finitely generated.
+* `monoid.fg M`, `add_submonoid.fg M` : A typeclass indicating a type `M` is finitely generated as a monoid.
 
 -/
 

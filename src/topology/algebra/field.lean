@@ -11,9 +11,6 @@ A topological field is usually described via
 `{𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜] [has_continuous_inv 𝕜]`.
 
 The only construction in this file doesn't need to assume `[has_continuous_inv 𝕜]`.
-
-This file contains a construction that uses these typeclasses,
-and otherwise doesn't have a good home where its dependencies are available.
 -/
 
 variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]

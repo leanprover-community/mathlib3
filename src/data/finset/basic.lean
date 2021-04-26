@@ -256,6 +256,10 @@ and_congr val_le_iff $ not_congr val_le_iff
 theorem ssubset_iff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ⊂ s₂ ↔ ∃ x ∈ s₂, x ∉ s₁ :=
 set.ssubset_iff_of_subset h
 
+lemma exists_of_ssubset {s₁ s₂ : finset α} (h : s₁ ⊂ s₂) :
+  ∃ x ∈ s₂, x ∉ s₁ :=
+set.exists_of_ssubset h
+
 /-! ### Nonempty -/
 
 /-- The property `s.nonempty` expresses the fact that the finset `s` is not empty. It should be used
@@ -386,6 +390,26 @@ by rw [coe_singleton, set.singleton_subset_iff]
 @[simp] lemma singleton_subset_iff {s : finset α} {a : α} :
   {a} ⊆ s ↔ a ∈ s :=
 singleton_subset_set_iff
+
+@[simp] lemma subset_singleton_iff {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
+begin
+  split,
+  { intro hs,
+    apply or.imp_right _ s.eq_empty_or_nonempty,
+    rintro ⟨t, ht⟩,
+    apply subset.antisymm hs,
+    rwa [singleton_subset_iff, ←mem_singleton.1 (hs ht)] },
+  rintro (rfl | rfl),
+  { exact empty_subset _ },
+  exact subset.refl _,
+end
+
+@[simp] lemma ssubset_singleton_iff {s : finset α} {a : α} :
+  s ⊂ {a} ↔ s = ∅ :=
+by rw [←coe_ssubset, coe_singleton, set.ssubset_singleton_iff, coe_eq_empty]
+
+lemma eq_empty_of_ssubset_singleton {s : finset α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
+ssubset_singleton_iff.1 hs
 
 /-! ### cons -/
 
@@ -611,12 +635,17 @@ lemma coe_union (s₁ s₂ : finset α) : ↑(s₁ ∪ s₂) = (s₁ ∪ s₂ : 
 theorem union_subset {s₁ s₂ s₃ : finset α} (h₁ : s₁ ⊆ s₃) (h₂ : s₂ ⊆ s₃) : s₁ ∪ s₂ ⊆ s₃ :=
 val_le_iff.1 (ndunion_le.2 ⟨h₁, val_le_iff.2 h₂⟩)
 
+lemma union_subset_iff {s₁ s₂ s₃ : finset α} :
+  s₁ ∪ s₂ ⊆ s₃ ↔ s₁ ⊆ s₃ ∧ s₂ ⊆ s₃ :=
+⟨λ h, ⟨λ x hx, h (mem_union_left _ hx), λ x hx, h (mem_union_right _ hx)⟩, λ ⟨h₁, h₂⟩,
+  union_subset h₁ h₂⟩
+
 theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ x, mem_union_left _
 
 theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
-lemma union_subset_union {s1 t1 s2 t2 : finset α} (h1 : s1 ⊆ t1) (h2 : s2 ⊆ t2) :
-  s1 ∪ s2 ⊆ t1 ∪ t2 :=
+lemma union_subset_union {s₁ t₁ s₂ t₂ : finset α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) :
+  s₁ ∪ s₂ ⊆ t₁ ∪ t₂ :=
 by { intros x hx, rw finset.mem_union at hx ⊢, tauto }
 
 theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
@@ -757,6 +786,11 @@ theorem inter_subset_right (s₁ s₂ : finset α) : s₁ ∩ s₂ ⊆ s₂ := �
 
 theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s₃ → s₁ ⊆ s₂ ∩ s₃ :=
 by simp only [subset_iff, mem_inter] {contextual:=tt}; intros; split; trivial
+
+lemma subset_inter_iff {s₁ s₂ s₃ : finset α} :
+  s₁ ⊆ s₂ ∩ s₃ ↔ s₁ ⊆ s₂ ∧ s₁ ⊆ s₃ :=
+⟨λ h, ⟨λ x hx, mem_of_mem_inter_left (h hx), λ x hx, mem_of_mem_inter_right (h hx)⟩, λ ⟨h₁, h₂⟩,
+  subset_inter h₁ h₂⟩
 
 @[simp, norm_cast]
 lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (s₁ ∩ s₂ : set α) := set.ext $ λ _, mem_inter
@@ -2085,6 +2119,11 @@ end
 
 @[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
 
+@[simp]
+lemma attach_nonempty_iff (s : finset α) :
+  s.attach.nonempty ↔ s.nonempty :=
+by simp [←card_pos]
+
 end card
 end finset
 
@@ -2233,10 +2272,46 @@ lemma strong_induction_on_eq {p : finset α → Sort*} (s : finset α) (H : ∀ 
 by { dunfold strong_induction_on, rw strong_induction }
 
 @[elab_as_eliminator] lemma case_strong_induction_on [decidable_eq α] {p : finset α → Prop}
-  (s : finset α) (h₀ : p ∅) (h₁ : ∀ a s, a ∉ s → (∀t ⊆ s, p t) → p (insert a s)) : p s :=
+  (s : finset α) (h₀ : p ∅) (h₁ : ∀ a s, a ∉ s → (∀ t ⊆ s, p t) → p (insert a s)) : p s :=
 finset.strong_induction_on s $ λ s,
 finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
 λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)
+
+/-- Suppose that, given `s.card ≤ n` and objects defined on all strict supersets of card less than
+`n` of any finset, one knows how to define an object on `s`. Then one can inductively define an
+object on all finsets of card less than `n`, starting from finsets of card `n` and iterating. This
+can be used either to define data, or to prove properties. -/
+def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
+  t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
+  ∀ (s : finset α), s.card ≤ n → p s
+| s := H s (λ t ht h, have n - card t < n - card s, begin
+  exact (nat.sub_lt_sub_left_iff ht).2 (finset.card_lt_card h),
+end, strong_downward_induction t ht)
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : finset α), n - t.card)⟩]}
+
+lemma strong_downward_induction_eq {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
+  t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) (s : finset α) :
+  strong_downward_induction H s = H s (λ t ht hst, strong_downward_induction H t ht) :=
+by rw strong_downward_induction
+
+/-- Analogue of `strong_downward_induction` with order of arguments swapped. -/
+@[elab_as_eliminator] def strong_downward_induction_on {p : finset α → Sort*} {n : ℕ} :
+  ∀ (s : finset α), (∀ t₁, (∀ {t₂ : finset α}, t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁)
+  → s.card ≤ n → p s :=
+λ s H, strong_downward_induction H s
+
+lemma strong_downward_induction_on_eq {p : finset α → Sort*} (s : finset α) {n : ℕ} (H : ∀ t₁,
+  (∀ {t₂ : finset α}, t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
+  s.strong_downward_induction_on H = H s (λ t ht h, t.strong_downward_induction_on H ht) :=
+by { dunfold strong_downward_induction_on, rw strong_downward_induction }
+
+/-- Analogue of `strong_downward_induction_on` but over a set. -/
+lemma strong_downward_induction_on_set {p : finset α → Sort*} {A : set (finset α)}
+  {n : ℕ} (hA : ∀ {t : finset α}, t ∈ A → t.card ≤ n) {s : finset α} (hs : s ∈ A)
+  (h : ∀ {t₁}, t₁ ∈ A → (∀ {t₂}, t₂ ∈ A → t₁ ⊂ t₂ → p t₂) → p t₁) :
+  p s :=
+@strong_downward_induction_on _ (λ t₁, t₁ ∈ A → p t₁) n s (λ t₁ ih ht₁ ht₁A,
+    h ht₁A (λ t₂ ht₂A ht₁t₂, ih (hA ht₂A) ht₁t₂ ht₂A)) (hA hs) hs
 
 lemma card_congr {s : finset α} {t : finset β} (f : Π a ∈ s, β)
   (h₁ : ∀ a ha, f a ha ∈ t) (h₂ : ∀ a b ha hb, f a ha = f b hb → a = b)

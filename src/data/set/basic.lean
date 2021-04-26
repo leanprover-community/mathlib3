@@ -17,7 +17,7 @@ This file provides some basic definitions related to sets and functions not pres
 library, as well as extra lemmas for functions in the core library (empty set, univ, union,
 intersection, insert, singleton, set-theoretic difference, complement, and powerset).
 
-Note that a set is a term, not a type. There is a coersion from `set α` to `Type*` sending
+Note that a set is a term, not a type. There is a coercion from `set α` to `Type*` sending
 `s` to the corresponding subtype `↥s`.
 
 See also the file `set_theory/zfc.lean`, which contains an encoding of ZFC set theory in Lean.
@@ -751,14 +751,32 @@ theorem forall_not_of_sep_empty {s : set α} {p : α → Prop} (H : {x ∈ s | p
 
 @[simp] lemma sep_univ {α} {p : α → Prop} : {a ∈ (univ : set α) | p a} = {a | p a} := univ_inter _
 
-@[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
-iff.rfl
-
 @[simp] lemma sep_true : {a ∈ s | true} = s :=
 by { ext, simp }
 
 @[simp] lemma sep_false : {a ∈ s | false} = ∅ :=
 by { ext, simp }
+
+@[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
+iff.rfl
+
+lemma subset_singleton_iff' {s : set α} {x : α} : s ⊆ {x} ↔ s = ∅ ∨ s = {x} :=
+begin
+  obtain (rfl | hs) := s.eq_empty_or_nonempty,
+  use ⟨λ _, or.inl rfl, λ _, empty_subset _⟩,
+  simp [eq_singleton_iff_nonempty_unique_mem, hs, ne_empty_iff_nonempty.2 hs],
+end
+
+lemma ssubset_singleton_iff {s : set α} {x : α} : s ⊂ {x} ↔ s = ∅ :=
+begin
+  rw [ssubset_iff_subset_ne, subset_singleton_iff', or_and_distrib_right, and_not_self, or_false,
+    and_iff_left_iff_imp],
+  rintro rfl,
+  refine ne_comm.1 (ne_empty_iff_nonempty.2 (singleton_nonempty _)),
+end
+
+lemma eq_empty_of_ssubset_singleton {s : set α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
+ssubset_singleton_iff.1 hs
 
 /-! ### Lemmas about complement -/
 
@@ -924,6 +942,10 @@ show s \ t ≤ u ↔ s ≤ t ∪ u, from sdiff_le_iff
 
 lemma subset_diff_union (s t : set α) : s ⊆ (s \ t) ∪ t :=
 show s ≤ (s \ t) ∪ t, from le_sdiff_sup
+
+lemma diff_union_of_subset {s t : set α} (h : t ⊆ s) :
+  (s \ t) ∪ t = s :=
+subset.antisymm (union_subset (diff_subset _ _) h) (subset_diff_union _ _)
 
 @[simp] lemma diff_singleton_subset_iff {x : α} {s t : set α} : s \ {x} ⊆ t ↔ s ⊆ insert x t :=
 by { rw [←union_singleton, union_comm], apply diff_subset_iff }

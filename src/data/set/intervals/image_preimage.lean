@@ -30,6 +30,7 @@ The lemmas in this section state that addition maps intervals bijectively. The t
 TODO : move as much as possible in this file to the setting of this weaker typeclass.
 -/
 
+open has_exists_add_of_le
 variables {α : Type u} [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] (a b d : α)
 
 lemma Icc_add_bij : bij_on (+d) (Icc a b) (Icc (a + d) (b + d)) :=

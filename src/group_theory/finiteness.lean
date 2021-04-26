@@ -10,7 +10,8 @@ import group_theory.submonoid.operations
 /-!
 # Finitely generated monoid.
 
-We define finitely generated monoids. See also `submodule.fg` and `module.finite` for finitely-generated modules.
+We define finitely generated monoids. See also `submodule.fg` and `module.finite` for
+finitely-generated modules.
 
 ## Main definition
 

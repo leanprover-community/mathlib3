@@ -38,7 +38,10 @@ class monoid.fg : Prop := (out : (⊤ : submonoid M).fg)
 
 /-- An additive monoid is finitely generated if it is finitely generated as an additive submonoid of
 itself. -/
+
 class add_monoid.fg : Prop := (out : (⊤ : add_submonoid N).fg)
+
+attribute [to_additive] monoid.fg
 
 variables {M N}
 

@@ -150,30 +150,28 @@ instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p 
 instance t1_space.t0_space [t1_space α] : t0_space α :=
 ⟨λ x y h, ⟨{z | z ≠ y}, is_open_ne, or.inl ⟨h, not_not_intro rfl⟩⟩⟩
 
-lemma t1_characterisation : t1_space α ↔
+lemma t1_iff_exists_open : t1_space α ↔
   ∀ (x y), x ≠ y → (∃ (U : set α) (hU : is_open U), x ∈ U ∧ y ∉ U) :=
 begin
   split,
-  { introI t1,
-    intros x y hxy,
+  { introsI t1 x y hxy,
     exact ⟨{y}ᶜ, is_open_compl_iff.mpr (t1_space.t1 y),
             mem_compl_singleton_iff.mpr hxy,
             not_not.mpr rfl⟩},
   { intro h,
-    fconstructor,
+    constructor,
     intro x,
-    fconstructor,
+    rw ← is_open_compl_iff,
     have p : ⋃₀ {U : set α | (x ∉ U) ∧ (is_open U)} = {x}ᶜ,
     { apply subset.antisymm; intros t ht,
       { rcases ht with ⟨A, ⟨hxA, hA⟩, htA⟩,
         rw [mem_compl_eq, mem_singleton_iff],
-        intro htx,
-        subst htx,
+        rintro rfl,
         contradiction },
       { obtain ⟨U, hU, hh⟩ := h t x (mem_compl_singleton_iff.mp ht),
         exact ⟨U, ⟨hh.2, hU⟩, hh.1⟩}},
     rw ← p,
-    exact is_open_sUnion (λ B hB, hB.2)}
+    exact is_open_sUnion (λ B hB, hB.2) }
 end
 
 lemma compl_singleton_mem_nhds [t1_space α] {x y : α} (h : y ≠ x) : {x}ᶜ ∈ 𝓝 y :=
@@ -412,12 +410,12 @@ lemma tendsto_nhds_unique_of_eventually_eq [t2_space α] {f g : β → α} {l : 
   a = b :=
 tendsto_nhds_unique (ha.congr' hfg) hb
 
-/-- A T2,5 space, also known as a Uryson space, is a topological space
+/-- A T2,5 space, also known as a Urysohn space, is a topological space
   where for every pair `x ≠ y`, there are two open sets, with the intersection of clousures
   empty, one containing `x` and the other `y` . -/
 class t2_5_space (α : Type u) [topological_space α]: Prop :=
-(t2_5 : ∀ x y  (h : x ≠ y), ∃ (U V: set α), is_open U ∧  is_open V
-  ∧ (closure U) ∩ (closure V) = ∅ ∧ x ∈ U ∧ y ∈ V)
+(t2_5 : ∀ x y  (h : x ≠ y), ∃ (U V: set α), is_open U ∧  is_open V ∧
+                                            closure U ∩ closure V = ∅ ∧ x ∈ U ∧ y ∈ V)
 
 @[priority 100] -- see Note [lower instance priority]
 instance t2_5_space.t2_space [t2_5_space α] : t2_space α :=
@@ -740,7 +738,7 @@ class regular_space (α : Type u) [topological_space α] extends t0_space α : P
 @[priority 100] -- see Note [lower instance priority]
 instance regular_space.t1_space [regular_space α] : t1_space α :=
 begin
-  apply t1_characterisation.mpr,
+  rw t1_iff_exists_open,
   intros x y hxy,
   obtain ⟨U, hU, h⟩ := t0_space.t0 x y hxy,
   cases h,
@@ -790,8 +788,7 @@ eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, htu ⟨hvt hzv, hsu hzs⟩⟩⟩
 instance regular_space.t2_5_space [regular_space α] : t2_5_space α :=
 ⟨λ x y hxy,
 let ⟨U, V, hU, hV, hh_1, hh_2, hUV⟩ := t2_space.t2 x y hxy,
-  hxcV := not_not.mpr ((@interior_maximal α _inst_1 Vᶜ U
-    (subset_compl_iff_disjoint.mpr hUV) hU) x hh_1),
+  hxcV := not_not.mpr ((interior_maximal (subset_compl_iff_disjoint.mpr hUV) hU) hh_1),
   ⟨R, hR, hh⟩ := regular_space.regular is_closed_closure (by rwa closure_eq_compl_interior_compl),
   ⟨A, hA, hhh⟩ := mem_nhds_sets_iff.1 (filter.inf_principal_eq_bot.1 hh.2) in
 ⟨A, V, hhh.1, hV, subset_eq_empty ((closure V).inter_subset_inter_left

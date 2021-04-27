@@ -175,8 +175,7 @@ end
 
 @[priority 100] -- see Note [lower instance priority]
 instance separated_regular [separated_space α] : regular_space α :=
-{ t0 := (@t1_space.t0_space α to_topological_space (@t2_space.t1_space α to_topological_space
-        (separated_iff_t2.1 _inst_4))).t0,
+{ t0 := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space.t0 },
   regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
       from mem_nhds_sets hs.is_open_compl ha,

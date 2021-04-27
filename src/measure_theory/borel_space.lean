@@ -387,6 +387,11 @@ lemma continuous.measurable {f : α → γ} (hf : continuous f) :
 hf.borel_measurable.mono opens_measurable_space.borel_le
   (le_of_eq $ borel_space.measurable_eq)
 
+/-- A continuous function from an `opens_measurable_space` to a `borel_space`
+is ae-measurable. -/
+lemma continuous.ae_measurable {f : α → γ} (h : continuous f) (μ : measure α) : ae_measurable f μ :=
+h.measurable.ae_measurable
+
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :
   measurable f :=
 hf.continuous.measurable
@@ -1279,6 +1284,47 @@ lemma measurable_comp (L : E →L[𝕜] F) {φ : α → E} (φ_meas : measurable
 L.measurable.comp φ_meas
 
 end continuous_linear_map
+
+namespace continuous_linear_map
+
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+          {F : Type*} [normed_group F] [normed_space 𝕜 F]
+
+instance : measurable_space (E →L[𝕜] F) := borel _
+
+instance : borel_space (E →L[𝕜] F) := ⟨rfl⟩
+
+lemma measurable_apply [measurable_space F] [borel_space F] (x : E) :
+  measurable (λ f : E →L[𝕜] F, f x) :=
+(apply 𝕜 F x).continuous.measurable
+
+lemma measurable_apply' [measurable_space E] [opens_measurable_space E]
+  [measurable_space F] [borel_space F] :
+  measurable (λ (x : E) (f : E →L[𝕜] F), f x) :=
+measurable_pi_lambda _ $ λ f, f.measurable
+
+lemma measurable_coe [measurable_space F] [borel_space F] :
+  measurable (λ (f : E →L[𝕜] F) (x : E), f x) :=
+measurable_pi_lambda _ measurable_apply
+
+end continuous_linear_map
+
+section continuous_linear_map_nondiscrete_normed_field
+
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+
+lemma measurable.apply_continuous_linear_map  {φ : α → F →L[𝕜] E} (hφ : measurable φ) (v : F) :
+  measurable (λ a, φ a v) :=
+(continuous_linear_map.apply 𝕜 E v).measurable.comp hφ
+
+lemma ae_measurable.apply_continuous_linear_map {φ : α → F →L[𝕜] E} {μ : measure α}
+  (hφ : ae_measurable φ μ) (v : F) : ae_measurable (λ a, φ a v) μ :=
+(continuous_linear_map.apply 𝕜 E v).measurable.comp_ae_measurable hφ
+
+end continuous_linear_map_nondiscrete_normed_field
 
 section normed_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]

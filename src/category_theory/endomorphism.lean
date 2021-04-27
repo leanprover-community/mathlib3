@@ -71,8 +71,9 @@ by refine_struct
   inv := iso.symm,
   mul := flip iso.trans,
   div := _,
-  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ };
-intros; ext; try { refl };
+  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩,
+  gpow := @gpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
+intros; try { refl }; ext;
 simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
   has_inv.inv]
 

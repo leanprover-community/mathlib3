@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import group_theory.perm.cycles
 import combinatorics.partition
 import data.multiset.gcd
+import tactic.linarith
+import group_theory.perm.cycles
+import group_theory.sylow
 
 /-!
 # Cycle Types
@@ -223,6 +225,22 @@ begin
   exact one_lt_two,
 end
 
+lemma subgroup_eq_top_of_swap_mem [decidable_eq α] {H : subgroup (perm α)}
+  [d : decidable_pred (∈ H)] {τ : perm α} (h0 : (fintype.card α).prime)
+  (h1 : fintype.card α ∣ fintype.card H) (h2 : τ ∈ H) (h3 : is_swap τ) :
+  H = ⊤ :=
+begin
+  haveI : fact (fintype.card α).prime := ⟨h0⟩,
+  obtain ⟨σ, hσ⟩ := sylow.exists_prime_order_of_dvd_card (fintype.card α) h1,
+  have hσ1 : order_of (σ : perm α) = fintype.card α := (order_of_subgroup σ).trans hσ,
+  have hσ2 : is_cycle ↑σ := is_cycle_of_prime_order'' h0 hσ1,
+  have hσ3 : (σ : perm α).support = ⊤ :=
+    finset.eq_univ_of_card (σ : perm α).support ((order_of_is_cycle hσ2).symm.trans hσ1),
+  have hσ4 : subgroup.closure {↑σ, τ} = ⊤ := closure_prime_cycle_swap h0 hσ2 hσ3 h3,
+  rw [eq_top_iff, ←hσ4, subgroup.closure_le, set.insert_subset, set.singleton_subset_iff],
+  exact ⟨subtype.mem σ, h2⟩,
+end
+
 section partition
 
 variables [decidable_eq α]
@@ -240,5 +258,107 @@ def partition (σ : perm α) : partition (fintype.card α) :=
     nat.cast_id, mul_one, nat.add_sub_cancel' σ.support.card_le_univ] }
 
 end partition
+
+/-!
+### 3-cycles
+-/
+
+/-- A three-cycle is a cycle of length 3. -/
+def is_three_cycle [decidable_eq α] (σ : perm α) : Prop := σ.cycle_type = {3}
+
+namespace is_three_cycle
+
+variables [decidable_eq α] {σ : perm α}
+
+lemma cycle_type (h : is_three_cycle σ) : σ.cycle_type = {3} := h
+
+lemma card_support (h : is_three_cycle σ) : σ.support.card = 3 :=
+by rw [←sum_cycle_type, h.cycle_type, singleton_eq_singleton, multiset.sum_cons, sum_zero]
+
+lemma _root_.card_support_eq_three_iff : σ.support.card = 3 ↔ σ.is_three_cycle :=
+begin
+  refine ⟨λ h, _, is_three_cycle.card_support⟩,
+  by_cases h0 : σ.cycle_type = 0,
+  { rw [←sum_cycle_type, h0, sum_zero] at h,
+    exact (ne_of_lt zero_lt_three h).elim },
+  obtain ⟨n, hn⟩ := exists_mem_of_ne_zero h0,
+  by_cases h1 : σ.cycle_type.erase n = 0,
+  { rw [←sum_cycle_type, ←cons_erase hn, h1, multiset.sum_singleton] at h,
+    rw [is_three_cycle, ←cons_erase hn, h1, h, singleton_eq_singleton] },
+  obtain ⟨m, hm⟩ := exists_mem_of_ne_zero h1,
+  rw [←sum_cycle_type, ←cons_erase hn, ←cons_erase hm, multiset.sum_cons, multiset.sum_cons] at h,
+  linarith [two_le_of_mem_cycle_type hn, two_le_of_mem_cycle_type (mem_of_mem_erase hm)],
+end
+
+lemma is_cycle (h : is_three_cycle σ) : is_cycle σ :=
+by rw [←card_cycle_type_eq_one, h.cycle_type, singleton_eq_singleton, card_singleton]
+
+lemma sign (h : is_three_cycle σ) : sign σ = 1 :=
+begin
+  rw [sign_of_cycle_type, h.cycle_type],
+  refl,
+end
+
+lemma inv {f : perm α} (h : is_three_cycle f) : is_three_cycle (f⁻¹) :=
+by rwa [is_three_cycle, cycle_type_inv]
+
+@[simp] lemma inv_iff {f : perm α} : is_three_cycle (f⁻¹) ↔ is_three_cycle f :=
+⟨by { rw ← inv_inv f, apply inv }, inv⟩
+
+end is_three_cycle
+
+section
+variable [decidable_eq α]
+
+lemma is_three_cycle_swap_mul_swap_same
+  {a b c : α} (ab : a ≠ b) (ac : a ≠ c) (bc : b ≠ c) :
+  is_three_cycle (swap a b * swap a c) :=
+begin
+  suffices h : support (swap a b * swap a c) = {a, b, c},
+  { rw [←card_support_eq_three_iff, h],
+    simp [ab, ac, bc] },
+  apply le_antisymm ((support_mul_le _ _).trans (λ x, _)) (λ x hx, _),
+  { simp [ab, ac, bc] },
+  { simp only [finset.mem_insert, finset.mem_singleton] at hx,
+    rw mem_support,
+    simp only [perm.coe_mul, function.comp_app, ne.def],
+    obtain rfl | rfl | rfl := hx,
+    { rw [swap_apply_left, swap_apply_of_ne_of_ne ac.symm bc.symm],
+      exact ac.symm },
+    { rw [swap_apply_of_ne_of_ne ab.symm bc, swap_apply_right],
+      exact ab },
+    { rw [swap_apply_right, swap_apply_left],
+      exact bc } }
+end
+
+open subgroup
+
+lemma swap_mul_swap_same_mem_closure_three_cycles
+  {a b c : α} (ab : a ≠ b) (ac : a ≠ c) :
+  (swap a b * swap a c) ∈ closure {σ : perm α | is_three_cycle σ } :=
+begin
+  by_cases bc : b = c,
+  { subst bc,
+    simp [one_mem] },
+  exact subset_closure (is_three_cycle_swap_mul_swap_same ab ac bc)
+end
+
+lemma is_swap.mul_mem_closure_three_cycles {σ τ : perm α}
+  (hσ : is_swap σ) (hτ : is_swap τ) :
+  σ * τ ∈ closure {σ : perm α | is_three_cycle σ } :=
+begin
+  obtain ⟨a, b, ab, rfl⟩ := hσ,
+  obtain ⟨c, d, cd, rfl⟩ := hτ,
+  by_cases ac : a = c,
+  { subst ac,
+    exact swap_mul_swap_same_mem_closure_three_cycles ab cd },
+  have h' : swap a b * swap c d = swap a b * swap a c * (swap c a * swap c d),
+  { simp [swap_comm c a, mul_assoc] },
+  rw h',
+  exact mul_mem _ (swap_mul_swap_same_mem_closure_three_cycles ab ac)
+    (swap_mul_swap_same_mem_closure_three_cycles (ne.symm ac) cd),
+end
+
+end
 
 end equiv.perm

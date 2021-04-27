@@ -315,57 +315,49 @@ lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (lt_c
 theorem not_le : ∀ {x y : surreal}, ¬ le x y ↔ lt y x :=
 by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact not_le
 
-instance : preorder surreal :=
-{ le := le,
-  lt := lt,
-  le_refl := by rintro ⟨⟨x, ox⟩⟩; exact le_refl _,
-  le_trans := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩ ⟨⟨z, oz⟩⟩; exact le_trans,
-  lt_iff_le_not_le := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact lt_iff_le_not_le ox oy }
-
-instance : partial_order surreal :=
-{ le_antisymm := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩ h₁ h₂; exact quot.sound ⟨h₁, h₂⟩,
-  ..surreal.preorder }
-
-noncomputable instance : linear_order surreal :=
-{ le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
-    or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
-  decidable_le := classical.dec_rel _,
-  ..surreal.partial_order }
-
 /-- Addition on surreals is inherited from pre-game addition:
 the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add : surreal → surreal → surreal :=
 surreal.lift₂
   (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧)
-  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quot.sound (pgame.add_congr hx hy))
+  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))
 
-instance : has_add surreal := ⟨add⟩
+/-- Negation for surreal numbers is inherited from pre-game negation:
+the negation of `{L | R}` is `{-R | -L}`. -/
+def neg : surreal → surreal :=
+surreal.lift
+  (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧)
+  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
 
-theorem add_assoc : ∀ (x y z : surreal), (x + y) + z = x + (y + z) :=
-begin
-  rintros ⟨x⟩ ⟨y⟩ ⟨z⟩,
-  apply quot.sound,
-  exact add_assoc_equiv,
-end
+instance : has_le surreal   := ⟨le⟩
+instance : has_lt surreal   := ⟨lt⟩
+instance : has_add surreal  := ⟨add⟩
+instance : has_neg surreal  := ⟨neg⟩
 
-theorem zero_add : ∀ (x : surreal), 0 + x = x :=
-by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.zero_add_equiv _) }
-
-theorem add_zero : ∀ (x : surreal), x + 0 = x :=
-by { rintro ⟨x, ox⟩, exact quotient.sound (pgame.add_zero_equiv _) }
-
-instance : add_monoid surreal :=
-{ add       := surreal.add,
-  add_assoc := surreal.add_assoc,
-  zero      := 0,
-  zero_add  := surreal.zero_add,
-  add_zero  := surreal.add_zero }
+instance : ordered_add_comm_group surreal :=
+{ add               := (+),
+  add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
+  zero              := 0,
+  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) }, 
+  neg               := has_neg.neg, 
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv }, 
+  add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
+  le                := (≤),
+  lt                := (<),
+  le_refl           := by { rintros ⟨_⟩, refl },
+  le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact pgame.le_trans },
+  lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
+  le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
+  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
+  
+noncomputable instance : linear_ordered_add_comm_group surreal :=
+{ le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
+    or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
+  decidable_le := classical.dec_rel _,
+  ..surreal.ordered_add_comm_group }
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
-
--- TODO replace the `add_monoid` instance above with a stronger instance:
---   add_group, add_comm_semigroup, add_comm_group, ordered_add_comm_group,
--- as per the instances for `game`
 
 -- TODO define the inclusion of groups `surreal → game`
 

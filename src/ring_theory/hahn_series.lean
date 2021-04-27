@@ -937,8 +937,8 @@ begin
   ext g,
   rw [mul_coeff, sum_subset (add_antidiagonal_mono_right support_hsum_subset)],
   { rw hsum_coeff,
-    have h : (x • s).co_support g ⊆
-      (add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g).bUnion (λ ij, s.co_support ij.snd),
+    have h : (x • s).co_support g ⊆ (add_antidiagonal x.is_pwo_support s.is_pwo_Union_support
+      g).bUnion (λ ij, s.co_support ij.snd),
     { intros a ha,
       rw [mem_co_support, smul_apply, mul_coeff] at ha,
       obtain ⟨ij, h1, h2⟩ := exists_ne_zero_of_sum_ne_zero ha,

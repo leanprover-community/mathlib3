@@ -108,6 +108,7 @@ by rw [← npow_eq_pow, nat.add_comm, npow_add, npow_one, npow_eq_pow]
 theorem succ_nsmul (a : A) (n : ℕ) : (n+1) • a = a + n • a :=
 by rw [← nsmul_eq_smul, nat.add_comm, nsmul_add', nsmul_one', nsmul_eq_smul]
 
+/-- Note that most of the lemmas about powers of two refer to it as `sq`. -/
 theorem pow_two (a : M) : a^2 = a * a :=
 by rw [← npow_eq_pow, show 2 = 1 + 1, by refl, npow_add, npow_one]
 

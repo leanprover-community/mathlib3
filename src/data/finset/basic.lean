@@ -2238,6 +2238,42 @@ finset.strong_induction_on s $ λ s,
 finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
 λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)
 
+/-- Suppose that, given `s.card ≤ n` and objects defined on all strict supersets of card less than
+`n` of any finset, one knows how to define an object on `s`. Then one can inductively define an
+object on all finsets of card less than `n`, starting from finsets of card `n` and iterating. This
+can be used either to define data, or to prove properties. -/
+def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
+  t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
+  ∀ (s : finset α), s.card ≤ n → p s
+| s := H s (λ t ht h, have n - card t < n - card s, begin
+  exact (nat.sub_lt_sub_left_iff ht).2 (finset.card_lt_card h),
+end, strong_downward_induction t ht)
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : finset α), n - t.card)⟩]}
+
+lemma strong_downward_induction_eq {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
+  t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) (s : finset α) :
+  strong_downward_induction H s = H s (λ t ht hst, strong_downward_induction H t ht) :=
+by rw strong_downward_induction
+
+/-- Analogue of `strong_downward_induction` with order of arguments swapped. -/
+@[elab_as_eliminator] def strong_downward_induction_on {p : finset α → Sort*} {n : ℕ} :
+  ∀ (s : finset α), (∀ t₁, (∀ {t₂ : finset α}, t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁)
+  → s.card ≤ n → p s :=
+λ s H, strong_downward_induction H s
+
+lemma strong_downward_induction_on_eq {p : finset α → Sort*} (s : finset α) {n : ℕ} (H : ∀ t₁,
+  (∀ {t₂ : finset α}, t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
+  s.strong_downward_induction_on H = H s (λ t ht h, t.strong_downward_induction_on H ht) :=
+by { dunfold strong_downward_induction_on, rw strong_downward_induction }
+
+/-- Analogue of `strong_downward_induction_on` but over a set. -/
+lemma strong_downward_induction_on_set {p : finset α → Sort*} {A : set (finset α)}
+  {n : ℕ} (hA : ∀ {t : finset α}, t ∈ A → t.card ≤ n) {s : finset α} (hs : s ∈ A)
+  (h : ∀ {t₁}, t₁ ∈ A → (∀ {t₂}, t₂ ∈ A → t₁ ⊂ t₂ → p t₂) → p t₁) :
+  p s :=
+@strong_downward_induction_on _ (λ t₁, t₁ ∈ A → p t₁) n s (λ t₁ ih ht₁ ht₁A,
+    h ht₁A (λ t₂ ht₂A ht₁t₂, ih (hA ht₂A) ht₁t₂ ht₂A)) (hA hs) hs
+
 lemma card_congr {s : finset α} {t : finset β} (f : Π a ∈ s, β)
   (h₁ : ∀ a ha, f a ha ∈ t) (h₂ : ∀ a b ha hb, f a ha = f b hb → a = b)
   (h₃ : ∀ b ∈ t, ∃ a ha, f a ha = b) : s.card = t.card :=

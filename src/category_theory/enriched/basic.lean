@@ -68,6 +68,7 @@ The composition `V`-morphism for a `V`-enriched category.
 -/
 def e_comp (X Y Z : C) : (X ⟶[V] Y) ⊗ (Y ⟶[V] Z) ⟶ (X ⟶[V] Z) := enriched_category.comp X Y Z
 
+-- We don't just use `restate_axiom` here; that would leave `V` as an implicit argument.
 @[simp, reassoc]
 lemma e_id_comp (X Y : C) :
   (λ_ (X ⟶[V] Y)).inv ≫ (e_id V X ⊗ 𝟙 _) ≫ e_comp V X X Y = 𝟙 (X ⟶[V] Y) :=

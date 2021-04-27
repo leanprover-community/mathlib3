@@ -343,7 +343,7 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
-  decl   : fintype.card_inj
+  decl   : fintype.card_embedding
   links  :
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/93_birthday_problem.lean
   author : Eric Rodriguez

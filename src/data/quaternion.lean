@@ -134,6 +134,7 @@ by refine_struct
     mul := (*),
     one := 1,
     nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+    gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
     npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
   intros; try { refl }; ext; simp; ring_exp
 

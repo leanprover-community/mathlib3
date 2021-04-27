@@ -685,24 +685,19 @@ begin
   exact ⟨b, hb, ha⟩
 end
 
+@[to_additive] lemma prod_finprod_comm (s : finset α) (f : α → β → M)
+  (h : ∀ a ∈ s, (mul_support (f a)).finite) :
+  ∏ a in s, ∏ᶠ b : β, f a b = ∏ᶠ b : β, ∏ a in s, f a b :=
+(finprod_prod_comm s (λ b a, f a b) h).symm
+
 lemma mul_finsum {R : Type*} [semiring R] (f : α → R) (r : R)
   (h : (function.support f).finite) :
   r * ∑ᶠ a : α, f a = ∑ᶠ a : α, r * f a :=
-begin
-  rw [finsum_eq_sum f h, finset.mul_sum, finsum_eq_sum_of_support_subset],
-  rw [h.coe_to_finset, function.support_subset_iff'],
-  intros x hx,
-  rw [not_not.1 hx, mul_zero],
-end
+(add_monoid_hom.mul_left r).map_finsum h
 
 lemma finsum_mul {R : Type*} [semiring R] (f : α → R) (r : R)
   (h : (function.support f).finite) :
   (∑ᶠ a : α, f a) * r = ∑ᶠ a : α, f a * r :=
-begin
-  rw [finsum_eq_sum f h, finset.sum_mul, finsum_eq_sum_of_support_subset],
-  rw [h.coe_to_finset, function.support_subset_iff'],
-  intros x hx,
-  rw [not_not.1 hx, zero_mul],
-end
+(add_monoid_hom.mul_right r).map_finsum h
 
 end type

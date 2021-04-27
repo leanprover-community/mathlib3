@@ -781,7 +781,7 @@ instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w - y` has the same moves as `x - z`. -/
-theorem sub_congr_relabelling {w x y z : pgame}
+def sub_congr_relabelling {w x y z : pgame}
   (h₁ : w.relabelling x) (h₂ : y.relabelling z) : (w - y).relabelling (x - z) :=
 add_congr_relabelling h₁ (neg_congr_relabelling h₂)
 

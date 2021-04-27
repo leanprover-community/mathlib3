@@ -119,7 +119,7 @@ by {cases x, cases y, refl}
 /-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
 and `c` has the same moves as `z`, then `a + b - c` has the same moves as `x + y - z`.
 This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-lemma add_sub_relabelling {a b c x y z : pgame}
+def add_sub_relabelling {a b c x y z : pgame}
   (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
   (a + b - c).relabelling (x + y - z) :=
 sub_congr_relabelling (add_congr_relabelling h₁ h₂) h₃
@@ -127,14 +127,14 @@ sub_congr_relabelling (add_congr_relabelling h₁ h₂) h₃
 /-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
 and `c` has the same moves as `z`, then `a + b - c` has the same moves as `y + x - z`.
 This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-lemma add_comm_sub_relabelling {a b c x y z : pgame}
+def add_comm_sub_relabelling {a b c x y z : pgame}
   (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
   (a + b - c).relabelling (y + x - z) :=
 sub_congr_relabelling
   ((add_comm_relabelling a b).trans (add_congr_relabelling h₂ h₁)) h₃
 
 /-- `x * y` has exactly the same moves as `y * x`. -/
-theorem mul_comm_relabelling (x y : pgame) : (x * y).relabelling (y * x) :=
+def mul_comm_relabelling (x y : pgame.{u}) : (x * y).relabelling (y * x) :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
@@ -160,7 +160,7 @@ theorem mul_comm_equiv (x y : pgame) : (x * y).equiv (y * x) :=
 equiv_of_relabelling (mul_comm_relabelling x y)
 
 /-- `x * 0` has exactly the same moves as `0`. -/
-theorem mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
+def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
 | (mk xl xr xL xR) :=
 ⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
  by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
@@ -172,7 +172,7 @@ theorem mul_zero_equiv (x : pgame) : (x * 0).equiv 0 :=
 equiv_of_relabelling (mul_zero_relabelling x)
 
 /-- `0 * x` has exactly the same moves as `0`. -/
-theorem zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
+def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 | (mk xl xr xL xR) :=
 ⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
  by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),

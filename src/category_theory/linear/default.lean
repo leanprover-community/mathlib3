@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.preadditive
 import algebra.module.linear_map
 import algebra.invertible
+import linear_algebra.basic
 
 /-!
 # Linear categories
@@ -47,7 +48,7 @@ attribute [instance] linear.hom_module
 restate_axiom linear.smul_comp'
 restate_axiom linear.comp_smul'
 attribute [simp,reassoc] linear.smul_comp
-attribute [reassoc, simp] linear.comp_smul -- (the linter doesn't like `simp` on this lemma)
+attribute [reassoc, simp] linear.comp_smul -- (the linter doesn't like `simp` on the `_assoc` lemma)
 
 end category_theory
 
@@ -55,7 +56,10 @@ open category_theory
 
 namespace category_theory.linear
 
-variables {R : Type w} [ring R] {C : Type u} [category.{v} C] [preadditive C] [linear R C]
+variables {C : Type u} [category.{v} C] [preadditive C]
+
+section
+variables {R : Type w} [ring R] [linear R C]
 
 section induced_category
 universes u'
@@ -95,5 +99,19 @@ instance {X Y : C} (f : X ⟶ Y) [mono f] (r : R) [invertible r] : mono (r • f
   rw [comp_smul, comp_smul, ←smul_comp, ←smul_comp, cancel_mono] at H,
   simpa [smul_smul] using congr_arg (λ f, ⅟r • f) H,
 end⟩
+
+end
+
+section
+variables {S : Type w} [comm_ring S] [linear S C]
+
+/-- Composition as a bilinear map. -/
+@[simps]
+def comp (X Y Z : C) : (X ⟶ Y) →ₗ[S] ((Y ⟶ Z) →ₗ[S] (X ⟶ Z)) :=
+{ to_fun := λ f, left_comp S Z f,
+  map_add' := by { intros, ext, simp, },
+  map_smul' := by { intros, ext, simp, }, }
+
+end
 
 end category_theory.linear

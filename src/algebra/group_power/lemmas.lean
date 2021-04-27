@@ -187,7 +187,7 @@ end group
 section ordered_add_comm_group
 
 variables [ordered_add_comm_group A]
-/-! Lemmas about `gsmul` under ordering,  placed here (rather than in `algebra.group_power.basic`
+/-! Lemmas about `gsmul` under ordering,  placed here (rather than in `algebra.group_power.order`
 with their friends) because they require facts from `data.int.basic`-/
 open int
 

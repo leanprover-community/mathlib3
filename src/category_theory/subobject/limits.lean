@@ -189,8 +189,12 @@ lemma image_subobject_arrow' :
 by simp [image_subobject_iso]
 
 /-- A factorisation of `f : X ⟶ Y` through `image_subobject f`. -/
+
 def factor_thru_image_subobject : X ⟶ image_subobject f :=
 factor_thru_image f ≫ (image_subobject_iso f).inv
+
+instance [has_equalizers C] : epi (factor_thru_image_subobject f) :=
+by { dsimp [factor_thru_image_subobject], apply epi_comp,  }
 
 @[simp, reassoc]
 lemma image_subobject_arrow_comp :

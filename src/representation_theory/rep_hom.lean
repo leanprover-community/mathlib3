@@ -64,9 +64,6 @@ def to_add_monoid_hom (f : M →ᵣ[k, G] N) : M →+ N :=
 
 @[simp] lemma to_add_monoid_hom_coe (f : M →ᵣ[k, G] N) : ⇑f.to_add_monoid_hom = f := rfl
 
-@[simp] lemma coe_mk (f : M → N) (h₁ h₂ h₃) :
-  ((rep_hom.mk f h₁ h₂ h₃ : M →ᵣ[k, G] N) : M → N) = f := rfl
-
 /-- Identity map as a `rep_hom` -/
 def id : M →ᵣ[k, G] M :=
 ⟨id, λ _ _, rfl, λ _ _, rfl, λ _ _, rfl⟩
@@ -92,8 +89,14 @@ protected lemma congr_fun {f g :  M →ᵣ[k, G] N} (h : f = g) (x : M) : f x = 
 theorem ext_iff {f g :  M →ᵣ[k, G] N} : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
 
+@[simp] lemma coe_mk (f : M → N) (h₁ h₂ h₃) :
+  ((rep_hom.mk f h₁ h₂ h₃ : M →ᵣ[k, G] N) : M → N) = f := rfl
+
 @[simp] lemma mk_coe (f :  M →ᵣ[k, G] N) (h₁ h₂ h₃) :
   (rep_hom.mk f h₁ h₂ h₃ :  M →ᵣ[k, G] N) = f := ext $ λ _, rfl
+
+def mk' (f :  M →ₗ[k] N) (h :  ∀ (g : G) (m : M), f (g • m) = g • f m) : M →ᵣ[k, G] N :=
+{ commutes' := h, .. f }
 
 variables (f g : M →ᵣ[k, G] N)
 
@@ -109,5 +112,14 @@ f.to_distrib_mul_action_hom.map_smul' g x
 @[simp] lemma map_sum {t : finset ι} {g : ι → M} :
   f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
 f.to_add_monoid_hom.map_sum _ _
+
+/- Are these even needed? -/
+@[simp] lemma smul_sum {t : finset ι} {f : ι → M} (r : k) :
+  r • (∑ i in t, f i) = (∑ i in t, r • f i) :=
+finset.smul_sum
+
+@[simp] lemma gsmul_sum {t : finset ι} {f : ι → M} (g : G) :
+  g • (∑ i in t, f i) = (∑ i in t, g • f i) :=
+finset.smul_sum
 
 end rep_hom

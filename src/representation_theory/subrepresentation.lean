@@ -109,8 +109,6 @@ variables [module k M] [distrib_mul_action G M]
 variables {representation_M : representation k G M} (p : subrepresentation k G M)
 variables {r : k} {x y : M}
 
--- wait. !!! THIS NEEDS TO BE PATCHED UP BY COMBING THROUGH `algebra.module.submodule.lean`
-variables (p)
 @[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
 
 @[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'
@@ -132,6 +130,7 @@ lemma sum_gsmul_mem {t : finset ι} {f : ι → M} (g : ι → G)
     (hyp : ∀ i ∈ t, f i ∈ p) : (∑ i in t, g i • f i) ∈ p :=
 sum_mem p (λ i hi, gsmul_mem p (g i) (hyp i hi))
 
+variables {p}
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
@@ -142,7 +141,6 @@ protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
-variables {p}
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
 (set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl

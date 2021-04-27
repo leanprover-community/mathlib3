@@ -222,9 +222,9 @@ begin
   rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 
-theorem is_conj_of_cycle_type_eq {σ : perm α} :
-  ∀ {τ : perm α}, cycle_type σ = cycle_type τ → is_conj σ τ :=
+theorem is_conj_of_cycle_type_eq {σ τ : perm α} (h : cycle_type σ = cycle_type τ) : is_conj σ τ :=
 begin
+  revert τ,
   apply cycle_induction_on _ σ,
   { intros τ h,
     rw [cycle_type_one, eq_comm, cycle_type_eq_zero] at h,

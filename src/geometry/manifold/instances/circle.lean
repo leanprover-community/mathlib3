@@ -36,7 +36,7 @@ noncomputable theory
 open complex finite_dimensional metric
 open_locale manifold
 
-local attribute [instance] findim_real_complex_fact
+local attribute [instance] finrank_real_complex_fact
 
 /-- The unit circle in `ℂ`, here given the structure of a submonoid of `ℂ`. -/
 def circle : submonoid ℂ :=

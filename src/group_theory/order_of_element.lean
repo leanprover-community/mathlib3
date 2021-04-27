@@ -368,7 +368,7 @@ calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
        ... = x ^ (i % order_of x) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
-lemma gsmul_eq_mod_add_order_of : i •ℤ a = (i % add_order_of a) •ℤ a :=
+lemma gsmul_eq_mod_add_order_of : i • a = (i % add_order_of a) • a :=
 begin
   apply multiplicative.of_add.injective,
   simp [of_add_gsmul, gpow_eq_mod_order_of],
@@ -587,16 +587,19 @@ end finite_cancel_monoid
 section finite_group
 variables [group G] [add_group A]
 
-lemma exists_gpow_eq_one (x : G) : ∃ i ≠ 0, x ^ (i : ℤ) = 1 :=
+lemma exists_gpow_eq_one (x : G) : ∃ (i : ℤ) (H : i ≠ 0), x ^ (i : ℤ) = 1 :=
+--lemma exists_gpow_eq_one (a : α) : ∃ (i : ℤ) (H : i ≠ 0), a ^ (i : ℤ) = 1 :=
 begin
   rcases exists_pow_eq_one x with ⟨w, hw1, hw2⟩,
-  exact ⟨w, int.coe_nat_ne_zero.mpr (ne_of_gt hw1), (is_periodic_pt_mul_iff_pow_eq_one _).mp hw2⟩,
+  refine ⟨w, int.coe_nat_ne_zero.mpr (ne_of_gt hw1), _⟩,
+  rw gpow_coe_nat,
+  exact (is_periodic_pt_mul_iff_pow_eq_one _).mp hw2,
 end
 
-lemma exists_gsmul_eq_zero (a : A) : ∃ i ≠ 0, i •ℤ a = 0 :=
-exists_gpow_eq_one (multiplicative.of_add a)
+lemma exists_gsmul_eq_zero (a : A) : ∃ (i : ℤ) (H : i ≠ 0), i • a = 0 :=
+@exists_gpow_eq_one (multiplicative A) _ _ a
 
-attribute [to_additive exists_gsmul_eq_zero] exists_gpow_eq_one
+attribute [to_additive] exists_gpow_eq_one
 
 lemma mem_multiples_iff_mem_gmultiples :
   b ∈ add_submonoid.multiples a ↔ b ∈ add_subgroup.gmultiples a :=
@@ -662,10 +665,11 @@ fin_equiv_gpowers (multiplicative.of_add a)
 attribute [to_additive fin_equiv_gmultiples] fin_equiv_gpowers
 
 @[simp] lemma fin_equiv_gpowers_apply {n : fin (order_of x)} :
-  fin_equiv_gpowers x n = ⟨x ^ ↑n, n, rfl⟩ := rfl
+  fin_equiv_gpowers x n = ⟨x ^ (n : ℕ), n, gpow_coe_nat x n⟩ := rfl
 
 @[simp] lemma fin_equiv_gmultiples_apply {n : fin (add_order_of a)} :
-  fin_equiv_gmultiples a n = ⟨nsmul n a, n, rfl⟩ := rfl
+  fin_equiv_gmultiples a n = ⟨(n : ℕ) • a, n, gsmul_coe_nat a n⟩ :=
+fin_equiv_gpowers_apply
 
 attribute [to_additive fin_equiv_gmultiples_apply] fin_equiv_gpowers_apply
 
@@ -676,7 +680,7 @@ by { rw [fin_equiv_gpowers, equiv.symm_trans_apply, equiv.set.of_eq_symm_apply],
   exact fin_equiv_powers_symm_apply x n }
 
 @[simp] lemma fin_equiv_gmultiples_symm_apply (a : A) (n : ℕ)
-  {hn : ∃ (m : ℤ), m •ℤ a = n •ℤ a} :
+  {hn : ∃ (m : ℤ), m • a = n • a} :
   ((fin_equiv_gmultiples a).symm ⟨n • a, hn⟩) =
     ⟨n % add_order_of a, nat.mod_lt _ (add_order_of_pos a)⟩ :=
 fin_equiv_gpowers_symm_apply (multiplicative.of_add a) n
@@ -699,7 +703,7 @@ attribute [to_additive gmultiples_equiv_gmultiples] gpowers_equiv_gpowers
 
 @[simp]
 lemma gpowers_equiv_gpowers_apply (h : order_of x = order_of y)
-  (n : ℕ) : gpowers_equiv_gpowers h ⟨x ^ n, n, rfl⟩ = ⟨y ^ n, n, rfl⟩ :=
+  (n : ℕ) : gpowers_equiv_gpowers h ⟨x ^ n, n, gpow_coe_nat x n⟩ = ⟨y ^ n, n, gpow_coe_nat y n⟩ :=
 begin
   rw [gpowers_equiv_gpowers, equiv.trans_apply, equiv.trans_apply,
     fin_equiv_gpowers_symm_apply, ← equiv.eq_symm_apply, fin_equiv_gpowers_symm_apply],
@@ -707,8 +711,8 @@ begin
 end
 
 @[simp]
-lemma gmultiples_equiv_gmultiples_apply (h : add_order_of a = add_order_of b)
-  (n : ℕ) : gmultiples_equiv_gmultiples h ⟨n • a, n, rfl⟩ = ⟨n • b, n, rfl⟩ :=
+lemma gmultiples_equiv_gmultiples_apply (h : add_order_of a = add_order_of b) (n : ℕ) :
+  gmultiples_equiv_gmultiples h ⟨n • a, n, gsmul_coe_nat a n⟩ = ⟨n • b, n, gsmul_coe_nat b n⟩ :=
 gpowers_equiv_gpowers_apply h n
 
 attribute [to_additive gmultiples_equiv_gmultiples_apply] gpowers_equiv_gpowers_apply

@@ -386,9 +386,9 @@ section
 
 variables {α : Type*} {β : Type*}
 
-/-- A nonempty set in a semimodule is scaled by zero to the singleton
-containing 0 in the semimodule. -/
-lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β] {s : set β} (h : s.nonempty) :
+/-- A nonempty set in a module is scaled by zero to the singleton
+containing 0 in the module. -/
+lemma zero_smul_set [semiring α] [add_comm_monoid β] [module α β] {s : set β} (h : s.nonempty) :
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]
 

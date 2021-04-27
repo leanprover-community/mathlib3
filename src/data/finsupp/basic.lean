@@ -955,6 +955,12 @@ instance [add_group G] : add_group (α →₀ G) :=
   sub            := has_sub.sub,
   sub_eq_add_neg := λ x y, ext (λ i, sub_eq_add_neg _ _),
   add_left_neg   := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
+  gsmul := λ n v, v.map_range ((•) n) (gsmul_zero _),
+  gsmul_zero' := λ v, by { ext i, simp },
+  gsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_gsmul] },
+  gsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
+    gsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
+    add_gsmul, add_nsmul, one_gsmul, gsmul_coe_nat, one_nsmul] },
   .. finsupp.add_monoid }
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
@@ -1664,17 +1670,17 @@ to_multiset.map_add m n
 
 lemma to_multiset_apply (f : α →₀ ℕ) : f.to_multiset = f.sum (λ a n, n • {a}) := rfl
 
+@[simp]
+lemma to_multiset_symm_apply (s : multiset α) (x : α) :
+  finsupp.to_multiset.symm s x = s.count x :=
+rfl
+
 @[simp] lemma to_multiset_single (a : α) (n : ℕ) : to_multiset (single a n) = n • {a} :=
 by rw [to_multiset_apply, sum_single_index]; apply zero_nsmul
 
 lemma to_multiset_sum {ι : Type*} {f : ι → α →₀ ℕ} (s : finset ι) :
   finsupp.to_multiset (∑ i in s, f i) = ∑ i in s, finsupp.to_multiset (f i) :=
-begin
-  apply finset.induction_on s,
-  { simp },
-  { intros i s hi,
-    simp [hi] }
-end
+add_equiv.map_sum _ _ _
 
 lemma to_multiset_sum_single {ι : Type*} (s : finset ι) (n : ℕ) :
   finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=

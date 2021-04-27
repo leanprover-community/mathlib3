@@ -204,7 +204,7 @@ lemma sum_divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0)
 by rw [finset.sum_eq_multiset_sum, divisors_filter_squarefree h0, multiset.map_map,
     finset.sum_eq_multiset_sum]
 
-lemma sq_mul_squarefree {n : ℕ} (hn : 0 < n) :
+lemma sq_mul_squarefree_of_pos {n : ℕ} (hn : 0 < n) :
   ∃ a b : ℕ, 0 < a ∧ 0 < b ∧ b ^ 2 * a = n ∧ squarefree a :=
 begin
   let S := {s ∈ finset.range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2},
@@ -231,12 +231,21 @@ begin
     rw mul_pow },
 end
 
-lemma sq_mul_squarefree' {n : ℕ} (h : 0 < n) :
+lemma sq_mul_squarefree_of_pos' {n : ℕ} (h : 0 < n) :
   ∃ a b : ℕ, (b + 1) ^ 2 * (a + 1) = n ∧ squarefree (a + 1) :=
 begin
-  obtain ⟨a₁, b₁, ha₁, hb₁, hab₁, hab₂⟩ := sq_mul_squarefree h,
+  obtain ⟨a₁, b₁, ha₁, hb₁, hab₁, hab₂⟩ := sq_mul_squarefree_of_pos h,
   refine ⟨a₁.pred, b₁.pred, _, _⟩;
   simpa only [add_one, succ_pred_eq_of_pos, ha₁, hb₁],
+end
+
+lemma sq_mul_squarefree (n : ℕ) :
+  ∃ a b : ℕ, b ^ 2 * a = n ∧ squarefree a :=
+begin
+  cases n,
+  { exact ⟨1, 0, (by simp), squarefree_one⟩ },
+  { obtain ⟨a, b, -, -, h₁, h₂⟩ := sq_mul_squarefree_of_pos (succ_pos n),
+    exact ⟨a, b, h₁, h₂⟩ },
 end
 
 end nat

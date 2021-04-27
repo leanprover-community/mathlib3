@@ -140,16 +140,16 @@ set.ext $ λ z,
 lemma open_segment_same (x : E) :
   open_segment x x = {x} :=
 set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
-  by simpa only [(add_smul _ _ _).symm, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
+  by simpa only [← add_smul, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
   λ h, mem_singleton_iff.1 h ▸ ⟨1/2, 1/2, one_half_pos, one_half_pos, add_halves 1,
-    by rw [←add_smul, add_halves _, one_smul]⟩⟩
+    by rw [←add_smul, add_halves, one_smul]⟩⟩
 
 lemma left_mem_open_segment_iff (x y : E) :
   x ∈ open_segment x y ↔ x = y :=
 begin
   split,
   { rintro ⟨a, b, ha, hb, hab, hx⟩,
-    refine smul_injective (ne_of_gt hb) ((add_right_inj (a • x)).1 _),
+    refine smul_injective hb.ne' ((add_right_inj (a • x)).1 _),
     rw [hx, ←add_smul, hab, one_smul] },
   rintro rfl,
   rw open_segment_same x,
@@ -158,10 +158,7 @@ end
 
 lemma right_mem_open_segment_iff (x y : E) :
   y ∈ open_segment x y ↔ x = y :=
-begin
-  rw [open_segment_symm, left_mem_open_segment_iff],
-  exact ⟨eq.symm, eq.symm⟩,
-end
+by rw [open_segment_symm, left_mem_open_segment_iff, eq_comm]
 
 lemma open_segment_eq_image (x y : E) :
   open_segment x y = (λ (θ : ℝ), (1 - θ) • x + θ • y) '' (Ioo 0 1 : set ℝ) :=
@@ -191,9 +188,9 @@ lemma open_segment_eq_Ioo' {a b : ℝ} (hab : a ≠ b) :
   open_segment a b = Ioo (min a b) (max a b) :=
 begin
   cases le_total a b,
-  { rw open_segment_eq_Ioo (lt_of_le_of_ne h hab),
+  { rw open_segment_eq_Ioo (h.lt_of_ne hab),
     simp * },
-  rw [open_segment_symm, open_segment_eq_Ioo (lt_of_le_of_ne h hab.symm)],
+  rw [open_segment_symm, open_segment_eq_Ioo (h.lt_of_ne hab.symm)],
   simp *,
 end
 

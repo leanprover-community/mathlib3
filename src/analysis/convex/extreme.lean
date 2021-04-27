@@ -181,10 +181,7 @@ end
 
 lemma is_extreme.extreme_points_subset_extreme_points (hAB : is_extreme A B) :
   B.extreme_points ⊆ A.extreme_points :=
-begin
-  rw extreme_points_eq hAB,
-  exact inter_subset_right _ _,
-end
+by simp only [hAB.extreme_points_eq, inter_subset_right]
 
 lemma convex_remove_iff_extreme_point (hA : convex A) :
   x ∈ A ∧ convex (A \ {x}) ↔ x ∈ A.extreme_points :=

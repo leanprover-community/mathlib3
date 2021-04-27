@@ -518,7 +518,7 @@ by { convert image_mul_right_Icc hbc ha using 1; simp only [mul_comm _ a] }
 
 lemma image_mul_right_Ioo' (a b : k) {c : k} (h : 0 < c) :
   (λ x, x * c) '' Ioo a b = Ioo (a * c) (b * c) :=
-((units.mk0 c (ne_of_gt h)).mul_right.image_eq_preimage _).trans (by simp [h, division_def])
+((units.mk0 c h.ne').mul_right.image_eq_preimage _).trans (by simp [h, division_def])
 
 lemma image_mul_right_Ioo {a b c : k} (hab : a ≤ b) (hc : 0 < c) :
   (λ x, x * c) '' Ioo a b = Ioo (a * c) (b * c) :=

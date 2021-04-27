@@ -129,7 +129,26 @@ def open_segment (x y : E) :
   set E :=
 {z : E | ∃ (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1), a • x + b • y = z}
 
-local notation `]`x `, ` y `[` := open_segment x y
+lemma open_segment_subset_segment (x y : E) :
+  open_segment x y ⊆ [x, y] :=
+λ z ⟨a, b, ha, hb, hab, hz⟩, ⟨a, b, ha.le, hb.le, hab, hz⟩
+
+lemma mem_open_segment_of_ne_left_right {x y z : E} (hx : x ≠ z) (hy : y ≠ z) (hz : z ∈ [x, y]) :
+  z ∈ open_segment x y :=
+begin
+  obtain ⟨a, b, ha, hb, hab, hz⟩ := hz,
+  by_cases ha' : a = 0,
+  { rw [ha', zero_add] at hab,
+    rw [ha', hab, zero_smul, one_smul, zero_add] at hz,
+    exfalso,
+    exact hy hz },
+  by_cases hb' : b = 0,
+  { rw [hb', add_zero] at hab,
+    rw [hb', hab, zero_smul, one_smul, add_zero] at hz,
+    exfalso,
+    exact hx hz },
+  exact ⟨a, b, ha.lt_of_ne (ne.symm ha'), hb.lt_of_ne (ne.symm hb'), hab, hz⟩,
+end
 
 lemma open_segment_symm (x y : E) :
   open_segment x y = open_segment y x :=
@@ -144,7 +163,7 @@ set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   λ h, mem_singleton_iff.1 h ▸ ⟨1/2, 1/2, one_half_pos, one_half_pos, add_halves 1,
     by rw [←add_smul, add_halves, one_smul]⟩⟩
 
-lemma left_mem_open_segment_iff (x y : E) :
+lemma left_mem_open_segment_iff {x y : E} :
   x ∈ open_segment x y ↔ x = y :=
 begin
   split,
@@ -156,7 +175,7 @@ begin
   exact mem_singleton _,
 end
 
-lemma right_mem_open_segment_iff (x y : E) :
+lemma right_mem_open_segment_iff {x y : E} :
   y ∈ open_segment x y ↔ x = y :=
 by rw [open_segment_symm, left_mem_open_segment_iff, eq_comm]
 
@@ -243,8 +262,12 @@ lemma convex_iff_open_segment_subset :
 by simp only [convex_iff_forall_pos, open_segment_eq_image₂, subset_def, ball_image_iff,
   prod.forall, mem_set_of_eq, and_imp]
 
-lemma convex.segment_subset (h : convex s) {x y:E} (hx : x ∈ s) (hy : y ∈ s) : [x, y] ⊆ s :=
+lemma convex.segment_subset (h : convex s) {x y : E} (hx : x ∈ s) (hy : y ∈ s) : [x, y] ⊆ s :=
 convex_iff_segment_subset.1 h hx hy
+
+lemma convex.open_segment_subset (h : convex s) {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
+  open_segment x y ⊆ s :=
+convex_iff_open_segment_subset.1 h hx hy
 
 /-- Alternative definition of set convexity, in terms of pointwise set operations. -/
 lemma convex_iff_pointwise_add_subset:

@@ -131,7 +131,7 @@ lemma add_comm_sub_relabelling {a b c x y z : pgame}
   (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
   (a + b - c).relabelling (y + x - z) :=
 sub_congr_relabelling
-  (relabelling.trans (add_comm_relabelling a b) (add_congr_relabelling h₂ h₁)) h₃
+  ((add_comm_relabelling a b).trans (add_congr_relabelling h₂ h₁)) h₃
 
 /-- `x * y` has exactly the same moves as `y * x`. -/
 theorem mul_comm_relabelling (x y : pgame) : (x * y).relabelling (y * x) :=

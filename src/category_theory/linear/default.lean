@@ -47,8 +47,7 @@ attribute [instance] linear.hom_module
 restate_axiom linear.smul_comp'
 restate_axiom linear.comp_smul'
 attribute [simp,reassoc] linear.smul_comp
-attribute [reassoc] linear.comp_smul -- (the linter doesn't like `simp` on this lemma)
-attribute [simp] linear.comp_smul
+attribute [reassoc, simp] linear.comp_smul -- (the linter doesn't like `simp` on this lemma)
 
 end category_theory
 

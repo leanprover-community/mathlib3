@@ -295,10 +295,10 @@ by simp only [restrict_comp, restrict_surjective]
 variables {p q}
 
 lemma card_of_separable (hp : p.separable) :
-  fintype.card p.gal = findim F p.splitting_field :=
+  fintype.card p.gal = finrank F p.splitting_field :=
 begin
   haveI : is_galois F p.splitting_field := is_galois.of_separable_splitting_field hp,
-  exact is_galois.card_aut_eq_findim F p.splitting_field,
+  exact is_galois.card_aut_eq_finrank F p.splitting_field,
 end
 
 lemma prime_degree_dvd_card [char_zero F] (p_irr : irreducible p) (p_deg : p.nat_degree.prime) :
@@ -311,10 +311,10 @@ begin
     (splitting_field.splits p) hp,
   have hα : is_integral F α :=
     (is_algebraic_iff_is_integral F).mp (algebra.is_algebraic_of_finite α),
-  use finite_dimensional.findim F⟮α⟯ p.splitting_field,
+  use finite_dimensional.finrank F⟮α⟯ p.splitting_field,
   suffices : (minpoly F α).nat_degree = p.nat_degree,
-  { rw [←finite_dimensional.findim_mul_findim F F⟮α⟯ p.splitting_field,
-        intermediate_field.adjoin.findim hα, this] },
+  { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,
+        intermediate_field.adjoin.finrank hα, this] },
   suffices : minpoly F α ∣ p,
   { have key := dvd_symm_of_irreducible (minpoly.irreducible hα) p_irr this,
     apply le_antisymm,

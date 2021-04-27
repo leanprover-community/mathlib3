@@ -86,10 +86,10 @@ namespace algebra
 
 variables {R : Type u} {S : Type v} {A : Type w} {B : Type*}
 
-/-- Let `R` be a commutative semiring, let `A` be a semiring with a `semimodule R` structure.
+/-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • 1) * x = x * (r • 1) = r • x` for all `r : R` and `x : A`, then `A` is an `algebra`
 over `R`. -/
-def of_semimodule' [comm_semiring R] [semiring A] [semimodule R A]
+def of_module' [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x : A), (r • 1) * x = r • x)
   (h₂ : ∀ (r : R) (x : A), x * (r • 1) = r • x) : algebra R A :=
 { to_fun := λ r, r • 1,
@@ -100,13 +100,13 @@ def of_semimodule' [comm_semiring R] [semiring A] [semimodule R A]
   commutes' := λ r x, by simp only [h₁, h₂],
   smul_def' := λ r x, by simp only [h₁] }
 
-/-- Let `R` be a commutative semiring, let `A` be a semiring with a `semimodule R` structure.
+/-- Let `R` be a commutative semiring, let `A` be a semiring with a `module R` structure.
 If `(r • x) * y = x * (r • y) = r • (x * y)` for all `r : R` and `x y : A`, then `A`
 is an `algebra` over `R`. -/
-def of_semimodule [comm_semiring R] [semiring A] [semimodule R A]
+def of_module [comm_semiring R] [semiring A] [module R A]
   (h₁ : ∀ (r : R) (x y : A), (r • x) * y = r • (x * y))
   (h₂ : ∀ (r : R) (x y : A), x * (r • y) = r • (x * y)) : algebra R A :=
-of_semimodule' (λ r x, by rw [h₁, one_mul]) (λ r x, by rw [h₂, mul_one])
+of_module' (λ r x, by rw [h₁, one_mul]) (λ r x, by rw [h₂, mul_one])
 
 section semiring
 
@@ -140,7 +140,7 @@ begin
 end
 
 @[priority 200] -- see Note [lower instance priority]
-instance to_semimodule : semimodule R A :=
+instance to_module : module R A :=
 { one_smul := by simp [smul_def''],
   mul_smul := by simp [smul_def'', mul_assoc],
   smul_add := by simp [smul_def'', mul_add],
@@ -228,7 +228,7 @@ variables (R A B)
 instance : algebra R (A × B) :=
 { commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
   smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
-  .. prod.semimodule,
+  .. prod.module,
   .. ring_hom.prod (algebra_map R A) (algebra_map R B) }
 
 variables {R A B}
@@ -308,7 +308,7 @@ variables (R)
 
 /-- A `semiring` that is an `algebra` over a commutative ring carries a natural `ring` structure. -/
 def semiring_to_ring [semiring A] [algebra R A] : ring A := {
-  ..semimodule.add_comm_monoid_to_add_comm_group R,
+  ..module.add_comm_monoid_to_add_comm_group R,
   ..(infer_instance : semiring A) }
 
 variables {R}
@@ -367,7 +367,7 @@ instance : algebra R Aᵒᵖ :=
 end opposite
 
 namespace module
-variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [semimodule R M]
+variables (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M]
 
 instance endomorphism_algebra : algebra R (M →ₗ[R] M) :=
 { to_fun    := λ r, r • linear_map.id,
@@ -385,7 +385,7 @@ lemma algebra_map_End_eq_smul_id (a : R) :
   (algebra_map R (End R M)) a m = a • m := rfl
 
 @[simp] lemma ker_algebra_map_End (K : Type u) (V : Type v)
-  [field K] [add_comm_group V] [vector_space K V] (a : K) (ha : a ≠ 0) :
+  [field K] [add_comm_group V] [module K V] (a : K) (ha : a ≠ 0) :
   ((algebra_map K (End K V)) a).ker = ⊥ :=
 linear_map.ker_smul _ _ ha
 
@@ -1101,8 +1101,11 @@ section nat
 
 variables {R : Type*} [semiring R]
 
+-- Lower the priority so that `algebra.id` is picked most of the time when working with
+-- `ℕ`-algebras. This is only an issue since `algebra.id` and `algebra_nat` are not yet defeq.
+-- TODO: fix this by adding an `of_nat` field to semirings.
 /-- Semiring ⥤ ℕ-Alg -/
-instance algebra_nat : algebra ℕ R :=
+@[priority 99] instance algebra_nat : algebra ℕ R :=
 { commutes' := nat.cast_commute,
   smul_def' := λ _ _, nsmul_eq_mul _ _,
   to_ring_hom := nat.cast_ring_hom R }
@@ -1223,9 +1226,9 @@ by { ext, simp only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
 @[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
 by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]
 
-instance linear_map.semimodule' (R : Type u) [comm_semiring R]
-  (M : Type v) [add_comm_monoid M] [semimodule R M]
-  (S : Type w) [comm_semiring S] [algebra R S] : semimodule S (M →ₗ[R] S) :=
+instance linear_map.module' (R : Type u) [comm_semiring R]
+  (M : Type v) [add_comm_monoid M] [module R M]
+  (S : Type w) [comm_semiring S] [algebra R S] : module S (M →ₗ[R] S) :=
 { smul := λ s f, linear_map.llcomp _ _ _ _ (algebra.lmul R S s) f,
   one_smul := λ f, linear_map.ext $ λ x, one_mul _,
   mul_smul := λ s₁ s₂ f, linear_map.ext $ λ x, mul_assoc _ _ _,
@@ -1265,8 +1268,11 @@ section int
 
 variables (R : Type*) [ring R]
 
+-- Lower the priority so that `algebra.id` is picked most of the time when working with
+-- `ℤ`-algebras. This is only an issue since `algebra.id ℤ` and `algebra_int ℤ` are not yet defeq.
+-- TODO: fix this by adding an `of_int` field to rings.
 /-- Ring ⥤ ℤ-Alg -/
-instance algebra_int : algebra ℤ R :=
+@[priority 99] instance algebra_int : algebra ℤ R :=
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, gsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
@@ -1319,8 +1325,8 @@ section is_scalar_tower
 
 variables {R : Type*} [comm_semiring R]
 variables (A : Type*) [semiring A] [algebra R A]
-variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M] [is_scalar_tower R A M]
-variables {N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [is_scalar_tower R A N]
+variables {M : Type*} [add_comm_monoid M] [module A M] [module R M] [is_scalar_tower R A M]
+variables {N : Type*} [add_comm_monoid N] [module A N] [module R N] [is_scalar_tower R A N]
 
 lemma algebra_compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m :=
 by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
@@ -1356,9 +1362,9 @@ variables (R) {A M N}
   ((f : M →ₗ[R] N) : M → N) = f := rfl
 
 /-- `A`-linearly coerce a `R`-linear map from `M` to `A` to a function, given an algebra `A` over
-a commutative semiring `R` and `M` a semimodule over `R`. -/
+a commutative semiring `R` and `M` a module over `R`. -/
 def lto_fun (R : Type u) (M : Type v) (A : Type w)
-  [comm_semiring R] [add_comm_monoid M] [semimodule R M] [comm_ring A] [algebra R A] :
+  [comm_semiring R] [add_comm_monoid M] [module R M] [comm_ring A] [algebra R A] :
   (M →ₗ[R] A) →ₗ[A] (M → A) :=
 { to_fun := linear_map.to_fun,
   map_add' := λ f g, rfl,
@@ -1392,11 +1398,11 @@ instance [I : add_comm_monoid M] : add_comm_monoid (restrict_scalars R A M) := I
 
 instance [I : add_comm_group M] : add_comm_group (restrict_scalars R A M) := I
 
-instance restrict_scalars.module_orig [semiring A] [add_comm_monoid M] [I : semimodule A M] :
-  semimodule A (restrict_scalars R A M) := I
+instance restrict_scalars.module_orig [semiring A] [add_comm_monoid M] [I : module A M] :
+  module A (restrict_scalars R A M) := I
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule A M]
+variables [add_comm_monoid M] [module A M]
 
 /--
 When `M` is a module over a ring `A`, and `A` is an algebra over `R`, then `M` inherits a
@@ -1404,8 +1410,8 @@ module structure over `R`.
 
 The preferred way of setting this up is `[module R M] [module A M] [is_scalar_tower R A M]`.
 -/
-instance : semimodule R (restrict_scalars R A M) :=
-semimodule.comp_hom M (algebra_map R A)
+instance : module R (restrict_scalars R A M) :=
+module.comp_hom M (algebra_map R A)
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R A M) :
   c • x = ((algebra_map R A c) • x : M) := rfl
@@ -1414,8 +1420,8 @@ instance : is_scalar_tower R A (restrict_scalars R A M) :=
 ⟨λ r A M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
 instance submodule.restricted_module (V : submodule A M) :
-  semimodule R V :=
-restrict_scalars.semimodule R A V
+  module R V :=
+restrict_scalars.module R A V
 
 instance submodule.restricted_module_is_scalar_tower (V : submodule A M) :
   is_scalar_tower R A V :=
@@ -1426,12 +1432,12 @@ end type_synonym
 /-! TODO: The following lemmas no longer involve `algebra` at all, and could be moved closer
 to `algebra/module/submodule.lean`. Currently this is tricky because `ker`, `range`, `⊤`, and `⊥`
 are all defined in `linear_algebra/basic.lean`. -/
-section semimodule
-open semimodule
+section module
+open module
 
 variables (R S M N : Type*) [semiring R] [semiring S] [has_scalar R S]
-variables [add_comm_monoid M] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
-variables [add_comm_monoid N] [semimodule R N] [semimodule S N] [is_scalar_tower R S N]
+variables [add_comm_monoid M] [module R M] [module S M] [is_scalar_tower R S M]
+variables [add_comm_monoid N] [module R N] [module S N] [is_scalar_tower R S N]
 
 variables {S M N}
 
@@ -1481,7 +1487,7 @@ lemma linear_map.ker_restrict_scalars (f : M →ₗ[S] N) :
   (f.restrict_scalars R).ker = f.ker.restrict_scalars R :=
 rfl
 
-end semimodule
+end module
 
 end restrict_scalars
 
@@ -1489,7 +1495,7 @@ namespace submodule
 
 variables (R A M : Type*)
 variables [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid M]
-variables [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [module R M] [module A M] [is_scalar_tower R A M]
 
 /-- If `A` is an `R`-algebra such that the induced morhpsim `R →+* A` is surjective, then the
 `R`-module generated by a set `X` equals the `A`-module generated by `X`. -/

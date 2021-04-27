@@ -46,8 +46,7 @@ example : ∫ x in 0..2, -exp (-x) = exp (-2) - 1 := by norm_num
 example : ∫ x in 1..2, exp (5*x - 5) = 1/5 * (exp 5 - 1) := by norm_num
 example : ∫ x in 0..π, cos (x/2) = 2 := by norm_num
 example : ∫ x in 0..π/4, sin (2*x) = 1/2 := by norm_num [mul_div_comm, mul_one_div]
-example (ω φ : ℝ) : ω * ∫ θ in 0..π, sin (ω*θ + φ) = cos φ - cos (ω*π + φ) :=
-  by { rw ← smul_eq_mul, simp }
+example (ω φ : ℝ) : ω * ∫ θ in 0..π, sin (ω*θ + φ) = cos φ - cos (ω*π + φ) := by simp
 
 /- some examples may require a bit of algebraic massaging -/
 example {L : ℝ} (h : L ≠ 0) : ∫ x in 0..2/L*π, sin (L/2 * x) = 4 / L :=

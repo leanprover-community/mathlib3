@@ -253,12 +253,18 @@ def comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →�
 { map_lie' := λ x y, by { change f (g ⁅x, y⁆) = ⁅f (g x), f (g y)⁆, rw [map_lie, map_lie], },
   ..linear_map.comp f.to_linear_map g.to_linear_map }
 
-@[simp] lemma comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
+lemma comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
   f.comp g x = f (g x) := rfl
 
-@[norm_cast]
-lemma comp_coe (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
-  (f : L₂ → L₃) ∘ (g : L₁ → L₂) = f.comp g := rfl
+@[norm_cast, simp]
+lemma coe_comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
+  (f.comp g : L₁ → L₃) = f ∘ g :=
+rfl
+
+@[norm_cast, simp]
+lemma coe_linear_map_comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
+  (f.comp g : L₁ →ₗ[R] L₃) = (f : L₂ →ₗ[R] L₃).comp (g : L₁ →ₗ[R] L₂) :=
+rfl
 
 /-- The inverse of a bijective morphism is a morphism. -/
 def inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
@@ -445,11 +451,16 @@ def comp (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) : M →ₗ⁅R,L⁆
 { map_lie' := λ x m, by { change f (g ⁅x, m⁆) = ⁅x, f (g m)⁆, rw [map_lie, map_lie], },
   ..linear_map.comp f.to_linear_map g.to_linear_map }
 
-@[simp] lemma comp_apply (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) (m : M) :
+lemma comp_apply (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) (m : M) :
   f.comp g m = f (g m) := rfl
 
-@[norm_cast] lemma comp_coe (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) :
-  (f : N → P) ∘ (g : M → N) = f.comp g := rfl
+@[norm_cast, simp] lemma coe_comp (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) :
+  (f.comp g : M → P) = f ∘ g :=
+rfl
+
+@[norm_cast, simp] lemma coe_linear_map_comp (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) :
+  (f.comp g : M →ₗ[R] P) = (f : N →ₗ[R] P).comp (g : M →ₗ[R] N) :=
+rfl
 
 /-- The inverse of a bijective morphism of Lie modules is a morphism of Lie modules. -/
 def inverse (f : M →ₗ⁅R,L⁆ N) (g : N → M)

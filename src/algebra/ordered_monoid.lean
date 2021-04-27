@@ -129,11 +129,40 @@ class linear_ordered_add_comm_monoid_with_top (α : Type*)
   extends linear_ordered_add_comm_monoid α, order_top α :=
 (top_add' : ∀ x : α, ⊤ + x = ⊤)
 
+def with_top.has_add.add [has_add α] : (with_top α) → (with_top α) → (with_top α)
+| (some x) (some y) := some (x + y)
+| _ _ := none
+
+@[to_additive with_top.has_add.add]
+def with_top.has_mul.mul [has_mul α] : (with_top α) → (with_top α) → (with_top α)
+| (some x) (some y) := some (x * y)
+| _ _ := none
+
+
+@[to_additive]
+def has_mul.to_with_top [has_mul α] : has_mul (with_top α) :=
+{ mul := with_top.has_mul.mul }
+
+@[simp, to_additive]
+lemma top_mul_coe [has_mul α] (a : α) : (⊤ : with_top α) * a = ⊤ := rfl
+
+@[simp, to_additive]
+lemma coe_mul_top [has_mul α] (a : α) : (a : with_top α) * ⊤ = ⊤ := rfl
+
+@[simp, to_additive]
+lemma top_mul [has_mul α] (a : with_top α) : ⊤ * a = ⊤ :=
+by cases a; refl
+
+@[simp, to_additive]
+lemma mul_top [has_mul α] (a : with_top α) : a * ⊤ = ⊤ :=
+by cases a; refl
+
 section linear_ordered_add_comm_monoid_with_top
 variables [linear_ordered_add_comm_monoid_with_top α] {a b : α}
 
 @[simp]
-lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_top.top_add' a
+lemma top_add_1 (a : α) : (⊤ : with_top α) + a = ⊤ := rfl
+ --linear_ordered_add_comm_monoid_with_top.top_add' a
 
 @[simp]
 lemma add_top (a : α) : a + ⊤ = ⊤ :=
@@ -346,8 +375,7 @@ attribute [norm_cast] coe_one coe_eq_one coe_zero coe_eq_zero one_eq_coe zero_eq
 
 end has_one
 
-instance [has_add α] : has_add (with_top α) :=
-⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
+instance [has_add α] : has_add (with_top α) := ⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
 
 local attribute [reducible] with_zero
 

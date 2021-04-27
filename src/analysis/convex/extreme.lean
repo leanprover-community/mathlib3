@@ -31,13 +31,18 @@ ends are in B. -/
 def is_extreme (A B : set E) : Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
-@[refl]
-lemma is_extreme.refl (A : set E) :
+/-- A point x is an extreme point of a set A if x belongs to no open segment with ends in A, except
+for the obvious `open_segment x x`. -/
+def set.extreme_points (A : set E) : set E :=
+{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x}
+
+namespace is_extreme
+
+@[refl] lemma refl (A : set E) :
   is_extreme A A :=
 ⟨subset.refl _, λ x₁ x₂ hx₁A hx₂A x hxA hx, ⟨hx₁A, hx₂A⟩⟩
 
-@[trans]
-lemma is_extreme.trans (hAB : is_extreme A B) (hBC : is_extreme B C) :
+@[trans] lemma trans (hAB : is_extreme A B) (hBC : is_extreme B C) :
   is_extreme A C :=
 begin
   use subset.trans hBC.1 hAB.1,
@@ -46,24 +51,87 @@ begin
   exact hBC.2 x₁ x₂ hx₁B hx₂B x hxC hx,
 end
 
-lemma is_extreme.antisymm :
+lemma antisymm :
   anti_symmetric (is_extreme : set E → set E → Prop) :=
 λ A B hAB hBA, subset.antisymm hBA.1 hAB.1
 
 instance : is_partial_order (set E) is_extreme :=
-{ refl := is_extreme.refl,
-  trans := λ A B C, is_extreme.trans,
-  antisymm := is_extreme.antisymm }
+{ refl := refl,
+  trans := λ A B C, trans,
+  antisymm := antisymm }
 
-lemma is_extreme.convex_diff (hA : convex A) (hAB : is_extreme A B) :
+lemma convex_diff (hA : convex A) (hAB : is_extreme A B) :
   convex (A \ B) :=
 convex_iff_open_segment_subset.2 (λ x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, hx₂B⟩ x hx,
     ⟨hA.open_segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB.2 x₁ x₂ hx₁A hx₂A x hxB hx).1⟩)
 
-/-- A point x is an extreme point of a set A if x belongs to no open segment with ends in A, except
-for the obvious `open_segment x x`. -/
-def set.extreme_points (A : set E) : set E :=
-{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x}
+lemma inter (hAB : is_extreme A B) (hAC : is_extreme A C) :
+  is_extreme A (B ∩ C) :=
+begin
+  use subset.trans (inter_subset_left _ _) hAB.1,
+  rintro x₁ x₂ hx₁A hx₂A x ⟨hxB, hxC⟩ hx,
+  obtain ⟨hx₁B, hx₂B⟩ := hAB.2 x₁ x₂ hx₁A hx₂A x hxB hx,
+  obtain ⟨hx₁C, hx₂C⟩ := hAC.2 x₁ x₂ hx₁A hx₂A x hxC hx,
+  exact ⟨⟨hx₁B, hx₁C⟩, hx₂B, hx₂C⟩,
+end
+
+lemma Inter {ι : Type*} [nonempty ι] {F : ι → set E}
+  (hAF : ∀ i : ι, is_extreme A (F i)) :
+  is_extreme A (⋂ i : ι, F i) :=
+begin
+  obtain i := classical.arbitrary ι,
+  use Inter_subset_of_subset i (hAF i).1,
+  rintro x₁ x₂ hx₁A hx₂A x hxF hx,
+  rw mem_Inter at ⊢ hxF,
+  rw mem_Inter,
+  have h := λ i, (hAF i).2 x₁ x₂ hx₁A hx₂A x (hxF i) hx,
+  exact ⟨λ i, (h i).1, λ i, (h i).2⟩,
+end
+
+lemma bInter {F : set (set E)} (hF : F.nonempty)
+  (hAF : ∀ B ∈ F, is_extreme A B) :
+  is_extreme A (⋂ B ∈ F, B) :=
+begin
+  obtain ⟨B, hB⟩ := hF,
+  use subset.trans (bInter_subset_of_mem hB) (hAF B hB).1,
+  rintro x₁ x₂ hx₁A hx₂A x hxF hx,
+  rw mem_bInter_iff at ⊢ hxF,
+  rw mem_bInter_iff,
+  have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx,
+  exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
+end
+
+lemma sInter {F : set (set E)} (hF : F.nonempty)
+  (hAF : ∀ B ∈ F, is_extreme A B) :
+  is_extreme A (⋂₀ F) :=
+begin
+  obtain ⟨B, hB⟩ := hF,
+  use subset.trans (sInter_subset_of_mem hB) (hAF B hB).1,
+  rintro x₁ x₂ hx₁A hx₂A x hxF hx,
+  rw mem_sInter at ⊢ hxF,
+  rw mem_sInter,
+  have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx,
+  exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
+end
+
+lemma mono (hAC : is_extreme A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
+  is_extreme B C :=
+⟨hCB, λ x₁ x₂ hx₁B hx₂B x hxC hx, hAC.2 x₁ x₂ (hBA hx₁B) (hBA hx₂B) x hxC hx⟩
+
+lemma extreme_points_eq (hAB : is_extreme A B) :
+  B.extreme_points = B ∩ A.extreme_points :=
+begin
+  ext x,
+  exact ⟨λ hxB, ⟨hxB.1, extreme_point_iff_extreme_singleton.2 (hAB.trans
+  (extreme_point_iff_extreme_singleton.1 hxB))⟩, λ ⟨hxB, hxA⟩, ⟨hxB, λ x₁ x₂ hx₁B hx₂B hx,
+    hxA.2 x₁ x₂ (hAB.1 hx₁B) (hAB.1 hx₂B) hx⟩⟩,
+end
+
+lemma extreme_points_subset_extreme_points (hAB : is_extreme A B) :
+  B.extreme_points ⊆ A.extreme_points :=
+by simp only [hAB.extreme_points_eq, inter_subset_right]
+
+end is_extreme
 
 lemma extreme_point_def :
   x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x :=
@@ -104,87 +172,19 @@ end
 
 lemma extreme_points_subset : A.extreme_points ⊆ A := λ x hx, hx.1
 
-@[simp]
-lemma extreme_points_empty :
+@[simp] lemma extreme_points_empty :
   (∅ : set E).extreme_points = ∅ :=
 subset_empty_iff.1 extreme_points_subset
 
-@[simp]
-lemma extreme_points_singleton :
+@[simp] lemma extreme_points_singleton :
   ({x} : set E).extreme_points = {x} :=
 subset.antisymm extreme_points_subset $ singleton_subset_iff.2
   ⟨mem_singleton x, λ x₁ x₂ hx₁ hx₂ _, ⟨hx₁, hx₂⟩⟩
 
-lemma is_extreme.inter (hAB : is_extreme A B) (hAC : is_extreme A C) :
-  is_extreme A (B ∩ C) :=
+lemma convex.extreme_point_iff_convex_remove (hA : convex A) :
+  x ∈ A.extreme_points ↔ x ∈ A ∧ convex (A \ {x}) :=
 begin
-  use subset.trans (inter_subset_left _ _) hAB.1,
-  rintro x₁ x₂ hx₁A hx₂A x ⟨hxB, hxC⟩ hx,
-  obtain ⟨hx₁B, hx₂B⟩ := hAB.2 x₁ x₂ hx₁A hx₂A x hxB hx,
-  obtain ⟨hx₁C, hx₂C⟩ := hAC.2 x₁ x₂ hx₁A hx₂A x hxC hx,
-  exact ⟨⟨hx₁B, hx₁C⟩, hx₂B, hx₂C⟩,
-end
-
-lemma is_extreme.Inter {ι : Type*} [nonempty ι] {F : ι → set E}
-  (hAF : ∀ i : ι, is_extreme A (F i)) :
-  is_extreme A (⋂ i : ι, F i) :=
-begin
-  obtain i := classical.arbitrary ι,
-  use Inter_subset_of_subset i (hAF i).1,
-  rintro x₁ x₂ hx₁A hx₂A x hxF hx,
-  rw mem_Inter at ⊢ hxF,
-  rw mem_Inter,
-  have h := λ i, (hAF i).2 x₁ x₂ hx₁A hx₂A x (hxF i) hx,
-  exact ⟨λ i, (h i).1, λ i, (h i).2⟩,
-end
-
-lemma is_extreme.bInter {F : set (set E)} (hF : F.nonempty)
-  (hAF : ∀ B ∈ F, is_extreme A B) :
-  is_extreme A (⋂ B ∈ F, B) :=
-begin
-  obtain ⟨B, hB⟩ := hF,
-  use subset.trans (bInter_subset_of_mem hB) (hAF B hB).1,
-  rintro x₁ x₂ hx₁A hx₂A x hxF hx,
-  rw mem_bInter_iff at ⊢ hxF,
-  rw mem_bInter_iff,
-  have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx,
-  exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
-end
-
-lemma is_extreme.sInter {F : set (set E)} (hF : F.nonempty)
-  (hAF : ∀ B ∈ F, is_extreme A B) :
-  is_extreme A (⋂₀ F) :=
-begin
-  obtain ⟨B, hB⟩ := hF,
-  use subset.trans (sInter_subset_of_mem hB) (hAF B hB).1,
-  rintro x₁ x₂ hx₁A hx₂A x hxF hx,
-  rw mem_sInter at ⊢ hxF,
-  rw mem_sInter,
-  have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx,
-  exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
-end
-
-lemma is_extreme.mono (hAC : is_extreme A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
-  is_extreme B C :=
-⟨hCB, λ x₁ x₂ hx₁B hx₂B x hxC hx, hAC.2 x₁ x₂ (hBA hx₁B) (hBA hx₂B) x hxC hx⟩
-
-lemma is_extreme.extreme_points_eq (hAB : is_extreme A B) :
-  B.extreme_points = B ∩ A.extreme_points :=
-begin
-  ext x,
-  exact ⟨λ hxB, ⟨hxB.1, extreme_point_iff_extreme_singleton.2 (is_extreme.trans hAB
-  (extreme_point_iff_extreme_singleton.1 hxB))⟩, λ ⟨hxB, hxA⟩, ⟨hxB, λ x₁ x₂ hx₁B hx₂B hx,
-    hxA.2 x₁ x₂ (hAB.1 hx₁B) (hAB.1 hx₂B) hx⟩⟩,
-end
-
-lemma is_extreme.extreme_points_subset_extreme_points (hAB : is_extreme A B) :
-  B.extreme_points ⊆ A.extreme_points :=
-by simp only [hAB.extreme_points_eq, inter_subset_right]
-
-lemma convex.convex_remove_iff_extreme_point (hA : convex A) :
-  x ∈ A ∧ convex (A \ {x}) ↔ x ∈ A.extreme_points :=
-begin
-  refine ⟨_, λ hx, ⟨hx.1, (extreme_point_iff_extreme_singleton.1 hx).convex_diff hA⟩⟩,
+  use λ hx, ⟨hx.1, (extreme_point_iff_extreme_singleton.1 hx).convex_diff hA⟩,
   rintro ⟨hxA, hAx⟩,
   refine extreme_point_iff_forall_segment.2 ⟨hxA, λ x₁ x₂ hx₁ hx₂ hx, _⟩,
   rw convex_iff_segment_subset at hAx,
@@ -194,11 +194,18 @@ begin
     ⟨hx₂, λ hx₂, h.2 (mem_singleton_iff.2 hx₂)⟩ hx).2 rfl,
 end
 
-lemma convex_hull_extreme_points_subset :
+lemma convex.extreme_point_iff_mem_diff_convex_hull_remove (hA : convex A) :
+  x ∈ A.extreme_points ↔ x ∈ A \ convex_hull (A \ {x}) :=
+begin
+  rw [hA.extreme_point_iff_convex_remove, hA.convex_remove_iff_not_mem_convex_hull_remove,
+  mem_sdiff_iff],
+end
+
+lemma extreme_points_convex_hull_subset :
   (convex_hull A).extreme_points ⊆ A :=
 begin
   rintro x hx,
-  rw ←(convex_convex_hull _).convex_remove_iff_extreme_point at hx,
+  rw (convex_convex_hull _).extreme_point_iff_convex_remove at hx,
   by_contra,
   exact (convex_hull_min (subset_diff.2 ⟨subset_convex_hull _, disjoint_singleton_right.2 h⟩) hx.2
     hx.1).2 rfl,

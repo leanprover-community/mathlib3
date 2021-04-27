@@ -162,7 +162,7 @@ set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   λ h, mem_singleton_iff.1 h ▸ ⟨1/2, 1/2, one_half_pos, one_half_pos, add_halves 1,
     by rw [←add_smul, add_halves, one_smul]⟩⟩
 
-lemma left_mem_open_segment_iff {x y : E} :
+@[simp] lemma left_mem_open_segment_iff {x y : E} :
   x ∈ open_segment x y ↔ x = y :=
 begin
   split,
@@ -174,7 +174,7 @@ begin
   exact mem_singleton _,
 end
 
-lemma right_mem_open_segment_iff {x y : E} :
+@[simp] lemma right_mem_open_segment_iff {x y : E} :
   y ∈ open_segment x y ↔ x = y :=
 by rw [open_segment_symm, left_mem_open_segment_iff, eq_comm]
 
@@ -193,10 +193,10 @@ lemma open_segment_eq_image₂ (x y : E) :
   open_segment x y = (λ p:ℝ×ℝ, p.1 • x + p.2 • y) '' {p | 0 < p.1 ∧ 0 < p.2 ∧ p.1 + p.2 = 1} :=
 by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
 
-lemma open_segment_eq_Ioo {a b : ℝ} (h : a < b) :
+@[simp] lemma open_segment_eq_Ioo {a b : ℝ} (h : a < b) :
   open_segment a b = Ioo a b :=
 begin
-  rw [open_segment_eq_image'],
+  rw open_segment_eq_image',
   show (((+) a) ∘ (λ t, t * (b - a))) '' Ioo 0 1 = Ioo a b,
   rw [image_comp, image_mul_right_Ioo (@zero_le_one ℝ _) (sub_pos.2 h), image_const_add_Ioo],
   simp
@@ -1247,6 +1247,26 @@ end
 @[simp]
 lemma convex_hull_singleton {x : E} : convex_hull ({x} : set E) = {x} :=
 (convex_singleton x).convex_hull_eq
+
+lemma convex.convex_remove_iff_not_mem_convex_hull_remove (hA : convex A) :
+  convex (A \ {x}) ↔ x ∉ convex_hull (A \ {x}) :=
+begin
+  split,
+  { rintro hA hx,
+    rw hA.convex_hull_eq at hx,
+    exact hx.2 (mem_singleton _) },
+  rintro hx,
+  suffices h : A \ {x} = convex_hull (A \ {x}),
+  { rw h,
+    exact convex_convex_hull _},
+  refine subset.antisymm (subset_convex_hull _) _,
+  rintro y hy,
+  rw ←hA.convex_hull_eq,
+  use convex_hull_mono (diff_subset _ _) hy,
+  rintro (hyx : y = x),
+  rw hyx at hy,
+  exact hx hy,
+end
 
 lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map ℝ f) :
   f '' (convex_hull s) = convex_hull (f '' s) :=

@@ -494,16 +494,14 @@ by simpa only [mul_comm] using preimage_mul_const_Icc_of_neg a b h
 
 lemma image_mul_right_Icc' (a b : k) {c : k} (h : 0 < c) :
   (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
-begin
-  refine ((units.mk0 c (ne_of_gt h)).mul_right.image_eq_preimage _).trans _,
-  simp [h, division_def]
-end
+((units.mk0 c h.ne').mul_right.image_eq_preimage _).trans (by simp [h, division_def])
 
 lemma image_mul_right_Icc {a b c : k} (hab : a ≤ b) (hc : 0 ≤ c) :
   (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
 begin
   cases eq_or_lt_of_le hc,
   { subst c,
+    rw [mul_zero, mul_zero, mul_zero, (nonempty_Icc.2 hab).image_const],
     simp [(nonempty_Icc.2 hab).image_const] },
   exact image_mul_right_Icc' a b ‹0 < c›
 end
@@ -516,21 +514,13 @@ lemma image_mul_left_Icc {a b c : k} (ha : 0 ≤ a) (hbc : b ≤ c) :
   ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
 by { convert image_mul_right_Icc hbc ha using 1; simp only [mul_comm _ a] }
 
-lemma image_mul_right_Ioo' (a b : k) {c : k} (h : 0 < c) :
+lemma image_mul_right_Ioo (a b : k) {c : k} (h : 0 < c) :
   (λ x, x * c) '' Ioo a b = Ioo (a * c) (b * c) :=
 ((units.mk0 c h.ne').mul_right.image_eq_preimage _).trans (by simp [h, division_def])
 
-lemma image_mul_right_Ioo {a b c : k} (hab : a ≤ b) (hc : 0 < c) :
-  (λ x, x * c) '' Ioo a b = Ioo (a * c) (b * c) :=
-image_mul_right_Ioo' a b hc
-
-lemma image_mul_left_Ioo' {a : k} (h : 0 < a) (b c : k) :
+lemma image_mul_left_Ioo {a : k} (h : 0 < a) (b c : k) :
   ((*) a) '' Ioo b c = Ioo (a * b) (a * c) :=
 by { convert image_mul_right_Ioo' b c h using 1; simp only [mul_comm _ a] }
-
-lemma image_mul_left_Ioo {a b c : k} (ha : 0 < a) (hbc : b ≤ c) :
-  ((*) a) '' Ioo b c = Ioo (a * b) (a * c) :=
-by { convert image_mul_right_Ioo hbc ha using 1; simp only [mul_comm _ a] }
 
 /-- The image under `inv` of `Ioo 0 a` is `Ioi a⁻¹`. -/
 lemma image_inv_Ioo_0_left {a : k} (ha : 0 < a) : has_inv.inv '' Ioo 0 a = Ioi a⁻¹ :=

@@ -10,17 +10,15 @@ import data.finset
 import order.filter
 import topology.basic
 import algebra.big_operators.ring
-import data.real.nnreal
 import topology.instances.ennreal
 import tactic.ring_exp
 import algebra.squarefree
-import data.pnat.factors
 
 /-!
 # Divergence of the Prime Reciprocal Series
 This file proves Theorem 81 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 The theorem states that the sum of the reciprocals of all prime numbers diverges.
-The formalization follows the Erdős's proof by upper and lower estimates.
+The formalization follows Erdős's proof by upper and lower estimates.
 
 ## References
 https://en.wikipedia.org/wiki/Divergence_of_the_sum_of_the_reciprocals_of_the_primes
@@ -214,7 +212,7 @@ begin
     simp only [hM, finset.sep_def, finset.mem_filter, finset.mem_range] at hm,
     obtain ⟨hmx, hmp⟩ := hm,
     have h1' : ∃ (a b : ℕ), (a ∈ M₁ ∧ b ∈ M₂) ∧ f (a, b) = m,
-    { obtain ⟨a, b, hab₁, hab₂⟩ := sq_mul_squarefree' (zero_lt_succ m),
+    { obtain ⟨a, b, hab₁, hab₂⟩ := sq_mul_squarefree_of_pos' (zero_lt_succ m),
 
       have h11 : a ∈ M₁,
       { simp only [hM₁, finset.sep_def, finset.mem_filter, finset.mem_range],

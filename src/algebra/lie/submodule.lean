@@ -443,7 +443,7 @@ end lie_submodule
 
 namespace lie_ideal
 
-variables (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L) (J : lie_ideal R L')
+variables (f : L →ₗ⁅R⁆ L') (I I₂ : lie_ideal R L) (J : lie_ideal R L')
 
 @[simp] lemma top_coe_lie_subalgebra : ((⊤ : lie_ideal R L) : lie_subalgebra R L) = ⊤ := rfl
 
@@ -471,7 +471,7 @@ rfl
 
 lemma map_le : map f I ≤ J ↔ f '' I ⊆ J := lie_submodule.lie_span_le
 
-variables {f I J}
+variables {f I I₂ J}
 
 lemma mem_map {x : L} (hx : x ∈ I) : f x ∈ map f I :=
 by { apply lie_submodule.subset_lie_span, use x, exact ⟨hx, rfl⟩, }
@@ -488,7 +488,7 @@ lemma gc_map_comap : galois_connection (map f) (comap f) :=
 
 variables {f}
 
-@[simp] lemma map_sup (I₁ I₂ : lie_ideal R L) : (I₁ ⊔ I₂).map f = I₁.map f ⊔ I₂.map f :=
+@[simp] lemma map_sup : (I ⊔ I₂).map f = I.map f ⊔ I₂.map f :=
 (gc_map_comap f).l_sup
 
 lemma map_comap_le : map f (comap f J) ≤ J :=

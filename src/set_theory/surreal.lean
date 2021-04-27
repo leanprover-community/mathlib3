@@ -182,6 +182,7 @@ theorem zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 /-- `0 * x` is equivalent to `0`. -/
 theorem zero_mul_equiv (x : pgame) : (0 * x).equiv 0 :=
 equiv_of_relabelling (zero_mul_relabelling x)
+
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/

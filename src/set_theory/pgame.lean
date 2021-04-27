@@ -753,7 +753,7 @@ by { cases x, cases y, refl, }
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w + y` has the same moves as `x + z`. -/
-def add_congr_relabelling : ∀ {w x y z : pgame},
+def add_congr_relabelling : ∀ {w x y z : pgame.{u}},
 w.relabelling x → y.relabelling z → (w + y).relabelling (x + z)
 | (mk wl wr wL wR) (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR)
   ⟨L_equiv₁, R_equiv₁, L_relabelling₁, R_relabelling₁⟩

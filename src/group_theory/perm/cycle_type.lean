@@ -296,7 +296,6 @@ def partition (σ : perm α) : partition (fintype.card α) :=
   parts_sum := by rw [sum_add, sum_cycle_type, multiset.sum_repeat, nsmul_eq_mul,
     nat.cast_id, mul_one, nat.add_sub_cancel' σ.support.card_le_univ] }
 
-@[simp]
 lemma parts_partition {σ : perm α} :
   σ.partition.parts = σ.cycle_type + repeat 1 (fintype.card α - σ.support.card) := rfl
 

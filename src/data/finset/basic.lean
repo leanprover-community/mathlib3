@@ -2267,7 +2267,7 @@ lemma strong_downward_induction_on_eq {p : finset α → Sort*} (s : finset α) 
 by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
 /-- Analogue of `strong_downward_induction_on` but over a set. -/
-lemma strong_downward_induction_on_set {p : finset α → Sort*} {A : set (finset α)}
+def strong_downward_induction_on_set {p : finset α → Sort*} {A : set (finset α)}
   {n : ℕ} (hA : ∀ {t : finset α}, t ∈ A → t.card ≤ n) {s : finset α} (hs : s ∈ A)
   (h : ∀ {t₁}, t₁ ∈ A → (∀ {t₂}, t₂ ∈ A → t₁ ⊂ t₂ → p t₂) → p t₁) :
   p s :=

@@ -116,6 +116,23 @@ by { cases x, cases y, refl, }
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j
 := by {cases x, cases y, refl}
 
+/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
+and `c` has the same moves as `z`, then `a + b - c` has the same moves as `x + y - z`.
+This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
+lemma add_sub_relabelling {a b c x y z : pgame}
+  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
+  (a + b - c).relabelling (x + y - z) :=
+sub_congr_relabelling (add_congr_relabelling h₁ h₂) h₃
+
+/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
+and `c` has the same moves as `z`, then `a + b - c` has the same moves as `y + x - z`.
+This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
+lemma add_comm_sub_relabelling {a b c x y z : pgame}
+  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
+  (a + b - c).relabelling (y + x - z) :=
+sub_congr_relabelling
+  (relabelling.trans (add_comm_relabelling a b) (add_congr_relabelling h₂ h₁)) h₃
+
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/

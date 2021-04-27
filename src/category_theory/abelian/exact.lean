@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.abelian.basic
-import algebra.homology2.exact
+import algebra.homology.exact
 import tactic.tfae
 
 /-!

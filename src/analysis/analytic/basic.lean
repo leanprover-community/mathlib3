@@ -104,14 +104,14 @@ exists.elim (is_O_one_nat_at_top_iff.1 h) $ λ C hC, p.le_radius_of_bound C $
   λ n, (le_abs_self _).trans (hC n)
 
 lemma radius_eq_top_of_forall_nnreal_is_O
-  (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ⊤ :=
+  (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ∞ :=
 ennreal.eq_top_of_forall_nnreal_le $ λ r, p.le_radius_of_is_O (h r)
 
-lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ⊤ :=
+lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ∞ :=
 p.radius_eq_top_of_forall_nnreal_is_O $
   λ r, (is_O_zero _ _).congr' (h.mono $ λ n hn, by simp [hn]) eventually_eq.rfl
 
-lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ⊤ :=
+lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ∞ :=
 p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2 ⟨n, λ k hk, nat.sub_add_cancel hk ▸ hn _⟩
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
@@ -217,11 +217,11 @@ begin
 end
 
 lemma radius_eq_top_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
-  (hs : ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n)) : p.radius = ⊤ :=
+  (hs : ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n)) : p.radius = ∞ :=
 ennreal.eq_top_of_forall_nnreal_le (λ r, p.le_radius_of_summable_norm (hs r))
 
 lemma radius_eq_top_iff_summable_norm (p : formal_multilinear_series 𝕜 E F) :
-  p.radius = ⊤ ↔ ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n) :=
+  p.radius = ∞ ↔ ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n) :=
 begin
   split,
   { intros h r,

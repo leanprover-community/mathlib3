@@ -73,7 +73,7 @@ variables {α ι : Type*} [ordered_add_comm_monoid ι]
     `measure_theory.set_integral_tendsto_integral`. -/
 structure mono_ae_cover (φ : ι → set α) : Prop :=
 (ae_eventually_mem : ∀ᵐ x ∂μ, ∀ᶠ i in at_top, x ∈ φ i)
-(mono : monotone φ)
+--(mono : monotone φ)
 (measurable : ∀ i, measurable_set $ φ i)
 
 variables {μ}
@@ -90,7 +90,7 @@ lemma mono_ae_cover_Icc :
     (ha₂.eventually $ eventually_le_at_bot x).mp $
     (hb₂.eventually $ eventually_ge_at_top x).mono $
     λ i hbi hai, ⟨hai, hbi⟩ ),
-  mono := λ i j hij, Icc_subset_Icc (ha₁ hij) (hb₁ hij),
+  --mono := λ i j hij, Icc_subset_Icc (ha₁ hij) (hb₁ hij),
   measurable := λ i, measurable_set_Icc }
 
 lemma mono_ae_cover_Ici :
@@ -98,7 +98,7 @@ lemma mono_ae_cover_Ici :
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha₂.eventually $ eventually_le_at_bot x).mono $
     λ i hai, hai ),
-  mono := λ i j hij, Ici_subset_Ici.mpr (ha₁ hij),
+  --mono := λ i j hij, Ici_subset_Ici.mpr (ha₁ hij),
   measurable := λ i, measurable_set_Ici }
 
 lemma mono_ae_cover_Iic :
@@ -106,7 +106,7 @@ lemma mono_ae_cover_Iic :
 { ae_eventually_mem := ae_of_all μ (λ x,
     (hb₂.eventually $ eventually_ge_at_top x).mono $
     λ i hbi, hbi ),
-  mono := λ i j hij, Iic_subset_Iic.mpr (hb₁ hij),
+  --mono := λ i j hij, Iic_subset_Iic.mpr (hb₁ hij),
   measurable := λ i, measurable_set_Iic }
 
 end preorder
@@ -124,7 +124,7 @@ lemma mono_ae_cover_Ioo [no_bot_order α] [no_top_order α] :
     (ha₂.eventually $ eventually_lt_at_bot x).mp $
     (hb₂.eventually $ eventually_gt_at_top x).mono $
     λ i hbi hai, ⟨hai, hbi⟩ ),
-  mono := λ i j hij, Ioo_subset_Ioo (ha₁ hij) (hb₁ hij),
+  --mono := λ i j hij, Ioo_subset_Ioo (ha₁ hij) (hb₁ hij),
   measurable := λ i, measurable_set_Ioo }
 
 lemma mono_ae_cover_Ioc [no_bot_order α] : mono_ae_cover μ (λ i, Ioc (a i) (b i)) :=
@@ -132,7 +132,7 @@ lemma mono_ae_cover_Ioc [no_bot_order α] : mono_ae_cover μ (λ i, Ioc (a i) (b
     (ha₂.eventually $ eventually_lt_at_bot x).mp $
     (hb₂.eventually $ eventually_ge_at_top x).mono $
     λ i hbi hai, ⟨hai, hbi⟩ ),
-  mono := λ i j hij, Ioc_subset_Ioc (ha₁ hij) (hb₁ hij),
+  --mono := λ i j hij, Ioc_subset_Ioc (ha₁ hij) (hb₁ hij),
   measurable := λ i, measurable_set_Ioc }
 
 lemma mono_ae_cover_Ico [no_top_order α] : mono_ae_cover μ (λ i, Ico (a i) (b i)) :=
@@ -140,7 +140,7 @@ lemma mono_ae_cover_Ico [no_top_order α] : mono_ae_cover μ (λ i, Ico (a i) (b
     (ha₂.eventually $ eventually_le_at_bot x).mp $
     (hb₂.eventually $ eventually_gt_at_top x).mono $
     λ i hbi hai, ⟨hai, hbi⟩ ),
-  mono := λ i j hij, Ico_subset_Ico (ha₁ hij) (hb₁ hij),
+  --mono := λ i j hij, Ico_subset_Ico (ha₁ hij) (hb₁ hij),
   measurable := λ i, measurable_set_Ico }
 
 lemma mono_ae_cover_Ioi [no_bot_order α] :
@@ -148,7 +148,7 @@ lemma mono_ae_cover_Ioi [no_bot_order α] :
 { ae_eventually_mem := ae_of_all μ (λ x,
     (ha₂.eventually $ eventually_lt_at_bot x).mono $
     λ i hai, hai ),
-  mono := λ i j hij, Ioi_subset_Ioi (ha₁ hij),
+  --mono := λ i j hij, Ioi_subset_Ioi (ha₁ hij),
   measurable := λ i, measurable_set_Ioi }
 
 lemma mono_ae_cover_Iio [no_top_order α] :
@@ -156,7 +156,7 @@ lemma mono_ae_cover_Iio [no_top_order α] :
 { ae_eventually_mem := ae_of_all μ (λ x,
     (hb₂.eventually $ eventually_gt_at_top x).mono $
     λ i hbi, hbi ),
-  mono := λ i j hij, Iio_subset_Iio (hb₁ hij),
+  --mono := λ i j hij, Iio_subset_Iio (hb₁ hij),
   measurable := λ i, measurable_set_Iio }
 
 end linear_order
@@ -164,7 +164,7 @@ end linear_order
 lemma mono_ae_cover.restrict {φ : ι → set α} (hφ : mono_ae_cover μ φ) {s : set α} :
   mono_ae_cover (μ.restrict s) φ :=
 { ae_eventually_mem := ae_restrict_of_ae hφ.ae_eventually_mem,
-  mono := hφ.mono,
+  --mono := hφ.mono,
   measurable := hφ.measurable }
 
 lemma mono_ae_cover.ae_tendsto_indicator {β : Type*} [has_zero β] [topological_space β]
@@ -175,10 +175,11 @@ hφ.ae_eventually_mem.mono (λ x hx, tendsto_const_nhds.congr' $
 
 lemma mono_ae_cover_restrict_of_ae_imp {s : set α} {φ : ι → set α}
   (hs : measurable_set s) (ae_eventually_mem : ∀ᵐ x ∂μ, x ∈ s → ∀ᶠ n in at_top, x ∈ φ n)
-  (mono : monotone φ) (measurable : ∀ n, measurable_set $ φ n) :
+  --(mono : monotone φ)
+  (measurable : ∀ n, measurable_set $ φ n) :
   mono_ae_cover (μ.restrict s) φ :=
 { ae_eventually_mem := by rwa ae_restrict_iff' hs,
-  mono := mono,
+  --mono := mono,
   measurable := measurable }
 
 lemma mono_ae_cover.inter_restrict {φ : ι → set α} (hφ : mono_ae_cover μ φ)
@@ -186,7 +187,7 @@ lemma mono_ae_cover.inter_restrict {φ : ι → set α} (hφ : mono_ae_cover μ 
   mono_ae_cover (μ.restrict s) (λ i, φ i ∩ s) :=
 mono_ae_cover_restrict_of_ae_imp hs
   (hφ.ae_eventually_mem.mono (λ x hx hxs, hx.mono $ λ i hi, ⟨hi, hxs⟩))
-  (λ i j hij, inter_subset_inter_left s (hφ.mono hij))
+  --(λ i j hij, inter_subset_inter_left s (hφ.mono hij))
   (λ i, (hφ.measurable i).inter hs)
 
 end mono_ae_cover
@@ -199,7 +200,7 @@ variables {α ι : Type*} [ordered_semiring ι] [archimedean ι]
 lemma mono_ae_cover.coe_nat {φ : ι → set α} (hφ : mono_ae_cover μ φ) :
   mono_ae_cover μ (λ (n : ℕ), φ n) :=
 { ae_eventually_mem := hφ.ae_eventually_mem.mono (λ x, tendsto_coe_nat_at_top_at_top.eventually),
-  mono := λ i j hij, hφ.mono (nat.mono_cast hij),
+  --mono := λ i j hij, hφ.mono (nat.mono_cast hij),
   measurable := λ n, hφ.measurable n }
 
 end mono_ae_cover_archimedean
@@ -225,15 +226,15 @@ begin
   let F := λ (n : ℕ), indicator (φ n) f,
   have F_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, F n x) at_top (𝓝 $ f x) :=
     hφ'.ae_tendsto_indicator,
-  have F_mono : ∀ x, monotone (λ n, F n x) :=
-    λ x i j hij, indicator_le_indicator_of_subset (hφ'.mono hij) (λ _, zero_le _) x,
-  have f_eq_supr_F : ∀ᵐ x ∂μ, f x = ⨆ (n : ℕ), F n x :=
-    F_tendsto.mono (λ x hx, tendsto_nhds_unique hx
-      (tendsto_at_top_csupr (F_mono x) ⟨⊤, λ _ _, le_top⟩)),
+  --have F_mono : ∀ x, monotone (λ n, F n x) :=
+  --  λ x i j hij, indicator_le_indicator_of_subset (hφ'.mono hij) (λ _, zero_le _) x,
+  --have f_eq_supr_F : ∀ᵐ x ∂μ, f x = ⨆ (n : ℕ), F n x :=
+  --  F_tendsto.mono (λ x hx, tendsto_nhds_unique hx
+  --    (tendsto_at_top_csupr (F_mono x) ⟨⊤, λ _ _, le_top⟩)),
   have lintegral_F_eq : ∀ n, ∫⁻ (x : α), F n x ∂μ = ∫⁻ x in φ n, f x ∂μ :=
     λ n, lintegral_indicator _ (hφ.measurable n),
-  have lintegral_f_mono_iota : monotone (λ i, ∫⁻ x in φ i, f x ∂μ) :=
-    (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ.mono hij) (le_refl _)) (le_refl _)),
+  --have lintegral_f_mono_iota : monotone (λ i, ∫⁻ x in φ i, f x ∂μ) :=
+  --  (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ.mono hij) (le_refl _)) (le_refl _)),
   rw [lintegral_congr_ae f_eq_supr_F, supr_eq_supr_coe_nat_of_monotone lintegral_f_mono_iota],
   dsimp only,
   conv_rhs {congr, funext, rw ← lintegral_F_eq},
@@ -245,7 +246,7 @@ lemma set_lintegral_tendsto_lintegral {φ : ι → set α} (hφ : mono_ae_cover 
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 begin
   rw lintegral_eq_supr hφ hfm,
-  exact set_lintegral_tendsto_of_monotone_set hφ.2
+  exact set_lintegral_tendsto_of_monotone_set hφ.mono
 end
 
 /-- Slight reformulation of `measure_theory.set_lintegral_tendsto_lintegral`. -/

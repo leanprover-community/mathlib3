@@ -744,6 +744,32 @@ rfl
   (x + y).move_right ((@right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl, }
 
+/-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
+then `w + y` has the same moves as `x + z`. -/
+def add_congr_relabelling : ∀ {w x y z : pgame},
+w.relabelling x → y.relabelling z → (w + y).relabelling (x + z)
+| (mk wl wr wL wR) (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR)
+  ⟨L_equiv₁, R_equiv₁, L_relabelling₁, R_relabelling₁⟩
+  ⟨L_equiv₂, R_equiv₂, L_relabelling₂, R_relabelling₂⟩ :=
+begin
+  refine ⟨equiv.sum_congr L_equiv₁ L_equiv₂, equiv.sum_congr R_equiv₁ R_equiv₂, _, _⟩,
+  { rintro (i|j),
+    { exact add_congr_relabelling
+        (L_relabelling₁ i)
+        (⟨L_equiv₂, R_equiv₂, L_relabelling₂, R_relabelling₂⟩) },
+    { exact add_congr_relabelling
+        (⟨L_equiv₁, R_equiv₁, L_relabelling₁, R_relabelling₁⟩)
+        (L_relabelling₂ j) }},
+  { rintro (i|j),
+    { exact add_congr_relabelling
+        (R_relabelling₁ i)
+        (⟨L_equiv₂, R_equiv₂, L_relabelling₂, R_relabelling₂⟩) },
+    { exact add_congr_relabelling
+        (⟨L_equiv₁, R_equiv₁, L_relabelling₁, R_relabelling₁⟩)
+        (R_relabelling₂ j) }}
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
 /-- `-(x+y)` has exactly the same moves as `-x + -y`. -/

@@ -102,8 +102,8 @@ by {cases x, cases y, refl}
 rfl
 
 @[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
-   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i, j)))
-   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
+   (x * y).move_right ((right_moves_mul x y).symm (sum.inl (i, j)))
+   = x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
 by {cases x, cases y, refl}
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :

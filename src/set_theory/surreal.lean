@@ -140,7 +140,7 @@ begin
   induction y with yl yr yL yR IHyl IHyr,
   let x := mk xl xr xL xR,
   let y := mk yl yr yL yR,
-  refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _), _ ,_,_⟩,
+  refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _), _, _, _⟩,
   calc
    (x * y).right_moves
        ≃ xl × yr ⊕ xr × yl : by refl

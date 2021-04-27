@@ -9,6 +9,8 @@ import data.complex.exponential
 import data.real.sqrt
 import analysis.normed_space.linear_isometry
 
+noncomputable theory
+
 /-!
 # Isometries of the Complex Plane
 
@@ -113,6 +115,24 @@ lemma linear_isometry_complex_aux (f : ℂ →ₗᵢ[ℝ] ℂ) (h : f 1 = 1) :
       rw conj_I,
       exact h1, } },
 }
+
+def rotation {a : ℂ} (ha : |a| = 1) : ℂ →ₗᵢ[ℝ] ℂ :=
+  { to_fun := λ z, a * z,
+    map_add' := λ x y, mul_add a x y,
+    map_smul' := by {
+      intros m x,
+      simp,
+      rw ← mul_assoc a m x,
+      rw mul_comm a m,
+      exact mul_assoc ↑m a x,
+    },
+    norm_map' := by {
+      intro x,
+      simp,
+      rw ha,
+      rw one_mul,
+    },
+  }
 
 lemma linear_isometry_complex (f : ℂ →ₗᵢ[ℝ] ℂ) :
   ∃ a : ℂ, |a| = 1 ∧ ((∀ z, f z = a * z) ∨ (∀ z, f z = a * conj z)) := by {

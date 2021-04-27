@@ -239,8 +239,7 @@ begin
   simpa only [add_one, succ_pred_eq_of_pos, ha₁, hb₁],
 end
 
-lemma sq_mul_squarefree (n : ℕ) :
-  ∃ a b : ℕ, b ^ 2 * a = n ∧ squarefree a :=
+lemma sq_mul_squarefree (n : ℕ) : ∃ a b : ℕ, b ^ 2 * a = n ∧ squarefree a :=
 begin
   cases n,
   { exact ⟨1, 0, (by simp), squarefree_one⟩ },

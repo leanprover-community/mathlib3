@@ -179,18 +179,3 @@ abbreviation is_irreducible [representation k G M] := is_simple_module (monoid_a
 end reducible
 
 end subrepresentation
-
-section rep_hom
-variables (k : Type u) (G : Type v) (M N: Type w)
-variables [semiring k] [monoid G] [add_comm_monoid M] [add_comm_monoid N]
-variables [module k M] [distrib_mul_action G M] [module k N] [distrib_mul_action G N]
-
-/-- A homomorphism between representations `M` and `N` over `k` and `G` is a
-`k`-linear map which commutes with the `G`-action. -/
-structure rep_hom [representation k G M] [representation k G N] extends linear_map k M N :=
-(commutes' : ∀ (g : G) (m : M), to_fun (g • m) = g • to_fun m)
-
-infixr ` →ᵣ `:25 := rep_hom _
-notation M ` →ᵣ[`:25 k `, ` G `] ` N := rep_hom k G M N
-
-end rep_hom

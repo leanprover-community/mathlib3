@@ -28,8 +28,7 @@ variables {E : Type*} [add_comm_group E] [vector_space ℝ E] {x : E} {A B C : s
 
 /-- A set B is extreme to a set A if B ⊆ A and all points of B only belong to open segments whose
 ends are in B. -/
-def is_extreme (A B : set E) :
-  Prop :=
+def is_extreme (A B : set E) : Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
 @[refl]
@@ -63,8 +62,7 @@ convex_iff_open_segment_subset.2 (λ x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, h
 
 /-- A point x is an extreme point of a set A if x belongs to no open segment with ends in A, except
 for the obvious `open_segment x x`. -/
-def set.extreme_points (A : set E) :
-  set E :=
+def set.extreme_points (A : set E) : set E :=
 {x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x}
 
 lemma extreme_point_def :
@@ -104,9 +102,7 @@ begin
   exact hx.2 x₁ x₂ hx₁ hx₂ x rfl hxs
 end
 
-lemma extreme_points_subset :
-  A.extreme_points ⊆ A :=
-λ x hx, hx.1
+lemma extreme_points_subset : A.extreme_points ⊆ A := λ x hx, hx.1
 
 @[simp]
 lemma extreme_points_empty :

@@ -125,8 +125,7 @@ lemma segment_image (f : E →ₗ[ℝ] F) (a b : E) : f '' [a, b] = [f a, f b] :
 set.ext (λ x, by simp [segment_eq_image])
 
 /-- Open segment in a vector space. Note that `open_segment x x = {x}` instead of being `∅`. -/
-def open_segment (x y : E) :
-  set E :=
+def open_segment (x y : E) : set E :=
 {z : E | ∃ (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1), a • x + b • y = z}
 
 lemma open_segment_subset_segment (x y : E) :
@@ -156,7 +155,7 @@ set.ext $ λ z,
 ⟨λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩,
   λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩⟩
 
-lemma open_segment_same (x : E) :
+@[simp] lemma open_segment_same (x : E) :
   open_segment x x = {x} :=
 set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   by simpa only [← add_smul, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
@@ -213,7 +212,7 @@ begin
   simp *,
 end
 
-lemma mem_open_segment_translate (a : E) {x b c : E} :
+@[simp] lemma mem_open_segment_translate (a : E) {x b c : E} :
   a + x ∈ open_segment (a + b) (a + c)  ↔ x ∈ open_segment b c :=
 begin
   rw [open_segment_eq_image', open_segment_eq_image'],
@@ -221,7 +220,7 @@ begin
   simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
 end
 
-lemma open_segment_translate_preimage (a b c : E) :
+@[simp] lemma open_segment_translate_preimage (a b c : E) :
   (λ x, a + x) ⁻¹' open_segment (a + b) (a + c) = open_segment b c :=
 set.ext $ λ x, mem_open_segment_translate a
 
@@ -229,7 +228,7 @@ lemma open_segment_translate_image (a b c : E) :
   (λ x, a + x) '' open_segment b c = open_segment (a + b) (a + c) :=
 open_segment_translate_preimage a b c ▸ image_preimage_eq _ $ add_left_surjective a
 
-lemma open_segment_image (f : E →ₗ[ℝ] F) (a b : E) :
+@[simp] lemma open_segment_image (f : E →ₗ[ℝ] F) (a b : E) :
   f '' open_segment a b = open_segment (f a) (f b) :=
 set.ext (λ x, by simp [open_segment_eq_image])
 

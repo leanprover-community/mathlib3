@@ -38,6 +38,14 @@ instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
 tactic.pi_instance_derive_field
 
+@[simp]
+lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, npow n (x i) };
@@ -52,12 +60,12 @@ instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
+  npow := λ n x i, npow n (x i), gpow := λ n x i, gpow n (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
-  npow := λ n x i, npow n (x i) }; tactic.pi_instance_derive_field
+  npow := λ n x i, npow n (x i), gpow := λ n x i, gpow n (x i) }; tactic.pi_instance_derive_field
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] :
@@ -129,7 +137,7 @@ end pi
 
 section monoid_hom
 
-variables (f) [Π i, monoid (f i)]
+variables (f) [Π i, mul_one_class (f i)]
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
 homomorphism. -/

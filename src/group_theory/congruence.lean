@@ -727,10 +727,7 @@ lift_funext g (c.lift f H) $ λ x, by rw [lift_coe H, ←comp_mk'_apply, Hg]
 constant on `c`'s equivalence classes, `f` has the same image as the homomorphism that `f` induces
 on the quotient."]
 theorem lift_range (H : c ≤ ker f) : (c.lift f H).mrange = f.mrange :=
-submonoid.ext $ λ x,
-  ⟨λ ⟨y, hy⟩, by revert hy; rcases y; exact
-     λ hy, ⟨y, hy.1, by rw [hy.2.symm, ←lift_coe H]; refl⟩,
-   λ ⟨y, hy⟩, ⟨↑y, hy.1, by rw ←hy.2; refl⟩⟩
+submonoid.ext $ λ x, ⟨by rintros ⟨⟨y⟩, hy⟩; exact ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨↑y, hy⟩⟩
 
 /-- Surjective monoid homomorphisms constant on a congruence relation `c`'s equivalence classes
     induce a surjective homomorphism on `c`'s quotient. -/
@@ -810,7 +807,7 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
         ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
-         λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
+         λ ⟨w, z, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
 /-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
 @[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a surjective

@@ -56,7 +56,7 @@ theorem algebra_map_mem (r : R) : algebra_map R A r ∈ S :=
 S.algebra_map_mem' r
 
 theorem srange_le : (algebra_map R A).srange ≤ S.to_subsemiring :=
-λ x ⟨r, _, hr⟩, hr ▸ S.algebra_map_mem r
+λ x ⟨r, hr⟩, hr ▸ S.algebra_map_mem r
 
 theorem range_subset : set.range (algebra_map R A) ⊆ S :=
 λ x ⟨r, hr⟩, hr ▸ S.algebra_map_mem r
@@ -94,8 +94,9 @@ theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n • x ∈ S :=
 S.to_subsemiring.nsmul_mem hx n
 
 theorem gsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
-  [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) (n : ℤ) : n •ℤ x ∈ S :=
-int.cases_on n (λ i, S.nsmul_mem hx i) (λ i, S.neg_mem $ S.nsmul_mem hx _)
+  [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : ∀ (n : ℤ), n • x ∈ S
+| (n : ℕ) := by { rw [gsmul_coe_nat], exact S.nsmul_mem hx n }
+| -[1+ n] := by { rw [gsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
 
 theorem coe_nat_mem (n : ℕ) : (n : A) ∈ S :=
 S.to_subsemiring.coe_nat_mem n
@@ -349,7 +350,7 @@ variables (φ : A →ₐ[R] B)
 
 /-- Range of an `alg_hom` as a subalgebra. -/
 protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
-{ algebra_map_mem' := λ r, ⟨algebra_map R A r, set.mem_univ _, φ.commutes r⟩,
+{ algebra_map_mem' := λ r, ⟨algebra_map R A r, φ.commutes r⟩,
   .. φ.to_ring_hom.srange }
 
 @[simp] lemma mem_range (φ : A →ₐ[R] B) {y : B} :
@@ -497,7 +498,7 @@ theorem eq_top_iff {S : subalgebra R A} :
 
 @[simp] theorem map_top (f : A →ₐ[R] B) : subalgebra.map (⊤ : subalgebra R A) f = f.range :=
 subalgebra.ext $ λ x,
-  ⟨λ ⟨y, _, hy⟩, ⟨y, set.mem_univ _, hy⟩, λ ⟨y, mem, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
+  ⟨λ ⟨y, _, hy⟩, ⟨y, hy⟩, λ ⟨y, hy⟩, ⟨y, algebra.mem_top, hy⟩⟩
 
 @[simp] theorem map_bot (f : A →ₐ[R] B) : subalgebra.map (⊥ : subalgebra R A) f = ⊥ :=
 eq_bot_iff.2 $ λ x ⟨y, hy, hfy⟩, let ⟨r, hr⟩ := mem_bot.1 hy in subalgebra.range_le _

@@ -38,6 +38,7 @@ variables [has_zero_object V]
 section cycles
 variables [has_kernels V]
 
+/-- The cycles at index `i`, as a subobject. -/
 def cycles (i : ι) : subobject (C.X i) :=
 kernel_subobject (C.d_from i)
 
@@ -66,6 +67,7 @@ end cycles
 section boundaries
 variables [has_images V] [has_equalizers V]
 
+/-- The boundaries at index `i`, as a subobject. -/
 abbreviation boundaries (C : homological_complex V c) (j : ι) : subobject (C.X j) :=
 image_subobject (C.d_to j)
 
@@ -94,6 +96,9 @@ lemma boundaries_le_cycles (C : homological_complex V c) (i : ι) :
   C.boundaries i ≤ C.cycles i :=
 image_le_kernel _ _ (C.d_to_comp_d_from i)
 
+/--
+The canonical map from `boundaries i` to `cycles i`.
+-/
 abbreviation boundaries_to_cycles (C : homological_complex V c) (i : ι) :
   (C.boundaries i : V) ⟶ (C.cycles i : V) :=
 image_to_kernel _ _ (C.d_to_comp_d_from i)
@@ -110,6 +115,9 @@ by { dsimp [cycles], simp, }
 
 variables [has_cokernels V]
 
+/--
+The homology of a complex at index `i`.
+-/
 abbreviation homology (C : homological_complex V c) (i : ι) : V :=
 cokernel (C.boundaries_to_cycles i)
 
@@ -124,6 +132,9 @@ section
 variables [has_zero_object V] [has_kernels V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
+/--
+The morphism between cycles induced by a chain map.
+-/
 abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
 subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
 
@@ -140,6 +151,7 @@ by { dunfold cycles_map, simp [subobject.factor_thru_right], }
 
 variables (V c)
 
+/-- Cycles as a functor. -/
 @[simps]
 def cycles_functor (i : ι) : homological_complex V c ⥤ V :=
 { obj := λ C, C.cycles i,
@@ -152,11 +164,15 @@ section
 variables [has_zero_object V] [has_equalizers V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
+/--
+The morphism between boundaries induced by a chain map.
+-/
 abbreviation boundaries_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.boundaries i : V) ⟶ (C₂.boundaries i : V) :=
 image_subobject_map (f.sq_to i)
 
 variables (V c)
 
+/-- Boundaries as a functor. -/
 @[simps]
 def boundaries_functor (i : ι) : homological_complex V c ⥤ V :=
 { obj := λ C, C.boundaries i,
@@ -177,7 +193,10 @@ by { ext, simp, }
 
 variables (V c)
 
-def boundaries_to_cycles_transformation (i : ι) :
+/--
+The natural transformation from the boundaries functor to the cycles functor.
+-/
+def boundaries_to_cycles_nat_trans (i : ι) :
   boundaries_functor V c i ⟶ cycles_functor V c i :=
 { app := λ C, C.boundaries_to_cycles i,
   naturality' := λ C₁ C₂ f, boundaries_to_cycles_naturality f i, }
@@ -186,7 +205,7 @@ def boundaries_to_cycles_transformation (i : ι) :
 @[simps]
 def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V :=
 -- It would be nice if we could just write
--- `cokernel (boundaries_to_cycles_transformation V c i)`
+-- `cokernel (boundaries_to_cycles_nat_trans V c i)`
 -- here, but universe implementation details get in the way...
 { obj := λ C, C.homology i,
   map := λ C₁ C₂ f, cokernel.desc _ (cycles_map f i ≫ cokernel.π _)

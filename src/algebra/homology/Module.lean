@@ -11,6 +11,8 @@ import algebra.category.Module.epi_mono
 # Complexes of modules
 
 We provide some additional API to work with homological complexes in `Module R`.
+
+FIXME: This file still needs significant cleanup.
 -/
 
 universes v u

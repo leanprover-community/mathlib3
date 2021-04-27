@@ -64,12 +64,20 @@ structure complex_shape (ι : Type*) :=
 namespace complex_shape
 variables {ι : Type*}
 
+/--
+The complex shape where only differentials from each `X.i` to itself are allowed.
+
+This is mostly only useful so we can describe the relation of "related in `k` steps" below.
+-/
 @[simps]
 def refl (ι : Type*) : complex_shape ι :=
 { rel := λ i j, i = j,
   next_eq := λ i j j' w w', w.symm.trans w',
   prev_eq := λ i i' j w w', w.trans w'.symm, }
 
+/--
+The reverse of a `complex_shape`.
+-/
 @[simps]
 def symm (c : complex_shape ι) : complex_shape ι :=
 { rel := λ i j, c.rel j i,
@@ -79,7 +87,11 @@ def symm (c : complex_shape ι) : complex_shape ι :=
 lemma symm_symm (c : complex_shape ι) : c.symm.symm = c :=
 by { ext, simp, }
 
--- We need this to define "related in k steps" later.
+/--
+The "composition" of two `complex_shape`s.
+
+We need this to define "related in k steps" later.
+-/
 @[simp]
 def trans (c₁ c₂ : complex_shape ι) : complex_shape ι :=
 { rel := relation.comp c₁.rel c₂.rel,
@@ -116,9 +128,15 @@ begin
   exact c.prev_eq rik rjk,
 end
 
+/--
+An option-valued arbitary choice of index `j` such that `rel i j`, if such exists.
+-/
 def next (c : complex_shape ι) (i : ι) : option { j // c.rel i j } :=
 option.choice _
 
+/--
+An option-valued arbitary choice of index `i` such that `rel i j`, if such exists.
+-/
 def prev (c : complex_shape ι) (j : ι) : option { i // c.rel i j } :=
 option.choice _
 

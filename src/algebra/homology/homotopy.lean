@@ -40,6 +40,11 @@ match c.prev j with
 | some ⟨j',w⟩ := f i j' ≫ (D.X_prev_iso w).inv
 end
 
+/--
+A homotopy `h` between chain maps `f` and `g` consists of components `h i j : C.X i ⟶ D.X i`
+which are zero unless `c.rel j i`,
+satisfying the homotopy condition.
+-/
 structure homotopy (f g : C ⟶ D) :=
 (hom : Π i j, C.X i ⟶ D.X j)
 (zero' : ∀ i j, ¬ c.rel j i → hom i j = 0 . obviously)
@@ -51,9 +56,15 @@ namespace homotopy
 
 restate_axiom homotopy.zero'
 
+/--
+The component of a homotopy from `next i` to `j`.
+-/
 def from_next (h : homotopy f g) (i j : ι) : C.X_next i ⟶ D.X j :=
 from_next' h.hom i j
 
+/--
+The component of a homotopy from `i` to `prev j`.
+-/
 def to_prev (h : homotopy f g) (i j : ι) : C.X i ⟶ D.X_prev j :=
 to_prev' h.hom i j
 
@@ -65,6 +76,9 @@ end homotopy
 
 variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
 
+/--
+Homotopic maps induced the same map on homology.
+-/
 theorem homology_map_eq_of_homotopy (h : homotopy f g) (i : ι) :
   (homology_functor V c i).map f = (homology_functor V c i).map g :=
 begin

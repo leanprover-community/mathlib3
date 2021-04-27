@@ -179,12 +179,14 @@ begin
   apply image_subobject_iso_comp,
 end
 
+/-- Either `C.X i`, if there is some `i` with `c.rel i j`, or the zero object. -/
 def X_prev (j : ι) : V :=
 match c.prev j with
 | none := 0
 | (some ⟨i,_⟩) := C.X i
 end
 
+/-- If `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X i`. -/
 def X_prev_iso {i j : ι} (r : c.rel i j) :
   C.X_prev j ≅ C.X i :=
 begin
@@ -194,6 +196,7 @@ begin
   refl,
 end
 
+/-- If there is no `i` so `c.rel i j`, then `C.X_prev j` is isomorphic to `0`. -/
 def X_prev_iso_zero {j : ι} (h : c.prev j = none) :
   C.X_prev j ≅ 0 :=
 begin
@@ -203,12 +206,14 @@ begin
   refl,
 end
 
+/-- Either `C.X j`, if there is some `j` with `c.rel i j`, or the zero object. -/
 def X_next (i : ι) : V :=
 match c.next i with
 | none := 0
 | (some ⟨j,_⟩) := C.X j
 end
 
+/-- If `c.rel i j`, then `C.X_next i` is isomorphic to `C.X j`. -/
 def X_next_iso {i j : ι} (r : c.rel i j) :
   C.X_next i ≅ C.X j :=
 begin
@@ -218,6 +223,7 @@ begin
   refl,
 end
 
+/-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `0`. -/
 def X_next_iso_zero {i : ι} (h : c.next i = none) :
   C.X_next i ≅ 0 :=
 begin
@@ -380,14 +386,14 @@ begin
   { simp [d_to_eq _ w, f_prev_eq _ w], }
 end
 
+/--
+A morphism of chain complexes
+induces a morphism of arrows of the differentials into each object.
+-/
 def sq_to (f : hom C₁ C₂) (j : ι) : arrow.mk (C₁.d_to j) ⟶ arrow.mk (C₂.d_to j) :=
 arrow.hom_mk (f.comm_to j)
 
 @[simp] lemma sq_to_right (f : hom C₁ C₂) (j : ι) : (f.sq_to j).right = f.f j := rfl
-
-def image_map_to [has_images V] [has_image_maps V] (f : hom C₁ C₂) (j : ι) :
-  image (C₁.d_to j) ⟶ image (C₂.d_to j) :=
-image.map (f.sq_to j)
 
 end hom
 

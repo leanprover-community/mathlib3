@@ -34,6 +34,9 @@ lemma image_le_kernel (w : f ≫ g = 0) :
   image_subobject f ≤ kernel_subobject g :=
 image_subobject_le_mk _ _ (kernel.lift _ _ w) (by simp)
 
+/--
+The canonical morphism `image_subobject f ⟶ kernel_subobject g` when `f ≫ g = 0`.
+-/
 @[derive mono]
 def image_to_kernel (w : f ≫ g = 0) :
   (image_subobject f : V) ⟶ (kernel_subobject g : V) :=

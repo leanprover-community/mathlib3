@@ -12,6 +12,10 @@ import tactic.omega
 We define `single V j c : V ⥤ homological_complex V c`,
 which constructs complexes in `V` of shape `c`, supported in degree `j`.
 
+In `to_single_equiv` we characterize chain maps to a `ℕ`-indexed complex concentrated in degree 0;
+they are equivalent to `{ f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 }`.
+(This is useful translating between a projective resolution and
+an augmented exact complex of projectives.)
 -/
 
 open category_theory
@@ -26,6 +30,9 @@ variables {ι : Type*} [decidable_eq ι] (c : complex_shape ι)
 
 local attribute [instance] has_zero_object.has_zero
 
+/--
+The functor `V ⥤ homological_complex V c` creating a chain complex supported in a single degree.
+-/
 @[simps]
 def single (j : ι) : V ⥤ homological_complex V c :=
 { obj := λ A,

@@ -8,7 +8,7 @@ import algebra.homology.homology
 /-!
 # Quasi-isomorphisms
 
-A chain map is a quasi-isomorphism if it induces the isomorphisms on homology.
+A chain map is a quasi-isomorphism if it induces isomorphisms on homology.
 -/
 
 open category_theory
@@ -21,5 +21,8 @@ variables {V : Type u} [category.{v} V] [has_zero_morphisms V] [has_zero_object 
 variables [has_equalizers V] [has_images V] [has_image_maps V] [has_cokernels V]
 variables {c : complex_shape ι} {C D : homological_complex V c}
 
+/--
+A chain map is a quasi-isomorphism if it induces isomorphisms on homology.
+-/
 class quasi_iso (f : C ⟶ D) :=
 (is_iso := ∀ i, is_iso ((homology_functor V c i).map f))

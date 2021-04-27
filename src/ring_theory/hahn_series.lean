@@ -911,7 +911,29 @@ begin
   ext g,
   simp only [mul_coeff, hsum_coeff, smul_apply],
   have h : ∀ i, (s i).support ⊆ ⋃ j, (s j).support := set.subset_Union _,
-  refine (finsum_congr (λ i, finset.sum_subset _ _)).trans _,
+  refine (eq.trans (finsum_congr (λ a, _))
+    (finsum_sum_comm (add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g)
+    (λ i ij, x.coeff (prod.fst ij) * (s i).coeff ij.snd) _)).trans _,
+  { refine sum_subset (add_antidiagonal_mono_right (set.subset_Union _ a)) _,
+    rintro ⟨i, j⟩ hU ha,
+    rw mem_add_antidiagonal at *,
+    rw [not_not.1 (λ con, ha ⟨hU.1, hU.2.1, con⟩), mul_zero] },
+  { rintro ⟨i, j⟩ hij,
+    refine (s.finite_co_support j).subset _,
+    simp_rw [function.support_subset_iff', function.mem_support, not_not],
+    intros a ha,
+    rw [ha, mul_zero] },
+  { refine (sum_congr rfl _).trans (sum_subset (add_antidiagonal_mono_right _) _).symm,
+    { rintro ⟨i, j⟩ hij,
+      rw mul_finsum,
+      apply s.finite_co_support, },
+    { intros x hx,
+      simp only [set.mem_Union, ne.def, mem_support],
+      contrapose! hx,
+      simp [hx] },
+    { rintro ⟨i, j⟩ hU ha,
+      rw mem_add_antidiagonal at *,
+      rw [← hsum_coeff, not_not.1 (λ con, ha ⟨hU.1, hU.2.1, con⟩), mul_zero] } }
 end
 
 /-- The summation of a `summable_family` as a `linear_map`. -/

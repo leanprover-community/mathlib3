@@ -667,4 +667,42 @@ begin
   simp [hx]
 end
 
+@[to_additive] lemma finprod_prod_comm (s : finset β) (f : α → β → M)
+  (h : ∀ b ∈ s, (mul_support (λ a, f a b)).finite) :
+  ∏ᶠ a : α, ∏ b in s, f a b = ∏ b in s, ∏ᶠ a : α, f a b :=
+begin
+  have hU : mul_support (λ a, ∏ b in s, f a b) ⊆
+    (s.finite_to_set.bUnion (λ b hb, h b (finset.mem_coe.1 hb))).to_finset,
+  { rw finite.coe_to_finset,
+    intros x hx,
+    simp only [exists_prop, mem_Union, ne.def, mem_mul_support, finset.mem_coe],
+    contrapose! hx,
+    rw [mem_mul_support, not_not, finset.prod_congr rfl hx, finset.prod_const_one] },
+  rw [finprod_eq_prod_of_mul_support_subset _ hU, finset.prod_comm],
+  refine finset.prod_congr rfl (λ b hb, (finprod_eq_prod_of_mul_support_subset _ _).symm),
+  intros a ha,
+  simp only [finite.coe_to_finset, mem_Union],
+  exact ⟨b, hb, ha⟩
+end
+
+lemma mul_finsum {R : Type*} [semiring R] (f : α → R) (r : R)
+  (h : (function.support f).finite) :
+  r * ∑ᶠ a : α, f a = ∑ᶠ a : α, r * f a :=
+begin
+  rw [finsum_eq_sum f h, finset.mul_sum, finsum_eq_sum_of_support_subset],
+  rw [h.coe_to_finset, function.support_subset_iff'],
+  intros x hx,
+  rw [not_not.1 hx, mul_zero],
+end
+
+lemma finsum_mul {R : Type*} [semiring R] (f : α → R) (r : R)
+  (h : (function.support f).finite) :
+  (∑ᶠ a : α, f a) * r = ∑ᶠ a : α, f a * r :=
+begin
+  rw [finsum_eq_sum f h, finset.sum_mul, finsum_eq_sum_of_support_subset],
+  rw [h.coe_to_finset, function.support_subset_iff'],
+  intros x hx,
+  rw [not_not.1 hx, zero_mul],
+end
+
 end type

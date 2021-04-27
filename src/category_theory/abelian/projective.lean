@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.abelian.exact
+import algebra.homology.single
+import algebra.homology.quasi_iso
+import algebra.homology.homotopy
 
 /-!
 # Projective objects and categories with enough projectives
@@ -62,6 +65,16 @@ class enough_projectives : Prop :=
 end
 
 namespace projective
+
+/--
+An arbitrarily chosen factorisation of a morphism out of a projective object through an epimorphism.
+-/
+def factor_thru {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] : P ⟶ E :=
+(projective.factors f e).some
+
+@[simp] lemma factor_thru_comp {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] :
+  factor_thru f e ≫ e = f :=
+(projective.factors f e).some_spec
 
 lemma of_iso {P Q : C} (i : P ≅ Q) (hP : projective P) : projective Q :=
 begin
@@ -130,14 +143,12 @@ section
 variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
 /--
-A `projective.resolution Z` is an exact sequence `... ⟶ X 2 ⟶ X 1 ⟶ X 0`,
-where `X 0 = Z`, and the `X (n+1)` are projective.
-
-For simplicity we define a structure here independent of our implementation of chain complexes,
-and will later connect that up.
+An auxiliary structure for working with projective resolutions:
+this is the low-brow version of `resolution`,
+with everything spelled out explicitly without using cochain complexes or quasi-isomorphism.
 -/
 @[nolint has_inhabited_instance]
-structure resolution (Z : C) :=
+structure resolution_core (Z : C) :=
 (X : ℕ → C)
 (d : Π n, X (n+1) ⟶ X n)
 (zero : X 0 ≅ Z)
@@ -145,7 +156,62 @@ structure resolution (Z : C) :=
 (epi : epi (d 0))
 (exact : ∀ n, exact (d (n+1)) (d n))
 
+variables [has_zero_object C] [has_image_maps C] [has_cokernels C]
+
+-- TODO maybe ditch this structure, and just have these as constructions.
+/--
+A `projective.resolution Z` consists of a `ℕ`-indexed cochain complex of projective objects,
+along with a quasi-isomorphism to the complex consisting of just `Z` supported in degree `0`.
+-/
+structure resolution (Z : C) :=
+(complex : cochain_complex C ℕ)
+(projective : ∀ n, projective (complex.X n))
+(map : complex ⟶ (homological_complex.single C _ 0).obj Z)
+(quasi_iso : quasi_iso map)
+
+attribute [instance] resolution.projective
+
+instance {Z : C} (P : resolution Z) (n : ℕ) : epi (P.map.f n) := sorry
+
+namespace resolution
+
+def lift {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
+  P.complex ⟶ Q.complex :=
+sorry
+
+lemma lift_commutes {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
+  lift f P Q ≫ Q.map = P.map ≫ (homological_complex.single C _ 0).map f :=
+sorry
+
+end resolution
+
 end
+
+namespace resolution
+
+variables [preadditive C] [has_equalizers C] [has_images C] [has_image_maps C]
+  [has_zero_object C] [has_cokernels C]
+
+lemma lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : resolution Y} {Q : resolution Z}
+  (g h : P.complex ⟶ Q.complex)
+  (g_comm : g ≫ Q.map = P.map ≫ (homological_complex.single C _ 0).map f)
+  (h_comm : h ≫ Q.map = P.map ≫ (homological_complex.single C _ 0).map f) :
+  homotopy g h :=
+sorry
+
+def homotopy_equiv {Z : C} (P Q : resolution Z) : P.complex ⟶ Q.complex :=
+  lift (𝟙 Z) P Q
+
+@[simp] lemma homotopy_equiv_commutes {Z : C} (P Q : resolution Z) :
+  homotopy_equiv P Q ≫ Q.map = P.map :=
+sorry
+
+-- TODO state that in the homotopy category `resolution.homotopy_equiv P Q` becomes an isomorphism
+-- (and hence that it is a homotopy equivalence and a quasi-isomorphism).
+
+-- TODO construct `resolution_functor : C ⥤ homotopy_category V ℕ`
+
+end resolution
 
 end enough_projectives
 
@@ -176,7 +242,7 @@ variables [enough_projectives C] [abelian C]
 In any category with enough projectives,
 `projective.resolution.of Z` constructs a projection resolution of the object `Z`.
 -/
-def of (Z : C) : resolution Z :=
+def of (Z : C) : resolution_core Z :=
 { X := λ n, X' projective.over projective.π
     (λ (X Y : C) (f : X ⟶ Y), projective.left f)
     (λ (X Y : C) (f : X ⟶ Y), projective.d f)
@@ -189,7 +255,7 @@ def of (Z : C) : resolution Z :=
   projective := λ n,
   begin
     induction n;
-    { dsimp [X, X', B'],
+    { dsimp [X', B'],
       apply_instance, },
   end,
   epi := projective.π_epi _,

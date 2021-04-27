@@ -27,6 +27,8 @@ the automorphism group of the splitting field.
 - `restrict_smul`: `restrict p E` is compatible with `gal_action p E`.
 - `gal_action_hom_injective`: the action of `gal p` on the roots of `p` in `E` is faithful.
 - `restrict_prod_inj`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
+- `gal_action_hom_bijective_of_prime_degree`: An irreducible polynomial of prime degree
+  with two non-real roots has full Galois group
 -/
 
 noncomputable theory
@@ -332,9 +334,13 @@ begin
   rw [aeval_def, map_root_of_splits _ (splitting_field.splits p) hp],
 end
 
-instance {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
+lemma splits_ℚ_ℂ {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
 ⟨is_alg_closed.splits_codomain p⟩
 
+local attribute [instance] splits_ℚ_ℂ
+
+/-- The number of complex roots equals the number of real roots plus
+  the number of roots not fixed by complex conjugation -/
 lemma gal_action_hom_bijective_of_prime_degree_aux {p : polynomial ℚ} :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card :=
@@ -386,6 +392,7 @@ begin
   { apply_instance },
 end
 
+/-- An irreducible polynomial of prime degree with two non-real roots has full Galois group -/
 lemma gal_action_hom_bijective_of_prime_degree
   {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :

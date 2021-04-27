@@ -258,10 +258,11 @@ set.ssubset_iff_of_subset h
 
 lemma ssubset_of_ssubset_of_subset {s₁ s₂ s₃ : finset α} (hs₁s₂ : s₁ ⊂ s₂) (hs₂s₃ : s₂ ⊆ s₃) :
   s₁ ⊂ s₃ :=
-⟨subset.trans hs₁s₂.1 hs₂s₃, λ hs₃s₁, hs₁s₂.2 (subset.trans hs₂s₃ hs₃s₁)⟩
+set.ssubset_of_ssubset_of_subset
+
 lemma ssubset_of_subset_of_ssubset {s₁ s₂ s₃ : finset α} (hs₁s₂ : s₁ ⊆ s₂) (hs₂s₃ : s₂ ⊂ s₃) :
   s₁ ⊂ s₃ :=
-⟨subset.trans hs₁s₂ hs₂s₃.1, λ hs₃s₁, hs₂s₃.2 (subset.trans hs₃s₁ hs₁s₂)⟩
+set.ssubset_of_subset_of_ssubset
 
 lemma exists_of_ssubset {s₁ s₂ : finset α} (h : s₁ ⊂ s₂) :
   ∃ x ∈ s₂, x ∉ s₁ :=
@@ -642,11 +643,6 @@ lemma coe_union (s₁ s₂ : finset α) : ↑(s₁ ∪ s₂) = (s₁ ∪ s₂ : 
 theorem union_subset {s₁ s₂ s₃ : finset α} (h₁ : s₁ ⊆ s₃) (h₂ : s₂ ⊆ s₃) : s₁ ∪ s₂ ⊆ s₃ :=
 val_le_iff.1 (ndunion_le.2 ⟨h₁, val_le_iff.2 h₂⟩)
 
-lemma union_subset_iff {s₁ s₂ s₃ : finset α} :
-  s₁ ∪ s₂ ⊆ s₃ ↔ s₁ ⊆ s₃ ∧ s₂ ⊆ s₃ :=
-⟨λ h, ⟨λ x hx, h (mem_union_left _ hx), λ x hx, h (mem_union_right _ hx)⟩, λ ⟨h₁, h₂⟩,
-  union_subset h₁ h₂⟩
-
 theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ x, mem_union_left _
 
 theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
@@ -794,37 +790,6 @@ theorem inter_subset_right (s₁ s₂ : finset α) : s₁ ∩ s₂ ⊆ s₂ := �
 theorem subset_inter {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₁ ⊆ s₃ → s₁ ⊆ s₂ ∩ s₃ :=
 by simp only [subset_iff, mem_inter] {contextual:=tt}; intros; split; trivial
 
-lemma subset_inter_iff {s₁ s₂ s₃ : finset α} :
-  s₁ ⊆ s₂ ∩ s₃ ↔ s₁ ⊆ s₂ ∧ s₁ ⊆ s₃ :=
-⟨λ h, ⟨λ x hx, mem_of_mem_inter_left (h hx), λ x hx, mem_of_mem_inter_right (h hx)⟩, λ ⟨h₁, h₂⟩,
-  subset_inter h₁ h₂⟩
-
-lemma inter_eq_left_iff {s₁ s₂ : finset α} :
-  s₁ ∩ s₂ = s₁ ↔ s₁ ⊆ s₂ :=
-begin
-  split,
-  { intro h,
-    rw ←h,
-    exact inter_subset_right _ _ },
-  rintro h,
-  ext t,
-  simp only [and_iff_left_iff_imp, finset.mem_inter],
-  exact @h t,
-end
-
-lemma inter_eq_right_iff {s₁ s₂ : finset α} :
-  s₁ ∩ s₂ = s₂ ↔ s₂ ⊆ s₁ :=
-begin
-  split,
-  { rintro h,
-    rw ← h,
-    exact finset.inter_subset_left _ _ },
-  rintro h,
-  ext t,
-  simp only [and_iff_right_iff_imp, finset.mem_inter],
-  exact @h t,
-end
-
 @[simp, norm_cast]
 lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (s₁ ∩ s₂ : set α) := set.ext $ λ _, mem_inter
 
@@ -941,6 +906,14 @@ theorem union_distrib_left (s t u : finset α) : s ∪ (t ∩ u) = (s ∪ t) ∩
 theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) := sup_inf_right
 
 lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
+
+lemma union_subset_iff {s₁ s₂ s₃ : finset α} :
+  s₁ ∪ s₂ ⊆ s₃ ↔ s₁ ⊆ s₃ ∧ s₂ ⊆ s₃ :=
+(sup_le_iff : s₁ ⊔ s₂ ≤ s₃ ↔ s₁ ≤ s₃ ∧ s₂ ≤ s₃)
+
+lemma subset_inter_iff {s₁ s₂ s₃ : finset α} :
+  s₁ ⊆ s₂ ∩ s₃ ↔ s₁ ⊆ s₂ ∧ s₁ ⊆ s₃ :=
+(le_inf_iff : s₁ ≤ s₂ ⊓ s₃ ↔ s₁ ≤ s₂ ∧ s₁ ≤ s₃)
 
 theorem inter_eq_left_iff_subset (s t : finset α) :
   s ∩ t = s ↔ s ⊆ t :=
@@ -2152,10 +2125,8 @@ end
 
 @[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
 
-@[simp]
-lemma attach_nonempty_iff (s : finset α) :
-  s.attach.nonempty ↔ s.nonempty :=
-by simp [←card_pos]
+@[simp] lemma attach_nonempty_iff (s : finset α) : s.attach.nonempty ↔ s.nonempty :=
+by simp [← card_pos]
 
 end card
 end finset

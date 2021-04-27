@@ -134,7 +134,7 @@ Linear algebra:
     module: 'module'
     linear map: 'linear_map'
     the category of modules over a ring: 'Module'
-    vector space: 'vector_space'
+    vector space: 'module'
     quotient space: 'submodule.quotient'
     tensor product: 'tensor_product'
     noetherian module: 'is_noetherian'
@@ -148,7 +148,7 @@ Linear algebra:
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'module_equiv_finsupp'
-    isomorphism with bidual: 'vector_space.eval_equiv'
+    isomorphism with bidual: 'module.eval_equiv'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
@@ -194,6 +194,7 @@ Topology:
     compact open topology: 'continuous_map.compact_open'
     Stone-Cech compactification: 'stone_cech'
     topological fiber bundle: 'is_topological_fiber_bundle'
+    Urysohn's lemma: 'exists_continuous_zero_one_of_closed'
   Uniform notions:
     uniform space: 'uniform_space'
     uniformly continuous function: 'metric.uniform_continuous_iff'
@@ -280,6 +281,8 @@ Analysis:
     Borel sigma-algebra: 'borel_space'
     positive measure: 'measure_theory.measure'
     Lebesgue measure: 'measure_theory.real.measure_space'
+    Hausdorff measure: 'measure_theory.measure.hausdorff_measure'
+    Hausdorff dimension: 'measure_theory.dimH'
     Giry monad: 'measure_theory.measure.measurable_space'
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'

@@ -141,9 +141,9 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
   ⟨⟨⟨g ^ nat.find hex, (nat.find_spec hex).2⟩,
     λ ⟨x, hx⟩, let ⟨k, hk⟩ := hg x in
       have hk₁ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ gpowers (g ^ nat.find hex),
-        from ⟨k / nat.find hex, eq.symm $ gpow_mul _ _ _⟩,
+        from ⟨k / nat.find hex, by rw [← gpow_coe_nat, gpow_mul]⟩,
       have hk₂ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ H,
-        by rw gpow_mul; exact H.gpow_mem (nat.find_spec hex).2 _,
+        by { rw gpow_mul, apply H.gpow_mem, exact_mod_cast (nat.find_spec hex).2 },
       have hk₃ : g ^ (k % nat.find hex) ∈ H,
         from (subgroup.mul_mem_cancel_right H hk₂).1 $
           by rw [← gpow_add, int.mod_add_div, hk]; exact hx,

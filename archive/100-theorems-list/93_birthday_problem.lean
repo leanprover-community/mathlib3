@@ -3,7 +3,7 @@ Copyright (c) 2021 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import data.fintype.card_inj
+import data.fintype.card_embedding
 
 /-!
 # Birthday Problem
@@ -12,7 +12,7 @@ This file proves Theorem 93 from the [100 Theorems List](https://www.cs.ru.nl/~f
 
 As of writing, probability is not implemented in Lean, so we instead state the birthday problem
 in terms of injective functions. The general result about `fintype.card (α ↪ β)` which this proof
-uses is `fintype.card_inj`.
+uses is `fintype.card_embedding`.
 -/
 
 local notation `‖` x `‖` := fintype.card x

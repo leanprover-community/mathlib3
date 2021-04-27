@@ -13,7 +13,7 @@ This file establishes the cardinality of `α ↪ β` in full generality.
 -/
 
 open_locale classical
-open finset nat
+open finset
 
 local notation `|` x `|` := finset.card x
 local notation `‖` x `‖` := fintype.card x

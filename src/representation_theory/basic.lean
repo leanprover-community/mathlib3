@@ -7,6 +7,11 @@ import linear_algebra.basic
 import algebra.monoid_algebra
 import algebra.module.submodule
 
+/-!
+# Representations
+TODO
+-/
+
 universes u v w
 
 /-- A `representation k G M` is a `add_comm_monoid M` with a `k`-scalar multiplication

@@ -6,6 +6,11 @@ Authors: Hanting Zhang
 import representation_theory.basic
 import ring_theory.simple_module
 
+/-!
+# Subrepresentations
+TODO
+-/
+
 universes u v w
 
 open function

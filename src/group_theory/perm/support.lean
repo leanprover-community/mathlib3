@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Aaron Anderson, Yakov Pechersky
 -/
 import data.set.finite
-import data.fintype.basic
 import group_theory.perm.basic
-import data.list.perm
 import dynamics.fixed_points.basic
 
 /-!

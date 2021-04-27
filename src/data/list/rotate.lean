@@ -188,6 +188,24 @@ begin
   { simp [nat.succ_eq_add_one, ←rotate_rotate, nth_le_rotate_one, hn l, add_comm, add_left_comm] }
 end
 
+/-- A variant of `nth_le_rotate` useful for rewrites. -/
+lemma nth_le_rotate' (l : list α) (n k : ℕ) (hk : k < l.length) :
+  (l.rotate n).nth_le ((l.length - n % l.length + k) % l.length)
+      ((nat.mod_lt _ (k.zero_le.trans_lt hk)).trans_le (length_rotate _ _).ge)
+    = l.nth_le k hk :=
+begin
+  rw nth_le_rotate,
+  congr,
+  set m := l.length,
+  rw [mod_add_mod, add_assoc, add_left_comm, add_comm, add_mod, add_mod _ n],
+  cases (n % m).zero_le.eq_or_lt with hn hn,
+  { simpa [←hn] using nat.mod_eq_of_lt hk },
+  { have mpos : 0 < m := k.zero_le.trans_lt hk,
+    have hm : m - n % m < m := nat.sub_lt_self mpos hn,
+    have hn' : n % m < m := nat.mod_lt _ mpos,
+    simpa [mod_eq_of_lt hm, nat.sub_add_cancel hn'.le] using nat.mod_eq_of_lt hk }
+end
+
 lemma rotate_eq_iff {l l' : list α} {n : ℕ} :
   l.rotate n = l' ↔ l = l'.rotate (l'.length - n % l'.length) :=
 begin
@@ -225,6 +243,25 @@ begin
     { simp },
     { rw [rotate_cons_succ, nat.succ_eq_add_one, ←rotate_rotate, hn],
       simp } }
+end
+
+lemma rotate_reverse (l : list α) (n : ℕ) :
+  l.reverse.rotate n = (l.rotate (l.length - (n % l.length))).reverse :=
+begin
+  rw [←reverse_reverse l],
+  simp_rw [reverse_rotate, reverse_reverse, rotate_eq_iff, rotate_rotate, length_rotate,
+           length_reverse],
+  rw [←length_reverse l],
+  set k := n % l.reverse.length with hk,
+  cases hk' : k with k',
+  { simp [-length_reverse, ←rotate_rotate] },
+  { cases l with x l,
+    { simp },
+    { have : k'.succ < (x :: l).length,
+      { simp [←hk', hk, nat.mod_lt] },
+      rw [nat.mod_eq_of_lt, nat.sub_add_cancel, rotate_length],
+      { exact nat.sub_le_self _ _ },
+      { exact nat.sub_lt_self (by simp) nat.succ_pos' } } }
 end
 
 section is_rotated

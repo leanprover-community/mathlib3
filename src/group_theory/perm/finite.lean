@@ -34,6 +34,30 @@ open equiv set
 
 variables {α : Type*}
 
+section embed
+
+variables {s t : set α} (h : s ⊆ t)
+include h
+
+def embed_subset : s ↪ t :=
+⟨subtype.map id (λ _ hx, h hx), subtype.map_injective _ function.injective_id⟩
+
+@[simp] lemma embed_subset_apply (x : s) : embed_subset h x = ⟨x, h x.prop⟩ := rfl
+
+lemma range_embed_subset : range (embed_subset h) = {x | (x : α) ∈ s} :=
+by { ext ⟨⟩, simp }
+
+@[simp] lemma inv_of_mem_range_embed_subset_apply (x) [fintype s] [decidable_eq t] :
+  (embed_subset h).inv_of_mem_range x = ⟨x, by simpa [range_embed_subset h] using x.prop⟩ :=
+begin
+  convert function.embedding.right_inv_of_inv_of_mem_range _ _,
+  { simp },
+  { apply_instance },
+  { apply_instance }
+end
+
+end embed
+
 namespace equiv.perm
 
 protected def finite (α : Type*) : subgroup (perm α) :=
@@ -69,30 +93,6 @@ begin
   ext,
   simp
 end
-
-section embed
-
-variables {s t : set α} (h : s ⊆ t)
-include h
-
-def embed_subset : s ↪ t :=
-⟨subtype.map id (λ _ hx, h hx), subtype.map_injective _ function.injective_id⟩
-
-@[simp] lemma embed_subset_apply (x : s) : embed_subset h x = ⟨x, h x.prop⟩ := rfl
-
-lemma range_embed_subset : range (embed_subset h) = {x | (x : α) ∈ s} :=
-by { ext ⟨⟩, simp }
-
-@[simp] lemma inv_of_mem_range_embed_subset_apply (x) [fintype s] [decidable_eq t] :
-  (embed_subset h).inv_of_mem_range x = ⟨x, by simpa [range_embed_subset h] using x.prop⟩ :=
-begin
-  convert function.embedding.right_inv_of_inv_of_mem_range _ _,
-  { simp },
-  { apply_instance },
-  { apply_instance }
-end
-
-end embed
 
 lemma restrict_embed_apply_mem_support (p : perm α) (t : set α)
   [fintype p.support] [decidable_eq t] (h : p.support ⊆ t) (x : t) (hx : (x : α) ∈ p.support) :
@@ -156,5 +156,7 @@ monoid_hom.mk'
       (embed_subset (subset_union_right (p : perm α).support _))) := by simp,
     rw [hp, hq, ←sign_mul, restrict_mul_via_embedding]
   end)
+
+
 
 end equiv.perm

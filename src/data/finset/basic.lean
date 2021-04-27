@@ -809,7 +809,7 @@ begin
   rintro h,
   ext t,
   simp only [and_iff_left_iff_imp, finset.mem_inter],
-  exact h,
+  exact λ ht, h ht,
 end
 
 lemma inter_eq_right_iff [decidable_eq α] {s₁ s₂ : finset α} :
@@ -822,7 +822,7 @@ begin
   rintro h,
   ext t,
   simp only [and_iff_right_iff_imp, finset.mem_inter],
-  exact h,
+  exact λ ht, h ht,
 end
 
 @[simp, norm_cast]

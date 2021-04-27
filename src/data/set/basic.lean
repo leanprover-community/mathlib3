@@ -760,7 +760,7 @@ by { ext, simp }
 @[simp] lemma subset_singleton_iff {α : Type*} {s : set α} {x : α} : s ⊆ {x} ↔ ∀ y ∈ s, y = x :=
 iff.rfl
 
-lemma subset_singleton_iff' {s : set α} {x : α} : s ⊆ {x} ↔ s = ∅ ∨ s = {x} :=
+lemma subset_singleton_iff_eq {s : set α} {x : α} : s ⊆ {x} ↔ s = ∅ ∨ s = {x} :=
 begin
   obtain (rfl | hs) := s.eq_empty_or_nonempty,
   use ⟨λ _, or.inl rfl, λ _, empty_subset _⟩,
@@ -769,7 +769,7 @@ end
 
 lemma ssubset_singleton_iff {s : set α} {x : α} : s ⊂ {x} ↔ s = ∅ :=
 begin
-  rw [ssubset_iff_subset_ne, subset_singleton_iff', or_and_distrib_right, and_not_self, or_false,
+  rw [ssubset_iff_subset_ne, subset_singleton_iff_eq, or_and_distrib_right, and_not_self, or_false,
     and_iff_left_iff_imp],
   rintro rfl,
   refine ne_comm.1 (ne_empty_iff_nonempty.2 (singleton_nonempty _)),

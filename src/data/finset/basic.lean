@@ -799,7 +799,7 @@ lemma subset_inter_iff {s₁ s₂ s₃ : finset α} :
 ⟨λ h, ⟨λ x hx, mem_of_mem_inter_left (h hx), λ x hx, mem_of_mem_inter_right (h hx)⟩, λ ⟨h₁, h₂⟩,
   subset_inter h₁ h₂⟩
 
-lemma inter_eq_left_iff [decidable_eq α] {s₁ s₂ : finset α}  :
+lemma inter_eq_left_iff {s₁ s₂ : finset α} :
   s₁ ∩ s₂ = s₁ ↔ s₁ ⊆ s₂ :=
 begin
   split,
@@ -809,10 +809,10 @@ begin
   rintro h,
   ext t,
   simp only [and_iff_left_iff_imp, finset.mem_inter],
-  exact λ ht, h ht,
+  exact @h t,
 end
 
-lemma inter_eq_right_iff [decidable_eq α] {s₁ s₂ : finset α} :
+lemma inter_eq_right_iff {s₁ s₂ : finset α} :
   s₁ ∩ s₂ = s₂ ↔ s₂ ⊆ s₁ :=
 begin
   split,
@@ -822,7 +822,7 @@ begin
   rintro h,
   ext t,
   simp only [and_iff_right_iff_imp, finset.mem_inter],
-  exact λ ht, h ht,
+  exact @h t,
 end
 
 @[simp, norm_cast]

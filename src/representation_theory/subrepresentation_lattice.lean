@@ -5,6 +5,11 @@ Authors: Hanting Zhang
 -/
 import representation_theory.subrepresentation
 
+/-!
+# Lattice structure on subrepresentations
+TODO
+-/
+
 universes u v w
 namespace subrepresentation
 

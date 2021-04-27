@@ -144,3 +144,55 @@ instance semiring_smul_tower [representation k G M] :
   end }
 
 end monoid_algebra_actions
+
+namespace representation
+variables (k : Type u) (G : Type v) (M : Type w)
+variables [semiring k] [monoid G] [add_comm_monoid M]
+variables [module k M]
+
+section as_monoid_hom
+variables [distrib_mul_action G M]
+
+variables {G}
+/-- A group element acts by an k-linear map in any k-linear representation. -/
+def smul.linear_map [representation k G M] (g : G) : M →ₗ[k] M :=
+{ to_fun := λ m, g • m,
+  map_add' := λ m n, distrib_mul_action.smul_add g _ _,
+  map_smul' := λ r m, (smul_comm _ _ _).symm }
+
+@[simp]
+lemma smul.linear_map_apply [representation k G M] (g : G) (m : M) :
+  (smul.linear_map k M g : M →ₗ[k] M) m = g • m := rfl
+
+variables (k G M)
+/--
+A k-linear representation of G on M can be thought of as
+a multiplicative map from G into the k-linear endomorphisms of M.
+-/
+def as_monoid_hom [representation k G M] : G →* (M →ₗ[k] M) :=
+{ to_fun := λ g, smul.linear_map k M g,
+  map_one' := by { ext, simp, },
+  map_mul' := λ g g', by { ext, simp [mul_smul], }, }
+
+@[simp]
+lemma as_monoid_hom_apply_apply [representation k G M] (g : G) (m : M) :
+  (as_monoid_hom k G M) g m = g • m := rfl
+
+end as_monoid_hom
+
+variables {k G M}
+
+/--
+We get a k-linear representation of G on M from
+a multiplicative map from G into the k-linear endomorphisms of M.
+-/
+instance of_monoid_hom_aux {p : G →* (M →ₗ[k] M)} : distrib_mul_action G M :=
+{ smul := λ g m , p g m,
+  one_smul := λ m, by simp only [linear_map.one_apply, monoid_hom.map_one],
+  mul_smul := λ g h m, by simp only [linear_map.mul_apply, monoid_hom.map_mul],
+  smul_add := λ g m n, by simp only [linear_map.map_add],
+  smul_zero := λ g, by simp only [linear_map.map_zero] }
+
+-- def of_monoid_hom {p : G →* (M →ₗ[k] M)} : representation k G M :=
+
+end representation

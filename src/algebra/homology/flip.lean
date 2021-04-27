@@ -56,17 +56,31 @@ def flip : homological_complex (homological_complex V c) c' ⥤
 
 /-- Auxiliary definition for `homological_complex.flip_equivalence` .-/
 @[simps]
-def flip_equivalence_unit_iso : 𝟭 _ ≅ flip V c c' ⋙ flip V c' c :=
+def flip_equivalence_unit_iso :
+  𝟭 (homological_complex (homological_complex V c) c') ≅ flip V c c' ⋙ flip V c' c :=
 nat_iso.of_components
-  (λ C, { hom := { f := λ i, { f := λ j, 𝟙 _, } }, inv := { f := λ i, { f := λ j, 𝟙 _, } } })
-  (by tidy)
+  (λ C,
+  { hom :=
+    { f := λ i, { f := λ j, 𝟙 ((C.X i).X j), },
+      comm' := λ i j, by { ext, dsimp, simp only [category.id_comp, category.comp_id] }, },
+    inv :=
+    { f := λ i, { f := λ j, 𝟙 ((C.X i).X j), },
+      comm' := λ i j, by { ext, dsimp, simp only [category.id_comp, category.comp_id] }, } })
+  (λ X Y f, by { ext, dsimp, simp only [category.id_comp, category.comp_id], })
 
 /-- Auxiliary definition for `homological_complex.flip_equivalence` .-/
 @[simps]
-def flip_equivalence_counit_iso : flip V c' c ⋙ flip V c c' ≅ 𝟭 _ :=
+def flip_equivalence_counit_iso :
+  flip V c' c ⋙ flip V c c' ≅ 𝟭 (homological_complex (homological_complex V c') c) :=
 nat_iso.of_components
-  (λ C, { hom := { f := λ i, { f := λ j, 𝟙 _, } }, inv := { f := λ i, { f := λ j, 𝟙 _, } } })
-  (by tidy)
+  (λ C,
+  { hom :=
+    { f := λ i, { f := λ j, 𝟙 ((C.X i).X j), },
+      comm' := λ i j, by { ext, dsimp, simp only [category.id_comp, category.comp_id] }, },
+    inv :=
+    { f := λ i, { f := λ j, 𝟙 ((C.X i).X j), },
+      comm' := λ i j, by { ext, dsimp, simp only [category.id_comp, category.comp_id] }, } })
+  (λ X Y f, by { ext, dsimp, simp only [category.id_comp, category.comp_id], })
 
 /-- Flipping a complex of complexes over the diagonal, as an equivalence of categories. -/
 @[simps]

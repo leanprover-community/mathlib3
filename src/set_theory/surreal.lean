@@ -133,6 +133,55 @@ lemma add_comm_sub_relabelling {a b c x y z : pgame}
 sub_congr_relabelling
   (relabelling.trans (add_comm_relabelling a b) (add_congr_relabelling h₂ h₁)) h₃
 
+/-- `x * y` has exactly the same moves as `y * x`. -/
+theorem mul_comm_relabelling (x y : pgame) : (x * y).relabelling (y * x) :=
+begin
+  induction x with xl xr xL xR IHxl IHxr generalizing y,
+  induction y with yl yr yL yR IHyl IHyr,
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
+  refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _), _ ,_,_⟩,
+  calc
+   (x * y).right_moves
+       ≃ xl × yr ⊕ xr × yl : by refl
+   ... ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
+   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)
+   ... ≃ (y * x).right_moves : by refl,
+  { rintro (⟨i, j⟩ | ⟨i, j⟩),
+    { exact add_comm_sub_relabelling (IHxl i y) (IHyl j) (IHxl i (yL j)) },
+    { exact add_comm_sub_relabelling (IHxr i y) (IHyr j) (IHxr i (yR j)) }},
+  { rintro (⟨i, j⟩ | ⟨i, j⟩),
+    { exact add_comm_sub_relabelling (IHxr j y) (IHyl i) (IHxr j (yL i)) },
+    { exact add_comm_sub_relabelling (IHxl j y) (IHyr i) (IHxl j (yR i)) }}
+end
+
+/-- `x * y` is equivalent to `y * x`. -/
+theorem mul_comm_equiv (x y : pgame) : (x * y).equiv (y * x) :=
+equiv_of_relabelling (mul_comm_relabelling x y)
+
+/-- `x * 0` has exactly the same moves as `0`. -/
+theorem mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
+| (mk xl xr xL xR) :=
+⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+ by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+ by rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+ by rintro ⟨⟩⟩
+
+/-- `x * 0` is equivalent to `0`. -/
+theorem mul_zero_equiv (x : pgame) : (x * 0).equiv 0 :=
+equiv_of_relabelling (mul_zero_relabelling x)
+
+/-- `0 * x` has exactly the same moves as `0`. -/
+theorem zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
+| (mk xl xr xL xR) :=
+⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+ by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+ by rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+ by rintro ⟨⟩⟩
+
+/-- `0 * x` is equivalent to `0`. -/
+theorem zero_mul_equiv (x : pgame) : (0 * x).equiv 0 :=
+equiv_of_relabelling (zero_mul_relabelling x)
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/

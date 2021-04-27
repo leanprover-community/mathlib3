@@ -11,21 +11,24 @@ import algebra.homology.image_to_kernel
 In a category with zero morphisms, images, and equalizers we say that `f : A ⟶ B` and `g : B ⟶ C`
 are exact if `f ≫ g = 0` and the natural map `image f ⟶ kernel g` is an epimorphism.
 
-This definition is equivalent to the homology at `B` vanishing (at least for preadditive
-categories). At this level of generality, this is not necessarily equivalent to other reasonable
-definitions of exactness, for example that the inclusion map `image.ι f` is a kernel of `g` or that
-the map `image f ⟶ kernel g` is an isomorphism. By adding more assumptions on our category, we get
-these equivalences and more. Currently, there is one particular set of assumptions mathlib knows
-about: abelian categories. Consequently, many interesting results about exact sequences are found in
-`category_theory/abelian/exact.lean`.
+In any preadditive category this is equivalent to the homology at `B` vanishing.
+
+However in general it is weaker than other reasonable definitions of exactness,
+particularly that
+1. the inclusion map `image.ι f` is a kernel of `g` or
+2. `image f ⟶ kernel g` is an isomorphism or
+3. `image_subobject f = kernel_subobject f`.
+However when the cateory is abelian, these all become equivalent;
+these results are found in `category_theory/abelian/exact.lean`.
 
 # Main results
-* Suppose that cokernels exist and that `f` and `g` are exact. If `s` is any kernel fork over `g`
-  and `t` is any cokernel cofork over `f`, then `fork.ι s ≫ cofork.π t = 0`.
-* Precomposing the first morphism with an epimorphism retains exactness. Postcomposing the second
-  morphism with a monomorphism retains exactness.
-* If `f` and `g` are exact and `i` is an isomorphism, then `f ≫ i.hom` and `i.inv ≫ g` are also
-  exact.
+* Suppose that cokernels exist and that `f` and `g` are exact.
+  If `s` is any kernel fork over `g` and `t` is any cokernel cofork over `f`,
+  then `fork.ι s ≫ cofork.π t = 0`.
+* Precomposing the first morphism with an epimorphism retains exactness.
+  Postcomposing the second morphism with a monomorphism retains exactness.
+* If `f` and `g` are exact and `i` is an isomorphism,
+  then `f ≫ i.hom` and `i.inv ≫ g` are also exact.
 
 # Future work
 * Short exact sequences, split exact sequences, the splitting lemma (maybe only for abelian
@@ -39,7 +42,7 @@ universes v u
 open category_theory
 open category_theory.limits
 
-variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
+variables {V : Type u} [category.{v} V]
 variables [has_equalizers V] [has_images V]
 
 namespace category_theory
@@ -48,7 +51,7 @@ namespace category_theory
 Two morphisms `f : A ⟶ B`, `g : B ⟶ C` are called exact if `w : f ≫ g = 0` and the natural map
 `image_to_kernel f g w : image_subobject f ⟶ kernel_subobject g` is an epimorphism.
 
-This is equivalent to `homology (image_to_kernel f g w) ≅ 0`.
+In any preadditive category, this is equivalent to `homology f g w ≅ 0`.
 
 In an abelian category, this is equivalent to `image_to_kernel f g w` being an isomorphism,
 and hence equivalent to the usual definition,
@@ -57,12 +60,32 @@ and hence equivalent to the usual definition,
 -- One nice feature of this definition is that we have
 -- `epi f → exact g h → exact (f ≫ g) h` and `exact f g → mono h → exact f (g ≫ h)`,
 -- which do not necessarily hold in a non-abelian category with the usual definition of `exact`.
-class exact {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
+class exact [has_zero_morphisms V] {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
 (w : f ≫ g = 0)
 (epi : epi (image_to_kernel f g w))
 
 attribute [instance] exact.epi
 attribute [simp, reassoc] exact.w
+
+section
+variables [has_zero_object V] [preadditive V] [has_cokernels V]
+local attribute [instance] has_zero_object.has_zero
+
+/--
+In any preadditive category,
+composable morphisms `f g` are exact iff the composee to zero and the homology vanishes.
+-/
+lemma preadditive.exact_iff_homology_zero {A B C : V} (f : A ⟶ B) (g : B ⟶ C) :
+  exact f g ↔ ∃ w : f ≫ g = 0, nonempty (homology f g w ≅ 0) :=
+⟨λ h, ⟨h.w, ⟨cokernel.of_epi _⟩⟩,
+  λ h, begin
+    obtain ⟨w, ⟨i⟩⟩ := h,
+    exact ⟨w, preadditive.epi_of_cokernel_zero _ ((cancel_mono i.hom).mp (by ext))⟩,
+  end⟩
+
+end
+
+variables [has_zero_morphisms V]
 
 lemma comp_eq_zero_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
   (p : image_subobject f = kernel_subobject g) : f ≫ g = 0 :=

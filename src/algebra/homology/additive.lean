@@ -11,6 +11,8 @@ import category_theory.preadditive.additive_functor
 
 When `V` is preadditive, `homological_complex V c` is also preadditive,
 and `homology_functor` is additive.
+
+TODO: similarly for `R`-linear.
 -/
 
 universes v u
@@ -50,15 +52,15 @@ namespace homological_complex
 
 variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
 
-instance cycles_additive : functor.additive (cycles_functor V c i) :=
+instance cycles_additive : (cycles_functor V c i).additive :=
 { map_zero' := λ C D, by { dsimp [cycles_functor], ext, simp, },
   map_add' := λ C D f g, by { dsimp [cycles_functor], ext, simp, }, }
 
-instance boundaries_additive : functor.additive (boundaries_functor V c i) :=
+instance boundaries_additive : (boundaries_functor V c i).additive :=
 { map_zero' := λ C D, by { dsimp [boundaries_functor], ext, simp, },
   map_add' := λ C D f g, by { dsimp [boundaries_functor], ext, simp, }, }
 
-instance homology_additive : functor.additive (homology_functor V c i) :=
+instance homology_additive : (homology_functor V c i).additive :=
 { map_zero' := λ C D, begin
     dsimp [homology_functor],
     ext,

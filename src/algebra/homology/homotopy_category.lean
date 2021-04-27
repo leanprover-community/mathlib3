@@ -35,11 +35,27 @@ category_theory.quotient (λ (C D : homological_complex V c) (f g : C ⟶ D), no
 
 namespace homotopy_category
 
+/-- The quotient functor from complexes to the homotopy category. -/
+def quotient : homological_complex V c ⥤ homotopy_category V c := category_theory.quotient.functor _
+
 variables [has_equalizers V] [has_images V] [has_image_maps V] [has_cokernels V]
 
 /-- The `i`-th homology, as a functor from the homotopy category. -/
 def homology_functor (i : ι) : homotopy_category V c ⥤ V :=
 category_theory.quotient.lift _ (homology_functor V c i)
   (λ C D f g ⟨h⟩, homology_map_eq_of_homotopy h i)
+
+/-- The homology functor on the homotopy category is just the usual homology functor. -/
+def homology_factors (i : ι) :
+  quotient V c ⋙ homology_functor V c i ≅ _root_.homology_functor V c i :=
+category_theory.quotient.lift.is_lift _ _ _
+
+@[simp] lemma homology_factors_hom_app (i : ι) (C : homological_complex V c) :
+  (homology_factors V c i).hom.app C = 𝟙 _ :=
+rfl
+
+@[simp] lemma homology_factors_inv_app (i : ι) (C : homological_complex V c) :
+  (homology_factors V c i).inv.app C = 𝟙 _ :=
+rfl
 
 end homotopy_category

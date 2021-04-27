@@ -339,9 +339,6 @@ instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring
 { ..set.mul_one_class,
   ..set_semiring.non_unital_non_assoc_semiring }
 
-instance set_semiring.semigroup_with_zero [semigroup α] : semigroup_with_zero (set_semiring α) :=
-{ ..set_semiring.mul_zero_class, ..set.semigroup }
-
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
 { ..set_semiring.non_unital_semiring,
   ..set_semiring.non_assoc_semiring }

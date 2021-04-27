@@ -256,6 +256,13 @@ and_congr val_le_iff $ not_congr val_le_iff
 theorem ssubset_iff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ⊂ s₂ ↔ ∃ x ∈ s₂, x ∉ s₁ :=
 set.ssubset_iff_of_subset h
 
+lemma ssubset_of_ssubset_of_subset {s₁ s₂ s₃ : finset α} (hs₁s₂ : s₁ ⊂ s₂) (hs₂s₃ : s₂ ⊆ s₃) :
+  s₁ ⊂ s₃ :=
+⟨subset.trans hs₁s₂.1 hs₂s₃, λ hs₃s₁, hs₁s₂.2 (subset.trans hs₂s₃ hs₃s₁)⟩
+lemma ssubset_of_subset_of_ssubset {s₁ s₂ s₃ : finset α} (hs₁s₂ : s₁ ⊆ s₂) (hs₂s₃ : s₂ ⊂ s₃) :
+  s₁ ⊂ s₃ :=
+⟨subset.trans hs₁s₂ hs₂s₃.1, λ hs₃s₁, hs₂s₃.2 (subset.trans hs₃s₁ hs₁s₂)⟩
+
 lemma exists_of_ssubset {s₁ s₂ : finset α} (h : s₁ ⊂ s₂) :
   ∃ x ∈ s₂, x ∉ s₁ :=
 set.exists_of_ssubset h
@@ -791,6 +798,32 @@ lemma subset_inter_iff {s₁ s₂ s₃ : finset α} :
   s₁ ⊆ s₂ ∩ s₃ ↔ s₁ ⊆ s₂ ∧ s₁ ⊆ s₃ :=
 ⟨λ h, ⟨λ x hx, mem_of_mem_inter_left (h hx), λ x hx, mem_of_mem_inter_right (h hx)⟩, λ ⟨h₁, h₂⟩,
   subset_inter h₁ h₂⟩
+
+lemma inter_eq_left_iff [decidable_eq α] {s₁ s₂ : finset α}  :
+  s₁ ∩ s₂ = s₁ ↔ s₁ ⊆ s₂ :=
+begin
+  split,
+  { intro h,
+    rw ←h,
+    exact inter_subset_right _ _ },
+  rintro h,
+  ext t,
+  simp only [and_iff_left_iff_imp, finset.mem_inter],
+  exact h,
+end
+
+lemma inter_eq_right_iff [decidable_eq α] {s₁ s₂ : finset α} :
+  s₁ ∩ s₂ = s₂ ↔ s₂ ⊆ s₁ :=
+begin
+  split,
+  { rintro h,
+    rw ← h,
+    exact finset.inter_subset_left _ _ },
+  rintro h,
+  ext t,
+  simp only [and_iff_right_iff_imp, finset.mem_inter],
+  exact h,
+end
 
 @[simp, norm_cast]
 lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (s₁ ∩ s₂ : set α) := set.ext $ λ _, mem_inter
@@ -2276,42 +2309,6 @@ by { dunfold strong_induction_on, rw strong_induction }
 finset.strong_induction_on s $ λ s,
 finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
 λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)
-
-/-- Suppose that, given `s.card ≤ n` and objects defined on all strict supersets of card less than
-`n` of any finset, one knows how to define an object on `s`. Then one can inductively define an
-object on all finsets of card less than `n`, starting from finsets of card `n` and iterating. This
-can be used either to define data, or to prove properties. -/
-def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
-  t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
-  ∀ (s : finset α), s.card ≤ n → p s
-| s := H s (λ t ht h, have n - card t < n - card s, begin
-  exact (nat.sub_lt_sub_left_iff ht).2 (finset.card_lt_card h),
-end, strong_downward_induction t ht)
-using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : finset α), n - t.card)⟩]}
-
-lemma strong_downward_induction_eq {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
-  t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) (s : finset α) :
-  strong_downward_induction H s = H s (λ t ht hst, strong_downward_induction H t ht) :=
-by rw strong_downward_induction
-
-/-- Analogue of `strong_downward_induction` with order of arguments swapped. -/
-@[elab_as_eliminator] def strong_downward_induction_on {p : finset α → Sort*} {n : ℕ} :
-  ∀ (s : finset α), (∀ t₁, (∀ {t₂ : finset α}, t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁)
-  → s.card ≤ n → p s :=
-λ s H, strong_downward_induction H s
-
-lemma strong_downward_induction_on_eq {p : finset α → Sort*} (s : finset α) {n : ℕ} (H : ∀ t₁,
-  (∀ {t₂ : finset α}, t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
-  s.strong_downward_induction_on H = H s (λ t ht h, t.strong_downward_induction_on H ht) :=
-by { dunfold strong_downward_induction_on, rw strong_downward_induction }
-
-/-- Analogue of `strong_downward_induction_on` but over a set. -/
-lemma strong_downward_induction_on_set {p : finset α → Sort*} {A : set (finset α)}
-  {n : ℕ} (hA : ∀ {t : finset α}, t ∈ A → t.card ≤ n) {s : finset α} (hs : s ∈ A)
-  (h : ∀ {t₁}, t₁ ∈ A → (∀ {t₂}, t₂ ∈ A → t₁ ⊂ t₂ → p t₂) → p t₁) :
-  p s :=
-@strong_downward_induction_on _ (λ t₁, t₁ ∈ A → p t₁) n s (λ t₁ ih ht₁ ht₁A,
-    h ht₁A (λ t₂ ht₂A ht₁t₂, ih (hA ht₂A) ht₁t₂ ht₂A)) (hA hs) hs
 
 lemma card_congr {s : finset α} {t : finset β} (f : Π a ∈ s, β)
   (h₁ : ∀ a ha, f a ha ∈ t) (h₂ : ∀ a b ha hb, f a ha = f b hb → a = b)

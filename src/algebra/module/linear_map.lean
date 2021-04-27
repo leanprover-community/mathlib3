@@ -439,6 +439,7 @@ def simps.symm_apply [module R M] [module R M₂] (e : M ≃ₗ[R] M₂) : M₂ 
 initialize_simps_projections linear_equiv (to_fun → apply, inv_fun → symm_apply)
 
 @[simp] lemma inv_fun_eq_symm : e.inv_fun = e.symm := rfl
+@[simp] lemma coe_to_equiv_symm : ⇑e.to_equiv.symm = e.symm := rfl
 
 variables {module_M₃ : module R M₃} (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃)
 

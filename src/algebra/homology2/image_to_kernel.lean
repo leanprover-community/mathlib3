@@ -22,6 +22,7 @@ lemma image_le_kernel (w : f ≫ g = 0) :
   image_subobject f ≤ kernel_subobject g :=
 image_subobject_le_mk _ _ (kernel.lift _ _ w) (by simp)
 
+@[derive mono]
 def image_to_kernel (w : f ≫ g = 0) :
   (image_subobject f : V) ⟶ (kernel_subobject g : V) :=
 (subobject.of_le _ _ (image_le_kernel _ _ w))

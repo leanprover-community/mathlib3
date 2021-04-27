@@ -201,6 +201,11 @@ lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simp [factor_thru_image_subobject, image_subobject_arrow]
 
+lemma image_subobject_arrow_comp_eq_zero
+  [has_zero_morphisms C] {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f]
+  [epi (factor_thru_image_subobject f)] (h : f ≫ g = 0) : (image_subobject f).arrow ≫ g = 0 :=
+zero_of_epi_comp (factor_thru_image_subobject f) $ by simp [h]
+
 lemma image_subobject_factors_comp_self {W : C} (k : W ⟶ X)  :
   (image_subobject f).factors (k ≫ f) :=
 ⟨k ≫ factor_thru_image f, by simp⟩

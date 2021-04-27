@@ -77,44 +77,44 @@ def right_moves_mul (x y : pgame) : (x * y).right_moves
 by { cases x, cases y, refl, }
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i,j))
-  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j
-:= rfl
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
+  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
+ rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
-   (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i,j)))
-   = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j
-:= by {cases x, cases y, refl}
+   (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i, j)))
+   = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
+by {cases x, cases y, refl}
 
 @[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i,j))
-  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j
-:= rfl
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j))
+  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j :=
+rfl
 
 @[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
-   (x * y).move_left ((left_moves_mul x y).symm (sum.inr (i,j)))
-   = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j
-:= by {cases x, cases y, refl}
+   (x * y).move_left ((left_moves_mul x y).symm (sum.inr (i, j)))
+   = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
+by {cases x, cases y, refl}
 
 @[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i,j))
-  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j
-:= rfl
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j))
+  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j :=
+rfl
 
 @[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
    (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i, j)))
-   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j
-:= by {cases x, cases y, refl}
+   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
+by {cases x, cases y, refl}
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
-  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j
-:= rfl
+  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
+rfl
 
 @[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
-   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i,j)))
-   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j
-:= by {cases x, cases y, refl}
+   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i, j)))
+   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
+by {cases x, cases y, refl}
 
 /-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
 and `c` has the same moves as `z`, then `a + b - c` has the same moves as `x + y - z`.

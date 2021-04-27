@@ -336,9 +336,10 @@ end comm_monoid
 
 section comm_group
 
-variables {ζ : G} (h : is_primitive_root ζ k)
+variables {ζ : G}
 
-lemma gpow_eq_one : ζ ^ (k : ℤ) = 1 := h.pow_eq_one
+lemma gpow_eq_one (h : is_primitive_root ζ k) : ζ ^ (k : ℤ) = 1 :=
+by { rw gpow_coe_nat, exact h.pow_eq_one }
 
 lemma gpow_eq_one_iff_dvd (h : is_primitive_root ζ k) (l : ℤ) :
   ζ ^ l = 1 ↔ (k : ℤ) ∣ l :=
@@ -368,10 +369,12 @@ lemma gpow_of_gcd_eq_one (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 
   is_primitive_root (ζ ^ i) k :=
 begin
   by_cases h0 : 0 ≤ i,
-  { lift i to ℕ using h0, exact h.pow_of_coprime i hi },
+  { lift i to ℕ using h0,
+    rw gpow_coe_nat,
+    exact h.pow_of_coprime i hi },
   have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
-  rw [← inv_iff, ← gpow_neg, ← hi'],
+  rw [← inv_iff, ← gpow_neg, ← hi', gpow_coe_nat],
   apply h.pow_of_coprime,
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
@@ -385,20 +388,21 @@ end comm_group
 
 section comm_group_with_zero
 
-variables {ζ : G₀} (h : is_primitive_root ζ k)
+variables {ζ : G₀}
 
-lemma fpow_eq_one : ζ ^ (k : ℤ) = 1 := h.pow_eq_one
+lemma fpow_eq_one (h : is_primitive_root ζ k) : ζ ^ (k : ℤ) = 1 :=
+by { rw gpow_coe_nat, exact h.pow_eq_one }
 
 lemma fpow_eq_one_iff_dvd (h : is_primitive_root ζ k) (l : ℤ) :
   ζ ^ l = 1 ↔ (k : ℤ) ∣ l :=
 begin
   by_cases h0 : 0 ≤ l,
-  { lift l to ℕ using h0, rw [fpow_coe_nat], norm_cast, exact h.pow_eq_one_iff_dvd l },
+  { lift l to ℕ using h0, rw [gpow_coe_nat], norm_cast, exact h.pow_eq_one_iff_dvd l },
   { have : 0 ≤ -l, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj', ← fpow_neg, ← hl', fpow_coe_nat, inv_one] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj', ← fpow_neg, ← hl', gpow_coe_nat, inv_one] }
 end
 
 lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
@@ -417,10 +421,12 @@ lemma fpow_of_gcd_eq_one (h : is_primitive_root ζ k) (i : ℤ) (hi : i.gcd k = 
   is_primitive_root (ζ ^ i) k :=
 begin
   by_cases h0 : 0 ≤ i,
-  { lift i to ℕ using h0, exact h.pow_of_coprime i hi },
+  { lift i to ℕ using h0,
+    rw gpow_coe_nat,
+    exact h.pow_of_coprime i hi },
   have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
-  rw [← inv_iff', ← fpow_neg, ← hi'],
+  rw [← inv_iff', ← fpow_neg, ← hi', gpow_coe_nat],
   apply h.pow_of_coprime,
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
@@ -868,9 +874,8 @@ begin
     minpoly.irreducible ((h.pow_of_prime hprime.1 hdiv).is_integral hpos),
   have PQprim : is_primitive (P * Q) := Pmonic.is_primitive.mul Qmonic.is_primitive,
   have prod : P * Q ∣ X ^ n - 1,
-  { apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
-      ((monic_X_pow_sub_C 1 (ne_of_lt hpos).symm).is_primitive)).2,
-    rw [map_mul],
+  { rw [(is_primitive.int.dvd_iff_map_cast_dvd_map_cast (P * Q) (X ^ n - 1) PQprim
+      (monic_X_pow_sub_C (1 : ℤ) (ne_of_gt hpos)).is_primitive), map_mul],
     refine is_coprime.mul_dvd _ _ _,
     { have aux := is_primitive.int.irreducible_iff_irreducible_map_cast Pmonic.is_primitive,
       refine (dvd_or_coprime _ _ (aux.1 Pirr)).resolve_left _,

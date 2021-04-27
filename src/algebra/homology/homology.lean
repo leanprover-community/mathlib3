@@ -7,6 +7,19 @@ import algebra.homology.image_to_kernel
 import category_theory.subobject.lattice
 import category_theory.graded_object
 
+/-!
+# The homology of a complex
+
+Given `C : homological_complex V c`, we have `C.cycles i` and `C.boundaries i`,
+both defined as subobjects of `C.X i`.
+
+We show these are functorial with respect to chain maps,
+as `C.cycles_map f i` and `C.boundaries_map f i`.
+
+As a consequence we construct `homology_functor i : homological_complex V c ⥤ V`,
+computing the `i`-th homology.
+-/
+
 universes v u
 
 open category_theory category_theory.limits

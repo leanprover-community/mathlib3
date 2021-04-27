@@ -5,6 +5,18 @@ Authors: Scott Morrison
 -/
 import algebra.homology.homological_complex
 
+/-!
+# Image-to-kernel comparison maps
+
+Whenever `f : A ⟶ B` and `g : B ⟶ C` satisfy `w : f ≫ g = 0`,
+we have `image_le_kernel f g w : image_subobject f ≤ kernel_subobject g`
+(assuming the appropriate images and kernels exist).
+
+`image_to_kernel f g w` is the corresponding morphism between objects in `C`.
+
+We define `homology f g w` of such a pair as the cokernel of `image_to_kernel f g w`.
+-/
+
 universes v u
 
 open category_theory category_theory.limits

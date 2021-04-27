@@ -6,6 +6,32 @@ Authors: Johan Commelin, Scott Morrison
 import algebra.homology.complex_shape
 import category_theory.subobject.limits
 
+/-!
+# Homological complexes.
+
+A `homological_complex V c` with a "shape" controlled by `c : complex_shape ι`
+has chain groups `X i` (objects in `V`) indexed by `i : ι`,
+and a differential `d i j` whenever `c.rel i j`.
+
+We in fact ask for differentials `d i j` for all `i j : ι`,
+but have a field `shape'` requiring that these are zero when not allowed by `c`.
+This avoids a lot of dependent type theory hell!
+
+The composite of any two differentials `d i j ≫ d j k` must be zero.
+
+We provide `chain_complex V α` for
+`α`-indexed chain complexes in which `d i j ≠ 0` only if `j + 1 = i`,
+and similarly `cochain_complex V α`, with `i = j + 1`.
+
+There is a category structure, where morphisms are chain maps.
+
+For `C : homological_complex V c`, we define `C.X_next i`, which is either `C.X j` for some
+arbitrarily chosen `j` such that `c.r i j`, or the zero object if there is no such `j`.
+Similarly we have `C.X_prev j`.
+Defined in terms of these we have `C.d_from i : C.X i ⟶ C.X_next i` and
+`C.d_to j : C.X_prev j ⟶ C.X j`, which are either defined in as `C.d i j`, or zero, as needed.
+-/
+
 universes v u
 
 open category_theory category_theory.limits

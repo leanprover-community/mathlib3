@@ -600,6 +600,13 @@ end
   move_right (-x) ((right_moves_neg x).symm i) = -(move_left x i) :=
 by { cases x, refl }
 
+/-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
+def neg_congr_relabelling : ∀ {x y : pgame}, x.relabelling y → (-x).relabelling (-y)
+| (mk xl xr xL xR) (mk yl yr yL yR) ⟨L_equiv, R_equiv, L_relabelling, R_relabelling⟩ :=
+  ⟨R_equiv, L_equiv,
+    λ i, neg_congr_relabelling (by simpa using R_relabelling (R_equiv i)),
+    λ i, neg_congr_relabelling (by simpa using L_relabelling (L_equiv.symm i))⟩
+
 theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin

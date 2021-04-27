@@ -372,6 +372,19 @@ begin
   { exact λ α n, induction3 },
 end
 
+lemma is_solvable_contrapositive {α : E} {q : polynomial F} (q_irred : irreducible q)
+  (q_monic : q.monic) (q_aeval : aeval α q = 0) (q_solvable : ¬ _root_.is_solvable q.gal) :
+  ¬ is_solvable_by_rad F α :=
+begin
+  refine λ h, q_solvable _,
+  have q_minpoly : q = minpoly F (⟨α, h⟩ : solvable_by_rad F E) :=
+    minpoly.unique' q_irred
+    (subtype.ext ((aeval_alg_hom_apply (solvable_by_rad F E).val ⟨α, h⟩ q).symm.trans q_aeval))
+    q_monic,
+  have key := solvable_by_rad.is_solvable ⟨α, h⟩,
+  rwa ← q_minpoly at key,
+end
+
 end solvable_by_rad
 
 end abel_ruffini

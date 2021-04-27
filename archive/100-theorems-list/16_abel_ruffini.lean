@@ -19,6 +19,16 @@ begin
     exact one_ne_zero },
 end
 
+lemma leading_coeff_poly (a : ℕ) (b : ℤ) :
+  (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).leading_coeff = 1 :=
+by rw [leading_coeff, nat_degree_poly, coeff_add, coeff_sub, coeff_X_pow_self,
+  coeff_C_mul, coeff_X, if_neg (nat.one_ne_bit1 two_ne_zero), mul_zero, sub_zero,
+  coeff_C, if_neg (nat.bit1_ne_zero 2), add_zero]
+
+lemma monic_poly (a : ℕ) (b : ℤ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).monic :=
+leading_coeff_poly a b
+
+--todo: rewrite proof using above lemmas
 lemma irreducible_poly (a : ℕ) (b : ℤ) (p : ℕ)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
   irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) :=
@@ -95,13 +105,6 @@ theorem tada (x : ℂ) (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
   (hx : aeval x (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) = 0) :
   ¬ is_solvable_by_rad ℚ x :=
 begin
-  let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
-  change aeval x q = 0 at hx,
-  have q_irred : irreducible q,
-  { have key := irreducible_poly a b p hp hpa hpb,
-     },
-  /-have q_minpoly : q = minpoly ℚ x,
-  { have key := minpoly.unique' q_irred ha, },-/
+  apply solvable_by_rad.is_solvable_contrapositive (irreducible_poly a b p hp hpa hpb hp2b)
+    (monic_poly a b) hx,
 end
-
-#check solvable_by_rad.is_solvable

@@ -150,7 +150,7 @@ def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_comm_monoid β :=
 { mul_le_mul_left := λ a b ab c,
-    show f (c * a) ≤ f (c * b), by { simp [mul, @mul_le_mul_left' α _ _ _ _ _ ab _] },
+    show f (c * a) ≤ f (c * b), by simp [mul, @mul_le_mul_left' α _ _ _ _ _ ab _],
   lt_of_mul_lt_mul_left :=
     λ a b c bc, @lt_of_mul_lt_mul_left' α (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
   ..partial_order.lift f hf,

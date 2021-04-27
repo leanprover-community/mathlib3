@@ -67,12 +67,12 @@ end
 instance : has_mul pgame := ⟨mul⟩
 
 /-- An explicit description of the moves for Left in `x * y`. -/
-def left_moves_mul {x y : pgame} : (x * y).left_moves
+def left_moves_mul (x y : pgame) : (x * y).left_moves
   ≃ x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves :=
 by { cases x, cases y, refl, }
 
 /-- An explicit description of the moves for Right in `x * y`. -/
-def right_moves_mul {x y : pgame} : (x * y).right_moves
+def right_moves_mul (x y : pgame) : (x * y).right_moves
   ≃ x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves :=
 by { cases x, cases y, refl, }
 
@@ -82,7 +82,7 @@ by { cases x, cases y, refl, }
 := rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
-   (x * y).move_left ((@left_moves_mul x y).symm (sum.inl (i,j)))
+   (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i,j)))
    = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j
 := by {cases x, cases y, refl}
 
@@ -92,7 +92,7 @@ by { cases x, cases y, refl, }
 := rfl
 
 @[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
-   (x * y).move_left ((@left_moves_mul x y).symm (sum.inr (i,j)))
+   (x * y).move_left ((left_moves_mul x y).symm (sum.inr (i,j)))
    = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j
 := by {cases x, cases y, refl}
 
@@ -102,7 +102,7 @@ by { cases x, cases y, refl, }
 := rfl
 
 @[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
-   (x * y).move_right ((@right_moves_mul x y).symm (sum.inr (i, j)))
+   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i, j)))
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j
 := by {cases x, cases y, refl}
 
@@ -112,7 +112,7 @@ by { cases x, cases y, refl, }
 := rfl
 
 @[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
-   (x * y).move_right ((@right_moves_mul x y).symm (sum.inr (i,j)))
+   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i,j)))
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j
 := by {cases x, cases y, refl}
 

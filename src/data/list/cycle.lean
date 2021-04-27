@@ -273,6 +273,50 @@ begin
     simp [add_left_comm, add_comm, add_assoc, nat.mod_eq_of_lt this] }
 end
 
+lemma prev_reverse_eq_next (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
+  prev l.reverse x (mem_reverse.mpr hx) = next l x hx :=
+begin
+  obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
+  have lpos : 0 < l.length := k.zero_le.trans_lt hk,
+  have key : l.length - 1 - k < l.length :=
+    (nat.sub_le _ _).trans_lt (nat.sub_lt_self lpos nat.succ_pos'),
+  rw ←nth_le_pmap l.next (λ _ h, h) (by simpa using hk),
+  simp_rw [←nth_le_reverse l k (key.trans_le (by simp)), pmap_next_eq_rotate_one _ h],
+  rw ←nth_le_pmap l.reverse.prev (λ _ h, h),
+  { simp_rw [pmap_prev_eq_rotate_length_sub_one _ (nodup_reverse.mpr h), rotate_reverse,
+             length_reverse, nat.mod_eq_of_lt (nat.sub_lt_self lpos nat.succ_pos'),
+             nat.sub_sub_self (nat.succ_le_of_lt lpos)],
+    rw ←nth_le_reverse,
+    { simp [nat.sub_sub_self (nat.le_pred_of_lt hk)] },
+    { simpa using (nat.sub_le _ _).trans_lt (nat.sub_lt_self lpos nat.succ_pos') } },
+  { simpa using (nat.sub_le _ _).trans_lt (nat.sub_lt_self lpos nat.succ_pos') }
+end
+
+lemma next_reverse_eq_prev (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
+  next l.reverse x (mem_reverse.mpr hx) = prev l x hx :=
+begin
+  convert (prev_reverse_eq_next l.reverse (nodup_reverse.mpr h) x (mem_reverse.mpr hx)).symm,
+  exact (reverse_reverse l).symm
+end
+
+lemma is_rotated_next_eq {l l' : list α} (h : l ~r l') (hn : nodup l) {x : α} (hx : x ∈ l) :
+  l.next x hx = l'.next x (h.mem_iff.mp hx) :=
+begin
+  obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
+  obtain ⟨n, rfl⟩ := id h,
+  rw [next_nth_le _ hn],
+  simp_rw ←nth_le_rotate' _ n k,
+  rw [next_nth_le _ (h.nodup_iff.mp hn), ←nth_le_rotate' _ n],
+  simp [add_assoc]
+end
+
+lemma is_rotated_prev_eq {l l' : list α} (h : l ~r l') (hn : nodup l) {x : α} (hx : x ∈ l) :
+  l.prev x hx = l'.prev x (h.mem_iff.mp hx) :=
+begin
+  rw [←next_reverse_eq_prev _ hn, ←next_reverse_eq_prev _ (h.nodup_iff.mp hn)],
+  exact is_rotated_next_eq h.reverse (nodup_reverse.mpr hn) _
+end
+
 end list
 
 open list
@@ -311,6 +355,9 @@ instance : has_mem α (cycle α) := ⟨mem⟩
 instance [decidable_eq α] : decidable_eq (cycle α) :=
 λ s₁ s₂, quotient.rec_on_subsingleton₂' s₁ s₂ (λ l₁ l₂,
   decidable_of_iff' _ quotient.eq')
+
+instance [decidable_eq α] (x : α) (s : cycle α) : decidable (x ∈ s) :=
+quotient.rec_on_subsingleton' s (λ l, list.decidable_mem x l)
 
 /--
 Reverse a `s : cycle α` by reversing the underlying `list`.
@@ -397,5 +444,21 @@ end
 
 instance [decidable_eq α] {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
+
+/-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
+def next [decidable_eq α] : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
+λ s, quot.hrec_on s (λ l hn x hx, next l x hx)
+  (λ l₁ l₂ (h : l₁ ~r l₂),
+  function.hfunext (propext h.nodup_iff) (λ h₁ h₂ he, function.hfunext rfl
+    (λ x y hxy, function.hfunext (propext (by simpa [eq_of_heq hxy] using h.mem_iff))
+    (λ hm hm' he', heq_of_eq (by simpa [eq_of_heq hxy] using is_rotated_next_eq h h₁ _)))))
+
+/-- Given a `s : cycle α` such that `nodup s`, retrieve the previous element before `x ∈ s`. -/
+def prev [decidable_eq α] : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
+λ s, quot.hrec_on s (λ l hn x hx, prev l x hx)
+  (λ l₁ l₂ (h : l₁ ~r l₂),
+  function.hfunext (propext h.nodup_iff) (λ h₁ h₂ he, function.hfunext rfl
+    (λ x y hxy, function.hfunext (propext (by simpa [eq_of_heq hxy] using h.mem_iff))
+    (λ hm hm' he', heq_of_eq (by simpa [eq_of_heq hxy] using is_rotated_prev_eq h h₁ _)))))
 
 end cycle

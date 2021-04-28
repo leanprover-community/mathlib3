@@ -21,7 +21,7 @@ open_locale classical
 noncomputable theory
 
 attribute [elementwise] category_theory.limits.cokernel.π_desc
-attribute [elementwise] category_theory.image_subobject_arrow_comp
+attribute [elementwise] category_theory.limits.image_subobject_arrow_comp
 
 open category_theory category_theory.limits homological_complex
 

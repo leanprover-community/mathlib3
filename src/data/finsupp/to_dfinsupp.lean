@@ -31,7 +31,7 @@ The defining features of these operations is that they preserve the function and
 * `dfinsupp.to_finsupp_coe`
 * `dfinsupp.to_finsupp_support`
 
-and therefore maps `finsupp.single` to `dfinsupp.single` and vice versa:
+and therefore map `finsupp.single` to `dfinsupp.single` and vice versa:
 
 * `finsupp.to_dfinsupp_single`
 * `dfinsupp.to_finsupp_single`
@@ -80,7 +80,7 @@ by { ext, simp, }
 
 Note that the elaborator has a lot of trouble with this definition - it is often necessary to
 write `(dfinsupp.to_finsupp f : ι →₀ M)` instead of `f.to_finsupp`, as for some unknown reason
-using dot notation or ommitting the type ascription prevents the type being resolved correctly. -/
+using dot notation or omitting the type ascription prevents the type being resolved correctly. -/
 def dfinsupp.to_finsupp (f : Π₀ i : ι, M) : ι →₀ M :=
 ⟨f.support, f, λ i, by simp only [dfinsupp.mem_support_iff]⟩
 
@@ -107,7 +107,7 @@ section lemmas
 
 namespace finsupp
 
-@[simp] lemma to_dfinsupp_zero [add_zero_class M] :
+@[simp] lemma to_dfinsupp_zero [has_zero M] :
   (0 : ι →₀ M).to_dfinsupp = 0 := dfinsupp.coe_fn_injective rfl
 
 @[simp] lemma to_dfinsupp_add [add_zero_class M] (f g : ι →₀ M) :
@@ -129,7 +129,7 @@ end finsupp
 namespace dfinsupp
 variables [decidable_eq ι]
 
-@[simp] lemma to_finsupp_zero [add_zero_class M] [Π m : M, decidable (m ≠ 0)] :
+@[simp] lemma to_finsupp_zero [has_zero M] [Π m : M, decidable (m ≠ 0)] :
   to_finsupp 0 = (0 : ι →₀ M) := finsupp.coe_fn_injective rfl
 
 @[simp] lemma to_finsupp_add [add_zero_class M] [Π m : M, decidable (m ≠ 0)] (f g : Π₀ i : ι, M) :

@@ -254,12 +254,13 @@ begin
   have hv : ∀ x ∈ interval a b, has_deriv_at (-cos) (sin x) x :=
     λ x hx, by simpa only [neg_neg] using (has_deriv_at_cos x).neg,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
-  calc  ∫ x in 0..π, sin x ^ (n + 2)
-      = ∫ x in 0..π, sin x ^ (n + 1) * sin x : by simp only [pow_succ']
-  ... = (n + 1) * ∫ x in 0..π, cos x ^ 2 * sin x ^ n : by simp [H, h, sq]
-  ... = (n + 1) * ∫ x in 0..π, sin x ^ n - sin x ^ (n + 2) : by simp [cos_sq', sub_mul,
-                                                                      ← pow_add, add_comm]
-  ... = _ : by rw [integral_sub, mul_sub]; apply continuous.interval_integrable; continuity,
+  calc  ∫ x in a..b, sin x ^ (n + 2)
+      = ∫ x in a..b, sin x ^ (n + 1) * sin x : by simp only [pow_succ']
+  ... = C + (n + 1) * ∫ x in a..b, cos x ^ 2 * sin x ^ n : by simp [H, h, sq]
+  ... = C + (n + 1) * ∫ x in a..b, sin x ^ n - sin x ^ (n + 2) : by simp [cos_sq', sub_mul,
+                                                                          ← pow_add, add_comm]
+  ... = C + (n + 1) * (∫ x in a..b, sin x ^ n) - (n + 1) * ∫ x in a..b, sin x ^ (n + 2) :
+    by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,
   all_goals { apply continuous.continuous_on, continuity },
 end
 

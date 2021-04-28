@@ -7,6 +7,7 @@ import category_theory.abelian.exact
 import algebra.homology.single
 import algebra.homology.quasi_iso
 import algebra.homology.homotopy
+import algebra.homology.augment
 
 /-!
 # Projective objects and categories with enough projectives
@@ -143,12 +144,13 @@ section
 variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
 /--
-An auxiliary structure for working with projective resolutions:
-this is the low-brow version of `resolution`,
-with everything spelled out explicitly without using cochain complexes or quasi-isomorphism.
+A `projective.resolution Z` consists of a `ℕ`-indexed chain complex of projective objects,
+along with a quasi-isomorphism to the complex consisting of just `Z` supported in degree `0`.
 -/
+-- We implement this more concretely, however, in terms of an exact sequence,
+-- not even mentioning chain complexes or quasi-isomorphisms.
 @[nolint has_inhabited_instance]
-structure resolution_core (Z : C) :=
+structure resolution (Z : C) :=
 (X : ℕ → C)
 (d : Π n, X (n+1) ⟶ X n)
 (zero : X 0 ≅ Z)
@@ -158,16 +160,30 @@ structure resolution_core (Z : C) :=
 
 variables [has_zero_object C] [has_image_maps C] [has_cokernels C]
 
--- TODO maybe ditch this structure, and just have these as constructions.
-/--
-A `projective.resolution Z` consists of a `ℕ`-indexed cochain complex of projective objects,
-along with a quasi-isomorphism to the complex consisting of just `Z` supported in degree `0`.
--/
-structure resolution (Z : C) :=
-(complex : cochain_complex C ℕ)
-(projective : ∀ n, projective (complex.X n))
-(map : complex ⟶ (homological_complex.single C _ 0).obj Z)
-(quasi_iso : quasi_iso map)
+def resolution.exact_sequence {Z : C} (P : resolution Z) : chain_complex C ℕ :=
+{ X := P.X,
+  d := λ i j, if h : i = j + 1 then eq_to_hom (congr_arg P.X h) ≫ P.d j else 0,
+  shape' := λ i j w, by rw dif_neg (ne.symm w),
+  d_comp_d' := λ i j k,
+  begin
+    split_ifs with h h' h',
+    { substs h h', simp [(P.exact k).w], },
+    all_goals { simp },
+  end }
+
+def resolution.complex {Z : C} (P : resolution Z) : chain_complex C ℕ :=
+chain_complex.truncate.obj P.exact_sequence
+
+instance resolution.projective' {Z : C} (P : resolution Z) (n : ℕ) :
+  projective (P.complex.X n) :=
+P.projective n
+
+def resolution.map {Z : C} (P : resolution Z) :
+  P.complex ⟶ (homological_complex.single C _ 0).obj Z :=
+chain_complex.truncate_to_single P.exact_sequence ≫ (homological_complex.single C _ 0).map P.zero.hom
+
+def resolution.quasi_iso {Z : C} (P : resolution Z) : quasi_iso P.map :=
+sorry
 
 attribute [instance] resolution.projective
 
@@ -242,7 +258,7 @@ variables [enough_projectives C] [abelian C]
 In any category with enough projectives,
 `projective.resolution.of Z` constructs a projection resolution of the object `Z`.
 -/
-def of (Z : C) : resolution_core Z :=
+def of (Z : C) : resolution Z :=
 { X := λ n, X' projective.over projective.π
     (λ (X Y : C) (f : X ⟶ Y), projective.left f)
     (λ (X Y : C) (f : X ⟶ Y), projective.d f)

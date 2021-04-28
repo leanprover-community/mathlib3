@@ -118,8 +118,8 @@ lemma subgroup.fg_iff (P : subgroup G) : subgroup.fg P ↔
 ⟨λ⟨S, hS⟩, ⟨S, hS, finset.finite_to_set S⟩, λ⟨S, hS, hf⟩, ⟨set.finite.to_finset hf, by simp [hS]⟩⟩
 
 /-- A subgroup is finitely generated if and only if it is finitely generated as a submonoid. -/
-@[to_additive "An additive subgroup is finitely generated if and only if it is finitely generated as
-an additive submonoid."]
+@[to_additive add_subgroup.fg_iff_add_submonoid.fg "An additive subgroup is finitely generated if
+and only if it is finitely generated as an additive submonoid."]
 lemma subgroup.fg_iff_submonoid_fg (P : subgroup G) : P.fg ↔ P.to_submonoid.fg :=
 begin
   split,
@@ -137,28 +137,6 @@ begin
     { change P.to_submonoid ≤ (subgroup.closure ↑S).to_submonoid,
       rw [← hS, submonoid.closure_le],
       exact subgroup.subset_closure } }
-end
-
-/-- An additive subgroup is finitely generated if and only if it is finitely generated as
-an additive submonoid. -/
-lemma add_subgroup.fg_iff_add_submonoid.fg (P : add_subgroup H) :
-  P.fg ↔ P.to_add_submonoid.fg :=
-begin
-  split,
-  { rintro ⟨S, hS⟩,
-    rw add_submonoid.fg_iff,
-    refine ⟨S ∪ -S, _, _⟩,
-    { simp [← add_subgroup.closure_to_add_submonoid, hS] },
-    { exact set.finite.union (finset.finite_to_set S) (set.finite.neg (finset.finite_to_set S)) } },
-  { rintro ⟨S, hS⟩,
-    refine ⟨S, le_antisymm _ _⟩,
-    { rw add_subgroup.closure_le,
-      change ↑S ⊆ ↑P.to_add_submonoid,
-      rw ← hS,
-      exact add_submonoid.subset_closure },
-    { change P.to_add_submonoid ≤ (add_subgroup.closure ↑S).to_add_submonoid,
-      rw [← hS, add_submonoid.closure_le],
-      exact add_subgroup.subset_closure } }
 end
 
 lemma subgroup.fg_iff_add_fg (P : subgroup G) : P.fg ↔ P.to_add_subgroup.fg :=

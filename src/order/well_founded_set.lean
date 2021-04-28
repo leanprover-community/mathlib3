@@ -338,7 +338,7 @@ end set
 namespace finset
 
 @[simp]
-theorem partially_well_ordered_on {r : α → α → Prop} [is_refl α r] {f : finset α} :
+theorem partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (f : finset α) :
   set.partially_well_ordered_on (↑f : set α) r :=
 begin
   intros g hg,
@@ -355,12 +355,12 @@ begin
 end
 
 @[simp]
-theorem is_pwo [partial_order α] {f : finset α} :
+theorem is_pwo [partial_order α] (f : finset α) :
   set.is_pwo (↑f : set α) :=
 f.partially_well_ordered_on
 
 @[simp]
-theorem well_founded_on {r : α → α → Prop} [is_strict_order α r] {f : finset α} :
+theorem well_founded_on {r : α → α → Prop} [is_strict_order α r] (f : finset α) :
   set.well_founded_on (↑f : set α) r :=
 begin
   rw [set.well_founded_on_iff_no_descending_seq],
@@ -370,8 +370,8 @@ begin
 end
 
 @[simp]
-theorem is_wf [partial_order α] {f : finset α} : set.is_wf (↑f : set α) :=
-finset.is_pwo.is_wf
+theorem is_wf [partial_order α] (f : finset α) : set.is_wf (↑f : set α) :=
+f.is_pwo.is_wf
 
 end finset
 
@@ -381,7 +381,7 @@ variables [partial_order α] {s : set α} {a : α}
 theorem finite.is_pwo (h : s.finite) : s.is_pwo :=
 begin
   rw ← h.coe_to_finset,
-  exact finset.is_pwo,
+  exact h.to_finset.is_pwo,
 end
 
 @[simp]

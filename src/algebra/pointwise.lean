@@ -331,17 +331,14 @@ instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
   right_distrib := λ _ _ _, union_mul,
   ..set.has_mul, ..set_semiring.add_comm_monoid }
 
-instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
-{ ..set.semigroup,
-  ..set_semiring.non_unital_non_assoc_semiring }
-
 instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
-{ ..set.mul_one_class,
-  ..set_semiring.non_unital_non_assoc_semiring }
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
+
+instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
 
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_semiring,
-  ..set_semiring.non_assoc_semiring }
+{ ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
 
 instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
 { ..set.comm_monoid, ..set_semiring.semiring }

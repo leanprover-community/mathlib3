@@ -770,7 +770,7 @@ def range : lie_submodule R L N :=
 iff.rfl
 
 lemma map_top : lie_submodule.map f ⊤ = f.range :=
-by { ext, simp, }
+by { ext, simp [lie_submodule.mem_map], }
 
 end lie_module_hom
 

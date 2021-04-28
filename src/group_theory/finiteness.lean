@@ -123,11 +123,10 @@ and only if it is finitely generated as an additive submonoid."]
 lemma subgroup.fg_iff_submonoid_fg (P : subgroup G) : P.fg ↔ P.to_submonoid.fg :=
 begin
   split,
-  { rintro ⟨S, hS⟩,
+  { rintro ⟨S, rfl⟩,
     rw submonoid.fg_iff,
-    refine ⟨S ∪ S⁻¹, _, _⟩,
-    { simp [← subgroup.closure_to_submonoid, hS] },
-    { exact S.finite_to_set.union S.finite_to_set.inv } },
+    refine ⟨S ∪ S⁻¹, _, S.finite_to_set.union S.finite_to_set.inv⟩,
+    exact (subgroup.closure_to_submonoid _).symm },
   { rintro ⟨S, hS⟩,
     refine ⟨S, le_antisymm _ _⟩,
     { rw [subgroup.closure_le, ←subgroup.coe_to_submonoid, ←hS],

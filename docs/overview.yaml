@@ -194,6 +194,7 @@ Topology:
     compact open topology: 'continuous_map.compact_open'
     Stone-Cech compactification: 'stone_cech'
     topological fiber bundle: 'is_topological_fiber_bundle'
+    Urysohn's lemma: 'exists_continuous_zero_one_of_closed'
   Uniform notions:
     uniform space: 'uniform_space'
     uniformly continuous function: 'metric.uniform_continuous_iff'
@@ -280,6 +281,8 @@ Analysis:
     Borel sigma-algebra: 'borel_space'
     positive measure: 'measure_theory.measure'
     Lebesgue measure: 'measure_theory.real.measure_space'
+    Hausdorff measure: 'measure_theory.measure.hausdorff_measure'
+    Hausdorff dimension: 'measure_theory.dimH'
     Giry monad: 'measure_theory.measure.measurable_space'
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'

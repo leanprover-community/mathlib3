@@ -73,7 +73,8 @@ def mk' (f : α → α) (hf₁ : monotone f) (hf₂ : ∀ x, x ≤ f x) (hf₃ :
   le_closure' := hf₂,
   idempotent' := λ x, le_antisymm (hf₃ x) (hf₁ (hf₂ x)) }
 
-/-- Constructor for a closure operator using the weaker minimality axiom: `x ≤ f y → f x ≤ f y`. -/
+/-- Convenience constructor for a closure operator using the weaker minimality axiom:
+`x ≤ f y → f x ≤ f y`, which is sometimes easier to prove in practice. -/
 @[simps]
 def mk₂ (f : α → α) (hf : ∀ x, x ≤ f x) (hmin : ∀ ⦃x y⦄, x ≤ f y → f x ≤ f y) :
   closure_operator α :=
@@ -82,7 +83,10 @@ def mk₂ (f : α → α) (hf : ∀ x, x ≤ f x) (hmin : ∀ ⦃x y⦄, x ≤ f
   le_closure' := hf,
   idempotent' := λ x, le_antisymm (hmin (le_refl _)) (hf _) }
 
-/-- Expanded out version of `mk₂`. `p` implies being closed. -/
+/-- Expanded out version of `mk₂`. `p` implies being closed. This constructor should be used when
+you already know a sufficient condition for being closed and using `mem_mk₃_closed` will avoid you
+the (slight) hassle of having to prove it both inside and outside the constructor. -/
+@[simps]
 def mk₃ (f : α → α) (p : α → Prop) (hf : ∀ x, x ≤ f x) (hfp : ∀ x, p (f x))
   (hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y) :
   closure_operator α :=
@@ -99,7 +103,7 @@ lemma le_closure (x : α) : x ≤ c x := c.le_closure' x
 lemma le_closure_iff (x y : α) : x ≤ c y ↔ c x ≤ c y :=
 ⟨λ h, c.idempotent y ▸ c.monotone h, λ h, le_trans (c.le_closure x) h⟩
 
-lemma closure_top {α : Type u} [order_top α] (c : closure_operator α) : c ⊤ = ⊤ :=
+@[simp] lemma closure_top {α : Type u} [order_top α] (c : closure_operator α) : c ⊤ = ⊤ :=
 le_antisymm le_top (c.le_closure _)
 
 lemma closure_inf_le {α : Type u} [semilattice_inf α] (c : closure_operator α) (x y : α) :
@@ -127,49 +131,50 @@ set.ext $ λ x, ⟨λ h, ⟨x, h⟩, by { rintro ⟨y, rfl⟩, apply c.idempoten
 /-- Send an `x` to an element of the set of closed elements (by taking the closure). -/
 def to_closed (x : α) : c.closed := ⟨c x, c.closure_is_closed x⟩
 
-lemma mk₃.to_closed {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
-  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x : α} {hx : p x} :
-  (mk₃ f p hf hfp hmin).closed x :=
+/-- This lemma shows that the `p` fed into the `mk₃` constructor implies being closed. -/
+lemma mem_mk₃_closed {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
+  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x : α} (hx : p x) :
+  x ∈ (mk₃ f p hf hfp hmin).closed :=
 le_antisymm (hmin (le_refl _) hx) (hf _)
 
 lemma top_mem_closed {α : Type u} [order_top α] (c : closure_operator α) : ⊤ ∈ c.closed :=
 c.closure_top
 
-lemma closure_le_closed_iff_le {x y : α} (hy : c.closed y) : x ≤ y ↔ c x ≤ y :=
-by rw [← c.closure_eq_self_of_mem_closed hy, le_closure_iff]
+@[simp] lemma closure_le_closed_iff_le (x : α) {y : α} (hy : c.closed y) : c x ≤ y ↔ x ≤ y :=
+by rw [←c.closure_eq_self_of_mem_closed hy, ←le_closure_iff]
 
-lemma closure_closure_sup_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
+@[simp] lemma closure_sup_closure_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :
   c (c x ⊔ y) = c (x ⊔ y) :=
-le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (sup_le (c.monotone le_sup_left)
+le_antisymm ((le_closure_iff c _ _).1 (sup_le (c.monotone le_sup_left)
   (le_trans le_sup_right (le_closure _ _)))) (c.monotone (sup_le_sup_right (le_closure _ _) _))
 
-lemma closure_closure_sup_right {α : Type u} [semilattice_sup α] (c : closure_operator α)
+@[simp] lemma closure_sup_closure_right {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :
   c (x ⊔ c y) = c (x ⊔ y) :=
-by { rw [sup_comm, closure_closure_sup_left, sup_comm] }
+by rw [sup_comm, closure_sup_closure_left, sup_comm]
 
-lemma closure_closure_sup {α : Type u} [semilattice_sup α] (c : closure_operator α)
+@[simp] lemma closure_sup_closure {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :
   c (c x ⊔ c y) = c (x ⊔ y) :=
-by { rw [closure_closure_sup_left, closure_closure_sup_right] }
+by rw [closure_sup_closure_left, closure_sup_closure_right]
 
-lemma closure_closure_supr {α : Type u} {ι : Sort v} [complete_lattice α] (c : closure_operator α)
-  (x : ι → α) :
+@[simp] lemma closure_supr_closure {α : Type u} {ι : Type v} [complete_lattice α]
+  (c : closure_operator α) (x : ι → α) :
   c (⨆ i, c (x i)) = c (⨆ i, x i) :=
-le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (supr_le (λ i, c.monotone
+le_antisymm ((le_closure_iff c _ _).1 (supr_le (λ i, c.monotone
   (le_supr _ _)))) (c.monotone (supr_le_supr (λ i, c.le_closure _)))
 
-lemma closure_closure_bsupr {α : Type u} [complete_lattice α] (c : closure_operator α)
+@[simp] lemma closure_bsupr_closure {α : Type u} [complete_lattice α] (c : closure_operator α)
   (p : α → Prop) :
-  c (⨆ x (h : p x), c x) = c (⨆ x (h : p x), x) :=
-le_antisymm ((closure_le_closed_iff_le c (closure_is_closed _ _)).1 (bsupr_le (λ x hx, c.monotone
+  c (⨆ x (H : p x), c x) = c (⨆ x (H : p x), x) :=
+le_antisymm ((le_closure_iff c _ _).1 (bsupr_le (λ x hx, c.monotone
   (le_bsupr_of_le x hx (le_refl x))))) (c.monotone (bsupr_le_bsupr (λ x hx, le_closure _ _)))
 
 /-- The set of closed elements has a Galois insertion to the underlying type. -/
 def gi : galois_insertion c.to_closed coe :=
 { choice := λ x hx, ⟨x, le_antisymm hx (c.le_closure x)⟩,
-  gc := λ x y, (c.closure_le_closed_iff_le y.2).symm,
+  gc := λ x y, (c.closure_le_closed_iff_le _ y.2),
   le_l_u := λ x, c.le_closure _,
   choice_eq := λ x hx, le_antisymm (c.le_closure x) hx }
 

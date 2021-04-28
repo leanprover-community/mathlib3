@@ -17,7 +17,7 @@ and binary operations.  These model the implications
 * `b ≤ c → a * b ≤ a * c`, (left-multiplication is monotone),
 * `a * b < a * c → b < c`, (a kind of contrapositive version of monotonicity of multiplication).
 
-Since we want to have the freedom to apply them indepdently to
+Since we want to have the freedom to apply them independently to
 
 * each relation `(≤)` and `(<)`,
 * each binary operation `(+)` and `(*)`,
@@ -39,30 +39,29 @@ We then introduce the 16 typeclasses obtained by choosing `M = N` and assuming
 * the relation `r` being one of `(≤)` or `(<)`,
 * the operation `μ : M → M → M` being one of `(+)` or `(*)`, for left monotonicity,
 * the operation `μ : M → M → M` being one of `(function.swap (+))` or `(function.swap(*))`,
-  for right monotonicity,
+  for right monotonicity.
 
 There are two main reasons for introducing several typeclasses.  The first, is that it is much more
 human-friendly to have a class called `has_add_le_add_right M` than one called
-`covariant M M (function.swap (+)) (≤)`.  The second, is that this way, we bound better the space
+`covariant (function.swap (+)) (≤)`.  The second, is that this way, we bound better the space
 for typeclass inference: e.g. we ask the typeclass search to look for `has_add` and `has_le`
 instances, instead of extending the search to all possible functions among different Types.
 
-The general approach is to formulate the lemma that you are interested and prove it, with the
-`ordered_[...]` typeclass of your liking.  After that, you convert the single typeclass,
-say `[ordered_cancel_monoid M]`, with three typeclasses, e.g.
-`[partial_order M] [left_cancel_semigroup M] [has_mul_le_mul_right M]`
-and have a go at seeing if the proof still works!
+The general approach is to formulate and prove a lemma, with the `ordered_[...]` typeclass of your
+liking.  After that, you convert the single typeclass, say `[ordered_cancel_monoid M]`, with three
+typeclasses, e.g. `[partial_order M] [left_cancel_semigroup M] [has_mul_le_mul_right M]` and see
+if the proof still works: chances are that it might!
 
-Note that it is possible to combine several `co(ntra)variant` assumptions together.
+It is possible (and even expected) to combine several `co(ntra)variant` assumptions together.
 Indeed, the usual ordered typeclasses arise from assuming the pair
 `[has_mul_le_mul_left M] [has_lt_of_mul_le_mul_left M]` on top of order/algebraic assumptions.
 
-A formal remark is that normally the direct implication of `covariant` uses the `(≤)`-relation,
-while inverse implication of `contravariant` uses the `(<)`-relation. This need not be the case in
+A formal remark is that normally the relation that is an input to `covariant` is `(≤)`,
+while the relation that is an input to `contravariant` is `(<)`. This need not be the case in
 general, but seems to be the most common usage. In the opposite direction, the implication
 
 ```lean
-[semigroup M] [partial_order M] [has_le_of_mul_le_mul M] => left_cancel_semigroup α
+[semigroup M] [partial_order M] [has_le_of_mul_le_mul M] → left_cancel_semigroup α
 ```
 holds (note the `has_le_[...]` as opposed to the more common idioms `has_lt_[...]` and
 `has_mul_le_[...]`.

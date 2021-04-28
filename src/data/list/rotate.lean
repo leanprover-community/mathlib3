@@ -105,10 +105,6 @@ by rw [rotate_eq_rotate', rotate'_length]
 @[simp] lemma rotate_length_mul (l : list α) (n : ℕ) : l.rotate (l.length * n) = l :=
 by rw [rotate_eq_rotate', rotate'_length_mul]
 
-/-- A version of `rotate_length_mul` useful for rewriting. -/
-lemma rotate_length_mul' (l : list α) (m n : ℕ) (h : l.length = m) : l.rotate (m * n) = l :=
-h ▸ rotate_length_mul _ _
-
 lemma prod_rotate_eq_one_of_prod_eq_one [group α] : ∀ {l : list α} (hl : l.prod = 1) (n : ℕ),
   (l.rotate n).prod = 1
 | []     _  _ := by simp

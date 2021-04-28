@@ -102,7 +102,7 @@ class non_unital_semiring (α : Type u) extends
   non_unital_non_assoc_semiring α, semigroup_with_zero α
 
 /-- A unital but not-necessarily-associative semiring. -/
-@[protect_proj, ancestor non_unital_non_assoc_semiring mul_one_class]
+@[protect_proj, ancestor non_unital_non_assoc_semiring mul_zero_one_class]
 class non_assoc_semiring (α : Type u) extends
   non_unital_non_assoc_semiring α, mul_zero_one_class α
 
@@ -110,8 +110,8 @@ class non_assoc_semiring (α : Type u) extends
 (`add_comm_monoid`), multiplicative monoid (`monoid`), distributive laws (`distrib`), and
 multiplication by zero law (`mul_zero_class`). The actual definition extends `monoid_with_zero`
 instead of `monoid` and `mul_zero_class`. -/
-@[protect_proj, ancestor add_comm_monoid monoid_with_zero distrib]
-class semiring (α : Type u) extends add_comm_monoid α, monoid_with_zero α, distrib α
+@[protect_proj, ancestor non_unital_semiring non_assoc_semiring monoid_with_zero]
+class semiring (α : Type u) extends non_unital_semiring α, non_assoc_semiring α, monoid_with_zero α
 
 section injective_surjective_maps
 
@@ -187,18 +187,6 @@ end injective_surjective_maps
 
 section semiring
 variables [semiring α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance semiring.to_non_unital_non_assoc_semiring : non_unital_non_assoc_semiring α :=
-{ ..‹semiring α› }
-
-@[priority 100] -- see Note [lower instance priority]
-instance semiring.non_unital_semiring : non_unital_semiring α :=
-{ ..‹semiring α› }
-
-@[priority 100] -- see Note [lower instance priority]
-instance semiring.non_assoc_semiring : non_assoc_semiring α :=
-{ ..‹semiring α› }
 
 lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
 by unfold bit0

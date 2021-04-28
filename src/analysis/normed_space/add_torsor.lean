@@ -319,7 +319,7 @@ end
 
 section
 
-variables {R : Type*} [ring R] [topological_space R] [semimodule R V] [has_continuous_smul R V]
+variables {R : Type*} [ring R] [topological_space R] [module R V] [has_continuous_smul R V]
 
 lemma filter.tendsto.line_map {l : filter α} {f₁ f₂ : α → P} {g : α → R} {p₁ p₂ : P} {c : R}
   (h₁ : tendsto f₁ l (𝓝 p₁)) (h₂ : tendsto f₂ l (𝓝 p₂)) (hg : tendsto g l (𝓝 c)) :

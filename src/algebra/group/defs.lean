@@ -445,6 +445,20 @@ instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M]
 
 end cancel_monoid
 
+/-- The fundamental power operation in a group. `gpow_rec n a = a*a*...*a` n times, for integer `n`.
+Use instead `a ^ n`,  which has better definitional behavior. -/
+def gpow_rec {M : Type*} [has_one M] [has_mul M] [has_inv M] : ℤ → M → M
+| (int.of_nat n) a := npow_rec n a
+| -[1+ n]    a := (npow_rec n.succ a) ⁻¹
+
+/-- The fundamental scalar multiplication in an additive group. `gsmul_rec n a = a+a+...+a` n
+times, for integer `n`. Use instead `n • a`, which has better definitional behavior. -/
+def gsmul_rec {M : Type*} [has_zero M] [has_add M] [has_neg M]: ℤ → M → M
+| (int.of_nat n) a := nsmul_rec n a
+| -[1+ n]    a := - (nsmul_rec n.succ a)
+
+attribute [to_additive] gpow_rec
+
 /-- A `div_inv_monoid` is a `monoid` with operations `/` and `⁻¹` satisfying
 `div_eq_mul_inv : ∀ a b, a / b = a * b⁻¹`.
 
@@ -459,11 +473,23 @@ Let `foo X` be a type with a `∀ X, has_div (foo X)` instance but no
 also have an instance `∀ X [cromulent X], group_with_zero (foo X)`. Then the
 `(/)` coming from `group_with_zero_has_div` cannot be definitionally equal to
 the `(/)` coming from `foo.has_div`.
+
+In the same way, adding a `gpow` field makes it possible to avoid definitional failures
+in diamonds. See the definition of `monoid` and Note [forgetful inheritance] for more
+explanations on this.
 -/
 @[protect_proj, ancestor monoid has_inv has_div]
 class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
 (div := λ a b, a * b⁻¹)
 (div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . try_refl_tac)
+(gpow : ℤ → G → G := gpow_rec)
+(gpow_zero' : ∀ (a : G), gpow 0 a = 1 . try_refl_tac)
+(gpow_succ' :
+  ∀ (n : ℕ) (a : G), gpow (int.of_nat n.succ) a = a * gpow (int.of_nat n) a  . try_refl_tac)
+(gpow_neg' :
+  ∀ (n : ℕ) (a : G), gpow (-[1+ n]) a = (gpow n.succ a) ⁻¹ . try_refl_tac)
+
+export div_inv_monoid (gpow)
 
 /-- A `sub_neg_monoid` is an `add_monoid` with unary `-` and binary `-` operations
 satisfying `sub_eq_add_neg : ∀ a b, a - b = a + -b`.
@@ -477,11 +503,23 @@ Let `foo X` be a type with a `∀ X, has_sub (foo X)` instance but no
 `∀ X [cromulent X], add_group (foo X)`. Then the `(-)` coming from
 `add_group.has_sub` cannot be definitionally equal to the `(-)` coming from
 `foo.has_sub`.
+
+In the same way, adding a `gsmul` field makes it possible to avoid definitional failures
+in diamonds. See the definition of `add_monoid` and Note [forgetful inheritance] for more
+explanations on this.
 -/
 @[protect_proj, ancestor add_monoid has_neg has_sub]
 class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
 (sub := λ a b, a + -b)
 (sub_eq_add_neg : ∀ a b : G, a - b = a + -b . try_refl_tac)
+(gsmul : ℤ → G → G := gsmul_rec)
+(gsmul_zero' : ∀ (a : G), gsmul 0 a = 0 . try_refl_tac)
+(gsmul_succ' :
+  ∀ (n : ℕ) (a : G), gsmul (int.of_nat n.succ) a = a + gsmul (int.of_nat n) a  . try_refl_tac)
+(gsmul_neg' :
+  ∀ (n : ℕ) (a : G), gsmul (-[1+ n]) a = - (gsmul n.succ a) . try_refl_tac)
+
+export sub_neg_monoid (gsmul)
 
 attribute [to_additive sub_neg_monoid] div_inv_monoid
 

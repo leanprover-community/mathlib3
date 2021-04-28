@@ -34,7 +34,7 @@ variables {C : Type u} [category.{v} C]
 variables [preadditive C]
 
 /--
-Schur's Lemma (for a general preadditive category with kernels),
+The part of Schur's lemma that holds in any preadditive category with kernels:
 that a nonzero morphism between simple objects is an isomorphism.
 -/
 lemma is_iso_of_hom_simple [has_kernels C] {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :

@@ -97,11 +97,12 @@ section semigroup
 
 variables [semiring k] [semigroup G]
 
-instance : semigroup (monoid_algebra k G) :=
+instance : semigroup_with_zero (monoid_algebra k G) :=
 { mul       := (*),
   mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
     sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],}
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
+  .. monoid_algebra.mul_zero_class }
 
 end semigroup
 
@@ -174,7 +175,7 @@ instance : semiring (monoid_algebra k G) :=
   zero      := 0,
   add       := (+),
   .. monoid_algebra.mul_zero_one_class,
-  .. monoid_algebra.semigroup,
+  .. monoid_algebra.semigroup_with_zero,
   .. monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 
@@ -682,11 +683,12 @@ section semigroup
 
 variables [semiring k] [add_semigroup G]
 
-instance : semigroup (add_monoid_algebra k G) :=
+instance : semigroup_with_zero (add_monoid_algebra k G) :=
 { mul       := (*),
   mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
     sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add] }
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
+  .. add_monoid_algebra.mul_zero_class }
 
 end semigroup
 
@@ -747,7 +749,7 @@ instance : semiring (add_monoid_algebra k G) :=
   nsmul_zero' := by { intros, ext, simp [-nsmul_eq_mul, add_smul] },
   nsmul_succ' := by { intros, ext, simp [-nsmul_eq_mul, nat.succ_eq_one_add, add_smul] },
   .. add_monoid_algebra.mul_zero_one_class,
-  .. add_monoid_algebra.semigroup,
+  .. add_monoid_algebra.semigroup_with_zero,
   .. add_monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 

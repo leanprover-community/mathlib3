@@ -187,6 +187,8 @@ class group.fg : Prop := (out : (⊤ : subgroup G).fg)
 itself. -/
 class add_group.fg : Prop := (out : (⊤ : add_subgroup H).fg)
 
+attribute [to_additive] group.fg
+
 variables {G H}
 
 lemma group.fg_def : group.fg G ↔ (⊤ : subgroup G).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩

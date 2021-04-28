@@ -276,6 +276,10 @@ begin
     exact (function.commute.iterate_self _ _ m).symm, },
 end
 
+lemma pow_map_zero_of_le
+  {f : module.End R M} {m : M} {k l : ℕ} (hk : k ≤ l) (hm : (f^k) m = 0) : (f^l) m = 0 :=
+by rw [← nat.sub_add_cancel hk, pow_add, mul_apply, hm, map_zero]
+
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 

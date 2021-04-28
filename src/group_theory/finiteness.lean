@@ -159,7 +159,7 @@ begin
       exact add_subgroup.subset_closure } }
 end
 
-lemma subgroup.fg_iff_add_fg (P : subgroup G) : subgroup.fg P ↔ add_subgroup.fg P.to_add_subgroup :=
+lemma subgroup.fg_iff_add_fg (P : subgroup G) : P.fg ↔ P.to_add_subgroup.fg :=
 begin
   rw [subgroup.fg_iff_submonoid_fg, add_subgroup.fg_iff_add_submonoid.fg],
   exact (subgroup.to_submonoid P).fg_iff_add_fg

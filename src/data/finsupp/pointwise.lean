@@ -55,10 +55,9 @@ instance : mul_zero_class (α →₀ β) :=
 
 end
 
-instance [semigroup_with_zero β] : semigroup_with_zero (α →₀ β) :=
+instance [semiring β] : semigroup (α →₀ β) :=
 { mul       := (*),
-  mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], },
-  ..(infer_instance : mul_zero_class (α →₀ β)) }
+  mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], }, }
 
 instance [semiring β] : distrib (α →₀ β) :=
 { left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },

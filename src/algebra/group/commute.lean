@@ -79,7 +79,7 @@ protected theorem all {S : Type*} [comm_semigroup S] (a b : S) : commute a b := 
 
 section mul_one_class
 
-variables {M : Type*} [mul_one_class M]
+variables {M : Type*} [monoid M]
 
 @[simp, to_additive] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
 @[simp, to_additive] theorem one_left (a : M) : commute 1 a := semiconj_by.one_left a

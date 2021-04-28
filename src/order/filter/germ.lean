@@ -42,7 +42,7 @@ For each of the following structures we prove that if `β` has this structure, t
 
 * one-operation algebraic structures up to `comm_group`;
 * `mul_zero_class`, `distrib`, `semiring`, `comm_semiring`, `ring`, `comm_ring`;
-* `mul_action`, `distrib_mul_action`, `module`;
+* `mul_action`, `distrib_mul_action`, `semimodule`;
 * `preorder`, `partial_order`, and `lattice` structures up to `bounded_lattice`;
 * `ordered_cancel_comm_monoid` and `ordered_cancel_add_comm_monoid`.
 
@@ -414,13 +414,13 @@ instance distrib_mul_action' [monoid M] [add_monoid N] [distrib_mul_action M N] 
 { smul_add := λ c f g, induction_on₃ c f g $ λ c f g, by { norm_cast, simp only [smul_add] },
   smul_zero := λ c, induction_on c $ λ c, by simp only [← coe_zero, ← coe_smul', smul_zero] }
 
-instance [semiring R] [add_comm_monoid M] [module R M] :
-  module R (germ l M) :=
+instance [semiring R] [add_comm_monoid M] [semimodule R M] :
+  semimodule R (germ l M) :=
 { add_smul := λ c₁ c₂ f, induction_on f $ λ f, by { norm_cast, simp only [add_smul] },
   zero_smul := λ f, induction_on f $ λ f, by { norm_cast, simp only [zero_smul, coe_zero] } }
 
-instance module' [semiring R] [add_comm_monoid M] [module R M] :
-  module (germ l R) (germ l M) :=
+instance semimodule' [semiring R] [add_comm_monoid M] [semimodule R M] :
+  semimodule (germ l R) (germ l M) :=
 { add_smul := λ c₁ c₂ f, induction_on₃ c₁ c₂ f $ λ c₁ c₂ f, by { norm_cast, simp only [add_smul] },
   zero_smul := λ f, induction_on f $ λ f, by simp only [← coe_zero, ← coe_smul', zero_smul] }
 

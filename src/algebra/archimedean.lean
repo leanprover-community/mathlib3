@@ -41,17 +41,14 @@ variables [linear_ordered_add_comm_group α] [archimedean α]
 /-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for
 `a > 0`, any `g` in the group lies between some two consecutive multiples of `a`. -/
 lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
-  ∃ (k : ℤ), k • a ≤ g ∧ g < (k + 1) • a :=
+  ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
 begin
-  let s : set ℤ := {n : ℤ | n • a ≤ g},
+  let s : set ℤ := {n : ℤ | n •ℤ a ≤ g},
   obtain ⟨k, hk : -g ≤ k • a⟩ := archimedean.arch (-g) ha,
   have h_ne : s.nonempty := ⟨-k, by simpa using neg_le_neg hk⟩,
   obtain ⟨k, hk⟩ := archimedean.arch g ha,
-  have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ),
-  { assume n hn,
-    apply (gsmul_le_gsmul_iff ha).mp,
-    rw ← gsmul_coe_nat at hk,
-    exact le_trans hn hk },
+  have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ) :=
+    λ n hn, (gsmul_le_gsmul_iff ha).mp (le_trans hn hk : n •ℤ a ≤ k •ℤ a),
   obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
   refine ⟨m, hm, _⟩,
   by_contra H,
@@ -59,12 +56,12 @@ begin
 end
 
 lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
-  ∃ (k : ℤ), 0 ≤ g - k • a ∧ g - k • a < a :=
+  ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a :=
 begin
   obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
-  rw add_gsmul at h2,
   refine ⟨k, sub_nonneg.mpr h1, _⟩,
-  simpa [sub_lt_iff_lt_add'] using h2
+  have : g < k •ℤ a + 1 •ℤ a, by rwa ← add_gsmul a k 1,
+  simpa [sub_lt_iff_lt_add']
 end
 
 end linear_ordered_add_comm_group
@@ -149,13 +146,12 @@ lemma exists_int_pow_near [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by { rw [fpow_neg y (↑N), gpow_coe_nat],
-    exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN })⟩,
+    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N))];
+    exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN)⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
-  (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt))
-    (lt_of_le_of_lt hm (by rwa ← gpow_coe_nat at hM)))⟩,
+  (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt)) (lt_of_le_of_lt hm hM))⟩,
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 

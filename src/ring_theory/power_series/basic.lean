@@ -83,10 +83,10 @@ instance [add_comm_monoid R] : add_comm_monoid (mv_power_series σ R) := pi.add_
 instance [add_comm_group R]  : add_comm_group  (mv_power_series σ R) := pi.add_comm_group
 instance [nontrivial R]      : nontrivial      (mv_power_series σ R) := function.nontrivial
 
-instance {A} [semiring R] [add_comm_monoid A] [module R A] :
-  module R (mv_power_series σ A) := pi.module _ _ _
+instance {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
+  semimodule R (mv_power_series σ A) := pi.semimodule _ _ _
 
-instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
+instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [semimodule S A]
   [has_scalar R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (mv_power_series σ A) :=
 pi.is_scalar_tower
@@ -446,7 +446,7 @@ instance : algebra R (mv_power_series σ A) :=
 { commutes' := λ a φ, by { ext n, simp [algebra.commutes] },
   smul_def' := λ a σ, by { ext n, simp [(coeff A n).map_smul_of_tower a, algebra.smul_def] },
   to_ring_hom := (mv_power_series.map σ (algebra_map R A)).comp (C σ R),
-  .. mv_power_series.module }
+  .. mv_power_series.semimodule }
 
 theorem C_eq_algebra_map : C σ R = (algebra_map R (mv_power_series σ R)) := rfl
 
@@ -808,10 +808,10 @@ instance [ring R]            : ring            (power_series R) := by apply_inst
 instance [comm_ring R]       : comm_ring       (power_series R) := by apply_instance
 instance [nontrivial R]      : nontrivial      (power_series R) := by apply_instance
 
-instance {A} [semiring R] [add_comm_monoid A] [module R A] :
-  module R (power_series A) := by apply_instance
+instance {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
+  semimodule R (power_series A) := by apply_instance
 
-instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
+instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [semimodule S A]
   [has_scalar R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (power_series A) :=
 pi.is_scalar_tower

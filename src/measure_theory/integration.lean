@@ -316,8 +316,8 @@ instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λk f, f.map ((�
 
 lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
 
-instance [semiring K] [add_comm_monoid β] [module K β] : module K (α →ₛ β) :=
-function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩
+instance [semiring K] [add_comm_monoid β] [semimodule K β] : semimodule K (α →ₛ β) :=
+function.injective.semimodule K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩
   coe_injective coe_smul
 
 lemma smul_eq_map [has_scalar K β] (k : K) (f : α →ₛ β) : k • f = f.map ((•) k) := rfl

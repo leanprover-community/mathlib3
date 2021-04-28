@@ -272,10 +272,13 @@ namespace ring_hom
 
 variables (g : S →+* T) (f : R →+* S)
 
-/-- The range of a ring homomorphism is a subsemiring. See Note [range copy pattern]. -/
+/-- The range of a ring homomorphism is a subsemiring. -/
 def srange : subsemiring S :=
 ((⊤ : subsemiring R).map f).copy (set.range f) set.image_univ.symm
 
+/-- Note that `ring_hom.srange` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.srange` are interchangeable without proof
+obligations. -/
 @[simp] lemma coe_srange : (f.srange : set S) = set.range f := rfl
 
 @[simp] lemma mem_srange {f : R →+* S} {y : S} : y ∈ f.srange ↔ ∃ x, f x = y :=

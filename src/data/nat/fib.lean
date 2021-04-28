@@ -82,10 +82,6 @@ lemma fib_le_fib_succ {n : ℕ} : fib n ≤ fib (n + 1) := by { cases n; simp [f
 @[mono] lemma fib_mono : monotone fib :=
 monotone_of_monotone_nat $ λ _, fib_le_fib_succ
 
-/-- `fib (n + 2)` is strictly monotone. -/
-lemma fib_add_two_strict_mono : strict_mono (λ n, fib (n + 2)) :=
-strict_mono.nat $ λ n, lt_add_of_pos_left _ $ fib_pos succ_pos'
-
 lemma le_fib_self {n : ℕ} (five_le_n : 5 ≤ n) : n ≤ fib n :=
 begin
   induction five_le_n with n five_le_n IH,

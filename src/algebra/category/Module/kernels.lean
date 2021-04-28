@@ -3,7 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import algebra.category.Module.epi_mono
+import algebra.category.Module.basic
 
 /-!
 # The concrete (co)kernels in the category of modules are (co)kernels in the categorical sense.
@@ -48,7 +48,7 @@ cofork.is_colimit.mk _
   (λ s, f.range.liftq_mkq (cofork.π s) _)
   (λ s m h,
   begin
-    haveI : epi (as_hom f.range.mkq) := (epi_iff_range_eq_top _).mpr (submodule.range_mkq _),
+    haveI : epi (as_hom f.range.mkq) := epi_of_range_eq_top _ (submodule.range_mkq _),
     apply (cancel_epi (as_hom f.range.mkq)).1,
     convert h walking_parallel_pair.one,
     exact submodule.liftq_mkq _ _ _

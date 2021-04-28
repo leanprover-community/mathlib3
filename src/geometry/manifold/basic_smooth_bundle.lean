@@ -515,7 +515,7 @@ instance : has_continuous_smul 𝕜 (tangent_space I x) := by apply_instance
 instance : topological_space (tangent_space I x) := by apply_instance
 instance : add_comm_group (tangent_space I x) := by apply_instance
 instance : topological_add_group (tangent_space I x) := by apply_instance
-instance : module 𝕜 (tangent_space I x) := by apply_instance
+instance : vector_space 𝕜 (tangent_space I x) := by apply_instance
 instance : inhabited (tangent_space I x) := ⟨0⟩
 
 end tangent_bundle_instances

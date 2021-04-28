@@ -63,8 +63,7 @@ lemma derived_series_le_lower_central_series (k : ℕ) :
   derived_series R L k ≤ lower_central_series R L L k :=
 begin
   induction k with k h,
-  { rw [derived_series_def, derived_series_of_ideal_zero, lower_central_series_zero],
-    exact le_refl _, },
+  { exact le_refl _, },
   { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
     rw [derived_series_def, derived_series_of_ideal_succ, lower_central_series_succ],
     exact lie_submodule.mono_lie _ _ _ _ h' h, },

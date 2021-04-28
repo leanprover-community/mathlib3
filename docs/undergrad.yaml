@@ -4,12 +4,12 @@
 # 1.
 Linear algebra:
   Fundamentals:
-    vector space: 'module'
-    product of vector spaces: 'prod.module'
+    vector space: 'vector_space'
+    product of vector spaces: 'prod.semimodule'
     vector subspace: 'subspace'
     quotient space: 'submodule.quotient'
     sum of subspaces: 'submodule.complete_lattice'
-    direct sum: 'direct_sum.submodule_is_internal'
+    direct sum: '' # this is supposed to be the internal direct sum
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'
@@ -31,7 +31,7 @@ Linear algebra:
     rank of a linear map: 'rank'
     rank of a set of vectors: ''
     rank of a system of linear equations: ''
-    isomorphism with bidual: 'module.eval_equiv'
+    isomorphism with bidual: 'vector_space.eval_equiv'
   Multilinearity:
     multilinear map: 'multilinear_map'
     determinant of vectors: 'is_basis.det'

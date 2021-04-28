@@ -8,11 +8,11 @@ import group_theory.congruence
 import linear_algebra.basic
 
 /-!
-# Tensor product of modules over commutative semirings.
+# Tensor product of semimodules over commutative semirings.
 
-This file constructs the tensor product of modules over commutative semirings. Given a semiring
-`R` and modules over it `M` and `N`, the standard construction of the tensor product is
-`tensor_product R M N`. It is also a module over `R`.
+This file constructs the tensor product of semimodules over commutative semirings. Given a semiring
+`R` and semimodules over it `M` and `N`, the standard construction of the tensor product is
+`tensor_product R M N`. It is also a semimodule over `R`.
 
 It comes with a canonical bilinear map `M → N → tensor_product R M N`.
 
@@ -42,8 +42,8 @@ variables {M' : Type*} {N' : Type*} {P' : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
 variables [add_comm_group M'] [add_comm_group N'] [add_comm_group P']
-variables [module R M] [module S N] [module R P] [module S P]
-variables [module R M'] [module S N'] [module R P'] [module S P']
+variables [semimodule R M] [semimodule S N] [semimodule R P] [semimodule S P]
+variables [semimodule R M'] [semimodule S N'] [semimodule R P'] [semimodule S P']
 variables [smul_comm_class S R P] [smul_comm_class S R P']
 include R
 
@@ -118,7 +118,7 @@ variables {R : Type*} [comm_semiring R]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
-variables [module R M] [module R N] [module R P] [module R Q]
+variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q]
 
 variables (R)
 
@@ -204,10 +204,6 @@ lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
 smul_injective hx
 
-lemma ker_lsmul [no_zero_smul_divisors R M] {a : R} (ha : a ≠ 0) :
-  (linear_map.lsmul R M a).ker = ⊥ :=
-linear_map.ker_eq_bot_of_injective (linear_map.lsmul_injective ha)
-
 end comm_ring
 
 end linear_map
@@ -219,8 +215,8 @@ variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
   [add_comm_monoid S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
-variables [module R' M] [module R' N]
+variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
+variables [semimodule R' M] [semimodule R' N]
 include R
 
 variables (M N)
@@ -249,7 +245,7 @@ end tensor_product
 
 variables (R)
 
-/-- The tensor product of two modules `M` and `N` over the same commutative semiring `R`.
+/-- The tensor product of two semimodules `M` and `N` over the same commutative semiring `R`.
 The localized notations are `M ⊗ N` and `M ⊗[R] N`, accessed by `open_locale tensor_product`. -/
 def tensor_product : Type* :=
 (add_con_gen (tensor_product.eqv R M N)).quotient
@@ -319,7 +315,7 @@ This typeclass is generated automatically from a `is_scalar_tower` instance, but
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
 `R` does not support negation.
 
-Note that `module R' (M ⊗[R] N)` is available even without this typeclass on `R'`; it's only
+Note that `semimodule R' (M ⊗[R] N)` is available even without this typeclass on `R'`; it's only
 needed if `tensor_product.smul_tmul`, `tensor_product.smul_tmul'`, or `tensor_product.tmul_smul` is
 used.
 -/
@@ -415,7 +411,7 @@ instance : add_comm_monoid (M ⊗[R] N) :=
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance module' : module R' (M ⊗[R] N) :=
+instance semimodule' : semimodule R' (M ⊗[R] N) :=
 have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
@@ -428,7 +424,7 @@ have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
   smul_zero := tensor_product.smul_zero,
   zero_smul := tensor_product.zero_smul }
 
-instance : module R (M ⊗[R] N) := tensor_product.module'
+instance : semimodule R (M ⊗[R] N) := tensor_product.semimodule'
 
 -- note that we don't actually need `compatible_smul` here, but we include it for symmetry
 -- with `tmul_smul` to avoid exposing our asymmetric definition.
@@ -745,8 +741,8 @@ end
 
 section
 variables {P' Q' : Type*}
-variables [add_comm_monoid P'] [module R P']
-variables [add_comm_monoid Q'] [module R Q']
+variables [add_comm_monoid P'] [semimodule R P']
+variables [add_comm_monoid Q'] [semimodule R Q']
 
 lemma map_comp (f₂ : P →ₗ[R] P') (f₁ : M →ₗ[R] P) (g₂ : Q →ₗ[R] Q') (g₁ : N →ₗ[R] Q) :
   map (f₂.comp f₁) (g₂.comp g₁) = (map f₂ g₂).comp (map f₁ g₁) :=
@@ -886,7 +882,7 @@ variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
   [add_comm_group S]
-variables [module R M] [module R N] [module R P] [module R Q] [module R S]
+variables [semimodule R M] [semimodule R N] [semimodule R P] [semimodule R Q] [semimodule R S]
 
 namespace tensor_product
 
@@ -922,31 +918,19 @@ instance : has_neg (M ⊗[R] N) :=
         by simp_rw [add_monoid_hom.map_add, add_comm]
     end }
 
-protected theorem add_left_neg (x : M ⊗[R] N) : -x + x = 0 :=
-tensor_product.induction_on x
-  (by { rw [add_zero], apply (neg.aux R).map_zero, })
-  (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
-  (λ x y hx hy, by {
-    unfold has_neg.neg sub_neg_monoid.neg,
-    rw add_monoid_hom.map_add,
-    ac_change (-x + x) + (-y + y) = 0,
-    rw [hx, hy, add_zero], })
-
 instance : add_comm_group (M ⊗[R] N) :=
 { neg := has_neg.neg,
   sub := _,
   sub_eq_add_neg := λ _ _, rfl,
-  add_left_neg := λ x, by exact tensor_product.add_left_neg x,
-  gsmul := λ n v, n • v,
-  gsmul_zero' := by simp [tensor_product.zero_smul],
-  gsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
-  gsmul_neg' := λ n x, begin
-    change (- n.succ : ℤ) • x = - (((n : ℤ) + 1) • x),
-    rw [← zero_add (-↑(n.succ) • x), ← tensor_product.add_left_neg (↑(n.succ) • x), add_assoc,
-      ← add_smul, ← sub_eq_add_neg, sub_self, zero_smul, add_zero],
-    refl,
-  end,
-  .. tensor_product.add_comm_monoid }
+  add_left_neg := λ x, tensor_product.induction_on x
+    (by { rw [add_zero], apply (neg.aux R).map_zero, })
+    (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
+    (λ x y hx hy, by {
+      unfold has_neg.neg sub_neg_monoid.neg,
+      rw add_monoid_hom.map_add,
+      ac_change (-x + x) + (-y + y) = 0,
+      rw [hx, hy, add_zero], }),
+  ..(infer_instance : add_comm_monoid (M ⊗[R] N)) }
 
 lemma neg_tmul (m : M) (n : N) : (-m) ⊗ₜ n = -(m ⊗ₜ[R] n) := rfl
 
@@ -961,13 +945,13 @@ lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R
 /--
 While the tensor product will automatically inherit a ℤ-module structure from
 `add_comm_group.int_module`, that structure won't be compatible with lemmas like `tmul_smul` unless
-we use a `ℤ-module` instance provided by `tensor_product.module'`.
+we use a `ℤ-module` instance provided by `tensor_product.semimodule'`.
 
 When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int : compatible_smul R ℤ M N :=
+instance compatible_smul.int [semimodule ℤ M] [semimodule ℤ N] : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)

@@ -85,9 +85,6 @@ instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
 
-instance [semigroup_with_zero M] [semigroup_with_zero N] : semigroup_with_zero (M × N) :=
-{ .. prod.mul_zero_class, .. prod.semigroup }
-
 @[to_additive]
 instance [mul_one_class M] [mul_one_class N] : mul_one_class (M × N) :=
 { one_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨one_mul _, one_mul _⟩,

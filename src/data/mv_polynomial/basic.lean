@@ -100,14 +100,14 @@ instance decidable_eq_mv_polynomial [comm_semiring R] [decidable_eq σ] [decidab
   decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
 instance [comm_semiring R] : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
 instance [comm_semiring R] : inhabited (mv_polynomial σ R) := ⟨0⟩
-instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
-add_monoid_algebra.module
+instance [semiring R] [comm_semiring S₁] [semimodule R S₁] : semimodule R (mv_polynomial σ S₁) :=
+add_monoid_algebra.semimodule
 instance [semiring R] [semiring S₁] [comm_semiring S₂]
-  [has_scalar R S₁] [module R S₂] [module S₁ S₂] [is_scalar_tower R S₁ S₂] :
+  [has_scalar R S₁] [semimodule R S₂] [semimodule S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.is_scalar_tower
 instance [semiring R] [semiring S₁][comm_semiring S₂]
-  [module R S₂] [module S₁ S₂] [smul_comm_class R S₁ S₂] :
+  [semimodule R S₂] [semimodule S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
@@ -348,7 +348,7 @@ lemma ext_iff (p q : mv_polynomial σ R) :
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p + q) = coeff m p + coeff m q := add_apply p q m
 
-@[simp] lemma coeff_smul {S₁ : Type*} [semiring S₁] [module S₁ R]
+@[simp] lemma coeff_smul {S₁ : Type*} [semiring S₁] [semimodule S₁ R]
   (m : σ →₀ ℕ) (c : S₁) (p : mv_polynomial σ R) :
   coeff m (c • p) = c • coeff m p := smul_apply c p m
 

@@ -33,10 +33,10 @@ As an application we prove `times_cont_mdiff_neg_sphere`, that the antipodal map
 ## Implementation notes
 
 The model space for the charted space instance is `euclidean_space ℝ (fin n)`, where `n` is a
-natural number satisfying the typeclass assumption `[fact (finrank ℝ E = n + 1)]`.  This may seem a
+natural number satisfying the typeclass assumption `[fact (findim ℝ E = n + 1)]`.  This may seem a
 little awkward, but it is designed to circumvent the problem that the literal expression for the
 dimension of the model space (up to definitional equality) determines the type.  If one used the
-naive expression `euclidean_space ℝ (fin (finrank ℝ E - 1))` for the model space, then the sphere in
+naive expression `euclidean_space ℝ (fin (findim ℝ E - 1))` for the model space, then the sphere in
 `ℂ` would be a manifold with model space `euclidean_space ℝ (fin (2 - 1))` but not with model space
 `euclidean_space ℝ (fin 1)`.
 -/
@@ -48,7 +48,7 @@ noncomputable theory
 open metric finite_dimensional
 open_locale manifold
 
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
+local attribute [instance] finite_dimensional_of_findim_eq_succ
 
 section stereographic_projection
 variables (v : E)
@@ -271,23 +271,23 @@ orthogonalization, but in the finite-dimensional case it follows more easily by 
 space `E`.  This version has codomain the Euclidean space of dimension `n`, and is obtained by
 composing the original sterographic projection (`stereographic`) with an arbitrary linear isometry
 from `(ℝ ∙ v)ᗮ` to the Euclidean space. -/
-def stereographic' (n : ℕ) [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
+def stereographic' (n : ℕ) [fact (findim ℝ E = n + 1)] (v : sphere (0:E) 1) :
   local_homeomorph (sphere (0:E) 1) (euclidean_space ℝ (fin n)) :=
 (stereographic (norm_eq_of_mem_sphere v)) ≫ₕ
 (linear_isometry_equiv.from_orthogonal_span_singleton n
   (nonzero_of_mem_unit_sphere v)).to_homeomorph.to_local_homeomorph
 
-@[simp] lemma stereographic'_source {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
+@[simp] lemma stereographic'_source {n : ℕ} [fact (findim ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).source = {v}ᶜ :=
 by simp [stereographic']
 
-@[simp] lemma stereographic'_target {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
+@[simp] lemma stereographic'_target {n : ℕ} [fact (findim ℝ E = n + 1)] (v : sphere (0:E) 1) :
   (stereographic' n v).target = set.univ :=
 by simp [stereographic']
 
 /-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a charted space
 modelled on the Euclidean space of dimension `n`. -/
-instance {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+instance {n : ℕ} [fact (findim ℝ E = n + 1)] :
   charted_space (euclidean_space ℝ (fin n)) (sphere (0:E) 1) :=
 { atlas            := {f | ∃ v : (sphere (0:E) 1), f = stereographic' n v},
   chart_at         := λ v, stereographic' n (-v),
@@ -302,7 +302,7 @@ section smooth_manifold
 
 /-- The unit sphere in an `n + 1`-dimensional inner product space `E` is a smooth manifold,
 modelled on the Euclidean space of dimension `n`. -/
-instance {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+instance {n : ℕ} [fact (findim ℝ E = n + 1)] :
   smooth_manifold_with_corners (𝓡 n) (sphere (0:E) 1) :=
 smooth_manifold_with_corners_of_times_cont_diff_on (𝓡 n) (sphere (0:E) 1)
 begin
@@ -328,7 +328,7 @@ begin
 end
 
 /-- The inclusion map (i.e., `coe`) from the sphere in `E` to `E` is smooth.  -/
-lemma times_cont_mdiff_coe_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+lemma times_cont_mdiff_coe_sphere {n : ℕ} [fact (findim ℝ E = n + 1)] :
   times_cont_mdiff (𝓡 n) 𝓘(ℝ, E) ∞ (coe : (sphere (0:E) 1) → E) :=
 begin
   rw times_cont_mdiff_iff,
@@ -347,7 +347,7 @@ variables {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold
 
 /-- If a `times_cont_mdiff` function `f : M → E`, where `M` is some manifold, takes values in the
 sphere, then it restricts to a `times_cont_mdiff` function from `M` to the sphere. -/
-lemma times_cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)]
+lemma times_cont_mdiff.cod_restrict_sphere {n : ℕ} [fact (findim ℝ E = n + 1)]
   {m : with_top ℕ} {f : M → E} (hf : times_cont_mdiff I 𝓘(ℝ, E) m f)
   (hf' : ∀ x, f x ∈ sphere (0:E) 1) :
   times_cont_mdiff I (𝓡 n) m (set.cod_restrict _ _ hf' : M → (sphere (0:E) 1)) :=
@@ -372,7 +372,7 @@ begin
 end
 
 /-- The antipodal map is smooth. -/
-lemma times_cont_mdiff_neg_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] :
+lemma times_cont_mdiff_neg_sphere {n : ℕ} [fact (findim ℝ E = n + 1)] :
   times_cont_mdiff (𝓡 n) (𝓡 n) ∞ (λ x : sphere (0:E) 1, -x) :=
 (times_cont_diff_neg.times_cont_mdiff.comp times_cont_mdiff_coe_sphere).cod_restrict_sphere _
 

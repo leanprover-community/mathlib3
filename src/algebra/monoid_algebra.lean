@@ -97,12 +97,11 @@ section semigroup
 
 variables [semiring k] [semigroup G]
 
-instance : semigroup_with_zero (monoid_algebra k G) :=
+instance : semigroup (monoid_algebra k G) :=
 { mul       := (*),
   mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
     sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
-  .. monoid_algebra.mul_zero_class }
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],}
 
 end semigroup
 
@@ -175,7 +174,7 @@ instance : semiring (monoid_algebra k G) :=
   zero      := 0,
   add       := (+),
   .. monoid_algebra.mul_zero_one_class,
-  .. monoid_algebra.semigroup_with_zero,
+  .. monoid_algebra.semigroup,
   .. monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 
@@ -222,20 +221,20 @@ instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 
 variables {R S : Type*}
 
-instance [semiring R] [semiring k] [module R k] :
+instance [semiring R] [semiring k] [semimodule R k] :
   has_scalar R (monoid_algebra k G) :=
 finsupp.has_scalar
 
-instance [semiring R] [semiring k] [module R k] :
-  module R (monoid_algebra k G) :=
-finsupp.module G k
+instance [semiring R] [semiring k] [semimodule R k] :
+  semimodule R (monoid_algebra k G) :=
+finsupp.semimodule G k
 
-instance [semiring R] [semiring S] [semiring k] [module R k] [module S k]
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
   [has_scalar R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 
-instance [semiring R] [semiring S] [semiring k] [module R k] [module S k]
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
   [smul_comm_class R S k] :
   smul_comm_class R S (monoid_algebra k G) :=
 finsupp.smul_comm_class G k
@@ -512,7 +511,7 @@ local attribute [reducible] monoid_algebra
 variables (k)
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
 def group_smul.linear_map [monoid G] [comm_semiring k]
-  (V : Type u₃) [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
+  (V : Type u₃) [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] (g : G) :
   V →ₗ[k] V :=
 { to_fun    := λ v, (single g (1 : k) • v : V),
@@ -521,7 +520,7 @@ def group_smul.linear_map [monoid G] [comm_semiring k]
 
 @[simp]
 lemma group_smul.linear_map_apply [monoid G] [comm_semiring k]
-  (V : Type u₃) [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
+  (V : Type u₃) [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V] (g : G) (v : V) :
   (group_smul.linear_map k V g) v = (single g (1 : k) • v : V) :=
 rfl
@@ -529,9 +528,9 @@ rfl
 section
 variables {k}
 variables [monoid G] [comm_semiring k] {V W : Type u₃}
-  [add_comm_monoid V] [module k V] [module (monoid_algebra k G) V]
+  [add_comm_monoid V] [semimodule k V] [semimodule (monoid_algebra k G) V]
   [is_scalar_tower k (monoid_algebra k G) V]
-  [add_comm_monoid W] [module k W] [module (monoid_algebra k G) W]
+  [add_comm_monoid W] [semimodule k W] [semimodule (monoid_algebra k G) W]
   [is_scalar_tower k (monoid_algebra k G) W]
   (f : V →ₗ[k] W)
   (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
@@ -683,12 +682,11 @@ section semigroup
 
 variables [semiring k] [add_semigroup G]
 
-instance : semigroup_with_zero (add_monoid_algebra k G) :=
+instance : semigroup (add_monoid_algebra k G) :=
 { mul       := (*),
   mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
     sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add],
-  .. add_monoid_algebra.mul_zero_class }
+    add_mul, mul_add, add_assoc, mul_assoc, zero_mul, mul_zero, sum_zero, sum_add] }
 
 end semigroup
 
@@ -734,7 +732,7 @@ end mul_one_class
 /-! #### Semiring structure -/
 section semiring
 
-instance {R : Type*} [semiring R] [semiring k] [module R k] :
+instance {R : Type*} [semiring R] [semiring k] [semimodule R k] :
   has_scalar R (add_monoid_algebra k G) :=
 finsupp.has_scalar
 
@@ -749,7 +747,7 @@ instance : semiring (add_monoid_algebra k G) :=
   nsmul_zero' := by { intros, ext, simp [-nsmul_eq_mul, add_smul] },
   nsmul_succ' := by { intros, ext, simp [-nsmul_eq_mul, nat.succ_eq_one_add, add_smul] },
   .. add_monoid_algebra.mul_zero_one_class,
-  .. add_monoid_algebra.semigroup_with_zero,
+  .. add_monoid_algebra.semigroup,
   .. add_monoid_algebra.distrib,
   .. finsupp.add_comm_monoid }
 
@@ -794,15 +792,15 @@ instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) 
 
 variables {R S : Type*}
 
-instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k G) :=
-finsupp.module G k
+instance [semiring R] [semiring k] [semimodule R k] : semimodule R (add_monoid_algebra k G) :=
+finsupp.semimodule G k
 
-instance [semiring R] [semiring S] [semiring k] [module R k] [module S k]
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
   [has_scalar R S] [is_scalar_tower R S k] :
   is_scalar_tower R S (add_monoid_algebra k G) :=
 finsupp.is_scalar_tower G k
 
-instance [semiring R] [semiring S] [semiring k] [module R k] [module S k]
+instance [semiring R] [semiring S] [semiring k] [semimodule R k] [semimodule S k]
   [smul_comm_class R S k] :
   smul_comm_class R S (add_monoid_algebra k G) :=
 finsupp.smul_comm_class G k

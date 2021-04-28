@@ -1124,8 +1124,8 @@ variables {E p μ 𝕜}
 
 lemma coe_Lp_submodule : (Lp_submodule E p μ 𝕜).to_add_subgroup = Lp E p μ := rfl
 
-instance : module 𝕜 (Lp E p μ) :=
-{ .. (Lp_submodule E p μ 𝕜).module }
+instance : semimodule 𝕜 (Lp E p μ) :=
+{ .. (Lp_submodule E p μ 𝕜).semimodule }
 
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p μ) : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 

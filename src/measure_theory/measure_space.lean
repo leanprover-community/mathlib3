@@ -723,8 +723,8 @@ rfl
 theorem smul_apply (c : ℝ≥0∞) (μ : measure α) (s : set α) : (c • μ) s = c * μ s :=
 rfl
 
-instance : module ℝ≥0∞ (measure α) :=
-injective.module ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
+instance : semimodule ℝ≥0∞ (measure α) :=
+injective.semimodule ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
 
 /-! ### The complete lattice of measures -/

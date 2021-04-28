@@ -128,26 +128,26 @@ instance : mul_action R p := p.mul_action'
 
 end mul_action
 
-section module
+section semimodule
 
 variables [semiring R] [add_comm_monoid M]
-variables [module R M]
+variables [semimodule R M]
 variables (p : sub_mul_action R M)
 
 lemma zero_mem (h : (p : set M).nonempty) : (0 : M) ∈ p :=
 let ⟨x, hx⟩ := h in zero_smul R (x : M) ▸ p.smul_mem 0 hx
 
-/-- If the scalar product forms a `module`, and the `sub_mul_action` is not `⊥`, then the
+/-- If the scalar product forms a `semimodule`, and the `sub_mul_action` is not `⊥`, then the
 subset inherits the zero. -/
 instance [n_empty : nonempty p] : has_zero p :=
 { zero := ⟨0, n_empty.elim $ λ x, p.zero_mem ⟨x, x.prop⟩⟩ }
 
-end module
+end semimodule
 
 section add_comm_group
 
 variables [ring R] [add_comm_group M]
-variables [module R M]
+variables [semimodule R M]
 variables (p p' : sub_mul_action R M)
 variables {r : R} {x y : M}
 

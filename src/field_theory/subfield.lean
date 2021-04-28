@@ -177,7 +177,7 @@ s.to_add_subgroup.sum_mem h
 lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
 lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+  n •ℤ x ∈ s := s.to_add_subgroup.gsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
@@ -286,10 +286,13 @@ variables (g : L →+* M) (f : K →+* L)
 
 /-! # range -/
 
-/-- The range of a ring homomorphism, as a subfield of the target. See Note [range copy pattern]. -/
+/-- The range of a ring homomorphism, as a subfield of the target. -/
 def field_range : subfield L :=
 ((⊤ : subfield K).map f).copy (set.range f) set.image_univ.symm
 
+/-- Note that `ring_hom.field_range` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.field_range` are interchangeable without proof
+obligations. -/
 @[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := rfl
 
 @[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.field_range ↔ ∃ x, f x = y := iff.rfl

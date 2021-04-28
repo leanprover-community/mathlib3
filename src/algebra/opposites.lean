@@ -284,29 +284,13 @@ end opposite
 
 open opposite
 
-/-- Inversion on a group is a `mul_equiv` to the opposite group. When `G` is commutative, there is
-`mul_equiv.inv`. -/
-@[simps {fully_applied := ff}]
-def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵒᵖ :=
-{ to_fun := opposite.op ∘ has_inv.inv,
-  inv_fun := has_inv.inv ∘ opposite.unop,
-  map_mul' := λ x y, unop_injective $ mul_inv_rev x y,
-  ..(equiv.inv G).trans equiv_to_opposite}
-
-/-- A monoid homomorphism `f : R →* S` such that `f x` commutes with `f y` for all `x, y` defines
-a monoid homomorphism to `Sᵒᵖ`. -/
-@[simps {fully_applied := ff}]
-def monoid_hom.to_opposite {R S : Type*} [mul_one_class R] [mul_one_class S] (f : R →* S)
-  (hf : ∀ x y, commute (f x) (f y)) : R →* Sᵒᵖ :=
-{ to_fun := opposite.op ∘ f,
-  map_one' := congr_arg op f.map_one,
-  map_mul' := λ x y, by simp [(hf x y).eq] }
-
 /-- A ring homomorphism `f : R →+* S` such that `f x` commutes with `f y` for all `x, y` defines
 a ring homomorphism to `Sᵒᵖ`. -/
-@[simps {fully_applied := ff}]
 def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   (hf : ∀ x y, commute (f x) (f y)) : R →+* Sᵒᵖ :=
-{ to_fun := opposite.op ∘ f,
-  .. ((opposite.op_add_equiv : S ≃+ Sᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵒᵖ),
-  .. f.to_monoid_hom.to_opposite hf }
+{ map_one' := congr_arg op f.map_one,
+  map_mul' := λ x y, by simp [(hf x y).eq],
+  .. (opposite.op_add_equiv : S ≃+ Sᵒᵖ).to_add_monoid_hom.comp ↑f }
+
+@[simp] lemma ring_hom.coe_to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
+  (hf : ∀ x y, commute (f x) (f y)) : ⇑(f.to_opposite hf) = op ∘ f := rfl

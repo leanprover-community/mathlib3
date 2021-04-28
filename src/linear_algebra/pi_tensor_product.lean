@@ -8,9 +8,9 @@ import group_theory.congruence
 import linear_algebra.multilinear
 
 /-!
-# Tensor product of an indexed family of modules over commutative semirings
+# Tensor product of an indexed family of semimodules over commutative semirings
 
-We define the tensor product of an indexed family `s : ι → Type*` of modules over commutative
+We define the tensor product of an indexed family `s : ι → Type*` of semimodules over commutative
 semirings. We denote this space by `⨂[R] i, s i` and define it as `free_add_monoid (R × Π i, s i)`
 quotiented by the appropriate equivalence relation. The treatment follows very closely that of the
 binary tensor product in `linear_algebra/tensor_product.lean`.
@@ -63,9 +63,9 @@ section semiring
 variables {ι ι₂ ι₃ : Type*} [decidable_eq ι] [decidable_eq ι₂] [decidable_eq ι₃]
 variables {R : Type*} [comm_semiring R]
 variables {R' : Type*} [comm_semiring R'] [algebra R' R]
-variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, module R (s i)]
-variables {M : Type*} [add_comm_monoid M] [module R M]
-variables {E : Type*} [add_comm_monoid E] [module R E]
+variables {s : ι → Type*} [∀ i, add_comm_monoid (s i)] [∀ i, semimodule R (s i)]
+variables {M : Type*} [add_comm_monoid M] [semimodule R M]
+variables {E : Type*} [add_comm_monoid E] [semimodule R E]
 variables {F : Type*} [add_comm_monoid F]
 
 namespace pi_tensor_product
@@ -145,7 +145,7 @@ lemma smul_tprod_coeff_aux (z : R) (f : Π i, s i) (i : ι) (r : R) :
  quotient.sound' $ add_con_gen.rel.of _ _ $ eqv.of_smul _ _ _ _
 
 lemma smul_tprod_coeff (z : R) (f : Π i, s i) (i : ι) (r : R')
-  [module R' (s i)] [is_scalar_tower R' R (s i)] :
+  [semimodule R' (s i)] [is_scalar_tower R' R (s i)] :
   tprod_coeff R z (update f i (r • f i)) = tprod_coeff R (r • z) f :=
 begin
   have h₁ : r • z = (r • (1 : R)) * z := by simp,
@@ -220,7 +220,7 @@ end
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance module' : module R' (⨂[R] i, s i) :=
+instance semimodule' : semimodule R' (⨂[R] i, s i) :=
 { smul := (•),
   smul_add := λ r x y, pi_tensor_product.smul_add r x y,
   mul_smul := λ r r' x,
@@ -253,7 +253,7 @@ instance module' : module R' (⨂[R] i, s i) :=
         rw [pi_tensor_product.smul_add, ihx, ihy, add_zero] },
     end }
 
-instance : module R' (⨂[R] i, s i) := pi_tensor_product.module'
+instance : semimodule R' (⨂[R] i, s i) := pi_tensor_product.semimodule'
 
 variables {R}
 
@@ -513,7 +513,7 @@ variables {s : ι → Type*} [∀ i, add_comm_group (s i)] [∀ i, module R (s i
 
 /- Unlike for the binary tensor product, we require `R` to be a `comm_ring` here, otherwise
 this is false in the case where `ι` is empty. -/
-instance : add_comm_group (⨂[R] i, s i) := module.add_comm_monoid_to_add_comm_group R
+instance : add_comm_group (⨂[R] i, s i) := semimodule.add_comm_monoid_to_add_comm_group R
 
 end pi_tensor_product
 end ring

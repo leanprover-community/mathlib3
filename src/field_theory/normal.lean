@@ -136,18 +136,18 @@ begin
   let D := adjoin_root q,
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
-  have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
+  have findimED : finite_dimensional.findim E D = q.nat_degree := power_basis.findim pbED,
   letI : algebra F D := ring_hom.to_algebra ((algebra_map E D).comp (algebra_map F E)),
   haveI : is_scalar_tower F E D := of_algebra_map_eq (λ _, rfl),
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   suffices : nonempty (D →ₐ[F] E),
   { cases this with ϕ,
-    rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
+    rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←findimED],
     have nat_lemma : ∀ a b c : ℕ, a * b = c → c ≤ a → 0 < c → b = 1,
     { intros a b c h1 h2 h3, nlinarith },
-    exact nat_lemma _ _ _ (finite_dimensional.finrank_mul_finrank F E D)
-      (linear_map.finrank_le_finrank_of_injective (show function.injective ϕ.to_linear_map,
-        from ϕ.to_ring_hom.injective)) finite_dimensional.finrank_pos, },
+    exact nat_lemma _ _ _ (finite_dimensional.findim_mul_findim F E D)
+      (linear_map.findim_le_findim_of_injective (show function.injective ϕ.to_linear_map,
+        from ϕ.to_ring_hom.injective)) finite_dimensional.findim_pos, },
   let C := adjoin_root (minpoly F x),
   have Hx_irred := minpoly.irreducible Hx,
   letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift

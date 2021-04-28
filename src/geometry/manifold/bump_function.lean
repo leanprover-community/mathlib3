@@ -572,15 +572,15 @@ end embedding
 /-- Baby version of the Whitney weak embedding theorem: if `M` admits a finite covering by
 supports of bump functions, then for some `n` it can be immersed into the `n`-dimensional
 Euclidean space. -/
-lemma exists_immersion_finrank [t2_space M] (f : smooth_bump_covering I (univ : set M))
+lemma exists_immersion_findim [t2_space M] (f : smooth_bump_covering I (univ : set M))
   [fintype f.ι] :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
     injective e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
 begin
-  set F := euclidean_space ℝ (fin $ finrank ℝ (f.ι → (E × ℝ))),
+  set F := euclidean_space ℝ (fin $ findim ℝ (f.ι → (E × ℝ))),
   letI : finite_dimensional ℝ (E × ℝ) := by apply_instance,
   set eEF : (f.ι → (E × ℝ)) ≃L[ℝ] F :=
-    continuous_linear_equiv.of_finrank_eq finrank_euclidean_space_fin.symm,
+    continuous_linear_equiv.of_findim_eq findim_euclidean_space_fin.symm,
   refine ⟨_, eEF ∘ f.embedding_pi_tangent,
     eEF.to_diffeomorph.smooth.comp f.embedding_pi_tangent.smooth,
     eEF.injective.comp f.embedding_pi_tangent_injective, λ x, _⟩,
@@ -594,11 +594,11 @@ end smooth_bump_covering
 /-- Baby version of the Whitney weak embedding theorem: if `M` admits a finite covering by
 supports of bump functions, then for some `n` it can be embedded into the `n`-dimensional
 Euclidean space. -/
-lemma exists_embedding_finrank_of_compact [t2_space M] [compact_space M] :
+lemma exists_embedding_findim_of_compact [t2_space M] [compact_space M] :
   ∃ (n : ℕ) (e : M → euclidean_space ℝ (fin n)), smooth I (𝓡 n) e ∧
     closed_embedding e ∧ ∀ x : M, injective (mfderiv I (𝓡 n) e x) :=
 begin
-  rcases (smooth_bump_covering.choice I M).exists_immersion_finrank
+  rcases (smooth_bump_covering.choice I M).exists_immersion_findim
     with ⟨n, e, hsmooth, hinj, hinj_mfderiv⟩,
   exact ⟨n, e, hsmooth, hsmooth.continuous.closed_embedding hinj, hinj_mfderiv⟩
 end

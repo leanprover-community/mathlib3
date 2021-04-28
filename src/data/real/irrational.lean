@@ -208,7 +208,7 @@ theorem of_pow : ∀ n : ℕ, irrational (x^n) → irrational x
 
 theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
 | (n:ℕ) := of_pow n
-| -[1+n] := λ h, by { rw gpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
+| -[1+n] := λ h, by { rw fpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational
 

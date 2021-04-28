@@ -512,46 +512,23 @@ namespace monoid_hom
 
 open submonoid
 
-/-- For many categories (monoids, modules, rings, ...) the set-theoretic image of a morphism `f` is
-a subobject of the codomain. When this is the case, it is useful to define the range of a morphism
-in such a way that the underlying carrier set of the range subobject is definitionally
-`set.range f`. In particular this means that the types `↥(set.range f)` and `↥f.range` are
-interchangeable without proof obligations.
-
-A convenient candidate definition for range which is mathematically correct is `map ⊤ f`, just as
-`set.range` could have been defined as `f '' set.univ`. However, this lacks the desired definitional
-convenience, in that it both does not match `set.range`, and that it introduces a redudant `x ∈ ⊤`
-term which clutters proofs. In such a case one may resort to the `copy`
-pattern. A `copy` function converts the definitional problem for the carrier set of a subobject
-into a one-off propositional proof obligation which one discharges while writing the definition of
-the definitionally convenient range (the parameter `hs` in the example below).
-
-A good example is the case of a morphism of monoids. A convenient definition for
-`monoid_hom.mrange` would be `(⊤ : submonoid M).map f`. However since this lacks the required
-definitional convenience, we first define `submonoid.copy` as follows:
-```lean
-protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
-{ carrier  := s,
-  one_mem' := hs.symm ▸ S.one_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem' }
-```
-and then finally define:
-```lean
-def mrange (f : M →* N) : submonoid N :=
-((⊤ : submonoid M).map f).copy (set.range f) set.image_univ.symm
-```
--/
-library_note "range copy pattern"
-
-/-- The range of a monoid homomorphism is a submonoid. See Note [range copy pattern]. -/
+/-- The range of a monoid homomorphism is a submonoid. -/
 @[to_additive "The range of an `add_monoid_hom` is an `add_submonoid`."]
 def mrange (f : M →* N) : submonoid N :=
 ((⊤ : submonoid M).map f).copy (set.range f) set.image_univ.symm
 
+/-- Note that `monoid_hom.mrange` is deliberately defined in a way that makes this true by `rfl`,
+as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
+obligations. -/
 @[simp, to_additive]
 lemma coe_mrange (f : M →* N) :
   (f.mrange : set N) = set.range f :=
 rfl
+
+/-- Note that `add_monoid_hom.mrange` is deliberately defined in a way that makes this true by
+`rfl`, as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
+obligations. -/
+add_decl_doc add_monoid_hom.coe_mrange
 
 @[simp, to_additive] lemma mem_mrange {f : M →* N} {y : N} :
   y ∈ f.mrange ↔ ∃ x, f x = y :=

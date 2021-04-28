@@ -103,9 +103,7 @@ variables (R : Type u) (L : Type v) (M : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [add_comm_group M] [module R M]
 variables [lie_ring_module L M] [lie_module R L M]
 
-/-- A Lie module yields a Lie algebra morphism into the linear endomorphisms of the module.
-
-See also `lie_module.to_module_hom`. -/
+/-- A Lie module yields a Lie algebra morphism into the linear endomorphisms of the module. -/
 @[simps] def lie_module.to_endomorphism : L →ₗ⁅R⁆ module.End R M :=
 { to_fun    := λ x,
   { to_fun    := λ m, ⁅x, m⁆,

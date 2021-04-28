@@ -58,7 +58,7 @@ open_locale classical big_operators
 open finset metric
 
 local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_module
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
 
 -- hack to speed up simp when dealing with complicated types
 local attribute [-instance] unique.subsingleton pi.subsingleton
@@ -426,7 +426,7 @@ def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', norme
   [Π i', normed_space 𝕜 (E' i')] :
   @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
     (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
-      (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
+      (@pi.semimodule ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
 { to_fun := pi,
   map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,

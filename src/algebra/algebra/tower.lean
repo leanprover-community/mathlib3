@@ -26,7 +26,7 @@ variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁) (M : Type v₁)
 namespace algebra
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
 
 variables {A}
 
@@ -53,16 +53,16 @@ end algebra
 
 namespace is_scalar_tower
 
-section module
+section semimodule
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
 
 variables {R} (A) {M}
 theorem algebra_map_smul (r : R) (x : M) : algebra_map R A r • x = r • x :=
 by rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul]
 
-end module
+end semimodule
 
 section semiring
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
@@ -270,7 +270,7 @@ section semiring
 
 variables {R S A}
 variables [comm_semiring R] [semiring S] [add_comm_monoid A]
-variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
+variables [algebra R S] [semimodule S A] [semimodule R A] [is_scalar_tower R S A]
 
 namespace submodule
 
@@ -318,7 +318,7 @@ section ring
 namespace algebra
 
 variables [comm_semiring R] [ring A] [algebra R A]
-variables [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
+variables [add_comm_group M] [module A M] [semimodule R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=

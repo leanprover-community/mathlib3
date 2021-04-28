@@ -64,10 +64,10 @@ open tensor_product (assoc map)
 private lemma associator_naturality_aux
   {X₁ X₂ X₃ : Type*}
   [add_comm_monoid X₁] [add_comm_monoid X₂] [add_comm_monoid X₃]
-  [module R X₁] [module R X₂] [module R X₃]
+  [semimodule R X₁] [semimodule R X₂] [semimodule R X₃]
   {Y₁ Y₂ Y₃ : Type*}
   [add_comm_monoid Y₁] [add_comm_monoid Y₂] [add_comm_monoid Y₃]
-  [module R Y₁] [module R Y₂] [module R Y₃]
+  [semimodule R Y₁] [semimodule R Y₂] [semimodule R Y₃]
   (f₁ : X₁ →ₗ[R] Y₁) (f₂ : X₂ →ₗ[R] Y₂) (f₃ : X₃ →ₗ[R] Y₃) :
   linear_map.comp ↑(assoc R Y₁ Y₂ Y₃) (map (map f₁ f₂) f₃) =
     (map f₁ (map f₂ f₃)).comp ↑(assoc R X₁ X₂ X₃) :=
@@ -82,7 +82,7 @@ variables (R)
 private lemma pentagon_aux
   (W X Y Z : Type*)
   [add_comm_monoid W] [add_comm_monoid X] [add_comm_monoid Y] [add_comm_monoid Z]
-  [module R W] [module R X] [module R Y] [module R Z] :
+  [semimodule R W] [semimodule R X] [semimodule R Y] [semimodule R Z] :
   ((map (1 : W →ₗ[R] W) (assoc R X Y Z).to_linear_map).comp (assoc R W (X ⊗[R] Y) Z).to_linear_map)
     .comp (map ↑(assoc R W X Y) (1 : Z →ₗ[R] Z)) =
   (assoc R W X (Y ⊗[R] Z)).to_linear_map.comp (assoc R (W ⊗[R] X) Y Z).to_linear_map :=

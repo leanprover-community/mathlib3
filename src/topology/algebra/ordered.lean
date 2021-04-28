@@ -1717,7 +1717,7 @@ tendsto_inv_zero_at_top.comp h
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
 lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
 tendsto.congr (λ x, (fpow_neg x n).symm)
-  (filter.tendsto.inv_tendsto_at_top (by simpa [gpow_coe_nat] using tendsto_pow_at_top hn))
+  (filter.tendsto.inv_tendsto_at_top (tendsto_pow_at_top hn))
 
 lemma tendsto_fpow_at_top_zero {n : ℤ} (hn : n < 0) :
   tendsto (λ x : α, x^n) at_top (𝓝 0) :=

@@ -361,8 +361,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   by_cases htriv : b = k,
   { left, ext, simp only [htriv, set.Iic.coe_top, subtype.coe_mk], },
   right,
-  rcases zorn.zorn_nonempty_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv)
-    with ⟨a, a₀, ba, h⟩,
+  rcases zorn.zorn_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv) with ⟨a, a₀, ba, h⟩,
   { refine ⟨⟨a, le_of_lt a₀⟩, ⟨ne_of_lt a₀, λ c hck, by_contradiction $ λ c₀, _⟩, ba⟩,
     cases h c.1 (lt_of_le_of_ne c.2 (λ con, c₀ (subtype.ext con))) hck.le,
     exact lt_irrefl _ hck, },

@@ -1082,14 +1082,6 @@ lemma Sup_apply {α : Type*} {β : α → Type*} [Π i, has_Sup (β i)] {s : set
   (Sup s) a = (⨆f:s, (f : Πa, β a) a) :=
 rfl
 
-lemma unary_relation_Sup_iff {α : Type*} (s : set (α → Prop)) {a : α} :
-  Sup s a ↔ ∃ (r : α → Prop), r ∈ s ∧ r a :=
-by { change (∃ _, _) ↔ _, simp [-eq_iff_iff] }
-
-lemma binary_relation_Sup_iff {α β : Type*} (s : set (α → β → Prop)) {a : α} {b : β} :
-  Sup s a b ↔ ∃ (r : α → β → Prop), r ∈ s ∧ r a b :=
-by { change (∃ _, _) ↔ _, simp [-eq_iff_iff] }
-
 lemma supr_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Sup (β i)] {f : ι → Πa, β a}
   {a : α} :
   (⨆i, f i) a = (⨆i, f i a) :=

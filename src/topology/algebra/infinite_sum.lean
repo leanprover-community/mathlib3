@@ -708,7 +708,7 @@ section has_continuous_smul
 variables {R : Type*}
 [semiring R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
-[module R α] [has_continuous_smul R α]
+[semimodule R α] [has_continuous_smul R α]
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=

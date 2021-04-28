@@ -166,12 +166,12 @@ lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B 
   support (b • f) ⊆ support f :=
 λ x hbf hf, hbf $ by rw [pi.smul_apply, hf, smul_zero]
 
-lemma support_smul_subset_left [semiring R] [add_comm_monoid M] [module R M]
+lemma support_smul_subset_left [semiring R] [add_comm_monoid M] [semimodule R M]
   (f : α → R) (g : α → M) :
   support (f • g) ⊆ support f :=
 λ x hfg hf, hfg $ by rw [pi.smul_apply', hf, zero_smul]
 
-lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
+lemma support_smul [semiring R] [add_comm_monoid M] [semimodule R M]
   [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
   support (f • g) = support f ∩ support g :=
 ext $ λ x, smul_ne_zero

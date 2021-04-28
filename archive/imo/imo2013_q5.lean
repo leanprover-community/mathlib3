@@ -190,8 +190,22 @@ lemma fixed_point_of_gt_1 {f : ℚ → ℝ} {x : ℚ} (hx : 1 < x)
   f x = x :=
 begin
   -- Choose n such that 1 + x < a^n.
-  obtain ⟨N, hN⟩ := pow_unbounded_of_one_lt (1 + x) ha1,
-  have h_big_enough : (1:ℚ) < a^N - x := lt_sub_iff_add_lt.mpr hN,
+  have hbound : ∀ m : ℕ, 1 + (m : ℚ) * (a - 1) ≤ a^m,
+  { intros m,
+    have ha : -1 ≤ a := le_of_lt (lt_trans (neg_one_lt_zero.trans zero_lt_one) ha1),
+    exact one_add_mul_sub_le_pow ha m },
+
+  -- Choose N greater than x / (a - 1).
+  obtain ⟨N, hN⟩ := exists_nat_gt (max 0 (x / (a - 1))),
+  have hN' := calc x / (a - 1) ≤ max 0 (x / (a - 1)) : le_max_right _ _
+                           ... < N                   : hN,
+  have h_big_enough :=
+    calc (1 : ℚ)
+          = (1 + N * (a - 1)) - N * (a - 1) : by ring
+      ... ≤ a^N - N * (a - 1)               : sub_le_sub_right (hbound N) (↑N * (a - 1))
+      ... < a^N - (x / (a - 1)) * (a - 1)   : sub_lt_sub_left
+                                                ((mul_lt_mul_right (sub_pos.mpr ha1)).mpr hN') (a^N)
+      ... = a^N - x                         : by field_simp [ne_of_gt (sub_pos.mpr ha1)],
 
   have h1 := calc (x : ℝ) + ((a^N - x) : ℚ)
                         ≤ f x + ((a^N - x) : ℚ) : add_le_add_right (H5 x hx) _
@@ -200,7 +214,9 @@ begin
   have hxp : 0 < x := zero_lt_one.trans hx,
 
   have hNp : 0 < N,
-  { by_contra H, push_neg at H, rw [nat.le_zero_iff.mp H] at hN, linarith },
+  { exact_mod_cast calc ((0 : ℕ) : ℚ) = (0 : ℚ)             : nat.cast_zero
+                                  ... ≤ max 0 (x / (a - 1)) : le_max_left 0 _
+                                  ... < N                   : hN, },
 
   have h2 := calc f x + f (a^N - x)
                         ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp (zero_lt_one.trans h_big_enough)

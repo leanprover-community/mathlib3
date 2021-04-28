@@ -60,12 +60,9 @@ example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 99 = d := by simp
 example {α : Type*} [comm_ring α] {a b c d : α} :
   matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
 begin
-  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
-  /-
-  Try this: simp only [matrix.det_succ_row_zero, fin.sum_univ_succ, det_fin_zero,
-      finset.sum_singleton, fin.sum_univ_zero, minor_apply, cons_val_zero, cons_val_succ,
-      fin.succ_above_zero, fin.coe_succ, fin.coe_zero],
-  -/
+  -- TODO: can we make this require less steering?
+  simp [matrix.det_apply', finset.univ_perm_fin_succ, ←finset.univ_product_univ, finset.sum_product,
+        fin.sum_univ_succ, fin.prod_univ_succ],
   ring
 end
 
@@ -73,13 +70,9 @@ example {α : Type*} [comm_ring α] (A : matrix (fin 3) (fin 3) α) {a b c d e f
         matrix.det ![![a, b, c], ![d, e, f], ![g, h, i]] =
           a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
 begin
-  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
-  /-
-  Try this: simp only [matrix.det_succ_row_zero, fin.sum_univ_succ, det_fin_zero,
-      finset.sum_singleton, fin.sum_univ_zero, minor_apply, cons_val_zero, cons_val_succ,
-      fin.succ_above_zero, fin.succ_succ_above_zero, fin.succ_succ_above_succ,
-      fin.coe_zero, fin.coe_succ, pow_zero, pow_add],
-   -/
+  -- We utilize the `norm_swap` plugin for `norm_num` to reduce swap terms
+  norm_num [matrix.det_apply', finset.univ_perm_fin_succ, ←finset.univ_product_univ,
+            finset.sum_product, fin.sum_univ_succ, fin.prod_univ_succ],
   ring
 end
 

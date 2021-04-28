@@ -133,8 +133,7 @@ by refine_struct
   one   := 1,
   sub   := has_sub.sub,
   npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩ };
 intros; try { refl }; ext; simp; ring
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
@@ -315,7 +314,7 @@ begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
   rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
-  { rw [fpow_neg, inv_inv', gpow_coe_nat],
+  { rw [fpow_neg, inv_inv', fpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
     apply le_of_lt,
@@ -462,7 +461,7 @@ begin
     { simp },
     { exact_mod_cast hp_prime.1.ne_zero } },
   convert repr using 2,
-  rw [← gpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
+  rw [← fpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
 end
 
 end units
@@ -475,7 +474,7 @@ lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
 begin
   rw norm_eq_pow_val hx,
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-  simp only [int.coe_nat_le, fpow_neg, gpow_coe_nat],
+  simp only [int.coe_nat_le, fpow_neg, fpow_coe_nat],
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
   { apply pow_pos, exact_mod_cast hp_prime.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
@@ -506,7 +505,7 @@ lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
 begin
   by_cases hx : x = 0,
   { subst hx,
-    simp only [norm_zero, fpow_neg, gpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
+    simp only [norm_zero, fpow_neg, fpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
     exact_mod_cast nat.zero_le _ },
   rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
 end
@@ -532,7 +531,7 @@ begin
   have := norm_le_pow_iff_mem_span_pow x 1,
   rw [ideal.mem_span_singleton, pow_one] at this,
   rw [← this, norm_le_pow_iff_norm_lt_pow_add_one],
-  simp only [gpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
+  simp only [fpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
 end
 
 @[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=

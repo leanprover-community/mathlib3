@@ -79,7 +79,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [sem
 theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
   ∃ g : F →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
 begin
-  letI : module ℝ F := restrict_scalars.module ℝ 𝕜 F,
+  letI : module ℝ F := restrict_scalars.semimodule ℝ 𝕜 F,
   letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
   letI : semi_normed_space ℝ F := semi_normed_space.restrict_scalars _ 𝕜 _,
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.

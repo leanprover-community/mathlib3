@@ -39,11 +39,6 @@ example (p : Prop) : p → ¬ (p → ¬ p) := by itauto
 
 example (p : Prop) (em : p ∨ ¬ p) : ¬ (p ↔ ¬ p) := by itauto
 
-example (xl yl zl xr yr zr : Prop) :
-  (xl ∧ yl ∨ xr ∧ yr) ∧ zl ∨ (xl ∧ yr ∨ xr ∧ yl) ∧ zr ↔
-    xl ∧ (yl ∧ zl ∨ yr ∧ zr) ∨ xr ∧ (yl ∧ zr ∨ yr ∧ zl) :=
-by itauto
-
 -- failure tests
 example (p q r : Prop) : true :=
 begin

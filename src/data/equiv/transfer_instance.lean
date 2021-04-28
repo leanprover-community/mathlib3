@@ -124,11 +124,6 @@ protected def semigroup [semigroup β] : semigroup α :=
 let mul := e.has_mul in
 by resetI; apply e.injective.semigroup _; intros; exact e.apply_symm_apply _
 
-/-- Transfer `semigroup_with_zero` across an `equiv` -/
-protected def semigroup_with_zero [semigroup_with_zero β] : semigroup_with_zero α :=
-let mul := e.has_mul, zero := e.has_zero in
-by resetI; apply e.injective.semigroup_with_zero _; intros; exact e.apply_symm_apply _
-
 /-- Transfer `comm_semigroup` across an `equiv` -/
 @[to_additive "Transfer `add_comm_semigroup` across an `equiv`"]
 protected def comm_semigroup [comm_semigroup β] : comm_semigroup α :=
@@ -258,18 +253,18 @@ end
 section
 variables [semiring R]
 
-/-- Transfer `module` across an `equiv` -/
-protected def module (e : α ≃ β) [add_comm_monoid β] :
+/-- Transfer `semimodule` across an `equiv` -/
+protected def semimodule (e : α ≃ β) [add_comm_monoid β] :
   begin
     letI := equiv.add_comm_monoid e,
-    exact Π [module R β], module R α
+    exact Π [semimodule R β], semimodule R α
   end :=
 begin
   introsI,
   exact (
   { zero_smul := by simp [zero_def, smul_def],
     add_smul := by simp [add_def, smul_def, add_smul],
-    ..equiv.distrib_mul_action R e } : module R α)
+    ..equiv.distrib_mul_action R e } : semimodule R α)
 end
 
 /--
@@ -277,10 +272,10 @@ An equivalence `e : α ≃ β` gives a linear equivalence `α ≃ₗ[R] β`
 where the `R`-module structure on `α` is
 the one obtained by transporting an `R`-module structure on `β` back along `e`.
 -/
-def linear_equiv (e : α ≃ β) [add_comm_monoid β] [module R β] :
+def linear_equiv (e : α ≃ β) [add_comm_monoid β] [semimodule R β] :
   begin
     letI := equiv.add_comm_monoid e,
-    letI := equiv.module R e,
+    letI := equiv.semimodule R e,
     exact α ≃ₗ[R] β
   end :=
 begin

@@ -36,7 +36,7 @@ open_locale big_operators
 namespace linear_map
 
 variables (R : Type*) {ι : Type*} [semiring R] (φ : ι → Type*)
-  [Π i, add_comm_monoid (φ i)] [Π i, module R (φ i)] [decidable_eq ι]
+  [Π i, add_comm_monoid (φ i)] [Π i, semimodule R (φ i)] [decidable_eq ι]
 
 /-- The standard basis of the product of `φ`. -/
 def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single

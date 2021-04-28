@@ -43,8 +43,8 @@ instance [has_scalar R S] [is_scalar_tower R S B] : is_scalar_tower R S (A →+ 
 
 end
 
-instance [semiring R] [add_monoid A] [add_comm_monoid B] [module R B] :
-  module R (A →+ B) :=
+instance [semiring R] [add_monoid A] [add_comm_monoid B] [semimodule R B] :
+  semimodule R (A →+ B) :=
 { add_smul := λ r s x, ext $ λ y, by simp [add_smul],
   zero_smul := λ x, ext $ λ y, by simp [zero_smul],
   ..add_monoid_hom.distrib_mul_action }

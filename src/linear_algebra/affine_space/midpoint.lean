@@ -36,8 +36,8 @@ open affine_map affine_equiv
 section
 
 variables (R : Type*) {V V' P P' : Type*} [ring R] [invertible (2:R)]
-  [add_comm_group V] [module R V] [add_torsor V P]
-  [add_comm_group V'] [module R V'] [add_torsor V' P']
+  [add_comm_group V] [semimodule R V] [add_torsor V P]
+  [add_comm_group V'] [semimodule R V'] [add_torsor V' P']
 
 include V
 
@@ -116,7 +116,7 @@ lemma midpoint_eq_iff' {x y z : P} : midpoint R x y = z ↔ equiv.point_reflecti
 midpoint_eq_iff
 
 /-- `midpoint` does not depend on the ring `R`. -/
-lemma midpoint_unique (R' : Type*) [ring R'] [invertible (2:R')] [module R' V] (x y : P) :
+lemma midpoint_unique (R' : Type*) [ring R'] [invertible (2:R')] [semimodule R' V] (x y : P) :
   midpoint R x y = midpoint R' x y :=
 (midpoint_eq_iff' R).2 $ (midpoint_eq_iff' R').1 rfl
 
@@ -137,40 +137,40 @@ by rw [midpoint_eq_iff, point_reflection_apply, vsub_eq_sub, vadd_eq_add, sub_ad
 end
 
 lemma line_map_inv_two {R : Type*} {V P : Type*} [division_ring R] [char_zero R]
-  [add_comm_group V] [module R V] [add_torsor V P] (a b : P) :
+  [add_comm_group V] [semimodule R V] [add_torsor V P] (a b : P) :
   line_map a b (2⁻¹:R) = midpoint R a b :=
 rfl
 
 lemma line_map_one_half {R : Type*} {V P : Type*} [division_ring R] [char_zero R]
-  [add_comm_group V] [module R V] [add_torsor V P] (a b : P) :
+  [add_comm_group V] [semimodule R V] [add_torsor V P] (a b : P) :
   line_map a b (1/2:R) = midpoint R a b :=
 by rw [one_div, line_map_inv_two]
 
 lemma homothety_inv_of_two {R : Type*} {V P : Type*} [comm_ring R] [invertible (2:R)]
-  [add_comm_group V] [module R V] [add_torsor V P] (a b : P) :
+  [add_comm_group V] [semimodule R V] [add_torsor V P] (a b : P) :
   homothety a (⅟2:R) b = midpoint R a b :=
 rfl
 
 lemma homothety_inv_two {k : Type*} {V P : Type*} [field k] [char_zero k]
-  [add_comm_group V] [module k V] [add_torsor V P] (a b : P) :
+  [add_comm_group V] [semimodule k V] [add_torsor V P] (a b : P) :
   homothety a (2⁻¹:k) b = midpoint k a b :=
 rfl
 
 lemma homothety_one_half {k : Type*} {V P : Type*} [field k] [char_zero k]
-  [add_comm_group V] [module k V] [add_torsor V P] (a b : P) :
+  [add_comm_group V] [semimodule k V] [add_torsor V P] (a b : P) :
   homothety a (1/2:k) b = midpoint k a b :=
 by rw [one_div, homothety_inv_two]
 
 @[simp] lemma pi_midpoint_apply {k ι : Type*} {V : Π i : ι, Type*} {P : Π i : ι, Type*} [field k]
-  [invertible (2:k)] [Π i, add_comm_group (V i)] [Π i, module k (V i)]
+  [invertible (2:k)] [Π i, add_comm_group (V i)] [Π i, semimodule k (V i)]
   [Π i, add_torsor (V i) (P i)] (f g : Π i, P i) (i : ι) :
   midpoint k f g i = midpoint k (f i) (g i) := rfl
 
 namespace add_monoid_hom
 
 variables (R R' : Type*) {E F : Type*}
-  [ring R] [invertible (2:R)] [add_comm_group E] [module R E]
-  [ring R'] [invertible (2:R')] [add_comm_group F] [module R' F]
+  [ring R] [invertible (2:R)] [add_comm_group E] [semimodule R E]
+  [ring R'] [invertible (2:R')] [add_comm_group F] [semimodule R' F]
 
 /-- A map `f : E → F` sending zero to zero and midpoints to midpoints is an `add_monoid_hom`. -/
 def of_map_midpoint (f : E → F) (h0 : f 0 = 0)

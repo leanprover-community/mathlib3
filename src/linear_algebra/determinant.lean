@@ -5,7 +5,6 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.pequiv
 import data.fintype.card
-import group_theory.perm.fin
 import group_theory.perm.sign
 import algebra.algebra.basic
 import tactic.ring
@@ -63,7 +62,12 @@ multilinear_map.alternatization_apply _ M
 -- This is what the old definition was. We use it to avoid having to change the old proofs below
 lemma det_apply' (M : matrix n n R) :
   M.det = ∑ σ : perm n, ε σ * ∏ i, M (σ i) i :=
-by simp [det_apply]
+begin
+  rw det_apply,
+  have : ∀ (r : R) (z : ℤ), z • r = (z : R) * r := λ r z, by
+    rw [←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast],
+  simp only [this],
+end
 
 @[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = ∏ i, d i :=
 begin
@@ -91,14 +95,6 @@ begin
   univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
   simp [det_apply, card_eq_zero.mp h, perm_eq],
 end
-
-/-- Specialize `det_eq_one_of_card_eq_zero` to `fin 0`.
-
-This is especially useful in combination with the `det_succ_` lemmas,
-for computing the determinant of a matrix given in the `![...]` notation.
--/
-@[simp] lemma det_fin_zero {A : matrix (fin 0) (fin 0) R}: det A = 1 :=
-det_eq_one_of_card_eq_zero (fintype.card_fin _)
 
 /-- If `n` has only one element, the determinant of an `n` by `n` matrix is just that element.
 Although `unique` implies `decidable_eq` and `fintype`, the instances might
@@ -182,7 +178,11 @@ end
 
 /-- Permuting the columns changes the sign of the determinant. -/
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
-((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans (by simp)
+begin
+  have : (σ.sign : ℤ) • M.det = (σ.sign * M.det : R),
+  { rw [coe_coe, ←gsmul_eq_smul, ←smul_eq_mul, ←gsmul_eq_smul_cast] },
+  exact ((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans this,
+end
 
 /-- Permuting rows and columns with the same equivalence has no effect. -/
 @[simp]
@@ -402,78 +402,5 @@ begin
     { rw [finset.prod_eq_zero (finset.mem_univ (sum.inl a)), mul_zero],
       rw [hx, from_blocks_apply₂₁], refl }}
 end
-
-/-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column 0. -/
-lemma det_succ_column_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
-  det A = ∑ i : fin n.succ, (-1) ^ (i : ℕ) * A i 0 *
-    det (A.minor i.succ_above fin.succ) :=
-begin
-  rw [matrix.det_apply, finset.univ_perm_fin_succ, ← finset.univ_product_univ],
-  simp only [finset.sum_map, equiv.to_embedding_apply, finset.sum_product, matrix.minor],
-  refine finset.sum_congr rfl (λ i _, fin.cases _ (λ i, _) i),
-  { simp only [fin.prod_univ_succ, matrix.det_apply, finset.mul_sum,
-        equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
-        equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
-        equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
-        algebra.mul_smul_comm] },
-  -- `univ_perm_fin_succ` gives a different embedding of `perm (fin n)` into
-  -- `perm (fin n.succ)` than the determinant of the submatrix we want,
-  -- permute `A` so that we get the correct one.
-  have : (-1 : R) ^ (i : ℕ) = i.cycle_range.sign,
-  { simp [fin.sign_cycle_range] },
-  rw [fin.coe_succ, pow_succ, this, mul_assoc, mul_assoc, mul_left_comm ↑(equiv.perm.sign _),
-      ← det_permute, matrix.det_apply, finset.mul_sum, finset.mul_sum],
-  -- now we just need to move the corresponding parts to the same place
-  refine finset.sum_congr rfl (λ σ _, _),
-  rw [equiv.perm.decompose_fin.symm_sign, if_neg (fin.succ_ne_zero i)],
-  calc ((-1) * σ.sign : ℤ) • ∏ i', A (equiv.perm.decompose_fin.symm (fin.succ i, σ) i') i'
-      = ((-1) * σ.sign : ℤ) • (A (fin.succ i) 0 *
-        ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
-    by simp only [fin.prod_univ_succ, fin.succ_above_cycle_range,
-      equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
-  ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
-        ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
-    by simp only [mul_assoc, mul_comm, neg_mul_eq_neg_mul_symm, one_mul, gsmul_eq_mul, neg_inj,
-      neg_smul, fin.succ_above_cycle_range],
-end
-
-/-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row 0. -/
-lemma det_succ_row_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
-  det A = ∑ j : fin n.succ, (-1) ^ (j : ℕ) * A 0 j *
-    det (A.minor fin.succ j.succ_above) :=
-by { rw [← det_transpose A, det_succ_column_zero],
-     refine finset.sum_congr rfl (λ i _, _),
-     rw [← det_transpose],
-     simp only [transpose_apply, transpose_minor, transpose_transpose] }
-
-/-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along row `i`. -/
-lemma det_succ_row {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (i : fin n.succ) :
-  det A = ∑ j : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
-    det (A.minor i.succ_above j.succ_above) :=
-begin
-  simp_rw [pow_add, mul_assoc, ← mul_sum],
-  have : det A = (-1 : R) ^ (i : ℕ) * (i.cycle_range⁻¹).sign * det A,
-  { calc det A = ↑((-1 : units ℤ) ^ (i : ℕ) * (-1 : units ℤ) ^ (i : ℕ) : units ℤ) * det A :
-             by simp
-           ... = (-1 : R) ^ (i : ℕ) * (i.cycle_range⁻¹).sign * det A :
-             by simp [-int.units_mul_self] },
-  rw [this, mul_assoc],
-  congr,
-  rw [← det_permute, det_succ_row_zero],
-  refine finset.sum_congr rfl (λ j _, _),
-  rw [mul_assoc, matrix.minor, matrix.minor],
-  congr,
-  { rw [equiv.perm.inv_def, fin.cycle_range_symm_zero] },
-  { ext i' j',
-    rw [equiv.perm.inv_def, fin.cycle_range_symm_succ] },
-end
-
-/-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column `j`. -/
-lemma det_succ_column {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) (j : fin n.succ) :
-  det A = ∑ i : fin n.succ, (-1) ^ (i + j : ℕ) * A i j *
-    det (A.minor i.succ_above j.succ_above) :=
-by { rw [← det_transpose, det_succ_row _ j],
-     refine finset.sum_congr rfl (λ i _, _),
-     rw [add_comm, ← det_transpose, transpose_apply, transpose_minor, transpose_transpose] }
 
 end matrix

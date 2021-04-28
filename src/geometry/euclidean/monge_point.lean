@@ -390,15 +390,15 @@ begin
 end
 
 /-- An altitude is one-dimensional (i.e., a line). -/
-@[simp] lemma finrank_direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
-  finrank ℝ ((s.altitude i).direction) = 1 :=
+@[simp] lemma findim_direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
+  findim ℝ ((s.altitude i).direction) = 1 :=
 begin
   rw direction_altitude,
-  have h := submodule.finrank_add_inf_finrank_orthogonal
+  have h := submodule.findim_add_inf_findim_orthogonal
     (vector_span_mono ℝ (set.image_subset_range s.points ↑(univ.erase i))),
   have hc : card (univ.erase i) = n + 1, { rw card_erase_of_mem (mem_univ _), simp },
-  rw [finrank_vector_span_of_affine_independent s.independent (fintype.card_fin _),
-      finrank_vector_span_image_finset_of_affine_independent s.independent hc] at h,
+  rw [findim_vector_span_of_affine_independent s.independent (fintype.card_fin _),
+      findim_vector_span_image_finset_of_affine_independent s.independent hc] at h,
   simpa using h
 end
 
@@ -419,8 +419,8 @@ begin
     split,
     { intro heq,
       rw [heq, set.pair_eq_singleton, vector_span_singleton] at h,
-      have hd : finrank ℝ (s.altitude i).direction = 0,
-      { rw [←h, finrank_bot] },
+      have hd : findim ℝ (s.altitude i).direction = 0,
+      { rw [←h, findim_bot] },
       simpa using hd },
     { rw [←submodule.mem_inf, inf_comm, ←direction_altitude, ←h],
       exact vsub_mem_vector_span ℝ (set.mem_insert _ _)
@@ -430,10 +430,10 @@ begin
     rw [vector_span_eq_span_vsub_set_left_ne ℝ (set.mem_insert _ _),
         set.insert_diff_of_mem _ (set.mem_singleton _),
         set.diff_singleton_eq_self (λ h, hne (set.mem_singleton_iff.1 h)), set.image_singleton],
-    refine eq_of_le_of_finrank_eq _ _,
+    refine eq_of_le_of_findim_eq _ _,
     { rw submodule.span_le,
       simpa using h },
-    { rw [finrank_direction_altitude, finrank_span_set_eq_card],
+    { rw [findim_direction_altitude, findim_span_set_eq_card],
       { simp },
       { refine linear_independent_singleton _,
         simpa using hne } } }
@@ -577,7 +577,7 @@ begin
   have he : affine_span ℝ (set.range t₂.points) = affine_span ℝ (set.range t₁.points),
   { refine ext_of_direction_eq _
       ⟨t₁.points i₃, mem_affine_span ℝ ⟨j₃, h₃⟩, mem_affine_span ℝ (set.mem_range_self _)⟩,
-    refine eq_of_le_of_finrank_eq (direction_le (span_points_subset_coe_of_subset_coe _)) _,
+    refine eq_of_le_of_findim_eq (direction_le (span_points_subset_coe_of_subset_coe _)) _,
     { have hu : (finset.univ : finset (fin 3)) = {j₁, j₂, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
       rw [←set.image_univ, ←finset.coe_univ, hu, finset.coe_insert, finset.coe_insert,
           finset.coe_singleton, set.image_insert_eq, set.image_insert_eq, set.image_singleton,
@@ -586,8 +586,8 @@ begin
              mem_affine_span ℝ (set.mem_range_self _),
              mem_affine_span ℝ (set.mem_range_self _)⟩ },
     { rw [direction_affine_span, direction_affine_span,
-          finrank_vector_span_of_affine_independent t₁.independent (fintype.card_fin _),
-          finrank_vector_span_of_affine_independent t₂.independent (fintype.card_fin _)] } },
+          findim_vector_span_of_affine_independent t₁.independent (fintype.card_fin _),
+          findim_vector_span_of_affine_independent t₂.independent (fintype.card_fin _)] } },
   rw he,
   use mem_affine_span ℝ (set.mem_range_self _),
   have hu : finset.univ.erase j₂ = {j₁, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
@@ -740,10 +740,10 @@ begin
     ⟨p 0, mem_affine_span ℝ (set.mem_range_self _), mem_affine_span ℝ (hps (set.mem_range_self _))⟩,
   have hfd : finite_dimensional ℝ (affine_span ℝ s).direction, { rw hs, apply_instance },
   haveI := hfd,
-  refine eq_of_le_of_finrank_eq (direction_le (affine_span_mono ℝ hps)) _,
+  refine eq_of_le_of_findim_eq (direction_le (affine_span_mono ℝ hps)) _,
   rw [hs, direction_affine_span, direction_affine_span,
-      finrank_vector_span_of_affine_independent ha (fintype.card_fin _),
-      finrank_vector_span_of_affine_independent t.independent (fintype.card_fin _)]
+      findim_vector_span_of_affine_independent ha (fintype.card_fin _),
+      findim_vector_span_of_affine_independent t.independent (fintype.card_fin _)]
 end
 
 /-- All triangles in an orthocentric system have the same circumradius. -/

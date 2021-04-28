@@ -101,7 +101,7 @@ instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 /-- `total V` is the type of _all_ arrows of `V`. -/
 -- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
 @[ext, nolint has_inhabited_instance]
-structure total (V : Type u) [quiver.{v} V] : Sort (max (u+1) v) :=
+structure total (V : Type u) [quiver.{v} V] : Type (max u v) :=
 (left : V)
 (right : V)
 (hom : left ⟶ right)
@@ -179,7 +179,7 @@ instance {V : Type u} [quiver V] [arborescence V] (b : V) : unique (path (root V
 arborescence.unique_path b
 
 /-- An `L`-labelling of a quiver assigns to every arrow an element of `L`. -/
-def labelling (V : Type u) [quiver V] (L : Sort*) := Π ⦃a b : V⦄, (a ⟶ b) → L
+def labelling (V : Type u) [quiver V] (L : Sort*) := Π a b : V, (a ⟶ b) → L
 
 instance {V : Type u} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :=
 ⟨λ a b e, default L⟩

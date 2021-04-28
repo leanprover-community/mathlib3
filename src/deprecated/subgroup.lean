@@ -75,7 +75,7 @@ attribute [norm_cast] is_add_subgroup.coe_neg
 by induction n; simp [is_submonoid.coe_pow a]
 
 @[simp, norm_cast] lemma is_add_subgroup.gsmul_coe {s : set A} [is_add_subgroup s] (a : s) (n : ℤ) :
-  ((n • a : s) : A) = n • a :=
+  ((gsmul n a : s) : A) = gsmul n a :=
 by induction n; simp [is_add_submonoid.smul_coe a]
 attribute [to_additive gsmul_coe] is_subgroup.coe_gpow
 
@@ -135,8 +135,8 @@ multiplicative.is_subgroup_iff.1 $ gpowers.is_subgroup _
 attribute [to_additive] gpowers.is_subgroup
 
 lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : ∀{i:ℤ}, a ^ i ∈ s
-| (n : ℕ) := by { rw [gpow_coe_nat], exact is_submonoid.pow_mem h }
-| -[1+ n] := by { rw [gpow_neg_succ_of_nat], exact is_subgroup.inv_mem (is_submonoid.pow_mem h) }
+| (n : ℕ) := is_submonoid.pow_mem h
+| -[1+ n] := is_subgroup.inv_mem (is_submonoid.pow_mem h)
 
 lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] :
   a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=

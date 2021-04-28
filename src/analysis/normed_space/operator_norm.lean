@@ -664,8 +664,8 @@ section has_sum
 -- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we
 -- don't have bundled continuous additive homomorphisms.
 
-variables {ι R M M₂ : Type*} [semiring R] [add_comm_monoid M] [module R M]
-  [add_comm_monoid M₂] [module R M₂] [topological_space M] [topological_space M₂]
+variables {ι R M M₂ : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+  [add_comm_monoid M₂] [semimodule R M₂] [topological_space M] [topological_space M₂]
 
 omit 𝕜
 

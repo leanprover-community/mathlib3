@@ -25,7 +25,7 @@ begin
 end
 
 lemma dim_eq {K : Type*} {X : Type*} [field K] :
-  module.rank K (free_algebra K X) = cardinal.mk (list X) :=
+  vector_space.dim K (free_algebra K X) = cardinal.mk (list X) :=
 (cardinal.lift_inj.mp (is_basis_free_monoid K X).mk_eq_dim).symm
 
 end free_algebra

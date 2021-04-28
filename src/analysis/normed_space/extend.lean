@@ -37,7 +37,7 @@ local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 /-- Extend `fr : F →ₗ[ℝ] ℝ` to `F →ₗ[𝕜] 𝕜` in a way that will also be continuous and have its norm
 bounded by `∥fr∥` if `fr` is continuous. -/
 noncomputable def linear_map.extend_to_𝕜'
-  [module ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →ₗ[ℝ] ℝ) : F →ₗ[𝕜] 𝕜 :=
+  [semimodule ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →ₗ[ℝ] ℝ) : F →ₗ[𝕜] 𝕜 :=
 begin
   let fc : F → 𝕜 := λ x, (fr x : 𝕜) - (I : 𝕜) * (fr ((I : 𝕜) • x)),
   have add : ∀ x y : F, fc (x + y) = fc x + fc y,
@@ -73,7 +73,7 @@ begin
   exact { to_fun := fc, map_add' := add, map_smul' := smul_𝕜 }
 end
 
-lemma linear_map.extend_to_𝕜'_apply [module ℝ F] [is_scalar_tower ℝ 𝕜 F]
+lemma linear_map.extend_to_𝕜'_apply [semimodule ℝ F] [is_scalar_tower ℝ 𝕜 F]
   (fr : F →ₗ[ℝ] ℝ) (x : F) :
   fr.extend_to_𝕜' x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
 

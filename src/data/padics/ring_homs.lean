@@ -371,7 +371,7 @@ begin
           apply to_zmod_spec },
         obtain ⟨c, rfl⟩ : is_unit c, -- TODO: write a can_lift instance for units
         { rw int.nat_abs_eq_zero at hc0,
-          rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, gpow_zero], },
+          rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, fpow_zero], },
         rw discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
         exact irreducible_p },
       { rw [zero_pow (nat.pos_of_ne_zero hc0)],

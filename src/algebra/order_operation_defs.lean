@@ -77,38 +77,44 @@ section covariants_and_contravariants
 variables {M N : Type*} (μ : M → N → N) (r : N → N → Prop) (m : M) {a b c : N}
 
 
-variables (M N)
-/-- `covariant` is useful to formulate succintly statements about the interactions between an
-action of a Type on another one and a relation on the acted-upon Type.
+--variables (M N)
+/--  Given Types `M` and `N`, an action `μ : M → N → N` and a relation `r N → N → Prop` on `N`,
+informally, `covariant μ r` says that "the action `μ` preserves the relation `r`.
 
-See the `covariant_class` doc-string for its meaning. -/
+More precisely, `covariant μ r` is a class taking two Types `M N`, together with an "action"
+`μ : M → N → N` and a relation `r : N → N`.  It asserts that for all `m ∈ M` and all elements
+`n₁, n₂ ∈ N`, if the relation `r` holds for the pair `(n₁, n₂)`, then, the relation `r` also holds
+for the pair `(μ m n₁, μ m n₂)`, obtained from `(n₁, n₂)` by "acting upon it by `m`". -/
 def covariant     : Prop := ∀ (m) {n₁ n₂}, r n₁ n₂ → r (μ m n₁) (μ m n₂)
 
-/-- `contravariant` is useful to formulate succintly statements about the interactions between an
-action of a Type on another one and a relation on the acted-upon Type.
+/--  Given Types `M` and `N`, an action `μ : M → N → N` and a relation `r N → N → Prop` on `N`,
+informally, `contravariant μ r` says that "the action `μ` preserves the relation `r`.
 
-See the `contravariant_class` doc-string for its meaning. -/
+More precisely, `contravariant μ r` is a class taking two Types `M N`, together with an "action"
+`μ : M → N → N` and a relation `r : N → N`.  It asserts that for all `m ∈ M` and all elements
+`n₁, n₂ ∈ N`, if the relation `r` holds for the pair `(μ m n₁, μ m n₂)`, obtained from `(n₁, n₂)` by
+"acting upon it by `m`", then, the relation `r` also holds for the pair `(n₁, n₂)`. -/
 def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r n₁ n₂
 
 variables {M N}
 
 @[simp]
 lemma covariant_def :
-  covariant M N μ r ↔ ∀ (m) {n₁ n₂}, r n₁ n₂ → r (μ m n₁) (μ m n₂) :=
+  covariant μ r ↔ ∀ (m) {n₁ n₂}, r n₁ n₂ → r (μ m n₁) (μ m n₂) :=
 iff.rfl
 
 @[simp]
 lemma contravariant_def :
-  contravariant M N μ r ↔ ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r n₁ n₂ :=
+  contravariant μ r ↔ ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r n₁ n₂ :=
 iff.rfl
 
 lemma covariant_iff_contravariant_le [linear_order N] :
-  covariant M N μ (≤) ↔ contravariant M N μ (<) :=
+  covariant μ (≤) ↔ contravariant μ (<) :=
 ⟨ λ h a b c bc, not_le.mp (λ k, not_le.mpr bc (h _ k)),
   λ h a b c bc, not_lt.mp (λ k, not_lt.mpr bc (h _ k))⟩
 
 lemma covariant_iff_contravariant_lt [linear_order N] :
-  covariant M N μ (<) ↔ contravariant M N μ (≤) :=
+  covariant μ (<) ↔ contravariant μ (≤) :=
 ⟨ λ h a b c bc, not_lt.mp (λ k, not_lt.mpr bc (h _ k)),
   λ h a b c bc, not_le.mp (λ k, not_le.mpr bc (h _ k))⟩
 
@@ -119,12 +125,12 @@ funext $ λ _, funext (λ _, mul_comm _ _)
 
 @[to_additive]
 lemma covariant_iff_covariant_mul [comm_semigroup N] :
-  covariant N N (*) (r) ↔ covariant N N (function.swap (*)) (r) :=
+  covariant ((*) : N → N → N) (r) ↔ covariant (function.swap (*) : N → N → N) (r) :=
 by rw mul_eq_function_swap
 
 @[to_additive]
 lemma contravariant_iff_contravariant_mul [comm_semigroup N] :
-  contravariant N N (*) (r) ↔ contravariant N N (function.swap (*)) (r) :=
+  contravariant ((*) : N → N → N) (r) ↔ contravariant (function.swap (*) : N → N → N) (r) :=
 by rw mul_eq_function_swap
 
 end covariants_and_contravariants
@@ -134,75 +140,75 @@ variable (α : Type*)
 
 /--  A typeclass assuming the implication `b ≤ c → a + b ≤ a + c`. -/
 class has_add_le_add_left [has_add α] [has_le α] : Prop :=
-(add_le_add_left : covariant α α (+) (≤))
+(add_le_add_left : covariant ((+) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b ≤ c → a * b ≤ a * c`. -/
 @[to_additive]
 class has_mul_le_mul_left [has_mul α] [has_le α] : Prop :=
-(mul_le_mul_left : covariant α α (*) (≤))
+(mul_le_mul_left : covariant ((*) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b ≤ c → b + a ≤ c + a`. -/
 class has_add_le_add_right [has_add α] [has_le α] : Prop :=
-(add_le_add_right : covariant α α (function.swap (+)) (≤))
+(add_le_add_right : covariant (function.swap (+) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b ≤ c → b * a ≤ c * a`. -/
 @[to_additive]
 class has_mul_le_mul_right [has_mul α] [has_le α] : Prop :=
-(mul_le_mul_right : covariant α α (function.swap (*)) (≤))
+(mul_le_mul_right : covariant (function.swap (*) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b < c → a + b < a + c`. -/
 class has_add_lt_add_left [has_add α] [has_lt α] : Prop :=
-(add_lt_add_left : covariant α α (+) (<))
+(add_lt_add_left : covariant ((+) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `b < c → a * b < a * c`. -/
 @[to_additive]
 class has_mul_lt_mul_left [has_mul α] [has_lt α] : Prop :=
-(mul_lt_mul_left : covariant α α (*) (<))
+(mul_lt_mul_left : covariant ((*) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `b < c → b + a < c + a`. -/
 class has_add_lt_add_right [has_add α] [has_lt α] : Prop :=
-(add_lt_add_right : covariant α α (function.swap (+)) (<))
+(add_lt_add_right : covariant (function.swap (+) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `b < c → b * a < c * a`. -/
 @[to_additive]
 class has_mul_lt_mul_right [has_mul α] [has_lt α] : Prop :=
-(mul_lt_mul_right : covariant α α (function.swap (*)) (<))
+(mul_lt_mul_right : covariant (function.swap (*) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `a + b ≤ a + c → b ≤ c`. -/
 class has_le_of_add_le_add_left [has_add α] [has_le α] : Prop :=
-(le_of_add_le_add_left : contravariant α α (+) (≤))
+(le_of_add_le_add_left : contravariant ((+) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `a * b ≤ a * c → b ≤ c`. -/
 @[to_additive]
 class has_le_of_mul_le_mul_left [has_mul α] [has_le α] : Prop :=
-(le_of_mul_le_mul_left : contravariant α α (*) (≤))
+(le_of_mul_le_mul_left : contravariant ((*) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b + a ≤ c + a → b ≤ c`. -/
 class has_le_of_add_le_add_right [has_add α] [has_le α] : Prop :=
-(le_of_add_le_add_right : contravariant α α (function.swap (+)) (≤))
+(le_of_add_le_add_right : contravariant (function.swap (+) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b * a ≤ c * a → b ≤ c`. -/
 @[to_additive]
 class has_le_of_mul_le_mul_right [has_mul α] [has_le α] : Prop :=
-(le_of_mul_le_mul_right : contravariant α α (function.swap (*)) (≤))
+(le_of_mul_le_mul_right : contravariant (function.swap (*) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `a + b < a + c → b < c`. -/
 class has_lt_of_add_lt_add_left [has_add α] [has_lt α] : Prop :=
-(lt_of_add_lt_add_left : contravariant α α (+) (<))
+(lt_of_add_lt_add_left : contravariant ((+) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `a * b < a * c → b < c`. -/
 @[to_additive]
 class has_lt_of_mul_lt_mul_left [has_mul α] [has_lt α] : Prop :=
-(lt_of_mul_lt_mul_left : contravariant α α (*) (<))
+(lt_of_mul_lt_mul_left : contravariant ((*) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `b + a < c + a → b < c`. -/
 class has_lt_of_add_lt_add_right [has_add α] [has_lt α] : Prop :=
-(lt_of_add_lt_add_right : contravariant α α (function.swap (+)) (<))
+(lt_of_add_lt_add_right : contravariant (function.swap (+) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `b * a < c * a → b < c`. -/
 @[to_additive]
 class has_lt_of_mul_lt_mul_right [has_mul α] [has_lt α] : Prop :=
-(lt_of_mul_lt_mul_right : contravariant α α (function.swap (*)) (<))
+(lt_of_mul_lt_mul_right : contravariant (function.swap (*) : α → α → α) (<))
 
 section le_implies_lt
 variable [linear_order α]

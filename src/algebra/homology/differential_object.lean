@@ -20,9 +20,12 @@ it's here to check that definitions match up as expected.
 open category_theory
 open category_theory.limits
 
+open_locale classical
+noncomputable theory
+
 namespace homological_complex
 
-variables {β : Type*} [add_comm_group β] [decidable_eq β] (b : β)
+variables {β : Type*} [add_comm_group β] (b : β)
 variables (V : Type*) [category V] [has_zero_morphisms V]
 
 /--

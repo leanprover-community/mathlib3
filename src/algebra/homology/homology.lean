@@ -50,6 +50,10 @@ lemma cycles_eq_kernel_subobject {i j : ι} (r : c.rel i j) :
   C.cycles i = kernel_subobject (C.d i j) :=
 C.kernel_from_eq_kernel r
 
+/--
+The underlying object of `C.cycles i` is isomorphic to `kernel (C.d i j)`,
+for any `j` such that `rel i j`.
+-/
 def cycles_iso_kernel {i j : ι} (r : c.rel i j) :
   (C.cycles i : V) ≅ kernel (C.d i j) :=
 subobject.iso_of_eq _ _ (C.cycles_eq_kernel_subobject r) ≪≫
@@ -65,17 +69,21 @@ end
 end cycles
 
 section boundaries
-variables [has_images V] [has_equalizers V]
+variables [has_images V]
 
 /-- The boundaries at index `i`, as a subobject. -/
 abbreviation boundaries (C : homological_complex V c) (j : ι) : subobject (C.X j) :=
 image_subobject (C.d_to j)
 
-lemma boundaries_eq_image_subobject {i j : ι} (r : c.rel i j) :
+lemma boundaries_eq_image_subobject [has_equalizers V] {i j : ι} (r : c.rel i j) :
   C.boundaries j = image_subobject (C.d i j) :=
 C.image_to_eq_image r
 
-def boundaries_iso_image {i j : ι} (r : c.rel i j) :
+/--
+The underlying object of `C.boundaries j` is isomorphic to `image (C.d i j)`,
+for any `i` such that `rel i j`.
+-/
+def boundaries_iso_image [has_equalizers V] {i j : ι} (r : c.rel i j) :
   (C.boundaries j : V) ≅ image (C.d i j) :=
 subobject.iso_of_eq _ _ (C.boundaries_eq_image_subobject r) ≪≫
   image_subobject_iso (C.d i j)
@@ -90,7 +98,7 @@ end
 end boundaries
 
 section
-variables [has_kernels V] [has_images V] [has_equalizers V] [has_zero_object V]
+variables [has_kernels V] [has_images V]
 
 lemma boundaries_le_cycles (C : homological_complex V c) (i : ι) :
   C.boundaries i ≤ C.cycles i :=
@@ -161,7 +169,7 @@ end
 
 /-! Computing the boundaries is functorial. -/
 section
-variables [has_zero_object V] [has_equalizers V] [has_images V] [has_image_maps V]
+variables [has_zero_object V] [has_images V] [has_image_maps V]
 variables {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂)
 
 /--

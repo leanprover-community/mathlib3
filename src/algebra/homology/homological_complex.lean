@@ -79,6 +79,12 @@ homological_complex V (complex_shape.up α)
 namespace homological_complex
 variables {V} {c : complex_shape ι} (C : homological_complex V c)
 
+local attribute [instance] has_zero_object.has_zero
+
+instance [has_zero_object V] : inhabited (homological_complex V c) :=
+⟨{ X := λ i, 0,
+  d := λ i j, 0, }⟩
+
 /--
 A morphism of homological complexes consists of maps between the chain groups,
 commuting with the differentials.
@@ -89,6 +95,9 @@ commuting with the differentials.
 
 restate_axiom hom.comm'
 attribute [simp, reassoc, elementwise] hom.comm
+
+instance (A B : homological_complex V c) : inhabited (hom A B) :=
+⟨{ f := λ i, 0, }⟩
 
 /-- Identity chain map. -/
 def id (A : homological_complex V c) : hom A A :=
@@ -137,9 +146,6 @@ def eval_at (i : ι) : homological_complex V c ⥤ V :=
 open_locale classical
 noncomputable theory
 
-variables [has_zero_object V]
-local attribute [instance] has_zero_object.has_zero
-
 /--
 If `C.d i j` and `C.d i j'` are both allowed, then we must have `j = j'`,
 and so the differentials only differ by an `eq_to_hom`.
@@ -171,13 +177,18 @@ begin
   apply kernel_subobject_comp_mono,
 end
 
-lemma image_eq_image [has_images V] [has_equalizers V] [has_zero_object V]
+lemma image_eq_image [has_images V] [has_equalizers V]
   {i i' j : ι} (r : c.rel i j) (r' : c.rel i' j) :
   image_subobject (C.d i j) = image_subobject (C.d i' j) :=
 begin
   rw ←eq_to_hom_comp_d C r r',
   apply image_subobject_iso_comp,
 end
+
+section
+
+variables [has_zero_object V]
+local attribute [instance] has_zero_object.has_zero
 
 /-- Either `C.X i`, if there is some `i` with `c.rel i j`, or the zero object. -/
 def X_prev (j : ι) : V :=
@@ -301,7 +312,7 @@ begin
   apply kernel_subobject_comp_mono,
 end
 
-lemma image_to_eq_image [has_images V] [has_equalizers V] [has_zero_object V]
+lemma image_to_eq_image [has_images V] [has_equalizers V]
   {i j : ι} (r : c.rel i j) :
   image_subobject (C.d_to j) = image_subobject (C.d i j) :=
 begin
@@ -309,32 +320,13 @@ begin
   apply image_subobject_iso_comp,
 end
 
+end
+
 namespace hom
 
 variables {C₁ C₂ : homological_complex V c}
-
-/-- The commutative square
-```
-C₁.X i ---d---> C₁.X j
-  |               |
-f.f i           f.f j
-  |               |
-  v               v
-C₂.X i ---d---> C₂.X j
-```
--/
-def sq (f : hom C₁ C₂) (i j : ι) : arrow.mk (C₁.d i j) ⟶ arrow.mk (C₂.d i j) :=
-arrow.hom_mk (f.comm i j)
-
-@[simp] lemma sq_left (f : hom C₁ C₂) (i j : ι) : (f.sq i j).left = f.f i := rfl
-@[simp] lemma sq_right (f : hom C₁ C₂) (i j : ι) : (f.sq i j).right = f.f j := rfl
-
-/--
-The map induced on boundaries by a chain map.
--/
-def image_map [has_images V] [has_image_maps V] (f : hom C₁ C₂) (i j : ι) :
-  image (C₁.d i j) ⟶ image (C₂.d i j) :=
-image.map (f.sq i j)
+variables [has_zero_object V]
+local attribute [instance] has_zero_object.has_zero
 
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 

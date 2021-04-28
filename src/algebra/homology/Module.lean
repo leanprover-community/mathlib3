@@ -49,6 +49,7 @@ begin
   simp,
 end
 
+/-- Bundle an element `m : M` such that `f m = 0` as a term of `kernel f`. -/
 def to_kernel {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) : (kernel f : Module R) :=
 (Module.kernel_iso_ker f).symm.to_linear_equiv.to_equiv ⟨m, w⟩
 
@@ -56,6 +57,7 @@ def to_kernel {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) : (kernel f :
   (kernel.ι f) (to_kernel m w) = m :=
 by simp [to_kernel]
 
+/-- Bundle an element `m : M` such that `f m = 0` as a term of `kernel_subobject f`. -/
 def to_kernel_subobject {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) : kernel_subobject f :=
 (kernel_subobject_iso f ≪≫ Module.kernel_iso_ker f).inv ⟨m, w⟩
 
@@ -86,6 +88,7 @@ variables {ι : Type*} {c : complex_shape ι} {C D : homological_complex (Module
 
 namespace homological_complex
 
+/-- Bundle an element `C.X i` such that `C.d_from i x = 0` as a term of `C.cycles i`. -/
 def to_cycles (C : homological_complex (Module.{v} R) c)
   {i : ι} (x : C.X i) (p : C.d_from i x = 0) : C.cycles i :=
 to_kernel_subobject x p
@@ -113,6 +116,7 @@ end homological_complex
   (cycles_map f i) (C.to_cycles x p) = D.to_cycles (f.f i x) (by simp [p]) :=
 by { ext, simp, }
 
+/-- Build a term of `C.homology i` from an element `C.X i` such that `C.d_from i x = 0`. -/
 def homological_complex.to_homology
   (C : homological_complex (Module.{v} R) c) {i : ι} (x : C.X i) (p : C.d_from i x = 0) :
   C.homology i :=

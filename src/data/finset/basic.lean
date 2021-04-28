@@ -258,11 +258,11 @@ set.ssubset_iff_of_subset h
 
 lemma ssubset_of_ssubset_of_subset {s₁ s₂ s₃ : finset α} (hs₁s₂ : s₁ ⊂ s₂) (hs₂s₃ : s₂ ⊆ s₃) :
   s₁ ⊂ s₃ :=
-set.ssubset_of_ssubset_of_subset
+set.ssubset_of_ssubset_of_subset hs₁s₂ hs₂s₃
 
 lemma ssubset_of_subset_of_ssubset {s₁ s₂ s₃ : finset α} (hs₁s₂ : s₁ ⊆ s₂) (hs₂s₃ : s₂ ⊂ s₃) :
   s₁ ⊂ s₃ :=
-set.ssubset_of_subset_of_ssubset
+set.ssubset_of_subset_of_ssubset hs₁s₂ hs₂s₃
 
 lemma exists_of_ssubset {s₁ s₂ : finset α} (h : s₁ ⊂ s₂) :
   ∃ x ∈ s₂, x ∉ s₁ :=

@@ -197,8 +197,31 @@ instance coherence {X Y : F C} : subsingleton (X ⟶ Y) :=
   simp [←nat_iso.naturality_2 (full_normalize_iso.{u} C), this]
  end⟩
 
+section groupoid
+
+section
+open hom
+
+/-- Auxiliary construction for showing that the free monoidal category is a groupoid. Do not use
+    this, use `is_iso.inv` instead. -/
+@[simp] def inverse_aux : Π {X Y : F C}, (X ⟶ᵐ Y) → (Y ⟶ᵐ X)
+| _ _ (id X) := id X
+| _ _ (α_hom _ _ _) := α_inv _ _ _
+| _ _ (α_inv _ _ _) := α_hom _ _ _
+| _ _ (ρ_hom _) := ρ_inv _
+| _ _ (ρ_inv _) := ρ_hom _
+| _ _ (l_hom _) := l_inv _
+| _ _ (l_inv _) := l_hom _
+| _ _ (comp f g) := (inverse_aux g).comp (inverse_aux f)
+| _ _ (hom.tensor f g) := (inverse_aux f).tensor (inverse_aux g)
+
+end
+
 instance : groupoid.{u} (F C) :=
-{ inv := λ X Y, inverse, ..(infer_instance : category (F C)) }
+{ inv := λ X Y, quotient.lift (λ f, ⟦inverse_aux f⟧) (by tidy),
+  ..(infer_instance : category (F C)) }
+
+end groupoid
 
 end free_monoidal_category
 

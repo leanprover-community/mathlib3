@@ -6,6 +6,22 @@ Authors: Markus Himmel
 import category_theory.monoidal.category
 import category_theory.groupoid
 
+/-!
+# The free monoidal category over a type
+
+Given a type `C`, the free monoidal category over `C` has as objects formal expressions built from
+(formal) tensor products of terms of `C` and a formal unit. Its morphisms are compositions and
+tensor products of identities, unitors and associators.
+
+In this file, we construct the free monoidal category and prove that it is a monoidal category. If
+`C` already is a monoidal category, we construct the functor `free_monoidal_category C ⥤ C`.
+
+The free monoidal category has two important properties: it is a groupoid and it is thin. The former
+is obvious from the construction, and the latter is what is commonly known as the monoidal coherence
+theorem. Both of these properties are proved in the file `coherence.lean`.
+
+-/
+
 universes v u
 
 namespace category_theory
@@ -16,6 +32,11 @@ variables {C : Type u}
 section
 variables (C)
 
+/--
+Given a type `C`, the free monoidal category over `C` has as objects formal expressions built from
+(formal) tensor products of terms of `C` and a formal unit. Its morphisms are compositions and
+tensor products of identities, unitors and associators.
+-/
 inductive free_monoidal_category : Type u
 | of : C → free_monoidal_category
 | unit : free_monoidal_category
@@ -27,6 +48,9 @@ local notation `F` := free_monoidal_category
 
 namespace free_monoidal_category
 
+/-- Formal compositions and tensor products of identities, unitors and associators. The morphisms
+    of the free monoidal category are obtained as a quotient of these formal morphisms by the
+    relations defining a monoidal category. -/
 inductive hom : F C → F C → Type u
 | id (X) : hom X X
 | α_hom (X Y Z : F C) : hom ((X.tensor Y).tensor Z) (X.tensor (Y.tensor Z))
@@ -40,6 +64,8 @@ inductive hom : F C → F C → Type u
 
 infixr ` ⟶ᵐ `:10 := hom
 
+/-- The morphisms of the free monoidal category satisfy 21 relations ensuring that the resulting
+    category is in fact a category and that it is monoidal. -/
 inductive hom_equiv : Π (X Y : F C), (X ⟶ᵐ Y) → (X ⟶ᵐ Y) → Prop
 | refl {X Y} (f) : hom_equiv X Y f f
 | symm {X Y} (f g) : hom_equiv X Y f g → hom_equiv X Y g f
@@ -75,6 +101,9 @@ inductive hom_equiv : Π (X Y : F C), (X ⟶ᵐ Y) → (X ⟶ᵐ Y) → Prop
 | triangle {X Y : F C} : hom_equiv _ _ ((hom.α_hom X unit Y).comp ((hom.id X).tensor (hom.l_hom Y)))
   ((hom.ρ_hom X).tensor (hom.id Y))
 
+/-- We say that two formal morphisms in the free monoidal category are equivalent if they become
+    equal if we apply the relations that are true in a monoidal category. Note that we will prove
+    that there is only one equivalence class -- this is the monoidal coherence theorem. -/
 def setoid_hom (X Y : F C) : setoid (X ⟶ᵐ Y) :=
 ⟨hom_equiv X Y,
   ⟨λ f, hom_equiv.refl f, λ f g, hom_equiv.symm f g, λ f g h hfg hgh, hom_equiv.trans hfg hgh⟩⟩
@@ -131,46 +160,10 @@ rfl
 @[simp] lemma tensor_eq_tensor {X Y : F C} : X.tensor Y = X ⊗ Y := rfl
 @[simp] lemma unit_eq_unit : free_monoidal_category.unit = 𝟙_ (F C) := rfl
 
-section
-open hom
-
-@[simp] def inverse' : Π {X Y : F C}, (X ⟶ᵐ Y) → (Y ⟶ᵐ X)
-| _ _ (id X) := id X
-| _ _ (α_hom _ _ _) := α_inv _ _ _
-| _ _ (α_inv _ _ _) := α_hom _ _ _
-| _ _ (ρ_hom _) := ρ_inv _
-| _ _ (ρ_inv _) := ρ_hom _
-| _ _ (l_hom _) := l_inv _
-| _ _ (l_inv _) := l_hom _
-| _ _ (comp f g) := (inverse' g).comp (inverse' f)
-| _ _ (hom.tensor f g) := (inverse' f).tensor (inverse' g)
-
-end
-
-def inverse {X Y : F C} : (X ⟶ Y) → (Y ⟶ X) :=
-quotient.lift (λ f, ⟦inverse' f⟧)
-begin
-  intros f g h,
-  dsimp only,
-  induction h with X f f X Y f h hfg hfg' X Y f g h _ _ hfg hgh X Y Z f f' g g' _ _ hf hg
-    X₁ Y₁ X₂ Y₂ f f' g g' _ _ hf hg,
-  { refl },
-  { exact hfg'.symm },
-  { exact hfg.trans hgh },
-  { simp only [inverse', mk_comp, hf, hg] },
-  { simp only [inverse', mk_tensor, hf, hg] },
-  all_goals { simp only [inverse', mk_id, mk_comp, mk_α_hom, mk_α_inv, mk_ρ_hom, mk_ρ_inv, mk_l_hom,
-    mk_l_inv, category.id_comp, category.comp_id, category.assoc, iso.hom_inv_id, iso.inv_hom_id,
-      mk_tensor, monoidal_category.tensor_id, monoidal_category.tensor_comp],
-    try { dsimp only [tensor_eq_tensor, unit_eq_unit],
-      simp only [eq_self_iff_true, associator_inv_naturality, right_unitor_inv_naturality,
-        left_unitor_inv_naturality, pentagon_inv, triangle_assoc_comp_left_inv] } }
-end
-
-
 section functor
 variables [category.{v} C] [monoidal_category C]
 
+/-- Auxiliary definition for `free_monoidal_category.project`. -/
 def project_obj : F C → C
 | (free_monoidal_category.of X) := X
 | free_monoidal_category.unit := 𝟙_ C
@@ -179,8 +172,8 @@ def project_obj : F C → C
 section
 open hom
 
-@[simp]
-def project_hom' : Π {X Y : F C}, (X ⟶ᵐ Y) → (project_obj X ⟶ project_obj Y)
+/-- Auxiliary definition for `free_monoidal_category.project`. -/
+@[simp] def project_map_aux : Π {X Y : F C}, (X ⟶ᵐ Y) → (project_obj X ⟶ project_obj Y)
 | _ _ (id _) := 𝟙 _
 | _ _ (α_hom _ _ _) := (α_ _ _ _).hom
 | _ _ (α_inv _ _ _) := (α_ _ _ _).inv
@@ -188,11 +181,12 @@ def project_hom' : Π {X Y : F C}, (X ⟶ᵐ Y) → (project_obj X ⟶ project_o
 | _ _ (l_inv _) := (λ_ _).inv
 | _ _ (ρ_hom _) := (ρ_ _).hom
 | _ _ (ρ_inv _) := (ρ_ _).inv
-| _ _ (comp f g) := project_hom' f ≫ project_hom' g
-| _ _ (hom.tensor f g) := project_hom' f ⊗ project_hom' g
+| _ _ (comp f g) := project_map_aux f ≫ project_map_aux g
+| _ _ (hom.tensor f g) := project_map_aux f ⊗ project_map_aux g
 
-def project_hom {X Y : F C} : (X ⟶ Y) → (project_obj X ⟶ project_obj Y) :=
-quotient.lift project_hom'
+/-- Auxiliary definition for `free_monoidal_category.project`. -/
+def project_map (X Y : F C) : (X ⟶ Y) → (project_obj X ⟶ project_obj Y) :=
+quotient.lift project_map_aux
 begin
   intros f g h,
   induction h with X Y f X Y f g hfg hfg' X Y f g h _ _ hfg hgh X Y Z f f' g g' _ _ hf hg
@@ -200,33 +194,35 @@ begin
   { refl },
   { exact hfg'.symm },
   { exact hfg.trans hgh },
-  { simp only [project_hom', hf, hg] },
-  { simp only [project_hom', hfg, hfg'] },
-  { simp only [project_hom', category.comp_id] },
-  { simp only [project_hom', category.id_comp] },
-  { simp only [project_hom', category.assoc ] },
-  { simp only [project_hom', monoidal_category.tensor_id], refl },
-  { simp only [project_hom', monoidal_category.tensor_comp] },
-  { simp only [project_hom', iso.hom_inv_id] },
-  { simp only [project_hom', iso.inv_hom_id] },
-  { simp only [project_hom', monoidal_category.associator_naturality] },
-  { simp only [project_hom', iso.hom_inv_id] },
-  { simp only [project_hom', iso.inv_hom_id] },
-  { simp only [project_hom'], dsimp [project_obj],
+  { simp only [project_map_aux, hf, hg] },
+  { simp only [project_map_aux, hfg, hfg'] },
+  { simp only [project_map_aux, category.comp_id] },
+  { simp only [project_map_aux, category.id_comp] },
+  { simp only [project_map_aux, category.assoc ] },
+  { simp only [project_map_aux, monoidal_category.tensor_id], refl },
+  { simp only [project_map_aux, monoidal_category.tensor_comp] },
+  { simp only [project_map_aux, iso.hom_inv_id] },
+  { simp only [project_map_aux, iso.inv_hom_id] },
+  { simp only [project_map_aux, monoidal_category.associator_naturality] },
+  { simp only [project_map_aux, iso.hom_inv_id] },
+  { simp only [project_map_aux, iso.inv_hom_id] },
+  { simp only [project_map_aux], dsimp [project_obj],
     exact monoidal_category.right_unitor_naturality _ },
-  { simp only [project_hom', iso.hom_inv_id] },
-  { simp only [project_hom', iso.inv_hom_id] },
-  { simp only [project_hom'], dsimp [project_obj],
+  { simp only [project_map_aux, iso.hom_inv_id] },
+  { simp only [project_map_aux, iso.inv_hom_id] },
+  { simp only [project_map_aux], dsimp [project_obj],
     exact monoidal_category.left_unitor_naturality _ },
-  { simp only [project_hom'], exact monoidal_category.pentagon _ _ _ _ },
-  { simp only [project_hom'], exact monoidal_category.triangle _ _ }
+  { simp only [project_map_aux], exact monoidal_category.pentagon _ _ _ _ },
+  { simp only [project_map_aux], exact monoidal_category.triangle _ _ }
 end
 
 end
 
+/-- If `C` is a monoidal category, then we have a functor from the free monoidal category over
+    (the objects of) `C` to `C` itself. -/
 def project : F C ⥤ C :=
 { obj := project_obj,
-  map := λ X Y, project_hom }
+  map := project_map }
 
 end functor
 

@@ -140,7 +140,7 @@ end
 /-- An additive subgroup is finitely generated if and only if it is finitely generated as
 an additive submonoid. -/
 lemma add_subgroup.fg_iff_add_submonoid.fg (P : add_subgroup H) :
-  add_subgroup.fg P ↔ add_submonoid.fg P.to_add_submonoid :=
+  P.fg ↔ P.to_add_submonoid.fg :=
 begin
   split,
   { rintro ⟨S, hS⟩,

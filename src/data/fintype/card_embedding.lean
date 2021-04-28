@@ -12,7 +12,6 @@ import data.nat.factorial
 This file establishes the cardinality of `α ↪ β` in full generality.
 -/
 
-open_locale classical
 open finset
 
 local notation `|` x `|` := finset.card x
@@ -20,17 +19,22 @@ local notation `‖` x `‖` := fintype.card x
 
 namespace fintype
 
+-- temporarily in unil I can figure out the commits
+instance decidable_eq_embedding_fintype' [decidable_eq β] [fintype α] :
+  decidable_eq (α ↪ β) :=
+λ a b, decidable_of_iff (⇑a = b) function.embedding.coe_injective.eq_iff
+
 private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injective f} ≃ (α ↪ β) :=
 { to_fun := λ f, ⟨f.val, f.property⟩,
   inv_fun := λ f, ⟨f, f.injective⟩,
   left_inv := λ f, by simp,
   right_inv := λ f, by {ext, simp} }
 
--- `decidable_pred (@injective α β)` and various variations didn't give me an instance 🤷‍♂️
-noncomputable instance embedding {α β} [fintype α] [fintype β] : fintype (α ↪ β) :=
+instance embedding {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
+  fintype (α ↪ β) :=
   fintype.of_equiv {f : α → β // function.injective f} (equiv_inj_subtype α β)
 
-private lemma card_embedding_aux (n : ℕ) (β) [fintype β] (h : n ≤ ‖β‖) :
+private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,
@@ -140,8 +144,10 @@ begin
   rw [this, mul_comm, nat.succ_desc_fac]
 end
 
+variables {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
+
 /- Establishes the cardinality of the type of all injections, if any exist.  -/
-@[simp] theorem card_embedding {α β} [fintype α] [fintype β] (h : ‖α‖ ≤ ‖β‖)
+@[simp] theorem card_embedding (h : ‖α‖ ≤ ‖β‖)
   : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.equiv_fin α with eq,
@@ -150,7 +156,7 @@ begin
 end
 
 /-- If `‖β‖ < ‖α‖` there is no embeddings `α ↪ β`. This is the pigeonhole principle. -/
-@[simp] theorem card_embedding_eq_zero {α β} [fintype α] [fintype β] (h : ‖β‖ < ‖α‖)
+@[simp] theorem card_embedding_eq_zero (h : ‖β‖ < ‖α‖)
   : ‖α ↪ β‖ = 0 :=
 begin
   rw card_eq_zero_iff, intro f,
@@ -158,8 +164,7 @@ begin
   have := f.injective fne, contradiction
 end
 
-theorem card_embedding_eq_iff {α β} [fintype α] [fintype β] :
-  ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
+theorem card_embedding_eq_iff: ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
 begin
   split_ifs with h,
     exact card_embedding h,

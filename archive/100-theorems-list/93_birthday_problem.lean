@@ -10,7 +10,7 @@ import data.fintype.card_embedding
 
 This file proves Theorem 93 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
-As of writing, probability is not implemented in Lean, so we instead state the birthday problem
+As opposed to the standard probabilistic statement, we instead state the birthday problem
 in terms of injective functions. The general result about `fintype.card (α ↪ β)` which this proof
 uses is `fintype.card_embedding`.
 -/

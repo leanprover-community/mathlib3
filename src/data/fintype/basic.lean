@@ -150,7 +150,11 @@ instance decidable_mem_range_fintype [fintype α] [decidable_eq β] (f : α → 
 
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
-λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext (congr_fun h), congr_arg _⟩
+λ a b, decidable_of_iff (a.1 = b.1) equiv.coe_fn_injective.eq_iff
+
+instance decidable_eq_embedding_fintype [decidable_eq β] [fintype α] :
+  decidable_eq (α ↪ β) :=
+λ a b, decidable_of_iff (⇑a = b) function.embedding.coe_injective.eq_iff
 
 instance decidable_injective_fintype [decidable_eq α] [decidable_eq β] [fintype α] :
   decidable_pred (injective : (α → β) → Prop) := λ x, by unfold injective; apply_instance

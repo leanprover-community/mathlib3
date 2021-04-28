@@ -127,7 +127,7 @@ begin
     rw submonoid.fg_iff,
     refine ⟨S ∪ S⁻¹, _, _⟩,
     { simp [← subgroup.closure_to_submonoid, hS] },
-    { exact set.finite.union (finset.finite_to_set S) (set.finite.inv (finset.finite_to_set S)) } },
+    { exact S.finite_to_set.union S.finite_to_set.inv } },
   { rintro ⟨S, hS⟩,
     refine ⟨S, le_antisymm _ _⟩,
     { rw subgroup.closure_le,

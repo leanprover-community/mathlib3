@@ -22,8 +22,6 @@ monoid.
 * `subgroup.fg S`, `add_subgroup.fg S` : A subgroup `S` is finitely generated.
 * `group.fg M`, `add_group.fg M` : A typeclass indicating a type `M` is finitely generated as a
 group.
-* `monoid.fg M`, `add_submonoid.fg M` : A typeclass indicating a type `M` is finitely generated as
-a monoid.
 
 -/
 

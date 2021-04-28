@@ -14,17 +14,12 @@ TODO
 
 universes u v w
 
-/-- A `representation k G M` is a `add_comm_monoid M` with a `k`-scalar multiplication
-and a `G`-action which commute with each other. -/
-class representation (k : Type u) (G : Type v) (M : Type w)
-  [semiring k] [monoid G] [add_comm_monoid M]
-  [module k M] [distrib_mul_action G M] extends smul_comm_class k G M : Type (max u v w).
+localized "notation k `[`:30 G:30 `]` := monoid_algebra k G" in representation_theory
 
-
-namespace representation
+namespace monoid_algebra
 variables (k : Type u) (G : Type v) (M : Type w)
 variables [semiring k] [monoid G] [add_comm_monoid M]
-variables [module k M] [distrib_mul_action G M]
+variables [module k M] [distrib_mul_action G M] [smul_comm_class k G M]
 
 noncomputable instance monoid_algebra_scalar : has_scalar (monoid_algebra k G) M :=
 { smul := λ kG m, finsupp.lift_add_hom (λ g : G, g • (smul_add_hom k M)) kG m }
@@ -68,9 +63,10 @@ begin
   simp [mul_smul, hsmul],
 end
 
-/-- Turn the two `smul`s into a `FG`-module -/
-noncomputable instance [representation k G M] :
-  module (monoid_algebra k G) M :=
+
+/-- A `representation k G M` is a `add_comm_monoid M` with a `k`-scalar multiplication
+and a `G`-action which commute with each other. -/
+noncomputable instance to_FG_module : module (monoid_algebra k G) M :=
 { smul := λ x m, x • m,
   add_smul := λ x y m, add_smul' k G M x y m,
   zero_smul := λ m, zero_smul' k G M m,
@@ -79,21 +75,14 @@ noncomputable instance [representation k G M] :
   one_smul := λ m, by simp [(•), monoid_algebra.one_def],
   mul_smul := λ x y m, mul_smul' k G M x y m _inst_6.smul_comm }
 
-end representation
-
-section monoid_algebra_actions
-variables (k : Type u) (G : Type v) (M : Type w)
-variables [semiring k] [monoid G] [add_comm_monoid M]
-variables [module k M] [distrib_mul_action G M]
-
-noncomputable instance monoid_algebra.has_group_scalar : has_scalar G (monoid_algebra k G) :=
+noncomputable instance has_group_scalar : has_scalar G (monoid_algebra k G) :=
 { smul := λ g x, (monoid_algebra.of k G g) * x }
 
 @[simp]
 lemma group_smul_apply (g : G) (x : monoid_algebra k G) : g • x = (monoid_algebra.of k G g) • x :=
 rfl
 
-noncomputable instance group_monoid_algebra_action : distrib_mul_action G (monoid_algebra k G) :=
+noncomputable instance has_group_action : distrib_mul_action G (monoid_algebra k G) :=
 { one_smul := λ x, one_mul _,
   mul_smul := λ g h x, by { simp [← mul_assoc], },
   smul_add := λ g x y, mul_add _ x y,
@@ -120,7 +109,7 @@ begin
 end
 
 /-- Scalar tower stuff -/
-instance group_smul_tower [representation k G M] :
+instance group_smul_tower :
   is_scalar_tower G (monoid_algebra k G) M :=
 { smul_assoc := λ g x m,
   begin
@@ -128,7 +117,7 @@ instance group_smul_tower [representation k G M] :
     simp only [group_smul_apply, smul_eq_mul, mul_smul],
   end }
 
-instance semiring_smul_tower [representation k G M] :
+instance semiring_smul_tower :
   is_scalar_tower k (monoid_algebra k G) M :=
 { smul_assoc := λ x y m,
   begin
@@ -143,39 +132,34 @@ instance semiring_smul_tower [representation k G M] :
     simp,
   end }
 
-end monoid_algebra_actions
-
-namespace representation
-variables (k : Type u) (G : Type v) (M : Type w)
-variables [semiring k] [monoid G] [add_comm_monoid M]
-variables [module k M]
-
 section as_monoid_hom
-variables [distrib_mul_action G M]
+variables [distrib_mul_action G M] [smul_comm_class k G M]
 
 variables {G}
 /-- A group element acts by an k-linear map in any k-linear representation. -/
-def smul.linear_map [representation k G M] (g : G) : M →ₗ[k] M :=
+def gsmul.linear_map (g : G) : M →ₗ[k] M :=
 { to_fun := λ m, g • m,
   map_add' := λ m n, distrib_mul_action.smul_add g _ _,
   map_smul' := λ r m, (smul_comm _ _ _).symm }
 
+localized "notation `ρ` := gsmul.linear_map" in representation_theory
+
 @[simp]
-lemma smul.linear_map_apply [representation k G M] (g : G) (m : M) :
-  (smul.linear_map k M g : M →ₗ[k] M) m = g • m := rfl
+lemma gsmul.linear_map_apply (g : G) (m : M) :
+  (gsmul.linear_map k M g : M →ₗ[k] M) m = g • m := rfl
 
 variables (k G M)
 /--
 A k-linear representation of G on M can be thought of as
 a multiplicative map from G into the k-linear endomorphisms of M.
 -/
-def as_monoid_hom [representation k G M] : G →* (M →ₗ[k] M) :=
-{ to_fun := λ g, smul.linear_map k M g,
+def as_monoid_hom : G →* (M →ₗ[k] M) :=
+{ to_fun := λ g, gsmul.linear_map k M g,
   map_one' := by { ext, simp, },
   map_mul' := λ g g', by { ext, simp [mul_smul], }, }
 
 @[simp]
-lemma as_monoid_hom_apply_apply [representation k G M] (g : G) (m : M) :
+lemma as_monoid_hom_apply_apply (g : G) (m : M) :
   (as_monoid_hom k G M) g m = g • m := rfl
 
 end as_monoid_hom
@@ -195,4 +179,4 @@ instance of_monoid_hom_aux {p : G →* (M →ₗ[k] M)} : distrib_mul_action G M
 
 -- def of_monoid_hom {p : G →* (M →ₗ[k] M)} : representation k G M :=
 
-end representation
+end monoid_algebra

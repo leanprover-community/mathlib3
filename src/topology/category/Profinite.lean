@@ -51,12 +51,14 @@ namespace Profinite
 
 instance : inhabited Profinite := ⟨{to_Top := { α := pempty }}⟩
 
+instance category : category Profinite := induced_category.category to_Top
+instance concrete_category : concrete_category Profinite := induced_category.concrete_category _
+instance has_forget₂ : has_forget₂ Profinite Top := induced_category.has_forget₂ _
+
 instance : has_coe_to_sort Profinite := ⟨Type*, λ X, X.to_Top⟩
 instance {X : Profinite} : compact_space X := X.is_compact
 instance {X : Profinite} : t2_space X := X.is_t2
 instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconnected
-
-instance category : category Profinite := induced_category.category to_Top
 
 @[simp]
 lemma coe_to_Top {X : Profinite} : (X.to_Top : Type*) = X :=
@@ -66,7 +68,7 @@ end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/
 @[simps, derive [full, faithful]]
-def Profinite_to_Top : Profinite ⥤ Top := induced_functor _
+def Profinite_to_Top : Profinite ⥤ Top := forget₂ _ _
 
 /-- The fully faithful embedding of `Profinite` in `CompHaus`. -/
 @[simps] def Profinite.to_CompHaus : Profinite ⥤ CompHaus :=

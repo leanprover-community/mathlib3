@@ -25,6 +25,8 @@ group.
 
 -/
 
+/-! ### Monoids and submonoids -/
+
 variables {M N : Type*} [monoid M] [add_monoid N]
 
 section submonoid

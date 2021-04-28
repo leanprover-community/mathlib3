@@ -135,15 +135,15 @@ show fintype {g : G // g ∈ K}, from infer_instance
 
 @[to_additive]
 theorem to_submonoid_injective :
-   function.injective (to_submonoid : subgroup G → submonoid G) :=
- λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
+  function.injective (to_submonoid : subgroup G → submonoid G) :=
+λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
 
 @[simp, to_additive]
 theorem to_submonoid_eq {p q : subgroup G} : p.to_submonoid = q.to_submonoid ↔ p = q :=
- to_submonoid_injective.eq_iff
+to_submonoid_injective.eq_iff
 
 @[mono, to_additive] lemma to_submonoid_strict_mono :
-   strict_mono (to_submonoid : subgroup G → submonoid G) := λ _ _, id
+  strict_mono (to_submonoid : subgroup G → submonoid G) := λ _ _, id
 
 @[mono, to_additive]
 lemma to_submonoid_mono : monotone (to_submonoid : subgroup G → submonoid G) :=

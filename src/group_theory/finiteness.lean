@@ -166,7 +166,7 @@ begin
 end
 
 lemma add_subgroup.fg_iff_mul_fg (P : add_subgroup H) :
-  add_subgroup.fg P ↔ subgroup.fg P.to_subgroup :=
+  P.fg ↔ P.to_subgroup.fg :=
 begin
   rw [add_subgroup.fg_iff_add_submonoid.fg, subgroup.fg_iff_submonoid_fg],
   exact add_submonoid.fg_iff_mul_fg (add_subgroup.to_add_submonoid P)

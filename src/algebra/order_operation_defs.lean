@@ -61,7 +61,7 @@ while the relation that is an input to `contravariant` is `(<)`. This need not b
 general, but seems to be the most common usage. In the opposite direction, the implication
 
 ```lean
-[semigroup M] [partial_order M] [has_le_of_mul_le_mul M] → left_cancel_semigroup α
+[semigroup M] [partial_order M] [has_le_of_mul_le_mul M] → left_cancel_semigroup M
 ```
 holds (note the `has_le_[...]` as opposed to the more common idioms `has_lt_[...]` and
 `has_mul_le_[...]`.
@@ -137,79 +137,97 @@ end covariants_and_contravariants
 section typeclasses_for_relating_orders_and_binary_operations
 variable (α : Type*)
 
-/--  A typeclass assuming the implication `b ≤ c → a + b ≤ a + c`. -/
+/--  A typeclass assuming the implication `b ≤ c → a + b ≤ a + c`:
+left-addition is monotone. -/
 class has_add_le_add_left [has_add α] [has_le α] : Prop :=
 (add_le_add_left : covariant ((+) : α → α → α) (≤))
 
-/--  A typeclass assuming the implication `b ≤ c → a * b ≤ a * c`. -/
+/--  A typeclass assuming the implication `b ≤ c → a * b ≤ a * c`:
+left-multiplication is monotone. -/
 @[to_additive]
 class has_mul_le_mul_left [has_mul α] [has_le α] : Prop :=
 (mul_le_mul_left : covariant ((*) : α → α → α) (≤))
 
-/--  A typeclass assuming the implication `b ≤ c → b + a ≤ c + a`. -/
+/--  A typeclass assuming the implication `b ≤ c → b + a ≤ c + a`:
+right-addition is monotone. -/
 class has_add_le_add_right [has_add α] [has_le α] : Prop :=
 (add_le_add_right : covariant (function.swap (+) : α → α → α) (≤))
 
-/--  A typeclass assuming the implication `b ≤ c → b * a ≤ c * a`. -/
+/--  A typeclass assuming the implication `b ≤ c → b * a ≤ c * a`:
+right-multiplication is monotone. -/
 @[to_additive]
 class has_mul_le_mul_right [has_mul α] [has_le α] : Prop :=
 (mul_le_mul_right : covariant (function.swap (*) : α → α → α) (≤))
 
-/--  A typeclass assuming the implication `b < c → a + b < a + c`. -/
+/--  A typeclass assuming the implication `b < c → a + b < a + c`:
+left-addition is strictly monotone. -/
 class has_add_lt_add_left [has_add α] [has_lt α] : Prop :=
 (add_lt_add_left : covariant ((+) : α → α → α) (<))
 
-/--  A typeclass assuming the implication `b < c → a * b < a * c`. -/
+/--  A typeclass assuming the implication `b < c → a * b < a * c`:
+left-multiplication is strictly monotone. -/
 @[to_additive]
 class has_mul_lt_mul_left [has_mul α] [has_lt α] : Prop :=
 (mul_lt_mul_left : covariant ((*) : α → α → α) (<))
 
-/--  A typeclass assuming the implication `b < c → b + a < c + a`. -/
+/--  A typeclass assuming the implication `b < c → b + a < c + a`:
+right-addition is strictly monotone. -/
 class has_add_lt_add_right [has_add α] [has_lt α] : Prop :=
 (add_lt_add_right : covariant (function.swap (+) : α → α → α) (<))
 
-/--  A typeclass assuming the implication `b < c → b * a < c * a`. -/
+/--  A typeclass assuming the implication `b < c → b * a < c * a`:
+right-multiplication is strictly monotone. -/
 @[to_additive]
 class has_mul_lt_mul_right [has_mul α] [has_lt α] : Prop :=
 (mul_lt_mul_right : covariant (function.swap (*) : α → α → α) (<))
 
-/--  A typeclass assuming the implication `a + b ≤ a + c → b ≤ c`. -/
+/--  A typeclass assuming the implication `a + b ≤ a + c → b ≤ c`:
+left-addition is "reverse" monotone. -/
 class has_le_of_add_le_add_left [has_add α] [has_le α] : Prop :=
 (le_of_add_le_add_left : contravariant ((+) : α → α → α) (≤))
 
-/--  A typeclass assuming the implication `a * b ≤ a * c → b ≤ c`. -/
+/--  A typeclass assuming the implication `a * b ≤ a * c → b ≤ c`:
+left-multiplication is "reverse" monotone. -/
 @[to_additive]
 class has_le_of_mul_le_mul_left [has_mul α] [has_le α] : Prop :=
 (le_of_mul_le_mul_left : contravariant ((*) : α → α → α) (≤))
 
-/--  A typeclass assuming the implication `b + a ≤ c + a → b ≤ c`. -/
+/--  A typeclass assuming the implication `b + a ≤ c + a → b ≤ c`:
+right-addition is "reverse" monotone. -/
 class has_le_of_add_le_add_right [has_add α] [has_le α] : Prop :=
 (le_of_add_le_add_right : contravariant (function.swap (+) : α → α → α) (≤))
 
-/--  A typeclass assuming the implication `b * a ≤ c * a → b ≤ c`. -/
+/--  A typeclass assuming the implication `b * a ≤ c * a → b ≤ c`:
+right-multiplication is "reverse" monotone. -/
 @[to_additive]
 class has_le_of_mul_le_mul_right [has_mul α] [has_le α] : Prop :=
 (le_of_mul_le_mul_right : contravariant (function.swap (*) : α → α → α) (≤))
 
-/--  A typeclass assuming the implication `a + b < a + c → b < c`. -/
+/--  A typeclass assuming the implication `a + b < a + c → b < c`:
+left-addition is "reverse" strictly monotone. -/
 class has_lt_of_add_lt_add_left [has_add α] [has_lt α] : Prop :=
 (lt_of_add_lt_add_left : contravariant ((+) : α → α → α) (<))
 
-/--  A typeclass assuming the implication `a * b < a * c → b < c`. -/
+/--  A typeclass assuming the implication `a * b < a * c → b < c`:
+left-multiplication is "reverse" strictly monotone. -/
 @[to_additive]
 class has_lt_of_mul_lt_mul_left [has_mul α] [has_lt α] : Prop :=
 (lt_of_mul_lt_mul_left : contravariant ((*) : α → α → α) (<))
 
-/--  A typeclass assuming the implication `b + a < c + a → b < c`. -/
+/--  A typeclass assuming the implication `b + a < c + a → b < c`:
+right-addition is "reverse" strictly monotone. -/
 class has_lt_of_add_lt_add_right [has_add α] [has_lt α] : Prop :=
 (lt_of_add_lt_add_right : contravariant (function.swap (+) : α → α → α) (<))
 
-/--  A typeclass assuming the implication `b * a < c * a → b < c`. -/
+/--  A typeclass assuming the implication `b * a < c * a → b < c`:
+right-multiplication is "reverse" strictly monotone. -/
 @[to_additive]
 class has_lt_of_mul_lt_mul_right [has_mul α] [has_lt α] : Prop :=
 (lt_of_mul_lt_mul_right : contravariant (function.swap (*) : α → α → α) (<))
 
 section le_implies_lt
+/-!  In this section, we show that, for a linear order, monotonicity of an operation implies
+"reverse" strict monotonicity of the same operation. -/
 variable [linear_order α]
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
@@ -241,6 +259,8 @@ instance has_le_of_mul_le_mul_right.to_has_mul_lt_mul_right [has_mul α]
 end le_implies_lt
 
 section left_implies_right
+/-!  In this section, we show that, for a commutative operation, left monotonicity assumptions
+imply the corresponding right monotonicity. -/
 variable [comm_semigroup α]
 
 @[priority 100, to_additive] -- see Note [lower instance priority]

@@ -501,7 +501,6 @@ lemma image_mul_right_Icc {a b c : k} (hab : a ≤ b) (hc : 0 ≤ c) :
 begin
   cases eq_or_lt_of_le hc,
   { subst c,
-    rw [mul_zero, mul_zero, mul_zero, (nonempty_Icc.2 hab).image_const],
     simp [(nonempty_Icc.2 hab).image_const] },
   exact image_mul_right_Icc' a b ‹0 < c›
 end
@@ -520,7 +519,7 @@ lemma image_mul_right_Ioo (a b : k) {c : k} (h : 0 < c) :
 
 lemma image_mul_left_Ioo {a : k} (h : 0 < a) (b c : k) :
   ((*) a) '' Ioo b c = Ioo (a * b) (a * c) :=
-by { convert image_mul_right_Ioo' b c h using 1; simp only [mul_comm _ a] }
+by { convert image_mul_right_Ioo b c h using 1; simp only [mul_comm _ a] }
 
 /-- The image under `inv` of `Ioo 0 a` is `Ioi a⁻¹`. -/
 lemma image_inv_Ioo_0_left {a : k} (ha : 0 < a) : has_inv.inv '' Ioo 0 a = Ioi a⁻¹ :=

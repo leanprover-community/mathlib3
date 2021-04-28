@@ -9,7 +9,7 @@ import group_theory.submonoid.operations
 import group_theory.subgroup
 
 /-!
-# Finitely generated monoid.
+# Finitely generated monoids and groups
 
 We define finitely generated monoids and groups. See also `submodule.fg` and `module.finite` for
 finitely-generated modules.

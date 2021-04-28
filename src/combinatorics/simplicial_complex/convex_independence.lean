@@ -22,11 +22,17 @@ lemma convex_independent_set_iff (A : set E) :
 begin
   split,
   { rintro h s hs x ⟨hx₁, hx₂⟩,
+    suffices H : x ∈ convex_hull ((λ (p : A), ↑p) '' {x : A | ↑x ∈ s}),
+    {
+      have := h {x : A | ↑x ∈ s},
+      sorry
+    },
+    sorry
+
     --simpa using h (s.attach.image (λ x, ⟨x.1, hs x.2⟩)) ⟨_, hx₁⟩ _,
     --convert hx₂,
     --ext y,
     --simpa [←and_assoc] using @hs y
-    sorry
     },
   { intros h s x hs,
     simpa using h (s.image coe) (by simp) ⟨x.2, by simpa using hs⟩ }
@@ -75,7 +81,7 @@ begin
     simp_rw [sub_smul, finset.sum_sub_distrib, same, sub_self] }
 end
 
-lemma convex_independent_of_affine_independent {p : ι → E} (hp : affine_independent ℝ p) :
+lemma affine_independent.convex_independent {p : ι → E} (hp : affine_independent ℝ p) :
   convex_independent p :=
 begin
   intros s x hx,

@@ -227,17 +227,14 @@ end
 lemma convex.extreme_point_iff_convex_remove (hA : convex A) :
   x ∈ A.extreme_points ↔ x ∈ A ∧ convex (A \ {x}) :=
 begin
-  use λ hx, ⟨hx.1, convex_remove_of_extreme hA (extreme_point_iff_extreme_singleton.1 hx)⟩,
-  split,
-  { rintro ⟨hxA, hAx⟩,
-    use hxA,
-    rintro x₁ x₂ hx₁A hx₂A hx,
-    by_contra,
-    push_neg at h,
-    rw convex_iff_segment_subset at hAx,
-    exact (hAx ⟨hx₁A, λ hx₁, h.1 (mem_singleton_iff.2 hx₁.symm)⟩
-      ⟨hx₂A, λ hx₂, h.2 (mem_singleton_iff.2 hx₂.symm)⟩ hx).2 rfl },
-  exact λ hx, ⟨hx.1, convex_remove_of_extreme hA (extreme_point_iff_extreme_singleton.1 hx)⟩,
+  use λ hx, ⟨hx.1, (extreme_point_iff_extreme_singleton.1 hx).convex_diff hA⟩,
+  rintro ⟨hxA, hAx⟩,
+  refine extreme_point_iff_forall_segment.2 ⟨hxA, λ x₁ x₂ hx₁ hx₂ hx, _⟩,
+  rw convex_iff_segment_subset at hAx,
+  by_contra,
+  push_neg at h,
+  exact (hAx ⟨hx₁, λ hx₁, h.1 (mem_singleton_iff.2 hx₁)⟩
+    ⟨hx₂, λ hx₂, h.2 (mem_singleton_iff.2 hx₂)⟩ hx).2 rfl,
 end
 
 --probably relaxable

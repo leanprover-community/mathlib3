@@ -112,3 +112,22 @@ begin
   rw [metric.mem_ball, dist_eq_norm] at H,
   exact ⟨m, H⟩,
 end
+
+/--
+Another alternative statement of Weierstrass's theorem,
+for those who like epsilons, but not bundled continuous functions.
+
+Every real-valued function `ℝ → ℝ` which is continuous on `[a,b]`
+can be approximated to within any `ε > 0` on `[a,b]` by some polynomial.
+-/
+theorem exists_polynomial_near_of_continuous_on
+  (a b : ℝ) (f : ℝ → ℝ) (c : continuous_on f (set.Icc a b)) (ε : ℝ) (pos : 0 < ε) :
+  ∃ (p : polynomial ℝ), ∀ x ∈ set.Icc a b, abs (p.eval x - f x) < ε :=
+begin
+  let f' : C(set.Icc a b, ℝ) := ⟨λ x, f x, continuous_on_iff_continuous_restrict.mp c⟩,
+  obtain ⟨p, b⟩ := exists_polynomial_near_continuous_map a b f' ε pos,
+  use p,
+  rw norm_lt_iff _ pos at b,
+  intros x m,
+  exact b ⟨x, m⟩,
+end

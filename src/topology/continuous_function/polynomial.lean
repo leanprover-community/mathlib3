@@ -11,9 +11,15 @@ import topology.unit_interval
 /-!
 # Constructions relating polynomial functions and continuous functions.
 
-This file is just a stub at the moment, but will grow with subsequent PRs
-giving abstract statements of the Weierstrass approximation theorem,
-and the Stone-Weierstrass theorem.
+## Main definitions
+
+* `polynomial.to_continuous_map_on p X`: for `X : set R`, interprets a polynomial `p`
+  as a bundled continuous function in `C(X, R)`.
+* `polynomial.to_continuous_map_on_alg_hom`: the same, as an `R`-algebra homomorphism.
+* `polynomial_functions (X : set R) : subalgebra R C(X, R)`: polynomial functions as a subalgebra.
+* `polynomial_functions_separates_points (X : set R) : (polynomial_functions X).separates_points`:
+  the polynomial functions separate points.
+
 -/
 
 variables {R : Type*}

@@ -198,7 +198,7 @@ by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_
 begin
   rw open_segment_eq_image',
   show (((+) a) ∘ (λ t, t * (b - a))) '' Ioo 0 1 = Ioo a b,
-  rw [image_comp, image_mul_right_Ioo (@zero_le_one ℝ _) (sub_pos.2 h), image_const_add_Ioo],
+  rw [image_comp, image_mul_right_Ioo _ _ (sub_pos.2 h), image_const_add_Ioo],
   simp
 end
 
@@ -1248,20 +1248,20 @@ end
 lemma convex_hull_singleton {x : E} : convex_hull ({x} : set E) = {x} :=
 (convex_singleton x).convex_hull_eq
 
-lemma convex.convex_remove_iff_not_mem_convex_hull_remove (hA : convex A) :
-  convex (A \ {x}) ↔ x ∉ convex_hull (A \ {x}) :=
+lemma convex.convex_remove_iff_not_mem_convex_hull_remove {s : set E} (hs : convex s) (x : E) :
+  convex (s \ {x}) ↔ x ∉ convex_hull (s \ {x}) :=
 begin
   split,
-  { rintro hA hx,
-    rw hA.convex_hull_eq at hx,
+  { rintro hsx hx,
+    rw hsx.convex_hull_eq at hx,
     exact hx.2 (mem_singleton _) },
   rintro hx,
-  suffices h : A \ {x} = convex_hull (A \ {x}),
+  suffices h : s \ {x} = convex_hull (s \ {x}),
   { rw h,
     exact convex_convex_hull _},
   refine subset.antisymm (subset_convex_hull _) _,
   rintro y hy,
-  rw ←hA.convex_hull_eq,
+  rw ←hs.convex_hull_eq,
   use convex_hull_mono (diff_subset _ _) hy,
   rintro (hyx : y = x),
   rw hyx at hy,

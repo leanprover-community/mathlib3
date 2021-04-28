@@ -31,11 +31,6 @@ ends are in B. -/
 def is_extreme (A B : set E) : Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
-/-- A point x is an extreme point of a set A if x belongs to no open segment with ends in A, except
-for the obvious `open_segment x x`. -/
-def set.extreme_points (A : set E) : set E :=
-{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x}
-
 namespace is_extreme
 
 @[refl] lemma refl (A : set E) :
@@ -118,20 +113,12 @@ lemma mono (hAC : is_extreme A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
   is_extreme B C :=
 ⟨hCB, λ x₁ x₂ hx₁B hx₂B x hxC hx, hAC.2 x₁ x₂ (hBA hx₁B) (hBA hx₂B) x hxC hx⟩
 
-lemma extreme_points_eq (hAB : is_extreme A B) :
-  B.extreme_points = B ∩ A.extreme_points :=
-begin
-  ext x,
-  exact ⟨λ hxB, ⟨hxB.1, extreme_point_iff_extreme_singleton.2 (hAB.trans
-  (extreme_point_iff_extreme_singleton.1 hxB))⟩, λ ⟨hxB, hxA⟩, ⟨hxB, λ x₁ x₂ hx₁B hx₂B hx,
-    hxA.2 x₁ x₂ (hAB.1 hx₁B) (hAB.1 hx₂B) hx⟩⟩,
-end
-
-lemma extreme_points_subset_extreme_points (hAB : is_extreme A B) :
-  B.extreme_points ⊆ A.extreme_points :=
-by simp only [hAB.extreme_points_eq, inter_subset_right]
-
 end is_extreme
+
+/-- A point x is an extreme point of a set A if x belongs to no open segment with ends in A, except
+for the obvious `open_segment x x`. -/
+def set.extreme_points (A : set E) : set E :=
+{x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x}
 
 lemma extreme_point_def :
   x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x :=
@@ -196,10 +183,25 @@ end
 
 lemma convex.extreme_point_iff_mem_diff_convex_hull_remove (hA : convex A) :
   x ∈ A.extreme_points ↔ x ∈ A \ convex_hull (A \ {x}) :=
+by rw [hA.extreme_point_iff_convex_remove, hA.convex_remove_iff_not_mem_convex_hull_remove,
+  mem_diff]
+
+namespace is_extreme
+
+lemma extreme_points_eq (hAB : is_extreme A B) :
+  B.extreme_points = B ∩ A.extreme_points :=
 begin
-  rw [hA.extreme_point_iff_convex_remove, hA.convex_remove_iff_not_mem_convex_hull_remove,
-  mem_sdiff_iff],
+  ext x,
+  exact ⟨λ hxB, ⟨hxB.1, extreme_point_iff_extreme_singleton.2 (hAB.trans
+  (extreme_point_iff_extreme_singleton.1 hxB))⟩, λ ⟨hxB, hxA⟩, ⟨hxB, λ x₁ x₂ hx₁B hx₂B hx,
+    hxA.2 x₁ x₂ (hAB.1 hx₁B) (hAB.1 hx₂B) hx⟩⟩,
 end
+
+lemma extreme_points_subset_extreme_points (hAB : is_extreme A B) :
+  B.extreme_points ⊆ A.extreme_points :=
+by simp only [hAB.extreme_points_eq, inter_subset_right]
+
+end is_extreme
 
 lemma extreme_points_convex_hull_subset :
   (convex_hull A).extreme_points ⊆ A :=

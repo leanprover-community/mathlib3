@@ -165,11 +165,11 @@ instance decidable_surjective_fintype [decidable_eq β] [fintype α] [fintype β
 instance decidable_bijective_fintype [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   decidable_pred (bijective : (α → β) → Prop) := λ x, by unfold bijective; apply_instance
 
-instance decidable_left_inverse_fintype [decidable_eq α] [fintype α] (f : α → β) (g : β → α) :
+instance decidable_right_inverse_fintype [decidable_eq α] [fintype α] (f : α → β) (g : β → α) :
   decidable (function.right_inverse f g) :=
 show decidable (∀ x, g (f x) = x), by apply_instance
 
-instance decidable_right_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
+instance decidable_left_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
 

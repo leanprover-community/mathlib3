@@ -38,12 +38,12 @@ We then introduce the 16 typeclasses obtained by choosing `M = N` and assuming
 * one of `covariant` and `contravariant`, with
 * the relation `r` being one of `(≤)` or `(<)`,
 * the operation `μ : M → M → M` being one of `(+)` or `(*)`, for left monotonicity,
-* the operation `μ : M → M → M` being one of `(function.swap (+))` or `(function.swap(*))`,
+* the operation `μ : M → M → M` being one of `(flip (+))` or `(flip(*))`,
   for right monotonicity.
 
 There are two main reasons for introducing several typeclasses.  The first, is that it is much more
 human-friendly to have a class called `has_add_le_add_right M` than one called
-`covariant (function.swap (+)) (≤)`.  The second, is that this way, we bound better the space
+`covariant (flip (+)) (≤)`.  The second, is that this way, we bound better the space
 for typeclass inference: e.g. we ask the typeclass search to look for `has_add` and `has_le`
 instances, instead of extending the search to all possible functions among different Types.
 
@@ -117,20 +117,19 @@ lemma covariant_iff_contravariant_lt [linear_order N] :
 ⟨ λ h a b c bc, not_lt.mp (λ k, not_lt.mpr bc (h _ k)),
   λ h a b c bc, not_le.mp (λ k, not_le.mpr bc (h _ k))⟩
 
-@[to_additive]
-lemma mul_eq_function_swap [comm_semigroup M] :
-  (function.swap (*) : M → M → M) = (*) :=
-funext $ λ _, funext (λ _, mul_comm _ _)
+
+lemma is_symm_op.swap_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
+funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm
 
 @[to_additive]
 lemma covariant_iff_covariant_mul [comm_semigroup N] :
-  covariant ((*) : N → N → N) (r) ↔ covariant (function.swap (*) : N → N → N) (r) :=
-by rw mul_eq_function_swap
+  covariant ((*) : N → N → N) (r) ↔ covariant (flip (*) : N → N → N) (r) :=
+by rw is_symm_op.swap_eq
 
 @[to_additive]
 lemma contravariant_iff_contravariant_mul [comm_semigroup N] :
-  contravariant ((*) : N → N → N) (r) ↔ contravariant (function.swap (*) : N → N → N) (r) :=
-by rw mul_eq_function_swap
+  contravariant ((*) : N → N → N) (r) ↔ contravariant (flip (*) : N → N → N) (r) :=
+by rw is_symm_op.swap_eq
 
 end covariants_and_contravariants
 
@@ -151,13 +150,13 @@ class has_mul_le_mul_left [has_mul α] [has_le α] : Prop :=
 /--  A typeclass assuming the implication `b ≤ c → b + a ≤ c + a`:
 right-addition is monotone. -/
 class has_add_le_add_right [has_add α] [has_le α] : Prop :=
-(add_le_add_right : covariant (function.swap (+) : α → α → α) (≤))
+(add_le_add_right : covariant (flip (+) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b ≤ c → b * a ≤ c * a`:
 right-multiplication is monotone. -/
 @[to_additive]
 class has_mul_le_mul_right [has_mul α] [has_le α] : Prop :=
-(mul_le_mul_right : covariant (function.swap (*) : α → α → α) (≤))
+(mul_le_mul_right : covariant (flip (*) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b < c → a + b < a + c`:
 left-addition is strictly monotone. -/
@@ -173,13 +172,13 @@ class has_mul_lt_mul_left [has_mul α] [has_lt α] : Prop :=
 /--  A typeclass assuming the implication `b < c → b + a < c + a`:
 right-addition is strictly monotone. -/
 class has_add_lt_add_right [has_add α] [has_lt α] : Prop :=
-(add_lt_add_right : covariant (function.swap (+) : α → α → α) (<))
+(add_lt_add_right : covariant (flip (+) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `b < c → b * a < c * a`:
 right-multiplication is strictly monotone. -/
 @[to_additive]
 class has_mul_lt_mul_right [has_mul α] [has_lt α] : Prop :=
-(mul_lt_mul_right : covariant (function.swap (*) : α → α → α) (<))
+(mul_lt_mul_right : covariant (flip (*) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `a + b ≤ a + c → b ≤ c`:
 left-addition is "reverse" monotone. -/
@@ -195,13 +194,13 @@ class has_le_of_mul_le_mul_left [has_mul α] [has_le α] : Prop :=
 /--  A typeclass assuming the implication `b + a ≤ c + a → b ≤ c`:
 right-addition is "reverse" monotone. -/
 class has_le_of_add_le_add_right [has_add α] [has_le α] : Prop :=
-(le_of_add_le_add_right : contravariant (function.swap (+) : α → α → α) (≤))
+(le_of_add_le_add_right : contravariant (flip (+) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `b * a ≤ c * a → b ≤ c`:
 right-multiplication is "reverse" monotone. -/
 @[to_additive]
 class has_le_of_mul_le_mul_right [has_mul α] [has_le α] : Prop :=
-(le_of_mul_le_mul_right : contravariant (function.swap (*) : α → α → α) (≤))
+(le_of_mul_le_mul_right : contravariant (flip (*) : α → α → α) (≤))
 
 /--  A typeclass assuming the implication `a + b < a + c → b < c`:
 left-addition is "reverse" strictly monotone. -/
@@ -217,13 +216,13 @@ class has_lt_of_mul_lt_mul_left [has_mul α] [has_lt α] : Prop :=
 /--  A typeclass assuming the implication `b + a < c + a → b < c`:
 right-addition is "reverse" strictly monotone. -/
 class has_lt_of_add_lt_add_right [has_add α] [has_lt α] : Prop :=
-(lt_of_add_lt_add_right : contravariant (function.swap (+) : α → α → α) (<))
+(lt_of_add_lt_add_right : contravariant (flip (+) : α → α → α) (<))
 
 /--  A typeclass assuming the implication `b * a < c * a → b < c`:
 right-multiplication is "reverse" strictly monotone. -/
 @[to_additive]
 class has_lt_of_mul_lt_mul_right [has_mul α] [has_lt α] : Prop :=
-(lt_of_mul_lt_mul_right : contravariant (function.swap (*) : α → α → α) (<))
+(lt_of_mul_lt_mul_right : contravariant (flip (*) : α → α → α) (<))
 
 section le_implies_lt
 /-!  In this section, we show that, for a linear order, monotonicity of an operation implies

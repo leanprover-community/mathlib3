@@ -98,6 +98,8 @@ add_monoid.fg_iff_mul_fg.1 ‹_›
 
 end monoid
 
+/-! ### Groups and subgroups -/
+
 variables {G H : Type*} [group G] [add_group H]
 
 section subgroup

@@ -131,7 +131,7 @@ begin
     refine ⟨S, le_antisymm _ _⟩,
     { rw [subgroup.closure_le, ←subgroup.coe_to_submonoid, ←hS],
       exact submonoid.subset_closure },
-    { rw [subgroup.to_submonoid_le_iff.symm, ← hS, submonoid.closure_le],
+    { rw [← subgroup.to_submonoid_le, ← hS, submonoid.closure_le],
       exact subgroup.subset_closure } }
 end
 

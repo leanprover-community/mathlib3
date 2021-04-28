@@ -150,7 +150,7 @@ lemma to_submonoid_mono : monotone (to_submonoid : subgroup G → submonoid G) :
 to_submonoid_strict_mono.monotone
 
 @[simp, to_additive]
-lemma to_submonoid_le_iff {p q : subgroup G} : p.to_submonoid ≤ q.to_submonoid ↔ p ≤ q :=
+lemma to_submonoid_le {p q : subgroup G} : p.to_submonoid ≤ q.to_submonoid ↔ p ≤ q :=
 iff.rfl
 
 end subgroup

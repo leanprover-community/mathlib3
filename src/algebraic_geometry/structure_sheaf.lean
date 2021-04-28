@@ -706,8 +706,8 @@ begin
     (basic_open f) s t a' h' iDh' ht_cover' s_eq',
   clear s_eq' iDh' hxDh' ht_cover' a' h',
   -- Next we show that some power of `f` is a linear combination of the `h i`
-  obtain ⟨n, hn⟩ : f ∈ (ideal.span (finset.image h t : set R)).radical,
-  { rw [← vanishing_ideal_zero_locus_eq_radical, zero_locus_span, finset.coe_image],
+  obtain ⟨n, hn⟩ : f ∈ (ideal.span (h '' ↑t)).radical,
+  { rw [← vanishing_ideal_zero_locus_eq_radical, zero_locus_span],
     simp_rw [subtype.val_eq_coe, basic_open_eq_zero_locus_compl] at ht_cover,
     rw set.compl_subset_comm at ht_cover, -- Why doesn't `simp_rw` do this?
     simp_rw [set.compl_Union, compl_compl, ← zero_locus_Union, ← finset.set_bUnion_coe,
@@ -715,18 +715,17 @@ begin
     apply vanishing_ideal_anti_mono ht_cover,
     exact subset_vanishing_ideal_zero_locus {f} (set.mem_singleton f) },
 
-  -- Actually, we will need a *nonzero* power of `h`.
-  -- This is because we will need the equality `basic_open (h ^ n) = basic_open h`, which only
+  -- Actually, we will need a *nonzero* power of `f`.
+  -- This is because we will need the equality `basic_open (f ^ n) = basic_open f`, which only
   -- holds for a nonzero power `n`
   replace hn := ideal.mul_mem_left _ f hn,
-  erw [← pow_succ, mem_span_finset] at hn,
-  cases hn with b hb,
+  erw [←pow_succ, finsupp.mem_span_iff_total] at hn,
+  rcases hn with ⟨b, b_supp, hb⟩,
+  rw finsupp.total_apply_of_mem_supported R b_supp at hb,
+  dsimp at hb,
 
-  rw finset.sum_image at hb,
-  swap,
-  { sorry },
-  use (localization.of (submonoid.powers f)).mk'
-    (∑ (i : ι) in t, b (h i) * a i) ⟨f ^ (n+1), n+1, rfl⟩,
+  use (localization.of (submonoid.powers f)).mk' (∑ (i : ι) in t, b i * a i) ⟨f ^ (n+1), n+1, rfl⟩,
+
   rw to_basic_open_mk',
   let tt := ((t : set (basic_open f)) : Type u),
 
@@ -756,9 +755,9 @@ begin
   apply const_ext,
   rw [← hb, finset.sum_mul, finset.mul_sum],
   apply finset.sum_congr rfl,
-  intros j hj, dsimp,
+  intros j hj,
   rw [mul_assoc, ← ha_ah j i hj i_mem],
-  ring,
+  ring
 end
 
 instance is_iso_to_basic_open (f : R) : is_iso (to_basic_open R f) :=

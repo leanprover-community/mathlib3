@@ -32,7 +32,7 @@ lemma rotate'_cons_succ (l : list α) (a : α) (n : ℕ) :
 | (a::l) 0     := rfl
 | (a::l) (n+1) := by rw [list.rotate', length_rotate' (l ++ [a]) n]; simp
 
-lemma rotate'_eq_take_append_drop : ∀ {l : list α} {n : ℕ}, n ≤ l.length →
+lemma rotate'_eq_drop_append_take : ∀ {l : list α} {n : ℕ}, n ≤ l.length →
   l.rotate' n = l.drop n ++ l.take n
 | []     n     h := by simp [drop_append_of_le_length h]
 | l      0     h := by simp [take_append_of_le_length h]
@@ -41,7 +41,7 @@ have hnl : n ≤ l.length, from le_of_succ_le_succ h,
 have hnl' : n ≤ (l ++ [a]).length,
   by rw [length_append, length_cons, list.length, zero_add];
     exact (le_of_succ_le h),
-by rw [rotate'_cons_succ, rotate'_eq_take_append_drop hnl', drop, take,
+by rw [rotate'_cons_succ, rotate'_eq_drop_append_take hnl', drop, take,
      drop_append_of_le_length hnl, take_append_of_le_length hnl];
    simp
 
@@ -51,7 +51,7 @@ lemma rotate'_rotate' : ∀ (l : list α) (n m : ℕ), (l.rotate' n).rotate' m =
 | (a::l) (n+1) m := by rw [rotate'_cons_succ, rotate'_rotate', add_right_comm, rotate'_cons_succ]
 
 @[simp] lemma rotate'_length (l : list α) : rotate' l l.length = l :=
-by rw rotate'_eq_take_append_drop (le_refl _); simp
+by rw rotate'_eq_drop_append_take (le_refl _); simp
 
 @[simp] lemma rotate'_length_mul (l : list α) : ∀ n : ℕ, l.rotate' (l.length * n) = l
 | 0     := by simp
@@ -69,7 +69,7 @@ calc l.rotate' (n % l.length) = (l.rotate' (n % l.length)).rotate'
 lemma rotate_eq_rotate' (l : list α) (n : ℕ) : l.rotate n = l.rotate' n :=
 if h : l.length = 0 then by simp [length_eq_zero, *] at *
 else by
-  rw [← rotate'_mod, rotate'_eq_take_append_drop (le_of_lt (nat.mod_lt _ (nat.pos_of_ne_zero h)))];
+  rw [← rotate'_mod, rotate'_eq_drop_append_take (le_of_lt (nat.mod_lt _ (nat.pos_of_ne_zero h)))];
   simp [rotate]
 
 lemma rotate_cons_succ (l : list α) (a : α) (n : ℕ) :
@@ -84,16 +84,16 @@ by rw [rotate_eq_rotate', rotate_eq_rotate', rotate'_cons_succ]
 @[simp] lemma length_rotate (l : list α) (n : ℕ) : (l.rotate n).length = l.length :=
 by rw [rotate_eq_rotate', length_rotate']
 
-lemma rotate_eq_take_append_drop {l : list α} {n : ℕ} : n ≤ l.length →
+lemma rotate_eq_drop_append_take {l : list α} {n : ℕ} : n ≤ l.length →
   l.rotate n = l.drop n ++ l.take n :=
-by rw rotate_eq_rotate'; exact rotate'_eq_take_append_drop
+by rw rotate_eq_rotate'; exact rotate'_eq_drop_append_take
 
-lemma rotate_eq_take_append_drop_mod {l : list α} {n : ℕ} :
+lemma rotate_eq_drop_append_take_mod {l : list α} {n : ℕ} :
   l.rotate n = l.drop (n % l.length) ++ l.take (n % l.length) :=
 begin
   cases l.length.zero_le.eq_or_lt with hl hl,
   { simp [eq_nil_of_length_eq_zero hl.symm ] },
-  rw [←rotate_eq_take_append_drop (n.mod_lt hl).le, rotate_mod]
+  rw [←rotate_eq_drop_append_take (n.mod_lt hl).le, rotate_mod]
 end
 
 lemma rotate_rotate (l : list α) (n m : ℕ) : (l.rotate n).rotate m = l.rotate (n + m) :=
@@ -111,7 +111,7 @@ lemma prod_rotate_eq_one_of_prod_eq_one [group α] : ∀ {l : list α} (hl : l.p
 | (a::l) hl n :=
 have n % list.length (a :: l) ≤ list.length (a :: l), from le_of_lt (nat.mod_lt _ dec_trivial),
 by rw ← list.take_append_drop (n % list.length (a :: l)) (a :: l) at hl;
-  rw [← rotate_mod, rotate_eq_take_append_drop this, list.prod_append, mul_eq_one_iff_inv_eq,
+  rw [← rotate_mod, rotate_eq_drop_append_take this, list.prod_append, mul_eq_one_iff_inv_eq,
     ← one_mul (list.prod _)⁻¹, ← hl, list.prod_append, mul_assoc, mul_inv_self, mul_one]
 
 lemma rotate_perm (l : list α) (n : ℕ) : l.rotate n ~ l :=
@@ -149,8 +149,8 @@ lemma zip_with_rotate_distrib {α β γ : Type*} (f : α → β → γ) (l : lis
   (h : l.length = l'.length) :
   (zip_with f l l').rotate n = zip_with f (l.rotate n) (l'.rotate n) :=
 begin
-  rw [rotate_eq_take_append_drop_mod, rotate_eq_take_append_drop_mod,
-      rotate_eq_take_append_drop_mod, h, zip_with_append, ←zip_with_distrib_drop,
+  rw [rotate_eq_drop_append_take_mod, rotate_eq_drop_append_take_mod,
+      rotate_eq_drop_append_take_mod, h, zip_with_append, ←zip_with_distrib_drop,
       ←zip_with_distrib_take, list.length_zip_with, h, min_self],
   rw [length_drop, length_drop, h]
 end
@@ -190,7 +190,7 @@ lemma rotate_injective (n : ℕ) : function.injective (λ l : list α, l.rotate 
 begin
   rintros l l' (h : l.rotate n = l'.rotate n),
   have hle : l.length = l'.length := (l.length_rotate n).symm.trans (h.symm ▸ l'.length_rotate n),
-  rw [rotate_eq_take_append_drop_mod, rotate_eq_take_append_drop_mod] at h,
+  rw [rotate_eq_drop_append_take_mod, rotate_eq_drop_append_take_mod] at h,
   obtain ⟨hd, ht⟩ := append_inj h _,
   { rw [←take_append_drop _ l, ht, hd, take_append_drop] },
   { rw [length_drop, length_drop, hle] }

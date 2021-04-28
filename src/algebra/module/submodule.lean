@@ -202,6 +202,9 @@ include module_M
 theorem to_add_subgroup_injective : injective (to_add_subgroup : submodule R M → add_subgroup M)
 | p q h := set_like.ext (set_like.ext_iff.1 h : _)
 
+@[simp] theorem to_add_subgroup_eq : p.to_add_subgroup = p'.to_add_subgroup ↔ p = p' :=
+to_add_subgroup_injective.eq_iff
+
 @[mono] lemma to_add_subgroup_strict_mono :
   strict_mono (to_add_subgroup : submodule R M → add_subgroup M) := λ _ _, id
 

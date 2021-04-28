@@ -77,9 +77,19 @@ begin
   exact λ _, finite.of_fintype (perm.support _)
 end
 
+instance [fintype α] : has_coe_t (perm α) (perm.finite α) :=
+⟨λ p, ⟨p, by simp⟩⟩
+
+@[simp] lemma coe_coe [fintype α] (p : perm α) : ((p : perm.finite α) : perm α) = p := rfl
+
+noncomputable instance fintype_finite_support (p : perm.finite α) :
+  fintype (support (p : perm α)) := finite.fintype p.prop
+
 @[simps apply]
 protected def restrict (p : perm α) : perm p.support :=
 perm.subtype_perm p (by simp)
+
+lemma restrict_def (p : perm α) : p.restrict = p.subtype_perm (by simp) := rfl
 
 @[simp] lemma restrict_one : perm.restrict (1 : perm α) = 1 :=
 by { ext, simp }
@@ -135,15 +145,15 @@ lemma restrict_mul_via_embedding [decidable_eq α]
       q.restrict.via_embedding (embed_subset (subset_union_right _ _)) :=
 by { ext, simp }
 
+@[simp] lemma sign_restrict [decidable_eq α] [fintype α] (p : perm α) :
+  sign p.restrict = sign p :=
+by simp [restrict_def, sign_subtype_perm]
+
 noncomputable def finite.sign [decidable_eq α] : perm.finite α →* units ℤ :=
 monoid_hom.mk'
-  (λ p, by letI : fintype (support (p : perm α)) := finite.fintype p.prop; exact sign (perm.restrict (p : perm α)))
+  (λ p, sign (perm.restrict (p : perm α)))
   (λ p q, begin
     dsimp,
-    letI : fintype ((p : perm α)).support := finite.fintype p.prop,
-    letI : fintype ((q : perm α)).support := finite.fintype q.prop,
-    letI : fintype ((p : perm α).support ∪ (q : perm α).support : set α) :=
-      finite.fintype (p.prop.union q.prop),
     letI : fintype ((p : perm α) * (q : perm α)).support,
       { refine finite.fintype _,
         exact set.finite.subset (p.prop.union q.prop) (support_mul_le _ _) },
@@ -157,6 +167,11 @@ monoid_hom.mk'
     rw [hp, hq, ←sign_mul, restrict_mul_via_embedding]
   end)
 
-
+@[simp] lemma sign_eq_sign [decidable_eq α] [fintype α] (p : perm α) :
+  finite.sign (p : perm.finite α) = sign p :=
+begin
+  rw [finite.sign, monoid_hom.mk'_apply],
+  convert sign_restrict _
+end
 
 end equiv.perm

@@ -8,7 +8,7 @@ import algebra.group.type_tags
 import algebra.group.prod
 import algebra.order_functions
 import order.bounded_lattice
-
+import algebra.ordered_monoid_lemmas
 /-!
 # Ordered monoids
 
@@ -48,6 +48,16 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
 attribute [to_additive] ordered_comm_monoid
+
+@[to_additive ordered_add_comm_monoid.to_has_add_le_add_left]
+instance ordered_comm_monoid.to_has_mul_le_mul_left [ordered_comm_monoid α] :
+  has_mul_le_mul_left α :=
+{ mul_le_mul_left := λ a b ab c, ordered_comm_monoid.mul_le_mul_left b ab c a }
+
+@[to_additive ordered_add_comm_monoid.to_lt_of_has_add_lt_add_left]
+instance ordered_comm_monoid.to_has_lt_of_mul_lt_mul_left [ordered_comm_monoid α] :
+  has_lt_of_mul_lt_mul_left α :=
+{ lt_of_mul_lt_mul_left := ordered_comm_monoid.lt_of_mul_lt_mul_left }
 
 /-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
 if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker version
@@ -122,203 +132,6 @@ end linear_ordered_add_comm_monoid_with_top
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}
 
-@[to_additive add_le_add_left]
-lemma mul_le_mul_left' (h : a ≤ b) (c) : c * a ≤ c * b :=
-ordered_comm_monoid.mul_le_mul_left a b h c
-
-@[to_additive add_le_add_right]
-lemma mul_le_mul_right' (h : a ≤ b) (c) : a * c ≤ b * c :=
-by { convert mul_le_mul_left' h c using 1; rw mul_comm }
-
-@[to_additive]
-lemma mul_lt_of_mul_lt_left (h : a * b < c) (hle : d ≤ b) : a * d < c :=
-(mul_le_mul_left' hle a).trans_lt h
-
-@[to_additive]
-lemma mul_lt_of_mul_lt_right (h : a * b < c) (hle : d ≤ a) : d * b < c :=
-(mul_le_mul_right' hle b).trans_lt h
-
-@[to_additive]
-lemma mul_le_of_mul_le_left (h : a * b ≤ c) (hle : d ≤ b) : a * d ≤ c :=
-(mul_le_mul_left' hle a).trans h
-
-@[to_additive]
-lemma mul_le_of_mul_le_right (h : a * b ≤ c) (hle : d ≤ a) : d * b ≤ c :=
-(mul_le_mul_right' hle b).trans h
-
-@[to_additive]
-lemma lt_mul_of_lt_mul_left (h : a < b * c) (hle : c ≤ d) : a < b * d :=
-h.trans_le (mul_le_mul_left' hle b)
-
-@[to_additive]
-lemma lt_mul_of_lt_mul_right (h : a < b * c) (hle : b ≤ d) : a < d * c :=
-h.trans_le (mul_le_mul_right' hle c)
-
-@[to_additive]
-lemma le_mul_of_le_mul_left (h : a ≤ b * c) (hle : c ≤ d) : a ≤ b * d :=
-h.trans (mul_le_mul_left' hle b)
-
-@[to_additive]
-lemma le_mul_of_le_mul_right (h : a ≤ b * c) (hle : b ≤ d) : a ≤ d * c :=
-h.trans (mul_le_mul_right' hle c)
-
-@[to_additive lt_of_add_lt_add_left]
-lemma lt_of_mul_lt_mul_left' : a * b < a * c → b < c :=
-ordered_comm_monoid.lt_of_mul_lt_mul_left a b c
-
-@[to_additive lt_of_add_lt_add_right]
-lemma lt_of_mul_lt_mul_right' (h : a * b < c * b) : a < c :=
-lt_of_mul_lt_mul_left'
-  (show b * a < b * c, begin rw [mul_comm b a, mul_comm b c], assumption end)
-
-@[to_additive add_le_add]
-lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
-(mul_le_mul_right' h₁ _).trans $ mul_le_mul_left' h₂ _
-
-@[to_additive]
-lemma mul_le_mul_three {e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) : a * b * c ≤ d * e * f :=
-mul_le_mul' (mul_le_mul' h₁ h₂) h₃
-
--- here we start using properties of one.
-@[to_additive le_add_of_nonneg_right]
-lemma le_mul_of_one_le_right' (h : 1 ≤ b) : a ≤ a * b :=
-by simpa only [mul_one] using mul_le_mul_left' h a
-
-@[to_additive le_add_of_nonneg_left]
-lemma le_mul_of_one_le_left' (h : 1 ≤ b) : a ≤ b * a :=
-by simpa only [one_mul] using mul_le_mul_right' h a
-
-@[to_additive add_le_of_nonpos_right]
-lemma mul_le_of_le_one_right' (h : b ≤ 1) : a * b ≤ a :=
-by simpa only [mul_one] using mul_le_mul_left' h a
-
-@[to_additive add_le_of_nonpos_left]
-lemma mul_le_of_le_one_left' (h : b ≤ 1) : b * a ≤ a :=
-by simpa only [one_mul] using mul_le_mul_right' h a
-
-@[to_additive]
-lemma lt_of_mul_lt_of_one_le_left (h : a * b < c) (hle : 1 ≤ b) : a < c :=
-(le_mul_of_one_le_right' hle).trans_lt h
-
-@[to_additive]
-lemma lt_of_mul_lt_of_one_le_right (h : a * b < c) (hle : 1 ≤ a) : b < c :=
-(le_mul_of_one_le_left' hle).trans_lt h
-
-@[to_additive]
-lemma le_of_mul_le_of_one_le_left (h : a * b ≤ c) (hle : 1 ≤ b) : a ≤ c :=
-(le_mul_of_one_le_right' hle).trans h
-
-@[to_additive]
-lemma le_of_mul_le_of_one_le_right (h : a * b ≤ c) (hle : 1 ≤ a) : b ≤ c :=
-(le_mul_of_one_le_left' hle).trans h
-
-@[to_additive]
-lemma lt_of_lt_mul_of_le_one_left (h : a < b * c) (hle : c ≤ 1) : a < b :=
-h.trans_le (mul_le_of_le_one_right' hle)
-
-@[to_additive]
-lemma lt_of_lt_mul_of_le_one_right (h : a < b * c) (hle : b ≤ 1) : a < c :=
-h.trans_le (mul_le_of_le_one_left' hle)
-
-@[to_additive]
-lemma le_of_le_mul_of_le_one_left (h : a ≤ b * c) (hle : c ≤ 1) : a ≤ b :=
-h.trans (mul_le_of_le_one_right' hle)
-
-@[to_additive]
-lemma le_of_le_mul_of_le_one_right (h : a ≤ b * c) (hle : b ≤ 1) : a ≤ c :=
-h.trans (mul_le_of_le_one_left' hle)
-
-@[to_additive]
-lemma le_mul_of_one_le_of_le (ha : 1 ≤ a) (hbc : b ≤ c) : b ≤ a * c :=
-one_mul b ▸ mul_le_mul' ha hbc
-
-@[to_additive]
-lemma le_mul_of_le_of_one_le (hbc : b ≤ c) (ha : 1 ≤ a) : b ≤ c * a :=
-mul_one b ▸ mul_le_mul' hbc ha
-
-@[to_additive add_nonneg]
-lemma one_le_mul (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
-le_mul_of_one_le_of_le ha hb
-
-@[to_additive add_pos_of_pos_of_nonneg]
-lemma one_lt_mul_of_lt_of_le' (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
-lt_of_lt_of_le ha $ le_mul_of_one_le_right' hb
-
-@[to_additive add_pos_of_nonneg_of_pos]
-lemma one_lt_mul_of_le_of_lt' (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-lt_of_lt_of_le hb $ le_mul_of_one_le_left' ha
-
-@[to_additive add_pos]
-lemma one_lt_mul' (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
-one_lt_mul_of_lt_of_le' ha hb.le
-
-@[to_additive add_nonpos]
-lemma mul_le_one' (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
-one_mul (1:α) ▸ (mul_le_mul' ha hb)
-
-@[to_additive]
-lemma mul_le_of_le_one_of_le' (ha : a ≤ 1) (hbc : b ≤ c) : a * b ≤ c :=
-one_mul c ▸ mul_le_mul' ha hbc
-
-@[to_additive]
-lemma mul_le_of_le_of_le_one' (hbc : b ≤ c) (ha : a ≤ 1) : b * a ≤ c :=
-mul_one c ▸ mul_le_mul' hbc ha
-
-@[to_additive]
-lemma mul_lt_one_of_lt_one_of_le_one' (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
-(mul_le_of_le_of_le_one' le_rfl hb).trans_lt ha
-
-@[to_additive]
-lemma mul_lt_one_of_le_one_of_lt_one' (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
-(mul_le_of_le_one_of_le' ha le_rfl).trans_lt hb
-
-@[to_additive]
-lemma mul_lt_one' (ha : a < 1) (hb : b < 1) : a * b < 1 :=
-mul_lt_one_of_le_one_of_lt_one' ha.le hb
-
-@[to_additive]
-lemma lt_mul_of_one_le_of_lt' (ha : 1 ≤ a) (hbc : b < c) : b < a * c :=
-hbc.trans_le $ le_mul_of_one_le_left' ha
-
-@[to_additive]
-lemma lt_mul_of_lt_of_one_le' (hbc : b < c) (ha : 1 ≤ a) : b < c * a :=
-hbc.trans_le $ le_mul_of_one_le_right' ha
-
-@[to_additive]
-lemma lt_mul_of_one_lt_of_lt' (ha : 1 < a) (hbc : b < c) : b < a * c :=
-lt_mul_of_one_le_of_lt' ha.le hbc
-
-@[to_additive]
-lemma lt_mul_of_lt_of_one_lt' (hbc : b < c) (ha : 1 < a) : b < c * a :=
-lt_mul_of_lt_of_one_le' hbc ha.le
-
-@[to_additive]
-lemma mul_lt_of_le_one_of_lt' (ha : a ≤ 1) (hbc : b < c) : a * b < c :=
-lt_of_le_of_lt (mul_le_of_le_one_of_le' ha le_rfl) hbc
-
-@[to_additive]
-lemma mul_lt_of_lt_of_le_one' (hbc : b < c) (ha : a ≤ 1)  : b * a < c :=
-lt_of_le_of_lt (mul_le_of_le_of_le_one' le_rfl ha) hbc
-
-@[to_additive]
-lemma mul_lt_of_lt_one_of_lt' (ha : a < 1) (hbc : b < c) : a * b < c :=
-mul_lt_of_le_one_of_lt' ha.le hbc
-
-@[to_additive]
-lemma mul_lt_of_lt_of_lt_one' (hbc : b < c) (ha : a < 1) : b * a < c :=
-mul_lt_of_lt_of_le_one' hbc ha.le
-
-@[to_additive]
-lemma mul_eq_one_iff' (ha : 1 ≤ a) (hb : 1 ≤ b) : a * b = 1 ↔ a = 1 ∧ b = 1 :=
-iff.intro
-  (assume hab : a * b = 1,
-   have a ≤ 1, from hab ▸ le_mul_of_le_of_one_le le_rfl hb,
-   have a = 1, from le_antisymm this ha,
-   have b ≤ 1, from hab ▸ le_mul_of_one_le_of_le ha le_rfl,
-   have b = 1, from le_antisymm this hb,
-   and.intro ‹a = 1› ‹b = 1›)
-  (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
-
 /-- Pullback an `ordered_comm_monoid` under an injective map. -/
 @[to_additive function.injective.ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
@@ -328,29 +141,11 @@ def function.injective.ordered_comm_monoid {β : Type*}
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_comm_monoid β :=
 { mul_le_mul_left := λ a b ab c,
-    show f (c * a) ≤ f (c * b), by simp [mul, mul_le_mul_left' ab],
+    show f (c * a) ≤ f (c * b), by { rw [mul, mul], refine mul_le_mul_left' ab _ },
   lt_of_mul_lt_mul_left :=
-    λ a b c bc, @lt_of_mul_lt_mul_left' _ _ (f a) _ _ (by rwa [← mul, ← mul]),
+    λ a b c bc, @lt_of_mul_lt_mul_left _ (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
   ..partial_order.lift f hf,
   ..hf.comm_monoid f one mul }
-
-section mono
-
-variables {β : Type*} [preorder β] {f g : β → α}
-
-@[to_additive monotone.add]
-lemma monotone.mul' (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
-λ x y h, mul_le_mul' (hf h) (hg h)
-
-@[to_additive monotone.add_const]
-lemma monotone.mul_const' (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
-hf.mul' monotone_const
-
-@[to_additive monotone.const_add]
-lemma monotone.const_mul' (hf : monotone f) (a : α) : monotone (λ x, a * f x) :=
-monotone_const.mul' hf
-
-end mono
 
 end ordered_comm_monoid
 
@@ -467,7 +262,7 @@ begin
   { exact false.elim (not_le_of_lt h (with_zero.zero_le _)) },
   { simp_rw [some_eq_coe] at h ⊢,
     norm_cast at h ⊢,
-    apply lt_of_mul_lt_mul_left' h }
+    apply lt_of_mul_lt_mul_left h }
 end
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
@@ -886,180 +681,12 @@ class ordered_cancel_comm_monoid (α : Type u)
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
 
-@[to_additive le_of_add_le_add_left]
-lemma le_of_mul_le_mul_left' : ∀ {a b c : α}, a * b ≤ a * c → b ≤ c :=
-ordered_cancel_comm_monoid.le_of_mul_le_mul_left
-
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid : ordered_comm_monoid α :=
-{ lt_of_mul_lt_mul_left := λ a b c h, lt_of_le_not_le (le_of_mul_le_mul_left' h.le) $
+{ lt_of_mul_lt_mul_left := λ a b c h, lt_of_le_not_le
+    (ordered_cancel_comm_monoid.le_of_mul_le_mul_left _ _ _ h.le) $
       mt (λ h, ordered_cancel_comm_monoid.mul_le_mul_left _ _ h _) (not_le_of_gt h),
   ..‹ordered_cancel_comm_monoid α› }
-
-@[to_additive add_lt_add_left]
-lemma mul_lt_mul_left' (h : a < b) (c : α) : c * a < c * b :=
-lt_of_le_not_le (mul_le_mul_left' h.le _) $
-  mt le_of_mul_le_mul_left' (not_le_of_gt h)
-
-@[to_additive add_lt_add_right]
-lemma mul_lt_mul_right' (h : a < b) (c : α) : a * c < b * c :=
-begin
- rw [mul_comm a c, mul_comm b c],
- exact (mul_lt_mul_left' h c)
-end
-
-@[to_additive add_lt_add]
-lemma mul_lt_mul''' (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
-lt_trans (mul_lt_mul_right' h₁ c) (mul_lt_mul_left' h₂ b)
-
-@[to_additive]
-lemma mul_lt_mul_of_le_of_lt (h₁ : a ≤ b) (h₂ : c < d) : a * c < b * d :=
-lt_of_le_of_lt (mul_le_mul_right' h₁ _) (mul_lt_mul_left' h₂ b)
-
-@[to_additive]
-lemma mul_lt_mul_of_lt_of_le (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
-lt_of_lt_of_le (mul_lt_mul_right' h₁ c) (mul_le_mul_left' h₂ _)
-
-@[to_additive lt_add_of_pos_right]
-lemma lt_mul_of_one_lt_right' (a : α) {b : α} (h : 1 < b) : a < a * b :=
-have a * 1 < a * b, from mul_lt_mul_left' h a,
-by rwa [mul_one] at this
-
-@[to_additive lt_add_of_pos_left]
-lemma lt_mul_of_one_lt_left' (a : α) {b : α} (h : 1 < b) : a < b * a :=
-have 1 * a < b * a, from mul_lt_mul_right' h a,
-by rwa [one_mul] at this
-
-@[to_additive le_of_add_le_add_right]
-lemma le_of_mul_le_mul_right' (h : a * b ≤ c * b) : a ≤ c :=
-le_of_mul_le_mul_left'
-  (show b * a ≤ b * c, begin rw [mul_comm b a, mul_comm b c], assumption end)
-
-@[to_additive]
-lemma mul_lt_one (ha : a < 1) (hb : b < 1) : a * b < 1 :=
-one_mul (1:α) ▸ (mul_lt_mul''' ha hb)
-
-@[to_additive]
-lemma mul_lt_one_of_lt_one_of_le_one (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
-one_mul (1:α) ▸ (mul_lt_mul_of_lt_of_le ha hb)
-
-@[to_additive]
-lemma mul_lt_one_of_le_one_of_lt_one (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
-one_mul (1:α) ▸ (mul_lt_mul_of_le_of_lt ha hb)
-
-@[to_additive]
-lemma lt_mul_of_one_lt_of_le (ha : 1 < a) (hbc : b ≤ c) : b < a * c :=
-one_mul b ▸ mul_lt_mul_of_lt_of_le ha hbc
-
-@[to_additive]
-lemma lt_mul_of_le_of_one_lt (hbc : b ≤ c) (ha : 1 < a) : b < c * a :=
-mul_one b ▸ mul_lt_mul_of_le_of_lt hbc ha
-
-@[to_additive]
-lemma mul_le_of_le_one_of_le (ha : a ≤ 1) (hbc : b ≤ c) : a * b ≤ c :=
-one_mul c ▸ mul_le_mul' ha hbc
-
-@[to_additive]
-lemma mul_le_of_le_of_le_one (hbc : b ≤ c) (ha : a ≤ 1) : b * a ≤ c :=
-mul_one c ▸ mul_le_mul' hbc ha
-
-@[to_additive]
-lemma mul_lt_of_lt_one_of_le (ha : a < 1) (hbc : b ≤ c) : a * b < c :=
-one_mul c ▸ mul_lt_mul_of_lt_of_le ha hbc
-
-@[to_additive]
-lemma mul_lt_of_le_of_lt_one (hbc : b ≤ c) (ha : a < 1) : b * a < c :=
-mul_one c ▸ mul_lt_mul_of_le_of_lt hbc ha
-
-@[to_additive]
-lemma lt_mul_of_one_le_of_lt (ha : 1 ≤ a) (hbc : b < c) : b < a * c :=
-one_mul b ▸ mul_lt_mul_of_le_of_lt ha hbc
-
-@[to_additive]
-lemma lt_mul_of_lt_of_one_le (hbc : b < c) (ha : 1 ≤ a) : b < c * a :=
-mul_one b ▸ mul_lt_mul_of_lt_of_le hbc ha
-
-@[to_additive]
-lemma lt_mul_of_one_lt_of_lt (ha : 1 < a) (hbc : b < c) : b < a * c :=
-one_mul b ▸ mul_lt_mul''' ha hbc
-
-@[to_additive]
-lemma lt_mul_of_lt_of_one_lt (hbc : b < c) (ha : 1 < a) : b < c * a :=
-mul_one b ▸ mul_lt_mul''' hbc ha
-
-@[to_additive]
-lemma mul_lt_of_le_one_of_lt (ha : a ≤ 1) (hbc : b < c) : a * b < c :=
-one_mul c ▸ mul_lt_mul_of_le_of_lt ha hbc
-
-@[to_additive]
-lemma mul_lt_of_lt_of_le_one (hbc : b < c) (ha : a ≤ 1)  : b * a < c :=
-mul_one c ▸ mul_lt_mul_of_lt_of_le hbc ha
-
-@[to_additive]
-lemma mul_lt_of_lt_one_of_lt (ha : a < 1) (hbc : b < c) : a * b < c :=
-one_mul c ▸ mul_lt_mul''' ha hbc
-
-@[to_additive]
-lemma mul_lt_of_lt_of_lt_one (hbc : b < c) (ha : a < 1) : b * a < c :=
-mul_one c ▸ mul_lt_mul''' hbc ha
-
-@[simp, to_additive]
-lemma mul_le_mul_iff_left (a : α) {b c : α} : a * b ≤ a * c ↔ b ≤ c :=
-⟨le_of_mul_le_mul_left', λ h, mul_le_mul_left' h _⟩
-
-@[simp, to_additive]
-lemma mul_le_mul_iff_right (c : α) : a * c ≤ b * c ↔ a ≤ b :=
-mul_comm c a ▸ mul_comm c b ▸ mul_le_mul_iff_left c
-
-@[simp, to_additive]
-lemma mul_lt_mul_iff_left (a : α) {b c : α} : a * b < a * c ↔ b < c :=
-⟨lt_of_mul_lt_mul_left', λ h, mul_lt_mul_left' h _⟩
-
-@[simp, to_additive]
-lemma mul_lt_mul_iff_right (c : α) : a * c < b * c ↔ a < b :=
-mul_comm c a ▸ mul_comm c b ▸ mul_lt_mul_iff_left c
-
-@[simp, to_additive le_add_iff_nonneg_right]
-lemma le_mul_iff_one_le_right' (a : α) {b : α} : a ≤ a * b ↔ 1 ≤ b :=
-have a * 1 ≤ a * b ↔ 1 ≤ b, from mul_le_mul_iff_left a,
-by rwa mul_one at this
-
-@[simp, to_additive le_add_iff_nonneg_left]
-lemma le_mul_iff_one_le_left' (a : α) {b : α} : a ≤ b * a ↔ 1 ≤ b :=
-by rw [mul_comm, le_mul_iff_one_le_right']
-
-@[simp, to_additive lt_add_iff_pos_right]
-lemma lt_mul_iff_one_lt_right' (a : α) {b : α} : a < a * b ↔ 1 < b :=
-have a * 1 < a * b ↔ 1 < b, from mul_lt_mul_iff_left a,
-by rwa mul_one at this
-
-@[simp, to_additive lt_add_iff_pos_left]
-lemma lt_mul_iff_one_lt_left' (a : α) {b : α} : a < b * a ↔ 1 < b :=
-by rw [mul_comm, lt_mul_iff_one_lt_right']
-
-@[simp, to_additive add_le_iff_nonpos_left]
-lemma mul_le_iff_le_one_left' : a * b ≤ b ↔ a ≤ 1 :=
-by { convert mul_le_mul_iff_right b, rw [one_mul] }
-
-@[simp, to_additive add_le_iff_nonpos_right]
-lemma mul_le_iff_le_one_right' : a * b ≤ a ↔ b ≤ 1 :=
-by { convert mul_le_mul_iff_left a, rw [mul_one] }
-
-@[simp, to_additive add_lt_iff_neg_right]
-lemma mul_lt_iff_lt_one_right' : a * b < b ↔ a < 1 :=
-by { convert mul_lt_mul_iff_right b, rw [one_mul] }
-
-@[simp, to_additive add_lt_iff_neg_left]
-lemma mul_lt_iff_lt_one_left' : a * b < a ↔ b < 1 :=
-by { convert mul_lt_mul_iff_left a, rw [mul_one] }
-
-@[to_additive]
-lemma mul_eq_one_iff_eq_one_of_one_le
-  (ha : 1 ≤ a) (hb : 1 ≤ b) : a * b = 1 ↔ a = 1 ∧ b = 1 :=
-⟨λ hab : a * b = 1,
-by split; apply le_antisymm; try {assumption};
-   rw ← hab; simp [ha, hb],
-λ ⟨ha', hb'⟩, by rw [ha', hb', mul_one]⟩
 
 /-- Pullback an `ordered_cancel_comm_monoid` under an injective map. -/
 @[to_additive function.injective.ordered_cancel_add_comm_monoid
@@ -1070,7 +697,7 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_cancel_comm_monoid β :=
 { le_of_mul_le_mul_left := λ a b c (ab : f (a * b) ≤ f (a * c)),
-    (by { rw [mul, mul] at ab, exact le_of_mul_le_mul_left' ab }),
+    (by { rw [mul, mul] at ab, exact (le_of_mul_le_mul_left' ab : f b ≤ f c) }),
   ..hf.left_cancel_semigroup f mul,
   ..hf.ordered_comm_monoid f one mul }
 
@@ -1216,8 +843,8 @@ namespace order_dual
 
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
-{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ b a h _,
-  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α _ a c b h,
+{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α b a _ _ _ h _,
+  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left α a c b _ _ _ h,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
 

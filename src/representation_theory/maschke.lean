@@ -3,79 +3,60 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.monoid_algebra
 import algebra.char_p.invertible
 import linear_algebra.basis
 import ring_theory.simple_module
-import representation_theory.basic
 
 /-!
 # Maschke's theorem
-
 We prove Maschke's theorem for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
 when `k` is a field with `invertible (fintype.card G : k)`.
-
 We do the core computation in greater generality.
 For any `[comm_ring k]` in which  `[invertible (fintype.card G : k)]`,
 and a `k[G]`-linear map `i : V → W` which admits a `k`-linear retraction `π`,
 we produce a `k[G]`-linear retraction by
 taking the average over `G` of the conjugates of `π`.
-
 ## Implementation Notes
 * These results assume `invertible (fintype.card G : k)` which is equivalent to the more
 familiar `¬(ring_char k ∣ fintype.card G)`. It is possible to convert between them using
 `invertible_of_ring_char_not_dvd` and `not_ring_char_dvd_of_invertible`.
-
-
 ## Future work
 It's not so far to give the usual statement, that every finite dimensional representation
 of a finite group is semisimple (i.e. a direct sum of irreducibles).
 -/
 
-universes u v w
+universes u
 
 noncomputable theory
 open module
 open monoid_algebra
-open_locale big_operators representation_theory
+open_locale big_operators
 
 section
 
 -- At first we work with any `[comm_ring k]`, and add the assumption that
 -- `[invertible (fintype.card G : k)]` when it is required.
-variables {k : Type u} {G : Type v} {V W : Type w}
-variables [comm_ring k] [group G] [add_comm_group V] [add_comm_group W]
-variables [module k V] [distrib_mul_action G V] [module k W] [distrib_mul_action G W]
-variables [smul_comm_class k G V] [smul_comm_class k G W]
+variables {k : Type u} [comm_ring k] {G : Type u} [group G]
+
+variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+variables [is_scalar_tower k (monoid_algebra k G) V]
+variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+variables [is_scalar_tower k (monoid_algebra k G) W]
 
 /-!
 We now do the key calculation in Maschke's theorem.
-
 Given `V → W`, an inclusion of `k[G]` modules,,
 assume we have some retraction `π` (i.e. `∀ v, π (i v) = v`),
 just as a `k`-linear map.
 (When `k` is a field, this will be available cheaply, by choosing a basis.)
-
 We now construct a retraction of the inclusion as a `k[G]`-linear map,
 by the formula
 $$ \frac{1}{|G|} \sum_{g \in G} g⁻¹ • π(g • -). $$
 -/
 
 namespace linear_map
-
-def equivariant_of_linear_of_comm' (f : V →ₗ[k] W) (h : ∀ (g : G) v, f (g • v) = g • (f v)) : V →ₗ[k[G]] W :=
-{ to_fun := f,
-  map_add' := f.map_add',
-  map_smul' := λ x v,
-  begin
-  apply finsupp.induction x,
-  { simp, },
-  { intros g r c' nm nz w,
-    simp only [add_smul, f.map_add, w, add_left_inj, single_eq_algebra_map_mul_of, ← smul_smul],
-    rw [algebra_map_smul (monoid_algebra k G) r _, algebra_map_smul (monoid_algebra k G) r _,
-      f.map_smul, of_smul, of_smul, h g v],
-    all_goals { apply_instance } }
-  end }
 
 variables (π : W →ₗ[k] V)
 include π
@@ -84,9 +65,9 @@ include π
 We define the conjugate of `π` by `g`, as a `k`-linear map.
 -/
 def conjugate (g : G) : W →ₗ[k] V :=
-((ρ k V g⁻¹).comp π).comp (ρ k W g)
+((group_smul.linear_map k V g⁻¹).comp π).comp (group_smul.linear_map k W g)
 
-variables (i : V →ₗ[k[G]] W) (h : ∀ v : V, π (i v) = v)
+variables (i : V →ₗ[monoid_algebra k G] W) (h : ∀ v : V, π (i v) = v)
 
 section
 include h
@@ -94,7 +75,9 @@ include h
 lemma conjugate_i (g : G) (v : V) : (conjugate π g) (i v) = v :=
 begin
   dsimp [conjugate],
-  rw [← i.map_smul_of_tower g v, h, ← mul_smul, mul_left_inv, one_smul],
+  simp only [←i.map_smul, h, ←mul_smul, single_mul_single, mul_one, mul_left_inv],
+  change (1 : monoid_algebra k G) • v = v,
+  simp,
 end
 end
 
@@ -102,26 +85,27 @@ variables (G) [fintype G]
 
 /--
 The sum of the conjugates of `π` by each element `g : G`, as a `k`-linear map.
-
 (We postpone dividing by the size of the group as long as possible.)
 -/
 def sum_of_conjugates : W →ₗ[k] V :=
 ∑ g : G, π.conjugate g
 
-
 /--
 In fact, the sum over `g : G` of the conjugate of `π` by `g` is a `k[G]`-linear map.
 -/
-def sum_of_conjugates_equivariant : W →ₗ[k[G]] V :=
-equivariant_of_linear_of_comm' (π.sum_of_conjugates G) (λ g v,
+def sum_of_conjugates_equivariant : W →ₗ[monoid_algebra k G] V :=
+monoid_algebra.equivariant_of_linear_of_comm (π.sum_of_conjugates G) (λ g v,
 begin
   dsimp [sum_of_conjugates],
   simp only [linear_map.sum_apply, finset.smul_sum],
   dsimp [conjugate],
-  conv_lhs { rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
-    simp only [mul_right_embedding] },
-  simp only [← mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
+  conv_lhs {
+    rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
+    simp only [mul_right_embedding],
+  },
+  simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
     finset.sum_map, inv_inv, inv_mul_cancel_right],
+  recover,
 end)
 
 section
@@ -132,7 +116,7 @@ include inv
 We construct our `k[G]`-linear retraction of `i` as
 $$ \frac{1}{|G|} \sum_{g \in G} g⁻¹ • π(g • -). $$
 -/
-def equivariant_projection : W →ₗ[k[G]] V :=
+def equivariant_projection : W →ₗ[monoid_algebra k G] V :=
 ⅟(fintype.card G : k) • (π.sum_of_conjugates_equivariant G)
 
 include h
@@ -162,11 +146,11 @@ end char_zero
 namespace monoid_algebra
 
 -- Now we work over a `[field k]`.
-variables {k : Type u} [field k] {G : Type v} [fintype G] [invertible (fintype.card G : k)]
+variables {k : Type u} [field k] {G : Type u} [fintype G] [invertible (fintype.card G : k)]
 variables [group G]
-variables {V : Type w} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
+variables {V : Type u} [add_comm_group V] [module k V] [module (monoid_algebra k G) V]
 variables [is_scalar_tower k (monoid_algebra k G) V]
-variables {W : Type w} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
+variables {W : Type u} [add_comm_group W] [module k W] [module (monoid_algebra k G) W]
 variables [is_scalar_tower k (monoid_algebra k G) W]
 
 lemma exists_left_inverse_of_injective
@@ -197,24 +181,4 @@ instance is_complemented : is_complemented (submodule (monoid_algebra k G) V) :=
 ⟨exists_is_compl⟩
 
 end submodule
-
 end monoid_algebra
-
-namespace subrepresentation
-variables {k : Type u} {G : Type v} {V : Type w}
-variables [field k] [group G] [add_comm_group V]
-variables [module k V] [distrib_mul_action G V]
-variables [fintype G] [invertible (fintype.card G : k)]
-
-instance maschke [representation k G V] : is_complemented (subrepresentation k G V) :=
-{ exists_is_compl := λ p,
-  begin
-    let p' := p.to_monoid_algebra_submodule,
-    cases monoid_algebra.submodule.exists_is_compl p' with q' hq',
-    use q'.of_monoid_algebra_submodule,
-    rw @order_iso.is_compl_iff (subrepresentation k G V) (submodule (monoid_algebra k G) V)
-      _ _ order_iso_monoid_algebra_submodule,
-    simp [hq'],
-  end}
-
-end subrepresentation

@@ -25,6 +25,7 @@ Recall that `∑` and `∏` are notation for `finset.sum` and `finset.prod` resp
 -/
 
 open finset
+open multiset
 
 open_locale big_operators
 
@@ -34,18 +35,39 @@ variables {R : Type u} {ι : Type w}
 
 namespace polynomial
 
-variable (s : finset ι)
+variables (s : finset ι) (t : multiset ι)
 
 section comm_semiring
 variables [comm_semiring R] (f : ι → polynomial R)
 
-lemma nat_degree_prod_le : (∏ i in s, f i).nat_degree ≤ ∑ i in s, (f i).nat_degree :=
+lemma nat_degree_multiset_prod_le :
+  (t.map f).prod.nat_degree ≤ (t.map (λ i, (f i).nat_degree)).sum :=
 begin
-  classical,
-  induction s using finset.induction with a s ha hs, { simp },
-  rw [prod_insert ha, sum_insert ha],
-  transitivity (f a).nat_degree + (∏ x in s, f x).nat_degree,
-  apply polynomial.nat_degree_mul_le, linarith,
+  refine multiset.induction_on t _ (λ a t ih, _), { simp },
+  rw [map_cons, prod_cons, map_cons, sum_cons],
+  transitivity (f a).nat_degree + (t.map f).prod.nat_degree,
+  { apply polynomial.nat_degree_mul_le },
+  { exact add_le_add (le_refl _) ih }
+end
+
+lemma nat_degree_prod_le : (∏ i in s, f i).nat_degree ≤ ∑ i in s, (f i).nat_degree :=
+nat_degree_multiset_prod_le s.1 f
+
+/--
+The leading coefficient of a product of polynomials is equal to
+the product of the leading coefficients, provided that this product is nonzero.
+
+See `polynomial.leading_coeff_multiset_prod` (without the `'`) for a version for integral domains,
+where this condition is automatically satisfied.
+-/
+lemma leading_coeff_multiset_prod' (h : (t.map (λ i, (f i).leading_coeff)).prod ≠ 0) :
+  (t.map f).prod.leading_coeff = (t.map (λ i, (f i).leading_coeff)).prod :=
+begin
+  revert h,
+  refine multiset.induction_on t _ (λ a t ih ht, _), { simp },
+  rw [map_cons, prod_cons] at ht,
+  simp only [map_cons, prod_cons],
+  rw polynomial.leading_coeff_mul'; { rwa ih, apply right_ne_zero_of_mul ht }
 end
 
 /--
@@ -57,11 +79,24 @@ where this condition is automatically satisfied.
 -/
 lemma leading_coeff_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
+leading_coeff_multiset_prod' s.1 f h
+
+/--
+The degree of a product of polynomials is equal to
+the sum of the degrees, provided that the product of leading coefficients is nonzero.
+
+See `polynomial.nat_degree_multiset_prod` (without the `'`) for a version for integral domains,
+where this condition is automatically satisfied.
+-/
+lemma nat_degree_multiset_prod' (h : (t.map (λ i, (f i).leading_coeff)).prod ≠ 0) :
+  (t.map f).prod.nat_degree = (t.map (λ i, (f i).nat_degree)).sum :=
 begin
-  classical,
-  revert h, induction s using finset.induction with a s ha hs, { simp },
-  repeat { rw prod_insert ha },
-  intro h, rw polynomial.leading_coeff_mul'; { rwa hs, apply right_ne_zero_of_mul h },
+  revert h,
+  refine multiset.induction_on t _ (λ a t ih ht, _), { simp },
+  rw [map_cons, prod_cons] at ht ⊢,
+  rw [map_cons, sum_cons, polynomial.nat_degree_mul', ih],
+  { apply right_ne_zero_of_mul ht },
+  { rwa polynomial.leading_coeff_multiset_prod', apply right_ne_zero_of_mul ht },
 end
 
 /--
@@ -73,31 +108,36 @@ where this condition is automatically satisfied.
 -/
 lemma nat_degree_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
+nat_degree_multiset_prod' s.1 f h
+
+lemma nat_degree_multiset_prod_of_monic [nontrivial R] (h : ∀ i ∈ t, (f i).monic) :
+  (t.map f).prod.nat_degree = (t.map (λ i, (f i).nat_degree)).sum :=
 begin
-  classical,
-  revert h, induction s using finset.induction with a s ha hs, { simp },
-  rw [prod_insert ha, prod_insert ha, sum_insert ha],
-  intro h, rw polynomial.nat_degree_mul', rw hs,
-  apply right_ne_zero_of_mul h,
-  rwa polynomial.leading_coeff_prod', apply right_ne_zero_of_mul h,
+  apply nat_degree_multiset_prod',
+  suffices : (t.map (λ i, (f i).leading_coeff)).prod = 1, { rw this, simp },
+  convert prod_repeat (1 : R) t.card,
+  { simp only [eq_repeat, multiset.card_map, eq_self_iff_true, true_and],
+    rintros i hi,
+    obtain ⟨i, hi, rfl⟩ := multiset.mem_map.mp hi,
+    apply h, assumption },
+  { simp }
 end
 
 lemma nat_degree_prod_of_monic [nontrivial R] (h : ∀ i ∈ s, (f i).monic) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
+nat_degree_multiset_prod_of_monic s.1 f h
+
+lemma coeff_zero_multiset_prod :
+  (t.map f).prod.coeff 0 = (t.map (λ i, (f i).coeff 0)).prod :=
 begin
-  apply nat_degree_prod',
-  suffices : ∏ i in s, (f i).leading_coeff = 1, { rw this, simp },
-  rw prod_eq_one, intros, apply h, assumption,
+  refine multiset.induction_on t _ (λ a t ht, _), { simp },
+  rw [map_cons, prod_cons, map_cons, prod_cons,
+      polynomial.mul_coeff_zero, ht],
 end
 
 lemma coeff_zero_prod :
   (∏ i in s, f i).coeff 0 = ∏ i in s, (f i).coeff 0 :=
-begin
-  classical,
-  induction s using finset.induction with a s ha hs,
-  { simp only [coeff_one_zero, prod_empty] },
-  { simp only [ha, hs, mul_coeff_zero, not_false_iff, prod_insert] }
-end
+coeff_zero_multiset_prod s.1 f
 
 end comm_semiring
 
@@ -107,22 +147,38 @@ variables [comm_ring R]
 open monic
 -- Eventually this can be generalized with Vieta's formulas
 -- plus the connection between roots and factorization.
+lemma multiset_prod_X_sub_C_next_coeff [nontrivial R] {t : multiset ι} (f : ι → R) :
+  next_coeff (t.map (λ i, X - C (f i))).prod = -(t.map f).sum :=
+begin
+  rw next_coeff_multiset_prod,
+  { simp only [next_coeff_X_sub_C],
+    rw ← multiset.map_map,
+    refine (t.map _).sum_hom ⟨has_neg.neg, _, _⟩; simp [add_comm] },
+  { intros, apply monic_X_sub_C }
+end
+
 lemma prod_X_sub_C_next_coeff [nontrivial R] {s : finset ι} (f : ι → R) :
   next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
-by { rw next_coeff_prod; { simp [monic_X_sub_C] } }
+multiset_prod_X_sub_C_next_coeff f
+
+lemma multiset_prod_X_sub_C_coeff_card_pred [nontrivial R] (t : multiset ι)
+  (f : ι → R) (hs : 0 < t.card) :
+  (t.map (λ i, (X - C (f i)))).prod.coeff (t.card - 1) = -(t.map f).sum :=
+begin
+  convert multiset_prod_X_sub_C_next_coeff (by assumption),
+  rw next_coeff, split_ifs,
+  { rw nat_degree_multiset_prod_of_monic at h,
+    swap, { intros, apply monic_X_sub_C },
+    simp_rw [multiset.sum_eq_zero_iff, multiset.mem_map, nat_degree_X_sub_C] at h,
+    contrapose! h,
+    obtain ⟨x, hx⟩ := card_pos_iff_exists_mem.mp hs,
+    exact ⟨_, ⟨x, hx, rfl⟩, one_ne_zero⟩ },
+  congr, rw nat_degree_multiset_prod_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
+end
 
 lemma prod_X_sub_C_coeff_card_pred [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
   (∏ i in s, (X - C (f i))).coeff (s.card - 1) = - ∑ i in s, f i :=
-begin
-  convert prod_X_sub_C_next_coeff (by assumption),
-  rw next_coeff, split_ifs,
-  { rw nat_degree_prod_of_monic at h,
-    swap, { intros, apply monic_X_sub_C },
-    rw sum_eq_zero_iff at h,
-    simp_rw nat_degree_X_sub_C at h, contrapose! h, norm_num,
-    exact multiset.card_pos_iff_exists_mem.mp hs },
-  congr, rw nat_degree_prod_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
-end
+multiset_prod_X_sub_C_coeff_card_pred s.1 f hs
 
 end comm_ring
 
@@ -148,14 +204,21 @@ lemma nat_degree_multiset_prod [nontrivial R] (s : multiset (polynomial R))
   (h : (0 : polynomial R) ∉ s) :
   nat_degree s.prod = (s.map nat_degree).sum :=
 begin
-  revert h,
-  refine s.induction_on _ _,
-  { simp },
-  intros p s ih h,
-  rw [multiset.mem_cons, not_or_distrib] at h,
-  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero h.2,
-  rw [multiset.prod_cons, nat_degree_mul (ne.symm h.1) hprod, ih h.2,
-    multiset.map_cons, multiset.sum_cons]
+  rw [← s.map_id, nat_degree_multiset_prod'], simp,
+  simp_rw [ne.def, multiset.prod_eq_zero_iff, multiset.mem_map, leading_coeff_eq_zero, id],
+  rintro ⟨_, h, rfl⟩,
+  contradiction
+end
+
+/--
+The degree of a product of polynomials is equal to
+the sum of the degrees, where the degree of the zero polynomial is ⊥.
+-/
+lemma degree_multiset_prod [nontrivial R] :
+  (t.map f).prod.degree = (t.map (λ i, (f i).degree)).sum :=
+begin
+  refine multiset.induction_on t _ (λ a t ht, _), { simp },
+  { rw [map_cons, prod_cons, degree_mul, ht, map_cons, sum_cons] }
 end
 
 /--
@@ -163,12 +226,18 @@ The degree of a product of polynomials is equal to
 the sum of the degrees, where the degree of the zero polynomial is ⊥.
 -/
 lemma degree_prod [nontrivial R] : (∏ i in s, f i).degree = ∑ i in s, (f i).degree :=
-begin
-  classical,
-  induction s using finset.induction with a s ha hs,
-  { simp },
-  { rw [prod_insert ha, sum_insert ha, degree_mul, hs] },
-end
+degree_multiset_prod s.1 f
+
+/--
+The leading coefficient of a product of polynomials is equal to
+the product of the leading coefficients.
+
+See `polynomial.leading_coeff_multiset_prod'` (with a `'`) for a version for commutative semirings,
+where additionally, the product of the leading coefficients must be nonzero.
+-/
+lemma leading_coeff_multiset_prod :
+  (t.map f).prod.leading_coeff = (t.map (λ i, (f i).leading_coeff)).prod :=
+by { rw [← leading_coeff_hom_apply, monoid_hom.map_multiset_prod, multiset.map_map], refl }
 
 /--
 The leading coefficient of a product of polynomials is equal to
@@ -179,7 +248,7 @@ where additionally, the product of the leading coefficients must be nonzero.
 -/
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
-by { rw ← leading_coeff_hom_apply, apply monoid_hom.map_prod }
+leading_coeff_multiset_prod s.1 f
 
 end no_zero_divisors
 end polynomial

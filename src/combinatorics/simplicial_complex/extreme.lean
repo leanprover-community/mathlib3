@@ -163,8 +163,7 @@ begin
   exact ⟨⟨hx₁B, hx₁C⟩, hx₂B, hx₂C⟩,
 end
 
-lemma is_extreme.bInter {F : set (set E)} (hF : F.nonempty)
-  (hAF : ∀ B ∈ F, is_extreme A B) :
+lemma is_extreme.bInter {F : set (set E)} (hAF : ∀ B ∈ F, is_extreme A B) (hF : F.nonempty) :
   is_extreme A (⋂ B ∈ F, B) :=
 begin
   obtain ⟨B, hB⟩ := hF,
@@ -176,8 +175,7 @@ begin
   exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end
 
-lemma is_extreme.sInter {F : set (set E)} (hF : F.nonempty)
-  (hAF : ∀ B ∈ F, is_extreme A B) :
+lemma is_extreme.sInter {F : set (set E)} (hF : F.nonempty) (hAF : ∀ B ∈ F, is_extreme A B) :
   is_extreme A (⋂₀ F) :=
 begin
   obtain ⟨B, hB⟩ := hF,

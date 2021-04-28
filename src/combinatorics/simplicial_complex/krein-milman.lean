@@ -50,7 +50,7 @@ lemma has_extreme_point_of_convex_of_compact_of_nonempty (hAnemp : A.nonempty)
   (hAcomp : is_compact A) (hAconv : convex A) :
   A.extreme_points.nonempty :=
 begin
-  let S : set (set E) := {B | B.nonempty ∧ is_closed B ∧ is_extreme_set A B},
+  let S : set (set E) := {B | B.nonempty ∧ is_closed B ∧ is_extreme A B},
   suffices h : ∃ B ∈ S, ∀ C ∈ S, C ⊆ B → C = B,
   { obtain ⟨B, ⟨hBnemp, hBclos, hAB⟩, hBmin⟩ := h,
     obtain ⟨x, hxB⟩ := hBnemp,
@@ -64,16 +64,16 @@ begin
     obtain ⟨z, hzB, hz⟩ := is_compact.exists_forall_ge (compact_of_is_closed_subset hAcomp hBclos
       hAB.1) ⟨x, hxB⟩ (continuous.continuous_on l.continuous),
     rw ←hBmin {z ∈ B | ∀ w ∈ B, l w ≤ l z} ⟨⟨z, hzB, hz⟩, closed_of_exposed hBclos ⟨l, rfl⟩,
-      is_extreme_set.trans hAB (extreme_of_exposed ⟨l, rfl⟩)⟩ (λ z hz, hz.1) at hyB,
+      hAB.trans (is_exposed.is_extreme ⟨l, rfl⟩)⟩ (λ z hz, hz.1) at hyB,
     exact not_le.2 hl (hyB.2 x hxB) },
   apply zorn.subset_reverse,
   rintro F hFS hF,
   cases F.eq_empty_or_nonempty with hFemp hFnemp,
   { rw hFemp,
-    refine ⟨A, ⟨hAnemp, is_compact.is_closed hAcomp, is_extreme_set.refl _⟩, λ B hB, _⟩,
+    refine ⟨A, ⟨hAnemp, is_compact.is_closed hAcomp, is_extreme.refl _⟩, λ B hB, _⟩,
     exfalso,
     exact hB },
-  refine ⟨⋂₀ F, ⟨_, is_closed_sInter (λ B hB, (hFS hB).2.1), sInter_extreme_of_extreme hFnemp
+  refine ⟨⋂₀ F, ⟨_, is_closed_sInter (λ B hB, (hFS hB).2.1), is_extreme.sInter hFnemp
     (λ B hB, (hFS hB).2.2)⟩, λ B hB, sInter_subset_of_mem hB⟩,
   rw sInter_eq_Inter,
   apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _,
@@ -111,7 +111,7 @@ begin
     end
     (compact_of_exposed hAcomp hCexp) (convex_of_exposed hAconv hCexp),
   linarith [hls _ (subset_closure (subset_convex_hull _
-    (extreme_points_subset_extreme_points_of_extreme (extreme_of_exposed hCexp) hyC))),
+    ((extreme_of_exposed hCexp).extreme_points_subset_extreme_points  hyC))),
     hyC.1.2 x hxA],
 end
 

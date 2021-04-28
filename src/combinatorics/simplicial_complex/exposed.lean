@@ -6,20 +6,20 @@ open set
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
   {X : finset E} {l : E →L[ℝ] ℝ}
 
-def is_exposed_set (A B : set E) :
+def is_exposed (A B : set E) :
   Prop :=
 ∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
-def continuous_linear_map.to_exposed_set (l : E →L[ℝ] ℝ) (A : set E) :
+def continuous_linear_map.to_exposed (l : E →L[ℝ] ℝ) (A : set E) :
   set E :=
 {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
-lemma continuous_linear_map.to_exposed_set.is_exposed :
-  is_exposed_set A (l.to_exposed_set A) :=
+lemma continuous_linear_map.to_exposed.is_exposed :
+  is_exposed A (l.to_exposed A) :=
 ⟨l, rfl⟩
 
 lemma is_exposed_iff_normalized (hAB : ¬A ⊆ B) :
-  is_exposed_set A B ↔ ∃ l : E →L[ℝ] ℝ, ∥l∥ = 1 ∧ B = {x ∈ A | ∀ y ∈ A, l y ≤ l x} :=
+  is_exposed A B ↔ ∃ l : E →L[ℝ] ℝ, ∥l∥ = 1 ∧ B = {x ∈ A | ∀ y ∈ A, l y ≤ l x} :=
 begin
   refine ⟨_, λ ⟨l, _, hB⟩, ⟨l, hB⟩⟩,
   rintro ⟨l, hB⟩,
@@ -45,15 +45,15 @@ begin
   sorry
 end
 
-lemma subset_of_exposed (hAB : is_exposed_set A B) :
+lemma is_exposed.subset (hAB : is_exposed A B) :
   B ⊆ A :=
 begin
   obtain ⟨_, rfl⟩ := hAB,
   exact λ x hx, hx.1,
 end
 
-lemma is_exposed_set.refl :
-  reflexive (is_exposed_set : set E → set E → Prop) :=
+lemma is_exposed.refl :
+  reflexive (is_exposed : set E → set E → Prop) :=
 begin
   rintro A,
   use 0,
@@ -61,19 +61,19 @@ begin
   exact ⟨λ hx, ⟨hx, λ y hy, le_refl _⟩, λ hx, hx.1⟩,
 end
 
-lemma is_exposed_set.antisymm :
-  anti_symmetric (is_exposed_set : set E → set E → Prop) :=
-λ A B hAB hBA, subset.antisymm (subset_of_exposed hBA) (subset_of_exposed hAB)
+lemma is_exposed.antisymm :
+  anti_symmetric (is_exposed : set E → set E → Prop) :=
+λ A B hAB hBA, subset.antisymm hBA.subset hAB.subset
 
-lemma is_exposed_set.trans :
-  transitive (is_exposed_set : set E → set E → Prop) :=
+lemma is_exposed.trans :
+  transitive (is_exposed : set E → set E → Prop) :=
 begin
   rintro A B C hB hC,
   by_cases hAB : A ⊆ B,
-  { rw subset.antisymm hAB (subset_of_exposed hB),
+  { rw subset.antisymm hAB hB.subset
     exact hC },
   by_cases hBC : B ⊆ C,
-  { rw subset.antisymm (subset_of_exposed hC) hBC,
+  { rw subset.antisymm hC.subset hBC,
     exact hB },
   rw is_exposed_iff_normalized hAB at hB,
   rw is_exposed_iff_normalized hBC at hC,
@@ -107,13 +107,13 @@ begin
             ... ≤ l₁ y + l₂ x : add_le_add_right (hy x hxA) _,
 end
 
-instance : is_partial_order (set E) is_exposed_set :=
-{ refl := is_exposed_set.refl,
-  trans := is_exposed_set.trans,
-  antisymm := is_exposed_set.antisymm }
+instance : is_partial_order (set E) is_exposed :=
+{ refl := is_exposed.refl,
+  trans := is_exposed.trans,
+  antisymm := is_exposed.antisymm }
 
-lemma extreme_of_exposed (hAB : is_exposed_set A B) :
-  is_extreme_set A B :=
+lemma is_exposed.is_extreme (hAB : is_exposed A B) :
+  is_extreme A B :=
 begin
   rw extreme_set_iff,
   use subset_of_exposed hAB,
@@ -146,10 +146,10 @@ begin
   exact hxB.2 y hy,
 end
 
-lemma convex_of_exposed (hA : convex A) (hAB : is_exposed_set A B) :
+lemma convex_of_exposed (hA : convex A) (hAB : is_exposed A B) :
   convex B :=
 begin
-  have hBA := subset_of_exposed hAB,
+  have hBA := hAB.subset,
   obtain ⟨l, rfl⟩ := hAB,
   rw convex_iff_segment_subset at ⊢ hA,
   rintro x₁ x₂ ⟨hx₁A, hx₁⟩ ⟨hx₂A, hx₂⟩ x hx,
@@ -163,7 +163,7 @@ begin
     ... = l x : by rw [←hx, l.map_add, l.map_smul _, l.map_smul _],
 end
 
-lemma closed_of_exposed (hA : is_closed A) (hAB : is_exposed_set A B) :
+lemma is_exposed.is_closed (hAB : is_exposed A B) (hA : is_closed A) :
   is_closed B :=
 begin
   obtain ⟨l, rfl⟩ := hAB,
@@ -182,15 +182,14 @@ begin
   sorry --@Bhavik, easy now
 end
 
-lemma compact_of_exposed (hA : is_compact A) (hAB : is_exposed_set A B) :
+lemma is_exposed.is_compact (hAB : is_exposed A B) (hA : is_compact A) :
   is_compact B :=
-compact_of_is_closed_subset hA (closed_of_exposed (is_compact.is_closed hA) hAB)
-  (subset_of_exposed hAB)
+compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
 lemma mem_extreme_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
   (∃ B : set E, is_extreme_set A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
 begin
-  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, subset_frontier_of_extreme hAB hBA hxB⟩,
+  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, hAB.subset_frontier hBA hxB⟩,
   rintro ⟨hxA, hxfA⟩,
   obtain ⟨y, hyA⟩ := id hA₂,
   obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hA₁) is_open_interior hxfA.2,
@@ -205,9 +204,9 @@ begin
 end
 
 lemma mem_exposed_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
-  (∃ B : set E, is_exposed_set A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
+  (∃ B : set E, is_exposed A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
 begin
-  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, subset_frontier_of_extreme hAB hBA hxB⟩,
+  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, hAB.subset_frontier hBA hxB⟩,
   rintro ⟨hxA, hxfA⟩,
   obtain ⟨y, hyA⟩ := id hA₂,
   obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hA₁) is_open_interior hxfA.2,
@@ -230,7 +229,7 @@ lemma exposed_point_iff :
 by refl
 
 lemma exposed_point_iff_exposed_singleton :
-  x ∈ A.exposed_points ↔ is_exposed_set A {x} :=
+  x ∈ A.exposed_points ↔ is_exposed A {x} :=
 begin
   split,
   { rintro ⟨hxA, l, hl⟩,

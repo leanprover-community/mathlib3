@@ -115,7 +115,7 @@ by { ext, simp [polynomial_functions], }
 
 -- TODO:
 -- if `f : R → R` is an affine equivalence, then pulling back along `f`
--- induces an normed algebra isomorphism between `polynomial_functions X` and
+-- induces a normed algebra isomorphism between `polynomial_functions X` and
 -- `polynomial_functions (f ⁻¹' X)`, intertwining the pullback along `f` of `C(R, R)` to itself.
 
 lemma polynomial_functions_separates_points (X : set R) :

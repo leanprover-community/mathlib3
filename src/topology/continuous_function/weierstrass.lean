@@ -57,7 +57,7 @@ theorem polynomial_functions_closure_eq_top (a b : ℝ) :
   (polynomial_functions (set.Icc a b)).topological_closure = ⊤ :=
 begin
   by_cases h : a < b, -- (Otherwise it's easy; we'll deal with that later.)
-  { -- We can pullback continuous functions to `[a,b]` to continuous functions on `[0,1]`,
+  { -- We can pullback continuous functions on `[a,b]` to continuous functions on `[0,1]`,
     -- by precomposing with an affine map.
     let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) :=
       comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map,

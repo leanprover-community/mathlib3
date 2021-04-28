@@ -106,6 +106,11 @@ lemma kernel_subobject_factors_iff {W : C} (h : W ⟶ X) :
   kernel_subobject_arrow_comp, comp_zero],
 kernel_subobject_factors f h⟩
 
+/-- A factorisation of `h : W ⟶ X` through `kernel_subobject f`, assuming `h ≫ f = 0`. -/
+def factor_thru_kernel_subobject {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
+  W ⟶ kernel_subobject f :=
+(kernel_subobject f).factor_thru h (kernel_subobject_factors f h w)
+
 @[simp]
 lemma kernel_subobject_zero {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
 (is_iso_iff_mk_eq_top _).mp (by apply_instance)
@@ -189,7 +194,6 @@ lemma image_subobject_arrow' :
 by simp [image_subobject_iso]
 
 /-- A factorisation of `f : X ⟶ Y` through `image_subobject f`. -/
-
 def factor_thru_image_subobject : X ⟶ image_subobject f :=
 factor_thru_image f ≫ (image_subobject_iso f).inv
 

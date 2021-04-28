@@ -160,6 +160,7 @@ structure resolution (Z : C) :=
 
 variables [has_zero_object C] [has_image_maps C] [has_cokernels C]
 
+-- TODO generalize to `chain_complex.mk`?
 def resolution.exact_sequence {Z : C} (P : resolution Z) : chain_complex C ℕ :=
 { X := P.X,
   d := λ i j, if h : i = j + 1 then eq_to_hom (congr_arg P.X h) ≫ P.d j else 0,
@@ -173,6 +174,10 @@ def resolution.exact_sequence {Z : C} (P : resolution Z) : chain_complex C ℕ :
 
 def resolution.complex {Z : C} (P : resolution Z) : chain_complex C ℕ :=
 chain_complex.truncate.obj P.exact_sequence
+
+instance resolution.exact' {Z : C} (P : resolution Z) (n : ℕ) :
+  exact (P.complex.d (n+2) (n+1)) (P.complex.d (n+1) n) :=
+sorry
 
 instance resolution.projective' {Z : C} (P : resolution Z) (n : ℕ) :
   projective (P.complex.X n) :=
@@ -191,13 +196,80 @@ instance {Z : C} (P : resolution Z) (n : ℕ) : epi (P.map.f n) := sorry
 
 namespace resolution
 
+def chain_map.mk_inductive' (P Q : chain_complex C ℕ)
+  (zero : P.X 0 ⟶ Q.X 0)
+  (one : P.X 1 ⟶ Q.X 1)
+  (zero_one_comm : P.d 1 0 ≫ zero = one ≫ Q.d 1 0)
+  (succ : ∀ (n : ℕ)
+    (p : Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), P.d (n+1) n ≫ f = f' ≫ Q.d (n+1) n),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), P.d (n+2) (n+1) ≫ p.2.1 = f'' ≫ Q.d (n+2) (n+1)) :
+  Π n, Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), P.d (n+1) n ≫ f = f' ≫ Q.d (n+1) n
+| 0 := ⟨zero, one, zero_one_comm⟩
+| (n+1) := ⟨(chain_map.mk_inductive' n).2.1, (succ n (chain_map.mk_inductive' n)).1, (succ n (chain_map.mk_inductive' n)).2⟩
+
+-- TODO move, rename
+def chain_map.mk_inductive (P Q : chain_complex C ℕ)
+  (zero : P.X 0 ⟶ Q.X 0)
+  (one : P.X 1 ⟶ Q.X 1)
+  (zero_one_comm : P.d 1 0 ≫ zero = one ≫ Q.d 1 0)
+  (succ : ∀ (n : ℕ)
+    (p : Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), P.d (n+1) n ≫ f = f' ≫ Q.d (n+1) n),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), P.d (n+2) (n+1) ≫ p.2.1 = f'' ≫ Q.d (n+2) (n+1)) : P ⟶ Q :=
+{ f := λ n, (chain_map.mk_inductive' P Q zero one zero_one_comm succ n).1,
+  comm' := λ n m,
+  begin
+    by_cases h : m + 1 = n,
+    { subst h,
+      exact (chain_map.mk_inductive' P Q zero one zero_one_comm succ m).2.2.symm, },
+    { rw [P.shape n m h, Q.shape n m h], simp, }
+  end }
+
+def lift_f_zero {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
+  P.complex.X 0 ⟶ Q.complex.X 0 :=
+factor_thru (P.map.f 0 ≫ f) (Q.map.f 0)
+
+def lift_f_one {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
+  P.complex.X 1 ⟶ Q.complex.X 1 :=
+sorry
+-- factor_thru (P.complex.d 1 0 ≫ lift_f_zero f P Q) (Q.complex.d 1 0)
+
+local attribute [instance] epi_comp
+
+def lift_f_succ {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) (n : ℕ)
+  (p : Σ' (f : P.complex.X n ⟶ Q.complex.X n) (f' : P.complex.X (n+1) ⟶ Q.complex.X (n+1)), P.complex.d (n+1) n ≫ f = f' ≫ Q.complex.d (n+1) n) :
+    Σ' f'' : P.complex.X (n+2) ⟶ Q.complex.X (n+2), P.complex.d (n+2) (n+1) ≫ p.2.1 = f'' ≫ Q.complex.d (n+2) (n+1) :=
+begin
+  rcases p with ⟨f, f', w⟩,
+  have z : (P.complex.d (n+2) (n+1) ≫ f') ≫ Q.complex.d (n+1) n = 0,
+  { rw [category.assoc, ←w, ←category.assoc, P.complex.d_comp_d, zero_comp], },
+  let g := factor_thru_kernel_subobject (Q.complex.d (n+1) n) _ z,
+  fsplit,
+  exact factor_thru g
+    (factor_thru_image_subobject (Q.complex.d (n+2) (n+1)) ≫
+      image_to_kernel (Q.complex.d (n+2) (n+1)) (Q.complex.d (n+1) n) (Q.complex.d_comp_d _ _ _)),
+  dsimp [g],
+  sorry,
+end
+
 def lift {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   P.complex ⟶ Q.complex :=
-sorry
+begin
+  fapply chain_map.mk_inductive,
+  apply lift_f_zero f,
+  apply lift_f_one f,
+  sorry,
+  apply lift_f_succ f,
+end
 
 lemma lift_commutes {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   lift f P Q ≫ Q.map = P.map ≫ (homological_complex.single C _ 0).map f :=
-sorry
+begin
+  ext n,
+  rcases n with (_|_|n),
+  { dsimp [lift, chain_map.mk_inductive, chain_map.mk_inductive', lift_f_zero], simp, },
+  sorry,
+  sorry,
+end
 
 end resolution
 

@@ -158,6 +158,14 @@ cycle_induction_on (λ τ : perm α, τ⁻¹.cycle_type = τ.cycle_type) σ rfl
     disjoint.cycle_type (λ x, or.imp (λ h : τ x = x, inv_eq_iff_eq.mpr h.symm)
     (λ h : σ x = x, inv_eq_iff_eq.mpr h.symm) (hστ x).symm)])
 
+@[simp]
+lemma cycle_type_extend_domain {β : Type*} [fintype β] [decidable_eq β]
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) {σ : perm α} :
+  cycle_type (σ.extend_domain f) = cycle_type σ :=
+begin
+  apply cycle_induction_on _ σ,
+end
+
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = σ.support.card :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
   (by rw [cycle_type_one, sum_zero, support_one, finset.card_empty])

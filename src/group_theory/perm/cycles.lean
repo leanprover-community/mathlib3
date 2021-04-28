@@ -133,6 +133,20 @@ begin
   convert fintype.card_congr (is_cycle.gpowers_equiv_support hσ),
 end
 
+lemma is_cycle.extend_domain {α : Type*}
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) {σ : perm α} (h : is_cycle σ) :
+  is_cycle (σ.extend_domain f) :=
+begin
+  obtain ⟨x, hx, hx'⟩ := h,
+  refine ⟨f x, λ con, hx (f.injective (subtype.coe_injective _)), λ y hy, _⟩,
+  { rwa [extend_domain_apply_image] at con },
+  have hpy := not_not.1 (λ con, hy (extend_domain_apply_not_subtype _ _ con)),
+  rw extend_domain_apply_subtype _ _ hpy at hy,
+  obtain ⟨i, hi⟩ := hx' (f.symm ⟨y, hpy⟩) (λ con, hy (by simp [con])),
+  refine ⟨i, _⟩,
+  rw [extend_domain_gpow, extend_domain_apply_image, hi, apply_symm_apply, subtype.coe_mk]
+end
+
 lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}
   (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),
   ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b

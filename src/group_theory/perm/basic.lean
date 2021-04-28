@@ -196,6 +196,22 @@ extend_domain_refl f
   (e.extend_domain f) * (e'.extend_domain f) = (e * e').extend_domain f :=
 extend_domain_trans _ _ _
 
+lemma extend_domain_pow (e : perm α) (n : ℕ) :
+  (e.extend_domain f) ^ n = (e ^ n).extend_domain f :=
+begin
+  induction n with n ih,
+  { simp },
+  rw [pow_succ, ih, extend_domain_mul, pow_succ],
+end
+
+lemma extend_domain_gpow (e : perm α) (n : ℤ) :
+  (e.extend_domain f) ^ n = (e ^ n).extend_domain f :=
+begin
+  induction n,
+  { rw [gpow_of_nat, gpow_of_nat, extend_domain_pow] },
+  { rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, extend_domain_pow, extend_domain_inv] }
+end
+
 end extend_domain
 
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation

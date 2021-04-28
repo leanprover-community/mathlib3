@@ -39,7 +39,7 @@ attribute [to_additive] ordered_comm_group
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
-{ mul_le_mul_left := λ a b h c, mul_le_mul_left' h _,
+{ mul_le_mul_left := λ a b h c, (mul_le_mul_left' (units.coe_le_coe.mpr h) _ : (c * a : α) ≤ c * b),
   .. units.partial_order,
   .. (infer_instance : comm_group (units α)) }
 
@@ -85,7 +85,7 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 @[to_additive neg_le_neg]
 lemma inv_le_inv' (h : a ≤ b) : b⁻¹ ≤ a⁻¹ :=
 have 1 ≤ a⁻¹ * b,           from mul_left_inv a ▸ mul_le_mul_left' h _,
-have 1 * b⁻¹ ≤ a⁻¹ * b * b⁻¹, from mul_le_mul_right' this _,
+have 1 * b⁻¹ ≤ a⁻¹ * b * b⁻¹, from mul_le_mul_right this _,
 by rwa [mul_inv_cancel_right, one_mul] at this
 
 @[to_additive]
@@ -398,10 +398,10 @@ by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
-  have := mul_le_mul_right' (mul_le_mul_right' h b) d,
+  have := mul_le_mul_right (mul_le_mul_right h b) d,
   rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right]
     at this,
-  have := mul_le_mul_right' (mul_le_mul_right' h d⁻¹) b⁻¹,
+  have := mul_le_mul_right (mul_le_mul_right h d⁻¹) b⁻¹,
   rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc,
     mul_inv_cancel_right] at this,
 end
@@ -936,7 +936,7 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 
 instance [linear_ordered_add_comm_group α] :
   linear_ordered_add_comm_group (order_dual α) :=
-{ add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
+{ add_le_add_left := λ a b h c, @add_le_add_left α b a _ _ _ h _,
   ..order_dual.linear_order α,
   ..show add_comm_group α, by apply_instance }
 

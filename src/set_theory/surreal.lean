@@ -122,7 +122,7 @@ This lemma is repeatedly used for simplifying multiplication of surreal numbers.
 def add_sub_relabelling {a b c x y z : pgame}
   (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
   (a + b - c).relabelling (x + y - z) :=
-sub_congr_relabelling (add_congr_relabelling h₁ h₂) h₃
+(h₁.add_congr h₂).sub_congr h₃
 
 /-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
 and `c` has the same moves as `z`, then `a + b - c` has the same moves as `y + x - z`.
@@ -130,8 +130,7 @@ This lemma is repeatedly used for simplifying multiplication of surreal numbers.
 def add_comm_sub_relabelling {a b c x y z : pgame}
   (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
   (a + b - c).relabelling (y + x - z) :=
-sub_congr_relabelling
-  ((add_comm_relabelling a b).trans (add_congr_relabelling h₂ h₁)) h₃
+((add_comm_relabelling a b).trans (h₂.add_congr h₁)).sub_congr h₃
 
 /-- `x * y` has exactly the same moves as `y * x`. -/
 def mul_comm_relabelling (x y : pgame.{u}) : (x * y).relabelling (y * x) :=
@@ -157,7 +156,7 @@ end
 
 /-- `x * y` is equivalent to `y * x`. -/
 theorem mul_comm_equiv (x y : pgame) : (x * y).equiv (y * x) :=
-equiv_of_relabelling (mul_comm_relabelling x y)
+(mul_comm_relabelling x y).equiv
 
 /-- `x * 0` has exactly the same moves as `0`. -/
 def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
@@ -169,7 +168,7 @@ def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
 
 /-- `x * 0` is equivalent to `0`. -/
 theorem mul_zero_equiv (x : pgame) : (x * 0).equiv 0 :=
-equiv_of_relabelling (mul_zero_relabelling x)
+(mul_zero_relabelling x).equiv
 
 /-- `0 * x` has exactly the same moves as `0`. -/
 def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
@@ -181,7 +180,7 @@ def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 
 /-- `0 * x` is equivalent to `0`. -/
 theorem zero_mul_equiv (x : pgame) : (0 * x).equiv 0 :=
-equiv_of_relabelling (zero_mul_relabelling x)
+(zero_mul_relabelling x).equiv
 
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
@@ -456,9 +455,9 @@ instance : ordered_add_comm_group surreal :=
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
-  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) }, 
-  neg               := has_neg.neg, 
-  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv }, 
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) },
+  neg               := has_neg.neg,
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv },
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := (≤),
   lt                := (<),
@@ -467,7 +466,7 @@ instance : ordered_add_comm_group surreal :=
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
-  
+
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),

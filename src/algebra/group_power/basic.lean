@@ -108,11 +108,14 @@ by rw [← npow_eq_pow, nat.add_comm, npow_add, npow_one, npow_eq_pow]
 theorem succ_nsmul (a : A) (n : ℕ) : (n+1) • a = a + n • a :=
 by rw [← nsmul_eq_smul, nat.add_comm, nsmul_add', nsmul_one', nsmul_eq_smul]
 
+/-- Note that most of the lemmas about powers of two refer to it as `sq`. -/
 theorem pow_two (a : M) : a^2 = a * a :=
 by rw [← npow_eq_pow, show 2 = 1 + 1, by refl, npow_add, npow_one]
 
+alias pow_two ← sq
+
 theorem two_nsmul (a : A) : 2 • a = a + a :=
-@pow_two (multiplicative A) _ a
+@sq (multiplicative A) _ a
 
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n := commute.pow_self a n
 theorem nsmul_add_comm' : ∀ (a : A) (n : ℕ), n • a + a = a + n • a :=
@@ -444,17 +447,16 @@ theorem pow_dvd_pow_of_dvd [comm_monoid R] {a b : R} (h : a ∣ b) : ∀ n : ℕ
 | 0     := by rw [pow_zero, pow_zero]
 | (n+1) := by { rw [pow_succ, pow_succ], exact mul_dvd_mul h (pow_dvd_pow_of_dvd n) }
 
-lemma pow_two_sub_pow_two {R : Type*} [comm_ring R] (a b : R) :
+lemma sq_sub_sq {R : Type*} [comm_ring R] (a b : R) :
   a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by simp only [pow_two, mul_sub, add_mul, sub_sub, add_sub, mul_comm, sub_add_cancel]
+by rw [sq, sq, mul_self_sub_mul_self]
 
-lemma eq_or_eq_neg_of_pow_two_eq_pow_two [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
+alias sq_sub_sq ← pow_two_sub_pow_two
+
+lemma eq_or_eq_neg_of_sq_eq_sq [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
   a = b ∨ a = -b :=
 by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
-        ← pow_two_sub_pow_two a b, sub_eq_zero]
-
-theorem sq_sub_sq [comm_ring R] (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by rw [pow_two, pow_two, mul_self_sub_mul_self]
+        ← sq_sub_sq a b, sub_eq_zero]
 
 theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) :
   x = 0 :=
@@ -564,8 +566,10 @@ section comm_semiring
 
 variables [comm_semiring R]
 
-lemma add_pow_two (a b : R) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 :=
-by simp only [pow_two, add_mul_self_eq]
+lemma add_sq (a b : R) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 :=
+by simp only [sq, add_mul_self_eq]
+
+alias add_sq ← add_pow_two
 
 end comm_semiring
 
@@ -685,83 +689,93 @@ variable [linear_ordered_ring R]
 theorem pow_bit0_nonneg (a : R) (n : ℕ) : 0 ≤ a ^ bit0 n :=
 by { rw pow_bit0, exact mul_self_nonneg _ }
 
-theorem pow_two_nonneg (a : R) : 0 ≤ a ^ 2 :=
+theorem sq_nonneg (a : R) : 0 ≤ a ^ 2 :=
 pow_bit0_nonneg a 1
+
+alias sq_nonneg ← pow_two_nonneg
 
 theorem pow_bit0_pos {a : R} (h : a ≠ 0) (n : ℕ) : 0 < a ^ bit0 n :=
 (pow_bit0_nonneg a n).lt_of_ne (pow_ne_zero _ h).symm
 
-theorem pow_two_pos_of_ne_zero (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
+theorem sq_pos_of_ne_zero (a : R) (h : a ≠ 0) : 0 < a ^ 2 :=
 pow_bit0_pos h 1
+
+alias sq_pos_of_ne_zero ← pow_two_pos_of_ne_zero
 
 variables {x y : R}
 
-theorem sqr_abs (x : R) : abs x ^ 2 = x ^ 2 :=
-by simpa only [pow_two] using abs_mul_abs_self x
+theorem sq_abs (x : R) : abs x ^ 2 = x ^ 2 :=
+by simpa only [sq] using abs_mul_abs_self x
 
-theorem abs_sqr (x : R) : abs (x ^ 2) = x ^ 2 :=
-by simpa only [pow_two] using abs_mul_self x
+theorem abs_sq (x : R) : abs (x ^ 2) = x ^ 2 :=
+by simpa only [sq] using abs_mul_self x
 
-theorem sqr_lt_sqr (h : abs x < y) : x ^ 2 < y ^ 2 :=
-by simpa only [sqr_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
+theorem sq_lt_sq (h : abs x < y) : x ^ 2 < y ^ 2 :=
+by simpa only [sq_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
 
-theorem sqr_lt_sqr' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
-sqr_lt_sqr (abs_lt.mpr ⟨h1, h2⟩)
+theorem sq_lt_sq' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
+sq_lt_sq (abs_lt.mpr ⟨h1, h2⟩)
 
-theorem sqr_le_sqr (h : abs x ≤ abs y) : x ^ 2 ≤ y ^ 2 :=
-by simpa only [sqr_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
+theorem sq_le_sq (h : abs x ≤ abs y) : x ^ 2 ≤ y ^ 2 :=
+by simpa only [sq_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
 
-theorem sqr_le_sqr' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
-sqr_le_sqr (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
+theorem sq_le_sq' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
+sq_le_sq (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))
 
-theorem abs_lt_abs_of_sqr_lt_sqr (h : x^2 < y^2) : abs x < abs y :=
-lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sqr_abs x, ← sqr_abs y] at h
+theorem abs_lt_abs_of_sq_lt_sq (h : x^2 < y^2) : abs x < abs y :=
+lt_of_pow_lt_pow 2 (abs_nonneg y) $ by rwa [← sq_abs x, ← sq_abs y] at h
 
-theorem abs_lt_of_sqr_lt_sqr (h : x^2 < y^2) (hy : 0 ≤ y) : abs x < y :=
+theorem abs_lt_of_sq_lt_sq (h : x^2 < y^2) (hy : 0 ≤ y) : abs x < y :=
 begin
   rw [← abs_of_nonneg hy],
-  exact abs_lt_abs_of_sqr_lt_sqr h,
+  exact abs_lt_abs_of_sq_lt_sq h,
 end
 
-theorem abs_lt_of_sqr_lt_sqr' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
-abs_lt.mp $ abs_lt_of_sqr_lt_sqr h hy
+theorem abs_lt_of_sq_lt_sq' (h : x^2 < y^2) (hy : 0 ≤ y) : -y < x ∧ x < y :=
+abs_lt.mp $ abs_lt_of_sq_lt_sq h hy
 
-theorem abs_le_abs_of_sqr_le_sqr (h : x^2 ≤ y^2) : abs x ≤ abs y :=
-le_of_pow_le_pow 2 (abs_nonneg y) (1:ℕ).succ_pos $ by rwa [← sqr_abs x, ← sqr_abs y] at h
+theorem abs_le_abs_of_sq_le_sq (h : x^2 ≤ y^2) : abs x ≤ abs y :=
+le_of_pow_le_pow 2 (abs_nonneg y) (1:ℕ).succ_pos $ by rwa [← sq_abs x, ← sq_abs y] at h
 
-theorem abs_le_of_sqr_le_sqr (h : x^2 ≤ y^2) (hy : 0 ≤ y) : abs x ≤ y :=
+theorem abs_le_of_sq_le_sq (h : x^2 ≤ y^2) (hy : 0 ≤ y) : abs x ≤ y :=
 begin
   rw [← abs_of_nonneg hy],
-  exact abs_le_abs_of_sqr_le_sqr h,
+  exact abs_le_abs_of_sq_le_sq h,
 end
 
-theorem abs_le_of_sqr_le_sqr' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
-abs_le.mp $ abs_le_of_sqr_le_sqr h hy
+theorem abs_le_of_sq_le_sq' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
+abs_le.mp $ abs_le_of_sq_le_sq h hy
 
 end linear_ordered_ring
 
-@[simp] lemma eq_of_pow_two_eq_pow_two [linear_ordered_comm_ring R]
+@[simp] lemma eq_of_sq_eq_sq [linear_ordered_comm_ring R]
   {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) :
   a ^ 2 = b ^ 2 ↔ a = b :=
 begin
   refine ⟨_, congr_arg _⟩,
   intros h,
-  refine (eq_or_eq_neg_of_pow_two_eq_pow_two _ _ h).elim id _,
+  refine (eq_or_eq_neg_of_sq_eq_sq _ _ h).elim id _,
   rintros rfl,
   rw le_antisymm (neg_nonneg.mp ha) hb,
   exact neg_zero
 end
 
-@[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
-by simp [pow_two]
+@[simp] lemma neg_sq {α} [ring α] (z : α) : (-z)^2 = z^2 :=
+by simp [sq]
 
-lemma sub_pow_two {R} [comm_ring R] (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
-by rw [sub_eq_add_neg, add_pow_two, neg_square, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
+alias neg_sq ← neg_pow_two
+
+lemma sub_sq {R} [comm_ring R] (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
+by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
+
+alias sub_sq ← sub_pow_two
 
 /-- Arithmetic mean-geometric mean (AM-GM) inequality for linearly ordered commutative rings. -/
-lemma two_mul_le_add_pow_two {R} [linear_ordered_comm_ring R] (a b : R) :
+lemma two_mul_le_add_sq {R} [linear_ordered_comm_ring R] (a b : R) :
   2 * a * b ≤ a ^ 2 + b ^ 2 :=
-sub_nonneg.mp ((sub_add_eq_add_sub _ _ _).subst ((sub_pow_two a b).subst (pow_two_nonneg _)))
+sub_nonneg.mp ((sub_add_eq_add_sub _ _ _).subst ((sub_sq a b).subst (sq_nonneg _)))
+
+alias two_mul_le_add_sq ← two_mul_le_add_pow_two
 
 lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl

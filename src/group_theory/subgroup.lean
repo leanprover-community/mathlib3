@@ -149,7 +149,7 @@ to_submonoid_injective.eq_iff
 lemma to_submonoid_mono : monotone (to_submonoid : subgroup G → submonoid G) :=
 to_submonoid_strict_mono.monotone
 
-@[to_additive]
+@[simp, to_additive]
 lemma to_submonoid_le_iff {p q : subgroup G} : p.to_submonoid ≤ q.to_submonoid ↔ p ≤ q :=
 iff.rfl
 

@@ -197,7 +197,7 @@ def to_add_subgroup : add_subgroup M :=
 
 @[simp] lemma coe_to_add_subgroup : (p.to_add_subgroup : set M) = p := rfl
 
-@[simp] lemma mem_to_add_subgroup : x ∈ p.to_add_subgroup = x ∈ p := rfl
+@[simp] lemma mem_to_add_subgroup : x ∈ p.to_add_subgroup ↔ x ∈ p := iff.rfl
 
 include module_M
 

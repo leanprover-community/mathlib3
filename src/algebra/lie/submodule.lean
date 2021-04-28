@@ -436,7 +436,7 @@ variables {f}
 @[simp] lemma map_sup : (N ⊔ N₂).map f = N.map f ⊔ N₂.map f :=
 (gc_map_comap f).l_sup
 
-@[simp] lemma mem_map (m' : M') : m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
+lemma mem_map (m' : M') : m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
 submodule.mem_map
 
 end lie_submodule

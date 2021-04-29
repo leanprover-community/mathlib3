@@ -415,7 +415,7 @@ def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
 local infix ` ≈ ` := pgame.equiv
 
-@[refl] theorem equiv_refl (x) : x ≈ x := ⟨le_refl _, le_refl _⟩
+@[refl, simp] theorem equiv_refl (x) : x ≈ x := ⟨le_refl _, le_refl _⟩
 @[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
 @[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩

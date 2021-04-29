@@ -51,7 +51,8 @@ by simpa only [impartial_iff_aux] using impartial_aux_def
 
 namespace impartial
 
-instance impartial_zero : impartial 0 := by tidy
+instance impartial_zero : impartial 0 :=
+by { rw impartial_def, dsimp, simp }
 
 lemma neg_equiv_self (G : pgame) [h : G.impartial] : G ≈ -G := (impartial_def.1 h).1
 

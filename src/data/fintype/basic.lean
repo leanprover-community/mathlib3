@@ -931,6 +931,20 @@ subtype.fintype (λ x, x ∈ s)
 
 namespace function.embedding
 
+private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injective f} ≃ (α ↪ β) :=
+{ to_fun := λ f, ⟨f.val, f.property⟩,
+  inv_fun := λ f, ⟨f, f.injective⟩,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by {ext, refl} }
+
+instance fintype {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
+  fintype (α ↪ β) := fintype.of_equiv _ (equiv_inj_subtype α β)
+
+instance fintype' {α β} [infinite α] [fintype β] : fintype (α ↪ β) :=
+{ elems := finset.empty,
+  complete := λ f, let ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f in
+              false.elim $ ne $ f.injective f_eq }
+
 /-- An embedding from a `fintype` to itself can be promoted to an equivalence. -/
 noncomputable def equiv_of_fintype_self_embedding {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
 equiv.of_bijective e (fintype.injective_iff_bijective.1 e.2)

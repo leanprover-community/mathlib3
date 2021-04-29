@@ -11,7 +11,7 @@ import algebra.group_power.basic
 # Instances on spaces of monoid and group morphisms
 
 We endow the space of monoid morphisms `M →* N` with a `comm_monoid` structure when the target is
-commutative, through pointwise multipliplication, and with a `comm_group` structure when the target
+commutative, through pointwise multiplication, and with a `comm_group` structure when the target
 is a commutative group. We also prove the same instances for additive situations.
 -/
 
@@ -94,13 +94,66 @@ def flip_hom {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
 end monoid_hom
 
 /-- If `G` is a commutative group, then `M →* G` a commutative group too. -/
-@[to_additive]
 instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
 { inv := has_inv.inv,
   div := has_div.div,
   div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
   mul_left_inv := by intros; ext; apply mul_left_inv,
+  gpow := λ n f, { to_fun := λ x, gpow n (f x),
+    map_one' := by simp,
+    map_mul' := λ x y, by simp [mul_gpow] },
+  gpow_zero' := λ f, by { ext x, simp },
+  gpow_succ' := λ n f, by { ext x, simp [gpow_of_nat, pow_succ] },
+  gpow_neg'  := λ n f, by { ext x, simp },
   ..monoid_hom.comm_monoid }
 
 /-- If `G` is an additive commutative group, then `M →+ G` an additive commutative group too. -/
-add_decl_doc add_monoid_hom.add_comm_group
+instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G) :=
+{ neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := by { intros, ext, apply sub_eq_add_neg },
+  add_left_neg := by intros; ext; apply add_left_neg,
+  gsmul := λ n f, { to_fun := λ x, gsmul n (f x),
+    map_zero' := by simp,
+    map_add' := λ x y, by simp [gsmul_add] },
+  gsmul_zero' := λ f, by { ext x, simp },
+  gsmul_succ' := λ n f, by { ext x, simp [gsmul_of_nat, nat.succ_eq_one_add, add_nsmul] },
+  gsmul_neg'  := λ n f, by { ext x, simp },
+  ..add_monoid_hom.add_comm_monoid }
+
+attribute [to_additive] monoid_hom.comm_group
+
+/-!
+### Miscellaneous definitions
+
+Due to the fact this file imports `algebra.group_power.basic`, it is not possible to import it in
+some of the lower-level files like `algebra.ring.basic`. The following lemmas should be rehomed
+if the import structure permits them to be.
+-/
+
+section semiring
+
+variables {R : Type*} [semiring R]
+
+/-- Multiplication of an element of a (semi)ring is an `add_monoid_hom` in both arguments.
+
+This is a more-strongly bundled version of `add_monoid_hom.mul_left` and `add_monoid_hom.mul_right`.
+
+A stronger version of this exists for algebras as `algebra.lmul`.
+-/
+def add_monoid_hom.mul : R →+ R →+ R :=
+{ to_fun := add_monoid_hom.mul_left,
+  map_zero' := add_monoid_hom.ext $ zero_mul,
+  map_add' := λ a b, add_monoid_hom.ext $ add_mul a b }
+
+lemma add_monoid_hom.mul_apply (x y : R) : add_monoid_hom.mul x y = x * y := rfl
+
+@[simp]
+lemma add_monoid_hom.coe_mul :
+  ⇑(add_monoid_hom.mul : R →+ R →+ R) = add_monoid_hom.mul_left := rfl
+
+@[simp]
+lemma add_monoid_hom.coe_flip_mul :
+  ⇑(add_monoid_hom.mul : R →+ R →+ R).flip = add_monoid_hom.mul_right := rfl
+
+end semiring

@@ -166,7 +166,7 @@ instance : algebra R (A ⊗[R] B) :=
     { intros, dsimp, simp [smul_add, mul_add, *], },
   end,
   .. tensor_algebra_map,
-  .. (by apply_instance : semimodule R (A ⊗[R] B)) }.
+  .. (by apply_instance : module R (A ⊗[R] B)) }.
 
 @[simp]
 lemma algebra_map_apply (r : R) :

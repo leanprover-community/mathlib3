@@ -20,7 +20,7 @@ This file defines a hierarchy of group action type-classes:
 * `distrib_mul_action M A` is a typeclass for an action of a multiplicative monoid on
   an additive monoid such that `a • (b + c) = a • b + a • c` and `a • 0 = 0`.
 
-The hierarchy is extended further by `semimodule`, defined elsewhere.
+The hierarchy is extended further by `module`, defined elsewhere.
 
 Also provided are type-classes regarding the interaction of different group actions,
 
@@ -168,7 +168,7 @@ variables (M)
 
 /-- The regular action of a monoid on itself by left multiplication.
 
-This is promoted to a semimodule by `semiring.to_semimodule`. -/
+This is promoted to a module by `semiring.to_module`. -/
 @[priority 910, to_additive] -- see Note [lower instance priority]
 instance monoid.to_mul_action : mul_action M M :=
 { smul := (*),

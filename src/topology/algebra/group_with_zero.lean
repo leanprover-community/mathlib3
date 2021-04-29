@@ -211,7 +211,7 @@ begin
   have : ∀ y : G₀, ∀ m : ℤ, 0 < m → tendsto (λ x, x ^ m) (𝓝 y) (𝓝 (y ^ m)),
   { assume y m hm,
     lift m to ℕ using (le_of_lt hm) with k,
-    simp only [fpow_coe_nat],
+    simp only [gpow_coe_nat],
     exact (continuous_pow k).continuous_at.tendsto },
   rcases lt_trichotomy m 0 with hm | hm | hm,
   { have hm' : 0 < - m := by rwa neg_pos,

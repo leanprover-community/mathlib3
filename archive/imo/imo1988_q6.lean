@@ -26,7 +26,7 @@ To illustrate the technique, we also prove a similar result.
 -- open_locale classical
 
 local attribute [instance] classical.prop_decidable
-local attribute [simp] pow_two
+local attribute [simp] sq
 
 /-- Constant descent Vieta jumping.
 
@@ -189,7 +189,7 @@ lemma imo1988_q6 {a b : ℕ} (h : (a*b+1) ∣ a^2 + b^2) :
 begin
   rcases h with ⟨k, hk⟩,
   rw [hk, nat.mul_div_cancel_left _ (nat.succ_pos (a*b))],
-  simp only [pow_two] at hk,
+  simp only [sq] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false);
   clear hk a b,
   { -- We will now show that the fibers of the solution set are described by a quadratic equation.
@@ -248,7 +248,7 @@ example {a b : ℕ} (h : a*b ∣ a^2 + b^2 + 1) :
 begin
   rcases h with ⟨k, hk⟩,
   suffices : k = 3, { simp * at *, ring, },
-  simp only [pow_two] at hk,
+  simp only [sq] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x + 1) (λ x y, x ≤ 1);
   clear hk a b,
   { -- We will now show that the fibers of the solution set are described by a quadratic equation.

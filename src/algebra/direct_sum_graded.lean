@@ -140,7 +140,6 @@ def ghas_one.of_add_submonoids [semiring R] [has_zero ι]
 { one := ⟨1, one_mem⟩ }
 
 /-- Build a `ghas_mul` instance for a collection of `add_submonoids`. -/
-@[simps mul]
 def ghas_mul.of_add_submonoids [semiring R] [has_add ι]
   (carriers : ι → add_submonoid R)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
@@ -152,6 +151,12 @@ def ghas_mul.of_add_submonoids [semiring R] [has_add ι]
       map_zero' := subtype.ext (mul_zero _), },
     map_add' := λ _ _, add_monoid_hom.ext $ λ _, subtype.ext (add_mul _ _ _),
     map_zero' := add_monoid_hom.ext $ λ _, subtype.ext (zero_mul _) }, }
+
+-- `@[simps]` doesn't generate this well
+lemma ghas_mul.of_add_submonoids_mul [semiring R] [has_add ι]
+  (carriers : ι → add_submonoid R) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
+  @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_add_submonoids carriers mul_mem) i j a b =
+    ⟨a * b, mul_mem a b⟩ := rfl
 
 /-- Build a `gmonoid` instance for a collection of `add_submonoid`s. -/
 @[simps to_ghas_one to_ghas_mul]
@@ -188,12 +193,16 @@ def ghas_one.of_add_subgroups [ring R] [has_zero ι]
 ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
 /-- Build a `ghas_mul` instance for a collection of `add_subgroup`s. -/
-@[simps mul]
 def ghas_mul.of_add_subgroups [ring R] [has_add ι]
   (carriers : ι → add_subgroup R)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
 ghas_mul.of_add_submonoids (λ i, (carriers i).to_add_submonoid) mul_mem
+
+lemma ghas_mul.of_add_subgroups_mul [ring R] [has_add ι]
+  (carriers : ι → add_subgroup R) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
+  @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_add_subgroups carriers mul_mem) i j a b =
+    ⟨a * b, mul_mem a b⟩ := rfl
 
 /-- Build a `gmonoid` instance for a collection of `add_subgroup`s. -/
 @[simps to_ghas_one to_ghas_mul]
@@ -227,13 +236,19 @@ def ghas_one.of_submodules
 ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
 /-- Build a `ghas_mul` instance for a collection of `submodule`s. -/
-@[simps mul]
 def ghas_mul.of_submodules
   [comm_semiring R] [semiring A] [algebra R A] [has_add ι]
   (carriers : ι → submodule R A)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : A) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
 ghas_mul.of_add_submonoids (λ i, (carriers i).to_add_submonoid) mul_mem
+
+-- `@[simps]` doesn't generate this well
+lemma ghas_mul.of_submodules_mul
+  [comm_semiring R] [semiring A] [algebra R A] [has_add ι]
+  (carriers : ι → submodule R A) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
+  @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_submodules carriers mul_mem) i j a b =
+    ⟨a * b, mul_mem a b⟩ := rfl
 
 /-- Build a `gmonoid` instance for a collection of `submodules`s. -/
 @[simps to_ghas_one to_ghas_mul]

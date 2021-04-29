@@ -353,7 +353,7 @@ local attribute [reducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
-  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
+  ..(by apply_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
 
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 

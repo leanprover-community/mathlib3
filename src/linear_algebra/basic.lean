@@ -948,6 +948,12 @@ lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
 by simp_rw [set_like.le_def, mem_span_singleton]
 
+lemma span_singleton_eq_top_iff (x : M) : (R ∙ x) = ⊤ ↔ ∀ v, ∃ r : R, r • x = v :=
+begin
+  rw [eq_top_iff, le_span_singleton_iff],
+  finish,
+end
+
 @[simp] lemma span_zero_singleton : (R ∙ (0:M)) = ⊥ :=
 by { ext, simp [mem_span_singleton, eq_comm] }
 
@@ -1378,13 +1384,10 @@ theorem comap_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf p') :
   submodule.comap (cod_restrict p f hf) p' = submodule.comap f (map p.subtype p') :=
 submodule.ext $ λ x, ⟨λ h, ⟨⟨_, hf x⟩, h, rfl⟩, by rintro ⟨⟨_, _⟩, h, ⟨⟩⟩; exact h⟩
 
-/-- The range of a linear map `f : M → M₂` is a submodule of `M₂`. -/
+/-- The range of a linear map `f : M → M₂` is a submodule of `M₂`. See Note [range copy pattern]. -/
 def range (f : M →ₗ[R] M₂) : submodule R M₂ :=
 (map f ⊤).copy (set.range f) set.image_univ.symm
 
-/-- Note that `linear_map.range` is deliberately defined in a way that makes this true by `rfl`,
-as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
-obligations. -/
 theorem range_coe (f : M →ₗ[R] M₂) : (range f : set M₂) = set.range f := rfl
 
 @[simp] theorem mem_range {f : M →ₗ[R] M₂} {x} : x ∈ range f ↔ ∃ y, f y = x :=

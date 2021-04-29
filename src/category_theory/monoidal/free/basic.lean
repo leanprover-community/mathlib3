@@ -82,7 +82,8 @@ inductive hom_equiv : Π {X Y : F C}, (X ⟶ᵐ Y) → (X ⟶ᵐ Y) → Prop
 | assoc {X Y U V : F C} (f : X ⟶ᵐ U) (g : U ⟶ᵐ V) (h : V ⟶ᵐ Y) :
     hom_equiv ((f.comp g).comp h) (f.comp (g.comp h))
 | tensor_id {X Y} : hom_equiv ((hom.id X).tensor (hom.id Y)) (hom.id _)
-| tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : F C} (f₁ : X₁ ⟶ᵐ Y₁) (f₂ : X₂ ⟶ᵐ Y₂) (g₁ : Y₁ ⟶ᵐ Z₁) (g₂ : Y₂ ⟶ᵐ Z₂) :
+| tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : F C}
+    (f₁ : X₁ ⟶ᵐ Y₁) (f₂ : X₂ ⟶ᵐ Y₂) (g₁ : Y₁ ⟶ᵐ Z₁) (g₂ : Y₂ ⟶ᵐ Z₂) :
     hom_equiv ((f₁.comp g₁).tensor (f₂.comp g₂)) ((f₁.tensor f₂).comp (g₁.tensor g₂))
 | α_hom_inv {X Y Z} : hom_equiv ((hom.α_hom X Y Z).comp (hom.α_inv X Y Z)) (hom.id _)
 | α_inv_hom {X Y Z} : hom_equiv ((hom.α_inv X Y Z).comp (hom.α_hom X Y Z)) (hom.id _)

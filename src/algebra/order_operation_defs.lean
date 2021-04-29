@@ -134,7 +134,18 @@ by rw mul_eq_function_swap
 
 end covariants_and_contravariants
 
-section typeclasses_for_relating_orders_and_binary_operations
+section typeclasses_relating_orders_and_binary_operations
+/-!
+Typeclasses relating orders and binary operations
+
+These typeclasses are of two kinds:
+
+*  `has_mul_le_mul_left`, asserting `b ≤ c → a * b ≤ a * c`,
+*  `has_lt_of_mul_lt_mul_left`, asserting `b < c → a * b < a * c`.
+
+The binary operation (`(*)` or `(+)`), the side of multiplication (left or right), the partial
+order (`(≤)` or `(<)`) are free to vary in all ways.
+-/
 variable (α : Type*)
 
 /--  A typeclass assuming the implication `b ≤ c → a + b ≤ a + c`:
@@ -289,4 +300,4 @@ instance has_lt_of_mul_lt_mul_left.to_has_lt_of_mul_lt_mul_right [has_lt α]
 
 end left_implies_right
 
-end typeclasses_for_relating_orders_and_binary_operations
+end typeclasses_relating_orders_and_binary_operations

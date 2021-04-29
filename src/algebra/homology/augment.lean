@@ -16,7 +16,7 @@ open homological_complex
 
 universes v u
 
-variables {V : Type u} [category.{v} V] [has_zero_morphisms V] [has_zero_object V]
+variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
 
 namespace chain_complex
 
@@ -38,7 +38,8 @@ There is a canonical chain map from the truncation of a chain map `C` to
 the "single object" chain complex consisting of the truncated object `C.X 0` in degree 0.
 The components of this chain map are `C.d 1 0` in degree 0, and zero otherwise.
 -/
-def truncate_to_single (C : chain_complex V ℕ) : truncate.obj C ⟶ (single V _ 0).obj (C.X 0) :=
+def truncate_to_single [has_zero_object V] (C : chain_complex V ℕ) :
+  truncate.obj C ⟶ (single V _ 0).obj (C.X 0) :=
 (to_single_equiv (truncate.obj C) (C.X 0)).symm ⟨C.d 1 0, by tidy⟩
 
 -- TODO: `C` is exact iff `truncate_to_single` is a quasi-isomorphism.
@@ -148,7 +149,8 @@ can be reinterpreted as a chain complex.
 
 Ths is the inverse construction of `truncate_to_single`.
 -/
-def to_single_as_complex (C : chain_complex V ℕ) (X : V) (f : C ⟶ (single V _ 0).obj X) :
+def to_single_as_complex
+  [has_zero_object V] (C : chain_complex V ℕ) (X : V) (f : C ⟶ (single V _ 0).obj X) :
   chain_complex V ℕ :=
 let ⟨f, w⟩ := to_single_equiv C X f in augment C f w
 

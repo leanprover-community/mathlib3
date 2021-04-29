@@ -69,18 +69,20 @@ cokernel (image_to_kernel f g w)
 end
 
 section
-variables [has_images V] [has_equalizers V]
 variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
 
 @[simp]
-lemma image_to_kernel_zero_left [has_zero_object V] {w} :
+lemma image_to_kernel_zero_left [has_kernels V] [has_zero_object V] {w} :
   image_to_kernel (0 : A ⟶ B) g w = 0 :=
 by { ext, simp, }
 
-lemma image_to_kernel_zero_right {w} :
+lemma image_to_kernel_zero_right [has_images V] {w} :
   image_to_kernel f (0 : B ⟶ C) w =
     (image_subobject f).arrow ≫ inv (kernel_subobject (0 : B ⟶ C)).arrow :=
 by { ext, simp }
+
+section
+variables [has_kernels V] [has_images V]
 
 lemma image_to_kernel_comp_right {D : V} (h : C ⟶ D) (w : f ≫ g = 0) :
   image_to_kernel f (g ≫ h) (by simp [reassoc_of w]) =
@@ -106,8 +108,10 @@ lemma image_to_kernel_epi_comp {Z : V} (h : Z ⟶ A) [epi h] (w) :
     image_to_kernel f g ((cancel_epi h).mp (by simpa using w : h ≫ f ≫ g = h ≫ 0)) :=
 by { ext, simp, }
 
+end
+
 @[simp]
-lemma image_to_kernel_comp_hom_inv_comp {Z : V} {i : B ≅ Z} (w) :
+lemma image_to_kernel_comp_hom_inv_comp [has_equalizers V] [has_images V] {Z : V} {i : B ≅ Z} (w) :
   image_to_kernel (f ≫ i.hom) (i.inv ≫ g) w =
   (image_subobject_comp_iso _ _).hom ≫ image_to_kernel f g (by simpa using w) ≫
     (kernel_subobject_iso_comp i.inv g).inv :=
@@ -119,7 +123,7 @@ local attribute [instance] has_zero_object.has_zero
 `image_to_kernel` for `A --0--> B --g--> C`, where `g` is a mono is itself an epi
 (i.e. the sequence is exact at `B`).
 -/
-lemma image_to_kernel_epi_of_zero_of_mono [mono g] [has_zero_object V] :
+lemma image_to_kernel_epi_of_zero_of_mono [has_kernels V] [has_zero_object V] [mono g] :
   epi (image_to_kernel (0 : A ⟶ B) g (by simp)) :=
 epi_of_target_iso_zero _ (kernel_subobject_iso g ≪≫ kernel.of_mono g)
 
@@ -127,7 +131,7 @@ epi_of_target_iso_zero _ (kernel_subobject_iso g ≪≫ kernel.of_mono g)
 `image_to_kernel` for `A --f--> B --0--> C`, where `g` is an epi is itself an epi
 (i.e. the sequence is exact at `B`).
 -/
-lemma image_to_kernel_epi_of_epi_of_zero [epi f] :
+lemma image_to_kernel_epi_of_epi_of_zero [has_images V] [epi f] :
   epi (image_to_kernel f (0 : B ⟶ C) (by simp)) :=
 begin
   simp only [image_to_kernel_zero_right],

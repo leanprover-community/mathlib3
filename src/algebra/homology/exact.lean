@@ -102,7 +102,7 @@ lemma image_to_kernel_is_iso_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B
 begin
   refine ⟨⟨subobject.of_le _ _ p.ge, _⟩⟩,
   dsimp [image_to_kernel],
-  simp only [subobject.of_le_comp, subobject.of_le_refl],
+  simp only [subobject.of_le_comp_of_le, subobject.of_le_refl],
   simp,
 end
 

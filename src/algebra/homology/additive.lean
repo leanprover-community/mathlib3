@@ -23,7 +23,7 @@ noncomputable theory
 open category_theory category_theory.limits homological_complex
 
 variables {ι : Type*}
-variables {V : Type u} [category.{v} V] [has_zero_object V] [preadditive V]
+variables {V : Type u} [category.{v} V] [preadditive V]
 
 variables {c : complex_shape ι} {C D E : homological_complex V c}
 variables (f g : C ⟶ D) (h k : D ⟶ E) (i : ι)
@@ -50,15 +50,19 @@ end homological_complex
 
 namespace homological_complex
 
-variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
+variables [has_zero_object V]
 
-instance cycles_additive : (cycles_functor V c i).additive :=
+instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive :=
 { map_zero' := λ C D, by { dsimp [cycles_functor], ext, simp, },
   map_add' := λ C D f g, by { dsimp [cycles_functor], ext, simp, }, }
+
+variables [has_images V] [has_image_maps V]
 
 instance boundaries_additive : (boundaries_functor V c i).additive :=
 { map_zero' := λ C D, by { dsimp [boundaries_functor], ext, simp, },
   map_add' := λ C D f g, by { dsimp [boundaries_functor], ext, simp, }, }
+
+variables [has_equalizers V] [has_cokernels V]
 
 instance homology_additive : (homology_functor V c i).additive :=
 { map_zero' := λ C D, begin

@@ -764,8 +764,9 @@ begin
   exact is_iso_of_reflects_iso _ (forget CommRing),
 end
 
-def basic_open_iso (f : R) (hf : basic_open f ≠ ∅) :
-  (structure_sheaf R).presheaf.obj (op (basic_open f)) ≅
+/-- The ring isomorphism between the structure sheaf on `basic_open f` and the localization of `R`
+at the submonoid of powers of `f`. -/
+def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)) ≅
   CommRing.of (localization (submonoid.powers f)) :=
 (as_iso (to_basic_open R f)).symm
 

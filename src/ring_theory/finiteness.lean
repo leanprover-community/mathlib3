@@ -566,6 +566,46 @@ namespace add_monoid_algebra
 
 open algebra submodule
 
+section span
+
+variables {R : Type*} {M : Type*} [comm_ring R] [add_monoid M]
+
+lemma mem_adjoint_support (f : (add_monoid_algebra R M)) :
+  f ∈ adjoin R ((add_monoid_algebra.of R M)'' (f.support : set M)) :=
+begin
+  suffices : span R (of R M '' (f.support : set M)) ≤
+    (adjoin R (of R M '' (f.support : set M))).to_submodule,
+  { exact this (mem_span_support f) },
+  rw submodule.span_le,
+  exact subset_adjoin
+end
+
+lemma support_gen_of_gen {S : set (add_monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
+  algebra.adjoin R (⋃ f ∈ S, ((of R M)'' (f.support : set M))) = ⊤ :=
+begin
+  refine le_antisymm le_top _,
+  rw [← hS, adjoin_le_iff],
+  intros f hf,
+  have hincl : (of R M) '' (f.support : set M) ⊆
+    ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of R M '' (g.support : set M),
+  { intros s hs,
+    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+  exact adjoin_mono hincl (mem_adjoint_support f)
+end
+
+lemma support_gen_of_gen' {S : set (add_monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
+  algebra.adjoin R (of R M '' (⋃ f ∈ S, (f.support : set M))) = ⊤ :=
+begin
+  suffices : of R M '' (⋃ f ∈ S, (f.support : set M)) = ⋃ f ∈ S, (of R M '' (f.support : set M)),
+  { rw this,
+    exact support_gen_of_gen hS },
+  simp only [set.image_Union]
+end
+
+end span
+
+section finiteness
+
 variables {R : Type*} {M : Type*} [comm_ring R] [add_comm_monoid M]
 
 lemma ft_of_fg : add_monoid.fg M → finite_type R (add_monoid_algebra R M) :=
@@ -601,17 +641,61 @@ begin
       exact ⟨P ^ a, by rw [alg_hom.map_pow, hP, add_monoid_algebra.single_pow, one_pow]⟩ } },
 end
 
+end finiteness
+
 end add_monoid_algebra
 
 namespace monoid_algebra
 
-open algebra
+open algebra submodule
+
+section span
+
+variables {R : Type*} {M : Type*} [comm_ring R] [monoid M]
+
+lemma mem_adjoint_support (f : (monoid_algebra R M)) :
+  f ∈ adjoin R (monoid_algebra.of R M '' (f.support : set M)) :=
+begin
+  suffices : span R (of R M '' (f.support : set M)) ≤
+    (adjoin R (of R M '' (f.support : set M))).to_submodule,
+  { exact this (mem_span_support f) },
+  rw submodule.span_le,
+  exact subset_adjoin
+end
+
+lemma support_gen_of_gen {S : set (monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
+  algebra.adjoin R (⋃ f ∈ S, ((of R M)'' (f.support : set M))) = ⊤ :=
+begin
+  refine le_antisymm le_top _,
+  rw [← hS, adjoin_le_iff],
+  intros f hf,
+  have hincl : (of R M) '' (f.support : set M) ⊆
+    ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' (g.support : set M),
+  { intros s hs,
+    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+  exact adjoin_mono hincl (mem_adjoint_support f)
+end
+
+lemma support_gen_of_gen' {S : set (monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
+  algebra.adjoin R (of R M '' (⋃ f ∈ S, (f.support : set M))) = ⊤ :=
+begin
+  suffices : of R M '' (⋃ f ∈ S, (f.support : set M)) = ⋃ f ∈ S, (of R M '' (f.support : set M)),
+  { rw this,
+    exact support_gen_of_gen hS },
+  simp only [set.image_Union]
+end
+
+end span
+
+section finiteness
 
 variables {R : Type*} {M : Type*} [comm_ring R] [comm_monoid M]
 
 lemma ft_of_fg : monoid.fg M → finite_type R (monoid_algebra R M) :=
 λ h, finite_type.equiv (add_monoid_algebra.ft_of_fg (monoid.fg_iff_add_fg.mp h))
   (monoid_algebra.to_additive_alg_equiv R M).symm
+
+end finiteness
 
 end monoid_algebra
 

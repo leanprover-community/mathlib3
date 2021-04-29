@@ -597,9 +597,8 @@ open algebra
 
 variables {R : Type*} {M : Type*} [comm_ring R] [comm_monoid M]
 
-lemma ft_of_fg : monoid.fg M → finite_type R (monoid_algebra R M) :=
-λ h, finite_type.equiv (add_monoid_algebra.ft_of_fg (monoid.fg_iff_add_fg.mp h))
-  (monoid_algebra.to_additive_alg_equiv R M).symm
+instance ft_of_fg [monoid.fg M] : finite_type R (monoid_algebra R M) :=
+add_monoid_algebra.ft_of_fg.equiv (monoid_algebra.to_additive_alg_equiv R M).symm
 
 end monoid_algebra
 

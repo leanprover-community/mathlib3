@@ -763,12 +763,18 @@ ext $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, line
 @[simp] lemma map_id : map (id : M →ₗ[R] M) (id : N →ₗ[R] N) = id :=
 by { ext, simp only [mk_apply, id_coe, compr₂_apply, id.def, map_tmul], }
 
+@[simp] lemma map_one : map (1 : M →ₗ[R] M) (1 : N →ₗ[R] N) = 1 := map_id
+
+lemma map_mul (f₁ f₂ : M →ₗ[R] M) (g₁ g₂ : N →ₗ[R] N) :
+  map (f₁ * f₂) (g₁ * g₂) = (map f₁ g₁) * (map f₂ g₂) :=
+map_comp f₁ f₂ g₁ g₂
+
 @[simp] lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
   (map f g)^n = map (f^n) (g^n) :=
 begin
   induction n with n ih,
-  { simp only [pow_zero, one_eq_id, map_id], },
-  { simp only [pow_succ', ih, mul_eq_comp, map_comp], },
+  { simp only [pow_zero, map_one], },
+  { simp only [pow_succ', ih, map_mul], },
 end
 
 end

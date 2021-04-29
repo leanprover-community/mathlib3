@@ -884,14 +884,35 @@ instance group : group c.quotient :=
 
 end groups
 
-@[to_additive]
-lemma con_rel [has_mul M] (c : con M) :
+/--  Given a congruence on a Type `M` with multiplication, `covariant (*) c.r` and
+`covariant (flip (*)) c.r` automatically hold.  This means, to test whether two elements `a, b ∈ M`
+are equivalent under the relation `c.r`, you can freely multiply `a` and `b` on the left and on the
+right by elements of `M` and test whether the relation holds afterwards. -/
+@[to_additive
+"Given a congruence on a Type `M` with addition, `covariant (*) c.r` and
+`covariant (flip (*)) c.r` automatically hold.  This means, to test whether two elements `a, b ∈ M`
+are equivalent under the relation `c.r`, you can freely add to `a` and `b` on the left and on the
+right any element of `M` and test whether the relation holds afterwards."]
+lemma covariant_and_covariant_flip_of_con [has_mul M] (c : con M) :
   covariant (*) c.r ∧ covariant (flip (*)) c.r :=
 ⟨λ _ _ _ h, c.mul' (con.refl _ _) h, λ _ _ _ h, c.mul' h (con.refl _ _)⟩
 
-@[to_additive]
-lemma con_rel_converse [has_mul M] [setoid M]
-  (h : covariant ((*) : M → M → M) setoid.r) (h' : covariant (flip (*) : M → M → M) setoid.r) :
+/--  If `M` is a Type with a multiplication and an equivalence relation `r`
+and the relation is invariant under left- and right-multiplication by elements of `M`, then
+`r` induces a natural congruence structure on `M`.
+
+The invariance is expressed as `covariant ((*) : M → M → M) setoid.r` and
+`covariant (flip (*) : M → M → M) setoid.r` -/
+@[to_additive
+"If `M` is a Type with addition and an equivalence relation `r`
+and the relation is invariant under left- and right-addition by elements of `M`, then
+`r` induces a natural congruence structure on `M`.
+
+The invariance is expressed as `covariant ((+) : M → M → M) setoid.r` and
+`covariant (flip (+) : M → M → M) setoid.r`"]
+def con_of_covariant_covariant_flip [has_mul M] [setoid M]
+  (h : covariant ((*) : M → M → M) setoid.r)
+  (h' : covariant (flip (*) : M → M → M) setoid.r) :
   con M :=
 { r := setoid.r,
   iseqv := setoid.iseqv,

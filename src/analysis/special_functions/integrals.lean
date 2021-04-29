@@ -12,7 +12,7 @@ This file contains proofs of the integrals of various specific functions. This i
 * Integrals of simple functions, such as `id`, `pow`, `exp`, `inv`
 * Integrals of some trigonometric functions, such as `sin`, `cos`, `1 / (1 + x^2)`
 * The integral of `cos x ^ 2 - sin x ^ 2`
-* The reduction of the integral of `sin x ^ n` for `n ≥ 2`
+* Reduction formulae for the integrals of `sin x ^ n` and `cos x ^ n` for `n ≥ 2`
 * The computation of `∫ x in 0..π, sin x ^ n` as a product for even and odd `n` (used in proving the
   Wallis product for pi)
 
@@ -315,6 +315,43 @@ begin
   { refine pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc _) (sin_le_one x) (nat.le_add_right n 1),
     rwa interval_of_le pi_pos.le at hx },
 end
+
+/-! ### Integral of `cos x ^ n` -/
+
+lemma integral_cos_pow_aux :
+  ∫ x in a..b, cos x ^ (n + 2) = cos b ^ (n + 1) * sin b - cos a ^ (n + 1) * sin a
+    + (n + 1) * (∫ x in a..b, cos x ^ n) - (n + 1) * ∫ x in a..b, cos x ^ (n + 2) :=
+begin
+  let C := cos b ^ (n + 1) * sin b - cos a ^ (n + 1) * sin a,
+  have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
+  have hu : ∀ x ∈ _, has_deriv_at (λ y, cos y ^ (n + 1)) (-(n + 1) * sin x * cos x ^ n) x :=
+    λ x hx, by simpa [mul_right_comm, -neg_add_rev] using (has_deriv_at_cos x).pow,
+  have hv : ∀ x ∈ interval a b, has_deriv_at sin (cos x) x := λ x hx, has_deriv_at_sin x,
+  have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
+  calc  ∫ x in a..b, cos x ^ (n + 2)
+      = ∫ x in a..b, cos x ^ (n + 1) * cos x : by simp only [pow_succ']
+  ... = C + (n + 1) * ∫ x in a..b, sin x ^ 2 * cos x ^ n : by simp [H, h, sq, -neg_add_rev]
+  ... = C + (n + 1) * ∫ x in a..b, cos x ^ n - cos x ^ (n + 2) : by simp [sin_sq, sub_mul,
+                                                                          ← pow_add, add_comm]
+  ... = C + (n + 1) * (∫ x in a..b, cos x ^ n) - (n + 1) * ∫ x in a..b, cos x ^ (n + 2) :
+    by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,
+  all_goals { apply continuous.continuous_on, continuity },
+end
+
+/-- The reduction formula for the integral of `cos x ^ n` for any natural `n ≥ 2`. -/
+lemma integral_cos_pow :
+  ∫ x in a..b, cos x ^ (n + 2) = (cos b ^ (n + 1) * sin b - cos a ^ (n + 1) * sin a) / (n + 2)
+    + (n + 1) / (n + 2) * ∫ x in a..b, cos x ^ n :=
+begin
+  have : (n : ℝ) + 2 ≠ 0 := by exact_mod_cast succ_ne_zero n.succ,
+  field_simp,
+  convert eq_sub_iff_add_eq.mp (integral_cos_pow_aux n),
+  ring,
+end
+
+@[simp]
+lemma integral_cos_sq : ∫ x in a..b, cos x ^ 2 = (cos b * sin b - cos a * sin a + b - a) / 2 :=
+by field_simp [integral_cos_pow, add_sub_assoc]
 
 
 

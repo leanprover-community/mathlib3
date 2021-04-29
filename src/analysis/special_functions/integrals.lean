@@ -310,8 +310,84 @@ lemma integral_sin_pow_antimono :
   ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
 begin
   refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
-  { exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π },
-  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
+  { exact (continuous_sin.pow (n + 1)).interval_integrable 0 π },
+  { exact (continuous_sin.pow n).interval_integrable 0 π },
   { refine pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc _) (sin_le_one x) (nat.le_add_right n 1),
     rwa interval_of_le pi_pos.le at hx },
+end
+
+
+
+theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
+   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+   (h' : continuous_on f' (interval a b)) (hg : continuous g) :
+   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x := sorry
+
+theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
+   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+   (hg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
+   (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
+   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a := sorry
+
+@[simp]
+ lemma integral_cos_sq : ∫ x in a..b, cos x ^ 2 = (cos b * sin b - cos a * sin a + b - a) / 2 :=
+sorry
+
+
+
+lemma integral_sin_pow_mul_cos_pow_odd (m n : ℕ) :
+  ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1) = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n :=
+begin
+  have hc : continuous (λ u : ℝ, u ^ m * (1 - u ^ 2) ^ n) := by continuity,
+  have H := integral_comp_mul_deriv (λ x hx, has_deriv_at_sin x) continuous_on_cos hc,
+  calc  ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1)
+      = ∫ x in a..b, sin x ^ m * (1 - sin x ^ 2) ^ n * cos x : by simp only [pow_succ', ← mul_assoc,
+                                                                             pow_mul, cos_sq']
+  ... = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n : H,
+end
+
+lemma integral_sin_mul_cos₁ :
+  ∫ x in a..b, sin x * cos x = (sin b ^ 2 - sin a ^ 2) / 2 :=
+by simpa using integral_sin_pow_mul_cos_pow_odd 1 0
+
+lemma integral_sin_sq_mul_cos :
+  ∫ x in a..b, sin x ^ 2 * cos x = (sin b ^ 3 - sin a ^ 3) / 3 :=
+by simpa using integral_sin_pow_mul_cos_pow_odd 2 0
+
+lemma integral_sin_pow_odd_mul_cos_pow (m n : ℕ) :
+  ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n = ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m :=
+begin
+  have hc : continuous (λ u : ℝ, u ^ n * (1 - u ^ 2) ^ m) := by continuity,
+  have H := integral_comp_mul_deriv (λ x hx, has_deriv_at_cos x) continuous_on_sin.neg hc,
+  calc  ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n
+      = -∫ x in b..a, sin x ^ (2 * m + 1) * cos x ^ n : by rw integral_symm
+  ... = ∫ x in b..a, (1 - cos x ^ 2) ^ m * -sin x * cos x ^ n : by simp [pow_succ', pow_mul, sin_sq]
+  ... = ∫ x in b..a, cos x ^ n * (1 - cos x ^ 2) ^ m * -sin x : by { congr, ext, ring }
+  ... = ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m : H,
+end
+
+lemma integral_sin_mul_cos₂  :
+  ∫ x in a..b, sin x * cos x = (cos a ^ 2 - cos b ^ 2) / 2 :=
+by simpa using integral_sin_pow_odd_mul_cos_pow 0 1
+
+lemma integral_sin_mul_cos_sq :
+  ∫ x in a..b, sin x * cos x ^ 2 = (cos a ^ 3 - cos b ^ 3) / 3 :=
+by simpa using integral_sin_pow_odd_mul_cos_pow 0 2
+
+lemma integral_sin_pow_even_mul_cos_pow_even (m n : ℕ) :
+    ∫ x in a..b, sin x ^ (2 * m) * cos x ^ (2 * n)
+  = ∫ x in a..b, ((1 - cos (2 * x)) / 2) ^ m * ((1 + cos (2 * x)) / 2) ^ n :=
+by field_simp [pow_mul, sin_sq, cos_sq, ← sub_sub, (by ring : (2:ℝ) - 1 = 1)]
+
+lemma integral_sin_sq_mul_cos_sq :
+  ∫ x in a..b, sin x ^ 2 * cos x ^ 2 = (b - a) / 8 - (sin (4 * b) - sin (4 * a)) / 32 :=
+begin
+  convert integral_sin_pow_even_mul_cos_pow_even 1 1 using 1,
+  have h1 : ∀ c : ℝ, (1 - c) / 2 * ((1 + c) / 2) = (1 - c ^ 2) / 4 := λ c, by ring,
+  have h2 : interval_integrable (λ x, cos (2 * x) ^ 2) measure_theory.measure_space.volume a b,
+  { apply continuous.interval_integrable, continuity },
+  have h3 : ∀ x, cos x * sin x = sin (2 * x) / 2, { intro x, rw sin_two_mul, ring },
+  have h4 : ∀ d : ℝ, 2 * (2 * d) = 4 * d := λ d, by ring,
+  simp [h1, h2, integral_comp_mul_left (λ x, cos x ^ 2), h3, h4],
+  ring,
 end

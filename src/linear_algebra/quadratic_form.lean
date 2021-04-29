@@ -855,7 +855,7 @@ def weighted_sum_squares' [comm_semiring S] [algebra S R] (w : ι → S) : (ι �
 lemma weighted_sum_squares'_apply [comm_semiring S] [algebra S R] (w : ι → S) (v : ι → R) :
   weighted_sum_squares' w v = ∑ i : ι, w i • v i * v i := rfl
 
-/-- The weighted sum of squared with respect some weight. -/
+/-- The weighted sum of squared with respect some weight as a quadratic form. -/
 def weighted_sum_squares (w : ι → R₁) : quadratic_form R₁ (ι → R₁) :=
 ∑ i : ι, w i • proj i i
 

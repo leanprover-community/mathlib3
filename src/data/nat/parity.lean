@@ -219,7 +219,9 @@ theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔
   (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, pow_one] at h; exact (h1 h).elim),
   λ ⟨m, hm⟩, by rw [neg_one_pow_eq_pow_mod_two, hm]; simp⟩
 
-@[simp] theorem neg_one_pow_two : (-1 : R) ^ 2 = 1 := by simp
+@[simp] theorem neg_one_sq : (-1 : R) ^ 2 = 1 := by simp
+
+alias nat.neg_one_sq ← nat.neg_one_pow_two
 
 theorem neg_one_pow_of_even : even n → (-1 : R) ^ n = 1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_mul] }

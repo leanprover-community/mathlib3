@@ -515,7 +515,7 @@ begin
 end
 
 theorem relabelling.le {x y : pgame} (r : relabelling x y) : x ≤ y :=
-(r.restricted).le
+r.restricted.le
 
 /-- A relabelling lets us prove equivalence of games. -/
 theorem relabelling.equiv {x y : pgame} (r : relabelling x y) : x ≈ y :=
@@ -754,7 +754,7 @@ by { cases x, cases y, refl, }
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w + y` has the same moves as `x + z`. -/
 def relabelling.add_congr : ∀ {w x y z : pgame.{u}},
-w.relabelling x → y.relabelling z → (w + y).relabelling (x + z)
+  w.relabelling x → y.relabelling z → (w + y).relabelling (x + z)
 | (mk wl wr wL wR) (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR)
   ⟨L_equiv₁, R_equiv₁, L_relabelling₁, R_relabelling₁⟩
   ⟨L_equiv₂, R_equiv₂, L_relabelling₂, R_relabelling₂⟩ :=
@@ -783,7 +783,7 @@ instance : has_sub pgame := ⟨λ x y, x + -y⟩
 then `w - y` has the same moves as `x - z`. -/
 def relabelling.sub_congr {w x y z : pgame}
   (h₁ : w.relabelling x) (h₂ : y.relabelling z) : (w - y).relabelling (x - z) :=
-h₁.add_congr (h₂.neg_congr)
+h₁.add_congr h₂.neg_congr
 
 /-- `-(x+y)` has exactly the same moves as `-x + -y`. -/
 def neg_add_relabelling : Π (x y : pgame), relabelling (-(x + y)) (-x + -y)

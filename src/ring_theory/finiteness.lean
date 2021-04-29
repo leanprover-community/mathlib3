@@ -561,17 +561,17 @@ open algebra add_submonoid
 variables {R : Type*} {M : Type*} [comm_ring R] [add_comm_monoid M]
 
 lemma surjective_of_closure {S : set M} (hS : closure S = ⊤) :
-  function.surjective (mv_polynomial.aeval (λ (s : S), of R M s.1) :
+  function.surjective (mv_polynomial.aeval (λ (s : S), of R M (multiplicative.of_add ↑s)) :
   mv_polynomial S R → add_monoid_algebra R M) :=
 begin
   refine λ f, finsupp.induction_linear f _ _ (λ m r, _),
   { exact ⟨0, alg_hom.map_zero _⟩ },
   { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
     exact ⟨P + Q, alg_hom.map_add _ _ _⟩, },
-  { suffices : ∃ (P : mv_polynomial S R), (mv_polynomial.aeval (λ (s : S), of R M s.1)) P =
-      finsupp.single m 1,
+  { suffices : ∃ (P : mv_polynomial S R), (mv_polynomial.aeval
+      (λ (s : S), of R M (multiplicative.of_add ↑s))) P = finsupp.single m 1,
     { obtain ⟨P, hP⟩ := this,
-      exact ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
+      refine ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
     have : m ∈ closure S := hS.symm ▸ mem_top _,
     refine closure_induction this (λ m hm, _) _ _,
     { exact ⟨mv_polynomial.X ⟨m, hm⟩, mv_polynomial.aeval_X _ _⟩ },

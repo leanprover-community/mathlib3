@@ -744,12 +744,8 @@ begin
 end
 
 /-- Given submodules `p ⊆ P` and `q ⊆ Q`, this is the natural map: `p ⊗ q → P ⊗ Q`. -/
-def map_incl (p : submodule R P) (q : submodule R Q) : p ⊗[R] q →ₗ[R] P ⊗[R] Q :=
+@[simp] def map_incl (p : submodule R P) (q : submodule R Q) : p ⊗[R] q →ₗ[R] P ⊗[R] Q :=
 map p.subtype q.subtype
-
-@[simp] lemma map_incl_def (p : submodule R P) (q : submodule R Q) :
-  map_incl p q = map p.subtype q.subtype :=
-rfl
 
 section
 variables {P' Q' : Type*}
@@ -764,10 +760,10 @@ lemma lift_comp_map (i : P →ₗ[R] Q →ₗ[R] Q') (f : M →ₗ[R] P) (g : N 
   (lift i).comp (map f g) = lift ((i.comp f).compl₂ g) :=
 ext $ λ _ _, by simp only [lift.tmul, map_tmul, linear_map.compl₂_apply, linear_map.comp_apply]
 
-@[simp] lemma map_id : map (id : module.End R M) (id : module.End R N) = id :=
+@[simp] lemma map_id : map (id : M →ₗ[R] M) (id : N →ₗ[R] N) = id :=
 by { ext, simp only [mk_apply, id_coe, compr₂_apply, id.def, map_tmul], }
 
-@[simp] lemma map_pow (f : module.End R M) (g : module.End R N) (n : ℕ) :
+@[simp] lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
   (map f g)^n = map (f^n) (g^n) :=
 begin
   induction n with n ih,
@@ -894,11 +890,11 @@ by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 
 variables {M}
 
-@[simp] lemma rtensor_pow (f : module.End R M) (n : ℕ) : (f.rtensor N)^n = (f^n).rtensor N :=
-by { have h := map_pow f (id : module.End R N) n, rwa id_pow at h, }
+@[simp] lemma rtensor_pow (f : M →ₗ[R] M) (n : ℕ) : (f.rtensor N)^n = (f^n).rtensor N :=
+by { have h := map_pow f (id : N →ₗ[R] N) n, rwa id_pow at h, }
 
-@[simp] lemma ltensor_pow (f : module.End R N) (n : ℕ) : (f.ltensor M)^n = (f^n).ltensor M :=
-by { have h := map_pow (id : module.End R M) f n, rwa id_pow at h, }
+@[simp] lemma ltensor_pow (f : N →ₗ[R] N) (n : ℕ) : (f.ltensor M)^n = (f^n).ltensor M :=
+by { have h := map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
 
 end linear_map
 

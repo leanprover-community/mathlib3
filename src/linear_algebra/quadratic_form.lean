@@ -101,7 +101,7 @@ namespace quadratic_form
 variables {Q : quadratic_form R M}
 
 instance : has_coe_to_fun (quadratic_form R M) :=
-⟨_, λ B, B.to_fun⟩
+⟨_, to_fun⟩
 
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_apply : Q.to_fun = ⇑ Q := rfl
@@ -203,6 +203,8 @@ instance : has_zero (quadratic_form R M) :=
     polar_add_right' := λ x y y', by simp [polar],
     polar_smul_right' := λ a x y, by simp [polar] } ⟩
 
+@[simp] lemma coe_fn_zero : ⇑(0 : quadratic_form R M) = 0 := rfl
+
 @[simp] lemma zero_apply (x : M) : (0 : quadratic_form R M) x = 0 := rfl
 
 instance : inhabited (quadratic_form R M) := ⟨0⟩
@@ -258,6 +260,25 @@ by simp [sub_eq_add_neg]
 
 @[simp] lemma sub_apply (Q Q' : quadratic_form R M) (x : M) : (Q - Q') x = Q x - Q' x :=
 by simp [sub_eq_add_neg]
+
+/-- `@coe_fn (quadratic_form R M)` as an `add_monoid_hom`. -/
+@[simps apply]
+def coe_fn_add_monoid_hom : quadratic_form R M →+ (M → R) :=
+{ to_fun := coe_fn, map_zero' := coe_fn_zero, map_add' := coe_fn_add }
+
+section sum
+
+open_locale big_operators
+
+@[simp] lemma coe_fn_sum {ι : Type*} (Q : ι → quadratic_form R M) (s : finset ι) :
+  ⇑(∑ i in s, Q i) = ∑ i in s, Q i :=
+(coe_fn_add_monoid_hom : _ →+ (M → R)).map_sum Q s
+
+@[simp] lemma sum_apply {ι : Type*} (Q : ι → quadratic_form R M) (s : finset ι) (x : M) :
+  (∑ i in s, Q i) x = ∑ i in s, Q i x :=
+by rw [coe_fn_sum, finset.sum_apply]
+
+end sum
 
 section has_scalar
 

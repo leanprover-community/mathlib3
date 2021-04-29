@@ -17,7 +17,7 @@ import algebra.iterate_hom
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open finsupp finset
+open finset
 open_locale big_operators
 
 namespace polynomial
@@ -57,7 +57,7 @@ lemma coeff_derivative (p : polynomial R) (n : ℕ) :
 begin
   rw [derivative_apply],
   simp only [coeff_X_pow, coeff_sum, coeff_C_mul],
-  rw [sum_def, finset.sum_eq_single (n + 1)],
+  rw [sum, finset.sum_eq_single (n + 1)],
   simp only [nat.add_succ_sub_one, add_zero, mul_one, if_true, eq_self_iff_true], norm_cast,
   swap,
   { rw [if_pos (nat.add_sub_cancel _ _).symm, mul_one, nat.cast_add, nat.cast_one, mem_support_iff],
@@ -81,7 +81,7 @@ end
 
 @[simp]
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
-(derivative_apply _).trans ((sum_single_index $ by simp).trans (C_mul_X_pow_eq_monomial _ _))
+by { rw [derivative_apply, sum_monomial_index, C_mul_X_pow_eq_monomial], simp }
 
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
@@ -172,6 +172,7 @@ by simp only [derivative_apply, eval_sum, eval_pow, eval_C, eval_X, eval_nat_cas
   derivative (f * g) = derivative f * g + f * derivative g :=
 calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)) * X^((n + m) - 1))) :
   begin
+    rw mul_eq_sum_sum,
     transitivity, exact derivative_sum,
     transitivity, { apply finset.sum_congr rfl, assume x hx, exact derivative_sum },
     apply finset.sum_congr rfl, assume n hn, apply finset.sum_congr rfl, assume m hm,
@@ -191,7 +192,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, C ((a * b) * (n + m : ℕ)
       conv { to_rhs, congr,
         { rw [← sum_C_mul_X_eq g] },
         { rw [← sum_C_mul_X_eq f] } },
-      simp only [finsupp.sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply]
+      simp only [sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply]
     end
 
 theorem derivative_pow_succ (p : polynomial R) (n : ℕ) :
@@ -250,7 +251,7 @@ polynomial.induction_on p
 
 theorem of_mem_support_derivative {p : polynomial R} {n : ℕ} (h : n ∈ p.derivative.support) :
   n + 1 ∈ p.support :=
-finsupp.mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), finsupp.mem_support_iff.1 h $
+mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), mem_support_iff.1 h $
 show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
 
 theorem degree_derivative_lt {p : polynomial R} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
@@ -348,7 +349,7 @@ theorem nat_degree_eq_zero_of_derivative_eq_zero
   f.nat_degree = 0 :=
 begin
   by_cases hf : f = 0,
-  { exact (congr_arg polynomial.nat_degree hf).trans rfl },
+  { simp [hf] },
   { rw nat_degree_eq_zero_iff_degree_le_zero,
     by_contra absurd,
     have f_nat_degree_pos : 0 < f.nat_degree,

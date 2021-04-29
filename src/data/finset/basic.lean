@@ -423,7 +423,7 @@ ssubset_singleton_iff.1 hs
 
 /-- `cons a s h` is the set `{a} ∪ s` containing `a` and the elements of `s`. It is the same as
 `insert a s` when it is defined, but unlike `insert a s` it does not require `decidable_eq α`,
-and the union is guaranteed to be disjoint.  -/
+and the union is guaranteed to be disjoint. -/
 def cons {α} (a : α) (s : finset α) (h : a ∉ s) : finset α :=
 ⟨a ::ₘ s.1, multiset.nodup_cons.2 ⟨h, s.2⟩⟩
 
@@ -1135,8 +1135,8 @@ end decidable_eq
 
 /-! ### attach -/
 
-/-- `attach s` takes the elements of `s` and forms a new set of elements of the
-  subtype `{x // x ∈ s}`. -/
+/-- `attach s` takes the elements of `s` and forms a new set of elements of the subtype
+`{x // x ∈ s}`. -/
 def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attach.2 s.2⟩
 
 theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : finset α} (hx : x ∈ s) :
@@ -1149,6 +1149,12 @@ theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : finset α} (hx : x
 @[simp] theorem mem_attach (s : finset α) : ∀ x, x ∈ s.attach := mem_attach _
 
 @[simp] theorem attach_empty : attach (∅ : finset α) = ∅ := rfl
+
+@[simp] lemma attach_nonempty_iff (s : finset α) : s.attach.nonempty ↔ s.nonempty :=
+by simp [finset.nonempty]
+
+@[simp] lemma attach_eq_empty_iff (s : finset α) : s.attach = ∅ ↔ s = ∅ :=
+by simpa [eq_empty_iff_forall_not_mem]
 
 /-! ### piecewise -/
 section piecewise
@@ -1251,7 +1257,7 @@ lemma update_piecewise_of_not_mem [decidable_eq α] {i : α} (hi : i ∉ s) (v :
   update (s.piecewise f g) i v = s.piecewise f (update g i v) :=
 begin
   rw update_piecewise,
-  refine s.piecewise_congr (λ j hj, update_noteq _ _ _)  (λ _ _, rfl),
+  refine s.piecewise_congr (λ j hj, update_noteq _ _ _) (λ _ _, rfl),
   exact λ h, hi (h ▸ hj)
 end
 
@@ -1954,7 +1960,7 @@ instance [Π P, decidable P] : is_lawful_functor finset :=
 
 
 /-- Given a finset `s` and a predicate `p`, `s.subtype p` is the finset of `subtype p` whose
-elements belong to `s`.  -/
+elements belong to `s`. -/
 protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
 (s.filter p).attach.map ⟨λ x, ⟨x.1, (finset.mem_filter.1 x.2).2⟩,
 λ x y H, subtype.eq $ subtype.mk.inj H⟩
@@ -2124,9 +2130,6 @@ end
 @[simp] theorem card_range (n : ℕ) : card (range n) = n := card_range n
 
 @[simp] theorem card_attach {s : finset α} : card (attach s) = card s := multiset.card_attach
-
-@[simp] lemma attach_nonempty_iff (s : finset α) : s.attach.nonempty ↔ s.nonempty :=
-by simp [← card_pos]
 
 end card
 end finset

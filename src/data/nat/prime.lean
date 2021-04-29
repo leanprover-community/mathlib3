@@ -407,10 +407,6 @@ begin
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
-@[simp] lemma factors_zero : (0 : ℕ).factors = [] := rfl
-
-@[simp] lemma factors_one : (1 : ℕ).factors = [] := rfl
-
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
   factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) :=
@@ -423,7 +419,7 @@ begin
   { rcases n with (_ | _ | n),
     { exact or.inl rfl },
     { exact or.inr rfl },
-    { injection h }, },
+    { rw factors at h, injection h }, },
   { rcases h with (rfl | rfl),
     { exact factors_zero },
     { exact factors_one }, }

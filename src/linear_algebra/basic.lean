@@ -273,6 +273,8 @@ end
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 
+@[simp] lemma id_pow (n : ℕ) : (id : M →ₗ[R] M)^n = id := one_pow n
+
 section
 variables {f' : M →ₗ[R] M}
 

@@ -3,7 +3,6 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.homology.homology
 import algebra.homology.homotopy
 import category_theory.quotient
 
@@ -36,7 +35,21 @@ category_theory.quotient (λ (C D : homological_complex V c) (f g : C ⟶ D), no
 namespace homotopy_category
 
 /-- The quotient functor from complexes to the homotopy category. -/
-def quotient : homological_complex V c ⥤ homotopy_category V c := category_theory.quotient.functor _
+def quotient : homological_complex V c ⥤ homotopy_category V c :=
+category_theory.quotient.functor _
+
+lemma eq_of_homotopy {C D : homological_complex V c} (f g : C ⟶ D) (h : homotopy f g) :
+  (quotient V c).map f = (quotient V c).map g :=
+category_theory.quotient.sound _ ⟨h⟩
+
+-- This may take some work,
+-- because `category_theory.quotient` doesn't assume an equivalence relation.
+def homotopy_of_eq {C D : homological_complex V c} (f g : C ⟶ D)
+  (w : (quotient V c).map f = (quotient V c).map g) : homotopy f g :=
+begin
+  have := quot.eq.mp w,
+  sorry,
+end
 
 variables [has_equalizers V] [has_images V] [has_image_maps V] [has_cokernels V]
 
@@ -59,3 +72,34 @@ rfl
 rfl
 
 end homotopy_category
+
+namespace category_theory
+
+variables {W : Type*} [category W] [preadditive W] [has_zero_object W]
+
+/-- An additive functor induces a functor between homotopy categories. -/
+@[simps]
+def functor.map_homotopy_category (c : complex_shape ι) (F : V ⥤ W) [F.additive] :
+  homotopy_category V c ⥤ homotopy_category W c :=
+{ obj := λ C, (homotopy_category.quotient W c).obj ((F.map_homological_complex c).obj C.as),
+  map := λ C D f,
+    (homotopy_category.quotient W c).map ((F.map_homological_complex c).map (quot.out f)),
+  map_id' := λ C, begin
+    rw ←(homotopy_category.quotient W c).map_id,
+    apply homotopy_category.eq_of_homotopy,
+    rw ←(F.map_homological_complex c).map_id,
+    apply F.map_homotopy,
+    apply homotopy_category.homotopy_of_eq,
+    exact quot.out_eq _,
+  end,
+  map_comp' := λ C D E f g, begin
+    rw ←(homotopy_category.quotient W c).map_comp,
+    apply homotopy_category.eq_of_homotopy,
+    rw ←(F.map_homological_complex c).map_comp,
+    apply F.map_homotopy,
+    apply homotopy_category.homotopy_of_eq,
+    convert quot.out_eq _,
+    sorry,
+  end }.
+
+end category_theory

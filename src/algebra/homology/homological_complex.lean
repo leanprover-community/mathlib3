@@ -387,6 +387,64 @@ arrow.hom_mk (f.comm_to j)
 
 @[simp] lemma sq_to_right (f : hom C₁ C₂) (j : ι) : (f.sq_to j).right = f.f j := rfl
 
+section mk_inductive
+
+variables (P Q : chain_complex V ℕ)
+  (zero : P.X 0 ⟶ Q.X 0)
+  (one : P.X 1 ⟶ Q.X 1)
+  (one_zero_comm : one ≫ Q.d 1 0 = P.d 1 0 ≫ zero)
+  (succ : ∀ (n : ℕ)
+    (p : Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f' ≫ Q.d (n+1) n = P.d (n+1) n ≫ f),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), f'' ≫ Q.d (n+2) (n+1) = P.d (n+2) (n+1) ≫ p.2.1)
+
+/--
+An auxiliary construction for `mk_inductive`.
+
+Here we build by induction a family of commutative squares,
+but don't require at the type level that these successive commutative squares actually agree.
+They do in fact agree, and we then capture that at the type level (i.e. by constructing a chain map)
+in `mk_inductive`.
+-/
+def mk_inductive_aux :
+  Π n, Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f' ≫ Q.d (n+1) n = P.d (n+1) n ≫ f
+| 0 := ⟨zero, one, one_zero_comm⟩
+| (n+1) := ⟨(mk_inductive_aux n).2.1,
+    (succ n (mk_inductive_aux n)).1, (succ n (mk_inductive_aux n)).2⟩
+
+/--
+A constructor for chain maps between `ℕ`-indexed chain complexes,
+working by induction on commutative squares.
+
+You need to provide the components of the chain map in degrees 0 and 1,
+show that these form a commutative square,
+and then give a construction of each component,
+and the fact that it forms a commutative square with the previous component,
+using as an inductive hypothesis the data (and commutativity) of the previous two components.
+-/
+def mk_inductive : P ⟶ Q :=
+{ f := λ n, (mk_inductive_aux P Q zero one one_zero_comm succ n).1,
+  comm' := λ n m,
+  begin
+    by_cases h : m + 1 = n,
+    { subst h,
+      exact (mk_inductive_aux P Q zero one one_zero_comm succ m).2.2, },
+    { rw [P.shape n m h, Q.shape n m h], simp, }
+  end }
+
+@[simp] lemma mk_inductive_f_0 : (mk_inductive P Q zero one one_zero_comm succ).f 0 = zero := rfl
+@[simp] lemma mk_inductive_f_1 : (mk_inductive P Q zero one one_zero_comm succ).f 1 = one := rfl
+@[simp] lemma mk_inductive_f_succ_succ (n : ℕ) :
+  (mk_inductive P Q zero one one_zero_comm succ).f (n+2) =
+    (succ n ⟨(mk_inductive P Q zero one one_zero_comm succ).f n,
+      (mk_inductive P Q zero one one_zero_comm succ).f (n+1),
+        (mk_inductive P Q zero one one_zero_comm succ).comm (n+1) n⟩).1 :=
+begin
+  dsimp [mk_inductive, mk_inductive_aux],
+  induction n; congr,
+end
+
+end mk_inductive
+
 end hom
 
 end homological_complex

@@ -84,3 +84,25 @@ instance homology_additive : (homology_functor V c i).additive :=
   end }
 
 end homological_complex
+
+namespace category_theory
+
+variables {W : Type*} [category W] [preadditive W]
+
+/-- An additive functor induces a functor between homological complexes. -/
+@[simps]
+def functor.map_homological_complex (c : complex_shape ι) (F : V ⥤ W) [F.additive] :
+  homological_complex V c ⥤ homological_complex W c :=
+{ obj := λ C,
+  { X := λ i, F.obj (C.X i),
+    d := λ i j, F.map (C.d i j),
+    shape' := λ i j w, by rw [C.shape _ _ w, F.map_zero],
+    d_comp_d' := λ i j k, by rw [←F.map_comp, C.d_comp_d, F.map_zero], },
+  map := λ C D f,
+  { f := λ i, F.map (f.f i),
+    comm' := λ i j, by { dsimp,  rw [←F.map_comp, ←F.map_comp, f.comm], }, }, }.
+
+instance functor.map_homogical_complex_additive
+  (c : complex_shape ι) (F : V ⥤ W) [F.additive] : (F.map_homological_complex c).additive := {}
+
+end category_theory

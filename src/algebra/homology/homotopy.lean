@@ -18,13 +18,13 @@ noncomputable theory
 
 open category_theory category_theory.limits homological_complex
 
-section
-
 variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [has_zero_object V] [preadditive V]
 
 variables {c : complex_shape ι} {C D E : homological_complex V c}
 variables (f g : C ⟶ D) (h k : D ⟶ E) (i : ι)
+
+section
 
 /-- Auxiliary definition for `homotopy`. Use `homotopy.from_next` instead. -/
 def from_next' (f : Π i j, C.X i ⟶ D.X j) (i j : ι) : C.X_next i ⟶ D.X j :=
@@ -100,3 +100,17 @@ begin
 end
 
 end
+
+namespace category_theory
+
+variables {W : Type*} [category W] [preadditive W] [has_zero_object W]
+
+/-- An additive functor induces a functor between homological complexes. -/
+@[simps]
+def functor.map_homotopy (F : V ⥤ W) [F.additive] {f g : C ⟶ D} (h : homotopy f g) :
+  homotopy ((F.map_homological_complex c).map f) ((F.map_homological_complex c).map g) :=
+{ hom := λ i j, F.map (h.hom i j),
+  zero' := λ i j w, by { rw [h.zero i j w, F.map_zero], },
+  comm' := λ i, begin dsimp, sorry, end, }
+
+end category_theory

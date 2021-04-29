@@ -135,7 +135,8 @@ morphisms of the binary product cocone is a colimit.
 -/
 def is_colimit_of_has_binary_coproduct_of_preserves_colimit
   [preserves_colimit (pair X Y) G] :
-  is_colimit (binary_cofan.mk (G.map (limits.coprod.inl : X ⟶ X ⨿ Y)) (G.map (limits.coprod.inr))) :=
+  is_colimit
+    (binary_cofan.mk (G.map (limits.coprod.inl : X ⟶ X ⨿ Y)) (G.map (limits.coprod.inr))) :=
 map_is_colimit_of_preserves_of_is_colimit G _ _ (coprod_is_coprod X Y)
 
 variables [has_binary_coproduct (G.obj X) (G.obj Y)]

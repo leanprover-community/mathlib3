@@ -8,6 +8,8 @@ import tactic.linarith
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
+import algebra.big_operators.finprod
+
 /-!
 # Sums of binomial coefficients
 
@@ -23,8 +25,14 @@ open_locale big_operators
 
 variables {R : Type*}
 
+namespace commute
+
+variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
+
+include h
+
 /-- A version of the binomial theorem for noncommutative semirings. -/
-theorem commute.add_pow [semiring R] {x y : R} (h : commute x y) (n : ℕ) :
+theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
   let t : ℕ → ℕ → R := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
@@ -58,6 +66,31 @@ begin
     rw [sum_range_succ', sum_range_succ, h_first, h_last,
        mul_zero, add_zero, pow_succ] }
 end
+
+/-- A version of `commute.add_pow` but with the binomial coefficient applied via scalar action
+of ℕ. -/
+lemma add_pow' :
+  (x + y) ^ n = ∑ m in range (n + 1), choose n m • (x ^ m * y ^ (n - m)) :=
+by simp_rw [_root_.nsmul_eq_mul, cast_comm, h.add_pow n]
+
+/-- A version of `commute.add_pow'` but using `finsum` rather than `finset.sum`. -/
+lemma add_pow'' :
+  (x + y) ^ n = ∑ᶠ m ≤ n, choose n m • (x ^ m * y ^ (n - m)) :=
+by simp [_root_.nsmul_eq_mul, cast_comm, h.add_pow n, ← finsum_mem_coe_finset, lt_succ_iff]
+
+/-- A version of `commute.add_pow'` that avoids ℕ-subtraction by summing over the antidiagonal. -/
+lemma add_pow''' :
+  (x + y) ^ n = ∑ m in nat.antidiagonal n, choose n m.fst • (x ^ m.fst * y ^ m.snd) :=
+begin
+  rw h.add_pow',
+  apply sum_bij (λ m _, ⟨m, n - m⟩ : Π m ∈ range (n + 1), ℕ × ℕ),
+  { intros m h, rw [mem_range, lt_succ_iff] at h, simp [nat.mem_antidiagonal, add_sub_of_le h], },
+  { simp, },
+  { intros m₁ m₂ hm₁ hm₂, simp only [and_imp, prod.mk.inj_iff], rintros rfl h, refl, },
+  { rintros ⟨m₁, m₂⟩ h, use m₁, simp only [nat.mem_antidiagonal] at h, simp [← h, lt_succ_iff], },
+end
+
+end commute
 
 /-- The binomial theorem -/
 theorem add_pow [comm_semiring R] (x y : R) (n : ℕ) :

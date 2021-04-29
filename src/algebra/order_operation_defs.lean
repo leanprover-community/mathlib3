@@ -106,12 +106,12 @@ lemma contravariant_def :
   contravariant μ r ↔ ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r n₁ n₂ :=
 iff.rfl
 
-lemma covariant_iff_contravariant_le [linear_order N] :
+lemma covariant_le_iff_contravariant_lt [linear_order N] :
   covariant μ (≤) ↔ contravariant μ (<) :=
 ⟨ λ h a b c bc, not_le.mp (λ k, not_le.mpr bc (h _ k)),
   λ h a b c bc, not_lt.mp (λ k, not_lt.mpr bc (h _ k))⟩
 
-lemma covariant_iff_contravariant_lt [linear_order N] :
+lemma covariant_lt_iff_contravariant_le [linear_order N] :
   covariant μ (<) ↔ contravariant μ (≤) :=
 ⟨ λ h a b c bc, not_lt.mp (λ k, not_lt.mpr bc (h _ k)),
   λ h a b c bc, not_le.mp (λ k, not_le.mpr bc (h _ k))⟩
@@ -242,27 +242,27 @@ variable [linear_order α]
 instance has_mul_le_mul_left.to_has_lt_of_mul_lt_mul_left [has_mul α] [has_mul_le_mul_left α] :
   has_lt_of_mul_lt_mul_left α :=
 { lt_of_mul_lt_mul_left :=
-    (covariant_iff_contravariant_le _).mp has_mul_le_mul_left.mul_le_mul_left }
+    (covariant_le_iff_contravariant_lt _).mp has_mul_le_mul_left.mul_le_mul_left }
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance has_mul_le_mul_right.to_has_lt_of_mul_lt_mul_right [has_mul α] [has_mul_le_mul_right α] :
   has_lt_of_mul_lt_mul_right α :=
 { lt_of_mul_lt_mul_right :=
-    (covariant_iff_contravariant_le _).mp has_mul_le_mul_right.mul_le_mul_right }
+    (covariant_le_iff_contravariant_lt _).mp has_mul_le_mul_right.mul_le_mul_right }
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance has_le_of_mul_le_mul_left.to_has_mul_lt_mul_left [has_mul α]
   [has_le_of_mul_le_mul_left α] :
   has_mul_lt_mul_left α :=
 { mul_lt_mul_left :=
-    (covariant_iff_contravariant_lt _).mpr has_le_of_mul_le_mul_left.le_of_mul_le_mul_left }
+    (covariant_lt_iff_contravariant_le _).mpr has_le_of_mul_le_mul_left.le_of_mul_le_mul_left }
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance has_le_of_mul_le_mul_right.to_has_mul_lt_mul_right [has_mul α]
   [has_le_of_mul_le_mul_right α] :
   has_mul_lt_mul_right α :=
 { mul_lt_mul_right :=
-    (covariant_iff_contravariant_lt _).mpr has_le_of_mul_le_mul_right.le_of_mul_le_mul_right }
+    (covariant_lt_iff_contravariant_le _).mpr has_le_of_mul_le_mul_right.le_of_mul_le_mul_right }
 
 end le_implies_lt
 

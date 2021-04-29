@@ -14,7 +14,8 @@ Given a type `C`, the free monoidal category over `C` has as objects formal expr
 tensor products of identities, unitors and associators.
 
 In this file, we construct the free monoidal category and prove that it is a monoidal category. If
-`C` already is a monoidal category, we construct the functor `free_monoidal_category C ⥤ C`.
+`D` is a monoidal category, we construct the functor `free_monoidal_category C ⥤ D` associated to
+a function `C → D`.
 
 The free monoidal category has two important properties: it is a groupoid and it is thin. The former
 is obvious from the construction, and the latter is what is commonly known as the monoidal coherence
@@ -22,7 +23,7 @@ theorem. Both of these properties are proved in the file `coherence.lean`.
 
 -/
 
-universes v u
+universes v' u u'
 
 namespace category_theory
 open monoidal_category
@@ -37,6 +38,7 @@ Given a type `C`, the free monoidal category over `C` has as objects formal expr
 (formal) tensor products of terms of `C` and a formal unit. Its morphisms are compositions and
 tensor products of identities, unitors and associators.
 -/
+@[derive inhabited]
 inductive free_monoidal_category : Type u
 | of : C → free_monoidal_category
 | unit : free_monoidal_category
@@ -51,6 +53,7 @@ namespace free_monoidal_category
 /-- Formal compositions and tensor products of identities, unitors and associators. The morphisms
     of the free monoidal category are obtained as a quotient of these formal morphisms by the
     relations defining a monoidal category. -/
+@[nolint has_inhabited_instance]
 inductive hom : F C → F C → Type u
 | id (X) : hom X X
 | α_hom (X Y Z : F C) : hom ((X.tensor Y).tensor Z) (X.tensor (Y.tensor Z))
@@ -66,46 +69,46 @@ infixr ` ⟶ᵐ `:10 := hom
 
 /-- The morphisms of the free monoidal category satisfy 21 relations ensuring that the resulting
     category is in fact a category and that it is monoidal. -/
-inductive hom_equiv : Π (X Y : F C), (X ⟶ᵐ Y) → (X ⟶ᵐ Y) → Prop
-| refl {X Y} (f) : hom_equiv X Y f f
-| symm {X Y} (f g) : hom_equiv X Y f g → hom_equiv X Y g f
-| trans {X Y} {f g h} : hom_equiv X Y f g → hom_equiv X Y g h → hom_equiv X Y f h
-| comp {X Y Z : F C} {f f' : X ⟶ᵐ Y} {g g' : Y ⟶ᵐ Z} :
-    hom_equiv X Y f f' → hom_equiv Y Z g g' → hom_equiv X Z (f.comp g) (f'.comp g')
-| tensor {W X Y Z : F C} {f f' : W ⟶ᵐ X} {g g' : Y ⟶ᵐ Z} :
-    hom_equiv _ _ f f' → hom_equiv _ _ g g' → hom_equiv _ _ (f.tensor g) (f'.tensor g')
-| comp_id {X Y} (f : X ⟶ᵐ Y) : hom_equiv X Y (f.comp (hom.id _)) f
-| id_comp {X Y} (f : X ⟶ᵐ Y) : hom_equiv X Y ((hom.id _).comp f) f
+inductive hom_equiv : Π {X Y : F C}, (X ⟶ᵐ Y) → (X ⟶ᵐ Y) → Prop
+| refl {X Y} (f : X ⟶ᵐ Y) : hom_equiv f f
+| symm {X Y} (f g : X ⟶ᵐ Y) : hom_equiv f g → hom_equiv g f
+| trans {X Y} {f g h : X ⟶ᵐ Y} : hom_equiv f g → hom_equiv g h → hom_equiv f h
+| comp {X Y Z} {f f' : X ⟶ᵐ Y} {g g' : Y ⟶ᵐ Z} :
+    hom_equiv f f' → hom_equiv g g' → hom_equiv (f.comp g) (f'.comp g')
+| tensor {W X Y Z} {f f' : W ⟶ᵐ X} {g g' : Y ⟶ᵐ Z} :
+    hom_equiv f f' → hom_equiv g g' → hom_equiv (f.tensor g) (f'.tensor g')
+| comp_id {X Y} (f : X ⟶ᵐ Y) : hom_equiv (f.comp (hom.id _)) f
+| id_comp {X Y} (f : X ⟶ᵐ Y) : hom_equiv ((hom.id _).comp f) f
 | assoc {X Y U V : F C} (f : X ⟶ᵐ U) (g : U ⟶ᵐ V) (h : V ⟶ᵐ Y) :
-    hom_equiv X Y ((f.comp g).comp h) (f.comp (g.comp h))
-| tensor_id {X Y : F C} : hom_equiv _ _ ((hom.id X).tensor (hom.id Y)) (hom.id _)
+    hom_equiv ((f.comp g).comp h) (f.comp (g.comp h))
+| tensor_id {X Y} : hom_equiv ((hom.id X).tensor (hom.id Y)) (hom.id _)
 | tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : F C} (f₁ : X₁ ⟶ᵐ Y₁) (f₂ : X₂ ⟶ᵐ Y₂) (g₁ : Y₁ ⟶ᵐ Z₁) (g₂ : Y₂ ⟶ᵐ Z₂) :
-    hom_equiv _ _ ((f₁.comp g₁).tensor (f₂.comp g₂)) ((f₁.tensor f₂).comp (g₁.tensor g₂))
-| α_hom_inv {X Y Z : F C} : hom_equiv _ _ ((hom.α_hom X Y Z).comp (hom.α_inv X Y Z)) (hom.id _)
-| α_inv_hom {X Y Z : F C} : hom_equiv _ _ ((hom.α_inv X Y Z).comp (hom.α_hom X Y Z)) (hom.id _)
-| associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : F C} (f₁ : X₁ ⟶ᵐ Y₁) (f₂ : X₂ ⟶ᵐ Y₂) (f₃ : X₃ ⟶ᵐ Y₃) :
-    hom_equiv _ _ (((f₁.tensor f₂).tensor f₃).comp (hom.α_hom Y₁ Y₂ Y₃))
+    hom_equiv ((f₁.comp g₁).tensor (f₂.comp g₂)) ((f₁.tensor f₂).comp (g₁.tensor g₂))
+| α_hom_inv {X Y Z} : hom_equiv ((hom.α_hom X Y Z).comp (hom.α_inv X Y Z)) (hom.id _)
+| α_inv_hom {X Y Z} : hom_equiv ((hom.α_inv X Y Z).comp (hom.α_hom X Y Z)) (hom.id _)
+| associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃} (f₁ : X₁ ⟶ᵐ Y₁) (f₂ : X₂ ⟶ᵐ Y₂) (f₃ : X₃ ⟶ᵐ Y₃) :
+    hom_equiv (((f₁.tensor f₂).tensor f₃).comp (hom.α_hom Y₁ Y₂ Y₃))
       ((hom.α_hom X₁ X₂ X₃).comp (f₁.tensor (f₂.tensor f₃)))
-| ρ_hom_inv {X : F C} : hom_equiv _ _ ((hom.ρ_hom X).comp (hom.ρ_inv X)) (hom.id _)
-| ρ_inv_hom {X : F C} : hom_equiv _ _ ((hom.ρ_inv X).comp (hom.ρ_hom X)) (hom.id _)
-| ρ_naturality {X Y : F C} (f : X ⟶ᵐ Y) : hom_equiv _ _
+| ρ_hom_inv {X} : hom_equiv ((hom.ρ_hom X).comp (hom.ρ_inv X)) (hom.id _)
+| ρ_inv_hom {X} : hom_equiv ((hom.ρ_inv X).comp (hom.ρ_hom X)) (hom.id _)
+| ρ_naturality {X Y} (f : X ⟶ᵐ Y) : hom_equiv
     ((f.tensor (hom.id unit)).comp (hom.ρ_hom Y)) ((hom.ρ_hom X).comp f)
-| l_hom_inv {X : F C} : hom_equiv _ _ ((hom.l_hom X).comp (hom.l_inv X)) (hom.id _)
-| l_inv_hom {X : F C} : hom_equiv _ _ ((hom.l_inv X).comp (hom.l_hom X)) (hom.id _)
-| l_naturality {X Y : F C} (f : X ⟶ᵐ Y) : hom_equiv _ _
+| l_hom_inv {X} : hom_equiv ((hom.l_hom X).comp (hom.l_inv X)) (hom.id _)
+| l_inv_hom {X} : hom_equiv ((hom.l_inv X).comp (hom.l_hom X)) (hom.id _)
+| l_naturality {X Y} (f : X ⟶ᵐ Y) : hom_equiv
     (((hom.id unit).tensor f).comp (hom.l_hom Y)) ((hom.l_hom X).comp f)
-| pentagon {W X Y Z : F C} : hom_equiv _ _
+| pentagon {W X Y Z} : hom_equiv
   (((hom.α_hom W X Y).tensor (hom.id Z)).comp
     ((hom.α_hom W (X.tensor Y) Z).comp ((hom.id W).tensor (hom.α_hom X Y Z))))
   ((hom.α_hom (W.tensor X) Y Z).comp (hom.α_hom W X (Y.tensor Z)))
-| triangle {X Y : F C} : hom_equiv _ _ ((hom.α_hom X unit Y).comp ((hom.id X).tensor (hom.l_hom Y)))
+| triangle {X Y} : hom_equiv ((hom.α_hom X unit Y).comp ((hom.id X).tensor (hom.l_hom Y)))
   ((hom.ρ_hom X).tensor (hom.id Y))
 
 /-- We say that two formal morphisms in the free monoidal category are equivalent if they become
     equal if we apply the relations that are true in a monoidal category. Note that we will prove
     that there is only one equivalence class -- this is the monoidal coherence theorem. -/
 def setoid_hom (X Y : F C) : setoid (X ⟶ᵐ Y) :=
-⟨hom_equiv X Y,
+⟨hom_equiv,
   ⟨λ f, hom_equiv.refl f, λ f g, hom_equiv.symm f g, λ f g h hfg hgh, hom_equiv.trans hfg hgh⟩⟩
 
 attribute [instance] setoid_hom
@@ -161,19 +164,19 @@ rfl
 @[simp] lemma unit_eq_unit : free_monoidal_category.unit = 𝟙_ (F C) := rfl
 
 section functor
-variables [category.{v} C] [monoidal_category C]
+variables {D : Type u'} [category.{v'} D] [monoidal_category D] (f : C → D)
 
 /-- Auxiliary definition for `free_monoidal_category.project`. -/
-def project_obj : F C → C
-| (free_monoidal_category.of X) := X
-| free_monoidal_category.unit := 𝟙_ C
+def project_obj : F C → D
+| (free_monoidal_category.of X) := f X
+| free_monoidal_category.unit := 𝟙_ D
 | (free_monoidal_category.tensor X Y) := project_obj X ⊗ project_obj Y
 
 section
 open hom
 
 /-- Auxiliary definition for `free_monoidal_category.project`. -/
-@[simp] def project_map_aux : Π {X Y : F C}, (X ⟶ᵐ Y) → (project_obj X ⟶ project_obj Y)
+@[simp] def project_map_aux : Π {X Y : F C}, (X ⟶ᵐ Y) → (project_obj f X ⟶ project_obj f Y)
 | _ _ (id _) := 𝟙 _
 | _ _ (α_hom _ _ _) := (α_ _ _ _).hom
 | _ _ (α_inv _ _ _) := (α_ _ _ _).inv
@@ -185,8 +188,8 @@ open hom
 | _ _ (hom.tensor f g) := project_map_aux f ⊗ project_map_aux g
 
 /-- Auxiliary definition for `free_monoidal_category.project`. -/
-def project_map (X Y : F C) : (X ⟶ Y) → (project_obj X ⟶ project_obj Y) :=
-quotient.lift project_map_aux
+def project_map (X Y : F C) : (X ⟶ Y) → (project_obj f X ⟶ project_obj f Y) :=
+quotient.lift (project_map_aux f)
 begin
   intros f g h,
   induction h with X Y f X Y f g hfg hfg' X Y f g h _ _ hfg hgh X Y Z f f' g g' _ _ hf hg
@@ -218,11 +221,11 @@ end
 
 end
 
-/-- If `C` is a monoidal category, then we have a functor from the free monoidal category over
-    (the objects of) `C` to `C` itself. -/
-def project : F C ⥤ C :=
-{ obj := project_obj,
-  map := project_map }
+/-- If `D` is a monoidal category and we have a function `C → D`, then we have a functor from the
+    free monoidal category over `C` to the category `D`. -/
+def project : F C ⥤ D :=
+{ obj := project_obj f,
+  map := project_map f }
 
 end functor
 

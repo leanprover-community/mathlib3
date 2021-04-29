@@ -204,7 +204,10 @@ end
 
 lemma exists_nsmul_eq_self_of_coprime (a : A)
   (h : coprime n (add_order_of a)) : ∃ m : ℕ, m • (n • a) = a :=
-exists_pow_eq_self_of_coprime (h : n.coprime (order_of (multiplicative.of_add a)))
+begin
+  change n.coprime (order_of (multiplicative.of_add a)) at h,
+  exact exists_pow_eq_self_of_coprime h,
+end
 
 attribute [to_additive exists_nsmul_eq_self_of_coprime] exists_pow_eq_self_of_coprime
 

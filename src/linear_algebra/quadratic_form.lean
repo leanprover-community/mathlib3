@@ -790,7 +790,8 @@ let ⟨v, hv₁, hv₂, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv
 
 end bilin_form
 
-/-- Nonzero elements in a field are invertible. This is a defition since it requires a parameter. -/
+/-- Nonzero elements in a field are invertible. This is a definition since it requires a
+parameter. -/
 def field.invertible {K : Type*} [field K] {z : K} (hz : z ≠ 0) : invertible z :=
 { inv_of := z⁻¹,
   inv_of_mul_self := inv_mul_cancel hz,
@@ -805,7 +806,7 @@ open finset bilin_form
 variables {M₁ : Type*} [add_comm_group M₁] [module R M₁]
 variables {ι : Type*} [fintype ι] {v : ι → M}
 
-/-- A quadratic form composed with a linear equiv is isometric to itself. -/
+/-- A quadratic form composed with a `linear_equiv` is isometric to itself. -/
 def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M) :
   Q.isometry (Q.comp (f : M₁ →ₗ[R] M)) :=
 { map_app' :=
@@ -847,72 +848,24 @@ end
 
 /-- The weighted sum of squared with respect some weight. `weighted_sum_squares` is the
 quadratic form version of this. -/
-def weighted_sum_squares' (w : ι → R) : (ι → R) → R :=
-  λ x, ∑ i : ι, w i * x i * x i
+def weighted_sum_squares' [comm_semiring S] [algebra S R] (w : ι → S) : (ι → R) → R :=
+λ x, ∑ i : ι, w i • x i * x i
 
 @[simp]
-lemma weighted_sum_squares'_apply (w v : ι → R) :
-  weighted_sum_squares' w v = ∑ i : ι, w i * v i * v i := rfl
+lemma weighted_sum_squares'_apply [comm_semiring S] [algebra S R] (w : ι → S) (v : ι → R) :
+  weighted_sum_squares' w v = ∑ i : ι, w i • v i * v i := rfl
 
-lemma weighted_sum_squares'_smul {w : ι → R₁} (a : R₁) (x : ι → R₁) :
-  weighted_sum_squares' w (a • x) = a * a * weighted_sum_squares' w x :=
-begin
-  simp only [weighted_sum_squares', algebra.id.smul_eq_mul, pi.smul_apply],
-  conv_rhs { rw [mul_assoc, mul_sum, mul_sum] },
-  refine sum_congr rfl (λ _ _, by ring),
-end
-
-lemma weighted_sum_squares'_polar_add_left {w : ι → R₁} (x x' y : ι → R₁) :
-  polar (weighted_sum_squares' w) (x + x') y =
-  polar (weighted_sum_squares' w) x y + polar (weighted_sum_squares' w) x' y :=
-begin
-  simp_rw [weighted_sum_squares', polar, pi.add_apply],
-  iterate 7 { rw ← sum_add_distrib <|> rw ← sum_sub_distrib },
-  refine sum_congr rfl (λ _ _, by ring),
-end
-
-lemma weighted_sum_squares'_polar_smul_left {w : ι → R₁} (a : R₁) (x y : ι → R₁) :
-  polar (weighted_sum_squares' w) (a • x) y = a • polar (weighted_sum_squares' w) x y :=
-begin
-  simp_rw [weighted_sum_squares', polar, pi.add_apply, pi.smul_apply],
-  iterate 4 { rw ← sum_add_distrib <|> rw ← sum_sub_distrib },
-  simp_rw [smul_sum, smul_eq_mul],
-  refine sum_congr rfl (λ _ _, by ring),
-end
-
-lemma weighted_sum_squares'_polar_add_right {w : ι → R₁} (x y y' : ι → R₁) :
-  polar (weighted_sum_squares' w) x (y + y') =
-  polar (weighted_sum_squares' w) x y + polar (weighted_sum_squares' w) x y' :=
-begin
-  simp_rw [weighted_sum_squares', polar, pi.add_apply],
-  iterate 7 { rw ← sum_add_distrib <|> rw ← sum_sub_distrib },
-  refine sum_congr rfl (λ _ _, by ring),
-end
-
-lemma weighted_sum_squares'_polar_smul_right {w : ι → R₁} (a : R₁) (x y : ι → R₁) :
-  polar (weighted_sum_squares' w) x (a • y) = a • polar (weighted_sum_squares' w) x y :=
-begin
-  simp_rw [weighted_sum_squares', polar, pi.add_apply, pi.smul_apply],
-  iterate 4 { rw ← sum_add_distrib <|> rw ← sum_sub_distrib },
-  simp_rw [smul_sum, smul_eq_mul],
-  refine sum_congr rfl (λ _ _, by ring),
-end
-
-/-- `weighted_sum_squares'` represented as a quadratic form. -/
+/-- The weighted sum of squared with respect some weight. -/
 def weighted_sum_squares (w : ι → R₁) : quadratic_form R₁ (ι → R₁) :=
-{ to_fun := weighted_sum_squares' w,
-  to_fun_smul := weighted_sum_squares'_smul,
-  polar_add_left' := weighted_sum_squares'_polar_add_left,
-  polar_smul_left' := weighted_sum_squares'_polar_smul_left,
-  polar_add_right' := weighted_sum_squares'_polar_add_right,
-  polar_smul_right' := weighted_sum_squares'_polar_smul_right }
-
-variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
-variables [add_comm_group V] [module K V] [finite_dimensional K V]
+∑ i : ι, w i • proj i i
 
 @[simp]
 lemma weighted_sum_squares_apply (w v : ι → R₁) :
-  weighted_sum_squares w v = ∑ i : ι, w i * v i * v i := rfl
+  weighted_sum_squares w v = ∑ i : ι, w i * v i * v i :=
+sorry -- quadratic_form.sum_apply _ _ _ -- After #7417
+
+variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
+variables [add_comm_group V] [module K V] [finite_dimensional K V]
 
 lemma equivalent_weighted_sum_squares_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
@@ -924,7 +877,7 @@ begin
   refine nonempty.intro _,
   convert Q.isometry_of_is_basis hv₂,
   ext w,
-  rw [isometry_of_is_Ortho_apply Q hv₂ hv₁], refl,
+  rw [isometry_of_is_Ortho_apply Q hv₂ hv₁, weighted_sum_squares_apply],
 end
 
 lemma equivalent_weighted_sum_squares_of_nondegenerate
@@ -944,7 +897,7 @@ begin
   { intros i hi,
     exact hw i ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
   convert (weighted_sum_squares w).isometry_of_is_basis
-    (is_basis.smul_is_basis (pi.is_basis_fun ℂ ι) hw' (λ i, field.invertible (hw' i))),
+    (is_basis.smul_of_invertible (pi.is_basis_fun ℂ ι) (λ i, field.invertible (hw' i))),
   ext1 v,
   rw [isometry_of_is_basis_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),

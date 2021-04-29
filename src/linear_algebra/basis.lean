@@ -342,18 +342,18 @@ lemma is_basis.smul_eq_zero [no_zero_divisors R] {c : R} {x : M} :
 
 end
 
-lemma is_basis.smul_is_basis {v : ι → M} (hv : is_basis R v)
-  {w : ι → R} (hw₁ : ∀ i : ι, w i ≠ 0) (hw₂ : ∀ i : ι, invertible (w i)) :
+lemma is_basis.smul_of_invertible {v : ι → M} (hv : is_basis R v)
+  {w : ι → R} (hw : ∀ i : ι, invertible (w i)) :
   is_basis R (λ i, w i • v i) :=
 begin
   obtain ⟨hw₁', hw₁''⟩ := hv,
   split,
   { rw linear_independent_iff'' at hw₁' ⊢,
     intros s g hgs hsum i,
-    have hw : g i * w i = 0 := hw₁' s (λ i, g i • w i) _ _ i,
-    { suffices : g i * w i * (hw₂ i).inv_of = 0,
+    have hw₁ : g i * w i = 0 := hw₁' s (λ i, g i • w i) _ _ i,
+    { suffices : g i * w i * (hw i).inv_of = 0,
         rwa [mul_assoc, mul_inv_of_self, mul_one] at this,
-      rw [hw, zero_mul] },
+      rw [hw₁, zero_mul] },
     { intros i hi,
       simp only [algebra.id.smul_eq_mul, hgs i hi, zero_smul] },
     { rw [← hsum, finset.sum_congr rfl _],

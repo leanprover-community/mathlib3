@@ -516,6 +516,9 @@ lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 @[simp] lemma succ_zero_eq_one : fin.succ (0 : fin (n + 1)) = 1 :=
 by { ext, simp }
 
+@[simp] lemma succ_one_eq_two : fin.succ (1 : fin (n + 2)) = 2 :=
+by { ext, simp }
+
 @[simp] lemma succ_mk (n i : ℕ) (h : i < n) : fin.succ ⟨i, h⟩ = ⟨i + 1, nat.succ_lt_succ h⟩ :=
 rfl
 
@@ -1030,6 +1033,10 @@ lemma succ_above_left_inj {x y : fin (n + 1)} :
   x.succ_above = y.succ_above ↔ x = y :=
 succ_above_left_injective.eq_iff
 
+@[simp] lemma zero_succ_above {n : ℕ} (i : fin n) :
+  (0 : fin (n + 1)).succ_above i = i.succ :=
+rfl
+
 @[simp] lemma succ_succ_above_zero {n : ℕ} (i : fin (n + 1)) :
   (i.succ).succ_above 0 = 0 :=
 succ_above_below _ _ (succ_pos _)
@@ -1044,21 +1051,21 @@ succ_above_below _ _ (succ_pos _)
 
 @[simp] lemma one_succ_above_zero {n : ℕ} :
   (1 : fin (n + 2)).succ_above 0 = 0 :=
-succ_succ_above_zero 0
+by rw [← succ_zero_eq_one, succ_succ_above_zero]
 
 /-- By moving `succ` to the outside of this expression, we create opportunities for further
 simplification using `succ_above_zero` or `succ_succ_above_zero`. -/
 @[simp] lemma succ_succ_above_one {n : ℕ} (i : fin (n + 2)) :
   (i.succ).succ_above 1 = (i.succ_above 0).succ :=
-succ_succ_above_succ i 0
+by rw [← succ_zero_eq_one, succ_succ_above_succ]
 
 @[simp] lemma one_succ_above_succ {n : ℕ} (j : fin n) :
   (1 : fin (n + 2)).succ_above j.succ = j.succ.succ :=
-succ_succ_above_succ 0 j
+by rw [← succ_zero_eq_one, succ_succ_above_succ, zero_succ_above]
 
 @[simp] lemma one_succ_above_one {n : ℕ} :
   (1 : fin (n + 3)).succ_above 1 = 2 :=
-succ_succ_above_succ 0 0
+by { rw [← succ_zero_eq_one, succ_succ_above_one], simp }
 
 end succ_above
 

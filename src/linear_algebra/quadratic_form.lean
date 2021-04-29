@@ -849,11 +849,11 @@ end
 /-- The weighted sum of squared with respect some weight. `weighted_sum_squares` is the
 quadratic form version of this. -/
 def weighted_sum_squares' [comm_semiring S] [algebra S R] (w : ι → S) : (ι → R) → R :=
-λ x, ∑ i : ι, w i • x i * x i
+λ v : ι → R, ∑ i : ι, w i • (v i * v i)
 
 @[simp]
 lemma weighted_sum_squares'_apply [comm_semiring S] [algebra S R] (w : ι → S) (v : ι → R) :
-  weighted_sum_squares' w v = ∑ i : ι, w i • v i * v i := rfl
+  weighted_sum_squares' w v = ∑ i : ι, w i • (v i * v i) := rfl
 
 /-- The weighted sum of squared with respect some weight as a quadratic form. -/
 def weighted_sum_squares (w : ι → R₁) : quadratic_form R₁ (ι → R₁) :=
@@ -861,7 +861,7 @@ def weighted_sum_squares (w : ι → R₁) : quadratic_form R₁ (ι → R₁) :
 
 @[simp]
 lemma weighted_sum_squares_apply (w v : ι → R₁) :
-  weighted_sum_squares w v = ∑ i : ι, w i * v i * v i :=
+  weighted_sum_squares w v = ∑ i : ι, w i * (v i * v i) :=
 sorry -- quadratic_form.sum_apply _ _ _ -- After #7417
 
 variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
@@ -878,6 +878,8 @@ begin
   convert Q.isometry_of_is_basis hv₂,
   ext w,
   rw [isometry_of_is_Ortho_apply Q hv₂ hv₁, weighted_sum_squares_apply],
+  refine finset.sum_congr rfl _,
+  intros, rw ← mul_assoc,
 end
 
 lemma equivalent_weighted_sum_squares_of_nondegenerate
@@ -912,7 +914,7 @@ begin
     intro hj', exact false.elim (hj' hj) },
   rw [hsum, smul_eq_mul],
   suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
-  { rw this, ring },
+  { rw [← mul_assoc, this], ring },
   rw [← complex.cpow_add _ _ (hw j), show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
       complex.cpow_neg_one, inv_mul_cancel (hw j)],
 end .

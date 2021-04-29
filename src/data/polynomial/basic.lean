@@ -369,7 +369,7 @@ begin
   refl
 end
 
-@[simp] lemma sum_zero {S : Type*} [add_comm_monoid S] (f : ℕ → R → S) :
+@[simp] lemma sum_zero_index {S : Type*} [add_comm_monoid S] (f : ℕ → R → S) :
   (0 : polynomial R).sum f = 0 :=
 by simp [sum]
 
@@ -395,6 +395,14 @@ begin
   simp only [add_to_alg, sum, support, coeff, pi.add_apply, coe_add],
   exact finsupp.sum_add_index hf h_add,
 end
+
+lemma sum_add' {S : Type*} [add_comm_monoid S] (p : polynomial R) (f g : ℕ → R → S) :
+  p.sum (f + g) = p.sum f + p.sum g :=
+by simp [sum_def, finset.sum_add_distrib]
+
+lemma sum_add {S : Type*} [add_comm_monoid S] (p : polynomial R) (f g : ℕ → R → S) :
+  p.sum (λ n x, f n x + g n x) = p.sum f + p.sum g :=
+sum_add' _ _ _
 
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : polynomial R → polynomial R

@@ -899,6 +899,11 @@ instance (n : ℕ) : add_comm_group (fin (n+1)) :=
   ..fin.add_comm_monoid n,
   ..fin.has_neg n.succ  }
 
+protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = nat_mod (-(a.1 : ℤ)) n := rfl
+
+protected lemma coe_sub (a b : fin n) : ((a - b : fin n) : ℕ) = (a + (n - b)) % n :=
+by cases a; cases b; refl
+
 end add_group
 
 section succ_above

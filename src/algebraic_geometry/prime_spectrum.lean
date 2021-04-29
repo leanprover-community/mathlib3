@@ -210,23 +210,14 @@ lemma vanishing_ideal_anti_mono {s t : set (prime_spectrum R)} (h : s ⊆ t) :
 
 lemma zero_locus_subset_zero_locus_iff (I J : ideal R) :
   zero_locus (I : set R) ⊆ zero_locus (J : set R) ↔ J ≤ I.radical :=
-begin
-  split ; intro h,
-  { replace h := vanishing_ideal_anti_mono h,
-    simp only [vanishing_ideal_zero_locus_eq_radical] at h,
-    exact ideal.radical_le_radical_iff.mp h },
-  { replace h := zero_locus_anti_mono_ideal h,
-    rw zero_locus_radical at h,
-    exact h },
-end
+⟨λ h, ideal.radical_le_radical_iff.mp (vanishing_ideal_zero_locus_eq_radical I ▸
+  vanishing_ideal_zero_locus_eq_radical J ▸ vanishing_ideal_anti_mono h),
+λ h, zero_locus_radical I ▸ zero_locus_anti_mono_ideal h⟩
 
 lemma zero_locus_subset_zero_locus_singleton_iff (f g : R) :
   zero_locus ({f} : set R) ⊆ zero_locus {g} ↔ g ∈ (ideal.span ({f} : set R)).radical :=
-begin
-  rw [← zero_locus_span {f}, ← zero_locus_span {g}, zero_locus_subset_zero_locus_iff,
-      ideal.span_le, set.singleton_subset_iff],
-  refl
-end
+by rw [← zero_locus_span {f}, ← zero_locus_span {g}, zero_locus_subset_zero_locus_iff,
+    ideal.span_le, set.singleton_subset_iff, set_like.mem_coe]
 
 lemma zero_locus_bot :
   zero_locus ((⊥ : ideal R) : set R) = set.univ :=
@@ -448,15 +439,11 @@ topological_space.opens.ext $ by {simp, refl}
 @[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
 topological_space.opens.ext $ by {simp, refl}
 
-#check set.has_le
-
 lemma basic_open_le_basic_open_iff (f g : R) :
   basic_open f ≤ basic_open g ↔ f ∈ (ideal.span ({g} : set R)).radical :=
-begin
-  rw [topological_space.opens.le_def, basic_open_eq_zero_locus_compl,
-      basic_open_eq_zero_locus_compl, set.le_eq_subset, set.compl_subset_compl],
-  exact zero_locus_subset_zero_locus_singleton_iff _ _,
-end
+by rw [topological_space.opens.le_def, basic_open_eq_zero_locus_compl,
+    basic_open_eq_zero_locus_compl, set.le_eq_subset, set.compl_subset_compl,
+    zero_locus_subset_zero_locus_singleton_iff]
 
 lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
 topological_space.opens.ext $ by {simp [zero_locus_singleton_mul]}

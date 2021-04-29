@@ -32,12 +32,11 @@ which pick out sub-presheaves and sub-sheaves of these sheaves.)
 We also set up the ring structure, obtaining
 `structure_sheaf R : sheaf CommRing (Top.of (prime_spectrum R))`.
 
-## Main statements
-
-* `stalk_iso`: The stalk of the structure sheaf at a point `p : prime_spectrum R` is isomorphic
-  (as a commutative ring) to the localization of `R` at the prime ideal `p`.
-* `basic_open_iso`: The structure sheaf on `basic_open f` is isomorphic (as a commutative ring) to
-  the localization of `R` at the submonoid of powers of `f`.
+We then construct two basic isomorphisms, relating the structure sheaf to the underlying ring `R`.
+First, `structure_sheaf.stalk_iso` gives an isomorphism between the stalk of the structure sheaf
+at a point `p` and the localization of `R` at the prime ideal `p`. Second,
+`structure_sheaf.basic_open_iso` gives an isomorphism between the structure sheaf on `basic_open f`
+and the localization of `R` at the submonoid of powers of `f`.
 
 ## References
 
@@ -541,15 +540,15 @@ begin
     smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_comm r₁ r₂, ← mul_assoc, hr₂] }},
   -- Our claim now reduces to showing that `f` is contained in the radical of `I`
   suffices : f ∈ I.radical,
-  { obtain ⟨n, hn⟩ := this,
-    use [f ^ n, n, hn] },
+  { cases this with n hn,
+    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩ },
   rw [← vanishing_ideal_zero_locus_eq_radical, mem_vanishing_ideal],
   intros p hfp,
   contrapose hfp,
   rw [mem_zero_locus, set.not_subset],
   have := congr_fun (congr_arg subtype.val h_eq) ⟨p,hfp⟩,
   rw [const_apply, const_apply, localization_map.eq] at this,
-  obtain ⟨r, hr⟩ := this,
+  cases this with r hr,
   exact ⟨r.1, hr, r.2⟩
 end
 
@@ -562,21 +561,21 @@ lemma locally_const_basic_open (U : opens (Spec.Top R))
   ∃ (f g : R) (i : basic_open g ⟶ U), x.1 ∈ basic_open g ∧
     const R f g (basic_open g) (λ y hy, hy) = (structure_sheaf R).presheaf.map i.op s :=
 begin
-  -- First, we can represent `s` as a fraction `f/g` on *some* basic open `basic_open h`, since
-  -- these form a basis
+  -- First, any section `s` can be represented as a fraction `f/g` on some open neighborhood of `x`
+  -- and we may pass to a `basic_open h`, since these form a basis
   obtain ⟨V, (hxV : x.1 ∈ V.1), iVU, f, g, (hVDg : V ⊆ basic_open g), s_eq⟩ :=
     exists_const R U s x.1 x.2,
   obtain ⟨_, ⟨h, rfl⟩, hxDh, (hDhV : basic_open h ⊆ V)⟩ :=
     is_topological_basis_basic_opens.exists_subset_of_mem_open hxV V.2,
   -- The problem is of course, that `g` and `h` don't need to coincide.
   -- But, since `basic_open h ≤ basic_open g`, some power of `h` must be a multiple of `g`
-  rcases (basic_open_le_basic_open_iff h g).mp (set.subset.trans hDhV hVDg) with ⟨n, hn⟩,
+  cases (basic_open_le_basic_open_iff h g).mp (set.subset.trans hDhV hVDg) with n hn,
   -- Actually, we will need a *nonzero* power of `h`.
   -- This is because we will need the equality `basic_open (h ^ n) = basic_open h`, which only
-  -- holds for a nonzero power `n`
+  -- holds for a nonzero power `n`. We therefore artificially increase `n` by one.
   replace hn := ideal.mul_mem_left (ideal.span {g}) h hn,
   rw [← pow_succ, ideal.mem_span_singleton'] at hn,
-  rcases hn with ⟨c, hc⟩,
+  cases hn with c hc,
   have basic_opens_eq := basic_open_pow h (n+1) (by linarith),
   have i_basic_open := eq_to_hom basic_opens_eq ≫ hom_of_le hDhV,
   -- We claim that `(f * c) / h ^ (n+1)` is our desired representation
@@ -630,7 +629,7 @@ begin
     -- These can be solved immediately
     exacts [basic_open_mul_le_right _ _, basic_open_mul_le_left _ _] },
 
-  -- From the equality in the localization, we obtain for each `i j` some power `(h i * h j) ^ n`
+  -- From the equality in the localization, we obtain for each `(i,j)` some power `(h i * h j) ^ n`
   -- which equalizes `a i * h j` and `h i * a j`
   have exists_power : ∀ (i j : ι), ∃ n : ℕ,
     a i * h j * (h i * h j) ^ n = h i * a j * (h i * h j) ^ n,
@@ -656,7 +655,7 @@ begin
     -- Of course, the power `N` we used to expand the fractions might be bigger than the power
     -- `n (i, j)` which was originally chosen. We denote their difference by `k`
     have n_le_N : n (i, j) ≤ N := finset.le_sup (finset.mem_product.mpr ⟨hi, hj⟩),
-    rcases nat.le.dest n_le_N with ⟨k, hk⟩,
+    cases nat.le.dest n_le_N with k hk,
     simp only [← hk, pow_add, pow_one],
     -- To accommodate for the difference `k`, we multiply both sides of the equation `n_spec (i, j)`
     -- by `(h i * h j) ^ k`
@@ -696,7 +695,7 @@ begin
     rw set.mem_Union,
     exact ⟨⟨x,hx⟩, hxDh' ⟨x, hx⟩⟩ },
   -- We use the normalization lemma from above to obtain the relation `a i * h j = h i * a j`
-  obtain ⟨a, h, iDh, ht_cover, ha_ah, s_eq⟩ := normalize_finite_fraction_representation R
+  obtain ⟨a, h, iDh, ht_cover, ah_ha, s_eq⟩ := normalize_finite_fraction_representation R
     (basic_open f) s t a' h' iDh' ht_cover' s_eq',
   clear s_eq' iDh' hxDh' ht_cover' a' h',
   -- Next we show that some power of `f` is a linear combination of the `h i`
@@ -720,36 +719,41 @@ begin
   use (localization.of (submonoid.powers f)).mk' (∑ (i : ι) in t, b i * a i) ⟨f ^ (n+1), n+1, rfl⟩,
   rw to_basic_open_mk',
 
-  -- The rest of this proof would be a little nicer if we could write
-  -- `(structure_sheaf R).eq_of_locally_eq'`. For that, the API on unique gluing should be
-  -- extended to more general (algebraic?) categories, rather than only work with sheaves of types
+  -- Since the structure sheaf is a sheaf, we can show the desired equality locally.
+  -- Annoyingly, `sheaf.eq_of_locally_eq` requires an open cover indexed by a *type*, so we need to
+  -- coerce our finset `t` to a type first.
   let tt := ((t : set (basic_open f)) : Type u),
+  -- This would work a little nicer if we could write `(structure_sheaf R).eq_of_locally_eq'`.
+  -- For that, the API on unique gluing should be extended to work with more general (algebraic?)
+  -- categories, rather than only sheaves of `Type`'s
   apply (structure_sheaf_in_Type R).eq_of_locally_eq'
     (λ i : tt, basic_open (h i)) (basic_open f) (λ i : tt, iDh i),
   { -- This feels a little redundant, since already have `ht_cover` as a hypothesis
     -- Unfortunately, `ht_cover` uses a bounded union over the set `t`, while here we have the
-    -- Union indexed by the type `tt`, which is the coerced type of `t`
+    -- Union indexed by the type `tt`, so we need some boilerplate to translate one to the other
     intros x hx,
     erw topological_space.opens.mem_supr,
     have := ht_cover hx,
     rw [← finset.set_bUnion_coe, set.mem_bUnion_iff] at this,
-    obtain ⟨i, i_mem, x_mem⟩ := this,
+    rcases this with ⟨i, i_mem, x_mem⟩,
     use [i, i_mem] },
 
   rintro ⟨i, hi⟩,
   dsimp,
   change (structure_sheaf R).presheaf.map _ _ = (structure_sheaf R).presheaf.map _ _,
   rw [s_eq i hi, res_const],
+  -- Again, `res_const` spits out an additional goal
   swap,
   { intros y hy,
     change y ∈ basic_open (f ^ (n+1)),
     rw basic_open_pow f (n+1) (by linarith),
     exact (le_of_hom (iDh i) : _) hy },
+  -- The rest of the proof is just computation
   apply const_ext,
   rw [← hb, finset.sum_mul, finset.mul_sum],
   apply finset.sum_congr rfl,
   intros j hj,
-  rw [mul_assoc, ha_ah j i hj hi],
+  rw [mul_assoc, ah_ha j i hj hi],
   ring
 end
 

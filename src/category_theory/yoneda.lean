@@ -118,7 +118,7 @@ instance coyoneda_faithful : faithful (@coyoneda C _) :=
   begin
     injection p with h,
     have t := (congr_fun (congr_fun h (unop X)) (𝟙 _)),
-    simpa using congr_arg has_hom.hom.op t,
+    simpa using congr_arg quiver.hom.op t,
   end }
 
 /--
@@ -223,7 +223,7 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     ext, dsimp,
     erw [←functor_to_types.naturality,
          obj_map_id],
-    simp only [yoneda_map_app, has_hom.hom.unop_op],
+    simp only [yoneda_map_app, quiver.hom.unop_op],
     erw [category.id_comp],
   end,
   inv_hom_id' :=

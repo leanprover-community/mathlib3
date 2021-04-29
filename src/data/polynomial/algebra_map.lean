@@ -119,7 +119,7 @@ alg_hom.map_zero (aeval x)
 
 @[simp] lemma aeval_C (r : R) : aeval x (C r) = algebra_map R A r := eval₂_C _ x
 
-lemma aeval_monomial {n : ℕ} {r : R} : aeval x (monomial n r) = (algebra_map _ _ r) * x^n :=
+@[simp] lemma aeval_monomial {n : ℕ} {r : R} : aeval x (monomial n r) = (algebra_map _ _ r) * x^n :=
 eval₂_monomial _ _
 
 @[simp] lemma aeval_X_pow {n : ℕ} : aeval x ((X : polynomial R)^n) = x^n :=
@@ -177,6 +177,15 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
 
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : polynomial R → R) = eval r := rfl
+
+@[simp] lemma aeval_fn_apply {X : Type*} (g : polynomial R) (f : X → R) (x : X) :
+  ((aeval f) g) x = aeval (f x) g :=
+(aeval_alg_hom_apply (pi.alg_hom.apply _ _ _ x) f g).symm
+
+@[norm_cast] lemma aeval_subalgebra_coe
+  (g : polynomial R) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
+  (aeval f g : A) = aeval (f : A) g :=
+(aeval_alg_hom_apply s.val f g).symm
 
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]

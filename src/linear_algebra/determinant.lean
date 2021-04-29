@@ -237,8 +237,7 @@ calc det (λ i j, v j * A i j) = det (A ⬝ diagonal v) : congr_arg det $ by { e
 the product of the `v`s. -/
 lemma det_mul_column (v : n → R) (A : matrix n n R) :
   det (λ i j, v i * A i j) = (∏ i, v i) * det A :=
-calc det (λ i j, v i * A i j) = det (diagonal v ⬝ A) : congr_arg det $ by { ext, simp }
-                          ... = (∏ i, v i) * det A : by rw [det_mul, det_diagonal]
+multilinear_map.map_smul_univ _ v A
 
 section hom_map
 

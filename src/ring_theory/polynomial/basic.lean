@@ -60,7 +60,7 @@ theorem degree_le_eq_span_X_pow {n : ℕ} :
 begin
   apply le_antisymm,
   { intros p hp, replace hp := mem_degree_le.1 hp,
-    rw [← finsupp.sum_single p, finsupp.sum],
+    rw [← polynomial.sum_monomial_eq p, polynomial.sum],
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
@@ -88,7 +88,7 @@ theorem degree_lt_eq_span_X_pow {n : ℕ} :
 begin
   apply le_antisymm,
   { intros p hp, replace hp := mem_degree_lt.1 hp,
-    rw [← finsupp.sum_single p, finsupp.sum],
+    rw [← polynomial.sum_monomial_eq p, polynomial.sum],
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_lt_coe.1 ((finset.sup_lt_iff $ with_bot.bot_lt_coe n).1 hp k hk),
@@ -128,19 +128,58 @@ def degree_lt_equiv (F : Type*) [field F] (n : ℕ) : degree_lt F n ≃ₗ[F] (f
 
 local attribute [instance] subset.ring
 
+/-- The finset of nonzero coefficients of a polynomial. -/
+def frange (p : polynomial R) : finset R :=
+finset.image (λ n, p.coeff n) p.support
+
+lemma frange_zero : frange (0 : polynomial R) = ∅ :=
+by simp [frange]
+
+lemma frange_one : frange (1 : polynomial R) ⊆ {1} :=
+begin
+  simp [frange, finset.image_subset_iff],
+  simp only [← C_1, coeff_C],
+  assume n hn,
+  simp only [exists_prop, ite_eq_right_iff, not_forall] at hn,
+  simp [hn],
+end
+
+lemma coeff_mem_frange (p : polynomial R) (n : ℕ) (h : p.coeff n ≠ 0) :
+  p.coeff n ∈ p.frange :=
+begin
+  simp only [frange, exists_prop, mem_support_iff, finset.mem_image, ne.def],
+  exact ⟨n, h, rfl⟩,
+end
+
 /-- Given a polynomial, return the polynomial whose coefficients are in
 the ring closure of the original coefficients. -/
 def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set R)) :=
-⟨p.support, λ i, ⟨p.to_fun i,
-  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem
-  else ring.subset_closure $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
-λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
+∑ i in p.support, monomial i (⟨p.coeff i,
+  if H : p.coeff i = 0 then H.symm ▸ is_add_submonoid.zero_mem
+  else ring.subset_closure (p.coeff_mem_frange _ H)⟩ : (ring.closure (↑p.frange : set R)))
 
 @[simp] theorem coeff_restriction {p : polynomial R} {n : ℕ} :
-  ↑(coeff (restriction p) n) = coeff p n := rfl
+  ↑(coeff (restriction p) n) = coeff p n :=
+begin
+  simp only [restriction, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
+    ne.def, ite_not],
+  split_ifs,
+  { rw h, refl },
+  { refl }
+end
 
 @[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} :
-  (coeff (restriction p) n).1 = coeff p n := rfl
+  (coeff (restriction p) n).1 = coeff p n :=
+coeff_restriction
+
+@[simp] lemma support_restriction (p : polynomial R) :
+  support (restriction p) = support p :=
+begin
+  ext i,
+  simp only [mem_support_iff, not_iff_not, ne.def],
+  conv_rhs { rw [← coeff_restriction] },
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
 
 section
 local attribute [instance] algebra.of_is_subring subring.domain subset.comm_ring
@@ -148,15 +187,21 @@ local attribute [instance] algebra.of_is_subring subring.domain subset.comm_ring
 ext $ λ n, by rw [coeff_map, algebra.is_subring_algebra_map_apply, coeff_restriction]
 end
 
-@[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
+@[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree :=
+by simp [degree]
 
 @[simp] theorem nat_degree_restriction {p : polynomial R} :
-  (restriction p).nat_degree = p.nat_degree := rfl
+  (restriction p).nat_degree = p.nat_degree :=
+by simp [nat_degree]
 
 @[simp] theorem monic_restriction {p : polynomial R} : monic (restriction p) ↔ monic p :=
-⟨λ H, congr_arg subtype.val H, λ H, subtype.eq H⟩
+begin
+  simp_rw [monic, leading_coeff, nat_degree_restriction, ← coeff_restriction],
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
 
-@[simp] theorem restriction_zero : restriction (0 : polynomial R) = 0 := rfl
+@[simp] theorem restriction_zero : restriction (0 : polynomial R) = 0 :=
+by simp only [restriction, finset.sum_empty, support_zero]
 
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
@@ -165,7 +210,10 @@ variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
   eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
-by { dsimp only [eval₂_eq_sum], refl, }
+begin
+  simp_rw [eval₂_eq_sum, sum, support_restriction, ← coeff_restriction],
+  refl
+end
 
 section to_subring
 variables (p : polynomial R) (T : set R) [is_subring T]
@@ -173,51 +221,87 @@ variables (p : polynomial R) (T : set R) [is_subring T]
 /-- Given a polynomial `p` and a subring `T` that contains the coefficients of `p`,
 return the corresponding polynomial whose coefficients are in `T. -/
 def to_subring (hp : ↑p.frange ⊆ T) : polynomial T :=
-⟨p.support, λ i, ⟨p.to_fun i,
-  if H : p.to_fun i = 0 then H.symm ▸ is_add_submonoid.zero_mem
-  else hp $ finsupp.mem_frange.2 ⟨H, i, rfl⟩⟩,
-λ i, finsupp.mem_support_iff.trans (not_iff_not_of_iff ⟨λ H, subtype.eq H, subtype.mk.inj⟩)⟩
+∑ i in p.support, monomial i (⟨p.coeff i,
+  if H : p.coeff i = 0 then H.symm ▸ is_add_submonoid.zero_mem
+  else hp (p.coeff_mem_frange _ H)⟩ : T)
 
 variables (hp : ↑p.frange ⊆ T)
 include hp
 
-@[simp] theorem coeff_to_subring {n : ℕ} : ↑(coeff (to_subring p T hp) n) = coeff p n := rfl
+@[simp] theorem coeff_to_subring {n : ℕ} : ↑(coeff (to_subring p T hp) n) = coeff p n :=
+begin
+  simp only [to_subring, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
+    ne.def, ite_not],
+  split_ifs,
+  { rw h, refl },
+  { refl }
+end
 
-@[simp] theorem coeff_to_subring' {n : ℕ} : (coeff (to_subring p T hp) n).1 = coeff p n := rfl
+@[simp] theorem coeff_to_subring' {n : ℕ} : (coeff (to_subring p T hp) n).1 = coeff p n :=
+coeff_to_subring _ _ hp
 
-@[simp] theorem degree_to_subring : (to_subring p T hp).degree = p.degree := rfl
+@[simp] lemma support_to_subring :
+  support (to_subring p T hp) = support p :=
+begin
+  ext i,
+  simp only [mem_support_iff, not_iff_not, ne.def],
+  conv_rhs { rw [← coeff_to_subring p T hp] },
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
 
-@[simp] theorem nat_degree_to_subring : (to_subring p T hp).nat_degree = p.nat_degree := rfl
+@[simp] theorem degree_to_subring : (to_subring p T hp).degree = p.degree :=
+by simp [degree]
+
+@[simp] theorem nat_degree_to_subring : (to_subring p T hp).nat_degree = p.nat_degree :=
+by simp [nat_degree]
 
 @[simp] theorem monic_to_subring : monic (to_subring p T hp) ↔ monic p :=
-⟨λ H, congr_arg subtype.val H, λ H, subtype.eq H⟩
+begin
+  simp_rw [monic, leading_coeff, nat_degree_to_subring, ← coeff_to_subring p T hp],
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
 
 omit hp
 
-@[simp] theorem to_subring_zero : to_subring (0 : polynomial R) T (set.empty_subset _) = 0 := rfl
+@[simp] theorem to_subring_zero : to_subring (0 : polynomial R) T (by simp [frange_zero]) = 0 :=
+by { ext i, simp }
 
 @[simp] theorem to_subring_one : to_subring (1 : polynomial R) T
-  (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
-    (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
+  (set.subset.trans frange_one $finset.singleton_subset_set_iff.2 is_submonoid.one_mem) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
 
 @[simp] theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
-ext $ λ n, coeff_map _ _
+by { ext n, simp [coeff_map] }
 
 end to_subring
 
 variables (T : set R) [is_subring T]
 
 /-- Given a polynomial whose coefficients are in some subring, return
-the corresponding polynomial whose coefificents are in the ambient ring. -/
+the corresponding polynomial whose coefficients are in the ambient ring. -/
 def of_subring (p : polynomial T) : polynomial R :=
-⟨p.support, subtype.val ∘ p.to_fun,
-λ n, finsupp.mem_support_iff.trans (not_iff_not_of_iff
-  ⟨λ h, congr_arg subtype.val h, λ h, subtype.eq h⟩)⟩
+∑ i in p.support, monomial i (p.coeff i : R)
+
+lemma coeff_of_subring (p : polynomial T) (n : ℕ) :
+  coeff (of_subring T p) n = (coeff p n : T) :=
+begin
+  simp only [of_subring, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
+    ite_eq_right_iff, ne.def, ite_not, not_not, ite_eq_left_iff],
+  assume h,
+  rw h,
+  refl
+end
 
 @[simp] theorem frange_of_subring {p : polynomial T} :
   ↑(p.of_subring T).frange ⊆ T :=
-λ y H, let ⟨hy, x, hx⟩ := finsupp.mem_frange.1 H in hx ▸ (p.to_fun x).2
+begin
+  assume i hi,
+  simp only [frange, set.mem_image, mem_support_iff, ne.def, finset.mem_coe, finset.coe_image]
+    at hi,
+  rcases hi with ⟨n, hn, h'n⟩,
+  rw [← h'n, coeff_of_subring],
+  exact subtype.mem (coeff p n)
+end
 
 end polynomial
 
@@ -413,7 +497,7 @@ begin
   split,
   { rintro ⟨p, ⟨hpdeg, hpI⟩, rfl⟩,
     cases lt_or_eq_of_le hpdeg with hpdeg hpdeg,
-    { refine ⟨0, I.zero_mem, bot_le, _⟩,
+    { refine ⟨0, I.zero_mem, by simp [degree_zero, bot_le], _⟩,
       rw [leading_coeff_zero, eq_comm],
       exact coeff_eq_zero_of_degree_lt hpdeg },
     { refine ⟨p, hpI, le_of_eq hpdeg, _⟩,
@@ -535,10 +619,10 @@ begin
   { subst k, refine hs2 ⟨polynomial.mem_degree_le.2
       (le_trans polynomial.degree_le_nat_degree $ with_bot.coe_le_coe.2 h), hp⟩ },
   { have hp0 : p ≠ 0,
-    { rintro rfl, cases hn, exact nat.not_lt_zero _ h },
+    { rintro rfl, rw [polynomial.nat_degree_zero] at hn, cases hn, exact nat.not_lt_zero _ h },
     have : (0 : R) ≠ 1,
     { intro h, apply hp0, ext i, refine (mul_one _).symm.trans _,
-      rw [← h, mul_zero], refl },
+      rw [← h, mul_zero, polynomial.coeff_zero] },
     haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩,
     have : p.leading_coeff ∈ I.leading_coeff_nth N,
     { rw HN, exact hm2 k ((I.mem_leading_coeff_nth _ _).2
@@ -593,7 +677,16 @@ lemma linear_independent_powers_iff_eval₂
 begin
   rw linear_independent_iff,
   simp only [finsupp.total_apply, aeval_endomorphism],
-  refl
+  split,
+  { rintros h ⟨p⟩ hp,
+    have : p = 0,
+    { apply h,
+      simpa only [sum, support, coeff] using hp },
+    simp only [this, zero_to_alg] },
+  { assume h l hl,
+    have := h ⟨l⟩,
+    simp only [sum, support, coeff, ←zero_to_alg] at this,
+    exact this hl }
 end
 
 lemma disjoint_ker_aeval_of_coprime

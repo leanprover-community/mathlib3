@@ -107,14 +107,14 @@ end
 /-- If `p` lifts then `p.erase n` lifts. -/
 lemma erase_mem_lifts {p : polynomial S} (n : ℕ) (h : p ∈ lifts f) : p.erase n ∈ lifts f :=
 begin
-  rw [lifts_iff_set_range, mem_map_range, coeff] at h ⊢,
+  rw [lifts_iff_set_range, mem_map_range] at h ⊢,
   intros k,
   by_cases hk : k = n,
   { use 0,
-    simp only [hk, ring_hom.map_zero, finsupp.erase_same] },
+    simp only [hk, ring_hom.map_zero, erase_same]},
   obtain ⟨i, hi⟩ := h k,
   use i,
-  simp only [hi, hk, finsupp.erase_ne, ne.def, not_false_iff],
+  simp only [hi, hk, erase_ne, ne.def, not_false_iff],
 end
 
 section lift_deg

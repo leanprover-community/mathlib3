@@ -22,7 +22,7 @@ noncomputable theory
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from `R` is called `C`. -/
-structure polynomial (R : Type*) [semiring R] :=
+structure polynomial (R : Type*) [semiring R] := of_alg ::
 (to_alg : add_monoid_algebra R ℕ)
 
 open finsupp add_monoid_algebra
@@ -432,6 +432,13 @@ by simp [← zero_to_alg, erase]
 
 @[simp] lemma erase_monomial {n : ℕ} {a : R} : erase n (monomial n a) = 0 :=
 by simp [monomial, monomial_fun, erase, ← zero_to_alg]
+
+@[simp] lemma erase_same (p : polynomial R) (n : ℕ) : coeff (p.erase n) n = 0 :=
+by simp [coeff_erase]
+
+@[simp] lemma erase_ne (p : polynomial R) (n i : ℕ) (h : i ≠ n) :
+  coeff (p.erase n) i = coeff p i :=
+by simp [coeff_erase, h]
 
 end semiring
 

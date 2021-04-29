@@ -377,6 +377,10 @@ lemma integral_sin_sq_mul_cos :
   ∫ x in a..b, sin x ^ 2 * cos x = (sin b ^ 3 - sin a ^ 3) / 3 :=
 by simpa using integral_sin_pow_mul_cos_pow_odd 2 0
 
+lemma integral_cos_pow_three :
+  ∫ x in a..b, cos x ^ 3 = sin b - sin a - (sin b ^ 3 - sin a ^ 3) / 3 :=
+by simpa using integral_sin_pow_mul_cos_pow_odd 0 1
+
 /-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `m` is odd. -/
 lemma integral_sin_pow_odd_mul_cos_pow (m n : ℕ) :
   ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n = ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m :=
@@ -398,6 +402,10 @@ by simpa using integral_sin_pow_odd_mul_cos_pow 0 1
 lemma integral_sin_mul_cos_sq :
   ∫ x in a..b, sin x * cos x ^ 2 = (cos a ^ 3 - cos b ^ 3) / 3 :=
 by simpa using integral_sin_pow_odd_mul_cos_pow 0 2
+
+lemma integral_sin_pow_three :
+  ∫ x in a..b, sin x ^ 3 = cos a - cos b - (cos a ^ 3 - cos b ^ 3) / 3 :=
+by simpa using integral_sin_pow_odd_mul_cos_pow 1 0
 
 /-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `m` and `n` are both even. -/
 lemma integral_sin_pow_even_mul_cos_pow_even (m n : ℕ) :

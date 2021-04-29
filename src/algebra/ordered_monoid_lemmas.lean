@@ -375,20 +375,23 @@ end
 
 variable [partial_order α]
 
+@[to_additive add_lt_add_left]
+lemma mul_lt_mul_left' [left_cancel_semigroup α] [has_mul_le_mul_left α] (h : a < b) (c : α) :
+  c * a < c * b :=
+lt_of_le_of_ne (mul_le_mul_left' h.le c)
+  (λ k, lt_irrefl a (h.trans_le ((mul_right_inj c).mp k.symm).le))
+
+@[to_additive lt_add_of_pos_right]
+lemma lt_mul_of_one_lt_right' [left_cancel_monoid α] [has_mul_le_mul_left α]
+  (a : α) (h : 1 < b) :
+  a < a * b :=
+have a * 1 < a * b, from mul_lt_mul_left' h a,
+by rwa [mul_one] at this
+
 section left_co_co
 variables [left_cancel_monoid α]
   [has_mul_le_mul_left α]
   [has_lt_of_mul_lt_mul_left α]
-@[to_additive add_lt_add_left]
-
-lemma mul_lt_mul_left' (h : a < b) (c : α) : c * a < c * b :=
-lt_of_le_not_le (mul_le_mul_left' h.le _)
-  (λ j, not_le_of_gt h (le_of_mul_le_mul_left' j))
-
-@[to_additive lt_add_of_pos_right]
-lemma lt_mul_of_one_lt_right' (a : α) {b : α} (h : 1 < b) : a < a * b :=
-have a * 1 < a * b, from mul_lt_mul_left' h a,
-by rwa [mul_one] at this
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_left (a : α) {b c : α} : a * b ≤ a * c ↔ b ≤ c :=
@@ -505,7 +508,6 @@ end right_co_cos
 
 variables [cancel_monoid α]
   [has_mul_le_mul_left α]
-  [has_lt_of_mul_lt_mul_left α]
   [has_mul_le_mul_right α]
 
 section special
@@ -543,7 +545,7 @@ lemma mul_lt_mul''' (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
 (mul_lt_mul_right' h₁ c).trans (mul_lt_mul_left' h₂ b)
 
 @[to_additive]
-lemma mul_eq_one_iff_eq_one_of_one_le
+lemma mul_eq_one_iff_eq_one_of_one_le [has_lt_of_mul_lt_mul_left α]
   (ha : 1 ≤ a) (hb : 1 ≤ b) : a * b = 1 ↔ a = 1 ∧ b = 1 :=
 ⟨λ hab : a * b = 1,
 by split; apply le_antisymm; try {assumption};

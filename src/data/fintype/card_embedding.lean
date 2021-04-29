@@ -19,14 +19,6 @@ local notation `‖` x `‖` := fintype.card x
 
 namespace fintype
 
-instance decidable_eq_embedding_fintype' {α β} [decidable_eq α] [decidable_eq β] [fintype α] :
-  decidable_eq (α ↪ β) := sorry
-
-lemma embedding_congr_trans {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
-  (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ ↪ β₁) (g : β₁ ↪ γ₁) :
-  equiv.embedding_congr ea ec (f.trans g) = (equiv.embedding_congr ea eb f).trans (equiv.embedding_congr eb ec g) :=
-by { ext, simp } -- move this in, merge Eric's commit, and hopefully everything should be good
-
 private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injective f} ≃ (α ↪ β) :=
 { to_fun := λ f, ⟨f.val, f.property⟩,
   inv_fun := λ f, ⟨f, f.injective⟩,

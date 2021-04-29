@@ -257,6 +257,11 @@ rfl
   (embedding_congr e₁ e₂).symm = embedding_congr e₁.symm e₂.symm :=
 rfl
 
+lemma embedding_congr_apply_trans {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
+  (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ ↪ β₁) (g : β₁ ↪ γ₁) :
+  equiv.embedding_congr ea ec (f.trans g) = (equiv.embedding_congr ea eb f).trans (equiv.embedding_congr eb ec g) :=
+by { ext, simp }
+
 @[simp]
 lemma refl_to_embedding {α : Type*} : (equiv.refl α).to_embedding = function.embedding.refl α := rfl
 

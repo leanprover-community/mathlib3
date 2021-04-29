@@ -143,7 +143,7 @@ If `0 < n`, then `sr i` has order 2.
 begin
   rw order_of_eq_prime _ _,
   { exact ⟨nat.prime_two⟩ },
-  rw [pow_two, sr_mul_self],
+  rw [sq, sr_mul_self],
   dec_trivial,
 end
 

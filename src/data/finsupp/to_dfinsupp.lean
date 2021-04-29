@@ -120,7 +120,7 @@ namespace finsupp
   (f - g).to_dfinsupp = f.to_dfinsupp - g.to_dfinsupp :=
 dfinsupp.coe_fn_injective (sub_eq_add_neg _ _)
 
-@[simp] lemma to_dfinsupp_smul [semiring R] [add_comm_monoid M] [semimodule R M]
+@[simp] lemma to_dfinsupp_smul [semiring R] [add_comm_monoid M] [module R M]
   (r : R) (f : ι →₀ M) : (r • f).to_dfinsupp = r • f.to_dfinsupp :=
 dfinsupp.coe_fn_injective rfl
 
@@ -144,7 +144,7 @@ finsupp.coe_fn_injective $ dfinsupp.coe_neg _
   (to_finsupp (f - g) : ι →₀ M) = to_finsupp f - to_finsupp g :=
 finsupp.coe_fn_injective $ dfinsupp.coe_sub _ _
 
-@[simp] lemma to_finsupp_smul [semiring R] [add_comm_monoid M] [semimodule R M]
+@[simp] lemma to_finsupp_smul [semiring R] [add_comm_monoid M] [module R M]
   [Π m : M, decidable (m ≠ 0)]
   (r : R) (f : Π₀ i : ι, M) : (to_finsupp (r • f) : ι →₀ M) = r • to_finsupp f :=
 finsupp.coe_fn_injective $ dfinsupp.coe_smul _ _
@@ -180,7 +180,7 @@ variables (R)
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
 noncomputable def finsupp_lequiv_dfinsupp
-  [decidable_eq ι] [semiring R] [add_comm_monoid M] [Π m : M, decidable (m ≠ 0)] [semimodule R M] :
+  [decidable_eq ι] [semiring R] [add_comm_monoid M] [Π m : M, decidable (m ≠ 0)] [module R M] :
   (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,
   map_smul' := finsupp.to_dfinsupp_smul,

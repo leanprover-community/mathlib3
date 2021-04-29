@@ -884,11 +884,13 @@ instance group : group c.quotient :=
 
 end groups
 
-lemma con_rel {M : Type*} [has_mul M] (c : con M) :
+@[to_additive]
+lemma con_rel [has_mul M] (c : con M) :
   covariant (*) c.r ∧ covariant (flip (*)) c.r :=
 ⟨λ _ _ _ h, c.mul' (con.refl _ _) h, λ _ _ _ h, c.mul' h (con.refl _ _)⟩
 
-lemma con_rel_converse {M : Type*} [has_mul M] [setoid M]
+@[to_additive]
+lemma con_rel_converse [has_mul M] [setoid M]
   (h : covariant ((*) : M → M → M) setoid.r) (h' : covariant (flip (*) : M → M → M) setoid.r) :
   con M :=
 { r := setoid.r,

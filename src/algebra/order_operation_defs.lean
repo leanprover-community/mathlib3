@@ -66,9 +66,6 @@ general, but seems to be the most common usage. In the opposite direction, the i
 holds (note the `has_le_[...]` as opposed to the more common idioms `has_lt_[...]` and
 `has_mul_le_[...]`.
 -/
--- TODO: relationship with add_con
--- include equivalence
---   `left_cancel_semigroup` with `semigroup partial_order has_le_of_mul_le_mul α`?
 -- use ⇒, as per Eric's suggestion?
 section covariants_and_contravariants
 
@@ -296,5 +293,23 @@ instance has_lt_of_mul_lt_mul_left.to_has_lt_of_mul_lt_mul_right [has_lt α]
     (contravariant_iff_contravariant_mul (<)).mp has_lt_of_mul_lt_mul_left.lt_of_mul_lt_mul_left }
 
 end left_implies_right
+
+@[to_additive]
+def contravariant.to_left_cancel_semigroup [semigroup α] [partial_order α]
+  [has_le_of_mul_le_mul_left α] :
+  left_cancel_semigroup α :=
+{ mul_left_cancel := λ a b c bc, (has_le_of_mul_le_mul_left.le_of_mul_le_mul_left _ bc.le).antisymm
+    (has_le_of_mul_le_mul_left.le_of_mul_le_mul_left _ bc.ge),
+  ..(infer_instance : semigroup α) }
+
+@[to_additive]
+def contravariant.to_right_cancel_semigroup [semigroup α] [partial_order α]
+  [has_le_of_mul_le_mul_right α] :
+  right_cancel_semigroup α :=
+{ mul_right_cancel := λ a b c bc,
+le_antisymm (has_le_of_mul_le_mul_right.le_of_mul_le_mul_right b bc.le)
+    (has_le_of_mul_le_mul_right.le_of_mul_le_mul_right b bc.ge)
+  ..(infer_instance : semigroup α) }
+
 
 end typeclasses_relating_orders_and_binary_operations

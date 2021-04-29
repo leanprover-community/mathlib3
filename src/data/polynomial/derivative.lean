@@ -31,16 +31,26 @@ variables [semiring R]
 
 /-- `derivative p` is the formal derivative of the polynomial `p` -/
 def derivative : polynomial R →ₗ[R] polynomial R :=
-finsupp.total ℕ (polynomial R) R (λ n, C ↑n * X^(n - 1))
+{ to_fun := λ p, p.sum (λ n a, C (a * n) * X^(n-1)),
+  map_add' := λ p q, begin
+    let N := (max p.nat_degree q.nat_degree).succ,
+    have I : p.nat_degree < N := (le_max_left _ _).trans_lt (nat.lt_succ_self _),
+    have J : q.nat_degree < N := (le_max_right _ _).trans_lt (nat.lt_succ_self _),
+    have K : (p + q).nat_degree < N := (nat_degree_add_le p q).trans_lt (nat.lt_succ_self _),
+    rw [sum_over_range' _ _ _ I, sum_over_range' _ _ _ J, sum_over_range' _ _ _ K];
+    simp only [coeff_add, add_mul, sum_add_distrib, ring_hom.map_add, forall_const,
+      zero_mul, ring_hom.map_zero],
+  end,
+  map_smul' := λ a p, begin
+    have I : (a • p).nat_degree < p.nat_degree.succ :=
+      (nat_degree_smul_le _ _).trans_lt (nat.lt_succ_self _),
+    rw [sum_over_range' _ _ _ I, sum_over_range];
+    simp only [mul_sum, ←C_mul', mul_assoc, coeff_C_mul, ring_hom.map_mul, forall_const,
+      zero_mul, ring_hom.map_zero],
+  end }
 
 lemma derivative_apply (p : polynomial R) :
-  derivative p = p.sum (λn a, C (a * n) * X^(n - 1)) :=
-begin
-  rw [derivative, total_apply],
-  apply congr rfl,
-  ext,
-  simp [mul_assoc, coeff_C_mul],
-end
+  derivative p = p.sum (λn a, C (a * n) * X^(n - 1)) := rfl
 
 lemma coeff_derivative (p : polynomial R) (n : ℕ) :
   coeff (derivative p) n = coeff p (n + 1) * (n + 1) :=

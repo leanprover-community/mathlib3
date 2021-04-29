@@ -76,9 +76,18 @@ lemma smul_to_alg {S : Type*} [semiring S] [module S R] {a : S} {b} :
 instance : inhabited (polynomial R) := ⟨0⟩
 
 instance : semiring (polynomial R) :=
-by refine_struct { zero := (0 : polynomial R), one := 1, mul := (*), add := (+),  };
-{ repeat { rintro ⟨_⟩, },
-  simp [← zero_to_alg, ← one_to_alg, add_to_alg, mul_to_alg, mul_assoc, mul_add, add_mul]; abel }
+by refine_struct
+{ zero := (0 : polynomial R),
+  one := 1,
+  mul := (*),
+  add := (+),
+  nsmul := (•),
+  npow := npow_rec,
+  npow_zero' := λ x, rfl,
+  npow_succ' := λ n x, rfl };
+{ repeat { rintro ⟨_⟩, };
+  simp [← zero_to_alg, ← one_to_alg, add_to_alg, mul_to_alg, mul_assoc, mul_add, add_mul,
+    smul_to_alg, nat.succ_eq_one_add]; abel }
 
 instance {S} [semiring S] [module S R] : module S (polynomial R) :=
 { smul := (•),
@@ -239,7 +248,7 @@ by rw [X_pow_mul, monomial_mul_X_pow]
 | ⟨p⟩ n := p n
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
-by { simp only [monomial, monomial_fun, coeff, linear_map.coe_mk], rw finsupp.single_apply, congr }
+by { simp only [monomial, monomial_fun, coeff, linear_map.coe_mk], rw finsupp.single_apply }
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 :=
 by { rw [← monomial_zero_right n, coeff_monomial], simp }
@@ -397,7 +406,11 @@ variables [ring R]
 instance : ring (polynomial R) :=
 { neg := has_neg.neg,
   add_left_neg := by { rintros ⟨⟩, simp [neg_to_alg, add_to_alg, ← zero_to_alg] },
-   .. polynomial.semiring }
+  gsmul := (•),
+  gsmul_zero' := by { rintro ⟨⟩, simp [smul_to_alg, ← zero_to_alg] },
+  gsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_alg, add_to_alg, add_smul, add_comm] },
+  gsmul_neg' := by { rintros n ⟨⟩, simp only [smul_to_alg, neg_to_alg], simp [add_smul, add_mul] },
+  .. polynomial.semiring }
 
 @[simp] lemma coeff_neg (p : polynomial R) (n : ℕ) : coeff (-p) n = -coeff p n :=
 by { rcases p, simp [coeff, neg_to_alg] }

@@ -459,6 +459,13 @@ calc degree (p + q) = ((p + q).support).sup some : rfl
   ... = p.support.sup some ⊔ q.support.sup some : by convert sup_union
   ... = _ : with_bot.sup_eq_max _ _
 
+lemma nat_degree_add_le (p q : polynomial R) :
+  nat_degree (p + q) ≤ max (nat_degree p) (nat_degree q) :=
+begin
+  cases le_max_iff.1 (degree_add_le p q);
+  simp [nat_degree_le_nat_degree h]
+end
+
 @[simp] lemma leading_coeff_zero : leading_coeff (0 : polynomial R) = 0 :=
 by simp [leading_coeff]
 

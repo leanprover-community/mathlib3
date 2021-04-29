@@ -173,18 +173,22 @@ begin
     exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
 end
 
-/-- An algebra is finitely generated if and only if it is a quotient
-of a polynomial ring whose variables are indexed by a fintype. -/
-lemma iff_quotient_mv_polynomial' : (finite_type R A) ↔ ∃ (ι : Type u_2) [fintype ι]
-  (f : (mv_polynomial ι R) →ₐ[R] A), (surjective f) :=
+/-- An algebra is finitely presented if and only if it is a quotient of a polynomial ring whose
+variables are indexed by a fintype by a finitely generated ideal. -/
+lemma iff_quotient_mv_polynomial_fintype : finite_type R A ↔ ∃ (ι : Type u_3) [fintype ι]
+  (f : (_root_.mv_polynomial ι R) →ₐ[R] A), surjective f :=
 begin
   split,
-  { rw iff_quotient_mv_polynomial,
-    rintro ⟨s, ⟨f, hsur⟩⟩,
-    use [{x // x ∈ s}, by apply_instance, f, hsur] },
-  { rintro ⟨ι, ⟨hfintype, ⟨f, hsur⟩⟩⟩,
-    letI : fintype ι := hfintype,
-    exact finite_type.of_surjective (finite_type.mv_polynomial R ι) f hsur }
+  { rw iff_quotient_mv_polynomial_finset,
+    rintro ⟨s, f, hf⟩,
+    classical,
+    obtain ⟨e⟩ := fintype.equiv_fin (s : set A),
+    set ulift_var := mv_polynomial.rename_equiv R (equiv.ulift.trans e.symm),
+    refine ⟨ulift (fin _), infer_instance, f.comp ulift_var.to_alg_hom,
+      hf.comp ulift_var.surjective⟩, },
+  { rintro ⟨ι, hfintype, f, hf⟩,
+    haveI : fintype ι := hfintype,
+    apply finite_type.of_surjective (finite_type.mv_polynomial R ι) f hf }
 end
 
 /-- An algebra is finitely generated if and only if it is a quotient of a polynomial ring in `n`

@@ -64,6 +64,12 @@ instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconne
 lemma coe_to_Top {X : Profinite} : (X.to_Top : Type*) = X :=
 rfl
 
+@[simp] lemma id_app (X : Profinite) (x : X) :
+  (𝟙 X : X → X) x = x := rfl
+
+@[simp] lemma comp_app {X Y Z : Profinite} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+  (f ≫ g : X → Z) x = g (f x) := rfl
+
 end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/

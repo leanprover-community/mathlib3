@@ -195,7 +195,7 @@ begin
   simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
   field_simp,
   erw [le_div_iff (pow_pos f.modulus_pos 2), one_mul],
-  apply sqr_le_sqr,
+  apply sq_le_sq,
   rw abs_eq_self.mpr (le_of_lt f.modulus_pos),
   rw [dist_comm] at m,
   exact m,
@@ -296,7 +296,7 @@ begin
                                   : mul_le_mul_of_nonneg_left
                                       (finset.sum_le_univ_sum_of_nonneg
                                         (λ k, mul_nonneg
-                                          (mul_nonneg pow_minus_two_nonneg (pow_two_nonneg _))
+                                          (mul_nonneg pow_minus_two_nonneg (sq_nonneg _))
                                           bernstein_nonneg)) w₁
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
                                   : by conv_rhs {

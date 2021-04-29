@@ -563,7 +563,7 @@ variables {R : Type*} {M : Type*} [comm_ring R] [add_comm_monoid M]
 lemma ft_of_fg : add_monoid.fg M → finite_type R (add_monoid_algebra R M) :=
 begin
   rintro ⟨S, hS⟩,
-  rw [finite_type.iff_quotient_mv_polynomial'],
+  rw finite_type.iff_quotient_mv_polynomial',
   let S₁ := ulift {x // x ∈ S},
   let ψ := λ (s : S₁), of R M s.down.1,
   refine ⟨S₁, by apply_instance, mv_polynomial.aeval ψ, λ f, finsupp.induction_linear f _ _ _⟩,
@@ -577,10 +577,8 @@ begin
     { obtain ⟨P, hP⟩ := this,
       exact ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
     have : m ∈ span ℕ (S : set M),
-    { rw [← submodule.span_nat_eq_add_submonoid_closure,
-        ← @submodule.top_to_add_submonoid ℕ M _ _ _] at hS,
-      rw [submodule.to_add_submonoid_injective hS],
-      exact mem_top },
+    { rw [← span_nat_eq_add_submonoid_closure, ← @top_to_add_submonoid ℕ M _ _ _] at hS,
+      simp only [to_add_submonoid_injective hS] },
     refine span_induction this _ _ _ _,
     { intros m hm,
       use mv_polynomial.X ⟨⟨m, hm⟩⟩,
@@ -590,7 +588,7 @@ begin
     { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
       exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, single_mul_single, one_mul]⟩ },
     { rintro a m ⟨P, hP⟩,
-      exact ⟨P ^ a, by rw [alg_hom.map_pow, hP, add_monoid_algebra.single_pow, one_pow]⟩ } },
+      exact ⟨P ^ a, by rw [alg_hom.map_pow, hP, single_pow, one_pow]⟩ } },
 end
 
 end add_monoid_algebra

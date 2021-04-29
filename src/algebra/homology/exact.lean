@@ -43,7 +43,7 @@ open category_theory
 open category_theory.limits
 
 variables {V : Type u} [category.{v} V]
-variables [has_equalizers V] [has_images V]
+variables [has_images V]
 
 namespace category_theory
 
@@ -60,7 +60,7 @@ and hence equivalent to the usual definition,
 -- One nice feature of this definition is that we have
 -- `epi f → exact g h → exact (f ≫ g) h` and `exact f g → mono h → exact f (g ≫ h)`,
 -- which do not necessarily hold in a non-abelian category with the usual definition of `exact`.
-class exact [has_zero_morphisms V] {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
+class exact [has_zero_morphisms V] [has_kernels V] {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
 (w : f ≫ g = 0)
 (epi : epi (image_to_kernel f g w))
 
@@ -68,7 +68,7 @@ attribute [instance] exact.epi
 attribute [simp, reassoc] exact.w
 
 section
-variables [has_zero_object V] [preadditive V] [has_cokernels V]
+variables [has_zero_object V] [preadditive V] [has_kernels V] [has_cokernels V]
 local attribute [instance] has_zero_object.has_zero
 
 /--
@@ -85,7 +85,8 @@ lemma preadditive.exact_iff_homology_zero {A B C : V} (f : A ⟶ B) (g : B ⟶ C
 
 end
 
-variables [has_zero_morphisms V]
+section
+variables [has_zero_morphisms V] [has_kernels V]
 
 lemma comp_eq_zero_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
   (p : image_subobject f = kernel_subobject g) : f ≫ g = 0 :=
@@ -115,10 +116,13 @@ lemma exact_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
     apply_instance,
   end }
 
-section
-variables {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
+end
 
+variables {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
 local attribute [instance] epi_comp
+
+section
+variables [has_zero_morphisms V] [has_equalizers V]
 
 instance exact_comp_hom_inv_comp [exact f g] (i : B ≅ D) : exact (f ≫ i.hom) (i.inv ≫ g) :=
 begin
@@ -180,7 +184,6 @@ begin
   apply epi_comp,
 end
 
-section
 variables (A)
 
 lemma kernel_subobject_arrow_eq_zero_of_exact_zero_left [exact (0 : A ⟶ B) g] :
@@ -200,10 +203,8 @@ lemma exact_zero_left_of_mono [has_zero_object V] [mono g] : exact (0 : A ⟶ B)
 
 end
 
-end
-
 section has_cokernels
-variables [has_cokernels V] {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+variables [has_zero_morphisms V] [has_equalizers V] [has_cokernels V] (f g)
 
 @[simp, reassoc] lemma kernel_comp_cokernel [exact f g] : kernel.ι g ≫ cokernel.π f = 0 :=
 begin
@@ -227,6 +228,8 @@ comp_eq_zero_of_exact f g (kernel_fork.condition s) (cokernel_cofork.condition t
 end has_cokernels
 
 section
+variables [has_zero_morphisms V] [has_kernels V]
+
 local attribute [instance] has_zero_object.has_zero
 
 lemma exact_of_zero [has_zero_object V] {A C : V} (f : A ⟶ 0) (g : 0 ⟶ C) : exact f g :=

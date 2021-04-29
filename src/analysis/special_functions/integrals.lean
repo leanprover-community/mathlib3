@@ -224,7 +224,7 @@ by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
 
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
-by simpa only [pow_two, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
+by simpa only [sq, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
   (λ x hx, has_deriv_at_sin x) (λ x hx, has_deriv_at_cos x) continuous_on_cos continuous_on_sin.neg
 
 @[simp]
@@ -256,8 +256,8 @@ begin
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, sin x ^ (n + 2)
       = ∫ x in a..b, sin x ^ (n + 1) * sin x : by simp only [pow_succ']
-  ... = C + (n + 1) * ∫ x in a..b, cos x ^ 2 * sin x ^ n : by simp [H, h, pow_two]
-  ... = C + (n + 1) * ∫ x in a..b, sin x ^ n - sin x ^ (n + 2) : by simp [cos_square', sub_mul,
+  ... = C + (n + 1) * ∫ x in a..b, cos x ^ 2 * sin x ^ n : by simp [H, h, sq]
+  ... = C + (n + 1) * ∫ x in a..b, sin x ^ n - sin x ^ (n + 2) : by simp [cos_sq', sub_mul,
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, sin x ^ n) - (n + 1) * ∫ x in a..b, sin x ^ (n + 2) :
     by rw [integral_sub, mul_sub, add_sub_assoc]; apply continuous.interval_integrable; continuity,

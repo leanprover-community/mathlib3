@@ -117,7 +117,7 @@ General algebra:
     functorial homology: 'homological_complex.homology'
 
   Number theory:
-    sum of two squares: 'nat.prime.sum_two_squares'
+    sum of two squares: 'nat.prime.sq_add_sq'
     sum of four squares: 'nat.sum_four_squares'
     quadratic reciprocity: 'zmod.quadratic_reciprocity'
     "solutions to Pell's equation": 'pell.pell'

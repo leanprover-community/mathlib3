@@ -228,7 +228,7 @@ open nat
 example : order_of (-1 : units ℤ) = 2 :=
 begin
   haveI : fact (prime 2) := ⟨prime_two⟩,
-  exact order_of_eq_prime (by { rw pow_two, simp }) (dec_trivial)
+  exact order_of_eq_prime (by { rw sq, simp }) (dec_trivial)
 end
 
 lemma add_order_of_eq_add_order_of_iff {A : Type*} [add_monoid A] {y : A} :

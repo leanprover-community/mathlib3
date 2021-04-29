@@ -3,6 +3,7 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
+import algebra.ordered_ring
 import tactic.monotonicity.basic
 import deprecated.group
 import group_theory.group_action.defs
@@ -107,11 +108,14 @@ by rw [← npow_eq_pow, nat.add_comm, npow_add, npow_one, npow_eq_pow]
 theorem succ_nsmul (a : A) (n : ℕ) : (n+1) • a = a + n • a :=
 by rw [← nsmul_eq_smul, nat.add_comm, nsmul_add', nsmul_one', nsmul_eq_smul]
 
+/-- Note that most of the lemmas about powers of two refer to it as `sq`. -/
 theorem pow_two (a : M) : a^2 = a * a :=
 by rw [← npow_eq_pow, show 2 = 1 + 1, by refl, npow_add, npow_one]
 
+alias pow_two ← sq
+
 theorem two_nsmul (a : A) : 2 • a = a + a :=
-@pow_two (multiplicative A) _ a
+@sq (multiplicative A) _ a
 
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n := commute.pow_self a n
 theorem nsmul_add_comm' : ∀ (a : A) (n : ℕ), n • a + a = a + n • a :=
@@ -443,17 +447,16 @@ theorem pow_dvd_pow_of_dvd [comm_monoid R] {a b : R} (h : a ∣ b) : ∀ n : ℕ
 | 0     := by rw [pow_zero, pow_zero]
 | (n+1) := by { rw [pow_succ, pow_succ], exact mul_dvd_mul h (pow_dvd_pow_of_dvd n) }
 
-lemma pow_two_sub_pow_two {R : Type*} [comm_ring R] (a b : R) :
+lemma sq_sub_sq {R : Type*} [comm_ring R] (a b : R) :
   a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by simp only [pow_two, mul_sub, add_mul, sub_sub, add_sub, mul_comm, sub_add_cancel]
+by rw [sq, sq, mul_self_sub_mul_self]
 
-lemma eq_or_eq_neg_of_pow_two_eq_pow_two [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
+alias sq_sub_sq ← pow_two_sub_pow_two
+
+lemma eq_or_eq_neg_of_sq_eq_sq [integral_domain R] (a b : R) (h : a ^ 2 = b ^ 2) :
   a = b ∨ a = -b :=
 by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
-        ← pow_two_sub_pow_two a b, sub_eq_zero]
-
-theorem sq_sub_sq [comm_ring R] (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by rw [pow_two, pow_two, mul_self_sub_mul_self]
+        ← sq_sub_sq a b, sub_eq_zero]
 
 theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) :
   x = 0 :=
@@ -500,17 +503,22 @@ section comm_semiring
 
 variables [comm_semiring R]
 
-lemma add_pow_two (a b : R) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 :=
-by simp only [pow_two, add_mul_self_eq]
+lemma add_sq (a b : R) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 :=
+by simp only [sq, add_mul_self_eq]
+
+alias add_sq ← add_pow_two
 
 end comm_semiring
 
+@[simp] lemma neg_sq {α} [ring α] (z : α) : (-z)^2 = z^2 :=
+by simp [sq]
 
-@[simp] lemma neg_square {α} [ring α] (z : α) : (-z)^2 = z^2 :=
-by simp [pow_two]
+alias neg_sq ← neg_pow_two
 
-lemma sub_pow_two {R} [comm_ring R] (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
-by rw [sub_eq_add_neg, add_pow_two, neg_square, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
+lemma sub_sq {R} [comm_ring R] (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
+by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg]
+
+alias sub_sq ← sub_pow_two
 
 lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl

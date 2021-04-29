@@ -95,6 +95,7 @@ is commutative.
 
 namespace monoid_hom
 
+@[to_additive]
 lemma ext_iff₂ {mM : mul_one_class M} {mN : mul_one_class N} {mP : comm_monoid P}
   {f g : M →* N →* P} :
   f = g ↔ (∀ x y, f x y = g x y) :=
@@ -194,7 +195,7 @@ if the import structure permits them to be.
 
 section semiring
 
-variables {R : Type*} [semiring R]
+variables {R S : Type*} [semiring R] [semiring S]
 
 /-- Multiplication of an element of a (semi)ring is an `add_monoid_hom` in both arguments.
 
@@ -216,5 +217,14 @@ lemma add_monoid_hom.coe_mul :
 @[simp]
 lemma add_monoid_hom.coe_flip_mul :
   ⇑(add_monoid_hom.mul : R →+ R →+ R).flip = add_monoid_hom.mul_right := rfl
+
+/-- An `add_monoid_hom` preserves multiplication if pre- and post- composition with
+`add_monoid_hom.mul` are equivalent. By converting the statement into an equality of
+`add_monoid_hom`s, this lemma allows various specialized `ext` lemmas about `→+` to then be applied.
+-/
+lemma add_monoid_hom.map_mul_iff (f : R →+ S) :
+  (∀ x y, f (x * y) = f x * f y) ↔
+    (add_monoid_hom.mul : R →+ R →+ R).compr₂ f = (add_monoid_hom.mul.comp f).compl₂ f :=
+iff.symm add_monoid_hom.ext_iff₂
 
 end semiring

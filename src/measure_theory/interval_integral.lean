@@ -1438,7 +1438,8 @@ lemma deriv_within_integral_left
 /-!
 ### Fundamental theorem of calculus, part 2
 
-This section contains theorems pertaining to FTC-2 for interval integrals. -/
+This section contains theorems pertaining to FTC-2 for interval integrals.
+-/
 
 variable {f' : ℝ → E}
 
@@ -1581,5 +1582,31 @@ begin
   { exact ((hcu'.mul hcv).add ((has_deriv_at.continuous_on hu).mul hcv')).interval_integrable },
   { exact (hcv.mul hcu').interval_integrable },
 end
+
+/-!
+### Integration by substitution / Change of variables
+-/
+
+theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hf' : continuous_on f' (interval a b))
+  (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
+  (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g (𝓝 x)) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+let hg' := continuous_at.continuous_on hg in
+have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,
+{ intros x hx,
+  have hs := interval_subset_interval_left hx,
+  exact (integral_has_deriv_at_right (hg'.mono $ trans (intermediate_value_interval $
+    has_deriv_at.continuous_on $ λ y hy, hf y $ hs hy) $ image_subset f hs).interval_integrable
+      (hgm (f x) ⟨x, hx, rfl⟩) $ hg (f x) ⟨x, hx, rfl⟩).comp _ (hf x hx) },
+by simp_rw [integral_eq_sub_of_has_deriv_at h $ (hg'.comp (has_deriv_at.continuous_on hf) $
+  subset_preimage_image f _).mul hf', integral_same, sub_zero]
+
+theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous g) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+integral_comp_mul_deriv' h h' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
 
 end interval_integral

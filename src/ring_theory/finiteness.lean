@@ -556,46 +556,66 @@ section monoid_algebra
 
 namespace add_monoid_algebra
 
-open algebra submodule
+open algebra add_submonoid
 
 variables {R : Type*} {M : Type*} [comm_ring R] [add_comm_monoid M]
+
+lemma surjective_of_closure {S : set M} (hS : closure S = ⊤) :
+  function.surjective (mv_polynomial.aeval (λ (s : S), of R M s.1) :
+  mv_polynomial S R → add_monoid_algebra R M) :=
+begin
+  refine λ f, finsupp.induction_linear f _ _ (λ m r, _),
+  { exact ⟨0, alg_hom.map_zero _⟩ },
+  { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
+    exact ⟨P + Q, alg_hom.map_add _ _ _⟩, },
+  { suffices : ∃ (P : mv_polynomial S R), (mv_polynomial.aeval (λ (s : S), of R M s.1)) P =
+      finsupp.single m 1,
+    { obtain ⟨P, hP⟩ := this,
+      exact ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
+    have : m ∈ closure S := by simp only [hS],
+    refine closure_induction this (λ m hm, _) _ _,
+    { use mv_polynomial.X ⟨m, hm⟩,
+      simpa only [mv_polynomial.aeval_X, of_apply, subtype.coe_mk] },
+    { exact ⟨1, alg_hom.map_one _⟩ },
+    { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
+      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, single_mul_single, one_mul]⟩ } }
+end
 
 instance ft_of_fg [h : add_monoid.fg M] : finite_type R (add_monoid_algebra R M) :=
 begin
   obtain ⟨S, hS⟩ := h.out,
-  let S₁ := (S : set M),
-  let ψ := λ (s : S₁), of R M (multiplicative.of_add ↑s),
-  apply (finite_type.mv_polynomial R S₁).of_surjective (mv_polynomial.aeval ψ),
-  refine λ f, finsupp.induction_linear f _ _ _,
-  { exact ⟨0, alg_hom.map_zero _⟩ },
-  { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
-    exact ⟨P + Q, alg_hom.map_add _ _ _⟩, },
-{ intros m r,
-    suffices : ∃ (P : mv_polynomial S₁ R), (mv_polynomial.aeval ψ) P = finsupp.single m 1,
-    { obtain ⟨P, hP⟩ := this,
-      exact ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
-    have : m ∈ span ℕ (S : set M),
-    { rw [← mem_to_add_submonoid, span_nat_eq_add_submonoid_closure, hS],
-      exact add_submonoid.mem_top _, },
-    refine span_induction this _ _ _ _,
-    { intros m hm,
-      use mv_polynomial.X ⟨m, hm⟩,
-      simp only [ψ, mv_polynomial.aeval_X, of_apply, subtype.coe_mk],
-      refl },
-    { exact ⟨1, alg_hom.map_one _⟩ },
-    { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
-      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, single_mul_single, one_mul]⟩ },
-    { rintro a m ⟨P, hP⟩,
-      exact ⟨P ^ a, by rw [alg_hom.map_pow, hP, single_pow, one_pow]⟩ } },
+  exact (finite_type.mv_polynomial R (S : set M)).of_surjective (mv_polynomial.aeval
+    (λ (s : (S : set M)), of R M s.1)) (surjective_of_closure hS)
 end
 
 end add_monoid_algebra
 
 namespace monoid_algebra
 
-open algebra
+open algebra submonoid
 
 variables {R : Type*} {M : Type*} [comm_ring R] [comm_monoid M]
+
+lemma surjective_of_closure {S : set M} (hS : closure S = ⊤) :
+  function.surjective (mv_polynomial.aeval (λ (s : S), of R M s.1) :
+  mv_polynomial S R → monoid_algebra R M) :=
+begin
+  refine λ f, finsupp.induction_linear f _ _ (λ m r, _),
+  { exact ⟨0, alg_hom.map_zero _⟩ },
+  { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
+    exact ⟨P + Q, alg_hom.map_add _ _ _⟩, },
+  { suffices : ∃ (P : mv_polynomial S R), (mv_polynomial.aeval (λ (s : S), of R M s.1)) P =
+      finsupp.single m 1,
+    { obtain ⟨P, hP⟩ := this,
+      exact ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
+    have : m ∈ closure S := by simp only [hS],
+    refine closure_induction this (λ m hm, _) _ _,
+    { use mv_polynomial.X ⟨m, hm⟩,
+      simp only [mv_polynomial.aeval_X, of_apply, subtype.coe_mk], },
+    { exact ⟨1, alg_hom.map_one _⟩ },
+    { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
+      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, single_mul_single, one_mul]⟩ } }
+end
 
 instance ft_of_fg [monoid.fg M] : finite_type R (monoid_algebra R M) :=
 add_monoid_algebra.ft_of_fg.equiv (monoid_algebra.to_additive_alg_equiv R M).symm

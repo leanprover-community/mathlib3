@@ -175,7 +175,7 @@ lemma div_wf_lemma (h : degree q ≤ degree p ∧ p ≠ 0) (hq : monic q) :
   degree (p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q) < degree p :=
 have hp : leading_coeff p ≠ 0 := mt leading_coeff_eq_zero.1 h.2,
 if h0 : p - C (leading_coeff p) * X ^ (nat_degree p - nat_degree q) * q = 0
-then h0.symm ▸ (lt_of_not_ge $ mt le_bot_iff.1 (mt degree_eq_bot.1 h.2))
+then lt_of_not_ge $ by simp [h0, degree_eq_bot, h]
 else
   have hq0 : q ≠ 0 := hq.ne_zero_of_polynomial_ne h.2,
   have hlt : nat_degree q ≤ nat_degree p := with_bot.coe_le_coe.1
@@ -235,8 +235,8 @@ else
     assume hp,
     unfold mod_by_monic div_mod_by_monic_aux,
     rw [dif_pos hq, if_neg h, not_not.1 hp],
-    exact lt_of_le_of_ne bot_le
-      (ne.symm (mt degree_eq_bot.1 hq0)),
+    simp only [degree_zero],
+    exact lt_of_le_of_ne bot_le (ne.symm (mt degree_eq_bot.1 hq0)),
   end
 using_well_founded {dec_tac := tactic.assumption}
 
@@ -324,7 +324,7 @@ lemma degree_add_div_by_monic (hq : monic q) (h : degree q ≤ degree p) :
 if hq0 : q = 0 then
   have ∀ (p : polynomial R), p = 0,
     from λ p, (@subsingleton_of_monic_zero R _ (hq0 ▸ hq)).1 _ _,
-  by rw [this (p /ₘ q), this p, this q]; refl
+  by rw [this (p /ₘ q), this p, this q]; simp only [degree_zero, with_bot.add_bot]
 else
 have hdiv0 : p /ₘ q ≠ 0 := by rwa [(≠), div_by_monic_eq_zero_iff hq hq0, not_lt],
 have hlc : leading_coeff q * leading_coeff (p /ₘ q) ≠ 0 :=
@@ -349,14 +349,14 @@ else if hq : monic q then
   else
     by unfold div_by_monic div_mod_by_monic_aux;
       simp only [dif_pos hq, h, false_and, if_false, degree_zero, bot_le]
-else (div_by_monic_eq_of_not_monic p hq).symm ▸ bot_le
+else by rw [(div_by_monic_eq_of_not_monic p hq), degree_zero]; exact bot_le
 
 lemma degree_div_by_monic_lt (p : polynomial R) {q : polynomial R} (hq : monic q)
   (hp0 : p ≠ 0) (h0q : 0 < degree q) : degree (p /ₘ q) < degree p :=
 have hq0 : q ≠ 0 := hq.ne_zero_of_polynomial_ne hp0,
 if hpq : degree p < degree q
 then begin
-  rw [(div_by_monic_eq_zero_iff hq hq0).2 hpq, degree_eq_nat_degree hp0],
+  rw [(div_by_monic_eq_zero_iff hq hq0).2 hpq, degree_eq_nat_degree hp0, degree_zero],
   exact with_bot.bot_lt_some _
 end
 else begin
@@ -422,7 +422,7 @@ have h01R : (0 : R) ≠ 1, from mt (congr_arg f)
 have map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p %ₘ q),
   from (div_mod_by_monic_unique ((p /ₘ q).map f) _ (monic_map f hq)
     ⟨eq.symm $ by rw [← map_mul, ← map_add, mod_by_monic_add_div _ hq],
-    calc _ ≤ degree (p %ₘ q) : degree_map_le _
+    calc _ ≤ degree (p %ₘ q) : degree_map_le _ _
     ... < degree q : degree_mod_by_monic_lt _ hq
       $ (hq.ne_zero_of_ne  h01R)
     ... = _ : eq.symm $ degree_map_eq_of_leading_coeff_ne_zero _

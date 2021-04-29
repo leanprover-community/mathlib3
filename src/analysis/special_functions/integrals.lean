@@ -353,24 +353,7 @@ end
 lemma integral_cos_sq : ∫ x in a..b, cos x ^ 2 = (cos b * sin b - cos a * sin a + b - a) / 2 :=
 by field_simp [integral_cos_pow, add_sub_assoc]
 
-
-
-theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
-   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-   (h' : continuous_on f' (interval a b)) (hg : continuous g) :
-   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x := sorry
-
-theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
-   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
-   (hg : ∀ x ∈ interval a b, has_deriv_at g (g' (f x)) (f x))
-   (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
-   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a := sorry
-
-@[simp]
- lemma integral_cos_sq : ∫ x in a..b, cos x ^ 2 = (cos b * sin b - cos a * sin a + b - a) / 2 :=
-sorry
-
-
+/-! ### Integral of `sin x ^ m * cos x ^ n` -/
 
 lemma integral_sin_pow_mul_cos_pow_odd (m n : ℕ) :
   ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1) = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n :=

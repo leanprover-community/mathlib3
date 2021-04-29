@@ -32,7 +32,7 @@ FROM six8/pyinstaller-alpine:alpine-3.6-pyinstaller-v3.4 as leanproject-builder
 
 USER root
 # install prerequisites
-RUN apk update && apk add --no-cache python3 py3-pip py3-virtualenv
+RUN apk update && apk add --no-cache python3 py3-pip py3-virtualenv make
 # create a non-root user
 RUN adduser -D lean
 

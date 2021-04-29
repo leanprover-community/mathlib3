@@ -82,6 +82,7 @@ variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
           {P : Type*} [comm_ring P]
 
 open function
+open_locale big_operators
 
 set_option old_structure_cmd true
 
@@ -1035,7 +1036,7 @@ section integer_normalization
 
 variables {f : localization_map M S}
 
-open finsupp polynomial
+open polynomial
 open_locale classical
 
 /-- `coeff_integer_normalization p` gives the coefficients of the polynomial
@@ -1048,6 +1049,11 @@ then classical.some (classical.some_spec
       (finset.mem_image.mpr ⟨i, hi, rfl⟩))
 else 0
 
+lemma coeff_integer_normalization_of_not_mem_support (p : polynomial f.codomain) (i : ℕ)
+  (h : coeff p i = 0) : coeff_integer_normalization p i = 0 :=
+by simp only [coeff_integer_normalization, h, mem_support_iff, eq_self_iff_true, not_true,
+  ne.def, dif_neg, not_false_iff]
+
 lemma coeff_integer_normalization_mem_support (p : polynomial f.codomain) (i : ℕ)
   (h : coeff_integer_normalization p i ≠ 0) : i ∈ p.support :=
 begin
@@ -1057,13 +1063,15 @@ end
 
 /-- `integer_normalization g` normalizes `g` to have integer coefficients
 by clearing the denominators -/
-noncomputable def integer_normalization (f : localization_map M S) :
-  polynomial f.codomain → polynomial R :=
-λ p, on_finset p.support (coeff_integer_normalization p) (coeff_integer_normalization_mem_support p)
+noncomputable def integer_normalization (f : localization_map M S) (p : polynomial f.codomain) :
+  polynomial R :=
+∑ i in p.support, monomial i (coeff_integer_normalization p i)
 
 @[simp]
 lemma integer_normalization_coeff (p : polynomial f.codomain) (i : ℕ) :
-  (f.integer_normalization p).coeff i = coeff_integer_normalization p i := rfl
+  (f.integer_normalization p).coeff i = coeff_integer_normalization p i :=
+by simp [integer_normalization, coeff_monomial, coeff_integer_normalization_of_not_mem_support]
+  {contextual := tt}
 
 lemma integer_normalization_spec (p : polynomial f.codomain) :
   ∃ (b : M), ∀ i, f.to_map ((f.integer_normalization p).coeff i) = f.to_map b * p.coeff i :=
@@ -1078,13 +1086,13 @@ begin
       (finset.mem_image.mpr ⟨i, hi, rfl⟩)) },
   { convert (_root_.mul_zero (f.to_map _)).symm,
     { exact f.to_ring_hom.map_zero },
-    { exact finsupp.not_mem_support_iff.mp hi } }
+    { exact not_mem_support_iff.mp hi } }
 end
 
 lemma integer_normalization_map_to_map (p : polynomial f.codomain) :
   ∃ (b : M), (f.integer_normalization p).map f.to_map = f.to_map b • p :=
 let ⟨b, hb⟩ := integer_normalization_spec p in
-⟨b, polynomial.ext (λ i, by { rw coeff_map, exact hb i })⟩
+⟨b, polynomial.ext (λ i, by { rw [coeff_map, coeff_smul], exact hb i })⟩
 
 variables {R' : Type*} [comm_ring R']
 
@@ -1351,13 +1359,14 @@ lemma integer_normalization_eq_zero_iff {p : polynomial f.codomain} :
   f.integer_normalization p = 0 ↔ p = 0 :=
 begin
   refine (polynomial.ext_iff.trans (polynomial.ext_iff.trans _).symm),
+  simp only [polynomial.coeff_zero],
   obtain ⟨⟨b, nonzero⟩, hb⟩ := integer_normalization_spec p,
   split; intros h i,
   { apply f.to_map_eq_zero_iff.mp,
     rw [hb i, h i],
     exact _root_.mul_zero _ },
   { have hi := h i,
-    rw [polynomial.coeff_zero, ← f.to_map_eq_zero_iff, hb i] at hi,
+    rw [← f.to_map_eq_zero_iff, hb i] at hi,
     apply or.resolve_left (eq_zero_or_eq_zero_of_mul_eq_zero hi),
     intro h,
     apply mem_non_zero_divisors_iff_ne_zero.mp nonzero,
@@ -1372,6 +1381,7 @@ begin
   split; intros h x; obtain ⟨p, hp, px⟩ := h x,
   { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
   { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
+    rw polynomial.coeff_zero,
     exact f.to_map_eq_zero_iff.mp this },
   { rwa [is_scalar_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
   { exact ⟨f.integer_normalization p,

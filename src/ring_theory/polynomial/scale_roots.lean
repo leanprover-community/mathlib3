@@ -19,7 +19,7 @@ section scale_roots
 variables {A K R S : Type*} [integral_domain A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A}
 
-open finsupp polynomial
+open polynomial
 open_locale big_operators
 
 /-- `scale_roots p s` is a polynomial with root `r * s` for each root `r` of `p`. -/
@@ -41,9 +41,9 @@ lemma scale_roots_ne_zero {p : polynomial R} (hp : p ≠ 0) (s : R) :
 begin
   intro h,
   have : p.coeff p.nat_degree ≠ 0 := mt leading_coeff_eq_zero.mp hp,
-  have : (scale_roots p s).coeff p.nat_degree = 0 :=
+  have : (scale_roots p s).coeff p.nat_degree = (0 : polynomial R).coeff p.nat_degree :=
     congr_fun (congr_arg (coeff : polynomial R → ℕ → R) h) p.nat_degree,
-  rw [coeff_scale_roots_nat_degree] at this,
+  rw [coeff_scale_roots_nat_degree, coeff_zero] at this,
   contradiction
 end
 

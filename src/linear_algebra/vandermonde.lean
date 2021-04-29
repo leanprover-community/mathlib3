@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import algebra.big_operators.fin
+import algebra.geom_sum
 import group_theory.perm.fin
 import linear_algebra.determinant
 import tactic.ring_exp
@@ -61,20 +62,6 @@ begin
   simp only [fin.tail]
 end
 
-/-- The "remarkable product" giving the differnece of two powers. -/
-lemma sub_mul_sum_pow (a b : R) (n : ℕ) :
-  (a - b) * ∑ i in finset.range (n + 1), a ^ i * b ^ (n - i) = a ^ (n + 1) - b ^ (n + 1) :=
-begin
-  induction n with n ih,
-  { simp },
-  calc (a - b) * ∑ (i : ℕ) in finset.range (n + 2), a ^ i * b ^ (n + 1 - i)
-      = a * ((a - b) * (∑ (x : ℕ) in finset.range (n + 1), a ^ x * b ^ (n - x))) +
-        (a - b) * (b * b ^ n) :
-    by simp [finset.sum_range_succ', pow_succ, mul_assoc, ← finset.mul_sum, mul_add, mul_left_comm]
-  ... = a * (a ^ (n + 1) - b ^ (n + 1)) + (a - b) * (b * b ^ n) : by rw ih
-  ... = a ^ (n + 2) - b ^ (n + 2) : by ring_exp
-end
-
 lemma det_vandermonde {n : ℕ} (v : fin n → R) :
   det (vandermonde v) = ∏ i : fin n, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :=
 begin
@@ -97,7 +84,8 @@ begin
                 finset.sum_const_zero, add_zero]
   ... = det (λ (i j : fin n), (v (fin.succ i) - v 0) *
               (∑ k in finset.range (j + 1 : ℕ), v i.succ ^ k * v 0 ^ (j - k : ℕ))) :
-    by { congr, ext i j, rw [fin.succ_above_zero, fin.cons_succ, fin.coe_succ, sub_mul_sum_pow] }
+    by { congr, ext i j, rw [fin.succ_above_zero, fin.cons_succ, fin.coe_succ, mul_comm],
+         exact (geom_sum₂_mul (v i.succ) (v 0) (j + 1 : ℕ)).symm }
   ... = (∏ (i : fin n), (v (fin.succ i) - v 0)) * det (λ (i j : fin n),
     (∑ k in finset.range (j + 1 : ℕ), v i.succ ^ k * v 0 ^ (j - k : ℕ))) :
     det_mul_column (λ i, v (fin.succ i) - v 0) _

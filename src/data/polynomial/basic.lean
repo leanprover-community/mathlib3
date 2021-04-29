@@ -42,7 +42,7 @@ variables [semiring R] {p q : polynomial R}
 | ⟨a⟩ := ⟨-a⟩
 @[irreducible] private def mul : polynomial R → polynomial R → polynomial R
 | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
-@[irreducible] private def smul {S : Type*} [semiring S] [semimodule S R] :
+@[irreducible] private def smul {S : Type*} [semiring S] [module S R] :
   S → polynomial R → polynomial R
 | a ⟨b⟩ := ⟨a • b⟩
 
@@ -51,7 +51,7 @@ instance : has_one (polynomial R) := ⟨monomial_fun 0 (1 : R)⟩
 instance : has_add (polynomial R) := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg (polynomial R) := ⟨neg⟩
 instance : has_mul (polynomial R) := ⟨mul⟩
-instance {S : Type*} [semiring S] [semimodule S R] : has_scalar S (polynomial R) := ⟨smul⟩
+instance {S : Type*} [semiring S] [module S R] : has_scalar S (polynomial R) := ⟨smul⟩
 
 lemma zero_to_alg : (⟨0⟩ : polynomial R) = 0 :=
 begin
@@ -70,7 +70,7 @@ lemma add_to_alg {a b} : (⟨a⟩ + ⟨b⟩ : polynomial R) = ⟨a + b⟩ := sho
 lemma neg_to_alg {R : Type u} [ring R] {a} : (-⟨a⟩ : polynomial R) = ⟨-a⟩ :=
 show neg _ = _, by rw neg
 lemma mul_to_alg {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
-lemma smul_to_alg {S : Type*} [semiring S] [semimodule S R] {a : S} {b} :
+lemma smul_to_alg {S : Type*} [semiring S] [module S R] {a : S} {b} :
   (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := show smul _ _ = _, by rw smul
 
 instance : inhabited (polynomial R) := ⟨0⟩
@@ -80,7 +80,7 @@ by refine_struct { zero := (0 : polynomial R), one := 1, mul := (*), add := (+),
 { repeat { rintro ⟨_⟩, },
   simp [← zero_to_alg, ← one_to_alg, add_to_alg, mul_to_alg, mul_assoc, mul_add, add_mul]; abel }
 
-instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
+instance {S} [semiring S] [module S R] : module S (polynomial R) :=
 { smul := (•),
   one_smul := by { rintros ⟨⟩, simp [smul_to_alg] },
   mul_smul := by { rintros _ _ ⟨⟩, simp [smul_to_alg, mul_smul], },
@@ -89,11 +89,11 @@ instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
   add_smul := by { rintros _ _ ⟨⟩, simp [smul_to_alg, add_to_alg, add_smul] },
   zero_smul := by { rintros ⟨⟩, simp [smul_to_alg, ← zero_to_alg] } }
 
-instance {S₁ S₂} [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+instance {S₁ S₂} [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_alg, smul_comm] }⟩
 
-instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
   [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_alg] }⟩
 
@@ -164,7 +164,7 @@ begin
   { simp [pow_succ, ih, monomial_mul_monomial, nat.succ_eq_add_one, mul_add, add_comm] },
 end
 
-lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
+lemma smul_monomial {S} [semiring S] [module S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 by simp [monomial, monomial_fun, smul_to_alg]
 
@@ -289,7 +289,7 @@ end
   f = g :=
 add_hom_ext (λ n, add_monoid_hom.congr_fun (h n))
 
-@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [semimodule R M] {f g : polynomial R →ₗ[R] M}
+@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [module R M] {f g : polynomial R →ₗ[R] M}
   (h : ∀ n, f.comp (monomial n) = g.comp (monomial n)) :
   f = g :=
 linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ n, linear_map.congr_fun (h n)
@@ -333,11 +333,7 @@ by simp [monomial, monomial_fun, finsupp.single_left_inj ha]
 
 lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) :
   (n : polynomial R) * p = n • p :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
-end
+(nsmul_eq_mul _ _).symm
 
 /-- Summing the values of a function applied to the coefficients of a polynomial -/
 def sum {S : Type*} [add_comm_monoid S] (p : polynomial R) (f : ℕ → R → S) : S :=

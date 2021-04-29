@@ -763,6 +763,11 @@ begin
   all_goals { assumption }
 end
 
+lemma integral_apply {H : Type*} [normed_group H] [normed_space ℝ H]
+  [second_countable_topology $ H →L[ℝ] E] {φ : α → H →L[ℝ] E} (φ_int : integrable φ μ) (v : H) :
+  (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
+((continuous_linear_map.apply ℝ E v).integral_comp_comm φ_int).symm
+
 lemma integral_comp_comm' (L : E →L[ℝ] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 begin
@@ -796,11 +801,11 @@ variables [borel_space E] [second_countable_topology E] [complete_space E]
 @[norm_cast] lemma integral_of_real {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   {f : α → ℝ} :
   ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm is_R_or_C.of_real_li f
+linear_isometry.integral_comp_comm (@is_R_or_C.of_real_li 𝕜 _) f
 
 lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜] {f : α → 𝕜} :
   ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm is_R_or_C.conj_li f
+linear_isometry.integral_comp_comm (@is_R_or_C.conj_li 𝕜 _) f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

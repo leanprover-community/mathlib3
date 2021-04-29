@@ -55,14 +55,20 @@ lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _
 
 instance : comm_ring ℝ :=
 begin
-  refine_struct { zero := 0, one := 1, mul := (*),
-    add := (+), neg := @has_neg.neg ℝ _, sub := λ a b, a + (-b) },
-  all_goals {
-    repeat { rintro ⟨_⟩, },
-    simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy],
-    apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
-      apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
-  },
+  refine_struct { zero  := 0,
+                  one   := 1,
+                  mul   := (*),
+                  add   := (+),
+                  neg   := @has_neg.neg ℝ _,
+                  sub   := λ a b, a + (-b),
+                  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+                  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
+  repeat { rintro ⟨_⟩, };
+  try { refl };
+  simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
+  apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
+    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
 end
 
 /- Extra instances to short-circuit type class resolution -/
@@ -81,8 +87,8 @@ instance : comm_monoid ℝ        := by apply_instance
 instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
-instance : has_sub ℝ := by apply_instance
-instance : inhabited ℝ := ⟨0⟩
+instance : has_sub ℝ            := by apply_instance
+instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
 instance : star_ring ℝ          := star_ring_of_comm
@@ -473,6 +479,50 @@ have bdd_above {x | -x ∈ s} → bdd_below s, from
   assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb $ by simp [hxs]⟩,
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
+
+/--
+As `0` is the default value for `real.Sup` of the empty set or sets which are not bounded above, it
+suffices to show that `S` is bounded below by `0` to show that `0 ≤ Inf S`.
+-/
+lemma Sup_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Sup S :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | ⟨y, hy⟩,
+  { simp [Sup_empty] },
+  { apply dite _ (λ h, le_cSup_of_le h hy $ hS y hy) (λ h, (Sup_of_not_bdd_above h).ge) }
+end
+
+/--
+As `0` is the default value for `real.Sup` of the empty set, it suffices to show that `S` is
+bounded above by `0` to show that `Sup S ≤ 0`.
+-/
+lemma Sup_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Sup S ≤ 0 :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | hS₂,
+  { simp [Sup_empty] },
+  { apply Sup_le_ub _ hS₂ hS, }
+end
+
+/--
+As `0` is the default value for `real.Inf` of the empty set, it suffices to show that `S` is
+bounded below by `0` to show that `0 ≤ Inf S`.
+-/
+lemma Inf_nonneg (S : set ℝ) (hS : ∀ x ∈ S, (0:ℝ) ≤ x) : 0 ≤ Inf S :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | hS₂,
+  { simp [Inf_empty] },
+  { apply lb_le_Inf S hS₂ hS }
+end
+
+/--
+As `0` is the default value for `real.Inf` of the empty set or sets which are not bounded below, it
+suffices to show that `S` is bounded above by `0` to show that `Inf S ≤ 0`.
+-/
+lemma Inf_nonpos (S : set ℝ) (hS : ∀ x ∈ S, x ≤ (0:ℝ)) : Inf S ≤ 0 :=
+begin
+  rcases S.eq_empty_or_nonempty with rfl | ⟨y, hy⟩,
+  { simp [Inf_empty] },
+  { apply dite _ (λ h, cInf_le_of_le h hy $ hS y hy) (λ h, (Inf_of_not_bdd_below h).le) }
+end
 
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin

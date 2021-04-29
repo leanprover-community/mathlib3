@@ -125,17 +125,17 @@ instance : has_one ℤ_[p] :=
 @[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
 instance : ring ℤ_[p] :=
-begin
-  refine { add := (+),
-           mul := (*),
-           neg := has_neg.neg,
-           zero := 0,
-           one := 1,
-           sub := has_sub.sub,
-           sub_eq_add_neg := _,
-           .. };
-  intros; ext; simp; ring
-end
+by refine_struct
+{ add   := (+),
+  mul   := (*),
+  neg   := has_neg.neg,
+  zero  := (0 : ℤ_[p]),
+  one   := 1,
+  sub   := has_sub.sub,
+  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+intros; try { refl }; ext; simp; ring
 
 /-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
 def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
@@ -195,13 +195,8 @@ variables (p : ℕ) [fact p.prime]
 instance : metric_space ℤ_[p] := subtype.metric_space
 
 instance complete_space : complete_space ℤ_[p] :=
-begin
-  delta padic_int,
-  rw [complete_space_iff_is_complete_range uniform_embedding_subtype_coe,
-    subtype.range_coe_subtype],
-  have : is_complete (closed_ball (0 : ℚ_[p]) 1) := is_closed_ball.is_complete,
-  simpa [closed_ball],
-end
+have is_closed {x : ℚ_[p] | ∥x∥ ≤ 1}, from is_closed_le continuous_norm continuous_const,
+this.complete_space_coe
 
 instance : has_norm ℤ_[p] := ⟨λ z, ∥(z : ℚ_[p])∥⟩
 
@@ -259,7 +254,7 @@ by simp [norm_def]
 
 @[simp] lemma norm_pow (z : ℤ_[p]) : ∀ n : ℕ, ∥z^n∥ = ∥z∥^n
 | 0 := by simp
-| (k+1) := show ∥z*z^k∥ = ∥z∥*∥z∥^k, by {rw norm_mul, congr, apply norm_pow}
+| (k+1) := by { rw [pow_succ, pow_succ, norm_mul], congr, apply norm_pow }
 
 theorem nonarchimedean : ∀ (q r : ℤ_[p]), ∥q + r∥ ≤ max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.nonarchimedean _ _
@@ -320,7 +315,7 @@ begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
   rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
-  { rw [fpow_neg, inv_inv', fpow_coe_nat],
+  { rw [fpow_neg, inv_inv', gpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
     apply le_of_lt,
@@ -467,7 +462,7 @@ begin
     { simp },
     { exact_mod_cast hp_prime.1.ne_zero } },
   convert repr using 2,
-  rw [← fpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
+  rw [← gpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
 end
 
 end units
@@ -480,7 +475,7 @@ lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
 begin
   rw norm_eq_pow_val hx,
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-  simp only [int.coe_nat_le, fpow_neg, fpow_coe_nat],
+  simp only [int.coe_nat_le, fpow_neg, gpow_coe_nat],
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
   { apply pow_pos, exact_mod_cast hp_prime.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
@@ -511,7 +506,7 @@ lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
 begin
   by_cases hx : x = 0,
   { subst hx,
-    simp only [norm_zero, fpow_neg, fpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
+    simp only [norm_zero, fpow_neg, gpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
     exact_mod_cast nat.zero_le _ },
   rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
 end
@@ -537,7 +532,7 @@ begin
   have := norm_le_pow_iff_mem_span_pow x 1,
   rw [ideal.mem_span_singleton, pow_one] at this,
   rw [← this, norm_le_pow_iff_norm_lt_pow_add_one],
-  simp only [fpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
+  simp only [gpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
 end
 
 @[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=

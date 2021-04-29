@@ -49,8 +49,8 @@ meta def add_g : name → name
 meta def cache.iapp (c : cache) (n : name) : list expr → expr :=
 c.app (if c.is_group then add_g n else n) c.inst
 
-def term {α} [add_comm_monoid α] (n : ℕ) (x a : α) : α := n •ℕ x + a
-def termg {α} [add_comm_group α] (n : ℤ) (x a : α) : α := n •ℤ x + a
+def term {α} [add_comm_monoid α] (n : ℕ) (x a : α) : α := n • x + a
+def termg {α} [add_comm_group α] (n : ℤ) (x a : α) : α := n • x + a
 
 meta def cache.mk_term (c : cache) (n x a : expr) : expr := c.iapp ``term [n, x, a]
 
@@ -116,7 +116,7 @@ theorem term_add_termg {α} [add_comm_group α] (n₁ x a₁ n₂ a₂ n' a')
 by simp [h₁.symm, h₂.symm, termg, add_gsmul]; ac_refl
 
 theorem zero_term {α} [add_comm_monoid α] (x a) : @term α _ 0 x a = a :=
-by simp [term]
+by simp [term, zero_nsmul, one_nsmul]
 
 theorem zero_termg {α} [add_comm_group α] (x a) : @termg α _ 0 x a = a :=
 by simp [termg]
@@ -160,11 +160,11 @@ meta def eval_neg (c : cache) : normal_expr → tactic (normal_expr × expr)
   return (term' c (n', -n.2) x a',
     c.app ``term_neg c.inst [n.1, x, a, n', a', h₁, h₂])
 
-def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n •ℕ x
-def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n •ℤ x
+def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n • x
+def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n • x
 
 theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
-by simp [smul]
+by simp [smul, nsmul_zero]
 
 theorem zero_smulg {α} [add_comm_group α] (c) : smulg c (0 : α) = 0 :=
 by simp [smulg]
@@ -177,7 +177,7 @@ by simp [h₂.symm, h₁.symm, term, smul, nsmul_add, mul_nsmul]
 theorem term_smulg {α} [add_comm_group α] (c n x a n' a')
   (h₁ : c * n = n') (h₂ : smulg c a = a') :
   smulg c (@termg α _ n x a) = termg n' x a' :=
-by simp [h₂.symm, h₁.symm, termg, smulg, gsmul_add, gsmul_mul]
+by simp [h₂.symm, h₁.symm, termg, smulg, gsmul_add, mul_gsmul]
 
 meta def eval_smul (c : cache) (k : expr × ℤ) :
   normal_expr → tactic (normal_expr × expr)
@@ -203,10 +203,10 @@ lemma unfold_sub {α} [add_group α] (a b c : α)
 by rw [sub_eq_add_neg, h]
 
 theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
-  (h : smul n x = y) : n •ℕ x = y := h
+  (h : smul n x = y) : n • x = y := h
 
 theorem unfold_smulg {α} [add_comm_group α] (n : ℕ) (x y : α)
-  (h : smulg (int.of_nat n) x = y) : n •ℕ x = y := h
+  (h : smulg (int.of_nat n) x = y) : (n : ℤ) • x = y := h
 
 theorem unfold_gsmul {α} [add_comm_group α] (n : ℤ) (x y : α)
   (h : smulg n x = y) : gsmul n x = y := h
@@ -220,6 +220,15 @@ lemma subst_into_smulg {α} [add_comm_group α]
   (l r tl tr t) (prl : l = tl) (prr : r = tr)
   (prt : @smulg α _ tl tr = t) : smulg l r = t :=
 by simp [prl, prr, prt]
+
+/-- Deal with a `smul` term of the form `e₁ • e₂`, handling both natural and integer `e₁`. -/
+meta def eval_smul' (c : cache) (eval : expr → tactic (normal_expr × expr))
+  (e₁ e₂ : expr) : tactic (normal_expr × expr) :=
+do (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁,
+  n ← if c.is_group then e₁'.to_int else coe <$> e₁'.to_nat,
+  (e₂', p₂) ← eval e₂,
+  (e', p) ← eval_smul c (e₁', n) e₂',
+  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
 
 meta def eval (c : cache) : expr → tactic (normal_expr × expr)
 | `(%%e₁ + %%e₂) := do
@@ -247,18 +256,10 @@ meta def eval (c : cache) : expr → tactic (normal_expr × expr)
   guardb c.is_group,
   (e', p) ← eval $ c.iapp ``smul [e₁, e₂],
   return (e', c.app ``unfold_gsmul c.inst [e₁, e₂, e', p])
-| `(smul %%e₁ %%e₂) := do
-  guard (¬ c.is_group),
-  (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁, n ← e₁'.to_nat,
-  (e₂', p₂) ← eval e₂,
-  (e', p) ← eval_smul c (e₁', n) e₂',
-  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
-| `(smulg %%e₁ %%e₂) := do
-  guardb c.is_group,
-  (e₁', p₁) ← norm_num.derive e₁ <|> refl_conv e₁, n ← e₁'.to_int,
-  (e₂', p₂) ← eval e₂,
-  (e', p) ← eval_smul c (e₁', n) e₂',
-  return (e', c.iapp ``subst_into_smul [e₁, e₂, e₁', e₂', e', p₁, p₂, p])
+| `(@has_scalar.smul nat _ add_monoid.has_scalar_nat %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(@has_scalar.smul int _ sub_neg_monoid.has_scalar_int %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(smul %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
+| `(smulg %%e₁ %%e₂) := eval_smul' c eval e₁ e₂
 | e := eval_atom c e
 
 meta def eval' (c : cache) (e : expr) : tactic (expr × expr) :=

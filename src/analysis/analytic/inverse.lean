@@ -504,7 +504,7 @@ begin
         begin
           apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, mul_nonneg, norm_nonneg,
             Cpos.le],
-          refine div_le_div (pow_two_nonneg _) _ (by norm_num) (by linarith),
+          refine div_le_div (sq_nonneg _) _ (by norm_num) (by linarith),
           simp only [sub_le_self_iff],
           apply pow_nonneg (mul_nonneg rpos.le Snonneg),
         end

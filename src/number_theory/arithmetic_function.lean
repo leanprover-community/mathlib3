@@ -183,7 +183,7 @@ lemma mul_apply [semiring R] {f g : arithmetic_function R} {n : ℕ} :
   (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
 
 section module
-variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+variables {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
 
 lemma mul_smul' (f g : arithmetic_function R) (h : arithmetic_function M) :
   (f * g) • h = f • g • h :=
@@ -282,8 +282,8 @@ instance [comm_ring R] : comm_ring (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_group,
   .. arithmetic_function.comm_semiring }
 
-instance {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] :
-  semimodule (arithmetic_function R) (arithmetic_function M) :=
+instance {M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
+  module (arithmetic_function R) (arithmetic_function M) :=
 { one_smul := one_smul',
   mul_smul := mul_smul',
   smul_add := λ r x y, by { ext, simp only [sum_add_distrib, smul_add, smul_apply, add_apply] },
@@ -648,7 +648,7 @@ begin
     simp },
   rcases list.length_eq_one.1 h with ⟨x, hx⟩,
   rw [← prod_factors n.succ_pos, hx, list.prod_singleton],
-  apply mem_factors,
+  apply prime_of_mem_factors,
   rw [hx, list.mem_singleton]
 end
 
@@ -841,7 +841,7 @@ begin
   apply forall_congr,
   intro a,
   apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
-  rw [←gsmul_eq_smul, gsmul_eq_mul],
+  rw [gsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/

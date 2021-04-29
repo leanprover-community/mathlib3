@@ -37,9 +37,9 @@ else with_bot.coe_le_coe.1 $
   ... ≤ _ : sup_le (λ n hn,
     calc degree (C (coeff p n) * q ^ n)
         ≤ degree (C (coeff p n)) + degree (q ^ n) : degree_mul_le _ _
-    ... ≤ nat_degree (C (coeff p n)) + n •ℕ (degree q) :
+    ... ≤ nat_degree (C (coeff p n)) + n • (degree q) :
       add_le_add degree_le_nat_degree (degree_pow_le _ _)
-    ... ≤ nat_degree (C (coeff p n)) + n •ℕ (nat_degree q) :
+    ... ≤ nat_degree (C (coeff p n)) + n • (nat_degree q) :
       add_le_add_left (nsmul_le_nsmul_of_le_right (@degree_le_nat_degree _ _ q) n) _
     ... = (n * nat_degree q : ℕ) :
      by rw [nat_degree_C, with_bot.coe_zero, zero_add, ← with_bot.coe_nsmul,

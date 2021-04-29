@@ -91,7 +91,8 @@ theorem separable.of_pow' {f : polynomial R} :
   ∀ {n : ℕ} (h : (f ^ n).separable), is_unit f ∨ (f.separable ∧ n = 1) ∨ n = 0
 | 0     := λ h, or.inr $ or.inr rfl
 | 1     := λ h, or.inr $ or.inl ⟨pow_one f ▸ h, rfl⟩
-| (n+2) := λ h, or.inl $ is_coprime_self.1 h.is_coprime.of_mul_right_left
+| (n+2) := λ h, by { rw [pow_succ, pow_succ] at h,
+    exact or.inl (is_coprime_self.1 h.is_coprime.of_mul_right_left) }
 
 theorem separable.of_pow {f : polynomial R} (hf : ¬is_unit f) {n : ℕ} (hn : n ≠ 0)
   (hfs : (f ^ n).separable) : f.separable ∧ n = 1 :=
@@ -202,6 +203,23 @@ theorem map_expand {p : ℕ} (hp : 0 < p) {f : R →+* S} {q : polynomial R} :
   map f (expand R p q) = expand S p (map f q) :=
 by { ext, rw [coeff_map, coeff_expand hp, coeff_expand hp], split_ifs; simp, }
 
+/-- Expansion is injective. -/
+lemma expand_injective {n : ℕ} (hn : 0 < n) :
+  function.injective (expand R n) :=
+λ g g' h, begin
+  ext,
+  have h' : (expand R n g).coeff (n * n_1) = (expand R n g').coeff (n * n_1) :=
+  begin
+    apply polynomial.ext_iff.1,
+    exact h,
+  end,
+
+  rw [polynomial.coeff_expand hn g (n * n_1), polynomial.coeff_expand hn g' (n * n_1)] at h',
+  simp only [if_true, dvd_mul_right] at h',
+  rw (nat.mul_div_right n_1 hn) at h',
+  exact h',
+end
+
 end comm_semiring
 
 section comm_ring
@@ -236,7 +254,7 @@ begin
   by_contra hxy,
   rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
       ← insert_erase (mem_erase_of_ne_of_mem (ne.symm hxy) hy),
-      prod_insert (not_mem_erase _ _), ← mul_assoc, hfxy, ← pow_two] at hfs,
+      prod_insert (not_mem_erase _ _), ← mul_assoc, hfxy, ← sq] at hfs,
   cases (hfs.of_mul_left.of_pow (by exact not_is_unit_X_sub_C) two_ne_zero).2
 end
 
@@ -309,7 +327,7 @@ theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f
 theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
   irreducible (expand F (p ^ n) f) → irreducible f :=
 nat.rec_on n (λ hf, by rwa [pow_zero, expand_one] at hf) $ λ n ih hf,
-ih $ of_irreducible_expand p $ by rwa [expand_expand]
+ih $ of_irreducible_expand p $ by { rw pow_succ at hf, rwa [expand_expand] }
 
 variables [HF : char_p F p]
 include HF
@@ -445,7 +463,7 @@ lemma multiplicity_le_one_of_separable {p q : polynomial F} (hq : ¬ is_unit q)
 begin
   contrapose! hq,
   apply is_unit_of_self_mul_dvd_separable hsep,
-  rw ← pow_two,
+  rw ← sq,
   apply multiplicity.pow_dvd_of_le_multiplicity,
   exact_mod_cast (enat.add_one_le_of_lt hq)
 end

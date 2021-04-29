@@ -467,7 +467,7 @@ begin
   { intros, assumption },
   { intros p hp hpn,
     rw [multiset.mem_to_finset, multiset.mem_coe] at hp,
-    haveI Hp : fact p.prime := ⟨mem_factors hp⟩,
+    haveI Hp : fact p.prime := ⟨prime_of_mem_factors hp⟩,
     simp only [exists_prop, ne.def, finset.mem_filter, finset.mem_range],
     refine ⟨p, ⟨_, Hp.1⟩, ⟨_, rfl⟩⟩,
     { rw mem_factors_iff_dvd hn Hp.1 at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },

@@ -49,15 +49,32 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 
 attribute [to_additive] ordered_comm_monoid
 
-@[to_additive ordered_add_comm_monoid.to_has_add_le_add_left]
-instance ordered_comm_monoid.to_has_mul_le_mul_left [ordered_comm_monoid α] :
-  has_mul_le_mul_left α :=
-{ mul_le_mul_left := λ a b ab c, ordered_comm_monoid.mul_le_mul_left b ab c a }
+section ordered_instances
 
-@[to_additive ordered_add_comm_monoid.to_lt_of_has_add_lt_add_left]
-instance ordered_comm_monoid.to_has_lt_of_mul_lt_mul_left [ordered_comm_monoid α] :
-  has_lt_of_mul_lt_mul_left α :=
-{ lt_of_mul_lt_mul_left := ordered_comm_monoid.lt_of_mul_lt_mul_left }
+@[to_additive]
+instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
+  has_mul_le_mul_left M :=
+{ mul_le_mul_left := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
+
+@[to_additive]
+instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
+  has_mul_le_mul_right M :=
+{ mul_le_mul_right := λ a b c bc,
+    by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
+
+@[to_additive]
+instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
+  has_lt_of_mul_lt_mul_left M :=
+{ lt_of_mul_lt_mul_left := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
+
+@[to_additive]
+instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
+  has_lt_of_mul_lt_mul_right M :=
+{ lt_of_mul_lt_mul_right := λ a b c (bc : b * a < c * a), by
+    { rw [mul_comm _ a, mul_comm _ a] at bc,
+      exact ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc } }
+
+end ordered_instances
 
 /-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
 if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker version
@@ -65,15 +82,11 @@ of the condition on canonical orderings defined by `canonically_ordered_monoid`.
 class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] : Prop :=
 (exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a * c)
 
-export has_exists_mul_of_le (exists_mul_of_le)
-
 /-- An `ordered_add_comm_monoid` with one-sided 'subtraction' in the sense that
 if `a ≤ b`, then there is some `c` for which `a + c = b`. This is a weaker version
 of the condition on canonical orderings defined by `canonically_ordered_add_monoid`. -/
 class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] : Prop :=
 (exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a + c)
-
-export has_exists_add_of_le (exists_add_of_le)
 
 attribute [to_additive] has_exists_mul_of_le
 
@@ -129,25 +142,20 @@ by rw [add_comm, top_add]
 
 end linear_ordered_add_comm_monoid_with_top
 
-section ordered_comm_monoid
-variables [ordered_comm_monoid α] {a b c d : α}
-
 /-- Pullback an `ordered_comm_monoid` under an injective map. -/
 @[to_additive function.injective.ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
-def function.injective.ordered_comm_monoid {β : Type*}
+def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   [has_one β] [has_mul β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_comm_monoid β :=
 { mul_le_mul_left := λ a b ab c,
-    show f (c * a) ≤ f (c * b), by { rw [mul, mul], refine mul_le_mul_left' ab _ },
+    show f (c * a) ≤ f (c * b), by { simp [mul, @mul_le_mul_left' α _ _ _ _ _ ab _] },
   lt_of_mul_lt_mul_left :=
-    λ a b c bc, @lt_of_mul_lt_mul_left' _ (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
+    λ a b c bc, @lt_of_mul_lt_mul_left' α (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
   ..partial_order.lift f hf,
   ..hf.comm_monoid f one mul }
-
-end ordered_comm_monoid
 
 /-- Pullback a `linear_ordered_comm_monoid` under an injective map. -/
 @[to_additive function.injective.linear_ordered_add_comm_monoid
@@ -210,6 +218,11 @@ namespace with_zero
 
 local attribute [semireducible] with_zero
 
+/--  If `α` is a Type with `≤`, then `with_zero α` is also a Type with `≤` and `0 ∈ with_zero α`
+is the smallest element. -/
+def has_le [has_le α] : has_le (with_zero α) :=
+{ le := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b, }
+
 instance [preorder α] : preorder (with_zero α) := with_bot.preorder
 
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
@@ -218,7 +231,7 @@ instance [partial_order α] : order_bot (with_zero α) := with_bot.order_bot
 
 lemma zero_le [partial_order α] (a : with_zero α) : 0 ≤ a := order_bot.bot_le a
 
-lemma zero_lt_coe [partial_order α] (a : α) : (0 : with_zero α) < a := with_bot.bot_lt_coe a
+lemma zero_lt_coe [preorder α] (a : α) : (0 : with_zero α) < a := with_bot.bot_lt_coe a
 
 @[simp, norm_cast] lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
 with_bot.coe_lt_coe
@@ -230,34 +243,27 @@ instance [lattice α] : lattice (with_zero α) := with_bot.lattice
 
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
 
-lemma mul_le_mul_left {α : Type u}
-  [ordered_comm_monoid α] :
+local attribute [instance] with_zero.has_le
+
+lemma mul_le_mul_left {α : Type u} [has_mul α] [preorder α]
+  [has_mul_le_mul_left α] :
   ∀ (a b : with_zero α),
     a ≤ b → ∀ (c : with_zero α), c * a ≤ c * b :=
 begin
-  rintro (_ | a) (_ | b) h (_ | c),
-  { apply with_zero.zero_le },
-  { apply with_zero.zero_le },
-  { apply with_zero.zero_le },
-  { apply with_zero.zero_le },
-  { apply with_zero.zero_le },
+  rintro (_ | a) (_ | b) h (_ | c);
+  try { exact λ f hf, option.no_confusion hf },
   { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
-  { apply with_zero.zero_le },
   { simp_rw [some_eq_coe] at h ⊢,
     norm_cast at h ⊢,
-    exact mul_le_mul_left' h c }
+    exact has_mul_le_mul_left.mul_le_mul_left _ h }
 end
 
-lemma lt_of_mul_lt_mul_left  {α : Type u}
-  [ordered_comm_monoid α] :
+lemma lt_of_mul_lt_mul_left  {α : Type u} [has_mul α] [partial_order α]
+  [has_lt_of_mul_lt_mul_left α] :
   ∀ (a b c : with_zero α), a * b < a * c → b < c :=
 begin
-  rintro (_ | a) (_ | b) (_ | c) h,
-  { exact false.elim (lt_irrefl none h) },
-  { exact false.elim (lt_irrefl none h) },
-  { exact false.elim (lt_irrefl none h) },
-  { exact false.elim (lt_irrefl none h) },
-  { exact false.elim (lt_irrefl none h) },
+  rintro (_ | a) (_ | b) (_ | c) h;
+  try { exact false.elim (lt_irrefl none h) },
   { exact with_zero.zero_lt_coe c },
   { exact false.elim (not_le_of_lt h (with_zero.zero_le _)) },
   { simp_rw [some_eq_coe] at h ⊢,
@@ -269,8 +275,7 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
 { mul_le_mul_left := with_zero.mul_le_mul_left,
   lt_of_mul_lt_mul_left := with_zero.lt_of_mul_lt_mul_left,
   ..with_zero.comm_monoid_with_zero,
-  ..with_zero.partial_order
-}
+  ..with_zero.partial_order }
 
 /-
 Note 1 : the below is not an instance because it requires `zero_le`. It seems
@@ -615,9 +620,6 @@ instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
 
 end canonically_ordered_monoid
 
-lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
-lt_of_le_of_lt (zero_le _) h
-
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/
 @[protect_proj, ancestor canonically_ordered_add_monoid linear_order]
@@ -684,7 +686,7 @@ variables [ordered_cancel_comm_monoid α] {a b c d : α}
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid : ordered_comm_monoid α :=
 { lt_of_mul_lt_mul_left := λ a b c h, lt_of_le_not_le
-    (ordered_cancel_comm_monoid.le_of_mul_le_mul_left _ _ _ h.le) $
+      (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a b c h.le) $
       mt (λ h, ordered_cancel_comm_monoid.mul_le_mul_left _ _ h _) (not_le_of_gt h),
   ..‹ordered_cancel_comm_monoid α› }
 
@@ -696,8 +698,8 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_cancel_comm_monoid β :=
-{ le_of_mul_le_mul_left := λ a b c (ab : f (a * b) ≤ f (a * c)),
-    (by { rw [mul, mul] at ab, exact (le_of_mul_le_mul_left' ab : f b ≤ f c) }),
+{ le_of_mul_le_mul_left := λ a b c (bc : f (a * b) ≤ f (a * c)),
+    (mul_le_mul_iff_left (f a)).mp (by rwa [← mul, ← mul]),
   ..hf.left_cancel_semigroup f mul,
   ..hf.ordered_comm_monoid f one mul }
 
@@ -843,7 +845,7 @@ namespace order_dual
 
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
-{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α b a _ _ _ h _,
+{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ _ _ _ _ h _,
   lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }

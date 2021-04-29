@@ -578,9 +578,11 @@ end
 
 private lemma sign_aux_swap_zero_one' (n : ℕ) :
   sign_aux (swap (0 : fin (n + 2)) 1) = -1 :=
-show _ = ∏ x : Σ a : fin (n + 2), fin (n + 2) in {(⟨1, 0⟩ : Σ a : fin (n + 2), fin (n + 2))},
-  if (equiv.swap 0 1) x.1 ≤ swap 0 1 x.2 then (-1 : units ℤ) else 1,
 begin
+  rw show (-1 : units ℤ) = ∏ x : Σ a : fin (n + 2), fin (n + 2) in
+        {(⟨1, 0⟩ : Σ a : fin (n + 2), fin (n + 2))},
+      if (equiv.swap 0 1) x.1 ≤ swap 0 1 x.2 then (-1 : units ℤ) else 1,
+    by simp [show (0 : fin (n+2)) ≤ 1, by simp [fin.le_iff_coe_le_coe]],
   refine eq.symm (prod_subset (λ ⟨x₁, x₂⟩,
     by simp [mem_fin_pairs_lt, fin.one_pos] {contextual := tt}) (λ a ha₁ ha₂, _)),
   rcases a with ⟨a₁, a₂⟩,
@@ -590,9 +592,11 @@ begin
   { exact absurd a₂.zero_le ha₁.not_le },
   rcases a₂.zero_le.eq_or_lt with rfl|H',
   { simp only [and_true, eq_self_iff_true, heq_iff_eq, mem_singleton] at ha₂,
-    have : 1 < a₁ := lt_of_le_of_ne (nat.succ_le_of_lt ha₁) (ne.symm ha₂),
+    have : 1 < a₁, {
+      rw ← fin.succ_zero_eq_one at ha₂ ⊢,
+      exact lt_of_le_of_ne (nat.succ_le_of_lt H) (ne.symm ha₂) },
     norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) ha₂, this.not_le] },
-  { have le : 1 ≤ a₂ := nat.succ_le_of_lt H',
+  { have le : 1 ≤ a₂, { rw ← fin.succ_zero_eq_one, exact nat.succ_le_of_lt H' },
     have lt : 1 < a₁ := le.trans_lt ha₁,
     rcases le.eq_or_lt with rfl|lt',
     { norm_num [swap_apply_of_ne_of_ne (ne_of_gt H) (ne_of_gt lt), H.not_le] },
@@ -607,7 +611,7 @@ begin
   rcases n with _|_|n,
   { norm_num at hn },
   { norm_num at hn },
-  { exact sign_aux_swap_zero_one' n }
+  { convert sign_aux_swap_zero_one' n, norm_num }
 end
 
 lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),

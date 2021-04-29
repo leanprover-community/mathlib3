@@ -390,6 +390,20 @@ begin
   exact finsupp.single_add_erase _ _
 end
 
+lemma coeff_erase (p : polynomial R) (n i : ℕ) :
+  (p.erase n).coeff i = if i = n then 0 else p.coeff i :=
+begin
+  rcases p,
+  simp only [erase, coeff],
+  convert rfl
+end
+
+@[simp] lemma erase_zero (n : ℕ) : (0 : polynomial R).erase n = 0 :=
+by simp [← zero_to_alg, erase]
+
+@[simp] lemma erase_monomial {n : ℕ} {a : R} : (erase n (monomial n a)) = 0 :=
+by simp [monomial, monomial_fun, erase, ← zero_to_alg]
+
 end semiring
 
 section comm_semiring

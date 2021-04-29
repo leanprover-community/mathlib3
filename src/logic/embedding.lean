@@ -236,16 +236,14 @@ namespace equiv
 is equivalent to the type of enbeddings `α₂ ↪ β₂`. -/
 @[congr, simps apply] def embedding_congr {α β γ δ : Sort*}
   (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
-{ to_fun := λ f,
-    ⟨h' ∘ f ∘ h.symm, (h'.comp_injective _).mpr $ (h.symm.injective_comp _).mpr f.injective⟩,
-  inv_fun := λ f,
-    ⟨h'.symm ∘ f ∘ h, (h'.symm.comp_injective _).mpr $ (h.injective_comp _).mpr f.injective⟩,
+{ to_fun := λ f, h.symm.to_embedding.trans $ f.trans $ h'.to_embedding,
+  inv_fun := λ f, h.to_embedding.trans $ f.trans $ h'.symm.to_embedding,
   left_inv := λ x, by {ext, simp},
   right_inv := λ x, by {ext, simp} }
 
 @[simp] lemma embedding_congr_refl {α β : Sort*} :
   embedding_congr (equiv.refl α) (equiv.refl β) = equiv.refl (α ↪ β) :=
-by {ext, simp}
+by {ext, refl}
 
 @[simp] lemma embedding_congr_trans {α₁ β₁ α₂ β₂ α₃ β₃ : Sort*}
   (e₁ : α₁ ≃ α₂) (e₁' : β₁ ≃ β₂) (e₂ : α₂ ≃ α₃) (e₂' : β₂ ≃ β₃) :
@@ -260,7 +258,7 @@ rfl
 lemma embedding_congr_apply_trans {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
   (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ ↪ β₁) (g : β₁ ↪ γ₁) :
   equiv.embedding_congr ea ec (f.trans g) = (equiv.embedding_congr ea eb f).trans (equiv.embedding_congr eb ec g) :=
-by { ext, simp }
+by {ext, simp}
 
 @[simp]
 lemma refl_to_embedding {α : Type*} : (equiv.refl α).to_embedding = function.embedding.refl α := rfl

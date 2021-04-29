@@ -23,11 +23,15 @@ private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injec
 { to_fun := λ f, ⟨f.val, f.property⟩,
   inv_fun := λ f, ⟨f, f.injective⟩,
   left_inv := λ f, by simp,
-  right_inv := λ f, by {ext, simp} }
+  right_inv := λ f, by {ext, refl} }
 
-instance embedding {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
-  fintype (α ↪ β) :=
-  fintype.of_equiv {f : α → β // function.injective f} (equiv_inj_subtype α β)
+instance embedding.fintype {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
+  fintype (α ↪ β) := fintype.of_equiv _ (equiv_inj_subtype α β)
+
+instance embedding'.fintype {α β} [infinite α] [fintype β] : fintype (α ↪ β) :=
+{ elems := finset.empty,
+  complete := λ f, let ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f in
+              false.elim $ ne $ f.injective f_eq }
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
@@ -133,13 +137,13 @@ begin
 
       -- simp is getting hung up on `bex_def` here sadly, so have to do it manually
       have mem_extended : ∀ {g : fin n.succ ↪ β}, g ∈ extended → ∃ a ∈ poss_vals, extend ⇑f a = g,
-        intros g g_extended,
+      { intros g g_extended,
         simp only [extended, mem_map] at g_extended,
         obtain ⟨⟨a, a_poss⟩, -, g_extended⟩ := g_extended,
         simp only [function.embedding.coe_fn_mk, subtype.coe_mk] at g_extended,
         refine ⟨a, a_poss, _⟩,
         rw ←g_extended,
-        simp,
+        simp },
 
       have : |extended| = ‖β‖ - n, by simp [extended, poss_vals, card_sdiff, card_univ],
 
@@ -199,19 +203,29 @@ begin
 end
 
 /-- If `‖β‖ < ‖α‖` there is no embeddings `α ↪ β`. This is the pigeonhole principle. -/
-@[simp] theorem card_embedding_eq_zero (h : ‖β‖ < ‖α‖)
-  : ‖α ↪ β‖ = 0 :=
+@[simp] theorem card_embedding_eq_zero (h : ‖β‖ < ‖α‖) : ‖α ↪ β‖ = 0 :=
 begin
   rw card_eq_zero_iff, intro f,
   obtain ⟨x, y, eq, fne⟩ := fintype.exists_ne_map_eq_of_card_lt f h,
   have := f.injective fne, contradiction
 end
 
-theorem card_embedding_eq_iff: ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
+theorem card_embedding_eq_if: ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
 begin
   split_ifs with h,
     exact card_embedding h,
     exact card_embedding_eq_zero (not_le.mp h)
+end
+
+-- it feels weird repeating the proof but I think it can only be this way due to proof irrelevance?
+lemma card_embedding_eq_infinite {α β} [infinite α] [fintype β] : fintype.card (α ↪ β) = 0 :=
+begin
+  rw fintype.card_eq_zero_iff,
+  intro f,
+  exfalso,
+  obtain ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f,
+  apply ne,
+  exact f.injective f_eq
 end
 
 end fintype

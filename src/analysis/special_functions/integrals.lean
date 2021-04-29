@@ -15,6 +15,7 @@ This file contains proofs of the integrals of various specific functions. This i
 * Reduction formulae for the integrals of `sin x ^ n` and `cos x ^ n` for `n ≥ 2`
 * The computation of `∫ x in 0..π, sin x ^ n` as a product for even and odd `n` (used in proving the
   Wallis product for pi)
+* Integrals of the form `sin x ^ m * cos x ^ n`
 
 With these lemmas, many simple integrals can be computed by `simp` or `norm_num`.
 See `test/integration.lean` for specific examples.
@@ -355,6 +356,7 @@ by field_simp [integral_cos_pow, add_sub_assoc]
 
 /-! ### Integral of `sin x ^ m * cos x ^ n` -/
 
+/-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `n` is odd. -/
 lemma integral_sin_pow_mul_cos_pow_odd (m n : ℕ) :
   ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1) = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n :=
 begin
@@ -366,6 +368,7 @@ begin
   ... = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n : H,
 end
 
+/-- The integral of `sin x * cos x`, given in terms of sin². -/
 lemma integral_sin_mul_cos₁ :
   ∫ x in a..b, sin x * cos x = (sin b ^ 2 - sin a ^ 2) / 2 :=
 by simpa using integral_sin_pow_mul_cos_pow_odd 1 0
@@ -374,6 +377,7 @@ lemma integral_sin_sq_mul_cos :
   ∫ x in a..b, sin x ^ 2 * cos x = (sin b ^ 3 - sin a ^ 3) / 3 :=
 by simpa using integral_sin_pow_mul_cos_pow_odd 2 0
 
+/-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `m` is odd. -/
 lemma integral_sin_pow_odd_mul_cos_pow (m n : ℕ) :
   ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n = ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m :=
 begin
@@ -386,6 +390,7 @@ begin
   ... = ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m : H,
 end
 
+/-- The integral of `sin x * cos x`, given in terms of cos². -/
 lemma integral_sin_mul_cos₂  :
   ∫ x in a..b, sin x * cos x = (cos a ^ 2 - cos b ^ 2) / 2 :=
 by simpa using integral_sin_pow_odd_mul_cos_pow 0 1
@@ -394,6 +399,7 @@ lemma integral_sin_mul_cos_sq :
   ∫ x in a..b, sin x * cos x ^ 2 = (cos a ^ 3 - cos b ^ 3) / 3 :=
 by simpa using integral_sin_pow_odd_mul_cos_pow 0 2
 
+/-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `m` and `n` are both even. -/
 lemma integral_sin_pow_even_mul_cos_pow_even (m n : ℕ) :
     ∫ x in a..b, sin x ^ (2 * m) * cos x ^ (2 * n)
   = ∫ x in a..b, ((1 - cos (2 * x)) / 2) ^ m * ((1 + cos (2 * x)) / 2) ^ n :=

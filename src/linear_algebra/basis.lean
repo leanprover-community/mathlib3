@@ -7,6 +7,7 @@ import linear_algebra.linear_independent
 import linear_algebra.projection
 import linear_algebra.linear_pmap
 import data.fintype.card
+import algebra.algebra.basic
 
 /-!
 
@@ -339,6 +340,33 @@ lemma is_basis.smul_eq_zero [no_zero_divisors R] {c : R} {x : M} :
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
 @smul_eq_zero _ _ _ _ _ hv.no_zero_smul_divisors _ _
 
+end
+
+lemma is_basis.smul_is_basis {v : ι → M} (hv : is_basis R v)
+  {w : ι → R} (hw₁ : ∀ i : ι, w i ≠ 0) (hw₂ : ∀ i : ι, invertible (w i)) :
+  is_basis R (λ i, w i • v i) :=
+begin
+  obtain ⟨hw₁', hw₁''⟩ := hv,
+  split,
+  { rw linear_independent_iff'' at hw₁' ⊢,
+    intros s g hgs hsum i,
+    have hw : g i * w i = 0 := hw₁' s (λ i, g i • w i) _ _ i,
+    { suffices : g i * w i * (hw₂ i).inv_of = 0,
+        rwa [mul_assoc, mul_inv_of_self, mul_one] at this,
+      rw [hw, zero_mul] },
+    { intros i hi,
+      simp only [algebra.id.smul_eq_mul, hgs i hi, zero_smul] },
+    { rw [← hsum, finset.sum_congr rfl _],
+      intros, simp only [smul_assoc] } },
+  { rw eq_top_iff,
+    intros j hj,
+    rw ← hw₁'' at hj,
+    rw submodule.mem_span at hj ⊢,
+    refine λ p hp, hj p (λ u hu, _),
+    obtain ⟨i, rfl⟩ := hu,
+    have := p.smul_mem (⅟ (w i)) (hp ⟨i, rfl⟩),
+    simp only [← smul_assoc, smul_eq_mul, inv_of_mul_self, one_smul] at this,
+    exact this }
 end
 
 end is_basis

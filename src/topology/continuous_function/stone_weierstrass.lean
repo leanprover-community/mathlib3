@@ -100,7 +100,8 @@ begin
     .frequently_map _ _ frequently_mem_polynomials,
   -- but need to show that those pullbacks are actually in `A`.
   rintros _ ⟨g, ⟨-,rfl⟩⟩,
-  simp,
+  simp only [set_like.mem_coe, alg_hom.coe_to_ring_hom, comp_right_continuous_map_apply,
+    polynomial.to_continuous_map_on_alg_hom_apply],
   apply polynomial_comp_attach_bound_mem,
 end
 
@@ -208,17 +209,20 @@ begin
   -- which on different patches (the `U x y`) are greater than `f z - ε`.
   -- Taking the supremum of these functions
   -- indexed by a finite collection of patches which cover `X`
-  -- will give us an element of `A` that is globally greater than `f z - ε`.
+  -- will give us an element of `A` that is globally greater than `f z - ε`
+  -- and still equal to `f x` at `x`.
 
   -- Since `X` is compact, for every `x` there is some finset `ys t`
   -- so the union of the `U x y` for `y ∈ ys x` still covers everything.
   let ys : Π x, finset X := λ x, (compact_space.elim_nhds_subcover (U x) (U_nhd_y x)).some,
   let ys_w : ∀ x, (⋃ y ∈ ys x, U x y) = ⊤ :=
     λ x, (compact_space.elim_nhds_subcover (U x) (U_nhd_y x)).some_spec,
+
   have ys_nonempty : ∀ x, (ys x).nonempty :=
     λ x, set.nonempty_of_union_eq_top_of_nonempty _ _ nX (ys_w x),
 
-  -- Thus for each `x` we have the desired `h x : A` so `f z - ε < h x z` everywhere.
+  -- Thus for each `x` we have the desired `h x : A` so `f z - ε < h x z` everywhere
+  -- and `h x x = f x`.
   let h : Π x, L := λ x,
     ⟨(ys x).sup' (ys_nonempty x) (λ y, (g x y : C(X, ℝ))),
       finset.sup'_mem _ sup_mem _ _ _ (λ y _, (g x y).2)⟩,

@@ -560,9 +560,9 @@ open algebra submodule
 
 variables {R : Type*} {M : Type*} [comm_ring R] [add_comm_monoid M]
 
-lemma ft_of_fg : add_monoid.fg M → finite_type R (add_monoid_algebra R M) :=
+instance ft_of_fg [h : add_monoid.fg M] : finite_type R (add_monoid_algebra R M) :=
 begin
-  rintro ⟨S, hS⟩,
+  obtain ⟨S, hS⟩ := h.out,
   let S₁ := (S : set M),
   let ψ := λ (s : S₁), of R M (multiplicative.of_add ↑s),
   apply (finite_type.mv_polynomial R S₁).of_surjective (mv_polynomial.aeval ψ),

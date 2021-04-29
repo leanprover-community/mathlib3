@@ -51,12 +51,12 @@ attribute [to_additive] ordered_comm_monoid
 
 section ordered_instances
 
-@[to_additive]
+@[priority 100, to_additive] -- see Note [lower instance priority]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   has_mul_le_mul_left M :=
 { mul_le_mul_left := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
-@[to_additive]
+@[priority 99, to_additive] -- see Note [lower instance priority]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   has_mul_le_mul_right M :=
 { mul_le_mul_right := λ a b c bc, by
@@ -64,12 +64,12 @@ instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_
         { exact ordered_comm_monoid.mul_le_mul_left _ _ bc _ },
         { exact is_symm_op_of_is_commutative M (*) } } }
 
-@[to_additive]
+@[priority 98, to_additive] -- see Note [lower instance priority]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
   has_lt_of_mul_lt_mul_left M :=
 { lt_of_mul_lt_mul_left := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
 
-@[to_additive]
+@[priority 97, to_additive] -- see Note [lower instance priority]
 instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
   has_lt_of_mul_lt_mul_right M :=
 { lt_of_mul_lt_mul_right := λ a b c (bc : b * a < c * a), by

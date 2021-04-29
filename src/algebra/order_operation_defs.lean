@@ -311,5 +311,4 @@ le_antisymm (has_le_of_mul_le_mul_right.le_of_mul_le_mul_right b bc.le)
     (has_le_of_mul_le_mul_right.le_of_mul_le_mul_right b bc.ge)
   ..(infer_instance : semigroup α) }
 
-
 end typeclasses_relating_orders_and_binary_operations

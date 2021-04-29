@@ -407,15 +407,7 @@ by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 
 @[to_additive add_neg_le_add_neg_iff]
 lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
-begin
-  split ; intro h,
-  have := mul_le_mul_right' (mul_le_mul_right' h b) d,
-  rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right]
-    at this,
-  have := mul_le_mul_right' (mul_le_mul_right' h d⁻¹) b⁻¹,
-  rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc,
-    mul_inv_cancel_right] at this,
-end
+by rw [mul_inv_le_iff_le_mul, mul_comm, ← mul_assoc, ← mul_inv_le_iff_le_mul, mul_comm b, inv_inv]
 
 @[simp, to_additive] lemma div_le_self_iff (a : α) {b : α} : a / b ≤ a ↔ 1 ≤ b :=
 by simp [div_eq_mul_inv]

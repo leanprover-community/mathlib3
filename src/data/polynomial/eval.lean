@@ -67,12 +67,7 @@ begin
 end
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
-begin
-  rcases p, rcases q,
-  simp only [eval₂_eq_sum, add_to_alg, sum, support, coeff, pi.add_apply,
-    finsupp.coe_add],
-  exact @finsupp.sum_add_index _ _ _ _ _ p q (λ n a, f a * x ^ n) (by simp) (by simp [add_mul]),
-end
+by { apply sum_add_index; simp [add_mul] }
 
 @[simp] lemma eval₂_one : (1 : polynomial R).eval₂ f x = 1 :=
 by rw [← C_1, eval₂_C, f.map_one]

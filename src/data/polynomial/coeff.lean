@@ -38,6 +38,15 @@ by { rcases p, rcases q, simp [coeff, add_to_alg] }
   coeff (r • p) n = r * coeff p n :=
 by { rcases p, simp [coeff, smul_to_alg] }
 
+lemma support_smul (p : polynomial R) (r : R) :
+  support (r • p) ⊆ support p :=
+begin
+  assume i hi,
+  simp [mem_support_iff] at hi ⊢,
+  contrapose! hi,
+  simp [hi]
+end
+
 variable (R)
 /-- The nth coefficient, as a linear map. -/
 def lcoeff (n : ℕ) : polynomial R →ₗ[R] R :=
@@ -56,6 +65,14 @@ variable {R}
 lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=
 by { rcases p, simp [polynomial.sum, support, coeff] }
+
+lemma sum_smul_index (b : R)
+  {S : Type*} [add_comm_monoid S] {f : ℕ → R → S} (h0 : ∀i, f i 0 = 0) :
+  (b • p).sum f = p.sum (λi a, f i (b • a)) :=
+begin
+  rw [sum_eq_of_subset (b • p) f h0 _ (support_smul _ _)],
+  exact finset.sum_congr rfl (λ n hn, by simp),
+end
 
 /-- Decomposes the coefficient of the product `p * q` as a sum
 over `nat.antidiagonal`. A version which sums over `range (n + 1)` can be obtained

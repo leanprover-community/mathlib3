@@ -351,6 +351,15 @@ def sum {S : Type*} [add_comm_monoid S] (p : polynomial R) (f : ℕ → R → S)
 lemma sum_def {S : Type*} [add_comm_monoid S] (p : polynomial R) (f : ℕ → R → S) :
   p.sum f = ∑ n in p.support, f n (p.coeff n) := rfl
 
+lemma sum_eq_of_subset {S : Type*} [add_comm_monoid S] (p : polynomial R)
+  (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0) (s : finset ℕ) (hs : p.support ⊆ s) :
+  p.sum f = ∑ n in s, f n (p.coeff n) :=
+begin
+  apply finset.sum_subset hs (λ n hn h'n, _),
+  rw not_mem_support_iff at h'n,
+  simp [h'n, hf]
+end
+
 /-- Expressing the product of two polynomials as a double sum. -/
 lemma mul_eq_sum_sum :
   p * q = ∑ i in p.support, q.sum (λ j a, (monomial (i + j)) (p.coeff i * a)) :=
@@ -374,9 +383,18 @@ begin
 end
 
 -- the assumption `hf` is only necessary when the ring is trivial
-@[simp] lemma sum_X_index {S : Type*} [add_comm_monoid S] {f : ℕ → R → S} (hf : f 1 0 = 0):
+@[simp] lemma sum_X_index {S : Type*} [add_comm_monoid S] {f : ℕ → R → S} (hf : f 1 0 = 0) :
   (X : polynomial R).sum f = f 1 1 :=
 sum_monomial_index 1 1 f hf
+
+lemma sum_add_index {S : Type*} [add_comm_monoid S] (p q : polynomial R)
+  (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0) (h_add : ∀a b₁ b₂, f a (b₁ + b₂) = f a b₁ + f a b₂) :
+  (p + q).sum f = p.sum f + q.sum f :=
+begin
+  rcases p, rcases q,
+  simp only [add_to_alg, sum, support, coeff, pi.add_apply, coe_add],
+  exact finsupp.sum_add_index hf h_add,
+end
 
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : polynomial R → polynomial R

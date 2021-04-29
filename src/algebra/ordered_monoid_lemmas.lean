@@ -52,8 +52,9 @@ variables [preorder α]
 section has_mul
 variables [has_mul α]
 
-@[to_additive]
-lemma lt_of_mul_lt_mul_left [has_lt_of_mul_lt_mul_left α] :
+/- The name has a `'`, since the version without the prime is for `linear_ordered_semiring`. -/
+@[to_additive lt_of_add_lt_add_left]
+lemma lt_of_mul_lt_mul_left' [has_lt_of_mul_lt_mul_left α] :
   a * b < a * c → b < c :=
 has_lt_of_mul_lt_mul_left.lt_of_mul_lt_mul_left a
 
@@ -126,38 +127,40 @@ variables [preorder α]
 section has_mul
 variables [has_mul α]
 
-@[to_additive]
-lemma lt_of_mul_lt_mul_right [has_lt_of_mul_lt_mul_right α]
+/- The name has a `'`, since the version without the prime is for `linear_ordered_semiring`. -/
+@[to_additive lt_of_add_lt_add_right]
+lemma lt_of_mul_lt_mul_right' [has_lt_of_mul_lt_mul_right α]
   (h : a * b < c * b) :
   a < c :=
 has_lt_of_mul_lt_mul_right.lt_of_mul_lt_mul_right b h
 
 variable  [has_mul_le_mul_right α]
 
-@[to_additive]
-lemma mul_le_mul_right (h : a ≤ b) (c) :
+/- The name has a `'`, since the version without the prime is for `linear_ordered_semiring`. -/
+@[to_additive add_le_add_right]
+lemma mul_le_mul_right' (h : a ≤ b) (c) :
   a * c ≤ b * c :=
 has_mul_le_mul_right.mul_le_mul_right c h
 
 @[to_additive]
 lemma mul_lt_of_mul_lt_right (h : a * b < c) (hle : d ≤ a) :
   d * b < c :=
-(mul_le_mul_right hle b).trans_lt h
+(mul_le_mul_right' hle b).trans_lt h
 
 @[to_additive]
 lemma mul_le_of_mul_le_right (h : a * b ≤ c) (hle : d ≤ a) :
   d * b ≤ c :=
-(mul_le_mul_right hle b).trans h
+(mul_le_mul_right' hle b).trans h
 
 @[to_additive]
 lemma lt_mul_of_lt_mul_right (h : a < b * c) (hle : b ≤ d) :
   a < d * c :=
-h.trans_le (mul_le_mul_right hle c)
+h.trans_le (mul_le_mul_right' hle c)
 
 @[to_additive]
 lemma le_mul_of_le_mul_right (h : a ≤ b * c) (hle : b ≤ d) :
   a ≤ d * c :=
-h.trans (mul_le_mul_right hle c)
+h.trans (mul_le_mul_right' hle c)
 
 end has_mul
 
@@ -167,11 +170,11 @@ variables [mul_one_class α] [has_mul_le_mul_right α]
 
 @[to_additive le_add_of_nonneg_left]
 lemma le_mul_of_one_le_left' (h : 1 ≤ b) : a ≤ b * a :=
-by simpa only [one_mul] using mul_le_mul_right h a
+by simpa only [one_mul] using mul_le_mul_right' h a
 
 @[to_additive add_le_of_nonpos_left]
 lemma mul_le_of_le_one_left' (h : b ≤ 1) : b * a ≤ a :=
-by simpa only [one_mul] using mul_le_mul_right h a
+by simpa only [one_mul] using mul_le_mul_right' h a
 
 @[to_additive]
 lemma lt_of_mul_lt_of_one_le_right (h : a * b < c) (hle : 1 ≤ a) : b < c :=
@@ -204,7 +207,7 @@ variables [has_mul α]
 
 @[to_additive add_le_add]
 lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
-(mul_le_mul_left' h₂ _).trans (mul_le_mul_right h₁ d)
+(mul_le_mul_left' h₂ _).trans (mul_le_mul_right' h₁ d)
 
 @[to_additive]
 lemma mul_le_mul_three {e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) : a * b * c ≤ d * e * f :=
@@ -356,7 +359,7 @@ lemma le_of_mul_le_mul_left' [partial_order α] [left_cancel_semigroup α]
 begin
   cases le_iff_eq_or_lt.mp bc,
   { exact le_iff_eq_or_lt.mpr (or.inl ((mul_right_inj a).mp h)) },
-  { exact (lt_of_mul_lt_mul_left h).le }
+  { exact (lt_of_mul_lt_mul_left' h).le }
 end
 
 @[to_additive le_of_add_le_add_right]
@@ -367,7 +370,7 @@ lemma le_of_mul_le_mul_right' [partial_order α] [right_cancel_semigroup α]
 begin
   cases le_iff_eq_or_lt.mp bc,
   { exact le_iff_eq_or_lt.mpr (or.inl ((mul_left_inj a).mp h)) },
-  { exact (lt_of_mul_lt_mul_right h).le }
+  { exact (lt_of_mul_lt_mul_right' h).le }
 end
 
 variable [partial_order α]
@@ -393,7 +396,7 @@ lemma mul_le_mul_iff_left (a : α) {b c : α} : a * b ≤ a * c ↔ b ≤ c :=
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_left (a : α) {b c : α} : a * b < a * c ↔ b < c :=
-⟨lt_of_mul_lt_mul_left, λ h, mul_lt_mul_left' h _⟩
+⟨lt_of_mul_lt_mul_left', λ h, mul_lt_mul_left' h _⟩
 
 @[simp, to_additive le_add_iff_nonneg_right]
 lemma le_mul_iff_one_le_right' (a : α) {b : α} : a ≤ a * b ↔ 1 ≤ b :=
@@ -423,7 +426,7 @@ variables [right_cancel_monoid α]
 
 @[to_additive add_lt_add_right]
 lemma mul_lt_mul_right' (h : a < b) (c : α) : a * c < b * c :=
-(mul_le_mul_right h.le _).lt_of_not_le
+(mul_le_mul_right' h.le _).lt_of_not_le
   (λ j, not_le_of_gt h (le_of_mul_le_mul_right' j))
 
 @[to_additive lt_add_of_pos_left]
@@ -433,11 +436,11 @@ by rwa [one_mul] at this
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_right (c : α) : a * c ≤ b * c ↔ a ≤ b :=
-⟨le_of_mul_le_mul_right', λ h, mul_le_mul_right h _⟩
+⟨le_of_mul_le_mul_right', λ h, mul_le_mul_right' h _⟩
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_right (c : α) : a * c < b * c ↔ a < b :=
-⟨lt_of_mul_lt_mul_right, λ h, mul_lt_mul_right' h _⟩
+⟨lt_of_mul_lt_mul_right', λ h, mul_lt_mul_right' h _⟩
 
 @[simp, to_additive le_add_iff_nonneg_left]
 lemma le_mul_iff_one_le_left' (a : α) {b : α} : a ≤ b * a ↔ 1 ≤ b :=
@@ -509,7 +512,7 @@ section special
 
 @[to_additive]
 lemma mul_lt_mul_of_le_of_lt (h₁ : a ≤ b) (h₂ : c < d) : a * c < b * d :=
-(mul_le_mul_right h₁ _).trans_lt (mul_lt_mul_left' h₂ b)
+(mul_le_mul_right' h₁ _).trans_lt (mul_lt_mul_left' h₂ b)
 
 @[to_additive]
 lemma mul_lt_one_of_le_one_of_lt_one (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=

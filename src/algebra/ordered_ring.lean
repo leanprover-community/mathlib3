@@ -639,7 +639,7 @@ instance ordered_ring.to_ordered_semiring : ordered_semiring α :=
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
   add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _,
+  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
   mul_lt_mul_of_pos_left     := @ordered_ring.mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @ordered_ring.mul_lt_mul_of_pos_right α _,
   ..‹ordered_ring α› }
@@ -727,7 +727,7 @@ instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semirin
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
   add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _,
+  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
   mul_lt_mul_of_pos_left     := @mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @mul_lt_mul_of_pos_right α _,
   le_total                   := linear_ordered_ring.le_total,

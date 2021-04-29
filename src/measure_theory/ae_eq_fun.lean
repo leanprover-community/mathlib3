@@ -346,36 +346,34 @@ variables [topological_space γ] [borel_space γ] [group γ] [topological_group 
 @[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
 
 variables [second_countable_topology γ]
+
+@[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
+
+@[to_additive, simp] lemma mk_div (f g : α → γ) (hf hg) :
+  mk (f / g) (ae_measurable.div hf hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
+rfl
+
+@[to_additive] lemma coe_fn_div (f g : α →ₘ[μ] γ) : ⇑(f / g) =ᵐ[μ] f / g := coe_fn_comp₂ _ _ _ _
+
+@[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
+comp₂_to_germ _ _ _ _
+
 @[to_additive]
-instance : group (α →ₘ[μ] γ) := to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ
+instance : group (α →ₘ[μ] γ) :=
+to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
 
 end group
-
-section add_group
-
-variables [topological_space γ] [borel_space γ] [add_group γ] [topological_add_group γ]
-  [second_countable_topology γ]
-
-@[simp] lemma mk_sub (f g : α → γ) (hf hg) :
-  mk (f - g) (ae_measurable.sub hf hg) = (mk f hf : α →ₘ[μ] γ) - (mk g hg) :=
-by simp [sub_eq_add_neg]
-
-lemma coe_fn_sub (f g : α →ₘ[μ] γ) : ⇑(f - g) =ᵐ[μ] f - g :=
-by { simp only [sub_eq_add_neg],
-     exact ((coe_fn_add f (-g)).trans $ (coe_fn_neg g).mono $ λ x hx, congr_arg ((+) (f x)) hx) }
-
-end add_group
 
 @[to_additive]
 instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_group γ]
   [second_countable_topology γ] : comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
 
-section semimodule
+section module
 
 variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
-variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [semimodule 𝕜 γ]
+variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [module 𝕜 γ]
   [has_continuous_smul 𝕜 γ]
 
 instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
@@ -392,10 +390,10 @@ comp_to_germ _ _ _
 
 variables [second_countable_topology γ] [has_continuous_add γ]
 
-instance : semimodule 𝕜 (α →ₘ[μ] γ) :=
-to_germ_injective.semimodule 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
+instance : module 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.module 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
 
-end semimodule
+end module
 
 open ennreal
 
@@ -472,7 +470,7 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
 variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
 variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_comm_group γ]
-  [semimodule 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
+  [module 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
   [second_countable_topology γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence

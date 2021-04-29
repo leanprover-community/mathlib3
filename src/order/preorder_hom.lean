@@ -185,3 +185,26 @@ lemma to_preorder_hom_coe {X Y : Type*} [preorder X] [preorder Y] (f : X ↪o Y)
   (f.to_preorder_hom : X → Y) = (f : X → Y) := rfl
 
 end order_embedding
+section rel_hom
+
+variables {α β : Type*} [partial_order α] [preorder β]
+
+namespace rel_hom
+
+variables (f : ((<) : α → α → Prop) →r ((<) : β → β → Prop))
+
+/-- A bundled expression of the fact that a map between partial orders that is strictly monotonic
+is weakly monotonic. -/
+def to_preorder_hom : α →ₘ β :=
+{ to_fun    := f,
+  monotone' := strict_mono.monotone (λ x y, f.map_rel), }
+
+@[simp] lemma to_preorder_hom_coe_fn : ⇑f.to_preorder_hom = f := rfl
+
+end rel_hom
+
+lemma rel_embedding.to_preorder_hom_injective (f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)) :
+  function.injective (f : ((<) : α → α → Prop) →r ((<) : β → β → Prop)).to_preorder_hom :=
+λ _ _ h, f.injective h
+
+end rel_hom

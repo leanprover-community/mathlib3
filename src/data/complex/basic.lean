@@ -134,9 +134,10 @@ ext_iff.2 $ by simp
 /-! ### Commutative ring instance and lemmas -/
 
 instance : comm_ring ℂ :=
-by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1, mul := (*),
-            sub_eq_add_neg := _, ..};
-   { intros, apply ext_iff.2; split; simp; {ring1 <|> ring_nf} }
+by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1,
+  mul := (*), nsmul := @nsmul_rec _ ⟨(0)⟩ ⟨(+)⟩, npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
+  gsmul := @gsmul_rec _ ⟨(0)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
 { map_add := complex.add_re }
@@ -260,7 +261,7 @@ def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, o
 
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 
-@[simp] lemma I_sq : I ^ 2 = -1 := by rw [pow_two, I_mul_I]
+@[simp] lemma I_sq : I ^ 2 = -1 := by rw [sq, I_mul_I]
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
@@ -483,7 +484,7 @@ by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 by rw [← of_real_int_cast, abs_of_real, int.cast_abs]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
-by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
+by rw [abs, sq, real.mul_self_sqrt (norm_sq_nonneg _)]
 
 /--
 We put a partial order on ℂ so that `z ≤ w` exactly if `w - z` is real and nonnegative.

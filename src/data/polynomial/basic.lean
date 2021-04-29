@@ -35,12 +35,12 @@ variables [semiring R] {p q : polynomial R}
 
 instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
 instance : semiring (polynomial R) := add_monoid_algebra.semiring
-instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
-add_monoid_algebra.semimodule
-instance {S₁ S₂} [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+instance {S} [semiring S] [module S R] : module S (polynomial R) :=
+add_monoid_algebra.module
+instance {S₁ S₂} [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
 add_monoid_algebra.smul_comm_class
-instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
   [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
 add_monoid_algebra.is_scalar_tower
 
@@ -86,12 +86,10 @@ lemma monomial_pow (n : ℕ) (r : R) (k : ℕ) :
   (monomial n r)^k = monomial (n*k) (r^k) :=
 begin
   rw mul_comm,
-  convert add_monoid_algebra.single_pow k,
-  simp only [nat.cast_id, nsmul_eq_mul],
-  refl,
+  exact add_monoid_algebra.single_pow k,
 end
 
-lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
+lemma smul_monomial {S} [semiring S] [module S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 finsupp.smul_single _ _ _
 
@@ -151,7 +149,7 @@ def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
-by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
+finsupp.single_apply
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
@@ -185,7 +183,7 @@ lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   f = g :=
 finsupp.add_hom_ext h
 
-@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [semimodule R M] {f g : polynomial R →ₗ[R] M}
+@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [module R M] {f g : polynomial R →ₗ[R] M}
   (h : ∀ n, f.comp (monomial n) = g.comp (monomial n)) :
   f = g :=
 finsupp.lhom_ext' h
@@ -229,11 +227,7 @@ finsupp.single_left_inj ha
 
 lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) :
   (n : polynomial R) * p = n • p :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [ih, nat.succ_eq_add_one, add_smul, add_mul], },
-end
+(nsmul_eq_mul _ _).symm
 
 end semiring
 

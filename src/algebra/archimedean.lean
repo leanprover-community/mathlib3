@@ -12,7 +12,7 @@ import data.rat
 
 This file defines the archimedean property for ordered groups and proves several results connected
 to this notion. Being archimedean means that for all elements `x` and `y>0` there exists a natural
-number `n` such that `x ≤ n •ℕ y`.
+number `n` such that `x ≤ n • y`.
 
 ## Main definitions
 
@@ -31,9 +31,9 @@ number `n` such that `x ≤ n •ℕ y`.
 variables {α : Type*}
 
 /-- An ordered additive commutative monoid is called `archimedean` if for any two elements `x`, `y`
-such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`. -/
+such that `0 < y` there exists a natural number `n` such that `x ≤ n • y`. -/
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
-(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
+(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
 
 namespace linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] [archimedean α]
@@ -41,14 +41,17 @@ variables [linear_ordered_add_comm_group α] [archimedean α]
 /-- An archimedean decidable linearly ordered `add_comm_group` has a version of the floor: for
 `a > 0`, any `g` in the group lies between some two consecutive multiples of `a`. -/
 lemma exists_int_smul_near_of_pos {a : α} (ha : 0 < a) (g : α) :
-  ∃ k, k •ℤ a ≤ g ∧ g < (k + 1) •ℤ a :=
+  ∃ (k : ℤ), k • a ≤ g ∧ g < (k + 1) • a :=
 begin
-  let s : set ℤ := {n : ℤ | n •ℤ a ≤ g},
-  obtain ⟨k, hk : -g ≤ k •ℕ a⟩ := archimedean.arch (-g) ha,
+  let s : set ℤ := {n : ℤ | n • a ≤ g},
+  obtain ⟨k, hk : -g ≤ k • a⟩ := archimedean.arch (-g) ha,
   have h_ne : s.nonempty := ⟨-k, by simpa using neg_le_neg hk⟩,
   obtain ⟨k, hk⟩ := archimedean.arch g ha,
-  have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ) :=
-    λ n hn, (gsmul_le_gsmul_iff ha).mp (le_trans hn hk : n •ℤ a ≤ k •ℤ a),
+  have h_bdd : ∀ n ∈ s, n ≤ (k : ℤ),
+  { assume n hn,
+    apply (gsmul_le_gsmul_iff ha).mp,
+    rw ← gsmul_coe_nat at hk,
+    exact le_trans hn hk },
   obtain ⟨m, hm, hm'⟩ := int.exists_greatest_of_bdd ⟨k, h_bdd⟩ h_ne,
   refine ⟨m, hm, _⟩,
   by_contra H,
@@ -56,12 +59,12 @@ begin
 end
 
 lemma exists_int_smul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
-  ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a :=
+  ∃ (k : ℤ), 0 ≤ g - k • a ∧ g - k • a < a :=
 begin
   obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
+  rw add_gsmul at h2,
   refine ⟨k, sub_nonneg.mpr h1, _⟩,
-  have : g < k •ℤ a + 1 •ℤ a, by rwa ← add_gsmul a k 1,
-  simpa [sub_lt_iff_lt_add']
+  simpa [sub_lt_iff_lt_add'] using h2
 end
 
 end linear_ordered_add_comm_group
@@ -84,7 +87,7 @@ lemma add_one_pow_unbounded_of_pos [ordered_semiring α] [nontrivial α] [archim
   ∃ n : ℕ, x < (y + 1) ^ n :=
 have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
-⟨n, calc x ≤ n •ℕ y : h
+⟨n, calc x ≤ n • y : h
        ... = n * y : nsmul_eq_mul _ _
        ... < 1 + n * y : lt_one_add _
        ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg hy.le hy.le) (mul_nonneg this this)
@@ -146,12 +149,13 @@ lemma exists_int_pow_near [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by rw [(fpow_neg y (↑N))];
-    exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN)⟩,
+    ⟨-N, le_of_lt (by { rw [fpow_neg y (↑N), gpow_coe_nat],
+    exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN })⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
     ⟨M, λ m hm, le_of_not_lt (λ hlt, not_lt_of_ge
-  (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt)) (lt_of_le_of_lt hm hM))⟩,
+  (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt))
+    (lt_of_le_of_lt hm (by rwa ← gpow_coe_nat at hM)))⟩,
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 

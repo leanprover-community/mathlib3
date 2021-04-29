@@ -41,7 +41,10 @@ structure closure_operator extends α →ₘ α :=
 instance : has_coe_to_fun (closure_operator α) :=
 { F := _, coe := λ c, c.to_fun }
 
-initialize_simps_projections closure_operator (to_fun → apply)
+/-- See Note [custom simps projection] -/
+def closure_operator.simps.apply (f : closure_operator α) : α → α := f
+
+initialize_simps_projections closure_operator (to_preorder_hom_to_fun → apply, -to_preorder_hom)
 
 namespace closure_operator
 

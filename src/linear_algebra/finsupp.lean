@@ -7,9 +7,9 @@ import data.finsupp.basic
 import linear_algebra.basic
 
 /-!
-# Properties of the semimodule `α →₀ M`
+# Properties of the module `α →₀ M`
 
-Given an `R`-semimodule `M`, the `R`-semimodule structure on `α →₀ M` is defined in
+Given an `R`-module `M`, the `R`-module structure on `α →₀ M` is defined in
 `data.finsupp.basic`.
 
 In this file we define `finsupp.supported s` to be the set `{f : α →₀ M | f.support ⊆ s}`
@@ -47,7 +47,7 @@ interpreted as a submodule of `α →₀ M`. We also define `linear_map` version
 
 ## Tags
 
-function with finite support, semimodule, linear algebra
+function with finite support, module, linear algebra
 -/
 
 noncomputable theory
@@ -59,9 +59,9 @@ open_locale classical big_operators
 namespace finsupp
 
 variables {α : Type*} {M : Type*} {N : Type*} {P : Type*} {R : Type*} {S : Type*}
-variables [semiring R] [semiring S] [add_comm_monoid M] [semimodule R M]
-variables [add_comm_monoid N] [semimodule R N]
-variables [add_comm_monoid P] [semimodule R P]
+variables [semiring R] [semiring S] [add_comm_monoid M] [module R M]
+variables [add_comm_monoid N] [module R N]
+variables [add_comm_monoid P] [module R P]
 
 /-- Interpret `finsupp.single a` as a linear map. -/
 def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
@@ -126,7 +126,7 @@ lemma supr_lsingle_range : (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range)
 begin
   refine (eq_top_iff.2 $ set_like.le_def.2 $ assume f _, _),
   rw [← sum_single f],
-  refine sum_mem _ (assume a ha, submodule.mem_supr_of_mem a $ set.mem_image_of_mem _ trivial)
+  exact sum_mem _ (assume a ha, submodule.mem_supr_of_mem a ⟨_, rfl⟩),
 end
 
 lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
@@ -218,11 +218,8 @@ end
 
 theorem range_restrict_dom (s : set α) :
   (restrict_dom M R s).range = ⊤ :=
-begin
-  have := linear_map.range_comp (submodule.subtype _) (restrict_dom M R s),
-  rw [restrict_dom_comp_subtype, linear_map.range_id] at this,
-  exact eq_top_mono (submodule.map_mono le_top) this.symm
-end
+range_eq_top.2 $ function.right_inverse.surjective $
+  linear_map.congr_fun (restrict_dom_comp_subtype s)
 
 theorem supported_mono {s t : set α} (st : s ⊆ t) :
   supported M R s ≤ supported M R t :=
@@ -292,7 +289,7 @@ end
 
 section lsum
 
-variables (S) [semimodule S N] [smul_comm_class R S N]
+variables (S) [module S N] [smul_comm_class R S N]
 
 /-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map from `α →₀ M` to
 `N` using `finsupp.sum`. This is an upgraded version of `finsupp.lift_add_hom`.
@@ -408,7 +405,7 @@ end lmap_domain
 
 section total
 variables (α) {α' : Type*} (M) {M' : Type*} (R)
-          [add_comm_monoid M'] [semimodule R M']
+          [add_comm_monoid M'] [module R M']
           (v : α → M) {v' : α' → M'}
 
 /-- Interprets (l : α →₀ R) as linear combination of the elements in the family (v : α → M) and
@@ -516,9 +513,11 @@ linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supp
 variables {α} {M} {v}
 
 theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ :=
-by rw [finsupp.total_on, linear_map.range, linear_map.map_cod_restrict,
-  ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype];
-    exact le_of_eq (span_eq_map_total _ _)
+begin
+  rw [finsupp.total_on, linear_map.range_eq_map, linear_map.map_cod_restrict,
+    ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype],
+  exact (span_eq_map_total _ _).le
+end
 
 theorem total_comp (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=
@@ -544,10 +543,26 @@ end
 
 end total
 
-/-- An equivalence of domains induces a linear equivalence of finitely supported functions. -/
+/-- An equivalence of domains induces a linear equivalence of finitely supported functions.
+
+This is `finsupp.dom_congr` as a `linear_equiv`.-/
 protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
 (finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
+
+@[simp]
+lemma dom_lcongr_refl : finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
+linear_equiv.ext $ λ _, map_domain_id
+
+lemma dom_lcongr_trans {α₁ α₂ α₃ : Type*} (f : α₁ ≃ α₂) (f₂ : α₂ ≃ α₃) :
+  (finsupp.dom_lcongr f).trans (finsupp.dom_lcongr f₂) =
+    (finsupp.dom_lcongr (f.trans f₂) : (_ →₀ M) ≃ₗ[R] _) :=
+linear_equiv.ext $ λ _, map_domain_comp.symm
+
+@[simp]
+lemma dom_lcongr_symm {α₁ α₂ : Type*} (f : α₁ ≃ α₂) :
+  ((finsupp.dom_lcongr f).symm : (_ →₀ M) ≃ₗ[R] _) = finsupp.dom_lcongr f.symm :=
+linear_equiv.ext $ λ x, rfl
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
@@ -609,14 +624,84 @@ corresponding finitely supported functions. -/
 def lcongr {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) : (ι →₀ M) ≃ₗ[R] (κ →₀ N) :=
 (finsupp.dom_lcongr e₁).trans (map_range.linear_equiv e₂)
 
-@[simp] theorem lcongr_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N)
-  (i : ι) (m : M) : lcongr e₁ e₂ (finsupp.single i m) = finsupp.single (e₁ i) (e₂ m) :=
+@[simp] theorem lcongr_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (i : ι) (m : M) :
+  lcongr e₁ e₂ (finsupp.single i m) = finsupp.single (e₁ i) (e₂ m) :=
 by simp [lcongr]
+
+@[simp] lemma lcongr_apply_apply {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (f : ι →₀ M) (k : κ) :
+  lcongr e₁ e₂ f k = e₂ (f (e₁.symm k)) :=
+begin
+  apply finsupp.induction_linear f,
+  { simp, },
+  { intros f g hf hg, simp [map_add, hf, hg], },
+  { intros i m,
+    simp only [finsupp.lcongr_single],
+    simp only [finsupp.single, equiv.eq_symm_apply, finsupp.coe_mk],
+    split_ifs; simp, },
+end
+
+theorem lcongr_symm_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (k : κ) (n : N) :
+  (lcongr e₁ e₂).symm (finsupp.single k n) = finsupp.single (e₁.symm k) (e₂.symm n) :=
+begin
+  apply_fun lcongr e₁ e₂ using (lcongr e₁ e₂).injective,
+  simp,
+end
+
+@[simp] lemma lcongr_symm {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) :
+  (lcongr e₁ e₂).symm = lcongr e₁.symm e₂.symm :=
+begin
+  ext f i,
+  simp only [equiv.symm_symm, finsupp.lcongr_apply_apply],
+  apply finsupp.induction_linear f,
+  { simp, },
+  { intros f g hf hg, simp [map_add, hf, hg], },
+  { intros k m,
+    simp only [finsupp.lcongr_symm_single],
+    simp only [finsupp.single, equiv.symm_apply_eq, finsupp.coe_mk],
+    split_ifs; simp, },
+end
+
+section sum
+
+variables (R)
+
+/-- The linear equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`.
+
+This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. -/
+@[simps apply symm_apply] def sum_finsupp_lequiv_prod_finsupp {α β : Type*} :
+  ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
+{ map_smul' :=
+    by { intros, ext;
+          simp only [add_equiv.to_fun_eq_coe, prod.smul_fst, prod.smul_snd, smul_apply,
+              snd_sum_finsupp_add_equiv_prod_finsupp, fst_sum_finsupp_add_equiv_prod_finsupp] },
+  .. sum_finsupp_add_equiv_prod_finsupp }
+
+lemma fst_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
+  (f : (α ⊕ β) →₀ M) (x : α) :
+  (sum_finsupp_lequiv_prod_finsupp R f).1 x = f (sum.inl x) :=
+rfl
+
+lemma snd_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
+  (f : (α ⊕ β) →₀ M) (y : β) :
+  (sum_finsupp_lequiv_prod_finsupp R f).2 y = f (sum.inr y) :=
+rfl
+
+lemma sum_finsupp_lequiv_prod_finsupp_symm_inl {α β : Type*}
+  (fg : (α →₀ M) × (β →₀ M)) (x : α) :
+  ((sum_finsupp_lequiv_prod_finsupp R).symm fg) (sum.inl x) = fg.1 x :=
+rfl
+
+lemma sum_finsupp_lequiv_prod_finsupp_symm_inr {α β : Type*}
+  (fg : (α →₀ M) × (β →₀ M)) (y : β) :
+  ((sum_finsupp_lequiv_prod_finsupp R).symm fg) (sum.inr y) = fg.2 y :=
+rfl
+
+end sum
 
 end finsupp
 
 variables {R : Type*} {M : Type*} {N : Type*}
-variables [semiring R] [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
+variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
 
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :

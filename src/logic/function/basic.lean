@@ -92,6 +92,10 @@ lemma injective.of_comp_iff' (f : α → β) {g : γ → α} (hg : bijective g) 
     hx ▸ hy ▸ λ hf, h hf ▸ rfl,
   λ h, h.comp hg.injective⟩
 
+lemma injective_of_subsingleton [subsingleton α] (f : α → β) :
+  injective f :=
+λ a b ab, subsingleton.elim _ _
+
 lemma injective.dite (p : α → Prop) [decidable_pred p]
   {f : {a : α // p a} → β} {f' : {a : α // ¬ p a} → β}
   (hf : injective f) (hf' : injective f')
@@ -350,6 +354,10 @@ lemma bijective_iff_has_inverse : bijective f ↔ ∃ g, left_inverse g f ∧ ri
 lemma injective_surj_inv (h : surjective f) : injective (surj_inv h) :=
 (right_inverse_surj_inv h).injective
 
+lemma surjective_to_subsingleton [na : nonempty α] [subsingleton β] (f : α → β) :
+  surjective f :=
+λ y, let ⟨a⟩ := na in ⟨a, subsingleton.elim _ _⟩
+
 end surj_inv
 
 section update
@@ -463,8 +471,9 @@ Mostly useful when `f` is injective. -/
 def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
 λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
 
-lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) :
-  extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b := rfl
+lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [decidable (∃ a, f a = b)] :
+  extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
+by { unfold extend, congr }
 
 @[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
@@ -562,6 +571,10 @@ protected lemma ite_not (P : Prop) [decidable P] (x : α) :
   f (ite P x (f x)) = ite (¬ P) x (f x) :=
 by rw [apply_ite f, h, ite_not]
 
+/-- An involution commutes across an equality. Compare to `function.injective.eq_iff`. -/
+protected lemma eq_iff {x y : α} : f x = y ↔ x = f y :=
+h.injective.eq_iff' (h y)
+
 end involutive
 
 /-- The property of a binary function `f : α → β → γ` being injective.
@@ -639,10 +652,5 @@ lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y �
 
 /-- A set of functions "separates points"
 if for each pair of distinct points there is a function taking different values on them. -/
-def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
+def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ ⦃x y : α⦄, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
-
-/-- A set of functions "separates points strongly"
-if for each pair of distinct points there is a function with specified values on them.  -/
-def separates_points_strongly {α β : Type*} (A : set (α → β)) : Prop :=
-∀ (x y : α), x ≠ y → ∀ (a b : β), ∃ f ∈ A, (f x : β) = a ∧ f y = b

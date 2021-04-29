@@ -184,25 +184,36 @@ lemma le_vanishing_ideal_zero_locus (I : ideal R) :
 (gc R).le_u_l I
 
 @[simp] lemma vanishing_ideal_zero_locus_eq_radical (I : ideal R) :
-  vanishing_ideal (zero_locus (I : set R)) = I.radical :=
+  vanishing_ideal (zero_locus (I : set R)) = I.radical := ideal.ext $ λ f,
 begin
-  ext f,
   rw [mem_vanishing_ideal, ideal.radical_eq_Inf, submodule.mem_Inf],
-  split ; intros h x hx,
-  { exact h ⟨x, hx.2⟩ hx.1 },
-  { exact h x.1 ⟨hx, x.2⟩ }
+  exact ⟨(λ h x hx, h ⟨x, hx.2⟩ hx.1), (λ h x hx, h x.1 ⟨hx, x.2⟩)⟩
 end
+
+@[simp] lemma zero_locus_radical (I : ideal R) : zero_locus (I.radical : set R) = zero_locus I :=
+vanishing_ideal_zero_locus_eq_radical I ▸ congr_fun (gc R).l_u_l_eq_l I
 
 lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
   t ⊆ zero_locus (vanishing_ideal t) :=
 (gc R).l_u_le t
+
+lemma zero_locus_anti_mono {s t : set R} (h : s ⊆ t) : zero_locus t ⊆ zero_locus s :=
+(gc_set R).monotone_l h
+
+lemma zero_locus_anti_mono_ideal {s t : ideal R} (h : s ≤ t) :
+  zero_locus (t : set R) ⊆ zero_locus (s : set R) :=
+(gc R).monotone_l h
+
+lemma vanishing_ideal_anti_mono {s t : set (prime_spectrum R)} (h : s ⊆ t) :
+  vanishing_ideal t ≤ vanishing_ideal s :=
+(gc R).monotone_u h
 
 lemma zero_locus_bot :
   zero_locus ((⊥ : ideal R) : set R) = set.univ :=
 (gc R).l_bot
 
 @[simp] lemma zero_locus_singleton_zero :
-  zero_locus (0 : set R) = set.univ :=
+  zero_locus ({0} : set R) = set.univ :=
 zero_locus_bot
 
 @[simp] lemma zero_locus_empty :
@@ -223,6 +234,10 @@ begin
   have eq_top : x.as_ideal = ⊤, { rw ideal.eq_top_iff_one, exact hx h },
   apply x_prime.ne_top eq_top,
 end
+
+@[simp] lemma zero_locus_singleton_one :
+  zero_locus ({1} : set R) = ∅ :=
+zero_locus_empty_of_one_mem (set.mem_singleton (1 : R))
 
 lemma zero_locus_empty_iff_eq_top {I : ideal R} :
   zero_locus (I : set R) = ∅ ↔ I = ⊤ :=
@@ -270,30 +285,27 @@ lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
 
 lemma zero_locus_inf (I J : ideal R) :
   zero_locus ((I ⊓ J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
-begin
-  ext x,
-  split,
-  { rintro h,
-    rw set.mem_union,
-    simp only [mem_zero_locus] at h ⊢,
-    -- TODO: The rest of this proof should be factored out.
-    rw or_iff_not_imp_right,
-    intros hs r hr,
-    rw set.not_subset at hs,
-    rcases hs with ⟨s, hs1, hs2⟩,
-    apply (ideal.is_prime.mem_or_mem (by apply_instance) _).resolve_left hs2,
-    apply h,
-    exact ⟨I.mul_mem_left _ hr, J.mul_mem_right _ hs1⟩ },
-  { rintro (h|h),
-    all_goals
-    { rw mem_zero_locus at h ⊢,
-      refine set.subset.trans _ h,
-      intros r hr, cases hr, assumption } }
-end
+set.ext $ λ x, by simpa using x.2.inf_le
 
 lemma union_zero_locus (s s' : set R) :
   zero_locus s ∪ zero_locus s' = zero_locus ((ideal.span s) ⊓ (ideal.span s') : ideal R) :=
 by { rw zero_locus_inf, simp }
+
+lemma zero_locus_mul (I J : ideal R) :
+  zero_locus ((I * J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
+set.ext $ λ x, by simpa using x.2.mul_le
+
+lemma zero_locus_singleton_mul (f g : R) :
+  zero_locus ({f * g} : set R) = zero_locus {f} ∪ zero_locus {g} :=
+set.ext $ λ x, by simpa using x.2.mul_mem_iff_mem_or_mem
+
+@[simp] lemma zero_locus_pow (I : ideal R) {n : ℕ} (hn : 0 < n) :
+  zero_locus ((I ^ n : ideal R) : set R) = zero_locus I :=
+zero_locus_radical (I ^ n) ▸ (I.radical_pow n hn).symm ▸ zero_locus_radical I
+
+@[simp] lemma zero_locus_singleton_pow (f : R) (n : ℕ) (hn : 0 < n) :
+  zero_locus ({f ^ n} : set R) = zero_locus {f} :=
+set.ext $ λ x, by simpa using x.2.pow_mem_iff_mem n hn
 
 lemma sup_vanishing_ideal_le (t t' : set (prime_spectrum R)) :
   vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
@@ -337,6 +349,23 @@ lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
 by { rw [is_closed_iff_zero_locus], exact ⟨s, rfl⟩ }
 
+lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum R)) :
+  zero_locus (vanishing_ideal t : set R) = closure t :=
+begin
+  apply set.subset.antisymm,
+  { rintro x hx t' ⟨ht', ht⟩,
+    obtain ⟨fs, rfl⟩ : ∃ s, t' = zero_locus s,
+    by rwa [is_closed_iff_zero_locus] at ht',
+    rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
+    exact set.subset.trans ht hx },
+  { rw (is_closed_zero_locus _).closure_subset_iff,
+    exact subset_zero_locus_vanishing_ideal t }
+end
+
+lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
+  vanishing_ideal (closure t) = vanishing_ideal t :=
+zero_locus_vanishing_ideal_eq_closure t ▸ congr_fun (gc R).u_l_u_eq_u t
+
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
 
@@ -376,20 +405,6 @@ end
 
 end comap
 
-lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum R)) :
-  zero_locus (vanishing_ideal t : set R) = closure t :=
-begin
-  apply set.subset.antisymm,
-  { rintro x hx t' ⟨ht', ht⟩,
-    obtain ⟨fs, rfl⟩ : ∃ s, t' = zero_locus s,
-    by rwa [is_closed_iff_zero_locus] at ht',
-    rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
-    calc fs ⊆ vanishing_ideal t : ht
-        ... ⊆ x.as_ideal        : hx },
-  { rw (is_closed_zero_locus _).closure_subset_iff,
-    exact subset_zero_locus_vanishing_ideal t }
-end
-
 /-- The prime spectrum of a commutative ring is a compact topological space. -/
 instance : compact_space (prime_spectrum R) :=
 begin
@@ -418,8 +433,41 @@ def basic_open (r : R) : topological_space.opens (prime_spectrum R) :=
 { val := { x | r ∉ x.as_ideal },
   property := ⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩ }
 
+@[simp] lemma mem_basic_open (f : R) (x : prime_spectrum R) :
+  x ∈ basic_open f ↔ f ∉ x.as_ideal := iff.rfl
+
 lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum R)) :=
 (basic_open a).property
+
+@[simp] lemma basic_open_eq_zero_locus_compl (r : R) :
+  (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
+set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+
+@[simp] lemma basic_open_one : basic_open (1 : R) = ⊤ :=
+topological_space.opens.ext $ by {simp, refl}
+
+@[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
+topological_space.opens.ext $ by {simp, refl}
+
+lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
+topological_space.opens.ext $ by {simp [zero_locus_singleton_mul]}
+
+@[simp] lemma basic_open_pow (f : R) (n : ℕ) (hn : 0 < n) : basic_open (f ^ n) = basic_open f :=
+topological_space.opens.ext $ by simpa using zero_locus_singleton_pow f n hn
+
+lemma is_topological_basis_basic_opens : topological_space.is_topological_basis
+  (set.range (λ (r : R), (basic_open r : set (prime_spectrum R)))) :=
+begin
+  apply topological_space.is_topological_basis_of_open_of_nhds,
+  { rintros _ ⟨r, rfl⟩,
+    exact is_open_basic_open },
+  { rintros p U hp ⟨s, hs⟩,
+    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    obtain ⟨f, hfs, hfp⟩ := hp,
+    refine ⟨basic_open f, ⟨f, rfl⟩, hfp, _⟩,
+    rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],
+    exact zero_locus_anti_mono (set.singleton_subset_iff.mpr hfs) }
+end
 
 end basic_open
 

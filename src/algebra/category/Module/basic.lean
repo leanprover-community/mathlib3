@@ -55,7 +55,12 @@ universes v u
 
 variables (R : Type u) [ring R]
 
-/-- The category of R-modules and their morphisms. -/
+/-- The category of R-modules and their morphisms.
+
+ Note that in the case of `R = ℤ`, we can not
+impose here that the `ℤ`-multiplication field from the module structure is defeq to the one coming
+from the `is_add_comm_group` structure (contrary to what we do for all module structures in
+mathlib), which creates some difficulties down the road. -/
 structure Module :=
 (carrier : Type v)
 [is_add_comm_group : add_comm_group carrier]
@@ -68,12 +73,12 @@ namespace Module
 instance : has_coe_to_sort (Module.{v} R) :=
 { S := Type v, coe := Module.carrier }
 
-instance : category (Module.{v} R) :=
+instance Module_category : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category.{v} (Module.{v} R) :=
+instance Module_concrete_category : concrete_category.{v} (Module.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
@@ -228,29 +233,6 @@ instance : preadditive (Module.{v} R) :=
     show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
 
 end preadditive
-
-section epi_mono
-variables {M N : Module.{v} R} (f : M ⟶ N)
-
-lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
-linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ ↟u ↟v).1
-
-lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
-linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ ↟u ↟v).1
-
-lemma mono_of_ker_eq_bot (hf : f.ker = ⊥) : mono f :=
-concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf
-
-lemma epi_of_range_eq_top (hf : f.range = ⊤) : epi f :=
-concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf
-
-instance mono_as_hom'_subtype (U : submodule R M) : mono ↾U.subtype :=
-mono_of_ker_eq_bot _ (submodule.ker_subtype U)
-
-instance epi_as_hom''_mkq (U : submodule R M) : epi ↿U.mkq :=
-epi_of_range_eq_top _ $ submodule.range_mkq _
-
-end epi_mono
 
 end Module
 

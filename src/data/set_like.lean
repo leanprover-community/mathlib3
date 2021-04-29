@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.set.basic
+import tactic.monotonicity.basic
 
 /-!
 # Typeclass for a type `A` with an injective map to `set B`
 
-This typecalss is primary for use by subobjects like `submonoid` and `submodule`.
+This typeclass is primarily for use by subobjects like `submonoid` and `submodule`.
 
 A typical subobject should be declared as:
 ```
@@ -18,12 +19,20 @@ structure my_subobject (X : Type*) :=
 
 namespace my_subobject
 
-instance : set_like (my_subobject R) M :=
+variables (X : Type*)
+
+instance : set_like (my_subobject X) X :=
 ⟨sub_mul_action.carrier, λ p q h, by cases p; cases q; congr'⟩
 
-@[simp] lemma mem_carrier {p : my_subobject R} : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
+@[simp] lemma mem_carrier {p : my_subobject X} : x ∈ p.carrier ↔ x ∈ (p : set X) := iff.rfl
 
-@[ext] theorem ext {p q : my_subobject R} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
+@[ext] theorem ext {p q : my_subobject X} (h : ∀ x, x ∈ p ↔ x ∈ q) : p = q := set_like.ext h
+
+/-- Copy of a `my_subobject` with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (p : my_subobject X) (s : set X) (hs : s = ↑p) : my_subobject X :=
+{ carrier := s,
+  op_mem' := hs.symm ▸ p.op_mem' }
 
 end my_subobject
 ```
@@ -101,8 +110,12 @@ lemma le_def {S T : A} : S ≤ T ↔ ∀ ⦃x : B⦄, x ∈ S → x ∈ T := iff
 @[simp, norm_cast]
 lemma coe_subset_coe {S T : A} : (S : set B) ⊆ T ↔ S ≤ T := iff.rfl
 
+@[mono] lemma coe_mono : monotone (coe : A → set B) := λ a b, coe_subset_coe.mpr
+
 @[simp, norm_cast]
 lemma coe_ssubset_coe {S T : A} : (S : set B) ⊂ T ↔ S < T := iff.rfl
+
+@[mono] lemma coe_strict_mono : strict_mono (coe : A → set B) := λ a b, coe_ssubset_coe.mpr
 
 lemma not_le_iff_exists : ¬(p ≤ q) ↔ ∃ x ∈ p, x ∉ q := set.not_subset
 

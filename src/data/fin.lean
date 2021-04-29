@@ -139,7 +139,7 @@ lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
 /-- Assume `k = l`. If two functions defined on `fin k` and `fin l` are equal on each element,
 then they coincide (in the heq sense). -/
-protected lemma heq_fun_iff {α : Type*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :
+protected lemma heq_fun_iff {α : Sort*} {k l : ℕ} (h : k = l) {f : fin k → α} {g : fin l → α} :
   f == g ↔ (∀ (i : fin k), f i = g ⟨(i : ℕ), h ▸ i.2⟩) :=
 by { induction h, simp [heq_iff_eq, function.funext_iff] }
 
@@ -196,6 +196,19 @@ def coe_embedding (n) : (fin n) ↪o ℕ :=
 /-- The ordering on `fin n` is a well order. -/
 instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 (coe_embedding n).is_well_order
+
+/-- Use the ordering on `fin n` for checking recursive definitions.
+
+For example, the following definition is not accepted by the termination checker,
+unless we declare the `has_well_founded` instance:
+```lean
+def factorial {n : ℕ} : fin n → ℕ
+| ⟨0, _⟩ := 1
+| ⟨i + 1, hi⟩ := (i + 1) * factorial ⟨i, i.lt_succ_self.trans hi⟩
+```
+-/
+instance {n : ℕ} : has_well_founded (fin n) :=
+⟨_, measure_wf coe⟩
 
 @[simp] lemma coe_zero {n : ℕ} : ((0 : fin (n+1)) : ℕ) = 0 := rfl
 attribute [simp] val_zero
@@ -345,6 +358,29 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
+
+lemma coe_add_one_of_lt {n : ℕ} {i : fin n.succ} (h : i < last _) :
+  (↑(i + 1) : ℕ) = i + 1 :=
+begin
+  -- First show that `((1 : fin n.succ) : ℕ) = 1`, because `n.succ` is at least 2.
+  cases n,
+  { cases h },
+  -- Then just unfold the definitions.
+  rw [fin.coe_add, fin.coe_one, nat.mod_eq_of_lt (nat.succ_lt_succ _)],
+  exact h
+end
+
+@[simp] lemma last_add_one : ∀ n, last n + 1 = 0
+| 0 := subsingleton.elim _ _
+| (n + 1) := by { ext, rw [coe_add, coe_zero, coe_last, coe_one, nat.mod_self] }
+
+lemma coe_add_one {n : ℕ} (i : fin (n + 1)) :
+  ((i + 1 : fin (n + 1)) : ℕ) = if i = last _ then 0 else i + 1 :=
+begin
+  rcases (le_last i).eq_or_lt with rfl|h,
+  { simp },
+  { simpa [h.ne] using coe_add_one_of_lt h }
+end
 
 section bit
 
@@ -505,6 +541,21 @@ order_embedding.of_strict_mono (λ a, cast_lt a (lt_of_lt_of_le a.2 h)) $ λ a b
 @[simp] lemma cast_le_mk (i n m : ℕ) (hn : i < n) (h : n ≤ m) :
   cast_le h ⟨i, hn⟩ = ⟨i, lt_of_lt_of_le hn h⟩ := rfl
 
+@[simp] lemma cast_le_zero {n m : ℕ} (h : n.succ ≤ m.succ) :
+  cast_le h 0 = 0 :=
+by simp [eq_iff_veq]
+
+@[simp] lemma range_cast_le {n k : ℕ} (h : n ≤ k) :
+  set.range (cast_le h) = {i | (i : ℕ) < n} :=
+set.ext (λ x, ⟨λ ⟨y, hy⟩, hy ▸ y.2, λ hx, ⟨⟨x, hx⟩, fin.ext rfl⟩⟩)
+
+@[simp] lemma coe_of_injective_cast_le_symm {n k : ℕ} (h : n ≤ k) (i : fin k) (hi) :
+  ((equiv.of_injective _ (cast_le h).injective).symm ⟨i, hi⟩ : ℕ) = i :=
+begin
+  rw ← coe_cast_le,
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+end
+
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
 { to_equiv := ⟨cast_le eq.le, cast_le eq.symm.le, λ a, eq_of_veq rfl, λ a, eq_of_veq rfl⟩,
@@ -520,8 +571,18 @@ lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 @[simp] lemma cast_trans {k : ℕ} (h : n = m) (h' : m = k) {i : fin n} :
   cast h' (cast h i) = cast (eq.trans h h') i := rfl
 
-@[simp] lemma cast_refl {i : fin n} : cast rfl i = i :=
+@[simp] lemma cast_refl (h : n = n := rfl) : cast h = order_iso.refl (fin n) :=
 by { ext, refl }
+
+/-- While in many cases `fin.cast` is better than `equiv.cast`/`cast`, sometimes we want to apply
+a generic theorem about `cast`. -/
+lemma cast_to_equiv (h : n = m) : (cast h).to_equiv = equiv.cast (h ▸ rfl) :=
+by { subst h, simp }
+
+/-- While in many cases `fin.cast` is better than `equiv.cast`/`cast`, sometimes we want to apply
+a generic theorem about `cast`. -/
+lemma cast_eq_cast (h : n = m) : (cast h : fin n → fin m) = _root_.cast (h ▸ rfl) :=
+by { subst h, ext, simp }
 
 /-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
 def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ le_add_right n m
@@ -546,6 +607,10 @@ by simpa [lt_iff_coe_lt_coe, le_iff_coe_le_coe] using nat.succ_le_succ_iff.symm
 
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 
+@[simp] lemma succ_eq_last_succ {n : ℕ} (i : fin n.succ) :
+  i.succ = last (n + 1) ↔ i = last n :=
+by rw [← succ_last, (succ_injective _).eq_iff]
+
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : (i : ℕ) < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
 
@@ -565,6 +630,8 @@ lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.mpr a.is_lt
 
 @[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
+
+@[simp] lemma cast_succ_one {n : ℕ} : fin.cast_succ (1 : fin (n + 2)) = 1 := rfl
 
 /-- `cast_succ i` is positive when `i` is positive -/
 lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
@@ -589,6 +656,17 @@ end
 
 lemma lt_succ : a.cast_succ < a.succ :=
 by { rw [cast_succ, lt_iff_coe_lt_coe, coe_cast_add, coe_succ], exact lt_add_one a.val }
+
+@[simp] lemma range_cast_succ {n : ℕ} :
+  set.range (cast_succ : fin n → fin n.succ) = {i | (i : ℕ) < n} :=
+range_cast_le _
+
+@[simp] lemma coe_of_injective_cast_succ_symm {n : ℕ} (i : fin n.succ) (hi) :
+  ((equiv.of_injective cast_succ (cast_succ_injective _)).symm ⟨i, hi⟩ : ℕ) = i :=
+begin
+  rw ← coe_cast_succ,
+  exact congr_arg coe (equiv.apply_of_injective_symm _ _ _)
+end
 
 /-- `add_nat m i` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) : fin n ↪o fin (n + m) :=
@@ -944,6 +1022,36 @@ lemma succ_above_left_inj {x y : fin (n + 1)} :
   x.succ_above = y.succ_above ↔ x = y :=
 succ_above_left_injective.eq_iff
 
+@[simp] lemma succ_succ_above_zero {n : ℕ} (i : fin (n + 1)) :
+  (i.succ).succ_above 0 = 0 :=
+succ_above_below _ _ (succ_pos _)
+
+@[simp] lemma succ_succ_above_succ {n : ℕ} (i : fin (n + 1)) (j : fin n) :
+  (i.succ).succ_above j.succ = (i.succ_above j).succ :=
+(lt_or_ge j.cast_succ i).elim
+  (λ h, have h' : j.succ.cast_succ < i.succ, by simpa [lt_iff_coe_lt_coe] using h,
+        by { ext, simp [succ_above_below _ _ h, succ_above_below _ _ h'] })
+  (λ h, have h' : i.succ ≤ j.succ.cast_succ, by simpa [le_iff_coe_le_coe] using h,
+        by { ext, simp [succ_above_above _ _ h, succ_above_above _ _ h'] })
+
+@[simp] lemma one_succ_above_zero {n : ℕ} :
+  (1 : fin (n + 2)).succ_above 0 = 0 :=
+succ_succ_above_zero 0
+
+/-- By moving `succ` to the outside of this expression, we create opportunities for further
+simplification using `succ_above_zero` or `succ_succ_above_zero`. -/
+@[simp] lemma succ_succ_above_one {n : ℕ} (i : fin (n + 2)) :
+  (i.succ).succ_above 1 = (i.succ_above 0).succ :=
+succ_succ_above_succ i 0
+
+@[simp] lemma one_succ_above_succ {n : ℕ} (j : fin n) :
+  (1 : fin (n + 2)).succ_above j.succ = j.succ.succ :=
+succ_succ_above_succ 0 j
+
+@[simp] lemma one_succ_above_one {n : ℕ} :
+  (1 : fin (n + 3)).succ_above 1 = 2 :=
+succ_succ_above_succ 0 0
+
 end succ_above
 
 section pred_above
@@ -985,6 +1093,9 @@ def cast_pred (i : fin (n + 2)) : fin (n + 1) :=
 pred_above (last n) i
 
 @[simp] lemma cast_pred_zero : cast_pred (0 : fin (n + 2)) = 0 := rfl
+
+@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 2)) = 1 := 
+by { cases n, apply subsingleton.elim, refl }
 
 @[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=

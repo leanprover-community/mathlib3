@@ -19,10 +19,13 @@ local notation `‖` x `‖` := fintype.card x
 
 namespace fintype
 
--- temporarily in unil I can figure out the commits
-instance decidable_eq_embedding_fintype' [decidable_eq β] [fintype α] :
-  decidable_eq (α ↪ β) :=
-λ a b, decidable_of_iff (⇑a = b) function.embedding.coe_injective.eq_iff
+instance decidable_eq_embedding_fintype' {α β} [decidable_eq α] [decidable_eq β] [fintype α] :
+  decidable_eq (α ↪ β) := sorry
+
+lemma embedding_congr_trans {α₁ β₁ γ₁ α₂ β₂ γ₂ : Sort*}
+  (ea : α₁ ≃ α₂) (eb : β₁ ≃ β₂) (ec : γ₁ ≃ γ₂) (f : α₁ ↪ β₁) (g : β₁ ↪ γ₁) :
+  equiv.embedding_congr ea ec (f.trans g) = (equiv.embedding_congr ea eb f).trans (equiv.embedding_congr eb ec g) :=
+by { ext, simp } -- move this in, merge Eric's commit, and hopefully everything should be good
 
 private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injective f} ≃ (α ↪ β) :=
 { to_fun := λ f, ⟨f.val, f.property⟩,
@@ -77,7 +80,7 @@ begin
         rw [mem_equiv] at x_equiv y_equiv,
         obtain ⟨x_zero, x_equiv⟩ := x_equiv,
         obtain ⟨y_zero, y_equiv⟩ := y_equiv,
-        simp only [extend, first] at x_y_agree x_equiv y_equiv,
+        simp only [extend] at x_y_agree x_equiv y_equiv,
 
         apply x_ne_y, ext t, revert t,
         refine fin.induction _ _,
@@ -91,7 +94,7 @@ begin
 
       intros g g_equiv, rw mem_equiv at g_equiv,
       obtain ⟨k, g_equiv⟩ := g_equiv,
-      simp only [first, mem_poss_vals], simp only [extend] at g_equiv,
+      simp only [mem_poss_vals], simp only [extend] at g_equiv,
 
       have : g 0 = k, by rw [←g_equiv, fin.cons_zero],
 
@@ -192,7 +195,7 @@ begin
   rw [this, mul_comm, nat.succ_desc_fac]
 end
 
-variables {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
+variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
 
 /- Establishes the cardinality of the type of all injections, if any exist.  -/
 @[simp] theorem card_embedding (h : ‖α‖ ≤ ‖β‖)

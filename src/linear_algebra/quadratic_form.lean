@@ -790,6 +790,7 @@ let ⟨v, hv₁, hv₂, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv
 
 end bilin_form
 
+/-- Nonzero elements in a field are invertible. This is a defition since it requires a parameter. -/
 def field.invertible {K : Type*} [field K] {z : K} (hz : z ≠ 0) : invertible z :=
 { inv_of := z⁻¹,
   inv_of_mul_self := inv_mul_cancel hz,
@@ -911,7 +912,7 @@ variables [add_comm_group V] [module K V] [finite_dimensional K V]
 
 @[simp]
 lemma weighted_sum_squares_apply (w v : ι → R₁) :
-  weighted_sum_squares' w v = ∑ i : ι, w i * v i * v i := rfl
+  weighted_sum_squares w v = ∑ i : ι, w i * v i * v i := rfl
 
 lemma equivalent_weighted_sum_squares_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
@@ -936,7 +937,7 @@ section complex
 
 /-- The weighted sum of squares on the complex numbers as a quadratic form is equivalent
 to the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
-def isometry_sum_squares [decidable_eq ι] (w : ι → ℂ) (hw : ∀ i : ι, w i ≠ 0) :
+noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → ℂ) (hw : ∀ i : ι, w i ≠ 0) :
   isometry (weighted_sum_squares w) (weighted_sum_squares (λ _, 1 : ι → ℂ)) :=
 begin
   have hw' : ∀ i : ι, (w i) ^ - (1 / 2 : ℂ) ≠ 0,
@@ -945,8 +946,7 @@ begin
   convert (weighted_sum_squares w).isometry_of_is_basis
     (is_basis.smul_is_basis (pi.is_basis_fun ℂ ι) hw' (λ i, field.invertible (hw' i))),
   ext1 v,
-  rw [isometry_of_is_basis_apply, weighted_sum_squares_apply,
-      weighted_sum_squares_apply],
+  rw [isometry_of_is_basis_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
   have hsum : (∑ (i : ι), v i • w i ^ - (1 / 2 : ℂ) •
     (linear_map.std_basis ℂ (λ (i : ι), ℂ) i) 1) j =

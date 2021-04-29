@@ -143,7 +143,7 @@ def function.injective.ordered_comm_monoid {β : Type*}
 { mul_le_mul_left := λ a b ab c,
     show f (c * a) ≤ f (c * b), by { rw [mul, mul], refine mul_le_mul_left' ab _ },
   lt_of_mul_lt_mul_left :=
-    λ a b c bc, @lt_of_mul_lt_mul_left _ (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
+    λ a b c bc, @lt_of_mul_lt_mul_left' _ (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
   ..partial_order.lift f hf,
   ..hf.comm_monoid f one mul }
 
@@ -262,7 +262,7 @@ begin
   { exact false.elim (not_le_of_lt h (with_zero.zero_le _)) },
   { simp_rw [some_eq_coe] at h ⊢,
     norm_cast at h ⊢,
-    apply lt_of_mul_lt_mul_left h }
+    apply lt_of_mul_lt_mul_left' h }
 end
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
@@ -844,7 +844,7 @@ namespace order_dual
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
 { mul_le_mul_left := λ a b h c, @mul_le_mul_left' α b a _ _ _ h _,
-  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left α a c b _ _ _ h,
+  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
 

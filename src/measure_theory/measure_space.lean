@@ -2171,15 +2171,19 @@ begin
         have h_meas_t_inter_s : measurable_set (t ∩ s) :=
            h_meas_t.inter h_meas_s,
         repeat {rw measure_eq_inter_diff h_meas_t h_meas_s, rw set.diff_eq},
-        apply add_le_add _ _; rw add_apply,
-        { apply le_add_right _,
+        apply add_le_add _ _,
+        { exact ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞ },
+        { exact ordered_add_comm_monoid.to_covariant_class_right ℝ≥0∞ },
+        { rw add_apply,
+          apply le_add_right _,
           rw add_apply,
           rw ← @restrict_eq_self _ _ μ s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           rw ← @restrict_eq_self _ _ ν s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           apply h_ν'_in _ h_meas_t_inter_s },
         cases (@set.eq_empty_or_nonempty _ (t ∩ sᶜ)) with h_inter_empty h_inter_nonempty,
         { simp [h_inter_empty] },
-        { have h_meas_inter_compl :=
+        { rw add_apply,
+          have h_meas_inter_compl :=
             h_meas_t.inter (measurable_set.compl h_meas_s),
           rw [restrict_apply h_meas_inter_compl, h_inter_inter_eq_inter sᶜ],
           have h_mu_le_add_top : μ ≤ ν' + ν + ⊤,

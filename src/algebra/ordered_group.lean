@@ -36,6 +36,17 @@ class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :
 
 attribute [to_additive] ordered_comm_group
 
+@[to_additive]
+instance units.covariant_class [ordered_comm_monoid α] :
+  has_mul_le_mul_left (units α) :=
+{ mul_le_mul_left := λ a b c bc, by {
+  rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
+  { exact rfl.le },
+  refine le_iff_eq_or_lt.mpr (or.inr _),
+  refine units.coe_lt_coe.mp _,
+  cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
+  exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
+
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
@@ -85,7 +96,7 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 @[to_additive neg_le_neg]
 lemma inv_le_inv' (h : a ≤ b) : b⁻¹ ≤ a⁻¹ :=
 have 1 ≤ a⁻¹ * b,           from mul_left_inv a ▸ mul_le_mul_left' h _,
-have 1 * b⁻¹ ≤ a⁻¹ * b * b⁻¹, from mul_le_mul_right this _,
+have 1 * b⁻¹ ≤ a⁻¹ * b * b⁻¹, from mul_le_mul_right' this _,
 by rwa [mul_inv_cancel_right, one_mul] at this
 
 @[to_additive]
@@ -398,10 +409,10 @@ by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
-  have := mul_le_mul_right (mul_le_mul_right h b) d,
+  have := mul_le_mul_right' (mul_le_mul_right' h b) d,
   rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right]
     at this,
-  have := mul_le_mul_right (mul_le_mul_right h d⁻¹) b⁻¹,
+  have := mul_le_mul_right' (mul_le_mul_right' h d⁻¹) b⁻¹,
   rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc,
     mul_inv_cancel_right] at this,
 end

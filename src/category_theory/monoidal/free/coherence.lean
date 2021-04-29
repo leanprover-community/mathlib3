@@ -26,6 +26,11 @@ But this means that any two parallel morphisms in the free monoidal category fac
 discrete category in the same way, so they must be equal, and hence the free monoidal category
 is thin.
 
+## References
+
+* [Ilya Beylin and Peter Dybjer, Extracting a proof of coherence for monoidal categories from a
+   proof of normalization for monoids][beylin1996]
+
 -/
 
 universe u

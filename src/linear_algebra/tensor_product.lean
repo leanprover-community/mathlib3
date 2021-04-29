@@ -862,11 +862,9 @@ by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, rtensor_tmul] }
 
 variables (N)
 
-@[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id :=
-by { ext m n, simp only [compr₂_apply, mk_apply, id_coe, id.def, ltensor_tmul] }
+@[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id := map_id
 
-@[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id :=
-by { ext m n, simp only [compr₂_apply, mk_apply, id_coe, id.def, rtensor_tmul] }
+@[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id := map_id
 
 variables {N}
 

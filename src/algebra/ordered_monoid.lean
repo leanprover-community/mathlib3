@@ -59,8 +59,10 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   has_mul_le_mul_right M :=
-{ mul_le_mul_right := λ a b c bc,
-    by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
+{ mul_le_mul_right := λ a b c bc, by
+      { rw is_symm_op.swap_eq (*),
+        { exact ordered_comm_monoid.mul_le_mul_left _ _ bc _ },
+        { exact is_symm_op_of_is_commutative M (*) } } }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :

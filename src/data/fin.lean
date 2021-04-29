@@ -1030,6 +1030,36 @@ lemma succ_above_left_inj {x y : fin (n + 1)} :
   x.succ_above = y.succ_above ↔ x = y :=
 succ_above_left_injective.eq_iff
 
+@[simp] lemma succ_succ_above_zero {n : ℕ} (i : fin (n + 1)) :
+  (i.succ).succ_above 0 = 0 :=
+succ_above_below _ _ (succ_pos _)
+
+@[simp] lemma succ_succ_above_succ {n : ℕ} (i : fin (n + 1)) (j : fin n) :
+  (i.succ).succ_above j.succ = (i.succ_above j).succ :=
+(lt_or_ge j.cast_succ i).elim
+  (λ h, have h' : j.succ.cast_succ < i.succ, by simpa [lt_iff_coe_lt_coe] using h,
+        by { ext, simp [succ_above_below _ _ h, succ_above_below _ _ h'] })
+  (λ h, have h' : i.succ ≤ j.succ.cast_succ, by simpa [le_iff_coe_le_coe] using h,
+        by { ext, simp [succ_above_above _ _ h, succ_above_above _ _ h'] })
+
+@[simp] lemma one_succ_above_zero {n : ℕ} :
+  (1 : fin (n + 2)).succ_above 0 = 0 :=
+succ_succ_above_zero 0
+
+/-- By moving `succ` to the outside of this expression, we create opportunities for further
+simplification using `succ_above_zero` or `succ_succ_above_zero`. -/
+@[simp] lemma succ_succ_above_one {n : ℕ} (i : fin (n + 2)) :
+  (i.succ).succ_above 1 = (i.succ_above 0).succ :=
+succ_succ_above_succ i 0
+
+@[simp] lemma one_succ_above_succ {n : ℕ} (j : fin n) :
+  (1 : fin (n + 2)).succ_above j.succ = j.succ.succ :=
+succ_succ_above_succ 0 j
+
+@[simp] lemma one_succ_above_one {n : ℕ} :
+  (1 : fin (n + 3)).succ_above 1 = 2 :=
+succ_succ_above_succ 0 0
+
 end succ_above
 
 section pred_above

@@ -3,130 +3,162 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import tactic
+import data.equiv.basic
+import order.well_founded
+import data.nat.basic
+import data.opposite
+
 /-!
 # Quivers
 
-This module defines quivers. A quiver `G` on a type `V` of vertices assigns to every
-pair `a b : V` of vertices a type `G.arrow a b` of arrows from `a` to `b`. This
+This module defines quivers. A quiver on a type `V` of vertices assigns to every
+pair `a b : V` of vertices a type `a ⟶ b` of arrows from `a` to `b`. This
 is a very permissive notion of directed graph.
+
+## Implementation notes
+
+Currently `quiver` is defined with `arrow : V → V → Sort v`.
+This is different from the category theory setup,
+where we insist that morphisms live in some `Type`.
+There's some balance here: it's nice to allow `Prop` to ensure there are no multiple arrows,
+but it is also results in error-prone universe signatures when constraints require a `Type`.
 -/
+
+open opposite
 
 -- We use the same universe order as in category theory.
 -- See note [category_theory universes]
 universes v u
 
 /-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
-    a type `G.arrow a b` of arrows from `a` to `b`. -/
-structure quiver (V : Type u) :=
-(arrow : V → V → Sort v)
+    a sort `a ⟶ b` of arrows from `a` to `b`.
+
+    For graphs with no repeated edges, one can use `quiver.{0} V`, which ensures
+    `a ⟶ b : Prop`. For multigraphs, one can use `quiver.{v+1} V`, which ensures
+    `a ⟶ b : Type v`. -/
+class quiver (V : Type u) :=
+(hom : V → V → Sort v)
+
+infixr ` ⟶ `:10 := quiver.hom -- type as \h
 
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
-    for every pair of vertices `a b`. -/
-def wide_subquiver {V} (G : quiver V) :=
-Π a b : V, set (G.arrow a b)
+    for every pair of vertices `a b`.
+
+    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver.{v+1} V`. -/
+def wide_subquiver (V) [quiver.{v+1} V] :=
+Π a b : V, set (a ⟶ b)
+
+/-- A type synonym for `V`, when thought of as a quiver having only the arrows from
+some `wide_subquiver`. -/
+@[nolint unused_arguments has_inhabited_instance]
+def wide_subquiver.to_Type (V) [quiver V] (H : wide_subquiver V) : Type u := V
+
+instance wide_subquiver_has_coe_to_sort {V} [quiver V] : has_coe_to_sort (wide_subquiver V) :=
+{ S := Type u,
+  coe := λ H, wide_subquiver.to_Type V H, }
 
 /-- A wide subquiver viewed as a quiver on its own. -/
-def wide_subquiver.quiver {V} {G : quiver V} (H : wide_subquiver G) : quiver V :=
+instance wide_subquiver.quiver {V} [quiver V] (H : wide_subquiver V) : quiver H :=
 ⟨λ a b, H a b⟩
 
 namespace quiver
 
-/-- The quiver with no arrows. -/
-protected def empty (V) : quiver.{v} V := ⟨λ a b, pempty⟩
+/-- A type synonym for a quiver with no arrows. -/
+@[nolint has_inhabited_instance]
+def empty (V) : Type u := V
 
-instance {V} : inhabited (quiver.{v} V) := ⟨quiver.empty V⟩
-instance {V} (G : quiver V) : has_bot (wide_subquiver G) := ⟨λ a b, ∅⟩
-instance {V} (G : quiver V) : has_top (wide_subquiver G) := ⟨λ a b, set.univ⟩
-instance {V} {G : quiver V} : inhabited (wide_subquiver G) := ⟨⊤⟩
+instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty⟩
 
-/-- `G.sum H` takes the disjoint union of the arrows of `G` and `H`. -/
-protected def sum {V} (G H : quiver V) : quiver V :=
-⟨λ a b, G.arrow a b ⊕ H.arrow a b⟩
+@[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
 
-/-- `G.opposite` reverses the direction of all arrows of `G`. -/
-protected def opposite {V} (G : quiver V) : quiver V :=
-⟨flip G.arrow⟩
+instance {V} [quiver V] : has_bot (wide_subquiver V) := ⟨λ a b, ∅⟩
+instance {V} [quiver V] : has_top (wide_subquiver V) := ⟨λ a b, set.univ⟩
+instance {V} [quiver V] : inhabited (wide_subquiver V) := ⟨⊤⟩
 
-/-- `G.symmetrify` adds to `G` the reversal of all arrows of `G`. -/
-def symmetrify {V} (G : quiver V) : quiver V :=
-G.sum G.opposite
+/-- `Vᵒᵖ` reverses the direction of all arrows of `V`. -/
+instance opposite {V} [quiver V] : quiver Vᵒᵖ :=
+⟨λ a b, (unop b) ⟶ (unop a)⟩
 
-@[simp] lemma empty_arrow {V} (a b : V) : (quiver.empty V).arrow a b = pempty := rfl
+/--
+The opposite of an arrow in `V`.
+-/
+def hom.op {V} [quiver V] {X Y : V} (f : X ⟶ Y) : op Y ⟶ op X := f
+/--
+Given an arrow in `Vᵒᵖ`, we can take the "unopposite" back in `V`.
+-/
+def hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X := f
 
-@[simp] lemma sum_arrow {V} (G H : quiver V) (a b : V) :
-  (G.sum H).arrow a b = (G.arrow a b ⊕ H.arrow a b) := rfl
+attribute [irreducible] quiver.opposite
 
-@[simp] lemma opposite_arrow {V} (G : quiver V) (a b : V) :
-  G.opposite.arrow a b = G.arrow b a := rfl
+/-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow).
+    NB: this does not work for `Prop`-valued quivers. It requires `[quiver.{v+1} V]`. -/
+@[nolint has_inhabited_instance]
+def symmetrify (V) : Type u := V
 
-@[simp] lemma symmetrify_arrow {V} (G : quiver V) (a b : V) :
-  G.symmetrify.arrow a b = (G.arrow a b ⊕ G.arrow b a) := rfl
+instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
+⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
 
-@[simp] lemma opposite_opposite {V} (G : quiver V) : G.opposite.opposite = G :=
-by { cases G, refl }
-
-/-- `G.total` is the type of _all_ arrows of `G`. -/
-@[ext] protected structure total {V} (G : quiver.{v u} V) : Sort (max (u+1) v) :=
-(source : V)
-(target : V)
-(arrow : G.arrow source target)
-
-instance {V} [inhabited V] {G : quiver V} [inhabited (G.arrow (default V) (default V))] :
-  inhabited G.total :=
-⟨⟨default V, default V, default _⟩⟩
+/-- `total V` is the type of _all_ arrows of `V`. -/
+-- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
+@[ext, nolint has_inhabited_instance]
+structure total (V : Type u) [quiver.{v} V] : Sort (max (u+1) v) :=
+(left : V)
+(right : V)
+(hom : left ⟶ right)
 
 /-- A wide subquiver `H` of `G.symmetrify` determines a wide subquiver of `G`, containing an
     an arrow `e` if either `e` or its reversal is in `H`. -/
-def wide_subquiver_symmetrify {V} {G : quiver V} :
-  wide_subquiver G.symmetrify → wide_subquiver G :=
+-- Without the explicit universe level in `quiver.{v+1}` Lean comes up with
+-- `quiver.{max u_2 u_3 + 1}`. This causes problems elsewhere, so we write `quiver.{v+1}`.
+def wide_subquiver_symmetrify {V} [quiver.{v+1} V] :
+  wide_subquiver (symmetrify V) → wide_subquiver V :=
 λ H a b, { e | sum.inl e ∈ H a b ∨ sum.inr e ∈ H b a }
 
 /-- A wide subquiver of `G` can equivalently be viewed as a total set of arrows. -/
-def wide_subquiver_equiv_set_total {V} {G : quiver V} :
-  wide_subquiver G ≃ set G.total :=
-{ to_fun := λ H, { e | e.arrow ∈ H e.source e.target },
+def wide_subquiver_equiv_set_total {V} [quiver V] :
+  wide_subquiver V ≃ set (total V) :=
+{ to_fun := λ H, { e | e.hom ∈ H e.left e.right },
   inv_fun := λ S a b, { e | total.mk a b e ∈ S },
   left_inv := λ H, rfl,
   right_inv := by { intro S, ext, cases x, refl } }
 
 /-- `G.path a b` is the type of paths from `a` to `b` through the arrows of `G`. -/
-inductive path {V} (G : quiver.{v u} V) (a : V) : V → Sort (max (u+1) v)
+inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Type (max u v)
 | nil  : path a
-| cons : Π {b c : V}, path b → G.arrow b c → path c
+| cons : Π {b c : V}, path b → (b ⟶ c) → path c
 
 /-- An arrow viewed as a path of length one. -/
-def arrow.to_path {V} {G : quiver V} {a b} (e : G.arrow a b) : G.path a b :=
+def hom.to_path {V} [quiver V] {a b : V} (e : a ⟶ b) : path a b :=
 path.nil.cons e
 
 namespace path
 
-variables {V : Type*} {G : quiver V}
+variables {V : Type u} [quiver V]
 
 /-- The length of a path is the number of arrows it uses. -/
-def length {a : V} : Π {b}, G.path a b → ℕ
+def length {a : V} : Π {b : V}, path a b → ℕ
 | _ path.nil        := 0
 | _ (path.cons p _) := p.length + 1
 
 @[simp] lemma length_nil {a : V} :
-  (path.nil : G.path a a).length = 0 := rfl
+  (path.nil : path a a).length = 0 := rfl
 
-@[simp] lemma length_cons (a b c : V) (p : G.path a b)
-  (e : G.arrow b c) : (p.cons e).length = p.length + 1 := rfl
+@[simp] lemma length_cons (a b c : V) (p : path a b)
+  (e : b ⟶ c) : (p.cons e).length = p.length + 1 := rfl
 
 /-- Composition of paths. -/
-def comp {a b} : Π {c}, G.path a b → G.path b c → G.path a c
+def comp {a b : V} : Π {c}, path a b → path b c → path a c
 | _ p (path.nil) := p
 | _ p (path.cons q e) := (p.comp q).cons e
 
-@[simp] lemma comp_cons {a b c d} (p : G.path a b) (q : G.path b c) (e : G.arrow c d) :
+@[simp] lemma comp_cons {a b c d : V} (p : path a b) (q : path b c) (e : c ⟶ d) :
   p.comp (q.cons e) = (p.comp q).cons e := rfl
-@[simp] lemma comp_nil {a b} (p : G.path a b) : p.comp path.nil = p := rfl
-@[simp] lemma nil_comp {a} : ∀ {b} (p : G.path a b), path.nil.comp p = p
+@[simp] lemma comp_nil {a b : V} (p : path a b) : p.comp path.nil = p := rfl
+@[simp] lemma nil_comp {a : V} : ∀ {b} (p : path a b), path.nil.comp p = p
 | a path.nil := rfl
 | b (path.cons p e) := by rw [comp_cons, nil_comp]
-@[simp] lemma comp_assoc {a b c} : ∀ {d}
-  (p : G.path a b) (q : G.path b c) (r : G.path c d),
+@[simp] lemma comp_assoc {a b c : V} : ∀ {d}
+  (p : path a b) (q : path b c) (r : path c d),
     (p.comp q).comp r = p.comp (q.comp r)
 | c p q path.nil := rfl
 | d p q (path.cons r e) := by rw [comp_cons, comp_cons, comp_cons, comp_assoc]
@@ -135,33 +167,33 @@ end path
 
 /-- A quiver is an arborescence when there is a unique path from the default vertex
     to every other vertex. -/
-class arborescence {V} (T : quiver.{v u} V) : Sort (max (u+1) v) :=
+class arborescence (V : Type u) [quiver.{v} V] : Type (max u v) :=
 (root : V)
-(unique_path : Π (b : V), unique (T.path root b))
+(unique_path : Π (b : V), unique (path root b))
 
 /-- The root of an arborescence. -/
-protected def root {V} (T : quiver V) [arborescence T] : V :=
-arborescence.root T
+def root (V : Type u) [quiver V] [arborescence V] : V :=
+arborescence.root
 
-instance {V} (T : quiver V) [arborescence T] (b : V) : unique (T.path T.root b) :=
+instance {V : Type u} [quiver V] [arborescence V] (b : V) : unique (path (root V) b) :=
 arborescence.unique_path b
 
 /-- An `L`-labelling of a quiver assigns to every arrow an element of `L`. -/
-def labelling {V} (G : quiver V) (L) := Π a b, G.arrow a b → L
+def labelling (V : Type u) [quiver V] (L : Sort*) := Π ⦃a b : V⦄, (a ⟶ b) → L
 
-instance {V} (G : quiver V) (L) [inhabited L] : inhabited (G.labelling L) :=
+instance {V : Type u} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :=
 ⟨λ a b e, default L⟩
 
-/-- To show that `T : quiver V` is an arborescence with root `r : V`, it suffices to
+/-- To show that `[quiver V]` is an arborescence with root `r : V`, it suffices to
   - provide a height function `V → ℕ` such that every arrow goes from a
     lower vertex to a higher vertex,
   - show that every vertex has at most one arrow to it, and
   - show that every vertex other than `r` has an arrow to it. -/
-noncomputable def arborescence_mk {V} (T : quiver V) (r : V)
+noncomputable def arborescence_mk {V : Type u} [quiver V] (r : V)
   (height : V → ℕ)
-  (height_lt : ∀ ⦃a b⦄, T.arrow a b → height a < height b)
-  (unique_arrow : ∀ ⦃a b c⦄ (e : T.arrow a c) (f : T.arrow b c), a = b ∧ e == f)
-  (root_or_arrow : ∀ b, b = r ∨ ∃ a, nonempty (T.arrow a b)) : arborescence T :=
+  (height_lt : ∀ ⦃a b⦄, (a ⟶ b) → height a < height b)
+  (unique_arrow : ∀ ⦃a b c : V⦄ (e : a ⟶ c) (f : b ⟶ c), a = b ∧ e == f)
+  (root_or_arrow : ∀ b, b = r ∨ ∃ a, nonempty (a ⟶ b)) : arborescence V :=
 { root := r,
   unique_path := λ b, ⟨classical.inhabited_of_nonempty
     begin
@@ -174,10 +206,10 @@ noncomputable def arborescence_mk {V} (T : quiver V) (r : V)
         exact ⟨p.cons e⟩ }
     end,
     begin
-      have height_le : ∀ {a b}, T.path a b → height a ≤ height b,
+      have height_le : ∀ {a b}, path a b → height a ≤ height b,
       { intros a b p, induction p with b c p e ih, refl,
         exact le_of_lt (lt_of_le_of_lt ih (height_lt e)) },
-      suffices : ∀ p q : T.path r b, p = q,
+      suffices : ∀ p q : path r b, p = q,
       { intro p, apply this },
       intros p q, induction p with a c p e ih; cases q with b _ q f,
       { refl },
@@ -186,65 +218,65 @@ noncomputable def arborescence_mk {V} (T : quiver V) (r : V)
       { rcases unique_arrow e f with ⟨⟨⟩, ⟨⟩⟩, rw ih },
     end ⟩ }
 
-/-- `G.rooted_connected r` means that there is a path from `r` to any other vertex. -/
-class rooted_connected {V} (G : quiver V) (r : V) : Prop :=
-(nonempty_path : ∀ b : V, nonempty (G.path r b))
+/-- `rooted_connected r` means that there is a path from `r` to any other vertex. -/
+class rooted_connected {V : Type u} [quiver V] (r : V) : Prop :=
+(nonempty_path : ∀ b : V, nonempty (path r b))
 
 attribute [instance] rooted_connected.nonempty_path
 
 section geodesic_subtree
 
-variables {V : Type*} (G : quiver.{v+1} V) (r : V) [G.rooted_connected r]
+variables {V : Type u} [quiver.{v+1} V] (r : V) [rooted_connected r]
 
 /-- A path from `r` of minimal length. -/
-noncomputable def shortest_path (b : V) : G.path r b :=
+noncomputable def shortest_path (b : V) : path r b :=
 well_founded.min (measure_wf path.length) set.univ set.univ_nonempty
 
 /-- The length of a path is at least the length of the shortest path -/
-lemma shortest_path_spec {a : V} (p : G.path r a) :
-  (G.shortest_path r a).length ≤ p.length :=
+lemma shortest_path_spec {a : V} (p : path r a) :
+  (shortest_path r a).length ≤ p.length :=
 not_lt.mp (well_founded.not_lt_min (measure_wf _) set.univ _ trivial)
 
 /-- A subquiver which by construction is an arborescence. -/
-def geodesic_subtree : wide_subquiver G :=
-λ a b, { e | ∃ p : G.path r a, shortest_path G r b = p.cons e }
+def geodesic_subtree : wide_subquiver V :=
+λ a b, { e | ∃ p : path r a, shortest_path r b = p.cons e }
 
-noncomputable instance geodesic_arborescence : (G.geodesic_subtree r).quiver.arborescence :=
-arborescence_mk _ r (λ a, (G.shortest_path r a).length)
+noncomputable instance geodesic_arborescence : arborescence (geodesic_subtree r) :=
+arborescence_mk r (λ a, (shortest_path r a).length)
 (by { rintros a b ⟨e, p, h⟩,
   rw [h, path.length_cons, nat.lt_succ_iff], apply shortest_path_spec })
 (by { rintros a b c ⟨e, p, h⟩ ⟨f, q, j⟩, cases h.symm.trans j, split; refl })
-(by { intro b, have : ∃ p, G.shortest_path r b = p := ⟨_, rfl⟩,
+(by { intro b, have : ∃ p, shortest_path r b = p := ⟨_, rfl⟩,
   rcases this with ⟨p, hp⟩, cases p with a _ p e,
   { exact or.inl rfl }, { exact or.inr ⟨a, ⟨⟨e, p, hp⟩⟩⟩ } })
 
 end geodesic_subtree
 
-variables {V : Type*} (G : quiver V)
+variables (V : Type u) [quiver.{v+1} V]
 
 /-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
     `p.reverse` from `b` to `a`.-/
 class has_reverse :=
-(reverse' : Π {a b}, G.arrow a b → G.arrow b a)
+(reverse' : Π {a b : V}, (a ⟶ b) → (b ⟶ a))
 
-variables {G} [has_reverse G]
+instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
+
+variables {V} [has_reverse V]
 
 /-- Reverse the direction of an arrow. -/
-def arrow.reverse {a b} : G.arrow a b → G.arrow b a := has_reverse.reverse'
+def reverse {a b : V} : (a ⟶ b) → (b ⟶ a) := has_reverse.reverse'
 
 /-- Reverse the direction of a path. -/
-def path.reverse {a} : Π {b}, G.path a b → G.path b a
+def path.reverse {a : V} : Π {b}, path a b → path b a
 | a path.nil := path.nil
-| b (path.cons p e) := e.reverse.to_path.comp p.reverse
+| b (path.cons p e) := (reverse e).to_path.comp p.reverse
 
-variable (H : quiver.{v+1} V)
-
-instance : has_reverse H.symmetrify := ⟨λ a b e, e.swap⟩
+variables (V)
 
 /-- Two vertices are related in the zigzag setoid if there is a
     zigzag of arrows from one to the other. -/
 def zigzag_setoid : setoid V :=
-⟨λ a b, nonempty (H.symmetrify.path a b),
+⟨λ a b, nonempty (path (a : symmetrify V) (b : symmetrify V)),
  λ a, ⟨path.nil⟩,
  λ a b ⟨p⟩, ⟨p.reverse⟩,
  λ a b c ⟨p⟩ ⟨q⟩, ⟨p.comp q⟩⟩
@@ -252,19 +284,19 @@ def zigzag_setoid : setoid V :=
 /-- The type of weakly connected components of a directed graph. Two vertices are
     in the same weakly connected component if there is a zigzag of arrows from one
     to the other. -/
-def weakly_connected_component : Type* := quotient H.zigzag_setoid
+def weakly_connected_component : Type* := quotient (zigzag_setoid V)
 
 namespace weakly_connected_component
-variable {H}
+variable {V}
 
 /-- The weakly connected component corresponding to a vertex. -/
-protected def mk : V → H.weakly_connected_component := quotient.mk'
+protected def mk : V → weakly_connected_component V := quotient.mk'
 
-instance : has_coe_t V H.weakly_connected_component := ⟨weakly_connected_component.mk⟩
-instance [inhabited V] : inhabited H.weakly_connected_component := ⟨↑(default V)⟩
+instance : has_coe_t V (weakly_connected_component V) := ⟨weakly_connected_component.mk⟩
+instance [inhabited V] : inhabited (weakly_connected_component V) := ⟨↑(default V)⟩
 
 protected lemma eq (a b : V) :
-  (a : H.weakly_connected_component) = b ↔ nonempty (H.symmetrify.path a b) :=
+  (a : weakly_connected_component V) = b ↔ nonempty (path (a : symmetrify V) (b : symmetrify V)) :=
 quotient.eq'
 
 end weakly_connected_component

@@ -12,7 +12,7 @@
   author : Chris Hughes
 4:
   title  : Pythagorean Theorem
-  decl   : euclidean_geometry.dist_square_eq_dist_square_add_dist_square_iff_angle_eq_pi_div_two
+  decl   : euclidean_geometry.dist_sq_eq_dist_sq_add_dist_sq_iff_angle_eq_pi_div_two
   author : Joseph Myers
 5:
   title  : Prime Number Theorem
@@ -71,7 +71,7 @@
   author : Chris Hughes
 20:
   title  : All Primes (1 mod 4) Equal the Sum of Two Squares
-  decl   : nat.prime.sum_two_squares
+  decl   : nat.prime.sq_add_sq
   author : Chris Hughes
 21:
   title  : Green’s Theorem
@@ -180,6 +180,8 @@
   title  : Konigsberg Bridges Problem
 55:
   title  : Product of Segments of Chords
+  decl   : euclidean_geometry.mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi
+  author : Manuel Candales
 56:
   title  : The Hermite-Lindemann Transcendence Theorem
 57:
@@ -257,7 +259,7 @@
     card_sylow_modeq_one: https://github.com/ChrisHughes24/Sylow/blob/7185e33eeb6d28ea1a423492e7b4a8634aa9723d/src/sylow.lean#L944
   author : Chris Hughes
 73:
-  title  : Ascending or Descending Sequences
+  title  : Ascending or Descending Sequences (Erdős–Szekeres Theorem)
   links  :
     mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/73_ascending_descending_sequences.lean
   author : Bhavik Mehta
@@ -343,7 +345,7 @@
   title  : The Birthday Problem
 94:
   title  : The Law of Cosines
-  decl   : euclidean_geometry.dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle
+  decl   : euclidean_geometry.dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle
   author : Joseph Myers
 95:
   title  : Ptolemy’s Theorem

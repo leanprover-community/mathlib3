@@ -22,7 +22,7 @@ which has the disjoint union topology.
 To have a topological vector bundle structure on `bundle.total_space E`,
 one should addtionally have the following data:
 
-* `F` should be a topological space and a semimodule over a semiring `R`;
+* `F` should be a topological space and a module over a semiring `R`;
 * There should be a topology on `bundle.total_space E`, for which the projection to `B` is
 a topological fiber bundle with fiber `F` (in particular, each fiber `E x` is homeomorphic to `F`);
 * For each `x`, the fiber `E x` should be a topological vector space over `R`, and the injection
@@ -57,8 +57,8 @@ noncomputable theory
 open bundle set
 
 variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
-[semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, semimodule R (E x)]
-[topological_space F] [add_comm_monoid F] [semimodule R F]
+[semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+[topological_space F] [add_comm_monoid F] [module R F]
 [topological_space (total_space E)] [topological_space B]
 
 section
@@ -194,8 +194,8 @@ instance {B : Type*} {F : Type*} [add_comm_monoid F] (b : B) :
 instance {B : Type*} {F : Type*} [add_comm_group F] (b : B) :
   add_comm_group (bundle.trivial B F b) := ‹add_comm_group F›
 
-instance {B : Type*} {F : Type*} [add_comm_monoid F] [semimodule R F] (b : B) :
-  semimodule R (bundle.trivial B F b) := ‹semimodule R F›
+instance {B : Type*} {F : Type*} [add_comm_monoid F] [module R F] (b : B) :
+  module R (bundle.trivial B F b) := ‹module R F›
 
 end
 

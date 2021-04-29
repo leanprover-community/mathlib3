@@ -290,7 +290,7 @@ instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_s
         this, rpow_one],
     exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _)
   end,
-  .. pi.semimodule ι β 𝕜 }
+  .. pi.module ι β 𝕜 }
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [∀i, normed_group (α i)] [∀i, normed_space 𝕜 (α i)] :

@@ -270,7 +270,7 @@ section min_fac
   lemma min_fac_sq_le_self {n : ℕ} (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
   have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
   calc
-  (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
+  (min_fac n)^2 = (min_fac n) * (min_fac n)   : sq (min_fac n)
             ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
             ... ≤ n                           : div_mul_le_self n (min_fac n)
 
@@ -407,10 +407,27 @@ begin
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
+@[simp] lemma factors_zero : (0 : ℕ).factors = [] := rfl
+
+@[simp] lemma factors_one : (1 : ℕ).factors = [] := rfl
+
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
   factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) :=
 by rw factors
+
+@[simp]
+lemma factors_eq_nil (n : ℕ) : n.factors = [] ↔ n = 0 ∨ n = 1 :=
+begin
+  split; intro h,
+  { rcases n with (_ | _ | n),
+    { exact or.inl rfl },
+    { exact or.inr rfl },
+    { injection h }, },
+  { rcases h with (rfl | rfl),
+    { exact factors_zero },
+    { exact factors_one }, }
+end
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
@@ -447,28 +464,28 @@ by induction n with n IH;
     by { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH } ]
 
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
-λ hp, (hp.2 x $ dvd_trans ⟨x, pow_two _⟩ (pow_dvd_pow _ hn)).elim
+λ hp, (hp.2 x $ dvd_trans ⟨x, sq _⟩ (pow_dvd_pow _ hn)).elim
   (λ hx1, hp.ne_one $ hx1.symm ▸ one_pow _)
   (λ hxn, lt_irrefl x $ calc x = x ^ 1 : (pow_one _).symm
      ... < x ^ n : nat.pow_right_strict_mono (hxn.symm ▸ hp.two_le) hn
      ... = x : hxn.symm)
 
-lemma prime.mul_eq_prime_pow_two_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
+lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
-⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [pow_two],
+⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [sq],
 begin
   wlog := hp.dvd_mul.1 pdvdxy using x y,
   cases case with a ha,
-  have hap : a ∣ p, from ⟨y, by rwa [ha, pow_two,
+  have hap : a ∣ p, from ⟨y, by rwa [ha, sq,
         mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, pow_two, nat.mul_right_inj hp.pos] at *
+    (λ _, by clear_aux_decl; simp [*, sq, nat.mul_right_inj hp.pos] at *
       {contextual := tt})
-    (λ _, by clear_aux_decl; simp [*, pow_two, mul_comm, mul_assoc,
+    (λ _, by clear_aux_decl; simp [*, sq, mul_comm, mul_assoc,
       nat.mul_right_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
       {contextual := tt})
 end,
-λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (pow_two _).symm⟩
+λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (sq _).symm⟩
 
 lemma prime.dvd_factorial : ∀ {n p : ℕ} (hp : prime p), p ∣ n! ↔ p ≤ n
 | 0 p hp := iff_of_false hp.not_dvd_one (not_le_of_lt hp.pos)

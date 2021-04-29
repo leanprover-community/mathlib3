@@ -6,7 +6,6 @@ Authors: Kenny Lau
 
 import algebra.direct_limit
 import field_theory.splitting_field
-import analysis.complex.polynomial
 
 /-!
 # Algebraic Closure
@@ -108,9 +107,6 @@ lemma algebra_map_surjective_of_is_algebraic {k K : Type*} [field k] [domain K]
 algebra_map_surjective_of_is_integral ((is_algebraic_iff_is_integral' k).mp hf)
 
 end is_alg_closed
-
-instance complex.is_alg_closed : is_alg_closed ℂ :=
-is_alg_closed.of_exists_root _ $ λ p _ hp, complex.exists_root $ degree_pos_of_irreducible hp
 
 /-- Typeclass for an extension being an algebraic closure. -/
 class is_alg_closure (K : Type v) [field K] [algebra k K] : Prop :=

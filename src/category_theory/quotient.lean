@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import category_theory.natural_isomorphism
+import category_theory.equivalence
+import category_theory.eq_to_hom
 
 /-!
 # Quotient category
@@ -24,6 +26,7 @@ variables {C : Type u} [category.{v} C]
 include r
 
 /-- A type synonom for `C`, thought of as the objects of the quotient category. -/
+@[ext]
 structure quotient := (as : C)
 
 instance [inhabited C] : inhabited (quotient r) := ⟨ { as := default C } ⟩
@@ -68,6 +71,12 @@ instance category : category (quotient r) :=
 def functor : C ⥤ quotient r :=
 { obj := λ a, { as := a },
   map := λ _ _ f, quot.mk _ f }
+
+noncomputable instance : full (functor r) :=
+{ preimage := λ X Y f, quot.out f, }
+
+instance : ess_surj (functor r) :=
+{ mem_ess_image := λ Y, ⟨Y.as, ⟨eq_to_iso (by { ext, refl, })⟩⟩ }
 
 protected lemma induction {P : Π {a b : quotient r}, (a ⟶ b) → Prop}
   (h : ∀ {x y : C} (f : x ⟶ y), P ((functor r).map f)) :

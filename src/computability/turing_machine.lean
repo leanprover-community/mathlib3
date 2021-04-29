@@ -2213,9 +2213,10 @@ begin
         simp only [h, list.nth_le_singleton, list.length_map, list.length_reverse, nat.succ_pos',
           list.length_append, lt_add_iff_pos_right, list.length] },
       rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth],
-      cases decidable.lt_or_gt_of_ne h with h h,
+      cases lt_or_gt_of_ne h with h h,
       { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
-      { rw [list.nth_len_le, list.nth_len_le];
+      { rw gt_iff_lt at h,
+        rw [list.nth_len_le, list.nth_len_le];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
@@ -2248,9 +2249,9 @@ begin
         function.update_same, list_blank.nth_mk, list.tail, list.inth],
       { rw [list.nth_len_le], {refl}, rw [h, list.length_reverse, list.length_map] },
       rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth, e, list.map, list.reverse_cons],
-      cases decidable.lt_or_gt_of_ne h with h h,
+      cases lt_or_gt_of_ne h with h h,
       { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
-      { rw [list.nth_len_le, list.nth_len_le];
+      { rw gt_iff_lt at h, rw [list.nth_len_le, list.nth_len_le];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],

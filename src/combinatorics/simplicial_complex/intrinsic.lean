@@ -9,6 +9,7 @@ import algebra.module.linear_map
 import analysis.convex.topology
 import combinatorics.simplicial_complex.to_move.topology
 import combinatorics.simplicial_complex.convex_independence
+import combinatorics.simplicial_complex.extreme
 
 open_locale classical affine big_operators
 open set
@@ -17,6 +18,61 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E
 
 namespace affine
 
+def intrinsic_interior (A : set E) :
+  set E :=
+{x ∈ A | ∃ (ι : Type*) (s : finset ι) (w : ι → ℝ) (z : ι → E) (hw₀ : ∀ i ∈ s, 0 < w i)
+  (hw₁ : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, z i ∈ A), s.center_mass w z = x}
+
+def intrinsic_frontier (A : set E) :
+  set E :=
+{x ∈ A | ∀ (ι : Type*) (s : finset ι) (w : ι → ℝ) (z : ι → E) (hw₀ : ∀ i ∈ s, 0 ≤ w i)
+  (hw₁ : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, z i ∈ A) (hx : s.center_mass w z = x), ∃ i : ι, w i = 0}
+
+lemma intrinsic_interior_subset (A : set E) :
+  intrinsic_interior A ⊆ A :=
+λ x hx, hx.1
+
+lemma intrinsic_frontier_subset (A : set E) :
+  intrinsic_frontier A ⊆ A :=
+λ x hx, hx.1
+
+lemma intrinsic_frontier.is_extreme :
+  is_extreme A (intrinsic_frontier A) :=
+begin
+  use intrinsic_frontier_subset _,
+  rintro x₁ x₂ hx₁ hx₂ x ⟨hxA, ι, t, hw₀, hw₁, hyA, hy⟩ hx,
+  sorry
+end
+
+/-def intrinsic_interior (A : set E) :
+  set E :=
+{x ∈ A | ∀ y ∈ A, ∃ z ∈ A, x ∈ open_segment y z}
+
+def intrinsic_frontier (A : set E) :
+  set E :=
+{x ∈ A | ∃ y ∈ A, ∀ z ∈ A, x ∉ open_segment y z}
+
+lemma intrinsic_interior_subset (A : set E) :
+  intrinsic_interior A ⊆ A :=
+λ x hx, hx.1
+
+lemma intrinsic_frontier_subset (A : set E) :
+  intrinsic_frontier A ⊆ A :=
+λ x hx, hx.1
+
+lemma intrinsic_frontier.is_extreme :
+  is_extreme A (intrinsic_frontier A) :=
+begin
+  use intrinsic_frontier_subset _,
+  rintro x₁ x₂ hx₁ hx₂ x ⟨hxA, y, hyA, hy⟩ hx,
+  split,
+  {
+    use [hx₁, y, hyA],
+    rintro z hz,
+  }
+end-/
+
+/-
 def intrinsic_frontier (A : set E) :
   set E :=
 coe '' (frontier {x : affine_span ℝ A | ↑x ∈ A})
@@ -159,6 +215,6 @@ lemma intrinsic_frontier_convex_hull_eq (hA : affine_independent ℝ (λ p, p : 
   intrinsic_frontier (convex_hull A) = ⋃ B ⊂ A, convex_hull B :=
 begin
   sorry --damn hard
-end
+end-/
 
 end affine

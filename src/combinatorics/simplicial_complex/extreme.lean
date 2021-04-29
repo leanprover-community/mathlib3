@@ -48,11 +48,15 @@ begin
   rw [←add_right_inj (a • x), hx, ←add_smul, hab, one_smul],
   sorry,
 end
-/--
-A set B is extreme to a set A if no affine combination of points in A \ B is in B. -/
-def is_extreme (A B : set E) :
-  Prop :=
-B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ segment x₁ x₂ → x ≠ x₁ → x ≠ x₂ → x₁ ∈ B ∧ x₂ ∈ B
+
+/-- Open segment in a vector space. Note that `open_segment x x = {x}` instead of being `∅`. -/
+def open_segment (x y : E) : set E :=
+{z : E | ∃ (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1), a • x + b • y = z}
+
+/-- A set B is extreme to a set A if B ⊆ A and all points of B only belong to open segments whose
+ends are in B. -/
+def is_extreme (A B : set E) : Prop :=
+B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
 lemma extreme_set_iff :
   is_extreme A B ↔ B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, (∃ a b : ℝ, 0 < a ∧ 0 < b ∧ a + b = 1 ∧

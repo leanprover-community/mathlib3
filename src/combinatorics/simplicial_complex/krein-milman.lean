@@ -63,7 +63,7 @@ begin
     obtain ⟨l, hl⟩ := geometric_hahn_banach_point_point hyx,
     obtain ⟨z, hzB, hz⟩ := is_compact.exists_forall_ge (compact_of_is_closed_subset hAcomp hBclos
       hAB.1) ⟨x, hxB⟩ (continuous.continuous_on l.continuous),
-    rw ←hBmin {z ∈ B | ∀ w ∈ B, l w ≤ l z} ⟨⟨z, hzB, hz⟩, closed_of_exposed hBclos ⟨l, rfl⟩,
+    rw ←hBmin {z ∈ B | ∀ w ∈ B, l w ≤ l z} ⟨⟨z, hzB, hz⟩, is_exposed.is_closed ⟨l, rfl⟩ hBclos,
       hAB.trans (is_exposed.is_extreme ⟨l, rfl⟩)⟩ (λ z hz, hz.1) at hyB,
     exact not_le.2 hl (hyB.2 x hxB) },
   apply zorn.subset_reverse,
@@ -102,16 +102,16 @@ begin
   obtain ⟨l, s, hls, hsx⟩ := geometric_hahn_banach_closed_point
     (convex.closure (convex_convex_hull _)) is_closed_closure hxB,
   let C := {y ∈ A | ∀ z ∈ A, l z ≤ l y},
-  have hCexp : is_exposed_set A C := ⟨l, rfl⟩,
+  have hCexp : is_exposed A C := ⟨l, rfl⟩,
   obtain ⟨y, hyC⟩ := has_extreme_point_of_convex_of_compact_of_nonempty
     begin
       obtain ⟨z, hzA, hz⟩ := is_compact.exists_forall_ge hAcomp ⟨x, hxA⟩
         (continuous.continuous_on l.continuous),
       exact ⟨z, hzA, hz⟩,
     end
-    (compact_of_exposed hAcomp hCexp) (convex_of_exposed hAconv hCexp),
+    (hCexp.is_compact hAcomp) (hCexp.is_convex hAconv),
   linarith [hls _ (subset_closure (subset_convex_hull _
-    ((extreme_of_exposed hCexp).extreme_points_subset_extreme_points  hyC))),
+    (hCexp.is_extreme.extreme_points_subset_extreme_points hyC))),
     hyC.1.2 x hxA],
 end
 
@@ -122,8 +122,7 @@ lemma eq_convex_hull_extreme_points_of_compact_of_convex [finite_dimensional ℝ
   (hAcomp : is_compact A) (hAconv : convex A) :
   A = convex_hull A.extreme_points :=
 begin
-  nth_rewrite_lhs 0 eq_closure_convex_hull_extreme_points_of_compact_of_convex hAcomp hAconv,
-  rw closure_eq_iff_is_closed,
+
   sorry
   /-let B := convex_hull A.extreme_points,
   have hBA : B ⊆ A :=
@@ -134,5 +133,12 @@ begin
   obtain ⟨x, hxA, hxB⟩ := id hABdiff,
   sorry-/
 end
+
+lemma closed_convex_hull_extreme_points_of_compact_of_convex [finite_dimensional ℝ E]
+  (hAcomp : is_compact A) (hAconv : convex A) :
+  is_closed (convex_hull A.extreme_points) :=
+closure_eq_iff_is_closed.1
+  (by rw [←eq_closure_convex_hull_extreme_points_of_compact_of_convex hAcomp hAconv,
+     ←eq_convex_hull_extreme_points_of_compact_of_convex hAcomp hAconv])
 
 end affine

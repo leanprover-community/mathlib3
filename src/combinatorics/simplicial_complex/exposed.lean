@@ -70,7 +70,7 @@ lemma is_exposed.trans :
 begin
   rintro A B C hB hC,
   by_cases hAB : A ⊆ B,
-  { rw subset.antisymm hAB hB.subset
+  { rw subset.antisymm hAB hB.subset,
     exact hC },
   by_cases hBC : B ⊆ C,
   { rw subset.antisymm hC.subset hBC,
@@ -116,7 +116,7 @@ lemma is_exposed.is_extreme (hAB : is_exposed A B) :
   is_extreme A B :=
 begin
   rw extreme_set_iff,
-  use subset_of_exposed hAB,
+  use hAB.subset,
   rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩,
   obtain ⟨l, rfl⟩ := hAB,
   have hlx₁ : l x₁ = l x,
@@ -146,7 +146,7 @@ begin
   exact hxB.2 y hy,
 end
 
-lemma convex_of_exposed (hA : convex A) (hAB : is_exposed A B) :
+lemma  is_exposed.is_convex (hAB : is_exposed A B) (hA : convex A) :
   convex B :=
 begin
   have hBA := hAB.subset,
@@ -186,15 +186,19 @@ lemma is_exposed.is_compact (hAB : is_exposed A B) (hA : is_compact A) :
   is_compact B :=
 compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
-lemma mem_extreme_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
-  (∃ B : set E, is_extreme_set A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
+lemma is_exposed.subset_frontier (hAB : is_exposed A B) (hBA : ¬ A ⊆ B) :
+  B ⊆ frontier A :=
+hAB.is_extreme.subset_frontier hBA
+
+lemma mem_exposed_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
+  (∃ B : set E, is_exposed A B ∧ ¬A ⊆ B ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
 begin
-  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, hAB.subset_frontier hBA hxB⟩,
+  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.subset hxB, hAB.subset_frontier hBA hxB⟩,
   rintro ⟨hxA, hxfA⟩,
   obtain ⟨y, hyA⟩ := id hA₂,
   obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hA₁) is_open_interior hxfA.2,
-  refine ⟨{x ∈ A | ∀ y ∈ A, l y ≤ l x}, extreme_of_exposed ⟨l, rfl⟩, ⟨λ x hx, hx.1, λ h,
-    not_le.2 (hl y hyA) ((h (interior_subset hyA)).2 x hxA)⟩, ⟨hxA, λ z hzA, _⟩⟩,
+  refine ⟨{x ∈ A | ∀ y ∈ A, l y ≤ l x}, ⟨l, rfl⟩, λ h,
+    not_le.2 (hl y hyA) ((h (interior_subset hyA)).2 x hxA), hxA, λ z hzA, _⟩,
   suffices h : l '' closure (interior A) ⊆ closure (Iio (l x)),
   { rw [closure_Iio, ←closure_eq_closure_interior hA₁ hA₂] at h,
     exact h ⟨z, subset_closure hzA, rfl⟩ },
@@ -203,21 +207,13 @@ begin
   exact hl w hw,
 end
 
-lemma mem_exposed_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
-  (∃ B : set E, is_exposed A B ∧ B ⊂ A ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
+lemma mem_extreme_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
+  (∃ B : set E, is_extreme A B ∧ ¬A ⊆ B ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
 begin
   use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, hAB.subset_frontier hBA hxB⟩,
-  rintro ⟨hxA, hxfA⟩,
-  obtain ⟨y, hyA⟩ := id hA₂,
-  obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hA₁) is_open_interior hxfA.2,
-  refine ⟨{x ∈ A | ∀ y ∈ A, l y ≤ l x}, extreme_of_exposed ⟨l, rfl⟩, ⟨λ x hx, hx.1, λ h,
-    not_le.2 (hl y hyA) ((h (interior_subset hyA)).2 x hxA)⟩, ⟨hxA, λ z hzA, _⟩⟩,
-  suffices h : l '' closure (interior A) ⊆ closure (Iio (l x)),
-  { rw [closure_Iio, ←closure_eq_closure_interior hA₁ hA₂] at h,
-    exact h ⟨z, subset_closure hzA, rfl⟩ },
-  refine subset.trans (image_closure_subset_closure_image l.continuous) (closure_mono _),
-  rintro _ ⟨w, hw, rfl⟩,
-  exact hl w hw,
+  rintro h,
+  obtain ⟨B, hAB, hBA, hxB⟩ := (mem_exposed_set_iff_mem_frontier hA₁ hA₂).2 h,
+  exact ⟨B, hAB.is_extreme, hBA, hxB⟩,
 end
 
 def set.exposed_points (A : set E) :
@@ -226,8 +222,9 @@ def set.exposed_points (A : set E) :
 
 lemma exposed_point_iff :
   x ∈ A.exposed_points ↔ x ∈ A ∧ ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y = l x → y = x :=
-by refl
+iff.rfl
 
+--currently wrong. Would work if A were connected or something
 lemma exposed_point_iff_exposed_singleton :
   x ∈ A.exposed_points ↔ is_exposed A {x} :=
 begin

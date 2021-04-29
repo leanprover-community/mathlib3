@@ -77,21 +77,21 @@ variables {M N : Type*} (μ : M → N → N) (r : N → N → Prop) (m : M) {a b
 /--  Let `M` and `N` be Types, with an action `μ : M → N → N` and a relation `r N → N → Prop`
  on `N`.
 
-Informally, `covariant μ r` says that "the action `μ` preserves the relation `r`.
+Informally, `covariant μ r` says that "the action `μ` preserves the relation `r`".
 
 More precisely, `covariant μ r` asserts that for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the
-relation `r` holds for the pair `(n₁, n₂)`, then, the relation `r` also holds for the pair
+relation `r` holds for the pair `(n₁, n₂)`, then the relation `r` also holds for the pair
 `(μ m n₁, μ m n₂)`, obtained from `(n₁, n₂)` by "acting upon it by `m`". -/
 def covariant     : Prop := ∀ (m) {n₁ n₂}, r n₁ n₂ → r (μ m n₁) (μ m n₂)
 
 /--  Let `M` and `N` be Types, with an action `μ : M → N → N` and a relation `r N → N → Prop`
  on `N`.
 
-Informally, `contravariant μ r` says that "the action `μ` preserves the relation `r`.
+Informally, `contravariant μ r` says that "the action `μ` preserves the relation `r`".
 
 More precisely, `contravariant μ r` asserts that for all `m ∈ M` and all elements `n₁, n₂ ∈ N`,
 if the relation `r` holds for the pair `(μ m n₁, μ m n₂)`, obtained from `(n₁, n₂)` by
-"acting upon it by `m`", then, the relation `r` also holds for the pair `(n₁, n₂)`. -/
+"acting upon it by `m`", then the relation `r` also holds for the pair `(n₁, n₂)`. -/
 def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r n₁ n₂
 
 variables {M N}

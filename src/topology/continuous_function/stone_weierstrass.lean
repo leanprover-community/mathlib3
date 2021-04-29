@@ -229,7 +229,7 @@ begin
     simp only [finset.lt_sup'_iff, continuous_map.sup'_apply],
     exact ⟨y, ym, zm⟩, },
 
-  -- For each `x y`, we define `V x y` to be `{ z | g x y z < f z + ε }`,
+  -- For each `x y`, we define `V x y` to be `{z | g x y z < f z + ε}`,
   -- and observe this is a neighbourhood of `x`.
   let V : Π x y, set X := λ x y, { z | g x y z < f z + ε },
   have V_nhd_x : ∀ x y, V x y ∈ 𝓝 x,

@@ -66,10 +66,9 @@ general, but seems to be the most common usage. In the opposite direction, the i
 holds (note the `has_le_[...]` as opposed to the more common idioms `has_lt_[...]` and
 `has_mul_le_[...]`.
 -/
--- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
 -- TODO: relationship with add_con
--- include equivalence of `left_cancel_semigroup` with
--- `semigroup partial_order contravariant_class α α (*) (≤)`?
+-- include equivalence
+--   `left_cancel_semigroup` with `semigroup partial_order has_le_of_mul_le_mul α`?
 -- use ⇒, as per Eric's suggestion?
 section covariants_and_contravariants
 

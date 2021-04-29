@@ -76,19 +76,20 @@ instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_c
 
 end ordered_instances
 
-/-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
-if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker version
-of the condition on canonical orderings defined by `canonically_ordered_monoid`. -/
-class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] : Prop :=
-(exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a * c)
-
 /-- An `ordered_add_comm_monoid` with one-sided 'subtraction' in the sense that
 if `a ≤ b`, then there is some `c` for which `a + c = b`. This is a weaker version
 of the condition on canonical orderings defined by `canonically_ordered_add_monoid`. -/
-class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] : Prop :=
+class has_exists_add_of_le (α : Type u) [has_le α] [has_add α] --[ordered_add_comm_monoid α]
+ : Prop :=
 (exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a + c)
 
-attribute [to_additive] has_exists_mul_of_le
+/-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
+if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker version
+of the condition on canonical orderings defined by `canonically_ordered_monoid`. -/
+@[to_additive]
+class has_exists_mul_of_le (α : Type u) [has_le α] [has_mul α] -- [ordered_comm_monoid α]
+ : Prop :=
+(exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a * c)
 
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]

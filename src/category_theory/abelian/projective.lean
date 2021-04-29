@@ -177,7 +177,12 @@ chain_complex.truncate.obj P.exact_sequence
 
 instance resolution.exact' {Z : C} (P : resolution Z) (n : ℕ) :
   exact (P.complex.d (n+2) (n+1)) (P.complex.d (n+1) n) :=
-sorry
+begin
+  dsimp [resolution.complex, resolution.exact_sequence],
+  rw [if_pos rfl, if_pos rfl],
+  rw [category.id_comp, category.id_comp],
+  exact P.exact (n+1),
+end
 
 instance resolution.projective' {Z : C} (P : resolution Z) (n : ℕ) :
   projective (P.complex.X n) :=
@@ -186,6 +191,20 @@ P.projective n
 def resolution.map {Z : C} (P : resolution Z) :
   P.complex ⟶ (homological_complex.single C _ 0).obj Z :=
 chain_complex.truncate_to_single P.exact_sequence ≫ (homological_complex.single C _ 0).map P.zero.hom
+
+@[simp, reassoc] lemma resolution.complex_d_1_0_comp_map_f_0 {Z : C} (P : resolution Z) :
+  P.complex.d 1 0 ≫ P.map.f 0 = 0 :=
+sorry
+
+@[simp] lemma resolution.map_f_succ {Z : C} (P : resolution Z) (n : ℕ) :
+  P.map.f (n+1) = 0 :=
+begin
+  -- TODO: yuck
+  dsimp [resolution.map, resolution.exact_sequence, chain_complex.truncate_to_single, chain_complex.truncate,
+    chain_complex.to_single_equiv],
+  rw [dif_neg, zero_comp],
+  simp,
+end
 
 def resolution.quasi_iso {Z : C} (P : resolution Z) : quasi_iso P.map :=
 sorry
@@ -196,7 +215,7 @@ instance {Z : C} (P : resolution Z) (n : ℕ) : epi (P.map.f n) := sorry
 
 namespace resolution
 
-def chain_map.mk_inductive' (P Q : chain_complex C ℕ)
+def chain_map.mk_inductive_aux (P Q : chain_complex C ℕ)
   (zero : P.X 0 ⟶ Q.X 0)
   (one : P.X 1 ⟶ Q.X 1)
   (zero_one_comm : P.d 1 0 ≫ zero = one ≫ Q.d 1 0)
@@ -205,7 +224,8 @@ def chain_map.mk_inductive' (P Q : chain_complex C ℕ)
     Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), P.d (n+2) (n+1) ≫ p.2.1 = f'' ≫ Q.d (n+2) (n+1)) :
   Π n, Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), P.d (n+1) n ≫ f = f' ≫ Q.d (n+1) n
 | 0 := ⟨zero, one, zero_one_comm⟩
-| (n+1) := ⟨(chain_map.mk_inductive' n).2.1, (succ n (chain_map.mk_inductive' n)).1, (succ n (chain_map.mk_inductive' n)).2⟩
+| (n+1) := ⟨(chain_map.mk_inductive_aux n).2.1,
+    (succ n (chain_map.mk_inductive_aux n)).1, (succ n (chain_map.mk_inductive_aux n)).2⟩
 
 -- TODO move, rename
 def chain_map.mk_inductive (P Q : chain_complex C ℕ)
@@ -215,12 +235,12 @@ def chain_map.mk_inductive (P Q : chain_complex C ℕ)
   (succ : ∀ (n : ℕ)
     (p : Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), P.d (n+1) n ≫ f = f' ≫ Q.d (n+1) n),
     Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), P.d (n+2) (n+1) ≫ p.2.1 = f'' ≫ Q.d (n+2) (n+1)) : P ⟶ Q :=
-{ f := λ n, (chain_map.mk_inductive' P Q zero one zero_one_comm succ n).1,
+{ f := λ n, (chain_map.mk_inductive_aux P Q zero one zero_one_comm succ n).1,
   comm' := λ n m,
   begin
     by_cases h : m + 1 = n,
     { subst h,
-      exact (chain_map.mk_inductive' P Q zero one zero_one_comm succ m).2.2.symm, },
+      exact (chain_map.mk_inductive_aux P Q zero one zero_one_comm succ m).2.2.symm, },
     { rw [P.shape n m h, Q.shape n m h], simp, }
   end }
 
@@ -228,12 +248,26 @@ def lift_f_zero {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   P.complex.X 0 ⟶ Q.complex.X 0 :=
 factor_thru (P.map.f 0 ≫ f) (Q.map.f 0)
 
+local attribute [instance] epi_comp
+
 def lift_f_one {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   P.complex.X 1 ⟶ Q.complex.X 1 :=
-sorry
--- factor_thru (P.complex.d 1 0 ≫ lift_f_zero f P Q) (Q.complex.d 1 0)
-
-local attribute [instance] epi_comp
+begin
+  have z : (P.complex.d 1 0 ≫ lift_f_zero f P Q) ≫ Q.map.f 0 = 0,
+  { dsimp [lift_f_zero], simp, },
+  let g := factor_thru_kernel_subobject (Q.map.f 0) _ z,
+  haveI : category_theory.exact (Q.complex.d 1 0) (Q.map.f 0) := by {
+    -- TODO: yuck:
+    dsimp [map, complex, exact_sequence, chain_complex.truncate_to_single, chain_complex.truncate, chain_complex.to_single_equiv],
+    split_ifs,
+    { rw [category.comp_id, category.id_comp, category.id_comp, category.id_comp, exact_comp_iso],
+      exact Q.exact 0, },
+    { simpa using h, },
+  },
+  exact factor_thru g
+    (factor_thru_image_subobject (Q.complex.d 1 0) ≫
+      image_to_kernel (Q.complex.d 1 0) (Q.map.f 0) sorry)
+end
 
 def lift_f_succ {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) (n : ℕ)
   (p : Σ' (f : P.complex.X n ⟶ Q.complex.X n) (f' : P.complex.X (n+1) ⟶ Q.complex.X (n+1)), P.complex.d (n+1) n ≫ f = f' ≫ Q.complex.d (n+1) n) :

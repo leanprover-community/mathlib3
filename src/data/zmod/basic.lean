@@ -381,6 +381,10 @@ lemma int_coe_eq_int_coe_iff (a b : ℤ) (c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a ≡ b [ZMOD c] :=
 char_p.int_coe_eq_int_coe_iff (zmod c) c a b
 
+lemma int_coe_eq_int_coe_iff' (a b : ℤ) (c : ℕ) :
+  (a : zmod c) = (b : zmod c) ↔ a % c = b % c :=
+zmod.int_coe_eq_int_coe_iff a b c
+
 lemma nat_coe_eq_nat_coe_iff (a b c : ℕ) :
   (a : zmod c) = (b : zmod c) ↔ a ≡ b [MOD c] :=
 begin

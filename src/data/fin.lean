@@ -361,6 +361,16 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+lemma coe_bit0 {n : ℕ} (k : fin n) : ((bit0 k : fin n) : ℕ) = bit0 (k : ℕ) % n :=
+by { cases k, refl }
+
+lemma coe_bit1 {n : ℕ} (k : fin (n + 1)) :
+  ((bit1 k : fin (n + 1)) : ℕ) = bit1 (k : ℕ) % (n + 1) :=
+begin
+  cases n, { cases k with k h, cases k, {show _ % _ = _, simp}, cases h with _ h, cases h },
+  simp [bit1, fin.coe_bit0, fin.coe_add, fin.coe_one],
+end
+
 lemma coe_add_one_of_lt {n : ℕ} {i : fin n.succ} (h : i < last _) :
   (↑(i + 1) : ℕ) = i + 1 :=
 begin

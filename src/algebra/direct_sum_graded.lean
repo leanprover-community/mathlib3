@@ -153,7 +153,7 @@ def ghas_mul.of_add_submonoids [semiring R] [has_add ι]
     map_zero' := add_monoid_hom.ext $ λ _, subtype.ext (zero_mul _) }, }
 
 -- `@[simps]` doesn't generate this well
-lemma ghas_mul.of_add_submonoids_mul [semiring R] [has_add ι]
+@[simp] lemma ghas_mul.of_add_submonoids_mul [semiring R] [has_add ι]
   (carriers : ι → add_submonoid R) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
   @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_add_submonoids carriers mul_mem) i j a b =
     ⟨a * b, mul_mem a b⟩ := rfl
@@ -199,7 +199,8 @@ def ghas_mul.of_add_subgroups [ring R] [has_add ι]
   ghas_mul (λ i, carriers i) :=
 ghas_mul.of_add_submonoids (λ i, (carriers i).to_add_submonoid) mul_mem
 
-lemma ghas_mul.of_add_subgroups_mul [ring R] [has_add ι]
+-- `@[simps]` doesn't generate this well
+@[simp] lemma ghas_mul.of_add_subgroups_mul [ring R] [has_add ι]
   (carriers : ι → add_subgroup R) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
   @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_add_subgroups carriers mul_mem) i j a b =
     ⟨a * b, mul_mem a b⟩ := rfl
@@ -244,7 +245,7 @@ def ghas_mul.of_submodules
 ghas_mul.of_add_submonoids (λ i, (carriers i).to_add_submonoid) mul_mem
 
 -- `@[simps]` doesn't generate this well
-lemma ghas_mul.of_submodules_mul
+@[simp] lemma ghas_mul.of_submodules_mul
   [comm_semiring R] [semiring A] [algebra R A] [has_add ι]
   (carriers : ι → submodule R A) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
   @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_submodules carriers mul_mem) i j a b =

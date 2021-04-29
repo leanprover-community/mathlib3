@@ -56,7 +56,7 @@ instance [add_zero_class M] [add_comm_monoid N] : add_comm_monoid (M →+ N) :=
 
 attribute [to_additive] monoid_hom.comm_monoid
 
-/-- If `G` is a commutative group, then `M →* G` a commutative group too. -/
+/-- If `G` is a commutative group, then `M →* G` is a commutative group too. -/
 instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
 { inv := has_inv.inv,
   div := has_div.div,
@@ -70,7 +70,7 @@ instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
   gpow_neg'  := λ n f, by { ext x, simp },
   ..monoid_hom.comm_monoid }
 
-/-- If `G` is an additive commutative group, then `M →+ G` an additive commutative group too. -/
+/-- If `G` is an additive commutative group, then `M →+ G` is an additive commutative group too. -/
 instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G) :=
 { neg := has_neg.neg,
   sub := has_sub.sub,

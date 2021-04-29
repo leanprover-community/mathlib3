@@ -278,9 +278,6 @@ exists.elim h (λ _ hl, hl ▸ (rotate_perm _ _).symm)
 lemma is_rotated.nodup_iff (h : l ~r l') : nodup l ↔ nodup l' :=
 h.perm.nodup_iff
 
-lemma nodup.of_is_rotated (h : nodup l) (h' : l ~r l') : nodup l' :=
-h'.nodup_iff.mp h
-
 lemma is_rotated.mem_iff (h : l ~r l') {a : α} : a ∈ l ↔ a ∈ l' :=
 h.perm.mem_iff
 

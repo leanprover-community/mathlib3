@@ -11,7 +11,7 @@ import algebra.group_power.basic
 # Instances on spaces of monoid and group morphisms
 
 We endow the space of monoid morphisms `M →* N` with a `comm_monoid` structure when the target is
-commutative, through pointwise multipliplication, and with a `comm_group` structure when the target
+commutative, through pointwise multiplication, and with a `comm_group` structure when the target
 is a commutative group. We also prove the same instances for additive situations.
 -/
 
@@ -122,3 +122,38 @@ instance {M G} [add_zero_class M] [add_comm_group G] : add_comm_group (M →+ G)
   ..add_monoid_hom.add_comm_monoid }
 
 attribute [to_additive] monoid_hom.comm_group
+
+/-!
+### Miscellaneous definitions
+
+Due to the fact this file imports `algebra.group_power.basic`, it is not possible to import it in
+some of the lower-level files like `algebra.ring.basic`. The following lemmas should be rehomed
+if the import structure permits them to be.
+-/
+
+section semiring
+
+variables {R : Type*} [semiring R]
+
+/-- Multiplication of an element of a (semi)ring is an `add_monoid_hom` in both arguments.
+
+This is a more-strongly bundled version of `add_monoid_hom.mul_left` and `add_monoid_hom.mul_right`.
+
+A stronger version of this exists for algebras as `algebra.lmul`.
+-/
+def add_monoid_hom.mul : R →+ R →+ R :=
+{ to_fun := add_monoid_hom.mul_left,
+  map_zero' := add_monoid_hom.ext $ zero_mul,
+  map_add' := λ a b, add_monoid_hom.ext $ add_mul a b }
+
+lemma add_monoid_hom.mul_apply (x y : R) : add_monoid_hom.mul x y = x * y := rfl
+
+@[simp]
+lemma add_monoid_hom.coe_mul :
+  ⇑(add_monoid_hom.mul : R →+ R →+ R) = add_monoid_hom.mul_left := rfl
+
+@[simp]
+lemma add_monoid_hom.coe_flip_mul :
+  ⇑(add_monoid_hom.mul : R →+ R →+ R).flip = add_monoid_hom.mul_right := rfl
+
+end semiring

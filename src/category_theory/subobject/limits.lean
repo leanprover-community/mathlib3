@@ -111,6 +111,10 @@ def factor_thru_kernel_subobject {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
   W ⟶ kernel_subobject f :=
 (kernel_subobject f).factor_thru h (kernel_subobject_factors f h w)
 
+@[simp] lemma factor_thru_kernel_subobject_comp_arrow {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
+  factor_thru_kernel_subobject f h w ≫ (kernel_subobject f).arrow = h :=
+by { dsimp [factor_thru_kernel_subobject], simp, }
+
 @[simp]
 lemma kernel_subobject_zero {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
 (is_iso_iff_mk_eq_top _).mp (by apply_instance)

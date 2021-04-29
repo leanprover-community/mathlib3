@@ -192,9 +192,15 @@ def resolution.map {Z : C} (P : resolution Z) :
   P.complex ⟶ (homological_complex.single C _ 0).obj Z :=
 chain_complex.truncate_to_single P.exact_sequence ≫ (homological_complex.single C _ 0).map P.zero.hom
 
-@[simp, reassoc] lemma resolution.complex_d_1_0_comp_map_f_0 {Z : C} (P : resolution Z) :
-  P.complex.d 1 0 ≫ P.map.f 0 = 0 :=
-sorry
+instance {Z : C} (P : resolution Z) : exact (P.complex.d 1 0) (P.map.f 0) :=
+begin
+  -- TODO: yuck:
+  dsimp [resolution.map, resolution.complex, resolution.exact_sequence, chain_complex.truncate_to_single, chain_complex.truncate, chain_complex.to_single_equiv],
+  split_ifs,
+  { rw [category.comp_id, category.id_comp, category.id_comp, category.id_comp, exact_comp_iso],
+    exact P.exact 0, },
+  { simpa using h, },
+end
 
 @[simp] lemma resolution.map_f_succ {Z : C} (P : resolution Z) (n : ℕ) :
   P.map.f (n+1) = 0 :=
@@ -256,17 +262,21 @@ begin
   have z : (P.complex.d 1 0 ≫ lift_f_zero f P Q) ≫ Q.map.f 0 = 0,
   { dsimp [lift_f_zero], simp, },
   let g := factor_thru_kernel_subobject (Q.map.f 0) _ z,
-  haveI : category_theory.exact (Q.complex.d 1 0) (Q.map.f 0) := by {
-    -- TODO: yuck:
-    dsimp [map, complex, exact_sequence, chain_complex.truncate_to_single, chain_complex.truncate, chain_complex.to_single_equiv],
-    split_ifs,
-    { rw [category.comp_id, category.id_comp, category.id_comp, category.id_comp, exact_comp_iso],
-      exact Q.exact 0, },
-    { simpa using h, },
-  },
-  exact factor_thru g
-    (factor_thru_image_subobject (Q.complex.d 1 0) ≫
-      image_to_kernel (Q.complex.d 1 0) (Q.map.f 0) sorry)
+  -- It is tempting, but incorrect, to factor `g` through the composition in one step here!
+  exact factor_thru (factor_thru g
+    (image_to_kernel (Q.complex.d 1 0) (Q.map.f 0) (by simp)))
+      (factor_thru_image_subobject (Q.complex.d 1 0))
+end
+
+@[simp] lemma lift_f_zero_one_comm
+  {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
+  P.complex.d 1 0 ≫ lift_f_zero f P Q = lift_f_one f P Q ≫ Q.complex.d 1 0 :=
+begin
+  dsimp [lift_f_zero, lift_f_one],
+  conv_rhs { congr, skip, rw ← image_subobject_arrow_comp (Q.complex.d 1 0), },
+  rw [←category.assoc, category_theory.projective.factor_thru_comp, ←image_to_kernel_arrow,
+    ←category.assoc, category_theory.projective.factor_thru_comp,
+    factor_thru_kernel_subobject_comp_arrow],
 end
 
 def lift_f_succ {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) (n : ℕ)
@@ -278,11 +288,15 @@ begin
   { rw [category.assoc, ←w, ←category.assoc, P.complex.d_comp_d, zero_comp], },
   let g := factor_thru_kernel_subobject (Q.complex.d (n+1) n) _ z,
   fsplit,
-  exact factor_thru g
-    (factor_thru_image_subobject (Q.complex.d (n+2) (n+1)) ≫
-      image_to_kernel (Q.complex.d (n+2) (n+1)) (Q.complex.d (n+1) n) (Q.complex.d_comp_d _ _ _)),
+  -- It is tempting, but incorrect, to factor `g` through the composition in one step here!
+  exact factor_thru (factor_thru g
+    (image_to_kernel (Q.complex.d (n+2) (n+1)) (Q.complex.d (n+1) n) (Q.complex.d_comp_d _ _ _)))
+      (factor_thru_image_subobject (Q.complex.d (n+2) (n+1))),
   dsimp [g],
-  sorry,
+  conv_rhs { congr, skip, rw ← image_subobject_arrow_comp (Q.complex.d (n+2) (n+1)), },
+  rw [←category.assoc, category_theory.projective.factor_thru_comp, ←image_to_kernel_arrow,
+    ←category.assoc, category_theory.projective.factor_thru_comp,
+    factor_thru_kernel_subobject_comp_arrow],
 end
 
 def lift {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
@@ -291,7 +305,7 @@ begin
   fapply chain_map.mk_inductive,
   apply lift_f_zero f,
   apply lift_f_one f,
-  sorry,
+  apply lift_f_zero_one_comm f,
   apply lift_f_succ f,
 end
 
@@ -300,9 +314,9 @@ lemma lift_commutes {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z
 begin
   ext n,
   rcases n with (_|_|n),
-  { dsimp [lift, chain_map.mk_inductive, chain_map.mk_inductive', lift_f_zero], simp, },
-  sorry,
-  sorry,
+  { dsimp [lift, chain_map.mk_inductive, chain_map.mk_inductive_aux, lift_f_zero], simp, },
+  { dsimp [lift, chain_map.mk_inductive, chain_map.mk_inductive_aux, lift_f_one], simp, },
+  { dsimp, simp, },
 end
 
 end resolution
@@ -314,7 +328,7 @@ namespace resolution
 variables [preadditive C] [has_equalizers C] [has_images C] [has_image_maps C]
   [has_zero_object C] [has_cokernels C]
 
-lemma lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : resolution Y} {Q : resolution Z}
+def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : resolution Y} {Q : resolution Z}
   (g h : P.complex ⟶ Q.complex)
   (g_comm : g ≫ Q.map = P.map ≫ (homological_complex.single C _ 0).map f)
   (h_comm : h ≫ Q.map = P.map ≫ (homological_complex.single C _ 0).map f) :
@@ -324,14 +338,26 @@ sorry
 def homotopy_equiv {Z : C} (P Q : resolution Z) : P.complex ⟶ Q.complex :=
   lift (𝟙 Z) P Q
 
+def lift_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (P : resolution X) (Q : resolution Y) (R : resolution Z) :
+  homotopy (lift (f ≫ g) P R) (lift f P Q ≫ lift g Q R) :=
+begin
+  apply lift_homotopy;
+  simp [lift_commutes],
+end
+
 @[simp] lemma homotopy_equiv_commutes {Z : C} (P Q : resolution Z) :
   homotopy_equiv P Q ≫ Q.map = P.map :=
-sorry
+begin
+  dsimp [homotopy_equiv],
+  simp [lift_commutes],
+end
 
 -- TODO state that in the homotopy category `resolution.homotopy_equiv P Q` becomes an isomorphism
 -- (and hence that it is a homotopy equivalence and a quasi-isomorphism).
 
--- TODO construct `resolution_functor : C ⥤ homotopy_category V ℕ`
+-- TODO construct `resolution_functor : C ⥤ homotopy_category C ℕ`
+
+
 
 end resolution
 

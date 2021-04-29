@@ -174,10 +174,14 @@ end
 lemma exact_kernel_ι : exact (kernel.ι f) f :=
 by { rw [←kernel_subobject_arrow', exact_iso_comp], exact exact_kernel_subobject_arrow }
 
+instance [exact f g] : epi (factor_thru_kernel_subobject g f (by simp)) :=
+begin
+  rw ←factor_thru_image_subobject_comp_image_to_kernel,
+  apply epi_comp,
+end
+
 section
 variables (A)
-
-example : epi (factor_thru_image (0 : A ⟶ B)) := factor_thru_image.category_theory.epi 0
 
 lemma kernel_subobject_arrow_eq_zero_of_exact_zero_left [exact (0 : A ⟶ B) g] :
   (kernel_subobject g).arrow = 0 :=

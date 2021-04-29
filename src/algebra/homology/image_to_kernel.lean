@@ -52,6 +52,12 @@ lemma image_to_kernel_arrow (w : f ≫ g = 0) :
   image_to_kernel f g w ≫ (kernel_subobject g).arrow = (image_subobject f).arrow :=
 by simp [image_to_kernel]
 
+-- This is less useful as a `simp` lemma than it initially appears,
+-- as it "loses" the information the morphism factors through the image.
+lemma factor_thru_image_subobject_comp_image_to_kernel (w : f ≫ g = 0) :
+  factor_thru_image_subobject f ≫ image_to_kernel f g w = factor_thru_kernel_subobject g f w :=
+by { ext, simp, }
+
 /--
 The homology of a pair of morphisms `f : A ⟶ B` and `g : B ⟶ C` satisfying `f ≫ g = 0`
 is the cokernel of the `image_to_kernel` morphism for `f` and `g`.

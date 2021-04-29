@@ -250,12 +250,14 @@ def chain_map.mk_inductive (P Q : chain_complex C ℕ)
     { rw [P.shape n m h, Q.shape n m h], simp, }
   end }
 
+/- Auxiliary construction for `lift`. -/
 def lift_f_zero {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   P.complex.X 0 ⟶ Q.complex.X 0 :=
 factor_thru (P.map.f 0 ≫ f) (Q.map.f 0)
 
 local attribute [instance] epi_comp
 
+/- Auxiliary construction for `lift`. -/
 def lift_f_one {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   P.complex.X 1 ⟶ Q.complex.X 1 :=
 begin
@@ -268,6 +270,7 @@ begin
       (factor_thru_image_subobject (Q.complex.d 1 0))
 end
 
+/- Auxiliary lemma for `lift`. -/
 @[simp] lemma lift_f_zero_one_comm
   {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   P.complex.d 1 0 ≫ lift_f_zero f P Q = lift_f_one f P Q ≫ Q.complex.d 1 0 :=
@@ -279,6 +282,7 @@ begin
     factor_thru_kernel_subobject_comp_arrow],
 end
 
+/- Auxiliary construction for `lift`. -/
 def lift_f_succ {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) (n : ℕ)
   (p : Σ' (f : P.complex.X n ⟶ Q.complex.X n) (f' : P.complex.X (n+1) ⟶ Q.complex.X (n+1)), P.complex.d (n+1) n ≫ f = f' ≫ Q.complex.d (n+1) n) :
     Σ' f'' : P.complex.X (n+2) ⟶ Q.complex.X (n+2), P.complex.d (n+2) (n+1) ≫ p.2.1 = f'' ≫ Q.complex.d (n+2) (n+1) :=
@@ -299,6 +303,7 @@ begin
     factor_thru_kernel_subobject_comp_arrow],
 end
 
+/-- A morphism in `C` lifts to a chain map between projective resolutions. -/
 def lift {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   P.complex ⟶ Q.complex :=
 begin
@@ -309,6 +314,8 @@ begin
   apply lift_f_succ f,
 end
 
+/-- The resolution maps interwine the lift of a morphism and that morphism. -/
+@[simp, reassoc]
 lemma lift_commutes {Y Z : C} (f : Y ⟶ Z) (P : resolution Y) (Q : resolution Z) :
   lift f P Q ≫ Q.map = P.map ≫ (homological_complex.single C _ 0).map f :=
 begin
@@ -318,6 +325,10 @@ begin
   { dsimp [lift, chain_map.mk_inductive, chain_map.mk_inductive_aux, lift_f_one], simp, },
   { dsimp, simp, },
 end
+
+-- Now that we've checked this property of the lift,
+-- we can seal away the actual definition.
+attribute [irreducible] lift
 
 end resolution
 
@@ -335,22 +346,16 @@ def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : resolution Y} {Q : resolution Z}
   homotopy g h :=
 sorry
 
+def lift_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (P : resolution X) (Q : resolution Y) (R : resolution Z) :
+  homotopy (lift (f ≫ g) P R) (lift f P Q ≫ lift g Q R) :=
+by { apply lift_homotopy (f ≫ g); simp, }
+
 def homotopy_equiv {Z : C} (P Q : resolution Z) : P.complex ⟶ Q.complex :=
   lift (𝟙 Z) P Q
 
-def lift_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (P : resolution X) (Q : resolution Y) (R : resolution Z) :
-  homotopy (lift (f ≫ g) P R) (lift f P Q ≫ lift g Q R) :=
-begin
-  apply lift_homotopy;
-  simp [lift_commutes],
-end
-
 @[simp] lemma homotopy_equiv_commutes {Z : C} (P Q : resolution Z) :
   homotopy_equiv P Q ≫ Q.map = P.map :=
-begin
-  dsimp [homotopy_equiv],
-  simp [lift_commutes],
-end
+by simp [homotopy_equiv]
 
 -- TODO state that in the homotopy category `resolution.homotopy_equiv P Q` becomes an isomorphism
 -- (and hence that it is a homotopy equivalence and a quasi-isomorphism).

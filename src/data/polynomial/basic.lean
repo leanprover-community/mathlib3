@@ -348,6 +348,9 @@ lemma nat_cast_mul {R : Type*} [semiring R] (n : ℕ) (p : polynomial R) :
 def sum {S : Type*} [add_comm_monoid S] (p : polynomial R) (f : ℕ → R → S) : S :=
 ∑ n in p.support, f n (p.coeff n)
 
+lemma sum_def {S : Type*} [add_comm_monoid S] (p : polynomial R) (f : ℕ → R → S) :
+  p.sum f = ∑ n in p.support, f n (p.coeff n) := rfl
+
 /-- Expressing the product of two polynomials as a double sum. -/
 lemma mul_eq_sum_sum :
   p * q = ∑ i in p.support, q.sum (λ j a, (monomial (i + j)) (p.coeff i * a)) :=
@@ -401,7 +404,7 @@ end
 @[simp] lemma erase_zero (n : ℕ) : (0 : polynomial R).erase n = 0 :=
 by simp [← zero_to_alg, erase]
 
-@[simp] lemma erase_monomial {n : ℕ} {a : R} : (erase n (monomial n a)) = 0 :=
+@[simp] lemma erase_monomial {n : ℕ} {a : R} : erase n (monomial n a) = 0 :=
 by simp [monomial, monomial_fun, erase, ← zero_to_alg]
 
 end semiring

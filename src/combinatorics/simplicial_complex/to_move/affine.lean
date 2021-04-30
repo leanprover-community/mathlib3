@@ -7,14 +7,12 @@ import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import analysis.convex.topology
 import combinatorics.simplicial_complex.to_move.convex
-import combinatorics.simplicial_complex.to_move.finset
-import combinatorics.simplicial_complex.to_move.big_operators
 
 variables {m n : ℕ} {E : Type*} [normed_group E] [normed_space ℝ E]
 open_locale big_operators
 open finset
 
-lemma convex_subspace (M : Type*) [add_comm_group M] [vector_space ℝ M] (s : affine_subspace ℝ M) :
+lemma convex_subspace (M : Type*) [add_comm_group M] [module ℝ M] (s : affine_subspace ℝ M) :
   convex (s : set M) :=
 λ x y hxs hys a b ha hb hab,
 calc a • x + b • y = b • (y - x) + x : convex.combo_to_vadd hab
@@ -39,11 +37,11 @@ lemma nontrivial_sum_of_affine_independent {X : finset E}
 ∀ i ∈ X, w i = 0 :=
 begin
   have hw₀' : ∑ (i : (X : set E)), w i = 0,
-  { rwa [coe_sum] },
+  { rwa [sum_finset_coe] },
   specialize hX _ _ hw₀' _,
   { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw₀' (0 : E),
     rw finset.weighted_vsub_of_point_apply,
-    simpa only [vsub_eq_sub, sub_zero, coe_sum X (λ i, w i • i)] },
+    simpa only [vsub_eq_sub, sub_zero, sum_finset_coe (λ i, w i • i)] },
   intros i hi,
   apply hX ⟨i, hi⟩ (mem_univ _)
 end
@@ -120,8 +118,8 @@ begin
     exact t₁ x hx₁ (hx₂ hx₁) },
 end
 
-lemma findim_le_findim_of_le {x y : submodule ℝ E} (h : x ≤ y) [finite_dimensional ℝ y] :
-  finite_dimensional.findim ℝ x ≤ finite_dimensional.findim ℝ y :=
+lemma finrank_le_finrank_of_le {x y : submodule ℝ E} (h : x ≤ y) [finite_dimensional ℝ y] :
+  finite_dimensional.finrank ℝ x ≤ finite_dimensional.finrank ℝ y :=
 begin
   let f : x →ₗ[ℝ] y := submodule.of_le h,
   have hf : function.injective f,
@@ -129,7 +127,7 @@ begin
     apply subtype.ext,
     apply subtype.ext_iff.1 h' },
   haveI : finite_dimensional ℝ x := submodule.finite_dimensional_of_le h,
-  apply linear_map.findim_le_findim_of_injective hf,
+  apply linear_map.finrank_le_finrank_of_injective hf,
 end
 
 -- convex_hull ↑X ⊆ convex_hull ↑Y implies that X.card <= Y.card if X is independent
@@ -144,7 +142,7 @@ begin
   cases Y.eq_empty_or_nonempty with h₂ h₂,
   { subst h₂,
     simp only [finset.coe_empty, convex_hull_empty, set.subset_empty_iff, convex_hull_empty_iff,
-      coe_eq_empty_iff] at hXY,
+      finset.coe_eq_empty] at hXY,
     subst hXY },
   have X_card_pos : 0 < X.card := finset.card_pos.2 h₁,
   have X_eq_succ : fintype.card (X : set E) = (X.card - 1) + 1,
@@ -160,23 +158,23 @@ begin
     exact Y.finite_to_set },
   rw direction_affine_span at direction_le,
   rw direction_affine_span at direction_le,
-  have findim_le := findim_le_findim_of_le direction_le,
+  have finrank_le := finrank_le_finrank_of_le direction_le,
   have dumb : set.range (λ (p : (X : set E)), ↑p) = (X : set E),
   { simp only [subtype.range_coe_subtype, finset.set_of_mem, finset.mem_coe] },
-  rw ← dumb at findim_le,
-  rw findim_vector_span_of_affine_independent hX X_eq_succ at findim_le,
-  have := findim_vector_span_range_le ℝ (λ p, p : (Y : set E) → E) Y_eq_succ,
+  rw ← dumb at finrank_le,
+  rw finrank_vector_span_of_affine_independent hX X_eq_succ at finrank_le,
+  have := finrank_vector_span_range_le ℝ (λ p, p : (Y : set E) → E) Y_eq_succ,
   have dumb₂ : set.range (λ (p : (Y : set E)), ↑p) = (Y : set E),
   { simp only [subtype.range_coe_subtype, finset.set_of_mem, finset.mem_coe] },
   rw dumb₂ at this,
-  have := le_trans findim_le this,
+  have := le_trans finrank_le this,
   rwa nat.sub_le_sub_right_iff at this,
-  apply Y_card_pos
+  exact Y_card_pos,
 end
 
 lemma size_bound [finite_dimensional ℝ E] {X : finset E}
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E)) :
-  X.card ≤ finite_dimensional.findim ℝ E + 1 :=
+  X.card ≤ finite_dimensional.finrank ℝ E + 1 :=
 begin
   classical,
   cases X.eq_empty_or_nonempty,
@@ -192,8 +190,8 @@ begin
     { apply_instance },
     rw Xy,
     exact finset_coe.fintype _ },
-  have hX := finite_dimensional.fintype_card_le_findim_of_linear_independent this,
-  simp only [vsub_eq_sub, finite_dimensional.findim_fin_fun, fintype.card_of_finset] at hX,
+  have hX := finite_dimensional.fintype_card_le_finrank_of_linear_independent this,
+  simp only [vsub_eq_sub, finite_dimensional.finrank_fin_fun, fintype.card_of_finset] at hX,
   rw finset.card_image_of_injective at hX,
   { simp only [set.to_finset_card] at hX,
     rw fintype.card_of_finset' (X.erase y) at hX,

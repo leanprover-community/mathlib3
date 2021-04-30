@@ -434,6 +434,16 @@ lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [se
   single a (algebra_map k A b) = algebra_map k (monoid_algebra A G) b * of A G a :=
 by simp
 
+lemma induction_on [semiring k] [monoid G] {p : monoid_algebra k G → Prop} (f : monoid_algebra k G)
+  (hM : ∀ g, p (of k G g)) (hadd : ∀ f g : monoid_algebra k G, p f → p g → p (f + g))
+  (hsmul : ∀ (r : k) f, p f → p (r • f)) : p f :=
+begin
+  refine finsupp.induction_linear f _ (λ f g hf hg, hadd f g hf hg) (λ g r, _),
+  { simpa using hsmul 0 (of k G 1) (hM 1) },
+  { convert hsmul r (of k G g) (hM g),
+    simp only [mul_one, smul_single', of_apply] },
+end
+
 end algebra
 
 section lift
@@ -569,16 +579,6 @@ lemma prod_single [comm_semiring k] [comm_monoid G]
   (∏ i in s, single (a i) (b i)) = single (∏ i in s, a i) (∏ i in s, b i) :=
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, prod_insert has, prod_insert has]
-
-lemma induction_on [semiring k] [monoid G] {p : (monoid_algebra k G) → Prop} (f : monoid_algebra k G)
-  (hM : ∀ g, p (of k G g)) (hadd : ∀ f g : (monoid_algebra k G), p f → p g → p (f + g))
-  (hsmul : ∀ (r : k) f, p f → p (r • f)) : p f :=
-begin
-  refine finsupp.induction_linear f _ (λ f g hf hg, hadd f g hf hg) (λ g r, _),
-  { simpa using hsmul 0 (of k G 1) (hM 1) },
-  { convert hsmul r (of k G g) (hM g),
-    simp only [mul_one, smul_single', of_apply] },
-end
 
 end
 

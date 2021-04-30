@@ -294,7 +294,11 @@ instance has_lt_of_mul_lt_mul_left.to_has_lt_of_mul_lt_mul_right [has_lt α]
 
 end left_implies_right
 
-@[to_additive]
+/--  A semigroup with a partial order and satisfying `left_cancel_semigroup`
+(`c * a < c * b → a < b`) is a `left_cancel semigroup`. -/
+@[to_additive
+"An additive semigroup with a partial order and satisfying `left_cancel_add_semigroup`
+(i.e. `c + a < c + b → a < b`) is a `left_cancel add_semigroup`."]
 def contravariant.to_left_cancel_semigroup [semigroup α] [partial_order α]
   [has_le_of_mul_le_mul_left α] :
   left_cancel_semigroup α :=
@@ -302,7 +306,11 @@ def contravariant.to_left_cancel_semigroup [semigroup α] [partial_order α]
     (has_le_of_mul_le_mul_left.le_of_mul_le_mul_left _ bc.ge),
   ..(infer_instance : semigroup α) }
 
-@[to_additive]
+/--  A semigroup with a partial order and satisfying `right_cancel_semigroup`
+(i.e. `a * c < b * c → a < b`) is a `right_cancel semigroup`. -/
+@[to_additive
+"An additive semigroup with a partial order and satisfying `right_cancel_add_semigroup`
+(`a + c < b + c → a < b`) is a `right_cancel add_semigroup`."]
 def contravariant.to_right_cancel_semigroup [semigroup α] [partial_order α]
   [has_le_of_mul_le_mul_right α] :
   right_cancel_semigroup α :=

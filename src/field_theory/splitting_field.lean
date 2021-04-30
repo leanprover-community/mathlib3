@@ -611,7 +611,7 @@ theorem exists_lift (n : ℕ) : ∀ {K : Type u} [field K], by exactI
       k.comp (algebra_map _ _) = j :=
 nat.rec_on n (λ K _ _ _ L _ j _, by exactI ⟨j, j.comp_id⟩) $ λ n ih K _ f hf L _ j hj, by exactI
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hf, cases hf },
-have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
+have hfn0 : f ≠ 0, by { intro h, rw [h, nat_degree_zero] at hndf, exact hndf rfl },
 let ⟨r, hr⟩ := exists_root_of_splits _ (splits_of_splits_of_dvd j hfn0 hj
   (factor_dvd_of_nat_degree_ne_zero hndf))
   (mt is_unit_iff_degree_eq_zero.2 f.irreducible_factor.1) in
@@ -630,7 +630,7 @@ theorem adjoin_roots (n : ℕ) : ∀ {K : Type u} [field K], by exactI
 nat.rec_on n (λ K _ f hf, by exactI algebra.eq_top_iff.2 (λ x, subalgebra.range_le _ ⟨x, rfl⟩)) $
 λ n ih K _ f hfn, by exactI
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hfn, cases hfn },
-have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
+have hfn0 : f ≠ 0, by { intro h, rw [h, nat_degree_zero] at hndf, exact hndf rfl },
 have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := map_ne_zero hfn0,
 by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, map_mul] at hmf0 ⊢,
 rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,

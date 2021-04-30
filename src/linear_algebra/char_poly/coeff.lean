@@ -129,16 +129,18 @@ lemma mat_poly_equiv_eval (M : matrix n n (polynomial R)) (r : R) (i j : n) :
   (mat_poly_equiv M).eval ((scalar n) r) i j = (M i j).eval r :=
 begin
   unfold polynomial.eval, unfold eval₂,
-  transitivity finsupp.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),
+  transitivity polynomial.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),
     (a * (scalar n) r ^ e) i j),
-  { unfold finsupp.sum, rw sum_apply, rw sum_apply, dsimp, refl, },
+  { unfold polynomial.sum, rw sum_apply, rw sum_apply, dsimp, refl, },
   { simp_rw ← (scalar n).map_pow, simp_rw ← (matrix.scalar.commute _ _).eq,
     simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
       smul_apply, mul_eq_mul, algebra.smul_mul_assoc],
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
-    symmetry, rw ← finsupp.sum_map_range_index h, swap, refl,
-    refine congr (congr rfl _) (by {ext, rw mul_comm}), ext, rw finsupp.map_range_apply,
-    simpa [coeff] using (mat_poly_equiv_coeff_apply M a i j).symm }
+    simp only [polynomial.sum, mat_poly_equiv_coeff_apply, mul_comm],
+    apply (finset.sum_subset (support_subset_support_mat_poly_equiv _ _ _) _).symm,
+    assume n hn h'n,
+    rw not_mem_support_iff at h'n,
+    simp only [h'n, zero_mul] }
 end
 
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :

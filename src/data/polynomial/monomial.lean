@@ -96,7 +96,7 @@ infinite.of_injective (λ i, monomial i 1) $
 
 lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
 calc monomial n a = monomial n (a * 1) : by simp
-  ... = a • monomial n 1 : by simp [monomial, monomial_fun, smul_to_alg]
+  ... = a • monomial n 1 : by simp [monomial, monomial_fun, smul_to_finsupp]
   ... = a • X^n  : by rw X_pow_eq_monomial
 
 lemma card_support_le_one_iff_monomial {f : polynomial R} :
@@ -123,11 +123,11 @@ end
 lemma ring_hom_ext {S} [semiring S] {f g : polynomial R →+* S}
   (h₁ : ∀ a, f (C a) = g (C a)) (h₂ : f X = g X) : f = g :=
 begin
-  set f' := f.comp (to_alg_iso R).symm.to_ring_hom with hf',
-  set g' := g.comp (to_alg_iso R).symm.to_ring_hom with hg',
+  set f' := f.comp (to_finsupp_iso R).symm.to_ring_hom with hf',
+  set g' := g.comp (to_finsupp_iso R).symm.to_ring_hom with hg',
   have A : f' = g', by { ext, { simp [h₁] }, { simpa using h₂, } },
-  have B : f = f'.comp (to_alg_iso R), by { rw [hf', ring_hom.comp_assoc], ext x, simp },
-  have C : g = g'.comp (to_alg_iso R), by { rw [hg', ring_hom.comp_assoc], ext x, simp },
+  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', ring_hom.comp_assoc], ext x, simp },
+  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', ring_hom.comp_assoc], ext x, simp },
   rw [B, C, A]
 end
 

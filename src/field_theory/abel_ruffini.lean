@@ -98,8 +98,11 @@ begin
   { rw [hn, pow_zero, sub_self],
     exact gal_zero_is_solvable },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : (X ^ n - 1 : polynomial F) ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
+  have hn'' : (X ^ n - 1 : polynomial F) ≠ 0,
+  { assume h,
+    have := (leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h),
+    rw leading_coeff_zero at this,
+    exact one_ne_zero this },
   apply is_solvable_of_comm,
   intros σ τ,
   ext a ha,
@@ -129,10 +132,16 @@ begin
   { rw [hn, pow_zero, ←C_1, ←C_sub],
     exact gal_C_is_solvable (1 - a) },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : X ^ n - C a ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_C hn').symm.trans (congr_arg leading_coeff h)),
-  have hn''' : (X ^ n - 1 : polynomial F) ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
+  have hn'' : X ^ n - C a ≠ 0,
+  { assume h,
+    have := (leading_coeff_X_pow_sub_C hn').symm.trans (congr_arg leading_coeff h),
+    rw leading_coeff_zero at this,
+    exact one_ne_zero this },
+  have hn''' : (X ^ n - 1 : polynomial F) ≠ 0,
+  { assume h,
+    have := (leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h),
+    rw leading_coeff_zero at this,
+    exact one_ne_zero this },
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
     λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (or.resolve_left h hn'''
       (minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c)) (minpoly.dvd F c

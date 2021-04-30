@@ -32,13 +32,13 @@ instance algebra_of_algebra : algebra R (polynomial A) :=
 { smul_def' := λ r p, begin
     rcases p,
     simp only [C, monomial, monomial_fun, ring_hom.coe_mk, ring_hom.to_fun_eq_coe,
-      function.comp_app, ring_hom.coe_comp, smul_to_alg, mul_to_alg],
+      function.comp_app, ring_hom.coe_comp, smul_to_finsupp, mul_to_finsupp],
     exact algebra.smul_def' _ _,
   end,
   commutes' := λ r p, begin
     rcases p,
     simp only [C, monomial, monomial_fun, ring_hom.coe_mk, ring_hom.to_fun_eq_coe,
-      function.comp_app, ring_hom.coe_comp, mul_to_alg],
+      function.comp_app, ring_hom.coe_comp, mul_to_finsupp],
     convert algebra.commutes' r p,
   end,
   .. C.comp (algebra_map R A) }

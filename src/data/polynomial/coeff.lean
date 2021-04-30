@@ -32,11 +32,11 @@ by { rw ← monomial_zero_one, exact coeff_monomial }
 
 @[simp]
 lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
-by { rcases p, rcases q, simp [coeff, add_to_alg] }
+by { rcases p, rcases q, simp [coeff, add_to_finsupp] }
 
 @[simp] lemma coeff_smul (p : polynomial R) (r : R) (n : ℕ) :
   coeff (r • p) n = r * coeff p n :=
-by { rcases p, simp [coeff, smul_to_alg] }
+by { rcases p, simp [coeff, smul_to_finsupp] }
 
 lemma support_smul (p : polynomial R) (r : R) :
   support (r • p) ⊆ support p :=
@@ -81,7 +81,7 @@ lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 begin
   rcases p, rcases q,
-  simp only [coeff, mul_to_alg],
+  simp only [coeff, mul_to_finsupp],
   exact add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
 end
 
@@ -99,7 +99,7 @@ lemma coeff_C_mul_X (x : R) (k n : ℕ) :
 by { rw [← monomial_eq_C_mul_X, coeff_monomial], congr' 1, simp [eq_comm] }
 
 @[simp] lemma coeff_C_mul (p : polynomial R) : coeff (C a * p) n = a * coeff p n :=
-by { rcases p, simp only [C, monomial, monomial_fun, mul_to_alg, ring_hom.coe_mk,
+by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
   coeff, add_monoid_algebra.single_zero_mul_apply p a n] }
 
 lemma C_mul' (a : R) (f : polynomial R) : C a * f = a • f :=
@@ -107,7 +107,7 @@ by { ext, rw [coeff_C_mul, coeff_smul] }
 
 @[simp] lemma coeff_mul_C (p : polynomial R) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
-by { rcases p, simp only [C, monomial, monomial_fun, mul_to_alg, ring_hom.coe_mk,
+by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
   coeff, add_monoid_algebra.mul_single_zero_apply p a n] }
 
 lemma coeff_X_pow (k n : ℕ) :

@@ -135,6 +135,10 @@ finset.image (λ n, p.coeff n) p.support
 lemma frange_zero : frange (0 : polynomial R) = ∅ :=
 by simp [frange]
 
+lemma mem_frange_iff {p : polynomial R} {c : R} :
+  c ∈ p.frange ↔ ∃ n ∈ p.support, c = p.coeff n :=
+by simp [frange, eq_comm]
+
 lemma frange_one : frange (1 : polynomial R) ⊆ {1} :=
 begin
   simp [frange, finset.image_subset_iff],
@@ -670,23 +674,15 @@ theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 
-lemma linear_independent_powers_iff_eval₂
+lemma linear_independent_powers_iff_aeval
   (f : M →ₗ[R] M) (v : M) :
   linear_independent R (λ n : ℕ, (f ^ n) v)
     ↔ ∀ (p : polynomial R), aeval f p v = 0 → p = 0 :=
 begin
   rw linear_independent_iff,
-  simp only [finsupp.total_apply, aeval_endomorphism],
-  split,
-  { rintros h ⟨p⟩ hp,
-    have : p = 0,
-    { apply h,
-      simpa only [sum, support, coeff] using hp },
-    simp only [this, zero_to_alg] },
-  { assume h l hl,
-    have := h ⟨l⟩,
-    simp only [sum, support, coeff, ←zero_to_alg] at this,
-    exact this hl }
+  simp only [finsupp.total_apply, aeval_endomorphism, forall_iff_forall_finsupp, sum, support,
+    coeff, ← zero_to_finsupp],
+  exact iff.rfl,
 end
 
 lemma disjoint_ker_aeval_of_coprime

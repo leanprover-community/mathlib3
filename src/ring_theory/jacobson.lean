@@ -380,9 +380,10 @@ begin
   have hi' : (polynomial.map_ring_hom i : polynomial R →+* polynomial R').ker ≤ I,
   { refine λ f hf, polynomial_mem_ideal_of_coeff_mem_ideal I f (λ n, _),
     replace hf := congr_arg (λ (g : polynomial (((quotient.mk I).comp C).range)), g.coeff n) hf,
-    change (polynomial.map ((quotient.mk I).comp C).range_restrict f).coeff n = 0 at hf,
+    change (polynomial.map ((quotient.mk I).comp C).range_restrict f).coeff n = _ at hf,
+    simp only [coeff_zero] at hf,
     rw [coeff_map, subtype.ext_iff] at hf,
-    rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply] },
+    rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply], },
   haveI : (ideal.map (map_ring_hom i) I).is_prime :=
     map_is_prime_of_surjective (map_surjective i hi) hi',
   suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
@@ -494,7 +495,7 @@ begin
   { rw comap_map_of_surjective _ hf,
     refine le_antisymm (le_sup_left_of_le le_rfl) (sup_le le_rfl _),
     refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
-    simpa only [coeff_map, coe_map_ring_hom] using (polynomial.ext_iff.mp hp) n },
+    simpa only [coeff_map, coe_map_ring_hom, coeff_zero] using (polynomial.ext_iff.mp hp) n },
   refine ring_hom.is_integral_tower_bot_of_is_integral _ _ (injective_quotient_le_comap_map P) _,
   rw ← quotient_mk_maps_eq,
   refine ring_hom.is_integral_trans _ _

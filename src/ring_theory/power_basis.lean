@@ -68,14 +68,6 @@ finite_dimensional.of_fintype_basis pb.is_basis
 lemma finrank [algebra K S] (pb : power_basis K S) : finite_dimensional.finrank K S = pb.dim :=
 by rw [finite_dimensional.finrank_eq_card_basis pb.is_basis, fintype.card_fin]
 
-/-- TODO: this mixes `polynomial` and `finsupp`, we should hide this behind a
-new function `polynomial.of_finsupp`. -/
-lemma polynomial.mem_supported_range {f : polynomial R} {d : ℕ} :
-  (f : finsupp ℕ R) ∈ finsupp.supported R R (↑(finset.range d) : set ℕ) ↔ f.degree < d :=
-by { simp_rw [finsupp.mem_supported', finset.mem_coe, finset.mem_range, not_lt,
-              degree_lt_iff_coeff_zero],
-     refl }
-
 lemma mem_span_pow' {x y : S} {d : ℕ} :
   y ∈ submodule.span R (set.range (λ (i : fin d), x ^ (i : ℕ))) ↔
     ∃ f : polynomial R, f.degree < d ∧ y = aeval x f :=
@@ -84,19 +76,13 @@ begin
   { ext n,
     simp_rw [set.mem_range, set.mem_image, finset.mem_coe, finset.mem_range],
     exact ⟨λ ⟨⟨i, hi⟩, hy⟩, ⟨i, hi, hy⟩, λ ⟨i, hi, hy⟩, ⟨⟨i, hi⟩, hy⟩⟩ },
-  rw [this, finsupp.mem_span_iff_total],
-  -- In the next line we use that `polynomial R := finsupp ℕ R`.
-  -- It would be nice to have a function `polynomial.of_finsupp`.
-  apply exists_congr,
-  rintro (f : polynomial R),
-  simp only [exists_prop, polynomial.mem_supported_range, eq_comm],
-  apply and_congr iff.rfl,
-  split;
-  { rintro rfl;
-    rw [finsupp.total_apply, aeval_def, eval₂_eq_sum, eq_comm],
-    apply finset.sum_congr rfl,
-    rintro i -,
-    simp only [algebra.smul_def] }
+  simp only [this, finsupp.mem_span_iff_total, degree_lt_iff_coeff_zero, exists_iff_exists_finsupp,
+    coeff, aeval, eval₂_ring_hom', eval₂_eq_sum, polynomial.sum, support, finsupp.mem_supported',
+    finsupp.total, finsupp.sum, algebra.smul_def, eval₂_zero, exists_prop, linear_map.id_coe,
+    eval₂_one, id.def, not_lt, finsupp.coe_lsum, linear_map.coe_smul_right, finset.mem_range,
+    alg_hom.coe_mk, finset.mem_coe],
+  simp_rw [@eq_comm _ y],
+  exact iff.rfl
 end
 
 lemma mem_span_pow {x y : S} {d : ℕ} (hd : d ≠ 0) :

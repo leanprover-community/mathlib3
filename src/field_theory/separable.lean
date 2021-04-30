@@ -149,11 +149,11 @@ theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
 begin
   simp only [expand_eq_sum],
-  simp_rw [coeff_sum, ← pow_mul, C_mul_X_pow_eq_monomial, coeff_monomial, finsupp.sum],
+  simp_rw [coeff_sum, ← pow_mul, C_mul_X_pow_eq_monomial, coeff_monomial, sum],
   split_ifs with h,
-  { rw [finset.sum_eq_single (n/p), nat.mul_div_cancel' h, if_pos rfl], refl,
+  { rw [finset.sum_eq_single (n/p), nat.mul_div_cancel' h, if_pos rfl],
     { intros b hb1 hb2, rw if_neg, intro hb3, apply hb2, rw [← hb3, nat.mul_div_cancel_left b hp] },
-    { intro hn, rw finsupp.not_mem_support_iff.1 hn, split_ifs; refl } },
+    { intro hn, rw not_mem_support_iff.1 hn, split_ifs; refl } },
   { rw finset.sum_eq_zero, intros k hk, rw if_neg, exact λ hkn, h ⟨k, hkn.symm⟩, },
 end
 
@@ -164,11 +164,6 @@ by rw [coeff_expand hp, if_pos (dvd_mul_left _ _), nat.mul_div_cancel _ hp]
 @[simp] theorem coeff_expand_mul' {p : ℕ} (hp : 0 < p) (f : polynomial R) (n : ℕ) :
   (expand R p f).coeff (p * n) = f.coeff n :=
 by rw [mul_comm, coeff_expand_mul hp]
-
-theorem expand_eq_map_domain (p : ℕ) (f : polynomial R) :
-  expand R p f = f.map_domain (*p) :=
-polynomial.induction_on' f (λ p q hp hq, by simp [*, finsupp.map_domain_add]) $
-  λ n a, by simp_rw [expand_monomial, monomial_def, finsupp.map_domain_single]
 
 theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : polynomial R} :
   expand R p f = expand R p g ↔ f = g :=
@@ -314,11 +309,18 @@ include hp
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
 noncomputable def contract (f : polynomial F) : polynomial F :=
-⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.1.pos).1,
-λ n, f.coeff (n * p),
-λ n, by rw [finset.mem_preimage, mem_support_iff]⟩
+∑ n in range (f.nat_degree + 1), monomial n (f.coeff (n * p))
 
-theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) := rfl
+theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) :=
+begin
+  simp only [contract, coeff_monomial, sum_ite_eq', finset_sum_coeff, mem_range, not_lt,
+    ite_eq_left_iff],
+  assume hn,
+  apply (coeff_eq_zero_of_nat_degree_lt _).symm,
+  calc f.nat_degree < f.nat_degree + 1 : nat.lt_succ_self _
+    ... ≤ n * 1 : by simpa only [mul_one] using hn
+    ... ≤ n * p : mul_le_mul_of_nonneg_left (@nat.prime.one_lt p (fact.out _)).le (zero_le n)
+end
 
 theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f)) :
   irreducible f :=

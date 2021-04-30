@@ -331,3 +331,15 @@ begin
     smul_apply, mat_poly_equiv_coeff_apply],
   split_ifs; simp,
 end
+
+lemma support_subset_support_mat_poly_equiv
+  (m : matrix n n (polynomial R)) (i j : n) :
+  support (m i j) ⊆ support (mat_poly_equiv m) :=
+begin
+  assume k,
+  contrapose,
+  simp only [not_mem_support_iff],
+  assume hk,
+  rw [← mat_poly_equiv_coeff_apply, hk],
+  refl
+end

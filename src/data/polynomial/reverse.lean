@@ -102,11 +102,11 @@ begin
 end
 
 @[simp] lemma reflect_zero {N : ℕ} : reflect N (0 : polynomial R) = 0 :=
-by simp [← zero_to_alg, reflect]
+by simp [← zero_to_finsupp, reflect]
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) = 0 ↔ f = 0 :=
-by { rcases f, simp [reflect, ← zero_to_alg] }
+by { rcases f, simp [reflect, ← zero_to_finsupp] }
 
 @[simp] lemma reflect_add (f g : polynomial R) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=

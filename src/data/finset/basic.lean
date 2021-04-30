@@ -2020,6 +2020,9 @@ theorem card_def (s : finset α) : s.card = s.1.card := rfl
 
 @[simp] theorem card_empty : card (∅ : finset α) = 0 := rfl
 
+theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
+multiset.card_le_of_le ∘ val_le_iff.mpr
+
 @[simp] theorem card_eq_zero {s : finset α} : card s = 0 ↔ s = ∅ :=
 card_eq_zero.trans val_eq_zero
 
@@ -2040,8 +2043,37 @@ begin
   { exact λ h, ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy, h _ hy _ hx⟩⟩ }
 end
 
+theorem card_le_one_iff {s : finset α} : s.card ≤ 1 ↔ ∀ {a b}, a ∈ s → b ∈ s → a = b :=
+by { rw card_le_one, tauto }
+
+lemma card_le_one_iff_subset_singleton [nonempty α] {s : finset α} :
+  s.card ≤ 1 ↔ ∃ (x : α), s ⊆ {x} :=
+begin
+  split,
+  { assume H,
+    by_cases h : ∃ x, x ∈ s,
+    { rcases h with ⟨x, hx⟩,
+      refine ⟨x, λ y hy, _⟩,
+      rw card_le_one.1 H y hy x hx,
+      simp only [mem_singleton] },
+    { push_neg at h,
+      inhabit α,
+      exact ⟨default α, λ y hy, (h y hy).elim⟩ } },
+  { rintros ⟨x, hx⟩,
+    rw ← card_singleton x,
+    exact card_le_of_subset hx }
+end
+
+/-- A `finset` of a subsingleton type has cardinality at most one. -/
+lemma card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
+finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
+
 theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
 by { rw ← not_iff_not, push_neg, exact card_le_one }
+
+lemma one_lt_card_iff {s : finset α} :
+  1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
+by { rw ← not_iff_not, push_neg, simpa [or_iff_not_imp_left] using finset.card_le_one_iff }
 
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
@@ -2170,9 +2202,6 @@ iff.intro
     ⟨a, s.erase a, s.not_mem_erase a, insert_erase has,
       by simp only [eq, card_erase_of_mem has, pred_succ]⟩)
   (assume ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat)
-
-theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
-multiset.card_le_of_le ∘ val_le_iff.mpr
 
 theorem card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
   card (s.filter p) ≤ card s :=

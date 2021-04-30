@@ -972,8 +972,7 @@ def something2.simps.mul [has_add ι] [something2 A] {i j : ι}
   (x : A i) (y : A j) : A (i + j) :=
 something2.mul x y
 
--- set_option trace.simps.debug true
-initialize_simps_projections something2 (-mul, mul → mul', mul_to_fun_to_fun → mul)
+initialize_simps_projections something2 (mul → mul', mul_to_fun_to_fun → mul, -mul')
 
 
 end comp_projs

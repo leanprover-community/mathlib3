@@ -931,4 +931,87 @@ let ⟨w, hw₁, hw₂⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate'
 
 end complex
 
+section real
+
+/-- The sign function that maps negative real numbers to -1 and nonnegative numbers to 1. -/
+noncomputable def sign (r : ℝ) : ℝ := if r < 0 then -1 else 1
+
+lemma sign_apply_eq (r : ℝ) : sign r = -1 ∨ sign r = 1 :=
+begin
+  by_cases r < 0,
+  { exact or.intro_left _ (if_pos h) },
+  { exact or.intro_right _ (if_neg h) }
+end
+
+lemma sign_mul_nonneg (r : ℝ) : 0 ≤ sign r * r :=
+begin
+  by_cases r < 0,
+  { rw [sign, if_pos h],
+    exact mul_nonneg_of_nonpos_of_nonpos (by norm_num) (le_of_lt h) },
+  { rw [sign, if_neg h, one_mul],
+    exact not_lt.1 h }
+end
+
+lemma sign_mul_ne_zero_pos (r : ℝ) (hr : r ≠ 0) : 0 < sign r * r :=
+begin
+  refine lt_of_le_of_ne (sign_mul_nonneg r) (λ h, _),
+  rw zero_eq_mul at h,
+  cases sign_apply_eq r with hneg hpos;
+  cases h; { linarith <|> exact hr h }
+end
+
+lemma sign_inv_eq_self (r : ℝ) : (sign r)⁻¹ = sign r :=
+begin
+  cases sign_apply_eq r with h h,
+  { rw h, norm_num },
+  { rw h, exact inv_one }
+end
+
+lemma equivalent_one_neg_one_weighted_sum_squares'
+  {M : Type*} [add_comm_group M] [module ℝ M] [finite_dimensional ℝ M]
+  (u : ι → ℝ) (hu : ∀ i : ι, u i ≠ 0) :
+  ∃ w : ι → ℝ, (∀ i, w i = -1 ∨ w i = 1) ∧
+  equivalent (weighted_sum_squares u : quadratic_form ℝ (ι → ℝ)) (weighted_sum_squares w) :=
+begin
+  classical,
+  refine ⟨sign ∘ u, λ i, sign_apply_eq (u i), _⟩,
+  have hu' : ∀ i : ι, 0 < (sign (u i) * u i) ^ - (1 / 2 : ℝ),
+  { intro i, refine real.rpow_pos_of_pos (sign_mul_ne_zero_pos _ (hu i)) _ },
+  have hu'' := λ i, (ne_of_lt (hu' i)).symm,
+  convert nonempty.intro ((weighted_sum_squares u : quadratic_form ℝ (ι → ℝ)).isometry_of_is_basis
+    (is_basis.smul_of_invertible (pi.is_basis_fun ℝ ι) (λ i, field.invertible (hu'' i)))),
+    ext1 v,
+  rw [isometry_of_is_basis_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
+  refine sum_congr rfl (λ j hj, _),
+  have hsum : (∑ (i : ι), v i • (sign (u i) * u i) ^ - (1 / 2 : ℝ) •
+    (linear_map.std_basis ℝ (λ (i : ι), ℝ) i) 1) j =
+    v j • (sign (u j) * u j) ^ - (1 / 2 : ℝ),
+  { rw [sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply,
+        function.update_same, smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
+    intros i _ hij,
+    rw [linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_noteq hij.symm,
+        pi.zero_apply, smul_eq_mul, smul_eq_mul, mul_zero, mul_zero],
+    intro hj', exact false.elim (hj' hj) },
+  rw [hsum, smul_eq_mul],
+  suffices : (sign ∘ u) j * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
+    (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
+  { rw [← mul_assoc, this], ring },
+  rw [← real.rpow_add (sign_mul_ne_zero_pos _ (hu j)),
+      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv',
+      sign_inv_eq_self, mul_assoc (sign (u j)) (u j)⁻¹, inv_mul_cancel (hu j), mul_one],
+end
+
+/-- Sylvester's law of inertia: A nondegenerate real quadratic form is equivalent to a weighted
+sum of squares with the weights being ±1. -/
+theorem equivalent_one_neg_one_weighted_sum_squared
+  {M : Type*} [add_comm_group M] [module ℝ M] [finite_dimensional ℝ M]
+  (Q : quadratic_form ℝ M) (hQ : (associated Q).nondegenerate) :
+  ∃ w : fin (finite_dimensional.finrank ℝ M) → ℝ,
+  (∀ i, w i = -1 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares w) :=
+let ⟨w, hw₁, hw₂⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
+let ⟨u, hu₁, hu₂⟩ := @equivalent_one_neg_one_weighted_sum_squares' _ _ M _ _ _ w hw₁ in
+  ⟨u, hu₁, hw₂.trans hu₂⟩
+
+end real
+
 end quadratic_form

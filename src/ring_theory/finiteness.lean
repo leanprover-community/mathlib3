@@ -564,7 +564,7 @@ lemma surjective_of_closure [comm_semiring R] {S : set M} (hS : closure S = ⊤)
   function.surjective (mv_polynomial.aeval (λ (s : S), of R M (multiplicative.of_add ↑s)) :
   mv_polynomial S R → add_monoid_algebra R M) :=
 begin
-  refine λ f, induction f (λ m, _) _ _,
+  refine λ f, induction_on f (λ m, _) _ _,
   { have : m ∈ closure S := hS.symm ▸ mem_top _,
     refine closure_induction this (λ m hm, _) _ _,
     { exact ⟨mv_polynomial.X ⟨m, hm⟩, mv_polynomial.aeval_X _ _⟩ },

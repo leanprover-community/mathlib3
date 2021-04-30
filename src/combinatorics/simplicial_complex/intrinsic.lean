@@ -7,14 +7,14 @@ import linear_algebra.affine_space.combination
 import linear_algebra.finite_dimensional
 import algebra.module.linear_map
 import analysis.convex.topology
-import combinatorics.simplicial_complex.to_move.topology
 import combinatorics.simplicial_complex.convex_independence
 import combinatorics.simplicial_complex.extreme
+import combinatorics.simplicial_complex.to_move.default
 
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {x y : E} {A B : set E}
 
 namespace affine
 
@@ -35,6 +35,20 @@ lemma intrinsic_interior_subset (A : set E) :
 lemma intrinsic_frontier_subset (A : set E) :
   intrinsic_frontier A ⊆ A :=
 λ x hx, hx.1
+
+lemma convex.open_segment_subset_intrinsic_interior_of_mem_left (hA : convex A)
+  (x ∈ intrinsic_interior A) (y ∈ A) :
+  open_segment x y ⊆ intrinsic_interior A :=
+begin
+  rintro z hz,
+  split,
+  {
+    sorry -- hA
+  },
+  use intrinsic_frontier_subset _,
+  rintro x₁ x₂ hx₁ hx₂ x ⟨hxA, ι, t, hw₀, hw₁, hyA, hy⟩ hx,
+  sorry
+end
 
 lemma intrinsic_frontier.is_extreme :
   is_extreme A (intrinsic_frontier A) :=

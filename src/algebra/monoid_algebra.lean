@@ -912,7 +912,7 @@ lemma lift_nc_smul {R : Type*} [add_zero_class G] [semiring R] (f : k →+* R)
 
 variables {k G}
 
-lemma induction [add_monoid G] {p : (add_monoid_algebra k G) → Prop} (f : add_monoid_algebra k G)
+lemma induction_on [add_monoid G] {p : add_monoid_algebra k G → Prop} (f : add_monoid_algebra k G)
   (hM : ∀ g, p (of k G (multiplicative.of_add g)))
   (hadd : ∀ f g : (monoid_algebra k G), p f → p g → p (f + g))
   (hsmul : ∀ (r : k) f, p f → p (r • f)) : p f :=

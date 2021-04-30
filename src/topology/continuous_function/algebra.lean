@@ -52,6 +52,11 @@ lemma one_coe [has_one β]  :
   (f₁ * f₂).comp g = f₁.comp g * f₂.comp g :=
 by { ext, simp, }
 
+@[simp, to_additive] lemma one_comp {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ] [has_one γ] (g : C(α, β)) :
+  (1 : C(β, γ)).comp g = 1 :=
+by { ext, simp, }
+
 end continuous_map
 
 section group_structure
@@ -118,6 +123,14 @@ def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topologi
   [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
 { to_fun := coe_fn, map_one' := one_coe, map_mul' := mul_coe }
 
+/-- Composition on the right as an `monoid_hom`. Similar to `monoid_hom.comp_hom'`. -/
+@[to_additive "Composition on the right as an `add_monoid_hom`. Similar to
+`add_monoid_hom.comp_hom'`.", simps]
+def comp_monoid_hom' {α : Type*} {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [topological_space γ]
+  [monoid γ] [has_continuous_mul γ] (g : C(α, β)) : C(β, γ) →* C(α, γ) :=
+{ to_fun := λ f, f.comp g, map_one' := one_comp g, map_mul' := λ f₁ f₂, mul_comp f₁ f₂ g }
+
 @[simp, norm_cast]
 lemma pow_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
@@ -128,11 +141,7 @@ lemma pow_coe {α : Type*} {β : Type*} [topological_space α] [topological_spac
   [topological_space α] [topological_space β] [topological_space γ]
   [monoid γ] [has_continuous_mul γ] (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
   (f^n).comp g = (f.comp g)^n :=
-begin
-  induction n with n ih,
-  { ext, simp, },
-  { simp [pow_succ, ih], }
-end
+(comp_monoid_hom' g).map_pow f n
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]

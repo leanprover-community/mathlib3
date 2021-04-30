@@ -86,7 +86,7 @@ begin
     apply E.apply_symm_apply }
 end
 
-/-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
+/-- Any continuous bijection of compact Hausdorff spaces induces an isomorphism. -/
 noncomputable
 def iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
 by letI := is_iso_of_bijective _ bij; exact as_iso f

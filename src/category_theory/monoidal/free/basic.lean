@@ -3,7 +3,7 @@ Copyright (c) 2021 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.functor
 import category_theory.groupoid
 
 /-!
@@ -224,9 +224,11 @@ end
 
 /-- If `D` is a monoidal category and we have a function `C → D`, then we have a functor from the
     free monoidal category over `C` to the category `D`. -/
-def project : F C ⥤ D :=
+def project : monoidal_functor (F C) D :=
 { obj := project_obj f,
-  map := project_map f }
+  map := project_map f,
+  ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _ }
 
 end functor
 

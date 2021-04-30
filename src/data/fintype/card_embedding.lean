@@ -39,7 +39,8 @@ begin
 
   have all_injf_covered : univ = univ.bUnion equiv_classes,
   { apply subset.antisymm,
-    { rintros f -, rw mem_bUnion,
+    { rintros f -,
+      rw mem_bUnion,
       refine ⟨⟨fin.tail f, λ _ _ h, fin.succ_inj.mp $ f.injective h⟩, _⟩,
       suffices : ∃ (a : β), extend (fin.tail ⇑f) a = ⇑f, by simpa,
 
@@ -49,8 +50,9 @@ begin
 
   have equiv_class_size : ∀ f : fin n ↪ β, |equiv_classes f| = ‖β‖ - n,
   {
-    intro f, let poss_vals := univ \ finset.map ⟨f, f.inj'⟩ univ,
+    intro f,
 
+    let poss_vals := univ \ finset.map ⟨f, f.inj'⟩ univ,
     have num_poss_vals : |poss_vals| = ‖β‖ - n, by simp [poss_vals, card_univ, card_sdiff],
     have mem_poss_vals : ∀ t, t ∈ poss_vals ↔ ∀ (x : fin n), ¬f x = t, by simp [poss_vals],
 
@@ -64,7 +66,9 @@ begin
         obtain ⟨y_zero, y_equiv⟩ := y_equiv,
         simp only [extend] at x_y_agree x_equiv y_equiv,
 
-        apply x_ne_y, ext t, revert t,
+        apply x_ne_y,
+        ext t,
+        revert t,
         refine fin.induction _ _,
           exact x_y_agree,
         rintros t -,
@@ -72,11 +76,13 @@ begin
 
       apply finset.exists_ne_map_eq_of_card_lt_of_maps_to,
       push_neg at card_too_big,
-      rw ←num_poss_vals at card_too_big, exact card_too_big,
+      rw ←num_poss_vals at card_too_big,
+      exact card_too_big,
 
       intros g g_equiv, rw mem_equiv at g_equiv,
       obtain ⟨k, g_equiv⟩ := g_equiv,
-      simp only [mem_poss_vals], simp only [extend] at g_equiv,
+      simp only [mem_poss_vals],
+      simp only [extend] at g_equiv,
 
       have : g 0 = k, by rw [←g_equiv, fin.cons_zero],
 
@@ -147,7 +153,8 @@ begin
       rw ←g_extended,
       simp [extend] } },
 
-  rw [←card_univ, all_injf_covered, card_bUnion], swap, -- card_bUnion has a disjointness req
+  rw [←card_univ, all_injf_covered, card_bUnion],
+  swap, -- card_bUnion has a disjointness req
   { rintros g - j - g_ne_j,
     rw disjoint_iff_ne,
     intros a a_equiv b b_equiv,
@@ -158,7 +165,8 @@ begin
     obtain ⟨k₂, b_equiv⟩ := b_equiv,
 
     simp only [extend] at a_equiv b_equiv,
-    subst a_eq_b, rw ←b_equiv at a_equiv,
+    subst a_eq_b,
+    rw ←b_equiv at a_equiv,
     apply_fun fin.tail at a_equiv,
     repeat { rw fin.tail_cons at a_equiv },
     ext,
@@ -180,8 +188,7 @@ end
 variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
 
 /- Establishes the cardinality of the type of all injections, if any exist.  -/
-@[simp] theorem card_embedding (h : ‖α‖ ≤ ‖β‖)
-  : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
+@[simp] theorem card_embedding (h : ‖α‖ ≤ ‖β‖) : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.equiv_fin α with eq,
   rw fintype.card_congr (equiv.embedding_congr eq (equiv.refl β)),
@@ -191,7 +198,8 @@ end
 /-- If `‖β‖ < ‖α‖` there is no embeddings `α ↪ β`. This is the pigeonhole principle. -/
 @[simp] theorem card_embedding_eq_zero (h : ‖β‖ < ‖α‖) : ‖α ↪ β‖ = 0 :=
 begin
-  rw card_eq_zero_iff, intro f,
+  rw card_eq_zero_iff,
+  intro f,
   obtain ⟨x, y, eq, fne⟩ := fintype.exists_ne_map_eq_of_card_lt f h,
   have := f.injective fne, contradiction
 end

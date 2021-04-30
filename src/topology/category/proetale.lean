@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 
 import topology.category.Profinite
 import category_theory.sites.pretopology
+import category_theory.sites.sheaf_of_types
 
 open category_theory category_theory.limits
 
@@ -18,7 +19,7 @@ thing as elements of `X`. -/
 def point : Profinite.{u} := ⟨⟨punit⟩⟩
 
 /-- There is a (natural) bijection between morphisms `* ⟶ X` and elements of `X`.  -/
-def from_point {X : Profinite} :
+def from_point {X : Profinite.{u}} :
   (point ⟶ X) ≃ X :=
 { to_fun := λ f, f punit.star,
   inv_fun := λ x, ⟨λ _, x⟩,
@@ -29,7 +30,7 @@ lemma from_point_apply {X Y : Profinite} (f : point ⟶ X) (g : X ⟶ Y) :
   g (from_point f) = from_point (f ≫ g) :=
 rfl
 
-noncomputable def mk_pullback {X Y Z : Profinite} {f : X ⟶ Z} {g : Y ⟶ Z} {x : X} {y : Y}
+noncomputable def mk_pullback {X Y Z : Profinite.{u}} {f : X ⟶ Z} {g : Y ⟶ Z} {x : X} {y : Y}
   (h : f x = g y) :
   (pullback f g : Profinite) :=
 from_point (pullback.lift (from_point.symm x) (from_point.symm y) (by { ext ⟨⟩, exact h }))
@@ -41,7 +42,7 @@ begin
   simp
 end
 
-lemma mk_pullback_snd {X Y Z : Profinite} {f : X ⟶ Z} {g : Y ⟶ Z} {x : X} {y : Y}
+lemma mk_pullback_snd {X Y Z : Profinite.{u}} {f : X ⟶ Z} {g : Y ⟶ Z} {x : X} {y : Y}
   {h : f x = g y} : (pullback.snd : pullback f g ⟶ _) (mk_pullback h) = y :=
 begin
   rw [mk_pullback, from_point_apply],
@@ -49,7 +50,7 @@ begin
 end
 
 /-- The proetale pretopology on Profinites. -/
-def proetale_pretopology : pretopology Profinite :=
+def proetale_pretopology : pretopology.{u} Profinite.{u} :=
 { coverings := λ X S, ∃ (ι : Type*) [fintype ι] (Y : ι → Profinite) (f : Π (i : ι), Y i ⟶ X),
       (∀ (x : X), ∃ i (y : Y i), f i y = x) ∧ S = presieve.of_arrows Y f,
   has_isos := λ X Y f i,
@@ -89,3 +90,18 @@ def proetale_pretopology : pretopology Profinite :=
       rw this,
       apply presieve.of_arrows_bind },
   end }
+
+def proetale_topology : grothendieck_topology.{u} Profinite.{u} :=
+proetale_pretopology.to_grothendieck _
+
+def CondensedSet := SheafOfTypes proetale_topology
+
+open category_theory.limits opposite
+
+structure equivalent_sheaf (P : Profiniteᵒᵖ ⥤ Type v) :=
+(empty : is_iso (terminal.from (P.obj (op (⊥_ Profinite))))
+
+def is_sheaf_iff (P : Profiniteᵒᵖ ⥤ Type v) :
+  presieve.is_sheaf proetale_topology P ↔ _ :=
+begin
+end

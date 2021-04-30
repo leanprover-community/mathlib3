@@ -120,5 +120,8 @@ The category of compact Hausdorff spaces is reflective in the category of topolo
 noncomputable instance CompHaus_to_Top.reflective : reflective CompHaus_to_Top :=
 { to_is_right_adjoint := ⟨Top_to_CompHaus, adjunction.adjunction_of_equiv_left _ _⟩ }
 
+instance CompHaus.has_colimits : limits.has_colimits CompHaus :=
+has_colimits_of_reflective CompHaus_to_Top
+
 noncomputable instance CompHaus_to_Top.creates_limits : creates_limits CompHaus_to_Top :=
 monadic_creates_limits _

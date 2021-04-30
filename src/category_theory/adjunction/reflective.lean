@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.terminal
 import category_theory.adjunction.fully_faithful
+import category_theory.adjunction.limits
 
 /-!
 # Reflective functors

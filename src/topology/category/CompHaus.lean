@@ -66,7 +66,7 @@ def of : CompHaus :=
 
 @[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
 
-/-- Any continuous bijection induces an isomorphism. -/
+/-- Any continuous function on compact Hausdorff spaces is a closed map. -/
 lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
 λ C hC, (hC.compact.image f.continuous).is_closed
 

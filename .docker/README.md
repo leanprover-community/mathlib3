@@ -11,9 +11,10 @@ This will result in the creation of two containers:
 * `leanprovercommunity/lean` - contains elan, lean, and leanproject
 * `leanprovercommunity/mathlib` - additionally contains a copy of mathlib, with oleans
 
-In fact, for each container you'll get three different tags, `:debian`, `:alpine` and `:latest`.
-`:debian` and `:alpine` use those respective distributions, and `:latest` just points at `:debian`.
-Finally, there is also a `leanprovercommunity/mathlib:gitpod` for use at
+In fact, for each container you'll get two different tags, `:debian` and `:latest`,
+which are just synonyms.
+(We used to have an `alpine` distribution, but it wasn't robust enough to warrant maintenance.)
+There is also a `leanprovercommunity/mathlib:gitpod` for use at
 [https://gitpod.io/](https://gitpod.io/).
 
 ## Usage

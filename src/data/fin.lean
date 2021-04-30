@@ -874,42 +874,19 @@ open nat int
 
 /-- Negation on `fin n` -/
 instance (n : ℕ) : has_neg (fin n) :=
-⟨λ a, ⟨nat_mod (-(a.1 : ℤ)) n,
-begin
-  have npos : 0 < n := lt_of_le_of_lt (nat.zero_le _) a.2,
-  have h : (n : ℤ) ≠ 0 := int.coe_nat_ne_zero_iff_pos.2 npos,
-  have := int.mod_lt (-(a.1 : ℤ)) h,
-  rw [(abs_of_nonneg (int.coe_nat_nonneg n))] at this,
-  rwa [← int.coe_nat_lt, nat_mod, to_nat_of_nonneg (int.mod_nonneg _ h)]
-end⟩⟩
+⟨λ a, ⟨(n - a) % n, nat.mod_lt _ (lt_of_le_of_lt (nat.zero_le _) a.2)⟩⟩
 
 /-- Abelian group structure on `fin (n+1)`. -/
 instance (n : ℕ) : add_comm_group (fin (n+1)) :=
-{ add_left_neg :=
-    λ ⟨a, ha⟩, fin.eq_of_veq (show (((-a : ℤ) % (n+1)).to_nat + a) % (n+1) = 0,
-      from int.coe_nat_inj
-      begin
-        have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
-        have hn : ((n+1) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
-        rw [int.coe_nat_mod, int.coe_nat_add, to_nat_of_nonneg (int.mod_nonneg _ hn), add_comm],
-        simp [int.zero_mod],
-      end),
-  sub_eq_add_neg := λ ⟨a, ha⟩ ⟨b, hb⟩, subtype.eq $
-    show (a + (n + 1 - b)) % (n + 1) = (a + nat_mod (-b : ℤ) _) % (n + 1),
-    from int.coe_nat_inj
-    begin
-      have npos : 0 < n+1 := lt_of_le_of_lt (nat.zero_le _) ha,
-      have hn : ((n+1 : _) : ℤ) ≠ 0 := (ne_of_lt (int.coe_nat_lt.2 npos)).symm,
-      rw [int.coe_nat_mod, int.coe_nat_mod, int.coe_nat_add a, int.coe_nat_add a,
-        int.mod_add_cancel_left, int.nat_mod, to_nat_of_nonneg (int.mod_nonneg (-b : ℤ) hn),
-        int.coe_nat_sub hb.le, sub_eq_add_neg],
-      simp,
-    end,
+{ add_left_neg := λ ⟨a, ha⟩, fin.ext $ trans (nat.mod_add_mod _ _ _) $
+    by { rw [fin.coe_mk, fin.coe_zero, nat.sub_add_cancel, nat.mod_self], exact le_of_lt ha },
+  sub_eq_add_neg := λ ⟨a, ha⟩ ⟨b, hb⟩, fin.ext $
+    show (a + (n + 1 - b)) % (n + 1) = (a + (n + 1 - b) % (n + 1)) % (n + 1), by simp,
   sub := fin.sub,
   ..fin.add_comm_monoid n,
   ..fin.has_neg n.succ  }
 
-protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = nat_mod (-(a.1 : ℤ)) n := rfl
+protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
 
 protected lemma coe_sub (a b : fin n) : ((a - b : fin n) : ℕ) = (a + (n - b)) % n :=
 by cases a; cases b; refl
@@ -1124,14 +1101,6 @@ pred_above (last n) i
 
 @[simp] lemma cast_pred_zero : cast_pred (0 : fin (n + 2)) = 0 := rfl
 
-@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 2)) = 1 :=
-begin
-  cases n, { cc },
-  rw [cast_pred, pred_above, last, dif_neg],
-  { ext, simp },
-  { rw lt_iff_coe_lt_coe, simp [nat.succ_le_succ_iff] }
-end
-
 @[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=
 begin
@@ -1150,6 +1119,9 @@ begin
     { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
   simp [cast_pred, pred_above, this]
 end
+
+@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 2)) = 1 :=
+by { cases n, {simp}, erw cast_pred_mk; simp }
 
 lemma pred_above_below (p : fin (n + 1)) (i : fin (n + 2)) (h : i ≤ p.cast_succ) :
   p.pred_above i = i.cast_pred :=

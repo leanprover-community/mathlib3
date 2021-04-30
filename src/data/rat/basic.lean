@@ -622,6 +622,7 @@ begin
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
+@[simp]
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
 by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
 

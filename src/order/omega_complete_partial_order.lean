@@ -145,7 +145,7 @@ instance : has_le (chain α) :=
 { le := λ x y, ∀ i, ∃ j, x i ≤ y j  }
 
 /-- `map` function for `chain` -/
-@[simps] def map : chain β :=
+@[simps {fully_applied := ff}] def map : chain β :=
 f.comp c
 
 variables {f}
@@ -453,7 +453,7 @@ begin
   intro c,
   apply eq_of_forall_ge_iff, intro z,
   simp only [inf_le_iff, hf c, hg c, ωSup_le_iff, ←forall_or_distrib_left, ←forall_or_distrib_right,
-             chain.map_to_fun, function.comp_app, preorder_hom.has_inf_inf_to_fun],
+             function.comp_app, chain.map_coe, preorder_hom.has_inf_inf_coe],
   split,
   { introv h, apply h },
   { intros h i j,
@@ -467,7 +467,7 @@ lemma Sup_continuous (s : set $ α →ₘ β) (hs : ∀ f ∈ s, continuous f) :
 begin
   intro c, apply eq_of_forall_ge_iff, intro z,
   simp only [ωSup_le_iff, and_imp, preorder_hom.complete_lattice_Sup, set.mem_image,
-             chain.map_to_fun, function.comp_app, Sup_le_iff, preorder_hom.has_Sup_Sup_to_fun,
+             chain.map_coe, function.comp_app, Sup_le_iff, preorder_hom.has_Sup_Sup_coe,
              exists_imp_distrib],
   split; introv h hx hb; subst b,
   { apply le_trans _ (h _ _ hx rfl),
@@ -521,16 +521,16 @@ lemma top_continuous :
   continuous (⊤ : α →ₘ β) :=
 begin
   intro c, apply eq_of_forall_ge_iff, intro z,
-  simp only [ωSup_le_iff, forall_const, chain.map_to_fun, function.comp_app,
-             preorder_hom.has_top_top_to_fun],
+  simp only [ωSup_le_iff, forall_const, chain.map_coe, function.comp_app,
+             preorder_hom.has_top_top_coe],
 end
 
 lemma bot_continuous :
   continuous (⊥ : α →ₘ β) :=
 begin
   intro c, apply eq_of_forall_ge_iff, intro z,
-  simp only [ωSup_le_iff, forall_const, chain.map_to_fun, function.comp_app,
-             preorder_hom.has_bot_bot_to_fun],
+  simp only [ωSup_le_iff, forall_const, chain.map_coe, function.comp_app,
+             preorder_hom.has_bot_bot_coe],
 end
 
 end complete_lattice
@@ -564,7 +564,7 @@ protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 { to_fun := λ a, ωSup (c.map (monotone_apply a)),
   monotone' := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.monotone h) }
 
-@[simps ωSup_to_fun]
+@[simps ωSup_coe]
 instance omega_complete_partial_order : omega_complete_partial_order (α →ₘ β) :=
 omega_complete_partial_order.lift preorder_hom.to_fun_hom preorder_hom.ωSup
   (λ x y h, h) (λ c, rfl)
@@ -617,23 +617,23 @@ lemma ωSup_bind {β γ : Type v} (c : chain α) (f : α →ₘ roption β) (g :
   ωSup (c.map (f.bind g)) = ωSup (c.map f) >>= ωSup (c.map g) :=
 begin
   apply eq_of_forall_ge_iff, intro x,
-  simp only [ωSup_le_iff, roption.bind_le, chain.mem_map_iff, and_imp, preorder_hom.bind_to_fun,
+  simp only [ωSup_le_iff, roption.bind_le, chain.mem_map_iff, and_imp, preorder_hom.bind_coe,
     exists_imp_distrib],
   split; intro h''',
   { intros b hb, apply ωSup_le _ _ _,
     rintros i y hy, simp only [roption.mem_ωSup] at hb,
     rcases hb with ⟨j,hb⟩, replace hb := hb.symm,
-    simp only [roption.eq_some_iff, chain.map_to_fun, function.comp_app, pi.monotone_apply_to_fun]
+    simp only [roption.eq_some_iff, chain.map_coe, function.comp_app, pi.monotone_apply_coe]
       at hy hb,
     replace hb : b ∈ f (c (max i j))   := f.monotone (c.monotone (le_max_right i j)) _ hb,
     replace hy : y ∈ g (c (max i j)) b := g.monotone (c.monotone (le_max_left i j)) _ _ hy,
     apply h''' (max i j),
-    simp only [exists_prop, roption.bind_eq_bind, roption.mem_bind_iff, chain.map_to_fun,
-               function.comp_app, preorder_hom.bind_to_fun],
+    simp only [exists_prop, roption.bind_eq_bind, roption.mem_bind_iff, chain.map_coe,
+               function.comp_app, preorder_hom.bind_coe],
     exact ⟨_,hb,hy⟩, },
   { intros i, intros y hy,
-    simp only [exists_prop, roption.bind_eq_bind, roption.mem_bind_iff, chain.map_to_fun,
-               function.comp_app, preorder_hom.bind_to_fun] at hy,
+    simp only [exists_prop, roption.bind_eq_bind, roption.mem_bind_iff, chain.map_coe,
+               function.comp_app, preorder_hom.bind_coe] at hy,
     rcases hy with ⟨b,hb₀,hb₁⟩,
     apply h''' b _,
     { apply le_ωSup (c.map g) _ _ _ hb₁ },
@@ -716,9 +716,9 @@ def const (f : β) : α →𝒄 β :=
 of_mono (preorder_hom.const _ f)
     begin
       intro c, apply le_antisymm,
-      { simp only [function.const, preorder_hom.const_to_fun],
+      { simp only [function.const, preorder_hom.const_coe],
         apply le_ωSup_of_le 0, refl },
-      { apply ωSup_le, simp only [preorder_hom.const_to_fun, chain.map_to_fun, function.comp_app],
+      { apply ωSup_le, simp only [preorder_hom.const_coe, chain.map_coe, function.comp_app],
         intros, refl },
     end
 
@@ -777,8 +777,8 @@ continuous_hom.of_mono (ωSup $ c.map to_mono)
 begin
   intro c',
   apply eq_of_forall_ge_iff, intro z,
-  simp only [ωSup_le_iff, (c _).continuous, chain.map_to_fun, preorder_hom.monotone_apply_to_fun,
-    to_mono_to_fun, coe_apply, preorder_hom.omega_complete_partial_order_ωSup_to_fun,
+  simp only [ωSup_le_iff, (c _).continuous, chain.map_coe, preorder_hom.monotone_apply_coe,
+    to_mono_coe, coe_apply, preorder_hom.omega_complete_partial_order_ωSup_coe,
     forall_forall_merge, forall_forall_merge', function.comp_app],
 end
 
@@ -793,11 +793,11 @@ lemma ωSup_ωSup (c₀ : chain (α →𝒄 β)) (c₁ : chain α) :
   ωSup c₀ (ωSup c₁) = ωSup (continuous_hom.prod.apply.comp $ c₀.zip c₁) :=
 begin
   apply eq_of_forall_ge_iff, intro z,
-  simp only [ωSup_le_iff, (c₀ _).continuous, chain.map_to_fun, to_mono_to_fun, coe_apply,
-    preorder_hom.omega_complete_partial_order_ωSup_to_fun, ωSup_def, forall_forall_merge,
-    chain.zip_to_fun, preorder_hom.prod.map_to_fun, preorder_hom.prod.diag_to_fun, prod.map_mk,
-    preorder_hom.monotone_apply_to_fun, function.comp_app, prod.apply_to_fun,
-    preorder_hom.comp_to_fun, ωSup_to_fun],
+  simp only [ωSup_le_iff, (c₀ _).continuous, chain.map_coe, to_mono_coe, coe_apply,
+    preorder_hom.omega_complete_partial_order_ωSup_coe, ωSup_def, forall_forall_merge,
+    chain.zip_coe, preorder_hom.prod.map_coe, preorder_hom.prod.diag_coe, prod.map_mk,
+    preorder_hom.monotone_apply_coe, function.comp_app, prod.apply_coe,
+    preorder_hom.comp_coe, ωSup_to_fun],
 end
 
 /-- A family of continuous functions yields a continuous family of functions. -/
@@ -820,8 +820,8 @@ end
 @[simps {rhs_md := reducible}]
 noncomputable def map {β γ : Type v} (f : β → γ) (g : α →𝒄 roption β) : α →𝒄 roption γ :=
 of_fun (λ x, f <$> g x) (bind g (const (pure ∘ f))) $
-by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_to_fun, const_apply,
-  preorder_hom.const_to_fun, coe_apply]
+by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_coe, const_apply,
+  preorder_hom.const_coe, coe_apply]
 
 /-- `roption.seq` as a continuous function. -/
 @[simps {rhs_md := reducible}]
@@ -829,7 +829,7 @@ noncomputable def seq {β γ : Type v} (f : α →𝒄 roption (β → γ)) (g :
   α →𝒄 roption γ :=
 of_fun (λ x, f x <*> g x) (bind f $ (flip $ _root_.flip map g))
   (by ext; simp only [seq_eq_bind_map, flip, roption.bind_eq_bind, map_to_fun, roption.mem_bind_iff,
-                      bind_to_fun, preorder_hom.bind_to_fun, coe_apply, flip_to_fun]; refl)
+                      bind_to_fun, preorder_hom.bind_coe, coe_apply, flip_to_fun]; refl)
 
 end continuous_hom
 

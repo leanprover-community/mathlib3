@@ -380,6 +380,22 @@ def lift_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   homotopy (lift (f ≫ g) P R) (lift f P Q ≫ lift g Q R) :=
 by { apply lift_homotopy (f ≫ g); simp, }
 
+/-- Any two projective resolutions are homotopy equivalent. -/
+def homotopy_equiv {X : C} (P Q : ProjectiveResolution X) :
+  homotopy_equiv P.complex Q.complex :=
+{ hom := lift (𝟙 X) P Q,
+  inv := lift (𝟙 X) Q P,
+  homotopy_hom_inv_id := begin
+    refine (lift_comp_homotopy (𝟙 X) (𝟙 X) P Q P).symm.trans _,
+    simp [category.id_comp],
+    apply lift_id_homotopy,
+  end,
+  homotopy_inv_hom_id := begin
+    refine (lift_comp_homotopy (𝟙 X) (𝟙 X) Q P Q).symm.trans _,
+    simp [category.id_comp],
+    apply lift_id_homotopy,
+  end, }
+
 end ProjectiveResolution
 
 section
@@ -426,7 +442,17 @@ def projective_resolutions : C ⥤ homotopy_category C (complex_shape.down ℕ) 
 variables {C} {D : Type*} [category D] [preadditive D] [has_zero_object D]
   [has_equalizers D] [has_images D] [has_image_maps D] [has_cokernels D]
 
+/-- The left derived functors of an additive functor. -/
 def functor.left_derived (n : ℕ) (F : C ⥤ D) [F.additive] : C ⥤ D :=
 projective_resolutions C ⋙ F.map_homotopy_category _ _ ⋙ homotopy_category.homology_functor D _ n
+
+/-- We can compute a left derived functor using a chosen projective resolution. -/
+def functor.left_derived.iso (n : ℕ) (F : C ⥤ D) [F.additive] (X : C) (P : ProjectiveResolution X) :
+  (F.left_derived n).obj X ≅
+    (homology_functor D _ n).obj ((F.map_homological_complex _).obj P.complex) :=
+(homotopy_category.homology_functor D _ n).map_iso
+  (homotopy_category.iso_of_homotopy_equiv
+    (F.map_homotopy_equiv (ProjectiveResolution.homotopy_equiv _ P)))
+  ≪≫ (homotopy_category.homology_factors D _ n).app _
 
 end category_theory

@@ -38,6 +38,15 @@ namespace homotopy_category
 def quotient : homological_complex V c ⥤ homotopy_category V c :=
 category_theory.quotient.functor _
 
+variables {V c}
+
+@[simp] lemma quotient_obj_as (C : homological_complex V c) :
+  ((quotient V c).obj C).as = C := rfl
+
+lemma quotient_map_out {C D : homotopy_category V c} (f : C ⟶ D) :
+  (quotient V c).map f.out = f :=
+quot.out_eq _
+
 lemma eq_of_homotopy {C D : homological_complex V c} (f g : C ⟶ D) (h : homotopy f g) :
   (quotient V c).map f = (quotient V c).map g :=
 category_theory.quotient.sound _ ⟨h⟩
@@ -51,7 +60,34 @@ begin
   sorry,
 end
 
-variables [has_equalizers V] [has_images V] [has_image_maps V] [has_cokernels V]
+@[simp] lemma quotient_map_out_comp_out {C D E : homotopy_category V c} (f : C ⟶ D) (g : D ⟶ E) :
+  (quotient V c).map (quot.out f ≫ quot.out g) = f ≫ g :=
+by conv_rhs { erw [←quotient_map_out f, ←quotient_map_out g, ←(quotient V c).map_comp], }
+
+/-- Homotopy equivalent complexes become isomorphic in the homotopy category. -/
+def iso_of_homotopy_equiv {C D : homological_complex V c} (f : homotopy_equiv C D) :
+  (quotient V c).obj C ≅ (quotient V c).obj D :=
+{ hom := (quotient V c).map f.hom,
+  inv := (quotient V c).map f.inv,
+  hom_inv_id' := begin
+    rw [←(quotient V c).map_comp, ←(quotient V c).map_id],
+    exact eq_of_homotopy _ _ f.homotopy_hom_inv_id,
+  end,
+  inv_hom_id' := begin
+    rw [←(quotient V c).map_comp, ←(quotient V c).map_id],
+    exact eq_of_homotopy _ _ f.homotopy_inv_hom_id,
+  end }
+
+/-- If two complexes become isomorphic in the homotopy category,
+  then they were homotopy equivalent. -/
+def homotopy_equiv_of_iso {C D : homological_complex V c} (i : (quotient V c).obj C ≅ (quotient V c).obj D) :
+  homotopy_equiv C D :=
+{ hom := quot.out i.hom,
+  inv := quot.out i.inv,
+  homotopy_hom_inv_id := homotopy_of_eq _ _ (by { simp, refl, }),
+  homotopy_inv_hom_id := homotopy_of_eq _ _ (by { simp, refl, }), }
+
+variables (V c) [has_equalizers V] [has_images V] [has_image_maps V] [has_cokernels V]
 
 /-- The `i`-th homology, as a functor from the homotopy category. -/
 def homology_functor (i : ι) : homotopy_category V c ⥤ V :=
@@ -99,7 +135,7 @@ def functor.map_homotopy_category (c : complex_shape ι) (F : V ⥤ W) [F.additi
     apply F.map_homotopy,
     apply homotopy_category.homotopy_of_eq,
     convert quot.out_eq _,
-    sorry,
+    exact homotopy_category.quotient_map_out_comp_out,
   end }.
 
 end category_theory

@@ -22,7 +22,9 @@ open category_theory.limits
 
 universes v u
 
-namespace category_theory.projective
+namespace category_theory
+
+open category_theory.projective
 
 variables {C : Type u} [category.{v} C]
 
@@ -35,7 +37,7 @@ lemma exact_d_f {X Y : C} (f : X ⟶ Y) : exact (d f) f :=
 (abelian.exact_iff _ _).2 $
   ⟨by simp, zero_of_epi_comp (π _) $ by rw [←category.assoc, cokernel.condition]⟩
 
-namespace resolution
+namespace ProjectiveResolution
 
 /- We have to jump through some hoops to get `resolution.of` to typecheck! -/
 section
@@ -81,7 +83,12 @@ def of (Z : C) : ProjectiveResolution Z :=
   epi := projective.π_epi _,
   exact := λ n, exact_d_f _ }
 
-end resolution
+instance (Z : C) : has_projective_resolution Z :=
+{ out := ⟨of Z⟩ }
 
+instance : has_projective_resolutions C :=
+{ out := λ Z, by apply_instance }
 
-end category_theory.projective
+end ProjectiveResolution
+
+end category_theory

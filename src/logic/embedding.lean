@@ -233,7 +233,7 @@ end function
 namespace equiv
 
 /-- If `α₁ ≃ α₂` and `β₁ ≃ β₂`, then the type of embeddings `α₁ ↪ β₁`
-is equivalent to the type of enbeddings `α₂ ↪ β₂`. -/
+is equivalent to the type of embeddings `α₂ ↪ β₂`. -/
 @[congr, simps apply] def embedding_congr {α β γ δ : Sort*}
   (h : α ≃ β) (h' : γ ≃ δ) : (α ↪ γ) ≃ (β ↪ δ) :=
 { to_fun := λ f, h.symm.to_embedding.trans $ f.trans $ h'.to_embedding,

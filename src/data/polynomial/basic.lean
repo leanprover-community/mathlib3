@@ -119,9 +119,10 @@ instance [subsingleton R] : unique (polynomial R) :=
 { uniq := by { rintros ⟨x⟩, change (⟨x⟩ : polynomial R) = 0, rw [← zero_to_finsupp], simp },
 .. polynomial.inhabited }
 
+variable (R)
+
 /-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
-variable (R)
 def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
 { to_fun := λ ⟨p⟩, p,
   inv_fun := λ p, ⟨p⟩,
@@ -129,6 +130,7 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   right_inv := λ p, rfl,
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp], refl },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp], refl } }
+
 variable {R}
 
 lemma sum_to_finsupp {ι : Type*} (s : finset ι) (f : ι → add_monoid_algebra R ℕ) :

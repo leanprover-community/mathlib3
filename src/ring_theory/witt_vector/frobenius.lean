@@ -171,7 +171,7 @@ begin
   rw mem_range at hi,
   rw [← IH i hi],
   clear IH,
-  rw [add_comm (X i ^ p), add_pow, sum_range_succ', pow_zero, nat.sub_zero, nat.choose_zero_right,
+  rw [add_comm (X i ^ p), add_pow', sum_range_succ', pow_zero, nat.sub_zero, nat.choose_zero_right,
       one_mul, nat.cast_one, mul_one, mul_add, add_mul, nat.succ_sub (le_of_lt hi),
       nat.succ_eq_add_one (n - i), pow_succ, pow_mul, add_sub_cancel, mul_sum, sum_mul],
   apply sum_congr rfl,

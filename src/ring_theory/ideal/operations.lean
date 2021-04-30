@@ -391,7 +391,7 @@ def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
   zero_mem' := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
   add_mem' := λ x y ⟨m, hxmi⟩ ⟨n, hyni⟩, ⟨m + n,
-    (add_pow x y (m + n)).symm ▸ I.sum_mem $
+    (add_pow' x y (m + n)).symm ▸ I.sum_mem $
     show ∀ c ∈ finset.range (nat.succ (m + n)),
       x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)

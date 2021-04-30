@@ -32,7 +32,7 @@ variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
 include h
 
 /-- A version of the binomial theorem for noncommutative semirings. -/
-theorem add_pow :
+theorem add_pow' :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
   let t : ℕ → ℕ → R := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
@@ -69,9 +69,9 @@ end
 
 /-- A version of `commute.add_pow` but with the binomial coefficient applied via scalar action
 of ℕ. -/
-lemma add_pow' :
+lemma add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), choose n m • (x ^ m * y ^ (n - m)) :=
-by simp_rw [_root_.nsmul_eq_mul, cast_comm, h.add_pow n]
+by simp_rw [_root_.nsmul_eq_mul, cast_comm, h.add_pow' n]
 
 /-- A version of `commute.add_pow'` but using `finsum` rather than `finset.sum`. -/
 lemma add_pow'' :
@@ -82,7 +82,7 @@ by simp [_root_.nsmul_eq_mul, cast_comm, h.add_pow n, ← finsum_mem_coe_finset,
 lemma add_pow''' :
   (x + y) ^ n = ∑ m in nat.antidiagonal n, choose n m.fst • (x ^ m.fst * y ^ m.snd) :=
 begin
-  rw h.add_pow',
+  rw h.add_pow,
   apply sum_bij (λ m _, ⟨m, n - m⟩ : Π m ∈ range (n + 1), ℕ × ℕ),
   { intros m h, rw [mem_range, lt_succ_iff] at h, simp [nat.mem_antidiagonal, add_sub_of_le h], },
   { simp, },
@@ -94,8 +94,13 @@ end commute
 
 /-- The binomial theorem -/
 theorem add_pow [comm_semiring R] (x y : R) (n : ℕ) :
-  (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
+  (x + y) ^ n = ∑ m in range (n + 1), choose n m • (x ^ m * y ^ (n - m)) :=
 (commute.all x y).add_pow n
+
+/-- For testing purposes. -/
+theorem add_pow' [comm_semiring R] (x y : R) (n : ℕ) :
+  (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
+(commute.all x y).add_pow' n
 
 namespace nat
 
@@ -150,7 +155,7 @@ theorem int.alternating_sum_range_choose {n : ℕ} :
   ∑ m in range (n + 1), ((-1) ^ m * ↑(choose n m) : ℤ) = if n = 0 then 1 else 0 :=
 begin
   cases n, { simp },
-  have h := add_pow (-1 : ℤ) 1 n.succ,
+  have h := add_pow' (-1 : ℤ) 1 n.succ,
   simp only [one_pow, mul_one, add_left_neg, int.nat_cast_eq_coe_nat] at h,
   rw [← h, zero_pow (nat.succ_pos n), if_neg (nat.succ_ne_zero n)],
 end

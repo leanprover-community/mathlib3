@@ -431,7 +431,7 @@ have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
     ∑ i in range j, ∑ k in range (i + 1), x ^ k / k! * (y ^ (i - k) / (i - k)!),
   from assume j,
     finset.sum_congr rfl (λ m hm, begin
-      rw [add_pow, div_eq_mul_inv, sum_mul],
+      rw [add_pow', div_eq_mul_inv, sum_mul],
       refine finset.sum_congr rfl (λ i hi, _),
       have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
         (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),

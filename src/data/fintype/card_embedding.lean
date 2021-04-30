@@ -203,15 +203,7 @@ begin
     exact card_embedding_eq_zero (not_le.mp h)
 end
 
--- it feels weird repeating the proof but I think it can only be this way due to proof irrelevance?
 lemma card_embedding_eq_infinite {α β} [infinite α] [fintype β] : fintype.card (α ↪ β) = 0 :=
-begin
-  rw fintype.card_eq_zero_iff,
-  intro f,
-  exfalso,
-  obtain ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f,
-  apply ne,
-  exact f.injective f_eq
-end
+by erw [card, univ, function.embedding.fintype', finset.card_empty]
 
 end fintype

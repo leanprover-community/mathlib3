@@ -8,31 +8,14 @@ import linear_algebra.finite_dimensional
 import algebra.module.linear_map
 import analysis.convex.topology
 import analysis.normed_space.operator_norm
-import combinatorics.simplicial_complex.dump
-import combinatorics.simplicial_complex.to_move.topology
 import combinatorics.simplicial_complex.convex_independence
+import combinatorics.simplicial_complex.to_move.default
 
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
   {X : finset E}
-
-theorem geometric_hahn_banach_closed_point {A : set E} {x : E}
-  (hA₁ : convex A) (hA₂ : is_closed A)
-  (disj : x ∉ A) :
-  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ s < f x := sorry
-
-theorem geometric_hahn_banach_open_point {A : set E} {x : E}
-  (hA₁ : convex A) (hA₂ : is_open A)
-  (disj : x ∉ A) :
-  ∃ (f : E →L[ℝ] ℝ), (∀ a ∈ A, f a < f x) := sorry
-
-theorem geometric_hahn_banach_point_open {x : E} {B : set E}
-  (hB₁ : convex B) (hB₂ : is_open B)
-  (disj : x ∉ B) :
-  ∃ (f : E →L[ℝ] ℝ), (∀ b ∈ B, f x < f b) :=
-let ⟨f, hf⟩ := geometric_hahn_banach_open_point hB₁ hB₂ disj in ⟨-f, by simpa⟩
 
 lemma eq_left_end_iff_eq_right_end_aux {x₁ x₂ : E} {a b : ℝ} (ha : a ≠ 0) (hb : b ≠ 0)
   (hab : a + b = 1) (hx : a • x₁ + b • x₂ = x) :
@@ -58,7 +41,7 @@ ends are in B. -/
 def is_extreme (A B : set E) : Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
-lemma extreme_set_iff :
+/-lemma extreme_set_iff :
   is_extreme A B ↔ B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, (∃ a b : ℝ, 0 < a ∧ 0 < b ∧ a + b = 1 ∧
   a • x₁ + b • x₂ = x) → x₁ ∈ B ∧ x₂ ∈ B :=
 begin
@@ -69,7 +52,7 @@ begin
     by_cases hxx₁ : x = x₁,
     { rw [←hxx₁, ←(eq_left_end_iff_eq_right_end_aux (ne_of_gt ha) (ne_of_gt hb) hab hx).1 hxx₁],
       exact ⟨hxB, hxB⟩ },
-    exact hAB.2 x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, le_of_lt ha, le_of_lt hb, hab, hx⟩ hxx₁ (λ hxx₂,
+    exact hAB.2 x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩ hxx₁ (λ hxx₂,
       hxx₁ ((eq_left_end_iff_eq_right_end_aux (ne_of_gt ha) (ne_of_gt hb) hab hx).2 hxx₂)) },
   rintro ⟨hBA, hAB⟩,
   use hBA,
@@ -85,7 +68,7 @@ begin
   rw add_zero at hab hx,
   rw [hab, one_smul] at hx,
   exact hxx₁ hx.symm
-end
+end-/
 
 lemma is_extreme.refl :
   reflexive (is_extreme : set E → set E → Prop) :=

@@ -1,0 +1,32 @@
+import tactic
+import data.real.basic
+import linear_algebra.affine_space.independent
+import linear_algebra.std_basis
+import linear_algebra.affine_space.finite_dimensional
+import linear_algebra.affine_space.combination
+import linear_algebra.finite_dimensional
+import algebra.module.linear_map
+import analysis.convex.topology
+import analysis.normed_space.operator_norm
+
+open_locale classical affine big_operators
+open set
+--TODO: Generalise to LCTVS
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
+  {X : finset E}
+
+theorem geometric_hahn_banach_closed_point {A : set E} {x : E}
+  (hA₁ : convex A) (hA₂ : is_closed A)
+  (disj : x ∉ A) :
+  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ s < f x := sorry
+
+theorem geometric_hahn_banach_open_point {A : set E} {x : E}
+  (hA₁ : convex A) (hA₂ : is_open A)
+  (disj : x ∉ A) :
+  ∃ (f : E →L[ℝ] ℝ), (∀ a ∈ A, f a < f x) := sorry
+
+theorem geometric_hahn_banach_point_open {x : E} {B : set E}
+  (hB₁ : convex B) (hB₂ : is_open B)
+  (disj : x ∉ B) :
+  ∃ (f : E →L[ℝ] ℝ), (∀ b ∈ B, f x < f b) :=
+let ⟨f, hf⟩ := geometric_hahn_banach_open_point hB₁ hB₂ disj in ⟨-f, by simpa⟩

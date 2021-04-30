@@ -1,6 +1,5 @@
 import data.finset.basic
-import combinatorics.simplicial_complex.to_move.multiset
-import combinatorics.simplicial_complex.to_move.set
+import combinatorics.simplicial_complex.to_move.default
 
 variables {α : Type*}
 

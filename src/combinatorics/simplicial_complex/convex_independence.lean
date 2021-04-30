@@ -11,22 +11,30 @@ open_locale affine big_operators classical
 open finset
 
 universes u₁ u₂
-variables {E : Type u₁} [add_comm_group E] [vector_space ℝ E]
-variables {ι : Type u₂}
+variables {E : Type u₁} [add_comm_group E] [module ℝ E]
+variables {ι : Type u₂} {s t : set E}
 
 def convex_independent (p : ι → E) : Prop :=
 ∀ (s : set ι) (x : ι), p x ∈ convex_hull (p '' s) → x ∈ s
+
+lemma convex_independent.mono (hs : convex_independent (λ p, p : s → E)) (hts : t ⊆ s) :
+  convex_independent (λ p, p : t → E) :=
+begin
+  rintro s x hs,
+  sorry
+end
 
 lemma convex_independent_set_iff (A : set E) :
   convex_independent (λ p, p : A → E) ↔ ∀ s, s ⊆ A → A ∩ convex_hull s ⊆ s :=
 begin
   split,
   { rintro h s hs x ⟨hx₁, hx₂⟩,
-    suffices H : x ∈ convex_hull ((λ (p : A), ↑p) '' {x : A | ↑x ∈ s}),
+    have := h.mono hs,
+    /-suffices H : x ∈ convex_hull ((λ (p : A), ↑p) '' {x : A | ↑x ∈ s}),
     {
       have := h {x : A | ↑x ∈ s},
       sorry
-    },
+    },-/
     sorry
 
     --simpa using h (s.attach.image (λ x, ⟨x.1, hs x.2⟩)) ⟨_, hx₁⟩ _,
@@ -86,7 +94,7 @@ lemma affine_independent.convex_independent {p : ι → E} (hp : affine_independ
 begin
   intros s x hx,
   by_contra,
-  rw [←finset.coe_image, finset.convex_hull_eq] at hx,
+  rw [finset.convex_hull_eq] at hx,
   rcases hx with ⟨w, hw₀, hw₁, x_eq⟩,
   have : set.inj_on p s := λ x hx y hy h, injective_of_affine_independent hp h,
   rw finset.center_mass_eq_of_sum_1 _ _ hw₁ at x_eq,

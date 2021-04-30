@@ -1,8 +1,16 @@
-import data.set.basic
+import data.set.lattice
 
 namespace set
 
-variable {α : Type*}
+variables {α : Type*} {s t : set α}
+
+lemma disjoint_iff_subset_compl_right :
+  disjoint s t ↔ s ⊆ tᶜ :=
+disjoint_left
+
+lemma disjoint_iff_subset_compl_left :
+  disjoint s t ↔ t ⊆ sᶜ :=
+disjoint_right
 
 lemma subset_singleton_iff' (s : set α) (a : α) : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
 begin

@@ -1,58 +1,10 @@
 import analysis.convex.basic
 import linear_algebra.affine_space.affine_subspace
+import combinatorics.simplicial_complex.to_move.default
 
 open set
 
-variables {E : Type*} [add_comm_group E] [vector_space ℝ E] {x y : E} {A B : set E} {c : set (set E)}
-
---TODO: move to mathlib
-lemma convex_sUnion_of_directed (hcdirected : directed_on has_subset.subset c)
-  (hc : ∀ ⦃A : set E⦄, A ∈ c → convex A) :
-  convex (⋃₀c) :=
-begin
-  rw convex_iff_segment_subset,
-  rintro x y hx hy z hz,
-  rw mem_sUnion at ⊢ hx hy,
-  obtain ⟨X, hX, hx⟩ := hx,
-  obtain ⟨Y, hY, hy⟩ := hy,
-  obtain ⟨Z, hZ, hXZ, hYZ⟩ := hcdirected X hX Y hY,
-  exact ⟨Z, hZ, convex_iff_segment_subset.1 (hc hZ) (hXZ hx) (hYZ hy) hz⟩,
-end
-
-lemma disjoint_iff_subset_compl_right :
-  disjoint A B ↔ A ⊆ Bᶜ :=
-disjoint_left
-
-lemma disjoint_iff_subset_compl_left :
-  disjoint A B ↔ B ⊆ Aᶜ :=
-disjoint_right
-
-lemma zorn.zorn_subset_sUnion {α : Type*} (S : set (set α)) (h : ∀ (c : set (set α)), c ⊆ S →
-  zorn.chain has_subset.subset c → c.nonempty → (⋃₀ c ∈ S ∧ ∀ (s : set α), s ∈ c → s ⊆ ⋃₀ c))
-  {x : set α} (hx : x ∈ S) :
-  ∃ (m : set α) (H : m ∈ S), ∀ (a : set α), a ∈ S → m ⊆ a → a = m :=
-begin
-  apply zorn.zorn_subset,
-  rintro c hcS hc,
-  cases c.eq_empty_or_nonempty with hcemp hcnemp,
-  { rw hcemp,
-    refine ⟨x, hx, _⟩,
-    simp, },
-  exact ⟨⋃₀c, (h c hcS hc hcnemp).1, (h c hcS hc hcnemp).2⟩,
-end
-
-lemma convex_hull_empty :
-  convex_hull(∅ : set E) = ∅ := sorry
-
-lemma convex_hull_empty_iff :
-  convex_hull A = ∅ ↔ A = ∅ := sorry
-
-lemma convex_hull_nonempty_iff :
-  (convex_hull A).nonempty ↔ A.nonempty :=
-begin
-  rw [←ne_empty_iff_nonempty, ←ne_empty_iff_nonempty, ne.def, ne.def],
-  exact not_congr convex_hull_empty_iff,
-end
+variables {E : Type*} [add_comm_group E] [module ℝ E] {x y : E} {A B : set E} {c : set (set E)}
 
 lemma convex_hull_convex_hull_union :
   convex_hull (convex_hull A ∪ B) = convex_hull (A ∪ B) :=
@@ -251,7 +203,7 @@ lemma subsets_compl_convexes (hA : convex A) (hB : convex B) (hAB : disjoint A B
   ∃ C : set E, convex C ∧ convex Cᶜ ∧ A ⊆ C ∧ B ⊆ Cᶜ :=
 begin
   let S : set (set E) := {C | convex C ∧ C ⊆ Bᶜ},
-  obtain ⟨C, hC, hAC, hCmax⟩ := zorn.zorn_subset₀ S (λ c hcS hc ⟨B, hB⟩, ⟨⋃₀c,
+  obtain ⟨C, hC, hAC, hCmax⟩ := zorn.zorn_subset_nonempty S (λ c hcS hc ⟨B, hB⟩, ⟨⋃₀c,
     ⟨convex_sUnion_of_directed (zorn.chain.directed_on hc) (λ A hA, (hcS hA).1), sUnion_subset
     (λ C hC, (hcS hC).2)⟩, λ s, subset_sUnion_of_mem⟩) A ⟨hA, disjoint_iff_subset_compl_right.1 hAB⟩,
   refine ⟨C, hC.1, _, hAC, subset_compl_comm.1 hC.2⟩,

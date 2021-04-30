@@ -5,12 +5,16 @@ Authors: Eric Wieser
 -/
 import algebra.direct_sum_graded
 import algebra.monoid_algebra
+import data.finsupp.to_dfinsupp
 
 /-!
 # Conversion between `add_monoid_algebra` and homogenous `direct_sum`
 
 This module provides conversions between `add_monoid_algebra` and `direct_sum`.
-It is in its own file since neither `add_monoid_algebra` or `direct_sum` depend on each other.
+The latter is essentially a dependent version of the former.
+
+Note that since `direct_sum.has_mul` combines indices additively, there is no equivalent to
+`monoid_algebra`.
 
 ## Main definitions
 
@@ -23,7 +27,7 @@ It is in its own file since neither `add_monoid_algebra` or `direct_sum` depend 
 
 ## Theorems
 
-The defining features of these operations is that map `finsupp.single` to
+The defining feature of these operations is that they map `finsupp.single` to
 `direct_sum.of` and vice versa:
 
 * `add_monoid_algebra.to_direct_sum_single`

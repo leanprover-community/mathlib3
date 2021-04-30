@@ -453,14 +453,14 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 -- TODO trans for restricted
 
-theorem le_of_restricted : Π {x y : pgame} (r : restricted x y), x ≤ y
+theorem restricted.le : Π {x y : pgame} (r : restricted x y), x ≤ y
 | (mk xl xr xL xR) (mk yl yr yL yR)
   (restricted.mk L_embedding R_embedding L_restriction R_restriction) :=
 begin
   rw le_def,
   exact
-    ⟨λ i, or.inl ⟨L_embedding i, le_of_restricted (L_restriction i)⟩,
-     λ i, or.inr ⟨R_embedding i, le_of_restricted (R_restriction i)⟩⟩
+    ⟨λ i, or.inl ⟨L_embedding i, (L_restriction i).le⟩,
+     λ i, or.inr ⟨R_embedding i, (R_restriction i).le⟩⟩
 end
 
 /--
@@ -476,11 +476,11 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 
 /-- If `x` is a relabelling of `y`, then Left and Right have the same moves in either game,
     so `x` is a restriction of `y`. -/
-def restricted_of_relabelling : Π {x y : pgame} (r : relabelling x y), restricted x y
+def relabelling.restricted: Π {x y : pgame} (r : relabelling x y), restricted x y
 | (mk xl xr xL xR) (mk yl yr yL yR) (relabelling.mk L_equiv R_equiv L_relabelling R_relabelling) :=
 restricted.mk L_equiv.to_embedding R_equiv.symm.to_embedding
-  (λ i, restricted_of_relabelling (L_relabelling i))
-  (λ j, restricted_of_relabelling (R_relabelling j))
+  (λ i, (L_relabelling i).restricted)
+  (λ j, (R_relabelling j).restricted)
 
 -- It's not the case that `restricted x y → restricted y x → relabelling x y`,
 -- but if we insisted that the maps in a restriction were injective, then one
@@ -514,14 +514,14 @@ begin
   { intro j, simpa using (R_relabelling₁ _).trans (R_relabelling₂ _) },
 end
 
-theorem le_of_relabelling {x y : pgame} (r : relabelling x y) : x ≤ y :=
-le_of_restricted (restricted_of_relabelling r)
+theorem relabelling.le {x y : pgame} (r : relabelling x y) : x ≤ y :=
+r.restricted.le
 
 /-- A relabelling lets us prove equivalence of games. -/
-theorem equiv_of_relabelling {x y : pgame} (r : relabelling x y) : x ≈ y :=
-⟨le_of_relabelling r, le_of_relabelling r.symm⟩
+theorem relabelling.equiv {x y : pgame} (r : relabelling x y) : x ≈ y :=
+⟨r.le, r.symm.le⟩
 
-instance {x y : pgame} : has_coe (relabelling x y) (x ≈ y) := ⟨equiv_of_relabelling⟩
+instance {x y : pgame} : has_coe (relabelling x y) (x ≈ y) := ⟨relabelling.equiv⟩
 
 /-- Replace the types indexing the next moves for Left and Right by equivalent types. -/
 def relabel {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :=
@@ -599,6 +599,13 @@ end
 @[simp] lemma move_right_right_moves_neg_symm {x : pgame} (i : left_moves x) :
   move_right (-x) ((right_moves_neg x).symm i) = -(move_left x i) :=
 by { cases x, refl }
+
+/-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
+def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabelling (-y)
+| (mk xl xr xL xR) (mk yl yr yL yR) ⟨L_equiv, R_equiv, L_relabelling, R_relabelling⟩ :=
+  ⟨R_equiv, L_equiv,
+    λ i, relabelling.neg_congr (by simpa using R_relabelling (R_equiv i)),
+    λ i, relabelling.neg_congr (by simpa using L_relabelling (L_equiv.symm i))⟩
 
 theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
@@ -685,7 +692,7 @@ end
 
 /-- `x + 0` is equivalent to `x`. -/
 lemma add_zero_equiv (x : pgame.{u}) : x + 0 ≈ x :=
-equiv_of_relabelling (add_zero_relabelling x)
+(add_zero_relabelling x).equiv
 
 /-- `0 + x` has exactly the same moves as `x`. -/
 def zero_add_relabelling : Π (x : pgame.{u}), relabelling (0 + x) x
@@ -700,7 +707,7 @@ end
 
 /-- `0 + x` is equivalent to `x`. -/
 lemma zero_add_equiv (x : pgame.{u}) : 0 + x ≈ x :=
-equiv_of_relabelling (zero_add_relabelling x)
+(zero_add_relabelling x).equiv
 
 /-- An explicit equivalence between the moves for Left in `x + y` and the type-theory sum
     of the moves for Left in `x` and in `y`. -/
@@ -744,7 +751,39 @@ rfl
   (x + y).move_right ((@right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl, }
 
+/-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
+then `w + y` has the same moves as `x + z`. -/
+def relabelling.add_congr : ∀ {w x y z : pgame.{u}},
+  w.relabelling x → y.relabelling z → (w + y).relabelling (x + z)
+| (mk wl wr wL wR) (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR)
+  ⟨L_equiv₁, R_equiv₁, L_relabelling₁, R_relabelling₁⟩
+  ⟨L_equiv₂, R_equiv₂, L_relabelling₂, R_relabelling₂⟩ :=
+begin
+  refine ⟨equiv.sum_congr L_equiv₁ L_equiv₂, equiv.sum_congr R_equiv₁ R_equiv₂, _, _⟩,
+  { rintro (i|j),
+    { exact relabelling.add_congr
+        (L_relabelling₁ i)
+        (⟨L_equiv₂, R_equiv₂, L_relabelling₂, R_relabelling₂⟩) },
+    { exact relabelling.add_congr
+        (⟨L_equiv₁, R_equiv₁, L_relabelling₁, R_relabelling₁⟩)
+        (L_relabelling₂ j) }},
+  { rintro (i|j),
+    { exact relabelling.add_congr
+        (R_relabelling₁ i)
+        (⟨L_equiv₂, R_equiv₂, L_relabelling₂, R_relabelling₂⟩) },
+    { exact relabelling.add_congr
+        (⟨L_equiv₁, R_equiv₁, L_relabelling₁, R_relabelling₁⟩)
+        (R_relabelling₂ j) }}
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
+
+/-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
+then `w - y` has the same moves as `x - z`. -/
+def relabelling.sub_congr {w x y z : pgame}
+  (h₁ : w.relabelling x) (h₂ : y.relabelling z) : (w - y).relabelling (x - z) :=
+h₁.add_congr h₂.neg_congr
 
 /-- `-(x+y)` has exactly the same moves as `-x + -y`. -/
 def neg_add_relabelling : Π (x y : pgame), relabelling (-(x + y)) (-x + -y)
@@ -759,7 +798,7 @@ def neg_add_relabelling : Π (x y : pgame), relabelling (-(x + y)) (-x + -y)
 using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y :=
-le_of_relabelling (neg_add_relabelling x y)
+(neg_add_relabelling x y).le
 
 /-- `x+y` has exactly the same moves as `y+x`. -/
 def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
@@ -772,10 +811,10 @@ end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem add_comm_le {x y : pgame} : x + y ≤ y + x :=
-le_of_relabelling (add_comm_relabelling x y)
+(add_comm_relabelling x y).le
 
 theorem add_comm_equiv {x y : pgame} : x + y ≈ y + x :=
-equiv_of_relabelling (add_comm_relabelling x y)
+(add_comm_relabelling x y).equiv
 
 /-- `(x + y) + z` has exactly the same moves as `x + (y + z)`. -/
 def add_assoc_relabelling : Π (x y z : pgame.{u}), relabelling ((x + y) + z) (x + (y + z))
@@ -802,7 +841,7 @@ end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem add_assoc_equiv {x y z : pgame} : (x + y) + z ≈ x + (y + z) :=
-equiv_of_relabelling (add_assoc_relabelling x y z)
+(add_assoc_relabelling x y z).equiv
 
 theorem add_le_add_right : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -909,13 +948,13 @@ calc 0 ≤ (-x) + x : zero_le_add_left_neg
 theorem add_lt_add_right {x y z : pgame} (h : x < y) : x + z < y + z :=
 suffices y + z ≤ x + z → y ≤ x, by { rw ←not_le at ⊢ h, exact mt this h },
 assume w,
-calc y ≤ y + 0            : le_of_relabelling (add_zero_relabelling _).symm
+calc y ≤ y + 0            : (add_zero_relabelling _).symm.le
      ... ≤ y + (z + -z)   : add_le_add_left zero_le_add_right_neg
-     ... ≤ (y + z) + (-z) : le_of_relabelling (add_assoc_relabelling _ _ _).symm
+     ... ≤ (y + z) + (-z) : (add_assoc_relabelling _ _ _).symm.le
      ... ≤ (x + z) + (-z) : add_le_add_right w
-     ... ≤ x + (z + -z)   : le_of_relabelling (add_assoc_relabelling _ _ _)
+     ... ≤ x + (z + -z)   : (add_assoc_relabelling _ _ _).le
      ... ≤ x + 0          : add_le_add_left add_right_neg_le_zero
-     ... ≤ x              : le_of_relabelling (add_zero_relabelling _)
+     ... ≤ x              : (add_zero_relabelling _).le
 
 theorem add_lt_add_left {x y z : pgame} (h : y < z) : x + y < x + z :=
 calc x + y ≤ y + x : add_comm_le
@@ -925,19 +964,19 @@ calc x + y ≤ y + x : add_comm_le
 theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
 ⟨λ h, le_trans zero_le_add_right_neg (add_le_add_right h),
  λ h,
-  calc x ≤ 0 + x : le_of_relabelling (zero_add_relabelling x).symm
+  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... ≤ (y - x) + x : add_le_add_right h
-     ... ≤ y + (-x + x) : le_of_relabelling (add_assoc_relabelling _ _ _)
+     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero)
-     ... ≤ y : le_of_relabelling (add_zero_relabelling y)⟩
+     ... ≤ y : (add_zero_relabelling y).le⟩
 theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 ⟨λ h, lt_of_le_of_lt zero_le_add_right_neg (add_lt_add_right h),
  λ h,
-  calc x ≤ 0 + x : le_of_relabelling (zero_add_relabelling x).symm
+  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... < (y - x) + x : add_lt_add_right h
-     ... ≤ y + (-x + x) : le_of_relabelling (add_assoc_relabelling _ _ _)
+     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero)
-     ... ≤ y : le_of_relabelling (add_zero_relabelling y)⟩
+     ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
 def star : pgame := pgame.of_lists [0] [0]

@@ -106,10 +106,15 @@ begin
   simp only [basis_repr, single_apply, h, false_and, if_false, linear_equiv.map_zero, zero_apply]
 end
 
-/-- The basis on `ι →₀ M` with basis vectors `λ ⟨i, x⟩, single i 1`. -/
-protected def basis_one {φ : ι → Type*} [∀ i, unique (φ i)] :
-  basis (Σ i, φ i) R (ι →₀ R) :=
-finsupp.basis (λ i, basis.singleton _ _)
+/-- The basis on `ι →₀ M` with basis vectors `λ i, single i 1`. -/
+@[simps]
+protected def basis_single_one :
+  basis ι R (ι →₀ R) :=
+basis.of_repr (linear_equiv.refl _ _)
+
+@[simp] lemma coe_basis_single_one :
+  (finsupp.basis_single_one : ι → (ι →₀ R)) = λ i, finsupp.single i 1 :=
+funext $ λ i, basis.apply_eq_iff.mpr rfl
 
 end ring
 
@@ -118,13 +123,12 @@ variables {R : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
 variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
 
 /-- If b : ι → M and c : κ → N are bases then so is λ i, b i.1 ⊗ₜ c i.2 : ι × κ → M ⊗ N. -/
-lemma basis.tensor_product {b : ι → M} (hb : basis R b) {c : κ → N} (hc : basis R c) :
-  basis R (λ i : ι × κ, b i.1 ⊗ₜ[R] c i.2) :=
-by { convert linear_equiv.basis basis_single_one
-  ((tensor_product.congr (module_equiv_finsupp hb) (module_equiv_finsupp hc)).trans $
+lemma basis.tensor_product (b : basis ι R M) (c : basis κ R N) :
+  basis (ι × κ) R (tensor_product R M N) :=
+finsupp.basis_single_one.map
+  ((tensor_product.congr b.repr c.repr).trans $
     (finsupp_tensor_finsupp _ _ _ _ _).trans $
-    lcongr (equiv.refl _) (tensor_product.lid R R)).symm,
-  ext ⟨i, k⟩, rw [function.comp_apply, linear_equiv.eq_symm_apply], simp }
+    lcongr (equiv.refl _) (tensor_product.lid R R)).symm
 
 end comm_ring
 
@@ -135,9 +139,9 @@ variables [field K] [add_comm_group V] [module K V]
 
 lemma dim_eq : module.rank K (ι →₀ V) = cardinal.mk ι * module.rank K V :=
 begin
-  rcases exists_basis K V with ⟨bs, hbs⟩,
-  rw [← cardinal.lift_inj, cardinal.lift_mul, ← hbs.mk_eq_dim,
-      ← (basis_single _ (λa:ι, hbs)).mk_eq_dim, ← cardinal.sum_mk,
+  let bs := basis.of_vector_space K V,
+  rw [← cardinal.lift_inj, cardinal.lift_mul, ← bs.mk_eq_dim,
+      ← (finsupp.basis (λa:ι, bs)).mk_eq_dim, ← cardinal.sum_mk,
       ← cardinal.lift_mul, cardinal.lift_inj],
   { simp only [cardinal.mk_image_eq (single_injective.{u u} _), cardinal.sum_const] }
 end
@@ -168,14 +172,12 @@ lemma equiv_of_dim_eq_lift_dim
 begin
   haveI := classical.dec_eq V,
   haveI := classical.dec_eq V',
-  rcases exists_basis K V with ⟨m, hm⟩,
-  rcases exists_basis K V' with ⟨m', hm'⟩,
-  rw [←cardinal.lift_inj.1 hm.mk_eq_dim, ←cardinal.lift_inj.1 hm'.mk_eq_dim] at h,
+  let m := basis.of_vector_space K V,
+  let m' := basis.of_vector_space K V',
+  rw [←cardinal.lift_inj.1 m.mk_eq_dim, ←cardinal.lift_inj.1 m'.mk_eq_dim] at h,
   rcases quotient.exact h with ⟨e⟩,
   let e := (equiv.ulift.symm.trans e).trans equiv.ulift,
-  exact ⟨((module_equiv_finsupp hm).trans
-      (finsupp.dom_lcongr e)).trans
-      (module_equiv_finsupp hm').symm⟩,
+  exact ⟨(m.repr.trans (finsupp.dom_lcongr e)).trans m'.repr.symm⟩
 end
 
 /-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
@@ -209,12 +211,9 @@ variables (K V : Type u) [field K] [add_comm_group V] [module K V]
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
   cardinal.mk V = cardinal.mk K ^ module.rank K V :=
 begin
-  rcases exists_basis K V with ⟨s, hs⟩,
-  have : nonempty (fintype s),
-  { rw [← cardinal.lt_omega_iff_fintype, cardinal.lift_inj.1 hs.mk_eq_dim],
-    exact finite_dimensional.dim_lt_omega K V },
-  cases this with hsf, letI := hsf,
-  calc cardinal.mk V = cardinal.mk (s →₀ K) : quotient.sound ⟨(module_equiv_finsupp hs).to_equiv⟩
+  let s := basis.of_vector_space_index K V,
+  let hs := basis.of_vector_space K V,
+  calc cardinal.mk V = cardinal.mk (s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩
     ... = cardinal.mk (s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end

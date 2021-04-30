@@ -125,9 +125,14 @@ lemma ring_hom_ext {S} [semiring S] {f g : polynomial R →+* S}
 begin
   set f' := f.comp (to_finsupp_iso R).symm.to_ring_hom with hf',
   set g' := g.comp (to_finsupp_iso R).symm.to_ring_hom with hg',
-  have A : f' = g', by { ext, { simp [h₁] }, { simpa using h₂, } },
-  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', ring_hom.comp_assoc], ext x, simp },
-  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', ring_hom.comp_assoc], ext x, simp },
+  have A : f' = g',
+  { ext,
+    { simp [h₁, ring_equiv.to_ring_hom_eq_coe] },
+    { simpa [ring_equiv.to_ring_hom_eq_coe] using h₂, } },
+  have B : f = f'.comp (to_finsupp_iso R),
+    by { rw [hf', ring_hom.comp_assoc], ext x, simp [ring_equiv.to_ring_hom_eq_coe] },
+  have C : g = g'.comp (to_finsupp_iso R),
+    by { rw [hg', ring_hom.comp_assoc], ext x, simp [ring_equiv.to_ring_hom_eq_coe] },
   rw [B, C, A]
 end
 

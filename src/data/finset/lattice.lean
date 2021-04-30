@@ -37,6 +37,10 @@ fold_cons h
 @[simp] lemma sup_insert [decidable_eq β] {b : β} : (insert b s : finset β).sup f = f b ⊔ s.sup f :=
 fold_insert_idem
 
+lemma sup_image [decidable_eq β] (s : finset γ) (f : γ → β) (g : β → α):
+  (s.image f).sup g = s.sup (g ∘ f) :=
+fold_image_idem
+
 @[simp] lemma sup_singleton {b : β} : ({b} : finset β).sup f = f b :=
 sup_singleton
 
@@ -179,6 +183,10 @@ fold_empty
 
 @[simp] lemma inf_insert [decidable_eq β] {b : β} : (insert b s : finset β).inf f = f b ⊓ s.inf f :=
 fold_insert_idem
+
+lemma inf_image [decidable_eq β] (s : finset γ) (f : γ → β) (g : β → α):
+  (s.image f).inf g = s.inf (g ∘ f) :=
+fold_image_idem
 
 @[simp] lemma inf_singleton {b : β} : ({b} : finset β).inf f = f b :=
 inf_singleton

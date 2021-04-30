@@ -171,7 +171,7 @@ noncomputable def Profinite.iso_of_bijective {X Y : Profinite} (f : X ⟶ Y)
   (bij : function.bijective f) : X ≅ Y :=
 by letI := Profinite.is_iso_of_bijective f bij; exact as_iso f
 
-instance : reflects_isomorphisms (forget Profinite) :=
+instance Profinite.forget_reflects_isomorphisms : reflects_isomorphisms (forget Profinite) :=
 ⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
 
 end Profinite

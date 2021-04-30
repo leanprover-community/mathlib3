@@ -611,6 +611,18 @@ b.sum_equiv_fun u
 lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=
 by { rw [b.equiv_fun_apply, b.repr_self_apply] }
 
+/-- Define a basis by mapping each vector `x : M` to its coordinates `e x : ι → R`,
+as long as `ι` is finite. -/
+def basis.of_equiv_fun (e : M ≃ₗ[R] (ι → R)) : basis ι R M :=
+basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_fintype R
+
+@[simp] lemma basis.of_equiv_fun_repr_apply (e : M ≃ₗ[R] (ι → R)) (x : M) (i : ι) :
+  (basis.of_equiv_fun e).repr x i = e x i := rfl
+
+@[simp] lemma basis.coe_of_equiv_fun (e : M ≃ₗ[R] (ι → R)) :
+  (basis.of_equiv_fun e : ι → M) = λ i, e.symm (function.update 0 i 1) :=
+funext $ λ i, e.injective $ funext $ λ j, by simp [basis.of_equiv_fun, finsupp.single_eq_update]
+
 variables (S : Type*) [semiring S] [module S M']
 variables [smul_comm_class R S M']
 

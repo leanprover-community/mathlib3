@@ -453,7 +453,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     return (prod.mk rhsprf1 rhsprf2) }
     <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
   sort lvl ← infer_type type,
-  let eq_ap := (const `eq [lvl]).app_of_list [type, lhs, rhs],
+  let eq_ap := const `eq [lvl] type lhs rhs,
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
   let decl_value := prf.lambdas args,

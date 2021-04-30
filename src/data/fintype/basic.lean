@@ -1019,6 +1019,16 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
+private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injective f} ≃ (α ↪ β) :=
+{ to_fun := λ f, ⟨f.val, f.property⟩,
+  inv_fun := λ f, ⟨f, f.injective⟩,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by {ext, refl} }
+
+instance function.embedding.fintype {α β} [fintype α] [fintype β]
+  [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
+  fintype.of_equiv _ (equiv_inj_subtype α β)
+
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
@@ -1499,6 +1509,11 @@ lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β)
 assume (hf : surjective f),
 have H : infinite α := infinite.of_surjective f hf,
 @infinite.not_fintype _ H infer_instance
+
+instance function.embedding.fintype' {α β} [infinite α] [fintype β] : fintype (α ↪ β) :=
+{ elems := finset.empty,
+  complete := λ f, let ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f in
+              false.elim $ ne $ f.injective f_eq }
 
 instance nat.infinite : infinite ℕ :=
 ⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩

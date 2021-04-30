@@ -19,15 +19,6 @@ begin
     exact one_ne_zero },
 end
 
-lemma leading_coeff_poly (a : ℕ) (b : ℤ) :
-  (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).leading_coeff = 1 :=
-by rw [leading_coeff, nat_degree_poly, coeff_add, coeff_sub, coeff_X_pow_self,
-  coeff_C_mul, coeff_X, if_neg (nat.one_ne_bit1 two_ne_zero), mul_zero, sub_zero,
-  coeff_C, if_neg (nat.bit1_ne_zero 2), add_zero]
-
-lemma monic_poly (a : ℕ) (b : ℤ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).monic :=
-leading_coeff_poly a b
-
 --todo: rewrite proof using above lemmas
 lemma irreducible_poly (a : ℕ) (b : ℤ) (p : ℕ)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
@@ -72,12 +63,31 @@ begin
   { exact is_primitive_iff_is_unit_of_C_dvd.mp r_primitive },
 end
 
-lemma complex_roots_poly (a : ℕ) (b : ℤ) (hab : abs b < a) :
+lemma tada {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
+  fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
+begin
+  sorry,
+end
+
+lemma real_roots_poly (a : ℕ) (b : ℤ) (hab : abs b < a) :
   fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) = 3 :=
 begin
   apply le_antisymm,
-  sorry,
-  sorry,
+  { apply (tada (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).trans,
+    apply nat.succ_le_succ,
+    simp_rw [derivative_add, derivative_sub, derivative_C, add_zero,
+      derivative_C_mul, derivative_X, mul_one, derivative_X_pow],
+    sorry },
+  { sorry },
+end
+
+lemma complex_roots_poly (a : ℕ) (b : ℤ) (h : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).separable) :
+  fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℂ) = 5 :=
+begin
+  simp_rw [root_set_def, fintype.card_coe],
+  rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots, nat_degree_poly],
+  { exact is_alg_closed.splits_codomain _ },
+  { exact nodup_roots ((separable_map _).mpr h) },
 end
 
 lemma gal_poly (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
@@ -90,21 +100,29 @@ begin
   apply gal_action_hom_bijective_of_prime_degree q_irred,
   { rw nat_degree_poly,
     norm_num },
-  { have h1 : fintype.card (q.root_set ℂ) = 5,
-    { simp_rw [root_set_def, fintype.card_coe],
-      rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots, nat_degree_poly],
-      { exact is_alg_closed.splits_codomain q },
-      { exact nodup_roots ((separable_map _).mpr q_irred.separable) } },
-    have h2 : fintype.card (q.root_set ℝ) = 3,
-    { exact complex_roots_poly a b hab },
-    rw [h1, h2] },
+  { rw [real_roots_poly a b hab, complex_roots_poly a b q_irred.separable] },
 end
 
-theorem tada (x : ℂ) (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
+theorem not_solvable_poly (x : ℂ) (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b))
   (hx : aeval x (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) = 0) :
   ¬ is_solvable_by_rad ℚ x :=
 begin
-  apply solvable_by_rad.is_solvable_contrapositive (irreducible_poly a b p hp hpa hpb hp2b)
-    (monic_poly a b) hx,
+  apply solvable_by_rad.is_solvable_contrapositive (irreducible_poly a b p hp hpa hpb hp2b) hx,
+  introI h,
+  have key := solvable_of_surjective (gal_poly a b p hab hp hpa hpb hp2b).2,
+  sorry,
+end
+
+theorem not_solvable_poly' (x : ℂ) (hx : aeval x (X ^ 5 - 4 * X + 2 : polynomial ℚ) = 0) :
+  ¬ is_solvable_by_rad ℚ x :=
+begin
+  apply not_solvable_poly x 4 2 2,
+  { norm_num },
+  { norm_num },
+  { norm_num },
+  { norm_num },
+  { norm_num },
+  { rw [C_eq_nat_cast, C_eq_int_cast, ←hx],
+    norm_cast },
 end

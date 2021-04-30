@@ -1004,6 +1004,18 @@ begin
   { simp_rw [infi_ge_eq_infi_nat_add, ←nat.add_assoc], },
 end
 
+lemma sup_supr_nat_succ (u : ℕ → α) : u 0 ⊔ (⨆ i, u (i + 1)) = ⨆ i, u i :=
+begin
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [sup_le_iff, supr_le_iff],
+  refine ⟨λ h, _, λ h, ⟨h _, λ i, h _⟩⟩,
+  rintro (_|i),
+  exacts [h.1, h.2 i]
+end
+
+lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u i :=
+@sup_supr_nat_succ (order_dual α) _ u
+
 end
 
 section complete_linear_order
@@ -1069,6 +1081,14 @@ by rw [infi, Inf_apply, infi, infi, ← image_eq_range (λ f : Π i, β i, f a) 
 lemma Sup_apply {α : Type*} {β : α → Type*} [Π i, has_Sup (β i)] {s : set (Πa, β a)} {a : α} :
   (Sup s) a = (⨆f:s, (f : Πa, β a) a) :=
 rfl
+
+lemma unary_relation_Sup_iff {α : Type*} (s : set (α → Prop)) {a : α} :
+  Sup s a ↔ ∃ (r : α → Prop), r ∈ s ∧ r a :=
+by { change (∃ _, _) ↔ _, simp [-eq_iff_iff] }
+
+lemma binary_relation_Sup_iff {α β : Type*} (s : set (α → β → Prop)) {a : α} {b : β} :
+  Sup s a b ↔ ∃ (r : α → β → Prop), r ∈ s ∧ r a b :=
+by { change (∃ _, _) ↔ _, simp [-eq_iff_iff] }
 
 lemma supr_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Sup (β i)] {f : ι → Πa, β a}
   {a : α} :

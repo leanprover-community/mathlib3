@@ -3,10 +3,8 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import ring_theory.ideal.operations
-import data.polynomial.ring_division
-import tactic.apply_fun
 import ring_theory.prime
+import ring_theory.polynomial.content
 /-!
 # Eisenstein's criterion
 
@@ -73,7 +71,7 @@ theorem irreducible_of_eisenstein_criterion {f : polynomial R} {P : ideal R} (hP
   (hfl : f.leading_coeff ∉ P)
   (hfP : ∀ n : ℕ, ↑n < degree f → f.coeff n ∈ P)
   (hfd0 : 0 < degree f) (h0 : f.coeff 0 ∉ P^2)
-  (hu : ∀ x : R, C x ∣ f → is_unit x) : irreducible f :=
+  (hu : f.is_primitive) : irreducible f :=
 have hf0 : f ≠ 0, from λ _, by simp only [*, not_true, submodule.zero_mem, coeff_zero] at *,
 have hf : f.map (mk P) = C (mk P (leading_coeff f)) * X ^ nat_degree f,
   from map_eq_C_mul_X_pow_of_forall_coeff_mem hfP hf0,
@@ -89,7 +87,7 @@ begin
   have hmn : 0 < m → 0 < n → false,
   { assume hm0 hn0,
     refine h0 _,
-    rw [coeff_zero_eq_eval_zero, eval_mul, pow_two],
+    rw [coeff_zero_eq_eval_zero, eval_mul, sq],
     exact ideal.mul_mem_mul
       (eval_zero_mem_ideal_of_eq_mul_X_pow hp hm0)
       (eval_zero_mem_ideal_of_eq_mul_X_pow hq hn0) },

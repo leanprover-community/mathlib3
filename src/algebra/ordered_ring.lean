@@ -820,11 +820,11 @@ have h' : a * c ≤ b * c, from calc
        ... ≤ b * c : mul_le_mul_of_nonneg_left hc hb,
 le_of_mul_le_mul_right h' (zero_lt_one.trans_le hc)
 
-lemma nonneg_le_nonneg_of_squares_le {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
+lemma nonneg_le_nonneg_of_sq_le_sq {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
 le_of_not_gt (λhab, (mul_self_lt_mul_self hb hab).not_le h)
 
 lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
-⟨mul_self_le_mul_self h1, nonneg_le_nonneg_of_squares_le h2⟩
+⟨mul_self_le_mul_self h1, nonneg_le_nonneg_of_sq_le_sq h2⟩
 
 lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
 ((@strict_mono_incr_on_mul_self α _).lt_iff_lt h1 h2).symm
@@ -967,7 +967,7 @@ max_le
   (by simpa [mul_comm, max_comm] using ba)
   (by simpa [mul_comm, max_comm] using cd)
 
-lemma abs_sub_square (a b : α) : abs (a - b) * abs (a - b) = a * a + b * b - (1 + 1) * a * b :=
+lemma abs_sub_sq (a b : α) : abs (a - b) * abs (a - b) = a * a + b * b - (1 + 1) * a * b :=
 begin
   rw abs_mul_abs_self,
   simp [left_distrib, right_distrib, add_assoc, add_comm, add_left_comm, mul_comm, sub_eq_add_neg],

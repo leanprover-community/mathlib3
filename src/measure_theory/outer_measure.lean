@@ -209,9 +209,9 @@ instance : has_scalar ℝ≥0∞ (outer_measure α) :=
 
 lemma smul_apply (c : ℝ≥0∞) (m : outer_measure α) (s : set α) : (c • m) s = c * m s := rfl
 
-instance : semimodule ℝ≥0∞ (outer_measure α) :=
+instance : module ℝ≥0∞ (outer_measure α) :=
 { smul := (•),
-  .. injective.semimodule ℝ≥0∞ ⟨show outer_measure α → set α → ℝ≥0∞, from coe_fn, coe_zero,
+  .. injective.module ℝ≥0∞ ⟨show outer_measure α → set α → ℝ≥0∞, from coe_fn, coe_zero,
     coe_add⟩ coe_fn_injective coe_smul }
 
 instance : has_bot (outer_measure α) := ⟨0⟩

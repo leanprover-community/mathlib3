@@ -111,7 +111,7 @@ begin
   intros k,
   by_cases hk : k = n,
   { use 0,
-    simp only [hk, ring_hom.map_zero, erase_same]},
+    simp only [hk, ring_hom.map_zero, erase_same] },
   obtain ⟨i, hi⟩ := h k,
   use i,
   simp only [hi, hk, erase_ne, ne.def, not_false_iff],

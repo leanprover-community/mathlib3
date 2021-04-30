@@ -162,8 +162,8 @@ lemma linear_independent.ne_zero [nontrivial R]
 λ h, @zero_ne_one R _ _ $ eq.symm begin
   suffices : (finsupp.single i 1 : ι →₀ R) i = 0, {simpa},
   rw linear_independent_iff.1 hv (finsupp.single i 1),
-  {simp},
-  {simp [h]}
+  { simp },
+  { simp [h] }
 end
 
 /-- A subfamily of a linearly independent family (i.e., a composition with an injective map) is a

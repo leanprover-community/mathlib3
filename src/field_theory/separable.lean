@@ -347,7 +347,7 @@ end
 theorem map_expand_pow_char (f : polynomial F) (n : ℕ) :
    map ((frobenius F p) ^ n) (expand F (p ^ n) f) = f ^ (p ^ n) :=
 begin
-  induction n, {simp [ring_hom.one_def]},
+  induction n, { simp [ring_hom.one_def] },
   symmetry,
   rw [pow_succ', pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def, ← map_map, mul_comm,
       expand_mul, ← map_expand (nat.prime.pos hp.1)],

@@ -139,8 +139,19 @@ section
 
 variables [has_products A]
 
+/--
+The middle object of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
+of https://stacks.math.columbia.edu/tag/00VM.
+-/
 def first_obj : A :=
 ∏ (λ (f : Σ V, {f : V ⟶ U // R f}), P.obj (op f.1))
+
+/--
+The left morphism of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
+of https://stacks.math.columbia.edu/tag/00VM.
+-/
+def fork_map : P.obj (op U) ⟶ first_obj R P :=
+pi.lift (λ f, P.map f.2.1.op)
 
 variables [has_pullbacks C]
 
@@ -160,13 +171,6 @@ pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.fst.op)
 def second_map : first_obj R P ⟶ second_obj R P :=
 pi.lift (λ fg, pi.π _ _ ≫ P.map pullback.snd.op)
 
-/--
-The left morphism of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
-of https://stacks.math.columbia.edu/tag/00VM.
--/
-def fork_map : P.obj (op U) ⟶ first_obj R P :=
-pi.lift (λ f, P.map f.2.1.op)
-
 lemma w : fork_map R P ≫ first_map R P = fork_map R P ≫ second_map R P :=
 begin
   apply limit.hom_ext,
@@ -177,6 +181,10 @@ begin
   simp,
 end
 
+/--
+An alternative definition of the sheaf condition in terms of equalizers. This is shown to be
+equivalent in `category_theory.presheaf.is_sheaf_iff_is_sheaf'`.
+-/
 def is_sheaf' (P : Cᵒᵖ ⥤ A) : Prop := ∀ (U : C) (R : presieve U) (hR : generate R ∈ J U),
 nonempty (is_limit (fork.of_ι _ (w R P)))
 
@@ -247,7 +255,7 @@ for the category of topological spaces, topological rings, etc since reflecting 
 hold.
 -/
 lemma is_sheaf_iff_is_sheaf_forget (s : A ⥤ Type v)
-  [has_limits A] [preserves_limits s] [faithful s] [reflects_isomorphisms s] :
+  [has_limits A] [preserves_limits s] [reflects_isomorphisms s] :
   is_sheaf J P ↔ is_sheaf J (P ⋙ s) :=
 begin
   rw [is_sheaf_iff_is_sheaf', is_sheaf_iff_is_sheaf'],

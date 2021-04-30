@@ -261,10 +261,17 @@ by simp [sub_eq_add_neg]
 @[simp] lemma sub_apply (Q Q' : quadratic_form R M) (x : M) : (Q - Q') x = Q x - Q' x :=
 by simp [sub_eq_add_neg]
 
-/-- `@coe_fn (quadratic_form R M)` as an `add_monoid_hom`. -/
+/-- `@coe_fn (quadratic_form R M)` as an `add_monoid_hom`.
+
+This API mirrors `add_monoid_hom.coe_fn`. -/
 @[simps apply]
 def coe_fn_add_monoid_hom : quadratic_form R M →+ (M → R) :=
 { to_fun := coe_fn, map_zero' := coe_fn_zero, map_add' := coe_fn_add }
+
+/-- Evaluation on a particular element of the module `M` is an additive map over quadratic forms. -/
+@[simps apply]
+def eval_add_monoid_hom (m : M) : quadratic_form R M →+ R :=
+(add_monoid_hom.apply _ m).comp coe_fn_add_monoid_hom
 
 section sum
 
@@ -276,7 +283,7 @@ open_locale big_operators
 
 @[simp] lemma sum_apply {ι : Type*} (Q : ι → quadratic_form R M) (s : finset ι) (x : M) :
   (∑ i in s, Q i) x = ∑ i in s, Q i x :=
-by rw [coe_fn_sum, finset.sum_apply]
+(eval_add_monoid_hom x : _ →+ R).map_sum Q s
 
 end sum
 

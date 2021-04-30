@@ -66,11 +66,11 @@ def of : CompHaus :=
 
 @[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
 
-/-- Any morphism of compact t2 spaces is a closed map. -/
+/-- Any continuous bijection induces an isomorphism. -/
 lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
 λ C hC, (hC.compact.image f.continuous).is_closed
 
-/-- Any bijection is an isomorphism. -/
+/-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
 lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
 begin
   let E := equiv.of_bijective _ bij,
@@ -86,7 +86,7 @@ begin
     apply E.apply_symm_apply }
 end
 
-/-- Any bijection is an isomorphism. -/
+/-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
 noncomputable
 def iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
 by letI := is_iso_of_bijective _ bij; exact as_iso f

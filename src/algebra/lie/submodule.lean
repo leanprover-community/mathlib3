@@ -89,6 +89,15 @@ begin
   { rw h, },
 end
 
+/-- Copy of a lie_submodule with a new `carrier` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
+{ carrier := s,
+  zero_mem' := hs.symm ▸ N.zero_mem',
+  add_mem'  := hs.symm ▸ N.add_mem',
+  smul_mem' := hs.symm ▸ N.smul_mem',
+  lie_mem   := hs.symm ▸ N.lie_mem, }
+
 instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
   add_lie     := by { intros x y m, apply set_coe.ext, apply add_lie, },
@@ -395,9 +404,11 @@ variables [add_comm_group M'] [module R M'] [lie_ring_module L M'] [lie_module R
 
 namespace lie_submodule
 
+variables (f : M →ₗ⁅R,L⁆ M') (N N₂ : lie_submodule R L M) (N' : lie_submodule R L M')
+
 /-- A morphism of Lie modules `f : M → M'` pushes forward Lie submodules of `M` to Lie submodules
 of `M'`. -/
-def map (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M) : lie_submodule R L M' :=
+def map : lie_submodule R L M' :=
 { lie_mem := λ x m' h, by
   { rcases h with ⟨m, hm, hfm⟩, use ⁅x, m⁆, split,
     { apply N.lie_mem hm, },
@@ -406,21 +417,33 @@ def map (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M) : lie_submodule R L
 
 /-- A morphism of Lie modules `f : M → M'` pulls back Lie submodules of `M'` to Lie submodules of
 `M`. -/
-def comap (f : M →ₗ⁅R,L⁆ M') (N : lie_submodule R L M') : lie_submodule R L M :=
-{ lie_mem := λ x m h, by { suffices : ⁅x, f m⁆ ∈ N, { simp [this], }, apply N.lie_mem h, },
-  ..(N : submodule R M').comap (f : M →ₗ[R] M') }
+def comap : lie_submodule R L M :=
+{ lie_mem := λ x m h, by { suffices : ⁅x, f m⁆ ∈ N', { simp [this], }, apply N'.lie_mem h, },
+  ..(N' : submodule R M').comap (f : M →ₗ[R] M') }
 
-lemma map_le_iff_le_comap {f : M →ₗ⁅R,L⁆ M'} {N : lie_submodule R L M} {N' : lie_submodule R L M'} :
-  map f N ≤ N' ↔ N ≤ comap f N' := set.image_subset_iff
+variables {f N N₂ N'}
 
-lemma gc_map_comap (f : M →ₗ⁅R,L⁆ M') : galois_connection (map f) (comap f) :=
+lemma map_le_iff_le_comap : map f N ≤ N' ↔ N ≤ comap f N' :=
+set.image_subset_iff
+
+variables (f)
+
+lemma gc_map_comap : galois_connection (map f) (comap f) :=
 λ N N', map_le_iff_le_comap
+
+variables {f}
+
+@[simp] lemma map_sup : (N ⊔ N₂).map f = N.map f ⊔ N₂.map f :=
+(gc_map_comap f).l_sup
+
+lemma mem_map (m' : M') : m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
+submodule.mem_map
 
 end lie_submodule
 
 namespace lie_ideal
 
-variables (f : L →ₗ⁅R⁆ L') (I : lie_ideal R L) (J : lie_ideal R L')
+variables (f : L →ₗ⁅R⁆ L') (I I₂ : lie_ideal R L) (J : lie_ideal R L')
 
 @[simp] lemma top_coe_lie_subalgebra : ((⊤ : lie_ideal R L) : lie_subalgebra R L) = ⊤ := rfl
 
@@ -448,7 +471,7 @@ rfl
 
 lemma map_le : map f I ≤ J ↔ f '' I ⊆ J := lie_submodule.lie_span_le
 
-variables {f I J}
+variables {f I I₂ J}
 
 lemma mem_map {x : L} (hx : x ∈ I) : f x ∈ map f I :=
 by { apply lie_submodule.subset_lie_span, use x, exact ⟨hx, rfl⟩, }
@@ -458,8 +481,15 @@ by { apply lie_submodule.subset_lie_span, use x, exact ⟨hx, rfl⟩, }
 lemma map_le_iff_le_comap : map f I ≤ J ↔ I ≤ comap f J :=
 by { rw map_le, exact set.image_subset_iff, }
 
+variables (f)
+
 lemma gc_map_comap : galois_connection (map f) (comap f) :=
 λ I I', map_le_iff_le_comap
+
+variables {f}
+
+@[simp] lemma map_sup : (I ⊔ I₂).map f = I.map f ⊔ I₂.map f :=
+(gc_map_comap f).l_sup
 
 lemma map_comap_le : map f (comap f J) ≤ J :=
 by { rw map_le_iff_le_comap, apply le_refl _, }
@@ -718,6 +748,31 @@ end
 end lie_ideal
 
 end lie_submodule_map_and_comap
+
+namespace lie_module_hom
+
+variables {R : Type u} {L : Type v} {M : Type w} {N : Type w₁}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L]
+variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group N] [module R N] [lie_ring_module L N] [lie_module R L N]
+variables (f : M →ₗ⁅R,L⁆ N)
+
+/-- The range of a morphism of Lie modules `f : M → N` is a Lie submodule of `N`.
+See Note [range copy pattern]. -/
+def range : lie_submodule R L N :=
+(lie_submodule.map f ⊤).copy (set.range f) set.image_univ.symm
+
+@[simp] lemma coe_range : (f.range : set N) = set.range f := rfl
+
+@[simp] lemma coe_submodule_range : (f.range : submodule R N) = (f : M →ₗ[R] N).range := rfl
+
+@[simp] lemma mem_range (n : N) : n ∈ f.range ↔ ∃ m, f m = n :=
+iff.rfl
+
+lemma map_top : lie_submodule.map f ⊤ = f.range :=
+by { ext, simp [lie_submodule.mem_map], }
+
+end lie_module_hom
 
 section top_equiv_self
 

@@ -34,7 +34,12 @@ instance : comm_ring int :=
   sub            := int.sub,
   left_distrib   := int.distrib_left,
   right_distrib  := int.distrib_right,
-  mul_comm       := int.mul_comm }
+  mul_comm       := int.mul_comm,
+  gsmul          := (*),
+  gsmul_zero'    := int.zero_mul,
+  gsmul_succ'    := λ n x, by rw [succ_eq_one_add, of_nat_add, int.distrib_right, of_nat_one,
+                                  int.one_mul],
+  gsmul_neg'     := λ n x, neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
 /-! ### Extra instances to short-circuit type class resolution -/
 -- instance : has_sub int            := by apply_instance -- This is in core
@@ -296,13 +301,13 @@ begin
 end
 
 lemma nat_abs_eq_iff_sq_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a ^ 2 = b ^ 2 :=
-by { rw [pow_two, pow_two], exact nat_abs_eq_iff_mul_self_eq }
+by { rw [sq, sq], exact nat_abs_eq_iff_mul_self_eq }
 
 lemma nat_abs_lt_iff_sq_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a ^ 2 < b ^ 2 :=
-by { rw [pow_two, pow_two], exact nat_abs_lt_iff_mul_self_lt }
+by { rw [sq, sq], exact nat_abs_lt_iff_mul_self_lt }
 
 lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
-by { rw [pow_two, pow_two], exact nat_abs_le_iff_mul_self_le }
+by { rw [sq, sq], exact nat_abs_le_iff_mul_self_le }
 
 /-! ### `/`  -/
 

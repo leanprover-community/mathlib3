@@ -69,7 +69,7 @@ begin
   introsI hG hH,
   rw impartial_def,
   split,
-  { apply equiv_trans _ (equiv_of_relabelling (neg_add_relabelling G H)).symm,
+  { apply equiv_trans _ (neg_add_relabelling G H).equiv.symm,
     exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
   split,
   all_goals

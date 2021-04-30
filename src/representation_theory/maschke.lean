@@ -35,7 +35,7 @@ of a finite group is semisimple (i.e. a direct sum of irreducibles).
 universes u
 
 noncomputable theory
-open semimodule
+open module
 open monoid_algebra
 open_locale big_operators
 

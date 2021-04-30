@@ -50,6 +50,7 @@ instance has_bracket : has_bracket (lie_ideal R L) (lie_submodule R L M) :=
 lemma lie_ideal_oper_eq_span :
   ⁅I, N⁆ = lie_span R L { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } := rfl
 
+/-- See also `lie_submodule.lie_ideal_oper_eq_tensor_map_range`. -/
 lemma lie_ideal_oper_eq_linear_span :
   (↑⁅I, N⁆ : submodule R M) = submodule.span R { m | ∃ (x : I) (n : N), ⁅(x : L), (n : M)⁆ = m } :=
 begin
@@ -180,7 +181,7 @@ begin
   suffices : ⁅map f I₁, map f I₂⁆ ≤ map f ⁅I₁, I₂⁆, { exact le_antisymm (map_bracket_le f) this, },
   rw [← lie_submodule.coe_submodule_le_coe_submodule, coe_map_of_surjective h,
     lie_submodule.lie_ideal_oper_eq_linear_span,
-    lie_submodule.lie_ideal_oper_eq_linear_span, submodule.map_span],
+    lie_submodule.lie_ideal_oper_eq_linear_span, linear_map.map_span],
   apply submodule.span_mono,
   rintros x ⟨⟨z₁, h₁⟩, ⟨z₂, h₂⟩, rfl⟩,
   obtain ⟨y₁, rfl⟩ := mem_map_of_surjective h h₁,
@@ -206,7 +207,7 @@ begin
   rw [← lie_submodule.coe_to_submodule_eq_iff, comap_coe_submodule,
     lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, ← linear_map.comap_map_eq,
     lie_submodule.lie_ideal_oper_eq_linear_span, lie_submodule.lie_ideal_oper_eq_linear_span,
-    submodule.map_span],
+    linear_map.map_span],
   congr, simp only [lie_hom.coe_to_linear_map, set.mem_set_of_eq], ext y,
   split,
   { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩, hy⟩, rw ← hy,

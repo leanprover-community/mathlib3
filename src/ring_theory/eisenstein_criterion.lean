@@ -87,7 +87,7 @@ begin
   have hmn : 0 < m → 0 < n → false,
   { assume hm0 hn0,
     refine h0 _,
-    rw [coeff_zero_eq_eval_zero, eval_mul, pow_two],
+    rw [coeff_zero_eq_eval_zero, eval_mul, sq],
     exact ideal.mul_mem_mul
       (eval_zero_mem_ideal_of_eq_mul_X_pow hp hm0)
       (eval_zero_mem_ideal_of_eq_mul_X_pow hq hn0) },

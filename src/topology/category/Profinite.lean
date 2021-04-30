@@ -68,6 +68,26 @@ rfl
 
 @[simp] lemma coe_comp {X Y Z : Profinite} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g : X → Z) = g ∘ f := rfl
 
+/-- Any morphism of profinite spaces is a closed map. -/
+lemma is_closed_map {X Y : Profinite} (f : X ⟶ Y) : is_closed_map f :=
+λ C hC, is_compact.is_closed $ is_compact.image (is_closed.compact hC) f.continuous
+
+/-- Any bijection is an isomorphism. -/
+lemma is_iso_of_bijective {X Y : Profinite} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
+let E := equiv.of_bijective _ bij,
+    hE : continuous E.symm :=
+    begin
+      rw continuous_iff_is_closed,
+      intros S hS,
+      convert ← is_closed_map f S hS,
+      erw equiv.image_eq_preimage E
+    end in ⟨⟨⟨E.symm, hE⟩, by tidy, by tidy⟩⟩
+
+/-- Any bijection is an isomorphism. -/
+noncomputable
+def iso_of_bijective {X Y : Profinite} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
+by letI := is_iso_of_bijective _ bij; exact as_iso f
+
 end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/

@@ -975,12 +975,11 @@ lemma equivalent_one_neg_one_weighted_sum_squares'
 begin
   classical,
   refine ⟨sign ∘ u, λ i, sign_apply_eq (u i), _⟩,
-  have hu' : ∀ i : ι, 0 < (sign (u i) * u i) ^ - (1 / 2 : ℝ),
-  { intro i, refine real.rpow_pos_of_pos (sign_mul_ne_zero_pos _ (hu i)) _ },
-  have hu'' := λ i, (ne_of_lt (hu' i)).symm,
+  have hu' : ∀ i : ι, 0 ≠ (sign (u i) * u i) ^ - (1 / 2 : ℝ),
+  { intro i, exact ne_of_lt (real.rpow_pos_of_pos (sign_mul_ne_zero_pos _ (hu i)) _) },
   convert nonempty.intro ((weighted_sum_squares u : quadratic_form ℝ (ι → ℝ)).isometry_of_is_basis
-    (is_basis.smul_of_invertible (pi.is_basis_fun ℝ ι) (λ i, field.invertible (hu'' i)))),
-    ext1 v,
+    (is_basis.smul_of_invertible (pi.is_basis_fun ℝ ι) (λ i, field.invertible (hu' i).symm))),
+  ext1 v,
   rw [isometry_of_is_basis_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
   have hsum : (∑ (i : ι), v i • (sign (u i) * u i) ^ - (1 / 2 : ℝ) •

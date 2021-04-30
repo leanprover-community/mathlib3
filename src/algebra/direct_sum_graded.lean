@@ -139,6 +139,7 @@ def ghas_one.of_add_submonoids [semiring R] [has_zero ι]
   ghas_one (λ i, carriers i) :=
 { one := ⟨1, one_mem⟩ }
 
+-- `@[simps]` doesn't generate a useful lemma, so we state one manually below.
 /-- Build a `ghas_mul` instance for a collection of `add_submonoids`. -/
 def ghas_mul.of_add_submonoids [semiring R] [has_add ι]
   (carriers : ι → add_submonoid R)
@@ -192,6 +193,7 @@ def ghas_one.of_add_subgroups [ring R] [has_zero ι]
   ghas_one (λ i, carriers i) :=
 ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
+-- `@[simps]` doesn't generate a useful lemma, so we state one manually below.
 /-- Build a `ghas_mul` instance for a collection of `add_subgroup`s. -/
 def ghas_mul.of_add_subgroups [ring R] [has_add ι]
   (carriers : ι → add_subgroup R)
@@ -236,6 +238,7 @@ def ghas_one.of_submodules
   ghas_one (λ i, carriers i) :=
 ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
+-- `@[simps]` doesn't generate a useful lemma, so we state one manually below.
 /-- Build a `ghas_mul` instance for a collection of `submodule`s. -/
 def ghas_mul.of_submodules
   [comm_semiring R] [semiring A] [algebra R A] [has_add ι]

@@ -914,7 +914,7 @@ variables {k G}
 
 lemma induction_on [add_monoid G] {p : add_monoid_algebra k G → Prop} (f : add_monoid_algebra k G)
   (hM : ∀ g, p (of k G (multiplicative.of_add g)))
-  (hadd : ∀ f g : (monoid_algebra k G), p f → p g → p (f + g))
+  (hadd : ∀ f g : add_monoid_algebra k G, p f → p g → p (f + g))
   (hsmul : ∀ (r : k) f, p f → p (r • f)) : p f :=
 begin
   refine finsupp.induction_linear f _ (λ f g hf hg, hadd f g hf hg) (λ g r, _),

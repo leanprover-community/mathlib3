@@ -1044,7 +1044,7 @@ by { ext, simp only [set.mem_empty_eq, set.mem_to_finset, not_mem_empty] }
 by simp [ext_iff, set.ext_iff]
 
 @[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
-  set.to_finset (set.range f) = finset.univ.image f :=
+  (set.range f).to_finset = finset.univ.image f :=
 by simp [ext_iff]
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :

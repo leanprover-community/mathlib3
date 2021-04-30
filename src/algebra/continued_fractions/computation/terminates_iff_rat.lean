@@ -162,8 +162,7 @@ namespace int_fract_pair
 
 lemma coe_of_rat_eq :
   ((int_fract_pair.of q).mapFr coe : int_fract_pair K) = int_fract_pair.of v :=
-suffices ⌊q⌋ = ⌊(↑q : K)⌋, by simpa [int_fract_pair.of, v_eq_q, fract],
-by rw [←(@rat.cast_floor K _ _ q), floor_ring_unique]
+by simp [int_fract_pair.of, v_eq_q, fract]
 
 lemma coe_stream_nth_rat_eq :
     ((int_fract_pair.stream q n).map (mapFr coe) : option $ int_fract_pair K)

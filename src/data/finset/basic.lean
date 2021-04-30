@@ -2054,8 +2054,7 @@ begin
     by_cases h : ∃ x, x ∈ s,
     { rcases h with ⟨x, hx⟩,
       refine ⟨x, λ y hy, _⟩,
-      rw card_le_one.1 H y hy x hx,
-      simp only [mem_singleton] },
+      rw [card_le_one.1 H y hy x hx, mem_singleton] },
     { push_neg at h,
       inhabit α,
       exact ⟨default α, λ y hy, (h y hy).elim⟩ } },
@@ -2073,7 +2072,7 @@ by { rw ← not_iff_not, push_neg, exact card_le_one }
 
 lemma one_lt_card_iff {s : finset α} :
   1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
-by { rw ← not_iff_not, push_neg, simpa [or_iff_not_imp_left] using finset.card_le_one_iff }
+by { rw one_lt_card, simp only [exists_prop, exists_and_distrib_left] }
 
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=

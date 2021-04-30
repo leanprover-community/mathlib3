@@ -77,7 +77,7 @@ end
 @[simp] lemma conj_gpow {i : ℤ} {a b : α} : (a * b * a⁻¹) ^ i = a * (b ^ i) * a⁻¹ :=
 begin
   induction i,
-  { apply conj_pow },
+  { simp },
   { simp [gpow_neg_succ_of_nat, conj_pow] }
 end
 

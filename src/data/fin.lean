@@ -329,13 +329,11 @@ def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h.1⟩
 
 lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
-@[simp] lemma val_one  {n : ℕ} : (1 : fin (n+2)).val = 1 := show _ % _ = _, by simp
-@[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := show _ % _ = _, by simp
-@[simp] lemma mk_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = (1 : fin _) :=
-by { ext, simp }
+@[simp] lemma val_one  {n : ℕ} : (1 : fin (n+2)).val = 1 := rfl
+@[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := rfl
+@[simp] lemma mk_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = (1 : fin _) := rfl
 
-instance {n : ℕ} : nontrivial (fin (n + 2)) :=
-⟨⟨0, 1, by simp [eq_iff_veq]⟩⟩
+instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
 
 section monoid
 
@@ -411,17 +409,15 @@ end
 
 end bit
 
-@[simp] lemma val_two  {n : ℕ} : (2 : fin (n+3)).val = 2 :=
-show _ % _ = _, by { rw [nat.mod_def], simp [nat.succ_le_succ_iff] }
-
-@[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := val_two
+@[simp] lemma val_two  {n : ℕ} : (2 : fin (n+3)).val = 2 := rfl
+@[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := rfl
 
 section of_nat_coe
 
 @[simp]
 lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
 begin
-  induction a with a ih, { ext, show _ % _ = _, simp },
+  induction a with a ih, { refl },
   ext, show (a+1) % (n+1) = subtype.val (a+1 : fin (n+1)),
   { rw [val_add, ← ih, of_nat],
     exact add_mod _ _ _ }
@@ -472,8 +468,7 @@ begin
     exact nat.zero_lt_succ _ }
 end
 
-lemma one_pos : (0 : fin (n + 2)) < 1 :=
-show (0 : ℕ) < _ % _, by simp
+lemma one_pos : (0 : fin (n + 2)) < 1 := succ_pos 0
 
 lemma zero_ne_one : (0 : fin (n + 2)) ≠ 1 := ne_of_lt one_pos
 
@@ -483,7 +478,7 @@ begin
   { cases n; intro h,
     { refl },
     { have := zero_ne_one, contradiction } },
-  { rintro rfl, ext, show _ = _ % _, simp }
+  { rintro rfl, refl }
 end
 
 @[simp] lemma one_eq_zero_iff : (1 : fin (n + 1)) = 0 ↔ n = 0 :=
@@ -523,11 +518,9 @@ lemma succ_injective (n : ℕ) : injective (@fin.succ n) :=
 lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 | ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (ext_iff _ _).1 heq
 
-@[simp] lemma succ_zero_eq_one : fin.succ (0 : fin (n + 1)) = 1 :=
-by { ext, simp }
+@[simp] lemma succ_zero_eq_one : fin.succ (0 : fin (n + 1)) = 1 := rfl
 
-@[simp] lemma succ_one_eq_two : fin.succ (1 : fin (n + 2)) = 2 :=
-by { ext, simp }
+@[simp] lemma succ_one_eq_two : fin.succ (1 : fin (n + 2)) = 2 := rfl
 
 @[simp] lemma succ_mk (n i : ℕ) (h : i < n) : fin.succ ⟨i, h⟩ = ⟨i + 1, nat.succ_lt_succ h⟩ :=
 rfl
@@ -650,8 +643,7 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 
 @[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
 
-@[simp] lemma cast_succ_one {n : ℕ} : fin.cast_succ (1 : fin (n + 2)) = 1 :=
-by { ext, simp }
+@[simp] lemma cast_succ_one {n : ℕ} : fin.cast_succ (1 : fin (n + 2)) = 1 := rfl
 
 /-- `cast_succ i` is positive when `i` is positive -/
 lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
@@ -845,8 +837,7 @@ by rw [←succ_lt_succ_iff, succ_pred, succ_pred]
 | ⟨i+1, _⟩  ⟨0,   _⟩  ha hb := by contradiction
 | ⟨i+1, hi⟩ ⟨j+1, hj⟩ ha hb := by simp [fin.eq_iff_veq]
 
-@[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt one_pos)) = 0 :=
-by { ext, simp }
+@[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt one_pos)) = 0 := rfl
 
 lemma pred_add_one (i : fin (n + 2)) (h : (i : ℕ) < n + 1) :
   pred (i + 1) (ne_of_gt (add_one_pos _ (lt_iff_coe_lt_coe.mpr h))) = cast_lt i h :=
@@ -1043,21 +1034,21 @@ succ_above_below _ _ (succ_pos _)
 
 @[simp] lemma one_succ_above_zero {n : ℕ} :
   (1 : fin (n + 2)).succ_above 0 = 0 :=
-by rw [← succ_zero_eq_one, succ_succ_above_zero]
+succ_succ_above_zero 0
 
 /-- By moving `succ` to the outside of this expression, we create opportunities for further
 simplification using `succ_above_zero` or `succ_succ_above_zero`. -/
 @[simp] lemma succ_succ_above_one {n : ℕ} (i : fin (n + 2)) :
   (i.succ).succ_above 1 = (i.succ_above 0).succ :=
-by rw [← succ_zero_eq_one, succ_succ_above_succ]
+succ_succ_above_succ i 0
 
 @[simp] lemma one_succ_above_succ {n : ℕ} (j : fin n) :
   (1 : fin (n + 2)).succ_above j.succ = j.succ.succ :=
-by rw [← succ_zero_eq_one, succ_succ_above_succ, zero_succ_above]
+succ_succ_above_succ 0 j
 
 @[simp] lemma one_succ_above_one {n : ℕ} :
   (1 : fin (n + 3)).succ_above 1 = 2 :=
-by { rw [← succ_zero_eq_one, succ_succ_above_one], simp }
+succ_succ_above_succ 0 0
 
 end succ_above
 
@@ -1101,6 +1092,9 @@ pred_above (last n) i
 
 @[simp] lemma cast_pred_zero : cast_pred (0 : fin (n + 2)) = 0 := rfl
 
+@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 2)) = 1 :=
+by { cases n, apply subsingleton.elim, refl }
+
 @[simp] theorem pred_above_zero {i : fin (n + 2)} (hi : i ≠ 0) :
   pred_above 0 i = i.pred hi :=
 begin
@@ -1119,9 +1113,6 @@ begin
     { simpa [lt_iff_coe_lt_coe] using le_of_lt_succ h },
   simp [cast_pred, pred_above, this]
 end
-
-@[simp] lemma cast_pred_one : cast_pred (1 : fin (n + 2)) = 1 :=
-by { cases n, {simp}, erw cast_pred_mk; simp }
 
 lemma pred_above_below (p : fin (n + 1)) (i : fin (n + 2)) (h : i ≤ p.cast_succ) :
   p.pred_above i = i.cast_pred :=

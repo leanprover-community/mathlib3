@@ -152,8 +152,8 @@ To do this, we proceed bottom-up, showing the correspondence between the basic f
 the computation first and then lift the results step-by-step.
 -/
 
-/- The lifting works for arbitrary linear ordered, archimedean fields with a floor function. -/
-variables [archimedean K] {v : K} {q : ℚ} (v_eq_q : v = (↑q : K)) (n : ℕ)
+/- The lifting works for arbitrary linear ordered fields with a floor function. -/
+variables {v : K} {q : ℚ} (v_eq_q : v = (↑q : K)) (n : ℕ)
 include v_eq_q
 
 /-! First, we show the correspondence for the very basic functions in
@@ -340,7 +340,7 @@ end terminates_of_rat
 /--
 The continued fraction `generalized_continued_fraction.of v` terminates if and only if `v ∈ ℚ`.
 -/
-theorem terminates_iff_rat [archimedean K] (v : K) :
+theorem terminates_iff_rat (v : K) :
   (gcf.of v).terminates ↔ ∃ (q : ℚ), v = (q : K) :=
 iff.intro
 ( assume terminates_v : (gcf.of v).terminates,

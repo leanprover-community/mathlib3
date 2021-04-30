@@ -70,8 +70,8 @@ variables (J : grothendieck_topology C)
 variables (A : Type u') [category.{v} A]
 
 /-- The category of sheaves taking values in `A` on a grothendieck topology. -/
-@[derive category]
-def Sheaf : Type* :=
+@[derive category.{max u v}]
+def Sheaf : Type (max u u' v) :=
 {P : Cᵒᵖ ⥤ A // presheaf.is_sheaf J P}
 
 /-- The inclusion functor from sheaves to presheaves. -/

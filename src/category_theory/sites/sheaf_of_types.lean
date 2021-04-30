@@ -890,7 +890,7 @@ variables {C : Type u} [category.{v} C]
 variables (J : grothendieck_topology C)
 
 /-- The category of sheaves on a grothendieck topology. -/
-@[derive category]
+@[derive category.{max u v}]
 def SheafOfTypes (J : grothendieck_topology C) : Type (max u (v+1)) :=
 {P : Cᵒᵖ ⥤ Type v // presieve.is_sheaf J P}
 

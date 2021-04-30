@@ -7,6 +7,9 @@ Authors: Bhavik Mehta
 import topology.category.Profinite
 import category_theory.sites.pretopology
 import category_theory.sites.sheaf_of_types
+import category_theory.sites.sheaf
+import algebra.category.Group
+import algebra.category.CommRing
 
 open category_theory category_theory.limits
 
@@ -51,7 +54,7 @@ end
 
 /-- The proetale pretopology on Profinites. -/
 def proetale_pretopology : pretopology.{u} Profinite.{u} :=
-{ coverings := λ X S, ∃ (ι : Type*) [fintype ι] (Y : ι → Profinite) (f : Π (i : ι), Y i ⟶ X),
+{ coverings := λ X S, ∃ (ι : Type u) [fintype ι] (Y : ι → Profinite) (f : Π (i : ι), Y i ⟶ X),
       (∀ (x : X), ∃ i (y : Y i), f i y = x) ∧ S = presieve.of_arrows Y f,
   has_isos := λ X Y f i,
   begin
@@ -94,14 +97,11 @@ def proetale_pretopology : pretopology.{u} Profinite.{u} :=
 def proetale_topology : grothendieck_topology.{u} Profinite.{u} :=
 proetale_pretopology.to_grothendieck _
 
-def CondensedSet := SheafOfTypes proetale_topology
+@[derive category]
+def CondensedSet : Type (u+1) := SheafOfTypes.{u} proetale_topology.{u}
 
-open category_theory.limits opposite
+@[derive category]
+def Condensed (A : Type (u+1)) [large_category A] : Type (u+1) := Sheaf.{u} proetale_topology A
 
-structure equivalent_sheaf (P : Profiniteᵒᵖ ⥤ Type v) :=
-(empty : is_iso (terminal.from (P.obj (op (⊥_ Profinite))))
-
-def is_sheaf_iff (P : Profiniteᵒᵖ ⥤ Type v) :
-  presieve.is_sheaf proetale_topology P ↔ _ :=
-begin
-end
+example : category.{u+1} (Condensed Ab.{u}) := infer_instance
+example : category.{u+1} (Condensed Ring.{u}) := infer_instance

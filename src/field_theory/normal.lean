@@ -65,7 +65,7 @@ begin
   refine ⟨s.prod $ λ x, minpoly F x,
     splits_prod _ $ λ x hx, h.splits x,
     subalgebra.to_submodule_injective _⟩,
-  rw [algebra.coe_top, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
+  rw [algebra.top_to_submodule, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
     (mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),

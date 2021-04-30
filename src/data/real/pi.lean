@@ -63,7 +63,7 @@ theorem pi_lower_bound_start (n : ℕ) {a}
   (h : sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2) : a < π :=
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series n), rw [mul_comm],
-  refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sqr_le _),
+  refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sq_le _),
   rwa [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
 end
 
@@ -111,7 +111,7 @@ lemma sqrt_two_add_series_step_down (a b : ℕ) {c d n : ℕ} {z : ℝ}
   (h : a ^ 2 * d ≤ (2 * d + c) * b ^ 2) : z ≤ sqrt_two_add_series (c/d) (n+1) :=
 begin
   apply le_trans hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
-  apply le_sqrt_of_sqr_le,
+  apply le_sqrt_of_sq_le,
   have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
   have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
   rw [div_pow, add_div_eq_mul_add_div _ _ (ne_of_gt hd'), div_le_div_iff (pow_pos hb' _) hd'],
@@ -235,7 +235,7 @@ begin
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
         ring_nf } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
-    have g_sum := @geom_sum_eq _ _ (-x^2) (by linarith [neg_nonpos.mpr (pow_two_nonneg x)]) k,
+    have g_sum := @geom_sum_eq _ _ (-x^2) (by linarith [neg_nonpos.mpr (sq_nonneg x)]) k,
     simp only [geom_sum, f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },

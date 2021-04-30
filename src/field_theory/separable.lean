@@ -254,7 +254,7 @@ begin
   by_contra hxy,
   rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
       ← insert_erase (mem_erase_of_ne_of_mem (ne.symm hxy) hy),
-      prod_insert (not_mem_erase _ _), ← mul_assoc, hfxy, ← pow_two] at hfs,
+      prod_insert (not_mem_erase _ _), ← mul_assoc, hfxy, ← sq] at hfs,
   cases (hfs.of_mul_left.of_pow (by exact not_is_unit_X_sub_C) two_ne_zero).2
 end
 
@@ -463,7 +463,7 @@ lemma multiplicity_le_one_of_separable {p q : polynomial F} (hq : ¬ is_unit q)
 begin
   contrapose! hq,
   apply is_unit_of_self_mul_dvd_separable hsep,
-  rw ← pow_two,
+  rw ← sq,
   apply multiplicity.pow_dvd_of_le_multiplicity,
   exact_mod_cast (enat.add_one_le_of_lt hq)
 end

@@ -296,7 +296,7 @@ local attribute [instance] to_has_norm
 
 lemma norm_eq_sqrt_inner (x : F) : ∥x∥ = sqrt (re ⟪x, x⟫) := rfl
 
-lemma inner_self_eq_norm_square (x : F) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
+lemma inner_self_eq_norm_sq (x : F) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
 by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
   sqrt_mul_self inner_self_nonneg]
 
@@ -304,10 +304,10 @@ lemma sqrt_norm_sq_eq_norm {x : F} : sqrt (norm_sqF x) = ∥x∥ := rfl
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_inner_le_norm (x y : F) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
-nonneg_le_nonneg_of_squares_le (mul_nonneg (sqrt_nonneg _) (sqrt_nonneg _))
+nonneg_le_nonneg_of_sq_le_sq (mul_nonneg (sqrt_nonneg _) (sqrt_nonneg _))
 begin
   have H : ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥) = re ⟪y, y⟫ * re ⟪x, x⟫,
-  { simp only [inner_self_eq_norm_square], ring, },
+  { simp only [inner_self_eq_norm_sq], ring, },
   rw H,
   conv
   begin
@@ -339,9 +339,9 @@ normed_group.of_core F
     have h₃ : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ := by linarith,
     have h₄ : re ⟪y, x⟫ ≤ ∥x∥ * ∥y∥ := by rwa [←inner_conj_sym, conj_re],
     have : ∥x + y∥ * ∥x + y∥ ≤ (∥x∥ + ∥y∥) * (∥x∥ + ∥y∥),
-    { simp [←inner_self_eq_norm_square, inner_add_add_self, add_mul, mul_add, mul_comm],
+    { simp [←inner_self_eq_norm_sq, inner_add_add_self, add_mul, mul_add, mul_comm],
       linarith },
-    exact nonneg_le_nonneg_of_squares_le (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this
+    exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this
   end,
   norm_neg := λ x, by simp only [norm, inner_neg_left, neg_neg, inner_neg_right] }
 
@@ -371,7 +371,7 @@ begin
     begin
       have h₁ : ∥x∥^2 = (sqrt (re (c.inner x x))) ^ 2 := rfl,
       have h₂ : 0 ≤ re (c.inner x x) := inner_product_space.of_core.inner_self_nonneg,
-      simp [h₁, sqr_sqrt, h₂],
+      simp [h₁, sq_sqrt, h₂],
     end,
     ..c }
 end
@@ -692,7 +692,7 @@ begin
       have h' : ∥v i∥ ^ 2 = 1 ^ 2 := by simp [norm_sq_eq_inner, h i i],
       have h₁ : 0 ≤ ∥v i∥ := norm_nonneg _,
       have h₂ : (0:ℝ) ≤ 1 := by norm_num,
-      rwa eq_of_pow_two_eq_pow_two h₁ h₂ at h' },
+      rwa eq_of_sq_eq_sq h₁ h₂ at h' },
     { intros i j hij,
       simpa [hij] using h i j } }
 end
@@ -842,39 +842,43 @@ end
 lemma norm_eq_sqrt_real_inner (x : F) : ∥x∥ = sqrt ⟪x, x⟫_ℝ :=
 by { have h := @norm_eq_sqrt_inner ℝ F _ _ x, simpa using h }
 
-lemma inner_self_eq_norm_square (x : E) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
+lemma inner_self_eq_norm_sq (x : E) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
 by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
   sqrt_mul_self inner_self_nonneg]
 
-lemma real_inner_self_eq_norm_square (x : F) : ⟪x, x⟫_ℝ = ∥x∥ * ∥x∥ :=
-by { have h := @inner_self_eq_norm_square ℝ F _ _ x, simpa using h }
+lemma real_inner_self_eq_norm_sq (x : F) : ⟪x, x⟫_ℝ = ∥x∥ * ∥x∥ :=
+by { have h := @inner_self_eq_norm_sq ℝ F _ _ x, simpa using h }
 
 
 /-- Expand the square -/
-lemma norm_add_pow_two {x y : E} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
+lemma norm_add_sq {x y : E} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
 begin
-  repeat {rw [pow_two, ←inner_self_eq_norm_square]},
+  repeat {rw [sq, ←inner_self_eq_norm_sq]},
   rw[inner_add_add_self, two_mul],
   simp only [add_assoc, add_left_inj, add_right_inj, add_monoid_hom.map_add],
   rw [←inner_conj_sym, conj_re],
 end
 
+alias norm_add_sq ← norm_add_pow_two
+
 /-- Expand the square -/
-lemma norm_add_pow_two_real {x y : F} : ∥x + y∥^2 = ∥x∥^2 + 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
-by { have h := @norm_add_pow_two ℝ F _ _, simpa using h }
+lemma norm_add_sq_real {x y : F} : ∥x + y∥^2 = ∥x∥^2 + 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
+by { have h := @norm_add_sq ℝ F _ _, simpa using h }
+
+alias norm_add_sq_real ← norm_add_pow_two_real
 
 /-- Expand the square -/
 lemma norm_add_mul_self {x y : E} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * (re ⟪x, y⟫) + ∥y∥ * ∥y∥ :=
-by { repeat {rw [← pow_two]}, exact norm_add_pow_two }
+by { repeat {rw [← sq]}, exact norm_add_sq }
 
 /-- Expand the square -/
 lemma norm_add_mul_self_real {x y : F} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * ⟪x, y⟫_ℝ + ∥y∥ * ∥y∥ :=
 by { have h := @norm_add_mul_self ℝ F _ _, simpa using h }
 
 /-- Expand the square -/
-lemma norm_sub_pow_two {x y : E} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
+lemma norm_sub_sq {x y : E} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
 begin
-  repeat {rw [pow_two, ←inner_self_eq_norm_square]},
+  repeat {rw [sq, ←inner_self_eq_norm_sq]},
   rw[inner_sub_sub_self],
   calc
     re (⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫)
@@ -885,13 +889,17 @@ begin
     ... = re ⟪x, x⟫ - 2*re ⟪x, y⟫ + re ⟪y, y⟫ : by ring
 end
 
+alias norm_sub_sq ← norm_sub_pow_two
+
 /-- Expand the square -/
-lemma norm_sub_pow_two_real {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
-norm_sub_pow_two
+lemma norm_sub_sq_real {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
+norm_sub_sq
+
+alias norm_sub_sq_real ← norm_sub_pow_two_real
 
 /-- Expand the square -/
 lemma norm_sub_mul_self {x y : E} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * re ⟪x, y⟫ + ∥y∥ * ∥y∥ :=
-by { repeat {rw [← pow_two]}, exact norm_sub_pow_two }
+by { repeat {rw [← sq]}, exact norm_sub_sq }
 
 /-- Expand the square -/
 lemma norm_sub_mul_self_real {x y : F} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * ⟪x, y⟫_ℝ + ∥y∥ * ∥y∥ :=
@@ -899,10 +907,10 @@ by { have h := @norm_sub_mul_self ℝ F _ _, simpa using h }
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_inner_le_norm (x y : E) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
-nonneg_le_nonneg_of_squares_le (mul_nonneg (norm_nonneg _) (norm_nonneg _))
+nonneg_le_nonneg_of_sq_le_sq (mul_nonneg (norm_nonneg _) (norm_nonneg _))
 begin
   have : ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥) = (re ⟪x, x⟫) * (re ⟪y, y⟫),
-    simp only [inner_self_eq_norm_square], ring,
+    simp only [inner_self_eq_norm_sq], ring,
   rw this,
   conv_lhs { congr, skip, rw [inner_abs_conj_sym] },
   exact inner_mul_inner_self_le _ _
@@ -920,7 +928,7 @@ include 𝕜
 lemma parallelogram_law_with_norm {x y : E} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
-  simp only [← inner_self_eq_norm_square],
+  simp only [← inner_self_eq_norm_sq],
   rw[← re.map_add, parallelogram_law, two_mul, two_mul],
   simp only [re.map_add],
 end
@@ -957,7 +965,7 @@ begin
   rw [← re_add_im ⟪x, y⟫, re_inner_eq_norm_add_mul_self_sub_norm_sub_mul_self_div_four,
     im_inner_eq_norm_sub_I_smul_mul_self_sub_norm_add_I_smul_mul_self_div_four],
   push_cast,
-  simp only [pow_two, ← mul_div_right_comm, ← add_div]
+  simp only [sq, ← mul_div_right_comm, ← add_div]
 end
 
 section
@@ -1009,7 +1017,7 @@ re_to_real.symm.trans $
   re_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two x y
 
 /-- Pythagorean theorem, if-and-only-if vector inner product form. -/
-lemma norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero (x y : F) :
+lemma norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero (x y : F) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ ⟪x, y⟫_ℝ = 0 :=
 begin
   rw [norm_add_mul_self, add_right_cancel_iff, add_right_eq_self, mul_eq_zero],
@@ -1017,7 +1025,7 @@ begin
 end
 
 /-- Pythagorean theorem, vector inner product form. -/
-lemma norm_add_square_eq_norm_square_add_norm_square_of_inner_eq_zero (x y : E) (h : ⟪x, y⟫ = 0) :
+lemma norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero (x y : E) (h : ⟪x, y⟫ = 0) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
 begin
   rw [norm_add_mul_self, add_right_cancel_iff, add_right_eq_self, mul_eq_zero],
@@ -1026,13 +1034,13 @@ begin
 end
 
 /-- Pythagorean theorem, vector inner product form. -/
-lemma norm_add_square_eq_norm_square_add_norm_square_real {x y : F} (h : ⟪x, y⟫_ℝ = 0) :
+lemma norm_add_sq_eq_norm_sq_add_norm_sq_real {x y : F} (h : ⟪x, y⟫_ℝ = 0) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
-(norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero x y).2 h
+(norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero x y).2 h
 
 /-- Pythagorean theorem, subtracting vectors, if-and-only-if vector
 inner product form. -/
-lemma norm_sub_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero (x y : F) :
+lemma norm_sub_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero (x y : F) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ ⟪x, y⟫_ℝ = 0 :=
 begin
   rw [norm_sub_mul_self, add_right_cancel_iff, sub_eq_add_neg, add_right_eq_self, neg_eq_zero,
@@ -1042,16 +1050,16 @@ end
 
 /-- Pythagorean theorem, subtracting vectors, vector inner product
 form. -/
-lemma norm_sub_square_eq_norm_square_add_norm_square_real {x y : F} (h : ⟪x, y⟫_ℝ = 0) :
+lemma norm_sub_sq_eq_norm_sq_add_norm_sq_real {x y : F} (h : ⟪x, y⟫_ℝ = 0) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
-(norm_sub_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero x y).2 h
+(norm_sub_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero x y).2 h
 
 /-- The sum and difference of two vectors are orthogonal if and only
 if they have the same norm. -/
 lemma real_inner_add_sub_eq_zero_iff (x y : F) : ⟪x + y, x - y⟫_ℝ = 0 ↔ ∥x∥ = ∥y∥ :=
 begin
   conv_rhs { rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _) },
-  simp only [←inner_self_eq_norm_square, inner_add_left, inner_sub_right,
+  simp only [←inner_self_eq_norm_sq, inner_add_left, inner_sub_right,
             real_inner_comm y x, sub_eq_zero, re_to_real],
   split,
   { intro h,
@@ -1078,11 +1086,11 @@ end
 
 /-- The inner product of a vector with a multiple of itself. -/
 lemma real_inner_smul_self_left (x : F) (r : ℝ) : ⟪r • x, x⟫_ℝ = r * (∥x∥ * ∥x∥) :=
-by rw [real_inner_smul_left, ←real_inner_self_eq_norm_square]
+by rw [real_inner_smul_left, ←real_inner_self_eq_norm_sq]
 
 /-- The inner product of a vector with a multiple of itself. -/
 lemma real_inner_smul_self_right (x : F) (r : ℝ) : ⟪x, r • x⟫_ℝ = r * (∥x∥ * ∥x∥) :=
-by rw [inner_smul_right, ←real_inner_self_eq_norm_square]
+by rw [inner_smul_right, ←real_inner_self_eq_norm_sq]
 
 /-- The inner product of a nonzero vector with a nonzero multiple of
 itself, divided by the product of their norms, has absolute value
@@ -1092,7 +1100,7 @@ lemma abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
 begin
   have hx' : ∥x∥ ≠ 0 := by simp [norm_eq_zero, hx],
   have hr' : abs r ≠ 0 := by simp [is_R_or_C.abs_eq_zero, hr],
-  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_square,
+  rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_sq,
       norm_smul],
   rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div_eq_div_mul, mul_div_cancel _ hx',
      ←div_div_eq_div_mul, mul_comm, mul_div_cancel _ hr', div_self hx'],
@@ -1149,12 +1157,12 @@ begin
     have ht0 : ⟪x, t⟫ = 0,
     { rw [ht, inner_sub_right, inner_smul_right, hr],
       norm_cast,
-      rw [←inner_self_eq_norm_square, inner_self_re_to_K,
+      rw [←inner_self_eq_norm_sq, inner_self_re_to_K,
           div_mul_cancel _ (λ h, hx0 (inner_self_eq_zero.1 h)), sub_self] },
     replace h : ∥r • x∥ / ∥t + r • x∥ = 1,
     { rw [←sub_add_cancel y (r • x), ←ht, inner_add_right, ht0, zero_add, inner_smul_right,
         is_R_or_C.abs_div, is_R_or_C.abs_mul, ←inner_self_re_abs,
-        inner_self_eq_norm_square] at h,
+        inner_self_eq_norm_sq] at h,
       norm_cast at h,
       rwa [_root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm, ←mul_assoc, mul_comm,
         mul_div_mul_left _ _ (λ h, hx0 (norm_eq_zero.1 h)), ←is_R_or_C.norm_eq_abs,
@@ -1167,7 +1175,7 @@ begin
     have h2 : ∥r • x∥ ^ 2 = ∥t + r • x∥ ^ 2,
     { rw [eq_of_div_eq_one h] },
     replace h2 : ⟪r • x, r • x⟫ = ⟪t, t⟫ + ⟪t, r • x⟫ + ⟪r • x, t⟫ + ⟪r • x, r • x⟫,
-    { rw [pow_two, pow_two, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square ] at h2,
+    { rw [sq, sq, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq ] at h2,
       have h2' := congr_arg (λ z : ℝ, (z : 𝕜)) h2,
       simp_rw [inner_self_re_to_K, inner_add_add_self] at h2',
       exact h2' },
@@ -1597,27 +1605,27 @@ lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ 
   deriv (λ t, ⟪f t, g t⟫) x = ⟪f x, deriv g x⟫ + ⟪deriv f x, g x⟫ :=
 (hf.has_deriv_at.inner hg.has_deriv_at).deriv
 
-lemma times_cont_diff_norm_square : times_cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
+lemma times_cont_diff_norm_sq : times_cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
 begin
-  simp only [pow_two, ← inner_self_eq_norm_square],
+  simp only [sq, ← inner_self_eq_norm_sq],
   exact (re_clm : 𝕜 →L[ℝ] ℝ).times_cont_diff.comp (times_cont_diff_id.inner times_cont_diff_id)
 end
 
-lemma times_cont_diff.norm_square (hf : times_cont_diff ℝ n f) :
+lemma times_cont_diff.norm_sq (hf : times_cont_diff ℝ n f) :
   times_cont_diff ℝ n (λ x, ∥f x∥ ^ 2) :=
-times_cont_diff_norm_square.comp hf
+times_cont_diff_norm_sq.comp hf
 
-lemma times_cont_diff_within_at.norm_square (hf : times_cont_diff_within_at ℝ n f s x) :
+lemma times_cont_diff_within_at.norm_sq (hf : times_cont_diff_within_at ℝ n f s x) :
   times_cont_diff_within_at ℝ n (λ y, ∥f y∥ ^ 2) s x :=
-times_cont_diff_norm_square.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+times_cont_diff_norm_sq.times_cont_diff_at.comp_times_cont_diff_within_at x hf
 
-lemma times_cont_diff_at.norm_square (hf : times_cont_diff_at ℝ n f x) :
+lemma times_cont_diff_at.norm_sq (hf : times_cont_diff_at ℝ n f x) :
   times_cont_diff_at ℝ n (λ y, ∥f y∥ ^ 2) x :=
-hf.norm_square
+hf.norm_sq
 
 lemma times_cont_diff_at_norm {x : E} (hx : x ≠ 0) : times_cont_diff_at ℝ n norm x :=
 have ∥id x∥ ^ 2 ≠ 0, from pow_ne_zero _ (norm_pos_iff.2 hx).ne',
-by simpa only [id, sqrt_sqr, norm_nonneg] using times_cont_diff_at_id.norm_square.sqrt this
+by simpa only [id, sqrt_sq, norm_nonneg] using times_cont_diff_at_id.norm_sq.sqrt this
 
 lemma times_cont_diff_at.norm (hf : times_cont_diff_at ℝ n f x) (h0 : f x ≠ 0) :
   times_cont_diff_at ℝ n (λ y, ∥f y∥) x :=
@@ -1637,9 +1645,9 @@ lemma times_cont_diff_within_at.dist (hf : times_cont_diff_within_at ℝ n f s x
   times_cont_diff_within_at ℝ n (λ y, dist (f y) (g y)) s x :=
 by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
-lemma times_cont_diff_on.norm_square (hf : times_cont_diff_on ℝ n f s) :
+lemma times_cont_diff_on.norm_sq (hf : times_cont_diff_on ℝ n f s) :
   times_cont_diff_on ℝ n (λ y, ∥f y∥ ^ 2) s :=
-(λ x hx, (hf x hx).norm_square)
+(λ x hx, (hf x hx).norm_sq)
 
 lemma times_cont_diff_on.norm (hf : times_cont_diff_on ℝ n f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
   times_cont_diff_on ℝ n (λ y, ∥f y∥) s :=
@@ -1660,9 +1668,9 @@ lemma times_cont_diff.dist (hf : times_cont_diff ℝ n f) (hg : times_cont_diff 
 times_cont_diff_iff_times_cont_diff_at.2 $
   λ x, hf.times_cont_diff_at.dist hg.times_cont_diff_at (hne x)
 
-lemma differentiable_at.norm_square (hf : differentiable_at ℝ f x) :
+lemma differentiable_at.norm_sq (hf : differentiable_at ℝ f x) :
   differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=
-(times_cont_diff_at_id.norm_square.differentiable_at le_rfl).comp x hf
+(times_cont_diff_at_id.norm_sq.differentiable_at le_rfl).comp x hf
 
 lemma differentiable_at.norm (hf : differentiable_at ℝ f x) (h0 : f x ≠ 0) :
   differentiable_at ℝ (λ y, ∥f y∥) x :=
@@ -1673,8 +1681,8 @@ lemma differentiable_at.dist (hf : differentiable_at ℝ f x) (hg : differentiab
   differentiable_at ℝ (λ y, dist (f y) (g y)) x :=
 by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
-lemma differentiable.norm_square (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
-λ x, (hf x).norm_square
+lemma differentiable.norm_sq (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
+λ x, (hf x).norm_sq
 
 lemma differentiable.norm (hf : differentiable ℝ f) (h0 : ∀ x, f x ≠ 0) :
   differentiable ℝ (λ y, ∥f y∥) :=
@@ -1685,9 +1693,9 @@ lemma differentiable.dist (hf : differentiable ℝ f) (hg : differentiable ℝ g
   differentiable ℝ (λ y, dist (f y) (g y)) :=
 λ x, (hf x).dist (hg x) (hne x)
 
-lemma differentiable_within_at.norm_square (hf : differentiable_within_at ℝ f s x) :
+lemma differentiable_within_at.norm_sq (hf : differentiable_within_at ℝ f s x) :
   differentiable_within_at ℝ (λ y, ∥f y∥ ^ 2) s x :=
-(times_cont_diff_at_id.norm_square.differentiable_at le_rfl).comp_differentiable_within_at x hf
+(times_cont_diff_at_id.norm_sq.differentiable_at le_rfl).comp_differentiable_within_at x hf
 
 lemma differentiable_within_at.norm (hf : differentiable_within_at ℝ f s x) (h0 : f x ≠ 0) :
   differentiable_within_at ℝ (λ y, ∥f y∥) s x :=
@@ -1698,9 +1706,9 @@ lemma differentiable_within_at.dist (hf : differentiable_within_at ℝ f s x)
   differentiable_within_at ℝ (λ y, dist (f y) (g y)) s x :=
 by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
-lemma differentiable_on.norm_square (hf : differentiable_on ℝ f s) :
+lemma differentiable_on.norm_sq (hf : differentiable_on ℝ f s) :
   differentiable_on ℝ (λ y, ∥f y∥ ^ 2) s :=
-λ x hx, (hf x hx).norm_square
+λ x hx, (hf x hx).norm_sq
 
 lemma differentiable_on.norm (hf : differentiable_on ℝ f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
   differentiable_on ℝ (λ y, ∥f y∥) s :=
@@ -1930,7 +1938,7 @@ begin
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw p) (add_le_add_left (nat.one_div_le_one_div hp) _)),
     rw dist_eq_norm,
-    apply nonneg_le_nonneg_of_squares_le, { exact sqrt_nonneg _ },
+    apply nonneg_le_nonneg_of_sq_le_sq, { exact sqrt_nonneg _ },
     rw mul_self_sqrt,
     exact calc
       ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) -
@@ -1987,7 +1995,7 @@ begin
     calc
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin
-        simp only [pow_two], apply mul_self_le_mul_self (norm_nonneg _),
+        simp only [sq], apply mul_self_le_mul_self (norm_nonneg _),
         rw [eq], apply δ_le',
         apply h hw hv,
         exacts [le_of_lt hθ₁, sub_nonneg.2 hθ₂, add_sub_cancel'_right _ _],
@@ -2001,8 +2009,8 @@ begin
       end
       ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :
       begin
-        rw [norm_sub_pow_two, inner_smul_right, norm_smul],
-        simp only [pow_two],
+        rw [norm_sub_sq, inner_smul_right, norm_smul],
+        simp only [sq],
         show ∥u-v∥*∥u-v∥-2*(θ*inner(u-v)(w-v))+absR (θ)*∥w-v∥*(absR (θ)*∥w-v∥)=
                 ∥u-v∥*∥u-v∥-2*θ*inner(u-v)(w-v)+θ*θ*(∥w-v∥*∥w-v∥),
         rw abs_of_pos hθ₁, ring
@@ -2021,11 +2029,11 @@ begin
       linarith,
     exact this },
   { have q_pos : 0 < q,
-      apply lt_of_le_of_ne, exact pow_two_nonneg _, intro h, exact hq h.symm,
+      apply lt_of_le_of_ne, exact sq_nonneg _, intro h, exact hq h.symm,
     by_contradiction hp, rw not_le at hp,
     let θ := min (1:ℝ) (p / q),
     have eq₁ : θ*q ≤ p := calc
-      θ*q ≤ (p/q) * q : mul_le_mul_of_nonneg_right (min_le_right _ _) (pow_two_nonneg _)
+      θ*q ≤ (p/q) * q : mul_le_mul_of_nonneg_right (min_le_right _ _) (sq_nonneg _)
       ... = p : div_mul_cancel _ hq,
     have : 2 * p ≤ p := calc
       2 * p ≤ θ*q : by { refine this θ (lt_min (by norm_num) (div_pos hp q_pos)) (by norm_num) }
@@ -2037,15 +2045,15 @@ begin
   letI : nonempty K := ⟨⟨v, hv⟩⟩,
   apply le_antisymm,
   { apply le_cinfi, assume w,
-    apply nonneg_le_nonneg_of_squares_le (norm_nonneg _),
+    apply nonneg_le_nonneg_of_sq_le_sq (norm_nonneg _),
     have := h w w.2,
     exact calc
       ∥u - v∥ * ∥u - v∥ ≤ ∥u - v∥ * ∥u - v∥ - 2 * inner (u - v) ((w:F) - v) : by linarith
       ... ≤ ∥u - v∥^2 - 2 * inner (u - v) ((w:F) - v) + ∥(w:F) - v∥^2 :
-        by { rw pow_two, refine le_add_of_nonneg_right _, exact pow_two_nonneg _ }
-      ... = ∥(u - v) - (w - v)∥^2 : norm_sub_pow_two.symm
+        by { rw sq, refine le_add_of_nonneg_right _, exact sq_nonneg _ }
+      ... = ∥(u - v) - (w - v)∥^2 : norm_sub_sq.symm
       ... = ∥u - w∥ * ∥u - w∥ :
-        by { have : (u - v) - (w - v) = u - w, abel, rw [this, pow_two] } },
+        by { have : (u - v) - (w - v) = u - w, abel, rw [this, sq] } },
   { show (⨅ (w : K), ∥u - w∥) ≤ (λw:K, ∥u - w∥) ⟨v, hv⟩,
       apply cinfi_le, use 0, rintros y ⟨z, rfl⟩, exact norm_nonneg _ }
 end
@@ -2201,7 +2209,7 @@ begin
   set p := orthogonal_projection_fn K v,
   have h' : ⟪v - p, p⟫ = 0,
   { exact orthogonal_projection_fn_inner_eq_zero _ _ (orthogonal_projection_fn_mem v) },
-  convert norm_add_square_eq_norm_square_add_norm_square_of_inner_eq_zero (v - p) p h' using 2;
+  convert norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero (v - p) p h' using 2;
   simp,
 end
 

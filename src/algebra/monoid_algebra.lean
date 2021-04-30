@@ -570,7 +570,7 @@ lemma prod_single [comm_semiring k] [comm_monoid G]
 finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, prod_insert has, prod_insert has]
 
-lemma induction [semiring k] [monoid G] {p : (monoid_algebra k G) → Prop} (f : monoid_algebra k G)
+lemma induction_on [semiring k] [monoid G] {p : (monoid_algebra k G) → Prop} (f : monoid_algebra k G)
   (hM : ∀ g, p (of k G g)) (hadd : ∀ f g : (monoid_algebra k G), p f → p g → p (f + g))
   (hsmul : ∀ (r : k) f, p f → p (r • f)) : p f :=
 begin

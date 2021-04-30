@@ -13,7 +13,7 @@ In this file, we prove the monoidal coherence theorem, stated in the following f
 monoidal category over any type `C` is thin.
 
 We follow a proof described by Ilya Beylin and Peter Dybjer, which has been previously formalized
-in the proof assistant ALF. The idea is to desclare a normal form (with regard to association and
+in the proof assistant ALF. The idea is to declare a normal form (with regard to association and
 adding units) on objects of the free monoidal category and consider the discrete subcategory of
 objects that are in normal form. A normalization procedure is then just a functor
 `full_normalize : free_monoidal_category C ⥤ discrete (normal_monoidal_object C)`, where
@@ -57,6 +57,7 @@ end
 
 local notation `F` := free_monoidal_category
 local notation `N` := discrete ∘ normal_monoidal_object
+local infixr ` ⟶ᵐ `:10 := hom
 
 /-- Auxiliary definition for `inclusion`. -/
 @[simp] def inclusion_obj : normal_monoidal_object C → F C

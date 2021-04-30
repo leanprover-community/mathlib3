@@ -65,7 +65,7 @@ inductive hom : F C → F C → Type u
 | comp {X Y Z} (f : hom X Y) (g : hom Y Z) : hom X Z
 | tensor {W X Y Z} (f : hom W Y) (g : hom X Z) : hom (W.tensor X) (Y.tensor Z)
 
-infixr ` ⟶ᵐ `:10 := hom
+local infixr ` ⟶ᵐ `:10 := hom
 
 /-- The morphisms of the free monoidal category satisfy 21 relations ensuring that the resulting
     category is in fact a category and that it is monoidal. -/

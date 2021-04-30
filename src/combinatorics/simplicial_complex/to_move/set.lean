@@ -28,9 +28,6 @@ begin
   apply singleton_nonempty,
 end
 
-lemma eq_empty_of_ssubset_singleton {x : α} {X : set α} (hX : X ⊂ {x}) : X = ∅ :=
-(ssubset_singleton_iff_eq_empty _ _).1 hX
-
 theorem sdiff_union_of_subset {s₁ s₂ : set α} (h : s₁ ⊆ s₂) :
   (s₂ \ s₁) ∪ s₁ = s₂ :=
 set.ext $ λ x, by simpa [em, or_comm, or_and_distrib_left] using or_iff_right_of_imp (@h x)

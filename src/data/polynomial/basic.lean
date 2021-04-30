@@ -467,7 +467,8 @@ instance : ring (polynomial R) :=
   gsmul := (•),
   gsmul_zero' := by { rintro ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
   gsmul_succ' := by { rintros n ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul, add_comm] },
-  gsmul_neg' := by { rintros n ⟨⟩, simp only [smul_to_finsupp, neg_to_finsupp], simp [add_smul, add_mul] },
+  gsmul_neg' := by { rintros n ⟨⟩,
+    simp only [smul_to_finsupp, neg_to_finsupp], simp [add_smul, add_mul] },
   .. polynomial.semiring }
 
 @[simp] lemma coeff_neg (p : polynomial R) (n : ℕ) : coeff (-p) n = -coeff p n :=

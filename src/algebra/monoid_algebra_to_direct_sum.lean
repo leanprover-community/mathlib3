@@ -131,7 +131,8 @@ variables [decidable_eq ι]
 @[simp] lemma to_add_monoid_algebra_zero [semiring M] [Π m : M, decidable (m ≠ 0)] :
   to_add_monoid_algebra 0 = (0 : add_monoid_algebra M ι) := dfinsupp.to_finsupp_zero
 
-@[simp] lemma to_add_monoid_algebra_add [semiring M] [Π m : M, decidable (m ≠ 0)] (f g : ⨁ i : ι, M) :
+@[simp] lemma to_add_monoid_algebra_add [semiring M] [Π m : M, decidable (m ≠ 0)]
+  (f g : ⨁ i : ι, M) :
   (f + g).to_add_monoid_algebra = to_add_monoid_algebra f + to_add_monoid_algebra g :=
 dfinsupp.to_finsupp_add _ _
 

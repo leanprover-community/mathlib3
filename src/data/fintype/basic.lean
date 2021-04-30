@@ -1027,7 +1027,7 @@ private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injec
 
 instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
-  fintype.of_equiv _ (equiv_inj_subtype α β)
+fintype.of_equiv _ (equiv_inj_subtype α β)
 
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=

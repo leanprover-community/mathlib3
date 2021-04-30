@@ -346,5 +346,22 @@ begin
   exact ⟨⟨g, m⟩, H⟩,
 end
 
+/--
+An alternative statement of the Stone-Weierstrass theorem,
+for those who like their epsilons and don't like bundled continuous functions.
+
+If `A` is a subalgebra of `C(X, ℝ)` which separates points (and `X` is compact),
+every real-valued continuous function on `X` is within any `ε > 0` of some element of `A`.
+-/
+theorem exists_mem_subalgebra_near_continuous_of_separates_points
+  (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points)
+  (f : X → ℝ) (c : continuous f) (ε : ℝ) (pos : 0 < ε) :
+  ∃ (g : A), ∀ x, ∥g x - f x∥ < ε :=
+begin
+  obtain ⟨g, b⟩ := exists_mem_subalgebra_near_continuous_map_of_separates_points A w ⟨f, c⟩ ε pos,
+  use g,
+  rwa norm_lt_iff _ pos at b,
+end
+
 
 end continuous_map

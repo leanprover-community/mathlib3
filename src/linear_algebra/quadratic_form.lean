@@ -968,7 +968,6 @@ begin
 end
 
 lemma equivalent_one_neg_one_weighted_sum_squares'
-  {M : Type*} [add_comm_group M] [module ℝ M] [finite_dimensional ℝ M]
   (u : ι → ℝ) (hu : ∀ i : ι, u i ≠ 0) :
   ∃ w : ι → ℝ, (∀ i, w i = -1 ∨ w i = 1) ∧
   equivalent (weighted_sum_squares u : quadratic_form ℝ (ι → ℝ)) (weighted_sum_squares w) :=
@@ -1008,7 +1007,7 @@ theorem equivalent_one_neg_one_weighted_sum_squared
   ∃ w : fin (finite_dimensional.finrank ℝ M) → ℝ,
   (∀ i, w i = -1 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares w) :=
 let ⟨w, hw₁, hw₂⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
-let ⟨u, hu₁, hu₂⟩ := @equivalent_one_neg_one_weighted_sum_squares' _ _ M _ _ _ w hw₁ in
+let ⟨u, hu₁, hu₂⟩ := equivalent_one_neg_one_weighted_sum_squares' w hw₁ in
   ⟨u, hu₁, hw₂.trans hu₂⟩
 
 end real

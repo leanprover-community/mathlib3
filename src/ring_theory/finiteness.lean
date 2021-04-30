@@ -605,10 +605,10 @@ begin
     { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
       exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, of_apply, of_apply, of_apply,
         single_mul_single, one_mul]⟩ } },
-    { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
-      exact ⟨P + Q, alg_hom.map_add _ _ _⟩ },
-    { rintro r f ⟨P, rfl⟩,
-      exact ⟨r • P, by rw [alg_hom.map_smul]⟩ }
+  { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
+    exact ⟨P + Q, alg_hom.map_add _ _ _⟩ },
+  { rintro r f ⟨P, rfl⟩,
+    exact ⟨r • P, alg_hom.map_smul _ _ _⟩ }
 end
 
 instance ft_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=

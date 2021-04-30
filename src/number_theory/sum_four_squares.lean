@@ -9,7 +9,6 @@ import data.zmod.basic
 import field_theory.finite.basic
 import data.int.parity
 import data.fintype.card
-import data.matrix.notation
 
 /-!
 # Lagrange's four square theorem
@@ -24,8 +23,6 @@ The proof used is close to Lagrange's original proof.
 
 open finset polynomial finite_field equiv
 open_locale big_operators
-
-lemma fin.zero_ne_succ {n} (k : fin n) : 0 ≠ k.succ := (fin.succ_ne_zero _).symm
 
 namespace int
 
@@ -80,62 +77,16 @@ open int
 
 open_locale classical
 
-@[simp] lemma zmod_two_sq_eq_self (a : zmod 2) : a ^ 2 = a :=
-by change fin 2 at a; fin_cases a; simp
-
-@[simp] lemma zmod_two_two_eq_zero : (2 : zmod 2) = 0 :=
-suffices ((2 : ℕ) : zmod 2) = (0 : ℕ), by norm_num at this; assumption,
-by rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq]; norm_num
-
-private lemma forall_fin_succ_iff {α} {n} (p : (fin (n+1) → α) → Prop) :
-  (∀ x, p x) ↔ ∀ x a, p (matrix.vec_cons a x) :=
-⟨λ h, by simp *, λ h x, by { rw [← matrix.cons_head_tail x], apply h }⟩
-
-private lemma forall_fin_zero_iff {α} (p : (fin 0 → α) → Prop) :
-  (∀ x, p x) ↔ p matrix.vec_empty :=
-⟨λ h, by simp *, λ h x, by cc⟩
-
-private lemma forall_zmod_two_iff (p : zmod 2 → Prop) : (∀ a, p a) ↔ p 0 ∧ p 1 :=
-⟨λ h, by simp *, λ ⟨_,_⟩ (a : fin 2), by fin_cases a; assumption⟩
-
-private lemma exists_fin_succ_iff {n} (p : fin (n+1) → Prop) :
-  (∃ i, p i) ↔ p 0 ∨ ∃ i : fin n, p i.succ :=
-⟨begin
-  rintros ⟨⟨_|i, hi⟩, h⟩,
-  { left, assumption },
-  { right, refine ⟨⟨i, succ_lt_succ_iff.1 hi⟩, _⟩, assumption },
- end,
- by rintros (h|⟨_,h⟩); exact ⟨_, h⟩⟩
-
-private lemma exists_fin_zero_iff (p : fin 0 → Prop) : (∃ i, p i) ↔ false :=
-⟨λ ⟨⟨i, hi⟩, h⟩, by cases hi, by simp⟩
-
-private lemma two_eq_parity_of_sum_four_squares :
-  ∀ f : fin 4 → zmod 2, (f 0)^2 + (f 1)^2 + (f 2)^2 + (f 3)^2 = 0 →
-    ∃ i : (fin 4), (f i)^2 + f (swap i 0 1)^2 = 0 ∧ f (swap i 0 2)^2 + f (swap i 0 3)^2 = 0 :=
-begin
-  rw show (3 : fin 4) = (0 : fin 1).succ.succ.succ, by norm_num,
-  rw show (2 : fin 4) = (0 : fin 2).succ.succ, by norm_num,
-  rw show (1 : fin 4) = (0 : fin 3).succ, by norm_num,
-  have : ¬ (0 : zmod 2) = 1, by norm_num,
-  have : ¬ (1 : zmod 2) = 0, by norm_num,
-  have : (1 + 1 : zmod 2) = 0, by norm_num,
-  simp only [*, zmod_two_sq_eq_self,
-    forall_fin_succ_iff, forall_fin_zero_iff, forall_zmod_two_iff,
-    exists_fin_succ_iff, exists_fin_zero_iff,
-    matrix.cons_val_zero,
-    matrix.cons_val_succ,
-    zero_add, add_zero,
-    swap_apply_def, if_pos, if_neg, fin.succ_inj, fin.succ_ne_zero, fin.zero_ne_succ,
-    eq_self_iff_true, not_false_iff, true_and, and_true, false_and, or_false, false_or, true_or,
-    false_implies_iff, true_implies_iff]
-end
-
 private lemma sum_four_squares_of_two_mul_sum_four_squares {m a b c d : ℤ}
   (h : a^2 + b^2 + c^2 + d^2 = 2 * m) : ∃ w x y z : ℤ, w^2 + x^2 + y^2 + z^2 = m :=
-let f : fin 4 → ℤ := ![a, b, c, d] in
-let ⟨i, hσ⟩ := two_eq_parity_of_sum_four_squares (coe ∘ f)
-  (by simpa [f] using congr_arg (coe : ℤ → zmod 2) h) in
+have ∀ f : fin 4 → zmod 2, (f 0)^2 + (f 1)^2 + (f 2)^2 + (f 3)^2 = 0 →
+    ∃ i : (fin 4), (f i)^2 + f (swap i 0 1)^2 = 0 ∧ f (swap i 0 2)^2 + f (swap i 0 3)^2 = 0,
+  from dec_trivial,
+let f : fin 4 → ℤ :=
+  vector.nth (a ::ᵥ b ::ᵥ c ::ᵥ d ::ᵥ vector.nil) in
+let ⟨i, hσ⟩ := this (coe ∘ f) (by rw [← @zero_mul (zmod 2) _ m,
+  ← show ((2 : ℤ) : zmod 2) = 0, from rfl,
+  ← int.cast_mul, ← h]; simp only [int.cast_add, int.cast_pow]; refl) in
 let σ := swap i 0 in
 have h01 : 2 ∣ f (σ 0) ^ 2 + f (σ 1) ^ 2,
   from (char_p.int_cast_eq_zero_iff (zmod 2) 2 _).1 $ by simpa [σ] using hσ.1,
@@ -149,13 +100,8 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
       ← mul_right_inj' (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
     { conv_rhs { rw ← σ.sum_comp } },
-    have fin4univ : (univ : finset (fin 4)).1 = 0 ::ₘ 1 ::ₘ 2 ::ₘ 3 ::ₘ 0,
-    { ext i,
-      have : bit1 (0 : fin 3).succ = (0 : fin 1).succ.succ.succ, by norm_num,
-      have : bit0 (0 : fin 3).succ = (0 : fin 2).succ.succ, by norm_num,
-      have : (1 : fin 4) = (0 : fin 3).succ, by norm_num,
-      fin_cases i; simp [fin.succ_ne_zero, fin.zero_ne_succ, -fin.succ_zero_eq_one, *] },
-    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc] using this
+    have fin4univ : (univ : finset (fin 4)).1 = 0 ::ₘ 1 ::ₘ 2 ::ₘ 3 ::ₘ 0, from dec_trivial,
+    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩
 
 private lemma prime_sum_four_squares (p : ℕ) [hp : _root_.fact p.prime] :

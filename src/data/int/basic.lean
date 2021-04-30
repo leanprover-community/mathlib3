@@ -463,8 +463,7 @@ match b, eq_succ_of_zero_lt bpos with ._, ⟨n, rfl⟩ := rfl end
 abs_by_cases (λ i, a % i = a % b) rfl (mod_neg _ _)
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
-theorem zero_mod (b : ℤ) : 0 % b = 0 :=
-congr_arg of_nat $ nat.zero_mod _
+theorem zero_mod (b : ℤ) : 0 % b = 0 := rfl
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem mod_zero : ∀ (a : ℤ), a % 0 = a

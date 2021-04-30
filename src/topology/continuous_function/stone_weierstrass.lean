@@ -191,7 +191,7 @@ begin
   dsimp [set.separates_points_strongly] at sep,
 
   let g : Π x y, L := λ x y, (sep f x y).some,
-  have w₁ : ∀ x y, g x y x = f x := λ x y, (sep f x y).some_spec.1,
+  have w₁ : ∀ x y, (g x y : C(X, ℝ)) x = f x := λ x y, (sep f x y).some_spec.1,
   have w₂ : ∀ x y, g x y y = f y := λ x y, (sep f x y).some_spec.2,
 
   -- For each `x y`, we define `U x y` to be `{z | f z - ε < g x y z}`,
@@ -232,30 +232,24 @@ begin
     dsimp [h],
     simp only [finset.lt_sup'_iff, continuous_map.sup'_apply],
     exact ⟨y, ym, zm⟩, },
-
-  -- For each `x y`, we define `V x y` to be `{z | g x y z < f z + ε}`,
-  -- and observe this is a neighbourhood of `x`.
-  let V : Π x y, set X := λ x y, { z | g x y z < f z + ε },
-  have V_nhd_x : ∀ x y, V x y ∈ 𝓝 x,
-  { intros x y,
-    refine mem_nhds_sets _ _,
-    { rw [show V x y = (g x y - f : C(X, ℝ)) ⁻¹' set.Iio ε, { ext z, simp [sub_lt_iff_lt_add'], }],
-      exact is_open.preimage (by continuity) is_open_Iio, },
-    { rw [set.mem_set_of_eq, w₁],
-      exact (lt_add_iff_pos_right _).mpr pos, }, },
+  have h_eq : ∀ x, h x x = f x, by { intro x, simp [w₁], },
 
   -- For each `x`, we can take the finite intersection of the `V x y` corresponding to `y ∈ ys x`.
-  let W : Π x, set X := λ x, (⋂ y ∈ ys x, V x y),
+  let W : Π x, set X := λ x, {z | h x z < f z + ε},
+  have W_preimage : ∀ x, W x = (h x - f : C(X, ℝ)) ⁻¹' set.Iio ε,
+  { intro x, ext z,
+    dsimp only [W, set.mem_set_of_eq],
+    rw [←sub_lt_iff_lt_add', ←pi.sub_apply],
+    apply iff.refl, },
   -- This is still a neighbourhood of `x`.
-  have W_nhd : ∀ x, W x ∈ 𝓝 x :=
-    λ x, (filter.bInter_finset_mem_sets (ys x)).2 (λ y m, V_nhd_x x y),
-  -- Locally on each `W x`, we have `h x z < f z + ε`, since `h x` is a supremum of the `g x y`.
-  have h_lt : ∀ (x) (z ∈ W x), h x z < f z + ε,
-  { intros x z zm,
-    dsimp [h],
-    simp only [continuous_map.sup'_apply, finset.sup'_lt_iff],
-    intros y ym,
-    convert set.mem_of_mem_of_subset zm (set.bInter_subset_of_mem ym), },
+  have W_nhd : ∀ x, W x ∈ 𝓝 x,
+  { intros x,
+    refine mem_nhds_sets _ _,
+    { rw W_preimage,
+      exact is_open.preimage (by continuity) is_open_Iio, },
+    { dsimp only [W, set.mem_set_of_eq],
+      rw h_eq,
+      exact lt_add_of_pos_right _ pos}, },
 
   -- Since `X` is compact, there is some finset `ys t`
   -- so the union of the `W x` for `x ∈ xs` still covers everything.
@@ -284,8 +278,7 @@ begin
   fsplit,
   { dsimp [k],
     simp only [finset.inf'_lt_iff, continuous_map.inf'_apply],
-    obtain ⟨x, xm, zm⟩ := set.exists_set_mem_of_union_eq_top _ _ xs_w z,
-    exact ⟨x, xm, h_lt _ _ zm⟩, },
+    exact set.exists_set_mem_of_union_eq_top _ _ xs_w z, },
   { dsimp [k],
     simp only [finset.lt_inf'_iff, continuous_map.inf'_apply],
     intros x xm,

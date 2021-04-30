@@ -564,20 +564,18 @@ lemma surjective_of_closure {S : set M} (hS : closure S = ⊤) :
   function.surjective (mv_polynomial.aeval (λ (s : S), of R M (multiplicative.of_add ↑s)) :
   mv_polynomial S R → add_monoid_algebra R M) :=
 begin
-  refine λ f, finsupp.induction_linear f _ _ (λ m r, _),
-  { exact ⟨0, alg_hom.map_zero _⟩ },
-  { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
-    exact ⟨P + Q, alg_hom.map_add _ _ _⟩, },
-  { suffices : ∃ (P : mv_polynomial S R), (mv_polynomial.aeval
-      (λ (s : S), of R M (multiplicative.of_add ↑s))) P = finsupp.single m 1,
-    { obtain ⟨P, hP⟩ := this,
-      refine ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
-    have : m ∈ closure S := hS.symm ▸ mem_top _,
+  refine λ f, induction f (λ m, _) _ _,
+  { have : m ∈ closure S := hS.symm ▸ mem_top _,
     refine closure_induction this (λ m hm, _) _ _,
     { exact ⟨mv_polynomial.X ⟨m, hm⟩, mv_polynomial.aeval_X _ _⟩ },
     { exact ⟨1, alg_hom.map_one _⟩ },
     { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
-      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, single_mul_single, one_mul]⟩ } }
+      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, of_apply, of_apply, of_apply,
+        single_mul_single, one_mul]; refl⟩ } },
+    { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
+      exact ⟨P + Q, alg_hom.map_add _ _ _⟩ },
+    { rintro r f ⟨P, rfl⟩,
+      exact ⟨r • P, by rw [alg_hom.map_smul]⟩ }
 end
 
 instance ft_of_fg [h : add_monoid.fg M] : finite_type R (add_monoid_algebra R M) :=
@@ -599,20 +597,18 @@ lemma surjective_of_closure {S : set M} (hS : closure S = ⊤) :
   function.surjective (mv_polynomial.aeval (λ (s : S), of R M s.1) :
   mv_polynomial S R → monoid_algebra R M) :=
 begin
-  refine λ f, finsupp.induction_linear f _ _ (λ m r, _),
-  { exact ⟨0, alg_hom.map_zero _⟩ },
-  { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
-    exact ⟨P + Q, alg_hom.map_add _ _ _⟩, },
-  { suffices : ∃ (P : mv_polynomial S R), (mv_polynomial.aeval (λ (s : S), of R M s.1)) P =
-      finsupp.single m 1,
-    { obtain ⟨P, hP⟩ := this,
-      exact ⟨r • P, by simp only [hP, alg_hom.map_smul, mul_one, finsupp.smul_single']⟩ },
-    have : m ∈ closure S := hS.symm ▸ mem_top _,
+  refine λ f, induction f (λ m, _) _ _,
+  { have : m ∈ closure S := hS.symm ▸ mem_top _,
     refine closure_induction this (λ m hm, _) _ _,
     { exact ⟨mv_polynomial.X ⟨m, hm⟩, mv_polynomial.aeval_X _ _⟩ },
     { exact ⟨1, alg_hom.map_one _⟩ },
     { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
-      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, single_mul_single, one_mul]⟩ } }
+      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, of_apply, of_apply, of_apply,
+        single_mul_single, one_mul]; refl⟩ } },
+    { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
+      exact ⟨P + Q, alg_hom.map_add _ _ _⟩ },
+    { rintro r f ⟨P, rfl⟩,
+      exact ⟨r • P, by rw [alg_hom.map_smul]⟩ }
 end
 
 instance ft_of_fg [monoid.fg M] : finite_type R (monoid_algebra R M) :=

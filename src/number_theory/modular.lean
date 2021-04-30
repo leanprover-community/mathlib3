@@ -430,10 +430,23 @@ end
 
 /- generalize to arbitrary matrix index sets and move to matrix file -/
 def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
-(linear_map.proj 0 : (fin 2 → ℝ) →ₗ[ℝ] _).comp (linear_map.proj 0)
+(linear_map.proj j : (fin 2 → ℝ) →ₗ[ℝ] _).comp (linear_map.proj i)
 
 
--- ALEX HOMEWORK
+def homeomorph.of_embedding
+{A B : Type*} [topological_space A] [topological_space B]
+  {f : A → B} (hf : embedding f)
+  : homeomorph A (set.range f) :=
+{ continuous_to_fun := continuous_subtype_mk _ hf.continuous,
+  continuous_inv_fun := begin
+    rw hf.continuous_iff,
+    convert continuous_subtype_coe using 1,
+    ext b,
+    simpa [subtype.ext_iff] using (equiv.of_injective f hf.inj).right_inv b,
+  end,
+  .. equiv.of_injective f hf.inj }
+
+
 -- A closed embedding is proper
 -- for `topology.subset_properties`
 lemma closed_embedding.tendsto_cocompact {A B : Type*} [topological_space A] [topological_space B]
@@ -442,26 +455,38 @@ begin
   rw has_basis_cocompact.tendsto_iff has_basis_cocompact,
   intros K hK,
   refine ⟨f ⁻¹' (K ∩ (set.range f)), _, λ x hx, by simpa using hx⟩,
-  have : is_compact (K ∩ set.range f) := hK.inter_right hf.closed_range,
-  -- goal: `⊢ is_compact (f ⁻¹' (K ∩ set.range f))`
-  -- this should be true, since `f` restricts to a homeomorphism from `A` onto its image
-  sorry
+  apply hf.to_embedding.compact_iff_compact_image.mpr,
+  convert hK.inter_right hf.closed_range,
+  exact set.image_preimage_eq_of_subset (set.inter_subset_right _ _),
 end
 
 
 def acbd (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 cd.1.1 • matrix.coord 0 0 + cd.1.2 • matrix.coord 0 1
 
+def useful_matrix (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) := ![![(cd.1.1:ℝ), cd.1.2],![cd.1.2,-cd.1.1]]
 
-/-- map sending the matrix [a b; c d] to `(ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)` -/
-def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((ℝ × ℝ) × (fin 2 → ℝ)) :=
-((acbd cd).prod ((cd.1.2 : ℝ) • matrix.coord 0 0 - (cd.1.1 : ℝ) • matrix.coord 0 1)).prod (linear_map.proj 1)
+/-- map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)` -/
+def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((fin 2 → ℝ) × (fin 2 → ℝ)) :=
+((useful_matrix cd).mul_vec_lin.comp (linear_map.proj 0 : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] _)).prod (linear_map.proj 1)
+  --((acbd cd).prod ((cd.1.2 : ℝ) • matrix.coord 0 0 - (cd.1.1 : ℝ) • matrix.coord 0 1)).prod (linear_map.proj 1)
 
 lemma lin_indep_acbd (cd : coprime_ints) : (line_map cd).ker = ⊥ :=
 begin
-  -- ALEX HOMEWORK? (but might be hard)
-  -- the nice theorem about the matrix `[c d; -d c]` being invertible
-  sorry
+  rw linear_map.ker_eq_bot,
+--  apply function.left_inverse.injective,
+  -- let g : (ℝ × ℝ) → ℝ := λ
+  let g : matrix (fin 2) (fin 2) ℝ := ((cd.1.1)^2+(cd.1.2)^2:ℝ)⁻¹ • ![![-cd.1.1, -cd.1.2],![-cd.1.2,cd.1.1]],
+
+  let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := g.mul_vec_lin,
+  --(ℝ × ℝ) → (fin 2 → ℝ) := sorry,
+  -- λ ⟨ x,y⟩,
+  let f : (fin 2 → ℝ) × (fin 2 → ℝ) → matrix (fin 2) (fin 2) ℝ := λ ⟨ x , cd⟩  , λ i, ite (i=0) (f₁ x) (cd),
+  have : function.left_inverse f (line_map cd),
+  {
+    sorry,
+  },
+  exact this.injective,
 end
 
 /-- Big filter theorem -/
@@ -469,8 +494,8 @@ theorem big_thm (cd : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {cd}, acbd cd ↑g) cofinite (cocompact ℝ) :=
 begin
   let cd' : fin 2 → ℤ :=  λ i, if i = 0 then cd.1.1 else cd.1.2,
-  let mB : ℝ → ((ℝ × ℝ) × (fin 2 → ℝ)) := λ t, ((t, 1), coe ∘ cd'),
-  have hmB : continuous mB := sorry, --continuous_id.prod_mk continuous_const,
+  let mB : ℝ → ((fin 2 → ℝ) × (fin 2 → ℝ)) := λ t, ((t, 1), coe ∘ cd'),
+  have hmB : continuous mB := (continuous_id.prod_mk continuous_const).prod_mk continuous_const,
   convert filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
   have hf₁ : tendsto f₁ cofinite (cocompact _) :=
@@ -485,7 +510,11 @@ begin
   { norm_cast,
     rw ← g.det_coe_matrix,
     sorry }, -- both of these are just algebra: ALEX HOMEWORK
-  { sorry }
+  { ext i,
+    fin_cases i,
+    simp [←hg],
+    simp [hg],
+  sorry }
 end
 
 -- ALEX HOMEWORK? (but might be hard): how to relate the above lemma to the `SL(2, ℤ)`-action
@@ -690,6 +719,7 @@ begin
   exact h_1,
 end
 
+/-
 lemma namedIsZ (c :ℤ  ) (h: c≤ 1) (h2: 0≤ c) :  c=0 ∨ c=1 :=
 begin
   --lift n to ℕ using hn
@@ -1214,3 +1244,4 @@ end
 --   have := h₂.comp h₁,
 --   convert this,
 -- end
+-/

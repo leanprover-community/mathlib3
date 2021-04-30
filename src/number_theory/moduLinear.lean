@@ -1,9 +1,9 @@
-import topology.algebra.module
-import analysis.normed_space.finite_dimension
-import order.filter.basic
+--import topology.algebra.module
+--import analysis.normed_space.finite_dimension
+--import order.filter.basic
 
-open function
-open filter
+--open function
+--open filter
 
 
 /- Note:  hopefully all useful material has now been extracted from this file, so it can be
@@ -111,7 +111,7 @@ disregarded. -/
 --   sorry,
 -- end
 
-end
+--end
 
 
 

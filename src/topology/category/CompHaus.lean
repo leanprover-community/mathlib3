@@ -68,7 +68,7 @@ def of : CompHaus :=
 
 /-- Any morphism of compact t2 spaces is a closed map. -/
 lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
-λ C hC, is_compact.is_closed $ is_compact.image (is_closed.compact hC) f.continuous
+λ C hC, (hC.compact.image f.continuous).is_closed
 
 /-- Any bijection is an isomorphism. -/
 lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=

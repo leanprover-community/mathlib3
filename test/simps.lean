@@ -953,4 +953,27 @@ by { dsimp, guard_target (x = x), refl }
 @[simps apply to_dequiv_apply to_further_decorated_equiv_apply to_dequiv]
 def fffoo2 (α : Type) : one_more α α := fffoo α
 
+/- test the case where a projection takes additional arguments. -/
+variables {ι : Type*} [decidable_eq ι] (A : ι → Type*)
+
+class something [has_add ι] [Π i, add_comm_monoid (A i)] :=
+(mul {i} : A i →+ A i)
+
+def something.simps.apply [has_add ι] [Π i, add_comm_monoid (A i)] [something A] {i : ι} (x : A i) :
+  A i :=
+something.mul ι x
+
+initialize_simps_projections something (mul_to_fun → apply, -mul)
+
+class something2 [has_add ι] :=
+(mul {i j} : A i ≃ (A j ≃ A (i + j)))
+
+def something2.simps.mul [has_add ι] [something2 A] {i j : ι}
+  (x : A i) (y : A j) : A (i + j) :=
+something2.mul x y
+
+-- set_option trace.simps.debug true
+initialize_simps_projections something2 (-mul, mul → mul', mul_to_fun_to_fun → mul)
+
+
 end comp_projs

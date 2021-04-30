@@ -208,7 +208,9 @@ section power_basis
 
 variables [field K] {f : polynomial K}
 
-lemma power_basis_is_basis (hf : f ≠ 0) : is_basis K (λ (i : fin f.nat_degree), (root f ^ i.val)) :=
+/-- The elements `1, root f, ..., root f ^ (d - 1)` form a basis for `adjoin_root f`,
+where `f` is an irreducible polynomial over a field of degree `d`. -/
+def power_basis_aux (hf : f ≠ 0) : basis (fin f.nat_degree) K (adjoin_root f) :=
 begin
   set f' := f * C (f.leading_coeff⁻¹) with f'_def,
   have deg_f' : f'.nat_degree = f.nat_degree,
@@ -232,10 +234,11 @@ begin
       change mk f q = 0,
       rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero] },
     { exact q_monic.ne_zero } },
-  refine ⟨_, eq_top_iff.mpr _⟩,
+  apply @basis.mk _ _ _ (λ (i : fin f.nat_degree), (root f ^ i.val)),
   { rw [←deg_f', minpoly_eq],
     exact hx.linear_independent_pow },
-  { rintros y -,
+  { rw _root_.eq_top_iff,
+    rintros y -,
     rw [←deg_f', minpoly_eq],
     apply hx.mem_span_pow,
     obtain ⟨g⟩ := y,
@@ -246,11 +249,12 @@ end
 
 /-- The power basis `1, root f, ..., root f ^ (d - 1)` for `adjoin_root f`,
 where `f` is an irreducible polynomial over a field of degree `d`. -/
-noncomputable def power_basis (hf : f ≠ 0) :
+def power_basis (hf : f ≠ 0) :
   power_basis K (adjoin_root f) :=
 { gen := root f,
   dim := f.nat_degree,
-  is_basis := power_basis_is_basis hf }
+  basis := power_basis_aux hf,
+  basis_eq_pow := basis.mk_apply _ _ }
 
 end power_basis
 

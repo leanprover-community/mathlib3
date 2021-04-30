@@ -560,9 +560,9 @@ open algebra add_submonoid
 
 variables {R : Type*} {M : Type*} [add_comm_monoid M]
 
-lemma surjective_of_closure [comm_semiring R] {S : set M} (hS : closure S = ⊤) :
-  function.surjective (mv_polynomial.aeval (λ (s : S), of R M (multiplicative.of_add ↑s)) :
-  mv_polynomial S R → add_monoid_algebra R M) :=
+lemma mv_polynomial_aeval_of_surjective_of_closure [comm_semiring R] {S : set M}
+  (hS : closure S = ⊤) : function.surjective (mv_polynomial.aeval
+  (λ (s : S), of R M (multiplicative.of_add ↑s)) : mv_polynomial S R → add_monoid_algebra R M) :=
 begin
   refine λ f, induction_on f (λ m, _) _ _,
   { have : m ∈ closure S := hS.symm ▸ mem_top _,
@@ -582,7 +582,7 @@ instance ft_of_fg [comm_ring R] [h : add_monoid.fg M] : finite_type R (add_monoi
 begin
   obtain ⟨S, hS⟩ := h.out,
   exact (finite_type.mv_polynomial R (S : set M)).of_surjective (mv_polynomial.aeval
-    (λ (s : (S : set M)), of R M s.1)) (surjective_of_closure hS)
+    (λ (s : (S : set M)), of R M s.1)) (mv_polynomial_aeval_of_surjective_of_closure hS)
 end
 
 end add_monoid_algebra
@@ -593,9 +593,9 @@ open algebra submonoid
 
 variables {R : Type*} {M : Type*} [comm_monoid M]
 
-lemma surjective_of_closure [comm_semiring R] {S : set M} (hS : closure S = ⊤) :
-  function.surjective (mv_polynomial.aeval (λ (s : S), of R M s.1) :
-  mv_polynomial S R → monoid_algebra R M) :=
+lemma mv_polynomial_aeval_of_surjective_of_closure [comm_semiring R] {S : set M}
+  (hS : closure S = ⊤) : function.surjective (mv_polynomial.aeval
+  (λ (s : S), of R M s.1) : mv_polynomial S R → monoid_algebra R M) :=
 begin
   refine λ f, induction_on f (λ m, _) _ _,
   { have : m ∈ closure S := hS.symm ▸ mem_top _,

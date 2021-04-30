@@ -47,6 +47,9 @@ instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
 instance category : category CompHaus := induced_category.category to_Top
 
+instance concrete_category : concrete_category CompHaus :=
+induced_category.concrete_category _
+
 @[simp]
 lemma coe_to_Top {X : CompHaus} : (X.to_Top : Type*) = X :=
 rfl
@@ -63,11 +66,39 @@ def of : CompHaus :=
 
 @[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
 
+/-- Any morphism of compact t2 spaces is a closed map. -/
+lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
+λ C hC, is_compact.is_closed $ is_compact.image (is_closed.compact hC) f.continuous
+
+/-- Any bijection is an isomorphism. -/
+lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
+begin
+  let E := equiv.of_bijective _ bij,
+  have hE : continuous E.symm,
+  { rw continuous_iff_is_closed,
+    intros S hS,
+    rw ← E.image_eq_preimage,
+    exact is_closed_map f S hS },
+  refine ⟨⟨⟨E.symm, hE⟩, _, _⟩⟩,
+  { ext x,
+    apply E.symm_apply_apply },
+  { ext x,
+    apply E.apply_symm_apply }
+end
+
+/-- Any bijection is an isomorphism. -/
+noncomputable
+def iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
+by letI := is_iso_of_bijective _ bij; exact as_iso f
+
 end CompHaus
 
 /-- The fully faithful embedding of `CompHaus` in `Top`. -/
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
 def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
+
+instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus) :=
+⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
 
 /--
 (Implementation) The object part of the compactification functor from topological spaces to

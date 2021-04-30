@@ -68,33 +68,6 @@ rfl
 
 @[simp] lemma coe_comp {X Y Z : Profinite} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g : X → Z) = g ∘ f := rfl
 
-/-- Any morphism of profinite spaces is a closed map. -/
-lemma is_closed_map {X Y : Profinite} (f : X ⟶ Y) : is_closed_map f :=
-λ C hC, is_compact.is_closed $ is_compact.image (is_closed.compact hC) f.continuous
-
-/-- Any bijection is an isomorphism. -/
-lemma is_iso_of_bijective {X Y : Profinite} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
-begin
-  let E := equiv.of_bijective _ bij,
-  have hE : continuous E.symm,
-  { rw continuous_iff_is_closed,
-    intros S hS,
-    convert ← is_closed_map f S hS,
-    erw equiv.image_eq_preimage E },
-  refine ⟨⟨⟨E.symm, hE⟩, _, _⟩⟩,
-  { ext x,
-    change (E.symm ∘ E) x = x,
-    simp },
-  { ext x,
-    change (E ∘ E.symm) x = x,
-    simp }
-end
-
-/-- Any bijection is an isomorphism. -/
-noncomputable
-def iso_of_bijective {X Y : Profinite} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
-by letI := is_iso_of_bijective _ bij; exact as_iso f
-
 end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/
@@ -180,5 +153,25 @@ monadic_creates_limits _
 
 instance Profinite.has_limits : limits.has_limits Profinite :=
 has_limits_of_has_limits_creates_limits Profinite_to_Top
+
+/-- Any morphism of profinite spaces is a closed map. -/
+lemma Profinite.is_closed_map {X Y : Profinite} (f : X ⟶ Y) : is_closed_map f :=
+show is_closed_map (Profinite.to_CompHaus.map f), from CompHaus.is_closed_map _
+
+/-- Any continuous bijection of profinite spaces is an isomorphism. -/
+lemma Profinite.is_iso_of_bijective {X Y : Profinite} (f : X ⟶ Y)
+  (bij : function.bijective f) : is_iso f :=
+begin
+  haveI := CompHaus.is_iso_of_bijective (Profinite.to_CompHaus.map f) bij,
+  exact is_iso_of_fully_faithful Profinite.to_CompHaus _
+end
+
+/-- Any continuous bijection of profinite spaces is an isomorphism. -/
+noncomputable def Profinite.iso_of_bijective {X Y : Profinite} (f : X ⟶ Y)
+  (bij : function.bijective f) : X ≅ Y :=
+by letI := Profinite.is_iso_of_bijective f bij; exact as_iso f
+
+instance : reflects_isomorphisms (forget Profinite) :=
+⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
 
 end Profinite

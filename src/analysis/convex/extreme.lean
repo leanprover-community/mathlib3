@@ -24,7 +24,7 @@ TODO:
 open_locale classical affine
 open set
 
-variables {E : Type*} [add_comm_group E] [vector_space ℝ E] {x : E} {A B C : set E}
+variables {E : Type*} [add_comm_group E] [module ℝ E] {x : E} {A B C : set E}
 
 /-- A set B is extreme to a set A if B ⊆ A and all points of B only belong to open segments whose
 ends are in B. -/

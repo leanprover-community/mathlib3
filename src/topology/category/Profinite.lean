@@ -64,7 +64,7 @@ instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconne
 lemma coe_to_Top {X : Profinite} : (X.to_Top : Type*) = X :=
 rfl
 
-@[simp] lemma coe_id (X : Profinite) (x : X) : (𝟙 X : X → X) = id := rfl
+@[simp] lemma coe_id (X : Profinite) : (𝟙 X : X → X) = id := rfl
 
 @[simp] lemma coe_comp {X Y Z : Profinite} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g : X → Z) = g ∘ f := rfl
 

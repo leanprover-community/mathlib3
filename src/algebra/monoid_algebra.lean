@@ -434,6 +434,16 @@ lemma single_algebra_map_eq_algebra_map_mul_of {A : Type*} [comm_semiring k] [se
   single a (algebra_map k A b) = algebra_map k (monoid_algebra A G) b * of A G a :=
 by simp
 
+lemma induction_on [semiring k] [monoid G] {p : monoid_algebra k G → Prop} (f : monoid_algebra k G)
+  (hM : ∀ g, p (of k G g)) (hadd : ∀ f g : monoid_algebra k G, p f → p g → p (f + g))
+  (hsmul : ∀ (r : k) f, p f → p (r • f)) : p f :=
+begin
+  refine finsupp.induction_linear f _ (λ f g hf hg, hadd f g hf hg) (λ g r, _),
+  { simpa using hsmul 0 (of k G 1) (hM 1) },
+  { convert hsmul r (of k G g) (hM g),
+    simp only [mul_one, smul_single', of_apply] },
+end
+
 end algebra
 
 section lift
@@ -591,7 +601,6 @@ lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
 calc (f * g) x = sum f (λ a b, (single a b * g) x) :
   by rw [← finsupp.sum_apply, ← finsupp.sum_mul, f.sum_single]
 ... = _ : by simp only [single_mul_apply, finsupp.sum]
-
 
 -- If we'd assumed `comm_semiring`, we could deduce this from `mul_apply_left`.
 lemma mul_apply_right (f g : monoid_algebra k G) (x : G) :
@@ -900,6 +909,19 @@ lemma lift_nc_smul {R : Type*} [add_zero_class G] [semiring R] (f : k →+* R)
   (g : multiplicative G →* R) (c : k) (φ : monoid_algebra k G) :
   lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
 @monoid_algebra.lift_nc_smul k (multiplicative G) _ _ _ _ f g c φ
+
+variables {k G}
+
+lemma induction_on [add_monoid G] {p : add_monoid_algebra k G → Prop} (f : add_monoid_algebra k G)
+  (hM : ∀ g, p (of k G (multiplicative.of_add g)))
+  (hadd : ∀ f g : add_monoid_algebra k G, p f → p g → p (f + g))
+  (hsmul : ∀ (r : k) f, p f → p (r • f)) : p f :=
+begin
+  refine finsupp.induction_linear f _ (λ f g hf hg, hadd f g hf hg) (λ g r, _),
+  { simpa using hsmul 0 (of k G (multiplicative.of_add 0)) (hM 0) },
+  { convert hsmul r (of k G (multiplicative.of_add g)) (hM g),
+    simp only [mul_one, to_add_of_add, smul_single', of_apply] },
+end
 
 end misc_theorems
 

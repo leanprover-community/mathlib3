@@ -74,14 +74,21 @@ lemma is_closed_map {X Y : Profinite} (f : X ⟶ Y) : is_closed_map f :=
 
 /-- Any bijection is an isomorphism. -/
 lemma is_iso_of_bijective {X Y : Profinite} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
-let E := equiv.of_bijective _ bij,
-    hE : continuous E.symm :=
-    begin
-      rw continuous_iff_is_closed,
-      intros S hS,
-      convert ← is_closed_map f S hS,
-      erw equiv.image_eq_preimage E
-    end in ⟨⟨⟨E.symm, hE⟩, by tidy, by tidy⟩⟩
+begin
+  let E := equiv.of_bijective _ bij,
+  have hE : continuous E.symm,
+  { rw continuous_iff_is_closed,
+    intros S hS,
+    convert ← is_closed_map f S hS,
+    erw equiv.image_eq_preimage E },
+  refine ⟨⟨⟨E.symm, hE⟩, _, _⟩⟩,
+  { ext x,
+    change (E.symm ∘ E) x = x,
+    simp },
+  { ext x,
+    change (E ∘ E.symm) x = x,
+    simp }
+end
 
 /-- Any bijection is an isomorphism. -/
 noncomputable

@@ -249,12 +249,13 @@ end
 
 /-- The power basis `1, root f, ..., root f ^ (d - 1)` for `adjoin_root f`,
 where `f` is an irreducible polynomial over a field of degree `d`. -/
-def power_basis (hf : f ≠ 0) :
+@[simps] def power_basis (hf : f ≠ 0) :
   power_basis K (adjoin_root f) :=
 { gen := root f,
   dim := f.nat_degree,
   basis := power_basis_aux hf,
   basis_eq_pow := basis.mk_apply _ _ }
+
 
 end power_basis
 

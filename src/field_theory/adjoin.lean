@@ -711,22 +711,12 @@ variables {K L : Type*} [field K] [field L] [algebra K L]
 
 namespace intermediate_field
 
-lemma power_basis_is_basis {x : L} (hx : is_integral K x) :
-  is_basis K (λ (i : fin (minpoly K x).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
-begin
-  let ϕ := (adjoin_root_equiv_adjoin K hx).to_linear_equiv,
-  have key : ϕ (adjoin_root.root (minpoly K x)) = adjoin_simple.gen K x,
-  { exact intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx },
-  suffices : ϕ ∘ (λ (i : fin (minpoly K x).nat_degree),
-    adjoin_root.root (minpoly K x) ^ (i.val)) =
-      (λ (i : fin (minpoly K x).nat_degree),
-        (adjoin_simple.gen K x) ^ ↑i),
-  { rw ← this, exact linear_equiv.is_basis
-    (adjoin_root.power_basis_is_basis (minpoly.ne_zero hx)) ϕ },
-  ext y,
-  rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow],
-  rw intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx,
-end
+/-- The elements `1, x, ..., x ^ (d - 1)` form a basis for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+noncomputable def power_basis_aux {x : L} (hx : is_integral K x) :
+  basis (fin (minpoly K x).nat_degree) K K⟮x⟯ :=
+(adjoin_root.power_basis (minpoly.ne_zero hx)).basis.map
+  (adjoin_root_equiv_adjoin K hx).to_linear_equiv
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
 where `d` is the degree of the minimal polynomial of `x`. -/
@@ -734,7 +724,11 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
   power_basis K K⟮x⟯ :=
 { gen := adjoin_simple.gen K x,
   dim := (minpoly K x).nat_degree,
-  is_basis := power_basis_is_basis hx }
+  basis := power_basis_aux hx,
+  basis_eq_pow := λ i,
+    by rw [power_basis_aux, basis.map_apply, power_basis.basis_eq_pow,
+           alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow, adjoin_root.power_basis_gen,
+           adjoin_root_equiv_adjoin_apply_root] }
 
 @[simp] lemma adjoin.power_basis.gen_eq {x : L} (hx : is_integral K x) :
   (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl

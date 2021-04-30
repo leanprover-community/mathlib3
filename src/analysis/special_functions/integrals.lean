@@ -369,14 +369,17 @@ begin
 end
 
 /-- The integral of `sin x * cos x`, given in terms of sin². -/
+@[simp]
 lemma integral_sin_mul_cos₁ :
   ∫ x in a..b, sin x * cos x = (sin b ^ 2 - sin a ^ 2) / 2 :=
 by simpa using integral_sin_pow_mul_cos_pow_odd 1 0
 
+@[simp]
 lemma integral_sin_sq_mul_cos :
   ∫ x in a..b, sin x ^ 2 * cos x = (sin b ^ 3 - sin a ^ 3) / 3 :=
 by simpa using integral_sin_pow_mul_cos_pow_odd 2 0
 
+@[simp]
 lemma integral_cos_pow_three :
   ∫ x in a..b, cos x ^ 3 = sin b - sin a - (sin b ^ 3 - sin a ^ 3) / 3 :=
 by simpa using integral_sin_pow_mul_cos_pow_odd 0 1
@@ -399,10 +402,12 @@ lemma integral_sin_mul_cos₂  :
   ∫ x in a..b, sin x * cos x = (cos a ^ 2 - cos b ^ 2) / 2 :=
 by simpa using integral_sin_pow_odd_mul_cos_pow 0 1
 
+@[simp]
 lemma integral_sin_mul_cos_sq :
   ∫ x in a..b, sin x * cos x ^ 2 = (cos a ^ 3 - cos b ^ 3) / 3 :=
 by simpa using integral_sin_pow_odd_mul_cos_pow 0 2
 
+@[simp]
 lemma integral_sin_pow_three :
   ∫ x in a..b, sin x ^ 3 = cos a - cos b - (cos a ^ 3 - cos b ^ 3) / 3 :=
 by simpa using integral_sin_pow_odd_mul_cos_pow 1 0
@@ -413,15 +418,15 @@ lemma integral_sin_pow_even_mul_cos_pow_even (m n : ℕ) :
   = ∫ x in a..b, ((1 - cos (2 * x)) / 2) ^ m * ((1 + cos (2 * x)) / 2) ^ n :=
 by field_simp [pow_mul, sin_sq, cos_sq, ← sub_sub, (by ring : (2:ℝ) - 1 = 1)]
 
+@[simp]
 lemma integral_sin_sq_mul_cos_sq :
   ∫ x in a..b, sin x ^ 2 * cos x ^ 2 = (b - a) / 8 - (sin (4 * b) - sin (4 * a)) / 32 :=
 begin
   convert integral_sin_pow_even_mul_cos_pow_even 1 1 using 1,
   have h1 : ∀ c : ℝ, (1 - c) / 2 * ((1 + c) / 2) = (1 - c ^ 2) / 4 := λ c, by ring,
-  have h2 : interval_integrable (λ x, cos (2 * x) ^ 2) measure_theory.measure_space.volume a b,
-  { apply continuous.interval_integrable, continuity },
-  have h3 : ∀ x, cos x * sin x = sin (2 * x) / 2, { intro x, rw sin_two_mul, ring },
+  have h2 : continuous (λ x, cos (2 * x) ^ 2) := by continuity,
+  have h3 : ∀ x, cos x * sin x = sin (2 * x) / 2, { intro, rw sin_two_mul, ring },
   have h4 : ∀ d : ℝ, 2 * (2 * d) = 4 * d := λ d, by ring,
-  simp [h1, h2, integral_comp_mul_left (λ x, cos x ^ 2), h3, h4],
+  simp [h1, h2.interval_integrable, integral_comp_mul_left (λ x, cos x ^ 2), h3, h4],
   ring,
 end

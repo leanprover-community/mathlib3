@@ -7,6 +7,7 @@ Authors: Johan Commelin
 import ring_theory.noetherian
 import ring_theory.ideal.operations
 import ring_theory.algebra_tower
+import group_theory.finiteness
 
 /-!
 # Finiteness conditions in commutative algebra
@@ -35,7 +36,8 @@ variables [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
 /-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
-class module.finite : Prop := (out : (⊤ : submodule R M).fg)
+class module.finite (R : Type*) (M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M] :
+  Prop := (out : (⊤ : submodule R M).fg)
 
 /-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
 over the base ring as algebra. -/
@@ -49,9 +51,8 @@ def algebra.finite_presentation : Prop :=
 
 namespace module
 
-variables {R M N}
-lemma finite_def : finite R M ↔ (⊤ : submodule R M).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
-variables (R M N)
+lemma finite_def {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  finite R M ↔ (⊤ : submodule R M).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian.finite [is_noetherian R M] : finite R M :=
@@ -59,6 +60,14 @@ instance is_noetherian.finite [is_noetherian R M] : finite R M :=
 
 namespace finite
 open submodule set
+
+lemma iff_add_monoid_fg {M : Type*} [add_comm_monoid M] : module.finite ℕ M ↔ add_monoid.fg M :=
+⟨λ h, add_monoid.fg_def.2 $ (fg_iff_add_submonoid_fg ⊤).1 (finite_def.1 h),
+  λ h, finite_def.2 $ (fg_iff_add_submonoid_fg ⊤).2 (add_monoid.fg_def.1 h)⟩
+
+lemma iff_add_group_fg {G : Type*} [add_comm_group G] : module.finite ℤ G ↔ add_group.fg G :=
+⟨λ h, add_group.fg_def.2 $ (fg_iff_add_subgroup_fg ⊤).1 (finite_def.1 h),
+  λ h, finite_def.2 $ (fg_iff_add_subgroup_fg ⊤).2 (add_group.fg_def.1 h)⟩
 
 variables {R M N}
 
@@ -550,3 +559,69 @@ ring_hom.finite_presentation.of_finite_type
 end finite_presentation
 
 end alg_hom
+
+section monoid_algebra
+
+namespace add_monoid_algebra
+
+open algebra add_submonoid
+
+variables {R : Type*} {M : Type*} [add_comm_monoid M]
+
+lemma mv_polynomial_aeval_of_surjective_of_closure [comm_semiring R] {S : set M}
+  (hS : closure S = ⊤) : function.surjective (mv_polynomial.aeval
+  (λ (s : S), of R M (multiplicative.of_add ↑s)) : mv_polynomial S R → add_monoid_algebra R M) :=
+begin
+  refine λ f, induction_on f (λ m, _) _ _,
+  { have : m ∈ closure S := hS.symm ▸ mem_top _,
+    refine closure_induction this (λ m hm, _) _ _,
+    { exact ⟨mv_polynomial.X ⟨m, hm⟩, mv_polynomial.aeval_X _ _⟩ },
+    { exact ⟨1, alg_hom.map_one _⟩ },
+    { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
+      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, of_apply, of_apply, of_apply,
+        single_mul_single, one_mul]; refl⟩ } },
+  { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
+    exact ⟨P + Q, alg_hom.map_add _ _ _⟩ },
+  { rintro r f ⟨P, rfl⟩,
+    exact ⟨r • P, alg_hom.map_smul _ _ _⟩ }
+end
+
+instance ft_of_fg [comm_ring R] [h : add_monoid.fg M] : finite_type R (add_monoid_algebra R M) :=
+begin
+  obtain ⟨S, hS⟩ := h.out,
+  exact (finite_type.mv_polynomial R (S : set M)).of_surjective (mv_polynomial.aeval
+    (λ (s : (S : set M)), of R M s.1)) (mv_polynomial_aeval_of_surjective_of_closure hS)
+end
+
+end add_monoid_algebra
+
+namespace monoid_algebra
+
+open algebra submonoid
+
+variables {R : Type*} {M : Type*} [comm_monoid M]
+
+lemma mv_polynomial_aeval_of_surjective_of_closure [comm_semiring R] {S : set M}
+  (hS : closure S = ⊤) : function.surjective (mv_polynomial.aeval
+  (λ (s : S), of R M ↑s) : mv_polynomial S R → monoid_algebra R M) :=
+begin
+  refine λ f, induction_on f (λ m, _) _ _,
+  { have : m ∈ closure S := hS.symm ▸ mem_top _,
+    refine closure_induction this (λ m hm, _) _ _,
+    { exact ⟨mv_polynomial.X ⟨m, hm⟩, mv_polynomial.aeval_X _ _⟩ },
+    { exact ⟨1, alg_hom.map_one _⟩ },
+    { rintro m₁ m₂ ⟨P₁, hP₁⟩ ⟨P₂, hP₂⟩,
+      exact ⟨P₁ * P₂, by rw [alg_hom.map_mul, hP₁, hP₂, of_apply, of_apply, of_apply,
+        single_mul_single, one_mul]⟩ } },
+  { rintro f g ⟨P, rfl⟩ ⟨Q, rfl⟩,
+    exact ⟨P + Q, alg_hom.map_add _ _ _⟩ },
+  { rintro r f ⟨P, rfl⟩,
+    exact ⟨r • P, alg_hom.map_smul _ _ _⟩ }
+end
+
+instance ft_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=
+add_monoid_algebra.ft_of_fg.equiv (monoid_algebra.to_additive_alg_equiv R M).symm
+
+end monoid_algebra
+
+end monoid_algebra

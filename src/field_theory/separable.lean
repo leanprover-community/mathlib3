@@ -304,12 +304,12 @@ by simp_rw [separable_def, derivative_map, is_coprime_map]
 
 section char_p
 
+/-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
+noncomputable def contract (p : ℕ) (f : polynomial F) : polynomial F :=
+∑ n in range (f.nat_degree + 1), monomial n (f.coeff (n * p))
+
 variables (p : ℕ) [hp : fact p.prime]
 include hp
-
-/-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
-noncomputable def contract (f : polynomial F) : polynomial F :=
-∑ n in range (f.nat_degree + 1), monomial n (f.coeff (n * p))
 
 theorem coeff_contract (f : polynomial F) (n : ℕ) : (contract p f).coeff n = f.coeff (n * p) :=
 begin

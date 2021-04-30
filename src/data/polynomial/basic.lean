@@ -43,6 +43,7 @@ lemma exists_iff_exists_finsupp (P : polynomial R → Prop) :
   (∃ p, P p) ↔ ∃ (q : add_monoid_algebra R ℕ), P ⟨q⟩ :=
 ⟨λ ⟨⟨p⟩, hp⟩, ⟨p, hp⟩, λ ⟨q, hq⟩, ⟨⟨q⟩, hq⟩ ⟩
 
+/-- The function version of `monomial`. Use `monomial` instead of this one. -/
 @[irreducible] def monomial_fun (n : ℕ) (a : R) : polynomial R := ⟨finsupp.single n a⟩
 @[irreducible] private def add : polynomial R → polynomial R → polynomial R
 | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
@@ -118,7 +119,7 @@ instance [subsingleton R] : unique (polynomial R) :=
 { uniq := by { rintros ⟨x⟩, change (⟨x⟩ : polynomial R) = 0, rw [← zero_to_finsupp], simp },
 .. polynomial.inhabited }
 
-/- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
+/-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
 variable (R)
 def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=

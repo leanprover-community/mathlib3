@@ -33,11 +33,10 @@ example : ∫ x : ℝ in 0..1, 1 / (1 + x ^ 2) = π / 4 := by simp
 example : ∫ x in 0..2*π, sin x ^ 2 = π := by simp [mul_div_cancel_left]
 example : ∫ x in 0..π/2, cos x ^ 2 / 2 = π / 8 := by norm_num [div_div_eq_div_mul]
 example : ∫ x in 0..π, cos x ^ 2 - sin x ^ 2 = 0 := by simp [integral_cos_sq_sub_sin_sq]
-example : ∫ x in 0..π/2, sin x ^ 3 = 2 / 3 := by norm_num [integral_sin_pow_three]
-example : ∫ x in 0..π/2, cos x ^ 3 = 2 / 3 := by norm_num [integral_cos_pow_three]
-example : ∫ x in 0..π, sin x * cos x = 0 := by simp [integral_sin_mul_cos₁]
-example : ∫ x in 0..π, sin x ^ 2 * cos x ^ 2 = π / 8 :=
-  by simpa [integral_sin_sq_mul_cos_sq] using sin_nat_mul_pi 4
+example : ∫ x in 0..π/2, sin x ^ 3 = 2 / 3 := by norm_num
+example : ∫ x in 0..π/2, cos x ^ 3 = 2 / 3 := by norm_num
+example : ∫ x in 0..π, sin x * cos x = 0 := by simp
+example : ∫ x in 0..π, sin x ^ 2 * cos x ^ 2 = π / 8 := by simpa using sin_nat_mul_pi 4
 
 /- the exponential function -/
 example : ∫ x in 0..2, -exp x = 1 - exp 2 := by simp

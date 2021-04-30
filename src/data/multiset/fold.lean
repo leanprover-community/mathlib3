@@ -83,7 +83,7 @@ end fold
 open nat
 
 theorem le_smul_erase_dup [decidable_eq α] (s : multiset α) :
-  ∃ n : ℕ, s ≤ n •ℕ erase_dup s :=
+  ∃ n : ℕ, s ≤ n • erase_dup s :=
 ⟨(s.map (λ a, count a s)).fold max 0, le_iff_count.2 $ λ a, begin
   rw count_nsmul, by_cases a ∈ s,
   { refine le_trans _ (mul_le_mul_left _ $ count_pos.2 $ mem_erase_dup.2 h),

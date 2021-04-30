@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 -/
 import linear_algebra.basic
 
-/-! ### Products of semimodules
+/-! ### Products of modules
 
 This file defines constructors for linear maps whose domains or codomains are products.
 
@@ -40,7 +40,7 @@ namespace linear_map
 
 variables (S : Type*) [semiring R] [semiring S]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
-variables [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
+variables [module R M] [module R M₂] [module R M₃] [module R M₄]
 variables (f : M →ₗ[R] M₂)
 
 section
@@ -77,7 +77,7 @@ their codomains.
 
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
 @[simps] def prod_equiv
-  [semimodule S M₂] [semimodule S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃] :
+  [module S M₂] [module S M₃] [smul_comm_class R S M₂] [smul_comm_class R S M₃] :
   ((M →ₗ[R] M₂) × (M →ₗ[R] M₃)) ≃ₗ[S] (M →ₗ[R] M₂ × M₃) :=
 { to_fun := λ f, f.1.prod f.2,
   inv_fun := λ f, ((fst _ _ _).comp f, (snd _ _ _).comp f),
@@ -146,7 +146,7 @@ rfl
 their domains.
 
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
-@[simps] def coprod_equiv [semimodule S M₃] [smul_comm_class R S M₃] :
+@[simps] def coprod_equiv [module S M₃] [smul_comm_class R S M₃] :
   ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₃)) ≃ₗ[S] (M × M₂ →ₗ[R] M₃) :=
 { to_fun := λ f, f.1.coprod f.2,
   inv_fun := λ f, (f.comp (inl _ _ _), f.comp (inr _ _ _)),
@@ -188,7 +188,7 @@ open submodule
 
 variables [semiring R]
   [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
-  [semimodule R M] [semimodule R M₂] [semimodule R M₃] [semimodule R M₄]
+  [module R M] [module R M₂] [module R M₃] [module R M₄]
 
 lemma range_coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
   (f.coprod g).range = f.range ⊔ g.range :=
@@ -197,7 +197,7 @@ submodule.ext $ λ x, by simp [mem_sup]
 lemma is_compl_range_inl_inr : is_compl (inl R M M₂).range (inr R M M₂).range :=
 begin
   split,
-  { rintros ⟨_, _⟩ ⟨⟨x, -, hx⟩, ⟨y, -, hy⟩⟩,
+  { rintros ⟨_, _⟩ ⟨⟨x, hx⟩, ⟨y, hy⟩⟩,
     simp only [prod.ext_iff, inl_apply, inr_apply, mem_bot] at hx hy ⊢,
     exact ⟨hy.1.symm, hx.2.symm⟩ },
   { rintros ⟨x, y⟩ -,
@@ -252,6 +252,29 @@ begin
   exact ⟨⟨x, rfl⟩, ⟨x, rfl⟩⟩
 end
 
+lemma ker_prod_ker_le_ker_coprod {M₂ : Type*} [add_comm_group M₂] [module R M₂]
+  {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) :
+  (ker f).prod (ker g) ≤ ker (f.coprod g) :=
+by { rintros ⟨y, z⟩, simp {contextual := tt} }
+
+lemma ker_coprod_of_disjoint_range {M₂ : Type*} [add_comm_group M₂] [module R M₂]
+  {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (hd : disjoint f.range g.range) :
+  ker (f.coprod g) = (ker f).prod (ker g) :=
+begin
+  apply le_antisymm _ (ker_prod_ker_le_ker_coprod f g),
+  rintros ⟨y, z⟩ h,
+  simp only [mem_ker, mem_prod, coprod_apply] at h ⊢,
+  have : f y ∈ f.range ⊓ g.range,
+  { simp only [true_and, mem_range, mem_inf, exists_apply_eq_apply],
+    use -z,
+    rwa [eq_comm, map_neg, ← sub_eq_zero, sub_neg_eq_add] },
+  rw [hd.eq_bot, mem_bot] at this,
+  rw [this] at h,
+  simpa [this] using h,
+end
+
 end linear_map
 
 namespace submodule
@@ -259,7 +282,7 @@ open linear_map
 
 variables [semiring R]
 variables [add_comm_monoid M] [add_comm_monoid M₂]
-variables [semimodule R M] [semimodule R M₂]
+variables [module R M] [module R M₂]
 
 lemma sup_eq_range (p q : submodule R M) : p ⊔ q = (p.subtype.coprod q.subtype).range :=
 submodule.ext $ λ x, by simp [submodule.mem_sup, set_like.exists]
@@ -296,10 +319,10 @@ by rw [ker, ← prod_bot, prod_comap_inl]
 by rw [ker, ← prod_bot, prod_comap_inr]
 
 @[simp] theorem range_fst : (fst R M M₂).range = ⊤ :=
-by rw [range, ← prod_top, prod_map_fst]
+by rw [range_eq_map, ← prod_top, prod_map_fst]
 
 @[simp] theorem range_snd : (snd R M M₂).range = ⊤ :=
-by rw [range, ← prod_top, prod_map_snd]
+by rw [range_eq_map, ← prod_top, prod_map_snd]
 
 end submodule
 
@@ -308,8 +331,8 @@ section
 
 variables [semiring R]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
-variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-variables {semimodule_M₃ : semimodule R M₃} {semimodule_M₄ : semimodule R M₄}
+variables {module_M : module R M} {module_M₂ : module R M₂}
+variables {module_M₃ : module R M₃} {module_M₄ : module R M₄}
 variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 
 /-- Product of linear equivalences; the maps come from `equiv.prod_congr`. -/
@@ -332,8 +355,8 @@ end
 section
 variables [semiring R]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_group M₄]
-variables {semimodule_M : semimodule R M} {semimodule_M₂ : semimodule R M₂}
-variables {semimodule_M₃ : semimodule R M₃} {semimodule_M₄ : semimodule R M₄}
+variables {module_M : module R M} {module_M₂ : module R M₂}
+variables {module_M₃ : module R M₃} {module_M₄ : module R M₄}
 variables (e₁ : M ≃ₗ[R] M₂) (e₂ : M₃ ≃ₗ[R] M₄)
 
 /-- Equivalence given by a block lower diagonal matrix. `e₁` and `e₂` are diagonal square blocks,
@@ -361,7 +384,7 @@ open submodule
 
 variables [ring R]
 variables [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
+variables [module R M] [module R M₂] [module R M₃]
 
 /-- If the union of the kernels `ker f` and `ker g` spans the domain, then the range of
 `prod f g` is equal to the product of `range f` and `range g`. -/

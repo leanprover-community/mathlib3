@@ -35,7 +35,8 @@ variables [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
 /-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
-class module.finite : Prop := (out : (⊤ : submodule R M).fg)
+class module.finite (R : Type*) (M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M] :
+  Prop := (out : (⊤ : submodule R M).fg)
 
 /-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
 over the base ring as algebra. -/
@@ -49,17 +50,28 @@ def algebra.finite_presentation : Prop :=
 
 namespace module
 
-variables {R M N}
-lemma finite_def : finite R M ↔ (⊤ : submodule R M).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
-variables (R M N)
+lemma finite_def {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  finite R M ↔ (⊤ : submodule R M).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian.finite [is_noetherian R M] : finite R M :=
 ⟨is_noetherian.noetherian ⊤⟩
 
 namespace finite
+open submodule set
+
+lemma iff_add_monoid_fg {M : Type*} [add_comm_monoid M] : module.finite ℕ M ↔ add_monoid.fg M :=
+⟨λ h, add_monoid.fg_def.2 $ (fg_iff_add_submonoid_fg ⊤).1 (finite_def.1 h),
+  λ h, finite_def.2 $ (fg_iff_add_submonoid_fg ⊤).2 (add_monoid.fg_def.1 h)⟩
+
+lemma iff_add_group_fg {G : Type*} [add_comm_group G] : module.finite ℤ G ↔ add_group.fg G :=
+⟨λ h, add_group.fg_def.2 $ (fg_iff_add_subgroup_fg ⊤).1 (finite_def.1 h),
+  λ h, finite_def.2 $ (fg_iff_add_subgroup_fg ⊤).2 (add_group.fg_def.1 h)⟩
 
 variables {R M N}
+
+lemma exists_fin [finite R M] : ∃ (n : ℕ) (s : fin n → M), span R (range s) = ⊤ :=
+submodule.fg_iff_exists_fin_generating_family.mp out
 
 lemma of_surjective [hM : finite R M] (f : M →ₗ[R] N) (hf : surjective f) :
   finite R N :=
@@ -330,7 +342,8 @@ begin
   refine equiv _ ((@mv_polynomial.quotient_equiv_quotient_mv_polynomial
     _ (fin n) _ I).restrict_scalars R).symm,
   refine quotient (submodule.map_fg_of_fg I hfg _) _,
-  refine equiv _ (mv_polynomial.sum_alg_equiv _ _ _),
+  let := mv_polynomial.sum_alg_equiv R (fin n) (fin m),
+  refine equiv _ this,
   exact equiv (mv_polynomial R (fin (n + m))) (mv_polynomial.rename_equiv R fin_sum_fin_equiv).symm
 end
 

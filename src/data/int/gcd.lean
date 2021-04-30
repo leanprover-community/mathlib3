@@ -174,11 +174,11 @@ dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel' k_non_ze
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
 
-lemma prime.dvd_nat_abs_of_coe_dvd_pow_two {p : ℕ} (hp : p.prime) (k : ℤ) (h : ↑p ∣ k ^ 2) :
+lemma prime.dvd_nat_abs_of_coe_dvd_sq {p : ℕ} (hp : p.prime) (k : ℤ) (h : ↑p ∣ k ^ 2) :
   p ∣ k.nat_abs :=
 begin
   apply @nat.prime.dvd_of_dvd_pow _ _ 2 hp,
-  rwa [pow_two, ← nat_abs_mul, ← coe_nat_dvd_left, ← pow_two]
+  rwa [sq, ← nat_abs_mul, ← coe_nat_dvd_left, ← sq]
 end
 
 /-- ℤ specific version of least common multiple. -/
@@ -348,8 +348,8 @@ begin
   simp only [nat.gcd_eq_gcd_ab, gpow_add, gpow_mul, hm, hn, one_gpow, one_mul]
 end
 
-lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m •ℕ x = 0)
-  (hn : n •ℕ x = 0) : (m.gcd n) •ℕ x = 0 :=
+lemma gcd_nsmul_eq_zero {M : Type*} [add_monoid M] (x : M) {m n : ℕ} (hm : m • x = 0)
+  (hn : n • x = 0) : (m.gcd n) • x = 0 :=
 begin
   apply multiplicative.of_add.injective,
   rw [of_add_nsmul, of_add_zero, pow_gcd_eq_one];

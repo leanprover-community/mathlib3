@@ -31,7 +31,7 @@ has_limit.mk
     fac' := λ s j,
     begin
       rw [cone_of_cocone_left_op_π_app, colimit.cocone_ι, ←op_comp,
-          colimit.ι_desc, cocone_left_op_of_cone_ι_app, has_hom.hom.op_unop],
+          colimit.ι_desc, cocone_left_op_of_cone_ι_app, quiver.hom.op_unop],
       refl, end,
     uniq' := λ s m w,
     begin
@@ -43,7 +43,7 @@ has_limit.mk
       intro j,
       rw [cocone_left_op_of_cone_ι_app, colimit.cocone_ι],
       convert congr_arg (λ f : _ ⟶ _, f.unop) (w (unop j)), clear w,
-      rw [cone_of_cocone_left_op_π_app, colimit.cocone_ι, has_hom.hom.unop_op],
+      rw [cone_of_cocone_left_op_π_app, colimit.cocone_ι, quiver.hom.unop_op],
       refl,
     end } }
 
@@ -72,7 +72,7 @@ has_colimit.mk
     fac' := λ s j,
     begin
       rw [cocone_of_cone_left_op_ι_app, limit.cone_π, ←op_comp,
-          limit.lift_π, cone_left_op_of_cocone_π_app, has_hom.hom.op_unop],
+          limit.lift_π, cone_left_op_of_cocone_π_app, quiver.hom.op_unop],
       refl, end,
     uniq' := λ s m w,
     begin
@@ -81,7 +81,7 @@ has_colimit.mk
       intro j,
       rw [cone_left_op_of_cocone_π_app, limit.cone_π],
       convert congr_arg (λ f : _ ⟶ _, f.unop) (w (unop j)), clear w,
-      rw [cocone_of_cone_left_op_ι_app, limit.cone_π, has_hom.hom.unop_op],
+      rw [cocone_of_cone_left_op_ι_app, limit.cone_π, quiver.hom.unop_op],
       refl,
     end } }
 

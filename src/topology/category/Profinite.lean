@@ -136,7 +136,7 @@ namespace Profinite
 /--
 The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus
 -/
-def Profinite.to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite.to_CompHaus :=
+def to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite.to_CompHaus :=
 adjunction.adjunction_of_equiv_left _ _
 
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/

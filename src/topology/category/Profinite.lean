@@ -154,4 +154,7 @@ monadic_creates_limits _
 instance Profinite.has_limits : limits.has_limits Profinite :=
 has_limits_of_has_limits_creates_limits Profinite_to_Top
 
+instance Profinite.has_colimits : limits.has_colimits Profinite :=
+has_colimits_of_reflective Profinite.to_CompHaus
+
 end Profinite

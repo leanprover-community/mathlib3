@@ -191,7 +191,7 @@ begin
   dsimp [set.separates_points_strongly] at sep,
 
   let g : Π x y, L := λ x y, (sep f x y).some,
-  have w₁ : ∀ x y, (g x y : C(X, ℝ)) x = f x := λ x y, (sep f x y).some_spec.1,
+  have w₁ : ∀ x y, g x y x = f x := λ x y, (sep f x y).some_spec.1,
   have w₂ : ∀ x y, g x y y = f y := λ x y, (sep f x y).some_spec.2,
 
   -- For each `x y`, we define `U x y` to be `{z | f z - ε < g x y z}`,
@@ -232,21 +232,15 @@ begin
     dsimp [h],
     simp only [finset.lt_sup'_iff, continuous_map.sup'_apply],
     exact ⟨y, ym, zm⟩, },
-  have h_eq : ∀ x, h x x = f x, by { intro x, simp [w₁], },
+  have h_eq : ∀ x, h x x = f x, by { intro x, simp only [coe_fn_coe_base] at w₁, simp [w₁], },
 
   -- For each `x`, we can take the finite intersection of the `V x y` corresponding to `y ∈ ys x`.
   let W : Π x, set X := λ x, {z | h x z < f z + ε},
-  have W_preimage : ∀ x, W x = (h x - f : C(X, ℝ)) ⁻¹' set.Iio ε,
-  { intro x, ext z,
-    dsimp only [W, set.mem_set_of_eq],
-    rw [←sub_lt_iff_lt_add', ←pi.sub_apply],
-    apply iff.refl, },
   -- This is still a neighbourhood of `x`.
   have W_nhd : ∀ x, W x ∈ 𝓝 x,
   { intros x,
     refine mem_nhds_sets _ _,
-    { rw W_preimage,
-      exact is_open.preimage (by continuity) is_open_Iio, },
+    { apply is_open_lt; continuity, },
     { dsimp only [W, set.mem_set_of_eq],
       rw h_eq,
       exact lt_add_of_pos_right _ pos}, },

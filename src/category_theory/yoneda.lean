@@ -127,7 +127,6 @@ If `coyoneda.map f` is an isomorphism, so was `f`.
 lemma is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful coyoneda f
 
--- No need to use Cᵒᵖ here, works with any category
 /-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
   coyoneda functor coming from `punit`. -/
 @[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
@@ -141,10 +140,16 @@ A presheaf `F` is representable if there is object `X` so `F ≅ yoneda.obj X`.
 
 See https://stacks.math.columbia.edu/tag/001Q.
 -/
--- TODO should we make this a Prop, merely asserting existence of such an object?
-class representable (F : Cᵒᵖ ⥤ Type v₁) :=
-(X : C)
-(w : yoneda.obj X ≅ F)
+class representable (F : Cᵒᵖ ⥤ Type v₁) : Prop :=
+(has_representation : ∃ X (f : yoneda.obj X ⟶ F), is_iso f)
+
+/--
+A functor `F` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
+
+See https://stacks.math.columbia.edu/tag/001Q.
+-/
+class corepresentable (F : C ⥤ Type v₁) : Prop :=
+(has_representation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
 
 end category_theory
 

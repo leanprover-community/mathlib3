@@ -232,8 +232,7 @@ end
 /-- If `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X i`. -/
 def X_prev_iso {i j : ι} (r : c.rel i j) :
   C.X_prev j ≅ C.X i :=
-begin
-  apply eq_to_iso,
+eq_to_iso begin
   dsimp [X_prev],
   rw c.prev_eq_some r,
   refl,
@@ -242,8 +241,7 @@ end
 /-- If there is no `i` so `c.rel i j`, then `C.X_prev j` is isomorphic to `0`. -/
 def X_prev_iso_zero {j : ι} (h : c.prev j = none) :
   C.X_prev j ≅ 0 :=
-begin
-  apply eq_to_iso,
+eq_to_iso begin
   dsimp [X_prev],
   rw h,
   refl,
@@ -259,8 +257,7 @@ end
 /-- If `c.rel i j`, then `C.X_next i` is isomorphic to `C.X j`. -/
 def X_next_iso {i j : ι} (r : c.rel i j) :
   C.X_next i ≅ C.X j :=
-begin
-  apply eq_to_iso,
+eq_to_iso begin
   dsimp [X_next],
   rw c.next_eq_some r,
   refl,
@@ -269,8 +266,7 @@ end
 /-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `0`. -/
 def X_next_iso_zero {i : ι} (h : c.next i = none) :
   C.X_next i ≅ 0 :=
-begin
-  apply eq_to_iso,
+eq_to_iso begin
   dsimp [X_next],
   rw h,
   refl,

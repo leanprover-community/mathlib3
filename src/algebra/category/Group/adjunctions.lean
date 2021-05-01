@@ -5,6 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.Group.basic
 import group_theory.free_abelian_group
+import category_theory.concrete_category.representable
 
 /-!
 # Adjunctions regarding the category of (abelian) groups
@@ -92,6 +93,11 @@ def adj : free ⊣ forget Group.{u} :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_group.lift.symm,
   hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
+
+instance : is_right_adjoint (forget Group.{u}) := ⟨_, adj⟩
+
+instance : representably_concrete Group.{u} :=
+{ out := representably_concrete_of_left_adjoint _ (forget Group.{u}) }
 
 end Group
 

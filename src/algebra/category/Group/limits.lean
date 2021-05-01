@@ -5,8 +5,10 @@ Authors: Scott Morrison
 -/
 import algebra.category.Mon.limits
 import algebra.category.Group.preadditive
+import algebra.category.Group.adjunctions
 import category_theory.over
 import category_theory.limits.concrete_category
+import category_theory.concrete_category.representable
 import category_theory.limits.shapes.concrete_category
 import group_theory.subgroup
 
@@ -118,6 +120,10 @@ types could have been computed instead as limits in the category of types.)
 instance forget_preserves_limits : preserves_limits (forget Group) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, limits.comp_preserves_limit (forget₂ Group Mon) (forget Mon) } }
+
+def mk_pullback {X Y Z : Group.{u}} {f : X ⟶ Z} {g : Y ⟶ Z} {x : X} {y : Y} (h : f x = g y) :
+  (pullback f g : Group) :=
+mk_pullback h
 
 end Group
 

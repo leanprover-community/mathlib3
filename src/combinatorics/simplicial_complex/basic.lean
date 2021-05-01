@@ -8,6 +8,7 @@ import linear_algebra.finite_dimensional
 import analysis.convex.topology
 import combinatorics.simplicial_complex.dump
 import combinatorics.simplicial_complex.simplex
+import combinatorics.simplicial_complex.to_move.default
 -- import data.nat.parity
 
 open_locale classical affine big_operators
@@ -162,9 +163,8 @@ lemma points_subset_space :
   S.points ⊆ S.space :=
 bUnion_subset_bUnion_right (λ x hx, subset_convex_hull x)
 
-noncomputable def simplicial_complex.dim (S : simplicial_complex E) :
-  ℕ :=
-finite_dimensional.findim ℝ E
+--noncomputable def simplicial_complex.dim (S : simplicial_complex E) :
+--  ℕ :=
 
 -- Dumb bug in mathlib, see
 --https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there.20code.20for.20X.3F/topic/R.5Em.20is.20finite.20dimensional.20over.20R/near/231748016
@@ -172,7 +172,7 @@ finite_dimensional.findim ℝ E
 
 --Refinement of `size_bound`
 lemma face_dimension_le_space_dimension [finite_dimensional ℝ E] (hX : X ∈ S.faces) :
-  finset.card X ≤ S.dim + 1 :=
+  finset.card X ≤ finite_dimensional.finrank ℝ E + 1 :=
 size_bound (S.indep hX)
 
 def simplicial_complex.facets (S : simplicial_complex E) :
@@ -248,7 +248,7 @@ The cells of a simplicial complex are its simplices whose dimension matches the 
 -/
 def simplicial_complex.cells (S : simplicial_complex E) :
   set (finset E) :=
-{X | X ∈ S.faces ∧ X.card = S.dim + 1}
+{X | X ∈ S.faces ∧ X.card = finite_dimensional.finrank ℝ E + 1}
 
 lemma cells_subset_facets [finite_dimensional ℝ E] :
   S.cells ⊆ S.facets :=
@@ -267,7 +267,7 @@ the space. They are thus one smaller than cells.
 -/
 def simplicial_complex.subcells (S : simplicial_complex E) :
   set (finset E) :=
-{X | X ∈ S.faces ∧ X.card = S.dim}
+{X | X ∈ S.faces ∧ X.card = finite_dimensional.finrank ℝ E}
 
 def simplicial_complex.vertices (S : simplicial_complex E) :
   set E :=
@@ -379,7 +379,7 @@ lemma simplex_combi_interiors_split_interiors (hY : affine_independent ℝ (λ p
 begin
   let S := simplicial_complex.of_simplex hY,
   let F := Y.powerset.filter (λ W : finset E, (X : set E) ⊆ convex_hull W),
-  obtain ⟨Z, hZ, hZmin⟩ := finset.exists_min
+  obtain ⟨Z, hZ, hZmin⟩ := finset.inf' _
   (begin
     use Y,
     simp,

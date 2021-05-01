@@ -20,13 +20,15 @@ namespace affine
 
 def intrinsic_interior (A : set E) :
   set E :=
-{x ∈ A | ∃ (ι : Type*) (s : finset ι) (w : ι → ℝ) (z : ι → E) (hw₀ : ∀ i ∈ s, 0 < w i)
-  (hw₁ : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, z i ∈ A), s.center_mass w z = x}
+{x ∈ A | ∃ (ι : Type*) (s : finset ι) (w : ι → ℝ) (z : ι → E) (hs : A ⊆ affine_span ℝ (z '' s))
+  (hw₀ : ∀ i ∈ s, 0 < w i) (hw₁ : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, z i ∈ A),
+  s.center_mass w z = x}
 
 def intrinsic_frontier (A : set E) :
   set E :=
-{x ∈ A | ∀ (ι : Type*) (s : finset ι) (w : ι → ℝ) (z : ι → E) (hw₀ : ∀ i ∈ s, 0 ≤ w i)
-  (hw₁ : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, z i ∈ A) (hx : s.center_mass w z = x), ∃ i : ι, w i = 0}
+{x ∈ A | ∀ (ι : Type*) (s : finset ι) (w : ι → ℝ) (z : ι → E) (hs : A ⊆ affine_span ℝ (z '' s))
+  (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, z i ∈ A)
+  (hx : s.center_mass w z = x), ∃ i : ι, w i = 0}
 
 lemma intrinsic_interior_subset (A : set E) :
   intrinsic_interior A ⊆ A :=
@@ -45,16 +47,19 @@ begin
   {
     sorry -- hA
   },
-  use intrinsic_frontier_subset _,
-  rintro x₁ x₂ hx₁ hx₂ x ⟨hxA, ι, t, hw₀, hw₁, hyA, hy⟩ hx,
+  dsimp,
+  obtain ⟨x₁, x₂, hx₁, hx₂, x, ⟨hxA, ι, t, hw₀, hw₁, hyA, hy⟩, hx⟩ := sorry,
   sorry
 end
+
+lemma eq_intrinsic_interior_union_intrinsic_frontier :
+  A = intrinsic_interior A ∪ intrinsic_frontier A := sorry
 
 lemma intrinsic_frontier.is_extreme :
   is_extreme A (intrinsic_frontier A) :=
 begin
   use intrinsic_frontier_subset _,
-  rintro x₁ x₂ hx₁ hx₂ x ⟨hxA, ι, t, hw₀, hw₁, hyA, hy⟩ hx,
+  rintro x₁ x₂ hx₁ hx₂ x hxA hx,
   sorry
 end
 

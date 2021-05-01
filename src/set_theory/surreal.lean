@@ -182,7 +182,8 @@ def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 theorem zero_mul_equiv (x : pgame) : (0 * x).equiv 0 :=
 (zero_mul_relabelling x).equiv
 
-/-- Local tactic useful for resolving goals involving equivalences between types, such as, a × (b ⊕ c) ≃ a × b ⊕ a × c. -/
+/-- Local tactic useful for resolving goals involving equivalences between types,
+such as, a × (b ⊕ c) ≃ a × b ⊕ a × c. -/
 meta def try_inl_inr : tactic unit :=
 `[assumption]
     <|> (do `[apply sum.inl], try_inl_inr )
@@ -191,7 +192,7 @@ meta def try_inl_inr : tactic unit :=
 
 local infix ` ≈ ` := pgame.equiv
 
-lemma left_distrib_aux {a b c d e : pgame} : (a + b) + (c + d) - (e + b) ≈ a + c - e + d :=
+lemma left_distrib_equiv_aux {a b c d e : pgame} : (a + b) + (c + d) - (e + b) ≈ a + c - e + d :=
 begin
   apply @quotient.exact pgame,
   change (⟦a⟧ + ⟦b⟧ + (⟦c⟧ + ⟦d⟧) - (⟦e⟧ + ⟦b⟧) : game) = ⟦a⟧ + ⟦c⟧ + -⟦e⟧ + ⟦d⟧,
@@ -205,6 +206,7 @@ begin
   abel,
 end
 
+/-- `x * (y + z)` is equivalent to `x * y + x * z.`-/
 theorem left_distrib_equiv : Π (x y z : pgame), (x * (y + z)).equiv (x * y + x * z)
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin
@@ -213,21 +215,21 @@ begin
   let z := mk zl zr zL zR,
   refine equiv_of_mk_equiv _ _ _ _,
   { fsplit,
-    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩), repeat {try_inl_inr}},
-    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)), repeat {try_inl_inr} },
-    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩), repeat {refl} },
-    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)), repeat {refl} }},
+    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩); try_inl_inr },
+    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)); try_inl_inr },
+    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩); refl },
+    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)); refl } },
   { fsplit,
-    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩), repeat {try_inl_inr} },
-    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)), repeat {try_inl_inr} },
-    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩), repeat {refl} },
-    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)), repeat {refl} }},
+    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩); try_inl_inr },
+    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)); try_inl_inr },
+    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩); refl },
+    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)); refl } },
   { rintros (⟨i,(j|k)⟩|⟨i,(j|k)⟩),
     { calc
         xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)
             ≈  (xL i * y + xL i * z) + (x * yL j + x * z) - (xL i * yL j + xL i * z)
             : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
-        ... ≈ xL i * y + x * yL j - xL i * yL j + x * z : left_distrib_aux },
+        ... ≈ xL i * y + x * yL j - xL i * yL j + x * z : left_distrib_equiv_aux },
     { calc
         xL i * (y + z) + x * (y + zL k) - xL i * (y + zL k)
             ≈ (xL i * y + xL i * z) + (x * y + x * zL k) - (xL i * y + xL i * zL k)
@@ -237,7 +239,7 @@ begin
         xR i * (y + z) + x * (yR j + z) - xR i * (yR j + z)
             ≈  (xR i * y + xR i * z) + (x * yR j + x * z) - (xR i * yR j + xR i * z)
             : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
-        ... ≈ xR i * y + x * yR j - xR i * yR j + x * z : left_distrib_aux },
+        ... ≈ xR i * y + x * yR j - xR i * yR j + x * z : left_distrib_equiv_aux },
     { calc
         xR i * (y + z) + x * (y + zR k) - xR i * (y + zR k)
             ≈ (xR i * y + xR i * z) + (x * y + x * zR k) - (xR i * y + xR i * zR k)
@@ -248,12 +250,12 @@ begin
         xL i * (y + z) + x * (yR j + z) - xL i * (yR j + z)
             ≈  (xL i * y + xL i * z) + (x * yR j + x * z) - (xL i * yR j + xL i * z)
             : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
-        ... ≈ xL i * y + x * yR j - xL i * yR j + x * z : left_distrib_aux },
+        ... ≈ xL i * y + x * yR j - xL i * yR j + x * z : left_distrib_equiv_aux },
     { calc
         xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)
             ≈  (xR i * y + xR i * z) + (x * yL j + x * z) - (xR i * yL j + xR i * z)
             : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
-        ... ≈ xR i * y + x * yL j - xR i * yL j + x * z : left_distrib_aux },
+        ... ≈ xR i * y + x * yL j - xR i * yL j + x * z : left_distrib_equiv_aux },
     { calc
         xL i * (y + z) + x * (y + zR k) - xL i * (y + zR k)
             ≈ (xL i * y + xL i * z) + (x * y + x * zR k) - (xL i * y + xL i * zR k)
@@ -267,6 +269,7 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+/-- `(x + y) * z` is equivalent to `x * y + y * z.`-/
 theorem right_distrib_equiv (x y z : pgame) : ((x + y) * z).equiv (x * z + y * z) :=
 calc (x + y) * z ≈ z * (x + y) : mul_comm_equiv _ _
              ... ≈ z * x + z * y : left_distrib_equiv _ _ _

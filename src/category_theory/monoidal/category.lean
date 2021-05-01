@@ -248,7 +248,7 @@ lemma left_unitor_tensor_inv' (X Y : C) :
   ((λ_ (X ⊗ Y)).inv) ≫ ((α_ (𝟙_ C) X Y).inv) = ((λ_ X).inv ⊗ (𝟙 Y)) :=
 eq_of_inv_eq_inv (by simp)
 
-@[simp]
+@[reassoc, simp]
 lemma left_unitor_tensor_inv (X Y : C) :
   (λ_ (X ⊗ Y)).inv = ((λ_ X).inv ⊗ (𝟙 Y)) ≫ (α_ (𝟙_ C) X Y).hom :=
 by { rw [←left_unitor_tensor_inv'], simp }
@@ -314,6 +314,9 @@ end
 lemma unitors_equal : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom :=
 by rw [←tensor_left_iff, ←cancel_epi (α_ (𝟙_ C) (𝟙_ _) (𝟙_ _)).hom, ←cancel_mono (ρ_ (𝟙_ C)).hom,
        triangle, ←right_unitor_tensor, right_unitor_naturality]
+
+lemma unitors_inv_equal : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv :=
+by { ext, simp [←unitors_equal], }
 
 @[simp, reassoc]
 lemma hom_inv_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :

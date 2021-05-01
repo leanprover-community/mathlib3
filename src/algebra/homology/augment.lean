@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.single
+import algebra.homology.exact
+import algebra.homology.quasi_iso
 import tactic.linarith
 
 /-!
@@ -42,7 +44,14 @@ def truncate_to_single [has_zero_object V] (C : chain_complex V ℕ) :
   truncate.obj C ⟶ (single V _ 0).obj (C.X 0) :=
 (to_single_equiv (truncate.obj C) (C.X 0)).symm ⟨C.d 1 0, by tidy⟩
 
--- TODO: `C` is exact iff `truncate_to_single` is a quasi-isomorphism.
+instance truncate_to_single_quasi_iso
+  [has_zero_object V] [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
+  (C : chain_complex V ℕ) [∀ n, exact (C.d (n+2) (n+1)) (C.d (n+1) n)] :
+  quasi_iso (C.truncate_to_single) :=
+{ is_iso := λ i,
+  begin
+    sorry,
+  end }
 
 /--
 We can "augment" a chain complex by inserting an arbitrary object in degree zero

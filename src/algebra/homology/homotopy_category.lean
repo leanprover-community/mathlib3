@@ -51,13 +51,45 @@ lemma eq_of_homotopy {C D : homological_complex V c} (f g : C ⟶ D) (h : homoto
   (quotient V c).map f = (quotient V c).map g :=
 category_theory.quotient.sound _ ⟨h⟩
 
--- This may take some work,
--- because `category_theory.quotient` doesn't assume an equivalence relation.
+/-- We package up the fact that homotopy is closed under composition. -/
+lemma comp_closure_homotopy :
+  (quotient.comp_closure (λ (C D : homological_complex V c) (f g : C ⟶ D), nonempty (homotopy f g)))
+    = λ C D f g, nonempty (homotopy f g) :=
+begin
+  ext C D f g,
+  fsplit,
+  { rintro ⟨E, F, f, m₁, m₂, g, ⟨i⟩⟩,
+    split,
+    apply (i.comp_right _).comp_left, },
+  { intro h,
+    convert quotient.comp_closure.intro (𝟙 C) f g (𝟙 D) (by convert h);
+    simp, }
+end
+
+/-- We package up the fact that homotopy is an equivalence relation. -/
+lemma eqv_gen_homotopy {C D : homological_complex V c} :
+  (eqv_gen (λ (f g : C ⟶ D), nonempty (homotopy f g)))
+    = λ f g, nonempty (homotopy f g) :=
+begin
+  ext f g,
+  fsplit,
+  { intro h,
+    induction h with f g i h f g w i f g h w w' k l,
+    { exact i, },
+    { split, refl, },
+    { split, symmetry, exact i.some, },
+    { split, exact k.some.trans l.some, } },
+  { intro h,
+    exact eqv_gen.rel _ _ h, }
+end
+
 def homotopy_of_eq {C D : homological_complex V c} (f g : C ⟶ D)
   (w : (quotient V c).map f = (quotient V c).map g) : homotopy f g :=
 begin
-  have := quot.eq.mp w,
-  sorry,
+  apply nonempty.some,
+  have r := quot.eq.mp w,
+  rw comp_closure_homotopy at r,
+  rwa eqv_gen_homotopy at r,
 end
 
 @[simp] lemma quotient_map_out_comp_out {C D E : homotopy_category V c} (f : C ⟶ D) (g : D ⟶ E) :
@@ -135,7 +167,7 @@ def functor.map_homotopy_category (c : complex_shape ι) (F : V ⥤ W) [F.additi
     apply F.map_homotopy,
     apply homotopy_category.homotopy_of_eq,
     convert quot.out_eq _,
-    exact homotopy_category.quotient_map_out_comp_out,
+    exact homotopy_category.quotient_map_out_comp_out _ _,
   end }.
 
 end category_theory

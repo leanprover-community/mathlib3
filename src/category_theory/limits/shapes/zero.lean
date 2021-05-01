@@ -333,6 +333,12 @@ begin
   { tidy, },
 end
 
+lemma is_iso_of_source_target_iso_zero {X Y : C} (f : X ⟶ Y) (i : X ≅ 0) (j : Y ≅ 0) : is_iso f :=
+begin
+  rw zero_of_source_iso_zero f i,
+  exact (is_iso_zero_equiv_iso_zero _ _).inv_fun ⟨i, j⟩,
+end
+
 /--
 A zero morphism `0 : X ⟶ X` is an isomorphism if and only if
 `X` is isomorphic to the zero object.

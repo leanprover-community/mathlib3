@@ -76,6 +76,38 @@ in which `d i j ≠ 0` only if `i + 1 = j`.
 abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
 homological_complex V (complex_shape.up α)
 
+@[simp] lemma chain_complex.prev (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
+  (complex_shape.down α).prev i = some ⟨i+1, rfl⟩ :=
+option.choice_eq _
+
+@[simp] lemma chain_complex.next (α : Type*) [add_group α] [has_one α] (i : α) :
+  (complex_shape.down α).next i = some ⟨i-1, sub_add_cancel i 1⟩ :=
+option.choice_eq _
+
+@[simp] lemma chain_complex.next_nat_zero :
+  (complex_shape.down ℕ).next 0 = none :=
+option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
+
+@[simp] lemma chain_complex.next_nat_succ (i : ℕ) :
+  (complex_shape.down ℕ).next (i+1) = some ⟨i, rfl⟩ :=
+option.choice_eq _
+
+@[simp] lemma cochain_complex.prev (α : Type*) [add_group α] [has_one α] (i : α) :
+  (complex_shape.up α).prev i = some ⟨i-1, sub_add_cancel i 1⟩ :=
+option.choice_eq _
+
+@[simp] lemma cochain_complex.next (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
+  (complex_shape.up α).next i = some ⟨i+1, rfl⟩ :=
+option.choice_eq _
+
+@[simp] lemma cochain_complex.prev_nat_zero :
+  (complex_shape.up ℕ).prev 0 = none :=
+option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
+
+@[simp] lemma cochain_complex.prev_nat_succ (i : ℕ) :
+  (complex_shape.up ℕ).prev (i+1) = some ⟨i, rfl⟩ :=
+option.choice_eq _
+
 namespace homological_complex
 variables {V} {c : complex_shape ι} (C : homological_complex V c)
 

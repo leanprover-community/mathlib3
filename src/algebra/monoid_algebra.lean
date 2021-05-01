@@ -879,7 +879,7 @@ def of [add_zero_class G] : multiplicative G →* add_monoid_algebra k G :=
   map_mul' := λ a b, by { rw [single_mul_single, one_mul], refl } }
 
 /-- Embedding of a monoid into its monoid algebra, having `G` as source. -/
-def of' [add_zero_class G] : G → add_monoid_algebra k G := λ a, single a 1
+def of' : G → add_monoid_algebra k G := λ a, single a 1
 
 end
 

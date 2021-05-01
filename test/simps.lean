@@ -525,7 +525,8 @@ noncomputable def equiv.simps.inv_fun (e : α ≃ β) : β → α := classical.c
 run_cmd do e ← get_env, success_if_fail_with_msg (simps_get_raw_projections e `faulty_manual_coercion.equiv)
 "Invalid custom projection:
   λ {α : Sort u_1} {β : Sort u_2} (e : α ≃ β), classical.choice _
-Expression is not definitionally equal to λ (α : Sort u_1) (β : Sort u_2) (x : α ≃ β), x.inv_fun."
+Expression is not definitionally equal to
+  λ (α : Sort u_1) (β : Sort u_2) (x : α ≃ β), x.inv_fun"
 
 end faulty_manual_coercion
 

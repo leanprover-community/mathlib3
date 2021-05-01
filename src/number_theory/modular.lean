@@ -228,52 +228,29 @@ begin
   { apply_instance }
 end
 
--- this lemma should disappear and its uses be replaced by `closed_embedding.tendsto_cocompact`
-lemma tendsto_cocompact_of_left_inverse {α β : Type*} [topological_space α] [topological_space β]
-  {f : α → β} {g : β → α} (hg : continuous g) (hfg : function.left_inverse g f) :
-  tendsto f (cocompact α) (cocompact β) :=
-begin
-  rw tendsto_iff_eventually,
-  simp only [mem_cocompact, eventually_iff_exists_mem],
-  rintros p ⟨v, hv, hvp⟩,
-  rw mem_cocompact at hv,
-  obtain ⟨t, ht, htv⟩ := hv,
-  refine ⟨(g '' t)ᶜ, _, _⟩,
-  { rw mem_cocompact,
-    refine ⟨g '' t, ht.image hg, rfl.subset⟩ },
-  intros x hx,
-  have : f x ∈ v,
-  { apply htv,
-    intros h,
-    apply hx,
-    have h₁ : g (f x) ∈ g '' t := ⟨f x, h, rfl⟩,
-    convert h₁,
-    calc x = id x : by simp
-    ... = (g ∘ f) x : by { congr, rw hfg } },
-  exact hvp (f x) this
-end
-
 lemma finite_pairs (z : H) :
   filter.tendsto (λ cd : coprime_ints , (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq)
   cofinite at_top :=
 begin
-  have h₁ : tendsto (λ c : ℝ × ℝ, ↑c.1 * (z:ℂ) + c.2) (cocompact _) (cocompact _),
-  { let g : ℂ →L[ℝ] ℝ×ℝ := im_clm.prod
-      (im_clm.comp (((z:ℂ)• conj_clm ))),
-    apply tendsto_cocompact_of_left_inverse ((z:ℂ).im⁻¹ • g).continuous,
+  let f : ℝ × ℝ →ₗ[ℝ] ℂ := (linear_map.fst ℝ ℝ ℝ).smul_right (z:ℂ)
+    + (linear_map.snd ℝ ℝ ℝ).smul_right 1,
+  have hf : f.ker = ⊥,
+  { let g : ℂ →ₗ[ℝ] ℝ × ℝ := im_lm.prod (im_lm.comp (((z:ℂ) • conj_lm ))),
+    suffices : ((z:ℂ).im⁻¹ • g).comp f = linear_map.id,
+    { exact linear_map.ker_eq_bot_of_inverse this },
+    apply linear_map.ext,
     rintros ⟨c₁, c₂⟩,
     have hz : 0 < (z:ℂ).im := z.2,
     have : (z:ℂ).im ≠ 0 := hz.ne.symm,
-    field_simp [g],
+    field_simp,
     ring },
+  have h₁ := (linear_equiv.closed_embedding_of_injective hf).tendsto_cocompact,
   have h₂ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℝ), (c.2 : ℝ))) cofinite (cocompact _),
   { convert int.tendsto_coe_cofinite.prod_map_coprod int.tendsto_coe_cofinite;
     simp [coprod_cocompact, coprod_cofinite] },
-  have h₃ : tendsto (λ c : ℤ × ℤ, ((c.1 : ℂ) * z + (c.2 : ℂ)).norm_sq) cofinite at_top,
-  { convert tendsto_at_top_norm_sq.comp (h₁.comp h₂),
-    ext,
-    simp },
-  exact h₃.comp subtype.coe_injective.tendsto_cofinite,
+  convert tendsto_at_top_norm_sq.comp (h₁.comp (h₂.comp subtype.coe_injective.tendsto_cofinite)),
+  ext,
+  simp [f]
 end
 
 end finite_pairs
@@ -431,35 +408,6 @@ end
 /- generalize to arbitrary matrix index sets and move to matrix file -/
 def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 (linear_map.proj j : (fin 2 → ℝ) →ₗ[ℝ] _).comp (linear_map.proj i)
-
-
-def homeomorph.of_embedding
-{A B : Type*} [topological_space A] [topological_space B]
-  {f : A → B} (hf : embedding f)
-  : homeomorph A (set.range f) :=
-{ continuous_to_fun := continuous_subtype_mk _ hf.continuous,
-  continuous_inv_fun := begin
-    rw hf.continuous_iff,
-    convert continuous_subtype_coe using 1,
-    ext b,
-    simpa [subtype.ext_iff] using (equiv.of_injective f hf.inj).right_inv b,
-  end,
-  .. equiv.of_injective f hf.inj }
-
-
--- A closed embedding is proper
--- for `topology.subset_properties`
-lemma closed_embedding.tendsto_cocompact {A B : Type*} [topological_space A] [topological_space B]
-  {f : A → B} (hf : closed_embedding f) : tendsto f (cocompact A) (cocompact B) :=
-begin
-  rw has_basis_cocompact.tendsto_iff has_basis_cocompact,
-  intros K hK,
-  refine ⟨f ⁻¹' (K ∩ (set.range f)), _, λ x hx, by simpa using hx⟩,
-  apply hf.to_embedding.compact_iff_compact_image.mpr,
-  convert hK.inter_right hf.closed_range,
-  exact set.image_preimage_eq_of_subset (set.inter_subset_right _ _),
-end
-
 
 def acbd (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 cd.1.1 • matrix.coord 0 0 + cd.1.2 • matrix.coord 0 1

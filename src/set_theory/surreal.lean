@@ -375,6 +375,7 @@ begin
   rw lt_def_le,
   left,
   use i,
+  apply le_refl,
 end
 
 theorem numeric.move_left_le {x : pgame} (o : numeric x) (i : x.left_moves) :
@@ -387,6 +388,7 @@ begin
   rw lt_def_le,
   right,
   use j,
+  apply le_refl,
 end
 
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
@@ -546,7 +548,7 @@ instance : ordered_add_comm_group surreal :=
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := (≤),
   lt                := (<),
-  le_refl           := by { rintros ⟨_⟩, refl },
+  le_refl           := by { rintros ⟨_⟩, apply pgame.le_refl },
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact pgame.le_trans },
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },

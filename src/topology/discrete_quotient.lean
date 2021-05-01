@@ -77,7 +77,7 @@ def of_clopen {A : set X} (h : is_clopen A) : discrete_quotient X :=
       { convert is_clopen_compl h,
         ext,
         exact ⟨λ i, i.2, λ i, ⟨hx, i⟩⟩ } },
-  end}
+  end }
 
 lemma refl : ∀ x : X, S.rel x x := S.equiv.1
 lemma symm : ∀ x y : X, S.rel x y → S.rel y x := S.equiv.2.1
@@ -124,14 +124,14 @@ is_open.preimage S.proj_continuous trivial
 lemma fiber_clopen (A : set S) : is_clopen (S.proj ⁻¹' A) := ⟨fiber_open _ _, fiber_closed _ _⟩
 
 /-- Pull back a discrete quotient along a continuous map. -/
-def pullback {Y : Type*} [topological_space Y] {f : Y → X}
-  (cont : continuous f) : discrete_quotient Y :=
+def pullback {Y : Type*} [topological_space Y] {f : Y → X} (cont : continuous f) :
+  discrete_quotient Y :=
 { rel := λ a b, S.rel (f a) (f b),
   equiv := ⟨λ a, S.refl _, λ a b h, S.symm _ _ h, λ a b c h1 h2, S.trans _ _ _ h1 h2⟩,
   clopen := λ y, ⟨is_open.preimage cont (S.clopen _).1, is_closed.preimage cont (S.clopen _).2⟩ }
 
 instance : semilattice_inf_top (discrete_quotient X) :=
-{ top := ⟨λ a b, true, ⟨by tauto, by tauto, by tauto⟩, λ _, is_clopen_univ ⟩,
+{ top := ⟨λ a b, true, ⟨by tauto, by tauto, by tauto⟩, λ _, is_clopen_univ⟩,
   inf := λ A B,
   { rel := λ x y, A.rel x y ∧ B.rel x y,
     equiv := ⟨λ a, ⟨A.refl _,B.refl _⟩, λ a b h, ⟨A.symm _ _ h.1, B.symm _ _ h.2⟩,
@@ -140,7 +140,7 @@ instance : semilattice_inf_top (discrete_quotient X) :=
   le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
   le_refl := λ a, by tauto,
   le_trans := λ a b c h1 h2, by tauto,
-  le_antisymm := λ a b h1 h2, by {ext, tauto},
+  le_antisymm := λ a b h1 h2, by { ext, tauto },
   inf_le_left := λ a b, by tauto,
   inf_le_right := λ a b, by tauto,
   le_inf := λ a b c h1 h2, by tauto,

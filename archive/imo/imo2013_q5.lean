@@ -292,7 +292,7 @@ begin
   have hx2cnezr : (x2denom : ℝ) ≠ (0 : ℝ) := nat.cast_ne_zero.mpr (ne_of_gt hx2pos),
 
   have hrat_expand2 := calc x = x.num / x.denom : by exact_mod_cast rat.num_denom.symm
-                          ... = x2num / x2denom : by { field_simp, linarith [hxcnez] },
+                          ... = x2num / x2denom : by { field_simp [-rat.num_div_denom], linarith },
 
   have h_denom_times_fx :=
     calc (x2denom : ℝ) * f x = f (x2denom * x)                 : (h_f_commutes_with_pos_nat_mul

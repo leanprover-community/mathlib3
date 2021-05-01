@@ -189,7 +189,7 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
 @[simp] lemma mul_zero {α : Type u} [has_mul α]
   (a : with_zero α) : a * 0 = 0 := by cases a; refl
 
-instance [semigroup α] : semigroup (with_zero α) :=
+instance [semigroup α] : semigroup_with_zero (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with
     | none,   _,      _      := rfl
     | some a, none,   _      := rfl
@@ -204,7 +204,7 @@ instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
     | some a, none   := rfl
     | some a, some b := congr_arg some (mul_comm _ _)
     end,
-  ..with_zero.semigroup }
+  ..with_zero.semigroup_with_zero }
 
 instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
 { one_mul := λ a, match a with
@@ -220,8 +220,7 @@ instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
 
 instance [monoid α] : monoid_with_zero (with_zero α) :=
 { ..with_zero.mul_zero_one_class,
-  ..with_zero.has_one,
-  ..with_zero.semigroup }
+  ..with_zero.semigroup_with_zero }
 
 instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 { ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }

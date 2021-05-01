@@ -554,7 +554,7 @@ local attribute [reducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
-  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
+  ..(by apply_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
 
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
@@ -819,6 +819,9 @@ instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
 { exists_mul_of_le := λ a b hab, le_iff_exists_mul.mp hab }
 
 end canonically_ordered_monoid
+
+lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
+lt_of_le_of_lt (zero_le _) h
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/

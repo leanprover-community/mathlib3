@@ -398,7 +398,7 @@ begin
     intro he,
     rw vsub_eq_zero_iff_eq at he,
     exact h he.symm },
-  exact linear_independent_unique hz
+  exact linear_independent_unique _ hz
 end
 
 end field

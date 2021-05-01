@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.solvable
+import linear_algebra.eigenspace
 
 /-!
 # Nilpotent Lie algebras
@@ -46,13 +47,24 @@ begin
     apply lie_submodule.subset_lie_span, use [x, m], refl, },
 end
 
+lemma iterate_to_endomorphism_mem_lower_central_series (x : L) (m : M) (k : ℕ) :
+  (to_endomorphism R L M x)^[k] m ∈ lower_central_series R L M k :=
+begin
+  induction k with k ih,
+  { simp only [function.iterate_zero], },
+  { simp only [lower_central_series_succ, function.comp_app, function.iterate_succ',
+      to_endomorphism_apply_apply],
+    exact lie_submodule.lie_mem_lie _ _ (lie_submodule.mem_top x) ih, },
+end
+
 open lie_algebra
 
 lemma derived_series_le_lower_central_series (k : ℕ) :
   derived_series R L k ≤ lower_central_series R L L k :=
 begin
   induction k with k h,
-  { exact le_refl _, },
+  { rw [derived_series_def, derived_series_of_ideal_zero, lower_central_series_zero],
+    exact le_refl _, },
   { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
     rw [derived_series_def, derived_series_of_ideal_succ, lower_central_series_succ],
     exact lie_submodule.mono_lie _ _ _ _ h' h, },
@@ -66,6 +78,32 @@ class is_nilpotent : Prop :=
 @[priority 100]
 instance trivial_is_nilpotent [is_trivial L M] : is_nilpotent R L M :=
 ⟨by { use 1, change ⁅⊤, ⊤⁆ = ⊥, simp, }⟩
+
+lemma nilpotent_endo_of_nilpotent_module [hM : is_nilpotent R L M] :
+  ∃ (k : ℕ), ∀ (x : L), (to_endomorphism R L M x)^k = 0 :=
+begin
+  unfreezingI { obtain ⟨k, hM⟩ := hM, },
+  use k,
+  intros x, ext m,
+  rw [linear_map.pow_apply, linear_map.zero_apply, ← @lie_submodule.mem_bot R L M, ← hM],
+  exact iterate_to_endomorphism_mem_lower_central_series R L M x m k,
+end
+
+/-- For a nilpotent Lie module, the weight space of the 0 weight is the whole module.
+
+This result will be used downstream to show that weight spaces are Lie submodules, at which time
+it will be possible to state it in the language of weight spaces. -/
+lemma infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L M] :
+  (⨅ (x : L), (to_endomorphism R L M x).maximal_generalized_eigenspace 0) = ⊤ :=
+begin
+  ext m,
+  simp only [module.End.mem_maximal_generalized_eigenspace, submodule.mem_top, sub_zero, iff_true,
+    zero_smul, submodule.mem_infi],
+  intros x,
+  obtain ⟨k, hk⟩ := nilpotent_endo_of_nilpotent_module R L M,
+  use k, rw hk,
+  exact linear_map.zero_apply m,
+end
 
 end lie_module
 
@@ -81,9 +119,6 @@ end
 
 section nilpotent_algebras
 
--- TODO Generalise the below to Lie modules if / when we define morphisms, equivs of Lie modules
--- covering a Lie algebra morphism of (possibly different) Lie algebras.
-
 variables (R : Type u) (L : Type v) (L' : Type w)
 variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
 
@@ -93,8 +128,21 @@ abbreviation lie_algebra.is_nilpotent (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] : Prop :=
 lie_module.is_nilpotent R L L
 
-variables {R L L'}
 open lie_algebra
+
+lemma lie_algebra.nilpotent_ad_of_nilpotent_algebra [is_nilpotent R L] :
+  ∃ (k : ℕ), ∀ (x : L), (ad R L x)^k = 0 :=
+lie_module.nilpotent_endo_of_nilpotent_module R L L
+
+lemma lie_algebra.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L] :
+  (⨅ (x : L), (ad R L x).maximal_generalized_eigenspace 0) = ⊤ :=
+lie_module.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent R L L
+
+-- TODO Generalise the below to Lie modules if / when we define morphisms, equivs of Lie modules
+-- covering a Lie algebra morphism of (possibly different) Lie algebras.
+
+variables {R L L'}
+
 open lie_module (lower_central_series)
 
 lemma lie_ideal.lower_central_series_map_le (k : ℕ) {f : L →ₗ⁅R⁆ L'} :
@@ -110,7 +158,9 @@ lemma lie_ideal.lower_central_series_map_eq (k : ℕ) {f : L →ₗ⁅R⁆ L'}
   (h : function.surjective f) :
   lie_ideal.map f (lower_central_series R L L k) = lower_central_series R L' L' k :=
 begin
-  have h' : (⊤ : lie_ideal R L).map f = ⊤, { exact f.ideal_range_eq_top_of_surjective h, },
+  have h' : (⊤ : lie_ideal R L).map f = ⊤,
+  { rw ←f.ideal_range_eq_map,
+    exact f.ideal_range_eq_top_of_surjective h, },
   induction k with k ih,
   { simp only [lie_module.lower_central_series_zero], exact h', },
   { simp only [lie_module.lower_central_series_succ, lie_ideal.map_bracket_eq f h, ih, h'], },

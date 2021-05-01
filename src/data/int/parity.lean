@@ -181,7 +181,7 @@ by rw [add_comm, odd_add]
 theorem even.add_odd (hm : even m) (hn : odd n) : odd (m + n) :=
 odd_add'.2 $ iff_of_true hn hm
 
-lemma ne_of_odd_sum (h : odd (m + n)) : m ≠ n :=
+lemma ne_of_odd_add (h : odd (m + n)) : m ≠ n :=
 λ hnot, by simpa [hnot] with parity_simps using h
 
 @[parity_simps] theorem odd_sub : odd (m - n) ↔ (odd m ↔ even n) :=

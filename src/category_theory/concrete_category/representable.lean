@@ -68,9 +68,28 @@ by rw [equiv.eq_symm_apply, rep_equiv_apply, equiv.apply_symm_apply]
 
 open limits
 
-noncomputable def mk_pullback {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
-  {x : X} {y : Y} (h : f x = g y) :
+section pullback
+
+variables {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g] {x : X} {y : Y}
+
+noncomputable def mk_pullback (h : f x = g y) :
   (pullback f g : C) :=
 rep_equiv (pullback.lift (rep_equiv.symm x) (rep_equiv.symm y) (by simp [h]))
+
+@[simp]
+lemma fst_mk_pullback (h : f x = g y) : (pullback.fst : pullback f g ⟶ X) (mk_pullback h) = x :=
+by rw [mk_pullback, ←rep_equiv_apply, pullback.lift_fst, equiv.apply_symm_apply]
+
+@[simp]
+lemma snd_mk_pullback (h : f x = g y) : (pullback.snd : pullback f g ⟶ Y) (mk_pullback h) = y :=
+by rw [mk_pullback, ←rep_equiv_apply, pullback.lift_snd, equiv.apply_symm_apply]
+
+lemma mk_pullback_uniq (h : f x = g y) (q : pullback f g)
+  (hq₁ : (pullback.fst : pullback f g ⟶ X) q = x)
+  (hq₂ : (pullback.snd : pullback f g ⟶ Y) q = y) :
+  q = mk_pullback h :=
+by { rw [mk_pullback, ←equiv.symm_apply_eq], ext1; simpa }
+
+end pullback
 
 end category_theory

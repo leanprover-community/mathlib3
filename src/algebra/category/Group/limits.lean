@@ -121,9 +121,22 @@ instance forget_preserves_limits : preserves_limits (forget Group) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, limits.comp_preserves_limit (forget₂ Group Mon) (forget Mon) } }
 
-def mk_pullback {X Y Z : Group.{u}} {f : X ⟶ Z} {g : Y ⟶ Z} {x : X} {y : Y} (h : f x = g y) :
-  (pullback f g : Group) :=
+section pullback
+variables {X Y Z : Group.{u}} {f : X ⟶ Z} {g : Y ⟶ Z} {x : X} {y : Y} (h : f x = g y)
+
+def mk_pullback : (pullback f g : Group) :=
 mk_pullback h
+lemma fst_mk_pullback : (pullback.fst : pullback f g ⟶ X) (mk_pullback h) = x :=
+fst_mk_pullback _
+lemma snd_mk_pullback : (pullback.snd : pullback f g ⟶ Y) (mk_pullback h) = y :=
+snd_mk_pullback _
+lemma mk_pullback_uniq (q : pullback f g)
+  (hq₁ : (pullback.fst : pullback f g ⟶ X) q = x)
+  (hq₂ : (pullback.snd : pullback f g ⟶ Y) q = y) :
+  q = mk_pullback h :=
+mk_pullback_uniq h q hq₁ hq₂
+
+end pullback
 
 end Group
 

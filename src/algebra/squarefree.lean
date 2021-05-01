@@ -204,4 +204,47 @@ lemma sum_divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0)
 by rw [finset.sum_eq_multiset_sum, divisors_filter_squarefree h0, multiset.map_map,
     finset.sum_eq_multiset_sum]
 
+lemma sq_mul_squarefree_of_pos {n : ℕ} (hn : 0 < n) :
+  ∃ a b : ℕ, 0 < a ∧ 0 < b ∧ b ^ 2 * a = n ∧ squarefree a :=
+begin
+  let S := {s ∈ finset.range (n + 1) | s ∣ n ∧ ∃ x, s = x ^ 2},
+  have hSne : S.nonempty,
+  { use 1,
+    have h1 : 0 < n ∧ ∃ (x : ℕ), 1 = x ^ 2 := ⟨hn, ⟨1, (one_pow 2).symm⟩⟩,
+    simpa [S] },
+  let s := finset.max' S hSne,
+  have hs : s ∈ S := finset.max'_mem S hSne,
+  simp only [finset.sep_def, S, finset.mem_filter, finset.mem_range] at hs,
+  obtain ⟨hsn1, ⟨a, hsa⟩, ⟨b, hsb⟩⟩ := hs,
+  rw hsa at hn,
+  obtain ⟨hlts, hlta⟩ := canonically_ordered_semiring.mul_pos.mp hn,
+  rw hsb at hsa hn hlts,
+  refine ⟨a, b, hlta, (pow_pos_iff zero_lt_two).mp hlts, hsa.symm, _⟩,
+  rintro x ⟨y, hy⟩,
+  rw nat.is_unit_iff,
+  by_contra hx,
+  refine lt_le_antisymm _ (finset.le_max' S ((b * x) ^ 2) _),
+  { simp_rw [S, hsa, finset.sep_def, finset.mem_filter, finset.mem_range],
+    refine ⟨lt_succ_iff.mpr (le_of_dvd hn _), _, ⟨b * x, rfl⟩⟩; use y; rw hy; ring },
+  { convert lt_mul_of_one_lt_right hlts
+      (one_lt_pow 2 x zero_lt_two (one_lt_iff_ne_zero_and_ne_one.mpr ⟨λ h, by simp * at *, hx⟩)),
+    rw mul_pow },
+end
+
+lemma sq_mul_squarefree_of_pos' {n : ℕ} (h : 0 < n) :
+  ∃ a b : ℕ, (b + 1) ^ 2 * (a + 1) = n ∧ squarefree (a + 1) :=
+begin
+  obtain ⟨a₁, b₁, ha₁, hb₁, hab₁, hab₂⟩ := sq_mul_squarefree_of_pos h,
+  refine ⟨a₁.pred, b₁.pred, _, _⟩;
+  simpa only [add_one, succ_pred_eq_of_pos, ha₁, hb₁],
+end
+
+lemma sq_mul_squarefree (n : ℕ) : ∃ a b : ℕ, b ^ 2 * a = n ∧ squarefree a :=
+begin
+  cases n,
+  { exact ⟨1, 0, (by simp), squarefree_one⟩ },
+  { obtain ⟨a, b, -, -, h₁, h₂⟩ := sq_mul_squarefree_of_pos (succ_pos n),
+    exact ⟨a, b, h₁, h₂⟩ },
+end
+
 end nat

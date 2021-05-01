@@ -141,64 +141,106 @@ sorry
 def comp_left (e : C ⟶ D) {f g : D ⟶ E} (h : homotopy f g) : homotopy (e ≫ f) (e ≫ g) :=
 sorry
 
+/-!
+`homotopy.mk_inductive` allows us to build a homotopy inductively,
+so that as we construct each component, we have available the previous two components,
+and the fact that they satisfy the homotopy condition.
 
+To simplify the situation, we only construction homotopies of the form `homotopy e 0`.
+`homotopy.equiv_sub_zero` can provide the general case.
+
+Notice however, that this construction does not have particularly good definitional properties:
+we have to insert `eq_to_hom` in several places.
+Hopefully this is okay in most applications, where we only need to have the existence of some
+homotopy.
+-/
 section mk_inductive
 
-variables
-  {P Q : chain_complex V ℕ} {e : P ⟶ Q}
+variables {P Q : chain_complex V ℕ}
+
+@[simp] lemma to_prev'_chain_complex (f : Π i j, P.X i ⟶ Q.X j) (i j : ℕ) :
+  to_prev' f i j = f i (j+1) ≫ (Q.X_prev_iso rfl).inv :=
+sorry
+
+@[simp] lemma from_next'_succ_chain_complex (f : Π i j, P.X i ⟶ Q.X j) (i j : ℕ) :
+  from_next' f (i+1) j = (P.X_next_iso rfl).hom ≫ f i j :=
+sorry
+
+@[simp] lemma from_next'_zero_chain_complex (f : Π i j, P.X i ⟶ Q.X j) (j : ℕ) :
+  from_next' f 0 j = 0 :=
+sorry
+
+variables (e : P ⟶ Q)
   (zero : P.X 0 ⟶ Q.X 1)
   (comm_zero : e.f 0 = zero ≫ Q.d 1 0)
   (one : P.X 1 ⟶ Q.X 2)
   (comm_one : e.f 1 = one ≫ Q.d 2 1 + P.d 1 0 ≫ zero)
   (succ : ∀ (n : ℕ)
-    (p : Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f' ≫ Q.d (n+1) n = P.d (n+1) n ≫ f),
-    Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), f'' ≫ Q.d (n+2) (n+1) = P.d (n+2) (n+1) ≫ p.2.1)
+    (p : Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)), e.f (n+1) = f' ≫ Q.d (n+2) (n+1) + P.d (n+1) n ≫ f),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+3), e.f (n+2) = f'' ≫ Q.d (n+3) (n+2) + P.d (n+2) (n+1) ≫ p.2.1)
+
+include comm_zero comm_one
 
 /--
 An auxiliary construction for `mk_inductive`.
 
-Here we build by induction a family of commutative squares,
-but don't require at the type level that these successive commutative squares actually agree.
-They do in fact agree, and we then capture that at the type level (i.e. by constructing a chain map)
+Here we build by induction a family of diagrams,
+but don't require at the type level that these successive diagrams actually agree.
+They do in fact agree, and we then capture that at the type level (i.e. by constructing a homotopy)
 in `mk_inductive`.
+
+At this stage, we don't check the homotopy condition in degree 0,
+because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
+which we do in `mk_inductive_aux₂`.
 -/
-def mk_inductive_aux :
-  Π n, Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f' ≫ Q.d (n+1) n = P.d (n+1) n ≫ f
-| 0 := ⟨zero, one, one_zero_comm⟩
-| (n+1) := ⟨(mk_inductive_aux n).2.1,
-    (succ n (mk_inductive_aux n)).1, (succ n (mk_inductive_aux n)).2⟩
+@[simp]
+def mk_inductive_aux₁ :
+  Π n, Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
+    e.f (n+1) = f' ≫ Q.d (n+2) (n+1) + P.d (n+1) n ≫ f
+| 0 := ⟨zero, one, comm_one⟩
+| 1 := ⟨one, (succ 0 ⟨zero, one, comm_one⟩).1, (succ 0 ⟨zero, one, comm_one⟩).2⟩
+| (n+2) :=
+  ⟨(mk_inductive_aux₁ (n+1)).2.1,
+    (succ (n+1) (mk_inductive_aux₁ (n+1))).1,
+    (succ (n+1) (mk_inductive_aux₁ (n+1))).2⟩
 
 /--
-A constructor for chain maps between `ℕ`-indexed chain complexes,
-working by induction on commutative squares.
-
-You need to provide the components of the chain map in degrees 0 and 1,
-show that these form a commutative square,
-and then give a construction of each component,
-and the fact that it forms a commutative square with the previous component,
-using as an inductive hypothesis the data (and commutativity) of the previous two components.
+An auxiliary construction for `mk_inductive`.
 -/
-def mk_inductive : P ⟶ Q :=
-{ f := λ n, (mk_inductive_aux P Q zero one one_zero_comm succ n).1,
-  comm' := λ n m,
-  begin
-    by_cases h : m + 1 = n,
-    { subst h,
-      exact (mk_inductive_aux P Q zero one one_zero_comm succ m).2.2, },
-    { rw [P.shape n m h, Q.shape n m h], simp, }
-  end }
+@[simp]
+def mk_inductive_aux₂ :
+  Π n, Σ' (f : P.X_next n ⟶ Q.X n) (f' : P.X n ⟶ Q.X_prev n), e.f n = f' ≫ Q.d_to n + P.d_from n ≫ f
+| 0 := ⟨0, zero ≫ (Q.X_prev_iso rfl).inv, by simpa using comm_zero⟩
+| (n+1) := let I := mk_inductive_aux₁ e zero comm_zero one comm_one succ n in
+  ⟨(P.X_next_iso rfl).hom ≫ I.1, I.2.1 ≫ (Q.X_prev_iso rfl).inv, by simpa using I.2.2⟩
 
-@[simp] lemma mk_inductive_f_0 : (mk_inductive P Q zero one one_zero_comm succ).f 0 = zero := rfl
-@[simp] lemma mk_inductive_f_1 : (mk_inductive P Q zero one one_zero_comm succ).f 1 = one := rfl
-@[simp] lemma mk_inductive_f_succ_succ (n : ℕ) :
-  (mk_inductive P Q zero one one_zero_comm succ).f (n+2) =
-    (succ n ⟨(mk_inductive P Q zero one one_zero_comm succ).f n,
-      (mk_inductive P Q zero one one_zero_comm succ).f (n+1),
-        (mk_inductive P Q zero one one_zero_comm succ).comm (n+1) n⟩).1 :=
-begin
-  dsimp [mk_inductive, mk_inductive_aux],
-  induction n; congr,
-end
+lemma mk_inductive_aux₃ (i : ℕ) :
+  (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso rfl).hom
+    = (P.X_next_iso rfl).inv ≫ (mk_inductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
+by rcases i with (_|_|i); { dsimp, simp, }
+
+/--
+A constructor for a `homotopy e 0`, for `e` a chain map between `ℕ`-indexed chain complexes,
+working by induction.
+
+You need to provide the components of the homotopy in degrees 0 and 1,
+show that these satisfy the homotopy condition,
+and then give a construction of each component,
+and the fact that it satisfies the homotopy condition,
+using as an inductive hypothesis the data and homotopy condition for the previous two components.
+-/
+def mk_inductive : homotopy e 0 :=
+{ hom := λ i j, if h : i + 1 = j then
+    (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso h).hom
+  else
+    0,
+  zero' := λ i j w, by rwa dif_neg,
+  comm' := λ i, begin
+    dsimp, simp only [add_zero],
+    convert (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.2,
+    { simp, },
+    { cases i; simp [mk_inductive_aux₃], },
+  end, }
 
 end mk_inductive
 

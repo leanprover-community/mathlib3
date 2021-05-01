@@ -294,6 +294,22 @@ begin
   rw h, refl,
 end
 
+@[simp, reassoc] lemma X_prev_iso_comp_d_to {i j : ι} (r : c.rel i j) :
+  (C.X_prev_iso r).inv ≫ C.d_to j = C.d i j :=
+by simp [C.d_to_eq r]
+
+@[simp, reassoc] lemma X_prev_iso_zero_comp_d_to {j : ι} (h : c.prev j = none) :
+  (C.X_prev_iso_zero h).inv ≫ C.d_to j = 0 :=
+by simp [h]
+
+@[simp, reassoc] lemma d_from_comp_X_next_iso {i j : ι} (r : c.rel i j) :
+  C.d_from i ≫ (C.X_next_iso r).hom = C.d i j :=
+by simp [C.d_from_eq r]
+
+@[simp, reassoc] lemma d_from_comp_X_next_iso_zero {i : ι} (h : c.next i = none) :
+  C.d_from i ≫ (C.X_next_iso_zero h).hom = 0 :=
+by simp [h]
+
 @[simp]
 lemma d_to_comp_d_from (j : ι) : C.d_to j ≫ C.d_from j = 0 :=
 begin

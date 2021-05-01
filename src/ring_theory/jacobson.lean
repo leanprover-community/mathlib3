@@ -552,7 +552,7 @@ instance {R : Type*} [comm_ring R] {ι : Type*} [fintype ι] [is_jacobson R] :
   is_jacobson (mv_polynomial ι R) :=
 begin
   haveI := classical.dec_eq ι,
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin ι,
+  let e := fintype.equiv_fin ι,
   rw is_jacobson_iso (rename_equiv R e).to_ring_equiv,
   exact is_jacobson_mv_polynomial_fin _
 end

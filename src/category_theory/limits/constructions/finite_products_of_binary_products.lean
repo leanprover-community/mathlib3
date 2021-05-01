@@ -136,7 +136,7 @@ end }
 lemma has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
 ⟨λ J 𝒥₁ 𝒥₂, begin
   resetI,
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin J,
+  let e := fintype.equiv_fin J,
   apply has_limits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
   refine has_limits_of_shape_ulift_fin (fintype.card J),
 end⟩

@@ -682,9 +682,8 @@ theorem is_noetherian_ring_fin [is_noetherian_ring R] :
 is itself a noetherian ring. -/
 instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial σ R) :=
-trunc.induction_on (fintype.trunc_equiv_fin σ) $ λ e,
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
-  (rename_equiv R e.symm).to_ring_equiv is_noetherian_ring_fin
+  (rename_equiv R (fintype.equiv_fin σ).symm).to_ring_equiv is_noetherian_ring_fin
 
 lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
   is_integral_domain (mv_polynomial (fin 0) R) :=
@@ -708,10 +707,9 @@ lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain
 
 lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
   (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=
-trunc.induction_on (fintype.trunc_equiv_fin σ) $ λ e,
 @ring_equiv.is_integral_domain _ (mv_polynomial (fin $ fintype.card σ) R) _ _
   (mv_polynomial.is_integral_domain_fin _ hR _)
-  (rename_equiv R e).to_ring_equiv
+  (rename_equiv R (fintype.equiv_fin σ)).to_ring_equiv
 
 /-- Auxilliary definition:
 Multivariate polynomials in finitely many variables over an integral domain form an integral domain.

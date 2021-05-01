@@ -172,10 +172,7 @@ calc module.rank K (R σ K) =
   ... = cardinal.mk (σ → fin (fintype.card K)) :
     quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm⟩
   ... = cardinal.mk (σ → K) :
-  begin
-    obtain ⟨e⟩ := fintype.trunc_equiv_fin K,
-    refine quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) e.symm⟩
-  end
+    quotient.sound ⟨equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm⟩
   ... = fintype.card (σ → K) : cardinal.fintype_card _
 
 instance : finite_dimensional K (R σ K) :=

@@ -189,7 +189,7 @@ theorem exists_fin_rename (p : mv_polynomial σ R) :
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
   let n := fintype.card {x // x ∈ s},
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin {x // x ∈ s},
+  let e := fintype.equiv_fin {x // x ∈ s},
   refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, rename e q, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]

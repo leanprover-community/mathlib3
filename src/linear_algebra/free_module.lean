@@ -221,8 +221,8 @@ lemma is_basis.card_le_card_of_linear_independent
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq ι',
-  obtain ⟨e⟩ := fintype.trunc_equiv_fin ι,
-  obtain ⟨e'⟩ := fintype.trunc_equiv_fin ι',
+  let e := fintype.equiv_fin ι,
+  let e' := fintype.equiv_fin ι',
   have hb := hb.comp _ e.symm.bijective,
   have hv := (linear_independent_equiv e'.symm).mpr hv,
   have hv := hv.map' _ hb.equiv_fun.ker,

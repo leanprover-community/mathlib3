@@ -208,8 +208,8 @@ variables {F : J ⥤ C}
 
 include hs ht
 /--
-(Implementation) Given the appropriate product and equalizer cones, build the cone for `F` which is
-limiting if the given cones are also.
+(Implementation) Given the appropriate coproduct and coequalizer cocones,
+build the cocone for `F` which is colimiting if the given cocones are also.
 -/
 @[simps]
 def build_colimit : cocone F :=
@@ -223,8 +223,8 @@ def build_colimit : cocone F :=
 
 variable {i}
 /--
-(Implementation) Show the cone constructed in `build_limit` is limiting, provided the cones used in
-its construction are.
+(Implementation) Show the cocone constructed in `build_colimit` is colimiting,
+provided the cocones used in its construction are.
 -/
 def build_is_colimit (t₁ : is_colimit c₁) (t₂ : is_colimit c₂) (hi : is_colimit i) :
   is_colimit (build_colimit s t hs ht i) :=
@@ -244,7 +244,7 @@ open has_colimit_of_has_coproducts_of_has_coequalizers
 
 /--
 Given the existence of the appropriate (possibly finite) coproducts and coequalizers,
-we know a limit of `F` exists.
+we know a colimit of `F` exists.
 (This assumes the existence of all coequalizers, which is technically stronger than needed.)
 -/
 lemma has_colimit_of_coequalizer_and_coproduct (F : J ⥤ C)
@@ -274,7 +274,7 @@ lemma colimits_from_coequalizers_and_coproducts
   { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F } }
 
 /--
-Any category with finite products and equalizers has all finite limits.
+Any category with finite coproducts and coequalizers has all finite colimits.
 
 See https://stacks.math.columbia.edu/tag/002Q.
 -/

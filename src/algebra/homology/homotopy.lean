@@ -59,7 +59,7 @@ A homotopy `h` between chain maps `f` and `g` consists of components `h i j : C.
 which are zero unless `c.rel j i`,
 satisfying the homotopy condition.
 -/
-@[nolint has_inhabited_instance]
+@[ext, nolint has_inhabited_instance]
 structure homotopy (f g : C ⟶ D) :=
 (hom : Π i j, C.X i ⟶ D.X j)
 (zero' : ∀ i j, ¬ c.rel j i → hom i j = 0 . obviously)
@@ -87,12 +87,35 @@ lemma comm (h : homotopy f g) (i : ι) :
   f.f i = h.to_prev i i ≫ D.d_to i + C.d_from i ≫ h.from_next i i + g.f i :=
 h.comm' i
 
+/--
+`f` is homotopic to `g` iff `f - g` is homotopic to `0`.
+-/
+def equiv_sub_zero : homotopy f g ≃ homotopy (f - g) 0 :=
+{ to_fun := λ h,
+  { hom := λ i j, h.hom i j,
+    zero' := λ i j w, h.zero _ _ w,
+    comm' := λ i, begin simp [h.comm], refl, end, },
+  inv_fun := λ h,
+  { hom := λ i j, h.hom i j,
+    zero' := λ i j w, h.zero _ _ w,
+    comm' := λ i, begin
+      have c := h.comm i,
+      simp only [homological_complex.sub_f_apply, add_zero, homological_complex.zero_f_apply,
+        sub_eq_iff_eq_add] at c,
+      rw c,
+      refl,
+    end, },
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/-- Every chain map is homotopic to itself. -/
 @[refl]
 def refl (f : C ⟶ D) : homotopy f f :=
 { hom := λ i j, 0,
   zero' := λ i j w, rfl,
   comm' := λ i, by simp, }
 
+/-- `f` is homotopic to `g` iff `g` is homotopic to `f`. -/
 @[symm]
 def symm {f g : C ⟶ D} (h : homotopy f g) : homotopy g f :=
 { hom := λ i j, -h.hom i j,
@@ -101,6 +124,7 @@ def symm {f g : C ⟶ D} (h : homotopy f g) : homotopy g f :=
     sorry,
   end, }
 
+/-- homotopy is a transivitive relation. -/
 @[trans]
 def trans {e f g : C ⟶ D} (h : homotopy e f) (k : homotopy f g) : homotopy e g :=
 { hom := λ i j, h.hom i j + k.hom i j,
@@ -109,11 +133,75 @@ def trans {e f g : C ⟶ D} (h : homotopy e f) (k : homotopy f g) : homotopy e g
     sorry,
   end, }
 
+/-- homotopy is closed under composition (on the right) -/
 def comp_right {e f : C ⟶ D} (g : D ⟶ E) (h : homotopy e f) : homotopy (e ≫ g) (f ≫ g) :=
 sorry
 
+/-- homotopy is closed under composition (on the left) -/
 def comp_left (e : C ⟶ D) {f g : D ⟶ E} (h : homotopy f g) : homotopy (e ≫ f) (e ≫ g) :=
 sorry
+
+
+section mk_inductive
+
+variables
+  {P Q : chain_complex V ℕ} {e : P ⟶ Q}
+  (zero : P.X 0 ⟶ Q.X 1)
+  (comm_zero : e.f 0 = zero ≫ Q.d 1 0)
+  (one : P.X 1 ⟶ Q.X 2)
+  (comm_one : e.f 1 = one ≫ Q.d 2 1 + P.d 1 0 ≫ zero)
+  (succ : ∀ (n : ℕ)
+    (p : Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f' ≫ Q.d (n+1) n = P.d (n+1) n ≫ f),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), f'' ≫ Q.d (n+2) (n+1) = P.d (n+2) (n+1) ≫ p.2.1)
+
+/--
+An auxiliary construction for `mk_inductive`.
+
+Here we build by induction a family of commutative squares,
+but don't require at the type level that these successive commutative squares actually agree.
+They do in fact agree, and we then capture that at the type level (i.e. by constructing a chain map)
+in `mk_inductive`.
+-/
+def mk_inductive_aux :
+  Π n, Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f' ≫ Q.d (n+1) n = P.d (n+1) n ≫ f
+| 0 := ⟨zero, one, one_zero_comm⟩
+| (n+1) := ⟨(mk_inductive_aux n).2.1,
+    (succ n (mk_inductive_aux n)).1, (succ n (mk_inductive_aux n)).2⟩
+
+/--
+A constructor for chain maps between `ℕ`-indexed chain complexes,
+working by induction on commutative squares.
+
+You need to provide the components of the chain map in degrees 0 and 1,
+show that these form a commutative square,
+and then give a construction of each component,
+and the fact that it forms a commutative square with the previous component,
+using as an inductive hypothesis the data (and commutativity) of the previous two components.
+-/
+def mk_inductive : P ⟶ Q :=
+{ f := λ n, (mk_inductive_aux P Q zero one one_zero_comm succ n).1,
+  comm' := λ n m,
+  begin
+    by_cases h : m + 1 = n,
+    { subst h,
+      exact (mk_inductive_aux P Q zero one one_zero_comm succ m).2.2, },
+    { rw [P.shape n m h, Q.shape n m h], simp, }
+  end }
+
+@[simp] lemma mk_inductive_f_0 : (mk_inductive P Q zero one one_zero_comm succ).f 0 = zero := rfl
+@[simp] lemma mk_inductive_f_1 : (mk_inductive P Q zero one one_zero_comm succ).f 1 = one := rfl
+@[simp] lemma mk_inductive_f_succ_succ (n : ℕ) :
+  (mk_inductive P Q zero one one_zero_comm succ).f (n+2) =
+    (succ n ⟨(mk_inductive P Q zero one one_zero_comm succ).f n,
+      (mk_inductive P Q zero one one_zero_comm succ).f (n+1),
+        (mk_inductive P Q zero one one_zero_comm succ).comm (n+1) n⟩).1 :=
+begin
+  dsimp [mk_inductive, mk_inductive_aux],
+  induction n; congr,
+end
+
+end mk_inductive
+
 
 end homotopy
 

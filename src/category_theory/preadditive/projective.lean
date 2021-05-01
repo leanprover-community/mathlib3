@@ -364,12 +364,24 @@ namespace ProjectiveResolution
 variables [preadditive C] [has_equalizers C] [has_images C] [has_image_maps C]
   [has_zero_object C] [has_cokernels C]
 
+/-- Any lift of the zero morphism is homotopic to zero. -/
+def lift_homotopy_zero {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
+  (f : P.complex ⟶ Q.complex)
+  (comm : f ≫ Q.π = 0) :
+  homotopy f 0 :=
+sorry
+
+/-- Two lifts of the same morphism are homotopic. -/
 def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
   (g h : P.complex ⟶ Q.complex)
   (g_comm : g ≫ Q.π = P.π ≫ (homological_complex.single C _ 0).map f)
   (h_comm : h ≫ Q.π = P.π ≫ (homological_complex.single C _ 0).map f) :
   homotopy g h :=
-sorry
+begin
+  apply homotopy.sub_zero.inv_fun,
+  apply lift_homotopy_zero,
+  simp [g_comm, h_comm],
+end
 
 def lift_id_homotopy (X : C) (P : ProjectiveResolution X) :
   homotopy (lift (𝟙 X) P P) (𝟙 P.complex) :=

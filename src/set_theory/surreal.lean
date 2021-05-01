@@ -117,14 +117,6 @@ rfl
 by {cases x, cases y, refl}
 
 /-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
-and `c` has the same moves as `z`, then `a + b - c` has the same moves as `x + y - z`.
-This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-def add_sub_relabelling {a b c x y z : pgame}
-  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
-  (a + b - c).relabelling (x + y - z) :=
-(h₁.add_congr h₂).sub_congr h₃
-
-/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
 and `c` has the same moves as `z`, then `a + b - c` has the same moves as `y + x - z`.
 This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
 def add_comm_sub_relabelling {a b c x y z : pgame}

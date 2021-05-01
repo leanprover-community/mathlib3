@@ -995,6 +995,8 @@ begin
   { rw h, exact inv_one }
 end
 
+/-- The isometry between a weighted sum of squares with weights `u` on the complex numbers
+and the weighted sum of squares with weights `sign ∘ u`. -/
 noncomputable def isometry_sign_weighted_sum_squares'
   [decidable_eq ι] (u : ι → ℝ) (hu : ∀ i : ι, u i ≠ 0) :
   isometry (weighted_sum_squares u : quadratic_form ℝ (ι → ℝ)) (weighted_sum_squares (sign ∘ u)) :=

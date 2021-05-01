@@ -153,8 +153,8 @@ lemma bounded_continuous_function.inner_to_Lp (f g : α →ᵇ 𝕜) :
     (bounded_continuous_function.to_Lp 𝕜 2 μ 𝕜 g) = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
-  have hf_ae := bounded_continuous_function.coe_fn_to_Lp μ f,
-  have hg_ae := bounded_continuous_function.coe_fn_to_Lp μ g,
+  have hf_ae := f.coe_fn_to_Lp μ,
+  have hg_ae := g.coe_fn_to_Lp μ,
   filter_upwards [hf_ae, hg_ae],
   intros x hf hg,
   rw [hf, hg],
@@ -170,8 +170,8 @@ lemma continuous_map.inner_to_Lp (f g : C(α, 𝕜)) :
     (continuous_map.to_Lp 𝕜 2 μ 𝕜 g) = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
-  have hf_ae := continuous_map.coe_fn_to_Lp μ f,
-  have hg_ae := continuous_map.coe_fn_to_Lp μ g,
+  have hf_ae := f.coe_fn_to_Lp μ,
+  have hg_ae := g.coe_fn_to_Lp μ,
   filter_upwards [hf_ae, hg_ae],
   intros x hf hg,
   rw [hf, hg],

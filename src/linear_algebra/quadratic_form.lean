@@ -871,7 +871,7 @@ begin
     rw [smul_left, smul_right,
         show (associated_hom R₁) Q (v j) (v i) = 0, by exact hv₂ i j hij,
         mul_zero, mul_zero] },
-  { intro hnj, exact false.elim (hnj hj) }
+  { contradiction }
 end
 
 /-- The weighted sum of squares with respect some weight. `weighted_sum_squares` is the
@@ -891,7 +891,7 @@ def weighted_sum_squares [comm_semiring S] [algebra S R₁] (w : ι → S) :
 @[simp]
 lemma weighted_sum_squares_apply (w v : ι → R₁) :
   weighted_sum_squares w v = ∑ i : ι, w i * (v i * v i) :=
-sorry -- quadratic_form.sum_apply _ _ _ -- After #7417
+quadratic_form.sum_apply _ _ _
 
 variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
 variables [add_comm_group V] [module K V] [finite_dimensional K V]
@@ -936,8 +936,8 @@ begin
   have hsum : (∑ (i : ι), v i • w i ^ - (1 / 2 : ℂ) •
     (linear_map.std_basis ℂ (λ (i : ι), ℂ) i) 1) j =
     v j • w j ^ - (1 / 2 : ℂ),
-  { rw [sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply,
-        function.update_same, smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
+  { rw [finset.sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply,
+        pi.smul_apply, function.update_same, smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
     intros i _ hij,
     rw [linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_noteq hij.symm,
         pi.zero_apply, smul_eq_mul, smul_eq_mul, mul_zero, mul_zero],

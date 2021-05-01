@@ -233,7 +233,7 @@ begin
     exact ⟨y, ym, zm⟩, },
   have h_eq : ∀ x, h x x = f x, by { intro x, simp only [coe_fn_coe_base] at w₁, simp [w₁], },
 
-  -- For each `x`, we can take the finite intersection of the `V x y` corresponding to `y ∈ ys x`.
+  -- For each `x`, we define `W x` to be `{z | h x z < f z + ε}`,
   let W : Π x, set X := λ x, {z | h x z < f z + ε},
   -- This is still a neighbourhood of `x`.
   have W_nhd : ∀ x, W x ∈ 𝓝 x,

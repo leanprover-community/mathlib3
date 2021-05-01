@@ -200,8 +200,7 @@ begin
   have U_nhd_y : ∀ x y, U x y ∈ 𝓝 y,
   { intros x y,
     refine mem_nhds_sets _ _,
-    { rw [show U x y = (f - g x y : C(X, ℝ)) ⁻¹' set.Iio ε, { ext z, simp [sub_lt], }],
-      exact is_open.preimage (by continuity) is_open_Iio, },
+    { apply is_open_lt; continuity, },
     { rw [set.mem_set_of_eq, w₂],
       exact sub_lt_self _ pos, }, },
 

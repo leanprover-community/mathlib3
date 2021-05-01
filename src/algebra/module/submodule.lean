@@ -48,6 +48,9 @@ variables [semiring R] [add_comm_monoid M] [module R M]
 instance : set_like (submodule R M) M :=
 ⟨submodule.carrier, λ p q h, by cases p; cases q; congr'⟩
 
+@[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
+iff.rfl
+
 variables {p q : submodule R M}
 
 @[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃) :

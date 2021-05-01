@@ -286,7 +286,8 @@ lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
   ∥x - y∥ = abs (∥x∥ - ∥y∥) :=
 begin
   rw [← eq_of_sq_eq_sq (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
-      norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, sqr_abs],
+      norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h,
+      pow_even_abs (∥x∥ - ∥y∥) (even_bit0 1)],
   ring,
 end
 

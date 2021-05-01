@@ -182,6 +182,13 @@ def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 theorem zero_mul_equiv (x : pgame) : (0 * x).equiv 0 :=
 (zero_mul_relabelling x).equiv
 
+/-- Local tactic useful for resolving goals involving equivalences between types, such as, a × (b ⊕ c) ≃ a × b ⊕ a × c. -/
+meta def try_inl_inr : tactic unit :=
+`[assumption]
+    <|> (do `[apply sum.inl], try_inl_inr )
+    <|> (do `[apply sum.inr], try_inl_inr )
+    <|> (do `[apply prod.mk], try_inl_inr, try_inl_inr )
+
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/

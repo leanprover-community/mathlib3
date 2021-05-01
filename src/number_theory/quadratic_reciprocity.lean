@@ -15,12 +15,12 @@ This file contains results about quadratic residues modulo a prime number.
 
 The main results are the law of quadratic reciprocity, `quadratic_reciprocity`, as well as the
 interpretations in terms of existence of square roots depending on the congruence mod 4,
-`exists_pow_two_eq_prime_iff_of_mod_four_eq_one`, and
-`exists_pow_two_eq_prime_iff_of_mod_four_eq_three`.
+`exists_sq_eq_prime_iff_of_mod_four_eq_one`, and
+`exists_sq_eq_prime_iff_of_mod_four_eq_three`.
 
 Also proven are conditions for `-1` and `2` to be a square modulo a prime,
-`exists_pow_two_eq_neg_one_iff_mod_four_ne_three` and
-`exists_pow_two_eq_two_iff`
+`exists_sq_eq_neg_one_iff_mod_four_ne_three` and
+`exists_sq_eq_two_iff`
 
 ## Implementation notes
 
@@ -60,14 +60,14 @@ lemma euler_criterion {a : zmod p} (ha : a ≠ 0) :
   (∃ y : zmod p, y ^ 2 = a) ↔ a ^ (p / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
-  simp only [units.ext_iff, pow_two, units.coe_mk0, units.coe_mul],
+  simp only [units.ext_iff, sq, units.coe_mk0, units.coe_mul],
   split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
-lemma exists_pow_two_eq_neg_one_iff_mod_four_ne_three :
+lemma exists_sq_eq_neg_one_iff_mod_four_ne_three :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
@@ -465,7 +465,7 @@ begin
     ← nat.cast_add, ← card_disjoint_union hdisj, hunion, hcard]
 end
 
-lemma exists_pow_two_eq_two_iff [hp1 : fact (p % 2 = 1)] :
+lemma exists_sq_eq_two_iff [hp1 : fact (p % 2 = 1)] :
   (∃ a : zmod p, a ^ 2 = 2) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
 have hp2 : ((2 : ℕ) : zmod p) ≠ 0,
   from prime_ne_zero p 2 (λ h, by simpa [h] using hp1.1),
@@ -483,7 +483,7 @@ begin
   dec_trivial!,
 end
 
-lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :
+lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :
   (∃ a : zmod p, a ^ 2 = q) ↔ ∃ b : zmod q, b ^ 2 = p :=
 if hpq : p = q then by substI hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
@@ -501,7 +501,7 @@ begin
   split_ifs at this; simp *; contradiction,
 end
 
-lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3)
+lemma exists_sq_eq_prime_iff_of_mod_four_eq_three (hp3 : p % 4 = 3)
   (hq3 : q % 4 = 3) (hpq : p ≠ q) : (∃ a : zmod p, a ^ 2 = q) ↔ ¬∃ b : zmod q, b ^ 2 = p :=
 have h1 : ((p / 2) * (q / 2)) % 2 = 1,
   from nat.odd_mul_odd

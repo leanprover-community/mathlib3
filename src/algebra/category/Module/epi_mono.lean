@@ -17,38 +17,36 @@ universes v u
 
 open category_theory
 open Module
+open_locale Module
 
 namespace Module
 
-variables {R : Type u} [ring R]
+variables {R : Type u} [ring R] {X Y : Module.{v} R} (f : X ⟶ Y)
 
-/--
-We could also give a direct proof via `linear_map.ker_eq_bot_of_cancel`.
-(This would allow generalising from `Module.{u}` to `Module.{v}`.)
--/
-lemma mono_iff_injective {X Y : Module.{u} R} (f : X ⟶ Y) : mono f ↔ function.injective f :=
-begin
-  rw ←category_theory.mono_iff_injective,
-  exact ⟨right_adjoint_preserves_mono (adj R), faithful_reflects_mono (forget (Module.{u} R))⟩,
-end
+lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
+linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ ↟u ↟v).1
 
-lemma epi_iff_surjective {X Y : Module.{v} R} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
-begin
-  fsplit,
-  { intro h,
-    rw ←linear_map.range_eq_top,
-    apply linear_map.range_eq_top_of_cancel,
-    -- Now we have to fight a bit with the difference between `Y` and `↥Y`.
-    intros u v w,
-    change Y ⟶ Module.of R (linear_map.range f).quotient at u,
-    change Y ⟶ Module.of R (linear_map.range f).quotient at v,
-    apply (cancel_epi (Module.of_self_iso Y).hom).mp,
-    apply h.left_cancellation,
-    cases X, cases Y, -- after this we can see `Module.of_self_iso` is just the identity.
-    convert w; { dsimp, erw category.id_comp, }, },
-  { rw ←category_theory.epi_iff_surjective,
-    exact faithful_reflects_epi (forget (Module.{v} R)), },
-end
+lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
+linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ ↟u ↟v).1
 
+lemma mono_iff_ker_eq_bot : mono f ↔ f.ker = ⊥ :=
+⟨λ hf, by exactI ker_eq_bot_of_mono _,
+ λ hf, concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf⟩
+
+lemma mono_iff_injective : mono f ↔ function.injective f :=
+by rw [mono_iff_ker_eq_bot, linear_map.ker_eq_bot]
+
+lemma epi_iff_range_eq_top : epi f ↔ f.range = ⊤ :=
+⟨λ hf, by exactI range_eq_top_of_epi _,
+ λ hf, concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf⟩
+
+lemma epi_iff_surjective : epi f ↔ function.surjective f :=
+by rw [epi_iff_range_eq_top, linear_map.range_eq_top]
+
+instance mono_as_hom'_subtype (U : submodule R X) : mono ↾U.subtype :=
+(mono_iff_ker_eq_bot _).mpr (submodule.ker_subtype U)
+
+instance epi_as_hom''_mkq (U : submodule R X) : epi ↿U.mkq :=
+(epi_iff_range_eq_top _).mpr $ submodule.range_mkq _
 
 end Module

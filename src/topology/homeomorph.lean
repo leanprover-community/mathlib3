@@ -134,6 +134,17 @@ h.quotient_map.2.symm
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
 ⟨h.inducing, h.injective⟩
 
+/-- Homeomorphism given an embedding. -/
+noncomputable def of_embedding (f : α → β) (hf : embedding f) : α ≃ₜ (set.range f) :=
+{ continuous_to_fun := continuous_subtype_mk _ hf.continuous,
+  continuous_inv_fun := begin
+    rw hf.continuous_iff,
+    convert continuous_subtype_coe using 1,
+    ext b,
+    simpa [subtype.ext_iff] using (equiv.of_injective f hf.inj).right_inv b,
+  end,
+  .. equiv.of_injective f hf.inj }
+
 protected lemma second_countable_topology [topological_space.second_countable_topology β]
   (h : α ≃ₜ β) :
   topological_space.second_countable_topology α :=

@@ -900,8 +900,10 @@ begin
     exact false.elim (h _ ((smul_mem_iff _ ha').1 ha)) }
 end
 
-lemma linear_independent_unique_iff [unique ι] :
-  linear_independent K v ↔ v (default ι) ≠ 0 :=
+lemma linear_independent_unique_iff [ring R] [nontrivial R] [add_comm_monoid M] [module R M]
+  [no_zero_smul_divisors R M]
+  (v : ι → M) [unique ι] :
+  linear_independent R v ↔ v (default ι) ≠ 0 :=
 begin
   simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
   refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
@@ -913,7 +915,7 @@ alias linear_independent_unique_iff ↔ _ linear_independent_unique
 
 lemma linear_independent_singleton {x : V} (hx : x ≠ 0) :
   linear_independent K (λ x, x : ({x} : set V) → V) :=
-@linear_independent_unique _ _ _ _ _ _ _ (set.unique_singleton _) ‹_›
+linear_independent_unique coe hx
 
 lemma linear_independent_option' :
   linear_independent K (λ o, option.cases_on' o x v : option ι → V) ↔
@@ -1006,7 +1008,7 @@ by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
 lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=
 begin
-  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
+  rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     by_contra hn,

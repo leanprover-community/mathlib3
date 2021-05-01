@@ -9,6 +9,7 @@ import linear_algebra.linear_independent
 import order.order_iso_nat
 import order.compactly_generated
 import ring_theory.ideal.operations
+import group_theory.finiteness
 
 /-!
 # Noetherian rings and modules
@@ -68,6 +69,28 @@ theorem fg_def {N : submodule R M} :
   rcases finite.exists_finset_coe h with ⟨t, rfl⟩,
   exact ⟨t, rfl⟩
 end⟩
+
+lemma fg_iff_add_submonoid_fg (P : submodule ℕ M) :
+  P.fg ↔ P.to_add_submonoid.fg :=
+⟨λ ⟨S, hS⟩, ⟨S, by simpa [← span_nat_eq_add_submonoid_closure] using hS⟩,
+  λ ⟨S, hS⟩, ⟨S, by simpa [← span_nat_eq_add_submonoid_closure] using hS⟩⟩
+
+lemma fg_iff_add_subgroup_fg {G : Type*} [add_comm_group G] (P : submodule ℤ G) :
+  P.fg ↔ P.to_add_subgroup.fg :=
+⟨λ ⟨S, hS⟩, ⟨S, by simpa [← span_int_eq_add_subgroup_closure] using hS⟩,
+  λ ⟨S, hS⟩, ⟨S, by simpa [← span_int_eq_add_subgroup_closure] using hS⟩⟩
+
+lemma fg_iff_exists_fin_generating_family {N : submodule R M} :
+  N.fg ↔ ∃ (n : ℕ) (s : fin n → M), span R (range s) = N :=
+begin
+  rw fg_def,
+  split,
+  { rintros ⟨S, Sfin, hS⟩,
+    obtain ⟨n, f, rfl⟩ := Sfin.fin_embedding,
+    exact ⟨n, f, hS⟩, },
+  { rintros ⟨n, s, hs⟩,
+    refine ⟨range s, finite_range s, hs⟩ },
+end
 
 /-- Nakayama's Lemma. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2, Stacks 00DV -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
@@ -130,7 +153,7 @@ lemma fg_of_fg_map {R M P : Type*} [ring R] [add_comm_group M] [module R M]
   [add_comm_group P] [module R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) {N : submodule R M}
   (hfn : (N.map f).fg) : N.fg :=
 let ⟨t, ht⟩ := hfn in ⟨t.preimage f $ λ x _ y _ h, linear_map.ker_eq_bot.1 hf h,
-linear_map.map_injective hf $ by { rw [map_span, finset.coe_preimage,
+linear_map.map_injective hf $ by { rw [f.map_span, finset.coe_preimage,
     set.image_preimage_eq_inter_range, set.inter_eq_self_of_subset_left, ht],
   rw [← linear_map.range_coe, ← span_le, ht, ← map_top], exact map_mono le_top }⟩
 

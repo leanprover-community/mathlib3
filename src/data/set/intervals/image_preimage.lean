@@ -528,5 +528,18 @@ begin
                      inv_inv' x⟩ }
 end
 
+
+/-!
+### Images under `x ↦ a * x + b`
+-/
+
+@[simp] lemma image_affine_Icc' {a : k} (h : 0 < a) (b c d : k) :
+  (λ x, a * x + b) '' Icc c d = Icc (a * c + b) (a * d + b) :=
+begin
+  suffices : (λ x, x + b) '' ((λ x, a * x) '' Icc c d) = Icc (a * c + b) (a * d + b),
+  { rwa set.image_image at this,  },
+  rw [image_mul_left_Icc' h, image_add_const_Icc],
+end
+
 end linear_ordered_field
 end set

@@ -119,7 +119,7 @@ def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
 { to_fun := _,
   continuous_to_fun := continuous_subtype_coe }
 
-lemma inclusion_open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
+lemma open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
 is_open.open_embedding_subtype_coe U.2
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,

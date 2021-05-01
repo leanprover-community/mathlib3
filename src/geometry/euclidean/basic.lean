@@ -266,7 +266,7 @@ end
 the sum of their norms. -/
 lemma norm_sub_eq_add_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ∥x - y∥ = ∥x∥ + ∥y∥ :=
 begin
-  rw ← eq_of_pow_two_eq_pow_two (norm_nonneg (x - y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
+  rw ← eq_of_sq_eq_sq (norm_nonneg (x - y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
   rw [norm_sub_pow_two_real, inner_eq_neg_mul_norm_of_angle_eq_pi h],
   ring,
 end
@@ -275,7 +275,7 @@ end
 the sum of their norms. -/
 lemma norm_add_eq_add_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ∥x + y∥ = ∥x∥ + ∥y∥ :=
 begin
-  rw ← eq_of_pow_two_eq_pow_two (norm_nonneg (x + y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
+  rw ← eq_of_sq_eq_sq (norm_nonneg (x + y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
   rw [norm_add_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h],
   ring,
 end
@@ -285,7 +285,7 @@ the absolute value of the difference of their norms. -/
 lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
   ∥x - y∥ = abs (∥x∥ - ∥y∥) :=
 begin
-  rw [← eq_of_pow_two_eq_pow_two (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
+  rw [← eq_of_sq_eq_sq (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
       norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, sqr_abs],
   ring,
 end
@@ -298,7 +298,7 @@ begin
   refine ⟨λ h, _, norm_sub_eq_add_norm_of_angle_eq_pi⟩,
   rw ← inner_eq_neg_mul_norm_iff_angle_eq_pi hx hy,
   obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x - y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
-  rw [← eq_of_pow_two_eq_pow_two hxy₁ hxy₂, norm_sub_pow_two_real] at h,
+  rw [← eq_of_sq_eq_sq hxy₁ hxy₂, norm_sub_pow_two_real] at h,
   calc inner x y = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
   ...            = -(∥x∥ * ∥y∥) : by ring,
 end
@@ -311,7 +311,7 @@ begin
   refine ⟨λ h, _, norm_add_eq_add_norm_of_angle_eq_zero⟩,
   rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
   obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x + y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
-  rw [← eq_of_pow_two_eq_pow_two hxy₁ hxy₂, norm_add_pow_two_real] at h,
+  rw [← eq_of_sq_eq_sq hxy₁ hxy₂, norm_add_pow_two_real] at h,
   calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
   ...            = ∥x∥ * ∥y∥ : by ring,
 end
@@ -334,7 +334,7 @@ the angle between them is π/2. -/
 lemma norm_add_eq_norm_sub_iff_angle_eq_pi_div_two (x y : V) :
   ∥x + y∥ = ∥x - y∥ ↔ angle x y = π / 2 :=
 begin
-  rw [← eq_of_pow_two_eq_pow_two (norm_nonneg (x + y)) (norm_nonneg (x - y)),
+  rw [← eq_of_sq_eq_sq (norm_nonneg (x + y)) (norm_nonneg (x - y)),
       ← inner_eq_zero_iff_angle_eq_pi_div_two x y, norm_add_pow_two_real, norm_sub_pow_two_real],
   split; intro h; linarith,
 end

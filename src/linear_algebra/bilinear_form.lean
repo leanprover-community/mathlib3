@@ -31,9 +31,9 @@ Given any term B of type bilin_form, due to a coercion, can use
 the notation B x y to refer to the function field, ie. B x y = B.bilin x y.
 
 In this file we use the following type variables:
- - `M`, `M'`, ... are semimodules over the semiring `R`,
+ - `M`, `M'`, ... are modules over the semiring `R`,
  - `M₁`, `M₁'`, ... are modules over the ring `R₁`,
- - `M₂`, `M₂'`, ... are semimodules over the commutative semiring `R₂`,
+ - `M₂`, `M₂'`, ... are modules over the commutative semiring `R₂`,
  - `M₃`, `M₃'`, ... are modules over the commutative ring `R₃`,
  - `V`, ... is a vector space over the field `K`.
 
@@ -51,18 +51,18 @@ open_locale big_operators
 universes u v w
 
 /-- `bilin_form R M` is the type of `R`-bilinear functions `M → M → R`. -/
-structure bilin_form (R : Type*) (M : Type*) [semiring R] [add_comm_monoid M] [semimodule R M] :=
+structure bilin_form (R : Type*) (M : Type*) [semiring R] [add_comm_monoid M] [module R M] :=
 (bilin : M → M → R)
 (bilin_add_left : ∀ (x y z : M), bilin (x + y) z = bilin x z + bilin y z)
 (bilin_smul_left : ∀ (a : R) (x y : M), bilin (a • x) y = a * (bilin x y))
 (bilin_add_right : ∀ (x y z : M), bilin x (y + z) = bilin x y + bilin x z)
 (bilin_smul_right : ∀ (a : R) (x y : M), bilin x (a • y) = a * (bilin x y))
 
-variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
 variables {R₁ : Type*} {M₁ : Type*} [ring R₁] [add_comm_group M₁] [module R₁ M₁]
-variables {R₂ : Type*} {M₂ : Type*} [comm_semiring R₂] [add_comm_monoid M₂] [semimodule R₂ M₂]
+variables {R₂ : Type*} {M₂ : Type*} [comm_semiring R₂] [add_comm_monoid M₂] [module R₂ M₂]
 variables {R₃ : Type*} {M₃ : Type*} [comm_ring R₃] [add_comm_group M₃] [module R₃ M₃]
-variables {V : Type*} {K : Type*} [field K] [add_comm_group V] [vector_space K V]
+variables {V : Type*} {K : Type*} [field K] [add_comm_group V] [module K V]
 variables {B : bilin_form R M} {B₁ : bilin_form R₁ M₁} {B₂ : bilin_form R₂ M₂}
 
 namespace bilin_form
@@ -160,7 +160,7 @@ section
 /-- `bilin_form R M` inherits the scalar action from any commutative subalgebra `R₂` of `R`.
 
 When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
-instance [algebra R₂ R] : semimodule R₂ (bilin_form R M) :=
+instance [algebra R₂ R] : module R₂ (bilin_form R M) :=
 { smul := λ c B,
   { bilin := λ x y, c • B x y,
     bilin_add_left := λ x y z,
@@ -240,7 +240,7 @@ end flip
 
 section to_lin'
 
-variables (R₂) [algebra R₂ R] [semimodule R₂ M] [is_scalar_tower R₂ R M]
+variables (R₂) [algebra R₂ R] [module R₂ M] [is_scalar_tower R₂ R M]
 
 /-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
 the right.
@@ -254,10 +254,11 @@ def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
     { to_fun := λ y, A x y,
       map_add' := A.bilin_add_right x,
       map_smul' := λ c, A.bilin_smul_right c x },
-    map_add' := λ x₁ x₂, by { ext, simp },
-    map_smul' := λ c x, by { ext y, simpa using smul_left (c • (1 : R)) x y } },
-  map_add' := λ A₁ A₂, by { ext, simp },
-  map_smul' := λ c A, by { ext, simp } }
+    map_add' := λ x₁ x₂, by { ext, simp only [linear_map.coe_mk, linear_map.add_apply, add_left] },
+    map_smul' := λ c x, by { ext, simp only [← algebra_map_smul R c x, algebra.smul_def,
+                                      linear_map.coe_mk, linear_map.smul_apply, smul_left] } },
+  map_add' := λ A₁ A₂, by { ext, simp only [linear_map.coe_mk, linear_map.add_apply, add_apply] },
+  map_smul' := λ c A, by { ext, simp only [linear_map.coe_mk, linear_map.smul_apply, smul_apply] } }
 
 variables {R₂}
 
@@ -350,7 +351,7 @@ namespace bilin_form
 
 section comp
 
-variables {M' : Type w} [add_comm_monoid M'] [semimodule R M']
+variables {M' : Type w} [add_comm_monoid M'] [module R M']
 
 /-- Apply a linear map on the left and right argument of a bilinear form. -/
 def comp (B : bilin_form R M') (l r : M →ₗ[R] M') : bilin_form R M :=
@@ -368,7 +369,7 @@ B.comp f linear_map.id
 def comp_right (B : bilin_form R M) (f : M →ₗ[R] M) : bilin_form R M :=
 B.comp linear_map.id f
 
-lemma comp_comp {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
+lemma comp_comp {M'' : Type*} [add_comm_monoid M''] [module R M'']
   (B : bilin_form R M'') (l r : M →ₗ[R] M') (l' r' : M' →ₗ[R] M'') :
   (B.comp l' r').comp l r = B.comp (l'.comp l) (r'.comp r) := rfl
 
@@ -403,7 +404,7 @@ end
 
 end comp
 
-variables {M₂' : Type*} [add_comm_monoid M₂'] [semimodule R₂ M₂']
+variables {M₂' : Type*} [add_comm_monoid M₂'] [module R₂ M₂']
 
 section congr
 
@@ -425,14 +426,14 @@ def congr (e : M₂ ≃ₗ[R₂] M₂') : bilin_form R₂ M₂ ≃ₗ[R₂] bili
   (congr e).symm = congr e.symm :=
 by { ext B x y, simp only [congr_apply, linear_equiv.symm_symm], refl }
 
-lemma congr_comp {M₂'' : Type*} [add_comm_monoid M₂''] [semimodule R₂ M₂'']
+lemma congr_comp {M₂'' : Type*} [add_comm_monoid M₂''] [module R₂ M₂'']
   (e : M₂ ≃ₗ[R₂] M₂') (B : bilin_form R₂ M₂) (l r : M₂'' →ₗ[R₂] M₂') :
   (congr e B).comp l r = B.comp
     (linear_map.comp (e.symm : M₂' →ₗ[R₂] M₂) l)
     (linear_map.comp (e.symm : M₂' →ₗ[R₂] M₂) r) :=
 rfl
 
-lemma comp_congr {M₂'' : Type*} [add_comm_monoid M₂''] [semimodule R₂ M₂'']
+lemma comp_congr {M₂'' : Type*} [add_comm_monoid M₂''] [module R₂ M₂'']
   (e : M₂' ≃ₗ[R₂] M₂'') (B : bilin_form R₂ M₂) (l r : M₂' →ₗ[R₂] M₂) :
   congr e (B.comp l r) = B.comp
     (l.comp (e.symm : M₂'' →ₗ[R₂] M₂'))
@@ -959,7 +960,7 @@ namespace bilin_form
 section linear_adjoints
 
 variables (B) (F : bilin_form R M)
-variables {M' : Type*} [add_comm_monoid M'] [semimodule R M']
+variables {M' : Type*} [add_comm_monoid M'] [module R M']
 variables (B' : bilin_form R M') (f f' : M →ₗ[R] M') (g g' : M' →ₗ[R] M)
 
 /-- Given a pair of modules equipped with bilinear forms, this is the condition for a pair of
@@ -995,14 +996,14 @@ lemma is_adjoint_pair.sub (h : is_adjoint_pair B₁ B₁' f₁ g₁) (h' : is_ad
   is_adjoint_pair B₁ B₁' (f₁ - f₁') (g₁ - g₁') :=
 λ x y, by rw [linear_map.sub_apply, linear_map.sub_apply, sub_left, sub_right, h, h']
 
-variables {M₂' : Type*} [add_comm_monoid M₂'] [semimodule R₂ M₂']
+variables {M₂' : Type*} [add_comm_monoid M₂'] [module R₂ M₂']
 variables {B₂' : bilin_form R₂ M₂'} {f₂ f₂' : M₂ →ₗ[R₂] M₂'} {g₂ g₂' : M₂' →ₗ[R₂] M₂}
 
 lemma is_adjoint_pair.smul (c : R₂) (h : is_adjoint_pair B₂ B₂' f₂ g₂) :
   is_adjoint_pair B₂ B₂' (c • f₂) (c • g₂) :=
 λ x y, by rw [linear_map.smul_apply, linear_map.smul_apply, smul_left, smul_right, h]
 
-variables {M'' : Type*} [add_comm_monoid M''] [semimodule R M'']
+variables {M'' : Type*} [add_comm_monoid M''] [module R M'']
 variables (B'' : bilin_form R M'')
 
 lemma is_adjoint_pair.comp {f' : M' →ₗ[R] M''} {g' : M'' →ₗ[R] M'}
@@ -1372,18 +1373,18 @@ variable [finite_dimensional K V]
 
 open finite_dimensional
 
-lemma findim_add_findim_orthogonal
+lemma finrank_add_finrank_orthogonal
   {B : bilin_form K V} {W : subspace K V} (hB₁ : sym_bilin_form.is_sym B) :
-  findim K W + findim K (B.orthogonal W) =
-  findim K V + findim K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
+  finrank K W + finrank K (B.orthogonal W) =
+  finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ hB₁,
       ← to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal _ _,
-      findim_map_subtype_eq],
-  conv_rhs { rw [← @subspace.findim_add_findim_dual_annihilator_comap_eq K V _ _ _ _
+      finrank_map_subtype_eq],
+  conv_rhs { rw [← @subspace.finrank_add_finrank_dual_annihilator_comap_eq K V _ _ _ _
                   (B.to_lin.dom_restrict W).range,
-                 add_comm, ← add_assoc, add_comm (findim K ↥((B.to_lin.dom_restrict W).ker)),
-                 linear_map.findim_range_add_findim_ker] },
+                 add_comm, ← add_assoc, add_comm (finrank K ↥((B.to_lin.dom_restrict W).ker)),
+                 linear_map.finrank_range_add_finrank_ker] },
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some
@@ -1403,11 +1404,11 @@ begin
     exact hx₂ n hn },
   refine ⟨this ▸ le_refl _, _⟩,
   { rw top_le_iff,
-    refine eq_top_of_findim_eq _,
-    refine le_antisymm (submodule.findim_le _) _,
-    conv_rhs { rw ← add_zero (findim K _) },
-    rw [← findim_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
-        findim_add_findim_orthogonal hB₁],
+    refine eq_top_of_finrank_eq _,
+    refine le_antisymm (submodule.finrank_le _) _,
+    conv_rhs { rw ← add_zero (finrank K _) },
+    rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+        finrank_add_finrank_orthogonal hB₁],
     exact nat.le.intro rfl }
 end
 
@@ -1425,7 +1426,7 @@ the linear equivalence between a vector space and its dual with the underlying l
 noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
 B.to_lin.linear_equiv_of_ker_eq_bot
-  (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_findim_eq.symm
+  (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_finrank_eq.symm
 
 lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
   B.to_dual hB m n = B m n := rfl

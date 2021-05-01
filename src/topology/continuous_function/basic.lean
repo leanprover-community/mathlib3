@@ -37,6 +37,8 @@ instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 variables {α β} {f g : continuous_map α β}
 
 @[continuity] protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
+@[continuity] lemma continuous_set_coe (s : set C(α, β)) (f : s) : continuous f :=
+by { cases f, dsimp, continuity, }
 
 protected lemma continuous_at (f : C(α, β)) (x : α) : continuous_at f x :=
 f.continuous.continuous_at

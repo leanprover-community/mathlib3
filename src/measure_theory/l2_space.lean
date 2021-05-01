@@ -146,11 +146,13 @@ open_locale bounded_continuous_function
 
 local attribute [instance] fact_one_le_two_ennreal
 
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 (α →₂[μ] 𝕜) _ x y
+
 /-- For bounded continuous functions `f`, `g` on a finite-measure topological space `α`, the L^2
 inner product is the integral of their pointwise inner product. -/
 lemma bounded_continuous_function.inner_to_Lp (f g : α →ᵇ 𝕜) :
-  @has_inner.inner 𝕜 _ _ (bounded_continuous_function.to_Lp 𝕜 2 μ 𝕜 f)
-    (bounded_continuous_function.to_Lp 𝕜 2 μ 𝕜 g) = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+  ⟪bounded_continuous_function.to_Lp 𝕜 2 μ 𝕜 f, bounded_continuous_function.to_Lp 𝕜 2 μ 𝕜 g⟫
+  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,
@@ -166,8 +168,8 @@ variables [compact_space α]
 /-- For continuous functions `f`, `g` on a compact, finite-measure topological space `α`, the L^2
 inner product is the integral of their pointwise inner product. -/
 lemma continuous_map.inner_to_Lp (f g : C(α, 𝕜)) :
-  @has_inner.inner 𝕜 _ _ (continuous_map.to_Lp 𝕜 2 μ 𝕜 f)
-    (continuous_map.to_Lp 𝕜 2 μ 𝕜 g) = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+  ⟪continuous_map.to_Lp 𝕜 2 μ 𝕜 f, continuous_map.to_Lp 𝕜 2 μ 𝕜 g⟫
+  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
   have hf_ae := f.coe_fn_to_Lp μ,

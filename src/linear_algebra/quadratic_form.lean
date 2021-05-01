@@ -988,11 +988,11 @@ end
 and the weighted sum of squares with weights `sign ∘ u`. -/
 noncomputable def isometry_sign_weighted_sum_squares'
   [decidable_eq ι] (u : ι → ℝ) (hu : ∀ i : ι, u i ≠ 0) :
-  isometry (weighted_sum_squares u : quadratic_form ℝ (ι → ℝ)) (weighted_sum_squares (sign ∘ u)) :=
+  isometry (weighted_sum_squares u) (weighted_sum_squares (sign ∘ u)) :=
 begin
   have hu' : ∀ i : ι, 0 ≠ (sign (u i) * u i) ^ - (1 / 2 : ℝ),
   { intro i, exact ne_of_lt (real.rpow_pos_of_pos (sign_mul_ne_zero_pos _ (hu i)) _) },
-  convert ((weighted_sum_squares u : quadratic_form ℝ (ι → ℝ)).isometry_of_is_basis
+  convert ((weighted_sum_squares u).isometry_of_is_basis
     (is_basis.smul_of_invertible (pi.is_basis_fun ℝ ι) (λ i, field.invertible (hu' i).symm))),
   ext1 v,
   rw [isometry_of_is_basis_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],

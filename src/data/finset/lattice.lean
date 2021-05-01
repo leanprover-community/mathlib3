@@ -43,7 +43,7 @@ fold_image_idem
 
 @[simp] lemma sup_map (s : finset γ) (f : γ ↪ β) (g : β → α) :
   (s.map f).sup g = s.sup (g ∘ f) :=
-by simp [finset.sup]
+fold_map
 
 @[simp] lemma sup_singleton {b : β} : ({b} : finset β).sup f = f b :=
 sup_singleton
@@ -190,7 +190,7 @@ fold_image_idem
 
 @[simp] lemma inf_map (s : finset γ) (f : γ ↪ β) (g : β → α) :
   (s.map f).inf g = s.inf (g ∘ f) :=
-by simp [finset.inf]
+fold_map
 
 @[simp] lemma inf_singleton {b : β} : ({b} : finset β).inf f = f b :=
 inf_singleton

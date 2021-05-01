@@ -286,8 +286,7 @@ lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
   ∥x - y∥ = abs (∥x∥ - ∥y∥) :=
 begin
   rw [← eq_of_sq_eq_sq (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
-      norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h,
-      pow_even_abs (∥x∥ - ∥y∥) (even_bit0 1)],
+      norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, sq_abs (∥x∥ - ∥y∥)],
   ring,
 end
 
@@ -324,7 +323,7 @@ lemma norm_sub_eq_abs_sub_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : 
 begin
   refine ⟨λ h, _, norm_sub_eq_abs_sub_norm_of_angle_eq_zero⟩,
   rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
-  have h1 : ∥x - y∥ ^ 2 = (∥x∥ - ∥y∥) ^ 2, { rw h, exact pow_even_abs (∥x∥ - ∥y∥) (even_bit0 1) },
+  have h1 : ∥x - y∥ ^ 2 = (∥x∥ - ∥y∥) ^ 2, { rw h, exact sq_abs (∥x∥ - ∥y∥) },
   rw norm_sub_pow_two_real at h1,
   calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
   ...            = ∥x∥ * ∥y∥ : by ring,

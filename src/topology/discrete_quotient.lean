@@ -29,7 +29,7 @@ quotients as setoids whose equivalence classes are clopen.
 The type `discrete_quotient X` is endowed with an instance of a `semilattice_inf_top`.
 The partial ordering `A ≤ B` mathematically means that `B.proj` factors through `A.proj`.
 The top element `⊤` is the trivial quotient, meaning that every element of `X` is collapsed
-to a point. Given `h : A ≤ B`, the map `A → B` is `discrete_quotient.map h`.
+to a point. Given `h : A ≤ B`, the map `A → B` is `discrete_quotient.of_le h`.
 
 ## Theorems
 The two main results proved in this file are:
@@ -38,7 +38,7 @@ The two main results proved in this file are:
   `Q : discrete_quotient X`.
 2. `discrete_quotient.exists_of_compat` which states that when `X` is compact, then any
   system of elements of `Q` as `Q : discrete_quotient X` varies, which is compatible with
-  respect to `discrete_quotient.map`, must arise from some element of `X`.
+  respect to `discrete_quotient.of_le`, must arise from some element of `X`.
 
 ## Remarks
 The constructions in this file will be used to show that any profinite space is a limit
@@ -123,8 +123,8 @@ is_open.preimage S.proj_continuous trivial
 
 lemma fiber_clopen (A : set S) : is_clopen (S.proj ⁻¹' A) := ⟨fiber_open _ _, fiber_closed _ _⟩
 
-/-- Pull back a discrete quotient along a continuous map. -/
-def pullback {Y : Type*} [topological_space Y] {f : Y → X} (cont : continuous f) :
+/-- Comap a discrete quotient along a continuous map. -/
+def comap {Y : Type*} [topological_space Y] {f : Y → X} (cont : continuous f) :
   discrete_quotient Y :=
 { rel := λ a b, S.rel (f a) (f b),
   equiv := ⟨λ a, S.refl _, λ a b h, S.symm _ _ h, λ a b c h1 h2, S.trans _ _ _ h1 h2⟩,
@@ -149,19 +149,19 @@ instance : semilattice_inf_top (discrete_quotient X) :=
 instance : inhabited (discrete_quotient X) := ⟨⊤⟩
 
 /-- The map induced by a refinement of a discrete quotient. -/
-def map {A B : discrete_quotient X} (h : A ≤ B) : A → B :=
+def of_le {A B : discrete_quotient X} (h : A ≤ B) : A → B :=
 λ a, quotient.lift_on' a (λ x, B.proj x) (λ a b i, quotient.sound' (h _ _ i))
 
-lemma map_continuous {A B : discrete_quotient X} (h : A ≤ B) :
-  continuous (map h) := continuous_of_discrete_topology
+lemma of_le_continuous {A B : discrete_quotient X} (h : A ≤ B) :
+  continuous (of_le h) := continuous_of_discrete_topology
 
 @[simp]
-lemma map_proj {A B : discrete_quotient X} (h : A ≤ B) :
-  map h ∘ A.proj = B.proj := by {ext, exact quotient.sound' (B.refl _)}
+lemma of_le_proj {A B : discrete_quotient X} (h : A ≤ B) :
+  of_le h ∘ A.proj = B.proj := by {ext, exact quotient.sound' (B.refl _)}
 
 @[simp]
-lemma map_proj_apply {A B : discrete_quotient X} (h : A ≤ B) (x : X) :
-  map h (A.proj x) = B.proj x := by {change (map h ∘ A.proj) x = _, simp}
+lemma of_le_proj_apply {A B : discrete_quotient X} (h : A ≤ B) (x : X) :
+  of_le h (A.proj x) = B.proj x := by {change (of_le h ∘ A.proj) x = _, simp}
 
 lemma eq_of_proj_eq [t2_space X] [compact_space X] [disc : totally_disconnected_space X]
   {x y : X} : (∀ Q : discrete_quotient X, Q.proj x = Q.proj y) → x = y :=
@@ -176,7 +176,7 @@ begin
 end
 
 lemma fiber_le_of_le {A B : discrete_quotient X} (h : A ≤ B) (a : A) :
-  A.proj ⁻¹' {a} ≤ B.proj ⁻¹' {map h a} :=
+  A.proj ⁻¹' {a} ≤ B.proj ⁻¹' {of_le h a} :=
 begin
   induction a,
   erw [fiber_eq, fiber_eq],
@@ -184,7 +184,7 @@ begin
 end
 
 lemma exists_of_compat [compact_space X] (Qs : Π (Q : discrete_quotient X), Q)
-  (compat : ∀ (A B : discrete_quotient X) (h : A ≤ B), map h (Qs _) = Qs _) :
+  (compat : ∀ (A B : discrete_quotient X) (h : A ≤ B), of_le h (Qs _) = Qs _) :
   ∃ x : X, ∀ Q : discrete_quotient X, Q.proj x = Qs _ :=
 begin
   obtain ⟨x,hx⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed

@@ -225,7 +225,9 @@ meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exis
     when_tracing `simps.debug trace!"[simps] > Projection info after applying the rules: {projs}.",
     when ¬ (projs.map (λ x : name × name × bool, x.2.1)).nodup $
       fail $ "Invalid projection names. Two projections have the same name.
-This is likely because a custom composition of projections was given the same name as an " ++ "existing projection. Solution: rename the existing projection (before renaming the custom " ++ "projection).",
+This is likely because a custom composition of projections was given the same name as an " ++
+"existing projection. Solution: rename the existing projection (before renaming the custom " ++
+"projection).",
     /- Define the raw expressions for the projections, by default as the projections
     (as an expression), but this can be overriden by the user. -/
     raw_exprs_and_nrs ← projs.mmap $ λ ⟨orig_nm, new_nm, _⟩, do {

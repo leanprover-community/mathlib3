@@ -882,11 +882,12 @@ def of [add_zero_class G] : multiplicative G →* add_monoid_algebra k G :=
 /-- Embedding of a monoid into its monoid algebra, having `G` as source. -/
 def of' [add_zero_class G] : G → add_monoid_algebra k G := λ a, single a 1
 
-
 end
 
 @[simp] lemma of_apply [add_zero_class G] (a : multiplicative G) : of k G a = single a.to_add 1 :=
 rfl
+
+@[simp] lemma of'_apply [add_zero_class G] (a : G) : of' k G a = single a 1 := rfl
 
 lemma of_injective [nontrivial k] [add_zero_class G] : function.injective (of k G) :=
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
@@ -934,9 +935,8 @@ section span
 variables [semiring k] [add_zero_class G]
 
 lemma mem_span_support (f : add_monoid_algebra k G) :
-  f ∈ submodule.span k (add_monoid_algebra.of k G '' (f.support : set G)) :=
-by rw [add_monoid_algebra.of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single,
-  finsupp.mem_supported]
+  f ∈ submodule.span k (of' k G '' (f.support : set G)) :=
+by rw [of', ← finsupp.supported_eq_span_single, finsupp.mem_supported]
 
 end span
 

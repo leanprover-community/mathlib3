@@ -886,7 +886,7 @@ end
 @[simp] lemma of_apply [add_zero_class G] (a : multiplicative G) : of k G a = single a.to_add 1 :=
 rfl
 
-@[simp] lemma of'_apply [add_zero_class G] (a : G) : of' k G a = single a 1 := rfl
+@[simp] lemma of'_apply (a : G) : of' k G a = single a 1 := rfl
 
 lemma of_injective [nontrivial k] [add_zero_class G] : function.injective (of k G) :=
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h

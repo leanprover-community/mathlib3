@@ -1298,7 +1298,7 @@ lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] 
 compact_of_is_closed_subset (proper_space.compact_ball x r) is_closed_sphere
   sphere_subset_closed_ball
 
-/-- In a proper pseudometric space, the subtype of any sphere is a `compact_space`. -/
+/-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
 instance {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
   compact_space (sphere x r) :=
 compact_iff_compact_space.mp (is_compact_sphere _ _)

@@ -7,9 +7,9 @@ import data.dfinsupp
 import linear_algebra.basic
 
 /-!
-# Properties of the semimodule `Π₀ i, M i`
+# Properties of the module `Π₀ i, M i`
 
-Given an indexed collection of `R`-semimodules `M i`, the `R`-semimodule structure on `Π₀ i, M i`
+Given an indexed collection of `R`-modules `M i`, the `R`-module structure on `Π₀ i, M i`
 is defined in `data.dfinsupp`.
 
 In this file we define `linear_map` versions of various maps:
@@ -29,14 +29,14 @@ much more developed, but many lemmas in that file should be eligible to copy ove
 
 ## Tags
 
-function with finite support, semimodule, linear algebra
+function with finite support, module, linear algebra
 -/
 
 variables {ι : Type*} {R : Type*} {S : Type*} {M : ι → Type*} {N : Type*}
 
 variables [dec_ι : decidable_eq ι]
-variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, semimodule R (M i)]
-variables [add_comm_monoid N] [semimodule R N]
+variables [semiring R] [Π i, add_comm_monoid (M i)] [Π i, module R (M i)]
+variables [add_comm_monoid N] [module R N]
 
 namespace dfinsupp
 
@@ -87,19 +87,19 @@ section lsum
 
 /-- Typeclass inference can't find `dfinsupp.add_comm_monoid` without help for this case.
 This instance allows it to be found where it is needed on the LHS of the colon in
-`dfinsupp.semimodule_of_linear_map`. -/
+`dfinsupp.module_of_linear_map`. -/
 instance add_comm_monoid_of_linear_map : add_comm_monoid (Π₀ (i : ι), M i →ₗ[R] N) :=
 @dfinsupp.add_comm_monoid _ (λ i, M i →ₗ[R] N) _
 
-/-- Typeclass inference can't find `dfinsupp.semimodule` without help for this case.
+/-- Typeclass inference can't find `dfinsupp.module` without help for this case.
 This is needed to define `dfinsupp.lsum` below.
 
 The cause seems to be an inability to unify the `Π i, add_comm_monoid (M i →ₗ[R] N)` instance that
 we have with the `Π i, has_zero (M i →ₗ[R] N)` instance which appears as a parameter to the
 `dfinsupp` type. -/
-instance semimodule_of_linear_map [semiring S] [semimodule S N] [smul_comm_class R S N] :
-  semimodule S (Π₀ (i : ι), M i →ₗ[R] N) :=
-@dfinsupp.semimodule _ (λ i, M i →ₗ[R] N) _ _ _ _
+instance module_of_linear_map [semiring S] [module S N] [smul_comm_class R S N] :
+  module S (Π₀ (i : ι), M i →ₗ[R] N) :=
+@dfinsupp.module _ (λ i, M i →ₗ[R] N) _ _ _ _
 
 variables (S)
 
@@ -109,7 +109,7 @@ include dec_ι
 
 See note [bundled maps over different rings] for why separate `R` and `S` semirings are used. -/
 @[simps apply symm_apply]
-def lsum [semiring S] [semimodule S N] [smul_comm_class R S N] :
+def lsum [semiring S] [module S N] [smul_comm_class R S N] :
   (Π i, M i →ₗ[R] N) ≃ₗ[S] ((Π₀ i, M i) →ₗ[R] N) :=
 { to_fun := λ F, {
     to_fun := sum_add_hom (λ i, (F i).to_add_monoid_hom),
@@ -138,7 +138,7 @@ section map_range
 
 variables {β β₁ β₂: ι → Type*}
 variables [Π i, add_comm_monoid (β i)] [Π i, add_comm_monoid (β₁ i)] [Π i, add_comm_monoid (β₂ i)]
-variables [Π i, semimodule R (β i)] [Π i, semimodule R (β₁ i)] [Π i, semimodule R (β₂ i)]
+variables [Π i, module R (β i)] [Π i, module R (β₁ i)] [Π i, module R (β₂ i)]
 
 lemma map_range_smul (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
   (r : R) (hf' : ∀ i x, f i (r • x) = r • f i x) (g : Π₀ i, β₁ i):

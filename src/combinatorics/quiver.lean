@@ -28,18 +28,54 @@ open opposite
 
 -- We use the same universe order as in category theory.
 -- See note [category_theory universes]
-universes v u
+universes v v₁ v₂ u u₁ u₂
 
-/-- A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
-    a sort `a ⟶ b` of arrows from `a` to `b`.
+/--
+A quiver `G` on a type `V` of vertices assigns to every pair `a b : V` of vertices
+a type `a ⟶ b` of arrows from `a` to `b`.
 
-    For graphs with no repeated edges, one can use `quiver.{0} V`, which ensures
-    `a ⟶ b : Prop`. For multigraphs, one can use `quiver.{v+1} V`, which ensures
-    `a ⟶ b : Type v`. -/
+For graphs with no repeated edges, one can use `quiver.{0} V`, which ensures
+`a ⟶ b : Prop`. For multigraphs, one can use `quiver.{v+1} V`, which ensures
+`a ⟶ b : Type v`.
+
+Because `category` will later extend this class, we call the field `hom`.
+Except when constructing instances, you should rarely see this, and use the `⟶` notation instead.
+-/
 class quiver (V : Type u) :=
 (hom : V → V → Sort v)
 
 infixr ` ⟶ `:10 := quiver.hom -- type as \h
+
+/--
+A morphism of quivers. As we will later have categorical functors extend this structure,
+we call it a `prefunctor`.
+-/
+structure prefunctor (V : Type u₁) [quiver.{v₁} V] (W : Type u₂) [quiver.{v₂} W] :=
+(obj [] : V → W)
+(map : Π {X Y : V}, (X ⟶ Y) → (obj X ⟶ obj Y))
+
+namespace prefunctor
+
+/--
+The identity morphism between quivers.
+-/
+@[simps]
+def id (V : Type*) [quiver V] : prefunctor V V :=
+{ obj := id,
+  map := λ X Y f, f, }
+
+instance (V : Type*) [quiver V] : inhabited (prefunctor V V) := ⟨id V⟩
+
+/--
+Composition of morphisms between quivers.
+-/
+@[simps]
+def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
+  (F : prefunctor U V) (G : prefunctor V W) : prefunctor U W :=
+{ obj := λ X, G.obj (F.obj X),
+  map := λ X Y f, G.map (F.map f), }
+
+end prefunctor
 
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
     for every pair of vertices `a b`.
@@ -101,7 +137,7 @@ instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 /-- `total V` is the type of _all_ arrows of `V`. -/
 -- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
 @[ext, nolint has_inhabited_instance]
-structure total (V : Type u) [quiver.{v} V] : Type (max u v) :=
+structure total (V : Type u) [quiver.{v} V] : Sort (max (u+1) v) :=
 (left : V)
 (right : V)
 (hom : left ⟶ right)
@@ -123,7 +159,7 @@ def wide_subquiver_equiv_set_total {V} [quiver V] :
   right_inv := by { intro S, ext, cases x, refl } }
 
 /-- `G.path a b` is the type of paths from `a` to `b` through the arrows of `G`. -/
-inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Type (max u v)
+inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Sort (max (u+1) v)
 | nil  : path a
 | cons : Π {b c : V}, path b → (b ⟶ c) → path c
 
@@ -165,6 +201,33 @@ def comp {a b : V} : Π {c}, path a b → path b c → path a c
 
 end path
 
+end quiver
+
+namespace prefunctor
+
+open quiver
+
+variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : prefunctor V W)
+
+/-- The image of a path under a prefunctor. -/
+def map_path {a : V} :
+  Π {b : V}, path a b → path (F.obj a) (F.obj b)
+| _ path.nil := path.nil
+| _ (path.cons p e) := path.cons (map_path p) (F.map e)
+
+@[simp] lemma map_path_nil (a : V) : F.map_path (path.nil : path a a) = path.nil := rfl
+@[simp] lemma map_path_cons {a b c : V} (p : path a b) (e : b ⟶ c) :
+  F.map_path (path.cons p e) = path.cons (F.map_path p) (F.map e) := rfl
+
+@[simp] lemma map_path_comp {a b : V} (p : path a b) :
+  ∀ {c : V} (q : path b c), F.map_path (p.comp q) = (F.map_path p).comp (F.map_path q)
+| _ path.nil := rfl
+| _ (path.cons p e) := begin dsimp, rw [map_path_comp], end
+
+end prefunctor
+
+namespace quiver
+
 /-- A quiver is an arborescence when there is a unique path from the default vertex
     to every other vertex. -/
 class arborescence (V : Type u) [quiver.{v} V] : Type (max u v) :=
@@ -179,7 +242,7 @@ instance {V : Type u} [quiver V] [arborescence V] (b : V) : unique (path (root V
 arborescence.unique_path b
 
 /-- An `L`-labelling of a quiver assigns to every arrow an element of `L`. -/
-def labelling (V : Type u) [quiver V] (L : Sort*) := Π a b : V, (a ⟶ b) → L
+def labelling (V : Type u) [quiver V] (L : Sort*) := Π ⦃a b : V⦄, (a ⟶ b) → L
 
 instance {V : Type u} [quiver V] (L) [inhabited L] : inhabited (labelling V L) :=
 ⟨λ a b e, default L⟩

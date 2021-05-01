@@ -8,11 +8,8 @@ import algebra.group_power
 
 /-!
 # Multisets
-
 These are implemented as the quotient of a list by permutations.
-
 ## Notation
-
 We define the global infix notation `::ₘ` for `multiset.cons`.
 -/
 
@@ -106,7 +103,6 @@ section rec
 variables {C : multiset α → Sort*}
 
 /-- Dependent recursor on multisets.
-
 TODO: should be @[recursor 6], but then the definition of `multiset.pi` fails with a stack
 overflow in `whnf`.
 -/
@@ -1037,7 +1033,6 @@ end
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
   operation, that is, the union of all the sets.
-
      join {{1, 2}, {1, 2}, {0, 1}} = {0, 1, 1, 1, 2, 2} -/
 def join : multiset (multiset α) → multiset α := sum
 

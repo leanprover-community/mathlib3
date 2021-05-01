@@ -17,7 +17,7 @@ quotients as setoids whose equivalence classes are clopen.
 
 ## Definitions
 1. `discrete_quotient X` is the type of discrete quotients of `X`.
-  It is endowed with a coercion to sort, which is defined as the
+  It is endowed with a coercion to `Type`, which is defined as the
   quotient associated to the setoid in question, and each such quotient
   is endowed with the discrete topology.
 2. Given `S : discrete_quotient X`, the projection `X → S` is denoted

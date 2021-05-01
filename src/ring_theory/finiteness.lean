@@ -696,7 +696,7 @@ begin
 end
 
 instance ft_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=
-add_monoid_algebra.ft_of_fg.equiv (monoid_algebra.to_additive_alg_equiv R M).symm
+add_monoid_algebra.ft_of_fg.equiv (to_additive_alg_equiv R M).symm
 
 end monoid_algebra
 

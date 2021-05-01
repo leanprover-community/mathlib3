@@ -874,18 +874,8 @@ begin
   { contradiction }
 end
 
-/-- The weighted sum of squares with respect some weight. `weighted_sum_squares` is the
-quadratic form version of this. -/
-def weighted_sum_squares' (w : ι → R) : (ι → R) → R :=
-λ v : ι → R, ∑ i : ι, w i • (v i * v i)
-
-@[simp]
-lemma weighted_sum_squares'_apply (w v : ι → R) :
-  weighted_sum_squares' w v = ∑ i : ι, w i • (v i * v i) := rfl
-
 /-- The weighted sum of squares with respect some weight as a quadratic form. -/
-def weighted_sum_squares [comm_semiring S] [algebra S R₁] (w : ι → S) :
-  quadratic_form R₁ (ι → R₁) :=
+def weighted_sum_squares (w : ι → R₁) : quadratic_form R₁ (ι → R₁) :=
 ∑ i : ι, w i • proj i i
 
 @[simp]
@@ -922,13 +912,12 @@ section complex
 /-- The isometry between a weighted sum of squares on the complex numbers and the
 sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → ℂ) (hw : ∀ i : ι, w i ≠ 0) :
-  isometry (weighted_sum_squares w : quadratic_form ℂ (ι → ℂ))
-           (weighted_sum_squares (λ _, 1 : ι → ℂ)) :=
+  isometry (weighted_sum_squares w) (weighted_sum_squares (λ _, 1 : ι → ℂ)) :=
 begin
   have hw' : ∀ i : ι, (w i) ^ - (1 / 2 : ℂ) ≠ 0,
   { intros i hi,
     exact hw i ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
-  convert (weighted_sum_squares w : quadratic_form ℂ (ι → ℂ)).isometry_of_is_basis
+  convert (weighted_sum_squares w).isometry_of_is_basis
     (is_basis.smul_of_invertible (pi.is_basis_fun ℂ ι) (λ i, field.invertible (hw' i))),
   ext1 v,
   rw [isometry_of_is_basis_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],

@@ -1009,8 +1009,8 @@ begin
   have hsum : (∑ (i : ι), v i • (sign (u i) * u i) ^ - (1 / 2 : ℝ) •
     (linear_map.std_basis ℝ (λ (i : ι), ℝ) i) 1) j =
     v j • (sign (u j) * u j) ^ - (1 / 2 : ℝ),
-  { rw [sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply,
-        function.update_same, smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
+  { rw [finset.sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply,
+        pi.smul_apply, function.update_same, smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
     intros i _ hij,
     rw [linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_noteq hij.symm,
         pi.zero_apply, smul_eq_mul, smul_eq_mul, mul_zero, mul_zero],

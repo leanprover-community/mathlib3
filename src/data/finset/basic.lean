@@ -2245,9 +2245,9 @@ can be used either to define data, or to prove properties. -/
 def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
   t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : finset α), s.card ≤ n → p s
-| s := H s (λ t ht h, have n - card t < n - card s, begin
-  exact (nat.sub_lt_sub_left_iff ht).2 (finset.card_lt_card h),
-end, strong_downward_induction t ht)
+| s := H s (λ t ht h, have n - card t < n - card s,
+     from (nat.sub_lt_sub_left_iff ht).2 (finset.card_lt_card h),
+  strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : finset α), n - t.card)⟩]}
 
 lemma strong_downward_induction_eq {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},

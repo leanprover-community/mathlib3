@@ -212,4 +212,184 @@ begin
 end
 
 end preserves
+
+/--
+Given `n+1` objects of `C`, a cofan for the last `n` with point `c₁.X`
+and a binary cofan on `c₁.X` and `f 0`, we can build a cofan for all `n+1`.
+
+In `extend_cofan_is_colimit` we show that if the two given cofans are colimits,
+then this cofan is also a colimit.
+-/
+@[simps {rhs_md := semireducible}]
+def extend_cofan {n : ℕ} {f : ulift (fin (n+1)) → C}
+  (c₁ : cofan (λ (i : ulift (fin n)), f ⟨i.down.succ⟩))
+  (c₂ : binary_cofan (f ⟨0⟩) c₁.X) :
+  cofan f :=
+cofan.mk c₂.X
+begin
+  rintro ⟨i⟩,
+  revert i,
+  refine fin.cases _ _,
+  { apply c₂.inl },
+  { intro i,
+    apply c₁.ι.app (ulift.up i) ≫ c₂.inr },
+end
+
+/--
+Show that if the two given cofans in `extend_cofan` are colimits,
+then the constructed cofan is also a colimit.
+-/
+def extend_cofan_is_colimit {n : ℕ} (f : ulift (fin (n+1)) → C)
+  {c₁ : cofan (λ (i : ulift (fin n)), f ⟨i.down.succ⟩)} {c₂ : binary_cofan (f ⟨0⟩) c₁.X}
+  (t₁ : is_colimit c₁) (t₂ : is_colimit c₂) :
+  is_colimit (extend_cofan c₁ c₂) :=
+{ desc := λ s,
+  begin
+    apply (binary_cofan.is_colimit.desc' t₂ (s.ι.app ⟨0⟩) _).1,
+    apply t₁.desc ⟨_, discrete.nat_trans (λ i, s.ι.app ⟨i.down.succ⟩)⟩
+  end,
+  fac' := λ s,
+  begin
+    rintro ⟨j⟩,
+    apply fin.induction_on j,
+    { apply (binary_cofan.is_colimit.desc' t₂ _ _).2.1 },
+    { rintro i -,
+      dsimp only [extend_cofan_ι_app],
+      rw [fin.cases_succ, assoc, (binary_cofan.is_colimit.desc' t₂ _ _).2.2, t₁.fac],
+      refl }
+  end,
+  uniq' := λ s m w,
+  begin
+    apply binary_cofan.is_colimit.hom_ext t₂,
+    { rw (binary_cofan.is_colimit.desc' t₂ _ _).2.1,
+      apply w ⟨0⟩ },
+    { rw (binary_cofan.is_colimit.desc' t₂ _ _).2.2,
+      apply t₁.uniq ⟨_, _⟩,
+      rintro ⟨j⟩,
+      dsimp only [discrete.nat_trans_app],
+      rw ← w ⟨j.succ⟩,
+      dsimp only [extend_cofan_ι_app],
+      rw [fin.cases_succ, assoc], }
+  end }
+
+section
+variables [has_binary_coproducts.{v} C] [has_initial C]
+
+/--
+If `C` has an initial object and binary coproducts, then it has a coproduct for objects indexed by
+`ulift (fin n)`.
+This is a helper lemma for `has_cofinite_products_of_has_binary_and_terminal`, which is more general
+than this.
+-/
+private lemma has_coproduct_ulift_fin :
+  Π (n : ℕ) (f : ulift (fin n) → C), has_coproduct f
+| 0 := λ f,
+  begin
+    letI : has_colimits_of_shape (discrete (ulift (fin 0))) C :=
+      has_colimits_of_shape_of_equivalence
+        (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm),
+    apply_instance,
+  end
+| (n+1) := λ f,
+  begin
+    haveI := has_coproduct_ulift_fin n,
+    apply has_colimit.mk
+      ⟨_, extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)⟩,
+  end
+
+/--
+If `C` has an initial object and binary coproducts, then it has colimits of shape
+`discrete (ulift (fin n))` for any `n : ℕ`.
+This is a helper lemma for `has_cofinite_products_of_has_binary_and_terminal`, which is more general
+than this.
+-/
+private lemma has_colimits_of_shape_ulift_fin (n : ℕ) :
+  has_colimits_of_shape (discrete (ulift (fin n))) C :=
+{ has_colimit := λ K,
+begin
+  letI := has_coproduct_ulift_fin n K.obj,
+  let : K ≅ discrete.functor K.obj := discrete.nat_iso (λ i, iso.refl _),
+  apply has_colimit_of_iso this,
+end }
+
+/-- If `C` has an initial object and binary coproducts, then it has finite coproducts. -/
+lemma has_finite_coproducts_of_has_binary_and_terminal : has_finite_coproducts C :=
+⟨λ J 𝒥₁ 𝒥₂, begin
+  resetI,
+  rcases fintype.equiv_fin J with ⟨e⟩,
+  apply has_colimits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
+  refine has_colimits_of_shape_ulift_fin (fintype.card J),
+end⟩
+
+end
+
+section preserves
+variables (F : C ⥤ D)
+variables [preserves_colimits_of_shape (discrete walking_pair) F]
+variables [preserves_colimits_of_shape (discrete pempty) F]
+variables [has_finite_coproducts.{v} C]
+
+/--
+If `F` preserves the initial object and binary coproducts, then it preserves products indexed by
+`ulift (fin n)` for any `n`.
+-/
+noncomputable def preserves_fin_of_preserves_binary_and_initial  :
+  Π (n : ℕ) (f : ulift (fin n) → C), preserves_colimit (discrete.functor f) F
+| 0 := λ f,
+  begin
+    letI : preserves_colimits_of_shape (discrete (ulift (fin 0))) F :=
+      preserves_colimits_of_shape_of_equiv
+        (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm) _,
+    apply_instance,
+  end
+| (n+1) :=
+  begin
+    haveI := preserves_fin_of_preserves_binary_and_initial n,
+    intro f,
+    refine preserves_colimit_of_preserves_colimit_cocone
+      (extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)) _,
+    apply (is_colimit_map_cocone_cofan_mk_equiv _ _ _).symm _,
+    let := extend_cofan_is_colimit (λ i, F.obj (f i))
+              (is_colimit_of_has_coproduct_of_preserves_colimit F _)
+              (is_colimit_of_has_binary_coproduct_of_preserves_colimit F _ _),
+    refine is_colimit.of_iso_colimit this _,
+    apply cocones.ext _ _,
+    apply iso.refl _,
+    rintro ⟨j⟩,
+    apply fin.induction_on j,
+    { apply category.comp_id },
+    { rintro i -,
+      dsimp only [extend_cofan_ι_app, iso.refl_hom, cofan.mk_ι_app],
+      rw [fin.cases_succ, fin.cases_succ],
+      erw [comp_id, ←F.map_comp],
+      refl, }
+  end
+
+/--
+If `F` preserves the initial object and binary coproducts, then it preserves colimits of shape
+`discrete (ulift (fin n))`.
+-/
+def preserves_ulift_fin_of_preserves_binary_and_initial (n : ℕ) :
+  preserves_colimits_of_shape (discrete (ulift (fin n))) F :=
+{ preserves_colimit := λ K,
+  begin
+    let : discrete.functor K.obj ≅ K := discrete.nat_iso (λ i, iso.refl _),
+    haveI := preserves_fin_of_preserves_binary_and_initial F n K.obj,
+    apply preserves_colimit_of_iso_diagram F this,
+  end }
+
+/-- If `F` preserves the initial object and binary coproducts then it preserves finite products. -/
+def preserves_finite_coproducts_of_preserves_binary_and_initial
+  (J : Type v) [fintype J] :
+  preserves_colimits_of_shape.{v} (discrete J) F :=
+begin
+  classical,
+  refine trunc.rec_on_subsingleton (fintype.equiv_fin J) _,
+  intro e,
+  haveI := preserves_ulift_fin_of_preserves_binary_and_initial F (fintype.card J),
+  apply preserves_colimits_of_shape_of_equiv (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
+end
+
+end preserves
+
 end category_theory

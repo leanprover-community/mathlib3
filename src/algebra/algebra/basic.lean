@@ -175,14 +175,14 @@ search (and was here first). -/
 @[simp] protected lemma mul_smul_comm (s : R) (x y : A) :
   x * (s • y) = s • (x * y) :=
 -- TODO: set up `is_scalar_tower.smul_comm_class` earlier so that we can actually prove this using
--- `mul_smul_comm x s y`.
+-- `mul_smul_comm s x y`.
 by rw [smul_def, smul_def, left_comm]
 
 /-- This is just a special case of the global `smul_mul_assoc` lemma that requires less typeclass
 search (and was here first). -/
 @[simp] protected lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
-smul_mul_assoc _ r x y
+smul_mul_assoc r x y
 
 section
 variables {r : R} {a : A}

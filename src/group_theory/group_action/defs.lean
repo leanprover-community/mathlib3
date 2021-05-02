@@ -185,10 +185,12 @@ add_decl_doc add_monoid.to_add_action
 instance is_scalar_tower.left : is_scalar_tower M M α :=
 ⟨λ x y z, mul_smul x y z⟩
 
+variables {M}
+
 /-- Note that the `smul_comm_class M α α` typeclass argument is usually satisfied by `algebra M α`.
 -/
 @[to_additive]
-lemma mul_smul_comm [monoid α] (x : α) (s : M) (y : α) [smul_comm_class M α α] :
+lemma mul_smul_comm [monoid α] (s : M) (x y : α) [smul_comm_class M α α] :
   x * (s • y) = s • (x * y) :=
 (smul_comm s x y).symm
 

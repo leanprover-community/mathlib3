@@ -158,6 +158,9 @@ monadic_creates_limits _
 instance has_limits : limits.has_limits Profinite :=
 has_limits_of_has_limits_creates_limits Profinite_to_Top
 
+instance has_colimits : limits.has_colimits Profinite :=
+has_colimits_of_reflective to_CompHaus
+
 /-- Any morphism of profinite spaces is a closed map. -/
 lemma is_closed_map {X Y : Profinite} (f : X ⟶ Y) : is_closed_map f :=
 show is_closed_map (Profinite.to_CompHaus.map f), from CompHaus.is_closed_map _

@@ -211,7 +211,8 @@ If `0 < n`, then `xa i` has order 4.
 @[simp] lemma order_of_xa [hpos : fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
 begin
   change _ = 2^2,
-  apply order_of_eq_prime_pow nat.prime_two,
+  haveI : fact(nat.prime 2) := fact.mk (nat.prime_two),
+  apply order_of_eq_prime_pow,
   { intro h,
     simp only [pow_one, xa_sq] at h,
     injection h with h',

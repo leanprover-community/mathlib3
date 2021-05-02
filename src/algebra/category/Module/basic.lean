@@ -6,7 +6,7 @@ Authors: Robert A. Spencer, Markus Himmel
 import algebra.category.Group.basic
 import category_theory.concrete_category
 import category_theory.limits.shapes.kernels
-import category_theory.preadditive
+import category_theory.linear
 import linear_algebra.basic
 
 /-!
@@ -224,15 +224,21 @@ def linear_equiv_iso_Module_iso {X Y : Type u} [add_comm_group X] [add_comm_grou
 
 namespace Module
 
-section preadditive
-
 instance : preadditive (Module.{v} R) :=
 { add_comp' := λ P Q R f f' g,
     show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
   comp_add' := λ P Q R f g g',
     show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
 
-end preadditive
+section
+variables {S : Type u} [comm_ring S]
+
+instance : linear S (Module.{v} S) :=
+{ hom_module := λ X Y, linear_map.module,
+  smul_comp' := by { intros, ext, simp },
+  comp_smul' := by { intros, ext, simp }, }
+
+end
 
 end Module
 

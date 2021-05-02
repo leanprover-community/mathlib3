@@ -167,13 +167,21 @@ algebra.commutes' r x
 theorem left_comm (r : R) (x y : A) : x * (algebra_map R A r * y) = algebra_map R A r * (x * y) :=
 by rw [← mul_assoc, ← commutes, mul_assoc]
 
-@[simp] lemma mul_smul_comm (s : R) (x y : A) :
+instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
+⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, smul_def, smul_def, mul_assoc]⟩
+
+/-- This is just a special case of the global `mul_smul_comm` lemma that requires less typeclass
+search (and was here first). -/
+@[simp] protected lemma mul_smul_comm (s : R) (x y : A) :
   x * (s • y) = s • (x * y) :=
+-- TODO: set up `smul_comm_class` earlier so that we can actually prove this using `mul_smul_comm`.
 by rw [smul_def, smul_def, left_comm]
 
-@[simp] lemma smul_mul_assoc (r : R) (x y : A) :
+/-- This is just a special case of the global `smul_mul_assoc` lemma that requires less typeclass
+search (and was here first). -/
+@[simp] protected lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
-by rw [smul_def, smul_def, mul_assoc]
+smul_mul_assoc _ r x y
 
 lemma smul_mul_smul (r s : R) (x y : A) :
   (r • x) * (s • y) = (r * s) • (x * y) :=

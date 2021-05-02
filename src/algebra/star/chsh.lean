@@ -110,22 +110,22 @@ begin
       dsimp [P],
       simp only [add_mul, mul_add, sub_mul, mul_sub, mul_comm, mul_assoc, add_assoc],
       repeat { conv in (B₀ * (A₀ * B₀))
-      { rw [T.A₀B₀_commutes, ←mul_assoc B₀ B₀ A₀, ←pow_two, T.B₀_inv, one_mul], } },
+      { rw [T.A₀B₀_commutes, ←mul_assoc B₀ B₀ A₀, ←sq, T.B₀_inv, one_mul], } },
       repeat { conv in (B₀ * (A₁ * B₀))
-      { rw [T.A₁B₀_commutes, ←mul_assoc B₀ B₀ A₁, ←pow_two, T.B₀_inv, one_mul], } },
+      { rw [T.A₁B₀_commutes, ←mul_assoc B₀ B₀ A₁, ←sq, T.B₀_inv, one_mul], } },
       repeat { conv in (B₁ * (A₀ * B₁))
-      { rw [T.A₀B₁_commutes, ←mul_assoc B₁ B₁ A₀, ←pow_two, T.B₁_inv, one_mul], } },
+      { rw [T.A₀B₁_commutes, ←mul_assoc B₁ B₁ A₀, ←sq, T.B₁_inv, one_mul], } },
       repeat { conv in (B₁ * (A₁ * B₁))
-      { rw [T.A₁B₁_commutes, ←mul_assoc B₁ B₁ A₁, ←pow_two, T.B₁_inv, one_mul], } },
+      { rw [T.A₁B₁_commutes, ←mul_assoc B₁ B₁ A₁, ←sq, T.B₁_inv, one_mul], } },
       conv in (A₀ * (B₀ * (A₀ * B₁)))
-      { rw [←mul_assoc, T.A₀B₀_commutes, mul_assoc, ←mul_assoc A₀, ←pow_two, T.A₀_inv, one_mul], },
+      { rw [←mul_assoc, T.A₀B₀_commutes, mul_assoc, ←mul_assoc A₀, ←sq, T.A₀_inv, one_mul], },
       conv in (A₀ * (B₁ * (A₀ * B₀)))
-      { rw [←mul_assoc, T.A₀B₁_commutes, mul_assoc, ←mul_assoc A₀, ←pow_two, T.A₀_inv, one_mul], },
+      { rw [←mul_assoc, T.A₀B₁_commutes, mul_assoc, ←mul_assoc A₀, ←sq, T.A₀_inv, one_mul], },
       conv in (A₁ * (B₀ * (A₁ * B₁)))
-      { rw [←mul_assoc, T.A₁B₀_commutes, mul_assoc, ←mul_assoc A₁, ←pow_two, T.A₁_inv, one_mul], },
+      { rw [←mul_assoc, T.A₁B₀_commutes, mul_assoc, ←mul_assoc A₁, ←sq, T.A₁_inv, one_mul], },
       conv in (A₁ * (B₁ * (A₁ * B₀)))
-      { rw [←mul_assoc, T.A₁B₁_commutes, mul_assoc, ←mul_assoc A₁, ←pow_two, T.A₁_inv, one_mul], },
-      simp only [←pow_two, T.A₀_inv, T.A₁_inv],
+      { rw [←mul_assoc, T.A₁B₁_commutes, mul_assoc, ←mul_assoc A₁, ←sq, T.A₁_inv, one_mul], },
+      simp only [←sq, T.A₀_inv, T.A₁_inv],
       simp only [mul_comm A₁ A₀, mul_comm B₁ B₀, mul_left_comm A₁ A₀, mul_left_comm B₁ B₀,
         mul_left_comm B₀ A₀, mul_left_comm B₀ A₁, mul_left_comm B₁ A₀, mul_left_comm B₁ A₁],
       norm_num,
@@ -211,11 +211,11 @@ begin
   have w : √2^3 • 1 - A₀ * B₀ - A₀ * B₁ - A₁ * B₀ + A₁ * B₁ = √2⁻¹ • (P^2 + Q^2),
   { dsimp [P, Q],
     -- distribute out all the powers and products appearing on the RHS
-    simp only [pow_two, sub_mul, mul_sub, add_mul, mul_add, smul_add, smul_sub],
+    simp only [sq, sub_mul, mul_sub, add_mul, mul_add, smul_add, smul_sub],
     -- pull all coefficients out to the front, and combine `√2`s where possible
     simp only [algebra.mul_smul_comm, algebra.smul_mul_assoc, ←mul_smul, sqrt_two_inv_mul_self],
     -- replace Aᵢ * Aᵢ = 1 and Bᵢ * Bᵢ = 1
-    simp only [←pow_two, T.A₀_inv, T.A₁_inv, T.B₀_inv, T.B₁_inv],
+    simp only [←sq, T.A₀_inv, T.A₁_inv, T.B₀_inv, T.B₁_inv],
     -- move Aᵢ to the left of Bᵢ
     simp only [←T.A₀B₀_commutes, ←T.A₀B₁_commutes, ←T.A₁B₀_commutes, ←T.A₁B₁_commutes],
     -- collect terms, simplify coefficients, and collect terms again:
@@ -237,11 +237,11 @@ begin
       simp only [star_smul, star_add, star_sub, star_id_of_comm,
         T.A₀_sa, T.A₁_sa, T.B₀_sa, T.B₁_sa], },
     have P2_nonneg : 0 ≤ P^2,
-    { rw [pow_two],
+    { rw [sq],
       conv { congr, skip, congr, rw ←P_sa, },
       convert (star_mul_self_nonneg : 0 ≤ star P * P), },
     have Q2_nonneg : 0 ≤ Q^2,
-    { rw [pow_two],
+    { rw [sq],
       conv { congr, skip, congr, rw ←Q_sa, },
       convert (star_mul_self_nonneg : 0 ≤ star Q * Q), },
     convert smul_le_smul_of_nonneg (add_nonneg P2_nonneg Q2_nonneg)

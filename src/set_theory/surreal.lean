@@ -66,6 +66,122 @@ end
 
 instance : has_mul pgame := ⟨mul⟩
 
+/-- An explicit description of the moves for Left in `x * y`. -/
+def left_moves_mul (x y : pgame) : (x * y).left_moves
+  ≃ x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves :=
+by { cases x, cases y, refl, }
+
+/-- An explicit description of the moves for Right in `x * y`. -/
+def right_moves_mul (x y : pgame) : (x * y).right_moves
+  ≃ x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves :=
+by { cases x, cases y, refl, }
+
+@[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
+  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
+ rfl
+
+@[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
+   (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i, j)))
+   = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
+by {cases x, cases y, refl}
+
+@[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j))
+  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j :=
+rfl
+
+@[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
+   (x * y).move_left ((left_moves_mul x y).symm (sum.inr (i, j)))
+   = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
+by {cases x, cases y, refl}
+
+@[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j))
+  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j :=
+rfl
+
+@[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
+   (x * y).move_right ((right_moves_mul x y).symm (sum.inl (i, j)))
+   = x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
+by {cases x, cases y, refl}
+
+@[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
+  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
+rfl
+
+@[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
+   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i, j)))
+   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
+by {cases x, cases y, refl}
+
+/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
+and `c` has the same moves as `z`, then `a + b - c` has the same moves as `x + y - z`.
+This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
+def add_sub_relabelling {a b c x y z : pgame}
+  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
+  (a + b - c).relabelling (x + y - z) :=
+(h₁.add_congr h₂).sub_congr h₃
+
+/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
+and `c` has the same moves as `z`, then `a + b - c` has the same moves as `y + x - z`.
+This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
+def add_comm_sub_relabelling {a b c x y z : pgame}
+  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
+  (a + b - c).relabelling (y + x - z) :=
+((add_comm_relabelling a b).trans (h₂.add_congr h₁)).sub_congr h₃
+
+/-- `x * y` has exactly the same moves as `y * x`. -/
+def mul_comm_relabelling (x y : pgame.{u}) : (x * y).relabelling (y * x) :=
+begin
+  induction x with xl xr xL xR IHxl IHxr generalizing y,
+  induction y with yl yr yL yR IHyl IHyr,
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
+  refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _), _, _, _⟩,
+  calc
+   (x * y).right_moves
+       ≃ xl × yr ⊕ xr × yl : by refl
+   ... ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
+   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)
+   ... ≃ (y * x).right_moves : by refl,
+  { rintro (⟨i, j⟩ | ⟨i, j⟩),
+    { exact add_comm_sub_relabelling (IHxl i y) (IHyl j) (IHxl i (yL j)) },
+    { exact add_comm_sub_relabelling (IHxr i y) (IHyr j) (IHxr i (yR j)) }},
+  { rintro (⟨i, j⟩ | ⟨i, j⟩),
+    { exact add_comm_sub_relabelling (IHxr j y) (IHyl i) (IHxr j (yL i)) },
+    { exact add_comm_sub_relabelling (IHxl j y) (IHyr i) (IHxl j (yR i)) }}
+end
+
+/-- `x * y` is equivalent to `y * x`. -/
+theorem mul_comm_equiv (x y : pgame) : (x * y).equiv (y * x) :=
+(mul_comm_relabelling x y).equiv
+
+/-- `x * 0` has exactly the same moves as `0`. -/
+def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
+| (mk xl xr xL xR) :=
+⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+ by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+ by rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+ by rintro ⟨⟩⟩
+
+/-- `x * 0` is equivalent to `0`. -/
+theorem mul_zero_equiv (x : pgame) : (x * 0).equiv 0 :=
+(mul_zero_relabelling x).equiv
+
+/-- `0 * x` has exactly the same moves as `0`. -/
+def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
+| (mk xl xr xL xR) :=
+⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+ by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+ by rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+ by rintro ⟨⟩⟩
+
+/-- `0 * x` is equivalent to `0`. -/
+theorem zero_mul_equiv (x : pgame) : (0 * x).equiv 0 :=
+(zero_mul_relabelling x).equiv
+
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/
@@ -339,9 +455,9 @@ instance : ordered_add_comm_group surreal :=
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
-  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) }, 
-  neg               := has_neg.neg, 
-  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv }, 
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) },
+  neg               := has_neg.neg,
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv },
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := (≤),
   lt                := (<),
@@ -350,7 +466,7 @@ instance : ordered_add_comm_group surreal :=
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
-  
+
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),

@@ -92,10 +92,10 @@ def of_nat_code : ℕ → code
   end
 
 private theorem encode_of_nat_code : ∀ n, encode_code (of_nat_code n) = n
-| 0     := rfl
-| 1     := rfl
-| 2     := rfl
-| 3     := rfl
+| 0     := by simp [of_nat_code, encode_code]
+| 1     := by simp [of_nat_code, encode_code]
+| 2     := by simp [of_nat_code, encode_code]
+| 3     := by simp [of_nat_code, encode_code]
 | (n+4) := let m := n.div2.div2 in
   have hm : m < n + 4, by simp [m, nat.div2_val];
   from lt_of_le_of_lt
@@ -212,7 +212,7 @@ let PR (a) := λ cf cg hf hg, pr a (cf, cg, hf, hg),
     CO (a) := λ cf cg hf hg, co a (cf, cg, hf, hg),
     PC (a) := λ cf cg hf hg, pc a (cf, cg, hf, hg),
     RF (a) := λ cf hf, rf a (cf, hf),
-    F (a c) : σ := nat.partrec.code.rec_on c
+    F (a) (c : code) : σ := nat.partrec.code.rec_on c
       (z a) (s a) (l a) (r a) (PR a) (CO a) (PC a) (RF a) in
     primrec (λ a, F a (c a)) :=
 begin
@@ -271,7 +271,7 @@ begin
     (λ a n, F a (of_nat code n)) this.to₂ $ λ a n, _).comp
     primrec.id $ encode_iff.2 hc).of_eq (λ a, by simp),
   simp,
-  iterate 4 {cases n with n, {refl}},
+  iterate 4 {cases n with n, {simp [of_nat_code_eq, of_nat_code]; refl}},
   simp [G], rw [list.length_map, list.length_range],
   let m := n.div2.div2,
   show G₁ ((a, (list.range (n+4)).map (λ n, F a (of_nat code n))), n, m)
@@ -305,7 +305,7 @@ theorem rec_prim {α σ} [primcodable α] [primcodable σ]
     pc a.1 a.2.1 a.2.2.1 a.2.2.2.1 a.2.2.2.2))
   {rf : α → code → σ → σ}
   (hrf : primrec (λ a : α × code × σ, rf a.1 a.2.1 a.2.2)) :
-let F (a c) : σ := nat.partrec.code.rec_on c
+let F (a) (c : code) : σ := nat.partrec.code.rec_on c
       (z a) (s a) (l a) (r a) (pr a) (co a) (pc a) (rf a) in
     primrec (λ a, F a (c a)) :=
 begin
@@ -364,7 +364,7 @@ begin
     (λ a n, F a (of_nat code n)) this.to₂ $ λ a n, _).comp
     primrec.id $ encode_iff.2 hc).of_eq (λ a, by simp),
   simp,
-  iterate 4 {cases n with n, {refl}},
+  iterate 4 {cases n with n, {simp [of_nat_code_eq, of_nat_code]; refl}},
   simp [G], rw [list.length_map, list.length_range],
   let m := n.div2.div2,
   show G₁ ((a, (list.range (n+4)).map (λ n, F a (of_nat code n))), n, m)
@@ -401,7 +401,7 @@ let PR (a) := λ cf cg hf hg, pr a (cf, cg, hf, hg),
     CO (a) := λ cf cg hf hg, co a (cf, cg, hf, hg),
     PC (a) := λ cf cg hf hg, pc a (cf, cg, hf, hg),
     RF (a) := λ cf hf, rf a (cf, hf),
-    F (a c) : σ := nat.partrec.code.rec_on c
+    F (a) (c : code) : σ := nat.partrec.code.rec_on c
       (z a) (s a) (l a) (r a) (PR a) (CO a) (PC a) (RF a) in
     computable (λ a, F a (c a)) :=
 begin
@@ -460,7 +460,7 @@ begin
     (λ a n, F a (of_nat code n)) this.to₂ $ λ a n, _).comp
     computable.id $ encode_iff.2 hc).of_eq (λ a, by simp),
   simp,
-  iterate 4 {cases n with n, {refl}},
+  iterate 4 {cases n with n, {simp [of_nat_code_eq, of_nat_code]; refl}},
   simp [G], rw [list.length_map, list.length_range],
   let m := n.div2.div2,
   show G₁ ((a, (list.range (n+4)).map (λ n, F a (of_nat code n))), n, m)

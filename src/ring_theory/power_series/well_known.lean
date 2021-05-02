@@ -95,7 +95,7 @@ theorem exp_mul_exp_eq_exp_add [algebra ℚ A] (a b : A) :
 begin
   ext,
   simp only [coeff_mul, exp, rescale, coeff_mk, coe_mk, factorial,
-    nat.sum_antidiagonal_eq_sum_range_succ_mk, add_pow', sum_mul],
+    nat.sum_antidiagonal_eq_sum_range_succ_mk, add_pow, sum_mul],
   apply sum_congr rfl,
   rintros x hx,
   suffices : a^x * b^(n - x) * (algebra_map ℚ A (1 / ↑(x.factorial)) * algebra_map ℚ A

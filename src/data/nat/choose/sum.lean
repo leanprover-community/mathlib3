@@ -8,7 +8,7 @@ import tactic.linarith
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
-import algebra.big_operators.finprod
+import algebra.big_operators.nat_antidiagonal
 
 /-!
 # Sums of binomial coefficients
@@ -32,7 +32,7 @@ variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
 include h
 
 /-- A version of the binomial theorem for noncommutative semirings. -/
-theorem add_pow' :
+theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
   let t : ℕ → ℕ → R := λ n m, x ^ m * (y ^ (n - m)) * (choose n m),
@@ -67,37 +67,19 @@ begin
        mul_zero, add_zero, pow_succ] }
 end
 
-/-- A version of `commute.add_pow` but with the binomial coefficient applied via scalar action
-of ℕ. -/
-lemma add_pow :
-  (x + y) ^ n = ∑ m in range (n + 1), choose n m • (x ^ m * y ^ (n - m)) :=
-by simp_rw [_root_.nsmul_eq_mul, cast_comm, h.add_pow' n]
-
-/-- A version of `commute.add_pow'` but using `finsum` rather than `finset.sum`. -/
-lemma add_pow'' :
-  (x + y) ^ n = ∑ᶠ m ≤ n, choose n m • (x ^ m * y ^ (n - m)) :=
-by simp [_root_.nsmul_eq_mul, cast_comm, h.add_pow n, ← finsum_mem_coe_finset, lt_succ_iff]
-
-/-- A version of `commute.add_pow'` that avoids ℕ-subtraction by summing over the antidiagonal. -/
-lemma add_pow''' :
+/-- A version of `commute.add_pow` that avoids ℕ-subtraction by summing over the antidiagonal and
+also with the binomial coefficient applied via scalar action of ℕ. -/
+lemma add_pow' :
   (x + y) ^ n = ∑ m in nat.antidiagonal n, choose n m.fst • (x ^ m.fst * y ^ m.snd) :=
-by rw [h.add_pow, finset.nat.sum_antidiagonal_eq_sum_range_succ (λ m p, choose n m • (x^m * y^p))]
-
-lemma add_pow'''' :
-  (x + y) ^ n = ∑ᶠ m p (h : m + p = n), choose n m • (x ^ m * y ^ p) :=
-by { rw [h.add_pow''', ← finsum_mem_finset_eq_sum, finsum_mem_finset_of_product], simp, }
+by simp_rw [finset.nat.sum_antidiagonal_eq_sum_range_succ (λ m p, choose n m • (x^m * y^p)),
+  _root_.nsmul_eq_mul, cast_comm, h.add_pow]
 
 end commute
 
 /-- The binomial theorem -/
 theorem add_pow [comm_semiring R] (x y : R) (n : ℕ) :
-  (x + y) ^ n = ∑ m in range (n + 1), choose n m • (x ^ m * y ^ (n - m)) :=
-(commute.all x y).add_pow n
-
-/-- For testing purposes. -/
-theorem add_pow' [comm_semiring R] (x y : R) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
-(commute.all x y).add_pow' n
+(commute.all x y).add_pow n
 
 namespace nat
 
@@ -152,7 +134,7 @@ theorem int.alternating_sum_range_choose {n : ℕ} :
   ∑ m in range (n + 1), ((-1) ^ m * ↑(choose n m) : ℤ) = if n = 0 then 1 else 0 :=
 begin
   cases n, { simp },
-  have h := add_pow' (-1 : ℤ) 1 n.succ,
+  have h := add_pow (-1 : ℤ) 1 n.succ,
   simp only [one_pow, mul_one, add_left_neg, int.nat_cast_eq_coe_nat] at h,
   rw [← h, zero_pow (nat.succ_pos n), if_neg (nat.succ_ne_zero n)],
 end

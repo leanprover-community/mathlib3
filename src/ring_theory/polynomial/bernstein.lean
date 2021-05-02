@@ -335,7 +335,7 @@ linear_independent_aux n (n+1) (le_refl _)
 lemma sum (n : ℕ) : (finset.range (n + 1)).sum (λ ν, bernstein_polynomial R n ν) = 1 :=
 begin
   -- We calculate `(x + (1-x))^n` in two different ways.
-  conv { congr, congr, skip, funext, dsimp [bernstein_polynomial], rw [mul_assoc, ← nsmul_eq_mul] },
+  conv { congr, congr, skip, funext, dsimp [bernstein_polynomial], rw [mul_assoc, mul_comm], },
   rw ←add_pow,
   simp,
 end
@@ -381,7 +381,7 @@ begin
 
   conv at h {
     to_lhs,
-    rw [add_pow', (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul],
+    rw [add_pow, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,
     simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w], },
@@ -435,7 +435,7 @@ begin
 
   conv at h {
     to_lhs,
-    rw [add_pow', (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
+    rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
       finset.sum_mul],
     -- Step inside the sum:
     apply_congr, skip,

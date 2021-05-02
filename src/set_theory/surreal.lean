@@ -145,12 +145,12 @@ begin
    ... ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
    ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)
    ... ≃ (y * x).right_moves : by refl,
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
+  { rintro (⟨i, j⟩|⟨i, j⟩),
     { exact add_comm_sub_relabelling (IHxl i y) (IHyl j) (IHxl i (yL j)) },
-    { exact add_comm_sub_relabelling (IHxr i y) (IHyr j) (IHxr i (yR j)) }},
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
+    { exact add_comm_sub_relabelling (IHxr i y) (IHyr j) (IHxr i (yR j)) } },
+  { rintro (⟨i, j⟩|⟨i, j⟩),
     { exact add_comm_sub_relabelling (IHxr j y) (IHyl i) (IHxr j (yL i)) },
-    { exact add_comm_sub_relabelling (IHxl j y) (IHyr i) (IHxl j (yR i)) }}
+    { exact add_comm_sub_relabelling (IHxl j y) (IHyr i) (IHxl j (yR i)) } }
 end
 
 /-- `x * y` is equivalent to `y * x`. -/
@@ -160,9 +160,9 @@ theorem mul_comm_equiv (x y : pgame) : (x * y).equiv (y * x) :=
 /-- `x * 0` has exactly the same moves as `0`. -/
 def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
 | (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+⟨by fsplit; rintro (⟨_,⟨⟩⟩|⟨_,⟨⟩⟩),
+ by fsplit; rintro (⟨_,⟨⟩⟩|⟨_,⟨⟩⟩),
+ by rintro (⟨_,⟨⟩⟩|⟨_,⟨⟩⟩),
  by rintro ⟨⟩⟩
 
 /-- `x * 0` is equivalent to `0`. -/
@@ -172,9 +172,9 @@ theorem mul_zero_equiv (x : pgame) : (x * 0).equiv 0 :=
 /-- `0 * x` has exactly the same moves as `0`. -/
 def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 | (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+⟨by fsplit; rintro (⟨⟨⟩,_⟩|⟨⟨⟩,_⟩),
+ by fsplit; rintro (⟨⟨⟩,_⟩|⟨⟨⟩,_⟩),
+ by rintro (⟨⟨⟩,_⟩|⟨⟨⟩,_⟩),
  by rintro ⟨⟩⟩
 
 /-- `0 * x` is equivalent to `0`. -/
@@ -191,16 +191,13 @@ meta def try_inl_inr : tactic unit :=
 
 local infix ` ≈ ` := pgame.equiv
 
-theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
-add_congr h₁ (neg_congr h₂)
-
 lemma left_distrib_equiv_aux {a b c d e : pgame} : (a + b) + (c + d) - (e + b) ≈ a + c - e + d :=
 begin
-  have h₁ : b - (b + e) ≈ -e,
-  by calc b - (b + e) ≈ b + (-b + -e) : add_congr (equiv_refl _) (neg_add_relabelling _ _).equiv
-                  ... ≈ b - b + -e    : add_assoc_equiv.symm
-                  ... ≈ 0 + -e        : add_congr add_right_neg_equiv (equiv_refl _)
-                  ... ≈ -e            : zero_add_equiv _,
+  have h₁ : b - (b + e) ≈ -e, from
+    calc b - (b + e) ≈ b + (-b + -e) : add_congr (equiv_refl _) (neg_add_relabelling _ _).equiv
+                 ... ≈ b - b + -e    : add_assoc_equiv.symm
+                 ... ≈ 0 + -e        : add_congr add_right_neg_equiv (equiv_refl _)
+                 ... ≈ -e            : zero_add_equiv _,
   calc
     (a + b) + (c + d) - (e + b)
         ≈ a + (b + (c + d)) - (e + b)
@@ -224,16 +221,15 @@ begin
     ... ≈ (a + c) + (-e + d)
         : add_assoc_equiv.symm
     ... ≈ a + c - e + d
-        : add_assoc_equiv.symm,
+        : add_assoc_equiv.symm
 end
 
 lemma left_distrib_equiv_aux' {a b c d e : pgame} : (b + a) + (d + c) - (b + e) ≈ d + (a + c - e) :=
-calc
-  (b + a) + (d + c) - (b + e)
+calc (b + a) + (d + c) - (b + e)
       ≈ (a + b) + (c + d) - (e + b)
       : by {refine (add_sub_relabelling _ _ _).equiv, repeat {apply add_comm_relabelling} }
-  ... ≈ a + c - e + d : left_distrib_equiv_aux
-  ... ≈ d + (a + c - e) : (add_comm_relabelling _ _).equiv
+  ... ≈ a + c - e + d     : left_distrib_equiv_aux
+  ... ≈ d + (a + c - e)   : (add_comm_relabelling _ _).equiv
 
 /-- `x * (y + z)` is equivalent to `x * y + x * z.`-/
 theorem left_distrib_equiv : Π (x y z : pgame), (x * (y + z)).equiv (x * y + x * z)
@@ -300,9 +296,9 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- `(x + y) * z` is equivalent to `x * y + y * z.`-/
 theorem right_distrib_equiv (x y z : pgame) : ((x + y) * z).equiv (x * z + y * z) :=
-calc (x + y) * z ≈ z * (x + y) : mul_comm_equiv _ _
-             ... ≈ z * x + z * y : left_distrib_equiv _ _ _
-             ... ≈ (x * z + y * z) : add_congr (mul_comm_equiv _ _) (mul_comm_equiv _ _)
+calc (x + y) * z ≈ z * (x + y)      : mul_comm_equiv _ _
+             ... ≈ z * x + z * y    : left_distrib_equiv _ _ _
+             ... ≈ (x * z + y * z)  : add_congr (mul_comm_equiv _ _) (mul_comm_equiv _ _)
 
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.

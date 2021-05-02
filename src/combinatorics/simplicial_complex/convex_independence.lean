@@ -67,7 +67,7 @@ begin
   specialize hX _ _ hw₀ _,
   { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw₀ (0 : E),
     rw finset.weighted_vsub_of_point_apply,
-    simpa only [vsub_eq_sub, sub_zero, coe_sum X (λ i, w i • p i)] },
+    simpa only [vsub_eq_sub, sub_zero, sum_finset_coe (λ i, w i • p i)] },
   intros i hi,
   apply hX _ hi
 end

@@ -55,7 +55,7 @@ begin
 end
 
 lemma space_frontier_eq :
-  frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ finite_dimensional.findim ℝ E),
+  frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ finite_dimensional.finrank ℝ E),
   convex_hull ↑X) ∪ (⋃ (X ∈ S.boundary.faces), combi_interior X) :=
 begin
   sorry

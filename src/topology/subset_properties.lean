@@ -412,17 +412,6 @@ filter.mem_cocompact.trans $ exists_congr $ λ t, and_congr_right $ λ ht, compl
 lemma is_compact.compl_mem_cocompact (hs : is_compact s) : sᶜ ∈ filter.cocompact α :=
 filter.has_basis_cocompact.mem_of_mem hs
 
-lemma filter.cocompact_eq_cofinite [discrete_topology α] : filter.cocompact α = filter.cofinite :=
-begin
-  ext s,
-  simp only [filter.mem_cocompact'],
-  split,
-  { rintros ⟨t, ht, hts⟩,
-    exact (finite_of_is_compact_of_discrete t ht).subset hts },
-  { intros hs,
-    exact ⟨sᶜ, hs.is_compact, rfl.subset⟩ }
-end
-
 section tube_lemma
 
 variables [topological_space β]

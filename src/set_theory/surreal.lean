@@ -146,10 +146,10 @@ begin
    ... ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
    ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)
    ... ≃ (y * x).right_moves : by refl,
-  { rintro (⟨i, j⟩|⟨i, j⟩),
+  { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { exact add_comm_sub_relabelling (IHxl i y) (IHyl j) (IHxl i (yL j)) },
     { exact add_comm_sub_relabelling (IHxr i y) (IHyr j) (IHxr i (yR j)) } },
-  { rintro (⟨i, j⟩|⟨i, j⟩),
+  { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { exact add_comm_sub_relabelling (IHxr j y) (IHyl i) (IHxr j (yL i)) },
     { exact add_comm_sub_relabelling (IHxl j y) (IHyr i) (IHxl j (yR i)) } }
 end
@@ -501,7 +501,6 @@ end pgame
 
 /-- The equivalence on numeric pre-games. -/
 def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
-local infix ` ~ ` := surreal.equiv
 
 instance surreal.setoid : setoid {x // pgame.numeric x} :=
 ⟨λ x y, x.1.equiv y.1,

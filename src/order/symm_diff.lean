@@ -31,6 +31,13 @@ In generalized Boolean algebras, the symmetric difference operator is:
 
 * `a Δ b`: `symm_diff a b`
 
+## References
+
+The proof of associativity follows the note "Associativity of the Symmetric Difference of Sets: A
+Proof from the Book" by John McCuan:
+
+* <https://people.math.gatech.edu/~mccuan/courses/4317/symmetricdifference.pdf>
+
 ## Tags
 boolean ring, generalized boolean algebra, boolean algebra, symmetric differences
 -/

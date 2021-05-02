@@ -286,6 +286,13 @@ by { rw [←with_bot.coe_le_coe, coe_sup'], exact sup_le (λ b h, with_bot.coe_l
 lemma le_sup' {b : β} (h : b ∈ s) : f b ≤ s.sup' ⟨b, h⟩ f :=
 by { rw [←with_bot.coe_le_coe, coe_sup'], exact le_sup h, }
 
+@[simp] lemma sup'_const (a : α) : s.sup' H (λ b, a) = a :=
+begin
+  apply le_antisymm,
+  { apply sup'_le, intros, apply le_refl, },
+  { apply le_sup' (λ b, a) H.some_spec, }
+end
+
 @[simp] lemma sup'_le_iff {a : α} : s.sup' H f ≤ a ↔ ∀ b ∈ s, f b ≤ a :=
 iff.intro (λ h b hb, trans (le_sup' f hb) h) (sup'_le H f)
 
@@ -390,6 +397,9 @@ lemma le_inf' {a : α} (hs : ∀ b ∈ s, a ≤ f b) : a ≤ s.inf' H f :=
 
 lemma inf'_le {b : β} (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b :=
 @le_sup' (order_dual α) _ _ _ f _ h
+
+@[simp] lemma inf'_const (a : α) : s.inf' H (λ b, a) = a :=
+@sup'_const (order_dual α) _ _ _ _ _
 
 @[simp] lemma le_inf'_iff {a : α} : a ≤ s.inf' H f ↔ ∀ b ∈ s, a ≤ f b :=
 @sup'_le_iff (order_dual α) _ _ _ H f _

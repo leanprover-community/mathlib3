@@ -86,9 +86,9 @@ open finite_dimensional
 lemma invariant_basis_number_field {K : Type u} [field K] : invariant_basis_number K :=
 ⟨λ n m e,
   calc n = fintype.card (fin n) : eq.symm $ fintype.card_fin n
-     ... = findim K (fin n → K) : eq.symm $ findim_eq_card_basis (pi.is_basis_fun K (fin n))
-     ... = findim K (fin m → K) : linear_equiv.findim_eq e
-     ... = fintype.card (fin m) : findim_eq_card_basis (pi.is_basis_fun K (fin m))
+     ... = finrank K (fin n → K) : eq.symm $ finrank_eq_card_basis (pi.is_basis_fun K (fin n))
+     ... = finrank K (fin m → K) : linear_equiv.finrank_eq e
+     ... = fintype.card (fin m) : finrank_eq_card_basis (pi.is_basis_fun K (fin m))
      ... = m                    : fintype.card_fin m⟩
 
 end

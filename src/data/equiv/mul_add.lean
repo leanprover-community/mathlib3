@@ -490,6 +490,15 @@ end group_with_zero
 
 end equiv
 
+/-- When the group is commutative, `equiv.inv` is a `mul_equiv`. There is a variant of this
+`mul_equiv.inv' G : G ≃* Gᵒᵖ` for the non-commutative case. -/
+@[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`."]
+def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
+{ to_fun := has_inv.inv,
+  inv_fun := has_inv.inv,
+  map_mul' := mul_inv,
+  ..equiv.inv G}
+
 section type_tags
 
 /-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/

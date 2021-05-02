@@ -40,15 +40,15 @@ begin
   obtain ⟨⟨a_in, a_pos⟩, a_min⟩ := ha,
   refine le_antisymm _ (H.closure_le.mpr $ by simp [a_in]),
   intros g g_in,
-  obtain ⟨k, nonneg, lt⟩ : ∃ k, 0 ≤ g - k •ℤ a ∧ g - k •ℤ a < a :=
+  obtain ⟨k, nonneg, lt⟩ : ∃ k, 0 ≤ g - k • a ∧ g - k • a < a :=
     exists_int_smul_near_of_pos' a_pos g,
-  have h_zero : g - k •ℤ a = 0,
+  have h_zero : g - k • a = 0,
   { by_contra h,
-    have h : a ≤ g - k •ℤ a,
+    have h : a ≤ g - k • a,
     { refine a_min ⟨_, _⟩,
       { exact add_subgroup.sub_mem H g_in (add_subgroup.gsmul_mem H a_in k) },
       { exact lt_of_le_of_ne nonneg (ne.symm h) } },
-    have h' : ¬ (a ≤ g - k •ℤ a) := not_le.mpr lt,
+    have h' : ¬ (a ≤ g - k • a) := not_le.mpr lt,
     contradiction },
   simp [sub_eq_zero.mp h_zero, add_subgroup.mem_closure_singleton],
 end

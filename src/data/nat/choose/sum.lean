@@ -81,14 +81,11 @@ by simp [_root_.nsmul_eq_mul, cast_comm, h.add_pow n, ← finsum_mem_coe_finset,
 /-- A version of `commute.add_pow'` that avoids ℕ-subtraction by summing over the antidiagonal. -/
 lemma add_pow''' :
   (x + y) ^ n = ∑ m in nat.antidiagonal n, choose n m.fst • (x ^ m.fst * y ^ m.snd) :=
-begin
-  rw h.add_pow,
-  apply sum_bij (λ m _, ⟨m, n - m⟩ : Π m ∈ range (n + 1), ℕ × ℕ),
-  { intros m h, rw [mem_range, lt_succ_iff] at h, simp [nat.mem_antidiagonal, add_sub_of_le h], },
-  { simp, },
-  { intros m₁ m₂ hm₁ hm₂, simp only [and_imp, prod.mk.inj_iff], rintros rfl h, refl, },
-  { rintros ⟨m₁, m₂⟩ h, use m₁, simp only [nat.mem_antidiagonal] at h, simp [← h, lt_succ_iff], },
-end
+by rw [h.add_pow, finset.nat.sum_antidiagonal_eq_sum_range_succ (λ m p, choose n m • (x^m * y^p))]
+
+lemma add_pow'''' :
+  (x + y) ^ n = ∑ᶠ m p (h : m + p = n), choose n m • (x ^ m * y ^ p) :=
+by { rw [h.add_pow''', ← finsum_mem_finset_eq_sum, finsum_mem_finset_of_product], simp, }
 
 end commute
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
 import set_theory.pgame
+
 /-!
 # Surreal numbers
 
@@ -579,7 +580,7 @@ instance : ordered_add_comm_group surreal :=
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := (≤),
   lt                := (<),
-  le_refl           := by { rintros ⟨_⟩, apply pgame.le_refl },
+  le_refl           := by { rintros ⟨_⟩, refl },
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact pgame.le_trans },
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },

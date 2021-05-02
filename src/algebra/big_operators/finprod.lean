@@ -711,10 +711,10 @@ begin
   exact finset.nonempty_of_prod_ne_one h,
 end
 
-@[to_additive] lemma finprod_mem_finset_of_product [decidable_eq α] [decidable_eq β]
-  (s : finset (α × β)) (f : α × β → M) :
+@[to_additive] lemma finprod_mem_finset_of_product (s : finset (α × β)) (f : α × β → M) :
   ∏ᶠ ab (h : ab ∈ s), f ab = ∏ᶠ a b (h : (a, b) ∈ s), f (a, b) :=
 begin
+  haveI := classical.dec_eq α, haveI := classical.dec_eq β,
   rw finprod_mem_finset_eq_prod,
   have : ∀ a, ∏ᶠ b (h : (a, b) ∈ s), f (a, b) = (s.filter (λ ab, prod.fst ab = a)).prod f,
   { intros a,

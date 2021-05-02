@@ -206,8 +206,7 @@ section finite_pairs
 
 open filter continuous_linear_map
 
--- this lemma and the next are about the properness of certain standard functions on `ℝ`/`ℂ`, where
--- should they live?
+-- where should this lemma live?
 /-- The `norm_sq` function on `ℂ` is proper. -/
 lemma tendsto_at_top_norm_sq : tendsto norm_sq (cocompact ℂ) at_top :=
 begin
@@ -217,16 +216,6 @@ begin
   { apply_instance }
 end
 
-/-- The `abs` function on `ℝ` is proper. -/
-lemma tendsto_at_top_abs :
-  tendsto _root_.abs (cocompact ℝ) at_top :=
-begin
-  rw has_basis_cocompact.tendsto_iff at_top_basis_Ioi,
-  { refine λ b _, ⟨set.Icc (-b) b, compact_Icc, λ x hx, _⟩,
-    simpa [lt_abs, or_comm, lt_neg, not_and_distrib] using hx },
-  { apply_instance },
-  { apply_instance }
-end
 
 lemma finite_pairs (z : H) :
   filter.tendsto (λ cd : coprime_ints , (((cd : ℤ×ℤ).1 : ℂ) * z + ((cd : ℤ × ℤ).2 : ℂ)).norm_sq)
@@ -367,32 +356,12 @@ instance {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
   normed_space α (matrix n m α) :=
 pi.normed_space
 
--- ugly, clean up somehow?
--- for `topology.subset_properties`
-lemma comap_cocompact {β B : Type*} [topological_space β] [topological_space B] {mB : B → β}
-  (hmB : continuous mB) : comap mB (cocompact β) ≤ cocompact B :=
-begin
-  intros s,
-  simp only [mem_comap_sets, mem_cocompact],
-  rintros ⟨t, ht, hts⟩,
-  use (mB '' t)ᶜ,
-  simp only [mem_cocompact],
-  split,
-  refine ⟨mB '' t, ht.image hmB, set.subset.refl _⟩,
-  rw set.compl_subset_comm at hts,
-  rw ← set.compl_subset_compl,
-  refine set.subset.trans hts _,
-  tidy,
-end
-
-
 
 /- Non-crap lemma but put it elsewhere ?  Maybe cocompact in discrete is cofinite -/
 lemma cocompact_ℝ_to_cofinite_ℤ (ι : Type*) [fintype ι] :
   tendsto ((λ (p : ι → ℤ), (coe : ℤ → ℝ) ∘ p)) cofinite (cocompact (ι → ℝ)) :=
 by simpa [←Coprod_cofinite,←Coprod_cocompact]
   using tendsto.pi_map_Coprod (λ i, int.tendsto_coe_cofinite)
-
 
 
 /- Non-crap lemma: ℤ -matrices are cofinite inside comcompact ℝ matrices -/
@@ -467,8 +436,9 @@ end
 
 -- ALEX HOMEWORK? (but might be hard): how to relate the above lemma to the `SL(2, ℤ)`-action
 -- probably figure out what the `w` is and write it explicitly, eliminating the existential
-lemma something1 (cd : coprime_ints) (z : H) (g : bottom_row ⁻¹' {cd}) :
-  ∃ w, ((g : SL(2, ℤ)) • z).val.re = (acbd cd ↑g) / (real.sqrt ((cd.1.1)^2+(cd.1.2)^2)) + w :=
+lemma something1 (cd : coprime_ints) (z : H) :
+  ∃ w, ∀ g : bottom_row ⁻¹' {cd},
+  ((g : SL(2, ℤ)) • z).val.re = (acbd cd ↑g) / (real.sqrt ((cd.1.1)^2+(cd.1.2)^2)) + w :=
 begin
   sorry,
 end
@@ -477,6 +447,7 @@ end
 lemma something' (z:H) (cd : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {cd}, _root_.abs (((g : SL(2, ℤ)) • z).val.re)) cofinite at_top :=
 begin
+  -- use `tendsto_norm_cocompact_at_top` at some point
   sorry
 end
 

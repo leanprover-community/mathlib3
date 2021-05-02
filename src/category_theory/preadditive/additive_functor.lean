@@ -85,6 +85,13 @@ lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
 
 end
 
+section induced_category
+variables {C : Type*} {D : Type*} [category D] [preadditive D] (F : C → D)
+
+instance induced_functor_additive : functor.additive (induced_functor F) := {}
+
+end induced_category
+
 section
 -- To talk about preservation of biproducts we need to specify universes explicitly.
 
@@ -130,6 +137,17 @@ def map_biproduct {J : Type v} [fintype J] [decidable_eq J] (f : J → C) [has_b
 end
 
 end functor
+
+namespace equivalence
+
+variables {C D : Type*} [category C] [category D] [preadditive C] [preadditive D]
+
+instance inverse_additive (e : C ≌ D) [e.functor.additive] : e.inverse.additive :=
+{ map_zero' := λ X Y, by { apply e.functor.map_injective, simp, },
+  map_add' := λ X Y f g, by { apply e.functor.map_injective, simp, }, }
+
+end equivalence
+
 end preadditive
 
 end category_theory

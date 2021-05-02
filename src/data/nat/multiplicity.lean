@@ -67,7 +67,7 @@ lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
 multiplicity.mul $ prime_iff_prime.mp hp
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
-  multiplicity p (m ^ n) = n •ℕ (multiplicity p m) :=
+  multiplicity p (m ^ n) = n • (multiplicity p m) :=
 multiplicity.pow $ prime_iff_prime.mp hp
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
@@ -123,8 +123,10 @@ lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
 begin
   induction n with n ih,
   { simp },
-  { simp [succ_eq_add_one, multiplicity.mul, hp, prime_iff_prime.mp hp, ih,
-      multiplicity_factorial_mul_succ, add_assoc, add_left_comm] }
+  { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff_prime.mp hp, ih,
+      multiplicity_factorial_mul_succ, ←add_assoc, enat.coe_one, enat.coe_add, factorial_succ],
+    congr' 1,
+    rw [add_comm, add_assoc] }
 end
 
 /-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.

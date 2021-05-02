@@ -12,7 +12,7 @@ import tactic.field_simp
 
 In this file we define the slope of a function `f : k → PE` taking values in an affine space over
 `k` and prove some theorems about `slope` and `line_map` in the case when `PE` is an ordered
-semimodule over `k`. The `slope` function naturally appears in the Mean Value Theorem, and in the
+module over `k`. The `slope` function naturally appears in the Mean Value Theorem, and in the
 proof of the fact that a function with nonnegative second derivative on an interval is convex on
 this interval. In the third part of this file we prove inequalities that will be used in
 `analysis.convex.basic` to link convexity of a function on an interval to monotonicity of the slope,
@@ -21,11 +21,11 @@ see section docstring below for details.
 ## Implementation notes
 
 We do not introduce the notion of ordered affine spaces (yet?). Instead, we prove various theorems
-for an ordered semimodule interpreted as an affine space.
+for an ordered module interpreted as an affine space.
 
 ## Tags
 
-affine space, ordered semimodule, slope
+affine space, ordered module, slope
 -/
 
 open affine_map
@@ -40,7 +40,7 @@ codomain.  -/
 
 section no_order
 
-variables [field k] [add_comm_group E] [semimodule k E] [add_torsor E PE]
+variables [field k] [add_comm_group E] [module k E] [add_torsor E PE]
 
 include E
 
@@ -116,7 +116,7 @@ other arguments belong to specific domains.
 
 section ordered_ring
 
-variables [ordered_ring k] [ordered_add_comm_group E] [semimodule k E] [ordered_semimodule k E]
+variables [ordered_ring k] [ordered_add_comm_group E] [module k E] [ordered_module k E]
 
 variables {a a' b b' : E} {r r' : k}
 
@@ -184,8 +184,8 @@ end ordered_ring
 
 section linear_ordered_ring
 
-variables [linear_ordered_ring k] [ordered_add_comm_group E] [semimodule k E]
-  [ordered_semimodule k E] [invertible (2:k)] {a a' b b' : E} {r r' : k}
+variables [linear_ordered_ring k] [ordered_add_comm_group E] [module k E]
+  [ordered_module k E] [invertible (2:k)] {a a' b b' : E} {r r' : k}
 
 lemma midpoint_le_midpoint (ha : a ≤ a') (hb : b ≤ b') :
   midpoint k a b ≤ midpoint k a' b' :=
@@ -197,7 +197,7 @@ end linear_ordered_ring
 section linear_ordered_field
 
 variables [linear_ordered_field k] [ordered_add_comm_group E]
-variables [semimodule k E] [ordered_semimodule k E]
+variables [module k E] [ordered_module k E]
 
 section
 

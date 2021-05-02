@@ -31,12 +31,13 @@ properties of the tangent cone we prove here.
 -/
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_group G] [normed_space ℝ G]
 
 open filter set
 open_locale topological_space
+
+section tangent_cone
+
+variables {E : Type*} [add_comm_monoid E] [module 𝕜 E] [topological_space E]
 
 /-- The set of all tangent directions to the set `s` at the point `x`. -/
 def tangent_cone_at (s : set E) (x : E) : set E :=
@@ -49,8 +50,9 @@ hence this name. The uniqueness it asserts is proved in `unique_diff_within_at.e
 To avoid pathologies in dimension 0, we also require that `x` belongs to the closure of `s` (which
 is automatic when `E` is not `0`-dimensional).
  -/
-def unique_diff_within_at (s : set E) (x : E) : Prop :=
-dense ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E) ∧ x ∈ closure s
+@[mk_iff] structure unique_diff_within_at (s : set E) (x : E) : Prop :=
+(dense_tangent_cone : dense ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E))
+(mem_closure : x ∈ closure s)
 
 /-- A property ensuring that the tangent cone to `s` at any of its points spans a dense subset of
 the whole space.  The main role of this property is to ensure that the differential along `s` is
@@ -59,6 +61,11 @@ unique, hence this name. The uniqueness it asserts is proved in `unique_diff_on.
 def unique_diff_on (s : set E) : Prop :=
 ∀x ∈ s, unique_diff_within_at 𝕜 s x
 
+end tangent_cone
+
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_group G] [normed_space ℝ G]
 variables {𝕜} {x y : E} {s t : set E}
 
 section tangent_cone
@@ -177,7 +184,7 @@ begin
 end
 
 /-- The tangent cone of a product contains the tangent cone of each factor. -/
-lemma maps_to_tangent_cone_pi {ι : Type*} [fintype ι] [decidable_eq ι] {E : ι → Type*}
+lemma maps_to_tangent_cone_pi {ι : Type*} [decidable_eq ι] {E : ι → Type*}
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
   {s : Π i, set (E i)} {x : Π i, E i} {i : ι} (hi : ∀ j ≠ i, x j ∈ closure (s j)) :
   maps_to (linear_map.single i : E i →ₗ[𝕜] Π j, E j) (tangent_cone_at 𝕜 (s i) (x i))
@@ -243,7 +250,7 @@ lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 
 hs x h
 
 lemma unique_diff_within_at_univ : unique_diff_within_at 𝕜 univ x :=
-by { rw [unique_diff_within_at, tangent_cone_univ], simp }
+by { rw [unique_diff_within_at_iff, tangent_cone_univ], simp }
 
 lemma unique_diff_on_univ : unique_diff_on 𝕜 (univ : set E) :=
 λx hx, unique_diff_within_at_univ
@@ -255,7 +262,7 @@ lemma unique_diff_within_at.mono_nhds (h : unique_diff_within_at 𝕜 s x)
   (st : 𝓝[s] x ≤ 𝓝[t] x) :
   unique_diff_within_at 𝕜 t x :=
 begin
-  unfold unique_diff_within_at at *,
+  simp only [unique_diff_within_at_iff] at *,
   rw [mem_closure_iff_nhds_within_ne_bot] at h ⊢,
   exact ⟨h.1.mono $ submodule.span_mono $ tangent_cone_mono_nhds st,
     h.2.mono st⟩
@@ -303,7 +310,7 @@ lemma unique_diff_within_at.prod {t : set F} {y : F}
   (hs : unique_diff_within_at 𝕜 s x) (ht : unique_diff_within_at 𝕜 t y) :
   unique_diff_within_at 𝕜 (set.prod s t) (x, y) :=
 begin
-  rw [unique_diff_within_at] at ⊢ hs ht,
+  rw [unique_diff_within_at_iff] at ⊢ hs ht,
   rw [closure_prod_eq],
   refine ⟨_, hs.2, ht.2⟩,
   have : _ ≤ submodule.span 𝕜 (tangent_cone_at 𝕜 (s.prod t) (x, y)) :=
@@ -313,29 +320,29 @@ begin
   exact (hs.1.prod ht.1).mono this
 end
 
-lemma unique_diff_within_at.univ_pi {ι : Type*} [fintype ι] {E : ι → Type*}
+lemma unique_diff_within_at.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  {s : Π i, set (E i)} {x : Π i, E i} (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
+  (s : Π i, set (E i)) (x : Π i, E i) (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi univ s) x :=
 begin
   classical,
-  simp only [unique_diff_within_at, closure_pi_set] at h ⊢,
+  simp only [unique_diff_within_at_iff, closure_pi_set] at h ⊢,
   refine ⟨(dense_pi univ (λ i _, (h i).1)).mono _, λ i _, (h i).2⟩,
   norm_cast,
-  simp only [← submodule.supr_map_single, supr_le_iff, submodule.map_span, submodule.span_le,
+  simp only [← submodule.supr_map_single, supr_le_iff, linear_map.map_span, submodule.span_le,
     ← maps_to'],
   exact λ i, (maps_to_tangent_cone_pi $ λ j hj, (h j).2).mono subset.rfl submodule.subset_span
 end
 
-lemma unique_diff_within_at.pi {ι : Type*} [fintype ι] {E : ι → Type*}
+lemma unique_diff_within_at.pi (ι : Type*) [fintype ι] (E : ι → Type*)
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  {s : Π i, set (E i)} {x : Π i, E i} {I : set ι}
+  (s : Π i, set (E i)) (x : Π i, E i) (I : set ι)
   (h : ∀ i ∈ I, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi I s) x :=
 begin
   classical,
   rw [← set.univ_pi_piecewise],
-  refine unique_diff_within_at.univ_pi (λ i, _),
+  refine unique_diff_within_at.univ_pi _ _ _ _ (λ i, _),
   by_cases hi : i ∈ I; simp [*, unique_diff_within_at_univ],
 end
 
@@ -346,19 +353,19 @@ lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
-lemma unique_diff_on.pi {ι : Type*} [fintype ι] {E : ι → Type*}
+lemma unique_diff_on.pi (ι : Type*) [fintype ι] (E : ι → Type*)
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  {s : Π i, set (E i)} {I : set ι} (h : ∀ i ∈ I, unique_diff_on 𝕜 (s i)) :
+  (s : Π i, set (E i)) (I : set ι) (h : ∀ i ∈ I, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi I s) :=
-λ x hx, unique_diff_within_at.pi $ λ i hi, h i hi (x i) (hx i hi)
+λ x hx, unique_diff_within_at.pi _ _ _ _ _ $ λ i hi, h i hi (x i) (hx i hi)
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
-lemma unique_diff_on.univ_pi {ι : Type*} [fintype ι] {E : ι → Type*}
+lemma unique_diff_on.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
-  {s : Π i, set (E i)} (h : ∀ i, unique_diff_on 𝕜 (s i)) :
+  (s : Π i, set (E i)) (h : ∀ i, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi univ s) :=
-unique_diff_on.pi $ λ i _, h i
+unique_diff_on.pi _ _ _ _ $ λ i _, h i
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/

@@ -7,6 +7,7 @@ Authors: Adam Topaz, Bhavik Mehta
 import category_theory.adjunction.reflective
 import topology.category.Top
 import topology.stone_cech
+import category_theory.monad.limits
 
 /-!
 
@@ -26,6 +27,8 @@ introduced.
 
 -/
 
+universe u
+
 open category_theory
 
 /-- The type of Compact Hausdorff topological spaces. -/
@@ -44,6 +47,9 @@ instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
 instance category : category CompHaus := induced_category.category to_Top
 
+instance concrete_category : concrete_category CompHaus :=
+induced_category.concrete_category _
+
 @[simp]
 lemma coe_to_Top {X : CompHaus} : (X.to_Top : Type*) = X :=
 rfl
@@ -60,11 +66,39 @@ def of : CompHaus :=
 
 @[simp] lemma coe_of : (CompHaus.of X : Type _) = X := rfl
 
+/-- Any continuous function on compact Hausdorff spaces is a closed map. -/
+lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
+λ C hC, (hC.compact.image f.continuous).is_closed
+
+/-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
+lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=
+begin
+  let E := equiv.of_bijective _ bij,
+  have hE : continuous E.symm,
+  { rw continuous_iff_is_closed,
+    intros S hS,
+    rw ← E.image_eq_preimage,
+    exact is_closed_map f S hS },
+  refine ⟨⟨⟨E.symm, hE⟩, _, _⟩⟩,
+  { ext x,
+    apply E.symm_apply_apply },
+  { ext x,
+    apply E.apply_symm_apply }
+end
+
+/-- Any continuous bijection of compact Hausdorff spaces induces an isomorphism. -/
+noncomputable
+def iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : X ≅ Y :=
+by letI := is_iso_of_bijective _ bij; exact as_iso f
+
 end CompHaus
 
 /-- The fully faithful embedding of `CompHaus` in `Top`. -/
 @[simps {rhs_md := semireducible}, derive [full, faithful]]
-def CompHaus_to_Top : CompHaus ⥤ Top := induced_functor _
+def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
+
+instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus) :=
+⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
 
 /--
 (Implementation) The object part of the compactification functor from topological spaces to
@@ -105,8 +139,8 @@ noncomputable def stone_cech_equivalence (X : Top) (Y : CompHaus) :
 The Stone-Cech compactification functor from topological spaces to compact Hausdorff spaces,
 left adjoint to the inclusion functor.
 -/
-noncomputable def Top_to_CompHaus : Top ⥤ CompHaus :=
-adjunction.left_adjoint_of_equiv stone_cech_equivalence (λ _ _ _ _ _, rfl)
+noncomputable def Top_to_CompHaus : Top.{u} ⥤ CompHaus.{u} :=
+adjunction.left_adjoint_of_equiv stone_cech_equivalence.{u u} (λ _ _ _ _ _, rfl)
 
 lemma Top_to_CompHaus_obj (X : Top) : ↥(Top_to_CompHaus.obj X) = stone_cech X :=
 rfl
@@ -116,3 +150,6 @@ The category of compact Hausdorff spaces is reflective in the category of topolo
 -/
 noncomputable instance CompHaus_to_Top.reflective : reflective CompHaus_to_Top :=
 { to_is_right_adjoint := ⟨Top_to_CompHaus, adjunction.adjunction_of_equiv_left _ _⟩ }
+
+noncomputable instance CompHaus_to_Top.creates_limits : creates_limits CompHaus_to_Top :=
+monadic_creates_limits _

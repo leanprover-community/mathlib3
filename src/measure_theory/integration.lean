@@ -316,8 +316,8 @@ instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λk f, f.map ((�
 
 lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
 
-instance [semiring K] [add_comm_monoid β] [semimodule K β] : semimodule K (α →ₛ β) :=
-function.injective.semimodule K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩
+instance [semiring K] [add_comm_monoid β] [module K β] : module K (α →ₛ β) :=
+function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩
   coe_injective coe_smul
 
 lemma smul_eq_map [has_scalar K β] (k : K) (f : α →ₛ β) : k • f = f.map ((•) k) := rfl
@@ -698,6 +698,27 @@ lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ
   f.lintegral μ = g.lintegral μ' :=
 lintegral_eq_of_measure_preimage $ λ y,
 by { simp only [preimage, eq], exact (h (g ⁻¹' {y}) (g.measurable_set_preimage _)).symm }
+
+/-- The `lintegral` of simple functions transforms appropriately under a measurable equivalence.
+(Compare `lintegral_map`, which applies to a broader class of transformations of the domain, but
+requires measurability of the function being integrated.) -/
+lemma lintegral_map_equiv {β} [measurable_space β] (g : β →ₛ ℝ≥0∞) (m : α ≃ᵐ β) :
+  (g.comp m m.measurable).lintegral μ = g.lintegral (measure.map m μ) :=
+begin
+  simp [simple_func.lintegral],
+  have : (g.comp m m.measurable).range = g.range,
+  { refine le_antisymm _ _,
+    { exact g.range_comp_subset_range m.measurable },
+    convert (g.comp m m.measurable).range_comp_subset_range m.symm.measurable,
+    apply simple_func.ext,
+    intros a,
+    exact congr_arg g (congr_fun m.self_comp_symm.symm a) },
+  rw this,
+  congr' 1,
+  funext,
+  rw [m.map_apply (g ⁻¹' {x})],
+  refl,
+end
 
 end measure
 
@@ -1649,6 +1670,36 @@ lemma set_lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α �
   {s : set β} (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
   ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
 by rw [restrict_map hg hs, lintegral_map hf hg]
+
+/-- The `lintegral` transforms appropriately under a measurable equivalence `g : α ≃ᵐ β`.
+(Compare `lintegral_map`, which applies to a wider class of functions `g : α → β`, but requires
+measurability of the function being integrated.) -/
+lemma lintegral_map_equiv [measurable_space β] (f : β → ℝ≥0∞) (g : α ≃ᵐ β) :
+  ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
+begin
+  refine le_antisymm _ _,
+  { refine supr_le_supr2 _,
+    intros f₀,
+    use f₀.comp g g.measurable,
+    refine supr_le_supr2 _,
+    intros hf₀,
+    use λ x, hf₀ (g x),
+    exact (lintegral_map_equiv f₀ g).symm.le },
+  { refine supr_le_supr2 _,
+    intros f₀,
+    use f₀.comp g.symm g.symm.measurable,
+    refine supr_le_supr2 _,
+    intros hf₀,
+    have : (λ a, (f₀.comp (g.symm) g.symm.measurable) a) ≤ λ (a : β), f a,
+    { convert λ x, hf₀ (g.symm x),
+      funext,
+      simp [congr_arg f (congr_fun g.self_comp_symm a)] },
+    use this,
+    convert (lintegral_map_equiv (f₀.comp g.symm g.symm.measurable) g).le,
+    apply simple_func.ext,
+    intros a,
+    convert congr_arg f₀ (congr_fun g.symm_comp_self a).symm using 1 }
+end
 
 lemma lintegral_dirac' (a : α) {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂(dirac a) = f a :=

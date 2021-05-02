@@ -410,6 +410,7 @@ by cases H with _ _ _ b; cases b; simp [lift.aux]
 /-- If `β` is a group, then any function from `α` to `β`
 extends uniquely to a group homomorphism from
 the free group over `α` to `β` -/
+@[simps symm_apply]
 def lift : (α → β) ≃ (free_group α →* β) :=
 { to_fun := λ f,
     monoid_hom.mk' (quot.lift (lift.aux f) $ λ L₁ L₂, red.step.lift) $ begin

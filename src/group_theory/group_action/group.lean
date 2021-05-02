@@ -7,6 +7,7 @@ import group_theory.group_action.defs
 import algebra.group.units
 import algebra.group_with_zero
 import data.equiv.mul_add
+import data.equiv.mul_add_aut
 import group_theory.perm.basic
 
 /-!
@@ -139,3 +140,27 @@ not_congr u.smul_eq_zero
 exists.elim hu $ λ u hu, hu ▸ u.smul_eq_zero
 
 end distrib_mul_action
+
+section arrow
+
+/-- If `G` acts on `A`, then it acts also on `A → B`, by `(g • F) a = F (g⁻¹ • a)`. -/
+@[simps] def arrow_action {G A B : Type*} [group G] [mul_action G A] : mul_action G (A → B) :=
+{ smul := λ g F a, F (g⁻¹ • a),
+  one_smul := by { intro, simp only [one_inv, one_smul] },
+  mul_smul := by { intros, simp only [mul_smul, mul_inv_rev] } }
+
+local attribute [instance] arrow_action
+
+/-- Given groups `G H` with `G` acting on `A`, `G` acts by
+  multiplicative automorphisms on `A → H`. -/
+@[simps] def mul_aut_arrow {G A H} [group G] [mul_action G A] [group H] : G →* mul_aut (A → H) :=
+{ to_fun := λ g,
+  { to_fun := λ F, g • F,
+    inv_fun := λ F, g⁻¹ • F,
+    left_inv := λ F, inv_smul_smul g F,
+    right_inv := λ F, smul_inv_smul g F,
+    map_mul' := by { intros, ext, simp only [arrow_action_to_has_scalar_smul, pi.mul_apply] } },
+  map_one' := by { ext, simp only [mul_aut.one_apply, mul_equiv.coe_mk, one_smul] },
+  map_mul' := by { intros, ext, simp only [mul_smul, mul_equiv.coe_mk, mul_aut.mul_apply] } }
+
+end arrow

@@ -12,8 +12,9 @@ import order.boolean_algebra
 The symmetric difference or disjunctive union of sets `A` and `B` is the set of elements that are
 in either `A` or `B` but not both. Translated into propositions, the symmetric difference is `xor`.
 
-The symmetric difference operator is defined for any type with `⊔` and `\`, however the
-theorems proved about it only hold for `generalized_boolean_algebra`s and `boolean_algebra`s.
+The symmetric difference operator (`symm_diff`) is defined in this file for any type with `⊔` and
+`\` via the formula `(A \ B) ⊔ (B \ A)`, however the theorems proved about it only hold for
+`generalized_boolean_algebra`s and `boolean_algebra`s.
 
 The symmetric difference is the addition operator in the Boolean ring structure on Boolean algebras.
 
@@ -34,7 +35,7 @@ In generalized Boolean algebras, the symmetric difference operator is:
 boolean ring, generalized boolean algebra, boolean algebra, symmetric differences
 -/
 
-/-- The symmetric difference operator of a structure with `⊔` and `\` is `(A \ B) ⊔ (B \ A)`. -/
+/-- The symmetric difference operator on a type with `⊔` and `\` is `(A \ B) ⊔ (B \ A)`. -/
 def symm_diff {α : Type*} [has_sup α] [has_sdiff α] (A B : α) : α := (A \ B) ⊔ (B \ A)
 
 infix ` Δ `:100 := symm_diff

@@ -1088,17 +1088,22 @@ variable {t : set E}
 
 /-- The convex hull of a set `s` is the minimal convex set that includes `s`. -/
 def convex_hull : closure_operator (set E) :=
-{ to_fun := λ s, ⋂ (t : set E) (hst : s ⊆ t) (ht : convex t), t,
-  monotone' := begin
-    rintro s t hst,
+closure_operator.mk₃
+  (λ s, ⋂ (t : set E) (hst : s ⊆ t) (ht : convex t), t)
+  convex
+  (λ s, set.subset_Inter (λ t, set.subset_Inter $ λ hst, set.subset_Inter $ λ ht, hst))
+  begin
     sorry
-    --exact convex_hull_min (set.subset.trans hst $ subset_convex_hull t) (convex_convex_hull t)
-  end,
-  le_closure' :=
-    λ s, set.subset_Inter (λ t, set.subset_Inter $ λ hst, set.subset_Inter $ λ ht, hst),
-  idempotent' := begin
+  end
+  begin
     sorry
-  end }
+  end
+
+lemma convex.convex_hull_eq {s : set E} (hs : convex s) : convex_hull s = s :=
+closure_operator.mem_mk₃_closed
+
+lemma convex_hull_mono (hst : s ⊆ t) : convex_hull s ⊆ convex_hull t :=
+convex_hull.mono
 
 #exit
 variable (s)

@@ -143,6 +143,24 @@ See https://stacks.math.columbia.edu/tag/001Q.
 class representable (F : Cᵒᵖ ⥤ Type v₁) : Prop :=
 (has_representation : ∃ X (f : yoneda.obj X ⟶ F), is_iso f)
 
+noncomputable def representable.X (F : Cᵒᵖ ⥤ Type v₁) [representable F] : C :=
+(representable.has_representation : ∃ X (f : _ ⟶ F), _).some
+
+noncomputable def representable.f (F : Cᵒᵖ ⥤ Type v₁) [representable F] :
+  yoneda.obj (representable.X F) ⟶ F :=
+representable.has_representation.some_spec.some
+
+instance (F : Cᵒᵖ ⥤ Type v₁) [representable F] : is_iso (representable.f F) :=
+representable.has_representation.some_spec.some_spec
+
+noncomputable def representable.w (F : Cᵒᵖ ⥤ Type v₁) [representable F] :
+  yoneda.obj (representable.X F) ≅ F :=
+as_iso (representable.f F)
+
+noncomputable def representable.w_app (F : Cᵒᵖ ⥤ Type v₁) [representable F] (X : C) :
+  (X ⟶ representable.X F) ≅ F.obj (op X) :=
+(representable.w F).app (op X)
+
 /--
 A functor `F` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
 
@@ -150,6 +168,24 @@ See https://stacks.math.columbia.edu/tag/001Q.
 -/
 class corepresentable (F : C ⥤ Type v₁) : Prop :=
 (has_representation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
+
+noncomputable def corepresentable.X (F : C ⥤ Type v₁) [corepresentable F] : C :=
+(corepresentable.has_representation : ∃ X (f : _ ⟶ F), _).some.unop
+
+noncomputable def corepresentable.f (F : C ⥤ Type v₁) [corepresentable F] :
+  coyoneda.obj (op (corepresentable.X F)) ⟶ F :=
+corepresentable.has_representation.some_spec.some
+
+instance (F : C ⥤ Type v₁) [corepresentable F] : is_iso (corepresentable.f F) :=
+corepresentable.has_representation.some_spec.some_spec
+
+noncomputable def corepresentable.w (F : C ⥤ Type v₁) [corepresentable F] :
+  coyoneda.obj (op (corepresentable.X F)) ≅ F :=
+as_iso (corepresentable.f F)
+
+noncomputable def corepresentable.w_app (F : C ⥤ Type v₁) [corepresentable F] (X : C) :
+  (corepresentable.X F ⟶ X) ≅ F.obj X :=
+(corepresentable.w F).app X
 
 end category_theory
 

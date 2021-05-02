@@ -217,7 +217,7 @@ lemma is_sheaf_yoneda_obj (X : C) : presieve.is_sheaf (canonical_topology C) (yo
 /-- A representable functor is a sheaf for the canonical topology. -/
 lemma is_sheaf_of_representable (P : Cᵒᵖ ⥤ Type v) [representable P] :
   presieve.is_sheaf (canonical_topology C) P :=
-presieve.is_sheaf_iso (canonical_topology C) representable.w (is_sheaf_yoneda_obj _)
+presieve.is_sheaf_iso (canonical_topology C) (representable.w P) (is_sheaf_yoneda_obj _)
 
 /--
 A subcanonical topology is a topology which is smaller than the canonical topology.

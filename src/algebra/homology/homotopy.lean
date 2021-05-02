@@ -402,7 +402,7 @@ namespace category_theory
 
 variables {W : Type*} [category W] [preadditive W] [has_zero_object W]
 
-/-- An additive functor induces a functor between homological complexes. -/
+/-- An additive functor takes homotopies to homotopies. -/
 @[simps]
 def functor.map_homotopy (F : V ⥤ W) [F.additive] {f g : C ⟶ D} (h : homotopy f g) :
   homotopy ((F.map_homological_complex c).map f) ((F.map_homological_complex c).map g) :=
@@ -435,6 +435,7 @@ def functor.map_homotopy (F : V ⥤ W) [F.additive] {f g : C ⟶ D} (h : homotop
   end, }
 
 /-- An additive functor preserves homotopy equivalences. -/
+@[simps]
 def functor.map_homotopy_equiv (F : V ⥤ W) [F.additive] (h : homotopy_equiv C D) :
   homotopy_equiv ((F.map_homological_complex c).obj C) ((F.map_homological_complex c).obj D) :=
 { hom := (F.map_homological_complex c).map h.hom,

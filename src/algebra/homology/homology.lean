@@ -210,7 +210,6 @@ def boundaries_to_cycles_nat_trans (i : ι) :
   naturality' := λ C₁ C₂ f, boundaries_to_cycles_naturality f i, }
 
 /-- The `i`-th homology, as a functor to `V`. -/
-@[simps]
 def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V :=
 -- It would be nice if we could just write
 -- `cokernel (boundaries_to_cycles_nat_trans V c i)`

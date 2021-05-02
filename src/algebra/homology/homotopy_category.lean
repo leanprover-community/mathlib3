@@ -32,6 +32,8 @@ with chain maps identified when they are homotopic.
 def homotopy_category :=
 category_theory.quotient (λ (C D : homological_complex V c) (f g : C ⟶ D), nonempty (homotopy f g))
 
+-- TODO the homotopy_category is preadditive
+
 namespace homotopy_category
 
 /-- The quotient functor from complexes to the homotopy category. -/
@@ -97,6 +99,7 @@ end
 by conv_rhs { erw [←quotient_map_out f, ←quotient_map_out g, ←(quotient V c).map_comp], }
 
 /-- Homotopy equivalent complexes become isomorphic in the homotopy category. -/
+@[simps]
 def iso_of_homotopy_equiv {C D : homological_complex V c} (f : homotopy_equiv C D) :
   (quotient V c).obj C ≅ (quotient V c).obj D :=
 { hom := (quotient V c).map f.hom,
@@ -139,11 +142,16 @@ rfl
   (homology_factors V c i).inv.app C = 𝟙 _ :=
 rfl
 
+lemma homology_functor_map_factors (i : ι) {C D : homological_complex V c} (f : C ⟶ D) :
+  (_root_.homology_functor V c i).map f =
+    ((homology_functor V c i).map ((quotient V c).map f) : _) :=
+(category_theory.quotient.lift_map_functor_map _ (_root_.homology_functor V c i) _ f).symm
+
 end homotopy_category
 
 namespace category_theory
 
-variables {W : Type*} [category W] [preadditive W] [has_zero_object W]
+variables {V} {W : Type*} [category W] [preadditive W] [has_zero_object W]
 
 /-- An additive functor induces a functor between homotopy categories. -/
 @[simps]
@@ -169,5 +177,35 @@ def functor.map_homotopy_category (c : complex_shape ι) (F : V ⥤ W) [F.additi
     convert quot.out_eq _,
     exact homotopy_category.quotient_map_out_comp_out _ _,
   end }.
+
+-- TODO `F.map_homotopy_category c` is additive/linear.
+
+/-- A natural transformation induces a natural transformation between
+  the induced functors on the homotopy category. -/
+@[simps]
+def nat_trans.map_homotopy_category {F G : V ⥤ W} [F.additive] [G.additive]
+  (α : F ⟶ G) (c : complex_shape ι) : F.map_homotopy_category c ⟶ G.map_homotopy_category c :=
+{ app := λ C,
+    (homotopy_category.quotient W c).map ((nat_trans.map_homological_complex α c).app C.as),
+  naturality' := λ C D f,
+  begin
+    dsimp,
+    simp only [←functor.map_comp],
+    congr' 1,
+    ext,
+    dsimp,
+    simp,
+  end }
+
+@[simp] lemma nat_trans.map_homotopy_category_id (c : complex_shape ι) (F : V ⥤ W) [F.additive] :
+  nat_trans.map_homotopy_category (𝟙 F) c = 𝟙 (F.map_homotopy_category c) :=
+by tidy
+
+@[simp] lemma nat_trans.map_homotopy_category_comp (c : complex_shape ι)
+  {F G H : V ⥤ W} [F.additive] [G.additive] [H.additive]
+  (α : F ⟶ G) (β : G ⟶ H):
+  nat_trans.map_homotopy_category (α ≫ β) c =
+    nat_trans.map_homotopy_category α c ≫ nat_trans.map_homotopy_category β c :=
+by tidy
 
 end category_theory

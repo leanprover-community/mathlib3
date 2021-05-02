@@ -89,9 +89,12 @@ namespace category_theory
 
 variables {W : Type*} [category W] [preadditive W]
 
-/-- An additive functor induces a functor between homological complexes. -/
+/--
+An additive functor induces a functor between homological complexes.
+This is sometimes called the "prolongation".
+-/
 @[simps]
-def functor.map_homological_complex (c : complex_shape ι) (F : V ⥤ W) [F.additive] :
+def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shape ι) :
   homological_complex V c ⥤ homological_complex W c :=
 { obj := λ C,
   { X := λ i, F.obj (C.X i),
@@ -104,5 +107,21 @@ def functor.map_homological_complex (c : complex_shape ι) (F : V ⥤ W) [F.addi
 
 instance functor.map_homogical_complex_additive
   (c : complex_shape ι) (F : V ⥤ W) [F.additive] : (F.map_homological_complex c).additive := {}
+
+@[simps]
+def nat_trans.map_homological_complex {F G : V ⥤ W} [F.additive] [G.additive]
+  (α : F ⟶ G) (c : complex_shape ι) : F.map_homological_complex c ⟶ G.map_homological_complex c :=
+{ app := λ C, { f := λ i, α.app _, }, }
+
+@[simp] lemma nat_trans.map_homology_complex_id (c : complex_shape ι) (F : V ⥤ W) [F.additive] :
+  nat_trans.map_homological_complex (𝟙 F) c = 𝟙 (F.map_homological_complex c) :=
+by tidy
+
+@[simp] lemma nat_trans.map_homology_complex_comp (c : complex_shape ι)
+  {F G H : V ⥤ W} [F.additive] [G.additive] [H.additive]
+  (α : F ⟶ G) (β : G ⟶ H):
+  nat_trans.map_homological_complex (α ≫ β) c =
+    nat_trans.map_homological_complex α c ≫ nat_trans.map_homological_complex β c :=
+by tidy
 
 end category_theory

@@ -112,6 +112,10 @@ rfl
 lemma lift.is_lift_inv (X : C) : (lift.is_lift r F H).inv.app X = 𝟙 (F.obj X) :=
 rfl
 
+lemma lift_map_functor_map {X Y : C} (f : X ⟶ Y) :
+  (lift r F H).map ((functor r).map f) = F.map f :=
+by { rw ←(nat_iso.naturality_1 (lift.is_lift r F H)), dsimp, simp, }
+
 end quotient
 
 end category_theory

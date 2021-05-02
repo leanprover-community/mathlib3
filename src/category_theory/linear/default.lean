@@ -7,6 +7,7 @@ import category_theory.preadditive
 import algebra.module.linear_map
 import algebra.invertible
 import linear_algebra.basic
+import algebra.algebra.basic
 
 /-!
 # Linear categories

@@ -966,6 +966,9 @@ theorem zero_le_add_right_neg {x : pgame} : 0 ≤ x + (-x) :=
 calc 0 ≤ (-x) + x : zero_le_add_left_neg
      ... ≤ x + (-x) : add_comm_le
 
+theorem add_right_neg_equiv {x : pgame} : x + (-x) ≈ 0 :=
+⟨add_right_neg_le_zero, zero_le_add_right_neg⟩
+
 theorem add_lt_add_right {x y z : pgame} (h : x < y) : x + z < y + z :=
 suffices y + z ≤ x + z → y ≤ x, by { rw ←not_le at ⊢ h, exact mt this h },
 assume w,

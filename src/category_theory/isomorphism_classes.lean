@@ -24,12 +24,23 @@ variables {C : Type u} [category.{v} C]
 /-- An object `X` is isomorphic to an object `Y`, if `X ≅ Y` is not empty. -/
 def is_isomorphic : C → C → Prop := λ X Y, nonempty (X ≅ Y)
 
+lemma is_isomorphic.refl (X : C) : is_isomorphic X X :=
+⟨iso.refl X⟩
+
+lemma is_isomorphic.symm {X Y : C} : is_isomorphic X Y → is_isomorphic Y X :=
+λ ⟨α⟩, ⟨α.symm⟩
+
+lemma is_isomorphic.trans {X Y Z : C} :
+  is_isomorphic X Y → is_isomorphic Y Z → is_isomorphic X Z :=
+λ ⟨α⟩ ⟨β⟩, ⟨α ≪≫ β⟩
+
 variable (C)
+open is_isomorphic
 
 /-- `is_isomorphic` defines a setoid. -/
 def is_isomorphic_setoid : setoid C :=
 { r := is_isomorphic,
-  iseqv := ⟨λ X, ⟨iso.refl X⟩, λ X Y ⟨α⟩, ⟨α.symm⟩, λ X Y Z ⟨α⟩ ⟨β⟩, ⟨α.trans β⟩⟩ }
+  iseqv := ⟨refl, λ X Y, symm, λ X Y Z, trans⟩ }
 
 end category
 

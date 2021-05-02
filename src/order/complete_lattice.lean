@@ -315,7 +315,7 @@ theorem le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
 @[simp] theorem Inf_insert {a : α} {s : set α} : Inf (insert a s) = a ⊓ Inf s :=
 ((is_glb_Inf s).insert a).Inf_eq
 
-theorem Sup_le_Sup_of_subset_instert_bot (h : s ⊆ insert ⊥ t) : Sup s ≤ Sup t :=
+theorem Sup_le_Sup_of_subset_insert_bot (h : s ⊆ insert ⊥ t) : Sup s ≤ Sup t :=
 le_trans (Sup_le_Sup h) (le_of_eq (trans Sup_insert bot_sup_eq))
 
 theorem Inf_le_Inf_of_subset_insert_top (h : s ⊆ insert ⊤ t) : Inf t ≤ Inf s :=

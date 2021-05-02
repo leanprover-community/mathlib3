@@ -279,6 +279,8 @@ Single Variable Real Analysis:
     definition of $\R$: 'real'
     field structure: 'real.division_ring'
     order: 'real.linear_order'
+  Special functions:
+    gamma:
   Sequences of real numbers:
     convergence: 'filter.tendsto'
     limit point: 'map_cluster_pt'

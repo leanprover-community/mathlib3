@@ -295,7 +295,7 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-/-- `(x + y) * z` is equivalent to `x * y + y * z.`-/
+/-- `(x + y) * z` is equivalent to `x * z + y * z.`-/
 theorem right_distrib_equiv (x y z : pgame) : ((x + y) * z).equiv (x * z + y * z) :=
 calc (x + y) * z ≈ z * (x + y)      : mul_comm_equiv _ _
              ... ≈ z * x + z * y    : left_distrib_equiv _ _ _

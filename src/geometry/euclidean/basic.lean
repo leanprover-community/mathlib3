@@ -10,12 +10,6 @@ import data.matrix.notation
 import linear_algebra.affine_space.finite_dimensional
 import tactic.fin_cases
 
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
-
 /-!
 # Euclidean spaces
 
@@ -57,6 +51,12 @@ theorems that need it.
 * https://en.wikipedia.org/wiki/Euclidean_space
 
 -/
+
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real
+open_locale real_inner_product_space
 
 namespace inner_product_geometry
 /-!
@@ -130,7 +130,7 @@ end
 @[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
 begin
   unfold angle,
-  rw [←real_inner_self_eq_norm_square, div_self (λ h, hx (inner_self_eq_zero.1 h)),
+  rw [←real_inner_self_eq_norm_sq, div_self (λ h, hx (inner_self_eq_zero.1 h)),
       real.arccos_one]
 end
 
@@ -185,9 +185,10 @@ begin
   rw [real.sin_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
                       (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2,
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      ←real.sqrt_mul' _ (mul_self_nonneg _), pow_two,
-      real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)), real_inner_self_eq_norm_square,
-      real_inner_self_eq_norm_square],
+      ←real.sqrt_mul' _ (mul_self_nonneg _), sq,
+      real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
+      real_inner_self_eq_norm_sq,
+      real_inner_self_eq_norm_sq],
   by_cases h : (∥x∥ * ∥y∥) = 0,
   { rw [(show ∥x∥ * ∥x∥ * (∥y∥ * ∥y∥) = (∥x∥ * ∥y∥) * (∥x∥ * ∥y∥), by ring), h, mul_zero, mul_zero,
         zero_sub],
@@ -197,7 +198,8 @@ begin
     { rw norm_eq_zero at hy,
       rw [hy, inner_zero_right, zero_mul, neg_zero] } },
   { field_simp [h],
-    ring }
+    ring_nf,
+    ring_nf, }
 end
 
 /-- The angle between two vectors is zero if and only if they are
@@ -355,7 +357,7 @@ lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → �
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
   rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
-      ←inner_self_eq_norm_square, finset.affine_combination_vsub],
+      ←inner_self_eq_norm_sq, finset.affine_combination_vsub],
   have h : ∑ i in s, (w₁ - w₂) i = 0,
   { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
   exact inner_weighted_vsub p h p h
@@ -384,12 +386,12 @@ end
 /-- The squared distance between points on a line (expressed as a
 multiple of a fixed vector added to a point) and another point,
 expressed as a quadratic. -/
-lemma dist_smul_vadd_square (r : ℝ) (v : V) (p₁ p₂ : P) :
+lemma dist_smul_vadd_sq (r : ℝ) (v : V) (p₁ p₂ : P) :
   dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
     ⟪v, v⟫ * r * r + 2 * ⟪v, p₁ -ᵥ p₂⟫ * r + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ :=
 begin
-  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_square, vadd_vsub_assoc, real_inner_add_add_self,
-      real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
+  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_sq, vadd_vsub_assoc,
+    real_inner_add_add_self, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
   ring
 end
 
@@ -398,9 +400,9 @@ another point. -/
 lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
   dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * ⟪v, p₁ -ᵥ p₂⟫ / ⟪v, v⟫) :=
 begin
-  conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_square,
-                 ←sub_eq_zero_iff_eq, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
-                 ←real_inner_self_eq_norm_square, sub_self] },
+  conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_sq,
+                 ←sub_eq_zero, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
+                 ←real_inner_self_eq_norm_sq, sub_self] },
   have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
   have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
     (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
@@ -416,8 +418,8 @@ open affine_subspace finite_dimensional
 /-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
 most two points `p₁` `p₂` in a two-dimensional subspace containing those points
 (two circles intersect in at most two points). -/
-lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ P}
-  [finite_dimensional ℝ s.direction] (hd : findim ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}
+lemma eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two {s : affine_subspace ℝ P}
+  [finite_dimensional ℝ s.direction] (hd : finrank ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}
   (hc₁s : c₁ ∈ s) (hc₂s : c₂ ∈ s) (hp₁s : p₁ ∈ s) (hp₂s : p₂ ∈ s) (hps : p ∈ s) {r₁ r₂ : ℝ}
   (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁) (hp₂c₁ : dist p₂ c₁ = r₁)
   (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂) (hp₂c₂ : dist p₂ c₂ = r₂)
@@ -437,13 +439,13 @@ begin
       { exact ho },
       { rw real_inner_comm, exact ho } } },
   have hbs : submodule.span ℝ (set.range b) = s.direction,
-  { refine eq_of_le_of_findim_eq _ _,
+  { refine eq_of_le_of_finrank_eq _ _,
     { rw [submodule.span_le, set.range_subset_iff],
       intro i,
       fin_cases i,
       { exact vsub_mem_direction hc₂s hc₁s },
       { exact vsub_mem_direction hp₂s hp₁s } },
-    { rw [findim_span_eq_card hb, fintype.card_fin, hd] } },
+    { rw [finrank_span_eq_card hb, fintype.card_fin, hd] } },
   have hv : ∀ v ∈ s.direction, ∃ t₁ t₂ : ℝ, v = t₁ • (c₂ -ᵥ c₁) + t₂ • (p₂ -ᵥ p₁),
   { intros v hv,
     have hr : set.range b = {c₂ -ᵥ c₁, p₂ -ᵥ p₁},
@@ -472,15 +474,15 @@ end
 /-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
 most two points `p₁` `p₂` in two-dimensional space (two circles intersect in at
 most two points). -/
-lemma eq_of_dist_eq_of_dist_eq_of_findim_eq_two [finite_dimensional ℝ V] (hd : findim ℝ V = 2)
+lemma eq_of_dist_eq_of_dist_eq_of_finrank_eq_two [finite_dimensional ℝ V] (hd : finrank ℝ V = 2)
   {c₁ c₂ p₁ p₂ p : P} {r₁ r₂ : ℝ} (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁)
   (hp₂c₁ : dist p₂ c₁ = r₁) (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂)
   (hp₂c₂ : dist p₂ c₂ = r₂) (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
 begin
-  have hd' : findim ℝ (⊤ : affine_subspace ℝ P).direction = 2,
-  { rw [direction_top, findim_top],
+  have hd' : finrank ℝ (⊤ : affine_subspace ℝ P).direction = 2,
+  { rw [direction_top, finrank_top],
     exact hd },
-  exact eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two hd'
+  exact eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two hd'
     (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _)
     hc hp hp₁c₁ hp₂c₁ hpc₁ hp₁c₂ hp₂c₂ hpc₂
 end
@@ -498,7 +500,8 @@ classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›),
+    convert submodule.is_compl_orthogonal_of_is_complete
+      (complete_space_coe_iff_is_complete.mp ‹_›),
     exact direction_mk' p s.directionᗮ
   end
 
@@ -514,7 +517,8 @@ classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
   (nonempty_subtype.mp ‹_›)
   (mk'_nonempty p s.directionᗮ)
   begin
-    convert submodule.is_compl_orthogonal_of_is_complete (complete_space_coe_iff_is_complete.mp ‹_›),
+    convert submodule.is_compl_orthogonal_of_is_complete
+      (complete_space_coe_iff_is_complete.mp ‹_›),
     exact direction_mk' p s.directionᗮ
   end
 
@@ -719,7 +723,7 @@ orthogonal_projection_vadd_eq_self hp
 /-- The square of the distance from a point in `s` to `p2` equals the
 sum of the squares of the distances of the two points to the
 `orthogonal_projection`. -/
-lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+lemma dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
   {s : affine_subspace ℝ P} [nonempty s] [complete_space s.direction] {p1 : P}
   (p2 : P) (hp1 : p1 ∈ s) :
   dist p1 p2 * dist p1 p2 =
@@ -728,7 +732,7 @@ lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_proje
 begin
   rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
-    norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero],
+    norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal
     (vsub_orthogonal_projection_mem_direction p2 hp1)
     (orthogonal_projection_vsub_mem_direction_orthogonal s p2),
@@ -737,7 +741,7 @@ end
 /-- The square of the distance between two points constructed by
 adding multiples of the same orthogonal vector to points in the same
 subspace. -/
-lemma dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ P}
+lemma dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ P}
     {p1 p2 : P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) (r1 r2 : ℝ) {v : V}
     (hv : v ∈ s.directionᗮ) :
   dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) =
@@ -747,7 +751,7 @@ calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 �
   : by { rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul],
          abel }
 ... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
-  : norm_add_square_eq_norm_square_add_norm_square_real
+  : norm_add_sq_eq_norm_sq_add_norm_sq_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
         (submodule.smul_mem _ _ hv))
 ... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + abs (r1 - r2) * abs (r1 - r2) * ∥v∥ * ∥v∥
@@ -776,7 +780,7 @@ def reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direct
     intros p₁ p₂,
     rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_eq_norm_vsub V
           ((↑(orthogonal_projection s p₁) -ᵥ p₁) +ᵥ ↑(orthogonal_projection s p₁)),
-        dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square],
+        dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq],
     calc
       ⟪((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
       ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),
@@ -862,7 +866,8 @@ end
 
 /-- The distance between `p₁` and the reflection of `p₂` equals that
 between the reflection of `p₁` and `p₂`. -/
-lemma dist_reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction] (p₁ p₂ : P) :
+lemma dist_reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction]
+  (p₁ p₂ : P) :
   dist p₁ (reflection s p₂) = dist (reflection s p₁) p₂ :=
 begin
   conv_lhs { rw ←reflection_reflection s p₁ },

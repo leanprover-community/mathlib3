@@ -130,11 +130,11 @@ mem_right_coset a (one_mem s)
 
 @[to_additive mem_left_add_coset_left_add_coset]
 lemma mem_left_coset_left_coset {a : α} (ha : a *l s = s) : a ∈ s :=
-by rw [←submonoid.mem_coe, ←ha]; exact mem_own_left_coset s a
+by rw [←set_like.mem_coe, ←ha]; exact mem_own_left_coset s a
 
 @[to_additive mem_right_add_coset_right_add_coset]
 lemma mem_right_coset_right_coset {a : α} (ha : (s : set α) *r a = s) : a ∈ s :=
-by rw [←submonoid.mem_coe, ←ha]; exact mem_own_right_coset s a
+by rw [←set_like.mem_coe, ←ha]; exact mem_own_right_coset s a
 
 end coset_submonoid
 
@@ -284,7 +284,7 @@ lemma preimage_image_coe (N : subgroup α) (s : set α) :
   coe ⁻¹' ((coe : α → quotient N) '' s) = ⋃ x : N, (λ y : α, y * x) '' s :=
 begin
   ext x,
-  simp only [quotient_group.eq, subgroup.exists, exists_prop, set.mem_preimage, set.mem_Union,
+  simp only [quotient_group.eq, set_like.exists, exists_prop, set.mem_preimage, set.mem_Union,
     set.mem_image, subgroup.coe_mk, ← eq_inv_mul_iff_mul_eq],
   exact ⟨λ ⟨y, hs, hN⟩, ⟨_, hN, y, hs, rfl⟩, λ ⟨z, hN, y, hs, hyz⟩, ⟨y, hs, hyz ▸ hN⟩⟩
 end
@@ -329,6 +329,19 @@ calc α ≃ Σ L : quotient s, {x : α // (x : quotient s) = L} :
   equiv.sigma_congr_right (λ L, left_coset_equiv_subgroup _)
     ... ≃ quotient s × s :
   equiv.sigma_equiv_prod _ _
+
+lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fintype s]
+  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
+by rw ← fintype.card_prod;
+  exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
+
+lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
+  fintype.card s ∣ fintype.card α :=
+by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
+
+lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (λ a, a ∈ s)]
+  [fintype s] : fintype.card (quotient s) ∣ fintype.card α :=
+by simp [card_eq_card_quotient_mul_card_subgroup s]
 
 end subgroup
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.fully_faithful
+import category_theory.full_subcategory
 import category_theory.whiskering
 import category_theory.essential_image
 import tactic.slice
@@ -538,6 +539,41 @@ is_equivalence.mk (equivalence_inverse F)
   e.inverse.map f = e.inverse.map g ↔ f = g :=
 functor_map_inj_iff e.symm f g
 
+instance ess_surj_induced_functor {C' : Type*} (e : C' ≃ D) : ess_surj (induced_functor e) :=
+{ mem_ess_image := λ Y, ⟨e.symm Y, by simp⟩, }
+
+noncomputable
+instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
+equivalence_of_fully_faithfully_ess_surj _
+
 end equivalence
+
+section partial_order
+variables {α β : Type*} [partial_order α] [partial_order β]
+
+/--
+A categorical equivalence between partial orders is just an order isomorphism.
+-/
+def equivalence.to_order_iso (e : α ≌ β) : α ≃o β :=
+{ to_fun := e.functor.obj,
+  inv_fun := e.inverse.obj,
+  left_inv := λ a, (e.unit_iso.app a).to_eq.symm,
+  right_inv := λ b, (e.counit_iso.app b).to_eq,
+  map_rel_iff' := λ a a',
+    ⟨λ h, le_of_hom
+      ((equivalence.unit e).app a ≫ e.inverse.map (hom_of_le h) ≫ (equivalence.unit_inv e).app a'),
+     λ (h : a ≤ a'), le_of_hom (e.functor.map (hom_of_le h))⟩, }
+
+-- `@[simps]` on `equivalence.to_order_iso` produces lemmas that fail the `simp_nf` linter,
+-- so we provide them by hand:
+@[simp]
+lemma equivalence.to_order_iso_apply (e : α ≌ β) (a : α) :
+  e.to_order_iso a = e.functor.obj a := rfl
+
+@[simp]
+lemma equivalence.to_order_iso_symm_apply (e : α ≌ β) (b : β) :
+  e.to_order_iso.symm b = e.inverse.obj b := rfl
+
+end partial_order
 
 end category_theory

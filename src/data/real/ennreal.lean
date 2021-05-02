@@ -335,7 +335,8 @@ by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 lemma pow_eq_top : ∀ n:ℕ, a^n=∞ → a=∞
 | 0 := by simp
-| (n+1) := λ o, (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left
+| (n+1) := λ o, by { rw pow_succ at o,
+                     exact (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left }
 
 lemma pow_ne_top (h : a ≠ ∞) {n:ℕ} : a^n ≠ ∞ :=
 mt (pow_eq_top n) h
@@ -372,6 +373,14 @@ lemma le_coe_iff : a ≤ ↑r ↔ (∃p:ℝ≥0, a = p ∧ p ≤ r) := with_top.
 lemma coe_le_iff : ↑r ≤ a ↔ (∀p:ℝ≥0, a = p → r ≤ p) := with_top.coe_le_iff
 
 lemma lt_iff_exists_coe : a < b ↔ (∃p:ℝ≥0, a = p ∧ ↑p < b) := with_top.lt_iff_exists_coe
+
+lemma to_real_le_coe_of_le_coe {a : ℝ≥0∞} {b : ℝ≥0} (h : a ≤ b) : a.to_real ≤ b :=
+show ↑a.to_nnreal ≤ ↑b,
+begin
+  have : ↑a.to_nnreal = a := ennreal.coe_to_nnreal (lt_of_le_of_lt h coe_lt_top).ne,
+  rw ← this at h,
+  exact_mod_cast h
+end
 
 @[simp, norm_cast] lemma coe_finset_sup {s : finset α} {f : α → ℝ≥0} :
   ↑(s.sup f) = s.sup (λ x, (f x : ℝ≥0∞)) :=
@@ -1473,6 +1482,9 @@ section supr
 
 @[simp] lemma supr_eq_zero {ι : Sort*} {f : ι → ℝ≥0∞} : (⨆ i, f i) = 0 ↔ ∀ i, f i = 0 :=
 supr_eq_bot
+
+@[simp] lemma supr_zero_eq_zero {ι : Sort*} : (⨆ i : ι, (0 : ℝ≥0∞)) = 0 :=
+by simp
 
 lemma sup_eq_zero {a b : ℝ≥0∞} : a ⊔ b = 0 ↔ a = 0 ∧ b = 0 := sup_eq_bot_iff
 

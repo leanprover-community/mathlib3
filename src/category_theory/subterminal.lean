@@ -5,7 +5,7 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
-import category_theory.subobject
+import category_theory.subobject.basic
 
 /-!
 # Subterminal objects
@@ -21,9 +21,7 @@ We also construct the subcategory of subterminal objects.
 ## TODO
 
 * Define exponential ideals, and show this subcategory is an exponential ideal.
-* Define subobject lattices in general, show that `subterminals C` is equivalent to the subobject
-category of a terminal object.
-* Use both the above to show that in a locally cartesian closed category, every subobject lattice
+* Use the above to show that in a locally cartesian closed category, every subobject lattice
   is cartesian closed (equivalently, a Heyting algebra).
 
 -/
@@ -86,7 +84,7 @@ The converse of `is_subterminal_of_is_iso_diag`.
 -/
 lemma is_subterminal.is_iso_diag (hA : is_subterminal A) [has_binary_product A A] :
   is_iso (diag A) :=
-⟨limits.prod.fst, ⟨by simp, by { rw is_subterminal.def at hA, tidy }⟩⟩
+⟨⟨limits.prod.fst, ⟨by simp, by { rw is_subterminal.def at hA, tidy }⟩⟩⟩
 
 /--
 If the diagonal morphism of `A` is an isomorphism, then it is subterminal.

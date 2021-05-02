@@ -247,7 +247,7 @@ def of_encodable_of_infinite (α : Type*) [encodable α] [infinite α] : denumer
 begin
   letI := @decidable_range_encode α _;
   letI : infinite (set.range (@encode α _)) :=
-    infinite.of_injective _ (equiv.set.range _ encode_injective).injective,
+    infinite.of_injective _ (equiv.of_injective _ encode_injective).injective,
   letI := nat.subtype.denumerable (set.range (@encode α _)),
   exact denumerable.of_equiv (set.range (@encode α _))
     (equiv_range_encode α)

@@ -60,7 +60,7 @@ variables {R : Type u} {ι : Type u'} {n : ℕ}
 over `R`. -/
 structure multilinear_map (R : Type u) {ι : Type u'} (M₁ : ι → Type v) (M₂ : Type w)
   [decidable_eq ι] [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
-  [∀i, semimodule R (M₁ i)] [semimodule R M₂] :=
+  [∀i, module R (M₁ i)] [module R M₂] :=
 (to_fun : (Πi, M₁ i) → M₂)
 (map_add' : ∀(m : Πi, M₁ i) (i : ι) (x y : M₁ i),
   to_fun (update m i (x + y)) = to_fun (update m i x) + to_fun (update m i y))
@@ -74,8 +74,8 @@ section semiring
 variables [semiring R]
 [∀i, add_comm_monoid (M i)] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃]
 [add_comm_monoid M']
-[∀i, semimodule R (M i)] [∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃]
-[semimodule R M']
+[∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂] [module R M₃]
+[module R M']
 (f f' : multilinear_map R M₁ M₂)
 
 instance : has_coe_to_fun (multilinear_map R M₁ M₂) := ⟨_, to_fun⟩
@@ -139,8 +139,15 @@ instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : multilinear_map R M₁ M₂) m = 0 := rfl
 
 instance : add_comm_monoid (multilinear_map R M₁ M₂) :=
-by refine {zero := 0, add := (+), ..};
-   intros; ext; simp [add_comm, add_left_comm]
+{ zero := (0 : multilinear_map R M₁ M₂),
+  add := (+),
+  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
+  zero_add := by intros; ext; simp [add_comm, add_left_comm],
+  add_zero := by intros; ext; simp [add_comm, add_left_comm],
+  add_comm := by intros; ext; simp [add_comm, add_left_comm],
+  nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
+  nsmul_zero' := λ f, by { ext, simp },
+  nsmul_succ' := λ n f, by { ext, simp [add_smul, nat.succ_eq_one_add] } }
 
 @[simp] lemma sum_apply {α : Type*} (f : α → multilinear_map R M₁ M₂)
   (m : Πi, M₁ i) : ∀ {s : finset α}, (∑ a in s, f a) m = ∑ a in s, f a m :=
@@ -168,7 +175,7 @@ def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
 /-- Combine a family of multilinear maps with the same domain and codomains `M' i` into a
 multilinear map taking values in the space of functions `Π i, M' i`. -/
 @[simps] def pi {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
-  [Π i, semimodule R (M' i)] (f : Π i, multilinear_map R M₁ (M' i)) :
+  [Π i, module R (M' i)] (f : Π i, multilinear_map R M₁ (M' i)) :
   multilinear_map R M₁ (Π i, M' i) :=
 { to_fun := λ m i, f i m,
   map_add' := λ m i x y, funext $ λ j, (f j).map_add _ _ _ _,
@@ -219,7 +226,7 @@ by rw [← update_snoc_last x m (c • x), f.map_smul, update_snoc_last]
 
 section
 
-variables {M₁' : ι → Type*} [Π i, add_comm_monoid (M₁' i)] [Π i, semimodule R (M₁' i)]
+variables {M₁' : ι → Type*} [Π i, add_comm_monoid (M₁' i)] [Π i, module R (M₁' i)]
 
 /-- If `g` is a multilinear map and `f` is a collection of linear maps,
 then `g (f₁ m₁, ..., fₙ mₙ)` is again a multilinear map, that we call
@@ -331,7 +338,7 @@ begin
       simp only [finset.sum_congr rfl this, finset.mem_univ, finset.sum_const, Ai_card i,
                  one_nsmul] },
     simp only [sum_congr rfl this, Ai_card, card_pi_finset, prod_const_one, one_nsmul,
-               sum_const] },
+               finset.sum_const] },
   -- Remains the interesting case where one of the `A i`, say `A i₀`, has cardinality at least 2.
   -- We will split into two parts `B i₀` and `C i₀` of smaller cardinality, let `B i = C i = A i`
   -- for `i ≠ i₀`, apply the inductive assumption to `B` and `C`, and add up the corresponding
@@ -455,11 +462,11 @@ end apply_sum
 
 section restrict_scalar
 
-variables (R) {A : Type*} [semiring A] [has_scalar R A] [Π (i : ι), semimodule A (M₁ i)]
-  [semimodule A M₂] [∀ i, is_scalar_tower R A (M₁ i)] [is_scalar_tower R A M₂]
+variables (R) {A : Type*} [semiring A] [has_scalar R A] [Π (i : ι), module A (M₁ i)]
+  [module A M₂] [∀ i, is_scalar_tower R A (M₁ i)] [is_scalar_tower R A M₂]
 
 /-- Reinterpret an `A`-multilinear map as an `R`-multilinear map, if `A` is an algebra over `R`
-and their actions on all involved semimodules agree with the action of `R` on `A`. -/
+and their actions on all involved modules agree with the action of `R` on `A`. -/
 def restrict_scalars (f : multilinear_map A M₁ M₂) : multilinear_map R M₁ M₂ :=
 { to_fun := f,
   map_add' := f.map_add,
@@ -514,7 +521,7 @@ end multilinear_map
 namespace linear_map
 variables [semiring R]
 [Πi, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M']
-[∀i, semimodule R (M₁ i)] [semimodule R M₂] [semimodule R M₃] [semimodule R M']
+[∀i, module R (M₁ i)] [module R M₂] [module R M₃] [module R M']
 
 /-- Composing a multilinear map with a linear map gives again a multilinear map. -/
 def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) :
@@ -543,7 +550,7 @@ namespace multilinear_map
 section comm_semiring
 
 variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [∀i, add_comm_monoid (M i)]
-[add_comm_monoid M₂] [∀i, semimodule R (M i)] [∀i, semimodule R (M₁ i)] [semimodule R M₂]
+[add_comm_monoid M₂] [∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂]
 (f f' : multilinear_map R M₁ M₂)
 
 /-- If one multiplies by `c i` the coordinates in a finset `s`, then the image under a multilinear
@@ -574,7 +581,7 @@ by simpa using map_piecewise_smul f c m finset.univ
 section distrib_mul_action
 
 variables {R' A : Type*} [monoid R'] [semiring A]
-  [Π i, semimodule A (M₁ i)] [distrib_mul_action R' M₂] [semimodule A M₂] [smul_comm_class A R' M₂]
+  [Π i, module A (M₁ i)] [distrib_mul_action R' M₂] [module A M₂] [smul_comm_class A R' M₂]
 
 instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
   ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x c] ⟩⟩
@@ -590,15 +597,15 @@ instance : distrib_mul_action R' (multilinear_map A M₁ M₂) :=
 
 end distrib_mul_action
 
-section semimodule
+section module
 
 variables {R' A : Type*} [semiring R'] [semiring A]
-  [Π i, semimodule A (M₁ i)] [semimodule A M₂]
-  [add_comm_monoid M₃] [semimodule R' M₃] [semimodule A M₃] [smul_comm_class A R' M₃]
+  [Π i, module A (M₁ i)] [module A M₂]
+  [add_comm_monoid M₃] [module R' M₃] [module A M₃] [smul_comm_class A R' M₃]
 
 /-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise
 addition and scalar multiplication. -/
-instance [semimodule R' M₂] [smul_comm_class A R' M₂] : semimodule R' (multilinear_map A M₁ M₂) :=
+instance [module R' M₂] [smul_comm_class A R' M₂] : module R' (multilinear_map A M₁ M₂) :=
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
@@ -612,7 +619,7 @@ def dom_dom_congr_linear_equiv {ι₁ ι₂} [decidable_eq ι₁] [decidable_eq 
   .. (dom_dom_congr_equiv σ : multilinear_map A (λ i : ι₁, M₂) M₃ ≃+
         multilinear_map A (λ i : ι₂, M₂) M₃) }
 
-end semimodule
+end module
 
 section dom_coprod
 
@@ -620,9 +627,9 @@ open_locale tensor_product
 
 variables {ι₁ ι₂ ι₃ ι₄ : Type*}
 variables [decidable_eq ι₁] [decidable_eq ι₂][decidable_eq ι₃] [decidable_eq ι₄]
-variables {N₁ : Type*} [add_comm_monoid N₁] [semimodule R N₁]
-variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
-variables {N : Type*} [add_comm_monoid N] [semimodule R N]
+variables {N₁ : Type*} [add_comm_monoid N₁] [module R N₁]
+variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂]
+variables {N : Type*} [add_comm_monoid N] [module R N]
 
 /-- Given two multilinear maps `(ι₁ → N) → N₁` and `(ι₂ → N) → N₂`, this produces the map
 `(ι₁ ⊕ ι₂ → N) → N₁ ⊗ N₂` by taking the coproduct of the domain and the tensor product
@@ -768,7 +775,7 @@ end comm_semiring
 section range_add_comm_group
 
 variables [semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_group M₂]
-[∀i, semimodule R (M₁ i)] [semimodule R M₂]
+[∀i, module R (M₁ i)] [module R M₂]
 (f g : multilinear_map R M₁ M₂)
 
 instance : has_neg (multilinear_map R M₁ M₂) :=
@@ -785,16 +792,26 @@ instance : has_sub (multilinear_map R M₁ M₂) :=
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - g) m = f m - g m := rfl
 
 instance : add_comm_group (multilinear_map R M₁ M₂) :=
-by refine { zero := 0, add := (+), neg := has_neg.neg,
-            sub := has_sub.sub, sub_eq_add_neg := _, .. };
-   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+by refine
+{ zero := (0 : multilinear_map R M₁ M₂),
+  add := (+),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := _,
+  nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
+  gsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
+  gsmul_zero' := _,
+  gsmul_succ' := _,
+  gsmul_neg' := _,
+  .. multilinear_map.add_comm_monoid, .. };
+intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one]
 
 end range_add_comm_group
 
 section add_comm_group
 
 variables [semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
-[∀i, semimodule R (M₁ i)] [semimodule R M₂]
+[∀i, module R (M₁ i)] [module R M₂]
 (f : multilinear_map R M₁ M₂)
 
 @[simp] lemma map_neg (m : Πi, M₁ i) (i : ι) (x : M₁ i) :
@@ -809,8 +826,8 @@ end add_comm_group
 
 section comm_semiring
 
-variables [comm_semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
-[∀i, semimodule R (M₁ i)] [semimodule R M₂]
+variables [comm_semiring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+[∀i, module R (M₁ i)] [module R M₂]
 
 /-- When `ι` is finite, multilinear maps on `R^ι` with values in `M₂` are in bijection with `M₂`,
 as such a multilinear map is completely determined by its value on the constant vector made of ones.
@@ -845,7 +862,7 @@ open multilinear_map
 
 variables {R M M₂}
 [comm_semiring R] [∀i, add_comm_monoid (M i)] [add_comm_monoid M'] [add_comm_monoid M₂]
-[∀i, semimodule R (M i)] [semimodule R M'] [semimodule R M₂]
+[∀i, module R (M i)] [module R M'] [module R M₂]
 
 /-! #### Left currying -/
 
@@ -1159,7 +1176,7 @@ section submodule
 
 variables {R M M₂}
 [ring R] [∀i, add_comm_monoid (M₁ i)] [add_comm_monoid M'] [add_comm_monoid M₂]
-[∀i, semimodule R (M₁ i)] [semimodule R M'] [semimodule R M₂]
+[∀i, module R (M₁ i)] [module R M'] [module R M₂]
 
 namespace multilinear_map
 

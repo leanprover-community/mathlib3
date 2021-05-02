@@ -27,9 +27,9 @@ section semiring
 variables [semiring R] {p q r : polynomial R}
 
 lemma monic.as_sum {p : polynomial R} (hp : p.monic) :
-  p = X^(p.nat_degree) + (∑ i in finset.range p.nat_degree, C (p.coeff i) * X^i) :=
+  p = X^(p.nat_degree) + (∑ i in range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
-  conv_lhs { rw [p.as_sum_range_C_mul_X_pow, finset.sum_range_succ] },
+  conv_lhs { rw [p.as_sum_range_C_mul_X_pow, sum_range_succ_comm] },
   suffices : C (p.coeff p.nat_degree) = 1,
   { rw [this, one_mul] },
   exact congr_arg C hp
@@ -89,7 +89,7 @@ else
 
 lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
-| (n+1) := monic_mul hp (monic_pow n)
+| (n+1) := by { rw pow_succ, exact monic_mul hp (monic_pow n) }
 
 lemma monic_add_of_left {p q : polynomial R} (hp : monic p) (hpq : degree q < degree p) :
   monic (p + q) :=
@@ -137,9 +137,22 @@ end semiring
 section comm_semiring
 variables [comm_semiring R] {p : polynomial R}
 
+lemma monic_multiset_prod_of_monic (t : multiset ι) (f : ι → polynomial R)
+  (ht : ∀ i ∈ t, monic (f i)) :
+  monic (t.map f).prod :=
+begin
+  revert ht,
+  refine t.induction_on _ _, { simp },
+  intros a t ih ht,
+  rw [multiset.map_cons, multiset.prod_cons],
+  exact monic_mul
+    (ht _ (multiset.mem_cons_self _ _))
+    (ih (λ _ hi, ht _ (multiset.mem_cons_of_mem hi)))
+end
+
 lemma monic_prod_of_monic (s : finset ι) (f : ι → polynomial R) (hs : ∀ i ∈ s, monic (f i)) :
-monic (∏ i in s, f i) :=
-prod_induction _ _ (@monic_mul _ _) monic_one hs
+  monic (∏ i in s, f i) :=
+monic_multiset_prod_of_monic s.1 f hs
 
 lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
 begin
@@ -172,19 +185,24 @@ have degree p ≤ 0,
 by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
     ← leading_coeff, hm.leading_coeff, C_1]
 
-lemma monic.next_coeff_prod (s : finset ι) (f : ι → polynomial R) (h : ∀ i ∈ s, monic (f i)) :
-next_coeff (∏ i in s, f i) = ∑ i in s, next_coeff (f i) :=
+lemma monic.next_coeff_multiset_prod (t : multiset ι) (f : ι → polynomial R)
+  (h : ∀ i ∈ t, monic (f i)) :
+  next_coeff (t.map f).prod = (t.map (λ i, next_coeff (f i))).sum :=
 begin
-  classical,
-  revert h, apply finset.induction_on s,
-  { simp only [finset.not_mem_empty, forall_prop_of_true, forall_prop_of_false, finset.sum_empty,
-  finset.prod_empty, not_false_iff, forall_true_iff],
-  rw ← C_1, rw next_coeff_C_eq_zero },
-  { intros a s ha hs H,
-    rw [finset.prod_insert ha, finset.sum_insert ha, monic.next_coeff_mul, hs],
-    exacts [λ i hi, H i (mem_insert_of_mem hi), H a (mem_insert_self _ _),
-      monic_prod_of_monic _ _ (λ b bs, H _ (finset.mem_insert_of_mem bs))] }
+  revert h,
+  refine multiset.induction_on t _ (λ a t ih ht, _),
+  { simp only [multiset.not_mem_zero, forall_prop_of_true, forall_prop_of_false, multiset.map_zero,
+               multiset.prod_zero, multiset.sum_zero, not_false_iff, forall_true_iff],
+    rw ← C_1, rw next_coeff_C_eq_zero },
+  { rw [multiset.map_cons, multiset.prod_cons, multiset.map_cons, multiset.sum_cons,
+        monic.next_coeff_mul, ih],
+    exacts [λ i hi, ht i (multiset.mem_cons_of_mem hi), ht a (multiset.mem_cons_self _ _),
+            monic_multiset_prod_of_monic _ _ (λ b bs, ht _ (multiset.mem_cons_of_mem bs))] }
 end
+
+lemma monic.next_coeff_prod (s : finset ι) (f : ι → polynomial R) (h : ∀ i ∈ s, monic (f i)) :
+  next_coeff (∏ i in s, f i) = ∑ i in s, next_coeff (f i) :=
+monic.next_coeff_multiset_prod s.1 f h
 
 end comm_semiring
 

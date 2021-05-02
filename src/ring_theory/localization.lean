@@ -596,7 +596,7 @@ begin
   cases h with t ht,
   use t,
   rw [neg_mul_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm, ht],
-  ring,
+  ring_nf,
 end⟩
 
 instance : has_zero (localization M) :=
@@ -619,7 +619,7 @@ instance : comm_ring (localization M) :=
   neg            := has_neg.neg,
   sub            := λ x y, x + -y,
   sub_eq_add_neg := λ x y, rfl,
-  add_left_neg   := λ y, quotient.induction_on' y (by tac),
+  add_left_neg   := λ y, by exact quotient.induction_on' y (by tac),
   add_comm       := λ y z, quotient.induction_on₂' z y (by tac),
   left_distrib   := λ m n k, quotient.induction_on₃' m n k (by tac),
   right_distrib  := λ m n k, quotient.induction_on₃' m n k (by tac),
@@ -937,9 +937,9 @@ begin
     rw ← ring_hom.map_mul at hn,
     replace hn := congr_arg (ideal.quotient_map I f.to_map le_rfl) hn,
     simp only [ring_hom.map_one, ideal.quotient_map_mk, ring_hom.map_mul] at hn,
-    rw [ideal.quotient_map_mk, ← sub_eq_zero_iff_eq, ← ring_hom.map_sub,
+    rw [ideal.quotient_map_mk, ← sub_eq_zero, ← ring_hom.map_sub,
       ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.eq_zero_iff_mem, ring_hom.map_sub,
-      sub_eq_zero_iff_eq, localization_map.mk'_eq_mul_mk'_one],
+      sub_eq_zero, localization_map.mk'_eq_mul_mk'_one],
     simp only [mul_eq_mul_left_iff, ring_hom.map_mul],
     exact or.inl (mul_left_cancel' (λ hn, hM (ideal.quotient.eq_zero_iff_mem.2
       (ideal.mem_comap.2 (ideal.quotient.eq_zero_iff_mem.1 hn)))) (trans hn

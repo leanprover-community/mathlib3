@@ -38,6 +38,7 @@ lemma tendsto_fpow_at_top_at_top {n : ℤ}
   (hn : 0 < n) : tendsto (λ x : 𝕜, x^n) at_top at_top :=
 begin
   lift n to ℕ using hn.le,
+  simp only [gpow_coe_nat],
   exact tendsto_pow_at_top (nat.succ_le_iff.mpr $int.coe_nat_pos.mp hn)
 end
 

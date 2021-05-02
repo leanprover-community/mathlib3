@@ -31,7 +31,7 @@ equality.
 TODO: update this when bimodules are defined. -/
 @[protect_proj]
 structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
-  [algebra R A] (M : Type*) [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
+  [algebra R A] (M : Type*) [add_cancel_comm_monoid M] [module A M] [module R M]
   [is_scalar_tower R A M]
   extends A →ₗ[R] M :=
 (leibniz' (a b : A) : to_fun (a * b) = a • to_fun b + b • to_fun a)
@@ -42,7 +42,7 @@ section
 
 variables {R : Type*} [comm_semiring R]
 variables {A : Type*} [comm_semiring A] [algebra R A]
-variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
+variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
 variables [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
@@ -95,7 +95,7 @@ instance : add_comm_monoid (derivation R A M) :=
 @[simp] lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
 
 @[priority 100]
-instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
+instance derivation.Rmodule : module R (derivation R A M) :=
 { smul := λ r D, ⟨r • D, λ a b, by simp only [linear_map.smul_apply, leibniz,
     linear_map.to_fun_eq_coe, smul_algebra_smul_comm, coe_fn_coe, smul_add, add_comm],⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
@@ -108,7 +108,7 @@ instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 @[simp] lemma smul_to_linear_map_coe : ↑(r • D) = (r • D : A →ₗ[R] M) := rfl
 @[simp] lemma Rsmul_apply : (r • D) a = r • D a := rfl
 
-instance : semimodule A (derivation R A M) :=
+instance : module A (derivation R A M) :=
 { smul := λ a D, ⟨a • D, λ b c, by { dsimp, simp only [smul_add, leibniz, smul_comm a, add_comm] }⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul A _,
@@ -173,13 +173,13 @@ lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 instance : lie_ring (derivation R A A) :=
 { add_lie     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
   lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
-  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring_nf, },
   leibniz_lie := λ d e f,
     by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
 
 instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, Rsmul_apply]},
-  ..derivation.Rsemimodule }
+  ..derivation.Rmodule }
 
 end lie_structures
 
@@ -193,8 +193,8 @@ namespace linear_map
 
 variables {R : Type*} [comm_semiring R]
 variables {A : Type*} [comm_semiring A] [algebra R A]
-variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
-variables {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
+variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
+variables {N : Type*} [add_cancel_comm_monoid N] [module A N] [module R N]
 variables [is_scalar_tower R A M] [is_scalar_tower R A N]
 
 /-- The composition of a linear map and a derivation is a derivation. -/

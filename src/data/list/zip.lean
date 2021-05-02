@@ -26,6 +26,10 @@ namespace list
 @[simp] theorem zip_with_nil_right (f : α → β → γ) (l)  : zip_with f l [] = [] :=
 by cases l; refl
 
+@[simp] lemma zip_with_eq_nil_iff {f : α → β → γ} {l l'} :
+  zip_with f l l' = [] ↔ l = [] ∨ l' = [] :=
+by { cases l; cases l'; simp }
+
 @[simp] theorem zip_nil_left (l : list α) : zip ([] : list β) l = [] := rfl
 
 @[simp] theorem zip_nil_right (l : list α) : zip l ([] : list β) = [] :=
@@ -112,6 +116,16 @@ theorem zip_map' (f : α → β) (g : α → γ) : ∀ (l : list α),
 | []     := rfl
 | (a::l) := by simp only [map, zip_cons_cons, zip_map' l]; split; refl
 
+lemma map_zip_with {δ : Type*} (f : α → β) (g : γ → δ → α) (l : list γ) (l' : list δ) :
+  map f (zip_with g l l') = zip_with (λ x y, f (g x y)) l l' :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l',
+    { simp },
+    { simp [hl] } }
+end
+
 theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
    (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
 | (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
@@ -181,6 +195,20 @@ by { rw ←zip_map', congr, exact map_id _ }
 lemma map_prod_right_eq_zip {l : list α} (f : α → β) : l.map (λ x, (f x, x)) = (l.map f).zip l :=
 by { rw ←zip_map', congr, exact map_id _ }
 
+lemma zip_with_comm (f : α → α → β) (comm : ∀ (x y : α), f x y = f y x)
+  (l l' : list α) :
+  zip_with f l l' = zip_with f l' l :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l',
+    { simp },
+    { simp [comm, hl] } }
+end
+
+instance (f : α → α → β) [is_symm_op α β f] : is_symm_op (list α) (list β) (zip_with f) :=
+⟨zip_with_comm f is_symm_op.symm_op⟩
+
 @[simp] theorem length_revzip (l : list α) : length (revzip l) = length l :=
 by simp only [revzip, length_zip, length_reverse, min_self]
 
@@ -199,15 +227,14 @@ by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip
 theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
 by simp [revzip]
 
-lemma nth_zip_with {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
-  (zip_with f l₁ l₂).nth i = f <$> l₁.nth i <*> l₂.nth i :=
+lemma nth_zip_with (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
+  (zip_with f l₁ l₂).nth i = ((l₁.nth i).map f).bind (λ g, (l₂.nth i).map g) :=
 begin
   induction l₁ generalizing l₂ i,
   { simp [zip_with, (<*>)] },
   { cases l₂; simp only [zip_with, has_seq.seq, functor.map, nth, option.map_none'],
     { cases ((l₁_hd :: l₁_tl).nth i); refl },
-    { cases i; simp only [option.map_some', nth, option.some_bind', *],
-      refl } },
+    { cases i; simp only [option.map_some', nth, option.some_bind', *] } }
 end
 
 lemma nth_zip_with_eq_some {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (z : γ) (i : ℕ) :
@@ -283,5 +310,65 @@ begin
     { simp, },
     { simp [hl, mul_add] } }
 end
+
+section distrib
+
+/-! ### Operations that can be applied before or after a `zip_with` -/
+
+variables (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
+
+lemma zip_with_distrib_take :
+  (zip_with f l l').take n = zip_with f (l.take n) (l'.take n) :=
+begin
+  induction l with hd tl hl generalizing l' n,
+  { simp },
+  { cases l',
+    { simp },
+    { cases n,
+      { simp },
+      { simp [hl] } } }
+end
+
+lemma zip_with_distrib_drop :
+  (zip_with f l l').drop n = zip_with f (l.drop n) (l'.drop n) :=
+begin
+  induction l with hd tl hl generalizing l' n,
+  { simp },
+  { cases l',
+    { simp },
+    { cases n,
+      { simp },
+      { simp [hl] } } }
+end
+
+lemma zip_with_distrib_tail :
+  (zip_with f l l').tail = zip_with f l.tail l'.tail :=
+by simp_rw [←drop_one, zip_with_distrib_drop]
+
+lemma zip_with_append (f : α → β → γ) (l la : list α) (l' lb : list β) (h : l.length = l'.length) :
+  zip_with f (l ++ la) (l' ++ lb) = zip_with f l l' ++ zip_with f la lb :=
+begin
+  induction l with hd tl hl generalizing l',
+  { have : l' = [] := eq_nil_of_length_eq_zero (by simpa using h.symm),
+    simp [this], },
+  { cases l',
+    { simpa using h },
+    { simp only [add_left_inj, length] at h,
+      simp [hl _ h] } }
+end
+
+lemma zip_with_distrib_reverse (h : l.length = l'.length) :
+  (zip_with f l l').reverse = zip_with f l.reverse l'.reverse :=
+begin
+  induction l with hd tl hl generalizing l',
+  { simp },
+  { cases l' with hd' tl',
+    { simp },
+    { simp only [add_left_inj, length] at h,
+      have : tl.reverse.length = tl'.reverse.length := by simp [h],
+      simp [hl _ h, zip_with_append _ _ _ _ _ this] } }
+end
+
+end distrib
 
 end list

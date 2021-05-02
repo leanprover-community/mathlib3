@@ -8,6 +8,7 @@ import topology.category.CompHaus
 import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
+import category_theory.monad.limits
 
 /-!
 # The category of Profinite Types
@@ -28,9 +29,8 @@ compact, Hausdorff and totally disconnected.
 ## TODO
 
 0. Link to category of projective limits of finite discrete sets.
-1. existence of products, limits(?), finite coproducts
-2. `Profinite_to_Top` creates limits?
-3. Clausen/Scholze topology on the category `Profinite`.
+1. finite coproducts
+2. Clausen/Scholze topology on the category `Profinite`.
 
 ## Tags
 
@@ -51,22 +51,28 @@ namespace Profinite
 
 instance : inhabited Profinite := ⟨{to_Top := { α := pempty }}⟩
 
+instance category : category Profinite := induced_category.category to_Top
+instance concrete_category : concrete_category Profinite := induced_category.concrete_category _
+instance has_forget₂ : has_forget₂ Profinite Top := induced_category.has_forget₂ _
+
 instance : has_coe_to_sort Profinite := ⟨Type*, λ X, X.to_Top⟩
 instance {X : Profinite} : compact_space X := X.is_compact
 instance {X : Profinite} : t2_space X := X.is_t2
 instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconnected
 
-instance category : category Profinite := induced_category.category to_Top
-
 @[simp]
 lemma coe_to_Top {X : Profinite} : (X.to_Top : Type*) = X :=
 rfl
+
+@[simp] lemma coe_id (X : Profinite) : (𝟙 X : X → X) = id := rfl
+
+@[simp] lemma coe_comp {X Y Z : Profinite} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g : X → Z) = g ∘ f := rfl
 
 end Profinite
 
 /-- The fully faithful embedding of `Profinite` in `Top`. -/
 @[simps, derive [full, faithful]]
-def Profinite_to_Top : Profinite ⥤ Top := induced_functor _
+def Profinite_to_Top : Profinite ⥤ Top := forget₂ _ _
 
 /-- The fully faithful embedding of `Profinite` in `CompHaus`. -/
 @[simps] def Profinite.to_CompHaus : Profinite ⥤ CompHaus :=
@@ -132,5 +138,20 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
 /-- The category of profinite sets is reflective in the category of compact hausdroff spaces -/
 instance Profinite.to_CompHaus.reflective : reflective Profinite.to_CompHaus :=
 { to_is_right_adjoint := ⟨CompHaus.to_Profinite, Profinite.to_Profinite_adj_to_CompHaus⟩ }
+
+noncomputable
+instance Profinite.to_CompHaus.creates_limits : creates_limits Profinite.to_CompHaus :=
+monadic_creates_limits _
+
+noncomputable
+instance Profinite.to_Top.reflective : reflective (Profinite_to_Top : Profinite ⥤ Top) :=
+reflective.comp Profinite.to_CompHaus CompHaus_to_Top
+
+noncomputable
+instance Profinite.to_Top.creates_limits : creates_limits Profinite_to_Top :=
+monadic_creates_limits _
+
+instance Profinite.has_limits : limits.has_limits Profinite :=
+has_limits_of_has_limits_creates_limits Profinite_to_Top
 
 end Profinite

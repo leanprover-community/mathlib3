@@ -53,7 +53,9 @@ end
 instance limit_algebra (F : J ⥤ Algebra R) :
   algebra R (types.limit_cone (F ⋙ forget (Algebra.{v} R))).X :=
 begin
-  change algebra R (sections_subalgebra F),
+  have : algebra R (types.limit_cone (F ⋙ forget (Algebra.{v} R))).X
+    = algebra R (sections_subalgebra F), by refl,
+  rw this,
   apply_instance,
 end
 
@@ -108,26 +110,13 @@ instance has_limits : has_limits (Algebra R) :=
       is_limit := limit_cone_is_limit F } } }
 
 /--
-An auxiliary declaration to speed up typechecking.
--/
-def forget₂_Ring_preserves_limits_aux (F : J ⥤ Algebra R) :
-  is_limit ((forget₂ (Algebra R) Ring).map_cone (limit_cone F)) :=
-Ring.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) Ring)
-
-/--
 The forgetful functor from R-algebras to rings preserves all limits.
 -/
 instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ (Algebra R) Ring.{v}) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
-      (limit_cone_is_limit F) (forget₂_Ring_preserves_limits_aux F) } }
-
-/--
-An auxiliary declaration to speed up typechecking.
--/
-def forget₂_Module_preserves_limits_aux (F : J ⥤ Algebra R) :
-  is_limit ((forget₂ (Algebra R) (Module R)).map_cone (limit_cone F)) :=
-Module.has_limits.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) (Module R))
+      (limit_cone_is_limit F)
+      (by apply Ring.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) Ring)) } }
 
 /--
 The forgetful functor from R-algebras to R-modules preserves all limits.
@@ -135,7 +124,8 @@ The forgetful functor from R-algebras to R-modules preserves all limits.
 instance forget₂_Module_preserves_limits : preserves_limits (forget₂ (Algebra R) (Module.{v} R)) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
-      (limit_cone_is_limit F) (forget₂_Module_preserves_limits_aux F) } }
+      (limit_cone_is_limit F)
+      (by apply Module.has_limits.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) (Module R))) } }
 
 /--
 The forgetful functor from R-algebras to types preserves all limits.

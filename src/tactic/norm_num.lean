@@ -127,9 +127,9 @@ h ▸ by simp [bit0, add_left_comm, add_assoc]
 theorem add_bit0_bit1 {α} [semiring α] (a b c : α) (h : a + b = c) : bit0 a + bit1 b = bit1 c :=
 h ▸ by simp [bit0, bit1, add_left_comm, add_assoc]
 theorem add_bit1_bit0 {α} [semiring α] (a b c : α) (h : a + b = c) : bit1 a + bit0 b = bit1 c :=
-h ▸ by simp [bit0, bit1, add_left_comm, add_comm]
+h ▸ by simp [bit0, bit1, add_left_comm, add_comm, add_assoc]
 theorem add_bit1_bit1 {α} [semiring α] (a b c : α) (h : a + b + 1 = c) : bit1 a + bit1 b = bit0 c :=
-h ▸ by simp [bit0, bit1, add_left_comm, add_comm]
+h ▸ by simp [bit0, bit1, add_left_comm, add_comm, add_assoc]
 theorem adc_one_one {α} [semiring α] : (1 + 1 + 1 : α) = 3 := rfl
 theorem adc_bit0_one {α} [semiring α] (a b : α) (h : a + 1 = b) : bit0 a + 1 + 1 = bit0 b :=
 h ▸ by simp [bit0, add_left_comm, add_assoc]
@@ -1065,7 +1065,7 @@ meta def prove_pow (a : expr) (na : ℚ) :
 
 end
 
-/-- Evaluates expressions of the form `a ^ b`, `monoid.pow a b` or `nat.pow a b`. -/
+/-- Evaluates expressions of the form `a ^ b`, `monoid.npow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
@@ -1074,7 +1074,7 @@ meta def eval_pow : expr → tactic (expr × expr)
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
   | _ := failed
   end
-| `(monoid.pow %%e₁ %%e₂) := do
+| `(monoid.npow %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
   prod.snd <$> prove_pow e₁ n₁ c e₂

@@ -51,7 +51,8 @@ theorem gcd_assoc (m n k : ℕ) : gcd (gcd m n) k = gcd m (gcd n k) :=
 dvd_antisymm
   (dvd_gcd
     (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_left m n))
-    (dvd_gcd (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_right m n)) (gcd_dvd_right (gcd m n) k)))
+    (dvd_gcd (dvd.trans (gcd_dvd_left (gcd m n) k) (gcd_dvd_right m n))
+      (gcd_dvd_right (gcd m n) k)))
   (dvd_gcd
     (dvd_gcd (gcd_dvd_left m (gcd n k)) (dvd.trans (gcd_dvd_right m (gcd n k)) (gcd_dvd_left n k)))
     (dvd.trans (gcd_dvd_right m (gcd n k)) (gcd_dvd_right n k)))
@@ -197,7 +198,8 @@ dvd_antisymm
     (dvd.trans (dvd_lcm_right n k) (dvd_lcm_right m (lcm n k))))
   (lcm_dvd
     (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
-    (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k)) (dvd_lcm_right (lcm m n) k)))
+    (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k))
+      (dvd_lcm_right (lcm m n) k)))
 
 theorem lcm_ne_zero {m n : ℕ} (hm : m ≠ 0) (hn : n ≠ 0) : lcm m n ≠ 0 :=
 by { intro h, simpa [h, hm, hn] using gcd_mul_lcm m n, }
@@ -210,9 +212,13 @@ See also `nat.coprime_of_dvd` and `nat.coprime_of_dvd'` to prove `nat.coprime m 
 
 instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_instance
 
+theorem coprime_iff_gcd_eq_one {m n : ℕ} : coprime m n ↔ gcd m n = 1 := iff.rfl
+
 theorem coprime.gcd_eq_one {m n : ℕ} : coprime m n → gcd m n = 1 := id
 
 theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n).trans
+
+theorem coprime_comm {m n : ℕ} : coprime n m ↔ coprime m n := ⟨coprime.symm, coprime.symm⟩
 
 theorem coprime.dvd_of_dvd_mul_right {m n k : ℕ} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in
@@ -243,12 +249,11 @@ by rw [mul_comm n k, H.gcd_mul_left_cancel_right n]
 
 theorem coprime_div_gcd_div_gcd {m n : ℕ} (H : 0 < gcd m n) :
   coprime (m / gcd m n) (n / gcd m n) :=
-by delta coprime; rw [gcd_div (gcd_dvd_left m n) (gcd_dvd_right m n), nat.div_self H]
+by rw [coprime_iff_gcd_eq_one, gcd_div (gcd_dvd_left m n) (gcd_dvd_right m n), nat.div_self H]
 
 theorem not_coprime_of_dvd_of_dvd {m n d : ℕ} (dgt1 : 1 < d) (Hm : d ∣ m) (Hn : d ∣ n) :
   ¬ coprime m n :=
-λ (co : gcd m n = 1),
-not_lt_of_ge (le_of_dvd zero_lt_one $ by rw ←co; exact dvd_gcd Hm Hn) dgt1
+λ co, not_lt_of_ge (le_of_dvd zero_lt_one $ by rw [←co.gcd_eq_one]; exact dvd_gcd Hm Hn) dgt1
 
 theorem exists_coprime {m n : ℕ} (H : 0 < gcd m n) :
   ∃ m' n', coprime m' n' ∧ m = m' * gcd m n ∧ n = n' * gcd m n :=
@@ -302,10 +307,10 @@ theorem coprime.coprime_div_right {m n a : ℕ} (cmn : coprime m n) (dvd : a ∣
 
 lemma coprime_mul_iff_left {k m n : ℕ} : coprime (m * n) k ↔ coprime m k ∧ coprime n k :=
 ⟨λ h, ⟨coprime.coprime_mul_right h, coprime.coprime_mul_left h⟩,
-  λ ⟨h, _⟩, by rwa [coprime, coprime.gcd_mul_left_cancel n h]⟩
+  λ ⟨h, _⟩, by rwa [coprime_iff_gcd_eq_one, coprime.gcd_mul_left_cancel n h]⟩
 
 lemma coprime_mul_iff_right {k m n : ℕ} : coprime k (m * n) ↔ coprime k m ∧ coprime k n :=
-by { repeat { rw [coprime, nat.gcd_comm k] }, exact coprime_mul_iff_left }
+by simpa only [coprime_comm] using coprime_mul_iff_left
 
 lemma coprime.gcd_left (k : ℕ) {m n : ℕ} (hmn : coprime m n) : coprime (gcd k m) n :=
 hmn.coprime_dvd_left $ gcd_dvd_right k m

@@ -73,7 +73,6 @@ instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] :
   ordered_cancel_comm_monoid α :=
 { mul_left_cancel       := @mul_left_cancel α _,
-  mul_right_cancel      := @mul_right_cancel α _,
   le_of_mul_le_mul_left := @ordered_comm_group.le_of_mul_le_mul_left α _,
   ..s }
 
@@ -425,7 +424,7 @@ def function.injective.ordered_comm_group {β : Type*}
   ordered_comm_group β :=
 { ..partial_order.lift f hf,
   ..hf.ordered_comm_monoid f one mul,
-  ..hf.comm_group_div f one mul inv div }
+  ..hf.comm_group f one mul inv div }
 
 end ordered_comm_group
 
@@ -587,7 +586,6 @@ instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   linear_ordered_cancel_comm_monoid α :=
 { le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
   mul_left_cancel := λ x y z, mul_left_cancel,
-  mul_right_cancel := λ x y z, mul_right_cancel,
   ..‹linear_ordered_comm_group α› }
 
 /-- Pullback a `linear_ordered_comm_group` under an injective map. -/
@@ -701,6 +699,9 @@ lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → 
 le_of_forall_le_of_dense $ λ c hc,
 calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
    ... = c           : add_sub_cancel'_right _ _
+
+lemma le_of_forall_pos_lt_add (h : ∀ ε : α, 0 < ε → a < b + ε) : a ≤ b :=
+le_of_not_lt $ λ h₁, by simpa using h _ (sub_pos_of_lt h₁)
 
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)

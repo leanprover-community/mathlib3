@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import data.polynomial.monomial
+import data.polynomial.basic
 import data.finset.nat_antidiagonal
 
 /-!
@@ -169,7 +169,7 @@ lemma span_le_of_coeff_mem_C_inverse (cf : ∀ (i : ℕ), f.coeff i ∈ (C ⁻¹
 begin
   refine bInter_subset_of_mem _,
   rintros _ ⟨i, rfl⟩,
-  exact (mem_coe _).mpr (cf i),
+  exact set_like.mem_coe.mpr (cf i),
 end
 
 lemma mem_span_C_coeff :

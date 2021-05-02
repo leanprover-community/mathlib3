@@ -326,8 +326,7 @@ measurable_space.ext $ assume t, show t ∈ s ↔ _, by { conv_lhs { rw [← hs]
 
 /-- We get a Galois insertion between `σ`-algebras on `α` and `set (set α)` by using `generate_from`
   on one side and the collection of measurable sets on the other side. -/
-def gi_generate_from :
-galois_insertion (@generate_from α) (λ m, {t | @measurable_set α m t}) :=
+def gi_generate_from : galois_insertion (@generate_from α) (λ m, {t | @measurable_set α m t}) :=
 { gc        := assume s, generate_from_le_iff,
   le_l_u    := assume m s, measurable_set_generate_from,
   choice    :=

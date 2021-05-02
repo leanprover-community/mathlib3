@@ -43,6 +43,8 @@ infix ` Δ `:100 := symm_diff
   A Δ B = (A \ B) ⊔ (B \ A) :=
 rfl
 
+lemma symm_diff_eq_xor (p q : Prop) : p Δ q = xor p q := rfl
+
 section generalized_boolean_algebra
 variables {α : Type*} [generalized_boolean_algebra α] (a b c : α)
 
@@ -103,5 +105,3 @@ calc a Δ (b Δ c) = (a ⊓ ((b ⊓ c) ⊔ (bᶜ ⊓ cᶜ))) ⊔
                                                      end
 
 end boolean_algebra
-
-lemma symm_diff_eq_xor (p q : Prop) : p Δ q = xor p q := rfl

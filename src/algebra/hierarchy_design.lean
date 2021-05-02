@@ -8,6 +8,11 @@ import tactic.doc_commands
 /-!
 # Documentation of the algebraic hierarchy
 
+A library note giving advice on modifying the algebraic hierarchy.
+(It is not intended as a "tour".)
+
+TODO: Add sections about interactions with topological typeclasses, and order typeclasses.
+
 -/
 
 /--
@@ -152,14 +157,6 @@ using categorical language!
 One disadvantage of the bundled approach is that we can only speak of morphisms between
 objects living in the same type-theoretic universe.
 In practice this is rarely a problem.
-
-## Interactions with topology
-
-[[ Mention here all the `topological_Z` infrastructure you might want. ]]
-
-## Interactions with order
-
-[[ ... ]]
 
 # Making a pull request
 

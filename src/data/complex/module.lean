@@ -79,6 +79,14 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
+/-- Complex conjugation as an `ℝ`-algebra isomorphism  -/
+def conj_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
+{ inv_fun := complex.conj,
+  left_inv := complex.conj_conj,
+  right_inv := complex.conj_conj,
+  commutes' := complex.conj_of_real,
+  .. complex.conj }
+
 section
 open_locale complex_order
 

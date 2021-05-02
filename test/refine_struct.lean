@@ -57,6 +57,10 @@ begin
     guard_tags _field inv group, admit,
     guard_tags _field div group, admit,
     guard_tags _field div_eq_mul_inv group, admit,
+    guard_tags _field gpow group, admit,
+    guard_tags _field gpow_zero' group, admit,
+    guard_tags _field gpow_succ' group, admit,
+    guard_tags _field gpow_neg' group, admit,
     guard_tags _field mul_left_inv group, admit, },
   trivial
 end
@@ -68,7 +72,7 @@ example {α : Type} : true :=
 begin
   have : true,
   { refine_struct (@my_foo α { .. } { .. } ),
-      -- 9 goals
+      -- 18 goals
     guard_tags _field mul semigroup, admit,
       -- case semigroup, mul
       -- α : Type
@@ -105,19 +109,19 @@ begin
       -- ⊢ ∀ (a : α), a * 1 = a
 
     guard_tags _field npow group, admit,
-      -- case group, inv
+      -- case group, npow
       -- α : Type
-      -- ⊢ α → α
+      -- ⊢ ℕ → α → α
 
     guard_tags _field npow_zero' group, admit,
       -- case group, inv
       -- α : Type
-      -- ⊢ α → α
+      -- ⊢ ∀ (x : α), sorry 0 x = 1
 
     guard_tags _field npow_succ' group, admit,
-      -- case group, inv
+      -- case group, npow_succ'
       -- α : Type
-      -- ⊢ α → α
+      -- ⊢ ∀ (n : ℕ) (x : α), sorry n.succ x = x * sorry n x
 
     guard_tags _field inv group, admit,
       -- case group, inv
@@ -133,6 +137,26 @@ begin
       -- case group, div_eq_mul_inv
       -- α : Type
       -- ⊢ α → α
+
+    guard_tags _field gpow group, admit,
+      -- case group, gpow
+      -- α : Type
+      -- ⊢ ℤ → α → α
+
+    guard_tags _field gpow_zero' group, admit,
+      -- case group, gpow_zero'
+      -- α : Type
+      -- ⊢ ∀ (a : α), sorry 0 a = 1
+
+    guard_tags _field gpow_succ' group, admit,
+      -- case group, inv
+      -- α : Type
+      -- ⊢ ∀ (n : ℕ) (a : α), sorry (int.of_nat n.succ) a = a * sorry (int.of_nat n) a
+
+    guard_tags _field gpow_neg' group, admit,
+      -- case group, inv
+      -- α : Type
+      -- ⊢ ∀ (n : ℕ) (a : α), sorry -[1+ n] a = sorry (sorry ↑(n.succ) a)
 
     guard_tags _field mul_left_inv group, admit,
       -- case group, mul_left_inv
@@ -161,6 +185,10 @@ begin
     guard_tags _field inv group, admit,
     guard_tags _field div group, admit,
     guard_tags _field div_eq_mul_inv group, admit,
+    guard_tags _field gpow group, admit,
+    guard_tags _field gpow_zero' group, admit,
+    guard_tags _field gpow_succ' group, admit,
+    guard_tags _field gpow_neg' group, admit,
     guard_tags _field mul_left_inv group, admit,
     guard_tags _field mul_assoc monoid, admit,
     guard_tags _field one monoid, admit,

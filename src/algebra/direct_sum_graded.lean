@@ -38,7 +38,7 @@ and the `i`th grade `A i` with `A 0`-actions (`•`) defined as left-multiplicat
 
 * (nothing)
 * `direct_sum.grade_zero.has_scalar (A 0)`, `direct_sum.grade_zero.smul_with_zero (A 0)`
-* `direct_sum.grade_zero.semimodule (A 0)`
+* `direct_sum.grade_zero.module (A 0)`
 * (nothing)
 
 Note that in the presence of these instances, `⨁ i, A i` itself inherits an `A 0`-action.
@@ -139,8 +139,8 @@ def ghas_one.of_add_submonoids [semiring R] [has_zero ι]
   ghas_one (λ i, carriers i) :=
 { one := ⟨1, one_mem⟩ }
 
+-- `@[simps]` doesn't generate a useful lemma, so we state one manually below.
 /-- Build a `ghas_mul` instance for a collection of `add_submonoids`. -/
-@[simps mul]
 def ghas_mul.of_add_submonoids [semiring R] [has_add ι]
   (carriers : ι → add_submonoid R)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
@@ -152,6 +152,12 @@ def ghas_mul.of_add_submonoids [semiring R] [has_add ι]
       map_zero' := subtype.ext (mul_zero _), },
     map_add' := λ _ _, add_monoid_hom.ext $ λ _, subtype.ext (add_mul _ _ _),
     map_zero' := add_monoid_hom.ext $ λ _, subtype.ext (zero_mul _) }, }
+
+-- `@[simps]` doesn't generate this well
+@[simp] lemma ghas_mul.of_add_submonoids_mul [semiring R] [has_add ι]
+  (carriers : ι → add_submonoid R) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
+  @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_add_submonoids carriers mul_mem) i j a b =
+    ⟨a * b, mul_mem a b⟩ := rfl
 
 /-- Build a `gmonoid` instance for a collection of `add_submonoid`s. -/
 @[simps to_ghas_one to_ghas_mul]
@@ -187,13 +193,19 @@ def ghas_one.of_add_subgroups [ring R] [has_zero ι]
   ghas_one (λ i, carriers i) :=
 ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
+-- `@[simps]` doesn't generate a useful lemma, so we state one manually below.
 /-- Build a `ghas_mul` instance for a collection of `add_subgroup`s. -/
-@[simps mul]
 def ghas_mul.of_add_subgroups [ring R] [has_add ι]
   (carriers : ι → add_subgroup R)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : R) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
 ghas_mul.of_add_submonoids (λ i, (carriers i).to_add_submonoid) mul_mem
+
+-- `@[simps]` doesn't generate this well
+@[simp] lemma ghas_mul.of_add_subgroups_mul [ring R] [has_add ι]
+  (carriers : ι → add_subgroup R) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
+  @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_add_subgroups carriers mul_mem) i j a b =
+    ⟨a * b, mul_mem a b⟩ := rfl
 
 /-- Build a `gmonoid` instance for a collection of `add_subgroup`s. -/
 @[simps to_ghas_one to_ghas_mul]
@@ -226,14 +238,21 @@ def ghas_one.of_submodules
   ghas_one (λ i, carriers i) :=
 ghas_one.of_add_submonoids (λ i, (carriers i).to_add_submonoid) one_mem
 
+-- `@[simps]` doesn't generate a useful lemma, so we state one manually below.
 /-- Build a `ghas_mul` instance for a collection of `submodule`s. -/
-@[simps mul]
 def ghas_mul.of_submodules
   [comm_semiring R] [semiring A] [algebra R A] [has_add ι]
   (carriers : ι → submodule R A)
   (mul_mem : ∀ ⦃i j⦄ (gi : carriers i) (gj : carriers j), (gi * gj : A) ∈ carriers (i + j)) :
   ghas_mul (λ i, carriers i) :=
 ghas_mul.of_add_submonoids (λ i, (carriers i).to_add_submonoid) mul_mem
+
+-- `@[simps]` doesn't generate this well
+@[simp] lemma ghas_mul.of_submodules_mul
+  [comm_semiring R] [semiring A] [algebra R A] [has_add ι]
+  (carriers : ι → submodule R A) (mul_mem) {i j} (a : carriers i) (b : carriers j) :
+  @ghas_mul.mul _ _ _ _ _ (ghas_mul.of_submodules carriers mul_mem) i j a b =
+    ⟨a * b, mul_mem a b⟩ := rfl
 
 /-- Build a `gmonoid` instance for a collection of `submodules`s. -/
 @[simps to_ghas_one to_ghas_mul]
@@ -497,13 +516,13 @@ function.injective.semiring (of A 0) dfinsupp.single_injective
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
 { map_one' := of_zero_one A, map_mul' := of_zero_mul A, ..(of _ 0) }
 
-/-- Each grade `A i` derives a `A 0`-semimodule structure from `gmonoid A`. Note that this results
-in an overall `semimodule (A 0) (⨁ i, A i)` structure via `direct_sum.semimodule`.
+/-- Each grade `A i` derives a `A 0`-module structure from `gmonoid A`. Note that this results
+in an overall `module (A 0) (⨁ i, A i)` structure via `direct_sum.module`.
 -/
-instance grade_zero.semimodule {i} : semimodule (A 0) (A i) :=
+instance grade_zero.module {i} : module (A 0) (A i) :=
 begin
-  letI := semimodule.comp_hom (⨁ i, A i) (of_zero_ring_hom A),
-  exact dfinsupp.single_injective.semimodule (A 0) (of A i) (λ a, of_zero_smul A a),
+  letI := module.comp_hom (⨁ i, A i) (of_zero_ring_hom A),
+  exact dfinsupp.single_injective.module (A 0) (of A i) (λ a, of_zero_smul A a),
 end
 
 end semiring

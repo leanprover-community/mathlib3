@@ -59,6 +59,10 @@ instance [mul_zero_one_class Y] : mul_zero_one_class (locally_constant X Y) :=
 { mul_assoc := by { intros, ext, simp only [mul_apply, mul_assoc] },
   .. locally_constant.has_mul }
 
+instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
+{ .. locally_constant.mul_zero_class,
+  .. locally_constant.semigroup }
+
 @[to_additive] instance [comm_semigroup Y] : comm_semigroup (locally_constant X Y) :=
 { mul_comm := by { intros, ext, simp only [mul_apply, mul_comm] },
   .. locally_constant.semigroup }

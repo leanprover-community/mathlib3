@@ -5,7 +5,8 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.group.hom_instances
 import algebra.order_functions
-import algebra.ordered_monoid
+import algebra.ordered_ring
+import algebra.group_power.order
 
 /-!
 # Basic operations on the natural numbers
@@ -1269,8 +1270,10 @@ strict_mono.lt_iff_lt (pow_left_strict_mono k)
 lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
 strict_mono.injective (pow_left_strict_mono k)
 
-theorem pow_two_sub_pow_two (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by { rw [pow_two, pow_two], exact nat.mul_self_sub_mul_self_eq a b }
+theorem sq_sub_sq (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by { rw [sq, sq], exact nat.mul_self_sub_mul_self_eq a b }
+
+alias nat.sq_sub_sq ← nat.pow_two_sub_pow_two
 
 /-! ### `pow` and `mod` / `dvd` -/
 

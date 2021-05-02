@@ -256,6 +256,18 @@ and_congr val_le_iff $ not_congr val_le_iff
 theorem ssubset_iff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ⊂ s₂ ↔ ∃ x ∈ s₂, x ∉ s₁ :=
 set.ssubset_iff_of_subset h
 
+lemma ssubset_of_ssubset_of_subset {s₁ s₂ s₃ : finset α} (hs₁s₂ : s₁ ⊂ s₂) (hs₂s₃ : s₂ ⊆ s₃) :
+  s₁ ⊂ s₃ :=
+set.ssubset_of_ssubset_of_subset hs₁s₂ hs₂s₃
+
+lemma ssubset_of_subset_of_ssubset {s₁ s₂ s₃ : finset α} (hs₁s₂ : s₁ ⊆ s₂) (hs₂s₃ : s₂ ⊂ s₃) :
+  s₁ ⊂ s₃ :=
+set.ssubset_of_subset_of_ssubset hs₁s₂ hs₂s₃
+
+lemma exists_of_ssubset {s₁ s₂ : finset α} (h : s₁ ⊂ s₂) :
+  ∃ x ∈ s₂, x ∉ s₁ :=
+set.exists_of_ssubset h
+
 /-! ### Nonempty -/
 
 /-- The property `s.nonempty` expresses the fact that the finset `s` is not empty. It should be used
@@ -387,11 +399,31 @@ by rw [coe_singleton, set.singleton_subset_iff]
   {a} ⊆ s ↔ a ∈ s :=
 singleton_subset_set_iff
 
+@[simp] lemma subset_singleton_iff {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
+begin
+  split,
+  { intro hs,
+    apply or.imp_right _ s.eq_empty_or_nonempty,
+    rintro ⟨t, ht⟩,
+    apply subset.antisymm hs,
+    rwa [singleton_subset_iff, ←mem_singleton.1 (hs ht)] },
+  rintro (rfl | rfl),
+  { exact empty_subset _ },
+  exact subset.refl _,
+end
+
+@[simp] lemma ssubset_singleton_iff {s : finset α} {a : α} :
+  s ⊂ {a} ↔ s = ∅ :=
+by rw [←coe_ssubset, coe_singleton, set.ssubset_singleton_iff, coe_eq_empty]
+
+lemma eq_empty_of_ssubset_singleton {s : finset α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
+ssubset_singleton_iff.1 hs
+
 /-! ### cons -/
 
 /-- `cons a s h` is the set `{a} ∪ s` containing `a` and the elements of `s`. It is the same as
 `insert a s` when it is defined, but unlike `insert a s` it does not require `decidable_eq α`,
-and the union is guaranteed to be disjoint.  -/
+and the union is guaranteed to be disjoint. -/
 def cons {α} (a : α) (s : finset α) (h : a ∉ s) : finset α :=
 ⟨a ::ₘ s.1, multiset.nodup_cons.2 ⟨h, s.2⟩⟩
 
@@ -615,8 +647,8 @@ theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ
 
 theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
-lemma union_subset_union {s1 t1 s2 t2 : finset α} (h1 : s1 ⊆ t1) (h2 : s2 ⊆ t2) :
-  s1 ∪ s2 ⊆ t1 ∪ t2 :=
+lemma union_subset_union {s₁ t₁ s₂ t₂ : finset α} (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) :
+  s₁ ∪ s₂ ⊆ t₁ ∪ t₂ :=
 by { intros x hx, rw finset.mem_union at hx ⊢, tauto }
 
 theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
@@ -875,6 +907,14 @@ theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) �
 
 lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
 
+lemma union_subset_iff {s₁ s₂ s₃ : finset α} :
+  s₁ ∪ s₂ ⊆ s₃ ↔ s₁ ⊆ s₃ ∧ s₂ ⊆ s₃ :=
+(sup_le_iff : s₁ ⊔ s₂ ≤ s₃ ↔ s₁ ≤ s₃ ∧ s₂ ≤ s₃)
+
+lemma subset_inter_iff {s₁ s₂ s₃ : finset α} :
+  s₁ ⊆ s₂ ∩ s₃ ↔ s₁ ⊆ s₂ ∧ s₁ ⊆ s₃ :=
+(le_inf_iff : s₁ ≤ s₂ ⊓ s₃ ↔ s₁ ≤ s₂ ∧ s₁ ≤ s₃)
+
 theorem inter_eq_left_iff_subset (s t : finset α) :
   s ∩ t = s ↔ s ⊆ t :=
 (inf_eq_left : s ⊓ t = s ↔ s ≤ t)
@@ -1095,8 +1135,8 @@ end decidable_eq
 
 /-! ### attach -/
 
-/-- `attach s` takes the elements of `s` and forms a new set of elements of the
-  subtype `{x // x ∈ s}`. -/
+/-- `attach s` takes the elements of `s` and forms a new set of elements of the subtype
+`{x // x ∈ s}`. -/
 def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attach.2 s.2⟩
 
 theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : finset α} (hx : x ∈ s) :
@@ -1109,6 +1149,12 @@ theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : finset α} (hx : x
 @[simp] theorem mem_attach (s : finset α) : ∀ x, x ∈ s.attach := mem_attach _
 
 @[simp] theorem attach_empty : attach (∅ : finset α) = ∅ := rfl
+
+@[simp] lemma attach_nonempty_iff (s : finset α) : s.attach.nonempty ↔ s.nonempty :=
+by simp [finset.nonempty]
+
+@[simp] lemma attach_eq_empty_iff (s : finset α) : s.attach = ∅ ↔ s = ∅ :=
+by simpa [eq_empty_iff_forall_not_mem]
 
 /-! ### piecewise -/
 section piecewise
@@ -1211,7 +1257,7 @@ lemma update_piecewise_of_not_mem [decidable_eq α] {i : α} (hi : i ∉ s) (v :
   update (s.piecewise f g) i v = s.piecewise f (update g i v) :=
 begin
   rw update_piecewise,
-  refine s.piecewise_congr (λ j hj, update_noteq _ _ _)  (λ _ _, rfl),
+  refine s.piecewise_congr (λ j hj, update_noteq _ _ _) (λ _ _, rfl),
   exact λ h, hi (h ▸ hj)
 end
 
@@ -1394,14 +1440,14 @@ by congr
 
 section classical
 open_locale classical
-/-- The following instance allows us to write `{ x ∈ s | p x }` for `finset.filter s p`.
+/-- The following instance allows us to write `{x ∈ s | p x}` for `finset.filter p s`.
   Since the former notation requires us to define this for all propositions `p`, and `finset.filter`
-  only works for decidable propositions, the notation `{ x ∈ s | p x }` is only compatible with
+  only works for decidable propositions, the notation `{x ∈ s | p x}` is only compatible with
   classical logic because it uses `classical.prop_decidable`.
   We don't want to redo all lemmas of `finset.filter` for `has_sep.sep`, so we make sure that `simp`
-  unfolds the notation `{ x ∈ s | p x }` to `finset.filter s p`. If `p` happens to be decidable, the
-  simp-lemma `filter_congr_decidable` will make sure that `finset.filter` uses the right instance
-  for decidability.
+  unfolds the notation `{x ∈ s | p x}` to `finset.filter p s`. If `p` happens to be decidable, the
+  simp-lemma `finset.filter_congr_decidable` will make sure that `finset.filter` uses the right
+  instance for decidability.
 -/
 noncomputable instance {α : Type*} : has_sep α (finset α) := ⟨λ p x, x.filter p⟩
 
@@ -1634,6 +1680,26 @@ end
 
 theorem to_finset_surjective : surjective (to_finset : list α → finset α) :=
 by { intro s, rcases to_finset_surj_on (set.mem_univ s) with ⟨l, -, hls⟩, exact ⟨l, hls⟩ }
+
+lemma to_finset_eq_iff_perm_erase_dup {l l' : list α} :
+  l.to_finset = l'.to_finset ↔ l.erase_dup ~ l'.erase_dup :=
+by simp [finset.ext_iff, perm_ext (nodup_erase_dup _) (nodup_erase_dup _)]
+
+lemma to_finset_eq_of_perm (l l' : list α) (h : l ~ l') :
+  l.to_finset = l'.to_finset :=
+to_finset_eq_iff_perm_erase_dup.mpr h.erase_dup
+
+@[simp] lemma to_finset_append {l l' : list α} :
+  to_finset (l ++ l') = l.to_finset ∪ l'.to_finset :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { simp [hl] }
+end
+
+@[simp] lemma to_finset_reverse {l : list α} :
+  to_finset l.reverse = l.to_finset :=
+to_finset_eq_of_perm _ _ (reverse_perm l)
 
 end list
 
@@ -1894,7 +1960,7 @@ instance [Π P, decidable P] : is_lawful_functor finset :=
 
 
 /-- Given a finset `s` and a predicate `p`, `s.subtype p` is the finset of `subtype p` whose
-elements belong to `s`.  -/
+elements belong to `s`. -/
 protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
 (s.filter p).attach.map ⟨λ x, ⟨x.1, (finset.mem_filter.1 x.2).2⟩,
 λ x y H, subtype.eq $ subtype.mk.inj H⟩
@@ -2071,6 +2137,9 @@ end finset
 theorem multiset.to_finset_card_le [decidable_eq α] (m : multiset α) : m.to_finset.card ≤ m.card :=
 card_le_of_le (erase_dup_le _)
 
+lemma list.card_to_finset [decidable_eq α] (l : list α) :
+  finset.card l.to_finset = l.erase_dup.length := rfl
+
 theorem list.to_finset_card_le [decidable_eq α] (l : list α) : l.to_finset.card ≤ l.length :=
 multiset.to_finset_card_le ⟦l⟧
 
@@ -2210,7 +2279,7 @@ lemma strong_induction_on_eq {p : finset α → Sort*} (s : finset α) (H : ∀ 
 by { dunfold strong_induction_on, rw strong_induction }
 
 @[elab_as_eliminator] lemma case_strong_induction_on [decidable_eq α] {p : finset α → Prop}
-  (s : finset α) (h₀ : p ∅) (h₁ : ∀ a s, a ∉ s → (∀t ⊆ s, p t) → p (insert a s)) : p s :=
+  (s : finset α) (h₀ : p ∅) (h₁ : ∀ a s, a ∉ s → (∀ t ⊆ s, p t) → p (insert a s)) : p s :=
 finset.strong_induction_on s $ λ s,
 finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
 λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)

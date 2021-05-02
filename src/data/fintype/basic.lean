@@ -148,9 +148,43 @@ instance decidable_mem_range_fintype [fintype α] [decidable_eq β] (f : α → 
   decidable_pred (∈ set.range f) :=
 λ x, fintype.decidable_exists_fintype
 
+section bundled_homs
+
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
-λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext (congr_fun h), congr_arg _⟩
+λ a b, decidable_of_iff (a.1 = b.1) equiv.coe_fn_injective.eq_iff
+
+instance decidable_eq_embedding_fintype [decidable_eq β] [fintype α] :
+  decidable_eq (α ↪ β) :=
+λ a b, decidable_of_iff (⇑a = b) function.embedding.coe_injective.eq_iff
+
+@[to_additive]
+instance decidable_eq_one_hom_fintype [decidable_eq β] [fintype α] [has_one α] [has_one β]:
+  decidable_eq (one_hom α β) :=
+λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff one_hom.coe_inj)
+
+@[to_additive]
+instance decidable_eq_mul_hom_fintype [decidable_eq β] [fintype α] [has_mul α] [has_mul β]:
+  decidable_eq (mul_hom α β) :=
+λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff mul_hom.coe_inj)
+
+@[to_additive]
+instance decidable_eq_monoid_hom_fintype [decidable_eq β] [fintype α]
+  [mul_one_class α] [mul_one_class β]:
+  decidable_eq (α →* β) :=
+λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff monoid_hom.coe_inj)
+
+instance decidable_eq_monoid_with_zero_hom_fintype [decidable_eq β] [fintype α]
+  [mul_zero_one_class α] [mul_zero_one_class β]:
+  decidable_eq (monoid_with_zero_hom α β) :=
+λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff monoid_with_zero_hom.coe_inj)
+
+instance decidable_eq_ring_hom_fintype [decidable_eq β] [fintype α]
+  [semiring α] [semiring β]:
+  decidable_eq (α →+* β) :=
+λ a b, decidable_of_iff (⇑a = b) (injective.eq_iff ring_hom.coe_inj)
+
+end bundled_homs
 
 instance decidable_injective_fintype [decidable_eq α] [decidable_eq β] [fintype α] :
   decidable_pred (injective : (α → β) → Prop) := λ x, by unfold injective; apply_instance
@@ -161,11 +195,11 @@ instance decidable_surjective_fintype [decidable_eq β] [fintype α] [fintype β
 instance decidable_bijective_fintype [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   decidable_pred (bijective : (α → β) → Prop) := λ x, by unfold bijective; apply_instance
 
-instance decidable_left_inverse_fintype [decidable_eq α] [fintype α] (f : α → β) (g : β → α) :
+instance decidable_right_inverse_fintype [decidable_eq α] [fintype α] (f : α → β) (g : β → α) :
   decidable (function.right_inverse f g) :=
 show decidable (∀ x, g (f x) = x), by apply_instance
 
-instance decidable_right_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
+instance decidable_left_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
 
@@ -1001,13 +1035,15 @@ by simp [fintype.subtype_card, finset.card_univ]
   (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
 
-@[simp] lemma set.to_finset_empty [fintype α] :
-  (∅ : set α).to_finset = ∅ :=
-by { ext, simp only [set.mem_empty_eq, set.mem_to_finset, not_mem_empty] }
-
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] :
   s.to_finset = ∅ ↔ s = ∅ :=
 by simp [ext_iff, set.ext_iff]
+
+instance : fintype (∅ : set α) := ⟨∅, subtype.property⟩
+
+@[simp] lemma set.to_finset_empty :
+  (∅ : set α).to_finset = ∅ :=
+set.to_finset_eq_empty_iff.mpr rfl
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=

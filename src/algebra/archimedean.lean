@@ -303,30 +303,18 @@ end
 theorem exists_pos_rat_lt {x : α} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q : α) < x :=
 by simpa only [rat.cast_pos] using exists_rat_btwn x0
 
-include α
-@[simp] theorem rat.cast_floor (x : ℚ) :
-  by haveI := archimedean.floor_ring α; exact ⌊(x:α)⌋ = ⌊x⌋ :=
-begin
-  haveI := archimedean.floor_ring α,
-  apply le_antisymm,
-  { rw [le_floor, ← @rat.cast_le α, rat.cast_coe_int],
-    apply floor_le },
-  { rw [le_floor, ← rat.cast_coe_int, rat.cast_le],
-    apply floor_le }
-end
-
 end linear_ordered_field
 
 section
-variables [linear_ordered_field α]
+variables [linear_ordered_field α] [floor_ring α]
 
 /-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
-def round [floor_ring α] (x : α) : ℤ := ⌊x + 1 / 2⌋
+def round (x : α) : ℤ := ⌊x + 1 / 2⌋
 
-@[simp] lemma round_zero [floor_ring α] : round (0 : α) = 0 := floor_eq_iff.2 (by norm_num)
-@[simp] lemma round_one [floor_ring α] : round (1 : α) = 1 := floor_eq_iff.2 (by norm_num)
+@[simp] lemma round_zero : round (0 : α) = 0 := floor_eq_iff.2 (by norm_num)
+@[simp] lemma round_one : round (1 : α) = 1 := floor_eq_iff.2 (by norm_num)
 
-lemma abs_sub_round [floor_ring α] (x : α) : abs (x - round x) ≤ 1 / 2 :=
+lemma abs_sub_round (x : α) : abs (x - round x) ≤ 1 / 2 :=
 begin
   rw [round, abs_sub_le_iff],
   have := floor_le (x + 1 / 2),
@@ -334,7 +322,20 @@ begin
   split; linarith
 end
 
-variable [archimedean α]
+@[simp, norm_cast] theorem rat.cast_floor (x : ℚ) : ⌊(x:α)⌋ = ⌊x⌋ :=
+floor_eq_iff.2 (by exact_mod_cast floor_eq_iff.1 (eq.refl ⌊x⌋))
+
+@[simp, norm_cast] theorem rat.cast_ceil (x : ℚ) : ⌈(x:α)⌉ = ⌈x⌉ :=
+by rw [ceil, ← rat.cast_neg, rat.cast_floor, ← ceil]
+
+@[simp, norm_cast] theorem rat.cast_round (x : ℚ) : round (x:α) = round x :=
+have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
+by rw [round, round, ← this, rat.cast_floor]
+
+end
+
+section
+variables [linear_ordered_field α] [archimedean α]
 
 theorem exists_rat_near (x : α) {ε : α} (ε0 : 0 < ε) :
   ∃ q : ℚ, abs (x - q) < ε :=
@@ -344,10 +345,5 @@ let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
 
 instance : archimedean ℚ :=
 archimedean_iff_rat_le.2 $ λ q, ⟨q, by rw rat.cast_id⟩
-
-@[simp] theorem rat.cast_round (x : ℚ) : by haveI := archimedean.floor_ring α;
-  exact round (x:α) = round x :=
-have ((x + (1 : ℚ) / (2 : ℚ) : ℚ) : α) = x + 1 / 2, by simp,
-by rw [round, round, ← this, rat.cast_floor]
 
 end

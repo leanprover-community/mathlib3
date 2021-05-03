@@ -4,12 +4,12 @@
 # 1.
 Linear algebra:
   Fundamentals:
-    vector space: 'vector_space'
-    product of vector spaces: 'prod.semimodule'
+    vector space: 'module'
+    product of vector spaces: 'prod.module'
     vector subspace: 'subspace'
     quotient space: 'submodule.quotient'
     sum of subspaces: 'submodule.complete_lattice'
-    direct sum: '' # this is supposed to be the internal direct sum
+    direct sum: 'direct_sum.submodule_is_internal'
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'
@@ -31,7 +31,7 @@ Linear algebra:
     rank of a linear map: 'rank'
     rank of a set of vectors: ''
     rank of a system of linear equations: ''
-    isomorphism with bidual: 'vector_space.eval_equiv'
+    isomorphism with bidual: 'module.eval_equiv'
   Multilinearity:
     multilinear map: 'multilinear_map'
     determinant of vectors: 'is_basis.det'
@@ -89,7 +89,7 @@ Group Theory:
     orbit: 'mul_action.orbit'
     quotient space: 'mul_action.orbit_equiv_quotient_stabilizer'
     class formula: ''
-    conjugacy classes: 'group.conjugates'
+    conjugacy classes: 'conj_classes'
   Abelian group:
     cyclic group: 'is_cyclic'
     finite type abelian groups: ''
@@ -97,10 +97,10 @@ Group Theory:
     primitive complex roots of unity: 'complex.is_primitive_root_iff'
   Permutation group:
     permutation group of a type: 'equiv.perm'
-    decomposition into transpositions: ''
-    decomposition into cycles with disjoint support: 'equiv.perm.cycle_factors'
+    decomposition into transpositions: 'equiv.perm.trunc_swap_factors'
+    decomposition into cycles with disjoint support: 'equiv.perm.trunc_cycle_factors'
     signature: 'equiv.perm.sign'
-    alternating group: ''
+    alternating group: 'alternating_group'
   Classical automorphism groups:
     general linear group: 'linear_map.general_linear_group'
     special linear group: 'matrix.special_linear_group'
@@ -205,7 +205,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     polar form of a quadratic: 'quadratic_form.polar'
   Orthogonality:
     orthogonal elements: 'bilin_form.is_ortho'
-    adjoint endomorphism:
+    adjoint endomorphism: 'bilin_form.left_adjoint_of_nondegenerate'
     Sylvester's law of inertia:
     real classification:
     complex classification:
@@ -294,8 +294,8 @@ Single Variable Real Analysis:
     additive subgroups of $\R$: 'real.subgroup_dense_or_cyclic'
   Numerical series:
     Convergence of real valued-series:
-    Geometric series:
-    convergence of $p$-series for $p>1$:
+    Geometric series: 'tsum_geometric_of_norm_lt_1'
+    convergence of $p$-series for $p>1$: 'nnreal.summable_one_rpow_inv'
     positive valued series:
     summation of comparison relations:
     comparison of a series and an integral:
@@ -412,7 +412,7 @@ Topology:
     complete metric spaces: 'metric.complete_of_cauchy_seq_tendsto'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
-    topology on a normed vector space: 'normed_space.topological_vector_space'
+    topology on a normed vector space: 'semi_normed_space.has_continuous_smul'
     equivalent norms:
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
@@ -431,7 +431,8 @@ Topology:
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
     dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
-    $l^2$ and $L^2$ cases:
+    inner product spaces $l^2$ and $L^2$: 'measure_theory.L2.inner_product_space'
+    their completeness: 'measure_theory.Lp.complete_space'
     Hilbert (orthonormal) bases (in the separable case): 'exists_is_orthonormal_dense_span'
     Hilbert basis of trigonometric polynomials:
     Hilbert bases of orthogonal polynomials:

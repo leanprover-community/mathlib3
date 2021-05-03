@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Chris Hughes, Morenikeji Neri
+Authors: Chris Hughes, Morenikeji Neri
 -/
 import ring_theory.noetherian
 import ring_theory.unique_factorization_domain
@@ -69,6 +69,13 @@ lemma mem_iff_generator_dvd (S : ideal R) [S.is_principal] {x : R} : x ∈ S ↔
 lemma eq_bot_iff_generator_eq_zero (S : submodule R M) [S.is_principal] :
   S = ⊥ ↔ generator S = 0 :=
 by rw [← @span_singleton_eq_bot R M, span_singleton_generator]
+
+lemma prime_generator_of_is_prime (S : ideal R) [submodule.is_principal S] [is_prime : S.is_prime]
+  (ne_bot : S ≠ ⊥) :
+  prime (generator S) :=
+⟨λ h, ne_bot ((eq_bot_iff_generator_eq_zero S).2 h),
+ λ h, is_prime.ne_top (S.eq_top_of_is_unit_mem (generator_mem S) h),
+ by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
 
 end submodule.is_principal
 
@@ -138,7 +145,7 @@ is_noetherian_ring_iff.2 ⟨assume s : ideal R,
 begin
   rcases (is_principal_ideal_ring.principal s).principal with ⟨a, rfl⟩,
   rw [← finset.coe_singleton],
-  exact ⟨{a}, submodule.coe_injective rfl⟩
+  exact ⟨{a}, set_like.coe_injective rfl⟩
 end⟩
 
 lemma is_maximal_of_irreducible {p : R} (hp : irreducible p) :

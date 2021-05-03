@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 
 import data.mv_polynomial
@@ -95,9 +95,9 @@ end comm_ring
 section dim
 universes u v
 variables {K : Type u} {V : Type v} {ι : Type v}
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 
-lemma dim_eq : vector_space.dim K (ι →₀ V) = cardinal.mk ι * vector_space.dim K V :=
+lemma dim_eq : module.rank K (ι →₀ V) = cardinal.mk ι * module.rank K V :=
 begin
   rcases exists_is_basis K V with ⟨bs, hbs⟩,
   rw [← cardinal.lift_inj, cardinal.lift_mul, ← hbs.mk_eq_dim,
@@ -110,7 +110,7 @@ end dim
 
 end finsupp
 
-section vector_space
+section module
 /- We use `universe variables` instead of `universes` here because universes introduced by the
    `universes` keyword do not get replaced by metavariables once a lemma has been proven. So if you
    prove a lemma using universe `u`, you can only apply it to universe `u` in other lemmas of the
@@ -118,16 +118,16 @@ section vector_space
 universe variables u v w
 variables {K : Type u} {V V₁ V₂ : Type v} {V' : Type w}
 variables [field K]
-variables [add_comm_group V] [vector_space K V]
-variables [add_comm_group V₁] [vector_space K V₁]
-variables [add_comm_group V₂] [vector_space K V₂]
-variables [add_comm_group V'] [vector_space K V']
+variables [add_comm_group V] [module K V]
+variables [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V₂] [module K V₂]
+variables [add_comm_group V'] [module K V']
 
-open vector_space
+open module
 
 
 lemma equiv_of_dim_eq_lift_dim
-  (h : cardinal.lift.{v w} (dim K V) = cardinal.lift.{w v} (dim K V')) :
+  (h : cardinal.lift.{v w} (module.rank K V) = cardinal.lift.{w v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
   haveI := classical.dec_eq V,
@@ -143,7 +143,7 @@ begin
 end
 
 /-- Two `K`-vector spaces are equivalent if their dimension is the same. -/
-def equiv_of_dim_eq_dim (h : dim K V₁ = dim K V₂) : V₁ ≃ₗ[K] V₂ :=
+def equiv_of_dim_eq_dim (h : module.rank K V₁ = module.rank K V₂) : V₁ ≃ₗ[K] V₂ :=
 begin
   classical,
   exact classical.choice (equiv_of_dim_eq_lift_dim (cardinal.lift_inj.2 h))
@@ -151,7 +151,7 @@ end
 
 /-- An `n`-dimensional `K`-vector space is equivalent to `fin n → K`. -/
 def fin_dim_vectorspace_equiv (n : ℕ)
-  (hn : (dim K V) = n) : V ≃ₗ[K] (fin n → K) :=
+  (hn : (module.rank K V) = n) : V ≃ₗ[K] (fin n → K) :=
 begin
   have : cardinal.lift.{v u} (n : cardinal.{v}) = cardinal.lift.{u v} (n : cardinal.{u}),
     by simp,
@@ -161,17 +161,17 @@ begin
   exact classical.choice (equiv_of_dim_eq_lift_dim hn),
 end
 
-end vector_space
+end module
 
-section vector_space
+section module
 universes u
 
-open vector_space
+open module
 
-variables (K V : Type u) [field K] [add_comm_group V] [vector_space K V]
+variables (K V : Type u) [field K] [add_comm_group V] [module K V]
 
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim [finite_dimensional K V] :
-  cardinal.mk V = cardinal.mk K ^ dim K V :=
+  cardinal.mk V = cardinal.mk K ^ module.rank K V :=
 begin
   rcases exists_is_basis K V with ⟨s, hs⟩,
   have : nonempty (fintype s),
@@ -191,4 +191,4 @@ begin
     (finite_dimensional.dim_lt_omega K V),
 end
 
-end vector_space
+end module

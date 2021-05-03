@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Neil Strickland
+Authors: Mario Carneiro, Neil Strickland
 -/
 import data.nat.basic
 
@@ -79,30 +79,22 @@ theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
 @[simp] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
 
+lemma coe_injective : function.injective (coe : ℕ+ → ℕ) := subtype.coe_injective
 
 @[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
 
-instance : add_comm_semigroup ℕ+ :=
-{ add       := λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩,
-  add_comm  := λ a b, subtype.eq (add_comm a b),
-  add_assoc := λ a b c, subtype.eq (add_assoc a b c) }
+instance : has_add ℕ+ := ⟨λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩⟩
+
+instance : add_comm_semigroup ℕ+ := coe_injective.add_comm_semigroup coe (λ _ _, rfl)
 
 @[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
 instance coe_add_hom : is_add_hom (coe : ℕ+ → ℕ) := ⟨add_coe⟩
 
 instance : add_left_cancel_semigroup ℕ+ :=
-{ add_left_cancel := λ a b c h, by {
-    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-    rw [add_coe, add_coe] at h,
-    exact eq ((add_right_inj (a : ℕ)).mp h)},
-  .. (pnat.add_comm_semigroup) }
+coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
 
 instance : add_right_cancel_semigroup ℕ+ :=
-{ add_right_cancel := λ a b c h, by {
-    replace h := congr_arg (coe : ℕ+ → ℕ) h,
-    rw [add_coe, add_coe] at h,
-    exact eq ((add_left_inj (b : ℕ)).mp h)},
-  .. (pnat.add_comm_semigroup) }
+coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
 
@@ -110,13 +102,10 @@ theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_e
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
 
-instance : comm_monoid ℕ+ :=
-{ mul       := λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩,
-  mul_assoc := λ a b c, subtype.eq (mul_assoc _ _ _),
-  one       := succ_pnat 0,
-  one_mul   := λ a, subtype.eq (one_mul _),
-  mul_one   := λ a, subtype.eq (mul_one _),
-  mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
+instance : has_mul ℕ+ := ⟨λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩⟩
+instance : has_one ℕ+ := ⟨succ_pnat 0⟩
+
+instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl)
 
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
 λ a b, nat.lt_add_one_iff
@@ -129,7 +118,7 @@ theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
 instance : order_bot ℕ+ :=
 { bot := 1,
   bot_le := λ a, a.property,
-  ..(by apply_instance : partial_order ℕ+) }
+  .. pnat.linear_order }
 
 @[simp] lemma bot_eq_zero : (⊥ : ℕ+) = 1 := rfl
 
@@ -173,30 +162,16 @@ lemma coe_eq_one_iff {m : ℕ+} :
 by induction n with n ih;
  [refl, rw [pow_succ', pow_succ, mul_coe, mul_comm, ih]]
 
-instance : left_cancel_semigroup ℕ+ :=
-{ mul_left_cancel := λ a b c h, by {
-   replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_right_inj a.pos).mp h)},
-  .. (pnat.comm_monoid) }
-
-instance : right_cancel_semigroup ℕ+ :=
-{ mul_right_cancel := λ a b c h, by {
-   replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_left_inj b.pos).mp h)},
-  .. (pnat.comm_monoid) }
-
 instance : ordered_cancel_comm_monoid ℕ+ :=
 { mul_le_mul_left := by { intros, apply nat.mul_le_mul_left, assumption },
   le_of_mul_le_mul_left := by { intros a b c h, apply nat.le_of_mul_le_mul_left h a.property, },
-  .. (pnat.left_cancel_semigroup),
-  .. (pnat.right_cancel_semigroup),
-  .. (pnat.linear_order),
-  .. (pnat.comm_monoid)}
+  mul_left_cancel := λ a b c h, by {
+   replace h := congr_arg (coe : ℕ+ → ℕ) h,
+   exact eq ((nat.mul_right_inj a.pos).mp h)},
+  .. pnat.comm_monoid,
+  .. pnat.linear_order }
 
-instance : distrib ℕ+ :=
-{ left_distrib  := λ a b c, eq (mul_add a b c),
-  right_distrib := λ a b c, eq (add_mul a b c),
-  ..(pnat.add_comm_semigroup), ..(pnat.comm_monoid) }
+instance : distrib ℕ+ := coe_injective.distrib coe (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Subtraction a - b is defined in the obvious way when
   a > b, and by a - b = 1 if a ≤ b.

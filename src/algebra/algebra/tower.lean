@@ -26,7 +26,7 @@ variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁) (M : Type v₁)
 namespace algebra
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 
 variables {A}
 
@@ -45,20 +45,24 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
+@[simp] lemma lmul_algebra_map (x : R) :
+  lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
+eq.symm $ linear_map.ext $ smul_def'' x
+
 end algebra
 
 namespace is_scalar_tower
 
-section semimodule
+section module
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
+variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 
 variables {R} (A) {M}
 theorem algebra_map_smul (r : R) (x : M) : algebra_map R A r • x = r • x :=
 by rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul]
 
-end semimodule
+end module
 
 section semiring
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
@@ -258,8 +262,7 @@ show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range 
   z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),
 from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (algebra_map S A),
   by rw this,
-by { ext z, exact ⟨λ ⟨⟨x, y, _, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩,
-  ⟨⟨z, y, set.mem_univ _, hy⟩, rfl⟩⟩ }
+by { ext z, exact ⟨λ ⟨⟨x, y, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, hy⟩, rfl⟩⟩ }
 
 end is_scalar_tower
 
@@ -267,7 +270,7 @@ section semiring
 
 variables {R S A}
 variables [comm_semiring R] [semiring S] [add_comm_monoid A]
-variables [algebra R S] [semimodule S A] [semimodule R A] [is_scalar_tower R S A]
+variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
 
 namespace submodule
 
@@ -315,7 +318,7 @@ section ring
 namespace algebra
 
 variables [comm_semiring R] [ring A] [algebra R A]
-variables [add_comm_group M] [module A M] [semimodule R M] [is_scalar_tower R A M]
+variables [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=

@@ -112,7 +112,7 @@ lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
 linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
 
 lemma is_basis.repr_range : hv.repr.range = finsupp.supported R R univ :=
-by rw [is_basis.repr, linear_map.range, submodule.map_comp,
+by rw [is_basis.repr, linear_map.range_eq_map, submodule.map_comp,
   linear_map.map_cod_restrict, submodule.map_id, comap_top, map_top, hv.1.repr_range,
   finsupp.supported_univ]
 
@@ -128,7 +128,8 @@ lemma is_basis.repr_eq_single {i} : hv.repr (v i) = finsupp.single i 1 :=
 by apply hv.1.repr_eq_single; simp
 
 @[simp]
-lemma is_basis.repr_self_apply (i j : ι) : hv.repr (v i) j = if i = j then 1 else 0 :=
+lemma is_basis.repr_self_apply (i j : ι) [decidable (i = j)] :
+  hv.repr (v i) j = if i = j then 1 else 0 :=
 by rw [hv.repr_eq_single, finsupp.single_apply]
 
 lemma is_basis.repr_eq_iff {f : M →ₗ[R] (ι →₀ R)} :
@@ -274,7 +275,7 @@ def linear_equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g
   (linear_equiv_of_is_basis hv hv' e).trans (linear_equiv_of_is_basis hv' hv'' f) =
   linear_equiv_of_is_basis hv hv'' (e.trans f) :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   apply hv.ext,
   intros i,
   simp [linear_equiv_of_is_basis]
@@ -283,7 +284,7 @@ end
 @[simp] lemma linear_equiv_of_is_basis_refl :
   linear_equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
 begin
-  apply linear_equiv.injective_to_linear_map,
+  apply linear_equiv.to_linear_map_injective,
   apply hv.ext,
   intros i,
   simp [linear_equiv_of_is_basis]
@@ -341,6 +342,22 @@ lemma is_basis.smul_eq_zero [no_zero_divisors R] {c : R} {x : M} :
 end
 
 end is_basis
+
+lemma is_basis_singleton_iff
+  {R : Type*} [ring R] [nontrivial R] [module R M] [no_zero_smul_divisors R M]
+  (ι : Type*) [unique ι] (x : M) :
+  is_basis R (λ (_ : ι), x) ↔ x ≠ 0 ∧ ∀ y : M, ∃ r : R, r • x = y :=
+begin
+  fsplit,
+  rintro ⟨li, sp⟩,
+  fsplit,
+  apply linear_independent.ne_zero (default ι) li,
+  simpa [span_singleton_eq_top_iff] using sp,
+  rintro ⟨nz, w⟩,
+  fsplit,
+  simpa [linear_independent_unique_iff] using nz,
+  simpa [span_singleton_eq_top_iff] using w,
+end
 
 lemma is_basis_singleton_one (R : Type*) [unique ι] [ring R] :
   is_basis R (λ (_ : ι), (1 : R)) :=
@@ -444,7 +461,7 @@ end module
 
 section vector_space
 
-variables [field K] [add_comm_group V] [add_comm_group V'] [vector_space K V] [vector_space K V']
+variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
 variables {v : ι → V} {s t : set V} {x y z : V}
 
 include K
@@ -463,8 +480,8 @@ lemma exists_sum_is_basis (hs : linear_independent K v) :
 begin
   -- This is a hack: we jump through hoops to reuse `exists_subset_is_basis`.
   let s := set.range v,
-  let e : ι ≃ s := equiv.set.range v hs.injective,
-  have : (λ x, x : s → V) = v ∘ e.symm := by { funext, dsimp, rw [equiv.set.apply_range_symm v], },
+  let e : ι ≃ s := equiv.of_injective v hs.injective,
+  have : (λ x, x : s → V) = v ∘ e.symm := by { ext, dsimp, rw [equiv.apply_of_injective_symm v] },
   have : linear_independent K (λ x, x : s → V),
   { rw this,
     exact linear_independent.comp hs _ (e.symm.injective), },
@@ -508,7 +525,7 @@ lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_
 let ⟨f, hf⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
-instance vector_space.submodule.is_complemented : is_complemented (submodule K V) :=
+instance module.submodule.is_complemented : is_complemented (submodule K V) :=
 ⟨submodule.exists_is_compl⟩
 
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
@@ -535,7 +552,7 @@ open submodule linear_map
 lemma submodule.exists_le_ker_of_lt_top (p : submodule K V) (hp : p < ⊤) :
   ∃ f ≠ (0 : V →ₗ[K] K), p ≤ ker f :=
 begin
-  rcases submodule.exists_of_lt hp with ⟨v, -, hpv⟩, clear hp,
+  rcases set_like.exists_of_lt hp with ⟨v, -, hpv⟩, clear hp,
   rcases (linear_pmap.sup_span_singleton ⟨p, 0⟩ v (1 : K) hpv).to_fun.exists_extend with ⟨f, hf⟩,
   refine ⟨f, _, _⟩,
   { rintro rfl, rw [linear_map.zero_comp] at hf,

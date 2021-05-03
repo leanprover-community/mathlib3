@@ -114,7 +114,7 @@ lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
 
 lemma to_submodule_injective :
   function.injective (coe : lie_subalgebra R L → submodule R L) :=
-λ L₁' L₂' h, by { rw submodule.ext'_iff at h, rw ← coe_set_eq, exact h, }
+λ L₁' L₂' h, by { rw set_like.ext'_iff at h, rw ← coe_set_eq, exact h, }
 
 @[simp] lemma coe_to_submodule_eq_iff (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : submodule R L) = (L₂' : submodule R L) ↔ L₁' = L₂' :=
@@ -122,6 +122,28 @@ to_submodule_injective.eq_iff
 
 @[norm_cast]
 lemma coe_to_submodule : ((L' : submodule R L) : set L) = L' := rfl
+
+section lie_module
+
+variables {M : Type w} [add_comm_group M] [lie_ring_module L M]
+
+/-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie ring module
+`M` of `L`, we may regard `M` as a Lie ring module of `L'` by restriction. -/
+instance : lie_ring_module L' M :=
+{ bracket     := λ x m, ⁅(x : L), m⁆,
+  add_lie     := λ x y m, add_lie x y m,
+  lie_add     := λ x y m, lie_add x y m,
+  leibniz_lie := λ x y m, leibniz_lie x y m, }
+
+@[simp] lemma coe_bracket_of_module (x : L') (m : M) : ⁅x, m⁆ = ⁅(x : L), m⁆ := rfl
+
+/-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie module `M` of
+`L`, we may regard `M` as a Lie module of `L'` by restriction. -/
+instance [module R M] [lie_module R L M] : lie_module R L' M :=
+{ smul_lie := λ t x m, by simp only [coe_bracket_of_module, smul_lie, submodule.coe_smul_of_tower],
+  lie_smul := λ t x m, by simp only [coe_bracket_of_module, lie_smul], }
+
+end lie_module
 
 end lie_subalgebra
 
@@ -237,6 +259,9 @@ instance : has_top (lie_subalgebra R L) :=
 
 @[simp] lemma mem_top (x : L) : x ∈ (⊤ : lie_subalgebra R L) := mem_univ x
 
+lemma _root_.lie_hom.range_eq_map : f.range = map f ⊤ :=
+by { ext, simp }
+
 instance : has_inf (lie_subalgebra R L) :=
 ⟨λ K K', { lie_mem' := λ x y hx hy, mem_inter (K.lie_mem hx.1 hy.1) (K'.lie_mem hx.2 hy.2),
             ..(K ⊓ K' : submodule R L) }⟩
@@ -338,7 +363,7 @@ def hom_of_le : K →ₗ⁅R⁆ K' :=
 lemma hom_of_le_apply (x : K) : hom_of_le h x = ⟨x.1, h x.2⟩ := rfl
 
 lemma hom_of_le_injective : function.injective (hom_of_le h) :=
-λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, submodule.coe_eq_coe,
+λ x y, by simp only [hom_of_le_apply, imp_self, subtype.mk_eq_mk, set_like.coe_eq_coe,
   subtype.val_eq_coe]
 
 /-- Given two nested Lie subalgebras `K ⊆ K'`, we can view `K` as a Lie subalgebra of `K'`,

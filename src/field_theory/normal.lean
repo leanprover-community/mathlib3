@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau
+Authors: Kenny Lau, Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.adjoin
-import field_theory.minpoly
-import field_theory.splitting_field
 import field_theory.tower
+import group_theory.solvable
+import ring_theory.power_basis
 
 /-!
 # Normal field extensions
@@ -65,7 +65,7 @@ begin
   refine ⟨s.prod $ λ x, minpoly F x,
     splits_prod _ $ λ x hx, h.splits x,
     subalgebra.to_submodule_injective _⟩,
-  rw [algebra.coe_top, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
+  rw [algebra.top_to_submodule, eq_top_iff, ← hs.2, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
     (mem_roots $ mt (map_eq_zero $ algebra_map F K).1 $
     finset.prod_ne_zero_iff.2 $ λ x hx, _).2 _),
@@ -99,7 +99,7 @@ lemma alg_hom.normal_bijective [h : normal F E] (ϕ : E →ₐ[F] K) : function.
     { rw [ring_hom.map_zero, aeval_map, ←is_scalar_tower.to_alg_hom_apply F K E,
           ←alg_hom.comp_apply, ←aeval_alg_hom],
       exact minpoly.aeval F (algebra_map K E x) })))) with y hy,
-  exact ⟨y, hy.2⟩ }⟩
+  exact ⟨y, hy⟩ }⟩
 
 variables {F} {E} {E' : Type*} [field E'] [algebra F E']
 
@@ -136,18 +136,18 @@ begin
   let D := adjoin_root q,
   let pbED := adjoin_root.power_basis q_irred.ne_zero,
   haveI : finite_dimensional E D := power_basis.finite_dimensional pbED,
-  have findimED : finite_dimensional.findim E D = q.nat_degree := power_basis.findim pbED,
+  have finrankED : finite_dimensional.finrank E D = q.nat_degree := power_basis.finrank pbED,
   letI : algebra F D := ring_hom.to_algebra ((algebra_map E D).comp (algebra_map F E)),
   haveI : is_scalar_tower F E D := of_algebra_map_eq (λ _, rfl),
   haveI : finite_dimensional F D := finite_dimensional.trans F E D,
   suffices : nonempty (D →ₐ[F] E),
   { cases this with ϕ,
-    rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←findimED],
+    rw [←with_bot.coe_one, degree_eq_iff_nat_degree_eq q_irred.ne_zero, ←finrankED],
     have nat_lemma : ∀ a b c : ℕ, a * b = c → c ≤ a → 0 < c → b = 1,
     { intros a b c h1 h2 h3, nlinarith },
-    exact nat_lemma _ _ _ (finite_dimensional.findim_mul_findim F E D)
-      (linear_map.findim_le_findim_of_injective (show function.injective ϕ.to_linear_map,
-        from ϕ.to_ring_hom.injective)) finite_dimensional.findim_pos, },
+    exact nat_lemma _ _ _ (finite_dimensional.finrank_mul_finrank F E D)
+      (linear_map.finrank_le_finrank_of_injective (show function.injective ϕ.to_linear_map,
+        from ϕ.to_ring_hom.injective)) finite_dimensional.finrank_pos, },
   let C := adjoin_root (minpoly F x),
   have Hx_irred := minpoly.irreducible Hx,
   letI : algebra C D := ring_hom.to_algebra (adjoin_root.lift
@@ -200,7 +200,7 @@ def alg_hom.restrict_normal_aux [h : normal F E] :
 { to_fun := λ x, ⟨ϕ x, by
   { suffices : (to_alg_hom F E K).range.map ϕ ≤ _,
     { exact this ⟨x, subtype.mem x, rfl⟩ },
-    rintros x ⟨y, ⟨z, -, hy⟩, hx⟩,
+    rintros x ⟨y, ⟨z, hy⟩, hx⟩,
     rw [←hx, ←hy],
     apply minpoly.mem_range_of_degree_eq_one E,
     exact or.resolve_left (h.splits z) (minpoly.ne_zero (h.is_integral z))
@@ -224,7 +224,7 @@ def alg_hom.restrict_normal [normal F E] : E →ₐ[F] E :=
   algebra_map E K (ϕ.restrict_normal E x) = ϕ (algebra_map E K x) :=
 subtype.ext_iff.mp (alg_equiv.apply_symm_apply (alg_equiv.of_injective_field
   (is_scalar_tower.to_alg_hom F E K)) (ϕ.restrict_normal_aux E
-    ⟨is_scalar_tower.to_alg_hom F E K x, ⟨x, ⟨subsemiring.mem_top x, rfl⟩⟩⟩))
+    ⟨is_scalar_tower.to_alg_hom F E K x, x, rfl⟩))
 
 lemma alg_hom.restrict_normal_comp [normal F E] :
   (ϕ.restrict_normal E).comp (ψ.restrict_normal E) = (ϕ.comp ψ).restrict_normal E :=
@@ -293,5 +293,22 @@ alg_equiv.ext (λ x, (algebra_map K E).injective
 lemma alg_equiv.restrict_normal_hom_surjective [normal F K] [normal F E] :
   function.surjective (alg_equiv.restrict_normal_hom K : (E ≃ₐ[F] E) → (K ≃ₐ[F] K)) :=
 λ χ, ⟨χ.lift_normal E, χ.restrict_lift_normal E⟩
+
+variables (F) (K) (E)
+
+lemma is_solvable_of_is_scalar_tower [normal F K] [h1 : is_solvable (K ≃ₐ[F] K)]
+  [h2 : is_solvable (E ≃ₐ[K] E)] : is_solvable (E ≃ₐ[F] E) :=
+begin
+  let f : (E ≃ₐ[K] E) →* (E ≃ₐ[F] E) :=
+  { to_fun := λ ϕ, alg_equiv.of_alg_hom (ϕ.to_alg_hom.restrict_scalars F)
+      (ϕ.symm.to_alg_hom.restrict_scalars F)
+      (alg_hom.ext (λ x, ϕ.apply_symm_apply x))
+      (alg_hom.ext (λ x, ϕ.symm_apply_apply x)),
+    map_one' := alg_equiv.ext (λ _, rfl),
+    map_mul' := λ _ _, alg_equiv.ext (λ _, rfl) },
+  refine solvable_of_ker_le_range f (alg_equiv.restrict_normal_hom K)
+    (λ ϕ hϕ, ⟨{commutes' := λ x, _, .. ϕ}, alg_equiv.ext (λ _, rfl)⟩),
+  exact (eq.trans (ϕ.restrict_normal_commutes K x).symm (congr_arg _ (alg_equiv.ext_iff.mp hϕ x))),
+end
 
 end lift

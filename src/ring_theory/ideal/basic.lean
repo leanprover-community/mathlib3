@@ -51,6 +51,10 @@ variables {a}
 variables (b)
 lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left b h
 variables {b}
+
+lemma pow_mem_of_mem (ha : a ∈ I) (n : ℕ) (hn : 0 < n) : a ^ n ∈ I :=
+nat.cases_on n (not.elim dec_trivial) (λ m hm, (pow_succ a m).symm ▸ I.mul_mem_right (a^m) ha) hn
+
 end ideal
 
 variables {a b : α}
@@ -171,6 +175,10 @@ theorem is_prime.ne_top {I : ideal α} (hI : I.is_prime) : I ≠ ⊤ := hI.1
 theorem is_prime.mem_or_mem {I : ideal α} (hI : I.is_prime) :
   ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I := hI.2
 
+theorem is_prime.mul_mem_iff_mem_or_mem {I : ideal α} (hI : I.is_prime) :
+  ∀ {x y : α}, x * y ∈ I ↔ x ∈ I ∨ y ∈ I :=
+λ x y, ⟨hI.mem_or_mem, by { rintro (h | h), exacts [I.mul_mem_right y h, I.mul_mem_left x h] }⟩
+
 theorem is_prime.mem_or_mem_of_mul_eq_zero {I : ideal α} (hI : I.is_prime)
   {x y : α} (h : x * y = 0) : x ∈ I ∨ y ∈ I :=
 hI.mem_or_mem (h.symm ▸ I.zero_mem)
@@ -179,9 +187,13 @@ theorem is_prime.mem_of_pow_mem {I : ideal α} (hI : I.is_prime)
   {r : α} (n : ℕ) (H : r^n ∈ I) : r ∈ I :=
 begin
   induction n with n ih,
-  { exact (mt (eq_top_iff_one _).2 hI.1).elim H },
-  exact or.cases_on (hI.mem_or_mem H) id ih
+  { rw pow_zero at H, exact (mt (eq_top_iff_one _).2 hI.1).elim H },
+  { rw pow_succ at H, exact or.cases_on (hI.mem_or_mem H) id ih }
 end
+
+theorem is_prime.pow_mem_iff_mem {I : ideal α} (hI : I.is_prime)
+  {r : α} (n : ℕ) (hn : 0 < n) : r ^ n ∈ I ↔ r ∈ I :=
+⟨hI.mem_of_pow_mem n, (λ hr, I.pow_mem_of_mem hr n hn)⟩
 
 lemma not_is_prime_iff {I : ideal α} : ¬ I.is_prime ↔ I = ⊤ ∨ ∃ (x ∉ I) (y ∉ I), x * y ∈ I :=
 begin
@@ -608,7 +620,7 @@ begin
     rw [bot_lt_iff_ne_bot, lt_top_iff_ne_top],
     exact ⟨mt ideal.span_singleton_eq_bot.mp nz, mt ideal.span_singleton_eq_top.mp nu⟩ },
   { rintros ⟨I, bot_lt, lt_top⟩ hf,
-    obtain ⟨x, mem, ne_zero⟩ := submodule.exists_of_lt bot_lt,
+    obtain ⟨x, mem, ne_zero⟩ := set_like.exists_of_lt bot_lt,
     rw submodule.mem_bot at ne_zero,
     obtain ⟨y, hy⟩ := hf.mul_inv_cancel ne_zero,
     rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ← hy] at lt_top,
@@ -893,6 +905,6 @@ instance : local_ring α :=
 { is_local := λ a,
   if h : a = 0
   then or.inr (by rw [h, sub_zero]; exact is_unit_one)
-  else or.inl $ is_unit_of_mul_eq_one a a⁻¹ $ div_self h }
+  else or.inl $ is_unit.mk0 a h }
 
 end field

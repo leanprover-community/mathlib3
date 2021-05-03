@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author:  Aaron Anderson, Jalex Stark, Kyle Miller.
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 -/
 import combinatorics.simple_graph.adj_matrix
 import linear_algebra.char_poly.coeff
@@ -75,7 +75,7 @@ variables (R)
 theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
-  rw [pow_two, ← nat.cast_one, ← hG hvw],
+  rw [sq, ← nat.cast_one, ← hG hvw],
   simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter,
     and_comm],
 end
@@ -108,7 +108,7 @@ begin
       ← adj_matrix_pow_three_of_not_adj ℕ hG hvw,
       ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.sym h))],
   conv_lhs {rw ← transpose_adj_matrix},
-  simp only [pow_succ, pow_two, mul_eq_mul, ← transpose_mul, transpose_apply],
+  simp only [pow_succ, sq, mul_eq_mul, ← transpose_mul, transpose_apply],
   simp only [← mul_eq_mul, mul_assoc],
 end
 
@@ -120,7 +120,7 @@ theorem adj_matrix_sq_of_regular (hd : G.is_regular_of_degree d) :
   ((G.adj_matrix R) ^ 2) = λ v w, if v = w then d else 1 :=
 begin
   ext v w, by_cases h : v = w,
-  { rw [h, pow_two, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
+  { rw [h, sq, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
   { rw [adj_matrix_sq_of_ne R hG h, if_neg h], },
 end
 
@@ -182,7 +182,7 @@ begin
                mem_erase, not_true, ne.def, not_false_iff, add_right_inj, false_and],
     rw [finset.sum_const_nat, card_erase_of_mem (mem_univ v), mul_one], { refl },
     intros x hx, simp [(ne_of_mem_erase hx).symm], },
-  { rw [pow_two, mul_eq_mul, ← mul_vec_mul_vec],
+  { rw [sq, mul_eq_mul, ← mul_vec_mul_vec],
     simp [adj_matrix_mul_vec_const_apply_of_regular hd, neighbor_finset,
           card_neighbor_set_eq_degree, hd v], }
 end
@@ -242,8 +242,8 @@ begin
   have p_dvd_d_pred := (zmod.nat_coe_zmod_eq_zero_iff_dvd _ _).mpr (d - 1).min_fac_dvd,
   have dpos : 0 < d := by linarith,
   have d_cast : ↑(d - 1) = (d : ℤ) - 1 := by norm_cast,
-  haveI : fact p.prime := nat.min_fac_prime (by linarith),
-  have hp2 : 2 ≤ p, { apply nat.prime.two_le, assumption },
+  haveI : fact p.prime := ⟨nat.min_fac_prime (by linarith)⟩,
+  have hp2 : 2 ≤ p := (fact.out p.prime).two_le,
   have dmod : (d : zmod p) = 1,
   { rw [← nat.succ_pred_eq_of_pos dpos, nat.succ_eq_add_one, nat.pred_eq_sub_one],
     simp only [add_left_eq_self, nat.cast_add, nat.cast_one],
@@ -253,8 +253,7 @@ begin
   have := zmod.trace_pow_card (G.adj_matrix (zmod p)),
   contrapose! this, clear this,
   -- the trace is 0 mod p when computed one way
-  rw [trace_adj_matrix, zero_pow],
-  swap, { apply nat.prime.pos, assumption, },
+  rw [trace_adj_matrix, zero_pow (fact.out p.prime).pos],
   -- but the trace is 1 mod p when computed the other way
   rw adj_matrix_pow_mod_p_of_regular hG dmod hd hp2,
   dunfold fintype.card at Vmod,

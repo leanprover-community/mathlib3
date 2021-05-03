@@ -5,51 +5,31 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.types
 import category_theory.equivalence
-import data.opposite
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
-namespace category_theory
 open opposite
 
 variables {C : Type u₁}
 
-section has_hom
+section quiver
 
-variables [has_hom.{v₁} C]
+variables [quiver.{v₁} C]
 
-/-- The hom types of the opposite of a category (or graph).
+lemma quiver.hom.op_inj {X Y : C} :
+  function.injective (quiver.hom.op : (X ⟶ Y) → (op Y ⟶ op X)) :=
+λ _ _ H, congr_arg quiver.hom.unop H
 
-  As with the objects, we'll make this irreducible below.
-  Use `f.op` and `f.unop` to convert between morphisms of C
-  and morphisms of Cᵒᵖ.
--/
-instance has_hom.opposite : has_hom Cᵒᵖ :=
-{ hom := λ X Y, unop Y ⟶ unop X }
+lemma quiver.hom.unop_inj {X Y : Cᵒᵖ} :
+  function.injective (quiver.hom.unop : (X ⟶ Y) → (unop Y ⟶ unop X)) :=
+λ _ _ H, congr_arg quiver.hom.op H
 
-/--
-The opposite of a morphism in `C`.
--/
-def has_hom.hom.op {X Y : C} (f : X ⟶ Y) : op Y ⟶ op X := f
-/--
-Given a morphism in `Cᵒᵖ`, we can take the "unopposite" back in `C`.
--/
-def has_hom.hom.unop {X Y : Cᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X := f
+@[simp] lemma quiver.hom.unop_op {X Y : C} {f : X ⟶ Y} : f.op.unop = f := rfl
+@[simp] lemma quiver.hom.op_unop {X Y : Cᵒᵖ} {f : X ⟶ Y} : f.unop.op = f := rfl
 
-attribute [irreducible] has_hom.opposite
+end quiver
 
-lemma has_hom.hom.op_inj {X Y : C} :
-  function.injective (has_hom.hom.op : (X ⟶ Y) → (op Y ⟶ op X)) :=
-λ _ _ H, congr_arg has_hom.hom.unop H
-
-lemma has_hom.hom.unop_inj {X Y : Cᵒᵖ} :
-  function.injective (has_hom.hom.unop : (X ⟶ Y) → (unop Y ⟶ unop X)) :=
-λ _ _ H, congr_arg has_hom.hom.op H
-
-@[simp] lemma has_hom.hom.unop_op {X Y : C} {f : X ⟶ Y} : f.op.unop = f := rfl
-@[simp] lemma has_hom.hom.op_unop {X Y : Cᵒᵖ} {f : X ⟶ Y} : f.unop.op = f := rfl
-
-end has_hom
+namespace category_theory
 
 variables [category.{v₁} C]
 
@@ -102,10 +82,9 @@ end
 If `f.op` is an isomorphism `f` must be too.
 (This cannot be an instance as it would immediately loop!)
 -/
-def is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
-{ inv := (inv (f.op)).unop,
-  hom_inv_id' := has_hom.hom.op_inj (by simp),
-  inv_hom_id' := has_hom.hom.op_inj (by simp) }
+lemma is_iso_of_op {X Y : C} (f : X ⟶ Y) [is_iso f.op] : is_iso f :=
+⟨⟨(inv (f.op)).unop,
+  ⟨quiver.hom.op_inj (by simp), quiver.hom.op_inj (by simp)⟩⟩⟩
 
 namespace functor
 
@@ -151,7 +130,7 @@ def op_hom : (C ⥤ D)ᵒᵖ ⥤ (Cᵒᵖ ⥤ Dᵒᵖ) :=
 { obj := λ F, (unop F).op,
   map := λ F G α,
   { app := λ X, (α.unop.app (unop X)).op,
-    naturality' := λ X Y f, has_hom.hom.unop_inj (α.unop.naturality f.unop).symm } }
+    naturality' := λ X Y f, quiver.hom.unop_inj (α.unop.naturality f.unop).symm } }
 
 /--
 Take the "unopposite" of a functor is functorial.
@@ -159,9 +138,9 @@ Take the "unopposite" of a functor is functorial.
 @[simps]
 def op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
 { obj := λ F, op F.unop,
-  map := λ F G α, has_hom.hom.op
+  map := λ F G α, quiver.hom.op
   { app := λ X, (α.app (op X)).unop,
-    naturality' := λ X Y f, has_hom.hom.op_inj $ (α.naturality f.op).symm } }
+    naturality' := λ X Y f, quiver.hom.op_inj $ (α.naturality f.op).symm } }
 
 -- TODO show these form an equivalence
 
@@ -192,15 +171,15 @@ instance {F : C ⥤ D} [full F] : full F.op :=
 
 instance {F : C ⥤ D} [faithful F] : faithful F.op :=
 { map_injective' := λ X Y f g h,
-    has_hom.hom.unop_inj $ by simpa using map_injective F (has_hom.hom.op_inj h) }
+    quiver.hom.unop_inj $ by simpa using map_injective F (quiver.hom.op_inj h) }
 
 /-- If F is faithful then the right_op of F is also faithful. -/
 instance right_op_faithful {F : Cᵒᵖ ⥤ D} [faithful F] : faithful F.right_op :=
-{ map_injective' := λ X Y f g h, has_hom.hom.op_inj (map_injective F (has_hom.hom.op_inj h)) }
+{ map_injective' := λ X Y f g h, quiver.hom.op_inj (map_injective F (quiver.hom.op_inj h)) }
 
 /-- If F is faithful then the left_op of F is also faithful. -/
 instance left_op_faithful {F : C ⥤ Dᵒᵖ} [faithful F] : faithful F.left_op :=
-{ map_injective' := λ X Y f g h, has_hom.hom.unop_inj (map_injective F (has_hom.hom.unop_inj h)) }
+{ map_injective' := λ X Y f g h, quiver.hom.unop_inj (map_injective F (quiver.hom.unop_inj h)) }
 
 end
 
@@ -213,7 +192,7 @@ variables {D : Type u₂} [category.{v₂} D]
 section
 variables {F G : C ⥤ D}
 
-local attribute [semireducible] has_hom.opposite
+local attribute [semireducible] quiver.opposite
 
 /-- The opposite of a natural transformation. -/
 @[simps] protected def op (α : F ⟶ G) : G.op ⟶ F.op :=
@@ -238,7 +217,7 @@ we can take the "unopposite" of each component obtaining a natural transformatio
   naturality' :=
   begin
     intros X Y f,
-    have := congr_arg has_hom.hom.op (α.naturality f.op),
+    have := congr_arg quiver.hom.op (α.naturality f.op),
     dsimp at this,
     erw this,
     refl,
@@ -251,7 +230,7 @@ end
 section
 variables {F G : C ⥤ Dᵒᵖ}
 
-local attribute [semireducible] has_hom.opposite
+local attribute [semireducible] quiver.opposite
 
 /--
 Given a natural transformation `α : F ⟶ G`, for `F G : C ⥤ Dᵒᵖ`,
@@ -270,7 +249,7 @@ taking `op` of each component gives a natural transformation `G ⟶ F`.
   naturality' :=
   begin
     intros X Y f,
-    have := congr_arg has_hom.hom.op (α.naturality f.op),
+    have := congr_arg quiver.hom.op (α.naturality f.op),
     dsimp at this,
     erw this
   end }
@@ -289,8 +268,8 @@ The opposite isomorphism.
 protected def op (α : X ≅ Y) : op Y ≅ op X :=
 { hom := α.hom.op,
   inv := α.inv.op,
-  hom_inv_id' := has_hom.hom.unop_inj α.inv_hom_id,
-  inv_hom_id' := has_hom.hom.unop_inj α.hom_inv_id }
+  hom_inv_id' := quiver.hom.unop_inj α.inv_hom_id,
+  inv_hom_id' := quiver.hom.unop_inj α.hom_inv_id }
 
 end iso
 
@@ -338,7 +317,7 @@ def op (e : C ≌ D) : Cᵒᵖ ≌ Dᵒᵖ :=
   inverse := e.inverse.op,
   unit_iso := (nat_iso.op e.unit_iso).symm,
   counit_iso := (nat_iso.op e.counit_iso).symm,
-  functor_unit_iso_comp' := λ X, by { apply has_hom.hom.unop_inj, dsimp, simp, }, }
+  functor_unit_iso_comp' := λ X, by { apply quiver.hom.unop_inj, dsimp, simp, }, }
 
 /--
 An equivalence between opposite categories gives an equivalence between the original categories.
@@ -349,7 +328,7 @@ def unop (e : Cᵒᵖ ≌ Dᵒᵖ) : C ≌ D :=
   inverse := e.inverse.unop,
   unit_iso := (nat_iso.unop e.unit_iso).symm,
   counit_iso := (nat_iso.unop e.counit_iso).symm,
-  functor_unit_iso_comp' := λ X, by { apply has_hom.hom.op_inj, dsimp, simp, }, }
+  functor_unit_iso_comp' := λ X, by { apply quiver.hom.op_inj, dsimp, simp, }, }
 
 end equivalence
 
@@ -384,7 +363,7 @@ variables {α : Type v} [preorder α]
 
 /-- Construct a morphism in the opposite of a preorder category from an inequality. -/
 def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V :=
-has_hom.hom.op (hom_of_le h)
+quiver.hom.op (hom_of_le h)
 
 lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U :=
 le_of_hom (h.unop)

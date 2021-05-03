@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import analysis.specific_limits
 import order.iterate
@@ -206,7 +206,7 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
   ⇑(to_order_iso f)⁻¹ = (f⁻¹ : units circle_deg1_lift) := rfl
 
 lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :=
-⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, is_unit_unit
+⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, units.is_unit
   { val := f,
     inv := { to_fun := (equiv.of_bijective f h).symm,
              monotone' := λ x y hxy, (f.strict_mono_iff_injective.2 h.1).le_iff_le.1
@@ -539,7 +539,7 @@ begin
   simp_rw [transnum_aux_seq, real.dist_eq],
   rw [← abs_div, sub_div, pow_succ', pow_succ, ← two_mul,
     mul_div_mul_left _ _ (@two_ne_zero ℝ _ _),
-    pow_mul, pow_two, mul_apply]
+    pow_mul, sq, mul_apply]
 end
 
 lemma tendsto_translation_number_aux : tendsto f.transnum_aux_seq at_top (𝓝 $ τ f) :=

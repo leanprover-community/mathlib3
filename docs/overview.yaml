@@ -110,13 +110,14 @@ General algebra:
     splitting field: 'polynomial.splitting_field'
     perfect closure: 'perfect_closure'
     Galois correspondence: 'is_galois.intermediate_field_equiv_subgroup'
+    Abel-Ruffini theorem (one direction): 'solvable_by_rad.is_solvable'
 
   Homological algebra:
     chain complex: 'chain_complex'
     functorial homology: 'homological_complex.homology'
 
   Number theory:
-    sum of two squares: 'nat.prime.sum_two_squares'
+    sum of two squares: 'nat.prime.sq_add_sq'
     sum of four squares: 'nat.sum_four_squares'
     quadratic reciprocity: 'zmod.quadratic_reciprocity'
     "solutions to Pell's equation": 'pell.pell'
@@ -133,7 +134,7 @@ Linear algebra:
     module: 'module'
     linear map: 'linear_map'
     the category of modules over a ring: 'Module'
-    vector space: 'vector_space'
+    vector space: 'module'
     quotient space: 'submodule.quotient'
     tensor product: 'tensor_product'
     noetherian module: 'is_noetherian'
@@ -147,7 +148,7 @@ Linear algebra:
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'module_equiv_finsupp'
-    isomorphism with bidual: 'vector_space.eval_equiv'
+    isomorphism with bidual: 'module.eval_equiv'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
@@ -193,6 +194,7 @@ Topology:
     compact open topology: 'continuous_map.compact_open'
     Stone-Cech compactification: 'stone_cech'
     topological fiber bundle: 'is_topological_fiber_bundle'
+    Urysohn's lemma: 'exists_continuous_zero_one_of_closed'
   Uniform notions:
     uniform space: 'uniform_space'
     uniformly continuous function: 'metric.uniform_continuous_iff'
@@ -212,7 +214,7 @@ Topology:
     infinite sum: 'has_sum'
     topological ring: 'topological_ring'
     completion of a topological ring: 'uniform_space.completion.ring'
-    topological module: 'topological_module'
+    topological module: 'has_continuous_smul'
     Haar measure on a locally compact Hausdorff group: 'measure_theory.measure.haar_measure'
   Metric spaces:
     metric space: 'metric_space'
@@ -229,7 +231,7 @@ Topology:
 Analysis:
   Normed vector spaces:
     normed vector space over a normed field: 'normed_space'
-    topology on a normed vector space: 'normed_space.topological_vector_space'
+    topology on a normed vector space: 'semi_normed_space.has_continuous_smul'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
     finite dimensional normed spaces over complete normed fields are complete: 'submodule.complete_of_finite_dimensional'
     Heine-Borel theorem (finite dimensional normed spaces are proper): 'finite_dimensional.proper'
@@ -279,6 +281,8 @@ Analysis:
     Borel sigma-algebra: 'borel_space'
     positive measure: 'measure_theory.measure'
     Lebesgue measure: 'measure_theory.real.measure_space'
+    Hausdorff measure: 'measure_theory.measure.hausdorff_measure'
+    Hausdorff dimension: 'measure_theory.dimH'
     Giry monad: 'measure_theory.measure.measurable_space'
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'

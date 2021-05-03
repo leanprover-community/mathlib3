@@ -20,7 +20,7 @@ import order.bounds
 ## Naming conventions
 
 We use `Sup`/`Inf`/`supr`/`infi` for the corresponding functions in the statement. Sometimes we
-also use `bsupr`/`binfi` for "bounded` supremum or infimum, i.e. one of `⨆ i ∈ s, f i`,
+also use `bsupr`/`binfi` for "bounded" supremum or infimum, i.e. one of `⨆ i ∈ s, f i`,
 `⨆ i (hi : p i), f i`, or more generally `⨆ i (hi : p i), f i hi`.
 
 ## Notation
@@ -60,14 +60,108 @@ notation `⨅` binders `, ` r:(scoped f, infi f) := r
 instance (α) [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
 instance (α) [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
 
+/--
+Note that we rarely use `complete_semilattice_Sup`
+(in fact, any such object is always a `complete_lattice`, so it's usually best to start there).
+
+Nevertheless it is sometimes a useful intermediate step in constructions.
+-/
+class complete_semilattice_Sup (α : Type*) extends partial_order α, has_Sup α :=
+(le_Sup : ∀s, ∀a∈s, a ≤ Sup s)
+(Sup_le : ∀s a, (∀b∈s, b ≤ a) → Sup s ≤ a)
+
+section
+variables [complete_semilattice_Sup α] {s t : set α} {a b : α}
+
+@[ematch] theorem le_Sup : a ∈ s → a ≤ Sup s := complete_semilattice_Sup.le_Sup s a
+
+theorem Sup_le : (∀b∈s, b ≤ a) → Sup s ≤ a := complete_semilattice_Sup.Sup_le s a
+
+lemma is_lub_Sup (s : set α) : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
+
+lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
+
+theorem le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
+le_trans h (le_Sup hb)
+
+theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
+(is_lub_Sup s).mono (is_lub_Sup t) h
+
+@[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+is_lub_le_iff (is_lub_Sup s)
+
+lemma le_Sup_iff :
+  a ≤ Sup s ↔ (∀ b, (∀ x ∈ s, x ≤ b) → a ≤ b) :=
+⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
+
+theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
+le_of_forall_le' begin
+  simp only [Sup_le_iff],
+  introv h₀ h₁,
+  rcases h _ h₁ with ⟨y,hy,hy'⟩,
+  solve_by_elim [le_trans hy']
+end
+
+-- We will generalize this to conditionally complete lattices in `cSup_singleton`.
+theorem Sup_singleton {a : α} : Sup {a} = a :=
+is_lub_singleton.Sup_eq
+
+end
+
+/--
+Note that we rarely use `complete_semilattice_Inf`
+(in fact, any such object is always a `complete_lattice`, so it's usually best to start there).
+
+Nevertheless it is sometimes a useful intermediate step in constructions.
+-/
+class complete_semilattice_Inf (α : Type*) extends partial_order α, has_Inf α :=
+(Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
+(le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
+
+
+section
+variables [complete_semilattice_Inf α] {s t : set α} {a b : α}
+
+@[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a := complete_semilattice_Inf.Inf_le s a
+
+theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_semilattice_Inf.le_Inf s a
+
+lemma is_glb_Inf (s : set α) : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
+
+lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
+
+theorem Inf_le_of_le (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
+le_trans (Inf_le hb) h
+
+theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
+(is_glb_Inf s).mono (is_glb_Inf t) h
+
+@[simp] theorem le_Inf_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
+le_is_glb_iff (is_glb_Inf s)
+
+lemma Inf_le_iff :
+  Inf s ≤ a ↔ (∀ b, (∀ x ∈ s, b ≤ x) → b ≤ a) :=
+⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
+
+theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
+le_of_forall_le begin
+  simp only [le_Inf_iff],
+  introv h₀ h₁,
+  rcases h _ h₁ with ⟨y,hy,hy'⟩,
+  solve_by_elim [le_trans _ hy']
+end
+
+-- We will generalize this to conditionally complete lattices in `cInf_singleton`.
+theorem Inf_singleton {a : α} : Inf {a} = a :=
+is_glb_singleton.Inf_eq
+
+end
+
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
 @[protect_proj]
-class complete_lattice (α : Type*) extends bounded_lattice α, has_Sup α, has_Inf α :=
-(le_Sup : ∀s, ∀a∈s, a ≤ Sup s)
-(Sup_le : ∀s a, (∀b∈s, b ≤ a) → Sup s ≤ a)
-(Inf_le : ∀s, ∀a∈s, Inf s ≤ a)
-(le_Inf : ∀s a, (∀b∈s, a ≤ b) → a ≤ Inf s)
+class complete_lattice (α : Type*) extends
+  bounded_lattice α, complete_semilattice_Sup α, complete_semilattice_Inf α.
 
 /-- Create a `complete_lattice` from a `partial_order` and `Inf` function
 that returns the greatest lower bound of a set. Usually this constructor provides
@@ -106,6 +200,16 @@ def complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   Sup_le := λ s a ha, (is_glb_Inf (upper_bounds s)).1 ha,
   .. H1, .. H2 }
 
+/--
+Any `complete_semilattice_Inf` is in fact a `complete_lattice`.
+
+Note that this construction has bad definitional properties:
+see the doc-string on `complete_lattice_of_Inf`.
+-/
+def complete_lattice_of_complete_semilattice_Inf (α : Type*) [complete_semilattice_Inf α] :
+  complete_lattice α :=
+complete_lattice_of_Inf α (λ s, is_glb_Inf s)
+
 /-- Create a `complete_lattice` from a `partial_order` and `Sup` function
 that returns the least upper bound of a set. Usually this constructor provides
 poor definitional equalities.  If other fields are known explicitly, they should be
@@ -143,6 +247,16 @@ def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   le_Inf := λ s a ha, (is_lub_Sup (lower_bounds s)).1 ha,
   .. H1, .. H2 }
 
+/--
+Any `complete_semilattice_Sup` is in fact a `complete_lattice`.
+
+Note that this construction has bad definitional properties:
+see the doc-string on `complete_lattice_of_Sup`.
+-/
+def complete_lattice_of_complete_semilattice_Sup (α : Type*) [complete_semilattice_Sup α] :
+  complete_lattice α :=
+complete_lattice_of_Sup α (λ s, is_lub_Sup s)
+
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type*) extends complete_lattice α, linear_order α
 
@@ -164,50 +278,9 @@ end order_dual
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
 
-@[ematch] theorem le_Sup : a ∈ s → a ≤ Sup s := complete_lattice.le_Sup s a
-
-theorem Sup_le : (∀b∈s, b ≤ a) → Sup s ≤ a := complete_lattice.Sup_le s a
-
-@[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a := complete_lattice.Inf_le s a
-
-theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf s a
-
-lemma is_lub_Sup (s : set α) : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
-
-lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
-
-lemma is_glb_Inf (s : set α) : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
-
-lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
-
-theorem le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
-le_trans h (le_Sup hb)
-
-theorem Inf_le_of_le (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
-le_trans (Inf_le hb) h
-
-theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
-(is_lub_Sup s).mono (is_lub_Sup t) h
-
-theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
-(is_glb_Inf s).mono (is_glb_Inf t) h
-
-@[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
-is_lub_le_iff (is_lub_Sup s)
-
-@[simp] theorem le_Inf_iff : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
-le_is_glb_iff (is_glb_Inf s)
-
-theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
-le_of_forall_le' (by simp only [Sup_le_iff]; introv h₀ h₁; rcases h _ h₁ with ⟨y,hy,hy'⟩; solve_by_elim [le_trans hy'])
-
-theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
-le_of_forall_le (by simp only [le_Inf_iff]; introv h₀ h₁; rcases h _ h₁ with ⟨y,hy,hy'⟩; solve_by_elim [le_trans _ hy'])
-
 theorem Inf_le_Sup (hs : s.nonempty) : Inf s ≤ Sup s :=
 is_glb_le_is_lub (is_glb_Inf s) (is_lub_Sup s) hs
 
--- TODO: it is weird that we have to add union_def
 theorem Sup_union {s t : set α} : Sup (s ∪ t) = Sup s ⊔ Sup t :=
 ((is_lub_Sup s).union (is_lub_Sup t)).Sup_eq
 
@@ -224,7 +297,7 @@ theorem le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
 @Sup_inter_le (order_dual α) _ _ _
 
 @[simp] theorem Sup_empty : Sup ∅ = (⊥ : α) :=
-is_lub_empty.Sup_eq
+(@is_lub_empty α _).Sup_eq
 
 @[simp] theorem Inf_empty : Inf ∅ = (⊤ : α) :=
 (@is_glb_empty α _).Inf_eq
@@ -233,7 +306,7 @@ is_lub_empty.Sup_eq
 (@is_lub_univ α _).Sup_eq
 
 @[simp] theorem Inf_univ : Inf univ = (⊥ : α) :=
-is_glb_univ.Inf_eq
+(@is_glb_univ α _).Inf_eq
 
 -- TODO(Jeremy): get this automatically
 @[simp] theorem Sup_insert {a : α} {s : set α} : Sup (insert a s) = a ⊔ Sup s :=
@@ -247,14 +320,6 @@ le_trans (Sup_le_Sup h) (le_of_eq (trans Sup_insert bot_sup_eq))
 
 theorem Inf_le_Inf_of_subset_insert_top (h : s ⊆ insert ⊤ t) : Inf t ≤ Inf s :=
 le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
-
--- We will generalize this to conditionally complete lattices in `cSup_singleton`.
-theorem Sup_singleton {a : α} : Sup {a} = a :=
-is_lub_singleton.Sup_eq
-
--- We will generalize this to conditionally complete lattices in `cInf_singleton`.
-theorem Inf_singleton {a : α} : Inf {a} = a :=
-is_glb_singleton.Inf_eq
 
 theorem Sup_pair {a b : α} : Sup {a, b} = a ⊔ b :=
 (@is_lub_pair α _ a b).Sup_eq
@@ -370,6 +435,10 @@ bsupr_le $ λ i hi, le_trans (h i hi) (le_bsupr i hi)
 theorem supr_le_supr_const (h : ι → ι₂) : (⨆ i:ι, a) ≤ (⨆ j:ι₂, a) :=
 supr_le $ le_supr _ ∘ h
 
+theorem bsupr_le_bsupr' {p q : ι → Prop} (hpq : ∀ i, p i → q i) {f : ι → α} :
+  (⨆ i (hpi : p i), f i) ≤ ⨆ i (hqi : q i), f i :=
+supr_le_supr $ λ i, supr_le_supr_const (hpq i)
+
 @[simp] theorem supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
 (is_lub_le_iff is_lub_supr).trans forall_range_iff
 
@@ -433,10 +502,9 @@ by { convert h1.supr_comp g, exact (funext h2).symm }
 @[congr] theorem supr_congr_Prop {α : Type*} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 begin
-  have : f₁ ∘ pq.mpr = f₂ := funext f,
-  rw [← this],
-  refine (function.surjective.supr_comp (λ h, ⟨pq.1 h, _⟩) f₁).symm,
-  refl
+  have := propext pq, subst this,
+  congr' with x,
+  apply f
 end
 
 theorem infi_le (s : ι → α) (i : ι) : infi s ≤ s i :=
@@ -936,6 +1004,18 @@ begin
   { simp_rw [infi_ge_eq_infi_nat_add, ←nat.add_assoc], },
 end
 
+lemma sup_supr_nat_succ (u : ℕ → α) : u 0 ⊔ (⨆ i, u (i + 1)) = ⨆ i, u i :=
+begin
+  refine eq_of_forall_ge_iff (λ c, _),
+  simp only [sup_le_iff, supr_le_iff],
+  refine ⟨λ h, _, λ h, ⟨h _, λ i, h _⟩⟩,
+  rintro (_|i),
+  exacts [h.1, h.2 i]
+end
+
+lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u i :=
+@sup_supr_nat_succ (order_dual α) _ u
+
 end
 
 section complete_linear_order
@@ -1001,6 +1081,14 @@ by rw [infi, Inf_apply, infi, infi, ← image_eq_range (λ f : Π i, β i, f a) 
 lemma Sup_apply {α : Type*} {β : α → Type*} [Π i, has_Sup (β i)] {s : set (Πa, β a)} {a : α} :
   (Sup s) a = (⨆f:s, (f : Πa, β a) a) :=
 rfl
+
+lemma unary_relation_Sup_iff {α : Type*} (s : set (α → Prop)) {a : α} :
+  Sup s a ↔ ∃ (r : α → Prop), r ∈ s ∧ r a :=
+by { change (∃ _, _) ↔ _, simp [-eq_iff_iff] }
+
+lemma binary_relation_Sup_iff {α β : Type*} (s : set (α → β → Prop)) {a : α} {b : β} :
+  Sup s a b ↔ ∃ (r : α → β → Prop), r ∈ s ∧ r a b :=
+by { change (∃ _, _) ↔ _, simp [-eq_iff_iff] }
 
 lemma supr_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Sup (β i)] {f : ι → Πa, β a}
   {a : α} :
@@ -1080,32 +1168,101 @@ variables [complete_lattice α]
 
 /-- An independent set of elements in a complete lattice is one in which every element is disjoint
   from the `Sup` of the rest. -/
-def independent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
+def set_independent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
 
-variables {s : set α} (hs : independent s)
+variables {s : set α} (hs : set_independent s)
 
 @[simp]
-lemma independent_empty : independent (∅ : set α) :=
+lemma set_independent_empty : set_independent (∅ : set α) :=
 λ x hx, (set.not_mem_empty x hx).elim
 
-theorem independent.mono {t : set α} (hst : t ⊆ s) :
-  independent t :=
+theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
+  set_independent t :=
 λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
+lemma set_independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
 disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
 
 include hs
 
 /-- If the elements of a set are independent, then any element is disjoint from the `Sup` of some
 subset of the rest. -/
-lemma independent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
+lemma set_independent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
   disjoint x (Sup y) :=
 begin
   have := (hs.mono $ insert_subset.mpr ⟨hx, hy⟩) (mem_insert x _),
   rw [insert_diff_of_mem _ (mem_singleton _), diff_singleton_eq_self hxy] at this,
   exact this,
 end
+
+omit hs
+
+/-- An independent indexed family of elements in a complete lattice is one in which every element
+  is disjoint from the `supr` of the rest.
+
+  Example: an indexed family of non-zero elements in a
+  vector space is linearly independent iff the indexed family of subspaces they generate is
+  independent in this sense.
+
+  Example: an indexed family of submodules of a module is independent in this sense if
+  and only the natural map from the direct sum of the submodules to the module is injective. -/
+def independent {ι : Sort*} {α : Type*} [complete_lattice α] (t : ι → α) : Prop :=
+∀ i : ι, disjoint (t i) (⨆ (j ≠ i), t j)
+
+lemma set_independent_iff {α : Type*} [complete_lattice α] (s : set α) :
+  set_independent s ↔ independent (coe : s → α) :=
+begin
+  simp_rw [independent, set_independent, set_coe.forall, Sup_eq_supr],
+  apply forall_congr, intro a, apply forall_congr, intro ha,
+  congr' 2,
+  convert supr_subtype.symm,
+  simp [supr_and],
+end
+
+variables {t : ι → α} (ht : independent t)
+
+theorem independent_def : independent t ↔ ∀ i : ι, disjoint (t i) (⨆ (j ≠ i), t j) :=
+iff.rfl
+
+theorem independent_def' {ι : Type*} {t : ι → α} :
+  independent t ↔ ∀ i, disjoint (t i) (Sup (t '' {j | j ≠ i})) :=
+by {simp_rw Sup_image, refl}
+
+theorem independent_def'' {ι : Type*} {t : ι → α} :
+  independent t ↔ ∀ i, disjoint (t i) (Sup {a | ∃ j ≠ i, t j = a}) :=
+by {rw independent_def', tidy}
+
+@[simp]
+lemma independent_empty (t : empty → α) : independent t.
+
+@[simp]
+lemma independent_pempty (t : pempty → α) : independent t.
+
+/-- If the elements of a set are independent, then any pair within that set is disjoint. -/
+lemma independent.disjoint {x y : ι} (h : x ≠ y) : disjoint (t x) (t y) :=
+disjoint_Sup_right (ht x) ⟨y, by simp [h.symm]⟩
+
+lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
+  {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
+  independent t :=
+λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
+
+/-- Composing an indepedent indexed family with an injective function on the index results in
+another indepedendent indexed family. -/
+lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
+  {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
+  independent (s ∘ f) :=
+λ i, (hs (f i)).mono_right begin
+  refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
+  exact supr_le_supr_const hf.ne,
+end
+
+/-- If the elements of a set are independent, then any element is disjoint from the `supr` of some
+subset of the rest. -/
+lemma independent.disjoint_bsupr {ι : Type*} {α : Type*} [complete_lattice α]
+  {t : ι → α} (ht : independent t) {x : ι} {y : set ι} (hx : x ∉ y) :
+  disjoint (t x) (⨆ i ∈ y, t i) :=
+disjoint.mono_right (bsupr_le_bsupr' $ λ i hi, (ne_of_mem_of_not_mem hi hx : _)) (ht x)
 
 end complete_lattice

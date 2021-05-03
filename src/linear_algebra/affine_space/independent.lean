@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import data.finset.sort
 import data.matrix.notation
@@ -398,7 +398,7 @@ begin
     intro he,
     rw vsub_eq_zero_iff_eq at he,
     exact h he.symm },
-  exact linear_independent_unique hz
+  exact linear_independent_unique _ hz
 end
 
 end field

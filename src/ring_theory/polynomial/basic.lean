@@ -252,10 +252,10 @@ begin
       exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw ← sum_monomial_eq f,
-    refine (map C I : ideal (polynomial R)).sum_mem (λ n hn, _),
+    refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
     simp [single_eq_C_mul_X],
     rw mul_comm,
-    exact (map C I : ideal (polynomial R)).smul_mem _ (mem_map_of_mem (hf n)) }
+    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem (hf n)) }
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
@@ -352,7 +352,7 @@ begin
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
     refine sub_add_cancel (C y) f ▸ I.add_mem (hi' _ : (C y - f) ∈ I) hf.1,
-    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero_iff_eq, coe_map_ring_hom, map_C] },
+    rw [ring_hom.mem_ker, ring_hom.map_sub, hf.2, sub_eq_zero, coe_map_ring_hom, map_C] },
   exact hx,
 end
 
@@ -389,7 +389,7 @@ def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,
   zero_mem' := I.zero_mem,
   add_mem' := λ _ _, I.add_mem,
-  smul_mem' := λ c x H, by rw [← C_mul']; exact submodule.smul_mem _ _ H }
+  smul_mem' := λ c x H, by { rw [← C_mul'], exact I.mul_mem_left _ H } }
 
 variables {I : ideal (polynomial R)}
 theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl
@@ -441,7 +441,7 @@ theorem leading_coeff_nth_mono {m n : ℕ} (H : m ≤ n) :
   I.leading_coeff_nth m ≤ I.leading_coeff_nth n :=
 begin
   intros r hr,
-  simp only [submodule.mem_coe, mem_leading_coeff_nth] at hr ⊢,
+  simp only [set_like.mem_coe, mem_leading_coeff_nth] at hr ⊢,
   rcases hr with ⟨p, hpI, hpdeg, rfl⟩,
   refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
   refine le_trans (degree_mul_le _ _) _,
@@ -527,7 +527,8 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
 ⟨s, le_antisymm
   (ideal.span_le.2 $ λ x hx, have x ∈ I.degree_le N, from hs ▸ submodule.subset_span hx, this.2) $
 begin
-  change I ≤ ideal.span ↑s,
+  have : submodule.span (polynomial R) ↑s = ideal.span ↑s, by refl,
+  rw this,
   intros p hp, generalize hn : p.nat_degree = k,
   induction k using nat.strong_induction_on with k ih generalizing p,
   cases le_or_lt k N,
@@ -848,9 +849,10 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
       rw [coe_eval₂_hom, eval₂_C],
       simp only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk,
         ideal.quotient.mk_eq_mk, bind₂_C_right, ring_hom.coe_comp] },
-    { simp_intros p q hp hq,
+    { simp_intros p q hp hq only [ring_hom.map_add, mv_polynomial.coe_eval₂_hom, coe_eval₂_hom,
+        mv_polynomial.eval₂_add, mv_polynomial.eval₂_hom_eq_bind₂, eval₂_hom_eq_bind₂],
       rw [hp, hq] },
-    { simp_intros p i hp,
+    { simp_intros p i hp only [eval₂_hom_eq_bind₂, coe_eval₂_hom],
       simp only [hp, eval₂_hom_eq_bind₂, coe_eval₂_hom, ideal.quotient.lift_mk, bind₂_X_right,
         eval₂_mul, ring_hom.map_mul, eval₂_X] }
   end,
@@ -860,9 +862,12 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
     { intros r,
       simp only [submodule.quotient.quot_mk_eq_mk, ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk,
         ring_hom.coe_comp, eval₂_hom_C] },
-    { simp_intros p q hp hq,
+    { simp_intros p q hp hq only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, eval₂_add,
+        ring_hom.map_add, coe_eval₂_hom, ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk],
       rw [hp, hq] },
-    { simp_intros p i hp,
+    { simp_intros p i hp only [eval₂_hom_eq_bind₂, submodule.quotient.quot_mk_eq_mk, coe_eval₂_hom,
+        ideal.quotient.lift_mk, ideal.quotient.mk_eq_mk, bind₂_X_right, eval₂_mul, ring_hom.map_mul,
+        eval₂_X],
       simp only [hp] }
   end,
   commutes' := λ r, eval₂_hom_C _ _ (ideal.quotient.mk I r) }

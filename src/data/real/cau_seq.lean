@@ -267,6 +267,7 @@ instance : inhabited (cau_seq β abv) := ⟨0⟩
 
 @[simp] theorem zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
 @[simp] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
+@[simp] theorem const_zero : const 0 = 0 := rfl
 
 theorem const_add (x y : β) : const (x + y) = const x + const y :=
 ext $ λ i, rfl
@@ -301,16 +302,18 @@ theorem const_sub (x y : β) : const (x - y) = const x - const y :=
 ext $ λ i, rfl
 
 instance : ring (cau_seq β abv) :=
-by refine
+by refine_struct
      { neg := has_neg.neg,
        add := (+),
-       zero := 0,
+       zero := (0 : cau_seq β abv),
        mul := (*),
        one := 1,
        sub := has_sub.sub,
-       sub_eq_add_neg := _,
-       .. };
-  { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg] }
+       npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
+       nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+       gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+intros; try { refl }; apply ext;
+simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=

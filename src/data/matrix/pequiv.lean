@@ -5,7 +5,8 @@ Authors: Chris Hughes
 -/
 import data.matrix.basic
 import data.pequiv
-/-
+
+/-!
 # partial equivalences for matrices
 
 Using partial equivalences to represent matrices.

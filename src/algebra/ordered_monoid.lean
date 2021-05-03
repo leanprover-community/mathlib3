@@ -19,7 +19,6 @@ This file develops the basics of ordered monoids.
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
-
 -/
 
 set_option old_structure_cmd true
@@ -42,12 +41,31 @@ class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α 
   * `a ≤ b → c + a ≤ c + b` (addition is monotone)
   * `a + b < a + c → b < c`.
 -/
+
 @[protect_proj, ancestor add_comm_monoid partial_order]
 class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
 attribute [to_additive] ordered_comm_monoid
+
+/-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
+if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker version
+of the condition on canonical orderings defined by `canonically_ordered_monoid`. -/
+class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] : Prop :=
+(exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a * c)
+
+export has_exists_mul_of_le (exists_mul_of_le)
+
+/-- An `ordered_add_comm_monoid` with one-sided 'subtraction' in the sense that
+if `a ≤ b`, then there is some `c` for which `a + c = b`. This is a weaker version
+of the condition on canonical orderings defined by `canonically_ordered_add_monoid`. -/
+class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] : Prop :=
+(exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a + c)
+
+export has_exists_add_of_le (exists_add_of_le)
+
+attribute [to_additive] has_exists_mul_of_le
 
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]
@@ -536,7 +554,7 @@ local attribute [reducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
-  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
+  ..(by apply_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
 
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
@@ -795,7 +813,15 @@ instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_orde
   .. with_top.order_bot,
   .. with_top.ordered_add_comm_monoid }
 
+@[priority 100, to_additive]
+instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
+  [canonically_ordered_monoid α] : has_exists_mul_of_le α :=
+{ exists_mul_of_le := λ a b hab, le_iff_exists_mul.mp hab }
+
 end canonically_ordered_monoid
+
+lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
+lt_of_le_of_lt (zero_le _) h
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/
@@ -1046,7 +1072,6 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
 { le_of_mul_le_mul_left := λ a b c (ab : f (a * b) ≤ f (a * c)),
     (by { rw [mul, mul] at ab, exact le_of_mul_le_mul_left' ab }),
   ..hf.left_cancel_semigroup f mul,
-  ..hf.right_cancel_semigroup f mul,
   ..hf.ordered_comm_monoid f one mul }
 
 section mono
@@ -1201,7 +1226,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
 { le_of_mul_le_mul_left := λ a b c : α, le_of_mul_le_mul_left',
   mul_left_cancel := @mul_left_cancel α _,
-  mul_right_cancel := @mul_right_cancel α _,
   ..order_dual.ordered_comm_monoid }
 
 @[to_additive]
@@ -1221,8 +1245,7 @@ instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
   ordered_cancel_comm_monoid (M × N) :=
 { mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
   le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
- .. prod.comm_monoid, .. prod.left_cancel_semigroup, .. prod.right_cancel_semigroup,
- .. prod.partial_order M N }
+ .. prod.cancel_comm_monoid, .. prod.partial_order M N }
 
 end prod
 
@@ -1249,13 +1272,11 @@ instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_comm_monoid (multiplicative α) :=
 { le_of_mul_le_mul_left := @ordered_cancel_add_comm_monoid.le_of_add_le_add_left α _,
-  ..multiplicative.right_cancel_semigroup,
   ..multiplicative.left_cancel_semigroup,
   ..multiplicative.ordered_comm_monoid }
 
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (additive α) :=
 { le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
-  ..additive.add_right_cancel_semigroup,
   ..additive.add_left_cancel_semigroup,
   ..additive.ordered_add_comm_monoid }
 

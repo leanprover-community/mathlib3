@@ -70,8 +70,11 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-lemma continuous_exp : continuous exp :=
+@[continuity] lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
+
+lemma continuous_on_exp {s : set ℂ} : continuous_on exp s :=
+continuous_exp.continuous_on
 
 lemma times_cont_diff_exp : ∀ {n}, times_cont_diff ℂ n exp :=
 begin
@@ -200,8 +203,11 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 | 0 := rfl
 | (n+1) := by rw [iterate_succ_apply, deriv_exp, iter_deriv_exp n]
 
-lemma continuous_exp : continuous exp :=
+@[continuity] lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
+
+lemma continuous_on_exp {s : set ℝ} : continuous_on exp s :=
+continuous_exp.continuous_on
 
 lemma measurable_exp : measurable exp := continuous_exp.measurable
 
@@ -486,6 +492,15 @@ begin
   rwa [abs_of_neg hy, abs_of_neg hx, neg_lt_neg_iff]
 end
 
+lemma log_inj_on_pos : set.inj_on log (set.Ioi 0) :=
+strict_mono_incr_on_log.inj_on
+
+lemma eq_one_of_pos_of_log_eq_zero {x : ℝ} (h₁ : 0 < x) (h₂ : log x = 0) : x = 1 :=
+log_inj_on_pos (set.mem_Ioi.2 h₁) (set.mem_Ioi.2 zero_lt_one) (h₂.trans real.log_one.symm)
+
+lemma log_ne_zero_of_pos_of_ne_one {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : log x ≠ 0 :=
+mt (eq_one_of_pos_of_log_eq_zero hx_pos) hx
+
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
 tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id
@@ -504,7 +519,7 @@ begin
   exact exp_order_iso.symm.continuous.comp (continuous_subtype_mk _ continuous_subtype_coe.norm)
 end
 
-lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
+@[continuity] lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
 continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, ne_of_gt hx
 
 lemma continuous_at_log (hx : x ≠ 0) : continuous_at log x :=
@@ -781,7 +796,7 @@ begin
     { congr' with i,
       have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
       field_simp [this, mul_comm] },
-    field_simp [F, this, ← geom_series_def, geom_sum (ne_of_lt hy.2),
+    field_simp [F, this, ← geom_sum_def, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
     ring },
   -- second step: show that the derivative of `F` is small

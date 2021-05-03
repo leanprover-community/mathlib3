@@ -41,6 +41,12 @@ We use the following local notations:
 * `[x, y] = segment x y`.
 
 They are defined using `local notation`, so they are not available outside of this file.
+
+## Implementation notes
+
+`convex_hull` is defined as a closure operator. This gives access to the `closure_operator` API
+while the impact on writing code is minimal as `convex_hull s` is automatically coerced to
+`⇑convex_hull s`.
 -/
 
 universes u' u v v' w x
@@ -1092,38 +1098,27 @@ closure_operator.mk₃
   (λ s, ⋂ (t : set E) (hst : s ⊆ t) (ht : convex t), t)
   convex
   (λ s, set.subset_Inter (λ t, set.subset_Inter $ λ hst, set.subset_Inter $ λ ht, hst))
-  begin
-    sorry
-  end
-  begin
-    sorry
-  end
+  (λ s, convex_Inter $ λ t, convex_Inter $ λ ht, convex_Inter id)
+  (λ s t hst ht, set.Inter_subset_of_subset t $ set.Inter_subset_of_subset hst $ set.Inter_subset _ ht)
 
-lemma convex.convex_hull_eq {s : set E} (hs : convex s) : convex_hull s = s :=
-closure_operator.mem_mk₃_closed
-
-lemma convex_hull_mono (hst : s ⊆ t) : convex_hull s ⊆ convex_hull t :=
-convex_hull.mono
-
-#exit
 variable (s)
 
 lemma subset_convex_hull : s ⊆ convex_hull s :=
-set.subset_Inter $ λ t, set.subset_Inter $ λ hst, set.subset_Inter $ λ ht, hst
+convex_hull.le_closure s
 
 lemma convex_convex_hull : convex (convex_hull s) :=
-convex_Inter $ λ t, convex_Inter $ λ ht, convex_Inter id
+closure_operator.closure_mem_mk₃ s
 
 variable {s}
 
 lemma convex_hull_min (hst : s ⊆ t) (ht : convex t) : convex_hull s ⊆ t :=
-set.Inter_subset_of_subset t $ set.Inter_subset_of_subset hst $ set.Inter_subset _ ht
+closure_operator.closure_le_mk₃_iff begin exact hst end ht
 
 lemma convex_hull_mono (hst : s ⊆ t) : convex_hull s ⊆ convex_hull t :=
-convex_hull_min (set.subset.trans hst $ subset_convex_hull t) (convex_convex_hull t)
+convex_hull.monotone hst
 
 lemma convex.convex_hull_eq {s : set E} (hs : convex s) : convex_hull s = s :=
-set.subset.antisymm (convex_hull_min (set.subset.refl _) hs) (subset_convex_hull s)
+closure_operator.mem_mk₃_closed hs
 
 @[simp]
 lemma convex_hull_empty :

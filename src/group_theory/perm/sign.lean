@@ -250,6 +250,19 @@ begin
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
 end
 
+lemma disjoint.extend_domain {α : Type*} {p : β → Prop} [decidable_pred p]
+  (f : α ≃ subtype p) {σ τ : perm α} (h : disjoint σ τ) :
+  disjoint (σ.extend_domain f) (τ.extend_domain f) :=
+begin
+  intro b,
+  by_cases pb : p b,
+  { refine (h (f.symm ⟨b, pb⟩)).imp _ _;
+    { intro h,
+      rw [extend_domain_apply_subtype _ _ pb, h, apply_symm_apply, subtype.coe_mk] } },
+  { left,
+    rw [extend_domain_apply_not_subtype _ _ pb] }
+end
+
 variable [decidable_eq α]
 
 section fintype
@@ -326,6 +339,39 @@ begin
   { rw [int.of_nat_eq_coe, gpow_coe_nat, pow_apply_mem_support] },
   { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
 end
+
+@[simp]
+lemma support_extend_domain [decidable_eq β] [fintype β] {p : β → Prop} [decidable_pred p]
+  (f : α ≃ subtype p) {g : perm α} :
+  support (g.extend_domain f) = g.support.map (f.to_embedding.trans ⟨coe, subtype.coe_injective⟩) :=
+begin
+  ext b,
+  simp only [exists_prop, embedding.coe_fn_mk, to_embedding_apply, mem_map, ne.def,
+    embedding.trans_apply, mem_support],
+  by_cases pb : p b,
+  { rw [extend_domain_apply_subtype _ _ pb],
+    split,
+    { rintro h,
+      refine ⟨f.symm ⟨b, pb⟩, _, by simp⟩,
+      contrapose! h,
+      simp [h] },
+    { rintro ⟨a, ha, hb⟩,
+      contrapose! ha,
+      obtain rfl : a = f.symm ⟨b, pb⟩,
+      { rw eq_symm_apply,
+        exact subtype.coe_injective hb },
+      rw eq_symm_apply,
+      exact subtype.coe_injective ha } },
+  { rw [extend_domain_apply_not_subtype _ _ pb],
+    simp only [not_exists, false_iff, not_and, eq_self_iff_true, not_true],
+    rintros a ha rfl,
+    exact pb (subtype.prop _) }
+end
+
+lemma card_support_extend_domain [decidable_eq β] [fintype β] {p : β → Prop} [decidable_pred p]
+  (f : α ≃ subtype p) {g : perm α} :
+  (g.extend_domain f).support.card = g.support.card :=
+by simp
 
 end fintype
 

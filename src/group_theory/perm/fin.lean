@@ -6,6 +6,7 @@ Authors: Eric Wieser
 import data.equiv.fin
 import data.equiv.fintype
 import group_theory.perm.option
+import group_theory.perm.cycle_type
 
 /-!
 # Permutations of `fin n`
@@ -93,6 +94,27 @@ begin
   induction n with n ih,
   { simp },
   { rw fin_rotate_succ, simp [ih, pow_succ] },
+end
+
+lemma support_fin_rotate {n : ℕ} : support (fin_rotate (n + 2)) = finset.univ :=
+by { ext, simp }
+
+lemma is_cycle_fin_rotate {n : ℕ} : is_cycle (fin_rotate (n + 2)) :=
+begin
+  refine ⟨0, dec_trivial, λ x hx', ⟨x, _⟩⟩,
+  clear hx',
+  cases x with x hx,
+  rw [coe_coe, gpow_coe_nat, fin.ext_iff, fin.coe_mk],
+  induction x with x ih, { refl },
+  rw [pow_succ, perm.mul_apply, coe_fin_rotate_of_ne_last, ih (lt_trans x.lt_succ_self hx)],
+  rw [ne.def, fin.ext_iff, ih (lt_trans x.lt_succ_self hx), fin.coe_last],
+  exact ne_of_lt (nat.lt_of_succ_lt_succ hx),
+end
+
+lemma cycle_type_fin_rotate {n : ℕ} : cycle_type (fin_rotate (n + 2)) = {n + 2} :=
+begin
+  rw [is_cycle_fin_rotate.cycle_type, support_fin_rotate, ← fintype.card, fintype.card_fin],
+  refl,
 end
 
 namespace fin
@@ -225,6 +247,24 @@ i.cycle_range.injective (by simp)
 @[simp] lemma cycle_range_symm_succ {n : ℕ} (i : fin (n + 1)) (j : fin n) :
   i.cycle_range.symm j.succ = i.succ_above j :=
 i.cycle_range.injective (by simp)
+
+lemma is_cycle_fin_rotate {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) : is_cycle (cycle_range i) :=
+begin
+  cases i with i hi,
+  cases i,
+  { exact (h0 rfl).elim },
+  exact is_cycle_fin_rotate.extend_domain _,
+end
+
+lemma cycle_type_fin_rotate {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) :
+  cycle_type (cycle_range i) = {i + 1} :=
+begin
+  cases i with i hi,
+  cases i,
+  { exact (h0 rfl).elim },
+  rw [cycle_range, cycle_type_extend_domain],
+  exact cycle_type_fin_rotate,
+end
 
 end fin
 

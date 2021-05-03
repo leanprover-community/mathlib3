@@ -7,7 +7,6 @@ Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 import group_theory.abelianization
 import data.bracket
 import set_theory.cardinal
-import data.equiv.basic
 
 /-!
 # Solvable Groups
@@ -355,6 +354,15 @@ namespace weekday
 
 instance : inhabited weekday := ⟨monday⟩
 
+instance : decidable_eq weekday :=
+begin
+  intros a b,
+  cases a,
+  all_goals { cases b },
+  any_goals { exact is_true rfl },
+  all_goals { exact is_false (by trivial) },
+end
+
 /-- A 3-cycle -/
 def g1 : weekday → weekday
 | monday := monday
@@ -432,21 +440,9 @@ lemma not_solvable : ¬ is_solvable (equiv.perm weekday) :=
 
 lemma card : cardinal.mk weekday = ↑5 :=
 begin
-  let c : finset weekday := finset.mk ↑[monday, tuesday, wednesday, thursday, friday]
-  begin
-    simp_rw [multiset.coe_nodup, list.nodup, list.pairwise_cons, list.pairwise.nil, and_true,
-      list.mem_cons_iff, list.mem_nil_iff, or_false],
-    repeat { split },
-    all_goals { intro day, cases day },
-    all_goals { tauto },
-  end,
-  letI d : fintype weekday := fintype.mk c
-  begin
-    simp_rw [finset.mem_mk, multiset.mem_coe, list.mem_cons_iff, list.mem_nil_iff, or_false],
-    intro day,
-    cases day,
-    all_goals { tauto },
-  end,
+  letI : fintype weekday := fintype.mk
+    (finset.mk ↑[monday, tuesday, wednesday, thursday, friday] dec_trivial)
+    (by { rintros (_ | _), all_goals { dec_trivial } }),
   exact cardinal.fintype_card weekday,
 end
 

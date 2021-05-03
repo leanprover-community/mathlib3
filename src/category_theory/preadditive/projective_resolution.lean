@@ -104,43 +104,46 @@ instance projective' {Z : C} (P : ProjectiveResolution Z) (n : ℕ) :
 P.projective n
 
 def π {Z : C} (P : ProjectiveResolution Z) :
-  P.complex ⟶ (homological_complex.single C _ 0).obj Z :=
-chain_complex.truncate_to_single P.exact_sequence ≫
-  ((homological_complex.single C _ 0).map_iso P.zero).hom
+  P.complex ⟶ (chain_complex.of C).obj Z :=
+chain_complex.truncate_to P.exact_sequence ≫
+  ((chain_complex.of C).map_iso P.zero).hom
 
 instance {Z : C} (P : ProjectiveResolution Z) :
   category_theory.exact (P.complex.d 1 0) (P.π.f 0) :=
 begin
   -- TODO: yuck:
   dsimp [π, complex, exact_sequence,
-    chain_complex.truncate_to_single, chain_complex.truncate, chain_complex.to_single_equiv],
-  split_ifs,
-  { rw [category.comp_id, category.id_comp, category.id_comp, category.id_comp, exact_comp_iso],
-    exact P.exact 0, },
-  { simpa using h, },
+    chain_complex.truncate_to, chain_complex.truncate, chain_complex.to_of_equiv],
+  simp only [if_congr,
+ self_eq_add_left,
+ if_true,
+ category_theory.category.id_comp,
+ add_left_inj,
+ eq_self_iff_true,
+ category_theory.exact_comp_iso],
+  exact P.exact _,
 end
 
 @[simp] lemma π_f_succ {Z : C} (P : ProjectiveResolution Z) (n : ℕ) :
   P.π.f (n+1) = 0 :=
 begin
   -- TODO: yuck
-  dsimp [π, exact_sequence, chain_complex.truncate_to_single, chain_complex.truncate,
-    chain_complex.to_single_equiv],
-  rw [dif_neg, zero_comp],
-  simp,
+  dsimp [π, exact_sequence, chain_complex.truncate_to, chain_complex.truncate,
+    chain_complex.to_of_equiv],
+  rw [zero_comp],
 end
 
-instance quasi_iso {Z : C} (P : ProjectiveResolution Z) : quasi_iso P.π :=
-begin
-  dsimp [π],
-  apply_instance,
-end
+-- instance quasi_iso {Z : C} (P : ProjectiveResolution Z) : quasi_iso P.π :=
+-- begin
+--   dsimp [π],
+--   apply_instance,
+-- end
 
 instance {Z : C} (P : ProjectiveResolution Z) (n : ℕ) : category_theory.epi (P.π.f n) :=
 begin
   induction n,
   { dsimp [π, exact_sequence,
-      chain_complex.truncate_to_single, chain_complex.truncate, chain_complex.to_single_equiv],
+      chain_complex.truncate_to, chain_complex.truncate, chain_complex.to_of_equiv],
     simp only [if_true, eq_self_iff_true, self_eq_add_left, category.comp_id, category.id_comp],
     haveI := P.epi,
     exact @epi_comp _ _ _ _ _ _ P.epi P.zero.hom _, },
@@ -196,7 +199,7 @@ end
 @[simp, reassoc]
 lemma lift_commutes
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
-  lift f P Q ≫ Q.π = P.π ≫ (homological_complex.single C _ 0).map f :=
+  lift f P Q ≫ Q.π = P.π ≫ (chain_complex.of C).map f :=
 begin
   ext n,
   rcases n with (_|_|n),
@@ -264,8 +267,8 @@ end
 /-- Two lifts of the same morphism are homotopic. -/
 def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
   (g h : P.complex ⟶ Q.complex)
-  (g_comm : g ≫ Q.π = P.π ≫ (homological_complex.single C _ 0).map f)
-  (h_comm : h ≫ Q.π = P.π ≫ (homological_complex.single C _ 0).map f) :
+  (g_comm : g ≫ Q.π = P.π ≫ (chain_complex.of C).map f)
+  (h_comm : h ≫ Q.π = P.π ≫ (chain_complex.of C).map f) :
   homotopy g h :=
 begin
   apply homotopy.equiv_sub_zero.inv_fun,
@@ -322,7 +325,7 @@ abbreviation projective_resolution (Z : C) [has_projective_resolution Z] : chain
 /-- The chain map from the arbitrarily chosen projective resolution `projective_resolution Z`
 back to the chain complex consisting of `Z` supported in degree `0`. -/
 abbreviation projective_resolution.π (Z : C) [has_projective_resolution Z] :
-  projective_resolution Z ⟶ (homological_complex.single C _ 0).obj Z :=
+  projective_resolution Z ⟶ (chain_complex.of C).obj Z :=
 (has_projective_resolution.out Z).some.π
 
 /-- The lift of a morphism to a chain map between the arbitrarily chosen projective resolutions. -/

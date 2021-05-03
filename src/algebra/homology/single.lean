@@ -32,6 +32,9 @@ local attribute [instance] has_zero_object.has_zero
 
 /--
 The functor `V ⥤ homological_complex V c` creating a chain complex supported in a single degree.
+
+See also `chain_complex.of : V ⥤ chain_complex V ℕ`, which has better definitional properties,
+if you are working with `ℕ`-indexed complexes.
 -/
 @[simps]
 def single (j : ι) : V ⥤ homological_complex V c :=
@@ -58,11 +61,14 @@ def single (j : ι) : V ⥤ homological_complex V c :=
     { simp, },
   end, }.
 
-@[simp] lemma single_obj_X_self (j : ι) (A : V) : ((single V c j).obj A).X j = A :=
-by simp
+@[simps]
+def single_obj_X_self (j : ι) (A : V) : ((single V c j).obj A).X j ≅ A :=
+eq_to_iso (by simp)
 
-@[simp] lemma single_map_f_self (j : ι) {A B : V} (f : A ⟶ B) :
-  ((single V c j).map f).f j = eq_to_hom (by simp) ≫ f ≫ eq_to_hom (by simp) :=
+@[simp]
+lemma single_map_f_self (j : ι) {A B : V} (f : A ⟶ B) :
+  ((single V c j).map f).f j =
+    (single_obj_X_self V c j A).hom ≫ f ≫ (single_obj_X_self V c j B).inv :=
 by { simp, refl, }
 
 end homological_complex
@@ -71,6 +77,43 @@ open homological_complex
 
 namespace chain_complex
 
+local attribute [instance] has_zero_object.has_zero
+
+/--
+`chain_complex.of V` is the embedding of `V` into `chain_complex V ℕ`
+as chain complexes supported in degree 0.
+
+This is naturally isomorphism to `single V _ 0`, but has better definitional properties.
+-/
+def of : V ⥤ chain_complex V ℕ :=
+{ obj := λ X,
+  { X := λ n, match n with
+    | 0 := X
+    | (n+1) := 0
+    end,
+    d := λ i j, 0, },
+  map := λ X Y f,
+  { f := λ n, match n with
+    | 0 := f
+    | (n+1) := 0
+    end, },
+  map_id' := λ X, by { ext n, cases n, refl, dsimp, unfold_aux, simp, },
+  map_comp' := λ X Y Z f g, by { ext n, cases n, refl, dsimp, unfold_aux, simp, } }
+
+@[simp] lemma of_obj_X_0 (X : V) : ((of V).obj X).X 0 = X := rfl
+@[simp] lemma of_obj_X_succ (X : V) (n : ℕ) : ((of V).obj X).X (n+1) = 0 := rfl
+@[simp] lemma of_obj_X_d (X : V) (i j : ℕ) : ((of V).obj X).d i j = 0 := rfl
+@[simp] lemma of_obj_X_d_to (X : V) (j : ℕ) : ((of V).obj X).d_to j = 0 :=
+by { rw [d_to_eq ((of V).obj X) rfl], simp, }
+@[simp] lemma of_obj_X_d_from (X : V) (i : ℕ) : ((of V).obj X).d_from i = 0 :=
+begin
+  cases i,
+  { rw [d_from_eq_zero], simp, },
+  { rw [d_from_eq ((of V).obj X) rfl], simp, },
+end
+@[simp] lemma of_map_f_0 {X Y : V} (f : X ⟶ Y) : ((of V).map f).f 0 = f := rfl
+@[simp] lemma of_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) : ((of V).map f).f (n+1) = 0 := rfl
+
 variables {V}
 
 /--
@@ -78,36 +121,25 @@ Morphisms from a `ℕ`-indexed chain complex `C`
 to a single object chain complex with `X` concentrated in degree 0
 are the same as morphisms `f : C.X 0 ⟶ X` such that `C.d 1 0 ≫ f = 0`.
 -/
-def to_single_equiv (C : chain_complex V ℕ) (X : V) :
-  (C ⟶ (single V _ 0).obj X) ≃ { f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 } :=
+def to_of_equiv (C : chain_complex V ℕ) (X : V) :
+  (C ⟶ (of V).obj X) ≃ { f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 } :=
 { to_fun := λ f, ⟨f.f 0, by { rw ←f.comm 1 0, simp, }⟩,
   inv_fun := λ f,
-  { f := λ i, if h : i = 0 then
-      eq_to_hom (congr_arg C.X h) ≫ f.1 ≫ eq_to_hom (by { subst h, refl, })
-    else
-      0,
+  { f := λ i, match i with
+    | 0 := f.1
+    | (n+1) := 0
+    end,
     comm' := λ i j, begin
-      split_ifs with hi hj hj,
-      { substs hi hj, simp, },
-      { simp, },
-      { subst hj,
-        simp only [category.comp_id, category.id_comp, single_obj_d, eq_to_hom_refl, zero_comp],
-        cases i,
-        { simp, },
-        { cases i,
-          { exact f.2.symm, },
-          { rw [C.shape, zero_comp],
-            simp only [complex_shape.down_rel],
-            omega, } }, },
-      { simp, },
+      rcases i with _|_|i; cases j; unfold_aux; simp only [comp_zero, zero_comp, of_obj_X_d],
+      { rw [C.shape, zero_comp], simp, },
+      { exact f.2.symm, },
+      { rw [C.shape, zero_comp], simp only [complex_shape.down_rel, zero_add], omega, },
     end, },
   left_inv := λ f, begin
     ext i,
-    dsimp,
-    split_ifs with h,
-    { subst h, simp, },
-    { refine (zero_of_target_iso_zero _ _).symm,
-      rw if_neg h, },
+    rcases i,
+    { refl, },
+    { ext, },
   end,
   right_inv := by tidy, }
 

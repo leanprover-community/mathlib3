@@ -18,7 +18,7 @@ open homological_complex
 
 universes v u
 
-variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
+variables {V : Type u} [category.{v} V]
 
 namespace chain_complex
 
@@ -27,7 +27,7 @@ The truncation of a `ℕ`-indexed chain complex,
 deleting the object at `0` and shifting everything else down.
 -/
 @[simps]
-def truncate : chain_complex V ℕ ⥤ chain_complex V ℕ :=
+def truncate [has_zero_morphisms V] : chain_complex V ℕ ⥤ chain_complex V ℕ :=
 { obj := λ C,
   { X := λ i, C.X (i+1),
     d := λ i j, C.d (i+1) (j+1),
@@ -40,27 +40,41 @@ There is a canonical chain map from the truncation of a chain map `C` to
 the "single object" chain complex consisting of the truncated object `C.X 0` in degree 0.
 The components of this chain map are `C.d 1 0` in degree 0, and zero otherwise.
 -/
-def truncate_to_single [has_zero_object V] (C : chain_complex V ℕ) :
-  truncate.obj C ⟶ (single V _ 0).obj (C.X 0) :=
-(to_single_equiv (truncate.obj C) (C.X 0)).symm ⟨C.d 1 0, by tidy⟩
+def truncate_to [has_zero_object V] [has_zero_morphisms V] (C : chain_complex V ℕ) :
+  truncate.obj C ⟶ (of V).obj (C.X 0) :=
+(to_of_equiv (truncate.obj C) (C.X 0)).symm ⟨C.d 1 0, by tidy⟩
 
-instance truncate_to_single_quasi_iso
-  [has_zero_object V] [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
-  (C : chain_complex V ℕ) [∀ n, exact (C.d (n+2) (n+1)) (C.d (n+1) n)] :
-  quasi_iso (C.truncate_to_single) :=
-{ is_iso := λ i,
-  begin
-    cases i,
-    { sorry, },
-    { apply is_iso_of_source_target_iso_zero,
-      { have := ((preadditive.exact_iff_homology_zero _ _).mp _).some_spec.some,
-        dsimp [homology_functor],
-        dunfold homological_complex.homology,
-        dsimp [_root_.homology] at this,
-        sorry,
-         },
-      { sorry, }, }
-  end }
+-- local attribute [instance] has_zero_object.has_zero
+
+-- lemma foo [has_zero_object V] [has_zero_morphisms V] [has_kernels V] [has_cokernels V] [has_images V] [has_image_maps V]
+--   {X Y Z : V} (f : X ⟶ Y) (g : Y ⟶ Z) [exact f g] [epi g] :
+--   is_iso (homology.map (comp_zero : f ≫ (0 : Y ⟶ 0) = 0) (comp_zero : (0 : 0 ⟶ Z) ≫ (0 : Z ⟶ 0) = 0)
+--    { left := 0, right := g, } { left := g, right := 0 } rfl) :=
+-- begin
+--   dsimp [homology.map],
+--   simp,
+-- end
+
+-- instance truncate_to_quasi_iso
+--   [has_zero_object V] [preadditive V] [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
+--   (C : chain_complex V ℕ) [∀ n, exact (C.d (n+2) (n+1)) (C.d (n+1) n)] [epi (C.d 1 0)]:
+--   quasi_iso (C.truncate_to) :=
+-- { is_iso := λ i,
+--   begin
+--     cases i,
+--     { dsimp [homology_functor],
+--       simp,
+--     dsimp [homology.map],
+
+--     simp, sorry, },
+--     { apply is_iso_of_source_target_iso_zero,
+--       { refine ((preadditive.exact_iff_homology_zero (d_to (truncate.obj C) i.succ) (d_from (truncate.obj C) i.succ)).mp _).some_spec.some,
+--         sorry, -- fine
+--       },
+--       { sorry, }, } -- easy
+--   end }
+
+variables [has_zero_morphisms V]
 
 /--
 We can "augment" a chain complex by inserting an arbitrary object in degree zero
@@ -165,11 +179,11 @@ rfl
 A chain map from a chain complex to a single object chain complex in degree zero
 can be reinterpreted as a chain complex.
 
-Ths is the inverse construction of `truncate_to_single`.
+Ths is the inverse construction of `truncate_to`.
 -/
-def to_single_as_complex
-  [has_zero_object V] (C : chain_complex V ℕ) (X : V) (f : C ⟶ (single V _ 0).obj X) :
+def to_of_as_complex
+  [has_zero_object V] (C : chain_complex V ℕ) (X : V) (f : C ⟶ (of V).obj X) :
   chain_complex V ℕ :=
-let ⟨f, w⟩ := to_single_equiv C X f in augment C f w
+let ⟨f, w⟩ := to_of_equiv C X f in augment C f w
 
 end chain_complex

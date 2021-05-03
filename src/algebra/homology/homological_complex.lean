@@ -433,12 +433,29 @@ arrow.hom_mk (f.comm_from i)
 @[simp] lemma sq_from_right (f : hom C₁ C₂) (i : ι) : (f.sq_from i).right = f.f_next i := rfl
 
 @[simp] lemma sq_from_id (C₁ : homological_complex V c) (i : ι) : sq_from (𝟙 C₁) i = 𝟙 _ :=
-sorry
+begin
+  rcases h : c.next i with _ | ⟨j,w⟩,
+  { ext,
+    { refl, },
+    { dsimp, simp only [f_next, h],
+      symmetry,
+      apply zero_of_target_iso_zero,
+      exact X_next_iso_zero _ h, }, },
+  { ext, refl, dsimp, simp [f_next, h], }
+end
 
 @[simp] lemma sq_from_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
   sq_from (f ≫ g) i = sq_from f i ≫ sq_from g i :=
-sorry
-
+begin
+  rcases h : c.next i with _ | ⟨j,w⟩,
+  { ext,
+    { refl, },
+    { dsimp, simp only [f_next, h],
+      symmetry,
+      apply zero_of_target_iso_zero,
+      exact X_next_iso_zero _ h, }, },
+  { ext, refl, dsimp, simp [f_next, h], }
+end
 
 /--
 A morphism of chain complexes

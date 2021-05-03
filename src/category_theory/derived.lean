@@ -41,7 +41,7 @@ to a chain map between chosen projective resolutions.
 -/
 lemma functor.left_derived_map_eq (n : ℕ) (F : C ⥤ D) [F.additive] {X Y : C} (f : X ⟶ Y)
   (P : ProjectiveResolution X) (Q : ProjectiveResolution Y) (g : P.complex ⟶ Q.complex)
-  (w : g ≫ Q.π = P.π ≫ (homological_complex.single C _ 0).map f) :
+  (w : g ≫ Q.π = P.π ≫ (chain_complex.of C).map f) :
   (F.left_derived n).map f =
   (F.left_derived_obj_iso n X P).hom ≫
     (homology_functor D _ n).map ((F.map_homological_complex _).map g) ≫

@@ -192,7 +192,8 @@ def mul_equiv.Pi_congr_right
   {Ms Ns : η → Type*} [Π j, monoid (Ms j)] [Π j, monoid (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) : (Π j, Ms j) ≃* (Π j, Ns j) :=
 { map_mul' := λ x y,
-    by { ext j, simp_rw [equiv.Pi_congr_right, pi.mul_apply, mul_equiv.coe_to_equiv, mul_equiv.map_mul] },
+    by { ext j,
+         simp_rw [equiv.Pi_congr_right, pi.mul_apply, mul_equiv.coe_to_equiv, mul_equiv.map_mul] },
   .. equiv.Pi_congr_right (λ j, (es j).to_equiv) }
 
 @[simp, to_additive add_equiv.Pi_congr_right_apply]

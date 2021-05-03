@@ -175,7 +175,7 @@ begin
     { exact this ⟨i, hi⟩ },
     exact coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le hlt (le_of_not_gt hi)) },
   intro i,
-  refine linear_independent_iff'.mp h.basis.linear_independent finset.univ _ _ i (finset.mem_univ _),
+  refine linear_independent_iff'.mp h.basis.linear_independent _ _ _ i (finset.mem_univ _),
   rw aeval_eq_sum_range' hlt at root,
   rw finset.sum_fin_eq_sum_range,
   convert root,

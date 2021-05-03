@@ -818,13 +818,6 @@ let ⟨v, hv₁, hv₂, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv
 
 end bilin_form
 
-/-- Nonzero elements in a field are invertible. This is a definition since it requires a
-parameter. -/
-def field.invertible {K : Type*} [field K] {z : K} (hz : z ≠ 0) : invertible z :=
-{ inv_of := z⁻¹,
-  inv_of_mul_self := inv_mul_cancel hz,
-  mul_inv_of_self := mul_inv_cancel hz }
-
 namespace quadratic_form
 
 open_locale big_operators
@@ -918,7 +911,7 @@ begin
   { intros i hi,
     exact hw i ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
   convert (weighted_sum_squares w).isometry_of_is_basis
-    (is_basis.smul_of_invertible (pi.is_basis_fun ℂ ι) (λ i, field.invertible (hw' i))),
+    (is_basis.smul_of_invertible (pi.is_basis_fun ℂ ι) (λ i, invertible_of_nonzero (hw' i))),
   ext1 v,
   rw [isometry_of_is_basis_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),

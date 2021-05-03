@@ -85,25 +85,6 @@ instance (i) : mul_action (M i) (free_product M) :=
 lemma smul_rcons (i) (m m' : M i) (w h) : m • rcons m' w h = rcons (m * m') w h :=
 cases_def m' w h
 
-section action
-variables {X : Type*} [∀ i, mul_action (M i) X]
-
-/-- Given actions of `M i` on `X`, the free product also has a scalar action on `X`. We use this
-both to define multiplication in the free product and to get its universal property. -/
-instance : has_scalar (free_product M) X := ⟨λ w x, w.val.foldr (λ p y, p.snd.val • y) x⟩
-
-instance (i) : is_scalar_tower (M i) (free_product M) X :=
-⟨λ m' w x, w.cases _ $ λ m'' w' h, begin
-  suffices : ∀ m : M i, rcons m w' h • x = m • (w' • x),
-  { rw [smul_rcons, this, this, mul_smul], },
-  intro m,
-  by_cases hm : m = 1,
-  { rw [hm, rcons_one, one_smul], },
-  { rw rcons_ne_one hm, refl, },
-end⟩
-
-end action
-
 instance : has_one (free_product M) := ⟨⟨[], list.chain'_nil⟩⟩
 instance : inhabited (free_product M) := ⟨1⟩
 
@@ -122,24 +103,42 @@ begin
   exact h_smul i m _ (ih _),
 end
 
-instance : monoid (free_product M) :=
-{ mul := λ x y, x • y,
-  mul_assoc := begin
-    intros a b c,
-    change (_ • _) • _ = _ • _ • _,
+section action
+variables {X : Type*} [∀ i, mul_action (M i) X]
+
+/-- Given actions of `M i` on `X`, the free product also has a scalar action on `X`. We use this
+both to define multiplication in the free product and to get its universal property. -/
+instance : has_scalar (free_product M) X := ⟨λ w x, w.val.foldr (λ p y, p.snd.val • y) x⟩
+
+instance factor_product_tower (i) : is_scalar_tower (M i) (free_product M) X :=
+{ smul_assoc := λ m' w x, w.cases _ $ λ m'' w' h, begin
+    suffices : ∀ m : M i, rcons m w' h • x = m • (w' • x),
+    { rw [smul_rcons, this, this, mul_smul], },
+    intro m,
+    by_cases hm : m = 1,
+    { rw [hm, rcons_one, one_smul], },
+    { rw rcons_ne_one hm, refl, },
+  end }
+
+instance product_product_tower : is_scalar_tower (free_product M) (free_product M) X :=
+{ smul_assoc := λ a b c, begin
     apply smul_induction a,
     { refl },
     intros i m a' ih,
     rw [smul_assoc m a' b, smul_assoc m (a' • b) c, ih, ←smul_assoc m a' (b • c)],
-  end,
+  end }
+
+end action
+
+instance : monoid (free_product M) :=
+{ mul := λ x y, x • y,
+  mul_assoc := λ a b c, smul_assoc a b c,
   one_mul := λ _, rfl,
-  mul_one := begin
-    intro a,
+  mul_one := λ a, begin
     change _ • _ = _,
     apply smul_induction a,
     { refl },
-    intros i m b ih,
-    rw [smul_assoc, ih],
+    { intros i m b ih, rw [smul_assoc, ih], },
   end,
   ..free_product.has_one }
 
@@ -174,25 +173,21 @@ def lift (X : Type*) [monoid X] : (Π {i}, M i →* X) ≃ (free_product M →* 
 { to_fun := λ fi, begin
     letI : ∀ i, mul_action (M i) X := λ i, mul_action.comp_hom _ fi,
     refine { to_fun := λ w, w • 1, map_one' := rfl, map_mul' := _ },
-    intros a b,
-    rw mul_eq_smul,
-    refine smul_induction a _ _,
+    suffices : ∀ (x : X) (a : free_product M), a • x = (a • 1) * x,
+    { intros a b, rw [mul_eq_smul, smul_assoc, this], },
+    refine λ x a, smul_induction a _ _,
     { exact (one_mul _).symm },
-    intros i m a' ih,
-    rw [smul_assoc m a' b, smul_assoc m (a' • b) (1 : X), ih, smul_assoc m a' (1 : X)],
-    exact (mul_assoc _ _ _).symm,
+    { intros i m a' ih, rw [smul_assoc, smul_assoc, ih], exact (mul_assoc (fi m) _ x).symm, }
   end,
   inv_fun := λ f i, f.comp of,
-  left_inv := begin
-    intro fi,
-    letI : ∀ i, mul_action (M i) X := λ i, mul_action.comp_hom _ fi,
+  left_inv := λ fi, begin
     ext i m,
     change (m • _) • (1 : X) = fi m,
+    letI : mul_action (M i) X := mul_action.comp_hom _ fi,
     rw smul_assoc,
     exact mul_one (fi m),
   end,
-  right_inv := begin
-    intro f,
+  right_inv := λ f, begin
     ext w,
     change w • _ = _,
     apply smul_induction w,
@@ -203,9 +198,8 @@ def lift (X : Type*) [monoid X] : (Π {i}, M i →* X) ≃ (free_product M →* 
       refl, },
   end }
 
-lemma prod_eq_self (w : free_product M) : list.prod (w.val.map (λ l, of l.snd.val)) = w :=
-begin
-  cases w with ls hl,
+lemma prod_eq_self : ∀ w : free_product M, list.prod (w.val.map (λ l, of l.snd.val)) = w
+| ⟨ls, hl⟩ := begin
   induction ls with p ls ih,
   { refl, },
   { cases p, rw [list.map_cons, list.prod_cons, ih hl.tail, cons_eq_smul, smul_eq_of_mul], },

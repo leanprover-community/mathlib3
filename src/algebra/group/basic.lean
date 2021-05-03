@@ -63,8 +63,8 @@ comp_assoc_right _ _ _
 
 end semigroup
 
-section monoid
-variables {M : Type u} [monoid M]
+section mul_one_class
+variables {M : Type u} [mul_one_class M]
 
 @[to_additive]
 lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
@@ -75,7 +75,13 @@ by { by_cases h : P; simp [h], }
 lemma eq_one_iff_eq_one_of_mul_eq_one {a b : M} (h : a * b = 1) : a = 1 ↔ b = 1 :=
 by split; { rintro rfl, simpa using h }
 
-end monoid
+@[to_additive]
+lemma one_mul_eq_id : ((*) (1 : M)) = id := funext one_mul
+
+@[to_additive]
+lemma mul_one_eq_id : (* (1 : M)) = id := funext mul_one
+
+end mul_one_class
 
 section comm_semigroup
 variables {G : Type u} [comm_semigroup G]

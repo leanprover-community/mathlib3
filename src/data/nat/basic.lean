@@ -5,7 +5,8 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.group.hom_instances
 import algebra.order_functions
-import algebra.ordered_monoid
+import algebra.ordered_ring
+import algebra.group_power.order
 
 /-!
 # Basic operations on the natural numbers

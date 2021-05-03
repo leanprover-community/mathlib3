@@ -162,7 +162,7 @@ def alt_limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite
   limits.is_limit (alt_limit_cone F) :=
 { lift := λ S,
     (Top.alt_limit_cone_is_limit (F ⋙ Profinite_to_Top)).lift (Profinite_to_Top.map_cone S),
-  uniq' := λ S m h, (Top.alt_limit_cone_is_limit _).uniq  (Profinite_to_Top.map_cone S) _ h }
+  uniq' := λ S m h, (Top.alt_limit_cone_is_limit _).uniq (Profinite_to_Top.map_cone S) _ h }
 
 end Profinite
 

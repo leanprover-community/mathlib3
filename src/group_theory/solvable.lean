@@ -26,8 +26,7 @@ the derived series of a group.
 
 open subgroup
 
-
-variables {G : Type*} [group G]
+variables {G G' : Type*} [group G] [group G']
 
 section general_commutator
 
@@ -76,6 +75,10 @@ begin
   { rintros h x ⟨p, hp, q, hq, rfl⟩,
     exact h p hp q hq, }
 end
+
+lemma general_commutator_containment (H₁ H₂ : subgroup G) {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
+  p * q * p⁻¹ * q⁻¹∈ ⁅H₁, H₂⁆:=
+(general_commutator_le H₁ H₂ ⁅H₁, H₂⁆).mp (le_refl ⁅H₁, H₂⁆) p hp q hq
 
 lemma general_commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
 begin
@@ -162,7 +165,7 @@ end derived_series
 
 section commutator_map
 
-variables {G} {G' : Type*} [group G'] {f : G →* G'}
+variables {f : G →* G'}
 
 lemma map_commutator_eq_commutator_map (H₁ H₂ : subgroup G) :
   ⁅H₁, H₂⁆.map f = ⁅H₁.map f, H₂.map f⁆ :=
@@ -178,8 +181,6 @@ end
 lemma commutator_le_map_commutator {H₁ H₂ : subgroup G} {K₁ K₂ : subgroup G'} (h₁ : K₁ ≤ H₁.map f)
   (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
 by { rw map_commutator_eq_commutator_map, exact general_commutator_mono h₁ h₂ }
-
-section derived_series_map
 
 variables (f)
 
@@ -206,7 +207,6 @@ lemma map_derived_series_eq (hf : function.surjective f) (n : ℕ) :
   (derived_series G n).map f = derived_series G' n :=
 le_antisymm (map_derived_series_le_derived_series f n) (derived_series_le_map_derived_series hf n)
 
-end derived_series_map
 end commutator_map
 
 section solvable
@@ -246,7 +246,7 @@ lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :
 instance is_solvable_of_subsingleton [subsingleton G] : is_solvable G :=
 is_solvable_of_top_eq_bot G (by ext; simp at *)
 
-variables {G} {G' : Type*} [group G'] {f : G →* G'}
+variables {G} {G'} [group G'] {f : G →* G'}
 
 lemma solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
   is_solvable G :=
@@ -278,7 +278,6 @@ instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solva
   is_solvable (quotient_group.quotient H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
-
 lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
   (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
   is_solvable G :=
@@ -305,7 +304,15 @@ instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solv
 solvable_of_ker_le_range (monoid_hom.inl G G') (monoid_hom.snd G G')
   (λ x hx, ⟨x.1, prod.ext rfl hx.symm⟩)
 
+end solvable
+
 section symmetric_unsolvable
+
+lemma not_solvable_of_mem_derived_series {g : G} (h1 : g ≠ 1)
+  (h2 : ∀ n : ℕ, g ∈ derived_series G n) : ¬ is_solvable G :=
+mt (is_solvable_def _).mp (not_exists_of_forall_not (λ n, mt subgroup.ext'_iff.mp
+  (mt set.ext_iff.mp (not_forall_of_exists_not
+    ⟨g, λ h, (not_congr (iff.symm h)).mp (mt subgroup.mem_bot.mp h1) (h2 n)⟩))))
 
 inductive weekday : Type
 | monday : weekday
@@ -314,7 +321,7 @@ inductive weekday : Type
 | thursday : weekday
 | friday : weekday
 
-open weekday
+namespace weekday
 
 def g1 : weekday → weekday
 | monday := monday
@@ -369,39 +376,25 @@ def σ3 : weekday ≃ weekday :=
   left_inv := λ x, by { cases x, all_goals { refl } },
   right_inv := λ x, by { cases x, all_goals { refl } } }
 
-lemma alternating_stability (n : ℕ) : σ1 ∈ derived_series (equiv.perm weekday) n :=
+lemma mem_derived_series (n : ℕ) : σ1 ∈ derived_series (equiv.perm weekday) n :=
 begin
   induction n with n ih,
   { exact mem_top σ1 },
   rw (show σ1 = σ3 * ((σ2 * σ1 * σ2) * σ1 * (σ2 * σ1 * σ2⁻¹)⁻¹ * σ1⁻¹) * σ3⁻¹,
       by { ext, cases x, all_goals { refl } }),
-  exact (derived_series_normal _ _).conj_mem _ (general_commutator_containment _ _ _
-    ((derived_series_normal _ _).conj_mem _ ih _) _ ih) _,
+  exact (derived_series_normal _ _).conj_mem _
+    (general_commutator_containment _ _ ((derived_series_normal _ _).conj_mem _ ih _) ih) _,
 end
 
-lemma not_solvable_of_mem_derived_series {g : G} (h1 : g ≠ 1)
-  (h2 : ∀ n : ℕ, g ∈ derived_series G n) : ¬ is_solvable G :=
-mt (is_solvable_def _).mp (not_exists_of_forall_not (λ n, mt subgroup.ext'_iff.mp
-  (mt set.ext_iff.mp (not_forall_of_exists_not
-    ⟨g, λ h, (not_congr (iff.symm h)).mp (mt subgroup.mem_bot.mp h1) (h2 n)⟩))))
-
-lemma weekday_perm_unsolvable : ¬ is_solvable (equiv.perm weekday) :=
+lemma not_solvable : ¬ is_solvable (equiv.perm weekday) :=
  not_solvable_of_mem_derived_series (mt equiv.ext_iff.mp
-  (not_forall_of_exists_not ⟨wednesday, by trivial⟩)) alternating_stability
-
-
-open cardinal
-universes u
-
+  (not_forall_of_exists_not ⟨wednesday, by trivial⟩)) mem_derived_series
 
 lemma card : cardinal.mk weekday = ↑5 :=
 begin
-  let a : list weekday := [monday, tuesday, wednesday, thursday, friday],
-  let b : multiset weekday := ↑a,
-  let c : finset weekday := finset.mk b
+  let c : finset weekday := finset.mk ↑[monday, tuesday, wednesday, thursday, friday]
   begin
-    change a.nodup,
-    simp_rw [list.nodup, list.pairwise_cons, list.pairwise.nil, and_true,
+    simp_rw [multiset.coe_nodup, list.nodup, list.pairwise_cons, list.pairwise.nil, and_true,
       list.mem_cons_iff, list.mem_nil_iff, or_false],
     repeat { split },
     all_goals { intro day, cases day },
@@ -409,7 +402,7 @@ begin
   end,
   letI d : fintype weekday := fintype.mk c
   begin
-    change ∀ x, x ∈ a,
+    change ∀ x, x ∈ [monday, tuesday, wednesday, thursday, friday],
     simp_rw [list.mem_cons_iff, list.mem_nil_iff, or_false],
     intro day,
     cases day,
@@ -418,15 +411,16 @@ begin
   exact cardinal.fintype_card weekday,
 end
 
+end weekday
+
 open_locale classical
 
+variables {α β : Type*} (e : equiv.perm α) (ι : α ↪ β)
 
-
-noncomputable def equiv.perm.of_embedding {α β : Type*}  [decidable_eq β]
-  (e : equiv.perm α) (f : α ↪ β) : equiv.perm β :=
-let ϕ := equiv.set.range f f.2 in equiv.perm.of_subtype
-{ to_fun := λ x, ⟨f (e (ϕ.symm x)), ⟨e.to_fun (ϕ.symm x), rfl⟩⟩,
-  inv_fun := λ x, ⟨f (e.symm (ϕ.symm x)), ⟨e.inv_fun (ϕ.symm x), rfl⟩⟩,
+noncomputable def equiv.perm.of_embedding : equiv.perm β :=
+let ϕ := equiv.set.range ι ι.2 in equiv.perm.of_subtype
+{ to_fun := λ x, ⟨ι (e (ϕ.symm x)), ⟨e.to_fun (ϕ.symm x), rfl⟩⟩,
+  inv_fun := λ x, ⟨ι (e.symm (ϕ.symm x)), ⟨e.inv_fun (ϕ.symm x), rfl⟩⟩,
   left_inv := λ y, by
   { change ϕ (e.symm (ϕ.symm (ϕ (e (ϕ.symm y))))) = y,
     rw [ϕ.symm_apply_apply, e.symm_apply_apply, ϕ.apply_symm_apply] },
@@ -434,92 +428,66 @@ let ϕ := equiv.set.range f f.2 in equiv.perm.of_subtype
   { change ϕ (e (ϕ.symm (ϕ (e.symm (ϕ.symm y))))) = y,
     rw [ϕ.symm_apply_apply, e.apply_symm_apply, ϕ.apply_symm_apply] } }
 
-lemma equiv.perm.of_subtype_apply_coe {α : Type*} {p : α → Prop} (e : equiv.perm (subtype p))
-  (x : subtype p) : equiv.perm.of_subtype e ↑x = ↑(e x) :=
+lemma equiv.perm.of_subtype_apply_coe {p : α → Prop} (e : equiv.perm (subtype p)) (x : subtype p) :
+  equiv.perm.of_subtype e ↑x = ↑(e x) :=
 begin
   change dite _ _ _ = _,
   rw [dif_pos, subtype.coe_eta],
   exact x.2,
 end
 
-lemma equiv.perm.of_embedding_apply {α β : Type*} [decidable_eq β] (e : equiv.perm α)
-  (f : α ↪ β) (x : α) : e.of_embedding f (f x) = f (e x) :=
+lemma equiv.perm.of_embedding_apply (x : α) : e.of_embedding ι (ι x) = ι (e x) :=
 begin
   dsimp only [equiv.perm.of_embedding],
-  have key : f x = ↑(⟨f x, set.mem_range_self x⟩ : set.range f) := rfl,
+  have key : ι x = ↑(⟨ι x, set.mem_range_self x⟩ : set.range ι) := rfl,
   rw [key, equiv.perm.of_subtype_apply_coe],
-  change ↑(⟨_, _⟩ : set.range f) = _,
+  change ↑(⟨_, _⟩ : set.range ι) = _,
   rw [subtype.coe_mk],
   congr,
   rw [equiv.symm_apply_eq, equiv.set.range_apply],
 end
 
-lemma equiv.perm.of_embedding_apply_of_not_mem {α β : Type*} [decidable_eq β]
-  (e : equiv.perm α) (f : α ↪ β) (x : β) (hx : x ∉ set.range f) : e.of_embedding f x = x :=
+lemma equiv.perm.of_embedding_apply_of_not_mem (x : β)
+  (hx : x ∉ set.range ι) : e.of_embedding ι x = x :=
 equiv.perm.of_subtype_apply_of_not_mem _ hx
 
-noncomputable def equiv.perm.of_embedding_map_homomorphism {α β : Type*} [decidable_eq β]
-  (f : α ↪ β) : (equiv.perm α )→* equiv.perm β:=
-{ to_fun := λ e, equiv.perm.of_embedding e f,
+noncomputable def equiv.perm.of_embedding_map_homomorphism : (equiv.perm α) →* equiv.perm β:=
+{ to_fun := λ e, equiv.perm.of_embedding e ι,
   map_one' := by
   { ext x,
-    by_cases hx : x ∈ set.range f,
+    by_cases hx : x ∈ set.range ι,
     { obtain ⟨y, rfl⟩ := hx,
-      exact equiv.perm.of_embedding_apply 1 f y },
-    { exact equiv.perm.of_embedding_apply_of_not_mem 1 f x hx } },
+      exact equiv.perm.of_embedding_apply 1 ι y },
+    { exact equiv.perm.of_embedding_apply_of_not_mem 1 ι x hx } },
   map_mul' := by
   { intros σ τ,
     ext x,
-    by_cases hx : x ∈ set.range f,
-    {
-      obtain ⟨y, rfl⟩ := hx,
-      change _ = (σ.of_embedding f)((τ.of_embedding f)(f y)),
-      rw[equiv.perm.of_embedding_apply (σ * τ ) f y,equiv.perm.of_embedding_apply τ f y,
-      equiv.perm.of_embedding_apply σ  f (τ y)],
-      refl,
+    by_cases hx : x ∈ set.range ι,
+    { obtain ⟨y, rfl⟩ := hx,
+      change _ = (σ.of_embedding ι)((τ.of_embedding ι)(ι y)),
+      rw [equiv.perm.of_embedding_apply (σ * τ ) ι y,
+          equiv.perm.of_embedding_apply τ ι y,
+          equiv.perm.of_embedding_apply σ ι (τ y)],
+      refl },
+    { change _ = (σ.of_embedding ι)((τ.of_embedding ι) x),
+      rw [equiv.perm.of_embedding_apply_of_not_mem (σ * τ) ι x hx,
+          equiv.perm.of_embedding_apply_of_not_mem τ ι x hx,
+          equiv.perm.of_embedding_apply_of_not_mem σ ι x hx] } } }
 
-
-    },
-    {
-      change _ = (σ.of_embedding f)((τ.of_embedding f) x),
-      rw[equiv.perm.of_embedding_apply_of_not_mem (σ * τ) f x hx,equiv.perm.of_embedding_apply_of_not_mem τ f x hx,equiv.perm.of_embedding_apply_of_not_mem σ  f x hx],
-
-    }
-     } }
-
-
-
-
-
-noncomputable lemma equiv.perm_of_embedding_map_injective {α β : Type*}  [decidable_eq β]
-   (f : α ↪ β) : function.injective (equiv.perm.of_embedding_map_homomorphism f):=
-begin
-  apply (monoid_hom.injective_iff (equiv.perm.of_embedding_map_homomorphism f)).2,
-  intros σ σ_ker,
-  ext x,
-  change σ x = x,
-  apply f.2,
-
-  have key:= equiv.ext_iff.1 σ_ker (f.to_fun x),
-  simp only [id.def, function.embedding.to_fun_eq_coe, equiv.perm.coe_one] at key,
-  have key':f.to_fun x = ((equiv.perm.of_embedding_map_homomorphism f) σ) (f x) ,
-  symmetry,
-  exact key,
-  rw key',
-  have key'':=equiv.perm.of_embedding_apply σ f x,
-  symmetry,
-  exact key'',
-
-end
-
-
+lemma equiv.perm_of_embedding_map_injective :
+  function.injective (equiv.perm.of_embedding_map_homomorphism ι):=
+(monoid_hom.injective_iff (equiv.perm.of_embedding_map_homomorphism ι)).2
+  (λ σ σ_ker, equiv.perm.ext (λ x, ι.2 ((equiv.perm.of_embedding_apply σ ι x).symm.trans
+    (equiv.ext_iff.1 σ_ker (ι.to_fun x)))))
 
 lemma unsolvability_of_S_5 (X:Type*)(big:5≤ cardinal.mk X):¬ is_solvable (equiv.perm X):=
 begin
-  have key : nonempty (weekday ↪ X),
-  { rwa [←cardinal.lift_mk_le, card, cardinal.lift_nat_cast, nat.cast_bit1,
-    nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
-  rcases key,
   introI h,
-  exact weekday_perm_unsolvable(solvable_of_solvable_injective (equiv.perm_of_embedding_map_injective key)),
+  have key : nonempty (weekday ↪ X),
+  { rwa [←cardinal.lift_mk_le, weekday.card, cardinal.lift_nat_cast, nat.cast_bit1,
+    nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
+  exact weekday.not_solvable (solvable_of_solvable_injective
+    (equiv.perm_of_embedding_map_injective (nonempty.some key))),
 end
+
+end symmetric_unsolvable

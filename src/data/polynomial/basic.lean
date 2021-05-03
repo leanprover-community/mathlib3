@@ -205,11 +205,15 @@ end
 `C a` is the constant polynomial `a`.
 `C` is provided as a ring homomorphism.
 -/
-def C : R →+* polynomial R := add_monoid_algebra.single_zero_ring_hom
+def C : R →+* polynomial R :=
+{ map_one' := by simp [monomial_zero_one],
+  map_mul' := by simp [monomial_mul_monomial],
+  map_zero' := by simp,
+  .. monomial 0 }
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
-lemma C_0 : C (0 : R) = 0 := single_zero
+lemma C_0 : C (0 : R) = 0 := rfl
 
 lemma C_1 : C (1 : R) = 1 := rfl
 
@@ -227,10 +231,11 @@ lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n
 
-@[simp]
-lemma sum_C_index {a} {β} [add_comm_monoid β] {f : ℕ → R → β} (h : f 0 0 = 0) :
-  (C a).sum f = f 0 a :=
-sum_single_index h
+@[simp] lemma C_mul_monomial : C a * monomial n b = monomial n (a * b) :=
+by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
+
+@[simp] lemma monomial_mul_C : monomial n a * C b = monomial n (a * b) :=
+by simp only [←monomial_zero_left, monomial_mul_monomial, add_zero]
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -315,6 +320,7 @@ by { rcases p, simp [support, coeff] }
 
 lemma not_mem_support_iff : n ∉ p.support ↔ p.coeff n = 0 :=
 by simp
+
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by { convert coeff_monomial using 2, simp [eq_comm], }
 
@@ -327,11 +333,11 @@ theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
 ⟨⟨0, 1, λ h01 : 0 = 1, h $
     by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
 
-lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
+lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
 | (n+1) :=
   calc monomial (n + 1) a = monomial n a * X : by { rw [X, monomial_mul_monomial, mul_one], }
-    ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
+    ... = (C a * X^n) * X : by rw [monomial_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
 
 @[simp] lemma C_inj : C a = C b ↔ a = b :=
@@ -389,9 +395,8 @@ end
 
 lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
 calc monomial n a = monomial n (a * 1) : by simp
-  ... = a • monomial n 1 : (smul_single' _ _ _).symm
+  ... = a • monomial n 1 : by simp [monomial, monomial_fun, smul_to_finsupp]
   ... = a • X^n  : by rw X_pow_eq_monomial
-
 
 lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : polynomial R).support = singleton n :=
 begin
@@ -454,6 +459,10 @@ begin
   { simp [h, hf] },
   { simp [sum, support_monomial, h, coeff_monomial] }
 end
+
+@[simp] lemma sum_C_index {a} {β} [add_comm_monoid β] {f : ℕ → R → β} (h : f 0 0 = 0) :
+  (C a).sum f = f 0 a :=
+sum_monomial_index 0 a f h
 
 -- the assumption `hf` is only necessary when the ring is trivial
 @[simp] lemma sum_X_index {S : Type*} [add_comm_monoid S] {f : ℕ → R → S} (hf : f 1 0 = 0) :

@@ -507,208 +507,6 @@ open cardinal
 universes u
 
 
-
-lemma five_le_iff (α: Type u): (5 : cardinal) ≤ mk α →  ∃x₀ x₁ x₂ x₃ x₄  : α, x₀ ≠ x₁ ∧ x₀ ≠ x₂ ∧ x₀ ≠ x₃ ∧ x₀ ≠ x₄ ∧
-x₁ ≠ x₂  ∧ x₁ ≠ x₃ ∧ x₁ ≠ x₄ ∧ x₂ ≠ x₃ ∧ x₃ ≠ x₄ ∧ x₂ ≠ x₄:=
-begin
-  rintro ⟨f⟩, refine ⟨f $ sum.inr punit.star, _⟩,
-  refine ⟨f $ (sum.inl (sum.inr (sum.inr  punit.star))),_⟩,
-  refine ⟨f $ (sum.inl (sum.inr (sum.inl  punit.star))),_⟩,
-  refine ⟨f $ (sum.inl (sum.inl (sum.inl  punit.star))),_⟩,
-  refine ⟨f $ (sum.inl (sum.inl (sum.inr  punit.star))),_⟩,
-  split,
-  intro h,
-  cases f.2 h,
-  split,
-  intro h,
-  cases f.2 h,
-  split,
-  intro h,
-  cases f.2 h,
-  split,
-  intro h,
-  cases f.2 h,
-  split,
-  intro h,
-  cases f.2 h,
-  split,
-  intro h,
-  cases f.2 h,
-  split,
-  intro h,
-  cases f.2 h,
-  split,
-  intro h,
-  cases f.2 h,
-  split,
-  intro h,
-  cases f.2 h,
-  intro h,
-  cases f.2 h,
-end
-
-
-
-lemma weekday_map (α: Type u):(5:cardinal)≤ mk α →  ∃ (f:weekday↪ α ),f=f:=
-begin
-  intro s,
-  have t:=five_le_iff α s,
-  rcases t with ⟨ a,β,γ,δ,ε, ht⟩ ,
-  let w:weekday→α:=λ x:weekday,weekday.rec_on x a β γ δ ε,
-  have u:function.injective w,
-
-  have brooklyn: w monday = a,
-  refl,
-  have queens: w tuesday = β ,
-  refl,
-  have manhattan: w wednesday = γ ,
-  refl,
-  have bronx: w thursday = δ ,
-  refl,
-  have staten: w friday= ε ,
-  refl,
-
-  intros j k,
-  induction j,
-  induction k,
-
-  exact λ x, refl _,
-
-  intro z,
-  exfalso,
-  rw[brooklyn,queens] at z,
-  exact ht.1 z,
-
-  intro z,
-  exfalso,
-  rw[brooklyn,manhattan] at z,
-  exact ht.2.1 z,
-
-  intro z,
-  exfalso,
-  rw[brooklyn,bronx] at z,
-  exact ht.2.2.1 z,
-
-  intro z,
-  exfalso,
-  rw[brooklyn,staten] at z,
-  exact ht.2.2.2.1 z,
-
-  induction k,
-
-
-
-  intro z,
-  exfalso,
-  rw[brooklyn,queens] at z,
-  exact ht.1 z.symm,
-
-  exact λ x, refl _,
-
-  intro z,
-  exfalso,
-  rw[queens,manhattan] at z,
-  exact ht.2.2.2.2.1 z,
-
-  intro z,
-  exfalso,
-  rw[queens,bronx] at z,
-  exact ht.2.2.2.2.2.1 z,
-
-  intro z,
-  exfalso,
-  rw[queens,staten] at z,
-  exact ht.2.2.2.2.2.2.1 z,
-
-  induction k,
-
-
-
-  intro z,
-  exfalso,
-  rw[brooklyn,manhattan] at z,
-  exact ht.2.1 z.symm,
-
-
-  intro z,
-  exfalso,
-  rw[queens,manhattan] at z,
-  exact ht.2.2.2.2.1 z.symm,
-
-  exact λ x, refl _,
-
-  intro z,
-  exfalso,
-  rw[manhattan,bronx] at z,
-  exact ht.2.2.2.2.2.2.2.1 z,
-
-  intro z,
-  exfalso,
-  rw[manhattan,staten] at z,
-  exact ht.2.2.2.2.2.2.2.2.2 z,
-
-  induction k,
-
-
-
-  intro z,
-  exfalso,
-  rw[brooklyn,bronx] at z,
-  exact ht.2.2.1 z.symm,
-
-
-  intro z,
-  exfalso,
-  rw[queens,bronx] at z,
-  exact ht.2.2.2.2.2.1 z.symm,
-
-
-
-  intro z,
-  exfalso,
-  rw[manhattan,bronx] at z,
-  exact ht.2.2.2.2.2.2.2.1 z.symm,
-
-  exact λ x, refl _,
-
-  intro z,
-  exfalso,
-  rw[bronx,staten] at z,
-  exact ht.2.2.2.2.2.2.2.2.1 z,
-
-  induction k,
-
-
-
-  intro z,
-  exfalso,
-  rw[brooklyn,staten] at z,
-  exact ht.2.2.2.1 z.symm,
-
-
-  intro z,
-  exfalso,
-  rw[queens,staten] at z,
-  exact ht.2.2.2.2.2.2.1 z.symm,
-
-
-
-  intro z,
-  exfalso,
-  rw[manhattan,staten] at z,
-  exact ht.2.2.2.2.2.2.2.2.2 z.symm,
-
-  intro z,
-  exfalso,
-  rw[bronx,staten] at z,
-  exact ht.2.2.2.2.2.2.2.2.1 z.symm,
-
-  exact λ x, refl _,
-  have f:weekday↪ α :={to_fun:=w, inj':=u},
-  exact ⟨ f,rfl⟩ ,
-
-end
-
 lemma card : cardinal.mk weekday = ↑5 :=
 begin
   let a : list weekday := [monday, tuesday, wednesday, thursday, friday],
@@ -735,169 +533,106 @@ end
 
 open_locale classical
 
-noncomputable def equiv.perm.of_embedding {α β : Type*} [fintype α] [decidable_eq β]
+
+
+noncomputable def equiv.perm.of_embedding {α β : Type*}  [decidable_eq β]
   (e : equiv.perm α) (f : α ↪ β) : equiv.perm β :=
-  begin
-    have u:=(equiv.set.image_of_inj_on f (⊤:set α ) (set.inj_on_of_injective f.inj' ⊤ )).inv_fun,
-    let v:(⇑f '' ⊤)→ α:=λ x, u x,
-    let s:=f∘ e.to_fun ∘ v,
-    let t:= f ∘ e.inv_fun ∘ v,
+let ϕ := equiv.set.range f f.2 in equiv.perm.of_subtype
+{ to_fun := λ x, ⟨f (e (ϕ.symm x)), ⟨e.to_fun (ϕ.symm x), rfl⟩⟩,
+  inv_fun := λ x, ⟨f (e.symm (ϕ.symm x)), ⟨e.inv_fun (ϕ.symm x), rfl⟩⟩,
+  left_inv := λ y, by
+  { change ϕ (e.symm (ϕ.symm (ϕ (e (ϕ.symm y))))) = y,
+    rw [ϕ.symm_apply_apply, e.symm_apply_apply, ϕ.apply_symm_apply] },
+  right_inv := λ y, by
+  { change ϕ (e (ϕ.symm (ϕ (e.symm (ϕ.symm y))))) = y,
+    rw [ϕ.symm_apply_apply, e.apply_symm_apply, ϕ.apply_symm_apply] } }
 
-    let s':(⇑f '' ⊤)→ (⇑f '' ⊤):=λ x, ⟨s x, begin
-      change  s x ∈  {b | ∃ a, a ∈ (⊤:set α ) ∧ f a = b} ,
-      change ∃ a, a ∈ (⊤:set α ) ∧ f a = s x,
-      use e.to_fun(v(x)),
-      split,
-      --rw set.top_eq_univ,
-      simp only [set.top_eq_univ,set.mem_univ],
-
-      end⟩,
-    let t':(⇑f '' ⊤)→ (⇑f '' ⊤):=λ x, ⟨t x, begin change  t x ∈  {b | ∃ a, a ∈ (⊤:set α ) ∧ f a = b} ,
-      change ∃ a, a ∈ (⊤:set α ) ∧ f a = t x,
-      use e.inv_fun(v(x)),
-      split,
-      --rw set.top_eq_univ,
-      simp only [set.top_eq_univ,set.mem_univ], end⟩,
-    let u' : equiv.perm (f '' ⊤) :=
-    { to_fun := s',
-      inv_fun := t',
-      left_inv := begin
-        intro y,
-        change t' (⟨ s y, _⟩ )=y,
-        symmetry,
-        change y=⟨ t ⟨  s y, _⟩ , _⟩  ,
-        ext,
-        change (↑y:β )= t ( s( ↑y)),
-        --change  t ⟨ s y, _⟩ =y,
-        --change ⟨ t  ⟨ s y, _⟩, _⟩ =y,
-        --change (t (s y)) =↑ y,
-        --change ⟨t ⟨ s y, _ ⟩, _ ⟩ =y,
-
-       end,
-      right_inv := sorry },
-    exact equiv.perm.of_subtype u',
-  end
-
-
-def equiv.perm.of_embedding2 {α β : Type*} [fintype α] [decidable_eq β]
-  (e : equiv.perm α) (f : α ↪ β) : equiv.perm β :=
-  begin
-    have u:=(equiv.set.image_of_inj_on f (⊤:set α ) (set.inj_on_of_injective f.inj' ⊤ )).inv_fun,
-    let v:(⇑f '' ⊤)→ α:=λ x, u x,
-    let s:=f∘ e.to_fun ∘ v,
-    let t:= f ∘ e.inv_fun ∘ v,
-    have orange:∀ (x:(⇑f '' ⊤)), s x ∈ (⇑f '' ⊤),
-
-    have red:∀ (x:(⇑f '' ⊤)), s x = (f∘ e.to_fun ∘ v) x,
-
-
-
-
-    --let s':(⇑f '' ⊤)→ (⇑f '' ⊤):=λ x, s x,
-    --have left_inv_check:function.left_inverse t s,
-    --have t:equiv.perm (⇑f '' ⊤):={to_fun:=s,inv_fun:=t,}
-
-
-
-
-
-
-    --have t: ¬ nonempty α  ∨ nonempty α,
-    finish,
-    sorry,
-
-    --have s:=function.injective.has_left_inverse f.inj' ,
-    --apply equiv.perm.of_subtype,
-    -- (set.image f (⊤:set α )),
-
-
-  end
-  --function.injective.has_left_inverse f.to_fun f.inj'
-  --equiv.perm.of_subtype (set.image f (⊤:set α )),
-
-lemma equiv.perm_of_embedding_injective {α β : Type*} [fintype α] [decidable_eq β]
-   (f : α ↪ β) : function.injective (λ e, equiv.perm.of_embedding e f):=sorry
-
-
-
-lemma unsolvability_of_S_5 (X:Type u)(big:5≤ cardinal.mk X)[fintype X]:¬ is_solvable (equiv.perm X):=
+lemma equiv.perm.of_subtype_apply_coe {α : Type*} {p : α → Prop} (e : equiv.perm (subtype p))
+  (x : subtype p) : equiv.perm.of_subtype e ↑x = ↑(e x) :=
 begin
-  --have x:=X.elems.val.to_list,
-  have x:=(five_le_iff X).1 big,
-  rcases x with ⟨ x₀,x₁, x₂, x₃, x₄ , s⟩,
-  let map:weekday→ X:=λ x, weekday.cases_on x x₀ x₁ x₂ x₃ x₄,
-  by_contradiction,
-  --apply solvable_of_solvable_injective,
+  change dite _ _ _ = _,
+  rw [dif_pos, subtype.coe_eta],
+  exact x.2,
+end
+
+lemma equiv.perm.of_embedding_apply {α β : Type*} [decidable_eq β] (e : equiv.perm α)
+  (f : α ↪ β) (x : α) : e.of_embedding f (f x) = f (e x) :=
+begin
+  dsimp only [equiv.perm.of_embedding],
+  have key : f x = ↑(⟨f x, set.mem_range_self x⟩ : set.range f) := rfl,
+  rw [key, equiv.perm.of_subtype_apply_coe],
+  change ↑(⟨_, _⟩ : set.range f) = _,
+  rw [subtype.coe_mk],
+  congr,
+  rw [equiv.symm_apply_eq, equiv.set.range_apply],
+end
+
+lemma equiv.perm.of_embedding_apply_of_not_mem {α β : Type*} [decidable_eq β]
+  (e : equiv.perm α) (f : α ↪ β) (x : β) (hx : x ∉ set.range f) : e.of_embedding f x = x :=
+equiv.perm.of_subtype_apply_of_not_mem _ hx
+
+noncomputable def equiv.perm.of_embedding_map_homomorphism {α β : Type*} [decidable_eq β]
+  (f : α ↪ β) : (equiv.perm α )→* equiv.perm β:=
+{ to_fun := λ e, equiv.perm.of_embedding e f,
+  map_one' := by
+  { ext x,
+    by_cases hx : x ∈ set.range f,
+    { obtain ⟨y, rfl⟩ := hx,
+      exact equiv.perm.of_embedding_apply 1 f y },
+    { exact equiv.perm.of_embedding_apply_of_not_mem 1 f x hx } },
+  map_mul' := by
+  { intros σ τ,
+    ext x,
+    by_cases hx : x ∈ set.range f,
+    {
+      obtain ⟨y, rfl⟩ := hx,
+      change _ = (σ.of_embedding f)((τ.of_embedding f)(f y)),
+      rw[equiv.perm.of_embedding_apply (σ * τ ) f y,equiv.perm.of_embedding_apply τ f y,
+      equiv.perm.of_embedding_apply σ  f (τ y)],
+      refl,
 
 
-  unfold is_solvable,
-  push_neg,
-  have moscow:=_inst_3.elems,
-  have russia:=_inst_3.complete,
-  let delhi:=fintype.elems X,
-  let paris:=(delhi).val,
-  have france:=(delhi).nodup,
-  have u: list X,
-  exact list.nil,
+    },
+    {
+      change _ = (σ.of_embedding f)((τ.of_embedding f) x),
+      rw[equiv.perm.of_embedding_apply_of_not_mem (σ * τ) f x hx,equiv.perm.of_embedding_apply_of_not_mem τ f x hx,equiv.perm.of_embedding_apply_of_not_mem σ  f x hx],
+
+    }
+     } }
 
 
-  rw cardinal.le_mk_iff_exists_set at big,
-  cases big with big_subset florida,
-  --have v:cardinal.mk big_subset<cardinal.omega,
-  --apply cardinal.lt_omega.2,
-  --use 5,
-
-  --exact florida,
-
-  --have u: fintype big_subset,
-  --apply fintype.of_equiv,
-  have w:fintype.card ↥big_subset=5,
-
-  --library_search,
 
 
-  have equiv: nonempty((fin 5)≃ big_subset),
 
-  apply fintype.card_eq.1,
+noncomputable lemma equiv.perm_of_embedding_map_injective {α β : Type*}  [decidable_eq β]
+   (f : α ↪ β) : function.injective (equiv.perm.of_embedding_map_homomorphism f):=
+begin
+  apply (monoid_hom.injective_iff (equiv.perm.of_embedding_map_homomorphism f)).2,
+  intros σ σ_ker,
+  ext x,
+  change σ x = x,
+  apply f.2,
 
-
-  --library_search!,
-  --have first: ∃ x_1,x_1∈ big_subset,
-  sorry,
+  have key:= equiv.ext_iff.1 σ_ker (f.to_fun x),
+  simp only [id.def, function.embedding.to_fun_eq_coe, equiv.perm.coe_one] at key,
+  have key':f.to_fun x = ((equiv.perm.of_embedding_map_homomorphism f) σ) (f x) ,
+  symmetry,
+  exact key,
+  rw key',
+  have key'':=equiv.perm.of_embedding_apply σ f x,
+  symmetry,
+  exact key'',
 
 end
 
 
-end solvable
 
-
-end  symmetric_unsolvable
-
-
-lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
-  (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
-  is_solvable G :=
+lemma unsolvability_of_S_5 (X:Type*)(big:5≤ cardinal.mk X):¬ is_solvable (equiv.perm X):=
 begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨n, hn⟩ := hG'',
-  suffices : ∀ k : ℕ, derived_series G (n + k) ≤ (derived_series G' k).map f,
-  { obtain ⟨m, hm⟩ := hG',
-    use n + m,
-    specialize this m,
-    rwa [hm, map_bot, le_bot_iff] at this },
-  intro k,
-  induction k with k hk,
-  { rw [add_zero, derived_series_zero, ←monoid_hom.range_eq_map],
-    refine le_trans _ hfg,
-    rw [←map_eq_bot_iff, eq_bot_iff, ←hn],
-    exact map_derived_series_le_derived_series g n },
-  { rw [nat.add_succ, derived_series_succ, derived_series_succ],
-    exact commutator_le_map_commutator hk hk },
+  have key : nonempty (weekday ↪ X),
+  { rwa [←cardinal.lift_mk_le, card, cardinal.lift_nat_cast, nat.cast_bit1,
+    nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
+  rcases key,
+  introI h,
+  exact weekday_perm_unsolvable(solvable_of_solvable_injective (equiv.perm_of_embedding_map_injective key)),
 end
-
-instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solvable G'] :
-  is_solvable (G × G') :=
-solvable_of_ker_le_range (monoid_hom.inl G G') (monoid_hom.snd G G')
-  (λ x hx, ⟨x.1, prod.ext rfl hx.symm⟩)
-
-end solvable

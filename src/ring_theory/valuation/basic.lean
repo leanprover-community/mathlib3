@@ -425,11 +425,13 @@ def add_valuation := valuation R (multiplicative (order_dual Γ₀))
 end add_monoid
 
 namespace add_valuation
-variables {Γ₀   : Type*} [linear_ordered_add_comm_monoid_with_top Γ₀]
-variables {Γ'₀  : Type*} [linear_ordered_add_comm_monoid_with_top Γ'₀]
+variables {Γ₀   : Type*} {Γ'₀  : Type*}
 
 section basic
 
+section monoid
+
+variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_comm_monoid_with_top Γ'₀]
 variables (R) (Γ₀) [ring R]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
@@ -525,7 +527,38 @@ v.map {
 def is_equiv (v₁ : add_valuation R Γ₀) (v₂ : add_valuation R Γ'₀) : Prop :=
 v₁.is_equiv v₂
 
+end monoid
+
+section group
+variables [linear_ordered_add_comm_group_with_top Γ₀] {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
+
+@[simp] lemma map_inv {K : Type*} [division_ring K]
+  (v : add_valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
+v.map_inv
+
+lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
+v.map_units_inv x
+
+@[simp] lemma map_neg (x : R) : v (-x) = v x :=
+v..map_neg x
+
+lemma map_sub_swap (x y : R) : v (x - y) = v (y - x) :=
+v.map_sub_swap x y
+
+lemma map_sub (x y : R) : miv (v x) (v y) ≤ v (x - y) :=
+v.map_sub_le_max x y
+
+lemma map_add_of_distinct_val (h : v x ≠ v y) : v (x + y) = min (v x) (v y) :=
+v.map_add_of_distinct_val h
+
+lemma map_eq_of_lt_sub (h : v x < v (y - x)) : v y = v x :=
+v.map_eq_of_sub_lt h
+
+end group
+
 end basic
+
+variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_comm_monoid_with_top Γ'₀]
 
 namespace is_equiv
 variables [ring R]

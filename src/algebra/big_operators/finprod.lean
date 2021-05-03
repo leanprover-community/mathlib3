@@ -719,23 +719,29 @@ begin
   exact finset.nonempty_of_prod_ne_one h,
 end
 
-@[to_additive] lemma finprod_mem_finset_of_product (s : finset (α × β)) (f : α × β → M) :
-  ∏ᶠ ab (h : ab ∈ s), f ab = ∏ᶠ a b (h : (a, b) ∈ s), f (a, b) :=
+/-- Note that `b ∈ (s.filter (λ ab, prod.fst ab = a)).image prod.snd` iff `(a, b) ∈ s` so we can
+simplify the right hand side of this lemma. However the form stated here is more useful for
+iterating this lemma, e.g., if we have `f : α × β × γ → M`. -/
+@[to_additive] lemma finprod_mem_finset_of_product' [decidable_eq α] [decidable_eq β]
+  (s : finset (α × β)) (f : α × β → M) :
+  ∏ᶠ ab (h : ab ∈ s), f ab =
+  ∏ᶠ a b (h : b ∈ (s.filter (λ ab, prod.fst ab = a)).image prod.snd), f (a, b) :=
 begin
-  haveI := classical.dec_eq α, haveI := classical.dec_eq β,
+  have : ∀ a, ∏ (i : β) in (s.filter (λ ab, prod.fst ab = a)).image prod.snd, f (a, i) =
+    (finset.filter (λ ab, prod.fst ab = a) s).prod f,
+  { intros a, apply finset.prod_bij (λ b _, (a, b)); finish, },
   rw finprod_mem_finset_eq_prod,
-  have : ∀ a, ∏ᶠ b (h : (a, b) ∈ s), f (a, b) = (s.filter (λ ab, prod.fst ab = a)).prod f,
-  { intros a,
-    have ha : ∏ (i : β) in (s.filter (λ ab, prod.fst ab = a)).image prod.snd, f (a, i) =
-      (finset.filter (λ ab, prod.fst ab = a) s).prod f,
-    { apply finset.prod_bij (λ b _, (a, b)); finish, },
-    rw [← ha, ← finprod_mem_finset_eq_prod], simp, },
-  simp_rw this, clear this,
+  simp_rw [finprod_mem_finset_eq_prod, this],
   rw [finprod_eq_prod_of_mul_support_subset _
     (s.mul_support_of_fiberwise_prod_subset_image f prod.fst),
     ← finset.prod_fiberwise_of_maps_to _ f],
   finish,
 end
+
+/-- See also `finprod_mem_finset_of_product'`. -/
+@[to_additive] lemma finprod_mem_finset_of_product (s : finset (α × β)) (f : α × β → M) :
+  ∏ᶠ ab (h : ab ∈ s), f ab = ∏ᶠ a b (h : (a, b) ∈ s), f (a, b) :=
+by { classical, rw finprod_mem_finset_of_product', simp, }
 
 @[to_additive] lemma finprod_curry (f : α × β → M) (hf : (mul_support f).finite) :
   ∏ᶠ ab, f ab = ∏ᶠ a b, f (a, b) :=

@@ -248,7 +248,7 @@ i.cycle_range.injective (by simp)
   i.cycle_range.symm j.succ = i.succ_above j :=
 i.cycle_range.injective (by simp)
 
-lemma is_cycle_fin_rotate {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) : is_cycle (cycle_range i) :=
+lemma is_cycle_cycle_range {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) : is_cycle (cycle_range i) :=
 begin
   cases i with i hi,
   cases i,
@@ -256,7 +256,7 @@ begin
   exact is_cycle_fin_rotate.extend_domain _,
 end
 
-lemma cycle_type_fin_rotate {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) :
+lemma cycle_type_cycle_range {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) :
   cycle_type (cycle_range i) = {i + 1} :=
 begin
   cases i with i hi,
@@ -264,6 +264,14 @@ begin
   { exact (h0 rfl).elim },
   rw [cycle_range, cycle_type_extend_domain],
   exact cycle_type_fin_rotate,
+end
+
+lemma is_three_cycle_cycle_range_two {n : ℕ} :
+  is_three_cycle (cycle_range 2 : perm (fin (n + 3))) :=
+begin
+  rw [is_three_cycle, cycle_type_cycle_range, multiset.singleton_eq_singleton,
+    multiset.singleton_eq_singleton, multiset.cons_inj_left];
+  dec_trivial
 end
 
 end fin

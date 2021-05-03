@@ -428,8 +428,7 @@ begin
   end,
   letI d : fintype weekday := fintype.mk c
   begin
-    change ∀ x, x ∈ [monday, tuesday, wednesday, thursday, friday],
-    simp_rw [list.mem_cons_iff, list.mem_nil_iff, or_false],
+    simp_rw [finset.mem_mk, multiset.mem_coe, list.mem_cons_iff, list.mem_nil_iff, or_false],
     intro day,
     cases day,
     all_goals { tauto },
@@ -439,14 +438,14 @@ end
 
 end weekday
 
-lemma unsolvability_of_S_5 (X:Type*)(big:5≤ cardinal.mk X):¬ is_solvable (equiv.perm X):=
+lemma equiv.perm.not_solvable (X:Type*) (hX : 5 ≤ cardinal.mk X) : ¬ is_solvable (equiv.perm X) :=
 begin
   introI h,
   have key : nonempty (weekday ↪ X),
   { rwa [←cardinal.lift_mk_le, weekday.card, cardinal.lift_nat_cast, nat.cast_bit1,
     nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
   exact weekday.not_solvable (solvable_of_solvable_injective
-    (of_embedding_map_injective (nonempty.some key))),
+    (equiv.perm.of_embedding_map_injective (nonempty.some key))),
 end
 
 end symmetric_unsolvable

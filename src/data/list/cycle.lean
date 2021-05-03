@@ -339,6 +339,9 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
 @[simp] lemma mk_eq_coe (l : list α) :
   quot.mk _ l = (l : cycle α) := rfl
 
+@[simp] lemma mk'_eq_coe (l : list α) :
+  quotient.mk' l = (l : cycle α) := rfl
+
 instance : inhabited (cycle α) := ⟨(([] : list α) : cycle α)⟩
 
 /--
@@ -365,12 +368,16 @@ Reverse a `s : cycle α` by reversing the underlying `list`.
 def reverse (s : cycle α) : cycle α :=
 quot.map reverse (λ l₁ l₂ (e : l₁ ~r l₂), e.reverse) s
 
-lemma coe_reverse (l : list α) :
-  (l.reverse : cycle α) = reverse l := rfl
+@[simp] lemma reverse_coe (l : list α) :
+  (l : cycle α).reverse = l.reverse := rfl
 
 @[simp] lemma mem_reverse_iff {a : α} {s : cycle α} :
   a ∈ s.reverse ↔ a ∈ s :=
 quot.induction_on s (λ _, mem_reverse)
+
+@[simp] lemma reverse_reverse (s : cycle α) :
+  s.reverse.reverse = s :=
+quot.induction_on s (λ _, by simp)
 
 /--
 The length of the `s : cycle α`, which is the number of elements, counting duplicates.
@@ -397,6 +404,16 @@ lemma length_subsingleton_iff {s : cycle α} :
 @[simp] lemma subsingleton_reverse_iff {s : cycle α} :
   s.reverse.subsingleton ↔ s.subsingleton :=
 by simp [length_subsingleton_iff]
+
+lemma subsingleton.congr {s : cycle α} (h : subsingleton s) :
+  ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x = y :=
+begin
+  induction s using quot.induction_on with l,
+  simp only [length_subsingleton_iff, length_coe, mk_eq_coe, le_iff_lt_or_eq, nat.lt_add_one_iff,
+             length_eq_zero, length_eq_one, nat.not_lt_zero, false_or] at h,
+  rcases h with rfl|⟨z, rfl⟩;
+  simp
+end
 
 /--
 A `s : cycle α` that is made up of at least two unique elements.
@@ -442,12 +459,24 @@ begin
     simp [this] }
 end
 
+/--
+The `s : cycle α` as a `multiset α`.
+-/
+def to_multiset (s : cycle α) : multiset α :=
+quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
+
 section decidable
 
 variable [decidable_eq α]
 
 instance {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
+
+/--
+The `s : cycle α` as a `finset α`.
+-/
+def to_finset (s : cycle α) : finset α :=
+s.to_multiset.to_finset
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
 def next : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
@@ -464,6 +493,28 @@ def prev : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
   function.hfunext (propext h.nodup_iff) (λ h₁ h₂ he, function.hfunext rfl
     (λ x y hxy, function.hfunext (propext (by simpa [eq_of_heq hxy] using h.mem_iff))
     (λ hm hm' he', heq_of_eq (by simpa [eq_of_heq hxy] using is_rotated_prev_eq h h₁ _)))))
+
+@[simp] lemma prev_reverse_eq_next (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.reverse.prev (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.next hs x hx :=
+begin
+  induction s using quot.induction_on,
+  exact prev_reverse_eq_next _ hs _ _
+end
+
+@[simp] lemma next_reverse_eq_prev (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.reverse.next (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.prev hs x hx :=
+by simp [←prev_reverse_eq_next]
+
+@[simp] lemma next_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.next hs x hx ∈ s :=
+begin
+  induction s using quot.induction_on,
+  exact next_mem _ _ _
+end
+
+lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.prev hs x hx ∈ s :=
+by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
 
 end decidable
 

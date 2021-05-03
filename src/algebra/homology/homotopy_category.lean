@@ -45,7 +45,7 @@ variables {V c}
 @[simp] lemma quotient_obj_as (C : homological_complex V c) :
   ((quotient V c).obj C).as = C := rfl
 
-lemma quotient_map_out {C D : homotopy_category V c} (f : C ⟶ D) :
+@[simp] lemma quotient_map_out {C D : homotopy_category V c} (f : C ⟶ D) :
   (quotient V c).map f.out = f :=
 quot.out_eq _
 
@@ -92,6 +92,13 @@ begin
   have r := quot.eq.mp w,
   rw comp_closure_homotopy at r,
   rwa eqv_gen_homotopy at r,
+end
+
+def homotopy_out_map {C D : homological_complex V c} (f : C ⟶ D) :
+  homotopy ((quotient V c).map f).out f :=
+begin
+  apply homotopy_of_eq,
+  simp,
 end
 
 @[simp] lemma quotient_map_out_comp_out {C D E : homotopy_category V c} (f : C ⟶ D) (g : D ⟶ E) :

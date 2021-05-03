@@ -562,13 +562,17 @@ end alg_hom
 
 section monoid_algebra
 
+variables {R : Type*} {M : Type*}
+
 namespace add_monoid_algebra
 
 open algebra add_submonoid submodule
 
 section span
 
-variables {R : Type*} {M : Type*} [comm_semiring R] [add_monoid M]
+section semiring
+
+variables [comm_semiring R] [add_monoid M]
 
 lemma mem_adjoint_support (f : (add_monoid_algebra R M)) :
   f ∈ adjoin R (of' R M '' (f.support : set M)) :=
@@ -602,9 +606,49 @@ begin
   simp only [set.image_Union]
 end
 
+end semiring
+
+section ring
+
+variables [comm_ring R] [add_comm_monoid M]
+
+lemma generators_of_finite_type : finite_type R (add_monoid_algebra R M) → ∃ G : finset M,
+  algebra.adjoin R (of' R M '' (G : set M)) = ⊤ :=
+begin
+  rintro ⟨S, hS⟩,
+  letI : decidable_eq M := classical.dec_eq M,
+  use finset.bUnion S (λ f, f.support),
+  have : (finset.bUnion S (λ f, f.support) : set M) = ⋃ f ∈ S, (f.support : set M),
+  { simp only [finset.set_bUnion_coe, finset.coe_bUnion] },
+  rw [this],
+  exact support_gen_of_gen' hS
+end
+
+lemma of_mem_of_span_iff [nontrivial R] {m : M} {S : set M} : of' R M m ∈
+  span R ((of' R M '' S) : set (add_monoid_algebra R M)) ↔ m ∈ S :=
+begin
+  refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
+  rw [of', ← finsupp.supported_eq_span_single, finsupp.mem_supported,
+    finsupp.support_single_ne_zero (@one_ne_zero R _ (by apply_instance))] at h,
+  simpa using h
+end
+
+lemma of_mem_of_span_of_clo [nontrivial R] {m : M} {S : set M} : of' R M m ∈ span R
+  (submonoid.closure (of' R M '' S) : set (add_monoid_algebra R M)) → m ∈ closure S :=
+begin
+  intro h,
+  suffices : multiplicative.of_add m ∈ submonoid.closure (multiplicative.to_add ⁻¹' S),
+  { simpa [← to_submonoid_closure] },
+  rw [set.image_congr' (show ∀ x, of' R M x = of R M x, from λ x, of'_eq_of x),
+    ← monoid_hom.map_mclosure] at h,
+  simpa using of_mem_of_span_iff.1 h
+end
+
+end ring
+
 end span
 
-variables {R : Type*} {M : Type*} [add_comm_monoid M]
+variables [add_comm_monoid M]
 
 lemma mv_polynomial_aeval_of_surjective_of_closure [comm_semiring R] {S : set M}
   (hS : closure S = ⊤) : function.surjective (mv_polynomial.aeval
@@ -631,6 +675,18 @@ begin
     (λ (s : (S : set M)), of' R M ↑s)) (mv_polynomial_aeval_of_surjective_of_closure hS)
 end
 
+lemma ft_iff_fg [comm_ring R] [nontrivial R] :
+  add_monoid.fg M ↔ finite_type R (add_monoid_algebra R M) :=
+begin
+  refine ⟨λ h, @add_monoid_algebra.ft_of_fg _ _ _ _ h, λ h, _⟩,
+  obtain ⟨S, hS⟩ := generators_of_finite_type h,
+  refine add_monoid.fg_def.2 ⟨S, (eq_top_iff' _).2 (λ m, _)⟩,
+  have hm : of' R M m ∈ (adjoin R (of' R M '' ↑S)).to_submodule,
+  { simp only [hS, top_to_submodule, submodule.mem_top], },
+  rw [adjoin_eq_span] at hm,
+  exact of_mem_of_span_of_clo hm
+end
+
 end add_monoid_algebra
 
 namespace monoid_algebra
@@ -639,7 +695,9 @@ open algebra submonoid submodule
 
 section span
 
-variables {R : Type*} {M : Type*} [comm_semiring R] [monoid M]
+section semiring
+
+variables [comm_semiring R] [monoid M]
 
 lemma mem_adjoint_support (f : (monoid_algebra R M)) :
   f ∈ adjoin R (monoid_algebra.of R M '' (f.support : set M)) :=
@@ -673,9 +731,46 @@ begin
   simp only [set.image_Union]
 end
 
+end semiring
+
+section ring
+
+variables [comm_ring R] [comm_monoid M]
+
+lemma generators_of_finite_type : finite_type R (monoid_algebra R M) → ∃ G : finset M,
+  algebra.adjoin R (of R M '' (G : set M)) = ⊤ :=
+begin
+  rintro ⟨S, hS⟩,
+  letI : decidable_eq M := classical.dec_eq M,
+  use finset.bUnion S (λ f, f.support),
+  have : (finset.bUnion S (λ f, f.support) : set M) = ⋃ f ∈ S, (f.support : set M),
+  { simp only [finset.set_bUnion_coe, finset.coe_bUnion] },
+  rw [this],
+  exact support_gen_of_gen' hS
+end
+
+lemma of_mem_of_span_iff [nontrivial R] {m : M} {S : set M} : of R M m ∈
+  span R ((of R M '' S) : set (monoid_algebra R M)) ↔ m ∈ S :=
+begin
+  refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
+  rw [of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single, finsupp.mem_supported,
+    finsupp.support_single_ne_zero (@one_ne_zero R _ (by apply_instance))] at h,
+  simpa using h
+end
+
+lemma of_mem_of_span_of_clo [nontrivial R] {m : M} {S : set M} : of R M m ∈ span R
+  (submonoid.closure (of R M '' S) : set (monoid_algebra R M)) → m ∈ closure S :=
+begin
+  intro h,
+  rw ← monoid_hom.map_mclosure at h,
+  simpa using of_mem_of_span_iff.1 h
+end
+
+end ring
+
 end span
 
-variables {R : Type*} {M : Type*} [comm_monoid M]
+variables [comm_monoid M]
 
 lemma mv_polynomial_aeval_of_surjective_of_closure [comm_semiring R] {S : set M}
   (hS : closure S = ⊤) : function.surjective (mv_polynomial.aeval
@@ -697,6 +792,11 @@ end
 
 instance ft_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=
 add_monoid_algebra.ft_of_fg.equiv (to_additive_alg_equiv R M).symm
+
+lemma ft_iff_fg [comm_ring R] [nontrivial R] :
+  monoid.fg M ↔ finite_type R (monoid_algebra R M) :=
+⟨λ h, @monoid_algebra.ft_of_fg _ _ _ _ h, λ h, monoid.fg_iff_add_fg.2 $
+  add_monoid_algebra.ft_iff_fg.2 $ h.equiv $ to_additive_alg_equiv R M⟩
 
 end monoid_algebra
 

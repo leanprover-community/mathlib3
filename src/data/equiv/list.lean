@@ -36,7 +36,8 @@ instance list : encodable (list α) :=
 @[simp] theorem encode_list_cons (a : α) (l : list α) :
   encode (a :: l) = succ (mkpair (encode a) (encode l)) := rfl
 
-@[simp] theorem decode_list_zero : decode (list α) 0 = some [] := rfl
+@[simp] theorem decode_list_zero : decode (list α) 0 = some [] :=
+show decode_list 0 = some [], by rw decode_list
 
 @[simp] theorem decode_list_succ (v : ℕ) :
   decode (list α) (succ v) =
@@ -161,7 +162,7 @@ section list
 
 theorem denumerable_list_aux : ∀ n : ℕ,
   ∃ a ∈ @decode_list α _ n, encode_list a = n
-| 0        := ⟨_, rfl, rfl⟩
+| 0        := by rw decode_list; exact ⟨_, rfl, rfl⟩
 | (succ v) := begin
   cases e : unpair v with v₁ v₂,
   have h := unpair_le_right v,
@@ -174,7 +175,8 @@ end
 
 instance denumerable_list : denumerable (list α) := ⟨denumerable_list_aux⟩
 
-@[simp] theorem list_of_nat_zero : of_nat (list α) 0 = [] := rfl
+@[simp] theorem list_of_nat_zero : of_nat (list α) 0 = [] :=
+by rw [← @encode_list_nil α, of_nat_encode]
 
 @[simp] theorem list_of_nat_succ (v : ℕ) :
   of_nat (list α) (succ v) =

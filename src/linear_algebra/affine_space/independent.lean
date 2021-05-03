@@ -386,7 +386,7 @@ variables (k)
 lemma affine_independent_of_ne {p₁ p₂ : P} (h : p₁ ≠ p₂) : affine_independent k ![p₁, p₂] :=
 begin
   rw affine_independent_iff_linear_independent_vsub k ![p₁, p₂] 0,
-  let i₁ : {x // x ≠ (0 : fin 2)} := ⟨1, dec_trivial⟩,
+  let i₁ : {x // x ≠ (0 : fin 2)} := ⟨1, by norm_num⟩,
   have he' : ∀ i, i = i₁,
   { rintro ⟨i, hi⟩,
     ext,
@@ -394,11 +394,8 @@ begin
     { simpa using hi } },
   haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
   have hz : (![p₁, p₂] ↑(default {x // x ≠ (0 : fin 2)}) -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
-  { rw he' (default _),
-    intro he,
-    rw vsub_eq_zero_iff_eq at he,
-    exact h he.symm },
-  exact linear_independent_unique hz
+  { rw he' (default _), simp, cc },
+  exact linear_independent_unique _ hz
 end
 
 end field

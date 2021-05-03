@@ -26,11 +26,7 @@ theorem char_p.cast_eq_zero [add_monoid R] [has_one R] (p : ℕ) [char_p R p] :
 
 @[simp] lemma char_p.cast_card_eq_zero [add_group R] [has_one R] [fintype R] :
   (fintype.card R : R) = 0 :=
-begin
-  have : fintype.card R • (1 : R) = 0 :=
-    @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
-  simpa only [nsmul_one]
-end
+by rw [← nsmul_one, card_nsmul_eq_zero]
 
 lemma char_p.int_cast_eq_zero_iff [add_group R] [has_one R] (p : ℕ) [char_p R p]
   (a : ℤ) :

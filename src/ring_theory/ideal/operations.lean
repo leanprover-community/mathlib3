@@ -230,15 +230,13 @@ end
   Remainder Theorem. It is bijective if the ideals `f i` are comaximal. -/
 def quotient_inf_to_pi_quotient (f : ι → ideal R) :
   (⨅ i, f i).quotient →+* Π i, (f i).quotient :=
-begin
-  refine quotient.lift (⨅ i, f i) _ _,
-  { convert @@pi.ring_hom (λ i, quotient (f i)) (λ i, ring.to_semiring) ring.to_semiring
-      (λ i, quotient.mk (f i)) },
-  { intros r hr,
+quotient.lift (⨅ i, f i)
+  (pi.ring_hom (λ i : ι, (quotient.mk (f i) : _))) $
+  λ r hr, begin
     rw submodule.mem_infi at hr,
     ext i,
-    exact quotient.eq_zero_iff_mem.2 (hr i) }
-end
+    exact quotient.eq_zero_iff_mem.2 (hr i)
+  end
 
 theorem quotient_inf_to_pi_quotient_bijective [fintype ι] {f : ι → ideal R}
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
@@ -420,6 +418,9 @@ variables (I)
 le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
 variables {I}
 
+theorem radical_le_radical_iff : radical I ≤ radical J ↔ I ≤ radical J :=
+⟨λ h, le_trans le_radical h, λ h, radical_idem J ▸ radical_mono h⟩
+
 theorem radical_eq_top : radical I = ⊤ ↔ I = ⊤ :=
 ⟨λ h, (eq_top_iff_one _).2 $ let ⟨n, hn⟩ := (eq_top_iff_one _).1 h in
   @one_pow R _ n ▸ hn, λ h, h.symm ▸ radical_top R⟩
@@ -452,7 +453,8 @@ theorem radical_eq_Inf (I : ideal R) :
   radical I = Inf { J : ideal R | I ≤ J ∧ is_prime J } :=
 le_antisymm (le_Inf $ λ J hJ, hJ.2.radical_le_iff.2 hJ.1) $
 λ r hr, classical.by_contradiction $ λ hri,
-let ⟨m, (hrm : r ∉ radical m), him, hm⟩ := zorn.zorn_partial_order₀ {K : ideal R | r ∉ radical K}
+let ⟨m, (hrm : r ∉ radical m), him, hm⟩ := zorn.zorn_nonempty_partial_order₀
+  {K : ideal R | r ∉ radical K}
   (λ c hc hcc y hyc, ⟨Sup c, λ ⟨n, hrnc⟩, let ⟨y, hyc, hrny⟩ :=
       (submodule.mem_Sup_of_directed ⟨y, hyc⟩ hcc.directed_on).1 hrnc in hc hyc ⟨n, hrny⟩,
     λ z, le_Sup⟩) I hri in

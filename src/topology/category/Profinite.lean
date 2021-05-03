@@ -129,6 +129,41 @@ adjunction.left_adjoint_of_equiv Profinite.to_CompHaus_equivalence (λ _ _ _ _ _
 lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
   ↥(CompHaus.to_Profinite.obj X) = connected_components X.to_Top.α := rfl
 
+-- tidy needs a little help in the `naturality'` field to avoid deterministic timeouts.
+/--
+An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
+`Top.alt_limit_cone`.
+-/
+def alt_limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
+  limits.cone F :=
+{ X :=
+  { to_Top := (Top.alt_limit_cone (F ⋙ Profinite_to_Top)).X,
+    is_compact := begin
+      dsimp [Top.alt_limit_cone],
+      erw ← compact_iff_compact_space,
+      apply is_closed.compact,
+      have : {u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} =
+        ⋂ (i j : J) (f : i ⟶ j), { u | F.map f (u i) = u j }, by tidy,
+      rw this,
+      apply is_closed_Inter, intros i,
+      apply is_closed_Inter, intros j,
+      apply is_closed_Inter, intros f,
+      apply is_closed_eq,
+      continuity,
+    end,
+    is_t2 := by {dsimp [Top.alt_limit_cone], apply_instance},
+    is_totally_disconnected := by {dsimp [Top.alt_limit_cone], apply_instance} },
+  π :=
+  { app := λ j, (Top.alt_limit_cone (F ⋙ Profinite_to_Top)).π.app j,
+    naturality' := by { intros _ _ _, ext, tidy } } }
+
+/-- The limit cone `Profinite.alt_limit_cone F` is indeed a limit cone. -/
+def alt_limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
+  limits.is_limit (alt_limit_cone F) :=
+{ lift := λ S,
+    (Top.alt_limit_cone_is_limit (F ⋙ Profinite_to_Top)).lift (Profinite_to_Top.map_cone S),
+  uniq' := λ S m h, (Top.alt_limit_cone_is_limit _).uniq  (Profinite_to_Top.map_cone S) _ h }
+
 end Profinite
 
 namespace Profinite

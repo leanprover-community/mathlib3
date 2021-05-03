@@ -233,6 +233,14 @@ def comp_left {f g : D ⟶ E} (h : homotopy f g) (e : C ⟶ D) : homotopy (e ≫
   zero' := λ i j w, by rw [h.zero i j w, comp_zero],
   comm' := λ i, by simp [h.comm' i], }
 
+/-- a variant of `homotopy.comp_right` useful for dealing with homotopy equivalences. -/
+def comp_right_id {f : C ⟶ C} (h : homotopy f (𝟙 C)) (g : C ⟶ D) : homotopy (f ≫ g) g :=
+by { convert h.comp_right g, simp, }
+
+/-- a variant of `homotopy.comp_left` useful for dealing with homotopy equivalences. -/
+def comp_left_id {f : D ⟶ D} (h : homotopy f (𝟙 D)) (g : C ⟶ D) : homotopy (g ≫ f) g :=
+by { convert h.comp_left g, simp, }
+
 /-!
 `homotopy.mk_inductive` allows us to build a homotopy inductively,
 so that as we construct each component, we have available the previous two components,

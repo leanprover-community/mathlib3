@@ -106,22 +106,28 @@ def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shap
     comm' := λ i j, by { dsimp,  rw [←F.map_comp, ←F.map_comp, f.comm], }, }, }.
 
 instance functor.map_homogical_complex_additive
-  (c : complex_shape ι) (F : V ⥤ W) [F.additive] : (F.map_homological_complex c).additive := {}
+  (F : V ⥤ W) [F.additive] (c : complex_shape ι) : (F.map_homological_complex c).additive := {}
 
 @[simps]
 def nat_trans.map_homological_complex {F G : V ⥤ W} [F.additive] [G.additive]
   (α : F ⟶ G) (c : complex_shape ι) : F.map_homological_complex c ⟶ G.map_homological_complex c :=
 { app := λ C, { f := λ i, α.app _, }, }
 
-@[simp] lemma nat_trans.map_homology_complex_id (c : complex_shape ι) (F : V ⥤ W) [F.additive] :
+@[simp] lemma nat_trans.map_homological_complex_id (c : complex_shape ι) (F : V ⥤ W) [F.additive] :
   nat_trans.map_homological_complex (𝟙 F) c = 𝟙 (F.map_homological_complex c) :=
 by tidy
 
-@[simp] lemma nat_trans.map_homology_complex_comp (c : complex_shape ι)
+@[simp] lemma nat_trans.map_homological_complex_comp (c : complex_shape ι)
   {F G H : V ⥤ W} [F.additive] [G.additive] [H.additive]
   (α : F ⟶ G) (β : G ⟶ H):
   nat_trans.map_homological_complex (α ≫ β) c =
     nat_trans.map_homological_complex α c ≫ nat_trans.map_homological_complex β c :=
+by tidy
+
+@[simp, reassoc] lemma nat_trans.map_homological_complex_naturality {c : complex_shape ι}
+  {F G : V ⥤ W} [F.additive] [G.additive] (α : F ⟶ G) {C D : homological_complex V c} (f : C ⟶ D) :
+  (F.map_homological_complex c).map f ≫ (nat_trans.map_homological_complex α c).app D =
+    (nat_trans.map_homological_complex α c).app C ≫ (G.map_homological_complex c).map f :=
 by tidy
 
 end category_theory

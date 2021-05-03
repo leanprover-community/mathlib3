@@ -283,43 +283,39 @@ variables (e : perm α) (ι : α ↪ β)
 open_locale classical
 
 noncomputable def of_embedding (e : perm α) (ι : α ↪ β) : perm β :=
-extend_domain e (equiv.of_injective ι.1 ι.2)
+extend_domain e (of_injective ι.1 ι.2)
 
-lemma equiv.perm.of_embedding_apply (x : α) : e.of_embedding ι (ι x) = ι (e x) :=
-extend_domain_apply_image e (equiv.of_injective ι.1 ι.2) x
+lemma of_embedding_apply (x : α) : e.of_embedding ι (ι x) = ι (e x) :=
+extend_domain_apply_image e (of_injective ι.1 ι.2) x
 
-lemma equiv.perm.of_embedding_apply_of_not_mem (x : β)
-  (hx : x ∉ _root_.set.range ι) : e.of_embedding ι x = x :=
-extend_domain_apply_not_subtype e (equiv.of_injective ι.1 ι.2) hx
+lemma of_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
+  e.of_embedding ι x = x :=
+extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
 
-noncomputable def equiv.perm.of_embedding_map_homomorphism : (equiv.perm α) →* equiv.perm β:=
-{ to_fun := λ e, equiv.perm.of_embedding e ι,
+noncomputable def of_embedding_map_homomorphism : perm α →* perm β:=
+{ to_fun := λ e, of_embedding e ι,
   map_one' := by
   { ext x,
     by_cases hx : x ∈ _root_.set.range ι,
     { obtain ⟨y, rfl⟩ := hx,
-      exact equiv.perm.of_embedding_apply 1 ι y },
-    { exact equiv.perm.of_embedding_apply_of_not_mem 1 ι x hx } },
+      exact of_embedding_apply 1 ι y },
+    { exact of_embedding_apply_of_not_mem 1 ι x hx } },
   map_mul' := by
   { intros σ τ,
     ext x,
     by_cases hx : x ∈ _root_.set.range ι,
     { obtain ⟨y, rfl⟩ := hx,
       change _ = σ.of_embedding ι (τ.of_embedding ι (ι y)),
-      rw [equiv.perm.of_embedding_apply (σ * τ ) ι y,
-          equiv.perm.of_embedding_apply τ ι y,
-          equiv.perm.of_embedding_apply σ ι (τ y)],
+      rw [(σ * τ).of_embedding_apply ι y, τ.of_embedding_apply ι y, σ.of_embedding_apply ι (τ y)],
       refl },
     { change _ = σ.of_embedding ι (τ.of_embedding ι x),
-      rw [equiv.perm.of_embedding_apply_of_not_mem (σ * τ) ι x hx,
-          equiv.perm.of_embedding_apply_of_not_mem τ ι x hx,
-          equiv.perm.of_embedding_apply_of_not_mem σ ι x hx] } } }
+      rw [(σ * τ).of_embedding_apply_of_not_mem ι x hx, τ.of_embedding_apply_of_not_mem ι x hx,
+          σ.of_embedding_apply_of_not_mem ι x hx] } } }
 
-lemma equiv.perm_of_embedding_map_injective :
-  function.injective (equiv.perm.of_embedding_map_homomorphism ι):=
-(monoid_hom.injective_iff (equiv.perm.of_embedding_map_homomorphism ι)).2
-  (λ σ σ_ker, equiv.perm.ext (λ x, ι.2 ((equiv.perm.of_embedding_apply σ ι x).symm.trans
-    (equiv.ext_iff.1 σ_ker (ι.to_fun x)))))
+lemma of_embedding_map_injective :
+  function.injective (of_embedding_map_homomorphism ι):=
+(monoid_hom.injective_iff (of_embedding_map_homomorphism ι)).2 (λ σ σ_ker,
+  ext (λ x, ι.2 ((σ.of_embedding_apply ι x).symm.trans (ext_iff.1 σ_ker (ι.to_fun x)))))
 
 end perm
 

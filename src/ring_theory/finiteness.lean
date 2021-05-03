@@ -570,7 +570,7 @@ section span
 
 variables {R : Type*} {M : Type*} [comm_semiring R] [add_monoid M]
 
-lemma mem_adjoint_support (f : (add_monoid_algebra R M)) :
+lemma mem_adjoint_support (f : add_monoid_algebra R M) :
   f ∈ adjoin R (of' R M '' (f.support : set M)) :=
 begin
   suffices : span R (of R M '' (f.support : set M)) ≤
@@ -641,7 +641,7 @@ section span
 
 variables {R : Type*} {M : Type*} [comm_semiring R] [monoid M]
 
-lemma mem_adjoint_support (f : (monoid_algebra R M)) :
+lemma mem_adjoint_support (f : monoid_algebra R M) :
   f ∈ adjoin R (monoid_algebra.of R M '' (f.support : set M)) :=
 begin
   suffices : span R (of R M '' (f.support : set M)) ≤

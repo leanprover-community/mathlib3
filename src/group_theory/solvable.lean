@@ -24,7 +24,7 @@ the derived series of a group.
 * `is_solvable G` : the group `G` is solvable
 -/
 
-open subgroup monoid_hom
+open subgroup
 
 
 variables {G : Type*} [group G]
@@ -77,12 +77,6 @@ begin
     exact h p hp q hq, }
 end
 
-lemma general_commutator_containment (H₁ H₂ : subgroup G):∀ p∈ H₁,∀ q∈ H₂, p * q * p⁻¹ * q⁻¹∈ ⁅H₁, H₂ ⁆:=
-begin
-  apply (general_commutator_le H₁ H₂ ⁅ H₁, H₂⁆).1,
-  tauto,
-end
-
 lemma general_commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
 begin
   suffices : ∀ H₁ H₂ : subgroup G, ⁅H₁, H₂⁆ ≤ ⁅H₂, H₁⁆, { exact le_antisymm (this _ _) (this _ _) },
@@ -118,11 +112,6 @@ by { rw eq_bot_iff, exact general_commutator_le_left ⊥ H }
 lemma general_commutator_le_inf (H₁ H₂ : subgroup G) [normal H₁] [normal H₂] :
   ⁅H₁, H₂⁆ ≤ H₁ ⊓ H₂ :=
 by simp only [general_commutator_le_left, general_commutator_le_right, le_inf_iff, and_self]
-
-
-
-
-
 
 end general_commutator
 
@@ -171,8 +160,6 @@ general_commutator_eq_commutator G
 
 end derived_series
 
-
-
 section commutator_map
 
 variables {G} {G' : Type*} [group G'] {f : G →* G'}
@@ -180,7 +167,7 @@ variables {G} {G' : Type*} [group G'] {f : G →* G'}
 lemma map_commutator_eq_commutator_map (H₁ H₂ : subgroup G) :
   ⁅H₁, H₂⁆.map f = ⁅H₁.map f, H₂.map f⁆ :=
 begin
-  rw [general_commutator, general_commutator, map_closure],
+  rw [general_commutator, general_commutator, monoid_hom.map_closure],
   apply le_antisymm; apply closure_mono,
   { rintros _ ⟨x, ⟨p, hp, q, hq, rfl⟩, rfl⟩,
     refine ⟨f p, mem_map.mpr ⟨p, hp, rfl⟩, f q, mem_map.mpr ⟨q, hq, rfl⟩, by simp *⟩, },
@@ -204,57 +191,20 @@ begin
   { simp only [derived_series_succ, map_commutator_eq_commutator_map, general_commutator_mono, *], }
 end
 
-variables {f}(H : subgroup G)
+variables {f}
 
 lemma derived_series_le_map_derived_series (hf : function.surjective f) (n : ℕ) :
   derived_series G' n ≤ (derived_series G n).map f :=
 begin
   induction n with n ih,
-  { rwa [derived_series_zero, derived_series_zero, top_le_iff, ← range_eq_map,
-    ← range_top_iff_surjective.mpr], },
+  { rwa [derived_series_zero, derived_series_zero, top_le_iff, ← monoid_hom.range_eq_map,
+    ← monoid_hom.range_top_iff_surjective.mpr], },
   { simp only [*, derived_series_succ, commutator_le_map_commutator], }
 end
 
 lemma map_derived_series_eq (hf : function.surjective f) (n : ℕ) :
   (derived_series G n).map f = derived_series G' n :=
 le_antisymm (map_derived_series_le_derived_series f n) (derived_series_le_map_derived_series hf n)
-
-
-lemma derived_series_additive (n m : ℕ) : derived_series G (n + m) = lift (derived_series (derived_series G n) m) :=
-begin
-  induction m with m ih,
-  { simp only [derived_series_zero, add_zero, lift_top], },
-  { rw [nat.add_succ, derived_series_succ, derived_series_succ, ih,
-    lift_commutator_eq_commutator_lift_lift], }
-end
-
-lemma derived_series_lift_monotonic {H K : subgroup G} (h : H ≤ K) (n : ℕ) :
-  (derived_series H n).lift ≤ (derived_series K n).lift :=
-begin
-  induction n with n ih,
-  { simp only [derived_series_zero, lift_top, h], },
-  { simp only [derived_series_succ, lift_commutator_eq_commutator_lift_lift,
-    general_commutator_mono, ih], }
-end
-
-lemma map_derived_series_leq_derived_series {G' : Type*} [group G'] {H : subgroup G} {f : G' →* G} (h : H ≤ f.range) (n : ℕ) :
-  (derived_series H n).lift ≤ (derived_series G' n).map f :=
-begin
-  induction n with n ih,
-  { rw monoid_hom.range_eq_map at h,
-    rwa [derived_series_zero, derived_series_zero, lift_top], },
-  { rw [derived_series_succ, derived_series_succ, lift_commutator_eq_commutator_lift_lift],
-    exact commutator_le_map_commutator ih ih, },
-end
-
-lemma map_derived_series_monotonic {G' G'' : Type*}[group G'][group G'']{f : G' →* G}{g : G'' →* G}(h : f.range ≤ g.range)
-  (n : ℕ) : (derived_series G' n).map f ≤ (derived_series G'' n).map g :=
-begin
-  induction n with n ih,
-  { rw [monoid_hom.range_eq_map, monoid_hom.range_eq_map] at h,
-    rwa [derived_series_zero, derived_series_zero], },
-  { simp only [derived_series_succ, map_commutator_eq_commutator_map, general_commutator_mono,ih],},
-end
 
 end derived_series_map
 end commutator_map
@@ -276,7 +226,7 @@ instance comm_group.is_solvable {G : Type*} [comm_group G] : is_solvable G :=
 begin
   use 1,
   rw [eq_bot_iff, derived_series_one],
-  calc commutator G ≤ (monoid_hom.id G).ker : abelianization.commutator_subset_ker (id G)
+  calc commutator G ≤ (monoid_hom.id G).ker : abelianization.commutator_subset_ker (monoid_hom.id G)
   ... = ⊥ : rfl,
 end
 
@@ -324,99 +274,36 @@ begin
     ... = ⊥ : map_bot f,
 end
 
-
-open quotient_group
-
 instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
-  is_solvable (quotient H) :=
+  is_solvable (quotient_group.quotient H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
 
-lemma le_ker_iff_map_eq_bot {G' : Type*} [group G'] (f : G →* G') {H : subgroup G} :
- H.map f ≤ ⊥ ↔ H ≤ f.ker :=
-begin
-  split,
-  { intros h x hx,
-    rw [← eq_bot_iff, eq_bot_iff_forall] at h,
-    exact (monoid_hom.mem_ker f).mpr (h (f x) ⟨x, hx, rfl⟩), },
-  { rintros h _ ⟨x, hx, rfl⟩,
-    exact mem_bot.mpr ((monoid_hom.mem_ker f).mp (h hx)), },
-end
 
-theorem eq_top_of_trivial_quotient (N:subgroup G) [N.normal]
-(H : (⊤ : subgroup (quotient N)) ≤ ⊥) :
- N = ⊤ :=
-begin
-  rw [← ker_mk N, eq_top_iff, ker, ← subgroup.map_le_iff_le_comap],
-  exact le_trans le_top H,
-end
-
-lemma derived_series_le_ker {G' : Type*} [group G'] (f : G →* G') (h : is_solvable G') :
-  ∃ n, derived_series G n ≤ f.ker :=
-begin
-  rw is_solvable_def at h,
-  cases h with n hn,
-  have key := map_derived_series_le_derived_series f n,
-  exact ⟨n, by rwa [hn, le_ker_iff_map_eq_bot] at key⟩,
-end
-
-lemma range_subtype (H : subgroup G) : H.subtype.range = H :=
-by { ext, exact ⟨λ ⟨⟨x, hx⟩, rfl⟩, hx, λ hx, ⟨⟨x, hx⟩, rfl⟩⟩ }
-
-
-lemma derived_series_le_of_solvable_quotient (H : subgroup G) [H.normal]
-  (h : is_solvable (quotient_group.quotient H)) : ∃ n, (derived_series G n) ≤ H :=
-by {rw ← ker_mk H, exact derived_series_le_ker (mk' H) h}
-
-
-lemma solvability_sequence {G' G'' : Type*} [group G'] [group G''] {f : G' →* G}
-  {g : G →* G''} (hfg : g.ker ≤ f.range) (hG' : is_solvable G') (hG'' : is_solvable G'') :
+lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
+  (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
   is_solvable G :=
 begin
-  rw is_solvable_def at hG' ⊢,
-  cases hG' with n hn,
-  obtain ⟨m, hm⟩ := derived_series_le_ker g hG'',
-  use m + n,
-  rw [derived_series_additive, eq_bot_iff],
-  replace hm := calc derived_series G m ≤ g.ker : hm
-  ... ≤ f.range : hfg,
-  calc (derived_series (derived_series G m) n).lift ≤ map f (derived_series G' n) :
-    map_derived_series_leq_derived_series hm n
-  ... = map f ⊥ : by rw hn
-  ... = ⊥ : map_bot f,
+  tactic.unfreeze_local_instances,
+  obtain ⟨n, hn⟩ := hG'',
+  suffices : ∀ k : ℕ, derived_series G (n + k) ≤ (derived_series G' k).map f,
+  { obtain ⟨m, hm⟩ := hG',
+    use n + m,
+    specialize this m,
+    rwa [hm, map_bot, le_bot_iff] at this },
+  intro k,
+  induction k with k hk,
+  { rw [add_zero, derived_series_zero, ←monoid_hom.range_eq_map],
+    refine le_trans _ hfg,
+    rw [←map_eq_bot_iff, eq_bot_iff, ←hn],
+    exact map_derived_series_le_derived_series g n },
+  { rw [nat.add_succ, derived_series_succ, derived_series_succ],
+    exact commutator_le_map_commutator hk hk },
 end
 
-lemma short_exact_sequence_solvable {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
-  (g : G →* G'') (hfg : f.range = g.ker) (hG' : is_solvable G') (hG'' : is_solvable G'') :
-  is_solvable G :=
-begin
-  have z : g.ker ≤ f.range,
-  {rw hfg,
-  exact le_refl g.ker},
-  exact solvability_sequence z hG' hG'',
-end
-
-
-lemma subgroup_quotient_solvable_solvable (H : subgroup G) [H.normal] (h : is_solvable H)
-  (h' : is_solvable (quotient_group.quotient H)) : is_solvable G :=
-begin
-  refine short_exact_sequence_solvable (subtype H) (mk' H) _ h h',
-  rw [ker_mk, range_subtype],
-end
-
-lemma solvable_prod {G' : Type*} [group G'] (h : is_solvable G) (h' : is_solvable G') :
+instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solvable G'] :
   is_solvable (G × G') :=
-begin
-  refine short_exact_sequence_solvable (monoid_hom.inl G G') (monoid_hom.snd G G') _ h h',
-  ext x, split,
-  { rintros ⟨y, rfl⟩,
-    simp only [monoid_hom.mem_ker, monoid_hom.inl_apply, monoid_hom.coe_snd], },
-  { cases x with x y,
-    intros hx,
-    simp only [monoid_hom.mem_ker, monoid_hom.coe_snd] at hx,
-    simp only [monoid_hom.mem_range, monoid_hom.inl_apply, hx],
-    use x, }
-end
-
+solvable_of_ker_le_range (monoid_hom.inl G G') (monoid_hom.snd G G')
+  (λ x hx, ⟨x.1, prod.ext rfl hx.symm⟩)
 
 section symmetric_unsolvable
 

@@ -274,37 +274,37 @@ let ϕ := equiv.set.range ι ι.2 in equiv.perm.of_subtype
 lemma equiv.perm.of_embedding_apply (x : α) : e.of_embedding ι (ι x) = ι (e x) :=
 begin
   dsimp only [equiv.perm.of_embedding],
-  have key : ι x = ↑(⟨ι x, set.mem_range_self x⟩ : set.range ι) := rfl,
+  have key : ι x = ↑(⟨ι x, set.mem_range_self x⟩ : _root_.set.range ι) := rfl,
   rw [key, equiv.perm.of_subtype_apply_coe],
-  change ↑(⟨_, _⟩ : set.range ι) = _,
+  change ↑(⟨_, _⟩ : _root_.set.range ι) = _,
   rw [subtype.coe_mk],
   congr,
   rw [equiv.symm_apply_eq, equiv.set.range_apply],
 end
 
 lemma equiv.perm.of_embedding_apply_of_not_mem (x : β)
-  (hx : x ∉ set.range ι) : e.of_embedding ι x = x :=
+  (hx : x ∉ _root_.set.range ι) : e.of_embedding ι x = x :=
 equiv.perm.of_subtype_apply_of_not_mem _ hx
 
 noncomputable def equiv.perm.of_embedding_map_homomorphism : (equiv.perm α) →* equiv.perm β:=
 { to_fun := λ e, equiv.perm.of_embedding e ι,
   map_one' := by
   { ext x,
-    by_cases hx : x ∈ set.range ι,
+    by_cases hx : x ∈ _root_.set.range ι,
     { obtain ⟨y, rfl⟩ := hx,
       exact equiv.perm.of_embedding_apply 1 ι y },
     { exact equiv.perm.of_embedding_apply_of_not_mem 1 ι x hx } },
   map_mul' := by
   { intros σ τ,
     ext x,
-    by_cases hx : x ∈ set.range ι,
+    by_cases hx : x ∈ _root_.set.range ι,
     { obtain ⟨y, rfl⟩ := hx,
-      change _ = (σ.of_embedding ι)((τ.of_embedding ι)(ι y)),
+      change _ = σ.of_embedding ι (τ.of_embedding ι (ι y)),
       rw [equiv.perm.of_embedding_apply (σ * τ ) ι y,
           equiv.perm.of_embedding_apply τ ι y,
           equiv.perm.of_embedding_apply σ ι (τ y)],
       refl },
-    { change _ = (σ.of_embedding ι)((τ.of_embedding ι) x),
+    { change _ = σ.of_embedding ι (τ.of_embedding ι x),
       rw [equiv.perm.of_embedding_apply_of_not_mem (σ * τ) ι x hx,
           equiv.perm.of_embedding_apply_of_not_mem τ ι x hx,
           equiv.perm.of_embedding_apply_of_not_mem σ ι x hx] } } }

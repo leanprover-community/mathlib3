@@ -45,142 +45,128 @@ variable {M}
 
 namespace free_product
 
-/-- `w.head_is_not i` says that `i` is not the index of the first letter in `w`. That is, either
-the head has a different index or `w` is the empty word. -/
-def head_is_not (w : free_product M) (i : ι) : Prop :=
-∀ p ∈ (w.val.map sigma.fst).head', i ≠ p
+/-- Prepend `m : M i` to `w` assuming `i` is not the first index in `w`. If `m = 1`, do nothing. -/
+def rcons {i} (m : M i) (w : free_product M) (h : ∀ p ∈ (w.val.map sigma.fst).head', i ≠ p) :
+  free_product M := if m_one : m = 1 then w else ⟨⟨i, m, m_one⟩ :: w.val, w.property.cons' h⟩
 
-section cases
+lemma rcons_one {i} (w : free_product M) (h) : rcons (1 : M i) w h = w := dif_pos rfl
+lemma rcons_ne_one {i} {m : M i} (hm : m ≠ 1) {w : free_product M} (h) :
+  rcons m w h = ⟨⟨i, m, hm⟩ :: w.val, w.property.cons' h⟩ := dif_neg hm
+lemma cons_eq_rcons {i m ls hl} :
+  (⟨⟨i, m⟩ :: ls, hl⟩ : free_product M) = rcons m.val ⟨ls, hl.tail⟩ hl.rel_head' :=
+by { cases m with m hm, rw rcons_ne_one hm, refl, }
 
-variables {i : ι} {C : free_product M → Sort*}
-  (d1 : Π w : free_product M, w.head_is_not i → C w)
-  (d2 : Π (w : free_product M) (h : w.head_is_not i) (m) {x}, C ⟨⟨i, m⟩ :: w.val, x⟩)
-include d2
+/-- A custom eliminator for the free product. -/
+def cases {i : ι} (C : free_product M → Sort*)
+  (d : Π (m : M i) (w : free_product M) (h), C (rcons m w h)) :
+  Π w : free_product M, C w
+| w@⟨[], _⟩ := @eq.rec _ _ C (d 1 w $ by rintro _ ⟨⟩) _ (rcons_one w _)
+| w@⟨⟨j, m⟩ :: ls, h⟩ := if ij : i = j then by { cases ij, rw cons_eq_rcons, apply d, }
+else @eq.rec _ _ C (d 1 w $ by { rintro _ ⟨⟩, exact ij }) _ (rcons_one w _)
 
-/-- A custom eliminator for the free product. The idea is that given an index `i` and a word `w`,
-either `i` is not the head of `w`, or `w` is `⟨i, m⟩ :: w'` for some word `w'` whose head is not
-`i`. In principle these two cases can be unified using `rcons'`. -/
-protected def cases : Π w : free_product M, C w
-| w@⟨[], _⟩ := d1 w $ by rintro _ ⟨⟩
-| w@⟨⟨j, m⟩ :: ls, h⟩ := if ij : i = j then by { cases ij, exact d2 ⟨ls, h.tail⟩ h.rel_head' m }
-else d1 w $ by { rintro _ ⟨⟩, exact ij }
-
-variables {d1 d2}
-
-/-- Computation rule for the first case of `free_product.cases`. -/
-lemma beta1 : ∀ (w : free_product M) (h : w.head_is_not i), w.cases d1 d2 = d1 w h
-| ⟨[], _⟩ h := rfl
-| ⟨⟨j, m⟩ :: ls, hl⟩ h := dif_neg (h j rfl)
-
-/-- Computation rule for the second case of `free_product.cases`. -/
-lemma beta2 : ∀ (w : free_product M) (h : w.head_is_not i) (m) {x},
-  free_product.cases d1 d2 ⟨⟨i, m⟩ :: w.val, x⟩ = d2 w h m
-| ⟨ls, hl⟩ h m x := dif_pos rfl
-
-end cases
-
-/-- Prepend `m : M i` to `w`, assuming `i` is not the head of `w`. If `m = 1`, do nothing. -/
-def rcons' {i : ι} (m : M i) (w : free_product M) (h : w.head_is_not i) : free_product M :=
-if m_one : m = 1 then w else ⟨⟨i, m, m_one⟩ :: w.val, w.property.cons' h⟩
-
-/-- Prepend `m : M i` to `w`. We define this by reducing to the case where `i` is not the head of
-`w`. This will be a recurring theme. -/
-def rcons {i : ι} (m : M i) (w : free_product M) : free_product M :=
-w.cases (rcons' m) (λ w' h m' x, rcons' (m * ↑m') w' h)
-
-/-- First computation rule for `rcons`. -/
-lemma rcons_def1 {i : ι} {m : M i} {w : free_product M} (h) : rcons m w = rcons' m w h := beta1 w h
-/-- Second computation rule for `rcons`. -/
-lemma rcons_def2 {i : ι} {m : M i} {w : free_product M} (h) (m') {x} :
-  rcons m ⟨⟨i, m'⟩ :: w.val, x⟩ = rcons' (m * ↑m') w h := beta2 w h m'
-
-/-- Prepending `1` leaves every word unchanged. -/
-lemma rcons_one {i : ι} (w : free_product M) : rcons (1 : M i) w = w :=
-w.cases (λ w h, by rw [rcons_def1 h, rcons', dif_pos rfl])
-(λ w h ⟨g, hg⟩, by { rw [rcons_def2 h, one_mul, rcons', dif_neg], refl })
-
-/-- Preliminary for `rcons_mul`. -/
-private lemma rcons_mul' {i : ι} {m m' : M i} (w : free_product M) (h : w.head_is_not i) :
-  rcons (m * m') w = rcons m (rcons m' w) :=
+/-- Computation rule for `free_product.cases` in the non-dependent case. -/
+lemma cases_def {i : ι} {C} {d} (m : M i) (w : free_product M) (h) :
+  (rcons m w h).cases (λ _, C) d = d m w h :=
 begin
-  by_cases hm' : m' = 1,
-  { rw [hm', rcons_one, mul_one], },
-  conv_rhs { rw [rcons_def1 h, rcons', dif_neg hm', rcons_def2 h], },
-  exact rcons_def1 h,
+  by_cases hm : m = 1,
+  { rw [hm, rcons_one],
+    rcases w with ⟨⟨⟩ | ⟨⟨j, m⟩, ls⟩, hl ⟩,
+    { rw [free_product.cases, eq_rec_constant]},
+    { rw [free_product.cases, dif_neg (h j rfl), eq_rec_constant], }, },
+  { rw [rcons_ne_one hm, free_product.cases, dif_pos rfl], cases w, refl, },
 end
 
-/-- We can prepend `m * m'` one element at a time. -/
-lemma rcons_mul {i : ι} (m : M i) (m' : M i) (w) : rcons (m * m') w = rcons m (rcons m' w) :=
-w.cases rcons_mul' $ λ w' h g'' x,
-by rw [rcons_def2 h, rcons_def2 h, mul_assoc, ←rcons_def1, rcons_mul' _ h, ←rcons_def1]
-
-/-- The action of `M i` on `free_product M`. -/
 instance (i) : mul_action (M i) (free_product M) :=
-{ smul := rcons, one_smul := rcons_one, mul_smul := rcons_mul }
+{ smul := λ m w, w.cases _ (λ m' w' h, rcons (m * m') w' h),
+  one_smul := λ w, w.cases _ (by { intros, dsimp only, rw [cases_def, one_mul] }),
+  mul_smul := λ m m' w, w.cases _
+    (by { intros, dsimp only, rw [cases_def, cases_def, cases_def, mul_assoc] }) }
 
-/-- A word obtained by prepending a letter can also be obtained by acting on its tail. -/
-lemma cons_as_smul {i} {m} (ls) (hl) :
- (⟨⟨i, m⟩ :: ls, hl⟩ : free_product M) = (m.val • ⟨ls, hl.tail⟩ : free_product M) :=
-begin
-  cases m with m hm, change _ = rcons _ _,
-  rw [rcons_def1, rcons', dif_neg hm],
-  { refl, }, { exact hl.rel_head', },
-end
+lemma smul_rcons (i) (m m' : M i) (w h) : m • rcons m' w h = rcons (m * m') w h :=
+cases_def m' w h
 
 section action
 variables {X : Type*} [∀ i, mul_action (M i) X]
 
-/-- Given actions of `M i` on `X`, the coproduct also has a scalar action on `X`. We'll use this
-both to define multiplication in the coproduct, and to get its universal property. -/
+/-- Given actions of `M i` on `X`, the free product also has a scalar action on `X`. We use this
+both to define multiplication in the free product and to get its universal property. -/
 instance : has_scalar (free_product M) X := ⟨λ w x, w.val.foldr (λ p y, p.snd.val • y) x⟩
 
-/-- A preliminary for the following instance. -/
-private lemma is_scalar_tower' {i} {m : M i} {x : X} (w : free_product M) (h : w.head_is_not i) :
-  (rcons m w) • x = m • (w • x) :=
-by { rw [rcons_def1 h, rcons'], split_ifs, { rw [h_1, one_smul], }, { refl, }, }
-
-/-- A key associativity lemma describing the interaction between the three actions. -/
 instance (i) : is_scalar_tower (M i) (free_product M) X :=
-⟨λ m' w x, w.cases is_scalar_tower' $ λ w' h m y, begin
-  change (rcons _ _) • _ = _,
-  rw [rcons_def2 h, ←rcons_def1 h, is_scalar_tower' _ h, mul_smul],
-  refl,
+⟨λ m' w x, w.cases _ $ λ m'' w' h, begin
+  suffices : ∀ m : M i, rcons m w' h • x = m • (w' • x),
+  { rw [smul_rcons, this, this, mul_smul], },
+  intro m,
+  by_cases hm : m = 1,
+  { rw [hm, rcons_one, one_smul], },
+  { rw rcons_ne_one hm, refl, },
 end⟩
 
 end action
 
+instance : has_one (free_product M) := ⟨⟨[], list.chain'_nil⟩⟩
+instance : inhabited (free_product M) := ⟨1⟩
+
+lemma cons_eq_smul {i m ls hl} :
+  (⟨⟨i, m⟩ :: ls, hl⟩ : free_product M) = (m.val • ⟨ls, hl.tail⟩ : free_product M) :=
+by rw [←rcons_one ⟨ls, hl.tail⟩ hl.rel_head', cons_eq_rcons, smul_rcons, mul_one]
+
+lemma smul_induction {C : free_product M → Prop} (w : free_product M)
+  (h_one : C 1) (h_smul : ∀ i (m : M i) w, C w → C (m • w)) : C w :=
+begin
+  cases w with ls hl,
+  induction ls with p ls ih,
+  { exact h_one },
+  rcases p with ⟨i, m, hm⟩,
+  rw cons_eq_smul,
+  exact h_smul i m _ (ih _),
+end
+
 instance : monoid (free_product M) :=
 { mul := λ x y, x • y,
   mul_assoc := begin
-    rintros ⟨ls, hl⟩ b c,
-    change (_ • _) • _ = _ • (_ • _),
-    induction ls with p ls ih,
-    { refl, },
-    cases p with i m,
-    rw [cons_as_smul, smul_assoc m.val _ b, smul_assoc, ih, smul_assoc],
-    apply_instance, -- TODO why do we have to write this?
+    intros a b c,
+    change (_ • _) • _ = _ • _ • _,
+    apply smul_induction a,
+    { refl },
+    intros i m a' ih,
+    rw [smul_assoc m a' b, smul_assoc m (a' • b) c, ih, ←smul_assoc m a' (b • c)],
   end,
-  one := ⟨[], list.chain'_nil⟩,
   one_mul := λ _, rfl,
   mul_one := begin
-    rintro ⟨ls, hl⟩,
+    intro a,
     change _ • _ = _,
+    apply smul_induction a,
+    { refl },
+    intros i m b ih,
+    rw [smul_assoc, ih],
+  end,
+  ..free_product.has_one }
+
+instance {G : ι → Type*} [Π i, group (G i)] [Π i, decidable_eq (G i)] : group (free_product G) :=
+{ inv := λ w, ⟨list.reverse (w.val.map $ λ l, ⟨l.fst, l.snd.val⁻¹, inv_ne_one.mpr l.snd.property⟩),
+    by simpa [eq_comm, flip, list.chain'_reverse] using w.property⟩,
+  mul_left_inv := begin
+    rintro ⟨ls, hl⟩,
+    change list.foldr _ _ (list.reverse _) = _,
     induction ls with p ls ih,
     { refl },
-    { cases p with i m, rw [cons_as_smul, smul_assoc, ih], },
-  end }
+    cases p with i m,
+    rw [list.map_cons, list.reverse_cons, list.foldr_append, list.foldr, list.foldr,
+      cons_eq_smul, smul_smul, mul_left_inv, one_smul, ih]
+  end,
+  ..free_product.monoid }
 
-instance : inhabited (free_product M) := ⟨1⟩
+lemma mul_eq_smul (a b : free_product M) : a * b = a • b := rfl
 
 /-- The inclusion into the free product. -/
-def of {i} : M i →* free_product M :=
+@[simps] def of {i} : M i →* free_product M :=
 { to_fun := λ m, m • 1,
-  map_one' := rcons_one _,
-  map_mul' := by { intros, change _ = _ • _, rw [mul_smul, smul_one_smul], } }
+  map_one' := one_smul _ _,
+  map_mul' := by { intros, rw [mul_smul, mul_eq_smul, smul_one_smul], } }
 
-lemma cons_as_mul {i} {m} (ls) (h) :
- (⟨⟨i, m⟩ :: ls, h⟩ : free_product M) = (of m.val * ⟨ls, h.tail⟩ : free_product M) :=
-by { change _ = (_ • _) • (_ : free_product M), rw [cons_as_smul, smul_one_smul], }
+lemma smul_eq_of_mul {i} {m : M i} {w : free_product M} : m • w = of m * w :=
+by rw [of_apply, mul_eq_smul, smul_one_smul]
 
 /-- The universal property of the free product: a monoid homomorphism from the `free_product M` is
 uniquely determined by a family of homomorphisms from the `M i`.-/
@@ -188,54 +174,41 @@ def lift (X : Type*) [monoid X] : (Π {i}, M i →* X) ≃ (free_product M →* 
 { to_fun := λ fi, begin
     letI : ∀ i, mul_action (M i) X := λ i, mul_action.comp_hom _ fi,
     refine { to_fun := λ w, w • 1, map_one' := rfl, map_mul' := _ },
-    rintros ⟨ls, hl⟩ b,
-    change (_ • _) • _ = _,
-    induction ls with p ls ih,
+    intros a b,
+    rw mul_eq_smul,
+    refine smul_induction a _ _,
     { exact (one_mul _).symm },
-    cases p with i m,
-    rw [cons_as_smul, smul_assoc m.val _ b, smul_assoc, ih, smul_assoc],
-    { exact (mul_assoc _ _ _).symm },
-    { apply_instance },
+    intros i m a' ih,
+    rw [smul_assoc m a' b, smul_assoc m (a' • b) (1 : X), ih, smul_assoc m a' (1 : X)],
+    exact (mul_assoc _ _ _).symm,
   end,
   inv_fun := λ f i, f.comp of,
   left_inv := begin
-    intro fi, letI : ∀ i, mul_action (M i) X := λ i, mul_action.comp_hom _ fi,
-    ext i m, change (m • _) • (1 : X) = fi m,
-    rw smul_assoc, apply mul_one,
+    intro fi,
+    letI : ∀ i, mul_action (M i) X := λ i, mul_action.comp_hom _ fi,
+    ext i m,
+    change (m • _) • (1 : X) = fi m,
+    rw smul_assoc,
+    exact mul_one (fi m),
   end,
   right_inv := begin
     intro f,
     ext w,
-    cases w with ls hl,
-    change _ • 1 = f ⟨ls, hl⟩,
-    induction ls with p ls ih,
-    { exact f.map_one.symm },
-    cases p with i m,
-    conv_rhs { rw [cons_as_mul, f.map_mul] },
-    letI : mul_action (M i) X := mul_action.comp_hom _ (f.comp of),
-    rw [cons_as_smul, smul_assoc, ih], refl
+    change w • _ = _,
+    apply smul_induction w,
+    { rw f.map_one, refl },
+    { intros i m w ih,
+      letI : mul_action (M i) X := mul_action.comp_hom _ (f.comp of),
+      rw [smul_assoc, smul_eq_of_mul, f.map_mul, ih],
+      refl, },
   end }
 
 lemma prod_eq_self (w : free_product M) : list.prod (w.val.map (λ l, of l.snd.val)) = w :=
 begin
-  cases w with ls hl, induction ls with p ls ih,
-  { refl, }, { cases p, rw [list.map_cons, list.prod_cons, ih hl.tail, cons_as_mul], },
+  cases w with ls hl,
+  induction ls with p ls ih,
+  { refl, },
+  { cases p, rw [list.map_cons, list.prod_cons, ih hl.tail, cons_eq_smul, smul_eq_of_mul], },
 end
-
-variables {G : Π i : ι, Type*} [Π i, group (G i)] [∀ i, decidable_eq (G i)]
-
-instance : group (free_product G) :=
-{ inv := λ w, ⟨list.reverse (w.val.map $ λ l, ⟨l.fst, l.snd.val⁻¹, inv_ne_one.mpr l.snd.property⟩),
-    by simpa [eq_comm, flip, list.chain'_reverse] using w.property⟩,
-  mul_left_inv := begin
-    rintro ⟨ls, junk⟩,
-    change list.foldr _ _ (list.reverse _) = _,
-    induction ls with p ls ih,
-    { refl },
-    cases p with i m,
-    rw [list.map_cons, list.reverse_cons, list.foldr_append, list.foldr, list.foldr,
-      cons_as_smul, smul_smul, mul_left_inv, one_smul, ih]
-  end,
-  ..free_product.monoid }
 
 end free_product

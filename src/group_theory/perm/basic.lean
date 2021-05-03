@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import algebra.group.pi
+import algebra.group_power
 import algebra.group.prod
 import logic.embedding
-import algebra.group_power
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -17,7 +17,7 @@ universes u v
 
 namespace equiv
 
-variables {α : Type u}
+variables {α : Type u} {β : Type v}
 
 namespace perm
 
@@ -278,35 +278,19 @@ instance perm_unique {n : Type*} [unique n] : unique (equiv.perm n) :=
 
 @[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
 
-variables {β : Type*} (e : perm α) (ι : α ↪ β)
+variables (e : perm α) (ι : α ↪ β)
 
 open_locale classical
 
-noncomputable def of_embedding : equiv.perm β :=
-let ϕ := equiv.set.range ι ι.2 in equiv.perm.of_subtype
-{ to_fun := λ x, ⟨ι (e (ϕ.symm x)), ⟨e.to_fun (ϕ.symm x), rfl⟩⟩,
-  inv_fun := λ x, ⟨ι (e.symm (ϕ.symm x)), ⟨e.inv_fun (ϕ.symm x), rfl⟩⟩,
-  left_inv := λ y, by
-  { change ϕ (e.symm (ϕ.symm (ϕ (e (ϕ.symm y))))) = y,
-    rw [ϕ.symm_apply_apply, e.symm_apply_apply, ϕ.apply_symm_apply] },
-  right_inv := λ y, by
-  { change ϕ (e (ϕ.symm (ϕ (e.symm (ϕ.symm y))))) = y,
-    rw [ϕ.symm_apply_apply, e.apply_symm_apply, ϕ.apply_symm_apply] } }
+noncomputable def of_embedding (e : perm α) (ι : α ↪ β) : perm β :=
+extend_domain e (equiv.of_injective ι.1 ι.2)
 
 lemma equiv.perm.of_embedding_apply (x : α) : e.of_embedding ι (ι x) = ι (e x) :=
-begin
-  dsimp only [equiv.perm.of_embedding],
-  have key : ι x = ↑(⟨ι x, set.mem_range_self x⟩ : _root_.set.range ι) := rfl,
-  rw [key, equiv.perm.of_subtype_apply_coe],
-  change ↑(⟨_, _⟩ : _root_.set.range ι) = _,
-  rw [subtype.coe_mk],
-  congr,
-  rw [equiv.symm_apply_eq, equiv.set.range_apply],
-end
+extend_domain_apply_image e (equiv.of_injective ι.1 ι.2) x
 
 lemma equiv.perm.of_embedding_apply_of_not_mem (x : β)
   (hx : x ∉ _root_.set.range ι) : e.of_embedding ι x = x :=
-equiv.perm.of_subtype_apply_of_not_mem _ hx
+extend_domain_apply_not_subtype e (equiv.of_injective ι.1 ι.2) hx
 
 noncomputable def equiv.perm.of_embedding_map_homomorphism : (equiv.perm α) →* equiv.perm β:=
 { to_fun := λ e, equiv.perm.of_embedding e ι,

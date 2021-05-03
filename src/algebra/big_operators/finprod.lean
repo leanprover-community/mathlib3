@@ -743,6 +743,11 @@ end
   ∏ᶠ ab (h : ab ∈ s), f ab = ∏ᶠ a b (h : (a, b) ∈ s), f (a, b) :=
 by { classical, rw finprod_mem_finset_of_product', simp, }
 
+@[to_additive] lemma finprod_mem_finset_of_product₂ {γ : Type*}
+  (s : finset (α × β × γ)) (f : α × β × γ → M) :
+  ∏ᶠ abc (h : abc ∈ s), f abc = ∏ᶠ a b c (h : (a, b, c) ∈ s), f (a, b, c) :=
+by { classical, rw finprod_mem_finset_of_product', simp_rw finprod_mem_finset_of_product', simp, }
+
 @[to_additive] lemma finprod_curry (f : α × β → M) (hf : (mul_support f).finite) :
   ∏ᶠ ab, f ab = ∏ᶠ a b, f (a, b) :=
 begin

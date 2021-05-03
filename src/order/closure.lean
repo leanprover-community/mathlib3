@@ -92,6 +92,20 @@ def mk₃ (f : α → α) (p : α → Prop) (hf : ∀ x, x ≤ f x) (hfp : ∀ x
   closure_operator α :=
 mk₂ f hf (λ x y hxy, hmin hxy (hfp y))
 
+/-- This lemma shows that the image of `x` of a closure operator built from the `mk₃` constructor
+respects `p`, the property that was fed into it. -/
+lemma closure_mem_mk₃ {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
+  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} (x : α) :
+  p (mk₃ f p hf hfp hmin x) :=
+hfp x
+
+/-- Analogue of `closure_le_closed_iff_le` but with the `p` that was fed into the `mk₃` constructor.
+-/
+lemma closure_le_mk₃_iff {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
+  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x y : α} (hxy : x ≤ y) (hy : p y) :
+  mk₃ f p hf hfp hmin x ≤ y :=
+hmin hxy hy
+
 @[mono] lemma monotone : monotone c := c.monotone'
 /--
 Every element is less than its closure. This property is sometimes referred to as extensivity or
@@ -131,17 +145,24 @@ set.ext $ λ x, ⟨λ h, ⟨x, h⟩, by { rintro ⟨y, rfl⟩, apply c.idempoten
 /-- Send an `x` to an element of the set of closed elements (by taking the closure). -/
 def to_closed (x : α) : c.closed := ⟨c x, c.closure_is_closed x⟩
 
-/-- This lemma shows that the `p` fed into the `mk₃` constructor implies being closed. -/
-lemma mem_mk₃_closed {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
-  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x : α} (hx : p x) :
-  x ∈ (mk₃ f p hf hfp hmin).closed :=
-le_antisymm (hmin (le_refl _) hx) (hf _)
-
 lemma top_mem_closed {α : Type u} [order_top α] (c : closure_operator α) : ⊤ ∈ c.closed :=
 c.closure_top
 
 @[simp] lemma closure_le_closed_iff_le (x : α) {y : α} (hy : c.closed y) : c x ≤ y ↔ x ≤ y :=
 by rw [←c.closure_eq_self_of_mem_closed hy, ←le_closure_iff]
+
+/-- A closure operator is equal to the closure operator obtained by feeding `c.closed` into the
+`mk₃` constructor. -/
+lemma eq_mk₃_closed (c : closure_operator α) :
+  c = mk₃ c c.closed c.le_closure c.closure_is_closed
+  (λ x y hxy hy, (c.closure_le_closed_iff_le x hy).2 hxy) :=
+by { ext, refl }
+
+/-- This lemma shows that the `p` fed into the `mk₃` constructor implies being closed. -/
+lemma mem_mk₃_closed {f : α → α} {p : α → Prop} {hf : ∀ x, x ≤ f x} {hfp : ∀ x, p (f x)}
+  {hmin : ∀ ⦃x y⦄, x ≤ y → p y → f x ≤ y} {x : α} (hx : p x) :
+  x ∈ (mk₃ f p hf hfp hmin).closed :=
+le_antisymm (hmin (le_refl _) hx) (hf _)
 
 @[simp] lemma closure_sup_closure_left {α : Type u} [semilattice_sup α] (c : closure_operator α)
   (x y : α) :

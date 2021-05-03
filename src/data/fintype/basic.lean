@@ -888,33 +888,6 @@ finset.subtype.fintype s
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 
-lemma finset.card_le_one_iff {s : finset α} :
-  s.card ≤ 1 ↔ ∀ {x y}, x ∈ s → y ∈ s → x = y :=
-begin
-  let t : set α := ↑s,
-  letI : fintype t := finset_coe.fintype s,
-  have : fintype.card t = s.card := fintype.card_coe s,
-  rw [← this, fintype.card_le_one_iff],
-  split,
-  { assume H x y hx hy,
-    exact subtype.mk.inj (H ⟨x, hx⟩ ⟨y, hy⟩) },
-  { assume H x y,
-    exact subtype.eq (H x.2 y.2) }
-end
-
-/-- A `finset` of a subsingleton type has cardinality at most one. -/
-lemma finset.card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
-finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
-
-lemma finset.one_lt_card_iff {s : finset α} :
-  1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
-begin
-  classical,
-  rw ← not_iff_not,
-  push_neg,
-  simpa [or_iff_not_imp_left] using finset.card_le_one_iff
-end
-
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then {⟨h⟩} else ∅, λ ⟨h⟩, by simp [h]⟩
 

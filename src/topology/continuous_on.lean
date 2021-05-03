@@ -619,6 +619,10 @@ lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=
 (h x (mem_of_nhds hx)).continuous_at hx
 
+lemma continuous_at.continuous_on {f : α → β} {s : set α} (hcont : ∀ x ∈ s, continuous_at f x) :
+  continuous_on f s :=
+λ x hx, (hcont x hx).continuous_within_at
+
 lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
   (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : s ⊆ f ⁻¹' t) :
   continuous_within_at (g ∘ f) s x :=

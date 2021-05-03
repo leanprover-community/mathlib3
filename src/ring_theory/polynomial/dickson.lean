@@ -62,7 +62,7 @@ noncomputable def dickson : ℕ → polynomial R
 @[simp] lemma dickson_zero : dickson k a 0 = 3 - k := rfl
 @[simp] lemma dickson_one : dickson k a 1 = X := rfl
 lemma dickson_two : dickson k a 2 = X ^ 2 - C a * (3 - k) :=
-by simp only [dickson, pow_two]
+by simp only [dickson, sq]
 @[simp] lemma dickson_add_two (n : ℕ) :
   dickson k a (n + 2) = X * dickson k a (n + 1) - C a * dickson k a n :=
 by rw dickson
@@ -211,15 +211,14 @@ begin
     suffices : (set.univ : set K) =
       {x : K | ∃ (y : K), x = y + y⁻¹ ∧ y ≠ 0} >>= (λ x, {y | x = y + y⁻¹ ∨ y = 0}),
     { rw this, clear this,
-      apply set.finite_bUnion h,
-      rintro x hx,
+      refine h.bUnion (λ x hx, _),
       -- The following quadratic polynomial has as solutions the `y` for which `x = y + y⁻¹`.
       let φ : polynomial K := X ^ 2 - C x * X + 1,
       have hφ : φ ≠ 0,
       { intro H,
         have : φ.eval 0 = 0, by rw [H, eval_zero],
         simpa [eval_X, eval_one, eval_pow, eval_sub, sub_zero, eval_add,
-          eval_mul, mul_zero, pow_two, zero_add, one_ne_zero] },
+          eval_mul, mul_zero, sq, zero_add, one_ne_zero] },
       classical,
       convert (φ.roots ∪ {0}).to_finset.finite_to_set using 1,
       ext1 y,

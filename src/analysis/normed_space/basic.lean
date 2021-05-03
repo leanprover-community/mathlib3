@@ -804,6 +804,21 @@ variables [semi_normed_ring α]
 lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 semi_normed_ring.norm_mul _ _
 
+/-- A subalgebra of a seminormed ring is also a seminormed ring, with the restriction of the norm.
+
+See note [implicit instance arguments]. -/
+instance subalgebra.semi_normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
+  {E : Type*} [semi_normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : semi_normed_ring s :=
+{ norm_mul := λ a b, norm_mul_le a.1 b.1,
+  ..s.to_submodule.semi_normed_group }
+
+/-- A subalgebra of a normed ring is also a normed ring, with the restriction of the norm.
+
+See note [implicit instance arguments]. -/
+instance subalgebra.normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
+  {E : Type*} [normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : normed_ring s :=
+{ ..s.semi_normed_ring }
+
 lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.map norm).prod
 | [] h := (h rfl).elim
 | [a] _ := by simp
@@ -1142,27 +1157,25 @@ section semi_normed_space
 
 section prio
 set_option extends_priority 920
--- Here, we set a rather high priority for the instance `[semi_normed_space α β] : semimodule α β`
--- to take precedence over `semiring.to_semimodule` as this leads to instance paths with better
+-- Here, we set a rather high priority for the instance `[semi_normed_space α β] : module α β`
+-- to take precedence over `semiring.to_module` as this leads to instance paths with better
 -- unification properties.
--- see Note[vector space definition] for why we extend `semimodule`.
 /-- A seminormed space over a normed field is a vector space endowed with a seminorm which satisfies
 the equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
 class semi_normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed_group β]
-  extends semimodule α β :=
+  extends module α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 
 set_option extends_priority 920
--- Here, we set a rather high priority for the instance `[normed_space α β] : semimodule α β`
--- to take precedence over `semiring.to_semimodule` as this leads to instance paths with better
+-- Here, we set a rather high priority for the instance `[normed_space α β] : module α β`
+-- to take precedence over `semiring.to_module` as this leads to instance paths with better
 -- unification properties.
--- see Note[vector space definition] for why we extend `semimodule`.
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ ∥c∥ ∥x∥` in the definition, then prove
 `∥c • x∥ = ∥c∥ ∥x∥` in `norm_smul`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
-  extends semimodule α β :=
+  extends module α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 
 /-- A normed space is a seminormed space. -/
@@ -1294,7 +1307,7 @@ open normed_field
 instance prod.semi_normed_space : semi_normed_space α (E × F) :=
 { norm_smul_le := λ s x, le_of_eq $ by simp [prod.semi_norm_def, norm_smul, mul_max_of_nonneg],
   ..prod.normed_group,
-  ..prod.semimodule }
+  ..prod.module }
 
 /-- The product of finitely many seminormed spaces is a seminormed space, with the sup norm. -/
 instance pi.semi_normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_group (E i)]
@@ -1306,7 +1319,7 @@ instance pi.semi_normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed
 
 /-- A subspace of a seminormed space is also a normed space, with the restriction of the norm. -/
 instance submodule.semi_normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
-  {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [semimodule R E]
+  {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] (s : submodule R E) :
   semi_normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
@@ -1329,12 +1342,12 @@ begin
     exact (div_lt_iff εpos).1 (hn.2) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_fpow, fpow_add (ne_of_gt cpos),
-        fpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        gpow_one, mul_inv_rev', mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (fpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
   { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), fpow_one, this, ← div_eq_inv_mul],
+    rw [norm_inv, inv_inv', norm_fpow, fpow_add (ne_of_gt cpos), gpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
@@ -1393,7 +1406,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E 
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
 instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] [semimodule R E]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] (s : submodule R E) :
   normed_space 𝕜 s :=
 { ..submodule.semi_normed_space s }
@@ -1478,14 +1491,14 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-seminormed space structure induced by a `𝕜'`-seminormed space structure when `𝕜'` is a
 seminormed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `semimodule.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
 def semi_normed_space.restrict_scalars : semi_normed_space 𝕜 F :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..restrict_scalars.semimodule 𝕜 𝕜' F }
+  ..restrict_scalars.module 𝕜 𝕜' F }
 
 /-- Warning: This declaration should be used judiciously.
 Please consider using `is_scalar_tower` instead.
@@ -1493,14 +1506,14 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `semimodule.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..restrict_scalars.semimodule 𝕜 𝕜' E }
+  ..restrict_scalars.module 𝕜 𝕜' E }
 
 instance {𝕜 : Type*} {𝕜' : Type*} {F : Type*} [I : semi_normed_group F] :
   semi_normed_group (restrict_scalars 𝕜 𝕜' F) := I
@@ -1508,11 +1521,11 @@ instance {𝕜 : Type*} {𝕜' : Type*} {F : Type*} [I : semi_normed_group F] :
 instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
   normed_group (restrict_scalars 𝕜 𝕜' E) := I
 
-instance semimodule.restrict_scalars.semi_normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {F : Type*}
+instance module.restrict_scalars.semi_normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {F : Type*}
   [normed_field 𝕜'] [semi_normed_group F] [I : semi_normed_space 𝕜' F] :
   semi_normed_space 𝕜' (restrict_scalars 𝕜 𝕜' F) := I
 
-instance semimodule.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
+instance module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
   [normed_field 𝕜'] [normed_group E] [I : normed_space 𝕜' E] :
   normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
 

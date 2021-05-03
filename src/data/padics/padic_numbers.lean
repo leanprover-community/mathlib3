@@ -822,8 +822,7 @@ instance : nondiscrete_normed_field ℚ_[p] :=
     simp only [if_neg] {discharger := `[exact_mod_cast h0]},
     norm_cast,
     simp only [padic_val_rat.inv] {discharger := `[exact_mod_cast h0]},
-    rw [neg_neg, padic_val_rat.padic_val_rat_self h1],
-    erw _root_.pow_one,
+    rw [neg_neg, padic_val_rat.padic_val_rat_self h1, gpow_one],
     exact_mod_cast h1,
   end⟩ }
 
@@ -904,7 +903,7 @@ begin
       rw H,
       apply dvd_zero },
     { norm_cast at H ⊢,
-      convert fpow_zero _,
+      convert gpow_zero _,
       simp only [neg_eq_zero],
       rw padic_val_rat.padic_val_rat_of_int _ hp.1.ne_one H,
       norm_cast,

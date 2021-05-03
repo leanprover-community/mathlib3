@@ -12,13 +12,15 @@ import set_theory.cardinal_ordinal
 
 ## Main definitions
 
-* The dimension of a vector space is defined as `vector_space.dim : cardinal`.
+* The rank of a module is defined as `module.rank : cardinal`.
+  This is currently only defined for vector spaces, i.e., when the base semiring is a field.
 
 ## Main statements
 
 * `mk_eq_mk_of_basis`: the dimension theorem, any two bases of the same vector space have the same
   cardinality.
-* `dim_quotient_add_dim`: if V₁ is a submodule of V, then dim (V/V₁) + dim V₁ = dim V.
+* `dim_quotient_add_dim`: if V₁ is a submodule of V, then
+  `module.rank (V/V₁) + module.rank V₁ = module.rank V`.
 * `dim_range_add_dim_ker`: the rank-nullity theorem.
 
 ## Implementation notes
@@ -38,21 +40,29 @@ variables {ι : Type w} {ι' : Type w'} {η : Type u₁'} {φ : η → Type*}
 
 open_locale classical big_operators
 
-section vector_space
-variables [field K] [add_comm_group V] [vector_space K V] [add_comm_group V₁] [vector_space K V₁]
+section module
+variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 include K
 open submodule function set
 
 variables (K V)
 
-/-- the dimension of a vector space, defined as a term of type `cardinal` -/
-def vector_space.dim : cardinal :=
+/-- The rank of a module, defined as a term of type `cardinal`.
+
+In a vector space, this is the same as the dimension of the space.
+
+TODO: this is currently only defined for vector spaces, as the cardinality of
+the basis set. It should be generalized to modules in general.
+
+The definition is marked as protected to avoid conflicts with `_root_.rank`,
+the rank of a linear map.
+-/
+protected def module.rank : cardinal :=
 cardinal.min
   (nonempty_subtype.2 (@exists_is_basis K V _ _ _))
   (λ b, cardinal.mk b.1)
-variables {K V}
 
-open vector_space
+variables {K V}
 
 section
 theorem is_basis.le_span {v : ι → V} {J : set V} (hv : is_basis K v)
@@ -116,53 +126,53 @@ theorem mk_eq_mk_of_basis' {ι' : Type w} {v : ι → V} {v' : ι' → V} (hv : 
 cardinal.lift_inj.1 $ mk_eq_mk_of_basis hv hv'
 
 theorem is_basis.mk_eq_dim'' {ι : Type v} {v : ι → V} (h : is_basis K v) :
-  cardinal.mk ι = dim K V :=
+  cardinal.mk ι = module.rank K V :=
 begin
-  obtain ⟨v', e : dim K V = _⟩ := cardinal.min_eq _ _,
+  obtain ⟨v', e : module.rank K V = _⟩ := cardinal.min_eq _ _,
   rw e,
   rw ← cardinal.mk_range_eq _ h.injective,
   exact mk_eq_mk_of_basis' h.range v'.2
 end
 
 theorem is_basis.mk_range_eq_dim {v : ι → V} (h : is_basis K v) :
-  cardinal.mk (range v) = dim K V :=
+  cardinal.mk (range v) = module.rank K V :=
 h.range.mk_eq_dim''
 
 theorem is_basis.mk_eq_dim {v : ι → V} (h : is_basis K v) :
-  cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (dim K V) :=
+  cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (module.rank K V) :=
 by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_injective h.injective]
 
 theorem {m} is_basis.mk_eq_dim' {v : ι → V} (h : is_basis K v) :
-  cardinal.lift.{w (max v m)} (cardinal.mk ι) = cardinal.lift.{v (max w m)} (dim K V) :=
+  cardinal.lift.{w (max v m)} (cardinal.mk ι) = cardinal.lift.{v (max w m)} (module.rank K V) :=
 by simpa using h.mk_eq_dim
 
 theorem dim_le {n : ℕ}
   (H : ∀ s : finset V, linear_independent K (λ i : (↑s : set V), (i : V)) → s.card ≤ n) :
-  dim K V ≤ n :=
+  module.rank K V ≤ n :=
 let ⟨b, hb⟩ := exists_is_basis K V in
 hb.mk_eq_dim'' ▸ cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype.val_injective⟩ s ▸ H _
 (by { refine hb.1.mono (λ y h, _),
   rw [finset.mem_coe, finset.mem_map] at h, rcases h with ⟨x, hx, rfl⟩, exact x.2 } ))
 
-variables [add_comm_group V'] [vector_space K V']
+variables [add_comm_group V'] [module K V']
 
 /-- Two linearly equivalent vector spaces have the same dimension, a version with different
 universes. -/
 theorem linear_equiv.lift_dim_eq (f : V ≃ₗ[K] V') :
-  cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V') :=
+  cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K V') :=
 let ⟨b, hb⟩ := exists_is_basis K V in
-calc cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v v'} (cardinal.mk b) :
+calc cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v v'} (cardinal.mk b) :
   congr_arg _ hb.mk_eq_dim''.symm
-... = cardinal.lift.{v' v} (dim K V') : (f.is_basis hb).mk_eq_dim
+... = cardinal.lift.{v' v} (module.rank K V') : (f.is_basis hb).mk_eq_dim
 
 /-- Two linearly equivalent vector spaces have the same dimension. -/
 theorem linear_equiv.dim_eq (f : V ≃ₗ[K] V₁) :
-  dim K V = dim K V₁ :=
+  module.rank K V = module.rank K V₁ :=
 cardinal.lift_inj.1 f.lift_dim_eq
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
 theorem nonempty_linear_equiv_of_lift_dim_eq
-  (cond : cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V')) :
+  (cond : cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K V')) :
   nonempty (V ≃ₗ[K] V') :=
 begin
   obtain ⟨B, h⟩ := exists_is_basis K V,
@@ -173,7 +183,7 @@ begin
 end
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
-theorem nonempty_linear_equiv_of_dim_eq (cond : dim K V = dim K V₁) :
+theorem nonempty_linear_equiv_of_dim_eq (cond : module.rank K V = module.rank K V₁) :
   nonempty (V ≃ₗ[K] V₁) :=
 nonempty_linear_equiv_of_lift_dim_eq $ congr_arg _ cond
 
@@ -183,48 +193,50 @@ variables (V V' V₁)
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
 def linear_equiv.of_lift_dim_eq
-  (cond : cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V')) :
+  (cond : cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K V')) :
   V ≃ₗ[K] V' :=
 classical.choice (nonempty_linear_equiv_of_lift_dim_eq cond)
 
 /-- Two vector spaces are isomorphic if they have the same dimension. -/
-def linear_equiv.of_dim_eq (cond : dim K V = dim K V₁) : V ≃ₗ[K] V₁ :=
+def linear_equiv.of_dim_eq (cond : module.rank K V = module.rank K V₁) : V ≃ₗ[K] V₁ :=
 classical.choice (nonempty_linear_equiv_of_dim_eq cond)
 
 end
 
 /-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
 theorem linear_equiv.nonempty_equiv_iff_lift_dim_eq :
-  nonempty (V ≃ₗ[K] V') ↔ cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K V') :=
+  nonempty (V ≃ₗ[K] V') ↔
+    cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K V') :=
 ⟨λ ⟨h⟩, linear_equiv.lift_dim_eq h, λ h, nonempty_linear_equiv_of_lift_dim_eq h⟩
 
 /-- Two vector spaces are isomorphic if and only if they have the same dimension. -/
-theorem linear_equiv.nonempty_equiv_iff_dim_eq : nonempty (V ≃ₗ[K] V₁) ↔ dim K V = dim K V₁ :=
+theorem linear_equiv.nonempty_equiv_iff_dim_eq :
+  nonempty (V ≃ₗ[K] V₁) ↔ module.rank K V = module.rank K V₁ :=
 ⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
 
-@[simp] lemma dim_bot : dim K (⊥ : submodule K V) = 0 :=
+@[simp] lemma dim_bot : module.rank K (⊥ : submodule K V) = 0 :=
 by letI := classical.dec_eq V;
   rw [← cardinal.lift_inj, ← (is_basis_empty (⊥ : submodule K V) not_nonempty_pempty).mk_eq_dim,
     cardinal.mk_pempty]
 
-@[simp] lemma dim_top : dim K (⊤ : submodule K V) = dim K V :=
+@[simp] lemma dim_top : module.rank K (⊤ : submodule K V) = module.rank K V :=
 linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
 
-lemma dim_of_field (K : Type*) [field K] : dim K K = 1 :=
+lemma dim_of_field (K : Type*) [field K] : module.rank K K = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit K _ _).mk_eq_dim, cardinal.mk_punit]
 
 lemma dim_span {v : ι → V} (hv : linear_independent K v) :
-  dim K ↥(span K (range v)) = cardinal.mk (range v) :=
+  module.rank K ↥(span K (range v)) = cardinal.mk (range v) :=
 by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
     cardinal.mk_range_eq_of_injective (@linear_independent.injective ι K V v _ _ _ _ hv)]
 
 lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
-  dim K ↥(span K s) = cardinal.mk s :=
+  module.rank K ↥(span K s) = cardinal.mk s :=
 by { rw [← @set_of_mem_eq _ s, ← subtype.range_coe_subtype], exact dim_span hs }
 
 lemma {m} cardinal_lift_le_dim_of_linear_independent
   {ι : Type w} {v : ι → V} (hv : linear_independent K v) :
-  cardinal.lift.{w (max v m)} (cardinal.mk ι) ≤ cardinal.lift.{v (max w m)} (dim K V) :=
+  cardinal.lift.{w (max v m)} (cardinal.mk ι) ≤ cardinal.lift.{v (max w m)} (module.rank K V) :=
 begin
   obtain ⟨ι', v', is⟩ := exists_sum_is_basis hv,
   rw [← cardinal.lift_umax, ← cardinal.lift_umax.{v}],
@@ -235,15 +247,15 @@ end
 
 lemma cardinal_le_dim_of_linear_independent
   {ι : Type v} {v : ι → V} (hv : linear_independent K v) :
-  (cardinal.mk ι) ≤ (dim.{u v} K V) :=
+  cardinal.mk ι ≤ module.rank K V :=
 by simpa using cardinal_lift_le_dim_of_linear_independent hv
 
 lemma cardinal_le_dim_of_linear_independent'
   {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
-  cardinal.mk s ≤ dim K V :=
+  cardinal.mk s ≤ module.rank K V :=
 cardinal_le_dim_of_linear_independent hs
 
-lemma dim_span_le (s : set V) : dim K (span K s) ≤ cardinal.mk s :=
+lemma dim_span_le (s : set V) : module.rank K (span K s) ≤ cardinal.mk s :=
 begin
   classical,
   rcases
@@ -256,12 +268,12 @@ begin
 end
 
 lemma dim_span_of_finset (s : finset V) :
-  dim K (span K (↑s : set V)) < cardinal.omega :=
-calc dim K (span K (↑s : set V)) ≤ cardinal.mk (↑s : set V) : dim_span_le ↑s
+  module.rank K (span K (↑s : set V)) < cardinal.omega :=
+calc module.rank K (span K (↑s : set V)) ≤ cardinal.mk (↑s : set V) : dim_span_le ↑s
                              ... = s.card : by rw ←cardinal.finset_card
                              ... < cardinal.omega : cardinal.nat_lt_omega _
 
-theorem dim_prod : dim K (V × V₁) = dim K V + dim K V₁ :=
+theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
 begin
   rcases exists_is_basis K V with ⟨b, hb⟩,
   rcases exists_is_basis K V₁ with ⟨c, hc⟩,
@@ -276,69 +288,77 @@ begin
 end
 
 theorem dim_quotient_add_dim (p : submodule K V) :
-  dim K p.quotient + dim K p = dim K V :=
+  module.rank K p.quotient + module.rank K p = module.rank K V :=
 by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
 
 theorem dim_quotient_le (p : submodule K V) :
-  dim K p.quotient ≤ dim K V :=
+  module.rank K p.quotient ≤ module.rank K V :=
 by { rw ← dim_quotient_add_dim p, exact self_le_add_right _ _ }
 
 /-- rank-nullity theorem -/
-theorem dim_range_add_dim_ker (f : V →ₗ[K] V₁) : dim K f.range + dim K f.ker = dim K V :=
+theorem dim_range_add_dim_ker (f : V →ₗ[K] V₁) :
+  module.rank K f.range + module.rank K f.ker = module.rank K V :=
 begin
   haveI := λ (p : submodule K V), classical.dec_eq p.quotient,
   rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient_add_dim]
 end
 
-lemma dim_range_le (f : V →ₗ[K] V₁) : dim K f.range ≤ dim K V :=
+lemma dim_range_le (f : V →ₗ[K] V₁) : module.rank K f.range ≤ module.rank K V :=
 by { rw ← dim_range_add_dim_ker f, exact self_le_add_right _ _ }
 
-lemma dim_map_le (f : V →ₗ V₁) (p : submodule K V) : dim K (p.map f) ≤ dim K p :=
+lemma dim_map_le (f : V →ₗ V₁) (p : submodule K V) : module.rank K (p.map f) ≤ module.rank K p :=
 begin
   have h := dim_range_le (f.comp (submodule.subtype p)),
   rwa [linear_map.range_comp, range_subtype] at h,
 end
 
-lemma dim_range_of_surjective (f : V →ₗ[K] V') (h : surjective f) : dim K f.range = dim K V' :=
+lemma dim_range_of_surjective (f : V →ₗ[K] V') (h : surjective f) :
+  module.rank K f.range = module.rank K V' :=
 by rw [linear_map.range_eq_top.2 h, dim_top]
 
-lemma dim_eq_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V = dim K V₁ + dim K f.ker :=
+lemma dim_eq_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) :
+  module.rank K V = module.rank K V₁ + module.rank K f.ker :=
 by rw [← dim_range_add_dim_ker f, ← dim_range_of_surjective f h]
 
-lemma dim_le_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) : dim K V₁ ≤ dim K V :=
+lemma dim_le_of_surjective (f : V →ₗ[K] V₁) (h : surjective f) :
+  module.rank K V₁ ≤ module.rank K V :=
 by { rw [dim_eq_of_surjective f h], refine self_le_add_right _ _ }
 
-lemma dim_eq_of_injective (f : V →ₗ[K] V₁) (h : injective f) : dim K V = dim K f.range :=
+lemma dim_eq_of_injective (f : V →ₗ[K] V₁) (h : injective f) :
+  module.rank K V = module.rank K f.range :=
 by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 
-lemma dim_submodule_le (s : submodule K V) : dim K s ≤ dim K V :=
+lemma dim_submodule_le (s : submodule K V) : module.rank K s ≤ module.rank K V :=
 by { rw ← dim_quotient_add_dim s, exact self_le_add_left _ _ }
 
 lemma dim_le_of_injective (f : V →ₗ[K] V₁) (h : injective f) :
-  dim K V ≤ dim K V₁ :=
+  module.rank K V ≤ module.rank K V₁ :=
 by { rw [dim_eq_of_injective f h], exact dim_submodule_le _ }
 
-lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) : dim K s ≤ dim K t :=
+lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) :
+  module.rank K s ≤ module.rank K t :=
 dim_le_of_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
   subtype.eq $ show x = y, from subtype.ext_iff_val.1 eq
 
 lemma linear_independent_le_dim
   {v : ι → V} (hv : linear_independent K v) :
-  cardinal.lift.{w v} (cardinal.mk ι) ≤ cardinal.lift.{v w} (dim K V) :=
+  cardinal.lift.{w v} (cardinal.mk ι) ≤ cardinal.lift.{v w} (module.rank K V) :=
 calc
   cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (cardinal.mk (set.range v)) :
      (cardinal.mk_range_eq_of_injective (linear_independent.injective hv)).symm
-  ... = cardinal.lift.{v w} (dim K (submodule.span K (set.range v))) : by rw (dim_span hv).symm
-  ... ≤ cardinal.lift.{v w} (dim K V) : cardinal.lift_le.2 (dim_submodule_le (submodule.span K _))
+  ... = cardinal.lift.{v w} (module.rank K (submodule.span K (set.range v))) :
+    by rw (dim_span hv).symm
+  ... ≤ cardinal.lift.{v w} (module.rank K V) :
+    cardinal.lift_le.2 (dim_submodule_le (submodule.span K _))
 
 theorem {u₁} linear_independent_le_dim' {v : ι → V} (hs : linear_independent K v) :
   ((cardinal.mk ι).lift : cardinal.{(max w v u₁)}) ≤
-    ((vector_space.dim K V).lift : cardinal.{(max v w u₁)}) :=
+    ((module.rank K V).lift : cardinal.{(max v w u₁)}) :=
 cardinal.mk_range_eq_lift hs.injective ▸ dim_span hs ▸ cardinal.lift_le.2 (dim_submodule_le _)
 
 section
-variables [add_comm_group V₂] [vector_space K V₂]
-variables [add_comm_group V₃] [vector_space K V₃]
+variables [add_comm_group V₂] [module K V₂]
+variables [add_comm_group V₃] [module K V₃]
 open linear_map
 
 /-- This is mostly an auxiliary lemma for `dim_sup_add_dim_inf_eq`. -/
@@ -348,11 +368,11 @@ lemma dim_add_dim_split
   (hgd : ker cd = ⊥)
   (eq : db.comp cd = eb.comp ce)
   (eq₂ : ∀d e, db d = eb e → (∃c, cd c = d ∧ ce c = e)) :
-  dim K V + dim K V₁ = dim K V₂ + dim K V₃ :=
+  module.rank K V + module.rank K V₁ = module.rank K V₂ + module.rank K V₃ :=
 have hf : surjective (coprod db eb),
 begin
   refine (range_eq_top.1 $ top_unique $ _),
-  rwa [← map_top, ← prod_top, map_coprod_prod]
+  rwa [← map_top, ← prod_top, map_coprod_prod, ←range_eq_map, ←range_eq_map]
 end,
 begin
   conv {to_rhs, rw [← dim_prod, dim_eq_of_surjective _ hf] },
@@ -377,7 +397,8 @@ begin
 end
 
 lemma dim_sup_add_dim_inf_eq (s t : submodule K V) :
-  dim K (s ⊔ t : submodule K V) + dim K (s ⊓ t : submodule K V) = dim K s + dim K t :=
+  module.rank K (s ⊔ t : submodule K V) + module.rank K (s ⊓ t : submodule K V) =
+    module.rank K s + module.rank K t :=
 dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (of_le inf_le_right)
   begin
     rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), map_sup, map_top,
@@ -395,18 +416,18 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
   end
 
 lemma dim_add_le_dim_add_dim (s t : submodule K V) :
-  dim K (s ⊔ t : submodule K V) ≤ dim K s + dim K t :=
+  module.rank K (s ⊔ t : submodule K V) ≤ module.rank K s + module.rank K t :=
 by { rw [← dim_sup_add_dim_inf_eq], exact self_le_add_right _ _ }
 
 end
 
 section fintype
 variable [fintype η]
-variables [∀i, add_comm_group (φ i)] [∀i, vector_space K (φ i)]
+variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)]
 
 open linear_map
 
-lemma dim_pi : vector_space.dim K (Πi, φ i) = cardinal.sum (λi, vector_space.dim K (φ i)) :=
+lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
 begin
   choose b hb using assume i, exists_is_basis K (φ i),
   have : is_basis K (λ (ji : Σ j, b j), std_basis K (λ j, φ j) ji.fst ji.snd.val),
@@ -415,19 +436,19 @@ begin
   simp [λ i, (hb i).mk_range_eq_dim.symm, cardinal.sum_mk]
 end
 
-lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [vector_space K V] :
-  vector_space.dim K (η → V) = fintype.card η * vector_space.dim K V :=
+lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
+  module.rank K (η → V) = fintype.card η * module.rank K V :=
 by rw [dim_pi, cardinal.sum_const, cardinal.fintype_card]
 
 lemma dim_fun_eq_lift_mul :
-  vector_space.dim K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
-    cardinal.lift.{v u₁'} (vector_space.dim K V) :=
+  module.rank K (η → V) = (fintype.card η : cardinal.{max u₁' v}) *
+    cardinal.lift.{v u₁'} (module.rank K V) :=
 by rw [dim_pi, cardinal.sum_const_eq_lift_mul, cardinal.fintype_card, cardinal.lift_nat_cast]
 
-lemma dim_fun' : vector_space.dim K (η → K) = fintype.card η :=
+lemma dim_fun' : module.rank K (η → K) = fintype.card η :=
 by rw [dim_fun_eq_lift_mul, dim_of_field K, cardinal.lift_one, mul_one, cardinal.nat_cast_inj]
 
-lemma dim_fin_fun (n : ℕ) : dim K (fin n → K) = n :=
+lemma dim_fin_fun (n : ℕ) : module.rank K (fin n → K) = n :=
 by simp [dim_fun']
 
 end fintype
@@ -440,11 +461,11 @@ begin
   exact (h $ bot_unique $ assume s hs, (submodule.mem_bot K).2 $ this s hs)
 end
 
-lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < vector_space.dim K s) :
+lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s) :
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
 
-lemma exists_is_basis_fintype (h : dim K V < cardinal.omega) :
+lemma exists_is_basis_fintype (h : module.rank K V < cardinal.omega) :
   ∃ s : (set V), (is_basis K (subtype.val : s → V)) ∧ nonempty (fintype s) :=
 begin
   cases exists_is_basis K V with s hs,
@@ -456,21 +477,21 @@ end
 section rank
 
 /-- `rank f` is the rank of a `linear_map f`, defined as the dimension of `f.range`. -/
-def rank (f : V →ₗ[K] V') : cardinal := dim K f.range
+def rank (f : V →ₗ[K] V') : cardinal := module.rank K f.range
 
-lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ dim K V :=
+lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
 by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
 
-lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ dim K V₁ :=
+lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V₁ :=
 dim_submodule_le _
 
 lemma rank_add_le (f g : V →ₗ[K] V') : rank (f + g) ≤ rank f + rank g :=
-calc rank (f + g) ≤ dim K (f.range ⊔ g.range : submodule K V') :
+calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :
   begin
     refine dim_le_of_submodule _ _ _,
     exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
       assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
-        mem_sup.2 ⟨_, mem_image_of_mem _ (mem_univ _), _, mem_image_of_mem _ (mem_univ _), rfl⟩)
+        mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
   end
   ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
 
@@ -482,23 +503,23 @@ lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
       (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
 
-variables [add_comm_group V''] [vector_space K V'']
+variables [add_comm_group V''] [module K V'']
 
 lemma rank_comp_le1 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'') : rank (f.comp g) ≤ rank f :=
 begin
   refine dim_le_of_submodule _ _ _,
   rw [linear_map.range_comp],
-  exact image_subset _ (subset_univ _)
+  exact linear_map.map_le_range,
 end
 
-variables [add_comm_group V'₁] [vector_space K V'₁]
+variables [add_comm_group V'₁] [module K V'₁]
 
 lemma rank_comp_le2 (g : V →ₗ[K] V') (f : V' →ₗ V'₁) : rank (f.comp g) ≤ rank g :=
 by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
 end rank
 
-lemma dim_zero_iff_forall_zero : vector_space.dim K V = 0 ↔ ∀ x : V, x = 0 :=
+lemma dim_zero_iff_forall_zero : module.rank K V = 0 ↔ ∀ x : V, x = 0 :=
 begin
   split,
   { intros h x,
@@ -512,34 +533,34 @@ begin
     rw [←dim_top, this, dim_bot] }
 end
 
-lemma dim_zero_iff : vector_space.dim K V = 0 ↔ subsingleton V :=
+lemma dim_zero_iff : module.rank K V = 0 ↔ subsingleton V :=
 dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 
 lemma is_basis_of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι)
-  (hV : dim K V = 0) : is_basis K (λ x : ι, (0 : V)) :=
+  (hV : module.rank K V = 0) : is_basis K (λ x : ι, (0 : V)) :=
 begin
   haveI : subsingleton V := dim_zero_iff.1 hV,
   exact is_basis_empty _ h
 end
 
 lemma is_basis_of_dim_eq_zero'
-  (hV : dim K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
+  (hV : module.rank K V = 0) : is_basis K (λ x : fin 0, (0 : V)) :=
 is_basis_of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
 
-lemma dim_pos_iff_exists_ne_zero : 0 < vector_space.dim K V ↔ ∃ x : V, x ≠ 0 :=
+lemma dim_pos_iff_exists_ne_zero : 0 < module.rank K V ↔ ∃ x : V, x ≠ 0 :=
 begin
   rw ←not_iff_not,
   simpa using dim_zero_iff_forall_zero
 end
 
-lemma dim_pos_iff_nontrivial : 0 < vector_space.dim K V ↔ nontrivial V :=
+lemma dim_pos_iff_nontrivial : 0 < module.rank K V ↔ nontrivial V :=
 dim_pos_iff_exists_ne_zero.trans (nontrivial_iff_exists_ne 0).symm
 
-lemma dim_pos [h : nontrivial V] : 0 < vector_space.dim K V :=
+lemma dim_pos [h : nontrivial V] : 0 < module.rank K V :=
 dim_pos_iff_nontrivial.2 h
 
 lemma le_dim_iff_exists_linear_independent {c : cardinal} :
-  c ≤ dim K V ↔ ∃ s : set V, cardinal.mk s = c ∧ linear_independent K (coe : s → V) :=
+  c ≤ module.rank K V ↔ ∃ s : set V, cardinal.mk s = c ∧ linear_independent K (coe : s → V) :=
 begin
   split,
   { intro h,
@@ -552,7 +573,8 @@ begin
 end
 
 lemma le_dim_iff_exists_linear_independent_finset {n : ℕ} :
-  ↑n ≤ dim K V ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (coe : (s : set V) → V) :=
+  ↑n ≤ module.rank K V ↔
+    ∃ s : finset V, s.card = n ∧ linear_independent K (coe : (s : set V) → V) :=
 begin
   simp only [le_dim_iff_exists_linear_independent, cardinal.mk_eq_nat_iff_finset],
   split,
@@ -598,7 +620,7 @@ end
 
 /-- A vector space has dimension at most `1` if and only if there is a
 single vector of which all vectors are multiples. -/
-lemma dim_le_one_iff : dim K V ≤ 1 ↔ ∃ v₀ : V, ∀ v, ∃ r : K, r • v₀ = v :=
+lemma dim_le_one_iff : module.rank K V ≤ 1 ↔ ∃ v₀ : V, ∀ v, ∃ r : K, r • v₀ = v :=
 begin
   obtain ⟨b, h⟩ := exists_is_basis K V,
   split,
@@ -625,7 +647,7 @@ end
 /-- A submodule has dimension at most `1` if and only if there is a
 single vector in the submodule such that the submodule is contained in
 its span. -/
-lemma dim_submodule_le_one_iff (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀ ∈ s, s ≤ K ∙ v₀ :=
+lemma dim_submodule_le_one_iff (s : submodule K V) : module.rank K s ≤ 1 ↔ ∃ v₀ ∈ s, s ≤ K ∙ v₀ :=
 begin
   simp_rw [dim_le_one_iff, le_span_singleton_iff],
   split,
@@ -648,7 +670,7 @@ end
 /-- A submodule has dimension at most `1` if and only if there is a
 single vector, not necessarily in the submodule, such that the
 submodule is contained in its span. -/
-lemma dim_submodule_le_one_iff' (s : submodule K V) : dim K s ≤ 1 ↔ ∃ v₀, s ≤ K ∙ v₀ :=
+lemma dim_submodule_le_one_iff' (s : submodule K V) : module.rank K s ≤ 1 ↔ ∃ v₀, s ≤ K ∙ v₀ :=
 begin
   rw dim_submodule_le_one_iff,
   split,
@@ -668,18 +690,18 @@ begin
       simp [hw] } }
 end
 
-end vector_space
+end module
 
 section unconstrained_universes
 
 variables {E : Type v'}
-variables [field K] [add_comm_group V] [vector_space K V]
-          [add_comm_group E] [vector_space K E]
-open vector_space
+variables [field K] [add_comm_group V] [module K V]
+          [add_comm_group E] [module K E]
+open module
 
 /-- Version of linear_equiv.dim_eq without universe constraints. -/
 theorem linear_equiv.dim_eq_lift (f : V ≃ₗ[K] E) :
-  cardinal.lift.{v v'} (dim K V) = cardinal.lift.{v' v} (dim K E) :=
+  cardinal.lift.{v v'} (module.rank K V) = cardinal.lift.{v' v} (module.rank K E) :=
 begin
   cases exists_is_basis K V with b hb,
   rw [← cardinal.lift_inj.1 hb.mk_eq_dim, ← (f.is_basis hb).mk_eq_dim, cardinal.lift_mk],

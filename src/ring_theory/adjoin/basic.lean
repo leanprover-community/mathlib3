@@ -112,8 +112,8 @@ le_antisymm
 theorem adjoin_eq_range :
   adjoin R s = (mv_polynomial.aeval (coe : s → A)).range :=
 le_antisymm
-  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, set.mem_univ _, mv_polynomial.eval₂_X _ _ _⟩)
-  (λ x ⟨p, _, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
+  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
+  (λ x ⟨p, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
     (λ r, by { rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C],
                exact (adjoin R s).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact subalgebra.add_mem _ hp hq)
@@ -122,8 +122,8 @@ le_antisymm
 
 theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
-  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, set.mem_univ _, polynomial.eval₂_X _ _⟩)
-  (λ y ⟨p, _, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
+  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
+  (λ y ⟨p, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
     (λ r, by { rw [polynomial.aeval_def, polynomial.eval₂_C],
                exact (adjoin R _).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact subalgebra.add_mem _ hp hq)
@@ -248,7 +248,7 @@ fg_of_fg_to_submodule (is_noetherian.noetherian S.to_submodule)
 
 lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
-by { rw [algebra.coe_top, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
+by { rw [algebra.top_to_submodule, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
 
 section
 open_locale classical

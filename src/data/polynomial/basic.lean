@@ -28,19 +28,19 @@ open_locale big_operators
 
 namespace polynomial
 universes u
-variables {R : Type u} {a : R} {m n : ℕ}
+variables {R : Type u} {a b : R} {m n : ℕ}
 
 section semiring
 variables [semiring R] {p q : polynomial R}
 
 instance : inhabited (polynomial R) := add_monoid_algebra.inhabited _ _
 instance : semiring (polynomial R) := add_monoid_algebra.semiring
-instance {S} [semiring S] [semimodule S R] : semimodule S (polynomial R) :=
-add_monoid_algebra.semimodule
-instance {S₁ S₂} [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+instance {S} [semiring S] [module S R] : module S (polynomial R) :=
+add_monoid_algebra.module
+instance {S₁ S₂} [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
 add_monoid_algebra.smul_comm_class
-instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [semimodule S₁ R] [semimodule S₂ R]
+instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
   [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
 add_monoid_algebra.is_scalar_tower
 
@@ -89,11 +89,42 @@ begin
   exact add_monoid_algebra.single_pow k,
 end
 
-lemma smul_monomial {S} [semiring S] [semimodule S R] (a : S) (n : ℕ) (b : R) :
+lemma smul_monomial {S} [semiring S] [module S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 finsupp.smul_single _ _ _
 
 lemma support_add : (p + q).support ⊆ p.support ∪ q.support := support_add
+
+/--
+`C a` is the constant polynomial `a`.
+`C` is provided as a ring homomorphism.
+-/
+def C : R →+* polynomial R := add_monoid_algebra.single_zero_ring_hom
+
+@[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
+
+lemma C_0 : C (0 : R) = 0 := single_zero
+
+lemma C_1 : C (1 : R) = 1 := rfl
+
+lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
+
+lemma C_add : C (a + b) = C a + C b := C.map_add a b
+
+@[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
+
+@[simp] lemma C_bit1 : C (bit1 a) = bit1 (C a) := by simp [bit1, C_bit0]
+
+lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
+
+@[simp]
+lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
+C.map_nat_cast n
+
+@[simp]
+lemma sum_C_index {a} {β} [add_comm_monoid β] {f : ℕ → R → β} (h : f 0 0 = 0) :
+  (C a).sum f = f 0 a :=
+sum_single_index h
 
 /-- `X` is the polynomial variable (aka indeterminant). -/
 def X : polynomial R := monomial 1 1
@@ -149,7 +180,7 @@ def coeff (p : polynomial R) : ℕ → R := @coe_fn (ℕ →₀ R) _ p
 @[simp] lemma coeff_mk (s) (f) (h) : coeff (finsupp.mk s f h : polynomial R) = f := rfl
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
-by { dsimp [monomial, coeff], rw finsupp.single_apply, congr }
+finsupp.single_apply
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
@@ -167,6 +198,32 @@ lemma coeff_X : coeff (X : polynomial R) n = if 1 = n then 1 else 0 := coeff_mon
 lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : polynomial R) n = 0 :=
 by rw [coeff_X, if_neg hn.symm]
 
+lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
+by { convert coeff_monomial using 2, simp [eq_comm], }
+
+@[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_monomial
+
+lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
+by rw [coeff_C, if_neg h]
+
+theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
+⟨⟨0, 1, λ h01 : 0 = 1, h $
+    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
+
+lemma single_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
+| 0     := (mul_one _).symm
+| (n+1) :=
+  calc monomial (n + 1) a = monomial n a * X : by { rw [X, monomial_mul_monomial, mul_one], }
+    ... = (C a * X^n) * X : by rw [single_eq_C_mul_X]
+    ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
+
+@[simp] lemma C_inj : C a = C b ↔ a = b :=
+⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
+
+@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 :=
+calc C a = 0 ↔ C a = C 0 : by rw C_0
+         ... ↔ a = 0 : C_inj
+
 theorem ext_iff {p q : polynomial R} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 finsupp.ext_iff
 
@@ -183,7 +240,7 @@ lemma add_hom_ext {M : Type*} [add_monoid M] {f g : polynomial R →+ M}
   f = g :=
 finsupp.add_hom_ext h
 
-@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [semimodule R M] {f g : polynomial R →ₗ[R] M}
+@[ext] lemma lhom_ext' {M : Type*} [add_comm_monoid M] [module R M] {f g : polynomial R →ₗ[R] M}
   (h : ∀ n, f.comp (monomial n) = g.comp (monomial n)) :
   f = g :=
 finsupp.lhom_ext' h
@@ -204,6 +261,12 @@ begin
   { refl, },
   { rw [pow_succ', hn, X, monomial_mul_monomial, one_mul] },
 end
+
+lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
+calc monomial n a = monomial n (a * 1) : by simp
+  ... = a • monomial n 1 : (smul_single' _ _ _).symm
+  ... = a • X^n  : by rw X_pow_eq_monomial
+
 
 lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : polynomial R).support = singleton n :=
 begin

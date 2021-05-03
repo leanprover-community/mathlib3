@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
+import analysis.complex.polynomial
 import field_theory.galois
+import group_theory.perm.cycle_type
+import ring_theory.eisenstein_criterion
 
 /-!
 # Galois Groups of Polynomials
@@ -23,6 +26,8 @@ the automorphism group of the splitting field.
 - `restrict_smul`: `restrict p E` is compatible with `gal_action p E`.
 - `gal_action_hom_injective`: the action of `gal p` on the roots of `p` in `E` is faithful.
 - `restrict_prod_inj`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
+- `gal_action_hom_bijective_of_prime_degree`: An irreducible polynomial of prime degree
+  with two non-real roots has full Galois group
 -/
 
 noncomputable theory
@@ -165,6 +170,10 @@ def gal_action_hom [fact (p.splits (algebra_map F E))] : p.gal →* equiv.perm (
   map_one' := by { ext1 x, exact mul_action.one_smul x },
   map_mul' := λ x y, by { ext1 z, exact mul_action.mul_smul x y z } }
 
+lemma gal_action_hom_restrict [fact (p.splits (algebra_map F E))]
+  (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑(gal_action_hom p E (restrict p E ϕ) x) = ϕ x :=
+restrict_smul ϕ x
+
 lemma gal_action_hom_injective [fact (p.splits (algebra_map F E))] :
   function.injective (gal_action_hom p E) :=
 begin
@@ -295,10 +304,10 @@ by simp only [restrict_comp, restrict_surjective]
 variables {p q}
 
 lemma card_of_separable (hp : p.separable) :
-  fintype.card p.gal = findim F p.splitting_field :=
+  fintype.card p.gal = finrank F p.splitting_field :=
 begin
   haveI : is_galois F p.splitting_field := is_galois.of_separable_splitting_field hp,
-  exact is_galois.card_aut_eq_findim F p.splitting_field,
+  exact is_galois.card_aut_eq_finrank F p.splitting_field,
 end
 
 lemma prime_degree_dvd_card [char_zero F] (p_irr : irreducible p) (p_deg : p.nat_degree.prime) :
@@ -311,10 +320,10 @@ begin
     (splitting_field.splits p) hp,
   have hα : is_integral F α :=
     (is_algebraic_iff_is_integral F).mp (algebra.is_algebraic_of_finite α),
-  use finite_dimensional.findim F⟮α⟯ p.splitting_field,
+  use finite_dimensional.finrank F⟮α⟯ p.splitting_field,
   suffices : (minpoly F α).nat_degree = p.nat_degree,
-  { rw [←finite_dimensional.findim_mul_findim F F⟮α⟯ p.splitting_field,
-        intermediate_field.adjoin.findim hα, this] },
+  { rw [←finite_dimensional.finrank_mul_finrank F F⟮α⟯ p.splitting_field,
+        intermediate_field.adjoin.finrank hα, this] },
   suffices : minpoly F α ∣ p,
   { have key := dvd_symm_of_irreducible (minpoly.irreducible hα) p_irr this,
     apply le_antisymm,
@@ -322,6 +331,91 @@ begin
     { exact nat_degree_le_of_dvd key (minpoly.ne_zero hα) } },
   apply minpoly.dvd F α,
   rw [aeval_def, map_root_of_splits _ (splitting_field.splits p) hp],
+end
+
+lemma splits_ℚ_ℂ {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
+⟨is_alg_closed.splits_codomain p⟩
+
+local attribute [instance] splits_ℚ_ℂ
+
+/-- The number of complex roots equals the number of real roots plus
+  the number of roots not fixed by complex conjugation -/
+lemma gal_action_hom_bijective_of_prime_degree_aux {p : polynomial ℚ} :
+  (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
+  (gal_action_hom p ℂ (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card :=
+begin
+  by_cases hp : p = 0,
+  { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
+    refine eq.symm (nat.le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
+    simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
+    exact λ h, (set.mem_empty_eq h.val).mp h.mem },
+  have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
+  rw [←finset.card_image_of_injective _ subtype.coe_injective,
+      ←finset.card_image_of_injective _ inj],
+  let a : finset ℂ := _,
+  let b : finset ℂ := _,
+  let c : finset ℂ := _,
+  change a.card = b.card + c.card,
+  have ha : ∀ z : ℂ, z ∈ a ↔ aeval z p = 0 :=
+  λ z, by rw [set.mem_to_finset, mem_root_set hp],
+  have hb : ∀ z : ℂ, z ∈ b ↔ aeval z p = 0 ∧ z.im = 0,
+  { intro z,
+    simp_rw [finset.mem_image, exists_prop, set.mem_to_finset, mem_root_set hp],
+    split,
+    { rintros ⟨w, hw, rfl⟩,
+      exact ⟨by rw [aeval_alg_hom_apply, hw, alg_hom.map_zero], rfl⟩ },
+    { rintros ⟨hz1, hz2⟩,
+      have key : is_scalar_tower.to_alg_hom ℚ ℝ ℂ z.re = z := by { ext, refl, rw hz2, refl },
+      exact ⟨z.re, inj (by rwa [←aeval_alg_hom_apply, key, alg_hom.map_zero]), key⟩ } },
+  have hc0 : ∀ w : p.root_set ℂ, gal_action_hom p ℂ
+    (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
+  { intro w,
+    rw [subtype.ext_iff, gal_action_hom_restrict],
+    exact complex.eq_conj_iff_im },
+  have hc : ∀ z : ℂ, z ∈ c ↔ aeval z p = 0 ∧ z.im ≠ 0,
+  { intro z,
+    simp_rw [finset.mem_image, exists_prop],
+    split,
+    { rintros ⟨w, hw, rfl⟩,
+      exact ⟨(mem_root_set hp).mp w.2, mt (hc0 w).mpr (equiv.perm.mem_support.mp hw)⟩ },
+    { rintros ⟨hz1, hz2⟩,
+      exact ⟨⟨z, (mem_root_set hp).mpr hz1⟩,
+        equiv.perm.mem_support.mpr (mt (hc0 _).mp hz2), rfl⟩ } },
+  rw ← finset.card_disjoint_union,
+  { apply congr_arg finset.card,
+    simp_rw [finset.ext_iff, finset.mem_union, ha, hb, hc],
+    tauto },
+  { intro z,
+    rw [finset.inf_eq_inter, finset.mem_inter, hb, hc],
+    tauto },
+  { apply_instance },
+end
+
+/-- An irreducible polynomial of prime degree with two non-real roots has full Galois group -/
+lemma gal_action_hom_bijective_of_prime_degree
+  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
+  function.bijective (gal_action_hom p ℂ) :=
+begin
+  have h1 : fintype.card (p.root_set ℂ) = p.nat_degree,
+  { simp_rw [root_set_def, fintype.card_coe],
+    rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots],
+    { exact is_alg_closed.splits_codomain p },
+    { exact nodup_roots ((separable_map (algebra_map ℚ ℂ)).mpr p_irr.separable) } },
+  have h2 : fintype.card p.gal = fintype.card (gal_action_hom p ℂ).range :=
+  fintype.card_congr (monoid_hom.of_injective (gal_action_hom_injective p ℂ)).to_equiv,
+  let conj := restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ),
+  refine ⟨gal_action_hom_injective p ℂ, λ x, (congr_arg (has_mem.mem x)
+    (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,
+  apply equiv.perm.subgroup_eq_top_of_swap_mem,
+  { rwa h1 },
+  { rw [h1, ←h2],
+    exact prime_degree_dvd_card p_irr p_deg },
+  { exact ⟨conj, rfl⟩ },
+  { rw ← equiv.perm.card_support_eq_two,
+    apply nat.add_left_cancel,
+    rw [←p_roots, ←set.to_finset_card (root_set p ℝ), ←set.to_finset_card (root_set p ℂ)],
+    exact gal_action_hom_bijective_of_prime_degree_aux.symm },
 end
 
 end gal

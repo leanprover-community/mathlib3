@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
 import category_theory.abelian.exact
-import category_theory.preadditive.projective
+import category_theory.preadditive.projective_resolution
 
 /-!
 # Abelian categories with enough projectives have projective resolutions

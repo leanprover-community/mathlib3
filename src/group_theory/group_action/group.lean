@@ -110,11 +110,11 @@ section distrib_mul_action
 section
 variables [group α] [add_monoid β] [distrib_mul_action α β]
 
-theorem smul_eq_zero (a : α) {x : β} : a • x = 0 ↔ x = 0 :=
+theorem group.smul_eq_zero (a : α) {x : β} : a • x = 0 ↔ x = 0 :=
 ⟨λ h, by rw [← inv_smul_smul a x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
 
-theorem smul_ne_zero (a : α) {x : β} : a • x ≠ 0 ↔ x ≠ 0 :=
-not_congr $ smul_eq_zero a
+theorem group.smul_ne_zero (a : α) {x : β} : a • x ≠ 0 ↔ x ≠ 0 :=
+not_congr $ group.smul_eq_zero a
 
 end
 
@@ -150,6 +150,6 @@ variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 
 @[simp] theorem is_unit.smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
   u • x = 0 ↔ x = 0 :=
-exists.elim hu $ λ u hu, hu ▸ smul_eq_zero u
+exists.elim hu $ λ u hu, hu ▸ group.smul_eq_zero u
 
 end is_unit

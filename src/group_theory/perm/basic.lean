@@ -17,7 +17,7 @@ universes u v
 
 namespace equiv
 
-variables {α : Type u} {β : Type v}
+variables {α : Type u}
 
 namespace perm
 
@@ -278,7 +278,7 @@ instance perm_unique {n : Type*} [unique n] : unique (equiv.perm n) :=
 
 @[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
 
-variables (e : perm α) (ι : α ↪ β)
+variables {β : Type*} (e : perm α) (ι : α ↪ β)
 
 open_locale classical
 

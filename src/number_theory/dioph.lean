@@ -352,7 +352,8 @@ instance : comm_ring (poly α) := by refine_struct
   one   := 1,
   sub   := has_sub.sub,
   npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩ };
+  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨neg⟩ };
 intros; try { refl }; refine ext (λ _, _);
 simp [sub_eq_add_neg, mul_add, mul_left_comm, mul_comm, add_comm, add_assoc]
 

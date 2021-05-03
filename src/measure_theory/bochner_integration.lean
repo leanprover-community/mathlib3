@@ -487,15 +487,15 @@ local attribute [instance, priority 10000] simple_func.has_scalar
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
   Bochner integral. -/
-protected def semimodule : semimodule 𝕜 (α →₁ₛ[μ] E) :=
+protected def module : module 𝕜 (α →₁ₛ[μ] E) :=
 { one_smul  := λf, simple_func.eq (by { simp only [coe_smul], exact one_smul _ _ }),
   mul_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
-  smul_add  := λx f g, simple_func.eq (by { simp only [coe_smul, coe_add], exact smul_add _ _ _ }),
-  smul_zero := λx, simple_func.eq (by { simp only [coe_zero, coe_smul], exact smul_zero _ }),
+  smul_add  := λx f g, simple_func.eq (by { simp only [coe_smul], exact smul_add _ _ _ }),
+  smul_zero := λx, simple_func.eq (by { simp only [coe_smul], exact smul_zero _ }),
   add_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, simple_func.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-local attribute [instance] simple_func.normed_group simple_func.semimodule
+local attribute [instance] simple_func.normed_group simple_func.module
 
 /-- Not declared as an instance as `α →₁ₛ[μ] E` will only be useful in the construction of the
 Bochner integral. -/
@@ -1196,6 +1196,23 @@ begin
       rw tendsto_add_at_top_iff_nat,
       assumption } },
 end
+
+variables {X : Type*} [topological_space X] [first_countable_topology X]
+
+lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α → ℝ}
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
+  (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
+  (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, F x a) x₀) :
+  continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
+tendsto_integral_filter_of_dominated_convergence bound
+  (first_countable_topology.nhds_generated_countable x₀) ‹_› (mem_of_nhds hF_meas : _) ‹_› ‹_› ‹_›
+
+lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
+  (hF_meas : ∀ x, ae_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
+  (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous (λ x, F x a)) :
+  continuous (λ x, ∫ a, F x a ∂μ) :=
+continuous_iff_continuous_at.mpr (λ x₀, continuous_at_of_dominated (eventually_of_forall hF_meas)
+  (eventually_of_forall h_bound) ‹_› $ h_cont.mono $ λ _, continuous.continuous_at)
 
 /-- The Bochner integral of a real-valued function `f : α → ℝ` is the difference between the
   integral of the positive part of `f` and the integral of the negative part of `f`.  -/

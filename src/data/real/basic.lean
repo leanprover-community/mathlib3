@@ -62,7 +62,8 @@ begin
                   neg   := @has_neg.neg ℝ _,
                   sub   := λ a b, a + (-b),
                   npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩ };
+                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+                  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
@@ -86,8 +87,8 @@ instance : comm_monoid ℝ        := by apply_instance
 instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
-instance : has_sub ℝ := by apply_instance
-instance : inhabited ℝ := ⟨0⟩
+instance : has_sub ℝ            := by apply_instance
+instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
 instance : star_ring ℝ          := star_ring_of_comm

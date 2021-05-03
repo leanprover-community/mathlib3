@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.set.finite
-import data.fintype.basic
 import order.well_founded
 import order.order_iso_nat
-import order.pilex
 import algebra.pointwise
 
 /-!

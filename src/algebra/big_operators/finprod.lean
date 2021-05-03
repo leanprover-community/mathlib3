@@ -205,6 +205,14 @@ open_locale big_operators
   ∏ᶠ (h : a ∈ s), f a = mul_indicator s f a :=
 by convert finprod_eq_if
 
+@[to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α):
+  ∏ᶠ (h : a ∈ mul_support f), f a = f a :=
+by rw [finprod_eq_mul_indicator_apply, mul_indicator_mul_support]
+
+@[to_additive] lemma finprod_along_mul_support (f : α → M) :
+  ∏ᶠ (a ∈ mul_support f), f a = ∏ᶠ a, f a :=
+by simp only [finprod_mem_mul_support]
+
 @[to_additive] lemma finprod_mem_def (s : set α) (f : α → M) :
   ∏ᶠ a ∈ s, f a = ∏ᶠ a, mul_indicator s f a :=
 finprod_congr $ finprod_eq_mul_indicator_apply s f
@@ -727,6 +735,16 @@ begin
     (s.mul_support_of_fiberwise_prod_subset_image f prod.fst),
     ← finset.prod_fiberwise_of_maps_to _ f],
   finish,
+end
+
+@[to_additive] lemma finprod_curry (f : α × β → M) (hf : (mul_support f).finite) :
+  ∏ᶠ ab, f ab = ∏ᶠ a b, f (a, b) :=
+begin
+  have h₁ : ∀ a, ∏ᶠ (h : a ∈ hf.to_finset), f a = f a,
+  { intros a, rw [finprod_congr_Prop (propext (finite.mem_to_finset hf)) (λ _, rfl),
+      finprod_mem_mul_support f a], },
+  have h₂ : ∏ᶠ a, f a = ∏ᶠ a (h : a ∈ hf.to_finset), f a, { simp_rw [h₁], },
+  simp_rw [h₂, finprod_mem_finset_of_product, h₁],
 end
 
 end type

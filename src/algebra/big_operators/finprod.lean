@@ -719,6 +719,15 @@ begin
   exact finset.nonempty_of_prod_ne_one h,
 end
 
+@[to_additive] lemma mul_support_along_fiber_subset (f : α × β → M) (a : α) :
+  mul_support (λ b, f (a, b)) ⊆ (mul_support f).image prod.snd :=
+by tidy
+
+@[simp, to_additive] lemma mul_support_along_fiber_finite_of_finite
+  (f : α × β → M) (a : α) (h : (mul_support f).finite) :
+  (mul_support (λ b, f (a, b))).finite :=
+(h.image prod.snd).subset (mul_support_along_fiber_subset f a)
+
 /-- Note that `b ∈ (s.filter (λ ab, prod.fst ab = a)).image prod.snd` iff `(a, b) ∈ s` so we can
 simplify the right hand side of this lemma. However the form stated here is more useful for
 iterating this lemma, e.g., if we have `f : α × β × γ → M`. -/
@@ -757,5 +766,9 @@ begin
   have h₂ : ∏ᶠ a, f a = ∏ᶠ a (h : a ∈ hf.to_finset), f a, { simp_rw [h₁], },
   simp_rw [h₂, finprod_mem_finset_of_product, h₁],
 end
+
+@[to_additive] lemma finprod_curry₂ {γ : Type*} (f : α × β × γ → M) (h : (mul_support f).finite) :
+  ∏ᶠ abc, f abc = ∏ᶠ a b c, f (a, b, c) :=
+by { rw finprod_curry f h, congr, ext a, rw finprod_curry, simp [h], }
 
 end type

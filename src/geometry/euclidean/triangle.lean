@@ -357,7 +357,7 @@ theorem sq_dist_mul_dist_add_sq_dist_mul_dist (a : P) {b c p : P} (h : ∠ b p c
   (dist a b) ^ 2 * (dist c p) + (dist a c) ^ 2 * (dist b p) =
   (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) :=
 begin
-  let lawcos := dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle,
+  let lawcos := dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle,
   have h1 : (dist a b) ^ 2 = (dist a p) ^ 2 + (dist b p) ^ 2
             - 2 * dist a p * dist b p * real.cos (∠ a p b), { simp [pow_two], exact lawcos a p b },
   have h2 : (dist a c) ^ 2 = (dist a p) ^ 2 + (dist c p) ^ 2
@@ -376,7 +376,7 @@ lemma dist_mul_of_eq_angle_of_dist_mul {a b c a' b' c' : P} {r : ℝ} (h : ∠ a
   (hab : dist a' b' = r * dist a b) (hcb : dist c' b' = r * dist c b) :
   dist a' c' = r * dist a c :=
 begin
-  let lawcos := dist_square_eq_dist_square_add_dist_square_sub_two_mul_dist_mul_dist_mul_cos_angle,
+  let lawcos := dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle,
   have h' : dist a' c' ^ 2 = (r * dist a c) ^ 2,
   calc  dist a' c' ^ 2
       = dist a' b' ^ 2 + dist c' b' ^ 2 - 2 * dist a' b' * dist c' b' * real.cos (∠ a' b' c') :

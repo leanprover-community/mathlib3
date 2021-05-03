@@ -652,7 +652,7 @@ begin
 end
 
 lemma support_gen_of_gen {S : set (monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
-  algebra.adjoin R (⋃ f ∈ S, ((of R M)'' (f.support : set M))) = ⊤ :=
+  algebra.adjoin R (⋃ f ∈ S, ((of R M) '' (f.support : set M))) = ⊤ :=
 begin
   refine le_antisymm le_top _,
   rw [← hS, adjoin_le_iff],

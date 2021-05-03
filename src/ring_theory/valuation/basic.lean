@@ -202,10 +202,16 @@ v.to_monoid_with_zero_hom.to_monoid_hom.map_neg x
 lemma map_sub_swap (x y : R) : v (x - y) = v (y - x) :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_sub_swap x y
 
-lemma map_sub_le_max (x y : R) : v (x - y) ≤ max (v x) (v y) :=
+lemma map_sub (x y : R) : v (x - y) ≤ max (v x) (v y) :=
 calc v (x - y) = v (x + -y)         : by rw [sub_eq_add_neg]
            ... ≤ max (v x) (v $ -y) : v.map_add _ _
            ... = max (v x) (v y)    : by rw map_neg
+
+lemma map_sub_le {x y g} (hx : v x ≤ g) (hy : v y ≤ g) : v (x - y) ≤ g :=
+begin
+  rw sub_eq_add_neg,
+  exact v.map_add_le hx (le_trans (le_of_eq (v.map_neg y)) hy)
+end
 
 lemma map_add_of_distinct_val (h : v x ≠ v y) : v (x + y) = max (v x) (v y) :=
 begin
@@ -217,7 +223,7 @@ begin
   { rw max_eq_left_of_lt vyx at h',
     apply lt_irrefl (v x),
     calc v x = v ((x+y) - y)         : by simp
-         ... ≤ max (v $ x + y) (v y) : map_sub_le_max _ _ _
+         ... ≤ max (v $ x + y) (v y) : map_sub _ _ _
          ... < v x                   : max_lt h' vyx },
   { apply this h.symm,
     rwa [add_comm, max_comm] at h' }
@@ -530,23 +536,25 @@ v₁.is_equiv v₂
 end monoid
 
 section group
-variables [linear_ordered_add_comm_group_with_top Γ₀] {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
+variables [linear_ordered_add_comm_group_with_top Γ₀] [ring R] (v : add_valuation R Γ₀) {x y z : R}
 
 @[simp] lemma map_inv {K : Type*} [division_ring K]
-  (v : add_valuation K Γ₀) {x : K} : v x⁻¹ = (v x)⁻¹ :=
+  (v : add_valuation K Γ₀) {x : K} : v x⁻¹ = - (v x) :=
 v.map_inv
 
-lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = (v x)⁻¹ :=
+lemma map_units_inv (x : units R) : v (x⁻¹ : units R) = - (v x) :=
 v.map_units_inv x
 
 @[simp] lemma map_neg (x : R) : v (-x) = v x :=
-v..map_neg x
+v.map_neg x
 
 lemma map_sub_swap (x y : R) : v (x - y) = v (y - x) :=
 v.map_sub_swap x y
 
-lemma map_sub (x y : R) : miv (v x) (v y) ≤ v (x - y) :=
-v.map_sub_le_max x y
+lemma map_sub (x y : R) : min (v x) (v y) ≤ v (x - y) :=
+v.map_sub x y
+
+lemma map_le_sub {x y g} (hx : g ≤ v x) (hy : g ≤ v y) : g ≤ v (x - y) := v.map_sub_le hx hy
 
 lemma map_add_of_distinct_val (h : v x ≠ v y) : v (x + y) = min (v x) (v y) :=
 v.map_add_of_distinct_val h

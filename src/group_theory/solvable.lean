@@ -180,6 +180,8 @@ lemma commutator_le_map_commutator {H₁ H₂ : subgroup G} {K₁ K₂ : subgrou
   (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
 by { rw map_commutator_eq_commutator_map, exact general_commutator_mono h₁ h₂ }
 
+section derived_series_map
+
 variables (f)
 
 lemma map_derived_series_le_derived_series (n : ℕ) :
@@ -205,6 +207,7 @@ lemma map_derived_series_eq (hf : function.surjective f) (n : ℕ) :
   (derived_series G n).map f = derived_series G' n :=
 le_antisymm (map_derived_series_le_derived_series f n) (derived_series_le_map_derived_series hf n)
 
+end derived_series_map
 end commutator_map
 
 section solvable
@@ -333,13 +336,14 @@ end⟩
 
 end is_simple_group
 
-section symmetric_unsolvable
+section perm_not_solvable
 
 lemma not_solvable_of_mem_derived_series {g : G} (h1 : g ≠ 1)
   (h2 : ∀ n : ℕ, g ∈ derived_series G n) : ¬ is_solvable G :=
 mt (is_solvable_def _).mp (not_exists_of_forall_not
   (λ n h, h1 (subgroup.mem_bot.mp ((congr_arg (has_mem.mem g) h).mp (h2 n)))))
 
+/-- A type with 5 terms -/
 inductive weekday : Type
 | monday : weekday
 | tuesday : weekday
@@ -349,6 +353,9 @@ inductive weekday : Type
 
 namespace weekday
 
+instance : inhabited weekday := ⟨monday⟩
+
+/-- A 3-cycle -/
 def g1 : weekday → weekday
 | monday := monday
 | tuesday := tuesday
@@ -356,6 +363,7 @@ def g1 : weekday → weekday
 | thursday := friday
 | friday := wednesday
 
+/-- A 3-cycle -/
 def g2 : weekday → weekday
 | monday := monday
 | tuesday := tuesday
@@ -363,6 +371,7 @@ def g2 : weekday → weekday
 | thursday := wednesday
 | friday := thursday
 
+/-- A (2,2)-cycle -/
 def g3 : weekday → weekday
 | monday := thursday
 | tuesday := friday
@@ -370,6 +379,7 @@ def g3 : weekday → weekday
 | thursday := monday
 | friday := tuesday
 
+/-- A 3-cycle -/
 def g4 : weekday → weekday
 | monday := wednesday
 | tuesday := tuesday
@@ -377,6 +387,7 @@ def g4 : weekday → weekday
 | thursday := thursday
 | friday := monday
 
+/-- A 3-cycle -/
 def g5 : weekday → weekday
 | monday := friday
 | tuesday := tuesday
@@ -384,18 +395,21 @@ def g5 : weekday → weekday
 | thursday := thursday
 | friday := wednesday
 
+/-- A 3-cycle -/
 def σ1 : weekday ≃ weekday :=
 { to_fun := g1,
   inv_fun := g2,
   left_inv := λ x, by { cases x, all_goals { refl } },
   right_inv := λ x, by { cases x, all_goals { refl } } }
 
+/-- A (2,2)-cycle -/
 def σ2 : weekday ≃ weekday :=
 { to_fun := g3,
   inv_fun := g3,
   left_inv := λ x, by { cases x, all_goals { refl } },
   right_inv := λ x, by { cases x, all_goals { refl } } }
 
+/-- A 3-cycle -/
 def σ3 : weekday ≃ weekday :=
 { to_fun := g4,
   inv_fun := g5,
@@ -438,7 +452,8 @@ end
 
 end weekday
 
-lemma equiv.perm.not_solvable (X:Type*) (hX : 5 ≤ cardinal.mk X) : ¬ is_solvable (equiv.perm X) :=
+lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :
+  ¬ is_solvable (equiv.perm X) :=
 begin
   introI h,
   have key : nonempty (weekday ↪ X),
@@ -448,4 +463,4 @@ begin
     (equiv.perm.of_embedding_map_injective (nonempty.some key))),
 end
 
-end symmetric_unsolvable
+end perm_not_solvable

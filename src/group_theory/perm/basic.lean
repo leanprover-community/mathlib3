@@ -282,6 +282,7 @@ variables (e : perm α) (ι : α ↪ β)
 
 open_locale classical
 
+/-- Extend a permutation along an embedding -/
 noncomputable def of_embedding (e : perm α) (ι : α ↪ β) : perm β :=
 extend_domain e (of_injective ι.1 ι.2)
 
@@ -292,6 +293,7 @@ lemma of_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
   e.of_embedding ι x = x :=
 extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
 
+/-- Extend a permutation along an embedding, as a group homomorphism -/
 noncomputable def of_embedding_map_homomorphism : perm α →* perm β:=
 { to_fun := λ e, of_embedding e ι,
   map_one' := by

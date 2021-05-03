@@ -574,11 +574,9 @@ section semiring
 
 variables [comm_semiring R] [add_monoid M]
 
-lemma mem_adjoint_support (f : (add_monoid_algebra R M)) :
-  f ∈ adjoin R (of' R M '' (f.support : set M)) :=
+lemma mem_adjoint_support (f : (add_monoid_algebra R M)) : f ∈ adjoin R (of' R M '' f.support) :=
 begin
-  suffices : span R (of R M '' (f.support : set M)) ≤
-    (adjoin R (of R M '' (f.support : set M))).to_submodule,
+  suffices : span R (of' R M '' f.support) ≤ (adjoin R (of' R M '' f.support)).to_submodule,
   { exact this (mem_span_support f) },
   rw submodule.span_le,
   exact subset_adjoin
@@ -590,8 +588,8 @@ begin
   refine le_antisymm le_top _,
   rw [← hS, adjoin_le_iff],
   intros f hf,
-  have hincl : of' R M '' (f.support : set M) ⊆
-    ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of' R M '' (g.support : set M),
+  have hincl : of' R M '' f.support ⊆
+    ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of' R M '' g.support,
   { intros s hs,
     exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoint_support f)
@@ -613,7 +611,7 @@ section ring
 variables [comm_ring R] [add_comm_monoid M]
 
 lemma generators_of_finite_type : finite_type R (add_monoid_algebra R M) → ∃ G : finset M,
-  algebra.adjoin R (of' R M '' (G : set M)) = ⊤ :=
+  algebra.adjoin R (of' R M '' G) = ⊤ :=
 begin
   rintro ⟨S, hS⟩,
   letI : decidable_eq M := classical.dec_eq M,
@@ -625,7 +623,7 @@ begin
 end
 
 lemma of_mem_of_span_iff [nontrivial R] {m : M} {S : set M} : of' R M m ∈
-  span R ((of' R M '' S) : set (add_monoid_algebra R M)) ↔ m ∈ S :=
+  span R (of' R M '' S) ↔ m ∈ S :=
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of', ← finsupp.supported_eq_span_single, finsupp.mem_supported,
@@ -699,11 +697,9 @@ section semiring
 
 variables [comm_semiring R] [monoid M]
 
-lemma mem_adjoint_support (f : (monoid_algebra R M)) :
-  f ∈ adjoin R (monoid_algebra.of R M '' (f.support : set M)) :=
+lemma mem_adjoint_support (f : (monoid_algebra R M)) : f ∈ adjoin R (of R M '' f.support) :=
 begin
-  suffices : span R (of R M '' (f.support : set M)) ≤
-    (adjoin R (of R M '' (f.support : set M))).to_submodule,
+  suffices : span R (of R M '' f.support) ≤ (adjoin R (of R M '' f.support)).to_submodule,
   { exact this (mem_span_support f) },
   rw submodule.span_le,
   exact subset_adjoin
@@ -715,8 +711,8 @@ begin
   refine le_antisymm le_top _,
   rw [← hS, adjoin_le_iff],
   intros f hf,
-  have hincl : (of R M) '' (f.support : set M) ⊆
-    ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' (g.support : set M),
+  have hincl : (of R M) '' f.support ⊆
+    ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' g.support,
   { intros s hs,
     exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoint_support f)
@@ -738,7 +734,7 @@ section ring
 variables [comm_ring R] [comm_monoid M]
 
 lemma generators_of_finite_type : finite_type R (monoid_algebra R M) → ∃ G : finset M,
-  algebra.adjoin R (of R M '' (G : set M)) = ⊤ :=
+  algebra.adjoin R (of R M '' G) = ⊤ :=
 begin
   rintro ⟨S, hS⟩,
   letI : decidable_eq M := classical.dec_eq M,
@@ -750,7 +746,7 @@ begin
 end
 
 lemma of_mem_of_span_iff [nontrivial R] {m : M} {S : set M} : of R M m ∈
-  span R ((of R M '' S) : set (monoid_algebra R M)) ↔ m ∈ S :=
+  span R (of R M '' S) ↔ m ∈ S :=
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single, finsupp.mem_supported,

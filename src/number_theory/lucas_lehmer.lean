@@ -438,9 +438,7 @@ begin
 end
 
 -- Here we calculate the residue, very inefficiently, using `dec_trivial`. We can do much better.
--- TODO: norm_num claims the second goal is false
--- example : (mersenne 5).prime := lucas_lehmer_sufficiency 5 (by norm_num)
---   (by norm_num [lucas_lehmer_residue, lucas_lehmer_test, s_zmod])
+example : (mersenne 5).prime := lucas_lehmer_sufficiency 5 (by norm_num) dec_trivial
 
 -- Next we use `norm_num` to calculate each `s p i`.
 namespace lucas_lehmer

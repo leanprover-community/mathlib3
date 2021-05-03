@@ -356,9 +356,7 @@ instance : inhabited weekday := ⟨monday⟩
 
 instance : decidable_eq weekday :=
 begin
-  intros a b,
-  cases a,
-  all_goals { cases b },
+  rintros (_ | _) (_ | _),
   any_goals { exact is_true rfl },
   all_goals { exact is_false (by trivial) },
 end

@@ -474,7 +474,7 @@ variables [division_ring R] [add_comm_group M] [module R M]
 
 @[priority 100] -- see note [lower instance priority]
 instance no_zero_smul_divisors.of_division_ring : no_zero_smul_divisors R M :=
-⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h⟩
+⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩
 
 end division_ring
 

@@ -127,7 +127,8 @@ variables [has_cokernels V]
 The homology of a complex at index `i`.
 -/
 abbreviation homology (C : homological_complex V c) (i : ι) : V :=
-cokernel (C.boundaries_to_cycles i)
+homology (C.d_to i) (C.d_from i) (C.d_to_comp_d_from i)
+-- cokernel (C.boundaries_to_cycles i)
 
 end
 
@@ -215,8 +216,7 @@ def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V 
 -- `cokernel (boundaries_to_cycles_nat_trans V c i)`
 -- here, but universe implementation details get in the way...
 { obj := λ C, C.homology i,
-  map := λ C₁ C₂ f, cokernel.desc _ (cycles_map f i ≫ cokernel.π _)
-    (by rw [←boundaries_to_cycles_naturality_assoc, cokernel.condition, comp_zero]), }
+  map := λ C₁ C₂ f, _root_.homology.map _ _ (f.sq_to i) (f.sq_from i) rfl, }
 
 /-- The homology functor from `ι`-indexed complexes to `ι`-graded objects in `V`. -/
 @[simps]

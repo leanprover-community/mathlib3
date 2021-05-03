@@ -50,7 +50,15 @@ instance truncate_to_single_quasi_iso
   quasi_iso (C.truncate_to_single) :=
 { is_iso := λ i,
   begin
-    sorry,
+    cases i,
+    { sorry, },
+    { apply is_iso_of_source_target_iso_zero,
+      { have := ((preadditive.exact_iff_homology_zero _ _).mp _).some_spec.some,
+        dsimp [homology_functor],
+        dunfold homological_complex.homology,
+        dsimp [_root_.homology] at this,
+         },
+      { sorry, }, }
   end }
 
 /--

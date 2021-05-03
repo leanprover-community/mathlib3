@@ -115,6 +115,24 @@ def factor_thru_kernel_subobject {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
   factor_thru_kernel_subobject f h w ≫ (kernel_subobject f).arrow = h :=
 by { dsimp [factor_thru_kernel_subobject], simp, }
 
+section
+variables {f} {X' Y' : C} {f' : X' ⟶ Y'} [has_kernel f']
+
+/-- A commuting square induces a morphism between the kernel subobjects. -/
+def kernel_subobject_map (sq : arrow.mk f ⟶ arrow.mk f') :
+  (kernel_subobject f : C) ⟶ (kernel_subobject f' : C) :=
+subobject.factor_thru _
+  ((kernel_subobject f).arrow ≫ sq.left)
+  (kernel_subobject_factors _ _ (by simp [sq.w]))
+
+@[simp, reassoc]
+lemma kernel_subobject_map_arrow (sq : arrow.mk f ⟶ arrow.mk f') :
+  kernel_subobject_map sq ≫ (kernel_subobject f').arrow =
+    (kernel_subobject f).arrow ≫ sq.left :=
+by simp [kernel_subobject_map]
+
+end
+
 @[simp]
 lemma kernel_subobject_zero {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
 (is_iso_iff_mk_eq_top _).mp (by apply_instance)

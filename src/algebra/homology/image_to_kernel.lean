@@ -66,6 +66,84 @@ def homology {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g
   (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)] : V :=
 cokernel (image_to_kernel f g w)
 
+/-- The morphism from cycles to homology. -/
+def homology.π {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
+  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)] :
+  (kernel_subobject g : V) ⟶ homology f g w :=
+cokernel.π _
+
+/--
+To construct a map out of homology, it suffices to construct a map out of the cycles
+which vanishes on boundaries.
+-/
+def homology.desc {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
+  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)]
+  {D : V} (k : (kernel_subobject g : V) ⟶ D) (p : image_to_kernel f g w ≫ k = 0) :
+  homology f g w ⟶ D :=
+cokernel.desc _ k p
+
+@[simp, reassoc]
+lemma homology.π_desc {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
+  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)]
+  {D : V} (k : (kernel_subobject g : V) ⟶ D) (p : image_to_kernel f g w ≫ k = 0) :
+  homology.π f g w ≫ homology.desc f g w k p = k :=
+by { simp [homology.π, homology.desc], }
+
+/-- To check two morphisms out of `homology f g w` are equal, it suffices to check on cycles. -/
+@[ext]
+lemma homology.ext {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
+  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)]
+  {D : V} {k k' : homology f g w ⟶ D} (p : homology.π f g w ≫ k = homology.π f g w ≫ k') : k = k' :=
+by { ext, exact p, }
+
+-- TODO repeat more of the API for `cokernel` here?
+
+section
+variables {f g} (w : f ≫ g = 0)
+  {A' B' C' : V} {f' : A' ⟶ B'} [has_image f'] {g' : B' ⟶ C'} [has_kernel g'] (w' : f' ≫ g' = 0)
+  (α : arrow.mk f ⟶ arrow.mk f') [has_image_map α] (β : arrow.mk g ⟶ arrow.mk g')
+
+/--
+Given compatible commutative squares between
+a pair `f g` and a pair `f' g'` satisfying `f ≫ g = 0` and `f' ≫ g' = 0`,
+the `image_to_kernel` morphisms intertwine the induced map on kernels and the induced map on images.
+-/
+@[reassoc]
+lemma image_subobject_map_comp_image_to_kernel (p : α.right = β.left) :
+  image_to_kernel f g w ≫ kernel_subobject_map β =
+    image_subobject_map α ≫ image_to_kernel f' g' w' :=
+by { ext, simp [p], }
+
+variables [has_cokernel (image_to_kernel f g w)] [has_cokernel (image_to_kernel f' g' w')]
+
+/--
+Given compatible commutative squares between
+a pair `f g` and a pair `f' g'` satisfying `f ≫ g = 0` and `f' ≫ g' = 0`,
+we get a morphism on homology.
+-/
+def homology.map (p : α.right = β.left) :
+  homology f g w ⟶ homology f' g' w' :=
+cokernel.desc _ (kernel_subobject_map β ≫ cokernel.π _)
+  begin
+    rw [image_subobject_map_comp_image_to_kernel_assoc w w' α β p],
+    simp,
+  end
+
+@[simp, reassoc]
+lemma homology.π_map (p : α.right = β.left) :
+  homology.π f g w ≫ homology.map w w' α β p = kernel_subobject_map β ≫ homology.π f' g' w' :=
+by { simp [homology.π, homology.map], }
+
+@[simp, reassoc]
+lemma homology.map_desc (p : α.right = β.left)
+  {D : V} (k : (kernel_subobject g' : V) ⟶ D) (z : image_to_kernel f' g' w' ≫ k = 0) :
+  homology.map w w' α β p ≫ homology.desc f' g' w' k z =
+    homology.desc f g w (kernel_subobject_map β ≫ k)
+      (by simp [image_subobject_map_comp_image_to_kernel_assoc w w' α β p, z]) :=
+by { ext, simp, }
+
+end
+
 end
 
 section

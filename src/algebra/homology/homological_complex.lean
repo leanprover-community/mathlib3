@@ -424,6 +424,15 @@ end
 
 /--
 A morphism of chain complexes
+induces a morphism of arrows of the differentials out of each object.
+-/
+def sq_from (f : hom C₁ C₂) (i : ι) : arrow.mk (C₁.d_from i) ⟶ arrow.mk (C₂.d_from i) :=
+arrow.hom_mk (f.comm_from i)
+
+@[simp] lemma sq_from_left (f : hom C₁ C₂) (i : ι) : (f.sq_from i).left = f.f i := rfl
+
+/--
+A morphism of chain complexes
 induces a morphism of arrows of the differentials into each object.
 -/
 def sq_to (f : hom C₁ C₂) (j : ι) : arrow.mk (C₁.d_to j) ⟶ arrow.mk (C₂.d_to j) :=

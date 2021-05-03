@@ -35,7 +35,11 @@ end
 
 lemma from_next'_eq (f : Π i j, C.X i ⟶ D.X j) {i i' : ι} (w : c.rel i i') (j : ι) :
   from_next' f i j = (C.X_next_iso w).hom ≫ f i' j :=
-sorry
+begin
+  dsimp [from_next'],
+  rw c.next_eq_some w,
+  refl,
+end
 
 @[simp] lemma from_next'_zero (i j : ι) : from_next' (λ i j, (0 : C.X i ⟶ D.X j)) i j = 0 :=
 begin
@@ -91,7 +95,11 @@ end
 
 lemma to_prev'_eq (f : Π i j, C.X i ⟶ D.X j) (i : ι) {j j' : ι} (w : c.rel j' j) :
   to_prev' f i j = f i j' ≫ (D.X_prev_iso w).inv :=
-sorry
+begin
+  dsimp [to_prev'],
+  rw c.prev_eq_some w,
+  refl,
+end
 
 @[simp] lemma to_prev'_zero (i j : ι) : to_prev' (λ i j, (0 : C.X i ⟶ D.X j)) i j = 0 :=
 begin

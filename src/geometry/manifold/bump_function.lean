@@ -406,7 +406,7 @@ instance : has_coe_to_fun (smooth_bump_covering I s) := ⟨_, to_fun⟩
   (h₁ h₂ h₃) : ⇑(mk ι c to_fun h₁ h₂ h₃ : smooth_bump_covering I s) = to_fun :=
 rfl
 
-/-- 
+/--
 We say that `f : smooth_bump_covering I s` is *subordinate* to a map `U : M → set M` if for each
 index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
@@ -470,7 +470,7 @@ fs.locally_finite.point_finite x
 
 lemma mem_chart_at_source_of_eq_one {i : fs.ι} {x : M} (h : fs i x = 1) :
   x ∈ (chart_at H (fs.c i)).source :=
-(fs i).support_subset_source $ by simp [h]
+(fs i).support_subset_source $ by simp [h, function.mem_support]
 
 lemma mem_ext_chart_at_source_of_eq_one {i : fs.ι} {x : M} (h : fs i x = 1) :
   x ∈ (ext_chart_at I (fs.c i)).source :=
@@ -486,7 +486,7 @@ lemma apply_ind (x : M) (hx : x ∈ s) : fs (fs.ind x hx) x = 1 :=
 (fs.eventually_eq_one x hx).eq_of_nhds
 
 lemma mem_support_ind (x : M) (hx : x ∈ s) : x ∈ support (fs $ fs.ind x hx) :=
-by simp [fs.apply_ind x hx]
+by simp [fs.apply_ind x hx, function.mem_support]
 
 lemma mem_chart_at_ind_source (x : M) (hx : x ∈ s) :
   x ∈ (chart_at H (fs.c (fs.ind x hx))).source :=

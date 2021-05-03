@@ -983,7 +983,7 @@ begin
   intros x h,
   simp only [coeff.add_monoid_hom_apply, mem_coe, finsupp.mem_support_iff, ne.def],
   contrapose! h,
-  simp [h]
+  simp [h, function.mem_support],
 end
 
 end of_finsupp

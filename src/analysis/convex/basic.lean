@@ -135,18 +135,10 @@ lemma open_segment_subset_segment (x y : E) :
 lemma mem_open_segment_of_ne_left_right {x y z : E} (hx : x ≠ z) (hy : y ≠ z) (hz : z ∈ [x, y]) :
   z ∈ open_segment x y :=
 begin
-  obtain ⟨a, b, ha, hb, hab, hz⟩ := hz,
-  by_cases ha' : a = 0,
-  { rw [ha', zero_add] at hab,
-    rw [ha', hab, zero_smul, one_smul, zero_add] at hz,
-    exfalso,
-    exact hy hz },
-  by_cases hb' : b = 0,
-  { rw [hb', add_zero] at hab,
-    rw [hb', hab, zero_smul, one_smul, add_zero] at hz,
-    exfalso,
-    exact hx hz },
-  exact ⟨a, b, ha.lt_of_ne (ne.symm ha'), hb.lt_of_ne (ne.symm hb'), hab, hz⟩,
+  by_cases ha' : a ≠ 0,
+  by_cases hb' : b ≠ 0,
+  { exact ⟨a, b, ha.lt_of_ne (ne.symm ha'), hb.lt_of_ne (ne.symm hb'), hab, hz⟩ },
+  all_goals { simp only [*, add_zero, not_not, one_smul, zero_smul, zero_add] at * 
 end
 
 lemma open_segment_symm (x y : E) :

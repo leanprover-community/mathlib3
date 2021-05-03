@@ -31,13 +31,17 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
 ## Main Results
  * Higman's Lemma, `set.partially_well_ordered_on.partially_well_ordered_on_sublist_forall₂`,
   shows that if `r` is partially well-ordered on `s`, then `list.sublist_forall₂` is partially
-  well-ordered on the set of lists of elements of `s`.
+  well-ordered on the set of lists of elements of `s`. The result was originally published by
+  Higman, but this proof more closely follows Nash-Williams.
  * `set.well_founded_on_iff` relates `well_founded_on` to the well-foundedness of a relation on the
  original type, to avoid dealing with subtypes.
  * `set.is_wf.mono` shows that a subset of a well-founded subset is well-founded.
  * `set.is_wf.union` shows that the union of two well-founded subsets is well-founded.
  * `finset.is_wf` shows that all `finset`s are well-founded.
 
+## References
+ * [Higman, *Ordering by Divisibility in Abstract Algebras*][Higman52]
+ * [Nash-Williams, *On Well-Quasi-Ordering Finite Trees*][Nash-Williams63]
 -/
 
 variables {α : Type*}
@@ -580,7 +584,10 @@ begin
   exact ⟨f, hf1⟩,
 end
 
-/-- Higman's Lemma -/
+/-- Higman's Lemma, which states that for any reflexive, transitive relation `r` which is
+  partially well-ordered on a set `s`, the relation `list.sublist_forall₂ r` is partially
+  well-ordered on the set of lists of elements of `s`. That relation is defined so that
+  `list.sublist_forall₂ r l₁ l₂` whenever `l₁` related pointwise by `r` to a sublist of `l₂`.  -/
 lemma partially_well_ordered_on_sublist_forall₂ (r : α → α → Prop) [is_refl α r] [is_trans α r]
   {s : set α} (h : s.partially_well_ordered_on r) :
   { l : list α | ∀ x, x ∈ l → x ∈ s }.partially_well_ordered_on (list.sublist_forall₂ r) :=

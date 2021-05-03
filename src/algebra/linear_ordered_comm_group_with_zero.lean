@@ -203,7 +203,7 @@ variables {R : Type*} [ring R] (f : R →* α)
 theorem map_neg_one : f (-1) = 1 :=
 begin
   apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [pow_two, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
+  rw [sq, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
 end
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=

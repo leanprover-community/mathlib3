@@ -1319,11 +1319,11 @@ subalgebra.dim_eq_one_of_eq_bot rfl
 
 lemma subalgebra_top_dim_eq_submodule_top_dim :
   module.rank F (⊤ : subalgebra F E) = module.rank F (⊤ : submodule F E) :=
-by { rw ← algebra.coe_top, refl }
+by { rw ← algebra.top_to_submodule, refl }
 
 lemma subalgebra_top_finrank_eq_submodule_top_finrank :
   finrank F (⊤ : subalgebra F E) = finrank F (⊤ : submodule F E) :=
-by { rw ← algebra.coe_top, refl }
+by { rw ← algebra.top_to_submodule, refl }
 
 lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
 by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top }

@@ -7,7 +7,6 @@ import linear_algebra.linear_independent
 import linear_algebra.projection
 import linear_algebra.linear_pmap
 import data.fintype.card
-import algebra.algebra.basic
 
 /-!
 
@@ -355,7 +354,8 @@ begin
         rwa [mul_assoc, mul_inv_of_self, mul_one] at this,
       rw [hw₁, zero_mul] },
     { intros i hi,
-      simp only [algebra.id.smul_eq_mul, hgs i hi, zero_smul] },
+      dsimp only,
+      exact (hgs i hi).symm ▸ zero_smul _ _ },
     { rw [← hsum, finset.sum_congr rfl _],
       intros, simp only [smul_assoc] } },
   { rw eq_top_iff,

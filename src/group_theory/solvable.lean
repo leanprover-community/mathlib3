@@ -26,7 +26,7 @@ the derived series of a group.
 
 open subgroup
 
-variables {G G' : Type*} [group G] [group G']
+variables {G G' : Type*} [group G] [group G'] {f : G →* G'}
 
 section general_commutator
 
@@ -165,8 +165,6 @@ end derived_series
 
 section commutator_map
 
-variables {f : G →* G'}
-
 lemma map_commutator_eq_commutator_map (H₁ H₂ : subgroup G) :
   ⁅H₁, H₂⁆.map f = ⁅H₁.map f, H₂.map f⁆ :=
 begin
@@ -246,7 +244,7 @@ lemma is_solvable_of_top_eq_bot (h : (⊤ : subgroup G) = ⊥) : is_solvable G :
 instance is_solvable_of_subsingleton [subsingleton G] : is_solvable G :=
 is_solvable_of_top_eq_bot G (by ext; simp at *)
 
-variables {G} {G'} [group G'] {f : G →* G'}
+variables {G}
 
 lemma solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
   is_solvable G :=
@@ -412,73 +410,6 @@ begin
 end
 
 end weekday
-
-open_locale classical
-
-variables {α β : Type*} (e : equiv.perm α) (ι : α ↪ β)
-
-noncomputable def equiv.perm.of_embedding : equiv.perm β :=
-let ϕ := equiv.set.range ι ι.2 in equiv.perm.of_subtype
-{ to_fun := λ x, ⟨ι (e (ϕ.symm x)), ⟨e.to_fun (ϕ.symm x), rfl⟩⟩,
-  inv_fun := λ x, ⟨ι (e.symm (ϕ.symm x)), ⟨e.inv_fun (ϕ.symm x), rfl⟩⟩,
-  left_inv := λ y, by
-  { change ϕ (e.symm (ϕ.symm (ϕ (e (ϕ.symm y))))) = y,
-    rw [ϕ.symm_apply_apply, e.symm_apply_apply, ϕ.apply_symm_apply] },
-  right_inv := λ y, by
-  { change ϕ (e (ϕ.symm (ϕ (e.symm (ϕ.symm y))))) = y,
-    rw [ϕ.symm_apply_apply, e.apply_symm_apply, ϕ.apply_symm_apply] } }
-
-lemma equiv.perm.of_subtype_apply_coe {p : α → Prop} (e : equiv.perm (subtype p)) (x : subtype p) :
-  equiv.perm.of_subtype e ↑x = ↑(e x) :=
-begin
-  change dite _ _ _ = _,
-  rw [dif_pos, subtype.coe_eta],
-  exact x.2,
-end
-
-lemma equiv.perm.of_embedding_apply (x : α) : e.of_embedding ι (ι x) = ι (e x) :=
-begin
-  dsimp only [equiv.perm.of_embedding],
-  have key : ι x = ↑(⟨ι x, set.mem_range_self x⟩ : set.range ι) := rfl,
-  rw [key, equiv.perm.of_subtype_apply_coe],
-  change ↑(⟨_, _⟩ : set.range ι) = _,
-  rw [subtype.coe_mk],
-  congr,
-  rw [equiv.symm_apply_eq, equiv.set.range_apply],
-end
-
-lemma equiv.perm.of_embedding_apply_of_not_mem (x : β)
-  (hx : x ∉ set.range ι) : e.of_embedding ι x = x :=
-equiv.perm.of_subtype_apply_of_not_mem _ hx
-
-noncomputable def equiv.perm.of_embedding_map_homomorphism : (equiv.perm α) →* equiv.perm β:=
-{ to_fun := λ e, equiv.perm.of_embedding e ι,
-  map_one' := by
-  { ext x,
-    by_cases hx : x ∈ set.range ι,
-    { obtain ⟨y, rfl⟩ := hx,
-      exact equiv.perm.of_embedding_apply 1 ι y },
-    { exact equiv.perm.of_embedding_apply_of_not_mem 1 ι x hx } },
-  map_mul' := by
-  { intros σ τ,
-    ext x,
-    by_cases hx : x ∈ set.range ι,
-    { obtain ⟨y, rfl⟩ := hx,
-      change _ = (σ.of_embedding ι)((τ.of_embedding ι)(ι y)),
-      rw [equiv.perm.of_embedding_apply (σ * τ ) ι y,
-          equiv.perm.of_embedding_apply τ ι y,
-          equiv.perm.of_embedding_apply σ ι (τ y)],
-      refl },
-    { change _ = (σ.of_embedding ι)((τ.of_embedding ι) x),
-      rw [equiv.perm.of_embedding_apply_of_not_mem (σ * τ) ι x hx,
-          equiv.perm.of_embedding_apply_of_not_mem τ ι x hx,
-          equiv.perm.of_embedding_apply_of_not_mem σ ι x hx] } } }
-
-lemma equiv.perm_of_embedding_map_injective :
-  function.injective (equiv.perm.of_embedding_map_homomorphism ι):=
-(monoid_hom.injective_iff (equiv.perm.of_embedding_map_homomorphism ι)).2
-  (λ σ σ_ker, equiv.perm.ext (λ x, ι.2 ((equiv.perm.of_embedding_apply σ ι x).symm.trans
-    (equiv.ext_iff.1 σ_ker (ι.to_fun x)))))
 
 lemma unsolvability_of_S_5 (X:Type*)(big:5≤ cardinal.mk X):¬ is_solvable (equiv.perm X):=
 begin

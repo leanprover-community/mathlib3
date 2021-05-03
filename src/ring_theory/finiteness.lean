@@ -567,13 +567,51 @@ section monoid_algebra
 
 namespace add_monoid_algebra
 
-open algebra add_submonoid
+open algebra add_submonoid submodule
+
+section span
+
+variables {R : Type*} {M : Type*} [comm_semiring R] [add_monoid M]
+
+lemma mem_adjoint_support (f : add_monoid_algebra R M) :
+  f ∈ adjoin R (of' R M '' (f.support : set M)) :=
+begin
+  suffices : span R (of R M '' (f.support : set M)) ≤
+    (adjoin R (of R M '' (f.support : set M))).to_submodule,
+  { exact this (mem_span_support f) },
+  rw submodule.span_le,
+  exact subset_adjoin
+end
+
+lemma support_gen_of_gen {S : set (add_monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
+  algebra.adjoin R (⋃ f ∈ S, (of' R M '' (f.support : set M))) = ⊤ :=
+begin
+  refine le_antisymm le_top _,
+  rw [← hS, adjoin_le_iff],
+  intros f hf,
+  have hincl : of' R M '' (f.support : set M) ⊆
+    ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of' R M '' (g.support : set M),
+  { intros s hs,
+    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+  exact adjoin_mono hincl (mem_adjoint_support f)
+end
+
+lemma support_gen_of_gen' {S : set (add_monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
+  algebra.adjoin R (of' R M '' (⋃ f ∈ S, (f.support : set M))) = ⊤ :=
+begin
+  suffices : of' R M '' (⋃ f ∈ S, (f.support : set M)) = ⋃ f ∈ S, (of' R M '' (f.support : set M)),
+  { rw this,
+    exact support_gen_of_gen hS },
+  simp only [set.image_Union]
+end
+
+end span
 
 variables {R : Type*} {M : Type*} [add_comm_monoid M]
 
 lemma mv_polynomial_aeval_of_surjective_of_closure [comm_semiring R] {S : set M}
   (hS : closure S = ⊤) : function.surjective (mv_polynomial.aeval
-  (λ (s : S), of R M (multiplicative.of_add ↑s)) : mv_polynomial S R → add_monoid_algebra R M) :=
+  (λ (s : S), of' R M ↑s) : mv_polynomial S R → add_monoid_algebra R M) :=
 begin
   refine λ f, induction_on f (λ m, _) _ _,
   { have : m ∈ closure S := hS.symm ▸ mem_top _,
@@ -593,14 +631,52 @@ instance ft_of_fg [comm_ring R] [h : add_monoid.fg M] : finite_type R (add_monoi
 begin
   obtain ⟨S, hS⟩ := h.out,
   exact (finite_type.mv_polynomial R (S : set M)).of_surjective (mv_polynomial.aeval
-    (λ (s : (S : set M)), of R M s.1)) (mv_polynomial_aeval_of_surjective_of_closure hS)
+    (λ (s : (S : set M)), of' R M ↑s)) (mv_polynomial_aeval_of_surjective_of_closure hS)
 end
 
 end add_monoid_algebra
 
 namespace monoid_algebra
 
-open algebra submonoid
+open algebra submonoid submodule
+
+section span
+
+variables {R : Type*} {M : Type*} [comm_semiring R] [monoid M]
+
+lemma mem_adjoint_support (f : monoid_algebra R M) :
+  f ∈ adjoin R (monoid_algebra.of R M '' (f.support : set M)) :=
+begin
+  suffices : span R (of R M '' (f.support : set M)) ≤
+    (adjoin R (of R M '' (f.support : set M))).to_submodule,
+  { exact this (mem_span_support f) },
+  rw submodule.span_le,
+  exact subset_adjoin
+end
+
+lemma support_gen_of_gen {S : set (monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
+  algebra.adjoin R (⋃ f ∈ S, ((of R M) '' (f.support : set M))) = ⊤ :=
+begin
+  refine le_antisymm le_top _,
+  rw [← hS, adjoin_le_iff],
+  intros f hf,
+  have hincl : (of R M) '' (f.support : set M) ⊆
+    ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' (g.support : set M),
+  { intros s hs,
+    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+  exact adjoin_mono hincl (mem_adjoint_support f)
+end
+
+lemma support_gen_of_gen' {S : set (monoid_algebra R M)} (hS : algebra.adjoin R S = ⊤) :
+  algebra.adjoin R (of R M '' (⋃ f ∈ S, (f.support : set M))) = ⊤ :=
+begin
+  suffices : of R M '' (⋃ f ∈ S, (f.support : set M)) = ⋃ f ∈ S, (of R M '' (f.support : set M)),
+  { rw this,
+    exact support_gen_of_gen hS },
+  simp only [set.image_Union]
+end
+
+end span
 
 variables {R : Type*} {M : Type*} [comm_monoid M]
 
@@ -623,7 +699,7 @@ begin
 end
 
 instance ft_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=
-add_monoid_algebra.ft_of_fg.equiv (monoid_algebra.to_additive_alg_equiv R M).symm
+add_monoid_algebra.ft_of_fg.equiv (to_additive_alg_equiv R M).symm
 
 end monoid_algebra
 

@@ -8,6 +8,7 @@ import algebra.group.basic
 import algebra.group.hom
 import algebra.group.pi
 import algebra.group.prod
+import logic.embedding
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -256,6 +257,8 @@ instance perm_unique {n : Type*} [unique n] : unique (equiv.perm n) :=
 @[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
 
 variables (e : perm α) (ι : α ↪ β)
+
+open_locale classical
 
 noncomputable def of_embedding : equiv.perm β :=
 let ϕ := equiv.set.range ι ι.2 in equiv.perm.of_subtype

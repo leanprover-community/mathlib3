@@ -175,6 +175,9 @@ instance short_L : short domineering.L := by { dsimp [domineering.L], apply_inst
 -- #eval to_bool (domineering.one ≈ 1)
 -- #eval to_bool (domineering.L + domineering.L ≈ 1)
 
+-- The following no longer works since Lean 3.29, since definitions by well-founded
+-- recursion no longer reduce definitionally.
+
 -- We can check that `decidable` instances reduce as expected,
 -- and so our implementation of domineering is computable.
 -- run_cmd tactic.whnf `(by apply_instance : decidable (domineering.one ≤ 1)) >>= tactic.trace

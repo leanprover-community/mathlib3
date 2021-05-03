@@ -700,4 +700,16 @@ lemma finsum_mul {R : Type*} [semiring R] (f : α → R) (r : R)
   (∑ᶠ a : α, f a) * r = ∑ᶠ a : α, f a * r :=
 (add_monoid_hom.mul_right r).map_finsum h
 
+@[to_additive]
+lemma finprod_emb_domain (f : α ↪ β) [decidable_pred (∈ set.range f)] (g : α → M) :
+  ∏ᶠ (b : β), (if h : b ∈ set.range f then g (classical.some h) else 1) = ∏ᶠ (a : α), g a :=
+begin
+  transitivity ∏ᶠ b ∈ set.range f, (if h : b ∈ set.range f then g (classical.some h) else 1),
+  { simp_rw [← finprod_eq_dif],
+    refine finprod_congr (λ b, finprod_congr (λ h, _)),
+    rw [finprod_eq_dif, dif_pos h] },
+  rw [finprod_mem_range f.injective, finprod_congr (λ a, _)],
+  rw [dif_pos (set.mem_range_self a), f.injective (classical.some_spec (set.mem_range_self a))],
+end
+
 end type

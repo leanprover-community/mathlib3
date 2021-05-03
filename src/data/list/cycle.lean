@@ -442,11 +442,15 @@ begin
     simp [this] }
 end
 
-instance [decidable_eq α] {s : cycle α} : decidable (nodup s) :=
+section decidable
+
+variable [decidable_eq α]
+
+instance {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
-def next [decidable_eq α] : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
+def next : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 λ s, quot.hrec_on s (λ l hn x hx, next l x hx)
   (λ l₁ l₂ (h : l₁ ~r l₂),
   function.hfunext (propext h.nodup_iff) (λ h₁ h₂ he, function.hfunext rfl
@@ -454,11 +458,13 @@ def next [decidable_eq α] : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x �
     (λ hm hm' he', heq_of_eq (by simpa [eq_of_heq hxy] using is_rotated_next_eq h h₁ _)))))
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the previous element before `x ∈ s`. -/
-def prev [decidable_eq α] : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
+def prev : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 λ s, quot.hrec_on s (λ l hn x hx, prev l x hx)
   (λ l₁ l₂ (h : l₁ ~r l₂),
   function.hfunext (propext h.nodup_iff) (λ h₁ h₂ he, function.hfunext rfl
     (λ x y hxy, function.hfunext (propext (by simpa [eq_of_heq hxy] using h.mem_iff))
     (λ hm hm' he', heq_of_eq (by simpa [eq_of_heq hxy] using is_rotated_prev_eq h h₁ _)))))
+
+end decidable
 
 end cycle

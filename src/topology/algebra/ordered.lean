@@ -1197,6 +1197,26 @@ pi_Ioo_mem_nhds ha hb
 
 end pi
 
+lemma disjoint_nhds_nhds [densely_ordered α] {c d : α} (hcd : c < d) :
+  disjoint (𝓝 c) (𝓝 d) :=
+let ⟨l, hl⟩ := densely_ordered.dense c d hcd in
+let ⟨U, hU, hU'⟩ := eventually_iff_exists_mem.mp (gt_mem_nhds hl.1) in
+let ⟨V, hV, hV'⟩ := eventually_iff_exists_mem.mp (lt_mem_nhds hl.2) in
+filter.disjoint_iff.mpr ⟨U, hU, V, hV,
+  set.eq_empty_of_subset_empty (λ x hx, lt_asymm (hU' x hx.1) (hV' x hx.2))⟩
+
+@[simp]
+lemma disjoint_nhds_nhds_iff [densely_ordered α] (c d : α) :
+  disjoint (𝓝 c) (𝓝 d) ↔ c ≠ d :=
+begin
+  refine ⟨λ h hcd, _, λ h, _⟩,
+  { obtain ⟨U, hU, V, hV, hUV⟩ := filter.disjoint_iff.mp h,
+    exact (set.mem_empty_eq c) ▸ hUV ▸ ⟨mem_of_nhds hU, mem_of_nhds (hcd.symm ▸ hV)⟩ },
+  { by_cases hcd : c < d,
+    { exact disjoint_nhds_nhds hcd },
+    { exact disjoint.symm (disjoint_nhds_nhds (lt_of_le_of_ne (not_lt.mp hcd) (ne.symm h))) } }
+end
+
 lemma disjoint_nhds_at_top [no_top_order α] (x : α) :
   disjoint (𝓝 x) at_top :=
 begin
@@ -1726,6 +1746,28 @@ begin
   apply tendsto.congr (show ∀ x : α, x^-(-n) = x^n, by simp),
   lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
   exact tendsto_pow_neg_at_top (by exact_mod_cast this)
+end
+
+lemma tendsto_pow_zero_at_top_zero_iff {n : ℕ} {c d : α} :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+sorry
+
+lemma tendsto_fpow_at_top_zero_iff {n : ℤ} :
+  tendsto (λ x : α, x^n) at_top (𝓝 0) ↔ n < 0 :=
+begin
+  refine ⟨λ h, _, tendsto_fpow_at_top_zero⟩,
+  by_contradiction hn,
+  rw not_lt at hn,
+  lift n to ℕ using hn,
+  simp at h,
+  -- rw tendsto_pow_zero_at_top_zero_iff at h,
+  sorry,
+end
+
+lemma tendsto_const_mul_fpow_at_top_zero_iff {n : ℤ} {c : α} :
+  tendsto (λ x : α, c * x^n) at_top (𝓝 0) ↔ c = 0 ∨ n < 0 :=
+begin
+  sorry,
 end
 
 end linear_ordered_field

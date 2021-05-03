@@ -38,6 +38,89 @@ end
 
 variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : polynomial 𝕜)
 
+-- TODO: Move this stuff
+section MOVE
+
+variables {α : Type*}
+variables [linear_ordered_field α] [topological_space α] [order_topology α]
+
+@[simp]
+lemma is_bounded_under_const {α β : Type*} [preorder β] {l : filter α}
+  {b : β} : is_bounded_under (≤) l (λ x, b) :=
+⟨b, by simp only [le_refl b, eventually_true, eventually_map]⟩
+
+-- Move near `unbounded_of_tendsto_at_top`
+lemma not_is_bounded_under_of_tendsto_at_top {α β : Type*}
+  [nonempty α] [semilattice_sup α] [partial_order β] [no_top_order β]
+  {f : α → β} (hf : tendsto f at_top at_top) :
+  ¬ is_bounded_under (≤) at_top f :=
+begin
+  intro h,
+  obtain ⟨b, hb⟩ := h,
+  rw eventually_map at hb,
+  rw tendsto_at_top at hf,
+  obtain ⟨b', hb'⟩ := no_top b,
+  specialize hf b',
+  rw [filter.eventually] at hf hb,
+  have : ∅ ∈ (at_top : filter α) := begin
+    have : {x : α | f x ≤ b} ∩ {x : α | b' ≤ f x} = ∅ := begin
+      refine set.ext (λ x, _),
+      simp only [set.mem_empty_eq, set.mem_inter_eq, not_and, set.mem_set_of_eq, iff_false],
+      intros hx hx', -- hx',
+      refine ne_of_lt hb' _,
+      refine le_antisymm (le_of_lt hb') (le_trans hx' hx),
+    end,
+    refine this ▸ _,
+    refine filter.inter_mem_sets hb hf,
+  end,
+  refine at_top.empty_nmem_sets this,
+end
+
+
+
+lemma tendsto_const_nhds_iff {l : filter α} [ne_bot l] {c d : α} :
+  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
+begin
+  refine ⟨λ h, _, λ h, h ▸ tendsto_const_nhds⟩,
+  have : tendsto (λ x, c) l (𝓝 c) := tendsto_const_nhds,
+  by_contradiction hcd,
+  refine this.not_tendsto ((nhds_nhds_disjoint_iff c d).2 hcd) h,
+end
+
+lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  {
+    have hn : n = 0,
+    begin
+      by_contradiction hn,
+      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne zero_le' (ne.symm hn)),
+      by_cases hc' : 0 < c,
+      {
+        have := (tendsto_const_mul_pow_at_top_iff c n).mpr ⟨hn, hc'⟩,
+        refine not_tendsto_nhds_of_tendsto_at_top this d h,
+      },
+      {
+        have := (tendsto_neg_const_mul_pow_at_top_iff c n).mpr ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
+        refine not_tendsto_nhds_of_tendsto_at_bot this d h,
+      }
+    end,
+    have : (λ x : α, c * x ^ n) = (λ x : α, c),
+    by simp [hn],
+    rw [this, tendsto_const_nhds_iff] at h,
+    exact ⟨hn, h⟩,
+  },
+  {
+    obtain ⟨hn, hcd⟩ := h,
+    simp [hn, hcd],
+    exact tendsto_const_nhds,
+  }
+end
+
+end MOVE
+-- TODO: Move the above
+
 lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
 begin
   obtain ⟨x₀, hx₀⟩ := polynomial.exists_max_root P hP,
@@ -46,6 +129,8 @@ begin
 end
 
 variables [order_topology 𝕜]
+
+section polynomial_at_top
 
 lemma is_equivalent_at_top_lead :
   (λ x, eval x P) ~[at_top] (λ x, P.leading_coeff * x ^ P.nat_degree) :=
@@ -102,35 +187,37 @@ begin
     exact tendsto_abs_at_bot_at_top.comp (P.tendsto_at_bot_of_leading_coeff_nonpos hdeg hP.le)}
 end
 
-lemma abs_bdd_above_iff_degree_le_zero :
-  bdd_above (set.range (λ (x : 𝕜), abs (eval x P))) ↔ P.degree ≤ 0 :=
+lemma abs_is_bounded_under_iff :
+  is_bounded_under (≤) at_top (λ x, abs (eval x P)) ↔ P.degree ≤ 0 :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { contrapose! h,
-    exact unbounded_of_tendsto_at_top (abs_tendsto_at_top P (helper.2 h)) },
+    exact not_is_bounded_under_of_tendsto_at_top (abs_tendsto_at_top P (helper.2 h)) },
   { have : ∀ (x : 𝕜), abs (eval x P) = abs (P.coeff 0) := λ x,
       congr_arg abs $ trans (congr_arg (eval x) (eq_C_of_degree_le_zero h)) (eval_C),
-    simp [this, bdd_above_singleton] }
+    simp [this] }
 end
 
 lemma abs_tendsto_at_top_iff :
   tendsto (λ x, abs $ eval x P) at_top at_top ↔ 1 ≤ P.degree :=
-⟨λ h, helper.2 (not_le.mp (mt (abs_bdd_above_iff_degree_le_zero P).2
-  (unbounded_of_tendsto_at_top h))), abs_tendsto_at_top P⟩
+⟨λ h, helper.2 (not_le.mp ((mt (abs_is_bounded_under_iff P).mpr)
+  (not_is_bounded_under_of_tendsto_at_top h))), abs_tendsto_at_top P⟩
 
-lemma degree_le_zero_of_tendsto_nhds (c : 𝕜) (h : tendsto (λ x, eval x P) at_top (𝓝 c)) :
-  P.degree ≤ 0 :=
+lemma tendsto_nhds_iff : (∃ c, tendsto (λ x, eval x P) at_top (𝓝 c)) ↔ P.degree ≤ 0 :=
 begin
-  refine not_lt.mp (λ hP, _),
-  refine absurd (abs_tendsto_at_top P (helper.mpr hP)) _,
-  have : tendsto (abs : 𝕜 → 𝕜) (𝓝 c) (𝓝 (abs c)) := sorry,
-  refine (this.comp h).not_tendsto _,
-  refine filter.disjoint_iff.2 _,
-  refine ⟨set.Ioo ((abs c) - 1) ((abs c) + 1), Ioo_mem_nhds (by linarith) (by linarith),
-    set.Ici ((abs c) + 1), mem_at_top ((abs c) + 1), _⟩,
-  refine set.eq_empty_of_subset_empty (λ x hx, _),
-  refine (not_le.mpr hx.1.2) hx.2,
+  refine ⟨λ h, _, λ h, (eq_C_of_degree_le_zero h).symm ▸ ⟨P.coeff 0, by simp [tendsto_const_nhds]⟩⟩,
+  by_cases hP : P = 0,
+  { simp [hP] },
+  { obtain ⟨c, h⟩ := h,
+    have := is_equivalent.tendsto_nhds (is_equivalent_at_top_lead P) h,
+    rw tendsto_const_mul_pow_nhds_iff (leading_coeff_ne_zero.2 hP) at this,
+    rw nat_degree_eq_zero_iff_degree_le_zero at this,
+    exact this.1 }
 end
+
+end polynomial_at_top
+
+section polynomial_div_at_top
 
 lemma is_equivalent_at_top_div :
   (λ x, (eval x P)/(eval x Q)) ~[at_top]
@@ -156,6 +243,24 @@ begin
   rw ← mul_zero,
   refine (tendsto_fpow_at_top_zero _).const_mul _,
   linarith
+end
+
+lemma div_tendsto_zero_iff_degree_lt (hQ : Q ≠ 0) :
+  tendsto (λ x, (eval x P)/(eval x Q)) at_top (𝓝 0) ↔ P.degree < Q.degree :=
+begin
+  refine ⟨λ h, _, div_tendsto_zero_of_degree_lt P Q⟩,
+  have := (is_equivalent_at_top_div P Q).tendsto_nhds h,
+  rw tendsto_const_mul_fpow_at_top_zero_iff at this,
+  cases this with h h,
+  { rw div_eq_zero_iff at h,
+    cases h with h h,
+    { rw [leading_coeff_eq_zero] at h,
+      refine lt_of_le_of_lt (le_of_eq (degree_eq_bot.mpr h)) _,
+      refine lt_of_le_of_ne bot_le (ne.symm ((mt (degree_eq_bot.mp)) hQ)) },
+    { rw leading_coeff_eq_zero at h,
+      refine absurd h hQ } },
+  { rw [sub_lt_iff_lt_add, zero_add, int.coe_nat_lt] at h,
+    refine degree_lt_degree h }
 end
 
 lemma div_tendsto_leading_coeff_div_of_degree_eq (hdeg : P.degree = Q.degree) :
@@ -217,6 +322,8 @@ begin
   { push_neg at h,
     exact tendsto_abs_at_bot_at_top.comp (P.div_tendsto_at_bot_of_degree_gt Q hdeg hQ h.le) }
 end
+
+end polynomial_div_at_top
 
 theorem is_O_of_degree_le (h : P.degree ≤ Q.degree) :
   is_O (λ x, eval x P) (λ x, eval x Q) filter.at_top :=

@@ -383,8 +383,7 @@ def preserves_finite_coproducts_of_preserves_binary_and_initial
   preserves_colimits_of_shape.{v} (discrete J) F :=
 begin
   classical,
-  refine trunc.rec_on_subsingleton (fintype.equiv_fin J) _,
-  intro e,
+  let e := fintype.equiv_fin J,
   haveI := preserves_ulift_fin_of_preserves_binary_and_initial F (fintype.card J),
   apply preserves_colimits_of_shape_of_equiv (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
 end

@@ -66,40 +66,38 @@ def homology {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g
   (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)] : V :=
 cokernel (image_to_kernel f g w)
 
+section
+variables (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)]
+
 /-- The morphism from cycles to homology. -/
-def homology.π {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
-  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)] :
-  (kernel_subobject g : V) ⟶ homology f g w :=
+def homology.π : (kernel_subobject g : V) ⟶ homology f g w :=
 cokernel.π _
+
+@[simp] lemma homology.condition : image_to_kernel f g w ≫ homology.π f g w = 0 :=
+cokernel.condition _
 
 /--
 To construct a map out of homology, it suffices to construct a map out of the cycles
 which vanishes on boundaries.
 -/
-def homology.desc {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
-  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)]
-  {D : V} (k : (kernel_subobject g : V) ⟶ D) (p : image_to_kernel f g w ≫ k = 0) :
+def homology.desc {D : V} (k : (kernel_subobject g : V) ⟶ D) (p : image_to_kernel f g w ≫ k = 0) :
   homology f g w ⟶ D :=
 cokernel.desc _ k p
 
 @[simp, reassoc]
-lemma homology.π_desc {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
-  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)]
+lemma homology.π_desc
   {D : V} (k : (kernel_subobject g : V) ⟶ D) (p : image_to_kernel f g w ≫ k = 0) :
   homology.π f g w ≫ homology.desc f g w k p = k :=
 by { simp [homology.π, homology.desc], }
 
 /-- To check two morphisms out of `homology f g w` are equal, it suffices to check on cycles. -/
 @[ext]
-lemma homology.ext {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
-  (w : f ≫ g = 0) [has_cokernel (image_to_kernel f g w)]
-  {D : V} {k k' : homology f g w ⟶ D} (p : homology.π f g w ≫ k = homology.π f g w ≫ k') : k = k' :=
+lemma homology.ext {D : V} {k k' : homology f g w ⟶ D}
+  (p : homology.π f g w ≫ k = homology.π f g w ≫ k') : k = k' :=
 by { ext, exact p, }
 
--- TODO repeat more of the API for `cokernel` here?
-
 section
-variables {f g} (w : f ≫ g = 0)
+variables {f g}
   {A' B' C' : V} {f' : A' ⟶ B'} [has_image f'] {g' : B' ⟶ C'} [has_kernel g'] (w' : f' ≫ g' = 0)
   (α : arrow.mk f ⟶ arrow.mk f') [has_image_map α] (β : arrow.mk g ⟶ arrow.mk g')
 
@@ -141,6 +139,8 @@ lemma homology.map_desc (p : α.right = β.left)
     homology.desc f g w (kernel_subobject_map β ≫ k)
       (by simp [image_subobject_map_comp_image_to_kernel_assoc w w' α β p, z]) :=
 by { ext, simp, }
+
+end
 
 end
 

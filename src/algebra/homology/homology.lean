@@ -128,7 +128,6 @@ The homology of a complex at index `i`.
 -/
 abbreviation homology (C : homological_complex V c) (i : ι) : V :=
 homology (C.d_to i) (C.d_from i) (C.d_to_comp_d_from i)
--- cokernel (C.boundaries_to_cycles i)
 
 end
 

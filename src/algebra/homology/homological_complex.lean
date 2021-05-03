@@ -368,7 +368,7 @@ end
 
 namespace hom
 
-variables {C₁ C₂ : homological_complex V c}
+variables {C₁ C₂ C₃ : homological_complex V c}
 variables [has_zero_object V]
 local attribute [instance] has_zero_object.has_zero
 
@@ -430,6 +430,15 @@ def sq_from (f : hom C₁ C₂) (i : ι) : arrow.mk (C₁.d_from i) ⟶ arrow.mk
 arrow.hom_mk (f.comm_from i)
 
 @[simp] lemma sq_from_left (f : hom C₁ C₂) (i : ι) : (f.sq_from i).left = f.f i := rfl
+@[simp] lemma sq_from_right (f : hom C₁ C₂) (i : ι) : (f.sq_from i).right = f.f_next i := rfl
+
+@[simp] lemma sq_from_id (C₁ : homological_complex V c) (i : ι) : sq_from (𝟙 C₁) i = 𝟙 _ :=
+sorry
+
+@[simp] lemma sq_from_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
+  sq_from (f ≫ g) i = sq_from f i ≫ sq_from g i :=
+sorry
+
 
 /--
 A morphism of chain complexes

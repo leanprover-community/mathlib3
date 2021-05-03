@@ -131,6 +131,14 @@ lemma kernel_subobject_map_arrow (sq : arrow.mk f ⟶ arrow.mk f') :
     (kernel_subobject f).arrow ≫ sq.left :=
 by simp [kernel_subobject_map]
 
+@[simp] lemma kernel_subobject_map_id : kernel_subobject_map (𝟙 (arrow.mk f)) = 𝟙 _ :=
+by { ext, simp, dsimp, simp, } -- See library note [dsimp, simp].
+
+@[simp] lemma kernel_subobject_map_comp {X'' Y'' : C} {f'' : X'' ⟶ Y''} [has_kernel f'']
+  (sq : arrow.mk f ⟶ arrow.mk f') (sq' : arrow.mk f' ⟶ arrow.mk f'') :
+  kernel_subobject_map (sq ≫ sq') = kernel_subobject_map sq ≫ kernel_subobject_map sq' :=
+by { ext, simp, }
+
 end
 
 @[simp]

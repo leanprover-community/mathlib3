@@ -85,6 +85,7 @@ begin
     exact eqv_gen.rel _ _ h, }
 end
 
+/-- If two chain maps become equal in the homotopy category, then they are homotopic. -/
 def homotopy_of_eq {C D : homological_complex V c} (f g : C ⟶ D)
   (w : (quotient V c).map f = (quotient V c).map g) : homotopy f g :=
 begin
@@ -94,6 +95,10 @@ begin
   rwa eqv_gen_homotopy at r,
 end
 
+/--
+An arbitrarily chosen representation of the image of a chain map in the homotopy category
+is homotopic to the original chain map.
+-/
 def homotopy_out_map {C D : homological_complex V c} (f : C ⟶ D) :
   homotopy ((quotient V c).map f).out f :=
 begin
@@ -122,7 +127,8 @@ def iso_of_homotopy_equiv {C D : homological_complex V c} (f : homotopy_equiv C 
 
 /-- If two complexes become isomorphic in the homotopy category,
   then they were homotopy equivalent. -/
-def homotopy_equiv_of_iso {C D : homological_complex V c} (i : (quotient V c).obj C ≅ (quotient V c).obj D) :
+def homotopy_equiv_of_iso
+  {C D : homological_complex V c} (i : (quotient V c).obj C ≅ (quotient V c).obj D) :
   homotopy_equiv C D :=
 { hom := quot.out i.hom,
   inv := quot.out i.inv,

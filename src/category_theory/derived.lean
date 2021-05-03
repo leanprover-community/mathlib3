@@ -26,7 +26,8 @@ def functor.left_derived (n : ℕ) (F : C ⥤ D) [F.additive] : C ⥤ D :=
 projective_resolutions C ⋙ F.map_homotopy_category _ ⋙ homotopy_category.homology_functor D _ n
 
 /-- We can compute a left derived functor using a chosen projective resolution. -/
-def functor.left_derived_obj_iso (n : ℕ) (F : C ⥤ D) [F.additive] (X : C) (P : ProjectiveResolution X) :
+def functor.left_derived_obj_iso (n : ℕ) (F : C ⥤ D) [F.additive]
+  (X : C) (P : ProjectiveResolution X) :
   (F.left_derived n).obj X ≅
     (homology_functor D _ n).obj ((F.map_homological_complex _).obj P.complex) :=
 (homotopy_category.homology_functor D _ n).map_iso

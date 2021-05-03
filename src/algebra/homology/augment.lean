@@ -57,6 +57,7 @@ instance truncate_to_single_quasi_iso
         dsimp [homology_functor],
         dunfold homological_complex.homology,
         dsimp [_root_.homology] at this,
+        sorry,
          },
       { sorry, }, }
   end }

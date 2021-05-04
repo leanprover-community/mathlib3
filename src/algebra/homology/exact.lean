@@ -80,7 +80,7 @@ lemma preadditive.exact_iff_homology_zero {A B C : V} (f : A ⟶ B) (g : B ⟶ C
 ⟨λ h, ⟨h.w, ⟨cokernel.of_epi _⟩⟩,
   λ h, begin
     obtain ⟨w, ⟨i⟩⟩ := h,
-    exact ⟨w, preadditive.epi_of_cokernel_zero _ ((cancel_mono i.hom).mp (by ext))⟩,
+    exact ⟨w, preadditive.epi_of_cokernel_zero ((cancel_mono i.hom).mp (by ext))⟩,
   end⟩
 
 end
@@ -228,17 +228,54 @@ comp_eq_zero_of_exact f g (kernel_fork.condition s) (cokernel_cofork.condition t
 end has_cokernels
 
 section
-variables [has_zero_morphisms V] [has_kernels V]
+variables [has_zero_object V]
 
 local attribute [instance] has_zero_object.has_zero
 
-lemma exact_of_zero [has_zero_object V] {A C : V} (f : A ⟶ 0) (g : 0 ⟶ C) : exact f g :=
+section
+variables [has_zero_morphisms V] [has_kernels V]
+
+instance exact_of_zero {A C : V} (f : A ⟶ 0) (g : 0 ⟶ C) : exact f g :=
 begin
   obtain rfl : f = 0 := by ext,
   obtain rfl : g = 0 := by ext,
   fsplit,
   { simp, },
   { exact image_to_kernel_epi_of_zero_of_mono 0, },
+end
+
+instance exact_zero_mono {B C : V} (f : B ⟶ C) [mono f] : exact (0 : (0 ⟶ B)) f :=
+⟨by simp, infer_instance⟩
+
+instance exact_epi_zero {A B : V} (f : A ⟶ B) [epi f] : exact f (0 : (B ⟶ 0)) :=
+⟨by simp, infer_instance⟩
+
+end
+
+section
+variables [preadditive V]
+
+lemma mono_iff_exact_zero_left [has_kernels V]{B C : V} (f : B ⟶ C) :
+  mono f ↔ exact (0 : (0 ⟶ B)) f :=
+⟨λ h, by { resetI, apply_instance, },
+  λ h, preadditive.mono_of_kernel_iso_zero
+      ((kernel_subobject_iso f).symm ≪≫ iso_zero_of_epi_zero (by simpa using h.epi))⟩
+
+lemma epi_iff_exact_zero_right [has_equalizers V] {A B : V} (f : A ⟶ B) :
+  epi f ↔ exact f (0 : (B ⟶ 0)) :=
+⟨λ h, by { resetI, apply_instance, },
+  λ h, begin
+    have e₁ := h.epi,
+    rw image_to_kernel_zero_right at e₁,
+    have e₂ : epi (((image_subobject f).arrow ≫ inv (kernel_subobject 0).arrow) ≫
+      (kernel_subobject 0).arrow) := @epi_comp _ _ _ _ _ _ e₁ _ _,
+    rw [category.assoc, is_iso.inv_hom_id, category.comp_id] at e₂,
+    rw [←image_subobject_arrow] at e₂,
+    resetI,
+    haveI : epi (image.ι f) := epi_of_epi (image_subobject_iso f).hom (image.ι f),
+    apply epi_of_epi_image,
+  end⟩
+
 end
 
 end

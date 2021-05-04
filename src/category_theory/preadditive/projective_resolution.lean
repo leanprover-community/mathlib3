@@ -24,9 +24,24 @@ open projective
 section
 variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
+@[nolint has_inhabited_instance]
+structure ProjectiveResolution_core (Z : C) :=
+(X : ℕ → C)
+(d : Π n, X (n+1) ⟶ X n)
+(zero : X 0 ≅ Z)
+(projective : ∀ n, projective (X (n+1)))
+(epi : epi (d 0))
+(exact : ∀ n, exact (d (n+1)) (d n))
+
+variables [has_zero_object C]
+
 /--
 A `ProjectiveResolution Z` consists of a bundled `ℕ`-indexed chain complex of projective objects,
 along with a quasi-isomorphism to the complex consisting of just `Z` supported in degree `0`.
+
+(We don't actually ask here that the chain map is a quasi-iso, just exactness everywhere:
+that `π` is a quasi-iso is a lemma when the category is abelian.
+Should we just ask for it here?)
 
 Except in situations where you want to provide a particular projective resolution
 (for example to compute a derived functor),
@@ -36,16 +51,39 @@ you will not typically need to use this bundled object, and will instead use
 * `projective_resolution.π Z`: the chain map from `projective_resolution Z` to
   `(single C _ 0).obj Z` (which comes equipped with appropriate `quasi_iso` and `epi` instances)
 -/
--- We implement this concretely in terms of an exact sequence,
--- not even mentioning chain complexes or quasi-isomorphisms.
 @[nolint has_inhabited_instance]
 structure ProjectiveResolution (Z : C) :=
-(X : ℕ → C)
-(d : Π n, X (n+1) ⟶ X n)
-(zero : X 0 ≅ Z)
-(projective : ∀ n, projective (X (n+1)))
-(epi : epi (d 0))
-(exact : ∀ n, exact (d (n+1)) (d n))
+(complex : chain_complex C ℕ)
+(π : homological_complex.hom complex ((chain_complex.single_0 C).obj Z))
+(projective : ∀ n, projective (complex.X n) . tactic.apply_instance)
+(exact₀ : exact (complex.d 1 0) (π.f 0) . tactic.apply_instance)
+(exact : ∀ n, exact (complex.d (n+2) (n+1)) (complex.d (n+1) n) . tactic.apply_instance)
+(epi : epi (π.f 0) . tactic.apply_instance)
+
+attribute [instance] ProjectiveResolution.projective ProjectiveResolution.exact₀
+  ProjectiveResolution.exact ProjectiveResolution.epi
+
+def ProjectiveResolution.of_core {Z : C} (P : ProjectiveResolution_core Z) : ProjectiveResolution Z :=
+let E := (chain_complex.of P.X P.d (λ n, (P.exact n).w)) in
+{ complex := chain_complex.truncate.obj E,
+  π := E.truncate_to ≫ ((chain_complex.single_0 C).map_iso P.zero).hom,
+  projective := P.projective,
+  exact₀ := begin
+    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
+    exact P.exact 0,
+  end,
+  exact := λ n, begin
+    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
+    exact P.exact (n+1),
+  end,
+  epi := begin
+    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    simp only [chain_complex.of_d],
+    haveI := P.epi,
+    apply epi_comp,
+  end, }
 
 /--
 An object admits a projective resolution.
@@ -71,84 +109,28 @@ namespace ProjectiveResolution
 
 variables [has_zero_object C] [has_image_maps C] [has_cokernels C]
 
--- TODO generalize to `chain_complex.mk`?
-def exact_sequence {Z : C} (P : ProjectiveResolution Z) : chain_complex C ℕ :=
-{ X := P.X,
-  d := λ i j, if h : i = j + 1 then eq_to_hom (congr_arg P.X h) ≫ P.d j else 0,
-  shape' := λ i j w, by rw dif_neg (ne.symm w),
-  d_comp_d' := λ i j k,
-  begin
-    split_ifs with h h' h',
-    { substs h h', simp [(P.exact k).w], },
-    all_goals { simp },
-  end }
-
-instance exact'' {Z : C} (P : ProjectiveResolution Z) (n : ℕ) :
-  category_theory.exact (P.exact_sequence.d (n+2) (n+1)) (P.exact_sequence.d (n+1) n) :=
-begin
-  dsimp [exact_sequence],
-  rw [if_pos rfl, if_pos rfl],
-  rw [category.id_comp, category.id_comp],
-  exact P.exact n,
-end
-
-def complex {Z : C} (P : ProjectiveResolution Z) : chain_complex C ℕ :=
-chain_complex.truncate.obj P.exact_sequence
-
-instance exact' {Z : C} (P : ProjectiveResolution Z) (n : ℕ) :
-  category_theory.exact (P.complex.d (n+2) (n+1)) (P.complex.d (n+1) n) :=
-ProjectiveResolution.exact'' P (n+1)
-
-instance projective' {Z : C} (P : ProjectiveResolution Z) (n : ℕ) :
-  category_theory.projective (P.complex.X n) :=
-P.projective n
-
-def π {Z : C} (P : ProjectiveResolution Z) :
-  P.complex ⟶ (chain_complex.of C).obj Z :=
-chain_complex.truncate_to P.exact_sequence ≫
-  ((chain_complex.of C).map_iso P.zero).hom
-
-instance {Z : C} (P : ProjectiveResolution Z) :
-  category_theory.exact (P.complex.d 1 0) (P.π.f 0) :=
-begin
-  -- TODO: yuck:
-  dsimp [π, complex, exact_sequence,
-    chain_complex.truncate_to, chain_complex.truncate, chain_complex.to_of_equiv],
-  simp only [if_congr,
- self_eq_add_left,
- if_true,
- category_theory.category.id_comp,
- add_left_inj,
- eq_self_iff_true,
- category_theory.exact_comp_iso],
-  exact P.exact _,
-end
-
 @[simp] lemma π_f_succ {Z : C} (P : ProjectiveResolution Z) (n : ℕ) :
   P.π.f (n+1) = 0 :=
 begin
-  -- TODO: yuck
-  dsimp [π, exact_sequence, chain_complex.truncate_to, chain_complex.truncate,
-    chain_complex.to_of_equiv],
-  rw [zero_comp],
+  apply zero_of_target_iso_zero,
+  dsimp, refl,
 end
-
--- instance quasi_iso {Z : C} (P : ProjectiveResolution Z) : quasi_iso P.π :=
--- begin
---   dsimp [π],
---   apply_instance,
--- end
 
 instance {Z : C} (P : ProjectiveResolution Z) (n : ℕ) : category_theory.epi (P.π.f n) :=
-begin
-  induction n,
-  { dsimp [π, exact_sequence,
-      chain_complex.truncate_to, chain_complex.truncate, chain_complex.to_of_equiv],
-    simp only [if_true, eq_self_iff_true, self_eq_add_left, category.comp_id, category.id_comp],
-    haveI := P.epi,
-    exact @epi_comp _ _ _ _ _ _ P.epi P.zero.hom _, },
-  { apply_instance, }
-end
+by cases n; apply_instance
+
+/-- A projective object admits a trivial projective resolution: itself in degree 0. -/
+def self (Z : C) [category_theory.projective Z] : ProjectiveResolution Z :=
+{ complex := (chain_complex.single_0 C).obj Z,
+  π := 𝟙 ((chain_complex.single_0 C).obj Z),
+  projective := λ n, begin
+    cases n,
+    { dsimp, apply_instance, },
+    { dsimp, apply_instance, },
+  end,
+  exact₀ := by { dsimp, apply_instance, },
+  exact := λ n, by { dsimp, apply_instance, },
+  epi := by { dsimp, apply_instance, }, }
 
 -- TODO define `ProjectiveResolution.self Z` for `[projective Z]`.
 
@@ -187,7 +169,7 @@ def lift_f_succ {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : Projec
 def lift {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   P.complex ⟶ Q.complex :=
 begin
-  fapply homological_complex.hom.mk_inductive,
+  fapply chain_complex.mk_hom,
   apply lift_f_zero f,
   apply lift_f_one f,
   apply lift_f_one_zero_comm f,
@@ -199,7 +181,7 @@ end
 @[simp, reassoc]
 lemma lift_commutes
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
-  lift f P Q ≫ Q.π = P.π ≫ (chain_complex.of C).map f :=
+  lift f P Q ≫ Q.π = P.π ≫ (chain_complex.single_0 C).map f :=
 begin
   ext n,
   rcases n with (_|_|n),
@@ -267,8 +249,8 @@ end
 /-- Two lifts of the same morphism are homotopic. -/
 def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
   (g h : P.complex ⟶ Q.complex)
-  (g_comm : g ≫ Q.π = P.π ≫ (chain_complex.of C).map f)
-  (h_comm : h ≫ Q.π = P.π ≫ (chain_complex.of C).map f) :
+  (g_comm : g ≫ Q.π = P.π ≫ (chain_complex.single_0 C).map f)
+  (h_comm : h ≫ Q.π = P.π ≫ (chain_complex.single_0 C).map f) :
   homotopy g h :=
 begin
   apply homotopy.equiv_sub_zero.inv_fun,
@@ -325,7 +307,7 @@ abbreviation projective_resolution (Z : C) [has_projective_resolution Z] : chain
 /-- The chain map from the arbitrarily chosen projective resolution `projective_resolution Z`
 back to the chain complex consisting of `Z` supported in degree `0`. -/
 abbreviation projective_resolution.π (Z : C) [has_projective_resolution Z] :
-  projective_resolution Z ⟶ (chain_complex.of C).obj Z :=
+  projective_resolution Z ⟶ (chain_complex.single_0 C).obj Z :=
 (has_projective_resolution.out Z).some.π
 
 /-- The lift of a morphism to a chain map between the arbitrarily chosen projective resolutions. -/

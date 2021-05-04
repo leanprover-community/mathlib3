@@ -124,8 +124,8 @@ begin
   tfae_finish
 end
 
-lemma mono_iff_exact_zero_left : mono f ↔ exact (0 : Z ⟶ X) f :=
-(tfae_mono Z f).out 0 2
+-- Note we've already proved `mono_iff_exact_zero_left : mono f ↔ exact (0 : Z ⟶ X) f`
+-- in any preadditive category with kernels and images.
 
 lemma mono_iff_kernel_ι_eq_zero : mono f ↔ kernel.ι f = 0 :=
 (tfae_mono X f).out 0 1
@@ -145,8 +145,8 @@ begin
   tfae_finish
 end
 
-lemma epi_iff_exact_zero_right : epi f ↔ exact f (0 : Y ⟶ Z) :=
-(tfae_epi Z f).out 0 2
+-- Note we've already proved `epi_iff_exact_zero_right : epi f ↔ exact f (0 : Y ⟶ Z)`
+-- in any preadditive category with equalizers and images.
 
 lemma epi_iff_cokernel_π_eq_zero : epi f ↔ cokernel.π f = 0 :=
 (tfae_epi X f).out 0 1

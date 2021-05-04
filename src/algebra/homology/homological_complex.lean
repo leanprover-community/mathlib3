@@ -466,9 +466,123 @@ arrow.hom_mk (f.comm_to j)
 
 @[simp] lemma sq_to_right (f : hom C₁ C₂) (j : ι) : (f.sq_to j).right = f.f j := rfl
 
-section mk_inductive
+end hom
 
-variables (P Q : chain_complex V ℕ)
+end homological_complex
+
+namespace chain_complex
+
+section of
+variables {V}
+
+/--
+Construct a `ℕ`-indexed chain complex from a dependently-typed differential.
+-/
+def of (X : ℕ → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0) : chain_complex V ℕ :=
+{ X := X,
+  d := λ i j, if h : i = j + 1 then
+    eq_to_hom (by subst h) ≫ d j
+  else
+    0,
+  shape' := λ i j w, by rw dif_neg (ne.symm w),
+  d_comp_d' := λ i j k,
+  begin
+    split_ifs with h h' h',
+    { substs h h',
+      simp only [category.id_comp, eq_to_hom_refl],
+      exact sq k, },
+    all_goals { simp },
+  end, }
+
+variables (X : ℕ → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0)
+
+@[simp] lemma of_X (n : ℕ) : (of X d sq).X n = X n := rfl
+@[simp] lemma of_d (j : ℕ) : (of X d sq).d (j+1) j = d j :=
+by { dsimp [of], rw [if_pos rfl, category.id_comp], }
+
+end of
+
+section mk
+
+/--
+Auxiliary structure for setting up the recursion in `mk`.
+This is purely an implementation detail: for some reason just using the dependent 6-tuple directly
+results in `mk_aux` taking about much longer (well over the `-T100000` limit) to elaborate.
+-/
+@[nolint has_inhabited_instance]
+structure mk_struct :=
+(X₀ X₁ X₂ : V)
+(d₀ : X₁ ⟶ X₀)
+(d₁ : X₂ ⟶ X₁)
+(s : d₁ ≫ d₀ = 0)
+
+variables {V}
+
+/-- Flatten to a tuple. -/
+def mk_struct.flat (t : mk_struct V) :
+  Σ' (X₀ X₁ X₂ : V) (d₀ : X₁ ⟶ X₀) (d₁ : X₂ ⟶ X₁), d₁ ≫ d₀ = 0 :=
+⟨t.X₀, t.X₁, t.X₂, t.d₀, t.d₁, t.s⟩
+
+variables (X₀ X₁ X₂ : V) (d₀ : X₁ ⟶ X₀) (d₁ : X₂ ⟶ X₁) (s : d₁ ≫ d₀ = 0)
+  (succ : Π (t : Σ' (X₀ X₁ X₂ : V) (d₀ : X₁ ⟶ X₀) (d₁ : X₂ ⟶ X₁), d₁ ≫ d₀ = 0),
+    Σ' (X₃ : V) (d₂ : X₃ ⟶ t.2.2.1), d₂ ≫ t.2.2.2.2.1 = 0)
+
+/-- Auxiliary definition for `mk`. -/
+def mk_aux :
+  Π n : ℕ, mk_struct V
+| 0 := ⟨X₀, X₁, X₂, d₀, d₁, s⟩
+| (n+1) :=
+  let p := mk_aux n in
+  ⟨p.X₁, p.X₂, (succ p.flat).1, p.d₁, (succ p.flat).2.1, (succ p.flat).2.2⟩
+
+/--
+A inductive constructor for `ℕ`-indexed chain complexes.
+
+You provide explicitly the first two differentials,
+then a function which takes two differentials and the fact they compose to zero,
+and returns the next object, its differential, and the fact it composes appropiately to zero.
+
+See also `mk'`, which only sees the previous differential in the inductive step.
+-/
+def mk : chain_complex V ℕ :=
+of (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).X₀) (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).d₀)
+  (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).s)
+
+@[simp] lemma mk_X_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 0 = X₀ := rfl
+@[simp] lemma mk_X_1 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 1 = X₁ := rfl
+@[simp] lemma mk_X_2 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 2 = X₂ := rfl
+@[simp] lemma mk_d_1_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 1 0 = d₀ :=
+by { change ite (1 = 0 + 1) (𝟙 X₁ ≫ d₀) 0 = d₀, rw [if_pos rfl, category.id_comp], }
+@[simp] lemma mk_d_2_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 2 1 = d₁ :=
+by { change ite (2 = 1 + 1) (𝟙 X₂ ≫ d₁) 0 = d₁, rw [if_pos rfl, category.id_comp], }
+-- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+
+/--
+A simpler inductive constructor for `ℕ`-indexed chain complexes.
+
+You provide explicitly the first differential,
+then a function which takes a differential,
+and returns the next object, its differential, and the fact it composes appropriately to zero.
+-/
+def mk' (X₀ X₁ : V) (d : X₁ ⟶ X₀)
+  (succ' : Π (t : Σ (X₀ X₁ : V), X₁ ⟶ X₀), Σ' (X₂ : V) (d : X₂ ⟶ t.2.1), d ≫ t.2.2 = 0) :
+  chain_complex V ℕ :=
+mk X₀ X₁ (succ' ⟨X₀, X₁, d⟩).1 d (succ' ⟨X₀, X₁, d⟩).2.1 (succ' ⟨X₀, X₁, d⟩).2.2
+  (λ t, succ' ⟨t.2.1, t.2.2.1, t.2.2.2.2.1⟩)
+
+variables (succ' : Π (t : Σ (X₀ X₁ : V), X₁ ⟶ X₀), Σ' (X₂ : V) (d : X₂ ⟶ t.2.1), d ≫ t.2.2 = 0)
+
+@[simp] lemma mk'_X_0 : (mk' X₀ X₁ d₀ succ').X 0 = X₀ := rfl
+@[simp] lemma mk'_X_1 : (mk' X₀ X₁ d₀ succ').X 1 = X₁ := rfl
+@[simp] lemma mk'_d_1_0 : (mk' X₀ X₁ d₀ succ').d 1 0 = d₀ :=
+by { change ite (1 = 0 + 1) (𝟙 X₁ ≫ d₀) 0 = d₀, rw [if_pos rfl, category.id_comp], }
+-- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+
+end mk
+
+section mk_hom
+
+variables {V} (P Q : chain_complex V ℕ)
   (zero : P.X 0 ⟶ Q.X 0)
   (one : P.X 1 ⟶ Q.X 1)
   (one_zero_comm : one ≫ Q.d 1 0 = P.d 1 0 ≫ zero)
@@ -477,18 +591,18 @@ variables (P Q : chain_complex V ℕ)
     Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), f'' ≫ Q.d (n+2) (n+1) = P.d (n+2) (n+1) ≫ p.2.1)
 
 /--
-An auxiliary construction for `mk_inductive`.
+An auxiliary construction for `mk_hom`.
 
 Here we build by induction a family of commutative squares,
 but don't require at the type level that these successive commutative squares actually agree.
 They do in fact agree, and we then capture that at the type level (i.e. by constructing a chain map)
-in `mk_inductive`.
+in `mk_hom`.
 -/
-def mk_inductive_aux :
+def mk_hom_aux :
   Π n, Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f' ≫ Q.d (n+1) n = P.d (n+1) n ≫ f
 | 0 := ⟨zero, one, one_zero_comm⟩
-| (n+1) := ⟨(mk_inductive_aux n).2.1,
-    (succ n (mk_inductive_aux n)).1, (succ n (mk_inductive_aux n)).2⟩
+| (n+1) := ⟨(mk_hom_aux n).2.1,
+    (succ n (mk_hom_aux n)).1, (succ n (mk_hom_aux n)).2⟩
 
 /--
 A constructor for chain maps between `ℕ`-indexed chain complexes,
@@ -500,30 +614,28 @@ and then give a construction of each component,
 and the fact that it forms a commutative square with the previous component,
 using as an inductive hypothesis the data (and commutativity) of the previous two components.
 -/
-def mk_inductive : P ⟶ Q :=
-{ f := λ n, (mk_inductive_aux P Q zero one one_zero_comm succ n).1,
+def mk_hom : P ⟶ Q :=
+{ f := λ n, (mk_hom_aux P Q zero one one_zero_comm succ n).1,
   comm' := λ n m,
   begin
     by_cases h : m + 1 = n,
     { subst h,
-      exact (mk_inductive_aux P Q zero one one_zero_comm succ m).2.2, },
+      exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2, },
     { rw [P.shape n m h, Q.shape n m h], simp, }
   end }
 
-@[simp] lemma mk_inductive_f_0 : (mk_inductive P Q zero one one_zero_comm succ).f 0 = zero := rfl
-@[simp] lemma mk_inductive_f_1 : (mk_inductive P Q zero one one_zero_comm succ).f 1 = one := rfl
-@[simp] lemma mk_inductive_f_succ_succ (n : ℕ) :
-  (mk_inductive P Q zero one one_zero_comm succ).f (n+2) =
-    (succ n ⟨(mk_inductive P Q zero one one_zero_comm succ).f n,
-      (mk_inductive P Q zero one one_zero_comm succ).f (n+1),
-        (mk_inductive P Q zero one one_zero_comm succ).comm (n+1) n⟩).1 :=
+@[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl
+@[simp] lemma mk_hom_f_1 : (mk_hom P Q zero one one_zero_comm succ).f 1 = one := rfl
+@[simp] lemma mk_hom_f_succ_succ (n : ℕ) :
+  (mk_hom P Q zero one one_zero_comm succ).f (n+2) =
+    (succ n ⟨(mk_hom P Q zero one one_zero_comm succ).f n,
+      (mk_hom P Q zero one one_zero_comm succ).f (n+1),
+        (mk_hom P Q zero one one_zero_comm succ).comm (n+1) n⟩).1 :=
 begin
-  dsimp [mk_inductive, mk_inductive_aux],
+  dsimp [mk_hom, mk_hom_aux],
   induction n; congr,
 end
 
-end mk_inductive
+end mk_hom
 
-end hom
-
-end homological_complex
+end chain_complex

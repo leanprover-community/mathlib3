@@ -166,9 +166,20 @@ lemma epi_iff_cancel_zero {P Q : C} (f : P ⟶ Q) :
   epi f ↔ ∀ (R : C) (g : Q ⟶ R), f ≫ g = 0 → g = 0 :=
 ⟨λ e R g, by exactI zero_of_epi_comp _, epi_of_cancel_zero f⟩
 
-lemma epi_of_cokernel_zero {X Y : C} (f : X ⟶ Y) [has_colimit (parallel_pair f 0 )]
+lemma epi_of_cokernel_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f 0 )]
   (w : cokernel.π f = 0) : epi f :=
 epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, limits.zero_comp])
+
+local attribute [instance] has_zero_object.has_zero
+variables [has_zero_object C]
+
+lemma mono_of_kernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_limit (parallel_pair f 0)]
+  (w : kernel f ≅ 0) : mono f :=
+mono_of_kernel_zero (zero_of_source_iso_zero _ w)
+
+lemma epi_of_cokernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f 0)]
+  (w : cokernel f ≅ 0) : epi f :=
+epi_of_cokernel_zero (zero_of_target_iso_zero _ w)
 
 end preadditive
 

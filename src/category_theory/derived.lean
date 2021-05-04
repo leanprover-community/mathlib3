@@ -69,13 +69,33 @@ def functor.left_derived_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
     (F.map_homotopy_equiv (ProjectiveResolution.homotopy_equiv _ P)))
   ≪≫ (homotopy_category.homology_factors D _ n).app _
 
+/-- The 0-th derived functor on a projective object `X` is just `X`. -/
+def functor.left_derived_obj_projective_zero (F : C ⥤ D) [F.additive]
+  (X : C) [projective X] :
+  (F.left_derived 0).obj X ≅ F.obj X :=
+begin
+  refine F.left_derived_obj_iso 0 (ProjectiveResolution.self X) ≪≫ _,
+  dsimp [ProjectiveResolution.self],
+  let i := (chain_complex.single_0_map_homological_complex F).app X,
+  refine (homology_functor _ _ _).map_iso i ≪≫ _,
+  sorry,
+end
+
+local attribute [instance] has_zero_object.has_zero
+
+/-- The higher derived functors vanish on projective objects. -/
+def functor.left_derived_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
+  (X : C) [projective X] :
+  (F.left_derived (n+1)).obj X ≅ 0 :=
+sorry
+
 /--
 We can compute a left derived functor on a morphism using a lift of that morphism
 to a chain map between chosen projective resolutions.
 -/
 lemma functor.left_derived_map_eq (F : C ⥤ D) [F.additive] (n : ℕ) {X Y : C} (f : X ⟶ Y)
   {P : ProjectiveResolution X} {Q : ProjectiveResolution Y} (g : P.complex ⟶ Q.complex)
-  (w : g ≫ Q.π = P.π ≫ (chain_complex.of C).map f) :
+  (w : g ≫ Q.π = P.π ≫ (chain_complex.single_0 C).map f) :
   (F.left_derived n).map f =
   (F.left_derived_obj_iso n P).hom ≫
     (homology_functor D _ n).map ((F.map_homological_complex _).map g) ≫
@@ -128,9 +148,7 @@ begin
   apply homotopy_equiv.homotopy_hom_inv_id,
 end
 
-
--- TODO calculate on projective objects
--- TODO left-derived functors of the identity functor
+-- TODO left-derived functors of the identity functor (requires we assume `abelian`!)
 -- PROJECT left-derived functors of a composition (Grothendieck sequence)
 
 end category_theory

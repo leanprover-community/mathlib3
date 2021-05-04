@@ -58,6 +58,86 @@ lemma factor_thru_image_subobject_comp_image_to_kernel (w : f ≫ g = 0) :
   factor_thru_image_subobject f ≫ image_to_kernel f g w = factor_thru_kernel_subobject g f w :=
 by { ext, simp, }
 
+
+end
+
+section
+variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+
+@[simp]
+lemma image_to_kernel_zero_left [has_kernels V] [has_zero_object V] {w} :
+  image_to_kernel (0 : A ⟶ B) g w = 0 :=
+by { ext, simp, }
+
+lemma image_to_kernel_zero_right [has_images V] {w} :
+  image_to_kernel f (0 : B ⟶ C) w =
+    (image_subobject f).arrow ≫ inv (kernel_subobject (0 : B ⟶ C)).arrow :=
+by { ext, simp }
+
+section
+variables [has_kernels V] [has_images V]
+
+lemma image_to_kernel_comp_right {D : V} (h : C ⟶ D) (w : f ≫ g = 0) :
+  image_to_kernel f (g ≫ h) (by simp [reassoc_of w]) =
+    image_to_kernel f g w ≫ subobject.of_le _ _ (kernel_subobject_comp_le g h) :=
+by { ext, simp }
+
+lemma image_to_kernel_comp_left {Z : V} (h : Z ⟶ A) (w : f ≫ g = 0) :
+  image_to_kernel (h ≫ f) g (by simp [w]) =
+    subobject.of_le _ _ (image_subobject_comp_le h f) ≫ image_to_kernel f g w :=
+by { ext, simp }
+
+@[simp]
+lemma image_to_kernel_comp_mono {D : V} (h : C ⟶ D) [mono h] (w) :
+  image_to_kernel f (g ≫ h) w =
+  image_to_kernel f g ((cancel_mono h).mp (by simpa using w : (f ≫ g) ≫ h = 0 ≫ h)) ≫
+    (subobject.iso_of_eq _ _ (kernel_subobject_comp_mono g h)).inv :=
+by { ext, simp, }
+
+@[simp]
+lemma image_to_kernel_epi_comp {Z : V} (h : Z ⟶ A) [epi h] (w) :
+  image_to_kernel (h ≫ f) g w =
+  subobject.of_le _ _ (image_subobject_comp_le h f) ≫
+    image_to_kernel f g ((cancel_epi h).mp (by simpa using w : h ≫ f ≫ g = h ≫ 0)) :=
+by { ext, simp, }
+
+end
+
+@[simp]
+lemma image_to_kernel_comp_hom_inv_comp [has_equalizers V] [has_images V] {Z : V} {i : B ≅ Z} (w) :
+  image_to_kernel (f ≫ i.hom) (i.inv ≫ g) w =
+  (image_subobject_comp_iso _ _).hom ≫ image_to_kernel f g (by simpa using w) ≫
+    (kernel_subobject_iso_comp i.inv g).inv :=
+by { ext, simp, }
+
+local attribute [instance] has_zero_object.has_zero
+
+/--
+`image_to_kernel` for `A --0--> B --g--> C`, where `g` is a mono is itself an epi
+(i.e. the sequence is exact at `B`).
+-/
+instance image_to_kernel_epi_of_zero_of_mono [has_kernels V] [has_zero_object V] [mono g] :
+  epi (image_to_kernel (0 : A ⟶ B) g (by simp)) :=
+epi_of_target_iso_zero _ (kernel_subobject_iso g ≪≫ kernel.of_mono g)
+
+/--
+`image_to_kernel` for `A --f--> B --0--> C`, where `g` is an epi is itself an epi
+(i.e. the sequence is exact at `B`).
+-/
+instance image_to_kernel_epi_of_epi_of_zero [has_images V] [epi f] :
+  epi (image_to_kernel f (0 : B ⟶ C) (by simp)) :=
+begin
+  simp only [image_to_kernel_zero_right],
+  haveI := epi_image_of_epi f,
+  rw ←image_subobject_arrow,
+  refine @epi_comp _ _ _ _ _ _ (epi_comp _ _) _ _,
+end
+
+end
+
+section
+variables {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
+
 /--
 The homology of a pair of morphisms `f : A ⟶ B` and `g : B ⟶ C` satisfying `f ≫ g = 0`
 is the cokernel of the `image_to_kernel` morphism for `f` and `g`.
@@ -142,80 +222,17 @@ by { ext, simp, }
 
 end
 
-end
-
-end
-
 section
-variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+variables {f' : A ⟶ B} [has_image f'] {g' : B ⟶ C} [has_kernel g'] (w' : f' ≫ g' = 0)
+  [has_cokernel (image_to_kernel f' g' w')] [has_images V] [has_image_maps V]
 
-@[simp]
-lemma image_to_kernel_zero_left [has_kernels V] [has_zero_object V] {w} :
-  image_to_kernel (0 : A ⟶ B) g w = 0 :=
-by { ext, simp, }
+def homology.congr (pf : f = f') (pg : g = g') : homology f g w ≅ homology f' g' w' :=
+{ hom := homology.map w w' { left := 𝟙 _, right := 𝟙 _, } { left := 𝟙 _, right := 𝟙 _, } rfl,
+  inv := homology.map w' w { left := 𝟙 _, right := 𝟙 _, } { left := 𝟙 _, right := 𝟙 _, } rfl, }
 
-lemma image_to_kernel_zero_right [has_images V] {w} :
-  image_to_kernel f (0 : B ⟶ C) w =
-    (image_subobject f).arrow ≫ inv (kernel_subobject (0 : B ⟶ C)).arrow :=
-by { ext, simp }
-
-section
-variables [has_kernels V] [has_images V]
-
-lemma image_to_kernel_comp_right {D : V} (h : C ⟶ D) (w : f ≫ g = 0) :
-  image_to_kernel f (g ≫ h) (by simp [reassoc_of w]) =
-    image_to_kernel f g w ≫ subobject.of_le _ _ (kernel_subobject_comp_le g h) :=
-by { ext, simp }
-
-lemma image_to_kernel_comp_left {Z : V} (h : Z ⟶ A) (w : f ≫ g = 0) :
-  image_to_kernel (h ≫ f) g (by simp [w]) =
-    subobject.of_le _ _ (image_subobject_comp_le h f) ≫ image_to_kernel f g w :=
-by { ext, simp }
-
-@[simp]
-lemma image_to_kernel_comp_mono {D : V} (h : C ⟶ D) [mono h] (w) :
-  image_to_kernel f (g ≫ h) w =
-  image_to_kernel f g ((cancel_mono h).mp (by simpa using w : (f ≫ g) ≫ h = 0 ≫ h)) ≫
-    (subobject.iso_of_eq _ _ (kernel_subobject_comp_mono g h)).inv :=
-by { ext, simp, }
-
-@[simp]
-lemma image_to_kernel_epi_comp {Z : V} (h : Z ⟶ A) [epi h] (w) :
-  image_to_kernel (h ≫ f) g w =
-  subobject.of_le _ _ (image_subobject_comp_le h f) ≫
-    image_to_kernel f g ((cancel_epi h).mp (by simpa using w : h ≫ f ≫ g = h ≫ 0)) :=
-by { ext, simp, }
 
 end
 
-@[simp]
-lemma image_to_kernel_comp_hom_inv_comp [has_equalizers V] [has_images V] {Z : V} {i : B ≅ Z} (w) :
-  image_to_kernel (f ≫ i.hom) (i.inv ≫ g) w =
-  (image_subobject_comp_iso _ _).hom ≫ image_to_kernel f g (by simpa using w) ≫
-    (kernel_subobject_iso_comp i.inv g).inv :=
-by { ext, simp, }
-
-local attribute [instance] has_zero_object.has_zero
-
-/--
-`image_to_kernel` for `A --0--> B --g--> C`, where `g` is a mono is itself an epi
-(i.e. the sequence is exact at `B`).
--/
-lemma image_to_kernel_epi_of_zero_of_mono [has_kernels V] [has_zero_object V] [mono g] :
-  epi (image_to_kernel (0 : A ⟶ B) g (by simp)) :=
-epi_of_target_iso_zero _ (kernel_subobject_iso g ≪≫ kernel.of_mono g)
-
-/--
-`image_to_kernel` for `A --f--> B --0--> C`, where `g` is an epi is itself an epi
-(i.e. the sequence is exact at `B`).
--/
-lemma image_to_kernel_epi_of_epi_of_zero [has_images V] [epi f] :
-  epi (image_to_kernel f (0 : B ⟶ C) (by simp)) :=
-begin
-  simp only [image_to_kernel_zero_right],
-  haveI := epi_image_of_epi f,
-  rw ←image_subobject_arrow,
-  refine @epi_comp _ _ _ _ _ _ (epi_comp _ _) _ _,
 end
 
 end

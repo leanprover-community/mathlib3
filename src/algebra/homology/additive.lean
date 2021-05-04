@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.homology
+import algebra.homology.single
 import category_theory.preadditive.additive_functor
 
 /-!
@@ -129,3 +130,35 @@ by tidy
 by tidy
 
 end category_theory
+
+namespace chain_complex
+
+variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero_object W]
+
+/--
+Turning an object into a complex supported at zero than applying a functor is
+the same as applying the functor then forming the complex.
+-/
+def single_0_map_homological_complex (F : V ⥤ W) [F.additive] :
+  single_0 V ⋙ F.map_homological_complex _ ≅ F ⋙ single_0 W :=
+nat_iso.of_components (λ X,
+{ hom := { f := λ i, match i with
+    | 0 := 𝟙 _
+    | (i+1) := F.map_zero_object.hom
+    end, },
+  inv := { f := λ i, match i with
+    | 0 := 𝟙 _
+    | (i+1) := F.map_zero_object.inv
+    end, },
+  hom_inv_id' := begin
+    ext (_|i),
+    { unfold_aux, simp, },
+    { unfold_aux,
+      dsimp,
+      simp only [comp_f, id_f, zero_comp],
+      exact (zero_of_source_iso_zero _ F.map_zero_object).symm, }
+  end,
+  inv_hom_id' := by { ext (_|i); { unfold_aux, dsimp, simp, }, }, })
+  (λ X Y f, begin ext (_|i); { unfold_aux, dsimp, simp, }, end)
+
+end chain_complex

@@ -41,8 +41,8 @@ the "single object" chain complex consisting of the truncated object `C.X 0` in 
 The components of this chain map are `C.d 1 0` in degree 0, and zero otherwise.
 -/
 def truncate_to [has_zero_object V] [has_zero_morphisms V] (C : chain_complex V ℕ) :
-  truncate.obj C ⟶ (of V).obj (C.X 0) :=
-(to_of_equiv (truncate.obj C) (C.X 0)).symm ⟨C.d 1 0, by tidy⟩
+  truncate.obj C ⟶ (single_0 V).obj (C.X 0) :=
+(to_single_0_equiv (truncate.obj C) (C.X 0)).symm ⟨C.d 1 0, by tidy⟩
 
 -- local attribute [instance] has_zero_object.has_zero
 
@@ -181,9 +181,9 @@ can be reinterpreted as a chain complex.
 
 Ths is the inverse construction of `truncate_to`.
 -/
-def to_of_as_complex
-  [has_zero_object V] (C : chain_complex V ℕ) (X : V) (f : C ⟶ (of V).obj X) :
+def to_single_0_as_complex
+  [has_zero_object V] (C : chain_complex V ℕ) (X : V) (f : C ⟶ (single_0 V).obj X) :
   chain_complex V ℕ :=
-let ⟨f, w⟩ := to_of_equiv C X f in augment C f w
+let ⟨f, w⟩ := to_single_0_equiv C X f in augment C f w
 
 end chain_complex

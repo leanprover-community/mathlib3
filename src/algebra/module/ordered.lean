@@ -98,7 +98,7 @@ begin
   refine { smul_lt_smul_of_pos := hlt', .. },
   intros a b c h hc,
   rcases (hR hc.ne') with ⟨c, rfl⟩,
-  rw [← c.inv_smul_smul a, ← c.inv_smul_smul b],
+  rw [← inv_smul_smul c a, ← inv_smul_smul c b],
   refine hlt' h (pos_of_mul_pos_left _ hc.le),
   simp only [c.mul_inv, zero_lt_one]
 end

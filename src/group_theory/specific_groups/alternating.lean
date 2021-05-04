@@ -146,28 +146,19 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
     (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
 end
 
-lemma is_three_cycle.alternating_normal_closure_eq_top (h5 : 5 ≤ fintype.card α)
+lemma is_three_cycle.top_le_alternating_normal_closure (h5 : 5 ≤ fintype.card α)
   {f : perm α} (hf : is_three_cycle f) :
-  normal_closure ({⟨f, hf.mem_alternating_group⟩} : set (alternating_group α)) = ⊤ :=
+  ⊤ ≤ normal_closure ({⟨f, hf.mem_alternating_group⟩} : set (alternating_group α)) :=
 begin
   have hi : function.injective (alternating_group α).subtype := subtype.coe_injective,
-  apply map_injective hi,
+  refine eq_top_iff.1 (map_injective hi (le_antisymm (map_mono le_top) _)),
   rw [← monoid_hom.range_eq_map, subtype_range, normal_closure, monoid_hom.map_closure],
-  refine (congr rfl _).trans closure_three_cycles_eq_alternating,
-  ext g,
-  split,
-  { rintro ⟨g', hg', rfl⟩,
-    simp_rw [group.mem_conjugates_of_set_iff, is_conj_iff] at hg',
-    obtain ⟨⟨f', hf'⟩, ff', ⟨c, hc⟩, rfl, hc'⟩ := hg',
-    simp only [subtype.val_eq_coe, subgroup.coe_subtype, coe_mk, coe_inv, subgroup.coe_mul,
-      set.mem_set_of_eq],
-    rw [is_three_cycle, cycle_type_conj, (subtype.mk_eq_mk.1 (set.mem_singleton_iff.1 ff')),
-      hf.cycle_type] },
-  { intro h,
-    obtain ⟨c, rfl⟩ := is_conj_iff.1 (is_conj_iff_cycle_type_eq.2 (hf.trans h.symm)),
-    refine ⟨⟨c * f * c⁻¹, h.mem_alternating_group⟩, _, rfl⟩,
-    rw group.mem_conjugates_of_set_iff,
-    exact ⟨⟨f, hf.mem_alternating_group⟩, set.mem_singleton _, is_three_cycle_is_conj h5 hf h⟩ }
+  refine (le_of_eq closure_three_cycles_eq_alternating.symm).trans (closure_mono _),
+  intros g h,
+  obtain ⟨c, rfl⟩ := is_conj_iff.1 (is_conj_iff_cycle_type_eq.2 (hf.trans h.symm)),
+  refine ⟨⟨c * f * c⁻¹, h.mem_alternating_group⟩, _, rfl⟩,
+  rw group.mem_conjugates_of_set_iff,
+  exact ⟨⟨f, hf.mem_alternating_group⟩, set.mem_singleton _, is_three_cycle_is_conj h5 hf h⟩
 end
 
 end equiv.perm
@@ -175,15 +166,14 @@ end equiv.perm
 namespace alternating_group
 open equiv.perm
 
-lemma normal_closure_fin_rotate_five :
-  (normal_closure ({⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩} :
-    set (alternating_group (fin 5)))) = ⊤ :=
+lemma top_le_normal_closure_fin_rotate_five :
+  ⊤ ≤ (normal_closure ({⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩} :
+    set (alternating_group (fin 5)))) :=
 begin
   have h3 : is_three_cycle ((fin.cycle_range 2) * (fin_rotate 5) *
     (fin.cycle_range 2)⁻¹ * (fin_rotate 5)⁻¹) := card_support_eq_three_iff.1 dec_trivial,
-  rw [eq_top_iff, ← h3.alternating_normal_closure_eq_top _],
-  swap, { rw [card_fin] },
-  refine normal_closure_le_normal _,
+  refine (h3.top_le_alternating_normal_closure _).trans (normal_closure_le_normal _),
+  { rw [card_fin] },
   rw [set.singleton_subset_iff, set_like.mem_coe],
   have h : (⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩ :
     alternating_group (fin 5)) ∈ normal_closure _ :=

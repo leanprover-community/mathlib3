@@ -24,10 +24,10 @@ namespace fintype
 
 def function_thing {α β γ : Type*} :
 ((α ⊕ β) → γ) ≃ (Σ f : α → γ, β → γ) :=
-{ to_fun := _,
-  inv_fun := _,
-  left_inv := _,
-  right_inv := _ }
+{ to_fun := sorry,
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry }
 
 def to_be_named {α β γ : Type*} :
 ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
@@ -41,7 +41,7 @@ def to_be_named {α β γ : Type*} :
   end⟩, by sorry⟩⟩,
   inv_fun := λ ⟨f, g⟩, ⟨function_thing.symm ⟨f, λ x, g x⟩, begin intros a b, by sorry end⟩,
   left_inv := begin intro f, ext, cases x with a b; sorry end,
-  right_inv := _ }
+  right_inv := sorry }
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=

@@ -11,6 +11,11 @@ import group_theory.perm.cycle_type
 /-!
 # Permutations of `fin n`
 -/
+
+@[simp] lemma fintype.card_coe_univ (α : Type*) [fintype α] :
+  fintype.card (@set.univ α) = fintype.card α :=
+fintype.card_congr (equiv.set.univ α)
+
 open equiv
 
 /-- Permutations of `fin (n + 1)` are equivalent to fixing a single
@@ -96,7 +101,7 @@ begin
   { rw fin_rotate_succ, simp [ih, pow_succ] },
 end
 
-@[simp] lemma support_fin_rotate {n : ℕ} : support (fin_rotate (n + 2)) = finset.univ :=
+@[simp] lemma support_fin_rotate {n : ℕ} : support (fin_rotate (n + 2)) = set.univ :=
 by { ext, simp }
 
 lemma is_cycle_fin_rotate {n : ℕ} : is_cycle (fin_rotate (n + 2)) :=
@@ -113,8 +118,10 @@ end
 
 @[simp] lemma cycle_type_fin_rotate {n : ℕ} : cycle_type (fin_rotate (n + 2)) = {n + 2} :=
 begin
-  rw [is_cycle_fin_rotate.cycle_type, support_fin_rotate, ← fintype.card, fintype.card_fin],
-  refl,
+  simp_rw [is_cycle_fin_rotate.cycle_type, support_fin_rotate],
+  congr,
+  convert fintype.card_coe_univ (fin (n + 2)),
+  simp
 end
 
 namespace fin

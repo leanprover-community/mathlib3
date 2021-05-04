@@ -29,10 +29,18 @@ to lemma statements that mention `(h : set.finite f.support).to_finset.card`, an
 
 -/
 
-lemma set.to_finset_image {α β : Type*} (s : set α) (f : α ↪ β)
+lemma set.to_finset_image_embedding {α β : Type*} (s : set α) (f : α ↪ β)
   [fintype s] [fintype (f '' s)] :
   (f '' s).to_finset = s.to_finset.map f :=
 by { ext, simp }
+
+lemma set.to_finset_image_equiv {α β : Type*} (s : set α) (f : α ≃ β)
+  [fintype s] [h : fintype (f '' s)] :
+  (f '' s).to_finset = s.to_finset.map f.to_embedding :=
+begin
+  letI : fintype ((f.to_embedding) '' s) := h,
+  convert s.to_finset_image_embedding f.to_embedding
+end
 
 open equiv set
 
@@ -327,12 +335,7 @@ end
 lemma support_extend_domain_finite {β : Type*} {p : β → Prop} [decidable_pred p]
   (g : α ≃ subtype p) :
   (f.extend_domain g).support.finite :=
-begin
-  rw support_extend_domain,
-  refine (finite_image_iff _).mpr hf,
-  intro,
-  simp [←subtype.ext_iff]
-end
+by simpa using hf.image _
 
 omit hf
 
@@ -359,7 +362,8 @@ lemma card_support_extend_domain {p : β → Prop} [decidable_pred p]
 begin
   letI := hg.fintype,
   letI := (support_extend_domain_finite hg f).fintype,
-  simp_rw [finite.card_to_finset, ←to_finset_card, support_extend_domain, set.to_finset_image],
+  simp_rw [finite.card_to_finset, ←to_finset_card, support_extend_domain,
+           set.to_finset_image_embedding],
   simp
 end
 

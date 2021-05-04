@@ -28,6 +28,25 @@ In this file we define the cycle type of a partition.
   cycle type.
 -/
 
+lemma set.disjoint_image_injective_iff {α β : Type*} {s t : set α} {f : α → β}
+  (hf : function.injective f) :
+  disjoint (f '' s) (f '' t) ↔ disjoint s t :=
+begin
+  split,
+  { rintro h x ⟨hs, ht⟩,
+    simpa using h ⟨set.mem_image_of_mem f hs, set.mem_image_of_mem f ht⟩ },
+  { rintro h x ⟨⟨y, hs, rfl⟩, z, ht, hyz⟩,
+    simpa using h ⟨hs, hf hyz ▸ ht⟩ }
+end
+
+lemma set.disjoint_image_embedding_iff {α β : Type*} {s t : set α} {f : α ↪ β} :
+  disjoint (f '' s) (f '' t) ↔ disjoint s t :=
+set.disjoint_image_injective_iff f.injective
+
+lemma set.disjoint_image_equiv_iff {α β : Type*} {s t : set α} {f : α ≃ β} :
+  disjoint (f '' s) (f '' t) ↔ disjoint s t :=
+set.disjoint_image_injective_iff f.injective
+
 namespace equiv.perm
 open equiv list multiset
 
@@ -164,7 +183,7 @@ begin
     rw [hσ.cycle_type, hσ.inv.cycle_type],
     congr' 4,
     simp },
-  { intros σ τ hστ hσ hτ,
+  { intros σ τ hστ h hσ hτ,
     rw [mul_inv_rev, hστ.cycle_type, ←hσ, ←hτ, add_comm],
     exact hστ.symm.inv_left.inv_right.cycle_type }
 end
@@ -176,12 +195,13 @@ begin
   { intro,
     simp },
   { intros σ hσ τ,
-    rw [hσ.cycle_type, hσ.is_cycle_conj.cycle_type, card_support_conj] },
+    rw [hσ.cycle_type, hσ.is_cycle_conj.cycle_type,
+        ←set.finite.card_to_finset, ←set.finite.card_to_finset, card_support_conj],
+    exact set.finite.of_fintype _ },
   { intros σ τ hd hc hσ hτ π,
     rw [← conj_mul, hd.cycle_type, disjoint.cycle_type, hσ, hτ],
-    intro a,
-    apply (hd (π⁻¹ a)).imp _ _;
-    { intro h, rw [perm.mul_apply, perm.mul_apply, h, apply_inv_self] } }
+    rwa [disjoint_iff_disjoint_support, support_conj, support_conj,
+         set.disjoint_image_equiv_iff, ←disjoint_iff_disjoint_support] }
 end
 
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = (fintype.card σ.support) :=
@@ -190,7 +210,7 @@ begin
   { simp [cycle_type_one] },
   { intros σ hσ,
     simp [hσ.cycle_type] },
-  { intros σ τ hστ hσ hτ,
+  { intros σ τ hστ h hσ hτ,
     rw [hστ.cycle_type, sum_add, hσ, hτ],
     convert (hστ.card_support_mul (set.finite.of_fintype _)
       (set.finite.of_fintype _) (set.finite.of_fintype _)).symm;
@@ -203,14 +223,14 @@ cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : 
   (by rw [sign_one, cycle_type_one, map_zero, prod_zero])
   (λ σ hσ, by rw [hσ.sign (set.finite.of_fintype _), hσ.cycle_type, coe_map, coe_prod,
     list.map_singleton, list.prod_singleton, set.finite.card_to_finset])
-  (λ σ τ hστ hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, map_add, prod_add])
+  (λ σ τ hστ h hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, map_add, prod_add])
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
   (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, lcm_singleton,
     order_of_is_cycle hσ (set.finite.of_fintype _), set.finite.card_to_finset, nat.normalize_eq])
-  (λ σ τ hστ hσ hτ, by rw [hστ.cycle_type, lcm_add, nat.lcm_eq_lcm, hστ.order_of, hσ, hτ])
+  (λ σ τ hστ h hσ hτ, by rw [hστ.cycle_type, lcm_add, nat.lcm_eq_lcm, hστ.order_of, hσ, hτ])
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
 begin
@@ -257,7 +277,7 @@ begin
   { intros σ τ hστ hσ h1 h2 π hπ,
     obtain ⟨l, rfl, hl1, hl2⟩ := trunc_cycle_factors π,
     rw [hστ.cycle_type, hσ.cycle_type, cycle_type_eq _ rfl hl1 hl2] at hπ,
-    have h : σ.support.card ∈ map (finset.card ∘ perm.support) l,
+    have h : fintype.card σ.support ∈ map (λ p, fintype.card (perm.support p)) l,
     { rw [← multiset.mem_coe, ← hπ],
       simp },
     obtain ⟨σ', hσ'l, hσ'⟩ := list.mem_map.1 h,
@@ -268,7 +288,7 @@ begin
         multiset.map_cons, hσ', cons_inj_right, coe_map] at hπ,
       rw [hπ, cycle_type_eq (l.erase σ') rfl (λ f hf, hl1 f (list.erase_subset _ _ hf))
         (list.pairwise_of_sublist (list.erase_sublist _ _) hl2)] },
-    { refine disjoint_prod_list_of_disjoint (λ g hg, list.rel_of_pairwise_cons _ hg),
+    { refine disjoint_prod_right _ (λ g hg, list.rel_of_pairwise_cons _ hg),
       refine (list.perm.pairwise_iff _ (list.perm_cons_erase hσ'l).symm).2 hl2,
       exact (λ _ _, disjoint.symm) } }
 end
@@ -287,7 +307,9 @@ begin
   apply cycle_induction_on _ g,
   { rw [extend_domain_one, cycle_type_one, cycle_type_one] },
   { intros σ hσ,
-    rw [(hσ.extend_domain f).cycle_type, hσ.cycle_type, card_support_extend_domain] },
+    rw [(hσ.extend_domain f).cycle_type, ←set.finite.card_to_finset,
+        hσ.cycle_type, ←set.finite.card_to_finset, card_support_extend_domain],
+    exact set.finite.of_fintype _ },
   { intros σ τ hd hc hσ hτ,
     rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
 end
@@ -349,7 +371,7 @@ def partition (σ : perm α) : partition (fintype.card α) :=
     exact support.decidable_pred } }
 
 lemma parts_partition {σ : perm α} :
-  σ.partition.parts = σ.cycle_type + repeat 1 (fintype.card α - σ.support.card) := rfl
+  σ.partition.parts = σ.cycle_type + repeat 1 (fintype.card α - fintype.card σ.support) := rfl
 
 lemma filter_parts_partition_eq_cycle_type {σ : perm α} :
   (partition σ).parts.filter (λ n, 2 ≤ n) = σ.cycle_type :=

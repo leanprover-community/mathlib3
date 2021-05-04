@@ -32,6 +32,19 @@ alternating group permutation
 
 -/
 
+@[simp] lemma set.compl_to_finset {α : Type*} [fintype α] [decidable_eq α] (s : set α)
+  [fintype s] [fintype (sᶜ : set α)] :
+  s.to_finsetᶜ = sᶜ.to_finset :=
+by { ext, simp }
+
+lemma fintype.card_compl {α : Type*} [fintype α] (s : set α) [fintype s] [fintype (sᶜ : set α)] :
+  fintype.card (sᶜ : set α) = fintype.card α - fintype.card s :=
+begin
+  classical,
+  convert finset.card_compl s.to_finset;
+  simp
+end
+
 open equiv equiv.perm subgroup fintype
 variables (α : Type*) [fintype α] [decidable_eq α]
 
@@ -87,7 +100,8 @@ open equiv.perm
 instance normal : (alternating_group α).normal := sign.normal_ker
 
 lemma is_conj_of {σ τ : alternating_group α}
-  (hc : is_conj (σ : perm α) (τ : perm α)) (hσ : (σ : perm α).support.card + 2 ≤ fintype.card α) :
+  (hc : is_conj (σ : perm α) (τ : perm α))
+  (hσ : fintype.card (σ : perm α).support + 2 ≤ fintype.card α) :
   is_conj σ τ :=
 begin
   obtain ⟨σ, hσ⟩ := σ,
@@ -95,20 +109,25 @@ begin
   obtain ⟨π, hπ⟩ := is_conj_iff.1 hc,
   rw [subtype.coe_mk, subtype.coe_mk] at hπ,
   cases int.units_eq_one_or (sign π) with h h,
-  { exact is_conj_iff.2 ⟨⟨π, mem_alternating_group.2 h⟩, subtype.val_injective (by simp [← hπ])⟩ },
-  { have h2 : 2 ≤ σ.supportᶜ.card,
-    { rw [finset.card_compl, nat.le_sub_left_iff_add_le σ.support.card_le_univ],
-      exact hσ },
-    obtain ⟨a, ha, b, hb, ab⟩ := finset.one_lt_card.1 h2,
+  { rw is_conj_iff,
+    use ⟨π, mem_alternating_group.mpr h⟩,
+    apply subtype.val_injective,
+    simpa [coe_mk, coe_inv, subgroup.coe_mul, subtype.val_eq_coe] using hπ },
+  { have h2 : 2 ≤ fintype.card (σ.supportᶜ : set α),
+      { rw [fintype.card_compl, nat.le_sub_left_iff_add_le],
+        { exact hσ },
+        { exact card_subtype_le _ } },
+    obtain ⟨⟨a, ha⟩, -, ⟨b, hb⟩, -, ab⟩ := finset.one_lt_card.1 h2,
+    simp only [subtype.mk_eq_mk, ne.def] at ab,
     refine is_conj_iff.2 ⟨⟨π * swap a b, _⟩, subtype.val_injective _⟩,
     { rw [mem_alternating_group, monoid_hom.map_mul, h, sign_swap ab, int.units_mul_self] },
     { simp only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
       have hd : disjoint (swap a b) σ,
-      { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
-          finset.singleton_disjoint],
-        exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
+      { rw [disjoint_iff_disjoint_support, support_swap ab, set.disjoint_left],
+        rintro z (rfl|rfl|_);
+        rwa ←set.mem_compl_iff },
       rw [mul_assoc π _ σ, disjoint.mul_comm hd],
-      simp [mul_assoc] } }
+      simp only [mul_assoc, swap_mul_self_mul, mul_inv_rev, coe_mk, swap_inv, coe_inv] } }
 end
 
 lemma is_three_cycle_is_conj (h5 : 5 ≤ fintype.card α)

@@ -35,6 +35,10 @@ The following two definitions require that `β` is a `fintype`:
     a prime cycle and a transposition
 
 -/
+theorem set.mem_image_equiv {α β : Type*} {s : set α} {f : α ≃ β} {b : β} :
+  b ∈ f '' s ↔ f.symm b ∈ s :=
+by { rw set.mem_image, exact ⟨by { rintro ⟨a, H, rfl⟩, simpa }, λ h, ⟨_, h, by simp⟩⟩ }
+
 namespace equiv.perm
 open equiv function finset
 
@@ -509,6 +513,7 @@ begin
     rw list.prod_cons,
     exact induction_disjoint σ l.prod
       (disjoint_prod_right _ (list.pairwise_cons.mp h2).1)
+      ((h1 σ (l.mem_cons_self σ)))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
       (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
 end
@@ -612,6 +617,7 @@ end
 end generation
 
 section
+
 variables [fintype α] {σ τ : perm α}
 
 noncomputable theory
@@ -666,16 +672,22 @@ theorem is_cycle.is_conj_iff (hσ : is_cycle σ) (hτ : is_cycle τ) :
 end, hσ.is_conj hτ⟩
 
 @[simp]
-lemma support_conj : (σ * τ * σ⁻¹).support = τ.support.map σ.to_embedding :=
+lemma support_conj : (σ * τ * σ⁻¹).support = σ '' τ.support :=
 begin
   ext,
-  simp only [mem_map_equiv, perm.coe_mul, comp_app, ne.def, perm.mem_support, equiv.eq_symm_apply],
-  refl,
+  simp_rw [set.mem_image_equiv, mem_support, ne.def, perm.mul_apply, eq_symm_apply, inv_def]
 end
 
-lemma card_support_conj : (σ * τ * σ⁻¹).support.card = τ.support.card :=
-by simp
+lemma support_conj_finite (σ τ : perm α) (hτ : τ.support.finite) : (σ * τ * σ⁻¹).support.finite :=
+by simpa using hτ.image _
 
+lemma card_support_conj (σ τ : perm α) (hτ : τ.support.finite) :
+  (support_conj_finite σ _ hτ).to_finset.card = hτ.to_finset.card :=
+begin
+  letI := hτ.fintype,
+  letI := (support_conj_finite σ _ hτ).fintype,
+  simp_rw [set.finite.card_to_finset, ←set.to_finset_card, support_conj, set.to_finset_image_equiv],
+  simp
 end
 
 theorem disjoint.is_conj_mul {α : Type*} [fintype α] {σ τ π ρ : perm α}
@@ -686,11 +698,10 @@ begin
   classical,
   obtain ⟨f, rfl⟩ := is_conj_iff.1 hc1,
   obtain ⟨g, rfl⟩ := is_conj_iff.1 hc2,
-  have hd1' := coe_inj.2 hd1.support_mul,
-  have hd2' := coe_inj.2 hd2.support_mul,
-  rw [coe_union] at *,
-  have hd1'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd1),
-  have hd2'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd2),
+  have hd1' := hd1.support_mul,
+  have hd2' := hd2.support_mul,
+  have hd1'' := (disjoint_iff_disjoint_support.1 hd1),
+  have hd2'' := (disjoint_iff_disjoint_support.1 hd2),
   refine is_conj_of_support_equiv _ _,
   { refine ((equiv.set.of_eq hd1').trans (equiv.set.union hd1'')).trans
       ((equiv.sum_congr (subtype_equiv f (λ a, _)) (subtype_equiv g (λ a, _))).trans
@@ -702,28 +713,30 @@ begin
       set.of_eq_symm_apply, equiv.sum_congr_apply],
     rw [hd1', set.mem_union] at hx,
     cases hx with hxσ hxτ,
-    { rw [mem_coe, mem_support] at hxσ,
+    { have : x ∉ τ.support := λ H, by simpa using hd1'' ⟨hxσ, H⟩,
+      rw [not_mem_support] at this,
+      rw [mem_support] at hxσ,
       rw [set.union_apply_left hd1'' _, set.union_apply_left hd1'' _],
       simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inl, comp_app,
         set.union_symm_apply_left, subtype.coe_mk, apply_eq_iff_eq],
-      { have h := (hd2 (f x)).resolve_left _,
+      { have h := (hd2.def (f x)).resolve_left _,
         { rw [mul_apply, mul_apply] at h,
-          rw [h, inv_apply_self, (hd1 x).resolve_left hxσ] },
+          rw [h, inv_apply_self, (hd1.def x).resolve_left hxσ] },
         { rwa [mul_apply, mul_apply, inv_apply_self, apply_eq_iff_eq] } },
-      { rwa [subtype.coe_mk, subtype.coe_mk, mem_coe, mem_support] },
-      { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
-          (hd1 x).resolve_left hxσ, mem_coe, apply_mem_support, mem_support] } },
-    { rw [mem_coe, ← apply_mem_support, mem_support] at hxτ,
+      { rwa [mem_support] },
+      { simpa [this] } },
+    { have : τ x ∉ σ.support := λ H, by simpa using hd1'' ⟨H, apply_mem_support.mpr hxτ⟩,
+      rw [not_mem_support] at this,
+      rw [← apply_mem_support, mem_support] at hxτ,
       rw [set.union_apply_right hd1'' _, set.union_apply_right hd1'' _],
       simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inr, comp_app,
         set.union_symm_apply_right, subtype.coe_mk, apply_eq_iff_eq],
-      { have h := (hd2 (g (τ x))).resolve_right _,
+      { have h := (hd2.def (g (τ x))).resolve_right _,
         { rw [mul_apply, mul_apply] at h,
-          rw [inv_apply_self, h, (hd1 (τ x)).resolve_right hxτ] },
+          rw [inv_apply_self, h, (hd1.def (τ x)).resolve_right hxτ] },
         { rwa [mul_apply, mul_apply, inv_apply_self, apply_eq_iff_eq] } },
-      { rwa [subtype.coe_mk, subtype.coe_mk, mem_coe, ← apply_mem_support, mem_support] },
-      { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
-          (hd1 (τ x)).resolve_right hxτ, mem_coe, mem_support] } } }
+      { rwa [← apply_mem_support, mem_support] },
+      { simpa [this] using hxτ } } }
 end
 
 section fixed_points
@@ -745,5 +758,7 @@ begin
 end
 
 end fixed_points
+
+end
 
 end equiv.perm

@@ -3,7 +3,7 @@ Copyright (c) 2021 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import algebra.group_power.lemmas
+import data.int.parity
 
 variables {α β γ : Type*} {f g : α → β} {c c₁ c₂ x : α}
 
@@ -79,16 +79,16 @@ by simpa only [sub_eq_add_neg] using h.neg_nsmul n x
 lemma periodic.sub_nat_mul_eq [ring α] (h : periodic f c) (n : ℕ) : f (x - n * c) = f x :=
 by simpa only [nsmul_eq_mul] using h.sub_nsmul_eq n
 
-lemma periodic.gsmul [add_group α] (h : periodic f c) (n : ℤ) : periodic f (n •ℤ c) :=
+lemma periodic.gsmul [add_group α] (h : periodic f c) (n : ℤ) : periodic f (n • c) :=
 begin
-  cases n, { exact h.nsmul n },
+  cases n, { simpa only [int.of_nat_eq_coe, gsmul_coe_nat] using h.nsmul n },
   simpa only [gsmul_neg_succ_of_nat] using (h.nsmul n.succ).neg,
 end
 
 lemma periodic.int_mul [ring α] (h : periodic f c) (n : ℤ) : periodic f (n * c) :=
 by simpa only [gsmul_eq_mul] using h.gsmul n
 
-lemma periodic.sub_gsmul_eq [add_group α] (h : periodic f c) (n : ℤ) : f (x - n •ℤ c) = f x :=
+lemma periodic.sub_gsmul_eq [add_group α] (h : periodic f c) (n : ℤ) : f (x - n • c) = f x :=
 (h.gsmul n).sub_eq x
 
 lemma periodic.sub_int_mul_eq [ring α] (h : periodic f c) (n : ℤ) : f (x - n * c) = f x :=
@@ -106,7 +106,7 @@ lemma periodic.nsmul_eq [add_monoid α] (h : periodic f c) (n : ℕ) : f (n • 
 lemma periodic.nat_mul_eq [semiring α] (h : periodic f c) (n : ℕ) : f (n * c) = f 0 :=
 (h.nat_mul n).eq
 
-lemma periodic.gsmul_eq [add_group α] (h : periodic f c) (n : ℤ) : f (n •ℤ c) = f 0 :=
+lemma periodic.gsmul_eq [add_group α] (h : periodic f c) (n : ℤ) : f (n • c) = f 0 :=
 (h.gsmul n).eq
 
 lemma periodic.int_mul_eq [ring α] (h : periodic f c) (n : ℤ) : f (n * c) = f 0 :=
@@ -130,6 +130,46 @@ by simp [two_mul, ← add_assoc, h _]
 
 lemma antiperiodic.eq [add_zero_class α] [has_neg β] (h : antiperiodic f c) : f c = -f 0 :=
 by simpa only [zero_add] using h 0
+
+lemma antiperiodic.nat_even_mul_periodic [semiring α] [add_group β]
+  (h : antiperiodic f c) (n : ℕ) :
+  periodic f (n * (2 * c)) :=
+h.periodic.nat_mul n
+
+lemma antiperiodic.nat_odd_mul_antiperiodic [semiring α] [add_group β]
+  (h : antiperiodic f c) (n : ℕ) :
+  antiperiodic f (n * (2 * c) + c) :=
+λ x, by rw [← add_assoc, h, h.periodic.nat_mul]
+
+lemma antiperiodic.int_even_mul_periodic [ring α] [add_group β]
+  (h : antiperiodic f c) (n : ℤ) :
+  periodic f (n * (2 * c)) :=
+h.periodic.int_mul n
+
+lemma antiperiodic.int_odd_mul_antiperiodic [ring α] [add_group β]
+  (h : antiperiodic f c) (n : ℤ) :
+  antiperiodic f (n * (2 * c) + c) :=
+λ x, by rw [← add_assoc, h, h.periodic.int_mul]
+
+lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [add_group β]
+  (h : antiperiodic f c) (hi : f 0 = 0) (n : ℕ) :
+  f (n * c) = 0 :=
+begin
+  rcases nat.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
+  have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
+  { simpa [hk, hi] using (h.nat_even_mul_periodic k).eq },
+  { simpa [add_mul, hk, hi] using (h.nat_odd_mul_antiperiodic k).eq },
+end
+
+lemma antiperiodic.int_mul_eq_of_eq_zero [comm_ring α] [add_group β]
+  (h : antiperiodic f c) (hi : f 0 = 0) (n : ℤ) :
+  f (n * c) = 0 :=
+begin
+  rcases int.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
+  have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
+  { simpa [hk, hi] using (h.int_even_mul_periodic k).eq },
+  { simpa [add_mul, hk, hi] using (h.int_odd_mul_antiperiodic k).eq },
+end
 
 lemma antiperiodic.sub_eq [add_group α] [add_group β] (h : antiperiodic f c) (x : α) :
   f (x - c) = -f x :=

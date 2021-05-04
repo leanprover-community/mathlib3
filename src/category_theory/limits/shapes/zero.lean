@@ -218,6 +218,11 @@ instance {B : Type*} [category B] [has_zero_morphisms C] : has_zero_object (B �
   unique_to := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩,
   unique_from := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩ }
 
+@[simp] lemma functor.zero_obj {B : Type*} [category B] [has_zero_morphisms C] (X : B) :
+  (0 : B ⥤ C).obj = 0 := rfl
+@[simp] lemma functor.zero_map {B : Type*} [category B] [has_zero_morphisms C]
+  {X Y : B} (f : X ⟶ Y) : (0 : B ⥤ C).map f = 0 := rfl
+
 end has_zero_object
 
 section

@@ -434,6 +434,17 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
   (incl g.ker).comp (ker.lift f g h) = f :=
 by { ext, refl }
 
+@[simp]
+lemma ker_zero : (0 : normed_group_hom V₁ V₂).ker = ⊤ :=
+by { ext, simp [normed_group_hom.mem_ker] }
+
+lemma ker_eq_preimage : (f.ker : set V₁) = (f : V₁ → V₂) ⁻¹' {0} :=
+by { ext, erw f.mem_ker }
+
+lemma is_closed_ker {V₂ : Type*} [normed_group V₂] (f : normed_group_hom V₁ V₂) :
+  is_closed (f.ker : set V₁) :=
+f.ker_eq_preimage ▸ is_closed.preimage f.continuous (t1_space.t1 0)
+
 end kernels
 
 /-! ### Range -/

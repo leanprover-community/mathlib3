@@ -1477,7 +1477,7 @@ lemma map_injective_of_injective {R S : Type*} [comm_ring R] [comm_ring S]
   (ϕ : R →+* S) (hϕ : function.injective ϕ) (M : submonoid R)
   (f : localization_map M Rₘ) (g : localization_map (M.map ϕ : submonoid S) Sₘ)
   (hM : (M.map ϕ : submonoid S) ≤ non_zero_divisors S) :
-  function.injective (f.map (M.mem_map_of_mem (ϕ : R →* S)) g) :=
+  function.injective (f.map (submonoid.apply_coe_mem_map (ϕ : R →* S)) g) :=
 begin
   rintros x y hxy,
   obtain ⟨a, b, rfl⟩ := localization_map.mk'_surjective f x,
@@ -1501,7 +1501,7 @@ lemma ring_hom.is_integral_elem_localization_at_leading_coeff
   (x : S) (p : polynomial R) (hf : p.eval₂ f x = 0) (M : submonoid R)
   (hM : p.leading_coeff ∈ M) {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
   (ϕ : localization_map M Rₘ) (ϕ' : localization_map (M.map ↑f : submonoid S) Sₘ) :
-  (ϕ.map (M.mem_map_of_mem (f : R →* S)) ϕ').is_integral_elem (ϕ'.to_map x) :=
+  (ϕ.map (submonoid.apply_coe_mem_map (f : R →* S)) ϕ').is_integral_elem (ϕ'.to_map x) :=
 begin
   by_cases triv : (1 : Rₘ) = 0,
   { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
@@ -1553,7 +1553,7 @@ end
 
 lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
   {f : R →+* S} (hf : f.is_integral) (M : submonoid R) :
-  ((localization.of M).map (M.mem_map_of_mem (f : R →* S))
+  ((localization.of M).map (submonoid.apply_coe_mem_map (f : R →* S))
   (localization.of (M.map ↑f))).is_integral :=
 @is_integral_localization R _ M S _ _ _ _ _ f.to_algebra _ _ hf
 

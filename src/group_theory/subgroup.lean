@@ -782,7 +782,7 @@ mem_image_iff_bex
 @[to_additive]
 lemma mem_map_of_mem {K : subgroup G} (f : G →* N) {x : G} (hx : x ∈ K) :
   f x ∈ subgroup.map f K :=
-subgroup.mem_map.mpr ⟨x, hx, rfl⟩
+mem_image_of_mem f hx
 
 @[to_additive]
 lemma map_mono {f : G →* N} {K K' : subgroup G} : K ≤ K' → map f K ≤ map f K' :=

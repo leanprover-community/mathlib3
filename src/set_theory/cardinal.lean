@@ -263,10 +263,10 @@ theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
 quotient.induction_on₃ a b c $ assume α β γ,
   quotient.sound ⟨equiv.sum_arrow_equiv_prod_arrow β γ α⟩
 
-theorem power_mul {a b c : cardinal} : (a ^ b) ^ c = a ^ (b * c) :=
+theorem power_mul {a b c : cardinal} : a ^ (b * c) = (a ^ b) ^ c :=
 by rw [_root_.mul_comm b c];
 from (quotient.induction_on₃ a b c $ assume α β γ,
-  quotient.sound ⟨(equiv.curry γ β α).symm⟩)
+  quotient.sound ⟨equiv.curry γ β α⟩)
 
 @[simp] lemma pow_cast_right (κ : cardinal.{u}) :
   ∀ n : ℕ, (κ ^ (↑n : cardinal.{u})) = @has_pow.pow _ _ monoid.has_pow κ n

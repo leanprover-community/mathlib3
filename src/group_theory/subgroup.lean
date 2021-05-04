@@ -133,6 +133,26 @@ lemma mem_to_submonoid (K : subgroup G) (x : G) : x ∈ K.to_submonoid ↔ x ∈
 instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
 show fintype {g : G // g ∈ K}, from infer_instance
 
+@[to_additive]
+theorem to_submonoid_injective :
+  function.injective (to_submonoid : subgroup G → submonoid G) :=
+λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
+
+@[simp, to_additive]
+theorem to_submonoid_eq {p q : subgroup G} : p.to_submonoid = q.to_submonoid ↔ p = q :=
+to_submonoid_injective.eq_iff
+
+@[mono, to_additive] lemma to_submonoid_strict_mono :
+  strict_mono (to_submonoid : subgroup G → submonoid G) := λ _ _, id
+
+@[mono, to_additive]
+lemma to_submonoid_mono : monotone (to_submonoid : subgroup G → submonoid G) :=
+to_submonoid_strict_mono.monotone
+
+@[simp, to_additive]
+lemma to_submonoid_le {p q : subgroup G} : p.to_submonoid ≤ q.to_submonoid ↔ p ≤ q :=
+iff.rfl
+
 end subgroup
 
 /-!
@@ -1198,6 +1218,33 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
+
+/-- Computable alternative to `monoid_hom.of_injective`. -/
+def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
+{ to_fun := f.range_restrict,
+  inv_fun := g ∘ f.range.subtype,
+  left_inv := h,
+  right_inv := by
+  { rintros ⟨x, y, rfl⟩,
+    apply subtype.ext,
+    rw [coe_range_restrict, function.comp_apply, subgroup.coe_subtype, subtype.coe_mk, h] },
+  .. f.range_restrict }
+
+@[simp] lemma of_left_inverse_apply {f : G →* N} {g : N →* G}
+  (h : function.left_inverse g f) (x : G) :
+  ↑(of_left_inverse h x) = f x := rfl
+
+@[simp] lemma of_left_inverse_symm_apply {f : G →* N} {g : N →* G}
+  (h : function.left_inverse g f) (x : f.range) :
+  (of_left_inverse h).symm x = g x := rfl
+
+/-- The range of an injective group homomorphism is isomorphic to its domain. -/
+noncomputable def of_injective {f : G →* N} (hf : function.injective f) : G ≃* f.range :=
+(mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
+  ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩)
+
+lemma of_injective_apply {f : G →* N} (hf : function.injective f) {x : G} :
+  ↑(of_injective hf x) = f x := rfl
 
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/

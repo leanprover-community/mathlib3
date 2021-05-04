@@ -143,24 +143,6 @@ begin
   exact hg _ hik
 end
 
-noncomputable def finsupp_prod_lequiv {α β : Type*} (R : Type*) {M : Type*}
-  [semiring R] [add_comm_monoid M] [module R M] :
-  (α × β →₀ M) ≃ₗ[R] (α →₀ β →₀ M) :=
-{ map_add' := λ f g, by { ext, simp [finsupp_prod_equiv, finsupp.curry_apply] },
-  map_smul' := λ c f, by { ext, simp [finsupp_prod_equiv, finsupp.curry_apply] },
-  .. finsupp_prod_equiv }
-
-@[simp] lemma finsupp_prod_lequiv_apply {α β R M : Type*}
-  [semiring R] [add_comm_monoid M] [module R M] (f : α × β →₀ M) (x y) :
-  finsupp_prod_lequiv R f x y = f (x, y) :=
-by rw [finsupp_prod_lequiv, linear_equiv.coe_mk, finsupp_prod_equiv, finsupp.curry_apply]
-
-@[simp] lemma finsupp_prod_lequiv_symm_apply {α β R M : Type*}
-  [semiring R] [add_comm_monoid M] [module R M] (f : α →₀ β →₀ M) (xy) :
-  (finsupp_prod_lequiv R).symm f xy = f xy.1 xy.2 :=
-by conv_rhs
-  { rw [← (finsupp_prod_lequiv R).apply_symm_apply f, finsupp_prod_lequiv_apply, prod.mk.eta] }
-
 /-- `basis.smul (b : basis ι R S) (c : basis ι S A)` is the `R`-basis on `A`
 where the `(i, j)`th basis vector is `b i • c j`. -/
 noncomputable def basis.smul {ι : Type v₁} {ι' : Type w₁}

@@ -721,7 +721,6 @@ lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
 tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
 
-
 lemma tendsto_neg_const_mul_pow_at_top_iff (c : α) (n : ℕ)
   : tendsto (λ x, c * x^n) at_top at_bot ↔ 1 ≤ n ∧ c < 0 :=
 ⟨λ h, begin

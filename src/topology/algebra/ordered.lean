@@ -1258,6 +1258,10 @@ lemma not_tendsto_at_bot_of_tendsto_nhds [no_bot_order α]
   ¬  tendsto f F at_bot :=
 hf.not_tendsto (disjoint_nhds_at_bot x)
 
+lemma tendsto_const_nhds_iff [densely_ordered α] {l : filter α} [ne_bot l] {c d : α} :
+  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
+⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
+
 /-!
 ### Neighborhoods to the left and to the right on an `order_topology`
 
@@ -1748,26 +1752,80 @@ begin
   exact tendsto_pow_neg_at_top (by exact_mod_cast this)
 end
 
-lemma tendsto_pow_zero_at_top_zero_iff {n : ℕ} {c d : α} :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
-sorry
-
-lemma tendsto_fpow_at_top_zero_iff {n : ℤ} :
-  tendsto (λ x : α, x^n) at_top (𝓝 0) ↔ n < 0 :=
+lemma tendsto_const_mul_zero_of_tendsto_zero {f : α → α} {c : α}
+  (h : tendsto f at_top (𝓝 0)) : tendsto (λ x, c * f x) at_top (𝓝 0) :=
 begin
-  refine ⟨λ h, _, tendsto_fpow_at_top_zero⟩,
-  by_contradiction hn,
-  rw not_lt at hn,
-  lift n to ℕ using hn,
-  simp at h,
-  -- rw tendsto_pow_zero_at_top_zero_iff at h,
-  sorry,
+  have : (λ (x : α), c * (f x)) = (λ x : α, c * x) ∘ f := by simp,
+  rw this,
+  refine tendsto.comp _ h,
+  by_cases hc0 : c = 0,
+  { simpa [hc0] using tendsto_const_nhds },
+  refine linear_ordered_add_comm_group.tendsto_nhds.mpr _,
+  intros ε hε,
+  rw eventually_nhds_iff,
+
+  by_cases hc : c < 0,
+  {
+    refine ⟨Ioo (ε / c) (-ε / c), λ x hx, _, is_open_Ioo, _⟩,
+    {
+      simp only [mem_Ioo, div_lt_iff_of_neg hc, lt_div_iff_of_neg hc] at hx,
+      simpa only [abs_lt, sub_zero, mul_comm c x] using and.symm hx,
+    },
+    refine mem_Ioo.mpr _,
+    simpa only [div_lt_iff_of_neg hc, lt_div_iff_of_neg hc, zero_mul, neg_neg_iff_pos, and_self],
+  },
+  {
+    replace hc : 0 < c := lt_of_le_of_ne (not_lt.1 hc) (ne.symm hc0),
+    refine ⟨Ioo (-ε / c) (ε / c), λ x hx, _, is_open_Ioo, _⟩,
+    {
+      simp only [mem_Ioo, div_lt_iff hc, lt_div_iff hc] at hx,
+      simpa only [abs_lt, sub_zero, mul_comm c x],
+    },
+    refine mem_Ioo.mpr _,
+    simp only [div_lt_iff hc, lt_div_iff hc, zero_mul],
+    refine ⟨by linarith, hε⟩,
+  }
 end
 
-lemma tendsto_const_mul_fpow_at_top_zero_iff {n : ℤ} {c : α} :
-  tendsto (λ x : α, c * x^n) at_top (𝓝 0) ↔ c = 0 ∨ n < 0 :=
+lemma tendsto_const_mul_fpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :
+  tendsto (λ x, c * x ^ n) at_top (𝓝 0) :=
+tendsto_const_mul_zero_of_tendsto_zero $ tendsto_fpow_at_top_zero hn
+
+lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
 begin
-  sorry,
+  refine ⟨λ h, _, λ h, _⟩,
+  { have hn : n = 0,
+    { by_contradiction hn,
+      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne (zero_le _) (ne.symm hn)),
+      by_cases hc' : 0 < c,
+      { have := (tendsto_const_mul_pow_at_top_iff c n).2 ⟨hn, hc'⟩,
+        exact not_tendsto_nhds_of_tendsto_at_top this d h },
+      { have := (tendsto_neg_const_mul_pow_at_top_iff c n).2 ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
+        exact not_tendsto_nhds_of_tendsto_at_bot this d h } },
+    have : (λ x : α, c * x ^ n) = (λ x : α, c), by simp [hn],
+    rw [this, tendsto_const_nhds_iff] at h,
+    exact ⟨hn, h⟩ },
+  { obtain ⟨hn, hcd⟩ := h,
+    simpa [hn, hcd] using tendsto_const_nhds }
+end
+
+lemma tendsto_const_mul_fpow_at_top_zero_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔
+    (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { by_cases hn : 0 ≤ n,
+    { lift n to ℕ using hn,
+      simp only [fpow_coe_nat] at h,
+      rw [tendsto_const_mul_pow_nhds_iff hc, ← int.coe_nat_eq_zero] at h,
+      exact or.inl h },
+    { rw not_le at hn,
+      refine or.inr ⟨hn, tendsto_nhds_unique h (tendsto_const_mul_fpow_at_top_zero hn)⟩ } },
+  { cases h,
+    { simp only [h.left, h.right, fpow_zero, mul_one],
+      exact tendsto_const_nhds },
+    { exact h.2.symm ▸ tendsto_const_mul_fpow_at_top_zero h.1} }
 end
 
 end linear_ordered_field

@@ -90,6 +90,32 @@ lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
 | ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩
 
+lemma not_is_bounded_under_of_tendsto_at_top [nonempty α] [semilattice_sup α]
+  [preorder β] [no_top_order β] {f : α → β} (hf : tendsto f at_top at_top) :
+  ¬ is_bounded_under (≤) at_top f :=
+begin
+  rintro ⟨b, hb⟩,
+  rw eventually_map at hb,
+  obtain ⟨b', h⟩ := no_top b,
+  have hb' := (tendsto_at_top.mp hf) b',
+  have : {x : α | f x ≤ b} ∩ {x : α | b' ≤ f x} = ∅ :=
+    eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.2 hx.1)),
+  refine at_top.empty_nmem_sets (this ▸ filter.inter_mem_sets hb hb' : ∅ ∈ (at_top : filter α)),
+end
+
+lemma not_is_bounded_under_of_tendsto_at_bot [nonempty α] [semilattice_sup α]
+  [preorder β] [no_bot_order β] {f : α → β} (hf : tendsto f at_top at_bot) :
+  ¬ is_bounded_under (≥) at_top f :=
+begin
+  rintro ⟨b, hb⟩,
+  rw eventually_map at hb,
+  obtain ⟨b', h⟩ := no_bot b,
+  have hb' := (tendsto_at_bot.mp hf) b',
+  have : {x : α | b ≤ f x} ∩ {x : α | f x ≤ b'} = ∅ :=
+    eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.1 hx.2)),
+  refine at_top.empty_nmem_sets (this ▸ filter.inter_mem_sets hb hb' : ∅ ∈ (at_top : filter α)),
+end
+
 /-- `is_cobounded (≺) f` states that the filter `f` does not tend to infinity w.r.t. `≺`. This is
 also called frequently bounded. Will be usually instantiated with `≤` or `≥`.
 

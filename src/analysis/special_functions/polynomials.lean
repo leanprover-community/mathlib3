@@ -38,89 +38,6 @@ end
 
 variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : polynomial 𝕜)
 
--- TODO: Move this stuff
-section MOVE
-
-variables {α : Type*}
-variables [linear_ordered_field α] [topological_space α] [order_topology α]
-
-@[simp]
-lemma is_bounded_under_const {α β : Type*} [preorder β] {l : filter α}
-  {b : β} : is_bounded_under (≤) l (λ x, b) :=
-⟨b, by simp only [le_refl b, eventually_true, eventually_map]⟩
-
--- Move near `unbounded_of_tendsto_at_top`
-lemma not_is_bounded_under_of_tendsto_at_top {α β : Type*}
-  [nonempty α] [semilattice_sup α] [partial_order β] [no_top_order β]
-  {f : α → β} (hf : tendsto f at_top at_top) :
-  ¬ is_bounded_under (≤) at_top f :=
-begin
-  intro h,
-  obtain ⟨b, hb⟩ := h,
-  rw eventually_map at hb,
-  rw tendsto_at_top at hf,
-  obtain ⟨b', hb'⟩ := no_top b,
-  specialize hf b',
-  rw [filter.eventually] at hf hb,
-  have : ∅ ∈ (at_top : filter α) := begin
-    have : {x : α | f x ≤ b} ∩ {x : α | b' ≤ f x} = ∅ := begin
-      refine set.ext (λ x, _),
-      simp only [set.mem_empty_eq, set.mem_inter_eq, not_and, set.mem_set_of_eq, iff_false],
-      intros hx hx', -- hx',
-      refine ne_of_lt hb' _,
-      refine le_antisymm (le_of_lt hb') (le_trans hx' hx),
-    end,
-    refine this ▸ _,
-    refine filter.inter_mem_sets hb hf,
-  end,
-  refine at_top.empty_nmem_sets this,
-end
-
-
-
-lemma tendsto_const_nhds_iff {l : filter α} [ne_bot l] {c d : α} :
-  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
-begin
-  refine ⟨λ h, _, λ h, h ▸ tendsto_const_nhds⟩,
-  have : tendsto (λ x, c) l (𝓝 c) := tendsto_const_nhds,
-  by_contradiction hcd,
-  refine this.not_tendsto ((nhds_nhds_disjoint_iff c d).2 hcd) h,
-end
-
-lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  {
-    have hn : n = 0,
-    begin
-      by_contradiction hn,
-      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne zero_le' (ne.symm hn)),
-      by_cases hc' : 0 < c,
-      {
-        have := (tendsto_const_mul_pow_at_top_iff c n).mpr ⟨hn, hc'⟩,
-        refine not_tendsto_nhds_of_tendsto_at_top this d h,
-      },
-      {
-        have := (tendsto_neg_const_mul_pow_at_top_iff c n).mpr ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
-        refine not_tendsto_nhds_of_tendsto_at_bot this d h,
-      }
-    end,
-    have : (λ x : α, c * x ^ n) = (λ x : α, c),
-    by simp [hn],
-    rw [this, tendsto_const_nhds_iff] at h,
-    exact ⟨hn, h⟩,
-  },
-  {
-    obtain ⟨hn, hcd⟩ := h,
-    simp [hn, hcd],
-    exact tendsto_const_nhds,
-  }
-end
-
-end MOVE
--- TODO: Move the above
-
 lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
 begin
   obtain ⟨x₀, hx₀⟩ := polynomial.exists_max_root P hP,
@@ -193,9 +110,8 @@ begin
   refine ⟨λ h, _, λ h, _⟩,
   { contrapose! h,
     exact not_is_bounded_under_of_tendsto_at_top (abs_tendsto_at_top P (helper.2 h)) },
-  { have : ∀ (x : 𝕜), abs (eval x P) = abs (P.coeff 0) := λ x,
-      congr_arg abs $ trans (congr_arg (eval x) (eq_C_of_degree_le_zero h)) (eval_C),
-    simp [this] }
+  { refine ⟨abs (P.coeff 0), eventually_map.mpr (eventually_of_forall (forall_imp (λ _, le_of_eq)
+      (λ x, congr_arg abs $ trans (congr_arg (eval x) (eq_C_of_degree_le_zero h)) (eval_C))))⟩ }
 end
 
 lemma abs_tendsto_at_top_iff :
@@ -204,6 +120,19 @@ lemma abs_tendsto_at_top_iff :
   (not_is_bounded_under_of_tendsto_at_top h))), abs_tendsto_at_top P⟩
 
 lemma tendsto_nhds_iff : (∃ c, tendsto (λ x, eval x P) at_top (𝓝 c)) ↔ P.degree ≤ 0 :=
+begin
+  refine ⟨λ h, _, λ h, (eq_C_of_degree_le_zero h).symm ▸ ⟨P.coeff 0, by simp [tendsto_const_nhds]⟩⟩,
+  by_cases hP : P = 0,
+  { simp [hP] },
+  { obtain ⟨c, h⟩ := h,
+    have := is_equivalent.tendsto_nhds (is_equivalent_at_top_lead P) h,
+    rw tendsto_const_mul_pow_nhds_iff (leading_coeff_ne_zero.2 hP) at this,
+    rw nat_degree_eq_zero_iff_degree_le_zero at this,
+    exact this.1 }
+end
+
+lemma tendsto_nhds_iff' {c : 𝕜} :
+  tendsto (λ x, eval x P) at_top (𝓝 c) ↔ c = P.leading_coeff ∧ P.degree ≤ 0 :=
 begin
   refine ⟨λ h, _, λ h, (eq_C_of_degree_le_zero h).symm ▸ ⟨P.coeff 0, by simp [tendsto_const_nhds]⟩⟩,
   by_cases hP : P = 0,

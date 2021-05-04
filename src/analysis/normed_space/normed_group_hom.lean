@@ -436,7 +436,7 @@ by { ext, refl }
 
 @[simp]
 lemma ker_zero : (0 : normed_group_hom V₁ V₂).ker = ⊤ :=
-by { ext, simp [normed_group_hom.mem_ker] }
+by { ext, simp [mem_ker] }
 
 lemma coe_ker : (f.ker : set V₁) = (f : V₁ → V₂) ⁻¹' {0} :=
 by { ext, erw f.mem_ker }

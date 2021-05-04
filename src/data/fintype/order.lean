@@ -114,4 +114,24 @@ lemma fintype.Inf_eq {α : Type*} [fintype α] [bounded_lattice α] (s : set α)
   [decidable_pred (∈ s)] : Inf s = s.to_finset.inf id :=
 by convert rfl
 
+/-- The `supr` induced by `fintype.complete_lattice` unfolds to `finset.sup`. -/
+lemma fintype.supr_eq {α ι: Type*} [fintype ι] [fintype α] [bounded_lattice α] (f : ι → α) :
+  supr f = finset.univ.sup f :=
+begin
+  classical,
+  -- TODO: use the `set.to_finset_range` lemma in #7426
+  have : (set.range f).to_finset = finset.univ.image f := by simp [finset.ext_iff],
+  rw [supr, fintype.Sup_eq, this, finset.sup_image, function.comp.left_id],
+end
+
+/-- The `infi` induced by `fintype.complete_lattice` unfolds to `finset.sup`. -/
+lemma fintype.infi_eq {α ι: Type*} [fintype ι] [fintype α] [bounded_lattice α] (f : ι → α) :
+  infi f = finset.univ.inf f :=
+begin
+  classical,
+  -- TODO: use the `set.to_finset_range` lemma in #7426
+  have : (set.range f).to_finset = finset.univ.image f := by simp [finset.ext_iff],
+  rw [infi, fintype.Inf_eq, this, finset.inf_image, function.comp.left_id],
+end
+
 end decidable_Sup_Inf

@@ -757,7 +757,7 @@ by { classical, rw finprod_mem_finset_of_product', simp_rw finprod_mem_finset_of
   ∏ᶠ ab, f ab = ∏ᶠ a b, f (a, b) :=
 begin
   have h₁ : ∀ a, ∏ᶠ (h : a ∈ hf.to_finset), f a = f a, { simp, },
-  have h₂ : ∏ᶠ a, f a = ∏ᶠ a (h : a ∈ hf.to_finset), f a, { simp_rw [h₁], },
+  have h₂ : ∏ᶠ a, f a = ∏ᶠ a (h : a ∈ hf.to_finset), f a, { simp, },
   simp_rw [h₂, finprod_mem_finset_of_product, h₁],
 end
 

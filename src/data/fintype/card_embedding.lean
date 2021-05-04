@@ -22,26 +22,51 @@ local notation `‖` x `‖` := fintype.card x
 
 namespace fintype
 
-def function_thing {α β γ : Type*} :
-((α ⊕ β) → γ) ≃ (Σ f : α → γ, β → γ) :=
-{ to_fun := sorry,
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry }
-
 def to_be_named {α β γ : Type*} :
 ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
-{ to_fun := λ f, ⟨function.embedding.inl.trans f, ⟨λ b, ⟨f (sum.inr b),
-  begin
-    apply set.mem_compl,
-    suffices : ∀ (x : α), ¬f (sum.inl x) = f (sum.inr b), by simpa,
-    intros x,
-    rw [function.injective.eq_iff f.injective],
-    simp only [not_false_iff]
-  end⟩, by sorry⟩⟩,
-  inv_fun := λ ⟨f, g⟩, ⟨function_thing.symm ⟨f, λ x, g x⟩, begin intros a b, by sorry end⟩,
-  left_inv := begin intro f, ext, cases x with a b; sorry end,
-  right_inv := sorry }
+{ to_fun := λ f, ⟨function.embedding.inl.trans f, -- α ↪ γ
+  ⟨λ b, ⟨f (sum.inr b), -- β → (f α)ᶜ
+
+    begin --proving membership in not the range
+      apply set.mem_compl,
+      suffices : ∀ (x : α), ¬f (sum.inl x) = f (sum.inr b), by simpa,
+      intros x,
+      rw [function.injective.eq_iff f.injective],
+      simp only [not_false_iff]
+    end⟩,
+
+  begin -- prove injective(β → (f α)ᶜ)
+    intros a b f_eq,
+    simp only [subtype.mk_eq_mk] at f_eq,
+    apply_fun @sum.inr α β using sum.inr_injective,
+    apply_fun f using function.embedding.injective f,
+    exact f_eq
+  end⟩⟩,
+
+  inv_fun := λ ⟨f, g⟩,
+    ⟨(equiv.sum_arrow_equiv_prod_arrow _ _ _).symm ⟨f, (λ x, g x)⟩, -- implicit coe here
+
+  begin -- prove that this amalgamation is injective; think this is the best way
+    rintros (a₁|b₁) (a₂|b₂) f_eq;
+    rw equiv.sum_arrow_equiv_prod_arrow at f_eq;
+    simp only [equiv.coe_fn_symm_mk, sum.elim_inl, sum.elim_inr] at f_eq,
+    { rw f.injective f_eq },
+    { exfalso, apply (g b₂).property, rw [subtype.val_eq_coe, ←f_eq], simp },
+    { exfalso, apply (g b₁).property, rw [subtype.val_eq_coe, f_eq], simp },
+    { rw g.injective (subtype.coe_injective f_eq) }
+  end⟩,
+
+  left_inv := λ f, by { ext, cases x; simp! [equiv.sum_arrow_equiv_prod_arrow] },
+
+  right_inv := λ f, by begin
+    dsimp only, cases f with g h, ext,
+    { simp! [equiv.sum_arrow_equiv_prod_arrow] },
+    -- I wish there was some way to make this just a `simp!` :(
+    simp! only [equiv.sum_arrow_equiv_prod_arrow, equiv.coe_fn_symm_mk, heq_iff_eq,
+                function.embedding.coe_fn_mk, sum.elim_inr, subtype.coe_eta],
+    ext,
+    simp,
+  end }
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
@@ -58,9 +83,6 @@ begin
   have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n, by sorry,
   simp, simp [this, card_univ], rw hn ((nat.lt_of_succ_le h).le), sorry
 end
-
-lemma asd (a n : ℕ) (h : n < a) : (a - n).desc_fac n * (a - n) = (a - (n + 1)).desc_fac (n + 1) :=
-  by slim_check -- seems okay
 
 variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
 

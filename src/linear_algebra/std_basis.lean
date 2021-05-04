@@ -187,36 +187,6 @@ begin
     exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
 end
 
-@[to_additive add_equiv.Pi_congr_right]
-def mul_equiv.Pi_congr_right
-  {Ms Ns : η → Type*} [Π j, monoid (Ms j)] [Π j, monoid (Ns j)]
-  (es : ∀ j, Ms j ≃* Ns j) : (Π j, Ms j) ≃* (Π j, Ns j) :=
-{ map_mul' := λ x y,
-    by { ext j,
-         simp_rw [equiv.Pi_congr_right, pi.mul_apply, mul_equiv.coe_to_equiv, mul_equiv.map_mul] },
-  .. equiv.Pi_congr_right (λ j, (es j).to_equiv) }
-
-@[simp, to_additive add_equiv.Pi_congr_right_apply]
-lemma mul_equiv.Pi_congr_right_apply
-  {Ms Ns : η → Type*} [Π j, monoid (Ms j)] [Π j, monoid (Ns j)]
-  (es : ∀ j, Ms j ≃* Ns j) (x j) :
-  mul_equiv.Pi_congr_right es x j = es j (x j) := rfl
-
-def linear_equiv.Pi_congr_right {Ms Ns : η → Type*}
-  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
-  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
-  (es : ∀ j, Ms j ≃ₗ[R] Ns j) : (Π j, Ms j) ≃ₗ[R] (Π j, Ns j) :=
-{ map_smul' := λ m x, by { ext j, simp },
-  .. add_equiv.Pi_congr_right (λ j, (es j).to_add_equiv) }
-
-@[simp]
-lemma linear_equiv.Pi_congr_right_apply
-  {Ms Ns : η → Type*}
-  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
-  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
-  (es : ∀ j, Ms j ≃ₗ[R] Ns j) (x j) :
-  linear_equiv.Pi_congr_right es x j = es j (x j) := rfl
-
 variable [fintype η]
 
 noncomputable def finsupp.sigma_finsupp_equiv_pi_finsupp

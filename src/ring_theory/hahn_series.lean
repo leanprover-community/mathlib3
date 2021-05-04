@@ -79,10 +79,7 @@ lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
 
 lemma ne_zero_of_coeff_ne_zero {x : hahn_series Γ R} {g : Γ} (h : x.coeff g ≠ 0) :
   x ≠ 0 :=
-begin
-  contrapose! h,
-  rw [h, zero_coeff]
-end
+mt (λ x0, (x0.symm ▸ zero_coeff : x.coeff g = 0)) h
 
 @[simp]
 lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_zero
@@ -133,13 +130,11 @@ support_single_subset h
 @[simp]
 lemma single_eq_zero : (single a (0 : R)) = 0 := (single a).map_zero
 
+lemma single_injective (a : Γ) : function.injective (single a : R → hahn_series Γ R) :=
+λ r s rs, by rw [← single_coeff_same a r, ← single_coeff_same a s, rs]
+
 lemma single_ne_zero (h : r ≠ 0) : single a r ≠ 0 :=
-begin
-  have h := support_single_of_ne h,
-  contrapose! h,
-  rw [h, support_zero, ne_comm],
-  exact (set.singleton_nonempty a).ne_empty,
-end
+λ con, h (single_injective a (con.trans single_eq_zero.symm))
 
 instance [nonempty Γ] [nontrivial R] : nontrivial (hahn_series Γ R) :=
 ⟨begin

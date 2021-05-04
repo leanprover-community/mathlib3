@@ -195,6 +195,11 @@ lemma mem_map_of_mem (f : M →* N) (x : S) : f x ∈ S.map f :=
 mem_image_of_mem f x.2
 
 @[to_additive]
+lemma mem_map_of_mem' (f : M →* N) {x : M} (hx : x ∈ S) :
+  f x ∈ S.map f :=
+mem_image_of_mem f hx
+
+@[to_additive]
 lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f) :=
 set_like.coe_injective $ image_image _ _ _
 

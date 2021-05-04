@@ -780,8 +780,13 @@ lemma mem_map {f : G →* N} {K : subgroup G} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
-lemma mem_map_of_mem {K : subgroup G} (f : G →* N) {x : G} (hx : x ∈ K) :
-  f x ∈ subgroup.map f K :=
+lemma mem_map_of_mem {K : subgroup G} (f : G →* N) (x : K) :
+  f x ∈ K.map f :=
+mem_image_of_mem f x.prop
+
+@[to_additive]
+lemma mem_map_of_mem' {K : subgroup G} (f : G →* N) {x : G} (hx : x ∈ K) :
+  f x ∈ K.map f :=
 mem_image_of_mem f hx
 
 @[to_additive]

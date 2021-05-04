@@ -309,7 +309,7 @@ extend_domain_hom (of_injective ι.1 ι.2)
 
 lemma of_embedding_hom_apply : of_embedding_hom ι e = of_embedding e ι := rfl
 
-lemma of_embedding_map_injective : function.injective (of_embedding_hom ι) :=
+lemma of_embedding_hom_injective : function.injective (of_embedding_hom ι) :=
 extend_domain_hom_injective (of_injective ι.1 ι.2)
 
 end perm

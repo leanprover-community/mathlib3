@@ -1212,14 +1212,17 @@ begin
 end
 
 instance : field (hahn_series Γ R) :=
-field_of_is_unit_or_eq_zero (λ x, begin
-  by_cases x0 : x = 0,
-  { right, exact x0 },
-  left,
-  have h := summable_family.one_sub_self_mul_hsum_powers (field_aux x x0),
-  rw [sub_sub_cancel] at h,
-  exact is_unit_of_mul_is_unit_right (is_unit_of_mul_eq_one _ _ h),
-end)
+{ inv := λ x, if x0 : x = 0 then 0 else
+    (C (x.coeff (x.order x0))⁻¹ * (single (-x.order x0)) 1 *
+      (summable_family.powers _ (field_aux x x0)).hsum),
+  inv_zero := dif_pos rfl,
+  mul_inv_cancel := λ x x0, begin
+    refine (congr rfl (dif_neg x0)).trans _,
+    have h := summable_family.one_sub_self_mul_hsum_powers (field_aux x x0),
+    rw [sub_sub_cancel] at h,
+    rw [← mul_assoc, mul_comm x, h],
+  end,
+  .. hahn_series.integral_domain }
 
 end field
 

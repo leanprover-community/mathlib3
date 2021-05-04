@@ -156,11 +156,11 @@ def comap : discrete_quotient Y :=
   clopen := λ y, ⟨is_open.preimage cont (S.clopen _).1, is_closed.preimage cont (S.clopen _).2⟩ }
 
 @[simp]
-lemma comap_id : S.comap (continuous_id : continuous (id : X → X)) = S := by {ext, refl}
+lemma comap_id : S.comap (continuous_id : continuous (id : X → X)) = S := by { ext, refl }
 
 @[simp]
 lemma comap_comp {Z : Type*} [topological_space Z] {g : Z → Y} (cont' : continuous g) :
-  S.comap (continuous.comp cont cont') = (S.comap cont).comap cont' := by {ext, refl}
+  S.comap (continuous.comp cont cont') = (S.comap cont).comap cont' := by { ext, refl }
 
 lemma comap_mono {A B : discrete_quotient X} (h : A ≤ B) : A.comap cont ≤ B.comap cont :=
 by tauto
@@ -174,13 +174,13 @@ def of_le {A B : discrete_quotient X} (h : A ≤ B) : A → B :=
 λ a, quotient.lift_on' a (λ x, B.proj x) (λ a b i, quotient.sound' (h _ _ i))
 
 @[simp]
-lemma of_le_refl {A : discrete_quotient X} : of_le (le_refl A) = id := by {ext ⟨⟩, refl}
+lemma of_le_refl {A : discrete_quotient X} : of_le (le_refl A) = id := by { ext ⟨⟩, refl }
 
 lemma of_le_refl_apply {A : discrete_quotient X} (a : A) : of_le (le_refl A) a = a := by simp
 
 @[simp]
 lemma of_le_comp {A B C : discrete_quotient X} (h1 : A ≤ B) (h2 : B ≤ C) :
-  of_le (le_trans h1 h2) = of_le h2 ∘ of_le h1 := by {ext ⟨⟩, refl}
+  of_le (le_trans h1 h2) = of_le h2 ∘ of_le h1 := by { ext ⟨⟩, refl }
 
 lemma of_le_comp_apply {A B C : discrete_quotient X} (h1 : A ≤ B) (h2 : B ≤ C) (a : A) :
   of_le (le_trans h1 h2) a = of_le h2 (of_le h1 a) := by simp
@@ -190,11 +190,11 @@ lemma of_le_continuous {A B : discrete_quotient X} (h : A ≤ B) :
 
 @[simp]
 lemma of_le_proj {A B : discrete_quotient X} (h : A ≤ B) :
-  of_le h ∘ A.proj = B.proj := by {ext, exact quotient.sound' (B.refl _)}
+  of_le h ∘ A.proj = B.proj := by { ext, exact quotient.sound' (B.refl _) }
 
 @[simp]
 lemma of_le_proj_apply {A B : discrete_quotient X} (h : A ≤ B) (x : X) :
-  of_le h (A.proj x) = B.proj x := by {change (of_le h ∘ A.proj) x = _, simp}
+  of_le h (A.proj x) = B.proj x := by { change (of_le h ∘ A.proj) x = _, simp }
 
 end of_le
 
@@ -233,28 +233,28 @@ lemma map_proj (cond : le_rel cont A B) : map cond ∘ A.proj = B.proj ∘ f := 
 lemma map_proj_apply (cond : le_rel cont A B) (y : Y) : map cond (A.proj y) = B.proj (f y) := rfl
 
 @[simp]
-lemma map_id : map (le_rel_id A) = id := by {ext ⟨⟩, refl}
+lemma map_id : map (le_rel_id A) = id := by { ext ⟨⟩, refl }
 
 @[simp]
 lemma map_comp {Z : Type*} [topological_space Z] {g : Z → Y} {cont' : continuous g}
   {C : discrete_quotient Z} (h1 : le_rel cont' C A) (h2 : le_rel cont A B) :
-  map (le_rel_comp h1 h2) = map h2 ∘ map h1 := by {ext ⟨⟩, refl}
+  map (le_rel_comp h1 h2) = map h2 ∘ map h1 := by { ext ⟨⟩, refl }
 
 @[simp]
 lemma of_le_map {C : discrete_quotient X} (cond : le_rel cont A B) (h : B ≤ C) :
-   map (le_rel_trans cond h) = of_le h ∘ map cond := by {ext ⟨⟩, refl}
+   map (le_rel_trans cond h) = of_le h ∘ map cond := by { ext ⟨⟩, refl }
 
 @[simp]
 lemma of_le_map_apply {C : discrete_quotient X} (cond : le_rel cont A B) (h : B ≤ C) (a : A) :
-  map (le_rel_trans cond h) a = of_le h (map cond a) := by {rcases a, refl}
+  map (le_rel_trans cond h) a = of_le h (map cond a) := by { rcases a, refl }
 
 @[simp]
 lemma map_of_le {C : discrete_quotient Y} (cond : le_rel cont A B) (h : C ≤ A) :
-   map (le_trans h cond) = map cond ∘ of_le h := by {ext ⟨⟩, refl}
+   map (le_trans h cond) = map cond ∘ of_le h := by { ext ⟨⟩, refl }
 
 @[simp]
 lemma map_of_le_apply {C : discrete_quotient Y} (cond : le_rel cont A B) (h : C ≤ A) (c : C) :
-  map (le_trans h cond) c = map cond (of_le h c) := by {rcases c, refl}
+  map (le_trans h cond) c = map cond (of_le h c) := by { rcases c, refl }
 
 end map
 

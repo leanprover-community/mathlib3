@@ -18,7 +18,7 @@ https://en.wikipedia.org/wiki/Divergence_of_the_sum_of_the_reciprocals_of_the_pr
 
 open_locale big_operators
 open_locale classical
-open nat filter finset
+open filter finset
 
 lemma card_le_div_nat {n p : ℕ} (hp : 0 < p) : card {e ∈ range n | p ∣ (e + 1)} ≤ n / p :=
 begin
@@ -34,8 +34,8 @@ begin
     { rw ← nat.div_self hp,
       exact nat.div_le_div_right (show n ≥ p, by nlinarith [(show w > 0, by nlinarith)]) },
     calc (a + 1) / p - 1 ≤ n / p - 1 : nat.sub_le_sub_right
-                                         (nat.div_le_div_right (succ_le_iff.mpr han)) 1
-    ...                  < n / p     : sub_lt (by linarith) zero_lt_one },
+                                         (nat.div_le_div_right (nat.succ_le_iff.mpr han)) 1
+    ...                  < n / p     : nat.sub_lt (by linarith) zero_lt_one },
 
   have hf_inj : ∀ (a₁ : ℕ), a₁ ∈ Np → ∀ (a₂ : ℕ), a₂ ∈ Np → f a₁ = f a₂ → a₁ = a₂,
   { intros a₁ ha₁ a₂ ha₂ hfeq,
@@ -46,8 +46,8 @@ begin
     obtain ⟨hna₂, ⟨w₂, hw₂⟩⟩ := ha₂,
     rw [hw₁, hw₂, nat.mul_div_cancel_left w₁ hp, nat.mul_div_cancel_left w₂ hp] at hfeq,
     have hw₁_eq_w₂ : w₁ = w₂,
-    rw [← succ_pred_eq_of_pos (show w₁ > 0, by nlinarith), ← sub_one,
-        ← succ_pred_eq_of_pos (show w₂ > 0, by nlinarith), ← sub_one, hfeq],
+    rw [← nat.succ_pred_eq_of_pos (show w₁ > 0, by nlinarith), ← nat.sub_one,
+        ← nat.succ_pred_eq_of_pos (show w₂ > 0, by nlinarith), ← nat.sub_one, hfeq],
     rw [(show a₁ = p * w₁ - 1, by finish), (show a₂ = p * w₂ - 1, by finish), hw₁_eq_w₂] },
 
   calc  card Np ≤ card (range (n / p)) : card_le_card_of_inj_on f hf hf_inj
@@ -57,10 +57,10 @@ end
 lemma card_le_div_real {n p : ℕ} (hp : 0 < p) :
   (card {e ∈ range n | p ∣ (e + 1)} : ℝ) ≤ n * (1 / p) :=
 begin
-  have hp0 : (p : ℝ) > 0 := cast_pos.mpr hp,
-  have hnp : (n / p) * p ≤ n := div_mul_le_self n p,
+  have hp0 : (p : ℝ) > 0 := nat.cast_pos.mpr hp,
+  have hnp : (n / p) * p ≤ n := nat.div_mul_le_self n p,
   calc  (card {e ∈ range n | p ∣ (e + 1)} : ℝ)
-      ≤ ↑(n / p)      : cast_le.mpr (card_le_div_nat hp)
+      ≤ ↑(n / p)      : nat.cast_le.mpr (card_le_div_nat hp)
   ... ≤ ↑n / ↑p       : (le_div_iff hp0).mpr (by assumption_mod_cast)
   ... = ↑n * (1 / ↑p) : div_eq_mul_one_div ↑n ↑p,
 end
@@ -120,8 +120,8 @@ begin
     split,
     { simp only [mem_filter, mem_range],
     refine ⟨_, hpk, hpp⟩,
-    calc p ≤ e + 1 : (le_of_dvd (succ_pos e)) hpe1
-    ...    < x + 1 : succ_lt_succ hex },
+    calc p ≤ e + 1 : (nat.le_of_dvd (nat.succ_pos e)) hpe1
+    ...    < x + 1 : nat.succ_lt_succ hex },
     { exact ⟨hex, hpe1⟩ } },
   { rintros ⟨p, hpfilter, ⟨hex, hpe1⟩⟩,
     simp only [mem_filter, mem_range] at hpfilter,
@@ -146,7 +146,7 @@ begin
                                      intro p,
                                      simp only [P, sep_def, mem_filter, mem_range],
                                      rintros ⟨-, -, hpp⟩,
-                                     simp only [N, card_le_div_real (prime.pos hpp)] }
+                                     simp only [N, card_le_div_real (nat.prime.pos hpp)] }
   ... = x * (∑ p in P, 1 / p) : mul_sum.symm,
 end
 
@@ -155,35 +155,36 @@ lemma lemma4_aux_card_M1_le_2_pow_k {x k : ℕ} :
 begin
   let M₁ := {e ∈ range x | squarefree (e + 1) ∧ ∀ p : ℕ, (nat.prime p ∧ p ∣ (e + 1)) → p ≤ k},
   set f : finset ℕ → ℕ := λ s, (finset.prod s (λ a, a)) - 1 with hf_def,
-  let K := powerset (image succ (range k)),
+  let K := powerset (image nat.succ (range k)),
 
   have h : M₁ ⊆ image f K,
   { intros m hm,
     simp only [M₁, sep_def, mem_filter, mem_range] at hm,
     obtain ⟨hmx, hms, hmp⟩ := hm,
-    have h' : ∃ (a : finset ℕ), a ⊆ image succ (range k) ∧ f a = m,
+    have h' : ∃ (a : finset ℕ), a ⊆ image nat.succ (range k) ∧ f a = m,
     { use (m + 1).factors,
-      { rw [multiset.coe_nodup, ← nat.squarefree_iff_nodup_factors (succ_ne_zero m)], exact hms },
+      { rw [multiset.coe_nodup, ← nat.squarefree_iff_nodup_factors (nat.succ_ne_zero m)],
+        exact hms },
       split,
       { intro p,
         have h1 : p ∈ (m + 1).factors → (∃ (a : ℕ), a < k ∧ a.succ = p),
         { intro hp,
           use p.pred,
-          rw (nat.mem_factors (zero_lt_succ m)) at hp,
+          rw (nat.mem_factors (nat.zero_lt_succ m)) at hp,
           exact ⟨lt_of_lt_of_le (nat.pred_lt (nat.prime.ne_zero hp.left)) ((hmp p) hp),
                 nat.succ_pred_eq_of_pos (nat.prime.pos hp.left)⟩ },
         simpa },
       { have h2 : (m + 1).factors.prod - 1 = m,
-        { rwa nat.prod_factors (zero_lt_succ m), exact succ_sub_one m },
+        { rwa nat.prod_factors (nat.zero_lt_succ m), exact nat.succ_sub_one m },
       rw hf_def,
       simpa } },
     simpa },
 
-  calc card M₁ ≤ card (image f K)                : card_le_of_subset h
-  ...          ≤ card K                          : card_image_le
-  ...          ≤ 2 ^ card (image succ (range k)) : by simp only [K, card_powerset]
-  ...          ≤ 2 ^ card (range k)              : pow_le_pow one_le_two card_image_le
-  ...          = 2 ^ k                           : by rw (card_range k),
+  calc card M₁ ≤ card (image f K)                    : card_le_of_subset h
+  ...          ≤ card K                              : card_image_le
+  ...          ≤ 2 ^ card (image nat.succ (range k)) : by simp only [K, card_powerset]
+  ...          ≤ 2 ^ card (range k)                  : pow_le_pow one_le_two card_image_le
+  ...          = 2 ^ k                               : by rw (card_range k),
 end
 
 lemma lemma4_card_M_le_2_pow_k_mul_sqrt_x {x k : ℕ} :
@@ -200,13 +201,13 @@ begin
     simp only [M, sep_def, mem_filter, mem_range] at hm,
     obtain ⟨hmx, hmp⟩ := hm,
     have h1' : ∃ (a b : ℕ), (a ∈ M₁ ∧ b ∈ M₂) ∧ f (a, b) = m,
-    { obtain ⟨a, b, hab₁, hab₂⟩ := sq_mul_squarefree_of_pos' (zero_lt_succ m),
+    { obtain ⟨a, b, hab₁, hab₂⟩ := nat.sq_mul_squarefree_of_pos' (nat.zero_lt_succ m),
 
       have h11 : a ∈ M₁,
       { simp only [M₁, sep_def, mem_filter, mem_range],
         have ham : (a + 1) ∣ (m + 1) := dvd.intro_left ((b + 1) ^ 2) hab₁,
         refine ⟨(lt_of_le_of_lt _) hmx, hab₂, _⟩,
-        { exact succ_le_succ_iff.mp ((nat.le_of_dvd (zero_lt_succ m)) ham) },
+        { exact nat.succ_le_succ_iff.mp ((nat.le_of_dvd (nat.zero_lt_succ m)) ham) },
         { intro p,
           specialize hmp p,
           rintros ⟨hpp, hpa⟩,
@@ -219,15 +220,15 @@ begin
         split,
         { calc b < b + 1 : lt_add_one b
           ...    ≤ nat.sqrt(m + 1) : by { rw [nat.le_sqrt, ← pow_two (b + 1)],
-                                          exact nat.le_of_dvd (zero_lt_succ m) hbm₁ }
-          ...    ≤ nat.sqrt x : sqrt_le_sqrt (succ_le_iff.mpr hmx) },
+                                          exact nat.le_of_dvd (nat.zero_lt_succ m) hbm₁ }
+          ...    ≤ nat.sqrt x : nat.sqrt_le_sqrt (nat.succ_le_iff.mpr hmx) },
         { intro p,
           specialize hmp p,
           rintros ⟨hpp, hpb⟩,
           exact hmp ⟨hpp, dvd.trans hpb hbm₂⟩ } },
 
       have h13 : f (a, b) = m,
-      { have h13' : (b + 1) ^ 2 * (a + 1) - 1 = m, rw [hab₁, succ_sub_one m],
+      { have h13' : (b + 1) ^ 2 * (a + 1) - 1 = m, rw [hab₁, nat.succ_sub_one m],
         simpa [f] },
 
       exact ⟨a, b, ⟨h11, h12⟩, h13⟩ },

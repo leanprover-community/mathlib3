@@ -88,7 +88,7 @@ instance normal : (alternating_group α).normal := sign.normal_ker
 
 lemma is_conj_of {σ τ : alternating_group α}
   (hc : is_conj (σ : perm α) (τ : perm α)) (hσ : (σ : perm α).support.card + 2 ≤ fintype.card α) :
-    is_conj σ τ :=
+  is_conj σ τ :=
 begin
   obtain ⟨σ, hσ⟩ := σ,
   obtain ⟨τ, hτ⟩ := τ,

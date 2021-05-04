@@ -96,7 +96,7 @@ begin
   { rw fin_rotate_succ, simp [ih, pow_succ] },
 end
 
-lemma support_fin_rotate {n : ℕ} : support (fin_rotate (n + 2)) = finset.univ :=
+@[simp] lemma support_fin_rotate {n : ℕ} : support (fin_rotate (n + 2)) = finset.univ :=
 by { ext, simp }
 
 lemma is_cycle_fin_rotate {n : ℕ} : is_cycle (fin_rotate (n + 2)) :=
@@ -111,7 +111,7 @@ begin
   exact ne_of_lt (nat.lt_of_succ_lt_succ hx),
 end
 
-lemma cycle_type_fin_rotate {n : ℕ} : cycle_type (fin_rotate (n + 2)) = {n + 2} :=
+@[simp] lemma cycle_type_fin_rotate {n : ℕ} : cycle_type (fin_rotate (n + 2)) = {n + 2} :=
 begin
   rw [is_cycle_fin_rotate.cycle_type, support_fin_rotate, ← fintype.card, fintype.card_fin],
   refl,
@@ -256,7 +256,7 @@ begin
   exact is_cycle_fin_rotate.extend_domain _,
 end
 
-lemma cycle_type_cycle_range {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) :
+@[simp] lemma cycle_type_cycle_range {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) :
   cycle_type (cycle_range i) = {i + 1} :=
 begin
   cases i with i hi,

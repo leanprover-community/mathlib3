@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import group_theory.perm.cycle_type
+import group_theory.perm.fin
 
 /-!
 # Alternating Groups
@@ -63,6 +63,14 @@ begin
   dec_trivial
 end
 
+lemma is_three_cycle.mem_alternating_group {f : perm α} (h : is_three_cycle f) :
+  f ∈ alternating_group α :=
+mem_alternating_group.2 h.sign
+
+lemma fin_rotate_bit1_mem_alternating_group {n : ℕ} :
+  fin_rotate (bit1 n) ∈ alternating_group (fin (bit1 n)) :=
+by rw [mem_alternating_group, bit1, sign_fin_rotate, pow_bit0', int.units_mul_self, one_pow]
+
 end equiv.perm
 
 lemma two_mul_card_alternating_group [nontrivial α] :
@@ -73,9 +81,47 @@ begin
   exact (subgroup.card_eq_card_quotient_mul_card_subgroup _).symm,
 end
 
-instance alternating_group_normal : (alternating_group α).normal := sign.normal_ker
+namespace alternating_group
+open equiv.perm
+
+instance normal : (alternating_group α).normal := sign.normal_ker
+
+lemma is_conj_of {σ τ : alternating_group α}
+  (hc : is_conj (σ : perm α) (τ : perm α)) (hσ : (σ : perm α).support.card + 2 ≤ fintype.card α) :
+  is_conj σ τ :=
+begin
+  obtain ⟨σ, hσ⟩ := σ,
+  obtain ⟨τ, hτ⟩ := τ,
+  obtain ⟨π, hπ⟩ := is_conj_iff.1 hc,
+  rw [subtype.coe_mk, subtype.coe_mk] at hπ,
+  cases int.units_eq_one_or (sign π) with h h,
+  { exact is_conj_iff.2 ⟨⟨π, mem_alternating_group.2 h⟩, subtype.val_injective (by simp [← hπ])⟩ },
+  { have h2 : 2 ≤ σ.supportᶜ.card,
+    { rw [finset.card_compl, nat.le_sub_left_iff_add_le σ.support.card_le_univ],
+      exact hσ },
+    obtain ⟨a, ha, b, hb, ab⟩ := finset.one_lt_card.1 h2,
+    refine is_conj_iff.2 ⟨⟨π * swap a b, _⟩, subtype.val_injective _⟩,
+    { rw [mem_alternating_group, monoid_hom.map_mul, h, sign_swap ab, int.units_mul_self] },
+    { simp only [←hπ, coe_mk, subgroup.coe_mul, subtype.val_eq_coe],
+      have hd : disjoint (swap a b) σ,
+      { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
+          finset.singleton_disjoint],
+        exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
+      rw [mul_assoc π _ σ, disjoint.mul_comm hd],
+      simp [mul_assoc] } }
+end
+
+lemma is_three_cycle_is_conj (h5 : 5 ≤ fintype.card α)
+  {σ τ : alternating_group α}
+  (hσ : is_three_cycle (σ : perm α)) (hτ : is_three_cycle (τ : perm α)) :
+  is_conj σ τ :=
+alternating_group.is_conj_of (is_conj_iff_cycle_type_eq.2 (hσ.trans hτ.symm))
+  (by { rw hσ.card_support, exact h5 })
+
+end alternating_group
 
 namespace equiv.perm
+open alternating_group
 
 @[simp]
 theorem closure_three_cycles_eq_alternating :
@@ -100,4 +146,50 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
     (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
 end
 
+lemma is_three_cycle.alternating_normal_closure_eq_top (h5 : 5 ≤ fintype.card α)
+  {f : perm α} (hf : is_three_cycle f) :
+  normal_closure ({⟨f, hf.mem_alternating_group⟩} : set (alternating_group α)) = ⊤ :=
+begin
+  have hi : function.injective (alternating_group α).subtype := subtype.coe_injective,
+  apply map_injective hi,
+  rw [← monoid_hom.range_eq_map, subtype_range, normal_closure, monoid_hom.map_closure],
+  refine (congr rfl _).trans closure_three_cycles_eq_alternating,
+  ext g,
+  split,
+  { rintro ⟨g', hg', rfl⟩,
+    simp_rw [group.mem_conjugates_of_set_iff, is_conj_iff] at hg',
+    obtain ⟨⟨f', hf'⟩, ff', ⟨c, hc⟩, rfl, hc'⟩ := hg',
+    simp only [subtype.val_eq_coe, subgroup.coe_subtype, coe_mk, coe_inv, subgroup.coe_mul,
+      set.mem_set_of_eq],
+    rw [is_three_cycle, cycle_type_conj, (subtype.mk_eq_mk.1 (set.mem_singleton_iff.1 ff')),
+      hf.cycle_type] },
+  { intro h,
+    obtain ⟨c, rfl⟩ := is_conj_iff.1 (is_conj_iff_cycle_type_eq.2 (hf.trans h.symm)),
+    refine ⟨⟨c * f * c⁻¹, h.mem_alternating_group⟩, _, rfl⟩,
+    rw group.mem_conjugates_of_set_iff,
+    exact ⟨⟨f, hf.mem_alternating_group⟩, set.mem_singleton _, is_three_cycle_is_conj h5 hf h⟩ }
+end
+
 end equiv.perm
+
+namespace alternating_group
+open equiv.perm
+
+lemma normal_closure_fin_rotate_five :
+  (normal_closure ({⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩} :
+    set (alternating_group (fin 5)))) = ⊤ :=
+begin
+  have h3 : is_three_cycle ((fin.cycle_range 2) * (fin_rotate 5) *
+    (fin.cycle_range 2)⁻¹ * (fin_rotate 5)⁻¹) := card_support_eq_three_iff.1 dec_trivial,
+  rw [eq_top_iff, ← h3.alternating_normal_closure_eq_top _],
+  swap, { rw [card_fin] },
+  refine normal_closure_le_normal _,
+  rw [set.singleton_subset_iff, set_like.mem_coe],
+  have h : (⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩ :
+    alternating_group (fin 5)) ∈ normal_closure _ :=
+    set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
+  exact mul_mem _ (subgroup.normal_closure_normal.conj_mem _ h
+    ⟨fin.cycle_range 2, fin.is_three_cycle_cycle_range_two.mem_alternating_group⟩) (inv_mem _ h),
+end
+
+end alternating_group

@@ -193,15 +193,14 @@ section
 
 open linear_equiv
 
--- FIXME: we have to do some hacks to make the typeclass inference work
-local attribute [-instance] mul_zero_class.to_has_zero
 /-- `pi.basis (s : ∀ j, basis (ιs j) R (Ms j))` is the `Σ j, ιs j`-indexed basis on `Π j, Ms j`
 given by `s j` on each component. -/
 protected noncomputable def basis (s : ∀ j, basis (ιs j) R (Ms j)) :
   basis (Σ j, ιs j) R (Π j, Ms j) :=
-let e₁ := ((linear_equiv.Pi_congr_right (λ j, (s j).repr))) in
-basis.of_repr (@linear_equiv.trans _ _ (Π i, ιs i →₀ R) _ _ _ _ _ _ _ _ e₁
-  (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm)
+-- The `add_comm_monoid (Π j, Ms j)` instance was hard to find.
+-- Defining this in tactic mode seems to shake up instance search enough that it works by itself.
+by { refine basis.of_repr (linear_equiv.trans _ (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm),
+     exact linear_equiv.Pi_congr_right (λ j, (s j).repr) }
 
 @[simp] lemma basis_repr_std_basis [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (j i) :
   (pi.basis s).repr (std_basis R _ j (s j i)) = finsupp.single ⟨j, i⟩ 1 :=
@@ -236,38 +235,15 @@ end
 section
 variables (R η)
 
-noncomputable def basis_fun₀ : basis (Σ (j : η), unit) R (Π (j : η), R) :=
-pi.basis (λ j, basis.singleton unit R)
-
-@[simp] lemma basis_fun₀_apply [decidable_eq η] (ji) :
-  basis_fun₀ R η ji = std_basis R (λ (i : η), R) ji.fst 1 :=
-by rw [basis_fun₀, pi.basis_apply, basis.singleton_apply]
-
-@[simp] lemma basis_fun₀_repr (x i) :
-  (basis_fun₀ R η).repr x i = x i.1 :=
-by { rcases i with ⟨j, ⟨⟩⟩, simp [basis_fun₀] }
-
-noncomputable def finsupp.add_equiv_fun_on_fintype (α M : Type*) [fintype α] [add_monoid M] :
-  (α →₀ M) ≃+ (α → M) :=
-{ map_add' := λ x y, by simp [finsupp.equiv_fun_on_fintype],
-  .. finsupp.equiv_fun_on_fintype }
-
-noncomputable def finsupp.lequiv_fun_on_fintype (α M : Type*) [fintype α]
-  [add_comm_monoid M] [module R M] :
-  (α →₀ M) ≃ₗ[R] (α → M) :=
-{ map_smul' := λ x y, by simp [finsupp.add_equiv_fun_on_fintype, finsupp.equiv_fun_on_fintype],
-  .. finsupp.add_equiv_fun_on_fintype α M }
-
+/-- The basis on `η → R` where the `i`th basis vector is `function.update 0 i 1`. -/
 noncomputable def basis_fun : basis η R (Π (j : η), R) :=
-(basis_fun₀ R η).reindex
-  { to_fun := sigma.fst,
-    inv_fun := λ i, ⟨i, punit.star⟩,
-    left_inv := λ ⟨j, i⟩, by simp,
-    right_inv := λ j, rfl }
+basis.of_equiv_fun (linear_equiv.refl _ _)
 
 @[simp] lemma basis_fun_apply [decidable_eq η] (i) :
   basis_fun R η i = std_basis R (λ (i : η), R) i 1 :=
-by simp [basis_fun]
+by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
+                linear_equiv.refl_apply, std_basis_apply],
+     congr /- Get rid of a `decidable_eq` mismatch. -/ }
 
 @[simp] lemma basis_fun_repr (x : η → R) (i : η) :
   (pi.basis_fun R η).repr x i = x i :=

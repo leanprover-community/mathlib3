@@ -265,5 +265,3 @@ def homology.congr (pf : f = f') (pg : g = g') : homology f g w ≅ homology f' 
   end, }
 
 end
-
-end

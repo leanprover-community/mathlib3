@@ -26,20 +26,18 @@ section to_bot_top
 /-- a finite inhabited `semilattice_inf` has a `⊥` -/
 def fintype.semilattice_inf_bot (α : Type*) [inhabited α] [fintype α] [semilattice_inf α] :
   semilattice_inf_bot α :=
-let bot := finset.fold (⊓) (arbitrary α) id finset.univ in
-{ bot := bot,
-  bot_le := λ a, ((@finset.fold_op_rel_iff_and _ _ (⊓) _ _ _ _ _ _
-    (λ _ _ _, le_inf_iff) bot).mp le_rfl).2 a (finset.mem_univ _),
-  .. (infer_instance : semilattice_inf α)}
+{ bot := finset.fold (⊓) (arbitrary α) id finset.univ,
+  bot_le := λ a, ((finset.fold_op_rel_iff_and (@le_inf_iff α _)).mp le_rfl).2 a (finset.mem_univ _),
+  .. ‹semilattice_inf α› }
 
 /-- a finite inhabited `semilattice_sup` has a `⊤` -/
 def fintype.semilattice_sup_top (α : Type*) [inhabited α] [fintype α] [semilattice_sup α] :
   semilattice_sup_top α :=
-let top := finset.fold (⊔) (arbitrary α) id finset.univ in
-{ top := top,
-  le_top := λ a, (((@finset.fold_op_rel_iff_and _ _ (⊔) _ _ _ (arbitrary α) _ (λ x y, y ≤ x)
-  (λ _ _ _, sup_le_iff) top )).mp le_rfl).2 a (finset.mem_univ a),
-  .. (infer_instance : semilattice_sup α)}
+{ top := finset.fold (⊔) (arbitrary α) id finset.univ,
+  le_top := λ a,
+    ((finset.fold_op_rel_iff_and (λ x y z, show x ≥ y ⊔ z ↔ _, from sup_le_iff)).mp le_rfl).2
+      a (finset.mem_univ a),
+  .. ‹semilattice_sup α› }
 
 /-- An inhabited finite `lattice` is bounded  -/
 def fintype.bounded_lattice (α : Type*) [inhabited α] [fintype α] [lattice α] :

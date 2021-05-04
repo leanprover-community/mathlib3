@@ -2826,7 +2826,7 @@ def fin_orthonormal_basis [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank �
   basis (fin n) 𝕜 E :=
 have h : fintype.card (orthonormal_basis_index 𝕜 E) = n,
 by rw [← finrank_eq_card_basis (orthonormal_basis 𝕜 E), hn],
-(orthonormal_basis 𝕜 E).reindex (fintype.fintype.equiv_fin_of_card_eq' h)
+(orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
 
 lemma fin_orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
   orthonormal 𝕜 (fin_orthonormal_basis hn) :=

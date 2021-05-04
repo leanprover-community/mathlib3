@@ -495,9 +495,7 @@ variables {A : Type*} [add_comm_monoid A]
 /-- `nat.cast_add_hom' a` is the additive monoid homomorphism `ℕ → A`
 that sends `1 : ℕ` to `a : A`. -/
 def cast_add_hom' (a : A) : ℕ →+ A :=
-{ to_fun := λ n, n • a,
-  map_zero' := zero_smul _ _,
-  map_add' := λ m n, add_smul m n a }
+(smul_add_hom ℕ A).flip a
 
 @[simp, priority 900]
 lemma cast_add_hom'_apply (a : A) (n : ℕ) : cast_add_hom' a n = n • a := rfl
@@ -514,7 +512,7 @@ variables {A : Type*} [add_comm_group A]
 /-- `int.cast_add_hom' a` is the additive group homomorphism `ℤ → A`
 that sends `1 : ℤ` to `a : A`. -/
 def cast_add_hom' (a : A) : ℤ →+ A :=
-add_monoid_hom.mk' (λ n, n • a) $ λ m n, add_smul m n a
+(smul_add_hom ℤ A).flip a
 
 @[simp, priority 900]
 lemma cast_add_hom'_apply (a : A) (n : ℤ) : cast_add_hom' a n = n • a := rfl

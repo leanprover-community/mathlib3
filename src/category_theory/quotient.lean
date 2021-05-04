@@ -17,13 +17,19 @@ This is analogous to 'the quotient of a group by the normal closure of a subset'
 than 'the quotient of a group by a normal subgroup'.
 -/
 
-universes v v₁ u u₁
+def hom_rel (C) [quiver C] := Π ⦃X Y : C⦄, (X ⟶ Y) → (X ⟶ Y) → Prop
 
 namespace category_theory
 
-variables {C : Type u} [category.{v} C]
-          (r : Π ⦃a b : C⦄, (a ⟶ b) → (a ⟶ b) → Prop)
+variables {C : Type*} [category C] (r : hom_rel C)
 include r
+
+class congruence : Prop :=
+(is_equiv : ∀ {X Y}, is_equiv _ (@r X Y))
+(comp_left : ∀ {X Y Z} (f : X ⟶ Y) {g g' : Y ⟶ Z}, r g g' → r (f ≫ g) (f ≫ g'))
+(comp_right : ∀ {X Y Z} {f f' : X ⟶ Y} (g : Y ⟶ Z), r f f' → r (f ≫ g) (f' ≫ g))
+
+attribute [instance] congruence.is_equiv
 
 /-- A type synonym for `C`, thought of as the objects of the quotient category. -/
 @[ext]
@@ -115,6 +121,20 @@ rfl
 lemma lift_map_functor_map {X Y : C} (f : X ⟶ Y) :
   (lift r F H).map ((functor r).map f) = F.map f :=
 by { rw ←(nat_iso.naturality_1 (lift.is_lift r F H)), dsimp, simp, }
+
+lemma functor_map_eq_iff [congruence r] {X Y : quotient r} (f f' : X.as ⟶ Y.as) :
+  (functor r).map f = (functor r).map f' ↔ r f f' :=
+begin
+  split,
+  { erw quot.eq,
+    intro h,
+    induction h with m m' hm,
+    { cases hm, apply congruence.comp_left, apply congruence.comp_right, assumption, },
+    { apply refl },
+    { apply symm, assumption },
+    { apply trans; assumption }, },
+  { apply quotient.sound },
+end
 
 end quotient
 

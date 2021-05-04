@@ -1935,6 +1935,21 @@ def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R 
 
 end
 
+/-- A family of linear equivalences `Π j, (Ms j ≃ₗ[R] Ns j)` generates a
+linear equivalence between `Π j, Ms j` and `Π j, Ns j`. -/
+def linear_equiv.Pi_congr_right {η : Type*} {Ms Ns : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
+  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
+  (es : ∀ j, Ms j ≃ₗ[R] Ns j) : (Π j, Ms j) ≃ₗ[R] (Π j, Ns j) :=
+{ map_smul' := λ m x, by { ext j, simp },
+  .. add_equiv.Pi_congr_right (λ j, (es j).to_add_equiv) }
+
+@[simp]
+lemma linear_equiv.Pi_congr_right_apply {η : Type*} {Ms Ns : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
+  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
+  (es : ∀ j, Ms j ≃ₗ[R] Ns j) (x j) :
+  linear_equiv.Pi_congr_right es x j = es j (x j) := rfl
 
 section uncurry
 

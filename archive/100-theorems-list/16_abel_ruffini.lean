@@ -19,7 +19,6 @@ begin
     exact one_ne_zero },
 end
 
---todo: rewrite proof using above lemmas
 lemma irreducible_poly (a : ℕ) (b : ℤ) (p : ℕ)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
   irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) :=
@@ -38,9 +37,8 @@ begin
   have r_leading_coeff : r.leading_coeff = 1,
   { rw [leading_coeff, r_nat_degree, coeff_add, coeff_sub, coeff_X_pow_self, coeff_C_mul, coeff_X,
         if_neg (ne_of_lt h15), mul_zero, sub_zero, coeff_C, if_neg (ne_of_gt h05), add_zero] },
-  have r_monic : r.monic := r_leading_coeff,
-  have r_primitive : r.is_primitive := r_monic.is_primitive,
-  have r_degree : r.degree = ↑5 := by rw [degree_eq_nat_degree r_monic.ne_zero, r_nat_degree],
+  have r_primitive : r.is_primitive := monic.is_primitive r_leading_coeff,
+  have r_degree : r.degree = ↑5 := by rw [degree_eq_nat_degree r_primitive.ne_zero, r_nat_degree],
   rw [←r_map, ←is_primitive.int.irreducible_iff_irreducible_map_cast r_primitive],
   apply irreducible_of_eisenstein_criterion,
   { rwa [ideal.span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero),
@@ -66,6 +64,8 @@ end
 lemma tada {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
+  simp_rw [root_set_def, fintype.card_coe],
+  let l := finset.sort (≤) (p.map (algebra_map F ℝ)).roots.to_finset,
   sorry,
 end
 
@@ -74,9 +74,38 @@ lemma real_roots_poly (a : ℕ) (b : ℤ) (hab : abs b < a) :
 begin
   apply le_antisymm,
   { apply (tada (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).trans,
-    apply nat.succ_le_succ,
-    simp_rw [derivative_add, derivative_sub, derivative_C, add_zero,
-      derivative_C_mul, derivative_X, mul_one, derivative_X_pow],
+    have h1 : (derivative (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).map (algebra_map ℚ ℝ) =
+      (C (5 : ℝ)) * X ^ 4 - C (a : ℝ),
+    { rw [derivative_add, derivative_sub, derivative_C, add_zero, derivative_C_mul, derivative_X,
+          mul_one, derivative_X_pow, C_bit1, C_bit0, C_1, map_sub, map_C, map_mul, map_pow, map_X,
+          map_nat_cast, nat.cast_bit1, nat.cast_bit0, nat.cast_one, ring_hom.map_nat_cast] },
+    simp_rw [root_set_def, h1, nat.succ_le_succ_iff],
+    have h2 : (derivative (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).root_set ℝ =
+      ({(a / 5: ℝ) ^ (1 / 4 : ℝ), -(a / 5: ℝ) ^ (1 / 4 : ℝ)} : set ℝ),
+    { rw [derivative_add, derivative_sub, derivative_C, add_zero, derivative_C_mul, derivative_X,
+          mul_one, derivative_X_pow],
+      ext x,
+      rw [mem_root_set, alg_hom.map_sub, aeval_C, ring_hom.map_nat_cast, aeval_mul, aeval_X_pow],
+      rw [nat.cast_bit1, nat.cast_bit0, nat.cast_one, aeval_bit1, aeval_bit0, aeval_one],
+      rw [sub_eq_zero, mul_comm, ←eq_div_iff],
+      rw [set.mem_insert_iff, set.mem_singleton_iff],
+      split,
+      { intro h,
+        rw ← h,
+        sorry },
+      { rintros (h | h),
+        all_goals { rw h },
+        all_goals { sorry } }, },
+    suffices : (derivative (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).root_set ℝ =
+      ({0, 1} : set ℝ),
+    { simp_rw [this],
+      sorry },
+    rw [derivative_add, derivative_sub, derivative_C, add_zero, derivative_C_mul, derivative_X,
+        mul_one, derivative_X_pow, root_set_def, map_sub, map_C, map_mul, map_pow, map_X],
+    transitivity (fintype.card ({(a / 5) ^ (1 / 4), - (a / 5) ^ (1 / 4)} : set ℝ)),
+    let p : polynomial ℚ := ↑(5 : ℕ) * X ^ (5 - 1) - C ↑a,
+   -- change fintype.card (p.root_set ℝ) ≤ 2,
+    --have key :
     sorry },
   { sorry },
 end
@@ -89,6 +118,8 @@ begin
   { exact is_alg_closed.splits_codomain _ },
   { exact nodup_roots ((separable_map _).mpr h) },
 end
+
+local attribute [instance] splits_ℚ_ℂ
 
 lemma gal_poly (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :

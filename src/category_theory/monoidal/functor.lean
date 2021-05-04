@@ -55,6 +55,10 @@ variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
 /-- A lax monoidal functor is a functor `F : C ⥤ D` between monoidal categories,
 equipped with morphisms `ε : 𝟙 _D ⟶ F.obj (𝟙_ C)` and `μ X Y : F.obj X ⊗ F.obj Y ⟶ F.obj (X ⊗ Y)`,
 satisfying the appropriate coherences. -/
+-- The direction of `left_unitality` and `right_unitality` as simp lemmas may look strange:
+-- remember the rule of thumb that component indices of natural transformations
+-- "weigh more" than structural maps.
+-- (However by this argument `associativity` is currently stated backwards!)
 structure lax_monoidal_functor extends C ⥤ D :=
 -- unit morphism
 (ε               : 𝟙_ D ⟶ obj (𝟙_ C))
@@ -91,6 +95,36 @@ attribute [simp, reassoc] lax_monoidal_functor.associativity
 -- When `rewrite_search` lands, add @[search] attributes to
 -- lax_monoidal_functor.μ_natural lax_monoidal_functor.left_unitality
 -- lax_monoidal_functor.right_unitality lax_monoidal_functor.associativity
+
+section
+variables {C D}
+
+@[simp, reassoc]
+lemma lax_monoidal_functor.left_unitality_inv (F : lax_monoidal_functor C D) (X : C) :
+  (λ_ (F.obj X)).inv ≫ (F.ε ⊗ 𝟙 (F.obj X)) ≫ F.μ (𝟙_ C) X = F.map (λ_ X).inv :=
+begin
+  rw [iso.inv_comp_eq, F.left_unitality, category.assoc, category.assoc,
+    ←F.to_functor.map_comp, iso.hom_inv_id, F.to_functor.map_id, comp_id],
+end
+
+@[simp, reassoc]
+lemma lax_monoidal_functor.right_unitality_inv (F : lax_monoidal_functor C D) (X : C) :
+  (ρ_ (F.obj X)).inv ≫ (𝟙 (F.obj X) ⊗ F.ε) ≫ F.μ X (𝟙_ C) = F.map (ρ_ X).inv :=
+begin
+  rw [iso.inv_comp_eq, F.right_unitality, category.assoc, category.assoc,
+    ←F.to_functor.map_comp, iso.hom_inv_id, F.to_functor.map_id, comp_id],
+end
+
+@[simp, reassoc]
+lemma lax_monoidal_functor.associativity_inv (F : lax_monoidal_functor C D) (X Y Z : C) :
+  (𝟙 (F.obj X) ⊗ F.μ Y Z) ≫ F.μ X (Y ⊗ Z) ≫ F.map (α_ X Y Z).inv =
+    (α_ (F.obj X) (F.obj Y) (F.obj Z)).inv ≫ (F.μ X Y ⊗ 𝟙 (F.obj Z)) ≫ F.μ (X ⊗ Y) Z :=
+begin
+  rw [iso.eq_inv_comp, ←F.associativity_assoc,
+    ←F.to_functor.map_comp, iso.hom_inv_id, F.to_functor.map_id, comp_id],
+end
+
+end
 
 /--
 A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms.

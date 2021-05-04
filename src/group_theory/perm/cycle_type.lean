@@ -24,6 +24,8 @@ In this file we define the cycle type of a partition.
 
 - `sum_cycle_type` : The sum of `σ.cycle_type` equals `σ.support.card`
 - `lcm_cycle_type` : The lcm of `σ.cycle_type` equals `order_of σ`
+- `is_conj_iff_cycle_type_eq` : Two permutations are conjugate if and only if they have the same
+  cycle type.
 -/
 
 namespace equiv.perm
@@ -167,6 +169,21 @@ begin
     exact hστ.symm.inv_left.inv_right.cycle_type }
 end
 
+lemma cycle_type_conj {σ τ : perm α} : (τ * σ * τ⁻¹).cycle_type = σ.cycle_type :=
+begin
+  revert τ,
+  apply cycle_induction_on _ σ,
+  { intro,
+    simp },
+  { intros σ hσ τ,
+    rw [hσ.cycle_type, hσ.is_cycle_conj.cycle_type, card_support_conj] },
+  { intros σ τ hd hc hσ hτ π,
+    rw [← conj_mul, hd.cycle_type, disjoint.cycle_type, hσ, hτ],
+    intro a,
+    apply (hd (π⁻¹ a)).imp _ _;
+    { intro h, rw [perm.mul_apply, perm.mul_apply, h, apply_inv_self] } }
+end
+
 lemma sum_cycle_type (σ : perm α) : σ.cycle_type.sum = (fintype.card σ.support) :=
 begin
   refine cycle_induction_on _ σ _ _ _,
@@ -223,6 +240,46 @@ begin
   rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 
+theorem is_conj_of_cycle_type_eq {σ τ : perm α} (h : cycle_type σ = cycle_type τ) : is_conj σ τ :=
+begin
+  revert τ,
+  apply cycle_induction_on _ σ,
+  { intros τ h,
+    rw [cycle_type_one, eq_comm, cycle_type_eq_zero] at h,
+    rw h },
+  { intros σ hσ τ hστ,
+    have hτ := card_cycle_type_eq_one.2 hσ,
+    rw [hστ, card_cycle_type_eq_one] at hτ,
+    apply hσ.is_conj hτ,
+    rw [hσ.cycle_type, hτ.cycle_type, coe_eq_coe, singleton_perm] at hστ,
+    simp only [and_true, eq_self_iff_true] at hστ,
+    exact hστ },
+  { intros σ τ hστ hσ h1 h2 π hπ,
+    obtain ⟨l, rfl, hl1, hl2⟩ := trunc_cycle_factors π,
+    rw [hστ.cycle_type, hσ.cycle_type, cycle_type_eq _ rfl hl1 hl2] at hπ,
+    have h : σ.support.card ∈ map (finset.card ∘ perm.support) l,
+    { rw [← multiset.mem_coe, ← hπ],
+      simp },
+    obtain ⟨σ', hσ'l, hσ'⟩ := list.mem_map.1 h,
+    rw [(list.perm_cons_erase hσ'l).prod_eq' (hl2.imp (λ _ _, disjoint.mul_comm)), list.prod_cons],
+    refine hστ.is_conj_mul (h1 _) (h2 _) _,
+    { simp only [hσ.cycle_type, (hl1 _ hσ'l).cycle_type, ←hσ'] },
+    { rw [← coe_map, coe_eq_coe.2 (list.perm_cons_erase hσ'l), singleton_add, ← cons_coe,
+        multiset.map_cons, hσ', cons_inj_right, coe_map] at hπ,
+      rw [hπ, cycle_type_eq (l.erase σ') rfl (λ f hf, hl1 f (list.erase_subset _ _ hf))
+        (list.pairwise_of_sublist (list.erase_sublist _ _) hl2)] },
+    { refine disjoint_prod_list_of_disjoint (λ g hg, list.rel_of_pairwise_cons _ hg),
+      refine (list.perm.pairwise_iff _ (list.perm_cons_erase hσ'l).symm).2 hl2,
+      exact (λ _ _, disjoint.symm) } }
+end
+
+theorem is_conj_iff_cycle_type_eq {σ τ : perm α} :
+  is_conj σ τ ↔ σ.cycle_type = τ.cycle_type :=
+⟨λ h, begin
+  obtain ⟨π, rfl⟩ := is_conj_iff.1 h,
+  rw cycle_type_conj,
+end, is_conj_of_cycle_type_eq⟩
+
 end cycle_type
 
 lemma is_cycle_of_prime_order' {σ : perm α} (h1 : (order_of σ).prime)
@@ -278,6 +335,28 @@ def partition (σ : perm α) : partition (fintype.card α) :=
     nat.cast_id, mul_one, nat.add_sub_cancel'],
     convert fintype.card_subtype_le _,
     exact support.decidable_pred } }
+
+lemma parts_partition {σ : perm α} :
+  σ.partition.parts = σ.cycle_type + repeat 1 (fintype.card α - σ.support.card) := rfl
+
+lemma filter_parts_partition_eq_cycle_type {σ : perm α} :
+  (partition σ).parts.filter (λ n, 2 ≤ n) = σ.cycle_type :=
+begin
+  rw [parts_partition, filter_add, multiset.filter_eq_self.2 (λ _, two_le_of_mem_cycle_type),
+    multiset.filter_eq_nil.2 (λ a h, _), add_zero],
+  rw multiset.eq_of_mem_repeat h,
+  dec_trivial
+end
+
+lemma partition_eq_of_is_conj {σ τ : perm α} :
+  is_conj σ τ ↔ σ.partition = τ.partition :=
+begin
+  rw [is_conj_iff_cycle_type_eq],
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [partition.ext_iff, parts_partition, parts_partition,
+      ← sum_cycle_type, ← sum_cycle_type, h] },
+  { rw [← filter_parts_partition_eq_cycle_type, ← filter_parts_partition_eq_cycle_type, h] }
+end
 
 end partition
 

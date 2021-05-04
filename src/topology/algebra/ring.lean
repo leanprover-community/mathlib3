@@ -30,6 +30,10 @@ def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
   ..(s.to_submonoid.topological_closure),
   ..(s.to_add_submonoid.topological_closure ) }
 
+@[simp] lemma subsemiring.topological_closure_coe (s : subsemiring α) :
+  (s.topological_closure : set α) = closure (s : set α) :=
+rfl
+
 instance subsemiring.topological_closure_topological_semiring (s : subsemiring α) :
   topological_semiring (s.topological_closure) :=
 { ..s.to_add_submonoid.topological_closure_has_continuous_add,

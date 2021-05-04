@@ -41,9 +41,10 @@ begin
     have hnp : n / p ≥ 1,
     { rw ← nat.div_self hp,
       exact nat.div_le_div_right (show n ≥ p, by nlinarith [(show w > 0, by nlinarith)]) },
-    calc (a + 1) / p - 1 ≤ n / p - 1 : by { refine nat.sub_le_sub_right (nat.div_le_div_right _) 1,
-                                            exact succ_le_iff.mpr han }
-    ...                  < n / p     : buffer.lt_aux_2 (show n / p > 0, by linarith) },
+    calc (a + 1) / p - 1 ≤ n / p - 1 : nat.sub_le_sub_right
+                                         (nat.div_le_div_right (succ_le_iff.mpr han)) 1
+    ...                  < n / p     : sub_lt (by linarith) zero_lt_one,
+    },
 
   have hf_inj : ∀ (a₁ : ℕ), a₁ ∈ Np → ∀ (a₂ : ℕ), a₂ ∈ Np → f a₁ = f a₂ → a₁ = a₂,
   { intros a₁ ha₁ a₂ ha₂ hfeq,

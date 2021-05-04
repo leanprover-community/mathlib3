@@ -454,7 +454,7 @@ begin
   { rwa [←cardinal.lift_mk_le, weekday.card, cardinal.lift_nat_cast, nat.cast_bit1,
     nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
   exact weekday.not_solvable (solvable_of_solvable_injective
-    (equiv.perm.of_embedding_map_injective (nonempty.some key))),
+    (equiv.perm.of_embedding_hom_injective (nonempty.some key))),
 end
 
 end perm_not_solvable

@@ -196,6 +196,18 @@ extend_domain_refl f
   (e.extend_domain f) * (e'.extend_domain f) = (e * e').extend_domain f :=
 extend_domain_trans _ _ _
 
+/-- `extend_domain` as a group homomorphism -/
+def extend_domain_hom : perm α →* perm β :=
+{ to_fun := λ e, extend_domain e f,
+  map_one' := extend_domain_one f,
+  map_mul' := λ e e', (extend_domain_mul f e e').symm }
+
+lemma extend_domain_hom_apply : extend_domain_hom f e = extend_domain e f := rfl
+
+lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
+((extend_domain_hom f).injective_iff).mpr (λ e he, ext (λ x, f.injective (subtype.ext
+  ((extend_domain_apply_image e f x).symm.trans (ext_iff.mp he (f x))))))
+
 end extend_domain
 
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
@@ -281,7 +293,7 @@ variables (e : perm α) (ι : α ↪ β)
 open_locale classical
 
 /-- Extend a permutation along an embedding -/
-noncomputable def of_embedding (e : perm α) (ι : α ↪ β) : perm β :=
+noncomputable def of_embedding : perm β :=
 extend_domain e (of_injective ι.1 ι.2)
 
 lemma of_embedding_apply (x : α) : e.of_embedding ι (ι x) = ι (e x) :=
@@ -292,30 +304,13 @@ lemma of_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
 extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
 
 /-- Extend a permutation along an embedding, as a group homomorphism -/
-noncomputable def of_embedding_map_homomorphism : perm α →* perm β:=
-{ to_fun := λ e, of_embedding e ι,
-  map_one' := by
-  { ext x,
-    by_cases hx : x ∈ _root_.set.range ι,
-    { obtain ⟨y, rfl⟩ := hx,
-      exact of_embedding_apply 1 ι y },
-    { exact of_embedding_apply_of_not_mem 1 ι x hx } },
-  map_mul' := by
-  { intros σ τ,
-    ext x,
-    by_cases hx : x ∈ _root_.set.range ι,
-    { obtain ⟨y, rfl⟩ := hx,
-      change _ = σ.of_embedding ι (τ.of_embedding ι (ι y)),
-      rw [(σ * τ).of_embedding_apply ι y, τ.of_embedding_apply ι y, σ.of_embedding_apply ι (τ y)],
-      refl },
-    { change _ = σ.of_embedding ι (τ.of_embedding ι x),
-      rw [(σ * τ).of_embedding_apply_of_not_mem ι x hx, τ.of_embedding_apply_of_not_mem ι x hx,
-          σ.of_embedding_apply_of_not_mem ι x hx] } } }
+noncomputable def of_embedding_hom : perm α →* perm β:=
+extend_domain_hom (of_injective ι.1 ι.2)
 
-lemma of_embedding_map_injective :
-  function.injective (of_embedding_map_homomorphism ι):=
-(monoid_hom.injective_iff (of_embedding_map_homomorphism ι)).2 (λ σ σ_ker,
-  ext (λ x, ι.2 ((σ.of_embedding_apply ι x).symm.trans (ext_iff.1 σ_ker (ι.to_fun x)))))
+lemma of_embedding_hom_apply : of_embedding_hom ι e = of_embedding e ι := rfl
+
+lemma of_embedding_map_injective : function.injective (of_embedding_hom ι) :=
+extend_domain_hom_injective (of_injective ι.1 ι.2)
 
 end perm
 

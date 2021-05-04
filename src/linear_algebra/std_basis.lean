@@ -189,54 +189,9 @@ end
 
 variable [fintype η]
 
-noncomputable def finsupp.sigma_finsupp_equiv_pi_finsupp
-  {α : Type*} {ιs : η → Type*} [has_zero α] :
-  ((Σ j, ιs j) →₀ α) ≃ Π j, (ιs j →₀ α) :=
-{ to_fun := λ f j, f.split j,
-  inv_fun := λ f, finsupp.on_finset
-    (finset.sigma finset.univ (λ j, (f j).support))
-    (λ ji, f ji.1 ji.2)
-    (λ g hg, finset.mem_sigma.mpr ⟨finset.mem_univ _, finsupp.mem_support_iff.mpr hg⟩),
-  left_inv := λ f, by { ext, simp [finsupp.split] },
-  right_inv := λ f, by { ext, simp [finsupp.split] } }
-
-@[simp] lemma finsupp.sigma_finsupp_equiv_pi_finsupp_apply
-  {α : Type*} {ιs : η → Type*} [has_zero α] (f : (Σ j, ιs j) →₀ α) (j i) :
-  finsupp.sigma_finsupp_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
-
-noncomputable def finsupp.sigma_finsupp_add_equiv_pi_finsupp
-  {α : Type*} {ιs : η → Type*} [add_monoid α] :
-  ((Σ j, ιs j) →₀ α) ≃+ Π j, (ιs j →₀ α) :=
-{ map_add' := λ f g, by { ext, simp },
-  .. finsupp.sigma_finsupp_equiv_pi_finsupp }
-
-@[simp] lemma finsupp.sigma_finsupp_add_equiv_pi_finsupp_apply
-{α : Type*} {ιs : η → Type*} [add_monoid α] (f : (Σ j, ιs j) →₀ α) (j i) :
-  finsupp.sigma_finsupp_add_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
-
 section
 
-variables (R)
-
-noncomputable def finsupp.sigma_finsupp_lequiv_pi_finsupp
-  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M] :
-  ((Σ j, ιs j) →₀ M) ≃ₗ[R] Π j, (ιs j →₀ M) :=
-{ map_smul' := λ c f, by { ext, simp },
-  .. finsupp.sigma_finsupp_add_equiv_pi_finsupp }
-
-@[simp] lemma finsupp.sigma_finsupp_lequiv_pi_finsupp_apply
-  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M]
-  (f : (Σ j, ιs j) →₀ M) (j i) :
-  finsupp.sigma_finsupp_lequiv_pi_finsupp R f j i = f ⟨j, i⟩ := rfl
-
-@[simp] lemma finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply
-  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M]
-  (f : Π j, (ιs j →₀ M)) (ji) :
-  (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm f ji = f ji.1 ji.2 := rfl
-
-end
-
-section
+open linear_equiv
 
 -- FIXME: we have to do some hacks to make the typeclass inference work
 local attribute [-instance] mul_zero_class.to_has_zero

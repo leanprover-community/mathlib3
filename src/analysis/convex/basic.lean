@@ -1249,12 +1249,8 @@ begin
     exact hx.2 (mem_singleton _) },
   rintro hx,
   suffices h : s \ {x} = convex_hull (s \ {x}), { convert convex_convex_hull _ },
-  refine subset.antisymm (subset_convex_hull _) (λ y hy, _),
-  rintro y hy,
-  rw ←hs.convex_hull_eq,
-  use convex_hull_mono (diff_subset _ _) hy,
-  rintro (rfl : y = x),
-  exact hx hy,
+  exact subset.antisymm (subset_convex_hull _) (λ y hy, ⟨convex_hull_min (diff_subset _ _) hs hy,
+    by { rintro (rfl : y = x), exact hx hy }⟩),
 end
 
 lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map ℝ f) :

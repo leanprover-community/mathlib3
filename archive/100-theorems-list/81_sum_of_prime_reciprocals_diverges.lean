@@ -18,7 +18,7 @@ https://en.wikipedia.org/wiki/Divergence_of_the_sum_of_the_reciprocals_of_the_pr
 
 open_locale big_operators
 open_locale classical
-open nat pnat filter finset
+open nat filter finset
 
 lemma card_le_div_nat {n p : ℕ} (hp : 0 < p) : card {e ∈ range n | p ∣ (e + 1)} ≤ n / p :=
 begin
@@ -27,9 +27,9 @@ begin
 
   have hf : ∀ a : ℕ, a ∈ Np → f a ∈ range (n / p),
   { intros a ha,
-    simp only [Np, finset.sep_def, finset.mem_filter, finset.mem_range] at ha,
+    simp only [Np, sep_def, mem_filter, mem_range] at ha,
     obtain ⟨han, ⟨w, hw⟩⟩ := ha,
-    simp only [f, finset.mem_range],
+    simp only [f, mem_range],
     have hnp : n / p ≥ 1,
     { rw ← nat.div_self hp,
       exact nat.div_le_div_right (show n ≥ p, by nlinarith [(show w > 0, by nlinarith)]) },
@@ -40,9 +40,9 @@ begin
   have hf_inj : ∀ (a₁ : ℕ), a₁ ∈ Np → ∀ (a₂ : ℕ), a₂ ∈ Np → f a₁ = f a₂ → a₁ = a₂,
   { intros a₁ ha₁ a₂ ha₂ hfeq,
     simp only [f] at hfeq,
-    simp only [Np, finset.sep_def, finset.mem_filter, finset.mem_range] at ha₁,
+    simp only [Np, sep_def, mem_filter, mem_range] at ha₁,
     obtain ⟨hna₁, ⟨w₁, hw₁⟩⟩ := ha₁,
-    simp only [Np, finset.sep_def, finset.mem_filter, finset.mem_range] at ha₂,
+    simp only [Np, sep_def, mem_filter, mem_range] at ha₂,
     obtain ⟨hna₂, ⟨w₂, hw₂⟩⟩ := ha₂,
     rw [hw₁, hw₂, nat.mul_div_cancel_left w₁ hp, nat.mul_div_cancel_left w₂ hp] at hfeq,
     have hw₁_eq_w₂ : w₁ = w₂,
@@ -50,7 +50,7 @@ begin
         ← succ_pred_eq_of_pos (show w₂ > 0, by nlinarith), ← sub_one, hfeq],
     rw [(show a₁ = p * w₁ - 1, by finish), (show a₂ = p * w₂ - 1, by finish), hw₁_eq_w₂] },
 
-  calc  card Np ≤ card (range (n / p)) : finset.card_le_card_of_inj_on f hf hf_inj
+  calc  card Np ≤ card (range (n / p)) : card_le_card_of_inj_on f hf hf_inj
   ...           = n / p                : card_range (n / p),
 end
 
@@ -70,12 +70,12 @@ lemma card_eq_card_sdiff_add_card {A B : finset ℕ} (h : A ⊆ B) :
 (nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (eq.symm (card_sdiff h))
 
 lemma lemma1_not_hyp_imp_sum_lt_half
-  (h : ¬ filter.tendsto (λ n, ∑ p in { p ∈ range n | nat.prime p }, (1 / (p : ℝ))) at_top at_top) :
+  (h : ¬ tendsto (λ n, ∑ p in { p ∈ range n | nat.prime p }, (1 / (p : ℝ))) at_top at_top) :
   ∃ k, ∀ x, ∑ p in {p ∈ range (x + 1) | p > k ∧ nat.prime p }, 1 / (p : ℝ) < 1 / 2 :=
 begin
   have h0 : (λ n, ∑ p in { p ∈ range n | nat.prime p }, (1 / (p : ℝ)))
           = (λ n, ∑ p in range n, ite (nat.prime p) (1 / (p : ℝ)) 0),
-  { funext n, rw [finset.sep_def, finset.sum_filter], finish },
+  { funext n, rw [sep_def, sum_filter], finish },
   rw h0 at h,
 
   have hf : ∀ (n : ℕ), 0 ≤ ite (nat.prime n) (1 / (n : ℝ)) 0,
@@ -87,27 +87,27 @@ begin
   rw summable_iff_vanishing at h,
   specialize h (set.Ioo (-1 : ℝ) ((1 : ℝ) / 2)) (mem_nhds_sets is_open_Ioo (by norm_num)),
   obtain ⟨s, h⟩ := h,
-  obtain ⟨k, hk⟩ := finset.exists_nat_subset_range s,
+  obtain ⟨k, hk⟩ := exists_nat_subset_range s,
   use k,
   intro x,
 
   set P := {p ∈ range (x + 1) | p > k ∧ nat.prime p } with hP₁,
   have hP₂ : P = filter (λ (p : ℕ), p > k ∧ nat.prime p) (range (x + 1)),
-  { rw [hP₁, finset.sep_def], finish },
+  { rw [hP₁, sep_def], finish },
 
-  specialize h (finset.filter (λ (n : ℕ), n > k) (range (x + 1))) _,
-  { rw finset.disjoint_iff_ne,
+  specialize h (filter (λ (n : ℕ), n > k) (range (x + 1))) _,
+  { rw disjoint_iff_ne,
     intros a ha b hb,
-    rw finset.mem_filter at ha,
+    rw mem_filter at ha,
     obtain ⟨-, hak⟩ := ha,
     exact ne_of_gt (lt_trans (mem_range.mp (hk hb)) hak) },
-  rw [← finset.sum_filter, finset.filter_filter, ← hP₂, set.mem_Ioo] at h,
+  rw [← sum_filter, filter_filter, ← hP₂, set.mem_Ioo] at h,
 
   exact h.right,
 end
 
 lemma lemma2_range_x_sdiff_M_eq_U {x k : ℕ} :
-  finset.range x \ {e ∈ range x | ∀ p : ℕ, (nat.prime p ∧ p ∣ (e + 1)) → p ≤ k } =
+  range x \ {e ∈ range x | ∀ p : ℕ, (nat.prime p ∧ p ∣ (e + 1)) → p ≤ k } =
   finset.bUnion {p ∈ range (x + 1) | p > k ∧ nat.prime p } (λ p, {e ∈ range x | p ∣ (e + 1) }) :=
 begin
   ext e,
@@ -118,13 +118,13 @@ begin
     obtain ⟨p, ⟨hpp, hpe1⟩, hpk⟩ := hexh hex,
     use p,
     split,
-    { simp only [finset.mem_filter, finset.mem_range],
+    { simp only [mem_filter, mem_range],
     refine ⟨_, hpk, hpp⟩,
     calc p ≤ e + 1 : (le_of_dvd (succ_pos e)) hpe1
     ...    < x + 1 : succ_lt_succ hex },
     { exact ⟨hex, hpe1⟩ } },
   { rintros ⟨p, hpfilter, ⟨hex, hpe1⟩⟩,
-    simp only [finset.mem_filter, finset.mem_range] at hpfilter,
+    simp only [mem_filter, mem_range] at hpfilter,
     obtain ⟨-, hpk, hpp⟩ := hpfilter,
     rw imp_iff_right hex,
     exact ⟨hex, ⟨p, ⟨hpp, hpe1⟩, hpk⟩⟩ },
@@ -138,16 +138,16 @@ lemma lemma3_card_U_le_x_mul_sum {x k : ℕ} :
 begin
   let P := {p ∈ range (x + 1) | p > k ∧ nat.prime p },
   let N := (λ p, {e ∈ range x | p ∣ (e + 1) }),
-  have h : card (finset.bUnion P N) ≤ ∑ p in P, card (N p) := finset.card_bUnion_le,
+  have h : card (finset.bUnion P N) ≤ ∑ p in P, card (N p) := card_bUnion_le,
 
   calc  (card (finset.bUnion P N) : ℝ)
       ≤ ∑ p in P, card (N p)  : by assumption_mod_cast
-  ... ≤ ∑ p in P, x * (1 / p) : by { refine finset.sum_le_sum _,
+  ... ≤ ∑ p in P, x * (1 / p) : by { refine sum_le_sum _,
                                      intro p,
                                      simp only [P, sep_def, mem_filter, mem_range],
                                      rintros ⟨-, -, hpp⟩,
                                      simp only [N, card_le_div_real (prime.pos hpp)] }
-  ... = x * (∑ p in P, 1 / p) : finset.mul_sum.symm,
+  ... = x * (∑ p in P, 1 / p) : mul_sum.symm,
 end
 
 lemma lemma4_aux_card_M1_le_2_pow_k {x k : ℕ} :
@@ -155,11 +155,11 @@ lemma lemma4_aux_card_M1_le_2_pow_k {x k : ℕ} :
 begin
   let M₁ := {e ∈ range x | squarefree (e + 1) ∧ ∀ p : ℕ, (nat.prime p ∧ p ∣ (e + 1)) → p ≤ k},
   set f : finset ℕ → ℕ := λ s, (finset.prod s (λ a, a)) - 1 with hf_def,
-  let K := finset.powerset (finset.image succ (range k)),
+  let K := powerset (image succ (range k)),
 
-  have h : M₁ ⊆ finset.image f K,
+  have h : M₁ ⊆ image f K,
   { intros m hm,
-    simp only [M₁, finset.sep_def, finset.mem_filter, finset.mem_range] at hm,
+    simp only [M₁, sep_def, mem_filter, mem_range] at hm,
     obtain ⟨hmx, hms, hmp⟩ := hm,
     have h' : ∃ (a : finset ℕ), a ⊆ image succ (range k) ∧ f a = m,
     { use (m + 1).factors,
@@ -179,10 +179,10 @@ begin
       simpa } },
     simpa },
 
-  calc card M₁ ≤ card (finset.image f K)         : finset.card_le_of_subset h
-  ...          ≤ card K                          : finset.card_image_le
-  ...          ≤ 2 ^ card (image succ (range k)) : by simp only [K, finset.card_powerset]
-  ...          ≤ 2 ^ card (range k)              : pow_le_pow one_le_two finset.card_image_le
+  calc card M₁ ≤ card (image f K)                : card_le_of_subset h
+  ...          ≤ card K                          : card_image_le
+  ...          ≤ 2 ^ card (image succ (range k)) : by simp only [K, card_powerset]
+  ...          ≤ 2 ^ card (range k)              : pow_le_pow one_le_two card_image_le
   ...          = 2 ^ k                           : by rw (card_range k),
 end
 
@@ -195,15 +195,15 @@ begin
   let K := finset.product M₁ M₂,
   let f : ℕ × ℕ → ℕ := λ mn, (mn.2 + 1) ^ 2 * (mn.1 + 1) - 1,
 
-  have h1 : M ⊆ finset.image f K,
+  have h1 : M ⊆ image f K,
   { intros m hm,
-    simp only [M, finset.sep_def, finset.mem_filter, finset.mem_range] at hm,
+    simp only [M, sep_def, mem_filter, mem_range] at hm,
     obtain ⟨hmx, hmp⟩ := hm,
     have h1' : ∃ (a b : ℕ), (a ∈ M₁ ∧ b ∈ M₂) ∧ f (a, b) = m,
     { obtain ⟨a, b, hab₁, hab₂⟩ := sq_mul_squarefree_of_pos' (zero_lt_succ m),
 
       have h11 : a ∈ M₁,
-      { simp only [M₁, finset.sep_def, finset.mem_filter, finset.mem_range],
+      { simp only [M₁, sep_def, mem_filter, mem_range],
         have ham : (a + 1) ∣ (m + 1) := dvd.intro_left ((b + 1) ^ 2) hab₁,
         refine ⟨(lt_of_le_of_lt _) hmx, hab₂, _⟩,
         { exact succ_le_succ_iff.mp ((nat.le_of_dvd (zero_lt_succ m)) ham) },
@@ -213,7 +213,7 @@ begin
           exact hmp ⟨hpp, dvd.trans hpa ham⟩ } },
 
       have h12 : b ∈ M₂,
-      { simp only [M₂, finset.sep_def, finset.mem_filter, finset.mem_range],
+      { simp only [M₂, sep_def, mem_filter, mem_range],
         have hbm₁ : (b + 1) ^ 2 ∣ (m + 1) := dvd.intro (a + 1) hab₁,
         have hbm₂ : (b + 1) ∣ (m + 1) := nat.dvd_of_pow_dvd one_le_two hbm₁,
         split,
@@ -237,14 +237,14 @@ begin
   have h3 : card M₂ ≤ nat.sqrt x,
   { rw ← card_range (nat.sqrt x), refine card_le_of_subset _, simp [M₂] },
 
-  calc card M ≤ card (finset.image f K) : finset.card_le_of_subset h1
-  ...         ≤ card K                  : finset.card_image_le
-  ...         = card M₁ * card M₂       : finset.card_product M₁ M₂
-  ...         ≤ 2 ^ k * nat.sqrt x      : mul_le_mul' h2 h3,
+  calc card M ≤ card (image f K)   : card_le_of_subset h1
+  ...         ≤ card K             : card_image_le
+  ...         = card M₁ * card M₂  : card_product M₁ M₂
+  ...         ≤ 2 ^ k * nat.sqrt x : mul_le_mul' h2 h3,
 end
 
 theorem real.tendsto_sum_one_div_prime_at_top :
-  filter.tendsto (λ n, ∑ p in { p ∈ range n | nat.prime p }, (1 / (p : ℝ))) at_top at_top :=
+  tendsto (λ n, ∑ p in { p ∈ range n | nat.prime p }, (1 / (p : ℝ))) at_top at_top :=
 begin
   by_contradiction,
 

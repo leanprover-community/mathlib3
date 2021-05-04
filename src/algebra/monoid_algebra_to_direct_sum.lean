@@ -154,8 +154,8 @@ end lemmas
 
 section equivs
 
-/-- `add_monoid_algebra.to_direct_sum` and `direct_sum.to_add_monoid_algebra` together form an equiv.
--/
+/-- `add_monoid_algebra.to_direct_sum` and `direct_sum.to_add_monoid_algebra` together form an
+equiv. -/
 @[simps {fully_applied := ff}]
 def add_monoid_algebra_equiv_direct_sum [decidable_eq ι] [semiring M] [Π m : M, decidable (m ≠ 0)] :
   add_monoid_algebra M ι ≃ (⨁ i : ι, M) :=

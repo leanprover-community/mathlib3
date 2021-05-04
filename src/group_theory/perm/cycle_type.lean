@@ -276,6 +276,47 @@ begin
     rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
 end
 
+lemma mem_cycle_type_iff {n : ℕ} {σ : perm α} :
+  n ∈ cycle_type σ ↔ ∃ c τ : perm α, σ = c * τ ∧ disjoint c τ ∧ is_cycle c ∧ c.support.card = n :=
+begin
+  split,
+  { intro h,
+    obtain ⟨l, rfl, hlc, hld⟩ := trunc_cycle_factors σ,
+    rw cycle_type_eq _ rfl hlc hld at h,
+    obtain ⟨c, cl, rfl⟩ := list.exists_of_mem_map h,
+    rw (list.perm_cons_erase cl).pairwise_iff (λ _ _ hd, _) at hld,
+    swap, { exact hd.symm },
+    refine ⟨c, (l.erase c).prod, _, _, hlc _ cl, rfl⟩,
+    { rw [← list.prod_cons,
+        (list.perm_cons_erase cl).symm.prod_eq' (hld.imp (λ a b ab, ab.mul_comm))] },
+    { exact disjoint_prod_list_of_disjoint (λ g, list.rel_of_pairwise_cons hld) } },
+  { rintros ⟨c, t, rfl, hd, hc, rfl⟩,
+    simp [hd.cycle_type, hc.cycle_type] }
+end
+
+lemma le_card_support_of_mem_cycle_type {n : ℕ} {σ : perm α} (h : n ∈ cycle_type σ) :
+  n ≤ σ.support.card :=
+begin
+  obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 h,
+  rw [hd.card_support_mul],
+  exact le_add_right (le_refl _),
+end
+
+lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
+  (hn2 : fintype.card α < n + 2)
+  (hng : n ∈ g.cycle_type) :
+  g.cycle_type = {n} :=
+begin
+  obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
+  by_cases g'1 : g' = 1,
+  { rw [hd.cycle_type, hc.cycle_type, multiset.singleton_eq_singleton, multiset.singleton_coe,
+      g'1, cycle_type_one, add_zero] },
+  contrapose! hn2,
+  apply le_trans _ (c * g').support.card_le_univ,
+  rw [hd.card_support_mul],
+  exact add_le_add_left (two_le_card_support_of_ne_one g'1) _,
+end
+
 end cycle_type
 
 lemma is_cycle_of_prime_order' {σ : perm α} (h1 : (order_of σ).prime)
@@ -395,6 +436,22 @@ by rwa [is_three_cycle, cycle_type_inv]
 
 @[simp] lemma inv_iff {f : perm α} : is_three_cycle (f⁻¹) ↔ is_three_cycle f :=
 ⟨by { rw ← inv_inv f, apply inv }, inv⟩
+
+lemma order_of {g : perm α} (ht : is_three_cycle g) :
+  order_of g = 3 :=
+begin
+  rw [← lcm_cycle_type, ht.cycle_type, multiset.singleton_eq_singleton, multiset.lcm_singleton],
+  refl,
+end
+
+lemma is_three_cycle_sq {g : perm α} (ht : is_three_cycle g) :
+  is_three_cycle (g * g) :=
+begin
+  have h := pow_order_of_eq_one g,
+  rw [ht.order_of, pow_succ', pow_two, ← eq_inv_iff_mul_eq_one] at h,
+  rw h,
+  exact ht.inv,
+end
 
 end is_three_cycle
 

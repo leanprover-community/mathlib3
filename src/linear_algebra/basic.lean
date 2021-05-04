@@ -1946,7 +1946,7 @@ protected def uncurry :
   (V → V₂ → R) ≃ₗ[R] (V × V₂ → R) :=
 { map_add'  := λ _ _, by { ext ⟨⟩, refl },
   map_smul' := λ _ _, by { ext ⟨⟩, refl },
-  .. equiv.arrow_arrow_equiv_prod_arrow _ _ _}
+  .. equiv.curry _ _ _}
 
 @[simp] lemma coe_uncurry : ⇑(linear_equiv.uncurry R V V₂) = uncurry := rfl
 

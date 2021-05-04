@@ -77,8 +77,7 @@ begin
   obtain i := classical.arbitrary ι,
   use Inter_subset_of_subset i (hAF i).1,
   rintro x₁ x₂ hx₁A hx₂A x hxF hx,
-  rw mem_Inter at ⊢ hxF,
-  rw mem_Inter,
+  simp_rw mem_Inter at ⊢ hxF,
   have h := λ i, (hAF i).2 x₁ x₂ hx₁A hx₂A x (hxF i) hx,
   exact ⟨λ i, (h i).1, λ i, (h i).2⟩,
 end
@@ -103,8 +102,7 @@ begin
   obtain ⟨B, hB⟩ := hF,
   use subset.trans (sInter_subset_of_mem hB) (hAF B hB).1,
   rintro x₁ x₂ hx₁A hx₂A x hxF hx,
-  rw mem_sInter at ⊢ hxF,
-  rw mem_sInter,
+  simp_rw mem_sInter at ⊢ hxF,
   have h := λ B hB, (hAF B hB).2 x₁ x₂ hx₁A hx₂A x (hxF B hB) hx,
   exact ⟨λ B hB, (h B hB).1, λ B hB, (h B hB).2⟩,
 end

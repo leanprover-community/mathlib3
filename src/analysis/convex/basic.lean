@@ -135,10 +135,11 @@ lemma open_segment_subset_segment (x y : E) :
 lemma mem_open_segment_of_ne_left_right {x y z : E} (hx : x ≠ z) (hy : y ≠ z) (hz : z ∈ [x, y]) :
   z ∈ open_segment x y :=
 begin
+  obtain ⟨a, b, ha, hb, hab, hz⟩ := hz,
   by_cases ha' : a ≠ 0,
   by_cases hb' : b ≠ 0,
   { exact ⟨a, b, ha.lt_of_ne (ne.symm ha'), hb.lt_of_ne (ne.symm hb'), hab, hz⟩ },
-  all_goals { simp only [*, add_zero, not_not, one_smul, zero_smul, zero_add] at * 
+  all_goals { simp only [*, add_zero, not_not, one_smul, zero_smul, zero_add] at * }
 end
 
 lemma open_segment_symm (x y : E) :
@@ -162,8 +163,7 @@ begin
     refine smul_injective hb.ne' ((add_right_inj (a • x)).1 _),
     rw [hx, ←add_smul, hab, one_smul] },
   rintro rfl,
-  rw open_segment_same x,
-  exact mem_singleton _,
+  simp only [open_segment_same, mem_singleton],
 end
 
 @[simp] lemma right_mem_open_segment_iff {x y : E} :
@@ -1248,15 +1248,12 @@ begin
     rw hsx.convex_hull_eq at hx,
     exact hx.2 (mem_singleton _) },
   rintro hx,
-  suffices h : s \ {x} = convex_hull (s \ {x}),
-  { rw h,
-    exact convex_convex_hull _},
-  refine subset.antisymm (subset_convex_hull _) _,
+  suffices h : s \ {x} = convex_hull (s \ {x}), { convert convex_convex_hull _ },
+  refine subset.antisymm (subset_convex_hull _) (λ y hy, _),
   rintro y hy,
   rw ←hs.convex_hull_eq,
   use convex_hull_mono (diff_subset _ _) hy,
-  rintro (hyx : y = x),
-  rw hyx at hy,
+  rintro (rfl : y = x),
   exact hx hy,
 end
 

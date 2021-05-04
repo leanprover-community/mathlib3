@@ -148,6 +148,7 @@ local attribute [instance] Fintype.discrete_topology
 The natural functor from `Fintype` to `Profinite`, endowing a finite type with the
 discrete topology.
 -/
+@[simps]
 def Fintype.to_Profinite : Fintype ⥤ Profinite :=
 { obj := λ A, Profinite.of A,
   map := λ _ _ f, ⟨f⟩ }

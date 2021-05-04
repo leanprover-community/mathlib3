@@ -146,7 +146,7 @@ finite-dimensional spaces it is the `ι`th basis vector of the dual space.
 def coord (i : ι) : M →ₗ[R] R :=
 (finsupp.lapply i).comp b.repr
 
-@[simp] lemma forall_coord_eq_zero_iff {x : M} :
+lemma forall_coord_eq_zero_iff {x : M} :
   (∀ i, b.coord i x = 0) ↔ x = 0 :=
 iff.trans
   (by simp only [b.coord_apply, finsupp.ext_iff, finsupp.zero_apply])
@@ -246,8 +246,12 @@ from finsupp.dom_lcongr_apply _ _ _
 @[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
 by rw coe_reindex_repr
 
-@[simp] lemma range_reindex : set.range (b.reindex e) = set.range b :=
-by rw [coe_reindex, range_comp, equiv.range_eq_univ, set.image_univ]
+/-- `simp` normal form version of `range_reindex` -/
+@[simp] lemma range_reindex' : set.range (b ∘ e.symm) = set.range b :=
+by rw [range_comp, equiv.range_eq_univ, set.image_univ]
+
+lemma range_reindex : set.range (b.reindex e) = set.range b :=
+by rw [coe_reindex, range_reindex']
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
 def reindex_range [nontrivial R] : basis (range b) R M :=
@@ -772,7 +776,7 @@ basis.mk_apply _ _ _
   ⇑(basis.extend hs) = coe :=
 funext (extend_apply_self hs)
 
-@[simp] lemma range_extend (hs : linear_independent K (coe : s → V)) :
+lemma range_extend (hs : linear_independent K (coe : s → V)) :
   range (basis.extend hs) = hs.extend (subset_univ _) :=
 by rw [coe_extend, subtype.range_coe_subtype, set_of_mem_eq]
 
@@ -810,7 +814,7 @@ lemma of_vector_space_index.linear_independent :
   linear_independent K (coe : of_vector_space_index K V → V) :=
 by { convert (of_vector_space K V).linear_independent, ext x, rw of_vector_space_apply_self }
 
-@[simp] lemma range_of_vector_space :
+lemma range_of_vector_space :
   range (of_vector_space K V) = of_vector_space_index K V :=
 range_extend _
 

@@ -620,10 +620,10 @@ variables [comm_ring R] [add_comm_monoid M]
 
 /-- If `add_monoid_algebra R M` is of finite type, there there is a `G : finset M` such that its
 image generates, as algera, `add_monoid_algebra R M`. -/
-lemma exists_finset_adjoin_eq_top : finite_type R (add_monoid_algebra R M) →
+lemma exists_finset_adjoin_eq_top [h : finite_type R (add_monoid_algebra R M)] :
   ∃ G : finset M, algebra.adjoin R (of' R M '' G) = ⊤ :=
 begin
-  rintro ⟨S, hS⟩,
+  unfreezingI { obtain ⟨S, hS⟩ := h },
   letI : decidable_eq M := classical.dec_eq M,
   use finset.bUnion S (λ f, f.support),
   have : (finset.bUnion S (λ f, f.support) : set M) = ⋃ f ∈ S, (f.support : set M),
@@ -697,7 +697,7 @@ lemma ft_iff_fg [comm_ring R] [nontrivial R] :
   add_monoid.fg M ↔ finite_type R (add_monoid_algebra R M) :=
 begin
   refine ⟨λ h, @add_monoid_algebra.ft_of_fg _ _ _ _ h, λ h, _⟩,
-  obtain ⟨S, hS⟩ := exists_finset_adjoin_eq_top h,
+  obtain ⟨S, hS⟩ := @exists_finset_adjoin_eq_top R M _ _ h,
   refine add_monoid.fg_def.2 ⟨S, (eq_top_iff' _).2 (λ m, _)⟩,
   have hm : of' R M m ∈ (adjoin R (of' R M '' ↑S)).to_submodule,
   { simp only [hS, top_to_submodule, submodule.mem_top], },
@@ -760,10 +760,10 @@ variables [comm_ring R] [comm_monoid M]
 
 /-- If `monoid_algebra R M` is of finite type, there there is a `G : finset M` such that its image
 generates, as algera, `monoid_algebra R M`. -/
-lemma generators_of_finite_type : finite_type R (monoid_algebra R M) → ∃ G : finset M,
-  algebra.adjoin R (of R M '' G) = ⊤ :=
+lemma exists_finset_adjoin_eq_top [h :finite_type R (monoid_algebra R M)] :
+  ∃ G : finset M, algebra.adjoin R (of R M '' G) = ⊤ :=
 begin
-  rintro ⟨S, hS⟩,
+  unfreezingI { obtain ⟨S, hS⟩ := h },
   letI : decidable_eq M := classical.dec_eq M,
   use finset.bUnion S (λ f, f.support),
   have : (finset.bUnion S (λ f, f.support) : set M) = ⋃ f ∈ S, (f.support : set M),

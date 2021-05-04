@@ -161,6 +161,10 @@ def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (
 def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
 (add_monoid_hom.apply β i).comp coe_fn_add_monoid_hom
 
+instance is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
+  is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
+{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
+
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
 
@@ -169,7 +173,7 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
   .. dfinsupp.add_monoid }
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
-  ⇑(∑ a in s, g a) = ∑ a in s, (g a) :=
+  ⇑(∑ a in s, g a) = ∑ a in s, g a :=
 (coe_fn_add_monoid_hom : _ →+ (Π i, β i)).map_sum g s
 
 @[simp] lemma finset_sum_apply {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i)
@@ -177,9 +181,6 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
   (∑ a in s, g a) i = ∑ a in s, g a i :=
 (eval_add_monoid_hom i : _ →+ β i).map_sum g s
 
-instance is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
-  is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
 
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 map_range_apply _ _ g i

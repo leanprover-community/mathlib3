@@ -8,10 +8,6 @@ import analysis.complex.polynomial
 import field_theory.galois
 import group_theory.perm.cycle_type
 import ring_theory.eisenstein_criterion
-<<<<<<< HEAD
-import ring_theory.polynomial.gauss_lemma
-=======
->>>>>>> master
 
 /-!
 # Galois Groups of Polynomials

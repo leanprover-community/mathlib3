@@ -343,6 +343,23 @@ lemma has_limits_of_shape_of_reflective [has_limits_of_shape J C] (R : D ⥤ C) 
 lemma has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_limits D :=
 { has_limits_of_shape := λ J 𝒥₁, by exactI has_limits_of_shape_of_reflective R }
 
+/-- If `C` has colimits of shape `J` then any reflective subcategory has colimits of shape `J`. -/
+lemma has_colimits_of_shape_of_reflective (R : D ⥤ C)
+  [reflective R] [has_colimits_of_shape J C] : has_colimits_of_shape J D :=
+{ has_colimit := λ F,
+begin
+  let c := (left_adjoint R).map_cocone (colimit.cocone (F ⋙ R)),
+  letI := (adjunction.of_right_adjoint R).left_adjoint_preserves_colimits,
+  let t : is_colimit c := is_colimit_of_preserves (left_adjoint R) (colimit.is_colimit _),
+  apply has_colimit.mk ⟨_, (is_colimit.precompose_inv_equiv _ _).symm t⟩,
+  apply (iso_whisker_left F (as_iso (adjunction.of_right_adjoint R).counit) : _) ≪≫ F.right_unitor,
+end }
+
+/-- If `C` has colimits then any reflective subcategory has colimits. -/
+lemma has_colimits_of_reflective (R : D ⥤ C) [reflective R] [has_colimits C] :
+  has_colimits D :=
+{ has_colimits_of_shape := λ J 𝒥, by exactI has_colimits_of_shape_of_reflective R }
+
 /--
 The reflector always preserves terminal objects. Note this in general doesn't apply to any other
 limit.

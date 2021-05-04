@@ -63,7 +63,8 @@ lemma derived_series_le_lower_central_series (k : ℕ) :
   derived_series R L k ≤ lower_central_series R L L k :=
 begin
   induction k with k h,
-  { exact le_refl _, },
+  { rw [derived_series_def, derived_series_of_ideal_zero, lower_central_series_zero],
+    exact le_refl _, },
   { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
     rw [derived_series_def, derived_series_of_ideal_succ, lower_central_series_succ],
     exact lie_submodule.mono_lie _ _ _ _ h' h, },
@@ -93,10 +94,10 @@ end
 This result will be used downstream to show that weight spaces are Lie submodules, at which time
 it will be possible to state it in the language of weight spaces. -/
 lemma infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L M] :
-  (⨅ (x : L), (to_endomorphism R L M x).maximal_generalized_eigenspace 0) = ⊤ :=
+  (⨅ (x : L), (to_endomorphism R L M x).max_gen_eigenspace 0) = ⊤ :=
 begin
   ext m,
-  simp only [module.End.mem_maximal_generalized_eigenspace, submodule.mem_top, sub_zero, iff_true,
+  simp only [module.End.mem_max_gen_eigenspace, submodule.mem_top, sub_zero, iff_true,
     zero_smul, submodule.mem_infi],
   intros x,
   obtain ⟨k, hk⟩ := nilpotent_endo_of_nilpotent_module R L M,
@@ -134,7 +135,7 @@ lemma lie_algebra.nilpotent_ad_of_nilpotent_algebra [is_nilpotent R L] :
 lie_module.nilpotent_endo_of_nilpotent_module R L L
 
 lemma lie_algebra.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L] :
-  (⨅ (x : L), (ad R L x).maximal_generalized_eigenspace 0) = ⊤ :=
+  (⨅ (x : L), (ad R L x).max_gen_eigenspace 0) = ⊤ :=
 lie_module.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent R L L
 
 -- TODO Generalise the below to Lie modules if / when we define morphisms, equivs of Lie modules

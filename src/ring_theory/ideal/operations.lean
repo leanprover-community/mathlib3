@@ -230,15 +230,13 @@ end
   Remainder Theorem. It is bijective if the ideals `f i` are comaximal. -/
 def quotient_inf_to_pi_quotient (f : ι → ideal R) :
   (⨅ i, f i).quotient →+* Π i, (f i).quotient :=
-begin
-  refine quotient.lift (⨅ i, f i) _ _,
-  { convert @@pi.ring_hom (λ i, quotient (f i)) (λ i, ring.to_semiring) ring.to_semiring
-      (λ i, quotient.mk (f i)) },
-  { intros r hr,
+quotient.lift (⨅ i, f i)
+  (pi.ring_hom (λ i : ι, (quotient.mk (f i) : _))) $
+  λ r hr, begin
     rw submodule.mem_infi at hr,
     ext i,
-    exact quotient.eq_zero_iff_mem.2 (hr i) }
-end
+    exact quotient.eq_zero_iff_mem.2 (hr i)
+  end
 
 theorem quotient_inf_to_pi_quotient_bijective [fintype ι] {f : ι → ideal R}
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
@@ -419,6 +417,9 @@ variables (I)
 @[simp] theorem radical_idem : radical (radical I) = radical I :=
 le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
 variables {I}
+
+theorem radical_le_radical_iff : radical I ≤ radical J ↔ I ≤ radical J :=
+⟨λ h, le_trans le_radical h, λ h, radical_idem J ▸ radical_mono h⟩
 
 theorem radical_eq_top : radical I = ⊤ ↔ I = ⊤ :=
 ⟨λ h, (eq_top_iff_one _).2 $ let ⟨n, hn⟩ := (eq_top_iff_one _).1 h in

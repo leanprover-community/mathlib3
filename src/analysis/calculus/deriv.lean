@@ -967,6 +967,10 @@ has_deriv_at_filter.tendsto_nhds inf_le_left h
 theorem has_deriv_at.continuous_at (h : has_deriv_at f f' x) : continuous_at f x :=
 has_deriv_at_filter.tendsto_nhds (le_refl _) h
 
+protected theorem has_deriv_at.continuous_on {f f' : 𝕜 → F}
+  (hderiv : ∀ x ∈ s, has_deriv_at f (f' x) x) : continuous_on f s :=
+λ x hx, (hderiv x hx).continuous_at.continuous_within_at
+
 end continuous
 
 section cartesian_product
@@ -1779,9 +1783,9 @@ begin
   have : ∀ m : ℤ, 0 < m → has_strict_deriv_at (λx, x^m) ((m:𝕜) * x^(m-1)) x,
   { assume m hm,
     lift m to ℕ using (le_of_lt hm),
-    simp only [fpow_of_nat, int.cast_coe_nat],
+    simp only [gpow_coe_nat, int.cast_coe_nat],
     convert has_strict_deriv_at_pow _ _ using 2,
-    rw [← int.coe_nat_one, ← int.coe_nat_sub, fpow_coe_nat],
+    rw [← int.coe_nat_one, ← int.coe_nat_sub, gpow_coe_nat],
     norm_cast at hm,
     exact nat.succ_le_of_lt hm },
   rcases lt_trichotomy m 0 with hm|hm|hm,
@@ -1789,9 +1793,9 @@ begin
       [skip, exact fpow_ne_zero_of_ne_zero hx _],
     simp only [(∘), fpow_neg, one_div, inv_inv', smul_eq_mul] at this,
     convert this using 1,
-    rw [pow_two, mul_inv', inv_inv', int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
+    rw [sq, mul_inv', inv_inv', int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
       ← fpow_add hx, mul_assoc, ← fpow_add hx], congr, abel },
-  { simp only [hm, fpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
+  { simp only [hm, gpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
   { exact this m hm }
 end
 

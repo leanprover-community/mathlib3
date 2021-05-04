@@ -44,8 +44,8 @@ We then introduce the 16 typeclasses obtained by choosing `M = N` and assuming
 There are two main reasons for introducing several typeclasses.  The first, is that it is much more
 human-friendly to have a class called `has_add_le_add_right M` than one called
 `covariant (flip (+)) (≤)`.  The second, is that this way, we bound better the space
-for typeclass inference: e.g. we ask the typeclass search to look for `has_add` and `has_le`
-instances, instead of extending the search to all possible functions among different Types.
+for typeclass inference: e.g. the typeclass system will only look through the `has_add_le_add_right` instances,
+without extending the search to instances of `covariant` applied to different functions or relations.
 
 The general approach is to formulate and prove a lemma, with the `ordered_[...]` typeclass of your
 liking.  After that, you convert the single typeclass, say `[ordered_cancel_monoid M]`, with three
@@ -122,8 +122,8 @@ lemma is_symm_op.swap_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
 funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm
 
 @[to_additive]
-lemma covariant_iff_covariant_mul [comm_semigroup N] :
-  covariant ((*) : N → N → N) (r) ↔ covariant (flip (*) : N → N → N) (r) :=
+lemma covariant_iff_covariant_flip {α β} (op) [is_symm_op α β op] :
+  covariant op r ↔ covariant (flip op) r :=
 by rw is_symm_op.swap_eq
 
 @[to_additive]

@@ -443,7 +443,7 @@ by { ext, erw f.mem_ker }
 
 lemma is_closed_ker {V₂ : Type*} [normed_group V₂] (f : normed_group_hom V₁ V₂) :
   is_closed (f.ker : set V₁) :=
-f.ker_eq_preimage ▸ is_closed.preimage f.continuous (t1_space.t1 0)
+f.coe_ker ▸ is_closed.preimage f.continuous (t1_space.t1 0)
 
 end kernels
 

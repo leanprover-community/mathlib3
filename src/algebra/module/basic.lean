@@ -487,3 +487,39 @@ by rw [nsmul_eq_mul, mul_one]
 @[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
 by rw [gsmul_eq_mul, mul_one]
+
+namespace nat
+
+variables {A : Type*} [add_comm_monoid A]
+
+/-- `nat.cast_add_hom' a` is the additive monoid homomorphism `ℕ → A`
+that sends `1 : ℕ` to `a : A`. -/
+def cast_add_hom' (a : A) : ℕ →+ A :=
+{ to_fun := λ n, n • a,
+  map_zero' := zero_smul _ _,
+  map_add' := λ m n, add_smul m n a }
+
+@[simp, priority 900]
+lemma cast_add_hom'_apply (a : A) (n : ℕ) : cast_add_hom' a n = n • a := rfl
+
+@[simp] lemma cast_add_hom'_one (a : A) : cast_add_hom' a 1 = a :=
+by rw [cast_add_hom'_apply, one_smul]
+
+end nat
+
+namespace int
+
+variables {A : Type*} [add_comm_group A]
+
+/-- `int.cast_add_hom' a` is the additive group homomorphism `ℤ → A`
+that sends `1 : ℤ` to `a : A`. -/
+def cast_add_hom' (a : A) : ℤ →+ A :=
+add_monoid_hom.mk' (λ n, n • a) $ λ m n, add_smul m n a
+
+@[simp, priority 900]
+lemma cast_add_hom'_apply (a : A) (n : ℤ) : cast_add_hom' a n = n • a := rfl
+
+@[simp] lemma cast_add_hom'_one (a : A) : cast_add_hom' a 1 = a :=
+by rw [cast_add_hom'_apply, one_smul]
+
+end int

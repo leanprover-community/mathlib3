@@ -131,7 +131,7 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
 
 /--
 An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
-`Top.alt_limit_cone`.
+`Top.limit_cone`.
 -/
 def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.cone F :=
@@ -144,7 +144,7 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
       apply_instance} },
   π := { app := λ j, (CompHaus.limit_cone (F ⋙ Profinite.to_CompHaus)).π.app j } }
 
-/-- The limit cone `Profinite.alt_limit_cone F` is indeed a limit cone. -/
+/-- The limit cone `Profinite.limit_cone F` is indeed a limit cone. -/
 def alt_limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.is_limit (limit_cone F) :=
 { lift := λ S, (CompHaus.limit_cone_is_limit (F ⋙ Profinite.to_CompHaus)).lift

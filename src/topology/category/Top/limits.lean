@@ -35,7 +35,7 @@ Generally you should just use `limit.cone F`, unless you need the actual definit
 (which is in terms of `types.limit_cone`).
 -/
 def limit_cone (F : J ⥤ Top.{u}) : cone F :=
-{ X := { α := { u : Π j : J, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} },
+{ X := Top.of { u : Π j : J, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j},
   π :=
   { app := λ j,
     { to_fun := λ u, u.val j,

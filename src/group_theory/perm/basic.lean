@@ -5,8 +5,6 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import algebra.group.pi
 import algebra.group_power
-import algebra.group.prod
-import logic.embedding
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`

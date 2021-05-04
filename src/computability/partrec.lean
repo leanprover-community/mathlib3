@@ -665,9 +665,7 @@ theorem sum_cases_left
   (sum_inr.comp snd).to₂ (sum_inl.comp snd).to₂) hh hg).of_eq $
 λ a, by cases f a; simp
 
-lemma fix_aux
-  {f : α →. σ ⊕ α} (hf : partrec f)
-  (a : α) (b : σ) :
+lemma fix_aux (f : α →. σ ⊕ α) (a : α) (b : σ) :
   let F : α → ℕ →. σ ⊕ α := λ a n,
     n.elim (some (sum.inr a)) $ λ y IH, IH.bind $ λ s,
     sum.cases_on s (λ _, roption.some s) f in
@@ -724,6 +722,6 @@ have hp : partrec₂ p := hF.map ((sum_cases computable.id
   (const tt).to₂ (const ff).to₂).comp snd).to₂,
 (hp.rfind.bind (hF.bind
   (sum_cases_right snd snd.to₂ none.to₂).to₂).to₂).of_eq $
-λ a, ext $ λ b, by simp; apply fix_aux hf
+λ a, ext $ λ b, by simp; apply fix_aux f
 
 end partrec

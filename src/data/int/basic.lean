@@ -1345,6 +1345,9 @@ congr_arg coe (nat.one_shiftl _)
 
 /-! ### Least upper bound property for integers -/
 
+/-- A computable version of `exists_least_of_bdd`: given a decidable predicate on the
+integers, with an explicit lower bound and a proof that it is somewhere true, return
+the least value for which the predicate is true. -/
 def least_of_bdd {P : ℤ → Prop} [decidable_pred P]
   (b : ℤ) (Hb : ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
   {lb : ℤ // P lb ∧ (∀ z : ℤ, P z → lb ≤ z)} :=
@@ -1364,6 +1367,9 @@ theorem exists_least_of_bdd {P : ℤ → Prop}
   ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
 by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := least_of_bdd b Hb Hinh in ⟨lb, H⟩
 
+/-- A computable version of `exists_greatest_of_bdd`: given a decidable predicate on the
+integers, with an explicit upper bound and a proof that it is somewhere true, return
+the greatest value for which the predicate is true. -/
 def greatest_of_bdd {P : ℤ → Prop} [decidable_pred P]
   (b : ℤ) (Hb : ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
   {ub : ℤ // P ub ∧ (∀ z : ℤ, P z → z ≤ ub)} :=

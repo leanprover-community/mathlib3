@@ -38,6 +38,7 @@ alias lt_asymm        ← has_lt.lt.asymm has_lt.lt.not_lt
 
 alias le_of_eq        ← eq.le
 
+attribute [nolint decidable_classical] has_le.le.lt_or_eq_dec
 
 /-- A version of `le_refl` where the argument is implicit -/
 lemma le_rfl [preorder α] {x : α} : x ≤ x := le_refl x
@@ -143,11 +144,13 @@ h.lt_or_eq.symm
 alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 
+attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
+
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
 -- See Note [decidable namespace]
-@[simp] protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α (≤)]
+protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α (≤)]
   {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
 ⟨λ h, decidable.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
 

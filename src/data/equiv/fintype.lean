@@ -17,7 +17,7 @@ sides of the equivalence are `fintype`s.
 
  - `function.embedding.to_equiv_range`: computably turn an embedding of a
    fintype into an `equiv` of the domain to its range
- - `equiv.perm.via_embedding : perm α → (α ↪ β) → perm β` extends the domain of
+ - `equiv.perm.via_fintype_embedding : perm α → (α ↪ β) → perm β` extends the domain of
    a permutation, fixing everything outside the range of the embedding
 
 # Implementation details
@@ -54,27 +54,27 @@ Everything outside of `set.range f` is kept fixed. Has poor computational perfor
 due to exhaustive searching in constructed inverse due to using `function.embedding.to_equiv_range`.
 When a better `α ≃ set.range f` is known, use `equiv.perm.via_set_range`.
 -/
-def equiv.perm.via_embedding : equiv.perm β :=
+def equiv.perm.via_fintype_embedding : equiv.perm β :=
 e.extend_domain f.to_equiv_range
 
-@[simp] lemma equiv.perm.via_embedding_apply_image (a : α) :
-  e.via_embedding f (f a) = f (e a) :=
+@[simp] lemma equiv.perm.via_fintype_embedding_apply_image (a : α) :
+  e.via_fintype_embedding f (f a) = f (e a) :=
 begin
-  rw equiv.perm.via_embedding,
+  rw equiv.perm.via_fintype_embedding,
   convert equiv.perm.extend_domain_apply_image e _ _
 end
 
-lemma equiv.perm.via_embedding_apply_mem_range {b : β} (h : b ∈ set.range f) :
-  e.via_embedding f b = f (e (f.inv_of_mem_range ⟨b, h⟩)) :=
-by simpa [equiv.perm.via_embedding, equiv.perm.extend_domain_apply_subtype, h]
+lemma equiv.perm.via_fintype_embedding_apply_mem_range {b : β} (h : b ∈ set.range f) :
+  e.via_fintype_embedding f b = f (e (f.inv_of_mem_range ⟨b, h⟩)) :=
+by simpa [equiv.perm.via_fintype_embedding, equiv.perm.extend_domain_apply_subtype, h]
 
-lemma equiv.perm.via_embedding_apply_not_mem_range {b : β} (h : b ∉ set.range f) :
-  e.via_embedding f b = b :=
-by rwa [equiv.perm.via_embedding, equiv.perm.extend_domain_apply_not_subtype]
+lemma equiv.perm.via_fintype_embedding_apply_not_mem_range {b : β} (h : b ∉ set.range f) :
+  e.via_fintype_embedding f b = b :=
+by rwa [equiv.perm.via_fintype_embedding, equiv.perm.extend_domain_apply_not_subtype]
 
-@[simp] lemma equiv.perm.via_embedding_sign [decidable_eq α] [fintype β] :
-  equiv.perm.sign (e.via_embedding f) = equiv.perm.sign e :=
-by simp [equiv.perm.via_embedding]
+@[simp] lemma equiv.perm.via_fintype_embedding_sign [decidable_eq α] [fintype β] :
+  equiv.perm.sign (e.via_fintype_embedding f) = equiv.perm.sign e :=
+by simp [equiv.perm.via_fintype_embedding]
 
 namespace equiv
 variables {p q : α → Prop} [decidable_pred p] [decidable_pred q]

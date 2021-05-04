@@ -197,12 +197,10 @@ extend_domain_refl f
 extend_domain_trans _ _ _
 
 /-- `extend_domain` as a group homomorphism -/
-def extend_domain_hom : perm α →* perm β :=
+@[simps] def extend_domain_hom : perm α →* perm β :=
 { to_fun := λ e, extend_domain e f,
   map_one' := extend_domain_one f,
   map_mul' := λ e e', (extend_domain_mul f e e').symm }
-
-lemma extend_domain_hom_apply : extend_domain_hom f e = extend_domain e f := rfl
 
 lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
 ((extend_domain_hom f).injective_iff).mpr (λ e he, ext (λ x, f.injective (subtype.ext
@@ -292,24 +290,24 @@ variables (e : perm α) (ι : α ↪ β)
 
 open_locale classical
 
-/-- Noncomputable version of `equiv.perm.via_embedding`, but does not assume `fintype` -/
-noncomputable def of_embedding : perm β :=
+/-- Noncomputable version of `equiv.perm.via_fintype_embedding`, but does not assume `fintype` -/
+noncomputable def via_embedding : perm β :=
 extend_domain e (of_injective ι.1 ι.2)
 
-lemma of_embedding_apply (x : α) : e.of_embedding ι (ι x) = ι (e x) :=
+lemma via_embedding_apply (x : α) : e.via_embedding ι (ι x) = ι (e x) :=
 extend_domain_apply_image e (of_injective ι.1 ι.2) x
 
-lemma of_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
-  e.of_embedding ι x = x :=
+lemma via_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
+  e.via_embedding ι x = x :=
 extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
 
-/-- `of_embedding` as a group homomorphism -/
-noncomputable def of_embedding_hom : perm α →* perm β:=
+/-- `via_embedding` as a group homomorphism -/
+noncomputable def via_embedding_hom : perm α →* perm β:=
 extend_domain_hom (of_injective ι.1 ι.2)
 
-lemma of_embedding_hom_apply : of_embedding_hom ι e = of_embedding e ι := rfl
+lemma via_embedding_hom_apply : via_embedding_hom ι e = via_embedding e ι := rfl
 
-lemma of_embedding_hom_injective : function.injective (of_embedding_hom ι) :=
+lemma via_embedding_hom_injective : function.injective (via_embedding_hom ι) :=
 extend_domain_hom_injective (of_injective ι.1 ι.2)
 
 end perm

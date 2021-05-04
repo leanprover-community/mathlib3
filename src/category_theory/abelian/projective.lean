@@ -64,7 +64,7 @@ variables [enough_projectives C] [abelian C]
 In any category with enough projectives,
 `projective.resolution.of Z` constructs a projection resolution of the object `Z`.
 -/
-def of (Z : C) : ProjectiveResolution Z :=
+def of (Z : C) : ProjectiveResolution_core Z :=
 { X := λ n, X' projective.over projective.π
     (λ (X Y : C) (f : X ⟶ Y), projective.left f)
     (λ (X Y : C) (f : X ⟶ Y), projective.d f)
@@ -84,7 +84,7 @@ def of (Z : C) : ProjectiveResolution Z :=
   exact := λ n, exact_d_f _ }
 
 instance (Z : C) : has_projective_resolution Z :=
-{ out := ⟨of Z⟩ }
+{ out := ⟨ProjectiveResolution.of_core (of Z)⟩ }
 
 instance : has_projective_resolutions C :=
 { out := λ Z, by apply_instance }

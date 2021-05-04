@@ -12,7 +12,7 @@ import tactic.omega
 We define `single V j c : V ⥤ homological_complex V c`,
 which constructs complexes in `V` of shape `c`, supported in degree `j`.
 
-In `to_single_equiv` we characterize chain maps to a `ℕ`-indexed complex concentrated in degree 0;
+In `to_single_0_equiv` we characterize chain maps to a `ℕ`-indexed complex concentrated in degree 0;
 they are equivalent to `{ f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 }`.
 (This is useful translating between a projective resolution and
 an augmented exact complex of projectives.)
@@ -33,7 +33,8 @@ local attribute [instance] has_zero_object.has_zero
 /--
 The functor `V ⥤ homological_complex V c` creating a chain complex supported in a single degree.
 
-See also `chain_complex.of : V ⥤ chain_complex V ℕ`, which has better definitional properties,
+See also `chain_complex.single_0 : V ⥤ chain_complex V ℕ`,
+which has better definitional properties,
 if you are working with `ℕ`-indexed complexes.
 -/
 @[simps]
@@ -112,21 +113,29 @@ begin
   { rw [d_from_eq ((single_0 V).obj X) rfl], simp, },
 end
 @[simp] lemma single_0_map_f_0 {X Y : V} (f : X ⟶ Y) : ((single_0 V).map f).f 0 = f := rfl
-@[simp] lemma single_0_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) : ((single_0 V).map f).f (n+1) = 0 := rfl
+@[simp] lemma single_0_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
+  ((single_0 V).map f).f (n+1) = 0 := rfl
 
 section
 variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
 
+/--
+Sending objects to chain complexes supported at `0` then taking `0`-th homology
+is the same as doing nothing.
+-/
+noncomputable
 def homology_functor_0_single_0 : single_0 V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
-nat_iso.of_components (λ X,
-begin
-  dsimp [homology_functor],
-  dunfold homological_complex.homology,
-  dsimp,
-  simp, -- eek, this will introduce bad stuff in data. need `homology.congr`.
-  dsimp,
-end)
-  sorry
+nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
+  (λ X Y f, by { ext, dsimp [homology_functor], simp, })
+
+/--
+Sending objects to chain complexes supported at `0` then taking `(n+1)`-st homology
+is the same as the zero functor.
+-/
+noncomputable
+def homology_functor_succ_single_0 (n : ℕ) : single_0 V ⋙ homology_functor V _ (n+1) ≅ 0 :=
+nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
+  (λ X Y f, by ext)
 
 end
 

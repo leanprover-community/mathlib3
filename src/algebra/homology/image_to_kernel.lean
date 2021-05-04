@@ -176,6 +176,14 @@ lemma homology.ext {D : V} {k k' : homology f g w ⟶ D}
   (p : homology.π f g w ≫ k = homology.π f g w ≫ k') : k = k' :=
 by { ext, exact p, }
 
+/-- `homology 0 0 _` is just the middle object. -/
+@[simps]
+def homology_zero_zero [has_zero_object V]
+  [has_image (0 : A ⟶ B)] [has_cokernel (image_to_kernel (0 : A ⟶ B) (0 : B ⟶ C) (by simp))] :
+  homology (0 : A ⟶ B) (0 : B ⟶ C) (by simp) ≅ B :=
+{ hom := homology.desc (0 : A ⟶ B) (0 : B ⟶ C) (by simp) (kernel_subobject 0).arrow (by simp),
+  inv := inv (kernel_subobject 0).arrow ≫ homology.π _ _ _, }
+
 section
 variables {f g}
   {A' B' C' : V} {f' : A' ⟶ B'} [has_image f'] {g' : B' ⟶ C'} [has_kernel g'] (w' : f' ≫ g' = 0)
@@ -223,13 +231,33 @@ by { ext, simp, }
 end
 
 section
-variables {f' : A ⟶ B} [has_image f'] {g' : B ⟶ C} [has_kernel g'] (w' : f' ≫ g' = 0)
+variables {f g} {f' : A ⟶ B} [has_image f'] {g' : B ⟶ C} [has_kernel g'] (w' : f' ≫ g' = 0)
   [has_cokernel (image_to_kernel f' g' w')] [has_images V] [has_image_maps V]
 
+/--
+`homology f g w ≅ homology f' g' w'` if `f = f'` and `g = g'`.
+(Note the objects are not changing here.)
+-/
+@[simps]
 def homology.congr (pf : f = f') (pg : g = g') : homology f g w ≅ homology f' g' w' :=
 { hom := homology.map w w' { left := 𝟙 _, right := 𝟙 _, } { left := 𝟙 _, right := 𝟙 _, } rfl,
-  inv := homology.map w' w { left := 𝟙 _, right := 𝟙 _, } { left := 𝟙 _, right := 𝟙 _, } rfl, }
-
+  inv := homology.map w' w { left := 𝟙 _, right := 𝟙 _, } { left := 𝟙 _, right := 𝟙 _, } rfl,
+  hom_inv_id' := begin
+    ext,
+    simp_rw [category.comp_id, homology.π_map_assoc, homology.π_map,
+      ←category.assoc, ←kernel_subobject_map_comp],
+    convert category.id_comp _,
+    convert kernel_subobject_map_id,
+    ext; simp,
+  end,
+  inv_hom_id' := begin
+    ext,
+    simp_rw [category.comp_id, homology.π_map_assoc, homology.π_map,
+      ←category.assoc, ←kernel_subobject_map_comp],
+    convert category.id_comp _,
+    convert kernel_subobject_map_id,
+    ext; simp,
+  end, }
 
 end
 

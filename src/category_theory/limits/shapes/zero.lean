@@ -211,6 +211,13 @@ has_initial_of_unique 0
 lemma has_terminal : has_terminal C :=
 has_terminal_of_unique 0
 
+local attribute [instance] has_zero_object.has_zero
+
+instance {B : Type*} [category B] [has_zero_morphisms C] : has_zero_object (B ⥤ C) :=
+{ zero := { obj := λ X, 0, map := λ X Y f, 0, },
+  unique_to := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩,
+  unique_from := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩ }
+
 end has_zero_object
 
 section

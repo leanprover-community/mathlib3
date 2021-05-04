@@ -44,35 +44,8 @@ def truncate_to [has_zero_object V] [has_zero_morphisms V] (C : chain_complex V 
   truncate.obj C ⟶ (single_0 V).obj (C.X 0) :=
 (to_single_0_equiv (truncate.obj C) (C.X 0)).symm ⟨C.d 1 0, by tidy⟩
 
--- local attribute [instance] has_zero_object.has_zero
-
--- lemma foo [has_zero_object V] [has_zero_morphisms V] [has_kernels V] [has_cokernels V] [has_images V] [has_image_maps V]
---   {X Y Z : V} (f : X ⟶ Y) (g : Y ⟶ Z) [exact f g] [epi g] :
---   is_iso (homology.map (comp_zero : f ≫ (0 : Y ⟶ 0) = 0) (comp_zero : (0 : 0 ⟶ Z) ≫ (0 : Z ⟶ 0) = 0)
---    { left := 0, right := g, } { left := g, right := 0 } rfl) :=
--- begin
---   dsimp [homology.map],
---   simp,
--- end
-
--- instance truncate_to_quasi_iso
---   [has_zero_object V] [preadditive V] [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
---   (C : chain_complex V ℕ) [∀ n, exact (C.d (n+2) (n+1)) (C.d (n+1) n)] [epi (C.d 1 0)]:
---   quasi_iso (C.truncate_to) :=
--- { is_iso := λ i,
---   begin
---     cases i,
---     { dsimp [homology_functor],
---       simp,
---     dsimp [homology.map],
-
---     simp, sorry, },
---     { apply is_iso_of_source_target_iso_zero,
---       { refine ((preadditive.exact_iff_homology_zero (d_to (truncate.obj C) i.succ) (d_from (truncate.obj C) i.succ)).mp _).some_spec.some,
---         sorry, -- fine
---       },
---       { sorry, }, } -- easy
---   end }
+-- PROJECT when `V` is abelian (but not generally?)
+-- `[∀ n, exact (C.d (n+2) (n+1)) (C.d (n+1) n)] [epi (C.d 1 0)]` iff `quasi_iso (C.truncate_to)`
 
 variables [has_zero_morphisms V]
 

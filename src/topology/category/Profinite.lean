@@ -9,6 +9,7 @@ import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
 import category_theory.monad.limits
+import category_theory.Fintype
 
 /-!
 # The category of Profinite Types
@@ -128,6 +129,20 @@ adjunction.left_adjoint_of_equiv Profinite.to_CompHaus_equivalence (λ _ _ _ _ _
 
 lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
   ↥(CompHaus.to_Profinite.obj X) = connected_components X.to_Top.α := rfl
+
+ /-- Finite types are given the discrete topology. -/
+def Fintype.discrete_topology (A : Fintype) : topological_space A := ⊥
+
+section discrete_topology
+
+local attribute [instance] Fintype.discrete_topology
+
+ /-- The natural functor from `Fintype` to `Profinite`, endowing a finite type the discrete topology. -/
+def Fintype.to_Profinite : Fintype ⥤ Profinite :=
+{ obj := λ A, ⟨⟨A⟩⟩,
+  map := λ _ _ f, ⟨f⟩ }
+
+end discrete_topology
 
 end Profinite
 

@@ -10,7 +10,6 @@ import category_theory.concrete_category.bundled
 import category_theory.concrete_category
 import category_theory.full_subcategory
 import category_theory.skeletal
-import topology.category.Profinite
 
 /-!
 # The category of finite types.
@@ -111,18 +110,4 @@ noncomputable def is_skeleton : is_skeleton_of Fintype skeleton skeleton.incl :=
 { skel := skeleton.is_skeletal,
   eqv := by apply_instance }
 
-/-- Finite types are given the discrete topology. -/
-protected def discrete_topology (A : Fintype) : topological_space A := ⊥
-
 end Fintype
-
-section discrete_topology
-
-local attribute [instance] Fintype.discrete_topology
-
-/-- The natural functor from `Fintype` to `Profinite`, endowing a finite type the discrete topology. -/
-def Fintype_to_Profinite : Fintype ⥤ Profinite :=
-{ obj := λ A, ⟨⟨A⟩⟩,
-  map := λ _ _ f, ⟨f⟩ }
-
-end discrete_topology

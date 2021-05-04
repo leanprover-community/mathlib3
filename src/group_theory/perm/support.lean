@@ -11,9 +11,12 @@ import group_theory.perm.basic
 # Support of a permutation
 
 ## Main definitions
+
 In the following, `f g : equiv.perm α`.
-* `equiv.perm.disjoint`: two permutations `f` and `g` are `disjoint` every element is fixed either
-  by `f`, or by `g`. Equivalently, `f` and `g` are `disjoint` iff their `support` are disjoint.
+
+* `equiv.perm.disjoint`: two permutations `f` and `g` are `disjoint` if every element is fixed
+  either by `f`, or by `g`.
+  Equivalently, `f` and `g` are `disjoint` iff their `support` are disjoint.
 * `equiv.perm.is_swap`: `f = swap x y` for `x ≠ y`.
 * `equiv.perm.support`: the elements `x : α` that are not fixed by `f`.
 

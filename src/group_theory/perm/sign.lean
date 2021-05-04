@@ -18,7 +18,7 @@ The main definition of this file is `equiv.perm.sign`, associating a `units ℤ`
 permutation.
 
 This file also contains miscellaneous lemmas about `equiv.perm` and `equiv.swap`, building on top
-of those in `data/equiv/basic` and `data/equiv/perm`.
+of those in `data/equiv/basic` and other files in `group_theory/perm/*`.
 
 -/
 

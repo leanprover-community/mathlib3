@@ -653,7 +653,7 @@ begin
   { simpa [← to_submonoid_closure] },
   rw [set.image_congr' (show ∀ x, of' R M x = of R M x, from λ x, of'_eq_of x),
     ← monoid_hom.map_mclosure] at h,
-  simpa using of_mem_of_span_iff.1 h
+  simpa using of'_mem_span.1 h
 end
 
 end ring
@@ -702,7 +702,7 @@ begin
   have hm : of' R M m ∈ (adjoin R (of' R M '' ↑S)).to_submodule,
   { simp only [hS, top_to_submodule, submodule.mem_top], },
   rw [adjoin_eq_span] at hm,
-  exact of_mem_of_span_of_clo hm
+  exact mem_closure_of_mem_span_closure hm
 end
 
 end add_monoid_algebra

@@ -205,7 +205,7 @@ open_locale big_operators
   ∏ᶠ (h : a ∈ s), f a = mul_indicator s f a :=
 by convert finprod_eq_if
 
-@[simp, to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α):
+@[to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α):
   ∏ᶠ (h : a ∈ mul_support f), f a = f a :=
 by rw [finprod_eq_mul_indicator_apply, mul_indicator_mul_support]
 
@@ -672,7 +672,7 @@ begin
   nontriviality,
   rw [finprod_eq_prod f hf],
   refine finset.prod_eq_zero (hf.mem_to_finset.2 _) hx,
-  simp [hx, mem_mul_support],
+  simp [hx]
 end
 
 @[to_additive] lemma finprod_prod_comm (s : finset β) (f : α → β → M)

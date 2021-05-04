@@ -40,7 +40,7 @@ not_not
   (mul_support f)ᶜ = {x | f x = 1} :=
 ext $ λ x, nmem_mul_support
 
-@[to_additive] lemma mem_mul_support {f : α → M} {x : α} :
+@[simp, to_additive] lemma mem_mul_support {f : α → M} {x : α} :
   x ∈ mul_support f ↔ f x ≠ 1 :=
 iff.rfl
 

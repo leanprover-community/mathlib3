@@ -184,20 +184,21 @@ lemma convex.mem_extreme_points_iff_mem_diff_convex_hull_remove (hA : convex A) 
 by rw [hA.mem_extreme_points_iff_convex_remove, hA.convex_remove_iff_not_mem_convex_hull_remove,
   mem_diff]
 
-namespace is_extreme
+lemma inter_extreme_points_subset_extreme_points_of_subset (hBA : B ⊆ A) :
+  B ∩ A.extreme_points ⊆ B.extreme_points :=
+λ x ⟨hxB, hxA⟩, ⟨hxB, λ x₁ x₂ hx₁ hx₂ hx, hxA.2 x₁ x₂ (hBA hx₁) (hBA hx₂) hx⟩
 
-lemma extreme_points_eq (hAB : is_extreme A B) :
-  B.extreme_points = B ∩ A.extreme_points :=
-begin
-  ext x,
-  exact ⟨λ hxB, ⟨hxB.1, mem_extreme_points_iff_extreme_singleton.2 (hAB.trans
-  (mem_extreme_points_iff_extreme_singleton.1 hxB))⟩, λ ⟨hxB, hxA⟩, ⟨hxB, λ x₁ x₂ hx₁B hx₂B hx,
-    hxA.2 x₁ x₂ (hAB.1 hx₁B) (hAB.1 hx₂B) hx⟩⟩,
-end
+namespace is_extreme
 
 lemma extreme_points_subset_extreme_points (hAB : is_extreme A B) :
   B.extreme_points ⊆ A.extreme_points :=
-by simp only [hAB.extreme_points_eq, inter_subset_right]
+λ x hx, mem_extreme_points_iff_extreme_singleton.2 (hAB.trans
+  (mem_extreme_points_iff_extreme_singleton.1 hx))
+
+lemma extreme_points_eq (hAB : is_extreme A B) :
+  B.extreme_points = B ∩ A.extreme_points :=
+subset.antisymm (λ x hx, ⟨hx.1, hAB.extreme_points_subset_extreme_points hx⟩)
+  (inter_extreme_points_subset_extreme_points_of_subset hAB.1)
 
 end is_extreme
 

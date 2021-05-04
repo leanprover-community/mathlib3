@@ -86,6 +86,7 @@ lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
 open category_theory.limits
 local attribute [instance] has_zero_object.has_zero
 
+/-- An additive functor takes the zero object to the zero object (up to isomorphism). -/
 @[simps]
 def map_zero_object [has_zero_object C] [has_zero_object D] : F.obj 0 ≅ 0 :=
 { hom := 0,

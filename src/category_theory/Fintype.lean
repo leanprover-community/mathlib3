@@ -10,6 +10,7 @@ import category_theory.concrete_category.bundled
 import category_theory.concrete_category
 import category_theory.full_subcategory
 import category_theory.skeletal
+import topology.category.Profinite
 
 /-!
 # The category of finite types.
@@ -44,6 +45,16 @@ instance : category Fintype := induced_category.category bundled.α
 def incl : Fintype ⥤ Type* := induced_functor _
 
 instance : concrete_category Fintype := ⟨incl⟩
+
+@[simp] lemma coe_id {A : Fintype} : (𝟙 A : A → A) = id := rfl
+
+@[simp] lemma coe_comp {A B C : Fintype} (f : A ⟶ B) (g : B ⟶ C) :
+  (f ≫ g : A → C) = g ∘ f := rfl
+
+lemma id_apply {A : Fintype} (a : A) : (𝟙 A : A → A) a = a := rfl
+
+lemma comp_apply {A B C : Fintype} (f : A ⟶ B) (g : B ⟶ C) (a : A) :
+  (f ≫ g) a = g (f a) := rfl
 
 /--
 The "standard" skeleton for `Fintype`. This is the full subcategory of `Fintype` spanned by objects
@@ -100,4 +111,18 @@ noncomputable def is_skeleton : is_skeleton_of Fintype skeleton skeleton.incl :=
 { skel := skeleton.is_skeletal,
   eqv := by apply_instance }
 
+/-- Finite types are given the discrete topology. -/
+protected def discrete_topology (A : Fintype) : topological_space A := ⊥
+
 end Fintype
+
+section discrete_topology
+
+local attribute [instance] Fintype.discrete_topology
+
+/-- The natural functor from `Fintype` to `Profinite`, endowing a finite type the discrete topology. -/
+def Fintype_to_Profinite : Fintype ⥤ Profinite :=
+{ obj := λ A, ⟨⟨A⟩⟩,
+  map := λ _ _ f, ⟨f⟩ }
+
+end discrete_topology

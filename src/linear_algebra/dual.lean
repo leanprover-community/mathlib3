@@ -310,7 +310,6 @@ variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
 include h
 
 /-- The coefficients of `v` on the basis `e` -/
-@[simps]
 def coeffs (v : V) : ι →₀ K :=
 { to_fun := λ i, ε i v,
   support := by { haveI := h.finite v, exact {i : ι | ε i v ≠ 0}.to_finset },
@@ -363,7 +362,7 @@ basis.of_repr
   map_add' := λ v w, by { ext i, exact (ε i).map_add v w },
   map_smul' := λ c v, by { ext i, exact (ε i).map_smul c v } }
 
-@[simp] def coe_basis : ⇑h.basis = e :=
+@[simp] lemma coe_basis : ⇑h.basis = e :=
 by { ext i, rw basis.apply_eq_iff, ext j,
      rw [h.basis_repr_apply, coeffs_apply, h.eval, finsupp.single_apply],
      convert if_congr eq_comm rfl rfl } -- `convert` to get rid of a `decidable_eq` mismatch

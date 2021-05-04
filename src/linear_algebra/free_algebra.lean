@@ -14,6 +14,8 @@ dimension of the algebra is the cardinality of `list X`
 -/
 namespace free_algebra
 
+/-- The `free_monoid X` basis on the `free_algebra R X`,
+mapping `[x₁, x₂, ..., xₙ]` to the "monomial" `1 • x₁ * x₂ * ⋯ * xₙ` -/
 @[simps]
 noncomputable def basis_free_monoid (R : Type*) (X : Type*) [comm_ring R] :
   basis (free_monoid X) R (free_algebra R X) :=

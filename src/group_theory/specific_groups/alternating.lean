@@ -89,7 +89,7 @@ instance normal : (alternating_group α).normal := sign.normal_ker
 
 lemma is_conj_of {σ τ : alternating_group α}
   (hc : is_conj (σ : perm α) (τ : perm α)) (hσ : (σ : perm α).support.card + 2 ≤ fintype.card α) :
-    is_conj σ τ :=
+  is_conj σ τ :=
 begin
   obtain ⟨σ, hσ⟩ := σ,
   obtain ⟨τ, hτ⟩ := τ,
@@ -153,23 +153,14 @@ lemma is_three_cycle.top_le_alternating_normal_closure (h5 : 5 ≤ fintype.card 
 begin
   rw [← eq_top_iff],
   have hi : function.injective (alternating_group α).subtype := subtype.coe_injective,
-  apply map_injective hi,
+  refine eq_top_iff.1 (map_injective hi (le_antisymm (map_mono le_top) _)),
   rw [← monoid_hom.range_eq_map, subtype_range, normal_closure, monoid_hom.map_closure],
-  refine (congr rfl _).trans closure_three_cycles_eq_alternating,
-  ext g,
-  split,
-  { rintro ⟨g', hg', rfl⟩,
-    simp_rw [group.mem_conjugates_of_set_iff, is_conj_iff] at hg',
-    obtain ⟨⟨f', hf'⟩, ff', ⟨c, hc⟩, rfl, hc'⟩ := hg',
-    simp only [subtype.val_eq_coe, subgroup.coe_subtype, coe_mk, coe_inv, subgroup.coe_mul,
-      set.mem_set_of_eq],
-    rw [is_three_cycle, cycle_type_conj, (subtype.mk_eq_mk.1 (set.mem_singleton_iff.1 ff')),
-      hf.cycle_type] },
-  { intro h,
-    obtain ⟨c, rfl⟩ := is_conj_iff.1 (is_conj_iff_cycle_type_eq.2 (hf.trans h.symm)),
-    refine ⟨⟨c * f * c⁻¹, h.mem_alternating_group⟩, _, rfl⟩,
-    rw group.mem_conjugates_of_set_iff,
-    exact ⟨⟨f, hf.mem_alternating_group⟩, set.mem_singleton _, is_three_cycle_is_conj h5 hf h⟩ }
+  refine (le_of_eq closure_three_cycles_eq_alternating.symm).trans (closure_mono _),
+  intros g h,
+  obtain ⟨c, rfl⟩ := is_conj_iff.1 (is_conj_iff_cycle_type_eq.2 (hf.trans h.symm)),
+  refine ⟨⟨c * f * c⁻¹, h.mem_alternating_group⟩, _, rfl⟩,
+  rw group.mem_conjugates_of_set_iff,
+  exact ⟨⟨f, hf.mem_alternating_group⟩, set.mem_singleton _, is_three_cycle_is_conj h5 hf h⟩
 end
 
 lemma is_three_cycle_sq_of_three_mem_cycle_type_five {g : perm (fin 5)} (h : 3 ∈ cycle_type g) :

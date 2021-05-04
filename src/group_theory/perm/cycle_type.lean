@@ -264,7 +264,7 @@ theorem is_conj_iff_cycle_type_eq {σ τ : perm α} :
   rw cycle_type_conj,
 end, is_conj_of_cycle_type_eq⟩
 
-lemma cycle_type_extend_domain {β : Type*} [fintype β] [decidable_eq β]
+@[simp] lemma cycle_type_extend_domain {β : Type*} [fintype β] [decidable_eq β]
   {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) {g : perm α} :
   cycle_type (g.extend_domain f) = cycle_type g :=
 begin

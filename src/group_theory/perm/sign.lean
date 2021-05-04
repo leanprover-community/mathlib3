@@ -343,7 +343,7 @@ end
 @[simp]
 lemma support_extend_domain [decidable_eq β] [fintype β] {p : β → Prop} [decidable_pred p]
   (f : α ≃ subtype p) {g : perm α} :
-  support (g.extend_domain f) = g.support.map (f.to_embedding.trans ⟨coe, subtype.coe_injective⟩) :=
+  support (g.extend_domain f) = g.support.map f.as_embedding :=
 begin
   ext b,
   simp only [exists_prop, embedding.coe_fn_mk, to_embedding_apply, mem_map, ne.def,

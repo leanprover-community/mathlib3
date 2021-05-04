@@ -1203,7 +1203,7 @@ lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjec
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
 
-@[to_additive] lemma _root_.subgroup.subtype_range (H : subgroup G) : H.subtype.range = H :=
+@[simp, to_additive] lemma _root_.subgroup.subtype_range (H : subgroup G) : H.subtype.range = H :=
 by { rw [range_eq_map, ← set_like.coe_set_eq, coe_map, subgroup.coe_subtype], ext, simp }
 
 /-- Restriction of a group hom to a subgroup of the domain. -/

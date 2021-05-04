@@ -287,6 +287,10 @@ variable {A}
 @[simp] lemma const_smul_hom_apply (r : M) (x : A) :
   const_smul_hom A r x = r • x := rfl
 
+@[simp] lemma const_smul_hom_one :
+  const_smul_hom A (1:M) = add_monoid_hom.id _ :=
+by { ext, rw [const_smul_hom_apply, one_smul, add_monoid_hom.id_apply] }
+
 end
 
 section

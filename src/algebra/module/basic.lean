@@ -121,7 +121,7 @@ variables {R M}
 
 @[simp] lemma smul_add_hom_one {R M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
   smul_add_hom R M 1 = add_monoid_hom.id _ :=
-by { ext, rw [smul_add_hom_apply, one_smul, add_monoid_hom.id_apply] }
+const_smul_hom_one
 
 lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]

@@ -561,7 +561,7 @@ instance semiring.direct_sum_gmonoid {R : Type*} [add_monoid ι] [semiring R] :
 
 open_locale direct_sum
 
-example {R : Type*} [add_monoid ι] [semiring R] (i j : ι) (a b : R ):
+example {R : Type*} [add_monoid ι] [semiring R] (i j : ι) (a b : R ) :
   (direct_sum.of _ i a * direct_sum.of _ j b : ⨁ i, R) = direct_sum.of _ (i + j) (by exact a * b) :=
 by rw [direct_sum.of_mul_of, semiring.direct_sum_mul]
 

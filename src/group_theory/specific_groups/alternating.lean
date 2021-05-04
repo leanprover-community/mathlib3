@@ -5,6 +5,8 @@ Authors: Aaron Anderson
 -/
 
 import group_theory.perm.cycle_type
+import group_theory.perm.fin
+import tactic.interval_cases
 
 /-!
 # Alternating Groups
@@ -63,6 +65,10 @@ begin
   dec_trivial
 end
 
+lemma is_three_cycle.mem_alternating_group {f : perm α} (hf : is_three_cycle f) :
+  f ∈ alternating_group α :=
+mem_alternating_group.2 hf.sign
+
 end equiv.perm
 
 lemma two_mul_card_alternating_group [nontrivial α] :
@@ -77,10 +83,22 @@ instance alternating_group_normal : (alternating_group α).normal := sign.normal
 
 namespace equiv.perm
 
+lemma nontrivial_of_three_le_card (h3 : 3 ≤ card α) : nontrivial (alternating_group α) :=
+begin
+  haveI := fintype.one_lt_card_iff_nontrivial.1 (lt_trans dec_trivial h3),
+  rw ← fintype.one_lt_card_iff_nontrivial,
+  refine lt_of_mul_lt_mul_left _ (le_of_lt nat.prime_two.pos),
+  rw [two_mul_card_alternating_group, card_perm, ← nat.succ_le_iff],
+  exact le_trans h3 (card α).self_le_factorial,
+end
+
+instance {n : ℕ} : nontrivial (alternating_group (fin (n + 3))) :=
+nontrivial_of_three_le_card (by { rw card_fin, exact le_add_left (le_refl 3) })
+
 @[simp]
 theorem closure_three_cycles_eq_alternating :
   closure {σ : perm α | is_three_cycle σ} = alternating_group α :=
-closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, begin
+closure_eq_of_le _ (λ σ hσ, hσ.mem_alternating_group) $ λ σ hσ, begin
   suffices hind : ∀ (n : ℕ) (l : list (perm α)) (hl : ∀ g, g ∈ l → is_swap g)
     (hn : l.length = 2 * n), l.prod ∈ closure {σ : perm α | is_three_cycle σ},
   { obtain ⟨l, rfl, hl⟩ := trunc_swap_factors σ,
@@ -100,4 +118,167 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
     (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
 end
 
+lemma is_three_cycle.top_le_normal_closure_alt {t : perm α} (t3 : is_three_cycle t) :
+  ⊤ ≤ normal_closure ({⟨t, t3.mem_alternating_group⟩} : set (alternating_group α)) :=
+begin
+  sorry
+end
+
+lemma mem_cycle_type_iff {n : ℕ} {σ : perm α} :
+  n ∈ cycle_type σ ↔ ∃ c τ : perm α, σ = c * τ ∧ disjoint c τ ∧ is_cycle c ∧ c.support.card = n :=
+begin
+  split,
+  { intro h,
+    obtain ⟨l, rfl, hlc, hld⟩ := trunc_cycle_factors σ,
+    rw cycle_type_eq _ rfl hlc hld at h,
+    obtain ⟨c, cl, rfl⟩ := list.exists_of_mem_map h,
+    rw (list.perm_cons_erase cl).pairwise_iff (λ _ _ hd, _) at hld,
+    swap, { exact hd.symm },
+    refine ⟨c, (l.erase c).prod, _, _, hlc _ cl, rfl⟩,
+    { rw [← list.prod_cons,
+        (list.perm_cons_erase cl).symm.prod_eq' (hld.imp (λ a b ab, ab.mul_comm))] },
+    { exact disjoint_prod_list_of_disjoint (λ g, list.rel_of_pairwise_cons hld) } },
+  { rintros ⟨c, t, rfl, hd, hc, rfl⟩,
+    simp [hd.cycle_type, hc.cycle_type] }
+end
+
+lemma le_card_support_of_mem_cycle_type {n : ℕ} {σ : perm α} (h : n ∈ cycle_type σ) :
+  n ≤ σ.support.card :=
+begin
+  obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 h,
+  rw [hd.card_support_mul],
+  exact le_add_right (le_refl _),
+end
+
+lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α} (hn2 : card α < n + 2)
+  (hng : n ∈ g.cycle_type) :
+  g.cycle_type = {n} :=
+begin
+  obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
+  by_cases g'1 : g' = 1,
+  { rw [hd.cycle_type, hc.cycle_type, multiset.singleton_eq_singleton, multiset.singleton_coe,
+      g'1, cycle_type_one, add_zero] },
+  contrapose! hn2,
+  apply le_trans _ (c * g').support.card_le_univ,
+  rw [hd.card_support_mul],
+  exact add_le_add_left (two_le_card_support_of_ne_one g'1) _,
+end
+
 end equiv.perm
+
+namespace alternating_group
+
+open equiv.perm
+
+lemma fin_rotate_five_mem : fin_rotate 5 ∈ alternating_group (fin 5) :=
+mem_alternating_group.2 dec_trivial
+
+lemma fin.cycle_range_two_mem : fin.cycle_range 2 ∈ alternating_group (fin 5) :=
+mem_alternating_group.2 dec_trivial
+
+lemma fin_rotate_aux :
+  ⊤ ≤ (normal_closure ({⟨fin_rotate 5, fin_rotate_five_mem⟩} : set (alternating_group (fin 5)))) :=
+begin
+  have h3 : is_three_cycle ((fin.cycle_range 2) * (fin_rotate 5) *
+    (fin.cycle_range 2)⁻¹ * (fin_rotate 5)⁻¹) := card_support_eq_three_iff.1 dec_trivial,
+  refine le_trans h3.top_le_normal_closure_alt (normal_closure_le_normal _),
+  rw [set.singleton_subset_iff, set_like.mem_coe],
+  have h : (⟨fin_rotate 5, fin_rotate_five_mem⟩ : alternating_group (fin 5)) ∈ normal_closure _ :=
+    set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
+  exact mul_mem _ (subgroup.normal_closure_normal.conj_mem _ h
+    ⟨fin.cycle_range 2, fin.cycle_range_two_mem⟩) (inv_mem _ h),
+end
+
+lemma cycle_type_fin_rotate {n : ℕ} : cycle_type (fin_rotate n) = {n} := sorry
+
+lemma subtype_range [group α] {H : subgroup α} : H.subtype.range = H := sorry
+
+lemma mul_aut.map_conj_normal [group α] (H : subgroup α) [Hn : normal H] {a : α} :
+  H.map (mul_aut.conj a).to_monoid_hom = H :=
+begin
+  ext x,
+  rw mem_map,
+  split,
+  { rintro ⟨y, hy, rfl⟩,
+    exact Hn.conj_mem _ hy _ },
+  { intro hx,
+    refine ⟨a⁻¹ * x * a⁻¹⁻¹, Hn.conj_mem _ hx _, _⟩,
+    simp [mul_assoc] }
+end
+
+lemma is_conj_aux {g g' : perm α} {hg : g ∈ alternating_group α}
+  {hg' : g' ∈ alternating_group α} (hc : is_conj g g')
+  (ht : ⊤ ≤ normal_closure ({⟨g, hg⟩} : set (alternating_group α))) :
+  ⊤ ≤ normal_closure ({⟨g', hg'⟩} : set (alternating_group α)) :=
+begin
+  sorry
+  
+end
+
+lemma _root_.equiv.perm.is_three_cycle.is_three_cycle_sq {g : perm α} (ht : is_three_cycle g) :
+  is_three_cycle (g * g) :=
+begin
+  have ho : order_of g = 3 := sorry,
+  have h := pow_order_of_eq_one g,
+  rw [ho, pow_succ', pow_two, ← eq_inv_iff_mul_eq_one] at h,
+  rw h,
+  exact ht.inv,
+end
+
+lemma is_three_cycle_sq_of_three_mem_cycle_type {g : perm (fin 5)} (h : 3 ∈ cycle_type g) :
+  is_three_cycle (g * g) :=
+begin
+  obtain ⟨c, g', rfl, hd, hc, h3⟩ := mem_cycle_type_iff.1 h,
+  simp only [mul_assoc],
+  rw [hd.mul_comm, ← mul_assoc g'],
+  suffices hg' : order_of g' ∣ 2,
+  { rw [← pow_two, order_of_dvd_iff_pow_eq_one.1 hg', one_mul],
+    exact (card_support_eq_three_iff.1 h3).is_three_cycle_sq },
+  rw [← lcm_cycle_type, multiset.lcm_dvd],
+  intros n hn,
+  rw le_antisymm (two_le_of_mem_cycle_type hn) (le_trans (le_card_support_of_mem_cycle_type hn) _),
+  apply le_of_add_le_add_left,
+  rw [← hd.card_support_mul, h3],
+  exact (c * g').support.card_le_univ,
+end
+
+theorem is_simple_group_five :
+  is_simple_group (alternating_group (fin 5)) :=
+⟨exists_pair_ne _, λ H, begin
+  introI Hn,
+  refine or_not.imp (id) (λ Hb, eq_top_iff.2 _),
+  rw [eq_bot_iff_forall] at Hb,
+  push_neg at Hb,
+  obtain ⟨⟨g, gA⟩, gH, g1⟩ := Hb,
+  rw [← set_like.mem_coe, ← set.singleton_subset_iff] at gH,
+  refine le_trans _ (normal_closure_le_normal gH),
+  by_cases h2 : ∀ n ∈ g.cycle_type, n = 2,
+  { have h := g.support.card_le_univ,
+    rw [← sum_cycle_type, multiset.eq_repeat_of_mem h2, multiset.sum_repeat, smul_eq_mul] at h,
+    have h56 : 5 ≤ 3 * 2 := nat.le_succ 5,
+    have h := le_of_mul_le_mul_right (le_trans h h56) dec_trivial, },
+  push_neg at h2,
+  obtain ⟨n, ng, n2⟩ := h2,
+  have n2' := lt_of_le_of_ne (two_le_of_mem_cycle_type ng) n2.symm,
+  have n5 : n ≤ 5 := le_trans _ g.support.card_le_univ,
+  swap, { obtain ⟨m, hm⟩ := multiset.exists_cons_of_mem ng,
+    rw [← sum_cycle_type, hm, multiset.sum_cons],
+    exact le_add_right (le_refl _) },
+  interval_cases n,
+  { have hg2 := is_three_cycle_sq_of_three_mem_cycle_type ng,
+    refine le_trans hg2.top_le_normal_closure_alt (normal_closure_le_normal _),
+    rw [set.singleton_subset_iff, set_like.mem_coe],
+    have h := set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
+    exact mul_mem _ h h },
+  { have con := mem_alternating_group.1 gA,
+    contrapose! con,
+    rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng],
+    simp only [multiset.singleton_eq_singleton, multiset.map_cons, mul_one, multiset.prod_cons,
+      units.neg_mul, multiset.prod_zero, multiset.map_zero],
+    dec_trivial },
+  { refine is_conj_aux (is_conj_iff_cycle_type_eq.2 _) fin_rotate_aux,
+    rw [cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng, cycle_type_fin_rotate] }
+end⟩
+
+
+end alternating_group

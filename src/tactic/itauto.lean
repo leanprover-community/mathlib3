@@ -352,8 +352,8 @@ prove `A₁ → A₂`, which can be written `A₂ → C, A₁ ⊢ A₂` (where w
 potentially many implications to split like this, and we have to try all of them if we want to be
 complete. -/
 meta def search (prove : context → prop → state_t ℕ option proof) :
-  prop → context → state_t ℕ option proof
-| B Γ := match Γ.find B with
+  context → prop → state_t ℕ option proof
+| Γ B := match Γ.find B with
   | some p := pure p
   | none := match B with
     | prop.or B₁ B₂ := proof.or_inl <$> prove Γ B₁ <|> proof.or_inr <$> prove Γ B₂
@@ -402,16 +402,16 @@ meta def prove : context → prop → state_t ℕ option proof
   p ← prove Γ A,
   q ← prove Γ B,
   pure (p.and_intro ak q)
-| Γ B := Γ.fold (search prove B) (λ A p IH Γ,
+| Γ B := Γ.fold (λ b Γ, cond b prove (search prove) Γ B) (λ A p IH b Γ,
     match A with
     | prop.or A₁ A₂ := do
       let Γ : context := Γ.erase A,
       a ← fresh_name,
-      p₁ ← Γ.with_add A₁ (proof.hyp a) B (λ Γ _, IH Γ),
-      p₂ ← Γ.with_add A₂ (proof.hyp a) B (λ Γ _, IH Γ),
+      p₁ ← Γ.with_add A₁ (proof.hyp a) B (λ Γ _, IH tt Γ),
+      p₂ ← Γ.with_add A₂ (proof.hyp a) B (λ Γ _, IH tt Γ),
       pure (proof.or_elim p a p₁ p₂)
-    | _ := IH Γ
-    end) Γ
+    | _ := IH b Γ
+    end) ff Γ
 
 /-- Reifies an atomic or otherwise unrecognized proposition. If it is defeq to a proposition we
 have already allocated, we reuse it, otherwise we name it with a new index. -/

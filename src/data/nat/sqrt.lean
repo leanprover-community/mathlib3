@@ -152,10 +152,13 @@ le_trans (le_mul_self _) (sqrt_le n)
 theorem sqrt_le_sqrt {m n : ℕ} (h : m ≤ n) : sqrt m ≤ sqrt n :=
 le_sqrt.2 (le_trans (sqrt_le _) h)
 
+@[simp] lemma sqrt_zero : sqrt 0 = 0 :=
+by rw [sqrt, size_zero, sqrt._match_1]
+
 theorem sqrt_eq_zero {n : ℕ} : sqrt n = 0 ↔ n = 0 :=
 ⟨λ h, eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
   by rw [h]; exact dec_trivial,
- λ e, e.symm ▸ rfl⟩
+ by { rintro rfl, simp }⟩
 
 theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
 ⟨λ e, e.symm ▸ sqrt_is_sqrt n,

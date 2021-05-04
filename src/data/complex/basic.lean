@@ -265,7 +265,7 @@ def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, o
 
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 
-@[simp] lemma I_sq : I ^ 2 = -1 := by rw [pow_two, I_mul_I]
+@[simp] lemma I_sq : I ^ 2 = -1 := by rw [sq, I_mul_I]
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
@@ -488,7 +488,7 @@ by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 by rw [← of_real_int_cast, abs_of_real, int.cast_abs]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
-by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
+by rw [abs, sq, real.mul_self_sqrt (norm_sq_nonneg _)]
 
 /--
 We put a partial order on ℂ so that `z ≤ w` exactly if `w - z` is real and nonnegative.

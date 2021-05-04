@@ -175,6 +175,16 @@ B  → Z                 B → Z
 { left := sq.left ≫ f,
   right := sq.right }
 
+/-- The functor sending an arrow to its source. -/
+abbreviation left_func : arrow C ⥤ C := comma.fst _ _
+
+/-- The functor sending an arrow to its target. -/
+abbreviation right_func : arrow C ⥤ C := comma.snd _ _
+
+/-- The natural transformation from `left_func` to `right_func`, given by the arrow itself. -/
+def left_to_right : (left_func : arrow C ⥤ C) ⟶ right_func :=
+{ app := λ f, f.hom }
+
 end arrow
 
 namespace functor

@@ -51,6 +51,9 @@ def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
   right := Y,
   hom := f }
 
+theorem mk_inj {T} [category T] (A B : T) (f g : A ⟶ B) : arrow.mk f = arrow.mk g → f = g :=
+by rintro ⟨⟩; refl
+
 instance {X Y : T} : has_coe (X ⟶ Y) (arrow T) := ⟨mk⟩
 
 /-- A morphism in the arrow category is a commutative square connecting two objects of the arrow

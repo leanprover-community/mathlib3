@@ -510,10 +510,6 @@ end
 
 end
 
-@[simp] lemma basis.coe_extend {s : set V} (hs : linear_independent K (coe : s → V)) :
-  (basis.extend hs : hs.extend (set.subset_univ _) → V) = coe :=
-funext (basis.extend_apply_self _)
-
 lemma basis.subset_extend {s : set V} (hs : linear_independent K (coe : s → V)) :
   s ⊆ hs.extend (set.subset_univ _) :=
 hs.subset_extend _

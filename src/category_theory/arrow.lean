@@ -55,7 +55,7 @@ theorem mk_injective {T} [category T] (A B : T) : function.injective (arrow.mk :
 | f g ⟨⟩ := rfl
 
 theorem mk_inj {T} [category T] (A B : T) {f g : A ⟶ B} : arrow.mk f = arrow.mk g ↔ f = g :=
-mk_injective.eq_iff A B
+(mk_injective A B).eq_iff
 
 instance {X Y : T} : has_coe (X ⟶ Y) (arrow T) := ⟨mk⟩
 

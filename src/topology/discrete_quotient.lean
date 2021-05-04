@@ -31,6 +31,10 @@ The partial ordering `A ≤ B` mathematically means that `B.proj` factors throug
 The top element `⊤` is the trivial quotient, meaning that every element of `X` is collapsed
 to a point. Given `h : A ≤ B`, the map `A → B` is `discrete_quotient.of_le h`.
 
+Given `f : X → Y` and `h : continuous f`, we define a predicate `le_rel h A B` for
+`A : discrete_quotient X` and `B : discrete_quotient Y`, asserting that `f` descends to `A → B`.
+If `cond : le_rel h A B`, the function `A → B` is obtained by `discrete_quotient.map cond`.
+
 ## Theorems
 The two main results proved in this file are:
 1. `discrete_quotient.eq_of_proj_eq` which states that when `X` is compact, t2 and totally
@@ -218,6 +222,9 @@ lemma le_rel_trans {C : discrete_quotient X} :
 
 /-- Map a discrete quotient along a continuous map. -/
 def map (cond : le_rel cont A B) : A → B := quotient.map' f cond
+
+lemma map_continuous (cond : le_rel cont A B) : continuous (map cond) :=
+continuous_of_discrete_topology
 
 @[simp]
 lemma map_proj (cond : le_rel cont A B) : map cond ∘ A.proj = B.proj ∘ f := rfl

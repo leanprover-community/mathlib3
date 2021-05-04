@@ -1197,7 +1197,7 @@ variables [linear_ordered_add_comm_group Γ] [field R]
 lemma field_aux (x : hahn_series Γ R) (x0 : x ≠ 0) :
   0 < add_val Γ R (1 - C ((x.coeff (x.order x0))⁻¹) * (single (- x.order x0) 1) * x) :=
 begin
-  refine lt_of_le_of_ne (map_le_sub (ge_of_eq (add_val Γ R).map_one) _) _,
+  refine lt_of_le_of_ne ((add_val Γ R).map_le_sub (ge_of_eq (add_val Γ R).map_one) _) _,
   { simp only [add_valuation.map_mul],
     rw [add_val_apply_of_ne x0, add_val_apply_of_ne (single_ne_zero one_ne_zero),
       add_val_apply_of_ne _, order_C, order_single one_ne_zero, with_top.coe_zero, zero_add,
@@ -1221,7 +1221,7 @@ field_of_is_unit_or_eq_zero (λ x, begin
   by_cases x0 : x = 0,
   { right, exact x0 },
   left,
-  have h := summable_family.one_sub_self_mul_hsum_powers (foo x x0),
+  have h := summable_family.one_sub_self_mul_hsum_powers (field_aux x x0),
   rw [sub_sub_cancel] at h,
   exact is_unit_of_mul_is_unit_right (is_unit_of_mul_eq_one _ _ h),
 end)

@@ -28,6 +28,7 @@ alias le_antisymm     ← has_le.le.antisymm
 alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
 alias lt_of_le_not_le ← has_le.le.lt_of_not_le
 alias lt_or_eq_of_le  ← has_le.le.lt_or_eq
+alias decidable.lt_or_eq_of_le ← has_le.le.lt_or_eq_dec
 
 alias le_of_lt        ← has_lt.lt.le
 alias lt_trans        ← has_lt.lt.trans
@@ -116,26 +117,42 @@ lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a
 
 alias not_lt_of_le ← has_le.le.not_lt
 
+-- See Note [decidable namespace]
+protected lemma decidable.le_iff_eq_or_lt [partial_order α] [@decidable_rel α (≤)]
+  {a b : α} : a ≤ b ↔ a = b ∨ a < b :=
+decidable.le_iff_lt_or_eq.trans or.comm
+
 lemma le_iff_eq_or_lt [partial_order α] {a b : α} : a ≤ b ↔ a = b ∨ a < b :=
 le_iff_lt_or_eq.trans or.comm
 
 lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a ≠ b :=
 ⟨λ h, ⟨le_of_lt h, ne_of_lt h⟩, λ ⟨h1, h2⟩, h1.lt_of_ne h2⟩
 
-lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
+-- See Note [decidable namespace]
+protected lemma decidable.eq_iff_le_not_lt [partial_order α] [@decidable_rel α (≤)]
+  {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
 ⟨λ h, ⟨h.le, h ▸ lt_irrefl _⟩, λ ⟨h₁, h₂⟩, h₁.antisymm $
-  classical.by_contradiction $ λ h₃, h₂ (h₁.lt_of_not_le h₃)⟩
+  decidable.by_contradiction $ λ h₃, h₂ (h₁.lt_of_not_le h₃)⟩
+
+lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
+by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
 
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b :=
 h.lt_or_eq.symm
 
+alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
 
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
+-- See Note [decidable namespace]
+@[simp] protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α (≤)]
+  {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
+⟨λ h, decidable.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
+
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
-⟨λ h, classical.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
+by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
 
 lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
@@ -147,7 +164,7 @@ lemma ne.lt_or_lt [linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :
 lt_or_gt_of_ne h
 
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
-not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
+not_lt.trans $ decidable.le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
 
 lemma exists_ge_of_linear [linear_order α] (a b : α) : ∃ c, a ≤ c ∧ b ≤ c :=
 match le_total a b with
@@ -215,20 +232,6 @@ calc  c
     ≤ a : h₀
 ... ≤ b : h₂
 ... ≤ d : h₁
-
-namespace decidable
-
--- See Note [decidable namespace]
-lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [linear_order β]
-  {a b : α} {c d : β} : (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=
-⟨lt_imp_lt_of_le_imp_le, le_imp_le_of_lt_imp_lt⟩
-
--- See Note [decidable namespace]
-lemma le_iff_le_iff_lt_iff_lt {β} [linear_order α] [linear_order β]
-  {a b : α} {c d : β} : (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
-⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ (not_congr H).trans $ not_lt⟩
-
-end decidable
 
 /-- Like `cmp`, but uses a `≤` on the type instead of `<`. Given two elements
 `x` and `y`, returns a three-way comparison result `ordering`. -/
@@ -340,7 +343,7 @@ begin
   unfold cmp cmp_using,
   by_cases a < b; simp [h],
   by_cases h₂ : b < a; simp [h₂, gt],
-  exact (lt_or_eq_of_le (le_of_not_gt h₂)).resolve_left h
+  exact (decidable.lt_or_eq_of_le (le_of_not_gt h₂)).resolve_left h
 end
 
 theorem cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
@@ -385,5 +388,5 @@ lemma lt_iff_lt_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x < y ↔ x' < y' :=
 by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]
 
 lemma le_iff_le_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x ≤ y ↔ x' ≤ y' :=
-by { rw [←not_lt, ←not_lt, not_iff_not],
+by { rw [←not_lt, ←not_lt], apply not_congr,
   apply lt_iff_lt_of_cmp_eq_cmp, rwa cmp_eq_cmp_symm }

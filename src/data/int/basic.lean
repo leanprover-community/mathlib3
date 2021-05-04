@@ -900,7 +900,7 @@ protected theorem mul_lt_of_lt_div {a b c : ℤ} (H : 0 < c) (H3 : a < b / c) : 
 lt_of_not_ge $ mt (int.div_le_of_le_mul H) (not_le_of_gt H3)
 
 protected theorem mul_le_of_le_div {a b c : ℤ} (H1 : 0 < c) (H2 : a ≤ b / c) : a * c ≤ b :=
-le_trans (mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (int.div_mul_le _ (ne_of_gt H1))
+le_trans (decidable.mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (int.div_mul_le _ (ne_of_gt H1))
 
 protected theorem le_div_of_mul_le {a b c : ℤ} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
 le_of_lt_add_one $ lt_of_mul_lt_mul_right
@@ -923,7 +923,7 @@ protected theorem div_lt_iff_lt_mul {a b c : ℤ} (H : 0 < c) : a / c < b ↔ a 
 
 protected theorem le_mul_of_div_le {a b c : ℤ} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
   a ≤ c * b :=
-by rw [← int.div_mul_cancel H2]; exact mul_le_mul_of_nonneg_right H3 H1
+by rw [← int.div_mul_cancel H2]; exact decidable.mul_le_mul_of_nonneg_right H3 H1
 
 protected theorem lt_div_of_mul_lt {a b c : ℤ} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
   a < c / b :=
@@ -1345,13 +1345,9 @@ congr_arg coe (nat.one_shiftl _)
 
 /-! ### Least upper bound property for integers -/
 
-section classical
-open_locale classical
-
-theorem exists_least_of_bdd {P : ℤ → Prop}
-    (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → b ≤ z)
-        (Hinh : ∃ z : ℤ, P z) : ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
-let ⟨b, Hb⟩ := Hbdd in
+def least_of_bdd {P : ℤ → Prop} [decidable_pred P]
+  (b : ℤ) (Hb : ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
+  {lb : ℤ // P lb ∧ (∀ z : ℤ, P z → lb ≤ z)} :=
 have EX : ∃ n : ℕ, P (b + n), from
   let ⟨elt, Helt⟩ := Hinh in
   match elt, le.dest (Hb _ Helt), Helt with
@@ -1363,17 +1359,24 @@ have EX : ∃ n : ℕ, P (b + n), from
     (int.coe_nat_le.2 $ nat.find_min' _ h) _
   end⟩
 
-theorem exists_greatest_of_bdd {P : ℤ → Prop}
-    (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b)
-        (Hinh : ∃ z : ℤ, P z) : ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
-have Hbdd' : ∃ (b : ℤ), ∀ (z : ℤ), P (-z) → b ≤ z, from
-let ⟨b, Hb⟩ := Hbdd in ⟨-b, λ z h, neg_le.1 (Hb _ h)⟩,
+theorem exists_least_of_bdd {P : ℤ → Prop}
+  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
+  ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
+by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := least_of_bdd b Hb Hinh in ⟨lb, H⟩
+
+def greatest_of_bdd {P : ℤ → Prop} [decidable_pred P]
+  (b : ℤ) (Hb : ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
+  {ub : ℤ // P ub ∧ (∀ z : ℤ, P z → z ≤ ub)} :=
+have Hbdd' : ∀ (z : ℤ), P (-z) → -b ≤ z, from λ z h, neg_le.1 (Hb _ h),
 have Hinh' : ∃ z : ℤ, P (-z), from
 let ⟨elt, Helt⟩ := Hinh in ⟨-elt, by rw [neg_neg]; exact Helt⟩,
-let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
+let ⟨lb, Plb, al⟩ := least_of_bdd (-b) Hbdd' Hinh' in
 ⟨-lb, Plb, λ z h, le_neg.1 $ al _ $ by rwa neg_neg⟩
 
-end classical
+theorem exists_greatest_of_bdd {P : ℤ → Prop}
+  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
+  ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
+by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := greatest_of_bdd b Hb Hinh in ⟨lb, H⟩
 
 end int
 

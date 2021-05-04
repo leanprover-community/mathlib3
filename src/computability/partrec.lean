@@ -22,6 +22,8 @@ using the `roption` monad, and there is an additional operation, called
 
 open encodable denumerable roption
 
+local attribute [-simp] not_forall
+
 namespace nat
 
 section rfind
@@ -56,7 +58,7 @@ from this 0 (λ n, (nat.not_lt_zero _).elim),
   cases e : (p m).get pm,
   { suffices,
     exact IH _ ⟨rfl, this⟩ (λ n h, this _ (le_of_lt_succ h)),
-    intros n h, cases decidable.lt_or_eq_of_le h with h h,
+    intros n h, cases h.lt_or_eq_dec with h h,
     { exact al _ h },
     { rw h, exact ⟨_, e⟩ } },
   { exact ⟨m, ⟨_, e⟩, al⟩ }
@@ -81,7 +83,7 @@ iff.rfl
 theorem rfind_dom' {p : ℕ →. bool} :
   (rfind p).dom ↔ ∃ n, tt ∈ p n ∧ ∀ {m : ℕ}, m ≤ n → (p m).dom :=
 exists_congr $ λ n, and_congr_right $ λ pn,
-⟨λ H m h, (eq_or_lt_of_le h).elim (λ e, e.symm ▸ pn.fst) (H _),
+⟨λ H m h, (decidable.eq_or_lt_of_le h).elim (λ e, e.symm ▸ pn.fst) (H _),
  λ H m h, H (le_of_lt h)⟩
 
 @[simp] theorem mem_rfind {p : ℕ →. bool} {n : ℕ} :
@@ -340,9 +342,11 @@ nat.partrec.none.of_eq $ λ n, by cases decode α n; simp
 
 protected theorem some : partrec (@roption.some α) := computable.id
 
-theorem const' (s : roption σ) : partrec (λ a : α, s) :=
-by haveI := classical.dec s.dom; exact
+theorem _root_.decidable.partrec.const' (s : roption σ) [decidable s.dom] : partrec (λ a : α, s) :=
 (of_option (const (to_option s))).of_eq (λ a, of_to_option s)
+
+theorem const' (s : roption σ) : partrec (λ a : α, s) :=
+by haveI := classical.dec s.dom; exact decidable.partrec.const' s
 
 protected theorem bind {f : α →. β} {g : α → β →. σ}
   (hf : partrec f) (hg : partrec₂ g) : partrec (λ a, (f a).bind (g a)) :=
@@ -661,7 +665,7 @@ theorem sum_cases_left
   (sum_inr.comp snd).to₂ (sum_inl.comp snd).to₂) hh hg).of_eq $
 λ a, by cases f a; simp
 
-private lemma fix_aux
+lemma fix_aux
   {f : α →. σ ⊕ α} (hf : partrec f)
   (a : α) (b : σ) :
   let F : α → ℕ →. σ ⊕ α := λ a n,
@@ -698,7 +702,7 @@ begin
       { rwa le_antisymm (nat.le_of_lt_succ mk) km } },
     { rcases IH _ fa₃ am₃ k.succ _ with ⟨n, hn₁, hn₂⟩,
       { refine ⟨n, hn₁, λ m mn km, _⟩,
-        cases lt_or_eq_of_le km with km km,
+        cases km.lt_or_eq_dec with km km,
         { exact hn₂ _ mn km },
         { exact km ▸ ⟨_, hk⟩ } },
       { simp [F], exact ⟨_, hk, am₃⟩ } } }

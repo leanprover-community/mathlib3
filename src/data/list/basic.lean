@@ -68,8 +68,12 @@ assume ainbl binl, or.elim (eq_or_mem_of_mem_cons ainbl)
   (assume : a = b, begin subst a, exact binl end)
   (assume : a ∈ l, this)
 
-theorem eq_or_ne_mem_of_mem {a b : α} {l : list α} (h : a ∈ b :: l) : a = b ∨ (a ≠ b ∧ a ∈ l) :=
-classical.by_cases or.inl $ assume : a ≠ b, h.elim or.inl $ assume h, or.inr ⟨this, h⟩
+theorem _root_.decidable.list.eq_or_ne_mem_of_mem [decidable_eq α]
+  {a b : α} {l : list α} (h : a ∈ b :: l) : a = b ∨ (a ≠ b ∧ a ∈ l) :=
+decidable.by_cases or.inl $ assume : a ≠ b, h.elim or.inl $ assume h, or.inr ⟨this, h⟩
+
+theorem eq_or_ne_mem_of_mem {a b : α} {l : list α} : a ∈ b :: l → a = b ∨ (a ≠ b ∧ a ∈ l) :=
+by classical; exact decidable.list.eq_or_ne_mem_of_mem
 
 theorem not_mem_append {a : α} {s t : list α} (h₁ : a ∉ s) (h₂ : a ∉ t) : a ∉ s ++ t :=
 mt mem_append.1 $ not_or_distrib.2 ⟨h₁, h₂⟩
@@ -1831,7 +1835,7 @@ lemma reverse_take {α} {xs : list α} (n : ℕ)
 begin
   induction xs generalizing n;
     simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
-  cases decidable.lt_or_eq_of_le h with h' h',
+  cases h.lt_or_eq_dec with h' h',
   { replace h' := le_of_succ_le_succ h',
     rwa [take_append_of_le_length, xs_ih _ h'],
     rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n), from _, drop],
@@ -2464,7 +2468,7 @@ theorem prod_erase [decidable_eq α] [comm_monoid α] {a} :
   Π {l : list α}, a ∈ l → a * (l.erase a).prod = l.prod
 | (b::l) h :=
   begin
-    rcases eq_or_ne_mem_of_mem h with rfl | ⟨ne, h⟩,
+    rcases decidable.list.eq_or_ne_mem_of_mem h with rfl | ⟨ne, h⟩,
     { simp only [list.erase, if_pos, prod_cons] },
     { simp only [list.erase, if_neg (mt eq.symm ne), prod_cons, prod_erase h, mul_left_comm a b] }
   end
@@ -2765,18 +2769,21 @@ theorem to_ne : ∀ {l₁ l₂ : list α}, lex (≠) l₁ l₂ → l₁ ≠ l₂
 | _ _ (cons h) e := to_ne h (list.cons.inj e).2
 | _ _ (rel r)  e := r (list.cons.inj e).1
 
-theorem ne_iff {l₁ l₂ : list α} (H : length l₁ ≤ length l₂) :
-  lex (≠) l₁ l₂ ↔ l₁ ≠ l₂ :=
+theorem _root_.decidable.list.lex.ne_iff [decidable_eq α]
+  {l₁ l₂ : list α} (H : length l₁ ≤ length l₂) : lex (≠) l₁ l₂ ↔ l₁ ≠ l₂ :=
 ⟨to_ne, λ h, begin
   induction l₁ with a l₁ IH generalizing l₂; cases l₂ with b l₂,
   { contradiction },
   { apply nil },
   { exact (not_lt_of_ge H).elim (succ_pos _) },
-  { cases classical.em (a = b) with ab ab,
+  { by_cases ab : a = b,
     { subst b, apply cons,
       exact IH (le_of_succ_le_succ H) (mt (congr_arg _) h) },
     { exact rel ab } }
 end⟩
+
+theorem ne_iff {l₁ l₂ : list α} (H : length l₁ ≤ length l₂) : lex (≠) l₁ l₂ ↔ l₁ ≠ l₂ :=
+by classical; exact decidable.list.lex.ne_iff H
 
 end lex
 
@@ -3195,8 +3202,9 @@ end
 lemma reduce_option_length_lt_iff {l : list (option α)} :
   l.reduce_option.length < l.length ↔ none ∈ l :=
 begin
-  convert not_iff_not.mpr reduce_option_length_eq_iff;
-  simp [lt_iff_le_and_ne, reduce_option_length_le l, option.is_none_iff_eq_none]
+  rw [(reduce_option_length_le l).lt_iff_ne, ne, reduce_option_length_eq_iff],
+  induction l; simp *,
+  rw [eq_comm, ← option.not_is_some_iff_eq_none, decidable.imp_iff_not_or]
 end
 
 lemma reduce_option_singleton (x : option α) :
@@ -4907,8 +4915,8 @@ begin
   induction xs with x xs,
   { simp only [not_mem_nil, map_nil] },
   { cases x with a b,
-    simp only [mem_cons_iff, prod.mk.inj_iff, map, prod.swap_prod_mk, prod.exists, xs_ih],
-    tauto! },
+    simp only [mem_cons_iff, prod.mk.inj_iff, map, prod.swap_prod_mk,
+      prod.exists, xs_ih, and_comm] },
 end
 
 lemma slice_eq {α} (xs : list α) (n m : ℕ) :

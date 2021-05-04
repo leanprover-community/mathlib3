@@ -187,6 +187,20 @@ lemma is_exposed.subset_frontier (hAB : is_exposed A B) (hBA : ¬ A ⊆ B) :
   B ⊆ frontier A :=
 hAB.is_extreme.subset_frontier hBA
 
+lemma is_exposed.span_lt (hAB : is_exposed A B) (hBA : ¬ A ⊆ B) :
+  affine_span ℝ B < affine_span ℝ A :=
+begin
+  apply (affine_span_mono _ hAB.subset).lt_of_ne,
+  rintro h,
+  sorry
+end
+
+/-lemma is_exposed.dim_lt (hAB : is_exposed A B) (hBA : ¬ A ⊆ B) :
+  (affine_span ℝ B).rank < (affine_span ℝ A).rank :=
+begin
+
+end-/
+
 lemma mem_exposed_set_iff_mem_frontier (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
   (∃ B : set E, is_exposed A B ∧ ¬A ⊆ B ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
 begin
@@ -245,6 +259,13 @@ lemma exposed_points_empty :
 subset_empty_iff.1 exposed_points_subset
 
 /-! # Harder stuff -/
+
+lemma closed_extreme_points [finite_dimensional ℝ E] (hE : finite_dimensional.finrank ℝ E = 2)
+(hA₁ : convex A) (hA₂ : is_closed A) :
+  is_closed A.extreme_points :=
+begin
+  sorry
+end
 
 --theorem of S. Straszewicz proved in 1935
 lemma limit_exposed_points_of_extreme (hA₁ : convex A) (hA₂ : is_closed A) :

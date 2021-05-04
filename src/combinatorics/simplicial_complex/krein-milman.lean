@@ -8,23 +8,6 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E
 
 namespace affine
 
---being proven in another branch, so don't need to unsorry it here
-theorem geometric_hahn_banach_compact_closed {A B : set E}
-  (hA₁ : convex A) (hA₂ : is_compact A)
-  (hB₁ : convex B) (hB₂ : is_closed B)
-  (disj : disjoint A B) :
-  ∃ (f : E →L[ℝ] ℝ) (s t : ℝ), s < t ∧ (∀ b ∈ B, f b < s) ∧ (∀ a ∈ A, t < f a) :=
-sorry
-
-theorem geometric_hahn_banach_closed_point {A : set E}
-  (hA₁ : convex A) (hA₂ : is_closed A)
-  (disj : x ∉ A) :
-  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ s < f x := sorry
-
-theorem geometric_hahn_banach_point_point {x y : E} (hxy : x ≠ y) :
-  ∃ (f : E →L[ℝ] ℝ), f x < f y :=
-sorry
-
 --to move to mathlib
 theorem zorn.subset_reverse {α : Type*} (S : set (set α))
   (h : ∀c ⊆ S, zorn.chain (⊆) c → ∃lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
@@ -54,7 +37,7 @@ begin
   suffices h : ∃ B ∈ S, ∀ C ∈ S, C ⊆ B → C = B,
   { obtain ⟨B, ⟨hBnemp, hBclos, hAB⟩, hBmin⟩ := h,
     obtain ⟨x, hxB⟩ := hBnemp,
-    refine ⟨x, extreme_point_iff_extreme_singleton.2 _⟩,
+    refine ⟨x, mem_extreme_points_iff_extreme_singleton.2 _⟩,
     suffices h : B = {x},
     { rw ←h,
       exact hAB },

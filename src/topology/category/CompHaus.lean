@@ -164,14 +164,14 @@ namespace CompHaus
 
 /--
 An explicit limit cone for a functor `F : J ⥤ CompHaus`, defined in terms of
-`Top.alt_limit_cone`.
+`Top.limit_cone`.
 -/
-def alt_limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
+def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
   limits.cone F :=
 { X :=
-  { to_Top := (Top.alt_limit_cone (F ⋙ CompHaus_to_Top)).X,
+  { to_Top := (Top.limit_cone (F ⋙ CompHaus_to_Top)).X,
     is_compact := begin
-      dsimp [Top.alt_limit_cone],
+      dsimp [Top.limit_cone],
       erw ← compact_iff_compact_space,
       apply is_closed.compact,
       have : {u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} =
@@ -183,17 +183,17 @@ def alt_limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
       apply is_closed_eq,
       continuity,
     end,
-    is_hausdorff := by {dsimp [Top.alt_limit_cone], apply_instance}},
+    is_hausdorff := by {dsimp [Top.limit_cone], apply_instance}},
   π :=
-  { app := λ j, (Top.alt_limit_cone (F ⋙ CompHaus_to_Top)).π.app j,
+  { app := λ j, (Top.limit_cone (F ⋙ CompHaus_to_Top)).π.app j,
     -- tidy needs a little help in the `naturality'` field to avoid deterministic timeouts.
     naturality' := by { intros _ _ _, ext, tidy } } }
 
-/-- The limit cone `CompHaus.alt_limit_cone F` is indeed a limit cone. -/
-def alt_limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
-  limits.is_limit (alt_limit_cone F) :=
+/-- The limit cone `CompHaus.limit_cone F` is indeed a limit cone. -/
+def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
+  limits.is_limit (limit_cone F) :=
 { lift := λ S,
-    (Top.alt_limit_cone_is_limit (F ⋙ CompHaus_to_Top)).lift (CompHaus_to_Top.map_cone S),
-  uniq' := λ S m h, (Top.alt_limit_cone_is_limit _).uniq (CompHaus_to_Top.map_cone S) _ h }
+    (Top.limit_cone_is_limit (F ⋙ CompHaus_to_Top)).lift (CompHaus_to_Top.map_cone S),
+  uniq' := λ S m h, (Top.limit_cone_is_limit _).uniq (CompHaus_to_Top.map_cone S) _ h }
 
 end CompHaus

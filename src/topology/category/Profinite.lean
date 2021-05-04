@@ -133,24 +133,24 @@ lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
 An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
 `Top.alt_limit_cone`.
 -/
-def alt_limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
+def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.cone F :=
 { X :=
-  { to_Top := CompHaus_to_Top.obj (CompHaus.alt_limit_cone (F ⋙ Profinite.to_CompHaus)).X,
+  { to_Top := CompHaus_to_Top.obj (CompHaus.limit_cone (F ⋙ Profinite.to_CompHaus)).X,
     is_compact := by { dsimp [CompHaus_to_Top], apply_instance },
     is_t2 := by { dsimp [CompHaus_to_Top], apply_instance },
     is_totally_disconnected := by {
-      dsimp [CompHaus_to_Top, CompHaus.alt_limit_cone, Profinite.to_CompHaus, Top.alt_limit_cone],
+      dsimp [CompHaus_to_Top, CompHaus.limit_cone, Profinite.to_CompHaus, Top.limit_cone],
       apply_instance} },
-  π := { app := λ j, (CompHaus.alt_limit_cone (F ⋙ Profinite.to_CompHaus)).π.app j } }
+  π := { app := λ j, (CompHaus.limit_cone (F ⋙ Profinite.to_CompHaus)).π.app j } }
 
 /-- The limit cone `Profinite.alt_limit_cone F` is indeed a limit cone. -/
 def alt_limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
-  limits.is_limit (alt_limit_cone F) :=
-{ lift := λ S, (CompHaus.alt_limit_cone_is_limit (F ⋙ Profinite.to_CompHaus)).lift
+  limits.is_limit (limit_cone F) :=
+{ lift := λ S, (CompHaus.limit_cone_is_limit (F ⋙ Profinite.to_CompHaus)).lift
     (Profinite.to_CompHaus.map_cone S),
   uniq' := λ S m h,
-    (CompHaus.alt_limit_cone_is_limit _).uniq (Profinite.to_CompHaus.map_cone S) _ h }
+    (CompHaus.limit_cone_is_limit _).uniq (Profinite.to_CompHaus.map_cone S) _ h }
 
 end Profinite
 

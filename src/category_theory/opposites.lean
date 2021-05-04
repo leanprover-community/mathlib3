@@ -278,13 +278,6 @@ protected def op (α : X ≅ Y) : op Y ≅ op X :=
   hom_inv_id' := by simp only [← unop_comp, f.inv_hom_id, unop_id],
   inv_hom_id' := by simp only [← unop_comp, f.hom_inv_id, unop_id] }
 
-/-- The isomorphism obtained from an isomorphism in the opposite category. -/
-@[simps] def remove_op {X Y : C} (f : (op X) ≅ (op Y)) : Y ≅ X :=
-{ hom := f.hom.unop,
-  inv := f.inv.unop,
-  hom_inv_id' := by simp only [← unop_comp, f.inv_hom_id, unop_id_op],
-  inv_hom_id' := by simp only [← unop_comp, f.hom_inv_id, unop_id_op] }
-
 @[simp] lemma unop_op {X Y : Cᵒᵖ} (f : X ≅ Y) : f.unop.op = f :=
 by ext; refl
 

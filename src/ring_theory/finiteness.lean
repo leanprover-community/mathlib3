@@ -705,6 +705,11 @@ begin
   exact mem_closure_of_mem_span_closure hm
 end
 
+/-- If `add_monoid_algebra R M` is of finite type then `M` is finitely generated. -/
+lemma fg_of_ft [comm_ring R] [nontrivial R] [h : finite_type R (add_monoid_algebra R M)] :
+  add_monoid.fg M :=
+ft_iff_fg.2 h
+
 end add_monoid_algebra
 
 namespace monoid_algebra
@@ -828,6 +833,11 @@ lemma ft_iff_fg [comm_ring R] [nontrivial R] :
   monoid.fg M ↔ finite_type R (monoid_algebra R M) :=
 ⟨λ h, @monoid_algebra.ft_of_fg _ _ _ _ h, λ h, monoid.fg_iff_add_fg.2 $
   add_monoid_algebra.ft_iff_fg.2 $ h.equiv $ to_additive_alg_equiv R M⟩
+
+/-- If `monoid_algebra R M` is of finite type then `M` is finitely generated. -/
+lemma fg_of_ft [comm_ring R] [nontrivial R] [h : finite_type R (monoid_algebra R M)] :
+  monoid.fg M :=
+ft_iff_fg.2 h
 
 end monoid_algebra
 

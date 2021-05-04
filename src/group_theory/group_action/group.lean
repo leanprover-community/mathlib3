@@ -155,12 +155,24 @@ local attribute [instance] arrow_action
 
 end arrow
 
-section is_unit
+namespace is_unit
 
+section mul_action
+variables [monoid α] [mul_action α β]
+
+@[to_additive] lemma smul_left_cancel {a : α} (ha : is_unit a) {x y : β} :
+  a • x = a • y ↔ x = y :=
+let ⟨u, hu⟩ := ha in hu ▸ smul_left_cancel_iff u
+
+end mul_action
+
+section distrib_mul_action
 variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 
-@[simp] theorem is_unit.smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
+@[simp] theorem smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
   u • x = 0 ↔ x = 0 :=
 exists.elim hu $ λ u hu, hu ▸ smul_eq_zero_iff_eq u
+
+end distrib_mul_action
 
 end is_unit

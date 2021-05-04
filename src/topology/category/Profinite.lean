@@ -50,7 +50,14 @@ structure Profinite :=
 
 namespace Profinite
 
-instance : inhabited Profinite := ⟨{to_Top := { α := pempty }}⟩
+/--
+Construct a term of `Profinite` from a type endowed with the structure of a
+compact, Hausdorff and totally disconnected topological space.
+-/
+def of (X : Type*) [topological_space X] [compact_space X] [t2_space X]
+  [totally_disconnected_space X] : Profinite := ⟨⟨X⟩⟩
+
+instance : inhabited Profinite := ⟨Profinite.of pempty⟩
 
 instance category : category Profinite := induced_category.category to_Top
 instance concrete_category : concrete_category Profinite := induced_category.concrete_category _
@@ -137,7 +144,10 @@ section discrete_topology
 
 local attribute [instance] Fintype.discrete_topology
 
- /-- The natural functor from `Fintype` to `Profinite`, endowing a finite type with the discrete topology. -/
+/--
+The natural functor from `Fintype` to `Profinite`, endowing a finite type with the
+discrete topology.
+-/
 def Fintype.to_Profinite : Fintype ⥤ Profinite :=
 { obj := λ A, Profinite.of A,
   map := λ _ _ f, ⟨f⟩ }

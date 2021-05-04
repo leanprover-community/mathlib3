@@ -58,14 +58,10 @@ def to_be_named {α β γ : Type*} :
 
   left_inv := λ f, by { ext, cases x; simp! [equiv.sum_arrow_equiv_prod_arrow] },
 
-  right_inv := λ f, by begin
-    dsimp only, cases f with g h, ext,
-    { simp! [equiv.sum_arrow_equiv_prod_arrow] },
-    -- I wish there was some way to make this just a `simp!` :(
-    simp! only [equiv.sum_arrow_equiv_prod_arrow, equiv.coe_fn_symm_mk, heq_iff_eq,
-                function.embedding.coe_fn_mk, sum.elim_inr, subtype.coe_eta],
-    ext,
-    simp,
+  right_inv := λ ⟨g, h⟩, by begin
+    dsimp only,
+    have : { function.embedding . to_fun := ⇑h, inj' := h.injective } = h, by { ext, simp },
+    ext; simp! [equiv.sum_arrow_equiv_prod_arrow, this]
   end }
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :

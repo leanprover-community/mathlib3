@@ -888,12 +888,12 @@ by { rw ← prod_at_top_at_top_eq, exact tendsto_id.prod_mk tendsto_id }
 
 lemma tendsto.prod_map_prod_at_top [semilattice_sup γ] {F : filter α} {G : filter β}
   {f : α → γ} {g : β → γ} (hf : tendsto f F at_top) (hg : tendsto g G at_top) :
-  tendsto (prod.map f g) (F ×ᶠ G)  at_top :=
+  tendsto (prod.map f g) (F ×ᶠ G) at_top :=
 by { rw ← prod_at_top_at_top_eq, exact hf.prod_map hg, }
 
 lemma tendsto.prod_at_top [semilattice_sup α] [semilattice_sup γ]
   {f g : α → γ} (hf : tendsto f at_top at_top) (hg : tendsto g at_top at_top) :
-  tendsto (prod.map f g) at_top  at_top :=
+  tendsto (prod.map f g) at_top at_top :=
 by { rw ← prod_at_top_at_top_eq, exact hf.prod_map_prod_at_top hg, }
 
 lemma eventually_at_top_prod_self [semilattice_sup α] [nonempty α] {p : α × α → Prop} :

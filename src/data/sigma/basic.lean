@@ -98,6 +98,16 @@ f ⟨x,y⟩
 def sigma.uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) (x : sigma β) : γ x.1 x.2 :=
 f x.1 x.2
 
+@[simp]
+def sigma.uncurry_curry {γ : Π a, β a → Type*} (f : Π x : sigma β, γ x.1 x.2) :
+  sigma.uncurry (sigma.curry f) = f :=
+funext $ λ ⟨i, j⟩, rfl
+
+@[simp]
+def sigma.curry_uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) :
+  sigma.curry (sigma.uncurry f) = f :=
+rfl
+
 /-- Convert a product type to a Σ-type. -/
 @[simp]
 def prod.to_sigma {α β} : α × β → Σ _ : α, β

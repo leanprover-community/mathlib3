@@ -146,16 +146,21 @@ instance π_epi (X : C) : epi (π X) :=
 section
 variables [has_zero_morphisms C] {X Y : C} (f : X ⟶ Y) [has_kernel f]
 
-/-- When `C` has enough projectives, the object `projective.left f` is
-the arbitrarily chosen projective object over `kernel f`. -/
-@[derive projective]
-def left : C := over (kernel f)
-
-/-- When `C` has enough projectives,
-`projective.d f : projective.left f ⟶ X` is the composition
-`π (kernel f) ≫ kernel.ι f`.
+/--
+When `C` has enough projectives, the object `projective.syzygies f` is
+an arbitrarily chosen projective object over `kernel f`.
 -/
-abbreviation d : left f ⟶ X :=
+@[derive projective]
+def syzygies : C := over (kernel f)
+
+/--
+When `C` has enough projectives,
+`projective.d f : projective.syzygies f ⟶ X` is the composition
+`π (kernel f) ≫ kernel.ι f`.
+
+(When `C` is abelian, we have `exact (projective.d f) f`.)
+-/
+abbreviation d : syzygies f ⟶ X :=
 π (kernel f) ≫ kernel.ι f
 
 end

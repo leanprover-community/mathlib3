@@ -15,7 +15,7 @@ The definition is
 ```
 projective_resolutions C ⋙ F.map_homotopy_category _ ⋙ homotopy_category.homology_functor D _ n
 ```
-that is, we pick a projective resolution thought of as an object of the homotopy category,
+that is, we pick a projective resolution (thought of as an object of the homotopy category),
 we apply `F` objectwise, and compute `n`-th homology.
 
 We show that these left-derived functors can be calculated

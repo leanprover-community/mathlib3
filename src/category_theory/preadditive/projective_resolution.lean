@@ -24,14 +24,7 @@ open projective
 section
 variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
-@[nolint has_inhabited_instance]
-structure ProjectiveResolution_core (Z : C) :=
-(X : ℕ → C)
-(d : Π n, X (n+1) ⟶ X n)
-(zero : X 0 ≅ Z)
-(projective : ∀ n, projective (X (n+1)))
-(epi : epi (d 0))
-(exact : ∀ n, exact (d (n+1)) (d n))
+
 
 variables [has_zero_object C]
 
@@ -62,28 +55,6 @@ structure ProjectiveResolution (Z : C) :=
 
 attribute [instance] ProjectiveResolution.projective ProjectiveResolution.exact₀
   ProjectiveResolution.exact ProjectiveResolution.epi
-
-def ProjectiveResolution.of_core {Z : C} (P : ProjectiveResolution_core Z) : ProjectiveResolution Z :=
-let E := (chain_complex.of P.X P.d (λ n, (P.exact n).w)) in
-{ complex := chain_complex.truncate.obj E,
-  π := E.truncate_to ≫ ((chain_complex.single_0 C).map_iso P.zero).hom,
-  projective := P.projective,
-  exact₀ := begin
-    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
-    simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
-    exact P.exact 0,
-  end,
-  exact := λ n, begin
-    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
-    simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
-    exact P.exact (n+1),
-  end,
-  epi := begin
-    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
-    simp only [chain_complex.of_d],
-    haveI := P.epi,
-    apply epi_comp,
-  end, }
 
 /--
 An object admits a projective resolution.

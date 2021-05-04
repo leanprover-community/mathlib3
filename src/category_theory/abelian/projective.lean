@@ -14,7 +14,6 @@ Hence, starting from an epimorphism `P ⟶ X`, where `P` is projective,
 we can apply `projective.d` repeatedly to obtain a projective resolution of `X`.
 -/
 
-
 noncomputable theory
 
 open category_theory
@@ -28,6 +27,7 @@ open category_theory.projective
 
 variables {C : Type u} [category.{v} C]
 
+section
 variables [enough_projectives C] [abelian C]
 
 /--
@@ -37,9 +37,11 @@ lemma exact_d_f {X Y : C} (f : X ⟶ Y) : exact (d f) f :=
 (abelian.exact_iff _ _).2 $
   ⟨by simp, zero_of_epi_comp (π _) $ by rw [←category.assoc, cokernel.condition]⟩
 
+end
+
 namespace ProjectiveResolution
 
-/- We have to jump through some hoops to get `resolution.of` to typecheck! -/
+/- We have to jump through some hoops to get `ProjectiveResolution.of` to typecheck! -/
 section
 variables (O : C → C) (π : Π X, O X ⟶ X)
 variables (L : Π {X Y : C} (f : X ⟶ Y), C) (δ : Π {X Y : C} (f : X ⟶ Y), L f ⟶ X)
@@ -58,19 +60,60 @@ def d' (Z : C) (n : ℕ) : X' O π @L @δ Z (n+1) ⟶ X' O π @L @δ Z n :=
 
 end
 
-variables [enough_projectives C] [abelian C]
+variables [abelian C]
+
+/--
+A repackaging of the data in `ProjectiveResolution`.
+This is purely an implementation detail of `ProjectiveResolution.of`.
+-/
+@[nolint has_inhabited_instance]
+structure aux_struct (Z : C) :=
+(X : ℕ → C)
+(d : Π n, X (n+1) ⟶ X n)
+(zero : X 0 ≅ Z)
+(projective : ∀ n, category_theory.projective (X (n+1)))
+(epi : category_theory.epi (d 0))
+(exact : ∀ n, category_theory.exact (d (n+1)) (d n))
+
+/--
+Convert an `aux_struct` to a `ProjectiveResolution`.
+-/
+def of_aux_struct {Z : C} (P : aux_struct Z) : ProjectiveResolution Z :=
+let E := (chain_complex.of P.X P.d (λ n, (P.exact n).w)) in
+{ complex := chain_complex.truncate.obj E,
+  π := E.truncate_to ≫ ((chain_complex.single_0 C).map_iso P.zero).hom,
+  projective := P.projective,
+  exact₀ := begin
+    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
+    exact P.exact 0,
+  end,
+  exact := λ n, begin
+    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
+    exact P.exact (n+1),
+  end,
+  epi := begin
+    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    simp only [chain_complex.of_d],
+    haveI := P.epi,
+    apply epi_comp,
+  end, }
+
+variables [enough_projectives C]
 
 /--
 In any category with enough projectives,
-`projective.resolution.of Z` constructs a projection resolution of the object `Z`.
+`ProjectiveResolution.of Z` constructs a projection resolution of the object `Z`.
 -/
-def of (Z : C) : ProjectiveResolution_core Z :=
+@[irreducible] def of (Z : C) : ProjectiveResolution Z :=
+ProjectiveResolution.of_aux_struct
 { X := λ n, X' projective.over projective.π
-    (λ (X Y : C) (f : X ⟶ Y), projective.left f)
+    (λ (X Y : C) (f : X ⟶ Y), projective.syzygies f)
     (λ (X Y : C) (f : X ⟶ Y), projective.d f)
     Z n,
   d := λ n, d' projective.over projective.π
-    (λ (X Y : C) (f : X ⟶ Y), projective.left f)
+    (λ (X Y : C) (f : X ⟶ Y), projective.syzygies f)
     (λ (X Y : C) (f : X ⟶ Y), projective.d f)
     Z n,
   zero := iso.refl _,
@@ -83,9 +126,11 @@ def of (Z : C) : ProjectiveResolution_core Z :=
   epi := projective.π_epi _,
   exact := λ n, exact_d_f _ }
 
+@[priority 100]
 instance (Z : C) : has_projective_resolution Z :=
-{ out := ⟨ProjectiveResolution.of_core (of Z)⟩ }
+{ out := ⟨of Z⟩ }
 
+@[priority 100]
 instance : has_projective_resolutions C :=
 { out := λ Z, by apply_instance }
 

@@ -49,8 +49,8 @@ This file largely just copies the API of `data/finsupp/to_dfinsupp`, and reuses 
 Recall that `add_monoid_algebra M ι` is defeq to `ι →₀ M` and `⨁ i : ι, M` is defeq to
 `Π₀ i : ι, M`.
 
-Note that there is no `monoid_algebra` equivalent to `finsupp.single`, so many statements still
-involve this definition.
+Note that there is no `add_monoid_algebra` equivalent to `finsupp.single`, so many statements
+still involve this definition.
 -/
 
 variables {ι : Type*} {R : Type*} {M : Type*}

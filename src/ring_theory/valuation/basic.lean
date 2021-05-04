@@ -655,4 +655,6 @@ v.supp_quot_supp
 
 end supp -- end of section
 
+attribute [irreducible] add_valuation
+
 end add_valuation

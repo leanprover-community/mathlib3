@@ -51,8 +51,9 @@ def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
   right := Y,
   hom := f }
 
-theorem mk_injective {T} [category T] (A B : T) : function.injective (arrow.mk : (A ⟶ B) → arrow T)
-| f g ⟨⟩ := rfl
+theorem mk_injective {T} [category T] (A B : T) :
+  function.injective (arrow.mk : (A ⟶ B) → arrow T) :=
+λ f g h, by { cases h, refl }
 
 theorem mk_inj {T} [category T] (A B : T) {f g : A ⟶ B} : arrow.mk f = arrow.mk g ↔ f = g :=
 (mk_injective A B).eq_iff

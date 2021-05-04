@@ -241,18 +241,30 @@ def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
  λ ⟨i, h⟩, fin.eq_of_veq $ list.nodup_iff_nth_le_inj.1 nd _ _
    (list.index_of_lt_length.2 (list.nth_le_mem _ _ _)) h $ by simp⟩
 
-/-- There is (computably) a bijection between `α` and `fin n` where
-  `n = card α`. Since it is not unique, and depends on which permutation
-  of the universe list is used, the bijection is wrapped in `trunc` to
-  preserve computability.  -/
-def equiv_fin (α) [decidable_eq α] [fintype α] : trunc (α ≃ fin (card α)) :=
+/-- There is (computably) a bijection between `α` and `fin (card α)`.
+
+Since it is not unique, and depends on which permutation
+of the universe list is used, the bijection is wrapped in `trunc` to
+preserve computability.
+
+See `fintype.equiv_fin` for the noncomputable version,
+and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq`
+for an equiv `α ≃ fin n` given `fintype.card α = n`.
+-/
+def trunc_equiv_fin (α) [decidable_eq α] [fintype α] : trunc (α ≃ fin (card α)) :=
 by unfold card finset.card; exact
 quot.rec_on_subsingleton (@univ α _).1
   (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
   mem_univ_val univ.2
 
-theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
-by haveI := classical.dec_eq α; exact ⟨card α, (equiv_fin α).nonempty⟩
+/-- There is a (noncomputable) bijection between `α` and `fin (card α)`.
+
+See `fintype.trunc_equiv_fin` for the computable version,
+and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq`
+for an equiv `α ≃ fin n` given `fintype.card α = n`.
+-/
+noncomputable def equiv_fin (α) [fintype α] : α ≃ fin (card α) :=
+by { letI := classical.dec_eq α, exact (trunc_equiv_fin α).out }
 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext_iff, h₁, h₂]⟩
@@ -405,12 +417,54 @@ multiset.card_map _ _
 theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α = card β :=
 by rw ← of_equiv_card f; congr
 
+section
+
+variables [fintype α] [fintype β]
+
+/-- If the cardinality of `α` is `n`, there is computably a bijection between `α` and `fin n`.
+
+See `fintype.equiv_fin_of_card_eq` for the noncomputable definition,
+and `fintype.trunc_equiv_fin` and `fintype.equiv_fin` for the bijection `α ≃ fin (card α)`.
+-/
+def trunc_equiv_fin_of_card_eq [decidable_eq α] {n : ℕ} (h : fintype.card α = n) :
+  trunc (α ≃ fin n) :=
+(trunc_equiv_fin α).map (λ e, e.trans (fin.cast h).to_equiv)
+
+
+/-- If the cardinality of `α` is `n`, there is noncomputably a bijection between `α` and `fin n`.
+
+See `fintype.trunc_equiv_fin_of_card_eq` for the computable definition,
+and `fintype.trunc_equiv_fin` and `fintype.equiv_fin` for the bijection `α ≃ fin (card α)`.
+-/
+noncomputable def equiv_fin_of_card_eq {n : ℕ} (h : fintype.card α = n) :
+  α ≃ fin n :=
+by { letI := classical.dec_eq α, exact (trunc_equiv_fin_of_card_eq h).out }
+
+/-- Two `fintype`s with the same cardinality are (computably) in bijection.
+
+See `fintype.equiv_of_card_eq` for the noncomputable version,
+and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq` for
+the specialization to `fin`.
+-/
+def trunc_equiv_of_card_eq [decidable_eq α] [decidable_eq β] (h : card α = card β) :
+  trunc (α ≃ β) :=
+(trunc_equiv_fin_of_card_eq h).bind (λ e, (trunc_equiv_fin β).map (λ e', e.trans e'.symm))
+
+/-- Two `fintype`s with the same cardinality are (noncomputably) in bijection.
+
+See `fintype.trunc_equiv_of_card_eq` for the computable version,
+and `fintype.trunc_equiv_fin_of_card_eq` and `fintype.equiv_fin_of_card_eq` for
+the specialization to `fin`.
+-/
+noncomputable def equiv_of_card_eq (h : card α = card β) : α ≃ β :=
+by { letI := classical.dec_eq α, letI := classical.dec_eq β,
+     exact (trunc_equiv_of_card_eq h).out }
+
+end
+
 theorem card_eq {α β} [F : fintype α] [G : fintype β] : card α = card β ↔ nonempty (α ≃ β) :=
-⟨λ h, ⟨by classical;
-  calc α ≃ fin (card α) : trunc.out (equiv_fin α)
-     ... ≃ fin (card β) : by rw h
-     ... ≃ β : (trunc.out (equiv_fin β)).symm⟩,
-λ ⟨f⟩, card_congr f⟩
+⟨λ h, by { haveI := classical.prop_decidable, exact (trunc_equiv_of_card_eq h).nonempty },
+ λ ⟨f⟩, card_congr f⟩
 
 /-- Any subsingleton type with a witness is a fintype (with one term). -/
 def of_subsingleton (a : α) [subsingleton α] : fintype α :=
@@ -829,20 +883,6 @@ have injective (e.symm ∘ f) ↔ surjective (e.symm ∘ f), from injective_iff_
 λ hsurj, by simpa [function.comp] using
   e.injective.comp (this.2 (e.symm.surjective.comp hsurj))⟩
 
-lemma nonempty_equiv_of_card_eq (h : card α = card β) :
-  nonempty (α ≃ β) :=
-begin
-  obtain ⟨m, ⟨f⟩⟩ := exists_equiv_fin α,
-  obtain ⟨n, ⟨g⟩⟩ := exists_equiv_fin β,
-  suffices : m = n,
-  { subst this, exact ⟨f.trans g.symm⟩ },
-  calc m = card (fin m) : (card_fin m).symm
-     ... = card α       : card_congr f.symm
-     ... = card β       : h
-     ... = card (fin n) : card_congr g
-     ... = n            : card_fin n
-end
-
 lemma bijective_iff_injective_and_card (f : α → β) :
   bijective f ↔ injective f ∧ card α = card β :=
 begin
@@ -850,8 +890,7 @@ begin
   { intro h, exact ⟨h.1, card_congr (equiv.of_bijective f h)⟩ },
   { rintro ⟨hf, h⟩,
     refine ⟨hf, _⟩,
-    obtain ⟨e⟩ : nonempty (α ≃ β) := nonempty_equiv_of_card_eq h,
-    rwa ← injective_iff_surjective_of_equiv e }
+    rwa ← injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
 end
 
 lemma bijective_iff_surjective_and_card (f : α → β) :
@@ -861,8 +900,7 @@ begin
   { intro h, exact ⟨h.2, card_congr (equiv.of_bijective f h)⟩, },
   { rintro ⟨hf, h⟩,
     refine ⟨_, hf⟩,
-    obtain ⟨e⟩ : nonempty (α ≃ β) := nonempty_equiv_of_card_eq h,
-    rwa injective_iff_surjective_of_equiv e }
+    rwa injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
 end
 
 end fintype
@@ -1258,8 +1296,8 @@ def fintype_perm [fintype α] : fintype (perm α) :=
 
 instance [fintype α] [fintype β] : fintype (α ≃ β) :=
 if h : fintype.card β = fintype.card α
-then trunc.rec_on_subsingleton (fintype.equiv_fin α)
-  (λ eα, trunc.rec_on_subsingleton (fintype.equiv_fin β)
+then trunc.rec_on_subsingleton (fintype.trunc_equiv_fin α)
+  (λ eα, trunc.rec_on_subsingleton (fintype.trunc_equiv_fin β)
     (λ eβ, @fintype.of_equiv _ (perm α) fintype_perm
       (equiv_congr (equiv.refl α) (eα.trans (eq.rec_on h eβ.symm)) : (α ≃ α) ≃ (α ≃ β))))
 else ⟨∅, λ x, false.elim (h (fintype.card_eq.2 ⟨x.symm⟩))⟩

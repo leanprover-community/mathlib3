@@ -125,7 +125,7 @@ open submodule finite_dimensional
 
 lemma is_basis_one_I : is_basis ℝ ![1, I] :=
 begin
-  refine ⟨linear_independent_fin2.2 ⟨I_ne_zero, λ a, mt (congr_arg re) $ by simp⟩,
+  refine ⟨linear_independent_fin2.2 ⟨by simp [I_ne_zero], λ a, mt (congr_arg re) $ by simp⟩,
     eq_top_iff'.2 $ λ z, _⟩,
   suffices : ∃ a b : ℝ, z = a • I + b • 1,
     by simpa [mem_span_insert, mem_span_singleton, -set.singleton_one],

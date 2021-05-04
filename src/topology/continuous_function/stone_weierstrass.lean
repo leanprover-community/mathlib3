@@ -190,13 +190,13 @@ begin
   -/
   dsimp [set.separates_points_strongly] at sep,
 
-  let g : Π x y, L := λ x y, (sep f x y).some,
+  let g : X → X → L := λ x y, (sep f x y).some,
   have w₁ : ∀ x y, g x y x = f x := λ x y, (sep f x y).some_spec.1,
   have w₂ : ∀ x y, g x y y = f y := λ x y, (sep f x y).some_spec.2,
 
   -- For each `x y`, we define `U x y` to be `{z | f z - ε < g x y z}`,
   -- and observe this is a neighbourhood of `y`.
-  let U : Π x y, set X := λ x y, {z | f z - ε < g x y z},
+  let U : X → X → set X := λ x y, {z | f z - ε < g x y z},
   have U_nhd_y : ∀ x y, U x y ∈ 𝓝 y,
   { intros x y,
     refine mem_nhds_sets _ _,

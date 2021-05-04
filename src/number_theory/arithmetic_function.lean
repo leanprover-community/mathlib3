@@ -629,7 +629,7 @@ end
 
 /-- `Ω n` is the number of prime factors of `n`. -/
 def card_factors : arithmetic_function ℕ :=
-⟨λ n, n.factors.length, rfl⟩
+⟨λ n, n.factors.length, by simp⟩
 
 localized "notation `Ω` := card_factors" in arithmetic_function
 
@@ -637,7 +637,7 @@ lemma card_factors_apply {n : ℕ} :
   Ω n = n.factors.length := rfl
 
 @[simp]
-lemma card_factors_one : Ω 1 = 0 := rfl
+lemma card_factors_one : Ω 1 = 0 := by simp [card_factors]
 
 lemma card_factors_eq_one_iff_prime {n : ℕ} :
   Ω n = 1 ↔ n.prime :=
@@ -662,7 +662,7 @@ lemma card_factors_multiset_prod {s : multiset ℕ} (h0 : s.prod ≠ 0) :
   Ω s.prod = (multiset.map Ω s).sum :=
 begin
   revert h0,
-  apply s.induction_on, { intro h, refl },
+  apply s.induction_on, by simp,
   intros a t h h0,
   rw [multiset.prod_cons, mul_ne_zero_iff] at h0,
   simp [h0, card_factors_mul, h],
@@ -670,12 +670,11 @@ end
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
-⟨λ n, n.factors.erase_dup.length, rfl⟩
+⟨λ n, n.factors.erase_dup.length, by simp⟩
 
 localized "notation `ω` := card_distinct_factors" in arithmetic_function
 
-@[simp]
-lemma card_distinct_factors_zero : ω 0 = 0 := rfl
+lemma card_distinct_factors_zero : ω 0 = 0 := by simp
 
 lemma card_distinct_factors_apply {n : ℕ} :
   ω n = n.factors.erase_dup.length := rfl

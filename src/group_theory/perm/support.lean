@@ -29,11 +29,16 @@ to lemma statements that mention `(h : set.finite f.support).to_finset.card`, an
 
 -/
 
+lemma set.to_finset_image {α β : Type*} (s : set α) (f : α ↪ β)
+  [fintype s] [fintype (f '' s)] :
+  (f '' s).to_finset = s.to_finset.map f :=
+by { ext, simp }
+
 open equiv set
 
 namespace equiv.perm
 
-variables {α : Type*}
+variables {α β : Type*}
 
 section support
 
@@ -205,6 +210,33 @@ begin
   { split_ifs at hy; cc }
 end
 
+@[simp]
+lemma support_extend_domain {p : β → Prop} [decidable_pred p]
+  (f : α ≃ subtype p) {g : perm α} :
+  support (g.extend_domain f) = g.support.image f.as_embedding :=
+begin
+  ext b,
+  simp only [exists_prop, to_embedding_apply, mem_image, ne.def, mem_support],
+  by_cases pb : p b,
+  { rw [extend_domain_apply_subtype _ _ pb],
+    split,
+    { rintro h,
+      refine ⟨f.symm ⟨b, pb⟩, _, by simp⟩,
+      contrapose! h,
+      simp [h] },
+    { rintro ⟨a, ha, hb⟩,
+      contrapose! ha,
+      obtain rfl : a = f.symm ⟨b, pb⟩,
+      { rw eq_symm_apply,
+        exact subtype.coe_injective hb },
+      rw eq_symm_apply,
+      exact subtype.coe_injective ha } },
+  { rw [extend_domain_apply_not_subtype _ _ pb],
+    simp only [not_exists, false_iff, not_and, eq_self_iff_true, not_true],
+    rintros a ha rfl,
+    exact pb (subtype.prop _) }
+end
+
 lemma pow_apply_eq_self_of_apply_eq_self {f : perm α} {x : α} (hfx : f x = x) (n : ℕ) :
   (f ^ n) x = x :=
 begin
@@ -292,6 +324,16 @@ begin
     exact λ H, this (H hx) }
 end
 
+lemma support_extend_domain_finite {β : Type*} {p : β → Prop} [decidable_pred p]
+  (g : α ≃ subtype p) :
+  (f.extend_domain g).support.finite :=
+begin
+  rw support_extend_domain,
+  refine (finite_image_iff _).mpr hf,
+  intro,
+  simp [←subtype.ext_iff]
+end
+
 omit hf
 
 lemma support_swap_finite [decidable_eq α] (x y : α) : finite (swap x y).support :=
@@ -309,6 +351,16 @@ begin
   convert congr_arg finset.card (@set.insert_to_finset _ _ x {y} _),
   rw finset.card_insert_of_not_mem;
   simp [hxy]
+end
+
+lemma card_support_extend_domain {p : β → Prop} [decidable_pred p]
+  (f : α ≃ subtype p) {g : perm α} (hg : g.support.finite) :
+  (support_extend_domain_finite hg f).to_finset.card = hg.to_finset.card :=
+begin
+  letI := hg.fintype,
+  letI := (support_extend_domain_finite hg f).fintype,
+  simp_rw [finite.card_to_finset, ←to_finset_card, support_extend_domain, set.to_finset_image],
+  simp
 end
 
 end finite
@@ -522,6 +574,20 @@ begin
   rw disjoint_iff_eq_or_eq,
   exact λ x, or.imp (λ h, pow_apply_eq_self_of_apply_eq_self h m)
     (λ h, pow_apply_eq_self_of_apply_eq_self h n) (hστ.def x)
+end
+
+lemma disjoint.extend_domain {α β : Type*} {p : β → Prop} [decidable_pred p]
+  (f : α ≃ subtype p) {σ τ : perm α} (h : disjoint σ τ) :
+  disjoint (σ.extend_domain f) (τ.extend_domain f) :=
+begin
+  rw disjoint_iff_eq_or_eq,
+  intro b,
+  by_cases pb : p b,
+  { refine (h.def (f.symm ⟨b, pb⟩)).imp _ _;
+    { intro h,
+      rw [extend_domain_apply_subtype _ _ pb, h, apply_symm_apply, subtype.coe_mk] } },
+  { left,
+    rw [extend_domain_apply_not_subtype _ _ pb] }
 end
 
 end disjoint

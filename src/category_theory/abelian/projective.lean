@@ -103,7 +103,7 @@ let E := (chain_complex.of P.X P.d (λ n, (P.exact n).w)) in
 variables [enough_projectives C]
 
 /--
-In any category with enough projectives,
+In any abelian category with enough projectives,
 `ProjectiveResolution.of Z` constructs a projection resolution of the object `Z`.
 -/
 @[irreducible] def of (Z : C) : ProjectiveResolution Z :=

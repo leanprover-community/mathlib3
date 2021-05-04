@@ -59,6 +59,8 @@ variables [preadditive D] [has_zero_object D] [has_equalizers D] [has_cokernels 
 def functor.left_derived (F : C ⥤ D) [F.additive] (n : ℕ) : C ⥤ D :=
 projective_resolutions C ⋙ F.map_homotopy_category _ ⋙ homotopy_category.homology_functor D _ n
 
+-- TODO the left derived functors are additive (and linear when `F` is linear)
+
 /-- We can compute a left derived functor using a chosen projective resolution. -/
 def functor.left_derived_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
   {X : C} (P : ProjectiveResolution X) :

@@ -36,7 +36,8 @@ complex we've constructed is of the desired shape.
 We define `up α : complex_shape α`, the shape appropriate for cohomology,
 so `d : X i ⟶ X j` is nonzero only when `j = i + 1`, as well as `down α : complex_shape α`,
 appropriate for homology, so `d : X i ⟶ X j` is nonzero only when `i = j + 1`.
-
+(Later we'll introduce `cochain_complex` and `chain_complex` as abbreviations for
+`homological_complex` with one of these shapes baked in.)
 -/
 
 open_locale classical
@@ -84,6 +85,7 @@ def symm (c : complex_shape ι) : complex_shape ι :=
   next_eq := λ i j j' w w', c.prev_eq w w',
   prev_eq := λ i i' j w w', c.next_eq w w', }
 
+@[simp]
 lemma symm_symm (c : complex_shape ι) : c.symm.symm = c :=
 by { ext, simp, }
 

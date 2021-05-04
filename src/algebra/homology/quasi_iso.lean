@@ -9,6 +9,11 @@ import algebra.homology.homology
 # Quasi-isomorphisms
 
 A chain map is a quasi-isomorphism if it induces isomorphisms on homology.
+
+## Future work
+
+Prove the 2-out-of-3 property.
+Define the derived category as the localization at quasi-isomorphisms?
 -/
 
 open category_theory
@@ -29,6 +34,7 @@ class quasi_iso (f : C ⟶ D) : Prop :=
 
 attribute [instance] quasi_iso.is_iso
 
+@[priority 100]
 instance quasi_iso_of_iso (f : C ⟶ D) [is_iso f] : quasi_iso f :=
 { is_iso := λ i, begin
     change is_iso (((homology_functor V c i).map_iso (as_iso f)).hom),

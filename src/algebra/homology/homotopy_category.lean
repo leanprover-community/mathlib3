@@ -191,7 +191,7 @@ def functor.map_homotopy_category (c : complex_shape ι) (F : V ⥤ W) [F.additi
     exact homotopy_category.quotient_map_out_comp_out _ _,
   end }.
 
--- TODO `F.map_homotopy_category c` is additive/linear.
+-- TODO `F.map_homotopy_category c` is additive (and linear when `F` is linear).
 
 /-- A natural transformation induces a natural transformation between
   the induced functors on the homotopy category. -/

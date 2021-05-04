@@ -9,6 +9,33 @@ import algebra.homology.quasi_iso
 import algebra.homology.homotopy_category
 import algebra.homology.augment
 
+/-!
+# Projective resolutions
+
+A projective resolution `P : ProjectiveResolution Z` of an object `Z : C` consists of
+a `ℕ`-indexed chain complex `P.complex` of projective objects,
+along with a chain map `P.π` from `C` to the chain complex consisting just of `Z` in degree zero,
+so that the augmented chain complex is exact.
+
+When `C` is abelian, this exactness condition is equivalent to `π` being a quasi-isomorphism.
+It turns out that this formulation allows us to set up the basic theory derived functors
+without even assuming `C` is abelian.
+
+(Typically, however, to show `has_projective_resolutions C`
+one will assume `enough_projectives C` and `abelian C`.
+This construction appears in `category_theory.abelian.projectives`.)
+
+We show that give `P : ProjectiveResolution X` and `Q : ProjectiveResolution Y`,
+any morphism `X ⟶ Y` admits a lift to a chain map `P.complex ⟶ Q.complex`.
+(It is a lift in the sense that
+the projection maps `P.π` and `Q.π` intertwine the lift and the original morphism.)
+
+Moreover, we show that any two such lifts are homotopic.
+
+As a consequence, if every object admits a projective resolution,
+we can construct a functor `projective_resolutions C : C ⥤ homotopy_category C`.
+-/
+
 noncomputable theory
 
 open category_theory
@@ -22,11 +49,7 @@ variables {C : Type u} [category.{v} C]
 open projective
 
 section
-variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
-
-
-
-variables [has_zero_object C]
+variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
 /--
 A `ProjectiveResolution Z` consists of a bundled `ℕ`-indexed chain complex of projective objects,
@@ -68,17 +91,16 @@ variables (C)
 /--
 You will rarely use this typeclass directly: it is implied by the combination
 `[enough_projectives C]` and `[abelian C]`.
+By itself it's enough to set up the basic theory of derived functors.
 -/
 class has_projective_resolutions : Prop :=
 (out : ∀ Z : C, has_projective_resolution Z)
 
-attribute [instance] has_projective_resolutions.out
+attribute [instance, priority 100] has_projective_resolutions.out
 
 end
 
 namespace ProjectiveResolution
-
-variables [has_zero_object C] [has_image_maps C] [has_cokernels C]
 
 @[simp] lemma π_f_succ {Z : C} (P : ProjectiveResolution Z) (n : ℕ) :
   P.π.f (n+1) = 0 :=
@@ -103,21 +125,17 @@ def self (Z : C) [category_theory.projective Z] : ProjectiveResolution Z :=
   exact := λ n, by { dsimp, apply_instance, },
   epi := by { dsimp, apply_instance, }, }
 
--- TODO define `ProjectiveResolution.self Z` for `[projective Z]`.
-
-/- Auxiliary construction for `lift`. -/
+/-- Auxiliary construction for `lift`. -/
 def lift_f_zero {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   P.complex.X 0 ⟶ Q.complex.X 0 :=
 factor_thru (P.π.f 0 ≫ f) (Q.π.f 0)
 
-local attribute [instance] epi_comp
-
-/- Auxiliary construction for `lift`. -/
+/-- Auxiliary construction for `lift`. -/
 def lift_f_one {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   P.complex.X 1 ⟶ Q.complex.X 1 :=
 exact.lift (P.complex.d 1 0 ≫ lift_f_zero f P Q) (Q.complex.d 1 0) (Q.π.f 0) (by simp [lift_f_zero])
 
-/- Auxiliary lemma for `lift`. -/
+/-- Auxiliary lemma for `lift`. -/
 @[simp] lemma lift_f_one_zero_comm
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   lift_f_one f P Q ≫ Q.complex.d 1 0 = P.complex.d 1 0 ≫ lift_f_zero f P Q :=
@@ -126,8 +144,8 @@ begin
   simp,
 end
 
-/- Auxiliary construction for `lift`. -/
-def lift_f_succ {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z)
+/-- Auxiliary construction for `lift`. -/
+def lift_f_succ {Y Z : C} (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z)
   (n : ℕ) (g : P.complex.X n ⟶ Q.complex.X n) (g' : P.complex.X (n+1) ⟶ Q.complex.X (n+1))
   (w : g' ≫ Q.complex.d (n+1) n = P.complex.d (n+1) n ≫ g) :
   Σ' g'' : P.complex.X (n+2) ⟶ Q.complex.X (n+2),
@@ -145,7 +163,7 @@ begin
   apply lift_f_one f,
   apply lift_f_one_zero_comm f,
   rintro n ⟨g, g', w⟩,
-  exact lift_f_succ f P Q n g g' w,
+  exact lift_f_succ P Q n g g' w,
 end
 
 /-- The resolution maps interwine the lift of a morphism and that morphism. -/
@@ -171,8 +189,7 @@ end
 
 namespace ProjectiveResolution
 
-variables [preadditive C] [has_equalizers C] [has_images C] [has_image_maps C]
-  [has_zero_object C] [has_cokernels C]
+variables [has_zero_object C] [preadditive C] [has_equalizers C] [has_images C]
 
 /-- An auxiliary definition for `lift_homotopy_zero`. -/
 def lift_homotopy_zero_zero {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
@@ -191,8 +208,7 @@ exact.lift
 
 /-- An auxiliary definition for `lift_homotopy_zero`. -/
 def lift_homotopy_zero_succ {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
-  (f : P.complex ⟶ Q.complex)
-  (comm : f ≫ Q.π = 0) (n : ℕ)
+  (f : P.complex ⟶ Q.complex) (n : ℕ)
   (g : P.complex.X n ⟶ Q.complex.X (n + 1)) (g' : P.complex.X (n + 1) ⟶ Q.complex.X (n + 2))
   (w : f.f (n + 1) = g' ≫ Q.complex.d (n + 2) (n + 1) + P.complex.d (n + 1) n ≫ g) :
   P.complex.X (n + 2) ⟶ Q.complex.X (n + 3) :=
@@ -213,7 +229,7 @@ begin
   { simp [lift_homotopy_zero_one], },
   { rintro n ⟨g, g', w⟩,
     fsplit,
-    { exact lift_homotopy_zero_succ f comm n g g' w, },
+    { exact lift_homotopy_zero_succ f n g g' w, },
     { simp [lift_homotopy_zero_succ, w], }, }
 end
 
@@ -239,6 +255,9 @@ def lift_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   (P : ProjectiveResolution X) (Q : ProjectiveResolution Y) (R : ProjectiveResolution Z) :
   homotopy (lift (f ≫ g) P R) (lift f P Q ≫ lift g Q R) :=
 by { apply lift_homotopy (f ≫ g); simp, }
+
+-- We don't care about the actual definitions of these homotopies.
+attribute [irreducible] lift_homotopy_zero lift_homotopy lift_id_homotopy lift_comp_homotopy
 
 /-- Any two projective resolutions are homotopy equivalent. -/
 def homotopy_equiv {X : C} (P Q : ProjectiveResolution X) :
@@ -268,8 +287,7 @@ end ProjectiveResolution
 
 section
 
-variables [has_zero_morphisms C] [has_zero_object C] [has_equalizers C] [has_cokernels C]
-  [has_images C] [has_image_maps C]
+variables [has_zero_morphisms C] [has_zero_object C] [has_equalizers C] [has_images C]
 
 /-- An arbitrarily chosen projective resolution of an object. -/
 abbreviation projective_resolution (Z : C) [has_projective_resolution Z] : chain_complex C ℕ :=
@@ -289,8 +307,8 @@ ProjectiveResolution.lift f _ _
 
 end
 
-variables (C) [preadditive C] [has_zero_object C] [has_equalizers C] [has_cokernels C]
-  [has_images C] [has_image_maps C] [has_projective_resolutions C]
+variables (C) [preadditive C] [has_zero_object C] [has_equalizers C] [has_images C]
+  [has_projective_resolutions C]
 
 /--
 Taking projective resolutions is functorial,

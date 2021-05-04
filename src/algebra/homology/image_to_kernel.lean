@@ -184,8 +184,10 @@ def homology_zero_zero [has_zero_object V]
 { hom := homology.desc (0 : A ⟶ B) (0 : B ⟶ C) (by simp) (kernel_subobject 0).arrow (by simp),
   inv := inv (kernel_subobject 0).arrow ≫ homology.π _ _ _, }
 
+end
+
 section
-variables {f g}
+variables {f g} (w : f ≫ g = 0)
   {A' B' C' : V} {f' : A' ⟶ B'} [has_image f'] {g' : B' ⟶ C'} [has_kernel g'] (w' : f' ≫ g' = 0)
   (α : arrow.mk f ⟶ arrow.mk f') [has_image_map α] (β : arrow.mk g ⟶ arrow.mk g')
 
@@ -230,9 +232,12 @@ by { ext, simp, }
 
 end
 
+end
+
 section
-variables {f g} {f' : A ⟶ B} [has_image f'] {g' : B ⟶ C} [has_kernel g'] (w' : f' ≫ g' = 0)
-  [has_cokernel (image_to_kernel f' g' w')] [has_images V] [has_image_maps V]
+variables {A B C : V} {f : A ⟶ B} {g : B ⟶ C} (w : f ≫ g = 0)
+  {f' : A ⟶ B} {g' : B ⟶ C} (w' : f' ≫ g' = 0)
+  [has_kernels V] [has_cokernels V] [has_images V] [has_image_maps V]
 
 /--
 `homology f g w ≅ homology f' g' w'` if `f = f'` and `g = g'`.
@@ -258,8 +263,6 @@ def homology.congr (pf : f = f') (pg : g = g') : homology f g w ≅ homology f' 
     convert kernel_subobject_map_id,
     ext; simp,
   end, }
-
-end
 
 end
 

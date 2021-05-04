@@ -266,7 +266,7 @@ quotient.induction_on₃ a b c $ assume α β γ,
 theorem power_mul {a b c : cardinal} : (a ^ b) ^ c = a ^ (b * c) :=
 by rw [_root_.mul_comm b c];
 from (quotient.induction_on₃ a b c $ assume α β γ,
-  quotient.sound ⟨equiv.curry γ β α⟩)
+  quotient.sound ⟨(equiv.curry γ β α).symm⟩)
 
 @[simp] lemma pow_cast_right (κ : cardinal.{u}) :
   ∀ n : ℕ, (κ ^ (↑n : cardinal.{u})) = @has_pow.pow _ _ monoid.has_pow κ n

@@ -610,7 +610,7 @@ lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
   equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
 by { ext, simp [and_assoc] }
 
-/-- Functions `α → β → γ` are equivalent to functions on `α × β`. -/
+/-- Functions on `α × β` are equivalent to functions `α → β → γ`. -/
 @[simps {fully_applied := ff}] def curry (α β γ : Type*) :
   (α × β → γ) ≃ (α → β → γ) :=
 { to_fun := curry,

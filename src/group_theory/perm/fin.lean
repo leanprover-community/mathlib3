@@ -51,7 +51,7 @@ end
 @[simp] lemma equiv.perm.decompose_fin_symm_apply_one {n : ℕ}
   (e : perm (fin (n + 1))) (p : fin (n + 2)) :
   equiv.perm.decompose_fin.symm (p, e) 1 = swap 0 p (e 0).succ :=
-equiv.perm.decompose_fin_symm_apply_succ e p 0
+by rw [← fin.succ_zero_eq_one, equiv.perm.decompose_fin_symm_apply_succ e p 0]
 
 @[simp] lemma equiv.perm.decompose_fin.symm_sign {n : ℕ} (p : fin (n + 1)) (e : perm (fin n)) :
   perm.sign (equiv.perm.decompose_fin.symm (p, e)) = ite (p = 0) 1 (-1) * perm.sign e :=

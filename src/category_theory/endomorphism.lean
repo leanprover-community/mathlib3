@@ -30,6 +30,12 @@ instance has_mul : has_mul (End X) := ⟨λ x y, y ≫ x⟩
 
 variable {X}
 
+/-- Assist the typechecker by expressing a morphism `X ⟶ X` as a term of `End X`. -/
+def of (f : X ⟶ X) : End X := f
+
+/-- Assist the typechecker by expressing an endomorphism `f : End X` as a term of `X ⟶ X`. -/
+def as_hom (f : End X) : X ⟶ X := f
+
 @[simp] lemma one_def : (1 : End X) = 𝟙 X := rfl
 
 @[simp] lemma mul_def (xs ys : End X) : xs * ys = ys ≫ xs := rfl
@@ -48,6 +54,13 @@ instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
 { mul_left_inv := groupoid.comp_inv, inv := groupoid.inv, ..End.monoid }
 
 end End
+
+lemma is_unit_iff_is_iso {C : Type u} [category.{v} C] {X : C} (f : End X) :
+  is_unit (f : End X) ↔ is_iso f :=
+⟨λ h, { out := ⟨h.unit.inv,
+  ⟨by { convert h.unit.inv_val, exact h.unit_spec.symm, },
+    by { convert h.unit.val_inv, exact h.unit_spec.symm, }⟩⟩ },
+  λ h, by exactI ⟨⟨f, inv f, by simp, by simp⟩, rfl⟩⟩
 
 variables {C : Type u} [category.{v} C] (X : C)
 
@@ -71,8 +84,9 @@ by refine_struct
   inv := iso.symm,
   mul := flip iso.trans,
   div := _,
-  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ };
-intros; ext; try { refl };
+  npow := @npow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩,
+  gpow := @gpow_rec (Aut X) ⟨iso.refl X⟩ ⟨flip iso.trans⟩ ⟨iso.symm⟩ };
+intros; try { refl }; ext;
 simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
   has_inv.inv]
 

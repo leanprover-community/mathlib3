@@ -83,6 +83,15 @@ lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
   F.map (∑ a in s, f a) = ∑ a in s, F.map (f a) :=
 (F.map_add_hom : (X ⟶ Y) →+ _).map_sum f s
 
+open category_theory.limits
+local attribute [instance] has_zero_object.has_zero
+
+@[simps]
+def map_zero_object [has_zero_object C] [has_zero_object D] : F.obj 0 ≅ 0 :=
+{ hom := 0,
+  inv := 0,
+  hom_inv_id' := by { rw ←F.map_id, simp, } }
+
 end
 
 section induced_category

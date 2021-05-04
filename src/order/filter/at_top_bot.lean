@@ -252,6 +252,28 @@ lemma extraction_of_eventually_at_top {P : ℕ → Prop} (h : ∀ᶠ n in at_top
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=
 extraction_of_frequently_at_top h.frequently
 
+lemma extraction_forall_of_frequently {P : ℕ → ℕ → Prop} (h : ∀ n, ∃ᶠ k in at_top, P n k) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P n (φ n) :=
+begin
+  simp only [frequently_at_top'] at h,
+  choose u hu hu' using h,
+  use (λ n, nat.rec_on n (u 0 0) (λ n v, u (n+1) v) : ℕ → ℕ),
+  split,
+  { apply strict_mono.nat,
+    intro n,
+    apply hu },
+  { intros n,
+    cases n ; simp [hu'] },
+end
+
+lemma extraction_forall_of_eventually  {P : ℕ → ℕ → Prop} (h : ∀ n, ∀ᶠ k in at_top, P n k) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P n (φ n) :=
+extraction_forall_of_frequently (λ n, (h n).frequently)
+
+lemma extraction_forall_of_eventually' {P : ℕ → ℕ → Prop} (h : ∀ n, ∃ N, ∀ k ≥ N, P n k) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P n (φ n) :=
+extraction_forall_of_eventually (by simp [eventually_at_top, h])
+
 lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
   (h : tendsto u at_top at_top) (a : α) (b : β) : ∃ a' ≥ a, b ≤ u a' :=
 begin
@@ -856,6 +878,35 @@ lemma prod_map_at_bot_eq {α₁ α₂ β₁ β₂ : Type*} [semilattice_inf β�
   (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
   (map u₁ at_bot) ×ᶠ (map u₂ at_bot) = map (prod.map u₁ u₂) at_bot :=
 @prod_map_at_top_eq _ _ (order_dual β₁) (order_dual β₂) _ _ _ _
+
+lemma tendsto.subseq_mem {F : filter α} {V : ℕ → set α} (h : ∀ n, V n ∈ F) {u : ℕ → α}
+  (hu : tendsto u at_top F) : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, u (φ n) ∈ V n :=
+extraction_forall_of_eventually' (λ n, tendsto_at_top'.mp hu _ (h n) : ∀ n, ∃ N, ∀ k ≥ N, u k ∈ V n)
+
+lemma tendsto_at_top_diagonal [semilattice_sup α] : tendsto (λ a : α, (a, a)) at_top at_top :=
+by { rw ← prod_at_top_at_top_eq, exact tendsto_id.prod_mk tendsto_id }
+
+lemma tendsto.prod_map_prod_at_top [semilattice_sup γ] {F : filter α} {G : filter β}
+  {f : α → γ} {g : β → γ} (hf : tendsto f F at_top) (hg : tendsto g G at_top) :
+  tendsto (prod.map f g) (F ×ᶠ G)  at_top :=
+by { rw ← prod_at_top_at_top_eq, exact hf.prod_map hg, }
+
+lemma tendsto.prod_at_top [semilattice_sup α] [semilattice_sup γ]
+  {f g : α → γ} (hf : tendsto f at_top at_top) (hg : tendsto g at_top at_top) :
+  tendsto (prod.map f g) at_top  at_top :=
+by { rw ← prod_at_top_at_top_eq, exact hf.prod_map_prod_at_top hg, }
+
+lemma eventually_at_top_prod_self [semilattice_sup α] [nonempty α] {p : α × α → Prop} :
+  (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ k l, a ≤ k → a ≤ l → p (k, l)) :=
+by simp [← prod_at_top_at_top_eq, at_top_basis.prod_self.eventually_iff]
+
+lemma eventually_at_top_prod_self' [semilattice_sup α] [nonempty α] {p : α × α → Prop} :
+  (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ k ≥ a, ∀ l ≥ a, p (k, l)) :=
+begin
+  rw filter.eventually_at_top_prod_self,
+  apply exists_congr,
+  tauto,
+end
 
 /-- A function `f` maps upwards closed sets (at_top sets) to upwards closed sets when it is a
 Galois insertion. The Galois "insertion" and "connection" is weakened to only require it to be an

@@ -272,7 +272,7 @@ protected def op (α : X ≅ Y) : op Y ≅ op X :=
   inv_hom_id' := quiver.hom.unop_inj α.hom_inv_id }
 
 /-- The isomorphism obtained from an isomorphism in the opposite category. -/
-@[simps] def unop {X Y : Cᵒᵖ} (f : X ≅ Y) : (Y.unop ≅ X.unop) :=
+@[simps] def unop {X Y : Cᵒᵖ} (f : X ≅ Y) : Y.unop ≅ X.unop :=
 { hom := f.hom.unop,
   inv := f.inv.unop,
   hom_inv_id' := by simp only [← unop_comp, f.inv_hom_id, unop_id],

@@ -566,9 +566,8 @@ end group
 
 end basic
 
-variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_comm_monoid_with_top Γ'₀]
-
 namespace is_equiv
+variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_comm_monoid_with_top Γ'₀]
 variables [ring R]
 variables {Γ''₀ : Type*} [linear_ordered_add_comm_monoid_with_top Γ''₀]
 variables {v : add_valuation R Γ₀}
@@ -609,6 +608,7 @@ h.ne_zero
 end is_equiv
 
 section supp
+variables [linear_ordered_add_comm_monoid_with_top Γ₀] [linear_ordered_add_comm_monoid_with_top Γ'₀]
 variables [comm_ring R]
 variables (v : add_valuation R Γ₀)
 

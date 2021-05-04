@@ -411,6 +411,9 @@ variables [semi_normed_group V] [semi_normed_group W] [semi_normed_group V₁] [
   map_add' := λ v w, add_subgroup.coe_add _ _ _,
   bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
 
+lemma norm_incl {V' : add_subgroup V} (x : V') : ∥incl _ x∥ = ∥x∥ :=
+rfl
+
 /-!### Kernel -/
 section kernels
 variables (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃)
@@ -447,6 +450,26 @@ def range : add_subgroup V₂ := f.to_add_monoid_hom.range
 
 lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=
 by { rw [range, add_monoid_hom.mem_range], refl }
+
+lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.range :=
+begin
+  erw add_monoid_hom.map_range,
+  refl,
+end
+
+lemma mem_comp_range (x : V₁) : g (f x) ∈ (g.comp f).range :=
+begin
+  rw normed_group_hom.comp_range,
+  exact add_subgroup.mem_map_of_mem g.to_add_monoid_hom (set.mem_range_self x),
+end
+
+@[simp]
+lemma range_comp_incl_top : (f.comp (incl (⊤ : add_subgroup V₁))).range = f.range :=
+begin
+  ext x,
+  simp only [normed_group_hom.mem_range, incl_apply, normed_group_hom.comp_apply],
+  exact ⟨λ ⟨⟨y, h₁⟩, h₂⟩, ⟨y, h₂⟩, λ ⟨y, h⟩, ⟨⟨y, trivial⟩, h⟩⟩
+end
 
 end range
 

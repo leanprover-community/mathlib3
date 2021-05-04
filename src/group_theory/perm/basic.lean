@@ -292,7 +292,7 @@ variables (e : perm α) (ι : α ↪ β)
 
 open_locale classical
 
-/-- Extend a permutation along an embedding -/
+/-- Noncomputable version of `equiv.perm.via_embedding`, but does not assume `fintype` -/
 noncomputable def of_embedding : perm β :=
 extend_domain e (of_injective ι.1 ι.2)
 
@@ -303,7 +303,7 @@ lemma of_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
   e.of_embedding ι x = x :=
 extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
 
-/-- Extend a permutation along an embedding, as a group homomorphism -/
+/-- `of_embedding` as a group homomorphism -/
 noncomputable def of_embedding_hom : perm α →* perm β:=
 extend_domain_hom (of_injective ι.1 ι.2)
 

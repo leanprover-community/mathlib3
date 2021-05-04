@@ -242,19 +242,19 @@ lemma map_comp {Z : Type*} [topological_space Z] {g : Z → Y} {cont' : continuo
 
 @[simp]
 lemma of_le_map {C : discrete_quotient X} (cond : le_rel cont A B) (h : B ≤ C) :
-  of_le h ∘ map cond = map (le_rel_trans cond h) := by {ext ⟨⟩, refl}
+   map (le_rel_trans cond h) = of_le h ∘ map cond := by {ext ⟨⟩, refl}
 
 @[simp]
 lemma of_le_map_apply {C : discrete_quotient X} (cond : le_rel cont A B) (h : B ≤ C) (a : A) :
-  of_le h (map cond a) = map (le_rel_trans cond h) a := by {rcases a, refl}
+  map (le_rel_trans cond h) a = of_le h (map cond a) := by {rcases a, refl}
 
 @[simp]
 lemma map_of_le {C : discrete_quotient Y} (cond : le_rel cont A B) (h : C ≤ A) :
-  map cond ∘ of_le h = map (le_trans h cond) := by {ext ⟨⟩, refl}
+   map (le_trans h cond) = map cond ∘ of_le h := by {ext ⟨⟩, refl}
 
 @[simp]
 lemma map_of_le_apply {C : discrete_quotient Y} (cond : le_rel cont A B) (h : C ≤ A) (c : C) :
-  map cond (of_le h c) = map (le_trans h cond) c := by {rcases c, refl}
+  map (le_trans h cond) c = map cond (of_le h c) := by {rcases c, refl}
 
 end map
 

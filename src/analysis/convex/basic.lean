@@ -1099,7 +1099,8 @@ closure_operator.mk₃
   convex
   (λ s, set.subset_Inter (λ t, set.subset_Inter $ λ hst, set.subset_Inter $ λ ht, hst))
   (λ s, convex_Inter $ λ t, convex_Inter $ λ ht, convex_Inter id)
-  (λ s t hst ht, set.Inter_subset_of_subset t $ set.Inter_subset_of_subset hst $ set.Inter_subset _ ht)
+  (λ s t hst ht, set.Inter_subset_of_subset t $ set.Inter_subset_of_subset hst $
+  set.Inter_subset _ ht)
 
 variable (s)
 

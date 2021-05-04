@@ -553,6 +553,10 @@ end
 lemma dim_zero_iff : module.rank K V = 0 ↔ subsingleton V :=
 dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 
+/-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
+
+See also `basis.of_dim_eq_zero'` and `finite_dimensional.fin_basis`.
+-/
 def basis.of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι) (hV : module.rank K V = 0) :
   basis ι K V :=
 begin
@@ -565,6 +569,10 @@ end
   basis.of_dim_eq_zero h hV i = 0 :=
 rfl
 
+/-- The `fin 0` indexed basis on `V`, where `V` is zero-dimensional.
+
+See also `basis.of_dim_eq_zero` and `finite_dimensional.fin_basis`.
+-/
 def basis.of_dim_eq_zero' (hV : module.rank K V = 0) :
   basis (fin 0) K V :=
 basis.of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV

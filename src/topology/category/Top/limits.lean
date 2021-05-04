@@ -35,20 +35,6 @@ Generally you should just use `limit.cone F`, unless you need the actual definit
 (which is in terms of `types.limit_cone`).
 -/
 def limit_cone (F : J ⥤ Top.{u}) : cone F :=
-{ X := ⟨(types.limit_cone (F ⋙ forget)).X, ⨅j,
-        (F.obj j).str.induced ((types.limit_cone (F ⋙ forget)).π.app j)⟩,
-  π :=
-  { app := λ j, ⟨(types.limit_cone (F ⋙ forget)).π.app j,
-                 continuous_iff_le_induced.mpr (infi_le _ _)⟩,
-    naturality' := λ j j' f,
-                   continuous_map.coe_inj ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
-
-/--
-An alternative choice of limit cone for a functor `F : J ⥤ Top`
-This is useful when we want to explicitly express limits of topological spaces
-as subspaces of a cartesian product.
--/
-def alt_limit_cone (F : J ⥤ Top.{u}) : cone F :=
 { X := { α := { u : Π j : J, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} },
   π :=
   { app := λ j,
@@ -62,15 +48,6 @@ Generally you should just use `limit.is_limit F`, unless you need the actual def
 (which is in terms of `types.limit_cone_is_limit`).
 -/
 def limit_cone_is_limit (F : J ⥤ Top.{u}) : is_limit (limit_cone F) :=
-by { refine is_limit.of_faithful forget (types.limit_cone_is_limit _) (λ s, ⟨_, _⟩) (λ s, rfl),
-     exact continuous_iff_coinduced_le.mpr (le_infi $ λ j,
-       coinduced_le_iff_le_induced.mp $ (continuous_iff_coinduced_le.mp (s.π.app j).continuous :
-         _) ) }
-
-/--
-The alternative limit cone `Top.alt_limit_cone F` is indeed a limit cone.
--/
-def alt_limit_cone_is_limit (F : J ⥤ Top.{u}) : is_limit (alt_limit_cone F) :=
 { lift := λ S, { to_fun := λ x, ⟨λ j, S.π.app _ x, λ i j f, by {dsimp, erw ← S.w f, refl}⟩ },
   uniq' := λ S m h, by {ext : 3, simpa [← h]} }
 

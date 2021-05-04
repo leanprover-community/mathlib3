@@ -112,10 +112,10 @@ instance : is_partial_order (set E) is_exposed :=
   trans := is_exposed.trans,
   antisymm := is_exposed.antisymm }
 
+--@Bhavik, I don't know how to use the right instances
 lemma is_exposed.is_extreme (hAB : is_exposed A B) :
   is_extreme A B :=
 begin
-  rw extreme_set_iff,
   use hAB.subset,
   rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩,
   obtain ⟨l, rfl⟩ := hAB,
@@ -123,19 +123,16 @@ begin
   { apply le_antisymm (hxB.2 x₁ hx₁A),
     rw [←smul_le_smul_iff_of_pos ha, ←add_le_add_iff_right (b • l x), ←add_smul, hab, one_smul],
     nth_rewrite 0 ←hx,
-    rw [l.map_add, l.map_smul _, l.map_smul _, add_le_add_iff_left, smul_le_smul_iff_of_pos hb],
+    rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_left, smul_le_smul_iff_of_pos hb],
     exact hxB.2 x₂ hx₂A,
     sorry,
     sorry
-    /-rw [←smul_le_smul_iff_of_pos ha, ←add_le_add_iff_right (b • l x), ←add_smul, hab, one_smul,
-      ←hx, l.map_add, continuous_linear_map.map_smul, continuous_linear_map.map_smul,
-      add_le_add_iff_left, smul_le_smul_iff_of_pos hb],-/
   },
   have hlx₂ : l x₂ = l x,
   { apply le_antisymm (hxB.2 x₂ hx₂A),
     rw [←smul_le_smul_iff_of_pos hb, ←add_le_add_iff_left (a • l x), ←add_smul, hab, one_smul],
     nth_rewrite 0 ←hx,
-    rw [l.map_add, l.map_smul _, l.map_smul _, add_le_add_iff_right, smul_le_smul_iff_of_pos ha],
+    rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_right, smul_le_smul_iff_of_pos ha],
     exact hxB.2 x₁ hx₁A,
     sorry,
     sorry },
@@ -218,58 +215,29 @@ end
 
 def set.exposed_points (A : set E) :
   set E :=
-{x ∈ A | ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y = l x → y = x}
+{x ∈ A | ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y ≤ l x ∧ (l x ≤ l y → y = x)}
 
 lemma exposed_point_iff :
-  x ∈ A.exposed_points ↔ x ∈ A ∧ ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y = l x → y = x :=
+  x ∈ A.exposed_points ↔ x ∈ A ∧ ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y ≤ l x ∧ (l x ≤ l y → y = x) :=
 iff.rfl
 
---currently wrong. Would work if A were connected or something
 lemma exposed_point_iff_exposed_singleton :
   x ∈ A.exposed_points ↔ is_exposed A {x} :=
 begin
-  split,
-  { rintro ⟨hxA, l, hl⟩,
-    by_cases ∃ y ∈ A, l y < l x,
-    {
-      obtain ⟨y, hy, hxy⟩ := h,
-      use l,
-      apply subset.antisymm,
-      rintro x (rfl : _ = _),
-      use hxA,
-      rintro z hz,
-      sorry,
-      sorry
-    },
-    push_neg at h,
-    use -l,
-    apply subset.antisymm,
-    { rintro x (rfl : _ = _),
-    use hxA,
-    rintro y hy,
-    sorry
-    --simp,
-    --exact h y hy
-    },
-    rintro y ⟨hyA, hy⟩,
-    have := hy x hxA,
-    sorry
-    --simp at this,
-    --refine hl y hyA (le_antisymm this (h y hyA)),
-    },
-  { rintro ⟨l, hl⟩,
-    have hx : x ∈ {x} := mem_singleton _,
-    rw hl at hx,
-    refine ⟨hx.1, l, λ y hy hxy, _⟩,
-    rw [←mem_singleton_iff, hl],
-    refine ⟨hy, λ z hz, _⟩,
-    rw hxy,
-    exact hx.2 z hz }
+  use λ ⟨hxA, l, hl⟩, ⟨l, eq.symm $ eq_singleton_iff_unique_mem.2 ⟨⟨hxA, λ y hy, (hl y hy).1⟩, λ z hz,
+    (hl z hz.1).2 (hz.2 x hxA)⟩⟩,
+  rintro ⟨l, hl⟩,
+  rw [eq_comm ,eq_singleton_iff_unique_mem] at hl,
+  exact ⟨hl.1.1, l, λ y hy, ⟨hl.1.2 y hy, λ hxy, hl.2 y ⟨hy, λ z hz, le_trans (hl.1.2 z hz) hxy⟩⟩⟩,
 end
 
 lemma exposed_points_subset :
   A.exposed_points ⊆ A :=
 λ x hx, hx.1
+
+lemma exposed_points_subset_extreme_points :
+  A.exposed_points ⊆ A.extreme_points :=
+λ x hx, extreme_point_iff_extreme_singleton.2 (exposed_point_iff_exposed_singleton.1 hx).is_extreme
 
 @[simp]
 lemma exposed_points_empty :
@@ -279,8 +247,8 @@ subset_empty_iff.1 exposed_points_subset
 /-! # Harder stuff -/
 
 --theorem of S. Straszewicz proved in 1935
-lemma limit_extreme_points_of_exposed (hA₁ : convex A) (hA₂ : is_closed A) :
-  A.exposed_points ⊆ closure (A.extreme_points) :=
+lemma limit_exposed_points_of_extreme (hA₁ : convex A) (hA₂ : is_closed A) :
+  A.extreme_points ⊆ closure (A.exposed_points) :=
 begin
   sorry
 end

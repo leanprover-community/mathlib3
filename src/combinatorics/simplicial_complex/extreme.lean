@@ -13,8 +13,8 @@ import combinatorics.simplicial_complex.to_move.default
 
 open_locale classical affine big_operators
 open set
---TODO: Generalise to LCTVS
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
+
+variables {E : Type*} [add_comm_group E] [module ℝ E] {x : E} {A B C : set E}
   {X : finset E}
 
 lemma eq_left_end_iff_eq_right_end_aux {x₁ x₂ : E} {a b : ℝ} (ha : a ≠ 0) (hb : b ≠ 0)
@@ -31,10 +31,6 @@ begin
   rw [←add_right_inj (a • x), hx, ←add_smul, hab, one_smul],
   sorry,
 end
-
-/-- Open segment in a vector space. Note that `open_segment x x = {x}` instead of being `∅`. -/
-def open_segment (x y : E) : set E :=
-{z : E | ∃ (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1), a • x + b • y = z}
 
 /-- A set B is extreme to a set A if B ⊆ A and all points of B only belong to open segments whose
 ends are in B. -/
@@ -222,17 +218,7 @@ begin
     ⟨hx₂, λ hx₂, h.2 (mem_singleton_iff.2 hx₂)⟩ hx).2 rfl,
 end
 
---probably relaxable
-lemma diff_subset_convex_hull_diff_of_convex (hBA : B ⊆ convex_hull A) (hCB : C ⊆ convex_hull B)
-  (hC : convex C) :
-  B \ C ⊆ convex_hull (A \ C) :=
-begin
-  rintro x ⟨hxB, hxC⟩,
-  have := hBA hxB,
-  sorry
-end
-
---provable from the above by induction on C as a singleton is convex
+--provable from the above by induction on C
 lemma diff_subset_convex_hull_diff_of_finite (hBA : B ⊆ convex_hull A) (hCB : C ⊆ convex_hull B)
   (hC : finite C) :
   B \ C ⊆ convex_hull (A \ C) :=
@@ -410,37 +396,6 @@ begin
     (closure A ∩ frontier (convex_hull A))),
   { exact (is_closed.closure_eq hA₂).symm },
   rw [convex.convex_hull_eq hA₁, inter_eq_self_of_subset_right frontier_subset_closure],
-end
-
-lemma filter.tendsto.smul_const {α β M : Type*} [topological_space α] [topological_space M]
-  [has_scalar M α] [has_continuous_smul M α] {f : β → M} {l : filter β}
-  {c : M} (hf : filter.tendsto f l (nhds c)) (a : α) :
-  filter.tendsto (λ x, (f x) • a) l (nhds (c • a)) :=
-hf.smul tendsto_const_nhds
-
-lemma closure_eq_closure_interior (hA₁ : convex A) (hA₂ : (interior A).nonempty) :
-  closure A = closure (interior A) :=
-begin
-  refine set.subset.antisymm _ (closure_mono interior_subset),
-  rintro x,
-  obtain ⟨y, hy⟩ := hA₂,
-  simp only [mem_closure_iff_seq_limit],
-  rintro ⟨z, hzA, hzx⟩,
-  use λ n, (1/n.succ : ℝ) • y + (n/n.succ : ℝ) • z n,
-  split,
-  {
-    rintro n,
-    --have := (frontier_extreme_to_closure hA₁).2 y (z n) (interior_subset hy) (hzA n),
-    sorry
-  },
-  rw ←zero_add x,
-  apply filter.tendsto.add,
-  {
-    sorry
-  },
-  rw ←one_smul _ x,
-  refine filter.tendsto.smul _ hzx,
-  sorry
 end
 
 --can be generalized is_extreme.subset_intrinsic_frontier

@@ -275,7 +275,7 @@ variables (K V)
 noncomputable def fin_basis [finite_dimensional K V] : basis (fin (finrank K V)) K V :=
 have h : fintype.card (↑(finset_basis_index K V) : set V) = finrank K V,
 from (finrank_eq_card_basis (finset_basis K V)).symm,
-(finset_basis K V).reindex (fintype.fintype.equiv_fin_of_card_eq' h)
+(finset_basis K V).reindex (fintype.equiv_fin_of_card_eq h)
 
 /-- An `n`-dimensional vector space has a basis indexed by `fin n`. -/
 noncomputable def fin_basis_of_finrank_eq [finite_dimensional K V] {n : ℕ} (hn : finrank K V = n) :

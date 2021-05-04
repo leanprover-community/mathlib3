@@ -105,3 +105,31 @@ def Condensed (A : Type (u+1)) [large_category A] : Type (u+1) := Sheaf.{u} proe
 
 example : category.{u+1} (Condensed Ab.{u}) := infer_instance
 example : category.{u+1} (Condensed Ring.{u}) := infer_instance
+
+open opposite
+
+noncomputable theory
+
+variables (P : Profinite.{u}ᵒᵖ ⥤ Type u)
+lemma maps_comm {S S' : Profinite.{u}} (f : S' ⟶ S) :
+  P.map f.op ≫ P.map (pullback.fst : pullback f f ⟶ S').op = P.map f.op ≫ P.map pullback.snd.op :=
+by rw [←P.map_comp, ←op_comp, pullback.condition, op_comp, P.map_comp]
+
+def natural_fork {S S' : Profinite.{u}} (f : S' ⟶ S) :
+  fork (P.map pullback.fst.op) (P.map pullback.snd.op) :=
+fork.of_ι (P.map (quiver.hom.op f)) (maps_comm P f)
+
+structure condensed_condition : Prop :=
+(empty : nonempty (preserves_limits_of_shape (discrete pempty) P))
+(bin_prod : nonempty (preserves_limits_of_shape (discrete walking_pair) P))
+(pullbacks : ∀ {S S' : Profinite.{u}} (f : S' ⟶ S) [epi f], nonempty (is_limit (natural_fork P f)))
+
+lemma condensed_condition_of_is_sheaf (hP : presieve.is_sheaf proetale_topology P) :
+  condensed_condition P :=
+begin
+  rw [proetale_topology, presieve.is_sheaf_pretopology] at hP,
+  refine ⟨_, _, _⟩,
+
+  -- rw [proetale_topology, is_sheaf_pretopology] at hP,
+
+end

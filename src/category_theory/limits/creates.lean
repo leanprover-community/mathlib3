@@ -328,6 +328,20 @@ instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }
 
+/-- Transfer creation of colimits along a natural isomorphism in the diagram. -/
+def creates_colimit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [creates_colimit K₁ F] : creates_colimit K₂ F :=
+{ lifts := λ c t,
+  let t' := (is_colimit.precompose_hom_equiv (iso_whisker_right h F : _) c).symm t in
+  { lifted_cocone := (cocones.precompose h.inv).obj (lift_colimit t'),
+    valid_lift :=
+    begin
+      have := lifted_colimit_maps_to_original t',
+    end
+
+  },
+  ..reflects_colimit_of_iso_diagram F h }
+
 /-- If `F` creates the limit of `K` and `F ≅ G`, then `G` creates the limit of `K`. -/
 def creates_limit_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [creates_limit K F] :
   creates_limit K G :=

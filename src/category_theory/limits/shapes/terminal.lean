@@ -117,6 +117,16 @@ This object is characterized by having a unique morphism to any object.
 -/
 abbreviation initial [has_initial C] : C := colimit (functor.empty C)
 
+/-- If `C` has a limit for the diagram `functor.empty C`, then it has a terminal object. -/
+lemma has_terminal_of_has_limit_empty [has_limit (functor.empty C)] :
+  has_terminal C :=
+{ has_limit := λ K, has_limit_of_iso K.unique_from_empty.symm }
+
+/-- If `C` has a colimit for the diagram `functor.empty C`, then it has an initial object. -/
+lemma has_initial_of_has_colimit_empty [has_colimit (functor.empty C)] :
+  has_initial C :=
+{ has_colimit := λ K, has_colimit_of_iso K.unique_from_empty }
+
 notation `⊤_` C:20 := terminal C
 notation `⊥_` C:20 := initial C
 

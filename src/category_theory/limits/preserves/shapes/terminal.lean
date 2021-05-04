@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.preserves.limits
 import category_theory.limits.shapes
+import category_theory.limits.creates
 
 /-!
 # Preserving terminal object
@@ -27,6 +28,25 @@ variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
 namespace category_theory.limits
+
+abbreviation preserves_terminal := preserves_limits_of_shape (discrete pempty) G
+abbreviation reflects_terminal := reflects_limits_of_shape (discrete pempty) G
+abbreviation creates_terminal := creates_limits_of_shape (discrete pempty) G
+
+lemma preserves_terminal_of_preserves_limit_empty [preserves_limit (functor.empty C) G] :
+  preserves_terminal G :=
+{ preserves_limit := λ K, preserves_limit_of_iso_diagram _ K.unique_from_empty.symm }
+
+lemma reflects_terminal_of_reflects_limit_empty [reflects_limit (functor.empty C) G] :
+  reflects_terminal G :=
+{ reflects_limit := λ K, reflects_limit_of_iso_diagram _ K.unique_from_empty.symm }
+
+-- { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm }
+
+abbreviation preserves_initial := preserves_colimits_of_shape (discrete pempty) G
+abbreviation reflects_initial := reflects_colimits_of_shape (discrete pempty) G
+abbreviation creates_initial := creates_colimits_of_shape (discrete pempty) G
+
 
 variables (X : C)
 
@@ -113,5 +133,22 @@ begin
   rw ← preserves_terminal.iso_hom,
   apply_instance,
 end
+
+
+-- /-- `has_equalizers` represents a choice of equalizer for every pair of morphisms -/
+-- abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
+
+-- /-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
+-- abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
+
+-- /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
+-- lemma has_equalizers_of_has_limit_parallel_pair
+--   [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers C :=
+-- { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm }
+
+-- /-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
+-- lemma has_coequalizers_of_has_colimit_parallel_pair
+--   [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers C :=
+-- { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) }
 
 end category_theory.limits

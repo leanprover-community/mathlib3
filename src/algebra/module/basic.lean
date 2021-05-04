@@ -119,6 +119,10 @@ variables {R M}
 @[simp] lemma smul_add_hom_apply (r : R) (x : M) :
   smul_add_hom R M r x = r • x := rfl
 
+@[simp] lemma smul_add_hom_one {R M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
+  smul_add_hom R M 1 = add_monoid_hom.id _ :=
+by { ext, rw [smul_add_hom_apply, one_smul, add_monoid_hom.id_apply] }
+
 lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
 
@@ -487,37 +491,3 @@ by rw [nsmul_eq_mul, mul_one]
 @[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
 by rw [gsmul_eq_mul, mul_one]
-
-namespace nat
-
-variables {A : Type*} [add_comm_monoid A]
-
-/-- `nat.cast_add_hom' a` is the additive monoid homomorphism `ℕ → A`
-that sends `1 : ℕ` to `a : A`. -/
-def cast_add_hom' (a : A) : ℕ →+ A :=
-(smul_add_hom ℕ A).flip a
-
-@[simp, priority 900]
-lemma cast_add_hom'_apply (a : A) (n : ℕ) : cast_add_hom' a n = n • a := rfl
-
-@[simp] lemma cast_add_hom'_one (a : A) : cast_add_hom' a 1 = a :=
-by rw [cast_add_hom'_apply, one_smul]
-
-end nat
-
-namespace int
-
-variables {A : Type*} [add_comm_group A]
-
-/-- `int.cast_add_hom' a` is the additive group homomorphism `ℤ → A`
-that sends `1 : ℤ` to `a : A`. -/
-def cast_add_hom' (a : A) : ℤ →+ A :=
-(smul_add_hom ℤ A).flip a
-
-@[simp, priority 900]
-lemma cast_add_hom'_apply (a : A) (n : ℤ) : cast_add_hom' a n = n • a := rfl
-
-@[simp] lemma cast_add_hom'_one (a : A) : cast_add_hom' a 1 = a :=
-by rw [cast_add_hom'_apply, one_smul]
-
-end int

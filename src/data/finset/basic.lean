@@ -2239,7 +2239,7 @@ finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
 λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)
 
 /-- Suppose that, given that `p t` can be defined on all supersets of `s` of cardinality less than
-`n`, one knows how to define `p s`. Then one can inductively define `p s` for all finset `s` of
+`n`, one knows how to define `p s`. Then one can inductively define `p s` for all finsets `s` of
 cardinality less than `n`, starting from finsets of card `n` and iterating. This
 can be used either to define data, or to prove properties. -/
 def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},

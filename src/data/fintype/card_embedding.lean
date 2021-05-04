@@ -6,6 +6,8 @@ Authors: Eric Rodriguez
 import data.fintype.card
 import data.equiv.fin
 import data.nat.factorial
+import tactic
+import tactic.slim_check
 
 /-!
 # Birthday Problem
@@ -20,13 +22,26 @@ local notation `‖` x `‖` := fintype.card x
 
 namespace fintype
 
--- I wonder if this will be useful... can't find it on `library_search`
--- example {α β γ : Type*} : α ⊕ β → γ ≃ α → γ ⊕ β → γ := by library_search
+def function_thing {α β γ : Type*} :
+((α ⊕ β) → γ) ≃ (Σ f : α → γ, β → γ) :=
+{ to_fun := _,
+  inv_fun := _,
+  left_inv := _,
+  right_inv := _ }
 
-lemma sum_embedding_equiv_disjoint_embedding {α β γ δ : Type*} :
-  ((α ⊕ β) ↪ (γ ⊕ δ)) ≃ (α ↪ γ) ⊕ (β ↪ δ) := sorry
-
-open function
+def to_be_named {α β γ : Type*} :
+((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
+{ to_fun := λ f, ⟨function.embedding.inl.trans f, ⟨λ b, ⟨f (sum.inr b),
+  begin
+    apply set.mem_compl,
+    suffices : ∀ (x : α), ¬f (sum.inl x) = f (sum.inr b), by simpa,
+    intros x,
+    rw [function.injective.eq_iff f.injective],
+    simp only [not_false_iff]
+  end⟩, by sorry⟩⟩,
+  inv_fun := λ ⟨f, g⟩, ⟨function_thing.symm ⟨f, λ x, g x⟩, begin intros a b, by sorry end⟩,
+  left_inv := begin intro f, ext, cases x with a b; sorry end,
+  right_inv := _ }
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
@@ -35,15 +50,17 @@ begin
   { nontriviality (fin 0 ↪ β),
   rw [nat.desc_fac_zero, fintype.card_eq_one_iff],
   refine ⟨nonempty.some nontrivial.to_nonempty, λ x, function.embedding.ext fin.elim0⟩ },
-  {
-    suffices : ‖(fin n ⊕ fin 1) ↪ β‖ = (‖β‖ - n.succ).desc_fac n.succ,
-    { rw ←this,
-      have : ((fin n ⊕ fin 1) ↪ β) ≃ (fin n.succ ↪ β) :=
-        equiv.embedding_congr fin_sum_fin_equiv (equiv.refl _),
-      rw ←of_equiv_card this, congr }, -- `congr` deals with different fintype instances
 
-  }
+  rw [nat.succ_eq_add_one, ←card_congr (equiv.embedding_congr fin_sum_fin_equiv (equiv.refl β))],
+  swap, apply_instance,
+  rw card_congr to_be_named,
+  swap, apply_instance,
+  have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n, by sorry,
+  simp, simp [this, card_univ], rw hn ((nat.lt_of_succ_le h).le), sorry
 end
+
+lemma asd (a n : ℕ) (h : n < a) : (a - n).desc_fac n * (a - n) = (a - (n + 1)).desc_fac (n + 1) :=
+  by slim_check -- seems okay
 
 variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
 

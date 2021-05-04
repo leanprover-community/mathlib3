@@ -152,9 +152,14 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   add_assoc := λ f g h, ext $ λ i, by simp only [add_apply, add_assoc],
   .. dfinsupp.add_zero_class }
 
-instance is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
-  is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
+/-- Coercion from a `dfinsupp` to a pi type is an `add_monoid_hom`. -/
+def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (Π i, β i) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
+
+/-- Evaluation at a point is an `add_monoid_hom`. This is the finitely-supported version of
+`add_monoid_hom.apply`. -/
+def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
+(add_monoid_hom.apply β i).comp coe_fn_add_monoid_hom
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -162,6 +167,19 @@ instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   .. dfinsupp.add_monoid }
+
+@[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
+  ⇑(∑ a in s, g a) = ∑ a in s, (g a) :=
+(coe_fn_add_monoid_hom : _ →+ (Π i, β i)).map_sum g s
+
+@[simp] lemma finset_sum_apply {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i)
+  (i : ι) :
+  (∑ a in s, g a) i = ∑ a in s, g a i :=
+(eval_add_monoid_hom i : _ →+ β i).map_sum g s
+
+instance is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
+  is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
+{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
 
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 map_range_apply _ _ g i

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.equiv.basic
 import data.sigma.basic
 import algebra.group.defs
+import data.set.lattice
 
 /-!
 # Injective functions

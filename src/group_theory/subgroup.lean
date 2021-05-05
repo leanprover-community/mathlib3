@@ -243,6 +243,11 @@ theorem inv_coe_set : (H : set G)⁻¹ = H :=
 by { ext, simp, }
 
 @[to_additive]
+lemma exists_mem_iff_exists_neg_mem  (K : subgroup G) {P : G → Prop} :
+  (∃ x ∈ K, P x) ↔ ∃ x ∈ K, P x⁻¹ :=
+by split ; rintros ⟨x, x_in, hx⟩ ; exact ⟨x⁻¹, inv_mem K x_in, by simp [hx]⟩
+
+@[to_additive]
 lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
 ⟨λ hba, by simpa using H.mul_mem hba (H.inv_mem h), λ hb, H.mul_mem hb h⟩
 

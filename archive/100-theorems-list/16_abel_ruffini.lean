@@ -3,6 +3,20 @@ import analysis.calculus.local_extr
 
 open polynomial polynomial.gal
 
+lemma root_set_C {R S : Type*} [integral_domain R] [integral_domain S] [algebra R S] (a : R) :
+  (C a).root_set S = ∅ :=
+by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
+
+lemma root_set_C_mul_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
+begin
+  ext x,
+  rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, aeval_X_pow, mul_eq_zero],
+  { simp_rw [ring_hom.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
+    exact λ ha', (ha ha').elim },
+  { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
+end
+
 lemma nat_degree_poly (a : ℕ) (b : ℤ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).nat_degree = 5 :=
 begin
   have h05 : 0 < 5 := nat.zero_lt_bit1 2,
@@ -65,7 +79,29 @@ end
 lemma tada_aux {α : Type*} [linear_order α] {s t : finset α}
   (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) : s.card ≤ t.card + 1 :=
 begin
-  sorry,
+  have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length,
+  { intro i,
+    rw finset.length_sort,
+    exact lt_of_lt_of_le i.2 s.card.pred_le },
+  have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
+  { intro i,
+    rw [finset.length_sort, ←nat.lt_sub_right_iff_add_lt],
+    exact i.2 },
+  have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
+    ((s.sort (≤)).nth_le (i + 1) (h1 i))
+    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
+    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
+    (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
+  let f : fin (s.card - 1) → (t : set α) :=
+  λ i, ⟨classical.some (p i), (exists_prop.mp (classical.some_spec (p i))).1⟩,
+  have hf : ∀ i j : fin (s.card - 1), i < j → f i < f j :=
+  λ i j hij, subtype.coe_lt_coe.mp ((exists_prop.mp (classical.some_spec (p i))).2.2.trans
+    (lt_of_le_of_lt ((s.sort_sorted (≤)).rel_nth_le_of_le (h1 i) (h0 j) (nat.succ_le_iff.mpr hij))
+    (exists_prop.mp (classical.some_spec (p j))).2.1)),
+  have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
+    (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))
+    (not_lt.mp (mt (hf i j) (not_lt.mpr (ge_of_eq hij)))))),
+  rwa [fintype.card_fin, fintype.card_coe, nat.sub_le_right_iff_le_add] at key,
 end
 
 lemma tada {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
@@ -73,14 +109,12 @@ lemma tada {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
 begin
   haveI : char_zero F := char_zero_of_inj_zero
     (λ n hn, by rwa [←(algebra_map F ℝ).injective.eq_iff, ring_hom.map_nat_cast,
-      ring_hom.map_zero, nat.cast_eq_zero] at hn ),
+      ring_hom.map_zero, nat.cast_eq_zero] at hn),
   by_cases hp : p = 0,
-  { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card'],
-    exact zero_le_one },
+  { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card', zero_le_one] },
   by_cases hp' : p.derivative = 0,
   { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
-    simp_rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty,
-      set.empty_card', zero_le] },
+    simp_rw [root_set_C, set.empty_card', zero_le] },
   simp_rw [root_set_def, fintype.card_coe],
   refine tada_aux (λ x y hx hy hxy, _),
   rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
@@ -88,33 +122,32 @@ begin
     p.continuous_aeval.continuous_on (hx.trans hy.symm),
   refine ⟨z, _, hz1⟩,
   rw [←finset.mem_coe, ←root_set_def, mem_root_set hp', ←hz2],
-  simp_rw [aeval_def, ←eval_map, ←derivative_map],
-  exact (p.map (algebra_map F ℝ)).deriv.symm,
+  simp_rw [aeval_def, ←eval_map, polynomial.deriv, derivative_map],
+end
+
+lemma real_roots_poly_le_three (a : ℕ) (b : ℤ) :
+  fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) ≤ 3 :=
+begin
+  rw [←one_mul (X ^ 5), ←C_1],
+  refine (tada _).trans (nat.succ_le_succ ((tada _).trans (nat.succ_le_succ _))),
+  simp_rw [derivative_add, derivative_sub, derivative_C_mul_X_pow, derivative_C_mul,
+    derivative_X, derivative_one, mul_zero, sub_zero, derivative_C, derivative_zero, add_zero],
+  rw [fintype.card_le_one_iff_subsingleton, set.subsingleton_coe, root_set_C_mul_X_pow],
+  { exact set.subsingleton_singleton },
+  { exact ne_of_gt zero_lt_three },
+  { norm_num },
+end
+
+-- Not true as stated: `x^5-5x+4`. Need to rule out roots at `-1` and `1`.
+lemma real_roots_poly_ge_three (a : ℕ) (b : ℤ) (hab : abs b < a) :
+  fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) ≥ 3 :=
+begin
+  sorry,
 end
 
 lemma real_roots_poly (a : ℕ) (b : ℤ) (hab : abs b < a) :
   fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) = 3 :=
-begin
-  apply le_antisymm,
-  { rw [←one_mul (X ^ 5), ←C_1],
-    refine (tada _).trans (nat.succ_le_succ ((tada _).trans (nat.succ_le_succ _))),
-    simp_rw [derivative_add, derivative_sub, derivative_C_mul_X_pow, derivative_C_mul,
-      derivative_X, derivative_one, mul_zero, sub_zero, derivative_C, derivative_zero, add_zero],
-    rw [fintype.card_le_one_iff_subsingleton, set.subsingleton_coe],
-    rw (show C ((1 : ℚ) * ↑5 * ↑(5 - 1)) * X ^ (5 - 1 - 1) = C ↑20 * X ^ 3, by norm_num),
-    suffices : (_ : polynomial ℚ).root_set ℝ = {0},
-    { rw this,
-      exact set.subsingleton_singleton },
-    ext x,
-    rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, ring_hom.map_nat_cast,
-        aeval_X_pow, mul_eq_zero, pow_eq_zero_iff, or_iff_right_iff_imp],
-    { exact λ h, false.elim (not_not_intro h (by norm_num)) },
-    { exact zero_lt_three },
-    { rw [mul_ne_zero_iff, ne, ne, C_eq_zero, pow_eq_zero_iff],
-      { exact ⟨by norm_num, X_ne_zero⟩ },
-      { exact zero_lt_three } } },
-  { sorry },
-end
+le_antisymm (real_roots_poly_le_three a b) (real_roots_poly_ge_three a b hab)
 
 lemma complex_roots_poly (a : ℕ) (b : ℤ) (h : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).separable) :
   fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℂ) = 5 :=

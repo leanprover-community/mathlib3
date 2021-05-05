@@ -642,8 +642,7 @@ nat_cases_right (encode_iff.2 ho) hf.part $
     (hg.comp (fst.comp fst) snd).to₂,
 this.of_eq $ λ a, by cases o a with b; simp [encodek]
 
-theorem sum_cases_right
-  {f : α → β ⊕ γ} {g : α → β → σ} {h : α → γ →. σ}
+theorem sum_cases_right {f : α → β ⊕ γ} {g : α → β → σ} {h : α → γ →. σ}
   (hf : computable f) (hg : computable₂ g) (hh : partrec₂ h) :
   @partrec _ σ _ _ (λ a, sum.cases_on (f a) (λ b, some (g a b)) (h a)) :=
 have partrec (λ a, (option.cases_on
@@ -657,15 +656,14 @@ option_cases_right
   (option_some_iff.2 hh),
 option_some_iff.1 $ this.of_eq $ λ a, by cases f a; simp
 
-theorem sum_cases_left
-  {f : α → β ⊕ γ} {g : α → β →. σ} {h : α → γ → σ}
+theorem sum_cases_left {f : α → β ⊕ γ} {g : α → β →. σ} {h : α → γ → σ}
   (hf : computable f) (hg : partrec₂ g) (hh : computable₂ h) :
   @partrec _ σ _ _ (λ a, sum.cases_on (f a) (g a) (λ c, some (h a c))) :=
 (sum_cases_right (sum_cases hf
   (sum_inr.comp snd).to₂ (sum_inl.comp snd).to₂) hh hg).of_eq $
 λ a, by cases f a; simp
 
-lemma fix_aux (f : α →. σ ⊕ α) (a : α) (b : σ) :
+lemma fix_aux {α σ} (f : α →. σ ⊕ α) (a : α) (b : σ) :
   let F : α → ℕ →. σ ⊕ α := λ a n,
     n.elim (some (sum.inr a)) $ λ y IH, IH.bind $ λ s,
     sum.cases_on s (λ _, roption.some s) f in
@@ -706,8 +704,7 @@ begin
       { simp [F], exact ⟨_, hk, am₃⟩ } } }
 end
 
-theorem fix
-  {f : α →. σ ⊕ α} (hf : partrec f) : partrec (pfun.fix f) :=
+theorem fix {f : α →. σ ⊕ α} (hf : partrec f) : partrec (pfun.fix f) :=
 let F : α → ℕ →. σ ⊕ α := λ a n,
   n.elim (some (sum.inr a)) $ λ y IH, IH.bind $ λ s,
   sum.cases_on s (λ _, roption.some s) f in

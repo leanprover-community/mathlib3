@@ -578,7 +578,7 @@ begin
         equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
         equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
         equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
-        algebra.mul_smul_comm] },
+        mul_smul_comm] },
   -- `univ_perm_fin_succ` gives a different embedding of `perm (fin n)` into
   -- `perm (fin n.succ)` than the determinant of the submatrix we want,
   -- permute `A` so that we get the correct one.

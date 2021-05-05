@@ -704,7 +704,8 @@ tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
 
 lemma tendsto_const_mul_pow_at_top_iff (c : α) (n : ℕ)
   : tendsto (λ x, c * x^n) at_top at_top ↔ 1 ≤ n ∧ 0 < c :=
-⟨λ h, begin
+begin
+  refine ⟨λ h, _, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
   simp only [tendsto_at_top, eventually_at_top] at h,
   have : 0 < c := let ⟨x, hx⟩ := h 1 in
     pos_of_mul_pos_right (lt_of_lt_of_le zero_lt_one (hx (max x 1) (le_max_left x 1)))
@@ -714,8 +715,7 @@ lemma tendsto_const_mul_pow_at_top_iff (c : α) (n : ℕ)
   specialize hx x le_rfl,
   rw [hn, pow_zero, mul_one, add_le_iff_nonpos_right] at hx,
   exact absurd hx (not_le.mpr zero_lt_one),
-end,
-λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩
+end
 
 lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
@@ -723,7 +723,8 @@ tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
 
 lemma tendsto_neg_const_mul_pow_at_top_iff (c : α) (n : ℕ)
   : tendsto (λ x, c * x^n) at_top at_bot ↔ 1 ≤ n ∧ c < 0 :=
-⟨λ h, begin
+begin
+  refine ⟨λ h, _, λ h, tendsto_neg_const_mul_pow_at_top h.1 h.2⟩,
   simp only [tendsto_at_bot, eventually_at_top] at h,
   have : c < 0 := let ⟨x, hx⟩ := h (-1) in
     neg_of_mul_neg_right (lt_of_le_of_lt (hx (max x 1) (le_max_left x 1)) (by simp [zero_lt_one]))
@@ -733,8 +734,7 @@ lemma tendsto_neg_const_mul_pow_at_top_iff (c : α) (n : ℕ)
   specialize hx x le_rfl,
   rw [hn, pow_zero, mul_one, le_sub, sub_self] at hx,
   exact absurd hx (not_le.mpr zero_lt_one),
-end,
-λ h, tendsto_neg_const_mul_pow_at_top h.1 h.2⟩
+end
 
 end linear_ordered_field
 

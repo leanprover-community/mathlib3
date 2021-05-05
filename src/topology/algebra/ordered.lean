@@ -1760,31 +1760,21 @@ begin
   refine tendsto.comp _ h,
   by_cases hc0 : c = 0,
   { simpa [hc0] using tendsto_const_nhds },
-  refine linear_ordered_add_comm_group.tendsto_nhds.mpr _,
-  intros ε hε,
+  refine linear_ordered_add_comm_group.tendsto_nhds.mpr (λ ε hε, _),
   rw eventually_nhds_iff,
-
   by_cases hc : c < 0,
-  {
-    refine ⟨Ioo (ε / c) (-ε / c), λ x hx, _, is_open_Ioo, _⟩,
-    {
-      simp only [mem_Ioo, div_lt_iff_of_neg hc, lt_div_iff_of_neg hc] at hx,
-      simpa only [abs_lt, sub_zero, mul_comm c x] using and.symm hx,
-    },
+  { refine ⟨Ioo (ε / c) (-ε / c), λ x hx, _, is_open_Ioo, _⟩,
+    { simp only [mem_Ioo, div_lt_iff_of_neg hc, lt_div_iff_of_neg hc] at hx,
+      simpa only [abs_lt, sub_zero, mul_comm c x] using and.symm hx },
     refine mem_Ioo.mpr _,
-    simpa only [div_lt_iff_of_neg hc, lt_div_iff_of_neg hc, zero_mul, neg_neg_iff_pos, and_self],
-  },
-  {
-    replace hc : 0 < c := lt_of_le_of_ne (not_lt.1 hc) (ne.symm hc0),
+    simpa only [div_lt_iff_of_neg hc, lt_div_iff_of_neg hc, zero_mul, neg_neg_iff_pos, and_self] },
+  { replace hc : 0 < c := lt_of_le_of_ne (not_lt.1 hc) (ne.symm hc0),
     refine ⟨Ioo (-ε / c) (ε / c), λ x hx, _, is_open_Ioo, _⟩,
-    {
-      simp only [mem_Ioo, div_lt_iff hc, lt_div_iff hc] at hx,
-      simpa only [abs_lt, sub_zero, mul_comm c x],
-    },
+    { simp only [mem_Ioo, div_lt_iff hc, lt_div_iff hc] at hx,
+      simpa only [abs_lt, sub_zero, mul_comm c x] },
     refine mem_Ioo.mpr _,
     simp only [div_lt_iff hc, lt_div_iff hc, zero_mul],
-    refine ⟨by linarith, hε⟩,
-  }
+    refine ⟨by linarith, hε⟩, }
 end
 
 lemma tendsto_const_mul_fpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :

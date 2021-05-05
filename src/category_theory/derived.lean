@@ -122,6 +122,15 @@ whisker_left (projective_resolutions C)
   (whisker_right (nat_trans.map_homotopy_category α _)
     (homotopy_category.homology_functor D _ n))
 
+@[simp] lemma nat_trans.left_derived_id (F : C ⥤ D) [F.additive] (n : ℕ) :
+  nat_trans.left_derived (𝟙 F) n = 𝟙 (F.left_derived n) :=
+by { simp [nat_trans.left_derived], refl, }
+
+@[simp] lemma nat_trans.left_derived_comp {F G H : C ⥤ D} [F.additive] [G.additive] [H.additive]
+  (α : F ⟶ G) (β : G ⟶ H) (n : ℕ) :
+  nat_trans.left_derived (α ≫ β) n = nat_trans.left_derived α n ≫ nat_trans.left_derived β n :=
+by simp [nat_trans.left_derived]
+
 /--
 A component of the natural transformation between left-derived functors can be computed
 using a chosen projective resolution.

@@ -127,21 +127,19 @@ begin
   let y := mk yl yr yL yR,
   refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _), _, _, _⟩,
   calc
-   (x * y).right_moves
-       ≃ xl × yr ⊕ xr × yl : by refl
-   ... ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
-   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)
-   ... ≃ (y * x).right_moves : by refl,
+    xl × yr ⊕ xr × yl
+       ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
+   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { exact ((add_comm_relabelling _ _).trans
-                                   ((IHyl j).add_congr (IHxl i y))).sub_congr (IHxl i (yL j)) },
+                ((IHyl j).add_congr (IHxl i y))).add_congr (IHxl i (yL j)).neg_congr },
     { exact ((add_comm_relabelling _ _).trans
-                                   ((IHyr j).add_congr (IHxr i y))).sub_congr (IHxr i (yR j)) } },
+                ((IHyr j).add_congr (IHxr i y))).add_congr (IHxr i (yR j)).neg_congr } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { exact ((add_comm_relabelling _ _).trans
-                                   ((IHyl i).add_congr (IHxr j y))).sub_congr (IHxr j (yL i)) },
+                ((IHyl i).add_congr (IHxr j y))).add_congr (IHxr j (yL i)).neg_congr },
     { exact ((add_comm_relabelling _ _).trans
-                                   ((IHyr i).add_congr (IHxl j y))).sub_congr (IHxl j (yR i)) } }
+                ((IHyr i).add_congr (IHxl j y))).add_congr (IHxl j (yR i)).neg_congr } }
 end
 
 /-- `x * y` is equivalent to `y * x`. -/

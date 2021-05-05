@@ -24,10 +24,10 @@ section function_embedding
 
 open function.embedding
 
-@[simp] lemma why_isn't_this_simp_yet {α β : Type*} (f : α ↪ β) : ∀ inj, (⟨f, inj⟩ : α ↪ β) = f :=
+@[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) : ∀ inj, (⟨f, inj⟩ : α ↪ β) = f :=
 λ _, by ext; simp
 
-def to_be_named_pre {α β γ : Type*} :
+def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
 ((α ⊕ β) ↪ γ) ≃ {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} :=
 { to_fun := λ f, ⟨(inl.trans f, inr.trans f),
   begin
@@ -55,7 +55,7 @@ def to_be_named_pre {α β γ : Type*} :
   left_inv := λ f, by { dsimp only, ext, cases x; simp! },
   right_inv := λ ⟨⟨f, g⟩, _⟩, by { simp only [prod.mk.inj_iff], split; ext; simp! } }
 
-def to_be_named' {α β γ : Type*} :
+def prod_embedding_disjoint_equiv_sigma_embedding_restricted {α β γ : Type*} :
   {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} ≃
   (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
 { to_fun := λ ⟨⟨f, g⟩, disj⟩, ⟨f, ⟨λ b, ⟨g b, set.disjoint_right.mp disj (⟨b, rfl⟩)⟩,
@@ -73,10 +73,12 @@ def to_be_named' {α β γ : Type*} :
   right_inv := λ ⟨_,_⟩, by simp!,
   left_inv := λ ⟨⟨_,_⟩,_⟩, by { dsimp only, ext; simp! } }
 
-def to_be_named {α β γ : Type*} : ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl)
-:= equiv.trans to_be_named_pre to_be_named'
+def sum_embedding_equiv_sigma_embedding_restricted {α β γ : Type*} :
+  ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl)
+:= equiv.trans sum_embedding_equiv_prod_embedding_disjoint
+               prod_embedding_disjoint_equiv_sigma_embedding_restricted
 
-def some_other_nameless_thing {α β : Type*} [unique α] : (α ↪ β) ≃ β :=
+def equiv_embedding_equiv_result {α β : Type*} [unique α] : (α ↪ β) ≃ β :=
 { to_fun := λ f, f (default α),
   inv_fun := λ x, ⟨λ _, x, λ _ _ _, subsingleton.elim _ _⟩,
   left_inv := λ _, by { ext, simp_rw [function.embedding.coe_fn_mk], congr },
@@ -132,12 +134,12 @@ begin
     refine ⟨nonempty.some nontrivial.to_nonempty, λ x, function.embedding.ext fin.elim0⟩ },
 
   rw [nat.succ_eq_add_one, ←card_congr (equiv.embedding_congr fin_sum_fin_equiv (equiv.refl β))],
-  rw card_congr to_be_named,
+  rw card_congr sum_embedding_equiv_sigma_embedding_restricted,
   all_goals { try { apply_instance } },
 
   have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n,
   {
-    intro f, rw card_congr some_other_nameless_thing; try {apply_instance}, -- swap the `rw` here
+    intro f, rw card_congr equiv_embedding_equiv_result; try {apply_instance}, -- swap the `rw` here
 
     rw card_of_finset' (finset.map f finset.univ)ᶜ,
     { simp [finset.card_compl, finset.card_map] },

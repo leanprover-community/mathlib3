@@ -40,6 +40,11 @@ namespace homotopy_category
 def quotient : homological_complex V c ⥤ homotopy_category V c :=
 category_theory.quotient.functor _
 
+local attribute [instance] has_zero_object.has_zero
+
+-- TODO upgrade this is to `has_zero_object`, presumably for any `quotient`.
+instance : inhabited (homotopy_category V c) := ⟨(quotient V c).obj 0⟩
+
 variables {V c}
 
 @[simp] lemma quotient_obj_as (C : homological_complex V c) :

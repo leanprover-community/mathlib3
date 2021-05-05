@@ -300,7 +300,7 @@ variables (e : P ⟶ Q)
       e.f (n+1) = f' ≫ Q.d (n+2) (n+1) + P.d (n+1) n ≫ f),
     Σ' f'' : P.X (n+2) ⟶ Q.X (n+3), e.f (n+2) = f'' ≫ Q.d (n+3) (n+2) + P.d (n+2) (n+1) ≫ p.2.1)
 
-include comm_zero comm_one
+include comm_one comm_zero
 
 /--
 An auxiliary construction for `mk_inductive`.
@@ -314,7 +314,7 @@ At this stage, we don't check the homotopy condition in degree 0,
 because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
 which we do in `mk_inductive_aux₂`.
 -/
-@[simp]
+@[simp, nolint unused_arguments]
 def mk_inductive_aux₁ :
   Π n, Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
     e.f (n+1) = f' ≫ Q.d (n+2) (n+1) + P.d (n+1) n ≫ f
@@ -365,14 +365,53 @@ def mk_inductive : homotopy e 0 :=
 
 end mk_inductive
 
-
 end homotopy
 
+/--
+A homotopy equivalence between two chain complexes consists of a chain map each way,
+and homotopies from the compositions to the identity chain maps.
+
+Note that this contains data;
+arguably it might be more useful for many applications if we truncated it to a Prop.
+-/
 structure homotopy_equiv (C D : homological_complex V c) :=
 (hom : C ⟶ D)
 (inv : D ⟶ C)
 (homotopy_hom_inv_id : homotopy (hom ≫ inv) (𝟙 C))
 (homotopy_inv_hom_id : homotopy (inv ≫ hom) (𝟙 D))
+
+namespace homotopy_equiv
+
+/-- Any complex is homotopy equivalent to itself. -/
+@[refl] def refl (C : homological_complex V c) : homotopy_equiv C C :=
+{ hom := 𝟙 C,
+  inv := 𝟙 C,
+  homotopy_hom_inv_id := by simp,
+  homotopy_inv_hom_id := by simp, }
+
+instance : inhabited (homotopy_equiv C C) := ⟨refl C⟩
+
+/-- Being homotopy equivalent is a symmetric relation. -/
+@[symm] def symm
+  {C D : homological_complex V c} (f : homotopy_equiv C D) :
+  homotopy_equiv D C :=
+{ hom := f.inv,
+  inv := f.hom,
+  homotopy_hom_inv_id := f.homotopy_inv_hom_id,
+  homotopy_inv_hom_id := f.homotopy_hom_inv_id, }
+
+/-- Homotopy equivalence is a transitive relation. -/
+@[trans] def trans
+  {C D E : homological_complex V c} (f : homotopy_equiv C D) (g : homotopy_equiv D E) :
+  homotopy_equiv C E :=
+{ hom := f.hom ≫ g.hom,
+  inv := g.inv ≫ f.inv,
+  homotopy_hom_inv_id := by simpa using
+    ((g.homotopy_hom_inv_id.comp_right_id f.inv).comp_left f.hom).trans f.homotopy_hom_inv_id,
+  homotopy_inv_hom_id := by simpa using
+    ((f.homotopy_inv_hom_id.comp_right_id g.hom).comp_left g.inv).trans g.homotopy_inv_hom_id, }
+
+end homotopy_equiv
 
 variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
 

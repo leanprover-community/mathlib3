@@ -219,7 +219,7 @@ instance {B : Type*} [category B] [has_zero_morphisms C] : has_zero_object (B �
   unique_from := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩ }
 
 @[simp] lemma functor.zero_obj {B : Type*} [category B] [has_zero_morphisms C] (X : B) :
-  (0 : B ⥤ C).obj = 0 := rfl
+  (0 : B ⥤ C).obj X = 0 := rfl
 @[simp] lemma functor.zero_map {B : Type*} [category B] [has_zero_morphisms C]
   {X Y : B} (f : X ⟶ Y) : (0 : B ⥤ C).map f = 0 := rfl
 
@@ -285,12 +285,14 @@ lemma id_zero_equiv_iso_zero_apply_inv (X : C) (h : 𝟙 X = 0) :
   ((id_zero_equiv_iso_zero X) h).inv = 0 := rfl
 
 /-- If `0 : X ⟶ Y` is an monomorphism, then `X ≅ 0`. -/
+@[simps]
 def iso_zero_of_mono_zero {X Y : C} (h : mono (0 : X ⟶ Y)) : X ≅ 0 :=
 { hom := 0,
   inv := 0,
   hom_inv_id' := (cancel_mono (0 : X ⟶ Y)).mp (by simp) }
 
 /-- If `0 : X ⟶ Y` is an epimorphism, then `Y ≅ 0`. -/
+@[simps]
 def iso_zero_of_epi_zero {X Y : C} (h : epi (0 : X ⟶ Y)) : Y ≅ 0 :=
 { hom := 0,
   inv := 0,

@@ -290,6 +290,10 @@ begin
   { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
 end
 
+lemma root_set_monomial {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
+by rw [←C_mul_X_pow_eq_monomial, root_set_C_mul_X_pow hn ha]
+
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
   have p.coeff 1 ≠ 0,

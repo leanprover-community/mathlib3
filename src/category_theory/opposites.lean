@@ -177,6 +177,14 @@ instance right_op_faithful {F : Cᵒᵖ ⥤ D} [faithful F] : faithful F.right_o
 instance left_op_faithful {F : C ⥤ Dᵒᵖ} [faithful F] : faithful F.left_op :=
 { map_injective' := λ X Y f g h, quiver.hom.unop_inj (map_injective F (quiver.hom.unop_inj h)) }
 
+@[simp]
+def left_op_right_op_iso (F : C ⥤ Dᵒᵖ) : F ≅ F.left_op.right_op := nat_iso.of_components
+(λ X, iso.refl _) (by tidy)
+
+@[simp]
+def right_op_left_op_iso (F : Cᵒᵖ ⥤ D) : F ≅ F.right_op.left_op := nat_iso.of_components
+(λ X, iso.refl _) (by tidy)
+
 end
 
 end functor
@@ -234,7 +242,12 @@ taking `unop` of each component gives a natural transformation `G.left_op ⟶ F.
 -/
 @[simps] protected def left_op (α : F ⟶ G) : G.left_op ⟶ F.left_op :=
 { app         := λ X, (α.app (unop X)).unop,
-  naturality' := begin tidy, erw α.naturality, refl, end }
+  naturality' := begin
+    intros X Y f,
+    dsimp,
+    erw α.naturality,
+    refl,
+  end }
 
 /--
 Given a natural transformation `α : F.left_op ⟶ G.left_op`, for `F G : C ⥤ Dᵒᵖ`,
@@ -248,6 +261,39 @@ taking `op` of each component gives a natural transformation `G ⟶ F`.
     have := congr_arg quiver.hom.op (α.naturality f.op),
     dsimp at this,
     erw this
+  end }
+
+end
+
+section
+variables {F G : Cᵒᵖ ⥤ D}
+
+local attribute [semireducible] quiver.opposite
+
+/--
+Given a natural transformation `α : F ⟶ G`, for `F G : Cᵒᵖ ⥤ D`,
+taking `op` of each component gives a natural transformation `G.right_op ⟶ F.right_op`.
+-/
+@[simps] protected def right_op (α : F ⟶ G) : G.right_op ⟶ F.right_op :=
+{ app := λ X, (α.app _).op,
+  naturality' := begin
+    intros X Y f,
+    dsimp,
+    erw α.naturality,
+    refl,
+  end }
+
+/--
+Given a natural transformation `α : F.right_op ⟶ G.right_op`, for `F G : Cᵒᵖ ⥤ D`,
+taking `unop` of each component gives a natural transformation `G ⟶ F`.
+-/
+@[simps] protected def remove_right_op (α : F.right_op ⟶ G.right_op) : G ⟶ F :=
+{ app := λ X, (α.app X.unop).unop,
+  naturality' := begin
+    intros X Y f,
+    have := congr_arg quiver.hom.unop (α.naturality f.unop),
+    dsimp at this,
+    erw this,
   end }
 
 end
@@ -369,9 +415,11 @@ namespace functor
 variables (C)
 variables (D : Type u₂) [category.{v₂} D]
 
-/-- An equivalence of functor categories induced by `op`. -/
+/-- 
+The equivalence of functor categories induced by `op` and `unop`.
+-/
 @[simps]
-def op_equiv : (C ⥤ D)ᵒᵖ ≌ Cᵒᵖ ⥤ Dᵒᵖ :=
+def op_unop_equiv : (C ⥤ D)ᵒᵖ ≌ Cᵒᵖ ⥤ Dᵒᵖ :=
 { functor := op_hom _ _,
   inverse := op_inv _ _,
   unit_iso := nat_iso.of_components (λ F, F.unop.op_unop_iso.op) begin
@@ -381,7 +429,27 @@ def op_equiv : (C ⥤ D)ᵒᵖ ≌ Cᵒᵖ ⥤ Dᵒᵖ :=
     congr' 1,
     tidy,
   end,
-  counit_iso := nat_iso.of_components (λ F, F.unop_op_iso) (by tidy) }
+  counit_iso := nat_iso.of_components (λ F, F.unop_op_iso) (by tidy) }.
+
+/--
+The equivalence of functor categories induced by `left_op` and `right_op`.
+-/
+@[simps]
+def left_op_right_op_equiv : (Cᵒᵖ ⥤ D)ᵒᵖ ≌ (C ⥤ Dᵒᵖ) :=
+{ functor :=
+  { obj := λ F, F.unop.right_op,
+    map := λ F G η, η.unop.right_op },
+  inverse :=
+  { obj := λ F, op F.left_op,
+    map := λ F G η, η.left_op.op },
+  unit_iso := nat_iso.of_components (λ F, F.unop.right_op_left_op_iso.symm.op) begin
+    intros F G η,
+    dsimp,
+    rw [(show η = η.unop.op, by simp), ← op_comp, ← op_comp],
+    congr' 1,
+    tidy,
+  end,
+  counit_iso := nat_iso.of_components (λ F, F.left_op_right_op_iso.symm) (by tidy) }
 
 end functor
 

@@ -13,8 +13,6 @@ import data.nat.factorial
 This file establishes the cardinality of `α ↪ β` in full generality.
 -/
 
-open finset
-
 local notation `|` x `|` := finset.card x
 local notation `‖` x `‖` := fintype.card x
 
@@ -22,48 +20,61 @@ open_locale nat
 
 namespace fintype
 
--- why does `ᶜ` not work here but elsewhere it does? aren't they defeq due to the instance?
-def to_be_named {α β γ : Type*} :
-((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
-{ to_fun := λ f, ⟨function.embedding.inl.trans f, -- α ↪ γ
-  ⟨λ b, ⟨f (sum.inr b), -- β → (f α)ᶜ
+section function_embedding
 
-    begin --proving membership in not the range
-      apply set.mem_compl,
-      suffices : ∀ (x : α), ¬f (sum.inl x) = f (sum.inr b), by simpa,
-      intros x,
-      rw [function.injective.eq_iff f.injective],
-      simp only [not_false_iff]
-    end⟩,
+open function.embedding
 
-  begin -- prove injective(β → (f α)ᶜ)
-    intros a b f_eq,
-    simp only [subtype.mk_eq_mk] at f_eq,
-    apply_fun @sum.inr α β using sum.inr_injective,
-    apply_fun f using function.embedding.injective f,
-    exact f_eq
-  end⟩⟩,
+@[simp] lemma why_isn't_this_simp_yet {α β : Type*} (f : α ↪ β) : ∀ inj, (⟨f, inj⟩ : α ↪ β) = f :=
+λ _, by ext; simp
 
-  inv_fun := λ ⟨f, g⟩,
-    ⟨(equiv.sum_arrow_equiv_prod_arrow _ _ _).symm ⟨f, (λ x, g x)⟩, -- implicit coe here
-
-  begin -- prove that this amalgamation is injective; think this is the best way
-    rintros (a₁|b₁) (a₂|b₂) f_eq;
-    rw equiv.sum_arrow_equiv_prod_arrow at f_eq;
-    simp only [equiv.coe_fn_symm_mk, sum.elim_inl, sum.elim_inr] at f_eq,
-    { rw f.injective f_eq },
-    { exfalso, apply (g b₂).property, rw [subtype.val_eq_coe, ←f_eq], simp },
-    { exfalso, apply (g b₁).property, rw [subtype.val_eq_coe, f_eq], simp },
-    { rw g.injective (subtype.coe_injective f_eq) }
+def to_be_named_pre {α β γ : Type*} :
+((α ⊕ β) ↪ γ) ≃ {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} :=
+{ to_fun := λ f, ⟨(inl.trans f, inr.trans f),
+  begin
+    rintros _ ⟨⟨a, h⟩, ⟨b, rfl⟩⟩,
+    simp only [trans_apply, inl_apply, inr_apply] at h,
+    have : sum.inl a = sum.inr b := f.injective h,
+    simp only at this,
+    assumption
   end⟩,
 
-  left_inv := λ f, by { ext, cases x; simp! [equiv.sum_arrow_equiv_prod_arrow] },
+  inv_fun := λ ⟨⟨f, g⟩, disj⟩,
+    ⟨λ x, match x with
+    | (sum.inl a) := f a
+    | (sum.inr b) := g b
+    end,
+    begin
+      rintros (a₁|b₁) (a₂|b₂) f_eq;
+      simp only [equiv.coe_fn_symm_mk, sum.elim_inl, sum.elim_inr] at f_eq,
+      { rw f.injective f_eq },
+      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₁, by simp⟩, ⟨b₂, by simp [f_eq]⟩⟩  },
+      { simp! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩  },
+      { rw g.injective f_eq }
+    end⟩,
 
-  right_inv := λ ⟨g, h⟩, by begin
+  left_inv := λ f, by { dsimp only, ext, cases x; simp! },
+  right_inv := λ ⟨⟨f, g⟩, _⟩, by { simp only [prod.mk.inj_iff], split; ext; simp! } }
+
+def to_be_named' {α β γ : Type*} :
+  {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} ≃
+  (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
+{ to_fun := λ ⟨⟨f, g⟩, disj⟩, ⟨f, ⟨λ b, ⟨g b, set.disjoint_right.mp disj (⟨b, rfl⟩)⟩,
+  λ _ _ eq, by { rw subtype.mk_eq_mk at eq, exact g.injective eq }⟩⟩, -- one day I'll figure out ▸
+
+  inv_fun := λ ⟨f, g⟩, ⟨⟨f, g.trans (function.embedding.subtype _)⟩,
+  begin
     dsimp only,
-    have : { function.embedding . to_fun := ⇑h, inj' := h.injective } = h, by { ext, simp },
-    ext; simp! [equiv.sum_arrow_equiv_prod_arrow, this]
-  end }
+    have : set.range (g.trans (function.embedding.subtype (λ x, x ∈ (set.range f).compl)))
+      ⊆ (set.range f).compl,
+    { rintros _ ⟨t, rfl⟩, simp },
+    exact set.disjoint_of_subset_right this disjoint_compl_right
+  end⟩,
+
+  right_inv := λ ⟨_,_⟩, by simp!,
+  left_inv := λ ⟨⟨_,_⟩,_⟩, by { dsimp only, ext; simp! } }
+
+def to_be_named {α β γ : Type*} : ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl)
+:= equiv.trans to_be_named_pre to_be_named'
 
 def some_other_nameless_thing {α β : Type*} [unique α] : (α ↪ β) ≃ β :=
 { to_fun := λ f, f (default α),
@@ -71,10 +82,15 @@ def some_other_nameless_thing {α β : Type*} [unique α] : (α ↪ β) ≃ β :
   left_inv := λ _, by { ext, simp_rw [function.embedding.coe_fn_mk], congr },
   right_inv := λ _, by simp }
 
+end function_embedding
+
+section fintype
+
+open fintype
+
 -- replace infinite embedding instance
 def function.embedding.subsingleton {α β} [infinite α] [fintype β] : subsingleton (α ↪ β) :=
-⟨λ f, let ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f
-      in false.elim $ ne $ f.injective f_eq⟩
+⟨λ f, let ⟨_, _, ne, f_eq⟩ := exists_ne_map_eq_of_infinite f in false.elim $ ne $ f.injective f_eq⟩
 
 noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
 by rw [←not_nonempty_fintype, not_not] at h; exact h.some
@@ -97,10 +113,12 @@ begin
 
   haveI := λ y, fintype_of_not_infinite $ hf y,
   let key : fintype α :=
-  { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
+  { elems := finset.univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
     complete := by simp },
   exact infinite.not_fintype key,
 end
+
+end fintype
 
 -- make equiv_inj_subtype non-private, rename subtype_injective_equiv_embedding,
 -- move to data/equiv/basic
@@ -121,16 +139,16 @@ begin
   {
     intro f, rw card_congr some_other_nameless_thing; try {apply_instance}, -- swap the `rw` here
 
-    rw card_of_finset' (finset.map f univ)ᶜ,
-    { simp [card_compl, card_map] },
+    rw card_of_finset' (finset.map f finset.univ)ᶜ,
+    { simp [finset.card_compl, finset.card_map] },
     { -- further evidence `ᶜ` is defeq, something odd
-    change ∀ x, x ∈ (map f univ)ᶜ ↔ x ∈ (set.range ⇑f)ᶜ,
+    change ∀ x, x ∈ (finset.map f finset.univ)ᶜ ↔ x ∈ (set.range ⇑f)ᶜ,
     simp }
   },
 
   rw card_sigma,
   simp_rw this,
-  rw [sum_const, card_univ, nsmul_eq_mul, nat.cast_id],
+  rw [finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
   unfold nat.desc_fac,
 
   rw hn (nat.lt_of_succ_le h).le,
@@ -169,6 +187,6 @@ begin
 end
 
 lemma card_embedding_eq_infinite {α β} [infinite α] [fintype β] : fintype.card (α ↪ β) = 0 :=
-by erw [card, univ, function.embedding.fintype', finset.card_empty]
+by erw [fintype.card, finset.univ, function.embedding.fintype', finset.card_empty]
 
 end fintype

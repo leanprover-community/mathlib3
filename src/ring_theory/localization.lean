@@ -1199,7 +1199,7 @@ open localization_map
 
 local attribute [instance] classical.prop_decidable
 
-variables (f : P →+* R) (I : ideal R) [hI : I.is_prime]
+variables (I : ideal R) [hI : I.is_prime]
 include hI
 
 variables {I}

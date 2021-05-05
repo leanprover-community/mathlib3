@@ -107,6 +107,10 @@ def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shap
 instance functor.map_homogical_complex_additive
   (F : V ⥤ W) [F.additive] (c : complex_shape ι) : (F.map_homological_complex c).additive := {}
 
+/--
+A natural transformation between functors induces a natural transformation
+between those functors applied to homological complexes.
+-/
 @[simps]
 def nat_trans.map_homological_complex {F G : V ⥤ W} [F.additive] [G.additive]
   (α : F ⟶ G) (c : complex_shape ι) : F.map_homological_complex c ⟶ G.map_homological_complex c :=

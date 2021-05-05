@@ -10,7 +10,7 @@ import analysis.convex.topology
 /-!
 # Extreme sets
 
-This file defines extreme sets and extreme points for set in a real vector space.
+This file defines extreme sets and extreme points for sets in a real vector space.
 
 ## References
 

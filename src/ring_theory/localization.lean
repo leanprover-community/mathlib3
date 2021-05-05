@@ -1203,9 +1203,10 @@ open localization_map
 
 local attribute [instance] classical.prop_decidable
 
-variables (f : P →+* R) (I : ideal R) [hI : I.is_prime]
+variables (I : ideal R) [hI : I.is_prime]
 include hI
 
+variables {I}
 /-- The unique maximal ideal of the localization at `I.prime_compl` lies over the ideal `I`. -/
 lemma at_prime.comap_maximal_ideal :
   ideal.comap (localization.of I.prime_compl).to_map
@@ -1219,9 +1220,11 @@ lemma at_prime.map_eq_maximal_ideal :
   ideal.map (localization.of I.prime_compl).to_map I =
     (local_ring.maximal_ideal (localization I.prime_compl)) :=
 begin
-  convert congr_arg (ideal.map (localization.of _).to_map) (at_prime.comap_maximal_ideal I).symm,
+  convert congr_arg (ideal.map (localization.of _).to_map) at_prime.comap_maximal_ideal.symm,
   rw map_comap,
 end
+
+variables (I) (f : P →+* R)
 
 /-- For a ring hom `f : P →+* R` and a prime ideal `I` in `R`, the induced ring hom from the
 localization of `P` at `ideal.comap f I` to the localization of `R` at `I` -/
@@ -1229,14 +1232,14 @@ noncomputable def local_ring_hom : at_prime (ideal.comap f I) →+* at_prime I :
 (localization.of _).map (λ y, show f y ∈ I.prime_compl, from y.2) (localization.of _)
 
 lemma local_ring_hom_to_map (x : P) :
-  local_ring_hom f I ((localization.of _).to_map x) = (localization.of _).to_map (f x) :=
+  local_ring_hom I f ((localization.of _).to_map x) = (localization.of _).to_map (f x) :=
 map_eq _ _ _
 
 lemma local_ring_hom_mk' (x : P) (y : (ideal.comap f I).prime_compl) :
-  local_ring_hom f I ((localization.of _).mk' x y) = (localization.of _).mk' (f x) ⟨f y, y.2⟩ :=
+  local_ring_hom I f ((localization.of _).mk' x y) = (localization.of _).mk' (f x) ⟨f y, y.2⟩ :=
 map_mk' _ _ _ _
 
-instance is_local_ring_hom_local_ring_hom : is_local_ring_hom (local_ring_hom f I) :=
+instance is_local_ring_hom_local_ring_hom : is_local_ring_hom (local_ring_hom I f) :=
 begin
   constructor,
   intros x hx,
@@ -1248,7 +1251,7 @@ end
 
 lemma local_ring_hom_unique {j : at_prime (ideal.comap f I) →+* at_prime I}
   (hj : ∀ x : P, j ((localization.of _).to_map x) = (localization.of _).to_map (f x)) :
-  local_ring_hom f I = j :=
+  local_ring_hom I f = j :=
 map_unique _ _ hj
 
 end localization

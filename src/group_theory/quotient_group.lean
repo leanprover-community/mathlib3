@@ -90,6 +90,14 @@ begin
   rw [quotient_group.eq, one_inv, one_mul],
 end
 
+@[to_additive]
+lemma mk'_eq_mk'_iff {N : subgroup G} [nN : N.normal] {x y : G} : mk' N x = mk' N y ↔ x * y⁻¹ ∈ N :=
+begin
+  change ↑x = ↑ y ↔ _,
+  rw [quotient_group.eq, ← N.inv_mem_iff, subgroup.normal.mem_comm_iff nN],
+  simp [div_eq_mul_inv],
+end
+
 -- for commutative groups we don't need normality assumption
 omit nN
 

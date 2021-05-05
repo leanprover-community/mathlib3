@@ -50,8 +50,8 @@ variables {C : Type u} [category.{v} C] {D : Type*} [category D]
 
 -- Importing `category_theory.abelian.projective` and assuming
 -- `[abelian C] [enough_projectives C] [abelian D]` suffices to acquire all the following:
-variables [preadditive C] [has_zero_object C] [has_equalizers C] [has_cokernels C]
-  [has_images C] [has_image_maps C] [has_projective_resolutions C]
+variables [preadditive C] [has_zero_object C] [has_equalizers C]
+  [has_images C] [has_projective_resolutions C]
 variables [preadditive D] [has_zero_object D] [has_equalizers D] [has_cokernels D]
   [has_images D] [has_image_maps D]
 
@@ -148,7 +148,21 @@ begin
   apply homotopy_equiv.homotopy_hom_inv_id,
 end
 
--- TODO left-derived functors of the identity functor (requires we assume `abelian`!)
+-- TODO:
+-- lemma nat_trans.left_derived_projective_zero {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G)
+--   (X : C) [projective X] :
+--   (nat_trans.left_derived α 0).app X =
+--     (F.left_derived_obj_projective_zero X).hom ≫
+--       α.app X ≫
+--         (G.left_derived_obj_projective_zero X).inv := sorry
+
+-- TODO:
+-- lemma nat_trans.left_derived_projective_succ {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G)
+--   (n : ℕ) (X : C) [projective X] :
+--   (nat_trans.left_derived α (n+1)).app X = 0 := sorry
+
+-- TODO left-derived functors of the identity functor are the identity
+-- (requires we assume `abelian`?)
 -- PROJECT left-derived functors of a composition (Grothendieck sequence)
 
 end category_theory

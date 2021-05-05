@@ -45,9 +45,9 @@ quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_co
 instance : has_le game :=
 { le := le }
 
-@[refl] theorem le_refl : ∀ x : game, x ≤ x :=
+theorem le_refl : ∀ x : game, x ≤ x :=
 by { rintro ⟨x⟩, apply pgame.le_refl }
-@[trans] theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
+theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
 by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
 by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }

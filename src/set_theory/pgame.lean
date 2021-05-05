@@ -800,12 +800,6 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
-/-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
-then `w - y` has the same moves as `x - z`. -/
-def relabelling.sub_congr {w x y z : pgame}
-  (h₁ : w.relabelling x) (h₂ : y.relabelling z) : (w - y).relabelling (x - z) :=
-h₁.add_congr h₂.neg_congr
-
 /-- `-(x+y)` has exactly the same moves as `-x + -y`. -/
 def neg_add_relabelling : Π (x y : pgame), relabelling (-(x + y)) (-x + -y)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=

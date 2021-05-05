@@ -1202,6 +1202,7 @@ local attribute [instance] classical.prop_decidable
 variables (f : P →+* R) (I : ideal R) [hI : I.is_prime]
 include hI
 
+variables {I}
 /-- The unique maximal ideal of the localization at `I.prime_compl` lies over the ideal `I`. -/
 lemma at_prime.comap_maximal_ideal :
   ideal.comap (localization.of I.prime_compl).to_map

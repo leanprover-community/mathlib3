@@ -113,13 +113,11 @@ protected def unop (F : Cᵒᵖ ⥤ Dᵒᵖ) : C ⥤ D :=
   map := λ X Y f, (F.map f.op).unop }
 
 /-- The isomorphism between `F.op.unop` and `F`. -/
-@[simp]
-def op_unop_iso (F : C ⥤ D) : F.op.unop ≅ F :=
+@[simp] def op_unop_iso (F : C ⥤ D) : F.op.unop ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 /-- The isomorphism between `F.unop.op` and `F`. -/
-@[simp]
-def unop_op_iso (F : Cᵒᵖ ⥤ Dᵒᵖ) : F.unop.op ≅ F :=
+@[simp] def unop_op_iso (F : Cᵒᵖ ⥤ Dᵒᵖ) : F.unop.op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 variables (C D)
@@ -373,6 +371,7 @@ namespace functor
 variables (C)
 variables (D : Type u₂) [category.{v₂} D]
 
+@[simps]
 def op_equiv : (C ⥤ D)ᵒᵖ ≌ Cᵒᵖ ⥤ Dᵒᵖ :=
 { functor := op_hom _ _,
   inverse := op_inv _ _,

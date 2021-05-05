@@ -438,8 +438,8 @@ theorem equiv_congr_right {x₁ x₂} : x₁ ≈ x₂ ↔ ∀ y₁, x₁ ≈ y�
 
 theorem equiv_of_mk_equiv {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
-  (hl : ∀ (i : x.left_moves), (x.move_left i).equiv (y.move_left (L i)))
-  (hr : ∀ (j : y.right_moves), (x.move_right (R.symm j)).equiv (y.move_right j)) :
+  (hl : ∀ (i : x.left_moves), x.move_left i ≈ y.move_left (L i))
+  (hr : ∀ (j : y.right_moves), x.move_right (R.symm j) ≈ y.move_right j) :
   x.equiv y :=
 begin
   fsplit; rw le_def,

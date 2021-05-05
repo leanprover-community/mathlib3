@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.pgame
+import set_theory.game tactic.abel
 
 /-!
 # Surreal numbers
@@ -170,46 +170,20 @@ def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
 (zero_mul_relabelling x).equiv
 
-lemma left_distrib_equiv_aux {a b c d e : pgame} : (a + b) + (c + d) - (e + b) ≈ a + c - e + d :=
+lemma left_distrib_equiv_aux {a b c d e : pgame} : a + b + (c + d) - (e + b) ≈ a + c - e + d :=
 begin
-  have h₁ : b - (b + e) ≈ -e, from
-    calc b - (b + e) ≈ b + (-b + -e) : add_congr (equiv_refl _) (neg_add_relabelling _ _).equiv
-                 ... ≈ b - b + -e    : add_assoc_equiv.symm
-                 ... ≈ 0 + -e        : add_congr add_right_neg_equiv (equiv_refl _)
-                 ... ≈ -e            : zero_add_equiv _,
-  calc
-    (a + b) + (c + d) - (e + b)
-        ≈ a + (b + (c + d)) - (e + b)
-        : sub_congr add_assoc_equiv (equiv_refl _)
-    ... ≈ a + ((c + d) + b) - (e + b)
-        : sub_congr (add_congr (equiv_refl _) add_comm_equiv) (equiv_refl _)
-    ... ≈ (a + (c + d)) + b - (e + b)
-        : sub_congr add_assoc_equiv.symm (equiv_refl _)
-    ... ≈ (a + (c + d)) + (b - (e + b))
-        : add_assoc_equiv
-    ... ≈ (a + (c + d)) + (b - (b + e))
-        : add_congr (equiv_refl _) (sub_congr (equiv_refl _) add_comm_equiv)
-    ... ≈ (a + (c + d)) + - e
-        : add_congr (equiv_refl _) h₁
-    ... ≈ a + ((c + d) + - e)
-        : add_assoc_equiv
-    ... ≈ a + (c + (d + - e))
-        : add_congr (equiv_refl _) add_assoc_equiv
-    ... ≈ a + (c + (-e + d))
-        : add_congr (equiv_refl _) (add_congr (equiv_refl _) add_comm_equiv)
-    ... ≈ (a + c) + (-e + d)
-        : add_assoc_equiv.symm
-    ... ≈ a + c - e + d
-        : add_assoc_equiv.symm
+  apply @quotient.exact pgame,
+  change (⟦a⟧ + ⟦b⟧ + (⟦c⟧ + ⟦d⟧) - (⟦e⟧ + ⟦b⟧) : game) = ⟦a⟧ + ⟦c⟧ + -⟦e⟧ + ⟦d⟧,
+  abel,
 end
 
-lemma left_distrib_equiv_aux' {a b c d e : pgame} : (b + a) + (d + c) - (b + e) ≈ d + (a + c - e) :=
-calc (b + a) + (d + c) - (b + e)
-      ≈ (a + b) + (c + d) - (e + b)
-      : by { refine (sub_congr (add_congr _ _) _); apply (add_comm_relabelling _ _).equiv }
-  ... ≈ a + c - e + d     : left_distrib_equiv_aux
-  ... ≈ d + (a + c - e)   : (add_comm_relabelling _ _).equiv
-
+lemma left_distrib_equiv_aux' {a b c d e : pgame} : b + a + (d + c) - (b + e) ≈ d + (a + c - e) :=
+begin
+  apply @quotient.exact pgame,
+  change (⟦b⟧ + ⟦a⟧ + (⟦d⟧ + ⟦c⟧) - (⟦b⟧ + ⟦e⟧) : game) = ⟦d⟧ + (⟦a⟧ + ⟦c⟧ + -⟦e⟧),
+  abel,
+end
+ 
 /-- `x * (y + z)` is equivalent to `x * y + x * z.`-/
 theorem left_distrib_equiv : Π (x y z : pgame), x * (y + z) ≈ x * y + x * z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=

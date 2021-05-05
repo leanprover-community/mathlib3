@@ -531,6 +531,23 @@ def of_involutive [module R M] (f : M →ₗ[R] M) (hf : involutive f) : M ≃�
   ⇑(of_involutive f hf) = f :=
 rfl
 
+variables (R)
+
+/-- If `M` and `M₂` are both `R`-semimodules and `S`-semimodules and `R`-semimodule structures
+are defined by an action of `R` on `S` (formally, we have two scalar towers), then any `S`-linear
+equivalence from `M` to `M₂` is also an `R`-linear equivalence.
+
+See also `linear_map.restrict_scalars`. -/
+@[simps]
+def restrict_scalars [module R M] [module R M₂]
+  {S : Type*} [semiring S] [module S M] [module S M₂]
+  [linear_map.compatible_smul M M₂ R S] (f : M ≃ₗ[S] M₂) : M ≃ₗ[R] M₂ :=
+{ to_fun := f,
+  inv_fun := f.symm,
+  left_inv := f.left_inv,
+  right_inv := f.right_inv,
+  .. f.to_linear_map.restrict_scalars R }
+
 end add_comm_monoid
 
 end linear_equiv

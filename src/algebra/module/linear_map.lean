@@ -468,6 +468,8 @@ lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 
 lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
 
+@[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
+
 @[simp] lemma trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.trans f.symm = linear_equiv.refl R M :=
 by { ext x, simp }

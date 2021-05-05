@@ -206,6 +206,9 @@ variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
 eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
 
+@[simp] theorem units.neg_smul (u : units R) (x : M) : -u • x = - (u • x) :=
+by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
+
 variables (R)
 theorem neg_one_smul (x : M) : (-1 : R) • x = -x := by simp
 variables {R}

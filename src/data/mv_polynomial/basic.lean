@@ -982,22 +982,4 @@ end aeval
 
 end comm_semiring
 
-section comm_ring
-variables [comm_ring R]
-
-instance : ring (mv_polynomial σ R) := add_monoid_algebra.ring
-
-@[simp] lemma coeff_neg (p : mv_polynomial σ R) (s) : coeff s (-p) = -coeff s p := rfl
-
-@[simp]
-lemma coeff_sub (p q : mv_polynomial σ R) (n : ℕ) : coeff s (p - q) = coeff s p - coeff s q := rfl
-
-@[simp] lemma monomial_neg (a : R) : monomial s (-a) = -(monomial s a) :=
-by rw [eq_neg_iff_add_eq_zero, monomial_add, neg_add_self, monomial, finsupp.single_zero]
-
-@[simp] lemma support_neg {p : mv_polynomial σ R} : (-p).support = p.support :=
-by simp [support]
-
-end comm_ring
-
 end mv_polynomial

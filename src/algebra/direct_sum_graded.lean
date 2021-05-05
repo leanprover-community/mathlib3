@@ -651,6 +651,32 @@ end direct_sum
 
 /-! ### Concrete instances -/
 
+/-- A direct sum of copies of a `semiring` inherits the multiplication structure. -/
+instance semiring.direct_sum_gmonoid {R : Type*} [add_monoid ι] [semiring R] :
+  direct_sum.gmonoid (λ i : ι, R) :=
+{ mul := λ i j, add_monoid_hom.mul,
+  one_mul := λ a, sigma.ext (zero_add _) (heq_of_eq (one_mul _)),
+  mul_one := λ a, sigma.ext (add_zero _) (heq_of_eq (mul_one _)),
+  mul_assoc := λ a b c, sigma.ext (add_assoc _ _ _) (heq_of_eq (mul_assoc _ _ _)),
+  one := 1 }
+
+@[simp] lemma semiring.direct_sum_mul {R : Type*} [add_monoid ι] [semiring R] {i j} (x y : R) :
+  @direct_sum.ghas_mul.mul _ _ (λ _ : ι, R) _ _ _ i j x y = x * y := rfl
+
+open_locale direct_sum
+
+-- To check the lemma above does match
+example {R : Type*} [add_monoid ι] [semiring R] (i j : ι) (a b : R) :
+  (direct_sum.of _ i a * direct_sum.of _ j b : ⨁ i, R) = direct_sum.of _ (i + j) (by exact a * b) :=
+by rw [direct_sum.of_mul_of, semiring.direct_sum_mul]
+
+/-- A direct sum of copies of a `comm_semiring` inherits the commutative multiplication structure.
+-/
+instance comm_semiring.direct_sum_gcomm_monoid {R : Type*} [add_comm_monoid ι] [comm_semiring R] :
+  direct_sum.gcomm_monoid (λ i : ι, R) :=
+{ mul_comm := λ a b, sigma.ext (add_comm _ _) (heq_of_eq (mul_comm _ _)),
+  .. semiring.direct_sum_gmonoid }
+
 namespace submodule
 
 variables {R A : Type*} [comm_semiring R]

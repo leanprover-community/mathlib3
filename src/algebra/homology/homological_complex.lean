@@ -111,12 +111,6 @@ option.choice_eq _
 namespace homological_complex
 variables {V} {c : complex_shape ι} (C : homological_complex V c)
 
-local attribute [instance] has_zero_object.has_zero
-
-instance [has_zero_object V] : inhabited (homological_complex V c) :=
-⟨{ X := λ i, 0,
-  d := λ i j, 0, }⟩
-
 /--
 A morphism of homological complexes consists of maps between the chain groups,
 commuting with the differentials.
@@ -164,6 +158,17 @@ instance : has_zero_morphisms (homological_complex V c) :=
 
 @[simp] lemma zero_apply (C D : homological_complex V c) (i : ι) :
   (0 : C ⟶ D).f i = 0 := rfl
+
+local attribute [instance] has_zero_object.has_zero
+
+instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
+{ zero :=
+  { X := λ i, 0,
+    d := λ i j, 0, },
+  unique_from := λ C, ⟨⟨0⟩, λ f, by ext⟩,
+  unique_to := λ C, ⟨⟨0⟩, λ f, by ext⟩, }
+
+instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨0⟩
 
 lemma congr_hom {C D : homological_complex V c} {f g : C ⟶ D} (w : f = g) (i : ι) : f.f i = g.f i :=
 congr_fun (congr_arg hom.f w) i

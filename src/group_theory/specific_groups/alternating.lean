@@ -283,7 +283,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
     rw [← sum_cycle_type, hm, multiset.sum_cons],
     exact le_add_right (le_refl _) },
   interval_cases n,
-  { refine ((is_three_cycle_sq_of_three_mem_cycle_type ng).top_le_alternating_normal_closure
+  { refine ((is_three_cycle_sq_of_three_mem_cycle_type_five ng).top_le_alternating_normal_closure
       _).trans (normal_closure_le_normal _),
     { rw card_fin },
     rw [set.singleton_subset_iff, set_like.mem_coe],

@@ -63,18 +63,16 @@ by unfold monic; apply_instance
 
 lemma monic.coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff p.nat_degree = 1 := hp
 
-@[simp] lemma degree_zero : degree (0 : polynomial R) = ⊥ :=
-rfl
+@[simp] lemma degree_zero : degree (0 : polynomial R) = ⊥ := rfl
 
-@[simp] lemma nat_degree_zero : nat_degree (0 : polynomial R) = 0 :=
-rfl
+@[simp] lemma nat_degree_zero : nat_degree (0 : polynomial R) = 0 := rfl
 
 @[simp] lemma coeff_nat_degree : coeff p (nat_degree p) = leading_coeff p := rfl
 
 lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
 ⟨λ h, by rw [degree, ← max_eq_sup_with_bot] at h;
   exact support_eq_empty.1 (max_eq_none.1 h),
-λ h, h.symm ▸ degree_zero⟩
+λ h, h.symm ▸ rfl⟩
 
 @[nontriviality] lemma degree_of_subsingleton [subsingleton R] : degree p = ⊥ :=
 by rw [subsingleton.elim p 0, degree_zero]
@@ -104,7 +102,7 @@ end
 
 lemma nat_degree_eq_of_degree_eq_some {p : polynomial R} {n : ℕ}
   (h : degree p = n) : nat_degree p = n :=
-have hp0 : p ≠ 0, from λ hp0, by rw [hp0, degree_zero] at h; exact option.no_confusion h,
+have hp0 : p ≠ 0, from λ hp0, by rw hp0 at h; exact option.no_confusion h,
 option.some_inj.1 $ show (nat_degree p : with_bot ℕ) = n,
   by rwa [← degree_eq_nat_degree hp0]
 
@@ -116,18 +114,14 @@ lemma nat_degree_eq_of_degree_eq [semiring S] {q : polynomial S} (h : degree p =
 by unfold nat_degree; rw h
 
 lemma le_degree_of_ne_zero (h : coeff p n ≠ 0) : (n : with_bot ℕ) ≤ degree p :=
-begin
-  change @has_le.le (with_bot ℕ) _ (some n : with_bot ℕ) (p.support.sup some : with_bot ℕ),
-  rcases p,
-  simp only [coeff, support, ne.def] at h ⊢,
-  exact finset.le_sup (finsupp.mem_support_iff.2 h)
-end
+show @has_le.le (with_bot ℕ) _ (some n : with_bot ℕ) (p.support.sup some : with_bot ℕ),
+from finset.le_sup (mem_support_iff.2 h)
 
 lemma le_nat_degree_of_ne_zero (h : coeff p n ≠ 0) : n ≤ nat_degree p :=
 begin
   rw [← with_bot.coe_le_coe, ← degree_eq_nat_degree],
   exact le_degree_of_ne_zero h,
-  { assume h, subst h, rw coeff_zero at h, exact h rfl }
+  { assume h, subst h, exact h rfl }
 end
 
 lemma le_nat_degree_of_mem_supp (a : ℕ) :
@@ -143,7 +137,7 @@ supp_subset_range (nat.lt_succ_self _)
 lemma degree_le_degree (h : coeff q (nat_degree p) ≠ 0) : degree p ≤ degree q :=
 begin
   by_cases hp : p = 0,
-  { rw [hp, degree_zero], exact bot_le },
+  { rw hp, exact bot_le },
   { rw degree_eq_nat_degree hp, exact le_degree_of_ne_zero h }
 end
 
@@ -164,11 +158,7 @@ with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 by { rw [degree, ← monomial_zero_left, support_monomial 0 _ ha, sup_singleton], refl }
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
-begin
-  by_cases h : a = 0,
-  { rw [h, C_0, degree_zero], exact bot_le },
-  { rw [degree_C h], exact le_refl _ }
-end
+by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_refl _]
 
 lemma degree_one_le : degree (1 : polynomial R) ≤ (0 : with_bot ℕ) :=
 by rw [← C_1]; exact degree_C_le
@@ -182,8 +172,7 @@ begin
   { rw [nat_degree, degree_C ha], refl }
 end
 
-@[simp] lemma nat_degree_one : nat_degree (1 : polynomial R) = 0 :=
-by rw [← C_1, nat_degree_C]
+@[simp] lemma nat_degree_one : nat_degree (1 : polynomial R) = 0 := nat_degree_C 1
 
 @[simp] lemma nat_degree_nat_cast (n : ℕ) : nat_degree (n : polynomial R) = 0 :=
 by simp only [←C_eq_nat_cast, nat_degree_C]
@@ -195,11 +184,7 @@ by rw [degree, support_monomial _ _ ha]; refl
 by rw [← monomial_eq_C_mul_X, degree_monomial n ha]
 
 lemma degree_monomial_le (n : ℕ) (a : R) : degree (monomial n a) ≤ n :=
-begin
-  by_cases h : a = 0,
-  { rw [h, (monomial n).map_zero, degree_zero], exact bot_le },
-  { exact le_of_eq (degree_monomial n h) }
-end
+if h : a = 0 then by rw [h, (monomial n).map_zero]; exact bot_le else le_of_eq (degree_monomial n h)
 
 lemma degree_C_mul_X_pow_le (n : ℕ) (a : R) : degree (C a * X ^ n) ≤ n :=
 by { rw C_mul_X_pow_eq_monomial, apply degree_monomial_le }
@@ -222,7 +207,7 @@ lemma coeff_eq_zero_of_nat_degree_lt {p : polynomial R} {n : ℕ} (h : p.nat_deg
 begin
   apply coeff_eq_zero_of_degree_lt,
   by_cases hp : p = 0,
-  { subst hp, rw degree_zero, exact with_bot.bot_lt_coe n },
+  { subst hp, exact with_bot.bot_lt_coe n },
   { rwa [degree_eq_nat_degree hp, with_bot.coe_lt_coe] }
 end
 
@@ -465,8 +450,7 @@ begin
   simp [nat_degree_le_nat_degree h]
 end
 
-@[simp] lemma leading_coeff_zero : leading_coeff (0 : polynomial R) = 0 :=
-by simp [leading_coeff]
+@[simp] lemma leading_coeff_zero : leading_coeff (0 : polynomial R) = 0 := rfl
 
 @[simp] lemma leading_coeff_eq_zero : leading_coeff p = 0 ↔ p = 0 :=
 ⟨λ h, by_contradiction $ λ hp, mt mem_support_iff.1

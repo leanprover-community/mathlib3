@@ -18,8 +18,8 @@ directory.
 
 ## Main definitions
 
-* `monomial n a` is the polynomial `a X^n`. Here, `monomial n` is given as an `R`-linear map.
-* `C a` is the constant polynomial `a`. Here, `C` is an algebra morphism.
+* `monomial n a` is the polynomial `a X^n`. Note that `monomial n` is defined as an `R`-linear map.
+* `C a` is the constant polynomial `a`. Note that `C` is defined as a ring homomorphism.
 * `X` is the polynomial `X`, i.e., `monomial 1 1`.
 * `p.sum f` is `∑ n in p.support, f n (p.coeff n)`, i.e., one sums the values of functions applied
   to coefficients of the polynomial `p`.
@@ -324,8 +324,7 @@ def coeff : polynomial R → ℕ → R
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { simp only [monomial, monomial_fun, coeff, linear_map.coe_mk], rw finsupp.single_apply }
 
-@[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 :=
-rfl
+@[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 := rfl
 
 @[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 :=
 by { rw [← monomial_zero_one, coeff_monomial], simp }

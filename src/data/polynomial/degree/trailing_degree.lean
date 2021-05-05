@@ -59,14 +59,11 @@ by unfold trailing_monic; apply_instance
 @[simp] lemma trailing_monic.trailing_coeff {p : polynomial R} (hp : p.trailing_monic) :
   trailing_coeff p = 1 := hp
 
-@[simp] lemma trailing_degree_zero : trailing_degree (0 : polynomial R) = ⊤ :=
-rfl
+@[simp] lemma trailing_degree_zero : trailing_degree (0 : polynomial R) = ⊤ := rfl
 
-@[simp] lemma trailing_coeff_zero : trailing_coeff (0 : polynomial R) = 0 :=
-rfl
+@[simp] lemma trailing_coeff_zero : trailing_coeff (0 : polynomial R) = 0 := rfl
 
-@[simp] lemma nat_trailing_degree_zero : nat_trailing_degree (0 : polynomial R) = 0 :=
-rfl
+@[simp] lemma nat_trailing_degree_zero : nat_trailing_degree (0 : polynomial R) = 0 := rfl
 
 lemma trailing_degree_eq_top : trailing_degree p = ⊤ ↔ p = 0 :=
 ⟨λ h, by rw [trailing_degree, ← min_eq_inf_with_top] at h;
@@ -96,7 +93,7 @@ end
 
 lemma nat_trailing_degree_eq_of_trailing_degree_eq_some {p : polynomial R} {n : ℕ}
   (h : trailing_degree p = n) : nat_trailing_degree p = n :=
-have hp0 : p ≠ 0, from λ hp0, by rw [hp0, trailing_degree_zero] at h; exact option.no_confusion h,
+have hp0 : p ≠ 0, from λ hp0, by rw hp0 at h; exact option.no_confusion h,
 option.some_inj.1 $ show (nat_trailing_degree p : with_top ℕ) = n,
   by rwa [← trailing_degree_eq_nat_trailing_degree hp0]
 
@@ -121,14 +118,14 @@ lemma nat_trailing_degree_le_of_ne_zero (h : coeff p n ≠ 0) : nat_trailing_deg
 begin
   rw [← with_top.coe_le_coe, ← trailing_degree_eq_nat_trailing_degree],
   { exact le_trailing_degree_of_ne_zero h, },
-  { assume hp, simpa [hp] using h, }
+  { assume h, subst h, exact h rfl }
 end
 
 lemma trailing_degree_le_trailing_degree (h : coeff q (nat_trailing_degree p) ≠ 0) :
   trailing_degree q ≤ trailing_degree p :=
 begin
   by_cases hp : p = 0,
-  { rw [hp, trailing_degree_zero], exact le_top },
+  { rw hp, exact le_top },
   { rw trailing_degree_eq_nat_trailing_degree hp, exact le_trailing_degree_of_ne_zero h }
 end
 
@@ -222,7 +219,7 @@ nat_trailing_degree_monomial_le
 @[simp] lemma trailing_coeff_eq_zero : trailing_coeff p = 0 ↔ p = 0 :=
 ⟨λ h, by_contradiction $ λ hp, mt mem_support_iff.1
   (not_not.2 h) (mem_of_min (trailing_degree_eq_nat_trailing_degree hp)),
-λ h, by simp [h]⟩
+λ h, h.symm ▸ leading_coeff_zero⟩
 
 lemma trailing_coeff_nonzero_iff_nonzero : trailing_coeff p ≠ 0 ↔ p ≠ 0 :=
 not_congr trailing_coeff_eq_zero

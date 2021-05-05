@@ -337,7 +337,7 @@ theorem nat_degree_eq_zero_of_derivative_eq_zero
   f.nat_degree = 0 :=
 begin
   by_cases hf : f = 0,
-  { simp [hf] },
+  { exact (congr_arg polynomial.nat_degree hf).trans rfl },
   { rw nat_degree_eq_zero_iff_degree_le_zero,
     by_contra absurd,
     have f_nat_degree_pos : 0 < f.nat_degree,

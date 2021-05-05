@@ -28,7 +28,7 @@ variables [semiring R] {p q r : polynomial R}
 section coeff
 
 lemma coeff_one (n : ℕ) : coeff (1 : polynomial R) n = if 0 = n then 1 else 0 :=
-by { rw ← monomial_zero_one, exact coeff_monomial }
+coeff_monomial
 
 @[simp]
 lemma coeff_add (p q : polynomial R) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
@@ -137,7 +137,7 @@ by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 
 theorem mul_X_pow_eq_zero {p : polynomial R} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
-by { ext k, apply (coeff_mul_X_pow p n k).symm.trans, rw H, simp }
+ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
 by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul] }

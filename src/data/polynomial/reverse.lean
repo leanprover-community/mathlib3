@@ -101,8 +101,7 @@ begin
   ... = f (rev_at N i) : finsupp.emb_domain_apply _ _ _
 end
 
-@[simp] lemma reflect_zero {N : ℕ} : reflect N (0 : polynomial R) = 0 :=
-by simp [← zero_to_finsupp, reflect]
+@[simp] lemma reflect_zero {N : ℕ} : reflect N (0 : polynomial R) = 0 := rfl
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : polynomial R} :
   reflect N (f : polynomial R) = 0 ↔ f = 0 :=

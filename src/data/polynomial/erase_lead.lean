@@ -184,7 +184,7 @@ begin
     { refine P_C_mul_pow _ _ _ df,
       rw [ne.def, leading_coeff_eq_zero],
       rintro rfl,
-      simpa [nat.succ_ne_zero] using f0.symm } }
+      exact not_le.mpr c.succ_pos f0.ge } }
 end
 
 end polynomial

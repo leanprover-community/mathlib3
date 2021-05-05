@@ -122,10 +122,7 @@ end
 
 lemma eval₂_to_finsupp_eq_lift_nc {f : R →+* S} {x : S} {p : add_monoid_algebra R ℕ} :
   eval₂ f x (⟨p⟩ : polynomial R) = lift_nc ↑f (powers_hom S x) p :=
-begin
-  simp only [eval₂_eq_sum, sum, sum_to_finsupp, support, coeff],
-  refl
-end
+by { simp only [eval₂_eq_sum, sum, sum_to_finsupp, support, coeff], refl }
 
 lemma eval₂_mul_noncomm (hf : ∀ k, commute (f $ q.coeff k) x) :
   eval₂ f x (p * q) = eval₂ f x p * eval₂ f x q :=
@@ -539,10 +536,7 @@ variables (f)
 open is_semiring_hom
 
 @[simp] lemma map_mul : (p * q).map f = p.map f * q.map f :=
-begin
-  rw [map, eval₂_mul_noncomm],
-  exact λ k, (commute_X _).symm
-end
+by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 
 instance map.is_semiring_hom : is_semiring_hom (map f) :=
 { map_zero := eval₂_zero _ _,

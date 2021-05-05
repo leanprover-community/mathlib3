@@ -982,7 +982,7 @@ end aeval
 
 end comm_semiring
 
-section ring
+section comm_ring
 variables [comm_ring R]
 
 instance : ring (mv_polynomial σ R) := add_monoid_algebra.ring
@@ -998,6 +998,6 @@ by rw [eq_neg_iff_add_eq_zero, monomial_add, neg_add_self, monomial, finsupp.sin
 @[simp] lemma support_neg {p : mv_polynomial σ R} : (-p).support = p.support :=
 by simp [support]
 
-end ring
+end comm_ring
 
 end mv_polynomial

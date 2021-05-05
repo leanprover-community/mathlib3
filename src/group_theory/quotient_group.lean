@@ -90,11 +90,11 @@ begin
   rw [quotient_group.eq, one_inv, one_mul],
 end
 
-@[to_additive]
+@[to_additive quotient_add_group.mk'_eq_zero_iff]
 lemma mk'_eq_zero_iff {N : subgroup G} [nN : N.normal] (x : G) :  mk' N x = 1 ↔  x ∈ N :=
 ⟨λ h, by rwa [← ker_mk N, monoid_hom.mem_ker], λ h, by rwa [← ker_mk N, monoid_hom.mem_ker] at h⟩
 
-@[to_additive]
+@[to_additive quotient_add_group.mk'_eq_mk'_iff]
 lemma mk'_eq_mk'_iff {N : subgroup G} [nN : N.normal] {x y : G} : mk' N x = mk' N y ↔ x * y⁻¹ ∈ N :=
 begin
   change ↑x = ↑ y ↔ _,

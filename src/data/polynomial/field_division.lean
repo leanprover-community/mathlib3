@@ -280,6 +280,16 @@ lemma mem_root_set [field k] [algebra R k] {x : k} (hp : p ≠ 0) :
   x ∈ p.root_set k ↔ aeval x p = 0 :=
 iff.trans multiset.mem_to_finset (mem_roots_map hp)
 
+lemma root_set_C_mul_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
+begin
+  ext x,
+  rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, aeval_X_pow, mul_eq_zero],
+  { simp_rw [ring_hom.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
+    exact λ ha', (ha ha').elim },
+  { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
+end
+
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
   have p.coeff 1 ≠ 0,

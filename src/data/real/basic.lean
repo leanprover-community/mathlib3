@@ -463,6 +463,20 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
       from lb_le_Inf s ‹s.nonempty› H,
  ..real.linear_order, ..real.lattice}
 
+lemma lt_Inf_add_pos {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {ε : ℝ} (hε : ε > 0) :
+  ∃ a ∈ s, a < Inf s + ε :=
+(real.Inf_lt _ h' h).1 (lt_add_of_pos_right _ hε)
+
+lemma Inf_le_iff {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {a : ℝ} :
+  Inf s ≤ a ↔ ∀ ε > 0, ∃ x ∈ s, x < a + ε :=
+begin
+  rw le_iff_forall_pos_lt_add,
+  split ; intros H ε ε_pos,
+  { exact exists_lt_of_cInf_lt h' (H ε ε_pos) },
+  { rcases H ε ε_pos with ⟨x, x_in, hx⟩,
+    exact cInf_lt_of_lt h x_in hx }
+end
+
 theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=

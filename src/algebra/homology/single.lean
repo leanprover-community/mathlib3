@@ -66,6 +66,9 @@ def single (j : ι) : V ⥤ homological_complex V c :=
     { simp, },
   end, }.
 
+/--
+The object in degree `j` of `(single V c h).obj A` is just `A`.
+-/
 @[simps]
 def single_obj_X_self (j : ι) (A : V) : ((single V c j).obj A).X j ≅ A :=
 eq_to_iso (by simp)

@@ -1216,7 +1216,7 @@ lemma at_prime.map_eq_maximal_ideal :
   ideal.map (localization.of I.prime_compl).to_map I =
     (local_ring.maximal_ideal (localization I.prime_compl)) :=
 begin
-  convert congr_arg (ideal.map (localization.of _).to_map) (at_prime.comap_maximal_ideal I).symm,
+  convert congr_arg (ideal.map (localization.of _).to_map) at_prime.comap_maximal_ideal.symm,
   rw map_comap,
 end
 

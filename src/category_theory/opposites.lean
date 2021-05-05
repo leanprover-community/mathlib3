@@ -113,11 +113,11 @@ protected def unop (F : Cᵒᵖ ⥤ Dᵒᵖ) : C ⥤ D :=
   map := λ X Y f, (F.map f.op).unop }
 
 /-- The isomorphism between `F.op.unop` and `F`. -/
-@[simp] def op_unop_iso (F : C ⥤ D) : F.op.unop ≅ F :=
+@[simps] def op_unop_iso (F : C ⥤ D) : F.op.unop ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 /-- The isomorphism between `F.unop.op` and `F`. -/
-@[simp] def unop_op_iso (F : Cᵒᵖ ⥤ Dᵒᵖ) : F.unop.op ≅ F :=
+@[simps] def unop_op_iso (F : Cᵒᵖ ⥤ Dᵒᵖ) : F.unop.op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 variables (C D)
@@ -177,13 +177,13 @@ instance right_op_faithful {F : Cᵒᵖ ⥤ D} [faithful F] : faithful F.right_o
 instance left_op_faithful {F : C ⥤ Dᵒᵖ} [faithful F] : faithful F.left_op :=
 { map_injective' := λ X Y f g h, quiver.hom.unop_inj (map_injective F (quiver.hom.unop_inj h)) }
 
-@[simp]
-def left_op_right_op_iso (F : C ⥤ Dᵒᵖ) : F ≅ F.left_op.right_op := nat_iso.of_components
-(λ X, iso.refl _) (by tidy)
+@[simps]
+def left_op_right_op_iso (F : C ⥤ Dᵒᵖ) : F.left_op.right_op ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
-@[simp]
-def right_op_left_op_iso (F : Cᵒᵖ ⥤ D) : F ≅ F.right_op.left_op := nat_iso.of_components
-(λ X, iso.refl _) (by tidy)
+@[simps]
+def right_op_left_op_iso (F : Cᵒᵖ ⥤ D) : F.right_op.left_op ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 end
 
@@ -442,14 +442,14 @@ def left_op_right_op_equiv : (Cᵒᵖ ⥤ D)ᵒᵖ ≌ (C ⥤ Dᵒᵖ) :=
   inverse :=
   { obj := λ F, op F.left_op,
     map := λ F G η, η.left_op.op },
-  unit_iso := nat_iso.of_components (λ F, F.unop.right_op_left_op_iso.symm.op) begin
+  unit_iso := nat_iso.of_components (λ F, F.unop.right_op_left_op_iso.op) begin
     intros F G η,
     dsimp,
     rw [(show η = η.unop.op, by simp), ← op_comp, ← op_comp],
     congr' 1,
     tidy,
   end,
-  counit_iso := nat_iso.of_components (λ F, F.left_op_right_op_iso.symm) (by tidy) }
+  counit_iso := nat_iso.of_components (λ F, F.left_op_right_op_iso) (by tidy) }
 
 end functor
 

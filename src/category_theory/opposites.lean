@@ -177,10 +177,12 @@ instance right_op_faithful {F : Cᵒᵖ ⥤ D} [faithful F] : faithful F.right_o
 instance left_op_faithful {F : C ⥤ Dᵒᵖ} [faithful F] : faithful F.left_op :=
 { map_injective' := λ X Y f g h, quiver.hom.unop_inj (map_injective F (quiver.hom.unop_inj h)) }
 
+/-- The isomorphism between `F.left_op.right_op` and `F`. -/
 @[simps]
 def left_op_right_op_iso (F : C ⥤ Dᵒᵖ) : F.left_op.right_op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
+/-- The isomorphism between `F.right_op.left_op` and `F`. -/
 @[simps]
 def right_op_left_op_iso (F : Cᵒᵖ ⥤ D) : F.right_op.left_op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)

@@ -6,8 +6,6 @@ Authors: Eric Rodriguez
 import data.fintype.card
 import data.equiv.fin
 import data.nat.factorial
-import tactic
-import tactic.slim_check
 
 /-!
 # Birthday Problem
@@ -67,11 +65,45 @@ def to_be_named {α β γ : Type*} :
     ext; simp! [equiv.sum_arrow_equiv_prod_arrow, this]
   end }
 
-def some_other_nameless_thing {α : Type*} : (fin 1 ↪ α) ≃ α :=
-{ to_fun := λ f, f 0,
+def some_other_nameless_thing {α β : Type*} [unique α] : (α ↪ β) ≃ β :=
+{ to_fun := λ f, f (default α),
   inv_fun := λ x, ⟨λ _, x, λ _ _ _, subsingleton.elim _ _⟩,
   left_inv := λ _, by { ext, simp_rw [function.embedding.coe_fn_mk], congr },
   right_inv := λ _, by simp }
+
+-- replace infinite embedding instance
+def function.embedding.subsingleton {α β} [infinite α] [fintype β] : subsingleton (α ↪ β) :=
+⟨λ f, let ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f
+      in false.elim $ ne $ f.injective f_eq⟩
+
+noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
+by rw [←not_nonempty_fintype, not_not] at h; exact h.some
+
+@[priority 900] -- would rather have the more restrictive, computable instance
+noncomputable instance function.embedding.fintype'' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
+begin
+  by_cases h : infinite α,
+  { resetI, apply_instance },
+  { haveI := fintype_of_not_infinite h, classical, apply_instance },
+end
+
+-- αβ not needed in original file
+lemma fintype.exists_infinite_fiber {α β} [infinite α] [fintype β] (f : α → β) :
+  ∃ y : β, infinite (f ⁻¹' {y}) :=
+begin
+  classical,
+  by_contra hf,
+  push_neg at hf,
+
+  haveI := λ y, fintype_of_not_infinite $ hf y,
+  let key : fintype α :=
+  { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
+    complete := by simp },
+  exact infinite.not_fintype key,
+end
+
+-- make equiv_inj_subtype non-private, rename subtype_injective_equiv_embedding,
+-- move to data/equiv/basic
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
@@ -87,27 +119,13 @@ begin
 
   have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n,
   {
-    intro f, rw card_congr some_other_nameless_thing,
-    swap, apply_instance,
+    intro f, rw card_congr some_other_nameless_thing; try {apply_instance}, -- swap the `rw` here
 
     rw card_of_finset' (finset.map f univ)ᶜ,
-    { simp [card_compl, card_map] }, -- this line does all our cardinality stuff for us!
-    -- next, we prove that `x ∈ map f univ ↔ x ∈ set.range f`. should probably be extracted, but:
-    -- not sure to where, and not sure what to call it. also, feel like I must've missed it
-    intro x,
-    change x ∈ (map f univ)ᶜ ↔ x ∈ (set.range ⇑f)ᶜ, -- further evidence `ᶜ` is defeq, something odd
-    rw [mem_compl, set.mem_compl_iff],
-    split;
-    contrapose!,
-    { intro h,
-      rw set.mem_range at h,
-      rw mem_map,
-      obtain ⟨x, hx⟩ := h,
-      exact ⟨x, mem_univ _, hx⟩ },
-    { intro h,
-      rw mem_map at h,
-      obtain ⟨x, _, hx⟩ := h,
-      exact ⟨x, hx⟩ }
+    { simp [card_compl, card_map] },
+    { -- further evidence `ᶜ` is defeq, something odd
+    change ∀ x, x ∈ (map f univ)ᶜ ↔ x ∈ (set.range ⇑f)ᶜ,
+    simp }
   },
 
   rw card_sigma,

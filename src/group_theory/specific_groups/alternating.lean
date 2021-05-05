@@ -151,7 +151,6 @@ lemma is_three_cycle.top_le_alternating_normal_closure (h5 : 5 ≤ fintype.card 
   {f : perm α} (hf : is_three_cycle f) :
   ⊤ ≤ normal_closure ({⟨f, hf.mem_alternating_group⟩} : set (alternating_group α)) :=
 begin
-  rw [← eq_top_iff],
   have hi : function.injective (alternating_group α).subtype := subtype.coe_injective,
   refine eq_top_iff.1 (map_injective hi (le_antisymm (map_mono le_top) _)),
   rw [← monoid_hom.range_eq_map, subtype_range, normal_closure, monoid_hom.map_closure],

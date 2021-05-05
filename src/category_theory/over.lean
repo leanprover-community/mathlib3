@@ -98,7 +98,7 @@ The forgetful functor mapping an arrow to its domain.
 
 See https://stacks.math.columbia.edu/tag/001G.
 -/
-def forget : over X ⥤ T := comma.fst _ _
+abbreviation forget : over X ⥤ T := comma.fst _ _
 
 end
 
@@ -283,7 +283,7 @@ lemma iso_mk_inv_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom �
 section
 variables (X)
 /-- The forgetful functor mapping an arrow to its domain. -/
-def forget : under X ⥤ T := comma.snd _ _
+abbreviation forget : under X ⥤ T := comma.snd _ _
 
 end
 
@@ -308,6 +308,13 @@ def map_comp {Y Z : T} (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙
 nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
 
 end
+
+instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
+{ reflects := λ Y Z f t, by exactI
+  ⟨⟨under.hom_mk (inv ((under.forget X).map f)) ((is_iso.comp_inv_eq _).2 (under.w f).symm),
+    by tidy⟩⟩ }
+
+instance forget_faithful : faithful (forget X) := {}.
 
 section
 variables {D : Type u₂} [category.{v₂} D]

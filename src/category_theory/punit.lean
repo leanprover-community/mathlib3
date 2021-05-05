@@ -22,11 +22,13 @@ namespace functor
 variables (C : Type u) [category.{v} C]
 
 /-- The constant functor sending everything to `punit.star`. -/
+@[simps]
 def star : C ⥤ discrete punit :=
 (functor.const _).obj punit.star
 
 variable {C}
 /-- Any two functors to `discrete punit` are isomorphic. -/
+@[simps]
 def punit_ext (F G : C ⥤ discrete punit) : F ≅ G :=
 nat_iso.of_components (λ _, eq_to_iso dec_trivial) (λ _ _ _, dec_trivial)
 

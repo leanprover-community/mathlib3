@@ -33,10 +33,10 @@ def structured_arrow (S : D) (T : C ⥤ D) := comma (functor.from_punit S) T
 
 namespace structured_arrow
 
-variables {S S' S'' : D} {Y Y' : C} {T : C ⥤ D}
-
 /-- The obvious projection functor from structured arrows. -/
-def proj : structured_arrow S T ⥤ C := comma.snd _ _
+abbreviation proj (S : D) (T : C ⥤ D) : structured_arrow S T ⥤ C := comma.snd _ _
+
+variables {S S' S'' : D} {Y Y' : C} {T : C ⥤ D}
 
 /-- Construct a structured arrow from a morphism. -/
 def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟩, Y, f⟩
@@ -44,6 +44,9 @@ def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟩, Y, f⟩
 @[simp] lemma mk_left (f : S ⟶ T.obj Y) : (mk f).left = punit.star := rfl
 @[simp] lemma mk_right (f : S ⟶ T.obj Y) : (mk f).right = Y := rfl
 @[simp] lemma mk_hom_eq_self (f : S ⟶ T.obj Y) : (mk f).hom = f := rfl
+
+@[simp, reassoc] lemma w {A B : structured_arrow S T} (f : A ⟶ B) : A.hom ≫ T.map f.right = B.hom :=
+by { have := f.w; tidy }
 
 lemma eq_mk (f : structured_arrow S T) : f = mk f.hom :=
 by { cases f, congr, ext, }
@@ -93,18 +96,19 @@ by { rw eq_mk f, simp, }
   (map (f ≫ f')).obj h = (map f).obj ((map f').obj h) :=
 by { rw eq_mk h, simp, }
 
+instance proj_reflects_iso : reflects_isomorphisms (proj S T) :=
+{ reflects := λ Y Z f t, by exactI
+  ⟨⟨structured_arrow.hom_mk (inv ((proj S T).map f)) (by simp), by tidy⟩⟩ }
+
 open category_theory.limits
 
 /-- The identity structured arrow is initial. -/
 def mk_id_initial [full T] [faithful T] : is_initial (mk (𝟙 (T.obj Y))) :=
 { desc := λ c, hom_mk (T.preimage c.X.hom) (by { dsimp, simp, }),
-  uniq' := begin
-    rintros c m -,
+  uniq' := λ c m _, begin
     ext,
     apply T.map_injective,
-    have := m.w.symm,
-    dsimp at this,
-    simpa using this,
+    simpa only [hom_mk_right, T.image_preimage, ←w m] using (category.id_comp _).symm,
   end }
 
 end structured_arrow
@@ -120,10 +124,10 @@ def costructured_arrow (S : C ⥤ D) (T : D) := comma S (functor.from_punit T)
 
 namespace costructured_arrow
 
-variables {T T' T'' : D} {Y Y' : C} {S : C ⥤ D}
+/-- The obvious projection functor from costructured arrows. -/
+abbreviation proj (S : C ⥤ D) (T : D) : costructured_arrow S T ⥤ C := comma.fst _ _
 
-/-- The obviuous projection functor from costructured arrows. -/
-def proj : costructured_arrow S T ⥤ C := comma.fst _ _
+variables {T T' T'' : D} {Y Y' : C} {S : C ⥤ D}
 
 /-- Construct a costructured arrow from a morphism. -/
 def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟩, f⟩
@@ -132,7 +136,10 @@ def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟩, f⟩
 @[simp] lemma mk_right (f : S.obj Y ⟶ T) : (mk f).right = punit.star := rfl
 @[simp] lemma mk_hom_eq_self (f : S.obj Y ⟶ T) : (mk f).hom = f := rfl
 
-lemma eq_mk (f : costructured_arrow S T) : f = mk (f.hom) :=
+@[simp, reassoc] lemma w {A B : costructured_arrow S T} (f : A ⟶ B) : S.map f.left ≫ B.hom = A.hom :=
+by tidy
+
+lemma eq_mk (f : costructured_arrow S T) : f = mk f.hom :=
 by { cases f, congr, ext, }
 
 /--
@@ -180,6 +187,10 @@ by { rw eq_mk f, simp, }
   (map (f ≫ f')).obj h = (map f').obj ((map f).obj h) :=
 by { rw eq_mk h, simp, }
 
+instance proj_reflects_iso : reflects_isomorphisms (proj S T) :=
+{ reflects := λ Y Z f t, by exactI
+  ⟨⟨costructured_arrow.hom_mk (inv ((proj S T).map f)) (by simp), by tidy⟩⟩ }
+
 open category_theory.limits
 
 /-- The identity costructured arrow is terminal. -/
@@ -189,9 +200,7 @@ def mk_id_terminal [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=
     rintros c m -,
     ext,
     apply S.map_injective,
-    have := m.w,
-    dsimp at this,
-    simpa using this,
+    simpa only [hom_mk_left, S.image_preimage, ←w m] using (category.comp_id _).symm,
   end }
 
 end costructured_arrow

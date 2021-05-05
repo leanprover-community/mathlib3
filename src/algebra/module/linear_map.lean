@@ -332,11 +332,18 @@ def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f
   M →ₗ[ℤ] M₂ :=
 ⟨f, f.map_add, f.map_int_module_smul⟩
 
+lemma add_monoid_hom.coe_to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :
+  ⇑f.to_int_linear_map = f := rfl
+
 /-- Reinterpret an additive homomorphism as a `ℚ`-linear map. -/
 def add_monoid_hom.to_rat_linear_map [add_comm_group M] [module ℚ M]
   [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
   M →ₗ[ℚ] M₂ :=
 { map_smul' := f.map_rat_module_smul, ..f }
+
+lemma add_monoid_hom.coe_to_rat_linear_map [add_comm_group M] [module ℚ M]
+  [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
+  ⇑f.to_rat_linear_map = f := rfl
 
 /-! ### Linear equivalences -/
 section

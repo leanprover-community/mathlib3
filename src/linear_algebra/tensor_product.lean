@@ -1011,6 +1011,11 @@ instance compatible_smul.int : compatible_smul R ℤ M N :=
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
   (λ r ih, by simpa [sub_smul, tmul_sub, sub_tmul] using ih)⟩
 
+instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
+  [compatible_smul R S M N] :
+  compatible_smul R (units S) M N :=
+⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
+
 end tensor_product
 
 namespace linear_map

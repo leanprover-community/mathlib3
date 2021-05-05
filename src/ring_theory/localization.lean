@@ -1359,14 +1359,13 @@ lemma integer_normalization_eq_zero_iff {p : polynomial f.codomain} :
   f.integer_normalization p = 0 ↔ p = 0 :=
 begin
   refine (polynomial.ext_iff.trans (polynomial.ext_iff.trans _).symm),
-  simp only [polynomial.coeff_zero],
   obtain ⟨⟨b, nonzero⟩, hb⟩ := integer_normalization_spec p,
   split; intros h i,
   { apply f.to_map_eq_zero_iff.mp,
     rw [hb i, h i],
     exact _root_.mul_zero _ },
   { have hi := h i,
-    rw [← f.to_map_eq_zero_iff, hb i] at hi,
+    rw [polynomial.coeff_zero, ← f.to_map_eq_zero_iff, hb i] at hi,
     apply or.resolve_left (eq_zero_or_eq_zero_of_mul_eq_zero hi),
     intro h,
     apply mem_non_zero_divisors_iff_ne_zero.mp nonzero,
@@ -1381,7 +1380,6 @@ begin
   split; intros h x; obtain ⟨p, hp, px⟩ := h x,
   { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
   { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
-    rw polynomial.coeff_zero,
     exact f.to_map_eq_zero_iff.mp this },
   { rwa [is_scalar_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
   { exact ⟨f.integer_normalization p,

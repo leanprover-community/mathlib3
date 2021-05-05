@@ -15,7 +15,7 @@ Some of the main results include
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 open finsupp finset
 

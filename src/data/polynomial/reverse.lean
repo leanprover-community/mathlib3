@@ -186,7 +186,7 @@ by rw [reverse, coeff_reflect]
 @[simp] lemma coeff_zero_reverse (f : polynomial R) : coeff (reverse f) 0 = leading_coeff f :=
 by rw [coeff_reverse, rev_at_le (zero_le f.nat_degree), nat.sub_zero, leading_coeff]
 
-@[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := by simp [reverse]
+@[simp] lemma reverse_zero : reverse (0 : polynomial R) = 0 := rfl
 
 @[simp] lemma reverse_eq_zero : f.reverse = 0 ↔ f = 0 :=
 by simp [reverse]

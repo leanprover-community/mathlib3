@@ -1649,8 +1649,7 @@ congr_arg (coeff φ) (finsupp.single_eq_same)
   (monomial n a : power_series R) = power_series.monomial R n a :=
 by { ext, simp [coeff_coe, power_series.coeff_monomial, polynomial.coeff_monomial, eq_comm] }
 
-@[simp, norm_cast] lemma coe_zero : ((0 : polynomial R) : power_series R) = 0 :=
-by { ext, simp }
+@[simp, norm_cast] lemma coe_zero : ((0 : polynomial R) : power_series R) = 0 := rfl
 
 @[simp, norm_cast] lemma coe_one : ((1 : polynomial R) : power_series R) = 1 :=
 begin

@@ -47,7 +47,7 @@ begin
     { exact h_monomial _ _ ih } },
   have B : ∀ (s : finset ℕ), M (s.sum (λ (n : ℕ), C (p.coeff n) * X ^ n)),
   { apply finset.induction,
-    { exact h_C 0 },
+    { convert h_C 0, exact C_0.symm },
     { assume n s ns ih, rw sum_insert ns, exact h_add _ _ A ih, } },
   rw [← sum_C_mul_X_eq p, polynomial.sum],
   exact B _

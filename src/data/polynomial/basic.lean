@@ -12,8 +12,38 @@ import tactic.ring
 /-!
 # Theory of univariate polynomials
 
-Polynomials are represented as `add_monoid_algebra R ℕ`, where `R` is a commutative semiring.
-In this file, we define `polynomial`, provide basic instances, and prove an `ext` lemma.
+This file defines `polynomial R`, the type of univariate polynomials over the semiring `R`, builds
+a semiring structure on it, and gives basic definitions that are expanded in other files in this
+directory.
+
+## Main definitions
+
+* `monomial n a` is the polynomial `a X^n`. Here, `monomial n` is given as an `R`-linear map.
+* `C a` is the constant polynomial `a`. Here, `C` is an algebra morphism.
+* `X` is the polynomial `X`, i.e., `monomial 1 1`.
+* `p.sum f` is `∑ n in p.support, f n (p.coeff n)`, i.e., one sums the values of functions applied
+  to coefficients of the polynomial `p`.
+* `p.erase n` is the polynomial `p` in which one removes the `c X^n` term.
+
+There are often two natural variants of lemmas involving sums, depending on whether one acts on the
+polynomials, or on the function. The naming convention is that one adds `index` when acting on
+the polynomials. For instance,
+* `sum_add_index` states that `(p + q).sum f = p.sum f + q.sum f`;
+* `sum_add` states that `p.sum (λ n x, f n x + g n x) = p.sum f + p.sum g`.
+
+## Implementation
+
+Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a commutative semiring, but
+through a structure to make them irreducible from the point of view of the kernel. Most operations
+are irreducible since Lean can not compute anyway with `add_monoid_algebra`. An exception is the
+zero polynomial, that we make semireducible so that its coefficients are definitionally
+equal to `0`.
+
+The raw implementation of the equivalence between `polynomial R` and `add_monoid_algebra R ℕ` is
+done through `of_finsupp` and `to_finsupp` (or, equivalently, `rcases p` when `p` is a polynomial
+gives an element `q` of `add_monoid_algebra R ℕ`, and conversely `⟨q⟩` gives back `p`). The
+equivalence is also registered as an algebra equiv in `polynomial.to_finsupp_iso`. These should
+in general not be used once the basic API for polynomials is constructed.
 -/
 
 noncomputable theory
@@ -55,7 +85,7 @@ lemma exists_iff_exists_finsupp (P : polynomial R → Prop) :
   S → polynomial R → polynomial R
 | a ⟨b⟩ := ⟨a • b⟩
 
-instance : has_zero (polynomial R) := ⟨monomial_fun 0 (0 : R)⟩
+instance : has_zero (polynomial R) := ⟨⟨0⟩⟩
 instance : has_one (polynomial R) := ⟨monomial_fun 0 (1 : R)⟩
 instance : has_add (polynomial R) := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg (polynomial R) := ⟨neg⟩
@@ -63,10 +93,7 @@ instance : has_mul (polynomial R) := ⟨mul⟩
 instance {S : Type*} [semiring S] [module S R] : has_scalar S (polynomial R) := ⟨smul⟩
 
 lemma zero_to_finsupp : (⟨0⟩ : polynomial R) = 0 :=
-begin
-  change (⟨0⟩ : polynomial R) = monomial_fun 0 (0 : R),
-  simp only [monomial_fun, single_zero],
-end
+rfl
 
 lemma one_to_finsupp : (⟨1⟩ : polynomial R) = 1 :=
 begin
@@ -140,11 +167,11 @@ lemma sum_to_finsupp {ι : Type*} (s : finset ι) (f : ι → add_monoid_algebra
 /--
 The set of all `n` such that `X^n` has a non-zero coefficient.
 -/
-@[irreducible] def support : polynomial R → finset ℕ
+def support : polynomial R → finset ℕ
 | ⟨p⟩ := p.support
 
 @[simp] lemma support_zero : (0 : polynomial R).support = ∅ :=
-by { rw [← zero_to_finsupp, support], refl }
+rfl
 
 @[simp] lemma support_eq_empty : p.support = ∅ ↔ p = 0 :=
 by { rcases p, simp [support, ← zero_to_finsupp] }
@@ -213,7 +240,7 @@ def C : R →+* polynomial R :=
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
-lemma C_0 : C (0 : R) = 0 := rfl
+lemma C_0 : C (0 : R) = 0 := by simp
 
 lemma C_1 : C (1 : R) = 1 := rfl
 
@@ -290,15 +317,15 @@ by rw [X_mul, monomial_mul_X]
 lemma X_pow_mul_monomial (k n : ℕ) (r : R) : X^k * monomial n r = monomial (n+k) r :=
 by rw [X_pow_mul, monomial_mul_X_pow]
 
-/-- coeff p n is the coefficient of X^n in p -/
-@[irreducible] def coeff : polynomial R → ℕ → R
+/-- `coeff p n` (often denoted `p.coeff n`) is the coefficient of `X^n` in `p`. -/
+def coeff : polynomial R → ℕ → R
 | ⟨p⟩ n := p n
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { simp only [monomial, monomial_fun, coeff, linear_map.coe_mk], rw finsupp.single_apply }
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : polynomial R) n = 0 :=
-by { rw [← monomial_zero_right n, coeff_monomial], simp }
+rfl
 
 @[simp] lemma coeff_one_zero : coeff (1 : polynomial R) 0 = 1 :=
 by { rw [← monomial_zero_one, coeff_monomial], simp }
@@ -486,6 +513,14 @@ lemma sum_add {S : Type*} [add_comm_monoid S] (p : polynomial R) (f g : ℕ → 
   p.sum (λ n x, f n x + g n x) = p.sum f + p.sum g :=
 sum_add' _ _ _
 
+lemma sum_smul_index {S : Type*} [add_comm_monoid S] (p : polynomial R) (b : R)
+  (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0) : (b • p).sum f = p.sum (λ n a, f n (b * a)) :=
+begin
+  rcases p,
+  simp [smul_to_finsupp, sum, support, coeff],
+  exact finsupp.sum_smul_index hf,
+end
+
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : polynomial R → polynomial R
 | ⟨p⟩ := ⟨p.erase n⟩
@@ -581,7 +616,7 @@ end nonzero_semiring
 
 section repr
 variables [semiring R]
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 instance [has_repr R] : has_repr (polynomial R) :=
 ⟨λ p, if p = 0 then "0"

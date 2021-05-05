@@ -66,14 +66,6 @@ lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
   coeff (p.sum f) n = p.sum (λ a b, coeff (f a b) n) :=
 by { rcases p, simp [polynomial.sum, support, coeff] }
 
-lemma sum_smul_index (b : R)
-  {S : Type*} [add_comm_monoid S] {f : ℕ → R → S} (h0 : ∀i, f i 0 = 0) :
-  (b • p).sum f = p.sum (λi a, f i (b • a)) :=
-begin
-  rw [sum_eq_of_subset (b • p) f h0 _ (support_smul _ _)],
-  exact finset.sum_congr rfl (λ n hn, by simp),
-end
-
 /-- Decomposes the coefficient of the product `p * q` as a sum
 over `nat.antidiagonal`. A version which sums over `range (n + 1)` can be obtained
 by using `finset.nat.sum_antidiagonal_eq_sum_range_succ`. -/

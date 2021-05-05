@@ -133,7 +133,7 @@ def frange (p : polynomial R) : finset R :=
 finset.image (λ n, p.coeff n) p.support
 
 lemma frange_zero : frange (0 : polynomial R) = ∅ :=
-by simp [frange]
+rfl
 
 lemma mem_frange_iff {p : polynomial R} {c : R} :
   c ∈ p.frange ↔ ∃ n ∈ p.support, c = p.coeff n :=
@@ -501,7 +501,7 @@ begin
   split,
   { rintro ⟨p, ⟨hpdeg, hpI⟩, rfl⟩,
     cases lt_or_eq_of_le hpdeg with hpdeg hpdeg,
-    { refine ⟨0, I.zero_mem, by simp [degree_zero, bot_le], _⟩,
+    { refine ⟨0, I.zero_mem, bot_le, _⟩,
       rw [leading_coeff_zero, eq_comm],
       exact coeff_eq_zero_of_degree_lt hpdeg },
     { refine ⟨p, hpI, le_of_eq hpdeg, _⟩,
@@ -623,10 +623,10 @@ begin
   { subst k, refine hs2 ⟨polynomial.mem_degree_le.2
       (le_trans polynomial.degree_le_nat_degree $ with_bot.coe_le_coe.2 h), hp⟩ },
   { have hp0 : p ≠ 0,
-    { rintro rfl, rw [polynomial.nat_degree_zero] at hn, cases hn, exact nat.not_lt_zero _ h },
+    { rintro rfl, cases hn, exact nat.not_lt_zero _ h },
     have : (0 : R) ≠ 1,
     { intro h, apply hp0, ext i, refine (mul_one _).symm.trans _,
-      rw [← h, mul_zero, polynomial.coeff_zero] },
+      rw [← h, mul_zero], refl },
     haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩,
     have : p.leading_coeff ∈ I.leading_coeff_nth N,
     { rw HN, exact hm2 k ((I.mem_leading_coeff_nth _ _).2

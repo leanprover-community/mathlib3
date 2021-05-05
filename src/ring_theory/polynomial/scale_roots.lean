@@ -41,9 +41,9 @@ lemma scale_roots_ne_zero {p : polynomial R} (hp : p ≠ 0) (s : R) :
 begin
   intro h,
   have : p.coeff p.nat_degree ≠ 0 := mt leading_coeff_eq_zero.mp hp,
-  have : (scale_roots p s).coeff p.nat_degree = (0 : polynomial R).coeff p.nat_degree :=
+  have : (scale_roots p s).coeff p.nat_degree = 0 :=
     congr_fun (congr_arg (coeff : polynomial R → ℕ → R) h) p.nat_degree,
-  rw [coeff_scale_roots_nat_degree, coeff_zero] at this,
+  rw [coeff_scale_roots_nat_degree] at this,
   contradiction
 end
 

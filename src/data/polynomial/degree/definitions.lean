@@ -20,10 +20,9 @@ Results include
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
 
 open finsupp finset
-open_locale big_operators
+open_locale big_operators classical
 
 namespace polynomial
 universes u v
@@ -65,10 +64,10 @@ by unfold monic; apply_instance
 lemma monic.coeff_nat_degree {p : polynomial R} (hp : p.monic) : p.coeff p.nat_degree = 1 := hp
 
 @[simp] lemma degree_zero : degree (0 : polynomial R) = ⊥ :=
-by simp [degree]
+rfl
 
 @[simp] lemma nat_degree_zero : nat_degree (0 : polynomial R) = 0 :=
-by simp [nat_degree]
+rfl
 
 @[simp] lemma coeff_nat_degree : coeff p (nat_degree p) = leading_coeff p := rfl
 

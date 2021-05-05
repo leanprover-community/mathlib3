@@ -19,10 +19,9 @@ end of a polynomial
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
 
 open function polynomial finsupp finset
-open_locale big_operators
+open_locale big_operators classical
 
 namespace polynomial
 universes u v
@@ -61,13 +60,13 @@ by unfold trailing_monic; apply_instance
   trailing_coeff p = 1 := hp
 
 @[simp] lemma trailing_degree_zero : trailing_degree (0 : polynomial R) = ⊤ :=
-by simp [trailing_degree]
+rfl
 
 @[simp] lemma trailing_coeff_zero : trailing_coeff (0 : polynomial R) = 0 :=
-by simp [trailing_coeff]
+rfl
 
 @[simp] lemma nat_trailing_degree_zero : nat_trailing_degree (0 : polynomial R) = 0 :=
-by { simp [nat_trailing_degree], refl }
+rfl
 
 lemma trailing_degree_eq_top : trailing_degree p = ⊤ ↔ p = 0 :=
 ⟨λ h, by rw [trailing_degree, ← min_eq_inf_with_top] at h;

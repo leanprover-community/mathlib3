@@ -166,7 +166,6 @@ begin
   let p_coeff : fin (h.dim) → A := λ i, p.coeff i,
   suffices : ∀ i, p_coeff i = 0,
   { ext i,
-    rw coeff_zero,
     by_cases hi : i < h.dim,
     { exact this ⟨i, hi⟩ },
     exact coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le hlt (le_of_not_gt hi)) },
@@ -311,7 +310,7 @@ end power_basis
 open power_basis
 
 /-- Useful lemma to show `x` generates a power basis:
-the powers of `x` less than the degree of `x`'s minimal polynomial are linear independent. -/
+the powers of `x` less than the degree of `x`'s minimal polynomial are linearly independent. -/
 lemma is_integral.linear_independent_pow [algebra K S] {x : S} (hx : is_integral K x) :
   linear_independent K (λ (i : fin (minpoly K x).nat_degree), x ^ (i : ℕ)) :=
 begin

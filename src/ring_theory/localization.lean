@@ -484,10 +484,6 @@ g.to_monoid_hom _ hy _ _ k.to_localization_map _ _
   f.map (λ y, show ring_hom.id R y ∈ M, from y.2) f z = z :=
 f.lift_id _
 
-lemma map_unique {j : S →+* Q}
-  (hj : ∀ x : R, j (f.to_map x) = k.to_map (g x)) : f.map hy k = j :=
-f.lift_unique (λ y, k.map_units ⟨g y, hy y⟩) hj
-
 /-- If `comm_ring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
 of the induced maps equals the map of localizations induced by `l ∘ g`. -/
 lemma map_comp_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
@@ -1199,6 +1195,7 @@ simpa only [@local_ring.mem_maximal_ideal (f.codomain), mem_nonunits_iff, not_no
 end localization_map
 
 namespace localization
+open localization_map
 
 local attribute [instance] classical.prop_decidable
 

@@ -113,10 +113,12 @@ protected def unop (F : Cᵒᵖ ⥤ Dᵒᵖ) : C ⥤ D :=
   map := λ X Y f, (F.map f.op).unop }
 
 /-- The isomorphism between `F.op.unop` and `F`. -/
+@[simp]
 def op_unop_iso (F : C ⥤ D) : F.op.unop ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 /-- The isomorphism between `F.unop.op` and `F`. -/
+@[simp]
 def unop_op_iso (F : Cᵒᵖ ⥤ Dᵒᵖ) : F.unop.op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
@@ -163,8 +165,6 @@ In informal mathematics no distinction is made.
 protected def right_op (F : Cᵒᵖ ⥤ D) : C ⥤ Dᵒᵖ :=
 { obj := λ X, op (F.obj (op X)),
   map := λ X Y f, (F.map f.op).op }
-
--- TODO show these form an equivalence
 
 instance {F : C ⥤ D} [full F] : full F.op :=
 { preimage := λ X Y f, (F.preimage f.unop).op }
@@ -367,5 +367,24 @@ quiver.hom.op (hom_of_le h)
 
 lemma le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U :=
 le_of_hom (h.unop)
+
+namespace functor
+
+variables (C)
+variables (D : Type u₂) [category.{v₂} D]
+
+def op_equiv : (C ⥤ D)ᵒᵖ ≌ Cᵒᵖ ⥤ Dᵒᵖ :=
+{ functor := op_hom _ _,
+  inverse := op_inv _ _,
+  unit_iso := nat_iso.of_components (λ F, F.unop.op_unop_iso.op) begin
+    intros F G f,
+    dsimp [op_unop_iso],
+    rw [(show f = f.unop.op, by simp), ← op_comp, ← op_comp],
+    congr' 1,
+    tidy,
+  end,
+  counit_iso := nat_iso.of_components (λ F, F.unop_op_iso) (by tidy) }
+
+end functor
 
 end category_theory

@@ -1,5 +1,18 @@
+/-
+Copyright (c) 2021 Eric Rodriguez. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Eric Rodriguez
+-/
 import logic.embedding
 import data.set.lattice
+
+/-!
+# Equivalences on embeddings
+
+This file shows some advanced equivalences on embeddings, useful for constructing larger
+embeddings from smaller ones.
+-/
+
 
 open function.embedding
 

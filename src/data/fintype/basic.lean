@@ -1019,15 +1019,9 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
-private def equiv_inj_subtype (α β : Sort*) : {f : α → β // function.injective f} ≃ (α ↪ β) :=
-{ to_fun := λ f, ⟨f.val, f.property⟩,
-  inv_fun := λ f, ⟨f, f.injective⟩,
-  left_inv := λ f, by simp,
-  right_inv := λ f, by {ext, refl} }
-
 instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
-fintype.of_equiv _ (equiv_inj_subtype α β)
+fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
 
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
@@ -1422,6 +1416,10 @@ let ⟨y, hy⟩ := exists_not_mem_finset ({x} : finset α) in
 lemma nonempty (α : Type*) [infinite α] : nonempty α :=
 by apply_instance
 
+/-- A non-infinite type is a fintype. -/
+noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
+by rw [←not_nonempty_fintype, not_not] at h; exact h.some
+
 lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
 ⟨λ I, by exactI not_fintype (fintype.of_injective f hf)⟩
 
@@ -1481,6 +1479,18 @@ begin
   intros x y, contrapose, apply hf,
 end
 
+instance function.embedding.subsingleton {α β} [infinite α] [fintype β] : subsingleton (α ↪ β) :=
+⟨λ f, let ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f
+      in false.elim $ ne $ f.injective f_eq⟩
+
+@[priority 100]
+noncomputable instance function.embedding.fintype'' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
+begin
+  by_cases h : infinite α,
+  { resetI, apply_instance },
+  { haveI := infinite.fintype_of_not_infinite h, classical, apply_instance },
+end
+
 /--
 The strong pigeonhole principle for infinitely many pigeons in
 finitely many pigeonholes.  If there are infinitely many pigeons in
@@ -1489,17 +1499,16 @@ many pigeons.
 
 See also: `fintype.exists_ne_map_eq_of_infinite`
 -/
-lemma fintype.exists_infinite_fiber [infinite α] [fintype β] (f : α → β) :
+lemma fintype.exists_infinite_fiber {α β} [infinite α] [fintype β] (f : α → β) :
   ∃ y : β, infinite (f ⁻¹' {y}) :=
 begin
-  classical, by_contra hf, push_neg at hf,
-  haveI h' : ∀ (y : β), fintype (f ⁻¹' {y}) := begin
-    intro y, specialize hf y,
-    rw [←not_nonempty_fintype, not_not] at hf,
-    exact classical.choice hf,
-  end,
+  classical,
+  by_contra hf,
+  push_neg at hf,
+
+  haveI := λ y, infinite.fintype_of_not_infinite $ hf y,
   let key : fintype α :=
-  { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
+  { elems := finset.univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
     complete := by simp },
   exact infinite.not_fintype key,
 end

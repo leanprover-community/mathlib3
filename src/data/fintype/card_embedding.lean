@@ -20,8 +20,11 @@ open finset
 local notation `|` x `|` := finset.card x
 local notation `‖` x `‖` := fintype.card x
 
+open_locale nat
+
 namespace fintype
 
+-- why does `ᶜ` not work here but elsewhere it does? aren't they defeq due to the instance?
 def to_be_named {α β γ : Type*} :
 ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
 { to_fun := λ f, ⟨function.embedding.inl.trans f, -- α ↪ γ
@@ -64,20 +67,61 @@ def to_be_named {α β γ : Type*} :
     ext; simp! [equiv.sum_arrow_equiv_prod_arrow, this]
   end }
 
+def some_other_nameless_thing {α : Type*} : (fin 1 ↪ α) ≃ α :=
+{ to_fun := λ f, f 0,
+  inv_fun := λ x, ⟨λ _, x, λ _ _ _, subsingleton.elim _ _⟩,
+  left_inv := λ _, by { ext, simp_rw [function.embedding.coe_fn_mk], congr },
+  right_inv := λ _, by simp }
+
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
 begin
   induction n with n hn,
   { nontriviality (fin 0 ↪ β),
-  rw [nat.desc_fac_zero, fintype.card_eq_one_iff],
-  refine ⟨nonempty.some nontrivial.to_nonempty, λ x, function.embedding.ext fin.elim0⟩ },
+    rw [nat.desc_fac_zero, fintype.card_eq_one_iff],
+    refine ⟨nonempty.some nontrivial.to_nonempty, λ x, function.embedding.ext fin.elim0⟩ },
 
   rw [nat.succ_eq_add_one, ←card_congr (equiv.embedding_congr fin_sum_fin_equiv (equiv.refl β))],
-  swap, apply_instance,
   rw card_congr to_be_named,
-  swap, apply_instance,
-  have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n, by sorry,
-  simp, simp [this, card_univ], rw hn ((nat.lt_of_succ_le h).le), sorry
+  all_goals { try { apply_instance } },
+
+  have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n,
+  {
+    intro f, rw card_congr some_other_nameless_thing,
+    swap, apply_instance,
+
+    rw card_of_finset' (finset.map f univ)ᶜ,
+    { simp [card_compl, card_map] }, -- this line does all our cardinality stuff for us!
+    -- next, we prove that `x ∈ map f univ ↔ x ∈ set.range f`. should probably be extracted, but:
+    -- not sure to where, and not sure what to call it. also, feel like I must've missed it
+    intro x,
+    change x ∈ (map f univ)ᶜ ↔ x ∈ (set.range ⇑f)ᶜ, -- further evidence `ᶜ` is defeq, something odd
+    rw [mem_compl, set.mem_compl_iff],
+    split;
+    contrapose!,
+    { intro h,
+      rw set.mem_range at h,
+      rw mem_map,
+      obtain ⟨x, hx⟩ := h,
+      exact ⟨x, mem_univ _, hx⟩ },
+    { intro h,
+      rw mem_map at h,
+      obtain ⟨x, _, hx⟩ := h,
+      exact ⟨x, hx⟩ }
+  },
+
+  rw card_sigma,
+  simp_rw this,
+  rw [sum_const, card_univ, nsmul_eq_mul, nat.cast_id],
+  unfold nat.desc_fac,
+
+  rw hn (nat.lt_of_succ_le h).le,
+  set t := ‖β‖ - n.succ with ht,
+  have : ‖β‖ - n = t.succ,
+  { rw [ht, nat.succ_eq_add_one, ←nat.sub_sub_assoc, nat.succ_sub_one],
+    exact h,
+    exact nat.succ_pos _ },
+  rw [this, mul_comm, nat.succ_desc_fac]
 end
 
 variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]

@@ -59,9 +59,8 @@ lemma dimension_le_one.integral_closure [nontrivial R] [algebra R A]
 begin
   intros p ne_bot prime,
   haveI := prime,
-  refine integral_closure.is_maximal_of_is_maximal_comap p
-    (h _ (integral_closure.comap_ne_bot ne_bot) _),
-  apply is_prime.comap
+  exact integral_closure.is_maximal_of_is_maximal_comap p
+    (h _ (integral_closure.comap_ne_bot ne_bot) infer_instance),
 end
 end ring
 

@@ -4862,6 +4862,91 @@ by simp only [zip_right, zip_right', map₂_right_eq_map₂_right']
 
 end zip_right
 
+/-! ### to_chunks -/
+
+section to_chunks
+
+@[simp] theorem to_chunks_zero (l : list α) : to_chunks 0 l = [l] := rfl
+
+@[simp] theorem to_chunks_nil (n) : @to_chunks α n [] = [[]] := by cases n; refl
+
+@[simp] theorem to_chunks'_nil (n) : @to_chunks' α n [] = [] := by cases n; refl
+
+theorem to_chunks_aux_eq (n) : ∀ xs i,
+  @to_chunks_aux α n xs i = (xs.take i, (xs.drop i).to_chunks' (n+1))
+| [] i := by cases i; refl
+| (x::xs) 0 := by rw [to_chunks_aux, drop, to_chunks']; cases to_chunks_aux n xs n; refl
+| (x::xs) (i+1) := by rw [to_chunks_aux, to_chunks_aux_eq]; refl
+
+theorem to_chunks_eq_cons' (n) : ∀ (xs : list α),
+  xs.to_chunks (n+1) = xs.take (n+1) :: (xs.drop (n+1)).to_chunks' (n+1)
+| [] := rfl
+| (x::xs) := by rw [to_chunks, to_chunks_aux_eq]; refl
+
+theorem to_chunks_eq_cons : ∀ {n} (xs : list α), n ≠ 0 →
+  xs.to_chunks n = xs.take n :: (xs.drop n).to_chunks' n
+| 0 _ e := (e rfl).elim
+| (n+1) xs _ := to_chunks_eq_cons' n xs
+
+theorem to_chunks'_eq_to_chunks : ∀ n {xs : list α}, xs ≠ [] → xs.to_chunks' n = xs.to_chunks n
+| _ [] e := (e rfl).elim
+| 0 (x::xs) _ := rfl
+| (n+1) (x::xs) _ := by rw [to_chunks, to_chunks', to_chunks_aux_eq, to_chunks_aux_eq]; refl
+
+theorem to_chunks'_eq_cons {n} {xs : list α} (n0 : n ≠ 0) (x0 : xs ≠ []) :
+  xs.to_chunks' n = xs.take n :: (xs.drop n).to_chunks' n :=
+by rw [to_chunks'_eq_to_chunks n x0, to_chunks_eq_cons _ n0]
+
+theorem to_chunks'_eq_cons' {n} {xs : list α} (h : xs ≠ []) :
+  xs.to_chunks' (n+1) = xs.take (n+1) :: (xs.drop (n+1)).to_chunks' (n+1) :=
+by apply to_chunks'_eq_cons _ h; rintro ⟨⟩
+
+theorem to_chunks_aux_join {n} : ∀ {xs i l L}, @to_chunks_aux α n xs i = (l, L) → l ++ L.join = xs
+| [] _ _ _ rfl := rfl
+| (x::xs) i l L e := begin
+    cases i; [
+      cases e' : to_chunks_aux n xs n with l L,
+      cases e' : to_chunks_aux n xs i with l L];
+    { rw [to_chunks_aux, e', to_chunks_aux] at e, cases e,
+      exact (congr_arg (cons x) (to_chunks_aux_join e') : _) }
+  end
+
+theorem to_chunks_join : ∀ n xs, (@to_chunks α n xs).join = xs
+| 0 xs := by simp only [join, to_chunks_zero, append_nil]
+| (n+1) xs := begin
+    rw to_chunks,
+    cases e : to_chunks_aux n xs (n+1) with l L,
+    exact to_chunks_aux_join e,
+  end
+
+theorem to_chunks'_join : ∀ n xs, (@to_chunks' α n xs).join = xs
+| _ [] := by rw to_chunks'_nil; refl
+| n (x::xs) := by rw [to_chunks'_eq_to_chunks, to_chunks_join]; rintro ⟨⟩
+
+theorem to_chunks'_length_le : ∀ n xs, n ≠ 0 → ∀ l : list α,
+  l ∈ @to_chunks' α n xs → l.length ≤ n
+| 0 _ e _ := (e rfl).elim
+| (n+1) xs _ l := begin
+  refine (measure_wf length).induction xs _, intros xs IH h,
+  by_cases x0 : xs = [], {subst xs, cases h},
+  rw to_chunks'_eq_cons' x0 at h, rcases h with rfl|h,
+  { apply length_take_le },
+  { refine IH _ _ h,
+    simp only [measure, inv_image, length_drop],
+    exact nat.sub_lt_self (length_pos_iff_ne_nil.2 x0) (succ_pos _) },
+end
+
+theorem to_chunks_length_le : ∀ n xs, n ≠ 0 → ∀ l : list α,
+  l ∈ @to_chunks α n xs → l.length ≤ n
+| 0 _ e _ _ := (e rfl).elim
+| (n+1) [] _ l (or.inl rfl) := nat.zero_le _
+| n (_::_) n0 _ h := begin
+  rw ← to_chunks'_eq_to_chunks _ (cons_ne_nil _ _) at h,
+  exact to_chunks'_length_le _ _ n0 _ h,
+end
+
+end to_chunks
+
 /-! ### Miscellaneous lemmas -/
 
 theorem ilast'_mem : ∀ a l, @ilast' α a l ∈ a :: l

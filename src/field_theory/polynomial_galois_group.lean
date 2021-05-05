@@ -340,7 +340,7 @@ local attribute [instance] splits_ℚ_ℂ
 
 /-- The number of complex roots equals the number of real roots plus
   the number of roots not fixed by complex conjugation -/
-lemma gal_action_hom_bijective_of_prime_degree_aux {p : polynomial ℚ} :
+lemma gal_action_hom_bijective_of_prime_degree_aux (p : polynomial ℚ) :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card :=
 begin
@@ -415,7 +415,35 @@ begin
   { rw ← equiv.perm.card_support_eq_two,
     apply nat.add_left_cancel,
     rw [←p_roots, ←set.to_finset_card (root_set p ℝ), ←set.to_finset_card (root_set p ℂ)],
-    exact gal_action_hom_bijective_of_prime_degree_aux.symm },
+    exact (gal_action_hom_bijective_of_prime_degree_aux p).symm },
+end
+
+/-- Same as above, but with extra flexibility -/
+lemma gal_action_hom_bijective_of_prime_degree'
+  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  (p_roots1 : fintype.card (p.root_set ℝ) + 1 ≤ fintype.card (p.root_set ℂ))
+  (p_roots2 : fintype.card (p.root_set ℂ) ≤ fintype.card (p.root_set ℝ) + 3) :
+  function.bijective (gal_action_hom p ℂ) :=
+begin
+  let n := (gal_action_hom p ℂ (restrict p ℂ
+    (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card,
+  have hn : 2 ∣ n :=
+  equiv.perm.two_dvd_card_support (by rw [←monoid_hom.map_pow, ←monoid_hom.map_pow,
+    show alg_equiv.restrict_scalars ℚ complex.conj_alg_equiv ^ 2 = 1,
+    from alg_equiv.ext complex.conj_conj, monoid_hom.map_one, monoid_hom.map_one]),
+  apply gal_action_hom_bijective_of_prime_degree p_irr p_deg,
+  have key := gal_action_hom_bijective_of_prime_degree_aux p,
+  simp_rw [set.to_finset_card] at key,
+  rw [key, add_le_add_iff_left] at p_roots1 p_roots2,
+  rw [key, add_right_inj],
+  change 1 ≤ n at p_roots1,
+  change n ≤ 3 at p_roots2,
+  change n = 2,
+  obtain ⟨m, hm⟩ := hn,
+  rw two_mul at hm,
+  rw hm at *,
+  exact nat.bit0_eq_bit0.mpr (le_antisymm (nat.bit0_le_bit1_iff.mp p_roots2)
+    (nat.succ_le_iff.mpr (nat.bit1_le_bit0_iff.mp p_roots1))),
 end
 
 end gal

@@ -125,7 +125,7 @@ begin
   simp_rw [aeval_def, ←eval_map, polynomial.deriv, derivative_map],
 end
 
-lemma real_roots_poly_le_three (a : ℕ) (b : ℤ) :
+lemma real_roots_poly_le (a : ℕ) (b : ℤ) :
   fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) ≤ 3 :=
 begin
   rw [←one_mul (X ^ 5), ←C_1],
@@ -138,16 +138,17 @@ begin
   { norm_num },
 end
 
--- Not true as stated: `x^5-5x+4`. Need to rule out roots at `-1` and `1`.
-lemma real_roots_poly_ge_three (a : ℕ) (b : ℤ) (hab : abs b < a) :
-  fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) ≥ 3 :=
+lemma real_roots_poly_ge (a : ℕ) (b : ℤ) (hab : abs b < a)
+  (q_irred : irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)) :
+  3 ≤ fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) :=
 begin
   sorry,
 end
 
-lemma real_roots_poly (a : ℕ) (b : ℤ) (hab : abs b < a) :
+lemma real_roots_poly (a : ℕ) (b : ℤ) (hab : abs b < a)
+  (q_irred : irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)) :
   fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) = 3 :=
-le_antisymm (real_roots_poly_le_three a b) (real_roots_poly_ge_three a b hab)
+le_antisymm (real_roots_poly_le a b) (real_roots_poly_ge a b hab q_irred)
 
 lemma complex_roots_poly (a : ℕ) (b : ℤ) (h : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).separable) :
   fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℂ) = 5 :=
@@ -160,17 +161,15 @@ end
 
 local attribute [instance] splits_ℚ_ℂ
 
-lemma gal_poly (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
-  (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
+lemma gal_poly (a : ℕ) (b : ℤ) (hab : abs b < a)
+  (q_irred : irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)) :
   function.bijective (gal_action_hom (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) ℂ) :=
 begin
   let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
-  change function.bijective (gal_action_hom q ℂ),
-  have q_irred : irreducible q := irreducible_poly a b p hp hpa hpb hp2b,
   apply gal_action_hom_bijective_of_prime_degree q_irred,
   { rw nat_degree_poly,
     norm_num },
-  { rw [real_roots_poly a b hab, complex_roots_poly a b q_irred.separable] },
+  { rw [real_roots_poly a b hab q_irred, complex_roots_poly a b q_irred.separable] },
 end
 
 theorem not_solvable_poly (x : ℂ) (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
@@ -180,7 +179,7 @@ theorem not_solvable_poly (x : ℂ) (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b <
 begin
   apply solvable_by_rad.is_solvable_contrapositive (irreducible_poly a b p hp hpa hpb hp2b) hx,
   introI h,
-  have key := solvable_of_surjective (gal_poly a b p hab hp hpa hpb hp2b).2,
+  have key := solvable_of_surjective (gal_poly a b hab (irreducible_poly a b p hp hpa hpb hp2b)).2,
   sorry,
 end
 

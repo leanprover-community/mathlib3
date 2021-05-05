@@ -45,8 +45,8 @@ respect to a given `orientation`.
 open_locale big_operators matrix
 open finset matrix simple_graph sym2
 
-universe u
-variables {R : Type u} [ring R] [nontrivial R] [decidable_eq R] [char_zero R]
+universes u v
+variables {R : Type u} {V : Type v}
 
 section to_move
 
@@ -60,63 +60,11 @@ end to_move
 
 namespace simple_graph
 
-universe v
-variables {V : Type v} [fintype V] (G : simple_graph V) (R) [decidable_rel G.adj] [decidable_eq V]
-
--- ## Incidence matrix M
-
-/-- `inc_matrix G R` is the matrix `M` such that `M i e = 1` if vertex `i` is an
-endpoint of the edge `e` in the simple graph `G`, otherwise `M i j = 0`. -/
-def inc_matrix : matrix V G.edge_set R
-| i e := if (e : sym2 V) ∈ G.incidence_set i then 1 else 0
-
-@[simp]
-lemma inc_matrix_apply {i : V} {e : G.edge_set} :
-  G.inc_matrix R i e = if (e : sym2 V) ∈ G.incidence_set i then 1 else 0 := rfl
-
--- ### Relation between inc_matrix elements and incidence_set property
-
-@[simp]
-lemma inc_matrix_zero {i : V} {e : G.edge_set} :
-  G.inc_matrix R i e = 0 ↔ e.val ∉ G.incidence_set i :=
-by simp only [inc_matrix, ite_eq_right_iff, subtype.val_eq_coe, ←decidable.not_imp_not,
-              forall_true_left, not_false_iff, one_ne_zero]
-
-@[simp]
-lemma inc_matrix_one {i : V} {e : G.edge_set} :
-  G.inc_matrix R i e = 1 ↔ e.val ∈ G.incidence_set i :=
-by simp only [inc_matrix, ite_eq_left_iff, subtype.val_eq_coe, ←decidable.not_imp_not,
-              set.not_not_mem, forall_true_left, not_false_iff, zero_ne_one]
-
--- ### One - zero properties
-
-@[simp]
-lemma inc_matrix_not_zero {i : V} {e : G.edge_set} :
-  ¬ G.inc_matrix R i e = 0 ↔ G.inc_matrix R i e = 1 :=
-by simp only [inc_matrix_zero, inc_matrix_one, set.not_not_mem]
-
-@[simp]
-lemma inc_matrix_not_one {i : V} {e : G.edge_set} :
-  ¬ G.inc_matrix R i e = 1 ↔ G.inc_matrix R i e = 0 :=
-by simp only [inc_matrix_zero, inc_matrix_one]
-
-lemma inc_matrix_zero_or_one {i : V} {e : G.edge_set} :
-  G.inc_matrix R i e = 0 ∨ G.inc_matrix R i e = 1 :=
-by { rw [inc_matrix_zero, inc_matrix_one], exact (em (e.val ∈ G.incidence_set i)).symm }
-
-@[simp]
-lemma inc_matrix_elements_mul_one {i j : V} {e : G.edge_set} :
-  G.inc_matrix R i e * G.inc_matrix R j e = 1 ↔ G.inc_matrix R i e = 1 ∧ G.inc_matrix R j e = 1 :=
-begin
-  cases G.inc_matrix_zero_or_one R with H₀ H₁,
-  { rw H₀, simp only [if_t_t, mul_boole, inc_matrix_apply, zero_ne_one, false_and] },
-  { rw H₁, simp only [true_and, mul_boole, inc_matrix_apply, eq_self_iff_true] }
-end
+variables (G : simple_graph V)
 
 -- ### Helping lemmas for edges
 
-lemma edge_val_in_set {e : G.edge_set} : e.val ∈ G.edge_set :=
-e.property
+lemma edge_val_in_set {e : G.edge_set} : e.val ∈ G.edge_set := e.property
 
 lemma edge_set_ne {u v : V} {e: G.edge_set} (h : e.val = ⟦(u, v)⟧) : u ≠ v :=
 begin
@@ -160,6 +108,55 @@ end
 lemma adj_iff_exists_edge_val {i j : V} : G.adj i j ↔ ∃ (e : G.edge_set), e.val = ⟦(i, j)⟧ :=
 by simp only [mem_edge_set, exists_prop, set_coe.exists, exists_eq_right, subtype.coe_mk]
 
+section incidence
+
+variables [fintype V] [decidable_eq V] [decidable_rel G.adj] (R) [ring R]
+
+-- ## Incidence matrix M
+
+/-- `inc_matrix G R` is the matrix `M` such that `M i e = 1` if vertex `i` is an
+endpoint of the edge `e` in the simple graph `G`, otherwise `M i j = 0`. -/
+def inc_matrix : matrix V G.edge_set R
+| i e := if (e : sym2 V) ∈ G.incidence_set i then 1 else 0
+
+@[simp]
+lemma inc_matrix_apply {i : V} {e : G.edge_set} :
+  G.inc_matrix R i e = if (e : sym2 V) ∈ G.incidence_set i then 1 else 0 := rfl
+
+-- ### Relation between inc_matrix elements and incidence_set property
+
+lemma inc_matrix_zero {i : V} {e : G.edge_set} [char_zero R] :
+  G.inc_matrix R i e = 0 ↔ e.val ∉ G.incidence_set i :=
+by simp only [inc_matrix, ite_eq_right_iff, subtype.val_eq_coe, ←decidable.not_imp_not,
+              forall_true_left, not_false_iff, one_ne_zero]
+
+lemma inc_matrix_one {i : V} {e : G.edge_set} [char_zero R] :
+  G.inc_matrix R i e = 1 ↔ e.val ∈ G.incidence_set i :=
+by simp only [inc_matrix, ite_eq_left_iff, subtype.val_eq_coe, ←decidable.not_imp_not,
+              set.not_not_mem, forall_true_left, not_false_iff, zero_ne_one]
+
+-- ### One - zero properties
+
+lemma inc_matrix_not_zero {i : V} {e : G.edge_set} [char_zero R] :
+  ¬ G.inc_matrix R i e = 0 ↔ G.inc_matrix R i e = 1 :=
+by simp only [inc_matrix_zero, inc_matrix_one, set.not_not_mem]
+
+lemma inc_matrix_not_one {i : V} {e : G.edge_set} [char_zero R] :
+  ¬ G.inc_matrix R i e = 1 ↔ G.inc_matrix R i e = 0 :=
+by simp only [inc_matrix_zero, inc_matrix_one]
+
+lemma inc_matrix_zero_or_one {i : V} {e : G.edge_set} [char_zero R] :
+  G.inc_matrix R i e = 0 ∨ G.inc_matrix R i e = 1 :=
+by { rw [inc_matrix_zero, inc_matrix_one], exact (em (e.val ∈ G.incidence_set i)).symm }
+
+lemma inc_matrix_elements_mul_one {i j : V} {e : G.edge_set} [char_zero R] :
+  G.inc_matrix R i e * G.inc_matrix R j e = 1 ↔ G.inc_matrix R i e = 1 ∧ G.inc_matrix R j e = 1 :=
+begin
+  cases G.inc_matrix_zero_or_one R with H₀ H₁,
+  { rw H₀, simp only [if_t_t, mul_boole, inc_matrix_apply, zero_ne_one, false_and] },
+  { rw H₁, simp only [true_and, mul_boole, inc_matrix_apply, eq_self_iff_true] }
+end
+
 -- 1. ∑ e : E, M i e * M j e = 1, where i and j are adjacent.
 theorem adj_sum_of_mul_inc_one {i j : V} (H_adj : G.adj i j) :
   ∑ (e : G.edge_set), G.inc_matrix R i e * G.inc_matrix R j e = (1 : R) :=
@@ -175,7 +172,8 @@ begin
 end
 
 -- 2. M i e * M j e = 0, where i, j distinct non-adjacent vertices, e an edge.
-theorem inc_matrix_mul_non_adj {i j : V} {e : G.edge_set} (Hne : i ≠ j) (H_non_adj : ¬ G.adj i j) :
+theorem inc_matrix_mul_non_adj {i j : V} {e : G.edge_set} (Hne : i ≠ j) (H_non_adj : ¬ G.adj i j)
+[char_zero R] :
   G.inc_matrix R i e * G.inc_matrix R j e = 0 :=
 begin
   by_cases H₁ : G.inc_matrix R i e = 0,
@@ -191,13 +189,12 @@ begin
 end
 
 -- 3. (M i e) ^ 2 = M i e; with i a vertex, e an edge.
-@[simp]
-theorem inc_matrix_element_power_id {i : V} {e : G.edge_set} :
+theorem inc_matrix_element_power_id {i : V} {e : G.edge_set} [char_zero R] :
   (G.inc_matrix R i e) * (G.inc_matrix R i e) = G.inc_matrix R i e :=
 by simp [inc_matrix_apply]
 
 -- 4. degree(i) = ∑ e : E, M i e; where i is a vertex.
-theorem degree_equals_sum_of_incidence_row {i : V} :
+theorem degree_equals_sum_of_incidence_row {i : V} [char_zero R] :
   (G.degree i : R) = ∑ (e : G.edge_set), G.inc_matrix R i e :=
 begin
   simp only [inc_matrix_apply, sum_boole],
@@ -217,6 +214,10 @@ begin
     { simp only [finset.mem_univ, exists_prop_of_true] } }
 end
 
+end incidence
+
+section orientations
+
 -- ## Orientations
 
 /-- Define an `orientation` on the undirected graph G as a structure that defines (consistently)
@@ -225,62 +226,9 @@ for each edge a `head` and a `tail`. -/
 structure orientation (G : simple_graph V) :=
 (head : G.edge_set → V)
 (tail : G.edge_set → V)
-(consistent (e : G.edge_set) : e.val = ⟦(head(e),tail(e))⟧)
-
--- ## Oriented Incidence Matrix N(o)
-
-/-- An `oriented incidence matrix` N(o) is defined with respect to the orientation of the edges
-and is defined to be `1` for entries (`i`,`e`) where `i` is the head of `e`, `-1` where `i`
-is the tail of `e`, and `0` otherwise. -/
-def oriented_inc_matrix (o : orientation G) : matrix V G.edge_set R :=
-λ i e, if i = o.head e then (1 : R) else (if i = o.tail e then -1 else 0)
+(consistent (e : G.edge_set) : e.val = ⟦(head(e), tail(e))⟧)
 
 variables {o : orientation G}
-
-@[simp]
-lemma oriented_inc_matrix_apply {i : V} {e : G.edge_set} :
-  G.oriented_inc_matrix R o i e = ite (i = o.head e) (1 : R) (ite (i = o.tail e) (-1) 0) := rfl
-
-lemma head_neq_tail {e : G.edge_set} : o.head(e) ≠ o.tail(e) := G.edge_set_ne (o.consistent e)
-
-@[simp]
-lemma oriented_inc_matrix_head {i : V} {e : G.edge_set} (H_head : i = o.head e) :
-  G.oriented_inc_matrix R o i e = 1 :=
-by simp only [H_head, if_true, eq_self_iff_true, oriented_inc_matrix_apply]
-
-@[simp]
-lemma oriented_inc_matrix_tail {i : V} {e : G.edge_set} (H_tail : i = o.tail e) :
-  G.oriented_inc_matrix R o i e = -1 :=
-by simp only [H_tail, oriented_inc_matrix, (G.head_neq_tail).symm,
-              if_false, if_true, eq_self_iff_true]
-
-@[simp]
-lemma oriented_inc_matrix_zero {i : V} {e : G.edge_set} :
-  G.oriented_inc_matrix R o i e = 0 ↔ i ≠ o.head e ∧ i ≠ o.tail e :=
-begin
-  by_cases H₁ : i = o.head e,
-  { simp only [oriented_inc_matrix, H₁, if_true, eq_self_iff_true, not_true,
-               ne.def, one_ne_zero, false_and] },
-  { by_cases H₂ : i = o.tail e,
-    { simp only [H₂, oriented_inc_matrix_tail, eq_self_iff_true, not_true,
-                 ne.def, neg_eq_zero, one_ne_zero, and_false] },
-    { simp only [H₁, H₂, eq_self_iff_true, if_false, ne.def,
-                 not_false_iff, and_self, oriented_inc_matrix_apply] } }
-end
-
-@[simp]
-lemma oriented_inc_matrix_non_zero {i : V} {e : G.edge_set} :
-  ¬ G.oriented_inc_matrix R o i e = 0 ↔ i = o.head e ∨ i = o.tail e :=
-begin
-  by_cases H₁ : i = o.head e,
-  { simp only [H₁, if_true, true_or, eq_self_iff_true, ne.def,
-               not_false_iff, one_ne_zero, oriented_inc_matrix_apply] },
-  { by_cases H₂ : i = o.tail e,
-    { simp only [H₂, oriented_inc_matrix_tail, eq_self_iff_true, ne.def, or_true,
-                 not_false_iff, neg_eq_zero, one_ne_zero] },
-    { simp only [H₁, H₂, eq_self_iff_true, not_true, if_false,
-                 ne.def, oriented_inc_matrix_apply, or_self] } }
-end
 
 lemma incidence_set_orientation_head {e : G.edge_set} : e.val ∈ G.incidence_set (o.head e) :=
 by { rw [incidence_equiv, o.consistent e], simp only [mem_iff, true_or, eq_self_iff_true] }
@@ -304,9 +252,63 @@ begin
   tauto,
 end
 
--- 5. (N(o) i e) ^ 2 = M i e, for any orientation o, vertex i and edge e.
+end orientations
+
+section oriented_incidence
+
+variables [fintype V] [decidable_eq V] [decidable_rel G.adj] (R) [ring R] {o : orientation G}
+
+-- ## Oriented Incidence Matrix N(o)
+
+/-- An `oriented incidence matrix` N(o) is defined with respect to the orientation of the edges
+and is defined to be `1` for entries (`i`,`e`) where `i` is the head of `e`, `-1` where `i`
+is the tail of `e`, and `0` otherwise. -/
+def oriented_inc_matrix (o : orientation G) : matrix V G.edge_set R :=
+λ i e, if i = o.head e then (1 : R) else (if i = o.tail e then -1 else 0)
+
 @[simp]
-theorem oriented_inc_matrix_elem_squared {i : V} {e : G.edge_set} :
+lemma oriented_inc_matrix_apply {i : V} {e : G.edge_set} :
+  G.oriented_inc_matrix R o i e = ite (i = o.head e) (1 : R) (ite (i = o.tail e) (-1) 0) := rfl
+
+lemma head_neq_tail {e : G.edge_set} : o.head(e) ≠ o.tail(e) := G.edge_set_ne (o.consistent e)
+
+lemma oriented_inc_matrix_head {i : V} {e : G.edge_set} (H_head : i = o.head e) :
+  G.oriented_inc_matrix R o i e = 1 :=
+by simp only [H_head, if_true, eq_self_iff_true, oriented_inc_matrix_apply]
+
+lemma oriented_inc_matrix_tail {i : V} {e : G.edge_set} (H_tail : i = o.tail e) :
+  G.oriented_inc_matrix R o i e = -1 :=
+by simp only [H_tail, oriented_inc_matrix, (G.head_neq_tail).symm,
+              if_false, if_true, eq_self_iff_true]
+
+lemma oriented_inc_matrix_zero {i : V} {e : G.edge_set} [char_zero R] :
+  G.oriented_inc_matrix R o i e = 0 ↔ i ≠ o.head e ∧ i ≠ o.tail e :=
+begin
+  by_cases H₁ : i = o.head e,
+  { simp only [oriented_inc_matrix, H₁, if_true, eq_self_iff_true, not_true,
+               ne.def, one_ne_zero, false_and] },
+  { by_cases H₂ : i = o.tail e,
+    { simp only [H₂, oriented_inc_matrix_tail, eq_self_iff_true, not_true,
+                 ne.def, neg_eq_zero, one_ne_zero, and_false] },
+    { simp only [H₁, H₂, eq_self_iff_true, if_false, ne.def,
+                 not_false_iff, and_self, oriented_inc_matrix_apply] } }
+end
+
+lemma oriented_inc_matrix_non_zero {i : V} {e : G.edge_set} [char_zero R] :
+  ¬ G.oriented_inc_matrix R o i e = 0 ↔ i = o.head e ∨ i = o.tail e :=
+begin
+  by_cases H₁ : i = o.head e,
+  { simp only [H₁, if_true, true_or, eq_self_iff_true, ne.def,
+               not_false_iff, one_ne_zero, oriented_inc_matrix_apply] },
+  { by_cases H₂ : i = o.tail e,
+    { simp only [H₂, oriented_inc_matrix_tail, eq_self_iff_true, ne.def, or_true,
+                 not_false_iff, neg_eq_zero, one_ne_zero] },
+    { simp only [H₁, H₂, eq_self_iff_true, not_true, if_false,
+                 ne.def, oriented_inc_matrix_apply, or_self] } }
+end
+
+-- 5. (N(o) i e) ^ 2 = M i e, for any orientation o, vertex i and edge e.
+theorem oriented_inc_matrix_elem_squared {i : V} {e : G.edge_set} [char_zero R] :
   G.oriented_inc_matrix R o i e * G.oriented_inc_matrix R o i e = G.inc_matrix R i e :=
 begin
   by_cases H_head : i = o.head e,
@@ -321,7 +323,7 @@ begin
 end
 
 -- 6. For any adj. vertices i j and edge e, N(o) i e * N(o) j e = if e = ⟦(i,j)⟧ then -1 else 0.
-theorem oriented_inc_matrix_mul_of_adj {i j : V} {e : G.edge_set} (H_adj : G.adj i j) :
+theorem oriented_inc_matrix_mul_of_adj {i j : V} {e : G.edge_set} (H_adj : G.adj i j) [char_zero R]:
   G.oriented_inc_matrix R o i e * G.oriented_inc_matrix R o j e = ite (e.val = ⟦(i, j)⟧) (-1) 0 :=
 begin
   by_cases H_e : e.val = ⟦(i, j)⟧,
@@ -367,7 +369,7 @@ begin
 end
 
 -- 7. For any non-adjacent distinct vertices i j and edge e, N(o) i e * N(o) j e = 0.
-theorem oriented_inc_matrix_mul_non_adj {i j : V} {e : G.edge_set} (H_ij : i ≠ j)
+theorem oriented_inc_matrix_mul_non_adj {i j : V} {e : G.edge_set} [char_zero R] (H_ij : i ≠ j)
   (H_not_adj : ¬ G.adj i j) : G.oriented_inc_matrix R o i e * G.oriented_inc_matrix R o j e = 0 :=
 begin
   by_cases H₁ : G.oriented_inc_matrix R o i e = 0,
@@ -402,5 +404,7 @@ begin
   rw [key, sum_singleton],
   ring_nf
 end
+
+end oriented_incidence
 
 end simple_graph

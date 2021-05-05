@@ -142,8 +142,6 @@ def op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
   { app := λ X, (α.app (op X)).unop,
     naturality' := λ X Y f, quiver.hom.op_inj $ (α.naturality f.op).symm } }
 
--- TODO show these form an equivalence
-
 variables {C D}
 
 /--
@@ -371,6 +369,7 @@ namespace functor
 variables (C)
 variables (D : Type u₂) [category.{v₂} D]
 
+/-- An equivalence of functor categories induced by `op`. -/
 @[simps]
 def op_equiv : (C ⥤ D)ᵒᵖ ≌ Cᵒᵖ ⥤ Dᵒᵖ :=
 { functor := op_hom _ _,

@@ -289,28 +289,27 @@ by { rw det_transpose, exact h, }
 
 /-- The inverse of a square matrix, when it is invertible (and zero otherwise).-/
 noncomputable def nonsing_inv : matrix n n α :=
-if h : is_unit A.det then (↑h.unit⁻¹ : α) • A.adjugate else 0
+if h : is_unit A.det then h.unit⁻¹ • A.adjugate else 0
 
 noncomputable instance : has_inv (matrix n n α) := ⟨matrix.nonsing_inv⟩
 
 lemma nonsing_inv_apply (h : is_unit A.det) :
-  A⁻¹ = (↑h.unit⁻¹ : α) • A.adjugate :=
+  A⁻¹ = h.unit⁻¹ • A.adjugate :=
 by { change A.nonsing_inv = _, dunfold nonsing_inv, simp only [dif_pos, h], }
 
 lemma transpose_nonsing_inv (h : is_unit A.det) :
   (A⁻¹)ᵀ = (Aᵀ)⁻¹ :=
 begin
   have h' := A.is_unit_det_transpose h,
-  have dets_eq : (↑h.unit : α) = ↑h'.unit := by rw [h.unit_spec, h'.unit_spec, det_transpose],
-  rw [A.nonsing_inv_apply h, Aᵀ.nonsing_inv_apply h',
-      units.inv_unique dets_eq, A.adjugate_transpose.symm],
+  have dets_eq : h.unit = h'.unit := units.ext (by rw [h.unit_spec, h'.unit_spec, det_transpose]),
+  rw [A.nonsing_inv_apply h, Aᵀ.nonsing_inv_apply h', dets_eq, A.adjugate_transpose.symm],
   refl,
 end
 
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 @[simp] lemma mul_nonsing_inv (h : is_unit A.det) : A ⬝ A⁻¹ = 1 :=
-by rw [A.nonsing_inv_apply h, mul_smul, mul_adjugate, smul_smul, units.inv_mul_of_eq h.unit_spec,
-       one_smul]
+by rw [A.nonsing_inv_apply h, units.smul_def, mul_smul, mul_adjugate, smul_smul,
+       units.inv_mul_of_eq h.unit_spec, one_smul]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
 @[simp] lemma nonsing_inv_mul (h : is_unit A.det) : A⁻¹ ⬝ A = 1 :=
@@ -385,7 +384,7 @@ end inv
 begin
   rw [cramer_eq_adjugate_mul_vec, A.nonsing_inv_apply h, ← smul_mul_vec_assoc],
   conv_lhs { congr, congr, rw ← h.unit_spec, },
-  rw units.smul_inv_smul,
+  rw [←units.smul_def, smul_inv_smul],
 end
 
 /- A stronger form of Cramer's rule that allows us to solve some instances of `A ⬝ x = b` even if

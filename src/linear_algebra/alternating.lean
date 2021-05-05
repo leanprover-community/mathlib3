@@ -723,13 +723,14 @@ begin
   -- pull out the pair of smuls on the RHS, by rewriting to `_ →ₗ[ℤ] _` and back
   rw [←add_equiv.coe_to_add_monoid_hom, ←add_monoid_hom.coe_to_int_linear_map,
     linear_map.map_smul_of_tower,
+    linear_map.map_smul_of_tower,
     add_monoid_hom.coe_to_int_linear_map, add_equiv.coe_to_add_monoid_hom,
     multilinear_map.dom_dom_congr_equiv_apply],
 
   -- pick up the pieces
   rw [multilinear_map.dom_dom_congr_mul, perm.sign_mul,
     perm.sum_congr_hom_apply, multilinear_map.dom_coprod_dom_dom_congr_sum_congr,
-    perm.sign_sum_congr, ←mul_smul al.sign ar.sign, ←mul_smul],
+    perm.sign_sum_congr, mul_smul, mul_smul],
 end
 
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two

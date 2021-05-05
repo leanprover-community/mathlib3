@@ -48,7 +48,7 @@ local attribute [ext] functor.ext
 lemma ext_functor {C} [category C]
   {F G : paths V ⥤ C}
   (h_obj : F.obj = G.obj)
-  (h : ∀ a b (e : a ⟶ b), F.map e.to_path =
+  (h : ∀ (a b : V) (e : a ⟶ b), F.map e.to_path =
   eq_to_hom (congr_fun h_obj a) ≫ G.map e.to_path ≫ eq_to_hom (congr_fun h_obj.symm b)) :
   F = G :=
 begin

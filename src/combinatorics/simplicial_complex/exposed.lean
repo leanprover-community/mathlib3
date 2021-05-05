@@ -3,12 +3,12 @@ import combinatorics.simplicial_complex.extreme
 open_locale classical affine big_operators
 open set
 --TODO: Generalise to LCTVS
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
   {X : finset E} {l : E →L[ℝ] ℝ}
 
 def is_exposed (A B : set E) :
   Prop :=
-∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
+B.nonempty → ∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
 def continuous_linear_map.to_exposed (l : E →L[ℝ] ℝ) (A : set E) :
   set E :=
@@ -16,7 +16,7 @@ def continuous_linear_map.to_exposed (l : E →L[ℝ] ℝ) (A : set E) :
 
 lemma continuous_linear_map.to_exposed.is_exposed :
   is_exposed A (l.to_exposed A) :=
-⟨l, rfl⟩
+λ h, ⟨l, rfl⟩
 
 lemma is_exposed_iff_normalized (hAB : ¬A ⊆ B) :
   is_exposed A B ↔ ∃ l : E →L[ℝ] ℝ, ∥l∥ = 1 ∧ B = {x ∈ A | ∀ y ∈ A, l y ≤ l x} :=
@@ -55,7 +55,7 @@ end
 lemma is_exposed.refl :
   reflexive (is_exposed : set E → set E → Prop) :=
 begin
-  rintro A,
+  rintro A h,
   use 0,
   ext x,
   exact ⟨λ hx, ⟨hx, λ y hy, le_refl _⟩, λ hx, hx.1⟩,
@@ -68,13 +68,13 @@ lemma is_exposed.antisymm :
 lemma is_exposed.trans :
   transitive (is_exposed : set E → set E → Prop) :=
 begin
-  rintro A B C hB hC,
+  rintro A B C hB hC hCnemp,
   by_cases hAB : A ⊆ B,
   { rw subset.antisymm hAB hB.subset,
-    exact hC },
+    exact hC hCnemp },
   by_cases hBC : B ⊆ C,
   { rw subset.antisymm hC.subset hBC,
-    exact hB },
+    exact hB (nonempty.mono hC.subset hCnemp) },
   rw is_exposed_iff_normalized hAB at hB,
   rw is_exposed_iff_normalized hBC at hC,
   obtain ⟨l₁, hl₁, hB⟩ := hB,
@@ -112,13 +112,38 @@ instance : is_partial_order (set E) is_exposed :=
   trans := is_exposed.trans,
   antisymm := is_exposed.antisymm }
 
+lemma empty_is_exposed : is_exposed A ∅ :=
+λ ⟨x, hx⟩, by { exfalso, exact hx }
+
+lemma is_exposed.inter (hB : is_exposed A B) (hC : is_exposed A C) :
+  is_exposed A (B ∩ C) :=
+begin
+  cases (B ∩ C).eq_empty_or_nonempty,
+  { rw h,
+    exact empty_is_exposed },
+  obtain ⟨x, hxB, hxC⟩ := h,
+  obtain ⟨l₁, rfl⟩ := hB ⟨x, hxB⟩,
+  obtain ⟨l₂, rfl⟩ := hC ⟨x, hxC⟩,
+  refine λ h, ⟨l₁ + l₂, subset.antisymm _ _⟩,
+  { rintro y ⟨⟨hyA, hyB⟩, ⟨_, hyC⟩⟩,
+    exact ⟨hyA, λ z hz, add_le_add (hyB z hz) (hyC z hz)⟩ },
+  rintro y ⟨hyA, hy⟩,
+  refine ⟨⟨hyA, λ z hz, _⟩, hyA, λ z hz, _⟩,
+  {
+    refine (add_le_add_iff_right (l₂ y)).1 (le_trans (add_le_add (hxB.2 z hz) (hxC.2 y hyA))
+      (hy x hxB.1)),
+  },
+  refine (add_le_add_iff_left (l₁ y)).1 (le_trans (add_le_add (hxB.2 y hyA) (hxC.2 z hz))
+    (hy x hxB.1)),
+end
+
 --@Bhavik, I don't know how to use the right instances
 lemma is_exposed.is_extreme (hAB : is_exposed A B) :
   is_extreme A B :=
 begin
   use hAB.subset,
   rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩,
-  obtain ⟨l, rfl⟩ := hAB,
+  obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
   have hlx₁ : l x₁ = l x,
   { apply le_antisymm (hxB.2 x₁ hx₁A),
     rw [←smul_le_smul_iff_of_pos ha, ←add_le_add_iff_right (b • l x), ←add_smul, hab, one_smul],
@@ -146,8 +171,11 @@ end
 lemma  is_exposed.is_convex (hAB : is_exposed A B) (hA : convex A) :
   convex B :=
 begin
+  cases B.eq_empty_or_nonempty,
+  { rw h,
+    exact convex_empty },
   have hBA := hAB.subset,
-  obtain ⟨l, rfl⟩ := hAB,
+  obtain ⟨l, rfl⟩ := hAB h,
   rw convex_iff_segment_subset at ⊢ hA,
   rintro x₁ x₂ ⟨hx₁A, hx₁⟩ ⟨hx₂A, hx₂⟩ x hx,
   use hA hx₁A hx₂A hx,
@@ -157,13 +185,16 @@ begin
     l y = a • l y + b • l y : by rw [←add_smul, hab, one_smul]
     ... ≤ a • l x₁ + b • l x₂ : add_le_add (mul_le_mul_of_nonneg_left (hx₁ y hyA) ha)
                                            (mul_le_mul_of_nonneg_left (hx₂ y hyA) hb)
-    ... = l x : by rw [←hx, l.map_add, l.map_smul _, l.map_smul _],
+    ... = l x : by rw [←hx, l.map_add, l.map_smul, l.map_smul],
 end
 
 lemma is_exposed.is_closed (hAB : is_exposed A B) (hA : is_closed A) :
   is_closed B :=
 begin
-  obtain ⟨l, rfl⟩ := hAB,
+  cases B.eq_empty_or_nonempty with hB hB,
+  { rw hB,
+    exact is_closed_empty },
+  obtain ⟨l, rfl⟩ := hAB hB,
   apply is_closed_inter hA,
   refine closure_eq_iff_is_closed.1 (subset.antisymm _ subset_closure),
   /-rw sequentie

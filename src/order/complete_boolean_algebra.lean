@@ -55,7 +55,9 @@ theorem sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔
 theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) :=
 begin
   apply le_antisymm,
-  { finish },
+  { simp only [and_imp, prod.forall, le_infi_iff, set.mem_prod],
+    intros a b ha hb,
+    exact sup_le_sup (Inf_le ha) (Inf_le hb) },
   { have : ∀ a ∈ s, (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ a ⊔ Inf t,
     { assume a ha,
       have : (⨅p ∈ set.prod s t, ((p : α × α).1 : α) ⊔ p.2) ≤

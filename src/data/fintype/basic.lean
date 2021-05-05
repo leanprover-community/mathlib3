@@ -1499,7 +1499,7 @@ many pigeons.
 
 See also: `fintype.exists_ne_map_eq_of_infinite`
 -/
-lemma fintype.exists_infinite_fiber {α β} [infinite α] [fintype β] (f : α → β) :
+lemma fintype.exists_infinite_fiber [infinite α] [fintype β] (f : α → β) :
   ∃ y : β, infinite (f ⁻¹' {y}) :=
 begin
   classical,
@@ -1508,7 +1508,7 @@ begin
 
   haveI := λ y, infinite.fintype_of_not_infinite $ hf y,
   let key : fintype α :=
-  { elems := finset.univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
+  { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
     complete := by simp },
   exact infinite.not_fintype key,
 end

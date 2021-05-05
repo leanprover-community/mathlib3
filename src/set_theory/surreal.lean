@@ -118,22 +118,6 @@ rfl
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by {cases x, cases y, refl}
 
-/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
-and `c` has the same moves as `z`, then `a + b - c` has the same moves as `x + y - z`.
-This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-def add_sub_relabelling {a b c x y z : pgame}
-  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
-  (a + b - c).relabelling (x + y - z) :=
-(h₁.add_congr h₂).sub_congr h₃
-
-/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
-and `c` has the same moves as `z`, then `a + b - c` has the same moves as `y + x - z`.
-This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-def add_comm_sub_relabelling {a b c x y z : pgame}
-  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
-  (a + b - c).relabelling (y + x - z) :=
-((add_comm_relabelling a b).trans (h₂.add_congr h₁)).sub_congr h₃
-
 /-- `x * y` has exactly the same moves as `y * x`. -/
 def mul_comm_relabelling (x y : pgame.{u}) : (x * y).relabelling (y * x) :=
 begin
@@ -149,11 +133,15 @@ begin
    ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)
    ... ≃ (y * x).right_moves : by refl,
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { exact add_comm_sub_relabelling (IHxl i y) (IHyl j) (IHxl i (yL j)) },
-    { exact add_comm_sub_relabelling (IHxr i y) (IHyr j) (IHxr i (yR j)) } },
+    { exact ((add_comm_relabelling _ _).trans
+                                   ((IHyl j).add_congr (IHxl i y))).sub_congr (IHxl i (yL j)) },
+    { exact ((add_comm_relabelling _ _).trans
+                                   ((IHyr j).add_congr (IHxr i y))).sub_congr (IHxr i (yR j)) } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { exact add_comm_sub_relabelling (IHxr j y) (IHyl i) (IHxr j (yL i)) },
-    { exact add_comm_sub_relabelling (IHxl j y) (IHyr i) (IHxl j (yR i)) } }
+    { exact ((add_comm_relabelling _ _).trans
+                                   ((IHyl i).add_congr (IHxr j y))).sub_congr (IHxr j (yL i)) },
+    { exact ((add_comm_relabelling _ _).trans
+                                   ((IHyr i).add_congr (IHxl j y))).sub_congr (IHxl j (yR i)) } }
 end
 
 /-- `x * y` is equivalent to `y * x`. -/
@@ -220,7 +208,7 @@ end
 lemma left_distrib_equiv_aux' {a b c d e : pgame} : (b + a) + (d + c) - (b + e) ≈ d + (a + c - e) :=
 calc (b + a) + (d + c) - (b + e)
       ≈ (a + b) + (c + d) - (e + b)
-      : by {refine (add_sub_relabelling _ _ _).equiv, repeat {apply add_comm_relabelling} }
+      : by { refine (sub_congr (add_congr _ _) _); apply (add_comm_relabelling _ _).equiv }
   ... ≈ a + c - e + d     : left_distrib_equiv_aux
   ... ≈ d + (a + c - e)   : (add_comm_relabelling _ _).equiv
 

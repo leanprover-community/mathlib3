@@ -1,4 +1,5 @@
 import field_theory.abel_ruffini
+import analysis.calculus.local_extr
 
 open polynomial polynomial.gal
 
@@ -61,52 +62,57 @@ begin
   { exact is_primitive_iff_is_unit_of_C_dvd.mp r_primitive },
 end
 
+lemma tada_aux {α : Type*} [linear_order α] {s t : finset α}
+  (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) : s.card ≤ t.card + 1 :=
+begin
+  sorry,
+end
+
 lemma tada {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
+  haveI : char_zero F := char_zero_of_inj_zero
+    (λ n hn, by rwa [←(algebra_map F ℝ).injective.eq_iff, ring_hom.map_nat_cast,
+      ring_hom.map_zero, nat.cast_eq_zero] at hn ),
+  by_cases hp : p = 0,
+  { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card'],
+    exact zero_le_one },
+  by_cases hp' : p.derivative = 0,
+  { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
+    simp_rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty,
+      set.empty_card', zero_le] },
   simp_rw [root_set_def, fintype.card_coe],
-  let l := finset.sort (≤) (p.map (algebra_map F ℝ)).roots.to_finset,
-  sorry,
+  refine tada_aux (λ x y hx hy hxy, _),
+  rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
+  obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, aeval x p) hxy
+    p.continuous_aeval.continuous_on (hx.trans hy.symm),
+  refine ⟨z, _, hz1⟩,
+  rw [←finset.mem_coe, ←root_set_def, mem_root_set hp', ←hz2],
+  simp_rw [aeval_def, ←eval_map, ←derivative_map],
+  exact (p.map (algebra_map F ℝ)).deriv.symm,
 end
 
 lemma real_roots_poly (a : ℕ) (b : ℤ) (hab : abs b < a) :
   fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) = 3 :=
 begin
   apply le_antisymm,
-  { apply (tada (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).trans,
-    have h1 : (derivative (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).map (algebra_map ℚ ℝ) =
-      (C (5 : ℝ)) * X ^ 4 - C (a : ℝ),
-    { rw [derivative_add, derivative_sub, derivative_C, add_zero, derivative_C_mul, derivative_X,
-          mul_one, derivative_X_pow, C_bit1, C_bit0, C_1, map_sub, map_C, map_mul, map_pow, map_X,
-          map_nat_cast, nat.cast_bit1, nat.cast_bit0, nat.cast_one, ring_hom.map_nat_cast] },
-    simp_rw [root_set_def, h1, nat.succ_le_succ_iff],
-    have h2 : (derivative (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).root_set ℝ =
-      ({(a / 5: ℝ) ^ (1 / 4 : ℝ), -(a / 5: ℝ) ^ (1 / 4 : ℝ)} : set ℝ),
-    { rw [derivative_add, derivative_sub, derivative_C, add_zero, derivative_C_mul, derivative_X,
-          mul_one, derivative_X_pow],
-      ext x,
-      rw [mem_root_set, alg_hom.map_sub, aeval_C, ring_hom.map_nat_cast, aeval_mul, aeval_X_pow],
-      rw [nat.cast_bit1, nat.cast_bit0, nat.cast_one, aeval_bit1, aeval_bit0, aeval_one],
-      rw [sub_eq_zero, mul_comm, ←eq_div_iff],
-      rw [set.mem_insert_iff, set.mem_singleton_iff],
-      split,
-      { intro h,
-        rw ← h,
-        sorry },
-      { rintros (h | h),
-        all_goals { rw h },
-        all_goals { sorry } }, },
-    suffices : (derivative (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)).root_set ℝ =
-      ({0, 1} : set ℝ),
-    { simp_rw [this],
-      sorry },
-    rw [derivative_add, derivative_sub, derivative_C, add_zero, derivative_C_mul, derivative_X,
-        mul_one, derivative_X_pow, root_set_def, map_sub, map_C, map_mul, map_pow, map_X],
-    transitivity (fintype.card ({(a / 5) ^ (1 / 4), - (a / 5) ^ (1 / 4)} : set ℝ)),
-    let p : polynomial ℚ := ↑(5 : ℕ) * X ^ (5 - 1) - C ↑a,
-   -- change fintype.card (p.root_set ℝ) ≤ 2,
-    --have key :
-    sorry },
+  { rw [←one_mul (X ^ 5), ←C_1],
+    refine (tada _).trans (nat.succ_le_succ ((tada _).trans (nat.succ_le_succ _))),
+    simp_rw [derivative_add, derivative_sub, derivative_C_mul_X_pow, derivative_C_mul,
+      derivative_X, derivative_one, mul_zero, sub_zero, derivative_C, derivative_zero, add_zero],
+    rw [fintype.card_le_one_iff_subsingleton, set.subsingleton_coe],
+    rw (show C ((1 : ℚ) * ↑5 * ↑(5 - 1)) * X ^ (5 - 1 - 1) = C ↑20 * X ^ 3, by norm_num),
+    suffices : (_ : polynomial ℚ).root_set ℝ = {0},
+    { rw this,
+      exact set.subsingleton_singleton },
+    ext x,
+    rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, ring_hom.map_nat_cast,
+        aeval_X_pow, mul_eq_zero, pow_eq_zero_iff, or_iff_right_iff_imp],
+    { exact λ h, false.elim (not_not_intro h (by norm_num)) },
+    { exact zero_lt_three },
+    { rw [mul_ne_zero_iff, ne, ne, C_eq_zero, pow_eq_zero_iff],
+      { exact ⟨by norm_num, X_ne_zero⟩ },
+      { exact zero_lt_three } } },
   { sorry },
 end
 

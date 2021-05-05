@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import linear_algebra.basis
 import linear_algebra.finsupp_vector_space
 import ring_theory.principal_ideal_domain
+import ring_theory.finiteness
 
 /-! # Free modules
 
@@ -17,7 +18,7 @@ a free `R`-module of finite rank, if `R` is a principal ideal domain.
 We express "free `R`-module of finite rank" as a module `M` which has a basis
 `b : ι → R`, where `ι` is a `fintype`.
 We call the cardinality of `ι` the rank of `M` in this file;
-it would be equal to `findim R M` if `R` is a field and `M` is a vector space.
+it would be equal to `finrank R M` if `R` is a field and `M` is a vector space.
 
 ## Main results
 
@@ -220,8 +221,8 @@ lemma is_basis.card_le_card_of_linear_independent
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq ι',
-  obtain ⟨e⟩ := fintype.equiv_fin ι,
-  obtain ⟨e'⟩ := fintype.equiv_fin ι',
+  let e := fintype.equiv_fin ι,
+  let e' := fintype.equiv_fin ι',
   have hb := hb.comp _ e.symm.bijective,
   have hv := (linear_independent_equiv e'.symm).mpr hv,
   have hv := hv.map' _ hb.equiv_fun.ker,
@@ -244,7 +245,7 @@ end integral_domain
 
 section principal_ideal_domain
 
-open submodule.is_principal
+open submodule.is_principal set submodule
 
 variables {ι : Type*} {R : Type*} [integral_domain R] [is_principal_ideal_ring R]
 variables {M : Type*} [add_comm_group M] [module R M] {b : ι → M}
@@ -334,12 +335,68 @@ lemma submodule.exists_is_basis_of_le_span
   ∃ (n : ℕ) (b : fin n → N), is_basis R b :=
 submodule.exists_is_basis_of_le le (is_basis_span hb)
 
+
+variable {M}
+
+/-- A finite type torsion free module over a PID is free. -/
+lemma module.free_of_finite_type_torsion_free [fintype ι] {s : ι → M} (hs : span R (range s) = ⊤)
+  [no_zero_smul_divisors R M] :
+  ∃ (n : ℕ) (B : fin n → M), is_basis R B :=
+begin
+  classical,
+  -- We define `N` as the submodule spanned by a maximal linear independent subfamily of `s`
+  obtain ⟨I : set ι,
+          indepI : linear_independent R (s ∘ coe : I → M),
+          hI : ∀ i ∉ I, ∃ a : R, a ≠ 0 ∧ a • s i ∈ span R (s '' I)⟩ :=
+    exists_maximal_independent R s,
+  let N := span R (range $ (s ∘ coe : I → M)), -- same as `span R (s '' I)` but more convenient
+  let sI : I → N := λ i, ⟨s i.1, subset_span (mem_range_self i)⟩, -- `s` restricted to `I`
+  have sI_basis : is_basis R sI, -- `s` restricted to `I` is a basis of `N`
+    from is_basis_span indepI,
+  -- Our first goal is to build `A ≠ 0` such that `A • M ⊆ N`
+  have exists_a : ∀ i : ι, ∃ a : R, a ≠ 0 ∧ a • s i ∈ N,
+  { intro i,
+    by_cases hi : i ∈ I,
+    { use [1, zero_ne_one.symm],
+      rw one_smul,
+      exact subset_span (mem_range_self (⟨i, hi⟩ : I)) },
+    { simpa [image_eq_range s I] using hI i hi } },
+  choose a ha ha' using exists_a,
+  let A := ∏ i, a i,
+  have hA : A ≠ 0,
+  { rw finset.prod_ne_zero_iff,
+    simpa using ha },
+  -- `M ≃ A • M` because `M` is torsion free and `A ≠ 0`
+  let φ : M →ₗ[R] M := linear_map.lsmul R M A,
+  have : φ.ker = ⊥,
+    from linear_map.ker_lsmul hA,
+  let ψ : M ≃ₗ[R] φ.range := linear_equiv.of_injective φ this,
+  have : φ.range ≤ N, -- as announced, `A • M ⊆ N`
+  { suffices : ∀ i, φ (s i) ∈ N,
+    { rw [linear_map.range_eq_map, ← hs, φ.map_span_le],
+      rintros _ ⟨i, rfl⟩, apply this },
+    intro i,
+    calc (∏ j, a j) • s i = (∏ j in {i}ᶜ, a j) • a i • s i :
+                                                 by rw [fintype.prod_eq_prod_compl_mul i, mul_smul]
+                      ... ∈ N  : N.smul_mem _ (ha' i) },
+  -- Since a submodule of a free `R`-module is free, we get that `A • M` is free
+  obtain ⟨n, B : fin n → φ.range, hB : is_basis R B⟩ :=
+    submodule.exists_is_basis_of_le this sI_basis,
+  -- hence `M` is free.
+  exact ⟨n, ψ.symm ∘ B, linear_equiv.is_basis hB ψ.symm⟩
+end
+
+/-- A finite type torsion free module over a PID is free. -/
+lemma module.free_of_finite_type_torsion_free' [module.finite R M] [no_zero_smul_divisors R M] :
+  ∃ (n : ℕ) (B : fin n → M), is_basis R B :=
+let ⟨n, s, hs⟩ := module.finite.exists_fin in module.free_of_finite_type_torsion_free hs
+
 end principal_ideal_domain
 
 /-- A set of linearly independent vectors in a module `M` over a semiring `S` is also linearly
 independent over a subring `R` of `K`. -/
 lemma linear_independent.restrict_scalars_algebras {R S M ι : Type*} [comm_semiring R] [semiring S]
-  [add_comm_monoid M] [algebra R S] [semimodule R M] [semimodule S M] [is_scalar_tower R S M]
+  [add_comm_monoid M] [algebra R S] [module R M] [module S M] [is_scalar_tower R S M]
   (hinj : function.injective (algebra_map R S)) {v : ι → M} (li : linear_independent S v) :
   linear_independent R v :=
 linear_independent.restrict_scalars (by rwa algebra.algebra_map_eq_smul_one' at hinj) li

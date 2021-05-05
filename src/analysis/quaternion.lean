@@ -48,8 +48,8 @@ inner_product_space.of_core
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
   smul_left := λ x y r, by simp [inner_def] }
 
-lemma norm_sq_eq_norm_square (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
-by rw [← inner_self, real_inner_self_eq_norm_square]
+lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
+by rw [← inner_self, real_inner_self_eq_norm_sq]
 
 instance : norm_one_class ℍ :=
 ⟨by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_one, real.sqrt_one]⟩
@@ -61,7 +61,7 @@ begin
 end
 
 @[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
-by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sqr_eq_abs, real.norm_eq_abs]
+by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
 noncomputable instance : normed_ring ℍ :=
 { dist_eq := λ _ _, rfl,

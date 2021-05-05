@@ -51,7 +51,7 @@ end
 @[simp] lemma equiv.perm.decompose_fin_symm_apply_one {n : ℕ}
   (e : perm (fin (n + 1))) (p : fin (n + 2)) :
   equiv.perm.decompose_fin.symm (p, e) 1 = swap 0 p (e 0).succ :=
-equiv.perm.decompose_fin_symm_apply_succ e p 0
+by rw [← fin.succ_zero_eq_one, equiv.perm.decompose_fin_symm_apply_succ e p 0]
 
 @[simp] lemma equiv.perm.decompose_fin.symm_sign {n : ℕ} (p : fin (n + 1)) (e : perm (fin n)) :
   perm.sign (equiv.perm.decompose_fin.symm (p, e)) = ite (p = 0) 1 (-1) * perm.sign e :=
@@ -188,6 +188,43 @@ end
 @[simp] lemma sign_cycle_range {n : ℕ} (i : fin n) :
   perm.sign (cycle_range i) = (-1) ^ (i : ℕ) :=
 by simp [cycle_range]
+
+@[simp] lemma succ_above_cycle_range {n : ℕ} (i j : fin n) :
+  i.succ.succ_above (i.cycle_range j) = swap 0 i.succ j.succ :=
+begin
+  cases n,
+  { rcases j with ⟨_, ⟨⟩⟩ },
+  rcases lt_trichotomy j i with hlt | heq | hgt,
+  { have : (j + 1).cast_succ = j.succ,
+    { ext, rw [coe_cast_succ, coe_succ, fin.coe_add_one_of_lt (lt_of_lt_of_le hlt i.le_last)] },
+    rw [fin.cycle_range_of_lt hlt, fin.succ_above_below, this, swap_apply_of_ne_of_ne],
+    { apply fin.succ_ne_zero },
+    { exact (fin.succ_injective _).ne hlt.ne },
+    { rw fin.lt_iff_coe_lt_coe,
+      simpa [this] using hlt } },
+  { rw [heq, fin.cycle_range_self, fin.succ_above_below, swap_apply_right, fin.cast_succ_zero],
+    { rw fin.cast_succ_zero, apply fin.succ_pos } },
+  { rw [fin.cycle_range_of_gt hgt, fin.succ_above_above, swap_apply_of_ne_of_ne],
+    { apply fin.succ_ne_zero },
+    { apply (fin.succ_injective _).ne hgt.ne.symm },
+    { simpa [fin.le_iff_coe_le_coe] using hgt } },
+end
+
+@[simp] lemma cycle_range_succ_above {n : ℕ} (i : fin (n + 1)) (j : fin n) :
+  i.cycle_range (i.succ_above j) = j.succ :=
+begin
+  cases lt_or_ge j.cast_succ i with h h,
+  { rw [fin.succ_above_below _ _ h, fin.cycle_range_of_lt h, fin.coe_succ_eq_succ] },
+  { rw [fin.succ_above_above _ _ h, fin.cycle_range_of_gt (fin.le_cast_succ_iff.mp h)] }
+end
+
+@[simp] lemma cycle_range_symm_zero {n : ℕ} (i : fin (n + 1)) :
+  i.cycle_range.symm 0 = i :=
+i.cycle_range.injective (by simp)
+
+@[simp] lemma cycle_range_symm_succ {n : ℕ} (i : fin (n + 1)) (j : fin n) :
+  i.cycle_range.symm j.succ = i.succ_above j :=
+i.cycle_range.injective (by simp)
 
 end fin
 

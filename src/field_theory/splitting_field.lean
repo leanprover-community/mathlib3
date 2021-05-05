@@ -275,6 +275,19 @@ begin
       map_bind_roots_eq]
 end
 
+lemma eq_prod_roots_of_splits_id {p : polynomial K}
+  (hsplit : splits (ring_hom.id K) p) :
+  p = C (p.leading_coeff) * (p.roots.map (λ a, X - C a)).prod :=
+by simpa using eq_prod_roots_of_splits hsplit
+
+lemma eq_prod_roots_of_monic_of_splits_id {p : polynomial K}
+  (m : monic p) (hsplit : splits (ring_hom.id K) p) :
+  p = (p.roots.map (λ a, X - C a)).prod :=
+begin
+  convert eq_prod_roots_of_splits_id hsplit,
+  simp [m], 
+end
+
 lemma eq_X_sub_C_of_splits_of_single_root {x : K} {h : polynomial K} (h_splits : splits i h)
   (h_roots : (h.map i).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
 begin
@@ -746,7 +759,7 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
   algebra.to_top
 
 theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finite_dimensional K L :=
-finite_dimensional.iff_fg.2 $ @algebra.coe_top K L _ _ _ ▸ adjoin_roots L f ▸
+finite_dimensional.iff_fg.2 $ @algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
@@ -763,16 +776,16 @@ begin
     ⟨ring_hom.injective (lift L f $ splits (splitting_field f) f).to_ring_hom, _⟩,
   haveI := finite_dimensional (splitting_field f) f,
   haveI := finite_dimensional L f,
-  have : finite_dimensional.findim K L = finite_dimensional.findim K (splitting_field f) :=
+  have : finite_dimensional.finrank K L = finite_dimensional.finrank K (splitting_field f) :=
   le_antisymm
-    (linear_map.findim_le_findim_of_injective
+    (linear_map.finrank_le_finrank_of_injective
       (show function.injective (lift L f $ splits (splitting_field f) f).to_linear_map, from
         ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)))
-    (linear_map.findim_le_findim_of_injective
+    (linear_map.finrank_le_finrank_of_injective
       (show function.injective (lift (splitting_field f) f $ splits L f).to_linear_map, from
         ring_hom.injective (lift (splitting_field f) f $ splits L f : f.splitting_field →+* L))),
   change function.surjective (lift L f $ splits (splitting_field f) f).to_linear_map,
-  refine (linear_map.injective_iff_surjective_of_findim_eq_findim this).1 _,
+  refine (linear_map.injective_iff_surjective_of_finrank_eq_finrank this).1 _,
   exact ring_hom.injective (lift L f $ splits (splitting_field f) f : L →+* f.splitting_field)
 end
 

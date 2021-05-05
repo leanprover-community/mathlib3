@@ -163,7 +163,7 @@ local notation `∞` := (⊤ : with_top ℕ)
 universes u v w
 
 local attribute [instance, priority 1001]
-normed_group.to_add_comm_group normed_space.to_semimodule add_comm_group.to_add_comm_monoid
+normed_group.to_add_comm_group normed_space.to_module add_comm_group.to_add_comm_monoid
 
 open set fin
 open_locale topological_space

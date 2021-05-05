@@ -648,8 +648,8 @@ end det
 section transpose
 
 variables {K V₁ V₂ ι₁ ι₂ : Type*} [field K]
-          [add_comm_group V₁] [vector_space K V₁]
-          [add_comm_group V₂] [vector_space K V₂]
+          [add_comm_group V₁] [module K V₁]
+          [add_comm_group V₂] [module K V₂]
           [fintype ι₁] [fintype ι₂] [decidable_eq ι₁] [decidable_eq ι₂]
           {B₁ : ι₁ → V₁} (h₁ : is_basis K B₁)
           {B₂ : ι₂ → V₂} (h₂ : is_basis K B₂)
@@ -684,7 +684,7 @@ namespace matrix
 section trace
 
 variables {m : Type*} [fintype m] (n : Type*) [fintype n]
-variables (R : Type v) (M : Type w) [semiring R] [add_comm_monoid M] [semimodule R M]
+variables (R : Type v) (M : Type w) [semiring R] [add_comm_monoid M] [module R M]
 
 /--
 The diagonal of a square matrix.
@@ -782,7 +782,7 @@ have h' : is_unit P.det := P.is_unit_iff_is_unit_det.mp h,
 
 end ring
 
-section vector_space
+section module
 
 variables {m n : Type*} [fintype m] [fintype n]
 variables {K : Type u} [field K] -- maybe try to relax the universe constraint
@@ -859,7 +859,7 @@ lemma range_to_lin_eq_top [decidable_eq n] (A : matrix n n R) (hA : is_unit A.de
   (to_lin hb hb A).range = ⊤ :=
 range_eq_top.mpr (to_linear_equiv hb A hA).surjective
 
-end vector_space
+end module
 
 section finite_dimensional
 
@@ -873,10 +873,10 @@ linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
 The dimension of the space of finite dimensional matrices
 is the product of the number of rows and columns.
 -/
-@[simp] lemma findim_matrix :
-  finite_dimensional.findim R (matrix m n R) = fintype.card m * fintype.card n :=
-by rw [@linear_equiv.findim_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
-       finite_dimensional.findim_fintype_fun_eq_card, fintype.card_prod]
+@[simp] lemma finrank_matrix :
+  finite_dimensional.finrank R (matrix m n R) = fintype.card m * fintype.card n :=
+by rw [@linear_equiv.finrank_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
+       finite_dimensional.finrank_fintype_fun_eq_card, fintype.card_prod]
 
 end finite_dimensional
 
@@ -1123,8 +1123,8 @@ else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
 section finite_dimensional
 
 variables {K : Type*} [field K]
-variables {V : Type*} [add_comm_group V] [vector_space K V] [finite_dimensional K V]
-variables {W : Type*} [add_comm_group W] [vector_space K W] [finite_dimensional K W]
+variables {V : Type*} [add_comm_group V] [module K V] [finite_dimensional K V]
+variables {W : Type*} [add_comm_group W] [module K W] [finite_dimensional K W]
 
 instance : finite_dimensional K (V →ₗ[K] W) :=
 begin
@@ -1138,15 +1138,15 @@ end
 The dimension of the space of linear transformations is the product of the dimensions of the
 domain and codomain.
 -/
-@[simp] lemma findim_linear_map :
-  finite_dimensional.findim K (V →ₗ[K] W) =
-  (finite_dimensional.findim K V) * (finite_dimensional.findim K W) :=
+@[simp] lemma finrank_linear_map :
+  finite_dimensional.finrank K (V →ₗ[K] W) =
+  (finite_dimensional.finrank K V) * (finite_dimensional.finrank K W) :=
 begin
   classical,
   cases finite_dimensional.exists_is_basis_finset K V with bV hbV,
   cases finite_dimensional.exists_is_basis_finset K W with bW hbW,
-  rw [linear_equiv.findim_eq (linear_map.to_matrix hbV hbW), matrix.findim_matrix,
-    finite_dimensional.findim_eq_card_basis hbV, finite_dimensional.findim_eq_card_basis hbW,
+  rw [linear_equiv.finrank_eq (linear_map.to_matrix hbV hbW), matrix.finrank_matrix,
+    finite_dimensional.finrank_eq_card_basis hbV, finite_dimensional.finrank_eq_card_basis hbW,
     mul_comm],
 end
 
@@ -1288,7 +1288,7 @@ begin
   set mk2 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k2 with hmk2,
   fin_cases mk1; fin_cases mk2; rw [h, h_1] at hk12,
   { exact absurd hk12 (nat.not_lt_zero 0) },
-  { exact absurd hk12 (nat.not_lt_zero 1) },
+  { exact absurd hk12 (by norm_num) },
   { rw hmk1 at h,
     obtain ⟨i, hi⟩ := h1 k1 h,
     rw hmk2 at h_1,

@@ -652,7 +652,7 @@ end
   `sign_aux2 f _` recursively calculates the sign of `f`. -/
 def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → units ℤ :=
 quotient.hrec_on s (λ l h, sign_aux2 l f)
-  (trunc.induction_on (equiv_fin α)
+  (trunc.induction_on (fintype.trunc_equiv_fin α)
     (λ e l₁ l₂ h, function.hfunext
       (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp only [h.mem_iff])
       (λ h₁ h₂ _, by rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₁ _),
@@ -662,9 +662,9 @@ lemma sign_aux3_mul_and_swap [fintype α] (f g : perm α) (s : multiset α) (hs 
   sign_aux3 (f * g) hs = sign_aux3 f hs * sign_aux3 g hs ∧ ∀ x y, x ≠ y →
   sign_aux3 (swap x y) hs = -1 :=
 let ⟨l, hl⟩ := quotient.exists_rep s in
-let ⟨e, _⟩ := (equiv_fin α).exists_rep in
+let e := equiv_fin α in
 begin
-  clear _let_match _let_match,
+  clear _let_match,
   subst hl,
   show sign_aux2 l (f * g) = sign_aux2 l f * sign_aux2 l g ∧
     ∀ x y, x ≠ y → sign_aux2 l (swap x y) = -1,
@@ -722,7 +722,7 @@ lemma sign_aux3_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
   sign_aux3 ((e.symm.trans f).trans e) ht = sign_aux3 f hs :=
 quotient.induction_on₂ t s
   (λ l₁ l₂ h₁ h₂, show sign_aux2 _ _ = sign_aux2 _ _,
-    from let n := (equiv_fin β).out in
+    from let n := equiv_fin β in
     by { rw [← sign_aux_eq_sign_aux2 _ _ n (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ (e.trans n) (λ _ _, h₂ _)],
       exact congr_arg sign_aux
@@ -996,45 +996,3 @@ end
 end disjoint
 
 end equiv.perm
-
-section alternating_subgroup
-open equiv.perm
-variables (α) [fintype α] [decidable_eq α]
-
-/-- The alternating group on a finite type, realized as a subgroup of `equiv.perm`.
-  For $A_n$, use `alternating_subgroup (fin n)`. -/
-@[derive fintype] def alternating_subgroup : subgroup (perm α) :=
-sign.ker
-
-instance [subsingleton α] : unique (alternating_subgroup α) :=
-⟨⟨1⟩, λ ⟨p, hp⟩, subtype.eq (subsingleton.elim p _)⟩
-
-variables {α}
-
-lemma alternating_subgroup_eq_sign_ker : alternating_subgroup α = sign.ker := rfl
-
-@[simp]
-lemma mem_alternating_subgroup {f : perm α} :
-  f ∈ alternating_subgroup α ↔ sign f = 1 :=
-sign.mem_ker
-
-lemma prod_list_swap_mem_alternating_subgroup_iff_even_length {l : list (perm α)}
-  (hl : ∀ g ∈ l, is_swap g) :
-  l.prod ∈ alternating_subgroup α ↔ even l.length :=
-begin
-  rw [mem_alternating_subgroup, sign_prod_list_swap hl, ← units.coe_eq_one, units.coe_pow,
-    units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even],
-  dec_trivial
-end
-
-lemma two_mul_card_alternating_subgroup [nontrivial α] :
-  2 * card (alternating_subgroup α) = card (perm α) :=
-begin
-  let := (quotient_group.quotient_ker_equiv_of_surjective _ (sign_surjective α)).to_equiv,
-  rw [←fintype.card_units_int, ←fintype.card_congr this],
-  exact (subgroup.card_eq_card_quotient_mul_card_subgroup _).symm,
-end
-
-lemma alternating_subgroup_normal : (alternating_subgroup α).normal := sign.normal_ker
-
-end alternating_subgroup

@@ -1942,6 +1942,17 @@ lemma swap_apply_eq_iff {x y z w : α} :
   swap x y z = w ↔ z = swap x y w :=
 by rw [apply_eq_iff_eq_symm_apply, symm_swap]
 
+lemma swap_apply_ne_self_iff {a b x : α} : swap a b x ≠ x ↔ a ≠ b ∧ (x = a ∨ x = b) :=
+begin
+  by_cases hab : a = b,
+  { simp [hab] },
+  by_cases hax : x = a,
+  { simp [hax, eq_comm] },
+  by_cases hbx : x = b,
+  { simp [hbx] },
+  simp [hab, hax, hbx, swap_apply_of_ne_of_ne]
+end
+
 namespace perm
 
 @[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :

@@ -99,12 +99,12 @@ def sigma.uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) (x :
 f x.1 x.2
 
 @[simp]
-def sigma.uncurry_curry {γ : Π a, β a → Type*} (f : Π x : sigma β, γ x.1 x.2) :
+lemma sigma.uncurry_curry {γ : Π a, β a → Type*} (f : Π x : sigma β, γ x.1 x.2) :
   sigma.uncurry (sigma.curry f) = f :=
 funext $ λ ⟨i, j⟩, rfl
 
 @[simp]
-def sigma.curry_uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) :
+lemma sigma.curry_uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) :
   sigma.curry (sigma.uncurry f) = f :=
 rfl
 

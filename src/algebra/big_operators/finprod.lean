@@ -700,33 +700,4 @@ lemma finsum_mul {R : Type*} [semiring R] (f : α → R) (r : R)
   (∑ᶠ a : α, f a) * r = ∑ᶠ a : α, f a * r :=
 (add_monoid_hom.mul_right r).map_finsum h
 
-@[to_additive] lemma finset.mul_support_of_fiberwise_prod_subset_image [decidable_eq β]
-  (s : finset α) (f : α → M) (g : α → β) :
-  mul_support (λ b, (s.filter (λ a, g a = b)).prod f) ⊆ s.image g :=
-begin
-  simp only [finset.coe_image, set.mem_image, finset.mem_coe, function.support_subset_iff],
-  intros b h,
-  suffices : (s.filter (λ (a : α), g a = b)).nonempty,
-  { simpa only [s.fiber_nonempty_iff_mem_image g b, finset.mem_image, exists_prop], },
-  exact finset.nonempty_of_prod_ne_one h,
-end
-
-@[to_additive] lemma finprod_mem_finset_of_product (s : finset (α × β)) (f : α × β → M) :
-  ∏ᶠ ab (h : ab ∈ s), f ab = ∏ᶠ a b (h : (a, b) ∈ s), f (a, b) :=
-begin
-  haveI := classical.dec_eq α, haveI := classical.dec_eq β,
-  rw finprod_mem_finset_eq_prod,
-  have : ∀ a, ∏ᶠ b (h : (a, b) ∈ s), f (a, b) = (s.filter (λ ab, prod.fst ab = a)).prod f,
-  { intros a,
-    have ha : ∏ (i : β) in (s.filter (λ ab, prod.fst ab = a)).image prod.snd, f (a, i) =
-      (finset.filter (λ ab, prod.fst ab = a) s).prod f,
-    { apply finset.prod_bij (λ b _, (a, b)); finish, },
-    rw [← ha, ← finprod_mem_finset_eq_prod], simp, },
-  simp_rw this, clear this,
-  rw [finprod_eq_prod_of_mul_support_subset _
-    (s.mul_support_of_fiberwise_prod_subset_image f prod.fst),
-    ← finset.prod_fiberwise_of_maps_to _ f],
-  finish,
-end
-
 end type

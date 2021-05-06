@@ -35,52 +35,6 @@ variables {α : Type*} [fintype α]
 
 section cycle_type
 
-lemma mem_list_cycles_iff {l : list (perm α)} (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
- (h2 : l.pairwise disjoint) {σ : perm α} (h3 : σ.is_cycle) {a : α} (h4 : σ a ≠ a) :
- σ ∈ l ↔ ∀ k : ℕ, (σ ^ k) a = (l.prod ^ k) a :=
-begin
-  induction l with τ l ih,
-  { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
-  { rw [mem_cons_iff, list.prod_cons,
-        ih (λ σ hσ, h1 σ (list.mem_cons_of_mem τ hσ)) (pairwise_of_pairwise_cons h2)],
-    have key := disjoint_prod_list_of_disjoint (pairwise_cons.mp h2).1,
-    cases key a,
-    { simp_rw [key.mul_comm, commute.mul_pow key.mul_comm.symm, mul_apply,
-        pow_apply_eq_self_of_apply_eq_self h, or_iff_right_iff_imp],
-      rintro rfl,
-      exact (h4 h).elim },
-    { simp_rw [commute.mul_pow key.mul_comm, mul_apply, pow_apply_eq_self_of_apply_eq_self h],
-      rw [or_iff_left_of_imp (λ h : (∀ k : ℕ, (σ ^ k) a = a), (h4 (h 1)).elim)],
-      split,
-      { exact λ h k, by rw h },
-      { intro h5,
-        have hτa : τ a ≠ a := ne_of_eq_of_ne (h5 1).symm h4,
-        ext b,
-        by_cases hσb : σ b = b,
-        { by_cases hτb : τ b = b,
-          { rw [hσb, hτb] },
-          { obtain ⟨n, rfl⟩ := ((h1 τ (list.mem_cons_self τ l))).exists_pow_eq hτa hτb,
-            rw [←mul_apply τ, ←pow_succ, ←h5, ←h5, pow_succ, mul_apply] } },
-        { obtain ⟨n, rfl⟩ := h3.exists_pow_eq h4 hσb,
-          rw [←mul_apply, ←pow_succ, h5, h5, pow_succ, mul_apply] } } } },
-end
-
-lemma list_cycles_perm_list_cycles {l₁ l₂ : list (perm α)} (h₀ : l₁.prod = l₂.prod)
-  (h₁l₁ : ∀ σ : perm α, σ ∈ l₁ → σ.is_cycle) (h₁l₂ : ∀ σ : perm α, σ ∈ l₂ → σ.is_cycle)
-  (h₂l₁ : l₁.pairwise disjoint) (h₂l₂ : l₂.pairwise disjoint) :
-  l₁ ~ l₂ :=
-begin
-  classical,
-  have h₃l₁ : (1 : perm α) ∉ l₁ := λ h, (h₁l₁ 1 h).ne_one rfl,
-  have h₃l₂ : (1 : perm α) ∉ l₂ := λ h, (h₁l₂ 1 h).ne_one rfl,
-  refine (perm_ext (nodup_of_pairwise_disjoint h₃l₁ h₂l₁)
-    (nodup_of_pairwise_disjoint h₃l₂ h₂l₂)).mpr (λ σ, _),
-  by_cases hσ : σ.is_cycle,
-  { obtain ⟨a, ha⟩ := not_forall.mp (mt ext hσ.ne_one),
-    rw [mem_list_cycles_iff h₁l₁ h₂l₁ hσ ha, mem_list_cycles_iff h₁l₂ h₂l₂ hσ ha, h₀] },
-  { exact iff_of_false (mt (h₁l₁ σ) hσ) (mt (h₁l₂ σ) hσ) },
-end
-
 variables [decidable_eq α]
 
 /-- The cycle type of a permutation -/

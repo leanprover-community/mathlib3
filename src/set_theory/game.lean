@@ -32,7 +32,7 @@ instance pgame.setoid : setoid pgame :=
   reflecting that it is a proper class in ZFC.
   A combinatorial game is then constructed by quotienting by the equivalence
   `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
-def game := quotient pgame.setoid
+abbreviation game := quotient pgame.setoid
 
 open pgame
 
@@ -130,15 +130,13 @@ end
 instance : add_comm_semigroup game :=
 { add_comm := add_comm,
   ..game.add_semigroup }
-
+  
 instance : add_comm_group game :=
 { ..game.add_comm_semigroup,
   ..game.add_group }
 
 theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a ≤ c + b :=
 begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
-
-instance : add_comm_group (quotient pgame.setoid) := game.add_comm_group
 
 @[simp] lemma quot_neg (a : pgame) : ⟦-a⟧ = -⟦a⟧ := rfl
 @[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl

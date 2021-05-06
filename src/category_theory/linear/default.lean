@@ -37,7 +37,7 @@ namespace category_theory
 
 /-- A category is called `R`-linear if `P ⟶ Q` is an `R`-module such that composition is
     `R`-linear in both variables. -/
-class linear (R : Type w) [ring R] (C : Type u) [category.{v} C] [preadditive C] :=
+class linear (R : Type w) [semiring R] (C : Type u) [category.{v} C] [preadditive C] :=
 (hom_module : Π X Y : C, module R (X ⟶ Y) . tactic.apply_instance)
 (smul_comp' : ∀ (X Y Z : C) (r : R) (f : X ⟶ Y) (g : Y ⟶ Z),
   (r • f) ≫ g = r • (f ≫ g) . obviously)
@@ -58,8 +58,16 @@ namespace category_theory.linear
 
 variables {C : Type u} [category.{v} C] [preadditive C]
 
+instance preadditive_nat_linear : linear ℕ C :=
+{ smul_comp' := λ X Y Z r f g, (preadditive.right_comp X g).map_nsmul f r,
+  comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_nsmul g r, }
+
+instance preadditive_int_linear : linear ℤ C :=
+{ smul_comp' := λ X Y Z r f g, (preadditive.right_comp X g).map_gsmul f r,
+  comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_gsmul g r, }
+
 section
-variables {R : Type w} [ring R] [linear R C]
+variables {R : Type w} [semiring R] [linear R C]
 
 section induced_category
 universes u'
@@ -103,7 +111,7 @@ end⟩
 end
 
 section
-variables {S : Type w} [comm_ring S] [linear S C]
+variables {S : Type w} [comm_semiring S] [linear S C]
 
 /-- Composition as a bilinear map. -/
 @[simps]

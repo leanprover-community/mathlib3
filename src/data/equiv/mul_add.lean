@@ -324,7 +324,7 @@ additive equivalence between `Π j, Ms j` and `Π j, Ns j`.
 
 This is the `add_equiv` version of `equiv.Pi_congr_right.`"]
 def Pi_congr_right {η : Type*}
-  {Ms Ns : η → Type*} [Π j, monoid (Ms j)] [Π j, monoid (Ns j)]
+  {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) : (Π j, Ms j) ≃* (Π j, Ns j) :=
 { map_mul' := λ x y,
   by { ext j,
@@ -333,7 +333,7 @@ def Pi_congr_right {η : Type*}
 
 @[simp, to_additive add_equiv.Pi_congr_right_apply]
 lemma Pi_congr_right_apply {η : Type*}
-  {Ms Ns : η → Type*} [Π j, monoid (Ms j)] [Π j, monoid (Ns j)]
+  {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) (x j) :
   mul_equiv.Pi_congr_right es x j = es j (x j) := rfl
 

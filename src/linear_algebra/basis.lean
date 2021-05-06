@@ -513,14 +513,6 @@ apply_eq_iff.mpr (by simp [basis.singleton])
   (basis.singleton ι R).repr x i = x :=
 by simp [basis.singleton, unique.eq_default i]
 
-lemma smul_right_injective
-  {R M : Type*} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
-  {x : M} (hx : x ≠ 0) :
-  function.injective (λ (c : R), c • x) :=
-λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
-  (calc (c - d) • x = c • x - d • x : sub_smul c d x
-                ... = 0 : sub_eq_zero.mpr h)).resolve_right hx)
-
 lemma basis_singleton_iff
   {R M : Type*} [ring R] [nontrivial R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
   (ι : Type*) [unique ι] :

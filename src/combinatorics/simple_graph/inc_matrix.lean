@@ -189,7 +189,7 @@ begin
 end
 
 -- 3. (M i e) ^ 2 = M i e; with i a vertex, e an edge.
-theorem inc_matrix_element_power_id {i : V} {e : G.edge_set} [char_zero R] :
+theorem inc_matrix_element_power_id {i : V} {e : G.edge_set} :
   (G.inc_matrix R i e) * (G.inc_matrix R i e) = G.inc_matrix R i e :=
 by simp [inc_matrix_apply]
 
@@ -228,7 +228,17 @@ structure orientation (G : simple_graph V) :=
 (tail : G.edge_set → V)
 (consistent (e : G.edge_set) : e.val = ⟦(head(e), tail(e))⟧)
 
+noncomputable def default_orientation (G : simple_graph V) : orientation G :=
+{ head := λ (e : G.edge_set), (quotient.out (e : sym2 V)).fst,
+  tail := λ (e : G.edge_set), (quotient.out (e : sym2 V)).snd,
+  consistent := λ (e : G.edge_set), by rw [prod.mk.eta, ←subtype.val_eq_coe, quotient.out_eq] }
+
+noncomputable instance (G : simple_graph V) : inhabited (orientation G) :=
+⟨G.default_orientation⟩
+
 variables {o : orientation G}
+
+lemma head_neq_tail {e : G.edge_set} : o.head(e) ≠ o.tail(e) := G.edge_set_ne (o.consistent e)
 
 lemma incidence_set_orientation_head {e : G.edge_set} : e.val ∈ G.incidence_set (o.head e) :=
 by { rw [incidence_equiv, o.consistent e], simp only [mem_iff, true_or, eq_self_iff_true] }
@@ -269,8 +279,6 @@ def oriented_inc_matrix (o : orientation G) : matrix V G.edge_set R :=
 @[simp]
 lemma oriented_inc_matrix_apply {i : V} {e : G.edge_set} :
   G.oriented_inc_matrix R o i e = ite (i = o.head e) (1 : R) (ite (i = o.tail e) (-1) 0) := rfl
-
-lemma head_neq_tail {e : G.edge_set} : o.head(e) ≠ o.tail(e) := G.edge_set_ne (o.consistent e)
 
 lemma oriented_inc_matrix_head {i : V} {e : G.edge_set} (H_head : i = o.head e) :
   G.oriented_inc_matrix R o i e = 1 :=

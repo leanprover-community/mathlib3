@@ -69,6 +69,7 @@ variables (σ a a')
 @[simp] lemma monomial_neg (m : σ →₀ ℕ) (a : R) : -(monomial m a) = monomial m (-a) :=
 by rw [neg_eq_iff_add_eq_zero, monomial_add, add_neg_self, monomial_zero]
 
+@[simp] lemma monomial_sub (m : σ →₀ ℕ) (a b : R) : monomial m a - monomial m b = monomial m (a - b) := single_sub.symm
 
 @[simp] lemma support_neg : (- p).support = p.support :=
 finsupp.support_neg

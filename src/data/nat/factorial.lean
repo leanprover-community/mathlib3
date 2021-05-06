@@ -143,4 +143,37 @@ begin
   { exact add_factorial_succ_le_factorial_add_succ i h }
 end
 
+section desc_fac
+
+/-- desc_fac n k = (n + k)! / n!, but implemented in a recursive way for calculation.
+This is closely related to `ring_theory.polynomial.pochhammer`, but much less general. -/
+def desc_fac (n : ℕ) : ℕ → ℕ
+| 0 := 1
+| (k + 1) := (n + k + 1) * desc_fac k
+
+@[simp] lemma desc_fac_zero (n : ℕ) : desc_fac n 0 = 1 := rfl
+
+@[simp] lemma zero_desc_fac (k : ℕ) : desc_fac 0 k = k! :=
+begin
+  induction k with t ht, refl,
+  unfold desc_fac, rw [ht, zero_add, nat.factorial_succ]
+end
+
+lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n + k + 1) * desc_fac n k := rfl
+
+lemma succ_desc_fac {n k : ℕ} : (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k :=
+begin
+  induction k with t ht, simp!, rw desc_fac_succ, rw desc_fac_succ,
+  have : (n + 1) * ((n.succ + t + 1) * desc_fac n.succ t)
+       = (n.succ + t + 1) * ((n + 1) * desc_fac n.succ t), by ac_refl,
+  rw this, rw ht, repeat {rw nat.succ_eq_add_one}, ac_refl
+end
+
+/-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/
+theorem eval_desc_fac (n : ℕ) : ∀ k : ℕ, (n + k)! = n! * desc_fac n k
+| 0 := by simp!
+| (k + 1) := by unfold desc_fac; rw [←mul_assoc, mul_comm n!, mul_assoc, ←eval_desc_fac]; simp!
+
+end desc_fac
+
 end nat

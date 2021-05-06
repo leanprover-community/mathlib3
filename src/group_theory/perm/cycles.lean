@@ -35,6 +35,14 @@ The following two definitions require that `β` is a `fintype`:
     a prime cycle and a transposition
 
 -/
+
+-- lemma list.perm.to_finset_eq {α : Type*} [decidable_eq α] [fintype α] {l l' : list α} (h : l ~ l') :
+--   l.to_finset = l'.to_finset :=
+-- begin
+--   exact list.to_finset_eq_of_perm l l' h
+-- end
+-- #exit
+
 namespace equiv.perm
 open equiv function finset
 
@@ -433,6 +441,52 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
                 inv_apply_self, inv_eq_iff_eq, eq_comm] }),
         hm₃⟩⟩
 
+lemma mem_list_cycles_iff [fintype α] {l : list (perm α)} (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
+ (h2 : l.pairwise disjoint) {σ : perm α} (h3 : σ.is_cycle) {a : α} (h4 : σ a ≠ a) :
+ σ ∈ l ↔ ∀ k : ℕ, (σ ^ k) a = (l.prod ^ k) a :=
+begin
+  induction l with τ l ih,
+  { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
+  { rw [list.mem_cons_iff, list.prod_cons,
+        ih (λ σ hσ, h1 σ (list.mem_cons_of_mem τ hσ)) (list.pairwise_of_pairwise_cons h2)],
+    have key := disjoint_prod_right _ (list.pairwise_cons.mp h2).1,
+    cases key a,
+    { simp_rw [key.mul_comm, commute.mul_pow key.mul_comm.symm, mul_apply,
+        pow_apply_eq_self_of_apply_eq_self h, or_iff_right_iff_imp],
+      rintro rfl,
+      exact (h4 h).elim },
+    { simp_rw [commute.mul_pow key.mul_comm, mul_apply, pow_apply_eq_self_of_apply_eq_self h],
+      rw [or_iff_left_of_imp (λ h : (∀ k : ℕ, (σ ^ k) a = a), (h4 (h 1)).elim)],
+      split,
+      { exact λ h k, by rw h },
+      { intro h5,
+        have hτa : τ a ≠ a := ne_of_eq_of_ne (h5 1).symm h4,
+        ext b,
+        by_cases hσb : σ b = b,
+        { by_cases hτb : τ b = b,
+          { rw [hσb, hτb] },
+          { obtain ⟨n, rfl⟩ := ((h1 τ (list.mem_cons_self τ l))).exists_pow_eq hτa hτb,
+            rw [←mul_apply τ, ←pow_succ, ←h5, ←h5, pow_succ, mul_apply] } },
+        { obtain ⟨n, rfl⟩ := h3.exists_pow_eq h4 hσb,
+          rw [←mul_apply, ←pow_succ, h5, h5, pow_succ, mul_apply] } } } },
+end
+
+lemma list_cycles_perm_list_cycles [fintype α] {l₁ l₂ : list (perm α)} (h₀ : l₁.prod = l₂.prod)
+  (h₁l₁ : ∀ σ : perm α, σ ∈ l₁ → σ.is_cycle) (h₁l₂ : ∀ σ : perm α, σ ∈ l₂ → σ.is_cycle)
+  (h₂l₁ : l₁.pairwise disjoint) (h₂l₂ : l₂.pairwise disjoint) :
+  l₁ ~ l₂ :=
+begin
+  classical,
+  have h₃l₁ : (1 : perm α) ∉ l₁ := λ h, (h₁l₁ 1 h).ne_one rfl,
+  have h₃l₂ : (1 : perm α) ∉ l₂ := λ h, (h₁l₂ 1 h).ne_one rfl,
+  refine (list.perm_ext (nodup_of_pairwise_disjoint h₃l₁ h₂l₁)
+    (nodup_of_pairwise_disjoint h₃l₂ h₂l₂)).mpr (λ σ, _),
+  by_cases hσ : σ.is_cycle,
+  { obtain ⟨a, ha⟩ := not_forall.mp (mt ext hσ.ne_one),
+    rw [mem_list_cycles_iff h₁l₁ h₂l₁ hσ ha, mem_list_cycles_iff h₁l₂ h₂l₂ hσ ha, h₀] },
+  { exact iff_of_false (mt (h₁l₁ σ) hσ) (mt (h₁l₂ σ) hσ) },
+end
+
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
 def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
@@ -445,6 +499,63 @@ def trunc_cycle_factors [fintype α] (f : perm α) :
 quotient.rec_on_subsingleton (@univ α _).1
   (λ l h, trunc.mk (cycle_factors_aux l f h))
   (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
+
+section cycle_factors_finset
+
+variables [fintype α] (f : perm α)
+
+/-- Factors a permutation `f` into a `finset` of disjoint cyclic permutations that multiply to `f`.
+-/
+def cycle_factors_finset [fintype α] (f : perm α) : finset (perm α) :=
+(trunc_cycle_factors f).lift
+  (λ (l : {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint}),
+    l.val.to_finset) (λ ⟨l, hl⟩ ⟨l', hl'⟩, list.to_finset_eq_of_perm _ _
+      (list_cycles_perm_list_cycles (hl'.left.symm ▸ hl.left) hl.right.left (hl'.right.left)
+        hl.right.right hl'.right.right))
+
+/-- The product of cycle factors is equal to the original `f : perm α`. We operate in the
+`list (perm α)` because `finset.prod` requires the multiplication across all `x : perm α`
+to be commutative. -/
+lemma cycle_factors_finset_prod (l : list (perm α)) (h : l.nodup)
+  (hl : l.to_finset = cycle_factors_finset f) : l.prod = f :=
+begin
+  obtain ⟨x, hx⟩ := trunc.exists_rep f.trunc_cycle_factors,
+  have ht : cycle_factors_finset f = x.val.to_finset,
+  { rw [cycle_factors_finset, ←hx, trunc.lift_mk] },
+  have hp : l ~ x,
+  { rw list.perm_ext h,
+    { simp [←list.mem_to_finset, hl, ht] },
+    { refine nodup_of_pairwise_disjoint _ x.prop.right.right,
+      intro hm,
+      simpa using (x.prop.right.left _ hm).ne_one } },
+  rw ←x.prop.left,
+  refine (hp.symm.prod_eq' _).symm,
+  refine x.prop.right.right.imp _,
+  exact λ _ _, disjoint.mul_comm
+end
+
+lemma cycle_factors_finset_mem_is_cycle (p : perm α) (hp : p ∈ cycle_factors_finset f) :
+  p.is_cycle :=
+begin
+  obtain ⟨x, hx⟩ := trunc.exists_rep f.trunc_cycle_factors,
+  have ht : cycle_factors_finset f = x.val.to_finset,
+  { rw [cycle_factors_finset, ←hx, trunc.lift_mk] },
+  rw [ht, list.mem_to_finset] at hp,
+  exact x.prop.right.left _ hp
+end
+
+lemma cycle_factors_finset_pairwise_disjoint_of_ne ⦃p : perm α⦄ (hp : p ∈ cycle_factors_finset f)
+  ⦃q : perm α⦄ (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
+  disjoint p q :=
+begin
+  obtain ⟨x, hx⟩ := trunc.exists_rep f.trunc_cycle_factors,
+  have ht : cycle_factors_finset f = x.val.to_finset,
+  { rw [cycle_factors_finset, ←hx, trunc.lift_mk] },
+  rw [ht, list.mem_to_finset] at hp hq,
+  exact list.forall_of_pairwise (λ _ _, disjoint.symm) x.prop.right.right _ hp _ hq h
+end
+
+end cycle_factors_finset
 
 @[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
   (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)

@@ -341,8 +341,8 @@ lemma is_basis.smul_eq_zero [no_zero_divisors R] {c : R} {x : M} :
 
 end
 
-lemma is_basis.smul_of_invertible {v : ι → M} (hv : is_basis R v)
-  {w : ι → R} (hw : ∀ i : ι, invertible (w i)) :
+lemma is_basis.smul_of_is_unit {v : ι → M} (hv : is_basis R v)
+  {w : ι → R} (hw : ∀ i : ι, is_unit (w i)) :
   is_basis R (λ i, w i • v i) :=
 begin
   obtain ⟨hw₁', hw₁''⟩ := hv,
@@ -350,8 +350,10 @@ begin
   { rw linear_independent_iff'' at hw₁' ⊢,
     intros s g hgs hsum i,
     have hw₁ : g i * w i = 0 := hw₁' s (λ i, g i • w i) _ _ i,
-    { suffices : g i * w i * (hw i).inv_of = 0,
-        rwa [mul_assoc, mul_inv_of_self, mul_one] at this,
+    have hw₂ : w i * ↑((hw i).unit)⁻¹ = 1,
+    { rw [units.mul_inv_eq_iff_eq_mul (hw i).unit, (hw i).unit_spec, one_mul] },
+    { suffices : g i * w i * ↑((hw i).unit)⁻¹ = 0,
+      rwa [mul_assoc, hw₂, mul_one] at this,
       rw [hw₁, zero_mul] },
     { intros i hi,
       dsimp only,
@@ -364,9 +366,10 @@ begin
     rw submodule.mem_span at hj ⊢,
     refine λ p hp, hj p (λ u hu, _),
     obtain ⟨i, rfl⟩ := hu,
-    have := p.smul_mem (⅟ (w i)) (hp ⟨i, rfl⟩),
-    simp only [← smul_assoc, smul_eq_mul, inv_of_mul_self, one_smul] at this,
-    exact this }
+    have hw₂ : ↑((hw i).unit)⁻¹ * w i = 1,
+    { rw [units.inv_mul_eq_iff_eq_mul (hw i).unit, (hw i).unit_spec, mul_one] },
+    have := p.smul_mem ↑((hw i).unit)⁻¹ (hp ⟨i, rfl⟩),
+    rwa [← smul_assoc, smul_eq_mul, hw₂, one_smul] at this }
 end
 
 end is_basis

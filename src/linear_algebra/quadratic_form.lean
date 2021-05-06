@@ -835,28 +835,30 @@ def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M
     intro,
     simp only [comp_apply, linear_equiv.coe_coe, linear_equiv.to_fun_eq_coe,
                linear_equiv.apply_symm_apply, f.apply_symm_apply],
-  end, .. f.symm }
+  end,
+  .. f.symm }
 
-/-- Given a quadratic form `Q` and a basis, `of_is_basis` is the basis representation of `Q`. -/
-noncomputable def of_is_basis (Q : quadratic_form R M)
-  (hv₁ : is_basis R v) : quadratic_form R (ι → R) := Q.comp hv₁.equiv_fun.symm
+/-- Given a quadratic form `Q` and a basis, `basis_repr` is the basis representation of `Q`. -/
+noncomputable def basis_repr (Q : quadratic_form R M)
+  (hv₁ : is_basis R v) : quadratic_form R (ι → R) :=
+Q.comp hv₁.equiv_fun.symm
 
 @[simp]
-lemma isometry_of_is_basis_apply (Q : quadratic_form R M) (hv₁ : is_basis R v)
-  (w : ι → R) : Q.of_is_basis hv₁ w = Q (∑ i : ι, w i • v i) :=
+lemma basis_repr_apply (Q : quadratic_form R M) (hv₁ : is_basis R v)
+  (w : ι → R) : Q.basis_repr hv₁ w = Q (∑ i : ι, w i • v i) :=
 by { rw ← hv₁.equiv_fun_symm_apply, refl }
 
 /-- A quadratic form is isometric to its bases representations. -/
-noncomputable def isometry_of_is_basis (Q : quadratic_form R M) (hv₁ : is_basis R v) :
-  isometry Q (Q.of_is_basis hv₁) :=
+noncomputable def isometry_basis_repr (Q : quadratic_form R M) (hv₁ : is_basis R v) :
+  isometry Q (Q.basis_repr hv₁) :=
 isometry_of_comp_linear_equiv Q hv₁.equiv_fun.symm
 
 lemma isometry_of_is_Ortho_apply [invertible (2 : R₁)]
   (Q : quadratic_form R₁ M) (hv₁ : is_basis R₁ v)
   (hv₂ : (associated Q).is_Ortho v) (w : ι → R₁) :
-  Q.of_is_basis hv₁ w = ∑ i : ι, associated Q (v i) (v i) * w i * w i :=
+  Q.basis_repr hv₁ w = ∑ i : ι, associated Q (v i) (v i) * w i * w i :=
 begin
-  rw [isometry_of_is_basis_apply, ← @associated_eq_self_apply R₁, sum_left],
+  rw [basis_repr_apply, ← @associated_eq_self_apply R₁, sum_left],
   refine sum_congr rfl (λ j hj, _),
   rw [sum_right, sum_eq_single j],
   { rw [smul_left, smul_right], ring },
@@ -887,7 +889,7 @@ begin
   obtain ⟨v, hv₁, hv₂, hv₃⟩ := exists_orthogonal_basis' hQ associated_is_sym,
   refine ⟨λ i, associated Q (v i) (v i), hv₃, _⟩,
   refine nonempty.intro _,
-  convert Q.isometry_of_is_basis hv₂,
+  convert Q.isometry_basis_repr hv₂,
   ext w,
   rw [isometry_of_is_Ortho_apply Q hv₂ hv₁, weighted_sum_squares_apply],
   refine finset.sum_congr rfl _,
@@ -905,15 +907,15 @@ section complex
 /-- The isometry between a weighted sum of squares on the complex numbers and the
 sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → ℂ) (hw : ∀ i : ι, w i ≠ 0) :
-  isometry (weighted_sum_squares w) (weighted_sum_squares (λ _, 1 : ι → ℂ)) :=
+  isometry (weighted_sum_squares w) (weighted_sum_squares (1 : ι → ℂ)) :=
 begin
   have hw' : ∀ i : ι, (w i) ^ - (1 / 2 : ℂ) ≠ 0,
   { intros i hi,
     exact hw i ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
-  convert (weighted_sum_squares w).isometry_of_is_basis
-    (is_basis.smul_of_invertible (pi.is_basis_fun ℂ ι) (λ i, invertible_of_nonzero (hw' i))),
+  convert (weighted_sum_squares w).isometry_basis_repr
+    (is_basis.smul_of_is_unit (pi.is_basis_fun ℂ ι) (λ i, is_unit_iff_ne_zero.2 (hw' i))),
   ext1 v,
-  rw [isometry_of_is_basis_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
+  rw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
   have hsum : (∑ (i : ι), v i • w i ^ - (1 / 2 : ℂ) •
     (linear_map.std_basis ℂ (λ (i : ι), ℂ) i) 1) j =
@@ -926,7 +928,7 @@ begin
     intro hj', exact false.elim (hj' hj) },
   rw [hsum, smul_eq_mul],
   suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
-  { rw [← mul_assoc, this], ring },
+  { rw [pi.one_apply, ← mul_assoc, this], ring },
   rw [← complex.cpow_add _ _ (hw j), show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
       complex.cpow_neg_one, inv_mul_cancel (hw j)],
 end .
@@ -935,7 +937,7 @@ end .
 the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
   [finite_dimensional ℂ M] (Q : quadratic_form ℂ M) (hQ : (associated Q).nondegenerate) :
-  equivalent Q (weighted_sum_squares (λ _, 1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
+  equivalent Q (weighted_sum_squares (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
 let ⟨w, hw₁, hw₂⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
   nonempty.intro $ (classical.choice hw₂).trans (isometry_sum_squares w hw₁)
 

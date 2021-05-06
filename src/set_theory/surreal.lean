@@ -133,14 +133,14 @@ begin
    ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { exact ((add_comm_relabelling _ _).trans
-                ((IHyl j).add_congr (IHxl i y))).add_congr (IHxl i (yL j)).neg_congr },
+                ((IHyl j).add_congr (IHxl i y))).sub_congr (IHxl i (yL j)) },
     { exact ((add_comm_relabelling _ _).trans
-                ((IHyr j).add_congr (IHxr i y))).add_congr (IHxr i (yR j)).neg_congr } },
+                ((IHyr j).add_congr (IHxr i y))).sub_congr (IHxr i (yR j)) } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { exact ((add_comm_relabelling _ _).trans
-                ((IHyl i).add_congr (IHxr j y))).add_congr (IHxr j (yL i)).neg_congr },
+                ((IHyl i).add_congr (IHxr j y))).sub_congr (IHxr j (yL i)) },
     { exact ((add_comm_relabelling _ _).trans
-                ((IHyr i).add_congr (IHxl j y))).add_congr (IHxl j (yR i)).neg_congr } }
+                ((IHyr i).add_congr (IHxl j y))).sub_congr (IHxl j (yR i)) } }
 end
 
 /-- `x * y` is equivalent to `y * x`. -/
@@ -211,43 +211,43 @@ begin
     { calc
         xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)
             ≈ (xL i * y + xL i * z) + (x * yL j + x * z) - (xL i * yL j + xL i * z)
-            : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
         ... ≈ xL i * y + x * yL j - xL i * yL j + x * z : left_distrib_equiv_aux },
     { calc
         xL i * (y + z) + x * (y + zL k) - xL i * (y + zL k)
             ≈ (xL i * y + xL i * z) + (x * y + x * zL k) - (xL i * y + xL i * zL k)
-            : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
         ... ≈  x * y + (xL i * z + x * zL k - xL i * zL k) : left_distrib_equiv_aux' },
     { calc
         xR i * (y + z) + x * (yR j + z) - xR i * (yR j + z)
             ≈  (xR i * y + xR i * z) + (x * yR j + x * z) - (xR i * yR j + xR i * z)
-            : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
         ... ≈ xR i * y + x * yR j - xR i * yR j + x * z : left_distrib_equiv_aux },
     { calc
         xR i * (y + z) + x * (y + zR k) - xR i * (y + zR k)
             ≈ (xR i * y + xR i * z) + (x * y + x * zR k) - (xR i * y + xR i * zR k)
-            : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
         ... ≈ x * y + (xR i * z + x * zR k - xR i * zR k) : left_distrib_equiv_aux' } },
   { rintros ((⟨i,j⟩|⟨i,j⟩)|(⟨i,k⟩|⟨i,k⟩)),
     { calc
         xL i * (y + z) + x * (yR j + z) - xL i * (yR j + z)
             ≈ (xL i * y + xL i * z) + (x * yR j + x * z) - (xL i * yR j + xL i * z)
-            : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
         ... ≈ xL i * y + x * yR j - xL i * yR j + x * z : left_distrib_equiv_aux },
     { calc
         xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)
             ≈ (xR i * y + xR i * z) + (x * yL j + x * z) - (xR i * yL j + xR i * z)
-            : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
         ... ≈ xR i * y + x * yL j - xR i * yL j + x * z : left_distrib_equiv_aux },
     { calc
         xL i * (y + z) + x * (y + zR k) - xL i * (y + zR k)
             ≈ (xL i * y + xL i * z) + (x * y + x * zR k) - (xL i * y + xL i * zR k)
-            : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
         ... ≈  x * y + (xL i * z + x * zR k - xL i * zR k) : left_distrib_equiv_aux' },
     { calc
         xR i * (y + z) + x * (y + zL k) - xR i * (y + zL k)
             ≈ (xR i * y + xR i * z) + (x * y + x * zL k) - (xR i * y + xR i * zL k)
-            : by { refine add_congr (add_congr _ _) (neg_congr _); apply left_distrib_equiv }
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
         ... ≈ x * y + (xR i * z + x * zL k - xR i * zL k) : left_distrib_equiv_aux' } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

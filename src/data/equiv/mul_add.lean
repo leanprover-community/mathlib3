@@ -317,12 +317,14 @@ def monoid_hom_congr {M N P Q} [mul_one_class M] [mul_one_class N] [comm_monoid 
 /-- A family of multiplicative equivalences `Π j, (Ms j ≃* Ns j)` generates a
 multiplicative equivalence between `Π j, Ms j` and `Π j, Ns j`.
 
-This is the `mul_equiv` version of `equiv.Pi_congr_right`.
+This is the `mul_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`mul_equiv.arrow_congr`.
 -/
 @[to_additive add_equiv.Pi_congr_right "A family of additive equivalences `Π j, (Ms j ≃+ Ns j)` generates an
 additive equivalence between `Π j, Ms j` and `Π j, Ns j`.
 
-This is the `add_equiv` version of `equiv.Pi_congr_right.`"]
+This is the `add_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`add_equiv.arrow_congr`."]
 def Pi_congr_right {η : Type*}
   {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) : (Π j, Ms j) ≃* (Π j, Ns j) :=

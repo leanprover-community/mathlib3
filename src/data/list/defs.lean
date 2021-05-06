@@ -906,7 +906,7 @@ foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
 
 /-- Auxliary definition used to define `to_chunks`.
 
-  `to_chunks_aux n xs i` returns `(xs.take i, (xs.drop i).to_chunks' (n+1))`,
+  `to_chunks_aux n xs i` returns `(xs.take i, (xs.drop i).to_chunks (n+1))`,
   that is, the first `i` elements of `xs`, and the remaining elements chunked into
   sublists of length `n+1`. -/
 def to_chunks_aux {α} (n : ℕ) : list α → ℕ → list α × list (list α)

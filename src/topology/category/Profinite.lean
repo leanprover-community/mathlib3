@@ -9,6 +9,7 @@ import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
 import category_theory.monad.limits
+import category_theory.Fintype
 
 /-!
 # The category of Profinite Types
@@ -49,7 +50,14 @@ structure Profinite :=
 
 namespace Profinite
 
-instance : inhabited Profinite := ⟨{to_Top := { α := pempty }}⟩
+/--
+Construct a term of `Profinite` from a type endowed with the structure of a
+compact, Hausdorff and totally disconnected topological space.
+-/
+def of (X : Type*) [topological_space X] [compact_space X] [t2_space X]
+  [totally_disconnected_space X] : Profinite := ⟨⟨X⟩⟩
+
+instance : inhabited Profinite := ⟨Profinite.of pempty⟩
 
 instance category : category Profinite := induced_category.category to_Top
 instance concrete_category : concrete_category Profinite := induced_category.concrete_category _
@@ -129,6 +137,28 @@ adjunction.left_adjoint_of_equiv Profinite.to_CompHaus_equivalence (λ _ _ _ _ _
 lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
   ↥(CompHaus.to_Profinite.obj X) = connected_components X.to_Top.α := rfl
 
+/-- Finite types are given the discrete topology. -/
+def Fintype.discrete_topology (A : Fintype) : topological_space A := ⊥
+
+section discrete_topology
+
+local attribute [instance] Fintype.discrete_topology
+
+/--
+The natural functor from `Fintype` to `Profinite`, endowing a finite type with the
+discrete topology.
+-/
+@[simps]
+def Fintype.to_Profinite : Fintype ⥤ Profinite :=
+{ obj := λ A, Profinite.of A,
+  map := λ _ _ f, ⟨f⟩ }
+
+end discrete_topology
+
+end Profinite
+
+namespace Profinite
+
 /--
 An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
 `Top.limit_cone`.
@@ -151,10 +181,6 @@ def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}
     (Profinite.to_CompHaus.map_cone S),
   uniq' := λ S m h,
     (CompHaus.limit_cone_is_limit _).uniq (Profinite.to_CompHaus.map_cone S) _ h }
-
-end Profinite
-
-namespace Profinite
 
 /--
 The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus

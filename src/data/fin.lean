@@ -359,6 +359,16 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+lemma coe_bit0 {n : ℕ} (k : fin n) : ((bit0 k : fin n) : ℕ) = bit0 (k : ℕ) % n :=
+by { cases k, refl }
+
+lemma coe_bit1 {n : ℕ} (k : fin (n + 1)) :
+  ((bit1 k : fin (n + 1)) : ℕ) = bit1 (k : ℕ) % (n + 1) :=
+begin
+  cases n, { cases k with k h, cases k, {show _ % _ = _, simp}, cases h with _ h, cases h },
+  simp [bit1, fin.coe_bit0, fin.coe_add, fin.coe_one],
+end
+
 lemma coe_add_one_of_lt {n : ℕ} {i : fin n.succ} (h : i < last _) :
   (↑(i + 1) : ℕ) = i + 1 :=
 begin
@@ -509,6 +519,8 @@ lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 | ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (ext_iff _ _).1 heq
 
 @[simp] lemma succ_zero_eq_one : fin.succ (0 : fin (n + 1)) = 1 := rfl
+
+@[simp] lemma succ_one_eq_two : fin.succ (1 : fin (n + 2)) = 2 := rfl
 
 @[simp] lemma succ_mk (n i : ℕ) (h : i < n) : fin.succ ⟨i, h⟩ = ⟨i + 1, nat.succ_lt_succ h⟩ :=
 rfl
@@ -865,6 +877,11 @@ instance (n : ℕ) : add_comm_group (fin (n+1)) :=
   ..fin.add_comm_monoid n,
   ..fin.has_neg n.succ  }
 
+protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
+
+protected lemma coe_sub (a b : fin n) : ((a - b : fin n) : ℕ) = (a + (n - b)) % n :=
+by cases a; cases b; refl
+
 end add_group
 
 section succ_above
@@ -998,6 +1015,10 @@ lemma succ_above_left_injective : injective (@succ_above n) :=
 lemma succ_above_left_inj {x y : fin (n + 1)} :
   x.succ_above = y.succ_above ↔ x = y :=
 succ_above_left_injective.eq_iff
+
+@[simp] lemma zero_succ_above {n : ℕ} (i : fin n) :
+  (0 : fin (n + 1)).succ_above i = i.succ :=
+rfl
 
 @[simp] lemma succ_succ_above_zero {n : ℕ} (i : fin (n + 1)) :
   (i.succ).succ_above 0 = 0 :=

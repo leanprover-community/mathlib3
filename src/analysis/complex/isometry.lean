@@ -8,8 +8,6 @@ import data.complex.exponential
 import data.real.sqrt
 import analysis.normed_space.linear_isometry
 
-noncomputable theory
-
 /-!
 # Isometries of the Complex Plane
 
@@ -27,6 +25,7 @@ The proof of `linear_isometry_complex_aux` is separated in the following parts:
 
 * [Isometries of the Complex Plane](http://helmut.knaust.info/mediawiki/images/b/b5/Iso.pdf)
 -/
+noncomputable theory
 
 open complex
 

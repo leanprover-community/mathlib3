@@ -166,7 +166,7 @@ begin
   induction k with t ht, simp!, rw desc_fac_succ, rw desc_fac_succ,
   have : (n + 1) * ((n.succ + t + 1) * desc_fac n.succ t)
        = (n.succ + t + 1) * ((n + 1) * desc_fac n.succ t), by ac_refl,
-  rw this, rw ht, repeat {rw nat.succ_eq_add_one}, ac_refl
+rw [this, ht, nat.succ_add],
 end
 
 /-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/

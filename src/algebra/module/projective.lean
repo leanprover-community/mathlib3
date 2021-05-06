@@ -127,6 +127,35 @@ begin
     simp },
 end
 
+/-- A variant of `of_lifting_property` when we're working over a `[ring R]`,
+which only requires quantifying over modules with an `add_comm_group` instance. -/
+theorem of_lifting_property' {R : Type u} [ring R]
+  {P : Type v} [add_comm_group P] [module R P]
+  -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
+  (huniv : ∀ {M : Type (max v u)} {N : Type v} [add_comm_group M] [add_comm_group N],
+    by exactI
+    ∀ [module R M] [module R N],
+    by exactI
+    ∀ (f : M →ₗ[R] N) (g : P →ₗ[R] N),
+  function.surjective f → ∃ (h : P →ₗ[R] M), f.comp h = g) :
+  -- then `P` is projective.
+  is_projective R P :=
+-- We could try and prove this *using* `of_lifting_property`,
+-- but this quickly leads to typeclass hell,
+-- so we just prove it over again.
+begin
+  -- let `s` be the universal map `(P →₀ R) →ₗ P` coming from the identity map `P →ₗ P`.
+  obtain ⟨s, hs⟩ : ∃ (s : P →ₗ[R] P →₀ R),
+    (finsupp.total P P R id).comp s = linear_map.id :=
+    huniv (finsupp.total P P R (id : P → P)) (linear_map.id : P →ₗ[R] P) _,
+  -- This `s` works.
+  { use s,
+    rwa linear_map.ext_iff at hs },
+  { intro p,
+    use finsupp.single p 1,
+    simp },
+end
+
 end semiring
 
 section ring

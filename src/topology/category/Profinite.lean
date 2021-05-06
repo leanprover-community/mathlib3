@@ -224,6 +224,8 @@ instance forget_reflects_isomorphisms : reflects_isomorphisms (forget Profinite)
   continuous_to_fun := f.hom.continuous,
   continuous_inv_fun := f.inv.continuous }
 
+/-- The equivalence between isomorphisms in `Profinite` and homeomorphisms
+of topological spaces. -/
 @[simps] def iso_equiv_homeo : (X ≅ Y) ≃ (X ≃ₜ Y) :=
 { to_fun := homeo_of_iso,
   inv_fun := iso_of_homeo,

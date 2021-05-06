@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 
 import algebra.group_power
+import algebra.group_power.basic
 import logic.function.iterate
 import group_theory.perm.basic
 
@@ -134,18 +135,69 @@ end ring_hom
 lemma equiv.perm.coe_pow {α : Type*} (f : equiv.perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
 hom_coe_pow _ rfl (λ _ _, rfl) _ _
 
-@[simp] lemma mul_left_iterate [monoid M] (a : M) (n : ℕ) : ((*) a)^[n] = (*) (a^n) :=
+--what should be the namespace for this section?
+section monoid
+
+variables [monoid G] (a : G) (n : ℕ)
+
+@[simp] lemma mul_left_iterate : ((*) a)^[n] = (*) (a^n) :=
 nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
 funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
 
-@[simp] lemma add_left_iterate [add_monoid M] (a : M) (n : ℕ) : ((+) a)^[n] = (+) (n • a) :=
+@[simp] lemma mul_right_iterate : (* a)^[n] = (* a ^ n) :=
+begin
+  induction n with d hd,
+  { simpa },
+  { simp [← pow_succ, hd] }
+end
+
+lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=
+by simp [mul_right_iterate]
+
+end monoid
+
+section semigroup
+
+variables [semigroup G] {a b c : G}
+
+@[to_additive]
+lemma semiconj_by.function_semiconj_mul_left (h : semiconj_by a b c) :
+  function.semiconj ((*)a) ((*)b) ((*)c) :=
+λ j, by rw [← mul_assoc, h.eq, mul_assoc]
+
+@[to_additive]
+lemma commute.function_commute_mul_left (h : commute a b) :
+  function.commute ((*)a) ((*)b) :=
+semiconj_by.function_semiconj_mul_left h
+
+@[to_additive]
+lemma semiconj_by.function_semiconj_mul_right_swap (h : semiconj_by a b c) :
+  function.semiconj (*a) (*c) (*b) :=
+λ j, by simp_rw [mul_assoc, ← h.eq]
+
+@[to_additive]
+lemma commute.function_commute_mul_right (h : commute a b) :
+  function.commute (*a) (*b) :=
+semiconj_by.function_semiconj_mul_right_swap h
+
+end semigroup
+
+--what should be the namespace for this section?
+section add_monoid
+
+variables [add_monoid M] (a : M) (n : ℕ)
+
+@[simp] lemma add_left_iterate : ((+) a)^[n] = (+) (n • a) :=
 @mul_left_iterate (multiplicative M) _ a n
 
-@[simp] lemma mul_right_iterate [monoid M] (a : M) (n : ℕ) :
-  (λ x, x * a)^[n] = (λ x, x * a^n) :=
-nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
-funext $ λ x, by simp [iterate_succ, ihn, pow_succ, mul_assoc]
+@[simp] lemma add_right_iterate : (+ a)^[n] = (+ n • a) :=
+begin
+  induction n with d hd,
+  { simp [zero_nsmul, id_def] },
+  { simp [hd, add_assoc, succ_nsmul] }
+end
 
-@[simp] lemma add_right_iterate [add_monoid M] (a : M) (n : ℕ) :
-  (λ x, x + a)^[n] = λ x, x + (n • a) :=
-@mul_right_iterate (multiplicative M) _ a n
+lemma add_right_iterate_apply_zero : (+ a)^[n] 0 = n • a :=
+by simp [add_right_iterate]
+
+end add_monoid

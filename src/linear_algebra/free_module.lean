@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import linear_algebra.basis
 import linear_algebra.finsupp_vector_space
 import ring_theory.principal_ideal_domain
+import ring_theory.finiteness
 
 /-! # Free modules
 
@@ -220,8 +221,8 @@ lemma is_basis.card_le_card_of_linear_independent
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq ι',
-  obtain ⟨e⟩ := fintype.equiv_fin ι,
-  obtain ⟨e'⟩ := fintype.equiv_fin ι',
+  let e := fintype.equiv_fin ι,
+  let e' := fintype.equiv_fin ι',
   have hb := hb.comp _ e.symm.bijective,
   have hv := (linear_independent_equiv e'.symm).mpr hv,
   have hv := hv.map' _ hb.equiv_fun.ker,
@@ -384,6 +385,12 @@ begin
   -- hence `M` is free.
   exact ⟨n, ψ.symm ∘ B, linear_equiv.is_basis hB ψ.symm⟩
 end
+
+/-- A finite type torsion free module over a PID is free. -/
+lemma module.free_of_finite_type_torsion_free' [module.finite R M] [no_zero_smul_divisors R M] :
+  ∃ (n : ℕ) (B : fin n → M), is_basis R B :=
+let ⟨n, s, hs⟩ := module.finite.exists_fin in module.free_of_finite_type_torsion_free hs
+
 end principal_ideal_domain
 
 /-- A set of linearly independent vectors in a module `M` over a semiring `S` is also linearly

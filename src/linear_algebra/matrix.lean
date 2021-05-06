@@ -1288,7 +1288,7 @@ begin
   set mk2 := (sum.elim (λ i, (0 : fin 2)) (λ j, 1)) k2 with hmk2,
   fin_cases mk1; fin_cases mk2; rw [h, h_1] at hk12,
   { exact absurd hk12 (nat.not_lt_zero 0) },
-  { exact absurd hk12 (nat.not_lt_zero 1) },
+  { exact absurd hk12 (by norm_num) },
   { rw hmk1 at h,
     obtain ⟨i, hi⟩ := h1 k1 h,
     rw hmk2 at h_1,

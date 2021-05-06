@@ -257,7 +257,7 @@ lemma norm_sq_nonneg (z : K) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
 
 @[simp] lemma norm_sq_eq_zero {z : K} : norm_sq z = 0 ↔ z = 0 :=
-by { rw [norm_sq_eq_def'], simp [pow_two] }
+by { rw [norm_sq_eq_def'], simp [sq] }
 
 @[simp] lemma norm_sq_pos {z : K} : 0 < norm_sq z ↔ z ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
@@ -272,7 +272,7 @@ norm_sq.map_mul z w
 
 lemma norm_sq_add (z w : K) :
   norm_sq (z + w) = norm_sq z + norm_sq w + 2 * (re (z * conj w)) :=
-by simp [norm_sq, pow_two]; ring
+by simp [norm_sq, sq]; ring
 
 lemma re_sq_le_norm_sq (z : K) : re z * re z ≤ norm_sq z :=
 le_add_of_nonneg_right (mul_self_nonneg _)
@@ -306,7 +306,7 @@ by simp [-mul_re, norm_sq_add, add_comm, add_left_comm, sub_eq_add_neg]
 
 lemma sqrt_norm_sq_eq_norm {z : K} : real.sqrt (norm_sq z) = ∥z∥ :=
 begin
-  have h₂ : ∥z∥ = real.sqrt (∥z∥^2) := (real.sqrt_sqr (norm_nonneg z)).symm,
+  have h₂ : ∥z∥ = real.sqrt (∥z∥^2) := (real.sqrt_sq (norm_nonneg z)).symm,
   rw [h₂],
   exact congr_arg real.sqrt (norm_sq_eq_def' z)
 end
@@ -553,16 +553,16 @@ end
 by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 
 lemma norm_sq_eq_abs (x : K) : norm_sq x = abs x ^ 2 :=
-by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
+by rw [abs, sq, real.mul_self_sqrt (norm_sq_nonneg _)]
 
 lemma re_eq_abs_of_mul_conj (x : K) : re (x * (conj x)) = abs (x * (conj x)) :=
-by rw [mul_conj, of_real_re, abs_of_real, norm_sq_eq_abs, pow_two, _root_.abs_mul, abs_abs]
+by rw [mul_conj, of_real_re, abs_of_real, norm_sq_eq_abs, sq, _root_.abs_mul, abs_abs]
 
-lemma abs_sqr_re_add_conj (x : K) : (abs (x + x†))^2 = (re (x + x†))^2 :=
-by simp [pow_two, ←norm_sq_eq_abs, norm_sq]
+lemma abs_sq_re_add_conj (x : K) : (abs (x + x†))^2 = (re (x + x†))^2 :=
+by simp [sq, ←norm_sq_eq_abs, norm_sq]
 
-lemma abs_sqr_re_add_conj' (x : K) : (abs (x† + x))^2 = (re (x† + x))^2 :=
-by simp [pow_two, ←norm_sq_eq_abs, norm_sq]
+lemma abs_sq_re_add_conj' (x : K) : (abs (x† + x))^2 = (re (x† + x))^2 :=
+by simp [sq, ←norm_sq_eq_abs, norm_sq]
 
 lemma conj_mul_eq_norm_sq_left (x : K) : x† * x = ((norm_sq x) : K) :=
 begin
@@ -669,10 +669,10 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
   conj_re_ax := λ z, by simp only [ring_hom.id_apply],
   conj_im_ax := λ z, by simp only [neg_zero, add_monoid_hom.zero_apply],
   conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  norm_sq_eq_def_ax := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero,
+  norm_sq_eq_def_ax := λ z, by simp only [sq, norm, ←abs_mul, abs_mul_self z, add_zero,
     mul_zero, add_monoid_hom.zero_apply, add_monoid_hom.id_apply],
   mul_im_I_ax := λ z, by simp only [mul_zero, add_monoid_hom.zero_apply],
-  inv_def_ax := λ z, by simp [pow_two, real.norm_eq_abs, abs_mul_abs_self, ← div_eq_mul_inv],
+  inv_def_ax := λ z, by simp [sq, real.norm_eq_abs, abs_mul_abs_self, ← div_eq_mul_inv],
   div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
 
 end instances
@@ -692,7 +692,7 @@ local notation `norm_sqR` := @is_R_or_C.norm_sq ℝ _
 @[simp] lemma im_to_real {x : ℝ} : imR x = 0 := rfl
 @[simp] lemma conj_to_real {x : ℝ} : conjR x = x := rfl
 @[simp] lemma I_to_real : IR = 0 := rfl
-@[simp] lemma norm_sq_to_real {x : ℝ} : norm_sqR x = x*x := by simp [is_R_or_C.norm_sq]
+@[simp] lemma norm_sq_to_real {x : ℝ} : norm_sq x = x*x := by simp [is_R_or_C.norm_sq]
 @[simp] lemma abs_to_real {x : ℝ} : absR x = _root_.abs x :=
 by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 

@@ -76,7 +76,7 @@ begin
 end
 
 lemma general_commutator_containment (H₁ H₂ : subgroup G) {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
-  p * q * p⁻¹ * q⁻¹∈ ⁅H₁, H₂⁆:=
+  p * q * p⁻¹ * q⁻¹ ∈ ⁅H₁, H₂⁆:=
 (general_commutator_le H₁ H₂ ⁅H₁, H₂⁆).mp (le_refl ⁅H₁, H₂⁆) p hp q hq
 
 lemma general_commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=

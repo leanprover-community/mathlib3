@@ -290,7 +290,7 @@ variables (e : perm α) (ι : α ↪ β)
 
 open_locale classical
 
-/-- Noncomputable version of `equiv.perm.via_fintype_embedding`, but does not assume `fintype` -/
+/-- Noncomputable version of `equiv.perm.via_fintype_embedding` that does not assume `fintype` -/
 noncomputable def via_embedding : perm β :=
 extend_domain e (of_injective ι.1 ι.2)
 

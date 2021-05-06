@@ -53,6 +53,8 @@ Extend the domain of `e : equiv.perm α`, mapping it through `f : α ↪ β`.
 Everything outside of `set.range f` is kept fixed. Has poor computational performance,
 due to exhaustive searching in constructed inverse due to using `function.embedding.to_equiv_range`.
 When a better `α ≃ set.range f` is known, use `equiv.perm.via_set_range`.
+When `[fintype α]` is not available, a noncomputable version is available as
+`equiv.perm.via_embedding`.
 -/
 def equiv.perm.via_fintype_embedding : equiv.perm β :=
 e.extend_domain f.to_equiv_range

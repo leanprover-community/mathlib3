@@ -243,7 +243,7 @@ theorem inv_coe_set : (H : set G)⁻¹ = H :=
 by { ext, simp, }
 
 @[to_additive]
-lemma exists_mem_iff_exists_neg_mem  (K : subgroup G) {P : G → Prop} :
+lemma exists_mem_iff_exists_inv_mem (K : subgroup G) {P : G → Prop} :
   (∃ x ∈ K, P x) ↔ ∃ x ∈ K, P x⁻¹ :=
 by split ; rintros ⟨x, x_in, hx⟩ ; exact ⟨x⁻¹, inv_mem K x_in, by simp [hx]⟩
 

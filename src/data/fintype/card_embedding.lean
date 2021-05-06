@@ -63,7 +63,7 @@ variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable
 /- Establishes the cardinality of the type of all injections, if any exist.  -/
 @[simp] theorem card_embedding (h : ‖α‖ ≤ ‖β‖) : ‖α ↪ β‖ = (nat.desc_fac (‖β‖ - ‖α‖) ‖α‖) :=
 begin
-  trunc_cases fintype.equiv_fin α with eq,
+  trunc_cases fintype.trunc_equiv_fin α with eq,
   rw fintype.card_congr (equiv.embedding_congr eq (equiv.refl β)),
   exact card_embedding_aux _ _ h,
 end

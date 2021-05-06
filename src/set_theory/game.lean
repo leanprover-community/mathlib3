@@ -130,7 +130,7 @@ end
 instance : add_comm_semigroup game :=
 { add_comm := add_comm,
   ..game.add_semigroup }
-  
+
 instance : add_comm_group game :=
 { ..game.add_comm_semigroup,
   ..game.add_group }

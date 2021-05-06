@@ -327,6 +327,9 @@
   title  : Desargues’s Theorem
 88:
   title  : Derangements Formula
+  links :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/88_derangements_formula.lean
+  author : Henry Swanson
 89:
   title  : The Factor and Remainder Theorems
   decls  :

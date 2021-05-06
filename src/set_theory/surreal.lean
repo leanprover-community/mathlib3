@@ -150,9 +150,9 @@ theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
 /-- `x * 0` has exactly the same moves as `0`. -/
 def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
 | (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨_,⟨⟩⟩|⟨_,⟨⟩⟩),
- by fsplit; rintro (⟨_,⟨⟩⟩|⟨_,⟨⟩⟩),
- by rintro (⟨_,⟨⟩⟩|⟨_,⟨⟩⟩),
+⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+ by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
+ by rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
  by rintro ⟨⟩⟩
 
 /-- `x * 0` is equivalent to `0`. -/
@@ -162,9 +162,9 @@ theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 :=
 /-- `0 * x` has exactly the same moves as `0`. -/
 def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 | (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨⟨⟩,_⟩|⟨⟨⟩,_⟩),
- by fsplit; rintro (⟨⟨⟩,_⟩|⟨⟨⟩,_⟩),
- by rintro (⟨⟨⟩,_⟩|⟨⟨⟩,_⟩),
+⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+ by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
+ by rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
  by rintro ⟨⟩⟩
 
 /-- `0 * x` is equivalent to `0`. -/
@@ -176,7 +176,7 @@ by { apply @quotient.exact pgame, simp, abel }
 
 lemma left_distrib_equiv_aux' {a b c d e : pgame} : b + a + (d + c) - (b + e) ≈ d + (a + c - e) :=
 by { apply @quotient.exact pgame, simp, abel }
- 
+
 /-- `x * (y + z)` is equivalent to `x * y + x * z.`-/
 theorem left_distrib_equiv : Π (x y z : pgame), x * (y + z) ≈ x * y + x * z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=

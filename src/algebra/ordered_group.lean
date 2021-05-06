@@ -707,12 +707,7 @@ lemma le_of_forall_pos_lt_add (h : ∀ ε : α, 0 < ε → a < b + ε) : a ≤ b
 le_of_not_lt $ λ h₁, by simpa using h _ (sub_pos_of_lt h₁)
 
 lemma le_iff_forall_pos_lt_add [densely_ordered α] {x y : α} : x ≤ y ↔ ∀ ε > 0, x < y + ε :=
-begin
-  rw le_iff_forall_pos_le_add,
-  refine ⟨λ h ε ε_pos, _, λ h ε ε_pos, (h ε ε_pos).le⟩,
-  obtain ⟨δ, δ_pos, hδ⟩ := exists_between ε_pos,
-  exact lt_of_le_of_lt (h δ δ_pos) (add_lt_add_left hδ y)
-end
+⟨λ h ε, lt_add_of_le_of_pos h, le_of_forall_pos_lt_add⟩
 
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)

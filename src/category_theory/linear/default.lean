@@ -7,6 +7,7 @@ import category_theory.preadditive
 import algebra.module.linear_map
 import algebra.invertible
 import linear_algebra.basic
+import algebra.algebra.basic
 
 /-!
 # Linear categories
@@ -65,6 +66,17 @@ instance preadditive_nat_linear : linear ℕ C :=
 instance preadditive_int_linear : linear ℤ C :=
 { smul_comp' := λ X Y Z r f g, (preadditive.right_comp X g).map_gsmul f r,
   comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_gsmul g r, }
+
+section End
+
+variables {R : Type w} [comm_ring R] [linear R C]
+
+instance (X : C) : module R (End X) := by { dsimp [End], apply_instance, }
+
+instance (X : C) : algebra R (End X) :=
+algebra.of_module (λ r f g, comp_smul _ _ _ _ _ _) (λ r f g, smul_comp _ _ _ _ _ _)
+
+end End
 
 section
 variables {R : Type w} [semiring R] [linear R C]

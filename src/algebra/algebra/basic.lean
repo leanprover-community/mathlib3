@@ -167,17 +167,22 @@ algebra.commutes' r x
 theorem left_comm (r : R) (x y : A) : x * (algebra_map R A r * y) = algebra_map R A r * (x * y) :=
 by rw [← mul_assoc, ← commutes, mul_assoc]
 
-@[simp] lemma mul_smul_comm (s : R) (x y : A) :
+instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
+⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, smul_def, smul_def, mul_assoc]⟩
+
+/-- This is just a special case of the global `mul_smul_comm` lemma that requires less typeclass
+search (and was here first). -/
+@[simp] protected lemma mul_smul_comm (s : R) (x y : A) :
   x * (s • y) = s • (x * y) :=
+-- TODO: set up `is_scalar_tower.smul_comm_class` earlier so that we can actually prove this using
+-- `mul_smul_comm s x y`.
 by rw [smul_def, smul_def, left_comm]
 
-@[simp] lemma smul_mul_assoc (r : R) (x y : A) :
+/-- This is just a special case of the global `smul_mul_assoc` lemma that requires less typeclass
+search (and was here first). -/
+@[simp] protected lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
-by rw [smul_def, smul_def, mul_assoc]
-
-lemma smul_mul_smul (r s : R) (x y : A) :
-  (r • x) * (s • y) = (r * s) • (x * y) :=
-by rw [algebra.smul_mul_assoc, algebra.mul_smul_comm, smul_smul]
+smul_mul_assoc r x y
 
 section
 variables {r : R} {a : A}
@@ -573,12 +578,20 @@ ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
 @[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
+lemma map_list_prod (s : list A) :
+  φ s.prod = (s.map φ).prod :=
+φ.to_ring_hom.map_list_prod s
+
 end semiring
 
 section comm_semiring
 
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
+
+lemma map_multiset_prod (s : multiset A) :
+  φ s.prod = (s.map φ).prod :=
+φ.to_ring_hom.map_multiset_prod s
 
 lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=

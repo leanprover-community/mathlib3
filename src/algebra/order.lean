@@ -143,11 +143,6 @@ lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x :=
 ⟨not_le_of_gt, lt_of_not_ge'⟩
 
-lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt.1
-
-lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
-lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
-
 lemma ne.lt_or_lt [linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
 lt_or_gt_of_ne h
 
@@ -163,10 +158,6 @@ end
 lemma lt_imp_lt_of_le_imp_le {β} [linear_order α] [preorder β] {a b : α} {c d : β}
   (H : a ≤ b → c ≤ d) (h : d < c) : b < a :=
 lt_of_not_ge' $ λ h', (H h').not_lt h
-
-lemma le_imp_le_of_lt_imp_lt {β} [preorder α] [linear_order β] {a b : α} {c d : β}
-  (H : d < c → b < a) (h : a ≤ b) : c ≤ d :=
-le_of_not_gt $ λ h', (H h').not_le h
 
 lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
   (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=

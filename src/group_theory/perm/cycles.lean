@@ -78,6 +78,18 @@ let ⟨x, hx⟩ := hf in
       ne.def] at *, cc }) in
     ⟨-i, by rwa [gpow_neg, inv_gpow, inv_inv]⟩⟩
 
+lemma is_cycle.is_cycle_conj {f g : perm β} (hf : is_cycle f) : is_cycle (g * f * g⁻¹) :=
+begin
+  obtain ⟨a, ha1, ha2⟩ := hf,
+  refine ⟨g a, by simp [ha1], λ b hb, _⟩,
+  obtain ⟨i, hi⟩ := ha2 (g⁻¹ b) _,
+  { refine ⟨i, _⟩,
+    rw conj_gpow,
+    simp [hi] },
+  { contrapose! hb,
+    rw [perm.mul_apply, perm.mul_apply, hb, apply_inv_self] }
+end
+
 lemma is_cycle.exists_gpow_eq {f : perm β} (hf : is_cycle f) {x y : β}
   (hx : f x ≠ x) (hy : f y ≠ y) : ∃ i : ℤ, (f ^ i) x = y :=
 let ⟨g, hg⟩ := hf in
@@ -436,7 +448,7 @@ quotient.rec_on_subsingleton (@univ α _).1
 
 @[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
   (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
-  (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → P σ → P τ → P (σ * τ)) :
+  (induction_disjoint : ∀ σ τ : perm β, disjoint σ τ → is_cycle σ → P σ → P τ → P (σ * τ)) :
   P σ :=
 begin
   suffices :
@@ -451,6 +463,7 @@ begin
     rw list.prod_cons,
     exact induction_disjoint σ l.prod
       (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1)
+      (h1 _ (list.mem_cons_self _ _))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
       (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
 end
@@ -597,6 +610,65 @@ theorem is_cycle.is_conj_iff (hσ : is_cycle σ) (hτ : is_cycle τ) :
     rw [mem_support, not_not, perm.mul_apply, perm.mul_apply, hb, perm.apply_inv_self] }
 end, hσ.is_conj hτ⟩
 
+@[simp]
+lemma support_conj : (σ * τ * σ⁻¹).support = τ.support.map σ.to_embedding :=
+begin
+  ext,
+  simp only [mem_map_equiv, perm.coe_mul, comp_app, ne.def, perm.mem_support, equiv.eq_symm_apply],
+  refl,
+end
+
+lemma card_support_conj : (σ * τ * σ⁻¹).support.card = τ.support.card :=
+by simp
+
+end
+
+theorem disjoint.is_conj_mul {α : Type*} [fintype α] {σ τ π ρ : perm α}
+  (hc1 : is_conj σ π) (hc2 : is_conj τ ρ)
+  (hd1 : disjoint σ τ) (hd2 : disjoint π ρ) :
+  is_conj (σ * τ) (π * ρ) :=
+begin
+  classical,
+  obtain ⟨f, rfl⟩ := is_conj_iff.1 hc1,
+  obtain ⟨g, rfl⟩ := is_conj_iff.1 hc2,
+  have hd1' := coe_inj.2 hd1.support_mul,
+  have hd2' := coe_inj.2 hd2.support_mul,
+  rw [coe_union] at *,
+  have hd1'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd1),
+  have hd2'' := disjoint_iff_disjoint_coe.1 (disjoint_iff_disjoint_support.1 hd2),
+  refine is_conj_of_support_equiv _ _,
+  { refine ((equiv.set.of_eq hd1').trans (equiv.set.union hd1'')).trans
+      ((equiv.sum_congr (subtype_equiv f (λ a, _)) (subtype_equiv g (λ a, _))).trans
+      ((equiv.set.of_eq hd2').trans (equiv.set.union hd2'')).symm);
+    { simp only [set.mem_image, to_embedding_apply, exists_eq_right,
+        support_conj, coe_map, apply_eq_iff_eq] } },
+  { intros x hx,
+    simp only [trans_apply, symm_trans_apply, set.of_eq_apply,
+      set.of_eq_symm_apply, equiv.sum_congr_apply],
+    rw [hd1', set.mem_union] at hx,
+    cases hx with hxσ hxτ,
+    { rw [mem_coe, mem_support] at hxσ,
+      rw [set.union_apply_left hd1'' _, set.union_apply_left hd1'' _],
+      simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inl, comp_app,
+        set.union_symm_apply_left, subtype.coe_mk, apply_eq_iff_eq],
+      { have h := (hd2 (f x)).resolve_left _,
+        { rw [mul_apply, mul_apply] at h,
+          rw [h, inv_apply_self, (hd1 x).resolve_left hxσ] },
+        { rwa [mul_apply, mul_apply, inv_apply_self, apply_eq_iff_eq] } },
+      { rwa [subtype.coe_mk, subtype.coe_mk, mem_coe, mem_support] },
+      { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
+          (hd1 x).resolve_left hxσ, mem_coe, apply_mem_support, mem_support] } },
+    { rw [mem_coe, ← apply_mem_support, mem_support] at hxτ,
+      rw [set.union_apply_right hd1'' _, set.union_apply_right hd1'' _],
+      simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inr, comp_app,
+        set.union_symm_apply_right, subtype.coe_mk, apply_eq_iff_eq],
+      { have h := (hd2 (g (τ x))).resolve_right _,
+        { rw [mul_apply, mul_apply] at h,
+          rw [inv_apply_self, h, (hd1 (τ x)).resolve_right hxτ] },
+        { rwa [mul_apply, mul_apply, inv_apply_self, apply_eq_iff_eq] } },
+      { rwa [subtype.coe_mk, subtype.coe_mk, mem_coe, ← apply_mem_support, mem_support] },
+      { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
+          (hd1 (τ x)).resolve_right hxτ, mem_coe, mem_support] } } }
 end
 
 section fixed_points

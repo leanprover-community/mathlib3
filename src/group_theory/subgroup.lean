@@ -242,9 +242,9 @@ by simpa only [div_eq_mul_inv] using H.mul_mem' hx (H.inv_mem' hy)
 theorem inv_coe_set : (H : set G)⁻¹ = H :=
 by { ext, simp, }
 
-@[to_additive]
+@[simp, to_additive]
 lemma exists_mem_iff_exists_neg_mem  (K : subgroup G) {P : G → Prop} :
-  (∃ x ∈ K, P x) ↔ ∃ x ∈ K, P x⁻¹ :=
+  (∃ x ∈ K, P x⁻¹) ↔ ∃ x ∈ K, P x :=
 by split ; rintros ⟨x, x_in, hx⟩ ; exact ⟨x⁻¹, inv_mem K x_in, by simp [hx]⟩
 
 @[to_additive]

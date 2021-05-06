@@ -342,6 +342,8 @@ lemma not_solvable_of_mem_derived_series {g : G} (h1 : g ≠ 1)
 mt (is_solvable_def _).mp (not_exists_of_forall_not
   (λ n h, h1 (subgroup.mem_bot.mp ((congr_arg (has_mem.mem g) h).mp (h2 n)))))
 
+namespace S5_not_solvable
+
 /-- A type with 5 terms -/
 inductive weekday : Type
 | monday : weekday
@@ -446,14 +448,16 @@ end
 
 end weekday
 
+end S5_not_solvable
+
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :
   ¬ is_solvable (equiv.perm X) :=
 begin
   introI h,
-  have key : nonempty (weekday ↪ X),
-  { rwa [←cardinal.lift_mk_le, weekday.card, cardinal.lift_nat_cast, nat.cast_bit1,
-    nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
-  exact weekday.not_solvable (solvable_of_solvable_injective
+  have key : nonempty (S5_not_solvable.weekday ↪ X),
+  { rwa [←cardinal.lift_mk_le, S5_not_solvable.weekday.card, cardinal.lift_nat_cast,
+    nat.cast_bit1, nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
+  exact S5_not_solvable.weekday.not_solvable (solvable_of_solvable_injective
     (equiv.perm.via_embedding_hom_injective (nonempty.some key))),
 end
 

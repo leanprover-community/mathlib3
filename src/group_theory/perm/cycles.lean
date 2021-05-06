@@ -36,13 +36,6 @@ The following two definitions require that `β` is a `fintype`:
 
 -/
 
--- lemma list.perm.to_finset_eq {α : Type*} [decidable_eq α] [fintype α] {l l' : list α} (h : l ~ l') :
---   l.to_finset = l'.to_finset :=
--- begin
---   exact list.to_finset_eq_of_perm l l' h
--- end
--- #exit
-
 namespace equiv.perm
 open equiv function finset
 

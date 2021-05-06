@@ -684,7 +684,7 @@ end
 
 /-- If an additive monoid `M` is finitely generated then `add_monoid_algebra R M` is of finite
 type. -/
-instance ft_of_fg [comm_ring R] [h : add_monoid.fg M] : finite_type R (add_monoid_algebra R M) :=
+instance finite_type_of_fg [comm_ring R] [h : add_monoid.fg M] : finite_type R (add_monoid_algebra R M) :=
 begin
   obtain ⟨S, hS⟩ := h.out,
   exact (finite_type.mv_polynomial R (S : set M)).of_surjective (mv_polynomial.aeval
@@ -693,10 +693,10 @@ end
 
 /-- An additive monoid `M` is finitely generated if and only if `add_monoid_algebra R M` is of
 finite type. -/
-lemma ft_iff_fg [comm_ring R] [nontrivial R] :
+lemma finite_type_iff_fg [comm_ring R] [nontrivial R] :
   add_monoid.fg M ↔ finite_type R (add_monoid_algebra R M) :=
 begin
-  refine ⟨λ h, @add_monoid_algebra.ft_of_fg _ _ _ _ h, λ h, _⟩,
+  refine ⟨λ h, @add_monoid_algebra.finite_type_of_fg _ _ _ _ h, λ h, _⟩,
   obtain ⟨S, hS⟩ := @exists_finset_adjoin_eq_top R M _ _ h,
   refine add_monoid.fg_def.2 ⟨S, (eq_top_iff' _).2 (λ m, _)⟩,
   have hm : of' R M m ∈ (adjoin R (of' R M '' ↑S)).to_submodule,
@@ -706,9 +706,9 @@ begin
 end
 
 /-- If `add_monoid_algebra R M` is of finite type then `M` is finitely generated. -/
-lemma fg_of_ft [comm_ring R] [nontrivial R] [h : finite_type R (add_monoid_algebra R M)] :
+lemma fg_of_finite_type [comm_ring R] [nontrivial R] [h : finite_type R (add_monoid_algebra R M)] :
   add_monoid.fg M :=
-ft_iff_fg.2 h
+finite_type_iff_fg.2 h
 
 end add_monoid_algebra
 
@@ -825,19 +825,19 @@ begin
 end
 
 /-- If a monoid `M` is finitely generated then `monoid_algebra R M` is of finite type. -/
-instance ft_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=
-add_monoid_algebra.ft_of_fg.equiv (to_additive_alg_equiv R M).symm
+instance finite_type_of_fg [comm_ring R] [monoid.fg M] : finite_type R (monoid_algebra R M) :=
+add_monoid_algebra.finite_type_of_fg.equiv (to_additive_alg_equiv R M).symm
 
 /-- A monoid `M` is finitely generated if and only if `monoid_algebra R M` is of finite type. -/
-lemma ft_iff_fg [comm_ring R] [nontrivial R] :
+lemma finite_type_iff_fg [comm_ring R] [nontrivial R] :
   monoid.fg M ↔ finite_type R (monoid_algebra R M) :=
-⟨λ h, @monoid_algebra.ft_of_fg _ _ _ _ h, λ h, monoid.fg_iff_add_fg.2 $
-  add_monoid_algebra.ft_iff_fg.2 $ h.equiv $ to_additive_alg_equiv R M⟩
+⟨λ h, @monoid_algebra.finite_type_of_fg _ _ _ _ h, λ h, monoid.fg_iff_add_fg.2 $
+  add_monoid_algebra.finite_type_iff_fg.2 $ h.equiv $ to_additive_alg_equiv R M⟩
 
 /-- If `monoid_algebra R M` is of finite type then `M` is finitely generated. -/
-lemma fg_of_ft [comm_ring R] [nontrivial R] [h : finite_type R (monoid_algebra R M)] :
+lemma fg_of_finite_type [comm_ring R] [nontrivial R] [h : finite_type R (monoid_algebra R M)] :
   monoid.fg M :=
-ft_iff_fg.2 h
+finite_type_iff_fg.2 h
 
 end monoid_algebra
 

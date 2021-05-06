@@ -39,6 +39,7 @@ namespace Module
 variables {R : Type u} [ring R] {M : Module.{(max u v)} R}
 
 /-- Modules that have a basis are projective. -/
+-- We transport the corresponding result from `is_projective`.
 lemma projective_of_free {ι : Type*} {v : ι → M} (hv : is_basis R v) : projective M :=
 projective.of_iso (Module.of_self_iso _)
   ((is_projective.iff_projective).mp (is_projective.of_free hv))

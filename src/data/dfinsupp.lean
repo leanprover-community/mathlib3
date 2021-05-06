@@ -181,7 +181,6 @@ instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
   (∑ a in s, g a) i = ∑ a in s, g a i :=
 (eval_add_monoid_hom i : _ →+ β i).map_sum g s
 
-
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 map_range_apply _ _ g i
 

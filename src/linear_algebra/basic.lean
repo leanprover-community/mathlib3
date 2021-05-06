@@ -1953,7 +1953,7 @@ lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*}
   Pi_congr_right (λ j, refl R (Ms j)) = refl _ _ := rfl
 
 @[simp]
-lemma Pi_congr_right_symm {η : Type*} {Ms Ns Ps : η → Type*}
+lemma Pi_congr_right_symm {η : Type*} {Ms Ns : η → Type*}
   [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
   [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
   (es : ∀ j, Ms j ≃ₗ[R] Ns j) :

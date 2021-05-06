@@ -355,7 +355,7 @@ begin
     { dsimp only,
       exact (hgs i hi).symm ▸ zero_smul _ _ },
     { rw [← hsum, finset.sum_congr rfl _],
-      intros, simp only [smul_assoc] } },
+      intros, erw [pi.smul_apply, smul_assoc] } },
   { rw eq_top_iff,
     intros j hj,
     rw ← hw₁'' at hj,

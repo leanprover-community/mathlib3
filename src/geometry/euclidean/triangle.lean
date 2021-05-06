@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Joseph Myers
+Authors: Joseph Myers, Manuel Candales
 -/
 import geometry.euclidean.basic
 import tactic.interval_cases
@@ -371,6 +371,25 @@ begin
       = ((dist b p) + (dist c p)) * ((dist a p) ^ 2 + (dist b p) * (dist c p))
         : by { rw [h1, h2, h3], ring }
   ... = (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) : by rw ← h4,
+end
+
+/-- Apollonius's Theorem. -/
+theorem sq_dist_add_sq_dist_eq_two_mul_sq_dist_midpoint_add_sq_half_dist (a b c : P) :
+  dist a b ^ 2 + dist a c ^ 2 = 2 * (dist a (midpoint ℝ b c) ^ 2 + (dist b c / 2) ^ 2) :=
+begin
+  by_cases hbc : b = c,
+  { simp [hbc, midpoint_self, dist_self, two_mul] },
+  { let m := midpoint ℝ b c,
+    have : dist b c ≠ 0 := ne_of_gt (dist_pos.mpr hbc),
+    have hm := sq_dist_mul_dist_add_sq_dist_mul_dist a b c m (angle_midpoint_eq_pi b c hbc),
+    simp [dist_left_midpoint, dist_right_midpoint] at hm,
+    calc  dist a b ^ 2 + dist a c ^ 2
+        = 2 / dist b c * (dist a b ^ 2 * (2⁻¹ * dist b c) + dist a c ^ 2 * (2⁻¹ * dist b c)) :
+          by { field_simp, ring }
+    ... = 2 / dist b c * (dist b c * (dist a m ^ 2 + 2⁻¹ * dist b c * (2⁻¹ * dist b c))) :
+          by { rw hm }
+    ... = 2 * (dist a (midpoint ℝ b c) ^ 2 + (dist b c / 2) ^ 2) :
+          by { field_simp, ring } },
 end
 
 lemma dist_mul_of_eq_angle_of_dist_mul (a b c a' b' c' : P) (r : ℝ) (h : ∠ a' b' c' = ∠ a b c)

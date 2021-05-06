@@ -989,7 +989,7 @@ begin
   { intro i, exact ne_of_lt (real.rpow_pos_of_pos (sign_mul_ne_zero_pos _
       (is_unit_iff_ne_zero.1 (hu i))) _) },
   convert ((weighted_sum_squares u).isometry_basis_repr
-    (is_basis.smul_of_invertible (pi.is_basis_fun ℝ ι) (λ i, is_unit_iff_ne_zero.2 (hu' i).symm))),
+    (is_basis.smul_of_is_unit (pi.is_basis_fun ℝ ι) (λ i, is_unit_iff_ne_zero.2 (hu' i).symm))),
   ext1 v,
   rw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),

@@ -471,7 +471,7 @@ lemma Inf_le_iff {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {a : ℝ} :
   Inf s ≤ a ↔ ∀ ε > 0, ∃ x ∈ s, x < a + ε :=
 begin
   rw le_iff_forall_pos_lt_add,
-  split ; intros H ε ε_pos,
+  split; intros H ε ε_pos,
   { exact exists_lt_of_cInf_lt h' (H ε ε_pos) },
   { rcases H ε ε_pos with ⟨x, x_in, hx⟩,
     exact cInf_lt_of_lt h x_in hx }

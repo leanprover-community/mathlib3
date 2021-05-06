@@ -172,18 +172,10 @@ theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
 (zero_mul_relabelling x).equiv
 
 lemma left_distrib_equiv_aux {a b c d e : pgame} : a + b + (c + d) - (e + b) ≈ a + c - e + d :=
-begin
-  apply @quotient.exact pgame,
-  change (⟦a⟧ + ⟦b⟧ + (⟦c⟧ + ⟦d⟧) - (⟦e⟧ + ⟦b⟧) : game) = ⟦a⟧ + ⟦c⟧ + -⟦e⟧ + ⟦d⟧,
-  abel,
-end
+by { apply @quotient.exact pgame, simp, abel }
 
 lemma left_distrib_equiv_aux' {a b c d e : pgame} : b + a + (d + c) - (b + e) ≈ d + (a + c - e) :=
-begin
-  apply @quotient.exact pgame,
-  change (⟦b⟧ + ⟦a⟧ + (⟦d⟧ + ⟦c⟧) - (⟦b⟧ + ⟦e⟧) : game) = ⟦d⟧ + (⟦a⟧ + ⟦c⟧ + -⟦e⟧),
-  abel,
-end
+by { apply @quotient.exact pgame, simp, abel }
  
 /-- `x * (y + z)` is equivalent to `x * y + x * z.`-/
 theorem left_distrib_equiv : Π (x y z : pgame), x * (y + z) ≈ x * y + x * z

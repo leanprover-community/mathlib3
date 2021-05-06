@@ -2238,9 +2238,9 @@ variables {η : Type*} [fintype η] {ιs : η → Type*} [has_zero α]
 and `Π j, (ιs j →₀ α)`. -/
 noncomputable def sigma_finsupp_equiv_pi_finsupp :
   ((Σ j, ιs j) →₀ α) ≃ Π j, (ιs j →₀ α) :=
-{ to_fun := λ f j, f.split j,
+{ to_fun := split,
   inv_fun := λ f, on_finset
-    (finset.sigma finset.univ (λ j, (f j).support))
+    (finset.univ.sigma (λ j, (f j).support))
     (λ ji, f ji.1 ji.2)
     (λ g hg, finset.mem_sigma.mpr ⟨finset.mem_univ _, mem_support_iff.mpr hg⟩),
   left_inv := λ f, by { ext, simp [split] },

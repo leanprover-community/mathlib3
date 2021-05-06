@@ -343,7 +343,7 @@ end
 
 lemma is_basis.smul_of_is_unit {v : ι → M} (hv : is_basis R v)
   {w : ι → R} (hw : ∀ i : ι, is_unit (w i)) :
-  is_basis R (λ i, w i • v i) :=
+  is_basis R (w • v) :=
 begin
   obtain ⟨hw₁', hw₁''⟩ := hv,
   split,
@@ -359,7 +359,7 @@ begin
       dsimp only,
       exact (hgs i hi).symm ▸ zero_smul _ _ },
     { rw [← hsum, finset.sum_congr rfl _],
-      intros, simp only [smul_assoc] } },
+      intros, simp only [smul_assoc, pi.smul_apply'] } },
   { rw eq_top_iff,
     intros j hj,
     rw ← hw₁'' at hj,
@@ -369,7 +369,7 @@ begin
     have hw₂ : ↑((hw i).unit)⁻¹ * w i = 1,
     { rw [units.inv_mul_eq_iff_eq_mul (hw i).unit, (hw i).unit_spec, mul_one] },
     have := p.smul_mem ↑((hw i).unit)⁻¹ (hp ⟨i, rfl⟩),
-    rwa [← smul_assoc, smul_eq_mul, hw₂, one_smul] at this }
+    rwa [pi.smul_apply', ← smul_assoc, smul_eq_mul, hw₂, one_smul] at this }
 end
 
 end is_basis

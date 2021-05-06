@@ -926,7 +926,7 @@ begin
     rw [linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_noteq hij.symm,
         pi.zero_apply, smul_eq_mul, smul_eq_mul, mul_zero, mul_zero],
     intro hj', exact false.elim (hj' hj) },
-  rw [hsum, smul_eq_mul],
+  erw [hsum, smul_eq_mul],
   suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
   { rw [pi.one_apply, ← mul_assoc, this], ring },
   rw [← complex.cpow_add _ _ (hw j), show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,

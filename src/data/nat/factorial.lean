@@ -145,7 +145,6 @@ end
 
 section desc_fac
 
--- is there some way to tell only `norm_num` to expand this out, but not `simp`?
 /-- desc_fac n k = (n + k)! / n!, but implemented in a recursive way for calculation.
 This is closely related to `ring_theory.polynomial.pochhammer`, but much less general. -/
 def desc_fac (n : ℕ) : ℕ → ℕ

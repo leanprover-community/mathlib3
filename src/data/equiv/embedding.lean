@@ -18,9 +18,9 @@ open function.embedding
 
 namespace equiv
 
-/-- Embeddings from a sumtype are equivalent to two separate embeddings with disjoint ranges. -/
+/-- Embeddings from a sum type are equivalent to two separate embeddings with disjoint ranges. -/
 def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
-((α ⊕ β) ↪ γ) ≃ {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} :=
+  ((α ⊕ β) ↪ γ) ≃ {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} :=
 { to_fun := λ f, ⟨(inl.trans f, inr.trans f),
   begin
     rintros _ ⟨⟨a, h⟩, ⟨b, rfl⟩⟩,
@@ -53,8 +53,7 @@ def prod_embedding_disjoint_equiv_sigma_embedding_restricted {α β γ : Type*} 
   {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} ≃
   (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
 { to_fun := λ ⟨⟨f, g⟩, disj⟩, ⟨f, ⟨λ b, ⟨g b, set.disjoint_right.mp disj (⟨b, rfl⟩)⟩,
-  λ _ _ eq, by { rw subtype.mk_eq_mk at eq, exact g.injective eq }⟩⟩, -- one day I'll figure out ▸
-
+  λ _ _ eq, by { rw subtype.mk_eq_mk at eq, exact g.injective eq }⟩⟩,
   inv_fun := λ ⟨f, g⟩, ⟨⟨f, g.trans (function.embedding.subtype _)⟩,
   begin
     dsimp only,
@@ -63,12 +62,12 @@ def prod_embedding_disjoint_equiv_sigma_embedding_restricted {α β γ : Type*} 
     { rintros _ ⟨t, rfl⟩, simp },
     exact set.disjoint_of_subset_right this disjoint_compl_right
   end⟩,
-
   right_inv := λ ⟨_,_⟩, by simp!,
   left_inv := λ ⟨⟨_,_⟩,_⟩, by { dsimp only, ext; simp! } }
 
-/-- A simple combination of the above results, allowing us to simply combine embeddings
-over a sum-type. -/
+/-- A combination of the above results, allowing us to turn one embedding over a sum type
+into two dependent embeddings, the second of which avoids any members of the range
+of the first. This is helpful for constructing larger embeddings out of smaller ones. -/
 def sum_embedding_equiv_sigma_embedding_restricted {α β γ : Type*} :
   ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl)
 := equiv.trans sum_embedding_equiv_prod_embedding_disjoint

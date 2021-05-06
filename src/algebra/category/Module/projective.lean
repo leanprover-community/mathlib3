@@ -3,7 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
-import category_theory.preadditive.projective
+import category_theory.abelian.projective
 import algebra.category.Module.abelian
 import linear_algebra.finsupp_vector_space
 import algebra.module.projective

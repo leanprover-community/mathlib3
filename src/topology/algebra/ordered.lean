@@ -1258,7 +1258,7 @@ lemma not_tendsto_at_bot_of_tendsto_nhds [no_bot_order α]
   ¬  tendsto f F at_bot :=
 hf.not_tendsto (disjoint_nhds_at_bot x)
 
-lemma tendsto_const_nhds_iff [densely_ordered α] {l : filter α} [ne_bot l] {c d : α} :
+lemma tendsto_const_nhds_iff {l : filter α} [ne_bot l] {c d : α} :
   tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 

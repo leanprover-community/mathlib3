@@ -123,7 +123,6 @@ begin
     ext, simp, },
 end
 
-@[simp]
 lemma factor_thru_right {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) (g : Y ⟶ Z) (h : P.factors g) :
   f ≫ P.factor_thru g h = P.factor_thru (f ≫ g) (factors_of_factors_right f h) :=
 begin
@@ -138,11 +137,11 @@ lemma factor_thru_zero
 by simp
 
 -- `h` is an explicit argument here so we can use
--- `rw ←factor_thru_le h`, obtaining a subgoal `P.factors f`.
-@[simp]
-lemma factor_thru_comp_of_le
+-- `rw factor_thru_le h`, obtaining a subgoal `P.factors f`.
+-- (While the reverse direction looks plausible as a simp lemma, it seems to be unproductive.)
+lemma factor_thru_of_le
   {Y Z : C} {P Q : subobject Y} {f : Z ⟶ Y} (h : P ≤ Q) (w : P.factors f) :
-  P.factor_thru f w ≫ of_le P Q h = Q.factor_thru f (factors_of_le f h w) :=
+  Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ of_le P Q h :=
 by { ext, simp, }
 
 section preadditive

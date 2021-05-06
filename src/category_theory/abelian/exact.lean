@@ -38,24 +38,42 @@ variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
 local attribute [instance] has_equalizers_of_has_kernels
 
+/--
+In an abelian category, a pair of morphisms `f : X ⟶ Y`, `g : Y ⟶ Z` is exact
+iff `image_subobject f = kernel_subobject g`.
+-/
+theorem exact_iff'' : exact f g ↔ image_subobject f = kernel_subobject g :=
+begin
+  split,
+  { introI h,
+    fapply subobject.eq_of_comm,
+    { suffices : is_iso (image_to_kernel _ _ h.w),
+      { exactI as_iso (image_to_kernel _ _ h.w), },
+      exact is_iso_of_mono_of_epi _, },
+    { simp, }, },
+  { apply exact_of_image_eq_kernel, },
+end
+
 theorem exact_iff : exact f g ↔ f ≫ g = 0 ∧ kernel.ι g ≫ cokernel.π f = 0 :=
 begin
   split,
   { introI h,
     exact ⟨h.1, kernel_comp_cokernel f g⟩ },
   { refine λ h, ⟨h.1, _⟩,
-    suffices hl :
-      is_limit (kernel_fork.of_ι (image.ι f) (image_ι_comp_eq_zero h.1)),
-    { have : image_to_kernel_map f g h.1 =
-        (is_limit.cone_point_unique_up_to_iso hl (limit.is_limit _)).hom,
+    suffices hl : is_limit
+      (kernel_fork.of_ι (image_subobject f).arrow (image_subobject_arrow_comp_eq_zero h.1)),
+    { have : image_to_kernel f g h.1 =
+        (is_limit.cone_point_unique_up_to_iso hl (limit.is_limit _)).hom ≫
+          (kernel_subobject_iso _).inv,
       { ext, simp },
       rw this,
-      apply_instance },
+      apply_instance, },
     refine is_limit.of_ι _ _ _ _ _,
-    { refine λ W u hu, kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom,
+    { refine λ W u hu,
+        kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom ≫ (image_subobject_iso _).inv,
       rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
     { tidy },
-    { intros, simp [w, ←cancel_mono (image.ι f)] } }
+    { intros, rw [←cancel_mono (image_subobject f).arrow, w], simp, } }
 end
 
 theorem exact_iff' {cg : kernel_fork g} (hg : is_limit cg)
@@ -106,8 +124,8 @@ begin
   tfae_finish
 end
 
-lemma mono_iff_exact_zero_left : mono f ↔ exact (0 : Z ⟶ X) f :=
-(tfae_mono Z f).out 0 2
+-- Note we've already proved `mono_iff_exact_zero_left : mono f ↔ exact (0 : Z ⟶ X) f`
+-- in any preadditive category with kernels and images.
 
 lemma mono_iff_kernel_ι_eq_zero : mono f ↔ kernel.ι f = 0 :=
 (tfae_mono X f).out 0 1
@@ -127,8 +145,8 @@ begin
   tfae_finish
 end
 
-lemma epi_iff_exact_zero_right : epi f ↔ exact f (0 : Y ⟶ Z) :=
-(tfae_epi Z f).out 0 2
+-- Note we've already proved `epi_iff_exact_zero_right : epi f ↔ exact f (0 : Y ⟶ Z)`
+-- in any preadditive category with equalizers and images.
 
 lemma epi_iff_cokernel_π_eq_zero : epi f ↔ cokernel.π f = 0 :=
 (tfae_epi X f).out 0 1

@@ -141,7 +141,7 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
     is_t2 := by { dsimp [CompHaus_to_Top], apply_instance },
     is_totally_disconnected := by {
       dsimp [CompHaus_to_Top, CompHaus.limit_cone, Profinite.to_CompHaus, Top.limit_cone],
-      apply_instance} },
+      apply_instance } },
   π := { app := λ j, (CompHaus.limit_cone (F ⋙ Profinite.to_CompHaus)).π.app j } }
 
 /-- The limit cone `Profinite.limit_cone F` is indeed a limit cone. -/

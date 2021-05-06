@@ -172,7 +172,7 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
   { to_Top := (Top.limit_cone (F ⋙ CompHaus_to_Top)).X,
     is_compact := begin
       dsimp [Top.limit_cone],
-      erw ← compact_iff_compact_space,
+      rw ← compact_iff_compact_space,
       apply is_closed.compact,
       have : { u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j } =
         ⋂ (i j : J) (f : i ⟶ j), { u | F.map f (u i) = u j }, by tidy,
@@ -180,10 +180,10 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
       apply is_closed_Inter, intros i,
       apply is_closed_Inter, intros j,
       apply is_closed_Inter, intros f,
-      apply is_closed_eq,
+      apply is_closed_eq;
       continuity,
     end,
-    is_hausdorff := by {dsimp [Top.limit_cone], apply_instance}},
+    is_hausdorff := by { dsimp [Top.limit_cone], apply_instance } },
   π :=
   { app := λ j, (Top.limit_cone (F ⋙ CompHaus_to_Top)).π.app j,
     -- tidy needs a little help in the `naturality'` field to avoid deterministic timeouts.

@@ -2187,7 +2187,10 @@ variables {αs : ι → Type*} [has_zero M] (l : (Σ i, αs i) →₀ M)
 
 /-- Given `l`, a finitely supported function from the sigma type `Σ (i : ι), αs i` to `M` and
 an index element `i : ι`, `split l i` is the `i`th component of `l`,
-a finitely supported function from `as i` to `M`. -/
+a finitely supported function from `as i` to `M`.
+
+This is the `finsupp` version of `sigma.curry`.
+-/
 def split (i : ι) : αs i →₀ M :=
 l.comap_domain (sigma.mk i) (λ x1 x2 _ _ hx, heq_iff_eq.1 (sigma.mk.inj hx).2)
 
@@ -2235,7 +2238,9 @@ by simp only [sum, sigma_support, sum_sigma, split_apply]
 variables {η : Type*} [fintype η] {ιs : η → Type*} [has_zero α]
 
 /-- On a `fintype η`, `finsupp.split` is an equivalence between `(Σ (j : η), ιs j) →₀ α`
-and `Π j, (ιs j →₀ α)`. -/
+and `Π j, (ιs j →₀ α)`.
+
+This is the `finsupp` version of `equiv.Pi_curry`. -/
 noncomputable def sigma_finsupp_equiv_pi_finsupp :
   ((Σ j, ιs j) →₀ α) ≃ Π j, (ιs j →₀ α) :=
 { to_fun := split,
@@ -2251,7 +2256,10 @@ noncomputable def sigma_finsupp_equiv_pi_finsupp :
 sigma_finsupp_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
 
 /-- On a `fintype η`, `finsupp.split` is an additive equivalence between
-`(Σ (j : η), ιs j) →₀ α` and `Π j, (ιs j →₀ α)`. -/
+`(Σ (j : η), ιs j) →₀ α` and `Π j, (ιs j →₀ α)`.
+
+This is the `add_equiv` version of `finsupp.sigma_finsupp_equiv_pi_finsupp`.
+-/
 noncomputable def sigma_finsupp_add_equiv_pi_finsupp
   {α : Type*} {ιs : η → Type*} [add_monoid α] :
   ((Σ j, ιs j) →₀ α) ≃+ Π j, (ιs j →₀ α) :=

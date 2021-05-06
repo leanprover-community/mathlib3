@@ -17,7 +17,7 @@ on:
 
 jobs:
   cancel:
-    name: 'Cancel Previous Runs'
+    name: 'Cancel Previous Runs (dependent issues)'
     runs-on: ubuntu-latest
     # timeout-minutes: 3
     steps:

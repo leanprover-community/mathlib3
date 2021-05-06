@@ -219,8 +219,8 @@ instance forget_reflects_isomorphisms : reflects_isomorphisms (forget Profinite)
 @[simps] def homeo_of_iso (f : X ≅ Y) : X ≃ₜ Y :=
 { to_fun := f.hom,
   inv_fun := f.inv,
-  left_inv := λ x, by {change (f.hom ≫ f.inv) x = x, simp},
-  right_inv := λx, by {change (f.inv ≫ f.hom) x = x, simp},
+  left_inv := λ x, by { change (f.hom ≫ f.inv) x = x, rw [iso.hom_inv_id, coe_id, id.def] },
+  right_inv := λ x, by { change (f.inv ≫ f.hom) x = x, rw [iso.inv_hom_id, coe_id, id.def] },
   continuous_to_fun := f.hom.continuous,
   continuous_inv_fun := f.inv.continuous }
 

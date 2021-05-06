@@ -913,7 +913,7 @@ begin
   { intros i hi,
     exact hw i ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
   convert (weighted_sum_squares w).isometry_basis_repr
-    (is_basis.smul_of_invertible (pi.is_basis_fun ℂ ι) (λ i, is_unit_iff_ne_zero.2 (hw' i))),
+    (is_basis.smul_of_is_unit (pi.is_basis_fun ℂ ι) (λ i, is_unit_iff_ne_zero.2 (hw' i))),
   ext1 v,
   rw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),

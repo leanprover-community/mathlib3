@@ -341,7 +341,7 @@ lemma is_basis.smul_eq_zero [no_zero_divisors R] {c : R} {x : M} :
 
 end
 
-lemma is_basis.smul_of_invertible {v : ι → M} (hv : is_basis R v)
+lemma is_basis.smul_of_is_unit {v : ι → M} (hv : is_basis R v)
   {w : ι → R} (hw : ∀ i : ι, is_unit (w i)) :
   is_basis R (λ i, w i • v i) :=
 begin

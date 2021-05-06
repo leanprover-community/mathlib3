@@ -35,13 +35,6 @@ open complex
 
 local notation `|` x `|` := complex.abs x
 
-@[simp]
-lemma linear_isometry.id_apply (z : ℂ) : (linear_isometry.id : ℂ →ₗᵢ[ℝ] ℂ) z = z := rfl
-
-@[simp]
-lemma linear_isometry.id_to_linear_map : (linear_isometry.id.to_linear_map :
-  ℂ →ₗ[ℝ] ℂ) = linear_map.id := rfl
-
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
   (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 by simpa [ext_iff, add_re, add_im, conj_re, conj_im, ←two_mul,

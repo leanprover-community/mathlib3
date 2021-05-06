@@ -4874,11 +4874,6 @@ theorem to_chunks_aux_eq (n) : ∀ xs i,
 | (x::xs) 0 := by rw [to_chunks_aux, drop, to_chunks]; cases to_chunks_aux n xs n; refl
 | (x::xs) (i+1) := by rw [to_chunks_aux, to_chunks_aux_eq]; refl
 
--- theorem to_chunks_eq_cons' (n) : ∀ (xs : list α),
---   xs.to_chunks (n+1) = xs.take (n+1) :: (xs.drop (n+1)).to_chunks (n+1)
--- | [] := rfl
--- | (x::xs) := by rw [to_chunks, to_chunks_aux_eq]; refl
-
 theorem to_chunks_eq_cons' (n) : ∀ {xs : list α} (h : xs ≠ []),
   xs.to_chunks (n+1) = xs.take (n+1) :: (xs.drop (n+1)).to_chunks (n+1)
 | [] e := (e rfl).elim
@@ -4899,7 +4894,7 @@ theorem to_chunks_aux_join {n} : ∀ {xs i l L}, @to_chunks_aux α n xs i = (l, 
       exact (congr_arg (cons x) (to_chunks_aux_join e') : _) }
   end
 
-theorem to_chunks_join : ∀ n xs, (@to_chunks α n xs).join = xs
+@[simp] theorem to_chunks_join : ∀ n xs, (@to_chunks α n xs).join = xs
 | n [] := by cases n; refl
 | 0 (x::xs) := by simp only [to_chunks, join]; rw append_nil
 | (n+1) (x::xs) := begin

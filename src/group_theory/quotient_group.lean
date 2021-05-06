@@ -92,8 +92,8 @@ lemma ker_mk :
   monoid_hom.ker (quotient_group.mk' N : G →* quotient_group.quotient N) = N :=
 subgroup.ext eq_one_iff
 
-@[to_additive quotient_add_group.eq_of_normal]
-lemma eq_of_normal {N : subgroup G} [nN : N.normal] {x y : G} :
+@[to_additive quotient_add_group.eq_iff_sub_mem]
+lemma eq_iff_div_mem {N : subgroup G} [nN : N.normal] {x y : G} :
   (x : quotient N) = y ↔ x / y ∈ N :=
 begin
   refine eq_comm.trans (quotient_group.eq.trans _),

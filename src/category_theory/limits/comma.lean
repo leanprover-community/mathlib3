@@ -11,6 +11,13 @@ import category_theory.limits.creates
 
 /-!
 # Limits and colimits in comma categories
+
+We build limits in the comma category `comma L R` provided that the two source categories have
+limits and `R` preserves them.
+This is used to construct limits in the arrow category, structured arrow category and under
+category, and show that the appropriate forgetful functors create limits.
+
+The duals of all the above are also given.
 -/
 
 namespace category_theory
@@ -176,8 +183,6 @@ namespace under
 
 variables {X : T}
 
-instance (F : J ⥤ under X) [i : has_limit (F ⋙ forget X)] : has_limit F := infer_instance
-
 instance [has_limits_of_shape J T] : has_limits_of_shape J (under X) := {}
 instance [has_limits T] : has_limits (under X) := {}
 
@@ -220,9 +225,8 @@ namespace over
 
 variables {X : T}
 
-instance (F : J ⥤ over X) [i : has_colimit (F ⋙ forget X)] : has_colimit F := infer_instance
-instance [has_limits_of_shape J T] : has_limits_of_shape J (under X) := {}
-instance [has_limits T] : has_limits (under X) := {}
+instance [has_colimits_of_shape J T] : has_colimits_of_shape J (over X) := {}
+instance [has_colimits T] : has_colimits (over X) := {}
 
 end over
 

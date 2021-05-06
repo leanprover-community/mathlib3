@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 -/
 
-import group_theory.abelianization
 import data.bracket
+import data.matrix.notation
+import group_theory.abelianization
 import set_theory.cardinal
 
 /-!
@@ -342,122 +343,33 @@ lemma not_solvable_of_mem_derived_series {g : G} (h1 : g ≠ 1)
 mt (is_solvable_def _).mp (not_exists_of_forall_not
   (λ n h, h1 (subgroup.mem_bot.mp ((congr_arg (has_mem.mem g) h).mp (h2 n)))))
 
-namespace S5_not_solvable
-
-/-- A type with 5 terms -/
-inductive weekday : Type
-| monday : weekday
-| tuesday : weekday
-| wednesday : weekday
-| thursday : weekday
-| friday : weekday
-
-namespace weekday
-
-instance : inhabited weekday := ⟨monday⟩
-
-instance : decidable_eq weekday :=
+lemma equiv.perm.fin_5_not_solvable : ¬ is_solvable (equiv.perm (fin 5)) :=
 begin
-  rintros (_ | _) (_ | _),
-  any_goals { exact is_true rfl },
-  all_goals { exact is_false (by trivial) },
-end
-
-/-- `weekday` has is finite -/
-instance : fintype weekday :=
-{ elems := (finset.mk ↑[monday, tuesday, wednesday, thursday, friday] dec_trivial),
-  complete := λ x, by { cases x, all_goals { dec_trivial } } }
-
-lemma card : cardinal.mk weekday = ↑5 :=
-cardinal.fintype_card weekday
-
-/-- A 3-cycle -/
-def g1 : weekday → weekday
-| monday := monday
-| tuesday := tuesday
-| wednesday := thursday
-| thursday := friday
-| friday := wednesday
-
-/-- A 3-cycle -/
-def g2 : weekday → weekday
-| monday := monday
-| tuesday := tuesday
-| wednesday := friday
-| thursday := wednesday
-| friday := thursday
-
-/-- A (2,2)-cycle -/
-def g3 : weekday → weekday
-| monday := thursday
-| tuesday := friday
-| wednesday := wednesday
-| thursday := monday
-| friday := tuesday
-
-/-- A 3-cycle -/
-def g4 : weekday → weekday
-| monday := wednesday
-| tuesday := tuesday
-| wednesday := friday
-| thursday := thursday
-| friday := monday
-
-/-- A 3-cycle -/
-def g5 : weekday → weekday
-| monday := friday
-| tuesday := tuesday
-| wednesday := monday
-| thursday := thursday
-| friday := wednesday
-
-/-- A 3-cycle -/
-def σ1 : weekday ≃ weekday :=
-{ to_fun := g1,
-  inv_fun := g2,
-  left_inv := λ x, by { cases x, all_goals { refl } },
-  right_inv := λ x, by { cases x, all_goals { refl } } }
-
-/-- A (2,2)-cycle -/
-def σ2 : weekday ≃ weekday :=
-{ to_fun := g3,
-  inv_fun := g3,
-  left_inv := λ x, by { cases x, all_goals { refl } },
-  right_inv := λ x, by { cases x, all_goals { refl } } }
-
-/-- A 3-cycle -/
-def σ3 : weekday ≃ weekday :=
-{ to_fun := g4,
-  inv_fun := g5,
-  left_inv := λ x, by { cases x, all_goals { refl } },
-  right_inv := λ x, by { cases x, all_goals { refl } } }
-
-lemma mem_derived_series (n : ℕ) : σ1 ∈ derived_series (equiv.perm weekday) n :=
-begin
+  let x : equiv.perm (fin 5) := ⟨![1, 2, 0, 3, 4], ![2, 0, 1, 3, 4], dec_trivial, dec_trivial⟩,
+  let y : equiv.perm (fin 5) := ⟨![3, 4, 2, 0, 1], ![3, 4, 2, 0, 1], dec_trivial, dec_trivial⟩,
+  let z : equiv.perm (fin 5) := ⟨![0, 3, 2, 1, 4], ![0, 3, 2, 1, 4], dec_trivial, dec_trivial⟩,
+  have x_ne_one : x ≠ 1,
+  { refine λ h, not_forall_of_exists_not ⟨0, _⟩ (equiv.ext_iff.mp h),
+    dec_trivial },
+  have key : x = z * (x * (y * x * y⁻¹) * x⁻¹ * (y * x * y⁻¹)⁻¹) * z⁻¹,
+  { ext a,
+    dec_trivial! },
+  refine not_solvable_of_mem_derived_series x_ne_one (λ n, _),
   induction n with n ih,
-  { exact mem_top σ1 },
-  rw (show σ1 = σ3 * ((σ2 * σ1 * σ2) * σ1 * (σ2 * σ1 * σ2⁻¹)⁻¹ * σ1⁻¹) * σ3⁻¹,
-      by { ext, cases x, all_goals { refl } }),
-  exact (derived_series_normal _ _).conj_mem _
-    (general_commutator_containment _ _ ((derived_series_normal _ _).conj_mem _ ih _) ih) _,
+  { exact mem_top x },
+  { rw key,
+    exact (derived_series_normal _ _).conj_mem _
+      (general_commutator_containment _ _ ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
 end
-
-lemma not_solvable : ¬ is_solvable (equiv.perm weekday) :=
-not_solvable_of_mem_derived_series (mt equiv.ext_iff.mp
-  (not_forall_of_exists_not ⟨wednesday, by trivial⟩)) mem_derived_series
-
-end weekday
-
-end S5_not_solvable
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :
   ¬ is_solvable (equiv.perm X) :=
 begin
   introI h,
-  have key : nonempty (S5_not_solvable.weekday ↪ X),
-  { rwa [←cardinal.lift_mk_le, S5_not_solvable.weekday.card, cardinal.lift_nat_cast,
+  have key : nonempty (fin 5 ↪ X),
+  { rwa [←cardinal.lift_mk_le, cardinal.mk_fin, cardinal.lift_nat_cast,
     nat.cast_bit1, nat.cast_bit0, nat.cast_one, cardinal.lift_id] },
-  exact S5_not_solvable.weekday.not_solvable (solvable_of_solvable_injective
+  exact equiv.perm.fin_5_not_solvable (solvable_of_solvable_injective
     (equiv.perm.via_embedding_hom_injective (nonempty.some key))),
 end
 

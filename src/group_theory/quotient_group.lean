@@ -94,12 +94,12 @@ end
 lemma mk'_eq_zero_iff {N : subgroup G} [nN : N.normal] (x : G) :  mk' N x = 1 ↔  x ∈ N :=
 ⟨λ h, by rwa [← ker_mk N, monoid_hom.mem_ker], λ h, by rwa [← ker_mk N, monoid_hom.mem_ker] at h⟩
 
-@[to_additive quotient_add_group.mk'_eq_mk'_iff]
-lemma mk'_eq_mk'_iff {N : subgroup G} [nN : N.normal] {x y : G} : mk' N x = mk' N y ↔ x / y ∈ N :=
+@[to_additive quotient_add_group.eq_of_normal]
+lemma eq_of_normal {N : subgroup G} [nN : N.normal] {x y : G} :
+  (x : quotient N) = y ↔ x / y ∈ N :=
 begin
-  change ↑x = ↑ y ↔ _,
-  rw [quotient_group.eq, ← N.inv_mem_iff, div_eq_mul_inv, subgroup.normal.mem_comm_iff nN,
-    mul_inv_rev, inv_inv],
+  refine eq_comm.trans (quotient_group.eq.trans _),
+  rw [nN.mem_comm_iff, div_eq_mul_inv]
 end
 
 -- for commutative groups we don't need normality assumption

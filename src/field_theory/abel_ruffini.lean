@@ -372,15 +372,15 @@ begin
   { exact λ α n, induction3 },
 end
 
-lemma is_solvable_contrapositive {α : E} {q : polynomial F} (q_irred : irreducible q)
-  (q_aeval : aeval α q = 0) (q_solvable : ¬ _root_.is_solvable q.gal) :
-  ¬ is_solvable_by_rad F α :=
+/-- An irreducible polynomial with an `is_solvable_by_rad` root has solvable Galois group -/
+lemma is_solvable' {α : E} {q : polynomial F} (q_irred : irreducible q)
+  (q_aeval : aeval α q = 0) (hα : is_solvable_by_rad F α) :
+  _root_.is_solvable q.gal :=
 begin
   have q_leading_coeff_ne_zero : q.leading_coeff ≠ 0 := leading_coeff_ne_zero.mpr q_irred.ne_zero,
-  refine λ h, q_solvable _,
   let p := q * C q.leading_coeff⁻¹,
-  have p_aeval : aeval (⟨α, h⟩ : solvable_by_rad F E) p = 0 :=
-  subtype.ext ((aeval_alg_hom_apply (solvable_by_rad F E).val ⟨α, h⟩ p).symm.trans
+  have p_aeval : aeval (⟨α, hα⟩ : solvable_by_rad F E) p = 0 :=
+  subtype.ext ((aeval_alg_hom_apply (solvable_by_rad F E).val ⟨α, hα⟩ p).symm.trans
     (show aeval α p = 0, by rw [aeval_mul, q_aeval, zero_mul])),
   have p_irred : irreducible p,
   { exact irreducible_of_associated ⟨⟨C q.leading_coeff⁻¹, C q.leading_coeff,
@@ -390,7 +390,7 @@ begin
     exact leading_coeff_ne_zero.mpr q_irred.ne_zero },
   haveI : _root_.is_solvable p.gal := by
   { rw minpoly.unique' p_irred p_aeval p_monic,
-    exact solvable_by_rad.is_solvable ⟨α, h⟩ },
+    exact solvable_by_rad.is_solvable ⟨α, hα⟩ },
   refine solvable_of_surjective (gal.restrict_dvd_surjective ⟨C q.leading_coeff⁻¹, rfl⟩ _),
   rw [mul_ne_zero_iff, ne, ne, C_eq_zero, inv_eq_zero],
   exact ⟨q_irred.ne_zero, q_leading_coeff_ne_zero⟩,

@@ -56,12 +56,10 @@ lemma dimension_le_one.principal_ideal_ring
 
 lemma dimension_le_one.integral_closure [nontrivial R] [algebra R A]
   (h : dimension_le_one R) : dimension_le_one (integral_closure R A) :=
-begin
-  intros p ne_bot prime,
-  haveI := prime,
-  exact integral_closure.is_maximal_of_is_maximal_comap p
-    (h _ (integral_closure.comap_ne_bot ne_bot) infer_instance),
-end
+λ p ne_bot prime, by exactI
+  integral_closure.is_maximal_of_is_maximal_comap p
+    (h _ (integral_closure.comap_ne_bot ne_bot) infer_instance)
+
 end ring
 
 /--

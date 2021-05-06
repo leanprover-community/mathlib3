@@ -363,7 +363,7 @@ begin
   all_goals { exact is_false (by trivial) },
 end
 
-/-- `weekday` has is finite -/
+/-- `weekday` is finite -/
 instance : fintype weekday :=
 { elems := (finset.mk ↑[monday, tuesday, wednesday, thursday, friday] dec_trivial),
   complete := λ x, by { cases x, all_goals { dec_trivial } } }

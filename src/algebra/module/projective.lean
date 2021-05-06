@@ -39,8 +39,9 @@ from the free R-module on the type M down to M splits. This is more convenient
 than certain other definitions which involve quantifying over universes,
 and also universe-polymorphic (the ring and module can be in different universes).
 
-Everything works for semirings and modules except that apparently
-we don't have free modules over semirings, so here we stick to rings.
+We require that the module sits in at least as high a universe as the ring:
+without this, free modules don't even exist,
+and it's unclear if projective modules are even a useful notion.
 
 ## References
 
@@ -68,15 +69,15 @@ universes u v
   if maps from the module lift along surjections. There are several other equivalent
   definitions. -/
 def is_projective
-  (R : Type u) [semiring R] (P : Type v) [add_comm_monoid P] [module R P] : Prop :=
+  (R : Type u) [semiring R] (P : Type (max u v)) [add_comm_monoid P] [module R P] : Prop :=
 ∃ s : P →ₗ[R] (P →₀ R), function.left_inverse (finsupp.total P P R id) s
 
 namespace is_projective
 
 section semiring
 
-variables {R : Type u} [semiring R] {P : Type v} [add_comm_monoid P] [module R P]
-  {M : Type*} [add_comm_group M] [module R M] {N : Type*} [add_comm_group N] [module R N]
+variables {R : Type u} [semiring R] {P : Type (max u v)} [add_comm_monoid P] [module R P]
+  {M : Type (max u v)} [add_comm_group M] [module R M] {N : Type*} [add_comm_group N] [module R N]
 
 /-- A projective R-module has the property that maps from it lift along surjections. -/
 theorem lifting_property (h : is_projective R P) (f : M →ₗ[R] N) (g : P →ₗ[R] N)
@@ -104,9 +105,9 @@ end
 /-- A module which satisfies the universal property is projective. Note that the universe variables
 in `huniv` are somewhat restricted. -/
 theorem of_lifting_property {R : Type u} [semiring R]
-  {P : Type v} [add_comm_monoid P] [module R P]
+  {P : Type (max u v)} [add_comm_monoid P] [module R P]
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
-  (huniv : ∀ {M : Type (max v u)} {N : Type v} [add_comm_monoid M] [add_comm_monoid N],
+  (huniv : ∀ {M : Type (max v u)} {N : Type (max u v)} [add_comm_monoid M] [add_comm_monoid N],
     by exactI
     ∀ [module R M] [module R N],
     by exactI
@@ -130,9 +131,9 @@ end
 /-- A variant of `of_lifting_property` when we're working over a `[ring R]`,
 which only requires quantifying over modules with an `add_comm_group` instance. -/
 theorem of_lifting_property' {R : Type u} [ring R]
-  {P : Type v} [add_comm_group P] [module R P]
+  {P : Type (max u v)} [add_comm_group P] [module R P]
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
-  (huniv : ∀ {M : Type (max v u)} {N : Type v} [add_comm_group M] [add_comm_group N],
+  (huniv : ∀ {M : Type (max v u)} {N : Type (max u v)} [add_comm_group M] [add_comm_group N],
     by exactI
     ∀ [module R M] [module R N],
     by exactI
@@ -160,7 +161,7 @@ end semiring
 
 section ring
 
-variables {R : Type u} [ring R] {P : Type v} [add_comm_group P] [module R P]
+variables {R : Type u} [ring R] {P : Type (max u v)} [add_comm_group P] [module R P]
 
 /-- Free modules are projective. -/
 theorem of_free {ι : Type*} {b : ι → P} (hb : is_basis R b) : is_projective R P :=

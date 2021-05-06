@@ -534,7 +534,7 @@ rfl
   (0 : polynomial R).root_set S = ∅ :=
 by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
 
-lemma root_set_C [integral_domain S] [algebra R S] (a : R) : (C a).root_set S = ∅ :=
+@[simp] lemma root_set_C [integral_domain S] [algebra R S] (a : R) : (C a).root_set S = ∅ :=
 by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
 
 instance root_set_fintype {R : Type*} [integral_domain R] (p : polynomial R) (S : Type*)

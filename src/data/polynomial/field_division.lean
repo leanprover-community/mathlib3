@@ -294,6 +294,10 @@ lemma root_set_monomial {R S : Type*} [field R] [field S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
 by rw [←C_mul_X_pow_eq_monomial, root_set_C_mul_X_pow hn ha]
 
+lemma root_set_X_pow {R S : Type*} [field R] [field S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) : (X ^ n : polynomial R).root_set S = {0} :=
+by { rw [←one_mul (X ^ n : polynomial R), ←C_1, root_set_C_mul_X_pow hn], exact one_ne_zero }
+
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
   have p.coeff 1 ≠ 0,

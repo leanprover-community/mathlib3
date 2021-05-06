@@ -701,7 +701,7 @@ calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
    ... = c           : add_sub_cancel'_right _ _
 
 lemma le_iff_forall_pos_le_add [densely_ordered α] {x y : α} : x ≤ y ↔ ∀ ε > 0, x ≤ y + ε :=
-⟨λ h ε ε_pos, le_trans h $ le_add_of_nonneg_right $ le_of_lt ε_pos, le_of_forall_pos_le_add⟩
+⟨λ h ε ε_pos, le_add_of_le_of_nonneg h ε_pos.le, le_of_forall_pos_le_add⟩
 
 lemma le_of_forall_pos_lt_add (h : ∀ ε : α, 0 < ε → a < b + ε) : a ≤ b :=
 le_of_not_lt $ λ h₁, by simpa using h _ (sub_pos_of_lt h₁)

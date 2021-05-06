@@ -28,7 +28,7 @@ theorem is_projective.iff_projective {R : Type u} [ring R]
   {P : Type (max u v)} [add_comm_group P] [module R P] :
   is_projective R P ↔ projective (Module.of R P) :=
 ⟨λ h, { factors := λ E X f e epi, h.lifting_property _ _ ((Module.epi_iff_surjective _).mp epi), },
-  λ h, is_projective.of_lifting_property' (λ E X mE mX sE sX f g s,
+  λ h, is_projective.of_lifting_property (λ E X mE mX sE sX f g s,
   begin
     resetI,
     haveI : epi ↟f := (Module.epi_iff_surjective ↟f).mpr s,

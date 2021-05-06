@@ -104,7 +104,7 @@ end
 
 /-- A module which satisfies the universal property is projective. Note that the universe variables
 in `huniv` are somewhat restricted. -/
-theorem of_lifting_property {R : Type u} [semiring R]
+theorem of_lifting_property' {R : Type u} [semiring R]
   {P : Type (max u v)} [add_comm_monoid P] [module R P]
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
   (huniv : ∀ {M : Type (max v u)} {N : Type (max u v)} [add_comm_monoid M] [add_comm_monoid N],
@@ -128,9 +128,9 @@ begin
     simp },
 end
 
-/-- A variant of `of_lifting_property` when we're working over a `[ring R]`,
+/-- A variant of `of_lifting_property'` when we're working over a `[ring R]`,
 which only requires quantifying over modules with an `add_comm_group` instance. -/
-theorem of_lifting_property' {R : Type u} [ring R]
+theorem of_lifting_property {R : Type u} [ring R]
   {P : Type (max u v)} [add_comm_group P] [module R P]
   -- If for all surjections of `R`-modules `M →ₗ N`, all maps `P →ₗ N` lift to `P →ₗ M`,
   (huniv : ∀ {M : Type (max v u)} {N : Type (max u v)} [add_comm_group M] [add_comm_group N],

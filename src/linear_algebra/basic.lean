@@ -1937,7 +1937,7 @@ end
 
 /-- A family of linear equivalences `Π j, (Ms j ≃ₗ[R] Ns j)` generates a
 linear equivalence between `Π j, Ms j` and `Π j, Ns j`. -/
-@[simps]
+@[simps apply]
 def Pi_congr_right {η : Type*} {Ms Ns : η → Type*}
   [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
   [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
@@ -1951,6 +1951,13 @@ def Pi_congr_right {η : Type*} {Ms Ns : η → Type*}
 lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*}
   [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)] :
   Pi_congr_right (λ j, refl R (Ms j)) = refl _ _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {η : Type*} {Ms Ns Ps : η → Type*}
+[Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
+[Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
+  (es : ∀ j, Ms j ≃ₗ[R] Ns j) :
+(Pi_congr_right es).symm = (Pi_congr_right $ λ i, (es i).symm) := rfl
 
 @[simp]
 lemma Pi_congr_right_trans {η : Type*} {Ms Ns Ps : η → Type*}

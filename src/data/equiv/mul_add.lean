@@ -324,7 +324,7 @@ This is the `mul_equiv` version of `equiv.Pi_congr_right`, and the dependent ver
 generates an additive equivalence between `Π j, Ms j` and `Π j, Ns j`.
 
 This is the `add_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
-`add_equiv.arrow_congr`.", simps]
+`add_equiv.arrow_congr`.", simps apply]
 def Pi_congr_right {η : Type*}
   {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) : (Π j, Ms j) ≃* (Π j, Ns j) :=
@@ -336,6 +336,11 @@ def Pi_congr_right {η : Type*}
 @[simp]
 lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*} [Π j, mul_one_class (Ms j)] :
   Pi_congr_right (λ j, mul_equiv.refl (Ms j)) = mul_equiv.refl _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {η : Type*}
+  {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
+  (es : ∀ j, Ms j ≃* Ns j) : (Pi_congr_right es).symm = (Pi_congr_right $ λ i, (es i).symm) := rfl
 
 @[simp]
 lemma Pi_congr_right_trans {η : Type*}

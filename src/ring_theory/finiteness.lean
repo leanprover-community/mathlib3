@@ -598,7 +598,7 @@ begin
     ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of' R M '' g.support,
   { intros s hs,
     exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
-  exact adjoin_mono hincl (mem_adjoint_support f)
+  exact adjoin_mono hincl (mem_adjoin_support f)
 end
 
 /-- If a set `S` generates, as algebra, `add_monoid_algebra R M`, then the image of the union of

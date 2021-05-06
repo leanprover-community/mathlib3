@@ -24,4 +24,7 @@ instance : preadditive Cᵒᵖ :=
   comp_add' := λ X Y Z f g g',
     congr_arg quiver.hom.op (preadditive.add_comp _ _ _ g.unop g'.unop f.unop), }
 
+@[simp] lemma unop_zero (X Y : Cᵒᵖ) : (0 : X ⟶ Y).unop = 0 := rfl
+@[simp] lemma unop_add {X Y : Cᵒᵖ} (f g : X ⟶ Y) : (f + g).unop = f.unop + g.unop := rfl
+
 end category_theory

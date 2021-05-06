@@ -168,10 +168,25 @@ jobs:
           set -o pipefail
           lean --json -T100000 --make docs archive roadmap test | python scripts/detect_errors.py
 
-      - name: leanchecker
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '16'
+
+      - name: install trepplein
         run: |
-          lean --recursive --export=mathlib.txt src/
-          leanchecker mathlib.txt
+          pushd ..
+          trepplein_version=1.0
+          wget https://github.com/gebner/trepplein/releases/download/v$trepplein_version/trepplein-$trepplein_version.zip
+          unzip trepplein-$trepplein_version.zip
+          echo $PWD/trepplein-$trepplein_version/bin >>$GITHUB_PATH
+          popd
+
+      - name: export as low-level text file
+        run: lean --recursive --export=mathlib.txt src/
+
+      - name: trepplein
+        run: trepplein mathlib.txt
 
       - name: check declarations in db files
         run: |

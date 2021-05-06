@@ -256,7 +256,6 @@ where `f` is an irreducible polynomial over a field of degree `d`. -/
   basis := power_basis_aux hf,
   basis_eq_pow := basis.mk_apply _ _ }
 
-
 end power_basis
 
 end adjoin_root

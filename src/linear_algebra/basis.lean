@@ -24,17 +24,26 @@ vector space and `ι : Type*` is an arbitrary indexing type.
 
 * `basis ι R M` is the type of `ι`-indexed `R`-bases for a module `M`,
   represented by a linear equiv `M ≃ₗ[R] ι →₀ R`.
+* the basis vectors of a basis `b : basis ι R M` are available as `b i`, where `i : ι`
 
-* `basis.repr` is the isomorphism sending `x : M` and to its coordinates `basis.repr x : ι →₀ R`
+* `basis.repr` is the isomorphism sending `x : M` to its coordinates `basis.repr x : ι →₀ R`.
+  The converse, turning this isomorphism into a basis, is called `basis.of_repr`.
+* If `ι` is finite, there is a variant of `repr` called `basis.equiv_fun b : M ≃ₗ[R] ι → R`
+  (saving you from having to work with `finsupp`). The converse, turning this isomorphism into
+  a basis, is called `basis.of_equiv_fun`.
 
 * `basis.constr hv f` constructs a linear map `M₁ →ₗ[R] M₂` given the values `f : ι → M₂` at the
   basis elements `⇑b : ι → M₁`.
+* `basis.reindex` uses an equiv to map a basis to a different indexing set.
+* `basis.map` uses a linear equiv to map a basis to a different module.
 
 ## Main statements
 
 * `basis.mk`: a linear independent set of vectors spanning the whole module determines a basis
 
 * `basis.ext` states that two linear maps are equal if they coincide on a basis.
+  Similar results are available for linear equivs (if they coincide on the basis vectors),
+  elements (if their coordinates coincide) and the functions `b.repr` and `⇑b`.
 
 * `basis.of_vector_space` states that every vector space has a basis.
 

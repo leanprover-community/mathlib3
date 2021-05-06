@@ -27,7 +27,13 @@ proof, it is defined using the third point of view, i.e., as `is_noetherian`. Ho
 that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
-- `exists_basis_finite` states that a finite-dimensional vector space has a finite basis
+- `basis.of_vector_space_index.fintype` states that a finite-dimensional vector space has a finite basis
+- `finite_dimensional.fintype_basis_index` states that a basis of a finite-dimensional vector space
+  contains finitely many basis vectors
+- `finite_dimensional.finset_basis` states that a finite-dimensional vector space has
+  a basis indexed by a `finset`
+- `finite_dimensional.fin_basis` and `finite_dimensional.fin_basis_of_finrank_eq` are bases for finite
+  dimensional vector spaces, where the index type is `fin`
 - `of_fintype_basis` states that the existence of a basis indexed by a finite type implies
   finite-dimensionality
 - `of_finset_basis` states that the existence of a basis indexed by a `finset` implies
@@ -95,8 +101,7 @@ begin
   split,
   { intro,
     resetI,
-    convert finite_of_linear_independent (basis.of_vector_space_index.linear_independent K V),
-    simp },
+    simpa using finite_of_linear_independent (basis.of_vector_space_index.linear_independent K V) },
   { assume hbfinite,
     refine @is_noetherian_of_linear_equiv K (⊤ : submodule K V) V _
       _ _ _ _ (linear_equiv.of_top _ rfl) (id _),
@@ -119,7 +124,7 @@ b.fintype_index_of_dim_lt_omega (dim_lt_omega K V)
 noncomputable instance [finite_dimensional K V] : fintype (basis.of_vector_space_index K V) :=
 fintype_basis_index (basis.of_vector_space K V)
 
-/-- In a finite dimensional space, all bases are indexed by a finite type. -/
+/-- In a finite dimensional space, if a basis is indexed by a set, that set is finite. -/
 lemma finite_basis_index {ι : Type*} {s : set ι} [finite_dimensional K V] (b : basis s K V) :
   s.finite :=
 b.finite_index_of_dim_lt_omega (dim_lt_omega K V)
@@ -271,7 +276,7 @@ by rw [finrank_eq_card_basis h, fintype.card_coe]
 
 variables (K V)
 
-/-- A `finite_dimensional` vector space has a basis indexed by `fin (finrank K V)`. -/
+/-- A finite dimensional vector space has a basis indexed by `fin (finrank K V)`. -/
 noncomputable def fin_basis [finite_dimensional K V] : basis (fin (finrank K V)) K V :=
 have h : fintype.card (↑(finset_basis_index K V) : set V) = finrank K V,
 from (finrank_eq_card_basis (finset_basis K V)).symm,

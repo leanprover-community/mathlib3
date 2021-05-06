@@ -25,7 +25,7 @@ variables {C : Type u} [category.{v} C]
           (r : Π ⦃a b : C⦄, (a ⟶ b) → (a ⟶ b) → Prop)
 include r
 
-/-- A type synonom for `C`, thought of as the objects of the quotient category. -/
+/-- A type synonym for `C`, thought of as the objects of the quotient category. -/
 @[ext]
 structure quotient := (as : C)
 

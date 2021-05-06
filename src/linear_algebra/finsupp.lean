@@ -704,7 +704,9 @@ variables {η : Type*} [fintype η] {ιs : η → Type*} [has_zero α]
 variables (R)
 
 /-- On a `fintype η`, `finsupp.split` is a linear equivalence between
-`(Σ (j : η), ιs j) →₀ M` and `Π j, (ιs j →₀ M)`. -/
+`(Σ (j : η), ιs j) →₀ M` and `Π j, (ιs j →₀ M)`.
+
+This is the `linear_equiv` version of `finsupp.sigma_finsupp_add_equiv_pi_finsupp`. -/
 noncomputable def sigma_finsupp_lequiv_pi_finsupp
   {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M] :
   ((Σ j, ιs j) →₀ M) ≃ₗ[R] Π j, (ιs j →₀ M) :=

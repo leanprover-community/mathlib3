@@ -187,24 +187,47 @@ has_limits_of_has_limits_creates_limits Profinite_to_Top
 instance has_colimits : limits.has_colimits Profinite :=
 has_colimits_of_reflective to_CompHaus
 
+universe variable u
+variables {X Y : Profinite.{u}} (f : X ⟶ Y)
+
 /-- Any morphism of profinite spaces is a closed map. -/
-lemma is_closed_map {X Y : Profinite} (f : X ⟶ Y) : is_closed_map f :=
+lemma is_closed_map : is_closed_map f :=
 show is_closed_map (Profinite.to_CompHaus.map f), from CompHaus.is_closed_map _
 
 /-- Any continuous bijection of profinite spaces induces an isomorphism. -/
-lemma is_iso_of_bijective {X Y : Profinite} (f : X ⟶ Y)
-  (bij : function.bijective f) : is_iso f :=
+lemma is_iso_of_bijective (bij : function.bijective f) : is_iso f :=
 begin
   haveI := CompHaus.is_iso_of_bijective (Profinite.to_CompHaus.map f) bij,
   exact is_iso_of_fully_faithful Profinite.to_CompHaus _
 end
 
 /-- Any continuous bijection of profinite spaces induces an isomorphism. -/
-noncomputable def iso_of_bijective {X Y : Profinite} (f : X ⟶ Y)
-  (bij : function.bijective f) : X ≅ Y :=
+noncomputable def iso_of_bijective (bij : function.bijective f) : X ≅ Y :=
 by letI := Profinite.is_iso_of_bijective f bij; exact as_iso f
 
 instance forget_reflects_isomorphisms : reflects_isomorphisms (forget Profinite) :=
 ⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
+
+/-- Construct an isomorphism from a homeomorphism. -/
+@[simps hom inv] def iso_of_homeo (f : X ≃ₜ Y) : X ≅ Y :=
+{ hom := ⟨f, f.continuous⟩,
+  inv := ⟨f.symm, f.symm.continuous⟩,
+  hom_inv_id' := by { ext x, exact f.symm_apply_apply x },
+  inv_hom_id' := by { ext x, exact f.apply_symm_apply x } }
+
+/-- Construct a homeomorphism from an isomorphism. -/
+@[simps] def homeo_of_iso (f : X ≅ Y) : X ≃ₜ Y :=
+{ to_fun := f.hom,
+  inv_fun := f.inv,
+  left_inv := λ x, by {change (f.hom ≫ f.inv) x = x, simp},
+  right_inv := λx, by {change (f.inv ≫ f.hom) x = x, simp},
+  continuous_to_fun := f.hom.continuous,
+  continuous_inv_fun := f.inv.continuous }
+
+@[simps] def iso_equiv_homeo : (X ≅ Y) ≃ (X ≃ₜ Y) :=
+{ to_fun := homeo_of_iso,
+  inv_fun := iso_of_homeo,
+  left_inv := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
 
 end Profinite

@@ -80,19 +80,17 @@ instance : group (quotient N) :=
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
 def mk' : G →* quotient N := monoid_hom.mk' (quotient_group.mk) (λ _ _, rfl)
 
+@[simp, to_additive quotient_add_group.eq_zero_iff]
+lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : quotient N) = 1 ↔ x ∈ N :=
+begin
+  refine quotient_group.eq.trans _,
+  rw [mul_one, subgroup.inv_mem_iff],
+end
+
 @[simp, to_additive quotient_add_group.ker_mk]
 lemma ker_mk :
   monoid_hom.ker (quotient_group.mk' N : G →* quotient_group.quotient N) = N :=
-begin
-  ext g,
-  rw [monoid_hom.mem_ker, eq_comm],
-  show (((1 : G) : quotient_group.quotient N)) = g ↔ _,
-  rw [quotient_group.eq, one_inv, one_mul],
-end
-
-@[to_additive quotient_add_group.mk'_eq_zero_iff]
-lemma mk'_eq_zero_iff {N : subgroup G} [nN : N.normal] (x : G) :  mk' N x = 1 ↔  x ∈ N :=
-⟨λ h, by rwa [← ker_mk N, monoid_hom.mem_ker], λ h, by rwa [← ker_mk N, monoid_hom.mem_ker] at h⟩
+subgroup.ext eq_one_iff
 
 @[to_additive quotient_add_group.mk'_eq_mk'_iff]
 lemma mk'_eq_mk'_iff {N : subgroup G} [nN : N.normal] {x y : G} : mk' N x = mk' N y ↔ x / y ∈ N :=

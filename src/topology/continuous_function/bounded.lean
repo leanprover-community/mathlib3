@@ -707,6 +707,10 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
   ..bounded_continuous_function.module,
   ..bounded_continuous_function.ring }
 
+@[simp] lemma algebra_map_apply (k : 𝕜) (a : α) :
+  algebra_map 𝕜 (α →ᵇ γ) k a = k • 1 :=
+by { rw algebra.algebra_map_eq_smul_one, refl, }
+
 instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
 { norm_algebra_map_eq := λ c, begin
     calc ∥ (algebra_map 𝕜 (α →ᵇ γ)).to_fun c∥ = ∥(algebra_map 𝕜 γ) c∥ : _

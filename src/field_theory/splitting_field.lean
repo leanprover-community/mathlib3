@@ -275,6 +275,19 @@ begin
       map_bind_roots_eq]
 end
 
+lemma eq_prod_roots_of_splits_id {p : polynomial K}
+  (hsplit : splits (ring_hom.id K) p) :
+  p = C (p.leading_coeff) * (p.roots.map (λ a, X - C a)).prod :=
+by simpa using eq_prod_roots_of_splits hsplit
+
+lemma eq_prod_roots_of_monic_of_splits_id {p : polynomial K}
+  (m : monic p) (hsplit : splits (ring_hom.id K) p) :
+  p = (p.roots.map (λ a, X - C a)).prod :=
+begin
+  convert eq_prod_roots_of_splits_id hsplit,
+  simp [m], 
+end
+
 lemma eq_X_sub_C_of_splits_of_single_root {x : K} {h : polynomial K} (h_splits : splits i h)
   (h_roots : (h.map i).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
 begin

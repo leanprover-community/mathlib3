@@ -76,7 +76,7 @@ begin
 end
 
 lemma general_commutator_containment (H₁ H₂ : subgroup G) {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
-  p * q * p⁻¹ * q⁻¹ ∈ ⁅H₁, H₂⁆:=
+  p * q * p⁻¹ * q⁻¹ ∈ ⁅H₁, H₂⁆ :=
 (general_commutator_le H₁ H₂ ⁅H₁, H₂⁆).mp (le_refl ⁅H₁, H₂⁆) p hp q hq
 
 lemma general_commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
@@ -363,6 +363,14 @@ begin
   all_goals { exact is_false (by trivial) },
 end
 
+/-- `weekday` has is finite -/
+instance : fintype weekday :=
+{ elems := (finset.mk ↑[monday, tuesday, wednesday, thursday, friday] dec_trivial),
+  complete := λ x, by { cases x, all_goals { dec_trivial } } }
+
+lemma card : cardinal.mk weekday = ↑5 :=
+cardinal.fintype_card weekday
+
 /-- A 3-cycle -/
 def g1 : weekday → weekday
 | monday := monday
@@ -438,20 +446,12 @@ lemma not_solvable : ¬ is_solvable (equiv.perm weekday) :=
  not_solvable_of_mem_derived_series (mt equiv.ext_iff.mp
   (not_forall_of_exists_not ⟨wednesday, by trivial⟩)) mem_derived_series
 
-lemma card : cardinal.mk weekday = ↑5 :=
-begin
-  letI : fintype weekday := fintype.mk
-    (finset.mk ↑[monday, tuesday, wednesday, thursday, friday] dec_trivial)
-    (by { rintros (_ | _), all_goals { dec_trivial } }),
-  exact cardinal.fintype_card weekday,
-end
-
 end weekday
 
 end S5_not_solvable
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :
-  ¬ is_solvable (equiv.perm X) :=
+ ¬ is_solvable (equiv.perm X) :=
 begin
   introI h,
   have key : nonempty (S5_not_solvable.weekday ↪ X),

@@ -926,16 +926,6 @@ such that `(xs.to_chunks n).join = xs`.
 ```
 -/
 def to_chunks {α} : ℕ → list α → list (list α)
-| 0 xs := [xs]
-| (n+1) xs := let (l, L) := to_chunks_aux n xs (n+1) in l::L
-
-
-/--
-`xs.to_chunks' n` splits the list into sublists of size at most `n`,
-such that `(xs.to_chunks n).join = xs`. It differs from `to_chunks` in the handling
-of empty sublists: `to_chunks' n [] = []` but `to_chunks n [] = [[]]`.
--/
-def to_chunks' {α} : ℕ → list α → list (list α)
 | _ [] := []
 | 0 xs := [xs]
 | (n+1) (x::xs) := let (l, L) := to_chunks_aux n xs n in (x::l)::L

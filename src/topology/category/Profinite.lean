@@ -145,7 +145,7 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   π := { app := λ j, (CompHaus.limit_cone (F ⋙ Profinite.to_CompHaus)).π.app j } }
 
 /-- The limit cone `Profinite.limit_cone F` is indeed a limit cone. -/
-def alt_limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
+def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.is_limit (limit_cone F) :=
 { lift := λ S, (CompHaus.limit_cone_is_limit (F ⋙ Profinite.to_CompHaus)).lift
     (Profinite.to_CompHaus.map_cone S),

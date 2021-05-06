@@ -35,7 +35,7 @@ Generally you should just use `limit.cone F`, unless you need the actual definit
 (which is in terms of `types.limit_cone`).
 -/
 def limit_cone (F : J ⥤ Top.{u}) : cone F :=
-{ X := Top.of { u : Π j : J, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j},
+{ X := Top.of { u : Π j : J, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j },
   π :=
   { app := λ j,
     { to_fun := λ u, u.val j,
@@ -48,8 +48,8 @@ Generally you should just use `limit.is_limit F`, unless you need the actual def
 (which is in terms of `types.limit_cone_is_limit`).
 -/
 def limit_cone_is_limit (F : J ⥤ Top.{u}) : is_limit (limit_cone F) :=
-{ lift := λ S, { to_fun := λ x, ⟨λ j, S.π.app _ x, λ i j f, by {dsimp, erw ← S.w f, refl}⟩ },
-  uniq' := λ S m h, by {ext : 3, simpa [← h]} }
+{ lift := λ S, { to_fun := λ x, ⟨λ j, S.π.app _ x, λ i j f, by { dsimp, erw ← S.w f, refl }⟩ },
+  uniq' := λ S m h, by { ext : 3, simpa [← h] } }
 
 instance Top_has_limits : has_limits.{u} Top.{u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI

@@ -316,7 +316,7 @@ begin
   { exact (vsub_sub_vsub_cancel_right p1 p3 p2).symm }
 end
 
-alias dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle ← lawcos
+alias dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle ← law_cos
 
 /-- Pons asinorum, angle-at-point form. -/
 lemma angle_eq_angle_of_dist_eq {p1 p2 p3 : P} (h : dist p1 p2 = dist p1 p3) :
@@ -360,9 +360,9 @@ theorem sq_dist_mul_dist_add_sq_dist_mul_dist (a b c p : P) (h : ∠ b p c = π)
   (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) :=
 begin
   have h1 : (dist a b) ^ 2 = (dist a p) ^ 2 + (dist b p) ^ 2
-            - 2 * dist a p * dist b p * real.cos (∠ a p b), { simp [pow_two], exact lawcos a p b },
+            - 2 * dist a p * dist b p * real.cos (∠ a p b), { simp [pow_two, law_cos a p b] },
   have h2 : (dist a c) ^ 2 = (dist a p) ^ 2 + (dist c p) ^ 2
-            - 2 * dist a p * dist c p * real.cos (∠ a p c), { simp [pow_two], exact lawcos a p c },
+            - 2 * dist a p * dist c p * real.cos (∠ a p c), { simp [pow_two, law_cos a p c] },
   have h3 : real.cos (∠ a p b) = - real.cos (∠ a p c),
   { rw [eq_sub_of_add_eq (angle_add_angle_eq_pi_of_angle_eq_pi a h), real.cos_pi_sub (∠ a p c)] },
   have h4 : (dist b c) = (dist b p) + (dist c p) := dist_eq_add_dist_of_angle_eq_pi h,
@@ -380,11 +380,10 @@ begin
   have h' : dist a' c' ^ 2 = (r * dist a c) ^ 2,
   calc  dist a' c' ^ 2
       = dist a' b' ^ 2 + dist c' b' ^ 2 - 2 * dist a' b' * dist c' b' * real.cos (∠ a' b' c') :
-        by { simp [pow_two], exact lawcos a' b' c' }
+        by { simp [pow_two, law_cos a' b' c'] }
   ... = r ^ 2 * (dist a b ^ 2 + dist c b ^ 2 - 2 * dist a b * dist c b * real.cos (∠ a b c)) :
         by { rw [h, hab, hcb], ring }
-  ... = r ^ 2 * dist a c ^ 2 :
-        by rw [pow_two (dist a b), pow_two (dist c b), pow_two (dist a c), ← lawcos a b c]
+  ... = r ^ 2 * dist a c ^ 2 : by simp [pow_two, ← law_cos a b c]
   ... = (r * dist a c) ^ 2 : by ring,
 
   by_cases hab₁ : a = b,

@@ -452,7 +452,7 @@ lemma s_mod_succ {p a i b c}
   (h2 : s_mod p i = b)
   (h3 : (b * b - 2) % a = c) :
   s_mod p (i+1) = c :=
-by { dsimp [s_mod, mersenne], rw [h1, h2, pow_two, h3] }
+by { dsimp [s_mod, mersenne], rw [h1, h2, sq, h3] }
 
 /--
 Given a goal of the form `lucas_lehmer_test p`,

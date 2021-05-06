@@ -301,13 +301,13 @@ begin
 end
 
 lemma nat_abs_eq_iff_sq_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a ^ 2 = b ^ 2 :=
-by { rw [pow_two, pow_two], exact nat_abs_eq_iff_mul_self_eq }
+by { rw [sq, sq], exact nat_abs_eq_iff_mul_self_eq }
 
 lemma nat_abs_lt_iff_sq_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a ^ 2 < b ^ 2 :=
-by { rw [pow_two, pow_two], exact nat_abs_lt_iff_mul_self_lt }
+by { rw [sq, sq], exact nat_abs_lt_iff_mul_self_lt }
 
 lemma nat_abs_le_iff_sq_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a ^ 2 ≤ b ^ 2 :=
-by { rw [pow_two, pow_two], exact nat_abs_le_iff_mul_self_le }
+by { rw [sq, sq], exact nat_abs_le_iff_mul_self_le }
 
 /-! ### `/`  -/
 

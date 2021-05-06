@@ -93,9 +93,9 @@ lift.equiv_apply R M N P f m n
 Note that maps `f` of type `M →ₗ⁅R,L⁆ N →ₗ[R] P` are exactly those `R`-bilinear maps satisfying
 `⁅x, f m n⁆ = f ⁅x, m⁆ n + f m ⁅x, n⁆` for all `x, m, n` (see e.g, `lie_module_hom.map_lie₂`). -/
 def lift_lie : (M →ₗ⁅R,L⁆ N →ₗ[R] P) ≃ₗ[R] (M ⊗[R] N →ₗ⁅R,L⁆ P) :=
-(maximal_trivial_linear_map_equiv_lie_module_hom.symm.trans
-↑(maximal_trivial_equiv (lift R L M N P))).trans
-maximal_trivial_linear_map_equiv_lie_module_hom
+(max_triv_linear_map_equiv_lie_module_hom.symm.trans
+↑(max_triv_equiv (lift R L M N P))).trans
+max_triv_linear_map_equiv_lie_module_hom
 
 @[simp] lemma coe_lift_lie_eq_lift_coe (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) :
   ⇑(lift_lie R L M N P f) = lift R L M N P f :=
@@ -104,8 +104,8 @@ begin
   { rw [← this, lie_module_hom.coe_to_linear_map], },
   ext m n,
   simp only [lift_lie, linear_equiv.trans_apply, lie_module_equiv.coe_to_linear_equiv,
-    coe_linear_map_maximal_trivial_linear_map_equiv_lie_module_hom, coe_maximal_trivial_equiv_apply,
-    coe_linear_map_maximal_trivial_linear_map_equiv_lie_module_hom_symm],
+    coe_linear_map_max_triv_linear_map_equiv_lie_module_hom, coe_max_triv_equiv_apply,
+    coe_linear_map_max_triv_linear_map_equiv_lie_module_hom_symm],
 end
 
 lemma lift_lie_apply (f : M →ₗ⁅R,L⁆ N →ₗ[R] P) (m : M) (n : N) :

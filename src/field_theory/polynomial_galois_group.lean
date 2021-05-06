@@ -418,32 +418,30 @@ begin
     exact (gal_action_hom_bijective_of_prime_degree_aux p).symm },
 end
 
-/-- Same as above, but with extra flexibility -/
+/-- An irreducible polynomial of prime degree with 1-3 non-real roots has full Galois group -/
 lemma gal_action_hom_bijective_of_prime_degree'
   {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots1 : fintype.card (p.root_set ℝ) + 1 ≤ fintype.card (p.root_set ℂ))
   (p_roots2 : fintype.card (p.root_set ℂ) ≤ fintype.card (p.root_set ℝ) + 3) :
   function.bijective (gal_action_hom p ℂ) :=
 begin
+  apply gal_action_hom_bijective_of_prime_degree p_irr p_deg,
   let n := (gal_action_hom p ℂ (restrict p ℂ
     (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card,
   have hn : 2 ∣ n :=
   equiv.perm.two_dvd_card_support (by rw [←monoid_hom.map_pow, ←monoid_hom.map_pow,
     show alg_equiv.restrict_scalars ℚ complex.conj_alg_equiv ^ 2 = 1,
     from alg_equiv.ext complex.conj_conj, monoid_hom.map_one, monoid_hom.map_one]),
-  apply gal_action_hom_bijective_of_prime_degree p_irr p_deg,
   have key := gal_action_hom_bijective_of_prime_degree_aux p,
   simp_rw [set.to_finset_card] at key,
   rw [key, add_le_add_iff_left] at p_roots1 p_roots2,
   rw [key, add_right_inj],
-  change 1 ≤ n at p_roots1,
-  change n ≤ 3 at p_roots2,
-  change n = 2,
-  obtain ⟨m, hm⟩ := hn,
-  rw two_mul at hm,
-  rw hm at *,
-  exact nat.bit0_eq_bit0.mpr (le_antisymm (nat.bit0_le_bit1_iff.mp p_roots2)
-    (nat.succ_le_iff.mpr (nat.bit1_le_bit0_iff.mp p_roots1))),
+  suffices : ∀ m : ℕ, 2 ∣ m → 1 ≤ m → m ≤ 3 → m = 2,
+  { exact this n hn p_roots1 p_roots2 },
+  rintros m ⟨k, rfl⟩ h2 h3,
+  exact le_antisymm (nat.lt_succ_iff.mp (lt_of_le_of_ne h3 (show 2 * k ≠ 2 * 1 + 1,
+    from nat.two_mul_ne_two_mul_add_one))) (nat.succ_le_iff.mpr (lt_of_le_of_ne h2
+    (show 2 * 0 + 1 ≠ 2 * k, from nat.two_mul_ne_two_mul_add_one.symm))),
 end
 
 end gal

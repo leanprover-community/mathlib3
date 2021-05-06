@@ -701,9 +701,9 @@ lemma finsum_mul {R : Type*} [semiring R] (f : α → R) (r : R)
 (add_monoid_hom.mul_right r).map_finsum h
 
 @[to_additive]
-lemma finprod_mem_dif_mem {s : set α} [decidable_pred (∈ s)] (f : (Π (a : α), a ∈ s → M)) :
-  (∏ᶠ (a : α) (h : a ∈ s), if h' : a ∈ s then f a h' else 1) = ∏ᶠ (a : α) (h : a ∈ s), f a h :=
-finprod_congr (λ a, finprod_congr (λ ha, dif_pos ha))
+lemma finprod_dmem {s : set α} [decidable_pred (∈ s)] (f : (Π (a : α), a ∈ s → M)) :
+  ∏ᶠ (a : α) (h : a ∈ s), f a h = ∏ᶠ (a : α) (h : a ∈ s), if h' : a ∈ s then f a h' else 1 :=
+finprod_congr (λ a, finprod_congr (λ ha, (dif_pos ha).symm))
 
 @[to_additive]
 lemma finprod_emb_domain' {f : α → β} (hf : function.injective f)
@@ -711,7 +711,7 @@ lemma finprod_emb_domain' {f : α → β} (hf : function.injective f)
   ∏ᶠ (b : β), (if h : b ∈ set.range f then g (classical.some h) else 1) = ∏ᶠ (a : α), g a :=
 begin
   simp_rw [← finprod_eq_dif],
-  rw [← finprod_mem_dif_mem, finprod_mem_range hf, finprod_congr (λ a, _)],
+  rw [finprod_dmem, finprod_mem_range hf, finprod_congr (λ a, _)],
   rw [dif_pos (set.mem_range_self a), hf (classical.some_spec (set.mem_range_self a))]
 end
 

@@ -366,10 +366,9 @@ begin
     rw submodule.mem_span at hj ⊢,
     refine λ p hp, hj p (λ u hu, _),
     obtain ⟨i, rfl⟩ := hu,
-    have hw₂ : ↑((hw i).unit)⁻¹ * w i = 1,
-    { rw [units.inv_mul_eq_iff_eq_mul (hw i).unit, (hw i).unit_spec, mul_one] },
-    have := p.smul_mem ↑((hw i).unit)⁻¹ (hp ⟨i, rfl⟩),
-    rwa [pi.smul_apply', ← smul_assoc, smul_eq_mul, hw₂, one_smul] at this }
+    obtain ⟨wi, hwi⟩ := hw i,
+    have : ↑wi⁻¹ • w i • v i ∈ p := p.smul_mem ↑wi⁻¹ (hp ⟨i, rfl⟩),
+    rwa [←hwi, units.inv_smul_smul] at this }
 end
 
 end is_basis

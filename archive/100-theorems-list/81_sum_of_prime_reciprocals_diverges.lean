@@ -28,9 +28,8 @@ begin
   let Np := {e ∈ range n | p ∣ e + 1},
 
   have hf : ∀ a : ℕ, a ∈ Np → f a ∈ range (n / p),
-  { simp_intros a ha only [Np, sep_def, mem_filter, mem_range],
-    obtain ⟨han, ⟨w, hw⟩⟩ := ha,
-    simp only [f, mem_range],
+  { simp only [f, Np, sep_def, mem_filter, mem_range],
+    rintros a ⟨han, ⟨w, hw⟩⟩,
     have hnp : 1 ≤ n / p,
     { have : 0 < w := by nlinarith,
       rw ← nat.div_self hp,
@@ -51,11 +50,10 @@ begin
 end
 
 lemma card_le_div_real {n p : ℕ} (hp : 0 < p) :
-  (card {e ∈ range n | p ∣ e + 1} : ℝ) ≤ n * (1 / p) :=
+  (card {e ∈ range n | p ∣ e + 1} : ℝ) ≤ n / p :=
 calc  (card {e ∈ range n | p ∣ e + 1} : ℝ)
-    ≤ ↑(n / p)    : nat.cast_le.mpr $ card_le_div_nat hp
-... ≤ n / p       : (le_div_iff $ by exact_mod_cast hp).mpr $ by apply_mod_cast nat.div_mul_le_self
-... = n * (1 / p) : div_eq_mul_one_div n p
+    ≤ ↑(n / p) : nat.cast_le.mpr $ card_le_div_nat hp
+... ≤ n / p    : (le_div_iff $ by exact_mod_cast hp).mpr $ by apply_mod_cast nat.div_mul_le_self
 
 lemma card_eq_card_sdiff_add_card {A B : finset ℕ} (h : A ⊆ B) :
   card B = card (B \ A) + card A :=
@@ -122,10 +120,11 @@ begin
 
   calc  (card (finset.bUnion P N) : ℝ)
       ≤ ∑ p in P, card (N p)  : by assumption_mod_cast
-  ... ≤ ∑ p in P, x * (1 / p) : by { refine sum_le_sum (λ p, _),
+  ... ≤ ∑ p in P, x / p       : by { refine sum_le_sum (λ p, _),
                                      simp only [P, sep_def, mem_filter, mem_range],
                                      rintros ⟨-, -, hpp⟩,
                                      simp only [N, card_le_div_real (nat.prime.pos hpp)] }
+  ... = ∑ p in P, x * (1 / p) : finset.sum_congr rfl (λ p, λ _, div_eq_mul_one_div x p)
   ... = x * ∑ p in P, 1 / p   : mul_sum.symm,
 end
 

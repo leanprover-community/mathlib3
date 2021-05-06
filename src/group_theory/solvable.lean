@@ -443,7 +443,7 @@ begin
 end
 
 lemma not_solvable : ¬ is_solvable (equiv.perm weekday) :=
- not_solvable_of_mem_derived_series (mt equiv.ext_iff.mp
+not_solvable_of_mem_derived_series (mt equiv.ext_iff.mp
   (not_forall_of_exists_not ⟨wednesday, by trivial⟩)) mem_derived_series
 
 end weekday
@@ -451,7 +451,7 @@ end weekday
 end S5_not_solvable
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :
- ¬ is_solvable (equiv.perm X) :=
+  ¬ is_solvable (equiv.perm X) :=
 begin
   introI h,
   have key : nonempty (S5_not_solvable.weekday ↪ X),

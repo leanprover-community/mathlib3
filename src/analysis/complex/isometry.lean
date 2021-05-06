@@ -13,7 +13,7 @@ noncomputable theory
 /-!
 # Isometries of the Complex Plane
 
-`linear_isometry_complex` states the classification of isometries in the complex plane.
+The lemma `linear_isometry_complex` states the classification of isometries in the complex plane.
 Specifically, isometries with rotations but without translation.
 The proof involves:
 1. creating a linear isometry `g` with two fixed points, `g(0) = 0`, `g(1) = 1`
@@ -27,9 +27,6 @@ The proof of `linear_isometry_complex_aux` is separated in the following parts:
 
 * [Isometries of the Complex Plane](http://helmut.knaust.info/mediawiki/images/b/b5/Iso.pdf)
 -/
-
--- https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/linear_isometry_complex
--- https://github.com/leanprover-community/mathlib/pull/6923
 
 open complex
 

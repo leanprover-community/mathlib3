@@ -329,8 +329,20 @@ def Pi_congr_right {η : Type*}
   {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) : (Π j, Ms j) ≃* (Π j, Ns j) :=
 { to_fun := λ x j, es j (x j),
+  inv_fun := λ x j, (es j).symm (x j),
   map_mul' := λ x y, funext $ λ j, (es j).map_mul (x j) (y j),
   .. equiv.Pi_congr_right (λ j, (es j).to_equiv) }
+
+@[simp]
+lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*} [Π j, mul_one_class (Ms j)] :
+  Pi_congr_right (λ j, mul_equiv.refl (Ms j)) = mul_equiv.refl _ := rfl
+
+@[simp]
+lemma Pi_congr_right_trans {η : Type*}
+  {Ms Ns Ps : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
+  [Π j, mul_one_class (Ps j)]
+  (es : ∀ j, Ms j ≃* Ns j) (fs : ∀ j, Ns j ≃* Ps j) :
+  (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) := rfl
 
 /-!
 # Groups

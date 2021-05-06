@@ -578,12 +578,20 @@ ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
 @[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
+lemma map_list_prod (s : list A) :
+  φ s.prod = (s.map φ).prod :=
+φ.to_ring_hom.map_list_prod s
+
 end semiring
 
 section comm_semiring
 
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
+
+lemma map_multiset_prod (s : multiset A) :
+  φ s.prod = (s.map φ).prod :=
+φ.to_ring_hom.map_multiset_prod s
 
 lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=

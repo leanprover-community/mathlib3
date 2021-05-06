@@ -300,7 +300,7 @@ open unique_factorization_monoid
 
 theorem nat.factors_eq {n : ℕ} : factors n = n.factors :=
 begin
-  cases n, {refl},
+  cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
   apply factors_unique (irreducible_of_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],

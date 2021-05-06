@@ -208,14 +208,13 @@ end
 
 theorem abs_def (q : ℚ) : abs q = q.num.nat_abs /. q.denom :=
 begin
-  have hz : (0:ℚ) = 0 /. 1 := rfl,
   cases le_total q 0 with hq hq,
   { rw [abs_of_nonpos hq],
-    rw [←(@num_denom q), hz, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
+    rw [←(@num_denom q), ← mk_zero_one, rat.le_def (int.coe_nat_pos.2 q.pos) zero_lt_one,
         mul_one, zero_mul] at hq,
     rw [int.of_nat_nat_abs_of_nonpos hq, ← neg_def, num_denom] },
   { rw [abs_of_nonneg hq],
-    rw [←(@num_denom q), hz, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
+    rw [←(@num_denom q), ← mk_zero_one, rat.le_def zero_lt_one (int.coe_nat_pos.2 q.pos),
         mul_one, zero_mul] at hq,
     rw [int.nat_abs_of_nonneg hq, num_denom] }
 end

@@ -80,8 +80,7 @@ end
 @[priority 100]
 instance small_of_fintype (α : Type v) [fintype α] : small.{w} α :=
 begin
-  obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin α,
-  rw small_congr e,
+  rw small_congr (fintype.equiv_fin α),
   apply_instance,
 end
 

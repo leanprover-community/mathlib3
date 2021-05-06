@@ -353,7 +353,7 @@ begin
 end
 
 /-- Stewart's Theorem. -/
-theorem sq_dist_mul_dist_add_sq_dist_mul_dist (a : P) {b c p : P} (h : ∠ b p c = π) :
+theorem sq_dist_mul_dist_add_sq_dist_mul_dist (a b c p : P) (h : ∠ b p c = π) :
   (dist a b) ^ 2 * (dist c p) + (dist a c) ^ 2 * (dist b p) =
   (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) :=
 begin
@@ -372,7 +372,7 @@ begin
   ... = (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) : by rw ← h4,
 end
 
-lemma dist_mul_of_eq_angle_of_dist_mul {a b c a' b' c' : P} {r : ℝ} (h : ∠ a' b' c' = ∠ a b c)
+lemma dist_mul_of_eq_angle_of_dist_mul (a b c a' b' c' : P) {r : ℝ} (h : ∠ a' b' c' = ∠ a b c)
   (hab : dist a' b' = r * dist a b) (hcb : dist c' b' = r * dist c b) :
   dist a' c' = r * dist a c :=
 begin

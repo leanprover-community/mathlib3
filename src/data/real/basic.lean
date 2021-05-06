@@ -467,7 +467,7 @@ lemma lt_Inf_add_pos {s : set ℝ} (h : bdd_below s) (h' : s.nonempty) {ε : ℝ
   ∃ a ∈ s, a < Inf s + ε :=
 (Inf_lt _ h' h).1 $ lt_add_of_pos_right _ hε
 
-lemma add_pos_lt_Sup {s : set ℝ} (x : ℝ) (h : bdd_above s) (h' : s.nonempty) {ε : ℝ} (hε : ε < 0) :
+lemma add_pos_lt_Sup {s : set ℝ} (h : bdd_above s) (h' : s.nonempty) {ε : ℝ} (hε : ε < 0) :
   ∃ a ∈ s, Sup s + ε < a :=
 (real.lt_Sup _ h' h).1 $ add_lt_iff_neg_left.mpr hε
 

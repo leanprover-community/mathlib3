@@ -159,6 +159,8 @@ end Profinite
 
 namespace Profinite
 
+universe u
+
 /--
 An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
 `Top.limit_cone`.

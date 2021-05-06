@@ -684,7 +684,8 @@ end
 
 /-- If an additive monoid `M` is finitely generated then `add_monoid_algebra R M` is of finite
 type. -/
-instance finite_type_of_fg [comm_ring R] [h : add_monoid.fg M] : finite_type R (add_monoid_algebra R M) :=
+instance finite_type_of_fg [comm_ring R] [h : add_monoid.fg M] :
+  finite_type R (add_monoid_algebra R M) :=
 begin
   obtain ⟨S, hS⟩ := h.out,
   exact (finite_type.mv_polynomial R (S : set M)).of_surjective (mv_polynomial.aeval

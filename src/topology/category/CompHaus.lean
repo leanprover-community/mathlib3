@@ -174,8 +174,8 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
       dsimp [Top.limit_cone],
       rw ← compact_iff_compact_space,
       apply is_closed.compact,
-      have : { u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j } =
-        ⋂ (i j : J) (f : i ⟶ j), { u | F.map f (u i) = u j }, by tidy,
+      have : {u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} =
+        ⋂ (i j : J) (f : i ⟶ j), {u | F.map f (u i) = u j}, by tidy,
       rw this,
       apply is_closed_Inter, intros i,
       apply is_closed_Inter, intros j,

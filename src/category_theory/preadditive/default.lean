@@ -44,7 +44,8 @@ additive, preadditive, Hom group, Ab-category, Ab-enriched
 universes v u
 
 open category_theory.limits
-open add_monoid_hom
+
+open_locale big_operators
 
 namespace category_theory
 
@@ -70,9 +71,11 @@ end category_theory
 
 open category_theory
 
-namespace category_theory.preadditive
+namespace category_theory
+namespace preadditive
 
 section preadditive
+open add_monoid_hom
 variables {C : Type u} [category.{v} C] [preadditive C]
 
 section induced_category
@@ -102,46 +105,51 @@ mk' (λ g, f ≫ g) $ λ g g', by simp
 def right_comp (P : C) {Q R : C} (g : Q ⟶ R) : (P ⟶ Q) →+ (P ⟶ R) :=
 mk' (λ f, f ≫ g) $ λ f f', by simp
 
-@[simp, reassoc] lemma sub_comp {P Q R : C} (f f' : P ⟶ Q) (g : Q ⟶ R) :
+variables {P Q R : C} (f f' : P ⟶ Q) (g g' : Q ⟶ R)
+
+/-- Composition as a bilinear group homomorphism -/
+def comp_hom : (P ⟶ Q) →+ (Q ⟶ R) →+ (P ⟶ R) :=
+add_monoid_hom.mk' (λ f, left_comp _ f) $
+  λ f₁ f₂, add_monoid_hom.ext $ λ g, (right_comp _ g).map_add f₁ f₂
+
+@[simp, reassoc] lemma sub_comp :
   (f - f') ≫ g = f ≫ g - f' ≫ g :=
 map_sub (right_comp P g) f f'
 
 -- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma.
-@[reassoc, simp] lemma comp_sub {P Q R : C} (f : P ⟶ Q) (g g' : Q ⟶ R) :
+@[reassoc, simp] lemma comp_sub :
   f ≫ (g - g') = f ≫ g - f ≫ g' :=
 map_sub (left_comp R f) g g'
 
-@[simp, reassoc] lemma neg_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : (-f) ≫ g = -(f ≫ g) :=
+@[simp, reassoc] lemma neg_comp : (-f) ≫ g = -(f ≫ g) :=
 map_neg (right_comp _ _) _
 
 /- The redundant simp lemma linter says that simp can prove the reassoc version of this lemma. -/
-@[reassoc, simp] lemma comp_neg {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : f ≫ (-g) = -(f ≫ g) :=
+@[reassoc, simp] lemma comp_neg : f ≫ (-g) = -(f ≫ g) :=
 map_neg (left_comp _ _) _
 
-@[reassoc] lemma neg_comp_neg {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : (-f) ≫ (-g) = f ≫ g :=
+@[reassoc] lemma neg_comp_neg : (-f) ≫ (-g) = f ≫ g :=
 by simp
 
-section big_operators
+@[simp] lemma nsmul_comp (n : ℕ) : (n • f) ≫ g = n • (f ≫ g) :=
+map_nsmul (right_comp _ _) _ _
 
-open_locale big_operators
+@[simp] lemma comp_nsmul (n : ℕ) : f ≫ (n • g) = n • (f ≫ g) :=
+map_nsmul (left_comp _ _) _ _
 
-@[reassoc] lemma comp_sum {P Q R : C} {J : Type*} {s : finset J} (f : P ⟶ Q) (g : J → (Q ⟶ R)) :
+@[simp] lemma gsmul_comp (n : ℤ) : (n • f) ≫ g = n • (f ≫ g) :=
+map_gsmul (right_comp _ _) _ _
+
+@[simp] lemma comp_gsmul (n : ℤ) : f ≫ (n • g) = n • (f ≫ g) :=
+map_gsmul (left_comp _ _) _ _
+
+@[reassoc] lemma comp_sum {P Q R : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (Q ⟶ R)) :
   f ≫ ∑ j in s, g j = ∑ j in s, f ≫ g j :=
-begin
-  change left_comp R f _ = _,
-  rw [add_monoid_hom.map_sum],
-  refl,
-end
+map_sum (left_comp R f) _ _
 
-@[reassoc] lemma sum_comp {P Q R : C} {J : Type*} {s : finset J} (f : J → (P ⟶ Q)) (g : Q ⟶ R) :
+@[reassoc] lemma sum_comp {P Q R : C} {J : Type*} (s : finset J) (f : J → (P ⟶ Q)) (g : Q ⟶ R) :
   (∑ j in s, f j) ≫ g  = ∑ j in s, f j ≫ g :=
-begin
-  change right_comp P g _ = _,
-  rw [add_monoid_hom.map_sum],
-  refl,
-end
-
-end big_operators
+map_sum (right_comp P g) _ _
 
 instance {P Q : C} {f : P ⟶ Q} [epi f] : epi (-f) :=
 ⟨λ R g g' H, by rwa [neg_comp, neg_comp, ←comp_neg, ←comp_neg, cancel_epi, neg_inj] at H⟩
@@ -244,4 +252,7 @@ lemma has_coequalizers_of_has_cokernels [has_cokernels C] : has_coequalizers C :
 end
 
 end equalizers
-end category_theory.preadditive
+
+end preadditive
+
+end category_theory

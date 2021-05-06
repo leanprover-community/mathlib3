@@ -320,8 +320,8 @@ multiplicative equivalence between `Π j, Ms j` and `Π j, Ns j`.
 This is the `mul_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
 `mul_equiv.arrow_congr`.
 -/
-@[to_additive add_equiv.Pi_congr_right "A family of additive equivalences `Π j, (Ms j ≃+ Ns j)` generates an
-additive equivalence between `Π j, Ms j` and `Π j, Ns j`.
+@[to_additive add_equiv.Pi_congr_right "A family of additive equivalences `Π j, (Ms j ≃+ Ns j)`
+generates an additive equivalence between `Π j, Ms j` and `Π j, Ns j`.
 
 This is the `add_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
 `add_equiv.arrow_congr`.", simps]

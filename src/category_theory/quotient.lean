@@ -28,6 +28,7 @@ variables {C : Type*} [category C] (r : hom_rel C)
 
 include r
 
+<<<<<<< HEAD
 /-- A `hom_rel` is a congruence when it's an equivalence on every hom-set, and it can be composed
 from left and right. -/
 class congruence : Prop :=
@@ -37,6 +38,8 @@ class congruence : Prop :=
 
 attribute [instance] congruence.is_equiv
 
+=======
+>>>>>>> origin/master
 /-- A type synonym for `C`, thought of as the objects of the quotient category. -/
 @[ext]
 structure quotient := (as : C)

@@ -1802,10 +1802,10 @@ end pointwise
 namespace is_conj
 open subgroup
 
-lemma top_le_normal_closure_of {N : subgroup G} [hn : N.normal]
+lemma normal_closure_eq_top_of {N : subgroup G} [hn : N.normal]
   {g g' : G} {hg : g ∈ N} {hg' : g' ∈ N} (hc : is_conj g g')
-  (ht : ⊤ ≤ normal_closure ({⟨g, hg⟩} : set N)) :
-  ⊤ ≤ normal_closure ({⟨g', hg'⟩} : set N) :=
+  (ht : normal_closure ({⟨g, hg⟩} : set N) = ⊤) :
+  normal_closure ({⟨g', hg'⟩} : set N) = ⊤ :=
 begin
   obtain ⟨c, rfl⟩ := is_conj_iff.1 hc,
   have h : ∀ x : N, (mul_aut.conj c) x ∈ N,
@@ -1819,9 +1819,9 @@ begin
     simp only [monoid_hom.cod_restrict_apply, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply,
       coe_mk, monoid_hom.restrict_apply, subtype.mk_eq_mk, ← mul_assoc, mul_inv_self, one_mul],
     rw [mul_assoc, mul_inv_self, mul_one] },
-  have ht' := map_mono ht,
+  have ht' := map_mono (eq_top_iff.1 ht),
   rw [← monoid_hom.range_eq_map, monoid_hom.range_top_of_surjective _ hs] at ht',
-  refine le_trans ht' (map_le_iff_le_comap.2 (normal_closure_le_normal _)),
+  refine eq_top_iff.2 (le_trans ht' (map_le_iff_le_comap.2 (normal_closure_le_normal _))),
   rw [set.singleton_subset_iff, set_like.mem_coe],
   simp only [monoid_hom.cod_restrict_apply, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, coe_mk,
     monoid_hom.restrict_apply, mem_comap],

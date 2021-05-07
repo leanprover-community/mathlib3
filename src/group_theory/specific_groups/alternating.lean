@@ -117,7 +117,7 @@ lemma is_three_cycle_is_conj (h5 : 5 ≤ fintype.card α)
   (hσ : is_three_cycle (σ : perm α)) (hτ : is_three_cycle (τ : perm α)) :
   is_conj σ τ :=
 alternating_group.is_conj_of (is_conj_iff_cycle_type_eq.2 (hσ.trans hτ.symm))
-  (by { rw hσ.card_support, exact h5 })
+  (by rwa hσ.card_support)
 
 end alternating_group
 
@@ -147,10 +147,10 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
     (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
 end
 
-lemma is_three_cycle.top_le_alternating_normal_closure (h5 : 5 ≤ fintype.card α)
+lemma is_three_cycle.alternating_normal_closure (h5 : 5 ≤ fintype.card α)
   {f : perm α} (hf : is_three_cycle f) :
-  ⊤ ≤ normal_closure ({⟨f, hf.mem_alternating_group⟩} : set (alternating_group α)) :=
-begin
+  normal_closure ({⟨f, hf.mem_alternating_group⟩} : set (alternating_group α)) = ⊤ :=
+eq_top_iff.2 begin
   have hi : function.injective (alternating_group α).subtype := subtype.coe_injective,
   refine eq_top_iff.1 (map_injective hi (le_antisymm (map_mono le_top) _)),
   rw [← monoid_hom.range_eq_map, subtype_range, normal_closure, monoid_hom.map_closure],
@@ -196,14 +196,14 @@ end
 instance {n : ℕ} : nontrivial (alternating_group (fin (n + 3))) :=
 nontrivial_of_three_le_card (by { rw card_fin, exact le_add_left (le_refl 3) })
 
-lemma top_le_normal_closure_fin_rotate_five :
-  ⊤ ≤ (normal_closure ({⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩} :
-    set (alternating_group (fin 5)))) :=
-begin
+lemma normal_closure_fin_rotate_five :
+  (normal_closure ({⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩} :
+    set (alternating_group (fin 5)))) = ⊤ :=
+eq_top_iff.2 begin
   have h3 : is_three_cycle ((fin.cycle_range 2) * (fin_rotate 5) *
     (fin.cycle_range 2)⁻¹ * (fin_rotate 5)⁻¹) := card_support_eq_three_iff.1 dec_trivial,
-  refine (h3.top_le_alternating_normal_closure _).trans (normal_closure_le_normal _),
-  { rw [card_fin] },
+  rw ← h3.alternating_normal_closure (by rw [card_fin]),
+  refine normal_closure_le_normal _,
   rw [set.singleton_subset_iff, set_like.mem_coe],
   have h : (⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩ :
     alternating_group (fin 5)) ∈ normal_closure _ :=
@@ -212,9 +212,9 @@ begin
     ⟨fin.cycle_range 2, fin.is_three_cycle_cycle_range_two.mem_alternating_group⟩) (inv_mem _ h),
 end
 
-lemma top_le_normal_closure_swap_mul_swap_five :
-  ⊤ ≤ (normal_closure ({⟨swap 0 4 * swap 1 3, mem_alternating_group.2 dec_trivial⟩} :
-    set (alternating_group (fin 5)))) :=
+lemma normal_closure_swap_mul_swap_five :
+  (normal_closure ({⟨swap 0 4 * swap 1 3, mem_alternating_group.2 dec_trivial⟩} :
+    set (alternating_group (fin 5)))) = ⊤ :=
 begin
   let g1 := (⟨swap 0 2 * swap 0 1, mem_alternating_group.2 dec_trivial⟩ :
     alternating_group (fin 5)),
@@ -224,7 +224,8 @@ begin
   { rw subtype.ext_iff,
     simp only [fin.coe_mk, subgroup.coe_mul, subgroup.coe_inv, fin.coe_mk],
     dec_trivial },
-  refine top_le_normal_closure_fin_rotate_five.trans (normal_closure_le_normal _),
+  rw [eq_top_iff, ← normal_closure_fin_rotate_five],
+  refine normal_closure_le_normal _,
   rw [set.singleton_subset_iff, set_like.mem_coe, ← h5],
   have h : g2 ∈ normal_closure {g2} :=
     set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
@@ -265,16 +266,16 @@ end
 instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
 ⟨exists_pair_ne _, λ H, begin
   introI Hn,
-  refine or_not.imp (id) (λ Hb, eq_top_iff.2 _),
+  refine or_not.imp (id) (λ Hb, _),
   rw [eq_bot_iff_forall] at Hb,
   push_neg at Hb,
   obtain ⟨⟨g, gA⟩, gH, g1⟩ := Hb,
   rw [← set_like.mem_coe, ← set.singleton_subset_iff] at gH,
-  refine le_trans _ (normal_closure_le_normal gH),
+  refine eq_top_iff.2 (le_trans (le_of_eq _) (normal_closure_le_normal gH)),
   by_cases h2 : ∀ n ∈ g.cycle_type, n = 2,
   { rw [ne.def, subtype.ext_iff] at g1,
-    exact (is_conj_swap_mul_swap_of_cycle_type_two gA g1 h2).top_le_normal_closure_of
-      top_le_normal_closure_swap_mul_swap_five, },
+    exact (is_conj_swap_mul_swap_of_cycle_type_two gA g1 h2).normal_closure_eq_top_of
+      normal_closure_swap_mul_swap_five },
   push_neg at h2,
   obtain ⟨n, ng, n2⟩ := h2,
   have n2' := lt_of_le_of_ne (two_le_of_mem_cycle_type ng) n2.symm,
@@ -283,9 +284,9 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
     rw [← sum_cycle_type, hm, multiset.sum_cons],
     exact le_add_right (le_refl _) },
   interval_cases n,
-  { refine ((is_three_cycle_sq_of_three_mem_cycle_type_five ng).top_le_alternating_normal_closure
-      _).trans (normal_closure_le_normal _),
-    { rw card_fin },
+  { rw [← (is_three_cycle_sq_of_three_mem_cycle_type_five ng).alternating_normal_closure
+      (by rw card_fin )],
+    refine normal_closure_le_normal _,
     rw [set.singleton_subset_iff, set_like.mem_coe],
     have h := set_like.mem_coe.1 (subset_normal_closure (set.mem_singleton _)),
     exact mul_mem _ h h },
@@ -295,8 +296,8 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
     simp only [multiset.singleton_eq_singleton, multiset.map_cons, mul_one, multiset.prod_cons,
       units.neg_mul, multiset.prod_zero, multiset.map_zero],
     dec_trivial },
-  { refine (is_conj_iff_cycle_type_eq.2 _).top_le_normal_closure_of
-      top_le_normal_closure_fin_rotate_five,
+  { refine (is_conj_iff_cycle_type_eq.2 _).normal_closure_eq_top_of
+      normal_closure_fin_rotate_five,
     rw [cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng, cycle_type_fin_rotate] }
 end⟩
 

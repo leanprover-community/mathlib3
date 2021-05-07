@@ -172,8 +172,7 @@ lemma normal_closure_fin_rotate_five :
 eq_top_iff.2 begin
   have h3 : is_three_cycle ((fin.cycle_range 2) * (fin_rotate 5) *
     (fin.cycle_range 2)⁻¹ * (fin_rotate 5)⁻¹) := card_support_eq_three_iff.1 dec_trivial,
-  rw ← h3.alternating_normal_closure,
-  { rw [card_fin] },
+  rw ← h3.alternating_normal_closure (by rw [card_fin]),
   refine normal_closure_le_normal _,
   rw [set.singleton_subset_iff, set_like.mem_coe],
   have h : (⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩ :

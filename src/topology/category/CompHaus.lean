@@ -162,10 +162,8 @@ has_colimits_of_reflective CompHaus_to_Top
 
 namespace CompHaus
 
-/--
-An explicit limit cone for a functor `F : J ⥤ CompHaus`, defined in terms of
-`Top.limit_cone`.
--/
+/-- An explicit limit cone for a functor `F : J ⥤ CompHaus`, defined in terms of
+`Top.limit_cone`. -/
 def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
   limits.cone F :=
 { X :=

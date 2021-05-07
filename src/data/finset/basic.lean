@@ -253,6 +253,9 @@ show (s₁ : set α) ⊂ s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
 and_congr val_le_iff $ not_congr val_le_iff
 
+lemma ssubset_iff_subset_ne {s t : finset α} : s ⊂ t ↔ s ⊆ t ∧ s ≠ t :=
+@lt_iff_le_and_ne _ _ s t
+
 theorem ssubset_iff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ⊂ s₂ ↔ ∃ x ∈ s₂, x ∉ s₁ :=
 set.ssubset_iff_of_subset h
 

@@ -27,7 +27,7 @@ Linear algebra:
     orthogonality: ''
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
-    isomorphism with $K^n$: 'module_equiv_finsupp'
+    isomorphism with $K^n$: 'basis.equiv_fun'
     rank of a linear map: 'rank'
     rank of a set of vectors: ''
     rank of a system of linear equations: ''

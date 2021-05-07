@@ -247,6 +247,12 @@ lemma mul_eq_comp (f g : M →ₗ[R] M) : f * g = f.comp g := rfl
 lemma coe_one : ⇑(1 : M →ₗ[R] M) = _root_.id := rfl
 lemma coe_mul (f g : M →ₗ[R] M) : ⇑(f * g) = f ∘ g := rfl
 
+instance [nontrivial M] : nontrivial (module.End R M) :=
+begin
+  obtain ⟨m, ne⟩ := (nontrivial_iff_exists_ne (0 : M)).mp infer_instance,
+  exact nontrivial_of_ne 1 0 (λ p, ne (linear_map.congr_fun p m)),
+end
+
 @[simp] theorem comp_zero : f.comp (0 : M₃ →ₗ[R] M) = 0 :=
 ext $ assume c, by rw [comp_apply, zero_apply, zero_apply, f.map_zero]
 
@@ -272,6 +278,8 @@ end
 
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
+
+@[simp] lemma id_pow (n : ℕ) : (id : M →ₗ[R] M)^n = id := one_pow n
 
 section
 variables {f' : M →ₗ[R] M}
@@ -1927,6 +1935,38 @@ def of_submodule (p : submodule R M) : p ≃ₗ[R] ↥(p.map ↑e : submodule R 
 
 end
 
+/-- A family of linear equivalences `Π j, (Ms j ≃ₗ[R] Ns j)` generates a
+linear equivalence between `Π j, Ms j` and `Π j, Ns j`. -/
+@[simps apply]
+def Pi_congr_right {η : Type*} {Ms Ns : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
+  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
+  (es : ∀ j, Ms j ≃ₗ[R] Ns j) : (Π j, Ms j) ≃ₗ[R] (Π j, Ns j) :=
+{ to_fun := λ x j, es j (x j),
+  inv_fun := λ x j, (es j).symm (x j),
+  map_smul' := λ m x, by { ext j, simp },
+  .. add_equiv.Pi_congr_right (λ j, (es j).to_add_equiv) }
+
+@[simp]
+lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)] :
+  Pi_congr_right (λ j, refl R (Ms j)) = refl _ _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {η : Type*} {Ms Ns : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
+  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
+  (es : ∀ j, Ms j ≃ₗ[R] Ns j) :
+(Pi_congr_right es).symm = (Pi_congr_right $ λ i, (es i).symm) := rfl
+
+@[simp]
+lemma Pi_congr_right_trans {η : Type*} {Ms Ns Ps : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
+  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
+  [Π j, add_comm_monoid (Ps j)] [Π j, module R (Ps j)]
+  (es : ∀ j, Ms j ≃ₗ[R] Ns j) (fs : ∀ j, Ns j ≃ₗ[R] Ps j) :
+  (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) :=
+rfl
 
 section uncurry
 

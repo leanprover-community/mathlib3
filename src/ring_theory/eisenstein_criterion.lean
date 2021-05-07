@@ -31,7 +31,7 @@ polynomial.ext (λ n, begin
   { rw [coeff_eq_zero_of_degree_lt, coeff_eq_zero_of_degree_lt],
     { refine lt_of_le_of_lt (degree_C_mul_X_pow_le _ _) _,
       rwa ← degree_eq_nat_degree hf0 },
-    { exact lt_of_le_of_lt (degree_map_le _) h } }
+    { exact lt_of_le_of_lt (degree_map_le _ _) h } }
 end)
 
 lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
@@ -40,7 +40,7 @@ lemma le_nat_degree_of_map_eq_mul_X_pow {n : ℕ}
 with_bot.coe_le_coe.1
   (calc ↑n = degree (q.map (mk P)) :
       by rw [hq, degree_mul, hc0, zero_add, degree_pow, degree_X, nsmul_one, nat.cast_with_bot]
-      ... ≤ degree q : degree_map_le _
+      ... ≤ degree q : degree_map_le _ _
       ... ≤ nat_degree q : degree_le_nat_degree)
 
 lemma eval_zero_mem_ideal_of_eq_mul_X_pow {n : ℕ} {P : ideal R}
@@ -87,7 +87,7 @@ begin
   have hmn : 0 < m → 0 < n → false,
   { assume hm0 hn0,
     refine h0 _,
-    rw [coeff_zero_eq_eval_zero, eval_mul, pow_two],
+    rw [coeff_zero_eq_eval_zero, eval_mul, sq],
     exact ideal.mul_mem_mul
       (eval_zero_mem_ideal_of_eq_mul_X_pow hp hm0)
       (eval_zero_mem_ideal_of_eq_mul_X_pow hq hn0) },

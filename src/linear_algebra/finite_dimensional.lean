@@ -1253,6 +1253,16 @@ lemma finrank_eq_one_iff_of_nonzero (v : V) (nz : v ≠ 0) :
   λ s, finrank_eq_card_basis ⟨linear_independent_singleton nz, by { convert s, simp }⟩⟩
 
 /--
+A module with a nonzero vector `v` has dimension 1 iff every vector is a multiple of `v`.
+-/
+lemma finrank_eq_one_iff_of_nonzero' (v : V) (nz : v ≠ 0) :
+  finrank K V = 1 ↔ ∀ w : V, ∃ c : K, c • v = w :=
+begin
+  rw finrank_eq_one_iff_of_nonzero v nz,
+  apply span_singleton_eq_top_iff,
+end
+
+/--
 A module has dimension 1 iff there is some `v : V` so `{v}` is a basis.
 -/
 lemma finrank_eq_one_iff :
@@ -1278,7 +1288,7 @@ begin
   convert (is_basis_singleton_iff ({v} : set V) v).symm,
   ext ⟨x, ⟨⟩⟩,
   refl,
-  apply_instance, apply_instance, -- Not sure why this aren't found automatically.
+  apply_instance, apply_instance, -- Not sure why these aren't found automatically.
 end
 
 /--
@@ -1319,11 +1329,11 @@ subalgebra.dim_eq_one_of_eq_bot rfl
 
 lemma subalgebra_top_dim_eq_submodule_top_dim :
   module.rank F (⊤ : subalgebra F E) = module.rank F (⊤ : submodule F E) :=
-by { rw ← algebra.coe_top, refl }
+by { rw ← algebra.top_to_submodule, refl }
 
 lemma subalgebra_top_finrank_eq_submodule_top_finrank :
   finrank F (⊤ : subalgebra F E) = finrank F (⊤ : submodule F E) :=
-by { rw ← algebra.coe_top, refl }
+by { rw ← algebra.top_to_submodule, refl }
 
 lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F E :=
 by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top }

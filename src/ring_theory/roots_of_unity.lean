@@ -457,7 +457,7 @@ begin
 end
 
 lemma neg_one (p : ℕ) [char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
-mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_square]) $
+mk_of_lt (-1 : R) dec_trivial (by simp only [one_pow, neg_sq]) $
 begin
   intros l hl0 hl2,
   obtain rfl : l = 1,
@@ -475,7 +475,7 @@ end
 
 lemma eq_neg_one_of_two_right (h : is_primitive_root ζ 2) : ζ = -1 :=
 begin
-  apply (eq_or_eq_neg_of_pow_two_eq_pow_two ζ 1 _).resolve_left,
+  apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
   { rw [← pow_one ζ], apply h.pow_ne_one_of_pos_of_lt; dec_trivial },
   { simp only [h.pow_eq_one, one_pow] }
 end
@@ -890,7 +890,7 @@ begin
   replace prod := ring_hom.map_dvd (ring_hom.of (map (int.cast_ring_hom (zmod p)))) prod,
   rw [ring_hom.coe_of, map_mul, map_sub, map_one, map_pow, map_X] at prod,
   obtain ⟨R, hR⟩ := minpoly_dvd_mod_p h hpos hdiv,
-  rw [hR, ← mul_assoc, ← map_mul, ← pow_two, map_pow] at prod,
+  rw [hR, ← mul_assoc, ← map_mul, ← sq, map_pow] at prod,
   have habs : map (int.cast_ring_hom (zmod p)) P ^ 2 ∣ map (int.cast_ring_hom (zmod p)) P ^ 2 * R,
   { use R },
   replace habs := lt_of_lt_of_le (enat.coe_lt_coe.2 one_lt_two)
@@ -964,7 +964,7 @@ n.totient = (primitive_roots n K).card : (h.card_primitive_roots hpos).symm
 ... ≤ P_K.roots.card : multiset.to_finset_card_le _
 ... ≤ P_K.nat_degree : (card_roots' $ map_monic_ne_zero
         (minpoly.monic $ is_integral h hpos))
-... ≤ P.nat_degree : nat_degree_map_le _
+... ≤ P.nat_degree : nat_degree_map_le _ _
 
 end minpoly
 

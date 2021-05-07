@@ -241,11 +241,11 @@ namespace zmod
 
 open finite_field polynomial
 
-lemma sum_two_squares (p : ℕ) [hp : fact p.prime] (x : zmod p) :
+lemma sq_add_sq (p : ℕ) [hp : fact p.prime] (x : zmod p) :
   ∃ a b : zmod p, a^2 + b^2 = x :=
 begin
   cases hp.1.eq_two_or_odd with hp2 hp_odd,
-  { substI p, revert x, exact dec_trivial },
+  { substI p, change fin 2 at x, fin_cases x, { use 0, simp }, { use [0, 1], simp } },
   let f : polynomial (zmod p) := X^2,
   let g : polynomial (zmod p) := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=
@@ -260,11 +260,11 @@ end zmod
 
 namespace char_p
 
-lemma sum_two_squares (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+lemma sq_add_sq (R : Type*) [integral_domain R] (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
   haveI := char_is_prime_of_pos R p,
-  obtain ⟨a, b, hab⟩ := zmod.sum_two_squares p x,
+  obtain ⟨a, b, hab⟩ := zmod.sq_add_sq p x,
   refine ⟨a.val, b.val, _⟩,
   simpa using congr_arg (zmod.cast_hom (dvd_refl _) R) hab
 end

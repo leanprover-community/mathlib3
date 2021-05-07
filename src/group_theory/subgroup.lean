@@ -133,6 +133,26 @@ lemma mem_to_submonoid (K : subgroup G) (x : G) : x ∈ K.to_submonoid ↔ x ∈
 instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
 show fintype {g : G // g ∈ K}, from infer_instance
 
+@[to_additive]
+theorem to_submonoid_injective :
+  function.injective (to_submonoid : subgroup G → submonoid G) :=
+λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)
+
+@[simp, to_additive]
+theorem to_submonoid_eq {p q : subgroup G} : p.to_submonoid = q.to_submonoid ↔ p = q :=
+to_submonoid_injective.eq_iff
+
+@[mono, to_additive] lemma to_submonoid_strict_mono :
+  strict_mono (to_submonoid : subgroup G → submonoid G) := λ _ _, id
+
+@[mono, to_additive]
+lemma to_submonoid_mono : monotone (to_submonoid : subgroup G → submonoid G) :=
+to_submonoid_strict_mono.monotone
+
+@[simp, to_additive]
+lemma to_submonoid_le {p q : subgroup G} : p.to_submonoid ≤ q.to_submonoid ↔ p ≤ q :=
+iff.rfl
+
 end subgroup
 
 /-!
@@ -221,6 +241,11 @@ by simpa only [div_eq_mul_inv] using H.mul_mem' hx (H.inv_mem' hy)
 @[simp, to_additive]
 theorem inv_coe_set : (H : set G)⁻¹ = H :=
 by { ext, simp, }
+
+@[simp, to_additive]
+lemma exists_inv_mem_iff_exists_mem  (K : subgroup G) {P : G → Prop} :
+  (∃ (x : G), x ∈ K ∧ P x⁻¹) ↔ ∃ x ∈ K, P x :=
+by split; { rintros ⟨x, x_in, hx⟩, exact ⟨x⁻¹, inv_mem K x_in, by simp [hx]⟩ }
 
 @[to_additive]
 lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
@@ -1199,6 +1224,33 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
+/-- Computable alternative to `monoid_hom.of_injective`. -/
+def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
+{ to_fun := f.range_restrict,
+  inv_fun := g ∘ f.range.subtype,
+  left_inv := h,
+  right_inv := by
+  { rintros ⟨x, y, rfl⟩,
+    apply subtype.ext,
+    rw [coe_range_restrict, function.comp_apply, subgroup.coe_subtype, subtype.coe_mk, h] },
+  .. f.range_restrict }
+
+@[simp] lemma of_left_inverse_apply {f : G →* N} {g : N →* G}
+  (h : function.left_inverse g f) (x : G) :
+  ↑(of_left_inverse h x) = f x := rfl
+
+@[simp] lemma of_left_inverse_symm_apply {f : G →* N} {g : N →* G}
+  (h : function.left_inverse g f) (x : f.range) :
+  (of_left_inverse h).symm x = g x := rfl
+
+/-- The range of an injective group homomorphism is isomorphic to its domain. -/
+noncomputable def of_injective {f : G →* N} (hf : function.injective f) : G ≃* f.range :=
+(mul_equiv.of_bijective (f.cod_restrict f.range (λ x, ⟨x, rfl⟩))
+  ⟨λ x y h, hf (subtype.ext_iff.mp h), by { rintros ⟨x, y, rfl⟩, exact ⟨y, rfl⟩ }⟩)
+
+lemma of_injective_apply {f : G →* N} (hf : function.injective f) {x : G} :
+  ↑(of_injective hf x) = f x := rfl
+
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/
 @[to_additive "The additive kernel of an `add_monoid` homomorphism is the `add_subgroup` of elements
@@ -1207,6 +1259,9 @@ def ker (f : G →* N) := (⊥ : subgroup N).comap f
 
 @[to_additive]
 lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
+
+@[to_additive]
+lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
 
 @[to_additive]
 instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
@@ -1222,6 +1277,10 @@ begin
   change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,
   simp only [],
 end
+
+@[simp, to_additive]
+lemma ker_one : (1 : G →* N).ker = ⊤ :=
+by { ext, simp [mem_ker] }
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
 begin

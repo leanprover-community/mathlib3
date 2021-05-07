@@ -117,7 +117,7 @@ General algebra:
     functorial homology: 'homological_complex.homology'
 
   Number theory:
-    sum of two squares: 'nat.prime.sum_two_squares'
+    sum of two squares: 'nat.prime.sq_add_sq'
     sum of four squares: 'nat.sum_four_squares'
     quadratic reciprocity: 'zmod.quadratic_reciprocity'
     "solutions to Pell's equation": 'pell.pell'
@@ -195,6 +195,7 @@ Topology:
     Stone-Cech compactification: 'stone_cech'
     topological fiber bundle: 'is_topological_fiber_bundle'
     Urysohn's lemma: 'exists_continuous_zero_one_of_closed'
+    Stone-Weierstrass theorem: 'continuous_map.subalgebra_topological_closure_eq_top_of_separates_points'
   Uniform notions:
     uniform space: 'uniform_space'
     uniformly continuous function: 'metric.uniform_continuous_iff'

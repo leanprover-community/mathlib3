@@ -447,6 +447,12 @@ lemma ball_subset_of_comp_subset {V W : set (β × β)} {x y} (h : x ∈ ball y 
 lemma ball_mono {V W : set (β × β)} (h : V ⊆ W) (x : β) : ball x V ⊆ ball x W :=
 by tauto
 
+lemma ball_inter_left (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x V :=
+ball_mono (inter_subset_left V W) x
+
+lemma ball_inter_right (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x W :=
+ball_mono (inter_subset_right V W) x
+
 lemma mem_ball_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x y} :
   x ∈ ball y V ↔ y ∈ ball x V :=
 show (x, y) ∈ prod.swap ⁻¹' V ↔ (x, y) ∈ V, by { unfold symmetric_rel at hV, rw hV }
@@ -567,6 +573,24 @@ lemma uniform_space.has_basis_nhds (x : α) :
 
 open uniform_space
 
+lemma uniform_space.mem_closure_iff_symm_ball {s : set α} {x} :
+  x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (s ∩ ball x V).nonempty :=
+begin
+  simp [mem_closure_iff_nhds_basis (has_basis_nhds x)],
+  tauto,
+end
+
+lemma uniform_space.mem_closure_iff_ball {s : set α} {x} :
+  x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → (ball x V ∩ s).nonempty :=
+begin
+  simp_rw [mem_closure_iff_nhds, mem_nhds_iff],
+  split,
+  { intros h V V_in,
+    exact h (ball x V) ⟨V, V_in, subset.refl _⟩ },
+  { rintros h t ⟨V, V_in, Vt⟩,
+    exact nonempty.mono (inter_subset_inter_left s Vt) (h V_in) },
+end
+
 lemma uniform_space.has_basis_nhds_prod (x y : α) :
   has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, (ball x s).prod (ball y s) :=
 begin
@@ -574,7 +598,7 @@ begin
   apply (has_basis_nhds x).prod' (has_basis_nhds y),
   rintro U V ⟨U_in, U_symm⟩ ⟨V_in, V_symm⟩,
   exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, symmetric_rel_inter U_symm V_symm⟩,
-         ball_mono (inter_subset_left U V) x, ball_mono (inter_subset_right U V) y⟩,
+         ball_inter_left x U V, ball_inter_right y U V⟩,
 end
 
 lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (ball x) :=

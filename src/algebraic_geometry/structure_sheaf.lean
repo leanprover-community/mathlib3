@@ -196,94 +196,6 @@ instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Spec.Top R))ᵒᵖ) 
 open prime_spectrum
 
 /--
-The `stalk_to_fiber` map for the structure sheaf is surjective.
-(In fact, an isomorphism, as constructed below in `stalk_iso_Type`.)
--/
-lemma structure_sheaf_stalk_to_fiber_surjective (x : Top.of (prime_spectrum R)) :
-  function.surjective (stalk_to_fiber (is_locally_fraction R) x) :=
-begin
-  apply stalk_to_fiber_surjective,
-  intro t,
-  obtain ⟨r, ⟨s, hs⟩, rfl⟩ := (localization.of _).mk'_surjective t,
-  exact ⟨⟨basic_open s, hs⟩, λ y, (localization.of _).mk' r ⟨s, y.2⟩,
-    ⟨prelocal_predicate.sheafify_of ⟨r, s, λ y, ⟨y.2, localization_map.mk'_spec _ _ _⟩⟩, rfl⟩⟩,
-end
-
-/--
-The `stalk_to_fiber` map for the structure sheaf is injective.
-(In fact, an isomorphism, as constructed below in `stalk_iso_Type`.)
-
-The proof here follows the argument in Hartshorne's Algebraic Geometry, Proposition II.2.2.
--/
-lemma structure_sheaf_stalk_to_fiber_injective (x : Top.of (prime_spectrum R)) :
-  function.injective (stalk_to_fiber (is_locally_fraction R) x) :=
-begin
-  apply stalk_to_fiber_injective,
-  intros U V fU hU fV hV e,
-  rcases hU ⟨x, U.2⟩ with ⟨U', mU, iU, ⟨a, b, wU⟩⟩,
-  rcases hV ⟨x, V.2⟩ with ⟨V', mV, iV, ⟨c, d, wV⟩⟩,
-
-  have wUx := (wU ⟨x, mU⟩).2,
-  dsimp at wUx,
-  have wVx := (wV ⟨x, mV⟩).2,
-  dsimp at wVx,
-  have e' := congr_arg (λ z, z * ((localization.of _).to_map (b * d))) e,
-  dsimp at e',
-  simp only [←mul_assoc, ring_hom.map_mul] at e',
-  rw [mul_right_comm (fV _)] at e',
-  erw [wUx, wVx] at e',
-  simp only [←ring_hom.map_mul] at e',
-  have := @localization_map.mk'_eq_iff_eq _ _ _ _ _
-    (localization.of (as_ideal x).prime_compl) a c ⟨b, (wU ⟨x, mU⟩).1⟩ ⟨d, (wV ⟨x, mV⟩).1⟩,
-  dsimp at this,
-  rw ←this at e',
-  rw localization_map.eq at e',
-  rcases e' with ⟨⟨h, hh⟩, e''⟩,
-  dsimp at e'',
-
-  let Wb : opens _ := basic_open b,
-  let Wd : opens _ := basic_open d,
-  let Wh : opens _ := basic_open h,
-  use ((Wb ⊓ Wd) ⊓ Wh) ⊓ (U' ⊓ V'),
-  refine ⟨⟨⟨(wU ⟨x, mU⟩).1, (wV ⟨x, mV⟩).1⟩, hh⟩, ⟨mU, mV⟩⟩,
-
-  refine ⟨_, _, _⟩,
-  change _ ⟶ U.val,
-  exact (opens.inf_le_right _ _) ≫ (opens.inf_le_left _ _) ≫ iU,
-  change _ ⟶ V.val,
-  exact (opens.inf_le_right _ _) ≫ (opens.inf_le_right _ _) ≫ iV,
-
-  intro w,
-
-  dsimp,
-  have wU' := (wU ⟨w.1, w.2.2.1⟩).2,
-  dsimp at wU',
-  have wV' := (wV ⟨w.1, w.2.2.2⟩).2,
-  dsimp at wV',
-  -- We need to prove `fU w = fV w`.
-  -- First we show that is suffices to prove `fU w * b * d * h = fV w * b * d * h`.
-  -- Then we calculate (at w) as follows:
-  --   fU w * b * d * h
-  --       = a * d * h        : wU'
-  --   ... = c * b * h        : e''
-  --   ... = fV w * d * b * h : wV'
-  have u : is_unit ((localization.of (as_ideal w.1).prime_compl).to_map (b * d * h)),
-  { simp only [ring_hom.map_mul],
-    apply is_unit.mul, apply is_unit.mul,
-    exact (localization.of (as_ideal w.1).prime_compl).map_units ⟨b, (wU ⟨w, w.2.2.1⟩).1⟩,
-    exact (localization.of (as_ideal w.1).prime_compl).map_units ⟨d, (wV ⟨w, w.2.2.2⟩).1⟩,
-    exact (localization.of (as_ideal w.1).prime_compl).map_units ⟨h, w.2.1.2⟩, },
-  apply (is_unit.mul_left_inj u).1,
-  conv_rhs { rw [mul_comm b d] },
-  simp only [ring_hom.map_mul, ←mul_assoc],
-  erw [wU', wV'],
-  dsimp,
-  simp only [←ring_hom.map_mul, ←mul_assoc],
-  rw e'',
-end
-
-
-/--
 The structure presheaf, valued in `CommRing`, constructed by dressing up the `Type` valued
 structure presheaf.
 -/
@@ -326,16 +238,6 @@ def structure_sheaf : sheaf CommRing (Spec.Top R) :=
   (s : (structure_sheaf R).presheaf.obj (op U)) (x : V) :
   ((structure_sheaf R).presheaf.map i.op s).1 x = (s.1 (i x) : _) :=
 rfl
-
-/--
-The stalk at `x` is equivalent (just as a type) to the localization at `x`.
--/
-def stalk_iso_Type (x : prime_spectrum R) :
-  (structure_sheaf_in_Type R).presheaf.stalk x ≅ localization.at_prime x.as_ideal :=
-(equiv.of_bijective _
-  ⟨structure_sheaf_stalk_to_fiber_injective R x,
-   structure_sheaf_stalk_to_fiber_surjective R x⟩).to_iso
-
 
 /-
 
@@ -595,14 +497,14 @@ def stalk_iso (x : Spec.Top R) :
   inv := localization_to_stalk R x,
   hom_inv_id' := (structure_sheaf R).presheaf.stalk_hom_ext $ λ U hxU,
   begin
-    ext s, simp only [coe_comp], rw [coe_id, stalk_to_fiber_ring_hom_germ'],
+    ext s, simp only [comp_apply], rw [id_apply, stalk_to_fiber_ring_hom_germ'],
     obtain ⟨V, hxV, iVU, f, g, hg, hs⟩ := exists_const _ _ s x hxU,
     erw [← res_apply R U V iVU s ⟨x, hxV⟩, ← hs, const_apply, localization_to_stalk_mk'],
     refine (structure_sheaf R).presheaf.germ_ext V hxV (hom_of_le hg) iVU _,
     erw [← hs, res_const']
   end,
   inv_hom_id' := (localization.of x.as_ideal.prime_compl).epic_of_localization_map $ λ f,
-    by simp only [ring_hom.comp_apply, coe_comp, coe_id, localization_to_stalk_of,
+    by simp only [ring_hom.comp_apply, comp_apply, id_apply, localization_to_stalk_of,
         stalk_to_fiber_ring_hom_to_stalk] }
 
 end algebraic_geometry

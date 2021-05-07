@@ -82,7 +82,6 @@ The underlying isomorphism is defeq to `X.iso_as_limit_cone_lift`.
 def as_limit_cone_iso : X.as_limit_cone ≅ limit_cone _ :=
 limits.cones.ext (iso_as_limit_cone_lift _) (λ _, rfl)
 
-
 /-- `X.as_limit_cone` is indeed a limit cone. -/
 def as_limit : category_theory.limits.is_limit X.as_limit_cone :=
 limits.is_limit.of_iso_limit (limit_cone_is_limit _) X.as_limit_cone_iso.symm

@@ -108,7 +108,7 @@ lemma cycle_range_of_gt {n : ℕ} {i j : fin n.succ} (h : i < j) :
 begin
   rw [cycle_range, of_left_inverse'_eq_of_injective,
       ←function.embedding.to_equiv_range_eq_of_injective,
-      ←via_embedding, via_embedding_apply_not_mem_range],
+      ←via_fintype_embedding, via_fintype_embedding_apply_not_mem_range],
   simpa
 end
 
@@ -125,7 +125,7 @@ begin
   ext,
   rw [this, cycle_range, of_left_inverse'_eq_of_injective,
       ←function.embedding.to_equiv_range_eq_of_injective,
-      ←via_embedding, via_embedding_apply_image, rel_embedding.coe_fn_to_embedding,
+      ←via_fintype_embedding, via_fintype_embedding_apply_image, rel_embedding.coe_fn_to_embedding,
       coe_cast_le, coe_fin_rotate],
   simp only [fin.ext_iff, coe_last, coe_mk, coe_zero, fin.eta, apply_ite coe, cast_le_mk],
   split_ifs with heq,

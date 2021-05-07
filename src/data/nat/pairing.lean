@@ -62,8 +62,11 @@ let s := sqrt n in begin
     exact lt_of_le_of_lt h (nat.sub_lt_self n1 (mul_pos s0 s0)) }
 end
 
+@[simp] lemma unpair_zero : unpair 0 = 0 :=
+by { rw unpair, simp }
+
 theorem unpair_le_left : ∀ (n : ℕ), (unpair n).1 ≤ n
-| 0     := dec_trivial
+| 0     := by simp
 | (n+1) := le_of_lt (unpair_lt (nat.succ_pos _))
 
 theorem le_mkpair_left (a b : ℕ) : a ≤ mkpair a b :=

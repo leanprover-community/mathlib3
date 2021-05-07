@@ -236,8 +236,8 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
       card_support_swap hx.1.symm], refl }
   else
     have h : card (support (swap x (f x) * f)) + 1 = card (support f),
-      by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq h1,
-        card_insert_of_not_mem (not_mem_erase _ _)],
+      by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq _ _ h1,
+        card_insert_of_not_mem (not_mem_erase _ _), sdiff_singleton_eq_erase],
     have wf : card (support (swap x (f x) * f)) < card (support f),
       from card_support_swap_mul hx.1,
     by { rw [sign_mul, sign_swap hx.1.symm, (hf.swap_mul hx.1 h1).sign, ← h],
@@ -487,7 +487,7 @@ begin
   { intros h1 h2,
     rw list.prod_cons,
     exact induction_disjoint σ l.prod
-      (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1)
+      (disjoint_prod_right _ (list.pairwise_cons.mp h2).1)
       (h1 _ (list.mem_cons_self _ _))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
       (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },

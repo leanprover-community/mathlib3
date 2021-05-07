@@ -39,6 +39,8 @@ profinite
 
 -/
 
+universe variable u
+
 open category_theory
 
 /-- The type of profinite topological spaces. -/
@@ -96,8 +98,6 @@ rfl
 
 section Profinite
 local attribute [instance] connected_component_setoid
-
-universes u
 
 /--
 (Implementation) The object part of the connected_components functor from compact Hausdorff spaces
@@ -187,7 +187,6 @@ has_limits_of_has_limits_creates_limits Profinite_to_Top
 instance has_colimits : limits.has_colimits Profinite :=
 has_colimits_of_reflective to_CompHaus
 
-universe variable u
 variables {X Y : Profinite.{u}} (f : X ⟶ Y)
 
 /-- Any morphism of profinite spaces is a closed map. -/

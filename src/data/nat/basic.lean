@@ -628,7 +628,7 @@ begin
 end
 
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
-mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exact dec_trivial)
+mt (congr_arg (%2)) (by { rw [add_comm, add_mul_mod_self_left, mul_mod_right, mod_eq_of_lt]; simp })
 
 lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
 | 0     0     := dec_trivial
@@ -915,7 +915,7 @@ lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 ⟨b, (nat.div_mul_cancel h).symm⟩
 
 protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b) = b
-| a     0     h₁ h₂ := by rw eq_zero_of_zero_dvd h₁; refl
+| a     0     h₁ h₂ := by rw [eq_zero_of_zero_dvd h₁, nat.div_zero, nat.div_zero]
 | 0     b     h₁ h₂ := absurd h₂ dec_trivial
 | (a+1) (b+1) h₁ h₂ :=
 (nat.mul_left_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b))).1 $
@@ -943,7 +943,7 @@ protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k 
 (nat.dvd_add_iff_right h).symm
 
 @[simp] protected theorem not_two_dvd_bit1 (n : ℕ) : ¬ 2 ∣ bit1 n :=
-mt (nat.dvd_add_right two_dvd_bit0).1 dec_trivial
+by { rw [bit1, nat.dvd_add_right two_dvd_bit0, nat.dvd_one], cc }
 
 /-- A natural number `m` divides the sum `m + n` if and only if `m` divides `n`.-/
 @[simp] protected lemma dvd_add_self_left {m n : ℕ} :
@@ -981,7 +981,7 @@ exists_congr $ λ d, by rw [mul_right_comm, nat.mul_left_inj hc]
 lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
   a / b + if b ∣ a + 1 then 1 else 0
 | a     0     := by simp
-| 0     1     := rfl
+| 0     1     := by simp
 | 0     (b+2) := have hb2 : b + 2 > 1, from dec_trivial,
   by simp [ne_of_gt hb2, div_eq_of_lt hb2]
 | (a+1) (b+1) := begin
@@ -1647,7 +1647,7 @@ theorem shiftl'_tt_ne_zero (m) : ∀ {n} (h : n ≠ 0), shiftl' tt m n ≠ 0
 
 /-! ### `size` -/
 
-@[simp] theorem size_zero : size 0 = 0 := rfl
+@[simp] theorem size_zero : size 0 = 0 := by simp [size]
 
 @[simp] theorem size_bit {b n} (h : bit b n ≠ 0) : size (bit b n) = succ (size n) :=
 begin
@@ -1662,7 +1662,8 @@ end
 @[simp] theorem size_bit1 (n) : size (bit1 n) = succ (size n) :=
 @size_bit tt n (nat.bit1_ne_zero n)
 
-@[simp] theorem size_one : size 1 = 1 := by apply size_bit1 0
+@[simp] theorem size_one : size 1 = 1 :=
+show size (bit1 0) = 1, by rw [size_bit1, size_zero]
 
 @[simp] theorem size_shiftl' {b m n} (h : shiftl' b m n ≠ 0) :
   size (shiftl' b m n) = size m + n :=
@@ -1689,8 +1690,7 @@ size_shiftl' (shiftl'_ne_zero_left _ h _)
 theorem lt_size_self (n : ℕ) : n < 2^size n :=
 begin
   rw [← one_shiftl],
-  have : ∀ {n}, n = 0 → n < shiftl 1 (size n) :=
-    λ n e, by subst e; exact dec_trivial,
+  have : ∀ {n}, n = 0 → n < shiftl 1 (size n), { simp },
   apply binary_rec _ _ n, {apply this rfl},
   intros b n IH,
   by_cases bit b n = 0, {apply this h},
@@ -1703,9 +1703,9 @@ theorem size_le {m n : ℕ} : size m ≤ n ↔ m < 2^n :=
 begin
   rw [← one_shiftl], revert n,
   apply binary_rec _ _ m,
-  { intros n h, apply zero_le },
+  { intros n h, simp },
   { intros b m IH n h,
-    by_cases e : bit b m = 0, { rw e, apply zero_le },
+    by_cases e : bit b m = 0, { simp [e] },
     rw [size_bit e],
     cases n with n,
     { exact e.elim (eq_zero_of_le_zero (le_of_lt_succ h)) },

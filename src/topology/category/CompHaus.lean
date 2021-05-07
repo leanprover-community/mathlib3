@@ -153,3 +153,9 @@ noncomputable instance CompHaus_to_Top.reflective : reflective CompHaus_to_Top :
 
 noncomputable instance CompHaus_to_Top.creates_limits : creates_limits CompHaus_to_Top :=
 monadic_creates_limits _
+
+instance CompHaus.has_limits : limits.has_limits CompHaus :=
+has_limits_of_has_limits_creates_limits CompHaus_to_Top
+
+instance CompHaus.has_colimits : limits.has_colimits CompHaus :=
+has_colimits_of_reflective CompHaus_to_Top

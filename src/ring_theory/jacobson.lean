@@ -382,7 +382,7 @@ begin
     replace hf := congr_arg (λ (g : polynomial (((quotient.mk I).comp C).range)), g.coeff n) hf,
     change (polynomial.map ((quotient.mk I).comp C).range_restrict f).coeff n = 0 at hf,
     rw [coeff_map, subtype.ext_iff] at hf,
-    rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply] },
+    rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply], },
   haveI : (ideal.map (map_ring_hom i) I).is_prime :=
     map_is_prime_of_surjective (map_surjective i hi) hi',
   suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
@@ -552,7 +552,7 @@ instance {R : Type*} [comm_ring R] {ι : Type*} [fintype ι] [is_jacobson R] :
   is_jacobson (mv_polynomial ι R) :=
 begin
   haveI := classical.dec_eq ι,
-  obtain ⟨e⟩ := fintype.equiv_fin ι,
+  let e := fintype.equiv_fin ι,
   rw is_jacobson_iso (rename_equiv R e).to_ring_equiv,
   exact is_jacobson_mv_polynomial_fin _
 end
@@ -595,7 +595,7 @@ lemma comp_C_integral_of_surjective_of_jacobson {R : Type*} [integral_domain R] 
   (hf : function.surjective f) : (f.comp C).is_integral :=
 begin
   haveI := classical.dec_eq σ,
-  obtain ⟨e⟩ := fintype.equiv_fin σ,
+  obtain ⟨e⟩ := fintype.trunc_equiv_fin σ,
   let f' : mv_polynomial (fin _) R →+* S :=
     f.comp (rename_equiv R e.symm).to_ring_equiv.to_ring_hom,
   have hf' : function.surjective f' :=

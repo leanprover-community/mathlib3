@@ -14,10 +14,9 @@ We give several tools for proving that polynomials are monic, e.g.
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
 
 open finset
-open_locale big_operators
+open_locale big_operators classical
 
 namespace polynomial
 universes u v y

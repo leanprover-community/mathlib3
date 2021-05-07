@@ -31,11 +31,11 @@ def right_wins (G : pgame) : Prop := G ≤ 0 ∧ G < 0
 
 theorem zero_first_loses : first_loses 0 := by tidy
 theorem one_left_wins : left_wins 1 :=
-⟨by { rw lt_def_le, tidy }, by tidy⟩
+⟨by { rw lt_def_le, tidy }, by rw le_def; tidy⟩
 
 theorem star_first_wins : first_wins star := ⟨zero_lt_star, star_lt_zero⟩
 theorem omega_left_wins : left_wins omega :=
-⟨by { rw lt_def_le, exact or.inl ⟨ulift.up 0, by tidy⟩ }, by tidy⟩
+⟨by { rw lt_def_le, exact or.inl ⟨ulift.up 0, by tidy⟩ }, by rw le_def; tidy⟩
 
 lemma winner_cases (G : pgame) : G.left_wins ∨ G.right_wins ∨ G.first_loses ∨ G.first_wins :=
 begin

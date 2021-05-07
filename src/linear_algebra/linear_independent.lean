@@ -162,8 +162,8 @@ lemma linear_independent.ne_zero [nontrivial R]
 λ h, @zero_ne_one R _ _ $ eq.symm begin
   suffices : (finsupp.single i 1 : ι →₀ R) i = 0, {simpa},
   rw linear_independent_iff.1 hv (finsupp.single i 1),
-  {simp},
-  {simp [h]}
+  { simp },
+  { simp [h] }
 end
 
 /-- A subfamily of a linearly independent family (i.e., a composition with an injective map) is a
@@ -1003,7 +1003,8 @@ by rw [← linear_independent_fin_snoc, fin.snoc_init_self]
 lemma linear_independent_fin2 {f : fin 2 → V} :
   linear_independent K f ↔ f 1 ≠ 0 ∧ ∀ a : K, a • f 1 ≠ f 0 :=
 by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
-  mem_span_singleton, not_exists]; refl
+  mem_span_singleton, not_exists,
+  show fin.tail f (default (fin 1)) = f 1, by rw ← fin.succ_zero_eq_one; refl]
 
 lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=

@@ -319,10 +319,23 @@ theorem neg_succ_of_nat_div (m : ℕ) {b : ℤ} (H : 0 < b) :
   -[1+m] / b = -(m / b + 1) :=
 match b, eq_succ_of_zero_lt H with ._, ⟨n, rfl⟩ := rfl end
 
+-- Will be generalized to Euclidean domains.
+local attribute [simp]
+protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
+| 0       := show of_nat _ = _, by simp
+| (n+1:ℕ) := show of_nat _ = _, by simp
+| -[1+ n] := show -of_nat _ = _, by simp
+
+local attribute [simp] -- Will be generalized to Euclidean domains.
+protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
+| 0       := show of_nat _ = _, by simp
+| (n+1:ℕ) := show of_nat _ = _, by simp
+| -[1+ n] := rfl
+
 @[simp] protected theorem div_neg : ∀ (a b : ℤ), a / -b = -(a / b)
 | (m : ℕ) 0       := show of_nat (m / 0) = -(m / 0 : ℕ), by rw nat.div_zero; refl
 | (m : ℕ) (n+1:ℕ) := rfl
-| 0       -[1+ n] := rfl
+| 0       -[1+ n] := by simp
 | (m+1:ℕ) -[1+ n] := (neg_neg _).symm
 | -[1+ m] 0       := rfl
 | -[1+ m] (n+1:ℕ) := rfl
@@ -348,20 +361,8 @@ match a, b, eq_neg_succ_of_lt_zero Ha, eq_succ_of_zero_lt Hb with
 | ._, ._, ⟨m, rfl⟩, ⟨n, rfl⟩ := neg_succ_lt_zero _
 end
 
--- Will be generalized to Euclidean domains.
-protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
-| 0       := rfl
-| (n+1:ℕ) := rfl
-| -[1+ n] := rfl
-
-local attribute [simp] -- Will be generalized to Euclidean domains.
-protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
-| 0       := rfl
-| (n+1:ℕ) := rfl
-| -[1+ n] := rfl
-
 @[simp] protected theorem div_one : ∀ (a : ℤ), a / 1 = a
-| 0       := rfl
+| 0       := show of_nat _ = _, by simp
 | (n+1:ℕ) := congr_arg of_nat (nat.div_one _)
 | -[1+ n] := congr_arg neg_succ_of_nat (nat.div_one _)
 
@@ -462,8 +463,7 @@ match b, eq_succ_of_zero_lt bpos with ._, ⟨n, rfl⟩ := rfl end
 abs_by_cases (λ i, a % i = a % b) rfl (mod_neg _ _)
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
-theorem zero_mod (b : ℤ) : 0 % b = 0 :=
-congr_arg of_nat $ nat.zero_mod _
+theorem zero_mod (b : ℤ) : 0 % b = 0 := rfl
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
 theorem mod_zero : ∀ (a : ℤ), a % 0 = a
@@ -506,7 +506,7 @@ end
 theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
 | (m : ℕ) 0       := congr_arg of_nat (nat.mod_add_div _ _)
 | (m : ℕ) (n+1:ℕ) := congr_arg of_nat (nat.mod_add_div _ _)
-| 0       -[1+ n] := rfl
+| 0       -[1+ n] := by simp
 | (m+1:ℕ) -[1+ n] := show (_ + -(n+1) * -((m + 1) / (n + 1) : ℕ) : ℤ) = _,
   by rw [neg_mul_neg]; exact congr_arg of_nat (nat.mod_add_div _ _)
 | -[1+ m] 0       := by rw [mod_zero, int.div_zero]; refl
@@ -900,7 +900,7 @@ protected theorem mul_lt_of_lt_div {a b c : ℤ} (H : 0 < c) (H3 : a < b / c) : 
 lt_of_not_ge $ mt (int.div_le_of_le_mul H) (not_le_of_gt H3)
 
 protected theorem mul_le_of_le_div {a b c : ℤ} (H1 : 0 < c) (H2 : a ≤ b / c) : a * c ≤ b :=
-le_trans (mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (int.div_mul_le _ (ne_of_gt H1))
+le_trans (decidable.mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (int.div_mul_le _ (ne_of_gt H1))
 
 protected theorem le_div_of_mul_le {a b c : ℤ} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
 le_of_lt_add_one $ lt_of_mul_lt_mul_right
@@ -923,7 +923,7 @@ protected theorem div_lt_iff_lt_mul {a b c : ℤ} (H : 0 < c) : a / c < b ↔ a 
 
 protected theorem le_mul_of_div_le {a b c : ℤ} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
   a ≤ c * b :=
-by rw [← int.div_mul_cancel H2]; exact mul_le_mul_of_nonneg_right H3 H1
+by rw [← int.div_mul_cancel H2]; exact decidable.mul_le_mul_of_nonneg_right H3 H1
 
 protected theorem lt_div_of_mul_lt {a b c : ℤ} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
   a < c / b :=
@@ -1180,7 +1180,10 @@ by rw bit_val; simp; cases b; cases bodd n; refl
 @[simp] lemma div2_bit (b n) : div2 (bit b n) = n :=
 begin
   rw [bit_val, div2_val, add_comm, int.add_mul_div_left, (_ : (_/2:ℤ) = 0), zero_add],
-  cases b, all_goals {exact dec_trivial}
+  cases b,
+  { simp },
+  { show of_nat _ = _, rw nat.div_eq_zero; simp },
+  { cc }
 end
 
 lemma bit0_ne_bit1 (m n : ℤ) : bit0 m ≠ bit1 n :=
@@ -1342,13 +1345,12 @@ congr_arg coe (nat.one_shiftl _)
 
 /-! ### Least upper bound property for integers -/
 
-section classical
-open_locale classical
-
-theorem exists_least_of_bdd {P : ℤ → Prop}
-    (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → b ≤ z)
-        (Hinh : ∃ z : ℤ, P z) : ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
-let ⟨b, Hb⟩ := Hbdd in
+/-- A computable version of `exists_least_of_bdd`: given a decidable predicate on the
+integers, with an explicit lower bound and a proof that it is somewhere true, return
+the least value for which the predicate is true. -/
+def least_of_bdd {P : ℤ → Prop} [decidable_pred P]
+  (b : ℤ) (Hb : ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
+  {lb : ℤ // P lb ∧ (∀ z : ℤ, P z → lb ≤ z)} :=
 have EX : ∃ n : ℕ, P (b + n), from
   let ⟨elt, Helt⟩ := Hinh in
   match elt, le.dest (Hb _ Helt), Helt with
@@ -1360,17 +1362,27 @@ have EX : ∃ n : ℕ, P (b + n), from
     (int.coe_nat_le.2 $ nat.find_min' _ h) _
   end⟩
 
-theorem exists_greatest_of_bdd {P : ℤ → Prop}
-    (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b)
-        (Hinh : ∃ z : ℤ, P z) : ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
-have Hbdd' : ∃ (b : ℤ), ∀ (z : ℤ), P (-z) → b ≤ z, from
-let ⟨b, Hb⟩ := Hbdd in ⟨-b, λ z h, neg_le.1 (Hb _ h)⟩,
+theorem exists_least_of_bdd {P : ℤ → Prop}
+  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → b ≤ z) (Hinh : ∃ z : ℤ, P z) :
+  ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
+by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := least_of_bdd b Hb Hinh in ⟨lb, H⟩
+
+/-- A computable version of `exists_greatest_of_bdd`: given a decidable predicate on the
+integers, with an explicit upper bound and a proof that it is somewhere true, return
+the greatest value for which the predicate is true. -/
+def greatest_of_bdd {P : ℤ → Prop} [decidable_pred P]
+  (b : ℤ) (Hb : ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
+  {ub : ℤ // P ub ∧ (∀ z : ℤ, P z → z ≤ ub)} :=
+have Hbdd' : ∀ (z : ℤ), P (-z) → -b ≤ z, from λ z h, neg_le.1 (Hb _ h),
 have Hinh' : ∃ z : ℤ, P (-z), from
 let ⟨elt, Helt⟩ := Hinh in ⟨-elt, by rw [neg_neg]; exact Helt⟩,
-let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
+let ⟨lb, Plb, al⟩ := least_of_bdd (-b) Hbdd' Hinh' in
 ⟨-lb, Plb, λ z h, le_neg.1 $ al _ $ by rwa neg_neg⟩
 
-end classical
+theorem exists_greatest_of_bdd {P : ℤ → Prop}
+  (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
+  ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
+by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := greatest_of_bdd b Hb Hinh in ⟨lb, H⟩
 
 end int
 

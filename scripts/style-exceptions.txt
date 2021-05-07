@@ -17,7 +17,7 @@ src/category_theory/limits/creates.lean : line 329 : ERR_LIN : Line has more tha
 src/category_theory/limits/creates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/lattice.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/opposites.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/category_theory/limits/opposites.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/shapes/finite_products.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/shapes/products.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/types.lean : line 10 : ERR_MOD : Module docstring missing, or too late

@@ -100,12 +100,12 @@ lemma not_below_is_open : is_open (not_below y) :=
 begin
   have h : monotone (not_below y),
   { intros x y' h,
-    simp only [not_below, set_of, le_iff_imp],
+    simp only [not_below, set_of, le_Prop_eq],
     intros h₀ h₁, apply h₀ (le_trans h h₁) },
   existsi h, rintros c,
   apply eq_of_forall_ge_iff, intro z,
   rw ωSup_le_iff,
-  simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_iff_imp, preorder_hom.coe_fun_mk,
+  simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_Prop_eq, preorder_hom.coe_fun_mk,
              chain.map_to_fun, function.comp_app, exists_imp_distrib, not_forall],
 end
 
@@ -132,7 +132,7 @@ begin
   have h : monotone f,
   { intros x y h,
     cases (hf {x | ¬ x ≤ f y} (not_below_is_open _)) with hf hf', clear hf',
-    specialize hf h, simp only [set.preimage, set_of, (∈), set.mem, le_iff_imp] at hf,
+    specialize hf h, simp only [set.preimage, set_of, (∈), set.mem, le_Prop_eq] at hf,
     by_contradiction H, apply hf H (le_refl (f y)) },
   existsi h, intro c,
   apply eq_of_forall_ge_iff, intro z,

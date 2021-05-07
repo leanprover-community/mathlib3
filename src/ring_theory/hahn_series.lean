@@ -329,6 +329,11 @@ lemma support_one [semiring R] [nontrivial R] :
   support (1 : hahn_series Γ R) = {0} :=
 support_single_of_ne one_ne_zero
 
+@[simp]
+lemma order_one [semiring R] [nontrivial R] :
+  order (1 : hahn_series Γ R) (single_ne_zero one_ne_zero) = 0 :=
+order_single one_ne_zero
+
 instance [semiring R] : has_mul (hahn_series Γ R) :=
 { mul := λ x y, { coeff := λ a,
     ∑ ij in (add_antidiagonal x.is_pwo_support y.is_pwo_support a),

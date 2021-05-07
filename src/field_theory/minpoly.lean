@@ -293,6 +293,18 @@ eq_of_monic_of_associated hp3 (monic ⟨p, ⟨hp3, hp2⟩⟩) $
 mul_one (minpoly A x) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
 associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit A x
 
+lemma unique'' [nontrivial B] {p : polynomial A}
+  (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0) :
+  p * C p.leading_coeff⁻¹ = minpoly A x :=
+begin
+  have : p.leading_coeff ≠ 0 := leading_coeff_ne_zero.mpr hp1.ne_zero,
+  apply unique',
+  { exact irreducible_of_associated ⟨⟨C p.leading_coeff⁻¹, C p.leading_coeff,
+      by rwa [←C_mul, inv_mul_cancel, C_1], by rwa [←C_mul, mul_inv_cancel, C_1]⟩, rfl⟩ hp1 },
+  { rw [aeval_mul, hp2, zero_mul] },
+  { rwa [polynomial.monic, leading_coeff_mul, leading_coeff_C, mul_inv_cancel] },
+end
+
 /-- If `y` is the image of `x` in an extension, their minimal polynomials coincide.
 
 We take `h : y = algebra_map L T x` as an argument because `rw h` typically fails

@@ -166,7 +166,7 @@ theorem to_re {p : α → Prop} (hp : computable_pred p) : re_pred p :=
 begin
   rcases computable_iff.1 hp with ⟨f, hf, rfl⟩,
   unfold re_pred,
-  refine (partrec.cond hf (partrec.const' (roption.some ())) partrec.none).of_eq
+  refine (partrec.cond hf (decidable.partrec.const' (roption.some ())) partrec.none).of_eq
     (λ n, roption.ext $ λ a, _),
   cases a, cases f n; simp
 end
@@ -190,7 +190,7 @@ end
 theorem rice₂ (C : set code)
   (H : ∀ cf cg, eval cf = eval cg → (cf ∈ C ↔ cg ∈ C)) :
   computable_pred (λ c, c ∈ C) ↔ C = ∅ ∨ C = set.univ :=
-by haveI := classical.dec; exact
+by classical; exact
 have hC : ∀ f, f ∈ C ↔ eval f ∈ eval '' C,
 from λ f, ⟨set.mem_image_of_mem _, λ ⟨g, hg, e⟩, (H _ _ e).1 hg⟩,
 ⟨λ h, or_iff_not_imp_left.2 $ λ C0,

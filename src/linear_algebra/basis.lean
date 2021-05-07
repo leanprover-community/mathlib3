@@ -336,6 +336,7 @@ This definition is parameterized over an extra `semiring S`,
 such that `smul_comm_class R S M'` holds.
 If `R` is commutative, you can set `S := R`; if `R` is not commutative,
 you can recover an `add_equiv` by setting `S := ℕ`.
+See library note [bundled maps over different rings].
 -/
 def constr : (ι → M') ≃ₗ[S] (M →ₗ[R] M') :=
 { to_fun := λ f, (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp b.repr,

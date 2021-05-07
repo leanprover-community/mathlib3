@@ -762,7 +762,7 @@ end algebra
 
 section valuation
 
-variables [linear_ordered_add_comm_group Γ] [integral_domain R] [nontrivial R]
+variables [linear_ordered_add_comm_group Γ] [integral_domain R]
 
 instance : linear_ordered_comm_group (multiplicative Γ) :=
 { .. (infer_instance : linear_order (multiplicative Γ)),
@@ -1217,14 +1217,14 @@ variables [linear_ordered_add_comm_group Γ] [field R]
 lemma field_aux (x : hahn_series Γ R) (x0 : x ≠ 0) :
   0 < add_val Γ R (1 - C ((x.coeff x.order)⁻¹) * (single (- x.order) 1) * x) :=
 begin
+  have h10 : (1 : R) ≠ 0 := one_ne_zero,
   refine lt_of_le_of_ne ((add_val Γ R).map_le_sub (ge_of_eq (add_val Γ R).map_one) _) _,
   { simp only [add_valuation.map_mul],
-    rw [add_val_apply_of_ne x0, add_val_apply_of_ne (single_ne_zero one_ne_zero),
-      add_val_apply_of_ne _, order_C, order_single one_ne_zero, with_top.coe_zero, zero_add,
+    rw [add_val_apply_of_ne x0, add_val_apply_of_ne (single_ne_zero h10),
+      add_val_apply_of_ne _, order_C, order_single h10, with_top.coe_zero, zero_add,
       ← with_top.coe_add, neg_add_self, with_top.coe_zero],
     { exact le_refl 0 },
-    { exact inv_ne_zero (coeff_order_ne_zero x0) },
-    { apply_instance } },
+    { exact C_ne_zero (inv_ne_zero (coeff_order_ne_zero x0)) } },
   { rw [add_val_apply, ← with_top.coe_zero],
     split_ifs,
     { apply with_top.coe_ne_top },
@@ -1232,16 +1232,16 @@ begin
     intro con,
     apply coeff_order_ne_zero h,
     rw [← con, mul_assoc, sub_coeff, one_coeff, if_pos rfl, C_mul_eq_smul, smul_coeff, smul_eq_mul,
-      ← add_neg_self (x.order x0), single_mul_coeff_add, one_mul,
+      ← add_neg_self x.order, single_mul_coeff_add, one_mul,
       inv_mul_cancel (coeff_order_ne_zero x0), sub_self] }
 end
 
 instance : field (hahn_series Γ R) :=
-{ inv := λ x, if x = 0 then 0 else (C (x.coeff x.order)⁻¹ * (single (-x.order)) 1 *
+{ inv := λ x, if x0 : x = 0 then 0 else (C (x.coeff x.order)⁻¹ * (single (-x.order)) 1 *
       (summable_family.powers _ (field_aux x x0)).hsum),
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ x x0, begin
-    refine (congr rfl (if_neg x0)).trans _,
+    refine (congr rfl (dif_neg x0)).trans _,
     have h := summable_family.one_sub_self_mul_hsum_powers (field_aux x x0),
     rw [sub_sub_cancel] at h,
     rw [← mul_assoc, mul_comm x, h],

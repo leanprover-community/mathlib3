@@ -27,20 +27,23 @@ proof, it is defined using the third point of view, i.e., as `is_noetherian`. Ho
 that all these points of view are equivalent, with the following lemmas
 (in the namespace `finite_dimensional`):
 
-- `basis.of_vector_space_index.fintype` states that a finite-dimensional vector space has a finite basis
-- `finite_dimensional.fintype_basis_index` states that a basis of a finite-dimensional vector space
-  contains finitely many basis vectors
-- `finite_dimensional.finset_basis` states that a finite-dimensional vector space has
-  a basis indexed by a `finset`
-- `finite_dimensional.fin_basis` and `finite_dimensional.fin_basis_of_finrank_eq` are bases for finite
-  dimensional vector spaces, where the index type is `fin`
-- `of_fintype_basis` states that the existence of a basis indexed by a finite type implies
-  finite-dimensionality
-- `of_finset_basis` states that the existence of a basis indexed by a `finset` implies
-  finite-dimensionality
-- `of_finite_basis` states that the existence of a basis indexed by a finite set implies
-  finite-dimensionality
-- `iff_fg` states that the space is finite-dimensional if and only if it is finitely generated
+- `basis.of_vector_space_index.fintype` states that a finite-dimensional
+  vector space has a finite basis
+- `finite_dimensional.fintype_basis_index` states that a basis of a
+  finite-dimensional vector space contains finitely many basis vectors
+- `finite_dimensional.finset_basis` states that a finite-dimensional
+  vector space has a basis indexed by a `finset`
+- `finite_dimensional.fin_basis` and `finite_dimensional.fin_basis_of_finrank_eq`
+  are bases for finite dimensional vector spaces, where the index type
+  is `fin`
+- `of_fintype_basis` states that the existence of a basis indexed by a
+  finite type implies finite-dimensionality
+- `of_finset_basis` states that the existence of a basis indexed by a
+  `finset` implies finite-dimensionality
+- `of_finite_basis` states that the existence of a basis indexed by a
+  finite set implies finite-dimensionality
+- `iff_fg` states that the space is finite-dimensional if and only if
+  it is finitely generated
 
 Also defined is `finrank`, the dimension of a finite dimensional space, returning a `nat`,
 as opposed to `module.rank`, which returns a `cardinal`. When the space has infinite dimension, its

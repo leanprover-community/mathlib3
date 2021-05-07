@@ -333,6 +333,6 @@ lemma mat_poly_equiv_smul_one (p : polynomial R) :
 begin
   ext m i j,
   simp only [coeff_map, one_apply, algebra_map_matrix_apply, mul_boole,
-    smul_apply, mat_poly_equiv_coeff_apply],
+    pi.smul_apply, mat_poly_equiv_coeff_apply],
   split_ifs; simp,
 end

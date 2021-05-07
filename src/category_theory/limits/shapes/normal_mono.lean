@@ -202,7 +202,7 @@ def normal_epi_of_normal_mono_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_mon
         (kernel_fork.is_limit.lift' m.is_limit g'.unop (congr_arg quiver.hom.unop w')).2)
     begin
       rintros Z' g' w' m' rfl,
-      apply (op_equiv _ _).injective,
+      apply quiver.hom.unop_inj,
       apply m.is_limit.uniq (kernel_fork.of_ι (m'.unop ≫ f.unop) _) m'.unop,
       rintro (⟨⟩|⟨⟩); simp,
     end, }
@@ -221,7 +221,7 @@ def normal_mono_of_normal_epi_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_epi
         (cokernel_cofork.is_colimit.desc' m.is_colimit g'.unop (congr_arg quiver.hom.unop w')).2)
     begin
       rintros Z' g' w' m' rfl,
-      apply (op_equiv _ _).injective,
+      apply quiver.hom.unop_inj,
       apply m.is_colimit.uniq (cokernel_cofork.of_π (f.unop ≫ m'.unop) _) m'.unop,
       rintro (⟨⟩|⟨⟩); simp,
     end, }

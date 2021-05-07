@@ -2174,7 +2174,7 @@ lemma le_sum_of_mem [canonically_ordered_add_monoid α] {m : multiset α} {a : �
 begin
   obtain ⟨m', rfl⟩ := exists_cons_of_mem h,
   rw [sum_cons],
-  exact le_add_right (le_refl _),
+  exact _root_.le_add_right (le_refl a),
 end
 
 variables [ordered_add_comm_monoid α]

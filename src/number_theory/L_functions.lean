@@ -128,7 +128,7 @@ end
     (hnU : U.nonempty) (hnV : V.nonempty) (hdis : disjoint U V), U ∪ V = ⊤:= sorry -/
 
 open classical
-local attribute [instance] prop_decidable
+local attribute [instance] prop_decidable -- use classical in proofs instead, avoid this
 
 noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R] (U : clopen_sets X) : locally_constant X R :=
 {
@@ -522,10 +522,7 @@ example {α : Type*} [topological_space α] (s : set α) (hs : is_clopen s) : is
 
 noncomputable def T' (ε : ℝ) (f : C(X, A)) (t : finset(set A))
  (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i) : finset (set X) :=
-begin
-  have ht' := dense_C_suff X ε f t ht,
-  use classical.some ht',
-end
+classical.some (dense_C_suff X ε f t ht)
 
 variables (t : finset(set A)) (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i)
 
@@ -556,7 +553,8 @@ begin
   refine set.nonempty.to_subtype _, rw set.nonempty, refine ⟨x, h⟩,
 end
 
-noncomputable def c2 (f : C(X, A)) (ε : ℝ) (t : finset(set A)) (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i) : X → A :=
+noncomputable def c2 (f : C(X, A)) (ε : ℝ) (t : finset(set A))
+  (ht : set.univ ⊆ ⨆ (i : set A) (H : i ∈ t) (H : i ∈ ((S ε) : set(set A))), f ⁻¹' i) : X → A :=
 begin
   rintros x,
   refine f (c' X f ε t ht (classical.some (exists_of_exists_unique (ht3 X f ε t ht x)) ) _),
@@ -708,7 +706,7 @@ constructor,
 rintros U V, refine ⟨U.val ∪ V.val, _⟩, apply is_clopen_union U.prop V.prop,
 end
 
-variables {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation A Γ₀)
+variables {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : valuation A nnreal) --what to do?
 
 structure  distribution {R : Type*} [add_monoid R] :=
 (phi : clopen_sets X → R)
@@ -726,9 +724,9 @@ end
 
 instance : mul_action A (locally_constant ↥X A) :=
 begin
-constructor, exact one_mul,
-rintros a b f, repeat {rw locally_constant.has_scalar,},
-refine congr_fun _ f, simp, ext, simp, rw mul_assoc,
+  constructor, exact one_mul,
+  rintros a b f, repeat {rw locally_constant.has_scalar,},
+  refine congr_fun _ f, simp, ext, simp, rw mul_assoc,
 end
 
 instance : distrib_mul_action A (locally_constant ↥X A) :=
@@ -745,33 +743,102 @@ begin
   { exact zero_mul, },
 end
 
-structure distribution' :=
-(phi : (locally_constant X A) →ₗ[A] A)
+structure distribution' (h : nonempty X) :=
+(phi : linear_map A (locally_constant X A) A)
 
-def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : Γ₀, v (φ.phi S) ≤ K }
+def measures := {φ : distribution X // ∀ S : clopen_sets X, ∃ K : ℝ, (v (φ.phi S) : ℝ) ≤ K }
 
-def measures' := {φ : distribution' X // ∀ f : (locally_constant X A), ∃ K : Γ₀, v (φ.phi f) ≤ K }
+/-def measures' (h : nonempty X) :=
+  {φ : distribution' X h //
+    ∀ f : (locally_constant X A), ∃ K : ℝ, (v (φ.phi f) : ℝ) ≤ K * ∥inclusion X A f∥ } -/
 
-noncomputable def integral (h : nonempty X) (φ : measures' X v) : C(X, A) →ₗ[A] A :=
+def measures' (h : nonempty X) :=
+  {φ : distribution' X h //
+    ∃ K : ℝ, ∀ f : (locally_constant X A), ∥φ.phi f∥ ≤ K * ∥inclusion X A f∥ }
+noncomputable theory
+instance (h : nonempty X) : metric_space (locally_constant X A) :=
 begin
+  refine metric_space.induced (inclusion X A) (sub X) _, apply_instance,
+end
+
+lemma pms (h : nonempty X) : pseudo_metric_space (locally_constant X A) :=
+begin
+  refine pseudo_metric_space.induced (inclusion X A) _, apply_instance,
+end
+
+instance (h : nonempty X) : pseudo_metric_space (locally_constant X A) :=
+begin
+  refine pseudo_metric_space.induced (inclusion X A) _, apply_instance,
+end
+
+instance (h : nonempty X) : has_norm (locally_constant X A) :=
+begin
+  refine {norm := _},
+  rintros f, exact ∥inclusion X A f∥,
+end
+
+/-instance (h : nonempty X) [decidable (@locally_constant.pseudo_metric_space X A _ h)] : ∀ (x y : locally_constant X A),
+  (@locally_constant.pseudo_metric_space X A _ h).dist x y =
+    (@locally_constant.has_norm X A _ h).norm (x - y) :=-/
+
+instance (h : nonempty X) : semi_normed_group (locally_constant X A) := sorry
+--{ ..locally_constant.pseudo_metric_space X h, ..locally_constant.has_norm X h,   },
+/-begin
+  refine ⟨_, locally_constant.has_norm X h, _, locally_constant.pseudo_metric_space X h⟩,
+sorry
+end-/
+--{ ..locally_constant.pseudo_metric_space X h, ..locally_constant.has_norm X h,   },
+
+example {α : Type*} [has_lt α] [has_le α] (a b c : ℤ) (h1 : a ≤ b) (h2 : b < c) : a < c :=
+begin
+  exact lt_of_le_of_lt h1 h2,
+end
+
+lemma integral_cont (h : nonempty X) (φ : @measures' X A _ h) : continuous (φ.1).phi :=
+begin
+
+  /-suffices : ∀ (b : locally_constant X A) (ε : ℝ), ε > 0 → (∃ (δ : ℝ) (H : δ > 0),
+      ∀ (a : locally_constant X A), dist a b < δ → dist ((φ.val.phi) a) ((φ.val.phi) b) < ε),-/
+  have := @metric.continuous_iff (locally_constant X A) A (pms X h) _ ((φ.val.phi)),
+  have f : @continuous _ _
+    ((@metric_space.to_uniform_space' _ (pms X h)).to_topological_space) _
+      ⇑(φ.val.phi) = continuous ⇑(φ.val.phi), sorry,
+  { rw ←f, rw this, rintros b ε hε,
+    obtain ⟨K, hK⟩ := φ.prop,
+    refine ⟨ε/K, _, _⟩,
+    sorry,
+    { rintros a dab, rw dist_eq_norm,
+      suffices : ∥(φ.val.phi) (a - b)∥ < ε,
+      { convert this, simp, },
+      { specialize hK (a - b), apply lt_of_le_of_lt hK _, rw mul_comm, rw ←lt_div_iff _,
+        { convert dab, apply pseudo_metric_space.to_has_dist.dist, }, }, }, },
+end
+
+noncomputable def integral (h : nonempty X) (φ : measures' X h) : C(X, A) →ₗ[A] A :=
+begin
+
   have di : dense_inducing (inclusion X A),
   { constructor,
     { constructor, refl, },
     { apply dense_C, }, },
+    apply uniform_inducing,
+  apply uniform_continuous_uniformly_extend,
 
-  --rw continuous_linear_map.extend,
-  refine is_basis.constr _ _, swap, refine (inclusion X A), swap, refine (φ.1).phi,
-  constructor, { rw linear_independent, },
+  --apply continuous_linear_map.extend,
+--refine is_basis.constr _ _, swap, refine (inclusion X A), swap, refine (φ.1).phi,
+--  constructor, { rw linear_independent, },
 
   split,
   swap 3,
   { apply dense_inducing.extend _ (φ.1).phi, --X nonempty needed here, for the topo space on loc const to exist
     apply_instance, exact inclusion X A,
     apply di, }, --yayyyyyyyyyy!!!!
-  { refine dense_inducing.continuous_extend_of_cauchy _ _,
+  {
+    --apply uniform_continuous_uniformly_extend,
+    --refine dense_inducing.continuous_extend_of_cauchy _ _,
     --apply filter.comap_map, have : 𝓝 (f + g) = filter.map (inclusion X A)
     apply dense_inducing.cases_on di, rintros h1 h2 f g, repeat {rw dense_inducing.extend, }, rw filter.comap_eq_lift',
-    rw dense_inducing.nhds_eq_comap,
+    --rw dense_inducing.nhds_eq_comap,
 --    have : filter.comap_add_comap_le (inclusion X A),
 --    have : filter.comap (inclusion X A) (𝓝 g) = 𝓝 g,
 --    rw filter.comap, simp,

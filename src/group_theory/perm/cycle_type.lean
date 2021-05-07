@@ -301,10 +301,7 @@ end
 
 lemma le_card_support_of_mem_cycle_type {n : ℕ} {σ : perm α} (h : n ∈ cycle_type σ) :
   n ≤ σ.support.card :=
-begin
-  rw [← sum_cycle_type],
-  exact le_sum_of_mem h,
-end
+(le_sum_of_mem h).trans (le_of_eq σ.sum_cycle_type)
 
 lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
   (hn2 : fintype.card α < n + 2)

@@ -79,6 +79,14 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
+/-- Complex conjugation as an `ℝ`-algebra isomorphism  -/
+def conj_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
+{ inv_fun := complex.conj,
+  left_inv := complex.conj_conj,
+  right_inv := complex.conj_conj,
+  commutes' := complex.conj_of_real,
+  .. complex.conj }
+
 section
 open_locale complex_order
 
@@ -117,7 +125,7 @@ open submodule finite_dimensional
 
 lemma is_basis_one_I : is_basis ℝ ![1, I] :=
 begin
-  refine ⟨linear_independent_fin2.2 ⟨I_ne_zero, λ a, mt (congr_arg re) $ by simp⟩,
+  refine ⟨linear_independent_fin2.2 ⟨by simp [I_ne_zero], λ a, mt (congr_arg re) $ by simp⟩,
     eq_top_iff'.2 $ λ z, _⟩,
   suffices : ∃ a b : ℝ, z = a • I + b • 1,
     by simpa [mem_span_insert, mem_span_singleton, -set.singleton_one],

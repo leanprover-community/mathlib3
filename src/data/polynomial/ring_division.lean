@@ -534,6 +534,17 @@ rfl
   (0 : polynomial R).root_set S = ∅ :=
 by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
 
+@[simp] lemma root_set_C [integral_domain S] [algebra R S] (a : R) : (C a).root_set S = ∅ :=
+by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
+
+instance root_set_fintype {R : Type*} [integral_domain R] (p : polynomial R) (S : Type*)
+  [integral_domain S] [algebra R S] : fintype (p.root_set S) :=
+finset_coe.fintype _
+
+lemma root_set_finite {R : Type*} [integral_domain R] (p : polynomial R) (S : Type*)
+  [integral_domain S] [algebra R S] : (p.root_set S).finite :=
+⟨polynomial.root_set_fintype p S⟩
+
 end roots
 
 theorem is_unit_iff {f : polynomial R} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=

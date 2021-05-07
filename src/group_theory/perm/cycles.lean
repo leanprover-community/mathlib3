@@ -434,9 +434,10 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
                 inv_apply_self, inv_eq_iff_eq, eq_comm] }),
         hm₃⟩⟩
 
-lemma mem_list_cycles_iff [fintype α] {l : list (perm α)} (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
- (h2 : l.pairwise disjoint) {σ : perm α} (h3 : σ.is_cycle) {a : α} (h4 : σ a ≠ a) :
- σ ∈ l ↔ ∀ k : ℕ, (σ ^ k) a = (l.prod ^ k) a :=
+lemma mem_list_cycles_iff {α : Type*} [fintype α] {l : list (perm α)}
+  (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
+  (h2 : l.pairwise disjoint) {σ : perm α} (h3 : σ.is_cycle) {a : α} (h4 : σ a ≠ a) :
+  σ ∈ l ↔ ∀ k : ℕ, (σ ^ k) a = (l.prod ^ k) a :=
 begin
   induction l with τ l ih,
   { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
@@ -458,13 +459,15 @@ begin
         by_cases hσb : σ b = b,
         { by_cases hτb : τ b = b,
           { rw [hσb, hτb] },
-          { obtain ⟨n, rfl⟩ := ((h1 τ (list.mem_cons_self τ l))).exists_pow_eq hτa hτb,
+          { classical,
+            obtain ⟨n, rfl⟩ := ((h1 τ (list.mem_cons_self τ l))).exists_pow_eq hτa hτb,
             rw [←mul_apply τ, ←pow_succ, ←h5, ←h5, pow_succ, mul_apply] } },
         { obtain ⟨n, rfl⟩ := h3.exists_pow_eq h4 hσb,
           rw [←mul_apply, ←pow_succ, h5, h5, pow_succ, mul_apply] } } } },
 end
 
-lemma list_cycles_perm_list_cycles [fintype α] {l₁ l₂ : list (perm α)} (h₀ : l₁.prod = l₂.prod)
+lemma list_cycles_perm_list_cycles {α : Type*} [fintype α] {l₁ l₂ : list (perm α)}
+  (h₀ : l₁.prod = l₂.prod)
   (h₁l₁ : ∀ σ : perm α, σ ∈ l₁ → σ.is_cycle) (h₁l₂ : ∀ σ : perm α, σ ∈ l₂ → σ.is_cycle)
   (h₂l₁ : l₁.pairwise disjoint) (h₂l₂ : l₂.pairwise disjoint) :
   l₁ ~ l₂ :=
@@ -499,7 +502,7 @@ variables [fintype α] (f : perm α)
 
 /-- Factors a permutation `f` into a `finset` of disjoint cyclic permutations that multiply to `f`.
 -/
-def cycle_factors_finset [fintype α] (f : perm α) : finset (perm α) :=
+def cycle_factors_finset : finset (perm α) :=
 (trunc_cycle_factors f).lift
   (λ (l : {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint}),
     l.val.to_finset) (λ ⟨l, hl⟩ ⟨l', hl'⟩, list.to_finset_eq_of_perm _ _
@@ -537,7 +540,7 @@ begin
   exact x.prop.right.left _ hp
 end
 
-lemma cycle_factors_finset_pairwise_disjoint_of_ne ⦃p : perm α⦄ (hp : p ∈ cycle_factors_finset f)
+lemma cycle_factors_finset_pairwise_disjoint ⦃p : perm α⦄ (hp : p ∈ cycle_factors_finset f)
   ⦃q : perm α⦄ (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
   disjoint p q :=
 begin

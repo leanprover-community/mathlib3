@@ -888,7 +888,10 @@ section
 
 variable (R₁)
 
-/-- The weighted sum of squares with respect some weight as a quadratic form. -/
+/-- The weighted sum of squares with respect to some weight as a quadratic form.
+
+The weights are applied using `•`; typically this definition is used either with `S = R₁` or
+`[algebra S R₁]`, although this is stated more generally. -/
 def weighted_sum_squares [monoid S] [distrib_mul_action S R₁] [smul_comm_class S R₁ R₁]
   (w : ι → S) : quadratic_form R₁ (ι → R₁) :=
 ∑ i : ι, w i • proj i i

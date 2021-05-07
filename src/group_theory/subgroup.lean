@@ -1256,6 +1256,9 @@ def ker (f : G →* N) := (⊥ : subgroup N).comap f
 lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
+lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
+
+@[to_additive]
 instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
   decidable_pred (∈ f.ker) :=
 λ x, decidable_of_iff (f x = 1) f.mem_ker
@@ -1269,6 +1272,10 @@ begin
   change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,
   simp only [],
 end
+
+@[simp, to_additive]
+lemma ker_one : (1 : G →* N).ker = ⊤ :=
+by { ext, simp [mem_ker] }
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
 begin

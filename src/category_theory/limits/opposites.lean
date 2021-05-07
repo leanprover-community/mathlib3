@@ -3,7 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Floris van Doorn
 -/
-import category_theory.limits.shapes.products
+import category_theory.limits.shapes.finite_products
+import category_theory.limits.shapes.kernels
 import category_theory.discrete_category
 
 universes v u
@@ -121,5 +122,33 @@ begin
     has_colimits_of_shape_of_equivalence (discrete.opposite X).symm,
   apply_instance
 end
+
+lemma has_finite_coproducts_opposite [has_finite_products C] :
+  has_finite_coproducts Cᵒᵖ :=
+{ out := λ J 𝒟 𝒥, begin
+    resetI,
+    haveI : has_limits_of_shape (discrete J)ᵒᵖ C :=
+      has_limits_of_shape_of_equivalence (discrete.opposite J).symm,
+    apply_instance,
+  end }
+
+lemma has_finite_products_opposite [has_finite_coproducts C] :
+  has_finite_products Cᵒᵖ :=
+{ out := λ J 𝒟 𝒥, begin
+    resetI,
+    haveI : has_colimits_of_shape (discrete J)ᵒᵖ C :=
+      has_colimits_of_shape_of_equivalence (discrete.opposite J).symm,
+    apply_instance,
+  end }
+
+local attribute [instance] fin_category_opposite
+
+lemma has_finite_colimits_opposite [has_finite_limits C] :
+  has_finite_colimits Cᵒᵖ :=
+{ out := λ J 𝒟 𝒥, by { resetI, apply_instance, }, }
+
+lemma has_finite_limits_opposite [has_finite_colimits C] :
+  has_finite_limits Cᵒᵖ :=
+{ out := λ J 𝒟 𝒥, by { resetI, apply_instance, }, }
 
 end category_theory.limits

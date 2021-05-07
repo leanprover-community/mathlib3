@@ -1288,4 +1288,10 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
 
+instance [sub_neg_monoid α] : sub_neg_monoid (order_dual α) :=
+{ ..show sub_neg_monoid α, by apply_instance }
+
+instance [div_inv_monoid α] : div_inv_monoid (order_dual α) :=
+{ ..show div_inv_monoid α, by apply_instance }
+
 end type_tags

@@ -507,9 +507,21 @@ by { ext, simp }
   (a • M) ⬝ N = a • M ⬝ N :=
 by { ext, apply smul_dot_product }
 
+/-- This instance enables use with `smul_mul_assoc`. -/
+instance semiring.is_scalar_tower [decidable_eq n] [monoid R] [distrib_mul_action R α]
+  [is_scalar_tower R α α] :
+  is_scalar_tower R (matrix n n α) (matrix n n α) :=
+⟨λ r m n, matrix.smul_mul r m n⟩
+
 @[simp] lemma mul_smul [monoid R] [distrib_mul_action R α] [smul_comm_class R α α]
   (M : matrix m n α) (a : R) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
 by { ext, apply dot_product_smul }
+
+/-- This instance enables use with `mul_smul_comm`. -/
+instance semiring.smul_comm_class [decidable_eq n] [monoid R] [distrib_mul_action R α]
+  [smul_comm_class R α α] :
+  smul_comm_class R (matrix n n α) (matrix n n α) :=
+⟨λ r m n, (matrix.mul_smul m r n).symm⟩
 
 @[simp] lemma mul_mul_left (M : matrix m n α) (N : matrix n o α) (a : α) :
   (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=

@@ -580,7 +580,7 @@ begin
   have i_basic_open := eq_to_hom basic_opens_eq ≫ hom_of_le hDhV,
   -- We claim that `(f * c) / h ^ (n+1)` is our desired representation
   use [f * c, h ^ (n+1), i_basic_open ≫ iVU, (basic_opens_eq.symm.le : _) hxDh],
-  rw [op_comp, functor.map_comp, coe_comp, ← s_eq, res_const],
+  rw [op_comp, functor.map_comp, comp_apply, ← s_eq, res_const],
   -- Note that the last rewrite here generated an additional goal, which was a parameter
   -- of `res_const`. We prove this goal first
   swap,
@@ -664,7 +664,7 @@ begin
 
   -- Lastly, we need to show that the new fractions still represent our original `s`
   intros i hi,
-  rw [op_comp, functor.map_comp, coe_comp, ← hs, res_const],
+  rw [op_comp, functor.map_comp, comp_apply, ← hs, res_const],
   -- additional goal spit out by `res_const`
   swap, exact (basic_opens_eq i).le,
   apply const_ext,

@@ -1056,6 +1056,10 @@ instance : fintype (∅ : set α) := ⟨∅, subtype.property⟩
   (∅ : set α).to_finset = ∅ :=
 set.to_finset_eq_empty_iff.mpr rfl
 
+@[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
+  (set.range f).to_finset = finset.univ.image f :=
+by simp [ext_iff]
+
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
 fintype.card_le_of_embedding (function.embedding.subtype _)

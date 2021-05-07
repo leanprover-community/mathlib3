@@ -661,6 +661,7 @@ boolean_algebra.of_core
   top_le_sup_compl := λ p H, classical.em p,
   .. bounded_distrib_lattice_Prop }
 
-instance pi.boolean_algebra {α : Type u} {β : Type v} [boolean_algebra β] :
-  boolean_algebra (α → β) :=
-by pi_instance
+instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
+  boolean_algebra (Π i, α i) :=
+by refine_struct { sdiff := λ x y i, x i \ y i, compl := λ x i, (x i)ᶜ, .. pi.bounded_lattice };
+  tactic.pi_instance_derive_field

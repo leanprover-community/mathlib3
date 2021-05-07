@@ -6,7 +6,7 @@ Authors: Calle Sönne, Adam Topaz
 import topology.category.Profinite
 import topology.discrete_quotient
 
-/--
+/-!
 # Profinite sets as limits of finite sets.
 
 We show that any profinite set is isomorphic to the limit of its

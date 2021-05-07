@@ -884,15 +884,21 @@ begin
   { contradiction }
 end
 
+section
+
+variable (R₁)
+
 /-- The weighted sum of squares with respect some weight as a quadratic form. -/
 def weighted_sum_squares [monoid S] [distrib_mul_action S R₁] [smul_comm_class S R₁ R₁]
   (w : ι → S) : quadratic_form R₁ (ι → R₁) :=
 ∑ i : ι, w i • proj i i
 
+end
+
 @[simp]
 lemma weighted_sum_squares_apply [monoid S] [distrib_mul_action S R₁] [smul_comm_class S R₁ R₁]
   (w : ι → S) (v : ι → R₁) :
-  weighted_sum_squares w v = ∑ i : ι, w i • (v i * v i) :=
+  weighted_sum_squares R₁ w v = ∑ i : ι, w i • (v i * v i) :=
 quadratic_form.sum_apply _ _ _
 
 variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
@@ -901,7 +907,7 @@ variables [add_comm_group V] [module K V] [finite_dimensional K V]
 lemma equivalent_weighted_sum_squares_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
   ∃ w : fin (finite_dimensional.finrank K V) → units K,
-    equivalent Q (weighted_sum_squares w) :=
+    equivalent Q (weighted_sum_squares K w) :=
 begin
   obtain ⟨v, hv₁, hv₂, hv₃⟩ := exists_orthogonal_basis' hQ associated_is_sym,
   refine ⟨λ i, units.mk_of_mul_eq_one (associated Q (v i) (v i))
@@ -921,13 +927,12 @@ section complex
 /-- The isometry between a weighted sum of squares on the complex numbers and the
 sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → units ℂ) :
-  isometry (weighted_sum_squares w : quadratic_form ℂ (ι → ℂ))
-           (weighted_sum_squares (1 : ι → ℂ)) :=
+  isometry (weighted_sum_squares ℂ w) (weighted_sum_squares ℂ (1 : ι → ℂ)) :=
 begin
   have hw' : ∀ i : ι, (w i : ℂ) ^ - (1 / 2 : ℂ) ≠ 0,
   { intros i hi,
     exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
-  convert (weighted_sum_squares w : quadratic_form ℂ (ι → ℂ)).isometry_basis_repr
+  convert (weighted_sum_squares ℂ w).isometry_basis_repr
     (is_basis.smul_of_is_unit (pi.is_basis_fun ℂ ι) (λ i, is_unit_iff_ne_zero.2 (hw' i))),
   ext1 v,
   erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
@@ -952,7 +957,7 @@ end .
 the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
   [finite_dimensional ℂ M] (Q : quadratic_form ℂ M) (hQ : (associated Q).nondegenerate) :
-  equivalent Q (weighted_sum_squares (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
+  equivalent Q (weighted_sum_squares ℂ (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
 let ⟨w, hw₁⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
   nonempty.intro $ (classical.choice hw₁).trans (isometry_sum_squares w)
 

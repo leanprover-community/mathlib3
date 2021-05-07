@@ -1215,7 +1215,7 @@ section field
 variables [linear_ordered_add_comm_group Γ] [field R]
 
 lemma field_aux (x : hahn_series Γ R) (x0 : x ≠ 0) :
-  0 < add_val Γ R (1 - C ((x.coeff (x.order x0))⁻¹) * (single (- x.order x0) 1) * x) :=
+  0 < add_val Γ R (1 - C ((x.coeff x.order)⁻¹) * (single (- x.order) 1) * x) :=
 begin
   refine lt_of_le_of_ne ((add_val Γ R).map_le_sub (ge_of_eq (add_val Γ R).map_one) _) _,
   { simp only [add_valuation.map_mul],
@@ -1237,12 +1237,11 @@ begin
 end
 
 instance : field (hahn_series Γ R) :=
-{ inv := λ x, if x0 : x = 0 then 0 else
-    (C (x.coeff (x.order x0))⁻¹ * (single (-x.order x0)) 1 *
+{ inv := λ x, if x = 0 then 0 else (C (x.coeff x.order)⁻¹ * (single (-x.order)) 1 *
       (summable_family.powers _ (field_aux x x0)).hsum),
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ x x0, begin
-    refine (congr rfl (dif_neg x0)).trans _,
+    refine (congr rfl (if_neg x0)).trans _,
     have h := summable_family.one_sub_self_mul_hsum_powers (field_aux x x0),
     rw [sub_sub_cancel] at h,
     rw [← mul_assoc, mul_comm x, h],

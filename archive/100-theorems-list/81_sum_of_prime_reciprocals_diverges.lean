@@ -120,11 +120,10 @@ begin
 
   calc  (card (finset.bUnion P N) : ℝ)
       ≤ ∑ p in P, card (N p)  : by assumption_mod_cast
-  ... ≤ ∑ p in P, x / p       : by { refine sum_le_sum (λ p, _),
-                                     simp only [P, sep_def, mem_filter, mem_range],
+  ... ≤ ∑ p in P, x * (1 / p) : by { refine sum_le_sum (λ p, _),
+                                     simp only [P, sep_def, mem_filter, mem_range, N, mul_one_div],
                                      rintros ⟨-, -, hpp⟩,
-                                     simp only [N, card_le_div_real (nat.prime.pos hpp)] }
-  ... = ∑ p in P, x * (1 / p) : finset.sum_congr rfl (λ p, λ _, div_eq_mul_one_div x p)
+                                     exact card_le_div_real (nat.prime.pos hpp) }
   ... = x * ∑ p in P, 1 / p   : mul_sum.symm,
 end
 

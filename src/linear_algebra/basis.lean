@@ -786,7 +786,7 @@ let s := set.range v,
   calc ι ⊕ (b \ s : set V) ≃ s ⊕ (b \ s : set V) : equiv.sum_congr e (equiv.refl _)
   ... ≃ b                   : equiv.set.sum_diff_subset (hs.to_subtype_range.subset_extend _)
 
-lemma basis.subset_extend {s : set V} (hs : linear_independent K (coe : s → V)) :
+lemma subset_extend {s : set V} (hs : linear_independent K (coe : s → V)) :
   s ⊆ hs.extend (set.subset_univ _) :=
 hs.subset_extend _
 

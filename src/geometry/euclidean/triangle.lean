@@ -355,34 +355,26 @@ begin
 end
 
 /-- Stewart's Theorem. -/
-theorem sq_dist_mul_dist_add_sq_dist_mul_dist (a b c p : P) (h : ∠ b p c = π) :
-  (dist a b) ^ 2 * (dist c p) + (dist a c) ^ 2 * (dist b p) =
-  (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) :=
+theorem dist_sq_mul_dist_add_dist_sq_mul_dist (a b c p : P) (h : ∠ b p c = π) :
+  dist a b ^ 2 * dist c p + dist a c ^ 2 * dist b p =
+  dist b c * (dist a p ^ 2 + dist b p * dist c p) :=
 begin
-  have h1 : (dist a b) ^ 2 = (dist a p) ^ 2 + (dist b p) ^ 2
-            - 2 * dist a p * dist b p * real.cos (∠ a p b), { simp [pow_two, law_cos a p b] },
-  have h2 : (dist a c) ^ 2 = (dist a p) ^ 2 + (dist c p) ^ 2
-            - 2 * dist a p * dist c p * real.cos (∠ a p c), { simp [pow_two, law_cos a p c] },
-  have h3 : real.cos (∠ a p b) = - real.cos (∠ a p c),
-  { rw [eq_sub_of_add_eq (angle_add_angle_eq_pi_of_angle_eq_pi a h), real.cos_pi_sub (∠ a p c)] },
-  have h4 : (dist b c) = (dist b p) + (dist c p) := dist_eq_add_dist_of_angle_eq_pi h,
-
-  calc  (dist a b) ^ 2 * (dist c p) + (dist a c) ^ 2 * (dist b p)
-      = ((dist b p) + (dist c p)) * ((dist a p) ^ 2 + (dist b p) * (dist c p))
-        : by { rw [h1, h2, h3], ring }
-  ... = (dist b c) * ((dist a p) ^ 2 + (dist b p) * (dist c p)) : by rw ← h4,
+  rw [pow_two, pow_two, law_cos a p b, law_cos a p c,
+      eq_sub_of_add_eq (angle_add_angle_eq_pi_of_angle_eq_pi a h), real.cos_pi_sub,
+      dist_eq_add_dist_of_angle_eq_pi h],
+  ring,
 end
 
 /-- Apollonius's Theorem. -/
-theorem sq_dist_add_sq_dist_eq_two_mul_sq_dist_midpoint_add_sq_half_dist (a b c : P) :
+theorem dist_sq_add_dist_sq_eq_two_mul_dist_midpoint_sq_add_half_dist_sq (a b c : P) :
   dist a b ^ 2 + dist a c ^ 2 = 2 * (dist a (midpoint ℝ b c) ^ 2 + (dist b c / 2) ^ 2) :=
 begin
   by_cases hbc : b = c,
   { simp [hbc, midpoint_self, dist_self, two_mul] },
   { let m := midpoint ℝ b c,
-    have : dist b c ≠ 0 := ne_of_gt (dist_pos.mpr hbc),
-    have hm := sq_dist_mul_dist_add_sq_dist_mul_dist a b c m (angle_midpoint_eq_pi b c hbc),
-    simp [dist_left_midpoint, dist_right_midpoint] at hm,
+    have : dist b c ≠ 0 := (dist_pos.mpr hbc).ne',
+    have hm := dist_sq_mul_dist_add_dist_sq_mul_dist a b c m (angle_midpoint_eq_pi b c hbc),
+    simp only [dist_left_midpoint, dist_right_midpoint, real.norm_two] at hm,
     calc  dist a b ^ 2 + dist a c ^ 2
         = 2 / dist b c * (dist a b ^ 2 * (2⁻¹ * dist b c) + dist a c ^ 2 * (2⁻¹ * dist b c)) :
           by { field_simp, ring }
@@ -404,7 +396,6 @@ begin
         by { rw [h, hab, hcb], ring }
   ... = r ^ 2 * dist a c ^ 2 : by simp [pow_two, ← law_cos a b c]
   ... = (r * dist a c) ^ 2 : by ring,
-
   by_cases hab₁ : a = b,
   { have hab'₁ : a' = b', rw [← dist_eq_zero, hab, dist_eq_zero.mpr hab₁, mul_zero r],
     rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },

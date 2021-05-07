@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
 
+import algebra.polynomial.big_operators
 import data.matrix.char_p
+import field_theory.finite.basic
+import group_theory.perm.cycles
 import linear_algebra.char_poly.basic
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
-import algebra.polynomial.big_operators
-import group_theory.perm.cycles
-import field_theory.finite.basic
+import ring_theory.power_basis
 
 /-!
 # Characteristic polynomials
@@ -220,3 +221,29 @@ theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
 minpoly.dvd _ _ (aeval_self_char_poly M)
 
 end matrix
+
+section power_basis
+
+open algebra
+
+/-- The characteristic polynomial of the map `λ x, a * x` is the minimal polynomial of `a`.
+
+In combination with `det_eq_sign_char_poly_coeff` or `trace_eq_neg_char_poly_coeff`
+and a bit of rewriting, this will allow us to conclude the
+field norm resp. trace of `x` is the product resp. sum of `x`'s conjugates.
+-/
+lemma char_poly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K S]
+  (h : power_basis K S) :
+  char_poly (left_mul_matrix h.is_basis h.gen) = minpoly K h.gen :=
+begin
+  apply minpoly.unique,
+  { apply char_poly_monic },
+  { apply (left_mul_matrix _).injective_iff.mp (left_mul_matrix_injective h.is_basis),
+    rw [← polynomial.aeval_alg_hom_apply, aeval_self_char_poly] },
+  { intros q q_monic root_q,
+    rw [char_poly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],
+    apply with_bot.some_le_some.mpr,
+    exact h.dim_le_nat_degree_of_root q_monic.ne_zero root_q }
+end
+
+end power_basis

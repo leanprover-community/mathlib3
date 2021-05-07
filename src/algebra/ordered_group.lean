@@ -567,6 +567,14 @@ addition is monotone. -/
 class linear_ordered_add_comm_group (α : Type u) extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
+/-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
+  Instances should include number systems with an infinite element adjoined.` -/
+@[protect_proj, ancestor linear_ordered_add_comm_monoid_with_top sub_neg_monoid nontrivial]
+class linear_ordered_add_comm_group_with_top (α : Type*)
+  extends linear_ordered_add_comm_monoid_with_top α, sub_neg_monoid α, nontrivial α :=
+(neg_top : - (⊤ : α) = ⊤)
+(add_neg_cancel : ∀ a:α, a ≠ ⊤ → a + (- a) = 0)
+
 /-- A linearly ordered commutative group is a
 commutative group with a linear order in which
 multiplication is monotone. -/
@@ -860,6 +868,18 @@ abs_sub_le_iff.2 ⟨sub_le_sub hau hbl, sub_le_sub hbu hal⟩
 
 lemma eq_of_abs_sub_nonpos (h : abs (a - b) ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
+
+instance with_top.linear_ordered_add_comm_group_with_top :
+  linear_ordered_add_comm_group_with_top (with_top α) :=
+{ neg := option.map (λ a : α, -a),
+  neg_top := @option.map_none _ _ (λ a : α, -a),
+  add_neg_cancel := begin
+    rintro (a | a) ha,
+    { exact (ha rfl).elim },
+    exact with_top.coe_add.symm.trans (with_top.coe_eq_coe.2 (add_neg_self a)),
+  end,
+  .. with_top.linear_ordered_add_comm_monoid_with_top,
+  .. option.nontrivial }
 
 end linear_ordered_add_comm_group
 

@@ -554,7 +554,7 @@ local attribute [reducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
-  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
+  ..(by apply_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
 
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
@@ -1287,5 +1287,11 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multi
 instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
+
+instance [sub_neg_monoid α] : sub_neg_monoid (order_dual α) :=
+{ ..show sub_neg_monoid α, by apply_instance }
+
+instance [div_inv_monoid α] : div_inv_monoid (order_dual α) :=
+{ ..show div_inv_monoid α, by apply_instance }
 
 end type_tags

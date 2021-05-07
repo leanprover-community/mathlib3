@@ -1096,6 +1096,16 @@ begin
   refl
 end
 
+@[simp] lemma update_row_eq_self [decidable_eq m]
+  (A : matrix m n α) {i : m} :
+  A.update_row i (A i) = A :=
+function.update_eq_self i A
+
+@[simp] lemma update_column_eq_self [decidable_eq n]
+  (A : matrix m n α) {i : n} :
+  A.update_column i (λ j, A j i) = A :=
+funext $ λ j, function.update_eq_self i (A j)
+
 end update
 
 section block_matrices

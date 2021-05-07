@@ -236,7 +236,7 @@ by simp only [div_eq_mul_inv, mul_pow, inv_pow']
 by simp only [div_eq_mul_inv, mul_fpow, inv_fpow]
 
 lemma div_sq_cancel {a : G₀} (ha : a ≠ 0) (b : G₀) : a ^ 2 * b / a = a * b :=
-by rw [pow_two, mul_assoc, mul_div_cancel_left _ ha]
+by rw [sq, mul_assoc, mul_div_cancel_left _ ha]
 
 end
 
@@ -262,7 +262,7 @@ begin
   simp only [inv_nonneg, fpow_neg],
   change 0 ≤ a ^ ((2 : ℕ) : ℤ),
   rw gpow_coe_nat,
-  apply pow_two_nonneg,
+  apply sq_nonneg,
 end
 
 end

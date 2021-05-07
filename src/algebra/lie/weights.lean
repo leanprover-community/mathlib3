@@ -55,7 +55,7 @@ open_locale big_operators
 open_locale tensor_product
 
 /-- Given a Lie module `M` over a Lie algebra `L`, the pre-weight space of `M` with respect to a
-map `χ : L → R` is the simultaneous generalized eigenspace of the action of all `x ∈ L` on `M`,
+map `χ : L → R` is the simultaneous generalized eigenspace of the action of all `x : L` on `M`,
 with eigenvalues `χ x`.
 
 See also `lie_module.weight_space`. -/
@@ -170,7 +170,7 @@ end
 
 variables (M)
 
-/-- If a Lie algebra is nilpotent, then pre-weight are Lie submodules. -/
+/-- If a Lie algebra is nilpotent, then pre-weight spaces are Lie submodules. -/
 def weight_space [lie_algebra.is_nilpotent R L] (χ : L → R) : lie_submodule R L M :=
 { lie_mem := λ x m hm,
   begin
@@ -195,7 +195,7 @@ begin
 end
 
 @[simp] lemma coe_weight_space_of_top [lie_algebra.is_nilpotent R L] (χ : L → R) :
-  (weight_space M (χ ∘ (⊤ : lie_subalgebra R L).incl) : submodule R M) = (weight_space M χ) :=
+  (weight_space M (χ ∘ (⊤ : lie_subalgebra R L).incl) : submodule R M) = weight_space M χ :=
 begin
   ext m,
   simp only [weight_space, lie_submodule.coe_to_submodule_mk, lie_subalgebra.coe_bracket_of_module,

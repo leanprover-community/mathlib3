@@ -832,6 +832,16 @@ open finset bilin_form
 variables {M₁ : Type*} [add_comm_group M₁] [module R M₁]
 variables {ι : Type*} [fintype ι] {v : ι → M}
 
+instance units.distrib_mul_action : distrib_mul_action (units R) R :=
+{ smul := λ r s, (r : R) * s,
+  one_smul := one_mul,
+  mul_smul := λ _ _, mul_assoc _ _,
+  smul_add := λ _ _, mul_add _ _,
+  smul_zero := λ _, mul_zero _ }
+
+instance : smul_comm_class (units R₁) R₁ R₁ :=
+{ smul_comm := λ _, mul_left_comm _ }
+
 /-- A quadratic form composed with a `linear_equiv` is isometric to itself. -/
 def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M) :
   Q.isometry (Q.comp (f : M₁ →ₗ[R] M)) :=
@@ -875,12 +885,14 @@ begin
 end
 
 /-- The weighted sum of squares with respect some weight as a quadratic form. -/
-def weighted_sum_squares (w : ι → R₁) : quadratic_form R₁ (ι → R₁) :=
+def weighted_sum_squares [monoid S] [distrib_mul_action S R₁] [smul_comm_class S R₁ R₁]
+  (w : ι → S) : quadratic_form R₁ (ι → R₁) :=
 ∑ i : ι, w i • proj i i
 
 @[simp]
-lemma weighted_sum_squares_apply (w v : ι → R₁) :
-  weighted_sum_squares w v = ∑ i : ι, w i * (v i * v i) :=
+lemma weighted_sum_squares_apply [monoid S] [distrib_mul_action S R₁] [smul_comm_class S R₁ R₁]
+  (w : ι → S) (v : ι → R₁) :
+  weighted_sum_squares w v = ∑ i : ι, w i • (v i * v i) :=
 quadratic_form.sum_apply _ _ _
 
 variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
@@ -888,41 +900,39 @@ variables [add_comm_group V] [module K V] [finite_dimensional K V]
 
 lemma equivalent_weighted_sum_squares_of_nondegenerate'
   (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → K,
-  (∀ i, w i ≠ 0) ∧ equivalent Q (weighted_sum_squares w) :=
+  ∃ w : fin (finite_dimensional.finrank K V) → units K,
+    equivalent Q (weighted_sum_squares w) :=
 begin
   obtain ⟨v, hv₁, hv₂, hv₃⟩ := exists_orthogonal_basis' hQ associated_is_sym,
-  refine ⟨λ i, associated Q (v i) (v i), hv₃, _⟩,
+  refine ⟨λ i, units.mk_of_mul_eq_one (associated Q (v i) (v i))
+    (associated Q (v i) (v i))⁻¹ (mul_inv_cancel (hv₃ i)), _⟩,
   refine nonempty.intro _,
   convert Q.isometry_basis_repr hv₂,
   ext w,
   rw [isometry_of_is_Ortho_apply Q hv₂ hv₁, weighted_sum_squares_apply],
   refine finset.sum_congr rfl _,
-  intros, rw ← mul_assoc,
+  intros,
+  change (associated Q) (v x) (v x) • _ = _,
+  rw [smul_eq_mul, ← mul_assoc],
 end
-
-lemma equivalent_weighted_sum_squares_of_nondegenerate
-  (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → K,
-    equivalent Q (weighted_sum_squares w) :=
-let ⟨w, _, hw₂⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in ⟨w, hw₂⟩
 
 section complex
 
 /-- The isometry between a weighted sum of squares on the complex numbers and the
 sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
-noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → ℂ) (hw : ∀ i : ι, w i ≠ 0) :
-  isometry (weighted_sum_squares w) (weighted_sum_squares (1 : ι → ℂ)) :=
+noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → units ℂ) :
+  isometry (weighted_sum_squares w : quadratic_form ℂ (ι → ℂ))
+           (weighted_sum_squares (1 : ι → ℂ)) :=
 begin
-  have hw' : ∀ i : ι, (w i) ^ - (1 / 2 : ℂ) ≠ 0,
+  have hw' : ∀ i : ι, (w i : ℂ) ^ - (1 / 2 : ℂ) ≠ 0,
   { intros i hi,
-    exact hw i ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
-  convert (weighted_sum_squares w).isometry_basis_repr
+    exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
+  convert (weighted_sum_squares w : quadratic_form ℂ (ι → ℂ)).isometry_basis_repr
     (is_basis.smul_of_is_unit (pi.is_basis_fun ℂ ι) (λ i, is_unit_iff_ne_zero.2 (hw' i))),
   ext1 v,
-  rw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
+  erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
-  have hsum : (∑ (i : ι), v i • w i ^ - (1 / 2 : ℂ) •
+  have hsum : (∑ (i : ι), v i • (w i : ℂ) ^ - (1 / 2 : ℂ) •
     (linear_map.std_basis ℂ (λ (i : ι), ℂ) i) 1) j =
     v j • w j ^ - (1 / 2 : ℂ),
   { rw [finset.sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply,
@@ -933,9 +943,9 @@ begin
     intro hj', exact false.elim (hj' hj) },
   erw [hsum, smul_eq_mul],
   suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
-  { rw [pi.one_apply, ← mul_assoc, this], ring },
-  rw [← complex.cpow_add _ _ (hw j), show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
-      complex.cpow_neg_one, inv_mul_cancel (hw j)],
+  { erw [pi.one_apply, ← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
+  rw [← complex.cpow_add _ _ (w j).ne_zero, show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
+      complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero],
 end .
 
 /-- A nondegenerate quadratic form on the complex numbers is equivalent to
@@ -943,8 +953,8 @@ the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
   [finite_dimensional ℂ M] (Q : quadratic_form ℂ M) (hQ : (associated Q).nondegenerate) :
   equivalent Q (weighted_sum_squares (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
-let ⟨w, hw₁, hw₂⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
-  nonempty.intro $ (classical.choice hw₂).trans (isometry_sum_squares w hw₁)
+let ⟨w, hw₁⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
+  nonempty.intro $ (classical.choice hw₁).trans (isometry_sum_squares w)
 
 end complex
 

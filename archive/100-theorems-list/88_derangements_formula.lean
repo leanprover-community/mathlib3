@@ -43,8 +43,7 @@ def derangement_congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ der
 begin
   refine subtype_equiv (perm_congr e) _,
   intro f,
-  unfold derangements is_derangement,
-  simp,
+  simp only [derangements, is_derangement, perm_congr_apply, set.mem_set_of_eq],
   rw ← not_iff_not,
   push_neg,
   split,
@@ -179,31 +178,22 @@ begin
   split,
   { -- if f has a fixed point, then so does (perm_splice_out a b) f.
     -- also, if f b = a, then b is a fixed point
-    intro hyp,
-    cases hyp with fb_eq_a x_fixed,
-
+    rintro (rfl|⟨x, x_fixed⟩),
     { use [b, hab.symm],
-      simp [subtype.ext_iff_val, perm_splice_out_eq],
-      rw apply_eq_iff_eq_symm_apply,
-      simpa },
-
-    { rcases x_fixed with ⟨x, x_fixed⟩,
-
-      have x_ne_a : x ≠ a,
-      { intro contra,
-        rw contra at x_fixed,
-        cc },
+      simp [subtype.ext_iff_val, perm_splice_out_eq] },
+    { have x_ne_a : x ≠ a,
+      { rintro rfl,
+        rw x_fixed at fa_eq_b,
+        contradiction },
 
       have x_ne_b : x ≠ b,
-      { intro contra,
-        rw contra at x_fixed,
-        have : f a = f b, by cc,
-        exact hab (f.injective this) },
+      { rintro rfl,
+        refine hab (f.injective _),
+        rw [fa_eq_b, x_fixed] },
 
       use [x, x_ne_a],
-      simp [subtype.ext_iff_val, perm_splice_out_eq],
-      rw apply_eq_iff_eq_symm_apply,
-      simp [x_fixed, swap_apply_of_ne_of_ne x_ne_a x_ne_b] } },
+      simp [subtype.ext_iff_val, perm_splice_out_eq, x_fixed,
+        swap_apply_of_ne_of_ne x_ne_a x_ne_b] } },
   { -- if (perm_splice_out a b) f has a fixed point, either it came from a pre-existing
     -- one, or it's b
     rintro ⟨x, x_ne_a, x_fixed⟩,
@@ -242,8 +232,7 @@ begin
   cases b with b hab,
   have hab : a ≠ b,
   { rintro rfl,
-    simp [everything_but] at hab,
-    exact hab },
+    simpa [everything_but] using hab },
 
   transitivity {f' : {f : perm α // swaps f a b} // is_derangement f'.val},
   { -- TODO what's the style guidelines here? `:=`?
@@ -387,11 +376,7 @@ begin
     suffices : finset.card ({star, m} : finset X) = 2,
     { simp [this] },
 
-    -- TODO this is very clunky, what tricks can i use here?
-    rw finset.card_insert_of_not_mem,
-    { simp },
-    { change _ ≠ _ at hm,
-      simp [hm.symm] }
+    simp [ne.symm hm]
   },
 
   have card_der_1 : card (derangements (everything_but star)) = num_derangements (n+1),
@@ -404,10 +389,8 @@ begin
   rw num_derangements_invariant X at key,
   simp [card_der_1, card_der_2] at key,
 
-  -- TODO dunno why this didn't work out with simp, but whatever
-  simp [fintype.card] at card_everything_but,
-  rw [key, card_everything_but],
-  ring,
+  rw key,
+  simpa [finset.card_univ, card_everything_but] using mul_add _ _ _,
 end
 
 -- TODO `n!` inside or outside the sum? should n!/k! be a function outputting ℕ?

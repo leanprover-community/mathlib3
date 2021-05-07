@@ -280,6 +280,17 @@ lemma pow_map_zero_of_le
   {f : module.End R M} {m : M} {k l : ℕ} (hk : k ≤ l) (hm : (f^k) m = 0) : (f^l) m = 0 :=
 by rw [← nat.sub_add_cancel hk, pow_add, mul_apply, hm, map_zero]
 
+lemma commute_pow_left_of_commute
+  {f : M →ₗ[R] M₂} {g : module.End R M} {g₂ : module.End R M₂} (h : g₂.comp f = f.comp g) (k : ℕ) :
+  (g₂^k).comp f = f.comp (g^k) :=
+begin
+  induction k with k ih,
+  { simpa only [pow_zero], },
+  { rw [pow_succ, pow_succ, linear_map.mul_eq_comp, linear_map.comp_assoc, ih,
+      ← linear_map.comp_assoc, h, linear_map.comp_assoc, linear_map.mul_eq_comp], },
+end
+
+
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 

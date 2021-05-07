@@ -49,6 +49,7 @@ variables (M : Type w) [add_comm_group M] [module R M] [lie_ring_module L M] [li
 namespace lie_module
 
 open lie_algebra
+open tensor_product
 open tensor_product.lie_module
 
 open_locale big_operators
@@ -63,12 +64,8 @@ def pre_weight_space (χ : L → R) : submodule R M :=
 ⨅ (x : L), (to_endomorphism R L M x).maximal_generalized_eigenspace (χ x)
 
 @[simp] lemma mem_pre_weight_space (χ : L → R) (m : M) :
-  m ∈ pre_weight_space M χ ↔ ∀ (x : L), ∃ (k : ℕ), (λ m, ⁅x, m⁆ - (χ x) • m)^[k] m = 0 :=
-begin
-  simp only [pre_weight_space, iff_true, linear_map.pow_apply,
-    module.End.mem_maximal_generalized_eigenspace, submodule.mem_infi],
-  exact iff.rfl,
-end
+  m ∈ pre_weight_space M χ ↔ ∀ x, ∃ (k : ℕ), ((to_endomorphism R L M x - (χ x) • 1)^k) m = 0 :=
+by simp [pre_weight_space, -linear_map.pow_apply]
 
 /-- See also `bourbaki1975b` Chapter VII §1.1, Proposition 2 (ii). -/
 private lemma weight_vector_multiplication (M₁ : Type w₁) (M₂ : Type w₂) (M₃ : Type w₃)
@@ -77,81 +74,76 @@ private lemma weight_vector_multiplication (M₁ : Type w₁) (M₂ : Type w₂)
   [add_comm_group M₃] [module R M₃] [lie_ring_module L M₃] [lie_module R L M₃]
  (g : M₁ ⊗[R] M₂ →ₗ⁅R,L⁆ M₃) (χ₁ χ₂ : L → R) :
   ((g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp
-    (tensor_product.map_incl (pre_weight_space M₁ χ₁) (pre_weight_space M₂ χ₂))).range ≤
+  (map_incl (pre_weight_space M₁ χ₁) (pre_weight_space M₂ χ₂))).range ≤
     pre_weight_space M₃ (χ₁ + χ₂) :=
 begin
-  -- TODO Tidy up the below. Still a mess.
+  /- Unpack the statement of the goal. -/
+  intros m₃,
+  simp only [lie_module_hom.coe_to_linear_map, pi.add_apply, function.comp_app,
+    mem_pre_weight_space, linear_map.coe_comp, tensor_product.map_incl, exists_imp_distrib,
+    linear_map.mem_range],
+  rintros t rfl x,
 
-  intros m₃ hm₃,
-  simp only [pre_weight_space, module.End.mem_maximal_generalized_eigenspace, submodule.mem_infi],
-  intros x,
-  simp only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
-    linear_map.mem_range] at hm₃,
-  obtain ⟨t, rfl⟩ := hm₃,
+  /- Set up some notation. -/
+  let F : module.End R M₃ := (to_endomorphism R L M₃ x) - (χ₁ x + χ₂ x) • 1,
+  change ∃ k, (F^k) (g _) = 0,
+
+  /- The goal is linear in `t` so use induction to reduce to the case that `t` is a pure tensor. -/
   apply t.induction_on,
   { use 0, simp only [linear_map.map_zero, lie_module_hom.map_zero], },
   swap,
-  { rintros t₁ t₂ ⟨k₁, hk₁⟩ ⟨k₂, hk₂⟩,
-    use max k₁ k₂,
-    simp only [lie_module_hom.map_add, linear_map.map_add],
-    rw [linear_map.pow_map_zero_of_le (le_max_left k₁ k₂) hk₁,
-        linear_map.pow_map_zero_of_le (le_max_right k₁ k₂) hk₂, add_zero], },
+  { rintros t₁ t₂ ⟨k₁, hk₁⟩ ⟨k₂, hk₂⟩, use max k₁ k₂,
+    simp only [lie_module_hom.map_add, linear_map.map_add,
+      linear_map.pow_map_zero_of_le (le_max_left k₁ k₂) hk₁,
+      linear_map.pow_map_zero_of_le (le_max_right k₁ k₂) hk₂, add_zero], },
 
-  -- Finally the main argument:
+  /- Now the main argument: pure tensors. -/
+  rintros ⟨m₁, hm₁⟩ ⟨m₂, hm₂⟩,
+  change ∃ k, (F^k) ((g : M₁ ⊗[R] M₂ →ₗ[R] M₃) (m₁ ⊗ₜ m₂)) = 0,
 
-  let f₁ : L → module.End R (M₁ ⊗[R] M₂) := λ x, (to_endomorphism R L M₁ x - (χ₁ x) • 1).rtensor M₂,
-  let f₂ : L → module.End R (M₁ ⊗[R] M₂) := λ x, (to_endomorphism R L M₂ x - (χ₂ x) • 1).ltensor M₁,
-  let F : L → module.End R M₃ := λ x, (to_endomorphism R L M₃ x) - ((χ₁ + χ₂) x) • 1,
+  /- Eliminate `g` from the picture. -/
+  let f₁ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₁ x - (χ₁ x) • 1).rtensor M₂,
+  let f₂ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₂ x - (χ₂ x) • 1).ltensor M₁,
+  have h_comm_square : F.comp ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
+  { ext m₁ m₂, simp [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, tensor_product.sub_tmul,
+      tensor_product.tmul_sub, tensor_product.smul_tmul], abel, },
+  suffices : ∃ k, ((f₁ + f₂)^k) (m₁ ⊗ₜ m₂) = 0,
+  { obtain ⟨k, hk⟩ := this, use k,
+    rw [← linear_map.comp_apply, linear_map.commute_pow_left_of_commute h_comm_square,
+      linear_map.comp_apply, hk, linear_map.map_zero], },
 
-  have hF : ∀ (x : L), (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp ((f₁ + f₂) x) = (F x).comp ↑g,
-  { intros x, ext m₁ m₂,
-    simp only [←g.map_lie x (m₁ ⊗ₜ[R] m₂), add_smul, lie_tmul_right, tensor_product.sub_tmul,
-      tensor_product.tmul_sub, tensor_product.smul_tmul, tensor_product.tmul_smul,
-      to_endomorphism_apply_apply, tensor_product.mk_apply, lie_module_hom.map_smul,
-      linear_map.one_apply, lie_module_hom.coe_to_linear_map, linear_map.compr₂_apply, pi.add_apply,
-      linear_map.smul_apply, function.comp_app, linear_map.coe_comp, linear_map.rtensor_tmul,
-      lie_module_hom.map_add, linear_map.add_apply, lie_module_hom.map_sub, linear_map.sub_apply,
-      linear_map.ltensor_tmul],
-    abel, },
+  /- Unpack the information we have about `m₁`, `m₂`. -/
+  simp only [mem_pre_weight_space] at hm₁ hm₂,
+  obtain ⟨k₁, hk₁⟩ := hm₁ x,
+  obtain ⟨k₂, hk₂⟩ := hm₂ x,
+  have hf₁ : (f₁^k₁) (m₁ ⊗ₜ m₂) = 0, { simp [hk₁], },
+  have hf₂ : (f₂^k₂) (m₁ ⊗ₜ m₂) = 0, { simp [hk₂], },
 
-  have hF' : ∀ (x : L) (t : M₁ ⊗[R] M₂) (k : ℕ), ((F x)^k) (g t) = g (((f₁ x + f₂ x)^k) t),
-  { intros x t k,
-    induction k with k ih,
-    { simp only [linear_map.one_apply, pow_zero], },
-    { simp only [pow_succ, linear_map.mul_apply, ih],
-      rw [← function.comp_app (F x) g, ← function.comp_app g ⇑(f₁ x + f₂ x)],
-      replace hF := linear_map.congr_fun (hF x),
-      simp only [linear_map.coe_comp, lie_module_hom.coe_to_linear_map] at hF,
-      rw ← hF, refl, }, },
-
-  have hf_comm : ∀ x, commute (f₁ x) (f₂ x),
-  { intros x, ext m₁ m₂,
+  /- It's now just an application of the binomial theorem. -/
+  use k₁ + k₂ - 1,
+  have hf_comm : commute f₁ f₂,
+  { ext m₁ m₂,
     simp only [smul_comm (χ₁ x) (χ₂ x), linear_map.rtensor_smul, to_endomorphism_apply_apply,
       tensor_product.mk_apply, linear_map.mul_apply, linear_map.one_apply, linear_map.ltensor_sub,
       linear_map.compr₂_apply, linear_map.smul_apply, linear_map.ltensor_smul,
       linear_map.rtensor_tmul, linear_map.map_sub, linear_map.map_smul, linear_map.rtensor_sub,
       linear_map.sub_apply, linear_map.ltensor_tmul], },
-
-  rintros ⟨m₁, hm₁⟩ ⟨m₂, hm₂⟩,
-  change ∃ k, ((F x)^k) _ = 0,
-  simp_rw [hF' x, (hf_comm x).add_pow'],
+  rw hf_comm.add_pow',
   simp only [tensor_product.map_incl, submodule.subtype_apply, finset.sum_apply,
     submodule.coe_mk, linear_map.coe_fn_sum, tensor_product.map_tmul, linear_map.smul_apply],
-  simp only [pre_weight_space, submodule.mem_infi, module.End.mem_maximal_generalized_eigenspace]
-    at hm₁ hm₂,
-  obtain ⟨k₁, hk₁⟩ := hm₁ x,
-  obtain ⟨k₂, hk₂⟩ := hm₂ x,
-  use k₁ + k₂ - 1,
 
-  convert g.map_zero, apply finset.sum_eq_zero,
+  /- The required sum is zero because each individual term is zero. -/
+  apply finset.sum_eq_zero,
   rintros ⟨i, j⟩ hij,
-  convert smul_zero ((k₁ + k₂ - 1).choose i),
-  simp only [finset.nat.mem_antidiagonal] at hij,
-  simp only [linear_map.mul_apply, linear_map.ltensor_tmul, linear_map.rtensor_tmul,
-    linear_map.ltensor_pow, linear_map.rtensor_pow],
-  cases nat.le_or_le_of_add_eq_add_pred hij with hi hj,
-  { simp only [linear_map.pow_map_zero_of_le hi hk₁, tensor_product.zero_tmul], },
-  { simp only [linear_map.pow_map_zero_of_le hj hk₂, tensor_product.tmul_zero], },
+
+  /- Eliminate the binomial coefficients from the picture. -/
+  suffices : (f₁^i * f₂^j) (m₁ ⊗ₜ m₂) = 0, { rw this, apply smul_zero, },
+
+  /- Finish off. -/
+  cases nat.le_or_le_of_add_eq_add_pred (finset.nat.mem_antidiagonal.mp hij) with hi hj,
+  { rw [(hf_comm.pow_pow i j).eq, linear_map.mul_apply, linear_map.pow_map_zero_of_le hi hf₁,
+    linear_map.map_zero], },
+  { rw [linear_map.mul_apply, linear_map.pow_map_zero_of_le hj hf₂, linear_map.map_zero], },
 end
 
 variables {M}

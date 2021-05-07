@@ -271,7 +271,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
   push_neg at Hb,
   obtain ⟨⟨g, gA⟩, gH, g1⟩ := Hb,
   rw [← set_like.mem_coe, ← set.singleton_subset_iff] at gH,
-  refine eq_top_iff.2 (le_trans (le_of_eq _) (normal_closure_le_normal gH)),
+  refine eq_top_iff.2 (le_trans (ge_of_eq _) (normal_closure_le_normal gH)),
   by_cases h2 : ∀ n ∈ g.cycle_type, n = 2,
   { rw [ne.def, subtype.ext_iff] at g1,
     exact (is_conj_swap_mul_swap_of_cycle_type_two gA g1 h2).normal_closure_eq_top_of
@@ -284,7 +284,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
     rw [← sum_cycle_type, hm, multiset.sum_cons],
     exact le_add_right (le_refl _) },
   interval_cases n,
-  { rw [← (is_three_cycle_sq_of_three_mem_cycle_type_five ng).alternating_normal_closure
+  { rw [eq_top_iff, ← (is_three_cycle_sq_of_three_mem_cycle_type_five ng).alternating_normal_closure
       (by rw card_fin )],
     refine normal_closure_le_normal _,
     rw [set.singleton_subset_iff, set_like.mem_coe],

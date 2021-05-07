@@ -2169,7 +2169,7 @@ end rel
 
 section sum_inequalities
 
-lemma le_sum_of_mem [canonically_ordered_comm_monoid α] {m : multiset α} {a : α}
+lemma le_sum_of_mem [canonically_ordered_add_monoid α] {m : multiset α} {a : α}
   (h : a ∈ m) : a ≤ m.sum :=
 begin
   obtain ⟨m', rfl⟩ := exists_cons_of_mem h,

@@ -35,7 +35,7 @@ abbreviation lie_character := L →ₗ⁅R⁆ R
 
 variables {R L}
 
-lemma lie_character_of_lie_eq_zero (χ : lie_character R L) (x y : L) : χ ⁅x, y⁆ = 0 :=
+@[simp] lemma lie_character_of_lie_eq_zero (χ : lie_character R L) (x y : L) : χ ⁅x, y⁆ = 0 :=
 by rw [lie_hom.map_lie, lie_ring.of_associative_ring_bracket, mul_comm, sub_self]
 
 lemma lie_character_mem_derived_eq_zero

@@ -105,8 +105,13 @@ begin
   let f₁ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₁ x - (χ₁ x) • 1).rtensor M₂,
   let f₂ : module.End R (M₁ ⊗[R] M₂) := (to_endomorphism R L M₂ x - (χ₂ x) • 1).ltensor M₁,
   have h_comm_square : F.comp ↑g = (g : M₁ ⊗[R] M₂ →ₗ[R] M₃).comp (f₁ + f₂),
-  { ext m₁ m₂, simp [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, tensor_product.sub_tmul,
-      tensor_product.tmul_sub, tensor_product.smul_tmul], abel, },
+  { ext m₁ m₂, simp only [← g.map_lie x (m₁ ⊗ₜ m₂), add_smul, tensor_product.sub_tmul,
+      tensor_product.tmul_sub, tensor_product.smul_tmul, lie_tmul_right, tensor_product.tmul_smul,
+      to_endomorphism_apply_apply, tensor_product.mk_apply, lie_module_hom.map_smul,
+      linear_map.one_apply, lie_module_hom.coe_to_linear_map, linear_map.compr₂_apply, pi.add_apply,
+      linear_map.smul_apply, function.comp_app, linear_map.coe_comp, linear_map.rtensor_tmul,
+      lie_module_hom.map_add, linear_map.add_apply, lie_module_hom.map_sub, linear_map.sub_apply,
+      linear_map.ltensor_tmul], abel, },
   suffices : ∃ k, ((f₁ + f₂)^k) (m₁ ⊗ₜ m₂) = 0,
   { obtain ⟨k, hk⟩ := this, use k,
     rw [← linear_map.comp_apply, linear_map.commute_pow_left_of_commute h_comm_square,
@@ -116,8 +121,10 @@ begin
   simp only [mem_pre_weight_space] at hm₁ hm₂,
   obtain ⟨k₁, hk₁⟩ := hm₁ x,
   obtain ⟨k₂, hk₂⟩ := hm₂ x,
-  have hf₁ : (f₁^k₁) (m₁ ⊗ₜ m₂) = 0, { simp [hk₁], },
-  have hf₂ : (f₂^k₂) (m₁ ⊗ₜ m₂) = 0, { simp [hk₂], },
+  have hf₁ : (f₁^k₁) (m₁ ⊗ₜ m₂) = 0,
+  { simp only [hk₁, zero_tmul, linear_map.rtensor_tmul, linear_map.rtensor_pow], },
+  have hf₂ : (f₂^k₂) (m₁ ⊗ₜ m₂) = 0,
+  { simp only [hk₂, tmul_zero, linear_map.ltensor_tmul, linear_map.ltensor_pow], },
 
   /- It's now just an application of the binomial theorem. -/
   use k₁ + k₂ - 1,
@@ -139,7 +146,7 @@ begin
   /- Eliminate the binomial coefficients from the picture. -/
   suffices : (f₁^i * f₂^j) (m₁ ⊗ₜ m₂) = 0, { rw this, apply smul_zero, },
 
-  /- Finish off. -/
+  /- Finish off with appropriate case analysis. -/
   cases nat.le_or_le_of_add_eq_add_pred (finset.nat.mem_antidiagonal.mp hij) with hi hj,
   { rw [(hf_comm.pow_pow i j).eq, linear_map.mul_apply, linear_map.pow_map_zero_of_le hi hf₁,
     linear_map.map_zero], },

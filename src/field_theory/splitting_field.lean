@@ -275,6 +275,19 @@ begin
       map_bind_roots_eq]
 end
 
+lemma eq_prod_roots_of_splits_id {p : polynomial K}
+  (hsplit : splits (ring_hom.id K) p) :
+  p = C (p.leading_coeff) * (p.roots.map (λ a, X - C a)).prod :=
+by simpa using eq_prod_roots_of_splits hsplit
+
+lemma eq_prod_roots_of_monic_of_splits_id {p : polynomial K}
+  (m : monic p) (hsplit : splits (ring_hom.id K) p) :
+  p = (p.roots.map (λ a, X - C a)).prod :=
+begin
+  convert eq_prod_roots_of_splits_id hsplit,
+  simp [m],
+end
+
 lemma eq_X_sub_C_of_splits_of_single_root {x : K} {h : polynomial K} (h_splits : splits i h)
   (h_roots : (h.map i).roots = {i x}) : h = (C (leading_coeff h)) * (X - C x) :=
 begin
@@ -326,7 +339,7 @@ else
       (associated.symm $ calc _ ~ᵤ f.map i :
         ⟨(units.map' C : units L →* units (polynomial L)) (units.mk0 (f.map i).leading_coeff
             (mt leading_coeff_eq_zero.1 (map_ne_zero hf0))),
-          by conv_rhs {rw [hs, ← leading_coeff_map i, mul_comm]}; refl⟩
+          by conv_rhs { rw [hs, ← leading_coeff_map i, mul_comm] }; refl⟩
         ... ~ᵤ _ : associated.symm (unique_factorization_monoid.factors_prod (by simpa using hf0))),
   let ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd (by simpa) hp hdp in
   let ⟨q', hq', hqq'⟩ := multiset.exists_mem_of_rel_of_mem ht hq in

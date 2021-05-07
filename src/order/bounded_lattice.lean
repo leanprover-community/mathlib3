@@ -56,12 +56,7 @@ assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
 theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
 top_le_iff.1 $ h₂ ▸ h
 
-lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ :=
-begin
-  haveI := classical.dec_eq α,
-  haveI : decidable (⊤ ≤ a) := decidable_of_iff' _ top_le_iff,
-  by simp [-top_le_iff, lt_iff_le_not_le, not_iff_not.2 (@top_le_iff _ _ a)]
-end
+lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
@@ -276,7 +271,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
     calc a ⊓ b ≤ b ⊓ c : by { rw [inf_comm], exact inf_le_inf_left _ this }
       ... = ⊥ : h₂⟩
 
-/- Prop instance -/
+/-- Propositions form a bounded distributive lattice. -/
 instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
 { le           := λa b, a → b,
   le_refl      := assume _, id,
@@ -306,8 +301,9 @@ noncomputable instance Prop.linear_order : linear_order Prop :=
   decidable_le := classical.dec_rel _,
   .. (_ : partial_order Prop) }
 
-@[simp]
-lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := iff.rfl
+@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
+@[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
+@[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 
 section logic
 variable [preorder α]

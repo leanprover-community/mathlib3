@@ -214,13 +214,15 @@ end linear_map
 
 section semiring
 variables {R : Type*} [comm_semiring R]
-variables {R' : Type*} [comm_semiring R']
+variables {R' : Type*} [monoid R']
+variables {R'' : Type*} [semiring R'']
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
   [add_comm_monoid S]
 variables [module R M] [module R N] [module R P] [module R Q] [module R S]
-variables [module R' M] [module R' N]
+variables [distrib_mul_action R' M] [distrib_mul_action R' N]
+variables [module R'' M] [module R'' N]
 include R
 
 variables (M N)
@@ -355,6 +357,7 @@ theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
 rfl
 
 variables [smul_comm_class R R' M] [smul_comm_class R R' N]
+variables [smul_comm_class R R'' M] [smul_comm_class R R'' N]
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find. The `unused_arguments` is from one of the two comm_classes - while we only make use
@@ -386,8 +389,8 @@ protected theorem smul_add (r : R') (x y : M ⊗[R] N) :
   r • (x + y) = r • x + r • y :=
 add_monoid_hom.map_add _ _ _
 
-protected theorem zero_smul (x : M ⊗[R] N) : (0 : R') • x = 0 :=
-have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+protected theorem zero_smul (x : M ⊗[R] N) : (0 : R'') • x = 0 :=
+have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 tensor_product.induction_on x
   (by rw tensor_product.smul_zero)
   (λ m n, by rw [this, zero_smul, zero_tmul])
@@ -400,8 +403,8 @@ tensor_product.induction_on x
   (λ m n, by rw [this, one_smul])
   (λ x y ihx ihy, by rw [tensor_product.smul_add, ihx, ihy])
 
-protected theorem add_smul (r s : R') (x : M ⊗[R] N) : (r + s) • x = r • x + s • x :=
-have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+protected theorem add_smul (r s : R'') (x : M ⊗[R] N) : (r + s) • x = r • x + s • x :=
+have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 tensor_product.induction_on x
   (by simp_rw [tensor_product.smul_zero, add_zero])
   (λ m n, by simp_rw [this, add_smul, add_tmul])
@@ -415,8 +418,8 @@ instance : add_comm_monoid (M ⊗[R] N) :=
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance module' : module R' (M ⊗[R] N) :=
-have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+instance distrib_mul_action' : distrib_mul_action R'' (M ⊗[R] N) :=
+have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x
@@ -424,11 +427,9 @@ have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
     (λ m n, by simp_rw [this, mul_smul])
     (λ x y ihx ihy, by { simp_rw tensor_product.smul_add, rw [ihx, ihy] }),
   one_smul := tensor_product.one_smul,
-  add_smul := tensor_product.add_smul,
-  smul_zero := tensor_product.smul_zero,
-  zero_smul := tensor_product.zero_smul }
+  smul_zero := tensor_product.smul_zero }
 
-instance : module R (M ⊗[R] N) := tensor_product.module'
+instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.distrib_mul_action'
 
 -- note that we don't actually need `compatible_smul` here, but we include it for symmetry
 -- with `tmul_smul` to avoid exposing our asymmetric definition.
@@ -440,6 +441,16 @@ rfl
 @[simp] lemma tmul_smul [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
+
+-- Most of the time we want the instance below this one, which is easier for typeclass resolution
+-- to find.
+instance module' : module R'' (M ⊗[R] N) :=
+{ smul := (•),
+  add_smul := tensor_product.add_smul,
+  zero_smul := tensor_product.zero_smul,
+  ..tensor_product.distrib_mul_action' }
+
+instance : module R (M ⊗[R] N) := tensor_product.module'
 
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/

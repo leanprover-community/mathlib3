@@ -105,10 +105,17 @@ when `h : f = g` is an equality between morphisms in a concrete category.
 lemma congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
 congr_fun (congr_arg (λ k : X ⟶ Y, (k : X → Y)) h) x
 
-@[simp] lemma coe_id {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
+lemma coe_id {X : C} : ((𝟙 X) : X → X) = id :=
+(forget _).map_id X
+
+lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g : X → Z) = g ∘ f :=
+(forget _).map_comp f g
+
+@[simp] lemma id_apply {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
 congr_fun ((forget _).map_id X) x
 
-@[simp] lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+@[simp] lemma comp_apply {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
 

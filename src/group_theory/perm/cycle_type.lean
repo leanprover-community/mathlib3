@@ -294,7 +294,7 @@ begin
     refine ⟨c, (l.erase c).prod, _, _, hlc _ cl, rfl⟩,
     { rw [← list.prod_cons,
         (list.perm_cons_erase cl).symm.prod_eq' (hld.imp (λ a b ab, ab.mul_comm))] },
-    { exact disjoint_prod_list_of_disjoint (λ g, list.rel_of_pairwise_cons hld) } },
+    { exact disjoint_prod_right (λ g, list.rel_of_pairwise_cons hld) } },
   { rintros ⟨c, t, rfl, hd, hc, rfl⟩,
     simp [hd.cycle_type, hc.cycle_type] }
 end
@@ -302,9 +302,8 @@ end
 lemma le_card_support_of_mem_cycle_type {n : ℕ} {σ : perm α} (h : n ∈ cycle_type σ) :
   n ≤ σ.support.card :=
 begin
-  obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 h,
-  rw [hd.card_support_mul],
-  exact le_add_right (le_refl _),
+  rw [← sum_cycle_type],
+  exact le_sum_of_mem h,
 end
 
 lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}

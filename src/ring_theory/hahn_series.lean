@@ -510,7 +510,6 @@ begin
   simp [hx],
 end
 
-@[simp]
 lemma mul_coeff_order_add_order {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [semiring R]
   {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (x * y).coeff (x.order + y.order) = x.coeff x.order * y.coeff y.order :=

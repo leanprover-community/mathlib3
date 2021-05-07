@@ -14,6 +14,8 @@ import data.fintype.basic
 2. Define equivalence between `ℂG`-modules and representations.
 3. Define representation homomorphisms.
 4. Schur's Lemma
+  Above is basically all done.
+
 5. Define characters
 6. Inner product on class functions and orthogonality relations
 7. Define the character table

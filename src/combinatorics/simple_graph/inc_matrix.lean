@@ -228,13 +228,10 @@ structure orientation (G : simple_graph V) :=
 (tail : G.edge_set → V)
 (consistent (e : G.edge_set) : e.val = ⟦(head(e), tail(e))⟧)
 
-noncomputable def default_orientation (G : simple_graph V) : orientation G :=
-{ head := λ (e : G.edge_set), (quotient.out (e : sym2 V)).fst,
-  tail := λ (e : G.edge_set), (quotient.out (e : sym2 V)).snd,
-  consistent := λ (e : G.edge_set), by rw [prod.mk.eta, ←subtype.val_eq_coe, quotient.out_eq] }
-
 noncomputable instance (G : simple_graph V) : inhabited (orientation G) :=
-⟨G.default_orientation⟩
+⟨{ head := λ (e : G.edge_set), (quotient.out (e : sym2 V)).fst,
+  tail := λ (e : G.edge_set), (quotient.out (e : sym2 V)).snd,
+  consistent := λ (e : G.edge_set), by rw [prod.mk.eta, ←subtype.val_eq_coe, quotient.out_eq] }⟩
 
 variables {o : orientation G}
 

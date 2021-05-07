@@ -114,7 +114,7 @@ by haveI := decidable_eq_of_encodable α; exact
 
 def fintype_arrow (α : Type*) (β : Type*) [decidable_eq α] [fintype α] [encodable β] :
   trunc (encodable (α → β)) :=
-(fintype.equiv_fin α).map $
+(fintype.trunc_equiv_fin α).map $
   λf, encodable.of_equiv (fin (fintype.card α) → β) $
   equiv.arrow_congr f (equiv.refl _)
 

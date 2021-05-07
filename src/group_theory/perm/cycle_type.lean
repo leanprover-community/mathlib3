@@ -43,7 +43,7 @@ begin
   { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
   { rw [mem_cons_iff, list.prod_cons,
         ih (λ σ hσ, h1 σ (list.mem_cons_of_mem τ hσ)) (pairwise_of_pairwise_cons h2)],
-    have key := disjoint_prod_list_of_disjoint (pairwise_cons.mp h2).1,
+    have key := disjoint_prod_right _ (pairwise_cons.mp h2).1,
     cases key a,
     { simp_rw [key.mul_comm, commute.mul_pow key.mul_comm.symm, mul_apply,
         pow_apply_eq_self_of_apply_eq_self h, or_iff_right_iff_imp],
@@ -257,7 +257,7 @@ begin
         multiset.map_cons, hσ', cons_inj_right, coe_map] at hπ,
       rw [hπ, cycle_type_eq (l.erase σ') rfl (λ f hf, hl1 f (list.erase_subset _ _ hf))
         (list.pairwise_of_sublist (list.erase_sublist _ _) hl2)] },
-    { refine disjoint_prod_list_of_disjoint (λ g hg, list.rel_of_pairwise_cons _ hg),
+    { refine disjoint_prod_right _ (λ g hg, list.rel_of_pairwise_cons _ hg),
       refine (list.perm.pairwise_iff _ (list.perm_cons_erase hσ'l).symm).2 hl2,
       exact (λ _ _, disjoint.symm) } }
 end

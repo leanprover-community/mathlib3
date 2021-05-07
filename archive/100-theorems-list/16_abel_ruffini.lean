@@ -3,20 +3,6 @@ import analysis.calculus.local_extr
 
 open polynomial polynomial.gal
 
-lemma root_set_C {R S : Type*} [integral_domain R] [integral_domain S] [algebra R S] (a : R) :
-  (C a).root_set S = ∅ :=
-by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
-
-lemma root_set_C_mul_X_pow {R S : Type*} [field R] [field S] [algebra R S]
-  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
-begin
-  ext x,
-  rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, aeval_X_pow, mul_eq_zero],
-  { simp_rw [ring_hom.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
-    exact λ ha', (ha ha').elim },
-  { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
-end
-
 lemma nat_degree_poly (a : ℕ) (b : ℤ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).nat_degree = 5 :=
 begin
   have h05 : 0 < 5 := nat.zero_lt_bit1 2,

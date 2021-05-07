@@ -242,6 +242,11 @@ by simpa only [div_eq_mul_inv] using H.mul_mem' hx (H.inv_mem' hy)
 theorem inv_coe_set : (H : set G)⁻¹ = H :=
 by { ext, simp, }
 
+@[simp, to_additive]
+lemma exists_inv_mem_iff_exists_mem  (K : subgroup G) {P : G → Prop} :
+  (∃ (x : G), x ∈ K ∧ P x⁻¹) ↔ ∃ x ∈ K, P x :=
+by split; { rintros ⟨x, x_in, hx⟩, exact ⟨x⁻¹, inv_mem K x_in, by simp [hx]⟩ }
+
 @[to_additive]
 lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
 ⟨λ hba, by simpa using H.mul_mem hba (H.inv_mem h), λ hb, H.mul_mem hb h⟩
@@ -1256,6 +1261,9 @@ def ker (f : G →* N) := (⊥ : subgroup N).comap f
 lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
+lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
+
+@[to_additive]
 instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
   decidable_pred (∈ f.ker) :=
 λ x, decidable_of_iff (f x = 1) f.mem_ker
@@ -1269,6 +1277,10 @@ begin
   change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,
   simp only [],
 end
+
+@[simp, to_additive]
+lemma ker_one : (1 : G →* N).ker = ⊤ :=
+by { ext, simp [mem_ker] }
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
 begin

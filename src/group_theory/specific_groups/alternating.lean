@@ -116,7 +116,7 @@ lemma is_three_cycle_is_conj (h5 : 5 ≤ fintype.card α)
   (hσ : is_three_cycle (σ : perm α)) (hτ : is_three_cycle (τ : perm α)) :
   is_conj σ τ :=
 alternating_group.is_conj_of (is_conj_iff_cycle_type_eq.2 (hσ.trans hτ.symm))
-  (by { rw hσ.card_support, exact h5 })
+  (by rwa hσ.card_support)
 
 end alternating_group
 
@@ -146,10 +146,10 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
     (ih _ (λ g hg, hl g (list.mem_cons_of_mem _ (list.mem_cons_of_mem _ hg))) hn),
 end
 
-lemma is_three_cycle.top_le_alternating_normal_closure (h5 : 5 ≤ fintype.card α)
+lemma is_three_cycle.alternating_normal_closure (h5 : 5 ≤ fintype.card α)
   {f : perm α} (hf : is_three_cycle f) :
-  ⊤ ≤ normal_closure ({⟨f, hf.mem_alternating_group⟩} : set (alternating_group α)) :=
-begin
+  normal_closure ({⟨f, hf.mem_alternating_group⟩} : set (alternating_group α)) = ⊤ :=
+eq_top_iff.2 begin
   have hi : function.injective (alternating_group α).subtype := subtype.coe_injective,
   refine eq_top_iff.1 (map_injective hi (le_antisymm (map_mono le_top) _)),
   rw [← monoid_hom.range_eq_map, subtype_range, normal_closure, monoid_hom.map_closure],
@@ -166,14 +166,15 @@ end equiv.perm
 namespace alternating_group
 open equiv.perm
 
-lemma top_le_normal_closure_fin_rotate_five :
-  ⊤ ≤ (normal_closure ({⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩} :
-    set (alternating_group (fin 5)))) :=
-begin
+lemma normal_closure_fin_rotate_five :
+  (normal_closure ({⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩} :
+    set (alternating_group (fin 5)))) = ⊤ :=
+eq_top_iff.2 begin
   have h3 : is_three_cycle ((fin.cycle_range 2) * (fin_rotate 5) *
     (fin.cycle_range 2)⁻¹ * (fin_rotate 5)⁻¹) := card_support_eq_three_iff.1 dec_trivial,
-  refine (h3.top_le_alternating_normal_closure _).trans (normal_closure_le_normal _),
+  rw ← h3.alternating_normal_closure,
   { rw [card_fin] },
+  refine normal_closure_le_normal _,
   rw [set.singleton_subset_iff, set_like.mem_coe],
   have h : (⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩ :
     alternating_group (fin 5)) ∈ normal_closure _ :=

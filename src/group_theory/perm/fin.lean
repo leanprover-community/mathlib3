@@ -99,6 +99,13 @@ end
 @[simp] lemma support_fin_rotate {n : ℕ} : support (fin_rotate (n + 2)) = finset.univ :=
 by { ext, simp }
 
+lemma support_fin_rotate_of_le {n : ℕ} (h : 2 ≤ n) :
+  support (fin_rotate n) = finset.univ :=
+begin
+  obtain ⟨m, rfl⟩ := exists_add_of_le h,
+  rw [add_comm, support_fin_rotate],
+end
+
 lemma is_cycle_fin_rotate {n : ℕ} : is_cycle (fin_rotate (n + 2)) :=
 begin
   refine ⟨0, dec_trivial, λ x hx', ⟨x, _⟩⟩,
@@ -111,10 +118,25 @@ begin
   exact ne_of_lt (nat.lt_of_succ_lt_succ hx),
 end
 
+lemma is_cycle_fin_rotate_of_le {n : ℕ} (h : 2 ≤ n) :
+  is_cycle (fin_rotate n) :=
+begin
+  obtain ⟨m, rfl⟩ := exists_add_of_le h,
+  rw [add_comm],
+  exact is_cycle_fin_rotate
+end
+
 @[simp] lemma cycle_type_fin_rotate {n : ℕ} : cycle_type (fin_rotate (n + 2)) = {n + 2} :=
 begin
   rw [is_cycle_fin_rotate.cycle_type, support_fin_rotate, ← fintype.card, fintype.card_fin],
   refl,
+end
+
+lemma cycle_type_fin_rotate_of_le {n : ℕ} (h : 2 ≤ n) :
+  cycle_type (fin_rotate n) = {n} :=
+begin
+  obtain ⟨m, rfl⟩ := exists_add_of_le h,
+  rw [add_comm, cycle_type_fin_rotate]
 end
 
 namespace fin

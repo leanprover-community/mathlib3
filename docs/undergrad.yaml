@@ -13,8 +13,8 @@ Linear algebra:
     complementary subspaces: 'submodule.exists_is_compl'
     linear independence: 'linear_independent'
     generating sets: 'submodule.span'
-    bases: 'is_basis'
-    existence of bases: 'exists_is_basis'
+    bases: 'basis'
+    existence of bases: 'basis.of_vector_space'
     linear map: 'linear_map'
     range of a linear map: 'linear_map.range'
     kernel of a linear map: 'linear_map.ker'
@@ -22,7 +22,7 @@ Linear algebra:
     general linear group: 'linear_map.general_linear_group'
   Duality:
     dual vector space: 'module.dual'
-    dual basis: 'is_basis.dual_basis'
+    dual basis: 'basis.dual_basis'
     transpose of a linear map: 'module.dual.transpose'
     orthogonality: ''
   Finite-dimensional vector spaces:
@@ -34,7 +34,7 @@ Linear algebra:
     isomorphism with bidual: 'module.eval_equiv'
   Multilinearity:
     multilinear map: 'multilinear_map'
-    determinant of vectors: 'is_basis.det'
+    determinant of vectors: 'basis.det'
     determinant of endomorphisms: ''
     special linear group: ''
     orientation of a $\R$-valued vector space: ''
@@ -217,7 +217,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     orthogonal complement: 'submodule.orthogonal'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
     norm: 'inner_product_space.of_core.to_has_norm'
-    orthonormal bases: 'maximal_orthonormal_iff_is_basis_of_finite_dimensional'
+    orthonormal bases: 'maximal_orthonormal_iff_basis_of_finite_dimensional'
   Endomorphisms:
     orthogonal group:
     unitary group:

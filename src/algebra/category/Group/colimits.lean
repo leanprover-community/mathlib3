@@ -314,8 +314,8 @@ noncomputable def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
   end,
   inv_hom_id' := begin
     ext1, induction x,
-    { simp only [colimit.ι_desc_apply, coe_id, add_monoid_hom.coe_of, lift_quot_mk,
-                 cofork.of_π_ι_app, coe_comp], refl },
+    { simp only [colimit.ι_desc_apply, id_apply, add_monoid_hom.coe_of, lift_quot_mk,
+                 cofork.of_π_ι_app, comp_apply], refl },
     { refl }
   end, }
 

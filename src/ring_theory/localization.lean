@@ -1176,25 +1176,25 @@ include hI
 lemma at_prime.is_unit_to_map_iff (x : R) :
   is_unit (f.to_map x) ↔ x ∈ I.prime_compl :=
 ⟨λ h hx, (f.is_prime_of_is_prime_disjoint I hI disjoint_compl_left).ne_top $
-  ideal.eq_top_of_is_unit_mem (ideal.map f.to_map I) (ideal.mem_map_of_mem hx) h,
+  (ideal.map f.to_map I).eq_top_of_is_unit_mem (ideal.mem_map_of_mem hx) h,
 λ h, f.map_units ⟨x, h⟩⟩
 
 lemma at_prime.to_map_mem_maximal_iff (x : R) :
   f.to_map x ∈ local_ring.maximal_ideal (f.codomain) ↔ x ∈ I :=
 not_iff_not.mp $ by
 simpa only [@local_ring.mem_maximal_ideal (f.codomain), mem_nonunits_iff, not_not]
-  using at_prime.is_unit_to_map_iff I f x
+  using f.is_unit_to_map_iff I x
 
 lemma at_prime.is_unit_mk'_iff (x : R) (y : I.prime_compl) :
   is_unit (f.mk' x y) ↔ x ∈ I.prime_compl :=
-⟨λ h hx, (mk'_mem_iff f).mpr ((at_prime.to_map_mem_maximal_iff I f x).mpr hx) h,
+⟨λ h hx, (mk'_mem_iff f).mpr ((f.to_map_mem_maximal_iff I x).mpr hx) h,
 λ h, is_unit_iff_exists_inv.mpr ⟨f.mk' y ⟨x, h⟩, f.mk'_mul_mk'_eq_one ⟨x, h⟩ y⟩⟩
 
 lemma at_prime.mk'_mem_maximal_iff (x : R) (y : I.prime_compl) :
   f.mk' x y ∈ local_ring.maximal_ideal (f.codomain) ↔ x ∈ I :=
 not_iff_not.mp $ by
 simpa only [@local_ring.mem_maximal_ideal (f.codomain), mem_nonunits_iff, not_not]
-  using at_prime.is_unit_mk'_iff I f x y
+  using f.is_unit_mk'_iff I x y
 
 end localization_map
 

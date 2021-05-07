@@ -55,10 +55,6 @@ calc  (card {e ∈ range n | p ∣ e + 1} : ℝ)
     ≤ ↑(n / p) : nat.cast_le.mpr $ card_le_div_nat hp
 ... ≤ n / p    : (le_div_iff $ by exact_mod_cast hp).mpr $ by apply_mod_cast nat.div_mul_le_self
 
-lemma card_eq_card_sdiff_add_card {A B : finset ℕ} (h : A ⊆ B) :
-  card B = card (B \ A) + card A :=
-(nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (card_sdiff h).symm
-
 lemma not_tendsto_imp_sum_lt_half
   (h : ¬ tendsto (λ n, ∑ p in {p ∈ range n | nat.prime p}, (1 / (p : ℝ))) at_top at_top) :
   ∃ k, ∀ x, ∑ p in {p ∈ range (x + 1) | k < p ∧ nat.prime p}, 1 / (p : ℝ) < 1 / 2 :=
@@ -89,7 +85,7 @@ begin
   { simpa only [←sum_filter, filter_filter, ←hP] using h.2 },
 end
 
-lemma range_x_sdiff_M_eq_U {x k : ℕ} :
+lemma range_sdiff_eq_bUnion {x k : ℕ} :
   range x \ {e ∈ range x | ∀ p : ℕ, (nat.prime p ∧ p ∣ e + 1) → p ≤ k} =
   finset.bUnion {p ∈ range (x + 1) | k < p ∧ nat.prime p} (λ p, {e ∈ range x | p ∣ e + 1}) :=
 begin
@@ -108,7 +104,7 @@ begin
     exact ⟨hex, ⟨p, ⟨hpfilter.2.2, hpe1⟩, hpfilter.2.1⟩⟩ },
 end
 
-lemma card_U_le_x_mul_sum {x k : ℕ} :
+lemma card_le_x_mul_sum {x k : ℕ} :
   (card
     (finset.bUnion {p ∈ range (x + 1) | k < p ∧ nat.prime p} (λ p, {e ∈ range x | p ∣ e + 1}))
   : ℝ)
@@ -127,7 +123,7 @@ begin
   ... = x * ∑ p in P, 1 / p   : mul_sum.symm,
 end
 
-lemma card_M1_le_2_pow_k {x k : ℕ} :
+lemma card_le_2_pow_k {x k : ℕ} :
   card {e ∈ range x | squarefree (e + 1) ∧ ∀ p : ℕ, (nat.prime p ∧ p ∣ e + 1) → p ≤ k} ≤ 2 ^ k :=
 begin
   let M₁ := {e ∈ range x | squarefree (e + 1) ∧ ∀ p : ℕ, (nat.prime p ∧ p ∣ e + 1) → p ≤ k},
@@ -154,7 +150,7 @@ begin
   ...          = 2 ^ k                               : by rw card_range k,
 end
 
-lemma card_M_le_2_pow_k_mul_sqrt_x {x k : ℕ} :
+lemma card_le_2_pow_k_mul_sqrt_x {x k : ℕ} :
   card {e ∈ range x | ∀ p : ℕ, (nat.prime p ∧ p ∣ e + 1) → p ≤ k} ≤ 2 ^ k * nat.sqrt x :=
 begin
   let M := {e ∈ range x | ∀ p : ℕ, (nat.prime p ∧ p ∣ e + 1) → p ≤ k},
@@ -184,7 +180,7 @@ begin
   calc card M ≤ card (image f K)   : card_le_of_subset h1
   ...         ≤ card K             : card_image_le
   ...         = card M₁ * card M₂  : card_product M₁ M₂
-  ...         ≤ 2 ^ k * x.sqrt     : mul_le_mul' card_M1_le_2_pow_k h2,
+  ...         ≤ 2 ^ k * x.sqrt     : mul_le_mul' card_le_2_pow_k h2,
 end
 
 theorem real.tendsto_sum_one_div_prime_at_top :
@@ -200,16 +196,16 @@ begin
   let U := finset.bUnion {p ∈ range (x + 1) | k < p ∧ nat.prime p} N,
 
   have h2 : x = card U + card M,
-  { rw ← card_range x, simp only [U, M, N, ← range_x_sdiff_M_eq_U],
+  { rw ← card_range x, simp only [U, M, N, ← range_sdiff_eq_bUnion],
     exact card_eq_card_sdiff_add_card (by simp) },
 
   have h3 :=
-    calc (card U : ℝ) ≤ x * ∑ p in P, 1 / p : card_U_le_x_mul_sum
+    calc (card U : ℝ) ≤ x * ∑ p in P, 1 / p : card_le_x_mul_sum
     ...               < x * (1 / 2)         : mul_lt_mul_of_pos_left (h1 x) (by norm_num)
     ...               = x / 2               : mul_one_div x 2,
 
   have h4 :=
-    calc (card M : ℝ) ≤ 2 ^ k * x.sqrt      : by exact_mod_cast card_M_le_2_pow_k_mul_sqrt_x
+    calc (card M : ℝ) ≤ 2 ^ k * x.sqrt      : by exact_mod_cast card_le_2_pow_k_mul_sqrt_x
     ...               = 2 ^ k * ↑(2 ^ (k + 1)) : by rw nat.sqrt_eq
     ...               = x / 2               : by field_simp [x, mul_right_comm, ← pow_succ'],
 

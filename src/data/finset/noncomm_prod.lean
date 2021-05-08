@@ -1,4 +1,32 @@
+/-
+Copyright (c) 2021 Yakov Pechersky. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yakov Pechersky
+-/
+
 import data.finset.fold
+
+/-!
+# Products (respectively, sums) over a finset or a multiset.
+
+The regular `finset.prod` and `multiset.prod` require `[comm_monoid α]`.
+Often, there are collections `s : finset α` where `[monoid α]` and we know,
+in a dependent fashion, that for all the terms `∀ (x ∈ s) (y ∈ s), commute x y`.
+This allows to still have a well-defined product over `s`.
+
+## Main definitions
+
+- `finset.noncomm_prod`, requiring a proof of commutativity of held terms
+- `multiset.noncomm_prod`, requiring a proof of commutativity of held terms
+
+## Implementation details
+
+The commutativity proof required has a somewhat unnecessary `x ≠ y` hypothesis.
+It is unnecesary because `commute x x` is true by reflexivity. The `x ≠ y` hypothesis
+is included to facilitate usage with `set.pairwise_on`, or in helping with implications
+that deal with `disjoint`.
+
+-/
 
 variables {α : Type*} [monoid α]
 

@@ -8,6 +8,7 @@ import category_theory.category.ulift
 import category_theory.limits.functor_category
 import category_theory.opposites
 import category_theory.adjunction.limits
+import category_theory.comma
 
 /-!
 # Simplicial objects in a category.
@@ -138,6 +139,16 @@ def sk (n : ℕ) : simplicial_object C ⥤ simplicial_object.truncated C n :=
 (whiskering_left _ _ _).obj (simplex_category.truncated.inclusion).op
 
 end skeleton
+
+variable (C)
+
+/-- The constant simplicial object is the constant functor. -/
+abbreviation const : C ⥤ simplicial_object C := category_theory.functor.const _
+
+@[derive category]
+def augmented := comma (𝟭 (simplicial_object C)) (const C)
+
+variable {C}
 
 end simplicial_object
 

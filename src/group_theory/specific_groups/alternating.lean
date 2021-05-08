@@ -5,7 +5,10 @@ Authors: Aaron Anderson
 -/
 
 import group_theory.perm.fin
+<<<<<<< HEAD
 import tactic.interval_cases
+=======
+>>>>>>> origin/master
 
 /-!
 # Alternating Groups
@@ -162,6 +165,7 @@ eq_top_iff.2 begin
   exact ⟨⟨f, hf.mem_alternating_group⟩, set.mem_singleton _, is_three_cycle_is_conj h5 hf h⟩
 end
 
+<<<<<<< HEAD
 lemma is_three_cycle_sq_of_three_mem_cycle_type_five {g : perm (fin 5)} (h : 3 ∈ cycle_type g) :
   is_three_cycle (g * g) :=
 begin
@@ -179,11 +183,14 @@ begin
   exact (c * g').support.card_le_univ,
 end
 
+=======
+>>>>>>> origin/master
 end equiv.perm
 
 namespace alternating_group
 open equiv.perm
 
+<<<<<<< HEAD
 lemma nontrivial_of_three_le_card (h3 : 3 ≤ card α) : nontrivial (alternating_group α) :=
 begin
   haveI := fintype.one_lt_card_iff_nontrivial.1 (lt_trans dec_trivial h3),
@@ -196,6 +203,8 @@ end
 instance {n : ℕ} : nontrivial (alternating_group (fin (n + 3))) :=
 nontrivial_of_three_le_card (by { rw card_fin, exact le_add_left (le_refl 3) })
 
+=======
+>>>>>>> origin/master
 lemma normal_closure_fin_rotate_five :
   (normal_closure ({⟨fin_rotate 5, fin_rotate_bit1_mem_alternating_group⟩} :
     set (alternating_group (fin 5)))) = ⊤ :=
@@ -212,6 +221,7 @@ eq_top_iff.2 begin
     ⟨fin.cycle_range 2, fin.is_three_cycle_cycle_range_two.mem_alternating_group⟩) (inv_mem _ h),
 end
 
+<<<<<<< HEAD
 lemma normal_closure_swap_mul_swap_five :
   (normal_closure ({⟨swap 0 4 * swap 1 3, mem_alternating_group.2 dec_trivial⟩} :
     set (alternating_group (fin 5)))) = ⊤ :=
@@ -301,4 +311,6 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
     rw [cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng, cycle_type_fin_rotate] }
 end⟩
 
+=======
+>>>>>>> origin/master
 end alternating_group

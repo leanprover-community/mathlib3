@@ -453,7 +453,7 @@ by rwa inv_inv at this
 lemma lt_inv' : a < b⁻¹ ↔ b < a⁻¹ :=
 have (a⁻¹)⁻¹ < b⁻¹ ↔ b < a⁻¹, from inv_lt_inv_iff,
 by rwa inv_inv at this
--- finire qui ddt
+
 @[to_additive]
 lemma le_mul_of_inv_mul_le_right (h : c⁻¹ * a ≤ b) : a ≤ b * c :=
 le_mul_of_mul_inv_le_right (le_trans (le_of_eq (mul_comm a c⁻¹)) h)

@@ -558,7 +558,7 @@ begin
         (min_bad_seq_of_bad_seq r rk s (n + 1) fn.1 fn.2.1).2.2⟩ } },
   have h : ∀ m n, m ≤ n → (fs m).1 m = (fs n).1 m,
   { intros m n mn,
-    obtain ⟨k, rfl⟩ := exists_add_of_le mn,
+    obtain ⟨k, rfl⟩ := has_exists_add_of_le.exists_add_of_le mn,
     clear mn,
     induction k with k ih,
     { refl },

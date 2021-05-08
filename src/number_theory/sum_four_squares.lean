@@ -160,12 +160,7 @@ m.mod_two_eq_zero_or_one.elim
         have hwxyz0 : (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs^2 + z.nat_abs^2 : ℕ) = 0,
           by { rw [← int.coe_nat_eq_zero, ← hnat_abs], rwa [hn0, mul_zero] at hn },
         have habcd0 : (m : ℤ) ∣ a ∧ (m : ℤ) ∣ b ∧ (m : ℤ) ∣ c ∧ (m : ℤ) ∣ d,
-/-
-          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ _ _ _ _ _ (pow_two_nonneg _)
-              (pow_two_nonneg _),
-            pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
--/
-          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ (sq_nonneg _)
+          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ _ _ _ _ _ (sq_nonneg _)
               (sq_nonneg _),
             sq, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
         let ⟨ma, hma⟩ := habcd0.1,     ⟨mb, hmb⟩ := habcd0.2.1,

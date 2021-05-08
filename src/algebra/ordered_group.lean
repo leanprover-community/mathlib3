@@ -37,6 +37,11 @@ class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :
 attribute [to_additive] ordered_comm_group
 
 @[to_additive]
+instance ordered_comm_group.to_has_mul_le_mul_left [ordered_comm_group α] :
+  has_mul_le_mul_left α :=
+{ mul_le_mul_left := λ a b ab c, ordered_comm_group.mul_le_mul_left b ab c a }
+
+@[to_additive]
 instance units.covariant_class [ordered_comm_monoid α] :
   has_mul_le_mul_left (units α) :=
 { mul_le_mul_left := λ a b c bc, by {
@@ -550,13 +555,73 @@ end left
 end comm_group
 
 section ordered_add_comm_group
+
+section preorder
+variables [preorder α] [group α] [has_mul_le_mul_left α] [has_mul_le_mul_right α]
+
+@[to_additive]
+lemma mul_inv_le_mul_inv (hab : a ≤ b) (hcd : c ≤ d) : a * d⁻¹ ≤ b * c⁻¹ :=
+(mul_le_mul_right' hab d⁻¹).trans (mul_le_mul_left' (inv_le_inv' hcd) _)
+
+@[to_additive]
+lemma div_le_div (hab : a ≤ b) (hcd : c ≤ d) : a / d ≤ b / c :=
+begin
+  rw [← mul_one_div, ← mul_one_div b],
+  refine le_trans (mul_le_mul_right' hab (1 / d)) _,
+  refine mul_le_mul_left' _ _,
+
+  simp only [one_div],
+  exact inv_le_inv' hcd,
+
+
+  --convert mul_inv_le_mul_inv hab hcd;
+  exact one_div _,
+end
+
+end preorder
+
+section partial_order
+variables [partial_order α] [group α] [has_mul_le_mul_left α] [has_mul_le_mul_right α]
+
+@[to_additive]
+lemma mul_inv_lt_mul_inv_of_le_of_lt (hab : a ≤ b) (hcd : c < d) : a * d⁻¹ < b * c⁻¹ :=
+((mul_le_mul_iff_right' d⁻¹).mpr hab).trans_lt ((mul_lt_mul_iff_left' _).mpr (inv_lt_inv' hcd))
+
+@[to_additive]
+lemma mul_inv_lt_mul_inv_of_lt_of_le (hab : a < b) (hcd : c ≤ d) : a * d⁻¹ < b * c⁻¹ :=
+((mul_lt_mul_iff_right' d⁻¹).mpr hab).trans_le ((mul_le_mul_iff_left' _).mpr (inv_le_inv' hcd))
+
+@[to_additive]
+lemma mul_inv_lt_mul_inv (hab : a < b) (hcd : c < d) : a * d⁻¹ < b * c⁻¹ :=
+mul_inv_lt_mul_inv_of_lt_of_le hab hcd.le
+
+@[to_additive]
+lemma div_lt_div_of_le_of_lt (hab : a ≤ b) (hcd : c < d) : a / d < b / c :=
+begin
+  rw [← mul_one_div, ← mul_one_div b],
+  convert mul_inv_lt_mul_inv_of_le_of_lt hab hcd;
+  exact one_div _
+end
+
+@[to_additive]
+lemma div_lt_div_of_lt_of_le (hab : a < b) (hcd : c ≤ d) : a / d < b / c :=
+begin
+  rw [← mul_one_div, ← mul_one_div b],
+  convert mul_inv_lt_mul_inv_of_lt_of_le hab hcd;
+  exact one_div _
+end
+
+@[to_additive]
+lemma div_lt_div (hab : a < b) (hcd : c < d) : a / d < b / c :=
+div_lt_div_of_le_of_lt hab.le hcd
+
+end partial_order
+
+end ordered_add_comm_group
+--#exit
 variables [ordered_add_comm_group α]
 
-lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
-by simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg hcd)
-
-lemma sub_lt_sub (hab : a < b) (hcd : c < d) : a - d < b - c :=
-by simpa only [sub_eq_add_neg] using add_lt_add hab (neg_lt_neg hcd)
+--#exit
 
 alias sub_le_self_iff ↔ _ sub_le_self
 
@@ -565,6 +630,7 @@ alias sub_lt_self_iff ↔ _ sub_lt_self
 lemma sub_le_sub_iff : a - b ≤ c - d ↔ a + d ≤ c + b :=
 by simpa only [sub_eq_add_neg] using add_neg_le_add_neg_iff
 
+#exit
 @[simp]
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, add_le_add_iff_left, neg_le_neg_iff]

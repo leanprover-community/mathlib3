@@ -323,7 +323,7 @@ by { simp, refl }
 lemma head_desc : head ≫ desc f fs w = f :=
 by { simp, refl }
 
-lemma eq_lift_of_comp_eq (g : wide_pushout _ _ arrows ⟶ X) :
+lemma eq_desc_of_comp_eq (g : wide_pushout _ _ arrows ⟶ X) :
   (∀ j : J, ι j ≫ g = fs j) → head ≫ g = f → g = desc f fs w :=
 begin
   intros h1 h2,
@@ -334,10 +334,10 @@ begin
   { apply h1 }
 end
 
-lemma hom_eq_lift (g : wide_pushout _ _ arrows ⟶ X) :
+lemma hom_eq_desc (g : wide_pushout _ _ arrows ⟶ X) :
   g = desc (head ≫ g) (λ j, ι j ≫ g) (λ j, by { rw ← category.assoc, simp }) :=
 begin
-  apply eq_lift_of_comp_eq,
+  apply eq_desc_of_comp_eq,
   tidy,
 end
 
@@ -346,8 +346,8 @@ lemma hom_ext (g1 g2 : wide_pushout _ _ arrows ⟶ X) :
   (∀ j : J, ι j ≫ g1= ι j ≫ g2) → head ≫ g1 = head ≫ g2 → g1 = g2 :=
 begin
   intros h1 h2,
-  rw hom_eq_lift g2,
-  apply eq_lift_of_comp_eq,
+  rw hom_eq_desc g2,
+  apply eq_desc_of_comp_eq,
   assumption'
 end
 

@@ -145,6 +145,7 @@ variable (C)
 /-- The constant simplicial object is the constant functor. -/
 abbreviation const : C ⥤ simplicial_object C := category_theory.functor.const _
 
+/-- The category of augmented simplicial objects, defined as a comma category. -/
 @[derive category]
 def augmented := comma (𝟭 (simplicial_object C)) (const C)
 

@@ -282,9 +282,10 @@ lemma hom_ext (g1 g2 : X ⟶ wide_pullback _ _ arrows) :
   g1 ≫ base arrows = g2 ≫ base arrows → g1 = g2 :=
 begin
   intros h1 h2,
-  rw hom_eq_lift _ g2,
-  apply eq_lift_of_comp_eq,
-  assumption'
+  apply limit.hom_ext,
+  rintros (_|_),
+  { apply h2 },
+  { apply h1 },
 end
 
 end wide_pullback
@@ -350,13 +351,14 @@ end
 
 @[ext]
 lemma hom_ext (g1 g2 : wide_pushout _ _ arrows ⟶ X) :
-  (∀ j : J, ι arrows j ≫ g1= ι arrows j ≫ g2) →
+  (∀ j : J, ι arrows j ≫ g1 = ι arrows j ≫ g2) →
   head arrows ≫ g1 = head arrows ≫ g2 → g1 = g2 :=
 begin
   intros h1 h2,
-  rw hom_eq_desc _ g2,
-  apply eq_desc_of_comp_eq,
-  assumption'
+  apply colimit.hom_ext,
+  rintros (_|_),
+  { apply h2 },
+  { apply h1 },
 end
 
 end wide_pushout

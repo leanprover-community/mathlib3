@@ -218,21 +218,14 @@ end
 
 /-- Given a Lie module `M` of a Lie algebra `L`, a weight of `M` with respect to a nilpotent
 subalgebra `H ⊆ L` is a Lie character whose corresponding weight space is non-empty. -/
-structure weight :=
-(to_character : lie_character R H)
-(weight_space_ne_bot : weight_space M to_character ≠ ⊥)
+def is_weight (χ : lie_character R H) : Prop := weight_space M χ ≠ ⊥
 
-instance : has_coe (weight H M) (module.dual R H) := ⟨λ w, (w.to_character : H →ₗ[R] R)⟩
-
-/-- see Note [function coercion] -/
-instance : has_coe_to_fun (weight H M) := ⟨_, weight.to_character⟩
-
-/-- The zero character is a weight for a non-trivial nilpotent Lie module. -/
-instance [nontrivial M] [lie_algebra.is_nilpotent R L] [is_nilpotent R L M] :
-  inhabited $ weight (⊤ : lie_subalgebra R L) M :=
-⟨{ to_character        := 0,
-   weight_space_ne_bot := by
-   { rw [lie_hom.coe_zero, zero_weight_space_eq_top_of_nilpotent], exact top_ne_bot, }, }⟩
+/-- For a non-trivial nilpotent Lie module over a nilpotent Lie algebra, the zero character is a
+weight with respect to the `⊤` Lie subalgebra. -/
+lemma is_weight_zero_of_nilpotent
+   [nontrivial M] [lie_algebra.is_nilpotent R L] [is_nilpotent R L M] :
+   is_weight (⊤ : lie_subalgebra R L) M 0 :=
+by { rw [is_weight, lie_hom.coe_zero, zero_weight_space_eq_top_of_nilpotent], exact top_ne_bot, }
 
 end lie_module
 
@@ -248,6 +241,6 @@ lie_module.zero_weight_space_eq_top_of_nilpotent L
 
 /-- A root of a Lie algebra `L` with respect to a nilpotent subalgebra `H ⊆ L` is a weight of `L`,
 regarded as a module of `H` via the adjoint action. -/
-abbreviation root := lie_module.weight H L
+abbreviation is_root := lie_module.is_weight H L
 
 end lie_algebra

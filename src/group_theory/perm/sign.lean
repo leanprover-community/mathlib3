@@ -148,6 +148,9 @@ def disjoint (f g : perm α) := ∀ x, f x = x ∨ g x = x
 @[symm] lemma disjoint.symm {f g : perm α} : disjoint f g → disjoint g f :=
 by simp only [disjoint, or.comm, imp_self]
 
+lemma disjoint.symmetric : symmetric (@disjoint α) :=
+λ _ _, disjoint.symm
+
 lemma disjoint_comm {f g : perm α} : disjoint f g ↔ disjoint g f :=
 ⟨disjoint.symm, disjoint.symm⟩
 
@@ -157,6 +160,8 @@ equiv.ext $ λ x, (h x).elim
     (λ hg, by simp [mul_apply, hf, g.injective hg]))
   (λ hg, (h (f x)).elim (λ hf, by simp [mul_apply, f.injective hf, hg])
     (λ hf, by simp [mul_apply, hf, hg]))
+
+lemma disjoint.commute {f g : perm α} (h : disjoint f g) : _root_.commute f g := h.mul_comm
 
 @[simp] lemma disjoint_one_left (f : perm α) : disjoint 1 f := λ _, or.inl rfl
 
@@ -244,8 +249,8 @@ lemma disjoint.order_of {σ τ : perm α} (hστ : disjoint σ τ) :
   order_of (σ * τ) = nat.lcm (order_of σ) (order_of τ) :=
 begin
   have h : ∀ n : ℕ, (σ * τ) ^ n = 1 ↔ σ ^ n = 1 ∧ τ ^ n = 1 :=
-  λ n, by rw [commute.mul_pow hστ.mul_comm, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
-  exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
+  λ n, by rw [hστ.commute.mul_pow, disjoint.mul_eq_one_iff (hστ.pow_disjoint_pow n n)],
+  exact nat.dvd_antisymm hστ.commute.order_of_mul_dvd_lcm (nat.lcm_dvd
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
 end
@@ -260,6 +265,9 @@ def support (f : perm α) : finset α := univ.filter (λ x, f x ≠ x)
 
 @[simp] lemma mem_support {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
 by rw [support, mem_filter, and_iff_right (mem_univ x)]
+
+lemma not_mem_support {f : perm α} {x : α} : x ∉ f.support ↔ f x = x :=
+by simp
 
 @[simp] lemma support_eq_empty_iff {σ : perm α} : σ.support = ∅ ↔ σ = 1 :=
 by simp_rw [finset.ext_iff, mem_support, finset.not_mem_empty, iff_false, not_not,
@@ -325,6 +333,26 @@ begin
   cases n,
   { rw [int.of_nat_eq_coe, gpow_coe_nat, pow_apply_mem_support] },
   { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
+end
+
+lemma support_congr {f g : perm α} (h : f.support ⊆ g.support) (h' : ∀ (x ∈ g.support), f x = g x) :
+  f = g :=
+begin
+  ext x,
+  by_cases hx : x ∈ g.support,
+  { exact h' x hx },
+  { have hx' : x ∉ f.support := λ H, hx (h H),
+    rw [not_mem_support.mp hx, not_mem_support.mp hx'] }
+end
+
+lemma pow_eq_on_of_mem_support {f g : perm α} (h : ∀ (x ∈ f.support ∩ g.support), f x = g x)
+  (k : ℕ) : ∀ (x ∈ f.support ∩ g.support), (f ^ k) x = (g ^ k) x :=
+begin
+  induction k with k hk,
+  { simp },
+  { intros x hx,
+    rw [pow_succ', mul_apply, pow_succ', mul_apply, h _ hx, hk],
+    rwa [mem_inter, apply_mem_support, ←h _ hx, apply_mem_support, ←mem_inter] }
 end
 
 end fintype

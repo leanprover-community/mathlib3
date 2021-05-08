@@ -320,6 +320,43 @@ lemma same_cycle_inv (f : perm β) {x y : β} : same_cycle f⁻¹ x y ↔ same_c
 lemma same_cycle_inv_apply {f : perm β} {x y : β} : same_cycle f x (f⁻¹ y) ↔ same_cycle f x y :=
 by rw [← same_cycle_inv, same_cycle_apply, same_cycle_inv]
 
+/-- Unlike `support_congr`, which assumes that `∀ (x ∈ g.support), f x = g x)`, here
+we have the weaker assumption that `∀ (x ∈ f.support), f x = g x`. -/
+lemma is_cycle.support_congr [fintype α] {f g : perm α} (hf : is_cycle f) (hg : is_cycle g)
+  (h : f.support ⊆ g.support) (h' : ∀ (x ∈ f.support), f x = g x) : f = g :=
+begin
+  have : f.support = g.support,
+  { refine le_antisymm h _,
+    intros z hz,
+    obtain ⟨x, hx, hf'⟩ := id hf,
+    have hx' : g x ≠ x,
+    { rwa [←h' x (mem_support.mpr hx)] },
+    obtain ⟨m, hm⟩ := hg.exists_pow_eq hx' (mem_support.mp hz),
+    have h'' : ∀ (x ∈ f.support ∩ g.support), f x = g x,
+    { intros x hx,
+      exact h' x (mem_of_mem_inter_left hx) },
+    rwa [←hm, ←pow_eq_on_of_mem_support h'' _ x (mem_inter_of_mem (mem_support.mpr hx)
+          (mem_support.mpr hx')), pow_apply_mem_support, mem_support] },
+  refine support_congr h _,
+  simpa [←this] using h'
+end
+
+/-- If two cyclic permutations agree on all terms in their intersection,
+and that intersection is not empty, then the two cyclic permutations must be equal. -/
+lemma is_cycle.eq_on_support_inter_nonempty_congr [fintype α] {f g : perm α}
+  (hf : is_cycle f) (hg : is_cycle g) (h : ∀ (x ∈ f.support ∩ g.support), f x = g x) {x : α}
+  (hx : f x = g x) (hx' : x ∈ f.support) : f = g :=
+begin
+  have hx'' : x ∈ g.support,
+  { rwa [mem_support, ←hx, ←mem_support] },
+  have : f.support ⊆ g.support,
+  { intros y hy,
+    obtain ⟨k, rfl⟩ := hf.exists_pow_eq (mem_support.mp hx') (mem_support.mp hy),
+    rwa [pow_eq_on_of_mem_support h _ _ (mem_inter_of_mem hx' hx''), pow_apply_mem_support] },
+  rw (inter_eq_left_iff_subset _ _).mpr this at h,
+  exact hf.support_congr hg this h
+end
+
 /-!
 ### `cycle_of`
 -/
@@ -436,34 +473,31 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
 
 lemma mem_list_cycles_iff {α : Type*} [fintype α] {l : list (perm α)}
   (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
-  (h2 : l.pairwise disjoint) {σ : perm α} (h3 : σ.is_cycle) {a : α} (h4 : σ a ≠ a) :
-  σ ∈ l ↔ ∀ k : ℕ, (σ ^ k) a = (l.prod ^ k) a :=
+  (h2 : l.pairwise disjoint) {σ : perm α} :
+  σ ∈ l ↔ σ.is_cycle ∧ ∀ (a : α) (h4 : σ a ≠ a), σ a = l.prod a :=
 begin
-  induction l with τ l ih,
-  { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
-  { rw [list.mem_cons_iff, list.prod_cons,
-        ih (λ σ hσ, h1 σ (list.mem_cons_of_mem τ hσ)) (list.pairwise_of_pairwise_cons h2)],
-    have key := disjoint_prod_right _ (list.pairwise_cons.mp h2).1,
-    cases key a,
-    { simp_rw [key.mul_comm, commute.mul_pow key.mul_comm.symm, mul_apply,
-        pow_apply_eq_self_of_apply_eq_self h, or_iff_right_iff_imp],
-      rintro rfl,
-      exact (h4 h).elim },
-    { simp_rw [commute.mul_pow key.mul_comm, mul_apply, pow_apply_eq_self_of_apply_eq_self h],
-      rw [or_iff_left_of_imp (λ h : (∀ k : ℕ, (σ ^ k) a = a), (h4 (h 1)).elim)],
-      split,
-      { exact λ h k, by rw h },
-      { intro h5,
-        have hτa : τ a ≠ a := ne_of_eq_of_ne (h5 1).symm h4,
-        ext b,
-        by_cases hσb : σ b = b,
-        { by_cases hτb : τ b = b,
-          { rw [hσb, hτb] },
-          { classical,
-            obtain ⟨n, rfl⟩ := ((h1 τ (list.mem_cons_self τ l))).exists_pow_eq hτa hτb,
-            rw [←mul_apply τ, ←pow_succ, ←h5, ←h5, pow_succ, mul_apply] } },
-        { obtain ⟨n, rfl⟩ := h3.exists_pow_eq h4 hσb,
-          rw [←mul_apply, ←pow_succ, h5, h5, pow_succ, mul_apply] } } } },
+  suffices : σ.is_cycle → (σ ∈ l ↔ ∀ (a : α) (h4 : σ a ≠ a), σ a = l.prod a),
+  { exact ⟨λ hσ, ⟨h1 σ hσ, (this (h1 σ hσ)).mp hσ⟩, λ hσ, (this hσ.1).mpr hσ.2⟩ },
+  intro h3,
+  classical,
+  split,
+  { intros h a ha,
+    exact eq_on_support_mem_disjoint h h2 _ (mem_support.mpr ha) },
+  { intros h,
+    have hσl : σ.support ⊆ l.prod.support,
+    { intros x hx,
+      rw mem_support at hx,
+      rwa [mem_support, ←h _ hx] },
+    obtain ⟨a, ha, -⟩ := id h3,
+    rw ←mem_support at ha,
+    obtain ⟨τ, hτ, hτa⟩ := exists_mem_support_of_mem_support_prod (hσl ha),
+    have hτl : ∀ (x ∈ τ.support), τ x = l.prod x := eq_on_support_mem_disjoint hτ h2,
+    have key : ∀ (x ∈ σ.support ∩ τ.support), σ x = τ x,
+    { intros x hx,
+      rw [h x (mem_support.mp (mem_of_mem_inter_left hx)), hτl x (mem_of_mem_inter_right hx)] },
+    convert hτ,
+    refine h3.eq_on_support_inter_nonempty_congr (h1 _ hτ) key _ ha,
+    exact key a (mem_inter_of_mem ha hτa) }
 end
 
 lemma list_cycles_perm_list_cycles {α : Type*} [fintype α] {l₁ l₂ : list (perm α)}
@@ -479,8 +513,8 @@ begin
     (nodup_of_pairwise_disjoint h₃l₂ h₂l₂)).mpr (λ σ, _),
   by_cases hσ : σ.is_cycle,
   { obtain ⟨a, ha⟩ := not_forall.mp (mt ext hσ.ne_one),
-    rw [mem_list_cycles_iff h₁l₁ h₂l₁ hσ ha, mem_list_cycles_iff h₁l₂ h₂l₂ hσ ha, h₀] },
-  { exact iff_of_false (mt (h₁l₁ σ) hσ) (mt (h₁l₂ σ) hσ) },
+    rw [mem_list_cycles_iff h₁l₁ h₂l₁, mem_list_cycles_iff h₁l₂ h₂l₂, h₀] },
+  { exact iff_of_false (mt (h₁l₁ σ) hσ) (mt (h₁l₂ σ) hσ) }
 end
 
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
@@ -509,46 +543,52 @@ def cycle_factors_finset : finset (perm α) :=
       (list_cycles_perm_list_cycles (hl'.left.symm ▸ hl.left) hl.right.left (hl'.right.left)
         hl.right.right hl'.right.right))
 
-/-- The product of cycle factors is equal to the original `f : perm α`. We operate in the
-`list (perm α)` because `finset.prod` requires the multiplication across all `x : perm α`
-to be commutative. -/
-lemma cycle_factors_finset_prod (l : list (perm α)) (h : l.nodup)
-  (hl : l.to_finset = cycle_factors_finset f) : l.prod = f :=
-begin
-  obtain ⟨x, hx⟩ := trunc.exists_rep f.trunc_cycle_factors,
-  have ht : cycle_factors_finset f = x.val.to_finset,
-  { rw [cycle_factors_finset, ←hx, trunc.lift_mk] },
-  have hp : l ~ x,
-  { rw list.perm_ext h,
-    { simp [←list.mem_to_finset, hl, ht] },
-    { refine nodup_of_pairwise_disjoint _ x.prop.right.right,
-      intro hm,
-      simpa using (x.prop.right.left _ hm).ne_one } },
-  rw ←x.prop.left,
-  refine (hp.symm.prod_eq' _).symm,
-  refine x.prop.right.right.imp _,
-  exact λ _ _, disjoint.mul_comm
-end
-
-lemma cycle_factors_finset_mem_is_cycle (p : perm α) (hp : p ∈ cycle_factors_finset f) :
-  p.is_cycle :=
-begin
-  obtain ⟨x, hx⟩ := trunc.exists_rep f.trunc_cycle_factors,
-  have ht : cycle_factors_finset f = x.val.to_finset,
-  { rw [cycle_factors_finset, ←hx, trunc.lift_mk] },
-  rw [ht, list.mem_to_finset] at hp,
-  exact x.prop.right.left _ hp
-end
-
-lemma cycle_factors_finset_pairwise_disjoint ⦃p : perm α⦄ (hp : p ∈ cycle_factors_finset f)
-  ⦃q : perm α⦄ (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
+lemma cycle_factors_finset_pairwise_disjoint (p : perm α) (hp : p ∈ cycle_factors_finset f)
+  (q : perm α) (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
   disjoint p q :=
 begin
-  obtain ⟨x, hx⟩ := trunc.exists_rep f.trunc_cycle_factors,
-  have ht : cycle_factors_finset f = x.val.to_finset,
-  { rw [cycle_factors_finset, ←hx, trunc.lift_mk] },
-  rw [ht, list.mem_to_finset] at hp hq,
-  exact list.forall_of_pairwise (λ _ _, disjoint.symm) x.prop.right.right _ hp _ hq h
+  obtain ⟨l, hl⟩ := trunc.exists_rep f.trunc_cycle_factors,
+  rw [cycle_factors_finset, ←hl, trunc.lift_mk, list.mem_to_finset] at hp hq,
+  exact list.forall_of_pairwise (λ _ _, disjoint.symm) l.prop.right.right _ hp _ hq h
+end
+
+/-- A form of `cycle_factors_mem_commute` with an extra `p ≠ q` hypothesis, such that
+it is of the right form to pass to `noncomm_prod`. -/
+lemma cycle_factors_finset_mem_commute' (p : perm α) (hp : p ∈ cycle_factors_finset f)
+  (q : perm α) (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
+  _root_.commute p q :=
+(cycle_factors_finset_pairwise_disjoint _ _ hp _ hq h).commute
+
+lemma cycle_factors_finset_mem_commute (p : perm α) (hp : p ∈ cycle_factors_finset f)
+  (q : perm α) (hq : q ∈ cycle_factors_finset f) :
+  _root_.commute p q :=
+begin
+  by_cases h : p = q,
+  { exact h ▸ commute.refl _ },
+  { exact cycle_factors_finset_mem_commute' _ _ hp _ hq h }
+end
+
+/-- The product of cycle factors is equal to the original `f : perm α`. -/
+lemma cycle_factors_finset_noncomm_prod :
+  f.cycle_factors_finset.noncomm_prod (cycle_factors_finset_mem_commute' f) = f :=
+begin
+  obtain ⟨l, hl⟩ := trunc.exists_rep f.trunc_cycle_factors,
+  have ht : cycle_factors_finset f = (l : list (perm α)).to_finset,
+  { rw [cycle_factors_finset, ←hl, trunc.lift_mk, subtype.val_eq_coe] },
+  rw ←l.prop.left,
+  refine noncomm_prod_congr_list_prod _ _ _ _ _,
+  { rw [l.prop.left, ht] },
+  { refine nodup_of_pairwise_disjoint _ l.prop.right.right,
+    intro hm,
+    simpa using (l.prop.right.left _ hm).ne_one }
+end
+
+lemma mem_cycle_factors_finset_iff {f p : perm α} :
+  p ∈ cycle_factors_finset f ↔ p.is_cycle ∧ ∀ (a ∈ p.support), p a = f a :=
+begin
+  obtain ⟨l, hl⟩ := trunc.exists_rep f.trunc_cycle_factors,
+  rw [cycle_factors_finset, ←hl, trunc.lift_mk, list.mem_to_finset],
+  simpa [←l.prop.left, mem_support] using mem_list_cycles_iff l.prop.right.left l.prop.right.right
 end
 
 end cycle_factors_finset

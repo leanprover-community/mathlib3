@@ -102,9 +102,12 @@ begin
   { exact λ f hf, (mem_append.mp hf).elim (h₂l₁ f) (h₂l₂ f) },
   { refine pairwise_append.mpr ⟨h₃l₁, h₃l₂, λ f hf g hg a, by_contra (λ H, _)⟩,
     rw not_or_distrib at H,
-    exact ((congr_arg2 disjoint h₁l₁ h₁l₂).mpr h a).elim
-      (ne_of_eq_of_ne ((mem_list_cycles_iff h₂l₁ h₃l₁ (h₂l₁ f hf) H.1).1 hf 1).symm H.1)
-      (ne_of_eq_of_ne ((mem_list_cycles_iff h₂l₂ h₃l₂ (h₂l₂ g hg) H.2).1 hg 1).symm H.2) }
+    rw [←ne.def, ←ne.def, ←mem_support, ←mem_support] at H,
+    replace H : a ∈ l₁.prod.support ∧ a ∈ l₂.prod.support,
+    { refine H.imp (λ H, _) (λ H, _);
+      exact support_le_prod_of_mem ‹_› ‹_› H },
+    rw [h₁l₁, h₁l₂] at H,
+    exact h.disjoint_support (finset.mem_inter_of_mem H.left H.right) }
 end
 
 lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=
@@ -208,7 +211,7 @@ begin
         (list.pairwise_of_sublist (list.erase_sublist _ _) hl2)] },
     { refine disjoint_prod_list_of_disjoint (λ g hg, list.rel_of_pairwise_cons _ hg),
       refine (list.perm.pairwise_iff _ (list.perm_cons_erase hσ'l).symm).2 hl2,
-      exact (λ _ _, disjoint.symm) } }
+      exact disjoint.symmetric } }
 end
 
 theorem is_conj_iff_cycle_type_eq {σ τ : perm α} :

@@ -662,7 +662,7 @@ end
 @[to_additive exists_zero_lt]
 lemma exists_one_lt' [nontrivial α] : ∃ (a:α), 1 < a :=
 begin
-  obtain ⟨y, hy⟩ := exists_ne (1 : α),
+  obtain ⟨y, hy⟩ := decidable.exists_ne (1 : α),
   cases hy.lt_or_lt,
   { exact ⟨y⁻¹, one_lt_inv'.mpr h⟩ },
   { exact ⟨y, h⟩ }
@@ -708,8 +708,14 @@ le_of_forall_le_of_dense $ λ c hc,
 calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
    ... = c           : add_sub_cancel'_right _ _
 
+lemma le_iff_forall_pos_le_add [densely_ordered α] : a ≤ b ↔ ∀ ε, 0 < ε → a ≤ b + ε :=
+⟨λ h ε ε_pos, le_add_of_le_of_nonneg h ε_pos.le, le_of_forall_pos_le_add⟩
+
 lemma le_of_forall_pos_lt_add (h : ∀ ε : α, 0 < ε → a < b + ε) : a ≤ b :=
 le_of_not_lt $ λ h₁, by simpa using h _ (sub_pos_of_lt h₁)
+
+lemma le_iff_forall_pos_lt_add : a ≤ b ↔ ∀ ε, 0 < ε → a < b + ε :=
+⟨λ h ε, lt_add_of_le_of_pos h, le_of_forall_pos_lt_add⟩
 
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)
@@ -769,7 +775,7 @@ lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 abs_of_nonneg $ abs_nonneg a
 
 @[simp] lemma abs_eq_zero : abs a = 0 ↔ a = 0 :=
-not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
+decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
 
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero

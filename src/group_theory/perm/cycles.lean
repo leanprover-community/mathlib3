@@ -237,8 +237,8 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
       card_support_swap hx.1.symm], refl }
   else
     have h : card (support (swap x (f x) * f)) + 1 = card (support f),
-      by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq h1,
-        card_insert_of_not_mem (not_mem_erase _ _)],
+      by rw [← insert_erase (mem_support.2 hx.1), support_swap_mul_eq _ _ h1,
+        card_insert_of_not_mem (not_mem_erase _ _), sdiff_singleton_eq_erase],
     have wf : card (support (swap x (f x) * f)) < card (support f),
       from card_support_swap_mul hx.1,
     by { rw [sign_mul, sign_swap hx.1.symm, (hf.swap_mul hx.1 h1).sign, ← h],
@@ -258,6 +258,31 @@ begin
   refine ⟨x, (key x).mp hx1, λ y hy, _⟩,
   cases (hx2 y ((key y).mpr hy)) with i _,
   exact ⟨n * i, by rwa gpow_mul⟩,
+end
+
+lemma is_cycle.extend_domain {α : Type*} {p : β → Prop} [decidable_pred p]
+  (f : α ≃ subtype p) {g : perm α} (h : is_cycle g) :
+  is_cycle (g.extend_domain f) :=
+begin
+  obtain ⟨a, ha, ha'⟩ := h,
+  refine ⟨f a, _, λ b hb, _⟩,
+  { rw extend_domain_apply_image,
+    exact λ con, ha (f.injective (subtype.coe_injective con)) },
+  by_cases pb : p b,
+  { obtain ⟨i, hi⟩ := ha' (f.symm ⟨b, pb⟩) (λ con, hb _),
+    { refine ⟨i, _⟩,
+      have hnat : ∀ (k : ℕ) (a : α), (g.extend_domain f ^ k) ↑(f a) = f ((g ^ k) a),
+      { intros k a,
+        induction k with k ih, { refl },
+        rw [pow_succ, perm.mul_apply, ih, extend_domain_apply_image, pow_succ, perm.mul_apply] },
+      have hint : ∀ (k : ℤ) (a : α), (g.extend_domain f ^ k) ↑(f a) = f ((g ^ k) a),
+      { intros k a,
+        induction k with k k,
+        { rw [gpow_of_nat, gpow_of_nat, hnat] },
+        rw [gpow_neg_succ_of_nat, gpow_neg_succ_of_nat, inv_eq_iff_eq, hnat, apply_inv_self] },
+      rw [hint, hi, apply_symm_apply, subtype.coe_mk] },
+    { rw [extend_domain_apply_subtype _ _ pb, con, apply_symm_apply, subtype.coe_mk] } },
+  { exact (hb (extend_domain_apply_not_subtype _ _ pb)).elim }
 end
 
 end sign_cycle
@@ -609,7 +634,7 @@ begin
   { intros h1 h2,
     rw list.prod_cons,
     exact induction_disjoint σ l.prod
-      (disjoint_prod_list_of_disjoint (list.pairwise_cons.mp h2).1)
+      (disjoint_prod_right _ (list.pairwise_cons.mp h2).1)
       (h1 _ (list.mem_cons_self _ _))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
       (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },

@@ -10,7 +10,6 @@ import data.nat.basic
 -/
 
 namespace nat
-variables {m n : ℕ}
 
 /-- `nat.factorial n` is the factorial of `n`. -/
 @[simp] def factorial : nat → nat
@@ -18,6 +17,10 @@ variables {m n : ℕ}
 | (succ n) := succ n * factorial n
 
 localized "notation n `!`:10000 := nat.factorial n" in nat
+
+section factorial
+
+variables {m n : ℕ}
 
 @[simp] theorem factorial_zero : 0! = 1! := rfl
 
@@ -143,6 +146,8 @@ begin
   { exact add_factorial_succ_le_factorial_add_succ i h }
 end
 
+end factorial
+
 section desc_fac
 
 /-- desc_fac n k = (n + k)! / n!, but implemented in a recursive way for calculation.
@@ -179,31 +184,11 @@ theorem eval_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
                              ... = n! * ((n + k + 1) * desc_fac n k) : by ac_refl
                              ... = n! * desc_fac n (k + 1) : by rw [desc_fac_succ]
 
-variables (n k : ℕ)
-
 /-- Avoid if you can. ℕ-division isn't worth it. -/
-lemma eval_desc_fac' : desc_fac n k = (n + k)! / n! :=
+lemma eval_desc_fac' (n k : ℕ) : desc_fac n k = (n + k)! / n! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero n), rw eval_desc_fac,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
-end
-
-lemma desc_fac_eq_choose_mul_factorial : desc_fac n k = k! * (n + k).choose k :=
-begin
-  rw mul_comm,
-  apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
-  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←eval_desc_fac, mul_comm],
-  exact le_add_left k n
-end
-
-lemma desc_fac_dvd : k! ∣ n.desc_fac k :=
-⟨(n+k).choose k, desc_fac_eq_choose_mul_factorial _ _⟩
-
-lemma choose_eq_desc_fac_div_factorial : (n + k).choose k = desc_fac n k / k! :=
-begin
-  apply mul_left_cancel' (factorial_ne_zero k),
-  rw ←desc_fac_eq_choose_mul_factorial,
-  exact (nat.mul_div_cancel' $ desc_fac_dvd _ _).symm
 end
 
 end desc_fac

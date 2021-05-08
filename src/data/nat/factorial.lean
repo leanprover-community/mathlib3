@@ -161,18 +161,50 @@ end
 
 lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n + k + 1) * desc_fac n k := rfl
 
-lemma succ_desc_fac {n k : ℕ} : (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k :=
+lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k
+| 0 := by rw [add_zero, desc_fac_zero, desc_fac_zero]
+| (k + 1) :=
 begin
-  induction k with t ht, simp!,
-  have : (n + 1) * ((n.succ + t + 1) * desc_fac n.succ t)
-       = (n.succ + t + 1) * ((n + 1) * desc_fac n.succ t), by ac_refl,
-  rw [desc_fac_succ, desc_fac_succ, this, ht, nat.succ_add]
+  have : (n + 1) * ((n.succ + k + 1) * desc_fac n.succ k)
+       = (n.succ + k + 1) * ((n + 1) * desc_fac n.succ k), by ac_refl,
+  rw [desc_fac, this, succ_desc_fac k, desc_fac, succ_eq_add_one], ac_refl
 end
 
 /-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/
-theorem eval_desc_fac (n : ℕ) : ∀ k : ℕ, (n + k)! = n! * desc_fac n k
-| 0 := by simp!
-| (k + 1) := by unfold desc_fac; rw [←mul_assoc, mul_comm n!, mul_assoc, ←eval_desc_fac]; simp!
+theorem eval_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
+| 0 := by rw [desc_fac, add_zero, mul_one]
+| (k + 1) := eq.symm $
+             calc (n + (k + 1))! = (n + k + 1) * (n + k)! : by rw [←add_assoc, factorial]
+                             ... = (n + k + 1) * (n! * desc_fac n k) : by rw eval_desc_fac k
+                             ... = n! * ((n + k + 1) * desc_fac n k) : by ac_refl
+                             ... = n! * desc_fac n (k + 1) : by rw [desc_fac_succ]
+
+variables (n k : ℕ)
+
+/-- Avoid if you can. ℕ-division isn't worth it. -/
+lemma eval_desc_fac' : desc_fac n k = (n + k)! / n! :=
+begin
+  apply mul_left_cancel' (factorial_ne_zero n), rw eval_desc_fac,
+  exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
+end
+
+lemma desc_fac_eq_choose_mul_factorial : desc_fac n k = k! * (n + k).choose k :=
+begin
+  rw mul_comm,
+  apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
+  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←eval_desc_fac, mul_comm],
+  exact le_add_left k n
+end
+
+lemma desc_fac_dvd : k! ∣ n.desc_fac k :=
+⟨(n+k).choose k, desc_fac_eq_choose_mul_factorial _ _⟩
+
+lemma choose_eq_desc_fac_div_factorial : (n + k).choose k = desc_fac n k / k! :=
+begin
+  apply mul_left_cancel' (factorial_ne_zero k),
+  rw ←desc_fac_eq_choose_mul_factorial,
+  exact (nat.mul_div_cancel' $ desc_fac_dvd _ _).symm
+end
 
 end desc_fac
 

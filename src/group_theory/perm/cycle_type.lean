@@ -202,6 +202,11 @@ begin
   exact dvd_lcm h,
 end
 
+lemma two_dvd_card_support {σ : perm α} (hσ : σ ^ 2 = 1) : 2 ∣ σ.support.card :=
+(congr_arg (has_dvd.dvd 2) σ.sum_cycle_type).mp
+  (multiset.dvd_sum (λ n hn, by rw le_antisymm (nat.le_of_dvd zero_lt_two (dvd_trans
+  (dvd_of_mem_cycle_type hn) (order_of_dvd_of_pow_eq_one hσ))) (two_le_of_mem_cycle_type hn)))
+
 lemma cycle_type_prime_order {σ : perm α} (hσ : (order_of σ).prime) :
   ∃ n : ℕ, σ.cycle_type = repeat (order_of σ) (n + 1) :=
 begin
@@ -263,6 +268,18 @@ theorem is_conj_iff_cycle_type_eq {σ τ : perm α} :
   obtain ⟨π, rfl⟩ := is_conj_iff.1 h,
   rw cycle_type_conj,
 end, is_conj_of_cycle_type_eq⟩
+
+@[simp] lemma cycle_type_extend_domain {β : Type*} [fintype β] [decidable_eq β]
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) {g : perm α} :
+  cycle_type (g.extend_domain f) = cycle_type g :=
+begin
+  apply cycle_induction_on _ g,
+  { rw [extend_domain_one, cycle_type_one, cycle_type_one] },
+  { intros σ hσ,
+    rw [(hσ.extend_domain f).cycle_type, hσ.cycle_type, card_support_extend_domain] },
+  { intros σ τ hd hc hσ hτ,
+    rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
+end
 
 end cycle_type
 

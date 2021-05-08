@@ -72,7 +72,7 @@ def pderiv (i : σ) : mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
 @[simp]
 lemma pderiv_monomial {i : σ} :
   pderiv i (monomial s a) = monomial (s - single i 1) (a * (s i)) :=
-by simp only [pderiv, monomial_zero, sum_monomial, zero_mul, linear_map.coe_mk]
+by simp only [pderiv, monomial_zero, sum_monomial_eq, zero_mul, linear_map.coe_mk]
 
 
 @[simp]

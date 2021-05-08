@@ -274,7 +274,7 @@ begin
   is a Cauchy sequence. -/
   let L0 : ℕ → (E →L[𝕜] F) := λ e, L e (n e) (n e),
   have : cauchy_seq L0,
-  { rw cauchy_seq_iff',
+  { rw metric.cauchy_seq_iff',
     assume ε εpos,
     obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥) :=
       exists_pow_lt_of_lt_one (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),

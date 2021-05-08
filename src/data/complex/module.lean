@@ -123,20 +123,30 @@ end
 
 open submodule finite_dimensional
 
-lemma is_basis_one_I : is_basis ℝ ![1, I] :=
-begin
-  refine ⟨linear_independent_fin2.2 ⟨I_ne_zero, λ a, mt (congr_arg re) $ by simp⟩,
-    eq_top_iff'.2 $ λ z, _⟩,
-  suffices : ∃ a b : ℝ, z = a • I + b • 1,
-    by simpa [mem_span_insert, mem_span_singleton, -set.singleton_one],
-  use [z.im, z.re],
-  simp [algebra.smul_def, add_comm]
-end
+/-- `ℂ` has a basis over `ℝ` given by `1` and `I`. -/
+def basis_one_I : basis (fin 2) ℝ ℂ :=
+basis.of_equiv_fun
+{ to_fun := λ z, ![z.re, z.im],
+  inv_fun := λ c, c 0 + c 1 • I,
+  left_inv := λ z, by simp,
+  right_inv := λ c, by { ext i, fin_cases i; simp },
+  map_add' := λ z z', by simp,
+  map_smul' := λ c z, by simp }
 
-instance : finite_dimensional ℝ ℂ := of_fintype_basis is_basis_one_I
+@[simp] lemma coe_basis_one_I_repr (z : ℂ) : ⇑(basis_one_I.repr z) = ![z.re, z.im] := rfl
+
+@[simp] lemma coe_basis_one_I : ⇑basis_one_I = ![1, I] :=
+funext $ λ i, basis.apply_eq_iff.mpr $ finsupp.ext $ λ j,
+by fin_cases i; fin_cases j;
+    simp only [coe_basis_one_I_repr, finsupp.single_eq_same, finsupp.single_eq_of_ne,
+              matrix.cons_val_zero, matrix.cons_val_one, matrix.head_cons,
+              nat.one_ne_zero, fin.one_eq_zero_iff, fin.zero_eq_one_iff, ne.def, not_false_iff,
+              one_re, one_im, I_re, I_im]
+
+instance : finite_dimensional ℝ ℂ := of_fintype_basis basis_one_I
 
 @[simp] lemma finrank_real_complex : finite_dimensional.finrank ℝ ℂ = 2 :=
-by rw [finrank_eq_card_basis is_basis_one_I, fintype.card_fin]
+by rw [finrank_eq_card_basis basis_one_I, fintype.card_fin]
 
 @[simp] lemma dim_real_complex : module.rank ℝ ℂ = 2 :=
 by simp [← finrank_eq_dim, finrank_real_complex]

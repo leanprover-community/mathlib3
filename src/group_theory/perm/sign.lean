@@ -18,7 +18,7 @@ The main definition of this file is `equiv.perm.sign`, associating a `units ℤ`
 permutation.
 
 This file also contains miscellaneous lemmas about `equiv.perm` and `equiv.swap`, building on top
-of those in `data/equiv/basic` and `data/equiv/perm`.
+of those in `data/equiv/basic` and other files in `group_theory/perm/*`.
 
 -/
 
@@ -149,6 +149,19 @@ begin
   exact nat.dvd_antisymm (commute.order_of_mul_dvd_lcm hστ.mul_comm) (nat.lcm_dvd
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).1)
     (order_of_dvd_of_pow_eq_one ((h (order_of (σ * τ))).mp (pow_order_of_eq_one (σ * τ))).2)),
+end
+
+lemma disjoint.extend_domain {α : Type*} {p : β → Prop} [decidable_pred p]
+  (f : α ≃ subtype p) {σ τ : perm α} (h : disjoint σ τ) :
+  disjoint (σ.extend_domain f) (τ.extend_domain f) :=
+begin
+  intro b,
+  by_cases pb : p b,
+  { refine (h (f.symm ⟨b, pb⟩)).imp _ _;
+    { intro h,
+      rw [extend_domain_apply_subtype _ _ pb, h, apply_symm_apply, subtype.coe_mk] } },
+  { left,
+    rw [extend_domain_apply_not_subtype _ _ pb] }
 end
 
 variable [decidable_eq α]
@@ -413,7 +426,7 @@ end
   `sign_aux2 f _` recursively calculates the sign of `f`. -/
 def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → units ℤ :=
 quotient.hrec_on s (λ l h, sign_aux2 l f)
-  (trunc.induction_on (equiv_fin α)
+  (trunc.induction_on (fintype.trunc_equiv_fin α)
     (λ e l₁ l₂ h, function.hfunext
       (show (∀ x, x ∈ l₁) = ∀ x, x ∈ l₂, by simp only [h.mem_iff])
       (λ h₁ h₂ _, by rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, h₁ _),
@@ -423,9 +436,9 @@ lemma sign_aux3_mul_and_swap [fintype α] (f g : perm α) (s : multiset α) (hs 
   sign_aux3 (f * g) hs = sign_aux3 f hs * sign_aux3 g hs ∧ ∀ x y, x ≠ y →
   sign_aux3 (swap x y) hs = -1 :=
 let ⟨l, hl⟩ := quotient.exists_rep s in
-let ⟨e, _⟩ := (equiv_fin α).exists_rep in
+let e := equiv_fin α in
 begin
-  clear _let_match _let_match,
+  clear _let_match,
   subst hl,
   show sign_aux2 l (f * g) = sign_aux2 l f * sign_aux2 l g ∧
     ∀ x y, x ≠ y → sign_aux2 l (swap x y) = -1,
@@ -483,7 +496,7 @@ lemma sign_aux3_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)
   sign_aux3 ((e.symm.trans f).trans e) ht = sign_aux3 f hs :=
 quotient.induction_on₂ t s
   (λ l₁ l₂ h₁ h₂, show sign_aux2 _ _ = sign_aux2 _ _,
-    from let n := (equiv_fin β).out in
+    from let n := equiv_fin β in
     by { rw [← sign_aux_eq_sign_aux2 _ _ n (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ (e.trans n) (λ _ _, h₂ _)],
       exact congr_arg sign_aux

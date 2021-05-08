@@ -63,7 +63,7 @@ See also `lie_module.weight_space`. -/
 def pre_weight_space (χ : L → R) : submodule R M :=
 ⨅ (x : L), (to_endomorphism R L M x).maximal_generalized_eigenspace (χ x)
 
-@[simp] lemma mem_pre_weight_space (χ : L → R) (m : M) :
+lemma mem_pre_weight_space (χ : L → R) (m : M) :
   m ∈ pre_weight_space M χ ↔ ∀ x, ∃ (k : ℕ), ((to_endomorphism R L M x - (χ x) • 1)^k) m = 0 :=
 by simp [pre_weight_space, -linear_map.pow_apply]
 

@@ -1641,6 +1641,14 @@ ext $ λ _, rfl
   (v - v').subtype_domain p = v.subtype_domain p - v'.subtype_domain p :=
 ext $ λ _, rfl
 
+@[simp] lemma single_sub {a : α} {n₁ n₂ : G} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
+begin
+  ext f,
+  by_cases h : (a = f),
+  { rw [h, sub_apply, single_eq_same, single_eq_same, single_eq_same] },
+  rw [sub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, sub_zero],
+end
+
 end group
 
 end subtype_domain

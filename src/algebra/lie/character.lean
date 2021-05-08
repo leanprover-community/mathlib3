@@ -17,7 +17,7 @@ algebra (e.g., a Cartan subalgebra of a semisimple Lie algebra) a character is j
 ## Main definitions
 
   * `lie_algebra.lie_character`
-  * `lie_algebra.lie_character_equiv_linear_dual_of_abelian`
+  * `lie_algebra.lie_character_equiv_linear_dual`
 
 ## Tags
 
@@ -35,23 +35,23 @@ abbreviation lie_character := L →ₗ⁅R⁆ R
 
 variables {R L}
 
-@[simp] lemma lie_character_of_lie_eq_zero (χ : lie_character R L) (x y : L) : χ ⁅x, y⁆ = 0 :=
+@[simp] lemma lie_character_apply_lie (χ : lie_character R L) (x y : L) : χ ⁅x, y⁆ = 0 :=
 by rw [lie_hom.map_lie, lie_ring.of_associative_ring_bracket, mul_comm, sub_self]
 
-lemma lie_character_mem_derived_eq_zero
+lemma lie_character_apply_of_mem_derived
   (χ : lie_character R L) {x : L} (h : x ∈ derived_series R L 1) : χ x = 0 :=
 begin
   rw [derived_series_def, derived_series_of_ideal_succ, derived_series_of_ideal_zero,
     ← lie_submodule.mem_coe_submodule, lie_submodule.lie_ideal_oper_eq_linear_span] at h,
   apply submodule.span_induction h,
-  { rintros y ⟨⟨z, hz⟩, ⟨⟨w, hw⟩, rfl⟩⟩, apply lie_character_of_lie_eq_zero, },
+  { rintros y ⟨⟨z, hz⟩, ⟨⟨w, hw⟩, rfl⟩⟩, apply lie_character_apply_lie, },
   { exact χ.map_zero, },
   { intros y z hy hz, rw [lie_hom.map_add, hy, hz, add_zero], },
   { intros t y hy, rw [lie_hom.map_smul, hy, smul_zero], },
 end
 
 /-- For an Abelian Lie algebra, characters are just linear forms. -/
-def lie_character_equiv_linear_dual_of_abelian [is_lie_abelian L] :
+@[simps] def lie_character_equiv_linear_dual [is_lie_abelian L] :
   lie_character R L ≃ module.dual R L :=
 { to_fun    := λ χ, (χ : L →ₗ[R] R),
   inv_fun   := λ ψ,
@@ -61,15 +61,5 @@ def lie_character_equiv_linear_dual_of_abelian [is_lie_abelian L] :
     .. ψ, },
   left_inv  := λ χ, by { ext, refl, },
   right_inv := λ ψ, by { ext, refl, }, }
-
-@[simp] lemma lie_character_equiv_linear_dual_of_abelian_apply [is_lie_abelian L]
-  (χ : lie_character R L) (x : L) :
-  lie_character_equiv_linear_dual_of_abelian χ x = χ x :=
-rfl
-
-@[simp] lemma lie_character_equiv_linear_dual_of_abelian_symm_apply [is_lie_abelian L]
-  (χ : module.dual R L) (x : L) :
-  lie_character_equiv_linear_dual_of_abelian.symm χ x = χ x :=
-rfl
 
 end lie_algebra

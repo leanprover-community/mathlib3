@@ -180,7 +180,7 @@ def weight_space [lie_algebra.is_nilpotent R L] (χ : L → R) : lie_submodule R
   end,
   .. pre_weight_space M χ }
 
-@[simp] lemma mem_weight_space [lie_algebra.is_nilpotent R L] (χ : L → R) (m : M) :
+lemma mem_weight_space [lie_algebra.is_nilpotent R L] (χ : L → R) (m : M) :
   m ∈ weight_space M χ ↔ m ∈ pre_weight_space M χ :=
 iff.rfl
 

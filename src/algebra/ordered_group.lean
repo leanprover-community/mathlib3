@@ -478,6 +478,8 @@ lemma le_inv_iff_mul_le_one : a ≤ b⁻¹ ↔ a * b ≤ 1 :=
 lemma inv_lt_self (h : 1 < a) : a⁻¹ < a :=
 (inv_lt_one'.2 h).trans h
 
+variable [has_lt_of_mul_lt_mul_left α]
+
 @[to_additive]
 lemma le_inv_mul_iff_mul_le : b ≤ a⁻¹ * c ↔ a * b ≤ c :=
 have a⁻¹ * (a * b) ≤ a⁻¹ * c ↔ a * b ≤ c, from mul_le_mul_iff_left _,
@@ -527,21 +529,28 @@ by simp [div_eq_mul_inv]
 /-- Pullback an `ordered_comm_group` under an injective map. -/
 @[to_additive function.injective.ordered_add_comm_group
 "Pullback an `ordered_add_comm_group` under an injective map."]
-def function.injective.ordered_comm_group {β : Type*}
+def function.injective.ordered_comm_group {α β : Type*}
+  [comm_group α] [partial_order α] [has_mul_le_mul_left α]
   [has_one β] [has_mul β] [has_inv β] [has_div β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) :
   ordered_comm_group β :=
-{ ..partial_order.lift f hf,
-  ..hf.ordered_comm_monoid f one mul,
+{ mul_le_mul_left := λ a b ab c, begin
+      change f (c * a) ≤ f (c * b),
+      rw [mul, mul],
+      exact has_mul_le_mul_left.mul_le_mul_left _ ab
+    end,
+  ..partial_order.lift f hf,
   ..hf.comm_group f one mul inv div }
 
-end ordered_comm_group
+end left
+
+end comm_group
 
 section ordered_add_comm_group
-variables [ordered_add_comm_group α] {a b c d : α}
+variables [ordered_add_comm_group α]
 
 lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
 by simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg hcd)
@@ -695,7 +704,7 @@ class linear_ordered_comm_group (α : Type u) extends comm_group α, linear_orde
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
 section linear_ordered_comm_group
-variables [linear_ordered_comm_group α] {a b c : α}
+variables [linear_ordered_comm_group α]
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_ordered_comm_group : ordered_comm_group α :=
@@ -799,7 +808,7 @@ end linear_ordered_comm_group
 
 section linear_ordered_add_comm_group
 
-variables [linear_ordered_add_comm_group α] {a b c : α}
+variables [linear_ordered_add_comm_group α]
 
 @[simp]
 lemma sub_le_sub_flip : a - b ≤ b - a ↔ a ≤ b :=
@@ -917,10 +926,18 @@ abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
   add_le_add (le_abs_self _) (le_abs_self _)⟩
 
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
-by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
+begin
+  rwa [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm, and.congr_right_iff,
+    sub_le_iff_le_add', iff_self, implies_true_iff],
+  exact trivial,
+end
 
 lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
-by rw [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm]
+begin
+  rwa [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm, and.congr_right_iff,
+    sub_lt_iff_lt_add', iff_self, implies_true_iff],
+  exact trivial,
+end
 
 lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
 sub_le.1 $ (abs_sub_le_iff.1 h).2

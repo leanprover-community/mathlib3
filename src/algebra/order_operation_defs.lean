@@ -91,7 +91,7 @@ if the relation `r` holds for the pair `(μ m n₁, μ m n₂)`, obtained from `
 "acting upon it by `m`", then the relation `r` also holds for the pair `(n₁, n₂)`. -/
 def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r n₁ n₂
 
-variables {M N}
+--variables {M N}
 
 @[simp]
 lemma covariant_def :

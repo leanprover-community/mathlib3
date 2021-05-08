@@ -913,6 +913,9 @@ inf_sdiff_self_right
 @[simp] theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 sup_inf_sdiff s t
 
+@[simp] lemma diff_union_inter (s t : set α) : (s \ t) ∪ (s ∩ t) = s :=
+by { rw union_comm, exact sup_inf_sdiff _ _ }
+
 @[simp] theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
 
 theorem diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
@@ -1047,7 +1050,7 @@ lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
   s ∈ t \ {∅} ↔ (s ∈ t ∧ s.nonempty) :=
 mem_diff_singleton.trans $ and_congr iff.rfl ne_empty_iff_nonempty
 
-lemma union_eq_sdiff_union_sdiff_union_inter (s t : set α) :
+lemma union_eq_diff_union_diff_union_inter (s t : set α) :
   s ∪ t = (s \ t) ∪ (t \ s) ∪ (s ∩ t) :=
 sup_eq_sdiff_sup_sdiff_sup_inf
 

@@ -285,6 +285,18 @@ instance locally_finite_volume : locally_finite_measure (volume : measure ℝ) :
   mem_nhds_sets is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
   by simp only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
 
+instance finite_measure_restrict_Icc (x y : ℝ) : finite_measure (volume.restrict (Icc x y)) :=
+⟨by simp⟩
+
+instance finite_measure_restrict_Ico (x y : ℝ) : finite_measure (volume.restrict (Ico x y)) :=
+⟨by simp⟩
+
+instance finite_measure_restrict_Ioc (x y : ℝ) : finite_measure (volume.restrict (Ioc x y)) :=
+ ⟨by simp⟩
+
+instance finite_measure_restrict_Ioo (x y : ℝ) : finite_measure (volume.restrict (Ioo x y)) :=
+⟨by simp⟩
+
 /-!
 ### Volume of a box in `ℝⁿ`
 -/

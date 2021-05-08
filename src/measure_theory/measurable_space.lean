@@ -263,6 +263,12 @@ finite.induction_on hs measurable_set.empty $ λ a s ha hsf hsm, hsm.insert _
 protected lemma finset.measurable_set (s : finset α) : measurable_set (↑s : set α) :=
 s.finite_to_set.measurable_set
 
+lemma set.countable.measurable_set {s : set α} (hs : countable s) : measurable_set s :=
+begin
+  rw [← bUnion_of_singleton s],
+  exact measurable_set.bUnion hs (λ b hb, measurable_set_singleton b)
+end
+
 end measurable_singleton_class
 
 namespace measurable_space
@@ -555,6 +561,22 @@ end
   [measurable_singleton_class β] {f : α → β} (hf : measurable f) :
   measurable_set (mul_support f) :=
 hf (measurable_set_singleton 1).compl
+
+/-- If a function coincides with a measurable function outside of a countable set, it is
+measurable. -/
+lemma measurable.measurable_of_countable_ne [measurable_singleton_class α]
+  {f g : α → β} (hf : measurable f) (h : countable {x | f x ≠ g x}) : measurable g :=
+begin
+  assume t ht,
+  have : g ⁻¹' t = (g ⁻¹' t ∩ {x | f x = g x}ᶜ) ∪ (g ⁻¹' t ∩ {x | f x = g x}),
+    by simp [← inter_union_distrib_left],
+  rw this,
+  apply measurable_set.union (h.mono (inter_subset_right _ _)).measurable_set,
+  have : g ⁻¹' t ∩ {x : α | f x = g x} = f ⁻¹' t ∩ {x : α | f x = g x},
+    by { ext x, simp {contextual := tt} },
+  rw this,
+  exact (hf ht).inter h.measurable_set.of_compl,
+end
 
 end measurable_functions
 

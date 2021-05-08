@@ -293,7 +293,7 @@ lemma one_add_le_iff {a b : ℕ} : 1 + a ≤ b ↔ a < b :=
 by simp only [add_comm, add_one_le_iff]
 
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
-(lt_or_eq_of_le H).imp le_of_lt_succ id
+H.lt_or_eq_dec.imp le_of_lt_succ id
 
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
@@ -587,19 +587,17 @@ lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=
 mul_pos (succ_pos m) hn
 
 theorem mul_self_le_mul_self {n m : ℕ} (h : n ≤ m) : n * n ≤ m * m :=
-mul_le_mul h h (zero_le _) (zero_le _)
+decidable.mul_le_mul h h (zero_le _) (zero_le _)
 
 theorem mul_self_lt_mul_self : Π {n m : ℕ}, n < m → n * n < m * m
 | 0        m h := mul_pos h h
-| (succ n) m h := mul_lt_mul h (le_of_lt h) (succ_pos _) (zero_le _)
+| (succ n) m h := decidable.mul_lt_mul h (le_of_lt h) (succ_pos _) (zero_le _)
 
 theorem mul_self_le_mul_self_iff {n m : ℕ} : n ≤ m ↔ n * n ≤ m * m :=
-⟨mul_self_le_mul_self, λh, decidable.by_contradiction $
-  λhn, not_lt_of_ge h $ mul_self_lt_mul_self $ lt_of_not_ge hn⟩
+⟨mul_self_le_mul_self, le_imp_le_of_lt_imp_lt mul_self_lt_mul_self⟩
 
 theorem mul_self_lt_mul_self_iff {n m : ℕ} : n < m ↔ n * n < m * m :=
-iff.trans (lt_iff_not_ge _ _) $ iff.trans (not_iff_not_of_iff mul_self_le_mul_self_iff) $
-  iff.symm (lt_iff_not_ge _ _)
+le_iff_le_iff_lt_iff_lt.1 mul_self_le_mul_self_iff
 
 theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_refl _
@@ -608,17 +606,17 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
   conv {to_lhs, rw [← one_mul(m)]},
-  exact mul_le_mul_of_nonneg_right (nat.succ_le_of_lt h) dec_trivial,
+  exact decidable.mul_le_mul_of_nonneg_right (nat.succ_le_of_lt h) dec_trivial,
 end
 
 lemma le_mul_of_pos_right {m n : ℕ} (h : 0 < n) : m ≤ m * n :=
 begin
   conv {to_lhs, rw [← mul_one(m)]},
-  exact mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
+  exact decidable.mul_le_mul_of_nonneg_left (nat.succ_le_of_lt h) dec_trivial,
 end
 
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
-mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exact dec_trivial)
+mt (congr_arg (%2)) (by { rw [add_comm, add_mul_mod_self_left, mul_mod_right, mod_eq_of_lt]; simp })
 
 lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
 | 0     0     := dec_trivial
@@ -626,9 +624,10 @@ lemma mul_eq_one_iff : ∀ {a b : ℕ}, a * b = 1 ↔ a = 1 ∧ b = 1
 | 1     0     := dec_trivial
 | (a+2) 0     := by simp
 | 0     (b+2) := by simp
-| (a+1) (b+1) := ⟨λ h, by simp only [add_mul, mul_add, mul_add, one_mul, mul_one,
+| (a+1) (b+1) := ⟨
+  λ h, by simp only [add_mul, mul_add, mul_add, one_mul, mul_one,
     (add_assoc _ _ _).symm, nat.succ_inj', add_eq_zero_iff] at h; simp [h.1.2, h.2],
-  by clear_aux_decl; finish⟩
+  λ h, by simp only [h, mul_one]⟩
 
 protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b = c :=
 ⟨nat.eq_of_mul_eq_mul_right ha, λ e, e ▸ rfl⟩
@@ -656,7 +655,7 @@ lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
 
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
-lt_succ_iff.trans le_iff_lt_or_eq
+lt_succ_iff.trans decidable.le_iff_lt_or_eq
 
 theorem mul_self_inj {n m : ℕ} : n * n = m * m ↔ n = m :=
 le_antisymm_iff.trans (le_antisymm_iff.trans
@@ -788,7 +787,7 @@ attribute [simp] nat.div_self
 protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=
 (eq_zero_or_pos k).elim
   (λ k0, by rw [k0, nat.div_zero]; apply zero_le)
-  (λ k0, (decidable.mul_le_mul_left k0).1 $
+  (λ k0, (_root_.mul_le_mul_left k0).1 $
     calc k * (m / k)
         ≤ m % k + k * (m / k) : le_add_left _ _
     ... = m                   : mod_add_div _ _
@@ -815,8 +814,8 @@ protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k �
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
 (le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self _ _) h
 
-lemma lt_of_div_lt_div {m n k : ℕ} (h : m / k < n / k) : m < n :=
-by_contradiction $ λ h₁, absurd h (not_lt_of_ge (nat.div_le_div_right (not_lt.1 h₁)))
+lemma lt_of_div_lt_div {m n k : ℕ} : m / k < n / k → m < n :=
+lt_imp_lt_of_le_imp_le $ λ h, nat.div_le_div_right h
 
 protected lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
 nat.pos_of_ne_zero (λ h, lt_irrefl a
@@ -905,7 +904,7 @@ lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 ⟨b, (nat.div_mul_cancel h).symm⟩
 
 protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b) = b
-| a     0     h₁ h₂ := by rw eq_zero_of_zero_dvd h₁; refl
+| a     0     h₁ h₂ := by rw [eq_zero_of_zero_dvd h₁, nat.div_zero, nat.div_zero]
 | 0     b     h₁ h₂ := absurd h₂ dec_trivial
 | (a+1) (b+1) h₁ h₂ :=
 (nat.mul_left_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b))).1 $
@@ -913,8 +912,8 @@ protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b
 
 lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
 begin
-  rcases (zero_le b).eq_or_lt with rfl|hb, { simp },
-  rcases (zero_le c).eq_or_lt with rfl|hc, { simp },
+  rcases eq_zero_or_pos b with rfl|hb, { simp },
+  rcases eq_zero_or_pos c with rfl|hc, { simp },
   conv_rhs { rw ← mod_add_div a (b * c) },
   rw [mul_assoc, nat.add_mul_div_left _ _ hb, add_mul_mod_self_left,
     mod_eq_of_lt (nat.div_lt_of_lt_mul (mod_lt _ (mul_pos hb hc)))]
@@ -933,7 +932,7 @@ protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k 
 (nat.dvd_add_iff_right h).symm
 
 @[simp] protected theorem not_two_dvd_bit1 (n : ℕ) : ¬ 2 ∣ bit1 n :=
-mt (nat.dvd_add_right two_dvd_bit0).1 dec_trivial
+by { rw [bit1, nat.dvd_add_right two_dvd_bit0, nat.dvd_one], cc }
 
 /-- A natural number `m` divides the sum `m + n` if and only if `m` divides `n`.-/
 @[simp] protected lemma dvd_add_self_left {m n : ℕ} :
@@ -971,7 +970,7 @@ exists_congr $ λ d, by rw [mul_right_comm, nat.mul_left_inj hc]
 lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
   a / b + if b ∣ a + 1 then 1 else 0
 | a     0     := by simp
-| 0     1     := rfl
+| 0     1     := by simp
 | 0     (b+2) := have hb2 : b + 2 > 1, from dec_trivial,
   by simp [ne_of_gt hb2, div_eq_of_lt hb2]
 | (a+1) (b+1) := begin
@@ -1182,7 +1181,7 @@ canonically_ordered_semiring.pow_le_pow_of_le_left H
 
 theorem pow_le_pow_of_le_right {x : ℕ} (H : x > 0) {i : ℕ} : ∀ {j}, i ≤ j → x^i ≤ x^j
 | 0        h := by rw eq_zero_of_le_zero h; apply le_refl
-| (succ j) h := (lt_or_eq_of_le h).elim
+| (succ j) h := h.lt_or_eq_dec.elim
   (λhl, by rw [pow_succ', ← nat.mul_one (x^i)]; exact
     nat.mul_le_mul (pow_le_pow_of_le_right $ le_of_lt_succ hl) H)
   (λe, by rw e; refl)
@@ -1394,7 +1393,7 @@ end
 by simp only [exists_prop, ← lt_succ_iff, find_lt_iff]
 
 @[simp] lemma le_find_iff (h : ∃ (n : ℕ), p n) (n : ℕ) : n ≤ nat.find h ↔ ∀ m < n, ¬ p m :=
-by simp_rw [← not_lt, not_iff_comm, not_forall, not_not, find_lt_iff]
+by simp_rw [← not_lt, find_lt_iff, not_exists]
 
 @[simp] lemma lt_find_iff (h : ∃ n : ℕ, p n) (n : ℕ) : n < nat.find h ↔ ∀ m ≤ n, ¬ p m :=
 by simp only [← succ_le_iff, le_find_iff, succ_le_succ_iff]
@@ -1403,7 +1402,7 @@ by simp only [← succ_le_iff, le_find_iff, succ_le_succ_iff]
 by simp [find_eq_iff]
 
 @[simp] lemma find_pos (h : ∃ n : ℕ, p n) : 0 < nat.find h ↔ ¬ p 0 :=
-by rw [pos_iff_ne_zero, not_iff_not, nat.find_eq_zero]
+by rw [pos_iff_ne_zero, ne, nat.find_eq_zero]
 
 theorem find_le (h : ∀ n, q n → p n) (hp : ∃ n, p n) (hq : ∃ n, q n) :
   nat.find hp ≤ nat.find hq :=
@@ -1453,13 +1452,13 @@ begin
       { rintro rfl,
         exact ⟨le_refl _, λ _, hb, λ n hlt hle, (hlt.not_le hle).elim⟩ },
       { rintros ⟨hle, h0, hm⟩,
-        rcases hle.eq_or_lt with rfl|hlt,
+        rcases decidable.eq_or_lt_of_le hle with rfl|hlt,
         exacts [rfl, (hm hlt (le_refl _) hb).elim] } },
     { rw [find_greatest_of_not hb, ihb],
       split,
       { rintros ⟨hle, hP, hm⟩,
         refine ⟨hle.trans b.le_succ, hP, λ n hlt hle, _⟩,
-        rcases hle.eq_or_lt with rfl|hlt',
+        rcases decidable.eq_or_lt_of_le hle with rfl|hlt',
         exacts [hb, hm hlt $ lt_succ_iff.1 hlt'] },
       { rintros ⟨hle, hP, hm⟩,
         refine ⟨lt_succ_iff.1 (hle.lt_of_ne _), hP, λ n hlt hle, hm hlt (hle.trans b.le_succ)⟩,
@@ -1637,7 +1636,7 @@ theorem shiftl'_tt_ne_zero (m) : ∀ {n} (h : n ≠ 0), shiftl' tt m n ≠ 0
 
 /-! ### `size` -/
 
-@[simp] theorem size_zero : size 0 = 0 := rfl
+@[simp] theorem size_zero : size 0 = 0 := by simp [size]
 
 @[simp] theorem size_bit {b n} (h : bit b n ≠ 0) : size (bit b n) = succ (size n) :=
 begin
@@ -1652,7 +1651,8 @@ end
 @[simp] theorem size_bit1 (n) : size (bit1 n) = succ (size n) :=
 @size_bit tt n (nat.bit1_ne_zero n)
 
-@[simp] theorem size_one : size 1 = 1 := by apply size_bit1 0
+@[simp] theorem size_one : size 1 = 1 :=
+show size (bit1 0) = 1, by rw [size_bit1, size_zero]
 
 @[simp] theorem size_shiftl' {b m n} (h : shiftl' b m n ≠ 0) :
   size (shiftl' b m n) = size m + n :=
@@ -1679,8 +1679,7 @@ size_shiftl' (shiftl'_ne_zero_left _ h _)
 theorem lt_size_self (n : ℕ) : n < 2^size n :=
 begin
   rw [← one_shiftl],
-  have : ∀ {n}, n = 0 → n < shiftl 1 (size n) :=
-    λ n e, by subst e; exact dec_trivial,
+  have : ∀ {n}, n = 0 → n < shiftl 1 (size n), { simp },
   apply binary_rec _ _ n, {apply this rfl},
   intros b n IH,
   by_cases bit b n = 0, {apply this h},
@@ -1693,9 +1692,9 @@ theorem size_le {m n : ℕ} : size m ≤ n ↔ m < 2^n :=
 begin
   rw [← one_shiftl], revert n,
   apply binary_rec _ _ m,
-  { intros n h, apply zero_le },
+  { intros n h, simp },
   { intros b m IH n h,
-    by_cases e : bit b m = 0, { rw e, apply zero_le },
+    by_cases e : bit b m = 0, { simp [e] },
     rw [size_bit e],
     cases n with n,
     { exact e.elim (eq_zero_of_le_zero (le_of_lt_succ h)) },
@@ -1704,14 +1703,14 @@ begin
 end⟩
 
 theorem lt_size {m n : ℕ} : m < size n ↔ 2^m ≤ n :=
-by rw [← not_lt, iff_not_comm, not_lt, size_le]
+by rw [← not_lt, decidable.iff_not_comm, not_lt, size_le]
 
 theorem size_pos {n : ℕ} : 0 < size n ↔ 0 < n :=
 by rw lt_size; refl
 
 theorem size_eq_zero {n : ℕ} : size n = 0 ↔ n = 0 :=
 by have := @size_pos n; simp [pos_iff_ne_zero] at this;
-   exact not_iff_not.1 this
+   exact decidable.not_iff_not.1 this
 
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=
 le_antisymm
@@ -1732,7 +1731,7 @@ begin
   { refine is_false (mt _ h), intros hn k h, apply hn },
   by_cases p : P n (lt_succ_self n),
   { exact is_true (λ k h',
-     (lt_or_eq_of_le $ le_of_lt_succ h').elim (h _)
+     (le_of_lt_succ h').lt_or_eq_dec.elim (h _)
        (λ e, match k, e, h' with _, rfl, h := p end)) },
   { exact is_false (mt (λ hn, hn _ _) p) }
 end

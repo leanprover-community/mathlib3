@@ -203,7 +203,7 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 lemma monomial_single_add : monomial (single n e + s) a = (X n ^ e * monomial s a) :=
 by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
-lemma single_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
+lemma monomial_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
   monomial (single s n) a = C a * (X s)^n :=
 by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
@@ -218,7 +218,7 @@ add_monoid_algebra.single_mul_single
 @[simp] lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : R) = 0 :=
 single_zero
 
-@[simp] lemma sum_monomial  {A : Type*} [add_comm_monoid A]
+@[simp] lemma sum_monomial_eq  {A : Type*} [add_comm_monoid A]
   {u : σ →₀ ℕ} {r : R} {b : (σ →₀ ℕ) → R → A} (w : b u 0 = 0) :
   sum (monomial u r) b = b u r :=
 sum_single_index w

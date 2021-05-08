@@ -105,7 +105,6 @@ end
 
 -- I'm unsure whether this should be a `simp` lemma: I will build both with
 -- and without just to be sure!
-@[simp]
 lemma pochhammer_nat_eq_desc_fac (n : ℕ) : ∀ k, (pochhammer ℕ k).eval (n + 1) = nat.desc_fac n k
 | 0 := by erw [eval_one]; refl
 | (t + 1) := begin

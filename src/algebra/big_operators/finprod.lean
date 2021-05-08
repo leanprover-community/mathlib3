@@ -205,7 +205,7 @@ open_locale big_operators
   ∏ᶠ (h : a ∈ s), f a = mul_indicator s f a :=
 by convert finprod_eq_if
 
-@[simp, to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α):
+@[simp, to_additive] lemma finprod_mem_mul_support (f : α → M) (a : α) :
   ∏ᶠ (h : f a ≠ 1), f a = f a :=
 by rw [← mem_mul_support, finprod_eq_mul_indicator_apply, mul_indicator_mul_support]
 
@@ -764,6 +764,7 @@ end
 @[to_additive] lemma finprod_curry₂ {γ : Type*} (f : α × β × γ → M) (h : (mul_support f).finite) :
   ∏ᶠ abc, f abc = ∏ᶠ a b c, f (a, b, c) :=
 by { rw finprod_curry f h, congr, ext a, rw finprod_curry, simp [h], }
+
 @[to_additive]
 lemma finprod_dmem {s : set α} [decidable_pred (∈ s)] (f : (Π (a : α), a ∈ s → M)) :
   ∏ᶠ (a : α) (h : a ∈ s), f a h = ∏ᶠ (a : α) (h : a ∈ s), if h' : a ∈ s then f a h' else 1 :=

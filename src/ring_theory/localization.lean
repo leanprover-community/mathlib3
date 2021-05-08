@@ -82,6 +82,7 @@ variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
           {P : Type*} [comm_ring P]
 
 open function
+open_locale big_operators
 
 set_option old_structure_cmd true
 
@@ -1035,7 +1036,7 @@ section integer_normalization
 
 variables {f : localization_map M S}
 
-open finsupp polynomial
+open polynomial
 open_locale classical
 
 /-- `coeff_integer_normalization p` gives the coefficients of the polynomial
@@ -1048,6 +1049,11 @@ then classical.some (classical.some_spec
       (finset.mem_image.mpr ⟨i, hi, rfl⟩))
 else 0
 
+lemma coeff_integer_normalization_of_not_mem_support (p : polynomial f.codomain) (i : ℕ)
+  (h : coeff p i = 0) : coeff_integer_normalization p i = 0 :=
+by simp only [coeff_integer_normalization, h, mem_support_iff, eq_self_iff_true, not_true,
+  ne.def, dif_neg, not_false_iff]
+
 lemma coeff_integer_normalization_mem_support (p : polynomial f.codomain) (i : ℕ)
   (h : coeff_integer_normalization p i ≠ 0) : i ∈ p.support :=
 begin
@@ -1057,13 +1063,15 @@ end
 
 /-- `integer_normalization g` normalizes `g` to have integer coefficients
 by clearing the denominators -/
-noncomputable def integer_normalization (f : localization_map M S) :
-  polynomial f.codomain → polynomial R :=
-λ p, on_finset p.support (coeff_integer_normalization p) (coeff_integer_normalization_mem_support p)
+noncomputable def integer_normalization (f : localization_map M S) (p : polynomial f.codomain) :
+  polynomial R :=
+∑ i in p.support, monomial i (coeff_integer_normalization p i)
 
 @[simp]
 lemma integer_normalization_coeff (p : polynomial f.codomain) (i : ℕ) :
-  (f.integer_normalization p).coeff i = coeff_integer_normalization p i := rfl
+  (f.integer_normalization p).coeff i = coeff_integer_normalization p i :=
+by simp [integer_normalization, coeff_monomial, coeff_integer_normalization_of_not_mem_support]
+  {contextual := tt}
 
 lemma integer_normalization_spec (p : polynomial f.codomain) :
   ∃ (b : M), ∀ i, f.to_map ((f.integer_normalization p).coeff i) = f.to_map b * p.coeff i :=
@@ -1078,13 +1086,13 @@ begin
       (finset.mem_image.mpr ⟨i, hi, rfl⟩)) },
   { convert (_root_.mul_zero (f.to_map _)).symm,
     { exact f.to_ring_hom.map_zero },
-    { exact finsupp.not_mem_support_iff.mp hi } }
+    { exact not_mem_support_iff.mp hi } }
 end
 
 lemma integer_normalization_map_to_map (p : polynomial f.codomain) :
   ∃ (b : M), (f.integer_normalization p).map f.to_map = f.to_map b • p :=
 let ⟨b, hb⟩ := integer_normalization_spec p in
-⟨b, polynomial.ext (λ i, by { rw coeff_map, exact hb i })⟩
+⟨b, polynomial.ext (λ i, by { rw [coeff_map, coeff_smul], exact hb i })⟩
 
 variables {R' : Type*} [comm_ring R']
 
@@ -1163,6 +1171,37 @@ integral_domain_localization (le_non_zero_divisors_of_domain (by simpa only [] u
 end localization_map
 
 section at_prime
+
+namespace localization_map
+
+variables (I : ideal R) [hI : I.is_prime] (f : at_prime S I)
+include hI
+
+lemma at_prime.is_unit_to_map_iff (x : R) :
+  is_unit (f.to_map x) ↔ x ∈ I.prime_compl :=
+⟨λ h hx, (f.is_prime_of_is_prime_disjoint I hI disjoint_compl_left).ne_top $
+  (ideal.map f.to_map I).eq_top_of_is_unit_mem (ideal.mem_map_of_mem hx) h,
+λ h, f.map_units ⟨x, h⟩⟩
+
+lemma at_prime.to_map_mem_maximal_iff (x : R) :
+  f.to_map x ∈ local_ring.maximal_ideal (f.codomain) ↔ x ∈ I :=
+not_iff_not.mp $ by
+simpa only [@local_ring.mem_maximal_ideal (f.codomain), mem_nonunits_iff, not_not]
+  using f.is_unit_to_map_iff I x
+
+lemma at_prime.is_unit_mk'_iff (x : R) (y : I.prime_compl) :
+  is_unit (f.mk' x y) ↔ x ∈ I.prime_compl :=
+⟨λ h hx, (mk'_mem_iff f).mpr ((f.to_map_mem_maximal_iff I x).mpr hx) h,
+λ h, is_unit_iff_exists_inv.mpr ⟨f.mk' y ⟨x, h⟩, f.mk'_mul_mk'_eq_one ⟨x, h⟩ y⟩⟩
+
+lemma at_prime.mk'_mem_maximal_iff (x : R) (y : I.prime_compl) :
+  f.mk' x y ∈ local_ring.maximal_ideal (f.codomain) ↔ x ∈ I :=
+not_iff_not.mp $ by
+simpa only [@local_ring.mem_maximal_ideal (f.codomain), mem_nonunits_iff, not_not]
+  using f.is_unit_mk'_iff I x y
+
+end localization_map
+
 namespace localization
 
 local attribute [instance] classical.prop_decidable

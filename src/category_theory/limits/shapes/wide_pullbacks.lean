@@ -249,11 +249,11 @@ variables {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
 
 @[simp]
 lemma lift_π (j : J) : lift f fs w ≫ (π j : wide_pullback _ _ arrows ⟶ _) = fs _ :=
-by {simp, refl}
+by { simp, refl }
 
 @[simp]
 lemma lift_base : lift f fs w ≫ base = f :=
-by {simp, refl}
+by { simp, refl }
 
 lemma eq_lift_of_comp_eq (g : X ⟶ wide_pullback _ _ arrows) :
   (∀ j : J, g ≫ π j = fs j) → g ≫ base = f → g = lift f fs w :=
@@ -317,11 +317,11 @@ variables {X : C} (f : B ⟶ X) (fs : Π (j : J), objs j ⟶ X)
 
 @[simp]
 lemma ι_desc (j : J) : (ι j : _ ⟶ wide_pushout _ _ arrows) ≫ desc f fs w = fs _ :=
-by {simp, refl}
+by { simp, refl }
 
 @[simp]
 lemma head_desc : head ≫ desc f fs w = f :=
-by {simp, refl}
+by { simp, refl }
 
 lemma eq_lift_of_comp_eq (g : wide_pushout _ _ arrows ⟶ X) :
   (∀ j : J, ι j ≫ g = fs j) → head ≫ g = f → g = desc f fs w :=
@@ -335,7 +335,7 @@ begin
 end
 
 lemma hom_eq_lift (g : wide_pushout _ _ arrows ⟶ X) :
-  g = desc (head ≫ g) (λ j, ι j ≫ g) (λ j, by {rw ← category.assoc, simp}) :=
+  g = desc (head ≫ g) (λ j, ι j ≫ g) (λ j, by { rw ← category.assoc, simp }) :=
 begin
   apply eq_lift_of_comp_eq,
   tidy,

@@ -13,33 +13,58 @@ Preparatory lemmas for degree_basic.
 
 noncomputable theory
 
-open finsupp
-
 namespace polynomial
 
 universes u
 variables {R : Type u} {a b : R} {m n : ℕ}
 variables [semiring R] {p q r : polynomial R}
 
-@[simp] lemma C_mul_monomial : C a * monomial n b = monomial n (a * b) :=
-by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
-
-@[simp] lemma monomial_mul_C : monomial n a * C b = monomial n (a * b) :=
-by simp only [←monomial_zero_left, monomial_mul_monomial, add_zero]
+lemma monomial_one_eq_iff [nontrivial R] {i j : ℕ} :
+  (monomial i 1 : polynomial R) = monomial j 1 ↔ i = j :=
+by simp [monomial, monomial_fun, finsupp.single_eq_single_iff]
 
 lemma smul_eq_C_mul (a : R) : a • p = C a * p := by simp [ext_iff]
 
 instance [nontrivial R] : infinite (polynomial R) :=
-infinite.of_injective (λ i, monomial i 1)
+infinite.of_injective (λ i, monomial i 1) $
+λ m n h, by simpa [monomial_one_eq_iff] using h
+
+lemma card_support_le_one_iff_monomial {f : polynomial R} :
+  finset.card f.support ≤ 1 ↔ ∃ n a, f = monomial n a :=
 begin
-  intros m n h,
-  have := (single_eq_single_iff _ _ _ _).mp h,
-  simpa only [and_true, eq_self_iff_true, or_false, one_ne_zero, and_self],
+  split,
+  { assume H,
+    rw finset.card_le_one_iff_subset_singleton at H,
+    rcases H with ⟨n, hn⟩,
+    refine ⟨n, f.coeff n, _⟩,
+    ext i,
+    by_cases hi : i = n,
+    { simp [hi, coeff_monomial] },
+    { have : f.coeff i = 0,
+      { rw ← not_mem_support_iff,
+        exact λ hi', hi (finset.mem_singleton.1 (hn hi')) },
+      simp [this, ne.symm hi, coeff_monomial] } },
+  { rintros ⟨n, a, rfl⟩,
+    rw ← finset.card_singleton n,
+    apply finset.card_le_of_subset,
+    exact support_monomial' _ _ }
 end
 
 lemma ring_hom_ext {S} [semiring S] {f g : polynomial R →+* S}
   (h₁ : ∀ a, f (C a) = g (C a)) (h₂ : f X = g X) : f = g :=
-by { ext, exacts [h₁ _, h₂] }
+begin
+  set f' := f.comp (to_finsupp_iso R).symm.to_ring_hom with hf',
+  set g' := g.comp (to_finsupp_iso R).symm.to_ring_hom with hg',
+  have A : f' = g',
+  { ext,
+    { simp [h₁, ring_equiv.to_ring_hom_eq_coe] },
+    { simpa [ring_equiv.to_ring_hom_eq_coe] using h₂, } },
+  have B : f = f'.comp (to_finsupp_iso R),
+    by { rw [hf', ring_hom.comp_assoc], ext x, simp [ring_equiv.to_ring_hom_eq_coe] },
+  have C : g = g'.comp (to_finsupp_iso R),
+    by { rw [hg', ring_hom.comp_assoc], ext x, simp [ring_equiv.to_ring_hom_eq_coe] },
+  rw [B, C, A]
+end
 
 @[ext] lemma ring_hom_ext' {S} [semiring S] {f g : polynomial R →+* S}
   (h₁ : f.comp C = g.comp C) (h₂ : f X = g X) : f = g :=

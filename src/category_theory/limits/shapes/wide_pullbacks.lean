@@ -234,8 +234,7 @@ limit.π (wide_pullback_shape.wide_cospan _ _ _) option.none
 
 @[simp]
 lemma π_arrow (j : J) : π arrows j ≫ arrows _ = base arrows :=
-by apply (limit.cone (wide_pullback_shape.wide_cospan B objs arrows)).w
-  (wide_pullback_shape.hom.term j)
+by apply limit.w (wide_pullback_shape.wide_cospan _ _ _) (wide_pullback_shape.hom.term j)
 
 variables {arrows}
 
@@ -307,8 +306,7 @@ colimit.ι (wide_pushout_shape.wide_span _ _ _) option.none
 
 @[simp]
 lemma head_ι (j : J) : arrows j ≫ ι arrows j = head arrows :=
-by apply (colimit.cocone (wide_pushout_shape.wide_span B objs arrows)).w
-  (wide_pushout_shape.hom.init j)
+by apply colimit.w (wide_pushout_shape.wide_span _ _ _) (wide_pushout_shape.hom.init j)
 
 variables {arrows}
 

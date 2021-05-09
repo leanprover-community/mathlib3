@@ -305,8 +305,7 @@ lemma preimage_mem_nhds_of_coinduced [topological_space α] [topological_space �
 begin
   rcases mem_nhds_sets_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
   rw mem_nhds_sets_iff,
-  exact ⟨π ⁻¹' V, set.preimage_mono hVs, is_open_preimage_of_coinduced h V_op,
-         by rwa ← hab at mem_V⟩
+  exact ⟨π ⁻¹' V, set.preimage_mono hVs, is_open_preimage_of_coinduced h V_op, mem_V⟩
 end
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}

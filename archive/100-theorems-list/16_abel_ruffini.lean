@@ -3,65 +3,6 @@ import analysis.calculus.local_extr
 
 open polynomial polynomial.gal
 
-lemma nat_degree_poly (a : ℕ) (b : ℤ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).nat_degree = 5 :=
-begin
-  have h05 : 0 < 5 := nat.zero_lt_bit1 2,
-  have h15 : 1 < 5 := one_lt_bit1.mpr zero_lt_two,
-  apply le_antisymm,
-  { rw nat_degree_le_iff_coeff_eq_zero,
-    intros n hn,
-    rw [coeff_add, coeff_sub, coeff_X_pow, if_neg (ne_of_gt hn),
-        coeff_C_mul, coeff_X, if_neg (ne_of_lt (h15.trans hn)), mul_zero,
-        coeff_C, if_neg (ne_of_gt (h05.trans hn)), sub_zero, add_zero] },
-  { apply le_nat_degree_of_ne_zero,
-    rw [coeff_add, coeff_sub, coeff_X_pow, if_pos rfl,
-        coeff_C_mul, coeff_X, if_neg (ne_of_lt h15), mul_zero,
-        coeff_C, if_neg (ne_of_gt h05), sub_zero, add_zero],
-    exact one_ne_zero },
-end
-
-lemma irreducible_poly (a : ℕ) (b : ℤ) (p : ℕ)
-  (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b)) :
-  irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) :=
-begin
-  have h05 : 0 < 5 := nat.zero_lt_bit1 2,
-  have h15 : 1 < 5 := one_lt_bit1.mpr zero_lt_two,
-  let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
-  change irreducible q,
-  let r : polynomial ℤ := X ^ 5 - C ↑a * X + C b,
-  have r_map : r.map (int.cast_ring_hom ℚ) = q,
-  { rw [map_add, map_sub, map_mul, map_pow, map_X, map_C, map_C],
-    refl },
-  have r_nat_degree : r.nat_degree = 5,
-  { rw [←nat_degree_map' _ r, r_map, nat_degree_poly],
-    exact int.cast_injective },
-  have r_leading_coeff : r.leading_coeff = 1,
-  { rw [leading_coeff, r_nat_degree, coeff_add, coeff_sub, coeff_X_pow_self, coeff_C_mul, coeff_X,
-        if_neg (ne_of_lt h15), mul_zero, sub_zero, coeff_C, if_neg (ne_of_gt h05), add_zero] },
-  have r_primitive : r.is_primitive := monic.is_primitive r_leading_coeff,
-  have r_degree : r.degree = ↑5 := by rw [degree_eq_nat_degree r_primitive.ne_zero, r_nat_degree],
-  rw [←r_map, ←is_primitive.int.irreducible_iff_irreducible_map_cast r_primitive],
-  apply irreducible_of_eisenstein_criterion,
-  { rwa [ideal.span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero),
-      int.prime_iff_nat_abs_prime] },
-  { rw [r_leading_coeff, ideal.mem_span_singleton],
-    exact λ h, hp.ne_one (int.coe_nat_inj ((int.eq_one_of_dvd_one (int.coe_nat_nonneg p)) h)) },
-  { intros n hn,
-    rw ideal.mem_span_singleton,
-    rw [r_degree, with_bot.coe_lt_coe] at hn,
-    interval_cases n with hn,
-    all_goals { rw [coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C] },
-    all_goals { norm_num },
-    { exact hpb },
-    { exact int.coe_nat_dvd.mpr hpa } },
-  { rw [r_degree, ←with_bot.coe_zero, with_bot.coe_lt_coe],
-    norm_num },
-  { rw [coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C],
-    norm_num,
-    rwa [pow_two, ideal.span_singleton_mul_span_singleton, ←pow_two, ideal.mem_span_singleton] },
-  { exact is_primitive_iff_is_unit_of_C_dvd.mp r_primitive },
-end
-
 lemma tada_aux {α : Type*} [linear_order α] {s t : finset α}
   (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) : s.card ≤ t.card + 1 :=
 begin
@@ -111,90 +52,196 @@ begin
   simp_rw [aeval_def, ←eval_map, polynomial.deriv, derivative_map],
 end
 
-lemma real_roots_poly_le (a : ℕ) (b : ℤ) :
-  fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) ≤ 3 :=
+local attribute [instance] splits_ℚ_ℂ
+
+lemma nat_degree_polynomial (a b : ℕ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).nat_degree = 5 :=
+begin
+  have h05 : 0 < 5 := nat.zero_lt_bit1 2,
+  have h15 : 1 < 5 := one_lt_bit1.mpr zero_lt_two,
+  apply le_antisymm,
+  { rw nat_degree_le_iff_coeff_eq_zero,
+    intros n hn,
+    rw [coeff_add, coeff_sub, coeff_X_pow, if_neg (ne_of_gt hn),
+        coeff_C_mul, coeff_X, if_neg (ne_of_lt (h15.trans hn)), mul_zero,
+        coeff_C, if_neg (ne_of_gt (h05.trans hn)), sub_zero, add_zero] },
+  { apply le_nat_degree_of_ne_zero,
+    rw [coeff_add, coeff_sub, coeff_X_pow, if_pos rfl,
+        coeff_C_mul, coeff_X, if_neg (ne_of_lt h15), mul_zero,
+        coeff_C, if_neg (ne_of_gt h05), sub_zero, add_zero],
+    exact one_ne_zero },
+end
+
+lemma degree_polynomial (a b : ℕ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).degree = ↑5 :=
+(degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_bit1 2)).mpr (nat_degree_polynomial a b)
+
+lemma monic_polynomial (a b : ℕ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).leading_coeff = 1 :=
+by rw [leading_coeff, nat_degree_polynomial, coeff_add, coeff_sub, coeff_X_pow_self, coeff_C,
+  if_neg ((nat.zero_ne_bit1 2).symm), add_zero, ←pow_one (X : polynomial ℤ), coeff_C_mul_X,
+  if_neg (nat.one_ne_bit1 two_ne_zero).symm, sub_zero]
+
+lemma primitive_polynomial (a b : ℕ) : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).is_primitive :=
+polynomial.monic.is_primitive (monic_polynomial a b)
+
+lemma irreducible_polynomial (a b p : ℕ) (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b)
+  (hp2b : ¬ (p ^ 2 ∣ b)) :
+  irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ) :=
+begin
+  let q := (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ),
+  apply irreducible_of_eisenstein_criterion,
+  { rwa [ideal.span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero),
+      int.prime_iff_nat_abs_prime] },
+  { rw [monic_polynomial, ideal.mem_span_singleton, ←int.coe_nat_one, int.coe_nat_dvd, nat.dvd_one],
+    exact hp.ne_one },
+  { intros n hn,
+    rw ideal.mem_span_singleton,
+    rw [degree_polynomial, with_bot.coe_lt_coe] at hn,
+    interval_cases n with hn,
+    all_goals { rw [coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C] },
+    all_goals { norm_num },
+    { exact int.coe_nat_dvd.mpr hpb },
+    { exact int.coe_nat_dvd.mpr hpa } },
+  { rw [degree_polynomial, ←with_bot.coe_zero, with_bot.coe_lt_coe],
+    norm_num },
+  { rw [coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C],
+    norm_num,
+    rwa [pow_two, ideal.span_singleton_mul_span_singleton, ←pow_two, ideal.mem_span_singleton,
+      ←int.coe_nat_pow, int.coe_nat_dvd] },
+  { exact primitive_polynomial a b },
+end
+
+lemma irreducible_polynomial' (a b p : ℕ) (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b)
+  (hp2b : ¬ (p ^ 2 ∣ b)) :
+  irreducible ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (int.cast_ring_hom ℚ)) :=
+begin
+  let q := (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ),
+  have q_nat_degree : q.nat_degree = 5,
+  { exact nat_degree_polynomial a b },
+  have q_degree : q.degree = ↑5,
+  { exact (degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_bit1 2)).mpr q_nat_degree },
+  have q_monic : q.leading_coeff = 1,
+  { rw [leading_coeff, q_nat_degree, coeff_add, coeff_sub, coeff_X_pow_self, coeff_C,
+        if_neg ((nat.zero_ne_bit1 2).symm), add_zero, ←pow_one (X : polynomial ℤ), coeff_C_mul_X,
+        if_neg (nat.one_ne_bit1 two_ne_zero).symm, sub_zero] },
+  have q_primitive : q.is_primitive,
+  { exact polynomial.monic.is_primitive q_monic },
+  rw ← is_primitive.int.irreducible_iff_irreducible_map_cast q_primitive,
+  exact irreducible_polynomial a b p hp hpa hpb hp2b,
+end
+
+lemma real_roots_polynomial_le (a b : ℕ) :
+  fintype.card (((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ)).root_set ℝ) ≤ 3 :=
 begin
   rw [←one_mul (X ^ 5), ←C_1],
   refine (tada _).trans (nat.succ_le_succ ((tada _).trans (nat.succ_le_succ _))),
-  simp_rw [derivative_add, derivative_sub, derivative_C_mul_X_pow, derivative_C_mul,
-    derivative_X, derivative_one, mul_zero, sub_zero, derivative_C, derivative_zero, add_zero],
-  rw [fintype.card_le_one_iff_subsingleton, set.subsingleton_coe, root_set_C_mul_X_pow],
+  rw [derivative_map, derivative_map, derivative_add, derivative_add, derivative_sub,
+      derivative_sub, derivative_C_mul_X_pow, derivative_C_mul_X_pow, derivative_C_mul,
+      derivative_C_mul, derivative_X, derivative_one, mul_zero, sub_zero, derivative_C,
+      derivative_zero, add_zero, map_mul, map_pow, map_C, map_X,
+      fintype.card_le_one_iff_subsingleton, set.subsingleton_coe, root_set_C_mul_X_pow],
   { exact set.subsingleton_singleton },
   { exact ne_of_gt zero_lt_three },
   { norm_num },
 end
 
-lemma real_roots_poly_ge (a : ℕ) (b : ℤ) (hab : abs b < a) :
-  2 ≤ fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ) :=
+lemma real_roots_polynomial_ge (a b : ℕ) (hab : b < a) :
+  2 ≤ fintype.card (((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ)).root_set ℝ) :=
 begin
-  have key : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) ≠ 0 :=
-  λ h, nat.zero_ne_bit1 2 (by rw [←@nat_degree_zero ℚ, ←h, nat_degree_poly]),
-  let f : ℝ → ℝ := λ x, aeval x (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ),
+  let q := (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ),
+  have q_ne_zero : q ≠ 0,
+  { sorry },
+  let f : ℝ → ℝ := λ x, aeval x q,
   suffices : ∃ x y : ℝ, x ≠ y ∧ f x = 0 ∧ f y = 0,
   { obtain ⟨x, y, hxy, hx, hy⟩ := this,
-    have key : ↑({x, y} : finset ℝ) ⊆ (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℝ,
+    have key : ↑({x, y} : finset ℝ) ⊆ q.root_set ℝ,
     { rw [finset.coe_insert, finset.coe_singleton, set.insert_subset, set.singleton_subset_iff],
-      exact ⟨by rwa mem_root_set key, by rwa mem_root_set key⟩ },
+      exact ⟨by rwa mem_root_set q_ne_zero, by rwa mem_root_set q_ne_zero⟩ },
     replace key := fintype.card_le_of_embedding (set.embedding_of_subset _ _ key),
     rwa [fintype.card_coe, finset.card_insert_of_not_mem, finset.card_singleton] at key,
     rwa finset.mem_singleton },
   have f_cont : continuous f := polynomial.continuous_aeval _,
-  have f_def : ∀ x : ℝ, f x = x ^ 5 - a * x + b,
-  { simp [f],
-    /-intro x,
-    dsimp only [f],
-    rw [aeval_add, aeval_C, alg_hom.map_sub, aeval_X_pow, aeval_mul, aeval_C, aeval_X],
-    rw [ring_hom.map_nat_cast, ring_hom.map_int_cast]-/ },
-  have hx : f (-1 : ℝ) ≥ 0,
-  { rw [f_def, mul_neg_one, sub_neg_eq_add, neg_one_pow_eq_pow_mod_two],
-    sorry },
+  have f_def : ∀ x : ℝ, f x = x ^ 5 - a * x + b := by simp [f],
+  have hx : f 0 ≥ 0,
+  { sorry },
   have hy : f (1 : ℝ) ≤ 0,
-  { rw [f_def, mul_one, one_pow, sub_add_eq_add_sub, sub_le, sub_zero],
-    sorry },
+  { sorry },
+  have hz : f a ≥ 0,
+  { sorry },
   sorry,
 end
 
-lemma complex_roots_poly (a : ℕ) (b : ℤ) (h : (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).separable) :
-  fintype.card ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ).root_set ℂ) = 5 :=
+lemma complex_roots_polynomial (a b : ℕ)
+  (h : ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ)).separable) :
+  fintype.card (((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ)).root_set ℂ) = 5 :=
 begin
   simp_rw [root_set_def, fintype.card_coe],
-  rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots, nat_degree_poly],
+  rw [multiset.to_finset_card_of_nodup, splits_iff_card_roots.mp _,
+      nat_degree_map', nat_degree_map', nat_degree_polynomial],
+  { exact (algebra_map ℤ ℚ).injective_iff.mpr
+      (λ a ha, int.cast_inj.mp (ha.trans ((algebra_map ℤ ℚ).map_zero).symm)) },--injective
+  { exact (algebra_map ℚ ℂ).injective },
   { exact is_alg_closed.splits_codomain _ },
-  { exact nodup_roots ((separable_map _).mpr h) },
+  { exact nodup_roots h.map },
 end
 
-local attribute [instance] splits_ℚ_ℂ
-
-lemma gal_poly (a : ℕ) (b : ℤ) (hab : abs b < a)
-  (q_irred : irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ)) :
-  function.bijective (gal_action_hom (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) ℂ) :=
+lemma gal_polynomial (a b : ℕ) (hab : b < a)
+  (q_irred : irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ))
+  (q_irred' : irreducible ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ))) :
+  function.bijective
+    (gal_action_hom (((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ))) ℂ) :=
 begin
-  let q : polynomial ℚ := X ^ 5 - C ↑a * X + C ↑b,
-  apply gal_action_hom_bijective_of_prime_degree' q_irred,
-  { rw nat_degree_poly,
-    norm_num },
-  { rw [complex_roots_poly a b q_irred.separable, nat.succ_le_succ_iff],
-    exact (real_roots_poly_le a b).trans (nat.le_succ 3) },
-  { simp_rw [complex_roots_poly a b q_irred.separable, nat.succ_le_succ_iff],
-    exact real_roots_poly_ge a b hab },
+  apply gal_action_hom_bijective_of_prime_degree' q_irred',
+  { rw [nat_degree_map', nat_degree_polynomial],
+    norm_num,
+    exact (algebra_map ℤ ℚ).injective_iff.mpr
+      (λ a ha, int.cast_inj.mp (ha.trans ((algebra_map ℤ ℚ).map_zero).symm)) },--injective
+  { rw [complex_roots_polynomial a b q_irred'.separable, nat.succ_le_succ_iff],
+    exact (real_roots_polynomial_le a b).trans (nat.le_succ 3) },
+  { simp_rw [complex_roots_polynomial a b q_irred'.separable, nat.succ_le_succ_iff],
+    exact real_roots_polynomial_ge a b hab },
+end
+
+theorem not_solvable_poly_aux (x : ℂ) (a b p : ℕ) (hab : b < a)
+  (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b) (hp2b : ¬ (p ^ 2 ∣ b))
+  (hx : aeval x (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ) = 0) :
+  ¬ is_solvable_by_rad ℚ x :=
+begin
+  let q := (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ),
+  have q_irred : irreducible q,
+  { exact irreducible_polynomial a b p hp hpa hpb hp2b },
+  let r := q.map (algebra_map ℤ ℚ),
+  have r_irred : irreducible r,
+  { exact irreducible_polynomial' a b p hp hpa hpb hp2b },
+  have r_aeval : aeval x r = 0,
+  { rwa [aeval_map] },
+  apply solvable_by_rad.is_solvable_contrapositive r_irred r_aeval,
+  introI h,
+  refine equiv.perm.not_solvable _ (le_of_eq _)
+    (solvable_of_surjective (gal_polynomial a b hab q_irred r_irred).2),
+  rw [cardinal.fintype_card, complex_roots_polynomial a b r_irred.separable],
+  rw [nat.cast_bit1, nat.cast_bit0, nat.cast_one],
 end
 
 theorem not_solvable_poly (x : ℂ) (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b))
-  (hx : aeval x (X ^ 5 - C ↑a * X + C ↑b : polynomial ℚ) = 0) :
+  (hx : aeval x (X ^ 5 - C ↑a * X + C b : polynomial ℤ) = 0) :
   ¬ is_solvable_by_rad ℚ x :=
 begin
-  have q_irred := irreducible_poly a b p hp hpa hpb hp2b,
-  apply solvable_by_rad.is_solvable_contrapositive q_irred hx,
-  introI h,
-  have key := solvable_of_surjective (gal_poly a b hab q_irred).2,
-  refine equiv.perm.not_solvable _ _ key,
-  rw [cardinal.fintype_card, complex_roots_poly a b q_irred.separable],
-  apply le_of_eq,
-  sorry,
+  let y := x * b.sign,
+  suffices : ¬ is_solvable_by_rad ℚ y,
+  { exact λ h, this (is_solvable_by_rad.mul x b.sign h ((congr_arg (is_solvable_by_rad ℚ)
+      (ring_hom.map_int_cast (algebra_map ℚ ℂ) b.sign)).mp (is_solvable_by_rad.base b.sign))) },
+  refine not_solvable_poly_aux y a b.nat_abs p _ hp hpa _ _ _,
+  { rwa [←int.coe_nat_lt, ←int.abs_eq_nat_abs] },
+  { rwa [←int.coe_nat_dvd, int.dvd_nat_abs] },
+  { rwa [←int.coe_nat_dvd, int.dvd_nat_abs, int.coe_nat_pow] },
+  { rw [aeval_add, alg_hom.map_sub, aeval_mul, aeval_C, aeval_C, aeval_X, aeval_X_pow] at hx ⊢,
+    rw [←int.mul_sign, mul_pow, ←mul_assoc, ring_hom.map_mul, ring_hom.eq_int_cast _ b.sign],
+    suffices : (b.sign : ℂ) ^ 5 = b.sign,
+    { rw [this, ←sub_mul, ←add_mul, hx, zero_mul] },
+    sorry },
 end
 
-theorem not_solvable_poly' (x : ℂ) (hx : aeval x (X ^ 5 - 4 * X + 2 : polynomial ℚ) = 0) :
+theorem not_solvable_poly' (x : ℂ) (hx : aeval x (X ^ 5 - 4 * X + 2 : polynomial ℤ) = 0) :
   ¬ is_solvable_by_rad ℚ x :=
 begin
   apply not_solvable_poly x 4 2 2,
@@ -203,6 +250,6 @@ begin
   { norm_num },
   { norm_num },
   { norm_num },
-  { rw [C_eq_nat_cast, C_eq_int_cast, ←hx],
-    norm_cast },
+  { rw ← hx,
+    simp },
 end

@@ -1268,15 +1268,7 @@ lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
 
 @[to_additive]
 lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹*x ∈ f.ker :=
-begin
-  rw [f.mem_ker, f.map_mul, f.map_inv],
-  split,
-  { intro h,
-    rw h,
-    exact inv_mul_self (f y) },
-  { intro h,
-    convert _root_.congr_arg (λ z : N, (f y)*z) h ; simp }
-end
+by rw [f.mem_ker, f.map_mul, f.map_inv, inv_mul_eq_one, eq_comm]
 
 @[to_additive]
 instance decidable_mem_ker [decidable_eq N] (f : G →* N) :

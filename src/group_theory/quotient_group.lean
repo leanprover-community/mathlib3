@@ -91,16 +91,8 @@ lemma mk'_eq_mk'_iff {x y : G} :  mk' N x = mk' N y ↔  x⁻¹*y ∈ N :=
 quotient_group.eq
 
 @[to_additive]
-lemma mk'_eq_mk'_iff' {x y : G} :  mk' N x = mk' N y ↔  y*x⁻¹ ∈ N :=
-begin
-  rw mk'_eq_mk'_iff,
-  split,
-  { intro h,
-    simpa using nN.conj_mem _ h x },
-  { intro h,
-    convert nN.conj_mem _ h x⁻¹ using 1,
-    rw [mul_assoc, inv_inv, mul_assoc y, mul_left_inv, mul_one] }
-end
+lemma mk'_eq_mk'_iff' {x y : G} : mk' N x = mk' N y ↔ y * x⁻¹ ∈ N :=
+by rw [mk'_eq_mk'_iff, nN.mem_comm_iff]
 
 omit nN
 
@@ -112,12 +104,7 @@ by rw [quotient_add_group.mk'_eq_mk'_iff', sub_eq_add_neg]
 lemma _root_.quotient_add_group.mk'_eq_mk'_iff_sub' {G : Type*} [add_group G]
   [H : add_subgroup G] [H.normal] {x y : G} :
 quotient_add_group.mk' H x = quotient_add_group.mk' H y ↔ x - y ∈ H :=
-begin
-  rw [quotient_add_group.mk'_eq_mk'_iff'],
-  split ; intro h ; replace h := H.neg_mem h,
-  { rwa [neg_add_rev, neg_neg, ← sub_eq_add_neg] at h },
-  { rwa [sub_eq_add_neg, neg_add_rev, neg_neg] at h },
-end
+by rw [eq_comm, quotient_add_group.mk'_eq_mk'_iff_sub]
 
 include nN
 

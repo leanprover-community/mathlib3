@@ -1210,21 +1210,25 @@ end powers
 
 end summable_family
 
-section field
+section inversion
 
-variables [linear_ordered_add_comm_group Γ] [field R]
+variables [linear_ordered_add_comm_group Γ]
 
-lemma field_aux (x : hahn_series Γ R) (x0 : x ≠ 0) :
-  0 < add_val Γ R (1 - C ((x.coeff x.order)⁻¹) * (single (- x.order) 1) * x) :=
+section integral_domain
+variable [integral_domain R]
+
+lemma unit_aux (x : hahn_series Γ R) {r : R} (hr : r * x.coeff x.order = 1) :
+  0 < add_val Γ R (1 - C r * (single (- x.order) 1) * x) :=
 begin
   have h10 : (1 : R) ≠ 0 := one_ne_zero,
+  have x0 : x ≠ 0 := ne_zero_of_coeff_ne_zero (right_ne_zero_of_mul_eq_one hr),
   refine lt_of_le_of_ne ((add_val Γ R).map_le_sub (ge_of_eq (add_val Γ R).map_one) _) _,
   { simp only [add_valuation.map_mul],
     rw [add_val_apply_of_ne x0, add_val_apply_of_ne (single_ne_zero h10),
       add_val_apply_of_ne _, order_C, order_single h10, with_top.coe_zero, zero_add,
       ← with_top.coe_add, neg_add_self, with_top.coe_zero],
     { exact le_refl 0 },
-    { exact C_ne_zero (inv_ne_zero (coeff_order_ne_zero x0)) } },
+    { exact C_ne_zero (left_ne_zero_of_mul_eq_one hr) } },
   { rw [add_val_apply, ← with_top.coe_zero],
     split_ifs,
     { apply with_top.coe_ne_top },
@@ -1232,22 +1236,43 @@ begin
     intro con,
     apply coeff_order_ne_zero h,
     rw [← con, mul_assoc, sub_coeff, one_coeff, if_pos rfl, C_mul_eq_smul, smul_coeff, smul_eq_mul,
-      ← add_neg_self x.order, single_mul_coeff_add, one_mul,
-      inv_mul_cancel (coeff_order_ne_zero x0), sub_self] }
+      ← add_neg_self x.order, single_mul_coeff_add, one_mul, hr, sub_self] }
 end
 
-instance : field (hahn_series Γ R) :=
+lemma is_unit_iff {x : hahn_series Γ R} :
+  is_unit x ↔ is_unit (x.coeff x.order) :=
+begin
+  split,
+  { rintro ⟨⟨u, i, ui, iu⟩, rfl⟩,
+    refine is_unit_of_mul_eq_one (u.coeff u.order) (i.coeff i.order)
+      ((mul_coeff_order_add_order (left_ne_zero_of_mul_eq_one ui)
+      (right_ne_zero_of_mul_eq_one ui)).symm.trans _),
+    rw [ui, one_coeff, if_pos],
+    rw [← order_mul (left_ne_zero_of_mul_eq_one ui)
+      (right_ne_zero_of_mul_eq_one ui), ui, order_one] },
+  { rintro ⟨⟨u, i, ui, iu⟩, h⟩,
+    rw [units.coe_mk] at h,
+    rw h at iu,
+    have h := summable_family.one_sub_self_mul_hsum_powers (unit_aux x iu),
+    rw [sub_sub_cancel] at h,
+    exact is_unit_of_mul_is_unit_right (is_unit_of_mul_eq_one _ _ h) },
+end
+
+end integral_domain
+
+instance [field R] : field (hahn_series Γ R) :=
 { inv := λ x, if x0 : x = 0 then 0 else (C (x.coeff x.order)⁻¹ * (single (-x.order)) 1 *
-      (summable_family.powers _ (field_aux x x0)).hsum),
+      (summable_family.powers _ (unit_aux x (inv_mul_cancel (coeff_order_ne_zero x0)))).hsum),
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ x x0, begin
     refine (congr rfl (dif_neg x0)).trans _,
-    have h := summable_family.one_sub_self_mul_hsum_powers (field_aux x x0),
+    have h := summable_family.one_sub_self_mul_hsum_powers
+      (unit_aux x (inv_mul_cancel (coeff_order_ne_zero x0))),
     rw [sub_sub_cancel] at h,
     rw [← mul_assoc, mul_comm x, h],
   end,
   .. hahn_series.integral_domain }
 
-end field
+end inversion
 
 end hahn_series

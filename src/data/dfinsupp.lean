@@ -163,7 +163,7 @@ def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i)
 
 instance is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
   is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
+(eval_add_monoid_hom i).is_add_monoid_hom
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩

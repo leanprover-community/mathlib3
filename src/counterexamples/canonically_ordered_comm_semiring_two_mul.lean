@@ -84,7 +84,6 @@ instance csrN2 : comm_semiring (ℕ × zmod 2) := by apply_instance
 
 instance csrN2_1 : add_cancel_comm_monoid (ℕ × zmod 2) :=
 { add_left_cancel := λ a b c h, (add_right_inj a).mp h,
-  add_right_cancel := λ a b c h, (add_left_inj b).mp h,
   ..Nxzmod_2.csrN2 }
 
 /-- A strict inequality forces the first components to be different. -/

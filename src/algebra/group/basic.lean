@@ -183,6 +183,10 @@ lemma one_inv : 1⁻¹ = (1 : G) :=
 inv_eq_of_mul_eq_one (one_mul 1)
 
 @[to_additive]
+lemma div_one (a : G) : a / 1 = a :=
+by { rw [div_eq_mul_inv, one_inv], exact mul_one a }
+
+@[to_additive]
 theorem left_inverse_inv (G) [group G] :
   function.left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) :=
 inv_inv

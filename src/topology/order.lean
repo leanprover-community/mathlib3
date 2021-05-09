@@ -300,8 +300,8 @@ lemma is_open_preimage_of_coinduced [topological_space α] [topological_space β
 by rwa h at hs
 
 lemma preimage_mem_nhds_of_coinduced [topological_space α] [topological_space β] {π : α → β}
-  (h : ‹topological_space β› = topological_space.coinduced π ‹_›) {s : set β} {b : β}
-  {a : α} (hab : π a = b) (hs : s ∈ 𝓝 b) : π ⁻¹' s ∈ 𝓝 a :=
+  (h : ‹topological_space β› = topological_space.coinduced π ‹_›) {s : set β}
+  {a : α} (hs : s ∈ 𝓝 (π a)) : π ⁻¹' s ∈ 𝓝 a :=
 begin
   rcases mem_nhds_sets_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
   rw mem_nhds_sets_iff,

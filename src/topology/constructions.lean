@@ -70,7 +70,7 @@ is_open_preimage_of_coinduced rfl h
 
 lemma quotient.preimage_mem_nhds [topological_space α] [s : setoid α]
   {V : set $ quotient s} {q : quotient s}
-  {a : α} (hab : quotient.mk a = q) (hs : V ∈ 𝓝 q) : quotient.mk ⁻¹' V ∈ 𝓝 a :=
+  {a : α} (hs : V ∈ 𝓝 (quotient.mk a)) : quotient.mk ⁻¹' V ∈ 𝓝 a :=
 preimage_mem_nhds_of_coinduced rfl hab hs
 
 /-- The image of a dense set under `quotient.mk` is a dense set. -/

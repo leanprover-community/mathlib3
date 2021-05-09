@@ -250,11 +250,11 @@ variables (arrows)
 variables {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
   (w : ∀ j, fs j ≫ arrows j = f)
 
-@[simp]
+@[simp, reassoc]
 lemma lift_π (j : J) : lift f fs w ≫ π arrows j = fs _ :=
 by { simp, refl }
 
-@[simp]
+@[simp, reassoc]
 lemma lift_base : lift f fs w ≫ base arrows = f :=
 by { simp, refl }
 
@@ -323,11 +323,11 @@ variables (arrows)
 variables {X : C} (f : B ⟶ X) (fs : Π (j : J), objs j ⟶ X)
   (w : ∀ j, arrows j ≫ fs j = f)
 
-@[simp]
+@[simp, reassoc]
 lemma ι_desc (j : J) : ι arrows j ≫ desc f fs w = fs _ :=
 by { simp, refl }
 
-@[simp]
+@[simp, reassoc]
 lemma head_desc : head arrows ≫ desc f fs w = f :=
 by { simp, refl }
 

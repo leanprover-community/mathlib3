@@ -381,6 +381,12 @@ lemma mul_lt_mul_left' [left_cancel_semigroup α] [has_mul_le_mul_left α] (h : 
 lt_of_le_of_ne (mul_le_mul_left' h.le c)
   (λ k, lt_irrefl a (h.trans_le ((mul_right_inj c).mp k.symm).le))
 
+@[to_additive add_lt_add_right]
+lemma mul_lt_mul_right' [right_cancel_semigroup α] [has_mul_le_mul_right α] (h : a < b) (c : α) :
+  a * c < b * c :=
+lt_of_le_of_ne (mul_le_mul_right' h.le c)
+  (λ k, lt_irrefl a (h.trans_le ((mul_left_inj c).mp k.symm).le))
+
 @[to_additive lt_add_of_pos_right]
 lemma lt_mul_of_one_lt_right' [left_cancel_monoid α] [has_mul_le_mul_left α]
   (a : α) (h : 1 < b) :

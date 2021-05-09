@@ -178,11 +178,10 @@ end
 /-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/
 theorem eval_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
 | 0 := by rw [desc_fac, add_zero, mul_one]
-| (k + 1) := eq.symm $
-             calc (n + (k + 1))! = (n + k + 1) * (n + k)! : by rw [←add_assoc, factorial]
-                             ... = (n + k + 1) * (n! * desc_fac n k) : by rw eval_desc_fac k
-                             ... = n! * ((n + k + 1) * desc_fac n k) : by ac_refl
-                             ... = n! * desc_fac n (k + 1) : by rw [desc_fac_succ]
+| (k + 1) := calc n! * desc_fac n (k + 1) = n! * ((n + k + 1) * desc_fac n k) : by rw desc_fac_succ
+                                      ... = (n + k + 1) * (n! * desc_fac n k) : by ac_refl
+                                      ... = (n + k + 1) * (n + k)! : by rw eval_desc_fac k
+                                      ... = (n + (k + 1))! : by rw [←add_assoc, factorial]
 
 /-- Avoid if you can. ℕ-division isn't worth it. -/
 lemma eval_desc_fac' (n k : ℕ) : desc_fac n k = (n + k)! / n! :=

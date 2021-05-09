@@ -189,7 +189,7 @@ begin
     exact ⟨N, λ k hk l hl, H _ (le_trans hk hl) _ hk ⟩ },
   obtain ⟨φ : ℕ → ℕ, φ_extr : strict_mono φ, hφ : ∀ n, ∀ l ≥ φ n, (u l, u $ φ n) ∈ V n⟩ :=
     extraction_forall_of_eventually' this,
-  exact ⟨φ, φ_extr, λ n, hφ _ _ (φ_extr $lt_add_one n).le⟩,
+  exact ⟨φ, φ_extr, λ n, hφ _ _ (φ_extr $ lt_add_one n).le⟩,
 end
 
 /-- If a Cauchy sequence has a convergent subsequence, then it converges. -/

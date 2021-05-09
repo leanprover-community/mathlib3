@@ -174,31 +174,6 @@ iterate_derivative_at_0_eq_zero_of_lt R n (lt_add_one ν)
 
 open polynomial
 
-/-- A Pochhammer identity that is useful for `bernstein_polynomial.iterate_derivative_at_0_aux₂`. -/
-lemma iterate_derivative_at_0_aux₁ (n k : ℕ) :
-  k * polynomial.eval (k-n) (pochhammer ℕ n) = (k-n) * polynomial.eval (k-n+1) (pochhammer ℕ n) :=
-begin
-  have p :=
-    congr_arg (eval (k-n)) ((pochhammer_succ_right ℕ n).symm.trans (pochhammer_succ_left ℕ n)),
-  simp only [nat.cast_id, eval_X, eval_one, eval_mul, eval_nat_cast, eval_add, eval_comp] at p,
-  rw [mul_comm] at p,
-  rw ←p,
-  by_cases h : n ≤ k,
-  { rw nat.sub_add_cancel h, },
-  { simp only [not_le] at h,
-    simp only [mul_eq_mul_right_iff],
-    right,
-    rw nat.sub_eq_zero_of_le (le_of_lt h),
-    simp only [pochhammer_eval_zero, ite_eq_right_iff],
-    rintro rfl,
-    cases h, },
-end
-
-lemma iterate_derivative_at_0_aux₂ (n k : ℕ) :
-  (↑k) * polynomial.eval ↑(k-n) (pochhammer R n) =
-    ↑(k-n) * polynomial.eval (↑(k-n+1)) (pochhammer R n) :=
-by simpa using congr_arg (algebra_map ℕ R) (iterate_derivative_at_0_aux₁ n k)
-
 @[simp]
 lemma iterate_derivative_at_0 (n ν : ℕ) :
   (polynomial.derivative^[ν] (bernstein_polynomial R n ν)).eval 0 =
@@ -216,7 +191,7 @@ begin
         function.comp_app, function.iterate_succ, pochhammer_succ_left],
       by_cases h : ν = 0,
       { subst h, simp },
-      { rw [show n - 1 - (ν - 1) = n - ν, by omega, pochhammer.pochhammer_eval_succ],
+      { rw [show n - 1 - (ν - 1) = n - ν, by omega, pochhammer_eval_succ],
       norm_cast,
       rw show n - ν + ν = n, by omega }
     } },

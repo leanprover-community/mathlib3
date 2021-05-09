@@ -304,8 +304,7 @@ lemma le_card_support_of_mem_cycle_type {n : ℕ} {σ : perm α} (h : n ∈ cycl
 (le_sum_of_mem h).trans (le_of_eq σ.sum_cycle_type)
 
 lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
-  (hn2 : fintype.card α < n + 2)
-  (hng : n ∈ g.cycle_type) :
+  (hn2 : fintype.card α < n + 2) (hng : n ∈ g.cycle_type) :
   g.cycle_type = {n} :=
 begin
   obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
@@ -440,18 +439,15 @@ by rwa [is_three_cycle, cycle_type_inv]
 
 lemma order_of {g : perm α} (ht : is_three_cycle g) :
   order_of g = 3 :=
-begin
-  rw [← lcm_cycle_type, ht.cycle_type, multiset.singleton_eq_singleton, multiset.lcm_singleton],
-  refl,
-end
+by rw [←lcm_cycle_type, ht.cycle_type, multiset.singleton_eq_singleton,
+  multiset.lcm_singleton, nat.normalize_eq]
 
 lemma is_three_cycle_sq {g : perm α} (ht : is_three_cycle g) :
   is_three_cycle (g * g) :=
 begin
-  have h := pow_order_of_eq_one g,
-  rw [ht.order_of, pow_succ', pow_two, ← eq_inv_iff_mul_eq_one] at h,
-  rw h,
-  exact ht.inv,
+  rw [←pow_two, ←card_support_eq_three_iff, support_pow_coprime, ht.card_support],
+  rw [ht.order_of, nat.coprime_iff_gcd_eq_one],
+  norm_num,
 end
 
 end is_three_cycle

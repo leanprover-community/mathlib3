@@ -106,8 +106,8 @@ do
    -- Now the key step: replace morphism composition with function composition,
    -- and identity morphisms with nothing.
    let s := simp_lemmas.mk,
-   s ← s.add_simp ``coe_id,
-   s ← s.add_simp ``coe_comp,
+   s ← s.add_simp ``id_apply,
+   s ← s.add_simp ``comp_apply,
    (t'', pr', _) ← simplify s [] t' {fail_if_unchanged := ff},
    pr' ← mk_eq_mp pr' pr,
    -- Further, if we're in `Type`, get rid of the coercions entirely.

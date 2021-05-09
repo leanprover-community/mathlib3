@@ -343,33 +343,28 @@ end
 
 lemma is_basis.smul_of_is_unit {v : ι → M} (hv : is_basis R v)
   {w : ι → R} (hw : ∀ i : ι, is_unit (w i)) :
-  is_basis R (λ i, w i • v i) :=
+  is_basis R (w • v) :=
 begin
   obtain ⟨hw₁', hw₁''⟩ := hv,
   split,
   { rw linear_independent_iff'' at hw₁' ⊢,
     intros s g hgs hsum i,
-    have hw₁ : g i * w i = 0 := hw₁' s (λ i, g i • w i) _ _ i,
-    have hw₂ : w i * ↑((hw i).unit)⁻¹ = 1,
-    { rw [units.mul_inv_eq_iff_eq_mul (hw i).unit, (hw i).unit_spec, one_mul] },
-    { suffices : g i * w i * ↑((hw i).unit)⁻¹ = 0,
-      rwa [mul_assoc, hw₂, mul_one] at this,
-      rw [hw₁, zero_mul] },
-    { intros i hi,
-      dsimp only,
+    obtain ⟨wi, hwi⟩ := hw i,
+    rw [←wi.mul_left_eq_zero, hwi],
+    refine hw₁' s (λ i, g i • w i) (λ i hi, _) _ i,
+    { dsimp only,
       exact (hgs i hi).symm ▸ zero_smul _ _ },
     { rw [← hsum, finset.sum_congr rfl _],
-      intros, simp only [smul_assoc] } },
+      intros, erw [pi.smul_apply, smul_assoc] } },
   { rw eq_top_iff,
     intros j hj,
     rw ← hw₁'' at hj,
     rw submodule.mem_span at hj ⊢,
     refine λ p hp, hj p (λ u hu, _),
     obtain ⟨i, rfl⟩ := hu,
-    have hw₂ : ↑((hw i).unit)⁻¹ * w i = 1,
-    { rw [units.inv_mul_eq_iff_eq_mul (hw i).unit, (hw i).unit_spec, mul_one] },
-    have := p.smul_mem ↑((hw i).unit)⁻¹ (hp ⟨i, rfl⟩),
-    rwa [← smul_assoc, smul_eq_mul, hw₂, one_smul] at this }
+    obtain ⟨wi, hwi⟩ := hw i,
+    have : ↑wi⁻¹ • w i • v i ∈ p := p.smul_mem ↑wi⁻¹ (hp ⟨i, rfl⟩),
+    rwa [←hwi, units.inv_smul_smul] at this }
 end
 
 end is_basis

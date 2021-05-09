@@ -91,7 +91,8 @@ end
 
 section examples
 
-@[simp] lemma bernoulli'_zero : bernoulli' 0 = 1 := rfl
+@[simp] lemma bernoulli'_zero : bernoulli' 0 = 1 :=
+by { rw bernoulli'_def, norm_num }
 
 @[simp] lemma bernoulli'_one : bernoulli' 1 = 1/2 :=
 by { rw bernoulli'_def, norm_num }
@@ -176,7 +177,7 @@ def bernoulli (n : ℕ) : ℚ := (-1)^n * bernoulli' n
 lemma bernoulli'_eq_bernoulli (n : ℕ) : bernoulli' n = (-1)^n * bernoulli n :=
 by simp [bernoulli, ← mul_assoc, ← sq, ← pow_mul, mul_comm n 2, pow_mul]
 
-@[simp] lemma bernoulli_zero : bernoulli 0 = 1 := rfl
+@[simp] lemma bernoulli_zero : bernoulli 0 = 1 := by simp [bernoulli]
 
 @[simp] lemma bernoulli_one : bernoulli 1 = -1/2 :=
 by norm_num [bernoulli]
@@ -195,12 +196,14 @@ begin
   cases n, { simp },
   cases n, { simp },
   suffices : ∑ i in range n, ↑((n + 2).choose (i + 2)) * bernoulli (i + 2) = n / 2,
-  { simp only [this, sum_range_succ', cast_succ, bernoulli_one, choose_one_right], ring },
+  { simp only [this, sum_range_succ', cast_succ, bernoulli_one, bernoulli_zero, choose_one_right,
+    mul_one, choose_zero_right, cast_zero, if_false, zero_add, succ_succ_ne_one], ring },
   have f := sum_bernoulli' n.succ.succ,
   simp_rw [sum_range_succ', bernoulli'_one, choose_one_right, cast_succ, ← eq_sub_iff_add_eq] at f,
   convert f,
   { ext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
-  { ring },
+  { simp only [one_div, mul_one, bernoulli'_zero, cast_one, choose_zero_right, add_sub_cancel],
+    ring },
 end
 
 lemma bernoulli_spec' (n : ℕ) :

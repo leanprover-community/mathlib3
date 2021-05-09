@@ -11,7 +11,7 @@ import measure_theory.lebesgue_measure
 
 There are several theories of integration for functions taking values in Banach spaces. Bochner
 integration, requiring approximation by simple functions, is the analogue of the one-dimensional
-theory. It is very well behaved, but only works for functions with second-countable spaces.
+theory. It is very well behaved, but only works for functions with second-countable range.
 
 For functions `f` taking values in a larger Banach space `B`, one can define the Dunford integral
 as follows. Assume that, for all continuous linear functional `φ`, the function `φ ∘ f` is
@@ -99,10 +99,10 @@ This is a technical device, used to apply Hahn-Banach theorem to construct an ex
 integral to all bounded functions. -/
 def bounded_integrable_functions [measurable_space α] (μ : measure α) :
   subspace ℝ (discrete_copy α →ᵇ ℝ) :=
-{ carrier := {f | integrable f μ},
-    zero_mem' := integrable_zero _ _ _,
-    add_mem' := λ f g hf hg, integrable.add hf hg,
-    smul_mem' := λ c f hf, integrable.smul c hf }
+{ carrier   := {f | integrable f μ},
+  zero_mem' := integrable_zero _ _ _,
+  add_mem'  := λ f g hf hg, integrable.add hf hg,
+  smul_mem' := λ c f hf, integrable.smul c hf }
 
 /-- The integral, as a continuous linear map on the subspace of integrable functions in the space
 of all bounded functions on a type. This is a technical device, that we will extend through
@@ -152,23 +152,23 @@ We define bounded finitely additive signed measures on the space of all subsets 
 and show that such an object can be split into a discrete part and a continuous part.
 -/
 
-/-- A bounded signed finitely additive measure defined on *all* subsets of a type. We include
-the bound in the structure for convenience. -/
+/-- A bounded signed finitely additive measure defined on *all* subsets of a type. -/
 structure bounded_additive_measure (α : Type u) :=
 (to_fun : set α → ℝ)
 (additive' : ∀ s t, disjoint s t → to_fun (s ∪ t) = to_fun s + to_fun t)
-(C : ℝ)
-(abs_le_bound' : ∀ s, abs (to_fun s) ≤ C)
+(exists_bound : ∃ (C : ℝ), ∀ s, abs (to_fun s) ≤ C)
 
 instance : inhabited (bounded_additive_measure α) :=
 ⟨{ to_fun := λ s, 0,
   additive' := λ s t hst, by simp,
-  C := 0,
-  abs_le_bound' := λ s, by simp }⟩
+  exists_bound := ⟨0, λ s, by simp⟩ }⟩
 
 instance : has_coe_to_fun (bounded_additive_measure α) := ⟨_, λ f, f.to_fun⟩
 
 namespace bounded_additive_measure
+
+/-- A constant bounding the mass of any set for `f`. -/
+def C (f : bounded_additive_measure α) := f.exists_bound.some
 
 lemma additive (f : bounded_additive_measure α) (s t : set α)
   (h : disjoint s t) : f (s ∪ t) = f s + f t :=
@@ -176,7 +176,7 @@ f.additive' s t h
 
 lemma abs_le_bound (f : bounded_additive_measure α) (s : set α) :
   abs (f s) ≤ f.C :=
-f.abs_le_bound' s
+f.exists_bound.some_spec s
 
 lemma le_bound (f : bounded_additive_measure α) (s : set α) :
   f s ≤ f.C :=
@@ -193,8 +193,7 @@ instance : has_neg (bounded_additive_measure α) :=
 ⟨λ f,
 { to_fun := λ s, - f s,
   additive' := λ s t hst, by simp only [f.additive s t hst, add_comm, neg_add_rev],
-  C := f.C,
-  abs_le_bound' := λ s, by simp [f.abs_le_bound] }⟩
+  exists_bound := ⟨f.C, λ s, by simp [f.abs_le_bound]⟩ }⟩
 
 @[simp] lemma neg_apply (f : bounded_additive_measure α) (s : set α) : (-f) s = - (f s) := rfl
 
@@ -205,8 +204,7 @@ def restrict (f : bounded_additive_measure α) (t : set α) : bounded_additive_m
     rw [← f.additive (t ∩ s) (t ∩ s'), inter_union_distrib_left],
     exact h.mono (inter_subset_right _ _) (inter_subset_right _ _),
   end,
-  C := f.C,
-  abs_le_bound' := λ s, f.abs_le_bound _ }
+  exists_bound := ⟨f.C, λ s, f.abs_le_bound _⟩ }
 
 @[simp] lemma restrict_apply (f : bounded_additive_measure α) (s t : set α) :
   f.restrict s t = f (s ∩ t) := rfl
@@ -391,13 +389,12 @@ def _root_.continuous_linear_map.to_bounded_additive_measure
         by { ext x, simp [indicator_union_of_disjoint hst], },
       rw [this, f.map_add],
     end,
-  C := ∥f∥,
-  abs_le_bound' := λ s, begin
+  exists_bound := ⟨∥f∥, λ s, begin
     have I : ∥of_normed_group_discrete (indicator s 1) 1 (norm_indicator_le_one s)∥ ≤ 1,
       by apply norm_of_normed_group_le _ zero_le_one,
     apply le_trans (f.le_op_norm _),
     simpa using mul_le_mul_of_nonneg_left I (norm_nonneg f),
-  end }
+  end⟩ }
 
 @[simp] lemma continuous_part_eval_clm_eq_zero [topological_space α] [discrete_topology α]
   (s : set α) (x : α) :
@@ -565,12 +562,13 @@ end
 
 /-!
 The next few statements show that the function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` takes its
-values in a complete space, is weakly measurable, is everywhere bounded by `1`, and still has
+values in a complete space, is scalarly measurable, is everywhere bounded by `1`, and still has
 no Pettis integral.
 -/
 
 example : complete_space (discrete_copy ℝ →ᵇ ℝ) := by apply_instance
 
+/-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` is scalarly measurable. -/
 lemma measurable_comp (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) :
   measurable (λ x, φ (f Hcont x)) :=
 begin
@@ -579,12 +577,16 @@ begin
   exact countable_ne Hcont φ,
 end
 
+/-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` is uniformly bounded by `1` in norm. -/
 lemma norm_bound (Hcont : #ℝ = aleph 1) (x : ℝ) : ∥f Hcont x∥ ≤ 1 :=
 norm_of_normed_group_le _ zero_le_one _
 
-theorem no_pettis_integral (Hcont : #ℝ = aleph 1) (g : discrete_copy ℝ →ᵇ ℝ)
-  (h : ∀ (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ), ∫ x in Icc 0 1, φ (f Hcont x) = φ g) : false :=
+/-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` has no Pettis integral. -/
+theorem no_pettis_integral (Hcont : #ℝ = aleph 1) :
+  ¬ ∃ (g : discrete_copy ℝ →ᵇ ℝ),
+      ∀ (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ), ∫ x in Icc 0 1, φ (f Hcont x) = φ g :=
 begin
+  rintros ⟨g, h⟩,
   simp only [integral_comp] at h,
   have : g = 0,
   { ext x,

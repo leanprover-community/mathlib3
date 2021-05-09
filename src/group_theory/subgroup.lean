@@ -1270,7 +1270,7 @@ lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
 
 @[to_additive]
-lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹*x ∈ f.ker :=
+lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
 by rw [f.mem_ker, f.map_mul, f.map_inv, inv_mul_eq_one, eq_comm]
 
 @[to_additive]

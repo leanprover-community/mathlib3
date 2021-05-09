@@ -86,28 +86,6 @@ lemma coe_mk' : (mk' N : G → quotient N) = coe := rfl
 @[to_additive, simp]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
-@[to_additive]
-lemma mk'_eq_mk'_iff {x y : G} :  mk' N x = mk' N y ↔  x⁻¹*y ∈ N :=
-quotient_group.eq
-
-@[to_additive]
-lemma mk'_eq_mk'_iff' {x y : G} : mk' N x = mk' N y ↔ y * x⁻¹ ∈ N :=
-by rw [mk'_eq_mk'_iff, nN.mem_comm_iff]
-
-omit nN
-
-lemma _root_.quotient_add_group.mk'_eq_mk'_iff_sub {G : Type*} [add_group G]
-  [H : add_subgroup G] [H.normal] {x y : G} :
-quotient_add_group.mk' H x = quotient_add_group.mk' H y ↔ y - x ∈ H :=
-by rw [quotient_add_group.mk'_eq_mk'_iff', sub_eq_add_neg]
-
-lemma _root_.quotient_add_group.mk'_eq_mk'_iff_sub' {G : Type*} [add_group G]
-  [H : add_subgroup G] [H.normal] {x y : G} :
-quotient_add_group.mk' H x = quotient_add_group.mk' H y ↔ x - y ∈ H :=
-by rw [eq_comm, quotient_add_group.mk'_eq_mk'_iff_sub]
-
-include nN
-
 @[simp, to_additive quotient_add_group.eq_zero_iff]
 lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : quotient N) = 1 ↔ x ∈ N :=
 begin

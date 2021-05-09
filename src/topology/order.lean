@@ -294,18 +294,12 @@ lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} 
   @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
 iff.rfl
 
-lemma is_open_preimage_of_coinduced [topological_space α] [topological_space β] {π : α → β}
-  (h : ‹topological_space β› = topological_space.coinduced π ‹_›) {s : set β}
-  (hs : is_open s) : is_open (π ⁻¹' s) :=
-by rwa h at hs
-
-lemma preimage_mem_nhds_of_coinduced [topological_space α] [topological_space β] {π : α → β}
-  (h : ‹topological_space β› = topological_space.coinduced π ‹_›) {s : set β}
-  {a : α} (hs : s ∈ 𝓝 (π a)) : π ⁻¹' s ∈ 𝓝 a :=
+lemma preimage_nhds_coinduced [topological_space α] {π : α → β} {s : set β}
+  {a : α} (hs : s ∈ @nhds β (topological_space.coinduced π ‹_›) (π a)) : π ⁻¹' s ∈ 𝓝 a :=
 begin
+  letI := topological_space.coinduced π ‹_›,
   rcases mem_nhds_sets_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
-  rw mem_nhds_sets_iff,
-  exact ⟨π ⁻¹' V, set.preimage_mono hVs, is_open_preimage_of_coinduced h V_op, mem_V⟩
+  exact mem_nhds_sets_iff.mpr ⟨π ⁻¹' V, set.preimage_mono hVs, V_op, mem_V⟩
 end
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}

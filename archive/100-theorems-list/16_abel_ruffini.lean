@@ -86,7 +86,6 @@ lemma irreducible_polynomial (a b p : ℕ) (hp : p.prime) (hpa : p ∣ a) (hpb :
   (hp2b : ¬ (p ^ 2 ∣ b)) :
   irreducible (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ) :=
 begin
-  let q := (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ),
   apply irreducible_of_eisenstein_criterion,
   { rwa [ideal.span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero),
       int.prime_iff_nat_abs_prime] },
@@ -112,21 +111,8 @@ end
 lemma irreducible_polynomial' (a b p : ℕ) (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b)
   (hp2b : ¬ (p ^ 2 ∣ b)) :
   irreducible ((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (int.cast_ring_hom ℚ)) :=
-begin
-  let q := (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ),
-  have q_nat_degree : q.nat_degree = 5,
-  { exact nat_degree_polynomial a b },
-  have q_degree : q.degree = ↑5,
-  { exact (degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_bit1 2)).mpr q_nat_degree },
-  have q_monic : q.leading_coeff = 1,
-  { rw [leading_coeff, q_nat_degree, coeff_add, coeff_sub, coeff_X_pow_self, coeff_C,
-        if_neg ((nat.zero_ne_bit1 2).symm), add_zero, ←pow_one (X : polynomial ℤ), coeff_C_mul_X,
-        if_neg (nat.one_ne_bit1 two_ne_zero).symm, sub_zero] },
-  have q_primitive : q.is_primitive,
-  { exact polynomial.monic.is_primitive q_monic },
-  rw ← is_primitive.int.irreducible_iff_irreducible_map_cast q_primitive,
-  exact irreducible_polynomial a b p hp hpa hpb hp2b,
-end
+(is_primitive.int.irreducible_iff_irreducible_map_cast (polynomial.monic.is_primitive
+  (monic_polynomial a b))).mp (irreducible_polynomial a b p hp hpa hpb hp2b)
 
 lemma real_roots_polynomial_le (a b : ℕ) :
   fintype.card (((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ)).root_set ℝ) ≤ 3 :=
@@ -147,8 +133,7 @@ lemma real_roots_polynomial_ge (a b : ℕ) (hab : b < a) :
   2 ≤ fintype.card (((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ)).root_set ℝ) :=
 begin
   let q := (X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ),
-  have q_ne_zero : q ≠ 0,
-  { sorry },
+  have q_ne_zero : q ≠ 0 := map_monic_ne_zero (monic_polynomial a b),
   let f : ℝ → ℝ := λ x, aeval x q,
   suffices : ∃ x y : ℝ, x ≠ y ∧ f x = 0 ∧ f y = 0,
   { obtain ⟨x, y, hxy, hx, hy⟩ := this,
@@ -159,13 +144,23 @@ begin
     rwa [fintype.card_coe, finset.card_insert_of_not_mem, finset.card_singleton] at key,
     rwa finset.mem_singleton },
   have f_cont : continuous f := polynomial.continuous_aeval _,
-  have f_def : ∀ x : ℝ, f x = x ^ 5 - a * x + b := by simp [f],
+  have f_def : ∀ x : ℝ, f x = x ^ 5 - a * x + b := sorry,--by simp [f],
   have hx : f 0 ≥ 0,
-  { sorry },
+  { rw [f_def, mul_zero, sub_zero, zero_pow (nat.zero_lt_bit1 2), zero_add],
+    exact nat.cast_nonneg b },
   have hy : f (1 : ℝ) ≤ 0,
-  { sorry },
+  { rw [f_def, mul_one, one_pow, add_comm, add_sub, sub_nonpos],
+    norm_cast,
+    exact nat.succ_le_iff.mpr hab },
   have hz : f a ≥ 0,
-  { sorry },
+  { rw [f_def, ←pow_two],
+    apply add_nonneg,
+    { rw [sub_nonneg],
+      apply pow_le_pow,
+      { norm_cast,
+        exact nat.one_le_of_lt hab },
+      { exact nat.bit0_le_bit1_iff.mpr one_le_two } },
+    { exact nat.cast_nonneg b } },
   sorry,
 end
 

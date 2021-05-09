@@ -64,7 +64,7 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
 instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
 t.induced ulift.down
 
-lemma quotient.is_open_preimage [topological_space α] [s : setoid α]
+lemma is_open.quotient_preimage [topological_space α] [s : setoid α]
   {V : set $ quotient s} (h : is_open V) : is_open (quotient.mk ⁻¹' V) :=
 is_open_preimage_of_coinduced rfl h
 

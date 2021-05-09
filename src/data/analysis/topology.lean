@@ -53,13 +53,14 @@ topological_space.generate_from (set.range F.f)
 
 theorem to_topsp_is_topological_basis (F : ctop α σ) :
   @topological_space.is_topological_basis _ F.to_topsp (set.range F.f) :=
+by letI := F.to_topsp; exact
 ⟨λ u ⟨a, e₁⟩ v ⟨b, e₂⟩, e₁ ▸ e₂ ▸
    λ x h, ⟨_, ⟨_, rfl⟩, F.inter_mem a b x h, F.inter_sub a b x h⟩,
 eq_univ_iff_forall.2 $ λ x, ⟨_, ⟨_, rfl⟩, F.top_mem x⟩, rfl⟩
 
 @[simp] theorem mem_nhds_to_topsp (F : ctop α σ) {s : set α} {a : α} :
   s ∈ @nhds _ F.to_topsp a ↔ ∃ b, a ∈ F b ∧ F b ⊆ s :=
-(@topological_space.mem_nhds_of_is_topological_basis
+(@topological_space.is_topological_basis.mem_nhds_iff
   _ F.to_topsp _ _ _ F.to_topsp_is_topological_basis).trans $
 ⟨λ ⟨_, ⟨x, rfl⟩, h⟩, ⟨x, h⟩, λ ⟨x, h⟩, ⟨_, ⟨x, rfl⟩, h⟩⟩
 

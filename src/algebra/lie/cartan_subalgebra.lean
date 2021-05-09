@@ -45,7 +45,7 @@ lemma mem_normalizer_iff (x : L) : x ∈ H.normalizer ↔ ∀ (y : L), (y ∈ H)
 lemma le_normalizer : H ≤ H.normalizer :=
 begin
   rw le_def, intros x hx,
-  simp only [submodule.mem_coe, mem_coe_submodule, coe_coe, mem_normalizer_iff] at ⊢ hx,
+  simp only [set_like.mem_coe, mem_coe_submodule, coe_coe, mem_normalizer_iff] at ⊢ hx,
   intros y, exact H.lie_mem hx,
 end
 
@@ -85,8 +85,7 @@ open lie_ideal
 
 /-- A nilpotent Lie algebra is its own Cartan subalgebra. -/
 instance lie_algebra.top_is_cartan_subalgebra_of_nilpotent [lie_algebra.is_nilpotent R L] :
-  lie_subalgebra.is_cartan_subalgebra ⊤ :=
-{ nilpotent        :=
-    by { rwa lie_algebra.nilpotent_iff_equiv_nilpotent lie_subalgebra.top_equiv_self, },
+  lie_subalgebra.is_cartan_subalgebra (⊤ : lie_subalgebra R L) :=
+{ nilpotent        := infer_instance,
   self_normalizing :=
     by { rw [← top_coe_lie_subalgebra, normalizer_eq_top, top_coe_lie_subalgebra], }, }

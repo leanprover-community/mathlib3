@@ -76,16 +76,16 @@ protected lemma cases_on {P : with_one α → Prop} :
 option.cases_on
 
 @[to_additive]
-instance [has_mul α] : has_mul (with_one α) :=
-{ mul := option.lift_or_get (*) }
+instance [has_mul α] : mul_one_class (with_one α) :=
+{ mul := option.lift_or_get (*),
+  one := (1),
+  one_mul   := (option.lift_or_get_is_left_id _).1,
+  mul_one   := (option.lift_or_get_is_right_id _).1 }
 
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
-  one_mul   := (option.lift_or_get_is_left_id _).1,
-  mul_one   := (option.lift_or_get_is_right_id _).1,
-  ..with_one.has_one,
-  ..with_one.has_mul }
+  ..with_one.mul_one_class }
 
 @[to_additive]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
@@ -99,7 +99,7 @@ def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
 
 section lift
 
-variables [semigroup α] {β : Type v} [monoid β]
+variables [has_mul α] {β : Type v} [mul_one_class β]
 
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
 @[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
@@ -131,7 +131,7 @@ end lift
 
 section map
 
-variables {β : Type v} [semigroup α] [semigroup β]
+variables {β : Type v} [has_mul α] [has_mul β]
 
 /-- Given a multiplicative map from `α → β` returns a monoid homomorphism
   from `with_one α` to `with_one β` -/
@@ -145,7 +145,7 @@ lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
 by { ext, cases x; refl }
 
 @[simp, to_additive]
-lemma map_comp {γ : Type w} [semigroup γ] (f : mul_hom α β) (g : mul_hom β γ) :
+lemma map_comp {γ : Type w} [has_mul γ] (f : mul_hom α β) (g : mul_hom β γ) :
 map (g.comp f) = (map g).comp (map f) :=
 by { ext, cases x; refl }
 
@@ -189,7 +189,7 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
 @[simp] lemma mul_zero {α : Type u} [has_mul α]
   (a : with_zero α) : a * 0 = 0 := by cases a; refl
 
-instance [semigroup α] : semigroup (with_zero α) :=
+instance [semigroup α] : semigroup_with_zero (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with
     | none,   _,      _      := rfl
     | some a, none,   _      := rfl
@@ -204,9 +204,9 @@ instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
     | some a, none   := rfl
     | some a, some b := congr_arg some (mul_comm _ _)
     end,
-  ..with_zero.semigroup }
+  ..with_zero.semigroup_with_zero }
 
-instance [monoid α] : monoid_with_zero (with_zero α) :=
+instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
 { one_mul := λ a, match a with
     | none   := rfl
     | some a := congr_arg some $ one_mul _
@@ -216,8 +216,11 @@ instance [monoid α] : monoid_with_zero (with_zero α) :=
     | some a := congr_arg some $ mul_one _
     end,
   ..with_zero.mul_zero_class,
-  ..with_zero.has_one,
-  ..with_zero.semigroup }
+  ..with_zero.has_one }
+
+instance [monoid α] : monoid_with_zero (with_zero α) :=
+{ ..with_zero.mul_zero_one_class,
+  ..with_zero.semigroup_with_zero }
 
 instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 { ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }

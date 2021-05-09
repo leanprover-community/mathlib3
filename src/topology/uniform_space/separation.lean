@@ -117,6 +117,19 @@ theorem separated_def' {α : Type u} [uniform_space α] :
 separated_def.trans $ forall_congr $ λ x, forall_congr $ λ y,
 by rw ← not_imp_not; simp [not_forall]
 
+lemma eq_of_uniformity {α : Type*} [uniform_space α] [separated_space α] {x y : α}
+  (h : ∀ {V}, V ∈ 𝓤 α → (x, y) ∈ V) : x = y :=
+separated_def.mp ‹separated_space α› x y (λ _, h)
+
+lemma eq_of_uniformity_basis {α : Type*} [uniform_space α] [separated_space α] {ι : Type*}
+  {p : ι → Prop} {s : ι → set (α × α)} (hs : (𝓤 α).has_basis p s) {x y : α}
+  (h : ∀ {i}, p i → (x, y) ∈ s i) : x = y :=
+eq_of_uniformity (λ V V_in, let ⟨i, hi, H⟩ := hs.mem_iff.mp V_in in H (h hi))
+
+lemma eq_of_forall_symmetric {α : Type*} [uniform_space α] [separated_space α] {x y : α}
+  (h : ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (x, y) ∈ V) : x = y :=
+eq_of_uniformity_basis has_basis_symmetric (by simpa [and_imp] using λ _, h)
+
 lemma id_rel_sub_separation_relation (α : Type*) [uniform_space α] : id_rel ⊆ 𝓢 α :=
 begin
   unfold separation_rel,
@@ -175,7 +188,8 @@ end
 
 @[priority 100] -- see Note [lower instance priority]
 instance separated_regular [separated_space α] : regular_space α :=
-{ regular := λs a hs ha,
+{ t0 := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space.t0 },
+  regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
       from mem_nhds_sets hs.is_open_compl ha,
     have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
@@ -200,6 +214,24 @@ instance separated_regular [separated_space α] : regular_space α :=
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
     ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
+
+lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
+  {s : set α} (hs : ∀ {x y}, x ∈ s → y ∈ s → (x, y) ∈ V₀ → x = y) : is_closed s :=
+begin
+  rcases comp_symm_mem_uniformity_sets V₀_in with ⟨V₁, V₁_in, V₁_symm, h_comp⟩,
+  apply is_closed_of_closure_subset,
+  intros x hx,
+  rw mem_closure_iff_ball at hx,
+  rcases hx V₁_in with ⟨y, hy, hy'⟩,
+  suffices : x = y, by rwa this,
+  apply eq_of_forall_symmetric,
+  intros V V_in V_symm,
+  rcases hx (inter_mem_sets V₁_in V_in) with ⟨z, hz, hz'⟩,
+  suffices : z = y,
+  { rw ← this,
+    exact ball_inter_right x _ _ hz },
+  exact hs hz' hy' (h_comp $ mem_comp_of_mem_ball V₁_symm (ball_inter_left x _ _ hz) hy)
+end
 
 /-!
 ### Separated sets
@@ -302,7 +334,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
   comp := calc (map (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) u.uniformity).lift' (λs, comp_rel s s) =
           u.uniformity.lift' ((λs, comp_rel s s) ∘ image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧))) :
       map_lift'_eq2 $ monotone_comp_rel monotone_id monotone_id
-    ... ≤ u.uniformity.lift' (image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) ∘ (λs:set (α×α), comp_rel s (comp_rel s s))) :
+    ... ≤ u.uniformity.lift' (image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) ∘
+            (λs:set (α×α), comp_rel s (comp_rel s s))) :
       lift'_mono' $ assume s hs ⟨a, b⟩ ⟨c, ⟨⟨a₁, a₂⟩, ha, a_eq⟩, ⟨⟨b₁, b₂⟩, hb, b_eq⟩⟩,
       begin
         simp at a_eq,
@@ -312,7 +345,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
         simp [function.comp, set.image, comp_rel, and.comm, and.left_comm, and.assoc],
         exact ⟨a₁, a_eq.left, b₂, b_eq.right, a₂, ha, b₁, h s hs, hb⟩
       end
-    ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) (u.uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
+    ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧))
+            (u.uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
       by rw [map_lift'_eq];
         exact monotone_comp_rel monotone_id (monotone_comp_rel monotone_id monotone_id)
     ... ≤ map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity :
@@ -418,9 +452,10 @@ def lift [separated_space β] (f : α → β) : (separation_quotient α → β) 
 if h : uniform_continuous f then
   quotient.lift f (λ x y, eq_of_separated_of_uniform_continuous h)
 else
-  λ x, f (classical.inhabited_of_nonempty $ (nonempty_quotient_iff $ separation_setoid α).1 ⟨x⟩).default
+  λ x, f (nonempty.some ⟨x.out⟩)
 
-lemma lift_mk [separated_space β] {f : α → β} (h : uniform_continuous f) (a : α) : lift f ⟦a⟧ = f a :=
+lemma lift_mk [separated_space β] {f : α → β} (h : uniform_continuous f) (a : α) :
+  lift f ⟦a⟧ = f a :=
 by rw [lift, dif_pos h]; refl
 
 lemma uniform_continuous_lift [separated_space β] (f : α → β) : uniform_continuous (lift f) :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
+import data.sigma.basic
 
 /-!
 # Equivalence between types
@@ -125,9 +126,12 @@ instance inhabited' : inhabited (α ≃ α) := ⟨equiv.refl α⟩
 @[symm] protected def symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun, e.right_inv, e.left_inv⟩
 
 /-- See Note [custom simps projection] -/
-def simps.inv_fun (e : α ≃ β) : β → α := e.symm
+def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
+
+-- Generate the `simps` projections for previously defined equivs.
+attribute [simps] function.involutive.to_equiv
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
@@ -317,21 +321,35 @@ by { ext, refl }
 @[simp] lemma equiv_congr_apply_apply {δ} (ab : α ≃ β) (cd : γ ≃ δ) (e : α ≃ γ) (x) :
   ab.equiv_congr cd e x = cd (e (ab.symm x)) := rfl
 
+section perm_congr
+
+variables {α' β' : Type*} (e : α' ≃ β')
+
 /-- If `α` is equivalent to `β`, then `perm α` is equivalent to `perm β`. -/
-def perm_congr {α : Type*} {β : Type*} (e : α ≃ β) : perm α ≃ perm β :=
+def perm_congr : perm α' ≃ perm β' :=
 equiv_congr e e
 
-lemma perm_congr_def {α β : Type*} (e : α ≃ β) (p : equiv.perm α) :
+lemma perm_congr_def (p : equiv.perm α') :
   e.perm_congr p = (e.symm.trans p).trans e := rfl
 
-@[simp] lemma perm_congr_symm {α β : Type*} (e : α ≃ β) :
+@[simp] lemma perm_congr_refl :
+  e.perm_congr (equiv.refl _) = equiv.refl _ :=
+by simp [perm_congr_def]
+
+@[simp] lemma perm_congr_symm :
   e.perm_congr.symm = e.symm.perm_congr := rfl
 
-@[simp] lemma perm_congr_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm α) (x) :
+@[simp] lemma perm_congr_apply (p : equiv.perm α') (x) :
   e.perm_congr p x = e (p (e.symm x)) := rfl
 
-lemma perm_congr_symm_apply {α β : Type*} (e : α ≃ β) (p : equiv.perm β) (x) :
+lemma perm_congr_symm_apply (p : equiv.perm β') (x) :
   e.perm_congr.symm p x = e.symm (p (e x)) := rfl
+
+lemma perm_congr_trans (p p' : equiv.perm α') :
+  (e.perm_congr p).trans (e.perm_congr p') = e.perm_congr (p.trans p') :=
+by { ext, simp }
+
+end perm_congr
 
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
@@ -342,6 +360,15 @@ by rw [set.image_subset_iff, e.image_eq_preimage]
 
 @[simp] lemma symm_image_image {α β} (e : α ≃ β) (s : set α) : e.symm '' (e '' s) = s :=
 by { rw [← set.image_comp], simp }
+
+lemma eq_image_iff_symm_image_eq {α β} (e : α ≃ β) (s : set α) (t : set β) :
+  t = e '' s ↔ e.symm '' t = s :=
+begin
+  refine (injective.eq_iff' _ _).symm,
+  { rw set.image_injective,
+    exact (equiv.symm e).injective },
+  { exact equiv.symm_image_image _ _ }
+end
 
 @[simp] lemma image_symm_image {α β} (e : α ≃ β) (s : set β) : e '' (e.symm '' s) = s :=
 e.symm.symm_image_image s
@@ -695,7 +722,7 @@ def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 @[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
 
 /-- Sum with `empty` is equivalent to the original type. -/
-def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
+@[simps symm_apply] def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
 ⟨sum.elim id (empty.rec _),
  inl,
  λ s, by { rcases s with _ | ⟨⟨⟩⟩, refl },
@@ -704,13 +731,13 @@ def sum_empty (α : Type*) : α ⊕ empty ≃ α :=
 @[simp] lemma sum_empty_apply_inl {α} (a) : sum_empty α (sum.inl a) = a := rfl
 
 /-- The sum of `empty` with any `Sort*` is equivalent to the right summand. -/
-def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
+@[simps symm_apply] def empty_sum (α : Sort*) : empty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_empty _
 
 @[simp] lemma empty_sum_apply_inr {α} (a) : empty_sum α (sum.inr a) = a := rfl
 
 /-- Sum with `pempty` is equivalent to the original type. -/
-def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
+@[simps symm_apply] def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
 ⟨sum.elim id (pempty.rec _),
  inl,
  λ s, by { rcases s with _ | ⟨⟨⟩⟩, refl },
@@ -719,7 +746,7 @@ def sum_pempty (α : Type*) : α ⊕ pempty ≃ α :=
 @[simp] lemma sum_pempty_apply_inl {α} (a) : sum_pempty α (sum.inl a) = a := rfl
 
 /-- The sum of `pempty` with any `Sort*` is equivalent to the right summand. -/
-def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
+@[simps symm_apply] def pempty_sum (α : Sort*) : pempty ⊕ α ≃ α :=
 (sum_comm _ _).trans $ sum_pempty _
 
 @[simp] lemma pempty_sum_apply_inr {α} (a) : pempty_sum α (sum.inr a) = a := rfl
@@ -808,6 +835,13 @@ def sum_compl {α : Type*} (p : α → Prop) [decidable_pred p] :
 @[simp] lemma sum_compl_apply_symm_of_neg {α : Type*} (p : α → Prop) [decidable_pred p]
   (a : α) (h : ¬ p a) :
   (sum_compl p).symm a = sum.inr ⟨a, h⟩ := dif_neg h
+
+/-- Combines an `equiv` between two subtypes with an `equiv` between their complements to form a
+  permutation. -/
+def subtype_congr {α : Type*} {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+  (e : {x // p x} ≃ {x // q x}) (f : {x // ¬p x} ≃ {x // ¬q x}) : perm α :=
+(sum_compl p).symm.trans ((sum_congr e f).trans
+  (sum_compl q))
 
 open equiv
 
@@ -918,13 +952,15 @@ def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β�
  λ H, funext $ by simp, λ H, funext $ by simp⟩
 
 /-- Dependent `curry` equivalence: the type of dependent functions on `Σ i, β i` is equivalent
-to the type of dependent functions of two arguments (i.e., functions to the space of functions). -/
+to the type of dependent functions of two arguments (i.e., functions to the space of functions).
+
+This is `sigma.curry` and `sigma.uncurry` together as an equiv. -/
 def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) :
   (Π x : Σ i, β i, γ x.1 x.2) ≃ (Π a b, γ a b) :=
-{ to_fun := λ f x y, f ⟨x,y⟩,
-  inv_fun := λ f x, f x.1 x.2,
-  left_inv := λ f, funext $ λ ⟨x,y⟩, rfl,
-  right_inv := λ f, funext $ λ x, funext $ λ y, rfl }
+{ to_fun := sigma.curry,
+  inv_fun := sigma.uncurry,
+  left_inv := sigma.uncurry_curry,
+  right_inv := sigma.curry_uncurry }
 
 end
 
@@ -1322,6 +1358,7 @@ by { cases a, cases a_val, refl }
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/
+@[simps apply symm_apply]
 def subtype_univ_equiv {α : Type u} {p : α → Prop} (h : ∀ x, p x) :
   subtype p ≃ α :=
 ⟨λ x, x, λ x, ⟨x, h x⟩, λ x, subtype.eq rfl, λ x, rfl⟩
@@ -1434,6 +1471,18 @@ dif_pos h
 
 end subtype_equiv_codomain
 
+/--
+A set is equivalent to its image under an equivalence.
+-/
+-- We could construct this using `equiv.set.image e s e.injective`,
+-- but this definition provides an explicit inverse.
+@[simps]
+def image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
+{ to_fun := λ x, ⟨e x.1, by simp⟩,
+  inv_fun := λ y, ⟨e.symm y.1, by { rcases y with ⟨-, ⟨a, ⟨m, rfl⟩⟩⟩, simpa using m, }⟩,
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp, }.
+
 namespace set
 open set
 
@@ -1491,7 +1540,6 @@ rfl
   (a : t) : (equiv.set.union H).symm (sum.inr a) = ⟨a, subset_union_right _ _ a.2⟩ :=
 rfl
 
--- TODO: Any reason to use the same universe?
 /-- A singleton set is equivalent to a `punit` type. -/
 protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
 ⟨λ _, punit.star, λ _, ⟨a, mem_singleton _⟩,
@@ -1668,22 +1716,6 @@ begin
   simp [equiv.set.image, equiv.set.image_of_inj_on, hf.eq_iff, this],
 end
 
-/-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/
-@[simps apply]
-protected noncomputable def range {α β} (f : α → β) (H : injective f) :
-  α ≃ range f :=
-{ to_fun := λ x, ⟨f x, mem_range_self _⟩,
-  inv_fun := λ x, classical.some x.2,
-  left_inv := λ x, H (classical.some_spec (show f x ∈ range f, from mem_range_self _)),
-  right_inv := λ x, subtype.eq $ classical.some_spec x.2 }
-
-theorem apply_range_symm {α β} (f : α → β) (H : injective f) (b : range f) :
-  f ((set.range f H).symm b) = b :=
-begin
-  conv_rhs { rw ←((set.range f H).right_inv b), },
-  simp,
-end
-
 /-- If `α` is equivalent to `β`, then `set α` is equivalent to `set β`. -/
 @[simps]
 protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
@@ -1703,10 +1735,63 @@ protected def powerset {α} (S : set α) : 𝒫 S ≃ set S :=
 
 end set
 
+/-- If `f : α → β` has a left-inverse when `α` is nonempty, then `α` is computably equivalent to the
+range of `f`.
+
+While awkward, the `nonempty α` hypothesis on `f_inv` and `hf` allows this to be used when `α` is
+empty too. This hypothesis is absent on analogous definitions on stronger `equiv`s like
+`linear_equiv.of_left_inverse` and `ring_equiv.of_left_inverse` as their typeclass assumptions
+are already sufficient to ensure non-emptiness. -/
+@[simps]
+def of_left_inverse {α β : Sort*}
+  (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
+  α ≃ set.range f :=
+{ to_fun := λ a, ⟨f a, a, rfl⟩,
+  inv_fun := λ b, f_inv (nonempty_of_exists b.2) b,
+  left_inv := λ a, hf ⟨a⟩ a,
+  right_inv := λ ⟨b, a, ha⟩, subtype.eq $ show f (f_inv ⟨a⟩ b) = b,
+    from eq.trans (congr_arg f $ by exact ha ▸ (hf _ a)) ha }
+
+/-- If `f : α → β` has a left-inverse, then `α` is computably equivalent to the range of `f`.
+
+Note that if `α` is empty, no such `f_inv` exists and so this definition can't be used, unlike
+the stronger but less convenient `of_left_inverse`. -/
+abbreviation of_left_inverse' {α β : Sort*}
+  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
+  α ≃ set.range f :=
+of_left_inverse f (λ _, f_inv) (λ _, hf)
+
+/-- If `f : α → β` is an injective function, then domain `α` is equivalent to the range of `f`. -/
+@[simps apply]
+noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ set.range f :=
+equiv.of_left_inverse f
+  (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
+
+
+theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : set.range f) :
+  f ((of_injective f hf).symm b) = b :=
+subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
+
+@[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
+  f ∘ ((of_injective f hf).symm) = coe :=
+funext (λ x, apply_of_injective_symm f hf x)
+
+lemma of_left_inverse_eq_of_injective {α β : Type*}
+  (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :
+  of_left_inverse f f_inv hf = of_injective f
+    ((em (nonempty α)).elim (λ h, (hf h).injective) (λ h _ _ _, by {
+      haveI : subsingleton α := subsingleton_of_not_nonempty h, simp })) :=
+by { ext, simp }
+
+lemma of_left_inverse'_eq_of_injective {α β : Type*}
+  (f : α → β) (f_inv : β → α) (hf : left_inverse f_inv f) :
+  of_left_inverse' f f_inv hf = of_injective f hf.injective :=
+by { ext, simp }
+
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
 @[simps apply]
 noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
-(equiv.set.range f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
+(of_injective f hf.1).trans $ (set_congr hf.2.range_eq).trans $ equiv.set.univ β
 
 lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
   f ((of_bijective f hf).symm x) = x :=
@@ -1716,11 +1801,45 @@ lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
 
-/-- If `f` is an injective function, then its domain is equivalent to its range. -/
-@[simps apply]
-noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α ≃ _root_.set.range f :=
-of_bijective (λ x, ⟨f x, set.mem_range_self x⟩)
-  ⟨λ x y hxy, hf $ by injections, λ ⟨_, x, rfl⟩, ⟨x, rfl⟩⟩
+section
+
+variables {α' β' : Type*} (e : perm α') {p : β' → Prop} [decidable_pred p]
+  (f : α' ≃ subtype p)
+
+/--
+Extend the domain of `e : equiv.perm α` to one that is over `β` via `f : α → subtype p`,
+where `p : β → Prop`, permuting only the `b : β` that satisfy `p b`.
+This can be used to extend the domain across a function `f : α → β`,
+keeping everything outside of `set.range f` fixed. For this use-case `equiv` given by `f` can
+be constructed by `equiv.of_left_inverse'` or `equiv.of_left_inverse` when there is a known
+inverse, or `equiv.of_injective` in the general case.`.
+-/
+def perm.extend_domain : perm β' :=
+(perm_congr f e).subtype_congr (equiv.refl _)
+
+@[simp] lemma perm.extend_domain_apply_image (a : α') :
+  e.extend_domain f (f a) = f (e a) :=
+by simp [perm.extend_domain]
+
+lemma perm.extend_domain_apply_subtype {b : β'} (h : p b) :
+  e.extend_domain f b = f (e (f.symm ⟨b, h⟩)) :=
+by simp [perm.extend_domain, h]
+
+lemma perm.extend_domain_apply_not_subtype {b : β'} (h : ¬ p b) :
+  e.extend_domain f b = b :=
+by simp [perm.extend_domain, h]
+
+@[simp] lemma perm.extend_domain_refl : perm.extend_domain (equiv.refl _) f = equiv.refl _ :=
+by simp [perm.extend_domain]
+
+@[simp] lemma perm.extend_domain_symm :
+  (e.extend_domain f).symm = perm.extend_domain e.symm f := rfl
+
+lemma perm.extend_domain_trans (e e' : perm α') :
+  (e.extend_domain f).trans (e'.extend_domain f) = perm.extend_domain (e.trans e') f :=
+by simp [perm.extend_domain, perm_congr_trans]
+
+end
 
 /-- Subtype of the quotient is equivalent to the quotient of the subtype. Let `α` be a setoid with
 equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`, and `p₁` be the lift
@@ -1782,6 +1901,14 @@ by simp [swap_apply_def] {contextual := tt}
 @[simp] theorem swap_swap (a b : α) : (swap a b).trans (swap a b) = equiv.refl _ :=
 ext $ λ x, swap_core_swap_core _ _ _
 
+@[simp] lemma symm_swap (a b : α) : (swap a b).symm = swap a b := rfl
+
+@[simp] lemma swap_eq_refl_iff {x y : α} : swap x y = equiv.refl _ ↔ x = y :=
+begin
+  refine ⟨λ h, (equiv.refl _).injective _, λ h, h ▸ (swap_self _)⟩,
+  rw [←h, swap_apply_left, h, refl_apply]
+end
+
 theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
 by { cases π, refl }
@@ -1819,6 +1946,10 @@ begin
   rw swap_apply_of_ne_of_ne hi hj,
 end
 
+lemma swap_apply_eq_iff {x y z w : α} :
+  swap x y z = w ↔ z = swap x y w :=
+by rw [apply_eq_iff_eq_symm_apply, symm_swap]
+
 namespace perm
 
 @[simp] lemma sum_congr_swap_refl {α β : Sort*} [decidable_eq α] [decidable_eq β] (i j : α) :
@@ -1851,6 +1982,21 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+end equiv
+
+lemma function.injective.map_swap {α β : Type*} [decidable_eq α] [decidable_eq β]
+  {f : α → β} (hf : function.injective f) (x y z : α) :
+  f (equiv.swap x y z) = equiv.swap (f x) (f y) (f z) :=
+begin
+  conv_rhs { rw equiv.swap_apply_def },
+  split_ifs with h₁ h₂,
+  { rw [hf h₁, equiv.swap_apply_left] },
+  { rw [hf h₂, equiv.swap_apply_right] },
+  { rw [equiv.swap_apply_of_ne_of_ne (mt (congr_arg f) h₁) (mt (congr_arg f) h₂)] }
+end
+
+namespace equiv
 
 protected lemma exists_unique_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
   (h : ∀{x}, p x ↔ q (f x)) : (∃! x, p x) ↔ ∃! y, q y :=
@@ -2015,6 +2161,9 @@ funext $ λ z, hf.swap_apply _ _ _
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton
 instance {α} [subsingleton α] : subsingleton (plift α) := equiv.plift.subsingleton
 
+instance {α} [unique α] : unique (ulift α) := equiv.ulift.unique
+instance {α} [unique α] : unique (plift α) := equiv.plift.unique
+
 instance {α} [decidable_eq α] : decidable_eq (ulift α) := equiv.ulift.decidable_eq
 instance {α} [decidable_eq α] : decidable_eq (plift α) := equiv.plift.decidable_eq
 
@@ -2044,6 +2193,13 @@ def equiv_of_subsingleton_of_subsingleton [subsingleton α] [subsingleton β]
   inv_fun := g,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
+
+/-- A nonempty subsingleton type is (noncomputably) equivalent to `punit`. -/
+noncomputable
+def equiv.punit_of_nonempty_of_subsingleton {α : Sort*} [h : nonempty α] [subsingleton α] :
+  α ≃ punit.{v} :=
+equiv_of_subsingleton_of_subsingleton
+ (λ _, punit.star) (λ _, h.some)
 
 /-- `unique (unique α)` is equivalent to `unique α`. -/
 def unique_unique_equiv : unique (unique α) ≃ unique α :=

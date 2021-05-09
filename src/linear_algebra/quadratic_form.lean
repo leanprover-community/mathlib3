@@ -101,7 +101,7 @@ namespace quadratic_form
 variables {Q : quadratic_form R M}
 
 instance : has_coe_to_fun (quadratic_form R M) :=
-⟨_, λ B, B.to_fun⟩
+⟨_, to_fun⟩
 
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_apply : Q.to_fun = ⇑ Q := rfl
@@ -177,7 +177,7 @@ end
 
 section of_tower
 
-variables [comm_semiring S] [algebra S R] [semimodule S M] [is_scalar_tower S R M]
+variables [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
 
 @[simp]
 lemma polar_smul_left_of_tower (a : S) (x y : M) :
@@ -202,6 +202,8 @@ instance : has_zero (quadratic_form R M) :=
     polar_smul_left' := λ a x y, by simp [polar],
     polar_add_right' := λ x y y', by simp [polar],
     polar_smul_right' := λ a x y, by simp [polar] } ⟩
+
+@[simp] lemma coe_fn_zero : ⇑(0 : quadratic_form R M) = 0 := rfl
 
 @[simp] lemma zero_apply (x : M) : (0 : quadratic_form R M) x = 0 := rfl
 
@@ -259,9 +261,35 @@ by simp [sub_eq_add_neg]
 @[simp] lemma sub_apply (Q Q' : quadratic_form R M) (x : M) : (Q - Q') x = Q x - Q' x :=
 by simp [sub_eq_add_neg]
 
+/-- `@coe_fn (quadratic_form R M)` as an `add_monoid_hom`.
+
+This API mirrors `add_monoid_hom.coe_fn`. -/
+@[simps apply]
+def coe_fn_add_monoid_hom : quadratic_form R M →+ (M → R) :=
+{ to_fun := coe_fn, map_zero' := coe_fn_zero, map_add' := coe_fn_add }
+
+/-- Evaluation on a particular element of the module `M` is an additive map over quadratic forms. -/
+@[simps apply]
+def eval_add_monoid_hom (m : M) : quadratic_form R M →+ R :=
+(add_monoid_hom.apply _ m).comp coe_fn_add_monoid_hom
+
+section sum
+
+open_locale big_operators
+
+@[simp] lemma coe_fn_sum {ι : Type*} (Q : ι → quadratic_form R M) (s : finset ι) :
+  ⇑(∑ i in s, Q i) = ∑ i in s, Q i :=
+(coe_fn_add_monoid_hom : _ →+ (M → R)).map_sum Q s
+
+@[simp] lemma sum_apply {ι : Type*} (Q : ι → quadratic_form R M) (s : finset ι) (x : M) :
+  (∑ i in s, Q i) x = ∑ i in s, Q i x :=
+(eval_add_monoid_hom x : _ →+ R).map_sum Q s
+
+end sum
+
 section has_scalar
 
-variables [comm_semiring S] [algebra S R]
+variables [monoid S] [distrib_mul_action S R] [smul_comm_class S R R]
 
 /-- `quadratic_form R M` inherits the scalar action from any algebra over `R`.
 
@@ -269,14 +297,14 @@ When `R` is commutative, this provides an `R`-action via `algebra.id`. -/
 instance : has_scalar S (quadratic_form R M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
-    to_fun_smul := λ b x, by rw [pi.smul_apply, map_smul, pi.smul_apply, algebra.mul_smul_comm],
+    to_fun_smul := λ b x, by rw [pi.smul_apply, map_smul, pi.smul_apply, mul_smul_comm],
     polar_add_left' := λ x x' y, by simp only [polar_smul, polar_add_left, smul_add],
     polar_smul_left' := λ b x y, begin
-      simp only [polar_smul, polar_smul_left, ←algebra.mul_smul_comm, smul_eq_mul],
+      simp only [polar_smul, polar_smul_left, ←mul_smul_comm, smul_eq_mul],
     end,
     polar_add_right' := λ x y y', by simp only [polar_smul, polar_add_right, smul_add],
     polar_smul_right' := λ b x y, begin
-      simp only [polar_smul, polar_smul_right, ←algebra.mul_smul_comm, smul_eq_mul],
+      simp only [polar_smul, polar_smul_right, ←mul_smul_comm, smul_eq_mul],
     end } ⟩
 
 @[simp] lemma coe_fn_smul (a : S) (Q : quadratic_form R M) : ⇑(a • Q) = a • Q := rfl
@@ -284,16 +312,21 @@ instance : has_scalar S (quadratic_form R M) :=
 @[simp] lemma smul_apply (a : S) (Q : quadratic_form R M) (x : M) :
   (a • Q) x = a • Q x := rfl
 
-instance : semimodule S (quadratic_form R M) :=
-{ mul_smul := λ a b Q, ext (λ x, by
-    simp only [smul_apply, mul_left_comm, ←smul_eq_mul, smul_assoc]),
+instance : distrib_mul_action S (quadratic_form R M) :=
+{ mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_smul]),
   one_smul := λ Q, ext (λ x, by simp),
   smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, smul_add] },
-  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, smul_zero] },
-  zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_smul] },
-  add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_smul] } }
+  smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, smul_zero] }, }
 
 end has_scalar
+
+section module
+
+instance [semiring S] [module S R] [smul_comm_class S R R] : module S (quadratic_form R M) :=
+{ zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_smul] },
+  add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_smul] } }
+
+end module
 
 section comp
 
@@ -710,7 +743,7 @@ end
 
 open finite_dimensional
 
-variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [vector_space K V]
+variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [module K V]
 variable [finite_dimensional K V]
 
 -- We start proving that symmetric nondegenerate bilinear forms are diagonalisable, or equivalently
@@ -718,18 +751,18 @@ variable [finite_dimensional K V]
 
 lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : fin (findim K V) → V,
+  ∃ v : fin (finrank K V) → V,
     B.is_Ortho v ∧ is_basis K v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
 begin
   tactic.unfreeze_local_instances,
-  induction hd : findim K V with d ih generalizing V,
-  { exact ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_findim_zero' hd, fin.elim0⟩ },
-  { haveI := findim_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < findim K V),
+  induction hd : finrank K V with d ih generalizing V,
+  { exact ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_finrank_zero' hd, fin.elim0⟩ },
+  { haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
     cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
     { have hd' := hd,
-      rw [← submodule.findim_add_eq_of_is_compl
+      rw [← submodule.finrank_add_eq_of_is_compl
             (is_compl_span_singleton_orthogonal hx).symm,
-          findim_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
+          finrank_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
       rcases @ih (B.orthogonal $ K ∙ x) _ _ _
         (B.restrict _) (B.restrict_orthogonal_span_singleton_nondegenerate hB₁ hB₂ hx)
         (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,
@@ -749,7 +782,7 @@ begin
         { simp_rw [dif_pos hi, dif_pos hj],
           rw [is_ortho, hB₂],
           exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
-      { refine is_basis_of_linear_independent_of_card_eq_findim
+      { refine is_basis_of_linear_independent_of_card_eq_finrank
           (@linear_independent_of_is_Ortho _ _ _ _ _ _ B _ _ _)
           (by rw [hd', fintype.card_fin]),
         { intros i j hij,
@@ -784,7 +817,7 @@ end .
   field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
 theorem exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : fin (findim K V) → V, B.is_Ortho v ∧ is_basis K v :=
+  ∃ v : fin (finrank K V) → V, B.is_Ortho v ∧ is_basis K v :=
 let ⟨v, hv₁, hv₂, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁, hv₂⟩
 
 end bilin_form

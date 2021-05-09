@@ -91,40 +91,32 @@ instance distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π 
 lemma single_smul {α} [monoid α] [Π i, add_monoid $ f i]
   [Π i, distrib_mul_action α $ f i] [decidable_eq I] (i : I) (r : α) (x : f i) :
   single i (r • x) = r • single i x :=
-begin
-  ext j,
-  refine (apply_single _ (λ _, _) i x j).symm,
-  exact smul_zero _,
-end
+single_op (λ i : I, ((•) r : f i → f i)) (λ j, smul_zero _) _ _
 
 lemma single_smul' {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add_monoid (g i)]
   [Π i, distrib_mul_action (f i) (g i)] [decidable_eq I] (i : I) (r : f i) (x : g i) :
   single i (r • x) = single i r • single i x :=
-begin
-  ext j,
-  refine (apply_single₂ _ (λ _, _) i r x j).symm,
-  exact smul_zero _,
-end
+single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
 
 variables (I f)
 
-instance semimodule (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
-  [∀ i, semimodule α $ f i] :
-  @semimodule α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
+instance module (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
+  [∀ i, module α $ f i] :
+  @module α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }
 
 variables {I f}
 
-instance semimodule' {g : I → Type*} {r : Π i, semiring (f i)} {m : Π i, add_comm_monoid (g i)}
-  [Π i, semimodule (f i) (g i)] :
-  semimodule (Π i, f i) (Π i, g i) :=
+instance module' {g : I → Type*} {r : Π i, semiring (f i)} {m : Π i, add_comm_monoid (g i)}
+  [Π i, module (f i) (g i)] :
+  module (Π i, f i) (Π i, g i) :=
 { add_smul := by { intros, ext1, apply add_smul },
   zero_smul := by { intros, ext1, apply zero_smul } }
 
 instance (α) {r : semiring α} {m : Π i, add_comm_monoid $ f i}
-  [Π i, semimodule α $ f i] [∀ i, no_zero_smul_divisors α $ f i] :
+  [Π i, module α $ f i] [∀ i, no_zero_smul_divisors α $ f i] :
   no_zero_smul_divisors α (Π i : I, f i) :=
 ⟨λ c x h, or_iff_not_imp_left.mpr (λ hc, funext
   (λ i, (smul_eq_zero.mp (congr_fun h i)).resolve_left hc))⟩

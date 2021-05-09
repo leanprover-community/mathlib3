@@ -82,8 +82,9 @@ namespace formal_multilinear_series
 
 variables (p : formal_multilinear_series 𝕜 E F) {r : ℝ≥0}
 
-/-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ pₙ yⁿ`
-converges for all `∥y∥ < r`. -/
+/-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ ∥pₙ∥ ∥y∥ⁿ`
+converges for all `∥y∥ < r`. This implies that `Σ pₙ yⁿ` converges for all `∥y∥ < r`, but these
+definitions are *not* equivalent in general. -/
 def radius (p : formal_multilinear_series 𝕜 E F) : ℝ≥0∞ :=
 ⨆ (r : ℝ≥0) (C : ℝ) (hr : ∀ n, ∥p n∥ * r ^ n ≤ C), (r : ℝ≥0∞)
 
@@ -103,14 +104,14 @@ exists.elim (is_O_one_nat_at_top_iff.1 h) $ λ C hC, p.le_radius_of_bound C $
   λ n, (le_abs_self _).trans (hC n)
 
 lemma radius_eq_top_of_forall_nnreal_is_O
-  (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ⊤ :=
+  (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ∞ :=
 ennreal.eq_top_of_forall_nnreal_le $ λ r, p.le_radius_of_is_O (h r)
 
-lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ⊤ :=
+lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ∞ :=
 p.radius_eq_top_of_forall_nnreal_is_O $
   λ r, (is_O_zero _ _).congr' (h.mono $ λ n hn, by simp [hn]) eventually_eq.rfl
 
-lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ⊤ :=
+lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n) = 0) : p.radius = ∞ :=
 p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2 ⟨n, λ k hk, nat.sub_add_cancel hk ▸ hn _⟩
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
@@ -181,6 +182,58 @@ lemma nnnorm_mul_pow_le_of_lt_radius (p : formal_multilinear_series 𝕜 E F) {r
   (h : (r : ℝ≥0∞) < p.radius) : ∃ C > 0, ∀ n, nnnorm (p n) * r^n ≤ C :=
 let ⟨C, hC, hp⟩ := p.norm_mul_pow_le_of_lt_radius h
 in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
+
+lemma le_radius_of_tendsto (p : formal_multilinear_series 𝕜 E F) {l : ℝ}
+  (h : tendsto (λ n, ∥p n∥ * r^n) at_top (𝓝 l)) : ↑r ≤ p.radius :=
+p.le_radius_of_is_O (is_O_one_of_tendsto _ h)
+
+lemma le_radius_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
+  (hs : summable (λ n, ∥p n∥ * r^n)) : ↑r ≤ p.radius :=
+p.le_radius_of_tendsto hs.tendsto_at_top_zero
+
+lemma not_summable_norm_of_radius_lt_nnnorm (p : formal_multilinear_series 𝕜 E F) {x : E}
+  (h : p.radius < nnnorm x) : ¬ summable (λ n, ∥p n∥ * ∥x∥^n) :=
+λ hs, not_le_of_lt h (p.le_radius_of_summable_norm hs)
+
+lemma summable_norm_of_lt_radius (p : formal_multilinear_series 𝕜 E F)
+  (h : ↑r < p.radius) : summable (λ n, ∥p n∥ * r^n) :=
+begin
+  obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
+    p.norm_mul_pow_le_mul_pow_of_lt_radius h,
+  refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
+    ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)),
+  specialize hp n,
+  rwa real.norm_of_nonneg (mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg n))
+end
+
+lemma summable_of_nnnorm_lt_radius (p : formal_multilinear_series 𝕜 E F) [complete_space F]
+  {x : E} (h : ↑(nnnorm x) < p.radius) : summable (λ n, p n (λ i, x)) :=
+begin
+  refine summable_of_norm_bounded (λ n, ∥p n∥ * (nnnorm x)^n) (p.summable_norm_of_lt_radius h) _,
+  intros n,
+  calc ∥(p n) (λ (i : fin n), x)∥
+      ≤ ∥p n∥ * (∏ i : fin n, ∥x∥) : continuous_multilinear_map.le_op_norm _ _
+      ... = ∥p n∥ * (nnnorm x)^n : by simp
+end
+
+lemma radius_eq_top_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
+  (hs : ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n)) : p.radius = ∞ :=
+ennreal.eq_top_of_forall_nnreal_le (λ r, p.le_radius_of_summable_norm (hs r))
+
+lemma radius_eq_top_iff_summable_norm (p : formal_multilinear_series 𝕜 E F) :
+  p.radius = ∞ ↔ ∀ r : ℝ≥0, summable (λ n, ∥p n∥ * r^n) :=
+begin
+  split,
+  { intros h r,
+    obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
+      p.norm_mul_pow_le_mul_pow_of_lt_radius
+      (show (r:ℝ≥0∞) < p.radius, from h.symm ▸ ennreal.coe_lt_top),
+    refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
+      ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)),
+    specialize hp n,
+    rwa real.norm_of_nonneg (mul_nonneg (norm_nonneg _) (pow_nonneg r.coe_nonneg n)) },
+  { exact p.radius_eq_top_of_summable_norm }
+end
 
 /-- If the radius of `p` is positive, then `∥pₙ∥` grows at most geometrically. -/
 lemma le_mul_pow_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (h : 0 < p.radius) :
@@ -446,7 +499,7 @@ begin
     have hA : has_sum (λ n, A (n + 2)) (f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))),
     { convert (has_sum_nat_add_iff' 2).2 ((hf.has_sum_sub hy.1).sub (hf.has_sum_sub hy.2)),
       rw [finset.sum_range_succ, finset.sum_range_one, hf.coeff_zero, hf.coeff_zero, sub_self,
-        add_zero, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,
+        zero_add, ← subsingleton.pi_single_eq (0 : fin 1) (y.1 - x), pi.single,
         ← subsingleton.pi_single_eq (0 : fin 1) (y.2 - x), pi.single, ← (p 1).map_sub, ← pi.single,
         subsingleton.pi_single_eq, sub_sub_sub_cancel_right] },
     rw [emetric.mem_ball, edist_eq_coe_nnnorm_sub, ennreal.coe_lt_coe] at hy',
@@ -589,14 +642,7 @@ lemma formal_multilinear_series.has_fpower_series_on_ball [complete_space F]
     rw zero_add,
     replace hy : (nnnorm y : ℝ≥0∞) < p.radius,
       by { convert hy, exact (edist_eq_coe_nnnorm _).symm },
-    obtain ⟨a, ha : a ∈ Ioo (0 : ℝ) 1, C, hC : 0 < C, hp⟩ :=
-      p.norm_mul_pow_le_mul_pow_of_lt_radius hy,
-    refine (summable_of_norm_bounded (λ n, (C : ℝ) * a ^ n)
-      ((summable_geometric_of_lt_1 ha.1.le ha.2).mul_left _) (λ n, _)).has_sum,
-    calc ∥(p n) (λ (i : fin n), y)∥
-      ≤ ∥p n∥ * (∏ i : fin n, ∥y∥) : continuous_multilinear_map.le_op_norm _ _
-      ... = ∥p n∥ * (nnnorm y)^n : by simp
-      ... ≤ C * a ^ n : hp n
+    exact (p.summable_of_nnnorm_lt_radius hy).has_sum
   end }
 
 lemma has_fpower_series_on_ball.sum [complete_space F] (h : has_fpower_series_on_ball f p x r)

@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
 
+import algebra.polynomial.big_operators
 import data.matrix.char_p
+import field_theory.finite.basic
+import group_theory.perm.cycles
 import linear_algebra.char_poly.basic
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
-import algebra.polynomial.big_operators
-import group_theory.perm.cycles
-import field_theory.finite.basic
+import ring_theory.power_basis
 
 /-!
 # Characteristic polynomials
@@ -129,16 +130,18 @@ lemma mat_poly_equiv_eval (M : matrix n n (polynomial R)) (r : R) (i j : n) :
   (mat_poly_equiv M).eval ((scalar n) r) i j = (M i j).eval r :=
 begin
   unfold polynomial.eval, unfold eval₂,
-  transitivity finsupp.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),
+  transitivity polynomial.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),
     (a * (scalar n) r ^ e) i j),
-  { unfold finsupp.sum, rw sum_apply, rw sum_apply, dsimp, refl, },
+  { unfold polynomial.sum, rw sum_apply, rw sum_apply, dsimp, refl, },
   { simp_rw ← (scalar n).map_pow, simp_rw ← (matrix.scalar.commute _ _).eq,
     simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
       smul_apply, mul_eq_mul, algebra.smul_mul_assoc],
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
-    symmetry, rw ← finsupp.sum_map_range_index h, swap, refl,
-    refine congr (congr rfl _) (by {ext, rw mul_comm}), ext, rw finsupp.map_range_apply,
-    simpa [coeff] using (mat_poly_equiv_coeff_apply M a i j).symm }
+    simp only [polynomial.sum, mat_poly_equiv_coeff_apply, mul_comm],
+    apply (finset.sum_subset (support_subset_support_mat_poly_equiv _ _ _) _).symm,
+    assume n hn h'n,
+    rw not_mem_support_iff at h'n,
+    simp only [h'n, zero_mul] }
 end
 
 lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
@@ -157,14 +160,33 @@ end
 
 variables {p : ℕ} [fact p.prime]
 
+lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (k : ℕ) [field K] (M : matrix n n K) :
+  mat_poly_equiv
+      ((expand K (k) : polynomial K →+* polynomial K).map_matrix (char_matrix (M ^ k))) =
+    X ^ k - C (M ^ k) :=
+begin
+  ext m,
+  rw [coeff_sub, coeff_C, mat_poly_equiv_coeff_apply, ring_hom.map_matrix_apply, matrix.map_apply,
+    alg_hom.coe_to_ring_hom, dmatrix.sub_apply, coeff_X_pow],
+  by_cases hij : i = j,
+  { rw [hij, char_matrix_apply_eq, alg_hom.map_sub, expand_C, expand_X, coeff_sub, coeff_X_pow,
+     coeff_C],
+    split_ifs with mp m0;
+    simp only [matrix.one_apply_eq, dmatrix.zero_apply] },
+  { rw [char_matrix_apply_ne _ _ _ hij, alg_hom.map_neg, expand_C, coeff_neg, coeff_C],
+    split_ifs with m0 mp;
+    simp only [hij, zero_sub, dmatrix.zero_apply, sub_zero, neg_zero, matrix.one_apply_ne, ne.def,
+      not_false_iff] }
+end
+
 @[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
   by_cases hn : nonempty n,
-  { letI := hn,
+  { haveI := hn,
     cases char_p.exists K with p hp, letI := hp,
     rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
-    letI : fact p.prime := hp,
+    haveI : fact p.prime := ⟨hp⟩,
     dsimp at hk, rw hk at *,
     apply (frobenius_inj (polynomial K) p).iterate k,
     repeat { rw iterate_frobenius, rw ← hk },
@@ -174,13 +196,9 @@ begin
     apply mat_poly_equiv.injective, swap, { apply_instance },
     rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
           mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
-    swap, { apply polynomial.commute_X },
-    -- the following is a nasty case bash that should be abstracted as a lemma
-    -- (and maybe it can be proven more... algebraically?)
-    ext, rw [coeff_sub, coeff_C],
-    by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow];
-    simp only [coeff_C]; split_ifs; simp *, },
-  { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
+    { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
+    { exact (C M).commute_X } },
+  { apply congr_arg, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 
 @[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
@@ -205,3 +223,29 @@ theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
 minpoly.dvd _ _ (aeval_self_char_poly M)
 
 end matrix
+
+section power_basis
+
+open algebra
+
+/-- The characteristic polynomial of the map `λ x, a * x` is the minimal polynomial of `a`.
+
+In combination with `det_eq_sign_char_poly_coeff` or `trace_eq_neg_char_poly_coeff`
+and a bit of rewriting, this will allow us to conclude the
+field norm resp. trace of `x` is the product resp. sum of `x`'s conjugates.
+-/
+lemma char_poly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K S]
+  (h : power_basis K S) :
+  char_poly (left_mul_matrix h.is_basis h.gen) = minpoly K h.gen :=
+begin
+  apply minpoly.unique,
+  { apply char_poly_monic },
+  { apply (left_mul_matrix _).injective_iff.mp (left_mul_matrix_injective h.is_basis),
+    rw [← polynomial.aeval_alg_hom_apply, aeval_self_char_poly] },
+  { intros q q_monic root_q,
+    rw [char_poly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],
+    apply with_bot.some_le_some.mpr,
+    exact h.dim_le_nat_degree_of_root q_monic.ne_zero root_q }
+end
+
+end power_basis

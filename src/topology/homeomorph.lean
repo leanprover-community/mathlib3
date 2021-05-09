@@ -30,6 +30,21 @@ rfl
 
 @[simp] lemma coe_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv = h := rfl
 
+/-- Inverse of a homeomorphism. -/
+protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
+{ continuous_to_fun  := h.continuous_inv_fun,
+  continuous_inv_fun := h.continuous_to_fun,
+  to_equiv := h.to_equiv.symm }
+
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : α ≃ₜ β) : α → β := h
+/-- See Note [custom simps projection] -/
+def simps.symm_apply (h : α ≃ₜ β) : β → α := h.symm
+
+initialize_simps_projections homeomorph
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, -to_equiv)
+
 lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
 | ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl
 
@@ -37,24 +52,17 @@ lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α �
 to_equiv_injective $ equiv.ext H
 
 /-- Identity map as a homeomorphism. -/
+@[simps apply {fully_applied := ff}]
 protected def refl (α : Type*) [topological_space α] : α ≃ₜ α :=
 { continuous_to_fun := continuous_id,
   continuous_inv_fun := continuous_id,
   to_equiv := equiv.refl α }
-
-@[simp] lemma coe_refl : ⇑(homeomorph.refl α) = id := rfl
 
 /-- Composition of two homeomorphisms. -/
 protected def trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) : α ≃ₜ γ :=
 { continuous_to_fun  := h₂.continuous_to_fun.comp h₁.continuous_to_fun,
   continuous_inv_fun := h₁.continuous_inv_fun.comp h₂.continuous_inv_fun,
   to_equiv := equiv.trans h₁.to_equiv h₂.to_equiv }
-
-/-- Inverse of a homeomorphism. -/
-protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
-{ continuous_to_fun  := h.continuous_inv_fun,
-  continuous_inv_fun := h.continuous_to_fun,
-  to_equiv := h.to_equiv.symm }
 
 @[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
   ((homeomorph.mk a b c).symm : β → α) = a.symm :=
@@ -64,6 +72,9 @@ rfl
 
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
+
+@[continuity] -- otherwise `by continuity` can't prove continuity of `h.to_equiv.symm`
+protected lemma continuous_symm (h : α ≃ₜ β) : continuous (h.symm) := h.continuous_inv_fun
 
 @[simp] lemma apply_symm_apply (h : α ≃ₜ β) (x : β) : h (h.symm x) = x :=
 h.to_equiv.apply_symm_apply x
@@ -121,7 +132,18 @@ lemma coinduced_eq (h : α ≃ₜ β) : topological_space.coinduced h ‹_› = 
 h.quotient_map.2.symm
 
 protected lemma embedding (h : α ≃ₜ β) : embedding h :=
-⟨h.inducing, h.to_equiv.injective⟩
+⟨h.inducing, h.injective⟩
+
+/-- Homeomorphism given an embedding. -/
+noncomputable def of_embedding (f : α → β) (hf : embedding f) : α ≃ₜ (set.range f) :=
+{ continuous_to_fun := continuous_subtype_mk _ hf.continuous,
+  continuous_inv_fun := by simp [hf.continuous_iff, continuous_subtype_coe],
+  .. equiv.of_injective f hf.inj }
+
+protected lemma second_countable_topology [topological_space.second_countable_topology β]
+  (h : α ≃ₜ β) :
+  topological_space.second_countable_topology α :=
+h.inducing.second_countable_topology
 
 lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
 h.embedding.compact_iff_compact_image.symm
@@ -131,8 +153,7 @@ by rw ← image_symm; exact h.symm.compact_image
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
-  inj     := h.injective,
-  induced := h.induced_eq.symm }
+  .. h.embedding }
 
 @[simp] lemma is_open_preimage (h : α ≃ₜ β) {s : set β} : is_open (h ⁻¹' s) ↔ is_open s :=
 h.quotient_map.is_open_preimage
@@ -252,12 +273,11 @@ def prod_assoc : (α × β) × γ ≃ₜ α × (β × γ) :=
   to_equiv := equiv.prod_assoc α β γ }
 
 /-- `α × {*}` is homeomorphic to `α`. -/
+@[simps apply {fully_applied := ff}]
 def prod_punit : α × punit ≃ₜ α :=
 { to_equiv := equiv.prod_punit α,
   continuous_to_fun := continuous_fst,
   continuous_inv_fun := continuous_id.prod_mk continuous_const }
-
-@[simp] lemma coe_prod_punit : ⇑(prod_punit α) = prod.fst := rfl
 
 /-- `{*} × α` is homeomorphic to `α`. -/
 def punit_prod : punit × α ≃ₜ α :=
@@ -306,5 +326,13 @@ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
     (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
 
 end distrib
+
+/--
+A subset of a topological space is homeomorphic to its image under a homeomorphism.
+-/
+def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
+{ continuous_to_fun := by continuity!,
+  continuous_inv_fun := by continuity!,
+  ..e.to_equiv.image s, }
 
 end homeomorph

@@ -37,7 +37,7 @@ begin
   { intro x,
     rcases nat.even.sub_even hn (nat.even_bit0 1) with ⟨k, hk⟩,
     simp only [iter_deriv_pow, finset.prod_range_succ, finset.prod_range_zero, nat.sub_zero,
-      mul_one, hk, pow_mul', pow_two],
+      mul_one, hk, pow_mul', sq],
     exact mul_nonneg (nat.cast_nonneg _) (mul_self_nonneg _) }
 end
 
@@ -94,7 +94,7 @@ begin
     exact (differentiable_on_fpow (lt_irrefl _)).const_mul _ },
   { intros x hx,
     simp only [iter_deriv_fpow (ne_of_gt hx)],
-    refine mul_nonneg (int.cast_nonneg.2 _) (fpow_nonneg_of_nonneg (le_of_lt hx) _),
+    refine mul_nonneg (int.cast_nonneg.2 _) (fpow_nonneg (le_of_lt hx) _),
     exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
 end
 
@@ -131,7 +131,7 @@ begin
     rw [function.iterate_succ, function.iterate_one],
     change (deriv (deriv log)) x ≤ 0,
     rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
-    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+    exact neg_nonpos.mpr (inv_nonneg.mpr (sq_nonneg x)) }
 end
 
 lemma concave_on_log_Iio : concave_on (Iio 0) log :=
@@ -149,5 +149,5 @@ begin
     rw [function.iterate_succ, function.iterate_one],
     change (deriv (deriv log)) x ≤ 0,
     rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
-    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+    exact neg_nonpos.mpr (inv_nonneg.mpr (sq_nonneg x)) }
 end

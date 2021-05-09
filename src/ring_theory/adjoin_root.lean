@@ -101,7 +101,7 @@ polynomial.induction_on p (λ x, by { rw aeval_C, refl })
 
 theorem adjoin_root_eq_top : algebra.adjoin R ({root f} : set (adjoin_root f)) = ⊤ :=
 algebra.eq_top_iff.2 $ λ x, induction_on f x $ λ p,
-(algebra.adjoin_singleton_eq_range R (root f)).symm ▸ ⟨p, set.mem_univ _, aeval_eq p⟩
+(algebra.adjoin_singleton_eq_range R (root f)).symm ▸ ⟨p, aeval_eq p⟩
 
 @[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ (of f) (root f) = 0 :=
 by rw [← algebra_map_eq, ← aeval_def, aeval_eq, mk_self]
@@ -154,7 +154,7 @@ end
   lift_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ) = ϕ :=
 begin
   suffices : ϕ.equalizer (lift_hom f (ϕ (root f)) (aeval_alg_hom_eq_zero f ϕ)) = ⊤,
-  { exact (alg_hom.ext (λ x, (subalgebra.ext_iff.mp (this) x).mpr algebra.mem_top)).symm },
+  { exact (alg_hom.ext (λ x, (set_like.ext_iff.mp (this) x).mpr algebra.mem_top)).symm },
   rw [eq_top_iff, ←adjoin_root_eq_top, algebra.adjoin_le_iff, set.singleton_subset_iff],
   exact (@lift_root _ _ _ _ _ _ _ (aeval_alg_hom_eq_zero f ϕ)).symm,
 end

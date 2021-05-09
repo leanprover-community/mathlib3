@@ -6,6 +6,7 @@ Authors: Markus Himmel
 import algebra.group.hom
 import category_theory.limits.shapes.kernels
 import algebra.big_operators.basic
+import category_theory.endomorphism
 
 /-!
 # Preadditive categories
@@ -73,6 +74,25 @@ namespace category_theory.preadditive
 
 section preadditive
 variables {C : Type u} [category.{v} C] [preadditive C]
+
+section induced_category
+universes u'
+variables {C} {D : Type u'} (F : D → C)
+
+instance induced_category.category : preadditive.{v} (induced_category C F) :=
+{ hom_group := λ P Q, @preadditive.hom_group C _ _ (F P) (F Q),
+  add_comp' := λ P Q R f f' g, add_comp' _ _ _ _ _ _,
+  comp_add' := λ P Q R f g g', comp_add' _ _ _ _ _ _, }
+
+end induced_category
+
+instance (X : C) : add_comm_group (End X) := by { dsimp [End], apply_instance, }
+
+instance (X : C) : ring (End X) :=
+{ left_distrib := λ f g h, preadditive.add_comp X X X g h f,
+  right_distrib := λ f g h, preadditive.comp_add X X X h f g,
+  ..(infer_instance : add_comm_group (End X)),
+  ..(infer_instance : monoid (End X)) }
 
 /-- Composition by a fixed left argument as a group homomorphism -/
 def left_comp {P Q : C} (R : C) (f : P ⟶ Q) : (Q ⟶ R) →+ (P ⟶ R) :=
@@ -155,9 +175,20 @@ lemma epi_iff_cancel_zero {P Q : C} (f : P ⟶ Q) :
   epi f ↔ ∀ (R : C) (g : Q ⟶ R), f ≫ g = 0 → g = 0 :=
 ⟨λ e R g, by exactI zero_of_epi_comp _, epi_of_cancel_zero f⟩
 
-lemma epi_of_cokernel_zero {X Y : C} (f : X ⟶ Y) [has_colimit (parallel_pair f 0 )]
+lemma epi_of_cokernel_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f 0 )]
   (w : cokernel.π f = 0) : epi f :=
 epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, limits.zero_comp])
+
+local attribute [instance] has_zero_object.has_zero
+variables [has_zero_object C]
+
+lemma mono_of_kernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_limit (parallel_pair f 0)]
+  (w : kernel f ≅ 0) : mono f :=
+mono_of_kernel_zero (zero_of_source_iso_zero _ w)
+
+lemma epi_of_cokernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f 0)]
+  (w : cokernel f ≅ 0) : epi f :=
+epi_of_cokernel_zero (zero_of_target_iso_zero _ w)
 
 end preadditive
 

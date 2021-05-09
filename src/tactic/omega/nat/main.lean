@@ -94,7 +94,8 @@ meta def prove_sub_free : preform → tactic expr
      return `(@and.intro (preform.sub_free %%`(p))
        (preform.sub_free %%`(q)) %%x %%y)
 
-/-- Given a p : preform, return the expr of a term t : p.unsat, where p is subtraction- and negation-free. -/
+/-- Given a p : preform, return the expr of a term t : p.unsat, where p is subtraction- and
+negation-free. -/
 meta def prove_unsat_sub_free (p : preform) : tactic expr :=
 do x ← prove_neg_free p,
    y ← prove_sub_free p,

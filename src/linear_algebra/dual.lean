@@ -40,10 +40,13 @@ noncomputable theory
 namespace module
 
 variables (R : Type*) (M : Type*)
-variables [comm_ring R] [add_comm_group M] [module R M]
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
 
 /-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
-@[derive [add_comm_group, module R]] def dual := M →ₗ[R] R
+@[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
+
+instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
+  add_comm_group (dual S N) := by {unfold dual, apply_instance}
 
 namespace dual
 
@@ -51,8 +54,8 @@ instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
-/-- Maps a module M to the dual of the dual of M. See `vector_space.erange_coe` and
-`vector_space.eval_equiv`. -/
+/-- Maps a module M to the dual of the dual of M. See `module.erange_coe` and
+`module.eval_equiv`. -/
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
 @[simp] lemma eval_apply (v : M) (a : dual R M) : eval R M v a = a v :=
@@ -61,7 +64,7 @@ begin
   rw [linear_map.flip_apply, linear_map.id_apply]
 end
 
-variables {R M} {M' : Type*} [add_comm_group M'] [module R M']
+variables {R M} {M' : Type*} [add_comm_monoid M'] [module R M']
 
 /-- The transposition of linear maps, as a linear map from `M →ₗ[R] M'` to
 `dual R M' →ₗ[R] dual R M`. -/
@@ -70,7 +73,7 @@ def transpose : (M →ₗ[R] M') →ₗ[R] (dual R M' →ₗ[R] dual R M) :=
 
 lemma transpose_apply (u : M →ₗ[R] M') (l : dual R M') : transpose u l = l.comp u := rfl
 
-variables {M'' : Type*} [add_comm_group M''] [module R M'']
+variables {M'' : Type*} [add_comm_monoid M''] [module R M'']
 
 lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
   transpose (u.comp v) = (transpose v).comp (transpose u) := rfl
@@ -84,9 +87,9 @@ namespace is_basis
 universes u v w
 
 variables {K : Type u} {V : Type v} {ι : Type w}
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 
-open vector_space module module.dual submodule linear_map cardinal function
+open module module module.dual submodule linear_map cardinal function
 
 variables [de : decidable_eq ι]
 variables (B : ι → V) (h : is_basis K B)
@@ -96,7 +99,7 @@ include de h
 /-- The linear map from a vector space equipped with basis to its dual vector space,
 taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
-h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
+h.constr $ λ v, h.constr $ λ w, if w = v then (1 : K) else 0
 
 variable {B}
 
@@ -230,15 +233,13 @@ h.to_dual_apply_right i v
   (h.dual_basis_is_basis.to_dual _).comp (h.to_dual B) = eval K V :=
 begin
   refine h.ext (λ i, h.dual_basis_is_basis.ext (λ j, _)),
-  suffices : @ite K _ (classical.prop_decidable _) 1 0 = @ite K _ (de j i) 1 0,
-    by simpa [h.dual_basis_is_basis.to_dual_apply_left, h.dual_basis_repr, h.to_dual_apply_right],
-  split_ifs; refl
+  simp [h.dual_basis_is_basis.to_dual_apply_left, h.dual_basis_repr, h.to_dual_apply_right],
 end
 
 omit de
 
 theorem dual_dim_eq [fintype ι] :
-  cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
+  cardinal.lift.{v u} (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
   have := linear_equiv.dim_eq_lift (h.to_dual_equiv B),
@@ -249,11 +250,11 @@ end
 
 end is_basis
 
-namespace vector_space
+namespace module
 
 universes u v
 variables {K : Type u} {V : Type v}
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 open module module.dual submodule linear_map cardinal is_basis finite_dimensional
 
 theorem eval_ker : (eval K V).ker = ⊥ :=
@@ -272,7 +273,7 @@ begin
 end
 
 theorem dual_dim_eq [finite_dimensional K V] :
-  cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
+  cardinal.lift.{v u} (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
   rcases exists_is_basis_fintype (dim_lt_omega K V) with ⟨b, hb, ⟨hf⟩⟩,
@@ -289,20 +290,27 @@ begin
   apply_instance
 end
 
+variables (K V)
+
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V) eval_ker (erange_coe)
 
-end vector_space
+variables {K V}
+
+@[simp] lemma eval_equiv_to_linear_map [finite_dimensional K V] :
+  (eval_equiv K V).to_linear_map = dual.eval K V := rfl
+
+end module
 
 section dual_pair
 
-open vector_space module module.dual linear_map function
+open module module module.dual linear_map function
 
 universes u v w
 
 variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 
 local notation `V'` := dual K V
 
@@ -317,11 +325,11 @@ end dual_pair
 
 namespace dual_pair
 
-open vector_space module module.dual linear_map function
+open module module module.dual linear_map function
 
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w} [dι : decidable_eq ι]
-variables [field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [module K V]
 variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
 
 include h
@@ -363,7 +371,7 @@ lemma decomposition (v : V) : dual_pair.lc e (h.coeffs v) = v :=
 begin
   refine eq_of_sub_eq_zero (h.total _),
   intros i,
-  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero_iff_eq]
+  simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
 end
 
 lemma mem_of_mem_span {H : set ι} {x : V} (hmem : x ∈ submodule.span K (e '' H)) :
@@ -455,6 +463,14 @@ begin
     rw [linear_map.map_add, h.1 _ hx, h.2 _ hy, add_zero] }
 end
 
+/-- The pullback of a submodule in the dual space along the evaluation map. -/
+def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M :=
+Φ.dual_annihilator.comap (module.dual.eval R M)
+
+lemma mem_dual_annihilator_comap_iff {Φ : submodule R (module.dual R M)} (x : M) :
+  x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
+by simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
+
 end submodule
 
 namespace subspace
@@ -464,7 +480,7 @@ open submodule linear_map
 universes u v w
 
 -- We work in vector spaces because `exists_is_compl` only hold for vector spaces
-variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
+variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
 the natural extension of `φ` to an element of the dual of `V`.
@@ -528,7 +544,7 @@ open_locale classical
 
 open finite_dimensional
 
-variables {V₁ : Type*} [add_comm_group V₁] [vector_space K V₁]
+variables {V₁ : Type*} [add_comm_group V₁] [module K V₁]
 
 instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
 begin
@@ -540,11 +556,11 @@ end
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 
-@[simp] lemma dual_findim_eq :
-  findim K (module.dual K V) = findim K V :=
+@[simp] lemma dual_finrank_eq :
+  finrank K (module.dual K V) = finrank K V :=
 begin
   obtain ⟨n, hn, hf⟩ := exists_is_basis_finite K V,
-  refine linear_equiv.findim_eq _,
+  refine linear_equiv.finrank_eq _,
   haveI : fintype n := set.finite.fintype hf,
   refine (hn.to_dual_equiv _).symm,
 end
@@ -570,6 +586,143 @@ begin
     exact is_basis.to_dual_equiv _ hB.1 },
 end
 
+open finite_dimensional
+
+@[simp]
+lemma finrank_dual_annihilator_comap_eq {Φ : subspace K (module.dual K V)} :
+  finrank K Φ.dual_annihilator_comap = finrank K Φ.dual_annihilator :=
+begin
+  rw [submodule.dual_annihilator_comap, ← module.eval_equiv_to_linear_map],
+  exact linear_equiv.finrank_eq (linear_equiv.of_submodule' _ _),
+end
+
+lemma finrank_add_finrank_dual_annihilator_comap_eq
+  (W : subspace K (module.dual K V)) :
+  finrank K W + finrank K W.dual_annihilator_comap = finrank K V :=
+begin
+  rw [finrank_dual_annihilator_comap_eq, W.quot_equiv_annihilator.finrank_eq.symm, add_comm,
+      submodule.finrank_quotient_add_finrank, subspace.dual_finrank_eq],
+end
+
 end
 
 end subspace
+
+variables {R : Type*} [comm_ring R] {M₁ : Type*} {M₂ : Type*}
+variables [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
+
+open module
+
+/-- Given a linear map `f : M₁ →ₗ[R] M₂`, `f.dual_map` is the linear map between the dual of
+`M₂` and `M₁` such that it maps the functional `φ` to `φ ∘ f`. -/
+def linear_map.dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R M₁ :=
+linear_map.lcomp R R f
+
+@[simp] lemma linear_map.dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+  f.dual_map g x = g (f x) :=
+linear_map.lcomp_apply f g x
+
+@[simp] lemma linear_map.dual_map_id :
+  (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
+by { ext, refl }
+
+lemma linear_map.dual_map_comp_dual_map {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M₁ →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
+  f.dual_map.comp g.dual_map = (g.comp f).dual_map :=
+rfl
+
+/-- The `linear_equiv` version of `linear_map.dual_map`. -/
+def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual R M₁ :=
+{ inv_fun := f.symm.to_linear_map.dual_map,
+  left_inv :=
+    begin
+      intro φ, ext x,
+      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+                 linear_map.to_fun_eq_coe, linear_equiv.apply_symm_apply]
+    end,
+  right_inv :=
+    begin
+      intro φ, ext x,
+      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+                 linear_map.to_fun_eq_coe, linear_equiv.symm_apply_apply]
+    end,
+  .. f.to_linear_map.dual_map }
+
+@[simp] lemma linear_equiv.dual_map_apply (f : M₁ ≃ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+  f.dual_map g x = g (f x) :=
+linear_map.lcomp_apply f g x
+
+@[simp] lemma linear_equiv.dual_map_refl :
+  (linear_equiv.refl R M₁).dual_map = linear_equiv.refl R (dual R M₁) :=
+by { ext, refl }
+
+@[simp] lemma linear_equiv.dual_map_symm {f : M₁ ≃ₗ[R] M₂} :
+  (linear_equiv.dual_map f).symm = linear_equiv.dual_map f.symm := rfl
+
+lemma linear_equiv.dual_map_trans {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M₁ ≃ₗ[R] M₂) (g : M₂ ≃ₗ[R] M₃) :
+  g.dual_map.trans f.dual_map = (f.trans g).dual_map :=
+rfl
+
+namespace linear_map
+
+variable (f : M₁ →ₗ[R] M₂)
+
+lemma ker_dual_map_eq_dual_annihilator_range :
+  f.dual_map.ker = f.range.dual_annihilator :=
+begin
+  ext φ, split; intro hφ,
+  { rw mem_ker at hφ,
+    rw submodule.mem_dual_annihilator,
+    rintro y ⟨x, rfl⟩,
+    rw [← dual_map_apply, hφ, zero_apply] },
+  { ext x,
+    rw dual_map_apply,
+    rw submodule.mem_dual_annihilator at hφ,
+    exact hφ (f x) ⟨x, rfl⟩ }
+end
+
+lemma range_dual_map_le_dual_annihilator_ker :
+  f.dual_map.range ≤ f.ker.dual_annihilator :=
+begin
+  rintro _ ⟨ψ, rfl⟩,
+  simp_rw [submodule.mem_dual_annihilator, mem_ker],
+  rintro x hx,
+  rw [dual_map_apply, hx, map_zero]
+end
+
+section finite_dimensional
+
+variables {K : Type*} [field K] {V₁ : Type*} {V₂ : Type*}
+variables [add_comm_group V₁] [module K V₁] [add_comm_group V₂] [module K V₂]
+
+open finite_dimensional
+
+variable [finite_dimensional K V₂]
+
+@[simp] lemma finrank_range_dual_map_eq_finrank_range (f : V₁ →ₗ[K] V₂) :
+  finrank K f.dual_map.range = finrank K f.range :=
+begin
+  have := submodule.finrank_quotient_add_finrank f.range,
+  rw [(subspace.quot_equiv_annihilator f.range).finrank_eq,
+      ← ker_dual_map_eq_dual_annihilator_range] at this,
+  conv_rhs at this { rw ← subspace.dual_finrank_eq },
+  refine add_left_injective (finrank K f.dual_map.ker) _,
+  change _ + _ = _ + _,
+  rw [finrank_range_add_finrank_ker f.dual_map, add_comm, this],
+end
+
+lemma range_dual_map_eq_dual_annihilator_ker [finite_dimensional K V₁] (f : V₁ →ₗ[K] V₂) :
+  f.dual_map.range = f.ker.dual_annihilator :=
+begin
+  refine eq_of_le_of_finrank_eq f.range_dual_map_le_dual_annihilator_ker _,
+  have := submodule.finrank_quotient_add_finrank f.ker,
+  rw (subspace.quot_equiv_annihilator f.ker).finrank_eq at this,
+  refine add_left_injective (finrank K f.ker) _,
+  simp_rw [this, finrank_range_dual_map_eq_finrank_range],
+  exact finrank_range_add_finrank_ker f,
+end
+
+end finite_dimensional
+
+end linear_map

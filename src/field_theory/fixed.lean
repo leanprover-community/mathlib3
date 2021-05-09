@@ -20,7 +20,7 @@ Given a (finite) group `G` that acts on a field `F`, we define `fixed_points G F
 the subfield consisting of elements of `F` fixed_points by every element of `G`.
 
 This subfield is then normal and separable, and in addition (TODO) if `G` acts faithfully on `F`
-then `findim (fixed_points G F) F = fintype.card G`.
+then `finrank (fixed_points G F) F = fintype.card G`.
 
 ## Main Definitions
 
@@ -108,12 +108,12 @@ variables [fintype G] (x : F)
 /-- `minpoly G F x` is the minimal polynomial of `(x : F)` over `fixed_points G F`. -/
 def minpoly : polynomial (fixed_points G F) :=
 (prod_X_sub_smul G F x).to_subring _ $ λ c hc g,
-let ⟨hc0, n, hn⟩ := finsupp.mem_frange.1 hc in hn ▸ prod_X_sub_smul.coeff G F x g n
+let ⟨n, hc0, hn⟩ := polynomial.mem_frange_iff.1 hc in hn.symm ▸ prod_X_sub_smul.coeff G F x g n
 
 namespace minpoly
 
 theorem monic : (minpoly G F x).monic :=
-subtype.eq $ prod_X_sub_smul.monic G F x
+by { simp only [minpoly, polynomial.monic_to_subring], exact prod_X_sub_smul.monic G F x }
 
 theorem eval₂ :
   polynomial.eval₂ (is_subring.subtype $ fixed_points G F) x (minpoly G F x) = 0 :=
@@ -179,7 +179,7 @@ theorem is_integral : is_integral (fixed_points G F) x :=
 
 theorem minpoly_eq_minpoly :
   minpoly G F x = _root_.minpoly (fixed_points G F) x :=
-minpoly.unique' (is_integral G F x) (minpoly.irreducible G F x)
+minpoly.unique' (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
 instance normal : normal (fixed_points G F) F :=
@@ -195,11 +195,11 @@ instance separable : is_separable (fixed_points G F) F :=
     minpoly, polynomial.map_to_subring],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
-lemma dim_le_card : vector_space.dim (fixed_points G F) F ≤ fintype.card G :=
+lemma dim_le_card : module.rank (fixed_points G F) F ≤ fintype.card G :=
 begin
   refine dim_le (λ s hs, cardinal.nat_cast_le.1 _),
   rw [← @dim_fun' F G, ← cardinal.lift_nat_cast.{v (max u v)},
-    cardinal.finset_card, ← cardinal.lift_id (vector_space.dim F (G → F))],
+    cardinal.finset_card, ← cardinal.lift_id (module.rank F (G → F))],
   exact linear_independent_le_dim'.{_ _ _ (max u v)}
     (linear_independent_smul_of_linear_independent G F hs)
 end
@@ -208,8 +208,8 @@ instance : finite_dimensional (fixed_points G F) F :=
 finite_dimensional.finite_dimensional_iff_dim_lt_omega.2 $
 lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
 
-lemma findim_le_card : findim (fixed_points G F) F ≤ fintype.card G :=
-by exact_mod_cast trans_rel_right (≤) (findim_eq_dim _ _) (dim_le_card G F)
+lemma finrank_le_card : finrank (fixed_points G F) F ≤ fintype.card G :=
+by exact_mod_cast trans_rel_right (≤) (finrank_eq_dim _ _) (dim_le_card G F)
 
 end fixed_points
 
@@ -225,8 +225,8 @@ this.of_comp _
 lemma cardinal_mk_alg_hom (K : Type u) (V : Type v) (W : Type w)
   [field K] [field V] [algebra K V] [finite_dimensional K V]
             [field W] [algebra K W] [finite_dimensional K W] :
-  cardinal.mk (V →ₐ[K] W) ≤ findim W (V →ₗ[K] W) :=
-cardinal_mk_le_findim_of_linear_independent $ linear_independent_to_linear_map K V W
+  cardinal.mk (V →ₐ[K] W) ≤ finrank W (V →ₗ[K] W) :=
+cardinal_mk_le_finrank_of_linear_independent $ linear_independent_to_linear_map K V W
 
 noncomputable instance alg_hom.fintype (K : Type u) (V : Type v) (W : Type w)
   [field K] [field V] [algebra K V] [finite_dimensional K V]
@@ -240,10 +240,10 @@ noncomputable instance alg_equiv.fintype (K : Type u) (V : Type v)
   fintype (V ≃ₐ[K] V) :=
 fintype.of_equiv (V →ₐ[K] V) (alg_equiv_equiv_alg_hom K V).symm
 
-lemma findim_alg_hom (K : Type u) (V : Type v)
+lemma finrank_alg_hom (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :
-  fintype.card (V →ₐ[K] V) ≤ findim V (V →ₗ[K] V) :=
-fintype_card_le_findim_of_linear_independent $ linear_independent_to_linear_map K V V
+  fintype.card (V →ₐ[K] V) ≤ finrank V (V →ₗ[K] V) :=
+fintype_card_le_finrank_of_linear_independent $ linear_independent_to_linear_map K V V
 
 namespace fixed_points
 /-- Embedding produced from a faithful action. -/
@@ -259,14 +259,14 @@ lemma to_alg_hom_apply_apply {G : Type u} {F : Type v} [group G] [field F]
   to_alg_hom G F g x = g • x :=
 rfl
 
-theorem findim_eq_card (G : Type u) (F : Type v) [group G] [field F]
+theorem finrank_eq_card (G : Type u) (F : Type v) [group G] [field F]
   [fintype G] [faithful_mul_semiring_action G F] :
-  findim (fixed_points G F) F = fintype.card G :=
-le_antisymm (fixed_points.findim_le_card G F) $
+  finrank (fixed_points G F) F = fintype.card G :=
+le_antisymm (fixed_points.finrank_le_card G F) $
 calc  fintype.card G
     ≤ fintype.card (F →ₐ[fixed_points G F] F) : fintype.card_le_of_injective _ (to_alg_hom G F).2
-... ≤ findim F (F →ₗ[fixed_points G F] F) : findim_alg_hom (fixed_points G F) F
-... = findim (fixed_points G F) F : findim_linear_map' _ _ _
+... ≤ finrank F (F →ₗ[fixed_points G F] F) : finrank_alg_hom (fixed_points G F) F
+... = finrank (fixed_points G F) F : finrank_linear_map' _ _ _
 
 theorem to_alg_hom_bijective (G : Type u) (F : Type v) [group G] [field F]
   [fintype G] [faithful_mul_semiring_action G F] :
@@ -277,8 +277,8 @@ begin
   { exact (to_alg_hom G F).injective },
   { apply le_antisymm,
     { exact fintype.card_le_of_injective _ (to_alg_hom G F).injective },
-    { rw ← findim_eq_card G F,
-      exact has_le.le.trans_eq (findim_alg_hom _ F) (findim_linear_map' _ _ _) } },
+    { rw ← finrank_eq_card G F,
+      exact has_le.le.trans_eq (finrank_alg_hom _ F) (finrank_linear_map' _ _ _) } },
 end
 
 /-- Bijection between G and algebra homomorphisms that fix the fixed points -/

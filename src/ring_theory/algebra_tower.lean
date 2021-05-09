@@ -213,15 +213,16 @@ begin
     { rw mul_one, exact subset_span (set.mem_insert _ _) },
     { rw one_mul, exact subset_span (set.mem_insert_of_mem _ hyj) },
     { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
-    { rw ← hf (yi * yj), exact (submodule.mem_coe _).2 (sum_mem _ $ λ yk hyk, smul_mem
+    { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem _ $ λ yk hyk, smul_mem
         (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
         ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi yj yk hyi hyj hyk⟩
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
   refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
   refine restrict_scalars_injective A _ _ _,
-  rw [restrict_scalars_top, eq_top_iff, ← algebra.coe_top, ← hx, algebra.adjoin_eq_span, span_le],
-  refine λ r hr, monoid.in_closure.rec_on hr hxy (subset_span $ mem_insert_self _ _)
-      (λ p q _ _ hp hq, hyy $ submodule.mul_mem_mul hp hq)
+  rw [restrict_scalars_top, eq_top_iff, ← algebra.top_to_submodule, ← hx,
+    algebra.adjoin_eq_span, span_le],
+  refine λ r hr, submonoid.closure_induction hr (λ c hc, hxy c hc)
+    (subset_span $ mem_insert_self _ _) (λ p q hp hq, hyy $ submodule.mul_mem_mul hp hq)
 end
 
 /-- Artin--Tate lemma: if A ⊆ B ⊆ C is a chain of subrings of commutative rings, and

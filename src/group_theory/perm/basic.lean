@@ -3,11 +3,8 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.equiv.basic
-import algebra.group.basic
-import algebra.group.hom
 import algebra.group.pi
-import algebra.group.prod
+import algebra.group_power
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -18,7 +15,7 @@ universes u v
 
 namespace equiv
 
-variables {α : Type u}
+variables {α : Type u} {β : Type v}
 
 namespace perm
 
@@ -53,6 +50,10 @@ lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.symm_apply_eq
+
+lemma gpow_apply_comm {α : Type*} (σ : equiv.perm α) (m n : ℤ) {x : α} :
+  (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
+by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, gpow_mul_comm]
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -175,6 +176,38 @@ begin
   simpa using equiv.congr_fun h i
 end
 
+/-- If `e` is also a permutation, we can write `perm_congr`
+completely in terms of the group structure. -/
+@[simp] lemma perm_congr_eq_mul (e p : perm α) :
+  e.perm_congr p = e * p * e⁻¹ := rfl
+
+section extend_domain
+
+/-! Lemmas about `equiv.perm.extend_domain` re-expressed via the group structure. -/
+
+variables (e : perm α) {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p)
+
+@[simp] lemma extend_domain_one : extend_domain 1 f = 1 :=
+extend_domain_refl f
+
+@[simp] lemma extend_domain_inv : (e.extend_domain f)⁻¹ = e⁻¹.extend_domain f := rfl
+
+@[simp] lemma extend_domain_mul (e e' : perm α) :
+  (e.extend_domain f) * (e'.extend_domain f) = (e * e').extend_domain f :=
+extend_domain_trans _ _ _
+
+/-- `extend_domain` as a group homomorphism -/
+@[simps] def extend_domain_hom : perm α →* perm β :=
+{ to_fun := λ e, extend_domain e f,
+  map_one' := extend_domain_one f,
+  map_mul' := λ e e', (extend_domain_mul f e e').symm }
+
+lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
+((extend_domain_hom f).injective_iff).mpr (λ e he, ext (λ x, f.injective (subtype.ext
+  ((extend_domain_apply_image e f x).symm.trans (ext_iff.mp he (f x))))))
+
+end extend_domain
+
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
@@ -226,6 +259,15 @@ lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p]
   of_subtype f x = x :=
 dif_neg hx
 
+lemma of_subtype_apply_coe {p : α → Prop} [decidable_pred p]
+  (f : perm (subtype p)) (x : subtype p) :
+  of_subtype f ↑x = ↑(f x) :=
+begin
+  change dite _ _ _ = _,
+  rw [dif_pos, subtype.coe_eta],
+  exact x.2,
+end
+
 lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : α) :
   p x ↔ p ((of_subtype f : α → α) x) :=
@@ -243,6 +285,30 @@ instance perm_unique {n : Type*} [unique n] : unique (equiv.perm n) :=
   uniq := λ σ, equiv.ext (λ i, subsingleton.elim _ _) }
 
 @[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
+
+variables (e : perm α) (ι : α ↪ β)
+
+open_locale classical
+
+/-- Noncomputable version of `equiv.perm.via_fintype_embedding` that does not assume `fintype` -/
+noncomputable def via_embedding : perm β :=
+extend_domain e (of_injective ι.1 ι.2)
+
+lemma via_embedding_apply (x : α) : e.via_embedding ι (ι x) = ι (e x) :=
+extend_domain_apply_image e (of_injective ι.1 ι.2) x
+
+lemma via_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
+  e.via_embedding ι x = x :=
+extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
+
+/-- `via_embedding` as a group homomorphism -/
+noncomputable def via_embedding_hom : perm α →* perm β:=
+extend_domain_hom (of_injective ι.1 ι.2)
+
+lemma via_embedding_hom_apply : via_embedding_hom ι e = via_embedding e ι := rfl
+
+lemma via_embedding_hom_injective : function.injective (via_embedding_hom ι) :=
+extend_domain_hom_injective (of_injective ι.1 ι.2)
 
 end perm
 
@@ -262,6 +328,9 @@ end
 
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
 by rw [swap_mul_eq_mul_swap, perm.inv_apply_self, perm.inv_apply_self]
+
+lemma swap_apply_apply (f : perm α) (x y : α) : swap (f x) (f y) = f * swap x y * f⁻¹ :=
+by rw [mul_swap_eq_swap_mul, mul_inv_cancel_right]
 
 /-- Left-multiplying a permutation with `swap i j` twice gives the original permutation.
 
@@ -288,6 +357,9 @@ swap_mul_self_mul i j
 @[simp]
 lemma mul_swap_involutive (i j : α) : function.involutive (* (equiv.swap i j)) :=
 mul_swap_mul_self i j
+
+@[simp] lemma swap_eq_one_iff {i j : α} : swap i j = (1 : perm α) ↔ i = j :=
+swap_eq_refl_iff
 
 lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
 ⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),

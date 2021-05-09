@@ -63,8 +63,8 @@ comp_assoc_right _ _ _
 
 end semigroup
 
-section monoid
-variables {M : Type u} [monoid M]
+section mul_one_class
+variables {M : Type u} [mul_one_class M]
 
 @[to_additive]
 lemma ite_mul_one {P : Prop} [decidable P] {a b : M} :
@@ -75,7 +75,13 @@ by { by_cases h : P; simp [h], }
 lemma eq_one_iff_eq_one_of_mul_eq_one {a b : M} (h : a * b = 1) : a = 1 ↔ b = 1 :=
 by split; { rintro rfl, simpa using h }
 
-end monoid
+@[to_additive]
+lemma one_mul_eq_id : ((*) (1 : M)) = id := funext one_mul
+
+@[to_additive]
+lemma mul_one_eq_id : (* (1 : M)) = id := funext mul_one
+
+end mul_one_class
 
 section comm_semigroup
 variables {G : Type u} [comm_semigroup G]
@@ -333,25 +339,14 @@ lemma add_sub_assoc (a b c : G) : a + b - c = a + (b - c) :=
 by rw [sub_eq_add_neg, add_assoc, ←sub_eq_add_neg]
 
 lemma eq_of_sub_eq_zero (h : a - b = 0) : a = b :=
-have 0 + b = b, by rw zero_add,
-have (a - b) + b = b, by rwa h,
-by rwa [sub_eq_add_neg, neg_add_cancel_right] at this
-
-lemma sub_eq_zero_of_eq (h : a = b) : a - b = 0 :=
-by rw [h, sub_self]
-
-lemma sub_eq_zero_iff_eq : a - b = 0 ↔ a = b :=
-⟨eq_of_sub_eq_zero, sub_eq_zero_of_eq⟩
+calc a = a - b + b : (sub_add_cancel a b).symm
+   ... = b         : by rw [h, zero_add]
 
 @[simp] lemma sub_zero (a : G) : a - 0 = a :=
 by rw [sub_eq_add_neg, neg_zero, add_zero]
 
 lemma sub_ne_zero_of_ne (h : a ≠ b) : a - b ≠ 0 :=
-begin
-  intro hab,
-  apply h,
-  apply eq_of_sub_eq_zero hab
-end
+mt eq_of_sub_eq_zero h
 
 @[simp] lemma sub_neg_eq_add (a b : G) : a - (-b) = a + b :=
 by rw [sub_eq_add_neg, neg_neg]
@@ -372,13 +367,13 @@ by simp
 by rw [sub_add_eq_sub_sub_swap]; simp
 
 lemma eq_sub_of_add_eq (h : a + c = b) : a = b - c :=
-by simp [h.symm]
+by simp [← h]
 
 lemma sub_eq_of_eq_add (h : a = c + b) : a - b = c :=
 by simp [h]
 
 lemma eq_add_of_sub_eq (h : a - c = b) : a = b + c :=
-by simp [h.symm]
+by simp [← h]
 
 lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
 by simp [h]
@@ -401,8 +396,13 @@ by simp
 theorem sub_eq_zero : a - b = 0 ↔ a = b :=
 ⟨eq_of_sub_eq_zero, λ h, by rw [h, sub_self]⟩
 
+alias sub_eq_zero ↔ _ sub_eq_zero_of_eq
+
 theorem sub_ne_zero : a - b ≠ 0 ↔ a ≠ b :=
 not_congr sub_eq_zero
+
+@[simp] theorem sub_eq_self : a - b = a ↔ b = 0 :=
+by rw [sub_eq_add_neg, add_right_eq_self, neg_eq_zero]
 
 theorem eq_sub_iff_add_eq : a = b - c ↔ a + c = b :=
 by rw [sub_eq_add_neg, eq_add_neg_iff_add_eq]

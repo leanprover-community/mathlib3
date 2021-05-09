@@ -923,7 +923,7 @@ lemma coeff_to_power_series_symm {f : power_series R} {n : ℕ} :
 
 variables [ordered_semiring Γ] [nontrivial Γ]
 /-- Casts a power series as a Hahn series with coefficients from an `ordered_semiring`. -/
-def of_power_series : (power_series R) →+* hahn_series Γ R :=
+@[simps] def of_power_series : (power_series R) →+* hahn_series Γ R :=
 (hahn_series.emb_domain_ring_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
   (λ _ _, nat.cast_le)).comp
   (ring_equiv.to_ring_hom to_power_series.symm)
@@ -946,6 +946,14 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
       rw [power_series.coeff_C, if_neg n.succ_ne_zero] }
   end,
   .. to_power_series }
+
+variables [ordered_semiring Γ] [nontrivial Γ]
+/-- Casting a power series as a Hahn series with coefficients from an `ordered_semiring`
+  is an algebra homomorphism. -/
+@[simps] def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=
+(hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
+  (λ _ _, nat.cast_le)).comp
+  (alg_equiv.to_alg_hom (to_power_series_alg R).symm)
 
 end algebra
 

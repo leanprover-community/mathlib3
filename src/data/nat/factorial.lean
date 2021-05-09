@@ -168,20 +168,12 @@ lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n + k + 1) * desc_fac n k
 
 lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k
 | 0 := by rw [add_zero, desc_fac_zero, desc_fac_zero]
-| (k + 1) :=
-begin
-  have : (n + 1) * ((n.succ + k + 1) * desc_fac n.succ k)
-       = (n.succ + k + 1) * ((n + 1) * desc_fac n.succ k), by ac_refl,
-  rw [desc_fac, this, succ_desc_fac k, desc_fac, succ_eq_add_one], ac_refl
-end
+| (k + 1) := by rw [desc_fac, mul_left_comm, succ_desc_fac, desc_fac, succ_add, ← add_assoc]
 
 /-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/
 theorem eval_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
 | 0 := by rw [desc_fac, add_zero, mul_one]
-| (k + 1) := calc n! * desc_fac n (k + 1) = n! * ((n + k + 1) * desc_fac n k) : by rw desc_fac_succ
-                                      ... = (n + k + 1) * (n! * desc_fac n k) : by ac_refl
-                                      ... = (n + k + 1) * (n + k)! : by rw eval_desc_fac k
-                                      ... = (n + (k + 1))! : by rw [←add_assoc, factorial]
+| (k + 1) := by rw [desc_fac_succ, mul_left_comm, eval_desc_fac, ← add_assoc, factorial]
 
 /-- Avoid if you can. ℕ-division isn't worth it. -/
 lemma eval_desc_fac' (n k : ℕ) : desc_fac n k = (n + k)! / n! :=

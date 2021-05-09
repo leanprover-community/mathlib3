@@ -108,7 +108,7 @@ lemma pochhammer_nat_eq_desc_fac (n : ℕ) : ∀ k, (pochhammer ℕ k).eval (n +
 | (t + 1) := begin
   rw [pochhammer_succ_right, eval_mul, pochhammer_nat_eq_desc_fac t],
   suffices : n.desc_fac t * (n + 1 + t) = n.desc_fac (t + 1), by simpa,
-  rw nat.desc_fac_succ, ac_refl
+  rw [nat.desc_fac_succ, add_right_comm, mul_comm]
 end
 
 end
@@ -153,6 +153,6 @@ lemma pochhammer_eval_succ (r : ℕ) :
   exact or.inl h,
   exact or.inr rfl,
 end
-| (k + 1) := by norm_cast; repeat { rw [pochhammer_nat_eq_desc_fac] }; rw nat.succ_desc_fac; ac_refl
+| (k + 1) := by norm_cast; simp only [pochhammer_nat_eq_desc_fac, nat.succ_desc_fac, add_right_comm]
 
 end factorial

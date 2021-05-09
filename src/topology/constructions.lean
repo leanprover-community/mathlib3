@@ -65,8 +65,7 @@ instance ulift.topological_space [t : topological_space α] : topological_space 
 t.induced ulift.down
 
 lemma quotient.preimage_mem_nhds [topological_space α] [s : setoid α]
-  {V : set $ quotient s} {q : quotient s}
-  {a : α} (hs : V ∈ 𝓝 (quotient.mk a)) : quotient.mk ⁻¹' V ∈ 𝓝 a :=
+  {V : set $ quotient s} {a : α} (hs : V ∈ 𝓝 (quotient.mk a)) : quotient.mk ⁻¹' V ∈ 𝓝 a :=
 preimage_nhds_coinduced hs
 
 /-- The image of a dense set under `quotient.mk` is a dense set. -/

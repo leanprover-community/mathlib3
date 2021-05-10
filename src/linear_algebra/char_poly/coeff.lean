@@ -236,11 +236,11 @@ field norm resp. trace of `x` is the product resp. sum of `x`'s conjugates.
 -/
 lemma char_poly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K S]
   (h : power_basis K S) :
-  char_poly (left_mul_matrix h.is_basis h.gen) = minpoly K h.gen :=
+  char_poly (left_mul_matrix h.basis h.gen) = minpoly K h.gen :=
 begin
   apply minpoly.unique,
   { apply char_poly_monic },
-  { apply (left_mul_matrix _).injective_iff.mp (left_mul_matrix_injective h.is_basis),
+  { apply (left_mul_matrix _).injective_iff.mp (left_mul_matrix_injective h.basis),
     rw [← polynomial.aeval_alg_hom_apply, aeval_self_char_poly] },
   { intros q q_monic root_q,
     rw [char_poly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],

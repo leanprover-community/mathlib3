@@ -34,7 +34,7 @@ We define both the real and complex cases at the same time using the `is_R_or_C`
   The point `v` is usually called the orthogonal projection of `u` onto `K`.
 - We define `orthonormal`, a predicate on a function `v : ι → E`.  We prove the existence of a
   maximal orthonormal set, `exists_maximal_orthonormal`, and also prove that a maximal orthonormal
-  set is a basis (`maximal_orthonormal_iff_is_basis_of_finite_dimensional`), if `E` is finite-
+  set is a basis (`maximal_orthonormal_iff_basis_of_finite_dimensional`), if `E` is finite-
   dimensional, or in general (`maximal_orthonormal_iff_dense_span`) a set whose span is dense
   (i.e., a Hilbert basis, although we do not make that definition).
 
@@ -823,10 +823,16 @@ end
 
 open finite_dimensional
 
-lemma is_basis_of_orthonormal_of_card_eq_finrank [fintype ι] [nonempty ι] {v : ι → E}
+/-- A family of orthonormal vectors with the correct cardinality forms a basis. -/
+def basis_of_orthonormal_of_card_eq_finrank [fintype ι] [nonempty ι] {v : ι → E}
   (hv : orthonormal 𝕜 v) (card_eq : fintype.card ι = finrank 𝕜 E) :
-  is_basis 𝕜 v :=
-is_basis_of_linear_independent_of_card_eq_finrank hv.linear_independent card_eq
+  basis ι 𝕜 E :=
+basis_of_linear_independent_of_card_eq_finrank hv.linear_independent card_eq
+
+@[simp] lemma coe_basis_of_orthonormal_of_card_eq_finrank [fintype ι] [nonempty ι] {v : ι → E}
+  (hv : orthonormal 𝕜 v) (card_eq : fintype.card ι = finrank 𝕜 E) :
+  (basis_of_orthonormal_of_card_eq_finrank hv card_eq : ι → E) = v :=
+coe_basis_of_linear_independent_of_card_eq_finrank _ _
 
 end orthonormal_sets
 
@@ -1800,24 +1806,24 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
 
 /-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
 `euclidean_space 𝕜 ι`. -/
-def is_basis.isometry_euclidean_of_orthonormal
-  {v : ι → E} (h : is_basis 𝕜 v) (hv : orthonormal 𝕜 v) :
+def basis.isometry_euclidean_of_orthonormal
+  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 ι) :=
-h.equiv_fun.isometry_of_inner
+v.equiv_fun.isometry_of_inner
 begin
   intros x y,
-  let p : euclidean_space 𝕜 ι := h.equiv_fun x,
-  let q : euclidean_space 𝕜 ι := h.equiv_fun y,
+  let p : euclidean_space 𝕜 ι := v.equiv_fun x,
+  let q : euclidean_space 𝕜 ι := v.equiv_fun y,
   have key : ⟪p, q⟫ = ⟪∑ i, p i • v i, ∑ i, q i • v i⟫,
   { simp [sum_inner, inner_smul_left, hv.inner_right_fintype] },
   convert key,
-  { rw [← h.equiv_fun.symm_apply_apply x, h.equiv_fun_symm_apply] },
-  { rw [← h.equiv_fun.symm_apply_apply y, h.equiv_fun_symm_apply] }
+  { rw [← v.equiv_fun.symm_apply_apply x, v.equiv_fun_symm_apply] },
+  { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
 end
 
 /-- `ℂ` is isometric to ℝ² with the Euclidean inner product. -/
 def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
-complex.is_basis_one_I.isometry_euclidean_of_orthonormal
+complex.basis_one_I.isometry_euclidean_of_orthonormal
 begin
   rw orthonormal_iff_ite,
   intros i, fin_cases i;
@@ -1828,7 +1834,7 @@ end
 @[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
   complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
 begin
-  convert complex.is_basis_one_I.equiv_fun_symm_apply x,
+  convert complex.basis_one_I.equiv_fun_symm_apply x,
   { simpa },
   { simp },
 end
@@ -2765,57 +2771,75 @@ variables {𝕜 E}
 
 /-- An orthonormal set in a finite-dimensional `inner_product_space` is maximal, if and only if it
 is a basis. -/
-lemma maximal_orthonormal_iff_is_basis_of_finite_dimensional
+lemma maximal_orthonormal_iff_basis_of_finite_dimensional
   [finite_dimensional 𝕜 E] (hv : orthonormal 𝕜 (coe : v → E)) :
-  (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ is_basis 𝕜 (coe : v → E) :=
+  (∀ u ⊇ v, orthonormal 𝕜 (coe : u → E) → u = v) ↔ ∃ b : basis v 𝕜 E, ⇑b = coe :=
 begin
   rw maximal_orthonormal_iff_orthogonal_complement_eq_bot hv,
   have hv_compl : is_complete (span 𝕜 v : set E) := (span 𝕜 v).complete_of_finite_dimensional,
   rw submodule.orthogonal_eq_bot_iff hv_compl,
   have hv_coe : range (coe : v → E) = v := by simp,
   split,
-  { refine λ h, ⟨hv.linear_independent, _⟩,
+  { refine λ h, ⟨basis.mk hv.linear_independent _, basis.coe_mk _ _⟩,
     convert h },
-  { intros h,
-    convert ← h.2 }
+  { rintros ⟨h, coe_h⟩,
+    rw [← h.span_eq, coe_h, hv_coe] }
 end
 
 /-- In a finite-dimensional `inner_product_space`, any orthonormal subset can be extended to an
 orthonormal basis. -/
 lemma exists_subset_is_orthonormal_basis
   [finite_dimensional 𝕜 E] (hv : orthonormal 𝕜 (coe : v → E)) :
-  ∃ u ⊇ v, orthonormal 𝕜 (coe : u → E) ∧ is_basis 𝕜 (coe : u → E) :=
+  ∃ (u ⊇ v) (b : basis u 𝕜 E), orthonormal 𝕜 b ∧ ⇑b = coe :=
 begin
   obtain ⟨u, hus, hu, hu_max⟩ := exists_maximal_orthonormal hv,
-  rw maximal_orthonormal_iff_is_basis_of_finite_dimensional hu at hu_max,
-  exact ⟨u, hus, hu, hu_max⟩
+  obtain ⟨b, hb⟩ := (maximal_orthonormal_iff_basis_of_finite_dimensional hu).mp hu_max,
+  exact ⟨u, hus, b, by rwa hb, hb⟩
 end
 
 variables (𝕜 E)
+
+/-- Index for an arbitrary orthonormal basis on a finite-dimensional `inner_product_space`. -/
+def orthonormal_basis_index [finite_dimensional 𝕜 E] : set E :=
+classical.some (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E))
+
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-lemma exists_is_orthonormal_basis [finite_dimensional 𝕜 E] :
-  ∃ u : set E, orthonormal 𝕜 (coe : u → E) ∧ is_basis 𝕜 (coe : u → E) :=
-let ⟨u, hus, hu, hu_max⟩ := exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E) in
-⟨u, hu, hu_max⟩
+def orthonormal_basis [finite_dimensional 𝕜 E] :
+  basis (orthonormal_basis_index 𝕜 E) 𝕜 E :=
+(exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some
+
+lemma orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] :
+  orthonormal 𝕜 (orthonormal_basis 𝕜 E) :=
+(exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.1
+
+@[simp] lemma coe_orthonormal_basis [finite_dimensional 𝕜 E] :
+  ⇑(orthonormal_basis 𝕜 E) = coe :=
+(exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
+
+instance [finite_dimensional 𝕜 E] : fintype (orthonormal_basis_index 𝕜 E) :=
+finite_dimensional.fintype_basis_index (orthonormal_basis 𝕜 E)
+
 variables {𝕜 E}
 
-/-- Given a natural number `n` equal to the `finrank` of a finite-dimensional inner product space,
-there exists an orthonormal basis for the space indexed by `fin n`. -/
-lemma exists_is_orthonormal_basis' [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
-  ∃ v : fin n → E, orthonormal 𝕜 v ∧ is_basis 𝕜 v :=
-begin
-  obtain ⟨u, hu, hu_basis⟩ := exists_is_orthonormal_basis 𝕜 E,
-  obtain ⟨g, hg⟩ := finite_dimensional.equiv_fin_of_dim_eq hn hu_basis,
-  exact ⟨coe ∘ g, hu.comp _ g.injective, hg⟩
-end
+/-- An `n`-dimensional `inner_product_space` has an orthonormal basis indexed by `fin n`. -/
+def fin_orthonormal_basis [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
+  basis (fin n) 𝕜 E :=
+have h : fintype.card (orthonormal_basis_index 𝕜 E) = n,
+by rw [← finrank_eq_card_basis (orthonormal_basis 𝕜 E), hn],
+(orthonormal_basis 𝕜 E).reindex (fintype.equiv_fin_of_card_eq h)
+
+lemma fin_orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
+  orthonormal 𝕜 (fin_orthonormal_basis hn) :=
+suffices orthonormal 𝕜 (orthonormal_basis _ _ ∘ equiv.symm _),
+by { simp only [fin_orthonormal_basis, basis.coe_reindex], assumption }, -- why doesn't simpa work?
+(orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
 
 /-- Given a natural number `n` equal to the `finrank` of a finite-dimensional inner product space,
 there exists an isometry from the space to `euclidean_space 𝕜 (fin n)`. -/
 def linear_isometry_equiv.of_inner_product_space
   [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
   E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-let hv := classical.some_spec (exists_is_orthonormal_basis' hn) in
-hv.2.isometry_euclidean_of_orthonormal hv.1
+(fin_orthonormal_basis hn).isometry_euclidean_of_orthonormal (fin_orthonormal_basis_orthonormal hn)
 
 local attribute [instance] finite_dimensional_of_finrank_eq_succ
 

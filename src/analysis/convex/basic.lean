@@ -288,7 +288,7 @@ end,
 begin
   assume h x y hx hy a b ha hb hab,
   have h', from h hx hy ha hb,
-  rw [hab, div_one, div_one] at h',
+  rw [hab, div_one', div_one'] at h',
   exact h' zero_lt_one
 end⟩
 

@@ -34,7 +34,8 @@ lemma nontrivial_iff : nontrivial α ↔ ∃ (x y : α), x ≠ y :=
 lemma exists_pair_ne (α : Type*) [nontrivial α] : ∃ (x y : α), x ≠ y :=
 nontrivial.exists_pair_ne
 
-lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+-- See Note [decidable namespace]
+protected lemma decidable.exists_ne [nontrivial α] [decidable_eq α] (x : α) : ∃ y, y ≠ x :=
 begin
   rcases exists_pair_ne α with ⟨y, y', h⟩,
   by_cases hx : x = y,
@@ -42,6 +43,9 @@ begin
     exact ⟨y', h.symm⟩ },
   { exact ⟨y, ne.symm hx⟩ }
 end
+
+lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+by classical; exact decidable.exists_ne x
 
 -- `x` and `y` are explicit here, as they are often needed to guide typechecking of `h`.
 lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=

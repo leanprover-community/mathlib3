@@ -422,7 +422,7 @@ have h01R : (0 : R) ≠ 1, from mt (congr_arg f)
 have map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p %ₘ q),
   from (div_mod_by_monic_unique ((p /ₘ q).map f) _ (monic_map f hq)
     ⟨eq.symm $ by rw [← map_mul, ← map_add, mod_by_monic_add_div _ hq],
-    calc _ ≤ degree (p %ₘ q) : degree_map_le _
+    calc _ ≤ degree (p %ₘ q) : degree_map_le _ _
     ... < degree q : degree_mod_by_monic_lt _ hq
       $ (hq.ne_zero_of_ne  h01R)
     ... = _ : eq.symm $ degree_map_eq_of_leading_coeff_ne_zero _

@@ -1177,7 +1177,7 @@ neg_nonneg.1 $ sin_neg x ▸ sin_nonneg_of_nonneg_of_le_pi (neg_nonneg.2 hx0) (n
 have sin (π / 2) = 1 ∨ sin (π / 2) = -1 :=
 by simpa [sq, mul_self_eq_one_iff] using sin_sq_add_cos_sq (π / 2),
 this.resolve_right
-  (λ h, (show ¬(0 : ℝ) < -1, by norm_num) $
+  (λ h, (show ¬(0 : ℝ) < -1, by exact not_lt.mpr (neg_nonpos.mpr zero_le_one) ) $
     h ▸ sin_pos_of_pos_of_lt_pi pi_div_two_pos (half_lt_self pi_pos))
 
 lemma sin_add_pi_div_two (x : ℝ) : sin (x + π / 2) = cos x :=
@@ -1365,7 +1365,7 @@ begin
     have := sin_bound this, rw [abs_le] at this,
     have := this.2, rw [sub_le_iff_le_add', hx] at this,
     apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
-    apply sub_lt_sub_left, rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
+    apply sub_lt_sub_left'', rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
     { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
       rw mul_le_mul_right, exact h', apply pow_pos h },
     norm_num, norm_num, apply pow_pos h },
@@ -1381,8 +1381,8 @@ begin
   have := sin_bound this, rw [abs_le] at this,
   have := this.1, rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,
-  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
-  apply add_lt_of_lt_sub_left,
+  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left'',
+  refine lt_sub_iff_add_lt'.mp _,
   rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹,
     by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
   apply mul_lt_mul',
@@ -1478,7 +1478,7 @@ begin
   { rw [sub_nonneg], apply le_of_lt, apply sqrt_two_add_series_lt_two },
   apply le_of_lt, apply mul_pos, apply sin_pos_of_pos_of_lt_pi,
   { apply div_pos pi_pos, apply pow_pos, norm_num },
-  refine lt_of_lt_of_le _ (le_of_eq (div_one _)), rw [div_lt_div_left],
+  refine lt_of_lt_of_le _ ((div_one' _).le), rw [div_lt_div_left],
   refine lt_of_le_of_lt (le_of_eq (pow_zero 2).symm) _,
   apply pow_lt_pow, norm_num, apply nat.succ_pos, apply pi_pos,
   apply pow_pos, all_goals {norm_num}
@@ -2023,7 +2023,7 @@ lemma arccos_cos {x : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π) : arccos (cos x)
 by rw [arccos, ← sin_pi_div_two_sub, arcsin_sin]; simp [sub_eq_add_neg]; linarith
 
 lemma strict_mono_decr_on_arccos : strict_mono_decr_on arccos (Icc (-1) 1) :=
-λ x hx y hy h, sub_lt_sub_left (strict_mono_incr_on_arcsin hx hy h) _
+λ x hx y hy h, sub_lt_sub_left'' (strict_mono_incr_on_arcsin hx hy h) _
 
 lemma arccos_inj_on : inj_on arccos (Icc (-1) 1) := strict_mono_decr_on_arccos.inj_on
 
@@ -2213,10 +2213,12 @@ then by rw [arg, if_pos hx₁];
 else
   have hx : x ≠ 0, from λ h, by simpa [h, lt_irrefl] using hx₁,
   if hx₂ : 0 ≤ x.im
-  then by rw [arg, if_neg hx₁, if_pos hx₂, ← sub_lt_iff_lt_add];
-    exact (lt_of_lt_of_le (by linarith [real.pi_pos]) (real.neg_pi_div_two_le_arcsin _))
-  else by rw [arg, if_neg hx₁, if_neg hx₂, lt_sub_iff_add_lt, neg_add_self, real.arcsin_pos,
-    neg_im];
+  then by { rw [arg, if_neg hx₁, if_pos hx₂, ← sub_lt_iff_lt_add],
+    refine lt_of_lt_of_le _ real.pi_pos.le,
+    rw [neg_im, sub_lt_iff_lt_add, add_zero, neg_lt, neg_div, real.arcsin_neg, neg_neg],
+    exact (real.arcsin_le_pi_div_two _).trans_lt (half_lt_self real.pi_pos) }
+  else by rw [arg, if_neg hx₁, if_neg hx₂, lt_sub_iff_add_lt_right', neg_add_self, real.arcsin_pos,
+              neg_im];
       exact div_pos (neg_pos.2 (lt_of_not_ge hx₂)) (abs_pos.2 hx)
 
 lemma arg_eq_arg_neg_add_pi_of_im_nonneg_of_re_neg {x : ℂ} (hxr : x.re < 0) (hxi : 0 ≤ x.im) :
@@ -2476,7 +2478,7 @@ have real.exp (x.re) * real.cos (x.im) = 1 → real.cos x.im ≠ -1,
     rw [h₂, mul_neg_eq_neg_mul_symm, mul_one, neg_eq_iff_neg_eq] at h₁,
     have := real.exp_pos x.re,
     rw ← h₁ at this,
-    exact absurd this (by norm_num)
+    exact absurd this (not_lt.mpr (neg_nonpos_iff.mpr zero_le_one))
   end,
 calc exp x = 1 ↔ (exp x).re = 1 ∧ (exp x).im = 0 : by simp [complex.ext_iff]
   ... ↔ real.cos x.im = 1 ∧ real.sin x.im = 0 ∧ x.re = 0 :
@@ -3108,8 +3110,8 @@ end
 
 lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
 begin
-  convert tendsto_cos_neg_pi_div_two.inv_tendsto_zero.at_top_mul_neg (by norm_num)
-            tendsto_sin_neg_pi_div_two,
+  convert tendsto_cos_neg_pi_div_two.inv_tendsto_zero.at_top_mul_neg
+      (neg_neg_iff_pos.mpr zero_lt_one) tendsto_sin_neg_pi_div_two,
   simp only [pi.inv_apply, ← div_eq_inv_mul, ← tan_eq_sin_div_cos]
 end
 
@@ -3168,7 +3170,7 @@ lemma arcsin_eq_arctan {x : ℝ} (h : x ∈ Ioo (-(1:ℝ)) 1) :
   arcsin x = arctan (x / sqrt (1 - x ^ 2)) :=
 begin
   rw [arctan_eq_arcsin, div_pow, sq_sqrt, one_add_div, div_div_eq_div_mul,
-      ← sqrt_mul, mul_div_cancel', sub_add_cancel, sqrt_one, div_one];
+      ← sqrt_mul, mul_div_cancel', sub_add_cancel, sqrt_one, div_one'];
   nlinarith [h.1, h.2],
 end
 

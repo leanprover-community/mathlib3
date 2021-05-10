@@ -207,7 +207,7 @@ begin
     { rw [← multiset.mem_coe, ← hπ],
       simp },
     obtain ⟨σ', hσ'l, hσ'⟩ := list.mem_map.1 h,
-    rw [(list.perm_cons_erase hσ'l).prod_eq' (hl2.imp (λ _ _, disjoint.mul_comm)), list.prod_cons],
+    rw [disjoint_prod_perm hl2 (list.perm_cons_erase hσ'l), list.prod_cons],
     refine hστ.is_conj_mul (h1 _) (h2 _) _,
     { simp only [hσ.cycle_type, (hl1 _ hσ'l).cycle_type, ←hσ'] },
     { rw [← coe_map, coe_eq_coe.2 (list.perm_cons_erase hσ'l), singleton_add, ← cons_coe,

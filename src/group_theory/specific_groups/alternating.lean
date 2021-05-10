@@ -107,7 +107,7 @@ begin
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
           finset.singleton_disjoint],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
-      rw [mul_assoc π _ σ, disjoint.mul_comm hd],
+      rw [mul_assoc π _ σ, disjoint.commute hd],
       simp [mul_assoc] } }
 end
 

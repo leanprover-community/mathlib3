@@ -172,7 +172,7 @@ begin
   by_cases ha : a = 0, { simp [ha] },
   by_cases hc : c = 0, { simp [inv_ne_zero hb, hc, hd], },
   exact
-    @div_le_div_iff' _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) _ _ _ _
+    @div_le_div_iff' _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) _ _ _
 end
 
 @[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
@@ -201,10 +201,10 @@ lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ 
 by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ hx, lt_trans ih (pow_lt_pow_succ hx)] }
 
 lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
-@inv_lt_inv_iff _ (units.mk0 a ha) (units.mk0 b hb) _ _ _
+@inv_lt_inv_iff _ (units.mk0 b hb) (units.mk0 a ha) _ _ _ _
 
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
-@inv_le_inv_iff _ (units.mk0 a ha) (units.mk0 b hb) _ _ _ _
+@inv_le_inv_iff _ (units.mk0 b hb) (units.mk0 a ha) _ _ _ _
 
 instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
 { neg_top := inv_zero,

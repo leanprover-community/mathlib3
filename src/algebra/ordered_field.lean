@@ -550,10 +550,14 @@ end
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
+instance fff : has_add_lt_add_left α :=
+by apply_instance
+
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
 begin
   rwa [← div_sub_div_same, sub_eq_add_neg, add_comm (b/2), ← add_assoc, ← sub_eq_add_neg,
-    ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
+    ← lt_sub_iff_add_lt_right, sub_self_div_two, sub_self_div_two,
+    div_lt_div_right (@zero_lt_two α _ _)]
 end
 
 
@@ -605,7 +609,7 @@ lemma exists_add_lt_and_pos_of_lt (h : b < a) : ∃ c : α, b + c < a ∧ 0 < c 
 lemma le_of_forall_sub_le (h : ∀ ε > 0, b - ε ≤ a) : b ≤ a :=
 begin
   contrapose! h,
-  simpa only [and_comm ((0 : α) < _), lt_sub_iff_add_lt, gt_iff_lt]
+  simpa only [and_comm ((0 : α) < _), lt_sub_iff_add_lt_right, gt_iff_lt]
     using exists_add_lt_and_pos_of_lt h,
 end
 

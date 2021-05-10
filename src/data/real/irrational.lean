@@ -57,7 +57,7 @@ begin
   have hD : D = 1 := by rw [← nat.gcd_eq_right hdivn, C.gcd_eq_one],
   subst D,
   refine hv ⟨N, _⟩,
-  rw [num_denom', int.coe_nat_one, mk_eq_div, int.cast_one, div_one, cast_coe_int]
+  rw [num_denom', int.coe_nat_one, mk_eq_div, int.cast_one, div_one', cast_coe_int]
 end
 
 /-- If `x^n = m` is an integer and `n` does not divide the `multiplicity p m`, then `x`

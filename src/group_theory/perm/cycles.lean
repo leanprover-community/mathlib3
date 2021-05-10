@@ -601,9 +601,8 @@ begin
   obtain ⟨l, hl⟩ := trunc.exists_rep f.trunc_cycle_factors,
   have ht : cycle_factors_finset f = (l : list (perm α)).to_finset,
   { rw [cycle_factors_finset, ←hl, trunc.lift_mk, subtype.val_eq_coe] },
-  rw ←l.prop.left,
-  refine noncomm_prod_congr_list_prod _ _ _ _ _,
-  { rw [l.prop.left, ht] },
+  simp_rw [ht, ←l.prop.left],
+  refine noncomm_prod_to_finset _ _ _,
   { refine nodup_of_pairwise_disjoint _ l.prop.right.right,
     intro hm,
     simpa using (l.prop.right.left _ hm).ne_one }

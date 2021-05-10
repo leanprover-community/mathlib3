@@ -343,7 +343,7 @@ begin
     refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
     simp [monomial_eq_C_mul_X],
     rw mul_comm,
-    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem (hf n)) }
+    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem _ (hf n)) }
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
@@ -351,7 +351,7 @@ lemma quotient_map_C_eq_zero {I : ideal R} :
 begin
   intros a ha,
   rw [ring_hom.comp_apply, quotient.eq_zero_iff_mem],
-  exact mem_map_of_mem ha,
+  exact mem_map_of_mem _ ha,
 end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} :
@@ -853,7 +853,7 @@ lemma quotient_map_C_eq_zero {I : ideal R} {i : R} (hi : i ∈ I) :
   (ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R))).comp C i = 0 :=
 begin
   simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient.eq_zero_iff_mem],
-  exact ideal.mem_map_of_mem hi
+  exact ideal.mem_map_of_mem _ hi
 end
 
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself,

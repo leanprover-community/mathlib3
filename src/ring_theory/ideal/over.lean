@@ -134,7 +134,7 @@ lemma exists_coeff_mem_comap_sdiff_comap_of_root_mem_sdiff
 begin
   obtain ⟨hrJ, hrI⟩ := hr,
   have rbar_ne_zero : quotient.mk I r ≠ 0 := mt (quotient.mk_eq_zero I).mp hrI,
-  have rbar_mem_J : quotient.mk I r ∈ J.map (quotient.mk I) := mem_map_of_mem hrJ,
+  have rbar_mem_J : quotient.mk I r ∈ J.map (quotient.mk I) := mem_map_of_mem _ hrJ,
   have quotient_f : ∀ x ∈ I.comap f, (quotient.mk I).comp f x = 0,
   { simp [quotient.eq_zero_iff_mem] },
   have rbar_root : (p.map (quotient.mk (I.comap f))).eval₂

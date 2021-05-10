@@ -195,7 +195,7 @@ lemma mem_map_of_mem (f : M →* N) {S : submonoid M} {x : M} (hx : x ∈ S) : f
 mem_image_of_mem f hx
 
 @[to_additive]
-lemma apply_coe_mem_map (f : M →* N) {S : submonoid M} (x : S) : f x ∈ S.map f :=
+lemma apply_coe_mem_map (f : M →* N) (S : submonoid M) (x : S) : f x ∈ S.map f :=
 mem_map_of_mem f x.prop
 
 @[to_additive]

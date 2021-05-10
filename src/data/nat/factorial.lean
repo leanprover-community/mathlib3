@@ -179,7 +179,8 @@ theorem factorial_mul_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
 /-- Avoid in favour of `nat.factorial_mul_desc_fac` if you can. ℕ-division isn't worth it. -/
 lemma desc_fac_eq_div (n k : ℕ) : desc_fac n k = (n + k)! / n! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero n), rw factorial_mul_desc_fac,
+  apply mul_left_cancel' (factorial_ne_zero n),
+  rw factorial_mul_desc_fac,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
 end
 

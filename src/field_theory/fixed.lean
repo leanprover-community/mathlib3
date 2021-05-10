@@ -43,7 +43,7 @@ instance fixed_by.is_subfield : is_subfield (fixed_by G F g) :=
   neg_mem := λ x hx, (smul_neg g x).trans $ congr_arg _ hx,
   one_mem := smul_one g,
   mul_mem := λ x y hx hy, (smul_mul' g x y).trans $ congr_arg2 _ hx hy,
-  inv_mem := λ x hx, (smul_inv F g x).trans $ congr_arg _ hx }
+  inv_mem := λ x hx, (smul_inv' F g x).trans $ congr_arg _ hx }
 
 namespace fixed_points
 

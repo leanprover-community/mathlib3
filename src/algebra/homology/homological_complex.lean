@@ -29,7 +29,7 @@ For `C : homological_complex V c`, we define `C.X_next i`, which is either `C.X 
 arbitrarily chosen `j` such that `c.r i j`, or the zero object if there is no such `j`.
 Similarly we have `C.X_prev j`.
 Defined in terms of these we have `C.d_from i : C.X i ⟶ C.X_next i` and
-`C.d_to j : C.X_prev j ⟶ C.X j`, which are either defined in as `C.d i j`, or zero, as needed.
+`C.d_to j : C.X_prev j ⟶ C.X j`, which are either defined as `C.d i j`, or zero, as needed.
 -/
 
 universes v u
@@ -76,37 +76,45 @@ in which `d i j ≠ 0` only if `i + 1 = j`.
 abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
 homological_complex V (complex_shape.up α)
 
-@[simp] lemma chain_complex.prev (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
+namespace chain_complex
+
+@[simp] lemma prev (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
   (complex_shape.down α).prev i = some ⟨i+1, rfl⟩ :=
 option.choice_eq _
 
-@[simp] lemma chain_complex.next (α : Type*) [add_group α] [has_one α] (i : α) :
+@[simp] lemma next (α : Type*) [add_group α] [has_one α] (i : α) :
   (complex_shape.down α).next i = some ⟨i-1, sub_add_cancel i 1⟩ :=
 option.choice_eq _
 
-@[simp] lemma chain_complex.next_nat_zero :
+@[simp] lemma next_nat_zero :
   (complex_shape.down ℕ).next 0 = none :=
 option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
 
-@[simp] lemma chain_complex.next_nat_succ (i : ℕ) :
+@[simp] lemma next_nat_succ (i : ℕ) :
   (complex_shape.down ℕ).next (i+1) = some ⟨i, rfl⟩ :=
 option.choice_eq _
 
-@[simp] lemma cochain_complex.prev (α : Type*) [add_group α] [has_one α] (i : α) :
+end chain_complex
+
+namespace cochain_complex
+
+@[simp] lemma prev (α : Type*) [add_group α] [has_one α] (i : α) :
   (complex_shape.up α).prev i = some ⟨i-1, sub_add_cancel i 1⟩ :=
 option.choice_eq _
 
-@[simp] lemma cochain_complex.next (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
+@[simp] lemma next (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
   (complex_shape.up α).next i = some ⟨i+1, rfl⟩ :=
 option.choice_eq _
 
-@[simp] lemma cochain_complex.prev_nat_zero :
+@[simp] lemma prev_nat_zero :
   (complex_shape.up ℕ).prev 0 = none :=
 option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
 
-@[simp] lemma cochain_complex.prev_nat_succ (i : ℕ) :
+@[simp] lemma prev_nat_succ (i : ℕ) :
   (complex_shape.up ℕ).prev (i+1) = some ⟨i, rfl⟩ :=
 option.choice_eq _
+
+end cochain_complex
 
 namespace homological_complex
 variables {V} {c : complex_shape ι} (C : homological_complex V c)
@@ -150,7 +158,7 @@ rfl
 
 -- We'll use this later to show that `homological_complex V c` is preadditive when `V` is.
 lemma hom_f_injective {C₁ C₂ : homological_complex V c} :
-  function.injective (λ f : hom C₁ C₂, hom.f f) :=
+  function.injective (λ f : hom C₁ C₂, f.f) :=
 by tidy
 
 instance : has_zero_morphisms (homological_complex V c) :=
@@ -187,7 +195,7 @@ noncomputable theory
 If `C.d i j` and `C.d i j'` are both allowed, then we must have `j = j'`,
 and so the differentials only differ by an `eq_to_hom`.
 -/
-lemma d_comp_eq_to_hom {i j j' : ι} (rij : c.rel i j) (rij' : c.rel i j') :
+@[simp] lemma d_comp_eq_to_hom {i j j' : ι} (rij : c.rel i j) (rij' : c.rel i j') :
   C.d i j' ≫ eq_to_hom (congr_arg C.X (c.next_eq rij' rij)) = C.d i j :=
 begin
   have P : ∀ h : j' = j, C.d i j' ≫ eq_to_hom (congr_arg C.X h) = C.d i j,
@@ -199,7 +207,7 @@ end
 If `C.d i j` and `C.d i' j` are both allowed, then we must have `i = i'`,
 and so the differentials only differ by an `eq_to_hom`.
 -/
-lemma eq_to_hom_comp_d {i i' j : ι} (rij : c.rel i j) (rij' : c.rel i' j) :
+@[simp] lemma eq_to_hom_comp_d {i i' j : ι} (rij : c.rel i j) (rij' : c.rel i' j) :
   eq_to_hom (congr_arg C.X (c.prev_eq rij rij')) ≫ C.d i' j = C.d i j :=
 begin
   have P : ∀ h : i = i', eq_to_hom (congr_arg C.X h) ≫ C.d i' j = C.d i j,
@@ -477,13 +485,15 @@ end homological_complex
 
 namespace chain_complex
 
+/- TODO: dualize to `cochain_complex` -/
+
 section of
-variables {V}
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
 
 /--
-Construct a `ℕ`-indexed chain complex from a dependently-typed differential.
+Construct an `α`-indexed chain complex from a dependently-typed differential.
 -/
-def of (X : ℕ → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0) : chain_complex V ℕ :=
+def of (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0) : chain_complex V α :=
 { X := X,
   d := λ i j, if h : i = j + 1 then
     eq_to_hom (by subst h) ≫ d j
@@ -499,10 +509,10 @@ def of (X : ℕ → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n 
     all_goals { simp },
   end, }
 
-variables (X : ℕ → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0)
+variables (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0)
 
-@[simp] lemma of_X (n : ℕ) : (of X d sq).X n = X n := rfl
-@[simp] lemma of_d (j : ℕ) : (of X d sq).d (j+1) j = d j :=
+@[simp] lemma of_X (n : α) : (of X d sq).X n = X n := rfl
+@[simp] lemma of_d (j : α) : (of X d sq).d (j+1) j = d j :=
 by { dsimp [of], rw [if_pos rfl, category.id_comp], }
 
 end of

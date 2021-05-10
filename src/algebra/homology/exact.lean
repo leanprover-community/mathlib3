@@ -18,7 +18,7 @@ particularly that
 1. the inclusion map `image.ι f` is a kernel of `g` or
 2. `image f ⟶ kernel g` is an isomorphism or
 3. `image_subobject f = kernel_subobject f`.
-However when the cateory is abelian, these all become equivalent;
+However when the category is abelian, these all become equivalent;
 these results are found in `category_theory/abelian/exact.lean`.
 
 # Main results

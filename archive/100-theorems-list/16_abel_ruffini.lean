@@ -1,56 +1,15 @@
+/-
+Copyright (c) 2021 Floris van Doorn. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning
+-/
 import field_theory.abel_ruffini
 import analysis.calculus.local_extr
+/-!
+Construction of an algebraic number that is not solvable by radicals.
+-/
 
 open polynomial polynomial.gal
-
-lemma tada_aux {α : Type*} [linear_order α] {s t : finset α}
-  (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) : s.card ≤ t.card + 1 :=
-begin
-  have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length,
-  { intro i,
-    rw finset.length_sort,
-    exact lt_of_lt_of_le i.2 s.card.pred_le },
-  have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
-  { intro i,
-    rw [finset.length_sort, ←nat.lt_sub_right_iff_add_lt],
-    exact i.2 },
-  have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
-    ((s.sort (≤)).nth_le (i + 1) (h1 i))
-    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
-    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
-    (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
-  let f : fin (s.card - 1) → (t : set α) :=
-  λ i, ⟨classical.some (p i), (exists_prop.mp (classical.some_spec (p i))).1⟩,
-  have hf : ∀ i j : fin (s.card - 1), i < j → f i < f j :=
-  λ i j hij, subtype.coe_lt_coe.mp ((exists_prop.mp (classical.some_spec (p i))).2.2.trans
-    (lt_of_le_of_lt ((s.sort_sorted (≤)).rel_nth_le_of_le (h1 i) (h0 j) (nat.succ_le_iff.mpr hij))
-    (exists_prop.mp (classical.some_spec (p j))).2.1)),
-  have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
-    (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))
-    (not_lt.mp (mt (hf i j) (not_lt.mpr (ge_of_eq hij)))))),
-  rwa [fintype.card_fin, fintype.card_coe, nat.sub_le_right_iff_le_add] at key,
-end
-
-lemma tada {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
-  fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
-begin
-  haveI : char_zero F := char_zero_of_inj_zero
-    (λ n hn, by rwa [←(algebra_map F ℝ).injective.eq_iff, ring_hom.map_nat_cast,
-      ring_hom.map_zero, nat.cast_eq_zero] at hn),
-  by_cases hp : p = 0,
-  { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card', zero_le_one] },
-  by_cases hp' : p.derivative = 0,
-  { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
-    simp_rw [root_set_C, set.empty_card', zero_le] },
-  simp_rw [root_set_def, fintype.card_coe],
-  refine tada_aux (λ x y hx hy hxy, _),
-  rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
-  obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, aeval x p) hxy
-    p.continuous_aeval.continuous_on (hx.trans hy.symm),
-  refine ⟨z, _, hz1⟩,
-  rw [←finset.mem_coe, ←root_set_def, mem_root_set hp', ←hz2],
-  simp_rw [aeval_def, ←eval_map, polynomial.deriv, derivative_map],
-end
 
 local attribute [instance] splits_ℚ_ℂ
 
@@ -118,7 +77,8 @@ lemma real_roots_poly_le (a b : ℕ) :
   fintype.card (((X ^ 5 - C ↑a * X + C ↑b : polynomial ℤ).map (algebra_map ℤ ℚ)).root_set ℝ) ≤ 3 :=
 begin
   rw [←one_mul (X ^ 5), ←C_1],
-  refine (tada _).trans (nat.succ_le_succ ((tada _).trans (nat.succ_le_succ _))),
+  refine (card_root_set_le_derivative _).trans
+    (nat.succ_le_succ ((card_root_set_le_derivative _).trans (nat.succ_le_succ _))),
   rw [derivative_map, derivative_map, derivative_add, derivative_add, derivative_sub,
       derivative_sub, derivative_C_mul_X_pow, derivative_C_mul_X_pow, derivative_C_mul,
       derivative_C_mul, derivative_X, derivative_one, mul_zero, sub_zero, derivative_C,
@@ -240,7 +200,7 @@ begin
   { exact irreducible_poly' a b p hp hpa hpb hp2b },
   have r_aeval : aeval x r = 0,
   { rwa [aeval_map] },
-  apply solvable_by_rad.is_solvable_contrapositive r_irred r_aeval,
+  apply mt (solvable_by_rad.is_solvable' r_irred r_aeval),
   introI h,
   refine equiv.perm.not_solvable _ (le_of_eq _)
     (solvable_of_surjective (gal_poly a b hab q_irred r_irred).2),
@@ -248,12 +208,7 @@ begin
   rw [nat.cast_bit1, nat.cast_bit0, nat.cast_one],
 end
 
-lemma int.sign_pow_bit1 (k : ℕ) : ∀ n : ℤ, n.sign ^ (bit1 k) = n.sign
-| (n+1:ℕ) := one_pow (bit1 k)
-| 0       := zero_pow (nat.zero_lt_bit1 k)
-| -[1+ n] := (neg_pow_bit1 1 k).trans (congr_arg (λ x, -x) (one_pow (bit1 k)))
-
-/-- Generalization of `not_solvable_poly` to negative constant terms -/
+/-- Generalization of `not_solvable_poly` to allow a negative constant term -/
 theorem not_solvable_poly' (x : ℂ) (a : ℕ) (b : ℤ) (p : ℕ) (hab : abs b < a)
   (hp : p.prime) (hpa : p ∣ a) (hpb : ↑p ∣ b) (hp2b : ¬ (↑p ^ 2 ∣ b))
   (hx : aeval x (X ^ 5 - C ↑a * X + C b : polynomial ℤ) = 0) :
@@ -283,4 +238,21 @@ begin
   { norm_num },
   { rw ← hx,
     simp },
+end
+
+theorem exists_not_solvable_by_rad : ∃ x : ℂ, is_algebraic ℚ x ∧ ¬ is_solvable_by_rad ℚ x :=
+begin
+  let p : polynomial ℤ := X ^ 5 - 4 * X + 2,
+  have hp : (p.map (algebra_map ℤ ℚ)).nat_degree ≠ 0,
+  { intro h,
+    have key := congr_arg (eval 1) (eq_C_of_nat_degree_eq_zero h),
+    simp_rw [coeff_zero_eq_eval_zero, eval_C, eval_map, eval₂_add, eval₂_sub, eval₂_mul, eval₂_pow,
+      eval₂_X, eval₂_bit0, eval₂_one] at key,
+    norm_num at key },
+  obtain ⟨x, hx⟩ := exists_root_of_splits (algebra_map ℚ ℂ)
+    (is_alg_closed.splits_codomain (p.map (algebra_map ℤ ℚ))) _,
+  refine ⟨x, ⟨p.map (algebra_map ℤ ℚ), _, hx⟩, _⟩,
+  { exact λ h, hp ((congr_arg nat_degree h).trans nat_degree_zero) },
+  { exact not_solvable_poly'' x (by rwa [eval₂_map, ←is_scalar_tower.algebra_map_eq] at hx) },
+  { exact hp ∘ nat_degree_eq_of_degree_eq_some },
 end

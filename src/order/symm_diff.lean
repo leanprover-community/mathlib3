@@ -47,7 +47,7 @@ def symm_diff {α : Type*} [has_sup α] [has_sdiff α] (A B : α) : α := (A \ B
 
 infix ` Δ `:100 := symm_diff
 
-@[simp] lemma symm_diff_def {α : Type*} [has_sup α] [has_sdiff α] (A B : α) :
+lemma symm_diff_def {α : Type*} [has_sup α] [has_sdiff α] (A B : α) :
   A Δ B = (A \ B) ⊔ (B \ A) :=
 rfl
 

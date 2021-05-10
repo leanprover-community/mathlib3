@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
+import data.sigma.basic
 
 /-!
 # Equivalence between types
@@ -951,13 +952,15 @@ def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β�
  λ H, funext $ by simp, λ H, funext $ by simp⟩
 
 /-- Dependent `curry` equivalence: the type of dependent functions on `Σ i, β i` is equivalent
-to the type of dependent functions of two arguments (i.e., functions to the space of functions). -/
+to the type of dependent functions of two arguments (i.e., functions to the space of functions).
+
+This is `sigma.curry` and `sigma.uncurry` together as an equiv. -/
 def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) :
   (Π x : Σ i, β i, γ x.1 x.2) ≃ (Π a b, γ a b) :=
-{ to_fun := λ f x y, f ⟨x,y⟩,
-  inv_fun := λ f x, f x.1 x.2,
-  left_inv := λ f, funext $ λ ⟨x,y⟩, rfl,
-  right_inv := λ f, funext $ λ x, funext $ λ y, rfl }
+{ to_fun := sigma.curry,
+  inv_fun := sigma.uncurry,
+  left_inv := sigma.uncurry_curry,
+  right_inv := sigma.curry_uncurry }
 
 end
 
@@ -1764,9 +1767,14 @@ noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α �
 equiv.of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
 
+
 theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : set.range f) :
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
+
+@[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
+  f ∘ ((of_injective f hf).symm) = coe :=
+funext (λ x, apply_of_injective_symm f hf x)
 
 lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :

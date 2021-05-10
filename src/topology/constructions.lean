@@ -64,6 +64,10 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
 instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
 t.induced ulift.down
 
+lemma quotient.preimage_mem_nhds [topological_space α] [s : setoid α]
+  {V : set $ quotient s} {a : α} (hs : V ∈ 𝓝 (quotient.mk a)) : quotient.mk ⁻¹' V ∈ 𝓝 a :=
+preimage_nhds_coinduced hs
+
 /-- The image of a dense set under `quotient.mk` is a dense set. -/
 lemma dense.quotient [setoid α] [topological_space α] {s : set α} (H : dense s) :
   dense (quotient.mk '' s) :=

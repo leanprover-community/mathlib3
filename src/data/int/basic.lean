@@ -818,6 +818,7 @@ theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i
 | 0       := mul_zero _
 | -[1+ n] := mul_neg_one _
 
+@[simp]
 theorem sign_pow_bit1 (k : ℕ) : ∀ n : ℤ, n.sign ^ (bit1 k) = n.sign
 | (n+1:ℕ) := one_pow (bit1 k)
 | 0       := zero_pow (nat.zero_lt_bit1 k)

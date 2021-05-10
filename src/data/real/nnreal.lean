@@ -530,10 +530,10 @@ begin
   { assume H,
     have : (((q - r) : ℝ≥0) : ℝ) = (q : ℝ) - (r : ℝ) :=
       nnreal.coe_sub (le_of_lt (sub_pos.1 (lt_of_le_of_lt (zero_le _) H))),
-    rwa [← nnreal.coe_lt_coe, this, lt_sub_iff_add_lt_right', ← nnreal.coe_add] at H },
+    rwa [← nnreal.coe_lt_coe, this, lt_sub_iff_add_lt, ← nnreal.coe_add] at H },
   { assume H,
     have : r ≤ q := le_trans (le_add_left (le_refl _)) (le_of_lt H),
-    rwa [← nnreal.coe_lt_coe, nnreal.coe_sub this, lt_sub_iff_add_lt_right', ← nnreal.coe_add] }
+    rwa [← nnreal.coe_lt_coe, nnreal.coe_sub this, lt_sub_iff_add_lt, ← nnreal.coe_add] }
 end
 
 lemma sub_lt_iff_lt_add {a b c : ℝ≥0} (h : b ≤ a) : a - b < c ↔ a < b + c :=

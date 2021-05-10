@@ -2217,7 +2217,7 @@ else
     refine lt_of_lt_of_le _ real.pi_pos.le,
     rw [neg_im, sub_lt_iff_lt_add, add_zero, neg_lt, neg_div, real.arcsin_neg, neg_neg],
     exact (real.arcsin_le_pi_div_two _).trans_lt (half_lt_self real.pi_pos) }
-  else by rw [arg, if_neg hx₁, if_neg hx₂, lt_sub_iff_add_lt_right', neg_add_self, real.arcsin_pos,
+  else by rw [arg, if_neg hx₁, if_neg hx₂, lt_sub_iff_add_lt, neg_add_self, real.arcsin_pos,
               neg_im];
       exact div_pos (neg_pos.2 (lt_of_not_ge hx₂)) (abs_pos.2 hx)
 

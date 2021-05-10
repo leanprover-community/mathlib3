@@ -137,7 +137,7 @@ ext $ λ x, sub_lt_iff_lt_add'.symm
 ext $ λ x, le_sub_iff_add_le.symm
 
 @[simp] lemma preimage_add_const_Iio : (λ x, x + a) ⁻¹' (Iio b) = Iio (b - a) :=
-ext $ λ x, lt_sub_iff_add_lt_right'.symm
+ext $ λ x, lt_sub_iff_add_lt.symm
 
 @[simp] lemma preimage_add_const_Icc : (λ x, x + a) ⁻¹' (Icc b c) = Icc (b - a) (c - a) :=
 by simp [← Ici_inter_Iic]

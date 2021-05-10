@@ -1422,7 +1422,7 @@ calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
 
 lemma cos_pos_of_le_one {x : ℝ} (hx : abs' x ≤ 1) : 0 < cos x :=
 calc 0 < (1 - x ^ 2 / 2) - abs' x ^ 4 * (5 / 96) :
-  sub_pos.2 $ lt_sub_iff_add_lt_right'.2
+  sub_pos.2 $ lt_sub_iff_add_lt.2
     (calc abs' x ^ 4 * (5 / 96) + x ^ 2 / 2
           ≤ 1 * (5 / 96) + 1 / 2 :
         add_le_add
@@ -1434,7 +1434,7 @@ calc 0 < (1 - x ^ 2 / 2) - abs' x ^ 4 * (5 / 96) :
 
 lemma sin_pos_of_pos_of_le_one {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 1) : 0 < sin x :=
 calc 0 < x - x ^ 3 / 6 - abs' x ^ 4 * (5 / 96) :
-  sub_pos.2 $ lt_sub_iff_add_lt_right'.2
+  sub_pos.2 $ lt_sub_iff_add_lt.2
     (calc abs' x ^ 4 * (5 / 96) + x ^ 3 / 6
         ≤ x * (5 / 96) + x / 6 :
       add_le_add

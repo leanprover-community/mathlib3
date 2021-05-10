@@ -372,8 +372,8 @@ by rw [← mul_lt_mul_iff_right' a, inv_mul_cancel_right]
 
 /- The non-primed versions of the same lemma, except that multiplication/addition on had been
 commuted.  Since now there is no longer a commutativity assumption, I removed the other lemmas. -/
-@[to_additive]
-lemma lt_div_iff_mul_lt_right' : b < c / a ↔ b * a < c :=
+@[to_additive lt_sub_iff_add_lt]
+lemma lt_div_iff_mul_lt : b < c / a ↔ b * a < c :=
 by rw [div_eq_mul_inv, lt_mul_inv_iff_mul_lt']
 
 /- The non-primed versions of the same lemma, except that multiplication/addition on had been
@@ -815,7 +815,7 @@ by rw [lt_div_left, mul_comm, div_eq_mul_inv]
 
 @[to_additive]
 lemma lt_div_iff_mul_lt' : b < c / a ↔ a * b < c :=
-by rw [mul_comm, lt_div_iff_mul_lt_right']
+by rw [mul_comm, lt_div_iff_mul_lt]
 
 @[to_additive]
 lemma div_lt_iff_mul : c / a < b ↔ c < a * b :=

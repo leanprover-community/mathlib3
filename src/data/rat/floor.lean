@@ -96,7 +96,7 @@ begin
   have : 0 < 1 - fract q, by
   { have : fract q < 1, from fract_lt_one q,
     have : 0 + fract q < 1, by simp [this],
-    rwa lt_sub_iff_add_lt_right', },
+    rwa lt_sub_iff_add_lt, },
   exact mul_pos this (by exact_mod_cast q.pos)
 end
 

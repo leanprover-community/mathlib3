@@ -75,7 +75,7 @@ variables (R)
 theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
-  rw [pow_two, ← nat.cast_one, ← hG hvw],
+  rw [sq, ← nat.cast_one, ← hG hvw],
   simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter,
     and_comm],
 end
@@ -108,7 +108,7 @@ begin
       ← adj_matrix_pow_three_of_not_adj ℕ hG hvw,
       ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.sym h))],
   conv_lhs {rw ← transpose_adj_matrix},
-  simp only [pow_succ, pow_two, mul_eq_mul, ← transpose_mul, transpose_apply],
+  simp only [pow_succ, sq, mul_eq_mul, ← transpose_mul, transpose_apply],
   simp only [← mul_eq_mul, mul_assoc],
 end
 
@@ -120,7 +120,7 @@ theorem adj_matrix_sq_of_regular (hd : G.is_regular_of_degree d) :
   ((G.adj_matrix R) ^ 2) = λ v w, if v = w then d else 1 :=
 begin
   ext v w, by_cases h : v = w,
-  { rw [h, pow_two, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
+  { rw [h, sq, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
   { rw [adj_matrix_sq_of_ne R hG h, if_neg h], },
 end
 
@@ -182,7 +182,7 @@ begin
                mem_erase, not_true, ne.def, not_false_iff, add_right_inj, false_and],
     rw [finset.sum_const_nat, card_erase_of_mem (mem_univ v), mul_one], { refl },
     intros x hx, simp [(ne_of_mem_erase hx).symm], },
-  { rw [pow_two, mul_eq_mul, ← mul_vec_mul_vec],
+  { rw [sq, mul_eq_mul, ← mul_vec_mul_vec],
     simp [adj_matrix_mul_vec_const_apply_of_regular hd, neighbor_finset,
           card_neighbor_set_eq_degree, hd v], }
 end

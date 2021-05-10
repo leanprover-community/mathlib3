@@ -498,6 +498,21 @@ lemma integrable_norm_iff [opens_measurable_space β] {f : α → β} (hf : ae_m
   integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
 by simp_rw [integrable, and_iff_right hf, and_iff_right hf.norm, has_finite_integral_norm_iff]
 
+lemma integrable_of_norm_sub_le [opens_measurable_space β] {f₀ f₁ : α → β} {g : α → ℝ}
+  (hf₁_m : ae_measurable f₁ μ)
+  (hf₀_i : integrable f₀ μ)
+  (hg_i : integrable g μ)
+  (h : ∀ᵐ a ∂μ, ∥f₀ a - f₁ a∥ ≤ g a) :
+  integrable f₁ μ :=
+begin
+  have : ∀ᵐ a ∂μ, ∥f₁ a∥ ≤ ∥f₀ a∥ + g a,
+  { apply h.mono,
+    intros a ha,
+    calc ∥f₁ a∥ ≤ ∥f₀ a∥ + ∥f₀ a - f₁ a∥ : norm_le_insert _ _
+    ... ≤ ∥f₀ a∥ + g a : add_le_add_left ha _ },
+  exact integrable.mono' (hf₀_i.norm.add hg_i) hf₁_m this
+end
+
 lemma integrable.prod_mk [opens_measurable_space β] [opens_measurable_space γ] {f : α → β}
   {g : α → γ} (hf : integrable f μ) (hg : integrable g μ) :
   integrable (λ x, (f x, g x)) μ :=
@@ -757,6 +772,7 @@ lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
 end integrable
 
 end measure_theory
+
 open measure_theory
 
 lemma integrable_zero_measure [measurable_space β] {f : α → β} :
@@ -766,3 +782,11 @@ begin
   change (0 : measure α) {x | 0 ≠ f x} = 0,
   refl,
 end
+
+variables {E : Type*} [normed_group E] [measurable_space E] [borel_space E] [normed_space ℝ E]
+          {H : Type*} [normed_group H] [normed_space ℝ H]
+
+lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[ℝ] E}
+  (φ_int : integrable φ μ) (v : H) : integrable (λ a, φ a v) μ :=
+(φ_int.norm.mul_const ∥v∥).mono' (φ_int.ae_measurable.apply_continuous_linear_map v)
+  (eventually_of_forall $ λ a, (φ a).le_op_norm v)

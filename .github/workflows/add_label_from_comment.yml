@@ -77,7 +77,7 @@ jobs:
 
   add_delegated_label:
     name: Add delegated label
-    if: (toJSON(github.event.issue.pull_request) != 'null') && (startsWith(github.event.comment.body, 'bors d') || contains(toJSON(github.event.comment.body), '\r\nbors d')
+    if: (toJSON(github.event.issue.pull_request) != 'null') && (startsWith(github.event.comment.body, 'bors d') || contains(toJSON(github.event.comment.body), '\r\nbors d'))
     runs-on: ubuntu-latest
     steps:
       - uses: octokit/request-action@v2.x

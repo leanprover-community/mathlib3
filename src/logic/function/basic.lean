@@ -571,6 +571,10 @@ protected lemma ite_not (P : Prop) [decidable P] (x : α) :
   f (ite P x (f x)) = ite (¬ P) x (f x) :=
 by rw [apply_ite f, h, ite_not]
 
+/-- An involution commutes across an equality. Compare to `function.injective.eq_iff`. -/
+protected lemma eq_iff {x y : α} : f x = y ↔ x = f y :=
+h.injective.eq_iff' (h y)
+
 end involutive
 
 /-- The property of a binary function `f : α → β → γ` being injective.

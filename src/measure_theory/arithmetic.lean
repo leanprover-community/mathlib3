@@ -30,6 +30,8 @@ For instances relating, e.g., `has_continuous_mul` to `has_measurable_mul` see f
 measurable function, arithmetic operator
 -/
 
+universes u v
+
 open_locale big_operators
 open measure_theory
 
@@ -285,19 +287,29 @@ measurable_inv.comp_ae_measurable hf
 
 end inv
 
-instance has_measurable_gpow (G : Type*) [group G] [measurable_space G]
+/- There is something extremely strange here: copy-pasting the proof of this lemma in the proof
+of `has_measurable_gpow` fails, while `pp.all` does not show any difference in the goal.
+Keep it as a separate lemmas as a workaround. -/
+private lemma has_measurable_gpow_aux (G : Type u) [div_inv_monoid G] [measurable_space G]
+  [has_measurable_mul₂ G] [has_measurable_inv G] (k : ℕ) :
+  measurable (λ (x : G), x ^(-[1+ k])) :=
+begin
+  simp_rw [gpow_neg_succ_of_nat],
+  exact (measurable_id.pow_const (k + 1)).inv
+end
+
+instance has_measurable_gpow (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
-by haveI : measurable_singleton_class ℤ := ⟨λ _, trivial⟩; exact
-⟨measurable_from_prod_encodable $
-  λ n, int.cases_on n measurable_id.pow_const (λ n, (measurable_id.pow_const (n + 1)).inv)⟩
-
-instance has_measurable_fpow (G₀ : Type*) [group_with_zero G₀] [measurable_space G₀]
-  [has_measurable_mul₂ G₀] [has_measurable_inv G₀] :
-  has_measurable_pow G₀ ℤ :=
-by haveI : measurable_singleton_class ℤ := ⟨λ _, trivial⟩; exact
-⟨measurable_from_prod_encodable $
-  λ n, int.cases_on n measurable_id.pow_const (λ n, (measurable_id.pow_const (n + 1)).inv)⟩
+begin
+  letI : measurable_singleton_class ℤ := ⟨λ _, trivial⟩,
+  constructor,
+  refine measurable_from_prod_encodable (λ n, _),
+  dsimp,
+  apply int.cases_on n,
+  { simpa using measurable_id.pow_const },
+  { exact has_measurable_gpow_aux G }
+end
 
 @[priority 100, to_additive]
 instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]

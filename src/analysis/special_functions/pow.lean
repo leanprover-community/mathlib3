@@ -92,7 +92,7 @@ by simpa using cpow_neg x 1
 
 @[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
-| -[1+ n] := by rw fpow_neg_succ_of_nat;
+| -[1+ n] := by rw gpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
 
@@ -518,7 +518,7 @@ by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, fpow_one, fpow_neg],
+  simp only [rpow_int_cast, gpow_one, fpow_neg],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
@@ -825,7 +825,7 @@ section sqrt
 lemma sqrt_eq_rpow : sqrt = λx:ℝ, x ^ (1/(2:ℝ)) :=
 begin
   funext, by_cases h : 0 ≤ x,
-  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← pow_two, ← rpow_nat_cast, ← rpow_mul h],
+  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← sq, ← rpow_nat_cast, ← rpow_mul h],
     norm_num, exact sqrt_nonneg _, exact rpow_nonneg_of_nonneg h _ },
   { replace h : x < 0 := lt_of_not_ge h,
     have : 1 / (2:ℝ) * π = π / (2:ℝ), ring,

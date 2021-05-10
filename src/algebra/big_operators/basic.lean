@@ -573,6 +573,24 @@ by simp [prod_apply_dite _ _ (λ x, x)]
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬ p x), g x) :=
 by simp [prod_apply_ite _ _ (λ x, x)]
 
+@[to_additive] lemma prod_ite_of_false {p : α → Prop} {hp : decidable_pred p} (f g : α → β)
+  (h : ∀ x ∈ s, ¬p x) : (∏ x in s, if p x then f x else g x) = (∏ x in s, g x) :=
+by { rw prod_ite, simp [filter_false_of_mem h, filter_true_of_mem h] }
+
+@[to_additive] lemma prod_ite_of_true {p : α → Prop} {hp : decidable_pred p} (f g : α → β)
+  (h : ∀ x ∈ s, p x) : (∏ x in s, if p x then f x else g x) = (∏ x in s, f x) :=
+by { simp_rw ←(ite_not (p _)), apply prod_ite_of_false, simpa }
+
+@[to_additive] lemma prod_apply_ite_of_false {p : α → Prop} {hp : decidable_pred p} (f g : α → γ)
+  (k : γ → β) (h : ∀ x ∈ s, ¬p x) :
+  (∏ x in s, k (if p x then f x else g x)) = (∏ x in s, k (g x)) :=
+by { simp_rw apply_ite k, exact prod_ite_of_false _ _ h }
+
+@[to_additive] lemma prod_apply_ite_of_true {p : α → Prop} {hp : decidable_pred p} (f g : α → γ)
+  (k : γ → β) (h : ∀ x ∈ s, p x) :
+  (∏ x in s, k (if p x then f x else g x)) = (∏ x in s, k (f x)) :=
+by { simp_rw apply_ite k, exact prod_ite_of_true _ _ h }
+
 @[to_additive]
 lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
   ∏ i in s, (if i ∈ s then f i else 1) = ∏ i in s, f i :=
@@ -1163,6 +1181,17 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive] prod_range_succ'
+
+lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
+  f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
+by { rw finset.sum_range_sub, abel }
+
+lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
+  f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=
+begin
+  conv_lhs { rw [finset.eq_sum_range_sub f] },
+  simp [finset.sum_range_succ', add_comm]
+end
 
 lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
   (∑ x in range (n + m), f x) =

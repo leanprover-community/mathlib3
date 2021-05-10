@@ -21,12 +21,12 @@ open function set
 
 variables {R E F G G' E₁ : Type*} [semiring R]
   [semi_normed_group E] [semi_normed_group F] [semi_normed_group G] [semi_normed_group G']
-  [semimodule R E] [semimodule R F] [semimodule R G] [semimodule R G']
-  [normed_group E₁] [semimodule R E₁]
+  [module R E] [module R F] [module R G] [module R G']
+  [normed_group E₁] [module R E₁]
 
 /-- An `R`-linear isometric embedding of one normed `R`-module into another. -/
 structure linear_isometry (R E F : Type*) [semiring R] [semi_normed_group E]
-  [semi_normed_group F] [semimodule R E] [semimodule R F] extends E →ₗ[R] F :=
+  [semi_normed_group F] [module R E] [module R F] extends E →ₗ[R] F :=
 (norm_map' : ∀ x, ∥to_linear_map x∥ = ∥x∥)
 
 notation E ` →ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry R E F
@@ -163,7 +163,7 @@ end submodule
 
 /-- A linear isometric equivalence between two normed vector spaces. -/
 structure linear_isometry_equiv (R E F : Type*) [semiring R] [semi_normed_group E]
-  [semi_normed_group F] [semimodule R E] [semimodule R F] extends E ≃ₗ[R] F :=
+  [semi_normed_group F] [module R E] [module R F] extends E ≃ₗ[R] F :=
 (norm_map' : ∀ x, ∥to_linear_equiv x∥ = ∥x∥)
 
 notation E ` ≃ₗᵢ[`:25 R:25 `] `:0 F:0 := linear_isometry_equiv R E F

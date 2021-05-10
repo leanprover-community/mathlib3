@@ -20,6 +20,10 @@ namespace category_theory
 -- declare the `v`'s first; see `category_theory.category` for an explanation
 universes v v₁ v₂ v₃ u u₁ u₂ u₃
 
+section
+
+set_option old_structure_cmd true
+
 /--
 `functor C D` represents a functor between categories `C` and `D`.
 
@@ -30,12 +34,15 @@ The axiom `map_id` expresses preservation of identities, and
 
 See https://stacks.math.columbia.edu/tag/001B.
 -/
-structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
-  Type (max v₁ v₂ u₁ u₂) :=
-(obj []    : C → D)
-(map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
+structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
+  extends prefunctor C D : Type (max v₁ v₂ u₁ u₂) :=
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
 (map_comp' : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = (map f) ≫ (map g) . obviously)
+
+/-- The prefunctor between the underlying quivers. -/
+add_decl_doc functor.to_prefunctor
+
+end
 
 -- A functor is basically a function, so give ⥤ a similar precedence to → (25).
 -- For example, `C × D ⥤ E` should parse as `(C × D) ⥤ E` not `C × (D ⥤ E)`.

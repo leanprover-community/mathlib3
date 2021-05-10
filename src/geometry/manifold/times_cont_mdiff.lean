@@ -958,7 +958,7 @@ end
 
 /-! ### Equivalence with the basic definition for functions between vector spaces -/
 
-section vector_space
+section module
 
 lemma times_cont_mdiff_within_at_iff_times_cont_diff_within_at {f : E → E'} {s : set E} {x : E} :
   times_cont_mdiff_within_at 𝓘(𝕜, E) 𝓘(𝕜, E') n f s x
@@ -999,7 +999,7 @@ by rw [← times_cont_diff_on_univ, ← times_cont_mdiff_on_univ,
 alias times_cont_mdiff_iff_times_cont_diff ↔
   times_cont_mdiff.times_cont_diff times_cont_diff.times_cont_mdiff
 
-end vector_space
+end module
 
 /-! ### The tangent map of a smooth function is smooth -/
 

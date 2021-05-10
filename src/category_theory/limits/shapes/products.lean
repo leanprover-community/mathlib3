@@ -76,6 +76,12 @@ def product_is_product (f : β → C) [has_product f] :
   is_limit (fan.mk _ (pi.π f)) :=
 is_limit.of_iso_limit (limit.is_limit (discrete.functor f)) (cones.ext (iso.refl _) (by tidy))
 
+/-- The cofan constructed of the inclusions from the coproduct is colimiting. -/
+def coproduct_is_coproduct (f : β → C) [has_coproduct f] :
+  is_colimit (cofan.mk _ (sigma.ι f)) :=
+is_colimit.of_iso_colimit (colimit.is_colimit (discrete.functor f)) (cocones.ext (iso.refl _)
+  (by tidy))
+
 /-- A collection of morphisms `P ⟶ f b` induces a morphism `P ⟶ ∏ f`. -/
 abbreviation pi.lift {f : β → C} [has_product f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ∏ f :=
 limit.lift _ (fan.mk P p)

@@ -183,7 +183,7 @@ lemma mul_apply [semiring R] {f g : arithmetic_function R} {n : ℕ} :
   (f * g) n = ∑ x in divisors_antidiagonal n, f x.fst * g x.snd := rfl
 
 section module
-variables {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+variables {M : Type*} [semiring R] [add_comm_monoid M] [module R M]
 
 lemma mul_smul' (f g : arithmetic_function R) (h : arithmetic_function M) :
   (f * g) • h = f • g • h :=
@@ -282,8 +282,8 @@ instance [comm_ring R] : comm_ring (arithmetic_function R) :=
 { .. arithmetic_function.add_comm_group,
   .. arithmetic_function.comm_semiring }
 
-instance {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M] :
-  semimodule (arithmetic_function R) (arithmetic_function M) :=
+instance {M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
+  module (arithmetic_function R) (arithmetic_function M) :=
 { one_smul := one_smul',
   mul_smul := mul_smul',
   smul_add := λ r x y, by { ext, simp only [sum_add_distrib, smul_add, smul_apply, add_apply] },
@@ -629,7 +629,7 @@ end
 
 /-- `Ω n` is the number of prime factors of `n`. -/
 def card_factors : arithmetic_function ℕ :=
-⟨λ n, n.factors.length, rfl⟩
+⟨λ n, n.factors.length, by simp⟩
 
 localized "notation `Ω` := card_factors" in arithmetic_function
 
@@ -637,7 +637,7 @@ lemma card_factors_apply {n : ℕ} :
   Ω n = n.factors.length := rfl
 
 @[simp]
-lemma card_factors_one : Ω 1 = 0 := rfl
+lemma card_factors_one : Ω 1 = 0 := by simp [card_factors]
 
 lemma card_factors_eq_one_iff_prime {n : ℕ} :
   Ω n = 1 ↔ n.prime :=
@@ -662,7 +662,7 @@ lemma card_factors_multiset_prod {s : multiset ℕ} (h0 : s.prod ≠ 0) :
   Ω s.prod = (multiset.map Ω s).sum :=
 begin
   revert h0,
-  apply s.induction_on, { intro h, refl },
+  apply s.induction_on, by simp,
   intros a t h h0,
   rw [multiset.prod_cons, mul_ne_zero_iff] at h0,
   simp [h0, card_factors_mul, h],
@@ -670,12 +670,11 @@ end
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
-⟨λ n, n.factors.erase_dup.length, rfl⟩
+⟨λ n, n.factors.erase_dup.length, by simp⟩
 
 localized "notation `ω` := card_distinct_factors" in arithmetic_function
 
-@[simp]
-lemma card_distinct_factors_zero : ω 0 = 0 := rfl
+lemma card_distinct_factors_zero : ω 0 = 0 := by simp
 
 lemma card_distinct_factors_apply {n : ℕ} :
   ω n = n.factors.erase_dup.length := rfl
@@ -841,7 +840,7 @@ begin
   apply forall_congr,
   intro a,
   apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
-  rw [←gsmul_eq_smul, gsmul_eq_mul],
+  rw [gsmul_eq_mul],
 end
 
 /-- Möbius inversion for functions to a `comm_group`. -/

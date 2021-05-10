@@ -98,7 +98,7 @@ lt_of_le_of_lt (norm_nonneg _) hnorm
 private lemma deriv_sq_norm_ne_zero : ∥F.derivative.eval a∥^2 ≠ 0 := ne_of_gt deriv_sq_norm_pos
 
 private lemma deriv_norm_ne_zero : ∥F.derivative.eval a∥ ≠ 0 :=
-λ h, deriv_sq_norm_ne_zero (by simp [*, pow_two])
+λ h, deriv_sq_norm_ne_zero (by simp [*, sq])
 
 private lemma deriv_norm_pos : 0 < ∥F.derivative.eval a∥ :=
 lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
@@ -264,7 +264,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
   mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_one T_pos T_lt_one (by norm_num)) deriv_norm_pos
 ... = ∥F.eval a∥ / ∥F.derivative.eval a∥ :
   begin
-    rw [T, pow_two, pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
+    rw [T, sq, pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
     apply mul_div_mul_left,
     apply deriv_norm_ne_zero; assumption
   end
@@ -332,7 +332,7 @@ end
 
 private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (𝓝 0) :=
 begin
-  rw [←mul_zero (∥F.derivative.eval a∥), pow_two],
+  rw [←mul_zero (∥F.derivative.eval a∥), sq],
   simp only [mul_assoc],
   apply tendsto.mul,
   { apply tendsto_const_nhds },
@@ -379,7 +379,7 @@ tendsto_nhds_unique newton_seq_dist_tendsto' newton_seq_dist_tendsto
 private lemma soln_dist_to_a_lt_deriv : ∥soln - a∥ < ∥F.derivative.eval a∥ :=
 begin
   rw [soln_dist_to_a, div_lt_iff],
-  { rwa pow_two at hnorm },
+  { rwa sq at hnorm },
   { apply deriv_norm_pos, assumption }
 end
 
@@ -398,7 +398,7 @@ let h := z - soln,
 have (F.derivative.eval soln + q * h) * h = 0, from eq.symm (calc
   0 = F.eval (soln + h) : by simp [hev, h]
 ... = F.derivative.eval soln * h + q * h^2 : by rw [hq, eval_soln, zero_add]
-... = (F.derivative.eval soln + q * h) * h : by rw [pow_two, right_distrib, mul_assoc]),
+... = (F.derivative.eval soln + q * h) * h : by rw [sq, right_distrib, mul_assoc]),
 have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval soln + q * h = 0,
     from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
@@ -423,7 +423,7 @@ let h := z' - a,
 have (F.derivative.eval a + q * h) * h = 0, from eq.symm (calc
   0 = F.eval (a + h) : show 0 = F.eval (a + (z' - a)), by rw add_comm; simp [hz']
 ... = F.derivative.eval a * h + q * h^2 : by rw [hq, ha, zero_add]
-... = (F.derivative.eval a + q * h) * h : by rw [pow_two, right_distrib, mul_assoc]),
+... = (F.derivative.eval a + q * h) * h : by rw [sq, right_distrib, mul_assoc]),
 have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval a + q * h = 0,
     from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,

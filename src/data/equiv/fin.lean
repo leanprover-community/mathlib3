@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import data.fin
 import data.equiv.basic
+import tactic.norm_num
 
 /-!
 # Equivalences for `fin n`
@@ -31,11 +32,15 @@ def fin_two_equiv : fin 2 ≃ bool :=
 ⟨@fin.cases 1 (λ_, bool) ff (λ_, tt),
   λb, cond b 1 0,
   begin
-    refine fin.cases _ _, refl,
-    refine fin.cases _ _, refl,
+    refine fin.cases _ _, by norm_num,
+    refine fin.cases _ _, by norm_num,
     exact λi, fin_zero_elim i
   end,
-  assume b, match b with tt := rfl | ff := rfl end⟩
+  begin
+    rintro ⟨_|_⟩,
+    { refl },
+    { rw ← fin.succ_zero_eq_one, refl }
+  end⟩
 
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=

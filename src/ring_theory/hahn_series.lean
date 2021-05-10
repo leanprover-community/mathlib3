@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import order.well_founded_set
-import algebra.big_operators
+import algebra.big_operators.finprod
 import ring_theory.valuation.basic
 import algebra.module.pi
 import ring_theory.power_series.basic
@@ -13,11 +13,12 @@ import ring_theory.power_series.basic
 # Hahn Series
 
 ## Main Definitions
-  * If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
-  formal series over `Γ` with coefficients in `R`, whose supports are well-founded.
+  * If `Γ` is ordered and `R` has zero, then `hahn_series Γ R` consists of
+  formal series over `Γ` with coefficients in `R`, whose supports are partially well-ordered.
   * If `R` is a (commutative) additive monoid or group, then so is `hahn_series Γ R`.
   * If `R` is a (comm_)(semi)ring, then so is `hahn_series Γ R`.
-  * `hahn_series.add_val Γ R` defines an `add_valuation` on `hahn_series Γ R`.
+  * `hahn_series.add_val Γ R` defines an `add_valuation` on `hahn_series Γ R` when `Γ` is linearly
+    ordered.
   * A `hahn_series.summable_family` is a family of Hahn series such that the union of their supports
   is well-founded and only finitely many are nonzero at any given coefficient. They have a formal
   sum, `hahn_series.summable_family.hsum`, which can be bundled as a `linear_map` as
@@ -40,30 +41,33 @@ noncomputable theory
 /-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
   formal series over `Γ` with coefficients in `R`, whose supports are well-founded. -/
 @[ext]
-structure hahn_series (Γ : Type*) (R : Type*) [linear_order Γ] [has_zero R] :=
+structure hahn_series (Γ : Type*) (R : Type*) [partial_order Γ] [has_zero R] :=
 (coeff : Γ → R)
-(is_wf_support' : (function.support coeff).is_wf)
+(is_pwo_support' : (function.support coeff).is_pwo)
 
 variables {Γ : Type*} {R : Type*}
 
 namespace hahn_series
 
 section zero
-variables [linear_order Γ] [has_zero R]
+variables [partial_order Γ] [has_zero R]
 
 /-- The support of a Hahn series is just the set of indices whose coefficients are nonzero.
   Notably, it is well-founded. -/
 def support (x : hahn_series Γ R) : set Γ := function.support x.coeff
 
 @[simp]
-lemma is_wf_support (x : hahn_series Γ R) : x.support.is_wf := x.is_wf_support'
+lemma is_pwo_support (x : hahn_series Γ R) : x.support.is_pwo := x.is_pwo_support'
+
+@[simp]
+lemma is_wf_support (x : hahn_series Γ R) : x.support.is_wf := x.is_pwo_support.is_wf
 
 @[simp]
 lemma mem_support (x : hahn_series Γ R) (a : Γ) : a ∈ x.support ↔ x.coeff a ≠ 0 := iff.refl _
 
 instance : has_zero (hahn_series Γ R) :=
 ⟨{ coeff := 0,
-   is_wf_support' := by simp }⟩
+   is_pwo_support' := by simp }⟩
 
 instance : inhabited (hahn_series Γ R) := ⟨0⟩
 
@@ -72,6 +76,10 @@ instance [subsingleton R] : subsingleton (hahn_series Γ R) :=
 
 @[simp]
 lemma zero_coeff {a : Γ} : (0 : hahn_series Γ R).coeff a = 0 := rfl
+
+lemma ne_zero_of_coeff_ne_zero {x : hahn_series Γ R} {g : Γ} (h : x.coeff g ≠ 0) :
+  x ≠ 0 :=
+mt (λ x0, (x0.symm ▸ zero_coeff : x.coeff g = 0)) h
 
 @[simp]
 lemma support_zero : support (0 : hahn_series Γ R) = ∅ := function.support_zero
@@ -95,7 +103,7 @@ end
 /-- `single a r` is the Hahn series which has coefficient `r` at `a` and zero otherwise. -/
 def single (a : Γ) : zero_hom R (hahn_series Γ R) :=
 { to_fun := λ r, { coeff := pi.single a r,
-    is_wf_support' := (set.is_wf_singleton a).mono pi.support_single_subset },
+    is_pwo_support' := (set.is_pwo_singleton a).mono pi.support_single_subset },
   map_zero' := ext _ _ (pi.single_zero _) }
 
 variables {a b : Γ} {r : R}
@@ -122,6 +130,12 @@ support_single_subset h
 @[simp]
 lemma single_eq_zero : (single a (0 : R)) = 0 := (single a).map_zero
 
+lemma single_injective (a : Γ) : function.injective (single a : R → hahn_series Γ R) :=
+λ r s rs, by rw [← single_coeff_same a r, ← single_coeff_same a s, rs]
+
+lemma single_ne_zero (h : r ≠ 0) : single a r ≠ 0 :=
+λ con, h (single_injective a (con.trans single_eq_zero.symm))
+
 instance [nonempty Γ] [nontrivial R] : nontrivial (hahn_series Γ R) :=
 ⟨begin
   obtain ⟨r, s, rs⟩ := exists_pair_ne R,
@@ -130,22 +144,51 @@ instance [nonempty Γ] [nontrivial R] : nontrivial (hahn_series Γ R) :=
   rw [← single_coeff_same (arbitrary Γ) r, con, single_coeff_same],
 end⟩
 
-lemma coeff_min_ne_zero {x : hahn_series Γ R} (hx : x ≠ 0) :
-  x.coeff (x.is_wf_support.min (support_nonempty_iff.2 hx)) ≠ 0 :=
-x.is_wf_support.min_mem (support_nonempty_iff.2 hx)
+section order
+variable [has_zero Γ]
 
+/-- The order of a nonzero Hahn series `x` is a minimal element of `Γ` where `x` has a
+  nonzero coefficient, the order of 0 is 0. -/
+def order (x : hahn_series Γ R) : Γ :=
+if h : x = 0 then 0 else x.is_wf_support.min (support_nonempty_iff.2 h)
+
+@[simp]
+lemma order_zero : order (0 : hahn_series Γ R) = 0 := dif_pos rfl
+
+lemma order_of_ne {x : hahn_series Γ R} (hx : x ≠ 0) :
+  order x = x.is_wf_support.min (support_nonempty_iff.2 hx) := dif_neg hx
+
+lemma coeff_order_ne_zero {x : hahn_series Γ R} (hx : x ≠ 0) :
+  x.coeff x.order ≠ 0 :=
+begin
+  rw order_of_ne hx,
+  exact x.is_wf_support.min_mem (support_nonempty_iff.2 hx)
+end
+
+lemma order_le_of_coeff_ne_zero {Γ} [linear_ordered_cancel_add_comm_monoid Γ]
+  {x : hahn_series Γ R} {g : Γ} (h : x.coeff g ≠ 0) :
+  x.order ≤ g :=
+le_trans (le_of_eq (order_of_ne (ne_zero_of_coeff_ne_zero h)))
+  (set.is_wf.min_le _ _ ((mem_support _ _).2 h))
+
+@[simp]
+lemma order_single (h : r ≠ 0) : (single a r).order = a :=
+(order_of_ne (single_ne_zero h)).trans (support_single_subset ((single a r).is_wf_support.min_mem
+    (support_nonempty_iff.2 (single_ne_zero h))))
+
+end order
 end zero
 
 section addition
 
-variable [linear_order Γ]
+variable [partial_order Γ]
 
 section add_monoid
 variable [add_monoid R]
 
 instance : has_add (hahn_series Γ R) :=
 { add := λ x y, { coeff := x.coeff + y.coeff,
-                  is_wf_support' := (x.is_wf_support.union y.is_wf_support).mono
+                  is_pwo_support' := (x.is_pwo_support.union y.is_pwo_support).mono
                     (function.support_add _ _) } }
 
 instance : add_monoid (hahn_series Γ R) :=
@@ -171,6 +214,17 @@ lemma support_add_subset {x y : hahn_series Γ R} :
   rw [ha.1, ha.2, add_zero],
 end
 
+lemma min_order_le_order_add {Γ} [linear_ordered_cancel_add_comm_monoid Γ] {x y : hahn_series Γ R}
+  (hx : x ≠ 0) (hy : y ≠ 0) (hxy : x + y ≠ 0) :
+  min x.order y.order ≤ (x + y).order :=
+begin
+  rw [order_of_ne hx, order_of_ne hy, order_of_ne hxy],
+  refine le_trans _ (set.is_wf.min_le_min_of_subset support_add_subset),
+  { exact x.is_wf_support.union y.is_wf_support },
+  { exact set.nonempty.mono (set.subset_union_left _ _) (support_nonempty_iff.2 hx) },
+  rw set.is_wf.min_union,
+end
+
 /-- `single` as an additive monoid/group homomorphism -/
 @[simps] def single.add_monoid_hom (a : Γ) : R →+ (hahn_series Γ R) :=
 { map_add' := λ x y, by { ext b, by_cases h : b = a; simp [h] },
@@ -193,8 +247,8 @@ variable [add_group R]
 
 instance : add_group (hahn_series Γ R) :=
 { neg := λ x, { coeff := λ a, - x.coeff a,
-                is_wf_support' := by { rw function.support_neg,
-                  exact x.is_wf_support }, },
+                is_pwo_support' := by { rw function.support_neg,
+                  exact x.is_pwo_support }, },
   add_left_neg := λ x, by { ext, apply add_left_neg },
   .. hahn_series.add_monoid }
 
@@ -223,11 +277,11 @@ instance [add_comm_group R] : add_comm_group (hahn_series Γ R) :=
 end addition
 
 section distrib_mul_action
-variables [linear_order Γ] {V : Type*} [monoid R] [add_monoid V] [distrib_mul_action R V]
+variables [partial_order Γ] {V : Type*} [monoid R] [add_monoid V] [distrib_mul_action R V]
 
 instance : has_scalar R (hahn_series Γ V) :=
 ⟨λ r x, { coeff := r • x.coeff,
-          is_wf_support' := x.is_wf_support.mono (function.support_smul_subset_right r x.coeff) }⟩
+          is_pwo_support' := x.is_pwo_support.mono (function.support_smul_subset_right r x.coeff) }⟩
 
 @[simp]
 lemma smul_coeff {r : R} {x : hahn_series Γ V} {a : Γ} : (r • x).coeff a = r • (x.coeff a) := rfl
@@ -251,10 +305,10 @@ instance [smul_comm_class R S V] :
 
 end distrib_mul_action
 
-section semimodule
-variables [linear_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [semimodule R V]
+section module
+variables [partial_order Γ] [semiring R] {V : Type*} [add_comm_monoid V] [module R V]
 
-instance : semimodule R (hahn_series Γ V) :=
+instance : module R (hahn_series Γ V) :=
 { zero_smul := λ _, by { ext, simp },
   add_smul := λ _ _ _, by { ext, simp [add_smul] },
   .. hahn_series.distrib_mul_action }
@@ -269,11 +323,11 @@ instance : semimodule R (hahn_series Γ V) :=
 { map_smul' := λ r s, rfl,
   ..coeff.add_monoid_hom g }
 
-end semimodule
+end module
 
 section multiplication
 
-variable [linear_ordered_cancel_add_comm_monoid Γ]
+variable [ordered_cancel_add_comm_monoid Γ]
 
 instance [has_zero R] [has_one R] : has_one (hahn_series Γ R) :=
 ⟨single 0 1⟩
@@ -290,28 +344,37 @@ lemma support_one [semiring R] [nontrivial R] :
   support (1 : hahn_series Γ R) = {0} :=
 support_single_of_ne one_ne_zero
 
+@[simp]
+lemma order_one [semiring R] :
+  order (1 : hahn_series Γ R) = 0 :=
+begin
+  cases subsingleton_or_nontrivial R with h h; haveI := h,
+  { rw [subsingleton.elim (1 : hahn_series Γ R) 0, order_zero] },
+  { exact order_single one_ne_zero }
+end
+
 instance [semiring R] : has_mul (hahn_series Γ R) :=
 { mul := λ x y, { coeff := λ a,
-    ∑ ij in (add_antidiagonal x.is_wf_support y.is_wf_support a),
+    ∑ ij in (add_antidiagonal x.is_pwo_support y.is_pwo_support a),
     x.coeff ij.fst * y.coeff ij.snd,
-    is_wf_support' := begin
-      have h : {a : Γ | ∑ (ij : Γ × Γ) in add_antidiagonal x.is_wf_support
-        y.is_wf_support a, x.coeff ij.fst * y.coeff ij.snd ≠ 0} ⊆
-        {a : Γ | (add_antidiagonal x.is_wf_support y.is_wf_support a).nonempty},
+    is_pwo_support' := begin
+      have h : {a : Γ | ∑ (ij : Γ × Γ) in add_antidiagonal x.is_pwo_support
+        y.is_pwo_support a, x.coeff ij.fst * y.coeff ij.snd ≠ 0} ⊆
+        {a : Γ | (add_antidiagonal x.is_pwo_support y.is_pwo_support a).nonempty},
       { intros a ha,
         contrapose! ha,
         simp [not_nonempty_iff_eq_empty.1 ha] },
-      exact is_wf_support_add_antidiagonal.mono h,
+      exact is_pwo_support_add_antidiagonal.mono h,
     end, }, }
 
 @[simp]
 lemma mul_coeff [semiring R] {x y : hahn_series Γ R} {a : Γ} :
-  (x * y).coeff a = ∑ ij in (add_antidiagonal x.is_wf_support y.is_wf_support a),
+  (x * y).coeff a = ∑ ij in (add_antidiagonal x.is_pwo_support y.is_pwo_support a),
     x.coeff ij.fst * y.coeff ij.snd := rfl
 
-lemma mul_coeff_right' [semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ} (hs : s.is_wf)
+lemma mul_coeff_right' [semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ} (hs : s.is_pwo)
   (hys : y.support ⊆ s) :
-  (x * y).coeff a = ∑ ij in (add_antidiagonal x.is_wf_support hs a),
+  (x * y).coeff a = ∑ ij in (add_antidiagonal x.is_pwo_support hs a),
     x.coeff ij.fst * y.coeff ij.snd :=
 begin
   rw mul_coeff,
@@ -322,9 +385,9 @@ begin
   rw [(hb.2 hb.1.1 hb.1.2.1), mul_zero]
 end
 
-lemma mul_coeff_left' [semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ} (hs : s.is_wf)
+lemma mul_coeff_left' [semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ} (hs : s.is_pwo)
   (hxs : x.support ⊆ s) :
-  (x * y).coeff a = ∑ ij in (add_antidiagonal hs y.is_wf_support a),
+  (x * y).coeff a = ∑ ij in (add_antidiagonal hs y.is_pwo_support a),
     x.coeff ij.fst * y.coeff ij.snd :=
 begin
   rw mul_coeff,
@@ -338,7 +401,7 @@ end
 instance [semiring R] : distrib (hahn_series Γ R) :=
 { left_distrib := λ x y z, begin
     ext a,
-    have hwf := (y.is_wf_support.union z.is_wf_support),
+    have hwf := (y.is_pwo_support.union z.is_pwo_support),
     rw [mul_coeff_right' hwf, add_coeff, mul_coeff_right' hwf (set.subset_union_right _ _),
       mul_coeff_right' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, mul_add, sum_add_distrib] },
@@ -350,7 +413,7 @@ instance [semiring R] : distrib (hahn_series Γ R) :=
   end,
   right_distrib := λ x y z, begin
     ext a,
-    have hwf := (x.is_wf_support.union y.is_wf_support),
+    have hwf := (x.is_pwo_support.union y.is_pwo_support),
     rw [mul_coeff_left' hwf, add_coeff, mul_coeff_left' hwf (set.subset_union_right _ _),
       mul_coeff_left' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, add_mul, sum_add_distrib] },
@@ -440,27 +503,25 @@ theorem support_mul_subset_add_support [semiring R] {x y : hahn_series Γ R} :
   support (x * y) ⊆ support x + support y :=
 begin
   apply set.subset.trans (λ x hx, _) support_add_antidiagonal_subset_add,
-  { exact x.is_wf_support },
-  { exact y.is_wf_support },
+  { exact x.is_pwo_support },
+  { exact y.is_pwo_support },
   contrapose! hx,
   simp only [not_nonempty_iff_eq_empty, ne.def, set.mem_set_of_eq] at hx,
   simp [hx],
 end
 
-@[simp]
-lemma mul_coeff_min_add_min [semiring R] {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
-  (x * y).coeff (x.is_wf_support.min (support_nonempty_iff.2 hx) +
-    y.is_wf_support.min (support_nonempty_iff.2 hy)) =
-    (x.coeff (x.is_wf_support.min (support_nonempty_iff.2 hx))) *
-    y.coeff (y.is_wf_support.min (support_nonempty_iff.2 hy)) :=
-by rw [mul_coeff, finset.add_antidiagonal_min_add_min, finset.sum_singleton]
+lemma mul_coeff_order_add_order {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [semiring R]
+  {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (x * y).coeff (x.order + y.order) = x.coeff x.order * y.coeff y.order :=
+by rw [order_of_ne hx, order_of_ne hy, mul_coeff, finset.add_antidiagonal_min_add_min,
+  finset.sum_singleton]
 
 private lemma mul_assoc' [semiring R] (x y z : hahn_series Γ R) :
   x * y * z = x * (y * z) :=
 begin
   ext b,
-  rw [mul_coeff_left' (x.is_wf_support.add y.is_wf_support) support_mul_subset_add_support,
-      mul_coeff_right' (y.is_wf_support.add z.is_wf_support) support_mul_subset_add_support],
+  rw [mul_coeff_left' (x.is_pwo_support.add y.is_pwo_support) support_mul_subset_add_support,
+      mul_coeff_right' (y.is_pwo_support.add z.is_pwo_support) support_mul_subset_add_support],
   simp only [mul_coeff, add_coeff, sum_mul, mul_sum, sum_sigma'],
   refine sum_bij_ne_zero (λ a has ha0, ⟨⟨a.2.1, a.2.2 + a.1.2⟩, ⟨a.2.2, a.1.2⟩⟩) _ _ _ _,
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
@@ -527,20 +588,33 @@ instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
   .. hahn_series.ring }
 
-instance [integral_domain R] : integral_domain (hahn_series Γ R) :=
+instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [integral_domain R] :
+  integral_domain (hahn_series Γ R) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y xy, begin
     by_cases hx : x = 0,
     { left, exact hx },
     right,
     contrapose! xy,
     rw [hahn_series.ext_iff, function.funext_iff, not_forall],
-    refine ⟨x.is_wf_support.min (support_nonempty_iff.2 hx) +
-      y.is_wf_support.min (support_nonempty_iff.2 xy), _⟩,
-    rw [mul_coeff_min_add_min, zero_coeff, mul_eq_zero],
-    simp [coeff_min_ne_zero, hx, xy],
+    refine ⟨x.order + y.order, _⟩,
+    rw [mul_coeff_order_add_order hx xy, zero_coeff, mul_eq_zero],
+    simp [coeff_order_ne_zero, hx, xy],
   end,
   .. hahn_series.nontrivial,
   .. hahn_series.comm_ring }
+
+@[simp]
+lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [integral_domain R]
+  {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (x * y).order = x.order + y.order :=
+begin
+  apply le_antisymm,
+  { apply order_le_of_coeff_ne_zero,
+    rw [mul_coeff_order_add_order hx hy],
+    exact mul_ne_zero (coeff_order_ne_zero hx) (coeff_order_ne_zero hy) },
+  { rw [order_of_ne hx, order_of_ne hy, order_of_ne (mul_ne_zero hx hy), ← set.is_wf.min_add],
+    exact set.is_wf.min_le_min_of_subset (support_mul_subset_add_support) },
+end
 
 section semiring
 variables [semiring R]
@@ -576,6 +650,28 @@ lemma C_one : C (1 : R) = (1 : hahn_series Γ R) := C.map_one
 
 lemma C_mul_eq_smul {r : R} {x : hahn_series Γ R} : C r * x = r • x :=
 single_zero_mul_eq_smul
+
+lemma C_injective : function.injective (C : R → hahn_series Γ R) :=
+begin
+  intros r s rs,
+  rw [ext_iff, function.funext_iff] at rs,
+  have h := rs 0,
+  rwa [C_apply, single_coeff_same, C_apply, single_coeff_same] at h,
+end
+
+lemma C_ne_zero {r : R} (h : r ≠ 0) : (C r : hahn_series Γ R) ≠ 0 :=
+begin
+  contrapose! h,
+  rw ← C_zero at h,
+  exact C_injective h,
+end
+
+lemma order_C {r : R} : order (C r : hahn_series Γ R) = 0 :=
+begin
+  by_cases h : r = 0,
+  { rw [h, C_zero, order_zero] },
+  { exact order_single h }
+end
 
 end semiring
 
@@ -617,13 +713,13 @@ variables [semiring R]
 /-- The ring `hahn_series ℕ R` is isomorphic to `power_series R`. -/
 @[simps] def to_power_series : (hahn_series ℕ R) ≃+* power_series R :=
 { to_fun := λ f, power_series.mk f.coeff,
-  inv_fun := λ f, ⟨λ n, power_series.coeff R n f, nat.lt_wf.is_wf _⟩,
+  inv_fun := λ f, ⟨λ n, power_series.coeff R n f, (nat.lt_wf.is_wf _).is_pwo⟩,
   left_inv := λ f, by { ext, simp },
   right_inv := λ f, by { ext, simp },
   map_add' := λ f g, by { ext, simp },
   map_mul' := λ f g, begin
     ext n,
-    simp only [power_series.coeff_mul, power_series.coeff_mk, mul_coeff, is_wf_support],
+    simp only [power_series.coeff_mul, power_series.coeff_mk, mul_coeff, is_pwo_support],
     classical,
     refine sum_filter_ne_zero.symm.trans
       ((sum_congr _ (λ _ _, rfl)).trans sum_filter_ne_zero),
@@ -683,89 +779,82 @@ variables (Γ) (R)
 /-- The additive valuation on `hahn_series Γ R`, returning the smallest index at which
   a Hahn Series has a nonzero coefficient, or `⊤` for the 0 series.  -/
 def add_val : add_valuation (hahn_series Γ R) (with_top Γ) :=
-add_valuation.of (λ x, if h : x = (0 : hahn_series Γ R) then (⊤ : with_top Γ)
-    else x.is_wf_support.min (support_nonempty_iff.2 h))
-  (dif_pos rfl)
-  ((dif_neg one_ne_zero).trans (by simp))
+add_valuation.of (λ x, if x = (0 : hahn_series Γ R) then (⊤ : with_top Γ) else x.order)
+  (if_pos rfl)
+  ((if_neg one_ne_zero).trans (by simp [order_of_ne]))
   (λ x y, begin
     by_cases hx : x = 0,
     { by_cases hy : y = 0; { simp [hx, hy] } },
     { by_cases hy : y = 0,
       { simp [hx, hy] },
-      { simp only [hx, hy, support_nonempty_iff, dif_neg, not_false_iff, is_wf_support, min_le_iff],
+      { simp only [hx, hy, support_nonempty_iff, if_neg, not_false_iff, is_wf_support],
         by_cases hxy : x + y = 0,
         { simp [hxy] },
-        rw [dif_neg hxy, with_top.coe_le_coe, with_top.coe_le_coe, ← min_le_iff,
-          ← set.is_wf.min_union],
-        exact set.is_wf.min_le_min_of_subset support_add_subset, } },
+        rw [if_neg hxy, ← with_top.coe_min, with_top.coe_le_coe],
+        exact min_order_le_order_add hx hy hxy } },
   end)
   (λ x y, begin
     by_cases hx : x = 0,
     { simp [hx] },
     by_cases hy : y = 0,
     { simp [hy] },
-    rw [dif_neg hx, dif_neg hy, dif_neg (mul_ne_zero hx hy),
-      ← with_top.coe_add, with_top.coe_eq_coe],
-    apply le_antisymm,
-    { apply set.is_wf.min_le,
-      rw [mem_support, mul_coeff_min_add_min],
-      exact mul_ne_zero (coeff_min_ne_zero hx) (coeff_min_ne_zero hy) },
-    { rw ← set.is_wf.min_add,
-      exact set.is_wf.min_le_min_of_subset (support_mul_subset_add_support) },
+    rw [if_neg hx, if_neg hy, if_neg (mul_ne_zero hx hy),
+      ← with_top.coe_add, with_top.coe_eq_coe, order_mul hx hy],
   end)
 
 variables {Γ} {R}
 
 lemma add_val_apply {x : hahn_series Γ R} :
-  add_val Γ R x = if h : x = (0 : hahn_series Γ R) then (⊤ : with_top Γ)
-    else x.is_wf_support.min (support_nonempty_iff.2 h) :=
+  add_val Γ R x = if x = (0 : hahn_series Γ R) then (⊤ : with_top Γ) else x.order :=
 add_valuation.of_apply _
 
 @[simp]
 lemma add_val_apply_of_ne {x : hahn_series Γ R} (hx : x ≠ 0) :
-  add_val Γ R x = x.is_wf_support.min (support_nonempty_iff.2 hx) :=
-dif_neg hx
+  add_val Γ R x = x.order :=
+if_neg hx
+
+lemma add_val_le_of_coeff_ne_zero {x : hahn_series Γ R} {g : Γ} (h : x.coeff g ≠ 0) :
+  add_val Γ R x ≤ g :=
+begin
+  rw [add_val_apply_of_ne (ne_zero_of_coeff_ne_zero h), with_top.coe_le_coe],
+  exact order_le_of_coeff_ne_zero h
+end
 
 end valuation
 
 section
-variables (Γ) (R) [linear_order Γ] [add_comm_monoid R]
+variables (Γ) (R) [partial_order Γ] [add_comm_monoid R]
 
 /-- An infinite family of Hahn series which has a formal coefficient-wise sum.
   The requirements for this are that the union of the supports of the series is well-founded,
   and that only finitely many series are nonzero at any given coefficient. -/
 structure summable_family (α : Type*) :=
 (to_fun : α → hahn_series Γ R)
-(is_wf_Union_support' : set.is_wf (⋃ (a : α), (to_fun a).support))
-(co_support : Γ → finset α)
-(mem_co_support' : ∀ (a : α) (g : Γ), a ∈ co_support g ↔ (to_fun a).coeff g ≠ 0)
+(is_pwo_Union_support' : set.is_pwo (⋃ (a : α), (to_fun a).support))
+(finite_co_support' : ∀ (g : Γ), ({a | (to_fun a).coeff g ≠ 0}).finite)
 
 end
 
 namespace summable_family
 section add_comm_monoid
 
-variables [linear_order Γ] [add_comm_monoid R] {α : Type*}
+variables [partial_order Γ] [add_comm_monoid R] {α : Type*}
 
 instance : has_coe_to_fun (summable_family Γ R α) :=
 ⟨λ _, (α → hahn_series Γ R), to_fun⟩
 
-lemma is_wf_Union_support (s : summable_family Γ R α) : set.is_wf (⋃ (a : α), (s a).support) :=
-s.is_wf_Union_support'
+lemma is_pwo_Union_support (s : summable_family Γ R α) : set.is_pwo (⋃ (a : α), (s a).support) :=
+s.is_pwo_Union_support'
 
-@[simp]
-lemma mem_co_support {s : summable_family Γ R α} {a : α} {g : Γ} :
-  a ∈ s.co_support g ↔ (s a).coeff g ≠ 0 := mem_co_support' _ _ _
+lemma finite_co_support (s : summable_family Γ R α) (g : Γ) :
+  (function.support (λ a, (s a).coeff g)).finite :=
+s.finite_co_support' g
 
 lemma coe_injective : @function.injective (summable_family Γ R α) (α → hahn_series Γ R) coe_fn
-| ⟨f1, hU1, c1, hc1⟩ ⟨f2, hU2, c2, hc2⟩ h :=
+| ⟨f1, hU1, hf1⟩ ⟨f2, hU2, hf2⟩ h :=
 begin
   change f1 = f2 at h,
   subst h,
-  simp only,
-  refine ⟨rfl, _⟩,
-  ext g a,
-  rw [hc1, hc2]
 end
 
 @[ext]
@@ -774,22 +863,20 @@ coe_injective $ funext h
 
 instance : has_add (summable_family Γ R α) :=
 ⟨λ x y, { to_fun := x + y,
-    is_wf_Union_support' := (x.is_wf_Union_support.union y.is_wf_Union_support).mono (begin
+    is_pwo_Union_support' := (x.is_pwo_Union_support.union y.is_pwo_Union_support).mono (begin
       rw ← set.Union_union_distrib,
       exact set.Union_subset_Union (λ a, support_add_subset)
     end),
-    co_support := λ g, ((x.co_support g) ∪ (y.co_support g)).filter
-      (λ a, (x a).coeff g + (y a).coeff g ≠ 0),
-    mem_co_support' := λ a g, begin
-      simp only [mem_union, mem_filter, mem_co_support, and_iff_right_iff_imp,
-        pi.add_apply, ne.def, add_coeff'],
-      contrapose!,
-      rintro ⟨hx, hy⟩,
-      simp [hx, hy],
+    finite_co_support' := λ g, ((x.finite_co_support g).union (y.finite_co_support g)).subset begin
+      intros a ha,
+      change (x a).coeff g + (y a).coeff g ≠ 0 at ha,
+      rw [set.mem_union, function.mem_support, function.mem_support],
+      contrapose! ha,
+      rw [ha.1, ha.2, add_zero]
     end }⟩
 
 instance : has_zero (summable_family Γ R α) :=
-⟨⟨0, by simp, λ _, ∅, by simp⟩⟩
+⟨⟨0, by simp, by simp⟩⟩
 
 instance : inhabited (summable_family Γ R α) := ⟨0⟩
 
@@ -814,58 +901,46 @@ instance : add_comm_monoid (summable_family Γ R α) :=
 /-- The infinite sum of a `summable_family` of Hahn series. -/
 def hsum (s : summable_family Γ R α) :
   hahn_series Γ R :=
-{ coeff := λ g, ∑ i in s.co_support g, (s i).coeff g,
-  is_wf_support' := s.is_wf_Union_support.mono (λ g, begin
+{ coeff := λ g, ∑ᶠ i, (s i).coeff g,
+  is_pwo_support' := s.is_pwo_Union_support.mono (λ g, begin
     contrapose,
     rw [set.mem_Union, not_exists, function.mem_support, not_not],
     simp_rw [mem_support, not_not],
-    exact λ h, sum_eq_zero (λ a ha, h _),
+    intro h,
+    rw [finsum_congr h, finsum_zero],
   end) }
 
 @[simp]
 lemma hsum_coeff {s : summable_family Γ R α} {g : Γ} :
-  s.hsum.coeff g = ∑ i in s.co_support g, (s i).coeff g := rfl
+  s.hsum.coeff g = ∑ᶠ i, (s i).coeff g := rfl
 
 lemma support_hsum_subset {s : summable_family Γ R α} :
   s.hsum.support ⊆ ⋃ (a : α), (s a).support :=
 λ g hg, begin
-  rw [mem_support, hsum_coeff] at hg,
+  rw [mem_support, hsum_coeff, finsum_eq_sum _ (s.finite_co_support _)] at hg,
   obtain ⟨a, h1, h2⟩ := exists_ne_zero_of_sum_ne_zero hg,
   rw [set.mem_Union],
   exact ⟨a, h2⟩,
-end
-
-lemma co_support_add_subset {s t : summable_family Γ R α} {g : Γ} :
-  (s + t).co_support g ⊆ s.co_support g ∪ t.co_support g :=
-λ a ha, begin
-  rw mem_co_support at ha,
-  rw [mem_union, mem_co_support, mem_co_support],
-  contrapose! ha,
-  obtain ⟨hs, ht⟩ := ha,
-  simp [hs, ht],
 end
 
 @[simp]
 lemma hsum_add {s t : summable_family Γ R α} : (s + t).hsum = s.hsum + t.hsum :=
 begin
   ext g,
-  simp only [add_apply, pi.add_apply, hsum_coeff, ne.def, add_coeff'],
-  rw [sum_subset co_support_add_subset, finset.sum_add_distrib,
-    ← sum_subset (subset_union_left _ _), ← sum_subset (subset_union_right _ _)];
-  { intros x h1 h2,
-    rwa [mem_co_support, not_not] at h2, }
+  simp only [hsum_coeff, add_coeff, add_apply],
+  exact finsum_add_distrib (s.finite_co_support _) (t.finite_co_support _)
 end
 
 end add_comm_monoid
 
 section add_comm_group
-variables [linear_order Γ] [add_comm_group R] {α : Type*} {s t : summable_family Γ R α} {a : α}
+variables [partial_order Γ] [add_comm_group R] {α : Type*} {s t : summable_family Γ R α} {a : α}
 
 instance : add_comm_group (summable_family Γ R α) :=
 { neg := λ s, { to_fun := λ a, - s a,
-    is_wf_Union_support' := by { simp_rw [support_neg], exact s.is_wf_Union_support' },
-    co_support := s.co_support,
-    mem_co_support' := by simp },
+    is_pwo_Union_support' := by { simp_rw [support_neg], exact s.is_pwo_Union_support' },
+    finite_co_support' := λ g, by { simp only [neg_coeff', pi.neg_apply, ne.def, neg_eq_zero],
+      exact s.finite_co_support g } },
   add_left_neg := λ a, by { ext, apply add_left_neg },
   .. summable_family.add_comm_monoid }
 
@@ -874,6 +949,7 @@ lemma coe_neg : ⇑(-s) = - s := rfl
 
 lemma neg_apply : (-s) a = - (s a) := rfl
 
+@[simp]
 lemma coe_sub : ⇑(s - t) = s - t := rfl
 
 lemma sub_apply : (s - t) a = s a - t a := rfl
@@ -882,40 +958,33 @@ end add_comm_group
 
 section semiring
 
-variables [linear_ordered_add_comm_group Γ] [semiring R] {α : Type*}
+variables [ordered_cancel_add_comm_monoid Γ] [semiring R] {α : Type*}
 
 instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := λ x s, { to_fun := λ a, x * (s a),
-    is_wf_Union_support' := begin
-      apply (x.is_wf_support.add s.is_wf_Union_support).mono,
+    is_pwo_Union_support' := begin
+      apply (x.is_pwo_support.add s.is_pwo_Union_support).mono,
       refine set.subset.trans (set.Union_subset_Union (λ a, support_mul_subset_add_support)) _,
       intro g,
       simp only [set.mem_Union, exists_imp_distrib],
       exact λ a ha, (set.add_subset_add (set.subset.refl _) (set.subset_Union _ a)) ha,
     end,
-    co_support := λ g, ((add_antidiagonal x.is_wf_support s.is_wf_Union_support g).bUnion
-      (λ ij, s.co_support ij.snd)).filter (λ a, (x * (s a)).coeff g ≠ 0),
-    mem_co_support' := λ a g, begin
-      rw [mem_filter],
-      apply and_iff_right_of_imp,
-      simp only [mem_bUnion, exists_prop, set.mem_Union, mem_add_antidiagonal, mem_co_support,
-        mul_coeff, ne.def, mem_support, is_wf_support, prod.exists],
-      contrapose!,
-      intro h,
-      rw sum_eq_zero,
-      rintros ⟨i, j⟩ hij,
-      rw [mem_add_antidiagonal, mem_support] at hij,
-      by_cases he : ∃ (b : α), (s b).coeff j ≠ 0,
-      { rw [h i j ⟨hij.1, hij.2.1, he⟩, mul_zero] },
-      simp_rw [not_exists, ne.def, not_not] at he,
-      rw [he a, mul_zero],
+    finite_co_support' := λ g, begin
+      refine ((add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g).finite_to_set.bUnion
+        (λ ij hij, _)).subset (λ a ha, _),
+      { exact λ ij hij, function.support (λ a, (s a).coeff ij.2) },
+      { apply s.finite_co_support },
+      { obtain ⟨i, j, hi, hj, rfl⟩ := support_mul_subset_add_support ha,
+        simp only [exists_prop, set.mem_Union, mem_add_antidiagonal,
+          mul_coeff, ne.def, mem_support, is_pwo_support, prod.exists],
+        refine ⟨i, j, mem_coe.2 (mem_add_antidiagonal.2 ⟨rfl, hi, set.mem_Union.2 ⟨a, hj⟩⟩), hj⟩, }
     end } }
 
 @[simp]
 lemma smul_apply {x : hahn_series Γ R} {s : summable_family Γ R α} {a : α} :
   (x • s) a = x * (s a) := rfl
 
-instance : semimodule (hahn_series Γ R) (summable_family Γ R α) :=
+instance : module (hahn_series Γ R) (summable_family Γ R α) :=
 { smul := (•),
   smul_zero := λ x, ext (λ a, mul_zero _),
   zero_smul := λ x, ext (λ a, zero_mul _),
@@ -929,64 +998,53 @@ lemma hsum_smul {x : hahn_series Γ R} {s : summable_family Γ R α} :
   (x • s).hsum = x * s.hsum :=
 begin
   ext g,
-  rw [mul_coeff, sum_subset (add_antidiagonal_mono_right support_hsum_subset)],
-  { rw hsum_coeff,
-    have h : (x • s).co_support g ⊆
-      (add_antidiagonal x.is_wf_support s.is_wf_Union_support g).bUnion (λ ij, s.co_support ij.snd),
-    { intros a ha,
-      rw [mem_co_support, smul_apply, mul_coeff] at ha,
-      obtain ⟨ij, h1, h2⟩ := exists_ne_zero_of_sum_ne_zero ha,
-      rw mem_bUnion,
-      exact ⟨ij, add_antidiagonal_mono_right (set.subset_Union _ a) h1,
-        mem_co_support.2 (right_ne_zero_of_mul h2)⟩ },
-    refine eq.trans (sum_subset h _) _,
-    { apply is_wf_Union_support },
-    { intros a h1 h2,
-      contrapose! h2,
-      rw [mem_co_support],
-      exact h2 },
-    have h' : ∀ a, ((x • s) a).coeff g =
-      ∑ (ij : Γ × Γ) in add_antidiagonal x.is_wf_support s.is_wf_Union_support g,
-      x.coeff ij.fst * (s a).coeff ij.snd,
-    { intro a,
-      rw [smul_apply, mul_coeff],
-      apply sum_subset (add_antidiagonal_mono_right
-        (set.subset_Union (support ∘ s) a)),
-      intros ij h1 h2,
-      rw [mem_add_antidiagonal] at *,
-      have h : ¬ ij.snd ∈ (s a).support := λ c, h2 ⟨h1.1, h1.2.1, c⟩,
-      rw [mem_support, not_not] at h,
-      rw [h, mul_zero] },
-    rw [sum_congr rfl (λ a ha, h' a), sum_comm],
-    refine sum_congr rfl (λ ij hij, _),
-    rw [hsum_coeff, ← mul_sum],
-    apply congr rfl (sum_subset (subset_bUnion_of_mem _ hij) _).symm,
-    intros a h1 h2,
-    contrapose! h2,
-    rw [mem_co_support],
-    exact h2 },
-  { intros ij h1 h2,
+  simp only [mul_coeff, hsum_coeff, smul_apply],
+  have h : ∀ i, (s i).support ⊆ ⋃ j, (s j).support := set.subset_Union _,
+  refine (eq.trans (finsum_congr (λ a, _))
+    (finsum_sum_comm (add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g)
+    (λ i ij, x.coeff (prod.fst ij) * (s i).coeff ij.snd) _)).trans _,
+  { refine sum_subset (add_antidiagonal_mono_right (set.subset_Union _ a)) _,
+    rintro ⟨i, j⟩ hU ha,
     rw mem_add_antidiagonal at *,
-    have h : ¬ ij.snd ∈ s.hsum.support := λ con, h2 ⟨h1.1, h1.2.1, con⟩,
-    rw [mem_support, not_not] at h,
-    simp [h] },
+    rw [not_not.1 (λ con, ha ⟨hU.1, hU.2.1, con⟩), mul_zero] },
+  { rintro ⟨i, j⟩ hij,
+    refine (s.finite_co_support j).subset _,
+    simp_rw [function.support_subset_iff', function.mem_support, not_not],
+    intros a ha,
+    rw [ha, mul_zero] },
+  { refine (sum_congr rfl _).trans (sum_subset (add_antidiagonal_mono_right _) _).symm,
+    { rintro ⟨i, j⟩ hij,
+      rw mul_finsum,
+      apply s.finite_co_support, },
+    { intros x hx,
+      simp only [set.mem_Union, ne.def, mem_support],
+      contrapose! hx,
+      simp [hx] },
+    { rintro ⟨i, j⟩ hU ha,
+      rw mem_add_antidiagonal at *,
+      rw [← hsum_coeff, not_not.1 (λ con, ha ⟨hU.1, hU.2.1, con⟩), mul_zero] } }
 end
 
 /-- The summation of a `summable_family` as a `linear_map`. -/
 @[simps] def lsum : (summable_family Γ R α) →ₗ[hahn_series Γ R] (hahn_series Γ R) :=
 ⟨hsum, λ _ _, hsum_add, λ _ _, hsum_smul⟩
 
+@[simp]
+lemma hsum_sub {R : Type*} [ring R] {s t : summable_family Γ R α} :
+  (s - t).hsum = s.hsum - t.hsum :=
+by rw [← lsum_apply, linear_map.map_sub, lsum_apply, lsum_apply]
+
 end semiring
 
 section of_finsupp
-variables [linear_order Γ] [add_comm_monoid R] {α : Type*}
+variables [partial_order Γ] [add_comm_monoid R] {α : Type*}
 
 /-- A family with only finitely many nonzero elements is summable. -/
 def of_finsupp (f : α →₀ (hahn_series Γ R)) :
   summable_family Γ R α :=
 { to_fun := f,
-  is_wf_Union_support' := begin
-      apply (f.support.is_wf_sup (λ a, (f a).support) (λ a ha, (f a).is_wf_support)).mono,
+  is_pwo_Union_support' := begin
+      apply (f.support.is_pwo_sup (λ a, (f a).support) (λ a ha, (f a).is_pwo_support)).mono,
       intros g hg,
       obtain ⟨a, ha⟩ := set.mem_Union.1 hg,
       have haf : a ∈ f.support,
@@ -997,34 +1055,79 @@ def of_finsupp (f : α →₀ (hahn_series Γ R)) :
       have h : (λ i, (f i).support) a ≤ _ := le_sup haf,
       exact h ha,
     end,
-  co_support := λ g, f.support.filter (λ a, (f a).coeff g ≠ 0),
-  mem_co_support' := λ a g, begin
-    simp only [mem_filter, and_iff_right_iff_imp, finsupp.mem_support_iff, ne.def],
-    contrapose!,
-    intro h,
-    simp [h]
+  finite_co_support' := λ g, begin
+    refine f.support.finite_to_set.subset (λ a ha, _),
+    simp only [coeff.add_monoid_hom_apply, mem_coe, finsupp.mem_support_iff,
+    ne.def, function.mem_support],
+    contrapose! ha,
+    simp [ha]
   end }
 
 @[simp]
 lemma coe_of_finsupp {f : α →₀ (hahn_series Γ R)} : ⇑(summable_family.of_finsupp f) = f := rfl
 
 @[simp]
-lemma co_support_of_finsupp {f : α →₀ (hahn_series Γ R)} {g : Γ} :
-  (summable_family.of_finsupp f).co_support g = f.support.filter (λ a, (f a).coeff g ≠ 0) := rfl
-
-@[simp]
 lemma hsum_of_finsupp {f : α →₀ (hahn_series Γ R)} :
   (of_finsupp f).hsum = f.sum (λ a, id) :=
 begin
   ext g,
-  simp only [filter_congr_decidable, hsum_coeff, coe_of_finsupp, ne.def, co_support_of_finsupp],
-  rw [sum_filter_ne_zero],
-  simp_rw [← coeff.add_monoid_hom_apply],
-  rw ← add_monoid_hom.map_sum,
-  refl
+  simp only [hsum_coeff, coe_of_finsupp, finsupp.sum, ne.def],
+  simp_rw [← coeff.add_monoid_hom_apply, id.def],
+  rw [add_monoid_hom.map_sum, finsum_eq_sum_of_support_subset],
+  intros x h,
+  simp only [coeff.add_monoid_hom_apply, mem_coe, finsupp.mem_support_iff, ne.def],
+  contrapose! h,
+  simp [h]
 end
 
 end of_finsupp
+
+section emb_domain
+variables [partial_order Γ] [add_comm_monoid R] {α β : Type*}
+
+/-- A summable family can be reindexed by an embedding without changing its sum. -/
+def emb_domain (s : summable_family Γ R α) (f : α ↪ β) : summable_family Γ R β :=
+{ to_fun := λ b, if h : b ∈ set.range f then s (classical.some h) else 0,
+  is_pwo_Union_support' := begin
+    refine s.is_pwo_Union_support.mono (set.Union_subset (λ b g h, _)),
+    by_cases hb : b ∈ set.range f,
+    { rw dif_pos hb at h,
+      exact set.mem_Union.2 ⟨classical.some hb, h⟩ },
+    { contrapose! h,
+      simp [hb] }
+  end,
+  finite_co_support' := λ g, ((s.finite_co_support g).image f).subset begin
+    intros b h,
+    by_cases hb : b ∈ set.range f,
+    { simp only [ne.def, set.mem_set_of_eq, dif_pos hb] at h,
+      exact ⟨classical.some hb, h, classical.some_spec hb⟩ },
+    { contrapose! h,
+      simp only [ne.def, set.mem_set_of_eq, dif_neg hb, not_not, zero_coeff] }
+  end }
+
+variables (s : summable_family Γ R α) (f : α ↪ β) {a : α} {b : β}
+
+lemma emb_domain_apply :
+  s.emb_domain f b = if h : b ∈ set.range f then s (classical.some h) else 0 := rfl
+
+@[simp] lemma emb_domain_image : s.emb_domain f (f a) = s a :=
+begin
+  rw [emb_domain_apply, dif_pos (set.mem_range_self a)],
+  exact congr rfl (f.injective (classical.some_spec (set.mem_range_self a)))
+end
+
+@[simp] lemma emb_domain_notin_range (h : b ∉ set.range f) : s.emb_domain f b = 0 :=
+by rw [emb_domain_apply, dif_neg h]
+
+@[simp] lemma hsum_emb_domain :
+  (s.emb_domain f).hsum = s.hsum :=
+begin
+  ext g,
+  simp only [hsum_coeff, emb_domain_apply, apply_dite hahn_series.coeff, dite_apply, zero_coeff],
+  exact finsum_emb_domain f (λ a, (s a).coeff g)
+end
+
+end emb_domain
 
 end summable_family
 

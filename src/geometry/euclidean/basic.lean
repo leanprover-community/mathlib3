@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Joseph Myers
+Authors: Joseph Myers, Manuel Candales
 -/
 import analysis.normed_space.inner_product
 import algebra.quadratic_discriminant
@@ -130,7 +130,7 @@ end
 @[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
 begin
   unfold angle,
-  rw [←real_inner_self_eq_norm_square, div_self (λ h, hx (inner_self_eq_zero.1 h)),
+  rw [←real_inner_self_eq_norm_sq, div_self (λ h, hx (inner_self_eq_zero.1 h)),
       real.arccos_one]
 end
 
@@ -185,10 +185,10 @@ begin
   rw [real.sin_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
                       (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2,
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      ←real.sqrt_mul' _ (mul_self_nonneg _), pow_two,
+      ←real.sqrt_mul' _ (mul_self_nonneg _), sq,
       real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      real_inner_self_eq_norm_square,
-      real_inner_self_eq_norm_square],
+      real_inner_self_eq_norm_sq,
+      real_inner_self_eq_norm_sq],
   by_cases h : (∥x∥ * ∥y∥) = 0,
   { rw [(show ∥x∥ * ∥x∥ * (∥y∥ * ∥y∥) = (∥x∥ * ∥y∥) * (∥x∥ * ∥y∥), by ring), h, mul_zero, mul_zero,
         zero_sub],
@@ -232,6 +232,112 @@ end
 them is π/2. -/
 lemma inner_eq_zero_iff_angle_eq_pi_div_two (x y : V) : ⟪x, y⟫ = 0 ↔ angle x y = π / 2 :=
 iff.symm $ by simp [angle, or_imp_distrib] { contextual := tt }
+
+/-- If the angle between two vectors is π, the inner product equals the negative product
+of the norms. -/
+lemma inner_eq_neg_mul_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ⟪x, y⟫ = - (∥x∥ * ∥y∥) :=
+by simp [← cos_angle_mul_norm_mul_norm, h]
+
+/-- If the angle between two vectors is 0, the inner product equals the product of the norms. -/
+lemma inner_eq_mul_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ⟪x, y⟫ = ∥x∥ * ∥y∥ :=
+by simp [← cos_angle_mul_norm_mul_norm, h]
+
+/-- The inner product of two non-zero vectors equals the negative product of their norms
+if and only if the angle between the two vectors is π. -/
+lemma inner_eq_neg_mul_norm_iff_angle_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ⟪x, y⟫ = - (∥x∥ * ∥y∥) ↔ angle x y = π :=
+begin
+  refine ⟨λ h, _, inner_eq_neg_mul_norm_of_angle_eq_pi⟩,
+  have h₁ : (∥x∥ * ∥y∥) ≠ 0 := (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)).ne',
+  rw [angle, h, neg_div, div_self h₁, real.arccos_neg_one],
+end
+
+/-- The inner product of two non-zero vectors equals the product of their norms
+if and only if the angle between the two vectors is 0. -/
+lemma inner_eq_mul_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ angle x y = 0 :=
+begin
+  refine ⟨λ h, _, inner_eq_mul_norm_of_angle_eq_zero⟩,
+  have h₁ : (∥x∥ * ∥y∥) ≠ 0 := (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)).ne',
+  rw [angle, h, div_self h₁, real.arccos_one],
+end
+
+/-- If the angle between two vectors is π, the norm of their difference equals
+the sum of their norms. -/
+lemma norm_sub_eq_add_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ∥x - y∥ = ∥x∥ + ∥y∥ :=
+begin
+  rw ← eq_of_sq_eq_sq (norm_nonneg (x - y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
+  rw [norm_sub_pow_two_real, inner_eq_neg_mul_norm_of_angle_eq_pi h],
+  ring,
+end
+
+/-- If the angle between two vectors is 0, the norm of their sum equals
+the sum of their norms. -/
+lemma norm_add_eq_add_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ∥x + y∥ = ∥x∥ + ∥y∥ :=
+begin
+  rw ← eq_of_sq_eq_sq (norm_nonneg (x + y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
+  rw [norm_add_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h],
+  ring,
+end
+
+/-- If the angle between two vectors is 0, the norm of their difference equals
+the absolute value of the difference of their norms. -/
+lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
+  ∥x - y∥ = abs (∥x∥ - ∥y∥) :=
+begin
+  rw [← eq_of_sq_eq_sq (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
+      norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, sq_abs (∥x∥ - ∥y∥)],
+  ring,
+end
+
+/-- The norm of the difference of two non-zero vectors equals the sum of their norms
+if and only the angle between the two vectors is π. -/
+lemma norm_sub_eq_add_norm_iff_angle_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∥x - y∥ = ∥x∥ + ∥y∥ ↔ angle x y = π :=
+begin
+  refine ⟨λ h, _, norm_sub_eq_add_norm_of_angle_eq_pi⟩,
+  rw ← inner_eq_neg_mul_norm_iff_angle_eq_pi hx hy,
+  obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x - y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
+  rw [← eq_of_sq_eq_sq hxy₁ hxy₂, norm_sub_pow_two_real] at h,
+  calc inner x y = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
+  ...            = -(∥x∥ * ∥y∥) : by ring,
+end
+
+/-- The norm of the sum of two non-zero vectors equals the sum of their norms
+if and only the angle between the two vectors is 0. -/
+lemma norm_add_eq_add_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∥x + y∥ = ∥x∥ + ∥y∥ ↔ angle x y = 0 :=
+begin
+  refine ⟨λ h, _, norm_add_eq_add_norm_of_angle_eq_zero⟩,
+  rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
+  obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x + y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
+  rw [← eq_of_sq_eq_sq hxy₁ hxy₂, norm_add_pow_two_real] at h,
+  calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
+  ...            = ∥x∥ * ∥y∥ : by ring,
+end
+
+/-- The norm of the difference of two non-zero vectors equals the absolute value
+of the difference of their norms if and only the angle between the two vectors is 0. -/
+lemma norm_sub_eq_abs_sub_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
+  ∥x - y∥ = abs (∥x∥ - ∥y∥) ↔ angle x y = 0 :=
+begin
+  refine ⟨λ h, _, norm_sub_eq_abs_sub_norm_of_angle_eq_zero⟩,
+  rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
+  have h1 : ∥x - y∥ ^ 2 = (∥x∥ - ∥y∥) ^ 2, { rw h, exact sq_abs (∥x∥ - ∥y∥) },
+  rw norm_sub_pow_two_real at h1,
+  calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
+  ...            = ∥x∥ * ∥y∥ : by ring,
+end
+
+/-- The norm of the sum of two vectors equals the norm of their difference if and only if
+the angle between them is π/2. -/
+lemma norm_add_eq_norm_sub_iff_angle_eq_pi_div_two (x y : V) :
+  ∥x + y∥ = ∥x - y∥ ↔ angle x y = π / 2 :=
+begin
+  rw [← eq_of_sq_eq_sq (norm_nonneg (x + y)) (norm_nonneg (x - y)),
+      ← inner_eq_zero_iff_angle_eq_pi_div_two x y, norm_add_pow_two_real, norm_sub_pow_two_real],
+  split; intro h; linarith,
+end
 
 end inner_product_geometry
 
@@ -331,6 +437,89 @@ begin
   exact angle_add_angle_eq_pi_of_angle_eq_pi _ h
 end
 
+/-- Vertical Angles Theorem: angles opposite each other, formed by two intersecting straight
+lines, are equal. -/
+lemma angle_eq_angle_of_angle_eq_pi_of_angle_eq_pi {p1 p2 p3 p4 p5 : P}
+  (hapc : ∠ p1 p5 p3 = π) (hbpd : ∠ p2 p5 p4 = π) : ∠ p1 p5 p2 = ∠ p3 p5 p4 :=
+by linarith [angle_add_angle_eq_pi_of_angle_eq_pi p1 hbpd, angle_comm p4 p5 p1,
+             angle_add_angle_eq_pi_of_angle_eq_pi p4 hapc, angle_comm p4 p5 p3]
+
+/-- If ∠ABC = π then dist A B ≠ 0. -/
+lemma left_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p1 p2 ≠ 0 :=
+begin
+  by_contra heq,
+  rw [not_not, dist_eq_zero] at heq,
+  rw [heq, angle_eq_left] at h,
+  exact real.pi_ne_zero (by linarith),
+end
+
+/-- If ∠ABC = π then dist C B ≠ 0. -/
+lemma right_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p3 p2 ≠ 0 :=
+left_dist_ne_zero_of_angle_eq_pi $ (angle_comm _ _ _).trans h
+
+/-- If ∠ABC = π, then (dist A C) = (dist A B) + (dist B C). -/
+lemma dist_eq_add_dist_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) :
+  dist p1 p3 = dist p1 p2 + dist p3 p2 :=
+begin
+  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
+  exact norm_sub_eq_add_norm_of_angle_eq_pi h,
+end
+
+/-- If A ≠ B and C ≠ B then ∠ABC = π if and only if (dist A C) = (dist A B) + (dist B C). -/
+lemma dist_eq_add_dist_iff_angle_eq_pi {p1 p2 p3 : P} (hp1p2 : p1 ≠ p2) (hp3p2 : p3 ≠ p2) :
+  dist p1 p3 = dist p1 p2 + dist p3 p2 ↔ ∠ p1 p2 p3 = π :=
+begin
+  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
+  exact norm_sub_eq_add_norm_iff_angle_eq_pi
+    ((λ he, hp1p2 (vsub_eq_zero_iff_eq.1 he))) (λ he, hp3p2 (vsub_eq_zero_iff_eq.1 he)),
+end
+
+/-- If ∠ABC = 0, then (dist A C) = abs ((dist A B) - (dist B C)). -/
+lemma dist_eq_abs_sub_dist_of_angle_eq_zero {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = 0) :
+  (dist p1 p3) = abs ((dist p1 p2) - (dist p3 p2)) :=
+begin
+  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
+  exact norm_sub_eq_abs_sub_norm_of_angle_eq_zero h,
+end
+
+/-- If A ≠ B and C ≠ B then ∠ABC = 0 if and only if (dist A C) = abs ((dist A B) - (dist B C)). -/
+lemma dist_eq_abs_sub_dist_iff_angle_eq_zero {p1 p2 p3 : P} (hp1p2 : p1 ≠ p2) (hp3p2 : p3 ≠ p2) :
+  (dist p1 p3) = abs ((dist p1 p2) - (dist p3 p2)) ↔ ∠ p1 p2 p3 = 0 :=
+begin
+  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
+  exact norm_sub_eq_abs_sub_norm_iff_angle_eq_zero
+    ((λ he, hp1p2 (vsub_eq_zero_iff_eq.1 he))) (λ he, hp3p2 (vsub_eq_zero_iff_eq.1 he)),
+end
+
+/-- The midpoint of the segment AB is the same distance from A as it is from B. -/
+lemma dist_left_midpoint_eq_dist_right_midpoint (p1 p2 : P) :
+  dist p1 (midpoint ℝ p1 p2) = dist p2 (midpoint ℝ p1 p2) :=
+by rw [dist_left_midpoint p1 p2, dist_right_midpoint p1 p2]
+
+/-- If M is the midpoint of the segment AB, then ∠AMB = π. -/
+lemma angle_midpoint_eq_pi (p1 p2 : P) (hp1p2 : p1 ≠ p2) : ∠ p1 (midpoint ℝ p1 p2) p2 = π :=
+have p2 -ᵥ midpoint ℝ p1 p2 = -(p1 -ᵥ midpoint ℝ p1 p2), by { rw neg_vsub_eq_vsub_rev, simp },
+by simp [angle, this, hp1p2]
+
+/-- If M is the midpoint of the segment AB and C is the same distance from A as it is from B
+then ∠CMA = π / 2. -/
+lemma angle_left_midpoint_eq_pi_div_two_of_dist_eq {p1 p2 p3 : P} (h : dist p3 p1 = dist p3 p2) :
+  ∠ p3 (midpoint ℝ p1 p2) p1 = π / 2 :=
+begin
+  let m : P := midpoint ℝ p1 p2,
+  have h1 : p3 -ᵥ p1 = (p3 -ᵥ m) - (p1 -ᵥ m) := (vsub_sub_vsub_cancel_right p3 p1 m).symm,
+  have h2 : p3 -ᵥ p2 = (p3 -ᵥ m) + (p1 -ᵥ m),
+  { rw [left_vsub_midpoint, ← midpoint_vsub_right, vsub_add_vsub_cancel] },
+  rw [dist_eq_norm_vsub V p3 p1, dist_eq_norm_vsub V p3 p2, h1, h2] at h,
+  exact (norm_add_eq_norm_sub_iff_angle_eq_pi_div_two (p3 -ᵥ m) (p1 -ᵥ m)).mp h.symm,
+end
+
+/-- If M is the midpoint of the segment AB and C is the same distance from A as it is from B
+then ∠CMB = π / 2. -/
+lemma angle_right_midpoint_eq_pi_div_two_of_dist_eq {p1 p2 p3 : P} (h : dist p3 p1 = dist p3 p2) :
+  ∠ p3 (midpoint ℝ p1 p2) p2 = π / 2 :=
+by rw [midpoint_comm p1 p2, angle_left_midpoint_eq_pi_div_two_of_dist_eq h.symm]
+
 /-- The inner product of two vectors given with `weighted_vsub`, in
 terms of the pairwise distances. -/
 lemma inner_weighted_vsub {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ} (p₁ : ι₁ → P)
@@ -357,7 +546,7 @@ lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → �
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
   rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
-      ←inner_self_eq_norm_square, finset.affine_combination_vsub],
+      ←inner_self_eq_norm_sq, finset.affine_combination_vsub],
   have h : ∑ i in s, (w₁ - w₂) i = 0,
   { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },
   exact inner_weighted_vsub p h p h
@@ -386,11 +575,11 @@ end
 /-- The squared distance between points on a line (expressed as a
 multiple of a fixed vector added to a point) and another point,
 expressed as a quadratic. -/
-lemma dist_smul_vadd_square (r : ℝ) (v : V) (p₁ p₂ : P) :
+lemma dist_smul_vadd_sq (r : ℝ) (v : V) (p₁ p₂ : P) :
   dist (r • v +ᵥ p₁) p₂ * dist (r • v +ᵥ p₁) p₂ =
     ⟪v, v⟫ * r * r + 2 * ⟪v, p₁ -ᵥ p₂⟫ * r + ⟪p₁ -ᵥ p₂, p₁ -ᵥ p₂⟫ :=
 begin
-  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_square, vadd_vsub_assoc,
+  rw [dist_eq_norm_vsub V _ p₂, ←real_inner_self_eq_norm_sq, vadd_vsub_assoc,
     real_inner_add_add_self, real_inner_smul_left, real_inner_smul_left, real_inner_smul_right],
   ring
 end
@@ -400,9 +589,9 @@ another point. -/
 lemma dist_smul_vadd_eq_dist {v : V} (p₁ p₂ : P) (hv : v ≠ 0) (r : ℝ) :
   dist (r • v +ᵥ p₁) p₂ = dist p₁ p₂ ↔ (r = 0 ∨ r = -2 * ⟪v, p₁ -ᵥ p₂⟫ / ⟪v, v⟫) :=
 begin
-  conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_square,
+  conv_lhs { rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_smul_vadd_sq,
                  ←sub_eq_zero, add_sub_assoc, dist_eq_norm_vsub V p₁ p₂,
-                 ←real_inner_self_eq_norm_square, sub_self] },
+                 ←real_inner_self_eq_norm_sq, sub_self] },
   have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
   have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
     (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
@@ -418,8 +607,8 @@ open affine_subspace finite_dimensional
 /-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
 most two points `p₁` `p₂` in a two-dimensional subspace containing those points
 (two circles intersect in at most two points). -/
-lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ P}
-  [finite_dimensional ℝ s.direction] (hd : findim ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}
+lemma eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two {s : affine_subspace ℝ P}
+  [finite_dimensional ℝ s.direction] (hd : finrank ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}
   (hc₁s : c₁ ∈ s) (hc₂s : c₂ ∈ s) (hp₁s : p₁ ∈ s) (hp₂s : p₂ ∈ s) (hps : p ∈ s) {r₁ r₂ : ℝ}
   (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁) (hp₂c₁ : dist p₂ c₁ = r₁)
   (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂) (hp₂c₂ : dist p₂ c₂ = r₂)
@@ -439,13 +628,13 @@ begin
       { exact ho },
       { rw real_inner_comm, exact ho } } },
   have hbs : submodule.span ℝ (set.range b) = s.direction,
-  { refine eq_of_le_of_findim_eq _ _,
+  { refine eq_of_le_of_finrank_eq _ _,
     { rw [submodule.span_le, set.range_subset_iff],
       intro i,
       fin_cases i,
       { exact vsub_mem_direction hc₂s hc₁s },
       { exact vsub_mem_direction hp₂s hp₁s } },
-    { rw [findim_span_eq_card hb, fintype.card_fin, hd] } },
+    { rw [finrank_span_eq_card hb, fintype.card_fin, hd] } },
   have hv : ∀ v ∈ s.direction, ∃ t₁ t₂ : ℝ, v = t₁ • (c₂ -ᵥ c₁) + t₂ • (p₂ -ᵥ p₁),
   { intros v hv,
     have hr : set.range b = {c₂ -ᵥ c₁, p₂ -ᵥ p₁},
@@ -474,15 +663,15 @@ end
 /-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
 most two points `p₁` `p₂` in two-dimensional space (two circles intersect in at
 most two points). -/
-lemma eq_of_dist_eq_of_dist_eq_of_findim_eq_two [finite_dimensional ℝ V] (hd : findim ℝ V = 2)
+lemma eq_of_dist_eq_of_dist_eq_of_finrank_eq_two [finite_dimensional ℝ V] (hd : finrank ℝ V = 2)
   {c₁ c₂ p₁ p₂ p : P} {r₁ r₂ : ℝ} (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁)
   (hp₂c₁ : dist p₂ c₁ = r₁) (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂)
   (hp₂c₂ : dist p₂ c₂ = r₂) (hpc₂ : dist p c₂ = r₂) : p = p₁ ∨ p = p₂ :=
 begin
-  have hd' : findim ℝ (⊤ : affine_subspace ℝ P).direction = 2,
-  { rw [direction_top, findim_top],
+  have hd' : finrank ℝ (⊤ : affine_subspace ℝ P).direction = 2,
+  { rw [direction_top, finrank_top],
     exact hd },
-  exact eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two hd'
+  exact eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two hd'
     (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _)
     hc hp hp₁c₁ hp₂c₁ hpc₁ hp₁c₂ hp₂c₂ hpc₂
 end
@@ -723,7 +912,7 @@ orthogonal_projection_vadd_eq_self hp
 /-- The square of the distance from a point in `s` to `p2` equals the
 sum of the squares of the distances of the two points to the
 `orthogonal_projection`. -/
-lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+lemma dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
   {s : affine_subspace ℝ P} [nonempty s] [complete_space s.direction] {p1 : P}
   (p2 : P) (hp1 : p1 ∈ s) :
   dist p1 p2 * dist p1 p2 =
@@ -732,7 +921,7 @@ lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_proje
 begin
   rw [pseudo_metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
     dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
-    norm_add_square_eq_norm_square_add_norm_square_iff_real_inner_eq_zero],
+    norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero],
   exact submodule.inner_right_of_mem_orthogonal
     (vsub_orthogonal_projection_mem_direction p2 hp1)
     (orthogonal_projection_vsub_mem_direction_orthogonal s p2),
@@ -741,7 +930,7 @@ end
 /-- The square of the distance between two points constructed by
 adding multiples of the same orthogonal vector to points in the same
 subspace. -/
-lemma dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ P}
+lemma dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ P}
     {p1 p2 : P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) (r1 r2 : ℝ) {v : V}
     (hv : v ∈ s.directionᗮ) :
   dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) =
@@ -751,7 +940,7 @@ calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 �
   : by { rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul],
          abel }
 ... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
-  : norm_add_square_eq_norm_square_add_norm_square_real
+  : norm_add_sq_eq_norm_sq_add_norm_sq_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
         (submodule.smul_mem _ _ hv))
 ... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + abs (r1 - r2) * abs (r1 - r2) * ∥v∥ * ∥v∥
@@ -780,7 +969,7 @@ def reflection (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direct
     intros p₁ p₂,
     rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg, dist_eq_norm_vsub V
           ((↑(orthogonal_projection s p₁) -ᵥ p₁) +ᵥ ↑(orthogonal_projection s p₁)),
-        dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_square, ←inner_self_eq_norm_square],
+        dist_eq_norm_vsub V p₁, ←inner_self_eq_norm_sq, ←inner_self_eq_norm_sq],
     calc
       ⟪((orthogonal_projection s p₁ : P) -ᵥ p₁ +ᵥ (orthogonal_projection s p₁ : P) -ᵥ
       ((orthogonal_projection s p₂ : P) -ᵥ p₂ +ᵥ orthogonal_projection s p₂)),

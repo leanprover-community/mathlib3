@@ -18,7 +18,6 @@ theorem mem_range_iff {m n r : ℤ} : r ∈ range m n ↔ m ≤ r ∧ r < n :=
 ⟨λ H, let ⟨s, h1, h2⟩ := list.mem_map.1 H in h2 ▸
   ⟨le_add_of_nonneg_right trivial,
   lt_sub_iff_add_lt'.mp
-  --add_lt_of_lt_sub_left
   $ match n-m, h1 with
     | (k:ℕ), h1 := by rwa [list.mem_range, to_nat_coe_nat, ← coe_nat_lt] at h1
     end⟩,

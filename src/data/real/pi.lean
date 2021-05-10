@@ -232,11 +232,12 @@ begin
         ring },
       { simp only [nat.add_succ_sub_one, add_zero, mul_one, id.def, nat.cast_bit0, nat.cast_add,
                   nat.cast_one, nat.cast_mul],
-        rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1) (by { norm_cast, linarith }),
-            pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
-        ring_nf } },
+        rw [← mul_assoc, @div_mul_cancel _ _ _ (2*(i:ℝ)+1)
+          (by { norm_cast, exact nat.succ_pos'.ne' }),
+            pow_mul x 2 i, ← mul_pow (-1) (x^2) i, neg_one_mul] } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
-    have g_sum := @geom_sum_eq _ _ (-x^2) (by linarith [neg_nonpos.mpr (sq_nonneg x)]) k,
+    have g_sum :=
+      @geom_sum_eq _ _ (-x^2) ((neg_nonpos.mpr (sq_nonneg x)).trans_lt zero_lt_one).ne k,
     simp only [geom_sum, f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
@@ -258,13 +259,13 @@ begin
     have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),
     rw [one_pow (2*k), ← abs_of_nonneg (le_trans hU2 hx_left)] at hincr,
     rw ← abs_of_nonneg (le_trans hU2 hx_left) at hx_right,
-    linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_of_lt hx_right)))] },
+    exact (f'_bound _ (abs_le.mp hx_right.le)).trans hincr },
   have hbound2 : ∀ x ∈ Ico 0 (U:ℝ), |f' x| ≤ U ^ (2*k),
   { rintros x ⟨hx_left, hx_right⟩,
     have hincr := pow_le_pow_of_le_left hx_left (le_of_lt hx_right) (2*k),
     rw ← abs_of_nonneg hx_left at hincr hx_right,
     rw ← abs_of_nonneg hU2 at hU1 hx_right,
-    linarith [f'_bound x (mem_Icc.mpr (abs_le.mp (le_trans (le_of_lt hx_right) hU1)))] },
+    exact (f'_bound _ (abs_le.mp (hx_right.le.trans hU1))).trans hincr },
   -- (6) We twice apply the Mean Value Theorem to obtain bounds on `f` from the bounds on `f'`
   have mvt1 :=
     norm_image_sub_le_of_norm_deriv_le_segment' hderiv1 hbound1 _ (right_mem_Icc.mpr hU1),

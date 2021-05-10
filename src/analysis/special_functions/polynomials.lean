@@ -25,17 +25,6 @@ open_locale asymptotics topological_space
 
 namespace polynomial
 
-/-- TODO: Not really sure where this should go -/
-lemma helper {x : with_bot ℕ} : 1 ≤ x ↔ 0 < x :=
-begin
-  refine ⟨λ h, lt_of_lt_of_le (with_bot.coe_lt_coe.mpr zero_lt_one) h, λ h, _⟩,
-  cases x,
-  { exact false.elim (not_lt_of_lt (with_bot.bot_lt_some 0) h) },
-  { rw [← nat.cast_one, with_bot.some_eq_coe x],
-    rw [← nat.cast_zero, with_bot.some_eq_coe x] at h,
-    exact with_bot.coe_le_coe.mpr (nat.succ_le_iff.mpr (with_bot.coe_lt_coe.mp h)) }
-end
-
 variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : polynomial 𝕜)
 
 lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
@@ -112,12 +101,13 @@ begin
     (forall_imp (λ _, le_of_eq) (λ x, congr_arg abs $ trans (congr_arg (eval x)
     (eq_C_of_degree_le_zero h)) (eval_C))))⟩⟩,
   contrapose! h,
-  exact not_is_bounded_under_of_tendsto_at_top (abs_tendsto_at_top P (helper.2 h))
+  exact not_is_bounded_under_of_tendsto_at_top
+    (abs_tendsto_at_top P (nat.with_bot.one_le_iff_zero_lt.2 h))
 end
 
 lemma abs_tendsto_at_top_iff :
   tendsto (λ x, abs $ eval x P) at_top at_top ↔ 1 ≤ P.degree :=
-⟨λ h, helper.2 (not_le.mp ((mt (abs_is_bounded_under_iff P).mpr)
+⟨λ h, nat.with_bot.one_le_iff_zero_lt.2 (not_le.mp ((mt (abs_is_bounded_under_iff P).mpr)
   (not_is_bounded_under_of_tendsto_at_top h))), abs_tendsto_at_top P⟩
 
 lemma tendsto_nhds_iff {c : 𝕜} :

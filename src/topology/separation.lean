@@ -386,6 +386,10 @@ lemma tendsto_nhds_unique_of_eventually_eq [t2_space α] {f g : β → α} {l : 
   a = b :=
 tendsto_nhds_unique (ha.congr' hfg) hb
 
+lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α} :
+  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
+⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
+
 section lim
 variables [t2_space α] {f : filter α}
 

@@ -702,8 +702,8 @@ lemma tendsto_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : 1 ≤ n) (hc : 0 < c) : tendsto (λ x, c * x^n) at_top at_top :=
 tendsto.const_mul_at_top hc (tendsto_pow_at_top hn)
 
-lemma tendsto_const_mul_pow_at_top_iff (c : α) (n : ℕ)
-  : tendsto (λ x, c * x^n) at_top at_top ↔ 1 ≤ n ∧ 0 < c :=
+lemma tendsto_const_mul_pow_at_top_iff (c : α) (n : ℕ) :
+  tendsto (λ x, c * x^n) at_top at_top ↔ 1 ≤ n ∧ 0 < c :=
 begin
   refine ⟨λ h, _, λ h, tendsto_const_mul_pow_at_top h.1 h.2⟩,
   simp only [tendsto_at_top, eventually_at_top] at h,
@@ -721,8 +721,8 @@ lemma tendsto_neg_const_mul_pow_at_top {c : α} {n : ℕ}
   (hn : 1 ≤ n) (hc : c < 0) : tendsto (λ x, c * x^n) at_top at_bot :=
 tendsto.neg_const_mul_at_top hc (tendsto_pow_at_top hn)
 
-lemma tendsto_neg_const_mul_pow_at_top_iff (c : α) (n : ℕ)
-  : tendsto (λ x, c * x^n) at_top at_bot ↔ 1 ≤ n ∧ c < 0 :=
+lemma tendsto_neg_const_mul_pow_at_top_iff (c : α) (n : ℕ) :
+  tendsto (λ x, c * x^n) at_top at_bot ↔ 1 ≤ n ∧ c < 0 :=
 begin
   refine ⟨λ h, _, λ h, tendsto_neg_const_mul_pow_at_top h.1 h.2⟩,
   simp only [tendsto_at_bot, eventually_at_top] at h,

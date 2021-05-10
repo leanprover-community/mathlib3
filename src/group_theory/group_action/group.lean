@@ -102,6 +102,10 @@ variables [group α] [mul_action α β]
 @[to_additive] lemma eq_inv_smul_iff {a : α} {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
 (to_units a).smul_perm.eq_symm_apply
 
+lemma smul_inv [group β] [smul_comm_class α β β] [is_scalar_tower α β β] (c : α) (x : β) :
+  (c • x)⁻¹ = c⁻¹ • x⁻¹ :=
+by rw [inv_eq_iff_mul_eq_one, smul_mul_smul, mul_right_inv, mul_right_inv, one_smul]
+
 variables (α) (β)
 
 /-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/

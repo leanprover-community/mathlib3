@@ -73,6 +73,15 @@ instance : linear_ordered_comm_monoid_with_zero foo :=
   .. foo.linear_order,
   .. foo.comm_monoid }
 
+lemma not_mul_pos : ¬ ∀ {M : Type} [linear_ordered_comm_monoid_with_zero M], by exactI ∀
+  (a b : M) (ha : 0 < a) (hb : 0 < b),
+  0 < a * b :=
+begin
+  intros h,
+  specialize h ε ε (by boom) (by boom),
+  exact (lt_irrefl 0 (h.trans_le (by boom))).elim,
+end
+
 example : 0 < ε ∧ ε * ε = 0 := by boom
 
 end foo

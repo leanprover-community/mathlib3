@@ -45,7 +45,7 @@ have h : ∃ l, ∀ n ≥ m, a - l • ε < f n :=
   ⟨k + k + 1, λ n hnm, lt_of_lt_of_le
     (show a - (k + (k + 1)) • ε < -abs (f n),
       from lt_neg.1 $ lt_of_le_of_lt (ham n hnm) (begin
-        rw [neg_sub, lt_sub_iff_add_lt, add_nsmul, add_nsmul, one_nsmul],
+        rw [neg_sub, lt_sub_iff_add_lt', add_nsmul, add_nsmul, one_nsmul],
         exact add_lt_add_of_le_of_lt hk (lt_of_le_of_lt hk
           (lt_add_of_pos_right _ ε0)),
       end))
@@ -61,7 +61,7 @@ begin
   existsi i,
   assume j hj,
   have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm _ hi.1 hj,
-  rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
+  rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add],
   exact calc f i ≤ a - (nat.pred l) • ε : hi.2
     ... = a - l • ε + ε :
       by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_nsmul',
@@ -146,7 +146,7 @@ begin
     { rw [pow_succ, ← one_mul (1 : α)],
       refine mul_le_mul (le_of_lt hx1) ih (abv_pow abv x n ▸ abv_nonneg _ _) (by norm_num) } },
   { assume n hn,
-    refine div_le_div_of_le (le_of_lt $ sub_pos.2 hx1) (sub_le_sub_left _ _),
+    refine div_le_div_of_le (le_of_lt $ sub_pos.2 hx1) (sub_le_sub_left'' _ _),
     rw [← one_mul (_ ^ n), pow_succ],
     exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
 end
@@ -1422,7 +1422,7 @@ calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
 
 lemma cos_pos_of_le_one {x : ℝ} (hx : abs' x ≤ 1) : 0 < cos x :=
 calc 0 < (1 - x ^ 2 / 2) - abs' x ^ 4 * (5 / 96) :
-  sub_pos.2 $ lt_sub_iff_add_lt.2
+  sub_pos.2 $ lt_sub_iff_add_lt_right'.2
     (calc abs' x ^ 4 * (5 / 96) + x ^ 2 / 2
           ≤ 1 * (5 / 96) + 1 / 2 :
         add_le_add
@@ -1434,7 +1434,7 @@ calc 0 < (1 - x ^ 2 / 2) - abs' x ^ 4 * (5 / 96) :
 
 lemma sin_pos_of_pos_of_le_one {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 1) : 0 < sin x :=
 calc 0 < x - x ^ 3 / 6 - abs' x ^ 4 * (5 / 96) :
-  sub_pos.2 $ lt_sub_iff_add_lt.2
+  sub_pos.2 $ lt_sub_iff_add_lt_right'.2
     (calc abs' x ^ 4 * (5 / 96) + x ^ 3 / 6
         ≤ x * (5 / 96) + x / 6 :
       add_le_add
@@ -1465,15 +1465,18 @@ calc cos 1 ≤ abs' (1 : ℝ) ^ 4 * (5 / 96) + (1 - 1 ^ 2 / 2) :
 lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (by simp)
 
 lemma cos_two_neg : cos 2 < 0 :=
-calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
+begin
+  calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
 ... = _ : real.cos_two_mul 1
 ... ≤ 2 * (2 / 3) ^ 2 - 1 :
-  sub_le_sub_right (mul_le_mul_of_nonneg_left
+  sub_le_sub_right'' (mul_le_mul_of_nonneg_left
     (by rw [sq, sq]; exact
       mul_self_le_mul_self (le_of_lt cos_one_pos)
         cos_one_le)
-    (by norm_num)) _
-... < 0 : by norm_num
+    zero_le_two) _
+... < 0 : by norm_num,
+
+end
 
 end real
 

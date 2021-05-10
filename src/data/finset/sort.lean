@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.finset.lattice
+import data.fintype.basic
 import data.multiset.sort
 import data.list.nodup_equiv_fin
 
@@ -178,6 +178,34 @@ and only if `i = j`. Since they can be defined on a priori not defeq types `fin 
 begin
   substs k l,
   exact (s.order_emb_of_fin rfl).eq_iff_eq.trans (fin.ext_iff _ _)
+end
+
+lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) :
+  s.card ≤ t.card + 1 :=
+begin
+  have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length,
+  { intro i,
+    rw finset.length_sort,
+    exact lt_of_lt_of_le i.2 s.card.pred_le },
+  have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
+  { intro i,
+    rw [finset.length_sort, ←nat.lt_sub_right_iff_add_lt],
+    exact i.2 },
+  have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
+    ((s.sort (≤)).nth_le (i + 1) (h1 i))
+    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
+    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
+    (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
+  let f : fin (s.card - 1) → (t : set α) :=
+  λ i, ⟨classical.some (p i), (exists_prop.mp (classical.some_spec (p i))).1⟩,
+  have hf : ∀ i j : fin (s.card - 1), i < j → f i < f j :=
+  λ i j hij, subtype.coe_lt_coe.mp ((exists_prop.mp (classical.some_spec (p i))).2.2.trans
+    (lt_of_le_of_lt ((s.sort_sorted (≤)).rel_nth_le_of_le (h1 i) (h0 j) (nat.succ_le_iff.mpr hij))
+    (exists_prop.mp (classical.some_spec (p j))).2.1)),
+  have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
+    (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))
+    (not_lt.mp (mt (hf i j) (not_lt.mpr (ge_of_eq hij)))))),
+  rwa [fintype.card_fin, fintype.card_coe, nat.sub_le_right_iff_le_add] at key,
 end
 
 end sort_linear_order

@@ -668,6 +668,9 @@ def map (f : M →ₗ[R] M₂) (p : submodule R M) : submodule R M₂ :=
 theorem mem_map_of_mem {f : M →ₗ[R] M₂} {p : submodule R M} {r} (h : r ∈ p) : f r ∈ map f p :=
 set.mem_image_of_mem _ h
 
+lemma apply_coe_mem_map (f : M →ₗ[R] M₂) {p : submodule R M} (r : p) : f r ∈ map f p :=
+mem_map_of_mem r.prop
+
 @[simp] lemma map_id : map linear_map.id p = p :=
 submodule.ext $ λ a, by simp
 

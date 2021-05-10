@@ -144,17 +144,15 @@ section monoid_hom
 variables (f) [Π i, mul_one_class (f i)]
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
-homomorphism. -/
-@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a point
-is an additive monoid homomorphism."]
-def monoid_hom.apply (i : I) : (Π i, f i) →* f i :=
+homomorphism.
+This is `function.eval i` as a `monoid_hom`. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive monoids at a
+point is an additive monoid homomorphism.
+This is `function.eval i` as an `add_monoid_hom`.", simps]
+def pi.eval_monoid_hom (i : I) : (Π i, f i) →* f i :=
 { to_fun := λ g, g i,
-  map_one' := rfl,
-  map_mul' := λ x y, rfl, }
-
-@[simp, to_additive]
-lemma monoid_hom.apply_apply (i : I) (g : Π i, f i) :
-  (monoid_hom.apply f i) g = g i := rfl
+  map_one' := pi.one_apply i,
+  map_mul' := λ x y, pi.mul_apply _ _ i, }
 
 /-- Coercion of a `monoid_hom` into a function is itself a `monoid_hom`.
 

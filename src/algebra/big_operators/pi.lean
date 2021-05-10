@@ -21,19 +21,19 @@ namespace pi
 @[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [Πa, monoid (β a)] (a : α) (l : list (Πa, β a)) :
   l.prod a = (l.map (λf:Πa, β a, f a)).prod :=
-(monoid_hom.apply β a).map_list_prod _
+(eval_monoid_hom β a).map_list_prod _
 
 @[to_additive]
 lemma multiset_prod_apply {α : Type*} {β : α → Type*} [∀a, comm_monoid (β a)] (a : α)
   (s : multiset (Πa, β a)) : s.prod a = (s.map (λf:Πa, β a, f a)).prod :=
-(monoid_hom.apply β a).map_multiset_prod _
+(eval_monoid_hom β a).map_multiset_prod _
 
 end pi
 
 @[simp, to_additive]
 lemma finset.prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid (β a)] (a : α)
   (s : finset γ) (g : γ → Πa, β a) : (∏ c in s, g c) a = ∏ c in s, g c a :=
-(monoid_hom.apply β a).map_prod _ _
+(pi.eval_monoid_hom β a).map_prod _ _
 
 /-- An 'unapplied' analogue of `finset.prod_apply`. -/
 @[to_additive "An 'unapplied' analogue of `finset.sum_apply`."]

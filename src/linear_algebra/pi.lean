@@ -57,8 +57,8 @@ lemma pi_comp (f : Πi, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).
 rfl
 
 /-- The projections from a family of modules are linear maps. -/
-def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
-⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
+abbreviation proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
+pi.eval_linear_map _ _ i
 
 @[simp] lemma coe_proj (i : ι) : ⇑(proj i : (Πi, φ i) →ₗ[R] φ i) = function.eval i := rfl
 

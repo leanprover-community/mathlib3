@@ -1342,11 +1342,12 @@ instance algebra {r : comm_semiring R}
 
 variables (R) (f)
 
-/-- `function.eval` as an `alg_hom`. The name matches `ring_hom.apply`, `monoid_hom.apply`, etc. -/
+/-- `function.eval` as an `alg_hom`. The name matches `pi.eval_ring_hom`, `pi.eval_monoid_hom`,
+etc. -/
 @[simps]
-def alg_hom.apply {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (f i)] (i : I) :
+def eval_alg_hom {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (f i)] (i : I) :
   (Π i, f i) →ₐ[R] f i :=
-{ commutes' := λ r, rfl, .. ring_hom.apply f i}
+{ to_fun := λ f, f i, commutes' := λ r, rfl, .. ring_hom.apply f i}
 
 end pi
 

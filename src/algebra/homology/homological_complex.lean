@@ -477,6 +477,7 @@ induces a morphism of arrows of the differentials into each object.
 def sq_to (f : hom C₁ C₂) (j : ι) : arrow.mk (C₁.d_to j) ⟶ arrow.mk (C₂.d_to j) :=
 arrow.hom_mk (f.comm_to j)
 
+@[simp] lemma sq_to_left (f : hom C₁ C₂) (j : ι) : (f.sq_to j).left = f.f_prev j := rfl
 @[simp] lemma sq_to_right (f : hom C₁ C₂) (j : ι) : (f.sq_to j).right = f.f j := rfl
 
 end hom

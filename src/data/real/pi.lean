@@ -278,7 +278,7 @@ begin
                ... = 1 - U + U^(2*k) * U : by ring
                ... = 1 - (u k) + (u k)^(2*(k:ℝ)+1) : by { rw [← pow_succ' (U:ℝ) (2*k)], norm_cast },
 end
-#exit
+
 /-! ### The Wallis Product for Pi -/
 
 open finset interval_integral

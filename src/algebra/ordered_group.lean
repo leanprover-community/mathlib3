@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
-
--- TODO: there are probably "left/right" versions of some of the lemmas in this file
--- that might be proven.
-
 /-!
 # Ordered groups
 
@@ -19,6 +15,9 @@ Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
 -/
+
+-- TODO: there are probably "left/right" versions of some of the lemmas in this file
+-- that might be proven.
 
 set_option old_structure_cmd true
 

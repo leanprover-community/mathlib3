@@ -246,8 +246,8 @@ eq.trans (eq_of_is_st_real h1) (eq_of_is_st_real h2).symm
 
 lemma is_st_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} :
   is_st x r ↔ ∀ (δ : ℝ), 0 < δ → abs (x - r) < δ :=
-by simp only [abs_sub_lt_iff, @sub_lt _ _ (r : ℝ*) x _,
-    @sub_lt_iff_lt_add' _ _ x (r : ℝ*) _, and_comm]; refl
+by simpa only [abs_sub_lt_iff, @sub_lt _ _ (r : ℝ*) x _,
+    @sub_lt_iff_lt_add' _ _ x (r : ℝ*) _, and_comm]
 
 lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) :=
 λ hxr hys d hd,

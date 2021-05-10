@@ -387,8 +387,9 @@ lemma legendre_sym_eq_zero_iff (a p : ℕ) :
 begin
   split,
   { classical, contrapose,
-    assume ha, cases legendre_sym_eq_one_or_neg_one a p ha with h h,
-    all_goals { rw h, norm_num } },
+    assume ha, cases legendre_sym_eq_one_or_neg_one a p ha with h h;
+    rw [h, neg_eq_zero, ← ne.def] <|> rw [h, ← ne.def];
+    exact one_ne_zero },
   { assume ha, rw [legendre_sym, if_pos ha] }
 end
 

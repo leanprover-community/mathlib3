@@ -772,7 +772,7 @@ by rw is_O_iff; refl
 theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ (λ x : α, c) (λ x, (1 : 𝕜)) l :=
 begin
   refine (is_O_with_const_const c _ l).congr_const _,
-  { rw [norm_one, div_one] },
+  { rw [norm_one, div_one'] },
   { exact one_ne_zero }
 end
 
@@ -1319,7 +1319,7 @@ is_O_with.of_bound $ mem_sets_of_superset h.bound $ λ x hx,
 begin
   simp only [mem_set_of_eq] at hx ⊢,
   rw [mul_comm, one_div, ← div_eq_mul_inv, le_div_iff, mul_sub, mul_one, mul_comm],
-  { exact le_trans (sub_le_sub_left hx _) (norm_sub_norm_le _ _) },
+  { exact le_trans (sub_le_sub_left'' hx _) (norm_sub_norm_le _ _) },
   { exact sub_pos.2 hc }
 end
 

@@ -300,7 +300,7 @@ open real (smooth_transition) real.smooth_transition metric
 
 lemma one_of_mem_closed_ball (hx : x ∈ closed_ball c f.r) :
   f x = 1 :=
-one_of_one_le $ (one_le_div (sub_pos.2 f.r_lt_R)).2 $ sub_le_sub_left hx _
+one_of_one_le $ (one_le_div (sub_pos.2 f.r_lt_R)).2 $ sub_le_sub_left'' hx _
 
 lemma nonneg : 0 ≤ f x := nonneg _
 
@@ -310,7 +310,7 @@ lemma pos_of_mem_ball (hx : x ∈ ball c f.R) : 0 < f x :=
 pos_of_pos $ div_pos (sub_pos.2 hx) (sub_pos.2 f.r_lt_R)
 
 lemma lt_one_of_lt_dist (h : f.r < dist x c) : f x < 1 :=
-lt_one_of_lt_one $ (div_lt_one (sub_pos.2 f.r_lt_R)).2 $ sub_lt_sub_left h _
+lt_one_of_lt_one $ (div_lt_one (sub_pos.2 f.r_lt_R)).2 $ sub_lt_sub_left'' h _
 
 lemma zero_of_le_dist (hx : f.R ≤ dist x c) : f x = 0 :=
 zero_of_nonpos $ div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 hx) (sub_nonneg.2 f.r_lt_R.le)

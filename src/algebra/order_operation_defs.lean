@@ -65,6 +65,15 @@ general, but seems to be the most common usage. In the opposite direction, the i
 ```
 holds (note the `has_le_[...]` as opposed to the more common idioms `has_lt_[...]` and
 `has_mul_le_[...]`.
+
+
+##  Formalization notes
+
+When setting up instances, in order to avoid loops, we used the following order of precedence:
+
+* prefer to assume `≤` over `<`;
+* prefer to assume `left` over `right`;
+* prefer to assume `(*)` over `flip (*)`.
 -/
 -- use ⇒, as per Eric's suggestion?
 section covariants_and_contravariants

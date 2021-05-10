@@ -698,6 +698,33 @@ rfl
 
 end sum
 
+section sigma
+
+variables {η : Type*} [fintype η] {ιs : η → Type*} [has_zero α]
+variables (R)
+
+/-- On a `fintype η`, `finsupp.split` is a linear equivalence between
+`(Σ (j : η), ιs j) →₀ M` and `Π j, (ιs j →₀ M)`.
+
+This is the `linear_equiv` version of `finsupp.sigma_finsupp_add_equiv_pi_finsupp`. -/
+noncomputable def sigma_finsupp_lequiv_pi_finsupp
+  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M] :
+  ((Σ j, ιs j) →₀ M) ≃ₗ[R] Π j, (ιs j →₀ M) :=
+{ map_smul' := λ c f, by { ext, simp },
+  .. sigma_finsupp_add_equiv_pi_finsupp }
+
+@[simp] lemma sigma_finsupp_lequiv_pi_finsupp_apply
+  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M]
+  (f : (Σ j, ιs j) →₀ M) (j i) :
+  sigma_finsupp_lequiv_pi_finsupp R f j i = f ⟨j, i⟩ := rfl
+
+@[simp] lemma sigma_finsupp_lequiv_pi_finsupp_symm_apply
+  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M]
+  (f : Π j, (ιs j →₀ M)) (ji) :
+  (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm f ji = f ji.1 ji.2 := rfl
+
+end sigma
+
 section prod
 
 /-- The linear equivalence between `α × β →₀ M` and `α →₀ β →₀ M`.

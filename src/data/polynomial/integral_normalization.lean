@@ -78,7 +78,7 @@ variables [integral_domain R]
 @[simp] lemma support_integral_normalization {f : polynomial R} :
   (integral_normalization f).support = f.support :=
 begin
-  by_cases hf : f = 0, {simp [hf]},
+  by_cases hf : f = 0, { simp [hf] },
   ext i,
   refine ⟨λ h, integral_normalization_support h, _⟩,
   simp only [integral_normalization_coeff, mem_support_iff],
@@ -100,7 +100,7 @@ calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
 ... = p.support.attach.sum
         (λ i, f (coeff p i.1 * p.leading_coeff ^ (nat_degree p - 1)) * z ^ i.1) :
       begin
-        by_cases hp : p = 0, {simp [hp]},
+        by_cases hp : p = 0, { simp [hp] },
         have one_le_deg : 1 ≤ nat_degree p :=
           nat.succ_le_of_lt (nat_degree_pos_of_eval₂_root hp f hz inj),
         congr' with i,

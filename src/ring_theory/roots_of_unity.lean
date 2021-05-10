@@ -964,7 +964,7 @@ n.totient = (primitive_roots n K).card : (h.card_primitive_roots hpos).symm
 ... ≤ P_K.roots.card : multiset.to_finset_card_le _
 ... ≤ P_K.nat_degree : (card_roots' $ map_monic_ne_zero
         (minpoly.monic $ is_integral h hpos))
-... ≤ P.nat_degree : nat_degree_map_le _
+... ≤ P.nat_degree : nat_degree_map_le _ _
 
 end minpoly
 

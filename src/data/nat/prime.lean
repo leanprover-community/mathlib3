@@ -50,8 +50,7 @@ ne.symm $ ne_of_lt hp.one_lt
 theorem prime_def_lt {p : ℕ} : prime p ↔ 2 ≤ p ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,
 ⟨λ h l d, (h d).resolve_right (ne_of_lt l),
- λ h d, (decidable.lt_or_eq_of_le $
-   le_of_dvd (le_of_succ_le p2) d).imp_left (λ l, h l d)⟩
+ λ h d, (le_of_dvd (le_of_succ_le p2) d).lt_or_eq_dec.imp_left (λ l, h l d)⟩
 
 theorem prime_def_lt' {p : ℕ} : prime p ↔ 2 ≤ p ∧ ∀ m, 2 ≤ m → m < p → ¬ m ∣ p :=
 prime_def_lt.trans $ and_congr_right $ λ p2, forall_congr $ λ m,

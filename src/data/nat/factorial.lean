@@ -170,8 +170,8 @@ lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1)
 | 0 := by rw [add_zero, desc_fac_zero, desc_fac_zero]
 | (k + 1) := by rw [desc_fac, mul_left_comm, succ_desc_fac, desc_fac, succ_add, ← add_assoc]
 
-/-- `desc_fac n k = (n + k)! / n!`. However, this lemma states a reformulation to avoid `nat`-division.
-See `eval_desc_fac'` if you really need the version that uses `nat`-division. -/
+/-- `desc_fac n k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
+See `eval_desc_fac'` if you really need the version that uses ℕ-division. -/
 theorem eval_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
 | 0 := by rw [desc_fac, add_zero, mul_one]
 | (k + 1) := by rw [desc_fac_succ, mul_left_comm, eval_desc_fac, ← add_assoc, factorial]

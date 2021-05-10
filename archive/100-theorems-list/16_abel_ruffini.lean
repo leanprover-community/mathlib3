@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Floris van Doorn. All rights reserved.
+Copyright (c) 2021 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
@@ -7,6 +7,17 @@ import field_theory.abel_ruffini
 import analysis.calculus.local_extr
 /-!
 Construction of an algebraic number that is not solvable by radicals.
+
+The main ingredients are:
+ * `solvable_by_rad.is_solvable'` in `field_theory/abel_ruffini` :
+  an irreducible polynomial with an `is_solvable_by_rad` root has solvable Galois group
+ * `gal_action_hom_bijective_of_prime_degree'` in `field_theory/polynomial_galois_group` :
+  an irreducible polynomial of prime degree with 1-3 non-real roots has full Galois group
+ * `equiv.perm.not_solvable` in `group_theory/solvable` : the symmetric group is not solvable
+
+Then all that remains is the construction of a specific polynomial satisfying the conditions of
+  `gal_action_hom_bijective_of_prime_degree'`, which is done in this file.
+
 -/
 
 open polynomial polynomial.gal

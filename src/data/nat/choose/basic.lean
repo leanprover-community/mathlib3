@@ -178,7 +178,7 @@ begin
 end
 
 lemma factorial_dvd_desc_fac (n k : ℕ) : k! ∣ desc_fac n k :=
-⟨(n+k).choose k, desc_fac_eq_choose_mul_factorial _ _⟩
+⟨(n+k).choose k, desc_fac_eq_factorial_mul_choose _ _⟩
 
 lemma choose_eq_desc_fac_div_factorial (n k : ℕ) : (n + k).choose k = desc_fac n k / k! :=
 begin

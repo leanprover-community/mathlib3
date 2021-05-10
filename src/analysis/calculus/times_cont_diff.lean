@@ -1881,10 +1881,10 @@ begin
   { intros m hm x hx,
     have := has_fderiv_within_at_pi.2 (λ i, (h i).fderiv_within m hm x hx),
     convert (linear_isometry_equiv.has_fderiv_at _).comp_has_fderiv_within_at x this,
-    swap 3,
-    exact L m,
-    refl,
-    refl },
+    swap 3, -- without this swap, the `refl`s fail
+    { exact L m },
+    { refl },
+    { refl } },
   { intros m hm,
     have := continuous_on_pi.2 (λ i, (h i).cont m hm),
     convert (L m).continuous.comp_continuous_on this }

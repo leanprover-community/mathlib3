@@ -467,12 +467,6 @@ begin
   refl,
 end
 
-lemma mem_comp_range (x : V₁) : g (f x) ∈ (g.comp f).range :=
-begin
-  rw normed_group_hom.comp_range,
-  exact add_subgroup.mem_map_of_mem g.to_add_monoid_hom (set.mem_range_self x),
-end
-
 lemma incl_range (s : add_subgroup V₁) : (incl s).range = s :=
 begin
   ext x,

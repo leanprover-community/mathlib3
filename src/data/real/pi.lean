@@ -31,7 +31,7 @@ lemma pi_lt_sqrt_two_add_series (n : ℕ) :
 begin
   have : π < (sqrt (2 - sqrt_two_add_series 0 n) / 2 + 1 / (2 ^ n) ^ 3 / 4) * 2 ^ (n+2),
   { rw [← div_lt_iff, ← sin_pi_over_two_pow_succ],
-    refine lt_of_lt_of_le (lt_add_of_sub_right_lt (sin_gt_sub_cube _ _)) _,
+    refine lt_of_lt_of_le (sub_lt_iff_lt_add'.mp (sin_gt_sub_cube _ _)) _,
     { apply div_pos pi_pos, apply pow_pos, norm_num },
     { rw div_le_iff',
       { refine le_trans pi_le_four _,
@@ -190,14 +190,15 @@ begin
   --     constructed from `u` tends to `0` at `+∞`
   let u := λ k : ℕ, (k:nnreal) ^ (-1 / (2 * (k:ℝ) + 1)),
   have H : tendsto (λ k : ℕ, (1:ℝ) - (u k) + (u k) ^ (2 * (k:ℝ) + 1)) at_top (𝓝 0),
-  { convert (((tendsto_rpow_div_mul_add (-1) 2 1 $ by norm_num).neg.const_add 1).add
+  { convert (((tendsto_rpow_div_mul_add (-1) 2 1 two_ne_zero.symm).neg.const_add 1).add
       tendsto_inv_at_top_zero).comp tendsto_coe_nat_at_top_at_top,
     { ext k,
       simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
-          @div_mul_cancel _ _ _ (2*(k:ℝ)+1) (by { norm_cast, linarith }), rpow_neg_one k],
-      ring },
-    { simp } },
+          @div_mul_cancel _ _ _ (2*(k:ℝ)+1)
+            (by { norm_cast, simp only [nat.succ_ne_zero, not_false_iff]}), rpow_neg_one k,
+          tactic.ring.add_neg_eq_sub] },
+    { simp only [add_zero, add_right_neg] } },
   -- (2) We convert the limit in our goal to an inequality
   refine squeeze_zero_norm _ H,
   intro k,
@@ -216,7 +217,7 @@ begin
     { simpa only [U, hk] using zero_rpow_le_one _ },
     { exact rpow_le_one_of_one_le_of_nonpos (by { norm_cast, exact nat.succ_le_iff.mpr
         (nat.pos_of_ne_zero hk) }) (le_of_lt (@div_neg_of_neg_of_pos _ _ (-(1:ℝ)) (2*k+1)
-          (by norm_num) (by { norm_cast, linarith }))) } },
+          (neg_neg_iff_pos.mpr zero_lt_one ) (by { norm_cast, exact nat.succ_pos' }))) } },
   have hU2 := nnreal.coe_nonneg U,
   -- (4) We compute the derivative of `f`, denoted by `f'`
   let f' := λ x : ℝ, (-x^2) ^ k / (1 + x^2),
@@ -247,10 +248,11 @@ begin
   have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
   { intros x hx,
     rw [abs_div, is_absolute_value.abv_pow abs (-x^2) k, abs_neg, is_absolute_value.abv_pow abs x 2,
-        tactic.ring_exp.pow_e_pf_exp rfl rfl, @abs_of_pos _ _ (1+x^2) (by nlinarith)],
-    convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) (by norm_num)
-      (by nlinarith),
-    simp },
+        tactic.ring_exp.pow_e_pf_exp rfl rfl],
+    rw [@abs_of_pos _ (1+x^2) _ (add_pos_of_pos_of_nonneg zero_lt_one (sq_nonneg _))],
+    convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) zero_lt_one
+      ((le_add_iff_nonneg_right _).mpr (sq_nonneg _)),
+    rw div_one' },
   have hbound1 : ∀ x ∈ Ico (U:ℝ) 1, |f' x| ≤ 1,
   { rintros x ⟨hx_left, hx_right⟩,
     have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),
@@ -275,7 +277,7 @@ begin
                ... = 1 - U + U^(2*k) * U : by ring
                ... = 1 - (u k) + (u k)^(2*(k:ℝ)+1) : by { rw [← pow_succ' (U:ℝ) (2*k)], norm_cast },
 end
-
+#exit
 /-! ### The Wallis Product for Pi -/
 
 open finset interval_integral

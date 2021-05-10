@@ -64,7 +64,7 @@ begin
   obtain ⟨k, h1, h2⟩ := exists_int_smul_near_of_pos ha g,
   rw add_gsmul at h2,
   refine ⟨k, sub_nonneg.mpr h1, _⟩,
-  simpa [sub_lt_iff_lt_add'] using h2
+  simpa [sub_lt_iff_lt_add] using h2
 end
 
 end linear_ordered_add_comm_group
@@ -208,7 +208,7 @@ end
 
 lemma sub_floor_div_mul_lt (x : α) {y : α} (hy : 0 < y) :
   x - ⌊x / y⌋ * y < y :=
-sub_lt_iff_lt_add.2 begin
+sub_lt_iff_lt_add'.2 begin
   conv in y {rw ← one_mul y},
   conv in x {rw ← div_mul_cancel x (ne_of_lt hy).symm},
   rw ← add_mul,
@@ -341,7 +341,7 @@ theorem exists_rat_near (x : α) {ε : α} (ε0 : 0 < ε) :
   ∃ q : ℚ, abs (x - q) < ε :=
 let ⟨q, h₁, h₂⟩ := exists_rat_btwn $
   lt_trans ((sub_lt_self_iff x).2 ε0) ((lt_add_iff_pos_left x).2 ε0) in
-⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
+⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add'.2 h₂⟩⟩
 
 instance : archimedean ℚ :=
 archimedean_iff_rat_le.2 $ λ q, ⟨q, by rw rat.cast_id⟩

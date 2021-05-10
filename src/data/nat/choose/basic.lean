@@ -173,7 +173,7 @@ lemma desc_fac_eq_choose_mul_factorial (n k : ℕ) : desc_fac n k = k! * (n + k)
 begin
   rw mul_comm,
   apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
-  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←eval_desc_fac, mul_comm],
+  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←factorial_mul_desc_fac, mul_comm],
   exact le_add_left k n
 end
 

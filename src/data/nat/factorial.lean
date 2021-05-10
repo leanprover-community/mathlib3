@@ -150,8 +150,8 @@ end factorial
 
 section desc_fac
 
-/-- desc_fac n k = (n + k)! / n!, but implemented in a recursive way for calculation.
-This is closely related to `ring_theory.polynomial.pochhammer`, but much less general. -/
+/-- desc_fac n k = (n + k)! / n! (as seen in `nat.desc_fac_eq_div`), but implemented recursively.
+This is closely related to `pochhammer`, but much less general. -/
 def desc_fac (n : ℕ) : ℕ → ℕ
 | 0 := 1
 | (k + 1) := (n + k + 1) * desc_fac k
@@ -171,15 +171,15 @@ lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1)
 | (k + 1) := by rw [desc_fac, mul_left_comm, succ_desc_fac, desc_fac, succ_add, ← add_assoc]
 
 /-- `desc_fac n k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
-See `eval_desc_fac'` if you really need the version that uses ℕ-division. -/
-theorem eval_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
+See `nat.desc_fac_eq_div` if you really need the version that uses ℕ-division. -/
+theorem factorial_mul_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
 | 0 := by rw [desc_fac, add_zero, mul_one]
-| (k + 1) := by rw [desc_fac_succ, mul_left_comm, eval_desc_fac, ← add_assoc, factorial]
+| (k + 1) := by rw [desc_fac_succ, mul_left_comm, factorial_mul_desc_fac, ← add_assoc, factorial]
 
-/-- Avoid in favour of `eval_desc_fac` if you can. ℕ-division isn't worth it. -/
-lemma eval_desc_fac' (n k : ℕ) : desc_fac n k = (n + k)! / n! :=
+/-- Avoid in favour of `nat.factorial_mul_desc_fac` if you can. ℕ-division isn't worth it. -/
+lemma desc_fac_eq_div (n k : ℕ) : desc_fac n k = (n + k)! / n! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero n), rw eval_desc_fac,
+  apply mul_left_cancel' (factorial_ne_zero n), rw factorial_mul_desc_fac,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
 end
 

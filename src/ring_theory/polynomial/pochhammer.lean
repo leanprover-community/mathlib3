@@ -141,7 +141,7 @@ by norm_cast; rw [pochhammer_nat_eq_desc_fac, nat.zero_desc_fac]
 
 lemma factorial_mul_pochhammer (S : Type*) [semiring S] (r n : ℕ) :
   (r! : S) * (pochhammer S n).eval (r + 1) = (r + n)! :=
-by norm_cast; rw [pochhammer_nat_eq_desc_fac, nat.eval_desc_fac]
+by norm_cast; rw [pochhammer_nat_eq_desc_fac, nat.factorial_mul_desc_fac]
 
 lemma pochhammer_eval_succ (r : ℕ) :
   ∀ n : ℕ, (n : S) * (pochhammer S r).eval (n + 1 : S) = (n + r) * (pochhammer S r).eval n

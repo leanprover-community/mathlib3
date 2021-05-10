@@ -473,13 +473,15 @@ begin
   exact add_subgroup.mem_map_of_mem g.to_add_monoid_hom (set.mem_range_self x),
 end
 
-@[simp]
-lemma range_comp_incl_top : (f.comp (incl (⊤ : add_subgroup V₁))).range = f.range :=
+lemma incl_range (s : add_subgroup V₁) : (incl s).range = s :=
 begin
   ext x,
-  simp only [normed_group_hom.mem_range, incl_apply, normed_group_hom.comp_apply],
-  exact ⟨λ ⟨⟨y, h₁⟩, h₂⟩, ⟨y, h₂⟩, λ ⟨y, h⟩, ⟨⟨y, trivial⟩, h⟩⟩
+  exact ⟨λ ⟨y, hy⟩, by { rw ← hy; simp }, λ hx, ⟨⟨x, hx⟩, by simp⟩⟩,
 end
+
+@[simp]
+lemma range_comp_incl_top : (f.comp (incl (⊤ : add_subgroup V₁))).range = f.range :=
+by simpa [comp_range, incl_range, ← add_monoid_hom.range_eq_map]
 
 end range
 

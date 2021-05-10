@@ -814,7 +814,7 @@ open_locale big_operators
 open finset bilin_form
 
 variables {M₁ : Type*} [add_comm_group M₁] [module R M₁]
-variables {ι : Type*} [fintype ι] {v : ι → M}
+variables {ι : Type*} [fintype ι] {v : basis ι R M}
 
 instance units.distrib_mul_action : distrib_mul_action (units R) R :=
 { smul := λ r s, (r : R) * s,
@@ -838,24 +838,24 @@ def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M
   .. f.symm }
 
 /-- Given a quadratic form `Q` and a basis, `basis_repr` is the basis representation of `Q`. -/
-noncomputable def basis_repr (Q : quadratic_form R M)
-  (hv₁ : is_basis R v) : quadratic_form R (ι → R) :=
-Q.comp hv₁.equiv_fun.symm
+noncomputable def basis_repr (Q : quadratic_form R M) (v : basis ι R M) :
+  quadratic_form R (ι → R) :=
+Q.comp v.equiv_fun.symm
 
 @[simp]
-lemma basis_repr_apply (Q : quadratic_form R M) (hv₁ : is_basis R v)
-  (w : ι → R) : Q.basis_repr hv₁ w = Q (∑ i : ι, w i • v i) :=
-by { rw ← hv₁.equiv_fun_symm_apply, refl }
+lemma basis_repr_apply (Q : quadratic_form R M) (w : ι → R) :
+  Q.basis_repr v w = Q (∑ i : ι, w i • v i) :=
+by { rw ← v.equiv_fun_symm_apply, refl }
 
 /-- A quadratic form is isometric to its bases representations. -/
-noncomputable def isometry_basis_repr (Q : quadratic_form R M) (hv₁ : is_basis R v) :
-  isometry Q (Q.basis_repr hv₁) :=
-isometry_of_comp_linear_equiv Q hv₁.equiv_fun.symm
+noncomputable def isometry_basis_repr (Q : quadratic_form R M) (v : basis ι R M):
+  isometry Q (Q.basis_repr v) :=
+isometry_of_comp_linear_equiv Q v.equiv_fun.symm
 
 lemma isometry_of_is_Ortho_apply [invertible (2 : R₁)]
-  (Q : quadratic_form R₁ M) (hv₁ : is_basis R₁ v)
+  (Q : quadratic_form R₁ M) (v : basis ι R₁ M)
   (hv₂ : (associated Q).is_Ortho v) (w : ι → R₁) :
-  Q.basis_repr hv₁ w = ∑ i : ι, associated Q (v i) (v i) * w i * w i :=
+  Q.basis_repr v w = ∑ i : ι, associated Q (v i) (v i) * w i * w i :=
 begin
   rw [basis_repr_apply, ← @associated_eq_self_apply R₁, sum_left],
   refine sum_congr rfl (λ j hj, _),
@@ -896,13 +896,13 @@ lemma equivalent_weighted_sum_squares_of_nondegenerate'
   ∃ w : fin (finite_dimensional.finrank K V) → units K,
     equivalent Q (weighted_sum_squares K w) :=
 begin
-  obtain ⟨v, hv₁, hv₂, hv₃⟩ := exists_orthogonal_basis' hQ associated_is_sym,
+  obtain ⟨v, hv₁, hv₂⟩ := exists_orthogonal_basis' hQ associated_is_sym,
   refine ⟨λ i, units.mk_of_mul_eq_one (associated Q (v i) (v i))
-    (associated Q (v i) (v i))⁻¹ (mul_inv_cancel (hv₃ i)), _⟩,
+    (associated Q (v i) (v i))⁻¹ (mul_inv_cancel (hv₂ i)), _⟩,
   refine nonempty.intro _,
-  convert Q.isometry_basis_repr hv₂,
+  convert Q.isometry_basis_repr v,
   ext w,
-  rw [isometry_of_is_Ortho_apply Q hv₂ hv₁, weighted_sum_squares_apply],
+  rw [isometry_of_is_Ortho_apply Q v hv₁, weighted_sum_squares_apply],
   refine finset.sum_congr rfl _,
   intros,
   change (associated Q) (v x) (v x) • _ = _,
@@ -920,19 +920,21 @@ begin
   { intros i hi,
     exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
   convert (weighted_sum_squares ℂ w).isometry_basis_repr
-    (is_basis.smul_of_is_unit (pi.is_basis_fun ℂ ι) (λ i, is_unit_iff_ne_zero.2 (hw' i))),
+    ((pi.basis_fun ℂ ι).smul_of_is_unit (λ i, is_unit_iff_ne_zero.2 (hw' i))),
   ext1 v,
   erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
-  have hsum : (∑ (i : ι), v i • (w i : ℂ) ^ - (1 / 2 : ℂ) •
-    (linear_map.std_basis ℂ (λ (i : ι), ℂ) i) 1) j =
-    v j • w j ^ - (1 / 2 : ℂ),
-  { rw [finset.sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply,
-        pi.smul_apply, function.update_same, smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
+  have hsum : (∑ (i : ι), v i • (w i : ℂ) ^ - (1 / 2 : ℂ) • (pi.basis_fun ℂ ι) i) j
+    = v j • w j ^ - (1 / 2 : ℂ),
+  { rw [finset.sum_apply, sum_eq_single j, pi.basis_fun_apply,
+        linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_same,
+        smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
     intros i _ hij,
-    rw [linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_noteq hij.symm,
-        pi.zero_apply, smul_eq_mul, smul_eq_mul, mul_zero, mul_zero],
+    rw [pi.basis_fun_apply, linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply,
+        function.update_noteq hij.symm, pi.zero_apply, smul_eq_mul, smul_eq_mul,
+        mul_zero, mul_zero],
     intro hj', exact false.elim (hj' hj) },
+  simp_rw basis.smul_of_is_unit_apply,
   erw [hsum, smul_eq_mul],
   suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
   { erw [pi.one_apply, ← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },

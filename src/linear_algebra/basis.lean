@@ -491,32 +491,6 @@ protected lemma smul_eq_zero [no_zero_divisors R] (b : basis ι R M) {c : R} {x 
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
 @smul_eq_zero _ _ _ _ _ b.no_zero_smul_divisors _ _
 
-lemma is_basis.smul_of_is_unit {v : ι → M} (hv : is_basis R v)
-  {w : ι → R} (hw : ∀ i : ι, is_unit (w i)) :
-  is_basis R (w • v) :=
-begin
-  obtain ⟨hw₁', hw₁''⟩ := hv,
-  split,
-  { rw linear_independent_iff'' at hw₁' ⊢,
-    intros s g hgs hsum i,
-    obtain ⟨wi, hwi⟩ := hw i,
-    rw [←wi.mul_left_eq_zero, hwi],
-    refine hw₁' s (λ i, g i • w i) (λ i hi, _) _ i,
-    { dsimp only,
-      exact (hgs i hi).symm ▸ zero_smul _ _ },
-    { rw [← hsum, finset.sum_congr rfl _],
-      intros, erw [pi.smul_apply, smul_assoc] } },
-  { rw eq_top_iff,
-    intros j hj,
-    rw ← hw₁'' at hj,
-    rw submodule.mem_span at hj ⊢,
-    refine λ p hp, hj p (λ u hu, _),
-    obtain ⟨i, rfl⟩ := hu,
-    obtain ⟨wi, hwi⟩ := hw i,
-    have : ↑wi⁻¹ • w i • v i ∈ p := p.smul_mem ↑wi⁻¹ (hp ⟨i, rfl⟩),
-    rwa [←hwi, units.inv_smul_smul] at this }
-end
-
 end no_zero_smul_divisors
 
 section singleton
@@ -764,6 +738,48 @@ begin
 end
 
 end span
+
+lemma smul_of_is_unit_linear_independent {v : basis ι R M} {w : ι → R}
+  (hw : ∀ i : ι, is_unit (w i)) : linear_independent R (w • v) :=
+begin
+  have hw₁' := v.linear_independent,
+  rw linear_independent_iff'' at hw₁' ⊢,
+    intros s g hgs hsum i,
+    obtain ⟨wi, hwi⟩ := hw i,
+    rw [←wi.mul_left_eq_zero, hwi],
+    refine hw₁' s (λ i, g i • w i) (λ i hi, _) _ i,
+    { dsimp only,
+      exact (hgs i hi).symm ▸ zero_smul _ _ },
+    { rw [← hsum, finset.sum_congr rfl _],
+      intros, erw [pi.smul_apply, smul_assoc] }
+end
+
+lemma smul_of_is_unit_span_eq_top {v : basis ι R M} {w : ι → R}
+  (hw : ∀ i : ι, is_unit (w i)) : submodule.span R (set.range (w • v)) = ⊤ :=
+begin
+  have hw₁' := v.span_eq,
+  rw eq_top_iff,
+  intros j hj,
+  rw ← hw₁' at hj,
+  rw submodule.mem_span at hj ⊢,
+  refine λ p hp, hj p (λ u hu, _),
+  obtain ⟨i, rfl⟩ := hu,
+  obtain ⟨wi, hwi⟩ := hw i,
+  have : ↑wi⁻¹ • w i • v i ∈ p := p.smul_mem ↑wi⁻¹ (hp ⟨i, rfl⟩),
+  rwa [←hwi, units.inv_smul_smul] at this
+end
+
+/-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
+provides the basis corresponding to `w • v`. -/
+noncomputable
+def smul_of_is_unit (v : basis ι R M) {w : ι → R} (hw : ∀ i : ι, is_unit (w i)) :
+  basis ι R M :=
+@basis.mk ι R M (w • v) _ _ _
+  (basis.smul_of_is_unit_linear_independent hw) (basis.smul_of_is_unit_span_eq_top hw)
+
+lemma smul_of_is_unit_apply {v : basis ι R M} {w : ι → R} (hw : ∀ i : ι, is_unit (w i))
+  (i : ι) : v.smul_of_is_unit hw i = w i • v i :=
+mk_apply (smul_of_is_unit_linear_independent hw) (smul_of_is_unit_span_eq_top hw) i
 
 end basis
 

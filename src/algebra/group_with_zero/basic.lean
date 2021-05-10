@@ -573,7 +573,7 @@ end
 @[simp] lemma div_self {a : G₀} (h : a ≠ 0) : a / a = 1 :=
 by rw [div_eq_mul_inv, mul_inv_cancel h]
 
-@[simp] lemma div_one (a : G₀) : a / 1 = a :=
+@[simp] lemma div_one' (a : G₀) : a / 1 = a :=
 by simp [div_eq_mul_inv a 1]
 
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 :=
@@ -761,7 +761,7 @@ by simp [div_eq_mul_inv]
 
 lemma div_mul_eq_mul_div_comm (a b c : G₀) :
       (b / c) * a = b * (a / c) :=
-by rw [div_mul_eq_mul_div, ← one_mul c, ← div_mul_div, div_one, one_mul]
+by rw [div_mul_eq_mul_div, ← one_mul c, ← div_mul_div, div_one', one_mul]
 
 lemma mul_eq_mul_of_div_eq_div (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb : b ≠ 0)
       (hd : d ≠ 0) (h : a / b = c / d) : a * d = c * b :=

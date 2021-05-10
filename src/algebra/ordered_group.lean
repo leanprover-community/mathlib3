@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.ordered_monoid
 
--- TODO: there are probably "left" versions of some of the lemmas in this section
+-- TODO: there are probably "left/right" versions of some of the lemmas in this file
 -- that might be proven.
 
 /-!

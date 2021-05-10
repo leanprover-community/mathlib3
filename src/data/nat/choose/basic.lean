@@ -183,7 +183,7 @@ lemma factorial_dvd_desc_fac (n k : ℕ) : k! ∣ desc_fac n k :=
 lemma choose_eq_desc_fac_div_factorial (n k : ℕ) : (n + k).choose k = desc_fac n k / k! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero k),
-  rw ←desc_fac_eq_choose_mul_factorial,
+  rw ←desc_fac_eq_factorial_mul_choose,
   exact (nat.mul_div_cancel' $ factorial_dvd_desc_fac _ _).symm
 end
 

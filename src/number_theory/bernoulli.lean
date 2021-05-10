@@ -76,7 +76,7 @@ lemma bernoulli'_spec (n : ℕ) :
 begin
   rw [sum_range_succ_comm, bernoulli'_def n, nat.sub_self],
   conv in (n.choose (_ - _)) { rw choose_symm (mem_range.1 H).le },
-  simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
+  simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one'],
 end
 
 lemma bernoulli'_spec' (n : ℕ) :

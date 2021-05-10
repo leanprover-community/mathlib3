@@ -573,7 +573,7 @@ end lt_left
 section lt_left_right
 variables [has_mul_lt_mul_left α] [has_mul_lt_mul_right α]
 
-@[to_additive]
+@[simp, to_additive]
 lemma inv_lt_inv_iff : b⁻¹ < a⁻¹ ↔ a < b :=
 by rwa [← mul_lt_mul_iff_left' a, ← mul_lt_mul_iff_right' b, inv_mul_cancel_right, mul_right_inv,
     one_mul]
@@ -821,7 +821,7 @@ by rw [mul_comm, lt_div_iff_mul_lt_right']
 lemma div_lt_iff_mul : c / a < b ↔ c < a * b :=
 by rw [mul_comm, div_lt_iff_lt_mul']
 
-@[to_additive]
+@[simp, to_additive]
 lemma div_lt_iff_lt_mul : a / b < c ↔ a < b * c :=
 by rw [mul_comm, div_lt_iff_lt_mul']
 

@@ -848,7 +848,7 @@ finite_type_iff_fg.2 h
 
 /-- A group `G` is finitely generated if and only if `add_monoid_algebra R G` is of finite type. -/
 lemma finite_type_iff_group_fg {G : Type*} [comm_group G] [comm_ring R] [nontrivial R] :
-group.fg G ↔ finite_type R (monoid_algebra R G) :=
+  group.fg G ↔ finite_type R (monoid_algebra R G) :=
 by simpa [group.fg_iff_monoid.fg] using finite_type_iff_fg
 
 end monoid_algebra

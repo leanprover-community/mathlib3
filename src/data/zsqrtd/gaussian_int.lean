@@ -87,7 +87,7 @@ by rw [norm, norm_sq]; simp
 @[simp] lemma nat_cast_complex_norm (x : ℤ[i]) : (x.norm : ℂ) = (x : ℂ).norm_sq :=
 by cases x; rw [norm, norm_sq]; simp
 
-lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg (by norm_num) _
+lemma norm_nonneg (x : ℤ[i]) : 0 ≤ norm x := norm_nonneg (neg_nonpos.mpr zero_le_one) _
 
 @[simp] lemma norm_eq_zero {x : ℤ[i]} : norm x = 0 ↔ x = 0 :=
 by rw [← @int.cast_inj ℝ _ _ _]; simp

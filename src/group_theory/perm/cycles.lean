@@ -609,6 +609,64 @@ begin
   simpa [←l.prop.left, mem_support] using mem_list_cycles_iff l.prop.right.left l.prop.right.right
 end
 
+lemma cycle_factors_finset_eq_empty_iff :
+  cycle_factors_finset f = ∅ ↔ f = 1 :=
+begin
+  split,
+  { intros h,
+    rw [←cycle_factors_finset_noncomm_prod f],
+    simp [h] },
+  { rintro rfl,
+    ext g,
+    simp only [mem_cycle_factors_finset_iff, perm.coe_one, not_and, id.def, not_imp_self,
+               perm.mem_support, iff_false, not_forall, not_mem_empty],
+    exact λ ⟨x, hx, hx'⟩, ⟨x, hx⟩ }
+end
+
+@[simp] lemma cycle_factors_finset_eq_singleton_self_iff :
+  f.cycle_factors_finset = {f} ↔ f.is_cycle :=
+begin
+  split,
+  { intro h,
+    have : f ∈ f.cycle_factors_finset,
+    { simp [h] },
+    exact (mem_cycle_factors_finset_iff.mp this).left },
+  { intros h,
+    have hf : f ∈ f.cycle_factors_finset,
+    { simp [mem_cycle_factors_finset_iff, h] },
+    ext g,
+    simp only [mem_singleton],
+    split,
+    { intros hg,
+      rw mem_cycle_factors_finset_iff at hf hg,
+      refine hg.left.support_congr hf.left _ hg.right,
+      intros x hx,
+      rwa [mem_support, ←hg.right _ hx, ←mem_support] },
+    { rintro rfl,
+      exact hf } }
+end
+
+/-- Two permutations `f g : perm α` have the same cycle factors iff they are the same. -/
+lemma cycle_factors_finset_injective : function.injective (@cycle_factors_finset α _ _) :=
+begin
+  intros f g h,
+  rw ←cycle_factors_finset_noncomm_prod f,
+  simpa [h] using cycle_factors_finset_noncomm_prod g
+end
+
+lemma cycle_factors_finset_eq_singleton_iff {g : perm α} :
+  f.cycle_factors_finset = {g} ↔ f.is_cycle ∧ f = g :=
+begin
+  split,
+  { intro h,
+    have : g ∈ f.cycle_factors_finset,
+    { simp [h] },
+    rw ←cycle_factors_finset_noncomm_prod f,
+    simpa [h] using (mem_cycle_factors_finset_iff.mp this).left },
+  { rintro ⟨hf, rfl⟩,
+    simpa using hf }
+end
+
 end cycle_factors_finset
 
 @[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)

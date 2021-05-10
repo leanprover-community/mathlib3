@@ -711,6 +711,12 @@ lemma fg_of_finite_type [comm_ring R] [nontrivial R] [h : finite_type R (add_mon
   add_monoid.fg M :=
 finite_type_iff_fg.2 h
 
+/-- An additive group `G` is finitely generated if and only if `add_monoid_algebra R G` is of
+finite type. -/
+lemma finite_type_iff_group_fg {G : Type*} [add_comm_group G] [comm_ring R] [nontrivial R] :
+add_group.fg G ↔ finite_type R (add_monoid_algebra R G) :=
+by simpa [add_group.fg_iff_add_monoid.fg] using finite_type_iff_fg
+
 end add_monoid_algebra
 
 namespace monoid_algebra
@@ -839,6 +845,11 @@ lemma finite_type_iff_fg [comm_ring R] [nontrivial R] :
 lemma fg_of_finite_type [comm_ring R] [nontrivial R] [h : finite_type R (monoid_algebra R M)] :
   monoid.fg M :=
 finite_type_iff_fg.2 h
+
+/-- A group `G` is finitely generated if and only if `add_monoid_algebra R G` is of finite type. -/
+lemma finite_type_iff_group_fg {G : Type*} [comm_group G] [comm_ring R] [nontrivial R] :
+group.fg G ↔ finite_type R (monoid_algebra R G) :=
+by simpa [group.fg_iff_monoid.fg] using finite_type_iff_fg
 
 end monoid_algebra
 

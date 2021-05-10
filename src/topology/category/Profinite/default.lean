@@ -144,12 +144,9 @@ section discrete_topology
 
 local attribute [instance] Fintype.discrete_topology
 
-/--
-The natural functor from `Fintype` to `Profinite`, endowing a finite type with the
-discrete topology.
--/
-@[simps]
-def Fintype.to_Profinite : Fintype ⥤ Profinite :=
+/-- The natural functor from `Fintype` to `Profinite`, endowing a finite type with the
+discrete topology. -/
+@[simps] def Fintype.to_Profinite : Fintype ⥤ Profinite :=
 { obj := λ A, Profinite.of A,
   map := λ _ _ f, ⟨f⟩ }
 
@@ -159,12 +156,8 @@ end Profinite
 
 namespace Profinite
 
-universe u
-
-/--
-An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
-`Top.limit_cone`.
--/
+/-- An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
+`Top.limit_cone`. -/
 def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
   limits.cone F :=
 { X :=
@@ -184,9 +177,7 @@ def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}
   uniq' := λ S m h,
     (CompHaus.limit_cone_is_limit _).uniq (Profinite.to_CompHaus.map_cone S) _ h }
 
-/--
-The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus
--/
+/-- The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus -/
 def to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite.to_CompHaus :=
 adjunction.adjunction_of_equiv_left _ _
 

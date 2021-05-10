@@ -173,7 +173,7 @@ begin
   calc  dist a b * (dist c p * dist a b) + dist b c * (dist a p * dist b c)
       = dist b a ^ 2 * dist c p + dist b c ^ 2 * dist a p : by { rw dist_comm a b, ring }
   ... = dist a c * (dist b p ^ 2 + dist a p * dist c p) :
-        sq_dist_mul_dist_add_sq_dist_mul_dist b hapc
+        dist_sq_mul_dist_add_dist_sq_mul_dist b hapc
   ... = dist a c * (dist b p * dist b p + dist a p * dist c p) : by ring,
 end
 

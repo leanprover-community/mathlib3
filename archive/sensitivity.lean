@@ -229,11 +229,11 @@ since this cardinal is finite, as a natural number in `finrank_V` -/
 
 lemma dim_V : module.rank ℝ (V n) = 2^n :=
 have module.rank ℝ (V n) = (2^n : ℕ),
-  by { rw [dim_eq_card_basis (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
+  by { rw [dim_eq_card_basis (dual_pair_e_ε _).basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
-finite_dimensional.of_fintype_basis (dual_pair_e_ε _).is_basis
+finite_dimensional.of_fintype_basis (dual_pair_e_ε _).basis
 
 lemma finrank_V : finrank ℝ (V n) = 2^n :=
 have _ := @dim_V n,
@@ -367,12 +367,14 @@ begin
     rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
-  { have li : linear_independent ℝ (set.restrict e H) :=
-      linear_independent.comp (dual_pair_e_ε _).is_basis.1 _ subtype.val_injective,
+  { have li : linear_independent ℝ (set.restrict e H),
+    { convert (dual_pair_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
+      rw (dual_pair_e_ε _).coe_basis },
     have hdW := dim_span li,
     rw set.range_restrict at hdW,
     convert hdW,
-    rw [cardinal.mk_image_eq (dual_pair_e_ε _).is_basis.injective, cardinal.fintype_card] },
+    rw [← (dual_pair_e_ε _).coe_basis, cardinal.mk_image_eq (dual_pair_e_ε _).basis.injective,
+        cardinal.fintype_card] },
   rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
@@ -406,7 +408,7 @@ begin
         = |ε q (s • y)| :
       by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
     ... = |ε q (f (m+1) y)| : by rw [← f_image_g y (by simpa using y_mem_g)]
-    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_pair_e_ε _).decomposition y
+    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_pair_e_ε _).lc_coeffs y
     ... = |(coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘
             λ (i : Q (m + 1)), e i) i)| :
       by erw [(f $ m + 1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply]

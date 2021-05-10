@@ -129,6 +129,21 @@ begin
   { norm_num },
 end
 
+lemma real_roots_poly_ge_aux' (a b : ℕ) (hab : b < a) : a ^ 2 + b ≤ a ^ 5 :=
+begin
+  refine le_trans ((nat.add_le_add_iff_le_right 1 _ _).mp _) (nat.pow_le_pow_of_le_right
+    (nat.one_le_of_lt hab) (bit1_le_bit1.mpr one_le_two)),
+  rw [add_assoc],
+  apply (add_le_add (le_refl (a ^ 2)) (nat.succ_le_iff.mpr hab)).trans,
+  suffices : ∀ c : ℤ, 0 ≤ c → c ^ 2 + c ≤ c ^ 3 + 1,
+  { specialize this a (int.coe_nat_nonneg a),
+    norm_cast at this,
+    exact this },
+  intros c hc,
+  rw [←sub_nonneg, show c ^ 3 + 1 - (c ^ 2 + c) = (c - 1) ^ 2 * (c + 1), by ring],
+  exact mul_nonneg (pow_two_nonneg _) (add_nonneg hc zero_le_one),
+end
+
 lemma real_roots_poly_ge_aux (a b : ℕ) (hab : b < a) (f : ℝ → ℝ) (f_cont : continuous f)
   (f_def : ∀ x : ℝ, f x = x ^ 5 - a * x + b) : ∃ x y : ℝ, x ≠ y ∧ f x = 0 ∧ f y = 0 :=
 begin
@@ -155,8 +170,10 @@ begin
       norm_cast,
       exact hb.symm },
     have ha : f (-a) ≤ 0,
-    { rw [f_def, neg_pow_bit1, ←neg_mul_eq_mul_neg, sub_neg_eq_add, ←pow_two],
-      sorry },
+    { rw [f_def, neg_pow_bit1, ←neg_mul_eq_mul_neg, sub_neg_eq_add, ←pow_two, add_assoc,
+          neg_add_eq_sub, sub_nonpos],
+      norm_cast,
+      exact real_roots_poly_ge_aux' a b hab },
     obtain ⟨x, hx1, hx2⟩ := intermediate_value_Icc (show -(a : ℝ) ≤ 0, from neg_nonpos.mpr
       (nat.cast_nonneg a)) f_cont.continuous_on (set.mem_Icc.mpr ⟨ha, h0⟩),
     exact ⟨x, 1, ne_of_lt (lt_of_le_of_lt hx1.2 zero_lt_one), hx2, hy2⟩ },

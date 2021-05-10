@@ -627,6 +627,18 @@ iff.intro (assume h, h.image hf.continuous) $ assume h, begin
   rwa [hf.induced, nhds_induced, ←map_le_iff_le_comap]
 end
 
+/-- A closed embedding is proper, ie, inverse images of compact sets are contained in compacts. -/
+lemma closed_embedding.tendsto_cocompact
+  {f : α → β} (hf : closed_embedding f) : tendsto f (filter.cocompact α) (filter.cocompact β) :=
+begin
+  rw filter.has_basis_cocompact.tendsto_iff filter.has_basis_cocompact,
+  intros K hK,
+  refine ⟨f ⁻¹' (K ∩ (set.range f)), _, λ x hx, by simpa using hx⟩,
+  apply hf.to_embedding.compact_iff_compact_image.mpr,
+  rw set.image_preimage_eq_of_subset (set.inter_subset_right _ _),
+  exact hK.inter_right hf.closed_range,
+end
+
 lemma compact_iff_compact_in_subtype {p : α → Prop} {s : set {a // p a}} :
   is_compact s ↔ is_compact ((coe : _ → α) '' s) :=
 embedding_subtype_coe.compact_iff_compact_image

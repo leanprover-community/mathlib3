@@ -818,6 +818,11 @@ theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i
 | 0       := mul_zero _
 | -[1+ n] := mul_neg_one _
 
+theorem sign_pow_bit1 (k : ℕ) : ∀ n : ℤ, n.sign ^ (bit1 k) = n.sign
+| (n+1:ℕ) := one_pow (bit1 k)
+| 0       := zero_pow (nat.zero_lt_bit1 k)
+| -[1+ n] := (neg_pow_bit1 1 k).trans (congr_arg (λ x, -x) (one_pow (bit1 k)))
+
 theorem le_of_dvd {a b : ℤ} (bpos : 0 < b) (H : a ∣ b) : a ≤ b :=
 match a, b, eq_succ_of_zero_lt bpos, H with
 | (m : ℕ), ._, ⟨n, rfl⟩, H := coe_nat_le_coe_nat_of_le $

@@ -389,6 +389,42 @@ begin
   { split_ifs at hy; cc }
 end
 
+section extend_domain
+variables {β : Type*} [decidable_eq β] [fintype β] {p : β → Prop} [decidable_pred p]
+
+@[simp]
+lemma support_extend_domain (f : α ≃ subtype p) {g : perm α} :
+  support (g.extend_domain f) = g.support.map f.as_embedding :=
+begin
+  ext b,
+  simp only [exists_prop, function.embedding.coe_fn_mk, to_embedding_apply, mem_map, ne.def,
+    function.embedding.trans_apply, mem_support],
+  by_cases pb : p b,
+  { rw [extend_domain_apply_subtype _ _ pb],
+    split,
+    { rintro h,
+      refine ⟨f.symm ⟨b, pb⟩, _, by simp⟩,
+      contrapose! h,
+      simp [h] },
+    { rintro ⟨a, ha, hb⟩,
+      contrapose! ha,
+      obtain rfl : a = f.symm ⟨b, pb⟩,
+      { rw eq_symm_apply,
+        exact subtype.coe_injective hb },
+      rw eq_symm_apply,
+      exact subtype.coe_injective ha } },
+  { rw [extend_domain_apply_not_subtype _ _ pb],
+    simp only [not_exists, false_iff, not_and, eq_self_iff_true, not_true],
+    rintros a ha rfl,
+    exact pb (subtype.prop _) }
+end
+
+lemma card_support_extend_domain (f : α ≃ subtype p) {g : perm α} :
+  (g.extend_domain f).support.card = g.support.card :=
+by simp
+
+end extend_domain
+
 section card
 
 @[simp]

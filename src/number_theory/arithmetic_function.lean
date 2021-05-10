@@ -8,7 +8,6 @@ import number_theory.divisors
 import algebra.squarefree
 import algebra.invertible
 import tactic.omega
-
 /-!
 # Arithmetic Functions and Dirichlet Convolution
 

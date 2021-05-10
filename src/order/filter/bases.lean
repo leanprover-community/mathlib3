@@ -218,6 +218,12 @@ def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
 lemma has_basis.mem_iff (hl : l.has_basis p s) : t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 hl.mem_iff' t
 
+lemma has_basis.eq_of_same_basis (hl : l.has_basis p s) (hl' : l'.has_basis p s) : l = l' :=
+begin
+  ext t,
+  rw [hl.mem_iff, hl'.mem_iff]
+end
+
 lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 ⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
 

@@ -662,7 +662,7 @@ end
 @[to_additive exists_zero_lt]
 lemma exists_one_lt' [nontrivial α] : ∃ (a:α), 1 < a :=
 begin
-  obtain ⟨y, hy⟩ := exists_ne (1 : α),
+  obtain ⟨y, hy⟩ := decidable.exists_ne (1 : α),
   cases hy.lt_or_lt,
   { exact ⟨y⁻¹, one_lt_inv'.mpr h⟩ },
   { exact ⟨y, h⟩ }
@@ -775,7 +775,7 @@ lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 abs_of_nonneg $ abs_nonneg a
 
 @[simp] lemma abs_eq_zero : abs a = 0 ↔ a = 0 :=
-not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
+decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
 
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero

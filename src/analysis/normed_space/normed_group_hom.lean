@@ -465,10 +465,7 @@ lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.ran
 by { erw add_monoid_hom.map_range, refl }
 
 lemma incl_range (s : add_subgroup V₁) : (incl s).range = s :=
-begin
-  ext x,
-  exact ⟨λ ⟨y, hy⟩, by { rw ← hy; simp }, λ hx, ⟨⟨x, hx⟩, by simp⟩⟩,
-end
+by { ext x, exact ⟨λ ⟨y, hy⟩, by { rw ← hy; simp }, λ hx, ⟨⟨x, hx⟩, by simp⟩⟩ }
 
 @[simp]
 lemma range_comp_incl_top : (f.comp (incl (⊤ : add_subgroup V₁))).range = f.range :=

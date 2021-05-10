@@ -611,14 +611,21 @@ lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
   equiv.prod_assoc α β γ ⁻¹' s.prod (t.prod u) = (s.prod t).prod u :=
 by { ext, simp [and_assoc] }
 
+/-- Functions on `α × β` are equivalent to functions `α → β → γ`. -/
+@[simps {fully_applied := ff}] def curry (α β γ : Type*) :
+  (α × β → γ) ≃ (α → β → γ) :=
+{ to_fun := curry,
+  inv_fun := uncurry,
+  left_inv := uncurry_curry,
+  right_inv := curry_uncurry }
+
 section
 /-- `punit` is a right identity for type product up to an equivalence. -/
-@[simps apply] def prod_punit (α : Type*) : α × punit.{u+1} ≃ α :=
+@[simps] def prod_punit (α : Type*) : α × punit.{u+1} ≃ α :=
 ⟨λ p, p.1, λ a, (a, punit.star), λ ⟨_, punit.star⟩, rfl, λ a, rfl⟩
 
 /-- `punit` is a left identity for type product up to an equivalence. -/
-@[simps apply]
-def punit_prod (α : Type*) : punit.{u+1} × α ≃ α :=
+@[simps] def punit_prod (α : Type*) : punit.{u+1} × α ≃ α :=
 calc punit × α ≃ α × punit : prod_comm _ _
            ... ≃ α         : prod_punit _
 
@@ -1151,10 +1158,6 @@ def arrow_prod_equiv_prod_arrow (α β γ : Type*) : (γ → α × β) ≃ (γ �
  λ p c, (p.1 c, p.2 c),
  λ f, funext $ λ c, prod.mk.eta,
  λ p, by { cases p, refl }⟩
-
-/-- Functions `α → β → γ` are equivalent to functions on `α × β`. -/
-def arrow_arrow_equiv_prod_arrow (α β γ : Sort*) : (α → β → γ) ≃ (α × β → γ) :=
-⟨uncurry, curry, curry_uncurry, uncurry_curry⟩
 
 open sum
 /-- The type of functions on a sum type `α ⊕ β` is equivalent to the type of pairs of functions
@@ -1767,9 +1770,14 @@ noncomputable def of_injective {α β} (f : α → β) (hf : injective f) : α �
 equiv.of_left_inverse f
   (λ h, by exactI function.inv_fun f) (λ h, by exactI function.left_inverse_inv_fun hf)
 
+
 theorem apply_of_injective_symm {α β} (f : α → β) (hf : injective f) (b : set.range f) :
   f ((of_injective f hf).symm b) = b :=
 subtype.ext_iff.1 $ (of_injective f hf).apply_symm_apply b
+
+@[simp] lemma self_comp_of_injective_symm {α β} (f : α → β) (hf : injective f) :
+  f ∘ ((of_injective f hf).symm) = coe :=
+funext (λ x, apply_of_injective_symm f hf x)
 
 lemma of_left_inverse_eq_of_injective {α β : Type*}
   (f : α → β) (f_inv : nonempty α → β → α) (hf : Π h : nonempty α, left_inverse (f_inv h) f) :

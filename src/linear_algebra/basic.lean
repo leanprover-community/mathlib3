@@ -276,6 +276,21 @@ begin
     exact (function.commute.iterate_self _ _ m).symm, },
 end
 
+lemma pow_map_zero_of_le
+  {f : module.End R M} {m : M} {k l : ℕ} (hk : k ≤ l) (hm : (f^k) m = 0) : (f^l) m = 0 :=
+by rw [← nat.sub_add_cancel hk, pow_add, mul_apply, hm, map_zero]
+
+lemma commute_pow_left_of_commute
+  {f : M →ₗ[R] M₂} {g : module.End R M} {g₂ : module.End R M₂} (h : g₂.comp f = f.comp g) (k : ℕ) :
+  (g₂^k).comp f = f.comp (g^k) :=
+begin
+  induction k with k ih,
+  { simpa only [pow_zero], },
+  { rw [pow_succ, pow_succ, linear_map.mul_eq_comp, linear_map.comp_assoc, ih,
+      ← linear_map.comp_assoc, h, linear_map.comp_assoc, linear_map.mul_eq_comp], },
+end
+
+
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 
@@ -652,6 +667,9 @@ def map (f : M →ₗ[R] M₂) (p : submodule R M) : submodule R M₂ :=
 
 theorem mem_map_of_mem {f : M →ₗ[R] M₂} {p : submodule R M} {r} (h : r ∈ p) : f r ∈ map f p :=
 set.mem_image_of_mem _ h
+
+lemma apply_coe_mem_map (f : M →ₗ[R] M₂) {p : submodule R M} (r : p) : f r ∈ map f p :=
+mem_map_of_mem r.prop
 
 @[simp] lemma map_id : map linear_map.id p = p :=
 submodule.ext $ λ a, by simp
@@ -1974,15 +1992,15 @@ variables (V V₂ R)
 
 /-- Linear equivalence between a curried and uncurried function.
   Differs from `tensor_product.curry`. -/
-protected def uncurry :
-  (V → V₂ → R) ≃ₗ[R] (V × V₂ → R) :=
-{ map_add'  := λ _ _, by { ext ⟨⟩, refl },
-  map_smul' := λ _ _, by { ext ⟨⟩, refl },
-  .. equiv.arrow_arrow_equiv_prod_arrow _ _ _}
+protected def curry :
+  (V × V₂ → R) ≃ₗ[R] (V → V₂ → R) :=
+{ map_add'  := λ _ _, by { ext, refl },
+  map_smul' := λ _ _, by { ext, refl },
+  .. equiv.curry _ _ _ }
 
-@[simp] lemma coe_uncurry : ⇑(linear_equiv.uncurry R V V₂) = uncurry := rfl
+@[simp] lemma coe_curry : ⇑(linear_equiv.curry R V V₂) = curry := rfl
 
-@[simp] lemma coe_uncurry_symm : ⇑(linear_equiv.uncurry R V V₂).symm = curry := rfl
+@[simp] lemma coe_curry_symm : ⇑(linear_equiv.curry R V V₂).symm = uncurry := rfl
 
 end uncurry
 

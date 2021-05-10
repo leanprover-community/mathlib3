@@ -80,6 +80,32 @@ notation `⋂` binders `, ` r:(scoped f, Inter f) := r
   -- TODO: more rewrite rules wrt forall / existentials and logical connectives
   -- TODO: also eliminate ∃i, ... ∧ i = t ∧ ...
 
+lemma Union_prop (f : ι → set α) (p : ι → Prop) (i : ι) [decidable $ p i] :
+  (⋃ (h : p i), f i) = if p i then f i else ∅ :=
+begin
+  ext x,
+  rw mem_Union,
+  split_ifs ; tauto,
+end
+
+@[simp]
+lemma Union_prop_pos {p : ι → Prop} {i : ι} (hi : p i) (f : ι → set α)  :
+  (⋃ (h : p i), f i) = f i :=
+begin
+  classical,
+  ext x,
+  rw [Union_prop, if_pos hi]
+end
+
+@[simp]
+lemma Union_prop_neg {p : ι → Prop} {i : ι} (hi : ¬ p i) (f : ι → set α)  :
+  (⋃ (h : p i), f i) = ∅ :=
+begin
+  classical,
+  ext x,
+  rw [Union_prop, if_neg hi]
+end
+
 lemma exists_set_mem_of_union_eq_top {ι : Type*} (t : set ι) (s : ι → set β)
   (w : (⋃ i ∈ t, s i) = ⊤) (x : β) :
   ∃ (i ∈ t), x ∈ s i :=
@@ -259,6 +285,10 @@ infi_option s
 theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x := by simp
 
+lemma mem_bUnion_iff' {p : α → Prop} {t : α → set β} {y : β} :
+  y ∈ (⋃ i (h : p i), t i) ↔ ∃ i (h : p i), y ∈ t i :=
+mem_bUnion_iff
+
 theorem mem_bInter_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋂ x ∈ s, t x) ↔ ∀ x ∈ s, y ∈ t x := by simp
 
@@ -369,6 +399,20 @@ begin rw insert_eq, simp [bInter_union] end
 theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
 by simp [inter_comm]
+
+lemma bInter_inter {ι α : Type*} {s : set ι} (hs : s.nonempty) (f : ι → set α) (t : set α) :
+  (⋂ i ∈ s, f i ∩ t) = (⋂ i ∈ s, f i) ∩ t :=
+begin
+  haveI : nonempty s := hs.to_subtype,
+  simp [bInter_eq_Inter, ← Inter_inter]
+end
+
+lemma inter_bInter {ι α : Type*} {s : set ι} (hs : s.nonempty) (f : ι → set α) (t : set α) :
+  (⋂ i ∈ s, t ∩ f i) = t ∩ ⋂ i ∈ s, f i :=
+begin
+  rw [inter_comm, ← bInter_inter hs],
+  simp [inter_comm]
+end
 
 theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset

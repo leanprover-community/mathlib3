@@ -57,16 +57,21 @@ the canonical power basis is given by `{algebra,intermediate_field}.adjoin.power
 structure power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 (gen : S)
 (dim : ℕ)
-(is_basis : is_basis R (λ (i : fin dim), gen ^ (i : ℕ)))
+(basis : basis (fin dim) R S)
+(basis_eq_pow : ∀ i, basis i = gen ^ (i : ℕ))
 
 namespace power_basis
 
+@[simp] lemma coe_basis (pb : power_basis R S) :
+  ⇑pb.basis = λ (i : fin pb.dim), pb.gen ^ (i : ℕ) :=
+funext pb.basis_eq_pow
+
 /-- Cannot be an instance because `power_basis` cannot be a class. -/
 lemma finite_dimensional [algebra K S] (pb : power_basis K S) : finite_dimensional K S :=
-finite_dimensional.of_fintype_basis pb.is_basis
+finite_dimensional.of_fintype_basis pb.basis
 
 lemma finrank [algebra K S] (pb : power_basis K S) : finite_dimensional.finrank K S = pb.dim :=
-by rw [finite_dimensional.finrank_eq_card_basis pb.is_basis, fintype.card_fin]
+by rw [finite_dimensional.finrank_eq_card_basis pb.basis, fintype.card_fin]
 
 lemma mem_span_pow' {x y : S} {d : ℕ} :
   y ∈ submodule.span R (set.range (λ (i : fin d), x ^ (i : ℕ))) ↔
@@ -102,7 +107,7 @@ end
 lemma dim_ne_zero [nontrivial S] (pb : power_basis R S) : pb.dim ≠ 0 :=
 λ h, one_ne_zero $
 show (1 : S) = 0,
-by { rw [← pb.is_basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype],
+by { rw [← pb.basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype],
      { refine finset.sum_eq_zero (λ x hx, _),
        cases x with x x_lt,
        rw h at x_lt,
@@ -111,7 +116,7 @@ by { rw [← pb.is_basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype]
 
 lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
   ∃ f : polynomial R, f.nat_degree < pb.dim ∧ y = aeval pb.gen f :=
-(mem_span_pow pb.dim_ne_zero).mp (pb.is_basis.mem_span y)
+(mem_span_pow pb.dim_ne_zero).mp (by simpa using pb.basis.mem_span y)
 
 section minpoly
 
@@ -126,7 +131,7 @@ however `nat_degree_minpoly` shows its degree is indeed minimal.
 -/
 noncomputable def minpoly_gen (pb : power_basis A S) : polynomial A :=
 X ^ pb.dim -
-  ∑ (i : fin pb.dim), C (pb.is_basis.repr (pb.gen ^ pb.dim) i) * X ^ (i : ℕ)
+  ∑ (i : fin pb.dim), C (pb.basis.repr (pb.gen ^ pb.dim) i) * X ^ (i : ℕ)
 
 @[simp]
 lemma nat_degree_minpoly_gen (pb : power_basis A S) :
@@ -150,9 +155,9 @@ lemma aeval_minpoly_gen (pb : power_basis A S) : aeval pb.gen (minpoly_gen pb) =
 begin
   simp_rw [minpoly_gen, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_mul, alg_hom.map_pow,
            aeval_C, ← algebra.smul_def, aeval_X],
-  refine sub_eq_zero.mpr ((pb.is_basis.total_repr (pb.gen ^ pb.dim)).symm.trans _),
-  rw [finsupp.total_apply, finsupp.sum_fintype],
-  intro i, rw zero_smul
+  refine sub_eq_zero.mpr ((pb.basis.total_repr (pb.gen ^ pb.dim)).symm.trans _),
+  rw [finsupp.total_apply, finsupp.sum_fintype];
+    simp only [pb.coe_basis, zero_smul, eq_self_iff_true, implies_true_iff]
 end
 
 lemma is_integral_gen (pb : power_basis A S) : is_integral A pb.gen :=
@@ -170,13 +175,13 @@ begin
     { exact this ⟨i, hi⟩ },
     exact coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le hlt (le_of_not_gt hi)) },
   intro i,
-  refine linear_independent_iff'.mp h.is_basis.1 finset.univ _ _ i (finset.mem_univ _),
+  refine linear_independent_iff'.mp h.basis.linear_independent _ _ _ i (finset.mem_univ _),
   rw aeval_eq_sum_range' hlt at root,
   rw finset.sum_fin_eq_sum_range,
   convert root,
   ext i,
   split_ifs with hi,
-  { refl },
+  { simp_rw [coe_basis, p_coeff, fin.coe_mk] },
   { rw [coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le hlt (le_of_not_gt hi)),
         zero_smul] }
 end
@@ -208,7 +213,7 @@ end
 
 lemma constr_pow_aeval (pb : power_basis A S) {y : S'}
   (hy : aeval y (minpoly A pb.gen) = 0) (f : polynomial A) :
-  pb.is_basis.constr (λ i, y ^ (i : ℕ)) (aeval pb.gen f) = aeval y f :=
+  pb.basis.constr A (λ i, y ^ (i : ℕ)) (aeval pb.gen f) = aeval y f :=
 begin
   rw [← aeval_mod_by_monic_eq_self_of_root (minpoly.monic pb.is_integral_gen) (minpoly.aeval _ _),
       ← @aeval_mod_by_monic_eq_self_of_root _ _ _ _ _ f _ (minpoly.monic pb.is_integral_gen) y hy],
@@ -224,23 +229,23 @@ begin
   rw finset.mem_range at hi,
   rw linear_map.map_smul,
   congr,
-  exact @constr_basis _ _ _ _ _ _ _ _ _ _ _ (⟨i, hi⟩ : fin pb.dim) pb.is_basis,
+  rw [← fin.coe_mk hi, ← pb.basis_eq_pow ⟨i, hi⟩, basis.constr_basis]
 end
 
 lemma constr_pow_gen (pb : power_basis A S) {y : S'}
   (hy : aeval y (minpoly A pb.gen) = 0) :
-  pb.is_basis.constr (λ i, y ^ (i : ℕ)) pb.gen = y :=
+  pb.basis.constr A (λ i, y ^ (i : ℕ)) pb.gen = y :=
 by { convert pb.constr_pow_aeval hy X; rw aeval_X }
 
 lemma constr_pow_algebra_map (pb : power_basis A S) {y : S'}
   (hy : aeval y (minpoly A pb.gen) = 0) (x : A) :
-  pb.is_basis.constr (λ i, y ^ (i : ℕ)) (algebra_map A S x) = algebra_map A S' x :=
+  pb.basis.constr A (λ i, y ^ (i : ℕ)) (algebra_map A S x) = algebra_map A S' x :=
 by { convert pb.constr_pow_aeval hy (C x); rw aeval_C }
 
 lemma constr_pow_mul [nontrivial S] (pb : power_basis A S) {y : S'}
   (hy : aeval y (minpoly A pb.gen) = 0) (x x' : S) :
-  pb.is_basis.constr (λ i, y ^ (i : ℕ)) (x * x') =
-    pb.is_basis.constr (λ i, y ^ (i : ℕ)) x * pb.is_basis.constr (λ i, y ^ (i : ℕ)) x' :=
+  pb.basis.constr A (λ i, y ^ (i : ℕ)) (x * x') =
+    pb.basis.constr A (λ i, y ^ (i : ℕ)) x * pb.basis.constr A (λ i, y ^ (i : ℕ)) x' :=
 begin
   obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x,
   obtain ⟨g, hg, rfl⟩ := pb.exists_eq_aeval x',
@@ -256,7 +261,7 @@ noncomputable def lift [nontrivial S] (pb : power_basis A S) (y : S')
   map_zero' := by { convert pb.constr_pow_algebra_map hy 0 using 2; rw ring_hom.map_zero },
   map_mul' := pb.constr_pow_mul hy,
   commutes' := pb.constr_pow_algebra_map hy,
-  .. pb.is_basis.constr (λ i, y ^ (i : ℕ)) }
+  .. pb.basis.constr A (λ i, y ^ (i : ℕ)) }
 
 @[simp] lemma lift_gen [nontrivial S] (pb : power_basis A S) (y : S')
   (hy : aeval y (minpoly A pb.gen) = 0) :

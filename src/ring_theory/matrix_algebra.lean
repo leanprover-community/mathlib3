@@ -27,8 +27,8 @@ section
 variables [decidable_eq n]
 
 instance : algebra R (matrix n n A) :=
-{ commutes' := λ r x,
-  begin ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes], end,
+{ commutes' := λ r x, begin
+    ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes, smul_ite], end,
   smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
   ..((matrix.scalar n).comp (algebra_map R A)) }
 
@@ -62,8 +62,7 @@ def to_fun_right_linear (a : A) : matrix n n R →ₗ[R] matrix n n A :=
   begin
     dsimp only [to_fun],
     ext,
-    simp only [matrix.smul_apply, pi.smul_apply, ring_hom.map_mul,
-      algebra.id.smul_eq_mul, ring_hom.map_mul],
+    simp only [pi.smul_apply, ring_hom.map_mul, algebra.id.smul_eq_mul],
     rw [algebra.smul_def r, ←_root_.mul_assoc, ←_root_.mul_assoc, algebra.commutes],
   end, }
 
@@ -99,7 +98,7 @@ begin
   dsimp,
   simp_rw [to_fun_right_linear],
   dsimp,
-  simp_rw [to_fun, matrix.mul_mul_left, matrix.smul_apply, matrix.mul_apply,
+  simp_rw [to_fun, matrix.mul_mul_left, pi.smul_apply, smul_eq_mul, matrix.mul_apply,
     ←_root_.mul_assoc _ a₂ _, algebra.commutes, _root_.mul_assoc a₂ _ _, ←finset.mul_sum,
     ring_hom.map_sum, ring_hom.map_mul, _root_.mul_assoc],
 end

@@ -581,6 +581,16 @@ lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 lemma lt_of_lt_pred {a b : ℕ} (h : a < b - 1) : a < b :=
 lt_of_succ_lt (lt_pred_iff.1 h)
 
+lemma le_or_le_of_add_eq_add_pred {a b c d : ℕ} (h : c + d = a + b - 1) : a ≤ c ∨ b ≤ d :=
+begin
+  cases le_or_lt a c with h' h'; [left, right],
+  { exact h', },
+  { replace h' := add_lt_add_right h' d, rw h at h',
+    cases b.eq_zero_or_pos with hb hb, { rw hb, exact zero_le d, },
+    rw [a.add_sub_assoc hb, add_lt_add_iff_left] at h',
+    exact nat.le_of_pred_lt h', },
+end
+
 /-! ### `mul` -/
 
 lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=

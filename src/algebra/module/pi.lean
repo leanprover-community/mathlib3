@@ -128,7 +128,7 @@ variables (f)
 This is `function.eval` as a `linear_map`. -/
 @[simps]
 def eval_linear_map (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
-  [∀ i, semimodule α $ f i]
+  [∀ i, module α $ f i]
   (i : I) : (Π i, f i) →ₗ[α] f i :=
 { to_fun := λ g, g i,
   map_smul' := λ c x, pi.smul_apply c x i,

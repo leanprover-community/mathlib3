@@ -409,7 +409,7 @@ section domain
 variables {Γ' : Type*} [partial_order Γ']
 
 /-- Extending the domain of Hahn series is a linear map. -/
-def emb_domain_linear_map (f : Γ ↪o Γ') : hahn_series Γ R →ₗ[R] hahn_series Γ' R :=
+@[simps] def emb_domain_linear_map (f : Γ ↪o Γ') : hahn_series Γ R →ₗ[R] hahn_series Γ' R :=
 ⟨emb_domain f, λ x y, begin
   ext g,
   by_cases hg : g ∈ set.range f,
@@ -423,10 +423,6 @@ end, λ x y, begin
     simp },
   { simp [emb_domain_notin_range, hg] }
 end⟩
-
-@[simp]
-lemma emb_domain_linear_map_apply {f : Γ ↪o Γ'} {x : hahn_series Γ R} :
-  emb_domain_linear_map f x = emb_domain f x := rfl
 
 end domain
 
@@ -784,7 +780,7 @@ section domain
 variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
 
 /-- Extending the domain of Hahn series is a ring homomorphism. -/
-def emb_domain_ring_hom (f : Γ →+ Γ') (hfi : function.injective f)
+@[simps] def emb_domain_ring_hom (f : Γ →+ Γ') (hfi : function.injective f)
   (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g') :
   hahn_series Γ R →+* hahn_series Γ' R :=
 ⟨emb_domain_linear_map ⟨⟨f, hfi⟩, hf⟩, emb_domain_single.trans begin
@@ -834,13 +830,6 @@ lemma emb_domain_ring_hom_C {f : Γ →+ Γ'} {hfi : function.injective f}
   emb_domain_ring_hom f hfi hf (C r) = C r :=
 emb_domain_single.trans (by simp)
 
-@[simp]
-lemma emb_domain_ring_hom_apply {f : Γ →+ Γ'} {hfi : function.injective f}
-  {hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g'} {x : hahn_series Γ R} :
-  (emb_domain_ring_hom f hfi hf) x =
-    emb_domain_linear_map ⟨⟨f, hfi⟩, hf⟩ x :=
-rfl
-
 end domain
 
 end semiring
@@ -877,7 +866,7 @@ section domain
 variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
 
 /-- Extending the domain of Hahn series is an algebra homomorphism. -/
-def emb_domain_alg_hom (f : Γ →+ Γ') (hfi : function.injective f)
+@[simps] def emb_domain_alg_hom (f : Γ →+ Γ') (hfi : function.injective f)
   (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g') :
   hahn_series Γ A →ₐ[R] hahn_series Γ' A :=
 { commutes' := λ r, emb_domain_ring_hom_C,

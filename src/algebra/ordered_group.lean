@@ -821,6 +821,10 @@ by rw [mul_comm, lt_div_iff_mul_lt_right']
 lemma div_lt_iff_mul : c / a < b ↔ c < a * b :=
 by rw [mul_comm, div_lt_iff_lt_mul']
 
+@[to_additive]
+lemma div_lt_iff_lt_mul : a / b < c ↔ a < b * c :=
+by rw [mul_comm, div_lt_iff_lt_mul']
+
 /- The following lemmas are probably superfluous.  From here... -/
 @[to_additive neg_lt_zero]
 lemma inv_lt_one' : a⁻¹ < 1 ↔ 1 < a :=

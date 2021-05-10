@@ -217,8 +217,8 @@ begin
   change nat.gcd 0 (int.nat_abs y) = 1 at hc,
   rw [nat.gcd_zero_left (int.nat_abs y)] at hc,
   cases int.nat_abs_eq y with hy hy,
-  { use [1, 0], rw [hy, hc, int.gcd_zero_right], norm_num },
-  { use [0, 1], rw [hy, hc, int.gcd_zero_left], norm_num }
+  { use [1, 0], rw [hy, hc, int.gcd_zero_right],simp, refl },
+  { use [0, 1], rw [hy, hc, int.gcd_zero_left], simp, refl }
 end
 
 lemma coprime_of_coprime (hc : int.gcd x y = 1) : int.gcd y z = 1 :=

@@ -35,13 +35,12 @@ We take the shortcut of not introducing `free_product M → free_product M` or t
 -/
 
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
-  [decidable_eq ι] [∀ i, decidable_eq (M i)]
 
 /-- `free_product M` is the free product, or categorical coproduct, of a family `M` of monoids.
 This assumes that the indexing type and each monoid all have decidable equality. -/
-@[derive decidable_eq, nolint unused_arguments]
 def free_product : Type* := { l : list (Σ i, { m : M i // m ≠ 1 }) // (l.map sigma.fst).chain' (≠) }
-variable {M}
+
+variables [decidable_eq ι] [∀ i, decidable_eq (M i)] {M}
 
 namespace free_product
 

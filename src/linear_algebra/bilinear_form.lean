@@ -790,10 +790,11 @@ by rw [bilin_form.to_matrix, linear_equiv.trans_apply, bilin_form.to_matrix'_app
 
 @[simp] lemma matrix.to_bilin_apply (M : matrix n n R₃) (x y : M₃) :
   matrix.to_bilin hb M x y = ∑ i j, hb.repr x i * M i j * hb.repr y j :=
-show ((congr hb.equiv_fun).symm (matrix.to_bilin' M)) x y =
-    ∑ (i j : n), hb.repr x i * M i j * hb.repr y j,
-by simp only [congr_symm, congr_apply, linear_equiv.symm_symm, matrix.to_bilin'_apply,
-  is_basis.equiv_fun_apply]
+begin
+  rw [matrix.to_bilin, bilin_form.to_matrix, linear_equiv.symm_trans_apply, ← matrix.to_bilin'],
+  simp only [congr_symm, congr_apply, linear_equiv.symm_symm, matrix.to_bilin'_apply,
+    is_basis.equiv_fun_apply]
+end
 
 -- Not a `simp` lemma since `bilin_form.to_matrix` needs an extra argument
 lemma bilinear_form.to_matrix_aux_eq (B : bilin_form R₃ M₃) :

@@ -68,14 +68,6 @@ finite_dimensional.of_fintype_basis pb.is_basis
 lemma finrank [algebra K S] (pb : power_basis K S) : finite_dimensional.finrank K S = pb.dim :=
 by rw [finite_dimensional.finrank_eq_card_basis pb.is_basis, fintype.card_fin]
 
-/-- TODO: this mixes `polynomial` and `finsupp`, we should hide this behind a
-new function `polynomial.of_finsupp`. -/
-lemma polynomial.mem_supported_range {f : polynomial R} {d : ℕ} :
-  (f : finsupp ℕ R) ∈ finsupp.supported R R (↑(finset.range d) : set ℕ) ↔ f.degree < d :=
-by { simp_rw [finsupp.mem_supported', finset.mem_coe, finset.mem_range, not_lt,
-              degree_lt_iff_coeff_zero],
-     refl }
-
 lemma mem_span_pow' {x y : S} {d : ℕ} :
   y ∈ submodule.span R (set.range (λ (i : fin d), x ^ (i : ℕ))) ↔
     ∃ f : polynomial R, f.degree < d ∧ y = aeval x f :=
@@ -84,19 +76,13 @@ begin
   { ext n,
     simp_rw [set.mem_range, set.mem_image, finset.mem_coe, finset.mem_range],
     exact ⟨λ ⟨⟨i, hi⟩, hy⟩, ⟨i, hi, hy⟩, λ ⟨i, hi, hy⟩, ⟨⟨i, hi⟩, hy⟩⟩ },
-  rw [this, finsupp.mem_span_iff_total],
-  -- In the next line we use that `polynomial R := finsupp ℕ R`.
-  -- It would be nice to have a function `polynomial.of_finsupp`.
-  apply exists_congr,
-  rintro (f : polynomial R),
-  simp only [exists_prop, polynomial.mem_supported_range, eq_comm],
-  apply and_congr iff.rfl,
-  split;
-  { rintro rfl;
-    rw [finsupp.total_apply, aeval_def, eval₂_eq_sum, eq_comm],
-    apply finset.sum_congr rfl,
-    rintro i -,
-    simp only [algebra.smul_def] }
+  simp only [this, finsupp.mem_span_iff_total, degree_lt_iff_coeff_zero, exists_iff_exists_finsupp,
+    coeff, aeval, eval₂_ring_hom', eval₂_eq_sum, polynomial.sum, support, finsupp.mem_supported',
+    finsupp.total, finsupp.sum, algebra.smul_def, eval₂_zero, exists_prop, linear_map.id_coe,
+    eval₂_one, id.def, not_lt, finsupp.coe_lsum, linear_map.coe_smul_right, finset.mem_range,
+    alg_hom.coe_mk, finset.mem_coe],
+  simp_rw [@eq_comm _ y],
+  exact iff.rfl
 end
 
 lemma mem_span_pow {x y : S} {d : ℕ} (hd : d ≠ 0) :
@@ -324,18 +310,16 @@ end power_basis
 open power_basis
 
 /-- Useful lemma to show `x` generates a power basis:
-the powers of `x` less than the degree of `x`'s minimal polynomial are linear independent. -/
+the powers of `x` less than the degree of `x`'s minimal polynomial are linearly independent. -/
 lemma is_integral.linear_independent_pow [algebra K S] {x : S} (hx : is_integral K x) :
   linear_independent K (λ (i : fin (minpoly K x).nat_degree), x ^ (i : ℕ)) :=
 begin
   rw linear_independent_iff,
   intros p hp,
-  let f : polynomial K := p.sum (λ i, monomial i),
+  set f : polynomial K := p.sum (λ i, monomial i) with hf0,
   have f_def : ∀ (i : fin _), f.coeff i = p i,
   { intro i,
-    -- TODO: how can we avoid unfolding here?
-    change (p.sum (λ i pi, finsupp.single i pi) : ℕ →₀ K) i = p i,
-    simp_rw [finsupp.sum_apply, finsupp.single_apply, finsupp.sum],
+    simp only [f, finsupp.sum, coeff_monomial, finset_sum_coeff],
     rw [finset.sum_eq_single, if_pos rfl],
     { intros b _ hb,
       rw if_neg (mt (λ h, _) hb),
@@ -346,9 +330,7 @@ begin
   { intro i,
     split_ifs with hi,
     { exact f_def ⟨i, hi⟩ },
-    -- TODO: how can we avoid unfolding here?
-    change (p.sum (λ i pi, finsupp.single i pi) : ℕ →₀ K) i = 0,
-    simp_rw [finsupp.sum_apply, finsupp.single_apply, finsupp.sum],
+    simp only [f, finsupp.sum, coeff_monomial, finset_sum_coeff],
     apply finset.sum_eq_zero,
     rintro ⟨j, hj⟩ -,
     apply if_neg (mt _ hi),
@@ -361,13 +343,10 @@ begin
   have : (minpoly K x).degree ≤ f.degree,
   { apply minpoly.degree_le_of_ne_zero K x hf,
     convert h,
-    rw [finsupp.total_apply, aeval_def, eval₂_eq_sum, finsupp.sum_sum_index],
-    { apply finset.sum_congr rfl,
-      rintro i -,
-      simp only [algebra.smul_def, monomial, finsupp.lsingle_apply, zero_mul, ring_hom.map_zero,
-        finsupp.sum_single_index] },
-    { intro, simp only [ring_hom.map_zero, zero_mul] },
-    { intros, simp only [ring_hom.map_add, add_mul] } },
+    simp_rw [finsupp.total_apply, aeval_def, hf0, finsupp.sum, eval₂_finset_sum],
+    apply finset.sum_congr rfl,
+    rintro i -,
+    simp only [algebra.smul_def, eval₂_monomial] },
   have : ¬ (minpoly K x).degree ≤ f.degree,
   { apply not_le_of_lt,
     rw [degree_eq_nat_degree (minpoly.ne_zero hx), degree_lt_iff_coeff_zero],

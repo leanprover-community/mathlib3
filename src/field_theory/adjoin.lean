@@ -458,7 +458,7 @@ let ϕ := adjoin_root_equiv_adjoin F h,
   { to_fun := λ f, f.comp ϕ.to_alg_hom,
     inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
     left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
-      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
+      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply] },
     right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
       alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
   swap2 := adjoin_root.equiv F K (minpoly F α) (minpoly.ne_zero h) in

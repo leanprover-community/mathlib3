@@ -6,7 +6,6 @@ Authors: Bhavik Mehta, Alena Gusakov
 import data.finset
 import data.fintype.basic
 import algebra.geom_sum
-import tactic
 
 /-!
 # Colex

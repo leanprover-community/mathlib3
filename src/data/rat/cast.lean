@@ -38,7 +38,7 @@ variable [division_ring α]
 @[priority 900] instance cast_coe : has_coe_t ℚ α := ⟨λ r, r.1 / r.2⟩
 
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
-show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
+show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one']
 
 @[simp, norm_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
 by rw [coe_int_eq_of_int, cast_of_int]

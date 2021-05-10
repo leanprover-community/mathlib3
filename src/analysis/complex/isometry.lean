@@ -122,28 +122,23 @@ begin
     { change ∥a∥ = 1,
       simp only [a],
       rw linear_isometry.norm_map,
-      simp,
-    },
+      simp },
     { let g : ℂ →ₗᵢ[ℝ] ℂ :=
       { to_fun := λ z, a⁻¹ * f z,
         map_add' := by {
           intros x y,
           rw linear_isometry.map_add,
-          rw mul_add,
-        },
+          rw mul_add },
         map_smul' := by {
           intros m x,
           rw linear_isometry.map_smul,
-          rw algebra.mul_smul_comm,
-        },
+          rw algebra.mul_smul_comm },
         norm_map' := by {
           intros x,
           simp,
           change ∥f 1∥⁻¹ * ∥f x∥ = ∥x∥,
           iterate 2 { rw linear_isometry.norm_map },
-          simp,
-        },
-      },
+          simp } },
       have hg0 : g 0 = 0 := g.map_zero,
       have hg1 : g 1 = 1 := by {
         change a⁻¹ * a = 1,
@@ -153,8 +148,7 @@ begin
         change 0 < ∥a∥ ^ 2,
         rw linear_isometry.norm_map,
         simp,
-        apply zero_lt_one,
-      },
+        apply zero_lt_one },
       have h : (∀ z, g z = z) ∨ (∀ z, g z = conj z) := linear_isometry_complex_aux g hg1,
       change (∀ z, a⁻¹ * f z = z) ∨ (∀ z, a⁻¹ * f z = conj z) at h,
       have ha : a ≠ 0 := by {
@@ -163,21 +157,15 @@ begin
         change 0 < ∥a∥ ^ 2,
         rw linear_isometry.norm_map,
         simp,
-        apply zero_lt_one,
-      },
+        apply zero_lt_one },
       have ha_inv : a⁻¹ ≠ 0 := by {
-        exact inv_ne_zero ha,
-      },
+        exact inv_ne_zero ha },
       conv in (_ = _) {
-        rw ← mul_right_inj' ha_inv, rw ← mul_assoc, rw inv_mul_cancel ha, rw one_mul,
-      },
+        rw ← mul_right_inj' ha_inv, rw ← mul_assoc, rw inv_mul_cancel ha, rw one_mul },
       conv {
         congr,
         skip,
         find (_ = _) {
-          rw ← mul_right_inj' ha_inv, rw ← mul_assoc, rw inv_mul_cancel ha, rw one_mul,
-        }
-      },
-      exact h,
-    },
+          rw ← mul_right_inj' ha_inv, rw ← mul_assoc, rw inv_mul_cancel ha, rw one_mul } },
+      exact h },
 end

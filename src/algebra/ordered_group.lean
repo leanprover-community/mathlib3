@@ -364,24 +364,26 @@ by rw [← mul_lt_mul_iff_right' b, one_mul, div_eq_mul_inv, inv_mul_cancel_righ
 
 alias sub_lt_zero ↔ lt_of_sub_neg sub_neg_of_lt
 
-/- The non-primed versions of the same lemma, except that multiplication/addition on had been
-commuted.  Since now there is no longer a commutativity assumption, I removed the other lemmas. -/
+/- This lemma has a slightly awkward `mul_inv` name and is intended as a stepping stone towards the
+next lemma `lt_div_iff_mul_lt`. -/
 @[to_additive]
-lemma lt_mul_inv_iff_mul_lt' : b < c * a⁻¹ ↔ b * a < c :=
+lemma lt_mul_inv_iff_mul_lt : b < c * a⁻¹ ↔ b * a < c :=
 by rw [← mul_lt_mul_iff_right' a, inv_mul_cancel_right]
 
 /- The primed version of this lemma involves commuting `b` and `a`: `b < c / a ↔ a * b < c`.
 It is proven later, when there is a commutativity assumption on the group. -/
 @[to_additive]
 lemma lt_div_iff_mul_lt : b < c / a ↔ b * a < c :=
-by rw [div_eq_mul_inv, lt_mul_inv_iff_mul_lt']
+by rw [div_eq_mul_inv, lt_mul_inv_iff_mul_lt]
 
-/- The non-primed versions of the same lemma, except that multiplication/addition on had been
-commuted.  Since now there is no longer a commutativity assumption, I removed the other lemmas. -/
+/- This lemma has a slightly awkward `mul_inv` name and is intended as a stepping stone towards the
+next lemma `div_lt_iff_lt_mul`.  The primed name is for consistency with earlier use. -/
 @[to_additive]
 lemma mul_inv_lt_iff_lt_mul' : a * b⁻¹ < c ↔ a < c * b :=
 by rw [← mul_lt_mul_iff_right' b, inv_mul_cancel_right]
 
+/- The non-primed version of this lemma involves commuting `c` and `b`: `a / b < c ↔ a < b * c`.
+It is proven later, when there is a commutativity assumption on the group. -/
 @[to_additive]
 lemma div_lt_iff_lt_mul' : a / b < c ↔ a < c * b :=
 by rw [div_eq_mul_inv, mul_inv_lt_iff_lt_mul']

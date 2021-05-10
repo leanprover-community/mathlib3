@@ -1203,43 +1203,29 @@ simpa only [@local_ring.mem_maximal_ideal (f.codomain), mem_nonunits_iff, not_no
 end localization_map
 
 namespace localization
+open localization_map
 
 local attribute [instance] classical.prop_decidable
 
-/-- The image of `P` in the localization at `P.prime_compl` is a maximal ideal, and in particular
-it is the unique maximal ideal given by the local ring structure `at_prime.local_ring` -/
-lemma at_prime.map_eq_maximal_ideal {P : ideal R} [hP : ideal.is_prime P] :
-  ideal.map (localization.of P.prime_compl).to_map P =
-    (local_ring.maximal_ideal (localization P.prime_compl)) :=
-begin
-  let f := localization.of P.prime_compl,
-  ext x,
-  split; simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff]; intro hx,
-  { exact λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
-      disjoint_compl_left).ne_top (ideal.eq_top_of_is_unit_mem _ hx h) },
-  { obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
-    contrapose! hx,
-    rw is_unit_iff_exists_inv,
-    rw localization_map.mem_map_to_map_iff at hx,
-    obtain ⟨a', ha'⟩ := is_unit_iff_exists_inv.1
-      (localization_map.map_units f ⟨a, λ ha, hx ⟨⟨⟨a, ha⟩, b⟩, hab⟩⟩),
-    exact ⟨f.to_map b * a', by rwa [← mul_assoc, hab]⟩ }
-end
+variables (I : ideal R) [hI : I.is_prime]
+include hI
 
-/-- The unique maximal ideal of the localization at `P.prime_compl` lies over the ideal `P`. -/
-lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
-  ideal.comap (localization.of P.prime_compl).to_map
-  (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
+variables {I}
+/-- The unique maximal ideal of the localization at `I.prime_compl` lies over the ideal `I`. -/
+lemma at_prime.comap_maximal_ideal :
+  ideal.comap (localization.of I.prime_compl).to_map
+  (local_ring.maximal_ideal (localization I.prime_compl)) = I :=
+ideal.ext $ λ x, by
+simpa only [ideal.mem_comap] using at_prime.to_map_mem_maximal_iff I _ x
+
+/-- The image of `I` in the localization at `I.prime_compl` is a maximal ideal, and in particular
+it is the unique maximal ideal given by the local ring structure `at_prime.local_ring` -/
+lemma at_prime.map_eq_maximal_ideal :
+  ideal.map (localization.of I.prime_compl).to_map I =
+    (local_ring.maximal_ideal (localization I.prime_compl)) :=
 begin
-  let Pₚ := local_ring.maximal_ideal (localization P.prime_compl),
-  refine le_antisymm (λ x hx, _)
-    (le_trans ideal.le_comap_map (ideal.comap_mono (le_of_eq at_prime.map_eq_maximal_ideal))),
-  by_cases h0 : x = 0,
-  { exact h0.symm ▸ P.zero_mem },
-  { have : Pₚ.is_prime := ideal.is_maximal.is_prime (local_ring.maximal_ideal.is_maximal _),
-    rw localization_map.is_prime_iff_is_prime_disjoint (localization.of P.prime_compl) at this,
-    contrapose! h0 with hx',
-    simpa using this.2 ⟨hx', hx⟩ }
+  convert congr_arg (ideal.map (localization.of _).to_map) at_prime.comap_maximal_ideal.symm,
+  rw map_comap,
 end
 
 end localization

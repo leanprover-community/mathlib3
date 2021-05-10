@@ -250,6 +250,10 @@ theorem em' (p : Prop) : ¬p ∨ p := (em p).swap
 
 theorem or_not {p : Prop} : p ∨ ¬p := em _
 
+theorem decidable.eq_or_ne : a = b ∨ a ≠ b := dec_em $ a = b
+
+theorem decidable.ne_or_eq : a ≠ b ∨ a = b := dec_em' $ a = b
+
 theorem eq_or_ne : a = b ∨ a ≠ b := em $ a = b
 
 theorem ne_or_eq : a ≠ b ∨ a = b := em' $ a = b

@@ -200,6 +200,7 @@ end
 
 def coprime_ints := { cd :  ℤ × ℤ //  int.gcd cd.1 cd.2 = 1 }
 
+
 instance : has_coe coprime_ints (ℤ×ℤ) := ⟨ λ x, x.val⟩
 
 section finite_pairs
@@ -438,17 +439,82 @@ end
 -- probably figure out what the `w` is and write it explicitly, eliminating the existential
 lemma something1 (cd : coprime_ints) (z : H) :
   ∃ w, ∀ g : bottom_row ⁻¹' {cd},
-  ((g : SL(2, ℤ)) • z).val.re = (acbd cd ↑g) / (real.sqrt ((cd.1.1)^2+(cd.1.2)^2)) + w :=
+  ((g : SL(2, ℤ)) • z).val.re = (acbd cd ↑g) / ((cd.1.1)^2+(cd.1.2)^2) + w :=
 begin
+  obtain ⟨ c,d ⟩ := cd.1,
+--  let z:=z.val,
+  use ((c:ℝ) * d * norm_sq ↑z - (c^2 - d^2)* z.val.re - c * d)/
+    ((c^2 + d^2)* norm_sq (c * z.val + d)),
+  intro g,
+  simp [acbd, g.1.2, matrix.coord, norm_sq],
+  have nonZ1 :  ((g 1 0 :ℂ ) * z.val + (g 1 1)) ≠ 0,
+  {
+
+    sorry,
+  },
+ -- field_simp,
   sorry,
 end
+
+/-- Add simp lemma to topology.algebra.group -/
+@[simp] lemma homeomorph.add_right_apply {G : Type*} [topological_space G] [add_group G]
+[has_continuous_add G] (a : G) (g : G) :
+--⇑(homeomorph.add_right g h) = λ (x : α), x * c
+homeomorph.add_right a g = g + a := rfl
+
+/-- Add to topology.homeomorph -/
+@[simp] theorem homeomorph.trans_apply {α : Type*} {β : Type*} {γ : Type*} [topological_space α]
+[topological_space β] [topological_space γ] (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) (a : α) :
+h₁.trans h₂ a = h₂ (h₁ a) := rfl
+
+lemma sumNonZ (x y : ℝ) (x1 : 0 ≤ x) (y2 : 0 ≤ y) (h : x+y=0) : x = 0 :=
+begin
+  by_contra h1,
+  have : 0 <x := (ne.symm h1).le_iff_lt.mp x1,
+  have : 0 < x + y := lt_add_of_pos_of_le this y2,
+  linarith,
+end
+
+lemma coprime_nonzero (cd : coprime_ints) : (cd.1.1:ℝ)^2+cd.1.2^2≠0 :=
+begin
+  by_contra,
+  simp only [not_not, subtype.val_eq_coe] at h,
+  have c2nonZ : 0 ≤ (cd.1.1:ℝ)^2 := sq_nonneg _,
+  have d2nonZ : 0 ≤ (cd.1.2:ℝ)^2 := sq_nonneg _,
+  have c0d0 : (cd.1.1:ℝ)^2 = 0 := sumNonZ ((cd.1.1:ℝ)^2) ((cd.1.2:ℝ)^2) c2nonZ d2nonZ h,
+  have c0 : (cd.1.1:ℝ) = 0 := pow_eq_zero c0d0,
+  have d20 : (cd.1.2:ℝ)^2 = 0,
+  {
+    refine sumNonZ ((cd.1.2:ℝ)^2) ((cd.1.1:ℝ)^2) d2nonZ c2nonZ _,
+    rw add_comm,
+    exact h,
+  },
+  have d0 : (cd.1.2:ℝ) = 0 := pow_eq_zero d20,
+  norm_cast at c0,
+  norm_cast at d0,
+  have coprime := cd.2,
+  have := int.gcd_eq_gcd_ab cd.1.1 cd.1.2,
+  rw [coprime, c0, d0] at this,
+  simp at this,
+  exact this,
+end
+
 
 /- final filter lemma, deduce from previous two results -/
 lemma something' (z:H) (cd : coprime_ints) :
   tendsto (λ g : bottom_row ⁻¹' {cd}, _root_.abs (((g : SL(2, ℤ)) • z).val.re)) cofinite at_top :=
 begin
-  -- use `tendsto_norm_cocompact_at_top` at some point
-  sorry
+  obtain ⟨ c,d ⟩ := cd.1,
+  suffices : tendsto (λ g : bottom_row ⁻¹' {cd}, (((g : SL(2, ℤ)) • z).val.re)) cofinite (cocompact ℝ),
+  { exact tendsto_norm_cocompact_at_top.comp this },
+  obtain ⟨w, hw⟩ := something1 cd z,
+  have : ((cd.1.1:ℝ )^2 + cd.1.2^2)⁻¹ ≠ 0 := inv_ne_zero (coprime_nonzero cd),
+  let f := homeomorph.mul_right' _ this,
+  let ff := homeomorph.add_right w,
+  have := big_thm cd ,
+  convert ((f.trans ff).closed_embedding.tendsto_cocompact).comp (big_thm cd),
+  ext g,
+  convert hw g,
 end
 
 /- the upshot of all the filter stuff -/
@@ -456,8 +522,31 @@ lemma something (z:H) (cd : coprime_ints) :
   ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ), bottom_row g = bottom_row g' →
   _root_.abs ((g • z).val.re) ≤ _root_.abs ((g' • z).val.re)) :=
 begin
-
-  sorry,
+  haveI cdNonEmpt :  (bottom_row ⁻¹' {cd}).nonempty :=
+  begin
+    convert set.nonempty.preimage _ bottom_row_surj,
+    exact set.singleton_nonempty cd,
+  end,
+  haveI cdNonEmpt2 : nonempty (bottom_row ⁻¹' {cd}) :=
+  begin
+--    have :=  nonempty.map _ cdNonEmpt,
+    convert cdNonEmpt,
+    simp,
+--    split,
+ --   intros,
+    sorry, -- COME ON!!!
+  end,
+  obtain ⟨g, hg⟩  := filter.tendsto.exists_forall_le (something' z cd),
+  use g,
+  split,
+  { exact g.2 },
+  { intros g1 hg1,
+    have : g1 ∈ (bottom_row ⁻¹' {cd}),
+    {
+      rw [set.mem_preimage, set.mem_singleton_iff],
+      exact eq.trans hg1.symm (set.mem_singleton_iff.mp (set.mem_preimage.mp g.2)),
+    },
+    exact hg ⟨g1, this⟩ },
 end
 
 variables {g : SL(2,ℤ)} {z : H}

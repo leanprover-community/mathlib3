@@ -1943,9 +1943,9 @@ begin
     exact calc
       ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) -
         4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ : by { rw ← this, simp }
-      ... ≤ 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * δ * δ : sub_le_sub_left eq₁ _
+      ... ≤ 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * δ * δ : sub_le_sub_left'' eq₁ _
       ... ≤ 2 * ((δ + div) * (δ + div) + (δ + div) * (δ + div)) - 4 * δ * δ :
-        sub_le_sub_right (mul_le_mul_of_nonneg_left (add_le_add eq₂ eq₂') (by norm_num)) _
+        sub_le_sub_right'' (mul_le_mul_of_nonneg_left (add_le_add eq₂ eq₂') (by norm_num)) _
       ... = 8 * δ * div + 4 * div * div : by ring,
     exact add_nonneg
       (mul_nonneg (mul_nonneg (by norm_num) zero_le_δ) (le_of_lt nat.one_div_pos_of_nat))

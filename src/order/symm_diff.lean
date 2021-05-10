@@ -58,6 +58,8 @@ variables {α : Type*} [generalized_boolean_algebra α] (a b c : α)
 
 lemma symm_diff_comm : a Δ b = b Δ a := by simp only [(Δ), sup_comm]
 
+instance symm_diff_is_comm : is_commutative α (Δ) := ⟨symm_diff_comm⟩
+
 lemma sdiff_symm_diff : c \ (a Δ b) = (c ⊓ a ⊓ b) ⊔ ((c \ a) ⊓ (c \ b)) :=
 by simp only [(Δ), sdiff_sdiff_sup_sdiff']
 
@@ -85,6 +87,8 @@ calc a Δ (b Δ c) = (a \ (b Δ c)) ⊔ ((b Δ c) \ a) : symm_diff_def _ _
 
 lemma symm_diff_assoc : a Δ b Δ c = a Δ (b Δ c) :=
 by rw [symm_diff_symm_diff_left, symm_diff_symm_diff_right]
+
+instance symm_diff_is_assoc : is_associative α (Δ) := ⟨symm_diff_assoc⟩
 
 end generalized_boolean_algebra
 

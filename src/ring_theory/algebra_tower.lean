@@ -143,38 +143,39 @@ begin
   exact hg _ hik
 end
 
-theorem is_basis.smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × ι', b p.1 • c p.2) :=
-⟨linear_independent_smul hb.1 hc.1,
-by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars_top R S A,
-    submodule.restrict_scalars_inj, hc.2]⟩
+/-- `basis.smul (b : basis ι R S) (c : basis ι S A)` is the `R`-basis on `A`
+where the `(i, j)`th basis vector is `b i • c j`. -/
+noncomputable def basis.smul {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) : basis (ι × ι') R A :=
+basis.of_repr ((c.repr.restrict_scalars R).trans $
+  (finsupp.lcongr (equiv.refl _) b.repr).trans $
+  (finsupp_prod_lequiv R).symm.trans $
+  (finsupp.lcongr (equiv.prod_comm ι' ι) (linear_equiv.refl _ _)))
 
-theorem is_basis.smul_repr
-  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × ι') :
-  (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
+@[simp] theorem basis.smul_repr {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (x ij):
+  (b.smul c).repr x ij = b.repr (c.repr x ij.2) ij.1 :=
+by simp [basis.smul]
+
+theorem basis.smul_repr_mk {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (x i j):
+  (b.smul c).repr x (i, j) = b.repr (c.repr x j) i :=
+b.smul_repr c x (i, j)
+
+@[simp] theorem basis.smul_apply {ι : Type v₁} {ι' : Type w₁}
+  (b : basis ι R S) (c : basis ι' S A) (ij) :
+  (b.smul c) ij = b ij.1 • c ij.2 :=
 begin
-  apply (hb.smul hc).repr_apply_eq,
-  { intros x y, ext, simp only [linear_map.map_add, add_apply, pi.add_apply] },
-  { intros c x, ext,
-    simp only [← is_scalar_tower.algebra_map_smul S c x, linear_map.map_smul, smul_eq_mul,
-               ← algebra.smul_def, smul_apply, pi.smul_apply] },
-  rintros ij,
-  ext ij',
-  rw single_apply,
-  split_ifs with hij,
-  { simp [hij] },
-  rw [linear_map.map_smul, smul_apply, hc.repr_self_apply],
-  split_ifs with hj,
-  { simp [hj, show ¬ (ij.1 = ij'.1), from λ hi, hij (prod.ext hi hj)] },
-  simp
+  obtain ⟨i, j⟩ := ij,
+  rw basis.apply_eq_iff,
+  ext ⟨i', j'⟩,
+  rw [basis.smul_repr, linear_equiv.map_smul, basis.repr_self, finsupp.smul_apply,
+      finsupp.single_apply],
+  dsimp only,
+  split_ifs with hi,
+  { simp [hi, finsupp.single_apply] },
+  { simp [hi] },
 end
-
-theorem is_basis.smul_repr_mk
-  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (i : ι) (j : ι') :
-  (hb.smul hc).repr x (i, j) = hb.repr (hc.repr x j) i :=
-by simp [is_basis.smul_repr]
 
 end ring
 

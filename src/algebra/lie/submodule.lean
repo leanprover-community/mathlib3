@@ -66,6 +66,10 @@ instance has_mem : has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set 
 @[simp] lemma mem_carrier {x : M} : x ∈ N.carrier ↔ x ∈ (N : set M) :=
 iff.rfl
 
+@[simp] lemma mem_mk_iff (S : set M) (h₁ h₂ h₃ h₄) {x : M} :
+  x ∈ (⟨S, h₁, h₂, h₃, h₄⟩ : lie_submodule R L M) ↔ x ∈ S :=
+iff.rfl
+
 @[simp] lemma mem_coe_submodule {x : M} : x ∈ (N : submodule R M) ↔ x ∈ N := iff.rfl
 
 lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
@@ -320,6 +324,18 @@ begin
     map_rel' := λ N N' h, h, },
   apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
 end
+
+lemma subsingleton_iff : subsingleton M ↔ subsingleton (lie_submodule R L M) :=
+(submodule.subsingleton_iff R).trans $ by
+  rw [← subsingleton_iff_bot_eq_top, ← subsingleton_iff_bot_eq_top, ← coe_to_submodule_eq_iff,
+    top_coe_submodule, bot_coe_submodule]
+
+lemma nontrivial_iff : nontrivial M ↔ nontrivial (lie_submodule R L M) :=
+not_iff_not.mp (
+  (not_nontrivial_iff_subsingleton.trans $ subsingleton_iff R L M).trans
+  not_nontrivial_iff_subsingleton.symm)
+
+instance [nontrivial M] : nontrivial (lie_submodule R L M) := (nontrivial_iff R L M).mp ‹_›
 
 variables {R L M}
 

@@ -8,6 +8,7 @@ import linear_algebra.char_poly.coeff
 import data.int.modeq
 import data.zmod.basic
 import tactic.interval_cases
+import tactic.omega
 
 /-!
 # The Friendship Theorem

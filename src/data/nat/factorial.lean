@@ -170,12 +170,12 @@ lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1)
 | 0 := by rw [add_zero, desc_fac_zero, desc_fac_zero]
 | (k + 1) := by rw [desc_fac, mul_left_comm, succ_desc_fac, desc_fac, succ_add, ← add_assoc]
 
-/-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/
+/-- `desc_fac n k = (n + k)! / n!`. Stated divison-less for simpicity. -/
 theorem eval_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
 | 0 := by rw [desc_fac, add_zero, mul_one]
 | (k + 1) := by rw [desc_fac_succ, mul_left_comm, eval_desc_fac, ← add_assoc, factorial]
 
-/-- Avoid if you can. ℕ-division isn't worth it. -/
+/-- Avoid in favour of `eval_desc_fac` if you can. ℕ-division isn't worth it. -/
 lemma eval_desc_fac' (n k : ℕ) : desc_fac n k = (n + k)! / n! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero n), rw eval_desc_fac,

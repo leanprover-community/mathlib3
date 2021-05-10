@@ -242,9 +242,17 @@ mt imp_intro
 
 theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
 
-theorem em (p : Prop) : p ∨ ¬ p := classical.em _
+theorem dec_em' (p : Prop) [decidable p] : ¬p ∨ p := (dec_em p).swap
 
-theorem or_not {p : Prop} : p ∨ ¬ p := em _
+theorem em (p : Prop) : p ∨ ¬p := classical.em _
+
+theorem em' (p : Prop) : ¬p ∨ p := (em p).swap
+
+theorem or_not {p : Prop} : p ∨ ¬p := em _
+
+theorem eq_or_ne : a = b ∨ a ≠ b := em $ a = b
+
+theorem ne_or_eq : a ≠ b ∨ a = b := em' $ a = b
 
 theorem by_contradiction {p} : (¬p → false) → p := decidable.by_contradiction
 

@@ -23,7 +23,7 @@ arguments of the same type.
 * `f.map_eq_zero_of_eq` expresses that `f` is zero when two inputs are equal.
 * `f.map_swap` expresses that `f` is negated when two inputs are swapped.
 * `f.map_perm` expresses how `f` varies by a sign change under a permutation of its inputs.
-* An `add_comm_monoid`, `add_comm_group`, and `semimodule` structure over `alternating_map`s that
+* An `add_comm_monoid`, `add_comm_group`, and `module` structure over `alternating_map`s that
   matches the definitions over `multilinear_map`s.
 * `multilinear_map.alternatization`, which makes an alternating map out of a non-alternating one.
 * `alternating_map.dom_coprod`, which behaves as a product between two alternating maps.
@@ -44,12 +44,12 @@ using `map_swap` as a definition, and does not require `has_neg N`.
 
 -- semiring / add_comm_monoid
 variables {R : Type*} [semiring R]
-variables {M : Type*} [add_comm_monoid M] [semimodule R M]
-variables {N : Type*} [add_comm_monoid N] [semimodule R N]
+variables {M : Type*} [add_comm_monoid M] [module R M]
+variables {N : Type*} [add_comm_monoid N] [module R N]
 
 -- semiring / add_comm_group
-variables {M' : Type*} [add_comm_group M'] [semimodule R M']
-variables {N' : Type*} [add_comm_group N'] [semimodule R N']
+variables {M' : Type*} [add_comm_group M'] [module R M']
+variables {N' : Type*} [add_comm_group N'] [module R N']
 
 variables {ι : Type*} [decidable_eq ι]
 
@@ -156,7 +156,7 @@ f.to_multilinear_map.map_zero
 /-!
 ### Algebraic structure inherited from `multilinear_map`
 
-`alternating_map` carries the same `add_comm_monoid`, `add_comm_group`, and `semimodule` structure
+`alternating_map` carries the same `add_comm_monoid`, `add_comm_group`, and `module` structure
 as `multilinear_map`
 -/
 
@@ -214,9 +214,22 @@ instance : has_sub (alternating_map R M N' ι) :=
 @[norm_cast] lemma coe_sub : (↑(g - g₂) : multilinear_map R (λ i : ι, M) N') = g - g₂ := rfl
 
 instance : add_comm_group (alternating_map R M N' ι) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg,
-           sub := has_sub.sub, sub_eq_add_neg := _, .. alternating_map.add_comm_monoid, .. };
-   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+by refine
+{ zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := _,
+  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
+  gsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
+  gsmul_zero' := _,
+  gsmul_succ' := _,
+  gsmul_neg' := _,
+  .. alternating_map.add_comm_monoid, .. };
+intros; ext;
+simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, gsmul_coe_nat]
 
 section distrib_mul_action
 
@@ -241,17 +254,17 @@ instance : distrib_mul_action S (alternating_map R M N ι) :=
 
 end distrib_mul_action
 
-section semimodule
+section module
 
-variables {S : Type*} [semiring S] [semimodule S N] [smul_comm_class R S N]
+variables {S : Type*} [semiring S] [module S N] [smul_comm_class R S N]
 
 /-- The space of multilinear maps over an algebra over `R` is a module over `R`, for the pointwise
 addition and scalar multiplication. -/
-instance : semimodule S (alternating_map R M N ι) :=
+instance : module S (alternating_map R M N ι) :=
 { add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
   zero_smul := λ f, ext $ λ x, zero_smul _ _ }
 
-end semimodule
+end module
 
 end alternating_map
 
@@ -261,7 +274,7 @@ end alternating_map
 
 namespace linear_map
 
-variables {N₂ : Type*} [add_comm_monoid N₂] [semimodule R N₂]
+variables {N₂ : Type*} [add_comm_monoid N₂] [module R N₂]
 
 /-- Composing a alternating map with a linear map gives again a alternating map. -/
 def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ alternating_map R M N₂ ι :=
@@ -356,8 +369,8 @@ multilinear_map.ext $ λ v, g.map_perm v σ
 /-- If the arguments are linearly dependent then the result is `0`. -/
 lemma map_linear_dependent
   {K : Type*} [ring K]
-  {M : Type*} [add_comm_group M] [semimodule K M]
-  {N : Type*} [add_comm_group N] [semimodule K N] [no_zero_smul_divisors K N]
+  {M : Type*} [add_comm_group M] [module K M]
+  {N : Type*} [add_comm_group N] [module K N] [no_zero_smul_divisors K N]
   (f : alternating_map K M N ι) (v : ι → M)
   (h : ¬linear_independent K v) :
   f v = 0 :=
@@ -450,7 +463,7 @@ end alternating_map
 
 namespace linear_map
 
-variables {N'₂ : Type*} [add_comm_group N'₂] [semimodule R N'₂] [fintype ι]
+variables {N'₂ : Type*} [add_comm_group N'₂] [module R N'₂] [fintype ι]
 
 /-- Composition with a linear map before and after alternatization are equivalent. -/
 lemma comp_multilinear_map_alternatization (g : N' →ₗ[R] N'₂)
@@ -470,9 +483,9 @@ variables {ιa ιb : Type*} [decidable_eq ιa] [decidable_eq ιb] [fintype ιa] 
 variables
   {R' : Type*} {Mᵢ N₁ N₂ : Type*}
   [comm_semiring R']
-  [add_comm_group N₁] [semimodule R' N₁]
-  [add_comm_group N₂] [semimodule R' N₂]
-  [add_comm_monoid Mᵢ] [semimodule R' Mᵢ]
+  [add_comm_group N₁] [module R' N₁]
+  [add_comm_group N₂] [module R' N₂]
+  [add_comm_monoid Mᵢ] [module R' Mᵢ]
 
 namespace equiv.perm
 
@@ -716,8 +729,6 @@ begin
   rw [multilinear_map.dom_dom_congr_mul, perm.sign_mul, units.coe_mul,
     perm.sum_congr_hom_apply, multilinear_map.dom_coprod_dom_dom_congr_sum_congr,
     perm.sign_sum_congr, units.coe_mul, ←mul_smul ↑al.sign ↑ar.sign, ←mul_smul],
-  -- resolve typeclass diamonds in `has_scalar`. `congr` alone seems to make a wrong turn.
-  congr' 3,
 end
 
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two

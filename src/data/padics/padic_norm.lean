@@ -423,8 +423,8 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
 
 lemma padic_val_nat_eq_factors_count (p : ℕ) [hp : fact p.prime] :
   ∀ (n : ℕ), padic_val_nat p n = (factors n).count p
-| 0 := rfl
-| 1 := by { rw padic_val_nat_one, refl }
+| 0 := by simp
+| 1 := by simp
 | (m + 2) :=
 let n := m + 2 in
 let q := min_fac n in

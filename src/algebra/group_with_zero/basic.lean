@@ -222,6 +222,28 @@ protected lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
 
 end
 
+section semigroup_with_zero
+
+/-- Pullback a `semigroup_with_zero` class along an injective function. -/
+protected def function.injective.semigroup_with_zero
+  [has_zero M₀'] [has_mul M₀'] [semigroup_with_zero M₀] (f : M₀' → M₀) (hf : injective f)
+  (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup_with_zero M₀' :=
+{ .. hf.mul_zero_class f zero mul,
+  .. ‹has_zero M₀'›,
+  .. hf.semigroup f mul }
+
+/-- Pushforward a `semigroup_with_zero` class along an surjective function. -/
+protected def function.surjective.semigroup_with_zero
+  [semigroup_with_zero M₀] [has_zero M₀'] [has_mul M₀'] (f : M₀ → M₀') (hf : surjective f)
+  (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup_with_zero M₀' :=
+{ .. hf.mul_zero_class f zero mul,
+  .. ‹has_zero M₀'›,
+  .. hf.semigroup f mul }
+
+end semigroup_with_zero
+
 section monoid_with_zero
 
 /-- Pullback a `monoid_with_zero` class along an injective function. -/
@@ -391,6 +413,14 @@ assume a_eq_0, by simpa [a_eq_0] using mul_inv_cancel h
 calc a⁻¹ * a = (a⁻¹ * a) * a⁻¹ * a⁻¹⁻¹ : by simp [inv_ne_zero h]
          ... = a⁻¹ * a⁻¹⁻¹             : by simp [h]
          ... = 1                       : by simp [inv_ne_zero h]
+
+lemma group_with_zero.mul_left_injective {x : G₀} (h : x ≠ 0) :
+  function.injective (λ y, x * y) :=
+λ y y' w, by simpa only [←mul_assoc, inv_mul_cancel h, one_mul] using congr_arg (λ y, x⁻¹ * y) w
+
+lemma group_with_zero.mul_right_injective {x : G₀} (h : x ≠ 0) :
+  function.injective (λ y, y * x) :=
+λ y y' w, by simpa only [mul_assoc, mul_inv_cancel h, mul_one] using congr_arg (λ y, y * x⁻¹) w
 
 @[simp] lemma inv_mul_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :
   (a * b⁻¹) * b = a :=

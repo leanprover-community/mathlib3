@@ -25,7 +25,7 @@ to unify the APIs where possible.
 variables {R : Type*} {M : Type*}
 
 section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [semimodule R M]
+variables [semiring R] [add_comm_monoid M] [module R M]
 variables {p q : submodule R M}
 
 namespace submodule

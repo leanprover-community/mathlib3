@@ -87,20 +87,16 @@ mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 @[simp] theorem even_zero : even 0 := ⟨0, dec_trivial⟩
 
 @[simp] theorem not_even_one : ¬ even 1 :=
-by rw even_iff; apply one_ne_zero
+by rw even_iff; norm_num
 
 @[simp] theorem even_bit0 (n : ℕ) : even (bit0 n) :=
 ⟨n, by rw [bit0, two_mul]⟩
 
 @[parity_simps] theorem even_add : even (m + n) ↔ (even m ↔ even n) :=
-begin
-  cases mod_two_eq_zero_or_one m with h₁ h₁; cases mod_two_eq_zero_or_one n with h₂ h₂;
-    simp [even_iff, h₁, h₂],
-  { exact @modeq.modeq_add _ _ 0 _ 0 h₁ h₂ },
-  { exact @modeq.modeq_add _ _ 0 _ 1 h₁ h₂ },
-  { exact @modeq.modeq_add _ _ 1 _ 0 h₁ h₂ },
-  exact @modeq.modeq_add _ _ 1 _ 1 h₁ h₂
-end
+by cases mod_two_eq_zero_or_one m with h₁ h₁;
+   cases mod_two_eq_zero_or_one n with h₂ h₂;
+   simp [even_iff, h₁, h₂, nat.add_mod];
+   norm_num
 
 theorem even.add_even (hm : even m) (hn : even n) : even (m + n) :=
 even_add.2 $ iff_of_true hm hn
@@ -143,14 +139,10 @@ theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 by rw [succ_eq_add_one, even_add]; simp [not_even_one]
 
 @[parity_simps] theorem even_mul : even (m * n) ↔ even m ∨ even n :=
-begin
-  cases mod_two_eq_zero_or_one m with h₁ h₁; cases mod_two_eq_zero_or_one n with h₂ h₂;
-    simp [even_iff, h₁, h₂],
-  { exact @modeq.modeq_mul _ _ 0 _ 0 h₁ h₂ },
-  { exact @modeq.modeq_mul _ _ 0 _ 1 h₁ h₂ },
-  { exact @modeq.modeq_mul _ _ 1 _ 0 h₁ h₂ },
-  exact @modeq.modeq_mul _ _ 1 _ 1 h₁ h₂
-end
+by cases mod_two_eq_zero_or_one m with h₁ h₁;
+   cases mod_two_eq_zero_or_one n with h₂ h₂;
+   simp [even_iff, h₁, h₂, nat.mul_mod];
+   norm_num
 
 theorem odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
 by simp [not_or_distrib] with parity_simps
@@ -219,7 +211,9 @@ theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔
   (λ hn, by rw [neg_one_pow_eq_pow_mod_two, hn, pow_one] at h; exact (h1 h).elim),
   λ ⟨m, hm⟩, by rw [neg_one_pow_eq_pow_mod_two, hm]; simp⟩
 
-@[simp] theorem neg_one_pow_two : (-1 : R) ^ 2 = 1 := by simp
+@[simp] theorem neg_one_sq : (-1 : R) ^ 2 = 1 := by simp
+
+alias nat.neg_one_sq ← nat.neg_one_pow_two
 
 theorem neg_one_pow_of_even : even n → (-1 : R) ^ n = 1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_mul] }

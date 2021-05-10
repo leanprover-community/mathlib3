@@ -495,6 +495,14 @@ lemma cluster_point_of_compact [compact_space α] (f : filter α) [ne_bot f] :
   ∃ x, cluster_pt x f :=
 by simpa using compact_univ (show f ≤ 𝓟 univ, by simp)
 
+lemma compact_space.elim_nhds_subcover {α : Type*} [topological_space α] [compact_space α]
+  (U : α → set α) (hU : ∀ x, U x ∈ 𝓝 x) :
+  ∃ t : finset α, (⋃ x ∈ t, U x) = ⊤ :=
+begin
+  obtain ⟨t, -, s⟩ := is_compact.elim_nhds_subcover compact_univ U (λ x m, hU x),
+  exact ⟨t, by { rw eq_top_iff, exact s }⟩,
+end
+
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     (⋂ i, Z i) = ∅ → ∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅) :
@@ -617,6 +625,18 @@ iff.intro (assume h, h.image hf.continuous) $ assume h, begin
   rcases h (u.map f) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
   refine ⟨a, ha, _⟩,
   rwa [hf.induced, nhds_induced, ←map_le_iff_le_comap]
+end
+
+/-- A closed embedding is proper, ie, inverse images of compact sets are contained in compacts. -/
+lemma closed_embedding.tendsto_cocompact
+  {f : α → β} (hf : closed_embedding f) : tendsto f (filter.cocompact α) (filter.cocompact β) :=
+begin
+  rw filter.has_basis_cocompact.tendsto_iff filter.has_basis_cocompact,
+  intros K hK,
+  refine ⟨f ⁻¹' (K ∩ (set.range f)), _, λ x hx, by simpa using hx⟩,
+  apply hf.to_embedding.compact_iff_compact_image.mpr,
+  rw set.image_preimage_eq_of_subset (set.inter_subset_right _ _),
+  exact hK.inter_right hf.closed_range,
 end
 
 lemma compact_iff_compact_in_subtype {p : α → Prop} {s : set {a // p a}} :
@@ -1130,7 +1150,7 @@ lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
-let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ {t : set α | is_preirreducible t}
+let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset_nonempty {t : set α | is_preirreducible t}
   (λ c hc hcc hcn, let ⟨t, htc⟩ := hcn in
     ⟨⋃₀ c, λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
       let ⟨p, hpc, hyp⟩ := mem_sUnion.1 hy,

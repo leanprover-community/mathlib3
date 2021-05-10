@@ -74,7 +74,7 @@ end std_simplex
 
 section has_continuous_smul
 
-variables [add_comm_group E] [vector_space ℝ E] [topological_space E]
+variables [add_comm_group E] [module ℝ E] [topological_space E]
   [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- In a topological vector space, the interior of a convex set is convex. -/

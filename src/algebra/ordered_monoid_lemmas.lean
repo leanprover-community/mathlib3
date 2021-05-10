@@ -439,7 +439,7 @@ variables [right_cancel_monoid α]
   [has_lt_of_mul_lt_mul_right α]
 
 @[to_additive]
-lemma mul_lt_mul_right (h : a < b) (c : α) : a * c < b * c :=
+lemma mul_lt_mul_right'' (h : a < b) (c : α) : a * c < b * c :=
 (mul_le_mul_right' h.le _).lt_of_not_le
   (λ j, not_le_of_gt h (le_of_mul_le_mul_right' j))
 

@@ -524,7 +524,7 @@ by haveI := @linear_order.decidable_le α _; exact
 ⟨lt_imp_lt_of_le_imp_le $ λ h', decidable.mul_le_mul_of_nonneg_left h' h.le,
  λ h', mul_lt_mul_of_pos_left h' h⟩
 
-@[simp] lemma mul_lt_mul_right'' (h : 0 < c) : a * c < b * c ↔ a < b :=
+@[simp] lemma mul_lt_mul_right (h : 0 < c) : a * c < b * c ↔ a < b :=
 by haveI := @linear_order.decidable_le α _; exact
 ⟨lt_imp_lt_of_le_imp_le $ λ h', decidable.mul_le_mul_of_nonneg_right h' h.le,
  λ h', mul_lt_mul_of_pos_right h' h⟩
@@ -539,7 +539,7 @@ by { convert mul_le_mul_right h, simp }
 by { convert mul_lt_mul_left h, simp }
 
 @[simp] lemma zero_lt_mul_right (h : 0 < c) : 0 < b * c ↔ 0 < b :=
-by { convert mul_lt_mul_right'' h, simp }
+by { convert mul_lt_mul_right h, simp }
 
 lemma add_le_mul_of_left_le_right (a2 : 2 ≤ a) (ab : a ≤ b) : a + b ≤ a * b :=
 have 0 < b, from
@@ -601,7 +601,7 @@ mul_le_mul_right hb
 
 lemma lt_mul_iff_one_lt_left (hb : 0 < b) : b < a * b ↔ 1 < a :=
 suffices 1 * b < a * b ↔ 1 < a, by rwa one_mul at this,
-mul_lt_mul_right'' hb
+mul_lt_mul_right hb
 
 lemma le_mul_iff_one_le_right (hb : 0 < b) : b ≤ b * a ↔ 1 ≤ a :=
 suffices b * 1 ≤ b * a ↔ 1 ≤ a, by rwa mul_one at this,
@@ -690,7 +690,7 @@ lemma strict_mono_mul_left_of_pos (ha : 0 < a) : strict_mono (λ x, a * x) :=
 assume b c b_lt_c, (mul_lt_mul_left ha).2 b_lt_c
 
 lemma strict_mono_mul_right_of_pos (ha : 0 < a) : strict_mono (λ x, x * a) :=
-assume b c b_lt_c, (mul_lt_mul_right'' ha).2 b_lt_c
+assume b c b_lt_c, (mul_lt_mul_right ha).2 b_lt_c
 
 lemma strict_mono.mul_const (hf : strict_mono f) (ha : 0 < a) :
   strict_mono (λ x, (f x) * a) :=

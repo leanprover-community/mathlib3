@@ -9,7 +9,7 @@ import category_theory.monoidal.preadditive
 /-!
 # Tor, the left-derived functor of tensor product
 
-We define `tor C n : C ⥤ C ⥤ C`, by left-deriving in the second factor of `(X, Y) ↦ X ⊗ Y`.
+We define `Tor C n : C ⥤ C ⥤ C`, by left-deriving in the second factor of `(X, Y) ↦ X ⊗ Y`.
 
 For now we have almost nothing to say about it!
 It would be good to show that this is naturally isomorphic to the functor obtained
@@ -29,20 +29,20 @@ variables {C : Type*} [category C] [monoidal_category C] [preadditive C] [monoid
 
 variables (C)
 
-/-- We define `tor C n : C ⥤ C ⥤ C` by left-deriving in the second factor of `(X, Y) ↦ X ⊗ Y`. -/
+/-- We define `Tor C n : C ⥤ C ⥤ C` by left-deriving in the second factor of `(X, Y) ↦ X ⊗ Y`. -/
 @[simps]
-def tor (n : ℕ) : C ⥤ C ⥤ C :=
+def Tor (n : ℕ) : C ⥤ C ⥤ C :=
 { obj := λ X, functor.left_derived ((tensoring_left C).obj X) n,
   map := λ X Y f, nat_trans.left_derived ((tensoring_left C).map f) n, }
 
-/-- An alternative definition of `tor`, where we left-derive in the first factor instead. -/
+/-- An alternative definition of `Tor`, where we left-derive in the first factor instead. -/
 @[simps]
-def tor' (n : ℕ) : C ⥤ C ⥤ C :=
+def Tor' (n : ℕ) : C ⥤ C ⥤ C :=
 functor.flip
 { obj := λ X, functor.left_derived ((tensoring_right C).obj X) n,
   map := λ X Y f, nat_trans.left_derived ((tensoring_right C).map f) n, }
 
--- PROJECT showing `tor C n ≅ tor' C n` will require a bit more theory!
+-- PROJECT showing `Tor C n ≅ Tor' C n` will require a bit more theory!
 -- Possibly it's best to axiomatize delta functors, and obtain a unique characterisation?
 
 end category_theory

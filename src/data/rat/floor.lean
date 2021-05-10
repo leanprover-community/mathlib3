@@ -96,7 +96,7 @@ begin
   have : 0 < 1 - fract q, by
   { have : fract q < 1, from fract_lt_one q,
     have : 0 + fract q < 1, by simp [this],
-    rwa lt_sub_iff_add_lt },
+    rwa lt_sub_iff_add_lt_right', },
   exact mul_pos this (by exact_mod_cast q.pos)
 end
 
@@ -125,7 +125,7 @@ begin
   have q_inv_num_denom_ineq : q⁻¹.num - ⌊q⁻¹⌋ * q⁻¹.denom < q⁻¹.denom, by
   { have : q⁻¹.num < (⌊q⁻¹⌋ + 1) * q⁻¹.denom, from rat.num_lt_succ_floor_mul_denom q⁻¹,
     have : q⁻¹.num < ⌊q⁻¹⌋ * q⁻¹.denom + q⁻¹.denom, by rwa [right_distrib, one_mul] at this,
-    rwa [←sub_lt_iff_lt_add'] at this },
+    rwa [add_comm, ←sub_lt_iff_lt_add'] at this },
   -- use that `q.num` and `q.denom` are coprime to show that q_inv is the unreduced reciprocal
   -- of `q`
   have : q_inv.num = q.denom ∧ q_inv.denom = q.num.nat_abs, by

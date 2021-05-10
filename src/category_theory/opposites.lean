@@ -78,6 +78,11 @@ def op_op_equivalence : Cᵒᵖᵒᵖ ≌ C :=
 
 end
 
+/-- If `f` is an isomorphism, so is `f.op` -/
+instance is_iso_op {X Y : C} (f : X ⟶ Y) [is_iso f] : is_iso f.op :=
+⟨⟨(inv f).op,
+  ⟨quiver.hom.unop_inj (by tidy), quiver.hom.unop_inj (by tidy)⟩⟩⟩
+
 /--
 If `f.op` is an isomorphism `f` must be too.
 (This cannot be an instance as it would immediately loop!)
@@ -430,7 +435,7 @@ namespace functor
 variables (C)
 variables (D : Type u₂) [category.{v₂} D]
 
-/-- 
+/--
 The equivalence of functor categories induced by `op` and `unop`.
 -/
 @[simps]

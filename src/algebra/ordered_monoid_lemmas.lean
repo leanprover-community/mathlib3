@@ -381,6 +381,11 @@ lemma mul_lt_mul_left' [left_cancel_semigroup α] [has_mul_le_mul_left α] (h : 
 lt_of_le_of_ne (mul_le_mul_left' h.le c)
   (λ k, lt_irrefl a (h.trans_le ((mul_right_inj c).mp k.symm).le))
 
+@[to_additive]
+instance mul_mul [left_cancel_semigroup α] [has_mul_le_mul_left α] :
+  has_mul_lt_mul_left α :=
+{ mul_lt_mul_left := λ a b c bc, mul_lt_mul_left' bc a}
+
 @[to_additive add_lt_add_right]
 lemma mul_lt_mul_right' [right_cancel_semigroup α] [has_mul_le_mul_right α] (h : a < b) (c : α) :
   a * c < b * c :=
@@ -433,8 +438,8 @@ variables [right_cancel_monoid α]
   [has_mul_le_mul_right α]
   [has_lt_of_mul_lt_mul_right α]
 
-@[to_additive add_lt_add_right]
-lemma mul_lt_mul_right' (h : a < b) (c : α) : a * c < b * c :=
+@[to_additive]
+lemma mul_lt_mul_right (h : a < b) (c : α) : a * c < b * c :=
 (mul_le_mul_right' h.le _).lt_of_not_le
   (λ j, not_le_of_gt h (le_of_mul_le_mul_right' j))
 

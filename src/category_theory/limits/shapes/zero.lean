@@ -96,7 +96,13 @@ instance : subsingleton (has_zero_morphisms C) :=
 
 end has_zero_morphisms
 
-open has_zero_morphisms
+open opposite has_zero_morphisms
+
+instance has_zero_morphisms_opposite [has_zero_morphisms C] :
+  has_zero_morphisms Cᵒᵖ :=
+{ has_zero := λ X Y, ⟨(0 : unop Y ⟶ unop X).op⟩,
+  comp_zero' := λ X Y f Z, congr_arg quiver.hom.op (has_zero_morphisms.zero_comp (unop Z) f.unop),
+  zero_comp' := λ X Y Z f, congr_arg quiver.hom.op (has_zero_morphisms.comp_zero f.unop (unop X)), }
 
 section
 variables {C} [has_zero_morphisms C]

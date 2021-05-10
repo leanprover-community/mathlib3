@@ -823,8 +823,8 @@ def function.injective.ordered_comm_group {α β : Type*}
 
 end lt_left
 
-section has_mul_le_mul_left
-variables [has_mul_le_mul_left α]
+
+end comm_group
 
 /-!
 
@@ -855,7 +855,7 @@ class linear_ordered_comm_group (α : Type u) extends comm_group α, linear_orde
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
 section linear_ordered_comm_group
-variables [linear_ordered_comm_group α]
+variable [linear_ordered_comm_group α]
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_ordered_comm_group : ordered_comm_group α :=
@@ -884,7 +884,7 @@ def function.injective.linear_ordered_comm_group {β : Type*}
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'
   (a b : α) (h : a < b) (c : α) : c * a < c * b :=
-ordered_comm_group.mul_lt_mul_left' a b h c
+mul_lt_mul_left' h c
 
 @[to_additive min_neg_neg]
 lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=
@@ -1091,13 +1091,13 @@ begin
 end
 
 lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
-sub_le.1 $ (abs_sub_le_iff.1 h).2
+by { rw ← neg_add_eq_sub, exact sub_le.1 (abs_sub_le_iff.1 h).2 }
 
 lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
 sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
 
 lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
-sub_lt.1 $ (abs_sub_lt_iff.1 h).2
+by { rw ← neg_add_eq_sub, exact sub_lt.1 (abs_sub_lt_iff.1 h).2 }
 
 lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
 sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)

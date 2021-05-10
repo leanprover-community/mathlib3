@@ -182,7 +182,7 @@ by simp [mul_assoc]
 lemma one_inv : 1⁻¹ = (1 : G) :=
 inv_eq_of_mul_eq_one (one_mul 1)
 
-@[to_additive]
+@[simp, to_additive]
 lemma div_one (a : G) : a / 1 = a :=
 by { rw [div_eq_mul_inv, one_inv], exact mul_one a }
 
@@ -345,9 +345,6 @@ by rw [sub_eq_add_neg, add_assoc, ←sub_eq_add_neg]
 lemma eq_of_sub_eq_zero (h : a - b = 0) : a = b :=
 calc a = a - b + b : (sub_add_cancel a b).symm
    ... = b         : by rw [h, zero_add]
-
-@[simp] lemma sub_zero (a : G) : a - 0 = a :=
-by rw [sub_eq_add_neg, neg_zero, add_zero]
 
 lemma sub_ne_zero_of_ne (h : a ≠ b) : a - b ≠ 0 :=
 mt eq_of_sub_eq_zero h

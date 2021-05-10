@@ -1989,15 +1989,15 @@ variables (V V₂ R)
 
 /-- Linear equivalence between a curried and uncurried function.
   Differs from `tensor_product.curry`. -/
-protected def uncurry :
-  (V → V₂ → R) ≃ₗ[R] (V × V₂ → R) :=
-{ map_add'  := λ _ _, by { ext ⟨⟩, refl },
-  map_smul' := λ _ _, by { ext ⟨⟩, refl },
-  .. equiv.arrow_arrow_equiv_prod_arrow _ _ _}
+protected def curry :
+  (V × V₂ → R) ≃ₗ[R] (V → V₂ → R) :=
+{ map_add'  := λ _ _, by { ext, refl },
+  map_smul' := λ _ _, by { ext, refl },
+  .. equiv.curry _ _ _ }
 
-@[simp] lemma coe_uncurry : ⇑(linear_equiv.uncurry R V V₂) = uncurry := rfl
+@[simp] lemma coe_curry : ⇑(linear_equiv.curry R V V₂) = curry := rfl
 
-@[simp] lemma coe_uncurry_symm : ⇑(linear_equiv.uncurry R V V₂).symm = curry := rfl
+@[simp] lemma coe_curry_symm : ⇑(linear_equiv.curry R V V₂).symm = uncurry := rfl
 
 end uncurry
 

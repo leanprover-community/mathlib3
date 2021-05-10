@@ -867,7 +867,7 @@ variables {m n : Type*} [fintype m] [fintype n]
 variables {R : Type v} [field R]
 
 instance : finite_dimensional R (matrix m n R) :=
-linear_equiv.finite_dimensional (linear_equiv.uncurry R m n).symm
+linear_equiv.finite_dimensional (linear_equiv.curry R m n)
 
 /--
 The dimension of the space of finite dimensional matrices
@@ -875,7 +875,7 @@ is the product of the number of rows and columns.
 -/
 @[simp] lemma finrank_matrix :
   finite_dimensional.finrank R (matrix m n R) = fintype.card m * fintype.card n :=
-by rw [@linear_equiv.finrank_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.uncurry R m n),
+by rw [@linear_equiv.finrank_eq R (matrix m n R) _ _ _ _ _ _ (linear_equiv.curry R m n).symm,
        finite_dimensional.finrank_fintype_fun_eq_card, fintype.card_prod]
 
 end finite_dimensional

@@ -193,12 +193,12 @@ section
       λ h1l, by cases b with x y; exact
       have bm : (_*⟨_,_⟩ :ℤ√(d a1)) = 1, from pell.is_pell_norm.1 hp,
       have y0l : (0:ℤ√(d a1)) < ⟨x - x, y - -y⟩,
-        from sub_lt_sub h1l $ λ(hn : (1:ℤ√(d a1)) ≤ ⟨x, -y⟩),
+        from sub_lt_sub'' h1l $ λ(hn : (1:ℤ√(d a1)) ≤ ⟨x, -y⟩),
           by have t := mul_le_mul_of_nonneg_left hn (le_trans zero_le_one h1);
             rw [bm, mul_one] at t; exact h1l t,
       have yl2 : (⟨_, _⟩ : ℤ√_) < ⟨_, _⟩, from
         show (⟨x, y⟩ - ⟨x, -y⟩ : ℤ√(d a1)) < ⟨a, 1⟩ - ⟨a, -1⟩, from
-        sub_lt_sub (by exact ha) $ λ(hn : (⟨x, -y⟩ : ℤ√(d a1)) ≤ ⟨a, -1⟩),
+        sub_lt_sub'' (by exact ha) $ λ(hn : (⟨x, -y⟩ : ℤ√(d a1)) ≤ ⟨a, -1⟩),
         by have t := mul_le_mul_of_nonneg_right
           (mul_le_mul_of_nonneg_left hn (le_trans zero_le_one h1)) a1p;
             rw [bm, one_mul, mul_assoc, eq.trans (mul_comm _ _) a1m, mul_one] at t; exact ha t,
@@ -485,7 +485,7 @@ section
       apply int.lt_of_coe_nat_lt_coe_nat,
       rw [lem2 (n+1) (nat.lt_succ_self _) j2n,
           show 2 * n - (n + 1) = n - 1, by rw[two_mul, ← nat.sub_sub, nat.add_sub_cancel]],
-      refine lt_sub_left_of_add_lt (int.coe_nat_lt_coe_nat_of_lt _),
+      refine lt_sub_iff_add_lt'.mpr (int.coe_nat_lt_coe_nat_of_lt _),
       cases (lt_or_eq_of_le $ nat.le_of_succ_le_succ ij) with lin ein,
       { rw nat.mod_eq_of_lt (x_increasing _ lin),
         have ll : xn a1 (n-1) + xn a1 (n-1) ≤ xn a1 n,
@@ -514,7 +514,7 @@ section
         (λh, by rw h; exact s),
       lem1 (ne_of_gt jn) $ int.lt_of_coe_nat_lt_coe_nat $ by {
         rw [lem2 j jn (le_of_lt j2n), lem2 (j+1) (nat.le_succ_of_le jn) j2n],
-        refine sub_lt_sub_left (int.coe_nat_lt_coe_nat_of_lt $ x_increasing _ _) _,
+        refine sub_lt_sub_left'' (int.coe_nat_lt_coe_nat_of_lt $ x_increasing _ _) _,
         rw [nat.sub_succ],
         exact nat.pred_lt (ne_of_gt $ nat.sub_pos_of_lt j2n) })
 

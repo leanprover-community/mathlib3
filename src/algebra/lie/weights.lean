@@ -27,9 +27,9 @@ Basic definitions and properties of the above ideas are provided in this file.
 ## Main definitions
 
   * `lie_module.weight_space`
-  * `lie_module.weight`
+  * `lie_module.is_weight`
   * `lie_algebra.root_space`
-  * `lie_algebra.root`
+  * `lie_algebra.is_root`
 
 ## References
 
@@ -193,7 +193,7 @@ begin
   exact infi_max_gen_zero_eigenspace_eq_top_of_nilpotent R L M,
 end
 
-@[simp] lemma coe_weight_space_of_top [lie_algebra.is_nilpotent R L] (χ : L → R) :
+lemma coe_weight_space_of_top [lie_algebra.is_nilpotent R L] (χ : L → R) :
   (weight_space M (χ ∘ (⊤ : lie_subalgebra R L).incl) : submodule R M) = weight_space M χ :=
 begin
   ext m,
@@ -242,5 +242,26 @@ lie_module.zero_weight_space_eq_top_of_nilpotent L
 /-- A root of a Lie algebra `L` with respect to a nilpotent subalgebra `H ⊆ L` is a weight of `L`,
 regarded as a module of `H` via the adjoint action. -/
 abbreviation is_root := lie_module.is_weight H L
+
+@[simp] lemma root_space_comap_eq_weight_space (χ : H → R) :
+  (root_space H χ).comap H.incl' = lie_module.weight_space H χ :=
+begin
+  ext x,
+  let f : H → module.End R L := λ y, lie_module.to_endomorphism R H L y - (χ y) • 1,
+  let g : H → module.End R H := λ y, lie_module.to_endomorphism R H H y - (χ y) • 1,
+  suffices : (∀ (y : H), ∃ (k : ℕ), ((f y)^k).comp (H.incl : H →ₗ[R] L) x = 0) ↔
+              ∀ (y : H), ∃ (k : ℕ), (H.incl : H →ₗ[R] L).comp ((g y)^k) x = 0,
+  { simp only [lie_hom.coe_to_linear_map, lie_subalgebra.coe_incl, function.comp_app,
+      linear_map.coe_comp, submodule.coe_eq_zero] at this,
+    simp only [lie_module.mem_weight_space, lie_module.mem_pre_weight_space,
+      lie_subalgebra.coe_incl', lie_submodule.mem_comap, this], },
+  have hfg : ∀ (y : H), (f y).comp (H.incl : H →ₗ[R] L) = (H.incl : H →ₗ[R] L).comp (g y),
+  { rintros ⟨y, hz⟩, ext ⟨z, hz⟩,
+    simp only [submodule.coe_sub, lie_module.to_endomorphism_apply_apply, lie_hom.coe_to_linear_map,
+      linear_map.one_apply, lie_subalgebra.coe_incl, lie_subalgebra.coe_bracket_of_module,
+      lie_subalgebra.coe_bracket, linear_map.smul_apply, function.comp_app,
+      submodule.coe_smul_of_tower, linear_map.coe_comp, linear_map.sub_apply], },
+  simp_rw [linear_map.commute_pow_left_of_commute (hfg _)],
+end
 
 end lie_algebra

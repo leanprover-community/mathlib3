@@ -455,6 +455,8 @@ variables {f}
 lemma mem_map (m' : M') : m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
 submodule.mem_map
 
+@[simp] lemma mem_comap {m : M} : m ∈ comap f N' ↔ f m ∈ N' := iff.rfl
+
 end lie_submodule
 
 namespace lie_ideal

@@ -145,15 +145,25 @@ instance [module R M] [lie_module R L M] : lie_module R L' M :=
 
 end lie_module
 
+/-- The embedding of a Lie subalgebra into the ambient space as a morphism of Lie algebras. -/
+def incl : L' →ₗ⁅R⁆ L :=
+{ map_lie' := λ x y, by { simp only [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
+  .. (L' : submodule R L).subtype, }
+
+@[simp] lemma coe_incl : ⇑L'.incl = coe := rfl
+
+/-- The embedding of a Lie subalgebra into the ambient space as a morphism of Lie modules. -/
+def incl' : L' →ₗ⁅R,L'⁆ L :=
+{ map_lie' := λ x y, by simp only [coe_bracket_of_module, linear_map.to_fun_eq_coe,
+    submodule.subtype_apply, coe_bracket],
+  .. (L' : submodule R L).subtype, }
+
+@[simp] lemma coe_incl' : ⇑L'.incl' = coe := rfl
+
 end lie_subalgebra
 
 variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]
 variables (f : L →ₗ⁅R⁆ L₂)
-
-/-- The embedding of a Lie subalgebra into the ambient space as a Lie morphism. -/
-def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
-{ map_lie' := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
-  ..L'.to_submodule.subtype }
 
 namespace lie_hom
 

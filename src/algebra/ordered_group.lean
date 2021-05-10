@@ -194,7 +194,7 @@ inv_mul_le_iff''.mpr h
 lemma inv_mul_le_left_of_le_mul (h : a ≤ b * c) : b⁻¹ * a ≤ c :=
 inv_mul_le_of_le_mul h
 
-@[to_additive]
+@[to_additive nonpos_of_neg_nonneg]
 lemma one_le_of_inv_le_one (h : a⁻¹ ≤ 1) : 1 ≤ a :=
 inv_le_one'.mp h
 

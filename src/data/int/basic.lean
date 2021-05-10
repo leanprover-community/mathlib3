@@ -178,7 +178,7 @@ lemma le_add_one {a b : ℤ} (h : a ≤ b) : a ≤ b + 1 :=
 le_of_lt (int.lt_add_one_iff.mpr h)
 
 theorem sub_one_lt_iff {a b : ℤ} : a - 1 < b ↔ a ≤ b :=
-sub_lt_iff_lt_add.trans lt_add_one_iff
+sub_lt_iff_lt_add'.trans lt_add_one_iff
 
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
@@ -354,7 +354,7 @@ match a, b, eq_coe_of_zero_le Ha, eq_coe_of_zero_le Hb with
 end
 
 protected theorem div_nonpos {a b : ℤ} (Ha : 0 ≤ a) (Hb : b ≤ 0) : a / b ≤ 0 :=
-nonpos_of_neg_nonneg $ by rw [← int.div_neg]; exact int.div_nonneg Ha (neg_nonneg_of_nonpos Hb)
+neg_nonneg.mp $ by rw [← int.div_neg]; exact int.div_nonneg Ha (neg_nonneg_of_nonpos Hb)
 
 theorem div_neg' {a b : ℤ} (Ha : a < 0) (Hb : 0 < b) : a / b < 0 :=
 match a, b, eq_neg_succ_of_lt_zero Ha, eq_succ_of_zero_lt Hb with
@@ -649,7 +649,7 @@ by rw [mul_comm, mul_comm c, mul_div_mul_of_pos _ _ H]
 by rw [mod_def, mod_def, mul_div_mul_of_pos _ _ H, mul_sub_left_distrib, mul_assoc]
 
 theorem lt_div_add_one_mul_self (a : ℤ) {b : ℤ} (H : 0 < b) : a < (a / b + 1) * b :=
-by { rw [add_mul, one_mul, mul_comm, ← sub_lt_iff_lt_add', ← mod_def],
+by { rw [add_mul, one_mul, add_comm, mul_comm, ← sub_lt_iff_lt_add', ← mod_def],
   exact mod_lt_of_pos _ H }
 
 theorem abs_div_le_abs : ∀ (a b : ℤ), abs (a / b) ≤ abs a :=

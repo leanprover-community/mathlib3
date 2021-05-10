@@ -95,7 +95,9 @@ begin
   obtain ⟨π, hπ⟩ := is_conj_iff.1 hc,
   rw [subtype.coe_mk, subtype.coe_mk] at hπ,
   cases int.units_eq_one_or (sign π) with h h,
-  { exact is_conj_iff.2 ⟨⟨π, mem_alternating_group.2 h⟩, subtype.val_injective (by simp [← hπ])⟩ },
+  { rw is_conj_iff,
+    refine ⟨⟨π, mem_alternating_group.mp h⟩, subtype.val_injective _⟩,
+    simpa only [subtype.val_eq_coe, subgroup.coe_mul, coe_inv, coe_mk] using hπ },
   { have h2 : 2 ≤ σ.supportᶜ.card,
     { rw [finset.card_compl, nat.le_sub_left_iff_add_le σ.support.card_le_univ],
       exact hσ },
@@ -107,7 +109,7 @@ begin
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
           finset.singleton_disjoint],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
-      rw [mul_assoc π _ σ, disjoint.commute hd],
+      rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
       simp [mul_assoc] } }
 end
 

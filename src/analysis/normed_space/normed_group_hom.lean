@@ -462,10 +462,7 @@ lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=
 by { rw [range, add_monoid_hom.mem_range], refl }
 
 lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.range :=
-begin
-  erw add_monoid_hom.map_range,
-  refl,
-end
+by { erw add_monoid_hom.map_range, refl }
 
 lemma incl_range (s : add_subgroup V₁) : (incl s).range = s :=
 begin

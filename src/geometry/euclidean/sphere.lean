@@ -17,6 +17,21 @@ in spheres in real inner product spaces and Euclidean affine spaces.
 * `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi`: Intersecting Chords Theorem (Freek No. 55).
 * `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_zero`: Intersecting Secants Theorem.
 * `mul_dist_add_mul_dist_eq_mul_dist_of_cospherical`: Ptolemy’s Theorem (Freek No. 95).
+
+TODO: The current statement of Ptolemy’s theorem is a work around the lack of a proper
+"cyclic polygon" concept in mathlib. (Or two such concepts, since both a strict version, where all
+vertices must be distinct, and a weak version, where consecutive vertices may be equal, would be
+useful in mathlib. Ptolemy should then use the weak one.) A natural statement would then use
+cyclic_polygon [a, b, c, d] or similar.
+
+An API needs to be built around that concept (strict cyclic implies weak cyclic, weak cyclic and
+consecutive points distinct implies strict cyclic, each implies the same concept for any
+subsequence, any three points on a sphere are weakly or strictly cyclic according to whether they
+are distinct, any number of points on a sphere intersected with a two-dimensional affine subspace
+are cyclic in some order, a list of points is cyclic if and only if its reversal is, if and only if
+any cyclic permutation is, while other permutations aren't when the points are distinct, a point P
+as in the statement exists (and is unique) with weak/strict betweenness depending on weak/strict
+cyclicity, four points on a sphere with such a point P are cyclic in the appropriate order, etc.)
 -/
 
 open real

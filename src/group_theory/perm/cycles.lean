@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import data.nat.parity
 import data.equiv.fintype
 import group_theory.perm.sign
+import data.finset.noncomm_prod
 /-!
 # Cyclic permutations
 

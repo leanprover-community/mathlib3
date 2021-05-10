@@ -135,7 +135,7 @@ begin
   { unfold polynomial.sum, rw sum_apply, rw sum_apply, dsimp, refl, },
   { simp_rw ← (scalar n).map_pow, simp_rw ← (matrix.scalar.commute _ _).eq,
     simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
-      smul_apply, mul_eq_mul, algebra.smul_mul_assoc],
+      pi.smul_apply, smul_eq_mul, mul_eq_mul, algebra.smul_mul_assoc],
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
     simp only [polynomial.sum, mat_poly_equiv_coeff_apply, mul_comm],
     apply (finset.sum_subset (support_subset_support_mat_poly_equiv _ _ _) _).symm,

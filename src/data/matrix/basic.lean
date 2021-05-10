@@ -29,7 +29,7 @@ m → n → α
 variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
 variables {m' : o → Type*} [∀ i, fintype (m' i)]
 variables {n' : o → Type*} [∀ i, fintype (n' i)]
-variables {α : Type v}
+variables {R : Type*} {S : Type*} {α : Type v} {β : Type w}
 
 namespace matrix
 
@@ -45,10 +45,10 @@ ext_iff.mp
 end ext
 
 /-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`. -/
-def map (M : matrix m n α) {β : Type w} (f : α → β) : matrix m n β := λ i j, f (M i j)
+def map (M : matrix m n α) (f : α → β) : matrix m n β := λ i j, f (M i j)
 
 @[simp]
-lemma map_apply {M : matrix m n α} {β : Type w} {f : α → β} {i : m} {j : n} :
+lemma map_apply {M : matrix m n α} {f : α → β} {i : m} {j : n} :
   M.map f i j = f (M i j) := rfl
 
 @[simp]
@@ -86,15 +86,27 @@ instance [subsingleton α] : subsingleton (matrix m n α) := pi.subsingleton
 instance [nonempty m] [nonempty n] [nontrivial α] : nontrivial (matrix m n α) :=
 function.nontrivial
 
-@[simp] lemma map_zero [has_zero α] {β : Type w} [has_zero β] {f : α → β} (h : f 0 = 0) :
+instance [has_scalar R α] : has_scalar R (matrix m n α) := pi.has_scalar
+instance [has_scalar R α] [has_scalar S α] [smul_comm_class R S α] :
+  smul_comm_class R S (matrix m n α) := pi.smul_comm_class
+instance [has_scalar R S] [has_scalar R α] [has_scalar S α] [is_scalar_tower R S α] :
+  is_scalar_tower R S (matrix m n α) := pi.is_scalar_tower
+instance [monoid R] [mul_action R α] :
+  mul_action R (matrix m n α) := pi.mul_action _
+instance [monoid R] [add_monoid α] [distrib_mul_action R α] :
+  distrib_mul_action R (matrix m n α) := pi.distrib_mul_action _
+instance [semiring R] [add_comm_monoid α] [module R α] :
+  module R (matrix m n α) := pi.module _ _ _
+
+@[simp] lemma map_zero [has_zero α] [has_zero β] {f : α → β} (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=
 by { ext, simp [h], }
 
-lemma map_add [add_monoid α] {β : Type w} [add_monoid β] (f : α →+ β)
+lemma map_add [add_monoid α] [add_monoid β] (f : α →+ β)
   (M N : matrix m n α) : (M + N).map f = M.map f + N.map f :=
 by { ext, simp, }
 
-lemma map_sub [add_group α] {β : Type w} [add_group β] (f : α →+ β)
+lemma map_sub [add_group α] [add_group β] (f : α →+ β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 by { ext, simp }
 
@@ -108,13 +120,13 @@ end matrix
 
 /-- The `add_monoid_hom` between spaces of matrices induced by an `add_monoid_hom` between their
 coefficients. -/
-def add_monoid_hom.map_matrix [add_monoid α] {β : Type w} [add_monoid β] (f : α →+ β) :
+def add_monoid_hom.map_matrix [add_monoid α] [add_monoid β] (f : α →+ β) :
   matrix m n α →+ matrix m n β :=
 { to_fun := λ M, M.map f,
   map_zero' := by simp,
   map_add' := matrix.map_add f, }
 
-@[simp] lemma add_monoid_hom.map_matrix_apply [add_monoid α] {β : Type w} [add_monoid β]
+@[simp] lemma add_monoid_hom.map_matrix_apply [add_monoid α] [add_monoid β]
   (f : α →+ β) (M : matrix m n α) : f.map_matrix M = M.map f := rfl
 
 open_locale matrix
@@ -153,8 +165,7 @@ end
   diagonal d₁ + diagonal d₂ = diagonal (λ i, d₁ i + d₂ i) :=
 by ext i j; by_cases h : i = j; simp [h]
 
-@[simp] lemma diagonal_map {β : Type w} [has_zero α] [has_zero β]
-  {f : α → β} (h : f 0 = 0) {d : n → α} :
+@[simp] lemma diagonal_map [has_zero α] [has_zero β] {f : α → β} (h : f 0 = 0) {d : n → α} :
   (diagonal d).map f = diagonal (λ m, f (d m)) :=
 by { ext, simp only [diagonal, map_apply], split_ifs; simp [h], }
 
@@ -175,7 +186,7 @@ diagonal_apply_ne
 theorem one_apply_ne' {i j} : j ≠ i → (1 : matrix n n α) i j = 0 :=
 diagonal_apply_ne'
 
-@[simp] lemma one_map {β : Type w} [has_zero β] [has_one β]
+@[simp] lemma one_map [has_zero β] [has_one β]
   {f : α → β} (h₀ : f 0 = 0) (h₁ : f 1 = 1) :
   (1 : matrix n n α).map f = (1 : matrix n n β) :=
 by { ext, simp only [one_apply, map_apply], split_ifs; simp [h₀, h₁], }
@@ -266,13 +277,15 @@ by simp [dot_product]
 @[simp] lemma dot_product_neg [ring α] (v w : m → α) : dot_product v (-w) = - dot_product v w :=
 by simp [dot_product]
 
-@[simp] lemma smul_dot_product [semiring α] (x : α) (v w : m → α) :
-  dot_product (x • v) w = x * dot_product v w :=
-by simp [dot_product, finset.mul_sum, mul_assoc]
+@[simp] lemma smul_dot_product [monoid R] [semiring α] [distrib_mul_action R α]
+  [is_scalar_tower R α α] (x : R) (v w : m → α) :
+  dot_product (x • v) w = x • dot_product v w :=
+by simp [dot_product, finset.smul_sum, smul_mul_assoc]
 
-@[simp] lemma dot_product_smul [comm_semiring α] (x : α) (v w : m → α) :
-  dot_product v (x • w) = x * dot_product v w :=
-by simp [dot_product, finset.mul_sum, mul_assoc, mul_comm, mul_left_comm]
+@[simp] lemma dot_product_smul [monoid R] [semiring α] [distrib_mul_action R α]
+  [smul_comm_class R α α] (x : R) (v w : m → α) :
+  dot_product v (x • w) = x • dot_product v w :=
+by simp [dot_product, finset.smul_sum, mul_smul_comm]
 
 end dot_product
 
@@ -364,65 +377,9 @@ theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
 diagonal_mul_diagonal _ _
 
 @[simp]
-lemma map_mul {L : matrix m n α} {M : matrix n o α}
-  {β : Type w} [semiring β] {f : α →+* β} :
+lemma map_mul {L : matrix m n α} {M : matrix n o α} [semiring β] {f : α →+* β} :
   (L ⬝ M).map f = L.map f ⬝ M.map f :=
 by { ext, simp [mul_apply, ring_hom.map_sum], }
-
--- TODO: there should be a way to avoid restating these for each `foo_hom`.
-/-- A version of `one_map` where `f` is a ring hom. -/
-@[simp] lemma ring_hom_map_one [decidable_eq n]
-  {β : Type w} [semiring β] (f : α →+* β) :
-  (1 : matrix n n α).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `one_map` where `f` is a `ring_equiv`. -/
-@[simp] lemma ring_equiv_map_one [decidable_eq n]
-  {β : Type w} [semiring β] (f : α ≃+* β) :
-  (1 : matrix n n α).map f = 1 :=
-one_map f.map_zero f.map_one
-
-/-- A version of `map_zero` where `f` is a `zero_hom`. -/
-@[simp] lemma zero_hom_map_zero
-  {β : Type w} [has_zero β] (f : zero_hom α β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `map_zero` where `f` is a `add_monoid_hom`. -/
-@[simp] lemma add_monoid_hom_map_zero
-  {β : Type w} [add_monoid β] (f : α →+ β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `map_zero` where `f` is a `add_equiv`. -/
-@[simp] lemma add_equiv_map_zero
-  {β : Type w} [add_monoid β] (f : α ≃+ β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `map_zero` where `f` is a `linear_map`. -/
-@[simp] lemma linear_map_map_zero {R : Type*} [semiring R]
-  {β : Type w} [add_comm_monoid β] [module R α] [module R β] (f : α →ₗ[R] β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `map_zero` where `f` is a `linear_equiv`. -/
-@[simp] lemma linear_equiv_map_zero {R : Type*} [semiring R]
-  {β : Type w} [add_comm_monoid β] [module R α] [module R β] (f : α ≃ₗ[R] β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `map_zero` where `f` is a `ring_hom`. -/
-@[simp] lemma ring_hom_map_zero
-  {β : Type w} [semiring β] (f : α →+* β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
-
-/-- A version of `map_zero` where `f` is a `ring_equiv`. -/
-@[simp] lemma ring_equiv_map_zero
-  {β : Type w} [semiring β] (f : α ≃+* β) :
-  (0 : matrix n n α).map f = 0 :=
-map_zero f.map_zero
 
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
@@ -432,19 +389,13 @@ lemma is_add_monoid_hom_mul_right (M : matrix m n α) :
   is_add_monoid_hom (λ x : matrix l m α, x ⬝ M) :=
 { to_is_add_hom := ⟨λ _ _, matrix.add_mul _ _ _⟩, map_zero := matrix.zero_mul _ }
 
-protected lemma sum_mul {β : Type*} (s : finset β) (f : β → matrix l m α)
+protected lemma sum_mul (s : finset β) (f : β → matrix l m α)
   (M : matrix m n α) : (∑ a in s, f a) ⬝ M = ∑ a in s, f a ⬝ M :=
-(@finset.sum_hom _ _ _ _ _ s f (λ x, x ⬝ M)
-/- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
-  `add_monoid` instances were def-eq -/
-  (id (@is_add_monoid_hom_mul_right l _ _ _ _ _ _ _ M) : _)).symm
+(@finset.sum_hom _ _ _ _ _ s f (λ x, x ⬝ M) M.is_add_monoid_hom_mul_right).symm
 
-protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
-  (M : matrix l m α) :  M ⬝ ∑ a in s, f a = ∑ a in s, M ⬝ f a :=
-(@finset.sum_hom _ _ _ _ _ s f (λ x, M ⬝ x)
-/- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
-  `add_monoid` instances were def-eq -/
-  (id (@is_add_monoid_hom_mul_left _ _ n _ _ _ _ _ M) : _)).symm
+protected lemma mul_sum (s : finset β) (f : β → matrix m n α)
+  (M : matrix l m α) : M ⬝ ∑ a in s, f a = ∑ a in s, M ⬝ f a :=
+(@finset.sum_hom _ _ _ _ _ s f (λ x, M ⬝ x) M.is_add_monoid_hom_mul_left).symm
 
 @[simp]
 lemma row_mul_col_apply (v w : m → α) (i j) : (row v ⬝ col w) i j = dot_product v w :=
@@ -452,19 +403,69 @@ rfl
 
 end semiring
 
+section homs
+
+-- TODO: there should be a way to avoid restating these for each `foo_hom`.
+/-- A version of `one_map` where `f` is a ring hom. -/
+@[simp] lemma ring_hom_map_one [decidable_eq n] [semiring α] [semiring β] (f : α →+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `one_map` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_one [decidable_eq n]  [semiring α] [semiring β] (f : α ≃+* β) :
+  (1 : matrix n n α).map f = 1 :=
+one_map f.map_zero f.map_one
+
+/-- A version of `map_zero` where `f` is a `zero_hom`. -/
+@[simp] lemma zero_hom_map_zero [has_zero α] [has_zero β] (f : zero_hom α β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `add_monoid_hom`. -/
+@[simp] lemma add_monoid_hom_map_zero [add_monoid α] [add_monoid β] (f : α →+ β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `add_equiv`. -/
+@[simp] lemma add_equiv_map_zero [add_monoid α] [add_monoid β] (f : α ≃+ β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_map`. -/
+@[simp] lemma linear_map_map_zero [semiring R] [add_comm_monoid α] [add_comm_monoid β]
+  [module R α] [module R β] (f : α →ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `linear_equiv`. -/
+@[simp] lemma linear_equiv_map_zero [semiring R] [add_comm_monoid α] [add_comm_monoid β]
+  [module R α] [module R β] (f : α ≃ₗ[R] β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `ring_hom`. -/
+@[simp] lemma ring_hom_map_zero [semiring α] [semiring β] (f : α →+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+/-- A version of `map_zero` where `f` is a `ring_equiv`. -/
+@[simp] lemma ring_equiv_map_zero [semiring α] [semiring β] (f : α ≃+* β) :
+  (0 : matrix n n α).map f = 0 :=
+map_zero f.map_zero
+
+end homs
+
 end matrix
 
 /-- The `ring_hom` between spaces of square matrices induced by a `ring_hom` between their
 coefficients. -/
-def ring_hom.map_matrix [decidable_eq m] [semiring α] {β : Type w} [semiring β] (f : α →+* β) :
+@[simps]
+def ring_hom.map_matrix [decidable_eq m] [semiring α] [semiring β] (f : α →+* β) :
   matrix m m α →+* matrix m m β :=
 { to_fun := λ M, M.map f,
   map_one' := by simp,
   map_mul' := λ L M, matrix.map_mul,
   ..(f.to_add_monoid_hom).map_matrix }
-
-@[simp] lemma ring_hom.map_matrix_apply [decidable_eq m] [semiring α] {β : Type w} [semiring β]
-  (f : α →+* β) (M : matrix m m α) : f.map_matrix M = M.map f := rfl
 
 open_locale matrix
 
@@ -494,13 +495,6 @@ end ring
 instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 { ..matrix.semiring, ..matrix.add_comm_group }
 
-instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
-instance {β : Type w} [semiring α] [add_comm_monoid β] [module α β] :
-  module α (matrix m n β) := pi.module _ _ _
-
-@[simp] lemma smul_apply [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) :
-  (a • A) i j = a * A i j := rfl
-
 section semiring
 variables [semiring α]
 
@@ -508,15 +502,30 @@ lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
   a • M = diagonal (λ _, a) ⬝ M :=
 by { ext, simp }
 
-@[simp] lemma smul_mul (M : matrix m n α) (a : α) (N : matrix n l α) : (a • M) ⬝ N = a • M ⬝ N :=
+@[simp] lemma smul_mul [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
+  (a : R) (M : matrix m n α) (N : matrix n l α) :
+  (a • M) ⬝ N = a • M ⬝ N :=
 by { ext, apply smul_dot_product }
+
+/-- This instance enables use with `smul_mul_assoc`. -/
+instance semiring.is_scalar_tower [decidable_eq n] [monoid R] [distrib_mul_action R α]
+  [is_scalar_tower R α α] :
+  is_scalar_tower R (matrix n n α) (matrix n n α) :=
+⟨λ r m n, matrix.smul_mul r m n⟩
+
+@[simp] lemma mul_smul [monoid R] [distrib_mul_action R α] [smul_comm_class R α α]
+  (M : matrix m n α) (a : R) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
+by { ext, apply dot_product_smul }
+
+/-- This instance enables use with `mul_smul_comm`. -/
+instance semiring.smul_comm_class [decidable_eq n] [monoid R] [distrib_mul_action R α]
+  [smul_comm_class R α α] :
+  smul_comm_class R (matrix n n α) (matrix n n α) :=
+⟨λ r m n, (matrix.mul_smul m r n).symm⟩
 
 @[simp] lemma mul_mul_left (M : matrix m n α) (N : matrix n o α) (a : α) :
   (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
-begin
-  simp only [←smul_apply],
-  simp,
-end
+smul_mul a M N
 
 /--
 The ring homomorphism `α →+* matrix n n α`
@@ -524,10 +533,9 @@ sending `a` to the diagonal matrix with `a` on the diagonal.
 -/
 def scalar (n : Type u) [decidable_eq n] [fintype n] : α →+* matrix n n α :=
 { to_fun := λ a, a • 1,
-  map_zero' := by simp,
-  map_add' := by { intros, ext, simp [add_mul], },
   map_one' := by simp,
-  map_mul' := by { intros, ext, simp [mul_assoc], }, }
+  map_mul' := by { intros, ext, simp [mul_assoc], },
+  .. (smul_add_hom α _).flip (1 : matrix n n α) }
 
 section scalar
 
@@ -537,11 +545,11 @@ variable [decidable_eq n]
 
 lemma scalar_apply_eq (a : α) (i : n) :
   scalar n a i i = a :=
-by simp only [coe_scalar, mul_one, one_apply_eq, smul_apply]
+by simp only [coe_scalar, smul_eq_mul, mul_one, one_apply_eq, pi.smul_apply]
 
 lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
   scalar n a i j = 0 :=
-by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, smul_apply, mul_zero]
+by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, pi.smul_apply, smul_zero]
 
 lemma scalar_inj [nonempty n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
 begin
@@ -563,15 +571,9 @@ lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
   a • M = M ⬝ diagonal (λ _, a) :=
 by { ext, simp [mul_comm] }
 
-@[simp] lemma mul_smul (M : matrix m n α) (a : α) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
-by { ext, apply dot_product_smul }
-
 @[simp] lemma mul_mul_right (M : matrix m n α) (N : matrix n o α) (a : α) :
   M ⬝ (λ i j, a * N i j) = a • (M ⬝ N) :=
-begin
-  simp only [←smul_apply],
-  simp,
-end
+mul_smul M a N
 
 lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (scalar n r) M :=
 by simp [commute, semiconj_by]
@@ -818,27 +820,27 @@ by { ext i j, refl }
   (- M)ᵀ = - Mᵀ  :=
 by ext i j; refl
 
-lemma transpose_map {β : Type w} {f : α → β} {M : matrix m n α} : Mᵀ.map f = (M.map f)ᵀ :=
+lemma transpose_map {f : α → β} {M : matrix m n α} : Mᵀ.map f = (M.map f)ᵀ :=
 by { ext, refl }
 
 end transpose
 
 section star_ring
-variables [decidable_eq n] {R : Type*} [semiring R] [star_ring R]
+variables [decidable_eq n] [semiring α] [star_ring α]
 
 /--
 When `R` is a `*`-(semi)ring, `matrix n n R` becomes a `*`-(semi)ring with
 the star operation given by taking the conjugate, and the star of each entry.
 -/
-instance : star_ring (matrix n n R) :=
+instance : star_ring (matrix n n α) :=
 { star := λ M, M.transpose.map star,
   star_involutive := λ M, by { ext, simp, },
   star_add := λ M N, by { ext, simp, },
   star_mul := λ M N, by { ext, simp [mul_apply], }, }
 
-@[simp] lemma star_apply (M : matrix n n R) (i j) : star M i j = star (M j i) := rfl
+@[simp] lemma star_apply (M : matrix n n α) (i j) : star M i j = star (M j i) := rfl
 
-lemma star_mul (M N : matrix n n R) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
+lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := star_mul _ _
 
 end star_ring
 
@@ -1356,7 +1358,7 @@ end
 
 @[simp] lemma block_diagonal_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α]
   (x : R) : block_diagonal (x • M) = x • block_diagonal M :=
-by { ext, simp only [block_diagonal_apply, pi.smul_apply, smul_apply], split_ifs; simp }
+by { ext, simp only [block_diagonal_apply, pi.smul_apply], split_ifs; simp }
 
 end block_diagonal
 
@@ -1464,14 +1466,14 @@ end
 
 @[simp] lemma block_diagonal'_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α]
   (x : R) : block_diagonal' (x • M) = x • block_diagonal' M :=
-by { ext, simp only [block_diagonal'_apply, pi.smul_apply, smul_apply], split_ifs; simp }
+by { ext, simp only [block_diagonal'_apply, pi.smul_apply], split_ifs; simp }
 
 end block_diagonal'
 
 end matrix
 
 namespace ring_hom
-variables {β : Type*} [semiring α] [semiring β]
+variables [semiring α] [semiring β]
 
 lemma map_matrix_mul (M : matrix m n α) (N : matrix n o α) (i : m) (j : o) (f : α →+* β) :
   f (matrix.mul M N i j) = matrix.mul (λ i j, f (M i j)) (λ i j, f (N i j)) i j :=

@@ -21,58 +21,81 @@ This allows to still have a well-defined product over `s`.
 
 ## Implementation details
 
-The commutativity proof required has a somewhat unnecessary `x ≠ y` hypothesis.
-It is unnecesary because `commute x x` is true by reflexivity. The `x ≠ y` hypothesis
-is included to facilitate usage with `set.pairwise_on`, or in helping with implications
-that deal with `disjoint`.
+While `list.prod` is defined via `list.foldl`, `noncomm_prod` is defined via
+`list.foldr` for neater proofs and definitions. By the commutativity assumption,
+the two must be equal.
 
 -/
 
-variables {α : Type*} [monoid α]
+variables {α β : Type*} (f : α → β → β) (op : α → α → α)
 
 namespace multiset
+
+/-- Fold of a `s : multiset α` with `f : α → β → β`, given a proof that `left_commutative f`
+on all elements `x ∈ s`. -/
+def noncomm_foldr (s : multiset α) (comm) (b : β) : β :=
+s.attach.foldr (f ∘ subtype.val) comm b
+
+@[simp] lemma noncomm_foldr_coe (l : list α) (comm) (b : β) :
+  noncomm_foldr f (l : multiset α) comm b = l.foldr f b :=
+begin
+  simp only [noncomm_foldr, coe_foldr, coe_attach, list.attach],
+  rw ←list.foldr_map,
+  simp [list.map_pmap, list.pmap_eq_map]
+end
+
+@[simp] lemma noncomm_foldr_empty (h) (b : β) :
+  noncomm_foldr f (0 : multiset α) h b = b := rfl
+
+lemma noncomm_foldr_cons (s : multiset α) (a : α) (h) (h') (b : β) :
+  noncomm_foldr f (a ::ₘ s) h b = f a (noncomm_foldr f s h' b) :=
+begin
+  induction s using quotient.induction_on,
+  simp
+end
+
+/-- Fold of a `s : multiset α` with `op : α → α → α`, given a proof that `left_commutative op`
+on all elements `x ∈ s`. -/
+def noncomm_fold (s : multiset α) (comm) (a : α) : α :=
+noncomm_foldr op s comm a
+-- s.attach.foldr (f ∘ subtype.val) comm a
+
+@[simp] lemma noncomm_fold_coe (l : list α) (comm) (a : α) :
+  noncomm_fold op (l : multiset α) comm a = l.foldr op a :=
+by simp [noncomm_fold]
+
+@[simp] lemma noncomm_fold_empty (h) (a : α) :
+  noncomm_fold op (0 : multiset α) h a = a := rfl
+
+lemma noncomm_fold_cons (s : multiset α) (a : α) (h) (h') (x : α) :
+  noncomm_fold op (a ::ₘ s) h x = op a (noncomm_fold op s h' x) :=
+begin
+  induction s using quotient.induction_on,
+  simp
+end
+
+variables [monoid α]
 
 /-- Product of a `s : multiset α` with `[monoid α]`, given a proof that `*` commutes
 on all elements `x ∈ s`. -/
 @[to_additive "Sum of a `s : multiset α` with `[add_monoid α]`, given a proof that `*` commutes
 on all elements `x ∈ s`." ]
-def noncomm_prod : Π (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s) (h : x ≠ y), commute x y), α :=
-λ s, quotient.hrec_on s (λ l h, l.prod)
-  (λ l l' (h : l ~ l'),
-    begin
-      ext,
-      { refine forall_congr (λ x, _),
-        refine imp_congr h.mem_iff _,
-        refine forall_congr (λ y, _),
-        exact imp_congr h.mem_iff iff.rfl },
-      { intros hl hl' _,
-        rw heq_iff_eq,
-        refine h.prod_eq' _,
-        rw list.pairwise.imp_mem,
-        refine list.pairwise_of_forall _,
-        intros x y hx hy,
-        by_cases hxy : x = y,
-        { subst hxy },
-        { exact hl x hx y hy hxy } }
-    end)
+def noncomm_prod (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y) : α :=
+s.noncomm_fold (*) (begin
+    rintro ⟨x, hx⟩ ⟨y, hy⟩ b',
+    simp [←mul_assoc, (comm x hx y hy).eq]
+  end) 1
 
 @[simp, to_additive] lemma noncomm_prod_coe (l : list α) (comm) :
-  noncomm_prod (l : multiset α) comm = l.prod := rfl
-
-@[to_additive]
-lemma noncomm_prod_congr_list_prod (s : multiset α) (l : list α) (comm) (hl : s = l) :
-  s.noncomm_prod comm = l.prod :=
+  noncomm_prod (l : multiset α) comm = l.prod :=
 begin
-  induction s using quotient.induction_on,
-  simp only [quot_mk_to_coe, coe_eq_coe] at hl,
-  simp only [quot_mk_to_coe, noncomm_prod_coe],
-  refine hl.prod_eq' _,
-  rw list.pairwise.imp_mem,
-  refine list.pairwise_of_forall _,
-  intros x y hx hy,
-  by_cases hxy : x = y,
-  { subst hxy },
-  { exact comm _ hx _ hy hxy }
+  rw [noncomm_prod],
+  simp only [noncomm_fold_coe],
+  induction l with hd tl hl,
+  { simp },
+  { rw [list.prod_cons, list.foldr, hl],
+    intros x hx y hy,
+    exact comm x (list.mem_cons_of_mem _ hx) y (list.mem_cons_of_mem _ hy) }
 end
 
 @[simp, to_additive] lemma noncomm_prod_empty (h) :
@@ -96,11 +119,8 @@ begin
   { simp },
   { rw [list.prod_cons, mul_assoc, ←IH, ←mul_assoc, ←mul_assoc],
     { congr' 1,
-      by_cases ha : a = hd,
-      { subst ha },
-      { refine comm _ _ _ _ ha,
-        { simp },
-        { simp } } },
+      apply comm;
+      simp },
     { intros x hx y hy,
       simp only [quot_mk_to_coe, list.mem_cons_iff, mem_coe, cons_coe] at hx hy,
       apply comm,
@@ -114,7 +134,9 @@ end multiset
 
 namespace finset
 
-/-- Product of a `s : finset α` with `[monoid α`], given a proof that `*` commutes
+variables [monoid α]
+
+/-- Product of a `s : finset α` with `[monoid α]`, given a proof that `*` commutes
 on all elements `x ∈ s`. -/
 @[to_additive "Sum of a `s : finset α` with `[add_monoid α`], given a proof that `*` commutes
 on all elements `x ∈ s`."]
@@ -127,17 +149,6 @@ s.1.noncomm_prod comm
 begin
   rw ←list.erase_dup_eq_self at hl,
   simp [noncomm_prod, hl]
-end
-
-@[to_additive]
-lemma noncomm_prod_congr_list_prod [decidable_eq α] (s : finset α) (l : list α)
-  (comm) (hl : s = l.to_finset) (hn : l.nodup) :
-  s.noncomm_prod comm = l.prod :=
-begin
-  rw noncomm_prod,
-  rw ←list.erase_dup_eq_self at hn,
-  refine multiset.noncomm_prod_congr_list_prod _ _ _ _,
-  simp [hl, hn]
 end
 
 @[simp, to_additive] lemma noncomm_prod_empty (h) :

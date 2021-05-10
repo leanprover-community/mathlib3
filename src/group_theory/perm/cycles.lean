@@ -578,25 +578,18 @@ begin
   exact list.forall_of_pairwise (λ _ _, disjoint.symm) l.prop.right.right _ hp _ hq h
 end
 
-/-- A form of `cycle_factors_mem_commute` with an extra `p ≠ q` hypothesis, such that
-it is of the right form to pass to `noncomm_prod`. -/
-lemma cycle_factors_finset_mem_commute' (p : perm α) (hp : p ∈ cycle_factors_finset f)
-  (q : perm α) (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
-  _root_.commute p q :=
-(cycle_factors_finset_pairwise_disjoint _ _ hp _ hq h).commute
-
 lemma cycle_factors_finset_mem_commute (p : perm α) (hp : p ∈ cycle_factors_finset f)
   (q : perm α) (hq : q ∈ cycle_factors_finset f) :
   _root_.commute p q :=
 begin
   by_cases h : p = q,
   { exact h ▸ commute.refl _ },
-  { exact cycle_factors_finset_mem_commute' _ _ hp _ hq h }
+  { exact (cycle_factors_finset_pairwise_disjoint _ _ hp _ hq h).commute }
 end
 
 /-- The product of cycle factors is equal to the original `f : perm α`. -/
 lemma cycle_factors_finset_noncomm_prod :
-  f.cycle_factors_finset.noncomm_prod (cycle_factors_finset_mem_commute' f) = f :=
+  f.cycle_factors_finset.noncomm_prod (cycle_factors_finset_mem_commute f) = f :=
 begin
   obtain ⟨l, hl⟩ := trunc.exists_rep f.trunc_cycle_factors,
   have ht : cycle_factors_finset f = (l : list (perm α)).to_finset,

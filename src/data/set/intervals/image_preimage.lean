@@ -103,7 +103,7 @@ variables {G : Type u} [ordered_add_comm_group G] (a b c : G)
 ext $ λ x, sub_le_iff_le_add'.symm
 
 @[simp] lemma preimage_const_add_Ioi : (λ x, a + x) ⁻¹' (Ioi b) = Ioi (b - a) :=
-ext $ λ x, sub_lt_iff_lt_add'.symm
+ext $ λ x, sub_lt_iff_lt_add.symm
 
 @[simp] lemma preimage_const_add_Iic : (λ x, a + x) ⁻¹' (Iic b) = Iic (b - a) :=
 ext $ λ x, le_sub_iff_add_le'.symm
@@ -131,13 +131,13 @@ by simp [← Ioi_inter_Iio]
 ext $ λ x, sub_le_iff_le_add.symm
 
 @[simp] lemma preimage_add_const_Ioi : (λ x, x + a) ⁻¹' (Ioi b) = Ioi (b - a) :=
-ext $ λ x, sub_lt_iff_lt_add.symm
+ext $ λ x, sub_lt_iff_lt_add'.symm
 
 @[simp] lemma preimage_add_const_Iic : (λ x, x + a) ⁻¹' (Iic b) = Iic (b - a) :=
 ext $ λ x, le_sub_iff_add_le.symm
 
 @[simp] lemma preimage_add_const_Iio : (λ x, x + a) ⁻¹' (Iio b) = Iio (b - a) :=
-ext $ λ x, lt_sub_iff_add_lt.symm
+ext $ λ x, lt_sub_iff_add_lt_right'.symm
 
 @[simp] lemma preimage_add_const_Icc : (λ x, x + a) ⁻¹' (Icc b c) = Icc (b - a) (c - a) :=
 by simp [← Ici_inter_Iic]

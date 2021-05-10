@@ -370,9 +370,9 @@ commuted.  Since now there is no longer a commutativity assumption, I removed th
 lemma lt_mul_inv_iff_mul_lt' : b < c * a⁻¹ ↔ b * a < c :=
 by rw [← mul_lt_mul_iff_right' a, inv_mul_cancel_right]
 
-/- The non-primed versions of the same lemma, except that multiplication/addition on had been
-commuted.  Since now there is no longer a commutativity assumption, I removed the other lemmas. -/
-@[to_additive lt_sub_iff_add_lt]
+/- The primed version of this lemma involves commuting `b` and `a`: `b < c / a ↔ a * b < c`.
+It is proven later, when there is a commutativity assumption on the group. -/
+@[to_additive]
 lemma lt_div_iff_mul_lt : b < c / a ↔ b * a < c :=
 by rw [div_eq_mul_inv, lt_mul_inv_iff_mul_lt']
 

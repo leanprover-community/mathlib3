@@ -824,7 +824,7 @@ end valuation
 
 lemma is_pwo_Union_support_powers [linear_ordered_add_comm_group Γ] [integral_domain R]
   {x : hahn_series Γ R} (hx : 0 < add_val Γ R x) :
-  (⋃ n : ℕ, {g | (x ^ n).coeff g ≠ 0 }).is_pwo :=
+  (⋃ n : ℕ, (x ^ n).support).is_pwo :=
 begin
   apply (x.is_wf_support.is_pwo.add_submonoid_closure (λ g hg, _)).mono _,
   { exact with_top.coe_le_coe.1 (le_trans (le_of_lt hx) (add_val_le_of_coeff_ne_zero hg)) },
@@ -832,7 +832,8 @@ begin
   induction n with n ih;
   intros g hn,
   { simp only [exists_prop, and_true, set.mem_singleton_iff, set.set_of_eq_eq_singleton,
-      ite_eq_right_iff, ne.def, not_false_iff, one_ne_zero, pow_zero, not_forall, one_coeff] at hn,
+      mem_support, ite_eq_right_iff, ne.def, not_false_iff, one_ne_zero,
+      pow_zero, not_forall, one_coeff] at hn,
     rw [hn, set_like.mem_coe],
     exact add_submonoid.zero_mem _ },
   { obtain ⟨i, j, hi, hj, rfl⟩ := support_mul_subset_add_support hn,

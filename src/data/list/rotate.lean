@@ -164,7 +164,7 @@ by simp
 
 lemma nth_le_rotate_one (l : list α) (k : ℕ) (hk : k < (l.rotate 1).length) :
   (l.rotate 1).nth_le k hk = l.nth_le ((k + 1) % l.length)
-    (nat.mod_lt _ (k.zero_le.trans_lt (hk.trans_le (length_rotate _ _).le))) :=
+    (mod_lt _ (length_rotate l 1 ▸ k.zero_le.trans_lt hk)) :=
 begin
   cases l with hd tl,
   { simp },
@@ -178,7 +178,7 @@ end
 
 lemma nth_le_rotate (l : list α) (n k : ℕ) (hk : k < (l.rotate n).length) :
   (l.rotate n).nth_le k hk = l.nth_le ((k + n) % l.length)
-    (nat.mod_lt _ (k.zero_le.trans_lt (hk.trans_le (length_rotate _ _).le))) :=
+    (mod_lt _ (length_rotate l n ▸ k.zero_le.trans_lt hk)) :=
 begin
   induction n with n hn generalizing l k,
   { have hk' : k < l.length := by simpa using hk,
@@ -314,9 +314,6 @@ exists.elim h (λ _ hl, hl ▸ (rotate_perm _ _).symm)
 
 lemma is_rotated.nodup_iff (h : l ~r l') : nodup l ↔ nodup l' :=
 h.perm.nodup_iff
-
-lemma nodup.of_is_rotated (h : nodup l) (h' : l ~r l') : nodup l' :=
-h'.nodup_iff.mp h
 
 lemma is_rotated.mem_iff (h : l ~r l') {a : α} : a ∈ l ↔ a ∈ l' :=
 h.perm.mem_iff

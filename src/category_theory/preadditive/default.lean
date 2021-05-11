@@ -6,6 +6,7 @@ Authors: Markus Himmel
 import algebra.group.hom
 import category_theory.limits.shapes.kernels
 import algebra.big_operators.basic
+import algebra.module.basic
 import category_theory.endomorphism
 
 /-!
@@ -155,6 +156,25 @@ instance preadditive_has_zero_morphisms : has_zero_morphisms C :=
   comp_zero' := λ P Q f R, map_zero $ left_comp R f,
   zero_comp' := λ P Q R f, map_zero $ right_comp P f }
 
+-- This is not a `@[simp]` lemma,
+-- as `linear.comp_smul` handles it too.
+lemma comp_gsmul {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (r : ℤ) :
+  f ≫ (r • g) = r • (f ≫ g) :=
+begin
+  change left_comp _ _ (r • g) = _,
+  rw [add_monoid_hom.map_gsmul],
+  refl,
+end
+
+-- As with `comp_gsmul`, this does not need to be a `@[simp]` lemma.
+lemma gsmul_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (r : ℤ) :
+  (r • f) ≫ g = r • (f ≫ g) :=
+begin
+  change right_comp _ _ (r • f) = _,
+  rw [add_monoid_hom.map_gsmul],
+  refl,
+end
+
 lemma mono_of_cancel_zero {Q R : C} (f : Q ⟶ R) (h : ∀ {P : C} (g : P ⟶ Q), g ≫ f = 0 → g = 0) :
   mono f :=
 ⟨λ P g g' hg, sub_eq_zero.1 $ h _ $ (map_sub (right_comp P f) g g').trans $ sub_eq_zero.2 hg⟩
@@ -175,9 +195,20 @@ lemma epi_iff_cancel_zero {P Q : C} (f : P ⟶ Q) :
   epi f ↔ ∀ (R : C) (g : Q ⟶ R), f ≫ g = 0 → g = 0 :=
 ⟨λ e R g, by exactI zero_of_epi_comp _, epi_of_cancel_zero f⟩
 
-lemma epi_of_cokernel_zero {X Y : C} (f : X ⟶ Y) [has_colimit (parallel_pair f 0 )]
+lemma epi_of_cokernel_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f 0 )]
   (w : cokernel.π f = 0) : epi f :=
 epi_of_cancel_zero f (λ P g h, by rw [←cokernel.π_desc f g h, w, limits.zero_comp])
+
+local attribute [instance] has_zero_object.has_zero
+variables [has_zero_object C]
+
+lemma mono_of_kernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_limit (parallel_pair f 0)]
+  (w : kernel f ≅ 0) : mono f :=
+mono_of_kernel_zero (zero_of_source_iso_zero _ w)
+
+lemma epi_of_cokernel_iso_zero {X Y : C} {f : X ⟶ Y} [has_colimit (parallel_pair f 0)]
+  (w : cokernel f ≅ 0) : epi f :=
+epi_of_cokernel_zero (zero_of_target_iso_zero _ w)
 
 end preadditive
 

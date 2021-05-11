@@ -154,9 +154,43 @@ lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → �
   cauchy_seq f :=
 hx.cauchy_map
 
+lemma cauchy_seq_const (x : α) : cauchy_seq (λ n : ℕ, x) :=
+tendsto_const_nhds.cauchy_seq
+
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
 cauchy_map_iff'.trans $ by simp only [prod_at_top_at_top_eq, prod.map_def]
+
+lemma cauchy_seq.subseq_subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
+  {u : ℕ → α} (hu : cauchy_seq u)
+  {f g : ℕ → ℕ} (hf : tendsto f at_top at_top) (hg : tendsto g at_top at_top) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, ((u ∘ f ∘ φ) n, (u ∘ g ∘ φ) n) ∈ V n :=
+begin
+  rw cauchy_seq_iff_tendsto at hu,
+  exact ((hu.comp $ hf.prod_at_top hg).comp tendsto_at_top_diagonal).subseq_mem hV,
+end
+
+lemma cauchy_seq_iff' {u : ℕ → α} :
+  cauchy_seq u ↔ ∀ V ∈ 𝓤 α, ∀ᶠ k in at_top, k ∈ (prod.map u u) ⁻¹' V :=
+by simpa only [cauchy_seq_iff_tendsto]
+
+lemma cauchy_seq_iff {u : ℕ → α} :
+  cauchy_seq u ↔ ∀ V ∈ 𝓤 α, ∃ N, ∀ k ≥ N, ∀ l ≥ N, (u k, u l) ∈ V :=
+by simp [cauchy_seq_iff', filter.eventually_at_top_prod_self', prod_map]
+
+lemma cauchy_seq.subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
+  {u : ℕ → α} (hu : cauchy_seq u) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, (u $ φ (n + 1), u $ φ n) ∈ V n :=
+begin
+  have : ∀ n, ∃ N, ∀ k ≥ N, ∀ l ≥ k, (u l, u k) ∈ V n,
+  { intro n,
+    rw [cauchy_seq_iff] at hu,
+    rcases hu _ (hV n) with ⟨N, H⟩,
+    exact ⟨N, λ k hk l hl, H _ (le_trans hk hl) _ hk ⟩ },
+  obtain ⟨φ : ℕ → ℕ, φ_extr : strict_mono φ, hφ : ∀ n, ∀ l ≥ φ n, (u l, u $ φ n) ∈ V n⟩ :=
+    extraction_forall_of_eventually' this,
+  exact ⟨φ, φ_extr, λ n, hφ _ _ (φ_extr $ lt_add_one n).le⟩,
+end
 
 /-- If a Cauchy sequence has a convergent subsequence, then it converges. -/
 lemma tendsto_nhds_of_cauchy_seq_of_subseq

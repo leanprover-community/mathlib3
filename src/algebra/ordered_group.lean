@@ -1308,3 +1308,22 @@ instance [linear_ordered_comm_group α] : linear_ordered_add_comm_group (additiv
   ..additive.ordered_add_comm_group }
 
 end type_tags
+
+/- The following lemmas are stated so that the `norm_num` tactic can use them with the
+expected signatures.  -/
+variable [ordered_comm_group α]
+@[to_additive neg_le_neg]
+theorem inv_le_inv' : a ≤ b → b⁻¹ ≤ a⁻¹ :=
+inv_le_inv_iff.mpr
+
+@[to_additive neg_lt_neg]
+theorem inv_lt_inv' {a b : α} : a < b → b⁻¹ < a⁻¹ :=
+inv_lt_inv_iff.mpr
+
+@[to_additive]
+theorem inv_lt_one_of_one_lt {a : α} : 1 < a → a⁻¹ < 1 :=
+inv_lt_one'.mpr
+
+@[to_additive]
+theorem inv_le_one_of_one_le {a : α} : 1 ≤ a → a⁻¹ ≤ 1 :=
+inv_le_one'.mpr

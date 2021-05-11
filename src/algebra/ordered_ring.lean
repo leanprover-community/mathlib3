@@ -980,7 +980,7 @@ calc a < -a ↔ -(-a) < -a : by rw neg_neg
 
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
 have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
-have h2 : -(c * b) < -(c * a), from neg_lt_neg h,
+have h2 : -(c * b) < -(c * a), from neg_lt_neg_iff.mpr h,
 have h3 : (-c) * b < (-c) * a, from calc
      (-c) * b = - (c * b)    : by rewrite neg_mul_eq_neg_mul
           ... < -(c * a)     : h2

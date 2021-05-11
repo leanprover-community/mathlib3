@@ -1780,6 +1780,18 @@ finitely supported functions from `β` to `γ`. -/
 protected def curry (f : (α × β) →₀ M) : α →₀ (β →₀ M) :=
 f.sum $ λp c, single p.1 (single p.2 c)
 
+@[simp] lemma curry_apply (f : (α × β) →₀ M) (x : α) (y : β) :
+  f.curry x y = f (x, y) :=
+begin
+  have : ∀ (b : α × β), single b.fst (single b.snd (f b)) x y = if b = (x, y) then f b else 0,
+  { rintros ⟨b₁, b₂⟩,
+    simp [single_apply, ite_apply, prod.ext_iff, ite_and],
+    split_ifs; simp [single_apply, *] },
+  rw [finsupp.curry, sum_apply, sum_apply, finsupp.sum, finset.sum_eq_single, this, if_pos rfl],
+  { intros b hb b_ne, rw [this b, if_neg b_ne] },
+  { intros hxy, rw [this (x, y), if_pos rfl, not_mem_support_iff.mp hxy] }
+end
+
 lemma sum_curry_index (f : (α × β) →₀ M) (g : α → β → M → N)
   (hg₀ : ∀ a b, g a b 0 = 0) (hg₁ : ∀a b c₀ c₁, g a b (c₀ + c₁) = g a b c₀ + g a b c₁) :
   f.curry.sum (λa f, f.sum (g a)) = f.sum (λp c, g p.1 p.2 c) :=
@@ -2175,7 +2187,10 @@ variables {αs : ι → Type*} [has_zero M] (l : (Σ i, αs i) →₀ M)
 
 /-- Given `l`, a finitely supported function from the sigma type `Σ (i : ι), αs i` to `M` and
 an index element `i : ι`, `split l i` is the `i`th component of `l`,
-a finitely supported function from `as i` to `M`. -/
+a finitely supported function from `as i` to `M`.
+
+This is the `finsupp` version of `sigma.curry`.
+-/
 def split (i : ι) : αs i →₀ M :=
 l.comap_domain (sigma.mk i) (λ x1 x2 _ _ hx, heq_iff_eq.1 (sigma.mk.inj hx).2)
 
@@ -2219,6 +2234,41 @@ by simp only [finset.ext_iff, split_support, split, comap_domain, mem_image,
 lemma sigma_sum [add_comm_monoid N] (f : (Σ (i : ι), αs i) → M → N) :
   l.sum f = ∑ i in split_support l, (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b) :=
 by simp only [sum, sigma_support, sum_sigma, split_apply]
+
+variables {η : Type*} [fintype η] {ιs : η → Type*} [has_zero α]
+
+/-- On a `fintype η`, `finsupp.split` is an equivalence between `(Σ (j : η), ιs j) →₀ α`
+and `Π j, (ιs j →₀ α)`.
+
+This is the `finsupp` version of `equiv.Pi_curry`. -/
+noncomputable def sigma_finsupp_equiv_pi_finsupp :
+  ((Σ j, ιs j) →₀ α) ≃ Π j, (ιs j →₀ α) :=
+{ to_fun := split,
+  inv_fun := λ f, on_finset
+    (finset.univ.sigma (λ j, (f j).support))
+    (λ ji, f ji.1 ji.2)
+    (λ g hg, finset.mem_sigma.mpr ⟨finset.mem_univ _, mem_support_iff.mpr hg⟩),
+  left_inv := λ f, by { ext, simp [split] },
+  right_inv := λ f, by { ext, simp [split] } }
+
+@[simp] lemma sigma_finsupp_equiv_pi_finsupp_apply
+  (f : (Σ j, ιs j) →₀ α) (j i) :
+sigma_finsupp_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
+
+/-- On a `fintype η`, `finsupp.split` is an additive equivalence between
+`(Σ (j : η), ιs j) →₀ α` and `Π j, (ιs j →₀ α)`.
+
+This is the `add_equiv` version of `finsupp.sigma_finsupp_equiv_pi_finsupp`.
+-/
+noncomputable def sigma_finsupp_add_equiv_pi_finsupp
+  {α : Type*} {ιs : η → Type*} [add_monoid α] :
+  ((Σ j, ιs j) →₀ α) ≃+ Π j, (ιs j →₀ α) :=
+{ map_add' := λ f g, by { ext, simp },
+  .. sigma_finsupp_equiv_pi_finsupp }
+
+@[simp] lemma sigma_finsupp_add_equiv_pi_finsupp_apply
+  {α : Type*} {ιs : η → Type*} [add_monoid α] (f : (Σ j, ιs j) →₀ α) (j i) :
+sigma_finsupp_add_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
 
 end sigma
 

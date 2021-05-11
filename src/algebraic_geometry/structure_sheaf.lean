@@ -497,14 +497,14 @@ def stalk_iso (x : Spec.Top R) :
   inv := localization_to_stalk R x,
   hom_inv_id' := (structure_sheaf R).presheaf.stalk_hom_ext $ λ U hxU,
   begin
-    ext s, simp only [coe_comp], rw [coe_id, stalk_to_fiber_ring_hom_germ'],
+    ext s, simp only [comp_apply], rw [id_apply, stalk_to_fiber_ring_hom_germ'],
     obtain ⟨V, hxV, iVU, f, g, hg, hs⟩ := exists_const _ _ s x hxU,
     erw [← res_apply R U V iVU s ⟨x, hxV⟩, ← hs, const_apply, localization_to_stalk_mk'],
     refine (structure_sheaf R).presheaf.germ_ext V hxV (hom_of_le hg) iVU _,
     erw [← hs, res_const']
   end,
   inv_hom_id' := (localization.of x.as_ideal.prime_compl).epic_of_localization_map $ λ f,
-    by simp only [ring_hom.comp_apply, coe_comp, coe_id, localization_to_stalk_of,
+    by simp only [ring_hom.comp_apply, comp_apply, id_apply, localization_to_stalk_of,
         stalk_to_fiber_ring_hom_to_stalk] }
 
 end algebraic_geometry

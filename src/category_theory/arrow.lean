@@ -51,6 +51,12 @@ def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
   right := Y,
   hom := f }
 
+theorem mk_injective (A B : T) :
+  function.injective (arrow.mk : (A ⟶ B) → arrow T) :=
+λ f g h, by { cases h, refl }
+
+theorem mk_inj (A B : T) {f g : A ⟶ B} : arrow.mk f = arrow.mk g ↔ f = g :=
+(mk_injective A B).eq_iff
 instance {X Y : T} : has_coe (X ⟶ Y) (arrow T) := ⟨mk⟩
 
 /-- A morphism in the arrow category is a commutative square connecting two objects of the arrow

@@ -96,7 +96,7 @@ begin
   { rcases this with ⟨p, hpm, hpx⟩,
     replace hpx := congr_arg S.val hpx,
     refine ⟨p, hpm, eq.trans _ hpx⟩,
-    simp only [aeval_def, eval₂, finsupp.sum],
+    simp only [aeval_def, eval₂, sum_def],
     rw S.val.map_sum,
     refine finset.sum_congr rfl (λ n hn, _),
     rw [S.val.map_mul, S.val.map_pow, S.val.commutes, S.val_apply, subtype.coe_mk], },
@@ -141,7 +141,7 @@ theorem is_integral_iff_is_integral_closure_finite {r : A} :
 begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
-    refine ⟨_, set.finite_mem_finset _, p.restriction, subtype.eq hmp, _⟩,
+    refine ⟨_, set.finite_mem_finset _, p.restriction, monic_restriction.2 hmp, _⟩,
     erw [← aeval_def, is_scalar_tower.aeval_apply _ R, map_restriction, aeval_def, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
@@ -166,14 +166,14 @@ begin
   rw [alg_hom.map_add, alg_hom.map_mul, hfx, zero_mul, add_zero],
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
   generalize_hyp : p %ₘ f = q at this ⊢,
-  rw [← sum_C_mul_X_eq q, aeval_def, eval₂_sum, finsupp.sum],
+  rw [← sum_C_mul_X_eq q, aeval_def, eval₂_sum, sum_def],
   refine sum_mem _ (λ k hkq, _),
   rw [eval₂_mul, eval₂_C, eval₂_pow, eval₂_X, ← algebra.smul_def],
   refine smul_mem _ _ (subset_span _),
   rw finset.mem_coe, refine finset.mem_image.2 ⟨_, _, rfl⟩,
   rw [finset.mem_range, nat.lt_succ_iff], refine le_of_not_lt (λ hk, _),
   rw [degree_le_iff_coeff_zero] at this,
-  rw [finsupp.mem_support_iff] at hkq, apply hkq, apply this,
+  rw [mem_support_iff] at hkq, apply hkq, apply this,
   exact lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 hk)
 end
 
@@ -383,7 +383,8 @@ begin
   have coeffs_mem : ∀ i, (p.map $ algebra_map A B).coeff i ∈ adjoin R S,
   { intro i, by_cases hi : (p.map $ algebra_map A B).coeff i = 0,
     { rw hi, exact subalgebra.zero_mem _ },
-    rw ← hS, exact subset_adjoin (finsupp.mem_frange.2 ⟨hi, i, rfl⟩) },
+    rw ← hS,
+    exact subset_adjoin (coeff_mem_frange _ _ hi) },
   obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (adjoin R S) B) =
       (p.map $ algebra_map A B),
   { rw ← set.mem_range, exact (polynomial.mem_map_range _).2 (λ i, ⟨⟨_, coeffs_mem i⟩, rfl⟩) },
@@ -409,9 +410,10 @@ begin
   let S : set B := ↑(p.map $ algebra_map A B).frange,
   refine is_integral_of_mem_of_fg (adjoin R (S ∪ {x})) _ _ (subset_adjoin $ or.inr rfl),
   refine fg_trans (fg_adjoin_of_finite (finset.finite_to_set _) (λ x hx, _)) _,
-  { rw [finset.mem_coe, finsupp.mem_frange] at hx, rcases hx with ⟨_, i, rfl⟩,
-    show is_integral R ((p.map $ algebra_map A B).coeff i), rw coeff_map,
-    convert is_integral_alg_hom (is_scalar_tower.to_alg_hom R A B) (A_int _) },
+  { rw [finset.mem_coe, frange, finset.mem_image] at hx,
+    rcases hx with ⟨i, _, rfl⟩,
+    rw coeff_map,
+    exact is_integral_alg_hom (is_scalar_tower.to_alg_hom R A B) (A_int _) },
   { apply fg_adjoin_singleton_of_integral,
     exact is_integral_trans_aux _ pmonic hp }
 end

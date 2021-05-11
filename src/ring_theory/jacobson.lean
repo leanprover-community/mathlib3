@@ -267,14 +267,14 @@ lemma is_integral_localization_map_polynomial_quotient
   (ϕ : localization_map (submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff) Rₘ)
   (ϕ' : localization_map ((submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff).map
     (quotient_map P C le_rfl) : submonoid P.quotient) Sₘ) :
-  (ϕ.map ((submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff).mem_map_of_mem
-      (quotient_map P C le_rfl : (P.comap C : ideal R).quotient →* P.quotient)) ϕ').is_integral :=
+  (ϕ.map (submonoid.apply_coe_mem_map (quotient_map P C le_rfl :
+  (P.comap C : ideal R).quotient →* P.quotient)) ϕ').is_integral :=
 begin
   let P' : ideal R := P.comap C,
   let M : submonoid P'.quotient :=
   submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff,
   let φ : P'.quotient →+* P.quotient := quotient_map P C le_rfl,
-  let φ' := (ϕ.map (M.mem_map_of_mem (φ : P'.quotient →* P.quotient)) ϕ'),
+  let φ' := (ϕ.map (submonoid.apply_coe_mem_map (φ : P'.quotient →* P.quotient)) ϕ'),
   have hφ' : φ.comp (quotient.mk P') = (quotient.mk P).comp C := rfl,
   intro p,
   obtain ⟨⟨p', ⟨q, hq⟩⟩, hp⟩ := ϕ'.surj p,
@@ -312,13 +312,13 @@ lemma jacobson_bot_of_integral_localization {R : Type*} [integral_domain R] [is_
   (φ : R →+* S) (hφ : function.injective φ) (x : R) (hx : x ≠ 0)
   (ϕ : localization_map (submonoid.powers x) Rₘ)
   (ϕ' : localization_map ((submonoid.powers x).map φ : submonoid S) Sₘ)
-  (hφ' : (ϕ.map ((submonoid.powers x).mem_map_of_mem (φ : R →* S)) ϕ').is_integral) :
+  (hφ' : (ϕ.map (submonoid.apply_coe_mem_map (φ : R →* S)) ϕ').is_integral) :
   (⊥ : ideal S).jacobson = ⊥ :=
 begin
   have hM : ((submonoid.powers x).map φ : submonoid S) ≤ non_zero_divisors S :=
     map_le_non_zero_divisors_of_injective hφ (powers_le_non_zero_divisors_of_domain hx),
   letI : integral_domain Sₘ := localization_map.integral_domain_of_le_non_zero_divisors ϕ' hM,
-  let φ' : Rₘ →+* Sₘ := ϕ.map ((submonoid.powers x).mem_map_of_mem (φ : R →* S)) ϕ',
+  let φ' : Rₘ →+* Sₘ := ϕ.map (submonoid.apply_coe_mem_map (φ : R →* S)) ϕ',
   suffices : ∀ I : ideal Sₘ, I.is_maximal → (I.comap ϕ'.to_map).is_maximal,
   { have hϕ' : comap ϕ'.to_map ⊥ = ⊥,
     { simpa [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_comap_bot] using ϕ'.injective hM },
@@ -382,7 +382,7 @@ begin
     replace hf := congr_arg (λ (g : polynomial (((quotient.mk I).comp C).range)), g.coeff n) hf,
     change (polynomial.map ((quotient.mk I).comp C).range_restrict f).coeff n = 0 at hf,
     rw [coeff_map, subtype.ext_iff] at hf,
-    rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply] },
+    rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply], },
   haveI : (ideal.map (map_ring_hom i) I).is_prime :=
     map_is_prime_of_surjective (map_surjective i hi) hi',
   suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
@@ -474,7 +474,7 @@ begin
   { let ϕ : localization_map M (localization M) := localization.of M,
     rw ← (ϕ.map_comp _),
     refine ring_hom.is_integral_trans ϕ.to_map
-      (ϕ.map (M.mem_map_of_mem (φ : P'.quotient →* P.quotient)) ϕ') _ _,
+      (ϕ.map (submonoid.apply_coe_mem_map (φ : P'.quotient →* P.quotient)) ϕ') _ _,
     { exact ϕ.to_map.is_integral_of_surjective (localization_map_bijective_of_field hM
         ((quotient.maximal_ideal_iff_is_field_quotient _).mp
         (is_maximal_comap_C_of_is_maximal P hP')) _).2 },

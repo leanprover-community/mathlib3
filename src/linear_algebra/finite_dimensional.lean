@@ -114,7 +114,7 @@ by haveI := hs.fintype; exact of_fintype_basis h
 
 -- TODO: why do we have to specify `.{w}` explicitly here?
 /-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
-lemma of_finset_basis {ι : Type w} {s : finset ι} (h : basis.{w} (↑s : set ι) K V) :
+lemma of_finset_basis {ι : Type w} {s : finset ι} (h : basis.{w} s K V) :
   finite_dimensional K V :=
 of_finite_basis h s.finite_to_set
 
@@ -198,7 +198,7 @@ end
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. This lemma uses a `finset` instead of indexed types. -/
 lemma finrank_eq_card_finset_basis {ι : Type w} {b : finset ι}
-  (h : basis.{w} (↑b : set ι) K V) :
+  (h : basis.{w} b K V) :
   finrank K V = finset.card b :=
 by rw [finrank_eq_card_basis h, fintype.card_coe]
 
@@ -206,7 +206,7 @@ variables (K V)
 
 /-- A finite dimensional vector space has a basis indexed by `fin (finrank K V)`. -/
 noncomputable def fin_basis [finite_dimensional K V] : basis (fin (finrank K V)) K V :=
-have h : fintype.card (↑(finset_basis_index K V) : set V) = finrank K V,
+have h : fintype.card (finset_basis_index K V) = finrank K V,
 from (finrank_eq_card_basis (finset_basis K V)).symm,
 (finset_basis K V).reindex (fintype.equiv_fin_of_card_eq h)
 
@@ -268,7 +268,7 @@ lemma fintype_card_le_finrank_of_linear_independent
 by simpa [fintype_card] using cardinal_mk_le_finrank_of_linear_independent h
 
 lemma finset_card_le_finrank_of_linear_independent [finite_dimensional K V] {b : finset V}
-  (h : linear_independent K (λ x, x : (↑b : set V) → V)) :
+  (h : linear_independent K (λ x, x : b → V)) :
   b.card ≤ finrank K V :=
 begin
   rw ←fintype.card_coe,
@@ -335,7 +335,7 @@ begin
   obtain ⟨s, g, sum, z, zm, nonzero⟩ := this,
   -- Now we have to extend `g` to all of `t`, then to all of `V`.
   let f : V → K :=
-    λ x, if h : x ∈ t then if (⟨x, h⟩ : (↑t : set V)) ∈ s then g ⟨x, h⟩ else 0 else 0,
+    λ x, if h : x ∈ t then if (⟨x, h⟩ : t) ∈ s then g ⟨x, h⟩ else 0 else 0,
   -- and finally clean up the mess caused by the extension.
   refine ⟨f, _, _⟩,
   { dsimp [f],
@@ -1206,16 +1206,16 @@ basis.coe_mk _ _
 @[simps]
 noncomputable def finset_basis_of_linear_independent_of_card_eq_finrank
   {s : finset V} (hs : s.nonempty)
-  (lin_ind : linear_independent K (coe : (↑s : set V) → V)) (card_eq : s.card = finrank K V) :
-  basis (s : set V) K V :=
+  (lin_ind : linear_independent K (coe : s → V)) (card_eq : s.card = finrank K V) :
+  basis s K V :=
 @basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _
-  ⟨(⟨hs.some, hs.some_spec⟩ : (↑s : set V))⟩ _ _
+  ⟨(⟨hs.some, hs.some_spec⟩ : s)⟩ _ _
   lin_ind
   (trans (fintype.card_coe _) card_eq)
 
 @[simp] lemma coe_finset_basis_of_linear_independent_of_card_eq_finrank
   {s : finset V} (hs : s.nonempty)
-  (lin_ind : linear_independent K (coe : (↑s : set V) → V)) (card_eq : s.card = finrank K V) :
+  (lin_ind : linear_independent K (coe : s → V)) (card_eq : s.card = finrank K V) :
   ⇑(finset_basis_of_linear_independent_of_card_eq_finrank hs lin_ind card_eq) = coe :=
 basis.coe_mk _ _
 

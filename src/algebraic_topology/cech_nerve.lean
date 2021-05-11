@@ -12,10 +12,10 @@ import category_theory.arrow
 
 # The Čech Nerve
 
-This file provides a definition of the Čech nerve assocaited to an arrow, provided
+This file provides a definition of the Čech nerve associated to an arrow, provided
 the base category has the correct wide pullbacks.
 
-Several variables are provided, given `f : arrow C`:
+Several variants are provided, given `f : arrow C`:
 1. `f.cech_nerve` is the Čech nerve, considered as a simplicial object in `C`.
 2. `f.augmented_cech_nerve` is the augmented Čech nerve, considered as an
   augmented simplicial object in `C`.

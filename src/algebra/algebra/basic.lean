@@ -1340,7 +1340,7 @@ instance algebra {r : comm_semiring R}
 -- One could also build a `Π i, R i`-algebra structure on `Π i, A i`,
 -- when each `A i` is an `R i`-algebra, although I'm not sure that it's useful.
 
-variables (R) (f)
+variables {I} (R) (f)
 
 /-- `function.eval` as an `alg_hom`. The name matches `pi.eval_ring_hom`, `pi.eval_monoid_hom`,
 etc. -/

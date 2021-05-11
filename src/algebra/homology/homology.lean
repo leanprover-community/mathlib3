@@ -201,26 +201,49 @@ by { ext, simp, }
 
 variables (V c)
 
-/--
-The natural transformation from the boundaries functor to the cycles functor.
--/
-def boundaries_to_cycles_nat_trans (i : ι) :
+/-- The natural transformation from the boundaries functor to the cycles functor. -/
+@[simps] def boundaries_to_cycles_nat_trans (i : ι) :
   boundaries_functor V c i ⟶ cycles_functor V c i :=
 { app := λ C, C.boundaries_to_cycles i,
   naturality' := λ C₁ C₂ f, boundaries_to_cycles_naturality f i, }
 
 /-- The `i`-th homology, as a functor to `V`. -/
-def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V :=
+@[simps] def homology_functor [has_cokernels V] (i : ι) :
+  homological_complex V c ⥤ V :=
 -- It would be nice if we could just write
 -- `cokernel (boundaries_to_cycles_nat_trans V c i)`
 -- here, but universe implementation details get in the way...
 { obj := λ C, C.homology i,
-  map := λ C₁ C₂ f, _root_.homology.map _ _ (f.sq_to i) (f.sq_from i) rfl, }
+  map := λ C₁ C₂ f, _root_.homology.map _ _ (f.sq_to i) (f.sq_from i) rfl,
+  map_id' :=
+  begin
+    intros, ext1,
+    simp only [homology.π_map, kernel_subobject_map_id, hom.sq_from_id,
+      category.id_comp, category.comp_id]
+  end,
+  map_comp' :=
+  begin
+    intros, ext1,
+    simp only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
+      homology.π_map, category.assoc]
+  end }
 
 /-- The homology functor from `ι`-indexed complexes to `ι`-graded objects in `V`. -/
-@[simps]
-def graded_homology_functor [has_cokernels V] : homological_complex V c ⥤ graded_object ι V :=
+@[simps] def graded_homology_functor [has_cokernels V] :
+  homological_complex V c ⥤ graded_object ι V :=
 { obj := λ C i, C.homology i,
-  map := λ C C' f i, (homology_functor V c i).map f }
+  map := λ C C' f i, (homology_functor V c i).map f,
+  map_id' :=
+  begin
+    intros, ext,
+    simp only [pi.id_apply, homology.π_map, homology_functor_map, kernel_subobject_map_id,
+      hom.sq_from_id, category.id_comp, category.comp_id]
+  end,
+  map_comp' :=
+  begin
+    intros, ext,
+    simp only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
+      pi.comp_apply, homology.π_map, homology_functor_map, category.assoc]
+  end }
 
 end

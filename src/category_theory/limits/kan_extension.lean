@@ -7,7 +7,6 @@ import category_theory.punit
 import category_theory.structured_arrow
 import category_theory.limits.functor_category
 import category_theory.limits.shapes.terminal
-import tactic
 
 /-!
 

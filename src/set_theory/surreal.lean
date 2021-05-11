@@ -3,7 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.pgame
+import set_theory.game
+import tactic.abel
 
 /-!
 # Surreal numbers
@@ -46,6 +47,8 @@ One can also map all the ordinals into the surreals!
 universes u
 
 namespace pgame
+
+local infix ` ≈ ` := pgame.equiv
 
 /-! Multiplicative operations can be defined at the level of pre-games, but as
 they are only useful on surreal numbers, we define them here. -/
@@ -116,22 +119,6 @@ rfl
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by {cases x, cases y, refl}
 
-/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
-and `c` has the same moves as `z`, then `a + b - c` has the same moves as `x + y - z`.
-This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-def add_sub_relabelling {a b c x y z : pgame}
-  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
-  (a + b - c).relabelling (x + y - z) :=
-(h₁.add_congr h₂).sub_congr h₃
-
-/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
-and `c` has the same moves as `z`, then `a + b - c` has the same moves as `y + x - z`.
-This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-def add_comm_sub_relabelling {a b c x y z : pgame}
-  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
-  (a + b - c).relabelling (y + x - z) :=
-((add_comm_relabelling a b).trans (h₂.add_congr h₁)).sub_congr h₃
-
 /-- `x * y` has exactly the same moves as `y * x`. -/
 def mul_comm_relabelling (x y : pgame.{u}) : (x * y).relabelling (y * x) :=
 begin
@@ -141,21 +128,23 @@ begin
   let y := mk yl yr yL yR,
   refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _), _, _, _⟩,
   calc
-   (x * y).right_moves
-       ≃ xl × yr ⊕ xr × yl : by refl
-   ... ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
-   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)
-   ... ≃ (y * x).right_moves : by refl,
+    xl × yr ⊕ xr × yl
+       ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
+   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { exact add_comm_sub_relabelling (IHxl i y) (IHyl j) (IHxl i (yL j)) },
-    { exact add_comm_sub_relabelling (IHxr i y) (IHyr j) (IHxr i (yR j)) }},
+    { exact ((add_comm_relabelling _ _).trans
+                ((IHyl j).add_congr (IHxl i y))).sub_congr (IHxl i (yL j)) },
+    { exact ((add_comm_relabelling _ _).trans
+                ((IHyr j).add_congr (IHxr i y))).sub_congr (IHxr i (yR j)) } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { exact add_comm_sub_relabelling (IHxr j y) (IHyl i) (IHxr j (yL i)) },
-    { exact add_comm_sub_relabelling (IHxl j y) (IHyr i) (IHxl j (yR i)) }}
+    { exact ((add_comm_relabelling _ _).trans
+                ((IHyl i).add_congr (IHxr j y))).sub_congr (IHxr j (yL i)) },
+    { exact ((add_comm_relabelling _ _).trans
+                ((IHyr i).add_congr (IHxl j y))).sub_congr (IHxl j (yR i)) } }
 end
 
 /-- `x * y` is equivalent to `y * x`. -/
-theorem mul_comm_equiv (x y : pgame) : (x * y).equiv (y * x) :=
+theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
 (mul_comm_relabelling x y).equiv
 
 /-- `x * 0` has exactly the same moves as `0`. -/
@@ -167,7 +156,7 @@ def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
  by rintro ⟨⟩⟩
 
 /-- `x * 0` is equivalent to `0`. -/
-theorem mul_zero_equiv (x : pgame) : (x * 0).equiv 0 :=
+theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 :=
 (mul_zero_relabelling x).equiv
 
 /-- `0 * x` has exactly the same moves as `0`. -/
@@ -179,8 +168,87 @@ def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
  by rintro ⟨⟩⟩
 
 /-- `0 * x` is equivalent to `0`. -/
-theorem zero_mul_equiv (x : pgame) : (0 * x).equiv 0 :=
+theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
 (zero_mul_relabelling x).equiv
+
+lemma left_distrib_equiv_aux {a b c d e : pgame} : a + b + (c + d) - (e + b) ≈ a + c - e + d :=
+by { apply @quotient.exact pgame, simp, abel }
+
+lemma left_distrib_equiv_aux' {a b c d e : pgame} : b + a + (d + c) - (b + e) ≈ d + (a + c - e) :=
+by { apply @quotient.exact pgame, simp, abel }
+
+/-- `x * (y + z)` is equivalent to `x * y + x * z.`-/
+theorem left_distrib_equiv : Π (x y z : pgame), x * (y + z) ≈ x * y + x * z
+| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
+begin
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
+  let z := mk zl zr zL zR,
+  refine equiv_of_mk_equiv _ _ _ _,
+  { fsplit,
+    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
+    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩));
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
+    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩); refl },
+    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)); refl } },
+  { fsplit,
+    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
+    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩));
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
+    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩); refl },
+    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)); refl } },
+  { rintros (⟨i,(j|k)⟩|⟨i,(j|k)⟩),
+    { calc
+        xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)
+            ≈ (xL i * y + xL i * z) + (x * yL j + x * z) - (xL i * yL j + xL i * z)
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
+        ... ≈ xL i * y + x * yL j - xL i * yL j + x * z : left_distrib_equiv_aux },
+    { calc
+        xL i * (y + z) + x * (y + zL k) - xL i * (y + zL k)
+            ≈ (xL i * y + xL i * z) + (x * y + x * zL k) - (xL i * y + xL i * zL k)
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
+        ... ≈  x * y + (xL i * z + x * zL k - xL i * zL k) : left_distrib_equiv_aux' },
+    { calc
+        xR i * (y + z) + x * (yR j + z) - xR i * (yR j + z)
+            ≈  (xR i * y + xR i * z) + (x * yR j + x * z) - (xR i * yR j + xR i * z)
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
+        ... ≈ xR i * y + x * yR j - xR i * yR j + x * z : left_distrib_equiv_aux },
+    { calc
+        xR i * (y + z) + x * (y + zR k) - xR i * (y + zR k)
+            ≈ (xR i * y + xR i * z) + (x * y + x * zR k) - (xR i * y + xR i * zR k)
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
+        ... ≈ x * y + (xR i * z + x * zR k - xR i * zR k) : left_distrib_equiv_aux' } },
+  { rintros ((⟨i,j⟩|⟨i,j⟩)|(⟨i,k⟩|⟨i,k⟩)),
+    { calc
+        xL i * (y + z) + x * (yR j + z) - xL i * (yR j + z)
+            ≈ (xL i * y + xL i * z) + (x * yR j + x * z) - (xL i * yR j + xL i * z)
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
+        ... ≈ xL i * y + x * yR j - xL i * yR j + x * z : left_distrib_equiv_aux },
+    { calc
+        xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)
+            ≈ (xR i * y + xR i * z) + (x * yL j + x * z) - (xR i * yL j + xR i * z)
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
+        ... ≈ xR i * y + x * yL j - xR i * yL j + x * z : left_distrib_equiv_aux },
+    { calc
+        xL i * (y + z) + x * (y + zR k) - xL i * (y + zR k)
+            ≈ (xL i * y + xL i * z) + (x * y + x * zR k) - (xL i * y + xL i * zR k)
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
+        ... ≈  x * y + (xL i * z + x * zR k - xL i * zR k) : left_distrib_equiv_aux' },
+    { calc
+        xR i * (y + z) + x * (y + zL k) - xR i * (y + zL k)
+            ≈ (xR i * y + xR i * z) + (x * y + x * zL k) - (xR i * y + xR i * zL k)
+            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
+        ... ≈ x * y + (xR i * z + x * zL k - xR i * zL k) : left_distrib_equiv_aux' } }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+/-- `(x + y) * z` is equivalent to `x * z + y * z.`-/
+theorem right_distrib_equiv (x y z : pgame) : (x + y) * z ≈ x * z + y * z :=
+calc (x + y) * z ≈ z * (x + y)      : mul_comm_equiv _ _
+             ... ≈ z * x + z * y    : left_distrib_equiv _ _ _
+             ... ≈ (x * z + y * z)  : add_congr (mul_comm_equiv _ _) (mul_comm_equiv _ _)
 
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
@@ -382,7 +450,6 @@ end pgame
 
 /-- The equivalence on numeric pre-games. -/
 def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
-local infix ` ≈ ` := surreal.equiv
 
 instance surreal.setoid : setoid {x // pgame.numeric x} :=
 ⟨λ x y, x.1.equiv y.1,

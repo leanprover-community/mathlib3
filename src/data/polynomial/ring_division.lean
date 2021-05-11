@@ -17,7 +17,7 @@ This file starts looking like the ring theory of $ R[X] $
 -/
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 open finset
 
@@ -268,7 +268,7 @@ then
   begin
     assume a,
     conv_rhs { rw ← mul_div_by_monic_eq_iff_is_root.mpr hx },
-    rw [root_multiplicity_mul (mul_ne_zero (X_sub_C_ne_zero _) hdiv0),
+    rw [root_multiplicity_mul (mul_ne_zero (X_sub_C_ne_zero x) hdiv0),
         root_multiplicity_X_sub_C, ← htr a],
     split_ifs with ha,
     { rw [ha, count_cons_self, nat.succ_eq_add_one, add_comm] },
@@ -448,7 +448,7 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
   begin
     assume b hbs hbp,
     have hq0 : q ≠ 0, from λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
-    have : coeff p b ≠ 0,  by rwa finsupp.mem_support_iff at hbs,
+    have : coeff p b ≠ 0, by rwa mem_support_iff at hbs,
     refine coeff_eq_zero_of_degree_lt _,
     erw [degree_mul, degree_C this, degree_pow, zero_add, degree_eq_nat_degree hq0,
       ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id,
@@ -457,7 +457,7 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
   end
   begin
     intro h, contrapose! hp0,
-    rw finsupp.mem_support_iff at h, push_neg at h,
+    rw mem_support_iff at h, push_neg at h,
     rwa ← leading_coeff_eq_zero,
   end
 ... = _ :
@@ -556,7 +556,7 @@ theorem is_unit_iff {f : polynomial R} : is_unit f ↔ ∃ r : R, is_unit r ∧ 
 lemma coeff_coe_units_zero_ne_zero (u : units (polynomial R)) :
   coeff (u : polynomial R) 0 ≠ 0 :=
 begin
-  conv in (0) {rw [← nat_degree_coe_units u]},
+  conv in (0) { rw [← nat_degree_coe_units u] },
   rw [← leading_coeff, ne.def, leading_coeff_eq_zero],
   exact units.ne_zero _
 end

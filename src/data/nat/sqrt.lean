@@ -63,6 +63,8 @@ end
 
 private def is_sqrt (n q : ℕ) : Prop := q*q ≤ n ∧ n < (q+1)*(q+1)
 
+local attribute [-simp] mul_eq_mul_left_iff mul_eq_mul_right_iff
+
 private lemma sqrt_aux_is_sqrt_lemma (m r n : ℕ)
   (h₁ : r*r ≤ n)
   (m') (hm : shiftr (2^m * 2^m) 2 = m')

@@ -932,7 +932,7 @@ instance finset_coe.fintype (s : finset α) : fintype (↑s : set α) :=
 finset.subtype.fintype s
 
 @[simp] lemma fintype.card_coe (s : finset α) :
-  fintype.card (↑s : set α) = s.card := card_attach
+  fintype.card s = s.card := card_attach
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 

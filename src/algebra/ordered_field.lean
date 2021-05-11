@@ -550,9 +550,6 @@ end
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
-instance fff : has_add_lt_add_left α :=
-by apply_instance
-
 lemma add_sub_div_two_lt (h : a < b) : a + (b - a) / 2 < b :=
 begin
   rwa [← div_sub_div_same, sub_eq_add_neg, add_comm (b/2), ← add_assoc, ← sub_eq_add_neg,

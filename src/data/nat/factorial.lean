@@ -10,7 +10,6 @@ import data.nat.basic
 -/
 
 namespace nat
-variables {m n : ℕ}
 
 /-- `nat.factorial n` is the factorial of `n`. -/
 @[simp] def factorial : nat → nat
@@ -18,6 +17,10 @@ variables {m n : ℕ}
 | (succ n) := succ n * factorial n
 
 localized "notation n `!`:10000 := nat.factorial n" in nat
+
+section factorial
+
+variables {m n : ℕ}
 
 @[simp] theorem factorial_zero : 0! = 1! := rfl
 
@@ -143,10 +146,12 @@ begin
   { exact add_factorial_succ_le_factorial_add_succ i h }
 end
 
+end factorial
+
 section desc_fac
 
-/-- desc_fac n k = (n + k)! / n!, but implemented in a recursive way for calculation.
-This is closely related to `ring_theory.polynomial.pochhammer`, but much less general. -/
+/-- desc_fac n k = (n + k)! / n! (as seen in `nat.desc_fac_eq_div`), but implemented recursively.
+This is closely related to `pochhammer`, but much less general. -/
 def desc_fac (n : ℕ) : ℕ → ℕ
 | 0 := 1
 | (k + 1) := (n + k + 1) * desc_fac k
@@ -163,47 +168,20 @@ lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n + k + 1) * desc_fac n k
 
 lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k
 | 0 := by rw [add_zero, desc_fac_zero, desc_fac_zero]
-| (k + 1) :=
-begin
-  have : (n + 1) * ((n.succ + k + 1) * desc_fac n.succ k)
-       = (n.succ + k + 1) * ((n + 1) * desc_fac n.succ k), by ac_refl,
-  rw [desc_fac, this, succ_desc_fac k, desc_fac, succ_eq_add_one], ac_refl
-end
+| (k + 1) := by rw [desc_fac, mul_left_comm, succ_desc_fac, desc_fac, succ_add, ← add_assoc]
 
-/-- Prove that `desc_fac` is what it is promised to be. Stated divison-less for ease. -/
-theorem eval_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
+/-- `desc_fac n k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
+See `nat.desc_fac_eq_div` if you really need the version that uses ℕ-division. -/
+theorem factorial_mul_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
 | 0 := by rw [desc_fac, add_zero, mul_one]
-| (k + 1) := eq.symm $
-             calc (n + (k + 1))! = (n + k + 1) * (n + k)! : by rw [←add_assoc, factorial]
-                             ... = (n + k + 1) * (n! * desc_fac n k) : by rw eval_desc_fac k
-                             ... = n! * ((n + k + 1) * desc_fac n k) : by ac_refl
-                             ... = n! * desc_fac n (k + 1) : by rw [desc_fac_succ]
+| (k + 1) := by rw [desc_fac_succ, mul_left_comm, factorial_mul_desc_fac, ← add_assoc, factorial]
 
-variables (n k : ℕ)
-
-/-- Avoid if you can. ℕ-division isn't worth it. -/
-lemma eval_desc_fac' : desc_fac n k = (n + k)! / n! :=
+/-- Avoid in favour of `nat.factorial_mul_desc_fac` if you can. ℕ-division isn't worth it. -/
+lemma desc_fac_eq_div (n k : ℕ) : desc_fac n k = (n + k)! / n! :=
 begin
-  apply mul_left_cancel' (factorial_ne_zero n), rw eval_desc_fac,
+  apply mul_left_cancel' (factorial_ne_zero n),
+  rw factorial_mul_desc_fac,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
-end
-
-lemma desc_fac_eq_choose_mul_factorial : desc_fac n k = k! * (n + k).choose k :=
-begin
-  rw mul_comm,
-  apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
-  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←eval_desc_fac, mul_comm],
-  exact le_add_left k n
-end
-
-lemma desc_fac_dvd : k! ∣ n.desc_fac k :=
-⟨(n+k).choose k, desc_fac_eq_choose_mul_factorial _ _⟩
-
-lemma choose_eq_desc_fac_div_factorial : (n + k).choose k = desc_fac n k / k! :=
-begin
-  apply mul_left_cancel' (factorial_ne_zero k),
-  rw ←desc_fac_eq_choose_mul_factorial,
-  exact (nat.mul_div_cancel' $ desc_fac_dvd _ _).symm
 end
 
 end desc_fac

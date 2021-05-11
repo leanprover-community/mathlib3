@@ -131,16 +131,16 @@ map_neg (left_comp _ _) _
 @[reassoc] lemma neg_comp_neg : (-f) ≫ (-g) = f ≫ g :=
 by simp
 
-@[simp] lemma nsmul_comp (n : ℕ) : (n • f) ≫ g = n • (f ≫ g) :=
+lemma nsmul_comp (n : ℕ) : (n • f) ≫ g = n • (f ≫ g) :=
 map_nsmul (right_comp _ _) _ _
 
-@[simp] lemma comp_nsmul (n : ℕ) : f ≫ (n • g) = n • (f ≫ g) :=
+lemma comp_nsmul (n : ℕ) : f ≫ (n • g) = n • (f ≫ g) :=
 map_nsmul (left_comp _ _) _ _
 
-@[simp] lemma gsmul_comp (n : ℤ) : (n • f) ≫ g = n • (f ≫ g) :=
+lemma gsmul_comp (n : ℤ) : (n • f) ≫ g = n • (f ≫ g) :=
 map_gsmul (right_comp _ _) _ _
 
-@[simp] lemma comp_gsmul (n : ℤ) : f ≫ (n • g) = n • (f ≫ g) :=
+lemma comp_gsmul (n : ℤ) : f ≫ (n • g) = n • (f ≫ g) :=
 map_gsmul (left_comp _ _) _ _
 
 @[reassoc] lemma comp_sum {P Q R : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (Q ⟶ R)) :

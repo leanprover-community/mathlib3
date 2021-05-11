@@ -1771,6 +1771,7 @@ begin
     (le_of_lt (lt_trans (div_pos (hl0) (hl0')) hy.2.1)),
 end
 
+@[priority 100]
 instance linear_ordered_field.has_continuous_mul : has_continuous_mul α :=
 ⟨begin
   rw continuous_iff_continuous_at,

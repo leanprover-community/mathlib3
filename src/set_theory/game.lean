@@ -16,9 +16,10 @@ on combinatorial games).
 
 ## Multiplication on pgames
 
-We define the operations of multiplication and inverse on pgames, and prove a few basic theorems
-about them. Even though multiplication is not well-defined on games, the abelian group structure on
-games allows us to simplify the proofs for pgames.
+We define the operations of multiplication and inverse on pre-games, and prove a few basic theorems
+about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x.equiv y` does
+not imply `(x*z).equiv (y*z)`. Hence, multiplication is not a well-defined operation on games.
+Nevertheless, the abelian group structure on games allows us to simplify many proofs for pre-games.
 -/
 
 universes u

@@ -12,22 +12,23 @@ import ring_theory.eisenstein_criterion
 /-!
 # Galois Groups of Polynomials
 
-In this file we introduce the Galois group of a polynomial, defined as
-the automorphism group of the splitting field.
+In this file, we introduce the Galois group of a polynomial `p` over a field `F`,
+defined as the automorphism group of its splitting field. We also provide
+some results about some extension `E` above `p.splitting_field`.
 
 ## Main definitions
 
-- `gal p`: the Galois group of a polynomial p.
-- `restrict p E`: the restriction homomorphism `(E ≃ₐ[F] E) → gal p`.
-- `gal_action p E`: the action of `gal p` on the roots of `p` in `E`.
+- `polynomial.gal p`: the Galois group of a polynomial p.
+- `polynomial.galrestrict p E`: the restriction homomorphism `(E ≃ₐ[F] E) → gal p`.
+- `polynomial.gal.gal_action p E`: the action of `gal p` on the roots of `p` in `E`.
 
 ## Main results
 
-- `restrict_smul`: `restrict p E` is compatible with `gal_action p E`.
-- `gal_action_hom_injective`: the action of `gal p` on the roots of `p` in `E` is faithful.
-- `restrict_prod_inj`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
-- `gal_action_hom_bijective_of_prime_degree`: An irreducible polynomial of prime degree
-  with two non-real roots has full Galois group
+- `polynomial.gal.restrict_smul`: `restrict p E` is compatible with `gal_action p E`.
+- `polynomial.gal.gal_action_hom_injective`: `gal p` acting on the roots of `p` in `E` is faithful.
+- `polynomial.gal.restrict_prod_injective`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
+- `polynomial.gal.gal_action_hom_bijective_of_prime_degree`:
+  An irreducible polynomial of prime degree with two non-real roots has full Galois group.
 -/
 
 noncomputable theory

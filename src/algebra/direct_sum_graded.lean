@@ -46,6 +46,8 @@ Note that in the presence of these instances, `⨁ i, A i` itself inherits an `A
 `direct_sum.of_zero_ring_hom : A 0 →+* ⨁ i, A i` provides `direct_sum.of A 0` as a ring
 homomorphism.
 
+`direct_sum.to_semiring` extends `direct_sum.to_add_monoid` to produce a `ring_hom`.
+
 ## Direct sums of subobjects
 
 Additionally, this module provides helper functions to construct `gmonoid` and `gcomm_monoid`
@@ -562,9 +564,118 @@ end comm_ring
 
 end grade_zero
 
+section to_semiring
+
+variables {R : Type*} [Π i, add_comm_monoid (A i)] [add_monoid ι] [gmonoid A] [semiring R]
+variables {A}
+
+/-- If two ring homomorphisms from `⨁ i, A i` are equal on each `of A i y`,
+then they are equal.
+
+See note [partially-applied ext lemmas]. -/
+@[ext]
+lemma ring_hom_ext' (F G : (⨁ i, A i) →+* R)
+  (h : ∀ i, (F : (⨁ i, A i) →+ R).comp (of _ i) = (G : (⨁ i, A i) →+ R).comp (of _ i)) : F = G :=
+ring_hom.coe_add_monoid_hom_injective $ direct_sum.add_hom_ext' h
+
+/-- A family of `add_monoid_hom`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
+describes a `ring_hom`s on `⨁ i, A i`. This is a stronger version of `direct_sum.to_monoid`.
+
+Of particular interest is the case when `A i` are bundled subojects, `f` is the family of
+coercions such as `add_submonoid.subtype (A i)`, and the `[gmonoid A]` structure originates from
+`direct_sum.gmonoid.of_add_submonoids`, in which case the proofs about `ghas_one` and `ghas_mul`
+can be discharged by `rfl`. -/
+@[simps]
+def to_semiring
+  (f : Π i, A i →+ R) (hone : f _ (ghas_one.one) = 1)
+  (hmul : ∀ {i j} (ai : A i) (aj : A j), f _ (ghas_mul.mul ai aj) = f _ ai * f _ aj) :
+  (⨁ i, A i) →+* R :=
+{ to_fun := to_add_monoid f,
+  map_one' := begin
+    change (to_add_monoid f) (of _ 0 _) = 1,
+    rw to_add_monoid_of,
+    exact hone
+  end,
+  map_mul' := begin
+    rw (to_add_monoid f).map_mul_iff,
+    ext xi xv yi yv : 4,
+    show to_add_monoid f (of A xi xv * of A yi yv) =
+         to_add_monoid f (of A xi xv) * to_add_monoid f (of A yi yv),
+    rw [of_mul_of, to_add_monoid_of, to_add_monoid_of, to_add_monoid_of],
+    exact hmul _ _,
+  end,
+  .. to_add_monoid f}
+
+@[simp] lemma to_semiring_of (f : Π i, A i →+ R) (hone hmul) (i : ι) (x : A i) :
+  to_semiring f hone hmul (of _ i x) = f _ x :=
+to_add_monoid_of f i x
+
+@[simp] lemma to_semiring_coe_add_monoid_hom (f : Π i, A i →+ R) (hone hmul):
+  (to_semiring f hone hmul : (⨁ i, A i) →+ R) = to_add_monoid f := rfl
+
+/-- Families of `add_monoid_hom`s preserving `direct_sum.ghas_one.one` and `direct_sum.ghas_mul.mul`
+are isomorphic to `ring_hom`s on `⨁ i, A i`. This is a stronger version of `dfinsupp.lift_add_hom`.
+-/
+@[simps]
+def lift_ring_hom :
+  {f : Π {i}, A i →+ R //
+    f (ghas_one.one) = 1 ∧
+    ∀ {i j} (ai : A i) (aj : A j), f (ghas_mul.mul ai aj) = f ai * f aj} ≃
+    ((⨁ i, A i) →+* R) :=
+{ to_fun := λ f, to_semiring f.1 f.2.1 f.2.2,
+  inv_fun := λ F,
+    ⟨λ i, (F : (⨁ i, A i) →+ R).comp (of _ i), begin
+      simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
+      rw ←F.map_one,
+      refl
+    end, λ i j ai aj, begin
+      simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
+      rw [←F.map_mul, of_mul_of],
+    end⟩,
+  left_inv := λ f, begin
+    ext xi xv,
+    exact to_add_monoid_of f.1 xi xv,
+  end,
+  right_inv := λ F, begin
+    apply ring_hom.coe_add_monoid_hom_injective,
+    ext xi xv,
+    simp only [ring_hom.coe_add_monoid_hom_mk,
+      direct_sum.to_add_monoid_of,
+      add_monoid_hom.mk_coe,
+      add_monoid_hom.comp_apply, to_semiring_coe_add_monoid_hom],
+  end}
+
+end to_semiring
+
 end direct_sum
 
 /-! ### Concrete instances -/
+
+/-- A direct sum of copies of a `semiring` inherits the multiplication structure. -/
+instance semiring.direct_sum_gmonoid {R : Type*} [add_monoid ι] [semiring R] :
+  direct_sum.gmonoid (λ i : ι, R) :=
+{ mul := λ i j, add_monoid_hom.mul,
+  one_mul := λ a, sigma.ext (zero_add _) (heq_of_eq (one_mul _)),
+  mul_one := λ a, sigma.ext (add_zero _) (heq_of_eq (mul_one _)),
+  mul_assoc := λ a b c, sigma.ext (add_assoc _ _ _) (heq_of_eq (mul_assoc _ _ _)),
+  one := 1 }
+
+@[simp] lemma semiring.direct_sum_mul {R : Type*} [add_monoid ι] [semiring R] {i j} (x y : R) :
+  @direct_sum.ghas_mul.mul _ _ (λ _ : ι, R) _ _ _ i j x y = x * y := rfl
+
+open_locale direct_sum
+
+-- To check the lemma above does match
+example {R : Type*} [add_monoid ι] [semiring R] (i j : ι) (a b : R) :
+  (direct_sum.of _ i a * direct_sum.of _ j b : ⨁ i, R) = direct_sum.of _ (i + j) (by exact a * b) :=
+by rw [direct_sum.of_mul_of, semiring.direct_sum_mul]
+
+/-- A direct sum of copies of a `comm_semiring` inherits the commutative multiplication structure.
+-/
+instance comm_semiring.direct_sum_gcomm_monoid {R : Type*} [add_comm_monoid ι] [comm_semiring R] :
+  direct_sum.gcomm_monoid (λ i : ι, R) :=
+{ mul_comm := λ a b, sigma.ext (add_comm _ _) (heq_of_eq (mul_comm _ _)),
+  .. semiring.direct_sum_gmonoid }
 
 namespace submodule
 

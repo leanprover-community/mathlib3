@@ -29,7 +29,7 @@ For `C : homological_complex V c`, we define `C.X_next i`, which is either `C.X 
 arbitrarily chosen `j` such that `c.r i j`, or the zero object if there is no such `j`.
 Similarly we have `C.X_prev j`.
 Defined in terms of these we have `C.d_from i : C.X i ⟶ C.X_next i` and
-`C.d_to j : C.X_prev j ⟶ C.X j`, which are either defined in as `C.d i j`, or zero, as needed.
+`C.d_to j : C.X_prev j ⟶ C.X j`, which are either defined as `C.d i j`, or zero, as needed.
 -/
 
 universes v u
@@ -76,46 +76,48 @@ in which `d i j ≠ 0` only if `i + 1 = j`.
 abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
 homological_complex V (complex_shape.up α)
 
-@[simp] lemma chain_complex.prev (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
+namespace chain_complex
+
+@[simp] lemma prev (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
   (complex_shape.down α).prev i = some ⟨i+1, rfl⟩ :=
 option.choice_eq _
 
-@[simp] lemma chain_complex.next (α : Type*) [add_group α] [has_one α] (i : α) :
+@[simp] lemma next (α : Type*) [add_group α] [has_one α] (i : α) :
   (complex_shape.down α).next i = some ⟨i-1, sub_add_cancel i 1⟩ :=
 option.choice_eq _
 
-@[simp] lemma chain_complex.next_nat_zero :
+@[simp] lemma next_nat_zero :
   (complex_shape.down ℕ).next 0 = none :=
 option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
 
-@[simp] lemma chain_complex.next_nat_succ (i : ℕ) :
+@[simp] lemma next_nat_succ (i : ℕ) :
   (complex_shape.down ℕ).next (i+1) = some ⟨i, rfl⟩ :=
 option.choice_eq _
 
-@[simp] lemma cochain_complex.prev (α : Type*) [add_group α] [has_one α] (i : α) :
+end chain_complex
+
+namespace cochain_complex
+
+@[simp] lemma prev (α : Type*) [add_group α] [has_one α] (i : α) :
   (complex_shape.up α).prev i = some ⟨i-1, sub_add_cancel i 1⟩ :=
 option.choice_eq _
 
-@[simp] lemma cochain_complex.next (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
+@[simp] lemma next (α : Type*) [add_right_cancel_semigroup α] [has_one α] (i : α) :
   (complex_shape.up α).next i = some ⟨i+1, rfl⟩ :=
 option.choice_eq _
 
-@[simp] lemma cochain_complex.prev_nat_zero :
+@[simp] lemma prev_nat_zero :
   (complex_shape.up ℕ).prev 0 = none :=
 option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
 
-@[simp] lemma cochain_complex.prev_nat_succ (i : ℕ) :
+@[simp] lemma prev_nat_succ (i : ℕ) :
   (complex_shape.up ℕ).prev (i+1) = some ⟨i, rfl⟩ :=
 option.choice_eq _
 
+end cochain_complex
+
 namespace homological_complex
 variables {V} {c : complex_shape ι} (C : homological_complex V c)
-
-local attribute [instance] has_zero_object.has_zero
-
-instance [has_zero_object V] : inhabited (homological_complex V c) :=
-⟨{ X := λ i, 0,
-  d := λ i j, 0, }⟩
 
 /--
 A morphism of homological complexes consists of maps between the chain groups,
@@ -129,7 +131,7 @@ restate_axiom hom.comm'
 attribute [simp, reassoc] hom.comm
 
 instance (A B : homological_complex V c) : inhabited (hom A B) :=
-⟨{ f := λ i, 0, }⟩
+⟨{ f := λ i, 0 }⟩
 
 /-- Identity chain map. -/
 def id (A : homological_complex V c) : hom A A :=
@@ -145,7 +147,7 @@ local attribute [simp] id comp
 instance : category (homological_complex V c) :=
 { hom := hom,
   id := id,
-  comp := comp, }
+  comp := comp }
 
 end
 
@@ -156,14 +158,25 @@ rfl
 
 -- We'll use this later to show that `homological_complex V c` is preadditive when `V` is.
 lemma hom_f_injective {C₁ C₂ : homological_complex V c} :
-  function.injective (λ f : hom C₁ C₂, hom.f f) :=
+  function.injective (λ f : hom C₁ C₂, f.f) :=
 by tidy
 
 instance : has_zero_morphisms (homological_complex V c) :=
-{ has_zero := λ C D, ⟨{ f := λ i, 0, }⟩ }
+{ has_zero := λ C D, ⟨{ f := λ i, 0 }⟩ }
 
 @[simp] lemma zero_apply (C D : homological_complex V c) (i : ι) :
   (0 : C ⟶ D).f i = 0 := rfl
+
+local attribute [instance] has_zero_object.has_zero
+
+instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
+{ zero :=
+  { X := λ i, 0,
+    d := λ i j, 0 },
+  unique_from := λ C, ⟨⟨0⟩, λ f, by ext⟩,
+  unique_to := λ C, ⟨⟨0⟩, λ f, by ext⟩ }
+
+instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨0⟩
 
 lemma congr_hom {C D : homological_complex V c} {f g : C ⟶ D} (w : f = g) (i : ι) : f.f i = g.f i :=
 congr_fun (congr_arg hom.f w) i
@@ -173,7 +186,7 @@ Picking out the `i`-th object, as a functor.
 -/
 def eval_at (i : ι) : homological_complex V c ⥤ V :=
 { obj := λ C, C.X i,
-  map := λ C D f, f.f i, }
+  map := λ C D f, f.f i }
 
 open_locale classical
 noncomputable theory
@@ -182,11 +195,11 @@ noncomputable theory
 If `C.d i j` and `C.d i j'` are both allowed, then we must have `j = j'`,
 and so the differentials only differ by an `eq_to_hom`.
 -/
-lemma d_comp_eq_to_hom {i j j' : ι} (rij : c.rel i j) (rij' : c.rel i j') :
+@[simp] lemma d_comp_eq_to_hom {i j j' : ι} (rij : c.rel i j) (rij' : c.rel i j') :
   C.d i j' ≫ eq_to_hom (congr_arg C.X (c.next_eq rij' rij)) = C.d i j :=
 begin
   have P : ∀ h : j' = j, C.d i j' ≫ eq_to_hom (congr_arg C.X h) = C.d i j,
-  { rintro rfl, simp, },
+  { rintro rfl, simp },
   apply P,
 end
 
@@ -194,11 +207,11 @@ end
 If `C.d i j` and `C.d i' j` are both allowed, then we must have `i = i'`,
 and so the differentials only differ by an `eq_to_hom`.
 -/
-lemma eq_to_hom_comp_d {i i' j : ι} (rij : c.rel i j) (rij' : c.rel i' j) :
+@[simp] lemma eq_to_hom_comp_d {i i' j : ι} (rij : c.rel i j) (rij' : c.rel i' j) :
   eq_to_hom (congr_arg C.X (c.prev_eq rij rij')) ≫ C.d i' j = C.d i j :=
 begin
   have P : ∀ h : i = i', eq_to_hom (congr_arg C.X h) ≫ C.d i' j = C.d i j,
-  { rintro rfl, simp, },
+  { rintro rfl, simp },
   apply P,
 end
 
@@ -342,11 +355,11 @@ by simp [h]
 lemma d_to_comp_d_from (j : ι) : C.d_to j ≫ C.d_from j = 0 :=
 begin
   rcases h₁ : c.next j with _ | ⟨k,w₁⟩,
-  { rw [d_from_eq_zero _ h₁], simp, },
+  { rw [d_from_eq_zero _ h₁], simp },
   { rw [d_from_eq _ w₁],
     rcases h₂ : c.prev j with _ | ⟨i,w₂⟩,
-    { rw [d_to_eq_zero _ h₂], simp, },
-    { rw [d_to_eq _ w₂], simp, } }
+    { rw [d_to_eq_zero _ h₂], simp },
+    { rw [d_to_eq _ w₂], simp } }
 end
 
 lemma kernel_from_eq_kernel [has_kernels V] {i j : ι} (r : c.rel i j) :
@@ -374,52 +387,52 @@ local attribute [instance] has_zero_object.has_zero
 
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 
-/-- `f.f_prev j` is `f.f i` if there is some `r i j`, and zero otherwise. -/
-def f_prev (f : hom C₁ C₂) (j : ι) : C₁.X_prev j ⟶ C₂.X_prev j :=
+/-- `f.prev j` is `f.f i` if there is some `r i j`, and zero otherwise. -/
+def prev (f : hom C₁ C₂) (j : ι) : C₁.X_prev j ⟶ C₂.X_prev j :=
 match c.prev j with
 | none := 0
 | some ⟨i,w⟩ := (C₁.X_prev_iso w).hom ≫ f.f i ≫ (C₂.X_prev_iso w).inv
 end
 
-lemma f_prev_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
-  f.f_prev j = (C₁.X_prev_iso w).hom ≫ f.f i ≫ (C₂.X_prev_iso w).inv :=
+lemma prev_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
+  f.prev j = (C₁.X_prev_iso w).hom ≫ f.f i ≫ (C₂.X_prev_iso w).inv :=
 begin
-  dsimp [f_prev],
+  dsimp [prev],
   rw c.prev_eq_some w,
   refl,
 end
 
-/-- `f.f_next i` is `f.f j` if there is some `r i j`, and zero otherwise. -/
-def f_next (f : hom C₁ C₂) (i : ι) : C₁.X_next i ⟶ C₂.X_next i :=
+/-- `f.next i` is `f.f j` if there is some `r i j`, and zero otherwise. -/
+def next (f : hom C₁ C₂) (i : ι) : C₁.X_next i ⟶ C₂.X_next i :=
 match c.next i with
 | none := 0
 | some ⟨j,w⟩ := (C₁.X_next_iso w).hom ≫ f.f j ≫ (C₂.X_next_iso w).inv
 end
 
-lemma f_next_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
-  f.f_next i = (C₁.X_next_iso w).hom ≫ f.f j ≫ (C₂.X_next_iso w).inv :=
+lemma next_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
+  f.next i = (C₁.X_next_iso w).hom ≫ f.f j ≫ (C₂.X_next_iso w).inv :=
 begin
-  dsimp [f_next],
+  dsimp [next],
   rw c.next_eq_some w,
   refl,
 end
 
 @[simp, reassoc]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
-  f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.f_next i :=
+  f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.next i :=
 begin
   rcases h : c.next i with _ | ⟨j,w⟩,
-  { simp [h], },
-  { simp [d_from_eq _ w, f_next_eq _ w], }
+  { simp [h] },
+  { simp [d_from_eq _ w, next_eq _ w] }
 end
 
 @[simp, reassoc]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
-  f.f_prev j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
+  f.prev j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
 begin
   rcases h : c.prev j with _ | ⟨j,w⟩,
-  { simp [h], },
-  { simp [d_to_eq _ w, f_prev_eq _ w], }
+  { simp [h] },
+  { simp [d_to_eq _ w, prev_eq _ w] }
 end
 
 /--
@@ -430,18 +443,18 @@ def sq_from (f : hom C₁ C₂) (i : ι) : arrow.mk (C₁.d_from i) ⟶ arrow.mk
 arrow.hom_mk (f.comm_from i)
 
 @[simp] lemma sq_from_left (f : hom C₁ C₂) (i : ι) : (f.sq_from i).left = f.f i := rfl
-@[simp] lemma sq_from_right (f : hom C₁ C₂) (i : ι) : (f.sq_from i).right = f.f_next i := rfl
+@[simp] lemma sq_from_right (f : hom C₁ C₂) (i : ι) : (f.sq_from i).right = f.next i := rfl
 
 @[simp] lemma sq_from_id (C₁ : homological_complex V c) (i : ι) : sq_from (𝟙 C₁) i = 𝟙 _ :=
 begin
   rcases h : c.next i with _ | ⟨j,w⟩,
   { ext,
-    { refl, },
-    { dsimp, simp only [f_next, h],
+    { refl },
+    { dsimp, simp only [next, h],
       symmetry,
       apply zero_of_target_iso_zero,
-      exact X_next_iso_zero _ h, }, },
-  { ext, refl, dsimp, simp [f_next, h], }
+      exact X_next_iso_zero _ h } },
+  { ext, refl, dsimp, simp [next, h] }
 end
 
 @[simp] lemma sq_from_comp (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
@@ -449,12 +462,12 @@ end
 begin
   rcases h : c.next i with _ | ⟨j,w⟩,
   { ext,
-    { refl, },
-    { dsimp, simp only [f_next, h],
+    { refl },
+    { dsimp, simp only [next, h],
       symmetry,
       apply zero_of_target_iso_zero,
-      exact X_next_iso_zero _ h, }, },
-  { ext, refl, dsimp, simp [f_next, h], }
+      exact X_next_iso_zero _ h } },
+  { ext, refl, dsimp, simp [next, h] }
 end
 
 /--
@@ -464,6 +477,7 @@ induces a morphism of arrows of the differentials into each object.
 def sq_to (f : hom C₁ C₂) (j : ι) : arrow.mk (C₁.d_to j) ⟶ arrow.mk (C₂.d_to j) :=
 arrow.hom_mk (f.comm_to j)
 
+@[simp] lemma sq_to_left (f : hom C₁ C₂) (j : ι) : (f.sq_to j).left = f.prev j := rfl
 @[simp] lemma sq_to_right (f : hom C₁ C₂) (j : ι) : (f.sq_to j).right = f.f j := rfl
 
 end hom
@@ -472,13 +486,15 @@ end homological_complex
 
 namespace chain_complex
 
+/- TODO: dualize to `cochain_complex` -/
+
 section of
-variables {V}
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
 
 /--
-Construct a `ℕ`-indexed chain complex from a dependently-typed differential.
+Construct an `α`-indexed chain complex from a dependently-typed differential.
 -/
-def of (X : ℕ → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0) : chain_complex V ℕ :=
+def of (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0) : chain_complex V α :=
 { X := X,
   d := λ i j, if h : i = j + 1 then
     eq_to_hom (by subst h) ≫ d j
@@ -490,15 +506,15 @@ def of (X : ℕ → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n 
     split_ifs with h h' h',
     { substs h h',
       simp only [category.id_comp, eq_to_hom_refl],
-      exact sq k, },
+      exact sq k },
     all_goals { simp },
-  end, }
+  end }
 
-variables (X : ℕ → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0)
+variables (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0)
 
-@[simp] lemma of_X (n : ℕ) : (of X d sq).X n = X n := rfl
-@[simp] lemma of_d (j : ℕ) : (of X d sq).d (j+1) j = d j :=
-by { dsimp [of], rw [if_pos rfl, category.id_comp], }
+@[simp] lemma of_X (n : α) : (of X d sq).X n = X n := rfl
+@[simp] lemma of_d (j : α) : (of X d sq).d (j+1) j = d j :=
+by { dsimp [of], rw [if_pos rfl, category.id_comp] }
 
 end of
 
@@ -507,7 +523,7 @@ section mk
 /--
 Auxiliary structure for setting up the recursion in `mk`.
 This is purely an implementation detail: for some reason just using the dependent 6-tuple directly
-results in `mk_aux` taking about much longer (well over the `-T100000` limit) to elaborate.
+results in `mk_aux` taking much longer (well over the `-T100000` limit) to elaborate.
 -/
 @[nolint has_inhabited_instance]
 structure mk_struct :=
@@ -552,9 +568,9 @@ of (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).X₀) (λ n, (mk_aux X₀ X
 @[simp] lemma mk_X_1 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 1 = X₁ := rfl
 @[simp] lemma mk_X_2 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 2 = X₂ := rfl
 @[simp] lemma mk_d_1_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 1 0 = d₀ :=
-by { change ite (1 = 0 + 1) (𝟙 X₁ ≫ d₀) 0 = d₀, rw [if_pos rfl, category.id_comp], }
+by { change ite (1 = 0 + 1) (𝟙 X₁ ≫ d₀) 0 = d₀, rw [if_pos rfl, category.id_comp] }
 @[simp] lemma mk_d_2_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 2 1 = d₁ :=
-by { change ite (2 = 1 + 1) (𝟙 X₂ ≫ d₁) 0 = d₁, rw [if_pos rfl, category.id_comp], }
+by { change ite (2 = 1 + 1) (𝟙 X₂ ≫ d₁) 0 = d₁, rw [if_pos rfl, category.id_comp] }
 -- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
 
 /--
@@ -575,7 +591,7 @@ variables (succ' : Π (t : Σ (X₀ X₁ : V), X₁ ⟶ X₀), Σ' (X₂ : V) (d
 @[simp] lemma mk'_X_0 : (mk' X₀ X₁ d₀ succ').X 0 = X₀ := rfl
 @[simp] lemma mk'_X_1 : (mk' X₀ X₁ d₀ succ').X 1 = X₁ := rfl
 @[simp] lemma mk'_d_1_0 : (mk' X₀ X₁ d₀ succ').d 1 0 = d₀ :=
-by { change ite (1 = 0 + 1) (𝟙 X₁ ≫ d₀) 0 = d₀, rw [if_pos rfl, category.id_comp], }
+by { change ite (1 = 0 + 1) (𝟙 X₁ ≫ d₀) 0 = d₀, rw [if_pos rfl, category.id_comp] }
 -- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
 
 end mk
@@ -620,8 +636,8 @@ def mk_hom : P ⟶ Q :=
   begin
     by_cases h : m + 1 = n,
     { subst h,
-      exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2, },
-    { rw [P.shape n m h, Q.shape n m h], simp, }
+      exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2 },
+    { rw [P.shape n m h, Q.shape n m h], simp }
   end }
 
 @[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl

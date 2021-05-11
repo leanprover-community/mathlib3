@@ -126,7 +126,7 @@ jobs:
     needs: build
 
     # skip on master branch
-    if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/main'
+    if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/master'
 
     steps:
       - name: retrieve build
@@ -155,7 +155,7 @@ jobs:
     needs: build
 
     # skip on master branch
-    if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/main'
+    if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/master'
 
     steps:
       - name: retrieve build

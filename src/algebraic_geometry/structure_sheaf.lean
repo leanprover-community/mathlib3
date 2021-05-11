@@ -499,7 +499,7 @@ def stalk_iso (x : Spec.Top R) :
 
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
-def to_basic_open (f : R) : CommRing.of (localization (submonoid.powers f)) ⟶
+def to_basic_open (f : R) : CommRing.of (localization.away f) ⟶
   (structure_sheaf R).presheaf.obj (op $ basic_open f) :=
 localization_map.away_map.lift f (localization.away.of f) (is_unit_to_basic_open_self R f)
 
@@ -511,8 +511,8 @@ by rw [to_open_eq_const, to_open_eq_const, const_mul_cancel']
 
 @[simp] lemma localization_to_basic_open (f : R) :
   @category_theory.category_struct.comp _ _ (CommRing.of R)
-      (CommRing.of (localization (submonoid.powers f))) _
-    (localization.of $ submonoid.powers f).to_map
+      (CommRing.of (localization.away f)) _
+    (localization.away.of f).to_map
     (to_basic_open R f) =
   to_open R (basic_open f) :=
 ring_hom.ext $ λ g, (localization.of _).lift_eq _ _
@@ -716,7 +716,7 @@ begin
 
   -- Finally, we have all the ingredients.
   -- We claim that our preimage is given by `(∑ (i : ι) in t, b i * a i) / f ^ (n+1)`
-  use (localization.of (submonoid.powers f)).mk' (∑ (i : ι) in t, b i * a i) ⟨f ^ (n+1), n+1, rfl⟩,
+  use (localization.away.of f).mk' (∑ (i : ι) in t, b i * a i) ⟨f ^ (n+1), n+1, rfl⟩,
   rw to_basic_open_mk',
 
   -- Since the structure sheaf is a sheaf, we can show the desired equality locally.
@@ -767,7 +767,27 @@ end
 /-- The ring isomorphism between the structure sheaf on `basic_open f` and the localization of `R`
 at the submonoid of powers of `f`. -/
 def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)) ≅
-  CommRing.of (localization (submonoid.powers f)) :=
+  CommRing.of (localization.away f) :=
 (as_iso (to_basic_open R f)).symm
+
+instance is_iso_to_open_top : is_iso (to_open R ⊤) :=
+begin
+  -- We show that `to_open R ⊤ : R ⟶ OX(⊤)` is equal to the composition of three morphisms:
+  -- 1) The localization map from `R` to the localization at `1`,
+  -- 2) `to_basic_open R 1`: From the localization at `1` to the structure sheaf on `basic_open 1`,
+  -- 3) The restriction of the structure sheaf, coming from the equality `basic_open 1 = ⊤`,.
+  rw show to_open R ⊤ = (localization.away.ring_equiv_of_quotient (1 : R)
+      (localization_map.away_map_of_unit _ is_unit_one)).to_CommRing_iso.symm.hom ≫
+    to_basic_open R 1 ≫
+    (structure_sheaf R).presheaf.map (eq_to_hom basic_open_one.symm).op,
+    from ring_hom.ext $ λ f, by erw [to_open_eq_const, comp_apply, comp_apply,
+      localization.ring_equiv_of_quotient_symm_of, to_basic_open_to_map, res_const],
+  -- all three morphisms above are known to be isomorphisms by type class inference
+  apply_instance
+end
+
+def structure_sheaf_top_iso : (structure_sheaf R).presheaf.obj (op ⊤) ≅ CommRing.of R :=
+(as_iso (to_open R ⊤)).symm
+
 
 end algebraic_geometry

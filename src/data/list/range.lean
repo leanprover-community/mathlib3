@@ -30,7 +30,7 @@ by rw [← length_eq_zero, length_range']
   have m = s → m < s + n + 1,
     from λ e, e ▸ lt_succ_of_le (le_add_right _ _),
   have l : m = s ∨ s + 1 ≤ m ↔ s ≤ m,
-    by simpa only [eq_comm] using (@le_iff_eq_or_lt _ _ s m).symm,
+    by simpa only [eq_comm] using (@decidable.le_iff_eq_or_lt _ _ _ s m).symm,
   (mem_cons_iff _ _ _).trans $ by simp only [mem_range',
     or_and_distrib_left, or_iff_right_of_imp this, l, add_right_comm]; refl
 

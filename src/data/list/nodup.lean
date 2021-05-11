@@ -338,6 +338,10 @@ begin
       exact h x (list.mem_cons_of_mem _ hx) y (list.mem_cons_of_mem _ hy) } }
 end
 
+lemma nodup.pairwise_of_set_pairwise_on {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : {x | x ∈ l}.pairwise_on r) : l.pairwise r :=
+hl.pairwise_of_forall_ne h
+
 end list
 
 theorem option.to_list_nodup {α} : ∀ o : option α, o.to_list.nodup

@@ -16,8 +16,8 @@ variable {r : α → α → Prop}
 lemma is_refl.reflexive [is_refl α r] : reflexive r :=
 λ x, is_refl.refl x
 
-/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
-then it suffices to show that `x ≠ y`. -/
+/-- To show a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+it suffices to show it holds when `x ≠ y`. -/
 lemma reflexive.rel_of_ne_imp (h : reflexive r) {x y : α} (hr : x ≠ y → r x y) : r x y :=
 begin
   by_cases hxy : x = y,

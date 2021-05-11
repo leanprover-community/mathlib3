@@ -322,6 +322,22 @@ begin
   { simp [ne.symm H, H, update_nth, ← apply_ite (cons (f hd))] }
 end
 
+lemma nodup.pairwise_of_forall_ne {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
+begin
+  induction l with hd tl IH,
+  { simp },
+  { rw list.pairwise_cons,
+    split,
+    { intros x hx,
+      rw [list.nodup_cons] at hl,
+      refine h _ (list.mem_cons_self _ _) _ (list.mem_cons_of_mem _ hx) _,
+      exact λ H, hl.left (H.symm ▸ hx) },
+    { refine IH (list.nodup_of_nodup_cons hl) _,
+      intros x hx y hy,
+      exact h x (list.mem_cons_of_mem _ hx) y (list.mem_cons_of_mem _ hy) } }
+end
+
 end list
 
 theorem option.to_list_nodup {α} : ∀ o : option α, o.to_list.nodup

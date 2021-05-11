@@ -84,7 +84,7 @@ begin
   induction n with n ih,
   { exfalso, exact nat.lt_asymm h h },
   { by_cases H : n = 0,
-    { rw [iterated_deriv_succ, H], simp only [iterated_deriv_C_zero, derivative_C]},
+    { rw [iterated_deriv_succ, H], simp only [iterated_deriv_C_zero, derivative_C] },
     { replace h : 0 < n := nat.pos_of_ne_zero H,
       rw [iterated_deriv_succ, ih h], simp only [derivative_zero] } }
 end

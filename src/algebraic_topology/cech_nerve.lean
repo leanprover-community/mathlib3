@@ -43,15 +43,15 @@ variables [∀ n : ℕ, has_wide_pullback f.right (λ i : ulift (fin (n+1)), f.l
 def cech_nerve : simplicial_object C :=
 { obj := λ n, wide_pullback f.right
     (λ i : ulift (fin (n.unop.len + 1)), f.left) (λ i, f.hom),
-  map := λ m n g, wide_pullback.lift wide_pullback.base
-    (λ i, wide_pullback.π $ ulift.up $ g.unop.to_preorder_hom i.down) (by tidy) }
+  map := λ m n g, wide_pullback.lift (wide_pullback.base _)
+    (λ i, wide_pullback.π _ $ ulift.up $ g.unop.to_preorder_hom i.down) (by tidy) }
 
 /-- The augmented Čech nerve associated to an arrow. -/
 @[simps]
 def augmented_cech_nerve : simplicial_object.augmented C :=
 { left := f.cech_nerve,
   right := f.right,
-  hom := { app := λ i, wide_pullback.base } }
+  hom := { app := λ i, wide_pullback.base _ } }
 
 end category_theory.arrow
 
@@ -65,8 +65,8 @@ variables [∀ (n : ℕ) (f : arrow C),
 def cech_nerve : arrow C ⥤ simplicial_object C :=
 { obj := λ f, f.cech_nerve,
   map := λ f g F,
-  { app := λ n, wide_pullback.lift (wide_pullback.base ≫ F.right)
-      (λ i, wide_pullback.π i ≫ F.left) (λ i, by simp [← category.assoc]) },
+  { app := λ n, wide_pullback.lift (wide_pullback.base _ ≫ F.right)
+      (λ i, wide_pullback.π _ i ≫ F.left) (λ i, by simp [← category.assoc]) },
   -- tidy needs a bit of help here...
   map_id' := by { intros i, ext, tidy },
   map_comp' := begin

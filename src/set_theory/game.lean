@@ -53,8 +53,8 @@ quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_co
 instance : has_le game :=
 { le := le }
 
--- We do not add @[refl] and @[trans] instances because of conflict with pgame.le_refl and
--- pgame.le_trans in calc mode proofs.
+-- Adding `@[refl]` and `@[trans]` attributes here would override the ones on
+-- `preorder.le_refl` and `preorder.le_trans`, which breaks all non-`game` uses of `≤`!
 theorem le_refl : ∀ x : game, x ≤ x :=
 by { rintro ⟨x⟩, apply pgame.le_refl }
 theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=

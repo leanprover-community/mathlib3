@@ -63,6 +63,8 @@ instance : comm_semiring (ring.perfection R p) :=
 instance : char_p (ring.perfection R p) p :=
 char_p.subsemiring (ℕ → R) p (ring.perfection_subsemiring R p)
 
+instance : inhabited (ring.perfection R p) := ⟨0⟩
+
 /-- The `n`-th coefficient of an element of the perfection. -/
 def coeff (n : ℕ) : ring.perfection R p →+* R :=
 { to_fun := λ f, f.1 n,
@@ -419,10 +421,11 @@ end classical
 
 end mod_p
 
-include hp hvp
 /-- Perfection of `O/(p)` where `O` is the ring of integers of `K`. -/
 @[nolint has_inhabited_instance] def pre_tilt :=
 ring.perfection (mod_p K v O hv p) p
+
+include hp hvp
 
 namespace pre_tilt
 

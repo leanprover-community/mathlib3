@@ -1850,9 +1850,17 @@ begin
     { exact h.left _ hb _ hc hn } }
 end
 
+lemma pairwise_on_forall (s : set α) (p : α → α → Prop) (h : ∀ (a b : α), p a b) :
+  pairwise_on s p :=
+λ a _ b _ _, h a b
+
+lemma pairwise_on.imp_on {s : set α} {p q : α → α → Prop}
+  (h : pairwise_on s p) (hpq : pairwise_on s (λ ⦃a b : α⦄, p a b → q a b)) : pairwise_on s q :=
+λ a ha b hb hab, hpq a ha b hb hab (h a ha b hb hab)
+
 lemma pairwise_on.imp {s : set α} {p q : α → α → Prop}
   (h : pairwise_on s p) (hpq : ∀ ⦃a b : α⦄, p a b → q a b) : pairwise_on s q :=
-λ a ha b hb hab, hpq (h a ha b hb hab)
+h.imp_on (pairwise_on_forall s _ hpq)
 
 end set
 

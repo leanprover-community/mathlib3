@@ -49,27 +49,20 @@ def ring.perfection_subsemiring (R : Type u₁) [comm_semiring R]
 
 /-- The perfection of a ring `R` with characteristic `p`,
 defined to be the projective limit of `R` using the Frobenius maps `R → R`
-indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
-def ring.perfection (R : Type u₁) [comm_semiring R]
-  (p : ℕ) [hp : fact p.prime] [char_p R p] : Type u₁ :=
-ring.perfection_subsemiring R p
+indexed by the natural numbers, implemented as `{f : ℕ → R // ∀ n, f (n + 1) ^ p = f n}`. -/
+def ring.perfection (R : Type u₁) [comm_semiring R] (p : ℕ) : Type u₁ :=
+{f // ∀ (n : ℕ), (f : ℕ → R) (n + 1) ^ p = f n}
 
 namespace perfection
 
 variables (R : Type u₁) [comm_semiring R] (p : ℕ) [hp : fact p.prime] [char_p R p]
 include hp
 
-section
-
-local attribute [reducible] ring.perfection
-
 instance : comm_semiring (ring.perfection R p) :=
-by apply_instance
+(ring.perfection_subsemiring R p).to_comm_semiring
 
 instance : char_p (ring.perfection R p) p :=
-by apply_instance
-
-end
+char_p.subsemiring (ℕ → R) p (ring.perfection_subsemiring R p)
 
 /-- The `n`-th coefficient of an element of the perfection. -/
 def coeff (n : ℕ) : ring.perfection R p →+* R :=

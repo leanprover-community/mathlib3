@@ -13,7 +13,7 @@ import category_theory.abelian.projective
 /-!
 # Ext
 
-We define `ext R C n : Cᵒᵖ ⥤ C ⥤ Module R`
+We define `Ext R C n : Cᵒᵖ ⥤ C ⥤ Module R`
 for any `R`-linear abelian category `C`
 by left-deriving in the second argument of
 the `linear_yoneda` bifunctor `(X, Y) ↦ Module.of R (unop X ⟶ Y)`
@@ -32,10 +32,10 @@ variables (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
   [enough_projectives Cᵒᵖ] -- When we have injective resolutions, just `[enough_injectives C]`
 
 /--
-`ext R C n` is defined by left-deriving in the second argument of the `linear_yoneda` bifunctor.
+`Ext R C n` is defined by left-deriving in the second argument of the `linear_yoneda` bifunctor.
 -/
 @[simps]
-def ext (n : ℕ) : Cᵒᵖ ⥤ C ⥤ Module R :=
+def Ext (n : ℕ) : Cᵒᵖ ⥤ C ⥤ Module R :=
 functor.flip
 { obj := λ Y, functor.left_derived ((linear_yoneda R C).obj Y) n,
   map := λ Y Y' f, nat_trans.left_derived ((linear_yoneda R C).map f) n }

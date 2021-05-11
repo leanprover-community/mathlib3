@@ -1347,7 +1347,7 @@ etc. -/
 @[simps]
 def eval_alg_hom {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (f i)] (i : I) :
   (Π i, f i) →ₐ[R] f i :=
-{ to_fun := λ f, f i, commutes' := λ r, rfl, .. ring_hom.apply f i}
+{ to_fun := λ f, f i, commutes' := λ r, rfl, .. pi.eval_ring_hom f i}
 
 end pi
 

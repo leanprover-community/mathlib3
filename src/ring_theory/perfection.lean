@@ -11,7 +11,6 @@ import field_theory.perfect_closure
 import ring_theory.localization
 import ring_theory.subring
 import ring_theory.valuation.integers
-import tactic.transport
 
 /-!
 # Ring Perfection and Tilt

@@ -9,6 +9,37 @@ import tactic.basic
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
+section ne_imp
+
+variable {r : α → α → Prop}
+
+lemma is_refl.reflexive [is_refl α r] : reflexive r :=
+λ x, is_refl.refl x
+
+/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+then it holds even if `x ≠ y`. -/
+lemma reflexive.ne_imp (h : reflexive r) {x y : α} (hr : r x y) : x ≠ y → r x y :=
+λ _, hr
+
+/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+then whether or not `x ≠ y`. -/
+lemma reflexive.ne_imp_iff (h : reflexive r) {x y : α} :
+  (x ≠ y → r x y) ↔ r x y :=
+begin
+  refine ⟨λ hr, _, h.ne_imp⟩,
+  by_cases hxy : x = y,
+  { exact hxy ▸ h x },
+  { exact hr hxy }
+end
+
+/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+then whether or not `x ≠ y`. Unlike `reflexive.ne_imp_iff`, this uses `[is_refl α r] -/
+lemma reflexive_ne_imp_iff [is_refl α r] {x y : α} :
+  (x ≠ y → r x y) ↔ r x y :=
+is_refl.reflexive.ne_imp_iff
+
+end ne_imp
+
 namespace relation
 
 section comp
@@ -69,28 +100,6 @@ protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ 
 λc d, ∃a b, r a b ∧ f a = c ∧ g b = d
 
 variables {r : α → α → Prop} {a b c d : α}
-
-/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
-then it holds even if `x ≠ y`. -/
-lemma reflexive_iff_ne_imp [is_refl α r] {x y : α} :
-  r x y ↔ (x ≠ y → r x y) :=
-begin
-  split;
-  intros h,
-  { intro,
-    apply h },
-  { by_cases hxy : x = y,
-    { rw hxy,
-      exact is_refl.refl _ },
-    { apply h hxy } }
-end
-
-/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
-then it holds even if `x ≠ y`. Unlike `reflexive_iff_ne_imp`, uses an explicit `reflexive r`
-instead of `[is_refl α r]`.  -/
-lemma reflexive.iff_ne_imp (h : reflexive r) {x y : α} :
-  r x y ↔ (x ≠ y → r x y) :=
-@reflexive_iff_ne_imp _ r ⟨h⟩ _ _
 
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
 @[mk_iff relation.refl_trans_gen.cases_tail_iff]

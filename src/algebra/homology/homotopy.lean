@@ -67,12 +67,12 @@ begin
 end
 
 @[simp] lemma from_next'_comp_left (f : C ⟶ D) (g : Π i j, D.X i ⟶ E.X j) (i j : ι) :
-  from_next' (λ i j, f.f i ≫ g i j) i j = f.f_next i ≫ from_next' g i j :=
+  from_next' (λ i j, f.f i ≫ g i j) i j = f.next i ≫ from_next' g i j :=
 begin
-  dsimp [from_next', hom.f_next],
+  dsimp [from_next', hom.next],
   rcases c.next i with _|⟨i',w⟩,
   { exact comp_zero.symm, },
-  { dsimp [from_next'._match_1, hom.f_next._match_1],
+  { dsimp [from_next'._match_1, hom.next._match_1],
     simp, },
 end
 
@@ -82,7 +82,7 @@ begin
   dsimp [from_next'],
   rcases c.next i with _|⟨i',w⟩,
   { exact zero_comp.symm, },
-  { dsimp [from_next'._match_1, hom.f_next._match_1],
+  { dsimp [from_next'._match_1, hom.next._match_1],
     simp, },
 end
 
@@ -132,17 +132,17 @@ begin
   dsimp [to_prev'],
   rcases c.prev j with _|⟨j',w⟩,
   { exact comp_zero.symm, },
-  { dsimp [to_prev'._match_1, hom.f_prev._match_1],
+  { dsimp [to_prev'._match_1, hom.prev._match_1],
     simp, },
 end
 
 @[simp] lemma to_prev'_comp_right (f : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) (i j : ι) :
-  to_prev' (λ i j, f i j ≫ g.f j) i j = to_prev' f i j ≫ g.f_prev j :=
+  to_prev' (λ i j, f i j ≫ g.f j) i j = to_prev' f i j ≫ g.prev j :=
 begin
-  dsimp [to_prev', hom.f_prev],
+  dsimp [to_prev', hom.prev],
   rcases c.prev j with _|⟨j',w⟩,
   { exact zero_comp.symm, },
-  { dsimp [to_prev'._match_1, hom.f_prev._match_1],
+  { dsimp [to_prev'._match_1, hom.prev._match_1],
     simp, },
 end
 

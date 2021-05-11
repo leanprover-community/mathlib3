@@ -555,25 +555,25 @@ end
 
 end
 
-section is_basis
+section basis
 
 variables {B₃ F₃ : bilin_form R₃ M₃}
-variables {ι : Type*} {b : ι → M₃} (hb : is_basis R₃ b)
+variables {ι : Type*} (b : basis ι R₃ M₃)
 
 /-- Two bilinear forms are equal when they are equal on all basis vectors. -/
 lemma ext_basis (h : ∀ i j, B₃ (b i) (b j) = F₃ (b i) (b j)) : B₃ = F₃ :=
-to_lin.injective $ hb.ext $ λ i, hb.ext $ λ j, h i j
+to_lin.injective $ b.ext $ λ i, b.ext $ λ j, h i j
 
 /-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis. -/
 lemma sum_repr_mul_repr_mul (x y : M₃) :
-  (hb.repr x).sum (λ i xi, (hb.repr y).sum (λ j yj, xi • yj • B₃ (b i) (b j))) = B₃ x y :=
+  (b.repr x).sum (λ i xi, (b.repr y).sum (λ j yj, xi • yj • B₃ (b i) (b j))) = B₃ x y :=
 begin
-  conv_rhs { rw [← hb.total_repr x, ← hb.total_repr y] },
+  conv_rhs { rw [← b.total_repr x, ← b.total_repr y] },
   simp_rw [finsupp.total_apply, finsupp.sum, sum_left, sum_right,
     smul_left, smul_right, smul_eq_mul]
 end
 
-end is_basis
+end basis
 
 end bilin_form
 
@@ -628,8 +628,9 @@ lemma to_bilin'_aux_to_matrix_aux [decidable_eq n] (B₃ : bilin_form R₃ (n �
   matrix.to_bilin'_aux (bilin_form.to_matrix_aux (λ j, std_basis R₃ (λ _, R₃) j 1) B₃) =
     B₃ :=
 begin
-  refine ext_basis (pi.is_basis_fun R₃ n) (λ i j, _),
-  rw [bilin_form.to_matrix_aux, linear_map.coe_mk, matrix.to_bilin'_aux_std_basis]
+  refine ext_basis (pi.basis_fun R₃ n) (λ i j, _),
+  rw [bilin_form.to_matrix_aux, linear_map.coe_mk, pi.basis_fun_apply, pi.basis_fun_apply,
+      matrix.to_bilin'_aux_std_basis]
 end
 
 section to_matrix'
@@ -710,14 +711,15 @@ begin
   simp only [bilin_form.to_matrix'_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
     linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
-  conv_lhs { rw ← sum_repr_mul_repr_mul (pi.is_basis_fun R₃ n) (l _) (r _) },
+  conv_lhs { rw ← sum_repr_mul_repr_mul (pi.basis_fun R₃ n) (l _) (r _) },
   rw finsupp.sum_fintype,
   { apply sum_congr rfl,
     rintros i' -,
     rw finsupp.sum_fintype,
     { apply sum_congr rfl,
       rintros j' -,
-      simp only [smul_eq_mul, pi.is_basis_fun_repr, mul_assoc, mul_comm, mul_left_comm] },
+      simp only [smul_eq_mul, pi.basis_fun_repr, mul_assoc, mul_comm, mul_left_comm,
+                 pi.basis_fun_apply] },
     { intros, simp only [zero_smul, smul_zero] } },
   { intros, simp only [zero_smul, finsupp.sum_zero] }
 end
@@ -759,22 +761,22 @@ This section deals with the conversion between matrices and bilinear forms on
 a module with a fixed basis.
 -/
 
-variables [decidable_eq n] {b : n → M₃} (hb : is_basis R₃ b)
+variables [decidable_eq n] (b : basis n R₃ M₃)
 
-/-- `bilin_form.to_matrix hb` is the equivalence between `R`-bilinear forms on `M` and
-`n`-by-`n` matrices with entries in `R`, if `hb` is an `R`-basis for `M`. -/
+/-- `bilin_form.to_matrix b` is the equivalence between `R`-bilinear forms on `M` and
+`n`-by-`n` matrices with entries in `R`, if `b` is an `R`-basis for `M`. -/
 noncomputable def bilin_form.to_matrix : bilin_form R₃ M₃ ≃ₗ[R₃] matrix n n R₃ :=
-(bilin_form.congr hb.equiv_fun).trans bilin_form.to_matrix'
+(bilin_form.congr b.equiv_fun).trans bilin_form.to_matrix'
 
-/-- `bilin_form.to_matrix hb` is the equivalence between `R`-bilinear forms on `M` and
-`n`-by-`n` matrices with entries in `R`, if `hb` is an `R`-basis for `M`. -/
+/-- `bilin_form.to_matrix b` is the equivalence between `R`-bilinear forms on `M` and
+`n`-by-`n` matrices with entries in `R`, if `b` is an `R`-basis for `M`. -/
 noncomputable def matrix.to_bilin : matrix n n R₃ ≃ₗ[R₃] bilin_form R₃ M₃ :=
-(bilin_form.to_matrix hb).symm
+(bilin_form.to_matrix b).symm
 
-@[simp] lemma is_basis.equiv_fun_symm_std_basis (i : n) :
-  hb.equiv_fun.symm (std_basis R₃ (λ _, R₃) i 1) = b i :=
+@[simp] lemma basis.equiv_fun_symm_std_basis (i : n) :
+  b.equiv_fun.symm (std_basis R₃ (λ _, R₃) i 1) = b i :=
 begin
-  rw [hb.equiv_fun_symm_apply, finset.sum_eq_single i],
+  rw [b.equiv_fun_symm_apply, finset.sum_eq_single i],
   { rw [std_basis_same, one_smul] },
   { rintros j - hj,
     rw [std_basis_ne _ _ _ _ hj, zero_smul] },
@@ -784,61 +786,63 @@ begin
 end
 
 @[simp] lemma bilin_form.to_matrix_apply (B : bilin_form R₃ M₃) (i j : n) :
-  bilin_form.to_matrix hb B i j = B (b i) (b j) :=
+  bilin_form.to_matrix b B i j = B (b i) (b j) :=
 by rw [bilin_form.to_matrix, linear_equiv.trans_apply, bilin_form.to_matrix'_apply, congr_apply,
-       hb.equiv_fun_symm_std_basis, hb.equiv_fun_symm_std_basis]
+       b.equiv_fun_symm_std_basis, b.equiv_fun_symm_std_basis]
 
 @[simp] lemma matrix.to_bilin_apply (M : matrix n n R₃) (x y : M₃) :
-  matrix.to_bilin hb M x y = ∑ i j, hb.repr x i * M i j * hb.repr y j :=
-show ((congr hb.equiv_fun).symm (matrix.to_bilin' M)) x y =
-    ∑ (i j : n), hb.repr x i * M i j * hb.repr y j,
-by simp only [congr_symm, congr_apply, linear_equiv.symm_symm, matrix.to_bilin'_apply,
-  is_basis.equiv_fun_apply]
+  matrix.to_bilin b M x y = ∑ i j, b.repr x i * M i j * b.repr y j :=
+begin
+  rw [matrix.to_bilin, bilin_form.to_matrix, linear_equiv.symm_trans_apply, ← matrix.to_bilin'],
+  simp only [congr_symm, congr_apply, linear_equiv.symm_symm, matrix.to_bilin'_apply,
+    basis.equiv_fun_apply]
+end
 
 -- Not a `simp` lemma since `bilin_form.to_matrix` needs an extra argument
 lemma bilinear_form.to_matrix_aux_eq (B : bilin_form R₃ M₃) :
-  bilin_form.to_matrix_aux b B = bilin_form.to_matrix hb B :=
+  bilin_form.to_matrix_aux b B = bilin_form.to_matrix b B :=
 ext (λ i j, by rw [bilin_form.to_matrix_apply, bilin_form.to_matrix_aux, linear_map.coe_mk])
 
 @[simp] lemma bilin_form.to_matrix_symm :
-  (bilin_form.to_matrix hb).symm = matrix.to_bilin hb :=
+  (bilin_form.to_matrix b).symm = matrix.to_bilin b :=
 rfl
 
 @[simp] lemma matrix.to_bilin_symm :
-  (matrix.to_bilin hb).symm = bilin_form.to_matrix hb :=
-(bilin_form.to_matrix hb).symm_symm
+  (matrix.to_bilin b).symm = bilin_form.to_matrix b :=
+(bilin_form.to_matrix b).symm_symm
 
-lemma matrix.to_bilin_is_basis_fun :
-  matrix.to_bilin (pi.is_basis_fun R₃ n) = matrix.to_bilin' :=
-by { ext M, simp only [matrix.to_bilin_apply, matrix.to_bilin'_apply, pi.is_basis_fun_repr] }
+lemma matrix.to_bilin_basis_fun :
+  matrix.to_bilin (pi.basis_fun R₃ n) = matrix.to_bilin' :=
+by { ext M, simp only [matrix.to_bilin_apply, matrix.to_bilin'_apply, pi.basis_fun_repr] }
 
-lemma bilin_form.to_matrix_is_basis_fun :
-  bilin_form.to_matrix (pi.is_basis_fun R₃ n) = bilin_form.to_matrix' :=
-by { ext B, rw [bilin_form.to_matrix_apply, bilin_form.to_matrix'_apply] }
+lemma bilin_form.to_matrix_basis_fun :
+  bilin_form.to_matrix (pi.basis_fun R₃ n) = bilin_form.to_matrix' :=
+by { ext B, rw [bilin_form.to_matrix_apply, bilin_form.to_matrix'_apply,
+                pi.basis_fun_apply, pi.basis_fun_apply] }
 
 @[simp] lemma matrix.to_bilin_to_matrix (B : bilin_form R₃ M₃) :
-  matrix.to_bilin hb (bilin_form.to_matrix hb B) = B :=
-(matrix.to_bilin hb).apply_symm_apply B
+  matrix.to_bilin b (bilin_form.to_matrix b B) = B :=
+(matrix.to_bilin b).apply_symm_apply B
 
 @[simp] lemma bilin_form.to_matrix_to_bilin (M : matrix n n R₃) :
-  bilin_form.to_matrix hb (matrix.to_bilin hb M) = M :=
-(bilin_form.to_matrix hb).apply_symm_apply M
+  bilin_form.to_matrix b (matrix.to_bilin b M) = M :=
+(bilin_form.to_matrix b).apply_symm_apply M
 
 variables {M₃' : Type*} [add_comm_group M₃'] [module R₃ M₃']
-variables {c : o → M₃'} (hc : is_basis R₃ c)
+variables (c : basis o R₃ M₃')
 variables [decidable_eq o]
 
--- Cannot be a `simp` lemma because `hb` must be inferred.
+-- Cannot be a `simp` lemma because `b` must be inferred.
 lemma bilin_form.to_matrix_comp
   (B : bilin_form R₃ M₃) (l r : M₃' →ₗ[R₃] M₃) :
-  bilin_form.to_matrix hc (B.comp l r) =
-    (to_matrix hc hb l)ᵀ ⬝ bilin_form.to_matrix hb B ⬝ to_matrix hc hb r :=
+  bilin_form.to_matrix c (B.comp l r) =
+    (to_matrix c b l)ᵀ ⬝ bilin_form.to_matrix b B ⬝ to_matrix c b r :=
 begin
   ext i j,
   simp only [bilin_form.to_matrix_apply, bilin_form.comp_apply, transpose_apply, matrix.mul_apply,
     linear_map.to_matrix', linear_equiv.coe_mk, sum_mul],
   rw sum_comm,
-  conv_lhs { rw ← sum_repr_mul_repr_mul hb },
+  conv_lhs { rw ← sum_repr_mul_repr_mul b },
   rw finsupp.sum_fintype,
   { apply sum_congr rfl,
     rintros i' -,
@@ -846,40 +850,40 @@ begin
     { apply sum_congr rfl,
       rintros j' -,
       simp only [smul_eq_mul, linear_map.to_matrix_apply,
-        is_basis.equiv_fun_apply, mul_assoc, mul_comm, mul_left_comm] },
+        basis.equiv_fun_apply, mul_assoc, mul_comm, mul_left_comm] },
     { intros, simp only [zero_smul, smul_zero] } },
   { intros, simp only [zero_smul, finsupp.sum_zero] }
 end
 
 lemma bilin_form.to_matrix_comp_left (B : bilin_form R₃ M₃) (f : M₃ →ₗ[R₃] M₃) :
-  bilin_form.to_matrix hb (B.comp_left f) = (to_matrix hb hb f)ᵀ ⬝ bilin_form.to_matrix hb B :=
-by simp only [comp_left, bilin_form.to_matrix_comp hb hb, to_matrix_id, matrix.mul_one]
+  bilin_form.to_matrix b (B.comp_left f) = (to_matrix b b f)ᵀ ⬝ bilin_form.to_matrix b B :=
+by simp only [comp_left, bilin_form.to_matrix_comp b b, to_matrix_id, matrix.mul_one]
 
 lemma bilin_form.to_matrix_comp_right (B : bilin_form R₃ M₃) (f : M₃ →ₗ[R₃] M₃) :
-  bilin_form.to_matrix hb (B.comp_right f) = bilin_form.to_matrix hb B ⬝ (to_matrix hb hb f) :=
-by simp only [bilin_form.comp_right, bilin_form.to_matrix_comp hb hb, to_matrix_id,
+  bilin_form.to_matrix b (B.comp_right f) = bilin_form.to_matrix b B ⬝ (to_matrix b b f) :=
+by simp only [bilin_form.comp_right, bilin_form.to_matrix_comp b b, to_matrix_id,
               transpose_one, matrix.one_mul]
 
 lemma bilin_form.mul_to_matrix_mul (B : bilin_form R₃ M₃)
   (M : matrix o n R₃) (N : matrix n o R₃) :
-  M ⬝ bilin_form.to_matrix hb B ⬝ N =
-    bilin_form.to_matrix hc (B.comp (to_lin hc hb Mᵀ) (to_lin hc hb N)) :=
-by simp only [B.to_matrix_comp hb hc, to_matrix_to_lin, transpose_transpose]
+  M ⬝ bilin_form.to_matrix b B ⬝ N =
+    bilin_form.to_matrix c (B.comp (to_lin c b Mᵀ) (to_lin c b N)) :=
+by simp only [B.to_matrix_comp b c, to_matrix_to_lin, transpose_transpose]
 
 lemma bilin_form.mul_to_matrix (B : bilin_form R₃ M₃) (M : matrix n n R₃) :
-  M ⬝ bilin_form.to_matrix hb B =
-    bilin_form.to_matrix hb (B.comp_left (to_lin hb hb Mᵀ)) :=
-by rw [B.to_matrix_comp_left hb, to_matrix_to_lin, transpose_transpose]
+  M ⬝ bilin_form.to_matrix b B =
+    bilin_form.to_matrix b (B.comp_left (to_lin b b Mᵀ)) :=
+by rw [B.to_matrix_comp_left b, to_matrix_to_lin, transpose_transpose]
 
 lemma bilin_form.to_matrix_mul (B : bilin_form R₃ M₃) (M : matrix n n R₃) :
-  bilin_form.to_matrix hb B ⬝ M =
-    bilin_form.to_matrix hb (B.comp_right (to_lin hb hb M)) :=
-by rw [B.to_matrix_comp_right hb, to_matrix_to_lin]
+  bilin_form.to_matrix b B ⬝ M =
+    bilin_form.to_matrix b (B.comp_right (to_lin b b M)) :=
+by rw [B.to_matrix_comp_right b, to_matrix_to_lin]
 
 lemma matrix.to_bilin_comp (M : matrix n n R₃) (P Q : matrix n o R₃) :
-  (matrix.to_bilin hb M).comp (to_lin hc hb P) (to_lin hc hb Q) = matrix.to_bilin hc (Pᵀ ⬝ M ⬝ Q) :=
-(bilin_form.to_matrix hc).injective
-  (by simp only [bilin_form.to_matrix_comp hb hc, bilin_form.to_matrix_to_bilin, to_matrix_to_lin])
+  (matrix.to_bilin b M).comp (to_lin c b P) (to_lin c b Q) = matrix.to_bilin c (Pᵀ ⬝ M ⬝ Q) :=
+(bilin_form.to_matrix c).injective
+  (by simp only [bilin_form.to_matrix_comp b c, bilin_form.to_matrix_to_bilin, to_matrix_to_lin])
 
 end to_matrix
 
@@ -1088,7 +1092,7 @@ section matrix_adjoints
 open_locale matrix
 
 variables {n : Type w} [fintype n]
-variables {b : n → M₃} (hb : is_basis R₃ b)
+variables (b : basis n R₃ M₃)
 variables (J J₃ A A' : matrix n n R₃)
 
 /-- The condition for the square matrices `A`, `A'` to be an adjoint pair with respect to the square
@@ -1122,17 +1126,17 @@ begin
 end
 
 @[simp] lemma is_adjoint_pair_to_bilin [decidable_eq n] :
-  bilin_form.is_adjoint_pair (matrix.to_bilin hb J) (matrix.to_bilin hb J₃)
-      (matrix.to_lin hb hb A) (matrix.to_lin hb hb A') ↔
+  bilin_form.is_adjoint_pair (matrix.to_bilin b J) (matrix.to_bilin b J₃)
+      (matrix.to_lin b b A) (matrix.to_lin b b A') ↔
     matrix.is_adjoint_pair J J₃ A A' :=
 begin
   rw bilin_form.is_adjoint_pair_iff_comp_left_eq_comp_right,
   have h : ∀ (B B' : bilin_form R₃ M₃), B = B' ↔
-    (bilin_form.to_matrix hb B) = (bilin_form.to_matrix hb B'),
+    (bilin_form.to_matrix b B) = (bilin_form.to_matrix b B'),
   { intros B B',
     split; intros h,
     { rw h },
-    { exact (bilin_form.to_matrix hb).injective h } },
+    { exact (bilin_form.to_matrix b).injective h } },
   rw [h, bilin_form.to_matrix_comp_left, bilin_form.to_matrix_comp_right,
       linear_map.to_matrix_to_lin, linear_map.to_matrix_to_lin,
       bilin_form.to_matrix_to_bilin, bilin_form.to_matrix_to_bilin],
@@ -1231,9 +1235,9 @@ variables {N L : submodule R M}
 lemma orthogonal_le (h : N ≤ L) : B.orthogonal L ≤ B.orthogonal N :=
 λ _ hn l hl, hn l (h hl)
 
-lemma le_orthogonal_orthogonal (hB : refl_bilin_form.is_refl B) :
+lemma le_orthogonal_orthogonal (b : refl_bilin_form.is_refl B) :
   N ≤ B.orthogonal (B.orthogonal N) :=
-λ n hn m hm, hB _ _ (hm n hn)
+λ n hn m hm, b _ _ (hm n hn)
 
 -- ↓ This lemma only applies in fields as we require `a * b = 0 → a = 0 ∨ b = 0`
 lemma span_singleton_inf_orthogonal_eq_bot
@@ -1293,9 +1297,9 @@ def restrict (B : bilin_form R M) (W : submodule R M) : bilin_form R W :=
   bilin_smul_right := λ _ _ _, smul_right _ _ _}
 
 /-- The restriction of a symmetric bilinear form on a submodule is also symmetric. -/
-lemma restrict_sym (B : bilin_form R M) (hB : sym_bilin_form.is_sym B)
+lemma restrict_sym (B : bilin_form R M) (b : sym_bilin_form.is_sym B)
   (W : submodule R M) : sym_bilin_form.is_sym $ B.restrict W :=
-λ x y, hB x y
+λ x y, b x y
 
 /-- A nondegenerate bilinear form is a bilinear form such that the only element that is orthogonal
 to every other element is `0`; i.e., for all nonzero `m` in `M`, there exists `n` in `M` with
@@ -1323,21 +1327,21 @@ end
 /-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  (B : bilin_form R₁ M₁) (hB : sym_bilin_form.is_sym B)
+  (B : bilin_form R₁ M₁) (b : sym_bilin_form.is_sym B)
   {W : submodule R₁ M₁} (hW : disjoint W (B.orthogonal W)) :
   (B.restrict W).nondegenerate :=
 begin
-  rintro ⟨x, hx⟩ hB₁,
+  rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
   refine hW ⟨hx, λ y hy, _⟩,
-  specialize hB₁ ⟨y, hy⟩,
-  rwa [restrict_apply, submodule.coe_mk, submodule.coe_mk, hB] at hB₁
+  specialize b₁ ⟨y, hy⟩,
+  rwa [restrict_apply, submodule.coe_mk, submodule.coe_mk, b] at b₁
 end
 
 section
 
 lemma to_lin_restrict_ker_eq_inf_orthogonal
-  (B : bilin_form K V) (W : subspace K V) (hB : sym_bilin_form.is_sym B) :
+  (B : bilin_form K V) (W : subspace K V) (b : sym_bilin_form.is_sym B) :
   (B.to_lin.dom_restrict W).ker.map W.subtype = (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   ext x, split; intro hx,
@@ -1346,13 +1350,13 @@ begin
     split,
     { simp [hx] },
     { intros y _,
-      rw [is_ortho, hB],
+      rw [is_ortho, b],
       change (B.to_lin.dom_restrict W) ⟨x, hx⟩ y = 0,
       rw hker, refl } },
   { simp_rw [submodule.mem_map, linear_map.mem_ker],
     refine ⟨⟨x, hx.1⟩, _, rfl⟩,
     ext y, change B x y = 0,
-    rw hB,
+    rw b,
     exact hx.2 _ submodule.mem_top }
 end
 
@@ -1374,11 +1378,11 @@ variable [finite_dimensional K V]
 open finite_dimensional
 
 lemma finrank_add_finrank_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (hB₁ : sym_bilin_form.is_sym B) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : sym_bilin_form.is_sym B) :
   finrank K W + finrank K (B.orthogonal W) =
   finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
-  rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ hB₁,
+  rw [← to_lin_restrict_ker_eq_inf_orthogonal _ _ b₁,
       ← to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal _ _,
       finrank_map_subtype_eq],
   conv_rhs { rw [← @subspace.finrank_add_finrank_dual_annihilator_comap_eq K V _ _ _ _
@@ -1391,16 +1395,16 @@ end
 bilinear form if that bilinear form restricted on to the subspace is nondegenerate. -/
 lemma restrict_nondegenerate_of_is_compl_orthogonal
   {B : bilin_form K V} {W : subspace K V}
-  (hB₁ : sym_bilin_form.is_sym B) (hB₂ : (B.restrict W).nondegenerate) :
+  (b₁ : sym_bilin_form.is_sym B) (b₂ : (B.restrict W).nondegenerate) :
   is_compl W (B.orthogonal W) :=
 begin
   have : W ⊓ B.orthogonal W = ⊥,
   { rw eq_bot_iff,
     intros x hx,
     obtain ⟨hx₁, hx₂⟩ := submodule.mem_inf.1 hx,
-    refine subtype.mk_eq_mk.1 (hB₂ ⟨x, hx₁⟩ _),
+    refine subtype.mk_eq_mk.1 (b₂ ⟨x, hx₁⟩ _),
     rintro ⟨n, hn⟩,
-    rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, hB₁],
+    rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, b₁],
     exact hx₂ n hn },
   refine ⟨this ▸ le_refl _, _⟩,
   { rw top_le_iff,
@@ -1408,28 +1412,28 @@ begin
     refine le_antisymm (submodule.finrank_le _) _,
     conv_rhs { rw ← add_zero (finrank K _) },
     rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
-        finrank_add_finrank_orthogonal hB₁],
+        finrank_add_finrank_orthogonal b₁],
     exact nat.le.intro rfl }
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some bilinear form
 if and only if that bilinear form restricted on to the subspace is nondegenerate. -/
 theorem restrict_nondegenerate_iff_is_compl_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (hB₁ : sym_bilin_form.is_sym B) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : sym_bilin_form.is_sym B) :
   (B.restrict W).nondegenerate ↔ is_compl W (B.orthogonal W) :=
-⟨λ hB₂, restrict_nondegenerate_of_is_compl_orthogonal hB₁ hB₂,
- λ h, B.nondegenerate_restrict_of_disjoint_orthogonal hB₁ h.1⟩
+⟨λ b₂, restrict_nondegenerate_of_is_compl_orthogonal b₁ b₂,
+ λ h, B.nondegenerate_restrict_of_disjoint_orthogonal b₁ h.1⟩
 
 /-- Given a nondegenerate bilinear form `B` on a finite-dimensional vector space, `B.to_dual` is
 the linear equivalence between a vector space and its dual with the underlying linear map
 `B.to_lin`. -/
-noncomputable def to_dual (B : bilin_form K V) (hB : B.nondegenerate) :
+noncomputable def to_dual (B : bilin_form K V) (b : B.nondegenerate) :
   V ≃ₗ[K] module.dual K V :=
 B.to_lin.linear_equiv_of_ker_eq_bot
-  (nondegenerate_iff_ker_eq_bot.mp hB) subspace.dual_finrank_eq.symm
+  (nondegenerate_iff_ker_eq_bot.mp b) subspace.dual_finrank_eq.symm
 
-lemma to_dual_def {B : bilin_form K V} (hB : B.nondegenerate) {m n : V} :
-  B.to_dual hB m n = B m n := rfl
+lemma to_dual_def {B : bilin_form K V} (b : B.nondegenerate) {m n : V} :
+  B.to_dual b m n = B m n := rfl
 
 end
 
@@ -1441,51 +1445,51 @@ on the whole space. -/
 /-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)
-  (hB₁ : nondegenerate B) (hB₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
+  (b₁ : nondegenerate B) (b₂ : sym_bilin_form.is_sym B) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=
 begin
-  refine λ m hm, submodule.coe_eq_zero.1 (hB₁ m.1 (λ n, _)),
+  refine λ m hm, submodule.coe_eq_zero.1 (b₁ m.1 (λ n, _)),
   have : n ∈ (K ∙ x) ⊔ B.orthogonal (K ∙ x) :=
     (span_singleton_sup_orthogonal_eq_top hx).symm ▸ submodule.mem_top,
   rcases submodule.mem_sup.1 this with ⟨y, hy, z, hz, rfl⟩,
   specialize hm ⟨z, hz⟩,
   rw restrict at hm,
-  erw [add_right, show B m.1 y = 0, by rw hB₂; exact m.2 y hy, hm, add_zero]
+  erw [add_right, show B m.1 y = 0, by rw b₂; exact m.2 y hy, hm, add_zero]
 end
 
 section linear_adjoints
 
-lemma comp_left_injective (B : bilin_form R₁ M₁) (hB : B.nondegenerate) :
+lemma comp_left_injective (B : bilin_form R₁ M₁) (b : B.nondegenerate) :
   function.injective B.comp_left :=
 λ φ ψ h, begin
   ext w,
-  refine eq_of_sub_eq_zero (hB _ _),
+  refine eq_of_sub_eq_zero (b _ _),
   intro v,
   rw [sub_left, ← comp_left_apply, ← comp_left_apply, ← h, sub_self]
 end
 
-lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form R₁ M₁) (hB : B.nondegenerate)
+lemma is_adjoint_pair_unique_of_nondegenerate (B : bilin_form R₁ M₁) (b : B.nondegenerate)
   (φ ψ₁ ψ₂ : M₁ →ₗ[R₁] M₁) (hψ₁ : is_adjoint_pair B B ψ₁ φ) (hψ₂ : is_adjoint_pair B B ψ₂ φ) :
   ψ₁ = ψ₂ :=
-B.comp_left_injective hB $ ext $ λ v w, by rw [comp_left_apply, comp_left_apply, hψ₁, hψ₂]
+B.comp_left_injective b $ ext $ λ v w, by rw [comp_left_apply, comp_left_apply, hψ₁, hψ₂]
 
 variable [finite_dimensional K V]
 
 /-- Given bilinear forms `B₁, B₂` where `B₂` is nondegenerate, `symm_comp_of_nondegenerate`
 is the linear map `B₂.to_lin⁻¹ ∘ B₁.to_lin`. -/
 noncomputable def symm_comp_of_nondegenerate
-  (B₁ B₂ : bilin_form K V) (hB₂ : B₂.nondegenerate) : V →ₗ[K] V :=
-(B₂.to_dual hB₂).symm.to_linear_map.comp B₁.to_lin
+  (B₁ B₂ : bilin_form K V) (b₂ : B₂.nondegenerate) : V →ₗ[K] V :=
+(B₂.to_dual b₂).symm.to_linear_map.comp B₁.to_lin
 
 lemma comp_symm_comp_of_nondegenerate_apply (B₁ : bilin_form K V)
-  {B₂ : bilin_form K V} (hB₂ : B₂.nondegenerate) (v : V) :
-  to_lin B₂ (B₁.symm_comp_of_nondegenerate B₂ hB₂ v) = to_lin B₁ v :=
-by erw [symm_comp_of_nondegenerate, linear_equiv.apply_symm_apply (B₂.to_dual hB₂) _]
+  {B₂ : bilin_form K V} (b₂ : B₂.nondegenerate) (v : V) :
+  to_lin B₂ (B₁.symm_comp_of_nondegenerate B₂ b₂ v) = to_lin B₁ v :=
+by erw [symm_comp_of_nondegenerate, linear_equiv.apply_symm_apply (B₂.to_dual b₂) _]
 
 @[simp]
 lemma symm_comp_of_nondegenerate_left_apply (B₁ : bilin_form K V)
-  {B₂ : bilin_form K V} (hB₂ : B₂.nondegenerate) (v w : V) :
-  B₂ (symm_comp_of_nondegenerate B₁ B₂ hB₂ w) v = B₁ w v :=
+  {B₂ : bilin_form K V} (b₂ : B₂.nondegenerate) (v w : V) :
+  B₂ (symm_comp_of_nondegenerate B₁ B₂ b₂ w) v = B₁ w v :=
 begin
   conv_lhs { rw [← bilin_form.to_lin_apply, comp_symm_comp_of_nondegenerate_apply] },
   refl,
@@ -1495,20 +1499,20 @@ end
 `left_adjoint_of_nondegenerate` provides the left adjoint of `φ` with respect to `B`.
 The lemma proving this property is `bilin_form.is_adjoint_pair_left_adjoint_of_nondegenerate`. -/
 noncomputable def left_adjoint_of_nondegenerate
-  (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) : V →ₗ[K] V :=
-symm_comp_of_nondegenerate (B.comp_right φ) B hB
+  (B : bilin_form K V) (b : B.nondegenerate) (φ : V →ₗ[K] V) : V →ₗ[K] V :=
+symm_comp_of_nondegenerate (B.comp_right φ) B b
 
 lemma is_adjoint_pair_left_adjoint_of_nondegenerate
-  (B : bilin_form K V) (hB : B.nondegenerate) (φ : V →ₗ[K] V) :
-  is_adjoint_pair B B (B.left_adjoint_of_nondegenerate hB φ) φ :=
-λ x y, (B.comp_right φ).symm_comp_of_nondegenerate_left_apply hB y x
+  (B : bilin_form K V) (b : B.nondegenerate) (φ : V →ₗ[K] V) :
+  is_adjoint_pair B B (B.left_adjoint_of_nondegenerate b φ) φ :=
+λ x y, (B.comp_right φ).symm_comp_of_nondegenerate_left_apply b y x
 
 /-- Given the nondegenerate bilinear form `B`, the linear map `φ` has a unique left adjoint given by
 `bilin_form.left_adjoint_of_nondegenerate`. -/
 theorem is_adjoint_pair_iff_eq_of_nondegenerate
-  (B : bilin_form K V) (hB : B.nondegenerate) (ψ φ : V →ₗ[K] V) :
-  is_adjoint_pair B B ψ φ ↔ ψ = B.left_adjoint_of_nondegenerate hB φ :=
-⟨λ h, B.is_adjoint_pair_unique_of_nondegenerate hB φ ψ _ h
+  (B : bilin_form K V) (b : B.nondegenerate) (ψ φ : V →ₗ[K] V) :
+  is_adjoint_pair B B ψ φ ↔ ψ = B.left_adjoint_of_nondegenerate b φ :=
+⟨λ h, B.is_adjoint_pair_unique_of_nondegenerate b φ ψ _ h
    (is_adjoint_pair_left_adjoint_of_nondegenerate _ _ _),
  λ h, h.symm ▸ is_adjoint_pair_left_adjoint_of_nondegenerate _ _ _⟩
 

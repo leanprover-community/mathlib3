@@ -198,10 +198,6 @@ inv_mul_le_of_le_mul h
 lemma one_le_of_inv_le_one (h : a⁻¹ ≤ 1) : 1 ≤ a :=
 inv_le_one'.mp h
 
-@[to_additive]
-lemma inv_le_one_of_one_le (h : 1 ≤ a) : a⁻¹ ≤ 1 :=
-inv_le_one'.mpr h
-
 @[to_additive neg_nonneg_of_nonpos]
 lemma one_le_inv_of_le_one (h : a ≤ 1) : 1 ≤ a⁻¹ :=
 one_le_inv'.mpr h

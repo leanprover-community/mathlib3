@@ -137,22 +137,24 @@ variables (S : Type*) [semiring S] (r n : ℕ)
 @[simp]
 lemma pochhammer_eval_one (S : Type*) [semiring S] (n : ℕ) :
   (pochhammer S n).eval (1 : S) = (n! : S) :=
-by norm_cast; rw [pochhammer_nat_eq_desc_fac, nat.zero_desc_fac]
+by rw_mod_cast [pochhammer_nat_eq_desc_fac, nat.zero_desc_fac]
 
 lemma factorial_mul_pochhammer (S : Type*) [semiring S] (r n : ℕ) :
   (r! : S) * (pochhammer S n).eval (r + 1) = (r + n)! :=
-by norm_cast; rw [pochhammer_nat_eq_desc_fac, nat.factorial_mul_desc_fac]
+by rw_mod_cast [pochhammer_nat_eq_desc_fac, nat.factorial_mul_desc_fac]
 
 lemma pochhammer_eval_succ (r : ℕ) :
   ∀ n : ℕ, (n : S) * (pochhammer S r).eval (n + 1 : S) = (n + r) * (pochhammer S r).eval n
 | 0 := begin
-  norm_cast, congr' 1,
+  norm_cast,
+  congr' 1,
   suffices : r = 0 ∨ eval 0 (pochhammer ℕ r) = 0, by simpa,
   rw pochhammer_eval_zero,
   split_ifs,
   exact or.inl h,
   exact or.inr rfl,
 end
-| (k + 1) := by norm_cast; simp only [pochhammer_nat_eq_desc_fac, nat.succ_desc_fac, add_right_comm]
+| (k + 1) := by rw_mod_cast [pochhammer_nat_eq_desc_fac, pochhammer_nat_eq_desc_fac,
+                             nat.succ_desc_fac, add_right_comm]
 
 end factorial

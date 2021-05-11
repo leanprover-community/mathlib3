@@ -643,6 +643,20 @@ begin
   exact (u_open.measurable_set.inter hs).union ((measurable_zero ht.measurable_set).diff hs)
 end
 
+/-- If a function is continuous on an open set `s`, then it is measurable at the filter `𝓝 x` for
+  all `x ∈ s`. -/
+lemma continuous_on.measurable_at_filter
+  [topological_space α] [opens_measurable_space α] [borel_space E]
+  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : continuous_on f s) :
+  ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
+λ x hx, ⟨s, mem_nhds_sets hs hx, hf.ae_measurable hs.measurable_set⟩
+
+lemma continuous_at.measurable_at_filter
+  [topological_space α] [opens_measurable_space α] [borel_space E]
+  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : ∀ x ∈ s, continuous_at f x) :
+  ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
+continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
+
 lemma continuous_on.integrable_at_nhds_within
   [topological_space α] [opens_measurable_space α] [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α} {f : α → E}

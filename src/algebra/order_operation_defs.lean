@@ -132,18 +132,15 @@ lemma covariant_lt_iff_contravariant_le [linear_order N] :
 ⟨ λ h a b c bc, not_lt.mp (λ k, not_lt.mpr bc (h _ k)),
   λ h a b c bc, not_le.mp (λ k, not_le.mpr bc (h _ k))⟩
 
-lemma is_symm_op.swap_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
-funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm
-
 @[to_additive]
 lemma covariant_iff_covariant_mul [comm_semigroup N] :
   covariant ((*) : N → N → N) (r) ↔ covariant (flip (*) : N → N → N) (r) :=
-by rw is_symm_op.swap_eq
+by rw function.is_symm_op.flip_eq
 
 @[to_additive]
 lemma contravariant_iff_contravariant_mul [comm_semigroup N] :
   contravariant ((*) : N → N → N) (r) ↔ contravariant (flip (*) : N → N → N) (r) :=
-by rw is_symm_op.swap_eq
+by rw function.is_symm_op.flip_eq
 
 end covariants_and_contravariants
 

@@ -87,7 +87,9 @@ let E := (chain_complex.of P.X P.d (λ n, (P.exact n).w)) in
   exact₀ := begin
     dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
     simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
-    exact P.exact 0,
+    convert P.exact 0,
+    dsimp [E, chain_complex.of],
+    simp,
   end,
   exact := λ n, begin
     dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
@@ -96,7 +98,10 @@ let E := (chain_complex.of P.X P.d (λ n, (P.exact n).w)) in
   end,
   epi := begin
     dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
-    simp only [chain_complex.of_d],
+    suffices : category_theory.epi (P.d 0 ≫ P.zero.hom),
+    { convert this,
+      dsimp [E, chain_complex.of],
+      simp, },
     haveI := P.epi,
     apply epi_comp,
   end, }

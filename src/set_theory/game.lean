@@ -14,7 +14,7 @@ p`, and construct an instance `add_comm_group game`, as well as an instance `par
 (although note carefully the warning that the `<` field in this instance is not the usual relation
 on combinatorial games).
 
-## Multiplication on pgames
+## Multiplication on pre-games
 
 We define the operations of multiplication and inverse on pre-games, and prove a few basic theorems
 about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x.equiv y` does

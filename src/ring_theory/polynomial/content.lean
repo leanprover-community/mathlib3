@@ -81,7 +81,7 @@ begin
   rw content,
   by_cases h0 : r = 0,
   { simp [h0] },
-  have h : (C r).support = {0} := finsupp.support_single_ne_zero h0,
+  have h : (C r).support = {0} := support_monomial _ _ h0,
   simp [h],
 end
 
@@ -135,7 +135,7 @@ begin
 end
 
 @[simp] lemma content_monomial {r : R} {k : ℕ} : content (monomial k r) = normalize r :=
-by { rw [single_eq_C_mul_X, content_C_mul, content_X_pow, mul_one] }
+by { rw [monomial_eq_C_mul_X, content_C_mul, content_X_pow, mul_one] }
 
 lemma content_eq_zero_iff {p : polynomial R} : content p = 0 ↔ p = 0 :=
 begin

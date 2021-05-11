@@ -461,9 +461,17 @@ end add_comm_group
 
 section module
 
+variables {R} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+
+lemma smul_right_injective {x : M} (hx : x ≠ 0) :
+  function.injective (λ (c : R), c • x) :=
+λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
+  (calc (c - d) • x = c • x - d • x : sub_smul c d x
+                ... = 0 : sub_eq_zero.mpr h)).resolve_right hx)
+
 section nat
 
-variables {R} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M] [char_zero R]
+variables [char_zero R]
 
 lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
 λ h, hv (eq_zero_of_eq_neg R h)

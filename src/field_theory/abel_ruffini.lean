@@ -372,6 +372,21 @@ begin
   { exact λ α n, induction3 },
 end
 
+/-- An irreducible polynomial with an `is_solvable_by_rad` root has solvable Galois group -/
+lemma is_solvable' {α : E} {q : polynomial F} (q_irred : irreducible q)
+  (q_aeval : aeval α q = 0) (hα : is_solvable_by_rad F α) :
+  _root_.is_solvable q.gal :=
+begin
+  haveI : _root_.is_solvable (q * C q.leading_coeff⁻¹).gal := by
+  { rw [minpoly.unique'' q_irred q_aeval,
+        ←show minpoly F (⟨α, hα⟩ : solvable_by_rad F E) = minpoly F α,
+        from minpoly.eq_of_algebra_map_eq (ring_hom.injective _) (is_integral ⟨α, hα⟩) rfl],
+    exact is_solvable ⟨α, hα⟩ },
+  refine solvable_of_surjective (gal.restrict_dvd_surjective ⟨C q.leading_coeff⁻¹, rfl⟩ _),
+  rw [mul_ne_zero_iff, ne, ne, C_eq_zero, inv_eq_zero],
+  exact ⟨q_irred.ne_zero, leading_coeff_ne_zero.mpr q_irred.ne_zero⟩,
+end
+
 end solvable_by_rad
 
 end abel_ruffini

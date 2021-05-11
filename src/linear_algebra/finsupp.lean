@@ -550,6 +550,11 @@ protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
 (finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
 
+lemma dom_lcongr_apply {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (v : α₁ →₀ M) (i : α₂) :
+  (finsupp.dom_lcongr e : _ ≃ₗ[R] _) v i = v (e.symm i) :=
+by { conv_lhs { rw ← e.apply_symm_apply i },
+     exact finsupp.map_domain_apply e.injective v (e.symm i) }
+
 @[simp]
 lemma dom_lcongr_refl : finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
 linear_equiv.ext $ λ _, map_domain_id

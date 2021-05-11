@@ -43,7 +43,7 @@ begin
   { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
   { rw [mem_cons_iff, list.prod_cons,
         ih (λ σ hσ, h1 σ (list.mem_cons_of_mem τ hσ)) (pairwise_of_pairwise_cons h2)],
-    have key := disjoint_prod_list_of_disjoint (pairwise_cons.mp h2).1,
+    have key := disjoint_prod_right _ (pairwise_cons.mp h2).1,
     cases key a,
     { simp_rw [key.mul_comm, commute.mul_pow key.mul_comm.symm, mul_apply,
         pow_apply_eq_self_of_apply_eq_self h, or_iff_right_iff_imp],
@@ -202,6 +202,11 @@ begin
   exact dvd_lcm h,
 end
 
+lemma two_dvd_card_support {σ : perm α} (hσ : σ ^ 2 = 1) : 2 ∣ σ.support.card :=
+(congr_arg (has_dvd.dvd 2) σ.sum_cycle_type).mp
+  (multiset.dvd_sum (λ n hn, by rw le_antisymm (nat.le_of_dvd zero_lt_two (dvd_trans
+  (dvd_of_mem_cycle_type hn) (order_of_dvd_of_pow_eq_one hσ))) (two_le_of_mem_cycle_type hn)))
+
 lemma cycle_type_prime_order {σ : perm α} (hσ : (order_of σ).prime) :
   ∃ n : ℕ, σ.cycle_type = repeat (order_of σ) (n + 1) :=
 begin
@@ -252,7 +257,7 @@ begin
         multiset.map_cons, hσ', cons_inj_right, coe_map] at hπ,
       rw [hπ, cycle_type_eq (l.erase σ') rfl (λ f hf, hl1 f (list.erase_subset _ _ hf))
         (list.pairwise_of_sublist (list.erase_sublist _ _) hl2)] },
-    { refine disjoint_prod_list_of_disjoint (λ g hg, list.rel_of_pairwise_cons _ hg),
+    { refine disjoint_prod_right _ (λ g hg, list.rel_of_pairwise_cons _ hg),
       refine (list.perm.pairwise_iff _ (list.perm_cons_erase hσ'l).symm).2 hl2,
       exact (λ _ _, disjoint.symm) } }
 end
@@ -263,6 +268,18 @@ theorem is_conj_iff_cycle_type_eq {σ τ : perm α} :
   obtain ⟨π, rfl⟩ := is_conj_iff.1 h,
   rw cycle_type_conj,
 end, is_conj_of_cycle_type_eq⟩
+
+@[simp] lemma cycle_type_extend_domain {β : Type*} [fintype β] [decidable_eq β]
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) {g : perm α} :
+  cycle_type (g.extend_domain f) = cycle_type g :=
+begin
+  apply cycle_induction_on _ g,
+  { rw [extend_domain_one, cycle_type_one, cycle_type_one] },
+  { intros σ hσ,
+    rw [(hσ.extend_domain f).cycle_type, hσ.cycle_type, card_support_extend_domain] },
+  { intros σ τ hd hc hσ hτ,
+    rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
+end
 
 end cycle_type
 

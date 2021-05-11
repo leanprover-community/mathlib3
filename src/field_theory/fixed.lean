@@ -108,12 +108,12 @@ variables [fintype G] (x : F)
 /-- `minpoly G F x` is the minimal polynomial of `(x : F)` over `fixed_points G F`. -/
 def minpoly : polynomial (fixed_points G F) :=
 (prod_X_sub_smul G F x).to_subring _ $ λ c hc g,
-let ⟨hc0, n, hn⟩ := finsupp.mem_frange.1 hc in hn ▸ prod_X_sub_smul.coeff G F x g n
+let ⟨n, hc0, hn⟩ := polynomial.mem_frange_iff.1 hc in hn.symm ▸ prod_X_sub_smul.coeff G F x g n
 
 namespace minpoly
 
 theorem monic : (minpoly G F x).monic :=
-subtype.eq $ prod_X_sub_smul.monic G F x
+by { simp only [minpoly, polynomial.monic_to_subring], exact prod_X_sub_smul.monic G F x }
 
 theorem eval₂ :
   polynomial.eval₂ (is_subring.subtype $ fixed_points G F) x (minpoly G F x) = 0 :=

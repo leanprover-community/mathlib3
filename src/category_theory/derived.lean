@@ -103,7 +103,7 @@ lemma functor.left_derived_map_eq (F : C ⥤ D) [F.additive] (n : ℕ) {X Y : C}
 begin
   dsimp only [functor.left_derived, functor.left_derived_obj_iso],
   dsimp, simp only [category.comp_id, category.id_comp],
-  rw homotopy_category.homology_functor_map_factors,
+  rw [←homology_functor_map, homotopy_category.homology_functor_map_factors],
   simp only [←functor.map_comp],
   congr' 1,
   apply homotopy_category.eq_of_homotopy,
@@ -145,7 +145,7 @@ begin
   symmetry,
   dsimp [nat_trans.left_derived, functor.left_derived_obj_iso],
   simp only [category.comp_id, category.id_comp],
-  rw homotopy_category.homology_functor_map_factors,
+  rw [←homology_functor_map, homotopy_category.homology_functor_map_factors],
   simp only [←functor.map_comp],
   congr' 1,
   apply homotopy_category.eq_of_homotopy,

@@ -69,7 +69,7 @@ src/data/list/nat_antidiagonal.lean : line 8 : ERR_MOD : Module docstring missin
 src/data/list/of_fn.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/list/pairwise.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/range.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/data/list/rotate.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/data/list/rotate.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/list/sections.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/sigma.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/list/tfae.lean : line 8 : ERR_MOD : Module docstring missing, or too late

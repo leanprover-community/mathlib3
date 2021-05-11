@@ -100,11 +100,10 @@ class is_monoid_hom [mul_one_class α] [mul_one_class β] (f : α → β) extend
 namespace monoid_hom
 
 /-!
-Throughout this section, some `monoid` arguments are specified with `{}` instead of `[]`.
+Throughout this section, some `mul_one_class` arguments are specified with `{}` instead of `[]`.
 See note [implicit instance arguments].
 -/
-variables {M : Type*} {N : Type*} {P : Type*} [mM : monoid M] [mN : monoid N] {mP : monoid P}
-variables {G : Type*} {H : Type*} [group G] [comm_group H]
+variables {M : Type*} {N : Type*} [mM : mul_one_class M] [mN : mul_one_class N]
 
 include mM mN
 /-- Interpret a map `f : M → N` as a homomorphism `M →* N`. -/
@@ -114,7 +113,7 @@ def of (f : M → N) [h : is_monoid_hom f] : M →* N :=
   map_one' := h.2,
   map_mul' := h.1.1 }
 
-variables {mM mN mP}
+variables {mM mN}
 @[simp, to_additive]
 lemma coe_of (f : M → N) [is_monoid_hom f] : ⇑ (monoid_hom.of f) = f :=
 rfl
@@ -128,22 +127,21 @@ end monoid_hom
 
 namespace mul_equiv
 
-variables {M : Type*} {N : Type*} [monoid M] [monoid N]
+variables {M : Type*} {N : Type*} [mul_one_class M] [mul_one_class N]
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
 @[to_additive]
 instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
 
 /-- A multiplicative bijection between two monoids is a monoid hom
-  (deprecated -- use to_monoid_hom). -/
+  (deprecated -- use `mul_equiv.to_monoid_hom`). -/
 @[to_additive]
-instance {M N} [monoid M] [monoid N] (h : M ≃* N) : is_monoid_hom h :=
-⟨h.map_one⟩
+instance (h : M ≃* N) : is_monoid_hom h := ⟨h.map_one⟩
 
 end mul_equiv
 
 namespace is_monoid_hom
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+variables [mul_one_class α] [mul_one_class β] (f : α → β) [is_monoid_hom f]
 
 /-- A monoid homomorphism preserves multiplication. -/
 @[to_additive]
@@ -154,12 +152,12 @@ end is_monoid_hom
 
 /-- A map to a group preserving multiplication is a monoid homomorphism. -/
 @[to_additive]
-theorem is_monoid_hom.of_mul [monoid α] [group β] (f : α → β) [is_mul_hom f] :
+theorem is_monoid_hom.of_mul [mul_one_class α] [group β] (f : α → β) [is_mul_hom f] :
   is_monoid_hom f :=
 { map_one := mul_right_eq_self.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
 
 namespace is_monoid_hom
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+variables [mul_one_class α] [mul_one_class β] (f : α → β) [is_monoid_hom f]
 
 /-- The identity map is a monoid homomorphism. -/
 @[to_additive]
@@ -167,7 +165,7 @@ instance id : is_monoid_hom (@id α) := { map_one := rfl }
 
 /-- The composite of two monoid homomorphisms is a monoid homomorphism. -/
 @[to_additive] -- see Note [no instance on morphisms]
-lemma comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
+lemma comp {γ} [mul_one_class γ] (g : β → γ) [is_monoid_hom g] :
   is_monoid_hom (g ∘ f) :=
 { map_one := show g _ = 1, by rw [map_one f, map_one g], ..is_mul_hom.comp _ _ }
 
@@ -350,12 +348,13 @@ lemma multiplicative.is_mul_hom [has_add α] [has_add β] (f : α → β) [is_ad
   @is_mul_hom (multiplicative α) (multiplicative β) _ _ f :=
 { map_mul := @is_add_hom.map_add α β _ _ f _ }
 
-lemma additive.is_add_monoid_hom [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
+lemma additive.is_add_monoid_hom [mul_one_class α] [mul_one_class β] (f : α → β) [is_monoid_hom f] :
   @is_add_monoid_hom (additive α) (additive β) _ _ f :=
 { map_zero := @is_monoid_hom.map_one α β _ _ f _,
   ..additive.is_add_hom f }
 
-lemma multiplicative.is_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f] :
+lemma multiplicative.is_monoid_hom
+  [add_zero_class α] [add_zero_class β] (f : α → β) [is_add_monoid_hom f] :
   @is_monoid_hom (multiplicative α) (multiplicative β) _ _ f :=
 { map_one := @is_add_monoid_hom.map_zero α β _ _ f _,
   ..multiplicative.is_mul_hom f }

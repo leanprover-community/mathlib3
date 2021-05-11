@@ -512,10 +512,6 @@ theorem le_div_left : a ≤ b / c ↔ c ≤ a⁻¹ * b :=
 by rw [div_eq_mul_inv, le_mul_inv]
 
 /- The following lemmas are probably superfluous.  From here... -/
-@[to_additive neg_le_neg]
-lemma inv_le_inv' (h : a ≤ b) : b⁻¹ ≤ a⁻¹ :=
-inv_le_inv_iff.mpr h
-
 @[to_additive]
 lemma le_of_inv_le_inv (h : b⁻¹ ≤ a⁻¹) : a ≤ b :=
 inv_le_inv_iff.mp h
@@ -638,10 +634,6 @@ theorem lt_div_left : a < b / c ↔ c < a⁻¹ * b :=
 by rw [div_eq_mul_inv, lt_mul_inv]
 
 /- The following lemmas are probably superfluous.  From here... -/
-@[to_additive neg_lt_neg]
-lemma inv_lt_inv' (h : a < b) : b⁻¹ < a⁻¹ :=
-inv_lt_inv_iff.mpr h
-
 @[to_additive]
 lemma lt_of_inv_lt_inv (h : b⁻¹ < a⁻¹) : a < b :=
 inv_lt_inv_iff.mp h
@@ -662,7 +654,7 @@ variables [has_mul_le_mul_right α] [has_mul_lt_mul_left α] [has_mul_lt_mul_rig
 @[to_additive]
 lemma mul_inv_lt_mul_inv_of_le_of_lt (hab : a ≤ b) (hcd : c < d) : a * d⁻¹ < b * c⁻¹ :=
 calc a * d⁻¹ ≤ b * d⁻¹ : mul_le_mul_right' hab d⁻¹
-         ... < b * c⁻¹ : (mul_lt_mul_iff_left' _).mpr (inv_lt_inv' hcd)
+         ... < b * c⁻¹ : (mul_lt_mul_iff_left' _).mpr (inv_lt_inv_iff.mpr hcd)
 
 @[to_additive]
 lemma div_lt_div_of_le_of_lt (hab : a ≤ b) (hcd : c < d) : a / d < b / c :=
@@ -678,7 +670,7 @@ variables [has_mul_le_mul_left α] [has_mul_le_mul_right α] [has_mul_lt_mul_rig
 @[to_additive]
 lemma mul_inv_lt_mul_inv_of_lt_of_le (hab : a < b) (hcd : c ≤ d) : a * d⁻¹ < b * c⁻¹ :=
 calc a * d⁻¹ < b * d⁻¹ : (mul_lt_mul_iff_right' d⁻¹).mpr hab
-         ... ≤ b * c⁻¹ : (mul_le_mul_iff_left' _).mpr (inv_le_inv' hcd)
+         ... ≤ b * c⁻¹ : (mul_le_mul_iff_left' _).mpr (inv_le_inv_iff.mpr hcd)
 
 @[to_additive]
 lemma div_lt_div_of_lt_of_le (hab : a < b) (hcd : c ≤ d) : a / d < b / c :=
@@ -930,11 +922,11 @@ mul_lt_mul_left' h c
 
 @[to_additive min_neg_neg]
 lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=
-eq.symm $ @monotone.map_max α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv'
+eq.symm $ @monotone.map_max α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv_iff.mpr
 
 @[to_additive max_neg_neg]
 lemma max_inv_inv' (a b : α) : max (a⁻¹) (b⁻¹) = (min a b)⁻¹ :=
-eq.symm $ @monotone.map_min α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv'
+eq.symm $ @monotone.map_min α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv_iff.mpr
 
 @[to_additive min_sub_sub_right]
 lemma min_div_div_right' (a b c : α) : min (a / c) (b / c) = min a b / c :=
@@ -1164,7 +1156,7 @@ iff.intro
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le'.2
   ⟨by simp [hbc.trans (le_abs_self c)],
-   by simp [(neg_le_neg hab).trans (neg_le_abs_self a)]⟩
+   by simp [(neg_le_neg_iff.mpr hab).trans (neg_le_abs_self a)]⟩
 
 theorem abs_le_abs (h₀ : a ≤ b) (h₁ : -a ≤ b) : abs a ≤ abs b :=
 (abs_le'.2 ⟨h₀, h₁⟩).trans (le_abs_self b)

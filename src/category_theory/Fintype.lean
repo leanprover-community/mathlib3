@@ -45,16 +45,6 @@ def incl : Fintype ⥤ Type* := induced_functor _
 
 instance : concrete_category Fintype := ⟨incl⟩
 
-@[simp] lemma coe_id {A : Fintype} : (𝟙 A : A → A) = id := rfl
-
-@[simp] lemma coe_comp {A B C : Fintype} (f : A ⟶ B) (g : B ⟶ C) :
-  (f ≫ g : A → C) = g ∘ f := rfl
-
-lemma id_apply {A : Fintype} (a : A) : (𝟙 A : A → A) a = a := rfl
-
-lemma comp_apply {A B C : Fintype} (f : A ⟶ B) (g : B ⟶ C) (a : A) :
-  (f ≫ g) a = g (f a) := rfl
-
 /--
 The "standard" skeleton for `Fintype`. This is the full subcategory of `Fintype` spanned by objects
 of the form `fin n` for `n : ℕ`. We parameterize the objects of `Fintype.skeleton` directly as `ℕ`,

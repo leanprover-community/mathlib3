@@ -220,7 +220,7 @@ instance : complete_space ℝ :=
 begin
   apply complete_of_cauchy_seq_tendsto,
   intros u hu,
-  let c : cau_seq ℝ abs := ⟨u, cauchy_seq_iff'.1 hu⟩,
+  let c : cau_seq ℝ abs := ⟨u, metric.cauchy_seq_iff'.1 hu⟩,
   refine ⟨c.lim, λ s h, _⟩,
   rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
   have := c.equiv_lim ε ε0,

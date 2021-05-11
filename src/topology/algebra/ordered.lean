@@ -1941,13 +1941,13 @@ begin
   refine ⟨λ h, _, λ h, _⟩,
   { by_cases hn : 0 ≤ n,
     { lift n to ℕ using hn,
-      simp only [fpow_coe_nat] at h,
+      simp only [gpow_coe_nat] at h,
       rw [tendsto_const_mul_pow_nhds_iff hc, ← int.coe_nat_eq_zero] at h,
       exact or.inl h },
     { rw not_le at hn,
       refine or.inr ⟨hn, tendsto_nhds_unique h (tendsto_const_mul_fpow_at_top_zero hn)⟩ } },
   { cases h,
-    { simp only [h.left, h.right, fpow_zero, mul_one],
+    { simp only [h.left, h.right, gpow_zero, mul_one],
       exact tendsto_const_nhds },
     { exact h.2.symm ▸ tendsto_const_mul_fpow_at_top_zero h.1} }
 end

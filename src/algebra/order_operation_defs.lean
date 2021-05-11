@@ -54,7 +54,8 @@ if the proof still works: chances are that it might!
 
 It is possible (and even expected) to combine several `co(ntra)variant` assumptions together.
 Indeed, the usual ordered typeclasses arise from assuming the pair
-`[has_mul_le_mul_left M] [has_lt_of_mul_le_mul_left M]` on top of order/algebraic assumptions.
+`[has_mul_le_mul_left M] [has_lt_of_mul_le_mul_left M]` on top of order/algebraic
+(e.g. `partial_order`/`comm_monoid`) assumptions.
 
 A formal remark is that normally the relation that is an input to `covariant` is `(≤)`,
 while the relation that is an input to `contravariant` is `(<)`. This need not be the case in
@@ -71,9 +72,18 @@ holds (note the `has_le_[...]` as opposed to the more common idioms `has_lt_[...
 
 When setting up instances, in order to avoid loops, we used the following order of precedence:
 
-* prefer to assume `≤` over `<`;
-* prefer to assume `left` over `right`;
-* prefer to assume `(*)` over `flip (*)`.
+* prefer to assume `(≤)` over `(<)`;
+* prefer to assume `left` (represented by `(*)`) over `right` (represented by `flip (*)`);
+* prefer to assume `covariant` over `contravariant`.
+
+For example, if `G` is a linearly ordered, multiplicative, commutative group satisfying
+`has_mul_le_mul_left G`, then there are instances of
+
+* `has_mul_le_mul_right G`, (`left` over `right`);
+* `has_mul_lt_mul_left G`, (`(≤)` over `(<)`);
+* `has_le_mul_le_mul_left G`, (`covariant` over `contravariant`);
+
+(and of course there are also several further of these instances).
 -/
 -- use ⇒, as per Eric's suggestion?
 section covariants_and_contravariants

@@ -772,8 +772,9 @@ def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)
 
 instance is_iso_to_open_top : is_iso (to_open R ⊤) :=
 begin
-  -- We show that `to_open R ⊤ : R ⟶ OX(⊤)` is equal to the composition of three morphisms:
-  -- 1) The localization map from `R` to the localization at `1`,
+  -- We show that `to_open R ⊤ : R ⟶ OX(⊤)` is equal to the composition of the following three
+  -- morphisms:
+  -- 1) The isomorphism from `R` to the localization of `R` at `1`,
   -- 2) `to_basic_open R 1`: From the localization at `1` to the structure sheaf on `basic_open 1`,
   -- 3) The restriction of the structure sheaf, coming from the equality `basic_open 1 = ⊤`,.
   rw show to_open R ⊤ = (localization.away.ring_equiv_of_quotient (1 : R)

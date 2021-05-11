@@ -52,10 +52,22 @@ theorem infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i �
 theorem sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔ f i :=
 @inf_supr_eq (order_dual α) _ _ _ _
 
+instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
+  [∀ i, complete_distrib_lattice (π i)] : complete_distrib_lattice (Π i, π i) :=
+{ infi_sup_le_sup_Inf := λ a s i,
+    by simp only [← sup_infi_eq, complete_lattice.Inf, Inf_apply, ←infi_subtype'', infi_apply,
+      sup_apply],
+  inf_Sup_le_supr_inf := λ a s i,
+    by simp only [complete_lattice.Sup, Sup_apply, supr_apply, inf_apply, inf_supr_eq,
+      ← supr_subtype''],
+  .. pi.complete_lattice }
+
 theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) :=
 begin
   apply le_antisymm,
-  { finish },
+  { simp only [and_imp, prod.forall, le_infi_iff, set.mem_prod],
+    intros a b ha hb,
+    exact sup_le_sup (Inf_le ha) (Inf_le hb) },
   { have : ∀ a ∈ s, (⨅p ∈ set.prod s t, (p : α × α).1 ⊔ p.2) ≤ a ⊔ Inf t,
     { assume a ha,
       have : (⨅p ∈ set.prod s t, ((p : α × α).1 : α) ⊔ p.2) ≤
@@ -93,6 +105,17 @@ instance complete_distrib_lattice.bounded_distrib_lattice [d : complete_distrib_
 
 /-- A complete boolean algebra is a completely distributive boolean algebra. -/
 class complete_boolean_algebra α extends boolean_algebra α, complete_distrib_lattice α
+
+instance pi.complete_boolean_algebra {ι : Type*} {π : ι → Type*}
+  [∀ i, complete_boolean_algebra (π i)] : complete_boolean_algebra (Π i, π i) :=
+{ .. pi.boolean_algebra, .. pi.complete_distrib_lattice }
+
+instance : complete_boolean_algebra Prop :=
+{ infi_sup_le_sup_Inf := λ p s, iff.mp $
+    by simp only [forall_or_distrib_left, complete_lattice.Inf, infi_Prop_eq, sup_Prop_eq],
+  inf_Sup_le_supr_inf := λ p s, iff.mp $
+    by simp only [complete_lattice.Sup, exists_and_distrib_left, inf_Prop_eq, supr_Prop_eq],
+  .. boolean_algebra_Prop, .. complete_lattice_Prop }
 
 section complete_boolean_algebra
 variables [complete_boolean_algebra α] {a b : α} {s : set α} {f : ι → α}

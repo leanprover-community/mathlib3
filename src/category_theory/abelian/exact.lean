@@ -90,6 +90,16 @@ begin
     simp [h.2] }
 end
 
+theorem exact_tfae :
+  tfae [exact f g,
+        f ≫ g = 0 ∧ kernel.ι g ≫ cokernel.π f = 0,
+        image_subobject f = kernel_subobject g] :=
+begin
+  tfae_have : 1 ↔ 2, { apply exact_iff },
+  tfae_have : 1 ↔ 3, { apply exact_iff'' },
+  tfae_finish
+end
+
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
 def is_limit_image [h : exact f g] :
   is_limit

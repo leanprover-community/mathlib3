@@ -33,8 +33,9 @@ namespace multiset
 
 /-- Fold of a `s : multiset α` with `f : α → β → β`, given a proof that `left_commutative f`
 on all elements `x ∈ s`. -/
-def noncomm_foldr (s : multiset α) (comm) (b : β) : β :=
-s.attach.foldr (f ∘ subtype.val) comm b
+def noncomm_foldr (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s) b, f x (f y b) = f y (f x b)) (b : β) :
+  β :=
+s.attach.foldr (f ∘ subtype.val) (λ ⟨x, hx⟩ ⟨y, hy⟩, comm x hx y hy) b
 
 @[simp] lemma noncomm_foldr_coe (l : list α) (comm) (b : β) :
   noncomm_foldr f (l : multiset α) comm b = l.foldr f b :=
@@ -81,10 +82,7 @@ on all elements `x ∈ s`. -/
 @[to_additive "Sum of a `s : multiset α` with `[add_monoid α]`, given a proof that `*` commutes
 on all elements `x ∈ s`." ]
 def noncomm_prod (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y) : α :=
-s.noncomm_fold (*) (begin
-    rintro ⟨x, hx⟩ ⟨y, hy⟩ b',
-    simp [←mul_assoc, (comm x hx y hy).eq]
-  end) 1
+s.noncomm_fold (*) (λ x hx y hy b', by simp [←mul_assoc, (comm x hx y hy).eq]) 1
 
 @[simp, to_additive] lemma noncomm_prod_coe (l : list α) (comm) :
   noncomm_prod (l : multiset α) comm = l.prod :=
@@ -138,9 +136,9 @@ variables [monoid α]
 
 /-- Product of a `s : finset α` with `[monoid α]`, given a proof that `*` commutes
 on all elements `x ∈ s`. -/
-@[to_additive "Sum of a `s : finset α` with `[add_monoid α`], given a proof that `*` commutes
+@[to_additive "Sum of a `s : finset α` with `[add_monoid α]`, given a proof that `*` commutes
 on all elements `x ∈ s`."]
-def noncomm_prod (s : finset α) (comm) : α :=
+def noncomm_prod (s : finset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y) : α :=
 s.1.noncomm_prod comm
 
 @[simp, to_additive] lemma noncomm_prod_to_finset [decidable_eq α] (l : list α)
@@ -158,12 +156,12 @@ end
   (comm) (ha : a ∉ s) :
   noncomm_prod (insert a s) comm = a * noncomm_prod s
     (λ x hx y hy, comm _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy)) :=
-by simp [insert_val_of_not_mem ha, noncomm_prod]
+by simpa [insert_val_of_not_mem ha, noncomm_prod]
 
 @[to_additive] lemma noncomm_prod_insert_of_not_mem' [decidable_eq α] (s : finset α) (a : α)
   (comm) (ha : a ∉ s) :
   noncomm_prod (insert a s) comm = noncomm_prod s
     (λ x hx y hy, comm _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy)) * a :=
-by simp only [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
+by simpa only [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
 
 end finset

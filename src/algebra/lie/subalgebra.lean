@@ -126,6 +126,7 @@ lemma coe_to_submodule : ((L' : submodule R L) : set L) = L' := rfl
 section lie_module
 
 variables {M : Type w} [add_comm_group M] [lie_ring_module L M]
+variables {N : Type w₁} [add_comm_group N] [lie_ring_module L N] [module R N] [lie_module R L N]
 
 /-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie ring module
 `M` of `L`, we may regard `M` as a Lie ring module of `L'` by restriction. -/
@@ -137,11 +138,22 @@ instance : lie_ring_module L' M :=
 
 @[simp] lemma coe_bracket_of_module (x : L') (m : M) : ⁅x, m⁆ = ⁅(x : L), m⁆ := rfl
 
+variables [module R M] [lie_module R L M]
+
 /-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie module `M` of
 `L`, we may regard `M` as a Lie module of `L'` by restriction. -/
-instance [module R M] [lie_module R L M] : lie_module R L' M :=
+instance : lie_module R L' M :=
 { smul_lie := λ t x m, by simp only [coe_bracket_of_module, smul_lie, submodule.coe_smul_of_tower],
   lie_smul := λ t x m, by simp only [coe_bracket_of_module, lie_smul], }
+
+/-- An `L`-equivariant map of Lie modules `M → N` is `L'`-equivariant for any Lie subalgebra
+`L' ⊆ L`. -/
+def restrict_lie_module_hom (f : M →ₗ⁅R,L⁆ N) : M →ₗ⁅R,L'⁆ N :=
+{ map_lie' := λ x m, f.map_lie ↑x m,
+  .. (f : M →ₗ[R] N)}
+
+@[simp] lemma coe_restrict_lie_module_hom (f : M →ₗ⁅R,L⁆ N) : ⇑(restrict_lie_module_hom L' f) = f :=
+rfl
 
 end lie_module
 

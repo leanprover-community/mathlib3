@@ -68,7 +68,7 @@ lemma mem_pre_weight_space (χ : L → R) (m : M) :
 by simp [pre_weight_space, -linear_map.pow_apply]
 
 /-- See also `bourbaki1975b` Chapter VII §1.1, Proposition 2 (ii). -/
-private lemma weight_vector_multiplication (M₁ : Type w₁) (M₂ : Type w₂) (M₃ : Type w₃)
+protected lemma weight_vector_multiplication (M₁ : Type w₁) (M₂ : Type w₂) (M₃ : Type w₃)
   [add_comm_group M₁] [module R M₁] [lie_ring_module L M₁] [lie_module R L M₁]
   [add_comm_group M₂] [module R M₂] [lie_ring_module L M₂] [lie_module R L M₂]
   [add_comm_group M₃] [module R M₃] [lie_ring_module L M₃] [lie_module R L M₃]
@@ -159,7 +159,7 @@ lemma lie_mem_pre_weight_space_of_mem_pre_weight_space {χ₁ χ₂ : L → R} {
   (hx : x ∈ pre_weight_space L χ₁) (hm : m ∈ pre_weight_space M χ₂) :
   ⁅x, m⁆ ∈ pre_weight_space M (χ₁ + χ₂) :=
 begin
-  apply weight_vector_multiplication L M M (to_module_hom R L M) χ₁ χ₂,
+  apply lie_module.weight_vector_multiplication L M M (to_module_hom R L M) χ₁ χ₂,
   simp only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
     tensor_product.map_incl, linear_map.mem_range],
   use [⟨x, hx⟩ ⊗ₜ ⟨m, hm⟩],
@@ -231,37 +231,142 @@ end lie_module
 
 namespace lie_algebra
 
+open_locale tensor_product
+open tensor_product.lie_module
+open lie_module
+
 /-- Given a nilpotent Lie subalgebra `H ⊆ L`, the root space of a map `χ : H → R` is the weight
 space of `L` regarded as a module of `H` via the adjoint action. -/
-abbreviation root_space (χ : H → R) : lie_submodule R H L := lie_module.weight_space L χ
+abbreviation root_space (χ : H → R) : lie_submodule R H L := weight_space L χ
 
 @[simp] lemma zero_root_space_eq_top_of_nilpotent [h : is_nilpotent R L] :
   root_space (⊤ : lie_subalgebra R L) 0 = ⊤ :=
-lie_module.zero_weight_space_eq_top_of_nilpotent L
+zero_weight_space_eq_top_of_nilpotent L
 
 /-- A root of a Lie algebra `L` with respect to a nilpotent subalgebra `H ⊆ L` is a weight of `L`,
 regarded as a module of `H` via the adjoint action. -/
-abbreviation is_root := lie_module.is_weight H L
+abbreviation is_root := is_weight H L
 
 @[simp] lemma root_space_comap_eq_weight_space (χ : H → R) :
-  (root_space H χ).comap H.incl' = lie_module.weight_space H χ :=
+  (root_space H χ).comap H.incl' = weight_space H χ :=
 begin
   ext x,
-  let f : H → module.End R L := λ y, lie_module.to_endomorphism R H L y - (χ y) • 1,
-  let g : H → module.End R H := λ y, lie_module.to_endomorphism R H H y - (χ y) • 1,
+  let f : H → module.End R L := λ y, to_endomorphism R H L y - (χ y) • 1,
+  let g : H → module.End R H := λ y, to_endomorphism R H H y - (χ y) • 1,
   suffices : (∀ (y : H), ∃ (k : ℕ), ((f y)^k).comp (H.incl : H →ₗ[R] L) x = 0) ↔
               ∀ (y : H), ∃ (k : ℕ), (H.incl : H →ₗ[R] L).comp ((g y)^k) x = 0,
   { simp only [lie_hom.coe_to_linear_map, lie_subalgebra.coe_incl, function.comp_app,
       linear_map.coe_comp, submodule.coe_eq_zero] at this,
-    simp only [lie_module.mem_weight_space, lie_module.mem_pre_weight_space,
+    simp only [mem_weight_space, mem_pre_weight_space,
       lie_subalgebra.coe_incl', lie_submodule.mem_comap, this], },
   have hfg : ∀ (y : H), (f y).comp (H.incl : H →ₗ[R] L) = (H.incl : H →ₗ[R] L).comp (g y),
   { rintros ⟨y, hz⟩, ext ⟨z, hz⟩,
-    simp only [submodule.coe_sub, lie_module.to_endomorphism_apply_apply, lie_hom.coe_to_linear_map,
+    simp only [submodule.coe_sub, to_endomorphism_apply_apply, lie_hom.coe_to_linear_map,
       linear_map.one_apply, lie_subalgebra.coe_incl, lie_subalgebra.coe_bracket_of_module,
       lie_subalgebra.coe_bracket, linear_map.smul_apply, function.comp_app,
       submodule.coe_smul_of_tower, linear_map.coe_comp, linear_map.sub_apply], },
   simp_rw [linear_map.commute_pow_left_of_commute (hfg _)],
+end
+
+variables {H M}
+
+lemma lie_mem_weight_space_of_mem_weight_space {χ₁ χ₂ : H → R} {x : L} {m : M}
+  (hx : x ∈ root_space H χ₁) (hm : m ∈ weight_space M χ₂) : ⁅x, m⁆ ∈ weight_space M (χ₁ + χ₂) :=
+begin
+  apply lie_module.weight_vector_multiplication L M M
+    (H.restrict_lie_module_hom (to_module_hom R L M)) χ₁ χ₂,
+  simp only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
+    tensor_product.map_incl, linear_map.mem_range],
+  use [⟨x, hx⟩ ⊗ₜ ⟨m, hm⟩],
+  simp only [submodule.subtype_apply, to_module_hom_apply, submodule.coe_mk,
+    lie_subalgebra.coe_restrict_lie_module_hom, tensor_product.map_tmul],
+end
+
+variables (R L H M)
+
+/-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural
+`R`-linear product of root vectors and weight vectors, compatible with the actions of `H`. -/
+def root_space_weight_space_product (χ₁ χ₂ : H → R) :
+  (root_space H χ₁) ⊗[R] (weight_space M χ₂) →ₗ⁅R,H⁆ weight_space M (χ₁ + χ₂) :=
+lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M (χ₁ + χ₂))
+{ to_fun    := λ x,
+  { to_fun    :=
+      λ m, ⟨⁅(x : L), (m : M)⁆, lie_mem_weight_space_of_mem_weight_space x.property m.property⟩,
+    map_add'  := λ m n, by { simp only [lie_submodule.coe_add, lie_add], refl, },
+    map_smul' := λ t m, by { conv_lhs { congr, rw [lie_submodule.coe_smul, lie_smul], }, refl, }, },
+  map_add'  := λ x y, by ext m; rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk,
+    linear_map.coe_mk, subtype.coe_mk, lie_submodule.coe_add, lie_submodule.coe_add, add_lie,
+    subtype.coe_mk, subtype.coe_mk],
+  map_smul' := λ t x, by ext m; rw [linear_map.smul_apply, linear_map.coe_mk, linear_map.coe_mk,
+    subtype.coe_mk, lie_submodule.coe_smul, smul_lie, lie_submodule.coe_smul, subtype.coe_mk],
+  map_lie'  := λ x y, by ext m; rw [lie_hom.lie_apply, lie_submodule.coe_sub, linear_map.coe_mk,
+    linear_map.coe_mk, subtype.coe_mk, subtype.coe_mk, lie_submodule.coe_bracket,
+    lie_submodule.coe_bracket, subtype.coe_mk, lie_subalgebra.coe_bracket_of_module,
+    lie_subalgebra.coe_bracket_of_module, lie_submodule.coe_bracket,
+    lie_subalgebra.coe_bracket_of_module, lie_lie], }
+
+@[simp] lemma coe_root_space_weight_space_product_tmul
+  (μ χ : H → R) (x : root_space H μ) (m : weight_space M χ) :
+  (root_space_weight_space_product R L H M μ χ (x ⊗ₜ m) : M) = ⁅(x : L), (m : M)⁆ :=
+by simp only [root_space_weight_space_product, lift_apply, lie_module_hom.coe_to_linear_map,
+  coe_lift_lie_eq_lift_coe, submodule.coe_mk, linear_map.coe_mk, lie_module_hom.coe_mk]
+
+/-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural
+`R`-linear product of root vectors, compatible with the actions of `H`. -/
+def root_space_product (χ₁ χ₂ : H → R) :
+  (root_space H χ₁) ⊗[R] (root_space H χ₂) →ₗ⁅R,H⁆ root_space H (χ₁ + χ₂) :=
+root_space_weight_space_product R L H L χ₁ χ₂
+
+@[simp] lemma root_space_product_def (χ₁ χ₂ : H → R) :
+  root_space_product R L H χ₁ χ₂ = root_space_weight_space_product R L H L χ₁ χ₂ :=
+rfl
+
+lemma root_space_product_tmul (χ₁ χ₂ : H → R) (x : root_space H χ₁) (y : root_space H χ₂) :
+  (root_space_product R L H χ₁ χ₂ (x ⊗ₜ y) : L) = ⁅(x : L), (y : L)⁆ :=
+by simp only [root_space_product_def, coe_root_space_weight_space_product_tmul]
+
+/-- Given a nilpotent Lie subalgebra `H ⊆ L`, the root space of the zero map `0 : H → R` is a Lie
+subalgebra of `L`. -/
+def zero_root_subalgebra : lie_subalgebra R L :=
+{ lie_mem' := λ x y hx hy, by
+  { suffices : (root_space_product R L H 0 0 (⟨x, hx⟩ ⊗ₜ ⟨y, hy⟩) : L) ∈ root_space H 0,
+    { rwa [root_space_product_tmul, subtype.coe_mk, subtype.coe_mk] at this, },
+    conv_rhs { rw ← add_zero (0 : H → R), },
+    exact (root_space_product R L H 0 0 (⟨x, hx⟩ ⊗ₜ ⟨y, hy⟩)).property, },
+  .. (root_space H 0 : submodule R L) }
+
+@[simp] lemma coe_zero_root_subalgebra :
+  (zero_root_subalgebra R L H : submodule R L) = root_space H 0 :=
+rfl
+
+lemma to_lie_submodule_le_root_space_zero : H.to_lie_submodule ≤ root_space H 0 :=
+begin
+  intros x hx,
+  simp only [lie_subalgebra.mem_to_lie_submodule] at hx,
+  simp only [mem_weight_space, mem_pre_weight_space, pi.zero_apply, sub_zero, zero_smul],
+  intros y,
+  unfreezingI { obtain ⟨k, hk⟩ := (infer_instance : is_nilpotent R H) },
+  use k,
+  let f : module.End R H := to_endomorphism R H H y,
+  let g : module.End R L := to_endomorphism R H L y,
+  have hfg : g.comp (H : submodule R L).subtype = (H : submodule R L).subtype.comp f,
+  { ext z, simp only [to_endomorphism_apply_apply, submodule.subtype_apply,
+      lie_subalgebra.coe_bracket_of_module, lie_subalgebra.coe_bracket, function.comp_app,
+      linear_map.coe_comp], },
+  change (g^k).comp (H : submodule R L).subtype ⟨x, hx⟩ = 0,
+  rw linear_map.commute_pow_left_of_commute hfg k,
+  have h := iterate_to_endomorphism_mem_lower_central_series R H H y ⟨x, hx⟩ k,
+  rw [hk, lie_submodule.mem_bot] at h,
+  simp only [submodule.subtype_apply, function.comp_app, linear_map.pow_apply, linear_map.coe_comp,
+    submodule.coe_eq_zero],
+  exact h,
+end
+
+lemma le_zero_root_subalgebra : H ≤ zero_root_subalgebra R L H :=
+begin
+  rw [← lie_subalgebra.coe_submodule_le_coe_submodule, ← H.coe_to_lie_submodule,
+    coe_zero_root_subalgebra, lie_submodule.coe_submodule_le_coe_submodule],
+  exact to_lie_submodule_le_root_space_zero R L H,
 end
 
 end lie_algebra

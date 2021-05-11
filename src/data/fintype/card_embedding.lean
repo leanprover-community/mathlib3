@@ -47,15 +47,14 @@ begin
   rw card_sigma,
   simp_rw this,
   rw [finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
-  unfold nat.desc_fac,
 
-  rw hn (nat.lt_of_succ_le h).le,
   set t := ‖β‖ - n.succ with ht,
-  have : ‖β‖ - n = t.succ,
+  have h' : ‖β‖ - n = t.succ,
   { rw [ht, nat.succ_eq_add_one, ←nat.sub_sub_assoc, nat.succ_sub_one],
     exact h,
     exact nat.succ_pos _ },
-  rw [this, mul_comm, nat.succ_desc_fac]
+
+  rw [←ht, hn (nat.lt_of_succ_le h).le, h', mul_comm, nat.succ_desc_fac, nat.desc_fac_succ]
 end
 
 variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]

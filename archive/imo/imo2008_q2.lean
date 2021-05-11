@@ -35,7 +35,7 @@ begin
   have h₂ : (1 : ℝ) ≠ (0 : ℝ) := one_ne_zero,
   have hy_ne_zero : y ≠ 0 := right_ne_zero_of_mul (left_ne_zero_of_mul_eq_one h),
   have h₃ : 1/y ≠ 0 := one_div_ne_zero hy_ne_zero,
-  have h₄ : x = x / 1 := (div_one x).symm,
+  have h₄ : x = x / 1 := (div_one' x).symm,
   have h₅ : y = 1 / (1 / y) := (one_div_one_div y).symm,
   have h₆ : z = 1 / y / x, { field_simp, linarith [h] },
   exact ⟨h₁, h₂, h₃, h₄, h₅, h₆⟩,

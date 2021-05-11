@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import data.polynomial.eval
+import data.finsupp.antidiagonal
 
 /-!
 # Multivariate polynomials

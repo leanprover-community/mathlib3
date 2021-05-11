@@ -70,6 +70,28 @@ protected def map (r : α → β → Prop) (f : α → γ) (g : β → δ) : γ 
 
 variables {r : α → α → Prop} {a b c d : α}
 
+/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+then it holds even if `x ≠ y`. -/
+lemma reflexive_iff_ne_imp [is_refl α r] {x y : α} :
+  r x y ↔ (x ≠ y → r x y) :=
+begin
+  split;
+  intros h,
+  { intro,
+    apply h },
+  { by_cases hxy : x = y,
+    { rw hxy,
+      exact is_refl.refl _ },
+    { apply h hxy } }
+end
+
+/-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
+then it holds even if `x ≠ y`. Unlike `reflexive_iff_ne_imp`, uses an explicit `reflexive r`
+instead of `[is_refl α r]`.  -/
+lemma reflexive.iff_ne_imp (h : reflexive r) {x y : α} :
+  r x y ↔ (x ≠ y → r x y) :=
+@reflexive_iff_ne_imp _ r ⟨h⟩ _ _
+
 /-- `refl_trans_gen r`: reflexive transitive closure of `r` -/
 @[mk_iff relation.refl_trans_gen.cases_tail_iff]
 inductive refl_trans_gen (r : α → α → Prop) (a : α) : α → Prop

@@ -1602,6 +1602,10 @@ def to_finset (s : multiset α) : finset α := ⟨_, nodup_erase_dup s⟩
 theorem to_finset_eq {s : multiset α} (n : nodup s) : finset.mk s n = s.to_finset :=
 finset.val_inj.1 (erase_dup_eq_self.2 n).symm
 
+lemma to_finset_inj_of_nodup {l l' : multiset α} (hl : nodup l) (hl' : nodup l')
+  (h : l.to_finset = l'.to_finset) : l = l' :=
+by simpa [←to_finset_eq hl, ←to_finset_eq hl'] using h
+
 @[simp] theorem mem_to_finset {a : α} {s : multiset α} : a ∈ s.to_finset ↔ a ∈ s :=
 mem_erase_dup
 
@@ -1692,9 +1696,8 @@ to_finset_eq_iff_perm_erase_dup.mpr h.erase_dup
 lemma perm_of_nodup_nodup_to_finset_eq {l l' : list α} (hl : nodup l) (hl' : nodup l')
   (h : l.to_finset = l'.to_finset) : l ~ l' :=
 begin
-  rw to_finset_eq_iff_perm_erase_dup at h,
-  rw ←list.erase_dup_eq_self at hl hl',
-  simpa [hl, hl'] using h
+  rw ←multiset.coe_eq_coe,
+  exact multiset.to_finset_inj_of_nodup hl hl' h
 end
 
 @[simp] lemma to_finset_append {l l' : list α} :

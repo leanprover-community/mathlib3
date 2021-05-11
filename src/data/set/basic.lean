@@ -1850,6 +1850,10 @@ begin
     { exact h.left _ hb _ hc hn } }
 end
 
+lemma pairwise_on.imp {s : set α} {p q : α → α → Prop}
+  (h : pairwise_on s p) (hpq : ∀ ⦃a b : α⦄, p a b → q a b) : pairwise_on s q :=
+λ a ha b hb hab, hpq (h a ha b hb hab)
+
 end set
 
 open set

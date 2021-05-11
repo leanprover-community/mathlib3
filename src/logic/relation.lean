@@ -32,7 +32,7 @@ lemma reflexive.ne_imp_iff (h : reflexive r) {x y : α} :
 ⟨h.rel_of_ne_imp, λ hr _, hr⟩
 
 /-- If a reflexive relation `r : α → α → Prop` holds over `x y : α`,
-then it holds whether or not `x ≠ y`. Unlike `reflexive.ne_imp_iff`, this uses `[is_refl α r] -/
+then it holds whether or not `x ≠ y`. Unlike `reflexive.ne_imp_iff`, this uses `[is_refl α r]`. -/
 lemma reflexive_ne_imp_iff [is_refl α r] {x y : α} :
   (x ≠ y → r x y) ↔ r x y :=
 is_refl.reflexive.ne_imp_iff

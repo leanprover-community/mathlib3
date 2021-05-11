@@ -143,18 +143,17 @@ lemma factorial_mul_pochhammer (S : Type*) [semiring S] (r n : ℕ) :
   (r! : S) * (pochhammer S n).eval (r + 1) = (r + n)! :=
 by rw_mod_cast [pochhammer_nat_eq_desc_fac, nat.factorial_mul_desc_fac]
 
-lemma pochhammer_eval_succ (r : ℕ) :
-  ∀ n : ℕ, (n : S) * (pochhammer S r).eval (n + 1 : S) = (n + r) * (pochhammer S r).eval n
+lemma pochhammer_nat_eval_succ (r : ℕ) :
+  ∀ n : ℕ, n * (pochhammer ℕ r).eval (n + 1) = (n + r) * (pochhammer ℕ r).eval n
 | 0 := begin
-  norm_cast,
-  congr' 1,
-  suffices : r = 0 ∨ eval 0 (pochhammer ℕ r) = 0, by simpa,
-  rw pochhammer_eval_zero,
-  split_ifs,
-  exact or.inl h,
-  exact or.inr rfl,
+  by_cases h : r = 0,
+  { simp only [h, zero_mul, zero_add], },
+  { simp only [pochhammer_eval_zero, zero_mul, if_neg h, mul_zero], }
 end
-| (k + 1) := by rw_mod_cast [pochhammer_nat_eq_desc_fac, pochhammer_nat_eq_desc_fac,
-                             nat.succ_desc_fac, add_right_comm]
+| (k + 1) := by simp only [pochhammer_nat_eq_desc_fac, nat.succ_desc_fac, add_right_comm]
+
+lemma pochhammer_eval_succ (r n : ℕ) :
+  (n : S) * (pochhammer S r).eval (n + 1 : S) = (n + r) * (pochhammer S r).eval n :=
+by exact_mod_cast congr_arg nat.cast (pochhammer_nat_eval_succ r n)
 
 end factorial

@@ -1813,7 +1813,7 @@ theorem pairwise_on.mono {s t : set α} {r}
 theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
   (H : r ≤ r') (hp : pairwise_on s r) : pairwise_on s r' :=
 hp.imp H
-theorem pairiwise_on_top (s : set α) :
+theorem pairwise_on_top (s : set α) :
   pairwise_on s ⊤ :=
 pairwise_on_of_forall s _ (λ a b, trivial)
 

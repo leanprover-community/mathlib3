@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra
-import topology.algebra.polynomial
-import topology.continuous_function.bounded
 import analysis.special_functions.bernstein
 
 /-!

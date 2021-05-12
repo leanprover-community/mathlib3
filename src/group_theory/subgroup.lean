@@ -238,6 +238,9 @@ by simpa only [div_eq_mul_inv] using H.mul_mem' hx (H.inv_mem' hy)
 @[simp, to_additive] theorem inv_mem_iff {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
 ⟨λ h, inv_inv x ▸ H.inv_mem h, H.inv_mem⟩
 
+@[to_additive] lemma div_mem_comm_iff {a b : G} : a / b ∈ H ↔ b / a ∈ H :=
+by rw [← H.inv_mem_iff, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, inv_inv]
+
 @[simp, to_additive]
 theorem inv_coe_set : (H : set G)⁻¹ = H :=
 by { ext, simp, }
@@ -785,6 +788,14 @@ lemma mem_map {f : G →* N} {K : subgroup G} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
+lemma mem_map_of_mem (f : G →* N) {K : subgroup G} {x : G} (hx : x ∈ K) : f x ∈ K.map f :=
+mem_image_of_mem f hx
+
+@[to_additive]
+lemma apply_coe_mem_map (f : G →* N) {K : subgroup G} (x : K) : f x ∈ K.map f :=
+mem_map_of_mem f x.prop
+
+@[to_additive]
 lemma map_mono {f : G →* N} {K K' : subgroup G} : K ≤ K' → map f K ≤ map f K' :=
 image_subset _
 
@@ -1208,6 +1219,9 @@ lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjec
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
 
+@[simp, to_additive] lemma _root_.subgroup.subtype_range (H : subgroup G) : H.subtype.range = H :=
+by { rw [range_eq_map, ← set_like.coe_set_eq, coe_map, subgroup.coe_subtype], ext, simp }
+
 /-- Restriction of a group hom to a subgroup of the domain. -/
 @[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the domain."]
 def restrict (f : G →* N) (H : subgroup G) : H →* N :=
@@ -1262,6 +1276,10 @@ lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
 lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
+
+@[to_additive]
+lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
+by rw [f.mem_ker, f.map_mul, f.map_inv, inv_mul_eq_one, eq_comm]
 
 @[to_additive]
 instance decidable_mem_ker [decidable_eq N] (f : G →* N) :

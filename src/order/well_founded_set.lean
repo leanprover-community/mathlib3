@@ -68,6 +68,17 @@ begin
     exact ⟨m, mt, λ x xt ⟨xm, xs, ms⟩, hst ⟨m, ⟨ms, mt⟩⟩⟩ }
 end
 
+lemma well_founded_on.induction {s : set α} {r : α → α → Prop} (hs : s.well_founded_on r) {x : α}
+  (hx : x ∈ s) {P : α → Prop} (hP : ∀ (y ∈ s), (∀ (z ∈ s), r z y → P z) → P y) :
+  P x :=
+begin
+  let Q : s → Prop := λ y, P y,
+  change Q ⟨x, hx⟩,
+  refine well_founded.induction hs ⟨x, hx⟩ _,
+  rintros ⟨y, ys⟩ ih,
+  exact hP _ ys (λ z zs zy, ih ⟨z, zs⟩ zy),
+end
+
 instance is_strict_order.subset {s : set α} {r : α → α → Prop} [is_strict_order α r] :
   is_strict_order α (λ (a b : α), r a b ∧ a ∈ s ∧ b ∈ s) :=
 { to_is_irrefl := ⟨λ a con, irrefl_of r a con.1 ⟩,
@@ -176,9 +187,10 @@ theorem partially_well_ordered_on.mono {s t : set α} {r : α → α → Prop}
   s.partially_well_ordered_on r :=
 λ f hf, ht f (set.subset.trans hf hsub)
 
-theorem partially_well_ordered_on.image_of_monotone {s : set α}
+theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
   {r : α → α → Prop} {β : Type*} {r' : β → β → Prop}
-  (hs : s.partially_well_ordered_on r) {f : α → β} (hf : ∀ a1 a2 : α, r a1 a2 → r' (f a1) (f a2)) :
+  (hs : s.partially_well_ordered_on r) {f : α → β}
+  (hf : ∀ a1 a2 : α, a1 ∈ s → a2 ∈ s → r a1 a2 → r' (f a1) (f a2)) :
   (f '' s).partially_well_ordered_on r' :=
 λ g hg, begin
   have h := λ (n : ℕ), ((mem_image _ _ _).1 (hg (mem_range_self n))),
@@ -186,7 +198,7 @@ theorem partially_well_ordered_on.image_of_monotone {s : set α}
   { refine ⟨m, n, hlt, _⟩,
     rw [← (classical.some_spec (h m)).2,
       ← (classical.some_spec (h n)).2],
-    apply hf _ _ hmn },
+    exact hf _ _ (classical.some_spec (h m)).1 (classical.some_spec (h n)).1 hmn },
   { rintros _ ⟨n, rfl⟩,
     exact (classical.some_spec (h n)).1 }
 end
@@ -282,7 +294,7 @@ end
 theorem is_pwo.image_of_monotone {β : Type*} [partial_order β]
   (hs : s.is_pwo) {f : α → β} (hf : monotone f) :
   is_pwo (f '' s) :=
-hs.image_of_monotone hf
+hs.image_of_monotone_on (λ _ _ _ _ ab, hf ab)
 
 theorem is_pwo.union (hs : is_pwo s) (ht : is_pwo t) : is_pwo (s ∪ t) :=
 begin
@@ -634,6 +646,41 @@ begin
 end
 
 end partially_well_ordered_on
+
+namespace is_pwo
+
+@[to_additive]
+lemma submonoid_closure [ordered_cancel_comm_monoid α] {s : set α} (hpos : ∀ x : α, x ∈ s → 1 ≤ x)
+  (h : s.is_pwo) : is_pwo ((submonoid.closure s) : set α) :=
+begin
+  have hl : ((submonoid.closure s) : set α) ⊆ list.prod '' { l : list α | ∀ x, x ∈ l → x ∈ s },
+  { intros x hx,
+    rw set_like.mem_coe at hx,
+    refine submonoid.closure_induction hx (λ x hx, ⟨_, λ y hy, _, list.prod_singleton⟩)
+      ⟨_, λ y hy, (list.not_mem_nil _ hy).elim, list.prod_nil⟩ _,
+    { rwa list.mem_singleton.1 hy },
+    rintros _ _ ⟨l, hl, rfl⟩ ⟨l', hl', rfl⟩,
+    refine ⟨_, λ y hy, _, list.prod_append⟩,
+    cases list.mem_append.1 hy with hy hy,
+    { exact hl _ hy },
+    { exact hl' _ hy } },
+  apply ((h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _).mono hl,
+  intros l1 l2 hl1 hl2 h12,
+  obtain ⟨l, hll1, hll2⟩ := list.sublist_forall₂_iff.1 h12,
+  refine le_trans (list.rel_prod (le_refl 1) (λ a b ab c d cd, mul_le_mul' ab cd) hll1) _,
+  obtain ⟨l', hl'⟩ := hll2.exists_perm_append,
+  rw [hl'.prod_eq, list.prod_append, ← mul_one l.prod, mul_assoc, one_mul],
+  apply mul_le_mul_left',
+  have hl's := λ x hx, hl2 x (list.subset.trans (l.subset_append_right _) hl'.symm.subset hx),
+  clear hl',
+  induction l' with x1 x2 x3 x4 x5,
+  { refl },
+  rw [list.prod_cons, ← one_mul (1 : α)],
+  exact mul_le_mul' (hpos x1 (hl's x1 (list.mem_cons_self x1 x2)))
+    (x3 (λ x hx, hl's x (list.mem_cons_of_mem _ hx)))
+end
+
+end is_pwo
 
 /-- `set.mul_antidiagonal s t a` is the set of all pairs of an element in `s` and an element in `t`
   that multiply to `a`. -/

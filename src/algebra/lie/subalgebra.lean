@@ -148,11 +148,12 @@ instance : lie_module R L' M :=
 
 /-- An `L`-equivariant map of Lie modules `M → N` is `L'`-equivariant for any Lie subalgebra
 `L' ⊆ L`. -/
-def restrict_lie_module_hom (f : M →ₗ⁅R,L⁆ N) : M →ₗ⁅R,L'⁆ N :=
+def _root_.lie_module_hom.restrict_lie (f : M →ₗ⁅R,L⁆ N) (L' : lie_subalgebra R L) : M →ₗ⁅R,L'⁆ N :=
 { map_lie' := λ x m, f.map_lie ↑x m,
   .. (f : M →ₗ[R] N)}
 
-@[simp] lemma coe_restrict_lie_module_hom (f : M →ₗ⁅R,L⁆ N) : ⇑(restrict_lie_module_hom L' f) = f :=
+@[simp] lemma _root_.lie_module_hom.coe_restrict_lie (f : M →ₗ⁅R,L⁆ N) :
+  ⇑(f.restrict_lie L') = f :=
 rfl
 
 end lie_module

@@ -67,6 +67,8 @@ lemma mem_pre_weight_space (χ : L → R) (m : M) :
   m ∈ pre_weight_space M χ ↔ ∀ x, ∃ (k : ℕ), ((to_endomorphism R L M x - (χ x) • 1)^k) m = 0 :=
 by simp [pre_weight_space, -linear_map.pow_apply]
 
+variables (L)
+
 /-- See also `bourbaki1975b` Chapter VII §1.1, Proposition 2 (ii). -/
 protected lemma weight_vector_multiplication (M₁ : Type w₁) (M₂ : Type w₂) (M₃ : Type w₃)
   [add_comm_group M₁] [module R M₁] [lie_ring_module L M₁] [lie_module R L M₁]
@@ -153,13 +155,13 @@ begin
   { rw [linear_map.mul_apply, linear_map.pow_map_zero_of_le hj hf₂, linear_map.map_zero], },
 end
 
-variables {M}
+variables {L M}
 
 lemma lie_mem_pre_weight_space_of_mem_pre_weight_space {χ₁ χ₂ : L → R} {x : L} {m : M}
   (hx : x ∈ pre_weight_space L χ₁) (hm : m ∈ pre_weight_space M χ₂) :
   ⁅x, m⁆ ∈ pre_weight_space M (χ₁ + χ₂) :=
 begin
-  apply lie_module.weight_vector_multiplication L M M (to_module_hom R L M) χ₁ χ₂,
+  apply lie_module.weight_vector_multiplication L L M M (to_module_hom R L M) χ₁ χ₂,
   simp only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
     tensor_product.map_incl, linear_map.mem_range],
   use [⟨x, hx⟩ ⊗ₜ ⟨m, hm⟩],
@@ -273,13 +275,13 @@ variables {H M}
 lemma lie_mem_weight_space_of_mem_weight_space {χ₁ χ₂ : H → R} {x : L} {m : M}
   (hx : x ∈ root_space H χ₁) (hm : m ∈ weight_space M χ₂) : ⁅x, m⁆ ∈ weight_space M (χ₁ + χ₂) :=
 begin
-  apply lie_module.weight_vector_multiplication L M M
-    (H.restrict_lie_module_hom (to_module_hom R L M)) χ₁ χ₂,
+  apply lie_module.weight_vector_multiplication
+    H L M M ((to_module_hom R L M).restrict_lie H) χ₁ χ₂,
   simp only [lie_module_hom.coe_to_linear_map, function.comp_app, linear_map.coe_comp,
     tensor_product.map_incl, linear_map.mem_range],
   use [⟨x, hx⟩ ⊗ₜ ⟨m, hm⟩],
   simp only [submodule.subtype_apply, to_module_hom_apply, submodule.coe_mk,
-    lie_subalgebra.coe_restrict_lie_module_hom, tensor_product.map_tmul],
+    lie_module_hom.coe_restrict_lie, tensor_product.map_tmul],
 end
 
 variables (R L H M)

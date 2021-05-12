@@ -766,10 +766,16 @@ instance semi : module A (locally_constant ↥X A) :=
 
 variable (A)
 
-def inclusion' : locally_constant ↥X A →+ C(↥X, A) :=
+noncomputable def inclusion' [h : nonempty X] : continuous_linear_map A (locally_constant X A) C(↥X, A) :=
 { to_fun := inclusion X A,
-  map_zero' := begin ext, refl, end,
-  map_add' := λ x y, begin ext, refl end }
+  map_add' := λ x y, begin ext, refl end,
+  map_smul' := λ m x, begin ext y, rw inclusion,
+    simp only [continuous_map.coe_mk, continuous_map.smul_coe, smul_eq_mul, pi.smul_apply],
+      refl, end }
+
+  --map_zero' := begin ext, refl, end,
+  --map_one' := begin ext, refl, end,
+  --map_mul' := λ x y, begin ext, refl, end,
 
 variable {A}
 
@@ -851,61 +857,84 @@ begin
   specialize hK (a - b), apply lt_of_le_of_lt hK _, rw mul_comm, rw ←lt_div_iff hKpos,
   convert dab,
   change inclusion' X A _ = inclusion' X A _ - inclusion' X A _,
-  rw add_monoid_hom.map_sub,
+  rw continuous_linear_map.map_sub,
 end
 
-noncomputable def integral (h : nonempty X) (φ : measures'' X A) : C(X, A) →ₗ[A] A :=
+lemma di (h : nonempty X) : dense_inducing (inclusion X A) :=
 begin
-
-  have di : dense_inducing (inclusion X A),
-  { constructor,
-    { constructor, refl, },
-    { apply dense_C, }, },
-    apply uniform_inducing,
-  apply uniform_continuous_uniformly_extend,
-
-  --apply continuous_linear_map.extend,
---refine is_basis.constr _ _, swap, refine (inclusion X A), swap, refine (φ.1).phi,
---  constructor, { rw linear_independent, },
-
-  split,
-  swap 3,
-  { apply dense_inducing.extend _ (φ.1).phi, --X nonempty needed here, for the topo space on loc const to exist
-    apply_instance, exact inclusion X A,
-    apply di, }, --yayyyyyyyyyy!!!!
-  {
-    --apply uniform_continuous_uniformly_extend,
-    --refine dense_inducing.continuous_extend_of_cauchy _ _,
-    --apply filter.comap_map, have : 𝓝 (f + g) = filter.map (inclusion X A)
-    apply dense_inducing.cases_on di, rintros h1 h2 f g, repeat {rw dense_inducing.extend, }, rw filter.comap_eq_lift',
-    --rw dense_inducing.nhds_eq_comap,
---    have : filter.comap_add_comap_le (inclusion X A),
---    have : filter.comap (inclusion X A) (𝓝 g) = 𝓝 g,
---    rw filter.comap, simp,
---    rw filter.comap_eq_lift',
-    rw nhds_add, rw lim,
-    have : filter.comap (inclusion X A) (𝓝 f + 𝓝 g) =
-      filter.comap (inclusion X A) (𝓝 f) + filter.comap (inclusion X A) (𝓝 g), sorry,
-    rw this,
-    have this2 :
-    filter.map (φ.val.phi) (filter.comap (inclusion X A) (𝓝 f) +
-    filter.comap (inclusion X A) (𝓝 g)) =
-    filter.map (φ.val.phi) (filter.comap (inclusion X A) (𝓝 f)) +
-    filter.map (φ.val.phi) (filter.comap (inclusion X A) (𝓝 g)),
-    sorry,
-    rw this2,
-    have this3 : Lim
-  (filter.map (φ.val.phi) (filter.comap (inclusion X A) (𝓝 f)) +
-     filter.map (φ.val.phi) (filter.comap (inclusion X A) (𝓝 g))) =
-      Lim
-  (filter.map (φ.val.phi) (filter.comap (inclusion X A) (𝓝 f))) +
-     Lim (filter.map (φ.val.phi) (filter.comap (inclusion X A) (𝓝 g))),
-    { repeat { rw Lim, }, rw filter.comap, rw filter.map_comap, rw [filter.map_le_iff_le_comap], sorry, },
-    rw this3, refl, },
-  { sorry, },
+  constructor,
+  { constructor, refl, },
+  { apply dense_C, },
 end
 
-lemma cont (φ : measures' X v) : continuous (integral X v φ) := sorry
+lemma uni_ind [h : nonempty X] : uniform_inducing (inclusion X A) :=
+begin
+  exact {comap_uniformity := refl
+                       (filter.comap
+                          (λ (x : locally_constant ↥X A × locally_constant ↥X A),
+                             (inclusion X A x.fst, inclusion X A x.snd))
+                          (uniformity C(↥X, A)))},
+end
+
+lemma uni_cont [h : nonempty X] (φ : measures'' X A) : uniform_continuous ⇑(φ.val.phi) :=
+begin
+  refine metric.uniform_continuous_iff.mpr _,
+  rintros ε hε,
+  obtain ⟨K, hKpos, hK⟩ := φ.prop,
+  refine ⟨ε/K, div_pos hε hKpos, _⟩,
+  rintros a b dab, rw dist_eq_norm,
+  rw ←linear_map.map_sub,
+  specialize hK (a - b), apply lt_of_le_of_lt hK _, rw mul_comm, rw ←lt_div_iff hKpos,
+  convert dab,
+  change inclusion' X A _ = inclusion' X A _ - inclusion' X A _,
+  rw continuous_linear_map.map_sub,
+end
+
+lemma cont [complete_space A] (h : nonempty X) (φ : measures'' X A) : continuous ((di  X A h).extend (φ.val.phi)) :=
+begin
+  refine uniform_continuous.continuous _,
+  refine uniform_continuous_uniformly_extend _ (dense_inducing.dense (di X A h)) _,
+  { apply uni_ind, },
+  { apply uni_cont, },
+end
+
+instance [h : nonempty X] : has_continuous_smul A C(↥X, A) := sorry
+
+noncomputable def integral (h : nonempty X) (φ : measures'' X A) : continuous_linear_map A C(X, A) A :=
+begin
+  rw continuous_iff_sequentially_continuous,
+  have cont := cont X A h φ,
+  have di := di X A h,
+  split,
+  swap,
+  { split, swap 3,
+    { apply dense_inducing.extend _ (φ.1).phi, --X nonempty needed here, for the topo space on loc const to exist
+      apply_instance, exact inclusion X A,
+      apply di, }, --yayyyyyyyyyy!!!!
+    { refine dense_range.induction_on₂ (dense_inducing.dense di) _ _,
+      { exact is_closed_eq (cont.comp continuous_add)
+        ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
+      { rintros a b,
+        change di.extend (φ.val.phi) (inclusion' X A a + inclusion' X A b) =
+  di.extend (φ.val.phi) (inclusion X A a) + di.extend (φ.val.phi) (inclusion X A b),
+        rw ←continuous_linear_map.map_add,
+        change di.extend (φ.val.phi) ((inclusion X A) (a + b)) =
+  di.extend (φ.val.phi) (inclusion X A a) + di.extend (φ.val.phi) (inclusion X A b),
+        repeat { rw dense_inducing.extend_eq di (integral_cont X A φ), },
+        { simp only [linear_map.map_add], }, }, },
+    { rintros m, refine (λ b, dense_range.induction_on (dense_inducing.dense di) b _ _),
+      { exact is_closed_eq (cont.comp (continuous_const.smul continuous_id))
+        ((continuous_const.smul continuous_id).comp cont) },
+      { rintros a,
+        change di.extend (φ.val.phi) (m • inclusion' X A a) =
+        m • di.extend (φ.val.phi) (inclusion X A a),
+        rw ←continuous_linear_map.map_smul,
+        change di.extend (φ.val.phi) ((inclusion X A) (m • a)) =
+        m • di.extend (φ.val.phi) (inclusion X A a),
+        repeat { rw dense_inducing.extend_eq di (integral_cont X A φ), },
+        simp only [linear_map.map_smul], }, }, },
+  simp only [auto_param_eq], assumption,
+end
 
 /-structure dir_sys ( α : Type* ) :=
 (h : ℕ → finset α )

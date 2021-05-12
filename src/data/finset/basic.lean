@@ -1689,6 +1689,14 @@ lemma to_finset_eq_of_perm (l l' : list α) (h : l ~ l') :
   l.to_finset = l'.to_finset :=
 to_finset_eq_iff_perm_erase_dup.mpr h.erase_dup
 
+lemma perm_of_nodup_nodup_to_finset_eq {l l' : list α} (hl : nodup l) (hl' : nodup l')
+  (h : l.to_finset = l'.to_finset) : l ~ l' :=
+begin
+  rw to_finset_eq_iff_perm_erase_dup at h,
+  rw ←list.erase_dup_eq_self at hl hl',
+  simpa [hl, hl'] using h
+end
+
 @[simp] lemma to_finset_append {l l' : list α} :
   to_finset (l ++ l') = l.to_finset ∪ l'.to_finset :=
 begin
@@ -1704,6 +1712,18 @@ to_finset_eq_of_perm _ _ (reverse_perm l)
 end list
 
 namespace finset
+
+lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
+  ∃ (l : list α), l.nodup ∧ l.to_finset = s :=
+begin
+  cases s with s hs,
+  obtain ⟨l, hl⟩ := quotient.exists_rep s,
+  use l,
+  split,
+  { simpa [←hl] using hs },
+  { ext,
+    simp [←hl] }
+end
 
 /-! ### map -/
 section map

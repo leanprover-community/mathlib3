@@ -140,13 +140,18 @@ instance perfect_ring : perfect_ring (ring.perfection R p) p :=
   frobenius_pth_root' := congr_fun $ congr_arg ring_hom.to_fun $ @frobenius_pth_root R _ p _ _,
   pth_root_frobenius' := congr_fun $ congr_arg ring_hom.to_fun $ @pth_root_frobenius R _ p _ _ }
 
+/-- The perfection of a ring `R` with characteristic `p`, as a subring,
+defined to be the projective limit of `R` using the Frobenius maps `R → R`
+indexed by the natural numbers, implemented as `{ f : ℕ → R | ∀ n, f (n + 1) ^ p = f n }`. -/
+def _root_.ring.perfection_subring (R : Type u₁) [comm_ring R] [char_p R p] : subring (ℕ → R) :=
+(ring.perfection_subsemiring R p).to_subring $ λ n, by simp_rw [← frobenius_def, pi.neg_apply,
+    pi.one_apply, ring_hom.map_neg, ring_hom.map_one]
+
 instance ring (R : Type u₁) [comm_ring R] [char_p R p] : ring (ring.perfection R p) :=
-((ring.perfection_subsemiring R p).to_subring $ λ n, by simp_rw [← frobenius_def, pi.neg_apply,
-    pi.one_apply, ring_hom.map_neg, ring_hom.map_one]).to_ring
+(ring.perfection_subring p R).to_ring
 
 instance comm_ring (R : Type u₁) [comm_ring R] [char_p R p] : comm_ring (ring.perfection R p) :=
-((ring.perfection_subsemiring R p).to_subring $ λ n, by simp_rw [← frobenius_def, pi.neg_apply,
-    pi.one_apply, ring_hom.map_neg, ring_hom.map_one]).to_comm_ring
+(ring.perfection_subring p R).to_comm_ring
 
 /-- Given rings `R` and `S` of characteristic `p`, with `R` being perfect,
 any homomorphism `R →+* S` can be lifted to a homomorphism `R →+* perfection S p`. -/
@@ -436,7 +441,7 @@ instance : char_p (pre_tilt K v O hv p) p :=
 perfection.char_p _ p
 
 section classical
-local attribute [instance] classical.dec
+open_locale classical
 
 open perfection
 

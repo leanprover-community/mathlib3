@@ -22,25 +22,29 @@ open finset
 variables {α : Type*}
 
 /-- The `finsupp` counterpart of `multiset.antidiagonal`: the antidiagonal of
-`s : α →₀ ℕ` consists of all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)` such that `t₁ + t₂ = s`.
-The finitely supported function `antidiagonal s` is equal to the multiplicities of these pairs. -/
-def antidiagonal (f : α →₀ ℕ) : ((α →₀ ℕ) × (α →₀ ℕ)) →₀ ℕ :=
-(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
+`s : α →₀ ℕ` is the set all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)` such that `t₁ + t₂ = s`. -/
+def antidiagonal (f : α →₀ ℕ) : finset ((α →₀ ℕ) × (α →₀ ℕ)) :=
+(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp.support
 
-@[simp] lemma mem_antidiagonal_support {f : α →₀ ℕ} {p : (α →₀ ℕ) × (α →₀ ℕ)} :
-  p ∈ (antidiagonal f).support ↔ p.1 + p.2 = f :=
+-- def antidiagonal (s : multiset α) : multiset (multiset α × multiset α) :=
+-- quot.lift_on s
+--   (λ l, (revzip (powerset_aux l) : multiset (multiset α × multiset α)))
+--   (λ l₁ l₂ h, quot.sound (revzip_powerset_aux_perm h))
+
+@[simp] lemma mem_antidiagonal {f : α →₀ ℕ} {p : (α →₀ ℕ) × (α →₀ ℕ)} :
+  p ∈ antidiagonal f ↔ p.1 + p.2 = f :=
 begin
   rcases p with ⟨p₁, p₂⟩,
   simp [antidiagonal, ← and.assoc, ← finsupp.to_multiset.apply_eq_iff_eq]
 end
 
-lemma swap_mem_antidiagonal_support {n : α →₀ ℕ} {f : (α →₀ ℕ) × (α →₀ ℕ)} :
-  f.swap ∈ (antidiagonal n).support ↔ f ∈ (antidiagonal n).support :=
-by simp only [mem_antidiagonal_support, add_comm, prod.swap]
+lemma swap_mem_antidiagonal {n : α →₀ ℕ} {f : (α →₀ ℕ) × (α →₀ ℕ)} :
+  f.swap ∈ antidiagonal n ↔ f ∈ antidiagonal n :=
+by simp only [mem_antidiagonal, add_comm, prod.swap]
 
-lemma antidiagonal_support_filter_fst_eq (f g : α →₀ ℕ)
+lemma antidiagonal_filter_fst_eq (f g : α →₀ ℕ)
   [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.1 = g)] :
-  (antidiagonal f).support.filter (λ p, p.1 = g) = if g ≤ f then {(g, f - g)} else ∅ :=
+  (antidiagonal f).filter (λ p, p.1 = g) = if g ≤ f then {(g, f - g)} else ∅ :=
 begin
   ext ⟨a, b⟩,
   suffices : a = g → (a + b = f ↔ g ≤ f ∧ b = f - g),
@@ -50,9 +54,9 @@ begin
   { rintro ⟨h, rfl⟩, exact nat_add_sub_of_le h }
 end
 
-lemma antidiagonal_support_filter_snd_eq (f g : α →₀ ℕ)
+lemma antidiagonal_filter_snd_eq (f g : α →₀ ℕ)
   [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.2 = g)] :
-  (antidiagonal f).support.filter (λ p, p.2 = g) = if g ≤ f then {(f - g, g)} else ∅ :=
+  (antidiagonal f).filter (λ p, p.2 = g) = if g ≤ f then {(f - g, g)} else ∅ :=
 begin
   ext ⟨a, b⟩,
   suffices : b = g → (a + b = f ↔ g ≤ f ∧ a = f - g),
@@ -62,20 +66,20 @@ begin
   { rintro ⟨h, rfl⟩, exact nat_sub_add_cancel h }
 end
 
-@[simp] lemma antidiagonal_zero : antidiagonal (0 : α →₀ ℕ) = single (0,0) 1 :=
-by rw [← multiset.to_finsupp_singleton]; refl
+@[simp] lemma antidiagonal_zero : antidiagonal (0 : α →₀ ℕ) = singleton (0,0) :=
+by rw [antidiagonal, multiset.to_finsupp_support]; refl
 
 @[to_additive]
-lemma prod_antidiagonal_support_swap {M : Type*} [comm_monoid M] (n : α →₀ ℕ)
+lemma prod_antidiagonal_swap {M : Type*} [comm_monoid M] (n : α →₀ ℕ)
   (f : (α →₀ ℕ) → (α →₀ ℕ) → M) :
-  ∏ p in (antidiagonal n).support, f p.1 p.2 = ∏ p in (antidiagonal n).support, f p.2 p.1 :=
-finset.prod_bij (λ p hp, p.swap) (λ p, swap_mem_antidiagonal_support.2) (λ p hp, rfl)
+  ∏ p in antidiagonal n, f p.1 p.2 = ∏ p in antidiagonal n, f p.2 p.1 :=
+finset.prod_bij (λ p hp, p.swap) (λ p, swap_mem_antidiagonal.2) (λ p hp, rfl)
   (λ p₁ p₂ _ _ h, prod.swap_injective h)
-  (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support.2 hp, p.swap_swap.symm⟩)
+  (λ p hp, ⟨p.swap, swap_mem_antidiagonal.2 hp, p.swap_swap.symm⟩)
 
 /-- The set `{m : α →₀ ℕ | m ≤ n}` as a `finset`. -/
 def Iic_finset (n : α →₀ ℕ) : finset (α →₀ ℕ) :=
-(antidiagonal n).support.image prod.fst
+(antidiagonal n).image prod.fst
 
 @[simp] lemma mem_Iic_finset {m n : α →₀ ℕ} : m ∈ Iic_finset n ↔ m ≤ n :=
 by simp [Iic_finset, le_iff_exists_add, eq_comm]

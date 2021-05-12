@@ -188,11 +188,7 @@ lemma gal_action_hom_injective [fact (p.splits (algebra_map F E))] :
 begin
   rw monoid_hom.injective_iff,
   intros ϕ hϕ,
-  let equalizer := alg_hom.equalizer ϕ.to_alg_hom (alg_hom.id F p.splitting_field),
-  suffices : equalizer = ⊤,
-  { exact alg_equiv.ext (λ x, (set_like.ext_iff.mp this x).mpr algebra.mem_top) },
-  rw [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
-  intros x hx,
+  ext x hx,
   have key := equiv.perm.ext_iff.mp hϕ (roots_equiv_roots p E ⟨x, hx⟩),
   change roots_equiv_roots p E (ϕ • (roots_equiv_roots p E).symm
     (roots_equiv_roots p E ⟨x, hx⟩)) = roots_equiv_roots p E ⟨x, hx⟩ at key,
@@ -228,22 +224,17 @@ begin
   intros f g hfg,
   dsimp only [restrict_prod, restrict_dvd] at hfg,
   simp only [dif_neg hpq, monoid_hom.prod_apply, prod.mk.inj_iff] at hfg,
-  suffices : alg_hom.equalizer f.to_alg_hom g.to_alg_hom = ⊤,
-  { exact alg_equiv.ext (λ x, (set_like.ext_iff.mp this x).mpr algebra.mem_top) },
-  rw [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
-  intros x hx,
-  rw [map_mul, polynomial.roots_mul] at hx,
+  ext x hx,
+  rw [root_set, map_mul, polynomial.roots_mul] at hx,
   cases multiset.mem_add.mp (multiset.mem_to_finset.mp hx) with h h,
-  { change f x = g x,
-    haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
+  { haveI : fact (p.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_right p q)⟩,
     have key : x = algebra_map (p.splitting_field) (p * q).splitting_field
       ((roots_equiv_roots p _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=
       subtype.ext_iff.mp (equiv.apply_symm_apply (roots_equiv_roots p _) ⟨x, _⟩).symm,
     rw [key, ←alg_equiv.restrict_normal_commutes, ←alg_equiv.restrict_normal_commutes],
     exact congr_arg _ (alg_equiv.ext_iff.mp hfg.1 _) },
-  { change f x = g x,
-    haveI : fact (q.splits (algebra_map F (p * q).splitting_field)) :=
+  { haveI : fact (q.splits (algebra_map F (p * q).splitting_field)) :=
       ⟨splits_of_splits_of_dvd _ hpq (splitting_field.splits (p * q)) (dvd_mul_left q p)⟩,
     have key : x = algebra_map (q.splitting_field) (p * q).splitting_field
       ((roots_equiv_roots q _).inv_fun ⟨x, multiset.mem_to_finset.mpr h⟩) :=

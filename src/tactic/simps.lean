@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import tactic.core
+import tactic.protected
 import data.sum
 
 /-!
@@ -33,11 +34,61 @@ There are three attributes being defined here
 structures, projections, simp, simplifier, generates declarations
 -/
 
+namespace list
+variables {α β γ δ ε ζ : Type*}
+def zip_with3 (f : α → β → γ → δ) : list α → list β → list γ → list δ
+| (x::xs) (y::ys) (z::zs) := f x y z :: zip_with3 xs ys zs
+| _       _       _       := []
+
+def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → list γ → list δ → list ε
+| (x::xs) (y::ys) (z::zs) (u::us) := f x y z u :: zip_with4 xs ys zs us
+| _       _       _       _       := []
+
+def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
+| (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
+| _       _       _       _       _       := []
+
+end list
+
 open tactic expr option sum
 
 setup_tactic_parser
 declare_trace simps.verbose
 declare_trace simps.debug
+
+/-- Projection data for a single projection of a structure, consisting of the following fields:
+  - a custom name
+  - an expression used by simps for the projection. It must be definitionally equal to an original
+    projection (or a composition of multiple projections).
+    These expressions can contain the universe parameters specified in the first argument of
+    `simps_str_attr`.
+  - a list of natural numbers, which is the projection number(s) that have to be applied to the
+    expression. For example the list `[0, 1]` corresponds to applying the first projection of the
+    structure, and then the second projection of the resulting structure (this assumes that the
+    target of the first projection is a structure with at least two projections).
+    The composition of these projections is required to be definitionally equal to the provided
+    expression.
+  - A boolean specifying whether simp-lemmas are generated for this projection by default.
+  - A boolean specifying whether this projection is written as prefix. -/
+@[protect_proj, derive has_reflect]
+meta structure projection_data :=
+(name : name)
+(expr : expr)
+(proj_nrs : list ℕ)
+(is_default : bool)
+(is_prefix : bool)
+
+/-- Temporary projection data parsed from `initialize_simps_projections` before the expression
+  matching this projection has been found. Only used internally in `simps_get_raw_projections`. -/
+meta structure parsed_projection_data :=
+(orig_name : name) -- original name of the projection
+(new_name : name) -- name used by simps for this projection
+(is_default : bool)
+(is_prefix : bool)
+
+/-- A rule that specifies how metadata for projections in changes.
+  See `initialize_simps_projection`. -/
+abbreviation projection_rule := (name × name ⊕ name) × bool
 
 /--
 The `@[_simps_str]` attribute specifies the preferred projections of the given structure,
@@ -47,21 +98,10 @@ used by the `@[simps]` attribute.
 - To change the default value, see Note [custom simps projection].
 - You are strongly discouraged to add this attribute manually.
 - The first argument is the list of names of the universe variables used in the structure
-- The second argument is a list that consists of
-  - a custom name for each projection of the structure
-  - an expressions for each projections of the structure (definitionally equal to the
-    corresponding projection). These expressions can contain the universe parameters specified
-    in the first argument).
-  - a list of natural numbers, which is the projection number(s) that have to be applied to the
-    expression. For example the list `[0, 1]` corresponds to applying the first projection of the
-    structure, and then the second projection of the resulting structure (this assumes that the
-    target of the first projection is a structure with at least two projections).
-    The composition of these projections is required to be definitionally equal to the provided
-    expression.
-  - A boolean specifying whether simp-lemmas are generated for this projection by default.
+- The second argument is a list that consists of the projection data for each projection.
 -/
 @[user_attribute] meta def simps_str_attr :
-  user_attribute unit (list name × list (name × expr × list ℕ × bool)) :=
+  user_attribute unit (list name × list projection_data) :=
 { name := `_simps_str,
   descr := "An attribute specifying the projection of the given structure.",
   parser := do e ← texpr, eval_pexpr _ e }
@@ -87,13 +127,14 @@ attribute [notation_class* coe_sort] has_coe_to_sort
 attribute [notation_class* coe_fn] has_coe_to_fun
 
 /-- Returns the projection information of a structure. -/
-meta def projections_info (l : list (name × expr × list ℕ × bool)) (pref : string) (str : name) :
-  tactic format := do
+meta def projections_info (l : list projection_data) (pref : string) (str : name) : tactic format :=
+do
   ⟨defaults, nondefaults⟩ ← return $ l.partition_map $
-    λ s, if s.2.2.2 then inl s else inr s,
-  to_print ← defaults.mmap $ λ s, to_string <$> pformat!"Projection {s.1}: {s.2.1}",
-  let print2 := string.join $ (nondefaults.map (λ nm : _ × _, to_string nm.1)).intersperse ", ",
-  let to_print := to_print ++ if nondefaults = [] then [] else
+    λ s, if s.is_default then inl s else inr s,
+  to_print ← defaults.mmap $ λ s, to_string <$> pformat!"Projection {s.name}: {s.expr}",
+  let print2 :=
+    string.join $ (nondefaults.map (λ nm : projection_data, to_string nm.1)).intersperse ", ",
+  let to_print := to_print ++ if nondefaults.length = 0 then [] else
     ["No lemmas are generated for the projections: " ++ print2 ++ "."],
   let to_print := string.join $ to_print.intersperse "\n        > ",
   return format!"[simps] > {pref} {str}:\n        > {to_print}"
@@ -186,8 +227,8 @@ meta def get_composite_of_projections (str : name) (proj : string) : tactic (exp
 -- if performance becomes a problem, possible heuristic: use the names of the projections to
 -- skip all classes that don't have the corresponding field.
 meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exists : bool := ff)
-  (rules : list (name × name ⊕ name) := []) (trc := ff) :
-  tactic (list name × list (name × expr × list ℕ × bool)) := do
+  (rules : list projection_rule := []) (trc := ff) :
+  tactic (list name × list projection_data) := do
   let trc := trc || is_trace_enabled_for `simps.verbose,
   has_attr ← has_attribute' `_simps_str str,
   if has_attr then do
@@ -205,26 +246,27 @@ meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exis
     let raw_levels := level.param <$> raw_univs,
     /- Figure out projections, including renamings. The information for a projection is (before we
     figure out the `expr` of the projection:
-    `(original name, given name, is default)`.
+    `(original name, given name, is default, is prefix)`.
     The first projections are always the actual projections of the structure, but `rules` could
     specify custom projections that are compositions of multiple projections. -/
     projs ← e.structure_fields str,
-    let projs := projs.map_with_index (λ n nm, (nm, nm, tt)),
-    let projs : list (name × name × bool) := rules.foldl (λ projs rule,
+    let projs : list parsed_projection_data := projs.map $ λ nm, ⟨nm, nm, tt, ff⟩,
+    let projs : list parsed_projection_data := rules.foldl (λ projs rule,
       match rule with
-      | (inl (old_nm, new_nm)) := if old_nm ∈ projs.map (λ x, x.2.1) then
+      | (inl (old_nm, new_nm), is_prefix) := if old_nm ∈ projs.map (λ x, x.new_name) then
          projs.map $ λ proj,
-          if proj.2.1 = old_nm then (proj.1, new_nm, proj.2.2) else proj else
-        projs ++ [(old_nm, new_nm, tt)]
-      | (inr nm) := if nm ∈ projs.map (λ x, x.2.1) then
-        projs.map $ λ proj,
-          if proj.2.1 = nm then (proj.1, proj.2.1, ff) else proj else
-        projs ++ [(nm, nm, ff)]
+          if proj.new_name = old_nm then { new_name := new_nm, ..proj } else proj else
+        projs ++ [⟨old_nm, new_nm, tt, is_prefix⟩]
+      | (inr nm, is_prefix) := if nm ∈ projs.map (λ x, x.new_name) then
+        projs.map $ λ proj, if proj.new_name = nm then
+          { is_default := ff, is_prefix := is_prefix, ..proj } else
+          proj else
+        projs ++ [⟨nm, nm, ff, is_prefix⟩]
       end) projs,
-    when_tracing `simps.debug trace!"[simps] > Projection info after applying the rules: {projs}.",
+    -- when_tracing `simps.debug trace!"[simps] > Projection info after applying the rules: {projs}.",
     /- Define the raw expressions for the projections, by default as the projections
     (as an expression), but this can be overriden by the user. -/
-    raw_exprs_and_nrs ← projs.mmap $ λ ⟨orig_nm, new_nm, _⟩, do {
+    raw_exprs_and_nrs ← projs.mmap $ λ ⟨orig_nm, new_nm, _, _⟩, do {
       (raw_expr, nrs) ← get_composite_of_projections str orig_nm.last,
       custom_proj ← do {
         decl ← e.get (str ++ `simps ++ new_nm.last),
@@ -274,28 +316,31 @@ Expected type:\n  {raw_expr_type}" },
       /- Use this as projection, if the function reduces to a projection, and this projection has
         not been overrriden by the user. -/
       guard $ projs.any $
-        λ x, x.1 = relevant_proj.last ∧ ¬ e.contains (str ++ `simps ++ x.2.1.last),
+        λ x, x.1 = relevant_proj.last ∧ ¬ e.contains (str ++ `simps ++ x.new_name.last),
       let pos := projs.find_index (λ x, x.1 = relevant_proj.last),
       when trc trace!
         "        > using {proj_nm} instead of the default projection {relevant_proj.last}.",
       when_tracing `simps.debug trace!"[simps] > The raw projection is:\n  {lambda_raw_expr}",
       return $ raw_exprs.update_nth pos lambda_raw_expr } <|> return raw_exprs) raw_exprs,
     let positions := raw_exprs_and_nrs.map prod.snd,
-    let defaults := projs.map (λ x, x.2.2),
-    let proj_names := projs.map (λ x, x.2.1),
-    let projs := proj_names.zip $ raw_exprs.zip $ positions.zip defaults,
+    let proj_names := projs.map (λ x, x.new_name),
+    let defaults := projs.map (λ x, x.is_default),
+    let prefixes := projs.map (λ x, x.is_prefix),
+    let projs := proj_names.zip_with5 projection_data.mk raw_exprs positions defaults prefixes,
     /- make all proof non-default. -/
     projs ← projs.mmap $ λ proj,
-      is_proof proj.2.1 >>= λ b, return $ if b then (proj.1, proj.2.1, proj.2.2.1, ff) else proj,
+      is_proof proj.expr >>= λ b, return $ if b then { is_default := ff, .. proj } else proj,
     when trc $ projections_info projs "generated projections for" str >>= trace,
     simps_str_attr.set str (raw_univs, projs) tt,
-    when_tracing `simps.debug trace!
-      "[simps] > Generated raw projection data: \n{(raw_univs, projs)}",
+    -- when_tracing `simps.debug trace!
+    --   "[simps] > Generated universes: {raw_univs}}\n        > Generated",
     return (raw_univs, projs)
 
 /-- Parse a rule for `initialize_simps_projections`. It is either `<name>→<name>` or `-<name>`.-/
-meta def simps_parse_rule : parser (name × name ⊕ name) :=
-(λ x y, inl (x, y)) <$> ident <*> (tk "->" >> ident) <|> inr <$> (tk "-" >> ident)
+meta def simps_parse_rule : parser projection_rule :=
+prod.mk <$>
+  ((λ x y, inl (x, y)) <$> ident <*> (tk "->" >> ident) <|> inr <$> (tk "-" >> ident)) <*>
+  is_some <$> (tk "as_prefix")?
 
 /--
   You can specify custom projections for the `@[simps]` attribute.
@@ -391,25 +436,26 @@ def lemmas_only : simps_cfg := {attrs := []}
 
 /--
   Get the projections of a structure used by `@[simps]` applied to the appropriate arguments.
-  Returns a list of quintuples
+  Returns a list of tuples
   ```
-  (projection expression, given projection name, corresponding right-hand-side, projection numbers,
-    used by default)
+  (corresponding right-hand-side, given projection name, projection expression, projection numbers,
+    used by default, is prefix)
   ```
+  (where all fields except the first are packed in a `projection_data` structure)
   one for each projection. The given projection name is the name for the projection used by the user
   used to generate (and parse) projection names. For example, in the structure
 
   Example 1: ``simps_get_projection_exprs env `(α × β) `(⟨x, y⟩)`` will give the output
   ```
-    [(`(@prod.fst.{u v} α β), `fst, `(x), [0], tt),
-     (`(@prod.snd.{u v} α β), `snd, `(y), [1], tt)]
+    [(`(x), `(@prod.fst.{u v} α β), `fst, [0], tt),
+     (`(y), `(@prod.snd.{u v} α β), `snd, [1], tt)]
   ```
 
   Example 2: ``simps_get_projection_exprs env `(α ≃ α) `(⟨id, id, λ _, rfl, λ _, rfl⟩)``
   will give the output
   ```
-    [(`(@equiv.to_fun.{u u} α α), `apply, `(id), [0], tt),
-     (`(@equiv.inv_fun.{u u} α α), `symm_apply, `(id), [1], tt),
+    [(`(id), `(@equiv.to_fun.{u u} α α), `apply, [0], tt),
+     (`(id), `(@equiv.inv_fun.{u u} α α), `symm_apply, [1], tt),
      ...,
      ...]
   ```
@@ -419,7 +465,7 @@ def lemmas_only : simps_cfg := {attrs := []}
 -- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the given arguments
 -- might not uniquely specify the universe levels yet.
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
-  (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr × list ℕ × bool := do
+  (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × projection_data := do
   let params := get_app_args tgt, -- the parameters of the structure
   (params.zip $ (get_app_args rhs).take params.length).mmap' (λ ⟨a, b⟩, is_def_eq a b)
     <|> fail "unreachable code (1)",
@@ -427,13 +473,18 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the object
   (raw_univs, proj_data) ← simps_get_raw_projections e str ff [] cfg.trace,
   let univs := raw_univs.zip tgt.get_app_fn.univ_levels,
-  let projs := proj_data.map prod.fst,
-  let raw_exprs := proj_data.map $ λ p, p.2.1,
-  let nrs_and_default := proj_data.map $ λ p, p.2.2,
+
+  let new_proj_data : list $ expr × projection_data := proj_data.map $
+    λ proj, (_, { .. proj }),
+  -- let projs := proj_data.map $ λ p, p.name,
+  let raw_exprs := proj_data.map $ λ p, p.expr,
+  let nrs := proj_data.map $ λ p, p.proj_nrs,
+  -- let nrs_and_default := proj_data.map $ λ p, p.2.2,
   let proj_exprs := raw_exprs.map $
     λ raw_expr, (raw_expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
-  let rhs_exprs := nrs_and_default.map $ λ x, rhs_args.inth x.1.head,
-  return $ proj_exprs.zip $ projs.zip $ rhs_exprs.zip $ nrs_and_default.map (λ x, (x.1.tail, x.2))
+  let rhs_exprs := nrs.map $ λ x, rhs_args.inth x.head,
+  -- return $ rhs_exprs.zip {expr := proj_expr, proj_data
+  --proj_exprs.zip $ projs.zip $ rhs_exprs.zip $ nrs_and_default.map (λ x, (x.1.tail, x.2))
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.

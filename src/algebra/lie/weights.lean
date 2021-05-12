@@ -306,8 +306,8 @@ lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M (χ₁ 
     lie_subalgebra.coe_bracket_of_module, lie_lie], }
 
 @[simp] lemma coe_root_space_weight_space_product_tmul
-  (μ χ : H → R) (x : root_space H μ) (m : weight_space M χ) :
-  (root_space_weight_space_product R L H M μ χ (x ⊗ₜ m) : M) = ⁅(x : L), (m : M)⁆ :=
+  (χ₁ χ₂ : H → R) (x : root_space H χ₁) (m : weight_space M χ₂) :
+  (root_space_weight_space_product R L H M χ₁ χ₂ (x ⊗ₜ m) : M) = ⁅(x : L), (m : M)⁆ :=
 by simp only [root_space_weight_space_product, lift_apply, lie_module_hom.coe_to_linear_map,
   coe_lift_lie_eq_lift_coe, submodule.coe_mk, linear_map.coe_mk, lie_module_hom.coe_mk]
 

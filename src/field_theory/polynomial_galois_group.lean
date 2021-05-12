@@ -20,7 +20,7 @@ results about the Galois groups of ℚ-polynomials with specific numbers of non-
 ## Main definitions
 
 - `polynomial.gal p`: the Galois group of a polynomial p.
-- `polynomial.galrestrict p E`: the restriction homomorphism `(E ≃ₐ[F] E) → gal p`.
+- `polynomial.gal.restrict p E`: the restriction homomorphism `(E ≃ₐ[F] E) → gal p`.
 - `polynomial.gal.gal_action p E`: the action of `gal p` on the roots of `p` in `E`.
 
 ## Main results
@@ -94,7 +94,7 @@ instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting
 is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h.1).commutes x).symm)
 
-/-- The restriction homomorphism -/
+/-- Restrict from a superfield automorphism into a `p`-automorphism. -/
 def restrict [fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
 alg_equiv.restrict_normal_hom p.splitting_field
 
@@ -200,7 +200,7 @@ end roots_action
 
 variables {p q}
 
-/-- The restriction homomorphism between Galois groups -/
+/-- `polynomial.gal.restrict`, specialized to when both fields are extensions of polynomials. -/
 def restrict_dvd (hpq : p ∣ q) : q.gal →* p.gal :=
 if hq : q = 0 then 1 else @restrict F _ p _ _ _
   ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩
@@ -295,8 +295,7 @@ begin
     (λ _, splits_of_is_unit _) (λ _ _ _ h, key2 (key1 h)),
 end
 
--- todo: go back to this docstring
-/-- The restriction homomorphism from the Galois group of a homomorphism -/
+/-- `polynomial.gal.restrict` for the composition of polynomials. -/
 def restrict_comp (hq : q.nat_degree ≠ 0) : (p.comp q).gal →* p.gal :=
 @restrict F _ p _ _ _ ⟨splits_in_splitting_field_of_comp p q hq⟩
 

@@ -79,6 +79,30 @@ lemma single_map_f_self (j : ι) {A B : V} (f : A ⟶ B) :
     (single_obj_X_self V c j A).hom ≫ f ≫ (single_obj_X_self V c j B).inv :=
 by { simp, refl, }
 
+instance (j : ι) : faithful (single V c j) :=
+{ map_injective' := λ X Y f g w, begin
+    have := congr_hom w j,
+    dsimp at this,
+    simp only [dif_pos] at this,
+    rw [←is_iso.inv_comp_eq, inv_eq_to_hom, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp,
+      ←is_iso.comp_inv_eq, category.assoc, inv_eq_to_hom, eq_to_hom_trans, eq_to_hom_refl,
+      category.comp_id] at this,
+    exact this,
+  end, }
+
+instance (j : ι) : full (single V c j) :=
+{ preimage := λ X Y f, eq_to_hom (by simp) ≫ f.f j ≫ eq_to_hom (by simp),
+  witness' := λ X Y f, begin
+    ext i,
+    dsimp,
+    split_ifs,
+    { subst h, simp, },
+    { symmetry,
+      apply zero_of_target_iso_zero,
+      dsimp,
+      rw [if_neg h], },
+  end }
+
 end homological_complex
 
 open homological_complex
@@ -177,6 +201,8 @@ def to_single₀_equiv (C : chain_complex V ℕ) (X : V) :
   end,
   right_inv := by tidy, }
 
+variables (V)
+
 /-- `single₀` is the same as `single V _ 0`. -/
 def single₀_iso_single : single₀ V ≅ single V _ 0 :=
 nat_iso.of_components
@@ -190,5 +216,8 @@ nat_iso.of_components
       { apply has_zero_object.to_zero_ext, },
     end, })
   (λ X Y f, by { ext (_|i); { dsimp, simp, }, })
+
+instance : faithful (single₀ V) := faithful.of_iso (single₀_iso_single V).symm
+instance : full (single₀ V) := full.of_iso (single₀_iso_single V).symm
 
 end chain_complex

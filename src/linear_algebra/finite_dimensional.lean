@@ -1026,6 +1026,11 @@ begin
   exact_mod_cast this
 end
 
+lemma finrank_span_finset_le_card (s : finset V)  :
+  finrank K (span K (s : set V)) ≤ s.card :=
+calc finrank K (span K (s : set V)) ≤ (s : set V).to_finset.card : finrank_span_le_card s
+                                ... = s.card : by simp
+
 lemma finrank_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
   (hb : linear_independent K b) :
   finrank K (span K (set.range b)) = fintype.card ι :=
@@ -1044,6 +1049,15 @@ begin
   have : module.rank K (span K s) = (mk s : cardinal) := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
   exact_mod_cast this
+end
+
+lemma finrank_span_finset_eq_card (s : finset V)
+  (hs : linear_independent K (coe : s → V)) :
+  finrank K (span K (s : set V)) = s.card :=
+begin
+  convert finrank_span_set_eq_card ↑s hs,
+  ext,
+  simp
 end
 
 lemma span_lt_of_subset_of_card_lt_finrank {s : set V} [fintype s] {t : submodule K V}

@@ -1719,13 +1719,8 @@ namespace finset
 lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
   ∃ (l : list α), l.nodup ∧ l.to_finset = s :=
 begin
-  cases s with s hs,
-  obtain ⟨l, hl⟩ := quotient.exists_rep s,
-  use l,
-  split,
-  { simpa [←hl] using hs },
-  { ext,
-    simp [←hl] }
+  obtain ⟨⟨l⟩, hs⟩ := s,
+  exact ⟨l, hs, (list.to_finset_eq _).symm⟩,
 end
 
 /-! ### map -/

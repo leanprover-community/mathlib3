@@ -455,7 +455,7 @@ begin
   ... = (r * (∑' n : ℕ, (n + 1) * r ^ n) - r * s) / (1 - r) :
     by simp [pow_succ, mul_left_comm _ r, tsum_mul_left]
   ... = r / (1 - r) ^ 2 :
-    by simp [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, pow_two,
+    by simp [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, sq,
       div_div_eq_div_mul]
 end
 

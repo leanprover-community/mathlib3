@@ -1197,6 +1197,23 @@ begin
       assumption } },
 end
 
+variables {X : Type*} [topological_space X] [first_countable_topology X]
+
+lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α → ℝ}
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
+  (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
+  (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, F x a) x₀) :
+  continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
+tendsto_integral_filter_of_dominated_convergence bound
+  (first_countable_topology.nhds_generated_countable x₀) ‹_› (mem_of_nhds hF_meas : _) ‹_› ‹_› ‹_›
+
+lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
+  (hF_meas : ∀ x, ae_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
+  (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous (λ x, F x a)) :
+  continuous (λ x, ∫ a, F x a ∂μ) :=
+continuous_iff_continuous_at.mpr (λ x₀, continuous_at_of_dominated (eventually_of_forall hF_meas)
+  (eventually_of_forall h_bound) ‹_› $ h_cont.mono $ λ _, continuous.continuous_at)
+
 /-- The Bochner integral of a real-valued function `f : α → ℝ` is the difference between the
   integral of the positive part of `f` and the integral of the negative part of `f`.  -/
 lemma integral_eq_lintegral_max_sub_lintegral_min {f : α → ℝ} (hf : integrable f μ) :

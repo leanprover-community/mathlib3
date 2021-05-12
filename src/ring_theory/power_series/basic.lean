@@ -1658,7 +1658,8 @@ begin
 end
 
 @[simp, norm_cast] lemma coe_add (φ ψ : polynomial R) :
-  ((φ + ψ : polynomial R) : power_series R) = φ + ψ := rfl
+  ((φ + ψ : polynomial R) : power_series R) = φ + ψ :=
+by { ext, simp }
 
 @[simp, norm_cast] lemma coe_mul (φ ψ : polynomial R) :
   ((φ * ψ : polynomial R) : power_series R) = φ * ψ :=

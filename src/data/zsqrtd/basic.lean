@@ -599,7 +599,7 @@ by rw [mul_assoc, ← int.nat_abs_mul_self, ← int.nat_abs_mul_self, ← int.co
 exact let ⟨h1, h2⟩ := divides_sq_eq_zero (int.coe_nat_inj h) in
 ⟨int.eq_zero_of_nat_abs_eq_zero h1, int.eq_zero_of_nat_abs_eq_zero h2⟩
 
-theorem not_divides_square (x y) : (x + 1) * (x + 1) ≠ d * (y + 1) * (y + 1) :=
+theorem not_divides_sq (x y) : (x + 1) * (x + 1) ≠ d * (y + 1) * (y + 1) :=
 λe, by have t := (divides_sq_eq_zero e).left; contradiction
 
 theorem nonneg_antisymm : Π {a : ℤ√d}, nonneg a → nonneg (-a) → a = 0
@@ -611,9 +611,9 @@ theorem nonneg_antisymm : Π {a : ℤ√d}, nonneg a → nonneg (-a) → a = 0
 | ⟨0,         -[1+ y]⟩   xy yx := absurd xy (not_sq_le_succ _ _ _ d_pos)
 | ⟨0,         (y+1:nat)⟩ _  yx := absurd yx (not_sq_le_succ _ _ _ d_pos)
 | ⟨(x+1:nat), -[1+ y]⟩   (xy : sq_le _ _ _ _) (yx : sq_le _ _ _ _) :=
-  let t := le_antisymm yx xy in by rw[one_mul] at t; exact absurd t (not_divides_square _ _)
+  let t := le_antisymm yx xy in by rw[one_mul] at t; exact absurd t (not_divides_sq _ _)
 | ⟨-[1+ x],   (y+1:nat)⟩ (xy : sq_le _ _ _ _) (yx : sq_le _ _ _ _) :=
-  let t := le_antisymm xy yx in by rw[one_mul] at t; exact absurd t (not_divides_square _ _)
+  let t := le_antisymm xy yx in by rw[one_mul] at t; exact absurd t (not_divides_sq _ _)
 
 theorem le_antisymm {a b : ℤ√d} (ab : a ≤ b) (ba : b ≤ a) : a = b :=
 eq_of_sub_eq_zero $ nonneg_antisymm ba (by rw neg_sub; exact ab)

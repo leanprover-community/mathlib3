@@ -381,13 +381,10 @@ variables (g : S →+* T) (f : R →+* S)
 
 /-! # range -/
 
-/-- The range of a ring homomorphism, as a subring of the target. -/
+/-- The range of a ring homomorphism, as a subring of the target. See Note [range copy pattern]. -/
 def range {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S) : subring S :=
 ((⊤ : subring R).map f).copy (set.range f) set.image_univ.symm
 
-/-- Note that `ring_hom.range` is deliberately defined in a way that makes this true by `rfl`,
-as this means the types `↥(set.range f)` and `↥f.range` are interchangeable without proof
-obligations. -/
 @[simp] lemma coe_range : (f.range : set S) = set.range f := rfl
 
 @[simp] lemma mem_range {f : R →+* S} {y : S} : y ∈ f.range ↔ ∃ x, f x = y := iff.rfl

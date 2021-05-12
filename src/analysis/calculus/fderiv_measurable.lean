@@ -78,28 +78,11 @@ namespace continuous_linear_map
 variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
   [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
 
-instance : measurable_space (E →L[𝕜] F) := borel _
-
-instance : borel_space (E →L[𝕜] F) := ⟨rfl⟩
-
-lemma measurable_apply [measurable_space F] [borel_space F] (x : E) :
-  measurable (λ f : E →L[𝕜] F, f x) :=
-(apply 𝕜 F x).continuous.measurable
-
-lemma measurable_apply' [measurable_space E] [opens_measurable_space E]
-  [measurable_space F] [borel_space F] :
-  measurable (λ (x : E) (f : E →L[𝕜] F), f x) :=
-measurable_pi_lambda _ $ λ f, f.measurable
-
 lemma measurable_apply₂ [measurable_space E] [opens_measurable_space E]
   [second_countable_topology E] [second_countable_topology (E →L[𝕜] F)]
   [measurable_space F] [borel_space F] :
   measurable (λ p : (E →L[𝕜] F) × E, p.1 p.2) :=
 is_bounded_bilinear_map_apply.continuous.measurable
-
-lemma measurable_coe [measurable_space F] [borel_space F] :
-  measurable (λ (f : E →L[𝕜] F) (x : E), f x) :=
-measurable_pi_lambda _ measurable_apply
 
 end continuous_linear_map
 
@@ -291,7 +274,7 @@ begin
   is a Cauchy sequence. -/
   let L0 : ℕ → (E →L[𝕜] F) := λ e, L e (n e) (n e),
   have : cauchy_seq L0,
-  { rw cauchy_seq_iff',
+  { rw metric.cauchy_seq_iff',
     assume ε εpos,
     obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥) :=
       exists_pow_lt_of_lt_one (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),

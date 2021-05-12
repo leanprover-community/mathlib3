@@ -804,6 +804,21 @@ variables [semi_normed_ring α]
 lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 semi_normed_ring.norm_mul _ _
 
+/-- A subalgebra of a seminormed ring is also a seminormed ring, with the restriction of the norm.
+
+See note [implicit instance arguments]. -/
+instance subalgebra.semi_normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
+  {E : Type*} [semi_normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : semi_normed_ring s :=
+{ norm_mul := λ a b, norm_mul_le a.1 b.1,
+  ..s.to_submodule.semi_normed_group }
+
+/-- A subalgebra of a normed ring is also a normed ring, with the restriction of the norm.
+
+See note [implicit instance arguments]. -/
+instance subalgebra.normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
+  {E : Type*} [normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : normed_ring s :=
+{ ..s.semi_normed_ring }
+
 lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.map norm).prod
 | [] h := (h rfl).elim
 | [a] _ := by simp

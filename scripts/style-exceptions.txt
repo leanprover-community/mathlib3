@@ -17,7 +17,7 @@ src/category_theory/limits/creates.lean : line 329 : ERR_LIN : Line has more tha
 src/category_theory/limits/creates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/lattice.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/opposites.lean : line 9 : ERR_MOD : Module docstring missing, or too late
+src/category_theory/limits/opposites.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/shapes/finite_products.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/shapes/products.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/types.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -69,7 +69,7 @@ src/data/list/nat_antidiagonal.lean : line 8 : ERR_MOD : Module docstring missin
 src/data/list/of_fn.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/list/pairwise.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/range.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/data/list/rotate.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/data/list/rotate.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/list/sections.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/sigma.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/list/tfae.lean : line 8 : ERR_MOD : Module docstring missing, or too late

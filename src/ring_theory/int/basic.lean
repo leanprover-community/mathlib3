@@ -177,7 +177,7 @@ end
 lemma coprime_iff_nat_coprime {a b : ℤ} : is_coprime a b ↔ nat.coprime a.nat_abs b.nat_abs :=
 by rw [←gcd_eq_one_iff_coprime, nat.coprime_iff_gcd_eq_one, gcd_eq_nat_abs]
 
-lemma sqr_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
+lemma sq_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
 begin
   have h' : gcd_monoid.gcd a b = 1, { rw [← coe_gcd, h], dec_trivial },
@@ -187,8 +187,8 @@ begin
   cases int.units_eq_one_or u with hu' hu'; { rw hu', simp }
 end
 
-lemma sqr_of_coprime {a b c : ℤ} (h : is_coprime a b) (heq : a * b = c ^ 2) :
-  ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) := sqr_of_gcd_eq_one (gcd_eq_one_iff_coprime.mpr h) heq
+lemma sq_of_coprime {a b c : ℤ} (h : is_coprime a b) (heq : a * b = c ^ 2) :
+  ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) := sq_of_gcd_eq_one (gcd_eq_one_iff_coprime.mpr h) heq
 
 lemma nat_abs_euclidean_domain_gcd (a b : ℤ) :
   int.nat_abs (euclidean_domain.gcd a b) = int.gcd a b :=
@@ -289,7 +289,7 @@ begin
   { apply or.intro_left,
     exact le_antisymm (nat.le_of_dvd zero_lt_two hp2) (nat.prime.two_le hp) },
   { apply or.intro_right,
-    rw [pow_two, int.nat_abs_mul] at hpp,
+    rw [sq, int.nat_abs_mul] at hpp,
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 
@@ -300,7 +300,7 @@ open unique_factorization_monoid
 
 theorem nat.factors_eq {n : ℕ} : factors n = n.factors :=
 begin
-  cases n, {refl},
+  cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
   apply factors_unique (irreducible_of_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],

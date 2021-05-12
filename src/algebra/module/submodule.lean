@@ -48,6 +48,9 @@ variables [semiring R] [add_comm_monoid M] [module R M]
 instance : set_like (submodule R M) M :=
 ⟨submodule.carrier, λ p q h, by cases p; cases q; congr'⟩
 
+@[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
+iff.rfl
+
 variables {p q : submodule R M}
 
 @[simp] lemma mk_coe (S : set M) (h₁ h₂ h₃) :
@@ -197,10 +200,15 @@ def to_add_subgroup : add_subgroup M :=
 
 @[simp] lemma coe_to_add_subgroup : (p.to_add_subgroup : set M) = p := rfl
 
+@[simp] lemma mem_to_add_subgroup : x ∈ p.to_add_subgroup ↔ x ∈ p := iff.rfl
+
 include module_M
 
 theorem to_add_subgroup_injective : injective (to_add_subgroup : submodule R M → add_subgroup M)
 | p q h := set_like.ext (set_like.ext_iff.1 h : _)
+
+@[simp] theorem to_add_subgroup_eq : p.to_add_subgroup = p'.to_add_subgroup ↔ p = p' :=
+to_add_subgroup_injective.eq_iff
 
 @[mono] lemma to_add_subgroup_strict_mono :
   strict_mono (to_add_subgroup : submodule R M → add_subgroup M) := λ _ _, id

@@ -825,7 +825,7 @@ section sqrt
 lemma sqrt_eq_rpow : sqrt = λx:ℝ, x ^ (1/(2:ℝ)) :=
 begin
   funext, by_cases h : 0 ≤ x,
-  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← pow_two, ← rpow_nat_cast, ← rpow_mul h],
+  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← sq, ← rpow_nat_cast, ← rpow_mul h],
     norm_num, exact sqrt_nonneg _, exact rpow_nonneg_of_nonneg h _ },
   { replace h : x < 0 := lt_of_not_ge h,
     have : 1 / (2:ℝ) * π = π / (2:ℝ), ring,

@@ -418,6 +418,9 @@ variables (I)
 le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
 variables {I}
 
+theorem radical_le_radical_iff : radical I ≤ radical J ↔ I ≤ radical J :=
+⟨λ h, le_trans le_radical h, λ h, radical_idem J ▸ radical_mono h⟩
+
 theorem radical_eq_top : radical I = ⊤ ↔ I = ⊤ :=
 ⟨λ h, (eq_top_iff_one _).2 $ let ⟨n, hn⟩ := (eq_top_iff_one _).1 h in
   @one_pow R _ n ▸ hn, λ h, h.symm ▸ radical_top R⟩
@@ -727,7 +730,7 @@ theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=
 (ne_top_iff_one _).2 $ by rw [mem_comap, f.map_one];
   exact (ne_top_iff_one _).1 hK
 
-theorem is_prime.comap [hK : K.is_prime] : (comap f K).is_prime :=
+instance is_prime.comap [hK : K.is_prime] : (comap f K).is_prime :=
 ⟨comap_ne_top _ hK.1, λ x y,
   by simp only [mem_comap, f.map_mul]; apply hK.2⟩
 

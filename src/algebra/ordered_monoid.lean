@@ -94,28 +94,22 @@ attribute [to_additive] has_exists_mul_of_le
 class linear_ordered_add_comm_monoid (α : Type*)
   extends linear_order α, ordered_add_comm_monoid α :=
 (lt_of_add_lt_add_left := λ x y z, by {
-  apply imp_of_not_imp_not,
-  intro h,
-  apply not_lt_of_le,
-  apply add_le_add_left,
   -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
   -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
   letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
-  exact le_of_not_lt h })
+  apply lt_imp_lt_of_le_imp_le,
+  exact λ h, add_le_add_left _ _ h _ })
 
 /-- A linearly ordered commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_comm_monoid, to_additive]
 class linear_ordered_comm_monoid (α : Type*)
   extends linear_order α, ordered_comm_monoid α :=
 (lt_of_mul_lt_mul_left := λ x y z, by {
-  apply imp_of_not_imp_not,
-  intro h,
-  apply not_lt_of_le,
-  apply mul_le_mul_left,
   -- type-class inference uses `a : linear_order α` which it can't unfold, unless we provide this!
   -- `lt_iff_le_not_le` gets filled incorrectly with `autoparam` if we don't provide that field.
   letI : linear_order α := by refine { le := le, lt := lt, lt_iff_le_not_le := _, .. }; assumption,
-  exact le_of_not_lt h })
+  apply lt_imp_lt_of_le_imp_le,
+  exact λ h, mul_le_mul_left _ _ h _ })
 
 /-- A linearly ordered commutative monoid with a zero element. -/
 class linear_ordered_comm_monoid_with_zero (α : Type*)
@@ -353,7 +347,7 @@ local attribute [reducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
-  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
+  ..(by apply_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
 
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
@@ -915,5 +909,11 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multi
 instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
+
+instance [sub_neg_monoid α] : sub_neg_monoid (order_dual α) :=
+{ ..show sub_neg_monoid α, by apply_instance }
+
+instance [div_inv_monoid α] : div_inv_monoid (order_dual α) :=
+{ ..show div_inv_monoid α, by apply_instance }
 
 end type_tags

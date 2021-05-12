@@ -539,7 +539,7 @@ begin
   simp_rw [transnum_aux_seq, real.dist_eq],
   rw [← abs_div, sub_div, pow_succ', pow_succ, ← two_mul,
     mul_div_mul_left _ _ (@two_ne_zero ℝ _ _),
-    pow_mul, pow_two, mul_apply]
+    pow_mul, sq, mul_apply]
 end
 
 lemma tendsto_translation_number_aux : tendsto f.transnum_aux_seq at_top (𝓝 $ τ f) :=

@@ -250,7 +250,7 @@ funext (b.reindex_apply e)
 @[simp] lemma coe_reindex_repr : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
 funext $ λ i',
 show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _,
-from finsupp.dom_lcongr_apply _ _ _
+by simp
 
 @[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
 by rw coe_reindex_repr
@@ -533,7 +533,7 @@ begin
         map_smul' := λ c y, _ }⟩,
     { rw [finsupp.add_apply, add_smul] },
     { rw [finsupp.smul_apply, smul_assoc] },
-    { refine smul_right_injective nz _,
+    { refine smul_right_injective _ nz _,
       simp only [finsupp.single_eq_same],
       exact (w (f (default ι) • x)).some_spec },
     { simp only [finsupp.single_eq_same],

@@ -252,6 +252,37 @@ def structure_sheaf : sheaf CommRing (Spec.Top R) :=
   ((structure_sheaf R).presheaf.map i.op s).1 x = (s.1 (i x) : _) :=
 rfl
 
+def structure_sheaf.comap (S : Type u) [comm_ring S] (f : R →+* S) (U : opens (Spec.Top R)) :
+  (structure_sheaf R).presheaf.obj (op U) →+*
+  (structure_sheaf S).presheaf.obj (op (opens.comap (comap_continuous f) U)) :=
+{ to_fun := λ s, ⟨λ p, (localization.local_ring_hom _ f).to_fun (s.1 ⟨_, p.2⟩ : _),
+  begin
+    intro p,
+    rcases s.2 ⟨prime_spectrum.comap f p.1, p.2⟩ with ⟨V, m, iVU, a, h, h_frac⟩,
+    refine ⟨opens.comap (comap_continuous f) V, m,
+      hom_of_le (opens.comap_mono (comap_continuous f) (le_of_hom iVU)), f a, f h, _⟩,
+    intro q,
+    specialize h_frac ⟨prime_spectrum.comap f q.1, q.2⟩,
+    refine ⟨h_frac.1, _⟩,
+    dsimp only,
+    erw [ring_hom.to_fun_eq_coe, ← localization.local_ring_hom_to_map, ← ring_hom.map_mul,
+      h_frac.2, localization.local_ring_hom_to_map],
+    refl,
+  end⟩,
+  map_one' := subtype.ext $ funext $ λ p, by
+    { rw [subtype.coe_mk, subtype.val_eq_coe, (sections_subring R (op U)).coe_one, pi.one_apply,
+        ring_hom.to_fun_eq_coe, ring_hom.map_one], refl },
+  map_zero' := subtype.ext $ funext $ λ p, by
+    { rw [subtype.coe_mk, subtype.val_eq_coe, (sections_subring R (op U)).coe_zero, pi.zero_apply,
+        ring_hom.to_fun_eq_coe, ring_hom.map_zero], refl },
+  map_add' := λ s t, subtype.ext $ funext $ λ p, by
+    { rw [subtype.coe_mk, subtype.val_eq_coe, (sections_subring R (op U)).coe_add, pi.add_apply,
+        ring_hom.to_fun_eq_coe, ring_hom.map_add], refl },
+  map_mul' := λ s t, subtype.ext $ funext $ λ p, by
+    { rw [subtype.coe_mk, subtype.val_eq_coe, (sections_subring R (op U)).coe_mul, pi.mul_apply,
+        ring_hom.to_fun_eq_coe, ring_hom.map_mul], refl },
+}
+
 /-
 
 Notation in this comment
@@ -788,6 +819,5 @@ end
 
 def structure_sheaf_top_iso : (structure_sheaf R).presheaf.obj (op ⊤) ≅ CommRing.of R :=
 (as_iso (to_open R ⊤)).symm
-
 
 end algebraic_geometry

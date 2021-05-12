@@ -24,7 +24,8 @@ variables {α : Type*}
 /-- The `finsupp` counterpart of `multiset.antidiagonal`: the antidiagonal of
 `s : α →₀ ℕ` is the set all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)` such that `t₁ + t₂ = s`. -/
 def antidiagonal (f : α →₀ ℕ) : finset ((α →₀ ℕ) × (α →₀ ℕ)) :=
-(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp.support
+(f.to_multiset.antidiagonal.map
+  (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp.support
 
 -- def antidiagonal (s : multiset α) : multiset (multiset α × multiset α) :=
 -- quot.lift_on s

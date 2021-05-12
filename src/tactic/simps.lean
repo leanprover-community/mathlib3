@@ -481,14 +481,13 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
 | e nm suffix type lhs rhs args univs must_be_str cfg todo to_apply := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
   when_tracing `simps.debug trace!
-    "[simps] > Trying to add simp-lemmas for\n        > {lhs}
-[simps] > Type of the expression before normalizing: {type}",
+    "[simps] > Type of the expression before normalizing: {type}",
   (type_args, tgt) ← open_pis_whnf type cfg.type_md,
   when_tracing `simps.debug trace!"[simps] > Type after removing pi's: {tgt}",
   tgt ← whnf tgt,
   when_tracing `simps.debug trace!"[simps] > Type after reduction: {tgt}",
   let new_args := args ++ type_args,
-  let lhs_ap := lhs.mk_app type_args,
+  let lhs_ap := lhs.instantiate_lambdas_or_apps type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
   let str := tgt.get_app_fn.const_name,
   let new_nm := nm.append_suffix suffix,
@@ -528,7 +527,10 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
       when (to_apply ≠ []) $ do {
         (proj_expr, proj, new_rhs, proj_nrs, is_default) ← return $ tuples.inth to_apply.head,
         new_type ← infer_type new_rhs,
-        simps_add_projections e nm suffix new_type lhs new_rhs new_args univs ff cfg todo
+        when_tracing `simps.debug
+          trace!"[simps] > Applying a custom composite projection. Current lhs:
+        >  {lhs_ap}",
+        simps_add_projections e nm suffix new_type lhs_ap new_rhs new_args univs ff cfg todo
           to_apply.tail },
       /- We stop if no further projection is specified or if we just reduced an eta-expansion and we
       automatically choose projections -/
@@ -555,7 +557,8 @@ Note: these projection names might not correspond to the projection names of the
             let new_lhs := proj_expr.instantiate_lambdas_or_apps [lhs_ap],
             let new_suffix := if cfg.short_name then "_" ++ proj.last else
               suffix ++ "_" ++ proj.last,
-            when_tracing `simps.debug trace!"[simps] > Recursively add projections for: {new_lhs}",
+            when_tracing `simps.debug trace!"[simps] > Recursively add projections for:
+        >  {new_lhs}",
             simps_add_projections e nm new_suffix new_type new_lhs new_rhs new_args univs
               ff cfg new_todo proj_nrs
     -- if I'm about to run into an error, try to set the transparency for `rhs_md` higher.

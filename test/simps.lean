@@ -184,6 +184,9 @@ structure partially_applied_str :=
 @[simps]
 def partially_applied_term : partially_applied_str := ⟨my_prod.mk 3⟩
 
+@[simps]
+def another_term : partially_applied_str := ⟨λ n, ⟨n + 1, n + 2⟩⟩
+
 run_cmd do
   e ← get_env,
   e.get `partially_applied_term_data_fst,
@@ -937,7 +940,6 @@ initialize_simps_projections one_more
    to_further_decorated_equiv_to_decorated_equiv_to_equiv_inv_fun → symm_apply,
   -to_further_decorated_equiv, to_further_decorated_equiv_to_decorated_equiv → to_dequiv,
   -to_dequiv)
-set_option trace.simps.debug true
 
 @[simps] def fffoo (α : Type) : one_more α α :=
 { to_fun    := λ x, x,
@@ -974,12 +976,7 @@ def something2.simps.mul [has_add ι] [something2 A] {i j : ι}
   (x : A i) (y : A j) : A (i + j) :=
 something2.mul x y
 
-initialize_simps_projections? something2 (mul → mul', mul_to_fun_to_fun → mul, -mul')
-
-
-set_option trace.simps.verbose true
-set_option trace.simps.debug true
-set_option trace.app_builder true
+initialize_simps_projections something2 (mul → mul', mul_to_fun_to_fun → mul, -mul')
 
 attribute [ext] equiv
 
@@ -993,8 +990,8 @@ def thing (h : bool ≃ (bool ≃ bool)) : something2 (λ x : ℕ, bool) :=
   left_inv := by { convert h.left_inv, ext x; refl },
   right_inv := by { convert h.right_inv, ext x; refl } } }
 
--- λ {i j : ℕ} (x : (λ (x : ℕ), bool) i) (y : (λ (x : ℕ), bool) j),
---   ⇑(⇑something2.mul x) y = (⇑(⇑h b) ᾰ : bool)
+example (h : bool ≃ (bool ≃ bool)) (i j : ℕ) (b1 b2 : bool) :
+  @something2.mul _ _ _ _ (thing h) i j b1 b2 = h b1 b2 :=
+by simp only [thing_mul]
 
---         > ⇑((fffoo α).symm) x = (x : α)
 end comp_projs

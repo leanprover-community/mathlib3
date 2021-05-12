@@ -598,7 +598,9 @@ instance : unique (subalgebra R R) :=
   end
   .. algebra.subalgebra.inhabited }
 
-/-- Two subalgebras that are equal are also equivalent as algebras. -/
+/-- Two subalgebras that are equal are also equivalent as algebras.
+
+This is the `subalgebra` version of `linear_equiv.of_eq` and `equiv.set.of_eq`. -/
 @[simps apply]
 def equiv_of_eq (S T : subalgebra R A) (h : S = T) : S ≃ₐ[R] T :=
 { to_fun := λ x, ⟨x, h ▸ x.2⟩,

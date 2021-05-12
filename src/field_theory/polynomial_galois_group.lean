@@ -14,7 +14,8 @@ import ring_theory.eisenstein_criterion
 
 In this file, we introduce the Galois group of a polynomial `p` over a field `F`,
 defined as the automorphism group of its splitting field. We also provide
-some results about some extension `E` above `p.splitting_field`.
+some results about some extension `E` above `p.splitting_field`, and some specific
+results about the Galois groups of ℚ-polynomials with specific numbers of non-real roots.
 
 ## Main definitions
 
@@ -27,8 +28,13 @@ some results about some extension `E` above `p.splitting_field`.
 - `polynomial.gal.restrict_smul`: `restrict p E` is compatible with `gal_action p E`.
 - `polynomial.gal.gal_action_hom_injective`: `gal p` acting on the roots of `p` in `E` is faithful.
 - `polynomial.gal.restrict_prod_injective`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
+- `polynomial.gal.card_of_separable`: For a separable polynomial, its Galois group has cardinality
+equal to the dimension of its splitting field over `F`.
+- `polynomial.gal.card_complex_roots_eq_card_real_add_card_not_gal_inv`: The number of complex roots
+equals the number of real roots plus the number of roots not fixed by complex conjugation
+(i.e. with some imaginary component).
 - `polynomial.gal.gal_action_hom_bijective_of_prime_degree`:
-  An irreducible polynomial of prime degree with two non-real roots has full Galois group.
+An irreducible polynomial of prime degree with two non-real roots has full Galois group.
 -/
 
 noncomputable theory
@@ -40,7 +46,7 @@ namespace polynomial
 
 variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
 
-/-- The Galois group of a polynomial -/
+/-- The Galois group of a polynomial. -/
 @[derive [has_coe_to_fun, group, fintype]]
 def gal := p.splitting_field ≃ₐ[F] p.splitting_field
 
@@ -53,18 +59,15 @@ begin
   rwa [eq_top_iff, ←splitting_field.adjoin_roots, algebra.adjoin_le_iff],
 end
 
-instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
-{ default := 1,
-  uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
-    ((set_like.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h.1) x).mp algebra.mem_top),
-    rw [alg_equiv.commutes, alg_equiv.commutes] }) }
-
 /-- If `p` splits in `F` then the `p.gal` is trivial. -/
 def unique_gal_of_splits (h : p.splits (ring_hom.id F)) : unique p.gal :=
 { default := 1,
   uniq := λ f, alg_equiv.ext (λ x, by { obtain ⟨y, rfl⟩ := algebra.mem_bot.mp
     ((set_like.ext_iff.mp ((is_splitting_field.splits_iff _ p).mp h) x).mp algebra.mem_top),
     rw [alg_equiv.commutes, alg_equiv.commutes] }) }
+
+instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
+unique_gal_of_splits _ (h.1)
 
 instance unique_gal_zero : unique (0 : polynomial F).gal :=
 unique_gal_of_splits _ (splits_zero _)
@@ -101,7 +104,8 @@ alg_equiv.restrict_normal_hom_surjective E
 
 section roots_action
 
-/-- The function from `roots p p.splitting_field` to `roots p E` -/
+/-- The function taking `roots p p.splitting_field` to `roots p E`. This is actually a bijection,
+see `polynomial.gal.map_roots_bijective`. -/
 def map_roots [fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
 λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
@@ -117,6 +121,7 @@ begin
   split,
   { exact λ _ _ h, subtype.ext (ring_hom.injective _ (subtype.ext_iff.mp h)) },
   { intro y,
+    -- this is just an equality of two different ways to write the roots of `p` as an `E`-polynomial
     have key := roots_map
       (is_scalar_tower.to_alg_hom F p.splitting_field E : p.splitting_field →+* E)
       ((splits_id_iff_splits _).mpr (is_splitting_field.splits p.splitting_field p)),
@@ -127,7 +132,7 @@ begin
     exact ⟨⟨x, multiset.mem_to_finset.mpr hx1⟩, subtype.ext hx2⟩ }
 end
 
-/-- The bijection between `root_set p p.splitting_field` and `root_set p E` -/
+/-- The bijection between `root_set p p.splitting_field` and `root_set p E`. -/
 def roots_equiv_roots [fact (p.splits (algebra_map F E))] :
   (root_set p p.splitting_field) ≃ (root_set p E) :=
 equiv.of_bijective (map_roots p E) (map_roots_bijective p E)
@@ -145,6 +150,7 @@ instance gal_action_aux : mul_action p.gal (root_set p p.splitting_field) :=
   one_smul := λ _, by { ext, refl },
   mul_smul := λ _ _ _, by { ext, refl } }
 
+/-- The action of `gal p` on the roots of `p` in `E`. -/
 instance gal_action [fact (p.splits (algebra_map F E))] : mul_action p.gal (root_set p E) :=
 { smul := λ ϕ x, roots_equiv_roots p E (ϕ • ((roots_equiv_roots p E).symm x)),
   one_smul := λ _, by simp only [equiv.apply_symm_apply, one_smul],
@@ -152,6 +158,7 @@ instance gal_action [fact (p.splits (algebra_map F E))] : mul_action p.gal (root
 
 variables {p E}
 
+/-- `polynomial.gal.restrict p E` is compatible with `polynomial.gal.gal_action p E`. -/
 @[simp] lemma restrict_smul [fact (p.splits (algebra_map F E))]
   (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑((restrict p E ϕ) • x) = ϕ x :=
 begin
@@ -164,7 +171,7 @@ end
 
 variables (p E)
 
-/-- `gal_action` as a permutation representation -/
+/-- `polynomial.gal.gal_action` as a permutation representation -/
 def gal_action_hom [fact (p.splits (algebra_map F E))] : p.gal →* equiv.perm (root_set p E) :=
 { to_fun := λ ϕ, equiv.mk (λ x, ϕ • x) (λ x, ϕ⁻¹ • x)
   (λ x, inv_smul_smul ϕ x) (λ x, smul_inv_smul ϕ x),
@@ -175,6 +182,7 @@ lemma gal_action_hom_restrict [fact (p.splits (algebra_map F E))]
   (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑(gal_action_hom p E (restrict p E ϕ) x) = ϕ x :=
 restrict_smul ϕ x
 
+/-- `gal p` embeds as a subgroup of permutations of the roots of `p` in `E`. -/
 lemma gal_action_hom_injective [fact (p.splits (algebra_map F E))] :
   function.injective (gal_action_hom p E) :=
 begin
@@ -207,10 +215,11 @@ by simp only [restrict_dvd, dif_neg hq, restrict_surjective]
 
 variables (p q)
 
-/-- The Galois group of a product embeds into the product of the Galois groups  -/
+/-- The Galois group of a product maps into the product of the Galois groups.  -/
 def restrict_prod : (p * q).gal →* p.gal × q.gal :=
 monoid_hom.prod (restrict_dvd (dvd_mul_right p q)) (restrict_dvd (dvd_mul_left q p))
 
+/-- `polynomial.gal.restrict_prod` is actually a subgroup embedding. -/
 lemma restrict_prod_injective : function.injective (restrict_prod p q) :=
 begin
   by_cases hpq : (p * q) = 0,
@@ -258,6 +267,7 @@ begin
     exact splits_comp_of_splits _ _ h₂, },
 end
 
+/-- `p` splits in the splitting field of `p ∘ q`, for `q` non-constant. -/
 lemma splits_in_splitting_field_of_comp (hq : q.nat_degree ≠ 0) :
   p.splits (algebra_map F (p.comp q).splitting_field) :=
 begin
@@ -294,6 +304,7 @@ begin
     (λ _, splits_of_is_unit _) (λ _ _ _ h, key2 (key1 h)),
 end
 
+-- todo: go back to this docstring
 /-- The restriction homomorphism from the Galois group of a homomorphism -/
 def restrict_comp (hq : q.nat_degree ≠ 0) : (p.comp q).gal →* p.gal :=
 @restrict F _ p _ _ _ ⟨splits_in_splitting_field_of_comp p q hq⟩
@@ -304,6 +315,8 @@ by simp only [restrict_comp, restrict_surjective]
 
 variables {p q}
 
+/-- For a separable polynomial, its Galois group has cardinality
+equal to the dimension of its splitting field over `F`. -/
 lemma card_of_separable (hp : p.separable) :
   fintype.card p.gal = finrank F p.splitting_field :=
 begin
@@ -334,14 +347,16 @@ begin
   rw [aeval_def, map_root_of_splits _ (splitting_field.splits p) hp],
 end
 
+section rationals
+
 lemma splits_ℚ_ℂ {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
 ⟨is_alg_closed.splits_codomain p⟩
 
 local attribute [instance] splits_ℚ_ℂ
 
 /-- The number of complex roots equals the number of real roots plus
-  the number of roots not fixed by complex conjugation -/
-lemma gal_action_hom_bijective_of_prime_degree_aux (p : polynomial ℚ) :
+    the number of roots not fixed by complex conjugation (i.e. with some imaginary component). -/
+lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : polynomial ℚ) :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card :=
 begin
@@ -392,7 +407,7 @@ begin
   { apply_instance },
 end
 
-/-- An irreducible polynomial of prime degree with two non-real roots has full Galois group -/
+/-- An irreducible polynomial of prime degree with two non-real roots has full Galois group. -/
 lemma gal_action_hom_bijective_of_prime_degree
   {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
@@ -416,10 +431,10 @@ begin
   { rw ← equiv.perm.card_support_eq_two,
     apply nat.add_left_cancel,
     rw [←p_roots, ←set.to_finset_card (root_set p ℝ), ←set.to_finset_card (root_set p ℂ)],
-    exact (gal_action_hom_bijective_of_prime_degree_aux p).symm },
+    exact (card_complex_roots_eq_card_real_add_card_not_gal_inv p).symm },
 end
 
-/-- An irreducible polynomial of prime degree with 1-3 non-real roots has full Galois group -/
+/-- An irreducible polynomial of prime degree with 1-3 non-real roots has full Galois group. -/
 lemma gal_action_hom_bijective_of_prime_degree'
   {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots1 : fintype.card (p.root_set ℝ) + 1 ≤ fintype.card (p.root_set ℂ))
@@ -433,7 +448,7 @@ begin
   equiv.perm.two_dvd_card_support (by rw [←monoid_hom.map_pow, ←monoid_hom.map_pow,
     show alg_equiv.restrict_scalars ℚ complex.conj_alg_equiv ^ 2 = 1,
     from alg_equiv.ext complex.conj_conj, monoid_hom.map_one, monoid_hom.map_one]),
-  have key := gal_action_hom_bijective_of_prime_degree_aux p,
+  have key := card_complex_roots_eq_card_real_add_card_not_gal_inv p,
   simp_rw [set.to_finset_card] at key,
   rw [key, add_le_add_iff_left] at p_roots1 p_roots2,
   rw [key, add_right_inj],
@@ -444,6 +459,8 @@ begin
     from nat.two_mul_ne_two_mul_add_one))) (nat.succ_le_iff.mpr (lt_of_le_of_ne h2
     (show 2 * 0 + 1 ≠ 2 * k, from nat.two_mul_ne_two_mul_add_one.symm))),
 end
+
+end rationals
 
 end gal
 

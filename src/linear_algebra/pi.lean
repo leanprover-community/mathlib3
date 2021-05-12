@@ -58,7 +58,7 @@ rfl
 
 /-- The projections from a family of modules are linear maps. -/
 def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
-pi.eval_linear_map _ _ i
+⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
 @[simp] lemma coe_proj (i : ι) : ⇑(proj i : (Πi, φ i) →ₗ[R] φ i) = function.eval i := rfl
 

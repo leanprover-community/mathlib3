@@ -30,6 +30,8 @@ Basic definitions and properties of the above ideas are provided in this file.
   * `lie_module.is_weight`
   * `lie_algebra.root_space`
   * `lie_algebra.is_root`
+  * `lie_algebra.root_space_weight_space_product`
+  * `lie_algebra.root_space_product`
 
 ## References
 
@@ -287,7 +289,7 @@ end
 variables (R L H M)
 
 /-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural
-`R`-linear product of root vectors and weight vectors, compatible with the actions of `H`. -/
+`R`-bilinear product of root vectors and weight vectors, compatible with the actions of `H`. -/
 def root_space_weight_space_product (χ₁ χ₂ : H → R) :
   (root_space H χ₁) ⊗[R] (weight_space M χ₂) →ₗ⁅R,H⁆ weight_space M (χ₁ + χ₂) :=
 lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M (χ₁ + χ₂))
@@ -314,7 +316,7 @@ by simp only [root_space_weight_space_product, lift_apply, lie_module_hom.coe_to
   coe_lift_lie_eq_lift_coe, submodule.coe_mk, linear_map.coe_mk, lie_module_hom.coe_mk]
 
 /-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural
-`R`-linear product of root vectors, compatible with the actions of `H`. -/
+`R`-bilinear product of root vectors, compatible with the actions of `H`. -/
 def root_space_product (χ₁ χ₂ : H → R) :
   (root_space H χ₁) ⊗[R] (root_space H χ₂) →ₗ⁅R,H⁆ root_space H (χ₁ + χ₂) :=
 root_space_weight_space_product R L H L χ₁ χ₂

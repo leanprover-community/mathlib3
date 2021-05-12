@@ -84,17 +84,16 @@ end lower_adjoint
 
 end coe_to_set-/
 
-structure lower_adjoint {α β : Type*} [preorder α] [preorder β] (u : β → α) :=
+variables {α β : Type*}
+
+structure lower_adjoint [preorder α] [preorder β] (u : β → α) :=
 (to_fun : α → β)
 (gc' : galois_connection to_fun u)
 
 namespace lower_adjoint
 
-variables {α β : Type*} {u : β → α}
-
 section preorder
-
-variables [preorder α] [preorder β] (l : lower_adjoint u)
+variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
 instance : has_coe_to_fun (lower_adjoint u) :=
 { F := λ _, α → β, coe := to_fun }
@@ -109,7 +108,7 @@ def gc : galois_connection l u := l.gc'
 
 @[mono] lemma mono : monotone (u ∘ l) := l.gc.monotone_u.comp l.gc.monotone_l
 
-@[mono] lemma monotone : monotone l := l.gc.monotone_l
+--@[mono] lemma monotone : monotone l := l.gc.monotone_l
 
 /-- Every element is less than its closure. This property is sometimes referred to as extensivity or
 inflationarity. -/
@@ -118,8 +117,7 @@ lemma le_closure (x : α) : x ≤ u (l x) := l.gc.le_u_l _
 end preorder
 
 section partial_order
-
-variables [partial_order α] [preorder β] (l : lower_adjoint u)
+variables [partial_order α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
 lemma closure_eq_of_le_closure {x : α}
   (h : u (l x) ≤ x) : u (l x) = x :=
@@ -136,21 +134,41 @@ lemma le_closure_iff (x y : α) : x ≤ u (l y) ↔ u (l x) ≤ u (l y) :=
 
 end partial_order
 
-@[simp] lemma closure_top [order_top α] [preorder β] (l : lower_adjoint u) :
+/-section complete_lattice
+variables [preorder α] [complete_lattice β] (l : lower_adjoint u)
+
+/-- Constructor from a `complete_lattice`. It is a commonplace construction with
+`u := (coe : β → α)` -/
+@[simps] def complete_lattice.closure (hu : monotone u) (hu₂ : ∀ s : set β, u) :
+  lower_adjoint u :=
+{ to_fun := λ k, Inf {K | k ≤ u K},
+  gc' := λ k K,
+  ⟨begin
+    rintro h,
+    simp at h,
+    have := hu h,
+    refine le_trans _ this,
+    -- mem_Inf.2 $ λ K hK, hK hx
+  end, λ h, Inf_le h⟩
+}
+
+end complete_lattice-/
+
+@[simp] lemma closure_top [order_top α] [preorder β] {u : β → α} (l : lower_adjoint u) :
   u (l ⊤) = ⊤ :=
 le_top.antisymm (l.le_closure _)
 
-lemma closure_inf_le [semilattice_inf α] [preorder β] (l : lower_adjoint u) (x y : α) :
+lemma closure_inf_le [semilattice_inf α] [preorder β] {u : β → α} (l : lower_adjoint u) (x y : α) :
   u (l (x ⊓ y)) ≤ u (l x) ⊓ u (l y) :=
 l.mono.map_inf_le _ _
 
-lemma closure_sup_closure_le [semilattice_sup α] [preorder β] (l : lower_adjoint u) (x y : α) :
+lemma closure_sup_closure_le [semilattice_sup α] [preorder β] {u : β → α} (l : lower_adjoint u)
+  (x y : α) :
   u (l x) ⊔ u (l y) ≤ u (l (x ⊔ y)) :=
 l.mono.le_map_sup _ _
 
 section preorder
-
-variables [preorder α] [preorder β] (l : lower_adjoint u)
+variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
 /-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
 def closed : set α := λ x, u (l x) = x
@@ -162,8 +180,7 @@ lemma closure_eq_self_of_mem_closed {x : α} (h : x ∈ l.closed) : u (l x) = x 
 end preorder
 
 section partial_order
-
-variables [partial_order α] [partial_order β] (l : lower_adjoint u)
+variables [partial_order α] [partial_order β] {u : β → α} (l : lower_adjoint u)
 
 lemma mem_closed_iff_closure_le (x : α) : x ∈ l.closed ↔ u (l x) ≤ x :=
 ⟨le_of_eq, λ h, h.antisymm (l.le_closure x)⟩
@@ -182,78 +199,58 @@ by rw [←l.closure_eq_self_of_mem_closed hy, ←le_closure_iff]
 
 end partial_order
 
-@[simp] lemma closure_sup_closure_left [semilattice_sup α] [partial_order β]
-  (l : lower_adjoint u)
-  (x y : α) :
-  u (l (u (l x) ⊔ y))  = u (l (x ⊔ y)) :=
+section semilattice_sup
+variables [semilattice_sup α] [preorder β] {u : β → α} (l : lower_adjoint u)
+
+@[simp] lemma closure_sup_closure_left (x y : α) :
+  u (l (u (l x) ⊔ y)) = u (l (x ⊔ y)) :=
 le_antisymm ((l.le_closure_iff _ _).1 (sup_le (l.mono le_sup_left)
   (le_sup_right.trans (l.le_closure _)))) (l.mono (sup_le_sup_right (l.le_closure _) _))
 
-@[simp] lemma closure_sup_closure_right [semilattice_sup α] [partial_order β] (l : lower_adjoint u)
-  (x y : α) :
+@[simp] lemma closure_sup_closure_right (x y : α) :
   u (l (x ⊔ u (l y))) = u (l (x ⊔ y)) :=
-by rw [sup_comm, closure_sup_closure_left, sup_comm]
+by rw [sup_comm, l.closure_sup_closure_left, sup_comm]
 
-@[simp] lemma closure_sup_closure {α : Type u} [semilattice_sup α] (l : lower_adjoint u)
-  (x y : α) :
-  c (c x ⊔ c y) = c (x ⊔ y) :=
-by rw [closure_sup_closure_left, closure_sup_closure_right]
+@[simp] lemma closure_sup_closure (x y : α) :
+  u (l (u (l x) ⊔ u (l y))) = u (l (x ⊔ y)) :=
+by rw [l.closure_sup_closure_left, l.closure_sup_closure_right]
 
-@[simp] lemma closure_supr_closure {α : Type u} {ι : Type v} [complete_lattice α]
-  (l : lower_adjoint u) (x : ι → α) :
-  c (⨆ i, c (x i)) = c (⨆ i, x i) :=
-le_antisymm ((le_closure_iff c _ _).1 (supr_le (λ i, c.monotone
-  (le_supr _ _)))) (c.monotone (supr_le_supr (λ i, c.le_closure _)))
+end semilattice_sup
 
-@[simp] lemma closure_bsupr_closure {α : Type u} [complete_lattice α] (l : lower_adjoint u)
-  (p : α → Prop) :
-  c (⨆ x (H : p x), c x) = c (⨆ x (H : p x), x) :=
-le_antisymm ((le_closure_iff c _ _).1 (bsupr_le (λ x hx, c.monotone
-  (le_bsupr_of_le x hx (le_refl x))))) (c.monotone (bsupr_le_bsupr (λ x hx, le_closure _ _)))
+section complete_lattice
+variables [complete_lattice α] [preorder β] {u : β → α} (l : lower_adjoint u)
+
+@[simp] lemma closure_supr_closure {ι : Type v} (x : ι → α) :
+  u (l (⨆ i, u (l (x i)))) = u (l (⨆ i, x i)) :=
+le_antisymm ((l.le_closure_iff _ _).1 (supr_le (λ i, l.mono
+  (le_supr _ _)))) (l.mono (supr_le_supr (λ i, l.le_closure _)))
+
+@[simp] lemma closure_bsupr_closure (p : α → Prop) :
+  u (l (⨆ x (H : p x), u (l x))) = u (l (⨆ x (H : p x), x)) :=
+le_antisymm ((l.le_closure_iff _ _).1 (bsupr_le (λ x hx, l.mono
+  (le_bsupr_of_le x hx (le_refl x))))) (l.mono (bsupr_le_bsupr (λ x hx, le_closure _ _)))
+
+end complete_lattice
+
+section partial_order
+variables [partial_order α] [partial_order β] {u : β → α} (l : lower_adjoint u)
 
 /-- The set of closed elements has a Galois insertion to the underlying type. -/
-def gi : galois_insertion c.to_closed coe :=
-{ choice := λ x hx, ⟨x, le_antisymm hx (c.le_closure x)⟩,
-  gc := λ x y, (c.closure_le_closed_iff_le _ y.2),
-  le_l_u := λ x, c.le_closure _,
-  choice_eq := λ x hx, le_antisymm (c.le_closure x) hx }
+def gi (l : lower_adjoint u) : galois_insertion (u ∘ l) id :=
+{ choice := λ x hx, u (l x),
+  gc := λ x y, sorry,
+  le_l_u := λ x, begin
+    exact l.le_closure x,
+  end,
+  choice_eq := λ x hx, rfl }
 
-end closure_operator
-
-variables {α} (l : lower_adjoint u)
-
-/--
-Every Galois connection induces a closure operator given by the composition. This is the partial
-order version of the statement that every adjunction induces a monad.
--/
-@[simps]
-def galois_connection.closure_operator {β : Type u} [preorder β]
-  {l : α → β} {u : β → α} (gc : galois_connection l u) :
-  lower_adjoint u :=
-{ to_fun := λ x, u (l x),
-  monotone' := λ x y h, gc.monotone_u (gc.monotone_l h),
-  le_closure' := gc.le_u_l,
-  idempotent' := λ x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _) }
-
-def lower_adjoint.closure_operator {β : Type u} [preorder β] {l : β → α} (la : lower_adjoint u) :
-  lower_adjoint u :=
-la.gc.closure_operator
-
-/--
-The Galois insertion associated to a closure operator can be used to reconstruct the closure
-operator.
-
-Note that the inverse in the opposite direction does not hold in general.
--/
-@[simp]
-lemma closure_operator_gi_self : c.gi.gc.closure_operator = c :=
-by { ext x, refl }
+end partial_order
 
 end lower_adjoint
 
 /-! ### Closure operator -/
 
-variables (α : Type u) [partial_order α]
+variables (α) [partial_order α]
 
 /--
 A closure operator on the partial order `α` is a monotone function which is extensive (every `x`
@@ -426,14 +423,23 @@ def gi : galois_insertion c.to_closed coe :=
 
 end closure_operator
 
-variables {α} (c : closure_operator α)
+variables {α} (c : closure_operator α) [preorder β] {u : β → α} (l : lower_adjoint u)
 
 /--
 Every Galois connection induces a closure operator given by the composition. This is the partial
 order version of the statement that every adjunction induces a monad.
 -/
 @[simps]
-def galois_connection.closure_operator {β : Type u} [preorder β]
+def galois_connection.lower_adjoint
+  {l : α → β} {u : β → α} (gc : galois_connection l u) :
+  lower_adjoint u :=
+{ to_fun := l,
+  gc' := gc }
+
+/-- Every Galois connection induces a closure operator given by the composition. This is the partial
+order version of the statement that every adjunction induces a monad. -/
+@[simps]
+def galois_connection.closure_operator {β : Type*} [preorder β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   closure_operator α :=
 { to_fun := λ x, u (l x),
@@ -441,16 +447,22 @@ def galois_connection.closure_operator {β : Type u} [preorder β]
   le_closure' := gc.le_u_l,
   idempotent' := λ x, le_antisymm (gc.monotone_u (gc.l_u_le _)) (gc.le_u_l _) }
 
-def lower_adjoint.closure_operator {β : Type u} [preorder β] {l : β → α} (la : lower_adjoint u) :
+def lower_adjoint.closure_operator :
   closure_operator α :=
-la.gc.closure_operator
+l.gc.closure_operator
 
-/--
-The Galois insertion associated to a closure operator can be used to reconstruct the closure
+/-- The Galois insertion associated to a closure operator can be used to reconstruct the closure
 operator.
 
-Note that the inverse in the opposite direction does not hold in general.
--/
+Note that the inverse in the opposite direction does not hold in general. -/
 @[simp]
 lemma closure_operator_gi_self : c.gi.gc.closure_operator = c :=
 by { ext x, refl }
+
+/-/-- The Galois insertion associated to a closure operator can be used to reconstruct the closure
+operator.
+
+Note that the inverse in the opposite direction does not hold in general. -/
+@[simp]
+lemma lower_adjoint_gi_self : l.gi.gc.closure_operator = l :=
+by { ext x, refl }x-/

@@ -70,7 +70,7 @@ declare_trace simps.debug
     expression.
   - A boolean specifying whether simp-lemmas are generated for this projection by default.
   - A boolean specifying whether this projection is written as prefix. -/
-@[protect_proj, derive has_reflect]
+@[protect_proj, derive [has_reflect, inhabited]]
 meta structure projection_data :=
 (name : name)
 (expr : expr)
@@ -85,6 +85,19 @@ meta structure parsed_projection_data :=
 (new_name : name) -- name used by simps for this projection
 (is_default : bool)
 (is_prefix : bool)
+
+
+section
+open format
+meta instance : has_to_tactic_format projection_data :=
+⟨λ ⟨a, b, c, d, e⟩, (λ x, group $ nest 1 $ to_fmt "⟨"  ++ to_fmt a ++ to_fmt "," ++ line ++ x ++
+  to_fmt "," ++ line ++ to_fmt c ++ to_fmt "," ++ line ++ to_fmt d ++ to_fmt "," ++ line ++
+  to_fmt e ++ to_fmt "⟩") <$> pp b⟩
+
+meta instance : has_to_format parsed_projection_data :=
+⟨λ ⟨a, b, c, d⟩, group $ nest 1 $ to_fmt "⟨"  ++ to_fmt a ++ to_fmt "," ++ line ++ to_fmt b ++
+  to_fmt "," ++ line ++ to_fmt c ++ to_fmt "," ++ line ++ to_fmt d ++ to_fmt "⟩"⟩
+end
 
 /-- A rule that specifies how metadata for projections in changes.
   See `initialize_simps_projection`. -/
@@ -263,7 +276,7 @@ meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exis
           proj else
         projs ++ [⟨nm, nm, ff, is_prefix⟩]
       end) projs,
-    -- when_tracing `simps.debug trace!"[simps] > Projection info after applying the rules: {projs}.",
+    when_tracing `simps.debug trace!"[simps] > Projection info after applying the rules: {projs}.",
     /- Define the raw expressions for the projections, by default as the projections
     (as an expression), but this can be overriden by the user. -/
     raw_exprs_and_nrs ← projs.mmap $ λ ⟨orig_nm, new_nm, _, _⟩, do {
@@ -332,8 +345,8 @@ Expected type:\n  {raw_expr_type}" },
       is_proof proj.expr >>= λ b, return $ if b then { is_default := ff, .. proj } else proj,
     when trc $ projections_info projs "generated projections for" str >>= trace,
     simps_str_attr.set str (raw_univs, projs) tt,
-    -- when_tracing `simps.debug trace!
-    --   "[simps] > Generated universes: {raw_univs}}\n        > Generated",
+    when_tracing `simps.debug trace!
+       "[simps] > Generated raw projection data: \n{(raw_univs, projs)}",
     return (raw_univs, projs)
 
 /-- Parse a rule for `initialize_simps_projections`. It is either `<name>→<name>` or `-<name>`.-/
@@ -473,18 +486,12 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the object
   (raw_univs, proj_data) ← simps_get_raw_projections e str ff [] cfg.trace,
   let univs := raw_univs.zip tgt.get_app_fn.univ_levels,
-
   let new_proj_data : list $ expr × projection_data := proj_data.map $
-    λ proj, (_, { .. proj }),
-  -- let projs := proj_data.map $ λ p, p.name,
-  let raw_exprs := proj_data.map $ λ p, p.expr,
-  let nrs := proj_data.map $ λ p, p.proj_nrs,
-  -- let nrs_and_default := proj_data.map $ λ p, p.2.2,
-  let proj_exprs := raw_exprs.map $
-    λ raw_expr, (raw_expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
-  let rhs_exprs := nrs.map $ λ x, rhs_args.inth x.head,
-  -- return $ rhs_exprs.zip {expr := proj_expr, proj_data
-  --proj_exprs.zip $ projs.zip $ rhs_exprs.zip $ nrs_and_default.map (λ x, (x.1.tail, x.2))
+    λ proj, (rhs_args.inth proj.proj_nrs.head,
+      { expr := (proj.expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
+        proj_nrs := proj.proj_nrs.tail,
+        .. proj }),
+  return  new_proj_data
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.
@@ -557,9 +564,8 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
       return (rhs_whnf, ff) else
       return (rhs_ap, "" ∈ todo ∧ to_apply = []),
     if is_constant_of (get_app_fn rhs_ap) intro then do -- if the value is a constructor application
-      tuples ← simps_get_projection_exprs e tgt rhs_ap cfg,
-      when_tracing `simps.debug trace!"[simps] > Raw projection information:\n  {tuples}",
-      let projs := tuples.map $ λ x, x.2.1,
+      proj_info ← simps_get_projection_exprs e tgt rhs_ap cfg,
+      when_tracing `simps.debug trace!"[simps] > Raw projection information:\n  {proj_info}",
       eta ← rhs_ap.is_eta_expansion, -- check whether `rhs_ap` is an eta-expansion
       let rhs_ap := eta.lhoare rhs_ap, -- eta-reduce `rhs_ap`
       /- As a special case, we want to automatically generate the current projection if `rhs_ap`
@@ -571,13 +577,15 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
           simps_add_projection new_nm type lhs rhs args univs cfg,
       /- If we are in the middle of a composite projection. -/
       when (to_apply ≠ []) $ do {
-        (proj_expr, proj, new_rhs, proj_nrs, is_default) ← return $ tuples.inth to_apply.head,
+        ⟨proj_expr, proj, new_rhs, proj_nrs, is_default, is_prefix⟩ ←
+          return $ proj_info.inth to_apply.head,
         new_type ← infer_type new_rhs,
         simps_add_projections e nm suffix new_type lhs new_rhs new_args univs ff cfg todo
           to_apply.tail },
       /- We stop if no further projection is specified or if we just reduced an eta-expansion and we
       automatically choose projections -/
       when ¬(to_apply ≠ [] ∨ todo = [""] ∨ (eta.is_some ∧ todo = [])) $ do
+        let projs : list name := proj_info.map $ λ x, x.snd.name,
         let todo := if to_apply = [] then todo_next else todo,
         -- check whether all elements in `todo` have a projection as prefix
         guard (todo.all $ λ x, projs.any $ λ proj, ("_" ++ proj.last).is_prefix_of x) <|>
@@ -591,7 +599,8 @@ The known projections are:
 You can also see this information by running
   `initialize_simps_projections? {str}`.
 Note: these projection names might not correspond to the projection names of the structure.",
-        tuples.mmap_with_index' $ λ proj_nr ⟨proj_expr, proj, new_rhs, proj_nrs, is_default⟩, do
+        proj_info.mmap_with_index' $
+          λ proj_nr ⟨proj_expr, proj, new_rhs, proj_nrs, is_default, is_prefix⟩, do
           new_type ← infer_type new_rhs,
           let new_todo :=
             todo.filter_map $ λ x, x.get_rest ("_" ++ proj.last),

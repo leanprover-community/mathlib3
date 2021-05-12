@@ -30,11 +30,14 @@ results about the Galois groups of ℚ-polynomials with specific numbers of non-
 - `polynomial.gal.restrict_prod_injective`: `gal (p * q)` embeds as a subgroup of `gal p × gal q`.
 - `polynomial.gal.card_of_separable`: For a separable polynomial, its Galois group has cardinality
 equal to the dimension of its splitting field over `F`.
+- `polynomial.gal.gal_action_hom_bijective_of_prime_degree`:
+An irreducible polynomial of prime degree with two non-real roots has full Galois group.
+
+## Other results
 - `polynomial.gal.card_complex_roots_eq_card_real_add_card_not_gal_inv`: The number of complex roots
 equals the number of real roots plus the number of roots not fixed by complex conjugation
 (i.e. with some imaginary component).
-- `polynomial.gal.gal_action_hom_bijective_of_prime_degree`:
-An irreducible polynomial of prime degree with two non-real roots has full Galois group.
+
 -/
 
 noncomputable theory
@@ -94,7 +97,7 @@ instance [h : fact (p.splits (algebra_map F E))] : is_scalar_tower F p.splitting
 is_scalar_tower.of_algebra_map_eq
   (λ x, ((is_splitting_field.lift p.splitting_field p h.1).commutes x).symm)
 
-/-- Restrict from a superfield automorphism into a `p`-automorphism. -/
+/-- Restrict from a superfield automorphism into a member of `gal p`. -/
 def restrict [fact (p.splits (algebra_map F E))] : (E ≃ₐ[F] E) →* p.gal :=
 alg_equiv.restrict_normal_hom p.splitting_field
 
@@ -200,7 +203,7 @@ end roots_action
 
 variables {p q}
 
-/-- `polynomial.gal.restrict`, specialized to when both fields are extensions of polynomials. -/
+/-- `polynomial.gal.restrict`, when both fields are splitting fields of polynomials. -/
 def restrict_dvd (hpq : p ∣ q) : q.gal →* p.gal :=
 if hq : q = 0 then 1 else @restrict F _ p _ _ _
   ⟨splits_of_splits_of_dvd (algebra_map F q.splitting_field) hq (splitting_field.splits q) hpq⟩

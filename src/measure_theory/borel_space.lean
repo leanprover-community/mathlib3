@@ -1354,8 +1354,8 @@ structure regular (μ : measure α) : Prop :=
 (lt_top_of_is_compact : ∀ {{K : set α}}, is_compact K → μ K < ∞)
 (outer_regular : ∀ {{A : set α}}, measurable_set A →
   (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) ≤ μ A)
-(inner_regular : ∀ {{U : set α}}, is_open U →
-  μ U ≤ ⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K)
+(inner_regular : ∀ {{A : set α}}, measurable_set A →
+  μ A ≤ ⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ A), μ K)
 
 namespace regular
 
@@ -1363,12 +1363,12 @@ lemma outer_regular_eq (hμ : μ.regular) {{A : set α}}
   (hA : measurable_set A) : (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) = μ A :=
 le_antisymm (hμ.outer_regular hA) $ le_infi $ λ s, le_infi $ λ hs, le_infi $ λ h2s, μ.mono h2s
 
-lemma inner_regular_eq (hμ : μ.regular) {{U : set α}}
-  (hU : is_open U) : (⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K) = μ U :=
-le_antisymm (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s) (hμ.inner_regular hU)
+lemma inner_regular_eq (hμ : μ.regular) {{A : set α}}
+  (hA : measurable_set A) : (⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ A), μ K) = μ A :=
+le_antisymm (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s) (hμ.inner_regular hA)
 
 lemma exists_compact_not_null (hμ : regular μ) : (∃ K, is_compact K ∧ μ K ≠ 0) ↔ μ ≠ 0 :=
-by simp_rw [ne.def, ← measure_univ_eq_zero, ← hμ.inner_regular_eq is_open_univ,
+by simp_rw [ne.def, ← measure_univ_eq_zero, ← hμ.inner_regular_eq measurable_set.univ,
     ennreal.supr_eq_zero, not_forall, exists_prop, subset_univ, true_and]
 
 protected lemma map [opens_measurable_space α] [measurable_space β] [topological_space β]
@@ -1386,8 +1386,8 @@ begin
     intro U, apply infi_congr_Prop f.is_open_preimage, intro hU,
     apply infi_congr_Prop h3f.preimage_subset_preimage_iff, intro h2U,
     rw [map_apply hf hU.measurable_set], },
-  { intros U hU,
-    rw [map_apply hf hU.measurable_set, ← hμ.inner_regular_eq (hU.preimage f.continuous)],
+  { intros A hA,
+    rw [map_apply hf hA, ← hμ.inner_regular_eq (hf hA)],
     refine ge_of_eq _, apply supr_congr (preimage f) h2f,
     intro K, apply supr_congr_Prop f.compact_preimage, intro hK,
     apply supr_congr_Prop h3f.preimage_subset_preimage_iff, intro h2U,

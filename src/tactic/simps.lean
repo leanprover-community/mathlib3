@@ -416,8 +416,6 @@ def lemmas_only : simps_cfg := {attrs := []}
   The last two fields of the list correspond to the propositional fields of the structure,
   and are rarely/never used.
 -/
--- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the given arguments
--- might not uniquely specify the universe levels yet.
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr × list ℕ × bool := do
   let params := get_app_args tgt, -- the parameters of the structure
@@ -442,6 +440,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
   when_tracing `simps.debug trace!
     "[simps] > Planning to add the equality\n        > {lhs} = ({rhs} : {type})",
+  lvl ← get_univ_level type,
   -- simplify `rhs` if `cfg.simp_rhs` is true
   (rhs, prf) ← do { guard cfg.simp_rhs,
     rhs' ← rhs.dsimp {fail_if_unchanged := ff},
@@ -451,8 +450,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     when_tracing `simps.debug $ when (rhs' ≠ rhsprf1) trace!
       "[simps] > `simp` simplified rhs to\n        > {rhsprf1}",
     return (prod.mk rhsprf1 rhsprf2) }
-    <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
-  sort lvl ← infer_type type,
+    <|> return (rhs, const `eq.refl [lvl] type lhs),
   let eq_ap := const `eq [lvl] type lhs rhs,
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
@@ -460,7 +458,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   when cfg.trace trace!
     "[simps] > adding projection {decl_name}:\n        > {decl_type}",
-  decorate_error ("failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
+  decorate_error ("Failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
     add_decl decl,
   b ← succeeds $ is_def_eq lhs rhs,
   when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
@@ -495,7 +493,7 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
     rhs_whnf ← whnf rhs_ap cfg.rhs_md,
     (rhs_ap, todo_now) ← -- `todo_now` means that we still have to generate the current simp lemma
-      if h : ¬ is_constant_of rhs_ap.get_app_fn intro ∧
+      if ¬ is_constant_of rhs_ap.get_app_fn intro ∧
         is_constant_of rhs_whnf.get_app_fn intro then
       /- If this was a desired projection, we want to apply it before taking the whnf.
         However, if the current field is an eta-expansion (see below), we first want
@@ -589,8 +587,7 @@ Projection {(first_todo.split_on '_').tail.head} doesn't exist, because target i
   If `short_nm` is true, the generated names will only use the last projection name.
   If `trc` is true, trace as if `trace.simps.verbose` is true. -/
 meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []) (trc := ff) :
-  tactic unit :=
-do
+  tactic unit := do
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),

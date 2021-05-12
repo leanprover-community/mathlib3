@@ -954,3 +954,18 @@ by { dsimp, guard_target (x = x), refl }
 def fffoo2 (α : Type) : one_more α α := fffoo α
 
 end comp_projs
+
+section
+/-! Check that the tactic also works if the elaborated type of `type` reduces to `Sort*`, but is
+  not `Sort*` itself. -/
+structure my_functor (C D : Type*) :=
+(obj []    : C → D)
+local infixr ` ⥤ `:26 := my_functor
+
+@[simps]
+def foo_sum {I J : Type*} (C : I → Type*) {D : J → Type*} :
+  (Π i, C i) ⥤ (Π j, D j) ⥤ (Π s : I ⊕ J, sum.elim C D s) :=
+{ obj := λ f, { obj := λ g s, sum.rec f g s }}
+
+
+end

@@ -1073,7 +1073,7 @@ instance pi.complete_lattice {α : Type*} {β : α → Type*} [∀ i, complete_l
   .. pi.bounded_lattice }
 
 /- The Knaster-Tarski theorem -/
-instance complete_lattice_fixed_points {α : Type*} [complete_lattice α] {f : α → α} [monotone f] :
+def complete_lattice_fixed_points {α : Type*} [complete_lattice α] {f : α → α} (hf : monotone f) :
 complete_lattice {x // x = f x} :=
 { le := (≤),
   top := ⟨(⨆ (x : α) (hx : x ≤ f x), x), begin

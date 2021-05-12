@@ -50,6 +50,19 @@ def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β 
 
 end list
 
+namespace name
+
+/-- Update the last component of a name -/
+def update_last (f : string → string) : name → name
+| (mk_string s n) := mk_string (f s) n
+| n := n
+
+/-- Adds `s` to the last component of `nm`, either as prefix or as suffix, separated by `_`. -/
+def append_to_last (nm : name) (s : string) (is_prefix : bool) : name :=
+nm.update_last $ λ s', if is_prefix then s ++ "_" ++ s' else s' ++ "_" ++ s
+
+end name
+
 open tactic expr option sum
 
 setup_tactic_parser
@@ -144,7 +157,9 @@ meta def projections_info (l : list projection_data) (pref : string) (str : name
 do
   ⟨defaults, nondefaults⟩ ← return $ l.partition_map $
     λ s, if s.is_default then inl s else inr s,
-  to_print ← defaults.mmap $ λ s, to_string <$> pformat!"Projection {s.name}: {s.expr}",
+  to_print ← defaults.mmap $ λ s, to_string <$>
+    let prefix_str := if s.is_prefix then "(prefix) " else "" in
+    pformat!"Projection {prefix_str}{s.name}: {s.expr}",
   let print2 :=
     string.join $ (nondefaults.map (λ nm : projection_data, to_string nm.1)).intersperse ", ",
   let to_print := to_print ++ if nondefaults.length = 0 then [] else
@@ -267,8 +282,10 @@ meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exis
     let projs : list parsed_projection_data := rules.foldl (λ projs rule,
       match rule with
       | (inl (old_nm, new_nm), is_prefix) := if old_nm ∈ projs.map (λ x, x.new_name) then
-         projs.map $ λ proj,
-          if proj.new_name = old_nm then { new_name := new_nm, ..proj } else proj else
+        projs.map $ λ proj,
+          if proj.new_name = old_nm then
+            { new_name := new_nm, is_prefix := is_prefix, ..proj } else
+            proj else
         projs ++ [⟨old_nm, new_nm, tt, is_prefix⟩]
       | (inr nm, is_prefix) := if nm ∈ projs.map (λ x, x.new_name) then
         projs.map $ λ proj, if proj.new_name = nm then
@@ -382,7 +399,14 @@ library_note "custom simps projection"
     `initialize_simps_projections equiv (-inv_fun)`
     This will ensure that no simp lemmas are generated for this projection,
     unless this projection is explicitly specified by the user.
-  * Run `initialize_simps_projections?` (or set `trace.simps.verbose`)
+  * If you want the projection name added as a prefix in the generated lemma name, you can add the
+    `as_prefix` modifier:
+    `initialize_simps_projections equiv (to_fun → coe as_prefix)`
+    Note that this does not influence the parsing of projection names: if you have a declaration
+    `foo` and you want to apply the projections `snd`, `coe` (which is a prefix) and `fst`, in that
+    order you can run `@[simps snd_coe_fst] def foo ...` and this will generate a lemma with the
+    name `coe_foo_snd_fst`.
+    * Run `initialize_simps_projections?` (or set `trace.simps.verbose`)
     to see the generated projections. -/
 @[user_command] meta def initialize_simps_projections_cmd
   (_ : parse $ tk "initialize_simps_projections") : parser unit := do
@@ -401,10 +425,6 @@ library_note "custom simps projection"
     * If ``[`simp]`` is in the list, then ``[`_refl_lemma]`` is added automatically if appropriate.
     * If the definition is marked with `@[to_additive ...]` then all generated lemmas are marked
       with `@[to_additive]`
-  * `short_name` gives the generated lemmas a shorter name. This only has an effect when multiple
-    projections are applied in a lemma. When this is `ff` (default) all projection names will be
-    appended to the definition name to form the lemma name, and when this is `tt`, only the
-    last projection name will be appended.
   * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put in
     simp-normal form. More precisely: `dsimp, simp` will be called on all these expressions.
     See note [dsimp, simp].
@@ -433,7 +453,6 @@ library_note "custom simps projection"
 -/
 @[derive [has_reflect, inhabited]] structure simps_cfg :=
 (attrs         := [`simp])
-(short_name    := ff)
 (simp_rhs      := ff)
 (type_md       := transparency.instances)
 (rhs_md        := transparency.none)
@@ -527,10 +546,10 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   If `todo` is non-empty, it will generate exactly the names in `todo`.
   `to_apply` is non-empty after a custom projection that is a composition of multiple projections
   was just used. In that case we need to apply these projections before we continue changing lhs. -/
-meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : string)
+meta def simps_add_projections : Π (e : environment) (nm : name)
   (type lhs rhs : expr) (args : list expr) (univs : list name) (must_be_str : bool)
   (cfg : simps_cfg) (todo : list string) (to_apply : list ℕ), tactic unit
-| e nm suffix type lhs rhs args univs must_be_str cfg todo to_apply := do
+| e nm type lhs rhs args univs must_be_str cfg todo to_apply := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
   when_tracing `simps.debug trace!
     "[simps] > Trying to add simp-lemmas for\n        > {lhs}
@@ -543,7 +562,6 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
   let lhs_ap := lhs.mk_app type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
   let str := tgt.get_app_fn.const_name,
-  let new_nm := nm.append_suffix suffix,
   /- We want to generate the current projection if it is in `todo` -/
   let todo_next := todo.filter (≠ ""),
   /- Don't recursively continue if `str` is not a structure or if the structure is in
@@ -559,8 +577,8 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
         to eta-reduce it and only then construct the projection.
         This makes the flow of this function messy. -/
       when ("" ∈ todo ∧ to_apply = []) (if cfg.fully_applied then
-        simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
-        simps_add_projection new_nm type lhs rhs args univs cfg) >>
+        simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
+        simps_add_projection nm type lhs rhs args univs cfg) >>
       return (rhs_whnf, ff) else
       return (rhs_ap, "" ∈ todo ∧ to_apply = []),
     if is_constant_of (get_app_fn rhs_ap) intro then do -- if the value is a constructor application
@@ -573,14 +591,14 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
         current projection if we haven't done it above. -/
       when (todo_now ∨ (todo = [] ∧ eta.is_some ∧ to_apply = [])) $
         if cfg.fully_applied then
-          simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
-          simps_add_projection new_nm type lhs rhs args univs cfg,
+          simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
+          simps_add_projection nm type lhs rhs args univs cfg,
       /- If we are in the middle of a composite projection. -/
       when (to_apply ≠ []) $ do {
-        ⟨proj_expr, proj, new_rhs, proj_nrs, is_default, is_prefix⟩ ←
+        ⟨new_rhs, proj, proj_expr, proj_nrs, is_default, is_prefix⟩ ←
           return $ proj_info.inth to_apply.head,
         new_type ← infer_type new_rhs,
-        simps_add_projections e nm suffix new_type lhs new_rhs new_args univs ff cfg todo
+        simps_add_projections e nm new_type lhs new_rhs new_args univs ff cfg todo
           to_apply.tail },
       /- We stop if no further projection is specified or if we just reduced an eta-expansion and we
       automatically choose projections -/
@@ -590,8 +608,8 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
         -- check whether all elements in `todo` have a projection as prefix
         guard (todo.all $ λ x, projs.any $ λ proj, ("_" ++ proj.last).is_prefix_of x) <|>
           let x := (todo.find $ λ x, projs.all $ λ proj, ¬ ("_" ++ proj.last).is_prefix_of x).iget,
-          simp_lemma := nm.append_suffix $ suffix ++ x,
-          needed_proj := (x.split_on '_').tail.head in
+            simp_lemma := nm.append_suffix x,
+            needed_proj := (x.split_on '_').tail.head in
           fail!
 "Invalid simp-lemma {simp_lemma}. Structure {str} does not have projection {needed_proj}.
 The known projections are:
@@ -600,17 +618,16 @@ You can also see this information by running
   `initialize_simps_projections? {str}`.
 Note: these projection names might not correspond to the projection names of the structure.",
         proj_info.mmap_with_index' $
-          λ proj_nr ⟨proj_expr, proj, new_rhs, proj_nrs, is_default, is_prefix⟩, do
+          λ proj_nr ⟨new_rhs, proj, proj_expr, proj_nrs, is_default, is_prefix⟩, do
           new_type ← infer_type new_rhs,
           let new_todo :=
             todo.filter_map $ λ x, x.get_rest ("_" ++ proj.last),
           -- we only continue with this field if it is non-propositional or mentioned in todo
           when ((is_default ∧ todo = []) ∨ new_todo ≠ []) $ do
             let new_lhs := proj_expr.instantiate_lambdas_or_apps [lhs_ap],
-            let new_suffix := if cfg.short_name then "_" ++ proj.last else
-              suffix ++ "_" ++ proj.last,
+            let new_nm := nm.append_to_last proj.last is_prefix,
             when_tracing `simps.debug trace!"[simps] > Recursively add projections for: {new_lhs}",
-            simps_add_projections e nm new_suffix new_type new_lhs new_rhs new_args univs
+            simps_add_projections e new_nm new_type new_lhs new_rhs new_args univs
               ff cfg new_todo proj_nrs
     -- if I'm about to run into an error, try to set the transparency for `rhs_md` higher.
     else if cfg.rhs_md = transparency.none ∧ (must_be_str ∨ todo_next ≠ [] ∨ to_apply ≠ []) then do
@@ -618,7 +635,7 @@ Note: these projection names might not correspond to the projection names of the
         "[simps] > The given definition is not a constructor application:
         >   {rhs_ap}
         > Retrying with the options {{ rhs_md := semireducible, simp_rhs := tt}.",
-      simps_add_projections e nm suffix type lhs rhs args univs must_be_str
+      simps_add_projections e nm type lhs rhs args univs must_be_str
         { rhs_md := semireducible, simp_rhs := tt, ..cfg} todo to_apply
     else do
       when (to_apply ≠ []) $
@@ -627,21 +644,21 @@ The given definition is not a constructor application:\n  {rhs_ap}",
       when must_be_str $
         fail!"Invalid `simps` attribute. The body is not a constructor application:\n  {rhs_ap}",
       when (todo_next ≠ []) $
-        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}.
+        fail!"Invalid simp-lemma {nm.append_suffix todo_next.head}.
 The given definition is not a constructor application:\n  {rhs_ap}",
       if cfg.fully_applied then
-        simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
-        simps_add_projection new_nm type lhs rhs args univs cfg
+        simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
+        simps_add_projection nm type lhs rhs args univs cfg
   else do
     when must_be_str $
       fail!"Invalid `simps` attribute. Target {str} is not a structure",
     when (todo_next ≠ [] ∧ str ∉ cfg.not_recursive) $
         let first_todo := todo_next.head in
-        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ first_todo}.
+        fail!"Invalid simp-lemma {nm.append_suffix first_todo}.
 Projection {(first_todo.split_on '_').tail.head} doesn't exist, because target is not a structure.",
     if cfg.fully_applied then
-      simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
-      simps_add_projection new_nm type lhs rhs args univs cfg
+      simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
+      simps_add_projection nm type lhs rhs args univs cfg
 
 /-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`.
@@ -659,7 +676,7 @@ do
   let cfg := { trace := cfg.trace || is_trace_enabled_for `simps.verbose || trc, ..cfg },
   when (cfg.trace ∧ `to_additive ∈ cfg.attrs)
     trace!"[simps] > @[to_additive] will be added to all generated lemmas.",
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt cfg todo []
+  simps_add_projections e nm d.type lhs d.value [] d.univ_params tt cfg todo []
 
 /-- The parser for the `@[simps]` attribute. -/
 meta def simps_parser : parser (bool × list string × simps_cfg) := do

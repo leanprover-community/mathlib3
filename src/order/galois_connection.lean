@@ -289,7 +289,7 @@ lemma u_injective [preorder α] [partial_order β] (gi : galois_insertion l u) :
 λ a b h,
 calc a = l (u a) : (gi.l_u_eq a).symm
    ... = l (u b) : congr_arg l h
-   ... = b      :gi.l_u_eq b
+   ... = b       : gi.l_u_eq b
 
 lemma l_sup_u [semilattice_sup α] [semilattice_sup β] (gi : galois_insertion l u) (a b : β) :
   l (u a ⊔ u b) = a ⊔ b :=

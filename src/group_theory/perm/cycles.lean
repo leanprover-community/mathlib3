@@ -569,6 +569,59 @@ def cycle_factors_finset : finset (perm α) :=
       (list_cycles_perm_list_cycles (hl'.left.symm ▸ hl.left) hl.right.left (hl'.right.left)
         hl.right.right hl'.right.right))
 
+lemma cycle_factors_finset_eq_list_to_finset {σ : perm α} {l : list (perm α)}
+  (hc : ∀ f : perm α, f ∈ l → f.is_cycle)
+  (hd : l.pairwise disjoint)
+  (hp : l.prod = σ) :
+  σ.cycle_factors_finset = l.to_finset :=
+begin
+  obtain ⟨⟨l', hp', hc', hd'⟩, hl⟩ := trunc.exists_rep σ.trunc_cycle_factors,
+  have ht : cycle_factors_finset σ = l'.to_finset,
+  { rw [cycle_factors_finset, ←hl, trunc.lift_mk] },
+  rw ht,
+  refine list.to_finset_eq_of_perm _ _ _,
+  refine list_cycles_perm_list_cycles _ hc' hc hd' hd,
+  rw [hp, hp']
+end
+
+-- TODO: use #7578
+lemma cycle_factors_finset_eq_finset {σ : perm α} (s : finset (perm α))
+  (hc : ∀ f : perm α, f ∈ s → f.is_cycle)
+  (hd : ∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b)
+  (hp : s.noncomm_prod (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
+    (set.pairwise_on.mono' (λ _ _, disjoint.commute) hd a ha b hb)) = σ) :
+  σ.cycle_factors_finset = s :=
+begin
+  obtain ⟨l, rfl, hl⟩ : ∃ (l : list (perm α)), l.to_finset = s ∧ l.nodup,
+  { cases s with s hs,
+    obtain ⟨l, hl⟩ := quotient.exists_rep s,
+    use l,
+    split,
+    { ext,
+      simp [←hl] },
+    { simpa [←hl] using hs } },
+  rw noncomm_prod_to_finset _ _ hl at hp,
+  simp only [list.mem_to_finset, ne.def] at hc hd,
+  refine cycle_factors_finset_eq_list_to_finset hc _ hp,
+  exact hl.pairwise_of_forall_ne hl hd
+end
+
+lemma finset_eq_cycle_factors_finset {σ : perm α} (s : finset (perm α))
+  (hc : ∀ f : perm α, f ∈ s → f.is_cycle)
+  (hd : ∀ (a ∈ s) (b ∈ s))
+  (hp : l.prod = σ) :
+  l.to_finset = σ.cycle_factors_finset :=
+begin
+  obtain ⟨⟨l', hp', hc', hd'⟩, hl⟩ := trunc.exists_rep σ.trunc_cycle_factors,
+  have ht : cycle_factors_finset σ = l'.to_finset,
+  { rw [cycle_factors_finset, ←hl, trunc.lift_mk] },
+  rw ht,
+  refine list.to_finset_eq_of_perm _ _ _,
+  refine list_cycles_perm_list_cycles _ hc hc' hd hd',
+  rw [hp, hp']
+end
+
+
 lemma cycle_factors_finset_pairwise_disjoint (p : perm α) (hp : p ∈ cycle_factors_finset f)
   (q : perm α) (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
   disjoint p q :=
@@ -578,6 +631,7 @@ begin
   exact list.forall_of_pairwise (λ _ _, disjoint.symm) l.prop.right.right _ hp _ hq h
 end
 
+-- TODO: use #7578
 lemma cycle_factors_finset_mem_commute (p : perm α) (hp : p ∈ cycle_factors_finset f)
   (q : perm α) (hq : q ∈ cycle_factors_finset f) :
   _root_.commute p q :=
@@ -646,14 +700,6 @@ begin
       exact hf } }
 end
 
-/-- Two permutations `f g : perm α` have the same cycle factors iff they are the same. -/
-lemma cycle_factors_finset_injective : function.injective (@cycle_factors_finset α _ _) :=
-begin
-  intros f g h,
-  rw ←cycle_factors_finset_noncomm_prod f,
-  simpa [h] using cycle_factors_finset_noncomm_prod g
-end
-
 lemma cycle_factors_finset_eq_singleton_iff {g : perm α} :
   f.cycle_factors_finset = {g} ↔ f.is_cycle ∧ f = g :=
 begin
@@ -666,6 +712,16 @@ begin
   { rintro ⟨hf, rfl⟩,
     simpa using hf }
 end
+
+/-- Two permutations `f g : perm α` have the same cycle factors iff they are the same. -/
+lemma cycle_factors_finset_injective : function.injective (@cycle_factors_finset α _ _) :=
+begin
+  intros f g h,
+  rw ←cycle_factors_finset_noncomm_prod f,
+  simpa [h] using cycle_factors_finset_noncomm_prod g
+end
+
+lemma
 
 end cycle_factors_finset
 

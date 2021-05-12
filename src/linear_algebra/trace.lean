@@ -1,5 +1,24 @@
+/-
+Copyright (c) 2019 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
+-/
 import linear_algebra.matrix.to_lin
 import linear_algebra.matrix.trace
+
+
+/-!
+# Trace of a matrix
+
+This file defines the trace of a linear map.
+
+See also `linear_algebra/matrix/trace.lean` for the trace of a matrix.
+
+## Tags
+
+linear_map, trace, diagonal
+
+-/
 
 noncomputable theory
 

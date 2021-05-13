@@ -127,8 +127,8 @@ begin
   rw [finprod_eq_prod_plift_of_mul_support_subset this, finset.prod_empty]
 end
 
-@[to_additive] lemma finprod_of_empty (ha : α → false) (f : α → M) : ∏ᶠ i, f i = 1 :=
-by { rw ← finprod_one, congr' with x, exact (ha x).elim }
+@[to_additive] lemma finprod_of_empty [is_empty α] (f : α → M) : ∏ᶠ i, f i = 1 :=
+by { rw ← finprod_one, congr' with x, exact is_empty_elim x }
 
 @[simp, to_additive] lemma finprod_false (f : false → M) : ∏ᶠ i, f i = 1 :=
 finprod_of_empty id _

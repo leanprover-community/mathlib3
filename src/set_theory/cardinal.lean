@@ -145,6 +145,9 @@ not_iff_comm.1
   ⟨λ h, quotient.sound ⟨(equiv.empty_of_not_nonempty h).trans equiv.empty_equiv_pempty⟩,
    λ e, let ⟨h⟩ := quotient.exact e in λ ⟨a⟩, (h a).elim⟩
 
+lemma eq_zero_iff_is_empty {α : Type u} : mk α = 0 ↔ is_empty α :=
+(not_iff_comm.1 ne_zero_iff_nonempty).symm.trans not_nonempty_iff
+
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
 instance : nontrivial cardinal.{u} :=
@@ -776,8 +779,8 @@ match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_pow]; apply nat_lt_omega
 end
 
-lemma eq_one_iff_subsingleton_and_nonempty {α : Type*} :
-  mk α = 1 ↔ (subsingleton α ∧ nonempty α) :=
+lemma eq_one_iff_unique {α : Type*} :
+  mk α = 1 ↔ subsingleton α ∧ nonempty α :=
 calc mk α = 1 ↔ mk α ≤ 1 ∧ ¬mk α < 1 : eq_iff_le_not_lt
           ... ↔ subsingleton α ∧ nonempty α :
 begin

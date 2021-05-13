@@ -130,7 +130,7 @@ classical.by_contradiction $ λ h,
 have ∀ (a : ℕ) (ha : a ∈ s), a < x.val.succ,
   from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x.1 + 1),
     by rwa [add_right_comm, nat.add_sub_cancel' hax]⟩),
-infinite.not_fintype
+is_empty.false
   ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
       (by simp [-multiset.range_succ])).to_finset,

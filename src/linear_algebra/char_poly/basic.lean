@@ -46,12 +46,12 @@ matrix.scalar n (X : polynomial R) - (C : R →+* polynomial R).map_matrix M
 @[simp] lemma char_matrix_apply_eq (M : matrix n n R) (i : n) :
   char_matrix M i i = (X : polynomial R) - C (M i i) :=
 by simp only [char_matrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
-  ring_hom.map_matrix_apply, map_apply, matrix.sub_apply]
+  ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
 
 @[simp] lemma char_matrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
   char_matrix M i j = - C (M i j) :=
 by simp only [char_matrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub,
-  ring_hom.map_matrix_apply, map_apply, matrix.sub_apply]
+  ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
 
 lemma mat_poly_equiv_char_matrix (M : matrix n n R) :
   mat_poly_equiv (char_matrix M) = X - C M :=

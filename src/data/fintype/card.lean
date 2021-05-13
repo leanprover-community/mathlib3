@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.fintype.basic
 import algebra.big_operators.ring
@@ -64,6 +64,14 @@ lemma prod_eq_single {f : α → M} (a : α) (h : ∀ x ≠ a, f x = 1) :
 finset.prod_eq_single a (λ x _ hx, h x hx) $ λ ha, (ha (finset.mem_univ a)).elim
 
 @[to_additive]
+lemma prod_eq_mul {f : α → M} (a b : α) (h₁ : a ≠ b) (h₂ : ∀ x, x ≠ a ∧ x ≠ b → f x = 1) :
+  (∏ x, f x) = (f a) * (f b) :=
+begin
+  apply finset.prod_eq_mul a b h₁ (λ x _ hx, h₂ x hx);
+  exact λ hc, (hc (finset.mem_univ _)).elim
+end
+
+@[to_additive]
 lemma prod_unique [unique β] (f : β → M) :
   (∏ x, f x) = f (default β) :=
 by simp only [finset.prod_singleton, univ_unique]
@@ -98,6 +106,19 @@ end
 theorem fin.prod_univ_def [comm_monoid β] {n : ℕ} (f : fin n → β) :
   ∏ i, f i = ((list.fin_range n).map f).prod :=
 by simp [fin.univ_def, finset.fin_range]
+
+@[to_additive]
+theorem finset.prod_range [comm_monoid β] {n : ℕ} (f : ℕ → β) :
+  ∏ i in finset.range n, f i = ∏ i : fin n, f i :=
+begin
+  fapply @finset.prod_bij' _ _ _ _ _ _,
+  exact λ k w, ⟨k, (by simpa using w)⟩,
+  swap 3,
+  exact λ a m, a,
+  swap 3,
+  exact λ a m, by simpa using a.2,
+  all_goals { tidy, },
+end
 
 @[to_additive]
 theorem fin.prod_of_fn [comm_monoid β] {n : ℕ} (f : fin n → β) :
@@ -193,8 +214,7 @@ by rw fintype.of_equiv_card; simp
 @[simp, to_additive]
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   ∏ x in univ.attach, f x = ∏ x, f ⟨x, (mem_univ _)⟩ :=
-prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp)
-  (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
+fintype.prod_equiv (equiv.subtype_univ_equiv (λ x, mem_univ _)) _ _ (λ x, by simp)
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
   `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`, but differ
@@ -234,16 +254,18 @@ lemma fintype.sum_pow_mul_eq_add_pow
 finset.sum_pow_mul_eq_add_pow _ _ _
 
 lemma fin.sum_pow_mul_eq_add_pow {n : ℕ} {R : Type*} [comm_semiring R] (a b : R) :
-  ∑ s : finset (fin n), a ^ s.card * b ^ (n - s.card) =
-  (a + b) ^ n :=
+  ∑ s : finset (fin n), a ^ s.card * b ^ (n - s.card) = (a + b) ^ n :=
 by simpa using fintype.sum_pow_mul_eq_add_pow (fin n) a b
+
+lemma fin.prod_const [comm_monoid α] (n : ℕ) (x : α) : ∏ i : fin n, x = x ^ n := by simp
+
+lemma fin.sum_const [add_comm_monoid α] (n : ℕ) (x : α) : ∑ i : fin n, x = n • x := by simp
 
 @[to_additive]
 lemma function.bijective.prod_comp [fintype α] [fintype β] [comm_monoid γ] {f : α → β}
   (hf : function.bijective f) (g : β → γ) :
   ∏ i, g (f i) = ∏ i, g i :=
-prod_bij (λ i hi, f i) (λ i hi, mem_univ _) (λ i hi, rfl) (λ i j _ _ h, hf.1 h) $
-  λ i hi, (hf.2 i).imp $ λ j hj, ⟨mem_univ _, hj.symm⟩
+fintype.prod_bijective f hf _ _ (λ x, rfl)
 
 @[to_additive]
 lemma equiv.prod_comp [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : β → γ) :
@@ -266,17 +288,6 @@ begin
   rw [← fin.prod_univ_eq_prod_range, finset.prod_congr rfl],
   rintros ⟨i, hi⟩ _,
   simp only [fin.coe_eq_val, hi, dif_pos]
-end
-
-@[to_additive]
-lemma finset.prod_subtype {M : Type*} [comm_monoid M]
-  {p : α → Prop} {F : fintype (subtype p)} (s : finset α) (h : ∀ x, x ∈ s ↔ p x) (f : α → M) :
-  ∏ a in s, f a = ∏ a : subtype p, f a :=
-have (∈ s) = p, from set.ext h,
-begin
-  rw [← prod_attach, attach_eq_univ],
-  substI p,
-  congr
 end
 
 @[to_additive]
@@ -375,18 +386,18 @@ begin
 end
 
 lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
-  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.is_lt
+  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.is_lt
 | [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
 | (g :: []) :=
 begin
-  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) •ℤ [g].nth_le i i.2,
+  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) • [g].nth_le i i.2,
   rw [fin.sum_univ_succ], simp,
 end
 | (g :: h :: L) :=
 calc g + -h + L.alternating_sum
-    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2 :
+    = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.2 :
       congr_arg _ (alternating_sum_eq_finset_sum _)
-... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) •ℤ list.nth_le (g :: h :: L) i _ :
+... = ∑ i : fin (L.length + 2), (-1 : ℤ) ^ (i : ℕ) • list.nth_le (g :: h :: L) i _ :
 begin
   rw [fin.sum_univ_succ, fin.sum_univ_succ, add_assoc],
   unfold_coes,

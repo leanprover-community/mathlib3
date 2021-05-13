@@ -32,10 +32,19 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H'
   has_mul C^∞⟮I, N; I', G⟯ :=
 ⟨λ f g, ⟨f * g, f.smooth.mul g.smooth⟩⟩
 
+@[simp, to_additive]
+lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
+  [has_smooth_mul I' G] (f g : C^∞⟮I, N; I', G⟯) :
+  ⇑(f * g) = f * g := rfl
+
 @[to_additive]
 instance has_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
   has_one C^∞⟮I, N; I', G⟯ :=
 ⟨times_cont_mdiff_map.const (1 : G)⟩
+
+@[simp, to_additive]
+lemma coe_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
+  ⇑(1 : C^∞⟮I, N; I', G⟯) = 1 := rfl
 
 end smooth_map
 
@@ -78,7 +87,20 @@ instance smooth_map_group {G : Type*} [group G] [topological_space G]
   group C^∞⟮I, N; I', G⟯ :=
 { inv := λ f, ⟨λ x, (f x)⁻¹, f.smooth.inv⟩,
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
+  div := λ f g, ⟨f / g, f.smooth.div g.smooth⟩,
+  div_eq_mul_inv := λ f g, by ext; exact div_eq_mul_inv _ _,
   .. smooth_map_monoid }
+
+@[simp, to_additive]
+lemma smooth_map.coe_inv {G : Type*} [group G] [topological_space G]
+  [charted_space H' G] [lie_group I' G] (f : C^∞⟮I, N; I', G⟯) :
+  ⇑f⁻¹ = f⁻¹ := rfl
+
+@[simp, to_additive]
+lemma smooth_map.coe_div {G : Type*} [group G] [topological_space G]
+  [charted_space H' G] [lie_group I' G] (f g : C^∞⟮I, N; I', G⟯) :
+  ⇑(f / g) = f / g :=
+rfl
 
 @[to_additive]
 instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]
@@ -123,7 +145,7 @@ instance smooth_map_comm_ring {R : Type*} [comm_ring R] [topological_space R]
 
 end ring_structure
 
-section semimodule_structure
+section module_structure
 
 /-!
 ### Semiodule stucture
@@ -137,17 +159,22 @@ instance smooth_map_has_scalar
   has_scalar 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
 
-instance smooth_map_semimodule
+@[simp]
+lemma smooth_map.coe_smul
+  {V : Type*} [normed_group V] [normed_space 𝕜 V] (r : 𝕜) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
+  ⇑(r • f) = r • f := rfl
+
+instance smooth_map_module
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  vector_space 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
-semimodule.of_core $
+  module 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+module.of_core $
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
   one_smul := λ f, by ext x; exact one_smul 𝕜 (f x), }
 
-end semimodule_structure
+end module_structure
 
 section algebra_structure
 
@@ -193,7 +220,7 @@ instance smooth_map_has_scalar'
 
 instance smooth_map_module'
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  semimodule C^∞⟮I, N; 𝓘(𝕜), 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+  module C^∞⟮I, N; 𝓘(𝕜), 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.equiv.list
 import logic.function.iterate
@@ -824,7 +824,7 @@ list_foldl' H
   (primrec.comp₂ (bind_decode_iff.2 $ primrec₂.swap this) primrec₂.right),
 nat_iff.1 $ (encode_iff.2 this).of_eq $ λ n, begin
   rw list.foldl_reverse,
-  apply nat.case_strong_induction_on n, {refl},
+  apply nat.case_strong_induction_on n, { simp },
   intros n IH, simp,
   cases decode α n.unpair.1 with a, {refl},
   simp,
@@ -1312,7 +1312,7 @@ begin
     have y1 := succ.comp₁ _ (tail head),
     exact if_lt x1 (mul.comp₂ _ y1 y1) (tail head) y1 },
   intro, symmetry,
-  induction n with n IH, {refl},
+  induction n with n IH, {simp},
   dsimp, rw IH, split_ifs,
   { exact le_antisymm (nat.sqrt_le_sqrt (nat.le_succ _))
       (nat.lt_succ_iff.1 $ nat.sqrt_lt.2 h) },

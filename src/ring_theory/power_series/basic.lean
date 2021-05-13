@@ -83,10 +83,10 @@ instance [add_comm_monoid R] : add_comm_monoid (mv_power_series σ R) := pi.add_
 instance [add_comm_group R]  : add_comm_group  (mv_power_series σ R) := pi.add_comm_group
 instance [nontrivial R]      : nontrivial      (mv_power_series σ R) := function.nontrivial
 
-instance {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
-  semimodule R (mv_power_series σ A) := pi.semimodule _ _ _
+instance {A} [semiring R] [add_comm_monoid A] [module R A] :
+  module R (mv_power_series σ A) := pi.module _ _ _
 
-instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [semimodule S A]
+instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
   [has_scalar R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (mv_power_series σ A) :=
 pi.is_scalar_tower
@@ -446,7 +446,7 @@ instance : algebra R (mv_power_series σ A) :=
 { commutes' := λ a φ, by { ext n, simp [algebra.commutes] },
   smul_def' := λ a σ, by { ext n, simp [(coeff A n).map_smul_of_tower a, algebra.smul_def] },
   to_ring_hom := (mv_power_series.map σ (algebra_map R A)).comp (C σ R),
-  .. mv_power_series.semimodule }
+  .. mv_power_series.module }
 
 theorem C_eq_algebra_map : C σ R = (algebra_map R (mv_power_series σ R)) := rfl
 
@@ -459,7 +459,7 @@ end
 
 instance [nonempty σ] [nontrivial R] : nontrivial (subalgebra R (mv_power_series σ R)) :=
 ⟨⟨⊥, ⊤, begin
-  rw [ne.def, subalgebra.ext_iff, not_forall],
+  rw [ne.def, set_like.ext_iff, not_forall],
   inhabit σ,
   refine ⟨X (default σ), _⟩,
   simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top],
@@ -543,7 +543,8 @@ begin
     { rw [h, coeff_mul, finset.sum_eq_zero],
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal_support at hij,
         rw coeff_X_pow, split_ifs with hi,
-        { exfalso, apply H, rw [← hij, hi], ext, simp, cc },
+        { exfalso, apply H, rw [← hij, hi], ext,
+          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, nat_add_sub_cancel_left, add_comm], },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
@@ -656,7 +657,7 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   rintros φ ⟨ψ, h⟩,
   replace h := congr_arg (constant_coeff σ S) h,
   rw constant_coeff_map at h,
-  have : is_unit (constant_coeff σ S ↑ψ) := @is_unit_constant_coeff σ S _ (↑ψ) (is_unit_unit ψ),
+  have : is_unit (constant_coeff σ S ↑ψ) := @is_unit_constant_coeff σ S _ (↑ψ) ψ.is_unit,
   rw h at this,
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
@@ -807,10 +808,10 @@ instance [ring R]            : ring            (power_series R) := by apply_inst
 instance [comm_ring R]       : comm_ring       (power_series R) := by apply_instance
 instance [nontrivial R]      : nontrivial      (power_series R) := by apply_instance
 
-instance {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
-  semimodule R (power_series A) := by apply_instance
+instance {A} [semiring R] [add_comm_monoid A] [module R A] :
+  module R (power_series A) := by apply_instance
 
-instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [semimodule S A]
+instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
   [has_scalar R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (power_series A) :=
 pi.is_scalar_tower
@@ -1657,7 +1658,8 @@ begin
 end
 
 @[simp, norm_cast] lemma coe_add (φ ψ : polynomial R) :
-  ((φ + ψ : polynomial R) : power_series R) = φ + ψ := rfl
+  ((φ + ψ : polynomial R) : power_series R) = φ + ψ :=
+by { ext, simp }
 
 @[simp, norm_cast] lemma coe_mul (φ ψ : polynomial R) :
   ((φ * ψ : polynomial R) : power_series R) = φ * ψ :=

@@ -24,13 +24,15 @@ variables {R : Type*} {R' : Type*} {S : Type*} {S' : Type*} {T : Type*} {T' : Ty
 
 namespace prod
 
+/-- Product of two distributive types is distributive. -/
+instance [distrib R] [distrib S] : distrib (R × S) :=
+{ left_distrib := λ a b c, mk.inj_iff.mpr ⟨left_distrib _ _ _, left_distrib _ _ _⟩,
+  right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
+  .. prod.has_add, .. prod.has_mul }
+
 /-- Product of two semirings is a semiring. -/
 instance [semiring R] [semiring S] : semiring (R × S) :=
-{ zero_mul := λ a, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
-  mul_zero := λ a, mk.inj_iff.mpr ⟨mul_zero _, mul_zero _⟩,
-  left_distrib := λ a b c, mk.inj_iff.mpr ⟨left_distrib _ _ _, left_distrib _ _ _⟩,
-  right_distrib := λ a b c, mk.inj_iff.mpr ⟨right_distrib _ _ _, right_distrib _ _ _⟩,
-  .. prod.add_comm_monoid, .. prod.monoid }
+{ .. prod.add_comm_monoid, .. prod.monoid_with_zero, .. prod.distrib }
 
 /-- Product of two commutative semirings is a commutative semiring. -/
 instance [comm_semiring R] [comm_semiring S] : comm_semiring (R × S) :=

@@ -10,8 +10,8 @@ open interactive
 namespace tactic
 
 /-
-This file defines a `chain` tactic, which takes a list of tactics, and exhaustively tries to apply them
-to the goals, until no tactic succeeds on any goal.
+This file defines a `chain` tactic, which takes a list of tactics,
+and exhaustively tries to apply them to the goals, until no tactic succeeds on any goal.
 
 Along the way, it generates auxiliary declarations, in order to speed up elaboration time
 of the resulting (sometimes long!) proofs.
@@ -29,7 +29,8 @@ inductive tactic_script (α : Type) : Type
 
 meta def tactic_script.to_string : tactic_script string → string
 | (tactic_script.base a) := a
-| (tactic_script.work n a l c) := "work_on_goal " ++ (to_string n) ++ " { " ++ (", ".intercalate (a :: l.map tactic_script.to_string)) ++ " }"
+| (tactic_script.work n a l c) :=  "work_on_goal " ++ (to_string n) ++
+    " { " ++ (", ".intercalate (a :: l.map tactic_script.to_string)) ++ " }"
 
 meta instance : has_to_string (tactic_script string) :=
 { to_string := λ s, s.to_string }
@@ -84,7 +85,8 @@ with chain_iter : list expr → list expr → tactic (list (tactic_script α))
   l' ← chain_many current_goals,
   return (w :: l') } <|> chain_iter later_goals (g :: stuck_goals)
 
-meta def chain_core {α : Type} [has_to_string (tactic_script α)] (tactics : list (tactic α)) : tactic (list string) :=
+meta def chain_core {α : Type} [has_to_string (tactic_script α)] (tactics : list (tactic α)) :
+  tactic (list string) :=
 do results ← (get_goals >>= chain_many (first tactics)),
    when results.empty (fail "`chain` tactic made no progress"),
    return (results.map to_string)

@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.closeds
 import set_theory.cardinal
 import topology.metric_space.gromov_hausdorff_realized
 import topology.metric_space.completion
+import topology.metric_space.kuratowski
 
 /-!
 # Gromov-Hausdorff distance
@@ -58,7 +59,8 @@ Using the Kuratwoski embedding, we get a canonical map `to_GH_space` mapping any
 compact type to `GH_space`. -/
 
 /-- Equivalence relation identifying two nonempty compact sets which are isometric -/
-private definition isometry_rel : nonempty_compacts ℓ_infty_ℝ → nonempty_compacts ℓ_infty_ℝ → Prop :=
+private definition isometry_rel :
+  nonempty_compacts ℓ_infty_ℝ → nonempty_compacts ℓ_infty_ℝ → Prop :=
   λx y, nonempty (x.val ≃ᵢ y.val)
 
 /-- This is indeed an equivalence relation -/
@@ -613,9 +615,7 @@ begin
   have : ∀p:GH_space, ∀t:set (p.rep), finite t → ∃n:ℕ, ∃e:equiv t (fin n), true,
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
-    rcases fintype.exists_equiv_fin t with ⟨n, hn⟩,
-    rcases hn with ⟨e⟩,
-    exact ⟨n, e, trivial⟩ },
+    exact ⟨fintype.card t, fintype.equiv_fin t, trivial⟩ },
   choose N e hne using this,
   -- cardinality of the nice finite subset `s p` of `p.rep`, called `N p`
   let N := λp:GH_space, N p (s p) (hs p).1,

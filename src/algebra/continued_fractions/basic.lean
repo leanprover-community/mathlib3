@@ -210,7 +210,7 @@ end simple_continued_fraction
 A simple continued fraction is a *(regular) continued fraction* ((r)cf) if all partial denominators
 `bᵢ` are positive, i.e. `0 < bᵢ`.
 -/
-def simple_continued_fraction.is_regular_continued_fraction [has_one α] [has_zero α] [has_lt α]
+def simple_continued_fraction.is_continued_fraction [has_one α] [has_zero α] [has_lt α]
   (s : simple_continued_fraction α) : Prop :=
 ∀ (n : ℕ) (bₙ : α),
   (↑s : generalized_continued_fraction α).partial_denominators.nth n = some bₙ → 0 < bₙ
@@ -220,10 +220,10 @@ variable (α)
 /--
 A *(regular) continued fraction* ((r)cf) is a simple continued fraction (scf) whose partial
 denominators are all positive. It is the subtype of scfs that satisfy
-`simple_continued_fraction.is_regular_continued_fraction`.
+`simple_continued_fraction.is_continued_fraction`.
  -/
 def continued_fraction [has_one α] [has_zero α] [has_lt α] :=
-{s : simple_continued_fraction α // s.is_regular_continued_fraction}
+{s : simple_continued_fraction α // s.is_continued_fraction}
 
 variable {α}
 

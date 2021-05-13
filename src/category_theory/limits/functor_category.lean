@@ -9,7 +9,7 @@ open category_theory category_theory.category
 
 namespace category_theory.limits
 
-universes v v₂ u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₂ u -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u} [category.{v} C]
 
@@ -138,11 +138,9 @@ instance functor_category_has_colimits_of_shape
   { cocone := combine_cocones _ (λ k, get_colimit_cocone _),
     is_colimit := combined_is_colimit _ _ } }
 
-instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) :=
-{ has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
+instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) := {}
 
-instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) :=
-{ has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
+instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) := {}
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
   preserves_limits_of_shape J ((evaluation K C).obj k) :=

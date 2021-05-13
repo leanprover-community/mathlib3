@@ -87,7 +87,8 @@ local attribute [instance] dangerous_instance_test
 run_cmd do
   d ← get_decl `dangerous_instance_test,
   x ← linter.dangerous_instance.test d,
-  guard $ x = some "The following arguments become metavariables. argument 1: {α : Type}, argument 3: {γ : Type}"
+  guard $ x = some
+    "The following arguments become metavariables. argument 1: {α : Type}, argument 3: {γ : Type}"
 end
 
 section

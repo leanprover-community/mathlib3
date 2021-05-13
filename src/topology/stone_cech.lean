@@ -48,7 +48,7 @@ lemma ultrafilter_basis_is_basis :
 /-- The basic open sets for the topology on ultrafilters are open. -/
 lemma ultrafilter_is_open_basic (s : set α) :
   is_open {u : ultrafilter α | s ∈ u} :=
-topological_space.is_open_of_is_topological_basis ultrafilter_basis_is_basis ⟨s, rfl⟩
+ultrafilter_basis_is_basis.is_open ⟨s, rfl⟩
 
 /-- The basic open sets for the topology on ultrafilters are also closed. -/
 lemma ultrafilter_is_closed_basic (s : set α) :

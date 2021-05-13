@@ -18,22 +18,22 @@ variables {α : Type u}
 @[priority 100] -- see Note [lower instance priority]
 instance has_finite_limits_of_semilattice_inf_top [semilattice_inf_top α] :
   has_finite_limits α :=
-λ J 𝒥₁ 𝒥₂, by exactI
+⟨λ J 𝒥₁ 𝒥₂, by exactI
   { has_limit := λ F, has_limit.mk
     { cone :=
       { X := finset.univ.inf F.obj,
         π := { app := λ j, hom_of_le (finset.inf_le (fintype.complete _)) } },
-      is_limit := { lift := λ s, hom_of_le (finset.le_inf (λ j _, (s.π.app j).down.down)) } } }
+      is_limit := { lift := λ s, hom_of_le (finset.le_inf (λ j _, (s.π.app j).down.down)) } } }⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup_bot α] :
   has_finite_colimits α :=
-λ J 𝒥₁ 𝒥₂, by exactI
+⟨λ J 𝒥₁ 𝒥₂, by exactI
   { has_colimit := λ F, has_colimit.mk
     { cocone :=
       { X := finset.univ.sup F.obj,
         ι := { app := λ i, hom_of_le (finset.le_sup (fintype.complete _)) } },
-      is_colimit := { desc := λ s, hom_of_le (finset.sup_le (λ j _, (s.ι.app j).down.down)) } } }
+      is_colimit := { desc := λ s, hom_of_le (finset.sup_le (λ j _, (s.ι.app j).down.down)) } } }⟩
 
 variables {J : Type u} [small_category J]
 

@@ -19,11 +19,6 @@ open function nat native (rb_map mk_rb_map rb_map.of_list)
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
-/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
-def is_nil {α} : list α → bool
-| [] := tt
-| _  := ff
-
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
 
@@ -908,19 +903,32 @@ to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
 meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
 foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
 
+
+/-- Auxliary definition used to define `to_chunks`.
+
+  `to_chunks_aux n xs i` returns `(xs.take i, (xs.drop i).to_chunks (n+1))`,
+  that is, the first `i` elements of `xs`, and the remaining elements chunked into
+  sublists of length `n+1`. -/
+def to_chunks_aux {α} (n : ℕ) : list α → ℕ → list α × list (list α)
+| [] i := ([], [])
+| (x::xs) 0 := let (l, L) := to_chunks_aux xs n in ([], (x::l)::L)
+| (x::xs) (i+1) := let (l, L) := to_chunks_aux xs i in (x::l, L)
+
 /--
 `xs.to_chunks n` splits the list into sublists of size at most `n`,
 such that `(xs.to_chunks n).join = xs`.
 
-TODO: make non-meta; currently doesn't terminate, e.g.
 ```
-#eval [0].to_chunks 0
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 10 = [[1, 2, 3, 4, 5, 6, 7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 3 = [[1, 2, 3], [4, 5, 6], [7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 2 = [[1, 2], [3, 4], [5, 6], [7, 8]]
+[1, 2, 3, 4, 5, 6, 7, 8].to_chunks 0 = [[1, 2, 3, 4, 5, 6, 7, 8]]
 ```
 -/
-meta def to_chunks {α} (n : ℕ) : list α → list (list α)
-| [] := []
-| xs :=
-  xs.take n :: (xs.drop n).to_chunks
+def to_chunks {α} : ℕ → list α → list (list α)
+| _ [] := []
+| 0 xs := [xs]
+| (n+1) (x::xs) := let (l, L) := to_chunks_aux n xs n in (x::l)::L
 
 /--
 Asynchronous version of `list.map`.

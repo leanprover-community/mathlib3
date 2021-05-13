@@ -547,7 +547,6 @@ theorem mem_insert : Π (m : hash_map α β) (a b a' b'),
       lem bkts' _ u w hl hfl $ or.inl ⟨rfl, Hc⟩,
     simp [insert, @dif_neg (contains_aux a bkt) _ Hc],
     by_cases h : size' ≤ n,
-    -- TODO(Mario): Why does the by_cases assumption look different than the stated one?
     { simpa [show size' ≤ n, from h] using mi },
     { let n' : ℕ+ := ⟨n * 2, mul_pos n.2 dec_trivial⟩,
       let bkts'' : bucket_array α β n' := bkts'.foldl (mk_array _ []) (reinsert_aux hash_fn),

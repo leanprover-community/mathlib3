@@ -132,8 +132,11 @@ by refine_struct
     neg := has_neg.neg,
     sub := has_sub.sub,
     mul := (*),
-    one := 1 };
-  intros; ext; simp; ring_exp
+    one := 1,
+    nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
+    gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+    npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
+  intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=
 { smul := λ r a, ⟨r * a.1, r * a.2, r * a.3, r * a.4⟩,
@@ -463,11 +466,11 @@ def norm_sq : monoid_with_zero_hom ℍ[R] R :=
 lemma norm_sq_def : norm_sq a = (a * a.conj).re := rfl
 
 lemma norm_sq_def' : norm_sq a = a.1^2 + a.2^2 + a.3^2 + a.4^2 :=
-by simp only [norm_sq_def, pow_two, ← neg_mul_eq_mul_neg, sub_neg_eq_add,
+by simp only [norm_sq_def, sq, ← neg_mul_eq_mul_neg, sub_neg_eq_add,
   mul_re, conj_re, conj_im_i, conj_im_j, conj_im_k]
 
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=
-by rw [norm_sq_def, conj_coe, ← coe_mul, coe_re, pow_two]
+by rw [norm_sq_def, conj_coe, ← coe_mul, coe_re, sq]
 
 @[simp] lemma norm_sq_neg : norm_sq (-a) = norm_sq a :=
 by simp only [norm_sq_def, conj_neg, neg_mul_neg]
@@ -496,13 +499,13 @@ begin
   rw [norm_sq_def', add_eq_zero_iff_eq_zero_of_nonneg, add_eq_zero_iff_eq_zero_of_nonneg,
     add_eq_zero_iff_eq_zero_of_nonneg] at h,
   exact ext a 0 (pow_eq_zero h.1.1.1) (pow_eq_zero h.1.1.2) (pow_eq_zero h.1.2) (pow_eq_zero h.2),
-  all_goals { apply_rules [pow_two_nonneg, add_nonneg] }
+  all_goals { apply_rules [sq_nonneg, add_nonneg] }
 end
 
 lemma norm_sq_ne_zero : norm_sq a ≠ 0 ↔ a ≠ 0 := not_congr norm_sq_eq_zero
 
 @[simp] lemma norm_sq_nonneg : 0 ≤ norm_sq a :=
-by { rw norm_sq_def', apply_rules [pow_two_nonneg, add_nonneg] }
+by { rw norm_sq_def', apply_rules [sq_nonneg, add_nonneg] }
 
 @[simp] lemma norm_sq_le_zero : norm_sq a ≤ 0 ↔ a = 0 :=
 by simpa only [le_antisymm_iff, norm_sq_nonneg, and_true] using @norm_sq_eq_zero _ _ a

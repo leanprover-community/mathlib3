@@ -77,15 +77,33 @@ instance : ess_surj (from_skeleton C) :=
 noncomputable instance : is_equivalence (from_skeleton C) :=
 equivalence.equivalence_of_fully_faithfully_ess_surj (from_skeleton C)
 
+lemma skeleton_skeletal : skeletal (skeleton C) :=
+begin
+  rintro X Y ⟨h⟩,
+  have : X.out ≈ Y.out := ⟨(from_skeleton C).map_iso h⟩,
+  simpa using quotient.sound this,
+end
+
 /-- The `skeleton` of `C` given by choice is a skeleton of `C`. -/
 noncomputable def skeleton_is_skeleton : is_skeleton_of C (skeleton C) (from_skeleton C) :=
-{ skel :=
-  begin
-    rintro X Y ⟨h⟩,
-    have : X.out ≈ Y.out := ⟨(from_skeleton C).map_iso h⟩,
-    simpa using quotient.sound this,
-  end,
+{ skel := skeleton_skeletal C,
   eqv := from_skeleton.is_equivalence C }
+
+section
+variables {C D}
+
+/--
+Two categories which are categorically equivalent have skeletons with equivalent objects.
+-/
+noncomputable
+def equivalence.skeleton_equiv (e : C ≌ D) : skeleton C ≃ skeleton D :=
+let f := ((from_skeleton C).as_equivalence.trans e).trans (from_skeleton D).as_equivalence.symm in
+{ to_fun := f.functor.obj,
+  inv_fun := f.inverse.obj,
+  left_inv := λ X, skeleton_skeletal C ⟨(f.unit_iso.app X).symm⟩,
+  right_inv := λ Y, skeleton_skeletal D ⟨(f.counit_iso.app Y)⟩, }
+
+end
 
 /--
 Construct the skeleton category by taking the quotient of objects. This construction gives a
@@ -247,5 +265,21 @@ adjunction.mk_of_unit_counit
     end } }
 
 end thin_skeleton
+
+open thin_skeleton
+
+section
+variables {C} {α : Type*} [partial_order α]
+
+/--
+When `e : C ≌ α` is a categorical equivalence from a thin category `C` to some partial order `α`,
+the `thin_skeleton C` is order isomorphic to `α`.
+-/
+noncomputable
+def equivalence.thin_skeleton_order_iso
+  [∀ X Y : C, subsingleton (X ⟶ Y)] (e : C ≌ α) : thin_skeleton C ≃o α :=
+((from_thin_skeleton C).as_equivalence.trans e).to_order_iso
+
+end
 
 end category_theory

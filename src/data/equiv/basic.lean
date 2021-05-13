@@ -1481,11 +1481,11 @@ protected def univ (α) : @univ α ≃ α :=
 
 /-- An empty set is equivalent to the `empty` type. -/
 protected def empty (α) : (∅ : set α) ≃ empty :=
-equiv_empty $ λ ⟨x, h⟩, not_mem_empty x h
+equiv_empty _
 
 /-- An empty set is equivalent to a `pempty` type. -/
 protected def pempty (α) : (∅ : set α) ≃ pempty :=
-equiv_pempty $ λ ⟨x, h⟩, not_mem_empty x h
+equiv_pempty _
 
 /-- If sets `s` and `t` are separated by a decidable predicate, then `s ∪ t` is equivalent to
 `s ⊕ t`. -/

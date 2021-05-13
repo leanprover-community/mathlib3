@@ -801,7 +801,7 @@ by rw [← card_unit, card_eq]; exact
 
 lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
 ⟨λ h ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
-  λ h, have e : α ≃ empty := by exactI equiv_empty α, by simp [card_congr e]⟩
+  λ h, by { have e : α ≃ empty, exactI equiv_empty α, simp [card_congr e] }⟩
 
 /-- A `fintype` with cardinality zero is equivalent to `empty`. -/
 def card_eq_zero_equiv_equiv_empty : card α = 0 ≃ (α ≃ empty) :=

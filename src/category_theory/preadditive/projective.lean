@@ -72,7 +72,7 @@ def factor_thru {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] :
 (projective.factors f e).some_spec
 
 section
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance zero_projective [has_zero_object C] [has_zero_morphisms C] : projective (0 : C) :=
 { factors := λ E X f e epi, by { use 0, ext, }}

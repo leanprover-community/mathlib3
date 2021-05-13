@@ -96,7 +96,7 @@ begin
   { rw num_derangements_0, simp },
 
   cases n,
-  { rw num_derangements_1, simp },
+  { rw num_derangements_1, simp [finset.sum_range_succ] },
 
   -- now we have n ≥ 2
   rw num_derangements_recursive,

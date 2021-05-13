@@ -250,7 +250,7 @@ funext (b.reindex_apply e)
 @[simp] lemma coe_reindex_repr : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
 funext $ λ i',
 show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _,
-from finsupp.dom_lcongr_apply _ _ _
+by simp
 
 @[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
 by rw coe_reindex_repr

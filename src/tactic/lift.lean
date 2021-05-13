@@ -108,7 +108,7 @@ do
     fail "lift tactic failed. Tactic is only applicable when the target is a proposition.",
   e ← i_to_expr p,
   old_tp ← infer_type e,
-  new_tp ← i_to_expr t,
+  new_tp ← i_to_expr ``(%%t : Type*),
   inst_type ← mk_app ``can_lift [old_tp, new_tp],
   inst ← mk_instance inst_type <|>
     pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}"

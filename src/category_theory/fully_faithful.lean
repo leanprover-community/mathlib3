@@ -122,6 +122,7 @@ lemma faithful.of_comp [faithful $ F ⋙ G] : faithful F :=
 section
 variables {F F'}
 
+/-- If `F` is full, and naturally isomorphic to some `F'`, then `F'` is also full. -/
 def full.of_iso [full F] (α : F ≅ F') : full F' :=
 { preimage := λ X Y f, F.preimage ((α.app X).hom ≫ f ≫ (α.app Y).inv),
   witness' := λ X Y f, by simp [←nat_iso.naturality_1 α], }

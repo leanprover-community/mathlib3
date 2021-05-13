@@ -7,6 +7,7 @@ import topology.instances.nnreal
 import topology.algebra.module
 import topology.algebra.algebra
 import topology.metric_space.antilipschitz
+import topology.algebra.order.liminf_limsup
 
 /-!
 # Normed spaces

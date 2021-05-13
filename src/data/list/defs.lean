@@ -939,7 +939,7 @@ meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size :=
   We add some n-ary versions of `list.zip_with` for functions with more than two arguments.
   These can be written in terms of `list.zip` and `list.map`, but these are more convenient
   (and efficient) to use.
-  For example, we have `zip_with3 f xs ys zs` could also be written as
+  For example, `zip_with3 f xs ys zs` could also be written as
   `(zip xs $ zip ys zs).map $ λ ⟨x, y, z⟩, f x y z`.
 -/
 

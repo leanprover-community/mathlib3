@@ -13,6 +13,7 @@ import data.array.lemmas
 import order.well_founded
 import group_theory.perm.basic
 
+open equiv
 open_locale nat
 
 universes u v
@@ -152,7 +153,7 @@ section bundled_homs
 
 instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
-λ a b, decidable_of_iff (a.1 = b.1) equiv.coe_fn_injective.eq_iff
+λ a b, decidable_of_iff (a.1 = b.1) coe_fn_injective.eq_iff
 
 instance decidable_eq_embedding_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ↪ β) :=
@@ -760,8 +761,8 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
 @fintype.of_equiv _ _ (@sigma.fintype _
     (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) _
     (λ b, by cases b; apply ulift.fintype))
-  ((equiv.sum_equiv_sigma_bool _ _).symm.trans
-    (equiv.sum_congr equiv.ulift equiv.ulift))
+  ((sum_equiv_sigma_bool _ _).symm.trans
+    (sum_congr equiv.ulift equiv.ulift))
 
 namespace fintype
 variables [fintype α] [fintype β]
@@ -800,7 +801,7 @@ by rw [← card_unit, card_eq]; exact
     λ _, subsingleton.elim _ _⟩⟩⟩
 
 lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
-⟨λ h ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
+⟨λ h, ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
   λ h, by { have e : α ≃ empty, exactI equiv_empty α, simp [card_congr e] }⟩
 
 /-- A `fintype` with cardinality zero is equivalent to `empty`. -/
@@ -808,16 +809,13 @@ def card_eq_zero_equiv_equiv_empty : card α = 0 ≃ (α ≃ empty) :=
 (of_iff card_eq_zero_iff).trans (equiv_empty_equiv α).symm
 
 lemma card_pos_iff : 0 < card α ↔ nonempty α :=
-⟨λ h, classical.by_contradiction (λ h₁,
-  have card α = 0 := card_eq_zero_iff.2 (λ a, h₁ ⟨a⟩),
-  lt_irrefl 0 $ by rwa this at h),
-λ ⟨a⟩, nat.pos_of_ne_zero (mt card_eq_zero_iff.1 (λ h, h a))⟩
+pos_iff_ne_zero.trans $ not_iff_comm.mp $ is_empty.not_nonempty_iff.trans card_eq_zero_iff.symm
 
 lemma card_le_one_iff : card α ≤ 1 ↔ (∀ a b : α, a = b) :=
 let n := card α in
 have hn : n = card α := rfl,
 match n, hn with
-| 0 := λ ha, ⟨λ h, λ a, (card_eq_zero_iff.1 ha.symm a).elim, λ _, ha ▸ nat.le_succ _⟩
+| 0 := λ ha, ⟨λ h, λ a, (card_eq_zero_iff.1 ha.symm).elim a, λ _, ha ▸ nat.le_succ _⟩
 | 1 := λ ha, ⟨λ h, λ a b, let ⟨x, hx⟩ := card_eq_one_iff.1 ha.symm in
   by rw [hx a, hx b],
     λ _, ha ▸ le_refl _⟩
@@ -827,7 +825,7 @@ match n, hn with
 end
 
 lemma card_le_one_iff_subsingleton : card α ≤ 1 ↔ subsingleton α :=
-iff.trans card_le_one_iff subsingleton_iff.symm
+card_le_one_iff.trans equiv.subsingleton_congr.symm
 
 lemma one_lt_card_iff_nontrivial : 1 < card α ↔ nontrivial α :=
 begin
@@ -1005,13 +1003,13 @@ rfl
 
 instance d_array.fintype {n : ℕ} {α : fin n → Type*}
   [∀n, fintype (α n)] : fintype (d_array n α) :=
-fintype.of_equiv _ (equiv.d_array_equiv_fin _).symm
+fintype.of_equiv _ (d_array_equiv_fin _).symm
 
 instance array.fintype {n : ℕ} {α : Type*} [fintype α] : fintype (array n α) :=
 d_array.fintype
 
 instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
-fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
+fintype.of_equiv _ (vector_equiv_fin _ _).symm
 
 instance quotient.fintype [fintype α] (s : setoid α)
   [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=
@@ -1069,7 +1067,7 @@ h1 (w $ quotient.eq.mpr h2)
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
-fintype.of_equiv _ (equiv.psigma_equiv_sigma _).symm
+fintype.of_equiv _ (psigma_equiv_sigma _).symm
 
 instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [decidable α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -1217,7 +1215,7 @@ begin
         simp only [mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq],
         split_ifs; cc } },
     { rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)),
-          swap_swap, ← equiv.perm.one_def, one_mul] } }
+          swap_swap, ← perm.one_def, one_mul] } }
 end
 
 lemma mem_of_mem_perms_of_list :

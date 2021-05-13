@@ -65,12 +65,6 @@ is_empty_elim a
 protected lemma prop_iff {p : Prop} : is_empty p ↔ ¬ p :=
 is_empty_iff
 
-lemma not_nonempty_iff : ¬ nonempty α ↔ is_empty α :=
-⟨λ h, ⟨λ x, h ⟨x⟩⟩, λ h1 h2, h2.elim h1.elim⟩
-
-lemma not_is_empty_iff : ¬ is_empty α ↔ nonempty α :=
-not_iff_comm.mp not_nonempty_iff
-
 variables [is_empty α]
 
 lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ true :=
@@ -83,3 +77,9 @@ iff_false_intro $ λ ⟨x, hx⟩, is_empty.false x
 instance : subsingleton α := ⟨is_empty_elim⟩
 
 end is_empty
+
+lemma not_nonempty_iff : ¬ nonempty α ↔ is_empty α :=
+⟨λ h, ⟨λ x, h ⟨x⟩⟩, λ h1 h2, h2.elim h1.elim⟩
+
+lemma not_is_empty_iff : ¬ is_empty α ↔ nonempty α :=
+not_iff_comm.mp not_nonempty_iff

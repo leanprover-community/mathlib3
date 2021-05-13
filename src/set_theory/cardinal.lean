@@ -179,7 +179,7 @@ private theorem mul_comm (a b : cardinal.{u}) : a * b = b * a :=
 quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.prod_comm α β⟩
 
 private theorem zero_add (a : cardinal.{u}) : 0 + a = a :=
-quotient.induction_on a $ assume α, quotient.sound ⟨equiv.pempty_sum α⟩
+quotient.induction_on a $ assume α, quotient.sound ⟨equiv.empty_sum pempty α⟩
 
 private theorem zero_mul (a : cardinal.{u}) : 0 * a = 0 :=
 quotient.induction_on a $ assume α, quotient.sound ⟨equiv.pempty_prod α⟩

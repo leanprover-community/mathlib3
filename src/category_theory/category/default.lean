@@ -119,6 +119,16 @@ abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 section
 variables {C : Type u} [category.{v} C] {X Y Z : C}
 
+/-- See Note [custom simps projection] -/
+def category.simps.hom : Type* := X ⟶ Y
+/-- See Note [custom simps projection] -/
+def category.simps.comp (f : X ⟶ Y) (g : Y ⟶ Z) : X ⟶ Z := f ≫ g
+/-- See Note [custom simps projection] -/
+def category.simps.id : X ⟶ X := 𝟙 X
+
+initialize_simps_projections category (to_category_struct_to_quiver_hom → hom, -hom,
+  to_category_struct_comp → comp, to_category_struct_id → id, -to_category_struct)
+
 /-- postcompose an equation between morphisms by another morphism -/
 lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
 by rw w

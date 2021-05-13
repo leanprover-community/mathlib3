@@ -225,7 +225,8 @@ begin
       dual.eval_apply, basis.repr_self, finsupp.single_apply, dual_basis_apply_self]
 end
 
-theorem eval_ker (b : basis ι R M) : (dual.eval R M).ker = ⊥ :=
+theorem eval_ker {ι : Type*} (b : basis ι R M) :
+  (dual.eval R M).ker = ⊥ :=
 begin
   rw ker_eq_bot',
   intros m hm,
@@ -233,17 +234,19 @@ begin
   exact (basis.forall_coord_eq_zero_iff _).mp (λ i, hm (b.coord i))
 end
 
-lemma eval_range [fintype ι] (b : basis ι R M) : (eval R M).range = ⊤ :=
+lemma eval_range {ι : Type*} [fintype ι] (b : basis ι R M) :
+  (eval R M).range = ⊤ :=
 begin
+  classical,
   rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, map_top, to_dual_range _],
   apply_instance
 end
 
-/-- A vector space is linearly equivalent to the dual of its dual space. -/
-def eval_equiv [fintype ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
+/-- A module with a basis is linearly equivalent to the dual of its dual space. -/
+def eval_equiv  {ι : Type*} [fintype ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
 linear_equiv.of_bijective (eval R M) b.eval_ker b.eval_range
 
-@[simp] lemma eval_equiv_to_linear_map [fintype ι] (b : basis ι R M) :
+@[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
 
 end comm_ring
@@ -269,8 +272,7 @@ end basis
 
 namespace module
 
-variables {R M K V : Type*}
-variables [comm_semiring R] [add_comm_monoid M] [module R M]
+variables {K V : Type*}
 variables [field K] [add_comm_group V] [module K V]
 open module module.dual submodule linear_map cardinal basis finite_dimensional
 
@@ -319,26 +321,25 @@ namespace dual_pair
 open module module.dual linear_map function
 
 variables {R M ι : Type*}
-variables [comm_ring R] [add_comm_group M] [module R M] [decidable_eq ι]
-variables {e : ι → M} {ε : ι → dual R M} (h : dual_pair e ε)
-
-include h
+variables [comm_ring R] [add_comm_group M] [module R M]
+variables {e : ι → M} {ε : ι → dual R M}
 
 /-- The coefficients of `v` on the basis `e` -/
-def coeffs (m : M) : ι →₀ R :=
+def coeffs [decidable_eq ι] (h : dual_pair e ε) (m : M) : ι →₀ R :=
 { to_fun := λ i, ε i m,
   support := by { haveI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finset },
   mem_support_to_fun := by {intro i, rw set.mem_to_finset, exact iff.rfl } }
 
-@[simp] lemma coeffs_apply (m : M) (i : ι) : h.coeffs m i = ε i m := rfl
+@[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_pair e ε) (m : M) (i : ι) :
+  h.coeffs m i = ε i m := rfl
 
-omit h
 /-- linear combinations of elements of `e`.
 This is a convenient abbreviation for `finsupp.total _ M R e l` -/
-def lc (e : ι → M) (l : ι →₀ R) : M := l.sum (λ (i : ι) (a : R), a • (e i))
+def lc {ι} (e : ι → M) (l : ι →₀ R) : M := l.sum (λ (i : ι) (a : R), a • (e i))
 
 lemma lc_def (e : ι → M) (l : ι →₀ R) : lc e l = finsupp.total _ _ _ e l := rfl
 
+variables [decidable_eq ι] (h : dual_pair e ε)
 include h
 
 lemma dual_lc (l : ι →₀ R) (i : ι) : ε i (dual_pair.lc e l) = l i :=

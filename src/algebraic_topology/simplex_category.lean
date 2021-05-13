@@ -108,7 +108,7 @@ mk $ f.to_preorder_hom.comp g.to_preorder_hom
 
 end hom
 
-@[simps]
+@[simps to_category_struct]
 instance small_category : small_category.{u} simplex_category :=
 { hom := λ n m, simplex_category.hom n m,
   id := λ m, simplex_category.hom.id _,

@@ -383,7 +383,7 @@ calc (x + y) * z ≈ z * (x + y)      : mul_comm_equiv _ _
              ... ≈ (x * z + y * z)  : add_congr (mul_comm_equiv _ _) (mul_comm_equiv _ _)
 
 /-- Because the two halves of the definition of `inv` produce more elements
-of each side, we have to define the two families inductively.
+on each side, we have to define the two families inductively.
 This is the indexing set for the function, and `inv_val` is the function part. -/
 inductive inv_ty (l r : Type u) : bool → Type u
 | zero : inv_ty ff

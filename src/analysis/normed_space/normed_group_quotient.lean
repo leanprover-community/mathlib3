@@ -184,7 +184,8 @@ begin
   { calc (∀ ε > (0 : ℝ), ∃ r ∈ (λ x, ∥m + x∥) '' (S : set M), r < ε) ↔
         (∀ ε > 0, (∃ x ∈ S, ∥m + x∥ < ε)) : by simp [set.bex_image_iff]
      ... ↔ ∀ ε > 0, (∃ x ∈ S, ∥m + -x∥ < ε) : _
-     ... ↔ ∀ ε > 0, (∃ x ∈ S, x ∈ metric.ball m ε) : by simp [dist_eq_norm, ← sub_eq_add_neg, norm_sub_rev]
+     ... ↔ ∀ ε > 0, (∃ x ∈ S, x ∈ metric.ball m ε) : by simp [dist_eq_norm, ← sub_eq_add_neg,
+                                                              norm_sub_rev]
      ... ↔ m ∈ closure ↑S : by simp [metric.mem_closure_iff, dist_comm],
     apply forall_congr, intro ε, apply forall_congr, intro  ε_pos,
     rw [← S.exists_neg_mem_iff_exists_mem],
@@ -293,7 +294,7 @@ instance add_subgroup.semi_normed_group_quotient (S : add_subgroup M) :
   uniformity_dist    :=
   begin
     rw uniformity_eq_comap_nhds_zero',
-    have := filter.has_basis.comap (λ (p : quotient S × quotient S), p.2 - p.1) (quotient_nhd_basis S),
+    have := (quotient_nhd_basis S).comap (λ (p : quotient S × quotient S), p.2 - p.1),
     apply this.eq_of_same_basis,
     have : ∀ ε : ℝ, (λ (p : quotient S × quotient S), p.snd - p.fst) ⁻¹' {x | ∥x∥ < ε} =
       {p : quotient S × quotient S | ∥p.fst - p.snd∥ < ε},
@@ -474,7 +475,8 @@ begin
                by rwa hquot.norm⟩,
 end
 
-lemma is_quotient.norm_le {f : normed_group_hom M N} (hquot : is_quotient f) (m : M) : ∥f m∥ ≤ ∥m∥ :=
+lemma is_quotient.norm_le {f : normed_group_hom M N} (hquot : is_quotient f) (m : M) :
+  ∥f m∥ ≤ ∥m∥ :=
 begin
   rw hquot.norm,
   apply real.Inf_le,

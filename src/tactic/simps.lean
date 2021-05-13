@@ -34,35 +34,6 @@ There are three attributes being defined here
 structures, projections, simp, simplifier, generates declarations
 -/
 
-namespace list
-variables {α β γ δ ε ζ : Type*}
-def zip_with3 (f : α → β → γ → δ) : list α → list β → list γ → list δ
-| (x::xs) (y::ys) (z::zs) := f x y z :: zip_with3 xs ys zs
-| _       _       _       := []
-
-def zip_with4 (f : α → β → γ → δ → ε) : list α → list β → list γ → list δ → list ε
-| (x::xs) (y::ys) (z::zs) (u::us) := f x y z u :: zip_with4 xs ys zs us
-| _       _       _       _       := []
-
-def zip_with5 (f : α → β → γ → δ → ε → ζ) : list α → list β → list γ → list δ → list ε → list ζ
-| (x::xs) (y::ys) (z::zs) (u::us) (v::vs) := f x y z u v :: zip_with5 xs ys zs us vs
-| _       _       _       _       _       := []
-
-end list
-
-namespace name
-
-/-- Update the last component of a name -/
-def update_last (f : string → string) : name → name
-| (mk_string s n) := mk_string (f s) n
-| n := n
-
-/-- Adds `s` to the last component of `nm`, either as prefix or as suffix, separated by `_`. -/
-def append_to_last (nm : name) (s : string) (is_prefix : bool) : name :=
-nm.update_last $ λ s', if is_prefix then s ++ "_" ++ s' else s' ++ "_" ++ s
-
-end name
-
 open tactic expr option sum
 
 setup_tactic_parser
@@ -99,7 +70,6 @@ meta structure parsed_projection_data :=
 (is_default : bool)
 (is_prefix : bool)
 
-
 section
 open format
 meta instance : has_to_tactic_format projection_data :=
@@ -112,7 +82,7 @@ meta instance : has_to_format parsed_projection_data :=
   to_fmt "," ++ line ++ to_fmt c ++ to_fmt "," ++ line ++ to_fmt d ++ to_fmt "⟩"⟩
 end
 
-/-- A rule that specifies how metadata for projections in changes.
+/-- The type of rules that specify how metadata for projections in changes.
   See `initialize_simps_projection`. -/
 abbreviation projection_rule := (name × name ⊕ name) × bool
 

@@ -95,10 +95,21 @@ meta def sanitize_name : name → name
 | (name.mk_string s p) := name.mk_string s $ sanitize_name p
 | (name.mk_numeral s p) := name.mk_string sformat!"n{s}" $ sanitize_name p
 
-/-- Append a string to the last component of a name -/
+/-- Append a string to the last component of a name. -/
 def append_suffix : name → string → name
 | (mk_string s n) s' := mk_string (s ++ s') n
 | n _ := n
+
+/-- Update the last component of a name. -/
+def update_last (f : string → string) : name → name
+| (mk_string s n) := mk_string (f s) n
+| n := n
+
+/-- `append_to_last nm s is_prefix` adds `s` to the last component of `nm`,
+  either as prefix or as suffix (specified by `is_prefix`), separated by `_`.
+  Used by `simps_add_projections`. -/
+def append_to_last (nm : name) (s : string) (is_prefix : bool) : name :=
+nm.update_last $ λ s', if is_prefix then s ++ "_" ++ s' else s' ++ "_" ++ s
 
 /-- The first component of a name, turning a number to a string -/
 meta def head : name → string

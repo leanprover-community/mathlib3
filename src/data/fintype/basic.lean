@@ -1388,10 +1388,10 @@ end fintype
 lemma not_fintype (α : Type*) [h1 : infinite α] [h2 : fintype α] : false :=
 @is_empty.false _ h1 h2
 
-lemma fintype.false {α : Type*} [infinite α] (h : fintype α) : false :=
+protected lemma fintype.false {α : Type*} [infinite α] (h : fintype α) : false :=
 not_fintype α
 
-lemma infinite.false {α : Type*} [fintype α] (h : infinite α) : false :=
+protected lemma infinite.false {α : Type*} [fintype α] (h : infinite α) : false :=
 not_fintype α
 
 @[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=

@@ -523,7 +523,7 @@ section mk
 /--
 Auxiliary structure for setting up the recursion in `mk`.
 This is purely an implementation detail: for some reason just using the dependent 6-tuple directly
-results in `mk_aux` taking about much longer (well over the `-T100000` limit) to elaborate.
+results in `mk_aux` taking much longer (well over the `-T100000` limit) to elaborate.
 -/
 @[nolint has_inhabited_instance]
 structure mk_struct :=

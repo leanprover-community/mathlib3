@@ -119,7 +119,7 @@ abbreviation small_category (C : Type u) : Type (u+1) := category.{u} C
 section
 variables {C : Type u} [category.{v} C] {X Y Z : C}
 
-initialize_simps_projections category (to_category_struct_to_quiver_hom → hom, -hom,
+initialize_simps_projections category (to_category_struct_to_quiver_hom → hom,
   to_category_struct_comp → comp, to_category_struct_id → id, -to_category_struct)
 
 /-- postcompose an equation between morphisms by another morphism -/

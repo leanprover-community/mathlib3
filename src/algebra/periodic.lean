@@ -62,6 +62,11 @@ begin
   simpa only [smul_add, smul_inv_smul' ha] using h (a • x),
 end
 
+lemma periodic.const_smul' [add_monoid α] [group γ] [distrib_mul_action γ α]
+  (h : periodic f c) (a : γ) :
+  periodic (λ x, f (a • x)) (a⁻¹ • c) :=
+λ x, by simpa only [smul_add, smul_inv_smul] using h (a • x)
+
 lemma periodic.const_mul [division_ring α]
   (h : periodic f c) (a : α) :
   periodic (λ x, f (a * x)) (a⁻¹ * c) :=
@@ -71,6 +76,11 @@ lemma periodic.const_inv_smul [add_comm_monoid α] [division_ring γ] [module γ
   (h : periodic f c) (a : γ) :
   periodic (λ x, f (a⁻¹ • x)) (a • c) :=
 by simpa only [inv_inv'] using h.const_smul a⁻¹
+
+lemma periodic.const_inv_smul' [add_monoid α] [group γ] [distrib_mul_action γ α]
+  (h : periodic f c) (a : γ) :
+  periodic (λ x, f (a⁻¹ • x)) (a • c) :=
+by simpa only [inv_inv] using h.const_smul' a⁻¹
 
 lemma periodic.const_inv_mul [division_ring α]
   (h : periodic f c) (a : α) :
@@ -287,6 +297,11 @@ lemma antiperiodic.const_smul [add_comm_monoid α] [has_neg β] [division_ring �
   antiperiodic (λ x, f (a • x)) (a⁻¹ • c) :=
 λ x, by simpa only [smul_add, smul_inv_smul' ha] using h (a • x)
 
+lemma antiperiodic.const_smul' [add_monoid α] [has_neg β] [group γ] [distrib_mul_action γ α]
+  (h : antiperiodic f c) (a : γ) :
+  antiperiodic (λ x, f (a • x)) (a⁻¹ • c) :=
+λ x, by simpa only [smul_add, smul_inv_smul] using h (a • x)
+
 lemma antiperiodic.const_mul [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (a * x)) (a⁻¹ * c) :=
@@ -296,6 +311,11 @@ lemma antiperiodic.const_inv_smul [add_comm_monoid α] [has_neg β] [division_ri
   (h : antiperiodic f c) {a : γ} (ha : a ≠ 0) :
   antiperiodic (λ x, f (a⁻¹ • x)) (a • c) :=
 by simpa only [inv_inv'] using h.const_smul (inv_ne_zero ha)
+
+lemma antiperiodic.const_inv_smul' [add_monoid α] [has_neg β] [group γ] [distrib_mul_action γ α]
+  (h : antiperiodic f c) (a : γ) :
+  antiperiodic (λ x, f (a⁻¹ • x)) (a • c) :=
+by simpa only [inv_inv] using h.const_smul' a⁻¹
 
 lemma antiperiodic.const_inv_mul [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :

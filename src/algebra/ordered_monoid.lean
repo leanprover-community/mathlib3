@@ -89,6 +89,10 @@ class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] : Prop :=
 
 attribute [to_additive] has_exists_mul_of_le
 
+export has_exists_mul_of_le (exists_mul_of_le)
+
+export has_exists_add_of_le (exists_add_of_le)
+
 /-- A linearly ordered additive commutative monoid. -/
 @[protect_proj, ancestor linear_order ordered_add_comm_monoid]
 class linear_ordered_add_comm_monoid (α : Type*)

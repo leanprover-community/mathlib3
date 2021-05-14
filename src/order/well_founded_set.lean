@@ -520,7 +520,6 @@ end set
 
 namespace set
 namespace partially_well_ordered_on
-open has_exists_add_of_le
 
 /-- In the context of partial well-orderings, a bad sequence is a nonincreasing sequence
   whose range is contained in a particular set `s`. One exists if and only if `s` is not

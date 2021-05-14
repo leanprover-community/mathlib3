@@ -154,9 +154,6 @@ begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
 
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
-@[simp] lemma neg_add (a b : pgame) : ⟦-(a + b)⟧ = -⟦a⟧ + -⟦b⟧ :=
-by simp only [quot_neg, neg_add_rev, quot_add, add_comm]
-
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.
 

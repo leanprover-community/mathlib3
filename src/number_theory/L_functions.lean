@@ -49,8 +49,10 @@ begin
   suffices : bdd_above (set.range bdd_cont), convert this, exact bdd.2, },
 end
 
-noncomputable instance dis' {R : Type*} [normed_group R] : has_norm C(X,R) :=
+noncomputable instance {R : Type*} [normed_group R] : has_norm C(X,R) :=
 { norm := λ f, (⨆ x : X, ∥f x∥) }
+
+lemma norm_def {R : Type*} [normed_group R] (f : C(X,R)) : ∥f∥ = ⨆ x : X, ∥f x∥ := rfl
 
 lemma met {R : Type*} [normed_group R] [nonempty X] : normed_group.core C(X,R) :=
 {
@@ -890,14 +892,33 @@ begin
   rw continuous_linear_map.map_sub,
 end
 
+noncomputable instance [h : nonempty X] : normed_ring C(X,A) :=
+{ norm_mul := λ f g, csupr_le $ λ x, le_trans (norm_mul_le _ _) (mul_le_mul
+    (le_csupr (bdd_above_compact_range_norm X f) x)
+    (le_csupr (bdd_above_compact_range_norm X g) x)
+    (norm_nonneg (g x))
+    (norm_nonneg f)),
+  ..continuous_map_ring,
+  ..(infer_instance : normed_group C(X,A))
+}
+
 instance [h : nonempty X] : has_continuous_smul A C(↥X, A) :=
-begin
-  constructor,
-  have g1 : (λ (p : A × C(X, A)), (p.fst • p.snd)) = λ (p : A × C(X, A)), ((continuous_map.const p.fst) * p.snd), sorry,
- -- have g2 : (λ (p : A × C(X, A)), (p.fst • p.snd)) = λ (p : A × C(X, A)), (@continuous_map.const X _ _ _ p.fst) × λ (p : A × C(X, A)), p.snd,
-  rw g1,
-  sorry,
-end
+{ continuous_smul := begin
+  change continuous ((λ p, p.1 * p.2 : C(X,A) × C(X,A) → C(X,A)) ∘
+    (λ p, ((continuous_map.const p.fst), p.2) : A × C(X,A) → C(X,A) × C(X,A))),
+  -- should be factored out
+  have h : continuous (continuous_map.const : A → C(X,A)),
+  { rw metric.continuous_iff,
+    intros a ε hε,
+    refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
+    rw dist_eq_norm at hb ⊢,
+    refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
+    apply csupr_le,
+    intro x,
+    apply le_of_lt,
+    simp [hb] },
+  continuity,
+end }
 
 lemma cont [complete_space A] (h : nonempty X) (φ : measures'' X A) : continuous ((di  X A h).extend (φ.val.phi)) :=
 begin

@@ -378,7 +378,7 @@ begin
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
-      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 }, },
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },

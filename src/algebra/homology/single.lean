@@ -37,7 +37,7 @@ local attribute [instance] has_zero_object.has_zero
 /--
 The functor `V ⥤ homological_complex V c` creating a chain complex supported in a single degree.
 
-See also `chain_complex.single_0 : V ⥤ chain_complex V ℕ`,
+See also `chain_complex.single₀ : V ⥤ chain_complex V ℕ`,
 which has better definitional properties,
 if you are working with `ℕ`-indexed complexes.
 -/

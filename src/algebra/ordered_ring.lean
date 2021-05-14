@@ -1161,6 +1161,30 @@ begin
     mul_one, mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg],
 end
 
+@[simp] lemma abs_dvd (a b : α) : abs a ∣ b ↔ a ∣ b :=
+begin
+  cases abs_choice a with h h; rw h,
+  exact neg_dvd a b,
+end
+
+lemma abs_dvd_self (a : α) : abs a ∣ a :=
+(abs_dvd a a).mpr (dvd_refl a)
+
+@[simp] lemma dvd_abs (a b : α) : a ∣ abs b ↔ a ∣ b :=
+begin
+  cases abs_choice b with h h; rw h,
+  exact dvd_neg a b,
+end
+
+lemma self_dvd_abs (a : α) : a ∣ abs a :=
+(dvd_abs a a).mpr (dvd_refl a)
+
+@[simp] lemma abs_dvd_abs (a b : α) : abs a ∣ abs b ↔ a ∣ b :=
+(abs_dvd _ _).trans (dvd_abs _ _)
+
+lemma even_abs {a : α} : even (abs a) ↔ even a :=
+dvd_abs _ _
+
 /-- Pullback a `linear_ordered_comm_ring` under an injective map. -/
 def function.injective.linear_ordered_comm_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]

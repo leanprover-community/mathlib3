@@ -720,6 +720,8 @@ lemma le_iff_forall_pos_lt_add : a ≤ b ↔ ∀ ε, 0 < ε → a < b + ε :=
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)
 
+lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
+
 lemma abs_of_nonneg (h : 0 ≤ a) : abs a = a :=
 max_eq_left $ (neg_nonpos.2 h).trans h
 
@@ -831,13 +833,24 @@ lemma abs_abs_sub_abs_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b
 abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub; apply abs_sub_abs_le_abs_sub⟩
 
 lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
-iff.intro
-  begin
-    cases le_total a 0 with a_nonpos a_nonneg,
-    { rw [abs_of_nonpos a_nonpos, neg_eq_iff_neg_eq, eq_comm], exact or.inr },
-    { rw [abs_of_nonneg a_nonneg, eq_comm], exact or.inl }
-  end
-  (by intro h; cases h; subst h; try { rw abs_neg }; exact abs_of_nonneg hb)
+begin
+  split,
+  { cases abs_choice a; rw h,
+    { exact or.inl },
+    { rw [neg_eq_iff_neg_eq, eq_comm], exact or.inr } },
+  { rintro (rfl|rfl); try { rw abs_neg }; exact abs_of_nonneg hb }
+end
+
+lemma abs_eq_abs_iff {a b : α} : abs a = abs b ↔ a = b ∨ a = -b :=
+begin
+  split; intro h,
+  { cases abs_choice a with h₁ h₁; cases abs_choice b with h₂ h₂; rw [h₁, h₂] at h,
+    { exact or.inl h },
+    { exact or.inr h },
+    { exact or.inr (eq_neg_of_eq_neg h.symm) },
+    { exact or.inl (neg_inj.mp h) } },
+  { cases h; simp only [h, abs_neg] },
+end
 
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le'.2

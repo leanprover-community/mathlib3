@@ -194,6 +194,8 @@ end homological_complex
 
 namespace chain_complex
 
+-- TODO: dualize to cochain complexes
+
 /--
 Turning an object into a chain complex supported at zero then applying a functor is
 the same as applying the functor then forming the complex.

@@ -2171,9 +2171,7 @@ begin
         have h_meas_t_inter_s : measurable_set (t ∩ s) :=
            h_meas_t.inter h_meas_s,
         repeat {rw measure_eq_inter_diff h_meas_t h_meas_s, rw set.diff_eq},
-        apply add_le_add _ _,
-        { exact ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞ },
-        { exact ordered_add_comm_monoid.to_covariant_class_right ℝ≥0∞ },
+        refine add_le_add _ _,
         { rw add_apply,
           apply le_add_right _,
           rw add_apply,

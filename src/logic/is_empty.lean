@@ -50,7 +50,7 @@ example [h : nonempty α] [is_empty β] : is_empty (α → β) := by apply_insta
 
 /-- Eliminate out of a type that `is_empty` (without using projection notation). -/
 @[elab_as_eliminator]
-protected def is_empty_elim [is_empty α] {p : α → Sort*} (a : α) : p a :=
+def is_empty_elim [is_empty α] {p : α → Sort*} (a : α) : p a :=
 (is_empty.false a).elim
 
 lemma is_empty_iff : is_empty α ↔ α → false :=

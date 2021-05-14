@@ -14,7 +14,7 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 ## Main definitions
 
 * `dual R M` defines the dual space of M over R.
-* Given a basis for an `R`-vector space `M`, `basis.to_dual` produces a map from `M` to `dual R M`.
+* Given a basis for an `R`-module `M`, `basis.to_dual` produces a map from `M` to `dual R M`.
 * Given families of vectors `e` and `ε`, `dual_pair e ε` states that these families have the
   characteristic properties of a basis and a dual.
 * `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.

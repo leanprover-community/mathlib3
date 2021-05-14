@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.measure_space
-import measure_theory.borel_space
+import measure_theory.regular
 import topology.opens
 import topology.compacts
 
@@ -28,14 +28,19 @@ We show that:
   as `outer_measure`.
 * Restricting this outer measure to Borel sets gives a regular measure `μ`.
 
-We don't explicitly define the type of contents.
+We define bundled contents as `content`.
 In this file we only work on contents on compact sets, and inner contents on open sets, and both
 contents and inner contents map into the extended nonnegative reals. However, in other applications
 other choices can be made, and it is not a priori clear what the best interface should be.
 
 ## Main definitions
-* `measure_theory.inner_content`: define an inner content from an content
-* `measure_theory.outer_measure.outer_measure`: construct an outer measure from a content
+
+For `μ : content G`, we define
+* `μ.inner_content` : the inner content associated to `μ`.
+* `μ.outer_measure` : the outer measure associated to `μ`.
+* `μ.measure`       : the Borel measure associated to `μ`.
+
+We prove that, on a locally compact space, the measure `μ.measure` is regular.
 
 ## References
 
@@ -53,41 +58,42 @@ namespace measure_theory
 
 variables {G : Type w} [topological_space G]
 
+/-- A content is an additive function on compact sets taking values in `ℝ≥0`. It is a device
+from which one can define a measure. -/
 structure content (G : Type w) [topological_space G] :=
-(to_fun : compacts G → ℝ≥0∞)
-(lt_top' : ∀ (K : compacts G), to_fun K < ∞)
+(to_fun : compacts G → ℝ≥0)
 (mono' : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → to_fun K₁ ≤ to_fun K₂)
 (union_disjoint' : ∀ (K₁ K₂ : compacts G), disjoint K₁.1 K₂.1 →
    to_fun (K₁ ⊔ K₂) = to_fun K₁ + to_fun K₂)
 (union_le' : ∀ (K₁ K₂ : compacts G), to_fun (K₁ ⊔ K₂) ≤ to_fun K₁ + to_fun K₂)
-(empty' : to_fun ⊥ = 0)
 
-instance : has_coe_to_fun (content G) := ⟨_, λ μ, μ.to_fun⟩
+/-- Although the `to_fun` field of a content takes values in `ℝ≥0`, we register a coercion to
+functions taking values in `ℝ≥0∞` as most constructions below rely on taking suprs and infs, which
+is more convenient in a complete lattice, and aim at constructing a measure. -/
+instance : has_coe_to_fun (content G) := ⟨_, λ μ s, (μ.to_fun s : ℝ≥0∞)⟩
 
 namespace content
 
 variable (μ : content G)
 
+lemma apply_eq_coe_to_fun (K : compacts G) : μ K = μ.to_fun K := rfl
+
 lemma mono (K₁ K₂ : compacts G) (h : K₁.1 ⊆ K₂.1) : μ K₁ ≤ μ K₂ :=
-μ.mono' _ _ h
+by simp [apply_eq_coe_to_fun, μ.mono' _ _ h]
 
 lemma union_disjoint (K₁ K₂ : compacts G) (h : disjoint K₁.1 K₂.1) : μ (K₁ ⊔ K₂) = μ K₁ + μ K₂ :=
-μ.union_disjoint' _ _ h
+by simp [apply_eq_coe_to_fun, μ.union_disjoint' _ _ h]
 
 lemma union_le (K₁ K₂ : compacts G) : μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂ :=
-μ.union_le' _ _
+by { simp only [apply_eq_coe_to_fun], norm_cast, exact μ.union_le' _ _ }
 
 lemma lt_top (K : compacts G) : μ K < ∞ :=
-μ.lt_top' _
+ennreal.coe_lt_top
 
 lemma empty : μ ⊥ = 0 :=
 begin
-  have := μ.union_disjoint ⊥ ⊥,
-  simp only [compacts.bot_val, sup_bot_eq, forall_true_left, empty_disjoint] at this,
-  have A := μ.lt_top ⊥,
-  lift μ ⊥ to ℝ≥0 using lt_top_iff_ne_top.1 A with m,
-  norm_cast at this,
-  simpa [self_eq_add_left] using this,
+  have := μ.union_disjoint' ⊥ ⊥,
+  simpa [apply_eq_coe_to_fun] using this,
 end
 
 /-- Constructing the inner content of a content. From a content defined on the compact sets, we
@@ -260,6 +266,17 @@ begin
   intros s hs, convert μ.inner_content_comap f h ⟨s, hs⟩
 end
 
+lemma outer_measure_lt_top_of_is_compact [locally_compact_space G]
+  {K : set G} (hK : is_compact K) : μ.outer_measure K < ∞ :=
+begin
+  rcases exists_compact_superset hK with ⟨F, h1F, h2F⟩,
+  calc
+  μ.outer_measure K ≤ μ.outer_measure (interior F) : outer_measure.mono' _ h2F
+  ... ≤ μ ⟨F, h1F⟩ :
+    by apply μ.outer_measure_le ⟨interior F, is_open_interior⟩ ⟨F, h1F⟩ interior_subset
+  ... < ⊤ : μ.lt_top _
+end
+
 @[to_additive]
 lemma is_mul_left_invariant_outer_measure [group G] [topological_group G]
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
@@ -288,6 +305,7 @@ by { convert μ.inner_content_pos_of_is_mul_left_invariant h3 K hK ⟨U, h1U⟩ 
 variables [S : measurable_space G] [borel_space G]
 include S
 
+/-- For the outer measure coming from a content, all Borel sets are measurable. -/
 lemma borel_le_caratheodory : S ≤ μ.outer_measure.caratheodory :=
 begin
   rw [@borel_space.measurable_eq G _ _],
@@ -315,6 +333,32 @@ end
 
 /-- The measure induced by the outer measure coming from a content, on the Borel sigma-algebra. -/
 def measure : measure G := μ.outer_measure.to_measure μ.borel_le_caratheodory
+
+lemma measure_apply {s : set G} (hs : measurable_set s) : μ.measure s = μ.outer_measure s :=
+to_measure_apply _ _ hs
+
+/-- In a locally compact space, any measure constructed from a content is regular. -/
+instance regular [locally_compact_space G] : μ.measure.regular :=
+begin
+  split,
+  { intros K hK,
+    rw [measure_apply _ hK.measurable_set],
+    exact μ.outer_measure_lt_top_of_is_compact hK },
+  { intros A hA,
+    rw [measure_apply _ hA, outer_measure_eq_infi],
+    refine binfi_le_binfi _,
+    intros U hU,
+    refine infi_le_infi _,
+    intro h2U,
+    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU],
+    refl' },
+  { intros U hU,
+    rw [measure_apply _ hU.measurable_set, μ.outer_measure_of_is_open U hU],
+    dsimp only [inner_content], refine bsupr_le (λ K hK, _),
+    refine le_supr_of_le K.1 _, refine le_supr_of_le K.2 _, refine le_supr_of_le hK _,
+    rw [measure_apply _ K.2.measurable_set],
+    apply le_outer_measure_compacts },
+end
 
 end content
 

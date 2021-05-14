@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.unit_interval
-import topology.algebra.order.proj_Icc
+import topology.algebra.ordered.proj_Icc
 
 /-!
 # Path connectedness

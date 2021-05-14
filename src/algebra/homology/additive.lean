@@ -232,4 +232,3 @@ nat_iso.of_components (λ X,
   ((single₀_map_homological_complex F).inv.app X).f (n+1) = 0 := rfl
 
 end chain_complex
-#lint

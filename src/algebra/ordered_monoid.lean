@@ -215,11 +215,6 @@ namespace with_zero
 
 local attribute [semireducible] with_zero
 
-/--  If `α` is a Type with `≤`, then `with_zero α` is also a Type with `≤` and `0 ∈ with_zero α`
-is the smallest element. -/
-def has_le [has_le α] : has_le (with_zero α) :=
-{ le := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b, }
-
 instance [preorder α] : preorder (with_zero α) := with_bot.preorder
 
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order

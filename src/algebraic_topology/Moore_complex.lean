@@ -6,13 +6,13 @@ Authors: Scott Morrison
 import algebraic_topology.simplicial_object
 import category_theory.abelian.basic
 import category_theory.subobject
-import algebra.homology.connective_chain_complex
+import algebra.homology.homological_complex
 
 /-!
 ## Moore complex
 
 We construct the normalized Moore complex, as a functor
-`simplicial_object C ⥤ connective_chain_complex C`,
+`simplicial_object C ⥤ chain_complex C ℕ`,
 for any abelian category `C`.
 
 The `n`-th object is intersection of
@@ -52,7 +52,7 @@ variables (X : simplicial_object C)
 The normalized Moore complex in degree `n`, as a subobject of `X n`.
 -/
 @[simp]
-def obj_X : Π n : ℕ, subobject (X.obj (op n))
+def obj_X : Π n : ℕ, subobject (X.obj (op (simplex_category.mk n)))
 | 0 := ⊤
 | (n+1) := finset.univ.inf (λ k : fin (n+1), kernel_subobject (X.δ k.succ))
 
@@ -61,7 +61,7 @@ The differentials in the normalized Moore complex.
 -/
 @[simp]
 def obj_d : Π n : ℕ, (obj_X X (n+1) : C) ⟶ (obj_X X n : C)
-| 0 := subobject.arrow _ ≫ X.δ (0 : fin 2) ≫ subobject.top_coe_iso_self.inv
+| 0 := subobject.arrow _ ≫ X.δ (0 : fin 2) ≫ inv ((⊤ : subobject _).arrow)
 | (n+1) :=
 begin
   -- The differential is `subobject.arrow _ ≫ X.δ (0 : fin (n+3))`,
@@ -107,10 +107,9 @@ end
 The normalized Moore complex functor, on objects.
 -/
 @[simps]
-def obj : connective_chain_complex C :=
-{ X := λ n, (obj_X X n : C), -- the coercion here picks a representative of the subobject
-  d := obj_d X,
-  d_squared' := d_squared X, }
+def obj (X : simplicial_object C) : chain_complex C ℕ :=
+chain_complex.of (λ n, (obj_X X n : C)) -- the coercion here picks a representative of the subobject
+  (obj_d X) (d_squared X)
 
 variables {X} {Y : simplicial_object C} (f : X ⟶ Y)
 
@@ -119,9 +118,9 @@ The normalized Moore complex functor, on morphisms.
 -/
 @[simps]
 def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
-{ f := λ n,
-  begin
-    refine factor_thru _ (arrow _ ≫ f.app (op n)) _,
+chain_complex.of_hom _ _ _ _ _ _
+  (λ n, begin
+    refine factor_thru _ (arrow _ ≫ f.app (op (simplex_category.mk n))) _,
     cases n; dsimp,
     { apply top_factors, },
     { refine (finset_inf_factors _).mpr (λ i m, _),
@@ -130,13 +129,12 @@ def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
       rw ←factor_thru_arrow _ _ (finset_inf_arrow_factors finset.univ _ i (by simp)),
       slice_lhs 2 3 { erw [kernel_subobject_arrow_comp], },
       simp, }
-  end,
-  comm' := λ n,
-  begin
+  end)
+  (λ n, begin
     cases n; dsimp,
     { ext, simp, erw f.naturality, refl, },
     { ext, simp, erw f.naturality, refl, },
-  end }
+  end)
 
 end normalized_Moore_complex
 
@@ -153,10 +151,11 @@ the kernels of `X.δ i : X.obj n ⟶ X.obj (n-1)`, for `i = 1, ..., n`.
 The differentials are induced from `X.δ 0`,
 which maps each of these intersections of kernels to the next.
 -/
-def normalized_Moore_complex : (simplicial_object C) ⥤ connective_chain_complex C :=
+@[simps]
+def normalized_Moore_complex : simplicial_object C ⥤ chain_complex C ℕ :=
 { obj := obj,
   map := λ X Y f, map f,
-  map_id' := λ X, by { ext n, cases n; simp, },
+  map_id' := λ X, by { ext n, cases n; { dsimp, simp, }, },
   map_comp' := λ X Y Z f g, by { ext n, cases n; simp, }, }
 
 end algebraic_topology

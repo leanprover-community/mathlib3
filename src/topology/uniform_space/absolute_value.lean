@@ -33,7 +33,7 @@ open set function filter uniform_space
 open_locale filter
 
 namespace is_absolute_value
-variables {𝕜 : Type*} [discrete_linear_ordered_field 𝕜]
+variables {𝕜 : Type*} [linear_ordered_field 𝕜]
 variables {R : Type*} [comm_ring R] (abv : R → 𝕜) [is_absolute_value abv]
 
 /-- The uniformity coming from an absolute value. -/
@@ -68,7 +68,8 @@ begin
     exact this },
   rw mem_infi,
   { simp [subset_def] },
-  { exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
+  { rintros ⟨r, hr⟩ ⟨p, hp⟩,
+    exact ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩, },
 end
 
 end is_absolute_value

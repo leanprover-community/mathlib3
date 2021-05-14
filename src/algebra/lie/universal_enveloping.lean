@@ -3,7 +3,7 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.basic
+import algebra.lie.of_associative
 import algebra.ring_quot
 import linear_algebra.tensor_algebra
 
@@ -53,12 +53,10 @@ inductive rel : tensor_algebra R L → tensor_algebra R L → Prop
 end universal_enveloping_algebra
 
 /-- The universal enveloping algebra of a Lie algebra. -/
-@[derive [inhabited, semiring, algebra R]]
+@[derive [inhabited, ring, algebra R]]
 def universal_enveloping_algebra := ring_quot (universal_enveloping_algebra.rel R L)
 
 namespace universal_enveloping_algebra
-
-instance : ring (universal_enveloping_algebra R L) := algebra.semiring_to_ring R
 
 /-- The quotient map from the tensor algebra to the universal enveloping algebra as a morphism of
 associative algebras. -/
@@ -69,7 +67,7 @@ variables {L}
 
 /-- The natural Lie algebra morphism from a Lie algebra to its universal enveloping algebra. -/
 def ι : L →ₗ⁅R⁆ universal_enveloping_algebra R L :=
-{ map_lie   := λ x y, by
+{ map_lie'   := λ x y, by
   { suffices : mk_alg_hom R L (ιₜ ⁅x, y⁆ + (ιₜ y) * (ιₜ x)) = mk_alg_hom R L ((ιₜ x) * (ιₜ y)),
     { rw alg_hom.map_mul at this, simp [lie_ring.of_associative_ring_bracket, ← this], },
     exact ring_quot.mk_alg_hom_rel _ (rel.lie_compat x y), },
@@ -79,43 +77,44 @@ variables {A : Type u₃} [ring A] [algebra R A] (f : L →ₗ⁅R⁆ A)
 
 /-- The universal property of the universal enveloping algebra: Lie algebra morphisms into
 associative algebras lift to associative algebra morphisms from the universal enveloping algebra. -/
-def lift : universal_enveloping_algebra R L →ₐ[R] A :=
-ring_quot.lift_alg_hom R (tensor_algebra.lift R (f : L →ₗ[R] A))
-begin
-  intros a b h, induction h with x y,
-  simp [lie_ring.of_associative_ring_bracket],
-end
+def lift : (L →ₗ⁅R⁆ A) ≃ (universal_enveloping_algebra R L →ₐ[R] A) :=
+{ to_fun := λ f,
+    ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : L →ₗ[R] A),
+    begin
+      intros a b h, induction h with x y,
+      simp [lie_ring.of_associative_ring_bracket],
+    end⟩,
+  inv_fun := λ F, (lie_algebra.of_associative_algebra_hom F).comp (ι R),
+  left_inv := λ f, by { ext, simp [ι, mk_alg_hom], },
+  right_inv := λ F, by { ext, simp [ι, mk_alg_hom], } }
+
+@[simp] lemma lift_symm_apply (F : universal_enveloping_algebra R L →ₐ[R] A) :
+  (lift R).symm F = (lie_algebra.of_associative_algebra_hom F).comp (ι R) :=
+rfl
+
+@[simp] lemma ι_comp_lift : (lift R f) ∘ (ι R) = f :=
+funext $ lie_hom.ext_iff.mp $ (lift R).symm_apply_apply f
 
 @[simp] lemma lift_ι_apply (x : L) : lift R f (ι R x) = f x :=
-begin
-  have : ι R x = ring_quot.mk_alg_hom R (rel R L) (ιₜ x), by refl,
-  simp [this, lift],
-end
-
-lemma ι_comp_lift : (lift R f) ∘ (ι R) = f :=
-by { ext, simp, }
+by rw [←function.comp_apply (lift R f) (ι R) x, ι_comp_lift]
 
 lemma lift_unique (g : universal_enveloping_algebra R L →ₐ[R] A) :
   g ∘ (ι R) = f ↔ g = lift R f :=
 begin
-  split; intros h,
-  { apply ring_quot.lift_alg_hom_unique,
-    rw ← tensor_algebra.lift_unique,
-    ext x,
-    change _ = f x, rw ← congr h rfl,
-    refl, },
-  { subst h, apply ι_comp_lift, },
+  refine iff.trans _ (lift R).symm_apply_eq,
+  split; {intro h, ext, simp [←h] },
 end
 
+/-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma hom_ext {g₁ g₂ : universal_enveloping_algebra R L →ₐ[R] A}
   (h : g₁ ∘ (ι R) = g₂ ∘ (ι R)) : g₁ = g₂ :=
 begin
-  let f₁ := (lie_algebra.of_associative_algebra_hom g₁).comp (ι R),
-  let f₂ := (lie_algebra.of_associative_algebra_hom g₂).comp (ι R),
-  have h' : f₁ = f₂, { ext, exact congr h rfl, },
-  have h₁ : g₁ = lift R f₁, { rw ← lift_unique, refl, },
-  have h₂ : g₂ = lift R f₂, { rw ← lift_unique, refl, },
-  rw [h₁, h₂, h'],
+  apply (lift R).symm.injective,
+  rw [lift_symm_apply, lift_symm_apply],
+  ext x,
+  have := congr h (rfl : x = x),
+  rw function.comp_apply at this,
+  simp [this],
 end
 
 end universal_enveloping_algebra

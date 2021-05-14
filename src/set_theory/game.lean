@@ -32,7 +32,7 @@ instance pgame.setoid : setoid pgame :=
   reflecting that it is a proper class in ZFC.
   A combinatorial game is then constructed by quotienting by the equivalence
   `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
-def game := quotient pgame.setoid
+abbreviation game := quotient pgame.setoid
 
 open pgame
 
@@ -45,9 +45,9 @@ quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_co
 instance : has_le game :=
 { le := le }
 
-@[refl] theorem le_refl : ∀ x : game, x ≤ x :=
+theorem le_refl : ∀ x : game, x ≤ x :=
 by { rintro ⟨x⟩, apply pgame.le_refl }
-@[trans] theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
+theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
 by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
 by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
@@ -138,6 +138,10 @@ instance : add_comm_group game :=
 theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a ≤ c + b :=
 begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
 
+@[simp] lemma quot_neg (a : pgame) : ⟦-a⟧ = -⟦a⟧ := rfl
+@[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl
+@[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
+
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.
 
@@ -157,10 +161,10 @@ def game_partial_order : partial_order game :=
   le_antisymm := le_antisymm,
   ..game.has_le }
 
-local attribute [instance] game_partial_order
-
 /-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
 def ordered_add_comm_group_game : ordered_add_comm_group game :=
-ordered_add_comm_group.mk' add_le_add_left
+{ add_le_add_left := add_le_add_left,
+  ..game.add_comm_group,
+  ..game_partial_order }
 
 end game

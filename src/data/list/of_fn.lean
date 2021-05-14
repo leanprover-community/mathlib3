@@ -60,9 +60,9 @@ begin
   simp only [d_array.rev_iterate_aux, of_fn_aux, IH]
 end
 
-theorem of_fn_zero (f : fin 0 → α) : of_fn f = [] := rfl
+@[simp] theorem of_fn_zero (f : fin 0 → α) : of_fn f = [] := rfl
 
-theorem of_fn_succ {n} (f : fin (succ n) → α) :
+@[simp] theorem of_fn_succ {n} (f : fin (succ n) → α) :
   of_fn f = f 0 :: of_fn (λ i, f i.succ) :=
 suffices ∀ {m h l}, of_fn_aux f (succ m) (succ_le_succ h) l =
   f 0 :: of_fn_aux (λ i, f i.succ) m h l, from this,
@@ -87,5 +87,9 @@ end
 @[simp] lemma forall_mem_of_fn_iff {n : ℕ} {f : fin n → α} {P : α → Prop} :
   (∀ i ∈ of_fn f, P i) ↔ ∀ j : fin n, P (f j) :=
 by simp only [mem_of_fn, set.forall_range_iff]
+
+@[simp] lemma of_fn_const (n : ℕ) (c : α) :
+  of_fn (λ i : fin n, c) = repeat c n :=
+nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
 
 end list

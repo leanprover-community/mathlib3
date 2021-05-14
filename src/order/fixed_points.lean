@@ -200,11 +200,13 @@ protected def complete_lattice : complete_lattice (fixed_points f) :=
   le_Sup       := λ A x hxA, show x.1 ≤ _, from le_trans
     (le_Sup $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩)
     next_le,
-  Sup_le       := λ A x Hx, lfp_le $ sup_le (Sup_le $ λ z ⟨y, hyA, hyz⟩, hyz ▸ Hx y hyA) (x.2.symm ▸ le_refl x),
+  Sup_le       := λ A x Hx, lfp_le $ sup_le
+    (Sup_le $ λ z ⟨y, hyA, hyz⟩, hyz ▸ Hx y hyA) (x.2.symm ▸ le_refl x),
 
   Inf          := λ A, prev_fixed hf (Inf $ subtype.val '' A)
     (f_le_Inf_of_fixed_points f hf (subtype.val '' A) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
-  le_Inf       := λ A x Hx, le_gfp $ le_inf (le_Inf $ λ z ⟨y, hyA, hyz⟩, hyz ▸ Hx y hyA) (x.2.symm ▸ le_refl x.1),
+  le_Inf       := λ A x Hx, le_gfp $ le_inf
+    (le_Inf $ λ z ⟨y, hyA, hyz⟩, hyz ▸ Hx y hyA) (x.2.symm ▸ le_refl x.1),
   Inf_le       := λ A x hxA, show _ ≤ x.1, from le_trans
     prev_le
     (Inf_le $ show x.1 ∈ subtype.val '' A, from ⟨x, hxA, rfl⟩) }

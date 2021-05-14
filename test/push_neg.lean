@@ -77,3 +77,16 @@ begin
     "contrapose only applies to nondependent arrows between props",
   intro, refl
 end
+
+open tactic
+example (X : Type) (f : X → ℕ) (h : ¬∀ x, f x = 0) (hf : false) : false :=
+begin
+  have h1 := h,
+  -- h h1: ¬∀ (x : X), f x = 0
+  push_neg at h,
+  push_neg at h1,
+  (do ht ← get_local `h >>= infer_type,
+      h1t ← get_local `h1 >>= infer_type,
+      guard (ht = h1t) ),
+  exact hf
+end

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
 import data.sigma.basic
+import algebra.group.defs
 
 /-!
 # Injective functions
@@ -15,6 +16,7 @@ universes u v w x
 namespace function
 
 /-- `α ↪ β` is a bundled injective function. -/
+@[nolint has_inhabited_instance] -- depending on cardinalities, an injective function may not exist
 structure embedding (α : Sort*) (β : Sort*) :=
 (to_fun : α → β)
 (inj'   : injective to_fun)
@@ -23,6 +25,8 @@ infixr ` ↪ `:25 := embedding
 
 instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embedding.to_fun⟩
 
+initialize_simps_projections embedding (to_fun → apply)
+
 end function
 
 /-- Convert an `α ≃ β` to `α ↪ β`. -/
@@ -30,11 +34,25 @@ end function
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
 ⟨f, f.injective⟩
 
+/-- Given an equivalence to a subtype, produce an embedding to the elements of the corresponding
+set. -/
+@[simps]
+def equiv.as_embedding {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) : α ↪ β :=
+⟨coe ∘ e, subtype.coe_injective.comp e.injective⟩
+
+@[simp]
+lemma equiv.as_embedding_range {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) :
+  set.range e.as_embedding = set_of p :=
+set.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ subtype.coe_prop (e y), λ hs, ⟨e.symm ⟨x, hs⟩, by simp⟩⟩
+
 namespace function
 namespace embedding
 
+lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn
+| ⟨x, _⟩ ⟨y, _⟩ rfl := rfl
+
 @[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; simpa using funext h
+coe_injective (funext h)
 
 lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 ⟨ext, λ h _, by rw h⟩
@@ -149,11 +167,11 @@ def sum_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕
 rfl
 
 /-- The embedding of `α` into the sum `α ⊕ β`. -/
-def inl {α β : Type*} : α ↪ α ⊕ β :=
+@[simps] def inl {α β : Type*} : α ↪ α ⊕ β :=
 ⟨sum.inl, λ a b, sum.inl.inj⟩
 
 /-- The embedding of `β` into the sum `α ⊕ β`. -/
-def inr {α β : Type*} : β ↪ α ⊕ β :=
+@[simps] def inr {α β : Type*} : β ↪ α ⊕ β :=
 ⟨sum.inr, λ a b, sum.inr.inj⟩
 
 end sum
@@ -163,12 +181,12 @@ section sigma
 variables {α α' : Type*} {β : α → Type*} {β' : α' → Type*}
 
 /-- `sigma.mk` as an `function.embedding`. -/
-@[simps to_fun] def sigma_mk (a : α) : β a ↪ Σ x, β x :=
+@[simps apply] def sigma_mk (a : α) : β a ↪ Σ x, β x :=
 ⟨sigma.mk a, sigma_mk_injective⟩
 
 /-- If `f : α ↪ α'` is an embedding and `g : Π a, β α ↪ β' (f α)` is a family
 of embeddings, then `sigma.map f g` is an embedding. -/
-@[simps to_fun] def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
+@[simps apply] def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
   (Σ a, β a) ↪ Σ a', β' a' :=
 ⟨sigma.map f (λ a, g a), f.injective.sigma_map (λ a, (g a).injective)⟩
 
@@ -198,8 +216,16 @@ protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α �
 open set
 
 /-- `set.image` as an embedding `set α ↪ set β`. -/
-@[simps to_fun] protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
+@[simps apply] protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
 ⟨image f, f.2.image_injective⟩
+
+lemma swap_apply {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪ β) (x y z : α) :
+  equiv.swap (f x) (f y) (f z) = f (equiv.swap x y z) :=
+f.injective.swap_apply x y z
+
+lemma swap_comp {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α ↪ β) (x y : α) :
+  equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
+f.injective.swap_comp x y
 
 end embedding
 end function
@@ -218,10 +244,13 @@ end equiv
 namespace set
 
 /-- The injection map is an embedding between subsets. -/
-@[simps to_fun] def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
+@[simps apply] def embedding_of_subset {α} (s t : set α) (h : s ⊆ t) : s ↪ t :=
 ⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by { congr, injection h }⟩
 
 end set
+
+-- TODO: these two definitions probably belong somewhere else, so that we can remove the
+-- `algebra.group.defs` import.
 
 /--
 The embedding of a left cancellative semigroup into itself
@@ -229,10 +258,9 @@ by left multiplication by a fixed element.
  -/
 @[to_additive
   "The embedding of a left cancellative additive semigroup into itself
-   by left translation by a fixed element."]
+   by left translation by a fixed element.", simps]
 def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, g * h,
-  inj' := λ h h', (mul_right_inj g).mp, }
+{ to_fun := λ h, g * h, inj' := mul_right_injective g }
 
 /--
 The embedding of a right cancellative semigroup into itself
@@ -240,9 +268,6 @@ by right multiplication by a fixed element.
  -/
 @[to_additive
   "The embedding of a right cancellative additive semigroup into itself
-   by right translation by a fixed element."]
+   by right translation by a fixed element.", simps]
 def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, h * g,
-  inj' := λ h h', (mul_left_inj g).mp, }
-
-attribute [simps] mul_left_embedding add_left_embedding mul_right_embedding add_right_embedding
+{ to_fun := λ h, h * g, inj' := mul_left_injective g }

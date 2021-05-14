@@ -1,12 +1,14 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro and Kenny Lau
+Authors: Mario Carneiro, Kenny Lau
 -/
 import data.int.basic
 import data.list.range
 
 namespace int
+
+local attribute [semireducible] int.nonneg
 
 /-- List enumerating `[m, n)`. -/
 def range (m n : ℤ) : list ℤ :=

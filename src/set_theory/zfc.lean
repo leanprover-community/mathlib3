@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 A model of ZFC in Lean.
 -/
@@ -229,7 +229,8 @@ theorem resp.euc : Π {n} {a b c : resp n}, resp.equiv a b → resp.equiv c b �
   @resp.euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ equiv.refl y)
 
 instance resp.setoid {n} : setoid (resp n) :=
-⟨resp.equiv, resp.refl, λx y h, resp.euc (resp.refl y) h, λx y z h1 h2, resp.euc h1 $ resp.euc (resp.refl z) h2⟩
+⟨resp.equiv, resp.refl, λx y h, resp.euc (resp.refl y) h,
+  λx y z h1 h2, resp.euc h1 $ resp.euc (resp.refl z) h2⟩
 
 end pSet
 
@@ -241,7 +242,7 @@ namespace pSet
 
 namespace resp
 
-def eval_aux : Π {n}, { f : resp n → arity Set.{u} n // ∀ (a b : resp n), resp.equiv a b → f a = f b }
+def eval_aux : Π {n}, {f : resp n → arity Set.{u} n // ∀ (a b : resp n), resp.equiv a b → f a = f b}
 | 0     := ⟨λa, ⟦a.1⟧, λa b h, quotient.sound h⟩
 | (n+1) := let F : resp (n + 1) → arity Set (n + 1) := λa, @quotient.lift _ _ pSet.setoid
     (λx, eval_aux.1 (a.f x)) (λb c h, eval_aux.2 _ _ (a.2 _ _ h)) in
@@ -258,7 +259,7 @@ end resp
 /-- A set function is "definable" if it is the image of some n-ary pre-set
   function. This isn't exactly definability, but is useful as a sufficient
   condition for functions that have a computable image. -/
-@[class] inductive definable (n) : arity Set.{u} n → Type (u+1)
+class inductive definable (n) : arity Set.{u} n → Type (u+1)
 | mk (f) : definable (resp.eval _ f)
 attribute [instance] definable.mk
 
@@ -268,7 +269,8 @@ def definable.eq_mk {n} (f) : Π {s : arity Set.{u} n} (H : resp.eval _ f = s), 
 def definable.resp {n} : Π (s : arity Set.{u} n) [definable n s], resp n
 | ._ ⟨f⟩ := f
 
-theorem definable.eq {n} : Π (s : arity Set.{u} n) [H : definable n s], (@definable.resp n s H).eval _ = s
+theorem definable.eq {n} :
+  Π (s : arity Set.{u} n) [H : definable n s], (@definable.resp n s H).eval _ = s
 | ._ ⟨f⟩ := rfl
 
 end pSet
@@ -317,6 +319,8 @@ protected def subset (x y : Set.{u}) :=
 
 instance has_subset : has_subset Set :=
 ⟨Set.subset⟩
+
+lemma subset_def {x y : Set.{u}} : x ⊆ y ↔ ∀ ⦃z⦄, z ∈ x → z ∈ y := iff.rfl
 
 theorem subset_iff : Π (x y : pSet), mk x ⊆ mk y ↔ x ⊆ y
 | ⟨α, A⟩ ⟨β, B⟩ := ⟨λh a, @h ⟦A a⟧ (mem.mk A a),
@@ -495,10 +499,12 @@ resp.eval 1 ⟨image r.1, λx y e, mem.ext $ λz,
     λ⟨w, h1, h2⟩, ⟨w, (mem.congr_right e).2 h1, h2⟩⟩) $
   iff.symm (mem_image r.2)⟩
 
-theorem image.mk : Π (f : Set.{u} → Set.{u}) [H : definable 1 f] (x) {y} (h : y ∈ x), f y ∈ @image f H x
+theorem image.mk :
+  Π (f : Set.{u} → Set.{u}) [H : definable 1 f] (x) {y} (h : y ∈ x), f y ∈ @image f H x
 | ._ ⟨F⟩ x y := quotient.induction_on₂ x y $ λ⟨α, A⟩ y ⟨a, ya⟩, ⟨a, F.2 _ _ ya⟩
 
-@[simp] theorem mem_image : Π {f : Set.{u} → Set.{u}} [H : definable 1 f] {x y : Set.{u}}, y ∈ @image f H x ↔ ∃z ∈ x, f z = y
+@[simp] theorem mem_image :
+  Π {f : Set.{u} → Set.{u}} [H : definable 1 f] {x y : Set.{u}}, y ∈ @image f H x ↔ ∃z ∈ x, f z = y
 | ._ ⟨F⟩ x y := quotient.induction_on₂ x y $ λ⟨α, A⟩ y,
   ⟨λ⟨a, ya⟩, ⟨⟦A a⟧, mem.mk A a, eq.symm $ quotient.sound ya⟩,
   λ⟨z, hz, e⟩, e ▸ image.mk _ _ hz⟩
@@ -510,14 +516,16 @@ def pair (x y : Set.{u}) : Set.{u} := {{x}, {x, y}}
 def pair_sep (p : Set.{u} → Set.{u} → Prop) (x y : Set.{u}) : Set.{u} :=
 {z ∈ powerset (powerset (x ∪ y)) | ∃a ∈ x, ∃b ∈ y, z = pair a b ∧ p a b}
 
-@[simp] theorem mem_pair_sep {p} {x y z : Set.{u}} : z ∈ pair_sep p x y ↔ ∃a ∈ x, ∃b ∈ y, z = pair a b ∧ p a b := by
-refine iff.trans mem_sep ⟨and.right, λe, ⟨_, e⟩⟩; exact
-let ⟨a, ax, b, bY, ze, pab⟩ := e in by rw ze; exact
-mem_powerset.2 (λu uz, mem_powerset.2 $ (mem_pair.1 uz).elim
-  (λua, by rw ua; exact λv vu, by rw mem_singleton.1 vu; exact mem_union.2 (or.inl ax))
-  (λuab, by rw uab; exact λv vu, (mem_pair.1 vu).elim
-    (λva, by rw va; exact mem_union.2 (or.inl ax))
-    (λvb, by rw vb; exact mem_union.2 (or.inr bY))))
+@[simp] theorem mem_pair_sep {p} {x y z : Set.{u}} :
+  z ∈ pair_sep p x y ↔ ∃a ∈ x, ∃b ∈ y, z = pair a b ∧ p a b :=
+begin
+  refine mem_sep.trans ⟨and.right, λe, ⟨_, e⟩⟩,
+  rcases e with ⟨a, ax, b, bY, rfl, pab⟩,
+  simp only [mem_powerset, subset_def, mem_union, pair, mem_pair],
+  rintros u (rfl|rfl) v; simp only [mem_singleton, mem_pair],
+  { rintro rfl, exact or.inl ax },
+  { rintro (rfl|rfl); [left, right]; assumption }
+end
 
 theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' := begin
   have ae := ext_iff.2 H,
@@ -571,21 +579,27 @@ def funs (x y : Set.{u}) : Set.{u} :=
 by simp [funs, is_func]
 
 -- TODO(Mario): Prove this computably
-noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] : definable 1 (λy, pair y (f y)) :=
+noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] :
+  definable 1 (λy, pair y (f y)) :=
 @classical.all_definable 1 _
 
 /-- Graph of a function: `map f x` is the ZFC function which maps `a ∈ x` to `f a` -/
 noncomputable def map (f : Set → Set) [H : definable 1 f] : Set → Set :=
 image (λy, pair y (f y))
 
-@[simp] theorem mem_map {f : Set → Set} [H : definable 1 f] {x y : Set} : y ∈ map f x ↔ ∃z ∈ x, pair z (f z) = y :=
+@[simp] theorem mem_map {f : Set → Set} [H : definable 1 f] {x y : Set} :
+  y ∈ map f x ↔ ∃z ∈ x, pair z (f z) = y :=
 mem_image
 
-theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}} (zx : z ∈ x) : ∃! w, pair z w ∈ map f x :=
-⟨f z, image.mk _ _ zx, λy yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_inj we in by rw[←fy, wz]⟩
+theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}} (zx : z ∈ x) :
+  ∃! w, pair z w ∈ map f x :=
+⟨f z, image.mk _ _ zx, λy yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_inj we in
+  by rw[←fy, wz]⟩
 
-@[simp] theorem map_is_func {f : Set → Set} [H : definable 1 f] {x y : Set} : is_func x y (map f x) ↔ ∀z ∈ x, f z ∈ y :=
-⟨λ⟨ss, h⟩ z zx, let ⟨t, t1, t2⟩ := h z zx in by rw (t2 (f z) (image.mk _ _ zx)); exact (pair_mem_prod.1 (ss t1)).right,
+@[simp] theorem map_is_func {f : Set → Set} [H : definable 1 f] {x y : Set} :
+  is_func x y (map f x) ↔ ∀z ∈ x, f z ∈ y :=
+⟨λ⟨ss, h⟩ z zx, let ⟨t, t1, t2⟩ := h z zx in by rw (t2 (f z) (image.mk _ _ zx));
+  exact (pair_mem_prod.1 (ss t1)).right,
 λh, ⟨λy yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in by rw ←ze; exact pair_mem_prod.2 ⟨zx, h z zx⟩,
      λz, map_unique⟩⟩
 
@@ -648,7 +662,8 @@ to_Set_of_Set _ _
 
 @[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
-@[simp] theorem sep_hom (p : Set.{u} → Prop) (x : Set.{u}) : (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
+@[simp] theorem sep_hom (p : Set.{u} → Prop) (x : Set.{u}) :
+  (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
 set.ext $ λy, Set.mem_sep
 
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
@@ -678,7 +693,8 @@ set.ext $ λz, by refine iff.trans _ (iff.symm Set.mem_Union); exact
 def iota (p : Set → Prop) : Class := Union {x | ∀y, p y ↔ y = x}
 
 theorem iota_val (p : Set → Prop) (x : Set) (H : ∀y, p y ↔ y = x) : iota p = ↑x :=
-set.ext $ λy, ⟨λ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h x').2 rfl), λyx, ⟨_, ⟨x, rfl, H⟩, yx⟩⟩
+set.ext $ λy, ⟨λ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h x').2 rfl),
+  λyx, ⟨_, ⟨x, rfl, H⟩, yx⟩⟩
 
 /-- Unlike the other set constructors, the `iota` definite descriptor
   is a set for any set input, but not constructively so, so there is no
@@ -698,7 +714,8 @@ end Class
 
 namespace Set
 
-@[simp] theorem map_fval {f : Set.{u} → Set.{u}} [H : pSet.definable 1 f] {x y : Set.{u}} (h : y ∈ x) :
+@[simp] theorem map_fval {f : Set.{u} → Set.{u}} [H : pSet.definable 1 f]
+  {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
 Class.iota_val _ _ (λz, by simp; exact
   ⟨λ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_inj pr in by rw[←fw, wy],
@@ -707,7 +724,8 @@ Class.iota_val _ _ (λz, by simp; exact
 variables (x : Set.{u}) (h : ∅ ∉ x)
 
 /-- A choice function on the set of nonempty sets `x` -/
-noncomputable def choice : Set := @map (λy, classical.epsilon (λz, z ∈ y)) (classical.all_definable _) x
+noncomputable def choice : Set :=
+@map (λy, classical.epsilon (λz, z ∈ y)) (classical.all_definable _) x
 
 include h
 theorem choice_mem_aux (y : Set.{u}) (yx : y ∈ x) : classical.epsilon (λz:Set.{u}, z ∈ y) ∈ y :=
@@ -715,7 +733,8 @@ theorem choice_mem_aux (y : Set.{u}) (yx : y ∈ x) : classical.epsilon (λz:Set
 by rwa ←((eq_empty y).2 $ λz zx, n ⟨z, zx⟩)
 
 theorem choice_is_func : is_func x (Union x) (choice x) :=
-(@map_is_func _ (classical.all_definable _) _ _).2 $ λy yx, by simp; exact ⟨y, yx, choice_mem_aux x h y yx⟩
+(@map_is_func _ (classical.all_definable _) _ _).2 $
+  λy yx, by simp; exact ⟨y, yx, choice_mem_aux x h y yx⟩
 
 theorem choice_mem (y : Set.{u}) (yx : y ∈ x) : (choice x ′ y : Class.{u}) ∈ (y : Class.{u}) :=
 by delta choice; rw map_fval yx; simp [choice_mem_aux x h y yx]

@@ -16,7 +16,7 @@ meta def squeeze_simp_test
   (_ : parse (tk "=")) (l : parse simp_arg_list) : tactic unit :=
 do (cfg',c) ← parse_config cfg,
    squeeze_simp_core slow_and_accurate.is_some no_dflt hs
-     (λ l_no_dft l_args, simp use_iota_eqn l_no_dft l_args attr_names locat cfg')
+     (λ l_no_dft l_args, simp use_iota_eqn none l_no_dft l_args attr_names locat cfg')
      (λ args, guard ((args.map to_string).perm (l.map to_string)) <|> fail!"{args} expected.")
 end interactive
 end tactic

@@ -98,10 +98,10 @@ and similarly if `pf` proves a negated weak inequality.
 meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
 do tp ← infer_type pf,
 match tp with
-| `(%%a < %%b) := to_expr ``(id_rhs (%%a + 1 ≤ %%b) %%pf)
-| `(%%a > %%b) := to_expr ``(id_rhs (%%b + 1 ≤ %%a) %%pf)
-| `(¬ %%a ≤ %%b) := to_expr ``(id_rhs (%%b + 1 ≤ %%a) %%pf)
-| `(¬ %%a ≥ %%b) := to_expr ``(id_rhs (%%a + 1 ≤ %%b) %%pf)
+| `(%%a < %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
+| `(%%a > %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
+| `(¬ %%a ≤ %%b) := to_expr ``(int.add_one_le_iff.mpr (le_of_not_gt %%pf))
+| `(¬ %%a ≥ %%b) := to_expr ``(int.add_one_le_iff.mpr (le_of_not_gt %%pf))
 | _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
 end
 
@@ -237,7 +237,7 @@ meta def nlinarith_extras : global_preprocessor :=
   transform := λ ls,
 do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
    new_es ← s.mfold ([] : list expr) $ λ ⟨e, is_sq⟩ new_es,
-     ((do p ← mk_app (if is_sq then ``pow_two_nonneg else ``mul_self_nonneg) [e],
+     ((do p ← mk_app (if is_sq then ``sq_nonneg else ``mul_self_nonneg) [e],
        return $ p::new_es) <|> return new_es),
    new_es ← make_comp_with_zero.globalize.transform new_es,
    linarith_trace "nlinarith preprocessing found squares",

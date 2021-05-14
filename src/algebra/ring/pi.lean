@@ -19,27 +19,28 @@ variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
-instance mul_zero_class [Π i, mul_zero_class $ f i] : mul_zero_class (Π i : I, f i) :=
-by refine_struct { zero := (0 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
-
 instance distrib [Π i, distrib $ f i] : distrib (Π i : I, f i) :=
 by refine_struct { add := (+), mul := (*), .. }; tactic.pi_instance_derive_field
 
 instance semiring [∀ i, semiring $ f i] : semiring (Π i : I, f i) :=
-by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*), .. };
-  tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
+  nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 instance comm_semiring [∀ i, comm_semiring $ f i] : comm_semiring (Π i : I, f i) :=
-by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),  .. };
-  tactic.pi_instance_derive_field
+by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
+  nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 instance ring [∀ i, ring $ f i] : ring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
-  neg := has_neg.neg, .. }; tactic.pi_instance_derive_field
+  neg := has_neg.neg, nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 instance comm_ring [∀ i, comm_ring $ f i] : comm_ring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
-  neg := has_neg.neg, .. }; tactic.pi_instance_derive_field
+  neg := has_neg.neg, nsmul := λ n x i, nsmul n (x i), npow := λ n x i, npow n (x i) };
+tactic.pi_instance_derive_field
 
 /-- A family of ring homomorphisms `f a : γ →+* β a` defines a ring homomorphism
 `pi.ring_hom f : γ →+* Π a, β a` given by `pi.ring_hom f x b = f b x`. -/
@@ -67,7 +68,8 @@ variable {I : Type*}     -- The indexing type
 variable (f : I → Type*) -- The family of types already equipped with instances
 variables [Π i, semiring (f i)]
 
-/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid homomorphism. -/
+/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+homomorphism. -/
 def ring_hom.apply (i : I) : (Π i, f i) →+* f i :=
 { ..(monoid_hom.apply f i),
   ..(add_monoid_hom.apply f i) }

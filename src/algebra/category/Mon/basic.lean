@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.concrete_category.bundled_hom
 import category_theory.concrete_category.reflects_isomorphisms
 import algebra.punit_instances
+import tactic.elementwise
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
@@ -31,9 +32,18 @@ add_decl_doc AddMon
 
 namespace Mon
 
+/-- `monoid_hom` doesn't actually assume associativity. This alias is needed to make the category
+theory machinery work. -/
+@[to_additive "`add_monoid_hom` doesn't actually assume associativity. This alias is needed to make
+the category theory machinery work."]
+abbreviation assoc_monoid_hom (M N : Type*) [monoid M] [monoid N] := monoid_hom M N
+
 @[to_additive]
-instance bundled_hom : bundled_hom @monoid_hom :=
-⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
+instance bundled_hom : bundled_hom assoc_monoid_hom :=
+⟨λ M N [monoid M] [monoid N], by exactI @monoid_hom.to_fun M N _ _,
+ λ M [monoid M], by exactI @monoid_hom.id M _,
+ λ M N P [monoid M] [monoid N] [monoid P], by exactI @monoid_hom.comp M N P _ _ _,
+ λ M N [monoid M] [monoid N], by exactI @monoid_hom.coe_inj M N _ _⟩
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] Mon AddMon
 
@@ -119,31 +129,23 @@ variables [monoid X] [monoid Y]
 
 /-- Build an isomorphism in the category `Mon` from a `mul_equiv` between `monoid`s. -/
 @[to_additive add_equiv.to_AddMon_iso "Build an isomorphism in the category `AddMon` from
-an `add_equiv` between `add_monoid`s."]
+an `add_equiv` between `add_monoid`s.", simps]
 def mul_equiv.to_Mon_iso (e : X ≃* Y) : Mon.of X ≅ Mon.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
-@[simp, to_additive add_equiv.to_AddMon_iso_hom]
-lemma mul_equiv.to_Mon_iso_hom {e : X ≃* Y} : e.to_Mon_iso.hom = e.to_monoid_hom := rfl
-@[simp, to_additive add_equiv.to_AddMon_iso_inv]
-lemma mul_equiv.to_Mon_iso_inv {e : X ≃* Y} : e.to_Mon_iso.inv = e.symm.to_monoid_hom := rfl
 end
 
 section
 variables [comm_monoid X] [comm_monoid Y]
 
 /-- Build an isomorphism in the category `CommMon` from a `mul_equiv` between `comm_monoid`s. -/
-@[to_additive add_equiv.to_AddCommMon_iso "Build an isomorphism in the category `AddCommMon` from
-an `add_equiv` between `add_comm_monoid`s."]
+@[to_additive add_equiv.to_AddCommMon_iso "Build an isomorphism in the category `AddCommMon`
+from an `add_equiv` between `add_comm_monoid`s.", simps]
 def mul_equiv.to_CommMon_iso (e : X ≃* Y) : CommMon.of X ≅ CommMon.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
-@[simp, to_additive add_equiv.to_AddCommMon_iso_hom]
-lemma mul_equiv.to_CommMon_iso_hom {e : X ≃* Y} : e.to_CommMon_iso.hom = e.to_monoid_hom := rfl
-@[simp, to_additive add_equiv.to_AddCommMon_iso_inv]
-lemma mul_equiv.to_CommMon_iso_inv {e : X ≃* Y} : e.to_CommMon_iso.inv = e.symm.to_monoid_hom := rfl
 end
 
 namespace category_theory.iso
@@ -152,21 +154,13 @@ namespace category_theory.iso
 @[to_additive AddMon_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddMon`."]
 def Mon_iso_to_mul_equiv {X Y : Mon} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommMon`. -/
 @[to_additive "Build an `add_equiv` from an isomorphism in the category
 `AddCommMon`."]
 def CommMon_iso_to_mul_equiv {X Y : CommMon} (i : X ≅ Y) : X ≃* Y :=
-{ to_fun    := i.hom,
-  inv_fun   := i.inv,
-  left_inv  := by tidy,
-  right_inv := by tidy,
-  map_mul'  := by tidy }.
+i.hom.to_mul_equiv i.inv i.hom_inv_id i.inv_hom_id
 
 end category_theory.iso
 
@@ -195,7 +189,7 @@ instance Mon.forget_reflects_isos : reflects_isomorphisms (forget Mon.{u}) :=
     resetI,
     let i := as_iso ((forget Mon).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Mon_iso },
+    exact ⟨(is_iso.of_iso e.to_Mon_iso).1⟩,
   end }
 
 @[to_additive]
@@ -205,7 +199,7 @@ instance CommMon.forget_reflects_isos : reflects_isomorphisms (forget CommMon.{u
     resetI,
     let i := as_iso ((forget CommMon).map f),
     let e : X ≃* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_CommMon_iso },
+    exact ⟨(is_iso.of_iso e.to_CommMon_iso).1⟩,
   end }
 
 /-!

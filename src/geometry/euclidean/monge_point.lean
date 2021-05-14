@@ -1,15 +1,9 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import geometry.euclidean.circumcenter
-
-noncomputable theory
-open_locale big_operators
-open_locale classical
-open_locale real
-open_locale real_inner_product_space
 
 /-!
 # Monge point and orthocenter
@@ -36,15 +30,27 @@ generalization, the Monge point of a simplex.
   as its Monge point, then shown to be the point of concurrence of the
   altitudes.
 
+* `orthocentric_system` is a predicate on sets of points that says
+  whether they are four points, one of which is the orthocenter of the
+  other three (in which case various other properties hold, including
+  that each is the orthocenter of the other three).
+
 ## References
 
-* https://en.wikipedia.org/wiki/Altitude_(triangle)
-* https://en.wikipedia.org/wiki/Monge_point
+* <https://en.wikipedia.org/wiki/Altitude_(triangle)>
+* <https://en.wikipedia.org/wiki/Monge_point>
+* <https://en.wikipedia.org/wiki/Orthocentric_system>
 * Małgorzata Buba-Brzozowa, [The Monge Point and the 3(n+1) Point
   Sphere of an
   n-Simplex](https://pdfs.semanticscholar.org/6f8b/0f623459c76dac2e49255737f8f0f4725d16.pdf)
 
 -/
+
+noncomputable theory
+open_locale big_operators
+open_locale classical
+open_locale real
+open_locale real_inner_product_space
 
 namespace affine
 
@@ -140,7 +146,7 @@ begin
   { rw [if_pos (mem_univ _), sub_zero, add_zero, card_fin],
     have hn3 : (n + 2 + 1 : ℝ) ≠ 0,
     { exact_mod_cast nat.succ_ne_zero _ },
-    field_simp [hn1, hn3] },
+    field_simp [hn1, hn3, mul_comm] },
   { field_simp [hn1],
     ring }
 end
@@ -246,13 +252,14 @@ opposite edge (in 2 dimensions, this is the same as an altitude).
 This definition is only intended to be used when `i₁ ≠ i₂`. -/
 def monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
   affine_subspace ℝ P :=
-mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points) (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
-  affine_span ℝ (set.range s.points)
+mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
+  (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
+    affine_span ℝ (set.range s.points)
 
 /-- The definition of a Monge plane. -/
 lemma monge_plane_def {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
   s.monge_plane i₁ i₂ = mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
-                            (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
+                            (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
                           affine_span ℝ (set.range s.points) :=
 rfl
 
@@ -288,7 +295,7 @@ end
 -- useful without that hypothesis.
 /-- The direction of a Monge plane. -/
 lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
-  (s.monge_plane i₁ i₂).direction = (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
+  (s.monge_plane i₁ i₂).direction = (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
     vector_span ℝ (set.range s.points) :=
 by rw [monge_plane_def, direction_inf_of_mem_inf (s.monge_point_mem_monge_plane h), direction_mk',
        direction_affine_span]
@@ -301,13 +308,13 @@ lemma eq_monge_point_of_forall_mem_monge_plane {n : ℕ} {s : simplex ℝ P (n +
 begin
   rw ←@vsub_eq_zero_iff_eq V,
   have h' : ∀ i₂, i₁ ≠ i₂ → p -ᵥ s.monge_point ∈
-    (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓ vector_span ℝ (set.range s.points),
+    (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓ vector_span ℝ (set.range s.points),
   { intros i₂ hne,
     rw [←s.direction_monge_plane hne,
         vsub_right_mem_direction_iff_mem (s.monge_point_mem_monge_plane hne)],
     exact h i₂ hne },
   have hi : p -ᵥ s.monge_point ∈ ⨅ (i₂ : {i // i₁ ≠ i}),
-    (submodule.span ℝ ({s.points i₁ -ᵥ s.points i₂}: set V)).orthogonal,
+    (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ,
   { rw submodule.mem_infi,
     exact λ i, (submodule.mem_inf.1 (h' i i.property)).1 },
   rw [submodule.infi_orthogonal, ←submodule.span_Union] at hi,
@@ -336,13 +343,13 @@ end
 /-- An altitude of a simplex is the line that passes through a vertex
 and is orthogonal to the opposite face. -/
 def altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) : affine_subspace ℝ P :=
-mk' (s.points i) (affine_span ℝ (s.points '' ↑(univ.erase i))).direction.orthogonal ⊓
+mk' (s.points i) (affine_span ℝ (s.points '' ↑(univ.erase i))).directionᗮ ⊓
   affine_span ℝ (set.range s.points)
 
 /-- The definition of an altitude. -/
 lemma altitude_def {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
   s.altitude i = mk' (s.points i)
-                     (affine_span ℝ (s.points '' ↑(univ.erase i))).direction.orthogonal ⊓
+                     (affine_span ℝ (s.points '' ↑(univ.erase i))).directionᗮ ⊓
     affine_span ℝ (set.range s.points) :=
 rfl
 
@@ -353,7 +360,7 @@ lemma mem_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
 
 /-- The direction of an altitude. -/
 lemma direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
-  (s.altitude i).direction = (vector_span ℝ (s.points '' ↑(finset.univ.erase i))).orthogonal ⊓
+  (s.altitude i).direction = (vector_span ℝ (s.points '' ↑(finset.univ.erase i)))ᗮ ⊓
     vector_span ℝ (set.range s.points) :=
 by rw [altitude_def,
        direction_inf_of_mem (self_mem_mk' (s.points i) _)
@@ -364,7 +371,7 @@ by rw [altitude_def,
 orthogonal to an altitude. -/
 lemma vector_span_le_altitude_direction_orthogonal  {n : ℕ} (s : simplex ℝ P (n + 1))
     (i : fin (n + 2)) :
-  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ≤ (s.altitude i).direction.orthogonal :=
+  vector_span ℝ (s.points '' ↑(finset.univ.erase i)) ≤ (s.altitude i).directionᗮ :=
 begin
   rw direction_altitude,
   exact le_trans
@@ -383,15 +390,15 @@ begin
 end
 
 /-- An altitude is one-dimensional (i.e., a line). -/
-@[simp] lemma findim_direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
-  findim ℝ ((s.altitude i).direction) = 1 :=
+@[simp] lemma finrank_direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
+  finrank ℝ ((s.altitude i).direction) = 1 :=
 begin
   rw direction_altitude,
-  have h := submodule.findim_add_inf_findim_orthogonal
+  have h := submodule.finrank_add_inf_finrank_orthogonal
     (vector_span_mono ℝ (set.image_subset_range s.points ↑(univ.erase i))),
   have hc : card (univ.erase i) = n + 1, { rw card_erase_of_mem (mem_univ _), simp },
-  rw [findim_vector_span_of_affine_independent s.independent (fintype.card_fin _),
-      findim_vector_span_image_finset_of_affine_independent s.independent hc] at h,
+  rw [finrank_vector_span_of_affine_independent s.independent (fintype.card_fin _),
+      finrank_vector_span_image_finset_of_affine_independent s.independent hc] at h,
   simpa using h
 end
 
@@ -401,7 +408,7 @@ lemma affine_span_insert_singleton_eq_altitude_iff {n : ℕ} (s : simplex ℝ P 
     (i : fin (n + 2)) (p : P) :
   affine_span ℝ {p, s.points i} = s.altitude i ↔ (p ≠ s.points i ∧
     p ∈ affine_span ℝ (set.range s.points) ∧
-    p -ᵥ s.points i ∈ (affine_span ℝ (s.points '' ↑(finset.univ.erase i))).direction.orthogonal) :=
+    p -ᵥ s.points i ∈ (affine_span ℝ (s.points '' ↑(finset.univ.erase i))).directionᗮ) :=
 begin
   rw [eq_iff_direction_eq_of_mem
         (mem_affine_span ℝ (set.mem_insert_of_mem _ (set.mem_singleton _))) (s.mem_altitude _),
@@ -412,8 +419,8 @@ begin
     split,
     { intro heq,
       rw [heq, set.pair_eq_singleton, vector_span_singleton] at h,
-      have hd : findim ℝ (s.altitude i).direction = 0,
-      { rw [←h, findim_bot] },
+      have hd : finrank ℝ (s.altitude i).direction = 0,
+      { rw [←h, finrank_bot] },
       simpa using hd },
     { rw [←submodule.mem_inf, inf_comm, ←direction_altitude, ←h],
       exact vsub_mem_vector_span ℝ (set.mem_insert _ _)
@@ -423,10 +430,10 @@ begin
     rw [vector_span_eq_span_vsub_set_left_ne ℝ (set.mem_insert _ _),
         set.insert_diff_of_mem _ (set.mem_singleton _),
         set.diff_singleton_eq_self (λ h, hne (set.mem_singleton_iff.1 h)), set.image_singleton],
-    refine eq_of_le_of_findim_eq _ _,
+    refine eq_of_le_of_finrank_eq _ _,
     { rw submodule.span_le,
       simpa using h },
-    { rw [findim_direction_altitude, findim_span_set_eq_card],
+    { rw [finrank_direction_altitude, finrank_span_set_eq_card],
       { simp },
       { refine linear_independent_singleton _,
         simpa using hne } } }
@@ -537,14 +544,11 @@ end
 circumcenter in a side equals the circumradius, variant using a
 `finset`. -/
 lemma dist_orthocenter_reflection_circumcenter_finset (t : triangle ℝ P) {i₁ i₂ : fin 3}
-    (h : i₁ ≠ i₂) :
+  (h : i₁ ≠ i₂) :
   dist t.orthocenter (reflection (affine_span ℝ (t.points '' ↑({i₁, i₂} : finset (fin 3))))
                                  t.circumcenter) =
     t.circumradius :=
-begin
-  convert dist_orthocenter_reflection_circumcenter t h,
-  simp
-end
+by { convert dist_orthocenter_reflection_circumcenter _ h, simp }
 
 /-- The affine span of the orthocenter and a vertex is contained in
 the altitude. -/
@@ -573,7 +577,7 @@ begin
   have he : affine_span ℝ (set.range t₂.points) = affine_span ℝ (set.range t₁.points),
   { refine ext_of_direction_eq _
       ⟨t₁.points i₃, mem_affine_span ℝ ⟨j₃, h₃⟩, mem_affine_span ℝ (set.mem_range_self _)⟩,
-    refine eq_of_le_of_findim_eq (direction_le (span_points_subset_coe_of_subset_coe _)) _,
+    refine eq_of_le_of_finrank_eq (direction_le (span_points_subset_coe_of_subset_coe _)) _,
     { have hu : (finset.univ : finset (fin 3)) = {j₁, j₂, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
       rw [←set.image_univ, ←finset.coe_univ, hu, finset.coe_insert, finset.coe_insert,
           finset.coe_singleton, set.image_insert_eq, set.image_insert_eq, set.image_singleton,
@@ -582,15 +586,15 @@ begin
              mem_affine_span ℝ (set.mem_range_self _),
              mem_affine_span ℝ (set.mem_range_self _)⟩ },
     { rw [direction_affine_span, direction_affine_span,
-          findim_vector_span_of_affine_independent t₁.independent (fintype.card_fin _),
-          findim_vector_span_of_affine_independent t₂.independent (fintype.card_fin _)] } },
+          finrank_vector_span_of_affine_independent t₁.independent (fintype.card_fin _),
+          finrank_vector_span_of_affine_independent t₂.independent (fintype.card_fin _)] } },
   rw he,
   use mem_affine_span ℝ (set.mem_range_self _),
   have hu : finset.univ.erase j₂ = {j₁, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
   rw [hu, finset.coe_insert, finset.coe_singleton, set.image_insert_eq, set.image_singleton,
       h₁, h₃],
-  have hle : (t₁.altitude i₃).direction.orthogonal ≤
-    (affine_span ℝ ({t₁.orthocenter, t₁.points i₃} : set P)).direction.orthogonal :=
+  have hle : (t₁.altitude i₃).directionᗮ ≤
+    (affine_span ℝ ({t₁.orthocenter, t₁.points i₃} : set P)).directionᗮ :=
       submodule.orthogonal_le (direction_le (affine_span_orthocenter_point_le_altitude _ _)),
   refine hle ((t₁.vector_span_le_altitude_direction_orthogonal i₃) _),
   have hui : finset.univ.erase i₃ = {i₁, i₂}, { clear hle h₂ h₃, dec_trivial! },
@@ -619,3 +623,176 @@ end
 end triangle
 
 end affine
+
+namespace euclidean_geometry
+
+open affine affine_subspace finite_dimensional
+
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
+    [normed_add_torsor V P]
+
+include V
+
+/-- Four points form an orthocentric system if they consist of the
+vertices of a triangle and its orthocenter. -/
+def orthocentric_system (s : set P) : Prop :=
+∃ t : triangle ℝ P,
+  t.orthocenter ∉ set.range t.points ∧ s = insert t.orthocenter (set.range t.points)
+
+/-- This is an auxiliary lemma giving information about the relation
+of two triangles in an orthocentric system; it abstracts some
+reasoning, with no geometric content, that is common to some other
+lemmas.  Suppose the orthocentric system is generated by triangle `t`,
+and we are given three points `p` in the orthocentric system.  Then
+either we can find indices `i₁`, `i₂` and `i₃` for `p` such that `p
+i₁` is the orthocenter of `t` and `p i₂` and `p i₃` are points `j₂`
+and `j₃` of `t`, or `p` has the same points as `t`. -/
+lemma exists_of_range_subset_orthocentric_system {t : triangle ℝ P}
+  (ho : t.orthocenter ∉ set.range t.points) {p : fin 3 → P}
+  (hps : set.range p ⊆ insert t.orthocenter (set.range t.points)) (hpi : function.injective p) :
+  (∃ (i₁ i₂ i₃ j₂ j₃ : fin 3), i₁ ≠ i₂ ∧ i₁ ≠ i₃ ∧ i₂ ≠ i₃ ∧
+    (∀ i : fin 3, i = i₁ ∨ i = i₂ ∨ i = i₃) ∧ p i₁ = t.orthocenter ∧ j₂ ≠ j₃ ∧
+    t.points j₂ = p i₂ ∧ t.points j₃ = p i₃) ∨ set.range p = set.range t.points :=
+begin
+  by_cases h : t.orthocenter ∈ set.range p,
+  { left,
+    rcases h with ⟨i₁, h₁⟩,
+    obtain ⟨i₂, i₃, h₁₂, h₁₃, h₂₃, h₁₂₃⟩ :
+      ∃ (i₂ i₃ : fin 3), i₁ ≠ i₂ ∧ i₁ ≠ i₃ ∧ i₂ ≠ i₃ ∧ ∀ i : fin 3, i = i₁ ∨ i = i₂ ∨ i = i₃,
+    { clear h₁, dec_trivial! },
+    have h : ∀ i, i₁ ≠ i → ∃ (j : fin 3), t.points j = p i,
+    { intros i hi,
+      replace hps := set.mem_of_mem_insert_of_ne
+        (set.mem_of_mem_of_subset (set.mem_range_self i) hps) (h₁ ▸ hpi.ne hi.symm),
+      exact hps },
+    rcases h i₂ h₁₂ with ⟨j₂, h₂⟩,
+    rcases h i₃ h₁₃ with ⟨j₃, h₃⟩,
+    have hj₂₃ : j₂ ≠ j₃,
+    { intro he,
+      rw [he, h₃] at h₂,
+      exact h₂₃.symm (hpi h₂) },
+    exact ⟨i₁, i₂, i₃, j₂, j₃, h₁₂, h₁₃, h₂₃, h₁₂₃, h₁, hj₂₃, h₂, h₃⟩ },
+  { right,
+    have hs := set.subset_diff_singleton hps h,
+    rw set.insert_diff_self_of_not_mem ho at hs,
+    refine set.eq_of_subset_of_card_le hs _,
+    rw [set.card_range_of_injective hpi,
+        set.card_range_of_injective (injective_of_affine_independent t.independent)] }
+end
+
+/-- For any three points in an orthocentric system generated by
+triangle `t`, there is a point in the subspace spanned by the triangle
+from which the distance of all those three points equals the circumradius. -/
+lemma exists_dist_eq_circumradius_of_subset_insert_orthocenter {t : triangle ℝ P}
+  (ho : t.orthocenter ∉ set.range t.points) {p : fin 3 → P}
+  (hps : set.range p ⊆ insert t.orthocenter (set.range t.points)) (hpi : function.injective p) :
+  ∃ c ∈ affine_span ℝ (set.range t.points), ∀ p₁ ∈ set.range p, dist p₁ c = t.circumradius :=
+begin
+  rcases exists_of_range_subset_orthocentric_system ho hps hpi with
+    ⟨i₁, i₂, i₃, j₂, j₃, h₁₂, h₁₃, h₂₃, h₁₂₃, h₁, hj₂₃, h₂, h₃⟩ | hs,
+  { use [reflection (affine_span ℝ (t.points '' {j₂, j₃})) t.circumcenter,
+         reflection_mem_of_le_of_mem (affine_span_mono ℝ (set.image_subset_range _ _))
+                                     t.circumcenter_mem_affine_span],
+    intros p₁ hp₁,
+    rcases hp₁ with ⟨i, rfl⟩,
+    replace h₁₂₃ := h₁₂₃ i,
+    repeat { cases h₁₂₃ },
+    { rw h₁,
+      exact triangle.dist_orthocenter_reflection_circumcenter t hj₂₃ },
+    { rw [←h₂,
+          dist_reflection_eq_of_mem _
+            (mem_affine_span ℝ (set.mem_image_of_mem _ (set.mem_insert _ _)))],
+      exact t.dist_circumcenter_eq_circumradius _ },
+    { rw [←h₃,
+          dist_reflection_eq_of_mem _
+            (mem_affine_span ℝ (set.mem_image_of_mem _
+              (set.mem_insert_of_mem _ (set.mem_singleton _))))],
+      exact t.dist_circumcenter_eq_circumradius _ } },
+  { use [t.circumcenter, t.circumcenter_mem_affine_span],
+    intros p₁ hp₁,
+    rw hs at hp₁,
+    rcases hp₁ with ⟨i, rfl⟩,
+    exact t.dist_circumcenter_eq_circumradius _ }
+end
+
+/-- Any three points in an orthocentric system are affinely independent. -/
+lemma orthocentric_system.affine_independent {s : set P} (ho : orthocentric_system s)
+    {p : fin 3 → P} (hps : set.range p ⊆ s) (hpi : function.injective p) :
+  affine_independent ℝ p :=
+begin
+  rcases ho with ⟨t, hto, hst⟩,
+  rw hst at hps,
+  rcases exists_dist_eq_circumradius_of_subset_insert_orthocenter hto hps hpi with ⟨c, hcs, hc⟩,
+  exact cospherical.affine_independent ⟨c, t.circumradius, hc⟩ set.subset.rfl hpi
+end
+
+/-- Any three points in an orthocentric system span the same subspace
+as the whole orthocentric system. -/
+lemma affine_span_of_orthocentric_system {s : set P} (ho : orthocentric_system s)
+    {p : fin 3 → P} (hps : set.range p ⊆ s) (hpi : function.injective p) :
+  affine_span ℝ (set.range p) = affine_span ℝ s :=
+begin
+  have ha := ho.affine_independent hps hpi,
+  rcases ho with ⟨t, hto, hts⟩,
+  have hs : affine_span ℝ s = affine_span ℝ (set.range t.points),
+  { rw [hts, affine_span_insert_eq_affine_span ℝ t.orthocenter_mem_affine_span] },
+  refine ext_of_direction_eq _
+    ⟨p 0, mem_affine_span ℝ (set.mem_range_self _), mem_affine_span ℝ (hps (set.mem_range_self _))⟩,
+  have hfd : finite_dimensional ℝ (affine_span ℝ s).direction, { rw hs, apply_instance },
+  haveI := hfd,
+  refine eq_of_le_of_finrank_eq (direction_le (affine_span_mono ℝ hps)) _,
+  rw [hs, direction_affine_span, direction_affine_span,
+      finrank_vector_span_of_affine_independent ha (fintype.card_fin _),
+      finrank_vector_span_of_affine_independent t.independent (fintype.card_fin _)]
+end
+
+/-- All triangles in an orthocentric system have the same circumradius. -/
+lemma orthocentric_system.exists_circumradius_eq {s : set P} (ho : orthocentric_system s) :
+  ∃ r : ℝ, ∀ t : triangle ℝ P, set.range t.points ⊆ s → t.circumradius = r :=
+begin
+  rcases ho with ⟨t, hto, hts⟩,
+  use t.circumradius,
+  intros t₂ ht₂,
+  have ht₂s := ht₂,
+  rw hts at ht₂,
+  rcases exists_dist_eq_circumradius_of_subset_insert_orthocenter hto ht₂
+    (injective_of_affine_independent t₂.independent) with ⟨c, hc, h⟩,
+  rw set.forall_range_iff at h,
+  have hs : set.range t.points ⊆ s,
+  { rw hts,
+    exact set.subset_insert _ _ },
+  rw [affine_span_of_orthocentric_system ⟨t, hto, hts⟩ hs
+        (injective_of_affine_independent t.independent),
+      ←affine_span_of_orthocentric_system ⟨t, hto, hts⟩ ht₂s
+        (injective_of_affine_independent t₂.independent)] at hc,
+  exact (t₂.eq_circumradius_of_dist_eq hc h).symm
+end
+
+/-- Given any triangle in an orthocentric system, the fourth point is
+its orthocenter. -/
+lemma orthocentric_system.eq_insert_orthocenter {s : set P} (ho : orthocentric_system s)
+    {t : triangle ℝ P} (ht : set.range t.points ⊆ s) :
+  s = insert t.orthocenter (set.range t.points) :=
+begin
+  rcases ho with ⟨t₀, ht₀o, ht₀s⟩,
+  rw ht₀s at ht,
+  rcases exists_of_range_subset_orthocentric_system ht₀o ht
+    (injective_of_affine_independent t.independent) with
+    ⟨i₁, i₂, i₃, j₂, j₃, h₁₂, h₁₃, h₂₃, h₁₂₃, h₁, hj₂₃, h₂, h₃⟩ | hs,
+  { obtain ⟨j₁, hj₁₂, hj₁₃, hj₁₂₃⟩ :
+      ∃ j₁ : fin 3, j₁ ≠ j₂ ∧ j₁ ≠ j₃ ∧ ∀ j : fin 3, j = j₁ ∨ j = j₂ ∨ j = j₃,
+    { clear h₂ h₃, dec_trivial! },
+    suffices h : t₀.points j₁ = t.orthocenter,
+    { have hui : (set.univ : set (fin 3)) = {i₁, i₂, i₃}, { ext x, simpa using h₁₂₃ x },
+      have huj : (set.univ : set (fin 3)) = {j₁, j₂, j₃}, { ext x, simpa using hj₁₂₃ x },
+      rw [←h, ht₀s, ←set.image_univ, huj, ←set.image_univ, hui],
+      simp_rw [set.image_insert_eq, set.image_singleton, h₁, ←h₂, ←h₃],
+      rw set.insert_comm },
+    exact (triangle.orthocenter_replace_orthocenter_eq_point
+      hj₁₂ hj₁₃ hj₂₃ h₁₂ h₁₃ h₂₃ h₁ h₂.symm h₃.symm).symm },
+  { rw hs,
+    convert ht₀s using 2,
+    exact triangle.orthocenter_eq_of_range_eq hs }
+end
+
+end euclidean_geometry

@@ -175,7 +175,7 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
   begin
     dsimp,
     simp only [tensor_id, assoc, id_comp, functor.map_comp, e.inverse.map_id],
-    rw equivalence.counit_functor,
+    rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
     rw [←left_unitor_naturality],
@@ -185,7 +185,7 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
   begin
     dsimp,
     simp only [tensor_id, assoc, id_comp, functor.map_comp, e.inverse.map_id],
-    rw equivalence.counit_functor,
+    rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
     rw [←right_unitor_naturality],
@@ -249,7 +249,7 @@ def from_transported (e : C ≌ D) : monoidal_functor (transported e) C :=
   ..lax_from_transported e, }
 
 /-- The unit isomorphism upgrades to a monoidal isomorphism. -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def transported_monoidal_unit_iso (e : C ≌ D) :
   lax_monoidal_functor.id C ≅ lax_to_transported e ⊗⋙ lax_from_transported e :=
 monoidal_nat_iso.of_components (λ X, e.unit_iso.app X) (λ X Y f, e.unit.naturality f)
@@ -263,7 +263,7 @@ monoidal_nat_iso.of_components (λ X, e.unit_iso.app X) (λ X Y f, e.unit.natura
   end)
 
 /-- The counit isomorphism upgrades to a monoidal isomorphism. -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def transported_monoidal_counit_iso (e : C ≌ D) :
   lax_from_transported e ⊗⋙ lax_to_transported e ≅ lax_monoidal_functor.id (transported e) :=
 monoidal_nat_iso.of_components (λ X, e.counit_iso.app X) (λ X Y f, e.counit.naturality f)
@@ -271,9 +271,9 @@ monoidal_nat_iso.of_components (λ X, e.counit_iso.app X) (λ X Y f, e.counit.na
   (λ X Y,
   begin
     dsimp, simp only [iso.hom_inv_id_app_assoc, id_comp, equivalence.inv_fun_map],
-    simp only [equivalence.counit_functor, ←e.functor.map_id, ←e.functor.map_comp],
+    simp only [equivalence.counit_app_functor, ←e.functor.map_id, ←e.functor.map_comp],
     congr' 1,
-    simp [equivalence.inverse_counit],
+    simp [equivalence.unit_inv_app_inverse],
     dsimp,
     simp, -- See note [dsimp, simp].
   end)

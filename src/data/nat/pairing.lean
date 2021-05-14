@@ -6,7 +6,8 @@ Authors: Leonardo de Moura, Mario Carneiro
 Elegant pairing function.
 -/
 import data.nat.sqrt
-open prod decidable
+import data.set.lattice
+open prod decidable function
 
 namespace nat
 
@@ -48,6 +49,9 @@ begin
     simp [unpair, ae, not_lt_zero, add_assoc] }
 end
 
+lemma surjective_unpair : surjective unpair :=
+λ ⟨m, n⟩, ⟨mkpair m n, unpair_mkpair m n⟩
+
 theorem unpair_lt {n : ℕ} (n1 : 1 ≤ n) : (unpair n).1 < n :=
 let s := sqrt n in begin
   simp [unpair], change sqrt n with s,
@@ -58,8 +62,11 @@ let s := sqrt n in begin
     exact lt_of_le_of_lt h (nat.sub_lt_self n1 (mul_pos s0 s0)) }
 end
 
+@[simp] lemma unpair_zero : unpair 0 = 0 :=
+by { rw unpair, simp }
+
 theorem unpair_le_left : ∀ (n : ℕ), (unpair n).1 ≤ n
-| 0     := dec_trivial
+| 0     := by simp
 | (n+1) := le_of_lt (unpair_lt (nat.succ_pos _))
 
 theorem le_mkpair_left (a b : ℕ) : a ≤ mkpair a b :=
@@ -102,3 +109,12 @@ begin
 end
 
 end nat
+open nat
+
+namespace set
+
+lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
+  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
+
+end set

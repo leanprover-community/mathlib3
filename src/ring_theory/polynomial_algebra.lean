@@ -58,8 +58,8 @@ def to_fun_linear_right (a : A) : polynomial R →ₗ[R] polynomial A :=
   map_smul' := λ r p,
   begin
     dsimp [to_fun],
-    rw finsupp.sum_smul_index,
-    { dsimp [finsupp.sum],
+    rw sum_smul_index,
+    { dsimp [sum_def],
       rw finset.smul_sum,
       apply finset.sum_congr rfl,
       intros k hk,
@@ -73,7 +73,7 @@ def to_fun_linear_right (a : A) : polynomial R →ₗ[R] polynomial A :=
   map_add' := λ p q,
   begin
     simp only [to_fun],
-    rw finsupp.sum_add_index,
+    rw sum_add_index,
     { simp only [monomial_zero_right, forall_const, ring_hom.map_zero, mul_zero], },
     { intros i r s, simp only [ring_hom.map_add, mul_add, monomial_add], },
   end, }
@@ -88,14 +88,12 @@ def to_fun_bilinear : A →ₗ[R] polynomial R →ₗ[R] polynomial A :=
   map_smul' := by {
     intros, unfold to_fun_linear_right,
     congr, simp only [linear_map.coe_mk],
-    unfold to_fun finsupp.sum monomial,
-    simp_rw [finset.smul_sum, finsupp.smul_single,  ← algebra.smul_mul_assoc],
+    simp_rw [to_fun, sum_def, finset.smul_sum, smul_monomial,  ← algebra.smul_mul_assoc],
     refl },
   map_add' := by {
     intros, unfold to_fun_linear_right,
     congr, simp only [linear_map.coe_mk],
-    unfold to_fun finsupp.sum monomial,
-    simp_rw [← finset.sum_add_distrib, ← finsupp.single_add, ← add_mul],
+    simp_rw [to_fun, sum_def, ← finset.sum_add_distrib, ← monomial_add, ← add_mul],
     refl } }
 
 /--
@@ -124,19 +122,18 @@ begin
 end
 
 lemma to_fun_linear_mul_tmul_mul (a₁ a₂ : A) (p₁ p₂ : polynomial R) :
-  (to_fun_linear R A) ((a₁ * a₂) ⊗ₜ[R] p₁ * p₂) =
+  (to_fun_linear R A) ((a₁ * a₂) ⊗ₜ[R] (p₁ * p₂)) =
     (to_fun_linear R A) (a₁ ⊗ₜ[R] p₁) * (to_fun_linear R A) (a₂ ⊗ₜ[R] p₂) :=
 begin
   dsimp [to_fun_linear],
   simp only [lift.tmul],
   dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
   ext k,
-  -- TODO This is a bit annoying: the polynomial API is breaking down.
-  have apply_eq_coeff : ∀ {p : ℕ →₀ R} {n : ℕ}, p n = coeff p n := by { intros, refl },
-  simp_rw [coeff_sum, coeff_monomial, finsupp.sum, finset.sum_ite_eq', finsupp.mem_support_iff,
-    ne.def, coeff_mul, finset_sum_coeff, coeff_monomial,
-    finset.sum_ite_eq', finsupp.mem_support_iff, ne.def,
-    mul_ite, mul_zero, ite_mul, zero_mul, apply_eq_coeff],
+  simp_rw [coeff_sum, coeff_monomial, sum_def, finset.sum_ite_eq', mem_support_iff, ne.def],
+  conv_rhs { rw [coeff_mul] },
+  simp_rw [finset_sum_coeff, coeff_monomial,
+    finset.sum_ite_eq', mem_support_iff, ne.def,
+    mul_ite, mul_zero, ite_mul, zero_mul],
   simp_rw [ite_mul_zero_left (¬coeff p₁ _ = 0) (a₁ * (algebra_map R A) (coeff p₁ _))],
   simp_rw [ite_mul_zero_right (¬coeff p₂ _ = 0) _ (_ * _)],
   simp_rw [to_fun_linear_mul_tmul_mul_aux_1, to_fun_linear_mul_tmul_mul_aux_2],
@@ -148,9 +145,8 @@ begin
   dsimp [to_fun_linear],
   simp only [lift.tmul],
   dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
-  rw [← C_1, ←monomial_zero_left, monomial, finsupp.sum_single_index],
-  { simp, refl, },
-  { simp, },
+  rw [← C_1, ←monomial_zero_left, sum_monomial_index];
+  simp [algebra_map_apply],
 end
 
 /--
@@ -182,6 +178,10 @@ p.eval₂
 lemma inv_fun_add {p q} : inv_fun R A (p + q) = inv_fun R A p + inv_fun R A q :=
 by simp only [inv_fun, eval₂_add]
 
+lemma inv_fun_monomial (n : ℕ) (a : A) :
+  inv_fun R A (monomial n a) = include_left a * ((1 : A) ⊗ₜ[R] (X : polynomial R)) ^ n :=
+eval₂_monomial _ _
+
 lemma left_inv (x : A ⊗ polynomial R) :
   inv_fun R A ((to_fun_alg_hom R A) x) = x :=
 begin
@@ -191,8 +191,7 @@ begin
     rw [to_fun_alg_hom_apply_tmul, eval₂_sum],
     simp_rw [eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.tmul_pow, one_pow,
       algebra.tensor_product.include_left_apply, algebra.tensor_product.tmul_mul_tmul,
-      mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def'', smul_tmul],
-    rw [finsupp.sum, ←tmul_sum],
+      mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def'', smul_tmul, sum_def, ←tmul_sum],
     conv_rhs { rw [←sum_C_mul_X_eq p], },
     simp only [algebra.smul_def''],
     refl, },
@@ -206,11 +205,10 @@ begin
   apply polynomial.induction_on' x,
   { intros p q hp hq, simp only [inv_fun_add, alg_hom.map_add, hp, hq], },
   { intros n a,
-    rw [inv_fun, eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.include_left_apply,
+    rw [inv_fun_monomial, algebra.tensor_product.include_left_apply,
       algebra.tensor_product.tmul_pow, one_pow, algebra.tensor_product.tmul_mul_tmul,
-      mul_one, one_mul, to_fun_alg_hom_apply_tmul, ←monomial_one_eq_X_pow],
-    dsimp [monomial],
-    rw [finsupp.sum_single_index]; simp, }
+      mul_one, one_mul, to_fun_alg_hom_apply_tmul, X_pow_eq_monomial, sum_monomial_index];
+    simp, }
 end
 
 /--
@@ -249,7 +247,7 @@ begin
   refl,
 end
 
-open matrix
+open dmatrix matrix
 open_locale big_operators
 
 variables {R}
@@ -330,6 +328,18 @@ lemma mat_poly_equiv_smul_one (p : polynomial R) :
 begin
   ext m i j,
   simp only [coeff_map, one_apply, algebra_map_matrix_apply, mul_boole,
-    smul_apply, mat_poly_equiv_coeff_apply],
+    pi.smul_apply, mat_poly_equiv_coeff_apply],
   split_ifs; simp,
+end
+
+lemma support_subset_support_mat_poly_equiv
+  (m : matrix n n (polynomial R)) (i j : n) :
+  support (m i j) ⊆ support (mat_poly_equiv m) :=
+begin
+  assume k,
+  contrapose,
+  simp only [not_mem_support_iff],
+  assume hk,
+  rw [← mat_poly_equiv_coeff_apply, hk],
+  refl
 end

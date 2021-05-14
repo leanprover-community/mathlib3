@@ -49,12 +49,14 @@ def is_limit_equiv_sections {F : J ⥤ Type u} {c : cone F} (t : is_limit c) :
 (is_limit.cone_point_unique_up_to_iso t (limit_cone_is_limit F)).to_equiv
 
 @[simp]
-lemma is_limit_equiv_sections_apply {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (j : J) (x : c.X) :
+lemma is_limit_equiv_sections_apply
+  {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (j : J) (x : c.X) :
   (((is_limit_equiv_sections t) x) : Π j, F.obj j) j = c.π.app j x :=
 rfl
 
 @[simp]
-lemma is_limit_equiv_sections_symm_apply {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (x : F.sections) (j : J) :
+lemma is_limit_equiv_sections_symm_apply
+  {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (x : F.sections) (j : J) :
   c.π.app j ((is_limit_equiv_sections t).symm x) = (x : Π j, F.obj j) j :=
 begin
   equiv_rw (is_limit_equiv_sections t).symm at x,
@@ -90,7 +92,8 @@ def limit.mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j
 (limit_equiv_sections F).symm ⟨x, h⟩
 
 @[simp]
-lemma limit.π_mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
+lemma limit.π_mk
+  (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
   limit.π F j (limit.mk F x h) = x j :=
 by { dsimp [limit.mk], simp, }
 
@@ -103,6 +106,10 @@ begin
   ext j,
   simp [w j],
 end
+
+lemma limit_ext_iff (F : J ⥤ Type u) (x y : limit F) :
+  x = y ↔ (∀ j, limit.π F j x = limit.π F j y) :=
+⟨λ t _, t ▸ rfl, limit_ext _ _ _⟩
 
 -- TODO: are there other limits lemmas that should have `_apply` versions?
 -- Can we generate these like with `@[reassoc]`?
@@ -120,8 +127,15 @@ congr_fun (limit.lift_π s j) x
 
 @[simp]
 lemma limit.map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
-  limit.π G j (lim.map α x) = α.app j (limit.π F j x) :=
-congr_fun (limit.map_π α j) x
+  limit.π G j (lim_map α x) = α.app j (limit.π F j x) :=
+congr_fun (lim_map_π α j) x
+
+/--
+The relation defining the quotient type which implements the colimit of a functor `F : J ⥤ Type u`.
+See `category_theory.limits.types.quot`.
+-/
+def quot.rel (F : J ⥤ Type u) : (Σ j, F.obj j) → (Σ j, F.obj j) → Prop :=
+(λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2)
 
 /--
 A quotient type implementing the colimit of a functor `F : J ⥤ Type u`,
@@ -130,7 +144,7 @@ as pairs `⟨j, x⟩` where `x : F.obj j`, modulo the equivalence relation gener
 -/
 @[nolint has_inhabited_instance]
 def quot (F : J ⥤ Type u) : Type u :=
-@quot (Σ j, F.obj j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2)
+@quot (Σ j, F.obj j) (quot.rel F)
 
 /--
 (internal implementation) the colimit cocone of a functor,
@@ -165,12 +179,22 @@ and the "concrete" definition as a quotient.
 -/
 noncomputable
 def colimit_equiv_quot (F : J ⥤ Type u) : (colimit F : Type u) ≃ quot F :=
-(is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit F) (colimit_cocone_is_colimit F)).to_equiv
+(is_colimit.cocone_point_unique_up_to_iso
+  (colimit.is_colimit F)
+  (colimit_cocone_is_colimit F)).to_equiv
 
 @[simp]
 lemma colimit_equiv_quot_symm_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :
   (colimit_equiv_quot F).symm (quot.mk _ ⟨j, x⟩) = colimit.ι F j x :=
 rfl
+
+@[simp]
+lemma colimit_equiv_quot_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :
+  (colimit_equiv_quot F) (colimit.ι F j x) = quot.mk _ ⟨j, x⟩ :=
+begin
+  apply (colimit_equiv_quot F).symm.injective,
+  simp,
+end
 
 @[simp]
 lemma colimit.w_apply {F : J ⥤ Type u} {j j' : J} {x : F.obj j} (f : j ⟶ j') :
@@ -202,6 +226,13 @@ lemma colimit_sound'
 begin
   rw [←colimit.w _ f, ←colimit.w _ f'],
   rw [types_comp_apply, types_comp_apply, w],
+end
+
+lemma colimit_eq {F : J ⥤ Type u } {j j' : J} {x : F.obj j} {x' : F.obj j'}
+  (w : colimit.ι F j x = colimit.ι F j' x') : eqv_gen (quot.rel F) ⟨j, x⟩ ⟨j', x'⟩ :=
+begin
+  apply quot.eq.1,
+  simpa using congr_arg (colimit_equiv_quot F) w,
 end
 
 lemma jointly_surjective (F : J ⥤ Type u) {t : cocone F} (h : is_colimit t)
@@ -315,7 +346,7 @@ lemma colimit_eq_iff_aux {i j : J} {xi : F.obj i} {xj : F.obj j} :
     ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
 begin
   change quot.mk _ _ = quot.mk _ _ ↔ _,
-  rw [quot.eq, ←filtered_colimit.r_eq],
+  rw [quot.eq, quot.rel, ←filtered_colimit.r_eq],
   refl
 end
 
@@ -327,7 +358,7 @@ let t' := colimit_cocone F,
     e' : t'.X ≅ t.X := (cocones.forget _).map_iso e in
 begin
   refine iff.trans _ (colimit_eq_iff_aux F),
-  convert equiv.apply_eq_iff_eq e'.to_equiv _ _; rw ←e.hom.w; refl
+  convert e'.to_equiv.apply_eq_iff_eq; rw ←e.hom.w; refl
 end
 
 lemma colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :

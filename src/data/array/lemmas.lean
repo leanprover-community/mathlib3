@@ -223,6 +223,20 @@ end
 @[simp] theorem push_back_to_list : (a.push_back v).to_list = a.to_list ++ [v] :=
 by rw [←rev_list_reverse, ←rev_list_reverse, push_back_rev_list, list.reverse_cons]
 
+@[simp] lemma read_push_back_left (i : fin n) : (a.push_back v).read i.cast_succ = a.read i :=
+begin
+  cases i with i hi,
+  have : ¬ i = n := ne_of_lt hi,
+  simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
+end
+
+@[simp] lemma read_push_back_right : (a.push_back v).read (fin.last _) = v :=
+begin
+  cases hn : fin.last n with k hk,
+  have : k = n := by simpa [fin.eq_iff_veq ] using hn.symm,
+  simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
+end
+
 end push_back
 
 /- foreach -/
@@ -259,15 +273,20 @@ end array
 
 namespace equiv
 
-def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (∀ i, α i) :=
+/-- The natural equivalence between length-`n` heterogeneous arrays
+and dependent functions from `fin n`. -/
+def d_array_equiv_fin {n : ℕ} (α : fin n → Type*) : d_array n α ≃ (Π i, α i) :=
 ⟨d_array.read, d_array.mk, λ ⟨f⟩, rfl, λ f, rfl⟩
 
+/-- The natural equivalence between length-`n` arrays and functions from `fin n`. -/
 def array_equiv_fin (n : ℕ) (α : Type*) : array n α ≃ (fin n → α) :=
 d_array_equiv_fin _
 
+/-- The natural equivalence between length-`n` vectors and functions from `fin n`. -/
 def vector_equiv_fin (α : Type*) (n : ℕ) : vector α n ≃ (fin n → α) :=
 ⟨vector.nth, vector.of_fn, vector.of_fn_nth, λ f, funext $ vector.nth_of_fn f⟩
 
+/-- The natural equivalence between length-`n` vectors and length-`n` arrays. -/
 def vector_equiv_array (α : Type*) (n : ℕ) : vector α n ≃ array n α :=
 (vector_equiv_fin _ _).trans (array_equiv_fin _ _).symm
 

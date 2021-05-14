@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Leonardo de Moura, Jeremy Avigad
+Authors: Leonardo de Moura, Jeremy Avigad
 -/
 
 /-!
@@ -22,15 +22,19 @@ prefix `!`:90 := bnot
 
 namespace bool
 
-@[simp] theorem coe_sort_tt : coe_sort.{1 1} tt = true := eq_true_intro rfl
+-- TODO: duplicate of a lemma in core
+theorem coe_sort_tt : coe_sort.{1 1} tt = true := coe_sort_tt
 
-@[simp] theorem coe_sort_ff : coe_sort.{1 1} ff = false := eq_false_intro ff_ne_tt
+-- TODO: duplicate of a lemma in core
+theorem coe_sort_ff : coe_sort.{1 1} ff = false := coe_sort_ff
 
-@[simp] theorem to_bool_true {h} : @to_bool true h = tt :=
-show _ = to_bool true, by congr
+-- TODO: duplicate of a lemma in core
+theorem to_bool_true {h} : @to_bool true h = tt :=
+to_bool_true_eq_tt h
 
-@[simp] theorem to_bool_false {h} : @to_bool false h = ff :=
-show _ = to_bool false, by congr
+-- TODO: duplicate of a lemma in core
+theorem to_bool_false {h} : @to_bool false h = ff :=
+to_bool_false_eq_ff h
 
 @[simp] theorem to_bool_coe (b:bool) {h} : @to_bool b h = b :=
 (show _ = to_bool b, by congr).trans (by cases b; refl)
@@ -148,15 +152,23 @@ lemma bnot_inj : ∀ {a b : bool}, !a = !b → a = b := dec_trivial
 
 end bool
 
-instance : decidable_linear_order bool :=
-begin
-  constructor,
-  show bool → bool → Prop,
-  { exact λ a b, a = ff ∨ b = tt },
-  all_goals {apply_instance <|> exact dec_trivial}
-end
+instance : linear_order bool :=
+{ le := λ a b, a = ff ∨ b = tt,
+  le_refl := dec_trivial,
+  le_trans := dec_trivial,
+  le_antisymm := dec_trivial,
+  le_total := dec_trivial,
+  decidable_le := infer_instance,
+  decidable_eq := infer_instance,
+  decidable_lt := infer_instance }
 
 namespace bool
+
+@[simp] lemma ff_le {x : bool} : ff ≤ x := or.intro_left _ rfl
+
+@[simp] lemma le_tt {x : bool} : x ≤ tt := or.intro_right _ rfl
+
+@[simp] lemma ff_lt_tt : ff < tt := lt_of_le_of_ne ff_le ff_ne_tt
 
 /-- convert a `bool` to a `ℕ`, `false -> 0`, `true -> 1` -/
 def to_nat (b : bool) : ℕ :=

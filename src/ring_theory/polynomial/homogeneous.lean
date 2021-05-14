@@ -5,7 +5,9 @@ Authors: Johan Commelin
 -/
 
 import data.mv_polynomial
+import algebra.algebra.operations
 import data.fintype.card
+import algebra.direct_sum_graded
 
 /-!
 # Homogeneous polynomials
@@ -16,6 +18,7 @@ if all monomials occuring in `φ` have degree `n`.
 ## Main definitions/lemmas
 
 * `is_homogeneous φ n`: a predicate that asserts that `φ` is homogeneous of degree `n`.
+* `homogeneous_submodule σ R n`: the submodule of homogeneous polynomials of degree `n`.
 * `homogeneous_component n`: the additive morphism that projects polynomials onto
   their summand that is homogeneous of degree `n`.
 * `sum_homogeneous_component`: every polynomial is the sum of its homogeneous components
@@ -37,6 +40,70 @@ TODO
 if all monomials occuring in `φ` have degree `n`. -/
 def is_homogeneous [comm_semiring R] (φ : mv_polynomial σ R) (n : ℕ) :=
 ∀ ⦃d⦄, coeff d φ ≠ 0 → ∑ i in d.support, d i = n
+
+variables (σ R)
+
+/-- The submodule of homogeneous `mv_polynomial`s of degree `n`. -/
+noncomputable def homogeneous_submodule [comm_semiring R] (n : ℕ) :
+  submodule R (mv_polynomial σ R) :=
+{ carrier := { x | x.is_homogeneous n },
+  smul_mem' := λ r a ha c hc, begin
+    rw coeff_smul at hc,
+    apply ha,
+    intro h,
+    apply hc,
+    rw h,
+    exact smul_zero r,
+  end,
+  zero_mem' := λ d hd, false.elim (hd $ coeff_zero _),
+  add_mem' := λ a b ha hb c hc, begin
+    rw coeff_add at hc,
+    obtain h|h : coeff c a ≠ 0 ∨ coeff c b ≠ 0,
+    { contrapose! hc, simp only [hc, add_zero] },
+    { exact ha h },
+    { exact hb h }
+  end }
+
+variables {σ R}
+
+@[simp] lemma mem_homogeneous_submodule [comm_semiring R] (n : ℕ) (p : mv_polynomial σ R) :
+  p ∈ homogeneous_submodule σ R n ↔ p.is_homogeneous n := iff.rfl
+
+variables (σ R)
+
+/-- While equal, the former has a convenient definitional reduction. -/
+lemma homogenous_submodule_eq_finsupp_supported [comm_semiring R] (n : ℕ) :
+  homogeneous_submodule σ R n = finsupp.supported _ R {d | ∑ i in d.support, d i = n} :=
+begin
+  ext,
+  rw [finsupp.mem_supported, set.subset_def],
+  simp only [finsupp.mem_support_iff, finset.mem_coe],
+  refl,
+end
+
+variables {σ R}
+
+lemma homogenous_submodule_mul [comm_semiring R] (m n : ℕ) :
+  homogeneous_submodule σ R m * homogeneous_submodule σ R n ≤ homogeneous_submodule σ R (m + n) :=
+begin
+  rw submodule.mul_le,
+  intros φ hφ ψ hψ c hc,
+  rw [coeff_mul] at hc,
+  obtain ⟨⟨d, e⟩, hde, H⟩ := finset.exists_ne_zero_of_sum_ne_zero hc,
+  have aux : coeff d φ ≠ 0 ∧ coeff e ψ ≠ 0,
+  { contrapose! H,
+    by_cases h : coeff d φ = 0;
+    simp only [*, ne.def, not_false_iff, zero_mul, mul_zero] at * },
+  specialize hφ aux.1, specialize hψ aux.2,
+  rw finsupp.mem_antidiagonal_support at hde,
+  classical,
+  have hd' : d.support ⊆ d.support ∪ e.support := finset.subset_union_left _ _,
+  have he' : e.support ⊆ d.support ∪ e.support := finset.subset_union_right _ _,
+  rw [← hde, ← hφ, ← hψ, finset.sum_subset (finsupp.support_add),
+    finset.sum_subset hd', finset.sum_subset he', ← finset.sum_add_distrib],
+  { congr },
+  all_goals { intros i hi, apply finsupp.not_mem_support_iff.mp },
+end
 
 section
 variables [comm_semiring R]
@@ -64,7 +131,7 @@ end
 variables (σ R)
 
 lemma is_homogeneous_zero (n : ℕ) : is_homogeneous (0 : mv_polynomial σ R) n :=
-λ d hd, false.elim (hd $ coeff_zero _)
+(homogeneous_submodule σ R n).zero_mem
 
 lemma is_homogeneous_one : is_homogeneous (1 : mv_polynomial σ R) 0 :=
 is_homogeneous_C _ _
@@ -97,50 +164,16 @@ end
 
 lemma add (hφ : is_homogeneous φ n) (hψ : is_homogeneous ψ n) :
   is_homogeneous (φ + ψ) n :=
-begin
-  intros c hc,
-  rw coeff_add at hc,
-  obtain h|h : coeff c φ ≠ 0 ∨ coeff c ψ ≠ 0,
-  { contrapose! hc, simp only [hc, add_zero] },
-  { exact hφ h },
-  { exact hψ h }
-end
+(homogeneous_submodule σ R n).add_mem hφ hψ
 
 lemma sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ℕ)
   (h : ∀ i ∈ s, is_homogeneous (φ i) n) :
   is_homogeneous (∑ i in s, φ i) n :=
-begin
-  classical,
-  revert h,
-  apply finset.induction_on s,
-  { intro, simp only [is_homogeneous_zero, finset.sum_empty] },
-  { intros i s his IH h,
-    simp only [his, finset.sum_insert, not_false_iff],
-    apply (h i (finset.mem_insert_self _ _)).add (IH _),
-    intros j hjs,
-    exact h j (finset.mem_insert_of_mem hjs) }
-end
+(homogeneous_submodule σ R n).sum_mem h
 
 lemma mul (hφ : is_homogeneous φ m) (hψ : is_homogeneous ψ n) :
   is_homogeneous (φ * ψ) (m + n) :=
-begin
-  intros c hc,
-  rw [coeff_mul] at hc,
-  obtain ⟨⟨d, e⟩, hde, H⟩ := finset.exists_ne_zero_of_sum_ne_zero hc,
-  have aux : coeff d φ ≠ 0 ∧ coeff e ψ ≠ 0,
-  { contrapose! H,
-    by_cases h : coeff d φ = 0;
-    simp only [*, ne.def, not_false_iff, zero_mul, mul_zero] at * },
-  specialize hφ aux.1, specialize hψ aux.2,
-  rw finsupp.mem_antidiagonal_support at hde,
-  classical,
-  have hd' : d.support ⊆ d.support ∪ e.support := finset.subset_union_left _ _,
-  have he' : e.support ⊆ d.support ∪ e.support := finset.subset_union_right _ _,
-  rw [← hde, ← hφ, ← hψ, finset.sum_subset (finsupp.support_add),
-    finset.sum_subset hd', finset.sum_subset he', ← finset.sum_add_distrib],
-  { congr },
-  all_goals { intros i hi, apply finsupp.not_mem_support_iff.mp }
-end
+homogenous_submodule_mul m n $ submodule.mul_mem_mul hφ hψ
 
 lemma prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) (n : ι → ℕ)
   (h : ∀ i ∈ s, is_homogeneous (φ i) (n i)) :
@@ -164,13 +197,25 @@ begin
   apply le_antisymm,
   { apply finset.sup_le,
     intros d hd,
-    rw finsupp.mem_support_iff at hd,
+    rw mem_support_iff at hd,
     rw [finsupp.sum, hφ hd], },
   { obtain ⟨d, hd⟩ : ∃ d, coeff d φ ≠ 0 := exists_coeff_ne_zero h,
     simp only [← hφ hd, finsupp.sum],
     replace hd := finsupp.mem_support_iff.mpr hd,
     exact finset.le_sup hd, }
 end
+
+/--
+The homogenous submodules form a graded ring. This instance is used by `direct_sum.comm_semiring`.
+-/
+noncomputable instance homogeneous_submodule.gcomm_monoid :
+  direct_sum.gcomm_monoid (λ i, homogeneous_submodule σ R i) :=
+direct_sum.gcomm_monoid.of_submodules _
+  (is_homogeneous_one σ R)
+  (λ i j hi hj, is_homogeneous.mul hi.prop hj.prop)
+
+open_locale direct_sum
+noncomputable example : comm_semiring (⨁ i, homogeneous_submodule σ R i) := infer_instance
 
 end is_homogeneous
 
@@ -183,63 +228,39 @@ open finset
 See `sum_homogeneous_component` for the statement that `φ` is equal to the sum
 of all its homogeneous components. -/
 def homogeneous_component [comm_semiring R] (n : ℕ) :
-  mv_polynomial σ R →+ mv_polynomial σ R :=
-{ to_fun := λ φ, ∑ d in φ.support.filter (λ d, ∑ i in d.support, d i = n), monomial d (coeff d φ),
-  map_zero' := by simp only [monomial_zero, sum_const_zero, coeff_zero],
-  map_add' :=
-  begin
-    intros φ ψ, rw ext_iff, intro d, rw [coeff_add],
-    by_cases hd : ∑ i in d.support, d i = n,
-    { iterate 3 { rw [coeff_sum, sum_eq_single d], },
-      { simp only [if_true, eq_self_iff_true, coeff_add, coeff_monomial], },
-      all_goals
-      { try { intros _ _ h, rw [coeff_monomial, if_neg h], }, },
-      all_goals
-      { intro h, rw [mem_filter, not_and'] at h, specialize h hd,
-        rw [finsupp.not_mem_support_iff] at h, rwa [coeff_monomial, if_pos rfl], }, },
-    { iterate 3 { rw [coeff_sum, sum_eq_zero], },
-      { rw [add_zero] },
-      all_goals
-      { intros _ h, rw [mem_filter] at h,
-        rw [coeff_monomial, if_neg], rintro rfl, exact hd h.2, }, }
-  end }
+  mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
+(submodule.subtype _).comp $ finsupp.restrict_dom _ _ {d | ∑ i in d.support, d i = n}
 
 section homogeneous_component
 open finset
 variables [comm_semiring R] (n : ℕ) (φ : mv_polynomial σ R)
 
+lemma coeff_homogeneous_component (d : σ →₀ ℕ) :
+  coeff d (homogeneous_component n φ) = if ∑ i in d.support, d i = n then coeff d φ else 0 :=
+by convert finsupp.filter_apply (λ d : σ →₀ ℕ, ∑ i in d.support, d i = n) φ d
+
 lemma homogeneous_component_apply :
   homogeneous_component n φ =
-  ∑ d in φ.support.filter (λ d, ∑ i in d.support, d i = n), monomial d (coeff d φ) := rfl
+  ∑ d in φ.support.filter (λ d, ∑ i in d.support, d i = n), monomial d (coeff d φ) :=
+by convert finsupp.filter_eq_sum (λ d : σ →₀ ℕ, ∑ i in d.support, d i = n) φ
 
 lemma homogeneous_component_is_homogeneous :
   (homogeneous_component n φ).is_homogeneous n :=
 begin
-  rw [homogeneous_component_apply],
   intros d hd,
-  rw [coeff_sum] at hd,
-  obtain ⟨d', hd', H⟩ := exists_ne_zero_of_sum_ne_zero hd,
-  dsimp at H,
-  rw [coeff_monomial] at H,
-  split_ifs at H with h,
-  { cases h, rw [mem_filter] at hd', exact hd'.2 },
-  { contradiction }
+  contrapose! hd,
+  rw [coeff_homogeneous_component, if_neg hd]
 end
 
 lemma homogeneous_component_zero : homogeneous_component 0 φ = C (coeff 0 φ) :=
 begin
-  rw [homogeneous_component_apply, sum_eq_single (0 : σ →₀ ℕ)],
-  { refl, },
-  { intros d hd hd', rw [mem_filter, sum_eq_zero_iff] at hd,
-    exfalso, apply hd', ext i,
-    by_cases hi : i ∈ d.support,
-    { rw [hd.2 i hi, finsupp.zero_apply], },
-    { rw finsupp.not_mem_support_iff at hi,
-      rwa finsupp.zero_apply } },
-  { rw [mem_filter, not_and'],
-    intro h, suffices : coeff 0 φ = 0, { rw [this, monomial_zero], },
-    rw finsupp.not_mem_support_iff at h, apply h,
-    rw sum_eq_zero, intros, rw finsupp.zero_apply }
+  ext1 d,
+  rcases em (d = 0) with (rfl|hd),
+  { simp only [coeff_homogeneous_component, sum_eq_zero_iff, finsupp.zero_apply, if_true, coeff_C,
+      eq_self_iff_true, forall_true_iff] },
+  { rw [coeff_homogeneous_component, if_neg, coeff_C, if_neg (ne.symm hd)],
+    simp only [finsupp.ext_iff, finsupp.zero_apply] at hd,
+    simp [hd] }
 end
 
 lemma homogeneous_component_eq_zero' (h : ∀ d : σ →₀ ℕ, d ∈ φ.support → ∑ i in d.support, d i ≠ n) :
@@ -262,20 +283,10 @@ end
 lemma sum_homogeneous_component :
   ∑ i in range (φ.total_degree + 1), homogeneous_component i φ = φ :=
 begin
-  rw ext_iff, intro d,
-  rw [coeff_sum, sum_eq_single (∑ i in d.support, d i)],
-  { rw [homogeneous_component_apply, coeff_sum, sum_eq_single d, coeff_monomial, if_pos rfl],
-    { intros _ _ h, rw [coeff_monomial, if_neg h], },
-    { rw [mem_filter, not_and'], intro h,
-      suffices : coeff d φ = 0, { rw [this, monomial_zero, coeff_zero], },
-      { rw finsupp.not_mem_support_iff at h, apply h rfl, } } },
-  { intros n hn, contrapose!, rw eq_comm, apply homogeneous_component_is_homogeneous n φ, },
-  { rw [mem_range, not_lt, nat.succ_le_iff],
-    intro h,
-    apply coeff_eq_zero_of_total_degree_lt,
-    apply lt_of_le_of_lt _ h,
-    rw [homogeneous_component_eq_zero _ _ h],
-    exact nat.zero_le _, }
+  ext1 d,
+  suffices : φ.total_degree < d.support.sum d → 0 = coeff d φ,
+    by simpa [coeff_sum, coeff_homogeneous_component],
+  exact λ h, (coeff_eq_zero_of_total_degree_lt h).symm
 end
 
 end homogeneous_component

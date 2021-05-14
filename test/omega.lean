@@ -35,6 +35,7 @@ example (x y z : nat) : (x ≤ y) → (z > y) → (x - z = 0) := by omega
 example (x y z : nat) : x - 5 > 122 → y ≤ 127 → y < x := by omega
 example : ∀ (x y : nat), x ≤ y ↔ x - y = 0 := by omega
 example (k : nat) (h : 1 * 1 + 1 * 1 + 1 = 1 * 1 * k) : k = 3 := by omega
+constant nat.prime : ℕ → Prop
 example (a b : ℕ) (h : a < b + 1) (ha : a.prime) : a ≤ b := by omega
 example (a b c : ℕ) (h : a < b + 1) (ha : c.prime) : a ≤ b := by omega
 example (a b : ℕ) (h : a < b + 1) (p : fin a) : a ≤ b := by omega

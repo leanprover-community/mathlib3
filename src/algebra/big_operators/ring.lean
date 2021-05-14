@@ -46,8 +46,7 @@ end semiring
 
 lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :
   (∑ x in s, f x) / b = ∑ x in s, f x / b :=
-calc (∑ x in s, f x) / b = ∑ x in s, f x * (1 / b) : by rw [div_eq_mul_one_div, sum_mul]
-                     ... = ∑ x in s, f x / b : by { congr' with x, rw ← div_eq_mul_one_div (f x) b }
+by simp only [div_eq_mul_inv, sum_mul]
 
 section comm_semiring
 variables [comm_semiring β]
@@ -70,7 +69,7 @@ begin
       { rw [eq₂, eq₃, eq] },
       rw [pi.cons_same, pi.cons_same] at this,
       exact h this },
-    rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bind h₁],
+    rw [prod_insert ha, pi_insert ha, ih, sum_mul, sum_bUnion h₁],
     refine sum_congr rfl (λ b _, _),
     have h₂ : ∀p₁∈pi s t, ∀p₂∈pi s t, pi.cons s a b p₁ = pi.cons s a b p₂ → p₁ = p₂, from
       assume p₁ h₁ p₂ h₂ eq, pi_cons_injective ha eq,
@@ -119,6 +118,43 @@ calc ∏ a in s, (f a + g a)
       by simp, by funext; intros; simp *⟩ }
 end
 
+/-- `∏ i, (f i + g i) = (∏ i, f i) + ∑ i, g i * (∏ j < i, f j + g j) * (∏ j > i, f j)`. -/
+lemma prod_add_ordered {ι R : Type*} [comm_semiring R] [linear_order ι] (s : finset ι)
+  (f g : ι → R) :
+  (∏ i in s, (f i + g i)) = (∏ i in s, f i) +
+    ∑ i in s, g i * (∏ j in s.filter (< i), (f j + g j)) * ∏ j in s.filter (λ j, i < j), f j :=
+begin
+  refine finset.induction_on_max s (by simp) _,
+  clear s, intros a s ha ihs,
+  have ha' : a ∉ s, from λ ha', (ha a ha').false,
+  rw [prod_insert ha', prod_insert ha', sum_insert ha', filter_insert, if_neg (lt_irrefl a),
+    filter_true_of_mem ha, ihs, add_mul, mul_add, mul_add, add_assoc],
+  congr' 1, rw add_comm, congr' 1,
+  { rw [filter_false_of_mem, prod_empty, mul_one],
+    exact (forall_mem_insert _ _ _).2 ⟨lt_irrefl a, λ i hi, (ha i hi).not_lt⟩ },
+  { rw mul_sum,
+    refine sum_congr rfl (λ i hi, _),
+    rw [filter_insert, if_neg (ha i hi).not_lt, filter_insert, if_pos (ha i hi), prod_insert,
+      mul_left_comm],
+    exact mt (λ ha, (mem_filter.1 ha).1) ha' }
+end
+
+/-- `∏ i, (f i - g i) = (∏ i, f i) - ∑ i, g i * (∏ j < i, f j - g j) * (∏ j > i, f j)`. -/
+lemma prod_sub_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finset ι) (f g : ι → R) :
+  (∏ i in s, (f i - g i)) = (∏ i in s, f i) -
+    ∑ i in s, g i * (∏ j in s.filter (< i), (f j - g j)) * ∏ j in s.filter (λ j, i < j), f j :=
+begin
+  simp only [sub_eq_add_neg],
+  convert prod_add_ordered s f (λ i, -g i),
+  simp,
+end
+
+/-- `∏ i, (1 - f i) = 1 - ∑ i, f i * (∏ j < i, 1 - f j)`. This formula is useful in construction of
+a partition of unity from a collection of “bump” functions.  -/
+lemma prod_one_sub_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finset ι) (f : ι → R) :
+  (∏ i in s, (1 - f i)) = 1 - ∑ i in s, f i * ∏ j in s.filter (< i), (1 - f j) :=
+by { rw prod_sub_ordered, simp }
+
 /--  Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a `finset`
 gives `(a + b)^s.card`.-/
 lemma sum_pow_mul_eq_add_pow
@@ -153,7 +189,8 @@ end comm_semiring
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
 @[to_additive]
-lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s) (f : finset α → β) :
+lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s)
+  (f : finset α → β) :
   (∏ a in (insert x s).powerset, f a) =
     (∏ a in s.powerset, f a) * (∏ t in s.powerset, f (insert x t)) :=
 begin
@@ -166,6 +203,34 @@ begin
     rcases finset.mem_image.1 h₂ with ⟨t₃, h₃, H₃₂⟩,
     rw ← H₃₂,
     exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
+end
+
+/-- A product over `powerset s` is equal to the double product over
+sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
+  ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
+begin
+  classical,
+  rw [powerset_card_bUnion, prod_bUnion],
+  intros i hi j hj hij,
+  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  intros x hx hc hnc,
+  apply hij,
+  rwa ← hc,
+end
+
+/-- A sum over `powerset s` is equal to the double sum over
+sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
+lemma sum_powerset [add_comm_monoid β] (s : finset α) (f : finset α → β) :
+  ∑ t in powerset s, f t = ∑ j in range (card s + 1), ∑ t in powerset_len j s, f t :=
+begin
+  classical,
+  rw [powerset_card_bUnion, sum_bUnion],
+  intros i hi j hj hij,
+  rw [powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
+  intros x hx hc hnc,
+  apply hij,
+  rwa ← hc,
 end
 
 end finset

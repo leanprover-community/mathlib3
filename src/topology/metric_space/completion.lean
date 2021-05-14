@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.uniform_space.completion
 import topology.metric_space.isometry
@@ -20,7 +20,7 @@ open_locale filter
 noncomputable theory
 
 universes u
-variables {α : Type u} [metric_space α]
+variables {α : Type u} [pseudo_metric_space α]
 
 namespace metric
 
@@ -45,7 +45,7 @@ begin
   apply induction_on x,
   { refine is_closed_eq _ continuous_const,
     exact (completion.uniform_continuous_dist.continuous.comp
-             (continuous.prod_mk continuous_id continuous_id) : _) },
+             (continuous.prod_mk continuous_id continuous_id : _) : _) },
   { assume a,
     rw [completion.dist_eq, dist_self] }
 end
@@ -54,7 +54,8 @@ protected lemma completion.dist_comm (x y : completion α) : dist x y = dist y x
 begin
   apply induction_on₂ x y,
   { refine is_closed_eq completion.uniform_continuous_dist.continuous _,
-    exact (completion.uniform_continuous_dist.continuous.comp continuous_swap : _) },
+    exact completion.uniform_continuous_dist.continuous.comp
+      (@continuous_swap (completion α) (completion α) _ _) },
   { assume a b,
     rw [completion.dist_eq, completion.dist_eq, dist_comm] }
 end
@@ -164,7 +165,7 @@ protected lemma completion.uniformity_dist :
   uniformity (completion α) = (⨅ ε>0, 𝓟 {p | dist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @completion.uniformity_dist' α _
 
-/-- Metric space structure on the completion of a metric space. -/
+/-- Metric space structure on the completion of a pseudo_metric space. -/
 instance completion.metric_space : metric_space (completion α) :=
 { dist_self          := completion.dist_self,
   eq_of_dist_eq_zero := completion.eq_of_dist_eq_zero,

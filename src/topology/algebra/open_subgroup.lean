@@ -94,23 +94,25 @@ instance : inhabited (open_subgroup G) := ⟨⊤⟩
 @[to_additive]
 lemma is_closed [has_continuous_mul G] (U : open_subgroup G) : is_closed (U : set G) :=
 begin
+  apply is_open_compl_iff.1,
   refine is_open_iff_forall_mem_open.2 (λ x hx, ⟨(λ y, y * x⁻¹) ⁻¹' U, _, _, _⟩),
   { intros u hux,
     simp only [set.mem_preimage, set.mem_compl_iff, mem_coe] at hux hx ⊢,
     refine mt (λ hu, _) hx,
     convert U.mul_mem (U.inv_mem hux) hu,
     simp },
-  { exact (continuous_mul_right _) _ U.is_open },
+  { exact U.is_open.preimage (continuous_mul_right _) },
   { simp [U.one_mem] }
 end
 
 section
 variables {H : Type*} [group H] [topological_space H]
 
-@[to_additive]
+/-- The product of two open subgroups as an open subgroup of the product group. -/
+@[to_additive "The product of two open subgroups as an open subgroup of the product group."]
 def prod (U : open_subgroup G) (V : open_subgroup H) : open_subgroup (G × H) :=
 { carrier := (U : set G).prod (V : set H),
-  is_open' := is_open_prod U.is_open V.is_open,
+  is_open' := U.is_open.prod V.is_open,
   .. (U : subgroup G).prod (V : subgroup H) }
 
 end
@@ -139,6 +141,31 @@ instance : semilattice_inf_top (open_subgroup G) :=
 attribute [norm_cast] coe_inf coe_subset coe_subgroup_le open_add_subgroup.coe_inf
   open_add_subgroup.coe_subset open_add_subgroup.coe_add_subgroup_le
 
+variables {N : Type*} [group N] [topological_space N]
+
+/-- The preimage of an `open_subgroup` along a continuous `monoid` homomorphism
+  is an `open_subgroup`. -/
+@[to_additive "The preimage of an `open_add_subgroup` along a continuous `add_monoid` homomorphism
+is an `open_add_subgroup`."]
+def comap (f : G →* N)
+  (hf : continuous f) (H : open_subgroup N) : open_subgroup G :=
+{ is_open' := H.is_open.preimage hf,
+  .. (H : subgroup N).comap f }
+
+@[simp, to_additive]
+lemma coe_comap (H : open_subgroup N) (f : G →* N) (hf : continuous f) :
+  (H.comap f hf : set G) = f ⁻¹' H := rfl
+
+@[simp, to_additive]
+lemma mem_comap {H : open_subgroup N} {f : G →* N} {hf : continuous f} {x : G} :
+  x ∈ H.comap f hf ↔ f x ∈ H := iff.rfl
+
+@[to_additive]
+lemma comap_comap {P : Type*} [group P] [topological_space P]
+  (K : open_subgroup P) (f₂ : N →* P) (hf₂ : continuous f₂) (f₁ : G →* N) (hf₁ : continuous f₁) :
+  (K.comap f₂ hf₂).comap f₁ hf₁ = K.comap (f₂.comp f₁) (hf₂.comp hf₁) :=
+rfl
+
 end open_subgroup
 
 namespace subgroup
@@ -149,14 +176,14 @@ variables {G : Type*} [group G] [topological_space G] [has_continuous_mul G] (H 
 lemma is_open_of_mem_nhds {g : G} (hg : (H : set G) ∈ 𝓝 g) :
   is_open (H : set G) :=
 begin
-  simp only [is_open_iff_mem_nhds, subgroup.mem_coe] at hg ⊢,
+  simp only [is_open_iff_mem_nhds, set_like.mem_coe] at hg ⊢,
   intros x hx,
   have : filter.tendsto (λ y, y * (x⁻¹ * g)) (𝓝 x) (𝓝 $ x * (x⁻¹ * g)) :=
     (continuous_id.mul continuous_const).tendsto _,
   rw [mul_inv_cancel_left] at this,
   have := filter.mem_map.1 (this hg),
-  replace hg : g ∈ H := subgroup.mem_coe.1 (mem_of_nhds hg),
-  simp only [subgroup.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
+  replace hg : g ∈ H := set_like.mem_coe.1 (mem_of_nhds hg),
+  simp only [set_like.mem_coe, H.mul_mem_cancel_right (H.mul_mem (H.inv_mem hx) hg)] at this,
   exact this
 end
 

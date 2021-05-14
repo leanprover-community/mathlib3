@@ -314,7 +314,7 @@ lift_on s (λ t, ⟦insert a b t⟧) $
   insert a b ⟦s⟧ = ⟦s.insert a b⟧ := by simp [insert]
 
 theorem insert_entries_of_neg {a : α} {b : β a} {s : finmap β} : a ∉ s →
-  (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
+  (insert a b s).entries = ⟨a, b⟩ ::ₘ s.entries :=
 induction_on s $ λ s h,
 by simp [insert_entries_of_neg (mt mem_to_finmap.1 h)]
 

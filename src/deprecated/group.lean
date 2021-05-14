@@ -1,11 +1,12 @@
 /-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.group.units_hom
 import algebra.ring.basic
+import data.equiv.mul_add
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)
@@ -16,7 +17,7 @@ because Lean 3 often fails to coerce a bundled homomorphism to a function.
 
 ## main definitions
 
-monoid_hom, is_monoid_hom (deprecated), is_group_hom (deprecated)
+is_monoid_hom (deprecated), is_group_hom (deprecated)
 
 ## implementation notes
 
@@ -29,11 +30,6 @@ as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
 group homs (i.e. monoid homs between groups) given only a proof
 that multiplication is preserved,
 
-Throughout the `monoid_hom` section implicit `{}` brackets are often used instead of type class `[]`
-brackets.  This is done when the instances can be inferred because they are implicit arguments to
-the type `monoid_hom`.  When they can be inferred from the type it is faster to use this method than
-to use type class inference.
-
 ## Tags
 
 is_group_hom, is_monoid_hom, monoid_hom
@@ -42,8 +38,8 @@ is_group_hom, is_monoid_hom, monoid_hom
 
 /--
 We have lemmas stating that the composition of two morphisms is again a morphism.
-Since composition is reducible, type class inference will always succeed in applying these instances.
-For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
+Since composition is reducible, type class inference will always succeed in applying these
+instances. For example when the goal is just `⊢ is_mul_hom f` the instance `is_mul_hom.comp`
 will still succeed, unifying `f` with `f ∘ (λ x, x)`.  This causes type class inference to loop.
 To avoid this, we do not make these lemmas instances.
 -/
@@ -92,17 +88,22 @@ lemma inv {α β} [has_mul α] [comm_group β] (f : α → β) [is_mul_hom f] :
 end is_mul_hom
 
 /-- Predicate for add_monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
-class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
+class is_add_monoid_hom [add_zero_class α] [add_zero_class β] (f : α → β)
+  extends is_add_hom f : Prop :=
 (map_zero [] : f 0 = 0)
 
 /-- Predicate for monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 @[to_additive]
-class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
+class is_monoid_hom [mul_one_class α] [mul_one_class β] (f : α → β) extends is_mul_hom f : Prop :=
 (map_one [] : f 1 = 1)
 
 namespace monoid_hom
-variables {M : Type*} {N : Type*} {P : Type*} [mM : monoid M] [mN : monoid N] {mP : monoid P}
-variables {G : Type*} {H : Type*} [group G] [comm_group H]
+
+/-!
+Throughout this section, some `mul_one_class` arguments are specified with `{}` instead of `[]`.
+See note [implicit instance arguments].
+-/
+variables {M : Type*} {N : Type*} [mM : mul_one_class M] [mN : mul_one_class N]
 
 include mM mN
 /-- Interpret a map `f : M → N` as a homomorphism `M →* N`. -/
@@ -112,7 +113,7 @@ def of (f : M → N) [h : is_monoid_hom f] : M →* N :=
   map_one' := h.2,
   map_mul' := h.1.1 }
 
-variables {mM mN mP}
+variables {mM mN}
 @[simp, to_additive]
 lemma coe_of (f : M → N) [is_monoid_hom f] : ⇑ (monoid_hom.of f) = f :=
 rfl
@@ -124,8 +125,23 @@ instance (f : M →* N) : is_monoid_hom (f : M → N) :=
 
 end monoid_hom
 
+namespace mul_equiv
+
+variables {M : Type*} {N : Type*} [mul_one_class M] [mul_one_class N]
+
+/-- A multiplicative isomorphism preserves multiplication (deprecated). -/
+@[to_additive]
+instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
+
+/-- A multiplicative bijection between two monoids is a monoid hom
+  (deprecated -- use `mul_equiv.to_monoid_hom`). -/
+@[to_additive]
+instance (h : M ≃* N) : is_monoid_hom h := ⟨h.map_one⟩
+
+end mul_equiv
+
 namespace is_monoid_hom
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+variables [mul_one_class α] [mul_one_class β] (f : α → β) [is_monoid_hom f]
 
 /-- A monoid homomorphism preserves multiplication. -/
 @[to_additive]
@@ -136,12 +152,12 @@ end is_monoid_hom
 
 /-- A map to a group preserving multiplication is a monoid homomorphism. -/
 @[to_additive]
-theorem is_monoid_hom.of_mul [monoid α] [group β] (f : α → β) [is_mul_hom f] :
+theorem is_monoid_hom.of_mul [mul_one_class α] [group β] (f : α → β) [is_mul_hom f] :
   is_monoid_hom f :=
-{ map_one := mul_self_iff_eq_one.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
+{ map_one := mul_right_eq_self.1 $ by rw [← is_mul_hom.map_mul f, one_mul] }
 
 namespace is_monoid_hom
-variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
+variables [mul_one_class α] [mul_one_class β] (f : α → β) [is_monoid_hom f]
 
 /-- The identity map is a monoid homomorphism. -/
 @[to_additive]
@@ -149,7 +165,7 @@ instance id : is_monoid_hom (@id α) := { map_one := rfl }
 
 /-- The composite of two monoid homomorphisms is a monoid homomorphism. -/
 @[to_additive] -- see Note [no instance on morphisms]
-lemma comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
+lemma comp {γ} [mul_one_class γ] (g : β → γ) [is_monoid_hom g] :
   is_monoid_hom (g ∘ f) :=
 { map_one := show g _ = 1, by rw [map_one f, map_one g], ..is_mul_hom.comp _ _ }
 
@@ -181,6 +197,10 @@ instance monoid_hom.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (f : 
   is_group_hom (f : G → H) :=
 { map_mul := f.map_mul }
 
+@[to_additive]
+instance mul_equiv.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (h : G ≃* H) :
+  is_group_hom h := { map_mul := h.map_mul }
+
 /-- Construct `is_group_hom` from its only hypothesis. The default constructor tries to get
 `is_mul_hom` from class instances, and this makes some proofs fail. -/
 @[to_additive]
@@ -210,7 +230,7 @@ eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
 @[to_additive]
 instance id : is_group_hom (@id α) := { }
 
-/-- The composition of two group homomomorphisms is a group homomorphism. -/
+/-- The composition of two group homomorphisms is a group homomorphism. -/
 @[to_additive] -- see Note [no instance on morphisms]
 lemma comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) :=
 { ..is_mul_hom.comp _ _ }
@@ -269,7 +289,8 @@ end
 end ring_hom
 
 /-- Inversion is a group homomorphism if the group is commutative. -/
-@[instance, to_additive]
+@[instance, to_additive neg.is_add_group_hom
+"Negation is an `add_group` homomorphism if the `add_group` is commutative."]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }
 
@@ -278,8 +299,10 @@ variables [add_group α] [add_group β] (f : α → β) [is_add_group_hom f]
 
 /-- Additive group homomorphisms commute with subtraction. -/
 lemma map_sub (a b) : f (a - b) = f a - f b :=
-calc f (a + -b) = f a + f (-b) : is_add_hom.map_add f _ _
-            ... = f a + -f b   : by rw [map_neg f]
+calc f (a - b) = f (a + -b)   : congr_arg f (sub_eq_add_neg a b)
+           ... = f a + f (-b) : is_add_hom.map_add f _ _
+           ... = f a + -f b   : by rw [map_neg f]
+           ... = f a - f b    : (sub_eq_add_neg _ _).symm
 
 end is_add_group_hom
 
@@ -289,7 +312,7 @@ homomorphism if the target is commutative. -/
 lemma is_add_group_hom.sub {α β} [add_group α] [add_comm_group β]
   (f g : α → β) [is_add_group_hom f] [is_add_group_hom g] :
   is_add_group_hom (λa, f a - g a) :=
-is_add_group_hom.add f (λa, - g a)
+by { simp only [sub_eq_add_neg], exact is_add_group_hom.add f (λa, - g a) }
 
 namespace units
 
@@ -325,12 +348,13 @@ lemma multiplicative.is_mul_hom [has_add α] [has_add β] (f : α → β) [is_ad
   @is_mul_hom (multiplicative α) (multiplicative β) _ _ f :=
 { map_mul := @is_add_hom.map_add α β _ _ f _ }
 
-lemma additive.is_add_monoid_hom [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
+lemma additive.is_add_monoid_hom [mul_one_class α] [mul_one_class β] (f : α → β) [is_monoid_hom f] :
   @is_add_monoid_hom (additive α) (additive β) _ _ f :=
 { map_zero := @is_monoid_hom.map_one α β _ _ f _,
   ..additive.is_add_hom f }
 
-lemma multiplicative.is_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f] :
+lemma multiplicative.is_monoid_hom
+  [add_zero_class α] [add_zero_class β] (f : α → β) [is_add_monoid_hom f] :
   @is_monoid_hom (multiplicative α) (multiplicative β) _ _ f :=
 { map_one := @is_add_monoid_hom.map_zero α β _ _ f _,
   ..multiplicative.is_mul_hom f }

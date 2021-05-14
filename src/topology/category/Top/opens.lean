@@ -119,17 +119,17 @@ def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
 { to_fun := _,
   continuous_to_fun := continuous_subtype_coe }
 
-lemma inclusion_open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
+lemma open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
 is_open.open_embedding_subtype_coe U.2
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
-{ obj := λ U, ⟨ f ⁻¹' U.val, f.continuous _ U.property ⟩,
+{ obj := λ U, ⟨ f ⁻¹' U.val, U.property.preimage f.continuous ⟩,
   map := λ U V i, ⟨ ⟨ λ a b, (le_of_hom i) b ⟩ ⟩ }.
 
-@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, f.continuous _ p⟩ :=
-rfl
+@[simp] lemma map_obj (f : X ⟶ Y) (U) (p) :
+  (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, p.preimage f.continuous⟩ := rfl
 
 @[simp] lemma map_id_obj (U : opens X) : (map (𝟙 X)).obj U = U :=
 by { ext, refl } -- not quite `rfl`, since we don't have eta for records

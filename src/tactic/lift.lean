@@ -7,7 +7,7 @@ import tactic.rcases
 /-!
 # lift tactic
 
-This file defines the lift tactic, allowing the user to lift elements from one type to another
+This file defines the `lift` tactic, allowing the user to lift elements from one type to another
 under a specified condition.
 
 ## Tags
@@ -26,6 +26,10 @@ class can_lift (α : Type u) (β : Type v) : Type (max u v) :=
 
 open tactic
 
+/--
+A user attribute used internally by the `lift` tactic.
+This should not be applied by hand.
+-/
 @[user_attribute]
 meta def can_lift_attr : user_attribute (list name) :=
 { name := "_can_lift",
@@ -49,17 +53,38 @@ instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Typ
   prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
     classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
 
+instance pi_subtype.can_lift (ι : Type u) (α : Π i : ι, Type v) [ne : Π i, nonempty (α i)]
+  (p : ι → Prop) :
+  can_lift (Π i : subtype p, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  cond := λ _, true,
+  prf :=
+    begin
+      classical,
+      refine λ f _, ⟨λ i, if hi : p i then f ⟨i, hi⟩ else classical.choice (ne i), funext _⟩,
+      rintro ⟨i, hi⟩,
+      exact dif_pos hi
+    end }
+
+instance pi_subtype.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (p : ι → Prop) :
+  can_lift (subtype p → α) (ι → α) :=
+pi_subtype.can_lift ι (λ _, α) p
+
 namespace tactic
 
-/- Construct the proof of `cond x` in the lift tactic.
-  `e` is the expression being lifted and `h` is the specified proof of `can_lift.cond e`.
-  `old_tp` and `new_tp` are the arguments to `can_lift` and `inst` is the `can_lift`-instance.
-  `s` and `to_unfold` contain the information of the simp set used to simplify.
-  If the proof was specified, we check whether it has the correct type.
-    If it doesn't have the correct type, we display an error message
-    (but first call dsimp on the expression in the message).
-  If the proof was not specified, we create assert it as a local constant.
-  (The name of this local constant doesn't matter, since `lift` will remove it from the context) -/
+/--
+Construct the proof of `cond x` in the lift tactic.
+*  `e` is the expression being lifted and `h` is the specified proof of `can_lift.cond e`.
+*  `old_tp` and `new_tp` are the arguments to `can_lift` and `inst` is the `can_lift`-instance.
+*  `s` and `to_unfold` contain the information of the simp set used to simplify.
+
+If the proof was specified, we check whether it has the correct type.
+If it doesn't have the correct type, we display an error message
+(but first call dsimp on the expression in the message).
+
+If the proof was not specified, we create assert it as a local constant.
+(The name of this local constant doesn't matter, since `lift` will remove it from the context.)
+-/
 meta def get_lift_prf (h : option pexpr) (old_tp new_tp inst e : expr)
   (s : simp_lemmas) (to_unfold : list name) : tactic expr :=
 if h_some : h.is_some then
@@ -113,7 +138,8 @@ do
   dsimp_hyp temp_e s to_unfold {},
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
   rcases none (pexpr.of_expr temp_e) $ rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
-  /- If the lifted variable is not a local constant, try to rewrite it away using the new equality-/
+  /- If the lifted variable is not a local constant,
+    try to rewrite it away using the new equality. -/
   when (¬ e.is_local_constant) (get_local eq_nm >>=
     λ e, interactive.rw ⟨[⟨⟨0, 0⟩, tt, (pexpr.of_expr e)⟩], none⟩ interactive.loc.wildcard),
   /- If the proof `prf_cond` is a local constant, remove it from the context,
@@ -124,14 +150,15 @@ do
 open lean.parser interactive interactive.types
 
 local postfix `?`:9001 := optional
+/-- Parses an optional token "using" followed by a trailing `pexpr`. -/
 meta def using_texpr := (tk "using" *> texpr)?
-reserve notation `to`
+
+/-- Parses a token "to" followed by a trailing `pexpr`. -/
 meta def to_texpr := (tk "to" *> texpr)
 
 namespace interactive
 
-/-- Lift an expression to another type.
-
+/--
 Lift an expression to another type.
 * Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
 * If `n : ℤ` and `hn : n ≥ 0` then the tactic `lift n to ℕ using hn` creates a new
@@ -161,8 +188,8 @@ Lift an expression to another type.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
 * Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
-  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
-  generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
+  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it
+  automatically generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
 `lift` is in some sense dual to the `zify` tactic. `lift (z : ℤ) to ℕ` will change the type of an
 integer `z` (in the supertype) to `ℕ` (the subtype), given a proof that `z ≥ 0`;

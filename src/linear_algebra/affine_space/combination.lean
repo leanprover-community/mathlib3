@@ -1,16 +1,14 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers
 -/
 import algebra.invertible
 import data.indicator_function
-import linear_algebra.affine_space.basic
+import linear_algebra.affine_space.affine_map
+import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp
-
-noncomputable theory
-open_locale big_operators
-open_locale classical
+import tactic.fin_cases
 
 /-!
 # Affine combinations of points
@@ -41,7 +39,13 @@ These definitions are for sums over a `finset`; versions for a
 
 -/
 
+noncomputable theory
+open_locale big_operators classical affine
+
 namespace finset
+
+lemma univ_fin2 : (univ : finset (fin 2)) = {0, 1} :=
+by { ext x, fin_cases x; simp }
 
 variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
 variables [S : affine_space V P]
@@ -186,16 +190,16 @@ the weights.  This is intended to be used when the sum of the weights
 is 1, in which case it is an affine combination (barycenter) of the
 points with the given weights; that condition is specified as a
 hypothesis on those lemmas that require it. -/
-def affine_combination (p : ι → P) : affine_map k (ι → k) P :=
+def affine_combination (p : ι → P) : (ι → k) →ᵃ[k] P :=
 { to_fun := λ w,
     s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty),
   linear := s.weighted_vsub p,
-  map_vadd' := λ w₁ w₂, by simp_rw [vadd_assoc, weighted_vsub, vadd_eq_add, linear_map.map_add] }
+  map_vadd' := λ w₁ w₂, by simp_rw [vadd_vadd, weighted_vsub, vadd_eq_add, linear_map.map_add] }
 
 /-- The linear map corresponding to `affine_combination` is
 `weighted_vsub`. -/
 @[simp] lemma affine_combination_linear (p : ι → P) :
-  (s.affine_combination p : affine_map k (ι → k) P).linear = s.weighted_vsub p :=
+  (s.affine_combination p : (ι → k) →ᵃ[k] P).linear = s.weighted_vsub p :=
 rfl
 
 /-- Applying `affine_combination` with given weights.  This is for the
@@ -408,8 +412,7 @@ as adding a vector to the first point. -/
 lemma centroid_insert_singleton_fin [invertible (2 : k)] (p : fin 2 → P) :
   univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
 begin
-  have hu : (finset.univ : finset (fin 2)) = {0, 1}, by dec_trivial,
-  rw hu,
+  rw univ_fin2,
   convert centroid_insert_singleton k p 0 1
 end
 
@@ -712,7 +715,7 @@ include V
 
 -- TODO: define `affine_map.proj`, `affine_map.fst`, `affine_map.snd`
 /-- A weighted sum, as an affine map on the points involved. -/
-def weighted_vsub_of_point (w : ι → k) : affine_map k ((ι → P) × P) V :=
+def weighted_vsub_of_point (w : ι → k) : ((ι → P) × P) →ᵃ[k] V :=
 { to_fun := λ p, s.weighted_vsub_of_point p.fst p.snd w,
   linear := ∑ i in s,
     w i • ((linear_map.proj i).comp (linear_map.fst _ _ _) - linear_map.snd _ _ _),

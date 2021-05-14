@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-import data.real.basic
+import data.real.ennreal
 
 /-!
 # Real conjugate exponents
@@ -80,6 +80,21 @@ by simpa only [sub_mul, sub_eq_iff_eq_add, one_mul] using h.sub_one_mul_conj
 @[symm] protected lemma symm : q.is_conjugate_exponent p :=
 { one_lt := by { rw [h.conj_eq], exact (one_lt_div h.sub_one_pos).mpr (sub_one_lt p) },
   inv_add_inv_conj := by simpa [add_comm] using h.inv_add_inv_conj }
+
+lemma one_lt_nnreal : 1 < nnreal.of_real p :=
+begin
+  rw [←nnreal.of_real_one, nnreal.of_real_lt_of_real_iff h.pos],
+  exact h.one_lt,
+end
+
+lemma inv_add_inv_conj_nnreal : 1 / nnreal.of_real p + 1 / nnreal.of_real q = 1 :=
+by rw [←nnreal.of_real_one, ←nnreal.of_real_div' h.nonneg, ←nnreal.of_real_div' h.symm.nonneg,
+  ←nnreal.of_real_add h.one_div_nonneg h.symm.one_div_nonneg, h.inv_add_inv_conj]
+
+lemma inv_add_inv_conj_ennreal : 1 / ennreal.of_real p + 1 / ennreal.of_real q = 1 :=
+by rw [←ennreal.of_real_one, ←ennreal.of_real_div_of_pos h.pos,
+  ←ennreal.of_real_div_of_pos h.symm.pos,
+  ←ennreal.of_real_add h.one_div_nonneg h.symm.one_div_nonneg, h.inv_add_inv_conj]
 
 end is_conjugate_exponent
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 import control.monad.basic
 import control.monad.cont
@@ -43,22 +43,22 @@ class uliftable (f : Type u₀ → Type u₁) (g : Type v₀ → Type v₁) :=
 
 namespace uliftable
 
-/-- The most common practical use `uliftable` (together with `up`), this function takes `x : M.{u} α` and lifts it
-to M.{max u v} (ulift.{v} α) -/
+/-- The most common practical use `uliftable` (together with `up`), this function takes
+`x : M.{u} α` and lifts it to M.{max u v} (ulift.{v} α) -/
 @[reducible]
 def up {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [uliftable f g]
   {α} : f α → g (ulift α) :=
 (uliftable.congr f g equiv.ulift.symm).to_fun
 
-/-- The most common practical use of `uliftable` (together with `up`), this function takes `x : M.{max u v} (ulift.{v} α)`
-and lowers it to `M.{u} α` -/
+/-- The most common practical use of `uliftable` (together with `up`), this function takes
+`x : M.{max u v} (ulift.{v} α)` and lowers it to `M.{u} α` -/
 @[reducible]
 def down {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [uliftable f g]
   {α} : g (ulift α) → f α :=
 (uliftable.congr f g equiv.ulift.symm).inv_fun
 
 /-- convenient shortcut to avoid manipulating `ulift` -/
-def adapt_up {F : Type u₀ → Type u₁} {G : Type (max u₀ v₀) → Type v₁}
+def adapt_up (F : Type v₀ → Type v₁) (G : Type (max v₀ u₀) → Type u₁)
   [uliftable F G] [monad G] {α β}
   (x : F α) (f : α → G β) : G β :=
 up x >>= f ∘ ulift.down
@@ -70,13 +70,13 @@ def adapt_down {F : Type (max u₀ v₀) → Type u₁} {G : Type v₀ → Type 
 @down.{v₀ v₁ (max u₀ v₀)} G F L β $ x >>= @up.{v₀ v₁ (max u₀ v₀)} G F L β ∘ f
 
 /-- map function that moves up universes -/
-def up_map {F : Type u₀ → Type u₁} {G : Type.{max u₀ v₀} → Type v₁} [inst : uliftable F G] [functor G]
-  {α β} (f : α → β) (x : F α) : G β :=
+def up_map {F : Type u₀ → Type u₁} {G : Type.{max u₀ v₀} → Type v₁} [inst : uliftable F G]
+  [functor G] {α β} (f : α → β) (x : F α) : G β :=
 functor.map (f ∘ ulift.down) (up x)
 
 /-- map function that moves down universes -/
-def down_map {F : Type.{max u₀ v₀} → Type u₁} {G : Type → Type v₁} [inst : uliftable G F] [functor F]
-  {α β} (f : α → β) (x : F α) : G β :=
+def down_map {F : Type.{max u₀ v₀} → Type u₁} {G : Type → Type v₁} [inst : uliftable G F]
+  [functor F] {α β} (f : α → β) (x : F α) : G β :=
 down (functor.map (ulift.up ∘ f) x : F (ulift β))
 
 @[simp]

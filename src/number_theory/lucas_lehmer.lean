@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro, Scott Morrison, Ainsley Pahljina
+Authors: Mario Carneiro, Scott Morrison, Ainsley Pahljina
 -/
 import tactic.ring_exp
 import tactic.interval_cases
@@ -47,6 +47,13 @@ begin
      ... ≤ 2^p - 1 : nat.pred_le_pred (nat.pow_le_pow_of_le_right (nat.succ_pos 1) h)
 end
 
+@[simp]
+lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
+begin
+  rw [mersenne, nat.sub_add_cancel],
+  exact one_le_pow_of_one_le (by norm_num) k
+end
+
 namespace lucas_lehmer
 
 open nat
@@ -86,7 +93,7 @@ end
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
-  { trivial, },
+  { exact sup_eq_left.mp rfl },
   { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 
@@ -154,8 +161,8 @@ def lucas_lehmer_test (p : ℕ) : Prop := lucas_lehmer_residue p = 0
 /-- `q` is defined as the minimum factor of `mersenne p`, bundled as an `ℕ+`. -/
 def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (mersenne p), nat.min_fac_pos (mersenne p)⟩
 
-instance fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) :=
-q.2
+local attribute [instance]
+lemma fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) := ⟨q.2⟩
 
 /-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
 -- It would be nice to define this as (ℤ/qℤ)[x] / (x^2 - 3),
@@ -266,7 +273,7 @@ end
 /-- There are strictly fewer than `q^2` units, since `0` is not a unit. -/
 lemma units_card (w : 1 < q) : fintype.card (units (X q)) < q^2 :=
 begin
-  haveI : fact (1 < (q : ℕ)) := w,
+  haveI : fact (1 < (q:ℕ)) := ⟨w⟩,
   convert card_units_lt (X q),
   rw X_card,
 end
@@ -314,9 +321,9 @@ Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction i
 
 /-- If `1 < p`, then `q p`, the smallest prime factor of `mersenne p`, is more than 2. -/
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
-  by_contradiction,
-  simp at a,
-  interval_cases q (p'+2); clear a,
+  by_contradiction H,
+  simp at H,
+  interval_cases q (p'+2); clear H,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
     simp [mersenne] at h',
@@ -355,7 +362,7 @@ end
 /-- `q` is the minimum factor of `mersenne p`, so `M p = 0` in `X q`. -/
 theorem mersenne_coe_X (p : ℕ) : (mersenne p : X (q p)) = 0 :=
 begin
-  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd],
+  ext; simp [mersenne, q, zmod.nat_coe_zmod_eq_zero_iff_dvd, -pow_pos],
   apply nat.min_fac_dvd,
 end
 
@@ -391,11 +398,12 @@ begin
   { norm_num, },
   { intro o,
     have ω_pow := order_of_dvd_iff_pow_eq_one.1 o,
-    replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) : units (X (q (p'+2))) → X (q (p'+2))) ω_pow,
+    replace ω_pow := congr_arg (units.coe_hom (X (q (p'+2))) :
+      units (X (q (p'+2))) → X (q (p'+2))) ω_pow,
     simp at ω_pow,
     have h : (1 : zmod (q (p'+2))) = -1 :=
       congr_arg (prod.fst) ((ω_pow.symm).trans (ω_pow_eq_neg_one p' h)),
-    haveI : fact (2 < (q (p'+2) : ℕ)) := two_lt_q _,
+    haveI : fact (2 < (q (p'+2) : ℕ)) := ⟨two_lt_q _⟩,
     apply zmod.neg_one_ne_one h.symm, },
   { apply order_of_dvd_iff_pow_eq_one.2,
     apply units.ext,
@@ -444,7 +452,7 @@ lemma s_mod_succ {p a i b c}
   (h2 : s_mod p i = b)
   (h3 : (b * b - 2) % a = c) :
   s_mod p (i+1) = c :=
-by { dsimp [s_mod, mersenne], rw [h1, h2, pow_two, h3] }
+by { dsimp [s_mod, mersenne], rw [h1, h2, sq, h3] }
 
 /--
 Given a goal of the form `lucas_lehmer_test p`,
@@ -498,9 +506,9 @@ Someone should do this, too!
 lemma modeq_mersenne (n k : ℕ) : k ≡ ((k / 2^n) + (k % 2^n)) [MOD 2^n - 1] :=
 -- See https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/help.20finding.20a.20lemma/near/177698446
 begin
-  conv in k {rw [← nat.mod_add_div k (2^n), add_comm]},
+  conv in k { rw ← nat.div_add_mod k (2^n) },
   refine nat.modeq.modeq_add _ (by refl),
-  conv {congr, skip, skip, rw ← one_mul (k/2^n)},
+  conv { congr, skip, skip, rw ← one_mul (k/2^n) },
   refine nat.modeq.modeq_mul _ (by refl),
   symmetry,
   rw [nat.modeq.modeq_iff_dvd, int.coe_nat_sub],

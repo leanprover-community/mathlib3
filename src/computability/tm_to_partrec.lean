@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import computability.halting
 import computability.turing_machine
@@ -215,7 +215,7 @@ begin
     obtain ⟨cf, hf⟩ := IHf, obtain ⟨cg, hg⟩ := IHg,
     simp only [roption.map_eq_map, roption.map_some, pfun.coe_val] at hf hg,
     refine ⟨prec cf cg, λ v, _⟩, rw ← v.cons_head_tail,
-    specialize hf v.tail, replace hg := λ a b, hg (a :: b :: v.tail),
+    specialize hf v.tail, replace hg := λ a b, hg (a ::ᵥ b ::ᵥ v.tail),
     simp only [vector.cons_val, vector.tail_val] at hf hg,
     simp only [roption.map_eq_map, roption.map_some, vector.cons_val,
       vector.cons_tail, vector.cons_head, pfun.coe_val, vector.tail_val],
@@ -223,14 +223,16 @@ begin
     induction v.head with n IH; simp [prec, hf, bind_assoc, ← roption.map_eq_map,
       ← bind_pure_comp_eq_map, show ∀ x, pure x = [x], from λ _, rfl, -subtype.val_eq_coe],
     suffices : ∀ a b, a + b = n →
-      (n.succ :: 0 :: g (n :: nat.elim (f v.tail) (λ y IH, g (y::IH::v.tail)) n :: v.tail)
-         :: v.val.tail : list ℕ) ∈
+      (n.succ :: 0 :: g
+        (n ::ᵥ (nat.elim (f v.tail) (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)) n) ::ᵥ v.tail)
+        :: v.val.tail : list ℕ) ∈
       pfun.fix (λ v : list ℕ, do
         x ← cg.eval (v.head :: v.tail.tail),
         pure $ if v.tail.head = 0
           then sum.inl (v.head.succ :: v.tail.head.pred :: x.head :: v.tail.tail.tail : list ℕ)
           else sum.inr (v.head.succ :: v.tail.head.pred :: x.head :: v.tail.tail.tail))
-        (a :: b :: nat.elim (f v.tail) (λ y IH, g (y::IH::v.tail)) a :: v.val.tail),
+        (a :: b :: nat.elim (f v.tail)
+          (λ y IH, g (y ::ᵥ IH ::ᵥ v.tail)) a :: v.val.tail),
     { rw (_ : pfun.fix _ _ = pure _), swap, exact roption.eq_some_iff.2 (this 0 n (zero_add n)),
       simp only [list.head, pure_bind, list.tail_cons] },
     intros a b e, induction b with b IH generalizing a e,
@@ -242,7 +244,7 @@ begin
   case comp : m n f g hf hg IHf IHg { exact exists_code.comp IHf IHg },
   case rfind : n f hf IHf {
     obtain ⟨cf, hf⟩ := IHf, refine ⟨rfind cf, λ v, _⟩,
-    replace hf := λ a, hf (a :: v),
+    replace hf := λ a, hf (a ::ᵥ v),
     simp only [roption.map_eq_map, roption.map_some, vector.cons_val, pfun.coe_val,
       show ∀ x, pure x = [x], from λ _, rfl] at hf ⊢,
     refine roption.ext (λ x, _),
@@ -256,8 +258,9 @@ begin
       suffices : ∀ (v₁ : list ℕ), v' ∈ pfun.fix
         (λ v, (cf.eval v).bind $ λ y, roption.some $ if y.head = 0 then
           sum.inl (v.head.succ :: v.tail) else sum.inr (v.head.succ :: v.tail)) v₁ →
-        ∀ n, v₁ = n :: v.val → (∀ m < n, ¬f (m :: v) = 0) →
-        (∃ (a : ℕ), (f (a :: v) = 0 ∧ ∀ {m : ℕ}, m < a → ¬f (m :: v) = 0) ∧ [a] = [v'.head.pred]),
+        ∀ n, v₁ = n :: v.val → (∀ m < n, ¬f (m ::ᵥ v) = 0) →
+        (∃ (a : ℕ), (f (a ::ᵥ v) = 0 ∧ ∀ {m : ℕ}, m < a → ¬f (m ::ᵥ v) = 0) ∧
+          [a] = [v'.head.pred]),
       { exact this _ h1 0 rfl (by rintro _ ⟨⟩) },
       clear h1, intros v₀ h1,
       refine pfun.fix_induction h1 (λ v₁ h2 IH, _), clear h1,
@@ -438,12 +441,15 @@ embedded machine reaches the halt state. -/
 theorem step_normal_then (c) (k k' : cont) (v) :
   step_normal c (k.then k') v = (step_normal c k v).then k' :=
 begin
-  induction c generalizing k v;
+  induction c with generalizing k v;
     simp only [cont.then, step_normal, cfg.then, *] {constructor_eq := ff},
-  { rw [← c_ih_a, cont.then] },
-  { rw [← c_ih_a_1, cont.then] },
+  case turing.to_partrec.code.cons : c c' ih ih'
+  { rw [← ih, cont.then] },
+  case turing.to_partrec.code.comp : c c' ih ih'
+  { rw [← ih', cont.then] },
   { cases v.head; simp only [nat.elim] },
-  { rw [← c_ih, cont.then] },
+  case turing.to_partrec.code.fix : c ih
+  { rw [← ih, cont.then] },
 end
 
 /-- The `step_ret` function respects the `then k'` homomorphism. Note that this is an exact
@@ -1157,7 +1163,7 @@ theorem succ_ok {q s n} {c d : list Γ'} :
     ⟨some q, none, K'.elim (tr_list [n.succ]) [] c d⟩ :=
 begin
   simp [tr_nat, num.add_one],
-  cases (n:num),
+  cases (n:num) with a,
   { refine trans_gen.head rfl _, simp,
     rw if_neg, swap, rintro ⟨⟩, rw if_pos, swap, refl,
     convert unrev_ok, simp, refl },
@@ -1189,7 +1195,7 @@ begin
   { refine ⟨none, trans_gen.single _⟩, simp, refl },
   { refine ⟨some Γ'.cons, trans_gen.single _⟩, simp, refl },
   refine ⟨none, _⟩, simp [tr_nat, num.add_one, num.succ, tr_num],
-  cases (n:num),
+  cases (n:num) with a,
   { simp [tr_pos_num, tr_num, show num.zero.succ' = pos_num.one, from rfl],
     refine trans_gen.head rfl _, convert unrev_ok, simp, refl },
   simp [tr_num, num.succ'],

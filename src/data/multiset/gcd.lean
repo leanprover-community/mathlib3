@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson
+Authors: Aaron Anderson
 -/
 import data.multiset.lattice
 import algebra.gcd_monoid
@@ -36,10 +36,10 @@ def lcm (s : multiset α) : α := s.fold gcd_monoid.lcm 1
 fold_zero _ _
 
 @[simp] lemma lcm_cons (a : α) (s : multiset α) :
-  (a :: s).lcm = gcd_monoid.lcm a s.lcm :=
+  (a ::ₘ s).lcm = gcd_monoid.lcm a s.lcm :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma lcm_singleton {a : α} : (a::0).lcm = normalize a := by simp
+@[simp] lemma lcm_singleton {a : α} : (a ::ₘ 0).lcm = normalize a := by simp
 
 @[simp] lemma lcm_add (s₁ s₂ : multiset α) : (s₁ + s₂).lcm = gcd_monoid.lcm s₁.lcm s₂.lcm :=
 eq.trans (by simp [lcm]) (fold_add _ _ _ _ _)
@@ -91,10 +91,10 @@ def gcd (s : multiset α) : α := s.fold gcd_monoid.gcd 0
 fold_zero _ _
 
 @[simp] lemma gcd_cons (a : α) (s : multiset α) :
-  (a :: s).gcd = gcd_monoid.gcd a s.gcd :=
+  (a ::ₘ s).gcd = gcd_monoid.gcd a s.gcd :=
 fold_cons_left _ _ _ _
 
-@[simp] lemma gcd_singleton {a : α} : (a::0).gcd = normalize a := by simp
+@[simp] lemma gcd_singleton {a : α} : (a ::ₘ 0).gcd = normalize a := by simp
 
 @[simp] lemma gcd_add (s₁ s₂ : multiset α) : (s₁ + s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
 eq.trans (by simp [gcd]) (fold_add _ _ _ _ _)
@@ -111,6 +111,19 @@ dvd_gcd.2 $ assume b hb, gcd_dvd (h hb)
 
 @[simp] lemma normalize_gcd (s : multiset α) : normalize (s.gcd) = s.gcd :=
 multiset.induction_on s (by simp) $ λ a s IH, by simp
+
+theorem gcd_eq_zero_iff (s : multiset α) : s.gcd = 0 ↔ ∀ (x : α), x ∈ s → x = 0 :=
+begin
+  split,
+  { intros h x hx,
+    apply eq_zero_of_zero_dvd,
+    rw ← h,
+    apply gcd_dvd hx },
+  { apply s.induction_on,
+    { simp },
+    intros a s sgcd h,
+    simp [h a (mem_cons_self a s), sgcd (λ x hx, h x (mem_cons_of_mem hx))] }
+end
 
 variables [decidable_eq α]
 

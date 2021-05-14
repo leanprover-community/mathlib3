@@ -1382,11 +1382,13 @@ well_founded_of_trans_of_irrefl _
 
 end fintype
 
-/-- A type is said to be infinite if it has no fintype instance. -/
-@[class] def infinite (α : Type*) : Prop := is_empty (fintype α)
+/-- A type is said to be infinite if it has no fintype instance.
+  Note that `infinite α` is equivalent to `is_empty (fintype α)`. -/
+class infinite (α : Type*) : Prop :=
+(not_fintype : fintype α → false)
 
 lemma not_fintype (α : Type*) [h1 : infinite α] [h2 : fintype α] : false :=
-@is_empty.false _ h1 h2
+infinite.not_fintype h2
 
 protected lemma fintype.false {α : Type*} [infinite α] (h : fintype α) : false :=
 not_fintype α
@@ -1394,8 +1396,11 @@ not_fintype α
 protected lemma infinite.false {α : Type*} [fintype α] (h : infinite α) : false :=
 not_fintype α
 
-@[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=
-⟨λf, ⟨λ x, f ⟨x⟩⟩, λ ⟨f⟩ ⟨x⟩, f x⟩
+@[simp] lemma is_empty_fintype {α : Type*} : is_empty (fintype α) ↔ infinite α :=
+⟨λ ⟨x⟩, ⟨x⟩, λ ⟨x⟩, ⟨x⟩⟩
+
+@[simp] lemma not_nonempty_fintype {α : Type*} : ¬ nonempty (fintype α) ↔ infinite α :=
+not_nonempty_iff.trans is_empty_fintype
 
 lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=

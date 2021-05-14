@@ -83,10 +83,10 @@ instance : subsingleton α := ⟨is_empty_elim⟩
 
 end is_empty
 
-lemma not_nonempty_iff : ¬ nonempty α ↔ is_empty α :=
+@[simp] lemma not_nonempty_iff : ¬ nonempty α ↔ is_empty α :=
 ⟨λ h, ⟨λ x, h ⟨x⟩⟩, λ h1 h2, h2.elim h1.elim⟩
 
-lemma not_is_empty_iff : ¬ is_empty α ↔ nonempty α :=
+@[simp] lemma not_is_empty_iff : ¬ is_empty α ↔ nonempty α :=
 not_iff_comm.mp not_nonempty_iff
 
 lemma is_empty_or_nonempty : is_empty α ∨ nonempty α :=

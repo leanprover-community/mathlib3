@@ -38,7 +38,7 @@ variable.
 
 
 `has_deriv_at_of_dominated_loc_of_lip` and `has_deriv_at_of_dominated_loc_of_deriv_le ` are versions
-of the above two results that assume `H = ℝ` and uses the high-school derivative `deriv` instead of
+of the above two results that assume `H = ℝ` and use the high-school derivative `deriv` instead of
 Fréchet derivative `fderiv`.
 -/
 
@@ -54,6 +54,11 @@ variables {α : Type*} [measurable_space α] {μ : measure α}
           {H : Type*} [normed_group H] [normed_space ℝ H]
           [second_countable_topology $ H →L[ℝ] E]
 
+/-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming
+`F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball around `x₀` for ae `a` with
+integrable Lipschitz bound (with a ball radius independent of `a`), and `F x` is
+ae-measurable for `x` in the same ball. See `has_fderiv_at_of_dominated_loc_of_lip` for a
+slightly more general version. -/
 lemma has_fderiv_at_of_dominated_loc_of_lip' {F : H → α → E} {F' : α → (H →L[ℝ] E)} {x₀ : H}
   {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
@@ -141,6 +146,10 @@ begin
     rwa [has_fderiv_at_iff_tendsto, this] at ha },
 end
 
+/-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming
+`F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball around `x₀` for ae `a`
+(with a ball radius independent of `a`) with integrable Lipschitz bound, and `F x` is ae-measurable
+for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_fderiv_at_of_dominated_loc_of_lip {F : H → α → E} {F' : α → (H →L[ℝ] E)} {x₀ : H}
   {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
@@ -166,6 +175,10 @@ begin
   apply has_fderiv_at_of_dominated_loc_of_lip' δ_pos ; assumption
 end
 
+/-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming
+`F x₀` is integrable, `x ↦ F x a` is differentiable on a ball around `x₀` for ae `a` with
+derivative norm uniformly bounded by an integrable function (the ball radius is independent of `a`),
+and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_fderiv_at_of_dominated_of_fderiv_le {F : H → α → E} {F' : H → α → (H →L[ℝ] E)} {x₀ : H}
   {bound : α → ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
@@ -192,6 +205,10 @@ begin
                                                hF'_meas this bound_integrable diff_x₀).2
 end
 
+/-- Derivative under integral of `x ↦ ∫ F x a` at a given point `x₀ : ℝ`, assuming
+`F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on an interval around `x₀` for ae `a`
+(with interval radius independent of `a`) with integrable Lipschitz bound, and `F x` is
+ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_deriv_at_of_dominated_loc_of_lip {F : ℝ → α → E} {F' : α → E} {x₀ : ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)
@@ -215,6 +232,10 @@ begin
   rwa continuous_linear_map.integral_comp_comm _ hF'_int at key,
 end
 
+/-- Derivative under integral of `x ↦ ∫ F x a` at a given point `x₀ : ℝ`, assuming
+`F x₀` is integrable, `x ↦ F x a` is differentiable on an interval around `x₀` for ae `a`
+(with interval radius independent of `a`) with derivative uniformly bounded by an integrable
+function, and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_deriv_at_of_dominated_loc_of_deriv_le {F : ℝ → α → E} {F' : ℝ → α → E} {x₀ : ℝ}
   {ε : ℝ} (ε_pos : 0 < ε)
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) μ)

@@ -69,7 +69,7 @@ you will not typically need to use this bundled object, and will instead use
 @[nolint has_inhabited_instance]
 structure ProjectiveResolution (Z : C) :=
 (complex : chain_complex C ℕ)
-(π : homological_complex.hom complex ((chain_complex.single_0 C).obj Z))
+(π : homological_complex.hom complex ((chain_complex.single₀ C).obj Z))
 (projective : ∀ n, projective (complex.X n) . tactic.apply_instance)
 (exact₀ : exact (complex.d 1 0) (π.f 0) . tactic.apply_instance)
 (exact : ∀ n, exact (complex.d (n+2) (n+1)) (complex.d (n+1) n) . tactic.apply_instance)
@@ -113,8 +113,8 @@ by cases n; apply_instance
 
 /-- A projective object admits a trivial projective resolution: itself in degree 0. -/
 def self (Z : C) [category_theory.projective Z] : ProjectiveResolution Z :=
-{ complex := (chain_complex.single_0 C).obj Z,
-  π := 𝟙 ((chain_complex.single_0 C).obj Z),
+{ complex := (chain_complex.single₀ C).obj Z,
+  π := 𝟙 ((chain_complex.single₀ C).obj Z),
   projective := λ n, begin
     cases n,
     { dsimp, apply_instance, },
@@ -169,7 +169,7 @@ end
 @[simp, reassoc]
 lemma lift_commutes
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
-  lift f P Q ≫ Q.π = P.π ≫ (chain_complex.single_0 C).map f :=
+  lift f P Q ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f :=
 begin
   ext n,
   rcases n with (_|_|n),
@@ -235,8 +235,8 @@ end
 /-- Two lifts of the same morphism are homotopic. -/
 def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
   (g h : P.complex ⟶ Q.complex)
-  (g_comm : g ≫ Q.π = P.π ≫ (chain_complex.single_0 C).map f)
-  (h_comm : h ≫ Q.π = P.π ≫ (chain_complex.single_0 C).map f) :
+  (g_comm : g ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f)
+  (h_comm : h ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f) :
   homotopy g h :=
 begin
   apply homotopy.equiv_sub_zero.inv_fun,
@@ -295,7 +295,7 @@ abbreviation projective_resolution (Z : C) [has_projective_resolution Z] : chain
 /-- The chain map from the arbitrarily chosen projective resolution `projective_resolution Z`
 back to the chain complex consisting of `Z` supported in degree `0`. -/
 abbreviation projective_resolution.π (Z : C) [has_projective_resolution Z] :
-  projective_resolution Z ⟶ (chain_complex.single_0 C).obj Z :=
+  projective_resolution Z ⟶ (chain_complex.single₀ C).obj Z :=
 (has_projective_resolution.out Z).some.π
 
 /-- The lift of a morphism to a chain map between the arbitrarily chosen projective resolutions. -/

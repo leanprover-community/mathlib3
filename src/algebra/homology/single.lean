@@ -12,11 +12,11 @@ import tactic.omega
 We define `single V j c : V ⥤ homological_complex V c`,
 which constructs complexes in `V` of shape `c`, supported in degree `j`.
 
-Similarly `single_0 V : V ⥤ chain_complex V ℕ` is the special case for
+Similarly `single₀ V : V ⥤ chain_complex V ℕ` is the special case for
 `ℕ`-indexed chain complexes, with the object supported in degree `0`,
 but with better definitional properties.
 
-In `to_single_0_equiv` we characterize chain maps to a `ℕ`-indexed complex concentrated in degree 0;
+In `to_single₀_equiv` we characterize chain maps to a `ℕ`-indexed complex concentrated in degree 0;
 they are equivalent to `{ f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 }`.
 (This is useful translating between a projective resolution and
 an augmented exact complex of projectives.)
@@ -37,7 +37,7 @@ local attribute [instance] has_zero_object.has_zero
 /--
 The functor `V ⥤ homological_complex V c` creating a chain complex supported in a single degree.
 
-See also `chain_complex.single_0 : V ⥤ chain_complex V ℕ`,
+See also `chain_complex.single₀ : V ⥤ chain_complex V ℕ`,
 which has better definitional properties,
 if you are working with `ℕ`-indexed complexes.
 -/
@@ -79,21 +79,47 @@ lemma single_map_f_self (j : ι) {A B : V} (f : A ⟶ B) :
     (single_obj_X_self V c j A).hom ≫ f ≫ (single_obj_X_self V c j B).inv :=
 by { simp, refl, }
 
+instance (j : ι) : faithful (single V c j) :=
+{ map_injective' := λ X Y f g w, begin
+    have := congr_hom w j,
+    dsimp at this,
+    simp only [dif_pos] at this,
+    rw [←is_iso.inv_comp_eq, inv_eq_to_hom, eq_to_hom_trans_assoc, eq_to_hom_refl, category.id_comp,
+      ←is_iso.comp_inv_eq, category.assoc, inv_eq_to_hom, eq_to_hom_trans, eq_to_hom_refl,
+      category.comp_id] at this,
+    exact this,
+  end, }
+
+instance (j : ι) : full (single V c j) :=
+{ preimage := λ X Y f, eq_to_hom (by simp) ≫ f.f j ≫ eq_to_hom (by simp),
+  witness' := λ X Y f, begin
+    ext i,
+    dsimp,
+    split_ifs,
+    { subst h, simp, },
+    { symmetry,
+      apply zero_of_target_iso_zero,
+      dsimp,
+      rw [if_neg h], },
+  end }
+
 end homological_complex
 
 open homological_complex
 
 namespace chain_complex
 
+-- TODO: dualize to cochain_complexes
+
 local attribute [instance] has_zero_object.has_zero
 
 /--
-`chain_complex.single_0 V` is the embedding of `V` into `chain_complex V ℕ`
+`chain_complex.single₀ V` is the embedding of `V` into `chain_complex V ℕ`
 as chain complexes supported in degree 0.
 
-This is naturally isomorphism to `single V _ 0`, but has better definitional properties.
+This is naturally isomorphic to `single V _ 0`, but has better definitional properties.
 -/
-def single_0 : V ⥤ chain_complex V ℕ :=
+def single₀ : V ⥤ chain_complex V ℕ :=
 { obj := λ X,
   { X := λ n, match n with
     | 0 := X
@@ -108,20 +134,20 @@ def single_0 : V ⥤ chain_complex V ℕ :=
   map_id' := λ X, by { ext n, cases n, refl, dsimp, unfold_aux, simp, },
   map_comp' := λ X Y Z f g, by { ext n, cases n, refl, dsimp, unfold_aux, simp, } }
 
-@[simp] lemma single_0_obj_X_0 (X : V) : ((single_0 V).obj X).X 0 = X := rfl
-@[simp] lemma single_0_obj_X_succ (X : V) (n : ℕ) : ((single_0 V).obj X).X (n+1) = 0 := rfl
-@[simp] lemma single_0_obj_X_d (X : V) (i j : ℕ) : ((single_0 V).obj X).d i j = 0 := rfl
-@[simp] lemma single_0_obj_X_d_to (X : V) (j : ℕ) : ((single_0 V).obj X).d_to j = 0 :=
-by { rw [d_to_eq ((single_0 V).obj X) rfl], simp, }
-@[simp] lemma single_0_obj_X_d_from (X : V) (i : ℕ) : ((single_0 V).obj X).d_from i = 0 :=
+@[simp] lemma single₀_obj_X_0 (X : V) : ((single₀ V).obj X).X 0 = X := rfl
+@[simp] lemma single₀_obj_X_succ (X : V) (n : ℕ) : ((single₀ V).obj X).X (n+1) = 0 := rfl
+@[simp] lemma single₀_obj_X_d (X : V) (i j : ℕ) : ((single₀ V).obj X).d i j = 0 := rfl
+@[simp] lemma single₀_obj_X_d_to (X : V) (j : ℕ) : ((single₀ V).obj X).d_to j = 0 :=
+by { rw [d_to_eq ((single₀ V).obj X) rfl], simp, }
+@[simp] lemma single₀_obj_X_d_from (X : V) (i : ℕ) : ((single₀ V).obj X).d_from i = 0 :=
 begin
   cases i,
   { rw [d_from_eq_zero], simp, },
-  { rw [d_from_eq ((single_0 V).obj X) rfl], simp, },
+  { rw [d_from_eq ((single₀ V).obj X) rfl], simp, },
 end
-@[simp] lemma single_0_map_f_0 {X Y : V} (f : X ⟶ Y) : ((single_0 V).map f).f 0 = f := rfl
-@[simp] lemma single_0_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
-  ((single_0 V).map f).f (n+1) = 0 := rfl
+@[simp] lemma single₀_map_f_0 {X Y : V} (f : X ⟶ Y) : ((single₀ V).map f).f 0 = f := rfl
+@[simp] lemma single₀_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
+  ((single₀ V).map f).f (n+1) = 0 := rfl
 
 section
 variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
@@ -131,7 +157,7 @@ Sending objects to chain complexes supported at `0` then taking `0`-th homology
 is the same as doing nothing.
 -/
 noncomputable
-def homology_functor_0_single_0 : single_0 V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
+def homology_functor_0_single₀ : single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
 nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
   (λ X Y f, by { ext, dsimp [homology_functor], simp, })
 
@@ -140,7 +166,7 @@ Sending objects to chain complexes supported at `0` then taking `(n+1)`-st homol
 is the same as the zero functor.
 -/
 noncomputable
-def homology_functor_succ_single_0 (n : ℕ) : single_0 V ⋙ homology_functor V _ (n+1) ≅ 0 :=
+def homology_functor_succ_single₀ (n : ℕ) : single₀ V ⋙ homology_functor V _ (n+1) ≅ 0 :=
 nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
   (λ X Y f, by ext)
 
@@ -153,8 +179,8 @@ Morphisms from a `ℕ`-indexed chain complex `C`
 to a single object chain complex with `X` concentrated in degree 0
 are the same as morphisms `f : C.X 0 ⟶ X` such that `C.d 1 0 ≫ f = 0`.
 -/
-def to_single_0_equiv (C : chain_complex V ℕ) (X : V) :
-  (C ⟶ (single_0 V).obj X) ≃ { f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 } :=
+def to_single₀_equiv (C : chain_complex V ℕ) (X : V) :
+  (C ⟶ (single₀ V).obj X) ≃ { f : C.X 0 ⟶ X // C.d 1 0 ≫ f = 0 } :=
 { to_fun := λ f, ⟨f.f 0, by { rw ←f.comm 1 0, simp, }⟩,
   inv_fun := λ f,
   { f := λ i, match i with
@@ -162,7 +188,7 @@ def to_single_0_equiv (C : chain_complex V ℕ) (X : V) :
     | (n+1) := 0
     end,
     comm' := λ i j, begin
-      rcases i with _|_|i; cases j; unfold_aux; simp only [comp_zero, zero_comp, single_0_obj_X_d],
+      rcases i with _|_|i; cases j; unfold_aux; simp only [comp_zero, zero_comp, single₀_obj_X_d],
       { rw [C.shape, zero_comp], simp, },
       { exact f.2.symm, },
       { rw [C.shape, zero_comp], simp only [complex_shape.down_rel, zero_add], omega, },
@@ -174,5 +200,24 @@ def to_single_0_equiv (C : chain_complex V ℕ) (X : V) :
     { ext, },
   end,
   right_inv := by tidy, }
+
+variables (V)
+
+/-- `single₀` is the same as `single V _ 0`. -/
+def single₀_iso_single : single₀ V ≅ single V _ 0 :=
+nat_iso.of_components
+  (λ X,
+  { hom := { f := λ i, by { cases i; simpa using 𝟙 _, } },
+    inv := { f := λ i, by { cases i; simpa using 𝟙 _, } },
+    hom_inv_id' := by { ext (_|i); { dsimp, simp, }, },
+    inv_hom_id' := begin
+      ext (_|i),
+      { apply category.id_comp, },
+      { apply has_zero_object.to_zero_ext, },
+    end, })
+  (λ X Y f, by { ext (_|i); { dsimp, simp, }, })
+
+instance : faithful (single₀ V) := faithful.of_iso (single₀_iso_single V).symm
+instance : full (single₀ V) := full.of_iso (single₀_iso_single V).symm
 
 end chain_complex

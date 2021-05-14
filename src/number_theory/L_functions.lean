@@ -18,7 +18,7 @@ open_locale big_operators
 
 --variables {R : Type*} [ring R] [topological_space R]
 --variables {R : Type*} [ring R] [topological_space R] [topological_ring R]
-variables (X : Profinite)
+variables (X : Type*) [topological_space X] [compact_space X] [t2_space X] [totally_disconnected_space X]
 
 /-instance semi {R : Type*} [semiring R] : semimodule R (locally_constant X R) :=
 begin
@@ -218,6 +218,7 @@ begin
   have f := set.mem_inter H Uy, rw set.inter_compl_self _ at f, simp at f, assumption,
 end
 
+-- unidiomatic code!
 lemma compact_exists_clopen_in_open {H : Type*} [topological_space H] [compact_space H] [t2_space H]
   [totally_disconnected_space H] {x : H} {U : set H} [is_open U] (memU : x ∈ U) : ∃ (V : set H)
   (hV : is_clopen V), x ∈ V ∧ V ⊆ U :=
@@ -228,7 +229,7 @@ begin
   { rw compact_t2_tot_disc_iff_tot_sep at *,
     have ex : ∀ (y : H) (hy : y ∈ Uᶜ), ∃ (V : set H), is_clopen V ∧ (y ∈ V ∧ x ∈ Vᶜ),
     { rintros y hy, rw ←compl_compl U at memU,
-      obtain ⟨U, hU, Uy, Ux⟩ := @tot_sep_exists_clopen H _ _inst_4 y x (@stuff H y Uᶜ hy x memU),
+      obtain ⟨U, hU, Uy, Ux⟩ := @tot_sep_exists_clopen H _ _inst_8 y x (@stuff H y Uᶜ hy x memU),
       refine ⟨U, hU, Uy, Ux⟩, },
       set h := λ (y : H) (hy : y ∈ Uᶜ), classical.some (ex y hy) with fh,
     set V := (⨆ (y : H) (hy : y ∈ Uᶜ), h y hy) with hV,
@@ -237,8 +238,8 @@ begin
       obtain ⟨g1, g2, g3⟩ := some_spec (ex y hy),
       refine g2, },
     rw hV at sub,
-    rw ←is_closed_compl_iff at _inst_5,
-    have comp : is_compact Uᶜ := by { exact is_closed.compact _inst_5 },
+    rw ←is_closed_compl_iff at _inst_9,
+    have comp : is_compact Uᶜ := by { exact is_closed.compact _inst_9 },
     obtain ⟨t, fin⟩ := is_compact.elim_finite_subcover comp _ _ sub,
     { rw set.compl_subset_comm at fin,
       set W := (⨆ (i : H) (H_1 : i ∈ t), (λ (y : H), ⨆ (hy : y ∈ Uᶜ), h y hy) i)ᶜ with hW,
@@ -735,7 +736,7 @@ structure  distribution {R : Type*} [add_monoid R] :=
   (∀ i j, pairwise (disjoint on f) →
   phi((f i) ∪ (f j)) = phi (f i) + phi (f j)))
 
-instance : has_scalar A (locally_constant ↥X A) :=
+instance : has_scalar A (locally_constant X A) :=
 { smul := λ a f,
   { to_fun := λ x, a*f(x),
     is_locally_constant := begin
@@ -743,7 +744,7 @@ instance : has_scalar A (locally_constant ↥X A) :=
       apply locally_constant.is_locally_constant f,
     end } }
 
-instance : mul_action A (locally_constant ↥X A) :=
+instance : mul_action A (locally_constant X A) :=
 { smul := (•),
   one_smul := one_mul,
   mul_smul := λ a b f, begin
@@ -751,7 +752,7 @@ instance : mul_action A (locally_constant ↥X A) :=
     refine congr_fun _ f, simp, ext, simp, rw mul_assoc,
   end }
 
-instance : distrib_mul_action A (locally_constant ↥X A) :=
+instance : distrib_mul_action A (locally_constant X A) :=
 {
   smul_add := λ r f g, begin
     repeat { rw locally_constant.has_scalar, }, ext, exact mul_add r (f x) (g x),
@@ -760,7 +761,7 @@ instance : distrib_mul_action A (locally_constant ↥X A) :=
   ..locally_constant.mul_action X
    }
 
-instance semi : module A (locally_constant ↥X A) :=
+instance semi : module A (locally_constant X A) :=
 {
   add_smul := λ r s f, by {ext, exact add_mul r s (f x)},
   zero_smul := zero_mul,
@@ -768,7 +769,7 @@ instance semi : module A (locally_constant ↥X A) :=
 
 variable (A)
 
-noncomputable def inclusion' [h : nonempty X] : continuous_linear_map A (locally_constant X A) C(↥X, A) :=
+noncomputable def inclusion' [h : nonempty X] : continuous_linear_map A (locally_constant X A) C(X, A) :=
 { to_fun := inclusion X A,
   map_add' := λ x y, begin ext, refl end,
   map_smul' := λ m x, begin ext y, rw inclusion,
@@ -873,9 +874,9 @@ lemma uni_ind [h : nonempty X] : uniform_inducing (inclusion X A) :=
 begin
   exact {comap_uniformity := refl
                        (filter.comap
-                          (λ (x : locally_constant ↥X A × locally_constant ↥X A),
+                          (λ (x : locally_constant X A × locally_constant X A),
                              (inclusion X A x.fst, inclusion X A x.snd))
-                          (uniformity C(↥X, A)))},
+                          (uniformity C(X, A)))},
 end
 
 lemma uni_cont [h : nonempty X] (φ : measures'' X A) : uniform_continuous ⇑(φ.val.phi) :=
@@ -902,7 +903,7 @@ noncomputable instance [h : nonempty X] : normed_ring C(X,A) :=
   ..(infer_instance : normed_group C(X,A))
 }
 
-instance [h : nonempty X] : has_continuous_smul A C(↥X, A) :=
+instance [h : nonempty X] : has_continuous_smul A C(X, A) :=
 { continuous_smul := begin
   change continuous ((λ p, p.1 * p.2 : C(X,A) × C(X,A) → C(X,A)) ∘
     (λ p, ((continuous_map.const p.fst), p.2) : A × C(X,A) → C(X,A) × C(X,A))),

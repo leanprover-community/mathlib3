@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
 import data.int.parity
+import algebra.module
 
 /-!
 # Periodicity
@@ -46,6 +47,28 @@ by simp * at *
 lemma periodic.div [has_add α] [has_div β] (hf : periodic f c) (hg : periodic g c) :
   periodic (f / g) c :=
 by simp * at *
+
+lemma periodic.const_smul [add_comm_monoid α] [division_ring γ] [module γ α]
+  (a : γ) (h : periodic f c) :
+  periodic (λ x, f (a • x)) (a⁻¹ • c) :=
+begin
+  intro x,
+  by_cases ha : a = 0, { simp only [ha, zero_smul] },
+  simpa only [smul_add, smul_inv_smul' ha] using h (a • x),
+end
+
+lemma periodic.const_mul [division_ring α] (a : α) (h : periodic f c) :
+  periodic (λ x, f (a * x)) (a⁻¹ * c) :=
+h.const_smul a
+
+lemma periodic.const_inv_smul [add_comm_monoid α] [division_ring γ] [module γ α]
+  (a : γ) (h : periodic f c) :
+  periodic (λ x, f (a⁻¹ • x)) (a • c) :=
+by simpa only [inv_inv'] using h.const_smul a⁻¹
+
+lemma periodic.const_inv_mul [division_ring α] (a : α) (h : periodic f c) :
+  periodic (λ x, f (a⁻¹ * x)) (a * c) :=
+h.const_inv_smul a
 
 lemma periodic.mul_const [division_ring α] (a : α) (h : periodic f c) :
   periodic (λ x, f (x * a)) (c * a⁻¹) :=
@@ -200,6 +223,26 @@ by simpa only [sub_eq_add_neg, antiperiodic] using h.sub_eq
 
 lemma antiperiodic.neg_eq [add_group α] [add_group β] (h : antiperiodic f c) : f (-c) = -f 0 :=
 by simpa only [zero_add] using h.neg 0
+
+lemma antiperiodic.const_smul [add_comm_monoid α] [has_neg β] [division_ring γ] [module γ α]
+  {a : γ} (h : antiperiodic f c) (ha : a ≠ 0) :
+  antiperiodic (λ x, f (a • x)) (a⁻¹ • c) :=
+λ x, by simpa only [smul_add, smul_inv_smul' ha] using h (a • x)
+
+lemma antiperiodic.const_mul [division_ring α] [has_neg β] {a : α}
+  (h : antiperiodic f c) (ha : a ≠ 0) :
+  antiperiodic (λ x, f (a * x)) (a⁻¹ * c) :=
+h.const_smul ha
+
+lemma antiperiodic.const_inv_smul [add_comm_monoid α] [has_neg β] [division_ring γ] [module γ α]
+  {a : γ} (h : antiperiodic f c) (ha : a ≠ 0) :
+  antiperiodic (λ x, f (a⁻¹ • x)) (a • c) :=
+by simpa only [inv_inv'] using h.const_smul (inv_ne_zero ha)
+
+lemma antiperiodic.const_inv_mul [division_ring α] [has_neg β] {a : α}
+  (h : antiperiodic f c) (ha : a ≠ 0) :
+  antiperiodic (λ x, f (a⁻¹ * x)) (a * c) :=
+h.const_inv_smul ha
 
 lemma antiperiodic.mul_const [division_ring α] [has_neg β] {a : α}
   (h : antiperiodic f c) (ha : a ≠ 0) :

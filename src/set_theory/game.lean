@@ -268,6 +268,8 @@ by {cases x, cases y, refl}
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   apply equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   calc
@@ -328,6 +330,8 @@ theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
 @[simp] theorem quot_neg_mul : Π (x y : pgame), ⟦-x * y⟧ = -⟦x * y⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit; rintro (⟨_, _⟩ | ⟨_, _⟩);
     solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 4 } },
@@ -368,6 +372,9 @@ by rw [quot_mul_comm, quot_neg_mul, quot_mul_comm]
 @[simp] theorem quot_left_distrib : Π (x y z : pgame), ⟦x * (y + z)⟧ = ⟦x * y⟧ + ⟦x * z⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
+  let z := mk zl zr zL zR,
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
@@ -432,6 +439,7 @@ by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_dist
 @[simp] theorem quot_mul_one : Π (x : pgame), ⟦x * 1⟧ = ⟦x⟧
 | (mk xl xr xL xR) :=
 begin
+  let x := mk xl xr xL xR,
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
      { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
@@ -463,6 +471,9 @@ theorem one_mul_equiv (x : pgame) : 1 * x ≈ x := quotient.exact $ quot_one_mul
 theorem quot_mul_assoc : Π (x y z : pgame), ⟦x * y * z⟧ = ⟦x * (y * z)⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
+  let z := mk zl zr zL zR,
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩, _⟩);

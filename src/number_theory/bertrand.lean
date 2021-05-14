@@ -8,7 +8,8 @@ import algebra.module
 
 open_locale big_operators
 
-private def α (n : nat) (pos : 0 < n) (p : nat) (is_prime : nat.prime p) : nat :=
+/-- The multiplicity of p in the nth central binomial coefficient-/
+private def α (n : nat) (p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p (nat.choose (2 * n) n)
 
 /-
@@ -34,22 +35,45 @@ end
 lemma central_binom_nonzero (n : ℕ) : nat.choose (2 * n) n ≠ 0 :=
 ne_of_gt (nat.choose_pos (by linarith))
 
+lemma foo (p n : ℕ) : nat.log p (2 * n) < nat.log p (2 * n) + 1 :=
+begin
+  exact lt_add_one (nat.log p (2 * n))
+end
+
+lemma foo3 {p : ℕ} : p ≤ 2 * p :=
+begin
+  omega,
+end
+
 lemma claim_1
   (p : nat)
-  (is_prime : nat.prime p)
+  [hp : fact p.prime]
   (n : nat)
-  (n_big : 3 < n)
-  : p ^ (α n (by linarith) p is_prime) ≤ 2 * n
+  (n_big : 3 ≤ n)
+  : p ^ (α n p) ≤ 2 * n
   :=
 begin
   unfold α,
-  rw @padic_val_nat_def p is_prime (nat.choose (2 * n) n) (central_binom_nonzero n),
-  simp only [@nat.prime.multiplicity_choose p (2 * n) n _ is_prime (by linarith) (le_refl (2 * n))],
+  rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n),
+  simp only [@nat.prime.multiplicity_choose p (2 * n) n (nat.log p (2 * n) + 1)
+                        (hp.out) (by linarith) (foo p n)],
   have r : 2 * n - n = n, by
     calc 2 * n - n = n + n - n: by rw two_mul n
     ... = n: nat.add_sub_cancel n n,
-  simp [r],
-  sorry,
+  simp [r, ←two_mul],
+  have bar : (finset.filter (λ (i : ℕ), p ^ i ≤ 2 * (n % p ^ i)) (finset.Ico 1 (nat.log p (2 * n) + 1))).card ≤ nat.log p (2 * n),
+    calc (finset.filter (λ (i : ℕ), p ^ i ≤ 2 * (n % p ^ i)) (finset.Ico 1 (nat.log p (2 * n) + 1))).card ≤ (finset.Ico 1 (nat.log p (2 * n) + 1)).card : by apply finset.card_filter_le
+    ... = (nat.log p (2 * n) + 1) - 1 : by simp,
+  have baz : p ^ (nat.log p (2 * n)) ≤ 2 * n,
+    apply nat.pow_log_le_self,
+    apply hp.out.one_lt,
+    calc 1 ≤ 3 : dec_trivial
+    ...    ≤ n : n_big
+    ...    ≤ 2 * n : foo3,
+  -- have djf : 1 ≤ p,
+  --   calc
+  apply trans (pow_le_pow (trans one_le_two hp.out.two_le) bar) baz,
+  -- apply trans (@foo2 p _ _ bar) baz,
 end
 
 lemma add_two_not_le_one (x : nat) (pr : x.succ.succ ≤ 1) : false :=
@@ -57,11 +81,11 @@ lemma add_two_not_le_one (x : nat) (pr : x.succ.succ ≤ 1) : false :=
 
 lemma claim_2
   (p : nat)
-  (is_prime : nat.prime p)
+  [hp : fact p.prime]
   (n : nat)
   (n_big : 3 < n)
   (smallish : (2 * n) < p ^ 2)
-  : (α n (by linarith) p is_prime) ≤ 1
+  : (α n p) ≤ 1
   :=
 begin
   unfold α,
@@ -131,12 +155,12 @@ lemma pow_big : ∀ (i p : nat) (p_pos : 0 < p) (i_big : 1 < i), p * p ≤ p ^ i
 
 lemma claim_3
   (p : nat)
-  (is_prime : nat.prime p)
+  [hp : fact p.prime]
   (n : nat)
   (n_big : 3 < n)
   (small : p ≤ n)
   (big : 2 * n < 3 * p)
-  : α n (by linarith) p is_prime = 0
+  : α n p = 0
   :=
 begin
   have expand : nat.choose (2 * n) n * (nat.fact n) * (nat.fact n) = nat.fact (2 * n), by

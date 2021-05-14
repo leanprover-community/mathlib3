@@ -83,3 +83,6 @@ lemma not_nonempty_iff : ¬ nonempty α ↔ is_empty α :=
 
 lemma not_is_empty_iff : ¬ is_empty α ↔ nonempty α :=
 not_iff_comm.mp not_nonempty_iff
+
+@[simp] lemma not_is_empty_of_nonempty [h : nonempty α] : ¬ is_empty α :=
+not_is_empty_iff.mpr h

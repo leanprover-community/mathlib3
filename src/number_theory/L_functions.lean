@@ -890,6 +890,15 @@ begin
   rw continuous_linear_map.map_sub,
 end
 
+instance [h : nonempty X] : has_continuous_smul A C(↥X, A) :=
+begin
+  constructor,
+  have g1 : (λ (p : A × C(X, A)), (p.fst • p.snd)) = λ (p : A × C(X, A)), ((continuous_map.const p.fst) * p.snd), sorry,
+ -- have g2 : (λ (p : A × C(X, A)), (p.fst • p.snd)) = λ (p : A × C(X, A)), (@continuous_map.const X _ _ _ p.fst) × λ (p : A × C(X, A)), p.snd,
+  rw g1,
+  sorry,
+end
+
 lemma cont [complete_space A] (h : nonempty X) (φ : measures'' X A) : continuous ((di  X A h).extend (φ.val.phi)) :=
 begin
   refine uniform_continuous.continuous _,
@@ -898,19 +907,15 @@ begin
   { apply uni_cont, },
 end
 
-instance [h : nonempty X] : has_continuous_smul A C(↥X, A) := sorry
-
-noncomputable def integral (h : nonempty X) (φ : measures'' X A) : continuous_linear_map A C(X, A) A :=
+noncomputable def integral (h : nonempty X) (φ : measures'' X A) [complete_space A] :
+  continuous_linear_map A C(X, A) A :=
 begin
-  rw continuous_iff_sequentially_continuous,
   have cont := cont X A h φ,
   have di := di X A h,
   split,
   swap,
   { split, swap 3,
-    { apply dense_inducing.extend _ (φ.1).phi, --X nonempty needed here, for the topo space on loc const to exist
-      apply_instance, exact inclusion X A,
-      apply di, }, --yayyyyyyyyyy!!!!
+    { apply dense_inducing.extend di (φ.1).phi, }, --X nonempty needed here, for the topo space on loc const to exist
     { refine dense_range.induction_on₂ (dense_inducing.dense di) _ _,
       { exact is_closed_eq (cont.comp continuous_add)
         ((cont.comp continuous_fst).add (cont.comp continuous_snd)) },
@@ -954,7 +959,7 @@ structure system {X : Type*} [set X] :=
 ( h : ℕ → finset X )
 ( projlim : X = Prop ) --inverse limit
 
-variables {A : Type*} [integral_domain A] [algebra ℚ A]
+--variables {A : Type*} [integral_domain A] [algebra ℚ A]
 
 def dirichlet_char_space (f : ℤ) : monoid { χ : mul_hom ℤ ℂ // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } :=
 {

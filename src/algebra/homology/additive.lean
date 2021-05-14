@@ -53,15 +53,11 @@ namespace homological_complex
 
 variables [has_zero_object V]
 
-instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive :=
-{ map_zero' := λ C D, by { dsimp [cycles_functor], ext, simp, },
-  map_add' := λ C D f g, by { dsimp [cycles_functor], ext, simp, }, }
+instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
 variables [has_images V] [has_image_maps V]
 
-instance boundaries_additive : (boundaries_functor V c i).additive :=
-{ map_zero' := λ C D, by { dsimp [boundaries_functor], ext, simp, },
-  map_add' := λ C D f g, by { dsimp [boundaries_functor], ext, simp, }, }
+instance boundaries_additive : (boundaries_functor V c i).additive := {}
 
 variables [has_equalizers V] [has_cokernels V]
 
@@ -140,7 +136,7 @@ namespace chain_complex
 variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero_object W]
 
 /--
-Turning an object into a complex supported at zero than applying a functor is
+Turning an object into a complex supported at zero then applying a functor is
 the same as applying the functor then forming the complex.
 -/
 def single₀_map_homological_complex (F : V ⥤ W) [F.additive] :

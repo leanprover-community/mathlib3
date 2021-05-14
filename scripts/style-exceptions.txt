@@ -124,7 +124,7 @@ src/order/directed.lean : line 9 : ERR_MOD : Module docstring missing, or too la
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/lexicographic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/order/omega_complete_partial_order.lean : line 51 : ERR_LIN : Line has more than 100 characters
-src/order/order_iso_nat.lean : line 14 : ERR_MOD : Module docstring missing, or too late
+src/order/order_iso_nat.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/pilex.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/rel_iso.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/zorn.lean : line 11 : ERR_MOD : Module docstring missing, or too late
@@ -154,10 +154,10 @@ src/tactic/find.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/generalizes.lean : line 118 : ERR_LIN : Line has more than 100 characters
 src/tactic/hint.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/induction.lean : line 1252 : ERR_RNT : Reserved notation outside tactic.reserved_notation
-src/tactic/interactive.lean : line 1057 : ERR_LIN : Line has more than 100 characters
-src/tactic/interactive.lean : line 379 : ERR_LIN : Line has more than 100 characters
-src/tactic/interactive.lean : line 643 : ERR_LIN : Line has more than 100 characters
-src/tactic/interactive.lean : line 846 : ERR_LIN : Line has more than 100 characters
+src/tactic/interactive.lean : line 1063 : ERR_LIN : Line has more than 100 characters
+src/tactic/interactive.lean : line 385 : ERR_LIN : Line has more than 100 characters
+src/tactic/interactive.lean : line 649 : ERR_LIN : Line has more than 100 characters
+src/tactic/interactive.lean : line 852 : ERR_LIN : Line has more than 100 characters
 src/tactic/interactive.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/interactive_expr.lean : line 153 : ERR_LIN : Line has more than 100 characters
 src/tactic/interactive_expr.lean : line 173 : ERR_LIN : Line has more than 100 characters

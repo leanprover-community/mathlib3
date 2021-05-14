@@ -485,6 +485,10 @@ g.to_monoid_hom _ hy _ _ k.to_localization_map _ _
   f.map (λ y, show ring_hom.id R y ∈ M, from y.2) f z = z :=
 f.lift_id _
 
+lemma map_unique {j : S →+* Q}
+  (hj : ∀ x : R, j (f.to_map x) = k.to_map (g x)) : f.map hy k = j :=
+f.lift_unique (λ y, k.map_units ⟨g y, hy y⟩) hj
+
 /-- If `comm_ring` homs `g : R →+* P, l : P →+* A` induce maps of localizations, the composition
 of the induced maps equals the map of localizations induced by `l ∘ g`. -/
 lemma map_comp_map {A : Type*} [comm_ring A] {U : submonoid A} {W} [comm_ring W]
@@ -1227,6 +1231,36 @@ begin
   convert congr_arg (ideal.map (localization.of _).to_map) at_prime.comap_maximal_ideal.symm,
   rw map_comap,
 end
+
+variables (I) (f : P →+* R)
+
+/-- For a ring hom `f : P →+* R` and a prime ideal `I` in `R`, the induced ring hom from the
+localization of `P` at `ideal.comap f I` to the localization of `R` at `I` -/
+noncomputable def local_ring_hom : at_prime (ideal.comap f I) →+* at_prime I :=
+(localization.of _).map (λ y, show f y ∈ I.prime_compl, from y.2) (localization.of _)
+
+lemma local_ring_hom_to_map (x : P) :
+  local_ring_hom I f ((localization.of _).to_map x) = (localization.of _).to_map (f x) :=
+map_eq _ _ _
+
+lemma local_ring_hom_mk' (x : P) (y : (ideal.comap f I).prime_compl) :
+  local_ring_hom I f ((localization.of _).mk' x y) = (localization.of _).mk' (f x) ⟨f y, y.2⟩ :=
+map_mk' _ _ _ _
+
+instance is_local_ring_hom_local_ring_hom : is_local_ring_hom (local_ring_hom I f) :=
+begin
+  constructor,
+  intros x hx,
+  rcases (localization.of _).mk'_surjective x with ⟨r, s, rfl⟩,
+  rw local_ring_hom_mk' at hx,
+  rw at_prime.is_unit_mk'_iff at hx ⊢,
+  exact hx
+end
+
+lemma local_ring_hom_unique {j : at_prime (ideal.comap f I) →+* at_prime I}
+  (hj : ∀ x : P, j ((localization.of _).to_map x) = (localization.of _).to_map (f x)) :
+  local_ring_hom I f = j :=
+map_unique _ _ hj
 
 end localization
 end at_prime

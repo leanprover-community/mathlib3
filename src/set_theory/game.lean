@@ -345,26 +345,26 @@ begin
         ⟦-xR i * y + (-x) * yL j - (-xR i) * yL j⟧
           = ⟦-xR i * y⟧ + ⟦(-x) * yL j⟧ - ⟦(-xR i) * yL j⟧ : by simp
       ... = -⟦xR i * y⟧ + -⟦x * yL j⟧ - -⟦xR i * yL j⟧
-          : by { rw [quot_neg_mul (xR i) y, quot_neg_mul x (yL j), quot_neg_mul (xR i) (yL j)] }
+          : by rw [quot_neg_mul (xR i) y, quot_neg_mul x (yL j), quot_neg_mul (xR i) (yL j)]
       ... = ⟦-(xR i * y + x * yL j - xR i * yL j)⟧ : by { simp, abel } },
     { calc
         ⟦-xL i * y + (-x) * yR j - (-xL i) * yR j⟧
           = ⟦-xL i * y⟧ + ⟦(-x) * yR j⟧ - ⟦(-xL i) * yR j⟧ : by simp
       ... = -⟦xL i * y⟧ + -⟦x * yR j⟧ - -⟦xL i * yR j⟧
-          : by { rw [quot_neg_mul (xL i) y, quot_neg_mul x (yR j), quot_neg_mul (xL i) (yR j)] }
+          : by rw [quot_neg_mul (xL i) y, quot_neg_mul x (yR j), quot_neg_mul (xL i) (yR j)]
       ... = ⟦-(xL i * y + x * yR j - xL i * yR j)⟧ : by { simp, abel } } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { calc
         ⟦-xL i * y + (-x) * yL j - (-xL i) * yL j⟧
           = ⟦-xL i * y⟧ + ⟦(-x) * yL j⟧ - ⟦(-xL i) * yL j⟧ : by simp
       ... = -⟦xL i * y⟧ + -⟦x * yL j⟧ - -⟦xL i * yL j⟧
-          : by { rw [quot_neg_mul (xL i) y, quot_neg_mul x (yL j), quot_neg_mul (xL i) (yL j)] }
+          : by rw [quot_neg_mul (xL i) y, quot_neg_mul x (yL j), quot_neg_mul (xL i) (yL j)]
       ... = ⟦-(xL i * y + x * yL j - xL i * yL j)⟧ : by { simp, abel } },
     { calc
         ⟦-xR i * y + (-x) * yR j - (-xR i) * yR j⟧
           = ⟦-xR i * y⟧ + ⟦(-x) * yR j⟧ - ⟦(-xR i) * yR j⟧ : by simp
       ... = -⟦xR i * y⟧ + -⟦x * yR j⟧ - -⟦xR i * yR j⟧
-          : by { rw [quot_neg_mul (xR i) y, quot_neg_mul x (yR j), quot_neg_mul (xR i) (yR j)] }
+          : by rw [quot_neg_mul (xR i) y, quot_neg_mul x (yR j), quot_neg_mul (xR i) (yR j)]
       ... = ⟦-(xR i * y + x * yR j - xR i * yR j)⟧ : by { simp, abel } } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }

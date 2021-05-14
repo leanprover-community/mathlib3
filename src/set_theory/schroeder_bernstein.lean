@@ -19,7 +19,7 @@ namespace embedding
 section antisymm
 variables {α : Type u} {β : Type v}
 
-theorem schroeder_bernstein {f : α  →  β} {g : β  →  α}
+theorem schroeder_bernstein {f : α → β} {g : β → α}
   (hf : function.injective f) (hg : function.injective g) : ∃ h : α → β, bijective h :=
 let s : set α := lfp $ λ s, (g '' (f '' s)ᶜ)ᶜ in
 have hs : (g '' (f '' s)ᶜ)ᶜ = s,
@@ -77,12 +77,12 @@ have function.injective h,
         have (g' ∘ g) x' = (g' ∘ g) y', by simp [(∘), eqx, eqy, this],
         have x' = y', by rwa [g'g] at this,
         calc x = g x' : eqx.symm
-          ... = g y' : by rw [this]
-          ... = y : eqy)),
+           ... = g y' : by rw [this]
+           ... = y    : eqy)),
 
 ⟨h, ‹function.injective h›, ‹function.surjective h›⟩
 
-theorem antisymm : (α ↪ β)  →  (β ↪ α)  →  nonempty (α ≃ β)
+theorem antisymm : (α ↪ β) → (β ↪ α) → nonempty (α ≃ β)
 | ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ :=
   let ⟨f, hf⟩ := schroeder_bernstein h₁ h₂ in
   ⟨equiv.of_bijective f hf⟩
@@ -90,13 +90,13 @@ theorem antisymm : (α ↪ β)  →  (β ↪ α)  →  nonempty (α ≃ β)
 end antisymm
 
 section wo
-parameters {ι : Type u} {β : ι  →  Type v}
+parameters {ι : Type u} {β : ι → Type v}
 
 @[reducible] private def sets := {s : set (∀ i, β i) |
-  ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i  →  x = y}
+  ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
 
 theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
-let ⟨s, hs, ms⟩ := show ∃ s ∈ sets, ∀a ∈ sets, s ⊆ a  →  a = s, from
+let ⟨s, hs, ms⟩ := show ∃ s ∈ sets, ∀a ∈ sets, s ⊆ a → a = s, from
   zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
     λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi, (hcc.total hpc hqc).elim
       (λ h, hc hqc x (h hxp) y hyq i hi) (λ h, hc hpc x hxp y (h hyq) i hi),

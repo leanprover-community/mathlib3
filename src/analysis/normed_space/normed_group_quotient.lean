@@ -11,7 +11,7 @@ import analysis.normed_space.normed_group_hom
 For any `semi_normed_group M` and any `S : add_subgroup M`, we provide a `semi_normed_group`
 structure on `quotient_add_group.quotient S` (abreviated `quotient S` in the following).
 If `S` is closed, we provide `normed_group (quotient S)` (regardless of whether `M` itself is
-separated). The main properties of these structures is the underlying topology is the quotient
+separated). The two main properties of these structures are the underlying topology is the quotient
 topology and the projection is a normed group homomorphism which is norm non-increasing
 (better, it has operator norm exactly one unless `S` is dense in `M`). The corresponding
 universal property is that every normed group hom defined on `M` which vanishes on `S` descends

@@ -143,8 +143,8 @@ variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero
 Turning an object into a complex supported at zero than applying a functor is
 the same as applying the functor then forming the complex.
 -/
-def single_0_map_homological_complex (F : V ⥤ W) [F.additive] :
-  single_0 V ⋙ F.map_homological_complex _ ≅ F ⋙ single_0 W :=
+def single₀_map_homological_complex (F : V ⥤ W) [F.additive] :
+  single₀ V ⋙ F.map_homological_complex _ ≅ F ⋙ single₀ W :=
 nat_iso.of_components (λ X,
 { hom := { f := λ i, match i with
     | 0 := 𝟙 _

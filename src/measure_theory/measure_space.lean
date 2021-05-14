@@ -1731,15 +1731,14 @@ section no_atoms
 
 variables [has_no_atoms μ]
 
-instance [measurable_singleton_class α] (s : set α) : has_no_atoms (μ.restrict s) :=
-⟨begin
-  assume x,
-  rw measure.restrict_apply (measurable_set_singleton x),
-  refine le_antisymm _ bot_le,
-  have : μ {x} = 0 := measure_singleton _,
-  rw ← this,
-  exact measure_mono (inter_subset_left _ _),
-end⟩
+instance (s : set α) : has_no_atoms (μ.restrict s) :=
+begin
+  refine ⟨λ x, _⟩,
+  obtain ⟨t, hxt, ht1, ht2⟩ := exists_measurable_superset_of_null (measure_singleton x : μ {x} = 0),
+  apply measure_mono_null hxt,
+  rw measure.restrict_apply ht1,
+  apply measure_mono_null (inter_subset_left t s) ht2
+end
 
 lemma _root_.set.countable.measure_zero (h : countable s) : μ s = 0 :=
 begin

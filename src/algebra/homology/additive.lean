@@ -163,6 +163,17 @@ nat_iso.of_components (λ X,
       exact (zero_of_source_iso_zero _ F.map_zero_object).symm, }
   end,
   inv_hom_id' := by { ext (_|i); { unfold_aux, dsimp, simp, }, }, })
-  (λ X Y f, begin ext (_|i); { unfold_aux, dsimp, simp, }, end)
+  (λ X Y f, begin ext (_|i); { unfold_aux, dsimp, simp, }, end).
+
+@[simp] lemma single₀_map_homological_complex_hom_app_zero (F : V ⥤ W) [F.additive] (X : V) :
+  ((single₀_map_homological_complex F).hom.app X).f 0 = 𝟙 _ := rfl
+@[simp] lemma single₀_map_homological_complex_hom_app_succ
+  (F : V ⥤ W) [F.additive] (X : V) (n : ℕ) :
+  ((single₀_map_homological_complex F).hom.app X).f (n+1) = 0 := rfl
+@[simp] lemma single₀_map_homological_complex_inv_app_zero (F : V ⥤ W) [F.additive] (X : V) :
+  ((single₀_map_homological_complex F).inv.app X).f 0 = 𝟙 _ := rfl
+@[simp] lemma single₀_map_homological_complex_inv_app_succ
+  (F : V ⥤ W) [F.additive] (X : V) (n : ℕ) :
+  ((single₀_map_homological_complex F).inv.app X).f (n+1) = 0 := rfl
 
 end chain_complex

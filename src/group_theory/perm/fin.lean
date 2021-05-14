@@ -72,7 +72,7 @@ section cycle_range
 Define the permutations `fin.cycle_range i`, the cycle `(0 1 2 ... i)`.
 -/
 
-open equiv.perm has_exists_add_of_le
+open equiv.perm
 
 lemma fin_rotate_succ {n : ℕ} :
   fin_rotate n.succ = decompose_fin.symm (1, fin_rotate n) :=

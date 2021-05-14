@@ -6,95 +6,123 @@ noncomputable theory
 
 
 open matrix
-open complex
 open matrix.special_linear_group
 
 open_locale classical
 open_locale big_operators
 
-def H : set ℂ := { z | 0 < z.im }
+class upper_half_plane :=
+(point : ℂ)
+(im_pos' : 0 < point.im)
 
-lemma im_pos_H (z:H) : 0< (z:ℂ).im := z.2
+local notation `ℍ` := upper_half_plane
 
-lemma im_nonzero_H (z:H) : (z:ℂ).im ≠ 0 :=  (im_pos_H z).ne'
+namespace upper_half_plane
+
+instance : has_coe ℍ ℂ :=
+{ coe := λ z, z.point }
+
+def im (z : ℍ) := z.point.im
+
+def re (z : ℍ) := z.point.re
+
+@[simp] lemma coe_point (z : ℍ) : z.point = (z:ℂ) := rfl
+
+@[simp] lemma coe_im (z : ℍ) : (z:ℂ).im = z.im := rfl
+
+@[simp] lemma coe_re (z : ℍ) : (z:ℂ).re = z.re := rfl
+
+@[ext] lemma ext {z w : ℍ} (h : (z:ℂ)=(w:ℂ)) : z = w :=
+begin
+  --Heather homework :)
+
+  sorry,
+end
+
+@[ext] lemma ext_iff (z w : ℍ) : z = w ↔ (z:ℂ)=(w:ℂ) := ⟨λ h, by rw h, ext⟩
+
+lemma im_pos (z : ℍ) : 0 < z.im := z.im_pos'
+
+lemma im_nonzero (z : ℍ) : z.im ≠ 0 := z.im_pos.ne'
+
+end upper_half_plane
 
 local notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
-def top : --SL2R --
-SL(2, ℝ)  → ℂ → ℂ :=
-λ g, λ z, (g.1 0 0) * z + (g.1 0 1)
+def top (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
 
-def bottom : --SL2R --
-SL(2, ℝ)
- → ℂ → ℂ :=
-λ g, λ z, (g.1 1 0) * z + (g.1 1 1)
-
-def smul_aux : --SL2R --
-SL(2, ℝ) → ℂ → ℂ :=
-λ g, λ z, (top g z) / (bottom g z)
-
-lemma det2 {F : Type*} [comm_ring F] {g: matrix (fin 2) (fin 2) F} :
-g.det = g 0 0 * g 1 1 - g 1 0 * g 0 1 :=
-begin
-  sorry -- the commented proof below no longer works, after a mathlib bump
--- calc g.det = ((0 + 1) * (g 0 0 * (g 1 1 * 1))) + ((_ * (g 1 0 * (g 0 1 * 1))) + 0) : refl g.det
---   ... = g 0 0 * g 1 1 - g 1 0 * g 0 1 : by {simp, ring}
-end
-
-lemma im_smul_mat_complex {g : SL(2, ℝ)} {z: ℂ} :
-(smul_aux g z).im = z.im / (complex.norm_sq (bottom g z)) :=
-begin
-  by_cases bot_zero : bottom g z = 0,
-  {
-    rw smul_aux,
-    simp,
-    simp [bot_zero],
-  },
-  have : complex.norm_sq (bottom g z) ≠ 0,
-  { refine ne.symm (ne_of_lt _),
-    simp [norm_sq_pos, bot_zero] },
-  field_simp,
-  have eq1 : (smul_aux g z).im * norm_sq (bottom g z) = ((smul_aux g z) * norm_sq (bottom g z)).im,
-    by simp,
-  rw [eq1, ← mul_conj (bottom g z), smul_aux],
-  simp only [mul_neg_eq_neg_mul_symm,  sub_neg_eq_add],
-  ring,
-  field_simp [top, bottom],
-  ring,
-  have := matrix.special_linear_group.det_coe_matrix g,
-  rw det2 at this,
-  ring,
-  convert congr_arg (λ t, t * z.im) this using 1; ring,
-end
+def bottom (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 1 0) * z + (g 1 1)
 
 
------ TIDY THIS UP LATER...
-
-lemma isZThenReIm {z : ℂ} : z = 0 → z.im = 0 :=
+-- move this to special linear group file and do for any row
+lemma matrix.special_linear_group.row_nonzero {n:ℕ} (g : SL(n, ℝ)) (i : fin n):
+g i ≠ 0 :=
 begin
   intros h,
-  rw h,
+  suffices : 0 = (1 : ℝ),
+  { norm_num at this, },
+  have this2 : ∀ j, g i j = 0 := by simp [h],
+  simpa [det_eq_zero_of_row_eq_zero (i : fin n) this2] using g.det_coe_fun,
+end
+
+
+lemma bottom_nonzero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠  0 :=
+begin
+  intros h,
+  apply g.row_nonzero 1,
+  have : g 1 0 = 0,
+  { have : (bottom g z).im = 0 := by simp [h],
+    simpa [bottom, z.im_nonzero] using this, },
+  ext i,
+  fin_cases i,
+  { exact this,},
+  have this1 : (bottom g z).re = 0 := by simp [h],
+  simpa [bottom, this] using this1,
+end
+
+def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z
+
+lemma im_smul_mat (g : SL(2, ℝ)) (z : ℍ) :
+(smul_aux' g z).im = z.im / (bottom g z).norm_sq :=
+begin
+  rw [smul_aux', complex.div_im],
+  set NsqBot := (bottom g z).norm_sq,
+  have : NsqBot ≠ 0 := by simp [complex.norm_sq_pos, bottom_nonzero g z, NsqBot],
+  field_simp [smul_aux', bottom, top],
+  convert congr_arg (λ x, x*z.im*NsqBot^2) g.det_coe_fun using 1,
+  { simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+    ring, },
+  { ring, },
+end
+
+
+def smul_aux (g : SL(2,ℝ)) (z : ℍ) : ℍ :=
+{ point := smul_aux' g z,
+  im_pos' := begin
+    rw im_smul_mat,
+    exact div_pos z.im_pos (complex.norm_sq_pos.mpr (bottom_nonzero g z)),
+  end }
+
+@[simp] lemma smul_aux_def {g : SL(2,ℝ)} {z : ℍ} : (smul_aux g z : ℂ) = top g z / bottom g z := by refl
+
+----- TIDY THIS UP LATER...
+/-
+lemma isZThenReIm {z : ℂ} : z = 0 → z.im = 0 :=
+begin
+  rintros rfl,
   exact complex.zero_im,
 end
 
-lemma bottomRowNonZ {g : SL(2, ℝ)} :
-g.val 1 0 = 0 → g.val 1 1 = 0 → false :=
-begin
-  intros h1 h2,
-  have detIs := g.2,
-  rw det2 at detIs,
-  rw [h1, h2] at detIs,
-  simp at detIs,
-  exact detIs,
-end
 
-lemma czPd_nonZ {z : ℂ} {g : SL(2, ℝ)} :
+
+lemma czPd_nonZ {g : SL(2, ℝ)} {z : ℍ} :
 bottom g z = 0 → z.im = 0 :=
 begin
+
   intros h,
   rw bottom at h,
   simp at h,
-  have hIm := isZThenReIm h,
+  have hIm :=  h.complex.zero_im,
   simp at hIm,
   cases hIm,
   {
@@ -114,16 +142,11 @@ begin
   exact czPd_nonZ,
 end
 
-lemma bottom_nonzero {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
-  bottom g z ≠  0 := czPd_nonZ_CP (ne_of_gt h)
 
-@[simp] lemma im_pos_of_in_H {z : ℂ} : z ∈ H ↔ 0 < z.im := by refl
+--@[simp] lemma im_pos_of_in_H {z : ℂ} : z ∈ H ↔ 0 < z.im := by refl
 
-lemma im_pos_of_in_H' {z : H} : 0 < z.val.im := im_pos_of_in_H.mp z.2
 
-@[simp] lemma smul_aux_def {g : SL(2,ℝ)} {z : ℂ} : smul_aux g z = top g z / bottom g z := by refl
-
-lemma GactsHtoH {g : SL(2, ℝ)} {z : ℂ} (h : z ∈ H) :
+lemma GactsHtoH {g : SL(2, ℝ)} {z : ℍ} :
 smul_aux g z ∈ H :=
 begin
   simp at h ⊢,
@@ -131,24 +154,31 @@ begin
   exact div_pos h (norm_sq_pos.mpr (bottom_nonzero h)),
 end
 
-lemma bot_cocycle {x y : SL(2,ℝ)} {z : ℂ} (h : z ∈ H) :
+-/
+
+
+
+lemma bot_cocycle (x y : SL(2,ℝ)) (z : ℍ) :
   bottom (x * y) z = bottom x (smul_aux y z) * bottom y z :=
 begin
-  rw smul_aux_def,
-  have d1 : bottom y z ≠ 0 := bottom_nonzero h,
-  simp [top, bottom],
+  simp only [smul_aux, smul_aux'],
+  set botYZ := bottom y z,
+  have d1 : botYZ ≠ 0 := bottom_nonzero _ z,
+  simp only [top, bottom],
+  rw ← upper_half_plane.coe_point {point := ((y 0 0) * z + (y 0 1)) / botYZ, im_pos' := _},
   field_simp,
-  simp [matrix.mul, dot_product, fin.sum_univ_succ],
+  simp [botYZ, bottom, matrix.mul, dot_product, fin.sum_univ_succ],
   ring,
 end
 
-lemma smul_mul {x y : SL(2, ℝ)} { z : ℂ } (h : z ∈ H) :
+lemma smul_mul (x y : SL(2, ℝ)) (z : ℍ) :
 smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
 begin
-  rw smul_aux,
+  simp only [smul_aux, smul_aux'],
+  --Alex homework
   simp,
   rw bot_cocycle,
-  have d1 : bottom ( x * y) z ≠ 0 := bottom_nonzero h,
+  have d1 : bottom ( x * y) z ≠ 0 := bottom_nonzero _ z,
   have d2 : bottom y z ≠ 0 := bottom_nonzero h,
   have hyz : top y z / bottom y z ∈ H,
   {
@@ -179,8 +209,8 @@ lemma top_def' {g : SL(2,ℝ)} {z : ℂ} : top g z = g.1 0 0 * z + g.1 0 1 := by
 
 
 /-- The action of `SL(2, ℝ)` on the upper half-plane by fractional linear transformations. -/
-instance SL2R_action : mul_action SL(2, ℝ) H :=
-{ smul := λ g, λ z, ⟨smul_aux g z, GactsHtoH z.2⟩,
+instance SL2R_action : mul_action SL(2, ℝ) ℍ :=
+{ smul := smul_aux,
   one_smul := λ z, by {ext1, unfold_coes, simp [smul_aux, top, bottom, z.2], norm_num},
   mul_smul := λ g1 g2 z, by simpa using smul_mul z.2 }
 

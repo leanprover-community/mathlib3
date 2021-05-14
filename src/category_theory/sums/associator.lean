@@ -5,7 +5,9 @@ Authors: Scott Morrison
 -/
 import category_theory.sums.basic
 
-/-#
+/-!
+# Associator for binary disjoint union of categories.
+
 The associator functor `((C ⊕ D) ⊕ E) ⥤ (C ⊕ (D ⊕ E))` and its inverse form an equivalence.
 -/
 

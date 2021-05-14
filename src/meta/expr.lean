@@ -493,7 +493,8 @@ meta def to_implicit_local_const : expr → expr
 | e := e
 
 /-- If `e` is a local constant, lamda, or pi expression, `to_implicit_binder e` changes the binder
-info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants. -/
+info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants.
+-/
 meta def to_implicit_binder : expr → expr
 | (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
 | (lam n _ d b) := lam n binder_info.implicit d b
@@ -748,7 +749,8 @@ meta def unsafe_cast {elab₁ elab₂ : bool} : expr elab₁ → expr elab₂ :=
 /-- `replace_subexprs e mappings` takes an `e : expr` and interprets a `list (expr × expr)` as
 a collection of rules for variable replacements. A pair `(f, t)` encodes a rule which says "whenever
 `f` is encountered in `e` verbatim, replace it with `t`". -/
-meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) : expr elab :=
+meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) :
+  expr elab :=
 unsafe_cast $ e.unsafe_cast.replace $ λ e n,
   (mappings.filter $ λ ent : expr × expr, ent.1 = e).head'.map prod.snd
 
@@ -783,7 +785,8 @@ private meta def all_implicitly_included_variables_aux
 | []          vs rs tt := all_implicitly_included_variables_aux rs vs [] ff
 | []          vs rs ff := vs
 | (e :: rest) vs rs b :=
-  let (vs, rs, b) := if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
+  let (vs, rs, b) :=
+    if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
   all_implicitly_included_variables_aux rest vs rs b
 
 /-- `all_implicitly_included_variables es vs` accepts `es`, a list of `expr.local_const`, and `vs`,
@@ -1004,8 +1007,8 @@ do tp ← pp tp, body ← pp body.get,
 private meta def print_defn (nm : name) (tp : expr) (body : expr) (is_trusted : bool) :
   tactic format :=
 do tp ← pp tp, body ← pp body,
-   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++ " := "
-     ++ body ++ ">"
+   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++
+     " := " ++ body ++ ">"
 
 /-- formats the arguments of a `declaration.cnst` -/
 private meta def print_cnst (nm : name) (tp : expr) (is_trusted : bool) : tactic format :=

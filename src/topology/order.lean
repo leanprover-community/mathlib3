@@ -294,6 +294,14 @@ lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} 
   @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
 iff.rfl
 
+lemma preimage_nhds_coinduced [topological_space α] {π : α → β} {s : set β}
+  {a : α} (hs : s ∈ @nhds β (topological_space.coinduced π ‹_›) (π a)) : π ⁻¹' s ∈ 𝓝 a :=
+begin
+  letI := topological_space.coinduced π ‹_›,
+  rcases mem_nhds_sets_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
+  exact mem_nhds_sets_iff.mpr ⟨π ⁻¹' V, set.preimage_mono hVs, V_op, mem_V⟩
+end
+
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
 lemma continuous.coinduced_le (h : @continuous α β t t' f) :
@@ -350,6 +358,10 @@ lemma induced_compose [tγ : topological_space γ]
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁ ▸ h₂ ▸ ⟨s, hs, rfl⟩,
     assume ⟨s, hs, h⟩, ⟨preimage g s, ⟨s, hs, rfl⟩, h ▸ rfl⟩⟩
+
+lemma induced_const [t : topological_space α] {x : α} :
+  t.induced (λ y : β, x) = ⊤ :=
+le_antisymm le_top (@continuous_const β α ⊤ t x).le_induced
 
 lemma coinduced_id [t : topological_space α] : t.coinduced id = t :=
 topological_space_eq rfl

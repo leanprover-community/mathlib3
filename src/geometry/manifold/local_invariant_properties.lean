@@ -208,13 +208,14 @@ lemma lift_prop_within_at_indep_chart [has_groupoid M G] [has_groupoid M' G']
   (he : e ∈ G.maximal_atlas M) (xe : x ∈ e.source)
   (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source) :
   lift_prop_within_at P g s x ↔
-  continuous_within_at g s x ∧ P (f ∘ g ∘ e.symm) (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source)) (e x) :=
+    continuous_within_at g s x ∧ P (f ∘ g ∘ e.symm)
+      (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source)) (e x) :=
 ⟨λ H, ⟨H.1,
   hG.lift_prop_within_at_indep_chart_aux (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) he xe
   (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) hf xf H.1 H.2⟩,
 λ H, ⟨H.1,
-  hG.lift_prop_within_at_indep_chart_aux he xe (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) hf xf
-  (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) H.1 H.2⟩⟩
+  hG.lift_prop_within_at_indep_chart_aux he xe (chart_mem_maximal_atlas _ _) (mem_chart_source _ _)
+    hf xf (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) H.1 H.2⟩⟩
 
 lemma lift_prop_on_indep_chart [has_groupoid M G] [has_groupoid M' G']
   (he : e ∈ G.maximal_atlas M) (hf : f ∈ G'.maximal_atlas M') (h : lift_prop_on P g s) :
@@ -384,8 +385,8 @@ begin
   exact lift_prop_within_at_mono mono h (subset_univ _),
 end
 
-lemma lift_prop_on_mono
-  (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x) (h : lift_prop_on P g t) (hst : s ⊆ t) :
+lemma lift_prop_on_mono (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x)
+  (h : lift_prop_on P g t) (hst : s ⊆ t) :
   lift_prop_on P g s :=
 λ x hx, lift_prop_within_at_mono mono (h x (hst hx)) hst
 
@@ -430,7 +431,8 @@ begin
   { have A : e.symm ⁻¹' e.source ∩ e.target = e.target,
       by mfld_set_tac,
     have : e.symm x ∈ e.source, by simp only [hx] with mfld_simps,
-    rw [lift_prop_at, hG.lift_prop_within_at_indep_chart G.id_mem_maximal_atlas (mem_univ _) he this],
+    rw [lift_prop_at,
+      hG.lift_prop_within_at_indep_chart G.id_mem_maximal_atlas (mem_univ _) he this],
     refine ⟨(e.symm.continuous_at hx).continuous_within_at, _⟩,
     simp only with mfld_simps,
     rwa [hG.is_local e.open_target hx, A] },

@@ -20,7 +20,7 @@ Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation
 namespace category_theory
 open opposite
 
-universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ u₂-- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v₁} C]
 
@@ -99,7 +99,7 @@ def ext (X Y : C)
 /--
 If `yoneda.map f` is an isomorphism, so was `f`.
 -/
-def is_iso {X Y : C} (f : X ⟶ Y) [is_iso (yoneda.map f)] : is_iso f :=
+lemma is_iso {X Y : C} (f : X ⟶ Y) [is_iso (yoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful yoneda f
 
 end yoneda
@@ -118,13 +118,13 @@ instance coyoneda_faithful : faithful (@coyoneda C _) :=
   begin
     injection p with h,
     have t := (congr_fun (congr_fun h (unop X)) (𝟙 _)),
-    simpa using congr_arg has_hom.hom.op t,
+    simpa using congr_arg quiver.hom.op t,
   end }
 
 /--
 If `coyoneda.map f` is an isomorphism, so was `f`.
 -/
-def is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
+lemma is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful coyoneda f
 
 -- No need to use Cᵒᵖ here, works with any category
@@ -152,7 +152,7 @@ namespace category_theory
 -- For the rest of the file, we are using product categories,
 -- so need to restrict to the case morphisms are in 'Type', not 'Sort'.
 
-universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 open opposite
 
@@ -223,7 +223,7 @@ def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
     ext, dsimp,
     erw [←functor_to_types.naturality,
          obj_map_id],
-    simp only [yoneda_map_app, has_hom.hom.unop_op],
+    simp only [yoneda_map_app, quiver.hom.unop_op],
     erw [category.id_comp],
   end,
   inv_hom_id' :=

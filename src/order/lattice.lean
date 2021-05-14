@@ -184,10 +184,16 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, ⟨le_sup_left.trans_lt h, le_sup_right.trans_lt h⟩, λ h, sup_ind b c h.1 h.2⟩
 
 @[simp] lemma le_sup_iff [is_total α (≤)] {a b c : α} : a ≤ b ⊔ c ↔ a ≤ b ∨ a ≤ c :=
-by rw [← not_iff_not]; simp only [not_or_distrib, @sup_lt_iff α, @not_le (as_linear_order α)]
+⟨λ h, (total_of (≤) c b).imp
+  (λ bc, by rwa sup_eq_left.2 bc at h)
+  (λ bc, by rwa sup_eq_right.2 bc at h),
+ λ h, h.elim le_sup_left_of_le le_sup_right_of_le⟩
 
 @[simp] lemma lt_sup_iff [is_total α (≤)] {a b c : α} : a < b ⊔ c ↔ a < b ∨ a < c :=
-by { rw ← not_iff_not, simp only [not_or_distrib, @not_lt (as_linear_order α), sup_le_iff] }
+⟨λ h, (total_of (≤) c b).imp
+  (λ bc, by rwa sup_eq_left.2 bc at h)
+  (λ bc, by rwa sup_eq_right.2 bc at h),
+ λ h, h.elim (λ h, h.trans_le le_sup_left) (λ h, h.trans_le le_sup_right)⟩
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; simp
@@ -209,6 +215,9 @@ le_antisymm
     (sup_le (le_sup_left_of_le le_sup_right) le_sup_right))
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
+
+lemma sup_left_right_swap (a b c : α) : a ⊔ b ⊔ c = c ⊔ b ⊔ a :=
+by rw [sup_comm, @sup_comm _ _ a, sup_assoc]
 
 @[simp] lemma sup_left_idem : a ⊔ (a ⊔ b) = a ⊔ b :=
 by rw [← sup_assoc, sup_idem]
@@ -362,6 +371,9 @@ theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
 @sup_assoc (order_dual α) _ a b c
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
+
+lemma inf_left_right_swap (a b c : α) : a ⊓ b ⊓ c = c ⊓ b ⊓ a :=
+by rw [inf_comm, @inf_comm _ _ a, inf_assoc]
 
 @[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b :=
 @sup_left_idem (order_dual α) _ a b

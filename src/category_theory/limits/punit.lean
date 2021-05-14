@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 
 import category_theory.punit
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # `discrete punit` has limits and colimits

@@ -34,11 +34,25 @@ end function
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
 ⟨f, f.injective⟩
 
+/-- Given an equivalence to a subtype, produce an embedding to the elements of the corresponding
+set. -/
+@[simps]
+def equiv.as_embedding {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) : α ↪ β :=
+⟨coe ∘ e, subtype.coe_injective.comp e.injective⟩
+
+@[simp]
+lemma equiv.as_embedding_range {α β : Sort*} {p : β → Prop} (e : α ≃ subtype p) :
+  set.range e.as_embedding = set_of p :=
+set.ext $ λ x, ⟨λ ⟨y, h⟩, h ▸ subtype.coe_prop (e y), λ hs, ⟨e.symm ⟨x, hs⟩, by simp⟩⟩
+
 namespace function
 namespace embedding
 
+lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn
+| ⟨x, _⟩ ⟨y, _⟩ rfl := rfl
+
 @[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
-by cases f; cases g; simpa using funext h
+coe_injective (funext h)
 
 lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 ⟨ext, λ h _, by rw h⟩

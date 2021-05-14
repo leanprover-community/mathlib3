@@ -38,7 +38,7 @@ decidable_of_decidable_of_iff (bool.decidable_eq _ _) is_none_iff_eq_none
 
 instance decidable_forall_mem {p : α → Prop} [decidable_pred p] :
   ∀ o : option α, decidable (∀ a ∈ o, p a)
-| none     := is_true (by simp)
+| none     := is_true (by simp [false_implies_iff])
 | (some a) := if h : p a
   then is_true $ λ o e, some_inj.1 e ▸ h
   else is_false $ mt (λ H, H _ rfl) h

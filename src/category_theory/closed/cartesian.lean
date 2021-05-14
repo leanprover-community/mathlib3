@@ -92,11 +92,11 @@ closed.is_adj.adj
 
 /-- The evaluation natural transformation. -/
 def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
-closed.is_adj.adj.counit
+(exp.adjunction A).counit
 
 /-- The coevaluation natural transformation. -/
 def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
-closed.is_adj.adj.unit
+(exp.adjunction A).unit
 
 @[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
 @[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
@@ -135,10 +135,15 @@ variables [has_finite_products C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
 def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
-(closed.is_adj.adj.hom_equiv _ _).to_fun
+(exp.adjunction A).hom_equiv _ _
 /-- Uncurrying in a cartesian closed category. -/
 def uncurry : (Y ⟶ A ⟹ X) → (A ⨯ Y ⟶ X) :=
-(closed.is_adj.adj.hom_equiv _ _).inv_fun
+((exp.adjunction A).hom_equiv _ _).symm
+
+@[simp] lemma hom_equiv_apply_eq (f : A ⨯ Y ⟶ X) :
+  (exp.adjunction A).hom_equiv _ _ f = curry f := rfl
+@[simp] lemma hom_equiv_symm_apply_eq (f : Y ⟶ A ⟹ X) :
+  ((exp.adjunction A).hom_equiv _ _).symm f = uncurry f := rfl
 
 end cartesian_closed
 
@@ -316,7 +321,7 @@ i.e. any morphism to `I` is an iso.
 This actually shows a slightly stronger version: any morphism to an initial object from an
 exponentiable object is an isomorphism.
 -/
-def strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
+lemma strict_initial {I : C} (t : is_initial I) (f : A ⟶ I) : is_iso f :=
 begin
   haveI : mono (limits.prod.lift (𝟙 A) f ≫ (zero_mul t).hom) := mono_comp _ _,
   rw [zero_mul_hom, prod.lift_snd] at _inst,

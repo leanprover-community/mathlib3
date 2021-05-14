@@ -5,7 +5,6 @@ Gluing metric spaces
 Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.isometry
-import topology.metric_space.premetric_space
 
 /-!
 # Metric space gluing
@@ -52,7 +51,7 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open function set premetric
+open function set
 open_locale uniformity
 
 namespace metric
@@ -325,26 +324,26 @@ section gluing
 variables [nonempty γ] [metric_space γ] [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
 open sum (inl inr)
-local attribute [instance] premetric.dist_setoid
+local attribute [instance] pseudo_metric.dist_setoid
 
-def glue_premetric (hΦ : isometry Φ) (hΨ : isometry Ψ) : premetric_space (α ⊕ β) :=
+def glue_premetric (hΦ : isometry Φ) (hΨ : isometry Ψ) : pseudo_metric_space (α ⊕ β) :=
 { dist          := glue_dist Φ Ψ 0,
   dist_self     := glue_dist_self Φ Ψ 0,
   dist_comm     := glue_dist_comm Φ Ψ 0,
   dist_triangle := glue_dist_triangle Φ Ψ 0 $ λp q, by rw [hΦ.dist_eq, hΨ.dist_eq]; simp }
 
 def glue_space (hΦ : isometry Φ) (hΨ : isometry Ψ) : Type* :=
-@metric_quot _ (glue_premetric hΦ hΨ)
+@pseudo_metric_quot _ (glue_premetric hΦ hΨ)
 
 instance metric_space_glue_space (hΦ : isometry Φ) (hΨ : isometry Ψ) :
   metric_space (glue_space hΦ hΨ) :=
-@premetric.metric_space_quot _ (glue_premetric hΦ hΨ)
+@metric_space_quot _ (glue_premetric hΦ hΨ)
 
 def to_glue_l (hΦ : isometry Φ) (hΨ : isometry Ψ) (x : α) : glue_space hΦ hΨ :=
-by letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inl x⟧
+by letI : pseudo_metric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inl x⟧
 
 def to_glue_r (hΦ : isometry Φ) (hΨ : isometry Ψ) (y : β) : glue_space hΦ hΨ :=
-by letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inr y⟧
+by letI : pseudo_metric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inr y⟧
 
 instance inhabited_left (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited α] :
   inhabited (glue_space hΦ hΨ) :=
@@ -357,7 +356,7 @@ instance inhabited_right (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited β] 
 lemma to_glue_commute (hΦ : isometry Φ) (hΨ : isometry Ψ) :
   (to_glue_l hΦ hΨ) ∘ Φ = (to_glue_r hΦ hΨ) ∘ Ψ :=
 begin
-  letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ,
+  letI : pseudo_metric_space (α ⊕ β) := glue_premetric hΦ hΨ,
   funext,
   simp only [comp, to_glue_l, to_glue_r, quotient.eq],
   exact glue_dist_glued_points Φ Ψ 0 x
@@ -413,7 +412,7 @@ end
 
 /-- Premetric space structure on Σn, X n.-/
 def inductive_premetric (I : ∀n, isometry (f n)) :
-  premetric_space (Σn, X n) :=
+  pseudo_metric_space (Σn, X n) :=
 { dist          := inductive_limit_dist f,
   dist_self     := λx, by simp [dist, inductive_limit_dist],
   dist_comm     := λx y, begin
@@ -440,20 +439,20 @@ def inductive_premetric (I : ∀n, isometry (f n)) :
                 inductive_limit_dist_eq_dist I y z m hy hz]
   end }
 
-local attribute [instance] inductive_premetric premetric.dist_setoid
+local attribute [instance] inductive_premetric pseudo_metric.dist_setoid
 
 /-- The type giving the inductive limit in a metric space context. -/
 def inductive_limit (I : ∀n, isometry (f n)) : Type* :=
-@metric_quot _ (inductive_premetric I)
+@pseudo_metric_quot _ (inductive_premetric I)
 
 /-- Metric space structure on the inductive limit. -/
 instance metric_space_inductive_limit (I : ∀n, isometry (f n)) :
   metric_space (inductive_limit I) :=
-@premetric.metric_space_quot _ (inductive_premetric I)
+@metric_space_quot _ (inductive_premetric I)
 
 /-- Mapping each `X n` to the inductive limit. -/
 def to_inductive_limit (I : ∀n, isometry (f n)) (n : ℕ) (x : X n) : metric.inductive_limit I :=
-by letI : premetric_space (Σn, X n) := inductive_premetric I; exact ⟦sigma.mk n x⟧
+by letI : pseudo_metric_space (Σn, X n) := inductive_premetric I; exact ⟦sigma.mk n x⟧
 
 instance (I : ∀ n, isometry (f n)) [inhabited (X 0)] : inhabited (inductive_limit I) :=
 ⟨to_inductive_limit _ 0 (default _)⟩

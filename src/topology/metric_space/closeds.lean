@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.hausdorff_distance
 import topology.compacts
@@ -282,14 +282,15 @@ end
 from the same statement for closed subsets -/
 instance nonempty_compacts.complete_space [complete_space α] :
   complete_space (nonempty_compacts α) :=
-(complete_space_iff_is_complete_range nonempty_compacts.to_closeds.uniform_embedding).2 $
+(complete_space_iff_is_complete_range
+  nonempty_compacts.to_closeds.uniform_embedding.to_uniform_inducing).2 $
   nonempty_compacts.is_closed_in_closeds.is_complete
 
 /-- In a compact space, the type of nonempty compact subsets is compact. This follows from
 the same statement for closed subsets -/
 instance nonempty_compacts.compact_space [compact_space α] : compact_space (nonempty_compacts α) :=
 ⟨begin
-  rw embedding.compact_iff_compact_image nonempty_compacts.to_closeds.uniform_embedding.embedding,
+  rw nonempty_compacts.to_closeds.uniform_embedding.embedding.compact_iff_compact_image,
   rw [image_univ],
   exact nonempty_compacts.is_closed_in_closeds.compact
 end⟩

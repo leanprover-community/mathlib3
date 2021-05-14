@@ -499,7 +499,7 @@ begin
   { simp only [one_poly, one_pow, one_mul, alg_hom.map_pow, C_1, pow_zero, bind₁_X_right,
       if_true, eq_self_iff_true], },
   { intros i hi hi0,
-    simp only [one_poly, if_neg hi0, zero_pow (pow_pos (nat.prime.pos hp) _), mul_zero,
+    simp only [one_poly, if_neg hi0, zero_pow (pow_pos hp.1.pos _), mul_zero,
       alg_hom.map_pow, bind₁_X_right, alg_hom.map_mul], },
   { rw finset.mem_range, dec_trivial }
 end

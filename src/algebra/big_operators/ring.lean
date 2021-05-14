@@ -118,6 +118,43 @@ calc ∏ a in s, (f a + g a)
       by simp, by funext; intros; simp *⟩ }
 end
 
+/-- `∏ i, (f i + g i) = (∏ i, f i) + ∑ i, g i * (∏ j < i, f j + g j) * (∏ j > i, f j)`. -/
+lemma prod_add_ordered {ι R : Type*} [comm_semiring R] [linear_order ι] (s : finset ι)
+  (f g : ι → R) :
+  (∏ i in s, (f i + g i)) = (∏ i in s, f i) +
+    ∑ i in s, g i * (∏ j in s.filter (< i), (f j + g j)) * ∏ j in s.filter (λ j, i < j), f j :=
+begin
+  refine finset.induction_on_max s (by simp) _,
+  clear s, intros a s ha ihs,
+  have ha' : a ∉ s, from λ ha', (ha a ha').false,
+  rw [prod_insert ha', prod_insert ha', sum_insert ha', filter_insert, if_neg (lt_irrefl a),
+    filter_true_of_mem ha, ihs, add_mul, mul_add, mul_add, add_assoc],
+  congr' 1, rw add_comm, congr' 1,
+  { rw [filter_false_of_mem, prod_empty, mul_one],
+    exact (forall_mem_insert _ _ _).2 ⟨lt_irrefl a, λ i hi, (ha i hi).not_lt⟩ },
+  { rw mul_sum,
+    refine sum_congr rfl (λ i hi, _),
+    rw [filter_insert, if_neg (ha i hi).not_lt, filter_insert, if_pos (ha i hi), prod_insert,
+      mul_left_comm],
+    exact mt (λ ha, (mem_filter.1 ha).1) ha' }
+end
+
+/-- `∏ i, (f i - g i) = (∏ i, f i) - ∑ i, g i * (∏ j < i, f j - g j) * (∏ j > i, f j)`. -/
+lemma prod_sub_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finset ι) (f g : ι → R) :
+  (∏ i in s, (f i - g i)) = (∏ i in s, f i) -
+    ∑ i in s, g i * (∏ j in s.filter (< i), (f j - g j)) * ∏ j in s.filter (λ j, i < j), f j :=
+begin
+  simp only [sub_eq_add_neg],
+  convert prod_add_ordered s f (λ i, -g i),
+  simp,
+end
+
+/-- `∏ i, (1 - f i) = 1 - ∑ i, f i * (∏ j < i, 1 - f j)`. This formula is useful in construction of
+a partition of unity from a collection of “bump” functions.  -/
+lemma prod_one_sub_ordered {ι R : Type*} [comm_ring R] [linear_order ι] (s : finset ι) (f : ι → R) :
+  (∏ i in s, (1 - f i)) = 1 - ∑ i in s, f i * ∏ j in s.filter (< i), (1 - f j) :=
+by { rw prod_sub_ordered, simp }
+
 /--  Summing `a^s.card * b^(n-s.card)` over all finite subsets `s` of a `finset`
 gives `(a + b)^s.card`.-/
 lemma sum_pow_mul_eq_add_pow

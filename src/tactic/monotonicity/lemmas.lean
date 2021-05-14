@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity.basic
+import algebra.ordered_ring
 import data.set.lattice
 import order.bounds
 
@@ -76,3 +77,11 @@ attribute [mono] upper_bounds_mono_set lower_bounds_mono_set
                  upper_bounds_mono_mem  lower_bounds_mono_mem
                  upper_bounds_mono  lower_bounds_mono
                  bdd_above.mono bdd_below.mono
+
+attribute [mono] add_le_add mul_le_mul neg_le_neg
+         mul_lt_mul_of_pos_left mul_lt_mul_of_pos_right
+         imp_imp_imp le_implies_le_of_le_of_le
+         sub_le_sub abs_le_abs sup_le_sup
+         inf_le_inf
+attribute [mono left] add_lt_add_of_le_of_lt mul_lt_mul'
+attribute [mono right] add_lt_add_of_lt_of_le mul_lt_mul

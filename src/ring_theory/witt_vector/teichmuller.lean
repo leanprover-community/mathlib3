@@ -64,7 +64,7 @@ begin
   { intros i hi h0,
     convert mul_zero _, convert zero_pow _,
     { cases i, { contradiction }, { refl } },
-    { apply pow_pos, apply nat.prime.pos, assumption } },
+    { exact pow_pos hp.1.pos _ } },
   { rw finset.mem_range, intro h, exact (h (nat.succ_pos n)).elim }
 end
 

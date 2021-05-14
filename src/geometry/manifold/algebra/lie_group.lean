@@ -1,7 +1,7 @@
 /-
 Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Nicolò Cavalleri.
+Authors: Nicolò Cavalleri
 -/
 
 import geometry.manifold.algebra.monoid
@@ -116,6 +116,16 @@ lemma smooth.inv {f : M → G}
 lemma smooth_on.inv {f : M → G} {s : set M}
   (hf : smooth_on I' I f s) : smooth_on I' I (λx, (f x)⁻¹) s :=
 (smooth_inv I).comp_smooth_on hf
+
+@[to_additive]
+lemma smooth.div {f g : M → G}
+  (hf : smooth I' I f) (hg : smooth I' I g) : smooth I' I (f / g) :=
+by { rw div_eq_mul_inv, exact ((smooth_mul I).comp (hf.prod_mk hg.inv) : _), }
+
+@[to_additive]
+lemma smooth_on.div {f g : M → G} {s : set M}
+  (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) : smooth_on I' I (f / g) s :=
+by { rw div_eq_mul_inv, exact ((smooth_mul I).comp_smooth_on (hf.prod_mk hg.inv) : _), }
 
 end lie_group
 

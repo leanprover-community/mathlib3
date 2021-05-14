@@ -221,56 +221,8 @@ lemma uniform_space.core_eq :
   ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
 | ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := by { congr, exact h }
 
-/-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one
-`P`, and that one can deduce the poor structure from the rich structure through a map `F` (called a
-forgetful functor) (think `R = metric_space` and `P = topological_space`). A possible
-implementation would be to have a type class `rich` containing a field `R`, a type class `poor`
-containing a field `P`, and an instance from `rich` to `poor`. However, this creates diamond
-problems, and a better approach is to let `rich` extend `poor` and have a field saying that
-`F R = P`.
-
-To illustrate this, consider the pair `metric_space` / `topological_space`. Consider the topology
-on a product of two metric spaces. With the first approach, it could be obtained by going first from
-each metric space to its topology, and then taking the product topology. But it could also be
-obtained by considering the product metric space (with its sup distance) and then the topology
-coming from this distance. These would be the same topology, but not definitionally, which means
-that from the point of view of Lean's kernel, there would be two different `topological_space`
-instances on the product. This is not compatible with the way instances are designed and used:
-there should be at most one instance of a kind on each type. This approach has created an instance
-diamond that does not commute definitionally.
-
-The second approach solves this issue. Now, a metric space contains both a distance, a topology, and
-a proof that the topology coincides with the one coming from the distance. When one defines the
-product of two metric spaces, one uses the sup distance and the product topology, and one has to
-give the proof that the sup distance induces the product topology. Following both sides of the
-instance diamond then gives rise (definitionally) to the product topology on the product space.
-
-Another approach would be to have the rich type class take the poor type class as an instance
-parameter. It would solve the diamond problem, but it would lead to a blow up of the number
-of type classes one would need to declare to work with complicated classes, say a real inner
-product space, and would create exponential complexity when working with products of
-such complicated spaces, that are avoided by bundling things carefully as above.
-
-Note that this description of this specific case of the product of metric spaces is oversimplified
-compared to mathlib, as there is an intermediate typeclass between `metric_space` and
-`topological_space` called `uniform_space`. The above scheme is used at both levels, embedding a
-topology in the uniform space structure, and a uniform structure in the metric space structure.
-
-Note also that, when `P` is a proposition, there is no such issue as any two proofs of `P` are
-definitionally equivalent in Lean.
-
-To avoid boilerplate, there are some designs that can automatically fill the poor fields when
-creating a rich structure if one doesn't want to do something special about them. For instance,
-in the definition of metric spaces, default tactics fill the uniform space fields if they are
-not given explicitly. One can also have a helper function creating the rich structure from a
-structure with less fields, where the helper function fills the remaining fields. See for instance
-`uniform_space.of_core` or `real_inner_product.of_core`.
-
-For more details on this question, called the forgetful inheritance pattern, see [Competing
-inheritance paths in dependent type theory: a case study in functional
-analysis](https://hal.inria.fr/hal-02463336).
--/
-library_note "forgetful inheritance"
+-- the topological structure is embedded in the uniform structure
+-- to avoid instance diamond issues. See Note [forgetful inheritance].
 
 /-- A uniform space is a generalization of the "uniform" topological aspects of a
   metric space. It consists of a filter on `α × α` called the "uniformity", which
@@ -495,6 +447,12 @@ lemma ball_subset_of_comp_subset {V W : set (β × β)} {x y} (h : x ∈ ball y 
 lemma ball_mono {V W : set (β × β)} (h : V ⊆ W) (x : β) : ball x V ⊆ ball x W :=
 by tauto
 
+lemma ball_inter_left (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x V :=
+ball_mono (inter_subset_left V W) x
+
+lemma ball_inter_right (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x W :=
+ball_mono (inter_subset_right V W) x
+
 lemma mem_ball_symmetry {V : set (β × β)} (hV : symmetric_rel V) {x y} :
   x ∈ ball y V ↔ y ∈ ball x V :=
 show (x, y) ∈ prod.swap ⁻¹' V ↔ (x, y) ∈ V, by { unfold symmetric_rel at hV, rw hV }
@@ -615,6 +573,24 @@ lemma uniform_space.has_basis_nhds (x : α) :
 
 open uniform_space
 
+lemma uniform_space.mem_closure_iff_symm_ball {s : set α} {x} :
+  x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (s ∩ ball x V).nonempty :=
+begin
+  simp [mem_closure_iff_nhds_basis (has_basis_nhds x)],
+  tauto,
+end
+
+lemma uniform_space.mem_closure_iff_ball {s : set α} {x} :
+  x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → (ball x V ∩ s).nonempty :=
+begin
+  simp_rw [mem_closure_iff_nhds, mem_nhds_iff],
+  split,
+  { intros h V V_in,
+    exact h (ball x V) ⟨V, V_in, subset.refl _⟩ },
+  { rintros h t ⟨V, V_in, Vt⟩,
+    exact nonempty.mono (inter_subset_inter_left s Vt) (h V_in) },
+end
+
 lemma uniform_space.has_basis_nhds_prod (x y : α) :
   has_basis (𝓝 (x, y)) (λ s, s ∈ 𝓤 α ∧ symmetric_rel s) $ λ s, (ball x s).prod (ball y s) :=
 begin
@@ -622,7 +598,7 @@ begin
   apply (has_basis_nhds x).prod' (has_basis_nhds y),
   rintro U V ⟨U_in, U_symm⟩ ⟨V_in, V_symm⟩,
   exact ⟨U ∩ V, ⟨(𝓤 α).inter_sets U_in V_in, symmetric_rel_inter U_symm V_symm⟩,
-         ball_mono (inter_subset_left U V) x, ball_mono (inter_subset_right U V) y⟩,
+         ball_inter_left x U V, ball_inter_right y U V⟩,
 end
 
 lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (ball x) :=
@@ -1065,10 +1041,14 @@ lemma uniform_continuous_comap' {f : γ → β} {g : α → γ} [v : uniform_spa
   (h : uniform_continuous (f ∘ g)) : @uniform_continuous α γ u (uniform_space.comap f v) g :=
 tendsto_comap_iff.2 h
 
+lemma to_nhds_mono {u₁ u₂ : uniform_space α} (h : u₁ ≤ u₂) (a : α) :
+  @nhds _ (@uniform_space.to_topological_space _ u₁) a ≤
+    @nhds _ (@uniform_space.to_topological_space _ u₂) a :=
+by rw [@nhds_eq_uniformity α u₁ a, @nhds_eq_uniformity α u₂ a]; exact (lift'_mono h le_rfl)
+
 lemma to_topological_space_mono {u₁ u₂ : uniform_space α} (h : u₁ ≤ u₂) :
   @uniform_space.to_topological_space _ u₁ ≤ @uniform_space.to_topological_space _ u₂ :=
-le_of_nhds_le_nhds $ assume a,
-  by rw [@nhds_eq_uniformity α u₁ a, @nhds_eq_uniformity α u₂ a]; exact (lift'_mono h $ le_refl _)
+le_of_nhds_le_nhds $ to_nhds_mono h
 
 lemma uniform_continuous.continuous [uniform_space α] [uniform_space β] {f : α → β}
   (hf : uniform_continuous f) : continuous f :=

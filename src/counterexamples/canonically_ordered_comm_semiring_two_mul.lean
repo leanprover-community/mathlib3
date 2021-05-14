@@ -26,7 +26,9 @@ leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ord
 
 namespace from_Bhavik
 
-/--  Bhavik Mehta's example. -/
+/--  Bhavik Mehta's example.  There are only the initial definitions, but no proofs.  The Type
+`K` is a canonically ordered commutative semiring with the property that `2 * (1/2) ≤ 2 * 1`, even
+though it is not true that `1/2 ≤ 1`, since `1/2` and `1` are not comparable. -/
 @[derive [comm_semiring]]
 def K : Type := subsemiring.closure ({1.5} : set ℚ)
 

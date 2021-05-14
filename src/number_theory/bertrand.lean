@@ -83,46 +83,53 @@ lemma claim_2
   (p : nat)
   [hp : fact p.prime]
   (n : nat)
-  (n_big : 3 < n)
+  (n_big : 3 ≤ n)
   (smallish : (2 * n) < p ^ 2)
   : (α n p) ≤ 1
   :=
 begin
-  unfold α,
-  rw @padic_val_nat_def p is_prime (nat.choose (2 * n) n) (central_binom_nonzero n),
-  simp only [@nat.prime.multiplicity_choose p (2 * n) n _ is_prime (by linarith) (le_refl (2 * n))],
-  have r : 2 * n - n = n, by
-    calc 2 * n - n = n + n - n: by rw two_mul n
-    ... = n: nat.add_sub_cancel n n,
-  simp only [r, finset.filter_congr_decidable],
-  have s : ∀ i, p ^ i ≤ n % p ^ i + n % p ^ i → i ≤ 1, by
-    { intros i pr,
-      cases le_or_lt i 1, {exact h,},
-      { exfalso,
-        have u : 2 * n < 2 * (n % p ^ i), by
-          calc 2 * n < p ^ 2 : smallish
-          ... ≤ p ^ i : nat.pow_le_pow_of_le_right (nat.prime.pos is_prime) h
-          ... ≤ n % p ^ i + n % p ^ i : pr
-          ... = 2 * (n % p ^ i) : (two_mul _).symm,
-        have v : n < n % p ^ i, by linarith,
-        have w : n % p ^ i ≤ n, exact (nat.mod_le _ _),
-        linarith, }, },
-  have t : ∀ x ∈ finset.Ico 1 (2 * n), p ^ x ≤ n % p ^ x + n % p ^ x ↔ (x ≤ 1 ∧ p ^ x ≤ n % p ^ x + n % p ^ x), by
-    {
-      intros x size,
-      split,
-      { intros bound, split, exact s x bound, exact bound, },
-      { intros size2,
-        cases x,
-        { simp at size, trivial, },
-        { cases x,
-          { exact size2.right, },
-          { exfalso, exact nat.not_succ_le_zero _ (nat.lt_succ_iff.mp (size2.left)), }, }, },
-    },
-  simp only [finset.filter_congr t],
-  simp only [finset.filter_and],
-  simp only [@finset.Ico.filter_Ico_bot 1 (2 * n) (by linarith)],
-  exact finset.card_singleton_inter,
+  have h1 : p ^ α n p < p ^ 2,
+    calc p ^ α n p ≤ 2 * n : claim_1 p n n_big
+    ...            < p ^ 2 : smallish,
+
+  let h2 := (pow_lt_pow_iff hp.out.one_lt).1 h1,
+  omega,
+  -- -- pow_lt_pow_iff
+  -- unfold α,
+  -- rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n),
+  -- simp only [@nat.prime.multiplicity_choose p (2 * n) n _ hp.out (by linarith) (le_refl (2 * n))],
+  -- have r : 2 * n - n = n, by
+  --   calc 2 * n - n = n + n - n: by rw two_mul n
+  --   ... = n: nat.add_sub_cancel n n,
+  -- simp only [r, finset.filter_congr_decidable],
+  -- have s : ∀ i, p ^ i ≤ n % p ^ i + n % p ^ i → i ≤ 1, by
+  --   { intros i pr,
+  --     cases le_or_lt i 1, {exact h,},
+  --     { exfalso,
+  --       have u : 2 * n < 2 * (n % p ^ i), by
+  --         calc 2 * n < p ^ 2 : smallish
+  --         ... ≤ p ^ i : nat.pow_le_pow_of_le_right (nat.prime.pos is_prime) h
+  --         ... ≤ n % p ^ i + n % p ^ i : pr
+  --         ... = 2 * (n % p ^ i) : (two_mul _).symm,
+  --       have v : n < n % p ^ i, by linarith,
+  --       have w : n % p ^ i ≤ n, exact (nat.mod_le _ _),
+  --       linarith, }, },
+  -- have t : ∀ x ∈ finset.Ico 1 (2 * n), p ^ x ≤ n % p ^ x + n % p ^ x ↔ (x ≤ 1 ∧ p ^ x ≤ n % p ^ x + n % p ^ x), by
+  --   {
+  --     intros x size,
+  --     split,
+  --     { intros bound, split, exact s x bound, exact bound, },
+  --     { intros size2,
+  --       cases x,
+  --       { simp at size, trivial, },
+  --       { cases x,
+  --         { exact size2.right, },
+  --         { exfalso, exact nat.not_succ_le_zero _ (nat.lt_succ_iff.mp (size2.left)), }, }, },
+  --   },
+  -- simp only [finset.filter_congr t],
+  -- simp only [finset.filter_and],
+  -- simp only [@finset.Ico.filter_Ico_bot 1 (2 * n) (by linarith)],
+  -- exact finset.card_singleton_inter,
 end
 
 lemma move_mul (m p i : nat) (b : m < i * p) : m / p < i :=

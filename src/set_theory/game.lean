@@ -298,7 +298,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- `x * y` is equivalent to `y * x`. -/
 theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
-quotient.exact $ quot_mul_comm x y
+quotient.exact $ quot_mul_comm _ _
 
 /-- `x * 0` has exactly the same moves as `0`. -/
 def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0

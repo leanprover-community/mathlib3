@@ -62,6 +62,11 @@ open function
 protected def elim (h : is_empty α) {p : α → Sort*} (a : α) : p a :=
 is_empty_elim a
 
+/-- Non-dependent version of `is_empty.elim`. Helpful if the elaborator cannot elaborate `h.elim a`
+  correctly. -/
+protected def elim' {β : Sort*} (h : is_empty α) (a : α) : β :=
+h.elim a
+
 protected lemma prop_iff {p : Prop} : is_empty p ↔ ¬ p :=
 is_empty_iff
 

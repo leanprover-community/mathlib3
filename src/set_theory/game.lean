@@ -184,7 +184,7 @@ end game
 namespace pgame
 
 
-theorem eq_of_quot_eq {x y : pgame}
+theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
   (hl : ∀ (i : x.left_moves), ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
   (hr : ∀ (j : y.right_moves), ⟦x.move_right (R.symm j)⟧ = ⟦y.move_right j⟧) :
@@ -270,7 +270,7 @@ theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 begin
   let x := mk xl xr xL xR,
   let y := mk yl yr yL yR,
-  refine eq_of_quot_eq _ _ _ _,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
   apply equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   calc
     xl × yr ⊕ xr × yl
@@ -332,7 +332,7 @@ theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
 begin
   let x := mk xl xr xL xR,
   let y := mk yl yr yL yR,
-  refine eq_of_quot_eq _ _ _ _,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit; rintro (⟨_, _⟩ | ⟨_, _⟩);
     solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 4 } },
   { fsplit; rintro (⟨_, _⟩ | ⟨_, _⟩);
@@ -375,7 +375,7 @@ begin
   let x := mk xl xr xL xR,
   let y := mk yl yr yL yR,
   let z := mk zl zr zL zR,
-  refine eq_of_quot_eq _ _ _ _,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
     { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 }, },
@@ -440,7 +440,7 @@ by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_dist
 | (mk xl xr xL xR) :=
 begin
   let x := mk xl xr xL xR,
-  refine eq_of_quot_eq _ _ _ _,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
      { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
      { rintro i,  exact sum.inl(i, punit.star) },
@@ -474,7 +474,7 @@ begin
   let x := mk xl xr xL xR,
   let y := mk yl yr yL yR,
   let z := mk zl zr zL zR,
-  refine eq_of_quot_eq _ _ _ _,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
     { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩, _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },

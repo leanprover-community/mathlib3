@@ -240,8 +240,6 @@ instance [lattice α] : lattice (with_zero α) := with_bot.lattice
 
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
 
-local attribute [instance] with_zero.has_le
-
 lemma mul_le_mul_left {α : Type u} [has_mul α] [preorder α]
   [covariant_class α α (*) (≤)] :
   ∀ (a b : with_zero α),

@@ -76,8 +76,8 @@ def functor.left_derived_obj_projective_zero (F : C ⥤ D) [F.additive]
   (X : C) [projective X] :
   (F.left_derived 0).obj X ≅ F.obj X :=
 F.left_derived_obj_iso 0 (ProjectiveResolution.self X) ≪≫
-  (homology_functor _ _ _).map_iso ((chain_complex.single_0_map_homological_complex F).app X) ≪≫
-  (chain_complex.homology_functor_0_single_0 D).app (F.obj X)
+  (homology_functor _ _ _).map_iso ((chain_complex.single₀_map_homological_complex F).app X) ≪≫
+  (chain_complex.homology_functor_0_single₀ D).app (F.obj X)
 
 local attribute [instance] has_zero_object.has_zero
 
@@ -86,8 +86,8 @@ def functor.left_derived_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ
   (X : C) [projective X] :
   (F.left_derived (n+1)).obj X ≅ 0 :=
 F.left_derived_obj_iso (n+1) (ProjectiveResolution.self X) ≪≫
-  (homology_functor _ _ _).map_iso ((chain_complex.single_0_map_homological_complex F).app X) ≪≫
-  (chain_complex.homology_functor_succ_single_0 D n).app (F.obj X)
+  (homology_functor _ _ _).map_iso ((chain_complex.single₀_map_homological_complex F).app X) ≪≫
+  (chain_complex.homology_functor_succ_single₀ D n).app (F.obj X)
 
 /--
 We can compute a left derived functor on a morphism using a lift of that morphism
@@ -95,7 +95,7 @@ to a chain map between chosen projective resolutions.
 -/
 lemma functor.left_derived_map_eq (F : C ⥤ D) [F.additive] (n : ℕ) {X Y : C} (f : X ⟶ Y)
   {P : ProjectiveResolution X} {Q : ProjectiveResolution Y} (g : P.complex ⟶ Q.complex)
-  (w : g ≫ Q.π = P.π ≫ (chain_complex.single_0 C).map f) :
+  (w : g ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f) :
   (F.left_derived n).map f =
   (F.left_derived_obj_iso n P).hom ≫
     (homology_functor D _ n).map ((F.map_homological_complex _).map g) ≫

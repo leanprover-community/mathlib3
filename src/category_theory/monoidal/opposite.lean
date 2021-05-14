@@ -95,14 +95,12 @@ namespace iso
 variables {X Y : C}
 
 /-- An isomorphism in `C` gives an isomorphism in `Cᵐᵒᵖ`. -/
+@[simps]
 def mop (f : X ≅ Y) : mop X ≅ mop Y :=
 { hom := f.hom.mop,
   inv := f.inv.mop,
   hom_inv_id' := unmop_inj f.hom_inv_id,
   inv_hom_id' := unmop_inj f.inv_hom_id }
-
-@[simp] lemma mop_hom {f : X ≅ Y} : f.mop.hom = f.hom.mop := rfl
-@[simp] lemma mop_inv {f : X ≅ Y} : f.mop.inv = f.inv.mop := rfl
 
 end iso
 

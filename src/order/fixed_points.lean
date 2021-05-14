@@ -190,6 +190,6 @@ protected def complete_lattice : complete_lattice (fixed_points f) :=
     (f_le_Inf_of_fixed_points f hf (subtype.val '' A) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
   le_Inf       := λ A x hx, le_gfp $ le_inf (le_Inf $ λ z ⟨y, hyA, hyz⟩, hyz ▸ hx y hyA)
     (x.2.symm ▸ le_rfl),
-  Inf_le       := λ A x hx, prev_le.trans (Inf_le $ show x.1 ∈ subtype.val '' A, from ⟨x, hx, rfl⟩) }
+  Inf_le       := λ A x hx, prev_le.trans (Inf_le $ show x.1 ∈ subtype.val '' A, from ⟨x, hx, rfl⟩)}
 
 end fixed_points

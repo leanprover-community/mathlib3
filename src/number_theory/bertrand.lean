@@ -268,21 +268,6 @@ begin
   simpa [] using (@choose_le_middle r (2 * n)),
 end
 
-lemma choose_halfway_is_big (n : nat) : 4 ^ n ≤ (nat.choose (2 * n) n) * (2 * n + 1) :=
-begin
-  have big : ∀ i, i ∈ finset.range (2 * n + 1) → nat.choose (2 * n) i ≤ nat.choose (2 * n) n, by
-    { intros i mem,
-      exact choose_le_middle_2 i n,
-    },
-  calc 4 ^ n
-    = 2 ^ (2 * n) : (nat.pow_mul 2 n 2).symm
-  ... = ∑ i in finset.range (2 * n + 1), nat.choose (2 * n) i : (sum_range_choose (2 * n)).symm
-  ... ≤ ↑(finset.range (2 * n + 1)).card * (nat.choose (2 * n) n) : mean_le_biggest _ _ big
-  ... = ↑(2 * n + 1) * (nat.choose (2 * n) n)  : by rw finset.card_range (2 * n + 1)
-  ... = (2 * n + 1) * (nat.choose (2 * n) n) : by simp only [nat.cast_id]
-  ... = (nat.choose (2 * n) n) * (2 * n + 1) : mul_comm _ _,
-end
-
 /-
 
 /-

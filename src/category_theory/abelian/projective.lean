@@ -82,22 +82,22 @@ Convert an `aux_struct` to a `ProjectiveResolution`.
 def of_aux_struct {Z : C} (P : aux_struct Z) : ProjectiveResolution Z :=
 let E := (chain_complex.of P.X P.d (λ n, (P.exact n).w)) in
 { complex := chain_complex.truncate.obj E,
-  π := E.truncate_to ≫ ((chain_complex.single_0 C).map_iso P.zero).hom,
+  π := E.truncate_to ≫ ((chain_complex.single₀ C).map_iso P.zero).hom,
   projective := P.projective,
   exact₀ := begin
-    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    dsimp [chain_complex.truncate_to, chain_complex.to_single₀_equiv],
     simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
     convert P.exact 0,
     dsimp [E, chain_complex.of],
     simp,
   end,
   exact := λ n, begin
-    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    dsimp [chain_complex.truncate_to, chain_complex.to_single₀_equiv],
     simp only [category_theory.exact_comp_iso, E, chain_complex.of_d],
     exact P.exact (n+1),
   end,
   epi := begin
-    dsimp [chain_complex.truncate_to, chain_complex.to_single_0_equiv],
+    dsimp [chain_complex.truncate_to, chain_complex.to_single₀_equiv],
     suffices : category_theory.epi (P.d 0 ≫ P.zero.hom),
     { convert this,
       dsimp [E, chain_complex.of],

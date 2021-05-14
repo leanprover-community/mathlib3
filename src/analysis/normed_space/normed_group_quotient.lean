@@ -75,7 +75,7 @@ using the provided norm, and then trivially build a proof that the norm and unif
 compatible. Here the uniform structure is provided using `topological_add_group.to_uniform_space`
 which uses the topological structure and the group structure to build the uniform structure. This
 uniform structure induces the correct topological structure by construction, but the fact that it
-is compatible with the norm is not obvious, this where the mathematical content explained in
+is compatible with the norm is not obvious; this is where the mathematical content explained in
 the previous paragraph kicks in.
 
 -/
@@ -344,7 +344,7 @@ open normed_group_hom
 noncomputable
 def normed_mk (S : add_subgroup M) : normed_group_hom M (quotient S) :=
 { bound' := ⟨1, λ m, by simpa [one_mul] using quotient_norm_mk_le  _ m⟩,
-  ..quotient_add_group.mk' S }
+  .. quotient_add_group.mk' S }
 
 /-- `S.normed_mk` agrees with `quotient_add_group.mk' S`. -/
 @[simp]

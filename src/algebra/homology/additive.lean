@@ -44,8 +44,8 @@ instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
 
 /- TODO(jmc/Scott): the instance below doesn't have the correct defeq for `nsmul` and `gsmul`.
 We should generalize `function.injective.add_comm_group` and friends.
-For the `R`-linear version, it will be very convenient to have a good definition of `nsmul` and `gsmul`,
-that matches `smul`. -/
+For the `R`-linear version, it will be very convenient to have
+a good definition of `nsmul` and `gsmul` that matches `smul`. -/
 
 instance : add_comm_group (C ⟶ D) :=
 function.injective.add_comm_group hom.f

@@ -14,14 +14,15 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 ## Main definitions
 
 * `dual R M` defines the dual space of M over R.
-* Given a basis for a K-vector space `V`, `basis.to_dual` produces a map from `V` to `dual K V`.
+* Given a basis for an `R`-vector space `M`, `basis.to_dual` produces a map from `M` to `dual R M`.
 * Given families of vectors `e` and `ε`, `dual_pair e ε` states that these families have the
   characteristic properties of a basis and a dual.
 * `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.
 
 ## Main results
 
-* `to_dual_equiv` : the dual space is linearly equivalent to the primal space.
+* `to_dual_equiv` : the linear equivalence between the dual module and primal module,
+  given a finite basis.
 * `dual_pair.basis` and `dual_pair.eq_dual`: if `e` and `ε` form a dual pair, `e` is a basis and
   `ε` is its dual basis.
 * `quot_equiv_annihilator`: the quotient by a subspace is isomorphic to its dual annihilator.

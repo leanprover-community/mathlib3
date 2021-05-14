@@ -807,6 +807,17 @@ let ⟨v, hv₁, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁⟩
 
 end bilin_form
 
+-- TODO: Remove both instances after #7438 is merged
+instance units.distrib_mul_action : distrib_mul_action (units R) R :=
+{ smul := λ r s, (r : R) * s,
+  one_smul := one_mul,
+  mul_smul := λ _ _, mul_assoc _ _,
+  smul_add := λ _ _, mul_add _ _,
+  smul_zero := λ _, mul_zero _ }
+
+instance units.smul_comm_class : smul_comm_class (units R₁) R₁ R₁ :=
+{ smul_comm := λ _, mul_left_comm _ }
+
 namespace quadratic_form
 
 open_locale big_operators
@@ -815,16 +826,6 @@ open finset bilin_form
 
 variables {M₁ : Type*} [add_comm_group M₁] [module R M₁]
 variables {ι : Type*} [fintype ι] {v : basis ι R M}
-
-instance units.distrib_mul_action : distrib_mul_action (units R) R :=
-{ smul := λ r s, (r : R) * s,
-  one_smul := one_mul,
-  mul_smul := λ _ _, mul_assoc _ _,
-  smul_add := λ _ _, mul_add _ _,
-  smul_zero := λ _, mul_zero _ }
-
-instance : smul_comm_class (units R₁) R₁ R₁ :=
-{ smul_comm := λ _, mul_left_comm _ }
 
 /-- A quadratic form composed with a `linear_equiv` is isometric to itself. -/
 def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M) :

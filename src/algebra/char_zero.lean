@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import algebra.algebra.basic
 import data.nat.cast
 import data.fintype.basic
 import tactic.wlog
@@ -198,15 +197,3 @@ lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) : ch
   λ hS, by exactI ϕ.char_zero⟩
 
 end ring_hom
-
-section algebra
-
-variables {R S : Type*} [comm_semiring R] [semiring S]
-
-instance algebra_char_zero [algebra R S] [char_zero S] : char_zero R :=
-(algebra_map R S).char_zero
-
-instance algebra_char_zero_iff [algebra R S] [char_zero S] : char_zero R :=
-(algebra_map R S).char_zero
-
-end algebra

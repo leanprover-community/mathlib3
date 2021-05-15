@@ -220,25 +220,20 @@ begin
     := by simp [matrix.mul, dot_product, fin.sum_univ_succ],
   rw this, clear this,
 
-  have : (x*y) 1 1 = (x 0 1)*(y 0 1)+(x 1 1)*(y 1 1),
-  {
-    simp, -- squeeze_simp, -- keeps timing out! UGH
-    simp only [matrix.mul, dot_product, fin.sum_univ_succ],
-    sorry,
-
-   },
+  --have : ((x*y) : matrix (fin 2) (fin 2) ℝ) = matrix.mul x y := rfl,
+  have : ⇑(x * y) = matrix.mul x y := rfl,
   rw this, clear this,
 
-  have : (x*y) 1 0 = (x 0 1)*(y 0 0)+(x 1 1)*(y 1 0),
-  {
---    simp, -- squeeze_simp, -- keeps timing out! UGH
-  --  simp only [matrix.mul, dot_product, fin.sum_univ_succ],
-    sorry,
 
-   },
+  have : matrix.mul x y 1 1 = (x 1 0)*(y 0 1)+(x 1 1)*(y 1 1)
+    := sorry, --by simp [matrix.mul, dot_product, fin.sum_univ_succ],
   rw this, clear this,
 
-  ring,
+  have : matrix.mul x y 1 0 = (x 1 0)*(y 0 0)+(x 1 1)*(y 1 0)
+    := sorry, --by simp [matrix.mul, dot_product, fin.sum_univ_succ],
+  rw this, clear this,
+
+--  ring,
   sorry,
 
 /-

@@ -27,7 +27,7 @@ instance : is_empty pempty  := ⟨pempty.elim⟩
 instance : is_empty false   := ⟨id⟩
 instance : is_empty (fin 0) := ⟨λ n, nat.not_lt_zero n.1 n.2⟩
 
-protected def function.is_empty [is_empty β] (f : α → β) : is_empty α :=
+protected lemma function.is_empty [is_empty β] (f : α → β) : is_empty α :=
 ⟨λ x, is_empty.false (f x)⟩
 
 instance {p : α → Sort*} [h : nonempty α] [∀ x, is_empty (p x)] : is_empty (Π x, p x) :=

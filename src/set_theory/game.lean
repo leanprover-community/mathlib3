@@ -148,12 +148,6 @@ instance : add_comm_group game :=
 theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a ≤ c + b :=
 begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
 
-@[simp] lemma quot_neg (a : pgame) : ⟦-a⟧ = -⟦a⟧ := rfl
-
-@[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl
-
-@[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
-
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.
 
@@ -183,6 +177,11 @@ end game
 
 namespace pgame
 
+@[simp] lemma quot_neg (a : pgame) : ⟦-a⟧ = -⟦a⟧ := rfl
+
+@[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl
+
+@[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
 theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
@@ -338,31 +337,19 @@ begin
   { fsplit; rintro (⟨_, _⟩ | ⟨_, _⟩);
     solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 4 } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { calc
-        ⟦-xR i * y + (-x) * yL j - (-xR i) * yL j⟧
-          = ⟦-xR i * y⟧ + ⟦(-x) * yL j⟧ - ⟦(-xR i) * yL j⟧ : by simp
-      ... = -⟦xR i * y⟧ + -⟦x * yL j⟧ - -⟦xR i * yL j⟧
-          : by rw [quot_neg_mul (xR i) y, quot_neg_mul x (yL j), quot_neg_mul (xR i) (yL j)]
-      ... = ⟦-(xR i * y + x * yL j - xR i * yL j)⟧ : by { simp, abel } },
-    { calc
-        ⟦-xL i * y + (-x) * yR j - (-xL i) * yR j⟧
-          = ⟦-xL i * y⟧ + ⟦(-x) * yR j⟧ - ⟦(-xL i) * yR j⟧ : by simp
-      ... = -⟦xL i * y⟧ + -⟦x * yR j⟧ - -⟦xL i * yR j⟧
-          : by rw [quot_neg_mul (xL i) y, quot_neg_mul x (yR j), quot_neg_mul (xL i) (yR j)]
-      ... = ⟦-(xL i * y + x * yR j - xL i * yR j)⟧ : by { simp, abel } } },
+    { change ⟦-xR i * y + (-x) * yL j - (-xR i) * yL j⟧ = ⟦-(xR i * y + x * yL j - xR i * yL j)⟧,
+      simp only [quot_add, quot_sub, quot_neg_mul],
+      simp, abel },
+    { change ⟦-xL i * y + (-x) * yR j - (-xL i) * yR j⟧ = ⟦-(xL i * y + x * yR j - xL i * yR j)⟧,
+      simp only [quot_add, quot_sub, quot_neg_mul],
+      simp, abel } },
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { calc
-        ⟦-xL i * y + (-x) * yL j - (-xL i) * yL j⟧
-          = ⟦-xL i * y⟧ + ⟦(-x) * yL j⟧ - ⟦(-xL i) * yL j⟧ : by simp
-      ... = -⟦xL i * y⟧ + -⟦x * yL j⟧ - -⟦xL i * yL j⟧
-          : by rw [quot_neg_mul (xL i) y, quot_neg_mul x (yL j), quot_neg_mul (xL i) (yL j)]
-      ... = ⟦-(xL i * y + x * yL j - xL i * yL j)⟧ : by { simp, abel } },
-    { calc
-        ⟦-xR i * y + (-x) * yR j - (-xR i) * yR j⟧
-          = ⟦-xR i * y⟧ + ⟦(-x) * yR j⟧ - ⟦(-xR i) * yR j⟧ : by simp
-      ... = -⟦xR i * y⟧ + -⟦x * yR j⟧ - -⟦xR i * yR j⟧
-          : by rw [quot_neg_mul (xR i) y, quot_neg_mul x (yR j), quot_neg_mul (xR i) (yR j)]
-      ... = ⟦-(xR i * y + x * yR j - xR i * yR j)⟧ : by { simp, abel } } },
+    { change ⟦-xL i * y + (-x) * yL j - (-xL i) * yL j⟧ = ⟦-(xL i * y + x * yL j - xL i * yL j)⟧,
+      simp only [quot_add, quot_sub, quot_neg_mul],
+      simp, abel },
+    { change ⟦-xR i * y + (-x) * yR j - (-xR i) * yR j⟧ = ⟦-(xR i * y + x * yR j - xR i * yR j)⟧,
+      simp only [quot_add, quot_sub, quot_neg_mul],
+      simp, abel } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

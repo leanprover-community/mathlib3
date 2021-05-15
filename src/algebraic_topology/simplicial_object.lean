@@ -14,9 +14,10 @@ import category_theory.comma
 # Simplicial objects in a category.
 
 A simplicial object in a category `C` is a `C`-valued presheaf on `simplex_category`.
+(Similarly a cosimplicial object is functor `simplex_category ⥤ C`.)
 
 Use the notation `X _[n]` in the `simplicial` locale to obtain the `n`-th term of a
-simplicial object `X`, where `n` is a natural number.
+(co)simplicial object `X`, where `n` is a natural number.
 
 -/
 

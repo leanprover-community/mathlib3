@@ -531,7 +531,7 @@ variables (X : α → V) (d_X : Π n, X (n+1) ⟶ X n) (sq_X : ∀ n, d_X (n+1) 
 A constructor for chain maps between `α`-indexed chain complexes built using `chain_complex.of`,
 from a dependently typed collection of morphisms.
 -/
-def of_hom (f : Π i : α, X i ⟶ Y i) (comm : ∀ i : α, f (i+1) ≫ d_Y i = d_X i ≫ f i) :
+@[simps] def of_hom (f : Π i : α, X i ⟶ Y i) (comm : ∀ i : α, f (i+1) ≫ d_Y i = d_X i ≫ f i) :
   of X d_X sq_X ⟶ of Y d_Y sq_Y :=
 { f := f,
   comm' := λ n m,

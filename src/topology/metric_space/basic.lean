@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 
 import topology.metric_space.emetric_space
 import topology.shrinking_lemma
-import topology.algebra.ordered
+import topology.algebra.ordered.basic
 import data.fintype.intervals
 
 /-!
@@ -1754,6 +1754,9 @@ iff.intro eq_of_dist_eq_zero (assume : x = y, this ▸ dist_self _)
 
 @[simp] theorem zero_eq_dist {x y : γ} : 0 = dist x y ↔ x = y :=
 by rw [eq_comm, dist_eq_zero]
+
+theorem dist_ne_zero {x y : γ} : dist x y ≠ 0 ↔ x ≠ y :=
+by simpa only [not_iff_not] using dist_eq_zero
 
 @[simp] theorem dist_le_zero {x y : γ} : dist x y ≤ 0 ↔ x = y :=
 by simpa [le_antisymm_iff, dist_nonneg] using @dist_eq_zero _ _ x y

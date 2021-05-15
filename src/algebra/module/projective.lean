@@ -134,15 +134,15 @@ section ring
 variables {R : Type u} [ring R] {P : Type v} [add_comm_group P] [module R P]
 
 /-- Free modules are projective. -/
-theorem of_free {ι : Type*} {b : ι → P} (hb : is_basis R b) : is_projective R P :=
+theorem of_free {ι : Type*} (b : basis ι R P) : is_projective R P :=
 begin
   -- need P →ₗ (P →₀ R) for definition of projective.
   -- get it from `ι → (P →₀ R)` coming from `b`.
-  use hb.constr (λ i, finsupp.single (b i) 1),
+  use b.constr ℕ (λ i, finsupp.single (b i) (1 : R)),
   intro m,
-  simp only [hb.constr_apply, mul_one, id.def, finsupp.smul_single', finsupp.total_single,
+  simp only [b.constr_apply, mul_one, id.def, finsupp.smul_single', finsupp.total_single,
     linear_map.map_finsupp_sum],
-  exact hb.total_repr m,
+  exact b.total_repr m,
 end
 
 end ring

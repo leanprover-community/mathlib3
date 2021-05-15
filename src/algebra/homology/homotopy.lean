@@ -45,7 +45,7 @@ end
 begin
   dsimp [from_next'],
   rcases c.next i with ⟨⟩|⟨⟨i', w⟩⟩;
-  { dsimp [from_next'._match_1], simp, },
+  { dsimp [from_next'], simp, },
 end
 
 @[simp] lemma from_next'_add (f g : Π i j, C.X i ⟶ D.X j) (i j : ι) :
@@ -72,7 +72,7 @@ begin
   dsimp [from_next', hom.next],
   rcases c.next i with _|⟨i',w⟩,
   { exact comp_zero.symm, },
-  { dsimp [from_next'._match_1, hom.next._match_1],
+  { dsimp [from_next', hom.next],
     simp, },
 end
 
@@ -82,7 +82,7 @@ begin
   dsimp [from_next'],
   rcases c.next i with _|⟨i',w⟩,
   { exact zero_comp.symm, },
-  { dsimp [from_next'._match_1, hom.next._match_1],
+  { dsimp [from_next', hom.next],
     simp, },
 end
 
@@ -105,7 +105,7 @@ end
 begin
   dsimp [to_prev'],
   rcases c.prev j with ⟨⟩|⟨⟨j', w⟩⟩;
-  { dsimp [to_prev'._match_1], simp, },
+  { dsimp [to_prev'], simp, },
 end
 
 @[simp] lemma to_prev'_add (f g : Π i j, C.X i ⟶ D.X j) (i j : ι) :
@@ -132,7 +132,7 @@ begin
   dsimp [to_prev'],
   rcases c.prev j with _|⟨j',w⟩,
   { exact comp_zero.symm, },
-  { dsimp [to_prev'._match_1, hom.prev._match_1],
+  { dsimp [to_prev', hom.prev],
     simp, },
 end
 
@@ -142,7 +142,7 @@ begin
   dsimp [to_prev', hom.prev],
   rcases c.prev j with _|⟨j',w⟩,
   { exact zero_comp.symm, },
-  { dsimp [to_prev'._match_1, hom.prev._match_1],
+  { dsimp [to_prev', hom.prev],
     simp, },
 end
 

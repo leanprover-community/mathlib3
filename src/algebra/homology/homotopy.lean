@@ -147,9 +147,8 @@ begin
 end
 
 /--
-A homotopy `h` between chain maps `f` and `g` consists of components `h i j : C.X i ⟶ D.X i`
-which are zero unless `c.rel j i`,
-satisfying the homotopy condition.
+A homotopy `h` between chain maps `f` and `g` consists of components `h i j : C.X i ⟶ D.X j`
+which are zero unless `c.rel j i`, satisfying the homotopy condition.
 -/
 @[ext, nolint has_inhabited_instance]
 structure homotopy (f g : C ⟶ D) :=
@@ -190,13 +189,7 @@ def equiv_sub_zero : homotopy f g ≃ homotopy (f - g) 0 :=
   inv_fun := λ h,
   { hom := λ i j, h.hom i j,
     zero' := λ i j w, h.zero _ _ w,
-    comm' := λ i, begin
-      have c := h.comm i,
-      simp only [homological_complex.sub_f_apply, add_zero, homological_complex.zero_f_apply,
-        sub_eq_iff_eq_add] at c,
-      rw c,
-      refl,
-    end, },
+    comm' := λ i, by simpa [sub_eq_iff_eq_add] using h.comm i },
   left_inv := by tidy,
   right_inv := by tidy, }
 
@@ -254,7 +247,7 @@ by { convert h.comp_left g, simp, }
 so that as we construct each component, we have available the previous two components,
 and the fact that they satisfy the homotopy condition.
 
-To simplify the situation, we only construction homotopies of the form `homotopy e 0`.
+To simplify the situation, we only construct homotopies of the form `homotopy e 0`.
 `homotopy.equiv_sub_zero` can provide the general case.
 
 Notice however, that this construction does not have particularly good definitional properties:

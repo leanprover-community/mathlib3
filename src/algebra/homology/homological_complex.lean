@@ -167,7 +167,7 @@ instance : has_zero_morphisms (homological_complex V c) :=
 @[simp] lemma zero_apply (C D : homological_complex V c) (i : ι) :
   (0 : C ⟶ D).f i = 0 := rfl
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
 { zero :=
@@ -233,7 +233,7 @@ end
 section
 
 variables [has_zero_object V]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- Either `C.X i`, if there is some `i` with `c.rel i j`, or the zero object. -/
 def X_prev (j : ι) : V :=
@@ -383,7 +383,7 @@ namespace hom
 
 variables {C₁ C₂ C₃ : homological_complex V c}
 variables [has_zero_object V]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 

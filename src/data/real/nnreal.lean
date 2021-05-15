@@ -670,3 +670,14 @@ end nnreal
 
 @[norm_cast, simp] lemma nnreal.coe_nnabs (x : ℝ) : (real.nnabs x : ℝ) = abs x :=
 by simp [real.nnabs]
+
+@[simp]
+lemma real.nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : real.nnabs x = nnreal.of_real x :=
+by { ext, simp [nnreal.coe_of_real x h, abs_of_nonneg h] }
+
+lemma nnreal.coe_of_real_le (x : ℝ) : (nnreal.of_real x : ℝ) ≤ abs x :=
+begin
+  by_cases h : 0 ≤ x,
+  { simp [h, nnreal.coe_of_real x h, le_abs_self] },
+  { simp [nnreal.of_real, h, le_abs_self, abs_nonneg] }
+end

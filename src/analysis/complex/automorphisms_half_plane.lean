@@ -174,7 +174,99 @@ end
 lemma smul_mul (x y : SL(2, ℝ)) (z : ℍ) :
 smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
 begin
+  set YZ := smul_aux y z,
   simp only [smul_aux, smul_aux'],
+  set botxYZ := bottom x YZ,
+  set botxyZ := bottom (x*y) z,
+  rw upper_half_plane.ext_iff,
+--  rw ← upper_half_plane.coe_point {point := top (x * y) z / botxyZ, im_pos' := _},
+  have : (({point := top (x * y) z / botxyZ, im_pos' := _}:ℍ):ℂ) = top (x * y) z / botxyZ := rfl,
+  rw this, clear this,
+--  rw ← upper_half_plane.coe_point,
+  have : (({point := top x YZ / botxYZ, im_pos' := _}:ℍ):ℂ) = top x YZ / botxYZ := rfl,
+  rw this, clear this,
+  have xYZ_nonzero : botxYZ ≠ 0 := bottom_nonzero _ YZ,
+  have xyZ_nonzero : botxyZ ≠ 0 := bottom_nonzero _ z,
+  field_simp,
+  simp only [botxYZ, bottom, YZ, smul_aux],
+  simp only [smul_aux'],
+  set botYZ := bottom y z,
+--  rw ← upper_half_plane.coe_point,
+  have : (({point := top y z / botYZ, im_pos' := _}:ℍ):ℂ) = top y z / botYZ := rfl,
+  rw this, clear this,
+  simp only [top],
+
+  have : (({point := ((y 0 0) * z + (y 0 1)) / botYZ, im_pos' := _}:ℍ):ℂ)=
+    ((y 0 0) * z + (y 0 1)) / botYZ := rfl,
+  rw this, clear this,
+  have YZ_nonzero : botYZ ≠ 0 := bottom_nonzero _ z,
+  field_simp *,
+  --field_simp [YZ_nonzero],
+  simp only [botYZ, botxyZ, bottom],
+
+  --simp only [matrix.mul, dot_product, fin.sum_univ_succ],
+  --simp,
+  --simp only [matrix.mul, dot_product, fin.sum_univ_succ],
+  --ring,
+  --simp,
+--  ring_nf,
+
+
+  have : matrix.mul x y 0 0 = (x 0 0)*(y 0 0)+(x 0 1)*(y 1 0)
+    := by simp [matrix.mul, dot_product, fin.sum_univ_succ],
+  rw this, clear this,
+
+  have : matrix.mul x y 0 1 = (x 0 0)*(y 0 1)+(x 0 1)*(y 1 1)
+    := by simp [matrix.mul, dot_product, fin.sum_univ_succ],
+  rw this, clear this,
+
+  have : (x*y) 1 1 = (x 0 1)*(y 0 1)+(x 1 1)*(y 1 1),
+  {
+    simp, -- squeeze_simp, -- keeps timing out! UGH
+    simp only [matrix.mul, dot_product, fin.sum_univ_succ],
+    sorry,
+
+   },
+  rw this, clear this,
+
+  have : (x*y) 1 0 = (x 0 1)*(y 0 0)+(x 1 1)*(y 1 0),
+  {
+--    simp, -- squeeze_simp, -- keeps timing out! UGH
+  --  simp only [matrix.mul, dot_product, fin.sum_univ_succ],
+    sorry,
+
+   },
+  rw this, clear this,
+
+  ring,
+  sorry,
+
+/-
+  simp only [top, botxyZ, botxYZ, bottom, YZ, smul_aux],
+
+  set topYZ := top y z,
+  have d1 : botYZ ≠ 0 := bottom_nonzero _ z,
+
+  have d2 : botXYZ ≠ 0 := bottom_nonzero _ z,
+  set botXZ := bottom x {point := top y z / botYZ, im_pos' := _},
+  have d3 : botXZ ≠ 0 := bottom_nonzero _ _,
+  simp only [top],
+
+  rw upper_half_plane.ext_iff,
+
+
+  have : (({point := top (x * y) z / botXYZ, im_pos' := _}:ℍ ):ℂ) = top (x * y) z / botXYZ := rfl,
+  rw this, clear this,
+--  rw ← upper_half_plane.coe_point,
+  have : (({point := top x {point := top y z / botYZ, im_pos' := _} /
+   bottom x {point := top y z / botYZ, im_pos' := _}, im_pos' := _}:ℍ ):ℂ ) =
+   top x {point := top y z / botYZ, im_pos' := _} /
+   bottom x {point := top y z / botYZ, im_pos' := _} := rfl,
+  rw this, clear this,
+
+  simp only [top],
+
+
   --Alex homework
   simp,
   rw bot_cocycle,
@@ -197,6 +289,7 @@ begin
   field_simp *,
   ring,
   exact h,
+  -/
 end
 
 

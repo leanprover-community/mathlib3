@@ -99,7 +99,7 @@ protected lemma sound {a b : C} {f₁ f₂ : a ⟶ b} (h : r f₁ f₂) :
   (functor r).map f₁ = (functor r).map f₂ :=
 by simpa using quot.sound (comp_closure.intro (𝟙 a) f₁ f₂ (𝟙 b) h)
 
-lemma functor_map_eq_iff [congruence r] {X Y : quotient r} (f f' : X.as ⟶ Y.as) :
+lemma functor_map_eq_iff [congruence r] {X Y : C} (f f' : X ⟶ Y) :
   (functor r).map f = (functor r).map f' ↔ r f f' :=
 begin
   split,

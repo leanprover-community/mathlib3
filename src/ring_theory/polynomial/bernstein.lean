@@ -9,7 +9,6 @@ import data.mv_polynomial.pderiv
 import data.nat.choose.sum
 import linear_algebra.basis
 import ring_theory.polynomial.pochhammer
-import tactic.omega
 
 /-!
 # Bernstein polynomials
@@ -94,9 +93,10 @@ begin
   dsimp [bernstein_polynomial],
   split_ifs,
   { subst h, simp, },
-  { by_cases w : 0 < n - ν,
-    { simp [zero_pow w], },
-    { simp [(show n < ν, by omega), nat.choose_eq_zero_of_lt], }, },
+  { obtain w|w := nat.eq_zero_or_pos (n - ν),
+    { have : n < ν := lt_of_le_of_ne (nat.le_of_sub_eq_zero w) (ne.symm h),
+      simp [nat.choose_eq_zero_of_lt this] },
+    { simp [zero_pow w] } },
 end.
 
 lemma derivative_succ_aux (n ν : ℕ) :
@@ -148,9 +148,7 @@ lemma iterate_derivative_at_0_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
 begin
   cases ν,
   { rintro ⟨⟩, },
-  { intro w,
-    replace w := nat.lt_succ_iff.mp w,
-    revert w,
+  { rw nat.lt_succ_iff,
     induction k with k ih generalizing n ν,
     { simp [eval_at_0], },
     { simp only [derivative_succ, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
@@ -162,8 +160,10 @@ begin
       rw ih,
       simp only [sub_zero],
       convert @ih (n-1) (ν-1) _,
-      { omega, },
-      { omega, },
+      { refine (nat.succ_pred_eq_of_pos _).symm,
+        exact lt_of_lt_of_le (nat.succ_pos k) h },
+      { rw nat.succ_le_iff at h,
+        exact nat.le_pred_of_lt h },
       { exact le_of_lt h, }, }, },
 end
 
@@ -188,15 +188,17 @@ begin
         iterate_derivative_sub, iterate_derivative_cast_nat_mul,
         eval_one, eval_mul, eval_add, eval_sub, eval_X, eval_comp, eval_nat_cast,
         function.comp_app, function.iterate_succ, pochhammer_succ_left],
-      by_cases h'' : ν = 0,
-      { simp [h''] },
-      { have : n - 1 - (ν - 1) = n - ν := by omega,
+      obtain rfl|h'' := nat.eq_zero_or_pos ν,
+      { simp },
+      { have : n - 1 - (ν - 1) = n - ν,
+        { rw ←nat.succ_le_iff at h'',
+          rw [nat.sub_sub, add_comm, nat.sub_add_cancel h''] },
         rw [this, pochhammer_eval_succ],
-        have : n - ν + ν = n := by omega,
+        have : n - ν + ν = n := nat.sub_add_cancel (le_trans h' (nat.pred_le _)),
         rw_mod_cast this } } },
   { simp only [not_le] at h,
-    have w₁ : n - (ν - 1) = 0, { omega, },
-    have w₂ : ν ≠ 0, { omega, },
+    have w₁ : n - (ν - 1) = 0 := nat.sub_eq_zero_of_le (nat.le_pred_of_lt h),
+    have w₂ : ν ≠ 0 := pos_iff_ne_zero.mp (pos_of_gt h),
     rw [w₁, eq_zero_of_lt R h],
     simp [w₂], }
 end
@@ -209,10 +211,11 @@ begin
   simp only [←pochhammer_eval_cast],
   norm_cast,
   apply ne_of_gt,
-  by_cases h : ν = 0,
-  { subst h, simp, },
+  obtain rfl|h' := nat.eq_zero_or_pos ν,
+  { simp, },
   { apply pochhammer_pos,
-    omega, },
+    apply nat.sub_pos_of_lt,
+    rwa [←nat.succ_lt_succ_iff, nat.lt_succ_iff, ←nat.pred_eq_sub_one, nat.succ_pred_eq_of_pos h'] }
 end
 
 /-!
@@ -223,7 +226,8 @@ lemma iterate_derivative_at_1_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
   k < n - ν → (polynomial.derivative^[k] (bernstein_polynomial R n ν)).eval 1 = 0 :=
 begin
   intro w,
-  rw flip' _ _ _ (show ν ≤ n, by omega),
+  have : ν < n := nat.lt_of_sub_pos (pos_of_gt w),
+  rw flip' _ _ _ this.le,
   simp [polynomial.eval_comp, iterate_derivative_at_0_eq_zero_of_lt R n w],
 end
 
@@ -234,13 +238,11 @@ lemma iterate_derivative_at_1 (n ν : ℕ) (h : ν ≤ n) :
 begin
   rw flip' _ _ _ h,
   simp [polynomial.eval_comp, h],
-  by_cases h' : n = ν,
-  { subst h', simp, },
-  { replace h : ν < n, { omega, },
-    congr,
+  obtain rfl|h' := h.eq_or_lt,
+  { simp, },
+  { congr,
     norm_cast,
-    congr,
-    omega, },
+    rw [nat.sub_sub, nat.sub_sub_self (nat.succ_le_iff.mpr h')] },
 end
 
 lemma iterate_derivative_at_1_ne_zero [char_zero R] (n ν : ℕ) (h : ν ≤ n) :
@@ -287,7 +289,9 @@ begin
       apply span_induction m,
       { simp,
         rintro ⟨a, w⟩, simp only [fin.coe_mk],
-        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ _ (show n - k < n - a, by omega)], },
+        have : n - k < n - a,
+        { rwa nat.sub_lt_sub_left_iff h },
+        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ _ this], },
       { simp, },
       { intros x y hx hy, simp [hx, hy], },
       { intros a x h, simp [h], }, }, },

@@ -183,14 +183,12 @@ end
 lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) :
   s.card ≤ t.card + 1 :=
 begin
-  have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length,
-  { intro i,
-    rw finset.length_sort,
-    exact lt_of_lt_of_le i.2 s.card.pred_le },
   have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
   { intro i,
     rw [finset.length_sort, ←nat.lt_sub_right_iff_add_lt],
     exact i.2 },
+  have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length :=
+  λ i, lt_of_le_of_lt (nat.le_succ i) (h1 i),
   have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
     ((s.sort (≤)).nth_le (i + 1) (h1 i))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))

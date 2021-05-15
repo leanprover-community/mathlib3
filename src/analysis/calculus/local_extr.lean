@@ -352,14 +352,22 @@ classical.by_cases
 
 end Rolle
 
+lemma ring_hom.char_zero {R S : Type*} [semiring R] [semiring S] (ϕ : R →+* S)
+  [hS : char_zero S] : char_zero R :=
+⟨λ a b h, char_zero.cast_injective (by rw [←ϕ.map_nat_cast, ←ϕ.map_nat_cast, h])⟩
+
+lemma ring_hom.char_zero_iff {R S : Type*} [semiring R] [semiring S] {ϕ : R →+* S}
+  (hϕ : function.injective ϕ) : char_zero R ↔ char_zero S :=
+⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, ϕ.map_nat_cast, ϕ.map_nat_cast]⟩,
+  λ hS, by exactI ϕ.char_zero⟩
+
 namespace polynomial
 
 lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
-  haveI : char_zero F := char_zero_of_inj_zero
-    (λ n hn, by rwa [←(algebra_map F ℝ).injective.eq_iff, ring_hom.map_nat_cast,
-      ring_hom.map_zero, nat.cast_eq_zero] at hn),
+  haveI : char_zero F :=
+    (ring_hom.char_zero_iff (algebra_map F ℝ).injective).mpr (by apply_instance),
   by_cases hp : p = 0,
   { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card', zero_le_one] },
   by_cases hp' : p.derivative = 0,

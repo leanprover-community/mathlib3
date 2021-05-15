@@ -211,8 +211,8 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
 
 @[simp] lemma integrable_on_add_measure :
   integrable_on f s (μ + ν) ↔ integrable_on f s μ ∧ integrable_on f s ν :=
-⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
-  h.mono_measure (measure.le_add_left (le_refl _))⟩,
+⟨λ h, ⟨h.mono_measure (measure.le_self_add),
+  h.mono_measure (measure.le_add_self)⟩,
   λ h, h.1.add_measure h.2⟩
 
 lemma ae_measurable_indicator_iff (hs : measurable_set s) :

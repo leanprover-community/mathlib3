@@ -2396,7 +2396,7 @@ begin
   apply monotone_of_monotone_nat (λ n, _),
   by_cases h : n < L.length,
   { rw sum_take_succ _ _ h,
-    exact le_add_right (le_refl _) },
+    exact le_self_add },
   { push_neg at h,
     simp [take_all_of_le h, take_all_of_le (le_trans h (nat.le_succ _))] }
 end

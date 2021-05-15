@@ -505,7 +505,7 @@ end
 sub_le_iff_le_add.2 $ le_add_right $ le_refl r
 
 lemma add_sub_cancel {r p : ℝ≥0} : (p + r) - r = p :=
-nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add_left (le_refl _)
+nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add_self
 
 lemma add_sub_cancel' {r p : ℝ≥0} : (r + p) - r = p :=
 by rw [add_comm, add_sub_cancel]
@@ -532,7 +532,7 @@ begin
       nnreal.coe_sub (le_of_lt (sub_pos.1 (lt_of_le_of_lt (zero_le _) H))),
     rwa [← nnreal.coe_lt_coe, this, lt_sub_iff_add_lt, ← nnreal.coe_add] at H },
   { assume H,
-    have : r ≤ q := le_trans (le_add_left (le_refl _)) (le_of_lt H),
+    have : r ≤ q := le_trans (le_add_self) (le_of_lt H),
     rwa [← nnreal.coe_lt_coe, nnreal.coe_sub this, lt_sub_iff_add_lt, ← nnreal.coe_add] }
 end
 

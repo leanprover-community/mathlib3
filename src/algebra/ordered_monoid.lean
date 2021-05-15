@@ -762,9 +762,15 @@ end
 calc a = 1 * a : by simp
   ... ≤ b * c : mul_le_mul' (one_le _) h
 
+@[to_additive] lemma le_mul_self : a ≤ b * a :=
+le_mul_left (le_refl a)
+
 @[to_additive] lemma le_mul_right (h : a ≤ b) : a ≤ b * c :=
 calc a = a * 1 : by simp
   ... ≤ b * c : mul_le_mul' h (one_le _)
+
+@[to_additive] lemma le_self_mul : a ≤ a * c :=
+le_mul_right (le_refl a)
 
 local attribute [semireducible] with_zero
 

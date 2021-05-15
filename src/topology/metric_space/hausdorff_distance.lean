@@ -413,6 +413,7 @@ lemma uniform_continuous_inf_dist_pt :
 (lipschitz_inf_dist_pt s).uniform_continuous
 
 /-- The minimal distance to a set is continuous in point -/
+@[continuity]
 lemma continuous_inf_dist_pt : continuous (λx, inf_dist x s) :=
 (uniform_continuous_inf_dist_pt s).continuous
 

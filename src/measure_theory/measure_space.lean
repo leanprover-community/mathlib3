@@ -2155,7 +2155,7 @@ begin
   repeat {rw sub_def},
   have h_nonempty : {d | μ ≤ d + ν}.nonempty,
   { apply @set.nonempty_of_mem _ _ μ, rw mem_set_of_eq, intros t h_meas,
-    apply le_add_right (le_refl (μ t)) },
+    exact le_self_add },
   rw restrict_Inf_eq_Inf_restrict h_nonempty h_meas_s,
   apply le_antisymm,
   { apply @Inf_le_Inf_of_forall_exists_le (measure α) _,

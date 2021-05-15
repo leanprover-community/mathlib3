@@ -92,7 +92,8 @@ instance : has_forget₂ SemiNormedGroup' SemiNormedGroup :=
   { obj := λ X, X,
     map := λ X Y f, f.1, }, }
 
-@[simp] lemma coe_of (V : Type u) [semi_normed_group V] : (SemiNormedGroup'.of V : Type u) = V := rfl
+@[simp] lemma coe_of (V : Type u) [semi_normed_group V] : (SemiNormedGroup'.of V : Type u) = V :=
+rfl
 @[simp] lemma coe_id (V : SemiNormedGroup') : ⇑(𝟙 V) = id := rfl
 @[simp] lemma coe_comp {M N K : SemiNormedGroup'} (f : M ⟶ N) (g : N ⟶ K) :
   ((f ≫ g) : M → K) = g ∘ f := rfl

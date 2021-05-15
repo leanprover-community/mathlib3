@@ -136,7 +136,7 @@ section skeleton
 
 /-- The skeleton functor from simplicial objects to truncated simplicial objects. -/
 def sk (n : ℕ) : simplicial_object C ⥤ simplicial_object.truncated C n :=
-(whiskering_left _ _ _).obj (simplex_category.truncated.inclusion).op
+(whiskering_left _ _ _).obj simplex_category.truncated.inclusion.op
 
 end skeleton
 
@@ -249,7 +249,7 @@ variable (C)
 
 /-- Truncated cosimplicial objects. -/
 @[derive category, nolint has_inhabited_instance]
-def truncated (n : ℕ) := (simplex_category.truncated.{v} n) ⥤ C
+def truncated (n : ℕ) := simplex_category.truncated.{v} n ⥤ C
 
 variable {C}
 
@@ -273,7 +273,7 @@ section skeleton
 
 /-- The skeleton functor from cosimplicial objects to truncated cosimplicial objects. -/
 def sk (n : ℕ) : cosimplicial_object C ⥤ cosimplicial_object.truncated C n :=
-(whiskering_left _ _ _).obj (simplex_category.truncated.inclusion)
+(whiskering_left _ _ _).obj simplex_category.truncated.inclusion
 
 end skeleton
 

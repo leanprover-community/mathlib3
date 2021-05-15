@@ -494,50 +494,50 @@ begin
         ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zL k
           - (xL i * y + x * yL j - xL i * yL j) * zL k⟧
         = ⟦xL i * (y * z) + x * (yL j * z + y * zL k - yL j * zL k)
-                 - xL i * (yL j * z + y * zL k - yL j * zL k)⟧,
+          - xL i * (yL j * z + y * zL k - yL j * zL k)⟧,
         simp [quot_mul_assoc], abel },
     { change
         ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zL k
           - (xR i * y + x * yR j - xR i * yR j) * zL k⟧
         = ⟦xR i * (y * z) + x * (yR j * z + y * zL k - yR j * zL k)
-                 - xR i * (yR j * z + y * zL k - yR j * zL k)⟧,
+          - xR i * (yR j * z + y * zL k - yR j * zL k)⟧,
         simp [quot_mul_assoc], abel },
     { change
         ⟦(xL i * y + x * yR j - xL i * yR j) * z + (x * y) * zR k
           - (xL i * y + x * yR j - xL i * yR j) * zR k⟧
         = ⟦xL i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
-                 - xL i * (yR j * z + y * zR k - yR j * zR k)⟧,
+          - xL i * (yR j * z + y * zR k - yR j * zR k)⟧,
         simp [quot_mul_assoc], abel },
     { change
         ⟦(xR i * y + x * yL j - xR i * yL j) * z + (x * y) * zR k
           - (xR i * y + x * yL j - xR i * yL j) * zR k⟧
         = ⟦xR i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
-                 - xR i * (yL j * z + y * zR k - yL j * zR k)⟧,
+          - xR i * (yL j * z + y * zR k - yL j * zR k)⟧,
         simp [quot_mul_assoc], abel } },
   { rintro (⟨i, ⟨j, k⟩ | ⟨j, k⟩⟩ | ⟨i, ⟨j, k⟩ | ⟨j, k⟩⟩),
     { change
         ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zR k
           - (xL i * y + x * yL j - xL i * yL j) * zR k⟧
         = ⟦xL i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
-                 - xL i * (yL j * z + y * zR k - yL j * zR k)⟧,
+          - xL i * (yL j * z + y * zR k - yL j * zR k)⟧,
         simp [quot_mul_assoc], abel },
     { change
         ⟦(xL i * y + x * yR j - xL i * yR j) * z + (x * y) * zL k
           - (xL i * y + x * yR j - xL i * yR j) * zL k⟧
         = ⟦xL i * (y * z) + x * (yR j * z + y * zL k - yR j * zL k)
-                 - xL i * (yR j * z + y * zL k - yR j * zL k)⟧,
+          - xL i * (yR j * z + y * zL k - yR j * zL k)⟧,
         simp [quot_mul_assoc], abel },
     { change
         ⟦(xR i * y + x * yL j - xR i * yL j) * z + (x * y) * zL k
           - (xR i * y + x * yL j - xR i * yL j) * zL k⟧
         = ⟦xR i * (y * z) + x * (yL j * z + y * zL k - yL j * zL k)
-                 - xR i * (yL j * z + y * zL k - yL j * zL k)⟧,
+          - xR i * (yL j * z + y * zL k - yL j * zL k)⟧,
         simp [quot_mul_assoc], abel },
     { change
         ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zR k
           - (xR i * y + x * yR j - xR i * yR j) * zR k⟧
         = ⟦xR i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
-                 - xR i * (yR j * z + y * zR k - yR j * zR k)⟧,
+          - xR i * (yR j * z + y * zR k - yR j * zR k)⟧,
         simp [quot_mul_assoc], abel } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

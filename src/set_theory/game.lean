@@ -423,7 +423,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem left_distrib_equiv (x y z : pgame) : x * (y + z) ≈ x * y + x * z :=
 quotient.exact $ quot_left_distrib _ _ _
 
-@[simp] theorem left_distrib_sub (x y z : pgame) : ⟦x * (y - z)⟧ = ⟦x * y⟧ - ⟦x * z⟧ :=
+@[simp] theorem quot_left_distrib_sub (x y z : pgame) : ⟦x * (y - z)⟧ = ⟦x * y⟧ - ⟦x * z⟧ :=
 by { change  ⟦x * (y + -z)⟧ = ⟦x * y⟧ + -⟦x * z⟧, rw [quot_left_distrib, quot_mul_neg] }
 
 @[simp] theorem quot_right_distrib (x y z : pgame) : ⟦(x + y) * z⟧ = ⟦x * z⟧ + ⟦y * z⟧ :=
@@ -433,7 +433,7 @@ by simp only [quot_mul_comm, quot_left_distrib]
 theorem right_distrib_equiv (x y z : pgame) : (x + y) * z ≈ x * z + y * z :=
 quotient.exact $ quot_right_distrib _ _ _
 
-@[simp] theorem right_distrib_sub (x y z : pgame) : ⟦(y - z) * x⟧ = ⟦y * x⟧ - ⟦z * x⟧ :=
+@[simp] theorem quot_right_distrib_sub (x y z : pgame) : ⟦(y - z) * x⟧ = ⟦y * x⟧ - ⟦z * x⟧ :=
 by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_distrib, quot_neg_mul] }
 
 @[simp] theorem quot_mul_one : Π (x : pgame), ⟦x * 1⟧ = ⟦x⟧

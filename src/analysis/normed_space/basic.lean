@@ -91,18 +91,6 @@ instance : normed_group punit :=
 { norm := function.const _ 0,
   dist_eq := λ _ _, rfl, }
 
-instance : normed_group ℤ :=
-{ norm := λ x, abs x,
-  dist_eq := λ x y, by { rw int.dist_eq x y, congr, norm_cast, }, }
-
-lemma int.norm_eq_abs (r : ℤ) : ∥r∥ = abs r := rfl
-
-instance : normed_group ℚ :=
-{ norm := λ x, abs x,
-  dist_eq := λ x y, by { rw rat.dist_eq x y, congr, norm_cast, }, }
-
-lemma rat.norm_eq_abs (r : ℚ) : ∥r∥ = abs r := rfl
-
 instance : normed_group ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl }

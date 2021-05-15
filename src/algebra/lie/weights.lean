@@ -290,12 +290,13 @@ variables (R L H M)
 
 /-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural
 `R`-bilinear product of root vectors and weight vectors, compatible with the actions of `H`. -/
-def root_space_weight_space_product (χ₁ χ₂ : H → R) :
-  (root_space H χ₁) ⊗[R] (weight_space M χ₂) →ₗ⁅R,H⁆ weight_space M (χ₁ + χ₂) :=
-lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M (χ₁ + χ₂))
+def root_space_weight_space_product (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) :
+  (root_space H χ₁) ⊗[R] (weight_space M χ₂) →ₗ⁅R,H⁆ weight_space M χ₃ :=
+lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M χ₃)
 { to_fun    := λ x,
   { to_fun    :=
-      λ m, ⟨⁅(x : L), (m : M)⁆, lie_mem_weight_space_of_mem_weight_space x.property m.property⟩,
+      λ m, ⟨⁅(x : L), (m : M)⁆,
+            hχ ▸ (lie_mem_weight_space_of_mem_weight_space x.property m.property) ⟩,
     map_add'  := λ m n, by { simp only [lie_submodule.coe_add, lie_add], refl, },
     map_smul' := λ t m, by { conv_lhs { congr, rw [lie_submodule.coe_smul, lie_smul], }, refl, }, },
   map_add'  := λ x y, by ext m; rw [linear_map.add_apply, linear_map.coe_mk, linear_map.coe_mk,
@@ -310,33 +311,34 @@ lift_lie R H (root_space H χ₁) (weight_space M χ₂) (weight_space M (χ₁ 
     lie_subalgebra.coe_bracket_of_module, lie_lie], }
 
 @[simp] lemma coe_root_space_weight_space_product_tmul
-  (χ₁ χ₂ : H → R) (x : root_space H χ₁) (m : weight_space M χ₂) :
-  (root_space_weight_space_product R L H M χ₁ χ₂ (x ⊗ₜ m) : M) = ⁅(x : L), (m : M)⁆ :=
+  (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) (x : root_space H χ₁) (m : weight_space M χ₂) :
+  (root_space_weight_space_product R L H M χ₁ χ₂ χ₃ hχ (x ⊗ₜ m) : M) = ⁅(x : L), (m : M)⁆ :=
 by simp only [root_space_weight_space_product, lift_apply, lie_module_hom.coe_to_linear_map,
   coe_lift_lie_eq_lift_coe, submodule.coe_mk, linear_map.coe_mk, lie_module_hom.coe_mk]
 
 /-- Given a nilpotent Lie subalgebra `H ⊆ L` together with `χ₁ χ₂ : H → R`, there is a natural
 `R`-bilinear product of root vectors, compatible with the actions of `H`. -/
-def root_space_product (χ₁ χ₂ : H → R) :
-  (root_space H χ₁) ⊗[R] (root_space H χ₂) →ₗ⁅R,H⁆ root_space H (χ₁ + χ₂) :=
-root_space_weight_space_product R L H L χ₁ χ₂
+def root_space_product (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) :
+  (root_space H χ₁) ⊗[R] (root_space H χ₂) →ₗ⁅R,H⁆ root_space H χ₃ :=
+root_space_weight_space_product R L H L χ₁ χ₂ χ₃ hχ
 
-@[simp] lemma root_space_product_def (χ₁ χ₂ : H → R) :
-  root_space_product R L H χ₁ χ₂ = root_space_weight_space_product R L H L χ₁ χ₂ :=
+@[simp] lemma root_space_product_def :
+  root_space_product R L H = root_space_weight_space_product R L H L :=
 rfl
 
-lemma root_space_product_tmul (χ₁ χ₂ : H → R) (x : root_space H χ₁) (y : root_space H χ₂) :
-  (root_space_product R L H χ₁ χ₂ (x ⊗ₜ y) : L) = ⁅(x : L), (y : L)⁆ :=
+lemma root_space_product_tmul
+  (χ₁ χ₂ χ₃ : H → R) (hχ : χ₁ + χ₂ = χ₃) (x : root_space H χ₁) (y : root_space H χ₂) :
+  (root_space_product R L H χ₁ χ₂ χ₃ hχ (x ⊗ₜ y) : L) = ⁅(x : L), (y : L)⁆ :=
 by simp only [root_space_product_def, coe_root_space_weight_space_product_tmul]
 
 /-- Given a nilpotent Lie subalgebra `H ⊆ L`, the root space of the zero map `0 : H → R` is a Lie
 subalgebra of `L`. -/
 def zero_root_subalgebra : lie_subalgebra R L :=
 { lie_mem' := λ x y hx hy, by
-  { suffices : (root_space_product R L H 0 0 (⟨x, hx⟩ ⊗ₜ ⟨y, hy⟩) : L) ∈ root_space H 0,
+  { let xy : (root_space H 0) ⊗[R] (root_space H 0) := ⟨x, hx⟩ ⊗ₜ ⟨y, hy⟩,
+    suffices : (root_space_product R L H 0 0 0 (add_zero 0) xy : L) ∈ root_space H 0,
     { rwa [root_space_product_tmul, subtype.coe_mk, subtype.coe_mk] at this, },
-    conv_rhs { rw ← add_zero (0 : H → R), },
-    exact (root_space_product R L H 0 0 (⟨x, hx⟩ ⊗ₜ ⟨y, hy⟩)).property, },
+    exact (root_space_product R L H 0 0 0 (add_zero 0) xy).property, },
   .. (root_space H 0 : submodule R L) }
 
 @[simp] lemma coe_zero_root_subalgebra :

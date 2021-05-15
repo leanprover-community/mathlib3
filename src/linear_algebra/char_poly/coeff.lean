@@ -9,7 +9,7 @@ import data.matrix.char_p
 import field_theory.finite.basic
 import group_theory.perm.cycles
 import linear_algebra.char_poly.basic
-import linear_algebra.matrix
+import linear_algebra.matrix.trace
 import ring_theory.polynomial.basic
 import ring_theory.power_basis
 

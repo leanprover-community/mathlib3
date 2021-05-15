@@ -6,7 +6,7 @@ Authors: Nicolò Cavalleri
 
 import topology.subset_properties
 import topology.tactic
-import topology.algebra.ordered
+import topology.algebra.ordered.basic
 
 /-!
 # Continuous bundled map

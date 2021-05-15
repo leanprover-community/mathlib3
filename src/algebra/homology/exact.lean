@@ -69,7 +69,7 @@ attribute [simp, reassoc] exact.w
 
 section
 variables [has_zero_object V] [preadditive V] [has_kernels V] [has_cokernels V]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /--
 In any preadditive category,
@@ -230,7 +230,7 @@ end has_cokernels
 section
 variables [has_zero_object V]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 section
 variables [has_zero_morphisms V] [has_kernels V]

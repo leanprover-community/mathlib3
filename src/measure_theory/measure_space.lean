@@ -1731,18 +1731,27 @@ section no_atoms
 
 variables [has_no_atoms μ]
 
-lemma measure_countable (h : countable s) : μ s = 0 :=
+instance (s : set α) : has_no_atoms (μ.restrict s) :=
+begin
+  refine ⟨λ x, _⟩,
+  obtain ⟨t, hxt, ht1, ht2⟩ := exists_measurable_superset_of_null (measure_singleton x : μ {x} = 0),
+  apply measure_mono_null hxt,
+  rw measure.restrict_apply ht1,
+  apply measure_mono_null (inter_subset_left t s) ht2
+end
+
+lemma _root_.set.countable.measure_zero (h : countable s) : μ s = 0 :=
 begin
   rw [← bUnion_of_singleton s, ← nonpos_iff_eq_zero],
   refine le_trans (measure_bUnion_le h _) _,
   simp
 end
 
-lemma measure_finite (h : s.finite) : μ s = 0 :=
-measure_countable h.countable
+lemma _root_.set.finite.measure_zero (h : s.finite) : μ s = 0 :=
+h.countable.measure_zero
 
-lemma measure_finset (s : finset α) : μ ↑s = 0 :=
-measure_finite s.finite_to_set
+lemma _root_.finset.measure_zero (s : finset α) : μ ↑s = 0 :=
+s.finite_to_set.measure_zero
 
 lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=

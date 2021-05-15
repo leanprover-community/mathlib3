@@ -67,6 +67,12 @@ structure content (G : Type w) [topological_space G] :=
    to_fun (K₁ ⊔ K₂) = to_fun K₁ + to_fun K₂)
 (union_le' : ∀ (K₁ K₂ : compacts G), to_fun (K₁ ⊔ K₂) ≤ to_fun K₁ + to_fun K₂)
 
+instance : inhabited (content G) :=
+⟨{ to_fun := λ K, 0,
+  mono' := by simp,
+  union_disjoint' := by simp,
+  union_le' := by simp }⟩
+
 /-- Although the `to_fun` field of a content takes values in `ℝ≥0`, we register a coercion to
 functions taking values in `ℝ≥0∞` as most constructions below rely on taking suprs and infs, which
 is more convenient in a complete lattice, and aim at constructing a measure. -/
@@ -211,7 +217,7 @@ lemma inner_content_mono' ⦃U V : set G⦄
 supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
 
 /-- Extending a content on compact sets to an outer measure on all sets. -/
-protected def outer_measure [t2_space G] : outer_measure G :=
+protected def outer_measure : outer_measure G :=
 induced_outer_measure (λ U hU, μ.inner_content ⟨U, hU⟩) is_open_empty μ.inner_content_empty
 
 variables [t2_space G]

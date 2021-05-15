@@ -197,10 +197,16 @@ lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) : ch
 ⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, ϕ.map_nat_cast, ϕ.map_nat_cast]⟩,
   λ hS, by exactI ϕ.char_zero⟩
 
+end ring_hom
+
+section algebra
+
+variables {R S : Type*} [comm_semiring R] [semiring S]
+
 instance algebra_char_zero [algebra R S] [char_zero S] : char_zero R :=
 (algebra_map R S).char_zero
 
 instance algebra_char_zero_iff [algebra R S] [char_zero S] : char_zero R :=
 (algebra_map R S).char_zero
 
-end ring_hom
+end algebra

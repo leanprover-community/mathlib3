@@ -129,15 +129,14 @@ open_locale topological_space
 
 section zoug
 
-variables {X : Type*} [metric_space X] [measurable_space X] [borel_space X] {ν : measure X}
+variables {X : Type*} [pseudo_emetric_space X] [measurable_space X] [borel_space X] {ν : measure X}
   [finite_measure ν]
-
-
-#exit
 
 lemma weakly_regular_aux1 (U : set X) (hU : is_open U) (ε : ℝ≥0∞) (hε : 0 < ε) :
   ∃ (F : set X), is_closed F ∧ F ⊆ U ∧ ν U ≤ ν F + ε :=
 begin
+  rcases hU.exists_Union_is_closed,
+
   have L : tendsto (λ n, ν (F n) + ε) at_top (𝓝 (ν U + ε)),
   { rw ← Union_F,
     refine tendsto.add _ tendsto_const_nhds,

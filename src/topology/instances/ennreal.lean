@@ -846,7 +846,7 @@ lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ℝ≥0∞) (h : x ∈ ball a r)
 end
 
 section
-variable [emetric_space α]
+variable [pseudo_emetric_space α]
 open emetric
 
 lemma tendsto_iff_edist_tendsto_0 {l : filter β} {f : β → α} {y : α} :

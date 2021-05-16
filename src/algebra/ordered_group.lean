@@ -835,10 +835,10 @@ abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub; apply abs_sub_abs
 lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
 begin
   split,
-  { cases abs_choice a; rw h,
+  { cases abs_choice a with h h; rw h,
     { exact or.inl },
     { rw [neg_eq_iff_neg_eq, eq_comm], exact or.inr } },
-  { rintro (rfl|rfl); try { rw abs_neg }; exact abs_of_nonneg hb }
+  { rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb] }
 end
 
 lemma abs_eq_abs_iff {a b : α} : abs a = abs b ↔ a = b ∨ a = -b :=

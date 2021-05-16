@@ -1162,19 +1162,13 @@ begin
 end
 
 @[simp] lemma abs_dvd (a b : α) : abs a ∣ b ↔ a ∣ b :=
-begin
-  cases abs_choice a with h h; rw h,
-  exact neg_dvd a b,
-end
+by { cases abs_choice a with h h; simp only [h, neg_dvd] }
 
 lemma abs_dvd_self (a : α) : abs a ∣ a :=
 (abs_dvd a a).mpr (dvd_refl a)
 
 @[simp] lemma dvd_abs (a b : α) : a ∣ abs b ↔ a ∣ b :=
-begin
-  cases abs_choice b with h h; rw h,
-  exact dvd_neg a b,
-end
+by { cases abs_choice b with h h; simp only [h, dvd_neg] }
 
 lemma self_dvd_abs (a : α) : a ∣ abs a :=
 (dvd_abs a a).mpr (dvd_refl a)

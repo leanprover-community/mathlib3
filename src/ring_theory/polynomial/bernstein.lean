@@ -156,11 +156,9 @@ begin
         polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
       intro h,
       apply mul_eq_zero_of_right,
-      rw ih,
-      simp only [sub_zero],
+      rw [ih _ _ (nat.le_of_succ_le h), sub_zero],
       convert ih _ _ (nat.pred_le_pred h),
-      { exact (nat.succ_pred_eq_of_pos (k.succ_pos.trans_le h)).symm },
-      { exact nat.le_of_succ_le h } } },
+      exact (nat.succ_pred_eq_of_pos (k.succ_pos.trans_le h)).symm } },
 end
 
 @[simp]
@@ -239,14 +237,9 @@ end
 lemma iterate_derivative_at_1_ne_zero [char_zero R] (n ν : ℕ) (h : ν ≤ n) :
   (polynomial.derivative^[n-ν] (bernstein_polynomial R n ν)).eval 1 ≠ 0 :=
 begin
-  simp only [bernstein_polynomial.iterate_derivative_at_1 _ _ _ h, ne.def,
-    int.coe_nat_eq_zero, neg_one_pow_mul_eq_zero_iff, nat.cast_eq_zero],
-    rw ←nat.cast_succ,
-  simp only [←pochhammer_eval_cast],
-  norm_cast,
-  apply ne_of_gt,
-  apply pochhammer_pos,
-  exact nat.succ_pos ν,
+  rw [bernstein_polynomial.iterate_derivative_at_1 _ _ _ h, ne.def, neg_one_pow_mul_eq_zero_iff,
+    ←nat.cast_succ, ←pochhammer_eval_cast, ←nat.cast_zero, nat.cast_inj],
+  exact (pochhammer_pos _ _ (nat.succ_pos ν)).ne',
 end
 
 open submodule
@@ -280,7 +273,7 @@ begin
       apply span_induction m,
       { simp,
         rintro ⟨a, w⟩, simp only [fin.coe_mk],
-        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ n ((nat.sub_lt_sub_left_iff h).mpr w)]
+        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ n ((nat.sub_lt_sub_left_iff h).mpr w)] },
       { simp, },
       { intros x y hx hy, simp [hx, hy], },
       { intros a x h, simp [h], }, }, },

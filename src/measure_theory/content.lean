@@ -63,15 +63,15 @@ from which one can define a measure. -/
 structure content (G : Type w) [topological_space G] :=
 (to_fun : compacts G → ℝ≥0)
 (mono' : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → to_fun K₁ ≤ to_fun K₂)
-(union_disjoint' : ∀ (K₁ K₂ : compacts G), disjoint K₁.1 K₂.1 →
+(sup_disjoint' : ∀ (K₁ K₂ : compacts G), disjoint K₁.1 K₂.1 →
    to_fun (K₁ ⊔ K₂) = to_fun K₁ + to_fun K₂)
-(union_le' : ∀ (K₁ K₂ : compacts G), to_fun (K₁ ⊔ K₂) ≤ to_fun K₁ + to_fun K₂)
+(sup_le' : ∀ (K₁ K₂ : compacts G), to_fun (K₁ ⊔ K₂) ≤ to_fun K₁ + to_fun K₂)
 
 instance : inhabited (content G) :=
 ⟨{ to_fun := λ K, 0,
   mono' := by simp,
-  union_disjoint' := by simp,
-  union_le' := by simp }⟩
+  sup_disjoint' := by simp,
+  sup_le' := by simp }⟩
 
 /-- Although the `to_fun` field of a content takes values in `ℝ≥0`, we register a coercion to
 functions taking values in `ℝ≥0∞` as most constructions below rely on taking suprs and infs, which
@@ -87,18 +87,18 @@ lemma apply_eq_coe_to_fun (K : compacts G) : μ K = μ.to_fun K := rfl
 lemma mono (K₁ K₂ : compacts G) (h : K₁.1 ⊆ K₂.1) : μ K₁ ≤ μ K₂ :=
 by simp [apply_eq_coe_to_fun, μ.mono' _ _ h]
 
-lemma union_disjoint (K₁ K₂ : compacts G) (h : disjoint K₁.1 K₂.1) : μ (K₁ ⊔ K₂) = μ K₁ + μ K₂ :=
-by simp [apply_eq_coe_to_fun, μ.union_disjoint' _ _ h]
+lemma sup_disjoint (K₁ K₂ : compacts G) (h : disjoint K₁.1 K₂.1) : μ (K₁ ⊔ K₂) = μ K₁ + μ K₂ :=
+by simp [apply_eq_coe_to_fun, μ.sup_disjoint' _ _ h]
 
-lemma union_le (K₁ K₂ : compacts G) : μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂ :=
-by { simp only [apply_eq_coe_to_fun], norm_cast, exact μ.union_le' _ _ }
+lemma sup_le (K₁ K₂ : compacts G) : μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂ :=
+by { simp only [apply_eq_coe_to_fun], norm_cast, exact μ.sup_le' _ _ }
 
 lemma lt_top (K : compacts G) : μ K < ∞ :=
 ennreal.coe_lt_top
 
 lemma empty : μ ⊥ = 0 :=
 begin
-  have := μ.union_disjoint' ⊥ ⊥,
+  have := μ.sup_disjoint' ⊥ ⊥,
   simpa [apply_eq_coe_to_fun] using this,
 end
 
@@ -156,7 +156,7 @@ begin
   { intros t K, refine finset.induction_on t _ _,
     { simp only [μ.empty, nonpos_iff_eq_zero, finset.sum_empty, finset.sup_empty], },
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
-      exact le_trans (μ.union_le _ _) (add_le_add_left ih _) }},
+      exact le_trans (μ.sup_le _ _) (add_le_add_left ih _) }},
   refine bsupr_le (λ K hK, _),
   rcases is_compact.elim_finite_subcover K.2 _ (λ i, (U i).prop) _ with ⟨t, ht⟩, swap,
   { convert hK, rw [opens.supr_def, subtype.coe_mk] },
@@ -334,7 +334,7 @@ begin
   { simp only [union_subset_iff, compacts.sup_val, hM, hL, and_self] },
   rw μ.outer_measure_of_is_open ↑U' U'.2,
   refine le_trans (ge_of_eq _) (μ.le_inner_content _ _ this),
-  exact μ.union_disjoint _ _ hM.2.symm,
+  exact μ.sup_disjoint _ _ hM.2.symm,
 end
 
 /-- The measure induced by the outer measure coming from a content, on the Borel sigma-algebra. -/

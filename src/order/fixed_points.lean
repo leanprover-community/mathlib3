@@ -8,6 +8,21 @@ import dynamics.fixed_points.basic
 
 /-!
 # Fixed point construction on complete lattices
+
+This file sets up the basic theory of fixed points of a monotone function in a complete lattice
+
+## Main definitions
+
+* `lfp`: The least fixed point of a monotone function.
+* `gfp`: The greatest fixed point of a monotone function.
+* `prev_fixed`: The least fixed point of a monotone function greater than a given element.
+* `next_fixed`: The greatest fixed point of a monotone function smaller than a given element.
+* `fixed_points.complete_lattice`: The Knaster-Tarski theorem: fixed points form themselves a
+  complete lattice.
+
+## Tags
+
+fixed point, complete lattice, monotone function
 -/
 
 universes u v w

@@ -1602,7 +1602,7 @@ def to_finset (s : multiset α) : finset α := ⟨_, nodup_erase_dup s⟩
 theorem to_finset_eq {s : multiset α} (n : nodup s) : finset.mk s n = s.to_finset :=
 finset.val_inj.1 (erase_dup_eq_self.2 n).symm
 
-lemma to_finset_inj_of_nodup {l l' : multiset α} (hl : nodup l) (hl' : nodup l')
+lemma nodup.to_finset_inj {l l' : multiset α} (hl : nodup l) (hl' : nodup l')
   (h : l.to_finset = l'.to_finset) : l = l' :=
 by simpa [←to_finset_eq hl, ←to_finset_eq hl'] using h
 

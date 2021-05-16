@@ -36,7 +36,13 @@ usage. In the opposite direction, the implication
 [semigroup α] [partial_order α] [contravariant_class α α (*) (≤)] => left_cancel_semigroup α
 ```
 holds (note the `co*ntra*` assumption and the `(≤)`-relation).
--/
+
+# Formalization notes
+
+Sometimes we use `function.swap (*)` (or `function.swap (+)`), other times
+(`flip (*)` or `flip (+)`).
+As a general rule, we tend to prefer `flip`.  However, `function.swap` is slightly better behaved,
+in certain situations that I have not understood. -/
 -- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
 -- TODO: relationship with add_con
 -- include equivalence of `left_cancel_semigroup` with
@@ -549,14 +555,32 @@ lemma mul_lt_mul_left' (h : a < b) (c : α) : c * a < c * b :=
 lt_of_le_not_le (mul_le_mul_left' h.le _)
   (λ j, not_le_of_gt h (le_of_mul_le_mul_left' j))
 
-@[to_additive lt_add_of_pos_right]
-lemma lt_mul_of_one_lt_right' (a : α) {b : α} (h : 1 < b) : a < a * b :=
-have a * 1 < a * b, from mul_lt_mul_left a h,
-by rwa [mul_one] at this
+
+/-  Why is this instance not available? -/
+instance  {α : Type*} [add_left_cancel_monoid α] [partial_order α]
+   [covariant_class α α (+) (≤)]
+  [contravariant_class α α (+) (<)] : contravariant_class α α has_add.add has_le.le :=
+{ covtc :=  by {  intros a b c bc,
+    rcases le_iff_eq_or_lt.mp bc with h | h,
+      apply le_of_eq,
+      exact add_left_cancel_monoid.add_left_cancel a b c h,
+    apply le_of_lt,
+    exact lt_of_add_lt_add_left a h} }
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_left (a : α) {b c : α} : a * b ≤ a * c ↔ b ≤ c :=
-⟨le_of_mul_le_mul_left, λ h, mul_le_mul_left _ h⟩
+⟨λ h, le_of_mul_le_mul_left' h, λ h, mul_le_mul_left a h⟩
+
+lemma add_le_add_iff_left {α : Type*} [add_left_cancel_monoid α] [partial_order α]
+   [covariant_class α α (+) (≤)]
+  [contravariant_class α α (+) (<)]
+ (a : α) {b c : α} : a + b ≤ a + c ↔ b ≤ c :=
+⟨λ h, le_of_add_le_add_left a h, λ h, add_le_add_left a h⟩
+
+@[to_additive lt_add_of_pos_right]
+lemma lt_mul_of_one_lt_right' (a : α) {b : α} (h : 1 < b) : a < a * b :=
+have a * 1 < a * b, from mul_lt_mul_left' h a,
+by rwa [mul_one] at this
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_left (a : α) {b c : α} : a * b < a * c ↔ b < c :=

@@ -93,9 +93,8 @@ begin
   dsimp [bernstein_polynomial],
   split_ifs,
   { subst h, simp, },
-  { obtain w|w := nat.eq_zero_or_pos (n - ν),
-    { have : n < ν := lt_of_le_of_ne (nat.le_of_sub_eq_zero w) (ne.symm h),
-      simp [nat.choose_eq_zero_of_lt this] },
+  { obtain w | w := (n - ν).eq_zero_or_pos,
+    { simp [nat.choose_eq_zero_of_lt ((nat.le_of_sub_eq_zero w).lt_of_ne (ne.symm h))] },
     { simp [zero_pow w] } },
 end.
 
@@ -188,19 +187,16 @@ begin
         iterate_derivative_sub, iterate_derivative_cast_nat_mul,
         eval_one, eval_mul, eval_add, eval_sub, eval_X, eval_comp, eval_nat_cast,
         function.comp_app, function.iterate_succ, pochhammer_succ_left],
-      obtain rfl|h'' := nat.eq_zero_or_pos ν,
+      obtain rfl | h'' := ν.eq_zero_or_pos,
       { simp },
       { have : n - 1 - (ν - 1) = n - ν,
         { rw ←nat.succ_le_iff at h'',
           rw [nat.sub_sub, add_comm, nat.sub_add_cancel h''] },
         rw [this, pochhammer_eval_succ],
-        have : n - ν + ν = n := nat.sub_add_cancel (le_trans h' (nat.pred_le _)),
-        rw_mod_cast this } } },
+        rw_mod_cast nat.sub_add_cancel (h'.trans n.pred_le) } } },
   { simp only [not_le] at h,
-    have w₁ : n - (ν - 1) = 0 := nat.sub_eq_zero_of_le (nat.le_pred_of_lt h),
-    have w₂ : ν ≠ 0 := pos_iff_ne_zero.mp (pos_of_gt h),
-    rw [w₁, eq_zero_of_lt R h],
-    simp [w₂], }
+    rw [nat.sub_eq_zero_of_le (nat.le_pred_of_lt h), eq_zero_of_lt R h],
+    simp [pos_iff_ne_zero.mp (pos_of_gt h)] },
 end
 
 lemma iterate_derivative_at_0_ne_zero [char_zero R] (n ν : ℕ) (h : ν ≤ n) :
@@ -226,8 +222,7 @@ lemma iterate_derivative_at_1_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
   k < n - ν → (polynomial.derivative^[k] (bernstein_polynomial R n ν)).eval 1 = 0 :=
 begin
   intro w,
-  have : ν < n := nat.lt_of_sub_pos (pos_of_gt w),
-  rw flip' _ _ _ this.le,
+  rw flip' _ _ _ (nat.lt_of_sub_pos (pos_of_gt w)).le,
   simp [polynomial.eval_comp, iterate_derivative_at_0_eq_zero_of_lt R n w],
 end
 
@@ -238,7 +233,7 @@ lemma iterate_derivative_at_1 (n ν : ℕ) (h : ν ≤ n) :
 begin
   rw flip' _ _ _ h,
   simp [polynomial.eval_comp, h],
-  obtain rfl|h' := h.eq_or_lt,
+  obtain rfl | h' := h.eq_or_lt,
   { simp, },
   { congr,
     norm_cast,
@@ -289,9 +284,7 @@ begin
       apply span_induction m,
       { simp,
         rintro ⟨a, w⟩, simp only [fin.coe_mk],
-        have : n - k < n - a,
-        { rwa nat.sub_lt_sub_left_iff h },
-        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ _ this], },
+        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ n ((nat.sub_lt_sub_left_iff h).mpr w)]
       { simp, },
       { intros x y hx hy, simp [hx, hy], },
       { intros a x h, simp [h], }, }, },

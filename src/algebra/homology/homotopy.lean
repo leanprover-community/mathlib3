@@ -26,14 +26,37 @@ variables (f g : C ⟶ D) (h k : D ⟶ E) (i : ι)
 
 section
 
+/--
+The composition of `C.d i i' ≫ f i' i` if there is some `i'` coming after `i`,
+and `0` otherwise.
+-/
 def d_next (f : Π i j, C.X i ⟶ D.X j) (i : ι) : C.X i ⟶ D.X i :=
 match c.next i with
 | none := 0
-| some ⟨i',w⟩ := C.d _ _ ≫ f i' i
+| some ⟨i',w⟩ := C.d i i' ≫ f i' i
+end
+
+/--
+`f i' i` if `i'` comes after `i`, and 0 if there's no such `i'`.
+Hopefully there won't be much need for this, except in `d_next_eq_d_from_from_next`
+to see that `d_next` factors through `C.d_from i`.
+-/
+def from_next [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (i : ι) : C.X_next i ⟶ D.X i :=
+match c.next i with
+| none := 0
+| some ⟨i',w⟩ := (C.X_next_iso w).hom ≫ f i' i
+end
+
+lemma d_next_eq_d_from_from_next [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
+  d_next f i = C.d_from i ≫ from_next f i :=
+begin
+  dsimp [d_next, from_next],
+  rcases c.next i with ⟨⟩|⟨⟨i', w⟩⟩;
+  { dsimp [d_next, from_next], simp },
 end
 
 lemma d_next_eq (f : Π i j, C.X i ⟶ D.X j) {i i' : ι} (w : c.rel i i') :
-  d_next f i = C.d _ _ ≫ f i' i :=
+  d_next f i = C.d i i' ≫ f i' i :=
 begin
   dsimp [d_next],
   rw c.next_eq_some w,
@@ -85,14 +108,37 @@ begin
     simp, },
 end
 
+/--
+The composition of `f j j' ≫ D.d j' j` if there is some `j'` coming before `j`,
+and `0` otherwise.
+-/
 def prev_d (f : Π i j, C.X i ⟶ D.X j) (j : ι) : C.X j ⟶ D.X j :=
 match c.prev j with
 | none := 0
-| some ⟨j',w⟩ := f j j' ≫ D.d _ _
+| some ⟨j',w⟩ := f j j' ≫ D.d j' j
+end
+
+/--
+`f j j'` if `j'` comes after `j`, and 0 if there's no such `j'`.
+Hopefully there won't be much need for this, except in `d_next_eq_d_from_from_next`
+to see that `d_next` factors through `C.d_from i`.
+-/
+def to_prev [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (j : ι) : C.X j ⟶ D.X_prev j :=
+match c.prev j with
+| none := 0
+| some ⟨j',w⟩ := f j j' ≫ (D.X_prev_iso w).inv
+end
+
+lemma prev_d_eq_to_prev_d_to [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (j : ι) :
+  prev_d f j = to_prev f j ≫ D.d_to j :=
+begin
+  dsimp [prev_d, to_prev],
+  rcases c.prev j with ⟨⟩|⟨⟨j', w⟩⟩;
+  { dsimp [prev_d, to_prev], simp },
 end
 
 lemma prev_d_eq (f : Π i j, C.X i ⟶ D.X j) {j j' : ι} (w : c.rel j' j) :
-  prev_d f j = f j j' ≫ D.d _ _ :=
+  prev_d f j = f j j' ≫ D.d j' j :=
 begin
   dsimp [prev_d],
   rw c.prev_eq_some w,
@@ -420,15 +466,14 @@ begin
   simp only [homology.π_map, comp_zero, preadditive.comp_sub],
   dsimp [kernel_subobject_map],
   simp_rw [h.comm i],
-  simp only [add_zero, zero_comp, kernel_subobject_arrow_comp_assoc,
+  simp only [zero_add, zero_comp, d_next_eq_d_from_from_next, kernel_subobject_arrow_comp_assoc,
     preadditive.comp_add],
   rw [←preadditive.sub_comp],
   simp only [category_theory.subobject.factor_thru_add_sub_factor_thru_right],
   erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
   { simp, },
-  { --rw [←category.assoc],
-    --apply image_subobject_factors_comp_self,
-    sorry },
+  { rw [prev_d_eq_to_prev_d_to, ←category.assoc],
+    apply image_subobject_factors_comp_self, },
 end
 
 /-- Homotopy equivalent complexes have isomorphic homologies. -/

@@ -27,7 +27,7 @@ The finitely supported function `antidiagonal s` is equal to the multiplicities 
 def antidiagonal' (f : α →₀ ℕ) : ((α →₀ ℕ) × (α →₀ ℕ)) →₀ ℕ :=
 (f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
 
-/-- The antidiagonal of `s : α →₀ ℕ` is the set all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)`
+/-- The antidiagonal of `s : α →₀ ℕ` is the finset of all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)`
 such that `t₁ + t₂ = s`. -/
 def antidiagonal (f : α →₀ ℕ) : finset ((α →₀ ℕ) × (α →₀ ℕ)) :=
 (f.to_multiset.antidiagonal.map

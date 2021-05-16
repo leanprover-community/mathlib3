@@ -158,12 +158,9 @@ begin
       apply mul_eq_zero_of_right,
       rw ih,
       simp only [sub_zero],
-      convert @ih (n-1) (ν-1) _,
-      { refine (nat.succ_pred_eq_of_pos _).symm,
-        exact lt_of_lt_of_le (nat.succ_pos k) h },
-      { rw nat.succ_le_iff at h,
-        exact nat.le_pred_of_lt h },
-      { exact le_of_lt h, }, }, },
+      convert ih _ _ (nat.pred_le_pred h),
+      { exact (nat.succ_pred_eq_of_pos (k.succ_pos.trans_le h)).symm },
+      { exact nat.le_of_succ_le h } } },
 end
 
 @[simp]
@@ -209,9 +206,8 @@ begin
   apply ne_of_gt,
   obtain rfl|h' := nat.eq_zero_or_pos ν,
   { simp, },
-  { apply pochhammer_pos,
-    apply nat.sub_pos_of_lt,
-    rwa [←nat.succ_lt_succ_iff, nat.lt_succ_iff, ←nat.pred_eq_sub_one, nat.succ_pred_eq_of_pos h'] }
+  { rw ← nat.succ_pred_eq_of_pos h' at h,
+    exact pochhammer_pos _ _ (nat.sub_pos_of_lt (nat.lt_of_succ_le h)) }
 end
 
 /-!

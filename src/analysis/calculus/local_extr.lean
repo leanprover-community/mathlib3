@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import data.finset.sort
-import topology.algebra.polynomial
 import topology.local_extr
+import topology.algebra.polynomial
 
 /-!
 # Local extrema of smooth functions
@@ -358,9 +357,8 @@ namespace polynomial
 lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
-  haveI : char_zero F := char_zero_of_inj_zero
-    (λ n hn, by rwa [←(algebra_map F ℝ).injective.eq_iff, ring_hom.map_nat_cast,
-      ring_hom.map_zero, nat.cast_eq_zero] at hn),
+  haveI : char_zero F :=
+    (ring_hom.char_zero_iff (algebra_map F ℝ).injective).mpr (by apply_instance),
   by_cases hp : p = 0,
   { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card', zero_le_one] },
   by_cases hp' : p.derivative = 0,

@@ -407,6 +407,14 @@ lemma zero_root_subalgebra_is_cartan_of_eq (h : zero_root_subalgebra R L H = H) 
 { nilpotent        := infer_instance,
   self_normalizing := by { rw ← h, exact zero_root_subalgebra_normalizer_eq_self R L H, } }
 
+end lie_algebra
+
+namespace lie_module
+
+open lie_algebra
+
+variables {R L H}
+
 /-- A priori, weight spaces are Lie submodules over the Lie subalgebra `H` used to define them.
 However they are naturally Lie submodules over the (in general larger) Lie subalgebra
 `zero_root_subalgebra R L H`. Even though it is often the case that
@@ -421,7 +429,7 @@ def weight_space' (χ : H → R) : lie_submodule R (zero_root_subalgebra R L H) 
   .. (weight_space M χ : submodule R M) }
 
 @[simp] lemma coe_weight_space' (χ : H → R) :
-  (weight_space' R L H M χ : submodule R M) = weight_space M χ :=
+  (weight_space' M χ : submodule R M) = weight_space M χ :=
 rfl
 
-end lie_algebra
+end lie_module

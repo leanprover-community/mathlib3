@@ -12,15 +12,20 @@ import tactic.monotonicity
 /-!
 # Closure operators between preorders
 
-We define (bundled) closure operators on a partial order as an monotone (increasing), extensive
-(inflationary) and idempotent function.
+We define (bundled) closure operators on a preorder as monotone (increasing), extensive
+(inflationary) and idempotent functions.
 We define closed elements for the operator as elements which are fixed by it.
 
-Note that there is close connection to Galois connections and Galois insertions: every closure
-operator induces a Galois insertion (from the set of closed elements to the underlying type), and
-every Galois connection induces a closure operator (namely the composition). In particular,
-a Galois insertion can be seen as a general case of a closure operator, where the inclusion is given
-by coercion, see `closure_operator.gi`.
+Lower adjoints to a function between preorders `u : β → α` allow to generalise closure operators to
+situations where the closure operator we are dealing with naturally decomposes as `u ∘ l` where `l`
+is a worthy function to have on its own. Typical examples include
+`l : set G → subgroup G := subgroup.closure`, `u : subgroup G → set G := coe`, where `G` is a group.
+
+This shows there is a close connection between closure operators, lower adjoints and Galois
+connections/insertions: every Galois connection induces a lower adjoint which itself induces a
+closure operator by composition (see `galois_connection.lower_adjoint` and
+`lower_adjoint.closure_operator`), and every closure operator on a partial order induces a Galois
+insertion from the set of closed elements to the underlying type (see `closure_operator.gi`).
 
 ## Main definitions
 
@@ -35,7 +40,7 @@ Although `lower_adjoint` is technically a generalisation of `closure_operator` (
 `to_fun := id`), it is diserable to have both as otherwise `id`s would be carried all over the
 place when using concrete closure operators such as `convex_hull`.
 
-`lower_adjoint` really is a `structure` version of `galois_connection`.
+`lower_adjoint` really is a semibundled `structure` version of `galois_connection`.
 
 ## References
 
@@ -47,6 +52,7 @@ universe u
 /-! ### Closure operator -/
 
 variable (α : Type*)
+
 /-- A closure operator on the preorder `α` is a monotone function which is extensive (every `x`
 is less than its closure) and idempotent. -/
 structure closure_operator [preorder α] extends α →ₘ α :=
@@ -55,16 +61,16 @@ structure closure_operator [preorder α] extends α →ₘ α :=
 
 namespace closure_operator
 
-section partial_order
-variable [partial_order α]
-
-instance : has_coe_to_fun (closure_operator α) :=
+instance [preorder α] : has_coe_to_fun (closure_operator α) :=
 { F := _, coe := λ c, c.to_fun }
 
 /-- See Note [custom simps projection] -/
-def closure_operator.simps.apply (f : closure_operator α) : α → α := f
+def simps.apply [preorder α] (f : closure_operator α) : α → α := f
 
 initialize_simps_projections closure_operator (to_preorder_hom_to_fun → apply, -to_preorder_hom)
+
+section partial_order
+variable [partial_order α]
 
 /-- The identity function as a closure operator. -/
 @[simps]
@@ -196,16 +202,16 @@ lemma closure_sup_closure_le (x y : α) :
   c x ⊔ c y ≤ c (x ⊔ y) :=
 c.monotone.le_map_sup _ _
 
-@[simp] lemma closure_sup_closure_left (x y : α) :
+lemma closure_sup_closure_left (x y : α) :
   c (c x ⊔ y) = c (x ⊔ y) :=
 ((c.le_closure_iff _ _).1 (sup_le (c.monotone le_sup_left) (le_sup_right.trans
   (c.le_closure _)))).antisymm (c.monotone (sup_le_sup_right (c.le_closure _) _))
 
-@[simp] lemma closure_sup_closure_right (x y : α) :
+lemma closure_sup_closure_right (x y : α) :
   c (x ⊔ c y) = c (x ⊔ y) :=
 by rw [sup_comm, closure_sup_closure_left, sup_comm]
 
-@[simp] lemma closure_sup_closure (x y : α) :
+lemma closure_sup_closure (x y : α) :
   c (c x ⊔ c y) = c (x ⊔ y) :=
 by rw [closure_sup_closure_left, closure_sup_closure_right]
 
@@ -214,12 +220,12 @@ end semilattice_sup
 section complete_lattice
 variables [complete_lattice α] (c : closure_operator α)
 
-@[simp] lemma closure_supr_closure {ι : Type u} (x : ι → α) :
+lemma closure_supr_closure {ι : Type u} (x : ι → α) :
   c (⨆ i, c (x i)) = c (⨆ i, x i) :=
 le_antisymm ((c.le_closure_iff _ _).1 (supr_le (λ i, c.monotone
   (le_supr x i)))) (c.monotone (supr_le_supr (λ i, c.le_closure _)))
 
-@[simp] lemma closure_bsupr_closure (p : α → Prop) :
+lemma closure_bsupr_closure (p : α → Prop) :
   c (⨆ x (H : p x), c x) = c (⨆ x (H : p x), x) :=
 le_antisymm ((c.le_closure_iff _ _).1 (bsupr_le (λ x hx, c.monotone
   (le_bsupr_of_le x hx (le_refl x))))) (c.monotone (bsupr_le_bsupr (λ x hx, c.le_closure x)))
@@ -234,12 +240,23 @@ variables {α} {β : Type*}
 /-- A lower adjoint of `u` on the preorder `α` is a function `l` such that `l` and `u` form a Galois
 connection. It allows to define closure operators whose output does not match the input. In
 practice, `u` is often `coe : β → α`. -/
-@[nolint has_inhabited_instance]
 structure lower_adjoint [preorder α] [preorder β] (u : β → α) :=
 (to_fun : α → β)
 (gc' : galois_connection to_fun u)
 
 namespace lower_adjoint
+
+variable (α)
+
+/-- The identity function as a lower adjoint to itself. -/
+@[simps]
+def id [preorder α] : lower_adjoint (id : α → α) :=
+{ to_fun := λ x, x,
+  gc' := galois_connection.id }
+
+variable {α}
+
+instance [preorder α] : inhabited (lower_adjoint (_root_.id : α → α)) := ⟨id α⟩
 
 section preorder
 variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
@@ -247,7 +264,7 @@ variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
 instance : has_coe_to_fun (lower_adjoint u) :=
 { F := λ _, α → β, coe := to_fun }
 
-initialize_simps_projections lower_adjoint (to_fun → apply)
+def simps.apply : α → β := l
 
 lemma gc : galois_connection l u := l.gc'
 
@@ -269,8 +286,7 @@ variables [partial_order α] [preorder β] {u : β → α} (l : lower_adjoint u)
 /-- Every lower adjoint induces a closure operator given by the composition. This is the partial
 order version of the statement that every adjunction induces a monad. -/
 @[simps]
-def closure_operator [partial_order α] [preorder β] {u : β → α}
-  (l : lower_adjoint u) :
+def closure_operator :
   closure_operator α :=
 { to_fun := λ x, u (l x),
   monotone' := l.monotone,

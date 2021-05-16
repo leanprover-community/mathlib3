@@ -22,15 +22,16 @@ open finset
 variables {α : Type*}
 
 /-- The `finsupp` counterpart of `multiset.antidiagonal`: the antidiagonal of
-`s : α →₀ ℕ` is the set all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)` such that `t₁ + t₂ = s`. -/
+`s : α →₀ ℕ` consists of all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)` such that `t₁ + t₂ = s`.
+The finitely supported function `antidiagonal s` is equal to the multiplicities of these pairs. -/
+def antidiagonal' (f : α →₀ ℕ) : ((α →₀ ℕ) × (α →₀ ℕ)) →₀ ℕ :=
+(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
+
+/-- The antidiagonal of `s : α →₀ ℕ` is the set all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)`
+such that `t₁ + t₂ = s`. -/
 def antidiagonal (f : α →₀ ℕ) : finset ((α →₀ ℕ) × (α →₀ ℕ)) :=
 (f.to_multiset.antidiagonal.map
   (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp.support
-
--- def antidiagonal (s : multiset α) : multiset (multiset α × multiset α) :=
--- quot.lift_on s
---   (λ l, (revzip (powerset_aux l) : multiset (multiset α × multiset α)))
---   (λ l₁ l₂ h, quot.sound (revzip_powerset_aux_perm h))
 
 @[simp] lemma mem_antidiagonal {f : α →₀ ℕ} {p : (α →₀ ℕ) × (α →₀ ℕ)} :
   p ∈ antidiagonal f ↔ p.1 + p.2 = f :=

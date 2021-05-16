@@ -843,12 +843,9 @@ end
 
 lemma abs_eq_abs_iff : abs a = abs b ↔ a = b ∨ a = -b :=
 begin
-  split; intro h,
-  { cases abs_choice a with h₁ h₁; cases abs_choice b with h₂ h₂; rw [h₁, h₂] at h,
-    { exact or.inl h },
-    { exact or.inr h },
-    { exact or.inr (eq_neg_of_eq_neg h.symm) },
-    { exact or.inl (neg_inj.mp h) } },
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases eq_or_eq_neg_of_abs_eq h with rfl | rfl;
+    simpa only [neg_eq_iff_neg_eq, neg_inj, or.comm, @eq_comm _ (-b)] using abs_choice b },
   { cases h; simp only [h, abs_neg] },
 end
 

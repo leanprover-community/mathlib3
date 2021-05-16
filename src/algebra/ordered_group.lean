@@ -832,16 +832,16 @@ calc abs a = abs (a - b + b)     : by rw [sub_add_cancel]
 lemma abs_abs_sub_abs_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
 abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub; apply abs_sub_abs_le_abs_sub⟩
 
+lemma eq_of_abs_eq (h : abs a = b) : a = b ∨ a = -b :=
+by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a
+
 lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
 begin
-  split,
-  { cases abs_choice a with h h; rw h,
-    { exact or.inl },
-    { rw [neg_eq_iff_neg_eq, eq_comm], exact or.inr } },
-  { rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb] }
+  refine ⟨eq_of_abs_eq, _⟩,
+  rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb]
 end
 
-lemma abs_eq_abs_iff {a b : α} : abs a = abs b ↔ a = b ∨ a = -b :=
+lemma abs_eq_abs_iff : abs a = abs b ↔ a = b ∨ a = -b :=
 begin
   split; intro h,
   { cases abs_choice a with h₁ h₁; cases abs_choice b with h₂ h₂; rw [h₁, h₂] at h,

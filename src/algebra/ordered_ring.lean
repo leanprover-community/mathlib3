@@ -1173,7 +1173,7 @@ by { cases abs_choice b with h h; simp only [h, dvd_neg] }
 lemma self_dvd_abs (a : α) : a ∣ abs a :=
 (dvd_abs a a).mpr (dvd_refl a)
 
-@[simp] lemma abs_dvd_abs (a b : α) : abs a ∣ abs b ↔ a ∣ b :=
+lemma abs_dvd_abs (a b : α) : abs a ∣ abs b ↔ a ∣ b :=
 (abs_dvd _ _).trans (dvd_abs _ _)
 
 lemma even_abs {a : α} : even (abs a) ↔ even a :=

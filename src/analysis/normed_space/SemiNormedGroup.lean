@@ -41,7 +41,7 @@ instance (M : SemiNormedGroup) : semi_normed_group M := M.str
 instance : has_zero SemiNormedGroup := ⟨of punit⟩
 instance : inhabited SemiNormedGroup := ⟨0⟩
 
-instance : limits.has_zero_morphisms SemiNormedGroup := {}
+instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup := {}
 
 end SemiNormedGroup
 
@@ -101,7 +101,7 @@ rfl
 instance : has_zero SemiNormedGroup' := ⟨of punit⟩
 instance : inhabited SemiNormedGroup' := ⟨0⟩
 
-instance : limits.has_zero_morphisms SemiNormedGroup' :=
+instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup' :=
 { has_zero := λ X Y, { zero := ⟨0, normed_group_hom.norm_noninc.zero⟩, },
   comp_zero' := λ X Y f Z, by { ext, refl, },
   zero_comp' := λ X Y Z f, by { ext, simp, }, }

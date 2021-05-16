@@ -219,8 +219,8 @@ instance : order_bot ℝ≥0 :=
 { bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.linear_order }
 
 instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
-{ add_le_add_left       := assume a b h c, @add_le_add_left ℝ _ a b h c,
-  lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ _ a b c,
+{ add_le_add_left       := assume a b h c, @add_le_add_left ℝ a b _ _ _ h c,
+  lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ a b c _ _ _,
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
     iff.intro
       (assume h : a ≤ b,
@@ -242,7 +242,7 @@ instance : semilattice_sup_bot ℝ≥0 :=
 instance : linear_ordered_semiring ℝ≥0 :=
 { add_left_cancel            := assume a b c h, nnreal.eq $
     @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
-  le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ a b c,
+  le_of_add_le_add_left      := assume a b c, @le_of_add_le_add_left ℝ _ _ _ a b c,
   mul_lt_mul_of_pos_left     := assume a b c, @mul_lt_mul_of_pos_left ℝ _ a b c,
   mul_lt_mul_of_pos_right    := assume a b c, @mul_lt_mul_of_pos_right ℝ _ a b c,
   zero_le_one                := @zero_le_one ℝ _,
@@ -469,6 +469,19 @@ end
 
 end mul
 
+section pow
+
+lemma pow_mono_decr_exp {a : ℝ≥0} (m n : ℕ) (mn : m ≤ n) (a1 : a ≤ 1) :
+  a ^ n ≤ a ^ m :=
+begin
+  rcases le_iff_exists_add.mp mn with ⟨k, rfl⟩,
+  rw [← mul_one (a ^ m), pow_add],
+  refine mul_le_mul rfl.le (pow_le_one _ (zero_le a) a1) _ _;
+  exact pow_nonneg (zero_le _) _,
+end
+
+end pow
+
 section sub
 
 lemma sub_def {r p : ℝ≥0} : r - p = nnreal.of_real (r - p) := rfl
@@ -592,6 +605,21 @@ begin
   subst r,
   simpa using h
 end
+
+lemma div_le_div_left_of_le {a b c : ℝ≥0} (b0 : 0 < b) (c0 : 0 < c) (cb : c ≤ b) :
+  a / b ≤ a / c :=
+begin
+  by_cases a0 : a = 0,
+  { rw [a0, zero_div, zero_div] },
+  { cases a with a ha,
+    replace a0 : 0 < a := lt_of_le_of_ne ha (ne_of_lt (zero_lt_iff.mpr a0)),
+    exact (div_le_div_left a0 b0 c0).mpr cb }
+end
+
+lemma div_le_div_left {a b c : ℝ≥0} (a0 : 0 < a) (b0 : 0 < b) (c0 : 0 < c) :
+  a / b ≤ a / c ↔ c ≤ b :=
+by rw [nnreal.div_le_iff b0.ne.symm, div_mul_eq_mul_div, nnreal.le_div_iff_mul_le c0.ne.symm,
+  mul_le_mul_left a0]
 
 lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x ≤ y :=
 le_of_forall_ge_of_dense $ assume a ha,

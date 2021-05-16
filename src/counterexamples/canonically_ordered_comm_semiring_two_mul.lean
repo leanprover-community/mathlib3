@@ -20,8 +20,7 @@ and the order relation.  The point of the counterexample is to show that monoton
 multiplication cannot be strengthened to **strict** monotonicity.
 
 Reference:
-https://
-leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
+https://leanprover.zulipchat.com/#narrow/stream/113489-new-members/topic/canonically_ordered.20pathology
 -/
 
 namespace from_Bhavik

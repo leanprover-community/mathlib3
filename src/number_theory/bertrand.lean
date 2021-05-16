@@ -1,10 +1,12 @@
 import data.nat.prime
 import data.finset.intervals
 import data.nat.multiplicity
+import data.nat.choose.sum
 import data.padics.padic_norm
 import tactic
 import ring_theory.multiplicity
 import algebra.module
+import number_theory.primorial
 
 open_locale big_operators
 
@@ -160,113 +162,160 @@ lemma pow_big : ∀ (i p : nat) (p_pos : 0 < p) (i_big : 1 < i), p * p ≤ p ^ i
   ... ≤ p ^ (i + 2) : nat.pow_le_pow_of_le_right p_pos i_big,
 }
 
+lemma sasad (a b c : ℕ): a ≤ b -> c * a ≤ c * b :=
+begin
+  exact nat.mul_le_mul_left c
+end
+
 lemma claim_3
   (p : nat)
   [hp : fact p.prime]
   (n : nat)
-  (n_big : 3 < n)
+  (n_big : 6 < n)
   (small : p ≤ n)
   (big : 2 * n < 3 * p)
   : α n p = 0
   :=
 begin
-  have expand : nat.choose (2 * n) n * (nat.fact n) * (nat.fact n) = nat.fact (2 * n), by
-    calc nat.choose (2 * n) n * (nat.fact n) * (nat.fact n)
-        = nat.choose (2 * n) n * (nat.fact n) * (nat.fact (n + n - n)) : by rw nat.add_sub_cancel n n
-      ... = nat.choose (2 * n) n * (nat.fact n) * (nat.fact (2 * n - n)) : by rw two_mul n
-      ... = nat.fact (2 * n) : nat.choose_mul_fact_mul_fact (by linarith),
-
-  have mult_fact_two_n : multiplicity p (nat.fact (2 * n)) = _, by
-    calc multiplicity p (nat.fact (2 * n))
-        = multiplicity p (nat.choose (2 * n) n * (nat.fact n) * (nat.fact n)) :
-            congr_arg (multiplicity p) expand.symm
-      ... = multiplicity p (nat.choose (2 * n) n * nat.fact n) + multiplicity p (nat.fact n) :
-            by rw nat.prime.multiplicity_mul is_prime
-      ... = multiplicity p (nat.choose (2 * n) n) + multiplicity p (nat.fact n) + multiplicity p (nat.fact n) :
-            by rw nat.prime.multiplicity_mul is_prime,
-
-  have two_n_div_p_small : (2 * n) / p < 3, by exact move_mul (2 * n) p 3 big,
-  have n_div_p : n / p = 1,
-    { cases lt_trichotomy (n / p) 1,
-      { exfalso,
-        have n_zero : n / p = 0, by exact twice_nat_small (n / p) (by linarith),
-        have r : n < p, by exact (nat.div_eq_zero_iff (nat.prime.pos is_prime)).1 n_zero,
-        linarith, },
-      { cases h,
-        { exact h },
-        { have s : 2 < 2 * (n / p), by linarith,
-          linarith [nat.mul_div_le_mul_div_assoc 2 n p], }, }, },
-  have p_pos : 0 < p, by exact nat.prime.pos is_prime,
-
-  have two_n_small : ∀ i > 1, 2 * n < p ^ i, by
-    { intros i one_less,
-      cases lt_trichotomy 2 p,
-      { calc 2 * n < 3 * p: big
-        ... ≤ p * p : nat.mul_le_mul_right p h
-        ... ≤ p ^ i : pow_big i p p_pos one_less, },
-      cases h,
-      { exfalso, rw ← h at big, linarith },
-      { have u : 2 ≤ p, by exact nat.prime.two_le is_prime, linarith, }, },
-
-  have mult_in_two_n : multiplicity p (nat.fact (2 * n)) = 2,
-    { rw @nat.prime.multiplicity_fact p is_prime (2 * n) (2 * n) (by linarith),
-      have first_term_two : (2 * n) / p = 2, by linarith [nat.mul_div_le_mul_div_assoc 2 n p],
-      rw @finset.sum_eq_sum_Ico_succ_bot _ _ 1 (2 * n) (by linarith) (λ i, 2 * n / p ^ i),
-      have t : ∑ k in finset.Ico 2 (2 * n), 2 * n / p ^ k = 0, by
-        { apply finset.sum_eq_zero,
-          have other_terms_zero : ∀ i > 1, (2 * n) / (p ^ i) = 0, by
-            { intros i one_less,
-              refine (nat.div_eq_zero_iff (nat.pow_pos p_pos i)).2 _,
-              exact two_n_small i one_less, },
-          intros i pr,
-          exact other_terms_zero i (by linarith [(list.Ico.mem.mp pr).1]), },
-      rw t,
-      simp only [add_zero, nat.pow_one],
-      rw first_term_two,
-      exact enat.coe_add 1 1 },
-  have mult_in_n : multiplicity p (nat.fact n) = 1,
-    { rw @nat.prime.multiplicity_fact p is_prime n n (by linarith),
-      have r : 0 < p, by exact nat.prime.pos is_prime,
-      rw @finset.sum_eq_sum_Ico_succ_bot _ _ 1 n (by linarith) (λ i, n / p ^ i),
-      have other_terms_zero : ∀ i > 1, n / (p ^ i) = 0, by
-        { intros i one_less,
-          refine (nat.div_eq_zero_iff (nat.pow_pos p_pos i)).2 _,
-          calc n ≤ 2 * n : by linarith
-            ... < p ^ i : two_n_small i one_less,
-        },
-      have t : ∑ k in finset.Ico 2 n, n / p ^ k = 0, by
-        { apply finset.sum_eq_zero,
-          intros i pr,
-          exact other_terms_zero i (by linarith [(list.Ico.mem.mp pr).1]), },
-      rw t,
-      simp only [add_zero, nat.pow_one],
-      rw n_div_p,
-      simp only [enat.coe_one],
-    },
-  rw [mult_in_two_n, mult_in_n] at mult_fact_two_n,
-  have mult_choose_zero : multiplicity p (nat.choose (2 * n) n) = 0,
-    by exact collapse_enat (multiplicity p (nat.choose (2 * n) n)) mult_fact_two_n,
   unfold α,
-  rw @padic_val_nat_def p is_prime (nat.choose (2 * n) n) (central_binom_nonzero n),
-  simp [mult_choose_zero],
+  rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n),
+  simp only [@nat.prime.multiplicity_choose p (2 * n) n (nat.log p (2 * n) + 1)
+                        (hp.out) (by linarith) (foo p n)],
+  have r : 2 * n - n = n, by
+    calc 2 * n - n = n + n - n: by rw two_mul n
+    ... = n: nat.add_sub_cancel n n,
+  simp [r, ←two_mul],
+  clear r,
+  have sakdj : ∀ i : ℕ, i > 0 -> ¬ p ^ i ≤ 2 * (n % p ^ i),
+    intros i hi,
+    simp only [not_le],
+
+  have p_pos : 0 < p,
+    exact trans zero_lt_one hp.out.one_lt,
+
+  have n_pos : 0 < n,
+    exact pos_of_gt n_big,
+
+  by_cases i = 1,
+    {rw h,
+    rw pow_one,
+    have h4 : p * (n / p) + n % p = n ,
+      rw nat.div_add_mod n p,
+    suffices h23 : 2 * (p * (n / p)) + 2 * (n % p) < 2 * (p * (n / p)) + p,
+    exact (add_lt_add_iff_left (2 * (p * (n / p)))).mp h23,
+
+    rw ←mul_add,
+    rw nat.div_add_mod,
+    -- rw add_comm at h4,
+    -- simp at h4,
+    have hn : 0 < n,
+      exact pos_of_gt n_big,
+
+
+    have h345 : 1 ≤ (n / p),
+      apply (nat.le_div_iff_mul_le' p_pos).2,
+      simp,
+      exact small,
+
+    have h5 : p * 1 ≤ p * (n / p),
+      -- apply (nat.le_div_iff_mul_le' p_pos).2,
+      apply nat.mul_le_mul_left p h345,
+
+    linarith,
+
+
+
+    -- rw nat.add_mod
+    },
+    {
+      -- have hTODO231afd : 2 ≤ i,
+      --   omega,
+      have hTODO231 : 2 * n < p ^ i,
+        suffices htodo3214 : 2 * n < p ^ 2,
+        have htodo3214431 : p ^ 2 ≤ p ^ i,
+          apply nat.pow_le_pow_of_le_right,
+          exact p_pos,
+          omega,
+          omega,
+          have todo2sda131 : 3 * p ≤ p ^ 2,
+            rw pow_two,
+            -- rw ←mul_assoc,
+            suffices todoskdajfh : 3 < p,
+              rw (mul_le_mul_right p_pos),
+              exact le_of_lt todoskdajfh,
+
+            omega,
+
+          calc 2 * n < 3 * p : big
+          ...        ≤ p ^ 2 : todo2sda131,
+
+        have todoasdkj : n % p ^ i = n,
+          apply nat.mod_eq_of_lt,
+          rw two_mul at hTODO231,
+          omega,
+        rw todoasdkj,
+        exact hTODO231,
+      },
+    apply finset.filter_false_of_mem,
+    intro,
+    intro,
+    apply sakdj,
+    rw finset.Ico.mem at H,
+    apply H.left,
+
+end
+
+
+lemma claim_4
+  (p : nat)
+  [hp : fact p.prime]
+  -- (hp : p.prime)
+  (n : nat)
+  (multiplicity_pos : α n p > 0)
+  : p ≤ 2 * n
+  :=
+begin
+  unfold α at multiplicity_pos,
+  rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n) at multiplicity_pos,
+  simp only [@nat.prime.multiplicity_choose p (2 * n) n (nat.log p (2 * n) + 1)
+                        (hp.out) (by linarith) (foo p n)] at multiplicity_pos,
+  have r : 2 * n - n = n, by
+    calc 2 * n - n = n + n - n: by rw two_mul n
+    ... = n: nat.add_sub_cancel n n,
+  simp [r, ←two_mul] at multiplicity_pos,
+  clear r,
+  rw finset.card_pos at multiplicity_pos,
+  cases multiplicity_pos with m hm,
+  simp at *,
+  calc p = p ^ 1 : by simp
+  ...    ≤ p ^ m : begin
+                      apply nat.pow_le_pow_of_le_right,
+                      linarith [hp.out.one_lt],
+                      exact hm.left.left
+                    end
+  ...    ≤ 2 * (n % p ^ m) : hm.right
+  ...    ≤ 2 * n : begin
+                     apply nat.mul_le_mul_left,
+                     apply nat.mod_le,
+                   end,
 end
 
 /--
 "The mean of a bounded list is less than or equal to the bound".
 -/
-lemma mean_le_biggest {A B : Type*} [decidable_eq A] [ordered_semiring B]
-  (f : A → B) {m : B} (s : finset A) (bound : ∀ x ∈ s, f x ≤ m) : ∑ i in s, f i ≤ s.card * m :=
-begin
-  rw ← @smul_eq_mul B _ s.card m,
-  rw ← @finset.sum_const _ _ s _ m,
-  apply finset.sum_le_sum bound,
-end
+-- lemma mean_le_biggest {A B : Type*} [decidable_eq A] [ordered_semiring B]
+--   (f : A → B) {m : B} (s : finset A) (bound : ∀ x ∈ s, f x ≤ m) : ∑ i in s, f i ≤ s.card * m :=
+-- begin
+--   rw ← @smul_eq_mul B _ s.card m,
+--   rw ← @finset.sum_const _ _ s _ m,
+--   apply finset.sum_le_sum bound,
+-- end
 
-lemma choose_le_middle_2 (r n : ℕ) : nat.choose (2 * n) r ≤ nat.choose (2 * n) n :=
-begin
-  have s : (2 * n) / 2 = n, by exact nat.mul_div_cancel_left n (by linarith),
-  simpa [] using (@choose_le_middle r (2 * n)),
-end
+-- lemma choose_le_middle_2 (r n : ℕ) : nat.choose (2 * n) r ≤ nat.choose (2 * n) n :=
+-- begin
+--   have s : (2 * n) / 2 = n, by exact nat.mul_div_cancel_left n (by linarith),
+--   simpa [] using (@choose_le_middle r (2 * n)),
+-- end
 
 /-
 
@@ -292,11 +341,141 @@ so 4^(n/3) ≤ (2n)^(sqrt 2n) (2n+1)
 and this is Clearly False for sufficiently large n.
 -/
 
-lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+-/
+
+lemma two_n_div_3_le_two_mul_n_choose_n (n : ℕ) : 2 * n / 3 < (2 * n).choose n :=
 begin
-sorry
+  sorry
 end
 
+lemma not_pos_iff_zero (n : ℕ) : ¬ 0 < n ↔ n = 0 :=
+begin
+  omega
+end
+
+lemma alskjhads (n x : ℕ): 2 * n / 3 + 1 ≤ x -> 2 * n < 3 * x :=
+begin
+  intro h,
+  rw nat.add_one_le_iff at h,
+  sorry
+end
+
+lemma central_binom_factorization (n : ℕ) :
+      ∏ p in finset.filter nat.prime (finset.range ((2 * n).choose n + 1)),
+        p ^ (padic_val_nat p ((2 * n).choose n))
+      = (2 * n).choose n :=
+begin
+  apply prod_pow_prime_padic_val_nat,
+  exact central_binom_nonzero n,
+  exact lt_add_one ((2 * n).choose n),
+end
+
+lemma assafwge (a b c : ℕ) : b ≤ c -> a * b ≤ a * c :=
+begin
+  exact sasad b c a
+end
+
+def central_binom_lower_bound := nat.four_pow_le_two_mul_add_one_mul_central_binom
+
+lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+begin
+  by_contradiction no_prime,
+
+  have central_binom_factorization_small :
+      ∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),
+        p ^ (padic_val_nat p ((2 * n).choose n))
+      =
+      ∏ p in finset.filter nat.prime (finset.range (((2 * n).choose n + 1))),
+        p ^ (padic_val_nat p ((2 * n).choose n)) ,
+    apply finset.prod_subset,
+    apply finset.subset_iff.2,
+    intro x,
+    rw finset.mem_filter,
+    rw finset.mem_filter,
+    rw finset.mem_range,
+    rw finset.mem_range,
+    intro hx,
+    split,
+    linarith [(hx.left), (two_n_div_3_le_two_mul_n_choose_n n)],
+    exact hx.right,
+    intro x,
+    rw finset.mem_filter,
+    rw finset.mem_filter,
+    rw finset.mem_range,
+    rw finset.mem_range,
+    intro hx,
+    intro h2x,
+    simp [hx.right] at h2x,
+    by_contradiction,
+    have x_le_two_mul_n : x ≤ 2 * n,
+      apply (@claim_4 x ⟨hx.right⟩ n),
+      unfold α,
+      simp,
+      by_contradiction h1,
+      rw not_pos_iff_zero at h1,
+      rw h1 at h,
+      rw pow_zero at h,
+      simp at h,
+      exact h,
+    apply no_prime,
+    use x,
+    split,
+    exact hx.right,
+    split,
+    by_contradiction adskjf,
+    simp at adskjf,
+    have sadjkl := @claim_3 x ⟨hx.right⟩ n (by linarith) (by linarith) (alskjhads n x h2x),
+    unfold α at sadjkl,
+    rw sadjkl at h,
+    rw pow_zero at h,
+    simp at h,
+    exact h,
+    exact x_le_two_mul_n,
+
+    have binom_inequality : (2 * n).choose n ≤ (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1),
+    calc (2 * n).choose n
+              = (∏ p in finset.filter nat.prime (finset.range ((2 * n).choose n + 1)),
+                   p ^ (padic_val_nat p ((2 * n).choose n)))
+                      : (central_binom_factorization n).symm
+    ...       = (∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),
+                   p ^ (padic_val_nat p ((2 * n).choose n)))
+                      : central_binom_factorization_small.symm
+    ...       = (∏ p in finset.filter nat.prime
+                          (finset.filter (λ p, p ≤ nat.sqrt (2 * n))
+                            (finset.range (2 * n / 3 + 1))),
+                   p ^ (padic_val_nat p ((2 * n).choose n)))
+                 *
+                (∏ p in finset.filter nat.prime
+                          (finset.filter (λ p, p ≤ nat.sqrt (2 * n))
+                            (finset.range (2 * n / 3 + 1))),
+                   p ^ (padic_val_nat p ((2 * n).choose n)))
+                     : sorry
+    ...       ≤ (2 * n) ^ (nat.sqrt (2 * n))
+                 *
+                (∏ p in finset.filter nat.prime
+                          (finset.filter (λ p, p ≤ nat.sqrt (2 * n))
+                            (finset.range (2 * n / 3 + 1))),
+                   p ^ (padic_val_nat p ((2 * n).choose n)))
+                     : sorry
+    ...       ≤ (2 * n) ^ (nat.sqrt (2 * n))
+                 *
+                (primorial (2 * n / 3 + 1))
+                     : sorry
+    ...       ≤ (2 * n) ^ (nat.sqrt (2 * n))
+                 *
+                4 ^ (2 * n / 3 + 1)
+                     : nat.mul_le_mul_left _ (primorial_le_4_pow (2 * n / 3 + 1)),
+    have faelfkj : 4 ^ n ≤ (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1),
+    calc 4 ^ n ≤ (2 * n + 1) * (2 * n).choose n : central_binom_lower_bound n
+    ...        ≤ (2 * n + 1) * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1))
+                  : nat.mul_le_mul_left (2 * n + 1) binom_inequality
+    ...        = (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) : by ring,
+
+    sorry
+
+end
+
+/-
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
 cases le_or_lt 750 n,

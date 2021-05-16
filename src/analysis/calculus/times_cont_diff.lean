@@ -1880,10 +1880,10 @@ begin
     exact (h i).zero_eq x hx },
   { intros m hm x hx,
     have := has_fderiv_within_at_pi.2 (λ i, (h i).fderiv_within m hm x hx),
-    exact (L m).has_fderiv_at.comp_has_fderiv_within_at x this },
+    convert (L m).has_fderiv_at.comp_has_fderiv_within_at x this },
   { intros m hm,
     have := continuous_on_pi.2 (λ i, (h i).cont m hm),
-    exact (L m).continuous.comp_continuous_on this }
+    convert (L m).continuous.comp_continuous_on this }
 end
 
 @[simp] lemma has_ftaylor_series_up_to_on_pi' :

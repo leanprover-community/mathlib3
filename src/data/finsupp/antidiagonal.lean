@@ -30,8 +30,7 @@ def antidiagonal' (f : α →₀ ℕ) : ((α →₀ ℕ) × (α →₀ ℕ)) →
 /-- The antidiagonal of `s : α →₀ ℕ` is the finset of all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)`
 such that `t₁ + t₂ = s`. -/
 def antidiagonal (f : α →₀ ℕ) : finset ((α →₀ ℕ) × (α →₀ ℕ)) :=
-(f.to_multiset.antidiagonal.map
-  (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp.support
+f.antidiagonal'.support
 
 @[simp] lemma mem_antidiagonal {f : α →₀ ℕ} {p : (α →₀ ℕ) × (α →₀ ℕ)} :
   p ∈ antidiagonal f ↔ p.1 + p.2 = f :=

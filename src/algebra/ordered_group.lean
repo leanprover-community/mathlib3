@@ -841,10 +841,10 @@ begin
   rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb]
 end
 
-lemma abs_eq_abs_iff : abs a = abs b ↔ a = b ∨ a = -b :=
+lemma abs_eq_abs : abs a = abs b ↔ a = b ∨ a = -b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
-  { rcases eq_or_eq_neg_of_abs_eq h with rfl | rfl;
+  { obtain rfl | rfl := eq_or_eq_neg_of_abs_eq h;
     simpa only [neg_eq_iff_neg_eq, neg_inj, or.comm, @eq_comm _ (-b)] using abs_choice b },
   { cases h; simp only [h, abs_neg] },
 end

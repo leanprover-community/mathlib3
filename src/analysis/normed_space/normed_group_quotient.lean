@@ -402,7 +402,7 @@ begin
   ... = 1 - min ε (1 / 2) : by field_simp [(ne_of_lt hδ).symm]
 end
 
-/-- The operator norm of the projection is `0` if the subspace is not dense. -/
+/-- The operator norm of the projection is `0` if the subspace is dense. -/
 lemma norm_trivial_quotient_mk (S : add_subgroup M)
   (h : (S.topological_closure : set M) = set.univ) : ∥S.normed_mk∥ = 0 :=
 begin

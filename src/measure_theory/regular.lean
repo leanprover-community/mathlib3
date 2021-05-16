@@ -132,36 +132,12 @@ section zoug
 variables {X : Type*} [metric_space X] [measurable_space X] [borel_space X] {ν : measure X}
   [finite_measure ν]
 
+
+#exit
+
 lemma weakly_regular_aux1 (U : set X) (hU : is_open U) (ε : ℝ≥0∞) (hε : 0 < ε) :
   ∃ (F : set X), is_closed F ∧ F ⊆ U ∧ ν U ≤ ν F + ε :=
 begin
-  by_cases h'U : U = univ,
-  { rw h'U, exact ⟨univ, is_closed_univ, subset.refl _, le_self_add⟩ },
-  have U_ne : set.nonempty (Uᶜ), by simpa [eq_univ_iff_forall] using h'U,
-  let F := λ (n : ℕ), (λ x, metric.inf_dist x Uᶜ) ⁻¹' (Ici (((1:ℝ)/2)^n)),
-  have is_closed_F : ∀ (n : ℕ), is_closed (F n) :=
-    λ n, is_closed.preimage (metric.continuous_inf_dist_pt Uᶜ) is_closed_Ici,
-  have mono_F : monotone F,
-  { assume m n hmn x hx,
-    simp only [mem_Ici, mem_preimage] at hx ⊢,
-    exact le_trans (pow_le_pow_of_le_one (by norm_num) (by norm_num) hmn) hx },
-  have F_subset : ∀ n, F n ⊆ U,
-  { assume n x hx,
-    by_contra h,
-    rw [← mem_compl_iff,
-      metric.mem_iff_inf_dist_zero_of_closed (is_open.is_closed_compl hU) U_ne] at h,
-    have : 0 < metric.inf_dist x Uᶜ := lt_of_lt_of_le (pow_pos (by norm_num) _) hx,
-    linarith },
-  have Union_F : (⋃ n, F n) = U,
-  { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
-    have : ¬(x ∈ Uᶜ), by simpa using hx,
-    rw metric.mem_iff_inf_dist_zero_of_closed (is_open.is_closed_compl hU) U_ne at this,
-    have B : 0 < metric.inf_dist x Uᶜ := lt_of_le_of_ne metric.inf_dist_nonneg (ne.symm this),
-    have : filter.tendsto (λ n, ((1 : ℝ)/2)^n) at_top (𝓝 0) :=
-      tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num),
-    rcases ((tendsto_order.1 this).2 _ B).exists with ⟨n, hn⟩,
-    simp only [mem_Union, mem_Ici, mem_preimage],
-    exact ⟨n, hn.le⟩ },
   have L : tendsto (λ n, ν (F n) + ε) at_top (𝓝 (ν U + ε)),
   { rw ← Union_F,
     refine tendsto.add _ tendsto_const_nhds,

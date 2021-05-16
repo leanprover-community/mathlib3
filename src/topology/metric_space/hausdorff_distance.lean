@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.isometry
 import topology.instances.ennreal
+import analysis.specific_limits
 
 /-!
 # Hausdorff distance
@@ -25,7 +26,7 @@ This files introduces:
 `Hausdorff_dist`.
 -/
 noncomputable theory
-open_locale classical nnreal ennreal
+open_locale classical nnreal ennreal topological_space
 universes u v w
 
 open classical set function topological_space filter
@@ -80,6 +81,7 @@ calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
 ... = (⨅ z ∈ s, edist y z) + edist x y : by simp only [ennreal.infi_add]
 
 /-- The edist to a set depends continuously on the point -/
+@[continuity]
 lemma continuous_inf_edist : continuous (λx, inf_edist x s) :=
 continuous_of_le_add_edist 1 (by simp) $
   by simp only [one_mul, inf_edist_le_inf_edist_add_edist, forall_2_true_iff]
@@ -108,7 +110,7 @@ lemma mem_closure_iff_inf_edist_zero : x ∈ closure s ↔ inf_edist x s = 0 :=
 λh, emetric.mem_closure_iff.2 $ λε εpos, exists_edist_lt_of_inf_edist_lt (by rwa h)⟩
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum edistance to this set vanishes -/
-lemma mem_iff_ind_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
+lemma mem_iff_inf_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
 begin
   convert ← mem_closure_iff_inf_edist_zero,
   exact h.closure_eq
@@ -118,6 +120,45 @@ end
 lemma inf_edist_image (hΦ : isometry Φ) :
   inf_edist (Φ x) (Φ '' t) = inf_edist x t :=
 by simp only [inf_edist, infi_image, hΦ.edist_eq]
+
+lemma is_open.exists_Union_is_closed (U : set α) (hU : is_open U) :
+  ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ (monotone F) :=
+begin
+  let a : ℝ≥0 := ⟨(1 : ℝ)/2, by norm_num⟩,
+  have a_pos : 0 < a, by { change 0 < (1:ℝ)/2, norm_num },
+  have a_lt_one : a < 1, by { change (1 : ℝ)/2 < 1, norm_num },
+  let F := λ (n : ℕ), (λ x, inf_edist x Uᶜ) ⁻¹' (Ici (a^n : ℝ≥0)),
+  have F_subset : ∀ n, F n ⊆ U,
+  { assume n x hx,
+    by_contra h,
+    rw [← mem_compl_iff,
+      mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU)] at h,
+    have : 0 < inf_edist x Uᶜ,
+    { apply lt_of_lt_of_le _ hx,
+      simp only [a_pos, ennreal.coe_pos, ennreal.pow_pos, ennreal.coe_pow], },
+    rw h at this,
+    exact lt_irrefl _ this },
+  refine ⟨F, _, F_subset, _, _⟩,
+  show ∀ (n : ℕ), is_closed (F n), from
+    λ n, is_closed.preimage continuous_inf_edist is_closed_Ici,
+  show monotone F,
+  { assume m n hmn x hx,
+    simp only [mem_Ici, mem_preimage] at hx ⊢,
+    apply le_trans _ hx,
+    simp only [ennreal.pow_le_pow_of_le_one _ hmn, a_lt_one.le, ennreal.coe_le_one_iff,
+      ennreal.coe_pow] },
+  show (⋃ n, F n) = U,
+  { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
+    have : ¬(x ∈ Uᶜ), by simpa using hx,
+    rw mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU) at this,
+    have B : 0 < inf_edist x Uᶜ, by simpa [pos_iff_ne_zero] using this,
+    have : filter.tendsto (λ n, a^n) at_top (𝓝 0) :=
+      nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 a_lt_one,
+    rcases ((tendsto_order.1 this).2 _ B).exists with ⟨n, hn⟩,
+    simp only [mem_Union, mem_Ici, mem_preimage],
+    exact ⟨n, hn.le⟩ },
+end
+
 
 end inf_edist --section
 

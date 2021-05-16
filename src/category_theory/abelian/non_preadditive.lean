@@ -321,7 +321,7 @@ lemma epi_of_zero_cokernel {X Y : C} (f : X ⟶ Y) (Z : C)
   exact equalizer.condition _ _
  end⟩
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- If `g ≫ f = 0` implies `g = 0` for all `g`, then `0 : 0 ⟶ X` is a kernel of `f`. -/
 def zero_kernel_of_cancel_zero {X Y : C} (f : X ⟶ Y)

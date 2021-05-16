@@ -167,7 +167,7 @@ instance : has_zero_morphisms (homological_complex V c) :=
 @[simp] lemma zero_apply (C D : homological_complex V c) (i : ι) :
   (0 : C ⟶ D).f i = 0 := rfl
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
 { zero :=
@@ -233,7 +233,7 @@ end
 section
 
 variables [has_zero_object V]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- Either `C.X i`, if there is some `i` with `c.rel i j`, or the zero object. -/
 def X_prev (j : ι) : V :=
@@ -383,7 +383,7 @@ namespace hom
 
 variables {C₁ C₂ C₃ : homological_complex V c}
 variables [has_zero_object V]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 
@@ -515,15 +515,41 @@ variables (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d 
 @[simp] lemma of_X (n : α) : (of X d sq).X n = X n := rfl
 @[simp] lemma of_d (j : α) : (of X d sq).d (j+1) j = d j :=
 by { dsimp [of], rw [if_pos rfl, category.id_comp] }
+lemma of_d_ne {i j : α} (h : i ≠ j + 1) : (of X d sq).d i j = 0 :=
+by { dsimp [of], rw [dif_neg h], }
 
 end of
+
+section of_hom
+
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+variables (X : α → V) (d_X : Π n, X (n+1) ⟶ X n) (sq_X : ∀ n, d_X (n+1) ≫ d_X n = 0)
+  (Y : α → V) (d_Y : Π n, Y (n+1) ⟶ Y n) (sq_Y : ∀ n, d_Y (n+1) ≫ d_Y n = 0)
+
+/--
+A constructor for chain maps between `α`-indexed chain complexes built using `chain_complex.of`,
+from a dependently typed collection of morphisms.
+-/
+@[simps] def of_hom (f : Π i : α, X i ⟶ Y i) (comm : ∀ i : α, f (i+1) ≫ d_Y i = d_X i ≫ f i) :
+  of X d_X sq_X ⟶ of Y d_Y sq_Y :=
+{ f := f,
+  comm' := λ n m,
+  begin
+    by_cases h : n = m + 1,
+    { subst h,
+      simpa using comm m, },
+    { rw [of_d_ne X _ _ h, of_d_ne Y _ _ h], simp }
+  end }
+
+end of_hom
 
 section mk
 
 /--
 Auxiliary structure for setting up the recursion in `mk`.
 This is purely an implementation detail: for some reason just using the dependent 6-tuple directly
-results in `mk_aux` taking about much longer (well over the `-T100000` limit) to elaborate.
+results in `mk_aux` taking much longer (well over the `-T100000` limit) to elaborate.
 -/
 @[nolint has_inhabited_instance]
 structure mk_struct :=

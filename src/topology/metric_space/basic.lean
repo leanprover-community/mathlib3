@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 
 import topology.metric_space.emetric_space
 import topology.shrinking_lemma
-import topology.algebra.ordered
+import topology.algebra.ordered.basic
 import data.fintype.intervals
 
 /-!
@@ -1875,6 +1875,20 @@ instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space �
 metric_space.induced coe (λ x y, subtype.ext) t
 
 theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
+
+instance : metric_space empty :=
+{ dist := λ _ _, 0,
+  dist_self := λ _, rfl,
+  dist_comm := λ _ _, rfl,
+  eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
+  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero, }
+
+instance : metric_space punit :=
+{ dist := λ _ _, 0,
+  dist_self := λ _, rfl,
+  dist_comm := λ _ _, rfl,
+  eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
+  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero, }
 
 section real
 

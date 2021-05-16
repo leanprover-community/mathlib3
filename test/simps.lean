@@ -182,6 +182,9 @@ structure partially_applied_str :=
 @[simps]
 def partially_applied_term : partially_applied_str := ⟨my_prod.mk 3⟩
 
+@[simps]
+def another_term : partially_applied_str := ⟨λ n, ⟨n + 1, n + 2⟩⟩
+
 run_cmd do
   e ← get_env,
   e.get `partially_applied_term_data_fst,
@@ -516,7 +519,8 @@ noncomputable def equiv.simps.inv_fun (e : α ≃ β) : β → α := classical.c
 run_cmd do e ← get_env, success_if_fail_with_msg (simps_get_raw_projections e `faulty_manual_coercion.equiv)
 "Invalid custom projection:
   λ {α : Sort u_1} {β : Sort u_2} (e : α ≃ β), classical.choice _
-Expression is not definitionally equal to λ (α : Sort u_1) (β : Sort u_2) (x : α ≃ β), x.inv_fun."
+Expression is not definitionally equal to
+  λ (α : Sort u_1) (β : Sort u_2) (x : α ≃ β), x.inv_fun"
 
 end faulty_manual_coercion
 
@@ -988,4 +992,56 @@ by { dsimp, guard_target (x = x), refl }
 @[simps apply to_dequiv_apply to_further_decorated_equiv_apply to_dequiv]
 def fffoo2 (α : Type) : one_more α α := fffoo α
 
+/- test the case where a projection takes additional arguments. -/
+variables {ι : Type*} [decidable_eq ι] (A : ι → Type*)
+
+class something [has_add ι] [Π i, add_comm_monoid (A i)] :=
+(mul {i} : A i →+ A i)
+
+def something.simps.apply [has_add ι] [Π i, add_comm_monoid (A i)] [something A] {i : ι} (x : A i) :
+  A i :=
+something.mul ι x
+
+initialize_simps_projections something (mul_to_fun → apply, -mul)
+
+class something2 [has_add ι] :=
+(mul {i j} : A i ≃ (A j ≃ A (i + j)))
+
+def something2.simps.mul [has_add ι] [something2 A] {i j : ι}
+  (x : A i) (y : A j) : A (i + j) :=
+something2.mul x y
+
+initialize_simps_projections something2 (mul → mul', mul_to_fun_to_fun → mul, -mul')
+
+attribute [ext] equiv
+
+@[simps]
+def thing (h : bool ≃ (bool ≃ bool)) : something2 (λ x : ℕ, bool) :=
+{ mul := λ i j, { to_fun := λ b, { to_fun := h b,
+  inv_fun := (h b).symm,
+  left_inv := (h b).left_inv,
+  right_inv := (h b).right_inv },
+  inv_fun := h.symm,
+  left_inv := by { convert h.left_inv, ext x; refl },
+  right_inv := by { convert h.right_inv, ext x; refl } } }
+
+example (h : bool ≃ (bool ≃ bool)) (i j : ℕ) (b1 b2 : bool) :
+  @something2.mul _ _ _ _ (thing h) i j b1 b2 = h b1 b2 :=
+by simp only [thing_mul]
+
 end comp_projs
+
+section
+/-! Check that the tactic also works if the elaborated type of `type` reduces to `Sort*`, but is
+  not `Sort*` itself. -/
+structure my_functor (C D : Type*) :=
+(obj []    : C → D)
+local infixr ` ⥤ `:26 := my_functor
+
+@[simps]
+def foo_sum {I J : Type*} (C : I → Type*) {D : J → Type*} :
+  (Π i, C i) ⥤ (Π j, D j) ⥤ (Π s : I ⊕ J, sum.elim C D s) :=
+{ obj := λ f, { obj := λ g s, sum.rec f g s }}
+
+
+end

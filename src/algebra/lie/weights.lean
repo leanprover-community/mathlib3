@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import algebra.lie.nilpotent
 import algebra.lie.tensor_product
 import algebra.lie.character
+import algebra.lie.cartan_subalgebra
 import linear_algebra.eigenspace
 
 /-!
@@ -345,6 +346,12 @@ def zero_root_subalgebra : lie_subalgebra R L :=
   (zero_root_subalgebra R L H : submodule R L) = root_space H 0 :=
 rfl
 
+lemma mem_zero_root_subalgebra (x : L) :
+  x ∈ zero_root_subalgebra R L H ↔ ∀ (y : H), ∃ (k : ℕ), ((to_endomorphism R H L y)^k) x = 0 :=
+by simp only [zero_root_subalgebra, mem_weight_space, mem_pre_weight_space, pi.zero_apply, sub_zero,
+  set_like.mem_coe, zero_smul, lie_submodule.mem_coe_submodule, submodule.mem_carrier,
+  lie_subalgebra.mem_mk_iff]
+
 lemma to_lie_submodule_le_root_space_zero : H.to_lie_submodule ≤ root_space H 0 :=
 begin
   intros x hx,
@@ -374,5 +381,47 @@ begin
     coe_zero_root_subalgebra, lie_submodule.coe_submodule_le_coe_submodule],
   exact to_lie_submodule_le_root_space_zero R L H,
 end
+
+@[simp] lemma zero_root_subalgebra_normalizer_eq_self :
+  (zero_root_subalgebra R L H).normalizer = zero_root_subalgebra R L H :=
+begin
+  refine le_antisymm _ (lie_subalgebra.le_normalizer _),
+  intros x hx,
+  rw lie_subalgebra.mem_normalizer_iff at hx,
+  rw mem_zero_root_subalgebra,
+  rintros ⟨y, hy⟩,
+  specialize hx y (le_zero_root_subalgebra R L H hy),
+  rw mem_zero_root_subalgebra at hx,
+  obtain ⟨k, hk⟩ := hx ⟨y, hy⟩,
+  rw [← lie_skew, linear_map.map_neg, neg_eq_zero] at hk,
+  use k + 1,
+  rw [linear_map.iterate_succ, linear_map.coe_comp, function.comp_app, to_endomorphism_apply_apply,
+    lie_subalgebra.coe_bracket_of_module, submodule.coe_mk, hk],
+end
+
+/-- In finite dimensions over a field (and possibly more generally) Engel's theorem shows that
+the converse of this is also true, i.e.,
+`zero_root_subalgebra R L H = H ↔ lie_subalgebra.is_cartan_subalgebra H`. -/
+lemma zero_root_subalgebra_is_cartan_of_eq (h : zero_root_subalgebra R L H = H) :
+  lie_subalgebra.is_cartan_subalgebra H :=
+{ nilpotent        := infer_instance,
+  self_normalizing := by { rw ← h, exact zero_root_subalgebra_normalizer_eq_self R L H, } }
+
+/-- A priori, weight spaces are Lie submodules over the Lie subalgebra `H` used to define them.
+However they are naturally Lie submodules over the (in general larger) Lie subalgebra
+`zero_root_subalgebra R L H`. Even though it is often the case that
+`zero_root_subalgebra R L H = H`, it is likely to be useful to have the flexibility not to have
+to invoke this equality (as well as to work more generally). -/
+def weight_space' (χ : H → R) : lie_submodule R (zero_root_subalgebra R L H) M :=
+{ lie_mem := λ x m hm, by
+  { have hx : (x : L) ∈ root_space H 0,
+    { rw [← lie_submodule.mem_coe_submodule, ← coe_zero_root_subalgebra], exact x.property, },
+    rw ← zero_add χ,
+    exact lie_mem_weight_space_of_mem_weight_space hx hm, },
+  .. (weight_space M χ : submodule R M) }
+
+@[simp] lemma coe_weight_space' (χ : H → R) :
+  (weight_space' R L H M χ : submodule R M) = weight_space M χ :=
+rfl
 
 end lie_algebra

@@ -36,7 +36,7 @@ f.antidiagonal'.support
   p ∈ antidiagonal f ↔ p.1 + p.2 = f :=
 begin
   rcases p with ⟨p₁, p₂⟩,
-  simp [antidiagonal, ← and.assoc, ← finsupp.to_multiset.apply_eq_iff_eq]
+  simp [antidiagonal, antidiagonal', ← and.assoc, ← finsupp.to_multiset.apply_eq_iff_eq]
 end
 
 lemma swap_mem_antidiagonal {n : α →₀ ℕ} {f : (α →₀ ℕ) × (α →₀ ℕ)} :
@@ -68,7 +68,7 @@ begin
 end
 
 @[simp] lemma antidiagonal_zero : antidiagonal (0 : α →₀ ℕ) = singleton (0,0) :=
-by rw [antidiagonal, multiset.to_finsupp_support]; refl
+by rw [antidiagonal, antidiagonal', multiset.to_finsupp_support]; refl
 
 @[to_additive]
 lemma prod_antidiagonal_swap {M : Type*} [comm_monoid M] (n : α →₀ ℕ)

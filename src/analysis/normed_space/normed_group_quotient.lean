@@ -402,16 +402,16 @@ begin
   ... = 1 - min ε (1 / 2) : by field_simp [(ne_of_lt hδ).symm]
 end
 
-/-- The operator norm of the projection is `0` if the subspace is the whole space. -/
-lemma norm_trivial_quotient_mk (S : add_subgroup M) (h : (S : set M) = set.univ) :
-  ∥S.normed_mk∥ = 0 :=
+/-- The operator norm of the projection is `0` if the subspace is not dense. -/
+lemma norm_trivial_quotient_mk (S : add_subgroup M)
+  (h : (S.topological_closure : set M) = set.univ) : ∥S.normed_mk∥ = 0 :=
 begin
   refine le_antisymm (op_norm_le_bound _ (le_refl _) (λ x, _)) (norm_nonneg _),
-  have hker : x ∈ (S.normed_mk).ker,
+  have hker : x ∈ (S.normed_mk).ker.topological_closure,
   { rw [S.ker_normed_mk],
     exact set.mem_of_eq_of_mem h trivial },
-  rw [normed_group_hom.mem_ker _ x] at hker,
-  rw [hker, zero_mul, norm_zero]
+  rw [ker_normed_mk] at hker,
+  simp only [(quotient_norm_eq_zero_iff S x).mpr hker, normed_mk.apply, zero_mul],
 end
 
 /-- `is_quotient f`, for `f : M ⟶ N` means that `N` is isomorphic to the quotient of `M`

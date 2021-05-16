@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import data.polynomial.eval
+import data.finsupp.antidiagonal
 
 /-!
 # Multivariate polynomials
@@ -981,4 +982,5 @@ eval₂_hom_eq_zero _ _ _ h
 end aeval
 
 end comm_semiring
+
 end mv_polynomial

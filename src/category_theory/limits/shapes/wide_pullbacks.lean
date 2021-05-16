@@ -238,7 +238,7 @@ by apply limit.w (wide_pullback_shape.wide_cospan _ _ _) (wide_pullback_shape.ho
 
 variables {arrows}
 
-/-- Lift a a collection of morphisms to a morphism to the pullback. -/
+/-- Lift a collection of morphisms to a morphism to the pullback. -/
 noncomputable
 abbreviation lift {X : C} (f : X ⟶ B) (fs : Π (j : J), X ⟶ objs j)
   (w : ∀ j, fs j ≫ arrows j = f) : X ⟶ wide_pullback _ _ arrows :=

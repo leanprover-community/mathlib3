@@ -1089,7 +1089,7 @@ lemma to_topological_space_inf {u v : uniform_space α} :
 by rw [to_topological_space_Inf, infi_pair]
 
 instance : uniform_space empty := ⊥
-instance : uniform_space unit := ⊥
+instance : uniform_space punit := ⊥
 instance : uniform_space bool := ⊥
 instance : uniform_space ℕ := ⊥
 instance : uniform_space ℤ := ⊥

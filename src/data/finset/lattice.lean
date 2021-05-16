@@ -81,11 +81,17 @@ sup_le $ assume b hb, le_sup (h hb)
 ⟨(λ hs b hb, lt_of_le_of_lt (le_sup hb) hs), finset.cons_induction_on s (λ _, ha)
   (λ c t hc, by simpa only [sup_cons, sup_lt_iff, mem_cons, forall_eq_or_imp] using and.imp_right)⟩
 
-@[simp] lemma le_sup_iff [is_total α (≤)] {a : α} (ha : ⊥ < a) : a ≤ s.sup f ↔ (∃ b ∈ s, a ≤ f b) :=
-by { rw [←not_iff_not, not_bex], simp only [@not_le (as_linear_order α), sup_lt_iff ha], }
+@[simp] lemma le_sup_iff [is_total α (≤)] {a : α} (ha : ⊥ < a) : a ≤ s.sup f ↔ ∃ b ∈ s, a ≤ f b :=
+⟨finset.cons_induction_on s (λ h, absurd h (not_le_of_lt ha))
+  (λ c t hc ih, by simpa using @or.rec _ _ (∃ b, (b = c ∨ b ∈ t) ∧ a ≤ f b)
+    (λ h, ⟨c, or.inl rfl, h⟩) (λ h, let ⟨b, hb, hle⟩ := ih h in ⟨b, or.inr hb, hle⟩)),
+(λ ⟨b, hb, hle⟩, trans hle (le_sup hb))⟩
 
-@[simp] lemma lt_sup_iff [is_total α (≤)] {a : α} : a < s.sup f ↔ (∃ b ∈ s, a < f b) :=
-by { rw [←not_iff_not, not_bex], simp only [@not_lt (as_linear_order α), sup_le_iff], }
+@[simp] lemma lt_sup_iff [is_total α (≤)] {a : α} : a < s.sup f ↔ ∃ b ∈ s, a < f b :=
+⟨finset.cons_induction_on s (λ h, absurd h not_lt_bot)
+  (λ c t hc ih, by simpa using @or.rec _ _ (∃ b, (b = c ∨ b ∈ t) ∧ a < f b)
+    (λ h, ⟨c, or.inl rfl, h⟩) (λ h, let ⟨b, hb, hlt⟩ := ih h in ⟨b, or.inr hb, hlt⟩)),
+(λ ⟨b, hb, hlt⟩, lt_of_lt_of_le hlt (le_sup hb))⟩
 
 lemma comp_sup_eq_sup_comp [semilattice_sup_bot γ] {s : finset β}
   {f : β → α} (g : α → γ) (g_sup : ∀ x y, g (x ⊔ y) = g x ⊔ g y) (bot : g ⊥ = ⊥) :

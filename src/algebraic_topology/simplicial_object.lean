@@ -8,14 +8,16 @@ import category_theory.category.ulift
 import category_theory.limits.functor_category
 import category_theory.opposites
 import category_theory.adjunction.limits
+import category_theory.comma
 
 /-!
 # Simplicial objects in a category.
 
 A simplicial object in a category `C` is a `C`-valued presheaf on `simplex_category`.
+(Similarly a cosimplicial object is functor `simplex_category ⥤ C`.)
 
 Use the notation `X _[n]` in the `simplicial` locale to obtain the `n`-th term of a
-simplicial object `X`, where `n` is a natural number.
+(co)simplicial object `X`, where `n` is a natural number.
 
 -/
 
@@ -135,10 +137,170 @@ section skeleton
 
 /-- The skeleton functor from simplicial objects to truncated simplicial objects. -/
 def sk (n : ℕ) : simplicial_object C ⥤ simplicial_object.truncated C n :=
-(whiskering_left _ _ _).obj (simplex_category.truncated.inclusion).op
+(whiskering_left _ _ _).obj simplex_category.truncated.inclusion.op
 
 end skeleton
 
+variable (C)
+
+/-- The constant simplicial object is the constant functor. -/
+abbreviation const : C ⥤ simplicial_object C := category_theory.functor.const _
+
+/-- The category of augmented simplicial objects, defined as a comma category. -/
+@[derive category, nolint has_inhabited_instance]
+def augmented := comma (𝟭 (simplicial_object C)) (const C)
+
+variable {C}
+
+namespace augmented
+
+/-- Drop the augmentation. -/
+@[simps]
+def drop : augmented C ⥤ simplicial_object C := comma.fst _ _
+
+/-- The point of the augmentation. -/
+@[simps]
+def point : augmented C ⥤ C := comma.snd _ _
+
+end augmented
+
 end simplicial_object
+
+/-- Cosimplicial objects. -/
+@[derive category, nolint has_inhabited_instance]
+def cosimplicial_object := simplex_category.{v} ⥤ C
+
+namespace cosimplicial_object
+
+localized
+  "notation X `_[`:1000 n `]` :=
+    (X : category_theory.cosimplicial_object _).obj (simplex_category.mk n)"
+  in simplicial
+
+instance {J : Type v} [small_category J] [has_limits_of_shape J C] :
+  has_limits_of_shape J (cosimplicial_object C) := by {dsimp [cosimplicial_object], apply_instance}
+
+instance [has_limits C] : has_limits (cosimplicial_object C) := ⟨infer_instance⟩
+
+instance {J : Type v} [small_category J] [has_colimits_of_shape J C] :
+  has_colimits_of_shape J (cosimplicial_object C) :=
+by {dsimp [cosimplicial_object], apply_instance}
+
+instance [has_colimits C] : has_colimits (cosimplicial_object C) := ⟨infer_instance⟩
+
+variables {C} (X : cosimplicial_object C)
+
+/-- Coface maps for a cosimplicial object. -/
+def δ {n} (i : fin (n+2)) : X _[n] ⟶ X _[n+1] :=
+X.map (simplex_category.δ i)
+
+/-- Codegeneracy maps for a cosimplicial object. -/
+def σ {n} (i : fin (n+1)) : X _[n+1] ⟶ X _[n] :=
+X.map (simplex_category.σ i)
+
+/-- Isomorphisms from identities in ℕ. -/
+def eq_to_iso {n m : ℕ} (h : n = m) : X _[n] ≅ X _[m] :=
+X.map_iso (eq_to_iso (by rw h))
+
+@[simp] lemma eq_to_iso_refl {n : ℕ} (h : n = n) : X.eq_to_iso h = iso.refl _ :=
+by { ext, simp [eq_to_iso], }
+
+
+/-- The generic case of the first cosimplicial identity -/
+lemma δ_comp_δ {n} {i j : fin (n+2)} (H : i ≤ j) :
+  X.δ i ≫ X.δ j.succ = X.δ j ≫ X.δ i.cast_succ :=
+by { dsimp [δ], simp only [←X.map_comp, simplex_category.δ_comp_δ H], }
+
+/-- The special case of the first cosimplicial identity -/
+lemma δ_comp_δ_self {n} {i : fin (n+2)} : X.δ i ≫ X.δ i.cast_succ = X.δ i ≫ X.δ i.succ :=
+by { dsimp [δ], simp only [←X.map_comp, simplex_category.δ_comp_δ_self] }
+
+/-- The second cosimplicial identity -/
+lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
+  X.δ i.cast_succ ≫ X.σ j.succ = X.σ j ≫ X.δ i :=
+by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.δ_comp_σ_of_le H] }
+
+/-- The first part of the third cosimplicial identity -/
+lemma δ_comp_σ_self {n} {i : fin (n+1)} :
+  X.δ i.cast_succ ≫ X.σ i = 𝟙 _ :=
+begin
+  dsimp [δ, σ],
+  simp only [←X.map_comp, simplex_category.δ_comp_σ_self, X.map_id],
+end
+
+/-- The second part of the third cosimplicial identity -/
+lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
+  X.δ i.succ ≫ X.σ i = 𝟙 _ :=
+begin
+  dsimp [δ, σ],
+  simp only [←X.map_comp, simplex_category.δ_comp_σ_succ, X.map_id],
+end
+
+/-- The fourth cosimplicial identity -/
+lemma δ_comp_σ_of_gt {n} {i : fin (n+2)} {j : fin (n+1)} (H : j.cast_succ < i) :
+  X.δ i.succ ≫ X.σ j.cast_succ = X.σ j ≫ X.δ i :=
+by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.δ_comp_σ_of_gt H] }
+
+/-- The fifth cosimplicial identity -/
+lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
+  X.σ i.cast_succ ≫ X.σ j = X.σ j.succ ≫ X.σ i :=
+by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.σ_comp_σ H] }
+
+variable (C)
+
+/-- Truncated cosimplicial objects. -/
+@[derive category, nolint has_inhabited_instance]
+def truncated (n : ℕ) := simplex_category.truncated.{v} n ⥤ C
+
+variable {C}
+
+namespace truncated
+
+instance {n} {J : Type v} [small_category J] [has_limits_of_shape J C] :
+  has_limits_of_shape J (cosimplicial_object.truncated C n) :=
+by {dsimp [truncated], apply_instance}
+
+instance {n} [has_limits C] : has_limits (cosimplicial_object.truncated C n) := ⟨infer_instance⟩
+
+instance {n} {J : Type v} [small_category J] [has_colimits_of_shape J C] :
+  has_colimits_of_shape J (cosimplicial_object.truncated C n) :=
+by {dsimp [truncated], apply_instance}
+
+instance {n} [has_colimits C] : has_colimits (cosimplicial_object.truncated C n) := ⟨infer_instance⟩
+
+end truncated
+
+section skeleton
+
+/-- The skeleton functor from cosimplicial objects to truncated cosimplicial objects. -/
+def sk (n : ℕ) : cosimplicial_object C ⥤ cosimplicial_object.truncated C n :=
+(whiskering_left _ _ _).obj simplex_category.truncated.inclusion
+
+end skeleton
+
+variable (C)
+
+/-- The constant cosimplicial object. -/
+abbreviation const : C ⥤ cosimplicial_object C := category_theory.functor.const _
+
+/-- Augmented cosimplicial objects. -/
+@[derive category, nolint has_inhabited_instance]
+def augmented := comma (const C) (𝟭 (cosimplicial_object C))
+
+variable {C}
+
+namespace augmented
+
+/-- Drop the augmentation. -/
+@[simps]
+def drop : augmented C ⥤ cosimplicial_object C := comma.snd _ _
+
+/-- The point of the augmentation. -/
+@[simps]
+def point : augmented C ⥤ C := comma.fst _ _
+
+end augmented
+
+end cosimplicial_object
 
 end category_theory

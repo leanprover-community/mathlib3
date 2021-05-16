@@ -3,8 +3,9 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.deriv
 import topology.local_extr
+import topology.algebra.ordered.extend_from
+import analysis.calculus.deriv
 import topology.algebra.polynomial
 
 /-!

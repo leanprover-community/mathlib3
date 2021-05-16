@@ -439,6 +439,27 @@ theorem equiv_congr_right {x₁ x₂} : x₁ ≈ x₂ ↔ ∀ y₁, x₁ ≈ y�
 ⟨λ h y₁, ⟨λ h', equiv_trans (equiv_symm h) h', λ h', equiv_trans h h'⟩,
  λ h, (h x₂).2 $ equiv_refl _⟩
 
+theorem equiv_of_mk_equiv {x y : pgame}
+  (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
+  (hl : ∀ (i : x.left_moves), x.move_left i ≈ y.move_left (L i))
+  (hr : ∀ (j : y.right_moves), x.move_right (R.symm j) ≈ y.move_right j) :
+  x ≈ y :=
+begin
+  fsplit; rw le_def,
+  { exact ⟨λ i, or.inl ⟨L i, (hl i).1⟩, λ j, or.inr ⟨R.symm j, (hr j).1⟩⟩ },
+  { fsplit,
+    { intro i,
+      left,
+      specialize hl (L.symm i),
+      simp only [move_left_mk, equiv.apply_symm_apply] at hl,
+      use ⟨L.symm i, hl.2⟩ },
+    { intro j,
+      right,
+      specialize hr (R j),
+      simp only [move_right_mk, equiv.symm_apply_apply] at hr,
+      use ⟨R j, hr.2⟩ } }
+end
+
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
      and Right always has no more moves in `y` than in `x` -/
 inductive restricted : pgame.{u} → pgame.{u} → Type (u+1)
@@ -907,6 +928,9 @@ theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y �
  calc x + z ≤ x + y : add_le_add_left h₂.2
         ... ≤ w + y : add_le_add_right h₁.2⟩
 
+theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
+add_congr h₁ (neg_congr h₂)
+
 theorem add_left_neg_le_zero : Π {x : pgame}, (-x) + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=
 begin
@@ -947,6 +971,9 @@ calc x + (-x) ≤ (-x) + x : add_comm_le
 theorem zero_le_add_right_neg {x : pgame} : 0 ≤ x + (-x) :=
 calc 0 ≤ (-x) + x : zero_le_add_left_neg
      ... ≤ x + (-x) : add_comm_le
+
+theorem add_right_neg_equiv {x : pgame} : x + (-x) ≈ 0 :=
+⟨add_right_neg_le_zero, zero_le_add_right_neg⟩
 
 theorem add_lt_add_right {x y z : pgame} (h : x < y) : x + z < y + z :=
 suffices y + z ≤ x + z → y ≤ x, by { rw ←not_le at ⊢ h, exact mt this h },

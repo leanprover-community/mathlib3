@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import algebra.invertible
 import algebra.lie.skew_adjoint
 import algebra.lie.abelian
+import linear_algebra.matrix.trace
 
 /-!
 # Classical Lie algebras

@@ -157,13 +157,13 @@ def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (
 { to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
 
 /-- Evaluation at a point is an `add_monoid_hom`. This is the finitely-supported version of
-`add_monoid_hom.apply`. -/
+`pi.eval_add_monoid_hom`. -/
 def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
-(add_monoid_hom.apply β i).comp coe_fn_add_monoid_hom
+(pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
 instance is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
   is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
+(eval_add_monoid_hom i).is_add_monoid_hom
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩

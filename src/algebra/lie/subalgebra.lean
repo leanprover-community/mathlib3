@@ -126,6 +126,7 @@ lemma coe_to_submodule : ((L' : submodule R L) : set L) = L' := rfl
 section lie_module
 
 variables {M : Type w} [add_comm_group M] [lie_ring_module L M]
+variables {N : Type w₁} [add_comm_group N] [lie_ring_module L N] [module R N] [lie_module R L N]
 
 /-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie ring module
 `M` of `L`, we may regard `M` as a Lie ring module of `L'` by restriction. -/
@@ -137,23 +138,45 @@ instance : lie_ring_module L' M :=
 
 @[simp] lemma coe_bracket_of_module (x : L') (m : M) : ⁅x, m⁆ = ⁅(x : L), m⁆ := rfl
 
+variables [module R M] [lie_module R L M]
+
 /-- Given a Lie algebra `L` containing a Lie subalgebra `L' ⊆ L`, together with a Lie module `M` of
 `L`, we may regard `M` as a Lie module of `L'` by restriction. -/
-instance [module R M] [lie_module R L M] : lie_module R L' M :=
+instance : lie_module R L' M :=
 { smul_lie := λ t x m, by simp only [coe_bracket_of_module, smul_lie, submodule.coe_smul_of_tower],
   lie_smul := λ t x m, by simp only [coe_bracket_of_module, lie_smul], }
 
+/-- An `L`-equivariant map of Lie modules `M → N` is `L'`-equivariant for any Lie subalgebra
+`L' ⊆ L`. -/
+def _root_.lie_module_hom.restrict_lie (f : M →ₗ⁅R,L⁆ N) (L' : lie_subalgebra R L) : M →ₗ⁅R,L'⁆ N :=
+{ map_lie' := λ x m, f.map_lie ↑x m,
+  .. (f : M →ₗ[R] N)}
+
+@[simp] lemma _root_.lie_module_hom.coe_restrict_lie (f : M →ₗ⁅R,L⁆ N) :
+  ⇑(f.restrict_lie L') = f :=
+rfl
+
 end lie_module
+
+/-- The embedding of a Lie subalgebra into the ambient space as a morphism of Lie algebras. -/
+def incl : L' →ₗ⁅R⁆ L :=
+{ map_lie' := λ x y, by { simp only [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
+  .. (L' : submodule R L).subtype, }
+
+@[simp] lemma coe_incl : ⇑L'.incl = coe := rfl
+
+/-- The embedding of a Lie subalgebra into the ambient space as a morphism of Lie modules. -/
+def incl' : L' →ₗ⁅R,L'⁆ L :=
+{ map_lie' := λ x y, by simp only [coe_bracket_of_module, linear_map.to_fun_eq_coe,
+    submodule.subtype_apply, coe_bracket],
+  .. (L' : submodule R L).subtype, }
+
+@[simp] lemma coe_incl' : ⇑L'.incl' = coe := rfl
 
 end lie_subalgebra
 
 variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]
 variables (f : L →ₗ⁅R⁆ L₂)
-
-/-- The embedding of a Lie subalgebra into the ambient space as a Lie morphism. -/
-def lie_subalgebra.incl (L' : lie_subalgebra R L) : L' →ₗ⁅R⁆ L :=
-{ map_lie' := λ x y, by { rw [linear_map.to_fun_eq_coe, submodule.subtype_apply], refl, },
-  ..L'.to_submodule.subtype }
 
 namespace lie_hom
 

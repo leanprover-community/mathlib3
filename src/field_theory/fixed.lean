@@ -9,7 +9,6 @@ import deprecated.subfield
 import field_theory.normal
 import field_theory.separable
 import field_theory.tower
-import linear_algebra.matrix
 import ring_theory.polynomial
 
 /-!

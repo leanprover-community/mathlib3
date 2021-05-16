@@ -1697,7 +1697,7 @@ lemma perm_of_nodup_nodup_to_finset_eq {l l' : list α} (hl : nodup l) (hl' : no
   (h : l.to_finset = l'.to_finset) : l ~ l' :=
 begin
   rw ←multiset.coe_eq_coe,
-  exact hl.to_finset_inj hl' h
+  exact multiset.nodup.to_finset_inj hl hl' h
 end
 
 @[simp] lemma to_finset_append {l l' : list α} :

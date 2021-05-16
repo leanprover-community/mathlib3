@@ -29,7 +29,6 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
     simp only at this,
     assumption
   end⟩,
-
   inv_fun := λ ⟨⟨f, g⟩, disj⟩,
     ⟨λ x, match x with
     | (sum.inl a) := f a
@@ -43,7 +42,6 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
       { simp! only at f_eq, exfalso, exact disj ⟨⟨a₂, by simp⟩, ⟨b₁, by simp [f_eq]⟩⟩  },
       { rw g.injective f_eq }
     end⟩,
-
   left_inv := λ f, by { dsimp only, ext, cases x; simp! },
   right_inv := λ ⟨⟨f, g⟩, _⟩, by { simp only [prod.mk.inj_iff], split; ext; simp! } }
 

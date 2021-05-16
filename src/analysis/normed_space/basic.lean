@@ -91,6 +91,8 @@ instance : normed_group punit :=
 { norm := function.const _ 0,
   dist_eq := λ _ _, rfl, }
 
+@[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
+
 instance : normed_group ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl }
@@ -780,6 +782,11 @@ class normed_comm_ring (α : Type*) extends normed_ring α :=
 @[priority 100] -- see Note [lower instance priority]
 instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
   semi_normed_comm_ring α := { ..β }
+
+instance : normed_comm_ring punit :=
+{ norm_mul := λ _ _, by simp,
+  ..punit.normed_group,
+  ..punit.comm_ring, }
 
 /-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
 axiom. -/

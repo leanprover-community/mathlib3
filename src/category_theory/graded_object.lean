@@ -122,7 +122,7 @@ lemma zero_apply [has_zero_morphisms C] (β : Type w) (X Y : graded_object β C)
   (0 : X ⟶ Y) b = 0 := rfl
 
 section
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
   has_zero_object.{(max w v)} (graded_object β C) :=

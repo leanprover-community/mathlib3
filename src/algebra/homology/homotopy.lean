@@ -267,11 +267,11 @@ variables (e : P ⟶ Q)
   (zero : P.X 0 ⟶ Q.X 1)
   (comm_zero : e.f 0 = zero ≫ Q.d 1 0)
   (one : P.X 1 ⟶ Q.X 2)
-  (comm_one : e.f 1 = one ≫ Q.d 2 1 + P.d 1 0 ≫ zero)
+  (comm_one : e.f 1 = P.d 1 0 ≫ zero + one ≫ Q.d 2 1)
   (succ : ∀ (n : ℕ)
     (p : Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
-      e.f (n+1) = f' ≫ Q.d (n+2) (n+1) + P.d (n+1) n ≫ f),
-    Σ' f'' : P.X (n+2) ⟶ Q.X (n+3), e.f (n+2) = f'' ≫ Q.d (n+3) (n+2) + P.d (n+2) (n+1) ≫ p.2.1)
+      e.f (n+1) = P.d (n+1) n ≫ f + f' ≫ Q.d (n+2) (n+1)),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+3), e.f (n+2) = P.d (n+2) (n+1) ≫ p.2.1 + f'' ≫ Q.d (n+3) (n+2))
 
 include comm_one comm_zero
 
@@ -290,7 +290,7 @@ which we do in `mk_inductive_aux₂`.
 @[simp, nolint unused_arguments]
 def mk_inductive_aux₁ :
   Π n, Σ' (f : P.X n ⟶ Q.X (n+1)) (f' : P.X (n+1) ⟶ Q.X (n+2)),
-    e.f (n+1) = f' ≫ Q.d (n+2) (n+1) + P.d (n+1) n ≫ f
+    e.f (n+1) = P.d (n+1) n ≫ f + f' ≫ Q.d (n+2) (n+1)
 | 0 := ⟨zero, one, comm_one⟩
 | 1 := ⟨one, (succ 0 ⟨zero, one, comm_one⟩).1, (succ 0 ⟨zero, one, comm_one⟩).2⟩
 | (n+2) :=
@@ -307,7 +307,7 @@ An auxiliary construction for `mk_inductive`.
 -/
 @[simp]
 def mk_inductive_aux₂ :
-  Π n, Σ' (f : P.X_next n ⟶ Q.X n) (f' : P.X n ⟶ Q.X_prev n), e.f n = f' ≫ Q.d_to n + P.d_from n ≫ f
+  Π n, Σ' (f : P.X_next n ⟶ Q.X n) (f' : P.X n ⟶ Q.X_prev n), e.f n = P.d_from n ≫ f + f' ≫ Q.d_to n
 | 0 := ⟨0, zero ≫ (Q.X_prev_iso rfl).inv, by simpa using comm_zero⟩
 | (n+1) := let I := mk_inductive_aux₁ e zero comm_zero one comm_one succ n in
   ⟨(P.X_next_iso rfl).hom ≫ I.1, I.2.1 ≫ (Q.X_prev_iso rfl).inv, by simpa using I.2.2⟩
@@ -336,8 +336,20 @@ def mk_inductive : homotopy e 0 :=
   comm' := λ i, begin
     dsimp, simp only [add_zero],
     convert (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.2,
-    { sorry },
-    { sorry },
+    { rcases i with (_|_|_|i),
+      { dsimp,
+        simp only [d_next_zero_chain_complex, d_from_eq_zero, limits.comp_zero], },
+      all_goals
+      { simp only [d_next_succ_chain_complex],
+        dsimp,
+        simp only [category.comp_id, category.assoc, iso.inv_hom_id, d_from_comp_X_next_iso_assoc,
+          dite_eq_ite, if_true, eq_self_iff_true]}, },
+    { cases i,
+      all_goals
+      { simp only [prev_d_chain_complex],
+        dsimp,
+        simp only [category.comp_id, category.assoc, iso.inv_hom_id, X_prev_iso_comp_d_to,
+          dite_eq_ite, if_true, eq_self_iff_true], }, },
   end, }
 
 end

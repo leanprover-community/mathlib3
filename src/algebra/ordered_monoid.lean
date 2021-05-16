@@ -53,24 +53,24 @@ section ordered_instances
 
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
-  covariant_class ((*) : M → M → M) (≤) :=
+  covariant_class M M (*) (≤) :=
 { covc := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  covariant_class (flip (*) : M → M → M) (≤) :=
+  covariant_class M M (function.swap (*) : M → M → M) (≤) :=
 { covc := λ a b c bc, by { show (b * a ≤ c * a),
         rw [mul_comm _ a, mul_comm _ a],
         exact ordered_comm_monoid.mul_le_mul_left _ _ bc a } }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
-  contravariant_class ((*) : M → M → M) (<) :=
+  contravariant_class M M (*) (<) :=
 { covtc := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  contravariant_class (flip (*) : M → M → M) (<) :=
+  contravariant_class M M (function.swap (*)) (<) :=
 { covtc := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
     exact ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc } }
 
@@ -237,7 +237,7 @@ instance [lattice α] : lattice (with_zero α) := with_bot.lattice
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
 
 lemma mul_le_mul_left {α : Type u} [has_mul α] [preorder α]
-  [covariant_class ((*) : α → α → α) (≤)] :
+  [covariant_class α α (*) (≤)] :
   ∀ (a b : with_zero α),
     a ≤ b → ∀ (c : with_zero α), c * a ≤ c * b :=
 begin
@@ -250,7 +250,7 @@ begin
 end
 
 lemma lt_of_mul_lt_mul_left  {α : Type u} [has_mul α] [partial_order α]
-  [contravariant_class ((*) : α → α → α) (<)] :
+  [contravariant_class α α (*) (<)] :
   ∀ (a b c : with_zero α), a * b < a * c → b < c :=
 begin
   rintro (_ | a) (_ | b) (_ | c) h;

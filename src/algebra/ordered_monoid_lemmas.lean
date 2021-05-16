@@ -124,6 +124,90 @@ instance covariant_mul_lt_iff_flip [comm_semigroup N] [has_lt N]
   [covariant_class N N (*) (<)] : covariant_class N N (flip (*)) (<) :=
 { covc := (covariant_iff_covariant_mul N (<)).mp covariant_class.covc }
 
+
+variables {M N}
+section has_mul
+variables (a) [has_mul N]
+
+section has_le
+variables [has_le N]
+
+@[to_additive]
+lemma mul_le_mul_left [covariant_class N N (*) (≤)] (bc : b ≤ c) :
+  a * b ≤ a * c :=
+covariant_class.covc _ bc
+
+@[to_additive]
+lemma le_of_mul_le_mul_left [contravariant_class N N (*) (≤)]
+  (bc : a * b ≤ a * c) :
+  b ≤ c :=
+contravariant_class.covtc _ bc
+
+@[to_additive]
+lemma mul_le_mul_right [covariant_class N N (function.swap (*)) (≤)]
+  (bc : b ≤ c) :
+  b * a ≤ c * a :=
+covariant_class.covc a bc
+
+@[to_additive]
+lemma le_of_mul_le_mul_right [contravariant_class N N (function.swap (*)) (≤)]
+  (bc : b * a ≤ c * a) :
+  b ≤ c :=
+contravariant_class.covtc a bc
+
+end has_le
+
+section has_lt
+variables (a) [has_lt N]
+
+@[to_additive]
+lemma mul_lt_mul_left [covariant_class N N (*) (<)] (bc : b < c) :
+  a * b < a * c :=
+covariant_class.covc _ bc
+
+@[to_additive]
+lemma lt_of_mul_lt_mul_left [contravariant_class N N (*) (<)] (bc : a * b < a * c) :
+  b < c :=
+contravariant_class.covtc _ bc
+
+@[to_additive]
+lemma mul_lt_mul_right [covariant_class N N (function.swap (*)) (<)]
+  (bc : b < c) :
+  b * a < c * a :=
+covariant_class.covc a bc
+
+@[to_additive]
+lemma lt_of_mul_lt_mul_right [contravariant_class N N (function.swap (*)) (<)]
+  (bc : b * a < c * a) :
+  b < c :=
+contravariant_class.covtc a bc
+
+end has_lt
+
+end has_mul
+
+@[to_additive
+"An additive semigroup with a partial order and satisfying `left_cancel_add_semigroup`
+(i.e. `c + a < c + b → a < b`) is a `left_cancel add_semigroup`."]
+def contravariant.to_left_cancel_semigroup [semigroup N] [partial_order N]
+  [contravariant_class N N ((*) : N → N → N) (≤)] :
+  left_cancel_semigroup N :=
+{ mul_left_cancel := λ a b c bc,
+    (le_of_mul_le_mul_left a bc.le).antisymm (le_of_mul_le_mul_left a bc.ge),
+  ..(infer_instance : semigroup N) }
+
+/--  A semigroup with a partial order and satisfying `right_cancel_semigroup`
+(i.e. `a * c < b * c → a < b`) is a `right_cancel semigroup`. -/
+@[to_additive
+"An additive semigroup with a partial order and satisfying `right_cancel_add_semigroup`
+(`a + c < b + c → a < b`) is a `right_cancel add_semigroup`."]
+def contravariant.to_right_cancel_semigroup [semigroup N] [partial_order N]
+  [contravariant_class N N (function.swap (*) : N → N → N) (≤)] :
+  right_cancel_semigroup N :=
+{ mul_right_cancel := λ a b c bc,
+    le_antisymm (le_of_mul_le_mul_right b bc.le) (le_of_mul_le_mul_right b bc.ge)
+  ..(infer_instance : semigroup N) }
+
 end variants
 
 variables {α : Type*} {a b c d : α}
@@ -149,22 +233,22 @@ covariant_class.covc c h
 @[to_additive]
 lemma mul_lt_of_mul_lt_left (h : a * b < c) (hle : d ≤ b) :
   a * d < c :=
-(mul_le_mul_left' hle a).trans_lt h
+(mul_le_mul_left a hle).trans_lt h
 
 @[to_additive]
 lemma mul_le_of_mul_le_left (h : a * b ≤ c) (hle : d ≤ b) :
   a * d ≤ c :=
-(mul_le_mul_left' hle a).trans h
+(mul_le_mul_left a hle).trans h
 
 @[to_additive]
 lemma lt_mul_of_lt_mul_left (h : a < b * c) (hle : c ≤ d) :
   a < b * d :=
-h.trans_le (mul_le_mul_left' hle b)
+h.trans_le (mul_le_mul_left b hle)
 
 @[to_additive]
 lemma le_mul_of_le_mul_left (h : a ≤ b * c) (hle : c ≤ d) :
   a ≤ b * d :=
-h.trans (mul_le_mul_left' hle b)
+h.trans (mul_le_mul_left b hle)
 
 end has_mul
 
@@ -174,11 +258,11 @@ variables [mul_one_class α] [covariant_class α α (*) (≤)]
 
 @[to_additive le_add_of_nonneg_right]
 lemma le_mul_of_one_le_right' (h : 1 ≤ b) : a ≤ a * b :=
-by simpa only [mul_one] using mul_le_mul_left' h a
+by simpa only [mul_one] using mul_le_mul_left a h
 
 @[to_additive add_le_of_nonpos_right]
 lemma mul_le_of_le_one_right' (h : b ≤ 1) : a * b ≤ a :=
-by simpa only [mul_one] using mul_le_mul_left' h a
+by simpa only [mul_one] using mul_le_mul_left a h
 
 @[to_additive]
 lemma lt_of_mul_lt_of_one_le_left (h : a * b < c) (hle : 1 ≤ b) : a < c :=
@@ -224,22 +308,22 @@ covariant_class.covc c h
 @[to_additive]
 lemma mul_lt_of_mul_lt_right (h : a * b < c) (hle : d ≤ a) :
   d * b < c :=
-(mul_le_mul_right' hle b).trans_lt h
+(mul_le_mul_right b hle).trans_lt h
 
 @[to_additive]
 lemma mul_le_of_mul_le_right (h : a * b ≤ c) (hle : d ≤ a) :
   d * b ≤ c :=
-(mul_le_mul_right' hle b).trans h
+(mul_le_mul_right b hle).trans h
 
 @[to_additive]
 lemma lt_mul_of_lt_mul_right (h : a < b * c) (hle : b ≤ d) :
   a < d * c :=
-h.trans_le (mul_le_mul_right' hle c)
+h.trans_le (mul_le_mul_right c hle)
 
 @[to_additive]
 lemma le_mul_of_le_mul_right (h : a ≤ b * c) (hle : b ≤ d) :
   a ≤ d * c :=
-h.trans (mul_le_mul_right' hle c)
+h.trans (mul_le_mul_right c hle)
 
 end has_mul
 
@@ -249,11 +333,11 @@ variables [mul_one_class α] [covariant_class α α (function.swap (*)) (≤)]
 
 @[to_additive le_add_of_nonneg_left]
 lemma le_mul_of_one_le_left' (h : 1 ≤ b) : a ≤ b * a :=
-by simpa only [one_mul] using mul_le_mul_right' h a
+by simpa only [one_mul] using mul_le_mul_right a h
 
 @[to_additive add_le_of_nonpos_left]
 lemma mul_le_of_le_one_left' (h : b ≤ 1) : b * a ≤ a :=
-by simpa only [one_mul] using mul_le_mul_right' h a
+by simpa only [one_mul] using mul_le_mul_right a h
 
 @[to_additive]
 lemma lt_of_mul_lt_of_one_le_right (h : a * b < c) (hle : 1 ≤ a) : b < c :=
@@ -286,7 +370,7 @@ variables [has_mul α]
 
 @[to_additive add_le_add]
 lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
-(mul_le_mul_left' h₂ _).trans (mul_le_mul_right' h₁ d)
+(mul_le_mul_left _ h₂).trans (mul_le_mul_right d h₁)
 
 @[to_additive]
 lemma mul_le_mul_three {e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) : a * b * c ≤ d * e * f :=
@@ -467,16 +551,16 @@ lt_of_le_not_le (mul_le_mul_left' h.le _)
 
 @[to_additive lt_add_of_pos_right]
 lemma lt_mul_of_one_lt_right' (a : α) {b : α} (h : 1 < b) : a < a * b :=
-have a * 1 < a * b, from mul_lt_mul_left' h a,
+have a * 1 < a * b, from mul_lt_mul_left a h,
 by rwa [mul_one] at this
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_left (a : α) {b c : α} : a * b ≤ a * c ↔ b ≤ c :=
-⟨le_of_mul_le_mul_left', λ h, mul_le_mul_left' h _⟩
+⟨le_of_mul_le_mul_left, λ h, mul_le_mul_left _ h⟩
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_left (a : α) {b c : α} : a * b < a * c ↔ b < c :=
-⟨lt_of_mul_lt_mul_left', λ h, mul_lt_mul_left' h _⟩
+⟨lt_of_mul_lt_mul_left, λ h, mul_lt_mul_left _ h⟩
 
 @[simp, to_additive le_add_iff_nonneg_right]
 lemma le_mul_iff_one_le_right' (a : α) {b : α} : a ≤ a * b ↔ 1 ≤ b :=
@@ -511,16 +595,16 @@ lemma mul_lt_mul_right' (h : a < b) (c : α) : a * c < b * c :=
 
 @[to_additive lt_add_of_pos_left]
 lemma lt_mul_of_one_lt_left' (a : α) {b : α} (h : 1 < b) : a < b * a :=
-have 1 * a < b * a, from mul_lt_mul_right' h a,
+have 1 * a < b * a, from mul_lt_mul_right a h,
 by rwa [one_mul] at this
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_right (c : α) : a * c ≤ b * c ↔ a ≤ b :=
-⟨le_of_mul_le_mul_right', λ h, mul_le_mul_right' h _⟩
+⟨le_of_mul_le_mul_right, λ h, mul_le_mul_right _ h⟩
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_right (c : α) : a * c < b * c ↔ a < b :=
-⟨lt_of_mul_lt_mul_right', λ h, mul_lt_mul_right' h _⟩
+⟨lt_of_mul_lt_mul_right, λ h, mul_lt_mul_right _ h⟩
 
 @[simp, to_additive le_add_iff_nonneg_left]
 lemma le_mul_iff_one_le_left' (a : α) {b : α} : a ≤ b * a ↔ 1 ≤ b :=
@@ -550,8 +634,8 @@ variables [right_cancel_monoid α]
 
 @[to_additive]
 lemma mul_lt_mul_of_lt_of_le (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
-lt_of_lt_of_le ((covariant_class.covc c h₁.le).lt_of_ne (λ h, h₁.ne ((mul_left_inj c).mp h)))
-  (mul_le_mul_left' h₂ b)
+lt_of_lt_of_le ((mul_le_mul_left c h₁.le).lt_of_ne (λ h, h₁.ne ((mul_left_inj c).mp h)))
+  (mul_le_mul_left b h₂)
 
 @[to_additive]
 lemma mul_lt_one_of_lt_one_of_le_one (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
@@ -592,7 +676,7 @@ section special
 
 @[to_additive]
 lemma mul_lt_mul_of_le_of_lt (h₁ : a ≤ b) (h₂ : c < d) : a * c < b * d :=
-(mul_le_mul_right' h₁ _).trans_lt (mul_lt_mul_left' h₂ b)
+(mul_le_mul_right _ h₁).trans_lt (mul_lt_mul_left b h₂)
 
 @[to_additive]
 lemma mul_lt_one_of_le_one_of_lt_one (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
@@ -620,7 +704,7 @@ variables [contravariant_class α α (function.swap (*)) (<)]
 
 @[to_additive add_lt_add]
 lemma mul_lt_mul''' (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
-(mul_lt_mul_right' h₁ c).trans (mul_lt_mul_left' h₂ b)
+(mul_lt_mul_right c h₁).trans (mul_lt_mul_left b h₂)
 
 @[to_additive]
 lemma mul_eq_one_iff_eq_one_of_one_le

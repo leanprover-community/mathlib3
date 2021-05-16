@@ -21,6 +21,11 @@ open_locale nat
 
 namespace fintype
 
+-- the [fintype α] argument may seem redundant; it isn't!
+lemma card_embedding_of_unique
+{α β : Type*} [unique α] [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]:
+‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
+
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = nat.desc_fac (‖β‖ - n) n :=
 begin
@@ -35,8 +40,8 @@ begin
 
   have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n,
   {
-    intro f, rw card_congr equiv.unique_embedding_equiv_result; try {apply_instance},
-
+    intro f,
+    rw card_embedding_of_unique; try {apply_instance},
     rw card_of_finset' (finset.map f finset.univ)ᶜ,
     { simp [finset.card_compl, finset.card_map] },
     { -- further evidence `ᶜ` is defeq, something odd

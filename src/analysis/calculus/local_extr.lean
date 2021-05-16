@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import topology.local_extr
 import topology.algebra.ordered.extend_from
 import analysis.calculus.deriv
+import topology.algebra.polynomial
 
 /-!
 # Local extrema of smooth functions
@@ -351,3 +352,27 @@ classical.by_cases
       let ⟨c, hc, hcdiff⟩ := h in ⟨c, hc, deriv_zero_of_not_differentiable_at hcdiff⟩)
 
 end Rolle
+
+namespace polynomial
+
+lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
+  fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
+begin
+  haveI : char_zero F :=
+    (ring_hom.char_zero_iff (algebra_map F ℝ).injective).mpr (by apply_instance),
+  by_cases hp : p = 0,
+  { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card', zero_le_one] },
+  by_cases hp' : p.derivative = 0,
+  { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
+    simp_rw [root_set_C, set.empty_card', zero_le] },
+  simp_rw [root_set_def, fintype.card_coe],
+  refine finset.card_le_of_interleaved (λ x y hx hy hxy, _),
+  rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
+  obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, aeval x p) hxy
+    p.continuous_aeval.continuous_on (hx.trans hy.symm),
+  refine ⟨z, _, hz1⟩,
+  rw [←finset.mem_coe, ←root_set_def, mem_root_set hp', ←hz2],
+  simp_rw [aeval_def, ←eval_map, polynomial.deriv, derivative_map],
+end
+
+end polynomial

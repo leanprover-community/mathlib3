@@ -115,7 +115,8 @@ instance group.has_mul_le_mul_left.to_has_le_of_mul_le_mul_left [covariant_class
        ... = c : inv_mul_cancel_left a c }
 
 @[priority 96, to_additive]
-instance group.has_mul_le_mul_right.to_has_le_of_mul_le_mul_right [covariant_class α α (function.swap (*)) (≤)] :
+instance group.has_mul_le_mul_right.to_has_le_of_mul_le_mul_right
+  [covariant_class α α (function.swap (*)) (≤)] :
   contravariant_class α α (function.swap (*)) (≤) :=
 { covtc := λ a b c bc,
     calc b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
@@ -689,7 +690,8 @@ instance group.has_mul_le_mul_left.to_has_mul_lt_mul_left [covariant_class α α
   has_mul_lt_mul_left α :=
 { mul_lt_mul_left := λ a b c bc, mul_lt_mul_left' bc a }
 @[priority 101, to_additive]
-instance group.has_mul_le_mul_right.to_has_mul_lt_mul_right [covariant_class α α (function.swap (*)) (≤)] :
+instance group.has_mul_le_mul_right.to_has_mul_lt_mul_right
+  [covariant_class α α (function.swap (*)) (≤)] :
   has_mul_lt_mul_right α :=
 { mul_lt_mul_right := λ a b c bc, mul_lt_mul_right' bc a }
 end partial_order

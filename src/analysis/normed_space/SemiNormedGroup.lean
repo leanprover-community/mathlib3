@@ -41,7 +41,7 @@ instance (M : SemiNormedGroup) : semi_normed_group M := M.str
 instance : has_zero SemiNormedGroup := ⟨of punit⟩
 instance : inhabited SemiNormedGroup := ⟨0⟩
 
-instance : limits.has_zero_morphisms SemiNormedGroup := {}
+instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup := {}
 
 end SemiNormedGroup
 
@@ -63,6 +63,8 @@ instance : large_category.{u} SemiNormedGroup₁ :=
   f = g :=
 subtype.eq (normed_group_hom.ext (congr_fun w))
 
+@[simp] lemma val_coe {M N : SemiNormedGroup₁} (f : M ⟶ N) : (f.val : M → N) = (f : M → N) := rfl
+
 instance : concrete_category.{u} SemiNormedGroup₁ :=
 { forget :=
   { obj := λ X, X,
@@ -79,7 +81,11 @@ def mk_hom {M N : SemiNormedGroup} (f : M ⟶ N) (i : f.norm_noninc) :
   SemiNormedGroup₁.of M ⟶ SemiNormedGroup₁.of N :=
 ⟨f, i⟩
 
+@[simp] lemma mk_hom_apply {M N : SemiNormedGroup} (f : M ⟶ N) (i : f.norm_noninc) (x) :
+  mk_hom f i x = f x := rfl
+
 /-- Promote an isomorphism in `SemiNormedGroup` to an isomorphism in `SemiNormedGroup₁`. -/
+@[simps]
 def mk_iso {M N : SemiNormedGroup} (f : M ≅ N) (i : f.hom.norm_noninc) (i' : f.inv.norm_noninc) :
   SemiNormedGroup₁.of M ≅ SemiNormedGroup₁.of N :=
 { hom := mk_hom f.hom i,
@@ -101,10 +107,12 @@ rfl
 instance : has_zero SemiNormedGroup₁ := ⟨of punit⟩
 instance : inhabited SemiNormedGroup₁ := ⟨0⟩
 
-instance : limits.has_zero_morphisms SemiNormedGroup₁ :=
+instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup₁ :=
 { has_zero := λ X Y, { zero := ⟨0, normed_group_hom.norm_noninc.zero⟩, },
   comp_zero' := λ X Y f Z, by { ext, refl, },
   zero_comp' := λ X Y Z f, by { ext, simp, }, }
+
+@[simp] lemma zero_apply {V W : SemiNormedGroup₁} (x : V) : (0 : V ⟶ W) x = 0 := rfl
 
 lemma iso_isometry {V W : SemiNormedGroup₁} (i : V ≅ W) :
   isometry i.hom :=

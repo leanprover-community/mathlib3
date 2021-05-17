@@ -404,7 +404,7 @@ calc f 0 + g 0 - 1 = f 0 + (g 0 - 1) : add_sub_assoc _ _ _
 
 lemma dist_map_map_zero_lt : dist (f 0 + g 0) (f (g 0)) < 1 :=
 begin
-  rw [dist_comm, real.dist_eq, abs_lt, lt_sub_iff_add_lt', sub_lt_iff_lt_add', ← sub_eq_add_neg],
+  rw [dist_comm, real.dist_eq, abs_lt, lt_sub_iff_add_lt', sub_lt_iff_lt_add, ← sub_eq_add_neg],
   exact ⟨f.lt_map_map_zero g, f.map_map_zero_lt g⟩
 end
 
@@ -748,7 +748,7 @@ begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f y - y ≤ f x - x,
     from compact_Icc.exists_forall_ge (nonempty_Icc.2 zero_le_one)
       (hf.sub continuous_id).continuous_on,
-  refine lt_of_le_of_lt _ (sub_lt_iff_lt_add'.2 $ hz x),
+  refine lt_of_le_of_lt _ (sub_lt_iff_lt_add.2 $ hz x),
   apply translation_number_le_of_le_add,
   simp only [← sub_le_iff_le_add'],
   exact f.forall_map_sub_of_Icc (λ a, a ≤ f x - x) hx

@@ -163,7 +163,7 @@ lemma line_map_lt_line_map_iff_of_lt (h : r < r') :
   line_map a b r < line_map a b r' ↔ a < b :=
 begin
   simp only [line_map_apply_module],
-  rw [← lt_sub_iff_add_lt, add_sub_assoc, ← sub_lt_iff_lt_add', ← sub_smul, ← sub_smul,
+  rw [← lt_sub_iff_add_lt, add_sub_assoc, ← sub_lt_iff_lt_add, ← sub_smul, ← sub_smul,
     sub_sub_sub_cancel_left, smul_lt_smul_iff_of_pos (sub_pos.2 h)],
   apply_instance,
 end

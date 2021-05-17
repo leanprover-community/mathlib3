@@ -104,8 +104,8 @@ instance {α : Type*} : boolean_algebra (set α) :=
 @[simp] lemma sup_eq_union : ((⊔) : set α → set α → set α) = (∪) := rfl
 @[simp] lemma inf_eq_inter : ((⊓) : set α → set α → set α) = (∩) := rfl
 @[simp] lemma le_eq_subset : ((≤) : set α → set α → Prop) = (⊆) := rfl
-@[simp] lemma compl_eq_compl : set.compl = (has_compl.compl : set α → set α) := rfl
 /-! `set.lt_eq_ssubset` is defined further down -/
+@[simp] lemma compl_eq_compl : set.compl = (has_compl.compl : set α → set α) := rfl
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩

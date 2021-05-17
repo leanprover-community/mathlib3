@@ -237,7 +237,8 @@ namespace equiv
 
 open function.embedding
 
-/-- The type of embeddings `α ↪ β` is equivalent to the subtype of all injective functions `α → β`. -/
+/-- The type of embeddings `α ↪ β` is equivalent to
+    the subtype of all injective functions `α → β`. -/
 def subtype_injective_equiv_embedding (α β : Sort*) :
   {f : α → β // function.injective f} ≃ (α ↪ β) :=
 { to_fun := λ f, ⟨f.val, f.property⟩,

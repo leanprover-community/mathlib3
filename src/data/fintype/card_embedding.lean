@@ -66,7 +66,8 @@ begin
   exact card_embedding_aux _ _ h,
 end
 
-/-- If `‖β‖ < ‖α‖` there are no embeddings `α ↪ β`. This is a formulation of the pigeonhole principle. -/
+/-- If `‖β‖ < ‖α‖` there are no embeddings `α ↪ β`.
+    This is a formulation of the pigeonhole principle. -/
 @[simp] theorem card_embedding_eq_zero (h : ‖β‖ < ‖α‖) : ‖α ↪ β‖ = 0 :=
 begin
   rw card_eq_zero_iff,

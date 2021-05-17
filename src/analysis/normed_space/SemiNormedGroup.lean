@@ -63,8 +63,6 @@ instance : large_category.{u} SemiNormedGroup₁ :=
   f = g :=
 subtype.eq (normed_group_hom.ext (congr_fun w))
 
-@[simp] lemma val_coe {M N : SemiNormedGroup₁} (f : M ⟶ N) : (f.val : M → N) = (f : M → N) := rfl
-
 instance : concrete_category.{u} SemiNormedGroup₁ :=
 { forget :=
   { obj := λ X, X,

@@ -40,7 +40,9 @@ cofork.of_π
     ext,
     simp only [comp_apply, limits.zero_comp, normed_group_hom.zero_apply,
       SemiNormedGroup₁.mk_hom_apply, SemiNormedGroup₁.zero_apply, ←normed_group_hom.mem_ker,
-      f.1.range.ker_normed_mk, f.1.mem_range, SemiNormedGroup₁.val_coe, exists_apply_eq_apply],
+      f.1.range.ker_normed_mk, f.1.mem_range],
+    use x,
+    refl,
   end
 
 /-- Auxiliary definition for `has_cokernels SemiNormedGroup₁`. -/

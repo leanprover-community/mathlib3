@@ -16,7 +16,7 @@ along with a chain map `P.π` from `C` to the chain complex consisting just of `
 so that the augmented chain complex is exact.
 
 When `C` is abelian, this exactness condition is equivalent to `π` being a quasi-isomorphism.
-It turns out that this formulation allows us to set up the basic theory derived functors
+It turns out that this formulation allows us to set up the basic theory of derived functors
 without even assuming `C` is abelian.
 
 (Typically, however, to show `has_projective_resolutions C`
@@ -209,7 +209,7 @@ exact.lift
 def lift_homotopy_zero_succ {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
   (f : P.complex ⟶ Q.complex) (n : ℕ)
   (g : P.complex.X n ⟶ Q.complex.X (n + 1)) (g' : P.complex.X (n + 1) ⟶ Q.complex.X (n + 2))
-  (w : f.f (n + 1) = g' ≫ Q.complex.d (n + 2) (n + 1) + P.complex.d (n + 1) n ≫ g) :
+  (w : f.f (n + 1) = P.complex.d (n + 1) n ≫ g + g' ≫ Q.complex.d (n + 2) (n + 1)) :
   P.complex.X (n + 2) ⟶ Q.complex.X (n + 3) :=
 exact.lift
   (f.f (n+2) - P.complex.d (n+2) (n+1) ≫ g') (Q.complex.d (n+3) (n+2)) (Q.complex.d (n+2) (n+1))

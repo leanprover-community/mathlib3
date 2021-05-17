@@ -60,10 +60,8 @@ The definition is marked as protected to avoid conflicts with `_root_.rank`,
 the rank of a linear map.
 -/
 protected def module.rank : cardinal :=
-cardinal.min
-  (nonempty_subtype.2 (exists_basis K V))
-  (λ ι, cardinal.mk ι.1)
-variables {K V}
+cardinal.sup.{v v}
+  (λ ι : {s : set V // nonempty (basis s K V)}, cardinal.mk ι.1)
 
 variables {K V}
 
@@ -130,10 +128,12 @@ cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
 theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι K V) :
   cardinal.mk ι = module.rank K V :=
 begin
-  obtain ⟨⟨ι, ⟨v'⟩⟩, e : module.rank K V = _⟩ :=
-    cardinal.min_eq (nonempty_subtype.2 (exists_basis K V)) _,
-  rw [e, ← cardinal.mk_range_eq _ v.injective],
-  exact mk_eq_mk_of_basis' v.reindex_range v'
+  apply le_antisymm,
+  { transitivity,
+    swap,
+    exact cardinal.le_sup _ ⟨_, ⟨v.reindex_range⟩⟩,
+    exact (cardinal.eq_congr (equiv.of_injective _ v.injective)).le, },
+  exact cardinal.sup_le.mpr (λ i, (mk_eq_mk_of_basis' i.2.some v).le),
 end
 
 theorem basis.mk_range_eq_dim (v : basis ι K V) :

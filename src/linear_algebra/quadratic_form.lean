@@ -898,8 +898,7 @@ lemma equivalent_weighted_sum_squares_of_nondegenerate'
     equivalent Q (weighted_sum_squares K w) :=
 begin
   obtain ⟨v, hv₁, hv₂⟩ := exists_orthogonal_basis' hQ associated_is_sym,
-  refine ⟨λ i, units.mk_of_mul_eq_one (associated Q (v i) (v i))
-    (associated Q (v i) (v i))⁻¹ (mul_inv_cancel (hv₂ i)), _⟩,
+  refine ⟨λ i, units.mk0 _ (hv₂ i), _⟩,
   refine nonempty.intro _,
   convert Q.isometry_basis_repr v,
   ext w,

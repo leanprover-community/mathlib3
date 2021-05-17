@@ -230,6 +230,18 @@ repr_eq_iff'.mpr (λ i, by rw [h, b₂.repr_self])
 
 end ext
 
+section map
+
+variables (f : M ≃ₗ[R] M')
+
+/-- Apply the linear equivalence `f` to the basis vectors. -/
+protected def map : basis ι R M' :=
+of_repr (f.symm.trans b.repr)
+
+@[simp] lemma map_apply (i) : b.map f i = f (b i) := rfl
+
+end map
+
 section reindex
 
 variables (b' : basis ι' R M')
@@ -263,8 +275,14 @@ lemma range_reindex : set.range (b.reindex e) = set.range b :=
 by rw [coe_reindex, range_reindex']
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
-def reindex_range [nontrivial R] : basis (range b) R M :=
-b.reindex (equiv.of_injective b b.injective)
+def reindex_range : basis (range b) R M :=
+begin
+  by_cases h : nontrivial R,
+  { letI := h,
+    exact b.reindex (equiv.of_injective b b.injective) },
+  { letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h,
+    exact basis.map basis.inhabited.default (module.subsingleton_equiv R M (range b)).symm }
+end
 
 lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
   {f : α → β} (hf : function.injective f)
@@ -272,39 +290,51 @@ lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
   finsupp.single (f x) y (f z) = finsupp.single x y z :=
 by simp [finsupp.single_apply, hf.eq_iff]
 
-lemma reindex_range_self [nontrivial R] (i : ι) (h := set.mem_range_self i) :
+lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
   b.reindex_range ⟨b i, h⟩ = b i :=
-by rw [reindex_range, reindex_apply, equiv.apply_of_injective_symm b b.injective, subtype.coe_mk]
+begin
+  by_cases htr : nontrivial R,
+  { letI := htr,
+    simp [htr, reindex_range, reindex_apply, equiv.apply_of_injective_symm b b.injective,
+      subtype.coe_mk] },
+  { letI : subsingleton R := not_nontrivial_iff_subsingleton.mp htr,
+    letI := module.subsingleton R M,
+    simp [reindex_range] }
+end
 
-lemma reindex_range_repr_self [nontrivial R] (i : ι) :
+lemma reindex_range_repr_self (i : ι) :
   b.reindex_range.repr (b i) = finsupp.single ⟨b i, mem_range_self i⟩ 1 :=
 calc b.reindex_range.repr (b i) = b.reindex_range.repr (b.reindex_range ⟨b i, mem_range_self i⟩) :
   congr_arg _ (b.reindex_range_self _ _).symm
 ... = finsupp.single ⟨b i, mem_range_self i⟩ 1 : b.reindex_range.repr_self _
 
-@[simp] lemma reindex_range_apply [nontrivial R] {bi : M} {i : ι} (h : b i = bi) :
+@[simp] lemma reindex_range_apply {bi : M} {i : ι} (h : b i = bi) :
   b.reindex_range ⟨bi, ⟨i, h⟩⟩ = b i :=
 by { convert b.reindex_range_self i, rw h }
 
-lemma reindex_range_repr' [nontrivial R] (x : M) {bi : M} {i : ι} (h : b i = bi) :
+lemma reindex_range_repr' (x : M) {bi : M} {i : ι} (h : b i = bi) :
   b.reindex_range.repr x ⟨bi, ⟨i, h⟩⟩ = b.repr x i :=
 begin
-  subst h,
-  refine (b.repr_apply_eq (λ x i, b.reindex_range.repr x ⟨b i, _⟩) _ _ _ x i).symm,
-  { intros x y,
-    ext i,
-    simp only [pi.add_apply, linear_equiv.map_add, finsupp.coe_add] },
-  { intros c x,
-    ext i,
-    simp only [pi.smul_apply, linear_equiv.map_smul, finsupp.coe_smul] },
-  { intros i,
-    ext j,
-    simp only [reindex_range_repr_self],
-    refine @finsupp.single_apply_left _ _ _ _ (λ i, (⟨b i, _⟩ : set.range b)) _ _ _ _,
-    exact λ i j h, b.injective (subtype.mk.inj h) }
+  by_cases htr : nontrivial R,
+  { letI := htr,
+    subst h,
+    refine (b.repr_apply_eq (λ x i, b.reindex_range.repr x ⟨b i, _⟩) _ _ _ x i).symm,
+    { intros x y,
+      ext i,
+      simp only [pi.add_apply, linear_equiv.map_add, finsupp.coe_add] },
+    { intros c x,
+      ext i,
+      simp only [pi.smul_apply, linear_equiv.map_smul, finsupp.coe_smul] },
+    { intros i,
+      ext j,
+      simp only [reindex_range_repr_self],
+      refine @finsupp.single_apply_left _ _ _ _ (λ i, (⟨b i, _⟩ : set.range b)) _ _ _ _,
+      exact λ i j h, b.injective (subtype.mk.inj h) } },
+  { letI : subsingleton R := not_nontrivial_iff_subsingleton.mp htr,
+    simp }
 end
 
-@[simp] lemma reindex_range_repr [nontrivial R] (x : M) (i : ι) (h := set.mem_range_self i) :
+@[simp] lemma reindex_range_repr (x : M) (i : ι) (h := set.mem_range_self i) :
   b.reindex_range.repr x ⟨b i, h⟩ = b.repr x i :=
 b.reindex_range_repr' _ rfl
 
@@ -400,18 +430,6 @@ b'.ext' $ λ i, (b.equiv b' e).injective (by simp)
 b.ext' (λ i, by simp)
 
 end equiv
-
-section map
-
-variables (f : M ≃ₗ[R] M')
-
-/-- Apply the linear equivalence `f` to the basis vectors. -/
-protected def map : basis ι R M' :=
-of_repr (f.symm.trans b.repr)
-
-@[simp] lemma map_apply (i) : b.map f i = f (b i) := rfl
-
-end map
 
 section prod
 

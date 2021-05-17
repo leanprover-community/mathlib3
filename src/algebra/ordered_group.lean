@@ -1180,7 +1180,7 @@ calc
             ... ≤ abs (a - b) + abs (b - c) : abs_add _ _
 
 lemma abs_add_three (a b c : α) : abs (a + b + c) ≤ abs a + abs b + abs c :=
-(abs_add _ _).trans (add_le_add_right' (abs_add _ _) _)
+(abs_add _ _).trans (add_le_add_right (abs_add _ _) _)
 
 lemma dist_bdd_within_interval {a b lb ub : α} (hal : lb ≤ a) (hau : a ≤ ub)
       (hbl : lb ≤ b) (hbu : b ≤ ub) : abs (a - b) ≤ ub - lb :=

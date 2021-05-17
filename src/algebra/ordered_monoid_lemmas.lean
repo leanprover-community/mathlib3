@@ -329,7 +329,7 @@ contravariant_class.covtc b h
 
 variable  [covariant_class α α (function.swap (*)) (≤)]
 
-@[to_additive]
+@[to_additive add_le_add_right]
 lemma mul_le_mul_right' (h : a ≤ b) (c) :
   a * c ≤ b * c :=
 covariant_class.covc c h

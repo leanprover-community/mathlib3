@@ -31,7 +31,7 @@ add_nonneg zero_le_one zero_le_one
 
 lemma one_le_two : 1 ≤ (2:α) :=
 calc (1:α) = 0 + 1 : (zero_add _).symm
-       ... ≤ 1 + 1 : add_le_add_right' zero_le_one _
+       ... ≤ 1 + 1 : add_le_add_right zero_le_one _
 
 section nontrivial
 
@@ -546,7 +546,7 @@ have 0 < b, from
 calc 0 < 2 : zero_lt_two
    ... ≤ a : a2
    ... ≤ b : ab,
-calc a + b ≤ b + b : add_le_add_right' ab b
+calc a + b ≤ b + b : add_le_add_right ab b
        ... = 2 * b : (two_mul b).symm
        ... ≤ a * b : (mul_le_mul_right this).mpr a2
 

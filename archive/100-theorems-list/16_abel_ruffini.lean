@@ -16,7 +16,7 @@ The main ingredients are:
  * `equiv.perm.not_solvable` in `group_theory/solvable` : the symmetric group is not solvable
 
 Then all that remains is the construction of a specific polynomial satisfying the conditions of
-  `gal_action_hom_bijective_of_prime_degree'`, which is done in this file.
+`gal_action_hom_bijective_of_prime_degree'`, which is done in this file.
 
 -/
 

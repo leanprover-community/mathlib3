@@ -179,13 +179,7 @@ begin
 end
 
 lemma complex_roots_Phi (h : (Φ ℚ a b).separable) : fintype.card ((Φ ℚ a b).root_set ℂ) = 5 :=
-begin
-  simp_rw [root_set_def, fintype.card_coe],
-  rw [multiset.to_finset_card_of_nodup, splits_iff_card_roots.mp _,
-      nat_degree_map' ((algebra_map ℚ ℂ).injective), nat_degree_Phi],
-  { exact is_alg_closed.splits_codomain _ },
-  { exact nodup_roots h.map },
-end
+(card_root_set_eq_nat_degree h (is_alg_closed.splits_codomain _)).trans (nat_degree_Phi a b)
 
 lemma gal_Phi (hab : b < a) (h_irred : irreducible (Φ ℚ a b)) :
   bijective (gal_action_hom (Φ ℚ a b) ℂ) :=

@@ -3,9 +3,11 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.free_module
 import linear_algebra.matrix.basis
-import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.matrix.diagonal
+import linear_algebra.matrix.to_linear_equiv
+import linear_algebra.matrix.reindex
 import linear_algebra.multilinear
 import linear_algebra.dual
 import ring_theory.algebra_tower
@@ -51,6 +53,56 @@ variables {M : Type*} [add_comm_group M] [module R M]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 variables (e : basis ι R M)
+
+section conjugate
+
+variables {A : Type*} [integral_domain A]
+variables {m n : Type*} [fintype m] [fintype n]
+
+
+/-- If `R^m` and `R^n` are linearly equivalent, then `m` and `n` are also equivalent. -/
+def equiv_of_pi_lequiv_pi {R : Type*} [integral_domain R]
+  (e : (m → R) ≃ₗ[R] (n → R)) : m ≃ n :=
+basis.index_equiv (basis.of_equiv_fun e.symm) (pi.basis_fun _ _)
+
+/-- If `M` and `M'` are each other's inverse matrices, they are square matrices up to
+equivalence of types. -/
+def matrix.equiv_of_inv [decidable_eq m] [decidable_eq n]
+  {M : matrix m n A} {M' : matrix n m A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  m ≃ n :=
+let e : (m → A) ≃ₗ[A] (n → A) :=
+{ to_fun := matrix.to_lin' M',
+  inv_fun := M.to_lin',
+  left_inv := λ x, by rw [← matrix.to_lin'_mul_apply, hMM', matrix.to_lin'_one, id_apply],
+  right_inv := λ x, by rw [← matrix.to_lin'_mul_apply, hM'M, matrix.to_lin'_one, id_apply],
+  .. matrix.to_lin' M' } in
+equiv_of_pi_lequiv_pi e
+
+/-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
+lemma matrix.det_conjugate
+  [decidable_eq m] [decidable_eq n]
+  {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  det (M ⬝ N ⬝ M') = det N :=
+begin
+  letI := classical.dec_eq A,
+  -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
+  -- This turns the problem into one for square matrices, which is easy.
+  let e : m ≃ n := matrix.equiv_of_inv hMM' hM'M,
+  have : det (matrix.reindex_linear_equiv e (equiv.refl _) M ⬝ N ⬝
+              matrix.reindex_linear_equiv (equiv.refl _) e M') =
+         det N,
+  { rw [det_mul, det_mul, mul_comm, ← mul_assoc, ← det_mul, ← matrix.reindex_linear_equiv_mul,
+        matrix.reindex_linear_equiv_refl_refl, hM'M, linear_equiv.refl_apply, det_one, one_mul] },
+  convert this,
+  rw [← matrix.det_reindex_linear_equiv_self e (M ⬝ N ⬝ M'),
+      matrix.reindex_linear_equiv_mul e (equiv.refl n) e,
+      matrix.reindex_linear_equiv_mul e (equiv.refl n) (equiv.refl n),
+      matrix.reindex_linear_equiv_refl_refl, linear_equiv.refl_apply]
+end
+
+end conjugate
 
 lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') (v : basis ι R M) (v' : basis ι R M') :
   is_unit (linear_map.to_matrix v v' f).det :=

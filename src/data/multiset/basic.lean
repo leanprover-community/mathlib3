@@ -876,11 +876,6 @@ lemma prod_map_mul [comm_monoid γ] {m : multiset α} {f g : α → γ} :
   prod (m.map $ λa, f a * g a) = prod (m.map f) * prod (m.map g) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih]; cc)
 
-@[simp, to_additive]
-lemma prod_map_inv {G : Type*} [comm_group G] (m : multiset G) :
-  (m.map has_inv.inv).prod = m.prod⁻¹ :=
-multiset.induction_on m (by simp) (assume a m ih, by simpa [mul_comm] using ih)
-
 lemma prod_map_prod_map [comm_monoid γ] (m : multiset α) (n : multiset β) {f : α → β → γ} :
   prod (m.map $ λa, prod $ n.map $ λb, f a b) = prod (n.map $ λb, prod $ m.map $ λa, f a b) :=
 multiset.induction_on m (by simp) (assume a m ih, by simp [ih])
@@ -925,6 +920,11 @@ theorem prod_hom_rel [comm_monoid β] [comm_monoid γ] (s : multiset α) {r : β
   r (s.map f).prod (s.map g).prod :=
 quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
+
+@[simp, to_additive]
+lemma prod_map_inv {G : Type*} [comm_group G] (m : multiset G) :
+  (m.map has_inv.inv).prod = m.prod⁻¹ :=
+m.prod_hom (monoid_hom.of has_inv.inv)
 
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a

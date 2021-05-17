@@ -47,6 +47,22 @@ class regular (μ : measure α) : Prop :=
 (inner_regular : ∀ {{U : set α}}, is_open U →
   μ U ≤ ⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K)
 
+/-- A measure `μ` is regular if
+  - it is finite on all compact sets;
+  - it is outer regular: `μ(A) = inf { μ(U) | A ⊆ U open }` for `A` measurable;
+  - it is inner regular: `μ(U) = sup { μ(K) | K ⊆ U compact }` for `U` open. -/
+class weakly_regular (μ : measure α) : Prop :=
+(outer_regular : ∀ {{A : set α}}, measurable_set A →
+  (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) ≤ μ A)
+(inner_regular : ∀ {{U : set α}}, is_open U →
+  μ U ≤ ⨆ (F : set α) (h : is_compact F) (h2 : F ⊆ U), μ F)
+
+instance regular.weakly_regular [regular μ] : weakly_regular μ :=
+{ outer_regular := regular.outer_regular,
+  inner_regular
+
+}
+
 namespace regular
 
 lemma outer_regular_eq [regular μ] {{A : set α}}

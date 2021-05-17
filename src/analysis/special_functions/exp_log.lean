@@ -519,6 +519,9 @@ begin
   exact exp_order_iso.symm.continuous.comp (continuous_subtype_mk _ continuous_subtype_coe.norm)
 end
 
+@[continuity] lemma continuous_log : continuous (λ x : {x : ℝ // x ≠ 0}, log x) :=
+continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, hx
+
 @[continuity] lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
 continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, ne_of_gt hx
 

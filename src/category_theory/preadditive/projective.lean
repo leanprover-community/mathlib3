@@ -72,7 +72,7 @@ def factor_thru {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] :
 (projective.factors f e).some_spec
 
 section
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance zero_projective [has_zero_object C] [has_zero_morphisms C] : projective (0 : C) :=
 { factors := λ E X f e epi, by { use 0, ext, }}
@@ -176,7 +176,7 @@ variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
 
 /--
 Given a projective object `P` mapping via `h` into
-the middle object `R` of pair of exact morphisms `f : Q ⟶ R` and `g : R ⟶ S`,
+the middle object `R` of a pair of exact morphisms `f : Q ⟶ R` and `g : R ⟶ S`,
 such that `h ≫ g = 0`, there is a lift of `h` to `Q`.
 -/
 def exact.lift {P Q R S : C} [projective P] (h : P ⟶ R) (f : Q ⟶ R) (g : R ⟶ S)

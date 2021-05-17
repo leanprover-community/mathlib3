@@ -378,10 +378,8 @@ begin
     calc  dist a b ^ 2 + dist a c ^ 2
         = 2 / dist b c * (dist a b ^ 2 * (2⁻¹ * dist b c) + dist a c ^ 2 * (2⁻¹ * dist b c)) :
           by { field_simp, ring }
-    ... = 2 / dist b c * (dist b c * (dist a m ^ 2 + 2⁻¹ * dist b c * (2⁻¹ * dist b c))) :
-          by { rw hm }
     ... = 2 * (dist a (midpoint ℝ b c) ^ 2 + (dist b c / 2) ^ 2) :
-          by { field_simp, ring } },
+          by { rw hm, field_simp, ring } },
 end
 
 lemma dist_mul_of_eq_angle_of_dist_mul (a b c a' b' c' : P) (r : ℝ) (h : ∠ a' b' c' = ∠ a b c)
@@ -389,19 +387,18 @@ lemma dist_mul_of_eq_angle_of_dist_mul (a b c a' b' c' : P) (r : ℝ) (h : ∠ a
   dist a' c' = r * dist a c :=
 begin
   have h' : dist a' c' ^ 2 = (r * dist a c) ^ 2,
-  calc  dist a' c' ^ 2
-      = dist a' b' ^ 2 + dist c' b' ^ 2 - 2 * dist a' b' * dist c' b' * real.cos (∠ a' b' c') :
-        by { simp [pow_two, law_cos a' b' c'] }
-  ... = r ^ 2 * (dist a b ^ 2 + dist c b ^ 2 - 2 * dist a b * dist c b * real.cos (∠ a b c)) :
-        by { rw [h, hab, hcb], ring }
-  ... = r ^ 2 * dist a c ^ 2 : by simp [pow_two, ← law_cos a b c]
-  ... = (r * dist a c) ^ 2 : by ring,
+    calc  dist a' c' ^ 2
+        = dist a' b' ^ 2 + dist c' b' ^ 2 - 2 * dist a' b' * dist c' b' * real.cos (∠ a' b' c') :
+          by { simp [pow_two, law_cos a' b' c'] }
+    ... = r ^ 2 * (dist a b ^ 2 + dist c b ^ 2 - 2 * dist a b * dist c b * real.cos (∠ a b c)) :
+          by { rw [h, hab, hcb], ring }
+    ... = (r * dist a c) ^ 2 : by simp [pow_two, ← law_cos a b c, mul_pow],
   by_cases hab₁ : a = b,
-  { have hab'₁ : a' = b', rw [← dist_eq_zero, hab, dist_eq_zero.mpr hab₁, mul_zero r],
+  { have hab'₁ : a' = b', { rw [← dist_eq_zero, hab, dist_eq_zero.mpr hab₁, mul_zero r] },
     rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },
-  have h1 : 0 ≤ r * dist a b, rw ← hab, exact dist_nonneg,
-  have h2 : 0 ≤ r := nonneg_of_mul_nonneg_right h1 (dist_pos.mpr hab₁),
-  exact (eq_of_sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h',
+  { have h1 : 0 ≤ r * dist a b, { rw ← hab, exact dist_nonneg },
+    have h2 : 0 ≤ r := nonneg_of_mul_nonneg_right h1 (dist_pos.mpr hab₁),
+    exact (eq_of_sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
 end
 
 end euclidean_geometry

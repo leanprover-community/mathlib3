@@ -25,12 +25,26 @@ variables (V : Type u) [category.{v} V] [has_zero_object V] [preadditive V]
 variables (c : complex_shape ι)
 
 /--
+The congruence on `homological_complex V c` given by the existence of a homotopy.
+-/
+def homotopic : hom_rel (homological_complex V c) := λ C D f g, nonempty (homotopy f g)
+
+instance homotopy_congruence :
+  congruence (homotopic V c) :=
+{ is_equiv := λ C D,
+  { refl := λ C, ⟨homotopy.refl C⟩,
+    symm := λ f g ⟨w⟩, ⟨w.symm⟩,
+    trans := λ f g h ⟨w₁⟩ ⟨w₂⟩, ⟨w₁.trans w₂⟩, },
+  comp_left := λ E F G m₁ m₂ g ⟨i⟩, ⟨i.comp_left _⟩,
+  comp_right := λ E F G f m₁ m₂ ⟨i⟩, ⟨i.comp_right _⟩, }
+
+/--
 `homotopy_category V c` is the category of chain complexes of shape `c` in `V`,
 with chain maps identified when they are homotopic.
 -/
 @[derive category]
 def homotopy_category :=
-category_theory.quotient (λ (C D : homological_complex V c) (f g : C ⟶ D), nonempty (homotopy f g))
+category_theory.quotient (homotopic V c)
 
 -- TODO the homotopy_category is preadditive
 
@@ -58,47 +72,10 @@ lemma eq_of_homotopy {C D : homological_complex V c} (f g : C ⟶ D) (h : homoto
   (quotient V c).map f = (quotient V c).map g :=
 category_theory.quotient.sound _ ⟨h⟩
 
-/-- We package up the fact that homotopy is closed under composition. -/
-lemma comp_closure_homotopy :
-  (quotient.comp_closure (λ (C D : homological_complex V c) (f g : C ⟶ D), nonempty (homotopy f g)))
-    = λ C D f g, nonempty (homotopy f g) :=
-begin
-  ext C D f g,
-  fsplit,
-  { rintro ⟨E, F, f, m₁, m₂, g, ⟨i⟩⟩,
-    split,
-    apply (i.comp_right _).comp_left, },
-  { intro h,
-    convert quotient.comp_closure.intro (𝟙 C) f g (𝟙 D) (by convert h);
-    simp, }
-end
-
-/-- We package up the fact that homotopy is an equivalence relation. -/
-lemma eqv_gen_homotopy {C D : homological_complex V c} :
-  (eqv_gen (λ (f g : C ⟶ D), nonempty (homotopy f g)))
-    = λ f g, nonempty (homotopy f g) :=
-begin
-  ext f g,
-  fsplit,
-  { intro h,
-    induction h with f g i h f g w i f g h w w' k l,
-    { exact i, },
-    { split, refl, },
-    { split, symmetry, exact i.some, },
-    { split, exact k.some.trans l.some, } },
-  { intro h,
-    exact eqv_gen.rel _ _ h, }
-end
-
 /-- If two chain maps become equal in the homotopy category, then they are homotopic. -/
 def homotopy_of_eq {C D : homological_complex V c} (f g : C ⟶ D)
   (w : (quotient V c).map f = (quotient V c).map g) : homotopy f g :=
-begin
-  apply nonempty.some,
-  have r := quot.eq.mp w,
-  rw comp_closure_homotopy at r,
-  rwa eqv_gen_homotopy at r,
-end
+((quotient.functor_map_eq_iff _ _ _).mp w).some
 
 /--
 An arbitrarily chosen representation of the image of a chain map in the homotopy category

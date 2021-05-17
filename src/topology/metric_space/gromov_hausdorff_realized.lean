@@ -309,7 +309,9 @@ begin
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
-        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _)
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
+        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
       end,
     exact le_trans A B },
   { have A : (⨅ x, candidates_b_dist α β (inl x, inr y)) ≤
@@ -321,6 +323,8 @@ begin
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _)
       end,
     exact le_trans A B },

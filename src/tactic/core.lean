@@ -593,6 +593,13 @@ meta def intron_no_renames : ℕ → tactic unit
   intro pp_n,
   intron_no_renames n
 
+/-- `get_univ_level t` returns the universe level of a type `t` -/
+meta def get_univ_level (t : expr) (md := semireducible) (unfold_ginductive := tt) :
+  tactic level :=
+do expr.sort u ← infer_type t >>= λ s, whnf s md unfold_ginductive |
+    fail "get_univ_level: argument is not a type",
+   return u
+
 /-!
 ### Various tactics related to local definitions (local constants of the form `x : α := t`)
 

@@ -152,7 +152,7 @@ theorem odd.of_mul_left (h : odd (m * n)) : odd m :=
 theorem odd.of_mul_right (h : odd (m * n)) : odd n :=
 (odd_mul.mp h).2
 
-@[parity_simps] theorem even_pow {n : ℕ} : even (m^n) ↔ even m ∧ n ≠ 0 :=
+@[parity_simps] theorem even_pow {n : ℕ} : even (m ^ n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, even_mul, pow_succ], tauto }
 
 lemma even_pow' {n : ℕ} (h : n ≠ 0) : even (m ^ n) ↔ even m :=

@@ -601,6 +601,10 @@ begin
   { exact assume s t hst, finset.sum_le_sum_of_subset (finset.range_subset.2 hst) }
 end
 
+lemma tendsto_nat_tsum (f : ℕ → ℝ≥0∞) :
+  tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 (∑' n, f n)) :=
+by { rw ← has_sum_iff_tendsto_nat, exact ennreal.summable.has_sum }
+
 lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ℝ≥0∞} (hf : ∑' i, f i ≠ ∞) (x : α) :
   (((ennreal.to_nnreal ∘ f) x : ℝ≥0) : ℝ≥0∞) = f x :=
 coe_to_nnreal $ ennreal.ne_top_of_tsum_ne_top hf _

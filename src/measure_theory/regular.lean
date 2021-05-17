@@ -125,7 +125,7 @@ instance sigma_finite [opens_measurable_space α] [t2_space α] [sigma_compact_s
 end regular
 
 open filter
-open_locale topological_space nnreal ennreal
+open_locale topological_space nnreal ennreal big_operators
 
 section zoug
 
@@ -173,7 +173,7 @@ begin
         ... ≤ (ν s + ε) + ν Uᶜ : add_le_add nu_U (le_refl _)
         ... = ν s + (ν Uᶜ + ε) : by abel } },
   { assume s s_disj s_meas hs ε εpos,
-    let δ := ε / 2,
+    set δ := ε / 2 with hδ,
     have δpos : 0 < δ := ennreal.half_pos εpos,
     let a : ℝ≥0∞ := 2⁻¹,
     have a_pos : 0 < a, by simp [a],
@@ -187,19 +187,48 @@ begin
           ≤ ∑' n, ν (U n) : measure_Union_le _
       ... ≤ ∑' n, (ν (s n) + δ * a ^ n) : ennreal.tsum_le_tsum (λ n, (hU n).2.2)
       ... = ∑' n, ν (s n) + δ * ∑' n, a ^ n : by rw [ennreal.tsum_add, ennreal.tsum_mul_left]
-      ... = ν (⋃ (i : ℕ), s i) + ε : begin
+      ... = ν (⋃ (i : ℕ), s i) + ε :
+      begin
         congr' 1, { rw measure_Union s_disj s_meas },
-        simp [a],
-
-      end
-
-      }
-
-    }
-
-  }
+        simp only [δ, ennreal.tsum_geometric, ennreal.inv_inv, ennreal.one_sub_inv_two],
+        exact ennreal.mul_div_cancel two_ne_zero' ennreal.coe_ne_top,
+      end },
+    { have L : tendsto (λ n, ∑ i in finset.range n, ν (s i) + δ) at_top (𝓝 (ν (⋃ i, s i) + δ)),
+      { rw measure_Union s_disj s_meas,
+        refine tendsto.add (ennreal.tendsto_nat_tsum _) tendsto_const_nhds },
+      have nu_lt : ν (⋃ i, s i) < ν (⋃ i, s i) + δ,
+        by simpa only [add_zero] using (ennreal.add_lt_add_iff_left (measure_lt_top ν _)).mpr δpos,
+      obtain ⟨n, hn, npos⟩ :
+        ∃ n, (ν (⋃ (i : ℕ), s i) < ∑ (i : ℕ) in finset.range n, ν (s i) + δ) ∧ (0 < n) :=
+      (((tendsto_order.1 L).1 _ nu_lt).and (eventually_gt_at_top 0)).exists,
+      have : ∀ i, ∃ (F : set X), is_closed F ∧ F ⊆ s i ∧ ν (s i) ≤ ν F + δ / n :=
+        λ i, (hs i _ (ennreal.div_pos_iff.2 ⟨ne_of_gt δpos, ennreal.nat_ne_top n⟩)).2,
+      choose F hF using this,
+      have F_disj: pairwise (disjoint on F) :=
+        pairwise.mono (λ i j hij, disjoint.mono (hF i).2.1 (hF j).2.1 hij) s_disj,
+      refine ⟨⋃ i ∈ finset.range n, F i, _, _, _⟩,
+      { exact is_closed_bUnion (by simpa using finite_lt_nat n) (λ i hi, (hF i).1) },
+      { assume x hx,
+        simp only [exists_prop, mem_Union, finset.mem_range] at hx,
+        rcases hx with ⟨i, i_lt, hi⟩,
+        simp only [mem_Union],
+        exact ⟨i, (hF i).2.1 hi⟩ },
+      { calc
+        ν (⋃ (i : ℕ), s i)
+            ≤ ∑ (i : ℕ) in finset.range n, ν (s i) + δ : hn.le
+        ... ≤ (∑ (i : ℕ) in finset.range n, (ν (F i) + δ / n)) + δ :
+          add_le_add (finset.sum_le_sum (λ i hi, (hF i).2.2)) (le_refl _)
+        ... = ν (⋃ i ∈ finset.range n, F i) + ε :
+        begin
+          simp only [finset.sum_add_distrib, finset.sum_const, nsmul_eq_mul, finset.card_range],
+          rw [ennreal.mul_div_cancel' _ (ennreal.nat_ne_top n),
+              measure_bUnion_finset (F_disj.pairwise_on _) (λ i hi, (hF i).1.measurable_set),
+              hδ, add_assoc, ennreal.add_halves],
+          simpa only [ne.def, nat.cast_eq_zero] using ne_of_gt npos
+        end } } }
 end
 
+end zoug
 
 end measure
 end measure_theory

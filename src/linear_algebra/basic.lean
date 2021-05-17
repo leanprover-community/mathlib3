@@ -571,10 +571,23 @@ end comm_ring
 end linear_map
 
 /--
+The `ℕ`-linear equivalence between additive morphisms `A →+ B` and `ℕ`-linear morphisms `A →ₗ[ℕ] B`.
+-/
+@[simps]
+def add_monoid_hom_lequiv_nat {A B : Type*} [add_comm_monoid A] [add_comm_monoid B] :
+  (A →+ B) ≃ₗ[ℕ] (A →ₗ[ℕ] B) :=
+{ to_fun := add_monoid_hom.to_nat_linear_map,
+  inv_fun := linear_map.to_add_monoid_hom,
+  map_add' := by { intros, ext, refl },
+  map_smul' := by { intros, ext, refl },
+  left_inv := by { intros f, ext, refl },
+  right_inv := by { intros f, ext, refl } }
+
+/--
 The `ℤ`-linear equivalence between additive morphisms `A →+ B` and `ℤ`-linear morphisms `A →ₗ[ℤ] B`.
 -/
 @[simps]
-def add_monoid_hom_lequiv_linear_map {A B : Type*} [add_comm_group A] [add_comm_group B] :
+def add_monoid_hom_lequiv_int {A B : Type*} [add_comm_group A] [add_comm_group B] :
   (A →+ B) ≃ₗ[ℤ] (A →ₗ[ℤ] B) :=
 { to_fun := add_monoid_hom.to_int_linear_map,
   inv_fun := linear_map.to_add_monoid_hom,

@@ -230,10 +230,8 @@ begin
 end
 
 /-- If we have two bases on the same space, their indices are in bijection. -/
-noncomputable def basis.index_equiv
-  {R : Type*} [integral_domain R] [module R M]
-  {ι : Type*} [fintype ι] (b : basis ι R M)
-  {ι' : Type*} [fintype ι'] (b' : basis ι' R M) :
+noncomputable def basis.index_equiv {R ι ι' : Type*} [integral_domain R] [module R M]
+  [fintype ι] [fintype ι'] (b : basis ι R M) (b' : basis ι' R M) :
   ι ≃ ι' :=
 (fintype.card_eq.mp (le_antisymm
   (b'.card_le_card_of_linear_independent b.linear_independent)

@@ -913,11 +913,6 @@ def function.injective.linear_ordered_comm_group {β : Type*}
 { ..linear_order.lift f hf,
   ..hf.ordered_comm_group f one mul inv div }
 
-@[to_additive linear_ordered_add_comm_group.add_lt_add_left]
-lemma linear_ordered_comm_group.mul_lt_mul_left'
-  (a b : α) (h : a < b) (c : α) : c * a < c * b :=
-mul_lt_mul_left h c
-
 @[to_additive min_neg_neg]
 lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=
 eq.symm $ @monotone.map_max α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv_iff.mpr

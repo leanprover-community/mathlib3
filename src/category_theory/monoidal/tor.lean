@@ -33,14 +33,18 @@ variables (C)
 @[simps]
 def Tor (n : ℕ) : C ⥤ C ⥤ C :=
 { obj := λ X, functor.left_derived ((tensoring_left C).obj X) n,
-  map := λ X Y f, nat_trans.left_derived ((tensoring_left C).map f) n, }
+  map := λ X Y f, nat_trans.left_derived ((tensoring_left C).map f) n,
+  map_id' := λ X, by rw [(tensoring_left C).map_id, nat_trans.left_derived_id],
+  map_comp' := λ X Y Z f g, by rw [(tensoring_left C).map_comp, nat_trans.left_derived_comp], }
 
 /-- An alternative definition of `Tor`, where we left-derive in the first factor instead. -/
 @[simps]
 def Tor' (n : ℕ) : C ⥤ C ⥤ C :=
 functor.flip
 { obj := λ X, functor.left_derived ((tensoring_right C).obj X) n,
-  map := λ X Y f, nat_trans.left_derived ((tensoring_right C).map f) n, }
+  map := λ X Y f, nat_trans.left_derived ((tensoring_right C).map f) n,
+  map_id' := λ X, by rw [(tensoring_right C).map_id, nat_trans.left_derived_id],
+  map_comp' := λ X Y Z f g, by rw [(tensoring_right C).map_comp, nat_trans.left_derived_comp], }
 
 -- PROJECT showing `Tor C n ≅ Tor' C n` will require a bit more theory!
 -- Possibly it's best to axiomatize delta functors, and obtain a unique characterisation?

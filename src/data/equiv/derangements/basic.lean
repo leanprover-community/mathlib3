@@ -34,10 +34,12 @@ Then we define
 
 open equiv
 
+namespace perm
+
 section definitions
 
 /-- A permutation is a derangement if it has no fixed points. -/
-def is_derangement {α : Type*} (f : perm α) : Prop := (∀ x : α, f x ≠ x)
+def is_derangement {α : Type*} (f : perm α) : Prop := ∀ x : α, f x ≠ x
 
 /-- The set of derangements on `α`. -/
 def derangements (α : Type*) : set (perm α) := {f : perm α | is_derangement f}
@@ -54,22 +56,9 @@ end definitions
 section TODO_name
 
 /-- If `α` is equivalent to `β`, then `derangements α` is equivalent to `derangements β`. -/
-def derangement_congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ derangements β) :=
-begin
-  refine subtype_equiv (perm_congr e) _,
-  intro f,
-  simp only [derangements, is_derangement, perm_congr_apply, set.mem_set_of_eq],
-  split,
-  { contrapose!,
-    rintro ⟨y, hy_fixed⟩,
-    use e.symm y,
-    apply e.injective,
-    simp [hy_fixed] },
-  { contrapose!,
-    rintro ⟨x, hx_fixed⟩,
-    use e x,
-    simp [hx_fixed] }
-end
+def derangements_congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ derangements β) :=
+subtype_equiv (perm_congr e) $ λ f, e.forall_congr $ λ x, by simp
+
 
 end TODO_name
 
@@ -88,7 +77,7 @@ begin
     { rintro ⟨rfl⟩, exact fa_eq_a }}
 end
 
-lemma derangement_iff_opfp_and_ne (a : α) (f : perm α) :
+lemma is_derangement_iff_opfp_and_ne (a : α) (f : perm α) :
   is_derangement f ↔ only_possible_fixed_point f a ∧ f a ≠ a :=
 begin
   unfold is_derangement only_possible_fixed_point,
@@ -130,111 +119,80 @@ end fixed_points
 
 section option
 
-variables {α : Type*}
+variables {α : Type*} [decidable_eq α]
 
-lemma remove_none_fixed_pt (f : perm (option α)) (x : α) :
-  (remove_none f) x = x ↔ f (some x) = some x ∨ (f none = some x ∧ f (some x) = none) :=
+def remove_none.fiber (a : option α) : set (perm α) :=
+  {f : perm α | (a, f) ∈ equiv.perm.decompose_option '' derangements (option α)}
+
+lemma remove_none.fiber_mem (a : option α) (f : perm α) :
+  f ∈ remove_none.fiber a ↔ ∃ F : perm (option α), is_derangement F ∧ F none = a ∧
+  remove_none F = f :=
 begin
-  -- allows remove_none_XXX lemmas to work
-  rw ← option.some_inj,
-  cases fx : f (some x) with y,
-  { rw remove_none_none f fx, simp },
-  { rw [remove_none_some f ⟨y, fx⟩, fx], simp }
+  simp [remove_none.fiber, derangements],
 end
 
--- TODO I defined this predicate `foo` and the corresponding set, but it's only
--- used in the proof of `derangements_equiv_sigma_opfp`. Should it be completely
--- folded into that proof?
--- For now it's just called "foo" cause IDK whether to fold it in or not.
--- TODO match or option.elim?
-def foo (a : option α) (f : perm α) : Prop := match a with
-| none := false
-| (some a) := only_possible_fixed_point f a
+lemma remove_none.fiber_none_eq_empty : remove_none.fiber (@none α) = ∅ :=
+begin
+  rw set.eq_empty_iff_forall_not_mem,
+  intros f hyp,
+  rw remove_none.fiber_mem at hyp,
+  rcases hyp with ⟨F, F_derangement, F_none, _⟩,
+  exact F_derangement none F_none
 end
 
-lemma foo_lemma (f : perm (option α)) : is_derangement f ↔ foo (f none) (remove_none f) :=
+def remove_none.fiber_equiv_opfp (a : α) :
+  (remove_none.fiber (some a)) ≃ {f : perm α // only_possible_fixed_point f a} :=
 begin
-  cases f_none : f none with a,
-  -- if f none is none, then the RHS is false, and this simplifies to "show f is not a derangement"
-  { simp only [is_derangement, foo, iff_false, not_forall, not_not],
-    use ⟨none, f_none⟩ },
-  -- otherwise we have to do actual proof
-  { simp only [foo, only_possible_fixed_point, is_derangement],
+  apply subtype_equiv_right,
+  intro f,
+  split,
+  { rw remove_none.fiber_mem,
+    rintro ⟨F, F_derangement, F_none, rfl⟩ x x_fixed,
+    apply_fun some at x_fixed,
+    cases Fx : F (some x) with y,
+    { rw remove_none_none F Fx at x_fixed, rw ←option.some_inj, rwa x_fixed at F_none },
+    { exfalso, rw remove_none_some F ⟨y, Fx⟩ at x_fixed, exact F_derangement _ x_fixed }},
+  { intro h_opfp,
+    use equiv.perm.decompose_option.symm (some a, f),
     split,
-    -- (after contrapose): if (remove_none f) has a fixed point x ≠ a, then it's a fixed point
-    -- of f as well
-    { contrapose!,
-      rintro ⟨x, x_fixed, x_ne_a⟩,
-      rw remove_none_fixed_pt at x_fixed,
-      rcases x_fixed with (x_fixed | ⟨fnone_eq_x, fx_eq_none⟩),
-      -- either x was already a fixed point, which is easy...
-      { use ⟨some x, x_fixed⟩ },
-      -- ... or f swapped x and none, which is a contradiction
-      { exfalso,
-        have : some x = some a := by cc,
-        exact x_ne_a (option.some_inj.mp this) }},
-    -- (after contrapose): if f has a fixed point, then there is a fixed point of (remove_none f),
-    -- which isn't equal to a
-    { contrapose!,
-      rintro ⟨x, x_fixed⟩,
-      -- since f none = some a, we know x can't be none
+    { simp only [equiv.perm.decompose_option_symm_apply],
+      intro x,
+      apply_fun (swap none (some a)),
+      simp only [equiv.swap_apply_self, equiv.perm.coe_mul],
       cases x,
-      { exfalso,
-        exact option.some_ne_none a (by cc) },
-      -- so we have a fixed point (some x), it remains to show it's still a fixed point, and that
-      -- it's not equal to a
-      { use x,
-        rw remove_none_fixed_pt,
-        split,
-        { left, assumption },
-        { intro x_eq_a,
-          have : f (some x) = f none := by cc,
-          exact option.some_ne_none x (f.injective (this)) }}}}
+      { simp },
+      { simp only [equiv_functor.map_equiv_apply, equiv_functor.map,
+                    option.map_eq_map,  option.map_some'],
+        by_cases x_vs_a : x = a,
+        { rw [x_vs_a, swap_apply_right], exact option.some_ne_none _, },
+        { have ne_1 : some x ≠ none := option.some_ne_none _,
+          have ne_2 : some x ≠ some a := (option.some_injective α).ne_iff.mpr x_vs_a,
+          rw swap_apply_of_ne_of_ne ne_1 ne_2,
+          rw (option.some_injective α).ne_iff,
+          intro contra,
+          exact x_vs_a (h_opfp x contra) }},
+    },
+    { rw apply_symm_apply }}
 end
 
--- TODO is the set better like this? or should i replace it with a union over (a : α)?
-def foo_set : set (option α × perm α) := {af : option α × perm α | foo af.fst af.snd}
-
-variables [decidable_eq α]
-
-lemma foo_set_eq : equiv.perm.decompose_option '' derangements (option α) = foo_set :=
-begin
-  -- rearrange it so that we have derangements (option α) = (...)⁻¹' foo_set
-  symmetry,
-  rw ← equiv.preimage_eq_iff_eq_image,
-  ext f,
-  exact (foo_lemma f).symm,
-end
-
--- TODO this kinda makes more sense as a subset of `α × perm α`, but the proof was easier this way.
-/-- The set of derangements on `option α` is equivalent to the union of "permutations with either
-    no fixed points, `a` as the only fixed point", over all `a : α`. -/
 def derangements_equiv_sigma_opfp :
   derangements (option α) ≃ Σ a : α, {f : perm α // only_possible_fixed_point f a} :=
 begin
-  -- TODO why do i need the @ to get it to infer α?
-  let fiber : option α → set (perm α) := λ a : option α, {f : perm α | (a, f) ∈ (@foo_set α)},
-
-  have fiber_imp_some : ∀ a : option α, (fiber a) → a.is_some,
-  { rintros a ⟨f, f_foo⟩,
+  have fiber_is_some : ∀ a : option α, (remove_none.fiber a) → a.is_some,
+  { intro a,
     cases a,
-    { exfalso, simp [foo_set, fiber] at f_foo, assumption },
-    { simp }},
+    { rw remove_none.fiber_none_eq_empty, simp },
+    { intro _, simp }},
 
-  have fiber_equiv_opfp : ∀ a : α, (fiber a) ≃ {f : perm α // only_possible_fixed_point f a},
-  { intro a, refl },
-
-  -- TODO how are calc blocks this big formatted?
   calc derangements (option α)
       ≃ equiv.perm.decompose_option '' derangements (option α)   : equiv.image _ _
-  ... ≃ foo_set                                                  : equiv.set_congr foo_set_eq
-  ... ≃ Σ (a : option α), ↥(fiber a)                             : set_prod_equiv_sigma _
-  ... ≃ Σ (a : {a' : option α // a'.is_some}), ↥(fiber a)
-          : (sigma_subtype_equiv_of_subset _ _ fiber_imp_some).symm
-  ... ≃ Σ (a : α), ↥(fiber a)
+  ... ≃ Σ (a : option α), ↥(remove_none.fiber a)                 : set_prod_equiv_sigma _
+  ... ≃ Σ (a : {a' : option α // a'.is_some}), ↥(remove_none.fiber a.val)
+          : (sigma_subtype_equiv_of_subset _ _ fiber_is_some).symm
+  ... ≃ Σ (a : α), ↥(remove_none.fiber (some a))
           : sigma_congr_left' (option_is_some_equiv α)
   ... ≃ Σ (a : α), {f : perm α // only_possible_fixed_point f a}
-          : sigma_congr_right fiber_equiv_opfp,
+          : sigma_congr_right remove_none.fiber_equiv_opfp,
 end
 
 /-- The set of derangements on `option α` is equivalent to the union over all `a : α` of
@@ -255,7 +213,7 @@ begin
   },
   {
     unfold derangements,
-    simp_rw (derangement_iff_opfp_and_ne a),
+    simp_rw (is_derangement_iff_opfp_and_ne a),
     exact subtype_subtype_equiv_subtype_inter _ (λ f : perm α, f a ≠ a),
   },
 
@@ -263,3 +221,5 @@ begin
 end
 
 end option
+
+end perm

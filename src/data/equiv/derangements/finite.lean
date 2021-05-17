@@ -32,7 +32,7 @@ This file contains lemmas that describe the cardinality of `derangements α` whe
     factorials.
 -/
 
-open equiv fintype
+open equiv fintype perm
 open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] [fintype α]
@@ -58,7 +58,7 @@ def num_derangements (n : ℕ) : ℕ := card (derangements (fin n))
 begin
   unfold num_derangements,
   apply card_eq.mpr,  -- card_eq because we don't need the specific equivalence
-  use derangement_congr (equiv_fin α),
+  use derangements_congr (equiv_fin α),
 end
 
 theorem num_derangements_recursive (n : ℕ) :

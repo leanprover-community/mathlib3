@@ -31,7 +31,7 @@ All the following definitions are in the `add_subgroup` namespace. Hence we can 
 * `semi_normed_group_quotient` : The seminormed group structure on the quotient by
     an additive subgroup. This is an instance so there is no need to explictly use it.
 
-* `normed_group_quotient` : The seminormed group structure on the quotient by
+* `normed_group_quotient` : The normed group structure on the quotient by
     a closed additive subgroup. This is an instance so there is no need to explictly use it.
 
 * `normed_mk S` : the normed group hom from `M` to `quotient S`.
@@ -70,7 +70,7 @@ is not good enough for the type class system. As usual we ensure *definitional* 
 using forgetful inheritance, see Note [forgetful inheritance]. A (semi)-normed group structure
 embarks a uniform space structure which embarks a topological space structure, together
 with propositional fields asserting compatibility conditions.
-The usual way to define a `semi_normed_group` is to let Lean building a uniform space structure
+The usual way to define a `semi_normed_group` is to let Lean build a uniform space structure
 using the provided norm, and then trivially build a proof that the norm and uniform structure are
 compatible. Here the uniform structure is provided using `topological_add_group.to_uniform_space`
 which uses the topological structure and the group structure to build the uniform structure. This
@@ -87,7 +87,6 @@ open quotient_add_group metric set
 open_locale topological_space nnreal
 
 variables {M N : Type*} [semi_normed_group M] [semi_normed_group N]
-variables {M₁ N₁ : Type*} [normed_group M₁] [normed_group N₁]
 
 /-- The definition of the norm on the quotient by an additive subgroup. -/
 noncomputable
@@ -149,7 +148,7 @@ begin
   change Inf _ = _,
   congr' 1,
   ext r,
-  simp_rw [coe_mk', quotient_add_group.eq_iff_sub_mem],
+  simp_rw [coe_mk', eq_iff_sub_mem],
   split,
   { rintros ⟨y, h, rfl⟩,
     use [y - m, h],
@@ -197,8 +196,10 @@ begin
   use [0, S.zero_mem]
 end
 
-lemma norm_mk_lt {S : add_subgroup M} (x : (quotient S)) {ε : ℝ} (hε : 0 < ε) :
-  ∃ (m : M), quotient_add_group.mk' S m = x ∧ ∥m∥ < ∥x∥ + ε :=
+/-- For any `x : quotient S` and any `0 < ε`, there is `m : M` such that `mk' S m = x`
+and `∥m∥ < ∥x∥ + ε`. -/
+lemma norm_mk_lt {S : add_subgroup M} (x : quotient S) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (m : M), mk' S m = x ∧ ∥m∥ < ∥x∥ + ε :=
 begin
   obtain ⟨_, ⟨m : M, H : mk' S m = x, rfl⟩, hnorm : ∥m∥ < ∥x∥ + ε⟩ :=
     real.lt_Inf_add_pos (bdd_below_image_norm _) (image_norm_nonempty x) hε,
@@ -206,6 +207,7 @@ begin
   exact ⟨m, rfl, hnorm⟩,
 end
 
+/-- For any `m : M` and any `0 < ε`, there is `s ∈ S` such that `∥m + s∥ < ∥mk' S m∥ + ε`. -/
 lemma norm_mk_lt' (S : add_subgroup M) (m : M) {ε : ℝ} (hε : 0 < ε) :
   ∃ s ∈ S, ∥m + s∥ < ∥mk' S m∥ + ε :=
 begin
@@ -216,7 +218,7 @@ begin
   rwa [add_neg_cancel_left]
 end
 
-/-- The quotient norm satisfies the triangular inequality. -/
+/-- The quotient norm satisfies the triangle inequality. -/
 lemma quotient_norm_add_le (S : add_subgroup M) (x y : quotient S) : ∥x + y∥ ≤ ∥x∥ + ∥y∥ :=
 begin
   refine le_of_forall_pos_le_add (λ ε hε, _),
@@ -230,7 +232,7 @@ begin
 end
 
 /-- The quotient norm of `0` is `0`. -/
-lemma norm_mk_zero (S : add_subgroup M) : ∥(0 : (quotient S))∥ = 0 :=
+lemma norm_mk_zero (S : add_subgroup M) : ∥(0 : quotient S)∥ = 0 :=
 begin
   erw quotient_norm_eq_zero_iff,
   exact subset_closure S.zero_mem

@@ -14,16 +14,28 @@ Constructs the quotient of a category by an arbitrary family of relations on its
 by introducing a type synonym for the objects, and identifying homs as necessary.
 
 This is analogous to 'the quotient of a group by the normal closure of a subset', rather
-than 'the quotient of a group by a normal subgroup'.
+than 'the quotient of a group by a normal subgroup'. When taking the quotient by a congruence
+relation, `functor_map_eq_iff` says that no unnecessary identifications have been made.
 -/
 
-universes v v₁ u u₁
+/-- A `hom_rel` on `C` consists of a relation on every hom-set. -/
+@[derive inhabited]
+def hom_rel (C) [quiver C] := Π ⦃X Y : C⦄, (X ⟶ Y) → (X ⟶ Y) → Prop
 
 namespace category_theory
 
-variables {C : Type u} [category.{v} C]
-          (r : Π ⦃a b : C⦄, (a ⟶ b) → (a ⟶ b) → Prop)
+variables {C : Type*} [category C] (r : hom_rel C)
+
 include r
+
+/-- A `hom_rel` is a congruence when it's an equivalence on every hom-set, and it can be composed
+from left and right. -/
+class congruence : Prop :=
+(is_equiv : ∀ {X Y}, is_equiv _ (@r X Y))
+(comp_left : ∀ {X Y Z} (f : X ⟶ Y) {g g' : Y ⟶ Z}, r g g' → r (f ≫ g) (f ≫ g'))
+(comp_right : ∀ {X Y Z} {f f' : X ⟶ Y} (g : Y ⟶ Z), r f f' → r (f ≫ g) (f' ≫ g))
+
+attribute [instance] congruence.is_equiv
 
 /-- A type synonym for `C`, thought of as the objects of the quotient category. -/
 @[ext]
@@ -86,6 +98,20 @@ by { rintros ⟨x⟩ ⟨y⟩ ⟨f⟩, exact h f, }
 protected lemma sound {a b : C} {f₁ f₂ : a ⟶ b} (h : r f₁ f₂) :
   (functor r).map f₁ = (functor r).map f₂ :=
 by simpa using quot.sound (comp_closure.intro (𝟙 a) f₁ f₂ (𝟙 b) h)
+
+lemma functor_map_eq_iff [congruence r] {X Y : C} (f f' : X ⟶ Y) :
+  (functor r).map f = (functor r).map f' ↔ r f f' :=
+begin
+  split,
+  { erw quot.eq,
+    intro h,
+    induction h with m m' hm,
+    { cases hm, apply congruence.comp_left, apply congruence.comp_right, assumption, },
+    { apply refl },
+    { apply symm, assumption },
+    { apply trans; assumption }, },
+  { apply quotient.sound },
+end
 
 variables {D : Type*} [category D]
   (F : C ⥤ D)

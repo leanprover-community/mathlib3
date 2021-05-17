@@ -5,7 +5,8 @@ Authors: Kenny Lau
 -/
 
 import ring_theory.algebra_tower
-import linear_algebra.matrix
+import linear_algebra.matrix.finite_dimensional
+import linear_algebra.matrix.to_lin
 
 /-!
 # Tower of field extensions

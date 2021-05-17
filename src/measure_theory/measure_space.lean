@@ -1731,18 +1731,27 @@ section no_atoms
 
 variables [has_no_atoms μ]
 
-lemma measure_countable (h : countable s) : μ s = 0 :=
+instance (s : set α) : has_no_atoms (μ.restrict s) :=
+begin
+  refine ⟨λ x, _⟩,
+  obtain ⟨t, hxt, ht1, ht2⟩ := exists_measurable_superset_of_null (measure_singleton x : μ {x} = 0),
+  apply measure_mono_null hxt,
+  rw measure.restrict_apply ht1,
+  apply measure_mono_null (inter_subset_left t s) ht2
+end
+
+lemma _root_.set.countable.measure_zero (h : countable s) : μ s = 0 :=
 begin
   rw [← bUnion_of_singleton s, ← nonpos_iff_eq_zero],
   refine le_trans (measure_bUnion_le h _) _,
   simp
 end
 
-lemma measure_finite (h : s.finite) : μ s = 0 :=
-measure_countable h.countable
+lemma _root_.set.finite.measure_zero (h : s.finite) : μ s = 0 :=
+h.countable.measure_zero
 
-lemma measure_finset (s : finset α) : μ ↑s = 0 :=
-measure_finite s.finite_to_set
+lemma _root_.finset.measure_zero (s : finset α) : μ ↑s = 0 :=
+s.finite_to_set.measure_zero
 
 lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=
@@ -2171,15 +2180,17 @@ begin
         have h_meas_t_inter_s : measurable_set (t ∩ s) :=
            h_meas_t.inter h_meas_s,
         repeat {rw measure_eq_inter_diff h_meas_t h_meas_s, rw set.diff_eq},
-        apply add_le_add _ _; rw add_apply,
-        { apply le_add_right _,
+        refine add_le_add _ _,
+        { rw add_apply,
+          apply le_add_right _,
           rw add_apply,
           rw ← @restrict_eq_self _ _ μ s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           rw ← @restrict_eq_self _ _ ν s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           apply h_ν'_in _ h_meas_t_inter_s },
         cases (@set.eq_empty_or_nonempty _ (t ∩ sᶜ)) with h_inter_empty h_inter_nonempty,
         { simp [h_inter_empty] },
-        { have h_meas_inter_compl :=
+        { rw add_apply,
+          have h_meas_inter_compl :=
             h_meas_t.inter (measurable_set.compl h_meas_s),
           rw [restrict_apply h_meas_inter_compl, h_inter_inter_eq_inter sᶜ],
           have h_mu_le_add_top : μ ≤ ν' + ν + ⊤,

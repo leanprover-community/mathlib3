@@ -3,10 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.punit_instances
 import topology.instances.nnreal
 import topology.algebra.module
 import topology.algebra.algebra
 import topology.metric_space.antilipschitz
+import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Normed spaces
@@ -84,6 +86,12 @@ noncomputable def semi_normed_group.of_core (α : Type*) [add_comm_group α] [ha
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
              ... = ∥y - x∥ : by { rw [C.norm_neg] } }
+
+instance : normed_group punit :=
+{ norm := function.const _ 0,
+  dist_eq := λ _ _, rfl, }
+
+@[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
 instance : normed_group ℝ :=
 { norm := λ x, abs x,
@@ -771,6 +779,11 @@ class normed_comm_ring (α : Type*) extends normed_ring α :=
 @[priority 100] -- see Note [lower instance priority]
 instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
   semi_normed_comm_ring α := { ..β }
+
+instance : normed_comm_ring punit :=
+{ norm_mul := λ _ _, by simp,
+  ..punit.normed_group,
+  ..punit.comm_ring, }
 
 /-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
 axiom. -/

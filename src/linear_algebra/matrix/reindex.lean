@@ -25,6 +25,8 @@ matrix, reindex
 
 namespace matrix
 
+open_locale matrix
+
 variables {l m n : Type*} [fintype l] [fintype m] [fintype n]
 variables {l' m' n' : Type*} [fintype l'] [fintype m'] [fintype n']
 variables {R : Type*}
@@ -50,12 +52,17 @@ rfl
   reindex_linear_equiv (equiv.refl m) (equiv.refl n) = linear_equiv.refl R _ :=
 linear_equiv.ext $ λ _, rfl
 
+lemma reindex_linear_equiv_mul {o o' : Type*} [fintype o] [fintype o'] [semiring R]
+  (eₘ : m ≃ m') (eₙ : n ≃ n') (eₒ : o ≃ o') (M : matrix m n R) (N : matrix n o R) :
+  reindex_linear_equiv eₘ eₒ (M ⬝ N) = reindex_linear_equiv eₘ eₙ M ⬝ reindex_linear_equiv eₙ eₒ N :=
+minor_mul_equiv M N _ _ _
+
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
 types, `matrix.reindex`, is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,
-  map_mul'  := λ M N, minor_mul_equiv M N e.symm e.symm e.symm,
+  map_mul'  := reindex_linear_equiv_mul e e e,
   commutes' := λ r, by simp [algebra_map, algebra.to_ring_hom, minor_smul],
   ..(reindex_linear_equiv e e) }
 
@@ -72,6 +79,11 @@ rfl
 @[simp] lemma reindex_alg_equiv_refl [comm_semiring R] [decidable_eq m] :
   reindex_alg_equiv (equiv.refl m) = (alg_equiv.refl : _ ≃ₐ[R] _) :=
 alg_equiv.ext $ λ _, rfl
+
+lemma reindex_alg_equiv_mul [comm_semiring R] [decidable_eq m] [decidable_eq n]
+  (e : m ≃ n) (M : matrix m m R) (N : matrix m m R) :
+  reindex_alg_equiv e (M ⬝ N) = reindex_alg_equiv e M ⬝ reindex_alg_equiv e N :=
+(reindex_alg_equiv e).map_mul M N
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
 

@@ -135,6 +135,11 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
   matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
 by { ext, simp }
 
+/-- Shortcut lemma for `matrix.to_lin'_mul_apply` and `linear_map.comp_apply` -/
+lemma matrix.to_lin'_mul_apply [decidable_eq m] (M : matrix l m R) (N : matrix m n R) (x) :
+  matrix.to_lin' (M ⬝ N) x = (matrix.to_lin' M (matrix.to_lin' N x)) :=
+by rw [matrix.to_lin'_mul, linear_map.comp_apply]
+
 lemma linear_map.to_matrix'_comp [decidable_eq l]
   (f : (n → R) →ₗ[R] (m → R)) (g : (l → R) →ₗ[R] (n → R)) :
   (f.comp g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
@@ -345,6 +350,13 @@ begin
   rw linear_map.to_matrix_comp v₁ v₂ v₃,
   repeat { rw linear_map.to_matrix_to_lin },
 end
+
+/-- Shortcut lemma for `matrix.to_lin_mul` and `linear_map.comp_apply`. -/
+lemma matrix.to_lin_mul_apply [decidable_eq m]
+  (A : matrix l m R) (B : matrix m n R) (x) :
+  matrix.to_lin v₁ v₃ (A ⬝ B) x =
+    (matrix.to_lin v₂ v₃ A) (matrix.to_lin v₁ v₂ B x) :=
+by rw [matrix.to_lin_mul v₁ v₂, linear_map.comp_apply]
 
 /-- Given a basis of a module `M₁` over a commutative ring `R`, we get an algebra
 equivalence between linear maps `M₁ →ₗ M₁` and square matrices over `R` indexed by the basis. -/

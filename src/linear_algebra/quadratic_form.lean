@@ -856,7 +856,7 @@ isometry_of_comp_linear_equiv Q v.equiv_fun.symm
 lemma isometry_of_is_Ortho_apply [invertible (2 : R₁)]
   (Q : quadratic_form R₁ M) (v : basis ι R₁ M)
   (hv₂ : (associated Q).is_Ortho v) (w : ι → R₁) :
-  Q.basis_repr v w = ∑ i : ι, associated Q (v i) (v i) * w i * w i :=
+  Q.basis_repr v w = ∑ i : ι, associated Q (v i) (v i) * (w i * w i) :=
 begin
   rw [basis_repr_apply, ← @associated_eq_self_apply R₁, sum_left],
   refine sum_congr rfl (λ j hj, _),
@@ -902,10 +902,7 @@ begin
   convert Q.isometry_basis_repr v,
   ext w,
   rw [isometry_of_is_Ortho_apply Q v hv₁, weighted_sum_squares_apply],
-  refine finset.sum_congr rfl _,
-  intros,
-  change (associated Q) (v x) (v x) • _ = _,
-  rw [smul_eq_mul, ← mul_assoc],
+  refl
 end
 
 section complex

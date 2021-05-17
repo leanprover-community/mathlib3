@@ -25,7 +25,7 @@ instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] :
   smul_zero := λ x, zero_mul _,
   zero_smul := mul_zero }
 
-/-- Like `monoid_with_zero.to_smul_with_zero`, but multiplies on the right. -/
+/-- Like `monoid_with_zero.to_mul_action_with_zero`, but multiplies on the right. -/
 instance monoid_with_zero.to_opposite_mul_action_with_zero [monoid_with_zero R] :
   mul_action_with_zero (opposite R) R :=
 { ..mul_zero_class.to_opposite_smul_with_zero R,

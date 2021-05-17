@@ -49,12 +49,12 @@ instance units.covariant_class [ordered_comm_monoid α] :
   refine le_iff_eq_or_lt.mpr (or.inr _),
   refine units.coe_lt_coe.mp _,
   cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
-  exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
+  exact lt_of_le_of_ne (mul_le_mul_left lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
-{ mul_le_mul_left := λ a b h c, (mul_le_mul_left' (units.coe_le_coe.mpr h) _ : (c * a : α) ≤ c * b),
+{ mul_le_mul_left := λ a b h c, (mul_le_mul_left (units.coe_le_coe.mpr h) _ : (c * a : α) ≤ c * b),
   .. units.partial_order,
   .. (infer_instance : comm_group (units α)) }
 
@@ -111,7 +111,7 @@ instance group.has_mul_le_mul_left.to_has_le_of_mul_le_mul_left [covariant_class
   contravariant_class α α (*) (≤) :=
 { covtc := λ a b c bc,
     calc b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
-       ... ≤ a⁻¹ * (a * c) : mul_le_mul_left' bc a⁻¹
+       ... ≤ a⁻¹ * (a * c) : mul_le_mul_left bc a⁻¹
        ... = c : inv_mul_cancel_left a c }
 
 @[priority 96, to_additive]
@@ -120,7 +120,7 @@ instance group.has_mul_le_mul_right.to_has_le_of_mul_le_mul_right
   contravariant_class α α (function.swap (*)) (≤) :=
 { covtc := λ a b c bc,
     calc b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
-       ... ≤ c * a * a⁻¹ : mul_le_mul_right' bc a⁻¹
+       ... ≤ c * a * a⁻¹ : mul_le_mul_right bc a⁻¹
        ... = c : mul_inv_eq_of_eq_mul rfl }
 
 @[to_additive neg_le_iff_add_nonneg']
@@ -128,9 +128,9 @@ lemma inv_le_iff_one_le_mul' [covariant_class α α (*) (≤)] : a⁻¹ ≤ b �
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← mul_inv_cancel_left a 1, mul_one],
-    exact mul_le_mul_left' h a },
+    exact mul_le_mul_left h a },
   { rw [← mul_one a⁻¹, ← inv_mul_cancel_left a b],
-    exact mul_le_mul_left' h _ }
+    exact mul_le_mul_left h _ }
 end
 
 section left
@@ -140,8 +140,8 @@ variable [covariant_class α α (*) (≤)]
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_left' (c : α) : c * a ≤ c * b ↔ a ≤ b :=
-⟨λ h, by simpa using mul_le_mul_left' h c⁻¹,
-  λ h, mul_le_mul_left' h c⟩
+⟨λ h, by simpa using mul_le_mul_left h c⁻¹,
+  λ h, mul_le_mul_left h c⟩
 
 @[to_additive]
 lemma le_inv_mul_iff : b ≤ a⁻¹ * c ↔ a * b ≤ c :=
@@ -260,7 +260,7 @@ variables [covariant_class α α (function.swap (*)) (≤)]
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_right' (c : α) : a * c ≤ b * c ↔ a ≤ b :=
-⟨λ h, by simpa using mul_le_mul_right' h c⁻¹, λ h, mul_le_mul_right' h _⟩
+⟨λ h, by simpa using mul_le_mul_right h c⁻¹, λ h, mul_le_mul_right h _⟩
 
 @[to_additive]
 lemma mul_inv_le_iff'' : a * c⁻¹ ≤ b ↔ a ≤ b * c :=
@@ -415,8 +415,8 @@ by rw [div_eq_mul_inv, mul_inv_le_iff'', le_self_mul_iff_one_le]
 
 @[to_additive]
 lemma mul_inv_le_mul_inv (hab : a ≤ b) (hcd : c ≤ d) : a * d⁻¹ ≤ b * c⁻¹ :=
-calc a * d⁻¹ ≤ b * d⁻¹ : mul_le_mul_right' hab d⁻¹
-         ... ≤ b * c⁻¹ : mul_le_mul_left' (inv_le_inv_iff.mpr hcd) _
+calc a * d⁻¹ ≤ b * d⁻¹ : mul_le_mul_right hab d⁻¹
+         ... ≤ b * c⁻¹ : mul_le_mul_left (inv_le_inv_iff.mpr hcd) _
 
 @[to_additive sub_le_sub]
 lemma div_le_div'' (hab : a ≤ b) (hcd : c ≤ d) : a / d ≤ b / c :=
@@ -428,9 +428,9 @@ calc a / d = a * d⁻¹ : div_eq_mul_inv _ _
 lemma inv_mul_le_mul_inv_of (h : b⁻¹ * a ≤ c * d⁻¹) : a * d ≤ b * c :=
 begin
   refine (_ : _ ≤ b * (c * d⁻¹) * d).trans (by rw [mul_assoc, inv_mul_cancel_right]),
-  refine mul_le_mul_right' _ d,
+  refine mul_le_mul_right _ d,
   rw [← inv_mul_cancel_left b⁻¹ a, inv_inv],
-  refine mul_le_mul_left' h b
+  refine mul_le_mul_left h b
 end
 
 @[to_additive]
@@ -649,7 +649,7 @@ variables [covariant_class α α (function.swap (*)) (≤)] [covariant_class α 
 
 @[to_additive]
 lemma mul_inv_lt_mul_inv_of_le_of_lt (hab : a ≤ b) (hcd : c < d) : a * d⁻¹ < b * c⁻¹ :=
-calc a * d⁻¹ ≤ b * d⁻¹ : mul_le_mul_right' hab d⁻¹
+calc a * d⁻¹ ≤ b * d⁻¹ : mul_le_mul_right hab d⁻¹
          ... < b * c⁻¹ : (mul_lt_mul_iff_left' _).mpr (inv_lt_inv_iff.mpr hcd)
 
 @[to_additive]
@@ -898,7 +898,7 @@ instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
 @[to_additive]
 instance linear_ordered_comm_group.to_covariant_class_mul_left :
   covariant_class α α (*) (≤) :=
-{ covc := λ a b ab c, mul_le_mul_left' c a }
+{ covc := λ a b ab c, mul_le_mul_left c a }
 
 /-- Pullback a `linear_ordered_comm_group` under an injective map. -/
 @[to_additive function.injective.linear_ordered_add_comm_group
@@ -916,7 +916,7 @@ def function.injective.linear_ordered_comm_group {β : Type*}
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'
   (a b : α) (h : a < b) (c : α) : c * a < c * b :=
-mul_lt_mul_left' h c
+mul_lt_mul_left h c
 
 @[to_additive min_neg_neg]
 lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=

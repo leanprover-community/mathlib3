@@ -300,7 +300,7 @@ open real (smooth_transition) real.smooth_transition metric
 
 lemma one_of_mem_closed_ball (hx : x ∈ closed_ball c f.r) :
   f x = 1 :=
-one_of_one_le $ (one_le_div (sub_pos.2 f.r_lt_R)).2 $ sub_le_sub_left hx _
+one_of_one_le $ (one_le_div (sub_pos.2 f.r_lt_R)).2 $ sub_le_sub_left'' hx _
 
 lemma nonneg : 0 ≤ f x := nonneg _
 

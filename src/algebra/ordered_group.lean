@@ -69,8 +69,7 @@ begin
   { apply ordered_comm_group.mul_le_mul_left _ _ h.1 },
   { intro w,
     replace w : c⁻¹ * (c * b) ≤ c⁻¹ * (c * a) := ordered_comm_group.mul_le_mul_left _ _ w _,
-    simp only [mul_one, mul_comm, mul_left_inv, mul_left_comm] at w,
-    exact h.2 w },
+    exact h.2 ((inv_mul_cancel_left c b).symm.le.trans (w.trans ((inv_mul_cancel_left _ _).le))) }
 end
 
 @[to_additive ordered_add_comm_group.le_of_add_le_add_left]
@@ -1247,12 +1246,3 @@ inv_le_one'.mpr
 theorem one_le_inv_of_le_one {a : α} :
   a ≤ 1 → 1 ≤ a⁻¹ :=
 one_le_inv'.mpr
-
---#check @bit0_pos
---#check @bit1_pos'
---#check @div_pos
---#check @neg_lt_neg
---#check @neg_le_neg
---#check @neg_nonpos_of_nonneg
---#check @neg_neg_of_pos --saved
---#check @neg_nonneg_of_nonpos

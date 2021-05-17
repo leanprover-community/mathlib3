@@ -736,9 +736,6 @@ From here... -/
 lemma inv_lt_one' : a⁻¹ < 1 ↔ 1 < a :=
 inv_lt_one_iff_one_lt
 
-#check @inv_lt_one_iff_one_lt
-#check @inv_lt_one'
-
 @[to_additive neg_pos]
 lemma one_lt_inv' : 1 < a⁻¹ ↔ a < 1 :=
 one_lt_inv_iff_lt_one

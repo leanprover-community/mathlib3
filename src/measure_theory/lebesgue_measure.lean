@@ -127,7 +127,7 @@ begin
   refine le_trans _ (add_le_add_left (IH _ (finset.erase_ssubset is) (c i) _) _),
   { refine le_trans (ennreal.of_real_le_of_real _) ennreal.of_real_add_le,
     rw sub_add_sub_cancel,
-    exact sub_le_sub_right (le_of_lt bd) _ },
+    exact sub_le_sub_right'' (le_of_lt bd) _ },
   { rintro x ⟨h₁, h₂⟩,
     refine (cv ⟨h₁, le_trans h₂ (le_of_lt cb)⟩).resolve_left
       (mt and.left (not_lt_of_le h₂)) }

@@ -514,7 +514,7 @@ section
         (λh, by rw h; exact s),
       lem1 (ne_of_gt jn) $ int.lt_of_coe_nat_lt_coe_nat $ by {
         rw [lem2 j jn (le_of_lt j2n), lem2 (j+1) (nat.le_succ_of_le jn) j2n],
-        refine sub_lt_sub_left (int.coe_nat_lt_coe_nat_of_lt $ x_increasing _ _) _,
+        refine sub_lt_sub_left'' (int.coe_nat_lt_coe_nat_of_lt $ x_increasing _ _) _,
         rw [nat.sub_succ],
         exact nat.pred_lt (ne_of_gt $ nat.sub_pos_of_lt j2n) })
 

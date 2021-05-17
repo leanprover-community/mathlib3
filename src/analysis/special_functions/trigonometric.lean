@@ -1365,7 +1365,7 @@ begin
     have := sin_bound this, rw [abs_le] at this,
     have := this.2, rw [sub_le_iff_le_add', hx] at this,
     apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
-    apply sub_lt_sub_left, rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
+    apply sub_lt_sub_left'', rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
     { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
       rw mul_le_mul_right, exact h', apply pow_pos h },
     norm_num, norm_num, apply pow_pos h },
@@ -1381,8 +1381,8 @@ begin
   have := sin_bound this, rw [abs_le] at this,
   have := this.1, rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,
-  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
-  apply add_lt_of_lt_sub_left,
+  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left'',
+  refine lt_sub_iff_add_lt'.mp _,
   rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹,
     by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
   apply mul_lt_mul',
@@ -2023,7 +2023,7 @@ lemma arccos_cos {x : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π) : arccos (cos x)
 by rw [arccos, ← sin_pi_div_two_sub, arcsin_sin]; simp [sub_eq_add_neg]; linarith
 
 lemma strict_mono_decr_on_arccos : strict_mono_decr_on arccos (Icc (-1) 1) :=
-λ x hx y hy h, sub_lt_sub_left (strict_mono_incr_on_arcsin hx hy h) _
+λ x hx y hy h, sub_lt_sub_left'' (strict_mono_incr_on_arcsin hx hy h) _
 
 lemma arccos_inj_on : inj_on arccos (Icc (-1) 1) := strict_mono_decr_on_arccos.inj_on
 
@@ -2213,8 +2213,10 @@ then by rw [arg, if_pos hx₁];
 else
   have hx : x ≠ 0, from λ h, by simpa [h, lt_irrefl] using hx₁,
   if hx₂ : 0 ≤ x.im
-  then by rw [arg, if_neg hx₁, if_pos hx₂, ← sub_lt_iff_lt_add];
-    exact (lt_of_lt_of_le (by linarith [real.pi_pos]) (real.neg_pi_div_two_le_arcsin _))
+  then by { rw [arg, if_neg hx₁, if_pos hx₂, ← sub_lt_iff_lt_add],
+    refine lt_of_lt_of_le _ real.pi_pos.le,
+    rw [neg_im, sub_lt_iff_lt_add, add_zero, neg_lt, neg_div, real.arcsin_neg, neg_neg],
+    exact (real.arcsin_le_pi_div_two _).trans_lt (half_lt_self real.pi_pos) }
   else by rw [arg, if_neg hx₁, if_neg hx₂, lt_sub_iff_add_lt, neg_add_self, real.arcsin_pos,
     neg_im];
       exact div_pos (neg_pos.2 (lt_of_not_ge hx₂)) (abs_pos.2 hx)

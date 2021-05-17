@@ -585,7 +585,7 @@ lemma le_or_le_of_add_eq_add_pred {a b c d : ℕ} (h : c + d = a + b - 1) : a �
 begin
   cases le_or_lt a c with h' h'; [left, right],
   { exact h', },
-  { replace h' := add_lt_add_right h' d, rw h at h',
+  { replace h' := add_lt_add_right_n d h', rw h at h',
     cases b.eq_zero_or_pos with hb hb, { rw hb, exact zero_le d, },
     rw [a.add_sub_assoc hb, add_lt_add_iff_left] at h',
     exact nat.le_of_pred_lt h', },
@@ -1033,7 +1033,8 @@ lemma sub_mod_eq_zero_of_mod_eq {a b c : ℕ} (h : a % c = b % c) : (a - b) % c 
 by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat.add_sub_cancel_left,
        ←nat.mul_sub_left_distrib, nat.mul_mod_right]
 
-@[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
+@[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 :=
+nat.mod_eq_of_lt (add_lt_add_right_n 1 n.succ_pos)
 
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
 ⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
@@ -1368,7 +1369,7 @@ begin
   { intro h, rw [dvd_iff_mod_eq_zero, ← ne.def, ← pos_iff_ne_zero] at h,
     simp only [← mod_add_div m n] {single_pass := tt},
     refine ⟨m / n, lt_add_of_pos_left _ h, _⟩,
-    rw [add_comm _ 1, left_distrib, mul_one], exact add_lt_add_right (mod_lt _ hn) _ }
+    rw [add_comm _ 1, left_distrib, mul_one], exact add_lt_add_right_n _ (mod_lt _ hn) }
 end
 
 /-- Two natural numbers are equal if and only if the have the same multiples. -/

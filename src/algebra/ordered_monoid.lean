@@ -156,7 +156,7 @@ def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_comm_monoid β :=
 { mul_le_mul_left := λ a b ab c,
-    show f (c * a) ≤ f (c * b), by simp [mul, @mul_le_mul_left' α _ _ _ _ _ ab _],
+    show f (c * a) ≤ f (c * b), by simp [mul, @mul_le_mul_left α _ _ _ _ _ ab _],
   lt_of_mul_lt_mul_left :=
     λ a b c bc, @lt_of_mul_lt_mul_left' α (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
   ..partial_order.lift f hf,
@@ -843,7 +843,7 @@ namespace order_dual
 
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
-{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ _ _ _ _ h _,
+{ mul_le_mul_left := λ a b h c, @mul_le_mul_left α _ _ _ _ _ h _,
   lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
@@ -870,7 +870,7 @@ variables {M N : Type*}
 @[to_additive]
 instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
   ordered_cancel_comm_monoid (M × N) :=
-{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
+{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left h.1 _, mul_le_mul_left h.2 _⟩,
   le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
  .. prod.cancel_comm_monoid, .. prod.partial_order M N }
 

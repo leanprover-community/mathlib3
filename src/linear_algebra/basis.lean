@@ -279,8 +279,8 @@ def reindex_range : basis (range b) R M :=
 if h : nontrivial R then
   by letI := h; exact b.reindex (equiv.of_injective b (basis.injective b))
 else
-  by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact basis.map
-  basis.inhabited.default (module.subsingleton_equiv R M (range b)).symm
+  by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact
+    basis.of_repr (module.subsingleton_equiv R M (range b))
 
 lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
   {f : α → β} (hf : function.injective f)

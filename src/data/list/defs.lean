@@ -936,11 +936,12 @@ meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size :=
 ((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
 
 /-!
-  We add some n-ary versions of `list.zip_with` for functions with more than two arguments.
-  These can be written in terms of `list.zip` and `list.map`, but these are more convenient
-  (and efficient) to use.
-  For example, `zip_with3 f xs ys zs` could also be written as
-  `(zip xs $ zip ys zs).map $ λ ⟨x, y, z⟩, f x y z`.
+We add some n-ary versions of `list.zip_with` for functions with more than two arguments.
+These can also be written in terms of `list.zip` or `list.zip_with`.
+For example, `zip_with3 f xs ys zs` could also be written as
+`zip_with function.id (zip_with f xs ys) zs`
+or as
+`(zip xs $ zip ys zs).map $ λ ⟨x, y, z⟩, f x y z`.
 -/
 
 /-- Ternary version of `list.zip_with`. -/

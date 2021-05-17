@@ -10,7 +10,7 @@ import data.sum
 /-!
 # simps attribute
 
-This file defines the `@[simps]` attribute, to automatically generate simp-lemmas
+This file defines the `@[simps]` attribute, to automatically generate `simp` lemmas
 reducing a definition when projections are applied to it.
 
 ## Implementation Notes
@@ -41,7 +41,7 @@ declare_trace simps.verbose
 declare_trace simps.debug
 
 /-- Projection data for a single projection of a structure, consisting of the following fields:
-  - a custom name
+  - the name used in the generated `simp` lemmas
   - an expression used by simps for the projection. It must be definitionally equal to an original
     projection (or a composition of multiple projections).
     These expressions can contain the universe parameters specified in the first argument of
@@ -52,7 +52,7 @@ declare_trace simps.debug
     target of the first projection is a structure with at least two projections).
     The composition of these projections is required to be definitionally equal to the provided
     expression.
-  - A boolean specifying whether simp-lemmas are generated for this projection by default.
+  - A boolean specifying whether `simp` lemmas are generated for this projection by default.
   - A boolean specifying whether this projection is written as prefix. -/
 @[protect_proj, derive [has_reflect, inhabited]]
 meta structure projection_data :=
@@ -65,8 +65,8 @@ meta structure projection_data :=
 /-- Temporary projection data parsed from `initialize_simps_projections` before the expression
   matching this projection has been found. Only used internally in `simps_get_raw_projections`. -/
 meta structure parsed_projection_data :=
-(orig_name : name) -- original name of the projection
-(new_name : name) -- name used by simps for this projection
+(orig_name : name) -- name for this projection used in the structure definition
+(new_name : name) -- name for this projection used in the generated `simp` lemmas
 (is_default : bool)
 (is_prefix : bool)
 
@@ -414,7 +414,7 @@ library_note "custom simps projection"
     Exception: `@[simps]` will automatically add the options
     `{rhs_md := semireducible, simp_rhs := tt}` if the given definition is not a constructor with
     the given reducibility setting for `rhs_md`.
-  * If `fully_applied` is `ff` then the generated simp-lemmas will be between non-fully applied
+  * If `fully_applied` is `ff` then the generated `simp` lemmas will be between non-fully applied
     terms, i.e. equalities between functions. This does not restrict the recursive behavior of
     `@[simps]`, so only the "final" projection will be non-fully applied.
     However, it can be used in combination with explicit field names, to get a partially applied
@@ -488,7 +488,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.
-  If `add_simp` then we make the resulting lemma a simp-lemma. -/
+  If `add_simp` then we make the resulting lemma a `simp` lemma. -/
 meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list expr)
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
   when_tracing `simps.debug trace!
@@ -588,7 +588,7 @@ meta def simps_add_projections : Π (e : environment) (nm : name)
             simp_lemma := nm.append_suffix x,
             needed_proj := (x.split_on '_').tail.head in
           fail!
-"Invalid simp-lemma {simp_lemma}. Structure {str} does not have projection {needed_proj}.
+"Invalid simp lemma {simp_lemma}. Structure {str} does not have projection {needed_proj}.
 The known projections are:
   {projs}
 You can also see this information by running
@@ -617,12 +617,12 @@ Note: these projection names might not correspond to the projection names of the
         { rhs_md := semireducible, simp_rhs := tt, ..cfg} todo to_apply
     else do
       when (to_apply ≠ []) $
-        fail!"Invalid simp-lemma {nm}.
+        fail!"Invalid simp lemma {nm}.
 The given definition is not a constructor application:\n  {rhs_ap}",
       when must_be_str $
         fail!"Invalid `simps` attribute. The body is not a constructor application:\n  {rhs_ap}",
       when (todo_next ≠ []) $
-        fail!"Invalid simp-lemma {nm.append_suffix todo_next.head}.
+        fail!"Invalid simp lemma {nm.append_suffix todo_next.head}.
 The given definition is not a constructor application:\n  {rhs_ap}",
       if cfg.fully_applied then
         simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
@@ -632,13 +632,13 @@ The given definition is not a constructor application:\n  {rhs_ap}",
       fail!"Invalid `simps` attribute. Target {str} is not a structure",
     when (todo_next ≠ [] ∧ str ∉ cfg.not_recursive) $
         let first_todo := todo_next.head in
-        fail!"Invalid simp-lemma {nm.append_suffix first_todo}.
+        fail!"Invalid simp lemma {nm.append_suffix first_todo}.
 Projection {(first_todo.split_on '_').tail.head} doesn't exist, because target is not a structure.",
     if cfg.fully_applied then
       simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
       simps_add_projection nm type lhs rhs args univs cfg
 
-/-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.
+/-- `simps_tac` derives `simp` lemmas for all (nested) non-Prop projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`.
   If `short_nm` is true, the generated names will only use the last projection name.
   If `trc` is true, trace as if `trace.simps.verbose` is true. -/
@@ -670,13 +670,13 @@ Example:
 ```lean
 @[simps] def foo : ℕ × ℤ := (1, 2)
 ```
-derives two simp-lemmas:
+derives two `simp` lemmas:
 ```lean
 @[simp] lemma foo_fst : foo.fst = 1
 @[simp] lemma foo_snd : foo.snd = 2
 ```
 
-* It does not derive simp-lemmas for the prop-valued projections.
+* It does not derive `simp` lemmas for the prop-valued projections.
 * It will automatically reduce newly created beta-redexes, but will not unfold any definitions.
 * If the structure has a coercion to either sorts or functions, and this is defined to be one
   of the projections, then this coercion will be used instead of the projection.
@@ -703,8 +703,8 @@ derives two simp-lemmas:
   Example: `initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)`.
 
 * If one of the fields itself is a structure, this command will recursively create
-  simp-lemmas for all fields in that structure.
-  * Exception: by default it will not recursively create simp-lemmas for fields in the structures
+  `simp` lemmas for all fields in that structure.
+  * Exception: by default it will not recursively create `simp` lemmas for fields in the structures
     `prod` and `pprod`. Give explicit projection names to override this behavior.
 
   Example:
@@ -758,7 +758,7 @@ derives two simp-lemmas:
   will not print projection information.
 * Use `@[to_additive, simps]` to apply both `to_additive` and `simps` to a definition, making sure
   that `simps` comes after `to_additive`. This will also generate the additive versions of all
-  simp-lemmas. Note however, that the additive versions of the simp-lemmas always use the default
+  `simp` lemmas. Note however, that the additive versions of the `simp` lemmas always use the default
   name generated by `to_additive`, even if a custom name is given for the additive version of the
   definition.
   -/

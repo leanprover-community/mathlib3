@@ -39,7 +39,7 @@ run_cmd do
 example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
 example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
 
-/- the declarations are simp-lemmas -/
+/- the declarations are `simp` lemmas -/
 @[simps] def foo : ℕ × ℤ := (1, 2)
 
 example : foo.1 = 1 := by simp
@@ -237,24 +237,24 @@ run_cmd do
   guard $ 12 = e.fold 0 -- there are no other lemmas generated
     (λ d n, n + if d.to_name.components.init.ilast = `specify then 1 else 0),
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["fst_fst"])
-    "Invalid simp-lemma specify.specify1_fst_fst.
+    "Invalid simp lemma specify.specify1_fst_fst.
 Projection fst doesn't exist, because target is not a structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["foo_fst"])
-    "Invalid simp-lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
+    "Invalid simp lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
 The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
 Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
-    "Invalid simp-lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
+    "Invalid simp lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
 The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
 Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
-    "Invalid simp-lemma specify.specify5_snd_snd.
+    "Invalid simp lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
   classical.choice specify.specify5._proof_1"
 

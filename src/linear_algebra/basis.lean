@@ -744,14 +744,14 @@ lemma smul_of_is_unit_linear_independent {v : basis ι R M} {w : ι → R}
 begin
   have hw₁' := v.linear_independent,
   rw linear_independent_iff'' at hw₁' ⊢,
-    intros s g hgs hsum i,
-    obtain ⟨wi, hwi⟩ := hw i,
-    rw [←wi.mul_left_eq_zero, hwi],
-    refine hw₁' s (λ i, g i • w i) (λ i hi, _) _ i,
-    { dsimp only,
-      exact (hgs i hi).symm ▸ zero_smul _ _ },
-    { rw [← hsum, finset.sum_congr rfl _],
-      intros, erw [pi.smul_apply, smul_assoc] }
+  intros s g hgs hsum i,
+  obtain ⟨wi, hwi⟩ := hw i,
+  rw [←wi.mul_left_eq_zero, hwi],
+  refine hw₁' s (λ i, g i • w i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ zero_smul _ _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros, erw [pi.smul_apply, smul_assoc] }
 end
 
 lemma smul_of_is_unit_span_eq_top {v : basis ι R M} {w : ι → R}

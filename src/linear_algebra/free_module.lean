@@ -229,6 +229,16 @@ begin
   exact basis.card_le_card_of_linear_independent_aux (fintype.card ι) _ hv,
 end
 
+/-- If we have two bases on the same space, their indices are in bijection. -/
+noncomputable def basis.index_equiv
+  {R : Type*} [integral_domain R] [module R M]
+  {ι : Type*} [fintype ι] (b : basis ι R M)
+  {ι' : Type*} [fintype ι'] (b' : basis ι' R M) :
+  ι ≃ ι' :=
+(fintype.card_eq.mp (le_antisymm
+  (b'.card_le_card_of_linear_independent b.linear_independent)
+  (b.card_le_card_of_linear_independent b'.linear_independent))).some
+
 /-- If `N` is a submodule in a free, finitely generated module,
 do induction on adjoining a linear independent element to a submodule. -/
 def submodule.induction_on_rank [fintype ι] (b : basis ι R M) (P : submodule R M → Sort*)

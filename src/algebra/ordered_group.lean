@@ -449,20 +449,6 @@ by rw [← mul_le_mul_iff_left' a⁻¹, ← mul_le_mul_iff_right' c, ← mul_ass
 theorem le_div_left : a ≤ b / c ↔ c ≤ a⁻¹ * b :=
 by rw [div_eq_mul_inv, le_mul_inv]
 
-/- The following lemmas are probably superfluous.  From here... -/
-@[to_additive]
-lemma le_of_inv_le_inv (h : b⁻¹ ≤ a⁻¹) : a ≤ b :=
-inv_le_inv_iff.mp h
-
-@[to_additive]
-lemma le_inv_of_le_inv (h : a ≤ b⁻¹) : b ≤ a⁻¹ :=
-le_inv'.mp h
-
-@[to_additive]
-lemma inv_le_of_inv_le (h : a⁻¹ ≤ b) : b⁻¹ ≤ a :=
-inv_le'.mp h
-/- ...to here. -/
-
 end covariant_le_left_covariant_le_right
 
 section covariant_lt_left
@@ -744,10 +730,14 @@ by rw [mul_comm, div_lt_iff_lt_mul']
 lemma div_lt_iff_lt_mul : a / b < c ↔ a < b * c :=
 by rw [mul_comm, div_lt_iff_lt_mul']
 
-/- The following lemmas are probably superfluous.  From here... -/
+/- The following lemmas are probably superfluous, although their names are convenient.
+From here... -/
 @[to_additive neg_lt_zero]
 lemma inv_lt_one' : a⁻¹ < 1 ↔ 1 < a :=
 inv_lt_one_iff_one_lt
+
+#check @inv_lt_one_iff_one_lt
+#check @inv_lt_one'
 
 @[to_additive neg_pos]
 lemma one_lt_inv' : 1 < a⁻¹ ↔ a < 1 :=
@@ -895,7 +885,7 @@ lemma exists_one_lt' [nontrivial α] : ∃ (a:α), 1 < a :=
 begin
   obtain ⟨y, hy⟩ := decidable.exists_ne (1 : α),
   cases hy.lt_or_lt,
-  { exact ⟨y⁻¹, one_lt_inv'.mpr h⟩ },
+  { exact ⟨y⁻¹, one_lt_inv_iff_lt_one.mpr h⟩ },
   { exact ⟨y, h⟩ }
 end
 
@@ -972,7 +962,7 @@ begin unfold abs, rw [max_comm, neg_neg] end
 @[simp] lemma abs_pos : 0 < abs a ↔ a ≠ 0 :=
 begin
   rcases lt_trichotomy a 0 with (ha|rfl|ha),
-  { simp [abs_of_neg ha, neg_pos, ha.ne, ha] },
+  { simp [abs_of_neg ha, neg_pos_iff_neg, ha.ne, ha] },
   { simp },
   { simp [abs_of_pos ha, ha, ha.ne.symm] }
 end
@@ -1012,7 +1002,7 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
 lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
-max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
+max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt_iff_neg_lt]
 
 lemma neg_lt_of_abs_lt (h : abs a < b) : -b < a := (abs_lt.mp h).1
 
@@ -1251,7 +1241,7 @@ inv_lt_inv_iff.mpr
 
 @[to_additive]
 theorem inv_lt_one_of_one_lt {a : α} : 1 < a → a⁻¹ < 1 :=
-inv_lt_one'.mpr
+inv_lt_one_iff_one_lt.mpr
 
 @[to_additive]
 theorem inv_le_one_of_one_le {a : α} : 1 ≤ a → a⁻¹ ≤ 1 :=

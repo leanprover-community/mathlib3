@@ -155,7 +155,7 @@ theorem odd.of_mul_right (h : odd (m * n)) : odd n :=
 @[parity_simps] theorem even_pow {n : ℕ} : even (m^n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, even_mul, pow_succ], tauto }
 
-lemma even_pow' {n : ℕ} (h : n ≠ 0) : even (m^n) ↔ even m :=
+lemma even_pow' {n : ℕ} (h : n ≠ 0) : even (m ^ n) ↔ even m :=
 even_pow.trans $ and_iff_left h
 
 @[parity_simps] theorem odd_add : odd (m + n) ↔ (odd m ↔ even n) :=
@@ -193,11 +193,10 @@ begin
 end
 
 @[simp, norm_cast] theorem even_coe_nat (n : ℕ) : even (n : ℤ) ↔ even n :=
-by rw [even_iff, nat.even_iff, ←int.coe_nat_zero, ←int.coe_nat_one, ←coe_nat_bit0, ←coe_nat_mod,
-  coe_nat_inj']
+by rw_mod_cast [even_iff, nat.even_iff]
 
 @[simp, norm_cast] lemma odd_coe_nat {n : ℕ} : odd (n : ℤ) ↔ odd n :=
-by rw [odd_iff, nat.odd_iff, ←int.coe_nat_one, ←coe_nat_bit0, ←coe_nat_mod, coe_nat_inj']
+by rw [odd_iff_not_even, nat.odd_iff_not_even, even_coe_nat]
 
 @[simp] lemma nat_abs_even {n : ℤ} : even n.nat_abs ↔ even n :=
 coe_nat_dvd_left.symm

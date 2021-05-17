@@ -55,7 +55,7 @@
   author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:
   title  : Insolvability of General Higher Degree Equations
-  decl  : `exists_not_solvable_by_rad`
+  decl  : exists_not_solvable_by_rad
   author: Thomas Browning
 17:
   title  : De Moivre’s Theorem

@@ -13,7 +13,11 @@ import set_theory.cardinal_ordinal
 ## Main definitions
 
 * The rank of a module is defined as `module.rank : cardinal`.
-  This is currently only defined for vector spaces, i.e., when the base semiring is a field.
+  This is defined as the supremum of the cardinalities of linearly independent subsets.
+
+Although this definition works for any module over a (semi)ring,
+for now we quickly specialize to division rings and then to fields.
+There's lots of generalization still to be done.
 
 ## Main statements
 
@@ -40,32 +44,36 @@ variables {ι : Type w} {ι' : Type w'} {η : Type u₁'} {φ : η → Type*}
 
 open_locale classical big_operators
 
-open basis
+open basis submodule function set
 
 section module
-variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+
+section
+variables [semiring K] [add_comm_monoid V] [module K V]
 include K
-open submodule function set
 
 variables (K V)
 
 /-- The rank of a module, defined as a term of type `cardinal`.
 
-In a vector space, this is the same as the dimension of the space.
+We define this as the supremum of the cardinalities of linearly independent subsets.
 
-TODO: this is currently only defined for vector spaces, as the cardinality of
-the basis set. It should be generalized to modules in general.
+In a vector space, this is the same as the dimension of the space
+(i.e. the cardinality of any basis).
 
 The definition is marked as protected to avoid conflicts with `_root_.rank`,
 the rank of a linear map.
 -/
 protected def module.rank : cardinal :=
 cardinal.sup.{v v}
-  (λ ι : {s : set V // nonempty (basis s K V)}, cardinal.mk ι.1)
+  (λ ι : {s : set V // linear_independent K (coe : s → V)}, cardinal.mk ι.1)
 
+end
+
+section division_ring
+variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables {K V}
 
-section
 theorem basis.le_span {J : set V} (v : basis ι K V)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
@@ -99,7 +107,6 @@ begin
         cardinal.finset_card, set.finite.coe_to_finset] at hi, },
     { rw hJ, apply set.subset_univ } },
 end
-end
 
 /-- The dimension theorem: if `v` and `v'` are two bases, their index types
 have the same cardinalities. -/
@@ -131,9 +138,12 @@ begin
   apply le_antisymm,
   { transitivity,
     swap,
-    exact cardinal.le_sup _ ⟨_, ⟨v.reindex_range⟩⟩,
-    exact (cardinal.eq_congr (equiv.of_injective _ v.injective)).le, },
-  exact cardinal.sup_le.mpr (λ i, (mk_eq_mk_of_basis' i.2.some v).le),
+    apply cardinal.le_sup,
+    exact ⟨set.range v, by { convert v.reindex_range.linear_independent, ext, simp }⟩,
+    exact (cardinal.eq_congr (equiv.of_injective v v.injective)).le, },
+  { exact cardinal.sup_le.mpr (λ i,
+      (cardinal.mk_le_mk_of_subset (basis.subset_extend i.2)).trans
+        (mk_eq_mk_of_basis' (basis.extend i.2) v).le), },
 end
 
 theorem basis.mk_range_eq_dim (v : basis ι K V) :
@@ -288,6 +298,13 @@ begin
   exact cardinal.lift_inj.1 (cardinal.lift_mk_eq.2
       ⟨equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm ⟩),
 end
+
+end division_ring
+
+section field
+variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V'] [module K V']
+variables {K V}
 
 theorem dim_quotient_add_dim (p : submodule K V) :
   module.rank K p.quotient + module.rank K p = module.rank K V :=
@@ -724,12 +741,14 @@ begin
       simp [hw] } }
 end
 
+end field
+
 end module
 
 section unconstrained_universes
 
 variables {E : Type v'}
-variables [field K] [add_comm_group V] [module K V]
+variables [division_ring K] [add_comm_group V] [module K V]
           [add_comm_group E] [module K E]
 open module
 

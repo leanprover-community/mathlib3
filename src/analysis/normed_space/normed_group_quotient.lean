@@ -68,7 +68,7 @@ admits as basis of neighborhoods in the quotient topology the sets `{x | ∥x∥
 Once this mathematical point it settled, we have two topologies that are propositionaly equal. This
 is not good enough for the type class system. As usual we ensure *definitional* equality
 using forgetful inheritance, see Note [forgetful inheritance]. A (semi)-normed group structure
-embarks a uniform space structure which embarks a topological space structure, together
+includes a uniform space structure which includes a topological space structure, together
 with propositional fields asserting compatibility conditions.
 The usual way to define a `semi_normed_group` is to let Lean build a uniform space structure
 using the provided norm, and then trivially build a proof that the norm and uniform structure are
@@ -241,7 +241,7 @@ end
 /-- If `(m : M)` has norm equal to `0` in `quotient S` for a closed subgroup `S` of `M`, then
 `m ∈ S`. -/
 lemma norm_zero_eq_zero (S : add_subgroup M) (hS : is_closed (S : set M)) (m : M)
-  (h : ∥(quotient_add_group.mk' S) m∥ = 0) : m ∈ S :=
+  (h : ∥mk' S m∥ = 0) : m ∈ S :=
 by rwa [quotient_norm_eq_zero_iff, hS.closure_eq] at h
 
 lemma quotient_nhd_basis (S : add_subgroup M) :

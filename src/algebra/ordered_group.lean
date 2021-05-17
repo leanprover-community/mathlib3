@@ -378,7 +378,7 @@ by rw [← mul_lt_mul_iff_right' b, inv_mul_cancel_right]
 
 /- The non-primed version of this lemma involves commuting `c` and `b`: `a / b < c ↔ a < b * c`.
 It is proven later, when there is a commutativity assumption on the group. -/
-@[to_additive]
+@[to_additive sub_lt_iff_lt_add']
 lemma div_lt_iff_lt_mul' : a / b < c ↔ a < c * b :=
 by rw [div_eq_mul_inv, mul_inv_lt_iff_lt_mul']
 

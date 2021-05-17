@@ -254,7 +254,7 @@ contravariant_class.covtc a
 
 variable [covariant_class α α (*) (≤)]
 
-@[to_additive]
+@[to_additive add_le_add_left]
 lemma mul_le_mul_left' (h : a ≤ b) (c) :
   c * a ≤ c * b :=
 covariant_class.covc c h
@@ -573,10 +573,9 @@ variables [left_cancel_monoid α]
   [covariant_class α α (*) (≤)]
   [contravariant_class α α (*) (<)]
 
-@[to_additive]
+@[to_additive add_lt_add_left]
 lemma mul_lt_mul_left' (h : a < b) (c : α) : c * a < c * b :=
-lt_of_le_not_le (mul_le_mul_left' h.le _)
-  (λ j, not_le_of_gt h (le_of_mul_le_mul_left' j))
+mul_lt_mul_left_n c h
 
 /-  Why is this instance not available? -/
 --/-

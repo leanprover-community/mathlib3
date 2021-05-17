@@ -312,12 +312,12 @@ begin
     cases a with a,
     { change c + 0 = some ca at h₂,
       simp at h₂, simp [h₂],
-      exact ⟨_, rfl, by simpa using add_le_add_left' (zero_le b) _⟩ },
+      exact ⟨_, rfl, by simpa using add_le_add_left (zero_le b) _⟩ },
     { simp at h,
       cases c with c; change some _ = _ at h₂;
         simp [-add_comm] at h₂; subst ca; refine ⟨_, rfl, _⟩,
       { exact h },
-      { exact add_le_add_left' h _ } } }
+      { exact add_le_add_left h _ } } }
 end
 
 end with_zero
@@ -403,7 +403,7 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
       rcases b with (_|b), { simp [none_eq_top] },
       rcases le_coe_iff.1 h with ⟨a, rfl, h⟩,
       simp only [some_eq_coe, ← coe_add, coe_le_coe] at h ⊢,
-      exact add_le_add_left' h c
+      exact add_le_add_left h c
     end,
   lt_of_add_lt_add_left :=
     begin
@@ -469,7 +469,7 @@ begin
     cases a with a; cases h₂,
     cases b with b, {cases le_antisymm h bot_le},
     simp at h,
-    exact ⟨_, rfl, add_le_add_left' h _⟩, }
+    exact ⟨_, rfl, add_le_add_left h _⟩, }
 end
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`

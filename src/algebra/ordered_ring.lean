@@ -47,7 +47,7 @@ ne.symm (ne_of_lt zero_lt_two)
 
 lemma one_lt_two : 1 < (2:α) :=
 calc (2:α) = 1+1 : one_add_one_eq_two
-     ...   > 1+0 : add_lt_add_left' zero_lt_one _
+     ...   > 1+0 : add_lt_add_left zero_lt_one _
      ...   = 1   : add_zero 1
 
 lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
@@ -240,7 +240,7 @@ by classical; exact decidable.lt_mul_of_one_lt_left
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}
   (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
 calc a + (2 + b) ≤ a + (a + a * b) :
-      add_le_add_left' (add_le_add a2 (decidable.le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
+      add_le_add_left (add_le_add a2 (decidable.le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
              ... ≤ a * (2 + b) : by rw [mul_add, mul_two, add_assoc]
 
 lemma add_le_mul_two_add {a b : α} : 2 ≤ a → 0 ≤ b → a + (2 + b) ≤ a * (2 + b) :=
@@ -555,7 +555,7 @@ have 0 < a, from
 calc 0 < 2 : zero_lt_two
    ... ≤ b : b2
    ... ≤ a : ba,
-calc a + b ≤ a + a : add_le_add_left' ba a
+calc a + b ≤ a + a : add_le_add_left ba a
        ... = a * 2 : (mul_two a).symm
        ... ≤ a * b : (mul_le_mul_left this).mpr b2
 

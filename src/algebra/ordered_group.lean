@@ -1276,7 +1276,7 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 
 instance [linear_ordered_add_comm_group α] :
   linear_ordered_add_comm_group (order_dual α) :=
-{ add_le_add_left := λ a b h c, @add_le_add_left' α b a _ _ _ h _,
+{ add_le_add_left := λ a b h c, @add_le_add_left α b a _ _ _ h _,
   ..order_dual.linear_order α,
   ..show add_comm_group α, by apply_instance }
 

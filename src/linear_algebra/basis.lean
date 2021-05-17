@@ -276,13 +276,11 @@ by rw [coe_reindex, range_reindex']
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
 def reindex_range : basis (range b) R M :=
-begin
-  by_cases h : nontrivial R,
-  { letI := h,
-    exact b.reindex (equiv.of_injective b b.injective) },
-  { letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h,
-    exact basis.map basis.inhabited.default (module.subsingleton_equiv R M (range b)).symm }
-end
+if h : nontrivial R then
+  by letI := h; exact b.reindex (equiv.of_injective b (basis.injective b))
+else
+  by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact basis.map
+  basis.inhabited.default (module.subsingleton_equiv R M (range b)).symm
 
 lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
   {f : α → β} (hf : function.injective f)

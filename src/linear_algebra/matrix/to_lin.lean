@@ -440,7 +440,7 @@ section lmul
 variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
 variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
 variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
-variables (b : basis m R S) (c : basis m S T)
+variables (b : basis m R S) (c : basis n S T)
 
 open algebra
 
@@ -492,9 +492,9 @@ lemma left_mul_matrix_injective : function.injective (left_mul_matrix b) :=
              ... = algebra.lmul R S x' 1 : by rw (linear_map.to_matrix b b).injective h
              ... = x' : mul_one x'
 
-lemma smul_left_mul_matrix (x) (i j) (k k') :
-  left_mul_matrix (b.smul c) x (i, k) (j, k') =
-    left_mul_matrix b (left_mul_matrix c x k k') i j :=
+lemma smul_left_mul_matrix (x) (ik jk) :
+  left_mul_matrix (b.smul c) x ik jk =
+    left_mul_matrix b (left_mul_matrix c x ik.2 jk.2) ik.1 jk.1 :=
 by simp only [left_mul_matrix_apply, linear_map.to_matrix_apply, mul_comm, basis.smul_apply,
               basis.smul_repr, finsupp.smul_apply, algebra.lmul_apply, id.smul_eq_mul,
               linear_equiv.map_smul, mul_smul_comm]

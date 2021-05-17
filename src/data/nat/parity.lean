@@ -167,7 +167,7 @@ if and only if `m` is even and `n` is positive. -/
 @[parity_simps] theorem even_pow : even (m ^ n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, pow_succ', even_mul], tauto }
 
-lemma even_pow' (h : n ≠ 0) : even (m ^ n) ↔ even m :=
+theorem even_pow' (h : n ≠ 0) : even (m ^ n) ↔ even m :=
 even_pow.trans $ and_iff_left h
 
 theorem even_div : even (m / n) ↔ m % (2 * n) / n = 0 :=

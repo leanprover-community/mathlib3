@@ -155,7 +155,7 @@ theorem odd.of_mul_right (h : odd (m * n)) : odd n :=
 @[parity_simps] theorem even_pow {n : ℕ} : even (m ^ n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, even_mul, pow_succ], tauto }
 
-lemma even_pow' {n : ℕ} (h : n ≠ 0) : even (m ^ n) ↔ even m :=
+theorem even_pow' {n : ℕ} (h : n ≠ 0) : even (m ^ n) ↔ even m :=
 even_pow.trans $ and_iff_left h
 
 @[parity_simps] theorem odd_add : odd (m + n) ↔ (odd m ↔ even n) :=
@@ -195,13 +195,13 @@ end
 @[simp, norm_cast] theorem even_coe_nat (n : ℕ) : even (n : ℤ) ↔ even n :=
 by rw_mod_cast [even_iff, nat.even_iff]
 
-@[simp, norm_cast] lemma odd_coe_nat {n : ℕ} : odd (n : ℤ) ↔ odd n :=
+@[simp, norm_cast] theorem odd_coe_nat {n : ℕ} : odd (n : ℤ) ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, even_coe_nat]
 
-@[simp] lemma nat_abs_even {n : ℤ} : even n.nat_abs ↔ even n :=
+@[simp] theorem nat_abs_even {n : ℤ} : even n.nat_abs ↔ even n :=
 coe_nat_dvd_left.symm
 
-@[simp] lemma nat_abs_odd {n : ℤ} : odd n.nat_abs ↔ odd n :=
+@[simp] theorem nat_abs_odd {n : ℤ} : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
 
 -- Here are examples of how `parity_simps` can be used with `int`.

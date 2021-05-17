@@ -1797,13 +1797,28 @@ end range
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y
 
+lemma pairwise_on_of_forall (s : set α) (p : α → α → Prop) (h : ∀ (a b : α), p a b) :
+  pairwise_on s p :=
+λ a _ b _ _, h a b
+
+lemma pairwise_on.imp_on {s : set α} {p q : α → α → Prop}
+  (h : pairwise_on s p) (hpq : pairwise_on s (λ ⦃a b : α⦄, p a b → q a b)) : pairwise_on s q :=
+λ a ha b hb hab, hpq a ha b hb hab (h a ha b hb hab)
+
+lemma pairwise_on.imp {s : set α} {p q : α → α → Prop}
+  (h : pairwise_on s p) (hpq : ∀ ⦃a b : α⦄, p a b → q a b) : pairwise_on s q :=
+h.imp_on (pairwise_on_of_forall s _ hpq)
+
 theorem pairwise_on.mono {s t : set α} {r}
   (h : t ⊆ s) (hp : pairwise_on s r) : pairwise_on t r :=
 λ x xt y yt, hp x (h xt) y (h yt)
 
 theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
-  (H : ∀ a b, r a b → r' a b) (hp : pairwise_on s r) : pairwise_on s r' :=
-λ x xs y ys h, H _ _ (hp x xs y ys h)
+  (H : r ≤ r') (hp : pairwise_on s r) : pairwise_on s r' :=
+hp.imp H
+theorem pairwise_on_top (s : set α) :
+  pairwise_on s ⊤ :=
+pairwise_on_of_forall s _ (λ a b, trivial)
 
 /-- If and only if `f` takes pairwise equal values on `s`, there is
 some value it takes everywhere on `s`. -/

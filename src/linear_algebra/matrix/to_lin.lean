@@ -307,7 +307,7 @@ linear_map.to_matrix_id v₁
 lemma matrix.to_lin_one : matrix.to_lin v₁ v₁ 1 = id :=
 by rw [← linear_map.to_matrix_id v₁, matrix.to_lin_to_matrix]
 
-theorem linear_map.to_matrix_reindex_range [nontrivial R] [decidable_eq M₁] [decidable_eq M₂]
+theorem linear_map.to_matrix_reindex_range [decidable_eq M₁] [decidable_eq M₂]
   (f : M₁ →ₗ[R] M₂) (k : m) (i : n) :
   linear_map.to_matrix v₁.reindex_range v₂.reindex_range f
       ⟨v₂ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
@@ -407,7 +407,7 @@ by simp_rw [linear_map.to_matrix_alg_equiv, alg_equiv.of_linear_equiv_apply,
 lemma matrix.to_lin_alg_equiv_one : matrix.to_lin_alg_equiv v₁ 1 = id :=
 by rw [← linear_map.to_matrix_alg_equiv_id v₁, matrix.to_lin_alg_equiv_to_matrix_alg_equiv]
 
-theorem linear_map.to_matrix_alg_equiv_reindex_range [nontrivial R] [decidable_eq M₁]
+theorem linear_map.to_matrix_alg_equiv_reindex_range [decidable_eq M₁]
   (f : M₁ →ₗ[R] M₁) (k i : n) :
   linear_map.to_matrix_alg_equiv v₁.reindex_range f
       ⟨v₁ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =

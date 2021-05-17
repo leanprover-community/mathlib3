@@ -79,7 +79,7 @@ begin
   { rwa [ideal.span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero),
       int.prime_iff_nat_abs_prime] },
   { rw [leading_coeff_Phi, ideal.mem_span_singleton, ←int.coe_nat_one, int.coe_nat_dvd],
-    exact nat.dvd_one.mpr (hp.ne_one) },
+    exact mt nat.dvd_one.mp (hp.ne_one) },
   { intros n hn,
     rw ideal.mem_span_singleton,
     rw [degree_Phi, with_bot.coe_lt_coe] at hn,

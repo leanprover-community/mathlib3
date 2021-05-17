@@ -109,7 +109,7 @@ lemma image_to_kernel_comp_hom_inv_comp [has_equalizers V] [has_images V] {Z : V
     (kernel_subobject_iso_comp i.inv g).inv :=
 by { ext, simp, }
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /--
 `image_to_kernel` for `A --0--> B --g--> C`, where `g` is a mono is itself an epi

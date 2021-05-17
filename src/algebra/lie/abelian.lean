@@ -266,7 +266,7 @@ begin
   simp only [_root_.eq_bot_iff, lie_ideal_oper_eq_span, lie_submodule.lie_span_le,
     lie_submodule.bot_coe, set.subset_singleton_iff, set.mem_set_of_eq, exists_imp_distrib],
   split; intros h,
-  { intros z x y hz, rw [← hz, ← coe_bracket, coe_zero_iff_zero], apply h.trivial, },
+  { intros z x y hz, rw [← hz, ← lie_subalgebra.coe_bracket, coe_zero_iff_zero], apply h.trivial, },
   { exact ⟨λ x y, by { rw ← coe_zero_iff_zero, apply h _ x y, refl, }⟩, },
 end
 

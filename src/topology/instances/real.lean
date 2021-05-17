@@ -209,7 +209,7 @@ instance : topological_ring ℚ :=
 
 theorem real.ball_eq_Ioo (x ε : ℝ) : ball x ε = Ioo (x - ε) (x + ε) :=
 set.ext $ λ y, by rw [mem_ball, real.dist_eq,
-  abs_sub_lt_iff, sub_lt_iff_lt_add', and_comm, sub_lt]; refl
+  abs_sub_lt_iff, sub_lt_iff_lt_add, and_comm, sub_lt]; refl
 
 theorem real.Ioo_eq_ball (x y : ℝ) : Ioo x y = ball ((x + y) / 2) ((y - x) / 2) :=
 by rw [real.ball_eq_Ioo, ← sub_div, add_comm, ← sub_add,
@@ -247,7 +247,7 @@ subset.antisymm
 let ⟨ε, ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨p, h₁, h₂⟩ := exists_rat_btwn ((lt_add_iff_pos_right x).2 ε0) in
 ⟨_, hε (show abs _ < _,
-    by rwa [abs_of_nonneg (le_of_lt $ sub_pos.2 h₁), sub_lt_iff_lt_add']),
+    by rwa [abs_of_nonneg (le_of_lt $ sub_pos.2 h₁), sub_lt_iff_lt_add]),
   p, rat.cast_lt.1 (@lt_of_le_of_lt ℝ _ _ _ _ hx h₁), rfl⟩
 
 /- TODO(Mario): Put these back only if needed later

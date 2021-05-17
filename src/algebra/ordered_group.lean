@@ -544,12 +544,8 @@ alias sub_lt_self_iff ↔ _ sub_lt_self
 
 /- The following lemmas are probably superfluous.  From here... -/
 @[to_additive]
-lemma one_lt_of_inv_inv (h : a⁻¹ < 1) : 1 < a :=
+lemma one_lt_of_inv_lt_one (h : a⁻¹ < 1) : 1 < a :=
 inv_lt_one_iff_one_lt.mp h
-
-@[to_additive]
-lemma inv_inv_of_one_lt (h : 1 < a) : a⁻¹ < 1 :=
-inv_lt_one_iff_one_lt.mpr h
 
 @[to_additive neg_of_neg_pos]
 lemma inv_of_one_lt_inv (h : 1 < a⁻¹) : a < 1 :=
@@ -956,7 +952,7 @@ match lt_trichotomy a 1 with
   absurd h₁ this.asymm
 | or.inr (or.inl h₁) := h₁
 | or.inr (or.inr h₁) :=
-  have a < 1, from h ▸ inv_inv_of_one_lt h₁,
+  have a < 1, from h ▸ (inv_lt_one_iff_one_lt.mpr h₁),
   absurd h₁ this.asymm
 end
 

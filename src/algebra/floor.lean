@@ -73,7 +73,7 @@ theorem lt_floor_add_one (x : α) : x < ⌊x⌋ + 1 :=
 by simpa only [int.succ, int.cast_add, int.cast_one] using lt_succ_floor x
 
 theorem sub_one_lt_floor (x : α) : x - 1 < ⌊x⌋ :=
-sub_lt_iff_lt_add.2 (lt_floor_add_one x)
+sub_lt_iff_lt_add'.2 (lt_floor_add_one x)
 
 @[simp] theorem floor_coe (z : ℤ) : ⌊(z:α)⌋ = z :=
 eq_of_forall_le_iff $ λ a, by rw [le_floor, int.cast_le]

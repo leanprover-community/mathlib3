@@ -61,7 +61,7 @@ begin
   existsi i,
   assume j hj,
   have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm _ hi.1 hj,
-  rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
+  rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add],
   exact calc f i ≤ a - (nat.pred l) • ε : hi.2
     ... = a - l • ε + ε :
       by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_nsmul',
@@ -146,7 +146,7 @@ begin
     { rw [pow_succ, ← one_mul (1 : α)],
       refine mul_le_mul (le_of_lt hx1) ih (abv_pow abv x n ▸ abv_nonneg _ _) (by norm_num) } },
   { assume n hn,
-    refine div_le_div_of_le (le_of_lt $ sub_pos.2 hx1) (sub_le_sub_left _ _),
+    refine div_le_div_of_le (le_of_lt $ sub_pos.2 hx1) (sub_le_sub_left'' _ _),
     rw [← one_mul (_ ^ n), pow_succ],
     exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
 end
@@ -1462,18 +1462,15 @@ calc cos 1 ≤ abs' (1 : ℝ) ^ 4 * (5 / 96) + (1 - 1 ^ 2 / 2) :
   sub_le_iff_le_add.1 (abs_sub_le_iff.1 (cos_bound (by simp))).1
 ... ≤ 2 / 3 : by norm_num
 
-lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (by simp)
+lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (le_of_eq abs_one)
 
 lemma cos_two_neg : cos 2 < 0 :=
 calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
-... = _ : real.cos_two_mul 1
-... ≤ 2 * (2 / 3) ^ 2 - 1 :
-  sub_le_sub_right (mul_le_mul_of_nonneg_left
-    (by rw [sq, sq]; exact
-      mul_self_le_mul_self (le_of_lt cos_one_pos)
-        cos_one_le)
-    (by norm_num)) _
-... < 0 : by norm_num
+ ... = _ : real.cos_two_mul 1
+  ... ≤ 2 * (2 / 3) ^ 2 - 1 : sub_le_sub_right'' (mul_le_mul_of_nonneg_left
+        (by { rw [sq, sq], exact mul_self_le_mul_self (le_of_lt cos_one_pos) cos_one_le })
+      zero_le_two) _
+  ... < 0 : by norm_num
 
 end real
 

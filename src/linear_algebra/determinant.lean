@@ -16,11 +16,9 @@ import ring_theory.matrix_algebra
 /-!
 # Determinant of families of vectors
 
-This file defines the determinant of a family of vectors with respect to
-some basis. For the determinant of a matrix, see the file
+This file defines the determinant of an endomorphism, and of a family of vectors
+with respect to some basis. For the determinant of a matrix, see the file
 `linear_algebra.matrix.determinant`.
-
-It also contains some results on the determinant of linear maps and linear equivs.
 
 ## Main definitions
 
@@ -30,6 +28,9 @@ types used for indexing.
 
  * `basis.det`: the determinant of a family of vectors with respect to a basis,
    as a multilinear map
+ * `linear_map.det`: the determinant of an endomorphism `f : End R M` as a
+   multiplicative homomorphism (if `M` does not have a finite `R`-basis, the
+   result is `1` instead)
 
 ## Tags
 
@@ -58,7 +59,6 @@ section conjugate
 
 variables {A : Type*} [integral_domain A]
 variables {m n : Type*} [fintype m] [fintype n]
-
 
 /-- If `R^m` and `R^n` are linearly equivalent, then `m` and `n` are also equivalent. -/
 def equiv_of_pi_lequiv_pi {R : Type*} [integral_domain R]
@@ -95,6 +95,100 @@ end
 
 end conjugate
 
+namespace linear_map
+
+/-! ### Determinant of a linear map -/
+
+variables {A : Type*} [integral_domain A] [module A M]
+variables {κ : Type*} [fintype κ]
+
+/-- The determinant of `linear_map.to_matrix` does not depend on the choice of basis. -/
+lemma det_to_matrix_eq_det_to_matrix [decidable_eq κ]
+  (b : basis ι A M) (c : basis κ A M) (f : M →ₗ[A] M) :
+  det (linear_map.to_matrix b b f) = det (linear_map.to_matrix c c f) :=
+by rw [← linear_map_to_matrix_mul_basis_to_matrix c b c,
+       ← basis_to_matrix_mul_linear_map_to_matrix b c b,
+       matrix.det_conjugate]; rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
+
+/-- The determinant of an endomorphism given a basis.
+
+See `linear_map.det` for a version that does not depend on a choice of basis.
+-/
+protected def det_aux (b : basis ι A M) (f : M →ₗ[A] M) : A :=
+matrix.det (linear_map.to_matrix b b f)
+
+-- Can't be `simp` because it would cause a loop.
+lemma det_aux_def (b : basis ι A M) (f : M →ₗ[A] M) :
+  linear_map.det_aux b f = matrix.det (linear_map.to_matrix b b f) :=
+rfl
+
+lemma det_aux_eq [decidable_eq κ] (b : basis ι A M) (c : basis κ A M) :
+  linear_map.det_aux b = linear_map.det_aux c :=
+by { ext f, rw [det_aux_def, det_aux_def, det_to_matrix_eq_det_to_matrix b c] }
+
+lemma det_aux_reindex_range [decidable_eq M] (b : basis ι A M) :
+  linear_map.det_aux b.reindex_range = linear_map.det_aux b :=
+det_aux_eq b.reindex_range b
+
+@[simp]
+lemma det_aux_id (b : basis ι A M) : linear_map.id.det_aux b = 1 :=
+by rw [det_aux_def, to_matrix_id, det_one]
+
+@[simp]
+lemma det_aux_one (b : basis ι A M) : linear_map.det_aux b 1 = 1 := det_aux_id b
+
+@[simp]
+lemma det_aux_comp (b : basis ι A M) (f g : M →ₗ[A] M) :
+  (f.comp g).det_aux b = f.det_aux b * g.det_aux b :=
+by rw [det_aux_def, to_matrix_comp b b b, det_mul, det_aux_def, det_aux_def]
+
+@[simp]
+lemma det_aux_mul (b : basis ι A M) (f g : M →ₗ[A] M) :
+  (f * g).det_aux b = f.det_aux b * g.det_aux b :=
+det_aux_comp b f g
+
+open_locale classical
+
+/-- The determinant of an endomorphism independent of basis.
+
+If there is no finite basis on `M`, the result is `1` instead.
+-/
+protected def det : (M →ₗ[A] M) →* A :=
+if H : ∃ (s : set M) (b : basis s A M), s.finite
+then { to_fun := @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some,
+       map_one' := @det_aux_one _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some,
+       map_mul' := @det_aux_mul _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some }
+else 1
+
+-- Auxiliary lemma, the `simp` normal form goes in the other direction
+-- (using `linear_map.det_to_matrix`)
+lemma det_eq_det_to_matrix_of_finite_set {s : set M} (b : basis s A M) (hs : fintype s)
+  (f : M →ₗ[A] M) : f.det = matrix.det (linear_map.to_matrix b b f) :=
+have ∃ (s : set M) (b : basis s A M), s.finite,
+from ⟨s, b, ⟨hs⟩⟩,
+by rw [linear_map.det, dif_pos this, monoid_hom.coe_mk, det_aux_eq _ b, det_aux_def]
+
+@[simp] lemma det_to_matrix
+  (b : basis ι A M) (f : M →ₗ[A] M) :
+  matrix.det (to_matrix b b f) = f.det :=
+by rw [det_eq_det_to_matrix_of_finite_set b.reindex_range (set.fintype_range _),
+       ← det_aux_def, ← det_aux_def, det_aux_eq b.reindex_range b]
+
+@[simp]
+lemma det_comp (f g : M →ₗ[A] M) : (f.comp g).det = f.det * g.det :=
+linear_map.det.map_mul f g
+
+@[simp]
+lemma det_id : (linear_map.id : M →ₗ[A] M).det = 1 :=
+linear_map.det.map_one
+
+lemma det_zero {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
+  linear_map.det (0 : M →ₗ[A] M) = 0 :=
+by { rw [← det_to_matrix b, linear_equiv.map_zero, det_zero], assumption }
+
+end linear_map
+
+-- Cannot be stated using `linear_map.det` because `f` is not an endomorphism.
 lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') (v : basis ι R M) (v' : basis ι R M') :
   is_unit (linear_map.to_matrix v v' f).det :=
 begin

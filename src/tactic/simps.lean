@@ -119,7 +119,8 @@ meta def get_composite_of_projections_aux : Π (str : name) (proj : string) (x :
     type ← infer_type new_x,
     (type_args, tgt) ← open_pis_whnf type,
     let new_str := tgt.get_app_fn.const_name,
-    get_composite_of_projections_aux new_str proj_rest new_x new_pos (args ++ type_args)
+    get_composite_of_projections_aux new_str proj_rest (new_x.mk_app type_args) new_pos
+      (args ++ type_args)
 
 /-- Given a structure `str` and a projection `proj`, that could be multiple nested projections
   (separated by `_`), returns an expression that is the composition of these projections and a
@@ -222,6 +223,11 @@ meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exis
         projs ++ [(nm, nm, ff)]
       end) projs,
     when_tracing `simps.debug trace!"[simps] > Projection info after applying the rules: {projs}.",
+    when ¬ (projs.map (λ x : name × name × bool, x.2.1)).nodup $
+      fail $ "Invalid projection names. Two projections have the same name.
+This is likely because a custom composition of projections was given the same name as an " ++
+"existing projection. Solution: rename the existing projection (before renaming the custom " ++
+"projection).",
     /- Define the raw expressions for the projections, by default as the projections
     (as an expression), but this can be overriden by the user. -/
     raw_exprs_and_nrs ← projs.mmap $ λ ⟨orig_nm, new_nm, _⟩, do {
@@ -240,7 +246,7 @@ meta def simps_get_raw_projections (e : environment) (str : name) (trace_if_exis
           raw_expr_type ← infer_type raw_expr,
           b ← succeeds (is_def_eq custom_proj_type raw_expr_type),
           if b then fail!"Invalid custom projection:\n  {custom_proj}
-Expression is not definitionally equal to {raw_expr}."
+Expression is not definitionally equal to\n  {raw_expr}"
           else fail!"Invalid custom projection:\n  {custom_proj}
 Expression has different type than {str ++ orig_nm}. Given type:\n  {custom_proj_type}
 Expected type:\n  {raw_expr_type}" },
@@ -416,8 +422,6 @@ def lemmas_only : simps_cfg := {attrs := []}
   The last two fields of the list correspond to the propositional fields of the structure,
   and are rarely/never used.
 -/
--- This function does not use `tactic.mk_app` or `tactic.mk_mapp`, because the given arguments
--- might not uniquely specify the universe levels yet.
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × name × expr × list ℕ × bool := do
   let params := get_app_args tgt, -- the parameters of the structure
@@ -442,6 +446,7 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   (univs : list name) (cfg : simps_cfg) : tactic unit := do
   when_tracing `simps.debug trace!
     "[simps] > Planning to add the equality\n        > {lhs} = ({rhs} : {type})",
+  lvl ← get_univ_level type,
   -- simplify `rhs` if `cfg.simp_rhs` is true
   (rhs, prf) ← do { guard cfg.simp_rhs,
     rhs' ← rhs.dsimp {fail_if_unchanged := ff},
@@ -451,15 +456,15 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
     when_tracing `simps.debug $ when (rhs' ≠ rhsprf1) trace!
       "[simps] > `simp` simplified rhs to\n        > {rhsprf1}",
     return (prod.mk rhsprf1 rhsprf2) }
-    <|> prod.mk rhs <$> mk_app `eq.refl [type, lhs],
-  eq_ap ← mk_mapp `eq $ [type, lhs, rhs].map some,
+    <|> return (rhs, const `eq.refl [lvl] type lhs),
+  let eq_ap := const `eq [lvl] type lhs rhs,
   decl_name ← get_unused_decl_name nm,
   let decl_type := eq_ap.pis args,
   let decl_value := prf.lambdas args,
   let decl := declaration.thm decl_name univs decl_type (pure decl_value),
   when cfg.trace trace!
     "[simps] > adding projection {decl_name}:\n        > {decl_type}",
-  decorate_error ("failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
+  decorate_error ("Failed to add projection lemma " ++ decl_name.to_string ++ ". Nested error:") $
     add_decl decl,
   b ← succeeds $ is_def_eq lhs rhs,
   when (b ∧ `simp ∈ cfg.attrs) (set_basic_attribute `_refl_lemma decl_name tt),
@@ -475,14 +480,13 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
 | e nm suffix type lhs rhs args univs must_be_str cfg todo to_apply := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
   when_tracing `simps.debug trace!
-    "[simps] > Trying to add simp-lemmas for\n        > {lhs}
-[simps] > Type of the expression before normalizing: {type}",
+    "[simps] > Type of the expression before normalizing: {type}",
   (type_args, tgt) ← open_pis_whnf type cfg.type_md,
   when_tracing `simps.debug trace!"[simps] > Type after removing pi's: {tgt}",
   tgt ← whnf tgt,
   when_tracing `simps.debug trace!"[simps] > Type after reduction: {tgt}",
   let new_args := args ++ type_args,
-  let lhs_ap := lhs.mk_app type_args,
+  let lhs_ap := lhs.instantiate_lambdas_or_apps type_args,
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
   let str := tgt.get_app_fn.const_name,
   let new_nm := nm.append_suffix suffix,
@@ -494,7 +498,7 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
     rhs_whnf ← whnf rhs_ap cfg.rhs_md,
     (rhs_ap, todo_now) ← -- `todo_now` means that we still have to generate the current simp lemma
-      if h : ¬ is_constant_of rhs_ap.get_app_fn intro ∧
+      if ¬ is_constant_of rhs_ap.get_app_fn intro ∧
         is_constant_of rhs_whnf.get_app_fn intro then
       /- If this was a desired projection, we want to apply it before taking the whnf.
         However, if the current field is an eta-expansion (see below), we first want
@@ -522,7 +526,10 @@ meta def simps_add_projections : Π (e : environment) (nm : name) (suffix : stri
       when (to_apply ≠ []) $ do {
         (proj_expr, proj, new_rhs, proj_nrs, is_default) ← return $ tuples.inth to_apply.head,
         new_type ← infer_type new_rhs,
-        simps_add_projections e nm suffix new_type lhs new_rhs new_args univs ff cfg todo
+        when_tracing `simps.debug
+          trace!"[simps] > Applying a custom composite projection. Current lhs:
+        >  {lhs_ap}",
+        simps_add_projections e nm suffix new_type lhs_ap new_rhs new_args univs ff cfg todo
           to_apply.tail },
       /- We stop if no further projection is specified or if we just reduced an eta-expansion and we
       automatically choose projections -/
@@ -549,7 +556,8 @@ Note: these projection names might not correspond to the projection names of the
             let new_lhs := proj_expr.instantiate_lambdas_or_apps [lhs_ap],
             let new_suffix := if cfg.short_name then "_" ++ proj.last else
               suffix ++ "_" ++ proj.last,
-            when_tracing `simps.debug trace!"[simps] > Recursively add projections for: {new_lhs}",
+            when_tracing `simps.debug trace!"[simps] > Recursively add projections for:
+        >  {new_lhs}",
             simps_add_projections e nm new_suffix new_type new_lhs new_rhs new_args univs
               ff cfg new_todo proj_nrs
     -- if I'm about to run into an error, try to set the transparency for `rhs_md` higher.
@@ -588,11 +596,10 @@ Projection {(first_todo.split_on '_').tail.head} doesn't exist, because target i
   If `short_nm` is true, the generated names will only use the last projection name.
   If `trc` is true, trace as if `trace.simps.verbose` is true. -/
 meta def simps_tac (nm : name) (cfg : simps_cfg := {}) (todo : list string := []) (trc := ff) :
-  tactic unit :=
-do
+  tactic unit := do
   e ← get_env,
   d ← e.get nm,
-  let lhs : expr := const d.to_name (d.univ_params.map level.param),
+  let lhs : expr := const d.to_name d.univ_levels,
   let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
   b ← has_attribute' `to_additive nm,
   let cfg := if b then { attrs := cfg.attrs ++ [`to_additive], ..cfg } else cfg,

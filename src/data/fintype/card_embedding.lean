@@ -37,31 +37,23 @@ begin
 
   rw [nat.succ_eq_add_one, ←card_congr (equiv.embedding_congr fin_sum_fin_equiv (equiv.refl β))],
   rw card_congr equiv.sum_embedding_equiv_sigma_embedding_restricted,
-  all_goals { try { apply_instance } }, -- this needs to be done here instead of at the end;
+  -- these `rw`s create goals for instances, which it doesn't infer for some reason
+  all_goals { try { apply_instance } }, -- however, this needs to be done here instead of at the end
   -- else, a later `simp`, which depends on the `fintype` instance, won't work.
 
-  have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n,
+  have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f)ᶜ)‖ = ‖β‖ - n,
   { intro f,
     rw card_embedding_of_unique,
     rw card_of_finset' (finset.map f finset.univ)ᶜ,
     { rw [finset.card_compl, finset.card_map, finset.card_fin] },
-    { -- further evidence `ᶜ` is defeq, something odd
-    change ∀ x, x ∈ (finset.map f finset.univ)ᶜ ↔ x ∈ (set.range ⇑f)ᶜ,
-    simp } },
+    { simp } },
 
-  -- putting this in the `simp` causes `simp` not to fully simplify
+  -- putting `card_sigma` in `simp` causes it not to fully simplify
   rw card_sigma,
   simp only [this, finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
 
-  rw hn (nat.lt_of_succ_le h).le,
-
-  set t := ‖β‖ - n.succ with ht,
-  have h' : ‖β‖ - n = t.succ,
-  { rw [ht, nat.succ_eq_add_one, ←nat.sub_sub_assoc, nat.succ_sub_one],
-    exact h,
-    exact nat.succ_pos _ },
-
-  rw [←ht, h', mul_comm, nat.succ_desc_fac, nat.desc_fac_succ],
+  replace h := nat.lt_of_succ_le h,
+  rw [hn h.le, mul_comm, nat.desc_fac_of_sub h]
 end
 
 variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]

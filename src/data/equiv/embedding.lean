@@ -49,15 +49,16 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
 in which the second embedding cannot take values in the range of the first. -/
 def prod_embedding_disjoint_equiv_sigma_embedding_restricted {α β γ : Type*} :
   {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} ≃
-  (Σ f : α ↪ γ, β ↪ (set.range f).compl) :=
+  (Σ f : α ↪ γ, β ↪ ↥((set.range f)ᶜ)) :=
 { to_fun := λ ⟨⟨f, g⟩, disj⟩, ⟨f, ⟨λ b, ⟨g b, set.disjoint_right.mp disj (⟨b, rfl⟩)⟩,
   λ _ _ eq, by { rw subtype.mk_eq_mk at eq, exact g.injective eq }⟩⟩,
   inv_fun := λ ⟨f, g⟩, ⟨⟨f, g.trans (function.embedding.subtype _)⟩,
   begin
     dsimp only,
-    have : set.range (g.trans (function.embedding.subtype (λ x, x ∈ (set.range f).compl)))
-      ⊆ (set.range f).compl,
-    { rintros _ ⟨t, rfl⟩, simp },
+    have : set.range (g.trans (function.embedding.subtype (λ x, x ∈ (set.range f)ᶜ)))
+      ⊆ (set.range f)ᶜ,
+    { rintros _ ⟨t, rfl⟩, -- `simp` will go down a wrong track on its own
+      simp only [function.embedding.coe_subtype, function.embedding.trans_apply, subtype.coe_prop]},
     exact set.disjoint_of_subset_right this disjoint_compl_right
   end⟩,
   right_inv := λ ⟨_,_⟩, by simp!,
@@ -67,7 +68,7 @@ def prod_embedding_disjoint_equiv_sigma_embedding_restricted {α β γ : Type*} 
 into two dependent embeddings, the second of which avoids any members of the range
 of the first. This is helpful for constructing larger embeddings out of smaller ones. -/
 def sum_embedding_equiv_sigma_embedding_restricted {α β γ : Type*} :
-  ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ (set.range f).compl)
+  ((α ⊕ β) ↪ γ) ≃ (Σ f : α ↪ γ, β ↪ ↥((set.range f)ᶜ))
 := equiv.trans sum_embedding_equiv_prod_embedding_disjoint
                prod_embedding_disjoint_equiv_sigma_embedding_restricted
 

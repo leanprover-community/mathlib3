@@ -474,15 +474,15 @@ alias sub_lt_self_iff ↔ _ sub_lt_self
 
 /- The following lemmas are probably superfluous.  From here... -/
 @[to_additive]
-lemma one_lt_of_inv_lt_one (h : a⁻¹ < 1) : 1 < a :=
+lemma one_lt_of_inv_lt_one_ (h : a⁻¹ < 1) : 1 < a :=
 inv_lt_one_iff_one_lt.mp h
 
 @[to_additive neg_of_neg_pos]
-lemma inv_of_one_lt_inv (h : 1 < a⁻¹) : a < 1 :=
+lemma inv_of_one_lt_inv_ (h : 1 < a⁻¹) : a < 1 :=
 one_lt_inv_iff_lt_one.mp h
 
 @[to_additive neg_pos_of_neg]
-lemma one_lt_inv_of_inv (h : a < 1) : 1 < a⁻¹ :=
+lemma one_lt_inv_of_inv_ (h : a < 1) : 1 < a⁻¹ :=
 one_lt_inv_iff_lt_one.mpr h
 /- ...to here. -/
 
@@ -870,9 +870,7 @@ end
 lemma eq_one_of_inv_eq' (h : a⁻¹ = a) : a = 1 :=
 match lt_trichotomy a 1 with
 | or.inl h₁ :=
-  have 1 < a, from h ▸ by {
-    apply one_lt_inv_of_inv h₁,
-  },--one_lt_inv_of_inv h₁,
+  have 1 < a, from h ▸ one_lt_inv'.mpr h₁,
   absurd h₁ this.asymm
 | or.inr (or.inl h₁) := h₁
 | or.inr (or.inr h₁) :=
@@ -1247,6 +1245,12 @@ inv_lt_one_iff_one_lt.mpr
 theorem inv_le_one_of_one_le {a : α} : 1 ≤ a → a⁻¹ ≤ 1 :=
 inv_le_one'.mpr
 
+/- This lemma is form `linarith`. -/
+@[to_additive neg_nonneg_of_nonpos]
+theorem one_le_inv_of_le_one {a : α} :
+  a ≤ 1 → 1 ≤ a⁻¹ :=
+one_le_inv'.mpr
+
 --#check @bit0_pos
 --#check @bit1_pos'
 --#check @div_pos
@@ -1254,3 +1258,4 @@ inv_le_one'.mpr
 --#check @neg_le_neg
 --#check @neg_nonpos_of_nonneg
 --#check @neg_neg_of_pos --saved
+--#check @neg_nonneg_of_nonpos

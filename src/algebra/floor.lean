@@ -225,7 +225,7 @@ theorem ceil_lt_add_one (x : α) : (⌈x⌉ : α) < x + 1 :=
 by rw [← lt_ceil, ← int.cast_one, ceil_add_int]; apply lt_add_one
 
 lemma ceil_pos {a : α} : 0 < ⌈a⌉ ↔ 0 < a :=
-⟨ λ h, have ⌊-a⌋ < 0, from neg_of_neg_pos h,
+⟨ λ h, have ⌊-a⌋ < 0, from one_lt_inv_iff_lt_one.mp h,
   pos_of_neg_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).1 $ not_le_of_gt this,
  λ h, have -a < 0, from neg_neg_of_pos h,
   neg_pos_of_neg $ lt_of_not_ge $ (not_iff_not_of_iff floor_nonneg).2 $ not_le_of_gt this ⟩

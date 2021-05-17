@@ -167,40 +167,6 @@ by rw [← mul_le_mul_iff_left' a, mul_right_inv, mul_one]
 lemma le_self_mul_iff_one_le (a : α) : a ≤ a * b ↔ 1 ≤ b :=
 by rw [← mul_le_mul_iff_left' a⁻¹, inv_mul_cancel_left, mul_left_inv]
 
-/- The next lemmas are now redundant, probably: from here... -/
-@[to_additive]
-lemma mul_le_of_le_inv_mul (h : b ≤ a⁻¹ * c) : a * b ≤ c :=
-le_inv_mul_iff.mp h
-
-@[to_additive]
-lemma le_inv_mul_of_mul_le (h : a * b ≤ c) : b ≤ a⁻¹ * c :=
-le_inv_mul_iff.mpr h
-
-@[to_additive]
-lemma le_mul_of_inv_mul_le (h : b⁻¹ * a ≤ c) : a ≤ b * c :=
-inv_mul_le_iff''.mp h
-
-@[to_additive]
-lemma le_mul_of_inv_mul_le_left (h : b⁻¹ * a ≤ c) : a ≤ b * c :=
-le_mul_of_inv_mul_le h
-
-@[to_additive]
-lemma inv_mul_le_of_le_mul (h : a ≤ b * c) : b⁻¹ * a ≤ c :=
-inv_mul_le_iff''.mpr h
-
-@[to_additive]
-lemma inv_mul_le_left_of_le_mul (h : a ≤ b * c) : b⁻¹ * a ≤ c :=
-inv_mul_le_of_le_mul h
-
-@[to_additive nonpos_of_neg_nonneg]
-lemma one_le_of_inv_le_one (h : a⁻¹ ≤ 1) : 1 ≤ a :=
-inv_le_one'.mp h
-
-@[to_additive neg_nonneg_of_nonpos]
-lemma one_le_inv_of_le_one (h : a ≤ 1) : 1 ≤ a⁻¹ :=
-one_le_inv'.mpr h
-/- ...to here. -/
-
 end has_mul_le_mul_left
 
 section has_mul_lt_mul_left
@@ -1322,3 +1288,11 @@ inv_lt_one'.mpr
 @[to_additive]
 theorem inv_le_one_of_one_le {a : α} : 1 ≤ a → a⁻¹ ≤ 1 :=
 inv_le_one'.mpr
+
+--#check @bit0_pos
+--#check @bit1_pos'
+--#check @div_pos
+--#check @neg_lt_neg
+--#check @neg_le_neg
+--#check @neg_nonpos_of_nonneg
+--#check @neg_neg_of_pos --saved

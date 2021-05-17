@@ -125,7 +125,7 @@ instance sigma_finite [opens_measurable_space α] [t2_space α] [sigma_compact_s
 end regular
 
 open filter
-open_locale topological_space
+open_locale topological_space nnreal ennreal
 
 section zoug
 
@@ -135,16 +135,15 @@ variables {X : Type*} [pseudo_emetric_space X] [measurable_space X] [borel_space
 lemma weakly_regular_aux1 (U : set X) (hU : is_open U) (ε : ℝ≥0∞) (hε : 0 < ε) :
   ∃ (F : set X), is_closed F ∧ F ⊆ U ∧ ν U ≤ ν F + ε :=
 begin
-  rcases hU.exists_Union_is_closed,
-
+  rcases hU.exists_Union_is_closed with ⟨F, F_closed, F_subset, F_Union, F_mono⟩,
   have L : tendsto (λ n, ν (F n) + ε) at_top (𝓝 (ν U + ε)),
-  { rw ← Union_F,
+  { rw ← F_Union,
     refine tendsto.add _ tendsto_const_nhds,
-    apply tendsto_measure_Union (λ n, is_closed.measurable_set (is_closed_F n)) mono_F },
+    apply tendsto_measure_Union (λ n, is_closed.measurable_set (F_closed n)) F_mono },
   have nu_lt : ν U < ν U + ε,
     by simpa using (ennreal.add_lt_add_iff_left (measure_lt_top ν U)).2 hε,
   rcases ((tendsto_order.1 L).1 _ nu_lt).exists with ⟨n, hn⟩,
-  exact ⟨F n, is_closed_F n, F_subset n, hn.le⟩
+  exact ⟨F n, F_closed n, F_subset n, hn.le⟩
 end
 
 lemma weakly_regular : ∀ ⦃s : set X⦄ (hs : measurable_set s),
@@ -157,6 +156,48 @@ begin
             ⟨∅, is_closed_empty, subset.refl _, by simp only [measure_empty, zero_le]⟩⟩ },
   { assume U hU ε hε,
     exact ⟨⟨U, hU, subset.refl _, le_self_add⟩, weakly_regular_aux1 U hU ε hε⟩ },
+  { assume s hs h ε εpos,
+    rcases h ε εpos with ⟨⟨U, U_open, U_subset, nu_U⟩, ⟨F, F_closed, F_subset, nu_F⟩⟩,
+    refine ⟨⟨Fᶜ, is_open_compl_iff.2 F_closed, compl_subset_compl.2 F_subset, _⟩,
+            ⟨Uᶜ, is_closed_compl_iff.2 U_open, compl_subset_compl.2 U_subset, _⟩⟩,
+    { apply ennreal.le_of_add_le_add_left (measure_lt_top ν F),
+      calc
+        ν F + ν Fᶜ = ν s + ν sᶜ :
+          by rw [measure_add_measure_compl hs, measure_add_measure_compl F_closed.measurable_set]
+        ... ≤ (ν F + ε) + ν sᶜ : add_le_add nu_F (le_refl _)
+        ... = ν F + (ν sᶜ + ε) : by abel },
+    { apply ennreal.le_of_add_le_add_left (measure_lt_top ν s),
+      calc
+        ν s + ν sᶜ = ν U + ν Uᶜ :
+          by rw [measure_add_measure_compl hs, measure_add_measure_compl U_open.measurable_set]
+        ... ≤ (ν s + ε) + ν Uᶜ : add_le_add nu_U (le_refl _)
+        ... = ν s + (ν Uᶜ + ε) : by abel } },
+  { assume s s_disj s_meas hs ε εpos,
+    let δ := ε / 2,
+    have δpos : 0 < δ := ennreal.half_pos εpos,
+    let a : ℝ≥0∞ := 2⁻¹,
+    have a_pos : 0 < a, by simp [a],
+    split,
+    { have : ∀ n, ∃ (U : set X), is_open U ∧ s n ⊆ U ∧ ν U ≤ ν (s n) + δ * a ^ n :=
+        λ n, (hs n _ (ennreal.mul_pos.2 ⟨δpos, ennreal.pow_pos a_pos n⟩)).1,
+      choose U hU using this,
+      refine ⟨(⋃ n, U n), is_open_Union (λ n, (hU n).1), Union_subset_Union (λ n, (hU n).2.1), _⟩,
+      calc
+      ν (⋃ (n : ℕ), U n)
+          ≤ ∑' n, ν (U n) : measure_Union_le _
+      ... ≤ ∑' n, (ν (s n) + δ * a ^ n) : ennreal.tsum_le_tsum (λ n, (hU n).2.2)
+      ... = ∑' n, ν (s n) + δ * ∑' n, a ^ n : by rw [ennreal.tsum_add, ennreal.tsum_mul_left]
+      ... = ν (⋃ (i : ℕ), s i) + ε : begin
+        congr' 1, { rw measure_Union s_disj s_meas },
+        simp [a],
+
+      end
+
+      }
+
+    }
+
+  }
 end
 
 

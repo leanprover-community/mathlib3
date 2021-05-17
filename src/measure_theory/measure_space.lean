@@ -417,6 +417,10 @@ begin
   exacts [pairwise_disjoint_on_bool.2 hd, λ b, bool.cases_on b h₂ h₁]
 end
 
+lemma measure_add_measure_compl (h : measurable_set s) :
+  μ s + μ sᶜ = μ univ :=
+by { rw [← union_compl_self s, measure_union _ h h.compl], exact disjoint_compl_right }
+
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
   (hd : pairwise_on s (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=

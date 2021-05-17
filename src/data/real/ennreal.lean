@@ -1134,7 +1134,7 @@ begin
   exact sub_eq_of_add_eq (mul_ne_top coe_ne_top $ by simp) (add_halves a)
 end
 
-lemma one_sub_inv_two : (1:ℝ≥0∞) - 2⁻¹ = 2⁻¹ :=
+@[simp] lemma one_sub_inv_two : (1:ℝ≥0∞) - 2⁻¹ = 2⁻¹ :=
 by simpa only [div_eq_mul_inv, one_mul] using sub_half one_ne_top
 
 lemma exists_inv_nat_lt {a : ℝ≥0∞} (h : a ≠ 0) :

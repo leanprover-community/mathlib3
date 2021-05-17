@@ -55,8 +55,9 @@
   author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:
   title  : Insolvability of General Higher Degree Equations
-  decl  : exists_not_solvable_by_rad
   author: Thomas Browning
+  links :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/16_abel_ruffini.lean
 17:
   title  : De Moivre’s Theorem
   decl   : complex.cos_add_sin_mul_I_pow

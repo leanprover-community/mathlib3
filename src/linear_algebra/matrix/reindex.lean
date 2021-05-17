@@ -54,7 +54,8 @@ linear_equiv.ext $ λ _, rfl
 
 lemma reindex_linear_equiv_mul {o o' : Type*} [fintype o] [fintype o'] [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₒ : o ≃ o') (M : matrix m n R) (N : matrix n o R) :
-  reindex_linear_equiv eₘ eₒ (M ⬝ N) = reindex_linear_equiv eₘ eₙ M ⬝ reindex_linear_equiv eₙ eₒ N :=
+  reindex_linear_equiv eₘ eₒ (M ⬝ N) =
+    reindex_linear_equiv eₘ eₙ M ⬝ reindex_linear_equiv eₙ eₒ N :=
 minor_mul_equiv M N _ _ _
 
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
@@ -104,4 +105,3 @@ lemma det_reindex_alg_equiv [decidable_eq m] [decidable_eq n] [comm_ring R]
 det_reindex_self e A
 
 end matrix
-

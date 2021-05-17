@@ -695,16 +695,6 @@ by rw [mul_comm, div_le_iff_le_mul]
 lemma le_div_iff_mul_le' : b ≤ c / a ↔ a * b ≤ c :=
 by rw [mul_comm, le_div_iff_mul_le]
 
-/- The following lemmas are probably superfluous.  From here... -/
-@[to_additive]
-lemma inv_mul_le_right_of_le_mul (h : a ≤ b * c) : c⁻¹ * a ≤ b :=
-inv_mul_le_iff_le_mul.mpr h
-
-@[to_additive]
-lemma le_mul_of_inv_mul_le_right (h : c⁻¹ * a ≤ b) : a ≤ b * c :=
-inv_mul_le_iff_le_mul.mp h
-/- ...to here. -/
-
 end le_left
 
 section lt_left

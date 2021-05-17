@@ -40,10 +40,7 @@ by simp [Φ]
 by simp [Φ, coeff_X_pow]
 
 @[simp] lemma coeff_five_Phi : (Φ R a b).coeff 5 = 1 :=
-begin
-  rw [Φ, coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C],
-  norm_num,
-end
+by simp [Φ, coeff_X, coeff_C, -C_eq_nat_cast, -ring_hom.map_nat_cast]
 
 variables [nontrivial R]
 

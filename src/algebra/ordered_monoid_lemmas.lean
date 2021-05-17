@@ -20,7 +20,7 @@ relation (typically `(≤)` or `(<)`), these are the only two typeclasses that I
 The general approach is to formulate the lemma that you are interested and prove it, with the
 `ordered_[...]` typeclass of your liking.  After that, you convert the single typeclass,
 say `[ordered_cancel_monoid M]`, with three typeclasses, e.g.
-`[partial_order M] [left_cancel_semigroup M] [covariant_class M M (flip (*)) (≤)]`
+`[partial_order M] [left_cancel_semigroup M] [covariant_class M M (function.swap (*)) (≤)]`
 and have a go at seeing if the proof still works!
 
 Note that it is possible to combine several co(ntra)variant_class assumptions together.
@@ -39,10 +39,10 @@ holds (note the `co*ntra*` assumption and the `(≤)`-relation).
 
 # Formalization notes
 
-Sometimes we use `function.swap (*)` (or `function.swap (+)`), other times
-(`flip (*)` or `flip (+)`).
-As a general rule, we tend to prefer `flip`.  However, `function.swap` is slightly better behaved,
-in certain situations that I have not understood. -/
+We stick to the convention of using `function.swap (*)` (or `function.swap (+)`), for the
+typeclass assumptions, since `function.swap` is slightly better behaved than `flip`.
+However, sometimes as a **non-typeclass** assumption, we prefer `flip (*)` (or `flip (+)`),
+as it is easier to use. -/
 
 -- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
 -- TODO: relationship with add_con
@@ -122,13 +122,13 @@ instance covariant_mul_le.to_contravariant_lt_mul [has_mul N] [linear_order N]
 { covtc := (covariant_le_iff_contravariant_lt N N (*)).mp covariant_class.covc }
 
 @[to_additive]
-instance covariant_mul_le_iff_flip [comm_semigroup N] [has_le N]
-  [covariant_class N N (*) (≤)] : covariant_class N N (flip (*)) (≤) :=
+instance covariant_mul_le_left.to_covariant_mul_le_right [comm_semigroup N] [has_le N]
+  [covariant_class N N (*) (≤)] : covariant_class N N (function.swap (*)) (≤) :=
 { covc := (covariant_iff_covariant_mul N (≤)).mp covariant_class.covc }
 
 @[to_additive]
-instance covariant_mul_lt_iff_flip [comm_semigroup N] [has_lt N]
-  [covariant_class N N (*) (<)] : covariant_class N N (flip (*)) (<) :=
+instance covariant_mul_lt_left.to_covariant_mul_lt_right [comm_semigroup N] [has_lt N]
+  [covariant_class N N (*) (<)] : covariant_class N N (function.swap (*)) (<) :=
 { covc := (covariant_iff_covariant_mul N (<)).mp covariant_class.covc }
 
 
@@ -193,6 +193,26 @@ end has_lt
 
 end has_mul
 
+@[to_additive]
+instance left_cancel_semigroup.to_covariant_mul_le_left [left_cancel_semigroup N]  [partial_order N]
+  [covariant_class N N ((*)) (≤)] :
+  covariant_class N N ((*)) (<) :=
+{ covc := λ a b c bc, by { cases lt_iff_le_and_ne.mp bc with bc cb,
+    exact lt_iff_le_and_ne.mpr ⟨mul_le_mul_left_n a bc, (mul_ne_mul_right a).mpr cb⟩ } }
+/-
+instance left_cancel_semigroup.to_covariant_mul_le_left [left_cancel_semigroup N]  [preorder N]
+  [covariant_class N N ((*)) (≤)] :
+  covariant_class N N ((*)) (<) :=
+{ covc := λ a b c bc, by {
+  cases lt_iff_le_not_le.mp bc with bc cb,
+  refine lt_iff_le_not_le.mpr _,
+  refine ⟨mul_le_mul_left_n a bc, _⟩,
+
+} }
+-/
+
+/- This is not instance, since we want to have an instance from `left_cancel_semigroup`s
+to the appropriate `covariant_class`. -/
 @[to_additive
 "An additive semigroup with a partial order and satisfying `left_cancel_add_semigroup`
 (i.e. `c + a < c + b → a < b`) is a `left_cancel add_semigroup`."]
@@ -203,6 +223,8 @@ def contravariant.to_left_cancel_semigroup [semigroup N] [partial_order N]
     (le_of_mul_le_mul_left_n a bc.le).antisymm (le_of_mul_le_mul_left_n a bc.ge),
   ..(infer_instance : semigroup N) }
 
+/- This is not instance, since we want to have an instance from `right_cancel_semigroup`s
+to the appropriate `covariant_class`. -/
 /--  A semigroup with a partial order and satisfying `right_cancel_semigroup`
 (i.e. `a * c < b * c → a < b`) is a `right_cancel semigroup`. -/
 @[to_additive
@@ -233,7 +255,7 @@ contravariant_class.covtc a
 variable [covariant_class α α (*) (≤)]
 
 @[to_additive]
-lemma mul_le_mul_left'' (h : a ≤ b) (c) :
+lemma mul_le_mul_left' (h : a ≤ b) (c) :
   c * a ≤ c * b :=
 covariant_class.covc c h
 
@@ -552,8 +574,8 @@ variables [left_cancel_monoid α]
   [contravariant_class α α (*) (<)]
 
 @[to_additive]
-lemma mul_lt_mul_of_left (h : a < b) (c : α) : c * a < c * b :=
-lt_of_le_not_le (mul_le_mul_left'' h.le _)
+lemma mul_lt_mul_left' (h : a < b) (c : α) : c * a < c * b :=
+lt_of_le_not_le (mul_le_mul_left' h.le _)
   (λ j, not_le_of_gt h (le_of_mul_le_mul_left' j))
 
 /-  Why is this instance not available? -/
@@ -591,12 +613,12 @@ lemma mul_le_mul_iff_left (a : α) {b c : α} : a * b ≤ a * c ↔ b ≤ c :=
 
 @[to_additive lt_add_of_pos_right]
 lemma lt_mul_of_one_lt_right' (a : α) {b : α} (h : 1 < b) : a < a * b :=
-have a * 1 < a * b, from mul_lt_mul_of_left h a,
+have a * 1 < a * b, from mul_lt_mul_left' h a,
 by rwa [mul_one] at this
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_left (a : α) {b c : α} : a * b < a * c ↔ b < c :=
-⟨lt_of_mul_lt_mul_left_n a, λ h, mul_lt_mul_of_left h a⟩
+⟨lt_of_mul_lt_mul_left_n a, λ h, mul_lt_mul_left' h a⟩
 
 @[simp, to_additive le_add_iff_nonneg_right]
 lemma le_mul_iff_one_le_right' (a : α) {b : α} : a ≤ a * b ↔ 1 ≤ b :=
@@ -712,7 +734,7 @@ section special
 
 @[to_additive]
 lemma mul_lt_mul_of_le_of_lt (h₁ : a ≤ b) (h₂ : c < d) : a * c < b * d :=
-(mul_le_mul_right_n _ h₁).trans_lt (mul_lt_mul_of_left h₂ b)
+(mul_le_mul_right_n _ h₁).trans_lt (mul_lt_mul_left' h₂ b)
 
 @[to_additive]
 lemma mul_lt_one_of_le_one_of_lt_one (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
@@ -740,7 +762,7 @@ variables [contravariant_class α α (function.swap (*)) (<)]
 
 @[to_additive add_lt_add]
 lemma mul_lt_mul''' (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
-(mul_lt_mul_of_right h₁ c).trans (mul_lt_mul_of_left h₂ b)
+(mul_lt_mul_of_right h₁ c).trans (mul_lt_mul_left' h₂ b)
 
 @[to_additive]
 lemma mul_eq_one_iff_eq_one_of_one_le

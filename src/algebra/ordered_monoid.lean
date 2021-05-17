@@ -51,6 +51,13 @@ attribute [to_additive] ordered_comm_monoid
 
 section ordered_instances
 
+@[to_additive covariant_class_add_comm_semigroup.to_covariant_class_right]
+instance covariant_class_comm_semigroup.to_covariant_class_right (M : Type*) [comm_semigroup M]
+  [has_le M] [covariant_class M M (*) (≤)] :
+  covariant_class M M (function.swap (*)) (≤) :=
+{ covc := λ a b c bc, by { show b * a ≤ c * a,
+    simp [mul_comm _ a, mul_le_mul_left_n a bc] } }
+
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (*) (≤) :=
@@ -149,7 +156,7 @@ def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_comm_monoid β :=
 { mul_le_mul_left := λ a b ab c,
-    show f (c * a) ≤ f (c * b), by simp [mul, @mul_le_mul_left'' α _ _ _ _ _ ab _],
+    show f (c * a) ≤ f (c * b), by simp [mul, @mul_le_mul_left' α _ _ _ _ _ ab _],
   lt_of_mul_lt_mul_left :=
     λ a b c bc, @lt_of_mul_lt_mul_left' α (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
   ..partial_order.lift f hf,
@@ -305,12 +312,12 @@ begin
     cases a with a,
     { change c + 0 = some ca at h₂,
       simp at h₂, simp [h₂],
-      exact ⟨_, rfl, by simpa using add_le_add_left'' (zero_le b) _⟩ },
+      exact ⟨_, rfl, by simpa using add_le_add_left' (zero_le b) _⟩ },
     { simp at h,
       cases c with c; change some _ = _ at h₂;
         simp [-add_comm] at h₂; subst ca; refine ⟨_, rfl, _⟩,
       { exact h },
-      { exact add_le_add_left'' h _ } } }
+      { exact add_le_add_left' h _ } } }
 end
 
 end with_zero
@@ -396,7 +403,7 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
       rcases b with (_|b), { simp [none_eq_top] },
       rcases le_coe_iff.1 h with ⟨a, rfl, h⟩,
       simp only [some_eq_coe, ← coe_add, coe_le_coe] at h ⊢,
-      exact add_le_add_left'' h c
+      exact add_le_add_left' h c
     end,
   lt_of_add_lt_add_left :=
     begin
@@ -462,7 +469,7 @@ begin
     cases a with a; cases h₂,
     cases b with b, {cases le_antisymm h bot_le},
     simp at h,
-    exact ⟨_, rfl, add_le_add_left'' h _⟩, }
+    exact ⟨_, rfl, add_le_add_left' h _⟩, }
 end
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
@@ -836,7 +843,7 @@ namespace order_dual
 
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
-{ mul_le_mul_left := λ a b h c, @mul_le_mul_left'' α _ _ _ _ _ h _,
+{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ _ _ _ _ h _,
   lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
@@ -863,7 +870,7 @@ variables {M N : Type*}
 @[to_additive]
 instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
   ordered_cancel_comm_monoid (M × N) :=
-{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left'' h.1 _, mul_le_mul_left'' h.2 _⟩,
+{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
   le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
  .. prod.cancel_comm_monoid, .. prod.partial_order M N }
 

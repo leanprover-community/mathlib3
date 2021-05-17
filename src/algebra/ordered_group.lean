@@ -33,8 +33,12 @@ with a partial order in which multiplication is strictly monotone. -/
 @[protect_proj, ancestor comm_group partial_order]
 class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :=
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
-
 attribute [to_additive] ordered_comm_group
+
+@[to_additive]
+instance ordered_comm_group.to_covariant_class_left (α : Type u) [ordered_comm_group α] :
+  covariant_class α α (*) (≤) :=
+{ covc := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
 
 @[to_additive]
 instance units.covariant_class [ordered_comm_monoid α] :
@@ -127,9 +131,7 @@ by rwa one_inv at this
 
 @[to_additive neg_lt_neg]
 lemma inv_lt_inv' (h : a < b) : b⁻¹ < a⁻¹ :=
-have 1 < a⁻¹ * b, from mul_left_inv a ▸ mul_lt_mul_left' h (a⁻¹),
-have 1 * b⁻¹ < a⁻¹ * b * b⁻¹, from mul_lt_mul_right' this (b⁻¹),
-by rwa [mul_inv_cancel_right, one_mul] at this
+(mul_lt_mul_iff_left a).mp ((mul_lt_mul_iff_right b).mp (by simpa using h))
 
 @[to_additive]
 lemma lt_of_inv_lt_inv (h : b⁻¹ < a⁻¹) : a < b :=
@@ -877,7 +879,7 @@ calc
             ... ≤ abs (a - b) + abs (b - c) : abs_add _ _
 
 lemma abs_add_three (a b c : α) : abs (a + b + c) ≤ abs a + abs b + abs c :=
-(abs_add _ _).trans (add_le_add_right (abs_add _ _) _)
+(abs_add _ _).trans (add_le_add_right' (abs_add _ _) _)
 
 lemma dist_bdd_within_interval {a b lb ub : α} (hal : lb ≤ a) (hau : a ≤ ub)
       (hbl : lb ≤ b) (hbu : b ≤ ub) : abs (a - b) ≤ ub - lb :=
@@ -973,7 +975,7 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 
 instance [linear_ordered_add_comm_group α] :
   linear_ordered_add_comm_group (order_dual α) :=
-{ add_le_add_left := λ a b h c, by exact add_le_add_left h _,
+{ add_le_add_left := λ a b h c, by exact add_le_add_left' h _,
   ..order_dual.linear_order α,
   ..show add_comm_group α, by apply_instance }
 

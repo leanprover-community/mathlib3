@@ -750,6 +750,3 @@ begin
 end
 
 end coprod
-
-example {M N : Type*} [add_comm_group M] [add_comm_group N] (f : M →+ N) : M →ₗ[ℤ] N :=
-by refine add_monoid_hom.to_int_linear_map f

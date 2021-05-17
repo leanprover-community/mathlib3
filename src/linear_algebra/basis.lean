@@ -313,23 +313,20 @@ by { convert b.reindex_range_self i, rw h }
 lemma reindex_range_repr' (x : M) {bi : M} {i : ι} (h : b i = bi) :
   b.reindex_range.repr x ⟨bi, ⟨i, h⟩⟩ = b.repr x i :=
 begin
-  by_cases htr : nontrivial R,
-  { letI := htr,
-    subst h,
-    refine (b.repr_apply_eq (λ x i, b.reindex_range.repr x ⟨b i, _⟩) _ _ _ x i).symm,
-    { intros x y,
-      ext i,
-      simp only [pi.add_apply, linear_equiv.map_add, finsupp.coe_add] },
-    { intros c x,
-      ext i,
-      simp only [pi.smul_apply, linear_equiv.map_smul, finsupp.coe_smul] },
-    { intros i,
-      ext j,
-      simp only [reindex_range_repr_self],
-      refine @finsupp.single_apply_left _ _ _ _ (λ i, (⟨b i, _⟩ : set.range b)) _ _ _ _,
-      exact λ i j h, b.injective (subtype.mk.inj h) } },
-  { letI : subsingleton R := not_nontrivial_iff_subsingleton.mp htr,
-    simp }
+  nontriviality,
+  subst h,
+  refine (b.repr_apply_eq (λ x i, b.reindex_range.repr x ⟨b i, _⟩) _ _ _ x i).symm,
+  { intros x y,
+    ext i,
+    simp only [pi.add_apply, linear_equiv.map_add, finsupp.coe_add] },
+  { intros c x,
+    ext i,
+    simp only [pi.smul_apply, linear_equiv.map_smul, finsupp.coe_smul] },
+  { intros i,
+    ext j,
+    simp only [reindex_range_repr_self],
+    refine @finsupp.single_apply_left _ _ _ _ (λ i, (⟨b i, _⟩ : set.range b)) _ _ _ _,
+    exact λ i j h, b.injective (subtype.mk.inj h) }
 end
 
 @[simp] lemma reindex_range_repr (x : M) (i : ι) (h := set.mem_range_self i) :

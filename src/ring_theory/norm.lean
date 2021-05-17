@@ -8,7 +8,7 @@ import linear_algebra.determinant
 import ring_theory.power_basis
 
 /-!
-# Norm for (finite) ring extensions.
+# Norm for (finite) ring extensions
 
 Suppose we have an `R`-algebra `S` with a finite basis. For each `s : S`,
 the determinant of the linear map given by multiplying by `s` gives information
@@ -17,12 +17,13 @@ about the roots of the minimal polynomial of `s` over `R`.
 ## Implementation notes
 
 Typically, the norm is defined specifically for finite field extensions.
-The definition is as general as possible and the assumption that we have
+The current definition is as general as possible and the assumption that we have
 fields or that the extension is finite is added to the lemmas as needed.
 
 We only define the norm for left multiplication (`algebra.left_mul_matrix`,
 i.e. `algebra.lmul_left`).
-For now, the definitions assume `S` is commutative, so the choice doesn't matter anyway.
+For now, the definitions assume `S` is commutative, so the choice doesn't
+matter anyway.
 
 See also `algebra.trace`, which is defined similarly as the trace of
 `algebra.left_mul_matrix`.

@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow, Kexing Ying
 -/
 
-import linear_algebra.matrix
+import linear_algebra.dual
+import linear_algebra.matrix.nonsingular_inverse
+import linear_algebra.matrix.to_lin
 import linear_algebra.tensor_product
-import linear_algebra.nonsingular_inverse
 
 /-!
 # Bilinear form

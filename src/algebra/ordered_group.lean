@@ -193,28 +193,6 @@ lemma inv_lt_iff_one_lt_mul' : a⁻¹ < b ↔ 1 < a * b :=
 lemma lt_inv_iff_mul_lt_one' : a < b⁻¹ ↔ b * a < 1 :=
 (mul_lt_mul_iff_left' b).symm.trans $ by rw mul_inv_self
 
-/- The following lemmas are probably superfluous.  From here... -/
-@[to_additive]
-lemma mul_lt_of_lt_inv_mul (h : b < a⁻¹ * c) : a * b < c :=
-lt_inv_mul_iff.mp h
-
-@[to_additive]
-lemma lt_inv_mul_of_mul_lt (h : a * b < c) : b < a⁻¹ * c :=
-lt_inv_mul_iff.mpr h
-
-@[to_additive]
-lemma lt_mul_of_inv_mul_lt (h : b⁻¹ * a < c) : a < b * c :=
-inv_mul_lt_iff''.mp h
-
-@[to_additive]
-lemma inv_mul_lt_of_lt_mul (h : a < b * c) : b⁻¹ * a < c :=
-inv_mul_lt_iff''.mpr h
-
-@[to_additive]
-lemma inv_mul_lt_left_of_lt_mul (h : a < b * c) : b⁻¹ * a < c :=
-inv_mul_lt_of_lt_mul h
-/- ...to here. -/
-
 end has_mul_lt_mul_left
 
 end left
@@ -734,11 +712,11 @@ variable [covariant_class α α (*) (<)]
 
 @[to_additive]
 lemma lt_mul_of_inv_mul_lt_right (h : c⁻¹ * a < b) : a < b * c :=
-by { rw mul_comm, exact lt_mul_of_inv_mul_lt h }
+by { rw mul_comm, exact inv_mul_lt_iff''.mp h }
 
 @[to_additive]
 lemma inv_mul_lt_right_of_lt_mul (h : a < b * c) : c⁻¹ * a < b :=
-by { rw mul_comm at h, exact inv_mul_lt_of_lt_mul h }
+by { rw mul_comm at h, exact inv_mul_lt_iff''.mpr h }
 
 @[to_additive]
 lemma inv_lt_iff_one_lt_mul : a⁻¹ < b ↔ 1 < b * a :=

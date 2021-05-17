@@ -21,9 +21,10 @@ open_locale nat
 
 namespace fintype
 
--- the [fintype α] argument may seem redundant; it isn't!
+-- We need the separate `fintype α` instance as it contains data,
+-- and may not match definitionally with the instance coming from `unique.fintype`.
 lemma card_embedding_of_unique
-{α β : Type*} [unique α] [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]:
+  {α β : Type*} [unique α] [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]:
 ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
@@ -36,22 +37,23 @@ begin
 
   rw [nat.succ_eq_add_one, ←card_congr (equiv.embedding_congr fin_sum_fin_equiv (equiv.refl β))],
   rw card_congr equiv.sum_embedding_equiv_sigma_embedding_restricted,
-  all_goals { try { apply_instance } },
+  all_goals { try { apply_instance } }, -- this needs to be done here instead of at the end;
+  -- else, a later `simp`, which depends on the `fintype` instance, won't work.
 
   have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f).compl)‖ = ‖β‖ - n,
-  {
-    intro f,
-    rw card_embedding_of_unique; try {apply_instance},
+  { intro f,
+    rw card_embedding_of_unique,
     rw card_of_finset' (finset.map f finset.univ)ᶜ,
-    { simp [finset.card_compl, finset.card_map] },
+    { rw [finset.card_compl, finset.card_map, finset.card_fin] },
     { -- further evidence `ᶜ` is defeq, something odd
     change ∀ x, x ∈ (finset.map f finset.univ)ᶜ ↔ x ∈ (set.range ⇑f)ᶜ,
-    simp }
-  },
+    simp } },
 
+  -- putting this in the `simp` causes `simp` not to fully simplify
   rw card_sigma,
-  simp_rw this,
-  rw [finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
+  simp only [this, finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
+
+  rw hn (nat.lt_of_succ_le h).le,
 
   set t := ‖β‖ - n.succ with ht,
   have h' : ‖β‖ - n = t.succ,
@@ -59,7 +61,7 @@ begin
     exact h,
     exact nat.succ_pos _ },
 
-  rw [←ht, hn (nat.lt_of_succ_le h).le, h', mul_comm, nat.succ_desc_fac, nat.desc_fac_succ]
+  rw [←ht, h', mul_comm, nat.succ_desc_fac, nat.desc_fac_succ],
 end
 
 variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
@@ -88,7 +90,7 @@ begin
     exact card_embedding_eq_zero (not_le.mp h)
 end
 
-lemma card_embedding_eq_infinite {α β} [infinite α] [fintype β] : fintype.card (α ↪ β) = 0 :=
-by erw [fintype.card, finset.univ, function.embedding.fintype', finset.card_empty]
+-- this is `rfl` as it uses `function.embedding.fintype'`, which is defined to be an empty set
+lemma card_embedding_eq_infinite {α β} [infinite α] [fintype β] : ‖α ↪ β‖ = 0 := rfl
 
 end fintype

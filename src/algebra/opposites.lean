@@ -186,6 +186,14 @@ instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   smul_zero := λ r, unop_injective $ smul_zero r,
   ..opposite.mul_action α R }
 
+/-- Like `monoid.to_mul_action`, but multiplies on the right. -/
+instance monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
+{ smul := λ c x, x * c.unop,
+  one_smul := mul_one,
+  mul_smul := λ x y r, (mul_assoc _ _ _).symm }
+
+lemma op_smul_eq_mul [monoid α] {a a' : α} : op a • a' = a' * a := rfl
+
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl
 

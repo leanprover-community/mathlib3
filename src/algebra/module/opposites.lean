@@ -16,7 +16,29 @@ cycles.
 namespace opposite
 universes u v
 
-variables (R : Type u) {M : Type v} [semiring R] [add_comm_monoid M] [module R M]
+variables (R : Type u) {M : Type v}
+
+/-- Like `mul_zero_class.to_smul_with_zero`, but multiplies on the right. -/
+instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] :
+  smul_with_zero (opposite R) R :=
+{ smul := λ c x, x * x.unop,
+  smul_zero := zero_mul,
+  zero_smul := mul_zero }
+
+/-- Like `monoid_with_zero.to_smul_with_zero`, but multiplies on the right. -/
+instance monoid_with_zero.to_opposite_mul_action_with_zero [monoid_with_zero R] :
+  mul_action_with_zero (opposite R) R :=
+{ ..mul_zero_class.to_opposite_smul_with_zero R,
+  ..monoid.to_opposite_mul_action R }
+
+/-- Like `semiring.to_module`, but multiplies on the right. -/
+instance semiring.to_opposite_module [semiring R] : module (opposite R) R :=
+{ smul_add := add_mul,
+  add_smul := mul_add,
+  zero_smul := mul_zero,
+  smul_zero := zero_mul }
+
+variables [semiring R] [add_comm_monoid M] [module R M]
 
 /-- `opposite.distrib_mul_action` extends to a `module` -/
 instance : module R (opposite M) :=

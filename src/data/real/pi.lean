@@ -236,7 +236,8 @@ begin
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
         ring_nf } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
-    have g_sum := @geom_sum_eq _ _ (-x^2) (by linarith [neg_nonpos.mpr (sq_nonneg x)]) k,
+    have g_sum :=
+      @geom_sum_eq _ _ (-x^2) ((neg_nonpos.mpr (sq_nonneg x)).trans_lt zero_lt_one).ne k,
     simp only [geom_sum, f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
@@ -248,10 +249,11 @@ begin
   have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
   { intros x hx,
     rw [abs_div, is_absolute_value.abv_pow abs (-x^2) k, abs_neg, is_absolute_value.abv_pow abs x 2,
-        tactic.ring_exp.pow_e_pf_exp rfl rfl, @abs_of_pos _ _ (1+x^2) (by nlinarith)],
-    convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) (by norm_num)
-      (by nlinarith),
-    simp },
+       tactic.ring_exp.pow_e_pf_exp rfl rfl],
+    rw [@abs_of_pos _ (1+x^2) _ (add_pos_of_pos_of_nonneg zero_lt_one (sq_nonneg _))],
+    convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) zero_lt_one
+      ((le_add_iff_nonneg_right _).mpr (sq_nonneg _)),
+    rw div_one },
   have hbound1 : ∀ x ∈ Ico (U:ℝ) 1, |f' x| ≤ 1,
   { rintros x ⟨hx_left, hx_right⟩,
     have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),

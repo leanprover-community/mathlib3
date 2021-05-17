@@ -146,6 +146,8 @@ begin
         (mk_eq_mk_of_basis' (basis.extend i.2) v).le), },
 end
 
+attribute [irreducible] module.rank
+
 theorem basis.mk_range_eq_dim (v : basis ι K V) :
   cardinal.mk (range v) = module.rank K V :=
 v.reindex_range.mk_eq_dim''

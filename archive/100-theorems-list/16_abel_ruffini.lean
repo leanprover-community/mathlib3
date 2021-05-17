@@ -37,10 +37,7 @@ variables {R}
 by simp [Φ]
 
 @[simp] lemma coeff_zero_Phi : (Φ R a b).coeff 0 = ↑b :=
-begin
-  rw [Φ, coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C],
-  norm_num,
-end
+by simp [Φ, coeff_X_pow]
 
 @[simp] lemma coeff_five_Phi : (Φ R a b).coeff 5 = 1 :=
 begin

@@ -26,29 +26,37 @@ variables (f g : C ⟶ D) (h k : D ⟶ E) (i : ι)
 
 section
 
-/--
-The composition of `C.d i i' ≫ f i' i` if there is some `i'` coming after `i`,
-and `0` otherwise.
--/
-def d_next (f : Π i j, C.X i ⟶ D.X j) (i : ι) : C.X i ⟶ D.X i :=
-match c.next i with
+/-- The composition of `C.d i i' ≫ f i' i` if there is some `i'` coming after `i`,
+and `0` otherwise. -/
+def d_next (i : ι) : (Π i j, C.X i ⟶ D.X j) →+ (C.X i ⟶ D.X i) :=
+add_monoid_hom.mk' (λ f, match c.next i with
 | none := 0
 | some ⟨i',w⟩ := C.d i i' ≫ f i' i
+end)
+begin
+  intros f g,
+  rcases c.next i with _|⟨i',w⟩,
+  exact (zero_add _).symm,
+  exact preadditive.comp_add _ _ _ _ _ _,
 end
 
-/--
-`f i' i` if `i'` comes after `i`, and 0 if there's no such `i'`.
+/-- `f i' i` if `i'` comes after `i`, and 0 if there's no such `i'`.
 Hopefully there won't be much need for this, except in `d_next_eq_d_from_from_next`
-to see that `d_next` factors through `C.d_from i`.
--/
-def from_next [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (i : ι) : C.X_next i ⟶ D.X i :=
-match c.next i with
+to see that `d_next` factors through `C.d_from i`. -/
+def from_next [has_zero_object V] (i : ι) : (Π i j, C.X i ⟶ D.X j) →+ (C.X_next i ⟶ D.X i) :=
+add_monoid_hom.mk' (λ f, match c.next i with
 | none := 0
 | some ⟨i',w⟩ := (C.X_next_iso w).hom ≫ f i' i
+end)
+begin
+  intros f g,
+  rcases c.next i with _|⟨i',w⟩,
+  exact (zero_add _).symm,
+  exact preadditive.comp_add _ _ _ _ _ _,
 end
 
 lemma d_next_eq_d_from_from_next [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
-  d_next f i = C.d_from i ≫ from_next f i :=
+  d_next i f = C.d_from i ≫ from_next i f :=
 begin
   dsimp [d_next, from_next],
   rcases c.next i with ⟨⟩|⟨⟨i', w⟩⟩;
@@ -56,40 +64,15 @@ begin
 end
 
 lemma d_next_eq (f : Π i j, C.X i ⟶ D.X j) {i i' : ι} (w : c.rel i i') :
-  d_next f i = C.d i i' ≫ f i' i :=
+  d_next i f = C.d i i' ≫ f i' i :=
 begin
   dsimp [d_next],
   rw c.next_eq_some w,
   refl,
 end
 
-@[simp] lemma d_next_zero (i : ι) : d_next (λ i j, (0 : C.X i ⟶ D.X j)) i = 0 :=
-begin
-  dsimp [d_next],
-  rcases c.next i with ⟨⟩|⟨⟨i', w⟩⟩;
-  { dsimp [d_next], simp },
-end
-
-@[simp] lemma d_next_add (f g : Π i j, C.X i ⟶ D.X j) (i : ι) :
-  d_next (λ i j, f i j + g i j) i = d_next f i + d_next g i :=
-begin
-  dsimp [d_next],
-  rcases c.next i with _|⟨i',w⟩,
-  exact (zero_add _).symm,
-  exact preadditive.comp_add _ _ _ _ _ _,
-end
-
-@[simp] lemma d_next_neg (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
-  d_next (λ i j, -(f i j)) i = - d_next f i :=
-begin
-  dsimp [d_next],
-  rcases c.next i with _|⟨i',w⟩,
-  exact neg_zero.symm,
-  exact preadditive.comp_neg _ _,
-end
-
 @[simp] lemma d_next_comp_left (f : C ⟶ D) (g : Π i j, D.X i ⟶ E.X j) (i : ι) :
-  d_next (λ i j, f.f i ≫ g i j) i = f.f i ≫ d_next g i :=
+  d_next i (λ i j, f.f i ≫ g i j) = f.f i ≫ d_next i g :=
 begin
   dsimp [d_next],
   rcases c.next i with _|⟨i',w⟩,
@@ -99,7 +82,7 @@ begin
 end
 
 @[simp] lemma d_next_comp_right (f : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) (i : ι) :
-  d_next (λ i j, f i j ≫ g.f j) i = d_next f i ≫ g.f i :=
+  d_next i (λ i j, f i j ≫ g.f j) = d_next i f ≫ g.f i :=
 begin
   dsimp [d_next],
   rcases c.next i with _|⟨i',w⟩,
@@ -108,29 +91,37 @@ begin
     simp, },
 end
 
-/--
-The composition of `f j j' ≫ D.d j' j` if there is some `j'` coming before `j`,
-and `0` otherwise.
--/
-def prev_d (f : Π i j, C.X i ⟶ D.X j) (j : ι) : C.X j ⟶ D.X j :=
-match c.prev j with
+/-- The composition of `f j j' ≫ D.d j' j` if there is some `j'` coming before `j`,
+and `0` otherwise. -/
+def prev_d (j : ι) : (Π i j, C.X i ⟶ D.X j) →+ (C.X j ⟶ D.X j) :=
+add_monoid_hom.mk' (λ f, match c.prev j with
 | none := 0
 | some ⟨j',w⟩ := f j j' ≫ D.d j' j
+end)
+begin
+  intros f g,
+  rcases c.prev j with _|⟨j',w⟩,
+  exact (zero_add _).symm,
+  exact preadditive.add_comp _ _ _ _ _ _,
 end
 
-/--
-`f j j'` if `j'` comes after `j`, and 0 if there's no such `j'`.
+/-- `f j j'` if `j'` comes after `j`, and 0 if there's no such `j'`.
 Hopefully there won't be much need for this, except in `d_next_eq_d_from_from_next`
-to see that `d_next` factors through `C.d_from i`.
--/
-def to_prev [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (j : ι) : C.X j ⟶ D.X_prev j :=
-match c.prev j with
+to see that `d_next` factors through `C.d_from i`. -/
+def to_prev [has_zero_object V] (j : ι) : (Π i j, C.X i ⟶ D.X j) →+ (C.X j ⟶ D.X_prev j) :=
+add_monoid_hom.mk' (λ f, match c.prev j with
 | none := 0
 | some ⟨j',w⟩ := f j j' ≫ (D.X_prev_iso w).inv
+end)
+begin
+  intros f g,
+  rcases c.prev j with _|⟨j',w⟩,
+  exact (zero_add _).symm,
+  exact preadditive.add_comp _ _ _ _ _ _,
 end
 
 lemma prev_d_eq_to_prev_d_to [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (j : ι) :
-  prev_d f j = to_prev f j ≫ D.d_to j :=
+  prev_d j f = to_prev j f ≫ D.d_to j :=
 begin
   dsimp [prev_d, to_prev],
   rcases c.prev j with ⟨⟩|⟨⟨j', w⟩⟩;
@@ -138,40 +129,15 @@ begin
 end
 
 lemma prev_d_eq (f : Π i j, C.X i ⟶ D.X j) {j j' : ι} (w : c.rel j' j) :
-  prev_d f j = f j j' ≫ D.d j' j :=
+  prev_d j f = f j j' ≫ D.d j' j :=
 begin
   dsimp [prev_d],
   rw c.prev_eq_some w,
   refl,
 end
 
-@[simp] lemma prev_d_zero (j : ι) : prev_d (λ i j, (0 : C.X i ⟶ D.X j)) j = 0 :=
-begin
-  dsimp [prev_d],
-  rcases c.prev j with ⟨⟩|⟨⟨j', w⟩⟩;
-  { dsimp [prev_d], simp, },
-end
-
-@[simp] lemma prev_d_add (f g : Π i j, C.X i ⟶ D.X j) (j : ι) :
-  prev_d (λ i j, f i j + g i j) j = prev_d f j + prev_d g j :=
-begin
-  dsimp [prev_d],
-  rcases c.prev j with _|⟨j',w⟩,
-  exact (zero_add _).symm,
-  exact preadditive.add_comp _ _ _ _ _ _,
-end
-
-@[simp] lemma prev_d_neg (f : Π i j, C.X i ⟶ D.X j) (j : ι) :
-  prev_d (λ i j, -(f i j)) j = - prev_d f j :=
-begin
-  dsimp [prev_d],
-  rcases c.prev j with _|⟨j',w⟩,
-  exact neg_zero.symm,
-  exact preadditive.neg_comp _ _,
-end
-
 @[simp] lemma prev_d_comp_left (f : C ⟶ D) (g : Π i j, D.X i ⟶ E.X j) (j : ι) :
-  prev_d (λ i j, f.f i ≫ g i j) j = f.f j ≫ prev_d g j :=
+  prev_d j (λ i j, f.f i ≫ g i j) = f.f j ≫ prev_d j g :=
 begin
   dsimp [prev_d],
   rcases c.prev j with _|⟨j',w⟩,
@@ -181,7 +147,7 @@ begin
 end
 
 @[simp] lemma to_prev'_comp_right (f : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) (j : ι) :
-  prev_d (λ i j, f i j ≫ g.f j) j = prev_d f j ≫ g.f j :=
+  prev_d j (λ i j, f i j ≫ g.f j) = prev_d j f ≫ g.f j :=
 begin
   dsimp [prev_d],
   rcases c.prev j with _|⟨j',w⟩,
@@ -198,13 +164,12 @@ which are zero unless `c.rel j i`, satisfying the homotopy condition.
 structure homotopy (f g : C ⟶ D) :=
 (hom : Π i j, C.X i ⟶ D.X j)
 (zero' : ∀ i j, ¬ c.rel j i → hom i j = 0 . obviously)
-(comm' : ∀ i, f.f i = d_next hom _ + prev_d hom _ + g.f i . obviously')
+(comm : ∀ i, f.f i = d_next i hom + prev_d i hom + g.f i . obviously')
 
 variables {f g}
 namespace homotopy
 
 restate_axiom homotopy.zero'
-restate_axiom homotopy.comm'
 
 /--
 `f` is homotopic to `g` iff `f - g` is homotopic to `0`.
@@ -213,52 +178,49 @@ def equiv_sub_zero : homotopy f g ≃ homotopy (f - g) 0 :=
 { to_fun := λ h,
   { hom := λ i j, h.hom i j,
     zero' := λ i j w, h.zero _ _ w,
-    comm' := λ i, by simp [h.comm] },
+    comm := λ i, by simp [h.comm] },
   inv_fun := λ h,
   { hom := λ i j, h.hom i j,
     zero' := λ i j w, h.zero _ _ w,
-    comm' := λ i, by simpa [sub_eq_iff_eq_add] using h.comm i },
+    comm := λ i, by simpa [sub_eq_iff_eq_add] using h.comm i },
   left_inv := by tidy,
   right_inv := by tidy, }
 
 /-- Every chain map is homotopic to itself. -/
 @[refl]
 def refl (f : C ⟶ D) : homotopy f f :=
-{ hom := λ i j, 0,
+{ hom := 0,
   zero' := λ i j w, rfl,
-  comm' := λ i, by simp }
+  comm := λ i, by rw [add_monoid_hom.map_zero, add_monoid_hom.map_zero, zero_add, zero_add] }
 
 /-- `f` is homotopic to `g` iff `g` is homotopic to `f`. -/
 @[symm]
 def symm {f g : C ⟶ D} (h : homotopy f g) : homotopy g f :=
-{ hom := λ i j, -h.hom i j,
-  zero' := λ i j w, by rw [h.zero i j w, neg_zero],
-  comm' := λ i, begin
-    simp only [prev_d_neg, d_next_neg, h.comm],
-    abel,
-  end, }
+{ hom := -h.hom,
+  zero' := λ i j w, by rw [pi.neg_apply, pi.neg_apply, h.zero i j w, neg_zero],
+  comm := λ i, by rw [add_monoid_hom.map_neg, add_monoid_hom.map_neg, h.comm, ← neg_add,
+      ← add_assoc, neg_add_self, zero_add] }
 
 /-- homotopy is a transitive relation. -/
 @[trans]
 def trans {e f g : C ⟶ D} (h : homotopy e f) (k : homotopy f g) : homotopy e g :=
-{ hom := λ i j, h.hom i j + k.hom i j,
-  zero' := λ i j w, by rw [h.zero i j w, k.zero i j w, zero_add],
-  comm' := λ i, begin
-    simp only [prev_d_add, d_next_add, h.comm, k.comm],
-    abel,
-  end, }
+{ hom := h.hom + k.hom,
+  zero' := λ i j w, by rw [pi.add_apply, pi.add_apply, h.zero i j w, k.zero i j w, zero_add],
+  comm := λ i, by { rw [add_monoid_hom.map_add, add_monoid_hom.map_add, h.comm, k.comm], abel }, }
 
 /-- homotopy is closed under composition (on the right) -/
 def comp_right {e f : C ⟶ D} (h : homotopy e f) (g : D ⟶ E) : homotopy (e ≫ g) (f ≫ g) :=
 { hom := λ i j, h.hom i j ≫ g.f j,
   zero' := λ i j w, by rw [h.zero i j w, zero_comp],
-  comm' := λ i, by simp [h.comm i], }
+  comm := λ i, by simp only [h.comm i, d_next_comp_right, preadditive.add_comp,
+    to_prev'_comp_right, comp_f], }
 
 /-- homotopy is closed under composition (on the left) -/
 def comp_left {f g : D ⟶ E} (h : homotopy f g) (e : C ⟶ D) : homotopy (e ≫ f) (e ≫ g) :=
 { hom := λ i j, e.f i ≫ h.hom i j,
   zero' := λ i j w, by rw [h.zero i j w, comp_zero],
-  comm' := λ i, by simp [h.comm i], }
+  comm := λ i, by simp only [h.comm i, d_next_comp_left, preadditive.comp_add,
+    prev_d_comp_left, comp_f], }
 
 /-- a variant of `homotopy.comp_right` useful for dealing with homotopy equivalences. -/
 def comp_right_id {f : C ⟶ C} (h : homotopy f (𝟙 C)) (g : C ⟶ D) : homotopy (f ≫ g) g :=
@@ -286,7 +248,7 @@ section mk_inductive
 variables {P Q : chain_complex V ℕ}
 
 @[simp] lemma prev_d_chain_complex (f : Π i j, P.X i ⟶ Q.X j) (j : ℕ) :
-  prev_d f j = f j (j+1) ≫ Q.d _ _ :=
+  prev_d j f = f j (j+1) ≫ Q.d _ _ :=
 begin
   dsimp [prev_d],
   simp only [chain_complex.prev],
@@ -294,7 +256,7 @@ begin
 end
 
 @[simp] lemma d_next_succ_chain_complex (f : Π i j, P.X i ⟶ Q.X j) (i : ℕ) :
-  d_next f (i+1) = P.d _ _ ≫ f i (i+1) :=
+  d_next (i+1) f = P.d _ _ ≫ f i (i+1) :=
 begin
   dsimp [d_next],
   simp only [chain_complex.next_nat_succ],
@@ -302,7 +264,7 @@ begin
 end
 
 @[simp] lemma d_next_zero_chain_complex (f : Π i j, P.X i ⟶ Q.X j) :
-  d_next f 0 = 0 :=
+  d_next 0 f = 0 :=
 begin
   dsimp [d_next],
   simp only [chain_complex.next_nat_zero],
@@ -379,7 +341,7 @@ def mk_inductive : homotopy e 0 :=
   else
     0,
   zero' := λ i j w, by rwa dif_neg,
-  comm' := λ i, begin
+  comm := λ i, begin
     dsimp, simp only [add_zero],
     convert (mk_inductive_aux₂ e zero comm_zero one comm_one succ i).2.2,
     { rcases i with (_|_|_|i),
@@ -502,7 +464,7 @@ def functor.map_homotopy (F : V ⥤ W) [F.additive] {f g : C ⟶ D} (h : homotop
   homotopy ((F.map_homological_complex c).map f) ((F.map_homological_complex c).map g) :=
 { hom := λ i j, F.map (h.hom i j),
   zero' := λ i j w, by { rw [h.zero i j w, F.map_zero], },
-  comm' := λ i, begin
+  comm := λ i, begin
     have := h.comm i,
     dsimp [d_next, prev_d] at *,
     rcases c.next i with _|⟨inext,wn⟩;

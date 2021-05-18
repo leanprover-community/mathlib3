@@ -140,10 +140,13 @@ instance : has_zero cardinal.{u} := ⟨⟦pempty⟧⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
 
+lemma eq_zero_iff_is_empty {α : Type u} : mk α = 0 ↔ is_empty α :=
+⟨λ e, let ⟨h⟩ := quotient.exact e in
+  equiv.equiv_empty_equiv α $ h.trans equiv.empty_equiv_pempty.symm,
+  λ h, by exactI quotient.sound ⟨equiv.equiv_pempty α⟩⟩
+
 theorem ne_zero_iff_nonempty {α : Type u} : mk α ≠ 0 ↔ nonempty α :=
-not_iff_comm.1
-  ⟨λ h, quotient.sound ⟨(equiv.empty_of_not_nonempty h).trans equiv.empty_equiv_pempty⟩,
-   λ e, let ⟨h⟩ := quotient.exact e in λ ⟨a⟩, (h a).elim⟩
+(not_iff_not.2 eq_zero_iff_is_empty).trans not_is_empty_iff
 
 instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
 
@@ -176,7 +179,7 @@ private theorem mul_comm (a b : cardinal.{u}) : a * b = b * a :=
 quotient.induction_on₂ a b $ assume α β, quotient.sound ⟨equiv.prod_comm α β⟩
 
 private theorem zero_add (a : cardinal.{u}) : 0 + a = a :=
-quotient.induction_on a $ assume α, quotient.sound ⟨equiv.pempty_sum α⟩
+quotient.induction_on a $ assume α, quotient.sound ⟨equiv.empty_sum pempty α⟩
 
 private theorem zero_mul (a : cardinal.{u}) : 0 * a = 0 :=
 quotient.induction_on a $ assume α, quotient.sound ⟨equiv.pempty_prod α⟩
@@ -247,8 +250,8 @@ quot.sound ⟨equiv.ulift.trans $ equiv.Prop_equiv_bool.trans equiv.bool_equiv_p
 
 @[simp] theorem zero_power {a : cardinal} : a ≠ 0 → 0 ^ a = 0 :=
 quotient.induction_on a $ assume α heq,
-nonempty.rec_on (ne_zero_iff_nonempty.1 heq) $ assume a,
-quotient.sound ⟨equiv.equiv_pempty $ assume f, pempty.rec (λ _, false) (f a)⟩
+(ne_zero_iff_nonempty.1 heq).elim $ assume a,
+by { haveI : nonempty α := ⟨a⟩, exact quotient.sound ⟨equiv.equiv_pempty _⟩ }
 
 theorem power_ne_zero {a : cardinal} (b) : a ≠ 0 → a ^ b ≠ 0 :=
 quotient.induction_on₂ a b $ λ α β h,
@@ -615,7 +618,7 @@ pos_iff_ne_zero.2 omega_ne_zero
 /- properties about the cast from nat -/
 
 @[simp] theorem mk_fin : ∀ (n : ℕ), mk (fin n) = n
-| 0     := quotient.sound ⟨(equiv.pempty_of_not_nonempty $ λ ⟨h⟩, h.elim0)⟩
+| 0     := quotient.sound ⟨equiv.equiv_pempty _⟩
 | (n+1) := by rw [nat.cast_succ, ← mk_fin]; exact
   quotient.sound (fintype.card_eq.1 $ by simp)
 
@@ -776,8 +779,8 @@ match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_pow]; apply nat_lt_omega
 end
 
-lemma eq_one_iff_subsingleton_and_nonempty {α : Type*} :
-  mk α = 1 ↔ (subsingleton α ∧ nonempty α) :=
+lemma eq_one_iff_unique {α : Type*} :
+  mk α = 1 ↔ subsingleton α ∧ nonempty α :=
 calc mk α = 1 ↔ mk α ≤ 1 ∧ ¬mk α < 1 : eq_iff_le_not_lt
           ... ↔ subsingleton α ∧ nonempty α :
 begin
@@ -949,7 +952,7 @@ fintype_card empty
 fintype_card pempty
 
 @[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : mk (plift p) = 0 :=
-quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty h⟩
+by { haveI : is_empty p := ⟨h⟩, exact quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty _⟩ }
 
 theorem mk_unit : mk unit = 1 :=
 (fintype_card unit).trans nat.cast_one

@@ -123,3 +123,6 @@ begin
     rw ← this,
     exact ⟨v'.linear_independent, v'.span_eq⟩ },
 end
+
+lemma basis.is_unit_det (e' : basis ι R M) : is_unit (e.det e') :=
+(is_basis.iff_det e).mp ⟨e'.linear_independent, e'.span_eq⟩

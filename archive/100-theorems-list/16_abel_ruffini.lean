@@ -168,8 +168,7 @@ theorem not_solvable_by_rad (p : ℕ) (x : ℂ) (hx : aeval x (Φ ℚ a b) = 0) 
   (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b) (hp2b : ¬ (p ^ 2 ∣ b))  :
   ¬ is_solvable_by_rad ℚ x :=
 begin
-  have h_irred : irreducible (Φ ℚ a b),
-  { exact irreducible_Phi a b p hp hpa hpb hp2b },
+  have h_irred := irreducible_Phi a b p hp hpa hpb hp2b,
   apply mt (solvable_by_rad.is_solvable' h_irred hx),
   introI h,
   refine equiv.perm.not_solvable _ (le_of_eq _)

@@ -106,13 +106,12 @@ begin
   rw [finset.prod_singleton, cyclotomic_one, cyclotomic_3, cyclotomic_5, cyclotomic_7,
   cyclotomic_15, cyclotomic_21, cyclotomic_35],
   ring,
-  repeat { simp only [finset.mem_insert, finset.mem_singleton], norm_num }
+  repeat { norm_num }
 end
 
 lemma coeff_cyclotomic_105 : coeff (cyclotomic 105 ℤ) 7 = -2 :=
 begin
   have h7 : (2 * X ^ 7 : polynomial ℤ) = (C 2) * X ^ 7 := by simp,
   have h41 : (2 * X ^ 41 : polynomial ℤ) = (C 2) * X ^ 41 := by simp,
-  rw [cyclotomic_105],
-  simp [coeff_add, coeff_sub, coeff_X_pow, coeff_one, coeff_X_of_ne_one, h41, h7]
+  simp [cyclotomic_105, coeff_add, coeff_sub, coeff_X_pow, coeff_one, coeff_X_of_ne_one, h41, h7]
 end

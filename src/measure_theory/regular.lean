@@ -182,7 +182,7 @@ begin
     have : μ U + ε ≤ ⨆ (F : set α) (hF : is_closed F) (FU : F ⊆ U), (μ F + ε),
     { haveI : nonempty {i // is_closed i ∧ i ⊆ U} := ⟨⟨∅, is_closed_empty, empty_subset _⟩⟩,
       simp_rw [supr_and', supr_subtype', ← ennreal.supr_add],
-      apply add_le_add _ (le_refl _),
+      refine add_le_add _ (le_refl _),
       convert h0 U hU using 1,
       simp_rw [supr_and', supr_subtype'], },
     have : μ U < (⨆ (F : set α) (hF : is_closed F) (FU : F ⊆ U), (μ F + ε)),
@@ -299,16 +299,23 @@ theorem weakly_regular_of_inner_regular_of_finite_measure [borel_space α]
     exact (ennreal.add_lt_add_iff_left (measure_lt_top μ F)).2 δε,
   end }
 
+/-- The restriction of a weakly regular measure to an open set of finite measure is
+weakly regular. -/
 lemma restrict_is_open [weakly_regular μ] [borel_space α]
-  (U : set α) (hU : is_open U) (h'U : μ U < ∞) :
-  weakly_regular (μ.restrict U) :=
+  (U : set α) (hU : is_open U) (h'U : μ U < ∞) : weakly_regular (μ.restrict U) :=
 begin
   haveI : finite_measure (μ.restrict U) :=
     ⟨by rwa [restrict_apply measurable_set.univ, univ_inter]⟩,
   refine weakly_regular_of_inner_regular_of_finite_measure _ (λ V V_open, _),
   simp only [restrict_apply' hU.measurable_set],
-  have Z := is_open.inter,
-  have Z := weakly_regular.inner_regular (V_open.inter hU),
+  refine le_trans (weakly_regular.inner_regular (V_open.inter hU)) _,
+  simp only [and_imp, supr_le_iff, subset_inter_iff],
+  assume F F_closed FV FU,
+  have : F = F ∩ U :=
+    subset.antisymm (by simp [subset.refl, FU]) (inter_subset_left _ _),
+  conv_lhs {rw this},
+  simp_rw [supr_and', supr_subtype'],
+  exact le_supr (λ s : {s // is_closed s ∧ s ⊆ V}, μ (s ∩ U)) ⟨F, F_closed, FV⟩,
 end
 
 /-- Given a weakly regular measure of finite mass, any measurable set can be approximated from
@@ -324,7 +331,7 @@ begin
   simp_rw [supr_and', supr_subtype', ennreal.supr_add],
   simp only [lt_supr_iff],
   rcases (exists_closed_subset_self_subset_open_of_pos μ
-    weakly_regular.inner_regular_eq hA δ δpos).2 with ⟨F, F_closed, sF, μF⟩,
+    weakly_regular.inner_regular hA δ δpos).2 with ⟨F, F_closed, sF, μF⟩,
   refine ⟨⟨F, F_closed, sF⟩, μF.trans_lt _⟩,
   exact (ennreal.add_lt_add_iff_left (measure_lt_top μ F)).2 δε,
 end

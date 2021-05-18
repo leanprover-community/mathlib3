@@ -140,8 +140,7 @@ begin
   have q_ne_zero : Φ ℚ a b ≠ 0 := (monic_Phi a b).ne_zero,
   obtain ⟨x, y, hxy, hx, hy⟩ := real_roots_Phi_ge_aux a b hab,
   have key : ↑({x, y} : finset ℝ) ⊆ (Φ ℚ a b).root_set ℝ,
-  { rw [finset.coe_insert, finset.coe_singleton, set.insert_subset, set.singleton_subset_iff],
-    exact ⟨by rwa mem_root_set q_ne_zero, by rwa mem_root_set q_ne_zero⟩ },
+  { simp [set.insert_subset, mem_root_set q_ne_zero, hx, hy] },
   replace key := fintype.card_le_of_embedding (set.embedding_of_subset _ _ key),
   rwa [fintype.card_coe, finset.card_insert_of_not_mem, finset.card_singleton] at key,
   rwa finset.mem_singleton,
@@ -154,8 +153,7 @@ lemma gal_Phi (hab : b < a) (h_irred : irreducible (Φ ℚ a b)) :
   bijective (gal_action_hom (Φ ℚ a b) ℂ) :=
 begin
   apply gal_action_hom_bijective_of_prime_degree' h_irred,
-  { rw [nat_degree_Phi],
-    norm_num },
+  { norm_num [nat_degree_Phi] },
   { rw [complex_roots_Phi a b h_irred.separable, nat.succ_le_succ_iff],
     exact (real_roots_Phi_le a b).trans (nat.le_succ 3) },
   { simp_rw [complex_roots_Phi a b h_irred.separable, nat.succ_le_succ_iff],
@@ -166,14 +164,12 @@ theorem not_solvable_by_rad (p : ℕ) (x : ℂ) (hx : aeval x (Φ ℚ a b) = 0) 
   (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b) (hp2b : ¬ (p ^ 2 ∣ b))  :
   ¬ is_solvable_by_rad ℚ x :=
 begin
-  have h_irred : irreducible (Φ ℚ a b),
-  { exact irreducible_Phi a b p hp hpa hpb hp2b },
+  have h_irred := irreducible_Phi a b p hp hpa hpb hp2b,
   apply mt (solvable_by_rad.is_solvable' h_irred hx),
   introI h,
   refine equiv.perm.not_solvable _ (le_of_eq _)
     (solvable_of_surjective (gal_Phi a b hab h_irred).2),
-  rw [cardinal.fintype_card, complex_roots_Phi a b h_irred.separable],
-  rw [nat.cast_bit1, nat.cast_bit0, nat.cast_one],
+  rw_mod_cast [cardinal.fintype_card, complex_roots_Phi a b h_irred.separable],
 end
 
 theorem not_solvable_by_rad' (x : ℂ) (hx : aeval x (Φ ℚ 4 2) = 0) :

@@ -258,7 +258,7 @@ end chinese_remainder
 
 section mul_and_radical
 variables {R : Type u} {ι : Type*} [comm_ring R]
-variables {I J K L: ideal R}
+variables {I J K L : ideal R}
 
 instance : has_mul (ideal R) := ⟨(•)⟩
 
@@ -694,7 +694,7 @@ end
 end mul_and_radical
 
 section map_and_comap
-variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
+variables {R : Type u} {S : Type v} [ring R] [ring S]
 variables (f : R →+* S)
 variables {I J : ideal R} {K L : ideal S}
 
@@ -741,17 +741,6 @@ variables (I J K L)
 
 theorem map_top : map f ⊤ = ⊤ :=
 (eq_top_iff_one _).2 $ subset_span ⟨1, trivial, f.map_one⟩
-
-theorem map_mul : map f (I * J) = map f I * map f J :=
-le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
-  show f (r * s) ∈ _, by rw f.map_mul;
-  exact mul_mem_mul (mem_map_of_mem f hri) (mem_map_of_mem f hsj))
-(trans_rel_right _ (span_mul_span _ _) $ span_le.2 $
-  set.bUnion_subset $ λ i ⟨r, hri, hfri⟩,
-  set.bUnion_subset $ λ j ⟨s, hsj, hfsj⟩,
-  set.singleton_subset_iff.2 $ hfri ▸ hfsj ▸
-  by rw [← f.map_mul];
-  exact mem_map_of_mem f (mul_mem_mul hri hsj))
 
 variable (f)
 lemma gc_map_comap : galois_connection (ideal.map f) (ideal.comap f) :=
@@ -825,34 +814,17 @@ lemma comap_Inf (s : set (ideal S)): (Inf s).comap f = ⨅ I ∈ s, (I : ideal S
 lemma comap_Inf' (s : set (ideal S)) : (Inf s).comap f = ⨅ I ∈ (comap f '' s), I :=
 trans (comap_Inf f s) (by rw infi_image)
 
-theorem comap_radical : comap f (radical K) = radical (comap f K) :=
-le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
-  from (f.map_pow r n).symm ▸ hfrnk⟩)
-(λ r ⟨n, hfrnk⟩, ⟨n, f.map_pow r n ▸ hfrnk⟩)
-
 theorem comap_is_prime [H : is_prime K] : is_prime (comap f K) :=
 ⟨comap_ne_top f H.ne_top,
   λ x y h, H.mem_or_mem $ by rwa [mem_comap, ring_hom.map_mul] at h⟩
-
-@[simp] lemma map_quotient_self :
-  map (quotient.mk I) I = ⊥ :=
-eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
-(submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
 
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
 (gc_map_comap f).monotone_l.map_inf_le _ _
 
-theorem map_radical_le : map f (radical I) ≤ radical (map f I) :=
-map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, f.map_pow r n ▸ mem_map_of_mem f hrni⟩
-
 theorem le_comap_sup : comap f K ⊔ comap f L ≤ comap f (K ⊔ L) :=
 (gc_map_comap f).monotone_u.le_map_sup _ _
-
-theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
-map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸
-mul_mono (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl _)
 
 section surjective
 variables (hf : function.surjective f)
@@ -957,17 +929,6 @@ end
 
 end surjective
 
-lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
-  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
-begin
-  refine iff.trans (mem_map_iff_of_surjective _ quotient.mk_surjective) _,
-  split,
-  { rintros ⟨x, x_mem, x_eq⟩,
-    simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
-  { intro x_mem,
-    exact ⟨x, x_mem, rfl⟩ }
-end
-
 section injective
 variables (hf : function.injective f)
 include hf
@@ -1015,6 +976,55 @@ lemma ring_equiv.bot_maximal_iff (e : R ≃+* S) :
   (⊥ : ideal R).is_maximal ↔ (⊥ : ideal S).is_maximal :=
 ⟨λ h, (@map_bot _ _ _ _ e.to_ring_hom) ▸ map.is_maximal e.to_ring_hom e.bijective h,
   λ h, (@map_bot _ _ _ _ e.symm.to_ring_hom) ▸ map.is_maximal e.symm.to_ring_hom e.symm.bijective h⟩
+
+end map_and_comap
+
+section map_and_comap
+
+variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
+variables (f : R →+* S)
+variables (I J : ideal R) (K L : ideal S)
+
+lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
+begin
+  refine iff.trans (mem_map_iff_of_surjective _ quotient.mk_surjective) _,
+  split,
+  { rintros ⟨x, x_mem, x_eq⟩,
+    simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
+  { intro x_mem,
+    exact ⟨x, x_mem, rfl⟩ }
+end
+
+theorem map_mul : map f (I * J) = map f I * map f J :=
+le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,
+  show f (r * s) ∈ _, by rw f.map_mul;
+  exact mul_mem_mul (mem_map_of_mem f hri) (mem_map_of_mem f hsj))
+(trans_rel_right _ (span_mul_span _ _) $ span_le.2 $
+  set.bUnion_subset $ λ i ⟨r, hri, hfri⟩,
+  set.bUnion_subset $ λ j ⟨s, hsj, hfsj⟩,
+  set.singleton_subset_iff.2 $ hfri ▸ hfsj ▸
+  by rw [← f.map_mul];
+  exact mem_map_of_mem f (mul_mem_mul hri hsj))
+
+theorem comap_radical : comap f (radical K) = radical (comap f K) :=
+le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
+  from (f.map_pow r n).symm ▸ hfrnk⟩)
+(λ r ⟨n, hfrnk⟩, ⟨n, f.map_pow r n ▸ hfrnk⟩)
+
+@[simp] lemma map_quotient_self :
+  map (quotient.mk I) I = ⊥ :=
+eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
+(submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
+
+variables {I J K L}
+
+theorem map_radical_le : map f (radical I) ≤ radical (map f I) :=
+map_le_iff_le_comap.2 $ λ r ⟨n, hrni⟩, ⟨n, f.map_pow r n ▸ mem_map_of_mem f hrni⟩
+
+theorem le_comap_mul : comap f K * comap f L ≤ comap f (K * L) :=
+map_le_iff_le_comap.1 $ (map_mul f (comap f K) (comap f L)).symm ▸
+mul_mono (map_le_iff_le_comap.2 $ le_refl _) (map_le_iff_le_comap.2 $ le_refl _)
 
 end map_and_comap
 

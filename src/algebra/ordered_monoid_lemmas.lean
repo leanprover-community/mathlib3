@@ -787,23 +787,3 @@ one_mul c ▸ mul_lt_mul''' ha hbc
 @[to_additive]
 lemma mul_lt_of_lt_of_lt_one (hbc : b < c) (ha : a < 1) : b * a < c :=
 mul_one c ▸ mul_lt_mul''' hbc ha
-
-variable [contravariant_class α α (*) (<)]
-
-@[to_additive] -- add_eq_zero_iff_eq_zero_of_nonneg
-lemma mul_eq_one_iff_eq_one_of_one_le
-  (ha : 1 ≤ a) (hb : 1 ≤ b) : a * b = 1 ↔ a = 1 ∧ b = 1 :=
-⟨λ hab : a * b = 1,
-by split; apply le_antisymm; try {assumption};
-   rw ← hab; simp [ha, hb],
-λ ⟨ha', hb'⟩, by rw [ha', hb', mul_one]⟩
-
-lemma pro {α : Type*} {a b : α} [partial_order α] [monoid α]
-[covariant_class α α has_mul.mul has_le.le]
-[covariant_class α α (function.swap has_mul.mul) has_le.le]
-[contravariant_class α α (function.swap has_mul.mul) has_lt.lt]
-[contravariant_class α α has_mul.mul has_lt.lt] (a1 : 1 ≤ a) (b1 : 1 ≤ b) :
-  a * b = 1 ↔ a = 1 ∧ b = 1 :=
-begin
-  exact mul_eq_one_iff' a1 b1,
-end

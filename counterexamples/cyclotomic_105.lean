@@ -62,7 +62,7 @@ lemma cyclotomic_15 : cyclotomic 15 ℤ = 1 - X + X ^ 3 - X ^ 4 + X ^ 5 - X ^ 7 
 begin
   refine ((eq_cyclotomic_iff (show 0 < 15, by norm_num) _).2 _).symm,
   rw [proper_divisors_15, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
-  cyclotomic_one, cyclotomic_3, cyclotomic_5],
+    cyclotomic_one, cyclotomic_3, cyclotomic_5],
   ring,
   repeat { norm_num }
 end

@@ -150,7 +150,7 @@ by_cases
   (assume : p, begin simp only [this]; exact is_open_univ end)
   (assume : ¬ p, begin simp only [this]; exact is_open_empty end)
 
-lemma is_open_and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
+lemma is_open.and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
 is_open.inter
 
 /-- A set is closed if its complement is open -/
@@ -185,7 +185,7 @@ by rw [←is_open_compl_iff, compl_compl]
 lemma is_open.is_closed_compl {s : set α} (hs : is_open s) : is_closed sᶜ :=
 is_closed_compl_iff.2 hs
 
-lemma is_open_diff {s t : set α} (h₁ : is_open s) (h₂ : is_closed t) : is_open (s \ t) :=
+lemma is_open.sdiff {s t : set α} (h₁ : is_open s) (h₂ : is_closed t) : is_open (s \ t) :=
 is_open.inter h₁ $ is_open_compl_iff.mpr h₂
 
 lemma is_closed.inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
@@ -213,7 +213,7 @@ lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
 have {x | p x → q x} = {x | p x}ᶜ ∪ {x | q x}, from set.ext $ λ x, imp_iff_not_or,
 by rw [this]; exact is_closed.union (is_closed_compl_iff.mpr hp) hq
 
-lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
+lemma is_closed.not : is_closed {a | p a} → is_open {a | ¬ p a} :=
 is_open_compl_iff.mpr
 
 /-!
@@ -276,7 +276,7 @@ have interior (s ∪ t) ⊆ s, from
     have u \ s ⊆ t,
       from assume x ⟨h₁, h₂⟩, or.resolve_left (hu₂ h₁) h₂,
     have u \ s ⊆ interior t,
-      by rwa subset_interior_iff_subset_of_open (is_open_diff hu₁ h₁),
+      by rwa subset_interior_iff_subset_of_open (is_open.sdiff hu₁ h₁),
     have u \ s ⊆ ∅,
       by rwa h₂ at this,
     this ⟨hx₁, hx₂⟩,

@@ -326,7 +326,7 @@ begin
   refine supr_le _, rintro ⟨L, hL⟩, simp only [subset_inter_iff] at hL,
   have : ↑U' \ U ⊆ U' \ L.1 := diff_subset_diff_right hL.2,
   refine le_trans (add_le_add_left (μ.outer_measure.mono' this) _) _,
-  rw μ.outer_measure_of_is_open (↑U' \ L.1) (is_open_diff U'.2 L.2.is_closed),
+  rw μ.outer_measure_of_is_open (↑U' \ L.1) (is_open.sdiff U'.2 L.2.is_closed),
   simp only [inner_content, supr_subtype'], rw [opens.coe_mk],
   haveI : nonempty {M : compacts G // M.1 ⊆ ↑U' \ L.1} := ⟨⟨⊥, empty_subset _⟩⟩,
   rw [ennreal.add_supr], refine supr_le _, rintro ⟨M, hM⟩, simp only [subset_diff] at hM,

@@ -955,7 +955,7 @@ begin
     (connected_components_preimage_image U ▸ eq.symm) hu_clopen.eq_union_connected_components,
   have huc : quotient.mk ⁻¹' (quotient.mk '' Uᶜ) = Uᶜ :=
     (connected_components_preimage_image Uᶜ ▸ eq.symm)
-      (is_clopen_compl hu_clopen).eq_union_connected_components,
+      (is_clopen.compl hu_clopen).eq_union_connected_components,
   -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
   refine ⟨_,_,_,_,_⟩,
   { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, hu],

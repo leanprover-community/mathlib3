@@ -752,10 +752,10 @@ ideal.ext $ λ _, iff.rfl
 @[simp] lemma map_id : I.map (ring_hom.id R) = I :=
 (gc_map_comap (ring_hom.id R)).l_unique galois_connection.id comap_id
 
-lemma comap_comap {T : Type*} [comm_ring T] {I : ideal T} (f : R →+* S)
+lemma comap_comap {T : Type*} [ring T] {I : ideal T} (f : R →+* S)
   (g : S →+*T) : (I.comap g).comap f = I.comap (g.comp f) := rfl
 
-lemma map_map {T : Type*} [comm_ring T] {I : ideal R} (f : R →+* S)
+lemma map_map {T : Type*} [ring T] {I : ideal R} (f : R →+* S)
   (g : S →+*T) : (I.map f).map g = I.map (g.comp f) :=
 ((gc_map_comap f).compose _ _ _ _ (gc_map_comap g)).l_unique
   (gc_map_comap (g.comp f)) (λ _, comap_comap _ _)
@@ -825,6 +825,7 @@ theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
 
 theorem le_comap_sup : comap f K ⊔ comap f L ≤ comap f (K ⊔ L) :=
 (gc_map_comap f).monotone_u.le_map_sup _ _
+
 
 section surjective
 variables (hf : function.surjective f)
@@ -928,6 +929,22 @@ begin
 end
 
 end surjective
+
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/
+@[simp]
+lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map (f.symm : S →+* R) = I :=
+by simp [← ring_equiv.to_ring_hom_eq_coe, map_map]
+
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/
+@[simp]
+lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) :
+  (I.comap (f.symm : S →+* R)).comap (f : R →+* S) = I :=
+by simp [← ring_equiv.to_ring_hom_eq_coe, comap_comap]
+
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f I = comap f.symm I`. -/
+lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=
+le_antisymm (le_comap_of_map_le (map_of_equiv I f).le)
+  (le_map_of_comap_le_of_surjective _ f.surjective (comap_of_equiv I f).le)
 
 section injective
 variables (hf : function.injective f)
@@ -1066,10 +1083,10 @@ end ideal
 
 namespace ring_hom
 
-variables {R : Type u} {S : Type v} [comm_ring R]
+variables {R : Type u} {S : Type v}
 
-section comm_ring
-variables [comm_ring S] (f : R →+* S)
+section ring
+variables [ring R] [ring S] (f : R →+* S)
 
 /-- Kernel of a ring homomorphism as an ideal of the domain. -/
 def ker : ideal R := ideal.comap f ⊥
@@ -1094,6 +1111,11 @@ by { rw [mem_ker, f.map_one], exact one_ne_zero }
 
 @[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
 by simpa only [←injective_iff_ker_eq_bot] using f.injective
+
+end ring
+
+section comm_ring
+variables [comm_ring R] [comm_ring S] (f : R →+* S)
 
 /-- The induced map from the quotient by the kernel to the codomain.
 
@@ -1145,7 +1167,7 @@ quotient_ker_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
 end comm_ring
 
 /-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
-lemma ker_is_prime [integral_domain S] (f : R →+* S) :
+lemma ker_is_prime [ring R] [integral_domain S] (f : R →+* S) :
   (ker f).is_prime :=
 ⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
 λ x y, by simpa only [mem_ker, f.map_mul] using @eq_zero_or_eq_zero_of_mul_eq_zero S _ _ _ _ _⟩
@@ -1154,13 +1176,13 @@ end ring_hom
 
 namespace ideal
 
-variables {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
+variables {R : Type*} {S : Type*}
+
+section ring
+variables [ring R] [ring S]
 
 lemma map_eq_bot_iff_le_ker {I : ideal R} (f : R →+* S) : I.map f = ⊥ ↔ I ≤ f.ker :=
 by rw [ring_hom.ker, eq_bot_iff, map_le_iff_le_comap]
-
-@[simp] lemma mk_ker {I : ideal R} : (quotient.mk I).ker = I :=
-by ext; rw [ring_hom.ker, mem_comap, submodule.mem_bot, quotient.eq_zero_iff_mem]
 
 lemma ker_le_comap {K : ideal S} (f : R →+* S) : f.ker ≤ comap f K :=
 λ x hx, mem_comap.2 (((ring_hom.mem_ker f).1 hx).symm ▸ K.zero_mem)
@@ -1200,13 +1222,21 @@ begin
     rw [← sub_eq_zero, ← ring_hom.map_sub] at hc',
     have : a * b ∈ I,
     { convert I.sub_mem hc (hk (hc' : c - a * b ∈ f.ker)),
-      ring },
+      abel },
     exact (H.mem_or_mem this).imp (λ h, ha ▸ mem_map_of_mem f h) (λ h, hb ▸ mem_map_of_mem f h) }
 end
 
 theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
   is_prime (map (f : R →+* S) I) :=
 map_is_prime_of_surjective f.surjective $ by simp
+
+end ring
+
+section comm_ring
+variables [comm_ring R] [comm_ring S]
+
+@[simp] lemma mk_ker {I : ideal R} : (quotient.mk I).ker = I :=
+by ext; rw [ring_hom.ker, mem_comap, submodule.mem_bot, quotient.eq_zero_iff_mem]
 
 theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
   (h : ring_hom.ker f ≤ I) : map f (I.radical) = (map f I).radical :=
@@ -1316,7 +1346,7 @@ lemma quotient_ker_alg_equiv_of_right_inverse_symm.apply {f : A →ₐ[R] B} {g 
   (quotient_ker_alg_equiv_of_right_inverse hf).symm x = quotient.mkₐ R f.to_ring_hom.ker (g x) :=
   rfl
 
-/-- The first isomorphism theorem for agebras. -/
+/-- The first isomorphism theorem for algebras. -/
 noncomputable def quotient_ker_alg_equiv_of_surjective
   {f : A →ₐ[R] B} (hf : function.surjective f) : f.to_ring_hom.ker.quotient ≃ₐ[R] B :=
 quotient_ker_alg_equiv_of_right_inverse (classical.some_spec hf.has_right_inverse)
@@ -1335,22 +1365,6 @@ quotient.lift_mk J _ _
 lemma quotient_map_comp_mk {J : ideal R} {I : ideal S} {f : R →+* S} (H : J ≤ I.comap f) :
   (quotient_map I f H).comp (quotient.mk J) = (quotient.mk I).comp f :=
 ring_hom.ext (λ x, by simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient_map_mk])
-
-/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/
-@[simp]
-lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map (f.symm : S →+* R) = I :=
-by simp [← ring_equiv.to_ring_hom_eq_coe, map_map]
-
-/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/
-@[simp]
-lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) :
-  (I.comap (f.symm : S →+* R)).comap (f : R →+* S) = I :=
-by simp [← ring_equiv.to_ring_hom_eq_coe, comap_comap]
-
-/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f I = comap f.symm I`. -/
-lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=
-le_antisymm (le_comap_of_map_le (map_of_equiv I f).le)
-  (le_map_of_comap_le_of_surjective _ f.surjective (comap_of_equiv I f).le)
 
 /-- The ring equiv `R/I ≃+* S/J` induced by a ring equiv `f : R ≃+** S`,  where `J = f(I)`. -/
 @[simps]
@@ -1440,6 +1454,8 @@ end
 
 end quotient_algebra
 
+end comm_ring
+
 end ideal
 
 namespace submodule
@@ -1447,7 +1463,8 @@ namespace submodule
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
 
--- It is even a semialgebra. But those aren't in mathlib yet.
+-- It is even a semialgebra.
+-- This wasn't previously possible to state in mathlib, as we didn't have them, but we do now.
 
 instance module_submodule : module (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
@@ -1460,7 +1477,7 @@ instance module_submodule : module (ideal R) (submodule R M) :=
 end submodule
 
 namespace ring_hom
-variables {A B C : Type*} [comm_ring A] [comm_ring B] [comm_ring C]
+variables {A B C : Type*} [ring A] [ring B] [ring C]
 variables (f : A →+* B) (f_inv : B → A)
 
 /-- Auxiliary definition used to define `lift_of_right_inverse` -/

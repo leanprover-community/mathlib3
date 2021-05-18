@@ -7,8 +7,11 @@ Authors: Riccardo Brasca
 import ring_theory.polynomial.cyclotomic
 
 /-!
-We show that coeff `(cyclotomic 105 ℤ) 7 = -2`, proving that not all coefficients of cyclotomic
-polynomials are equal to `0`, `-1` or `1`.
+# Not all coefficients of cyclotomic polynomials are -1, 0, or 1
+
+We show that not all coefficients of cyclotomic polynomials are equal to `0`, `-1` or `1`, in the
+theorem `not_forall_coeff_cyclotomic_neg_one_zero_one`. We prove this with the counterexample
+`coeff_cyclotomic_105 : coeff (cyclotomic 105 ℤ) 7 = -2`.
 -/
 
 section computation

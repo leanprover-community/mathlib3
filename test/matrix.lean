@@ -1,5 +1,5 @@
 import data.matrix.notation
-import linear_algebra.determinant
+import linear_algebra.matrix.determinant
 import group_theory.perm.fin
 import tactic.norm_swap
 

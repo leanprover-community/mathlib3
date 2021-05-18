@@ -36,6 +36,17 @@ class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :
 
 attribute [to_additive] ordered_comm_group
 
+@[to_additive]
+instance units.covariant_class [ordered_comm_monoid α] :
+  covariant_class (units α) (units α) (*) (≤) :=
+{ covc := λ a b c bc, by {
+  rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
+  { exact rfl.le },
+  refine le_iff_eq_or_lt.mpr (or.inr _),
+  refine units.coe_lt_coe.mp _,
+  cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
+  exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
+
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
@@ -720,6 +731,8 @@ lemma le_iff_forall_pos_lt_add : a ≤ b ↔ ∀ ε, 0 < ε → a < b + ε :=
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)
 
+lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
+
 lemma abs_of_nonneg (h : 0 ≤ a) : abs a = a :=
 max_eq_left $ (neg_nonpos.2 h).trans h
 
@@ -830,14 +843,22 @@ calc abs a = abs (a - b + b)     : by rw [sub_add_cancel]
 lemma abs_abs_sub_abs_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
 abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub; apply abs_sub_abs_le_abs_sub⟩
 
+lemma eq_or_eq_neg_of_abs_eq (h : abs a = b) : a = b ∨ a = -b :=
+by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a
+
 lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
-iff.intro
-  begin
-    cases le_total a 0 with a_nonpos a_nonneg,
-    { rw [abs_of_nonpos a_nonpos, neg_eq_iff_neg_eq, eq_comm], exact or.inr },
-    { rw [abs_of_nonneg a_nonneg, eq_comm], exact or.inl }
-  end
-  (by intro h; cases h; subst h; try { rw abs_neg }; exact abs_of_nonneg hb)
+begin
+  refine ⟨eq_or_eq_neg_of_abs_eq, _⟩,
+  rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb]
+end
+
+lemma abs_eq_abs : abs a = abs b ↔ a = b ∨ a = -b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { obtain rfl | rfl := eq_or_eq_neg_of_abs_eq h;
+    simpa only [neg_eq_iff_neg_eq, neg_inj, or.comm, @eq_comm _ (-b)] using abs_choice b },
+  { cases h; simp only [h, abs_neg] },
+end
 
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le'.2
@@ -962,7 +983,7 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 
 instance [linear_ordered_add_comm_group α] :
   linear_ordered_add_comm_group (order_dual α) :=
-{ add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
+{ add_le_add_left := λ a b h c, by exact add_le_add_left h _,
   ..order_dual.linear_order α,
   ..show add_comm_group α, by apply_instance }
 

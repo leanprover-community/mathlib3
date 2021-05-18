@@ -84,8 +84,7 @@ begin
       ideal.mem_span_singleton, ←int.coe_nat_pow],
     norm_num,
     exact mt int.coe_nat_dvd.mp hp2b },
-  { exact polynomial.monic.is_primitive (monic_Phi a b) },
-  { exact polynomial.monic.is_primitive (monic_Phi a b) },
+  all_goals { exact polynomial.monic.is_primitive (monic_Phi a b) },
 end
 
 lemma real_roots_Phi_le : fintype.card ((Φ ℚ a b).root_set ℝ) ≤ 3 :=

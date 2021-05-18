@@ -170,7 +170,7 @@ hs.elim_directed_cover _ (λ t, is_open_bUnion $ λ i _, hUo i) (Union_eq_Union_
 lemma is_compact.elim_nhds_subcover' (hs : is_compact s) (U : Π x ∈ s, set α)
   (hU : ∀ x ∈ s, U x ‹x ∈ s› ∈ 𝓝 x) :
   ∃ t : finset s, s ⊆ ⋃ x ∈ t, U (x : s) x.2 :=
-(hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open.interior)
+(hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open_interior)
   (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 $ hU _ _⟩)).imp $ λ t ht,
 subset.trans ht $ bUnion_subset_bUnion_right $ λ _ _, interior_subset
 
@@ -526,7 +526,7 @@ fintype_of_univ_finite $ finite_of_is_compact_of_discrete _ compact_univ
 
 lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
-let ⟨t, ht⟩ := compact_univ.elim_finite_subcover (λ x, interior (U x)) (λ x, is_open.interior)
+let ⟨t, ht⟩ := compact_univ.elim_finite_subcover (λ x, interior (U x)) (λ x, is_open_interior)
   (λ x _, mem_Union.2 ⟨x, mem_interior_iff_mem_nhds.2 (hU x)⟩)
 in ⟨t, univ_subset_iff.1 ht⟩
 
@@ -841,7 +841,7 @@ begin
   { refine ⟨_, t.compact_bUnion (λ x _, hUc x), λ x hx, _⟩,
     rcases mem_bUnion_iff.1 (ht hx) with ⟨y, hyt, hy⟩,
     exact interior_mono (subset_bUnion_of_mem hyt) hy },
-  { exact λ _, is_open.interior }
+  { exact λ _, is_open_interior }
 end
 
 lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :

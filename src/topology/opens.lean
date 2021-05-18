@@ -56,7 +56,7 @@ instance : has_mem α (opens α) :=
 instance : partial_order (opens α) := subtype.partial_order _
 
 /-- The interior of a set, as an element of `opens`. -/
-def interior (s : set α) : opens α := ⟨interior s, is_open.interior⟩
+def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 
 lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩

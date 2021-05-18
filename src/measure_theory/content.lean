@@ -279,7 +279,7 @@ begin
   calc
   μ.outer_measure K ≤ μ.outer_measure (interior F) : outer_measure.mono' _ h2F
   ... ≤ μ ⟨F, h1F⟩ :
-    by apply μ.outer_measure_le ⟨interior F, is_open.interior⟩ ⟨F, h1F⟩ interior_subset
+    by apply μ.outer_measure_le ⟨interior F, is_open_interior⟩ ⟨F, h1F⟩ interior_subset
   ... < ⊤ : μ.lt_top _
 end
 

@@ -757,7 +757,7 @@ lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {
   (hf : continuous_on f s) (hs : is_open s) : s ∩ f⁻¹' (interior t) ⊆ s ∩ interior (f⁻¹' t) :=
 calc s ∩ f ⁻¹' (interior t) ⊆ interior (s ∩ f ⁻¹' t) :
   interior_maximal (inter_subset_inter (subset.refl _) (preimage_mono interior_subset))
-    (hf.preimage_open_of_open hs is_open.interior)
+    (hf.preimage_open_of_open hs is_open_interior)
 ... = s ∩ interior (f ⁻¹' t) : by rw [interior_inter, hs.interior_eq]
 
 lemma continuous_on_of_locally_continuous_on {f : α → β} {s : set α}

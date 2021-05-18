@@ -484,7 +484,7 @@ definition defined on open sets. In applications where `s` is open, this coincid
 restriction of local equivalences -/
 @[simps apply symm_apply (mfld_cfg), simps source target {attrs := []}]
 protected def restr (s : set α) : local_homeomorph α β :=
-e.restr_open (interior s) is_open.interior
+e.restr_open (interior s) is_open_interior
 
 @[simp, mfld_simps] lemma restr_to_local_equiv (s : set α) :
   (e.restr s).to_local_equiv = (e.to_local_equiv).restr (interior s) := rfl

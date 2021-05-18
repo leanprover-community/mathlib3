@@ -1074,10 +1074,10 @@ theorem is_clopen.compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 ⟨hs.2.is_open_compl, is_closed_compl_iff.2 hs.1⟩
 
 @[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen sᶜ ↔ is_clopen s :=
-⟨λ h, compl_compl s ▸ is_clopen.compl h, is_clopen_compl⟩
+⟨λ h, compl_compl s ▸ is_clopen.compl h, is_clopen.compl⟩
 
 theorem is_clopen.sdiff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
-is_clopen.inter hs (is_clopen.compl ht)
+hs.inter ht.compl
 
 lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=

@@ -178,7 +178,7 @@ end
 
 lemma convex_hull_union_of_convex (hA : convex A) (hB : convex B) :
   convex_hull (A ∪ B) = convex_join A B :=
-subset.antisymm (convex_hull_min union_subset_convex_join (convex_convex_join hA hB))
+(convex_hull_min union_subset_convex_join (convex_convex_join hA hB)).antisymm
   convex_join_subset_convex_hull_union
 
 lemma convex_hull_union :
@@ -198,7 +198,7 @@ begin
   simp,
 end
 
-/--Stone's Separation Theorem-/
+/-- Stone's Separation Theorem -/
 lemma subsets_compl_convexes (hA : convex A) (hB : convex B) (hAB : disjoint A B) :
   ∃ C : set E, convex C ∧ convex Cᶜ ∧ A ⊆ C ∧ B ⊆ Cᶜ :=
 begin

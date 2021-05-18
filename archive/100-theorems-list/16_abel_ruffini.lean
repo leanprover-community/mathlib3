@@ -77,11 +77,8 @@ begin
   { intros n hn,
     rw ideal.mem_span_singleton,
     rw [degree_Phi, with_bot.coe_lt_coe] at hn,
-    interval_cases n with hn,
-    all_goals { rw [Φ, coeff_add, coeff_sub, coeff_X_pow, coeff_C_mul, coeff_X, coeff_C] },
-    all_goals { norm_num },
-    { exact int.coe_nat_dvd.mpr hpb },
-    { exact int.coe_nat_dvd.mpr hpa } },
+    interval_cases n with hn;
+    simp [Φ, coeff_X_pow, coeff_C, int.coe_nat_dvd.mpr, hpb, hpa, -ring_hom.eq_int_cast] },
   { rw [degree_Phi, ←with_bot.coe_zero, with_bot.coe_lt_coe],
     norm_num },
   { rwa [coeff_zero_Phi, pow_two, ideal.span_singleton_mul_span_singleton, ←pow_two,

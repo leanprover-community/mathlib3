@@ -116,15 +116,14 @@ begin
     exact ⟨x, y, (hx1.trans hy1).ne, hx2, hy2⟩ },
   { replace hb : (b : ℝ) = a - 1 := by linarith [show (b : ℝ) + 1 ≤ a, by exact_mod_cast hab],
     have hf1 : f 1 = 0 := by norm_num [hf, hb],
-    have hfa := calc f (-a) = (-a) ^ 5 - a * -a + (a - 1) : by rw [hf, hb]
-      ... ≤ (-a) ^ 3 - a * -a + (a - 1) : _
-      ... = -((a - 1) ^ 2 * (a + 1)) : by ring
-      ... ≤ 0 : by nlinarith,
-    { obtain ⟨x, ⟨-, hx1⟩, hx2⟩ := intermediate_value_Icc
-        (neg_nonpos.mpr (hle.trans ha)) (hc _) (set.mem_Icc.mpr ⟨hfa, hf0⟩),
-      exact ⟨x, 1, (hx1.trans_lt zero_lt_one).ne, hx2, hf1⟩ },
-    { rw [add_le_add_iff_right, sub_le_sub_iff_right, neg_pow_bit1, neg_pow_bit1],
-      exact neg_le_neg (pow_le_pow ha (bit1_le_bit1.mpr one_le_two)) } },
+    have hfa := calc f (-a) = a ^ 2 - a ^ 5 + b       : by norm_num [hf, ← sq]
+                        ... ≤ a ^ 2 - a ^ 3 + (a - 1) : by refine add_le_add (sub_le_sub_left
+                                                            (pow_le_pow ha _) _) _; linarith
+                        ... = -(a - 1) ^ 2 * (a + 1)  : by ring
+                        ... ≤ 0                       : by nlinarith,
+    have ha' := neg_nonpos.mpr (hle.trans ha),
+    obtain ⟨x, ⟨-, hx1⟩, hx2⟩ := intermediate_value_Icc ha' (hc _) (set.mem_Icc.mpr ⟨hfa, hf0⟩),
+    exact ⟨x, 1, (hx1.trans_lt zero_lt_one).ne, hx2, hf1⟩ },
 end
 
 lemma real_roots_Phi_ge (hab : b < a) : 2 ≤ fintype.card ((Φ ℚ a b).root_set ℝ) :=

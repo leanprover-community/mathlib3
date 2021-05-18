@@ -7,7 +7,8 @@ Authors: Riccardo Brasca
 import ring_theory.polynomial.cyclotomic
 
 /-!
-We show that the `105`-th cyclotomic polynomial has a coefficients equal to `-2`.
+We show that coeff `(cyclotomic 105 ℤ) 7 = -2`, proving that not all coefficients of cyclotomic
+polynomials are equal to `0`, `-1` or `1`.
 -/
 
 section computation

@@ -820,7 +820,7 @@ end
 /-- Open elements of `𝓤 α` form a basis of `𝓤 α`. -/
 lemma uniformity_has_basis_open : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_open V) id :=
 has_basis_self.2 $ λ s hs,
-  ⟨interior s, interior_mem_uniformity hs, is_open_interior, interior_subset⟩
+  ⟨interior s, interior_mem_uniformity hs, is_open.interior, interior_subset⟩
 
 lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α×α)}
   (h : (𝓤 α).has_basis p s) {t : set (α × α)} :
@@ -840,7 +840,7 @@ lemma uniformity_has_basis_open_symmetric :
 begin
   simp only [← and_assoc],
   refine uniformity_has_basis_open.restrict (λ s hs, ⟨symmetrize_rel s, _⟩),
-  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open_inter hs.2 (hs.2.preimage continuous_swap)⟩,
+  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open.inter hs.2 (hs.2.preimage continuous_swap)⟩,
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
 end
 
@@ -1089,7 +1089,7 @@ lemma to_topological_space_inf {u v : uniform_space α} :
 by rw [to_topological_space_Inf, infi_pair]
 
 instance : uniform_space empty := ⊥
-instance : uniform_space unit := ⊥
+instance : uniform_space punit := ⊥
 instance : uniform_space bool := ⊥
 instance : uniform_space ℕ := ⊥
 instance : uniform_space ℤ := ⊥

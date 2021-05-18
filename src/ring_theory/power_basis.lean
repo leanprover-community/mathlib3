@@ -114,6 +114,9 @@ by { rw [← pb.basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype],
        cases x_lt },
      { simp } }
 
+lemma dim_pos [nontrivial S] (pb : power_basis R S) : 0 < pb.dim :=
+nat.pos_of_ne_zero pb.dim_ne_zero
+
 lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
   ∃ f : polynomial R, f.nat_degree < pb.dim ∧ y = aeval pb.gen f :=
 (mem_span_pow pb.dim_ne_zero).mp (by simpa using pb.basis.mem_span y)

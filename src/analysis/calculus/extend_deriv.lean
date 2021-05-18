@@ -69,7 +69,7 @@ begin
     have bound : ∀ z ∈ (B ∩ s), ∥fderiv_within ℝ f (B ∩ s) z - f'∥ ≤ ε,
     { intros z z_in,
       convert le_of_lt (hδ _ z_in.2 z_in.1),
-      have op : is_open (B ∩ s) := is_open_inter is_open_ball s_open,
+      have op : is_open (B ∩ s) := is_open.inter is_open_ball s_open,
       rw differentiable_at.fderiv_within _ (op.unique_diff_on z z_in),
       exact (diff z z_in).differentiable_at (mem_nhds_sets op z_in) },
     simpa using conv.norm_image_sub_le_of_norm_fderiv_within_le' diff bound u_in v_in },

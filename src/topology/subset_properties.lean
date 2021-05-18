@@ -170,7 +170,7 @@ hs.elim_directed_cover _ (λ t, is_open_bUnion $ λ i _, hUo i) (Union_eq_Union_
 lemma is_compact.elim_nhds_subcover' (hs : is_compact s) (U : Π x ∈ s, set α)
   (hU : ∀ x ∈ s, U x ‹x ∈ s› ∈ 𝓝 x) :
   ∃ t : finset s, s ⊆ ⋃ x ∈ t, U (x : s) x.2 :=
-(hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open_interior)
+(hs.elim_finite_subcover (λ x : s, interior (U x x.2)) (λ x, is_open.interior)
   (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 $ hU _ _⟩)).imp $ λ t ht,
 subset.trans ht $ bUnion_subset_bUnion_right $ λ _ _, interior_subset
 
@@ -232,7 +232,7 @@ begin
   intro H,
   obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
     from (hZc i₀).elim_finite_subfamily_closed Z'
-      (assume i, is_closed_inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
+      (assume i, is_closed.inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
   obtain ⟨i₁, hi₁⟩ : ∃ i₁ : ι, Z i₁ ⊆ Z i₀ ∧ ∀ i ∈ t, Z i₁ ⊆ Z' i,
   { rcases directed.finset_le hZd t with ⟨i, hi⟩,
     rcases hZd i i₀ with ⟨i₁, hi₁, hi₁₀⟩,
@@ -526,7 +526,7 @@ fintype_of_univ_finite $ finite_of_is_compact_of_discrete _ compact_univ
 
 lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
-let ⟨t, ht⟩ := compact_univ.elim_finite_subcover (λ x, interior (U x)) (λ x, is_open_interior)
+let ⟨t, ht⟩ := compact_univ.elim_finite_subcover (λ x, interior (U x)) (λ x, is_open.interior)
   (λ x _, mem_Union.2 ⟨x, mem_interior_iff_mem_nhds.2 (hU x)⟩)
 in ⟨t, univ_subset_iff.1 ht⟩
 
@@ -841,7 +841,7 @@ begin
   { refine ⟨_, t.compact_bUnion (λ x _, hUc x), λ x hx, _⟩,
     rcases mem_bUnion_iff.1 (ht hx) with ⟨y, hyt, hy⟩,
     exact interior_mono (subset_bUnion_of_mem hyt) hy },
-  { exact λ _, is_open_interior }
+  { exact λ _, is_open.interior }
 end
 
 lemma ultrafilter.le_nhds_Lim [compact_space α] (F : ultrafilter α) :
@@ -1059,10 +1059,10 @@ def is_clopen (s : set α) : Prop :=
 is_open s ∧ is_closed s
 
 theorem is_clopen_union {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∪ t) :=
-⟨is_open_union hs.1 ht.1, is_closed_union hs.2 ht.2⟩
+⟨is_open.union hs.1 ht.1, is_closed.union hs.2 ht.2⟩
 
 theorem is_clopen_inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∩ t) :=
-⟨is_open_inter hs.1 ht.1, is_closed_inter hs.2 ht.2⟩
+⟨is_open.inter hs.1 ht.1, is_closed.inter hs.2 ht.2⟩
 
 @[simp] theorem is_clopen_empty : is_clopen (∅ : set α) :=
 ⟨is_open_empty, is_closed_empty⟩
@@ -1099,8 +1099,8 @@ lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
 theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
   (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
 begin
-  refine ⟨is_open_inter h.1 ha, _⟩,
-  have : is_closed (Z ∩ bᶜ) := is_closed_inter h.2 (is_closed_compl_iff.2 hb),
+  refine ⟨is_open.inter h.1 ha, _⟩,
+  have : is_closed (Z ∩ bᶜ) := is_closed.inter h.2 (is_closed_compl_iff.2 hb),
   convert this using 1,
   apply subset.antisymm,
   { exact inter_subset_inter_right Z (subset_compl_iff_disjoint.2 hab) },

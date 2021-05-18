@@ -388,7 +388,7 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
  λ ⟨u, e⟩, e.symm ▸ le_add_right _ _⟩
 
 instance : canonically_ordered_add_monoid (multiset α) :=
-{ lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _,
+{ lt_of_add_lt_add_left := λ a b c, (add_lt_add_iff_left a).mp,
   le_iff_exists_add     := @le_iff_exists_add _,
   bot                   := 0,
   bot_le                := multiset.zero_le,
@@ -920,6 +920,11 @@ theorem prod_hom_rel [comm_monoid β] [comm_monoid γ] (s : multiset α) {r : β
   r (s.map f).prod (s.map g).prod :=
 quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
+
+@[simp, to_additive]
+lemma prod_map_inv {G : Type*} [comm_group G] (m : multiset G) :
+  (m.map has_inv.inv).prod = m.prod⁻¹ :=
+m.prod_hom (monoid_hom.of has_inv.inv)
 
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a

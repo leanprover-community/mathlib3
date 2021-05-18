@@ -444,7 +444,7 @@ end
 
 /-- The image of the restriction of an open set to the source is open. -/
 lemma image_open_of_open' {s : set α} (hs : is_open s) : is_open (e '' (e.source ∩ s)) :=
-image_open_of_open _ (is_open_inter e.open_source hs) (inter_subset_left _ _)
+image_open_of_open _ (is_open.inter e.open_source hs) (inter_subset_left _ _)
 
 /-- A `local_equiv` with continuous open forward map and an open source is a `local_homeomorph`. -/
 def of_continuous_open_restrict (e : local_equiv α β) (hc : continuous_on e e.source)
@@ -469,7 +469,7 @@ be used then its local_equiv is defeq to local_equiv.restr -/
 protected def restr_open (s : set α) (hs : is_open s) :
   local_homeomorph α β :=
 (@is_image.of_symm_preimage_eq α β _ _ e s (e.symm ⁻¹' s) rfl).restr
-  (is_open_inter e.open_source hs)
+  (is_open.inter e.open_source hs)
 
 @[simp, mfld_simps] lemma restr_open_to_local_equiv (s : set α) (hs : is_open s) :
   (e.restr_open s hs).to_local_equiv = e.to_local_equiv.restr s := rfl
@@ -484,7 +484,7 @@ definition defined on open sets. In applications where `s` is open, this coincid
 restriction of local equivalences -/
 @[simps apply symm_apply (mfld_cfg), simps source target {attrs := []}]
 protected def restr (s : set α) : local_homeomorph α β :=
-e.restr_open (interior s) is_open_interior
+e.restr_open (interior s) is_open.interior
 
 @[simp, mfld_simps] lemma restr_to_local_equiv (s : set α) :
   (e.restr s).to_local_equiv = (e.to_local_equiv).restr (interior s) := rfl
@@ -632,7 +632,7 @@ by rw [of_set_trans, restr_source_inter]
 
 @[simp, mfld_simps] lemma of_set_trans_of_set
   {s : set α} (hs : is_open s) {s' : set α} (hs' : is_open s') :
-  (of_set s hs).trans (of_set s' hs') = of_set (s ∩ s') (is_open_inter hs hs')  :=
+  (of_set s hs).trans (of_set s' hs') = of_set (s ∩ s') (is_open.inter hs hs')  :=
 begin
   rw (of_set s hs).trans_of_set hs',
   ext; simp [hs'.interior_eq]

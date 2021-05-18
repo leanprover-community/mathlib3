@@ -94,7 +94,7 @@ def is_open (s : set α) : Prop := topological_space.is_open t s
 @[simp]
 lemma is_open_univ : is_open (univ : set α) := topological_space.is_open_univ t
 
-lemma is_open_inter (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∩ s₂) :=
+lemma is_open.inter (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∩ s₂) :=
 topological_space.is_open_inter t s₁ s₂ h₁ h₂
 
 lemma is_open_sUnion {s : set (set α)} (h : ∀t ∈ s, is_open t) : is_open (⋃₀ s) :=
@@ -118,7 +118,7 @@ lemma is_open_bUnion {s : set β} {f : β → set α} (h : ∀i∈s, is_open (f 
   is_open (⋃i∈s, f i) :=
 is_open_Union $ assume i, is_open_Union $ assume hi, h i hi
 
-lemma is_open_union (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∪ s₂) :=
+lemma is_open.union (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∪ s₂) :=
 by rw union_eq_Union; exact is_open_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
 
 @[simp] lemma is_open_empty : is_open (∅ : set α) :=
@@ -127,14 +127,14 @@ by rw ← sUnion_empty; exact is_open_sUnion (assume a, false.elim)
 lemma is_open_sInter {s : set (set α)} (hs : finite s) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
 finite.induction_on hs (λ _, by rw sInter_empty; exact is_open_univ) $
 λ a s has hs ih h, by rw sInter_insert; exact
-is_open_inter (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _)
+is_open.inter (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _)
 
 lemma is_open_bInter {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_open (f i)) → is_open (⋂i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bInter_empty; exact is_open_univ)
   (λ a s has hs ih h, by rw bInter_insert; exact
-    is_open_inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
+    is_open.inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
 lemma is_open_Inter [fintype β] {s : β → set α}
   (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
@@ -151,7 +151,7 @@ by_cases
   (assume : ¬ p, begin simp only [this]; exact is_open_empty end)
 
 lemma is_open_and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
-is_open_inter
+is_open.inter
 
 /-- A set is closed if its complement is open -/
 class is_closed (s : set α) : Prop :=
@@ -166,8 +166,8 @@ by { rw [← is_open_compl_iff, compl_empty], exact is_open_univ }
 @[simp] lemma is_closed_univ : is_closed (univ : set α) :=
 by { rw [← is_open_compl_iff, compl_univ], exact is_open_empty }
 
-lemma is_closed_union : is_closed s₁ → is_closed s₂ → is_closed (s₁ ∪ s₂) :=
-λ h₁ h₂, by { rw [← is_open_compl_iff] at *, rw compl_union, exact is_open_inter h₁ h₂ }
+lemma is_closed.union : is_closed s₁ → is_closed s₂ → is_closed (s₁ ∪ s₂) :=
+λ h₁ h₂, by { rw [← is_open_compl_iff] at *, rw compl_union, exact is_open.inter h₁ h₂ }
 
 lemma is_closed_sInter {s : set (set α)} : (∀t ∈ s, is_closed t) → is_closed (⋂₀ s) :=
 by simpa only [← is_open_compl_iff, compl_sInter, sUnion_image] using is_open_bUnion
@@ -186,17 +186,17 @@ lemma is_open.is_closed_compl {s : set α} (hs : is_open s) : is_closed sᶜ :=
 is_closed_compl_iff.2 hs
 
 lemma is_open_diff {s t : set α} (h₁ : is_open s) (h₂ : is_closed t) : is_open (s \ t) :=
-is_open_inter h₁ $ is_open_compl_iff.mpr h₂
+is_open.inter h₁ $ is_open_compl_iff.mpr h₂
 
-lemma is_closed_inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
-by { rw [← is_open_compl_iff] at *, rw compl_inter, exact is_open_union h₁ h₂ }
+lemma is_closed.inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
+by { rw [← is_open_compl_iff] at *, rw compl_inter, exact is_open.union h₁ h₂ }
 
 lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bUnion_empty; exact is_closed_empty)
   (λ a s has hs ih h, by rw bUnion_insert; exact
-    is_closed_union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
+    is_closed.union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
 lemma is_closed_Union [fintype β] {s : β → set α}
   (h : ∀ i, is_closed (s i)) : is_closed (Union s) :=
@@ -211,7 +211,7 @@ by by_cases p; simp *
 lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
   (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
 have {x | p x → q x} = {x | p x}ᶜ ∪ {x | q x}, from set.ext $ λ x, imp_iff_not_or,
-by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
+by rw [this]; exact is_closed.union (is_closed_compl_iff.mpr hp) hq
 
 lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
 is_open_compl_iff.mpr
@@ -227,7 +227,7 @@ lemma mem_interior {s : set α} {x : α} :
   x ∈ interior s ↔ ∃ t ⊆ s, is_open t ∧ x ∈ t :=
 by simp only [interior, mem_set_of_eq, exists_prop, and_assoc, and.left_comm]
 
-@[simp] lemma is_open_interior {s : set α} : is_open (interior s) :=
+@[simp] lemma is_open.interior {s : set α} : is_open (interior s) :=
 is_open_sUnion $ assume t ⟨h₁, h₂⟩, h₁
 
 lemma interior_subset {s : set α} : interior s ⊆ s :=
@@ -240,7 +240,7 @@ lemma is_open.interior_eq {s : set α} (h : is_open s) : interior s = s :=
 subset.antisymm interior_subset (interior_maximal (subset.refl s) h)
 
 lemma interior_eq_iff_open {s : set α} : interior s = s ↔ is_open s :=
-⟨assume h, h ▸ is_open_interior, is_open.interior_eq⟩
+⟨assume h, h ▸ is_open.interior, is_open.interior_eq⟩
 
 lemma subset_interior_iff_open {s : set α} : s ⊆ interior s ↔ is_open s :=
 by simp only [interior_eq_iff_open.symm, subset.antisymm_iff, interior_subset, true_and]
@@ -250,7 +250,7 @@ lemma subset_interior_iff_subset_of_open {s t : set α} (h₁ : is_open s) :
 ⟨assume h, subset.trans h interior_subset, assume h₂, interior_maximal h₂ h₁⟩
 
 lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
-interior_maximal (subset.trans interior_subset h) is_open_interior
+interior_maximal (subset.trans interior_subset h) is_open.interior
 
 @[simp] lemma interior_empty : interior (∅ : set α) = ∅ :=
 is_open_empty.interior_eq
@@ -259,13 +259,13 @@ is_open_empty.interior_eq
 is_open_univ.interior_eq
 
 @[simp] lemma interior_interior {s : set α} : interior (interior s) = interior s :=
-is_open_interior.interior_eq
+is_open.interior.interior_eq
 
 @[simp] lemma interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
   (subset_inter (interior_mono $ inter_subset_left s t) (interior_mono $ inter_subset_right s t))
   (interior_maximal (inter_subset_inter interior_subset interior_subset) $
-    is_open_inter is_open_interior is_open_interior)
+    is_open.inter is_open.interior is_open.interior)
 
 lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s)
   (h₂ : interior t = ∅) :
@@ -281,7 +281,7 @@ have interior (s ∪ t) ⊆ s, from
       by rwa h₂ at this,
     this ⟨hx₁, hx₂⟩,
 subset.antisymm
-  (interior_maximal this is_open_interior)
+  (interior_maximal this is_open.interior)
   (interior_mono $ subset_union_left _ _)
 
 lemma is_open_iff_forall_mem_open : is_open s ↔ ∀ x ∈ s, ∃ t ⊆ s, is_open t ∧ x ∈ t :=
@@ -356,7 +356,7 @@ is_closed_closure.closure_eq
 @[simp] lemma closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
 subset.antisymm
   (closure_minimal (union_subset_union subset_closure subset_closure) $
-    is_closed_union is_closed_closure is_closed_closure)
+    is_closed.union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
@@ -473,7 +473,7 @@ by rw [hs.frontier_eq, inter_diff_self]
 
 /-- The frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
-by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
+by rw frontier_eq_closure_inter_closure; exact is_closed.inter is_closed_closure is_closed_closure
 
 /-- The frontier of a closed set has no interior point. -/
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
@@ -526,7 +526,7 @@ lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧
 begin
   rw nhds_def,
   exact has_basis_binfi_principal
-    (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
+    (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open.inter hs ht⟩,
       ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
     ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
 end
@@ -761,7 +761,7 @@ by rw [interior_eq_nhds', mem_set_of_eq]
 @[simp] lemma interior_mem_nhds {s : set α} {a : α} :
   interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=
 ⟨λ h, mem_sets_of_superset h interior_subset,
-  λ h, mem_nhds_sets is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
+  λ h, mem_nhds_sets is_open.interior (mem_interior_iff_mem_nhds.2 h)⟩
 
 lemma interior_set_of_eq {p : α → Prop} :
   interior {x | p x} = {x | ∀ᶠ y in 𝓝 x, p y} :=
@@ -769,7 +769,7 @@ interior_eq_nhds'
 
 lemma is_open_set_of_eventually_nhds {p : α → Prop} :
   is_open {x | ∀ᶠ y in 𝓝 x, p y} :=
-by simp only [← interior_set_of_eq, is_open_interior]
+by simp only [← interior_set_of_eq, is_open.interior]
 
 lemma subset_interior_iff_nhds {s V : set α} : s ⊆ interior V ↔ ∀ x ∈ s, V ∈ 𝓝 x :=
 show (∀ x, x ∈ s →  x ∈ _) ↔ _, by simp_rw mem_interior_iff_mem_nhds
@@ -796,7 +796,7 @@ of a sequence is closed. -/
 lemma is_closed_set_of_cluster_pt {f : filter α} : is_closed {x | cluster_pt x f} :=
 begin
   simp only [cluster_pt, inf_ne_bot_iff_frequently_left, set_of_forall, imp_iff_not_or],
-  refine is_closed_Inter (λ p, is_closed_union _ _); apply is_closed_compl_iff.2,
+  refine is_closed_Inter (λ p, is_closed.union _ _); apply is_closed_compl_iff.2,
   exacts [is_open_set_of_eventually_nhds, is_open_const]
 end
 
@@ -990,7 +990,7 @@ begin
   intro x,
   rcases hf x with ⟨s, hsx, hsf⟩,
   refine ⟨interior s, interior_mem_nhds.2 hsx, hsf.subset $ λ i hi, _⟩,
-  exact (hi.mono (closure_inter_open' is_open_interior)).of_closure.mono
+  exact (hi.mono (closure_inter_open' is_open.interior)).of_closure.mono
     (inter_subset_inter_right _ interior_subset)
 end
 
@@ -1075,7 +1075,7 @@ lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt 
 
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
-interior_maximal (preimage_mono interior_subset) (is_open_interior.preimage hf)
+interior_maximal (preimage_mono interior_subset) (is_open.interior.preimage hf)
 
 lemma continuous_id : continuous (id : α → α) :=
 continuous_def.2 $ assume s h, h

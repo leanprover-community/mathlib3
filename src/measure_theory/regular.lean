@@ -299,11 +299,15 @@ theorem weakly_regular_of_inner_regular_of_finite_measure [borel_space α]
     exact (ennreal.add_lt_add_iff_left (measure_lt_top μ F)).2 δε,
   end }
 
-lemma restrict_is_open [borel_space α] (U : set α) (hU : is_open U) (h'U : μ U < ∞) :
+lemma restrict_is_open [weakly_regular μ] [borel_space α]
+  (U : set α) (hU : is_open U) (h'U : μ U < ∞) :
   weakly_regular (μ.restrict U) :=
 begin
   haveI : finite_measure (μ.restrict U) := ⟨by rwa [restrict_apply measurable_set.univ, univ_inter]⟩,
-  refine weakly_regular_of_inner_regular_of_finite_measure _ (λ U U_open, _),
+  refine weakly_regular_of_inner_regular_of_finite_measure _ (λ V V_open, _),
+  simp only [restrict_apply' hU.measurable_set],
+  have Z := is_open.inter,
+  have Z := weakly_regular.inner_regular (V_open.inter hU),
 end
 
 /-- Given a weakly regular measure of finite mass, any measurable set can be approximated from

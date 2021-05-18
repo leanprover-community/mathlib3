@@ -43,7 +43,7 @@ lemma empty_left (a : set α) : separated ∅ a :=
 
 lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
 λ ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
-  ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
+  ⟨U ∪ W, V ∩ X, is_open.union oU oW, is_open.inter oV oX,
     union_subset_union aU aW, subset_inter bV bX, set.disjoint_union_left.mpr
     ⟨disjoint_of_subset_right (inter_subset_left _ _) UV,
       disjoint_of_subset_right (inter_subset_right _ _) WX⟩⟩
@@ -73,7 +73,7 @@ begin
       have uvne : (V ∩ Uᶜ).nonempty,
       { use w, simp only [hw, hw', set.mem_inter_eq, not_false_iff, and_self, set.mem_compl_eq], },
       specialize hV (V ∩ Uᶜ) (set.inter_subset_left _ _) uvne
-        (is_closed_inter Vcls (is_closed_compl_iff.mpr hU)),
+        (is_closed.inter Vcls (is_closed_compl_iff.mpr hU)),
       have : V ⊆ Uᶜ,
       { rw ←hV, exact set.inter_subset_right _ _ },
       exact this hz hz', },
@@ -109,7 +109,7 @@ begin
     obtain ⟨z, hzs, hz⟩ : ∃ z ∈ s.filter (λ z, z ∈ U), is_open ({z} : set α),
     { refine ihs _ (finset.filter_ssubset.2 ⟨y, hy, H.2⟩) ⟨x, finset.mem_filter.2 ⟨hx, H.1⟩⟩ _,
       rw [finset.coe_filter],
-      exact is_open_inter hso hU },
+      exact is_open.inter hso hU },
     exact ⟨z, (finset.mem_filter.1 hzs).1, hz⟩ }
 end
 
@@ -914,7 +914,7 @@ begin
   -- Now we find the required Z. We utilize the fact that X \ u ∪ v will be compact,
   -- so there must be some finite intersection of clopen neighbourhoods of X disjoint to it,
   -- but a finite intersection of clopen sets is clopen so we let this be our Z.
-  have H1 := ((is_closed_compl_iff.2 (is_open_union hu hv)).compact.inter_Inter_nonempty
+  have H1 := ((is_closed_compl_iff.2 (is_open.union hu hv)).compact.inter_Inter_nonempty
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),

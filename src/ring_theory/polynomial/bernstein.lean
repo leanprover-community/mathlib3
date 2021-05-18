@@ -174,31 +174,6 @@ iterate_derivative_at_0_eq_zero_of_lt R n (lt_add_one ν)
 
 open polynomial
 
-/-- A Pochhammer identity that is useful for `bernstein_polynomial.iterate_derivative_at_0_aux₂`. -/
-lemma iterate_derivative_at_0_aux₁ (n k : ℕ) :
-  k * polynomial.eval (k-n) (pochhammer ℕ n) = (k-n) * polynomial.eval (k-n+1) (pochhammer ℕ n) :=
-begin
-  have p :=
-    congr_arg (eval (k-n)) ((pochhammer_succ_right ℕ n).symm.trans (pochhammer_succ_left ℕ n)),
-  simp only [nat.cast_id, eval_X, eval_one, eval_mul, eval_nat_cast, eval_add, eval_comp] at p,
-  rw [mul_comm] at p,
-  rw ←p,
-  by_cases h : n ≤ k,
-  { rw nat.sub_add_cancel h, },
-  { simp only [not_le] at h,
-    simp only [mul_eq_mul_right_iff],
-    right,
-    rw nat.sub_eq_zero_of_le (le_of_lt h),
-    simp only [pochhammer_eval_zero, ite_eq_right_iff],
-    rintro rfl,
-    cases h, },
-end
-
-lemma iterate_derivative_at_0_aux₂ (n k : ℕ) :
-  (↑k) * polynomial.eval ↑(k-n) (pochhammer R n) =
-    ↑(k-n) * polynomial.eval (↑(k-n+1)) (pochhammer R n) :=
-by simpa using congr_arg (algebra_map ℕ R) (iterate_derivative_at_0_aux₁ n k)
-
 @[simp]
 lemma iterate_derivative_at_0 (n ν : ℕ) :
   (polynomial.derivative^[ν] (bernstein_polynomial R n ν)).eval 0 =
@@ -207,19 +182,18 @@ begin
   by_cases h : ν ≤ n,
   { induction ν with ν ih generalizing n h,
     { simp [eval_at_0], },
-    { simp only [nat.succ_eq_add_one] at h,
-      have h' : ν ≤ n-1 := nat.le_sub_right_of_add_le h,
-      have w₁ : ((n - ν : ℕ) + 1 : R) = (n - ν + 1 : ℕ), { push_cast, },
+    { have h' : ν ≤ n-1 := nat.le_sub_right_of_add_le h,
       simp only [derivative_succ, ih (n-1) h', iterate_derivative_succ_at_0_eq_zero,
         nat.succ_sub_succ_eq_sub, nat.sub_zero, sub_zero,
         iterate_derivative_sub, iterate_derivative_cast_nat_mul,
         eval_one, eval_mul, eval_add, eval_sub, eval_X, eval_comp, eval_nat_cast,
         function.comp_app, function.iterate_succ, pochhammer_succ_left],
-      rw [w₁],
       by_cases h'' : ν = 0,
-      { subst h'', simp, },
-      { have w₂ : n - 1 - (ν - 1) = n - ν, { rw [nat.sub_sub], rw nat.add_sub_cancel', omega, },
-        simpa [w₂] using (iterate_derivative_at_0_aux₂ R ν n), }, }, },
+      { simp [h''] },
+      { have : n - 1 - (ν - 1) = n - ν := by omega,
+        rw [this, pochhammer_eval_succ],
+        have : n - ν + ν = n := by omega,
+        rw_mod_cast this } } },
   { simp only [not_le] at h,
     have w₁ : n - (ν - 1) = 0, { omega, },
     have w₂ : ν ≠ 0, { omega, },

@@ -222,6 +222,12 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
+lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
+begin
+  have : aleph 1 = (aleph 0).succ, by simp only [← aleph_succ, ordinal.succ_zero],
+  rw [countable_iff, ← aleph_zero, this, lt_succ],
+end
+
 /-! ### Properties of `mul` -/
 
 /-- If `α` is an infinite type, then `α × α` and `α` have the same cardinality. -/

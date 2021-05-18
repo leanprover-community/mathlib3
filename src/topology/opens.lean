@@ -56,7 +56,7 @@ instance : has_mem α (opens α) :=
 instance : partial_order (opens α) := subtype.partial_order _
 
 /-- The interior of a set, as an element of `opens`. -/
-def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
+def interior (s : set α) : opens α := ⟨interior s, is_open.interior⟩
 
 lemma gc : galois_connection (coe : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
@@ -76,12 +76,12 @@ complete_lattice.copy
 /- le  -/ (λ U V, U ⊆ V) rfl
 /- top -/ ⟨set.univ, is_open_univ⟩ (subtype.ext_iff_val.mpr interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl
-/- sup -/ (λ U V, ⟨↑U ∪ ↑V, is_open_union U.2 V.2⟩) rfl
-/- inf -/ (λ U V, ⟨↑U ∩ ↑V, is_open_inter U.2 V.2⟩)
+/- sup -/ (λ U V, ⟨↑U ∪ ↑V, is_open.union U.2 V.2⟩) rfl
+/- inf -/ (λ U V, ⟨↑U ∩ ↑V, is_open.inter U.2 V.2⟩)
 begin
   funext,
   apply subtype.ext_iff_val.mpr,
-  exact (is_open_inter U.2 V.2).interior_eq.symm,
+  exact (is_open.inter U.2 V.2).interior_eq.symm,
 end
 /- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
 by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
@@ -97,7 +97,7 @@ lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
 by refl
 
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
-  (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open_inter hU hV⟩ := rfl
+  (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open.inter hU hV⟩ := rfl
 @[simp,norm_cast] lemma coe_inf {U V : opens α} :
   ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl
 

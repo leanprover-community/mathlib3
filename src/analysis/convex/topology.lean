@@ -60,7 +60,7 @@ lemma bounded_std_simplex : metric.bounded (std_simplex ι) :=
 
 /-- `std_simplex ι` is closed. -/
 lemma is_closed_std_simplex : is_closed (std_simplex ι) :=
-(std_simplex_eq_inter ι).symm ▸ is_closed_inter
+(std_simplex_eq_inter ι).symm ▸ is_closed.inter
   (is_closed_Inter $ λ i, is_closed_le continuous_const (continuous_apply i))
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
@@ -85,10 +85,10 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
     by { rw ← image_smul,
-         exact (is_open_map_smul' hne _ is_open_interior).add_left } )
+         exact (is_open_map_smul' hne _ is_open.interior).add_left } )
   (λ hne,
     by { rw ← image_smul,
-         exact (is_open_map_smul' hne _ is_open_interior).add_right }),
+         exact (is_open_map_smul' hne _ is_open.interior).add_right }),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
     (by { simp only [← image_smul], apply add_subset_add; exact image_subset _ interior_subset })
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)

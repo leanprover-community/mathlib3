@@ -124,7 +124,7 @@ instance : partial_order (open_subgroup G) :=
 
 @[to_additive]
 instance : semilattice_inf_top (open_subgroup G) :=
-{ inf := λ U V, { is_open' := is_open_inter U.is_open V.is_open, .. (U : subgroup G) ⊓ V },
+{ inf := λ U V, { is_open' := is_open.inter U.is_open V.is_open, .. (U : subgroup G) ⊓ V },
   inf_le_left := λ U V, set.inter_subset_left _ _,
   inf_le_right := λ U V, set.inter_subset_right _ _,
   le_inf := λ U V W hV hW, set.subset_inter hV hW,

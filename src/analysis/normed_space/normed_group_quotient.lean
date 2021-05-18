@@ -24,14 +24,14 @@ are isomorphic to the canonical projection onto a normed group quotient.
 ## Main definitions
 
 
-We use `M` and `N` to denote semi normed groups and `S : add_subgroup M`.
+We use `M` and `N` to denote seminormed groups and `S : add_subgroup M`.
 All the following definitions are in the `add_subgroup` namespace. Hence we can access
 `add_subgroup.normed_mk S` as `S.normed_mk`.
 
 * `semi_normed_group_quotient` : The seminormed group structure on the quotient by
     an additive subgroup. This is an instance so there is no need to explictly use it.
 
-* `normed_group_quotient` : The seminormed group structure on the quotient by
+* `normed_group_quotient` : The normed group structure on the quotient by
     a closed additive subgroup. This is an instance so there is no need to explictly use it.
 
 * `normed_mk S` : the normed group hom from `M` to `quotient S`.
@@ -68,9 +68,9 @@ admits as basis of neighborhoods in the quotient topology the sets `{x | ∥x∥
 Once this mathematical point it settled, we have two topologies that are propositionaly equal. This
 is not good enough for the type class system. As usual we ensure *definitional* equality
 using forgetful inheritance, see Note [forgetful inheritance]. A (semi)-normed group structure
-embarks a uniform space structure which embarks a topological space structure, together
+includes a uniform space structure which includes a topological space structure, together
 with propositional fields asserting compatibility conditions.
-The usual way to define a `semi_normed_group` is to let Lean building a uniform space structure
+The usual way to define a `semi_normed_group` is to let Lean build a uniform space structure
 using the provided norm, and then trivially build a proof that the norm and uniform structure are
 compatible. Here the uniform structure is provided using `topological_add_group.to_uniform_space`
 which uses the topological structure and the group structure to build the uniform structure. This
@@ -87,7 +87,6 @@ open quotient_add_group metric set
 open_locale topological_space nnreal
 
 variables {M N : Type*} [semi_normed_group M] [semi_normed_group N]
-variables {M₁ N₁ : Type*} [normed_group M₁] [normed_group N₁]
 
 /-- The definition of the norm on the quotient by an additive subgroup. -/
 noncomputable
@@ -149,7 +148,7 @@ begin
   change Inf _ = _,
   congr' 1,
   ext r,
-  simp_rw [coe_mk', quotient_add_group.eq_iff_sub_mem],
+  simp_rw [coe_mk', eq_iff_sub_mem],
   split,
   { rintros ⟨y, h, rfl⟩,
     use [y - m, h],
@@ -197,8 +196,10 @@ begin
   use [0, S.zero_mem]
 end
 
-lemma norm_mk_lt {S : add_subgroup M} (x : (quotient S)) {ε : ℝ} (hε : 0 < ε) :
-  ∃ (m : M), quotient_add_group.mk' S m = x ∧ ∥m∥ < ∥x∥ + ε :=
+/-- For any `x : quotient S` and any `0 < ε`, there is `m : M` such that `mk' S m = x`
+and `∥m∥ < ∥x∥ + ε`. -/
+lemma norm_mk_lt {S : add_subgroup M} (x : quotient S) {ε : ℝ} (hε : 0 < ε) :
+  ∃ (m : M), mk' S m = x ∧ ∥m∥ < ∥x∥ + ε :=
 begin
   obtain ⟨_, ⟨m : M, H : mk' S m = x, rfl⟩, hnorm : ∥m∥ < ∥x∥ + ε⟩ :=
     real.lt_Inf_add_pos (bdd_below_image_norm _) (image_norm_nonempty x) hε,
@@ -206,6 +207,7 @@ begin
   exact ⟨m, rfl, hnorm⟩,
 end
 
+/-- For any `m : M` and any `0 < ε`, there is `s ∈ S` such that `∥m + s∥ < ∥mk' S m∥ + ε`. -/
 lemma norm_mk_lt' (S : add_subgroup M) (m : M) {ε : ℝ} (hε : 0 < ε) :
   ∃ s ∈ S, ∥m + s∥ < ∥mk' S m∥ + ε :=
 begin
@@ -216,7 +218,7 @@ begin
   rwa [add_neg_cancel_left]
 end
 
-/-- The quotient norm satisfies the triangular inequality. -/
+/-- The quotient norm satisfies the triangle inequality. -/
 lemma quotient_norm_add_le (S : add_subgroup M) (x y : quotient S) : ∥x + y∥ ≤ ∥x∥ + ∥y∥ :=
 begin
   refine le_of_forall_pos_le_add (λ ε hε, _),
@@ -230,7 +232,7 @@ begin
 end
 
 /-- The quotient norm of `0` is `0`. -/
-lemma norm_mk_zero (S : add_subgroup M) : ∥(0 : (quotient S))∥ = 0 :=
+lemma norm_mk_zero (S : add_subgroup M) : ∥(0 : quotient S)∥ = 0 :=
 begin
   erw quotient_norm_eq_zero_iff,
   exact subset_closure S.zero_mem
@@ -239,7 +241,7 @@ end
 /-- If `(m : M)` has norm equal to `0` in `quotient S` for a closed subgroup `S` of `M`, then
 `m ∈ S`. -/
 lemma norm_zero_eq_zero (S : add_subgroup M) (hS : is_closed (S : set M)) (m : M)
-  (h : ∥(quotient_add_group.mk' S) m∥ = 0) : m ∈ S :=
+  (h : ∥mk' S m∥ = 0) : m ∈ S :=
 by rwa [quotient_norm_eq_zero_iff, hS.closure_eq] at h
 
 lemma quotient_nhd_basis (S : add_subgroup M) :
@@ -402,16 +404,16 @@ begin
   ... = 1 - min ε (1 / 2) : by field_simp [(ne_of_lt hδ).symm]
 end
 
-/-- The operator norm of the projection is `0` if the subspace is the whole space. -/
-lemma norm_trivial_quotient_mk (S : add_subgroup M) (h : (S : set M) = set.univ) :
-  ∥S.normed_mk∥ = 0 :=
+/-- The operator norm of the projection is `0` if the subspace is dense. -/
+lemma norm_trivial_quotient_mk (S : add_subgroup M)
+  (h : (S.topological_closure : set M) = set.univ) : ∥S.normed_mk∥ = 0 :=
 begin
   refine le_antisymm (op_norm_le_bound _ (le_refl _) (λ x, _)) (norm_nonneg _),
-  have hker : x ∈ (S.normed_mk).ker,
+  have hker : x ∈ (S.normed_mk).ker.topological_closure,
   { rw [S.ker_normed_mk],
     exact set.mem_of_eq_of_mem h trivial },
-  rw [normed_group_hom.mem_ker _ x] at hker,
-  rw [hker, zero_mul, norm_zero]
+  rw [ker_normed_mk] at hker,
+  simp only [(quotient_norm_eq_zero_iff S x).mpr hker, normed_mk.apply, zero_mul],
 end
 
 /-- `is_quotient f`, for `f : M ⟶ N` means that `N` is isomorphic to the quotient of `M`

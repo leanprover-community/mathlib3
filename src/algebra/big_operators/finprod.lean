@@ -127,11 +127,11 @@ begin
   rw [finprod_eq_prod_plift_of_mul_support_subset this, finset.prod_empty]
 end
 
-@[to_additive] lemma finprod_of_empty (ha : α → false) (f : α → M) : ∏ᶠ i, f i = 1 :=
-by { rw ← finprod_one, congr' with x, exact (ha x).elim }
+@[to_additive] lemma finprod_of_is_empty [is_empty α] (f : α → M) : ∏ᶠ i, f i = 1 :=
+by { rw ← finprod_one, congr }
 
 @[simp, to_additive] lemma finprod_false (f : false → M) : ∏ᶠ i, f i = 1 :=
-finprod_of_empty id _
+finprod_of_is_empty _
 
 @[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f (default α) :=
 begin
@@ -149,9 +149,8 @@ end
   ∏ᶠ i, f i = if h : p then f h else 1 :=
 begin
   split_ifs,
-  { haveI : unique p := ⟨⟨h⟩, λ _, rfl⟩,
-    exact finprod_unique f },
-  { exact finprod_of_empty h f }
+  { haveI : unique p := ⟨⟨h⟩, λ _, rfl⟩, exact finprod_unique f },
+  { haveI : is_empty p := ⟨h⟩, exact finprod_of_is_empty f }
 end
 
 @[to_additive] lemma finprod_eq_if {p : Prop} [decidable p] {x : M} :

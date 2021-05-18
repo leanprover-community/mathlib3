@@ -66,14 +66,14 @@ attribute [simp, reassoc] homological_complex.d_comp_d
 An `α`-indexed chain complex is a `homological_complex`
 in which `d i j ≠ 0` only if `j + 1 = i`.
 -/
-abbreviation chain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
+abbreviation chain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] : Type* :=
 homological_complex V (complex_shape.down α)
 
 /--
 An `α`-indexed cochain complex is a `homological_complex`
 in which `d i j ≠ 0` only if `i + 1 = j`.
 -/
-abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
+abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] : Type* :=
 homological_complex V (complex_shape.up α)
 
 namespace chain_complex
@@ -88,7 +88,7 @@ option.choice_eq _
 
 @[simp] lemma next_nat_zero :
   (complex_shape.down ℕ).next 0 = none :=
-option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
+@option.choice_eq_none _ ⟨by rintro ⟨j, ⟨⟩⟩⟩
 
 @[simp] lemma next_nat_succ (i : ℕ) :
   (complex_shape.down ℕ).next (i+1) = some ⟨i, rfl⟩ :=
@@ -108,7 +108,7 @@ option.choice_eq _
 
 @[simp] lemma prev_nat_zero :
   (complex_shape.up ℕ).prev 0 = none :=
-option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
+@option.choice_eq_none _ ⟨by rintro ⟨j, ⟨⟩⟩⟩
 
 @[simp] lemma prev_nat_succ (i : ℕ) :
   (complex_shape.up ℕ).prev (i+1) = some ⟨i, rfl⟩ :=

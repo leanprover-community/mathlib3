@@ -101,7 +101,6 @@ lemma real_roots_Phi_ge_aux (hab : b < a) :
   ∃ x y : ℝ, x ≠ y ∧ aeval x (Φ ℚ a b) = 0 ∧ aeval y (Φ ℚ a b) = 0 :=
 begin
   let f := λ x : ℝ, aeval x (Φ ℚ a b),
-  change ∃ x y : ℝ, x ≠ y ∧ f x = 0 ∧ f y = 0,
   have hf : f = λ x, x ^ 5 - a * x + b := by simp [f, Φ],
   have hc : ∀ s : set ℝ, continuous_on f s := λ s, (Φ ℚ a b).continuous_on_aeval,
   have ha : (1 : ℝ) ≤ a := nat.one_le_cast.mpr (nat.one_le_of_lt hab),
@@ -116,13 +115,14 @@ begin
     obtain ⟨y, ⟨hy1, -⟩, hy2⟩ := intermediate_value_Ioc ha (hc _) (set.mem_Ioc.mpr ⟨hf1, hfa⟩),
     exact ⟨x, y, (hx1.trans hy1).ne, hx2, hy2⟩ },
   { replace hb : (b : ℝ) = a - 1 := by linarith [show (b : ℝ) + 1 ≤ a, by exact_mod_cast hab],
+    have hf1 : f 1 = 0 := by norm_num [hf, hb],
     have hfa := calc f (-a) = (-a) ^ 5 - a * -a + (a - 1) : by rw [hf, hb]
       ... ≤ (-a) ^ 3 - a * -a + (a - 1) : _
       ... = -((a - 1) ^ 2 * (a + 1)) : by ring
       ... ≤ 0 : by nlinarith,
     { obtain ⟨x, ⟨-, hx1⟩, hx2⟩ := intermediate_value_Icc
         (neg_nonpos.mpr (hle.trans ha)) (hc _) (set.mem_Icc.mpr ⟨hfa, hf0⟩),
-      exact ⟨x, 1, (hx1.trans_lt zero_lt_one).ne, hx2, by norm_num [hf, hb]⟩ },
+      exact ⟨x, 1, (hx1.trans_lt zero_lt_one).ne, hx2, hf1⟩ },
     { rw [add_le_add_iff_right, sub_le_sub_iff_right, neg_pow_bit1, neg_pow_bit1],
       exact neg_le_neg (pow_le_pow ha (bit1_le_bit1.mpr one_le_two)) } },
 end

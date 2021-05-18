@@ -146,7 +146,7 @@ instance right_cancel_semigroup.to_covariant_mul_le_right [right_cancel_semigrou
     exact lt_iff_le_and_ne.mpr ⟨covariant_class.covc a bc, (mul_ne_mul_left a).mpr cb⟩ } }
 
 @[to_additive]
-instance left_cancel_monoid.to_contravariant_mul_lt [left_cancel_semigroup N] [partial_order N]
+instance left_cancel_semigroup.to_contravariant_mul_lt [left_cancel_semigroup N] [partial_order N]
   [contravariant_class N N (*) (<)] :
   contravariant_class N N (*) (≤) :=
 { covtc :=  λ  a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,

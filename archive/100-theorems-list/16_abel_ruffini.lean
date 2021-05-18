@@ -92,14 +92,9 @@ begin
   rw [←map_Phi a b (algebra_map ℤ ℚ), Φ, ←one_mul (X ^ 5), ←C_1],
   refine (card_root_set_le_derivative _).trans
     (nat.succ_le_succ ((card_root_set_le_derivative _).trans (nat.succ_le_succ _))),
-  rw [derivative_map, derivative_map, derivative_add, derivative_add, derivative_sub,
-      derivative_sub, derivative_C_mul_X_pow, derivative_C_mul_X_pow, derivative_C_mul,
-      derivative_C_mul, derivative_X, derivative_one, mul_zero, sub_zero, derivative_C,
-      derivative_zero, add_zero, map_mul, map_pow, map_C, map_X,
-      fintype.card_le_one_iff_subsingleton, set.subsingleton_coe, root_set_C_mul_X_pow],
-  { exact set.subsingleton_singleton },
-  { exact ne_of_gt zero_lt_three },
-  { norm_num },
+  suffices : ((C ((algebra_map ℤ ℚ) 20) * X ^ 3).root_set ℝ).subsingleton,
+  { norm_num [fintype.card_le_one_iff_subsingleton, ← mul_assoc, *] at * },
+  rw root_set_C_mul_X_pow; norm_num,
 end
 
 lemma real_roots_Phi_ge_aux' (hab : b < a) : a ^ 2 + b ≤ a ^ 5 :=

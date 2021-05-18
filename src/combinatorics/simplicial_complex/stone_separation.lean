@@ -41,10 +41,10 @@ def convex_join (A B : set E) :
 
 def convex_join (A B : set E) :
   set E :=
-A ∪ B ∪ ⋃ a b (ha : a ∈ A) (hb : b ∈ B), segment a b
+A ∪ B ∪ ⋃ a b (ha : a ∈ A) (hb : b ∈ B), open_segment a b
 
 lemma mem_convex_join_iff :
-  x ∈ convex_join A B ↔ x ∈ A ∪ B ∨ ∃ a b : E, a ∈ A ∧ b ∈ B ∧ x ∈ segment a b :=
+  x ∈ convex_join A B ↔ x ∈ A ∪ B ∨ ∃ a b : E, a ∈ A ∧ b ∈ B ∧ x ∈ open_segment a b :=
 begin
   unfold convex_join,
   simp,
@@ -60,7 +60,7 @@ begin
     { left,
       exact hx },
     right,
-    rw segment_symm at hx,
+    rw open_segment_symm at hx,
     exact ⟨b, a, hb, ha, hx⟩ }
 end
 

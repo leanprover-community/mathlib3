@@ -173,8 +173,7 @@ begin
   introI h,
   refine equiv.perm.not_solvable _ (le_of_eq _)
     (solvable_of_surjective (gal_Phi a b hab h_irred).2),
-  rw [cardinal.fintype_card, complex_roots_Phi a b h_irred.separable],
-  rw [nat.cast_bit1, nat.cast_bit0, nat.cast_one],
+  rw_mod_cast [cardinal.fintype_card, complex_roots_Phi a b h_irred.separable],
 end
 
 theorem not_solvable_by_rad' (x : ℂ) (hx : aeval x (Φ ℚ 4 2) = 0) :

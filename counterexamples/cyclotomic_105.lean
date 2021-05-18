@@ -19,18 +19,6 @@ lemma prime_5 : nat.prime 5 := by norm_num
 
 lemma prime_7 : nat.prime 7 := by norm_num
 
-lemma not_mem_1_3_5 : 1 ∉ ({3, 5} : finset ℕ) := by norm_num
-
-lemma not_mem_1_3_7 : 1 ∉ ({3, 7} : finset ℕ) := by norm_num
-
-lemma not_mem_1_5_7 : 1 ∉ ({5, 7} : finset ℕ) := by norm_num
-
-lemma not_mem_3_5 : 3 ∉ ({5} : finset ℕ) := by norm_num
-
-lemma not_mem_3_7 : 3 ∉ ({7} : finset ℕ) := by norm_num
-
-lemma not_mem_5_7 : 5 ∉ ({7} : finset ℕ) := by norm_num
-
 lemma proper_divisors_15 : nat.proper_divisors 15 = {1, 3, 5} := rfl
 
 lemma proper_divisors_21 : nat.proper_divisors 21 = {1, 3, 7} := rfl
@@ -70,18 +58,20 @@ end
 lemma cyclotomic_15 : cyclotomic 15 ℤ = 1 - X + X ^ 3 - X ^ 4 + X ^ 5 - X ^ 7 + X ^ 8 :=
 begin
   refine ((eq_cyclotomic_iff (show 0 < 15, by norm_num) _).2 _).symm,
-  rw [proper_divisors_15, finset.prod_insert not_mem_1_3_5, finset.prod_insert not_mem_3_5,
-    finset.prod_singleton, cyclotomic_one, cyclotomic_3, cyclotomic_5],
-  ring
+  rw [proper_divisors_15, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
+  cyclotomic_one, cyclotomic_3, cyclotomic_5],
+  ring,
+  repeat { norm_num }
 end
 
 lemma cyclotomic_21 : cyclotomic 21 ℤ =
   1 - X + X ^ 3 - X ^ 4 + X ^ 6 - X ^ 8 + X ^ 9 - X ^ 11 + X ^ 12 :=
 begin
   refine ((eq_cyclotomic_iff (show 0 < 21, by norm_num) _).2 _).symm,
-  rw [proper_divisors_21, finset.prod_insert not_mem_1_3_7, finset.prod_insert not_mem_3_7,
-    finset.prod_singleton, cyclotomic_one, cyclotomic_3, cyclotomic_7],
-  ring
+  rw [proper_divisors_21, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
+  cyclotomic_one, cyclotomic_3, cyclotomic_7],
+  ring,
+  repeat { norm_num }
 end
 
 lemma cyclotomic_35 : cyclotomic 35 ℤ =
@@ -89,9 +79,10 @@ lemma cyclotomic_35 : cyclotomic 35 ℤ =
   X ^ 17 - X ^ 18 + X ^ 19 - X ^ 23 + X ^ 24 :=
 begin
   refine ((eq_cyclotomic_iff (show 0 < 35, by norm_num) _).2 _).symm,
-  rw [proper_divisors_35, finset.prod_insert not_mem_1_5_7, finset.prod_insert not_mem_5_7,
-    finset.prod_singleton, cyclotomic_one, cyclotomic_5, cyclotomic_7],
-  ring
+  rw [proper_divisors_35, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
+  cyclotomic_one, cyclotomic_5, cyclotomic_7],
+  ring,
+  repeat { norm_num }
 end
 
 lemma cyclotomic_105 : cyclotomic 105 ℤ =

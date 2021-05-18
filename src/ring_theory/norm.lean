@@ -40,8 +40,7 @@ universes u v w
 variables {R S T : Type*} [integral_domain R] [integral_domain S] [integral_domain T]
 variables [algebra R S] [algebra R T]
 variables {K L F : Type*} [field K] [field L] [field F]
-variables [algebra K L] [algebra L F] [algebra K F] [is_scalar_tower K L F]
-variables [algebra K S] [algebra S F] [is_scalar_tower K S F]
+variables [algebra K L] [algebra L F] [algebra K F]
 variables {ι : Type w} [fintype ι]
 
 open finite_dimensional
@@ -100,7 +99,7 @@ end
 
 section eq_prod_roots
 
-lemma norm_gen_eq_sum_roots (pb : power_basis K S)
+lemma norm_gen_eq_sum_roots [algebra K S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (norm K S pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=

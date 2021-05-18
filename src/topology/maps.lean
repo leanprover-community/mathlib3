@@ -230,7 +230,7 @@ mem_sets_of_superset (mem_nhds_sets (hf t ht) (mem_image_of_mem _ hxt)) (image_s
 
 lemma image_interior_subset (hf : is_open_map f) (s : set α) :
   f '' interior s ⊆ interior (f '' s) :=
-interior_maximal (image_subset _ interior_subset) (hf _ is_open.interior)
+interior_maximal (image_subset _ interior_subset) (hf _ is_open_interior)
 
 lemma nhds_le (hf : is_open_map f) (a : α) : 𝓝 (f a) ≤ (𝓝 a).map f :=
 le_map $ λ s, hf.image_mem_nhds

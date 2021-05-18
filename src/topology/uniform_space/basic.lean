@@ -820,7 +820,7 @@ end
 /-- Open elements of `𝓤 α` form a basis of `𝓤 α`. -/
 lemma uniformity_has_basis_open : has_basis (𝓤 α) (λ V : set (α × α), V ∈ 𝓤 α ∧ is_open V) id :=
 has_basis_self.2 $ λ s hs,
-  ⟨interior s, interior_mem_uniformity hs, is_open.interior, interior_subset⟩
+  ⟨interior s, interior_mem_uniformity hs, is_open_interior, interior_subset⟩
 
 lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α×α)}
   (h : (𝓤 α).has_basis p s) {t : set (α × α)} :

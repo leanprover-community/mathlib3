@@ -438,7 +438,7 @@ point `x` to a neighborhood of `x`, then for some countable set `s`, the neighbo
 lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
   (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
 begin
-  rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open.interior) with ⟨s, hsc, hsU⟩,
+  rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
   suffices : (⋃ x ∈ s, interior (f x)) = univ,
     from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_mono $ λ _ _, interior_subset)⟩,
   simp only [hsU, eq_univ_iff_forall, mem_Union],

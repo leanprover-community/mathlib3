@@ -227,7 +227,7 @@ lemma mem_interior {s : set α} {x : α} :
   x ∈ interior s ↔ ∃ t ⊆ s, is_open t ∧ x ∈ t :=
 by simp only [interior, mem_set_of_eq, exists_prop, and_assoc, and.left_comm]
 
-@[simp] lemma is_open.interior {s : set α} : is_open (interior s) :=
+@[simp] lemma is_open_interior {s : set α} : is_open (interior s) :=
 is_open_sUnion $ assume t ⟨h₁, h₂⟩, h₁
 
 lemma interior_subset {s : set α} : interior s ⊆ s :=
@@ -236,11 +236,11 @@ sUnion_subset $ assume t ⟨h₁, h₂⟩, h₂
 lemma interior_maximal {s t : set α} (h₁ : t ⊆ s) (h₂ : is_open t) : t ⊆ interior s :=
 subset_sUnion_of_mem ⟨h₂, h₁⟩
 
-lemma is_open.interior_eq {s : set α} (h : is_open s) : interior s = s :=
+lemma is_open_interior_eq {s : set α} (h : is_open s) : interior s = s :=
 subset.antisymm interior_subset (interior_maximal (subset.refl s) h)
 
 lemma interior_eq_iff_open {s : set α} : interior s = s ↔ is_open s :=
-⟨assume h, h ▸ is_open.interior, is_open.interior_eq⟩
+⟨assume h, h ▸ is_open_interior, is_open_interior_eq⟩
 
 lemma subset_interior_iff_open {s : set α} : s ⊆ interior s ↔ is_open s :=
 by simp only [interior_eq_iff_open.symm, subset.antisymm_iff, interior_subset, true_and]
@@ -250,7 +250,7 @@ lemma subset_interior_iff_subset_of_open {s t : set α} (h₁ : is_open s) :
 ⟨assume h, subset.trans h interior_subset, assume h₂, interior_maximal h₂ h₁⟩
 
 lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
-interior_maximal (subset.trans interior_subset h) is_open.interior
+interior_maximal (subset.trans interior_subset h) is_open_interior
 
 @[simp] lemma interior_empty : interior (∅ : set α) = ∅ :=
 is_open_empty.interior_eq
@@ -259,13 +259,13 @@ is_open_empty.interior_eq
 is_open_univ.interior_eq
 
 @[simp] lemma interior_interior {s : set α} : interior (interior s) = interior s :=
-is_open.interior.interior_eq
+is_open_interior.interior_eq
 
 @[simp] lemma interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
   (subset_inter (interior_mono $ inter_subset_left s t) (interior_mono $ inter_subset_right s t))
   (interior_maximal (inter_subset_inter interior_subset interior_subset) $
-    is_open.inter is_open.interior is_open.interior)
+    is_open.inter is_open_interior is_open_interior)
 
 lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s)
   (h₂ : interior t = ∅) :
@@ -281,7 +281,7 @@ have interior (s ∪ t) ⊆ s, from
       by rwa h₂ at this,
     this ⟨hx₁, hx₂⟩,
 subset.antisymm
-  (interior_maximal this is_open.interior)
+  (interior_maximal this is_open_interior)
   (interior_mono $ subset_union_left _ _)
 
 lemma is_open_iff_forall_mem_open : is_open s ↔ ∀ x ∈ s, ∃ t ⊆ s, is_open t ∧ x ∈ t :=
@@ -761,7 +761,7 @@ by rw [interior_eq_nhds', mem_set_of_eq]
 @[simp] lemma interior_mem_nhds {s : set α} {a : α} :
   interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=
 ⟨λ h, mem_sets_of_superset h interior_subset,
-  λ h, mem_nhds_sets is_open.interior (mem_interior_iff_mem_nhds.2 h)⟩
+  λ h, mem_nhds_sets is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
 
 lemma interior_set_of_eq {p : α → Prop} :
   interior {x | p x} = {x | ∀ᶠ y in 𝓝 x, p y} :=
@@ -769,7 +769,7 @@ interior_eq_nhds'
 
 lemma is_open_set_of_eventually_nhds {p : α → Prop} :
   is_open {x | ∀ᶠ y in 𝓝 x, p y} :=
-by simp only [← interior_set_of_eq, is_open.interior]
+by simp only [← interior_set_of_eq, is_open_interior]
 
 lemma subset_interior_iff_nhds {s V : set α} : s ⊆ interior V ↔ ∀ x ∈ s, V ∈ 𝓝 x :=
 show (∀ x, x ∈ s →  x ∈ _) ↔ _, by simp_rw mem_interior_iff_mem_nhds
@@ -990,7 +990,7 @@ begin
   intro x,
   rcases hf x with ⟨s, hsx, hsf⟩,
   refine ⟨interior s, interior_mem_nhds.2 hsx, hsf.subset $ λ i hi, _⟩,
-  exact (hi.mono (closure_inter_open' is_open.interior)).of_closure.mono
+  exact (hi.mono (closure_inter_open' is_open_interior)).of_closure.mono
     (inter_subset_inter_right _ interior_subset)
 end
 
@@ -1075,7 +1075,7 @@ lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt 
 
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
-interior_maximal (preimage_mono interior_subset) (is_open.interior.preimage hf)
+interior_maximal (preimage_mono interior_subset) (is_open_interior.preimage hf)
 
 lemma continuous_id : continuous (id : α → α) :=
 continuous_def.2 $ assume s h, h

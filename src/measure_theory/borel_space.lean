@@ -189,7 +189,7 @@ variables [topological_space α] [measurable_space α] [opens_measurable_space �
 lemma is_open.measurable_set (h : is_open s) : measurable_set s :=
 opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
 
-lemma measurable_set_interior : measurable_set (interior s) := is_open.interior.measurable_set
+lemma measurable_set_interior : measurable_set (interior s) := is_open_interior.measurable_set
 
 lemma is_Gδ.measurable_set (h : is_Gδ s) : measurable_set s :=
 begin

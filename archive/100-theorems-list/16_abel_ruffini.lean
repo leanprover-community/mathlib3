@@ -156,8 +156,7 @@ lemma gal_Phi (hab : b < a) (h_irred : irreducible (Φ ℚ a b)) :
   bijective (gal_action_hom (Φ ℚ a b) ℂ) :=
 begin
   apply gal_action_hom_bijective_of_prime_degree' h_irred,
-  { rw [nat_degree_Phi],
-    norm_num },
+  { norm_num [nat_degree_Phi] },
   { rw [complex_roots_Phi a b h_irred.separable, nat.succ_le_succ_iff],
     exact (real_roots_Phi_le a b).trans (nat.le_succ 3) },
   { simp_rw [complex_roots_Phi a b h_irred.separable, nat.succ_le_succ_iff],

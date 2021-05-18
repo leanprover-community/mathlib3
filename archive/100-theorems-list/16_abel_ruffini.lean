@@ -99,15 +99,12 @@ end
 
 lemma real_roots_Phi_ge_aux' (hab : b < a) : (a : ℝ) ^ 2 - a ^ 5 + b ≤ 0 :=
 begin
-  rw_mod_cast [sub_add_eq_add_sub, sub_nonpos, ←add_le_add_iff_right 1, add_assoc],
-  suffices : ∀ c : ℤ, 0 ≤ c → c ^ 2 + c ≤ c ^ 3 + 1,
-  { calc a ^ 2 + (b + 1) ≤ a ^ 2 + a : by rwa [add_le_add_iff_left, nat.succ_le_iff]
-      ... ≤ a ^ 3 + 1 : by exact_mod_cast this a (int.coe_nat_nonneg a)
-      ... ≤ a ^ 5 + 1 : nat.succ_le_succ
-        (nat.pow_le_pow_of_le_right (nat.one_le_of_lt hab) (bit1_le_bit1.mpr one_le_two)) },
-  intros c hc,
-  rw [←sub_nonneg, show c ^ 3 + 1 - (c ^ 2 + c) = (c - 1) ^ 2 * (c + 1), by ring],
-  exact mul_nonneg (pow_two_nonneg _) (add_nonneg hc zero_le_one),
+  have h1 : (b : ℝ) + 1 ≤ a := by exact_mod_cast hab,
+  have h2 : 1 ≤ (a : ℝ) := nat.one_le_cast.mpr (nat.one_le_of_lt hab),
+  calc (a : ℝ) ^ 2 - a ^ 5 + b ≤ a ^ 2 - a ^ 3 + (a - 1) : add_le_add
+      (sub_le_sub_left (pow_le_pow h2 (bit1_le_bit1.mpr one_le_two)) _) (le_sub_iff_add_le.mpr h1)
+    ... = - ((a - 1) ^ 2 * (a + 1)) : by ring
+    ... ≤ 0 : neg_nonpos.mpr (mul_nonneg (pow_two_nonneg _) (by linarith)),
 end
 
 lemma real_roots_Phi_ge_aux (hab : b < a) :

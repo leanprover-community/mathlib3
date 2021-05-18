@@ -198,10 +198,10 @@ by rw_mod_cast [even_iff, nat.even_iff]
 @[simp, norm_cast] theorem odd_coe_nat {n : ℕ} : odd (n : ℤ) ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, even_coe_nat]
 
-@[simp] theorem nat_abs_even {n : ℤ} : even n.nat_abs ↔ even n :=
+@[simp] theorem nat_abs_even : even n.nat_abs ↔ even n :=
 coe_nat_dvd_left.symm
 
-@[simp] theorem nat_abs_odd {n : ℤ} : odd n.nat_abs ↔ odd n :=
+@[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
 
 -- Here are examples of how `parity_simps` can be used with `int`.

@@ -238,7 +238,7 @@ end closure_operator
 variables {α} {β : Type*}
 
 /-- A lower adjoint of `u` on the preorder `α` is a function `l` such that `l` and `u` form a Galois
-connection. It allows to define closure operators whose output does not match the input. In
+connection. It allows us to define closure operators whose output does not match the input. In
 practice, `u` is often `coe : β → α`. -/
 structure lower_adjoint [preorder α] [preorder β] (u : β → α) :=
 (to_fun : α → β)
@@ -250,13 +250,13 @@ variable (α)
 
 /-- The identity function as a lower adjoint to itself. -/
 @[simps]
-def id [preorder α] : lower_adjoint (id : α → α) :=
+protected def id [preorder α] : lower_adjoint (id : α → α) :=
 { to_fun := λ x, x,
   gc' := galois_connection.id }
 
 variable {α}
 
-instance [preorder α] : inhabited (lower_adjoint (_root_.id : α → α)) := ⟨id α⟩
+instance [preorder α] : inhabited (lower_adjoint (id : α → α)) := ⟨lower_adjoint.id α⟩
 
 section preorder
 variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
@@ -304,7 +304,7 @@ end partial_order
 section preorder
 variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
-/-- An element `x` is closed for the closure operator `c` if it is a fixed point for it. -/
+/-- An element `x` is closed for `l : lower_adjoint u` if it is a fixed point: `u (l x) = x` -/
 def closed : set α := λ x, u (l x) = x
 
 lemma mem_closed_iff (x : α) : x ∈ l.closed ↔ u (l x) = x := iff.rfl
@@ -321,7 +321,7 @@ l.closure_operator.mem_closed_iff_closure_le _
 
 @[simp] lemma closure_is_closed (x : α) : u (l x) ∈ l.closed := l.idempotent x
 
-/-- The set of closed elements for `c` is exactly its range. -/
+/-- The set of closed elements for `l` is the range of `u ∘ l`. -/
 lemma closed_eq_range_close : l.closed = set.range (u ∘ l) :=
 l.closure_operator.closed_eq_range_close
 
@@ -348,15 +348,15 @@ lemma closure_sup_closure_le (x y : α) :
   u (l x) ⊔ u (l y) ≤ u (l (x ⊔ y)) :=
 l.closure_operator.closure_sup_closure_le x y
 
-@[simp] lemma closure_sup_closure_left (x y : α) :
+lemma closure_sup_closure_left (x y : α) :
   u (l (u (l x) ⊔ y)) = u (l (x ⊔ y)) :=
 l.closure_operator.closure_sup_closure_left x y
 
-@[simp] lemma closure_sup_closure_right (x y : α) :
+lemma closure_sup_closure_right (x y : α) :
   u (l (x ⊔ u (l y))) = u (l (x ⊔ y)) :=
 l.closure_operator.closure_sup_closure_right x y
 
-@[simp] lemma closure_sup_closure (x y : α) :
+lemma closure_sup_closure (x y : α) :
   u (l (u (l x) ⊔ u (l y))) = u (l (x ⊔ y)) :=
 l.closure_operator.closure_sup_closure x y
 
@@ -365,11 +365,11 @@ end semilattice_sup
 section complete_lattice
 variables [complete_lattice α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
-@[simp] lemma closure_supr_closure {ι : Type u} (x : ι → α) :
+lemma closure_supr_closure {ι : Type u} (x : ι → α) :
   u (l (⨆ i, u (l (x i)))) = u (l (⨆ i, x i)) :=
 l.closure_operator.closure_supr_closure x
 
-@[simp] lemma closure_bsupr_closure (p : α → Prop) :
+lemma closure_bsupr_closure (p : α → Prop) :
   u (l (⨆ x (H : p x), u (l x))) = u (l (⨆ x (H : p x), x)) :=
 l.closure_operator.closure_bsupr_closure p
 
@@ -391,6 +391,30 @@ by { simp_rw [←set_like.mem_coe, ←set.singleton_subset_iff, ←l.le_iff_subs
 
 lemma eq_of_le {s : set β} {S : α} (h₁ : s ⊆ S) (h₂ : S ≤ l s) : l s = S :=
 ((l.le_iff_subset _ _).2 h₁).antisymm h₂
+
+lemma closure_union_closure_subset (x y : α) :
+  (l x : set β) ∪ (l y) ⊆ l (x ∪ y) :=
+l.closure_sup_closure_le x y
+
+@[simp] lemma closure_union_closure_left (x y : α) :
+  (l ((l x) ∪ y) : set β) = l (x ∪ y) :=
+l.closure_sup_closure_left x y
+
+@[simp] lemma closure_union_closure_right (x y : α) :
+  l (x ∪ (l y)) = l (x ∪ y) :=
+set_like.coe_injective (l.closure_sup_closure_right x y)
+
+@[simp] lemma closure_union_closure (x y : α) :
+  l ((l x) ∪ (l y)) = l (x ∪ y) :=
+set_like.coe_injective (l.closure_operator.closure_sup_closure x y)
+
+@[simp] lemma closure_Union_closure {ι : Type u} (x : ι → α) :
+  l (⋃ i, l (x i)) = l (⋃ i, x i) :=
+set_like.coe_injective (l.closure_supr_closure (coe ∘ x))
+
+@[simp] lemma closure_bUnion_closure (p : set β → Prop) :
+  l (⋃ x (H : p x), l x) = l (⋃ x (H : p x), x) :=
+set_like.coe_injective (l.closure_bsupr_closure p)
 
 end coe_to_set
 

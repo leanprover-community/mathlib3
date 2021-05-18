@@ -60,7 +60,7 @@ inductive generate_open (g : set (set α)) : set α → Prop
 def generate_from (g : set (set α)) : topological_space α :=
 { is_open        := generate_open g,
   is_open_univ   := generate_open.univ,
-  is_open_inter  := generate_open.inter,
+  is_open.inter  := generate_open.inter,
   is_open_sUnion := generate_open.sUnion  }
 
 lemma nhds_generate_from {g : set (set α)} {a : α} :
@@ -92,7 +92,7 @@ by rw [nhds_generate_from]; exact
 protected def mk_of_nhds (n : α → filter α) : topological_space α :=
 { is_open        := λs, ∀a∈s, s ∈ n a,
   is_open_univ   := assume x h, univ_mem_sets,
-  is_open_inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem_sets (hs x hxs) (ht x hxt),
+  is_open.inter  := assume s t hs ht x ⟨hxs, hxt⟩, inter_mem_sets (hs x hxs) (ht x hxt),
   is_open_sUnion := assume s hs a ⟨x, hx, hxa⟩,
     mem_sets_of_superset (hs x hx _ hxa) (set.subset_sUnion_of_mem hx) }
 
@@ -135,7 +135,7 @@ private lemma generate_from_le_iff_subset_is_open {g : set (set α)} {t : topolo
 iff.intro
   (assume ht s hs, ht _ $ topological_space.generate_open.basic s hs)
   (assume hg s hs, hs.rec_on (assume v hv, hg hv)
-    t.is_open_univ (assume u v _ _, t.is_open_inter u v) (assume k _, t.is_open_sUnion k))
+    t.is_open_univ (assume u v _ _, t.is_open.inter u v) (assume k _, t.is_open_sUnion k))
 
 /-- If `s` equals the collection of open sets in the topology it generates,
   then `s` defines a topology. -/
@@ -143,7 +143,7 @@ protected def mk_of_closure (s : set (set α))
   (hs : {u | (topological_space.generate_from s).is_open u} = s) : topological_space α :=
 { is_open        := λu, u ∈ s,
   is_open_univ   := hs ▸ topological_space.generate_open.univ,
-  is_open_inter  := hs ▸ topological_space.generate_open.inter,
+  is_open.inter  := hs ▸ topological_space.generate_open.inter,
   is_open_sUnion := hs ▸ topological_space.generate_open.sUnion }
 
 lemma mk_of_closure_sets {s : set (set α)}
@@ -254,8 +254,8 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
   topological_space α :=
 { is_open        := λs, ∃s', t.is_open s' ∧ f ⁻¹' s' = s,
   is_open_univ   := ⟨univ, t.is_open_univ, preimage_univ⟩,
-  is_open_inter  := by rintro s₁ s₂ ⟨s'₁, hs₁, rfl⟩ ⟨s'₂, hs₂, rfl⟩;
-    exact ⟨s'₁ ∩ s'₂, t.is_open_inter _ _ hs₁ hs₂, preimage_inter⟩,
+  is_open.inter  := by rintro s₁ s₂ ⟨s'₁, hs₁, rfl⟩ ⟨s'₂, hs₂, rfl⟩;
+    exact ⟨s'₁ ∩ s'₂, t.is_open.inter _ _ hs₁ hs₂, preimage_inter⟩,
   is_open_sUnion := assume s h,
   begin
     simp only [classical.skolem] at h,
@@ -285,7 +285,7 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
   topological_space β :=
 { is_open        := λs, t.is_open (f ⁻¹' s),
   is_open_univ   := by rw preimage_univ; exact t.is_open_univ,
-  is_open_inter  := assume s₁ s₂ h₁ h₂, by rw preimage_inter; exact t.is_open_inter _ _ h₁ h₂,
+  is_open.inter  := assume s₁ s₂ h₁ h₂, by rw preimage_inter; exact t.is_open.inter _ _ h₁ h₂,
   is_open_sUnion := assume s h, by rw [preimage_sUnion]; exact (@is_open_Union _ _ t _ $ assume i,
     show is_open (⋃ (H : i ∈ s), f ⁻¹' i), from
       @is_open_Union _ _ t _ $ assume hi, h i hi) }
@@ -425,7 +425,7 @@ le_antisymm
 protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
 { is_open        := λs, a ∈ s → s ∈ f,
   is_open_univ   := assume s, univ_mem_sets,
-  is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem_sets (hs has) (ht hat),
+  is_open.inter  := assume s t hs ht ⟨has, hat⟩, inter_mem_sets (hs has) (ht hat),
   is_open_sUnion := assume k hk ⟨u, hu, hau⟩, mem_sets_of_superset (hk u hu hau)
     (subset_sUnion_of_mem hu) }
 

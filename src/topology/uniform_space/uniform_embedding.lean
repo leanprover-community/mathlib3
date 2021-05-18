@@ -410,7 +410,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
   from (𝓤 α).sets_of_superset (interior_mem_uniformity ht) $
   assume ⟨x₁, x₂⟩ hx_t,
   have 𝓝 (x₁, x₂) ≤ 𝓟 (interior t),
-    from is_open_iff_nhds.mp is_open_interior (x₁, x₂) hx_t,
+    from is_open_iff_nhds.mp is_open.interior (x₁, x₂) hx_t,
   have interior t ∈ 𝓝 x₁ ×ᶠ 𝓝 x₂,
     by rwa [nhds_prod_eq, le_principal_iff] at this,
   let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in

@@ -279,7 +279,7 @@ begin
   calc
   μ.outer_measure K ≤ μ.outer_measure (interior F) : outer_measure.mono' _ h2F
   ... ≤ μ ⟨F, h1F⟩ :
-    by apply μ.outer_measure_le ⟨interior F, is_open_interior⟩ ⟨F, h1F⟩ interior_subset
+    by apply μ.outer_measure_le ⟨interior F, is_open.interior⟩ ⟨F, h1F⟩ interior_subset
   ... < ⊤ : μ.lt_top _
 end
 
@@ -319,7 +319,7 @@ begin
   intros U hU,
   rw μ.outer_measure_caratheodory,
   intro U',
-  rw μ.outer_measure_of_is_open ((U' : set G) ∩ U) (is_open_inter U'.prop hU),
+  rw μ.outer_measure_of_is_open ((U' : set G) ∩ U) (is_open.inter U'.prop hU),
   simp only [inner_content, supr_subtype'], rw [opens.coe_mk],
   haveI : nonempty {L : compacts G // L.1 ⊆ U' ∩ U} := ⟨⟨⊥, empty_subset _⟩⟩,
   rw [ennreal.supr_add],

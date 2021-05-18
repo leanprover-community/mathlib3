@@ -735,7 +735,7 @@ begin
   { assume h t ht,
     rcases h t ht with ⟨u, u_open, hu⟩,
     rw [inter_comm, hu],
-    apply is_open_inter u_open hs },
+    apply is_open.inter u_open hs },
   { assume h t ht,
     refine ⟨s ∩ f ⁻¹' t, h t ht, _⟩,
     rw [@inter_comm _ s (f ⁻¹' t), inter_assoc, inter_self] }
@@ -750,14 +750,14 @@ lemma continuous_on.preimage_closed_of_closed {f : α → β} {s : set α} {t : 
 begin
   rcases continuous_on_iff_is_closed.1 hf t ht with ⟨u, hu⟩,
   rw [inter_comm, hu.2],
-  apply is_closed_inter hu.1 hs
+  apply is_closed.inter hu.1 hs
 end
 
 lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {s : set α} {t : set β}
   (hf : continuous_on f s) (hs : is_open s) : s ∩ f⁻¹' (interior t) ⊆ s ∩ interior (f⁻¹' t) :=
 calc s ∩ f ⁻¹' (interior t) ⊆ interior (s ∩ f ⁻¹' t) :
   interior_maximal (inter_subset_inter (subset.refl _) (preimage_mono interior_subset))
-    (hf.preimage_open_of_open hs is_open_interior)
+    (hf.preimage_open_of_open hs is_open.interior)
 ... = s ∩ interior (f ⁻¹' t) : by rw [interior_inter, hs.interior_eq]
 
 lemma continuous_on_of_locally_continuous_on {f : α → β} {s : set α}
@@ -781,7 +781,7 @@ begin
   { have : s ∩ f ⁻¹' (u ∩ v) = (s ∩ f ⁻¹' u) ∩ (s ∩ f ⁻¹' v),
       by { ext x, simp, split, finish, finish },
     rw this,
-    exact is_open_inter hu hv },
+    exact is_open.inter hu hv },
   { rw [preimage_sUnion, inter_bUnion],
     exact is_open_bUnion hU' },
   { exact hs }

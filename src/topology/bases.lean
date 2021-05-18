@@ -93,7 +93,7 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
   (h_nhds : ∀(a:α) (u : set α), a ∈ u → is_open u → ∃v ∈ s, a ∈ v ∧ v ⊆ u) :
   is_topological_basis s :=
 begin
-  refine ⟨λ t₁ ht₁ t₂ ht₂ x hx, h_nhds _ _ hx (is_open_inter (h_open _ ht₁) (h_open _ ht₂)), _, _⟩,
+  refine ⟨λ t₁ ht₁ t₂ ht₂ x hx, h_nhds _ _ hx (is_open.inter (h_open _ ht₁) (h_open _ ht₂)), _, _⟩,
   { refine sUnion_eq_univ_iff.2 (λ a, _),
     rcases h_nhds a univ trivial is_open_univ with ⟨u, h₁, h₂, -⟩,
     exact ⟨u, h₁, h₂⟩ },
@@ -438,7 +438,7 @@ point `x` to a neighborhood of `x`, then for some countable set `s`, the neighbo
 lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
   (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
 begin
-  rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
+  rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open.interior) with ⟨s, hsc, hsU⟩,
   suffices : (⋃ x ∈ s, interior (f x)) = univ,
     from ⟨s, hsc, flip eq_univ_of_subset this (bUnion_mono $ λ _ _, interior_subset)⟩,
   simp only [hsU, eq_univ_iff_forall, mem_Union],

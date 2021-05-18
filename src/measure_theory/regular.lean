@@ -42,10 +42,10 @@ variables {α β : Type*} [measurable_space α] [topological_space α] {μ : mea
   - it is inner regular for open sets, using compact sets:
     `μ(U) = sup {μ(K) | K ⊆ U compact}` for `U` open. -/
 class regular (μ : measure α) : Prop :=
-(lt_top_of_is_compact : ∀ {{K : set α}}, is_compact K → μ K < ∞)
-(outer_regular : ∀ {{A : set α}}, measurable_set A →
+(lt_top_of_is_compact : ∀ ⦃K : set α⦄, is_compact K → μ K < ∞)
+(outer_regular : ∀ ⦃A : set α⦄, measurable_set A →
   (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) ≤ μ A)
-(inner_regular : ∀ {{U : set α}}, is_open U →
+(inner_regular : ∀ ⦃U : set α⦄, is_open U →
   μ U ≤ ⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K)
 
 /-- A measure `μ` is weakly regular if
@@ -53,9 +53,9 @@ class regular (μ : measure α) : Prop :=
   - it is inner regular for open sets, using closed sets:
     `μ(U) = sup {μ(K) | K ⊆ U compact}` for `U` open. -/
 class weakly_regular (μ : measure α) : Prop :=
-(outer_regular : ∀ {{A : set α}}, measurable_set A →
+(outer_regular : ∀ ⦃A : set α⦄, measurable_set A →
   (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) ≤ μ A)
-(inner_regular : ∀ {{U : set α}}, is_open U →
+(inner_regular : ∀ ⦃U : set α⦄, is_open U →
   μ U ≤ ⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ U), μ F)
 
 /-- A regular measure is weakly regular. -/
@@ -70,11 +70,11 @@ instance regular.weakly_regular [t2_space α] [regular μ] : weakly_regular μ :
 
 namespace regular
 
-lemma outer_regular_eq [regular μ] {{A : set α}}
+lemma outer_regular_eq [regular μ] ⦃A : set α⦄
   (hA : measurable_set A) : μ A = (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) :=
 le_antisymm (le_infi $ λ s, le_infi $ λ hs, le_infi $ λ h2s, μ.mono h2s) (regular.outer_regular hA)
 
-lemma inner_regular_eq [regular μ] {{U : set α}}
+lemma inner_regular_eq [regular μ] ⦃U : set α⦄
   (hU : is_open U) : μ U = (⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K) :=
 le_antisymm (regular.inner_regular hU) (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s)
 
@@ -147,15 +147,27 @@ end regular
 
 namespace weakly_regular
 
-lemma outer_regular_eq [weakly_regular μ] {{A : set α}}
+lemma outer_regular_eq [weakly_regular μ] ⦃A : set α⦄
   (hA : measurable_set A) : μ A = (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) :=
 le_antisymm (le_infi $ λ s, le_infi $ λ hs, le_infi $ λ h2s, μ.mono h2s)
   (weakly_regular.outer_regular hA)
 
-lemma inner_regular_eq [weakly_regular μ] {{U : set α}}
+lemma inner_regular_eq [weakly_regular μ] ⦃U : set α⦄
   (hU : is_open U) : μ U = (⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ U), μ F) :=
 le_antisymm (weakly_regular.inner_regular hU)
   (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s)
+
+lemma exists_subset_is_open_measure_lt_top [weakly_regular μ] {A : set α}
+  (hA : measurable_set A) (h'A : μ A < ∞) :
+  ∃ U, is_open U ∧ A ⊆ U ∧ μ U < ∞ :=
+begin
+  have : (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) < μ A + 1,
+  { refine lt_of_le_of_lt (weakly_regular.outer_regular hA) _,
+    simpa only [add_zero] using (ennreal.add_lt_add_iff_left h'A).mpr ennreal.zero_lt_one },
+  simp only [infi_lt_iff] at this,
+  rcases this with ⟨U, U_open, AU, hU⟩,
+  exact ⟨U, U_open, AU, hU.trans (ennreal.add_lt_top.2 ⟨h'A, ennreal.one_lt_top⟩)⟩
+end
 
 /-- In a finite measure space, assume that any open set can be approximated from inside by closed
 sets. Then any measurable set can be approximated from inside by closed sets, and from outside
@@ -300,12 +312,12 @@ theorem weakly_regular_of_inner_regular_of_finite_measure [borel_space α]
   end }
 
 /-- The restriction of a weakly regular measure to an open set of finite measure is
-weakly regular. -/
-lemma restrict_is_open [weakly_regular μ] [borel_space α]
+weakly regular. Superseded by `restrict_of_measurable_set`, proving the same statement for
+measurable sets instead of open sets. -/
+lemma restrict_of_is_open [borel_space α] [weakly_regular μ]
   (U : set α) (hU : is_open U) (h'U : μ U < ∞) : weakly_regular (μ.restrict U) :=
 begin
-  haveI : finite_measure (μ.restrict U) :=
-    ⟨by rwa [restrict_apply measurable_set.univ, univ_inter]⟩,
+  haveI : fact (μ U < ∞) := ⟨h'U⟩,
   refine weakly_regular_of_inner_regular_of_finite_measure _ (λ V V_open, _),
   simp only [restrict_apply' hU.measurable_set],
   refine le_trans (weakly_regular.inner_regular (V_open.inter hU)) _,
@@ -342,9 +354,48 @@ lemma inner_regular_eq_of_measure_lt_top [borel_space α] [weakly_regular μ]
   ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A < ∞):
   μ A = (⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ A), μ F) :=
 begin
-
+  refine le_antisymm _ (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s),
+  obtain ⟨U, U_open, AU, μU⟩ : ∃ U, is_open U ∧ A ⊆ U ∧ μ U < ∞ :=
+    exists_subset_is_open_measure_lt_top hA h'A,
+  haveI : fact (μ U < ∞) := ⟨μU⟩,
+  haveI : weakly_regular (μ.restrict U) := restrict_of_is_open U U_open μU,
+  calc μ A = (μ.restrict U) A :
+    begin
+      rw restrict_apply' U_open.measurable_set,
+      congr' 1,
+      exact subset.antisymm (subset_inter (subset.refl _) AU) (inter_subset_left _ _)
+    end
+  ... = (⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ A), (μ.restrict U) F) :
+    inner_regular_eq_of_is_measurable hA
+  ... ≤ ⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ A), μ F :
+  begin
+    refine supr_le_supr (λ F, _),
+    refine supr_le_supr (λ F_closed, _),
+    refine supr_le_supr (λ FA, _),
+    rw restrict_apply' U_open.measurable_set,
+    apply measure_mono (inter_subset_left _ _),
+  end
 end
 
+/-- The restriction of a weakly regular measure to a measurable set of finite measure is
+weakly regular. -/
+lemma restrict_of_measurable_set [borel_space α] [weakly_regular μ]
+  (A : set α) (hA : measurable_set A) (h'A : μ A < ∞) : weakly_regular (μ.restrict A) :=
+begin
+  haveI : fact (μ A < ∞) := ⟨h'A⟩,
+  refine weakly_regular_of_inner_regular_of_finite_measure _ (λ V V_open, _),
+  simp only [restrict_apply' hA],
+  rw inner_regular_eq_of_measure_lt_top (V_open.measurable_set.inter hA),
+  { simp only [and_imp, supr_le_iff, subset_inter_iff],
+    assume F F_closed FV FU,
+    have : F = F ∩ A :=
+      subset.antisymm (by simp [subset.refl, FU]) (inter_subset_left _ _),
+    conv_lhs {rw this},
+    simp_rw [supr_and', supr_subtype'],
+    exact le_supr (λ s : {s // is_closed s ∧ s ⊆ V}, μ (s ∩ A)) ⟨F, F_closed, FV⟩ },
+  { exact lt_of_le_of_lt (measure_mono (inter_subset_right _ _)) h'A },
+  { apply_instance }
+end
 
 #exit
 

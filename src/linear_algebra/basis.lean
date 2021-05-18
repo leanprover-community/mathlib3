@@ -282,12 +282,8 @@ calc b.reindex_range.repr (b i) = b.reindex_range.repr (b.reindex_range ⟨b i, 
   congr_arg _ (b.reindex_range_self _ _).symm
 ... = finsupp.single ⟨b i, mem_range_self i⟩ 1 : b.reindex_range.repr_self _
 
-@[simp] lemma reindex_range_apply [nontrivial R] {bi : M} {i : ι} (h : b i = bi) :
-  b.reindex_range ⟨bi, ⟨i, h⟩⟩ = b i :=
-by { convert b.reindex_range_self i, rw h }
-
-@[simp] lemma reindex_range_apply' [nontrivial R] (x : range b) : b.reindex_range x = x :=
-by { rcases x with ⟨bi, ⟨i, h⟩⟩, simp [h], }
+@[simp] lemma reindex_range_apply [nontrivial R] (x : range b) : b.reindex_range x = x :=
+by { rcases x with ⟨bi, ⟨i, rfl⟩⟩, exact b.reindex_range_self i, }
 
 lemma reindex_range_repr' [nontrivial R] (x : M) {bi : M} {i : ι} (h : b i = bi) :
   b.reindex_range.repr x ⟨bi, ⟨i, h⟩⟩ = b.repr x i :=

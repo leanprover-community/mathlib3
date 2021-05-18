@@ -40,7 +40,7 @@ ERR_RNT = 5 # reserved notation
 ERR_OPT = 6 # set_option
 ERR_AUT = 7 # malformed authors list
 ERR_OME = 8 # imported tactic.omega
-ERR_TAC = 8 # imported tactic
+ERR_TAC = 9 # imported tactic
 
 exceptions = []
 

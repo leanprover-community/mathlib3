@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import algebra.big_operators.finsupp
 import linear_algebra.matrix.to_lin
 
 /-!
@@ -140,17 +141,24 @@ open linear_map
 by { haveI := classical.dec_eq ι',
       rw [← basis_to_matrix_mul_linear_map_to_matrix b b', to_matrix_id, matrix.mul_one] }
 
+lemma sum_repr_aux (x : M) : ∑ (j : ι'), b.repr (b' j) i * b'.repr x j = b.repr x i :=
+begin
+  conv_rhs { rw [← b'.sum_repr x] },
+  simp_rw [linear_equiv.map_sum, linear_equiv.map_smul, finset.sum_apply'],
+  refine finset.sum_congr rfl (λ j _, _),
+  rw [finsupp.smul_apply, smul_eq_mul, mul_comm]
+end
+
 /-- A generalization of `basis.to_matrix_self`, in the opposite direction. -/
 @[simp] lemma basis.to_matrix_mul_to_matrix
-  {ι'' : Type*} [fintype ι''] (b'' : basis ι'' R M) :
+  {ι'' : Type*} [fintype ι''] (b'' : ι'' → M) :
   b.to_matrix b' ⬝ b'.to_matrix b'' = b.to_matrix b'' :=
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq ι',
   haveI := classical.dec_eq ι'',
-  rw [← linear_map.to_matrix_id_eq_basis_to_matrix b' b,
-      ← linear_map.to_matrix_id_eq_basis_to_matrix b'' b',
-      ← to_matrix_comp, id_comp, linear_map.to_matrix_id_eq_basis_to_matrix],
+  ext i j,
+  simp only [matrix.mul_apply, basis.to_matrix_apply, sum_repr_aux],
 end
 
 end mul_linear_map_to_matrix

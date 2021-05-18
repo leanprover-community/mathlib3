@@ -148,8 +148,6 @@ lemma nat_degree_lt_coeff_mul (h : p.nat_degree + q.nat_degree < m + n) :
   (p * q).coeff (m + n) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (nat_degree_mul_le.trans_lt h)
 
-
-
 variables [semiring S]
 
 lemma nat_degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
@@ -191,6 +189,14 @@ lemma leading_coeff_map' (p : polynomial R) :
 begin
   unfold leading_coeff,
   rw [coeff_map, nat_degree_map' hf p],
+end
+
+lemma next_coeff_map (p : polynomial R) :
+  (p.map f).next_coeff = f p.next_coeff :=
+begin
+  unfold next_coeff,
+  rw nat_degree_map' hf,
+  split_ifs; simp
 end
 
 end injective

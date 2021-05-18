@@ -306,9 +306,8 @@ calc b.reindex_range.repr (b i) = b.reindex_range.repr (b.reindex_range ⟨b i, 
   congr_arg _ (b.reindex_range_self _ _).symm
 ... = finsupp.single ⟨b i, mem_range_self i⟩ 1 : b.reindex_range.repr_self _
 
-@[simp] lemma reindex_range_apply {bi : M} {i : ι} (h : b i = bi) :
-  b.reindex_range ⟨bi, ⟨i, h⟩⟩ = b i :=
-by { convert b.reindex_range_self i, rw h }
+@[simp] lemma reindex_range_apply (x : range b) : b.reindex_range x = x :=
+by { rcases x with ⟨bi, ⟨i, rfl⟩⟩, exact b.reindex_range_self i, }
 
 lemma reindex_range_repr' (x : M) {bi : M} {i : ι} (h : b i = bi) :
   b.reindex_range.repr x ⟨bi, ⟨i, h⟩⟩ = b.repr x i :=
@@ -756,9 +755,9 @@ end basis
 
 end module
 
-section vector_space
+section division_ring
 
-variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
+variables [division_ring K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
 variables {v : ι → V} {s t : set V} {x y z : V}
 
 include K
@@ -841,6 +840,20 @@ end exists_basis
 
 end basis
 
+open fintype
+variables (K V)
+
+theorem vector_space.card_fintype [fintype K] [fintype V] :
+  ∃ n : ℕ, card V = (card K) ^ n :=
+⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
+
+end division_ring
+
+section field
+
+variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
+variables {v : ι → V} {s t : set V} {x y z : V}
+
 lemma linear_map.exists_left_inverse_of_injective (f : V →ₗ[K] V')
   (hf_inj : f.ker = ⊥) : ∃g:V' →ₗ V, g.comp f = linear_map.id :=
 begin
@@ -916,11 +929,4 @@ let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
 ((quotient_equiv_of_is_compl p q hq).prod (linear_equiv.refl _ _)).trans
   (prod_equiv_of_is_compl q p hq.symm)
 
-open fintype
-variables (K) (V)
-
-theorem vector_space.card_fintype [fintype K] [fintype V] :
-  ∃ n : ℕ, card V = (card K) ^ n :=
-⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
-
-end vector_space
+end field

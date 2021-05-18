@@ -378,6 +378,9 @@ subset_empty_iff.1 $ e ▸ h
 theorem ball_empty_iff {p : α → Prop} : (∀ x ∈ (∅ : set α), p x) ↔ true :=
 iff_true_intro $ λ x, false.elim
 
+instance (α : Type u) : is_empty.{u+1} (∅ : set α) :=
+⟨λ x, x.2⟩
+
 /-!
 
 ### Universal set.

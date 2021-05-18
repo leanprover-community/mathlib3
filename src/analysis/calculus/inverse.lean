@@ -392,7 +392,7 @@ def to_local_homeomorph (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c
 { to_local_equiv := hf.to_local_equiv hc,
   open_source := hs,
   open_target := hf.open_image f'.to_nonlinear_right_inverse hs
-    (by rwa f'.to_linear_equiv.to_equiv.subsingleton_iff at hc),
+    (by rwa f'.to_linear_equiv.to_equiv.subsingleton_congr at hc),
   continuous_to_fun := hf.continuous_on,
   continuous_inv_fun := hf.inverse_continuous_on hc }
 

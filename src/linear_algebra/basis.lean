@@ -739,6 +739,54 @@ end
 
 end span
 
+lemma eq_zero_of_smul_eq_zero {G : Type*} [hG : group G] [distrib_mul_action G R]
+  (g : G) {r : R} (h : g • r = 0) : r = 0 :=
+begin
+  suffices : g⁻¹ • g • r = 0,
+  { rw [← this, ← smul_assoc, smul_eq_mul, mul_left_inv, one_smul] },
+  rw [h, smul_zero],
+end
+
+lemma smul_group_linear_independent
+  {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} :
+  linear_independent R (w • v) :=
+begin
+  have hw₁' := v.linear_independent,
+  rw linear_independent_iff'' at hw₁' ⊢,
+  intros s g hgs hsum i,
+  refine eq_zero_of_smul_eq_zero (w i) _,
+  refine hw₁' s (λ i, w i • g i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ smul_zero _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros, erw [pi.smul_apply, smul_assoc, smul_comm] },
+end
+
+lemma smul_group_span_eq_top
+  {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] {v : basis ι R M} {w : ι → G} :
+  submodule.span R (set.range (w • v)) = ⊤ :=
+begin
+  have hw₁' := v.span_eq,
+  rw eq_top_iff,
+  intros j hj,
+  rw ← hw₁' at hj,
+  rw submodule.mem_span at hj ⊢,
+  refine λ p hp, hj p (λ u hu, _),
+  obtain ⟨i, rfl⟩ := hu,
+  have : ((w i)⁻¹ • 1 : R) • w i • v i ∈ p := p.smul_mem ((w i)⁻¹ • 1 : R) (hp ⟨i, rfl⟩),
+  rwa [smul_one_smul, inv_smul_smul] at this,
+end
+
+/-- Given a basis `v` and a map `w` such that for all `i`, `w i` are elements of a group,
+`smul_group` provides the basis corresponding to `w • v`. -/
+lemma smul_group {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) {w : ι → G} :
+  basis ι R M :=
+@basis.mk ι R M (w • v) _ _ _
+  (basis.smul_group_linear_independent) (basis.smul_group_span_eq_top)
+
 lemma smul_of_is_unit_linear_independent {v : basis ι R M} {w : ι → R}
   (hw : ∀ i : ι, is_unit (w i)) : linear_independent R (w • v) :=
 begin
@@ -769,6 +817,7 @@ begin
   rwa [←hwi, units.inv_smul_smul] at this
 end
 
+-- This is simply `smul_group` with `G = unit R` after #7438.
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
 provides the basis corresponding to `w • v`. -/
 noncomputable

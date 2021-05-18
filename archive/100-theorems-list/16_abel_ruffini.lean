@@ -97,42 +97,34 @@ begin
   rw root_set_C_mul_X_pow; norm_num,
 end
 
-lemma real_roots_Phi_ge_aux' (hab : b < a) : (a : ℝ) ^ 2 - a ^ 5 + b ≤ 0 :=
-begin
-  have h1 : (b : ℝ) + 1 ≤ a := by exact_mod_cast hab,
-  have h2 : 1 ≤ (a : ℝ) := nat.one_le_cast.mpr (nat.one_le_of_lt hab),
-  calc (a : ℝ) ^ 2 - a ^ 5 + b ≤ a ^ 2 - a ^ 3 + (a - 1) : add_le_add
-      (sub_le_sub_left (pow_le_pow h2 (bit1_le_bit1.mpr one_le_two)) _) (le_sub_iff_add_le.mpr h1)
-    ... = - ((a - 1) ^ 2 * (a + 1)) : by ring
-    ... ≤ 0 : neg_nonpos.mpr (mul_nonneg (pow_two_nonneg _) (by linarith)),
-end
-
 lemma real_roots_Phi_ge_aux (hab : b < a) :
   ∃ x y : ℝ, x ≠ y ∧ aeval x (Φ ℚ a b) = 0 ∧ aeval y (Φ ℚ a b) = 0 :=
 begin
   let f := λ x : ℝ, aeval x (Φ ℚ a b),
-  have hf : f = λ x, x ^ 5 - a * x + b, { simp [f, Φ] },
+  change ∃ x y : ℝ, x ≠ y ∧ f x = 0 ∧ f y = 0,
+  have hf : f = λ x, x ^ 5 - a * x + b := by simp [f, Φ],
   have hc : ∀ s : set ℝ, continuous_on f s := λ s, (Φ ℚ a b).continuous_on_aeval,
   have ha : (1 : ℝ) ≤ a := nat.one_le_cast.mpr (nat.one_le_of_lt hab),
   have hle : (0 : ℝ) ≤ 1 := zero_le_one,
-  have hf0 : 0 ≤ f 0, { norm_num [hf] },
+  have hf0 : 0 ≤ f 0 := by norm_num [hf],
   by_cases hb : (1 : ℝ) - a + b < 0,
-  { have hf1 : f 1 < 0, { norm_num [hf, hb] },
+  { have hf1 : f 1 < 0 := by norm_num [hf, hb],
     have hfa : 0 ≤ f a,
-    { simp_rw [hf, ← sq],
+    { simp_rw [hf, ←sq],
       refine add_nonneg (sub_nonneg.mpr (pow_le_pow ha _)) _; norm_num },
     obtain ⟨x, ⟨-, hx1⟩, hx2⟩ := intermediate_value_Ico' hle (hc _) (set.mem_Ioc.mpr ⟨hf1, hf0⟩),
     obtain ⟨y, ⟨hy1, -⟩, hy2⟩ := intermediate_value_Ioc ha (hc _) (set.mem_Ioc.mpr ⟨hf1, hfa⟩),
     exact ⟨x, y, (hx1.trans hy1).ne, hx2, hy2⟩ },
-  { have hb' : (1 : ℝ) - a + b = 0,
-    { refine le_antisymm _ (not_lt.mp hb),
-      rw [sub_add_eq_add_sub, sub_nonpos, add_comm],
-      exact_mod_cast nat.succ_le_iff.mpr hab },
-    have hf1 : f 1 = 0, { norm_num [hf, hb'] },
-    have hfa : f (-a) ≤ 0, { norm_num [hf, ← sq, real_roots_Phi_ge_aux' a b hab] },
-    have ha' := neg_nonpos.mpr (hle.trans ha),
-    obtain ⟨x, ⟨-, hx1⟩, hx2⟩ := intermediate_value_Icc ha' (hc _) (set.mem_Icc.mpr ⟨hfa, hf0⟩),
-    exact ⟨x, 1, (hx1.trans_lt zero_lt_one).ne, hx2, hf1⟩ },
+  { replace hb : (b : ℝ) = a - 1 := by linarith [show (b : ℝ) + 1 ≤ a, by exact_mod_cast hab],
+    have hfa := calc f (-a) = (-a) ^ 5 - a * -a + (a - 1) : by rw [hf, hb]
+      ... ≤ (-a) ^ 3 - a * -a + (a - 1) : _
+      ... = -((a - 1) ^ 2 * (a + 1)) : by ring
+      ... ≤ 0 : by nlinarith,
+    { obtain ⟨x, ⟨-, hx1⟩, hx2⟩ := intermediate_value_Icc
+        (neg_nonpos.mpr (hle.trans ha)) (hc _) (set.mem_Icc.mpr ⟨hfa, hf0⟩),
+      exact ⟨x, 1, (hx1.trans_lt zero_lt_one).ne, hx2, by norm_num [hf, hb]⟩ },
+    { rw [add_le_add_iff_right, sub_le_sub_iff_right, neg_pow_bit1, neg_pow_bit1],
+      exact neg_le_neg (pow_le_pow ha (bit1_le_bit1.mpr one_le_two)) } },
 end
 
 lemma real_roots_Phi_ge (hab : b < a) : 2 ≤ fintype.card ((Φ ℚ a b).root_set ℝ) :=

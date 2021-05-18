@@ -5,7 +5,6 @@ Authors: Eric Rodriguez
 -/
 import data.fintype.card
 import data.equiv.fin
-import data.nat.factorial
 import data.equiv.embedding
 
 /-!

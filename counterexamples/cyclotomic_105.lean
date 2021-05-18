@@ -72,7 +72,7 @@ lemma cyclotomic_21 : cyclotomic 21 ℤ =
 begin
   refine ((eq_cyclotomic_iff (show 0 < 21, by norm_num) _).2 _).symm,
   rw [proper_divisors_21, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
-  cyclotomic_one, cyclotomic_3, cyclotomic_7],
+    cyclotomic_one, cyclotomic_3, cyclotomic_7],
   ring,
   repeat { norm_num }
 end
@@ -83,7 +83,7 @@ lemma cyclotomic_35 : cyclotomic 35 ℤ =
 begin
   refine ((eq_cyclotomic_iff (show 0 < 35, by norm_num) _).2 _).symm,
   rw [proper_divisors_35, finset.prod_insert _, finset.prod_insert _, finset.prod_singleton,
-  cyclotomic_one, cyclotomic_5, cyclotomic_7],
+    cyclotomic_one, cyclotomic_5, cyclotomic_7],
   ring,
   repeat { norm_num }
 end
@@ -98,7 +98,7 @@ begin
   rw proper_divisors_105,
   repeat {rw finset.prod_insert _},
   rw [finset.prod_singleton, cyclotomic_one, cyclotomic_3, cyclotomic_5, cyclotomic_7,
-  cyclotomic_15, cyclotomic_21, cyclotomic_35],
+    cyclotomic_15, cyclotomic_21, cyclotomic_35],
   ring,
   repeat { norm_num }
 end

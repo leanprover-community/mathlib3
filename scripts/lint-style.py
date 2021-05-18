@@ -40,6 +40,7 @@ ERR_RNT = 5 # reserved notation
 ERR_OPT = 6 # set_option
 ERR_AUT = 7 # malformed authors list
 ERR_OME = 8 # imported tactic.omega
+ERR_TAC = 8 # imported tactic
 
 exceptions = []
 
@@ -70,6 +71,8 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(ERR_AUT, path)]
         if errno == "ERR_OME":
             exceptions += [(ERR_OME, path)]
+        if errno == "ERR_TAC":
+            exceptions += [(ERR_TAC, path)]
 
 new_exceptions = False
 
@@ -219,6 +222,8 @@ def import_omega_check(lines, path):
             break
         if imports[1] == "tactic.omega":
             errors += [(ERR_OME, line_nr, path)]
+        if imports[1] == "tactic":
+            errors += [(ERR_TAC, line_nr, path)]
     return errors
 
 def output_message(path, line_nr, code, msg):
@@ -254,6 +259,8 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_AUT", "Authors line should look like: 'Authors: Jean Dupont, Иван Иванович Иванов'")
         if errno == ERR_OME:
             output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import tactic.omega")
+        if errno == ERR_TAC:
+            output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import the whole tactic folder")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:
@@ -263,7 +270,7 @@ def lint(path):
         (b, errs) = import_only_check(lines, path)
         if b:
             format_errors(errs)
-            return
+            return # checks below this line are not executed on files that only import other files.
         errs = regular_check(lines, path)
         format_errors(errs)
         errs = small_alpha_vrachy_check(lines, path)

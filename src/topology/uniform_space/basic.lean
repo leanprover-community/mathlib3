@@ -212,7 +212,7 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
   topological_space α :=
 { is_open        := λs, ∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ u.uniformity,
   is_open_univ   := by simp; intro; exact univ_mem_sets,
-  is_open.inter  :=
+  is_open_inter  :=
     assume s t hs ht x ⟨xs, xt⟩, by filter_upwards [hs x xs, ht x xt]; simp {contextual := tt},
   is_open_sUnion :=
     assume s hs x ⟨t, ts, xt⟩, by filter_upwards [hs t ts x xt] assume p ph h, ⟨t, ts, ph h⟩ }

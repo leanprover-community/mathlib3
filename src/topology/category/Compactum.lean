@@ -131,7 +131,7 @@ end
 instance {X : Compactum} : topological_space X :=
 { is_open := λ U, ∀ (F : ultrafilter X), X.str F ∈ U → U ∈ F,
   is_open_univ := λ _ _, filter.univ_sets _,
-  is_open.inter := λ S T h3 h4 h5 h6,
+  is_open_inter := λ S T h3 h4 h5 h6,
     filter.inter_sets _ (h3 _ h6.1) (h4 _ h6.2),
   is_open_sUnion := λ S h1 F ⟨T,hT,h2⟩,
     mem_sets_of_superset (h1 T hT _ h2) (set.subset_sUnion_of_mem hT) }

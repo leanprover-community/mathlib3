@@ -86,7 +86,7 @@ instance Scott.topological_space (α : Type u) [omega_complete_partial_order α]
   topological_space (Scott α) :=
 { is_open := Scott.is_open α,
   is_open_univ := Scott.is_open_univ α,
-  is_open.inter := Scott.is_open.inter α,
+  is_open_inter := Scott.is_open.inter α,
   is_open_sUnion := Scott.is_open_sUnion α }
 
 section not_below

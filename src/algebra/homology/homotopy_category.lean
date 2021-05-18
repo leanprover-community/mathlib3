@@ -21,7 +21,7 @@ noncomputable theory
 open category_theory category_theory.limits homological_complex
 
 variables {ι : Type*}
-variables (V : Type u) [category.{v} V] [has_zero_object V] [preadditive V]
+variables (V : Type u) [category.{v} V] [preadditive V]
 variables (c : complex_shape ι)
 
 /--
@@ -57,7 +57,7 @@ category_theory.quotient.functor _
 local attribute [instance] has_zero_object.has_zero
 
 -- TODO upgrade this is to `has_zero_object`, presumably for any `quotient`.
-instance : inhabited (homotopy_category V c) := ⟨(quotient V c).obj 0⟩
+instance [has_zero_object V] : inhabited (homotopy_category V c) := ⟨(quotient V c).obj 0⟩
 
 variables {V c}
 
@@ -117,7 +117,8 @@ def homotopy_equiv_of_iso
   homotopy_hom_inv_id := homotopy_of_eq _ _ (by { simp, refl, }),
   homotopy_inv_hom_id := homotopy_of_eq _ _ (by { simp, refl, }), }
 
-variables (V c) [has_equalizers V] [has_images V] [has_image_maps V] [has_cokernels V]
+variables (V c) [has_zero_object V] [has_equalizers V] [has_images V] [has_image_maps V]
+  [has_cokernels V]
 
 /-- The `i`-th homology, as a functor from the homotopy category. -/
 def homology_functor (i : ι) : homotopy_category V c ⥤ V :=
@@ -146,7 +147,7 @@ end homotopy_category
 
 namespace category_theory
 
-variables {V} {W : Type*} [category W] [preadditive W] [has_zero_object W]
+variables {V} {W : Type*} [category W] [preadditive W]
 
 /-- An additive functor induces a functor between homotopy categories. -/
 @[simps]

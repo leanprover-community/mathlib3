@@ -236,11 +236,11 @@ sUnion_subset $ assume t ⟨h₁, h₂⟩, h₂
 lemma interior_maximal {s t : set α} (h₁ : t ⊆ s) (h₂ : is_open t) : t ⊆ interior s :=
 subset_sUnion_of_mem ⟨h₂, h₁⟩
 
-lemma is_open_interior_eq {s : set α} (h : is_open s) : interior s = s :=
+lemma is_open.interior_eq {s : set α} (h : is_open s) : interior s = s :=
 subset.antisymm interior_subset (interior_maximal (subset.refl s) h)
 
 lemma interior_eq_iff_open {s : set α} : interior s = s ↔ is_open s :=
-⟨assume h, h ▸ is_open_interior, is_open_interior_eq⟩
+⟨assume h, h ▸ is_open_interior, is_open.interior_eq⟩
 
 lemma subset_interior_iff_open {s : set α} : s ⊆ interior s ↔ is_open s :=
 by simp only [interior_eq_iff_open.symm, subset.antisymm_iff, interior_subset, true_and]

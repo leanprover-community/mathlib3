@@ -13,7 +13,6 @@ This file shows some advanced equivalences on embeddings, useful for constructin
 embeddings from smaller ones.
 -/
 
-
 open function.embedding
 
 namespace equiv
@@ -45,24 +44,28 @@ def sum_embedding_equiv_prod_embedding_disjoint {α β γ : Type*} :
   left_inv := λ f, by { dsimp only, ext, cases x; simp! },
   right_inv := λ ⟨⟨f, g⟩, _⟩, by { simp only [prod.mk.inj_iff], split; ext; simp! } }
 
+/-- Embeddings whose range lies within a set are equivalent to embeddings to that set.
+This is `function.embedding.cod_restrict` as an equiv. -/
+def cod_restrict (α : Type*) {β : Type*} (bs : set β) :
+  {f : α ↪ β // ∀ a, f a ∈ bs} ≃ (α ↪ bs) :=
+{ to_fun := λ f, (f : α ↪ β).cod_restrict bs f.prop,
+  inv_fun := λ f, ⟨f.trans (function.embedding.subtype _), λ a, (f a).prop⟩,
+  left_inv := λ x, by ext; refl,
+  right_inv := λ x, by ext; refl }
+
 /-- Pairs of embeddings with disjoint ranges are equivalent to a dependent sum of embeddings,
 in which the second embedding cannot take values in the range of the first. -/
 def prod_embedding_disjoint_equiv_sigma_embedding_restricted {α β γ : Type*} :
   {f : (α ↪ γ) × (β ↪ γ) // disjoint (set.range f.1) (set.range f.2)} ≃
   (Σ f : α ↪ γ, β ↪ ↥((set.range f)ᶜ)) :=
-{ to_fun := λ ⟨⟨f, g⟩, disj⟩, ⟨f, ⟨λ b, ⟨g b, set.disjoint_right.mp disj (⟨b, rfl⟩)⟩,
-  λ _ _ eq, by { rw subtype.mk_eq_mk at eq, exact g.injective eq }⟩⟩,
-  inv_fun := λ ⟨f, g⟩, ⟨⟨f, g.trans (function.embedding.subtype _)⟩,
-  begin
-    dsimp only,
-    have : set.range (g.trans (function.embedding.subtype (λ x, x ∈ (set.range f)ᶜ)))
-      ⊆ (set.range f)ᶜ,
-    { rintros _ ⟨t, rfl⟩, -- `simp` will go down a wrong track on its own
-      simp only [function.embedding.coe_subtype, function.embedding.trans_apply, subtype.coe_prop]},
-    exact set.disjoint_of_subset_right this disjoint_compl_right
-  end⟩,
-  right_inv := λ ⟨_,_⟩, by simp!,
-  left_inv := λ ⟨⟨_,_⟩,_⟩, by { dsimp only, ext; simp! } }
+(subtype_prod_equiv_sigma_subtype $
+  λ (a : α ↪ γ) (b : β ↪ _), disjoint (set.range a) (set.range b)).trans $
+  equiv.sigma_congr_right $ λ a,
+    (subtype_equiv_prop begin
+      ext f,
+      rw [←set.range_subset_iff, set.subset_compl_iff_disjoint],
+      exact disjoint.comm.trans disjoint_iff,
+    end).trans (cod_restrict _ _)
 
 /-- A combination of the above results, allowing us to turn one embedding over a sum type
 into two dependent embeddings, the second of which avoids any members of the range

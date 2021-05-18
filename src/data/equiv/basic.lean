@@ -1433,6 +1433,14 @@ def subtype_prod_equiv_prod {α : Type u} {β : Type v} {p : α → Prop} {q : �
  λ ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl,
  λ ⟨⟨_, _⟩, ⟨_, _⟩⟩, rfl⟩
 
+/-- A subtype of a `prod` is equivalent to a sigma type whose fibers are subtypes. -/
+def subtype_prod_equiv_sigma_subtype {α β : Type*} (p : α → β → Prop) :
+  {x : α × β // p x.1 x.2} ≃ Σ a, {b : β // p a b} :=
+{ to_fun := λ x, ⟨x.1.1, x.1.2, x.prop⟩,
+  inv_fun := λ x, ⟨⟨x.1, x.2⟩, x.2.prop⟩,
+  left_inv := λ x, by ext; refl,
+  right_inv := λ ⟨a, b, pab⟩, rfl }
+
 end
 
 section subtype_equiv_codomain

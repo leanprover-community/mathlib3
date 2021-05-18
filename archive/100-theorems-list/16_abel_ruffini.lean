@@ -79,8 +79,7 @@ begin
     rw [degree_Phi, with_bot.coe_lt_coe] at hn,
     interval_cases n with hn;
     simp [Φ, coeff_X_pow, coeff_C, int.coe_nat_dvd.mpr, hpb, hpa, -ring_hom.eq_int_cast] },
-  { rw [degree_Phi, ←with_bot.coe_zero, with_bot.coe_lt_coe],
-    norm_num },
+  { simp only [degree_Phi, ←with_bot.coe_zero, with_bot.coe_lt_coe, nat.succ_pos'] },
   { rwa [coeff_zero_Phi, pow_two, ideal.span_singleton_mul_span_singleton, ←pow_two,
       ideal.mem_span_singleton, ←int.coe_nat_pow],
     norm_num,

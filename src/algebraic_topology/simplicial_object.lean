@@ -299,7 +299,7 @@ by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.σ_comp_σ H] }
 
 variable (C)
 
-/-- Functor composition induces a functor on simplicial objects. -/
+/-- Functor composition induces a functor on cosimplicial objects. -/
 @[simps]
 def whiskering (D : Type*) [category.{v} D] :
   (C ⥤ D) ⥤ cosimplicial_object C ⥤ cosimplicial_object D :=
@@ -327,7 +327,7 @@ instance {n} [has_colimits C] : has_colimits (cosimplicial_object.truncated C n)
 
 variable (C)
 
-/-- Functor composition induces a functor on truncated simplicial objects. -/
+/-- Functor composition induces a functor on truncated cosimplicial objects. -/
 @[simps]
 def whiskering {n} (D : Type*) [category.{v} D] :
   (C ⥤ D) ⥤ truncated C n ⥤ truncated D n :=
@@ -368,7 +368,7 @@ def point : augmented C ⥤ C := comma.fst _ _
 
 variable (C)
 
-/-- Functor composition induces a functor on augmented simplicial objects. -/
+/-- Functor composition induces a functor on augmented cosimplicial objects. -/
 @[simp]
 def whiskering_obj (D : Type*) [category.{v} D] (F : C ⥤ D) :
   augmented C ⥤ augmented D :=
@@ -387,7 +387,7 @@ def whiskering_obj (D : Type*) [category.{v} D] (F : C ⥤ D) :
       refl,
     end } }
 
-/-- Functor composition induces a functor on augmented simplicial objects. -/
+/-- Functor composition induces a functor on augmented cosimplicial objects. -/
 @[simps]
 def whiskering (D : Type*) [category.{v} D] :
   (C ⥤ D) ⥤ augmented C ⥤ augmented D :=

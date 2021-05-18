@@ -78,7 +78,7 @@ def of_clopen {A : set X} (h : is_clopen A) : discrete_quotient X :=
     { apply is_clopen.union,
       { convert is_clopen_empty,
         tidy },
-      { convert is_clopen_compl h,
+      { convert is_clopen.compl h,
         ext,
         exact ⟨λ i, i.2, λ i, ⟨hx, i⟩⟩ } },
   end }

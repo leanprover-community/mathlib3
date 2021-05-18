@@ -1070,14 +1070,14 @@ theorem is_clopen.inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : i
 @[simp] theorem is_clopen_univ : is_clopen (univ : set α) :=
 ⟨is_open_univ, is_closed_univ⟩
 
-theorem is_clopen_compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
+theorem is_clopen.compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 ⟨hs.2.is_open_compl, is_closed_compl_iff.2 hs.1⟩
 
 @[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen sᶜ ↔ is_clopen s :=
-⟨λ h, compl_compl s ▸ is_clopen_compl h, is_clopen_compl⟩
+⟨λ h, compl_compl s ▸ is_clopen.compl h, is_clopen_compl⟩
 
 theorem is_clopen_diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
-is_clopen.inter hs (is_clopen_compl ht)
+is_clopen.inter hs (is_clopen.compl ht)
 
 lemma is_clopen.inter {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=

@@ -739,13 +739,10 @@ end
 
 end span
 
-lemma eq_zero_of_smul_eq_zero {G : Type*} [hG : group G] [distrib_mul_action G R]
-  (g : G) {r : R} (h : g • r = 0) : r = 0 :=
-begin
-  suffices : g⁻¹ • g • r = 0,
-  { rw [← this, ← smul_assoc, smul_eq_mul, mul_left_inv, one_smul] },
-  rw [h, smul_zero],
-end
+-- TODO: remove when #7438 is merged
+lemma smul_eq_zero_iff_eq {α} {β} (a : α) {x : β} [group α] [add_monoid β]
+  [distrib_mul_action α β] : a • x = 0 ↔ x = 0 :=
+⟨λ h, by rw [← inv_smul_smul a x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
 
 lemma smul_group_linear_independent
   {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
@@ -755,7 +752,7 @@ begin
   have hw₁' := v.linear_independent,
   rw linear_independent_iff'' at hw₁' ⊢,
   intros s g hgs hsum i,
-  refine eq_zero_of_smul_eq_zero (w i) _,
+  refine (smul_eq_zero_iff_eq (w i)).1 _,
   refine hw₁' s (λ i, w i • g i) (λ i hi, _) _ i,
   { dsimp only,
     exact (hgs i hi).symm ▸ smul_zero _ },

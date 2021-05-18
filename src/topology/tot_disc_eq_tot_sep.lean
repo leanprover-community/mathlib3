@@ -92,7 +92,8 @@ begin
     { rintros y hy,
       rw ←compl_compl U at memU,
       obtain ⟨U, hU, Uy, Ux⟩ :=
-        @totally_separated_space.exists_clopen_of_tot_sep _ _ f y x (ne_mem_of_mem_compl hy x memU),
+        @totally_separated_space.exists_clopen_of_tot_sep _ _ f y x
+          (ne_mem_of_mem_compl hy x memU),
       refine ⟨U, hU, Uy, Ux⟩, },
     set h := λ (y : H) (hy : y ∈ Uᶜ), some (ex y hy) with fh,
     set V := (⨆ (y : H) (hy : y ∈ Uᶜ), h y hy) with hV,
@@ -139,7 +140,8 @@ begin
                  conv { congr, funext, rw [set.compl_Union], }, },
           rw [h'], apply g, },
         { rintros y,
-          obtain ⟨g1, g2, g3⟩ := some_spec (ex y.val ((set.mem_inter_iff y.val _ _).1 y.property).2),
+          obtain ⟨g1, g2, g3⟩ :=
+            some_spec (ex y.val ((set.mem_inter_iff y.val _ _).1 y.property).2),
           apply is_clopen_compl, refine g1, }, },
       { rw [hW, set.mem_Inter],
         rintros i,
@@ -166,8 +168,8 @@ namespace t2_space
 
 /-- A Hausdorff space with a clopen basis is totally separated. -/
 lemma tot_sep_of_zero_dim [t2_space H]
-  (h : ∃ (B : set (set H)) (hB : topological_space.is_topological_basis B), ∀ x ∈ B, is_clopen x) :
-    totally_separated_space H :=
+  (h : ∃ (B : set (set H)) (hB : topological_space.is_topological_basis B), ∀ x ∈ B, is_clopen x)
+    : totally_separated_space H :=
 begin
   constructor,
   rw is_totally_separated,
@@ -252,7 +254,8 @@ theorem loc_compact_t2_tot_disc_iff_tot_sep [locally_compact_space H] [t2_space 
   totally_disconnected_space H ↔ totally_separated_space H :=
 begin
   split,
-  { rintros h, apply t2_space.tot_sep_of_zero_dim (@loc_compact_Haus_tot_disc_of_zero_dim _ _ _ _ h), },
+  { rintros h,
+    apply t2_space.tot_sep_of_zero_dim (@loc_compact_Haus_tot_disc_of_zero_dim _ _ _ _ h), },
   apply totally_separated_space.totally_disconnected_space,
 end
 

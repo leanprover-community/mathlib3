@@ -270,3 +270,19 @@ end ring_hom
 
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
+
+namespace pi
+
+variables {α β : Type*}
+
+lemma int_apply [has_zero β] [has_one β] [has_add β] [has_neg β] :
+  ∀ (n : ℤ) (a : α), (n : α → β) a = n
+| (n:ℕ)  a := pi.nat_apply n a
+| -[1+n] a :=
+by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, neg_apply, add_apply, one_apply, nat_apply]
+
+@[simp] lemma coe_int [has_zero β] [has_one β] [has_add β] [has_neg β] (n : ℤ) :
+  (n : α → β) = λ _, n :=
+by { ext, rw pi.int_apply }
+
+end pi

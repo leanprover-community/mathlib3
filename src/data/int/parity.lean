@@ -90,20 +90,16 @@ instance decidable_pred_odd : decidable_pred (odd : ℤ → Prop) :=
 @[simp] theorem even_zero : even (0 : ℤ) := ⟨0, dec_trivial⟩
 
 @[simp] theorem not_even_one : ¬ even (1 : ℤ) :=
-by rw even_iff; apply one_ne_zero
+by rw even_iff; norm_num
 
 @[simp] theorem even_bit0 (n : ℤ) : even (bit0 n) :=
 ⟨n, by rw [bit0, two_mul]⟩
 
 @[parity_simps] theorem even_add : even (m + n) ↔ (even m ↔ even n) :=
-begin
-  cases mod_two_eq_zero_or_one m with h₁ h₁; cases mod_two_eq_zero_or_one n with h₂ h₂;
-    simp [even_iff, h₁, h₂, -euclidean_domain.mod_eq_zero],
-  { exact @modeq.modeq_add _ _ 0 _ 0 h₁ h₂ },
-  { exact @modeq.modeq_add _ _ 0 _ 1 h₁ h₂ },
-  { exact @modeq.modeq_add _ _ 1 _ 0 h₁ h₂ },
-  exact @modeq.modeq_add _ _ 1 _ 1 h₁ h₂
-end
+by cases mod_two_eq_zero_or_one m with h₁ h₁;
+   cases mod_two_eq_zero_or_one n with h₂ h₂;
+   simp [even_iff, h₁, h₂, int.add_mod];
+   norm_num
 
 theorem even.add_even (hm : even m) (hn : even n) : even (m + n) :=
 even_add.2 $ iff_of_true hm hn
@@ -139,14 +135,10 @@ even_sub'.2 $ iff_of_true hm hn
 by simp [even_add]
 
 @[parity_simps] theorem even_mul : even (m * n) ↔ even m ∨ even n :=
-begin
-  cases mod_two_eq_zero_or_one m with h₁ h₁; cases mod_two_eq_zero_or_one n with h₂ h₂;
-    simp [even_iff, h₁, h₂, -euclidean_domain.mod_eq_zero],
-  { exact @modeq.modeq_mul _ _ 0 _ 0 h₁ h₂ },
-  { exact @modeq.modeq_mul _ _ 0 _ 1 h₁ h₂ },
-  { exact @modeq.modeq_mul _ _ 1 _ 0 h₁ h₂ },
-  exact @modeq.modeq_mul _ _ 1 _ 1 h₁ h₂
-end
+by cases mod_two_eq_zero_or_one m with h₁ h₁;
+   cases mod_two_eq_zero_or_one n with h₂ h₂;
+   simp [even_iff, h₁, h₂, int.mul_mod];
+   norm_num
 
 theorem odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
 by simp [not_or_distrib] with parity_simps

@@ -76,7 +76,7 @@ instance subalgebra.topological_closure_topological_algebra
   has_continuous_smul R (s.topological_closure) :=
 s.to_submodule.topological_closure_has_continuous_smul
 
-lemma subalgebra.subring_topological_closure (s : subalgebra R A) :
+lemma subalgebra.subalgebra_topological_closure (s : subalgebra R A) :
   s ≤ s.topological_closure :=
 subset_closure
 

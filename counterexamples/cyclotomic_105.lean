@@ -41,8 +41,6 @@ lemma proper_divisors_105 : nat.proper_divisors 105 = {1, 3, 5, 7, 15, 21, 35} :
 
 end computation
 
-open_locale classical big_operators
-
 open polynomial
 
 lemma cyclotomic_3 : cyclotomic 3 ℤ = 1 + X + X ^ 2 :=

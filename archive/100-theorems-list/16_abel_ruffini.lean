@@ -110,48 +110,46 @@ begin
   exact mul_nonneg (pow_two_nonneg _) (add_nonneg hc zero_le_one),
 end
 
-lemma real_roots_Phi_ge_aux (hab : b < a) (f : ℝ → ℝ) (f_cont : continuous f)
-  (f_def : ∀ x : ℝ, f x = x ^ 5 - a * x + b) : ∃ x y : ℝ, x ≠ y ∧ f x = 0 ∧ f y = 0 :=
+lemma real_roots_Phi_ge_aux (hab : b < a) :
+  ∃ x y : ℝ, x ≠ y ∧ aeval x (Φ ℚ a b) = 0 ∧ aeval y (Φ ℚ a b) = 0 :=
 begin
-  have h0 : f 0 ≥ 0,
+  have f_def : ∀ x : ℝ, aeval x (Φ ℚ a b) = x ^ 5 - a * x + b := by simp [Φ],
+  have h0 : aeval (0 : ℝ) (Φ ℚ a b) ≥ 0,
   { rw [f_def, zero_pow (nat.zero_lt_bit1 2), mul_zero, sub_zero, zero_add],
     exact nat.cast_nonneg b },
   by_cases hb : b + 1 < a,
-  { have h1 : f 1 < 0,
+  { have h1 : aeval (1 : ℝ) (Φ ℚ a b) < 0,
     { rw [f_def, one_pow, mul_one, add_comm, add_sub, sub_lt_zero],
       norm_cast,
       exact hb },
-    have ha : f a ≥ 0,
+    have ha : aeval (a : ℝ) (Φ ℚ a b) ≥ 0,
     { rw [f_def, ←pow_two],
       exact add_nonneg (sub_nonneg.mpr (pow_le_pow (nat.one_le_cast.mpr (nat.one_le_of_lt hab))
         (nat.bit0_le_bit1_iff.mpr one_le_two))) (nat.cast_nonneg b) },
     obtain ⟨x, hx1, hx2⟩ := intermediate_value_Ico' (show (0 : ℝ) ≤ 1, from zero_le_one)
-      f_cont.continuous_on (set.mem_Ioc.mpr ⟨h1, h0⟩),
+      (Φ ℚ a b).continuous_aeval.continuous_on (set.mem_Ioc.mpr ⟨h1, h0⟩),
     obtain ⟨y, hy1, hy2⟩ := intermediate_value_Ioc (show (1 : ℝ) ≤ a, from nat.one_le_cast.mpr
-      (nat.one_le_of_lt hab)) f_cont.continuous_on (set.mem_Ioc.mpr ⟨h1, ha⟩),
+      (nat.one_le_of_lt hab)) (Φ ℚ a b).continuous_aeval.continuous_on (set.mem_Ioc.mpr ⟨h1, ha⟩),
     exact ⟨x, y, ne_of_lt (hx1.2.trans hy1.1), hx2, hy2⟩ },
   { replace hb : a = b + 1 := le_antisymm (not_lt.mp hb) (nat.succ_le_iff.mpr hab),
-    have hy2 : f 1 = 0,
+    have hy2 : aeval (1 : ℝ) (Φ ℚ a b) = 0,
     { rw [f_def, one_pow, mul_one, add_comm, add_sub, sub_eq_zero],
       norm_cast,
       exact hb.symm },
-    have ha : f (-a) ≤ 0,
+    have ha : aeval (-a : ℝ) (Φ ℚ a b) ≤ 0,
     { rw [f_def, neg_pow_bit1, ←neg_mul_eq_mul_neg, sub_neg_eq_add, ←pow_two, add_assoc,
           neg_add_eq_sub, sub_nonpos],
       norm_cast,
       exact real_roots_Phi_ge_aux' a b hab },
     obtain ⟨x, hx1, hx2⟩ := intermediate_value_Icc (show -(a : ℝ) ≤ 0, from neg_nonpos.mpr
-      (nat.cast_nonneg a)) f_cont.continuous_on (set.mem_Icc.mpr ⟨ha, h0⟩),
+      (nat.cast_nonneg a)) (Φ ℚ a b).continuous_aeval.continuous_on (set.mem_Icc.mpr ⟨ha, h0⟩),
     exact ⟨x, 1, ne_of_lt (lt_of_le_of_lt hx1.2 zero_lt_one), hx2, hy2⟩ },
 end
 
 lemma real_roots_Phi_ge (hab : b < a) : 2 ≤ fintype.card ((Φ ℚ a b).root_set ℝ) :=
 begin
   have q_ne_zero : Φ ℚ a b ≠ 0 := (monic_Phi a b).ne_zero,
-  let f : ℝ → ℝ := λ x, aeval x (Φ ℚ a b),
-  have f_cont : continuous f := polynomial.continuous_aeval _,
-  have f_def : ∀ x : ℝ, f x = x ^ 5 - a * x + b := by simp [f, Φ],
-  obtain ⟨x, y, hxy, hx, hy⟩ := real_roots_Phi_ge_aux a b hab f f_cont f_def,
+  obtain ⟨x, y, hxy, hx, hy⟩ := real_roots_Phi_ge_aux a b hab,
   have key : ↑({x, y} : finset ℝ) ⊆ (Φ ℚ a b).root_set ℝ,
   { rw [finset.coe_insert, finset.coe_singleton, set.insert_subset, set.singleton_subset_iff],
     exact ⟨by rwa mem_root_set q_ne_zero, by rwa mem_root_set q_ne_zero⟩ },

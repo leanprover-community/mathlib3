@@ -106,3 +106,12 @@ begin
   have h41 : (2 * X ^ 41 : polynomial ℤ) = (C 2) * X ^ 41 := by simp,
   simp [cyclotomic_105, coeff_add, coeff_sub, coeff_X_pow, coeff_one, coeff_X_of_ne_one, h41, h7]
 end
+
+lemma not_forall_coeff_cyclotomic_neg_one_zero_one :
+  ¬∀ n i, coeff (cyclotomic n ℤ) i ∈ ({-1, 0, 1} : set ℤ) :=
+begin
+  intro h,
+  replace h := h 105 7,
+  rw coeff_cyclotomic_105 at h,
+  norm_num at h
+end

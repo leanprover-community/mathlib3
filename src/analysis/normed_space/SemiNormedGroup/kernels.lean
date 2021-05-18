@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Riccardo Brasco, Johan Commelin, Scott Morrison
+Authors: Riccardo Brasca, Johan Commelin, Scott Morrison
 -/
 import analysis.normed_space.SemiNormedGroup
 import analysis.normed_space.normed_group_quotient

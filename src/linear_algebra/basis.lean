@@ -781,12 +781,17 @@ end
 
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` are elements of a group,
 `smul_group` provides the basis corresponding to `w • v`. -/
-lemma smul_group {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
-  [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) {w : ι → G} :
+def smul_group {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
   basis ι R M :=
-@basis.mk ι R M (w • v) _ _ _
-  (basis.smul_group_linear_independent) (basis.smul_group_span_eq_top)
+@basis.mk ι R M (w • v) _ _ _ smul_group_linear_independent smul_group_span_eq_top
 
+lemma smul_group_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
+  v.smul_group w i = (w • v : ι → M) i :=
+mk_apply smul_group_linear_independent smul_group_span_eq_top i
+
+-- This is provable with `smul_group_linear_independent` with `G = unit R` after #7438.
 lemma smul_of_is_unit_linear_independent {v : basis ι R M} {w : ι → R}
   (hw : ∀ i : ι, is_unit (w i)) : linear_independent R (w • v) :=
 begin
@@ -802,6 +807,7 @@ begin
     intros, erw [pi.smul_apply, smul_assoc] }
 end
 
+-- This is provable with `smul_group_span_eq_top` with `G = unit R` after #7438.
 lemma smul_of_is_unit_span_eq_top {v : basis ι R M} {w : ι → R}
   (hw : ∀ i : ι, is_unit (w i)) : submodule.span R (set.range (w • v)) = ⊤ :=
 begin
@@ -817,10 +823,8 @@ begin
   rwa [←hwi, units.inv_smul_smul] at this
 end
 
--- This is simply `smul_group` with `G = unit R` after #7438.
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
 provides the basis corresponding to `w • v`. -/
-noncomputable
 def smul_of_is_unit (v : basis ι R M) {w : ι → R} (hw : ∀ i : ι, is_unit (w i)) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _

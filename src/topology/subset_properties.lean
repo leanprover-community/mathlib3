@@ -1058,10 +1058,10 @@ section clopen
 def is_clopen (s : set α) : Prop :=
 is_open s ∧ is_closed s
 
-theorem is_clopen_union {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∪ t) :=
+theorem is_clopen.union {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∪ t) :=
 ⟨is_open.union hs.1 ht.1, is_closed.union hs.2 ht.2⟩
 
-theorem is_clopen_inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∩ t) :=
+theorem is_clopen.inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∩ t) :=
 ⟨is_open.inter hs.1 ht.1, is_closed.inter hs.2 ht.2⟩
 
 @[simp] theorem is_clopen_empty : is_clopen (∅ : set α) :=
@@ -1077,9 +1077,9 @@ theorem is_clopen_compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 ⟨λ h, compl_compl s ▸ is_clopen_compl h, is_clopen_compl⟩
 
 theorem is_clopen_diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
-is_clopen_inter hs (is_clopen_compl ht)
+is_clopen.inter hs (is_clopen_compl ht)
 
-lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
+lemma is_clopen.inter {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
 ⟨(is_open_Inter (forall_and_distrib.1 h).1), (is_closed_Inter (forall_and_distrib.1 h).2)⟩
 
@@ -1096,7 +1096,7 @@ lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
   continuous_on.preimage_closed_of_closed hf hs.2 ht.2⟩
 
 /-- The intersection of a disjoint covering by two open sets of a clopen set will be clopen. -/
-theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
+theorem is_clopen.inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
   (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
 begin
   refine ⟨is_open.inter h.1 ha, _⟩,

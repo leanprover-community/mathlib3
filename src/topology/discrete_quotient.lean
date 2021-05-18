@@ -69,13 +69,13 @@ def of_clopen {A : set X} (h : is_clopen A) : discrete_quotient X :=
   clopen := begin
     intros x,
     by_cases hx : x ∈ A,
-    { apply is_clopen_union,
+    { apply is_clopen.union,
       { convert h,
         ext,
         exact ⟨λ i, i.2, λ i, ⟨hx,i⟩⟩ },
       { convert is_clopen_empty,
         tidy } },
-    { apply is_clopen_union,
+    { apply is_clopen.union,
       { convert is_clopen_empty,
         tidy },
       { convert is_clopen_compl h,
@@ -133,7 +133,7 @@ instance : semilattice_inf_top (discrete_quotient X) :=
   { rel := λ x y, A.rel x y ∧ B.rel x y,
     equiv := ⟨λ a, ⟨A.refl _,B.refl _⟩, λ a b h, ⟨A.symm _ _ h.1, B.symm _ _ h.2⟩,
       λ a b c h1 h2, ⟨A.trans _ _ _ h1.1 h2.1, B.trans _ _ _ h1.2 h2.2⟩⟩,
-    clopen := λ x, is_clopen_inter (A.clopen _) (B.clopen _) },
+    clopen := λ x, is_clopen.inter (A.clopen _) (B.clopen _) },
   le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
   le_refl := λ a, by tauto,
   le_trans := λ a b c h1 h2, by tauto,
@@ -203,7 +203,7 @@ section map
 variables {Y : Type*} [topological_space Y] {f : Y → X}
   (cont : continuous f) (A : discrete_quotient Y) (B : discrete_quotient X)
 
-/-- 
+/--
 Given `cont : continuous f`, `le_comap cont A B` is defined as `A ≤ B.comap f`.
 Mathematically this means that `f` descends to a morphism `A → B`.
 -/

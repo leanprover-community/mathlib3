@@ -70,7 +70,7 @@ This is a formulation of the pigeonhole principle.
 
 Note this cannot be an instance as it needs `h`. -/
 @[simp] theorem _root_.function.embedding.is_empty_of_card_lt (h : ‖β‖ < ‖α‖) : is_empty (α ↪ β) :=
-⟨λ f, let ⟨x, y, eq, fne⟩ := fintype.exists_ne_map_eq_of_card_lt f h in eq $ f.injective fne⟩
+⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_card_lt f h in ne $ f.injective feq⟩
 
 theorem card_embedding_eq_if : ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
 begin

@@ -355,9 +355,7 @@ def simplicial_to_cosimplicial_augmented :
       dsimp,
       simp_rw ← op_comp,
       congr' 1,
-      have := f.unop.w,
-      apply_fun (λ η, η.app (op x)) at this,
-      exact this.symm,
+      exact (congr_app f.unop.w (op x)).symm,
     end } }
 
 /-- A functorial version of `cosimplicial_object.augmented.left_op`. -/
@@ -373,9 +371,7 @@ def cosimplicial_to_simplicial_augmented :
       dsimp,
       simp_rw ← unop_comp,
       congr' 1,
-      have := f.w,
-      apply_fun (λ η, η.app x.unop) at this,
-      exact this.symm,
+      exact (congr_app f.w x.unop).symm,
     end} }
 
 /-- The categorical equivalence between augmented simplicial

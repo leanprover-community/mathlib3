@@ -141,7 +141,8 @@ open linear_map
 by { haveI := classical.dec_eq ι',
       rw [← basis_to_matrix_mul_linear_map_to_matrix b b', to_matrix_id, matrix.mul_one] }
 
-lemma sum_repr_aux (x : M) : ∑ (j : ι'), b.repr (b' j) i * b'.repr x j = b.repr x i :=
+lemma sum_repr_aux {ι} (b : basis ι R M) (x : M) (i : ι) :
+  ∑ (j : ι'), b.repr (b' j) i * b'.repr x j = b.repr x i :=
 begin
   conv_rhs { rw [← b'.sum_repr x] },
   simp_rw [linear_equiv.map_sum, linear_equiv.map_smul, finset.sum_apply'],

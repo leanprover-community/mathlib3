@@ -61,7 +61,7 @@ theorem is_coprime_zero_right : is_coprime x 0 ↔ is_unit x :=
 is_coprime_comm.trans is_coprime_zero_left
 
 lemma not_coprime_zero_zero [nontrivial R] : ¬ is_coprime (0 : R) 0 :=
-(mt is_coprime_zero_right.mp) not_is_unit_zero
+mt is_coprime_zero_right.mp not_is_unit_zero
 
 theorem is_coprime_one_left : is_coprime 1 x :=
 ⟨1, 0, by rw [one_mul, zero_mul, add_zero]⟩
@@ -176,7 +176,7 @@ begin
 end
 
 theorem is_coprime.of_pow_right (hm : 0 < m) (h : is_coprime x (y ^ m)) : is_coprime x y :=
-(is_coprime.of_pow_left hm h.symm).symm
+(h.symm.of_pow_left hm).symm
 
 theorem is_coprime.of_pow (hm : 0 < m) (hn : 0 < n) (h : is_coprime (x ^ m) (y ^ n)) :
   is_coprime x y :=
@@ -291,7 +291,7 @@ begin
 end
 
 lemma neg_left_iff (x y : R) : is_coprime (-x) y ↔ is_coprime x y :=
-⟨λ h, (neg_neg x) ▸ h.neg_left, is_coprime.neg_left⟩
+⟨λ h, neg_neg x ▸ h.neg_left, is_coprime.neg_left⟩
 
 lemma neg_right {x y : R} (h : is_coprime x y) : is_coprime x (-y) :=
 begin
@@ -301,7 +301,7 @@ begin
 end
 
 lemma neg_right_iff (x y : R) : is_coprime x (-y) ↔ is_coprime x y :=
-⟨λ h, (neg_neg y) ▸ h.neg_right, is_coprime.neg_right⟩
+⟨λ h, neg_neg y ▸ h.neg_right, is_coprime.neg_right⟩
 
 lemma neg_neg {x y : R} (h : is_coprime x y) : is_coprime (-x) (-y) :=
 h.neg_left.neg_right

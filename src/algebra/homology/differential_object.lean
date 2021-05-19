@@ -48,13 +48,11 @@ def dgo_to_homological_complex :
     end },
   map := λ X Y f,
   { f := f.f,
-    comm' := λ i j, begin
-      dsimp,
-      split_ifs with h,
-      { subst h,
-        simp only [category.comp_id, eq_to_hom_refl],
-        exact (congr_fun f.comm i).symm, },
-      { simp, },
+    comm' := λ i j h, begin
+      dsimp at h ⊢,
+      subst h,
+      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl],
+      exact (congr_fun f.comm i).symm
     end, } }
 
 /--
@@ -93,19 +91,15 @@ def dgo_equiv_homological_complex_counit_iso :
 nat_iso.of_components (λ X,
   { hom :=
     { f := λ i, 𝟙 (X.X i),
-      comm' := λ i j, begin
-        dsimp, simp only [category.comp_id, category.id_comp],
-        split_ifs,
-        { subst h, simp, },
-        { exact X.shape _ _ h, }
+      comm' := λ i j h, begin
+        dsimp at h ⊢, subst h,
+        simp only [category.comp_id, category.id_comp, dif_pos rfl, eq_to_hom_refl],
       end },
     inv :=
     { f := λ i, 𝟙 (X.X i),
-      comm' := λ i j, begin
-        dsimp, simp only [category.comp_id, category.id_comp],
-        split_ifs,
-        { subst h, simp, },
-        { exact (X.shape _ _ h).symm, }
+      comm' := λ i j h, begin
+        dsimp at h ⊢, subst h,
+        simp only [category.comp_id, category.id_comp, dif_pos rfl, eq_to_hom_refl],
       end }, }) (by tidy)
 
 /--

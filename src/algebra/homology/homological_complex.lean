@@ -664,10 +664,8 @@ def mk_hom : P ⟶ Q :=
 { f := λ n, (mk_hom_aux P Q zero one one_zero_comm succ n).1,
   comm' := λ n m,
   begin
-    by_cases h : m + 1 = n,
-    { subst h,
-      exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2 },
-    { rw [P.shape n m h, Q.shape n m h], simp }
+    rintro (rfl : m + 1 = n),
+    exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2,
   end }
 
 @[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl
@@ -859,10 +857,8 @@ def mk_hom : P ⟶ Q :=
 { f := λ n, (mk_hom_aux P Q zero one one_zero_comm succ n).1,
   comm' := λ n m,
   begin
-    by_cases h : n + 1 = m,
-    { subst h,
-      exact (mk_hom_aux P Q zero one one_zero_comm succ n).2.2 },
-    { rw [P.shape n m h, Q.shape n m h], simp }
+    rintro (rfl : n + 1 = m),
+    exact (mk_hom_aux P Q zero one one_zero_comm succ n).2.2,
   end }
 
 @[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl

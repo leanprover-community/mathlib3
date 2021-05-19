@@ -264,6 +264,7 @@ variables [preorder α] [preorder β] {u : β → α} (l : lower_adjoint u)
 instance : has_coe_to_fun (lower_adjoint u) :=
 { F := λ _, α → β, coe := to_fun }
 
+/-- See Note [custom simps projection] -/
 def simps.apply : α → β := l
 
 lemma gc : galois_connection l u := l.gc'

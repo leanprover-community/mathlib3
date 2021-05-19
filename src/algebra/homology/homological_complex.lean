@@ -739,4 +739,140 @@ from a dependently typed collection of morphisms.
 
 end of_hom
 
+section mk
+
+/--
+Auxiliary structure for setting up the recursion in `mk`.
+This is purely an implementation detail: for some reason just using the dependent 6-tuple directly
+results in `mk_aux` taking much longer (well over the `-T100000` limit) to elaborate.
+-/
+@[nolint has_inhabited_instance]
+structure mk_struct :=
+(X₀ X₁ X₂ : V)
+(d₀ : X₀ ⟶ X₁)
+(d₁ : X₁ ⟶ X₂)
+(s : d₀ ≫ d₁ = 0)
+
+variables {V}
+
+/-- Flatten to a tuple. -/
+def mk_struct.flat (t : mk_struct V) :
+  Σ' (X₀ X₁ X₂ : V) (d₀ : X₀ ⟶ X₁) (d₁ : X₁ ⟶ X₂), d₀ ≫ d₁ = 0 :=
+⟨t.X₀, t.X₁, t.X₂, t.d₀, t.d₁, t.s⟩
+
+variables (X₀ X₁ X₂ : V) (d₀ : X₀ ⟶ X₁) (d₁ : X₁ ⟶ X₂) (s : d₀ ≫ d₁ = 0)
+  (succ : Π (t : Σ' (X₀ X₁ X₂ : V) (d₀ : X₀ ⟶ X₁) (d₁ : X₁ ⟶ X₂), d₀ ≫ d₁ = 0),
+    Σ' (X₃ : V) (d₂ : t.2.2.1 ⟶ X₃), t.2.2.2.2.1 ≫ d₂ = 0)
+
+/-- Auxiliary definition for `mk`. -/
+def mk_aux :
+  Π n : ℕ, mk_struct V
+| 0 := ⟨X₀, X₁, X₂, d₀, d₁, s⟩
+| (n+1) :=
+  let p := mk_aux n in
+  ⟨p.X₁, p.X₂, (succ p.flat).1, p.d₁, (succ p.flat).2.1, (succ p.flat).2.2⟩
+
+/--
+A inductive constructor for `ℕ`-indexed cochain complexes.
+
+You provide explicitly the first two differentials,
+then a function which takes two differentials and the fact they compose to zero,
+and returns the next object, its differential, and the fact it composes appropiately to zero.
+
+See also `mk'`, which only sees the previous differential in the inductive step.
+-/
+def mk : cochain_complex V ℕ :=
+of (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).X₀) (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).d₀)
+  (λ n, (mk_aux X₀ X₁ X₂ d₀ d₁ s succ n).s)
+
+@[simp] lemma mk_X_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 0 = X₀ := rfl
+@[simp] lemma mk_X_1 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 1 = X₁ := rfl
+@[simp] lemma mk_X_2 : (mk X₀ X₁ X₂ d₀ d₁ s succ).X 2 = X₂ := rfl
+@[simp] lemma mk_d_1_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 0 1 = d₀ :=
+by { change ite (1 = 0 + 1) (d₀ ≫ 𝟙 X₁) 0 = d₀, rw [if_pos rfl, category.comp_id] }
+@[simp] lemma mk_d_2_0 : (mk X₀ X₁ X₂ d₀ d₁ s succ).d 1 2 = d₁ :=
+by { change ite (2 = 1 + 1) (d₁ ≫ 𝟙 X₂) 0 = d₁, rw [if_pos rfl, category.comp_id] }
+-- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+
+/--
+A simpler inductive constructor for `ℕ`-indexed cochain complexes.
+
+You provide explicitly the first differential,
+then a function which takes a differential,
+and returns the next object, its differential, and the fact it composes appropriately to zero.
+-/
+def mk' (X₀ X₁ : V) (d : X₀ ⟶ X₁)
+  (succ' : Π (t : Σ (X₀ X₁ : V), X₀ ⟶ X₁), Σ' (X₂ : V) (d : t.2.1 ⟶ X₂), t.2.2 ≫ d = 0) :
+  cochain_complex V ℕ :=
+mk X₀ X₁ (succ' ⟨X₀, X₁, d⟩).1 d (succ' ⟨X₀, X₁, d⟩).2.1 (succ' ⟨X₀, X₁, d⟩).2.2
+  (λ t, succ' ⟨t.2.1, t.2.2.1, t.2.2.2.2.1⟩)
+
+variables (succ' : Π (t : Σ (X₀ X₁ : V), X₀ ⟶ X₁), Σ' (X₂ : V) (d : t.2.1 ⟶ X₂), t.2.2 ≫ d = 0)
+
+@[simp] lemma mk'_X_0 : (mk' X₀ X₁ d₀ succ').X 0 = X₀ := rfl
+@[simp] lemma mk'_X_1 : (mk' X₀ X₁ d₀ succ').X 1 = X₁ := rfl
+@[simp] lemma mk'_d_1_0 : (mk' X₀ X₁ d₀ succ').d 0 1 = d₀ :=
+by { change ite (1 = 0 + 1) (d₀ ≫ 𝟙 X₁) 0 = d₀, rw [if_pos rfl, category.comp_id] }
+-- TODO simp lemmas for the inductive steps? It's not entirely clear that they are needed.
+
+end mk
+
+section mk_hom
+
+variables {V} (P Q : cochain_complex V ℕ)
+  (zero : P.X 0 ⟶ Q.X 0)
+  (one : P.X 1 ⟶ Q.X 1)
+  (one_zero_comm : zero ≫ Q.d 0 1 = P.d 0 1 ≫ one)
+  (succ : ∀ (n : ℕ)
+    (p : Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f ≫ Q.d n (n+1) = P.d n (n+1) ≫ f'),
+    Σ' f'' : P.X (n+2) ⟶ Q.X (n+2), p.2.1 ≫ Q.d (n+1) (n+2) = P.d (n+1) (n+2) ≫ f'')
+
+/--
+An auxiliary construction for `mk_hom`.
+
+Here we build by induction a family of commutative squares,
+but don't require at the type level that these successive commutative squares actually agree.
+They do in fact agree, and we then capture that at the type level (i.e. by constructing a chain map)
+in `mk_hom`.
+-/
+def mk_hom_aux :
+  Π n, Σ' (f : P.X n ⟶ Q.X n) (f' : P.X (n+1) ⟶ Q.X (n+1)), f ≫ Q.d n (n+1) = P.d n (n+1) ≫ f'
+| 0 := ⟨zero, one, one_zero_comm⟩
+| (n+1) := ⟨(mk_hom_aux n).2.1,
+    (succ n (mk_hom_aux n)).1, (succ n (mk_hom_aux n)).2⟩
+
+/--
+A constructor for chain maps between `ℕ`-indexed cochain complexes,
+working by induction on commutative squares.
+
+You need to provide the components of the chain map in degrees 0 and 1,
+show that these form a commutative square,
+and then give a construction of each component,
+and the fact that it forms a commutative square with the previous component,
+using as an inductive hypothesis the data (and commutativity) of the previous two components.
+-/
+def mk_hom : P ⟶ Q :=
+{ f := λ n, (mk_hom_aux P Q zero one one_zero_comm succ n).1,
+  comm' := λ n m,
+  begin
+    by_cases h : n + 1 = m,
+    { subst h,
+      exact (mk_hom_aux P Q zero one one_zero_comm succ n).2.2 },
+    { rw [P.shape n m h, Q.shape n m h], simp }
+  end }
+
+@[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl
+@[simp] lemma mk_hom_f_1 : (mk_hom P Q zero one one_zero_comm succ).f 1 = one := rfl
+@[simp] lemma mk_hom_f_succ_succ (n : ℕ) :
+  (mk_hom P Q zero one one_zero_comm succ).f (n+2) =
+    (succ n ⟨(mk_hom P Q zero one one_zero_comm succ).f n,
+      (mk_hom P Q zero one one_zero_comm succ).f (n+1),
+        (mk_hom P Q zero one one_zero_comm succ).comm n (n+1)⟩).1 :=
+begin
+  dsimp [mk_hom, mk_hom_aux],
+  induction n; congr,
+end
+
+end mk_hom
+
 end cochain_complex

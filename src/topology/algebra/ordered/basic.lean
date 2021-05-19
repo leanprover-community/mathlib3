@@ -137,7 +137,7 @@ instance : order_closed_topology (order_dual α) :=
 ⟨(@order_closed_topology.is_closed_le' α _ _ _).preimage continuous_swap⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
-is_closed_inter is_closed_Ici is_closed_Iic
+is_closed.inter is_closed_Ici is_closed_Iic
 
 @[simp] lemma closure_Icc (a b : α) : closure (Icc a b) = Icc a b :=
 is_closed_Icc.closure_eq
@@ -228,7 +228,7 @@ include t
 
 private lemma is_closed_eq_aux : is_closed {p : α × α | p.1 = p.2} :=
 by simp only [le_antisymm_iff];
-   exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
+   exact is_closed.inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
 @[priority 90] -- see Note [lower instance priority]
 instance order_closed_topology.to_t2_space : t2_space α :=
@@ -263,7 +263,7 @@ lemma is_open_Ioi : is_open (Ioi a) :=
 is_open_lt continuous_const continuous_id
 
 lemma is_open_Ioo : is_open (Ioo a b) :=
-is_open_inter is_open_Ioi is_open_Iio
+is_open.inter is_open_Ioi is_open_Iio
 
 @[simp] lemma interior_Ioi : interior (Ioi a) = Ioi a :=
 is_open_Ioi.interior_eq
@@ -1041,7 +1041,7 @@ instance order_topology.regular_space : regular_space α :=
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
           nhds_within_empty _⟩),
     let ⟨t₂, ht₂o, ht₂s, ht₂a⟩ := this in
-    ⟨t₁ ∪ t₂, is_open_union ht₁o ht₂o,
+    ⟨t₁ ∪ t₂, is_open.union ht₁o ht₂o,
       assume x hx,
       have x ≠ a, from assume eq, ha $ eq ▸ hx,
       (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
@@ -2426,7 +2426,7 @@ begin
   assume y hy,
   have : is_closed (s ∩ Icc a y),
   { suffices : s ∩ Icc a y = s ∩ Icc a b ∩ Icc a y,
-    { rw this, exact is_closed_inter hs is_closed_Icc },
+    { rw this, exact is_closed.inter hs is_closed_Icc },
     rw [inter_assoc],
     congr,
     exact (inter_eq_self_of_subset_right $ Icc_subset_Icc_right hy.2).symm },
@@ -2463,7 +2463,7 @@ begin
   by_contradiction hst,
   suffices : Icc x y ⊆ s,
     from hst ⟨y, xyab $ right_mem_Icc.2 hxy, this $ right_mem_Icc.2 hxy, hy.2⟩,
-  apply (is_closed_inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
+  apply (is_closed.inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
   rintros z ⟨zs, hz⟩,
   have zt : z ∈ tᶜ, from λ zt, hst ⟨z, xyab $ Ico_subset_Icc_self hz, zs, zt⟩,
   have : tᶜ ∩ Ioc z y ∈ 𝓝[Ioi z] z,

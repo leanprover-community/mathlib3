@@ -1814,24 +1814,40 @@ section actions
 
 namespace subgroup
 
-variables {M : Type*} [group G]
+variables {α β : Type*}
 
 /-- The action by a subgroup is the action by the underlying group. -/
 @[to_additive /-"The additive action by an add_subgroup is the action by the underlying
 add_group. "-/]
-instance [mul_action G M] (S : subgroup G) : mul_action S M :=
+instance [mul_action G α] (S : subgroup G) : mul_action S α :=
 mul_action.comp_hom _ S.subtype
 
 @[to_additive]
-lemma smul_def [mul_action G M] {S : subgroup G} (g : S) (m : M) : g • m = (g : G) • m := rfl
+lemma smul_def [mul_action G α] {S : subgroup G} (g : S) (m : α) : g • m = (g : G) • m := rfl
 
-instance is_scalar_tower_right [mul_action G M] [is_scalar_tower G G M] (S : subgroup G) :
-  is_scalar_tower S S M :=
-⟨λ a b, (smul_assoc (a : G) (b : G) : _)⟩
+@[to_additive]
+instance smul_comm_class_left
+  [mul_action G β] [has_scalar α β] [smul_comm_class G α β] (S : submonoid G) :
+  smul_comm_class S α β :=
+⟨λ a, (smul_comm (a : G) : _)⟩
+
+@[to_additive]
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action G β] [smul_comm_class α G β] (S : submonoid G) :
+  smul_comm_class α S β :=
+⟨λ a s, (smul_comm a (s : G) : _)⟩
+
+/-- Note that this provides `is_scalar_tower S G G` which is needed by `smul_mul_assoc.`. -/
+instance
+  [has_scalar α β] [mul_action G α] [mul_action G β] [is_scalar_tower G α β] (S : submonoid G) :
+  is_scalar_tower S α β :=
+⟨λ s, (smul_assoc (s : G) : _)⟩
 
 /-- The action by a subgroup is the action by the underlying group. -/
-instance [add_monoid M] [distrib_mul_action G M] (S : subgroup G) : distrib_mul_action S M :=
+instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=
 distrib_mul_action.comp_hom _ S.subtype
+
+example {S : submonoid G} : is_scalar_tower S G G := by apply_instance
 
 end subgroup
 

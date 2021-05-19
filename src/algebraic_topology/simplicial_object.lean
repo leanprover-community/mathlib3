@@ -310,7 +310,8 @@ functor.left_op_right_op_equiv _ _
 
 variable {C}
 
-/-- Construct an augmented cosimplicial object in the opposite category from an augmented simplicial object. -/
+/-- Construct an augmented cosimplicial object in the opposite
+category from an augmented simplicial object. -/
 @[simps]
 def simplicial_object.augmented.right_op (X : simplicial_object.augmented C) :
   cosimplicial_object.augmented Cᵒᵖ :=
@@ -318,7 +319,8 @@ def simplicial_object.augmented.right_op (X : simplicial_object.augmented C) :
   right := X.left.right_op,
   hom := X.hom.right_op }
 
-/-- Construct an augmented simplicial object from an augmented cosimplicial object in the opposite category. -/
+/-- Construct an augmented simplicial object from an augmented cosimplicial
+object in the opposite category. -/
 @[simps]
 def cosimplicial_object.augmented.left_op (X : cosimplicial_object.augmented Cᵒᵖ) :
   simplicial_object.augmented C :=

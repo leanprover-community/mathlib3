@@ -67,8 +67,8 @@ class creates_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
 
 /-- `F` creates limits if it creates limits of shape `J` for any small `J`. -/
 class creates_limits (F : C ⥤ D) :=
-(creates_limits_of_shape :
-  Π {J : Type v} [𝒥 : small_category J], creates_limits_of_shape J F . tactic.apply_instance)
+(creates_limits_of_shape : Π {J : Type v} [small_category J],
+  creates_limits_of_shape J F . tactic.apply_instance)
 
 /--
 Dual of definition 3.3.1 of [Riehl].
@@ -91,7 +91,7 @@ class creates_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :=
 
 /-- `F` creates colimits if it creates colimits of shape `J` for any small `J`. -/
 class creates_colimits (F : C ⥤ D) :=
-(creates_colimits_of_shape : Π {J : Type v} [𝒥 : small_category J],
+(creates_colimits_of_shape : Π {J : Type v} [small_category J],
   creates_colimits_of_shape J F . tactic.apply_instance)
 
 attribute [instance, priority 100] -- see Note [lower instance priority]

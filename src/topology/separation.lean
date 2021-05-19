@@ -621,7 +621,7 @@ by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
 lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
-    compact_compact_separated hs (compact_singleton : is_compact {x})
+    compact_compact_separated hs (is_compact_singleton : is_compact {x})
       (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in
   have v ⊆ sᶜ, from
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
@@ -650,19 +650,28 @@ lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_co
   (hU : is_open U) (hV : is_open V) (h2K : K ⊆ U ∪ V) :
   ∃ K₁ K₂ : set α, is_compact K₁ ∧ is_compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
 begin
-  rcases compact_compact_separated (compact_diff hK hU) (compact_diff hK hV)
+  rcases compact_compact_separated (hK.diff hU) (hK.diff hV)
     (by rwa [diff_inter_diff, diff_eq_empty]) with ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩,
-  refine ⟨_, _, compact_diff hK h1O₁, compact_diff hK h1O₂,
+  refine ⟨_, _, hK.diff h1O₁, hK.diff h1O₂,
     by rwa [diff_subset_comm], by rwa [diff_subset_comm], by rw [← diff_inter, hO, diff_empty]⟩
 end
 
 lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β} (h : continuous f) :
   is_closed_map f :=
-λ s hs, (hs.compact.image h).is_closed
+λ s hs, (hs.is_compact.image h).is_closed
 
 lemma continuous.closed_embedding [compact_space α] [t2_space β] {f : α → β} (h : continuous f)
   (hf : function.injective f) : closed_embedding f :=
 closed_embedding_of_continuous_injective_closed h hf h.is_closed_map
+
+lemma is_compact_closure_disjoint_covering
+  (α : Type*) [topological_space α] [sigma_compact_space α] [t2_space α] (n : ℕ) :
+  is_compact (closure (disjoint_covering α n)) :=
+begin
+  apply compact_of_is_closed_subset (is_compact_compact_covering α n) is_closed_closure,
+  convert closure_mono disjointed_subset,
+  exact (closure_eq_iff_is_closed.2 (is_compact_compact_covering _ _).is_closed).symm,
+end
 
 section
 open finset function
@@ -673,7 +682,7 @@ lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compac
 begin
   classical,
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
-  { refine ⟨λ _, ∅, λ i, compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
+  { refine ⟨λ _, ∅, λ i, is_compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
       finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
   simp only [finset.set_bUnion_insert] at hsC,
   simp only [finset.mem_insert] at hU,
@@ -702,7 +711,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
   -- we may find open sets V, W separating x from K \ U.
   -- Then K \ W is a compact neighborhood of x contained in U.
   let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
-    compact_compact_separated compact_singleton (compact_diff kc uo)
+    compact_compact_separated is_compact_singleton (is_compact.diff kc uo)
       (by rw [singleton_inter_eq_empty]; exact λ h, h.2 xu) in
   have wn : wᶜ ∈ 𝓝 x, from
    mem_nhds_sets_iff.mpr
@@ -710,7 +719,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
   ⟨k \ w,
    filter.inter_mem_sets kx wn,
    subset.trans (diff_subset_comm.mp kuw) un,
-   compact_diff kc wo⟩⟩
+   is_compact.diff kc wo⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_compact [t2_space α] [compact_space α] : locally_compact_space α :=
@@ -851,7 +860,7 @@ lemma normal_of_compact_t2 [compact_space α] [t2_space α] : normal_space α :=
 begin
   refine ⟨assume s t hs ht st, _⟩,
   simp only [disjoint_iff],
-  exact compact_compact_separated hs.compact ht.compact st.eq_bot
+  exact compact_compact_separated hs.is_compact ht.is_compact st.eq_bot
 end
 
 end normality
@@ -914,7 +923,7 @@ begin
   -- Now we find the required Z. We utilize the fact that X \ u ∪ v will be compact,
   -- so there must be some finite intersection of clopen neighbourhoods of X disjoint to it,
   -- but a finite intersection of clopen sets is clopen so we let this be our Z.
-  have H1 := ((is_closed_compl_iff.2 (is_open.union hu hv)).compact.inter_Inter_nonempty
+  have H1 := ((is_closed_compl_iff.2 (is_open.union hu hv)).is_compact.inter_Inter_nonempty
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),
@@ -941,7 +950,7 @@ begin
   -- write ⟦b⟧ as the intersection of all clopen subsets containing it
   rw [connected_component_eq_Inter_clopen, disjoint_iff_inter_eq_empty, inter_comm] at h,
   -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
-  cases is_closed_connected_component.compact.elim_finite_subfamily_closed _ _ h
+  cases is_closed_connected_component.is_compact.elim_finite_subfamily_closed _ _ h
     with fin_a ha,
   swap, { exact λ Z, Z.2.1.2 },
   set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), ↑i) with hU,

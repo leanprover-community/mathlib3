@@ -431,13 +431,11 @@ begin
   { apply_instance }
 end
 
-/-- Any finite measure on a metric space is weakly regular -/
-@[priority 100] -- see Note [lower instance priority]
-instance of_pseudo_emetric_space_of_finite_measure {X : Type*}
-  [pseudo_emetric_space X] [measurable_space X] [borel_space X] (μ : measure X) [finite_measure μ] :
-  weakly_regular μ :=
+lemma inner_regular_of_pseudo_emetric_space {X : Type*}
+  [pseudo_emetric_space X] [measurable_space X] [borel_space X] (μ : measure X)
+  (U : set X) (U_open : is_open U) :
+  μ U ≤ ⨆ (F : set X) (hF : is_closed F) (FU : F ⊆ U), μ F :=
 begin
-  apply weakly_regular_of_inner_regular_of_finite_measure μ (λ U U_open, _),
   rcases U_open.exists_Union_is_closed with ⟨F, F_closed, F_subset, F_Union, F_mono⟩,
   conv_lhs { rw ← F_Union },
   rw measure_Union_eq_supr (λ n, (F_closed n).measurable_set) F_mono.directed_le,
@@ -447,9 +445,77 @@ begin
   exact le_supr (λ s : {s // is_closed s ∧ s ⊆ U}, μ s) ⟨F n, F_closed n, F_subset n⟩,
 end
 
+/-- Any finite measure on a metric space is weakly regular -/
+@[priority 100] -- see Note [lower instance priority]
+instance of_pseudo_emetric_space_of_finite_measure {X : Type*}
+  [pseudo_emetric_space X] [measurable_space X] [borel_space X] (μ : measure X) [finite_measure μ] :
+  weakly_regular μ :=
+weakly_regular_of_inner_regular_of_finite_measure μ $ inner_regular_of_pseudo_emetric_space μ
+
 end weakly_regular
 
 namespace regular
+open metric
+
+lemma zoug (m n : ℕ) (h : m ≠ n) (h' : m ≤ n) : m + 1 ≤ n :=
+begin
+  apply nat.succ_le_of_lt (lt_of_le_of_ne h' h),
+
+end
+
+lemma decomposition_of_locally_finite {X : Type*} [metric_space X] [proper_space X]
+  [measurable_space X] [borel_space X] :
+  ∃ A : ℕ → set X, (∀ n, measurable_set (A n)) ∧ (∀ n, is_compact (closure (A n)))
+    ∧ (pairwise (disjoint on A)) ∧ (⋃ n, A n) = univ :=
+begin
+  cases (univ : set X).eq_empty_or_nonempty with h h,
+  { refine ⟨λ n, ∅, λ n, measurable_set.empty, λ n, by simp only [is_compact_empty, closure_empty],
+      λ m n hmn, by simp only [function.on_fun, empty_disjoint], by simp [h]⟩ },
+  rcases h with ⟨x₀, _⟩,
+  let A := λ (n : ℕ), ball x₀ (n+1) \ ball x₀ n,
+  refine ⟨A, _, _, _, _⟩,
+  { assume n, exact is_open_ball.measurable_set.diff is_open_ball.measurable_set },
+  { assume n,
+    rw compact_iff_closed_bounded,
+    exact ⟨is_closed_closure, (bounded_ball.subset (diff_subset _ _)).closure⟩ },
+    /-
+  { rintros m n hmn x ⟨hm, hn⟩,
+    wlog hle : m ≤ n,
+    have : (m : ℝ) + 1 ≤ n := by exact_mod_cast (nat.succ_le_of_lt (lt_of_le_of_ne hle hmn)),
+    have : dist x x₀ < m + 1 := hm.1,
+    have : (n : ℝ) ≤ dist x x₀, by simpa using hn.2,
+    linarith },-/sorry,
+  { apply subset.antisymm (subset_univ _) (λ x hx, _),
+    let n := floor (dist x₀ x),
+    have hn : 0 ≤ n := sorry,
+    lift n to ℕ using hn, }
+
+end
+
+
+#exit
+
+/-- Any locally finite measure on a proper metric space is regular -/
+@[priority 100] -- see Note [lower instance priority]
+instance of_proper_space_of_locally_finite_measure {X : Type*}
+  [pseudo_metric_space X] [proper_space X] [measurable_space X] [borel_space X] (μ : measure X)
+  [locally_finite_measure μ] : regular μ :=
+{ inner_regular :=
+    begin
+      assume U U_open,
+      refine (weakly_regular.inner_regular_of_pseudo_emetric_space μ U U_open).trans _,
+      simp only [supr_le_iff],
+      assume F F_closed FU,
+      sorry,
+    end,
+  outer_regular := begin
+    assume A hA,
+    cases lt_or_ge (μ A) ⊤ with h h, swap, { exact le_top.trans h },
+    let B := λ n, {x | n ≤ dist }
+end
+
+
+}
 
 /-- Given a regular measure, any measurable set of finite mass can be approximated from
 inside by compact sets. -/
@@ -471,7 +537,7 @@ begin
     weakly_regular.exists_subset_is_open_measure_lt_top h'A,
   -- construct `K` approximating `U` from inside.
   have : μ U < ⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), (μ K + δ),
-  { haveI : nonempty {K // is_compact K ∧ K ⊆ U} := ⟨⟨∅, compact_empty, empty_subset _⟩⟩,
+  { haveI : nonempty {K // is_compact K ∧ K ⊆ U} := ⟨⟨∅, is_compact_empty, empty_subset _⟩⟩,
     simp_rw [inner_regular_eq U_open, supr_and', supr_subtype', ← ennreal.supr_add],
     simpa only [add_zero, ennreal.coe_zero] using (ennreal.add_lt_add_iff_left _).mpr δpos,
     convert μU.trans_le le_top,

@@ -215,7 +215,7 @@ lemma is_compact.uniform_continuous_on_of_continuous' {s : set α} {f : α → �
 begin
   rw uniform_continuous_on_iff_restrict,
   rw is_separated_iff_induced at hs',
-  rw compact_iff_compact_space at hs,
+  rw is_compact_iff_compact_space at hs,
   rw continuous_on_iff_continuous_restrict at hf,
   resetI,
   exact compact_space.uniform_continuous_of_continuous hf,

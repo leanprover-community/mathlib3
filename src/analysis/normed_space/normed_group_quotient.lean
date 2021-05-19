@@ -416,6 +416,10 @@ begin
   simp only [(quotient_norm_eq_zero_iff S x).mpr hker, normed_mk.apply, zero_mul],
 end
 
+end add_subgroup
+
+namespace normed_group_hom
+
 /-- `is_quotient f`, for `f : M ⟶ N` means that `N` is isomorphic to the quotient of `M`
 by the kernel of `f`. -/
 structure is_quotient (f : normed_group_hom M N) : Prop :=
@@ -451,7 +455,7 @@ lemma lift_unique {N : Type*} [semi_normed_group N] (S : add_subgroup M)
 begin
   intro h,
   ext,
-  rcases surjective_normed_mk _ x with ⟨x,rfl⟩,
+  rcases add_subgroup.surjective_normed_mk _ x with ⟨x,rfl⟩,
   change (g.comp (S.normed_mk) x) = _,
   simpa only [h]
 end
@@ -488,4 +492,4 @@ begin
   { exact ⟨0, f.ker.zero_mem, by simp⟩ }
 end
 
-end add_subgroup
+end normed_group_hom

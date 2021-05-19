@@ -28,6 +28,10 @@ then `finrank (fixed_points G F) F = fintype.card G`.
 
 -/
 
+/-- In this file we are interested only in `polynomial.mul_semiring_action` which transfers the
+action to each variable, and not these instances which transfer the action to each coefficient. -/
+local attribute [-instance] polynomial.has_scalar polynomial.distrib_mul_action
+
 noncomputable theory
 open_locale classical big_operators
 open mul_action finset finite_dimensional

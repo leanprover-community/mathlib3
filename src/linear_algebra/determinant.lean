@@ -215,6 +215,16 @@ begin
   simpa using (linear_map.to_matrix_comp v v' v f.symm f).symm
 end
 
+/-- Specialization of `linear_equiv.is_unit_det` -/
+lemma linear_equiv.is_unit_det' {A : Type*} [integral_domain A] [module A M]
+  (f : M ≃ₗ[A] M) : is_unit (linear_map.det (f : M →ₗ[A] M)) :=
+begin
+  unfold linear_map.det,
+  split_ifs with h,
+  { convert linear_equiv.is_unit_det f _ _ }, -- `convert` avoids `decidable_eq` issues
+  { simp },
+end
+
 /-- Builds a linear equivalence from a linear map whose determinant in some bases is a unit. -/
 @[simps]
 def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : basis ι R M'}

@@ -168,13 +168,12 @@ instance [integral_domain α] : integral_domain (opposite α) :=
 { .. opposite.no_zero_divisors α, .. opposite.comm_ring α, .. opposite.nontrivial α }
 
 instance [group_with_zero α] : group_with_zero (opposite α) :=
-{ inv := has_inv.inv,
-  mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
+{ mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
   inv_zero := unop_injective inv_zero,
-  .. opposite.monoid_with_zero α, .. opposite.nontrivial α }
+  .. opposite.monoid_with_zero α, .. opposite.nontrivial α, .. opposite.has_inv α }
 
 instance [division_ring α] : division_ring (opposite α) :=
-{ .. opposite.group_with_zero α, .. opposite.ring α, }
+{ .. opposite.group_with_zero α, .. opposite.ring α }
 
 instance [field α] : field (opposite α) :=
 { .. opposite.division_ring α, .. opposite.comm_ring α }

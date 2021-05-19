@@ -15,6 +15,11 @@ This file contains instances and definitions relating `mul_semiring_action` to `
 
 variables (M : Type*) [monoid M]
 
+/-- These instances describe an incompatible scalar action, and make the lemmas in this file
+hard to state. -/
+local attribute [-instance]
+  polynomial.has_scalar polynomial.distrib_mul_action
+
 namespace polynomial
 
 variables (R : Type*) [semiring R]

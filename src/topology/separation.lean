@@ -664,15 +664,6 @@ lemma continuous.closed_embedding [compact_space α] [t2_space β] {f : α → �
   (hf : function.injective f) : closed_embedding f :=
 closed_embedding_of_continuous_injective_closed h hf h.is_closed_map
 
-lemma is_compact_closure_disjoint_covering
-  (α : Type*) [topological_space α] [sigma_compact_space α] [t2_space α] (n : ℕ) :
-  is_compact (closure (disjoint_covering α n)) :=
-begin
-  apply compact_of_is_closed_subset (is_compact_compact_covering α n) is_closed_closure,
-  convert closure_mono disjointed_subset,
-  exact (closure_eq_iff_is_closed.2 (is_compact_compact_covering _ _).is_closed).symm,
-end
-
 section
 open finset function
 /-- For every finite open cover `Uᵢ` of a compact set, there exists a compact cover `Kᵢ ⊆ Uᵢ`. -/

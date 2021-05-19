@@ -1363,7 +1363,7 @@ end⟩
 /- A compact pseudometric space is proper -/
 @[priority 100] -- see Note [lower instance priority]
 instance proper_of_compact [compact_space α] : proper_space α :=
-⟨assume x r, is_closed_ball.compact⟩
+⟨assume x r, is_closed_ball.is_compact⟩
 
 /-- A proper space is locally compact -/
 @[priority 100] -- see Note [lower instance priority]

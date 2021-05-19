@@ -938,16 +938,6 @@ end
   compact_covering α m ⊆ compact_covering α n :=
 monotone_accumulate h
 
-/-- A choice of a partition of a `σ`-compact space into measurable sets with compact closures. -/
-def disjoint_covering : ℕ → set α :=
-set.disjointed (compact_covering α)
-
-lemma Union_disjoint_covering : (⋃ n, disjoint_covering α n) = univ :=
-by rw [disjoint_covering, Union_disjointed, Union_compact_covering]
-
-lemma disjoint_disjoint_covering : pairwise (disjoint on (disjoint_covering α)) :=
-disjoint_disjointed
-
 variable {α}
 
 /-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have

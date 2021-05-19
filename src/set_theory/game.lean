@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
+Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison, Apurva Nakade
 -/
 import set_theory.pgame
 import tactic.abel
@@ -148,10 +148,6 @@ instance : add_comm_group game :=
 theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a ≤ c + b :=
 begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
 
-@[simp] lemma quot_neg (a : pgame) : ⟦-a⟧ = -⟦a⟧ := rfl
-@[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl
-@[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
-
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.
 
@@ -180,6 +176,23 @@ def ordered_add_comm_group_game : ordered_add_comm_group game :=
 end game
 
 namespace pgame
+
+@[simp] lemma quot_neg (a : pgame) : ⟦-a⟧ = -⟦a⟧ := rfl
+
+@[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl
+
+@[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
+
+theorem quot_eq_of_mk_quot_eq {x y : pgame}
+  (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
+  (hl : ∀ (i : x.left_moves), ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)
+  (hr : ∀ (j : y.right_moves), ⟦x.move_right (R.symm j)⟧ = ⟦y.move_right j⟧) :
+  ⟦x⟧ = ⟦y⟧ :=
+begin
+  simp only [quotient.eq] at hl hr,
+  apply quotient.sound,
+  apply equiv_of_mk_equiv L R hl hr,
+end
 
 /-! Multiplicative operations can be defined at the level of pre-games,
 but to prove their properties we need to use the abelian group structure of games.
@@ -251,33 +264,37 @@ rfl
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by {cases x, cases y, refl}
 
-/-- `x * y` has exactly the same moves as `y * x`. -/
-def mul_comm_relabelling (x y : pgame.{u}) : (x * y).relabelling (y * x) :=
+theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
-  induction y with yl yr yL yR IHyl IHyr,
   let x := mk xl xr xL xR,
   let y := mk yl yr yL yR,
-  refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _), _, _, _⟩,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
+  apply equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   calc
     xl × yr ⊕ xr × yl
        ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
    ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { exact ((add_comm_relabelling _ _).trans
-                ((IHyl j).add_congr (IHxl i y))).sub_congr (IHxl i (yL j)) },
-    { exact ((add_comm_relabelling _ _).trans
-                ((IHyr j).add_congr (IHxr i y))).sub_congr (IHxr i (yR j)) } },
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { exact ((add_comm_relabelling _ _).trans
-                ((IHyl i).add_congr (IHxr j y))).sub_congr (IHxr j (yL i)) },
-    { exact ((add_comm_relabelling _ _).trans
-                ((IHyr i).add_congr (IHxl j y))).sub_congr (IHxl j (yR i)) } }
+    { change ⟦xL i * y⟧ + ⟦x * yL j⟧ - ⟦xL i * yL j⟧ = ⟦yL j * x⟧ + ⟦y * xL i⟧ - ⟦yL j * xL i⟧,
+      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yL j), quot_mul_comm (xL i) (yL j)],
+      abel },
+    { change ⟦xR i * y⟧ + ⟦x * yR j⟧ - ⟦xR i * yR j⟧ = ⟦yR j * x⟧ + ⟦y * xR i⟧ - ⟦yR j * xR i⟧,
+      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yR j), quot_mul_comm (xR i) (yR j)],
+      abel } },
+  { rintro (⟨j, i⟩ | ⟨j, i⟩),
+    { change ⟦xR i * y⟧ + ⟦x * yL j⟧ - ⟦xR i * yL j⟧ = ⟦yL j * x⟧ + ⟦y * xR i⟧ - ⟦yL j * xR i⟧,
+      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yL j), quot_mul_comm (xR i) (yL j)],
+      abel },
+    { change ⟦xL i * y⟧ + ⟦x * yR j⟧ - ⟦xL i * yR j⟧ = ⟦yR j * x⟧ + ⟦y * xL i⟧ - ⟦yR j * xL i⟧,
+      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yR j), quot_mul_comm (xL i) (yR j)],
+      abel } }
 end
+using_well_founded { dec_tac := pgame_wf_tac }
 
 /-- `x * y` is equivalent to `y * x`. -/
 theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
-(mul_comm_relabelling x y).equiv
+quotient.exact $ quot_mul_comm _ _
 
 /-- `x * 0` has exactly the same moves as `0`. -/
 def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
@@ -291,6 +308,9 @@ def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
 theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 :=
 (mul_zero_relabelling x).equiv
 
+@[simp] theorem quot_mul_zero (x : pgame) : ⟦x * 0⟧ = ⟦0⟧ :=
+@quotient.sound _ _ (x * 0) _ x.mul_zero_equiv
+
 /-- `0 * x` has exactly the same moves as `0`. -/
 def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 | (mk xl xr xL xR) :=
@@ -303,84 +323,207 @@ def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
 theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
 (zero_mul_relabelling x).equiv
 
-lemma left_distrib_equiv_aux {a b c d e : pgame} : a + b + (c + d) - (e + b) ≈ a + c - e + d :=
-by { apply @quotient.exact pgame, simp, abel }
+@[simp] theorem quot_zero_mul (x : pgame) : ⟦0 * x⟧ = ⟦0⟧ :=
+@quotient.sound _ _ (0 * x) _ x.zero_mul_equiv
 
-lemma left_distrib_equiv_aux' {a b c d e : pgame} : b + a + (d + c) - (b + e) ≈ d + (a + c - e) :=
-by { apply @quotient.exact pgame, simp, abel }
+@[simp] theorem quot_neg_mul : Π (x y : pgame), ⟦-x * y⟧ = -⟦x * y⟧
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
+begin
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
+  { fsplit; rintro (⟨_, _⟩ | ⟨_, _⟩);
+    solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 4 } },
+  { fsplit; rintro (⟨_, _⟩ | ⟨_, _⟩);
+    solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 4 } },
+  { rintro (⟨i, j⟩ | ⟨i, j⟩),
+    { change ⟦-xR i * y + (-x) * yL j - (-xR i) * yL j⟧ = ⟦-(xR i * y + x * yL j - xR i * yL j)⟧,
+      simp only [quot_add, quot_sub, quot_neg_mul],
+      simp, abel },
+    { change ⟦-xL i * y + (-x) * yR j - (-xL i) * yR j⟧ = ⟦-(xL i * y + x * yR j - xL i * yR j)⟧,
+      simp only [quot_add, quot_sub, quot_neg_mul],
+      simp, abel } },
+  { rintro (⟨i, j⟩ | ⟨i, j⟩),
+    { change ⟦-xL i * y + (-x) * yL j - (-xL i) * yL j⟧ = ⟦-(xL i * y + x * yL j - xL i * yL j)⟧,
+      simp only [quot_add, quot_sub, quot_neg_mul],
+      simp, abel },
+    { change ⟦-xR i * y + (-x) * yR j - (-xR i) * yR j⟧ = ⟦-(xR i * y + x * yR j - xR i * yR j)⟧,
+      simp only [quot_add, quot_sub, quot_neg_mul],
+      simp, abel } },
+end
+using_well_founded { dec_tac := pgame_wf_tac }
 
-/-- `x * (y + z)` is equivalent to `x * y + x * z.`-/
-theorem left_distrib_equiv : Π (x y z : pgame), x * (y + z) ≈ x * y + x * z
+@[simp] theorem quot_mul_neg (x y : pgame) : ⟦x * -y⟧ = -⟦x * y⟧ :=
+by rw [quot_mul_comm, quot_neg_mul, quot_mul_comm]
+
+@[simp] theorem quot_left_distrib : Π (x y z : pgame), ⟦x * (y + z)⟧ = ⟦x * y⟧ + ⟦x * z⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin
   let x := mk xl xr xL xR,
   let y := mk yl yr yL yR,
   let z := mk zl zr zL zR,
-  refine equiv_of_mk_equiv _ _ _ _,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
   { fsplit,
-    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩);
+    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
-    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩));
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
-    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩); refl },
-    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)); refl } },
+    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl } },
   { fsplit,
-    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩);
+    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
-    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩));
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩);
       solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 5 } },
-    { rintros (⟨_,(_|_)⟩|⟨_,(_|_)⟩); refl },
-    { rintros ((⟨_,_⟩|⟨_,_⟩)|(⟨_,_⟩|⟨_,_⟩)); refl } },
-  { rintros (⟨i,(j|k)⟩|⟨i,(j|k)⟩),
-    { calc
-        xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)
-            ≈ (xL i * y + xL i * z) + (x * yL j + x * z) - (xL i * yL j + xL i * z)
-            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
-        ... ≈ xL i * y + x * yL j - xL i * yL j + x * z : left_distrib_equiv_aux },
-    { calc
-        xL i * (y + z) + x * (y + zL k) - xL i * (y + zL k)
-            ≈ (xL i * y + xL i * z) + (x * y + x * zL k) - (xL i * y + xL i * zL k)
-            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
-        ... ≈  x * y + (xL i * z + x * zL k - xL i * zL k) : left_distrib_equiv_aux' },
-    { calc
-        xR i * (y + z) + x * (yR j + z) - xR i * (yR j + z)
-            ≈  (xR i * y + xR i * z) + (x * yR j + x * z) - (xR i * yR j + xR i * z)
-            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
-        ... ≈ xR i * y + x * yR j - xR i * yR j + x * z : left_distrib_equiv_aux },
-    { calc
-        xR i * (y + z) + x * (y + zR k) - xR i * (y + zR k)
-            ≈ (xR i * y + xR i * z) + (x * y + x * zR k) - (xR i * y + xR i * zR k)
-            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
-        ... ≈ x * y + (xR i * z + x * zR k - xR i * zR k) : left_distrib_equiv_aux' } },
-  { rintros ((⟨i,j⟩|⟨i,j⟩)|(⟨i,k⟩|⟨i,k⟩)),
-    { calc
-        xL i * (y + z) + x * (yR j + z) - xL i * (yR j + z)
-            ≈ (xL i * y + xL i * z) + (x * yR j + x * z) - (xL i * yR j + xL i * z)
-            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
-        ... ≈ xL i * y + x * yR j - xL i * yR j + x * z : left_distrib_equiv_aux },
-    { calc
-        xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)
-            ≈ (xR i * y + xR i * z) + (x * yL j + x * z) - (xR i * yL j + xR i * z)
-            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
-        ... ≈ xR i * y + x * yL j - xR i * yL j + x * z : left_distrib_equiv_aux },
-    { calc
-        xL i * (y + z) + x * (y + zR k) - xL i * (y + zR k)
-            ≈ (xL i * y + xL i * z) + (x * y + x * zR k) - (xL i * y + xL i * zR k)
-            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
-        ... ≈  x * y + (xL i * z + x * zR k - xL i * zR k) : left_distrib_equiv_aux' },
-    { calc
-        xR i * (y + z) + x * (y + zL k) - xR i * (y + zL k)
-            ≈ (xR i * y + xR i * z) + (x * y + x * zL k) - (xR i * y + xR i * zL k)
-            : by { refine sub_congr (add_congr _ _) _; apply left_distrib_equiv }
-        ... ≈ x * y + (xR i * z + x * zL k - xR i * zL k) : left_distrib_equiv_aux' } }
+    { rintro (⟨_, _ | _⟩ | ⟨_, _ | _⟩); refl },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, _⟩ | ⟨_, _⟩); refl } },
+    { rintro (⟨i, j | k⟩ | ⟨i, j | k⟩),
+      { change ⟦xL i * (y + z) + x * (yL j + z) - xL i * (yL j + z)⟧
+               = ⟦xL i * y + x * yL j - xL i * yL j + x * z⟧,
+        simp [quot_left_distrib], abel },
+      { change ⟦xL i * (y + z) + x * (y + zL k) - xL i * (y + zL k)⟧
+               = ⟦x * y + (xL i * z + x * zL k - xL i * zL k)⟧,
+        simp [quot_left_distrib], abel },
+      { change ⟦xR i * (y + z) + x * (yR j + z) - xR i * (yR j + z)⟧
+               = ⟦xR i * y + x * yR j - xR i * yR j + x * z⟧,
+        simp [quot_left_distrib], abel },
+      { change ⟦xR i * (y + z) + x * (y + zR k) - xR i * (y + zR k)⟧
+               = ⟦x * y + (xR i * z + x * zR k - xR i * zR k)⟧,
+        simp [quot_left_distrib], abel } },
+    { rintro (⟨⟨i, j⟩ | ⟨i, j⟩⟩ | ⟨i, k⟩ | ⟨i, k⟩),
+      { change ⟦xL i * (y + z) + x * (yR j + z) - xL i * (yR j + z)⟧
+               = ⟦xL i * y + x * yR j - xL i * yR j + x * z⟧,
+        simp [quot_left_distrib], abel },
+      { change ⟦xR i * (y + z) + x * (yL j + z) - xR i * (yL j + z)⟧
+               = ⟦xR i * y + x * yL j - xR i * yL j + x * z⟧,
+        simp [quot_left_distrib], abel },
+      { change ⟦xL i * (y + z) + x * (y + zR k) - xL i * (y + zR k)⟧
+               = ⟦x * y + (xL i * z + x * zR k - xL i * zR k)⟧,
+        simp [quot_left_distrib], abel },
+      { change ⟦xR i * (y + z) + x * (y + zL k) - xR i * (y + zL k)⟧
+               = ⟦x * y + (xR i * z + x * zL k - xR i * zL k)⟧,
+        simp [quot_left_distrib], abel } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+/-- `x * (y + z)` is equivalent to `x * y + x * z.`-/
+theorem left_distrib_equiv (x y z : pgame) : x * (y + z) ≈ x * y + x * z :=
+quotient.exact $ quot_left_distrib _ _ _
+
+@[simp] theorem quot_left_distrib_sub (x y z : pgame) : ⟦x * (y - z)⟧ = ⟦x * y⟧ - ⟦x * z⟧ :=
+by { change  ⟦x * (y + -z)⟧ = ⟦x * y⟧ + -⟦x * z⟧, rw [quot_left_distrib, quot_mul_neg] }
+
+@[simp] theorem quot_right_distrib (x y z : pgame) : ⟦(x + y) * z⟧ = ⟦x * z⟧ + ⟦y * z⟧ :=
+by simp only [quot_mul_comm, quot_left_distrib]
+
 /-- `(x + y) * z` is equivalent to `x * z + y * z.`-/
 theorem right_distrib_equiv (x y z : pgame) : (x + y) * z ≈ x * z + y * z :=
-calc (x + y) * z ≈ z * (x + y)      : mul_comm_equiv _ _
-             ... ≈ z * x + z * y    : left_distrib_equiv _ _ _
-             ... ≈ (x * z + y * z)  : add_congr (mul_comm_equiv _ _) (mul_comm_equiv _ _)
+quotient.exact $ quot_right_distrib _ _ _
+
+@[simp] theorem quot_right_distrib_sub (x y z : pgame) : ⟦(y - z) * x⟧ = ⟦y * x⟧ - ⟦z * x⟧ :=
+by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_distrib, quot_neg_mul] }
+
+@[simp] theorem quot_mul_one : Π (x : pgame), ⟦x * 1⟧ = ⟦x⟧
+| (mk xl xr xL xR) :=
+begin
+  let x := mk xl xr xL xR,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
+  { fsplit,
+     { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
+     { rintro i,  exact sum.inl(i, punit.star) },
+     { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl },
+     { rintro i, refl } },
+  { fsplit,
+    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
+    { rintro i,  exact sum.inr(i, punit.star) },
+    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl },
+    { rintro i, refl } },
+  { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩),
+    change ⟦xL i * 1 + x * 0 - xL i * 0⟧ = ⟦xL i⟧,
+    simp [quot_mul_one] },
+  { rintro i,
+    change ⟦xR i * 1 + x * 0 - xR i * 0⟧ = ⟦xR i⟧,
+    simp [quot_mul_one] }
+end
+
+/-- `x * 1` is equivalent to `x`. -/
+theorem mul_one_equiv (x : pgame) : x * 1 ≈ x := quotient.exact $ quot_mul_one _
+
+@[simp] theorem quot_one_mul (x : pgame) : ⟦1 * x⟧ = ⟦x⟧ :=
+by rw [quot_mul_comm, quot_mul_one x]
+
+/-- `1 * x` is equivalent to `x`. -/
+theorem one_mul_equiv (x : pgame) : 1 * x ≈ x := quotient.exact $ quot_one_mul _
+
+theorem quot_mul_assoc : Π (x y z : pgame), ⟦x * y * z⟧ = ⟦x * (y * z)⟧
+| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
+begin
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
+  let z := mk zl zr zL zR,
+  refine quot_eq_of_mk_quot_eq _ _ _ _,
+  { fsplit,
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩, _⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_,⟨_, _⟩ | ⟨_, _⟩⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_,_⟩ | ⟨_, _⟩,_⟩); refl },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_,⟨_, _⟩ | ⟨_, _⟩⟩); refl } },
+  { fsplit,
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩);
+      solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 7 } },
+    { rintro (⟨⟨_, _⟩ | ⟨_, _⟩, _⟩ | ⟨⟨_, _⟩ | ⟨_, _⟩,_⟩); refl },
+    { rintro (⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩ | ⟨_, ⟨_, _⟩ | ⟨_, _⟩⟩); refl } },
+  { rintro (⟨⟨i, j⟩ | ⟨i, j⟩, k⟩ | ⟨⟨i, j⟩ | ⟨i, j⟩, k⟩),
+    { change ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zL k
+               - (xL i * y + x * yL j - xL i * yL j) * zL k⟧
+             = ⟦xL i * (y * z) + x * (yL j * z + y * zL k - yL j * zL k)
+               - xL i * (yL j * z + y * zL k - yL j * zL k)⟧,
+      simp [quot_mul_assoc], abel },
+    { change ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zL k
+               - (xR i * y + x * yR j - xR i * yR j) * zL k⟧
+             = ⟦xR i * (y * z) + x * (yR j * z + y * zL k - yR j * zL k)
+               - xR i * (yR j * z + y * zL k - yR j * zL k)⟧,
+      simp [quot_mul_assoc], abel },
+    { change ⟦(xL i * y + x * yR j - xL i * yR j) * z + (x * y) * zR k
+               - (xL i * y + x * yR j - xL i * yR j) * zR k⟧
+             = ⟦xL i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
+               - xL i * (yR j * z + y * zR k - yR j * zR k)⟧,
+      simp [quot_mul_assoc], abel },
+    { change ⟦(xR i * y + x * yL j - xR i * yL j) * z + (x * y) * zR k
+               - (xR i * y + x * yL j - xR i * yL j) * zR k⟧
+             = ⟦xR i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
+               - xR i * (yL j * z + y * zR k - yL j * zR k)⟧,
+      simp [quot_mul_assoc], abel } },
+  { rintro (⟨i, ⟨j, k⟩ | ⟨j, k⟩⟩ | ⟨i, ⟨j, k⟩ | ⟨j, k⟩⟩),
+    { change ⟦(xL i * y + x * yL j - xL i * yL j) * z + (x * y) * zR k
+               - (xL i * y + x * yL j - xL i * yL j) * zR k⟧
+             = ⟦xL i * (y * z) + x * (yL j * z + y * zR k - yL j * zR k)
+               - xL i * (yL j * z + y * zR k - yL j * zR k)⟧,
+      simp [quot_mul_assoc], abel },
+    { change ⟦(xL i * y + x * yR j - xL i * yR j) * z + (x * y) * zL k
+               - (xL i * y + x * yR j - xL i * yR j) * zL k⟧
+             = ⟦xL i * (y * z) + x * (yR j * z + y * zL k - yR j * zL k)
+               - xL i * (yR j * z + y * zL k - yR j * zL k)⟧,
+      simp [quot_mul_assoc], abel },
+    { change ⟦(xR i * y + x * yL j - xR i * yL j) * z + (x * y) * zL k
+               - (xR i * y + x * yL j - xR i * yL j) * zL k⟧
+             = ⟦xR i * (y * z) + x * (yL j * z + y * zL k - yL j * zL k)
+               - xR i * (yL j * z + y * zL k - yL j * zL k)⟧,
+      simp [quot_mul_assoc], abel },
+    { change ⟦(xR i * y + x * yR j - xR i * yR j) * z + (x * y) * zR k
+               - (xR i * y + x * yR j - xR i * yR j) * zR k⟧
+             = ⟦xR i * (y * z) + x * (yR j * z + y * zR k - yR j * zR k)
+               - xR i * (yR j * z + y * zR k - yR j * zR k)⟧,
+      simp [quot_mul_assoc], abel } }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+/-- `x * y * z` is equivalent to `x * (y * z).`-/
+theorem mul_assoc_equiv (x y z : pgame) : x * y * z ≈ x * (y * z) :=
+quotient.exact $ quot_mul_assoc _ _ _
 
 /-- Because the two halves of the definition of `inv` produce more elements
 on each side, we have to define the two families inductively.
@@ -426,4 +569,4 @@ if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
 noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
-end pgame 
+end pgame

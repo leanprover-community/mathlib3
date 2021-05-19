@@ -184,7 +184,7 @@ jobs:
       - name: tests
         run: |
           set -o pipefail
-          lean --json -T100000 --make docs archive roadmap test | python scripts/detect_errors.py
+          lean --json -T100000 --make docs archive roadmap test counterexamples | python scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
         with:

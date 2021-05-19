@@ -584,6 +584,29 @@ begin
     exact ⟨mem_nhds_sets s_op a_in, s_op⟩ },
 end
 
+/-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:
+it contains an open set containing `s`. -/
+lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
+  ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
+begin
+  have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
+  choose! Z hZ hZ'  using this,
+  refine ⟨⋃ x ∈ s, Z x, _, _, bUnion_subset hZ'⟩,
+  { intros x hx,
+    simp only [mem_Union],
+    exact ⟨x, hx, (hZ x hx).1⟩ },
+  { apply is_open_Union,
+    intros x,
+    by_cases hx : x ∈ s ; simp [hx],
+    exact (hZ x hx).2 }
+end
+
+/-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:
+it contains an open set containing `s`. -/
+lemma exists_open_set_nhds' {s U : set α} (h : U ∈ ⨆ x ∈ s, 𝓝 x) :
+  ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
+exists_open_set_nhds (by simpa using h)
+
 /-- If a predicate is true in a neighbourhood of `a`, then for `y` sufficiently close
 to `a` this predicate is true in a neighbourhood of `y`. -/
 lemma filter.eventually.eventually_nhds {p : α → Prop} {a : α} (h : ∀ᶠ y in 𝓝 a, p y) :

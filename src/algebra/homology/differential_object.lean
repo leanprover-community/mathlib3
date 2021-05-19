@@ -39,12 +39,10 @@ def dgo_to_homological_complex :
   { X := λ i, X.X i,
     d := λ i j, if h : i + b = j then X.d i ≫ eq_to_hom (congr_arg X.X h) else 0,
     shape' := λ i j w, by { dsimp at w, rw dif_neg w, },
-    d_comp_d' := λ i j k, begin
-      split_ifs with h h',
-      { substs h h',
-        simp only [category.comp_id, eq_to_hom_refl],
-        exact congr_fun (X.d_squared) i, },
-      all_goals { simp, },
+    d_comp_d' := λ i j k hij hjk, begin
+      dsimp at hij hjk, substs hij hjk,
+      simp only [category.comp_id, eq_to_hom_refl, dif_pos rfl],
+      exact congr_fun (X.d_squared) i,
     end },
   map := λ X Y f,
   { f := f.f,

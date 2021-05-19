@@ -36,7 +36,7 @@ def flip_obj (C : homological_complex (homological_complex V c) c') :
   { X := λ j, (C.X j).X i,
     d := λ j j', (C.d j j').f i,
     shape' := λ j j' w, by { rw C.shape j j' w, simp, },
-    d_comp_d' := λ j₁ j₂ j₃, congr_hom (C.d_comp_d j₁ j₂ j₃) i, },
+    d_comp_d' := λ j₁ j₂ j₃ _ _, congr_hom (C.d_comp_d j₁ j₂ j₃) i, },
   d := λ i i',
   { f := λ j, (C.X j).d i i',
     comm' := λ j j', ((C.d j j').comm i i').symm, },

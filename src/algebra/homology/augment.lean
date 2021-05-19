@@ -69,7 +69,7 @@ def augment (C : chain_complex V ℕ) {X : V} (f : C.X 0 ⟶ X) (w : C.d 1 0 ≫
     { simpa using s, },
     { rw [C.shape], simp, omega, },
   end,
-  d_comp_d' := λ i j k, begin
+  d_comp_d' := λ i j k hij hjk, begin
     rcases i with _|_|i; rcases j with _|_|j; cases k; unfold_aux; try { simp },
     cases i,
     { exact w, },
@@ -207,7 +207,7 @@ def augment (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : f ≫ C.d
     { simpa using s, },
     { rw [C.shape], simp, omega, },
   end,
-  d_comp_d' := λ i j k, begin
+  d_comp_d' := λ i j k hij hjk, begin
     rcases k with _|_|k; rcases j with _|_|j; cases i; unfold_aux; try { simp },
     cases k,
     { exact w, },

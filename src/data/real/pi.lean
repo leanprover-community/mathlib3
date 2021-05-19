@@ -31,7 +31,7 @@ lemma pi_lt_sqrt_two_add_series (n : ℕ) :
 begin
   have : π < (sqrt (2 - sqrt_two_add_series 0 n) / 2 + 1 / (2 ^ n) ^ 3 / 4) * 2 ^ (n+2),
   { rw [← div_lt_iff, ← sin_pi_over_two_pow_succ],
-    refine lt_of_lt_of_le (sub_lt_iff_lt_add'.mp (sin_gt_sub_cube _ _)) _,
+    refine lt_of_lt_of_le (sub_lt_iff_lt_add.mp (sin_gt_sub_cube _ _)) _,
     { apply div_pos pi_pos, apply pow_pos, norm_num },
     { rw div_le_iff',
       { refine le_trans pi_le_four _,
@@ -250,10 +250,10 @@ begin
   { intros x hx,
     rw [abs_div, is_absolute_value.abv_pow abs (-x^2) k, abs_neg, is_absolute_value.abv_pow abs x 2,
        tactic.ring_exp.pow_e_pf_exp rfl rfl],
-    rw [@abs_of_pos _ (1+x^2) _ (add_pos_of_pos_of_nonneg zero_lt_one (sq_nonneg _))],
-    convert @div_le_div_of_le_left _ _ _ (1+x^2) 1 (pow_nonneg (abs_nonneg x) (2*k)) zero_lt_one
-      ((le_add_iff_nonneg_right _).mpr (sq_nonneg _)),
-    rw div_one },
+    refine div_le_of_nonneg_of_le_mul (abs_nonneg _) (pow_nonneg (abs_nonneg _) _) _,
+    refine le_mul_of_one_le_right (pow_nonneg (abs_nonneg _) _) _,
+    rw abs_of_nonneg ((add_nonneg zero_le_one (sq_nonneg x)) : (0 : ℝ) ≤ _),
+    exact (le_add_of_nonneg_right (sq_nonneg x) : (1 : ℝ) ≤ _) },
   have hbound1 : ∀ x ∈ Ico (U:ℝ) 1, |f' x| ≤ 1,
   { rintros x ⟨hx_left, hx_right⟩,
     have hincr := pow_le_pow_of_le_left (le_trans hU2 hx_left) (le_of_lt hx_right) (2*k),

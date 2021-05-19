@@ -225,8 +225,8 @@ namespace cochain_complex
 local attribute [instance] has_zero_object.has_zero
 
 /--
-`chain_complex.single₀ V` is the embedding of `V` into `cochain_complex V ℕ`
-as chain complexes supported in degree 0.
+`cochain_complex.single₀ V` is the embedding of `V` into `cochain_complex V ℕ`
+as cochain complexes supported in degree 0.
 
 This is naturally isomorphic to `single V _ 0`, but has better definitional properties.
 -/

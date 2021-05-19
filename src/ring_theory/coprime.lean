@@ -172,7 +172,7 @@ H.pow_left.pow_right
 theorem is_coprime.of_pow_left (hm : 0 < m) (h : is_coprime (x ^ m) y) : is_coprime x y :=
 begin
   rw [← finset.card_range m, ← finset.prod_const] at h,
-  exact is_coprime.of_prod_left h 0 (finset.mem_range.mpr hm),
+  exact h.of_prod_left 0 (finset.mem_range.mpr hm),
 end
 
 theorem is_coprime.of_pow_right (hm : 0 < m) (h : is_coprime x (y ^ m)) : is_coprime x y :=

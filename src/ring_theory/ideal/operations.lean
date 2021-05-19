@@ -297,7 +297,7 @@ sup_eq_right.2 ideal.mul_le_left
 variables (I J K)
 protected theorem mul_comm : I * J = J * I :=
 le_antisymm (mul_le.2 $ λ r hrI s hsJ, mul_mem_mul_rev hsJ hrI)
-(mul_le.2 $ λ r hrJ s hsI, mul_mem_mul_rev hsI hrJ)
+  (mul_le.2 $ λ r hrJ s hsI, mul_mem_mul_rev hsI hrJ)
 
 protected theorem mul_assoc : (I * J) * K = I * (J * K) :=
 submodule.smul_assoc I J K
@@ -308,11 +308,15 @@ submodule.span_smul_span S T
 variables {I J K}
 
 lemma span_mul_span' (S T : set R) : span S * span T = span (S*T) :=
-by { unfold span, rw submodule.span_mul_span,}
+by { unfold span, rw submodule.span_mul_span, }
 
 lemma span_singleton_mul_span_singleton (r s : R) :
   span {r} * span {s} = (span {r * s} : ideal R) :=
-by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton],}
+by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton], }
+
+lemma span_singleton_sq (s : R) :
+  span {s} ^ 2 = (span {s ^ 2} : ideal R) :=
+by simpa only [sq] using span_singleton_mul_span_singleton s s
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩

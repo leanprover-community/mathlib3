@@ -1000,7 +1000,7 @@ section map_and_comap
 
 variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
 variables (f : R →+* S)
-variables (I J : ideal R) (K L : ideal S)
+variables {I J : ideal R} {K L : ideal S}
 
 lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
   quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
@@ -1012,6 +1012,8 @@ begin
   { intro x_mem,
     exact ⟨x, x_mem, rfl⟩ }
 end
+
+variables (I J K L)
 
 theorem map_mul : map f (I * J) = map f I * map f J :=
 le_antisymm (map_le_iff_le_comap.2 $ mul_le.2 $ λ r hri s hsj,

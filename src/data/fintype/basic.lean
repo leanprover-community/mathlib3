@@ -1414,6 +1414,10 @@ not_fintype α
 @[simp] lemma not_nonempty_fintype {α : Type*} : ¬ nonempty (fintype α) ↔ infinite α :=
 not_nonempty_iff.trans is_empty_fintype
 
+/-- A non-infinite type is a fintype. -/
+noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
+((not_iff_comm.mp not_nonempty_fintype).mp h).some
+
 lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
 begin
@@ -1440,10 +1444,6 @@ let ⟨y, hy⟩ := exists_not_mem_finset ({x} : finset α) in
 
 lemma nonempty (α : Type*) [infinite α] : nonempty α :=
 by apply_instance
-
-/-- A non-infinite type is a fintype. -/
-noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
-by rw [←not_nonempty_fintype, not_not] at h; exact h.some
 
 lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
 ⟨λ I, by exactI (fintype.of_injective f hf).false⟩
@@ -1512,7 +1512,8 @@ noncomputable instance function.embedding.fintype'' {α β : Type*} [fintype β]
 begin
   by_cases h : infinite α,
   { resetI, apply_instance },
-  { haveI := infinite.fintype_of_not_infinite h, apply_instance },
+  { have := fintype_of_not_infinite h, classical, apply_instance }
+  -- the `classical` generates `decidable_eq α/β` instances, and resets instance cache
 end
 
 /--
@@ -1530,7 +1531,7 @@ begin
   by_contra hf,
   push_neg at hf,
 
-  haveI := λ y, infinite.fintype_of_not_infinite $ hf y,
+  haveI := λ y, fintype_of_not_infinite $ hf y,
   let key : fintype α :=
   { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
     complete := by simp },

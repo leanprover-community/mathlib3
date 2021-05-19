@@ -34,6 +34,7 @@ def structured_arrow (S : D) (T : C ⥤ D) := comma (functor.from_punit S) T
 namespace structured_arrow
 
 /-- The obvious projection functor from structured arrows. -/
+@[simps]
 def proj (S : D) (T : C ⥤ D) : structured_arrow S T ⥤ C := comma.snd _ _
 
 variables {S S' S'' : D} {Y Y' : C} {T : C ⥤ D}
@@ -125,6 +126,7 @@ def costructured_arrow (S : C ⥤ D) (T : D) := comma S (functor.from_punit T)
 namespace costructured_arrow
 
 /-- The obvious projection functor from costructured arrows. -/
+@[simps]
 def proj (S : C ⥤ D) (T : D) : costructured_arrow S T ⥤ C := comma.fst _ _
 
 variables {T T' T'' : D} {Y Y' : C} {S : C ⥤ D}

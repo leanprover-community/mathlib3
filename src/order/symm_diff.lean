@@ -56,6 +56,24 @@ lemma symm_diff_eq_xor (p q : Prop) : p Δ q = xor p q := rfl
 section generalized_boolean_algebra
 variables {α : Type*} [generalized_boolean_algebra α] (a b c : α)
 
+/-
+if you want, also
+- injectivity in both arguments,
+- symm_diff_le_sup,
+- disjoint_symm_diff_inf
+- symm_diff_eq_left (iff right is bot),
+- symm_diff_eq_right (similar),
+- symm_diff_eq_bot (if left is right),
+- compl_symm_diff_self (equals top),
+- symm_diff_compl_self (equals top)
+- symm_diff_eq_top (iff left and right are complements),
+- symm_diff_eq_sup (iff disjoint).
+-/
+
+@[simp] lemma symm_diff_self : a Δ a = ⊥ := by rw [(Δ), sup_idem, sdiff_self]
+@[simp] lemma symm_diff_bot : a Δ ⊥ = a := by rw [(Δ), sdiff_bot, bot_sdiff, sup_bot_eq]
+@[simp] lemma bot_symm_diff : ⊥ Δ a = a := by rw [(Δ), sdiff_bot, bot_sdiff, bot_sup_eq]
+
 lemma symm_diff_comm : a Δ b = b Δ a := by simp only [(Δ), sup_comm]
 
 instance symm_diff_is_comm : is_commutative α (Δ) := ⟨symm_diff_comm⟩
@@ -96,6 +114,9 @@ section boolean_algebra
 variables {α : Type*} [boolean_algebra α] (a b c : α)
 
 lemma symm_diff_eq : a Δ b = (a ⊓ bᶜ) ⊔ (b ⊓ aᶜ) := by simp only [(Δ), sdiff_eq]
+
+@[simp] lemma symm_diff_top : a Δ ⊤ = aᶜ := by simp [symm_diff_eq]
+@[simp] lemma top_symm_diff : ⊤ Δ a = aᶜ := by rw [symm_diff_comm, symm_diff_top]
 
 lemma compl_symm_diff : (a Δ b)ᶜ = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ) :=
 by simp only [←top_sdiff, sdiff_symm_diff, top_inf_eq]

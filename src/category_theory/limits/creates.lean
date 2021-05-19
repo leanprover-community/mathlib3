@@ -175,6 +175,15 @@ lemma has_colimits_of_has_colimits_creates_colimits (F : C ⥤ D) [has_colimits 
   [creates_colimits F] : has_colimits C :=
 ⟨λ J I, by exactI has_colimits_of_shape_of_has_colimits_of_shape_creates_colimits_of_shape F⟩
 
+@[priority 10] instance reflects_limits_of_shape_of_creates_limits_of_shape (F : C ⥤ D)
+  [creates_limits_of_shape J F] : reflects_limits_of_shape J F := {}
+@[priority 10] instance reflects_limits_of_creates_limits (F : C ⥤ D)
+  [creates_limits F] : reflects_limits F := {}
+@[priority 10] instance reflects_colimits_of_shape_of_creates_colimits_of_shape (F : C ⥤ D)
+  [creates_colimits_of_shape J F] : reflects_colimits_of_shape J F := {}
+@[priority 10] instance reflects_colimits_of_creates_colimits (F : C ⥤ D)
+  [creates_colimits F] : reflects_colimits F := {}
+
 /--
 A helper to show a functor creates limits. In particular, if we can show
 that for any limit cone `c` for `K ⋙ F`, there is a lift of it which is

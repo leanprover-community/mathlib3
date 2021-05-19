@@ -143,12 +143,18 @@ end comma
 namespace arrow
 
 instance has_limit (F : J ⥤ arrow T)
-  [has_limit (F ⋙ comma.fst (𝟭 T) (𝟭 T))] [has_limit (F ⋙ comma.snd (𝟭 T) (𝟭 T))] :
+  [i₁ : has_limit (F ⋙ left_func)] [i₂ : has_limit (F ⋙ right_func)] :
   has_limit F :=
-comma.has_limit _
-
+@@comma.has_limit _ _ _ _ _ i₁ i₂ _
 instance has_limits_of_shape [has_limits_of_shape J T] : has_limits_of_shape J (arrow T) := {}
 instance has_limits [has_limits T] : has_limits (arrow T) := {}
+
+instance has_colimit (F : J ⥤ arrow T)
+  [i₁ : has_colimit (F ⋙ left_func)] [i₂ : has_colimit (F ⋙ right_func)] :
+  has_colimit F :=
+@@comma.has_colimit _ _ _ _ _ i₁ i₂ _
+instance has_colimits_of_shape [has_colimits_of_shape J T] : has_colimits_of_shape J (arrow T) := {}
+instance has_colimits [has_colimits T] : has_colimits (arrow T) := {}
 
 end arrow
 
@@ -156,37 +162,30 @@ namespace structured_arrow
 
 variables {X : T} {G : A ⥤ T} (F : J ⥤ structured_arrow X G)
 
+instance has_limit [i₁ : has_limit (F ⋙ proj X G)] [i₂ : preserves_limit (F ⋙ proj X G) G] :
+  has_limit F :=
+@@comma.has_limit _ _ _ _ _ _ i₁ i₂
+
 instance has_limits_of_shape [has_limits_of_shape J A] [preserves_limits_of_shape J G] :
   has_limits_of_shape J (structured_arrow X G) := {}
 
 instance has_limits [has_limits A] [preserves_limits G] :
   has_limits (structured_arrow X G) := {}
 
-noncomputable instance creates_limit [preserves_limit (F ⋙ proj X G) G] :
+noncomputable instance creates_limit [i : preserves_limit (F ⋙ proj X G) G] :
   creates_limit F (proj X G) :=
 creates_limit_of_reflects_iso $ λ c t,
-{ lifted_cone := comma.cone_of_preserves _ punit_cone t,
+{ lifted_cone := @@comma.cone_of_preserves _ _ _ _ _ i punit_cone t,
   makes_limit := comma.cone_of_preserves_is_limit _ punit_cone_is_limit _,
-  valid_lift := cones.ext (iso.refl _) $ λ j, (category.id_comp _).symm }
+  valid_lift := cones.ext (iso.refl _) $ λ j, (id_comp _).symm }
 
 noncomputable instance creates_limits_of_shape [preserves_limits_of_shape J G] :
-  creates_limits_of_shape J (structured_arrow.proj X G) :=
-{}
+  creates_limits_of_shape J (proj X G) := {}
 
 noncomputable instance creates_limits [preserves_limits G] :
-  creates_limits (structured_arrow.proj X G : _) :=
-{}
+  creates_limits (proj X G : _) := {}
 
 end structured_arrow
-
-namespace under
-
-variables {X : T}
-
-instance [has_limits_of_shape J T] : has_limits_of_shape J (under X) := {}
-instance [has_limits T] : has_limits (under X) := {}
-
-end under
 
 namespace costructured_arrow
 
@@ -197,37 +196,24 @@ instance has_colimit [i₁ : has_colimit (F ⋙ proj G X)] [i₂ : preserves_col
 @@comma.has_colimit _ _ _ _ _ i₁ _ i₂
 
 instance has_colimits_of_shape [has_colimits_of_shape J A] [preserves_colimits_of_shape J G] :
-  has_colimits_of_shape J (costructured_arrow G X) :=
-{}
+  has_colimits_of_shape J (costructured_arrow G X) := {}
 
 instance has_colimits [has_colimits A] [preserves_colimits G] :
-  has_colimits (costructured_arrow G X) :=
-{}
+  has_colimits (costructured_arrow G X) := {}
 
-noncomputable instance creates_colimit [preserves_colimit (F ⋙ proj G X) G] :
+noncomputable instance creates_colimit [i : preserves_colimit (F ⋙ proj G X) G] :
   creates_colimit F (proj G X) :=
 creates_colimit_of_reflects_iso $ λ c t,
-{ lifted_cocone := comma.cocone_of_preserves _ t punit_cocone,
+{ lifted_cocone := @@comma.cocone_of_preserves _ _ _ _ _ i t punit_cocone,
   makes_colimit := comma.cocone_of_preserves_is_colimit _ _ punit_cocone_is_colimit,
-  valid_lift := cocones.ext (iso.refl _) $ λ j, category.comp_id _ }
+  valid_lift := cocones.ext (iso.refl _) $ λ j, comp_id _ }
 
 noncomputable instance creates_colimits_of_shape [preserves_colimits_of_shape J G] :
-  creates_colimits_of_shape J (proj G X) :=
-{}
+  creates_colimits_of_shape J (proj G X) := {}
 
 noncomputable instance creates_colimits [preserves_colimits G] :
-  creates_colimits (proj G X : _) :=
-{}
+  creates_colimits (proj G X : _) := {}
 
 end costructured_arrow
-
-namespace over
-
-variables {X : T}
-
-instance [has_colimits_of_shape J T] : has_colimits_of_shape J (over X) := {}
-instance [has_colimits T] : has_colimits (over X) := {}
-
-end over
 
 end category_theory

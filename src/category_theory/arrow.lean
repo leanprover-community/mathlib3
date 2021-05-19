@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.comma
+import category_theory.reflects_isomorphisms
 
 /-!
 # The category of arrows
@@ -171,6 +172,16 @@ B  → Z                 B → Z
   i ⟶ arrow.mk g :=
 { left := sq.left ≫ f,
   right := sq.right }
+
+/-- The functor sending an arrow to its source. -/
+@[simps] def left_func : arrow C ⥤ C := comma.fst _ _
+
+/-- The functor sending an arrow to its target. -/
+@[simps] def right_func : arrow C ⥤ C := comma.snd _ _
+
+/-- The natural transformation from `left_func` to `right_func`, given by the arrow itself. -/
+def left_to_right : (left_func : arrow C ⥤ C) ⟶ right_func :=
+{ app := λ f, f.hom }
 
 end arrow
 

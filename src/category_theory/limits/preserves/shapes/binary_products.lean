@@ -89,7 +89,7 @@ variables [has_binary_product (G.obj X) (G.obj Y)]
 If the product comparison map for `G` at `(X,Y)` is an isomorphism, then `G` preserves the
 pair of `(X,Y)`.
 -/
-def preserves_binary_product.of_iso_prod_comparison [i : is_iso (G.prod_comparison X Y)] :
+def preserves_binary_product.of_iso_prod_comparison [i : is_iso (prod_comparison G X Y)] :
   G.preserves_binary_product X Y :=
 begin
   apply preserves_limit_of_preserves_limit_cone (prod_is_prod X Y),
@@ -111,10 +111,10 @@ is_limit.cone_point_unique_up_to_iso
 
 @[simp]
 lemma preserves_binary_product.iso_hom :
-  (preserves_binary_product.iso G X Y).hom = G.prod_comparison X Y :=
+  (preserves_binary_product.iso G X Y).hom = prod_comparison G X Y :=
 rfl
 
-instance : is_iso (G.prod_comparison X Y) :=
+instance : is_iso (prod_comparison G X Y) :=
 begin
   rw ← preserves_binary_product.iso_hom,
   apply_instance
@@ -165,7 +165,7 @@ variables [has_binary_coproduct (G.obj X) (G.obj Y)]
 If the coproduct comparison map for `G` at `(X,Y)` is an isomorphism, then `G` preserves the
 pair of `(X,Y)`.
 -/
-def preserves_binary_coproduct.of_iso_coprod_comparison [i : is_iso (G.coprod_comparison X Y)] :
+def preserves_binary_coproduct.of_iso_coprod_comparison [i : is_iso (coprod_comparison G X Y)] :
   G.preserves_binary_coproduct X Y :=
 begin
   apply preserves_colimit_of_preserves_colimit_cocone (coprod_is_coprod X Y),
@@ -187,10 +187,10 @@ is_colimit.cocone_point_unique_up_to_iso
 
 @[simp]
 lemma preserves_binary_coproduct.iso_hom :
-  (preserves_binary_coproduct.iso G X Y).hom = G.coprod_comparison X Y :=
+  (preserves_binary_coproduct.iso G X Y).hom = coprod_comparison G X Y :=
 rfl
 
-instance : is_iso (G.coprod_comparison X Y) :=
+instance : is_iso (coprod_comparison G X Y) :=
 begin
   rw ← preserves_binary_coproduct.iso_hom,
   apply_instance

@@ -938,6 +938,14 @@ lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e 
   e.equiv_of_fintype_self_embedding.to_embedding = e :=
 by { ext, refl, }
 
+/-- If `‖β‖ < ‖α‖` there are no embeddings `α ↪ β`.
+This is a formulation of the pigeonhole principle.
+
+Note this cannot be an instance as it needs `h`. -/
+@[simp] lemma is_empty_of_card_lt (h : fintype.card β < fintype.card α) :
+  is_empty (α ↪ β) :=
+⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_card_lt f h in ne $ f.injective feq⟩
+
 end function.embedding
 
 @[simp]
@@ -1496,16 +1504,15 @@ begin
   intros x y, contrapose, apply hf,
 end
 
-instance function.embedding.subsingleton {α β} [infinite α] [fintype β] : subsingleton (α ↪ β) :=
-⟨λ f, let ⟨_, _, ne, f_eq⟩ := fintype.exists_ne_map_eq_of_infinite f
-      in false.elim $ ne $ f.injective f_eq⟩
+instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_empty (α ↪ β) :=
+⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
 
 @[priority 100]
 noncomputable instance function.embedding.fintype'' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
 begin
   by_cases h : infinite α,
   { resetI, apply_instance },
-  { haveI := infinite.fintype_of_not_infinite h, classical, apply_instance },
+  { haveI := infinite.fintype_of_not_infinite h, apply_instance },
 end
 
 /--

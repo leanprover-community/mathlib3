@@ -1,6 +1,4 @@
-import analysis.convex.basic
-import linear_algebra.affine_space.affine_subspace
-import combinatorics.simplicial_complex.to_move.default
+import combinatorics.simplicial_complex.convex_join
 
 open set
 

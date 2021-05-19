@@ -171,7 +171,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
     apply (is_limit_map_cone_fan_mk_equiv _ _ _).symm _,
     let := extend_fan_is_limit (λ i, F.obj (f i))
               (is_limit_of_has_product_of_preserves_limit F _)
-              (is_limit_of_has_binary_product_of_preserves_limit F _ _),
+              (is_limit_of_has_binary_product_of_preserves_binary_product F _ _),
     refine is_limit.of_iso_limit this _,
     apply cones.ext _ _,
     apply iso.refl _,
@@ -350,7 +350,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_initial  :
     apply (is_colimit_map_cocone_cofan_mk_equiv _ _ _).symm _,
     let := extend_cofan_is_colimit (λ i, F.obj (f i))
               (is_colimit_of_has_coproduct_of_preserves_colimit F _)
-              (is_colimit_of_has_binary_coproduct_of_preserves_colimit F _ _),
+              (is_colimit_of_has_binary_coproduct_of_preserves_binary_coproduct F _ _),
     refine is_colimit.of_iso_colimit this _,
     apply cocones.ext _ _,
     apply iso.refl _,

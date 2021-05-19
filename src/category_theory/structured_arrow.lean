@@ -138,7 +138,8 @@ def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟩, f⟩
 @[simp] lemma mk_right (f : S.obj Y ⟶ T) : (mk f).right = punit.star := rfl
 @[simp] lemma mk_hom_eq_self (f : S.obj Y ⟶ T) : (mk f).hom = f := rfl
 
-@[simp, reassoc] lemma w {A B : costructured_arrow S T} (f : A ⟶ B) : S.map f.left ≫ B.hom = A.hom :=
+@[simp, reassoc] lemma w {A B : costructured_arrow S T} (f : A ⟶ B) :
+  S.map f.left ≫ B.hom = A.hom :=
 by tidy
 
 lemma eq_mk (f : costructured_arrow S T) : f = mk f.hom :=

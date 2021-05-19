@@ -113,9 +113,17 @@ lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
 by { dsimp [δ, σ], simp only [←X.map_comp, ←op_comp, simplex_category.σ_comp_σ H] }
 
 variable (C)
+
+/-- Functor composition induces a functor on simplicial objects. -/
+@[simps]
+def whiskering (D : Type*) [category.{v} D] :
+  (C ⥤ D) ⥤ simplicial_object C ⥤ simplicial_object D :=
+whiskering_right _ _ _
+
 /-- Truncated simplicial objects. -/
 @[derive category, nolint has_inhabited_instance]
 def truncated (n : ℕ) := (simplex_category.truncated.{v} n)ᵒᵖ ⥤ C
+
 variable {C}
 
 namespace truncated
@@ -130,6 +138,16 @@ instance {n} {J : Type v} [small_category J] [has_colimits_of_shape J C] :
 by {dsimp [truncated], apply_instance}
 
 instance {n} [has_colimits C] : has_colimits (simplicial_object.truncated C n) := ⟨infer_instance⟩
+
+variable (C)
+
+/-- Functor composition induces a functor on truncated simplicial objects. -/
+@[simps]
+def whiskering {n} (D : Type*) [category.{v} D] :
+  (C ⥤ D) ⥤ truncated C n ⥤ truncated D n :=
+whiskering_right _ _ _
+
+variable {C}
 
 end truncated
 
@@ -161,6 +179,39 @@ def drop : augmented C ⥤ simplicial_object C := comma.fst _ _
 /-- The point of the augmentation. -/
 @[simps]
 def point : augmented C ⥤ C := comma.snd _ _
+
+variable (C)
+
+/-- Functor composition induces a functor on augmented simplicial objects. -/
+@[simp]
+def whiskering_obj (D : Type*) [category.{v} D] (F : C ⥤ D) :
+  augmented C ⥤ augmented D :=
+{ obj := λ X,
+  { left := ((whiskering _ _).obj F).obj (drop.obj X),
+    right := F.obj (point.obj X),
+    hom := whisker_right X.hom F ≫ (functor.const_comp _ _ _).hom },
+  map := λ X Y η,
+  { left := whisker_right η.left _,
+    right := F.map η.right,
+    w' := begin
+      ext,
+      dsimp,
+      erw [category.comp_id, category.comp_id, ← F.map_comp,
+        ← F.map_comp, ← nat_trans.comp_app, η.w],
+      refl,
+    end } }
+
+/-- Functor composition induces a functor on augmented simplicial objects. -/
+@[simps]
+def whiskering (D : Type*) [category.{v} D] :
+  (C ⥤ D) ⥤ augmented C ⥤ augmented D :=
+{ obj := whiskering_obj _ _,
+  map := λ X Y η,
+  { app := λ A,
+    { left := whisker_left _ η,
+      right := η.app _ } } }
+
+variable {C}
 
 end augmented
 
@@ -248,6 +299,12 @@ by { dsimp [δ, σ], simp only [←X.map_comp, simplex_category.σ_comp_σ H] }
 
 variable (C)
 
+/-- Functor composition induces a functor on cosimplicial objects. -/
+@[simps]
+def whiskering (D : Type*) [category.{v} D] :
+  (C ⥤ D) ⥤ cosimplicial_object C ⥤ cosimplicial_object D :=
+whiskering_right _ _ _
+
 /-- Truncated cosimplicial objects. -/
 @[derive category, nolint has_inhabited_instance]
 def truncated (n : ℕ) := simplex_category.truncated.{v} n ⥤ C
@@ -267,6 +324,16 @@ instance {n} {J : Type v} [small_category J] [has_colimits_of_shape J C] :
 by {dsimp [truncated], apply_instance}
 
 instance {n} [has_colimits C] : has_colimits (cosimplicial_object.truncated C n) := ⟨infer_instance⟩
+
+variable (C)
+
+/-- Functor composition induces a functor on truncated cosimplicial objects. -/
+@[simps]
+def whiskering {n} (D : Type*) [category.{v} D] :
+  (C ⥤ D) ⥤ truncated C n ⥤ truncated D n :=
+whiskering_right _ _ _
+
+variable {C}
 
 end truncated
 
@@ -298,6 +365,39 @@ def drop : augmented C ⥤ cosimplicial_object C := comma.snd _ _
 /-- The point of the augmentation. -/
 @[simps]
 def point : augmented C ⥤ C := comma.fst _ _
+
+variable (C)
+
+/-- Functor composition induces a functor on augmented cosimplicial objects. -/
+@[simp]
+def whiskering_obj (D : Type*) [category.{v} D] (F : C ⥤ D) :
+  augmented C ⥤ augmented D :=
+{ obj := λ X,
+  { left := F.obj (point.obj X),
+    right := ((whiskering _ _).obj F).obj (drop.obj X),
+    hom := (functor.const_comp _ _ _).inv ≫ whisker_right X.hom F },
+  map := λ X Y η,
+  { left := F.map η.left,
+    right := whisker_right η.right _,
+    w' := begin
+      ext,
+      dsimp,
+      erw [category.id_comp, category.id_comp, ← F.map_comp,
+        ← F.map_comp, ← nat_trans.comp_app, ← η.w],
+      refl,
+    end } }
+
+/-- Functor composition induces a functor on augmented cosimplicial objects. -/
+@[simps]
+def whiskering (D : Type*) [category.{v} D] :
+  (C ⥤ D) ⥤ augmented C ⥤ augmented D :=
+{ obj := whiskering_obj _ _,
+  map := λ X Y η,
+  { app := λ A,
+    { left := η.app _,
+      right := whisker_left _ η } } }
+
+variable {C}
 
 end augmented
 

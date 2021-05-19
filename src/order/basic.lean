@@ -247,7 +247,7 @@ variables [linear_order α] [preorder β] {f : α → β} {s : set α} {x y : α
 lemma le_iff_le (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x ≤ f y ↔ x ≤ y :=
 ⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H hy hx h') h,
- λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H hx hy h')) (λ h', h' ▸ le_refl _)⟩
+ λ h, h.lt_or_eq_dec.elim (λ h', le_of_lt (H hx hy h')) (λ h', h' ▸ le_refl _)⟩
 
 lemma lt_iff_lt (H : strict_mono_incr_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x < f y ↔ x < y :=

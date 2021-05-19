@@ -19,7 +19,7 @@ section scale_roots
 variables {A K R S : Type*} [integral_domain A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A}
 
-open finsupp polynomial
+open polynomial
 open_locale big_operators
 
 /-- `scale_roots p s` is a polynomial with root `r * s` for each root `r` of `p`. -/

@@ -232,7 +232,7 @@ begin
   intro H,
   obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
     from (hZc i₀).elim_finite_subfamily_closed Z'
-      (assume i, is_closed_inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
+      (assume i, is_closed.inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
   obtain ⟨i₁, hi₁⟩ : ∃ i₁ : ι, Z i₁ ⊆ Z i₀ ∧ ∀ i ∈ t, Z i₁ ⊆ Z' i,
   { rcases directed.finset_le hZd t with ⟨i, hi⟩,
     rcases hZd i i₀ with ⟨i₁, hi₁, hi₁₀⟩,
@@ -625,6 +625,18 @@ iff.intro (assume h, h.image hf.continuous) $ assume h, begin
   rcases h (u.map f) this with ⟨_, ⟨a, ha, ⟨⟩⟩, _⟩,
   refine ⟨a, ha, _⟩,
   rwa [hf.induced, nhds_induced, ←map_le_iff_le_comap]
+end
+
+/-- A closed embedding is proper, ie, inverse images of compact sets are contained in compacts. -/
+lemma closed_embedding.tendsto_cocompact
+  {f : α → β} (hf : closed_embedding f) : tendsto f (filter.cocompact α) (filter.cocompact β) :=
+begin
+  rw filter.has_basis_cocompact.tendsto_iff filter.has_basis_cocompact,
+  intros K hK,
+  refine ⟨f ⁻¹' (K ∩ (set.range f)), _, λ x hx, by simpa using hx⟩,
+  apply hf.to_embedding.compact_iff_compact_image.mpr,
+  rw set.image_preimage_eq_of_subset (set.inter_subset_right _ _),
+  exact hK.inter_right hf.closed_range,
 end
 
 lemma compact_iff_compact_in_subtype {p : α → Prop} {s : set {a // p a}} :
@@ -1046,11 +1058,11 @@ section clopen
 def is_clopen (s : set α) : Prop :=
 is_open s ∧ is_closed s
 
-theorem is_clopen_union {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∪ t) :=
-⟨is_open_union hs.1 ht.1, is_closed_union hs.2 ht.2⟩
+theorem is_clopen.union {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∪ t) :=
+⟨is_open.union hs.1 ht.1, is_closed.union hs.2 ht.2⟩
 
-theorem is_clopen_inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∩ t) :=
-⟨is_open_inter hs.1 ht.1, is_closed_inter hs.2 ht.2⟩
+theorem is_clopen.inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∩ t) :=
+⟨is_open.inter hs.1 ht.1, is_closed.inter hs.2 ht.2⟩
 
 @[simp] theorem is_clopen_empty : is_clopen (∅ : set α) :=
 ⟨is_open_empty, is_closed_empty⟩
@@ -1058,14 +1070,14 @@ theorem is_clopen_inter {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : i
 @[simp] theorem is_clopen_univ : is_clopen (univ : set α) :=
 ⟨is_open_univ, is_closed_univ⟩
 
-theorem is_clopen_compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
+theorem is_clopen.compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 ⟨hs.2.is_open_compl, is_closed_compl_iff.2 hs.1⟩
 
 @[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen sᶜ ↔ is_clopen s :=
-⟨λ h, compl_compl s ▸ is_clopen_compl h, is_clopen_compl⟩
+⟨λ h, compl_compl s ▸ is_clopen.compl h, is_clopen.compl⟩
 
-theorem is_clopen_diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
-is_clopen_inter hs (is_clopen_compl ht)
+theorem is_clopen.diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
+hs.inter ht.compl
 
 lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
@@ -1087,8 +1099,8 @@ lemma continuous_on.preimage_clopen_of_clopen {β: Type*} [topological_space β]
 theorem is_clopen_inter_of_disjoint_cover_clopen {Z a b : set α} (h : is_clopen Z)
   (cover : Z ⊆ a ∪ b) (ha : is_open a) (hb : is_open b) (hab : a ∩ b = ∅) : is_clopen (Z ∩ a) :=
 begin
-  refine ⟨is_open_inter h.1 ha, _⟩,
-  have : is_closed (Z ∩ bᶜ) := is_closed_inter h.2 (is_closed_compl_iff.2 hb),
+  refine ⟨is_open.inter h.1 ha, _⟩,
+  have : is_closed (Z ∩ bᶜ) := is_closed.inter h.2 (is_closed_compl_iff.2 hb),
   convert this using 1,
   apply subset.antisymm,
   { exact inter_subset_inter_right Z (subset_compl_iff_disjoint.2 hab) },

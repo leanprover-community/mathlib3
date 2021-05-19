@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.of_associative
-import linear_algebra.matrix
+import linear_algebra.matrix.reindex
+import linear_algebra.matrix.to_linear_equiv
 
 /-!
 # Lie algebras of matrices

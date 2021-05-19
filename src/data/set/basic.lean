@@ -105,6 +105,7 @@ instance {α : Type*} : boolean_algebra (set α) :=
 @[simp] lemma inf_eq_inter : ((⊓) : set α → set α → set α) = (∩) := rfl
 @[simp] lemma le_eq_subset : ((≤) : set α → set α → Prop) = (⊆) := rfl
 /-! `set.lt_eq_ssubset` is defined further down -/
+@[simp] lemma compl_eq_compl : set.compl = (has_compl.compl : set α → set α) := rfl
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
@@ -377,6 +378,9 @@ subset_empty_iff.1 $ e ▸ h
 
 theorem ball_empty_iff {p : α → Prop} : (∀ x ∈ (∅ : set α), p x) ↔ true :=
 iff_true_intro $ λ x, false.elim
+
+instance (α : Type u) : is_empty.{u+1} (∅ : set α) :=
+⟨λ x, x.2⟩
 
 /-!
 
@@ -913,6 +917,9 @@ inf_sdiff_self_right
 @[simp] theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 sup_inf_sdiff s t
 
+@[simp] lemma diff_union_inter (s t : set α) : (s \ t) ∪ (s ∩ t) = s :=
+by { rw union_comm, exact sup_inf_sdiff _ _ }
+
 @[simp] theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
 
 theorem diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
@@ -1047,7 +1054,7 @@ lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
   s ∈ t \ {∅} ↔ (s ∈ t ∧ s.nonempty) :=
 mem_diff_singleton.trans $ and_congr iff.rfl ne_empty_iff_nonempty
 
-lemma union_eq_sdiff_union_sdiff_union_inter (s t : set α) :
+lemma union_eq_diff_union_diff_union_inter (s t : set α) :
   s ∪ t = (s \ t) ∪ (t \ s) ∪ (s ∩ t) :=
 sup_eq_sdiff_sup_sdiff_sup_inf
 
@@ -1288,7 +1295,8 @@ by finish [subset_def, mem_image_eq]
 
 theorem image_union (f : α → β) (s t : set α) :
   f '' (s ∪ t) = f '' s ∪ f '' t :=
-by finish [ext_iff, iff_def, mem_image_eq]
+ext $ λ x, ⟨by rintro ⟨a, h|h, rfl⟩; [left, right]; exact ⟨_, h, rfl⟩,
+  by rintro (⟨a, h, rfl⟩ | ⟨a, h, rfl⟩); refine ⟨_, _, rfl⟩; [left, right]; exact h⟩
 
 @[simp] theorem image_empty (f : α → β) : f '' ∅ = ∅ := by { ext, simp }
 
@@ -1793,13 +1801,28 @@ end range
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
 def pairwise_on (s : set α) (r : α → α → Prop) := ∀ x ∈ s, ∀ y ∈ s, x ≠ y → r x y
 
+lemma pairwise_on_of_forall (s : set α) (p : α → α → Prop) (h : ∀ (a b : α), p a b) :
+  pairwise_on s p :=
+λ a _ b _ _, h a b
+
+lemma pairwise_on.imp_on {s : set α} {p q : α → α → Prop}
+  (h : pairwise_on s p) (hpq : pairwise_on s (λ ⦃a b : α⦄, p a b → q a b)) : pairwise_on s q :=
+λ a ha b hb hab, hpq a ha b hb hab (h a ha b hb hab)
+
+lemma pairwise_on.imp {s : set α} {p q : α → α → Prop}
+  (h : pairwise_on s p) (hpq : ∀ ⦃a b : α⦄, p a b → q a b) : pairwise_on s q :=
+h.imp_on (pairwise_on_of_forall s _ hpq)
+
 theorem pairwise_on.mono {s t : set α} {r}
   (h : t ⊆ s) (hp : pairwise_on s r) : pairwise_on t r :=
 λ x xt y yt, hp x (h xt) y (h yt)
 
 theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
-  (H : ∀ a b, r a b → r' a b) (hp : pairwise_on s r) : pairwise_on s r' :=
-λ x xs y ys h, H _ _ (hp x xs y ys h)
+  (H : r ≤ r') (hp : pairwise_on s r) : pairwise_on s r' :=
+hp.imp H
+theorem pairwise_on_top (s : set α) :
+  pairwise_on s ⊤ :=
+pairwise_on_of_forall s _ (λ a b, trivial)
 
 /-- If and only if `f` takes pairwise equal values on `s`, there is
 some value it takes everywhere on `s`. -/

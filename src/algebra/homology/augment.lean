@@ -187,7 +187,7 @@ def to_truncate [has_zero_object V] [has_zero_morphisms V] (C : cochain_complex 
 variables [has_zero_morphisms V]
 
 /--
-We can "augment" a chain complex by inserting an arbitrary object in degree zero
+We can "augment" a cochain complex by inserting an arbitrary object in degree zero
 (shifting everything else up), along with a suitable differential.
 -/
 def augment (C : cochain_complex V ℕ) {X : V} (f : X ⟶ C.X 0) (w : f ≫ C.d 0 1 = 0) :

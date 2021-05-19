@@ -317,7 +317,7 @@ by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton], }
 lemma span_singleton_pow (s : R) (n : ℕ):
   span {s} ^ n = (span {s ^ n} : ideal R) :=
 begin
-  induction n with n ih, { simp [span_singleton_eq_top.mpr is_unit_one] },
+  induction n with n ih, { simp [set.singleton_one] },
   simp only [pow_succ, ih, span_singleton_mul_span_singleton],
 end
 

@@ -292,7 +292,7 @@ instance nonempty_compacts.compact_space [compact_space α] : compact_space (non
 ⟨begin
   rw nonempty_compacts.to_closeds.uniform_embedding.embedding.is_compact_iff_is_compact_image,
   rw [image_univ],
-  exact nonempty_compacts.is_closed_in_closeds.compact
+  exact nonempty_compacts.is_closed_in_closeds.is_compact
 end⟩
 
 /-- In a second countable space, the type of nonempty compact subsets is second countable -/

@@ -1808,3 +1808,31 @@ set.subset.antisymm
 end subgroup
 
 end pointwise
+
+/-! Actions by subgroups -/
+section actions
+
+namespace subgroup
+
+variables {M : Type*} [group G]
+
+/-- The action by a subgroup is the action by the underlying group. -/
+@[to_additive /-"The additive action by an add_subgroup is the action by the underlying
+add_group. "-/]
+instance [mul_action G M] (S : subgroup G) : mul_action S M :=
+mul_action.comp_hom _ S.subtype
+
+@[to_additive]
+lemma smul_def [mul_action G M] {S : subgroup G} (g : S) (m : M) : g • m = (g : G) • m := rfl
+
+instance is_scalar_tower_right [mul_action G M] [is_scalar_tower G G M] (S : subgroup G) :
+  is_scalar_tower S S M :=
+⟨λ a b, (smul_assoc (a : G) (b : G) : _)⟩
+
+/-- The action by a subgroup is the action by the underlying group. -/
+instance [add_monoid M] [distrib_mul_action G M] (S : subgroup G) : distrib_mul_action S M :=
+distrib_mul_action.comp_hom _ S.subtype
+
+end subgroup
+
+end actions

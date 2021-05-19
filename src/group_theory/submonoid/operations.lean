@@ -28,6 +28,11 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 * `submonoid.to_monoid`, `submonoid.to_comm_monoid`: a submonoid inherits a (commutative) monoid
   structure.
 
+### Group actions by submonoids
+
+* `submonoid.mul_action`, `submonoid.distrib_mul_action`: a submonoid inherits (distributive)
+  multiplicative actions.
+
 ### Operations on submonoids
 
 * `submonoid.comap`: preimage of a submonoid under a monoid homomorphism as a submonoid of the
@@ -725,3 +730,31 @@ def submonoid_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 end mul_equiv
+
+/-! Actions by submonoids -/
+section actions
+
+namespace submonoid
+
+variables {M' : Type*} {A : Type*} [monoid M']
+
+/-- The action by a submonoid is the action by the underlying group. -/
+@[to_additive /-"The additive action by an add_subgroup is the action by the underlying
+add_group. "-/]
+instance [mul_action M' A] (S : submonoid M') : mul_action S A :=
+mul_action.comp_hom _ S.subtype
+
+@[to_additive]
+lemma smul_def [mul_action M' A] {S : submonoid M'} (g : S) (m : A) : g • m = (g : M') • m := rfl
+
+/-- The action by a submonoid is the action by the underlying group. -/
+instance [add_monoid A] [distrib_mul_action M' A] (S : submonoid M') : distrib_mul_action S A :=
+distrib_mul_action.comp_hom _ S.subtype
+
+instance is_scalar_tower_right [mul_action M' A] [is_scalar_tower M' M' A] (S : submonoid M') :
+  is_scalar_tower S S M' :=
+⟨λ a b, (smul_assoc (a : M') (b : M') : _)⟩
+
+end submonoid
+
+end actions

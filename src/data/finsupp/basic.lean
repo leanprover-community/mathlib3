@@ -2070,7 +2070,7 @@ map_range_single
 smul_single _ _ _
 
 lemma map_range_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
-  [add_comm_monoid N] [distrib_mul_action R N]
+  [add_monoid N] [distrib_mul_action R N]
   {f : M → N} {hf : f 0 = 0} (c : R) (v : α →₀ M) (hsmul : ∀ x, f (c • x) = c • f x) :
   map_range f hf (c • v) = c • map_range f hf v :=
 begin

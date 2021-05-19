@@ -66,14 +66,14 @@ attribute [simp, reassoc] homological_complex.d_comp_d
 An `α`-indexed chain complex is a `homological_complex`
 in which `d i j ≠ 0` only if `j + 1 = i`.
 -/
-abbreviation chain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
+abbreviation chain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] : Type* :=
 homological_complex V (complex_shape.down α)
 
 /--
 An `α`-indexed cochain complex is a `homological_complex`
 in which `d i j ≠ 0` only if `i + 1 = j`.
 -/
-abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] :=
+abbreviation cochain_complex (α : Type*) [add_right_cancel_semigroup α] [has_one α] : Type* :=
 homological_complex V (complex_shape.up α)
 
 namespace chain_complex
@@ -88,7 +88,7 @@ option.choice_eq _
 
 @[simp] lemma next_nat_zero :
   (complex_shape.down ℕ).next 0 = none :=
-option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
+@option.choice_eq_none _ ⟨by rintro ⟨j, ⟨⟩⟩⟩
 
 @[simp] lemma next_nat_succ (i : ℕ) :
   (complex_shape.down ℕ).next (i+1) = some ⟨i, rfl⟩ :=
@@ -108,7 +108,7 @@ option.choice_eq _
 
 @[simp] lemma prev_nat_zero :
   (complex_shape.up ℕ).prev 0 = none :=
-option.choice_eq_none (by rintro ⟨j, ⟨⟩⟩)
+@option.choice_eq_none _ ⟨by rintro ⟨j, ⟨⟩⟩⟩
 
 @[simp] lemma prev_nat_succ (i : ℕ) :
   (complex_shape.up ℕ).prev (i+1) = some ⟨i, rfl⟩ :=
@@ -486,8 +486,6 @@ end homological_complex
 
 namespace chain_complex
 
-/- TODO: dualize to `cochain_complex` -/
-
 section of
 variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
 
@@ -545,6 +543,8 @@ from a dependently typed collection of morphisms.
 end of_hom
 
 section mk
+
+/- TODO: dualize to `cochain_complex` -/
 
 /--
 Auxiliary structure for setting up the recursion in `mk`.
@@ -681,3 +681,62 @@ end
 end mk_hom
 
 end chain_complex
+
+namespace cochain_complex
+
+section of
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+/--
+Construct an `α`-indexed cochain complex from a dependently-typed differential.
+-/
+def of (X : α → V) (d : Π n, X n ⟶ X (n+1)) (sq : ∀ n, d n ≫ d (n+1) = 0) : cochain_complex V α :=
+{ X := X,
+  d := λ i j, if h : i + 1 = j then
+    d _ ≫ eq_to_hom (by subst h)
+  else
+    0,
+  shape' := λ i j w, by {rw dif_neg, exact w},
+  d_comp_d' := λ i j k,
+  begin
+    split_ifs with h h' h',
+    { substs h h',
+      simp [sq] },
+    all_goals { simp },
+  end }
+
+variables (X : α → V) (d : Π n, X n ⟶ X (n+1)) (sq : ∀ n, d n ≫ d (n+1) = 0)
+
+@[simp] lemma of_X (n : α) : (of X d sq).X n = X n := rfl
+@[simp] lemma of_d (j : α) : (of X d sq).d j (j+1) = d j :=
+by { dsimp [of], rw [if_pos rfl, category.comp_id] }
+lemma of_d_ne {i j : α} (h : i + 1 ≠ j) : (of X d sq).d i j = 0 :=
+by { dsimp [of], rw [dif_neg h] }
+
+end of
+
+section of_hom
+
+variables {V} {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+variables (X : α → V) (d_X : Π n, X n ⟶ X (n+1)) (sq_X : ∀ n, d_X n ≫ d_X (n+1) = 0)
+  (Y : α → V) (d_Y : Π n, Y n ⟶ Y (n+1)) (sq_Y : ∀ n, d_Y n ≫ d_Y (n+1) = 0)
+
+/--
+A constructor for chain maps between `α`-indexed cochain complexes built using `cochain_complex.of`,
+from a dependently typed collection of morphisms.
+-/
+@[simps] def of_hom (f : Π i : α, X i ⟶ Y i) (comm : ∀ i : α, f i ≫ d_Y i = d_X i ≫ f (i+1)) :
+  of X d_X sq_X ⟶ of Y d_Y sq_Y :=
+{ f := f,
+  comm' := λ n m,
+  begin
+    by_cases h : n + 1 = m,
+    { subst h,
+      simpa using comm n },
+    { rw [of_d_ne X _ _ h, of_d_ne Y _ _ h], simp }
+  end }
+
+end of_hom
+
+end cochain_complex

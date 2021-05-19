@@ -258,6 +258,9 @@ lemma C_pow : C (a ^ n) = C a ^ n := C.map_pow a n
 lemma C_eq_nat_cast (n : ℕ) : C (n : R) = (n : polynomial R) :=
 C.map_nat_cast n
 
+lemma mul_C_two (p : polynomial R) : 2 * p = (C 2) * p :=
+by rw [C_bit0, ring_hom.map_one]
+
 @[simp] lemma C_mul_monomial : C a * monomial n b = monomial n (a * b) :=
 by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
 

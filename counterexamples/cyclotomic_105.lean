@@ -91,7 +91,7 @@ end
 lemma cyclotomic_105 : cyclotomic 105 ℤ =
   1 + X + X ^ 2 - X ^ 5 - X ^ 6 - 2 * X ^ 7 - X ^ 8 - X ^ 9 + X ^ 12 + X ^ 13 + X ^ 14 + X ^ 15
   + X ^ 16 + X ^ 17 - X ^ 20 - X ^ 22 - X ^ 24 - X ^ 26 - X ^ 28 + X ^ 31 + X ^ 32 + X ^ 33 +
-  X ^ 34 + X ^ 35 + X ^ 36 - X ^ 39 - X ^ 40 - 2 * X ^ 41 - X ^ 42 - X ^ 43 + X ^ 46 + X ^ 47 +
+  X ^ 34 + X ^ 35 + X ^ 36 - X ^ 39 - X ^ 40 - 2 • X ^ 41 - X ^ 42 - X ^ 43 + X ^ 46 + X ^ 47 +
   X ^ 48 :=
 begin
   refine ((eq_cyclotomic_iff (show 0 < 105, by norm_num) _).2 _).symm,
@@ -103,11 +103,10 @@ begin
   repeat { norm_num }
 end
 
+
 lemma coeff_cyclotomic_105 : coeff (cyclotomic 105 ℤ) 7 = -2 :=
 begin
-  have h7 : (2 * X ^ 7 : polynomial ℤ) = (C 2) * X ^ 7 := by simp,
-  have h41 : (2 * X ^ 41 : polynomial ℤ) = (C 2) * X ^ 41 := by simp,
-  simp [cyclotomic_105, coeff_add, coeff_sub, coeff_X_pow, coeff_one, coeff_X_of_ne_one, h41, h7]
+  simp [cyclotomic_105, coeff_add, coeff_sub, coeff_X_pow, coeff_one, coeff_X_of_ne_one, mul_C_two]
 end
 
 lemma not_forall_coeff_cyclotomic_neg_one_zero_one :

@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import topology.bases
 import data.finset.order
 import data.set.accumulate
-import data.set.disjointed
 
 /-!
 # Properties of subsets of topological spaces
@@ -1077,11 +1076,7 @@ theorem is_clopen.compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 @[simp] theorem is_clopen_compl_iff {s : set α} : is_clopen sᶜ ↔ is_clopen s :=
 ⟨λ h, compl_compl s ▸ is_clopen.compl h, is_clopen.compl⟩
 
-<<<<<<< HEAD
-theorem is_clopen.sdiff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
-=======
 theorem is_clopen.diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
->>>>>>> upstream/master
 hs.inter ht.compl
 
 lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}

@@ -255,8 +255,6 @@ alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 lemma div_le_iff_le_mul_left : a / b ≤ c ↔ a ≤ c * b :=
 by rw [← mul_le_mul_iff_right' b, div_eq_mul_inv, inv_mul_cancel_right]
 
-alias le_sub_iff_add_le_right ↔ add_le_of_le_sub_left le_sub_left_of_add_le
-
 @[to_additive]
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right' c, div_eq_mul_inv, inv_mul_cancel_right]
@@ -684,6 +682,8 @@ by rw [mul_comm, div_le_iff_le_mul]
 @[to_additive]
 lemma le_div_iff_mul_le' : b ≤ c / a ↔ a * b ≤ c :=
 by rw [mul_comm, le_div_iff_mul_le]
+
+alias le_sub_iff_add_le' ↔ add_le_of_le_sub_left le_sub_left_of_add_le
 
 end le_left
 

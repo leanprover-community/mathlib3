@@ -77,17 +77,45 @@ lemma complete_strongly_regular (m : ℕ) :
     end,
   nadj_common := λ v w (h : ¬(v ≠ w) ∧ _), (h.1 h.2).elim }
 
+/-lemma compl_adj_common_neighbors (v w : V) (h : G.adj v w) :
+  fintype.card (Gᶜ.common_neighbors v w) = G.degree v + G.degree w - fintype.card (G.common)-/
+
+-- ## i think i need ints in order to do any of this :(
 -- Prove that the complement of a strongly regular graph is strongly regular with parameters
   -- `is_SRG_of n (n - k - 1) (n - 2 - 2k + m) (n - 2k + l)`
 lemma strongly_regular_complement (n k l m : ℕ) (h : G.is_SRG_of n k l m) :
-  Gᶜ.is_SRG_of n (n - k - 1) (n - 2 - 2 * k + m) (n - 2 * k + l) :=
+  Gᶜ.is_SRG_of n (n - k - 1) (n + m - 2 * (k + 1)) (n + l - 2 * k) :=
 { card := h.card,
   regular :=
     begin
       rw ← h.card,
       exact compl_regular_is_regular G k h.regular,
     end,
-  adj_common := sorry,
-  nadj_common := sorry }
+  adj_common :=
+    begin
+      intros v w h,
+      -- essentially i need to show that if `Gᶜ.adj v w` then their common neighbors are all those
+      -- vertices `(w : V)` that aren't adjacent to either `v` or `w`
+      -- this is a principle of inclusion-exclusion argument
+      simp_rw common_neighbors,
+      simp_rw fintype.card_of_finset,
+      simp_rw mem_common_neighbors,
+      simp_rw compl_adj,
+      --rw nat.add_sub_assoc,
+
+      -- n - (2 * (k + 1) - m)
+      --
+      sorry,
+    end,
+  nadj_common :=
+    begin
+      intros v w h,
+      simp_rw common_neighbors,
+      simp_rw fintype.card_of_finset,
+      simp_rw mem_common_neighbors,
+      simp_rw compl_adj,
+
+      sorry,
+    end }
 
 end simple_graph

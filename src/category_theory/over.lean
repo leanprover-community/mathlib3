@@ -98,7 +98,7 @@ The forgetful functor mapping an arrow to its domain.
 
 See https://stacks.math.columbia.edu/tag/001G.
 -/
-abbreviation forget : over X ⥤ T := comma.fst _ _
+def forget : over X ⥤ T := comma.fst _ _
 
 end
 
@@ -283,7 +283,7 @@ lemma iso_mk_inv_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom �
 section
 variables (X)
 /-- The forgetful functor mapping an arrow to its domain. -/
-abbreviation forget : under X ⥤ T := comma.snd _ _
+def forget : under X ⥤ T := comma.snd _ _
 
 end
 

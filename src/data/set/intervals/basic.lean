@@ -1223,9 +1223,9 @@ lemma add_mem_Icc_iff_right : a + b ∈ set.Icc c d ↔ b ∈ set.Icc (c - a) (d
 lemma add_mem_Ico_iff_right : a + b ∈ set.Ico c d ↔ b ∈ set.Ico (c - a) (d - a) :=
 (and_congr sub_le_iff_le_add' lt_sub_iff_add_lt').symm
 lemma add_mem_Ioc_iff_right : a + b ∈ set.Ioc c d ↔ b ∈ set.Ioc (c - a) (d - a) :=
-(and_congr sub_lt_iff_add le_sub_iff_add_le').symm
+(and_congr sub_lt_iff_lt_add' le_sub_iff_add_le').symm
 lemma add_mem_Ioo_iff_right : a + b ∈ set.Ioo c d ↔ b ∈ set.Ioo (c - a) (d - a) :=
-(and_congr sub_lt_iff_add lt_sub_iff_add_lt').symm
+(and_congr sub_lt_iff_lt_add' lt_sub_iff_add_lt').symm
 
 /-! `sub_mem_Ixx_iff_left` -/
 lemma sub_mem_Icc_iff_left : a - b ∈ set.Icc c d ↔ a ∈ set.Icc (c + b) (d + b) :=

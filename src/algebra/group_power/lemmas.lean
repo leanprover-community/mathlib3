@@ -523,7 +523,7 @@ end linear_ordered_ring
 theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a)
   (n : ℕ) :
   (n : K) ≤ (a ^ n - 1) / (a - 1) :=
-(le_div_iff (sub_pos.2 H)).2 $ le_sub_iff_add_le'.mpr $
+(le_div_iff (sub_pos.2 H)).2 $ le_sub_left_of_add_le $
   one_add_mul_sub_le_pow ((neg_le_self $ @zero_le_one K _).trans H.le) _
 
 /-- For any `a > 1` and a natural `n` we have `n ≤ a ^ n / (a - 1)`. See also

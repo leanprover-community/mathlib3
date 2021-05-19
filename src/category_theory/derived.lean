@@ -126,7 +126,9 @@ whisker_left (projective_resolutions C)
   nat_trans.left_derived (𝟙 F) n = 𝟙 (F.left_derived n) :=
 by { simp [nat_trans.left_derived], refl, }
 
-@[simp] lemma nat_trans.left_derived_comp {F G H : C ⥤ D} [F.additive] [G.additive] [H.additive]
+-- The `simp_nf` linter times out here, so we disable it.
+@[simp, nolint simp_nf] lemma nat_trans.left_derived_comp
+  {F G H : C ⥤ D} [F.additive] [G.additive] [H.additive]
   (α : F ⟶ G) (β : G ⟶ H) (n : ℕ) :
   nat_trans.left_derived (α ≫ β) n = nat_trans.left_derived α n ≫ nat_trans.left_derived β n :=
 by simp [nat_trans.left_derived]

@@ -403,4 +403,96 @@ end augmented
 
 end cosimplicial_object
 
+/-- The anti-equivalence between simplicial objects and cosimplicial objects. -/
+@[simps]
+def simplicial_cosimplicial_equiv : (simplicial_object C)ᵒᵖ ≌ (cosimplicial_object Cᵒᵖ) :=
+functor.left_op_right_op_equiv _ _
+
+variable {C}
+
+/-- Construct an augmented cosimplicial object in the opposite
+category from an augmented simplicial object. -/
+@[simps]
+def simplicial_object.augmented.right_op (X : simplicial_object.augmented C) :
+  cosimplicial_object.augmented Cᵒᵖ :=
+{ left := opposite.op X.right,
+  right := X.left.right_op,
+  hom := X.hom.right_op }
+
+/-- Construct an augmented simplicial object from an augmented cosimplicial
+object in the opposite category. -/
+@[simps]
+def cosimplicial_object.augmented.left_op (X : cosimplicial_object.augmented Cᵒᵖ) :
+  simplicial_object.augmented C :=
+{ left := X.right.left_op,
+  right := X.left.unop,
+  hom := X.hom.left_op }
+
+/-- Converting an augmented simplicial object to an augmented cosimplicial
+object and back is isomorphic to the given object. -/
+@[simps]
+def simplicial_object.augmented.right_op_left_op_iso (X : simplicial_object.augmented C) :
+  X.right_op.left_op ≅ X :=
+comma.iso_mk X.left.right_op_left_op_iso (eq_to_iso $ by simp) (by tidy)
+
+/-- Converting an augmented cosimplicial object to an augmented simplicial
+object and back is isomorphic to the given object. -/
+@[simps]
+def cosimplicial_object.augmented.left_op_right_op_iso (X : cosimplicial_object.augmented Cᵒᵖ) :
+  X.left_op.right_op ≅ X :=
+comma.iso_mk (eq_to_iso $ by simp) X.right.left_op_right_op_iso (by tidy)
+
+variable (C)
+
+/-- A functorial version of `simplicial_object.augmented.right_op`. -/
+@[simps]
+def simplicial_to_cosimplicial_augmented :
+  (simplicial_object.augmented C)ᵒᵖ ⥤ cosimplicial_object.augmented Cᵒᵖ :=
+{ obj := λ X, X.unop.right_op,
+  map := λ X Y f,
+  { left := f.unop.right.op,
+    right := f.unop.left.right_op,
+    w' := begin
+      ext x,
+      dsimp,
+      simp_rw ← op_comp,
+      congr' 1,
+      exact (congr_app f.unop.w (op x)).symm,
+    end } }
+
+/-- A functorial version of `cosimplicial_object.augmented.left_op`. -/
+@[simps]
+def cosimplicial_to_simplicial_augmented :
+  cosimplicial_object.augmented Cᵒᵖ ⥤ (simplicial_object.augmented C)ᵒᵖ :=
+{ obj := λ X, opposite.op X.left_op,
+  map := λ X Y f, quiver.hom.op $
+  { left := f.right.left_op,
+    right := f.left.unop,
+    w' := begin
+      ext x,
+      dsimp,
+      simp_rw ← unop_comp,
+      congr' 1,
+      exact (congr_app f.w x.unop).symm,
+    end} }
+
+/-- The contravariant categorical equivalence between augmented simplicial
+objects and augmented cosimplicial objects in the opposite category. -/
+@[simps]
+def simplicial_cosimplicial_augmented_equiv :
+  (simplicial_object.augmented C)ᵒᵖ ≌ cosimplicial_object.augmented Cᵒᵖ :=
+{ functor := simplicial_to_cosimplicial_augmented _,
+  inverse := cosimplicial_to_simplicial_augmented _,
+  unit_iso := nat_iso.of_components
+    (λ X, X.unop.right_op_left_op_iso.op) begin
+      intros X Y f,
+      dsimp,
+      rw (show f = f.unop.op, by simp),
+      simp_rw ← op_comp,
+      congr' 1,
+      tidy,
+    end,
+  counit_iso := nat_iso.of_components
+    (λ X, X.left_op_right_op_iso) (by tidy) }
+
 end category_theory

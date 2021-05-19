@@ -19,7 +19,7 @@ The reason is that we did not want to change existing names in the library.
 set_option old_structure_cmd true
 
 universe u
-variables {α : Type u} {a b c d : α}
+variable {α : Type u}
 
 /-- An ordered additive commutative group is an additive commutative group
 with a partial order in which addition is strictly monotone. -/
@@ -59,7 +59,7 @@ instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group 
   .. (infer_instance : comm_group (units α)) }
 
 section ordered_comm_group
-variables [ordered_comm_group α]
+variables [ordered_comm_group α] {a b c d : α}
 
 @[to_additive ordered_add_comm_group.add_lt_add_left]
 lemma ordered_comm_group.mul_lt_mul_left' (a b : α) (h : a < b) (c : α) : c * a < c * b :=
@@ -123,7 +123,7 @@ instance group.has_mul_le_mul_right.to_has_le_of_mul_le_mul_right
        ... = c : mul_inv_eq_of_eq_mul rfl }
 
 @[to_additive neg_le_iff_add_nonneg']
-lemma inv_le_iff_one_le_mul' [covariant_class α α (*) (≤)] : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
+lemma inv_le_iff_one_le_mul' [covariant_class α α (*) (≤)] {a b : α} : a⁻¹ ≤ b ↔ 1 ≤ a * b :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← mul_inv_cancel_left a 1, mul_one],
@@ -135,7 +135,7 @@ end
 section left
 
 section has_mul_le_mul_left
-variable [covariant_class α α (*) (≤)]
+variables [covariant_class α α (*) (≤)] {a b c : α}
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_left' (c : α) : c * a ≤ c * b ↔ a ≤ b :=
@@ -169,7 +169,7 @@ by rw [← mul_le_mul_iff_left' a⁻¹, inv_mul_cancel_left, mul_left_inv]
 end has_mul_le_mul_left
 
 section has_mul_lt_mul_left
-variable [covariant_class α α (*) (<)]
+variables [covariant_class α α (*) (<)] {a b c d : α}
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_left' (a : α) : a * b < a * c ↔ b < c :=
@@ -199,7 +199,7 @@ end left
 section right
 
 section covariant_le_right
-variables [covariant_class α α (function.swap (*)) (≤)]
+variables [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_right' (c : α) : a * c ≤ b * c ↔ a ≤ b :=
@@ -269,7 +269,7 @@ mul_inv_le_iff''.mp h
 end covariant_le_right
 
 section covariant_lt_right
-variable [covariant_class α α (function.swap (*)) (<)]
+variables [covariant_class α α (function.swap (*)) (<)] {a b c : α}
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_right' (c : α) : a * c < b * c ↔ a < b :=
@@ -331,7 +331,7 @@ end covariant_lt_right
 end right
 
 section covariant_le_left_covariant_le_right
-variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)] {a b c d : α}
 
 @[to_additive]
 lemma mul_inv_le_inv_mul_iff : a * b⁻¹ ≤ c⁻¹ * d ↔ c * a ≤ d * b :=
@@ -451,7 +451,7 @@ by rw [div_eq_mul_inv, le_mul_inv]
 end covariant_le_left_covariant_le_right
 
 section covariant_lt_left
-variables [covariant_class α α (*) (<)]
+variables [covariant_class α α (*) (<)] {a b : α}
 
 @[simp, to_additive]
 lemma inv_lt_one_iff_one_lt : a⁻¹ < 1 ↔ 1 < a :=
@@ -488,7 +488,7 @@ one_lt_inv_iff_lt_one.mpr h
 end covariant_lt_left
 
 section covariant_lt_left_covariant_lt_right
-variables [covariant_class α α (*) (<)] [covariant_class α α (function.swap (*)) (<)]
+variables [covariant_class α α (*) (<)] [covariant_class α α (function.swap (*)) (<)] {a b c d : α}
 
 @[simp, to_additive]
 lemma inv_lt_inv_iff : b⁻¹ < a⁻¹ ↔ a < b :=
@@ -570,7 +570,7 @@ end covariant_lt_left_covariant_lt_right
 
 section covariant_le_right_covariant_lt_left_covariant_lt_right
 variables [covariant_class α α (function.swap (*)) (≤)] [covariant_class α α (*) (<)]
-  [covariant_class α α (function.swap (*)) (<)]
+  [covariant_class α α (function.swap (*)) (<)] {a b c d : α}
 
 @[to_additive]
 lemma mul_inv_lt_mul_inv_of_le_of_lt (hab : a ≤ b) (hcd : c < d) : a * d⁻¹ < b * c⁻¹ :=
@@ -587,7 +587,7 @@ end covariant_le_right_covariant_lt_left_covariant_lt_right
 
 section covariant_le_left_covariant_right_covariant_lt_right
 variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
-  [covariant_class α α (function.swap (*)) (<)]
+  [covariant_class α α (function.swap (*)) (<)] {a b c d : α}
 
 @[to_additive]
 lemma mul_inv_lt_mul_inv_of_lt_of_le (hab : a < b) (hcd : c ≤ d) : a * d⁻¹ < b * c⁻¹ :=
@@ -626,7 +626,7 @@ section comm_group
 variables [comm_group α] [preorder α]
 
 section le_left
-variable [covariant_class α α (*) (≤)]
+variables [covariant_class α α (*) (≤)] {a b c d : α}
 
 @[to_additive]
 lemma inv_mul_le_iff_le_mul : c⁻¹ * a ≤ b ↔ a ≤ b * c :=
@@ -659,7 +659,7 @@ by rw [mul_comm c, mul_inv_le_inv_mul_iff, mul_comm]
 @[to_additive sub_le_sub_iff]
 lemma div_le_div_iff' : a / b ≤ c / d ↔ a * d ≤ c * b :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_inv_le_mul_inv_iff']
-
+#where
 @[to_additive]
 lemma div_le : a / b ≤ c ↔ a / c ≤ b :=
 by rw [div_le_left, mul_comm, div_eq_mul_inv]
@@ -683,7 +683,7 @@ by rw [mul_comm, le_div_iff_mul_le]
 end le_left
 
 section lt_left
-variable [covariant_class α α (*) (<)]
+variables [covariant_class α α (*) (<)] {a b c : α}
 
 @[to_additive]
 lemma lt_mul_of_inv_mul_lt_right (h : c⁻¹ * a < b) : a < b * c :=
@@ -863,7 +863,7 @@ begin
 end
 
 @[to_additive eq_zero_of_neg_eq]
-lemma eq_one_of_inv_eq' (h : a⁻¹ = a) : a = 1 :=
+lemma eq_one_of_inv_eq' {a : α} (h : a⁻¹ = a) : a = 1 :=
 match lt_trichotomy a 1 with
 | or.inl h₁ :=
   have 1 < a, from h ▸ one_lt_inv'.mpr h₁,
@@ -902,7 +902,7 @@ end linear_ordered_comm_group
 
 section linear_ordered_add_comm_group
 
-variables [linear_ordered_add_comm_group α]
+variables [linear_ordered_add_comm_group α] {a b c : α}
 
 @[simp]
 lemma sub_le_sub_flip : a - b ≤ b - a ↔ a ≤ b :=
@@ -1021,14 +1021,14 @@ abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
 
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 begin
-  rw [abs_le, neg_le_sub_iff_le_add_left, @sub_le_iff_le_add_left _ _ b, and_comm,
+  rw [abs_le, neg_le_sub_iff_le_add_left, @sub_le_iff_le_add_left _ _ _ _ b, and_comm,
     and.congr_right_iff, sub_le_iff_le_add_left, iff_self, implies_true_iff],
   exact trivial,
 end
 
 lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
 begin
-  rwa [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm, and.congr_right_iff,
+  rwa [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ _ _ b, and_comm, and.congr_right_iff,
     sub_lt_iff_lt_add', iff_self, implies_true_iff],
   exact trivial,
 end
@@ -1224,7 +1224,8 @@ end type_tags
 
 /- The following lemmas are stated so that the `norm_num` tactic can use them with the
 expected signatures.  -/
-variable [ordered_comm_group α]
+variables [ordered_comm_group α] {a b : α}
+
 @[to_additive neg_le_neg]
 theorem inv_le_inv' : a ≤ b → b⁻¹ ≤ a⁻¹ :=
 inv_le_inv_iff.mpr

@@ -156,7 +156,7 @@ begin
     simpa only [K'.find_shiftr]
       using diff_subset_diff_right interior_subset (K'.shiftr.mem_diff_shiftr_find x) },
   have Kdiffc : ∀ n, is_compact (Kdiff n ∩ s),
-    from λ n, (is_compact.diff (K.is_compact _) is_open_interior).inter_right hs,
+    from λ n, ((K.is_compact _).diff is_open_interior).inter_right hs,
   -- Next we choose a finite covering `B (c n i) (r n i)` of each
   -- `Kdiff (n + 1) ∩ s` such that `B (c n i) (r n i) ∩ s` is disjoint with `K n`
   have : ∀ n (x : Kdiff (n + 1) ∩ s), (K n)ᶜ ∈ 𝓝 (x : X),

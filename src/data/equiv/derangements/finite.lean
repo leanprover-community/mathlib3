@@ -9,8 +9,8 @@ import data.fintype.basic
 import data.fintype.card
 import data.set.finite
 
-import tactic.field_simp
 import tactic.ring
+import tactic.zify
 
 /-!
 # Derangements on fintypes
@@ -82,58 +82,53 @@ lemma num_derangements_0 : num_derangements 0 = 1 := rfl
 
 lemma num_derangements_1 : num_derangements 1 = 0 := rfl
 
--- TODO incorporate desc_fac once that lands and you can rebase on top of that
 theorem num_derangements_sum (n : ℕ) :
-  (num_derangements n : ℚ) = n.factorial * ∑ k in finset.range (n + 1), (-1 : ℚ)^k / k.factorial :=
+  (num_derangements n : ℤ) = ∑ k in finset.range (n + 1), (-1 : ℤ)^k * nat.desc_fac k (n - k) :=
 begin
   refine nat.strong_induction_on n _,
-  clear n, -- ???
-
+  clear n, -- to avoid confusion with the n in the hypothesis
   intros n hyp,
-
   -- need to knock out cases n = 0, 1
-  cases n,
-  { rw num_derangements_0, simp },
-
-  cases n,
-  { rw num_derangements_1, simp [finset.sum_range_succ] },
-
+  cases n, { rw num_derangements_0, simp },
+  cases n, { rw num_derangements_1, simp [finset.sum_range_succ] },
   -- now we have n ≥ 2
   rw num_derangements_recursive,
   push_cast,
-
   -- TODO can these proofs be inferred from some tactic? i tried linarith,
   -- but for some reason that didn't work
   rw hyp n (nat.lt_succ_of_le (nat.le_succ _)),
   rw hyp n.succ (lt_add_one _),
-
   -- push all the constants inside the sums, strip off some trailing terms,
   -- and compare term-wise
   repeat { rw finset.mul_sum },
   conv_lhs { congr, skip, rw finset.sum_range_succ },
   rw [← add_assoc, ← finset.sum_add_distrib],
-
   conv_rhs {
     rw finset.sum_range_succ,
     rw finset.sum_range_succ,
     rw add_assoc },
-
-  congr,
-  -- show that (n+1) n! (-1)^k / k! + (n+1) (n+1)! (-1)^k / k! = (n+2)! (-1)^k / k!
-  { funext,
-    have : (n+2).factorial = (n + 1) * (n.factorial + (n+1).factorial),
-    { simp only [nat.factorial_succ, ← nat.add_one], ring },
-    rw this,
+  -- now both sides are of the form `sum (x : ℕ) in finset.range(n+1) (...) + (...)`, in such
+  -- a way that we can just check that the LHS and RHS match up in each summand
+  congr' 1,
+  -- show that (n+1) (-1)^k / (n! / k!) + (n+1) (-1)^k ((n+1)! / k!) = (-1)^k ((n+2)! / k!)
+  { refine finset.sum_congr rfl _,
+    -- introduce k and rewrite the constraint to `k ≤ n`
+    intros k h_mem,
+    have h_le : k ≤ n := nat.lt_succ_iff.mp (finset.mem_range.mp h_mem),
+    have h_le' : k ≤ n.succ := nat.le_succ_of_le h_le,
+    -- rw (n.succ-k) to (n-k).succ, and similar
+    rw [nat.succ_sub h_le', nat.succ_sub h_le],
+    -- expand desc_fac recursively
+    repeat {rw nat.desc_fac_succ},
+    rw ← nat.add_one,
+    zify [h_le],
+    ring },
+  -- show that `(n+1) * (-1)^(n+1) ((n+1)! / (n+1)!)` (from the n+1 sum) =
+  -- `(-1)^(n+1) ((n+2)! / (n+1)!) + (-1)^(n+2) ((n+2)! / (n+2)!)` (from the n+2 sum)
+  { -- get rid of all n.succ
+    simp only [←nat.add_one, pow_succ],
+    -- simplify the arguments to desc_fac, and then evaluate them explicitly
+    simp only [nat.sub_self, nat.add_sub_cancel_left, nat.desc_fac_succ, nat.desc_fac_zero],
     push_cast,
     ring },
-  -- show that `(n+1) (n+1)! * (-1)^(n+1) / (n+1)!` (from the n+1 sum) =
-  -- `(n+2)! (-1)^(n+1)/(n+1)! + (n+2)! (-1)^(n+2) / (n+2)!` (from the n+2 sum)
-  { -- delay factorial simplification until we're done clearing
-    -- denominators
-    -- TODO this works, but it's kinda silly. why can't i notice that the fraction is
-    -- a * b * c / b, and reduce it to a * c (given a proof that b ≠ 0)
-    field_simp [nat.factorial_ne_zero, -nat.factorial_succ, -nat.factorial],
-    simp only [nat.factorial_succ, pow_succ],
-    push_cast,
-    ring, },
 end

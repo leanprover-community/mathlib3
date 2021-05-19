@@ -53,14 +53,14 @@ def exactly_one_fixed_point {α : Type*} (f : perm α) (a : α) : Prop := ∀ x 
 end definitions
 
 -- TODO there's just a single lemma here for now, but i can imagine other lemmas living here
-section TODO_name
+-- If I can get perm.support working here, then this is a good place for those lemmas
+section simple_lemmas
 
 /-- If `α` is equivalent to `β`, then `derangements α` is equivalent to `derangements β`. -/
 def derangements_congr {α β : Type*} (e : α ≃ β) : (derangements α ≃ derangements β) :=
 subtype_equiv (perm_congr e) $ λ f, e.forall_congr $ λ x, by simp
 
-
-end TODO_name
+end simple_lemmas
 
 section fixed_points
 

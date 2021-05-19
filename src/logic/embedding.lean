@@ -62,8 +62,8 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 @[simp] theorem coe_fn_mk {α β} (f : α → β) (i) :
   (@mk _ _ f i : α → β) = f := rfl
 
-@[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) : ∀ inj, (⟨f, inj⟩ : α ↪ β) = f :=
-λ _, by ext; simp
+@[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) (inj) : (⟨f, inj⟩ : α ↪ β) = f :=
+by { ext, simp }
 
 theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 

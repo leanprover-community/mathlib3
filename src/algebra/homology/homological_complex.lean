@@ -125,10 +125,16 @@ commuting with the differentials.
 -/
 @[ext] structure hom (A B : homological_complex V c) :=
 (f : ∀ i, A.X i ⟶ B.X i)
-(comm' : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j . obviously)
+(comm' : ∀ i j, c.rel i j → f i ≫ B.d i j = A.d i j ≫ f j . obviously)
 
-restate_axiom hom.comm'
-attribute [simp, reassoc] hom.comm
+@[simp, reassoc]
+lemma hom.comm {A B : homological_complex V c} (f : A.hom B) (i j : ι) :
+  f.f i ≫ B.d i j = A.d i j ≫ f.f j :=
+begin
+  by_cases hij : c.rel i j,
+  { exact f.comm' i j hij },
+  rw [A.shape i j hij, B.shape i j hij, comp_zero, zero_comp],
+end
 
 instance (A B : homological_complex V c) : inhabited (hom A B) :=
 ⟨{ f := λ i, 0 }⟩

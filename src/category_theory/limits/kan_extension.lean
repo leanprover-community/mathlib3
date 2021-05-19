@@ -48,7 +48,7 @@ local attribute [simp] structured_arrow.proj
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
 abbreviation diagram (F : S ⥤ D) (x : L) : structured_arrow x ι ⥤ D :=
-  structured_arrow.proj ⋙ F
+  structured_arrow.proj x ι ⋙ F
 
 variable {ι}
 
@@ -151,7 +151,7 @@ local attribute [simp] costructured_arrow.proj
 
 /-- The diagram indexed by `Ran.index ι x` used to define `Ran`. -/
 abbreviation diagram (F : S ⥤ D) (x : L) : costructured_arrow ι x ⥤ D :=
-  costructured_arrow.proj ⋙ F
+  costructured_arrow.proj ι x ⋙ F
 variable {ι}
 
 /-- A cocone over `Lan.diagram ι F x` used to define `Lan`. -/

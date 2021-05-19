@@ -78,8 +78,8 @@ end
 theorem card_embedding_eq_if : ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.desc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
 begin
   split_ifs with h,
-    exact card_embedding h,
-    exact card_embedding_eq_zero (not_le.mp h)
+  { exact card_embedding h },
+  { exact card_embedding_eq_zero (not_le.mp h) }
 end
 
 -- this is `rfl` as it uses `function.embedding.fintype'`, which is defined to be an empty set

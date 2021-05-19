@@ -68,7 +68,7 @@ def of : CompHaus :=
 
 /-- Any continuous function on compact Hausdorff spaces is a closed map. -/
 lemma is_closed_map {X Y : CompHaus} (f : X ⟶ Y) : is_closed_map f :=
-λ C hC, (hC.compact.image f.continuous).is_closed
+λ C hC, (hC.is_compact.image f.continuous).is_closed
 
 /-- Any continuous bijection of compact Hausdorff spaces is an isomorphism. -/
 lemma is_iso_of_bijective {X Y : CompHaus} (f : X ⟶ Y) (bij : function.bijective f) : is_iso f :=

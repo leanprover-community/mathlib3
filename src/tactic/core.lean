@@ -620,8 +620,23 @@ tactic.unsafe.type_context.run $ do
 
 /-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
 `e : α := t`) and otherwise fails. -/
-meta def is_local_def (e : expr) : tactic unit :=
-retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
+meta def is_local_def (e : expr) : tactic unit := do
+  ctx ← unsafe.type_context.get_local_context.run,
+  (some decl) ← pure $ ctx.get_local_decl e.local_uniq_name |
+    fail format!"is_local_def: {e} is not a local constant",
+  when decl.value.is_none $ fail
+   format!"is_local_def: {e} is not a local definition"
+
+/-- Returns the local definitions from the context. A local definition is a
+local constant of the form `e : α := t`. The local definitions are returned in
+the order in which they appear in the context. -/
+meta def local_defs : tactic (list expr) := do
+  ctx ← unsafe.type_context.get_local_context.run,
+  ctx' ← local_context,
+  ctx'.mfilter $ λ h, do
+    (some decl) ← pure $ ctx.get_local_decl h.local_uniq_name |
+      fail format!"local_defs: local {h} not found in the local context",
+    pure decl.value.is_some
 
 /-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs`
 (using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.

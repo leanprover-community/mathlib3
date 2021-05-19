@@ -14,7 +14,7 @@ import category_theory.subterminal
 /-!
 # Exponential ideals
 
-An exponential ideal of a cartesian closed category `C` is a subcategory `D ⊆ C` if for any `B : D`
+An exponential ideal of a cartesian closed category `C` is a subcategory `D ⊆ C` such that for any `B : D`
 and `A : C`, the exponential `B^^A` is in `D` - resembling ring theoretic ideals. We define the
 notion here for inclusion functors `i : D ⥤ C` rather than explicit subcategories to preserve the
 principle of equivalence.
@@ -40,13 +40,13 @@ variables (i) [has_finite_products C] [cartesian_closed C]
 
 /--
 The subcategory `D` of `C` expressed as an inclusion functor is an *exponential ideal* if
-`B ∈ D` implies `B^A ∈ D` for all `A`.
+`B ∈ D` implies `A ⟹ B ∈ D` for all `A`.
 -/
 class exponential_ideal : Prop :=
 (exp_closed : ∀ {B}, B ∈ i.ess_image → ∀ A, (A ⟹ B) ∈ i.ess_image)
 
 /--
-To show `i` is an exponential ideal it suffices to show that `(iB)^A` is `in` `D` for any `A` in `C`
+To show `i` is an exponential ideal it suffices to show that `(iB)^A` is "in" `D` for any `A` in `C`
 and `B` in `D`.
 -/
 lemma exponential_ideal.mk' (h : ∀ (B : D) (A : C), (A ⟹ i.obj B) ∈ i.ess_image) :

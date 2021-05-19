@@ -664,7 +664,7 @@ by rw [mul_comm c, mul_inv_le_inv_mul_iff, mul_comm]
 @[to_additive sub_le_sub_iff]
 lemma div_le_div_iff' : a / b ≤ c / d ↔ a * d ≤ c * b :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_inv_le_mul_inv_iff']
-#where
+
 @[to_additive]
 lemma div_le : a / b ≤ c ↔ a / c ≤ b :=
 by rw [div_le_left, mul_comm, div_eq_mul_inv]

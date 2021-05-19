@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.preserves.basic
+import category_theory.limits.creates
 
 /-!
 # Preserving binary products
@@ -25,6 +26,19 @@ open category_theory category_theory.category category_theory.limits
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
+
+namespace functor
+
+abbreviation preserves_binary_product (X Y : C) := preserves_limit (pair X Y) G
+abbreviation reflects_binary_product (X Y : C) := reflects_limit (pair X Y) G
+abbreviation creates_binary_product (X Y : C) := creates_limit (pair X Y) G
+abbreviation preserves_binary_products := preserves_limits_of_shape (discrete walking_pair) G
+abbreviation reflects_binary_products := reflects_limits_of_shape (discrete walking_pair) G
+abbreviation creates_binary_products := creates_limits_of_shape (discrete walking_pair) G
+
+end functor
+
+example [preserves_binary_products G] (X Y : C) : preserves_binary_product G X Y := infer_instance
 
 namespace category_theory.limits
 

@@ -36,35 +36,42 @@ abbreviation reflects_terminal := reflects_limits_of_shape (discrete pempty) G
 /-- `G` creates terminal objects if it creates limits of every empty diagram. -/
 abbreviation creates_terminal := creates_limits_of_shape (discrete pempty) G
 
+/-- If `G` preserves the limit of the canonical empty diagram, it preserves terminal objects. -/
 def preserves_terminal_of_preserves_limit_empty [preserves_limit (functor.empty C) G] :
   preserves_terminal G :=
 { preserves_limit := λ K, preserves_limit_of_iso_diagram _ K.unique_from_empty.symm }
 
+/-- If `G` reflects the limit of the canonical empty diagram, it reflects terminal objects. -/
 def reflects_terminal_of_reflects_limit_empty [reflects_limit (functor.empty C) G] :
   reflects_terminal G :=
 { reflects_limit := λ K, reflects_limit_of_iso_diagram _ K.unique_from_empty.symm }
 
+/-- If `G` creates the limit of the canonical empty diagram, it creates terminal objects. -/
 def creates_terminal_of_creates_limit_empty [creates_limit (functor.empty C) G] :
   creates_terminal G :=
 { creates_limit := λ K, creates_limit_of_iso_diagram _ K.unique_from_empty.symm }
 
+/-- `G` preserves initial objects if it preserves colimits of every empty diagram. -/
 abbreviation preserves_initial := preserves_colimits_of_shape (discrete pempty) G
+/-- `G` reflects initial objects if it reflects colimits of every empty diagram. -/
 abbreviation reflects_initial := reflects_colimits_of_shape (discrete pempty) G
+/-- `G` creates initial objects if it creates colimits of every empty diagram. -/
 abbreviation creates_initial := creates_colimits_of_shape (discrete pempty) G
 
+/-- If `G` preserves the colimit of the canonical empty diagram, it preserves initial objects. -/
 def preserves_initial_of_preserves_colimit_empty [preserves_colimit (functor.empty C) G] :
   preserves_initial G :=
 { preserves_colimit := λ K, preserves_colimit_of_iso_diagram _ K.unique_from_empty.symm }
 
+/-- If `G` reflects the colimit of the canonical empty diagram, it reflects initial objects. -/
 def reflects_initial_of_reflects_colimit_empty [reflects_colimit (functor.empty C) G] :
   reflects_initial G :=
 { reflects_colimit := λ K, reflects_colimit_of_iso_diagram _ K.unique_from_empty.symm }
 
+/-- If `G` creates the colimit of the canonical empty diagram, it creates initial objects. -/
 def creates_initial_of_creates_colimit_empty [creates_colimit (functor.empty C) G] :
   creates_initial G :=
 { creates_colimit := λ K, creates_colimit_of_iso_diagram _ K.unique_from_empty.symm }
-
-#lint
 
 variables (X : C)
 
@@ -77,12 +84,12 @@ def is_limit_map_cone_empty_cone_equiv :
   (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by tidy)))
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/
-def is_terminal_obj_of_is_terminal [preserves_limit (functor.empty C) G]
+def is_terminal_obj_of_is_terminal [preserves_terminal G]
   (l : is_terminal X) : is_terminal (G.obj X) :=
 is_limit_map_cone_empty_cone_equiv G X (preserves_limit.preserves l)
 
 /-- The property of reflecting terminal objects expressed in terms of `is_terminal`. -/
-def is_terminal_of_is_terminal_obj [reflects_limit (functor.empty C) G]
+def is_terminal_of_is_terminal_obj [reflects_terminal G]
   (l : is_terminal (G.obj X)) : is_terminal X :=
 reflects_limit.reflects ((is_limit_map_cone_empty_cone_equiv G X).symm l)
 
@@ -91,7 +98,7 @@ variables [has_terminal C]
 If `G` preserves the terminal object and `C` has a terminal object, then the image of the terminal
 object is terminal.
 -/
-def is_limit_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty C) G] :
+def is_limit_of_has_terminal_of_preserves_limit [preserves_terminal G] :
   is_terminal (G.obj (⊤_ C)) :=
 is_terminal_obj_of_is_terminal G (⊤_ C) terminal_is_terminal
 
@@ -102,7 +109,7 @@ Note this property is somewhat unique to (co)limits of the empty diagram: for ge
 has limits of shape `J` and `G` preserves them, then `D` does not necessarily have limits of shape
 `J`.
 -/
-lemma has_terminal_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty C) G] :
+lemma has_terminal_of_has_terminal_of_preserves_limit [preserves_terminal G] :
   has_terminal D :=
 ⟨λ F,
 begin
@@ -115,8 +122,9 @@ variable [has_terminal D]
 If the terminal comparison map for `G` is an isomorphism, then `G` preserves terminal objects.
 -/
 def preserves_terminal.of_iso_comparison
-  [i : is_iso (terminal_comparison G)] : preserves_limit (functor.empty C) G :=
+  [i : is_iso (terminal_comparison G)] : preserves_terminal G :=
 begin
+  apply preserves_terminal_of_preserves_limit_empty _,
   apply preserves_limit_of_preserves_limit_cone terminal_is_terminal,
   apply (is_limit_map_cone_empty_cone_equiv _ _).symm _,
   apply is_limit.of_point_iso (limit.is_limit (functor.empty D)),
@@ -125,7 +133,7 @@ end
 
 /-- If there is any isomorphism `G.obj ⊤ ⟶ ⊤`, then `G` preserves terminal objects. -/
 def preserves_terminal_of_is_iso
-  (f : G.obj (⊤_ C) ⟶ ⊤_ D) [i : is_iso f] : preserves_limit (functor.empty C) G :=
+  (f : G.obj (⊤_ C) ⟶ ⊤_ D) [i : is_iso f] : preserves_terminal G :=
 begin
   rw subsingleton.elim f (terminal_comparison G) at i,
   exactI preserves_terminal.of_iso_comparison G,
@@ -133,10 +141,10 @@ end
 
 /-- If there is any isomorphism `G.obj ⊤ ≅ ⊤`, then `G` preserves terminal objects. -/
 def preserves_terminal_of_iso
-  (f : G.obj (⊤_ C) ≅ ⊤_ D) : preserves_limit (functor.empty C) G :=
+  (f : G.obj (⊤_ C) ≅ ⊤_ D) : preserves_terminal G :=
 preserves_terminal_of_is_iso G f.hom
 
-variables [preserves_limit (functor.empty C) G]
+variables [preserves_terminal G]
 
 /-- If `G` preserves terminal objects, then the terminal comparison map for `G` an isomorphism. -/
 def preserves_terminal.iso : G.obj (⊤_ C) ≅ ⊤_ D :=

@@ -314,9 +314,16 @@ lemma span_singleton_mul_span_singleton (r s : R) :
   span {r} * span {s} = (span {r * s} : ideal R) :=
 by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton], }
 
+lemma span_singleton_pow (s : R) (n : ℕ):
+  span {s} ^ n = (span {s ^ n} : ideal R) :=
+begin
+  induction n with n ih, { simp [span_singleton_eq_top.mpr is_unit_one] },
+  simp only [pow_succ, ih, span_singleton_mul_span_singleton],
+end
+
 lemma span_singleton_sq (s : R) :
   span {s} ^ 2 = (span {s ^ 2} : ideal R) :=
-by simpa only [sq] using span_singleton_mul_span_singleton s s
+span_singleton_pow s 2
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩

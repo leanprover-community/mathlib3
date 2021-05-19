@@ -488,7 +488,7 @@ begin
   refine ⟨λ H ε ε_neg, _, λ H ε ε_pos, _⟩,
   { exact exists_lt_of_lt_cSup h' (lt_sub_iff_add_lt.mp (H _ (neg_pos.mpr ε_neg))) },
   { rcases H _ (neg_lt_zero.mpr ε_pos) with ⟨x, x_in, hx⟩,
-    exact sub_lt_iff_lt_add'.mp (lt_cSup_of_lt h x_in hx) }
+    exact sub_lt_iff_lt_add.mp (lt_cSup_of_lt h x_in hx) }
 end
 
 theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp

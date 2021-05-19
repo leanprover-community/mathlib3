@@ -1030,7 +1030,7 @@ lt_iff_lt_of_le_iff_le (mul_le_mul_left_of_neg h)
 lt_iff_lt_of_le_iff_le (mul_le_mul_right_of_neg h)
 
 lemma sub_one_lt (a : α) : a - 1 < a :=
-sub_lt_iff_lt_add'.2 (lt_add_one a)
+sub_lt_iff_lt_add.2 (lt_add_one a)
 
 lemma mul_self_pos {a : α} (ha : a ≠ 0) : 0 < a * a :=
 by rcases lt_trichotomy a 0 with h|h|h;

@@ -327,10 +327,10 @@ by rw [← mul_lt_mul_iff_right' b, inv_mul_cancel_right]
 /- The non-primed version of this lemma involves commuting `c` and `b`: `a / b < c ↔ a < b * c`.
 It is proven later, when there is a commutativity assumption on the group. -/
 @[to_additive]
-lemma div_lt_iff_lt_mul' : a / b < c ↔ a < c * b :=
+lemma div_lt_iff_lt_mul : a / b < c ↔ a < c * b :=
 by rw [div_eq_mul_inv, mul_inv_lt_iff_lt_mul']
 
-alias sub_lt_iff_lt_add' ↔ lt_add_of_sub_left_lt sub_left_lt_of_lt_add
+alias sub_lt_iff_lt_add ↔ lt_add_of_sub_left_lt sub_left_lt_of_lt_add
 
 end covariant_lt_right
 end right
@@ -728,11 +728,11 @@ by rw [mul_comm, lt_div_iff_mul_lt]
 
 @[to_additive]
 lemma div_lt_iff_mul : c / a < b ↔ c < a * b :=
-by rw [mul_comm, div_lt_iff_lt_mul']
+by rw [mul_comm, div_lt_iff_lt_mul]
 
 @[simp, to_additive]
-lemma div_lt_iff_lt_mul : a / b < c ↔ a < b * c :=
-by rw [mul_comm, div_lt_iff_lt_mul']
+lemma div_lt_iff_lt_mul' : a / b < c ↔ a < b * c :=
+by rw [mul_comm, div_lt_iff_lt_mul]
 
 /- The following lemmas are probably superfluous, although their names are convenient.
 From here... -/
@@ -1034,7 +1034,7 @@ end
 lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
 begin
   rwa [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ _ _ b, and_comm, and.congr_right_iff,
-    sub_lt_iff_lt_add', iff_self, implies_true_iff],
+    sub_lt_iff_lt_add', add_comm _ a, iff_self, implies_true_iff],
   exact trivial,
 end
 

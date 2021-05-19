@@ -122,7 +122,7 @@ def cocone_of_preserves_is_colimit [preserves_colimit (F ⋙ fst L R) L]
     w' := (is_colimit_of_preserves L t₁).hom_ext $ λ j,
     begin
       rw [cocone_of_preserves_X_hom, (is_colimit_of_preserves L t₁).fac_assoc,
-        limit_auxiliary_cocone_ι_app, assoc, ←R.map_comp, t₂.fac, L.map_cocone_ι_app,
+        colimit_auxiliary_cocone_ι_app, assoc, ←R.map_comp, t₂.fac, L.map_cocone_ι_app,
         ←L.map_comp_assoc, t₁.fac],
       exact (s.ι.app j).w,
     end },

@@ -32,9 +32,9 @@ noncomputable theory
 
 universes v u u₂
 
-open category_theory
+namespace category_theory
 
-namespace category_theory.limits
+namespace limits
 
 /-- The type of objects for the diagram indexing a binary (co)product. -/
 @[derive decidable_eq, derive inhabited]
@@ -741,39 +741,45 @@ nat_iso.of_components (coprod.associator _ _) (by tidy)
 
 end coprod_functor
 
+end limits
+
+open limits
+
+variables {C : Type u} [category.{v} C] {D : Type u₂} [category.{v} D]
+
 section prod_comparison
 
-variables {C} {D : Type u₂} [category.{v} D]
 variables (F : C ⥤ D) {A A' B B' : C}
 variables [has_binary_product A B] [has_binary_product A' B']
 variables [has_binary_product (F.obj A) (F.obj B)] [has_binary_product (F.obj A') (F.obj B')]
+
 /--
 The product comparison morphism.
 
 In `category_theory/limits/preserves` we show this is always an iso iff F preserves binary products.
 -/
-def prod_comparison (F : C ⥤ D) (A B : C)
+def functor.prod_comparison (F : C ⥤ D) (A B : C)
   [has_binary_product A B] [has_binary_product (F.obj A) (F.obj B)] :
   F.obj (A ⨯ B) ⟶ F.obj A ⨯ F.obj B :=
-prod.lift (F.map prod.fst) (F.map prod.snd)
+prod.lift (F.map limits.prod.fst) (F.map limits.prod.snd)
 
 @[simp, reassoc]
 lemma prod_comparison_fst :
-  prod_comparison F A B ≫ prod.fst = F.map prod.fst :=
+  F.prod_comparison A B ≫ limits.prod.fst = F.map limits.prod.fst :=
 prod.lift_fst _ _
 
 @[simp, reassoc]
 lemma prod_comparison_snd :
-  prod_comparison F A B ≫ prod.snd = F.map prod.snd :=
+  F.prod_comparison A B ≫ limits.prod.snd = F.map limits.prod.snd :=
 prod.lift_snd _ _
 
 /-- Naturality of the prod_comparison morphism in both arguments. -/
 @[reassoc] lemma prod_comparison_natural (f : A ⟶ A') (g : B ⟶ B') :
-  F.map (prod.map f g) ≫ prod_comparison F A' B' =
-    prod_comparison F A B ≫ prod.map (F.map f) (F.map g) :=
+  F.map (limits.prod.map f g) ≫ F.prod_comparison A' B' =
+    F.prod_comparison A B ≫ limits.prod.map (F.map f) (F.map g) :=
 begin
-  rw [prod_comparison, prod_comparison, prod.lift_map, ← F.map_comp, ← F.map_comp,
-      prod.comp_lift, ← F.map_comp, prod.map_fst, ← F.map_comp, prod.map_snd]
+  rw [functor.prod_comparison, functor.prod_comparison, prod.lift_map, ← F.map_comp, ← F.map_comp,
+      prod.comp_lift, ← F.map_comp, limits.prod.map_fst, ← F.map_comp, limits.prod.map_snd]
 end
 
 /--
@@ -781,28 +787,28 @@ The product comparison morphism from `F(A ⨯ -)` to `FA ⨯ F-`, whose componen
 `prod_comparison`.
 -/
 @[simps]
-def prod_comparison_nat_trans [has_binary_products C] [has_binary_products D]
+def functor.prod_comparison_nat_trans [has_binary_products C] [has_binary_products D]
   (F : C ⥤ D) (A : C) :
   prod.functor.obj A ⋙ F ⟶ F ⋙ prod.functor.obj (F.obj A) :=
-{ app := λ B, prod_comparison F A B,
+{ app := λ B, F.prod_comparison A B,
   naturality' := λ B B' f, by simp [prod_comparison_natural] }
 
 @[reassoc]
-lemma inv_prod_comparison_map_fst [is_iso (prod_comparison F A B)] :
-  inv (prod_comparison F A B) ≫ F.map prod.fst = prod.fst :=
+lemma inv_prod_comparison_map_fst [is_iso (F.prod_comparison A B)] :
+  inv (F.prod_comparison A B) ≫ F.map limits.prod.fst = limits.prod.fst :=
 by simp [is_iso.inv_comp_eq]
 
 @[reassoc]
-lemma inv_prod_comparison_map_snd [is_iso (prod_comparison F A B)] :
-  inv (prod_comparison F A B) ≫ F.map prod.snd = prod.snd :=
+lemma inv_prod_comparison_map_snd [is_iso (F.prod_comparison A B)] :
+  inv (F.prod_comparison A B) ≫ F.map limits.prod.snd = limits.prod.snd :=
 by simp [is_iso.inv_comp_eq]
 
 /-- If the product comparison morphism is an iso, its inverse is natural. -/
 @[reassoc]
 lemma prod_comparison_inv_natural (f : A ⟶ A') (g : B ⟶ B')
-  [is_iso (prod_comparison F A B)] [is_iso (prod_comparison F A' B')] :
-  inv (prod_comparison F A B) ≫ F.map (prod.map f g) =
-    prod.map (F.map f) (F.map g) ≫ inv (prod_comparison F A' B') :=
+  [is_iso (F.prod_comparison A B)] [is_iso (F.prod_comparison A' B')] :
+  inv (F.prod_comparison A B) ≫ F.map (limits.prod.map f g) =
+    limits.prod.map (F.map f) (F.map g) ≫ inv (F.prod_comparison A' B') :=
 by rw [is_iso.eq_comp_inv, category.assoc, is_iso.inv_comp_eq, prod_comparison_natural]
 
 /--
@@ -811,16 +817,15 @@ isomorphism (as `B` changes).
 -/
 @[simps {rhs_md := semireducible}]
 def prod_comparison_nat_iso [has_binary_products C] [has_binary_products D]
-  (A : C) [∀ B, is_iso (prod_comparison F A B)] :
+  (A : C) [∀ B, is_iso (F.prod_comparison A B)] :
   prod.functor.obj A ⋙ F ≅ F ⋙ prod.functor.obj (F.obj A) :=
-{ hom := prod_comparison_nat_trans F A
+{ hom := F.prod_comparison_nat_trans A
   ..(@as_iso _ _ _ _ _ (nat_iso.is_iso_of_is_iso_app ⟨_, _⟩)) }
 
 end prod_comparison
 
 section coprod_comparison
 
-variables {C} {D : Type u₂} [category.{v} D]
 variables (F : C ⥤ D) {A A' B B' : C}
 variables [has_binary_coproduct A B] [has_binary_coproduct A' B']
 variables [has_binary_coproduct (F.obj A) (F.obj B)] [has_binary_coproduct (F.obj A') (F.obj B')]
@@ -830,28 +835,28 @@ The coproduct comparison morphism.
 In `category_theory/limits/preserves` we show
 this is always an iso iff F preserves binary coproducts.
 -/
-def coprod_comparison (F : C ⥤ D) (A B : C)
+def functor.coprod_comparison (F : C ⥤ D) (A B : C)
   [has_binary_coproduct A B] [has_binary_coproduct (F.obj A) (F.obj B)] :
   F.obj A ⨿ F.obj B ⟶ F.obj (A ⨿ B) :=
 coprod.desc (F.map coprod.inl) (F.map coprod.inr)
 
 @[simp, reassoc]
 lemma coprod_comparison_inl :
-  coprod.inl ≫ coprod_comparison F A B  = F.map coprod.inl :=
+  coprod.inl ≫ F.coprod_comparison A B  = F.map coprod.inl :=
 coprod.inl_desc _ _
 
 @[simp, reassoc]
 lemma coprod_comparison_inr :
-  coprod.inr ≫ coprod_comparison F A B = F.map coprod.inr :=
+  coprod.inr ≫ F.coprod_comparison A B = F.map coprod.inr :=
 coprod.inr_desc _ _
 
 /-- Naturality of the coprod_comparison morphism in both arguments. -/
 @[reassoc] lemma coprod_comparison_natural (f : A ⟶ A') (g : B ⟶ B') :
-  coprod_comparison F A B ≫ F.map (coprod.map f g) =
-    coprod.map (F.map f) (F.map g) ≫ coprod_comparison F A' B' :=
+  F.coprod_comparison A B ≫ F.map (coprod.map f g) =
+    coprod.map (F.map f) (F.map g) ≫ F.coprod_comparison A' B' :=
 begin
-  rw [coprod_comparison, coprod_comparison, coprod.map_desc, ← F.map_comp, ← F.map_comp,
-      coprod.desc_comp, ← F.map_comp, coprod.inl_map, ← F.map_comp, coprod.inr_map]
+  rw [functor.coprod_comparison, functor.coprod_comparison, coprod.map_desc, ← F.map_comp,
+    ←F.map_comp, coprod.desc_comp, ← F.map_comp, coprod.inl_map, ← F.map_comp, coprod.inr_map]
 end
 
 /--
@@ -859,28 +864,28 @@ The coproduct comparison morphism from `FA ⨿ F-` to `F(A ⨿ -)`, whose compon
 `coprod_comparison`.
 -/
 @[simps]
-def coprod_comparison_nat_trans [has_binary_coproducts C] [has_binary_coproducts D]
+def functor.coprod_comparison_nat_trans [has_binary_coproducts C] [has_binary_coproducts D]
   (F : C ⥤ D) (A : C) :
   F ⋙ coprod.functor.obj (F.obj A) ⟶ coprod.functor.obj A ⋙ F :=
-{ app := λ B, coprod_comparison F A B,
+{ app := λ B, F.coprod_comparison A B,
   naturality' := λ B B' f, by simp [coprod_comparison_natural] }
 
 @[reassoc]
-lemma map_inl_inv_coprod_comparison [is_iso (coprod_comparison F A B)] :
-  F.map coprod.inl ≫ inv (coprod_comparison F A B) = coprod.inl :=
+lemma map_inl_inv_coprod_comparison [is_iso (F.coprod_comparison A B)] :
+  F.map coprod.inl ≫ inv (F.coprod_comparison A B) = coprod.inl :=
 by simp [is_iso.inv_comp_eq]
 
 @[reassoc]
-lemma map_inr_inv_coprod_comparison [is_iso (coprod_comparison F A B)] :
-  F.map coprod.inr ≫ inv (coprod_comparison F A B) = coprod.inr :=
+lemma map_inr_inv_coprod_comparison [is_iso (F.coprod_comparison A B)] :
+  F.map coprod.inr ≫ inv (F.coprod_comparison A B) = coprod.inr :=
 by simp [is_iso.inv_comp_eq]
 
 /-- If the coproduct comparison morphism is an iso, its inverse is natural. -/
 @[reassoc]
 lemma coprod_comparison_inv_natural (f : A ⟶ A') (g : B ⟶ B')
-  [is_iso (coprod_comparison F A B)] [is_iso (coprod_comparison F A' B')] :
-  inv (coprod_comparison F A B) ≫ coprod.map (F.map f) (F.map g) =
-    F.map (coprod.map f g) ≫ inv (coprod_comparison F A' B') :=
+  [is_iso (F.coprod_comparison A B)] [is_iso (F.coprod_comparison A' B')] :
+  inv (F.coprod_comparison A B) ≫ coprod.map (F.map f) (F.map g) =
+    F.map (coprod.map f g) ≫ inv (F.coprod_comparison A' B') :=
 by rw [is_iso.eq_comp_inv, category.assoc, is_iso.inv_comp_eq, coprod_comparison_natural]
 
 /--
@@ -888,23 +893,15 @@ The natural isomorphism `FA ⨿ F- ≅ F(A ⨿ -)`, provided each `coprod_compar
 isomorphism (as `B` changes).
 -/
 @[simps {rhs_md := semireducible}]
-def coprod_comparison_nat_iso [has_binary_coproducts C] [has_binary_coproducts D]
-  (A : C) [∀ B, is_iso (coprod_comparison F A B)] :
+def functor.coprod_comparison_nat_iso [has_binary_coproducts C] [has_binary_coproducts D]
+  (A : C) [∀ B, is_iso (F.coprod_comparison A B)] :
   F ⋙ coprod.functor.obj (F.obj A) ≅ coprod.functor.obj A ⋙ F :=
-{ hom := coprod_comparison_nat_trans F A
+{ hom := F.coprod_comparison_nat_trans A
   ..(@as_iso _ _ _ _ _ (nat_iso.is_iso_of_is_iso_app ⟨_, _⟩)) }
 
 end coprod_comparison
 
-end category_theory.limits
-
-open category_theory.limits
-
-namespace category_theory
-
-variables {C : Type u} [category.{v} C]
-
-/-- Auxilliary definition for `over.coprod`. -/
+/-- Auxiliary definition for `over.coprod`. -/
 @[simps]
 def over.coprod_obj [has_binary_coproducts C] {A : C} : over A → over A ⥤ over A := λ f,
 { obj := λ g, over.mk (coprod.desc f.hom g.hom),

@@ -942,8 +942,8 @@ by { ext, refl, }
 This is a formulation of the pigeonhole principle.
 
 Note this cannot be an instance as it needs `h`. -/
-@[simp] lemma is_empty_of_card_lt (h : fintype.card β < fintype.card α) :
-  is_empty (α ↪ β) :=
+@[simp] lemma is_empty_of_card_lt {α β} [fintype α] [fintype β]
+  (h : fintype.card β < fintype.card α) : is_empty (α ↪ β) :=
 ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_card_lt f h in ne $ f.injective feq⟩
 
 end function.embedding

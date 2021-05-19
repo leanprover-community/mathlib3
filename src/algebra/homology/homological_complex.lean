@@ -544,8 +544,6 @@ end of_hom
 
 section mk
 
-/- TODO: dualize to `cochain_complex` -/
-
 /--
 Auxiliary structure for setting up the recursion in `mk`.
 This is purely an implementation detail: for some reason just using the dependent 6-tuple directly

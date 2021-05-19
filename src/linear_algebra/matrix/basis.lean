@@ -160,7 +160,7 @@ lemma basis.to_matrix_reindex
 by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.minor_apply, id.def] }
 
 /-- See also basis.to_matrix_reindex which gives the `simp` normal form of this result. -/
-lemma basis.to_matrix_reindex' [decidable_eq ι] [fintype ι'] [decidable_eq ι']
+lemma basis.to_matrix_reindex' [decidable_eq ι] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).to_matrix v =  matrix.reindex_alg_equiv e (b.to_matrix (v ∘ e)) :=
 by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.reindex_alg_equiv_apply,

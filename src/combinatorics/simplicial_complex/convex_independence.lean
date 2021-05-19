@@ -94,6 +94,8 @@ lemma affine_independent.convex_independent {p : ι → E} (hp : affine_independ
 begin
   intros s x hx,
   by_contra,
+  sorry
+  /-
   rw [finset.convex_hull_eq] at hx,
   rcases hx with ⟨w, hw₀, hw₁, x_eq⟩,
   have : set.inj_on p s := λ x hx y hy h, injective_of_affine_independent hp h,
@@ -110,5 +112,5 @@ begin
   { rwa [sum_insert_of_eq_zero_if_not_mem, sum_extend_by_zero s],
     simp [h] },
   { simp [sum_ite_eq] },
-  { simpa [sum_insert_of_eq_zero_if_not_mem, h, ite_smul, sum_extend_by_zero s] }
+  { simpa [sum_insert_of_eq_zero_if_not_mem, h, ite_smul, sum_extend_by_zero s] }-/
 end

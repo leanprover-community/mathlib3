@@ -28,5 +28,20 @@ begin
   exact ⟨Z, hZ, convex_iff_segment_subset.1 (hc hZ) (hXZ hx) (hYZ hy) hz⟩,
 end
 
+--will be proven from the stuff about closure operators
+lemma convex_hull_convex_hull_union :
+  convex_hull (convex_hull X ∪ Y) = convex_hull (X ∪ Y) :=
+subset.antisymm (convex_hull_min (union_subset (convex_hull_mono (subset_union_left X Y))
+  (subset.trans (subset_convex_hull Y) (convex_hull_mono (subset_union_right X Y))))
+  (convex_convex_hull _)) (convex_hull_mono (union_subset_union_left _ (subset_convex_hull _)))
+
+--will be proven from the stuff about closure operators
+lemma convex_hull_self_union_convex_hull :
+  convex_hull (X ∪ convex_hull Y) = convex_hull (X ∪ Y) :=
+begin
+  rw [union_comm, union_comm X Y],
+  exact convex_hull_convex_hull_union,
+end
+
 --TODO: Generalise to LCTVS
 variables [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}

@@ -731,7 +731,14 @@ def submonoid_congr (h : S = T) : S ≃* T :=
 
 end mul_equiv
 
-/-! Actions by submonoids -/
+/-! ### Actions by `submonoid`s
+
+These instances tranfer the action by an element `m : M` of a monoid `M` written as `m • a` onto the
+action by an element `s : S` of a submonoid `S : submonoid M` such that `s • a = (s : M) • a`.
+
+These instances work particularly well in conjunction with `monoid.to_mul_action`, enabling
+`s • m` as an alias for `↑s * m`.
+-/
 section actions
 
 namespace submonoid
@@ -763,7 +770,7 @@ instance smul_comm_class_right
   smul_comm_class α S β :=
 ⟨λ a s, (smul_comm a (s : M') : _)⟩
 
-/-- Note that this provides `is_scalar_tower S M' M'` which is needed by `smul_mul_assoc.`. -/
+/-- Note that this provides `is_scalar_tower S M' M'` which is needed by `smul_mul_assoc`. -/
 instance
   [has_scalar α β] [mul_action M' α] [mul_action M' β] [is_scalar_tower M' α β] (S : submonoid M') :
   is_scalar_tower S α β :=

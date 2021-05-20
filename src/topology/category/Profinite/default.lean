@@ -74,6 +74,12 @@ instance {X : Profinite} : totally_disconnected_space X := X.is_totally_disconne
 lemma coe_to_Top {X : Profinite} : (X.to_Top : Type*) = X :=
 rfl
 
+@[simp]
+lemma coe_of {X : Type*} [topological_space X] [compact_space X] [t2_space X]
+  [totally_disconnected_space X] :
+  (of X : Type*) = X :=
+rfl
+
 @[simp] lemma coe_id (X : Profinite) : (𝟙 X : X → X) = id := rfl
 
 @[simp] lemma coe_comp {X Y Z : Profinite} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g : X → Z) = g ∘ f := rfl
@@ -177,6 +183,18 @@ def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}
   uniq' := λ S m h,
     (CompHaus.limit_cone_is_limit _).uniq (Profinite.to_CompHaus.map_cone S) _ h }
 
+def initial_cocone : limits.cocone (functor.empty Profinite.{u}) :=
+{ X := Profinite.of pempty,
+  ι := { app := λ j, pempty.elim j } }
+
+def initial_cocone_is_colimit : limits.is_colimit initial_cocone :=
+{ desc := λ s, ⟨pempty.elim, by apply_auto_param⟩ }
+
+instance {α β : Type*} [topological_space α] [topological_space β]
+  [totally_disconnected_space α] [totally_disconnected_space β] :
+  totally_disconnected_space (α ⊕ β) :=
+sorry
+
 /-- The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus -/
 def to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite.to_CompHaus :=
 adjunction.adjunction_of_equiv_left _ _
@@ -202,6 +220,27 @@ has_limits_of_has_limits_creates_limits Profinite_to_Top
 
 instance has_colimits : limits.has_colimits Profinite :=
 has_colimits_of_reflective to_CompHaus
+
+-- lemma continuous_sum_elim
+
+def binary_coproduct_cocone (X Y : Profinite.{u}) : limits.cocone (limits.pair X Y) :=
+{ X := of (X ⊕ Y),
+  ι := { app := λ j, limits.walking_pair.cases_on j { to_fun := sum.inl } { to_fun := sum.inr } } }
+
+def binary_coproduct_colimit (X Y : Profinite.{u}) :
+  limits.is_colimit (binary_coproduct_cocone X Y) :=
+{ desc := λ (s : limits.binary_cofan _ _),
+    { to_fun := sum.elim s.inl s.inr,
+      continuous_to_fun := continuous_sum_rec s.inl.continuous s.inr.continuous },
+  fac' := λ s j, by { ext x, cases j; refl },
+  uniq' := λ (s : limits.binary_cofan _ _) m w,
+  begin
+    ext (_ | _); dsimp,
+    { rw ←(show _ = s.inl, from w limits.walking_pair.left),
+      refl },
+    { rw ←(show _ = s.inr, from w limits.walking_pair.right),
+      refl },
+  end }
 
 variables {X Y : Profinite.{u}} (f : X ⟶ Y)
 

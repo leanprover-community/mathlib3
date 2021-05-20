@@ -103,10 +103,9 @@ begin
   repeat { norm_num }
 end
 
-
 lemma coeff_cyclotomic_105 : coeff (cyclotomic 105 ℤ) 7 = -2 :=
 begin
-  simp [cyclotomic_105, coeff_add, coeff_sub, coeff_X_pow, coeff_one, coeff_X_of_ne_one, mul_C_two]
+  simp [cyclotomic_105, coeff_X_pow, coeff_one, coeff_X_of_ne_one],
 end
 
 lemma not_forall_coeff_cyclotomic_neg_one_zero_one :

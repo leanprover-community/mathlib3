@@ -38,7 +38,9 @@ variables (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
 def Ext (n : ℕ) : Cᵒᵖ ⥤ C ⥤ Module R :=
 functor.flip
 { obj := λ Y, functor.left_derived ((linear_yoneda R C).obj Y) n,
-  map := λ Y Y' f, nat_trans.left_derived ((linear_yoneda R C).map f) n }
+  map := λ Y Y' f, nat_trans.left_derived ((linear_yoneda R C).map f) n,
+  map_id' := λ Y, by { rw category_theory.functor.map_id, apply nat_trans.left_derived_id, },
+  map_comp' := λ Y Y' Y'' f g, by { rw functor.map_comp, apply nat_trans.left_derived_comp, } }
 
 -- PROJECT we don't yet have injective resolutions and right derived functors
 -- (although this is only a copy-and-paste dualisation)

@@ -87,6 +87,12 @@ lemma has_subset.subset.trans {α : Type*} [has_subset α] [is_trans α (⊆)]
 lemma has_subset.subset.antisymm {α : Type*} [has_subset α] [is_antisymm α (⊆)]
   {a b : α} (h : a ⊆ b) (h': b ⊆ a) : a = b := antisymm h h'
 
+lemma has_ssubset.ssubset.trans {α : Type*} [has_ssubset α] [is_trans α (⊂)]
+  {a b c : α} (h : a ⊂ b) (h': b ⊂ c) : a ⊂ c := trans h h'
+
+lemma has_ssubset.ssubset.asymm {α : Type*} [has_ssubset α] [is_asymm α (⊂)]
+  {a b : α} (h : a ⊂ b) : ¬(b ⊂ a) := asymm h
+
 namespace set
 
 variable {α : Type*}

@@ -260,7 +260,7 @@ lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
 by rw [← mul_le_mul_iff_right' c, div_eq_mul_inv, inv_mul_cancel_right]
 
 /- The following lemmas are probably superfluous. From here... -/
-@[to_additive]
+@[to_additive sub_le_sub_right]
 lemma div_le_div_right'' (h : a ≤ b) (c : α) : a / c ≤ b / c :=
 (div_le_div_iff_right c).mpr h
 

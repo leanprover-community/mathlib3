@@ -69,13 +69,13 @@ end
 
 /-- For predicate `p` decidable on subsets, it is decidable whether `p` holds for any subset. -/
 instance decidable_exists_of_decidable_subsets {s : finset α} {p : Π t ⊆ s, Prop}
-  [hu : Π t (h : t ⊆ s), decidable (p t h)] : decidable (∃ t (h : t ⊆ s), p t h) :=
+  [Π t (h : t ⊆ s), decidable (p t h)] : decidable (∃ t (h : t ⊆ s), p t h) :=
 decidable_of_iff (∃ t (hs : t ∈ s.powerset), p t (mem_powerset.1 hs))
 ⟨(λ ⟨t, _, hp⟩, ⟨t, _, hp⟩), (λ ⟨t, hs, hp⟩, ⟨t, mem_powerset.2 hs, hp⟩)⟩
 
 /-- For predicate `p` decidable on subsets, it is decidable whether `p` holds for every subset. -/
 instance decidable_forall_of_decidable_subsets {s : finset α} {p : Π t ⊆ s, Prop}
-  [hu : Π t (h : t ⊆ s), decidable (p t h)] : decidable (∀ t (h : t ⊆ s), p t h) :=
+  [Π t (h : t ⊆ s), decidable (p t h)] : decidable (∀ t (h : t ⊆ s), p t h) :=
 decidable_of_iff (∀ t (h : t ∈ s.powerset), p t (mem_powerset.1 h))
 ⟨(λ h t hs, h t (mem_powerset.2 hs)), (λ h _ _, h _ _)⟩
 
@@ -108,13 +108,13 @@ by { rw [mem_ssubsets, ssubset_iff_subset_ne], exact ⟨empty_subset s, h.ne_emp
 
 /-- For predicate `p` decidable on ssubsets, it is decidable whether `p` holds for any ssubset. -/
 instance decidable_exists_of_decidable_ssubsets {s : finset α} {p : Π t ⊂ s, Prop}
-  [hu : Π t (h : t ⊂ s), decidable (p t h)] : decidable (∃ t h, p t h) :=
+  [Π t (h : t ⊂ s), decidable (p t h)] : decidable (∃ t h, p t h) :=
 decidable_of_iff (∃ t (hs : t ∈ s.ssubsets), p t (mem_ssubsets.1 hs))
 ⟨(λ ⟨t, _, hp⟩, ⟨t, _, hp⟩), (λ ⟨t, hs, hp⟩, ⟨t, mem_ssubsets.2 hs, hp⟩)⟩
 
 /-- For predicate `p` decidable on ssubsets, it is decidable whether `p` holds for every ssubset. -/
 instance decidable_forall_of_decidable_ssubsets {s : finset α} {p : Π t ⊂ s, Prop}
-  [hu : Π t (h : t ⊂ s), decidable (p t h)] : decidable (∀ t h, p t h) :=
+  [Π t (h : t ⊂ s), decidable (p t h)] : decidable (∀ t h, p t h) :=
 decidable_of_iff (∀ t (h : t ∈ s.ssubsets), p t (mem_ssubsets.1 h))
 ⟨(λ h t hs, h t (mem_ssubsets.2 hs)), (λ h _ _, h _ _)⟩
 

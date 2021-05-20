@@ -112,40 +112,37 @@ by rw [← linear_map_to_matrix_mul_basis_to_matrix c b c,
 
 /-- The determinant of an endomorphism given a basis.
 
-See `linear_map.det` for a version that does not depend on a choice of basis.
+See `linear_map.det` for a version that populates the basis non-computably.
 -/
-protected def det_aux (b : basis ι A M) (f : M →ₗ[A] M) : A :=
-matrix.det (linear_map.to_matrix b b f)
+def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
+trunc.lift
+  (λ b : basis ι A M,
+    (monoid_hom.of (matrix.det)).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
+  (λ b c, monoid_hom.ext $ det_to_matrix_eq_det_to_matrix b c)
 
--- Can't be `simp` because it would cause a loop.
+/-- Unfold lemma for `det_aux`.
+
+See also `det_aux_def'` which allows you to vary the basis.
+-/
 lemma det_aux_def (b : basis ι A M) (f : M →ₗ[A] M) :
-  linear_map.det_aux b f = matrix.det (linear_map.to_matrix b b f) :=
+  linear_map.det_aux (trunc.mk b) f = matrix.det (linear_map.to_matrix b b f) :=
 rfl
 
-lemma det_aux_eq [decidable_eq κ] (b : basis ι A M) (c : basis κ A M) :
-  linear_map.det_aux b = linear_map.det_aux c :=
-by { ext f, rw [det_aux_def, det_aux_def, det_to_matrix_eq_det_to_matrix b c] }
+attribute [irreducible] linear_map.det_aux
 
-lemma det_aux_reindex_range [decidable_eq M] (b : basis ι A M) :
-  linear_map.det_aux b.reindex_range = linear_map.det_aux b :=
-det_aux_eq b.reindex_range b
-
-@[simp]
-lemma det_aux_id (b : basis ι A M) : linear_map.id.det_aux b = 1 :=
-by rw [det_aux_def, to_matrix_id, det_one]
+lemma det_aux_def' {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  (tb : trunc $ basis ι A M) (b' : basis ι' A M) (f : M →ₗ[A] M) :
+  linear_map.det_aux tb f = matrix.det (linear_map.to_matrix b' b' f) :=
+by { apply trunc.induction_on tb, intro b, rw [det_aux_def, det_to_matrix_eq_det_to_matrix b b'] }
 
 @[simp]
-lemma det_aux_one (b : basis ι A M) : linear_map.det_aux b 1 = 1 := det_aux_id b
+lemma det_aux_id (b : trunc $ basis ι A M) : linear_map.det_aux b (linear_map.id) = 1 :=
+(linear_map.det_aux b).map_one
 
 @[simp]
-lemma det_aux_comp (b : basis ι A M) (f g : M →ₗ[A] M) :
-  (f.comp g).det_aux b = f.det_aux b * g.det_aux b :=
-by rw [det_aux_def, to_matrix_comp b b b, det_mul, det_aux_def, det_aux_def]
-
-@[simp]
-lemma det_aux_mul (b : basis ι A M) (f g : M →ₗ[A] M) :
-  (f * g).det_aux b = f.det_aux b * g.det_aux b :=
-det_aux_comp b f g
+lemma det_aux_comp (b : trunc $ basis ι A M) (f g : M →ₗ[A] M) :
+  linear_map.det_aux b (f.comp g) = linear_map.det_aux b f * linear_map.det_aux b g :=
+(linear_map.det_aux b).map_mul f g
 
 section
 open_locale classical
@@ -156,21 +153,21 @@ If there is no finite basis on `M`, the result is `1` instead.
 -/
 protected def det : (M →ₗ[A] M) →* A :=
 if H : ∃ (s : set M) (b : basis s A M), s.finite
-then { to_fun := @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some,
-       map_one' := @det_aux_one _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some,
-       map_mul' := @det_aux_mul _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some }
+then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ (trunc.mk H.some_spec.some)
 else 1
 
 lemma coe_det [decidable_eq M] : ⇑(linear_map.det : (M →ₗ[A] M) →* A) =
   if H : ∃ (s : set M) (b : basis s A M), s.finite
-  then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some
+  then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ (trunc.mk H.some_spec.some)
   else 1 :=
 by { ext, unfold linear_map.det,
-     split_ifs;
-       simp only [monoid_hom.coe_mk, monoid_hom.one_apply];
-       congr } -- use the correct `decidable_eq` instance
+     split_ifs,
+     { congr }, -- use the correct `decidable_eq` instance
+     refl }
 
 end
+
+attribute [irreducible] linear_map.det
 
 -- Auxiliary lemma, the `simp` normal form goes in the other direction
 -- (using `linear_map.det_to_matrix`)
@@ -179,14 +176,14 @@ lemma det_eq_det_to_matrix_of_finite_set [decidable_eq M]
   f.det = matrix.det (linear_map.to_matrix b b f) :=
 have ∃ (s : set M) (b : basis s A M), s.finite,
 from ⟨s, b, ⟨hs⟩⟩,
-by rw [linear_map.coe_det, dif_pos, det_aux_eq _ b, det_aux_def]; assumption
+by rw [linear_map.coe_det, dif_pos, det_aux_def' _ b]; assumption
 
 @[simp] lemma det_to_matrix
   (b : basis ι A M) (f : M →ₗ[A] M) :
   matrix.det (to_matrix b b f) = f.det :=
 by { haveI := classical.dec_eq M,
      rw [det_eq_det_to_matrix_of_finite_set b.reindex_range (set.fintype_range _),
-         ← det_aux_def, ← det_aux_def, det_aux_eq b.reindex_range b] }
+         det_to_matrix_eq_det_to_matrix b] }
 
 @[simp]
 lemma det_comp (f g : M →ₗ[A] M) : (f.comp g).det = f.det * g.det :=

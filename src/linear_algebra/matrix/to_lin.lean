@@ -307,7 +307,7 @@ linear_map.to_matrix_id v₁
 lemma matrix.to_lin_one : matrix.to_lin v₁ v₁ 1 = id :=
 by rw [← linear_map.to_matrix_id v₁, matrix.to_lin_to_matrix]
 
-theorem linear_map.to_matrix_reindex_range [nontrivial R] [decidable_eq M₁] [decidable_eq M₂]
+theorem linear_map.to_matrix_reindex_range [decidable_eq M₁] [decidable_eq M₂]
   (f : M₁ →ₗ[R] M₂) (k : m) (i : n) :
   linear_map.to_matrix v₁.reindex_range v₂.reindex_range f
       ⟨v₂ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
@@ -407,7 +407,7 @@ by simp_rw [linear_map.to_matrix_alg_equiv, alg_equiv.of_linear_equiv_apply,
 lemma matrix.to_lin_alg_equiv_one : matrix.to_lin_alg_equiv v₁ 1 = id :=
 by rw [← linear_map.to_matrix_alg_equiv_id v₁, matrix.to_lin_alg_equiv_to_matrix_alg_equiv]
 
-theorem linear_map.to_matrix_alg_equiv_reindex_range [nontrivial R] [decidable_eq M₁]
+theorem linear_map.to_matrix_alg_equiv_reindex_range [decidable_eq M₁]
   (f : M₁ →ₗ[R] M₁) (k i : n) :
   linear_map.to_matrix_alg_equiv v₁.reindex_range f
       ⟨v₁ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
@@ -440,7 +440,7 @@ section lmul
 variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
 variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
 variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
-variables (b : basis m R S) (c : basis m S T)
+variables (b : basis m R S) (c : basis n S T)
 
 open algebra
 
@@ -492,9 +492,9 @@ lemma left_mul_matrix_injective : function.injective (left_mul_matrix b) :=
              ... = algebra.lmul R S x' 1 : by rw (linear_map.to_matrix b b).injective h
              ... = x' : mul_one x'
 
-lemma smul_left_mul_matrix (x) (i j) (k k') :
-  left_mul_matrix (b.smul c) x (i, k) (j, k') =
-    left_mul_matrix b (left_mul_matrix c x k k') i j :=
+lemma smul_left_mul_matrix (x) (ik jk) :
+  left_mul_matrix (b.smul c) x ik jk =
+    left_mul_matrix b (left_mul_matrix c x ik.2 jk.2) ik.1 jk.1 :=
 by simp only [left_mul_matrix_apply, linear_map.to_matrix_apply, mul_comm, basis.smul_apply,
               basis.smul_repr, finsupp.smul_apply, algebra.lmul_apply, id.smul_eq_mul,
               linear_equiv.map_smul, mul_smul_comm]

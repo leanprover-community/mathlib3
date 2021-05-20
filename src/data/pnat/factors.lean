@@ -286,7 +286,7 @@ begin
         prime_multiset.add_sub_of_le h, prod_factor_multiset] },
   { intro  h,
     rw [← mul_div_exact h, factor_multiset_mul],
-    exact le_add_right (le_refl _) }
+    exact le_self_add }
 end
 
 theorem factor_multiset_le_iff' {m : ℕ+} {v : prime_multiset}:

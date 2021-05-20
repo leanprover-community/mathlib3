@@ -180,7 +180,7 @@ begin
   { haveI := h,
     obtain ⟨u, hu⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
       (partial_sections F) (partial_sections.directed F) (partial_sections.nonempty F)
-      (λ j, is_closed.compact (partial_sections.closed F j)) (partial_sections.closed F),
+      (λ j, is_closed.is_compact (partial_sections.closed F j)) (partial_sections.closed F),
     use u,
     intros j j' f,
     specialize hu (partial_sections F j),

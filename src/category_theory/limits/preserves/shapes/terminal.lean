@@ -75,18 +75,35 @@ def creates_initial_of_creates_colimit_empty [creates_colimit (functor.empty C) 
 
 variables (X : C)
 
+/-- A cone for a functor from the empty category is a limit iff the cone point is terminal. -/
+def is_limit_cone_equiv_is_terminal {F : discrete pempty ⥤ C} (c : cone F) :
+  is_limit c ≃ is_terminal c.X :=
+(is_limit.postcompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
+  (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by tidy)))
+
 /--
 The map of an empty cone is a limit iff the mapped object is terminal.
 -/
 def is_limit_map_cone_empty_cone_equiv :
   is_limit (G.map_cone (as_empty_cone X)) ≃ is_terminal (G.obj X) :=
-(is_limit.postcompose_hom_equiv (functor.empty_ext _ _) _).symm.trans
-  (is_limit.equiv_iso_limit (cones.ext (iso.refl _) (by tidy)))
+is_limit_cone_equiv_is_terminal (G.map_cone (as_empty_cone X))
 
 /-- The property of preserving terminal objects expressed in terms of `is_terminal`. -/
 def is_terminal_obj_of_is_terminal [preserves_terminal G]
   (l : is_terminal X) : is_terminal (G.obj X) :=
 is_limit_map_cone_empty_cone_equiv G X (preserves_limit.preserves l)
+
+/-- Show that `G` preserves terminal objects in terms of `is_terminal`. -/
+-- TODO: reflects version
+def preserves_terminal_of_is_terminal_obj (h : ∀ X, is_terminal X → is_terminal (G.obj X)) :
+  preserves_terminal G :=
+begin
+  apply preserves_terminal_of_preserves_limit_empty _,
+  refine ⟨λ c t, _⟩,
+  refine (is_limit_cone_equiv_is_terminal _).symm _,
+  refine h _ _,
+  apply is_limit_cone_equiv_is_terminal _ t,
+end
 
 /-- The property of reflecting terminal objects expressed in terms of `is_terminal`. -/
 def is_terminal_of_is_terminal_obj [reflects_terminal G]

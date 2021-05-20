@@ -504,7 +504,7 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
   begin
     /- let `B n` be a compact exhaustion of the space, and let `C n = B n \ B (n-1)`. Consider a
     measurable set `A`. Then `A ∩ C n` is a set of finite measure, that can be approximated by an
-    open set  `U n` (by using the fact that the measure restricted to `B (n+1)` is finite, and
+    open set `U n` (by using the fact that the measure restricted to `B (n+1)` is finite, and
     therefore weakly regular). The union of the `U n` is an open set containing `A`, with measure
     arbitrarily close to that of `A`.
     -/
@@ -597,7 +597,7 @@ begin
     convert μU.trans_le le_top,
     simp_rw [inner_regular_eq U_open, supr_and', supr_subtype'] },
   obtain ⟨K, K_compact, KU, μK⟩ : ∃ (K : set α) (_ : is_compact K) (_ : K ⊆ U), μ U < μ K + δ,
-    by simpa only [lt_supr_iff] using this, clear this,
+    by simpa only [lt_supr_iff] using this,
   -- construct `F` approximating `A` from inside.
   have : μ A < ⨆ (F : set α) (h : is_closed F) (h2 : F ⊆ A), (μ F + δ),
   { haveI : nonempty {F // is_closed F ∧ F ⊆ A} := ⟨⟨∅, is_closed_empty, empty_subset _⟩⟩,
@@ -607,7 +607,7 @@ begin
     convert h'A,
     simp_rw [weakly_regular.inner_regular_eq_of_measure_lt_top hA h'A, supr_and', supr_subtype'] },
   obtain ⟨F, F_closed, FA, μF⟩ : ∃ (F : set α) (_ : is_closed F) (_ : F ⊆ A), μ A < μ F + δ,
-    by simpa only [lt_supr_iff] using this, clear this,
+    by simpa only [lt_supr_iff] using this,
   -- show that `F ∩ K` approximates `A` from inside.
   have : μ A ≤ μ (F ∩ K) + ε := calc
     μ A ≤ μ F + δ : μF.le

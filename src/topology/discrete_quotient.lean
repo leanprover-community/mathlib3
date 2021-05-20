@@ -284,7 +284,7 @@ lemma exists_of_compat [compact_space X] (Qs : Π (Q : discrete_quotient X), Q)
 begin
   obtain ⟨x,hx⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
     (λ (Q : discrete_quotient X), Q.proj ⁻¹' {Qs _}) (λ A B, _) (λ i, _)
-    (λ i, is_closed.compact (fiber_closed _ _)) (λ i, fiber_closed _ _),
+    (λ i,  (fiber_closed _ _).is_compact) (λ i, fiber_closed _ _),
   { refine ⟨x, λ Q, _⟩,
     specialize hx _ ⟨Q,rfl⟩,
     dsimp at hx,
@@ -309,7 +309,7 @@ end
 noncomputable instance [compact_space X] : fintype S :=
 begin
   have cond : is_compact (⊤ : set X) := compact_univ,
-  rw compact_iff_finite_subcover at cond,
+  rw is_compact_iff_finite_subcover at cond,
   have h := @cond S (λ s, S.proj ⁻¹' {s}) (λ s, fiber_open _ _)
     (λ x hx, ⟨S.proj ⁻¹' {S.proj x}, ⟨S.proj x, rfl⟩, rfl⟩),
   let T := classical.some h,

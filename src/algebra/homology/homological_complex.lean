@@ -54,13 +54,26 @@ structure homological_complex (c : complex_shape ι) :=
 (X : ι → V)
 (d : Π i j, X i ⟶ X j)
 (shape' : ∀ i j, ¬ c.rel i j → d i j = 0 . obviously)
-(d_comp_d' : ∀ i j k, d i j ≫ d j k = 0 . obviously)
+(d_comp_d' : ∀ i j k, c.rel i j → c.rel j k → d i j ≫ d j k = 0 . obviously)
 
-restate_axiom homological_complex.shape'
-restate_axiom homological_complex.d_comp_d'
+namespace homological_complex
 
-attribute [simp] homological_complex.shape
-attribute [simp, reassoc] homological_complex.d_comp_d
+restate_axiom shape'
+attribute [simp] shape
+
+variables {V} {c : complex_shape ι}
+
+@[simp, reassoc] lemma d_comp_d (C : homological_complex V c) (i j k : ι) :
+  C.d i j ≫ C.d j k = 0 :=
+begin
+  by_cases hij : c.rel i j,
+  { by_cases hjk : c.rel j k,
+    { exact C.d_comp_d' i j k hij hjk },
+    { rw [C.shape j k hjk, comp_zero] } },
+  { rw [C.shape i j hij, zero_comp] }
+end
+
+end homological_complex
 
 /--
 An `α`-indexed chain complex is a `homological_complex`
@@ -125,10 +138,16 @@ commuting with the differentials.
 -/
 @[ext] structure hom (A B : homological_complex V c) :=
 (f : ∀ i, A.X i ⟶ B.X i)
-(comm' : ∀ i j, f i ≫ B.d i j = A.d i j ≫ f j . obviously)
+(comm' : ∀ i j, c.rel i j → f i ≫ B.d i j = A.d i j ≫ f j . obviously)
 
-restate_axiom hom.comm'
-attribute [simp, reassoc] hom.comm
+@[simp, reassoc]
+lemma hom.comm {A B : homological_complex V c} (f : A.hom B) (i j : ι) :
+  f.f i ≫ B.d i j = A.d i j ≫ f.f j :=
+begin
+  by_cases hij : c.rel i j,
+  { exact f.comm' i j hij },
+  rw [A.shape i j hij, B.shape i j hij, comp_zero, zero_comp],
+end
 
 instance (A B : homological_complex V c) : inhabited (hom A B) :=
 ⟨{ f := λ i, 0 }⟩
@@ -499,13 +518,11 @@ def of (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n =
   else
     0,
   shape' := λ i j w, by rw dif_neg (ne.symm w),
-  d_comp_d' := λ i j k,
+  d_comp_d' := λ i j k hij hjk,
   begin
-    split_ifs with h h' h',
-    { substs h h',
-      simp only [category.id_comp, eq_to_hom_refl],
-      exact sq k },
-    all_goals { simp },
+    dsimp at hij hjk, substs hij hjk,
+    simp only [category.id_comp, dif_pos rfl, eq_to_hom_refl],
+    exact sq k,
   end }
 
 variables (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0)
@@ -658,10 +675,8 @@ def mk_hom : P ⟶ Q :=
 { f := λ n, (mk_hom_aux P Q zero one one_zero_comm succ n).1,
   comm' := λ n m,
   begin
-    by_cases h : m + 1 = n,
-    { subst h,
-      exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2 },
-    { rw [P.shape n m h, Q.shape n m h], simp }
+    rintro (rfl : m + 1 = n),
+    exact (mk_hom_aux P Q zero one one_zero_comm succ m).2.2,
   end }
 
 @[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl
@@ -853,10 +868,8 @@ def mk_hom : P ⟶ Q :=
 { f := λ n, (mk_hom_aux P Q zero one one_zero_comm succ n).1,
   comm' := λ n m,
   begin
-    by_cases h : n + 1 = m,
-    { subst h,
-      exact (mk_hom_aux P Q zero one one_zero_comm succ n).2.2 },
-    { rw [P.shape n m h, Q.shape n m h], simp }
+    rintro (rfl : n + 1 = m),
+    exact (mk_hom_aux P Q zero one one_zero_comm succ n).2.2,
   end }
 
 @[simp] lemma mk_hom_f_0 : (mk_hom P Q zero one one_zero_comm succ).f 0 = zero := rfl

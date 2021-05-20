@@ -509,7 +509,7 @@ begin
     intros ε hε,
     have aux : 0 < (ε / c) := div_pos hε hc,
     obtain ⟨x, rfl, Hx⟩ : ∃ x', S.normed_mk x' = x ∧ ∥x'∥ < ∥x∥ + (ε / c) :=
-      (add_subgroup.is_quotient_quotient _).norm_lift aux _,
+      (is_quotient_quotient _).norm_lift aux _,
     rw lift_mk,
     calc ∥f x∥ ≤ c * ∥x∥ : fb x
           ... ≤ c * (∥S.normed_mk x∥ + ε / c) : (mul_le_mul_left _).mpr Hx.le

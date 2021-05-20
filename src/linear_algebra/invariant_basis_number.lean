@@ -134,10 +134,8 @@ instance noetherian_ring_rank_condition : rank_condition R :=
 ⟨begin
   intros n m f fs,
   by_contradiction h,
-  simp only [not_le] at h,
-  change n + 1 ≤ m at h,
-  obtain ⟨m, rfl⟩ := le_iff_exists_add.mp h,
-  clear h,
+  rw [not_le, ←nat.add_one_le_iff, le_iff_exists_add] at h,
+  obtain ⟨m, rfl⟩ := h,
   -- Let `g` be the projection map discarding the last `n` coordinates.
   let g : (fin ((n + 1) + m) → R) →ₗ[R] (fin n → R) :=
     linear_map.fun_left R R ((fin.cast_add 1).trans (fin.cast_add m)),

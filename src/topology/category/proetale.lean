@@ -153,6 +153,7 @@ def preserves_binary_products_of_is_proetale_sheaf (hP : presieve.is_sheaf proet
   P.preserves_binary_products :=
 begin
   rw [proetale_topology, presieve.is_sheaf_pretopology] at hP,
+  apply preserves_binary_products_of_preserves_binary_product,
 
   -- apply preserves_terminal_of_is_terminal_obj,
   -- apply terminal_op_of_initial Profinite.initial_pempty,

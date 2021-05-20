@@ -44,13 +44,13 @@ abbreviation preserves_binary_coproducts := preserves_colimits_of_shape (discret
 abbreviation reflects_binary_coproducts := reflects_colimits_of_shape (discrete walking_pair) G
 abbreviation creates_binary_coproducts := creates_colimits_of_shape (discrete walking_pair) G
 
+end functor
+
 -- TODO: make reflects/creates versions and dualise this
 def preserves_binary_products_of_preserves_binary_product
   [∀ X Y, G.preserves_binary_product X Y] :
   G.preserves_binary_products :=
 { preserves_limit := λ K, preserves_limit_of_iso_diagram G (diagram_iso_pair K).symm }
-
-end functor
 
 example [G.preserves_binary_products] (X Y : C) : G.preserves_binary_product X Y := infer_instance
 
@@ -207,3 +207,4 @@ end
 end
 
 end limits
+end category_theory

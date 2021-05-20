@@ -167,7 +167,7 @@ begin
     { rw [not_not] at hi, rwa mul_zero } },
 end
 
-@[simp] lemma coeff_bit0_mul (P Q : polynomial R) (n : ℕ) :
+lemma coeff_bit0_mul (P Q : polynomial R) (n : ℕ) :
   coeff (bit0 P * Q) n = 2 * coeff (P * Q) n :=
 by simp [bit0, add_mul]
 

@@ -1465,8 +1465,7 @@ namespace submodule
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
 
--- It is even a semialgebra.
--- This wasn't previously possible to state in mathlib, as we didn't have them, but we do now.
+-- TODO: show `[algebra R A] : algebra (ideal R) A` too
 
 instance module_submodule : module (ideal R) (submodule R M) :=
 { smul_add := smul_sup,

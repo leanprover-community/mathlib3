@@ -204,7 +204,7 @@ begin
 end
 
 instance : finite_dimensional (fixed_points G F) F :=
-finite_dimensional.finite_dimensional_iff_dim_lt_omega.2 $
+is_noetherian.iff_dim_lt_omega.2 $
 lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
 
 lemma finrank_le_card : finrank (fixed_points G F) F ≤ fintype.card G :=

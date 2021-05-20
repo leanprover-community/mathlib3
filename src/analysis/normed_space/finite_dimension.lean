@@ -81,7 +81,7 @@ begin
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { apply linear_map.continuous_of_bound _ 0 (λx, _),
     have : ξ.equiv_fun x = 0,
-      by { ext i, exact (fintype.card_eq_zero_iff.1 hn i).elim },
+      by { ext i, exact (fintype.card_eq_zero_iff.1 hn).elim i },
     change ∥ξ.equiv_fun x∥ ≤ 0 * ∥x∥,
     rw this,
     simp [norm_nonneg] },

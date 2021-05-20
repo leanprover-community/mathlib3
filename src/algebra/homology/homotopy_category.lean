@@ -29,8 +29,7 @@ The congruence on `homological_complex V c` given by the existence of a homotopy
 -/
 def homotopic : hom_rel (homological_complex V c) := λ C D f g, nonempty (homotopy f g)
 
-instance homotopy_congruence :
-  congruence (homotopic V c) :=
+instance homotopy_congruence : congruence (homotopic V c) :=
 { is_equiv := λ C D,
   { refl := λ C, ⟨homotopy.refl C⟩,
     symm := λ f g ⟨w⟩, ⟨w.symm⟩,
@@ -38,13 +37,10 @@ instance homotopy_congruence :
   comp_left := λ E F G m₁ m₂ g ⟨i⟩, ⟨i.comp_left _⟩,
   comp_right := λ E F G f m₁ m₂ ⟨i⟩, ⟨i.comp_right _⟩, }
 
-/--
-`homotopy_category V c` is the category of chain complexes of shape `c` in `V`,
-with chain maps identified when they are homotopic.
--/
+/-- `homotopy_category V c` is the category of chain complexes of shape `c` in `V`,
+with chain maps identified when they are homotopic. -/
 @[derive category]
-def homotopy_category :=
-category_theory.quotient (homotopic V c)
+def homotopy_category := category_theory.quotient (homotopic V c)
 
 -- TODO the homotopy_category is preadditive
 

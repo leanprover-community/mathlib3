@@ -223,7 +223,7 @@ begin
   rcases hc₂ with ⟨v, hv₁, hv₂⟩,
   let k := closure (image2 ϕ v s),
   have hk : is_compact (k \ n) :=
-    compact_diff (compact_of_is_closed_subset hc₁ is_closed_closure hv₂) hn₁,
+    is_compact.diff (compact_of_is_closed_subset hc₁ is_closed_closure hv₂) hn₁,
   let j := λ u, (closure (image2 ϕ (u ∩ v) s))ᶜ,
   have hj₁ : ∀ u ∈ f, is_open (j u), from
     λ _ _, (is_open_compl_iff.mpr is_closed_closure),

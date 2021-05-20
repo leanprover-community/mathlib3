@@ -43,7 +43,7 @@ lemma empty_left (a : set α) : separated ∅ a :=
 
 lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
 λ ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
-  ⟨U ∪ W, V ∩ X, is_open_union oU oW, is_open_inter oV oX,
+  ⟨U ∪ W, V ∩ X, is_open.union oU oW, is_open.inter oV oX,
     union_subset_union aU aW, subset_inter bV bX, set.disjoint_union_left.mpr
     ⟨disjoint_of_subset_right (inter_subset_left _ _) UV,
       disjoint_of_subset_right (inter_subset_right _ _) WX⟩⟩
@@ -73,7 +73,7 @@ begin
       have uvne : (V ∩ Uᶜ).nonempty,
       { use w, simp only [hw, hw', set.mem_inter_eq, not_false_iff, and_self, set.mem_compl_eq], },
       specialize hV (V ∩ Uᶜ) (set.inter_subset_left _ _) uvne
-        (is_closed_inter Vcls (is_closed_compl_iff.mpr hU)),
+        (is_closed.inter Vcls (is_closed_compl_iff.mpr hU)),
       have : V ⊆ Uᶜ,
       { rw ←hV, exact set.inter_subset_right _ _ },
       exact this hz hz', },
@@ -109,7 +109,7 @@ begin
     obtain ⟨z, hzs, hz⟩ : ∃ z ∈ s.filter (λ z, z ∈ U), is_open ({z} : set α),
     { refine ihs _ (finset.filter_ssubset.2 ⟨y, hy, H.2⟩) ⟨x, finset.mem_filter.2 ⟨hx, H.1⟩⟩ _,
       rw [finset.coe_filter],
-      exact is_open_inter hso hU },
+      exact is_open.inter hso hU },
     exact ⟨z, (finset.mem_filter.1 hzs).1, hz⟩ }
 end
 
@@ -621,7 +621,7 @@ by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
 lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
-    compact_compact_separated hs (compact_singleton : is_compact {x})
+    compact_compact_separated hs (is_compact_singleton : is_compact {x})
       (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in
   have v ⊆ sᶜ, from
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
@@ -650,15 +650,15 @@ lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_co
   (hU : is_open U) (hV : is_open V) (h2K : K ⊆ U ∪ V) :
   ∃ K₁ K₂ : set α, is_compact K₁ ∧ is_compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
 begin
-  rcases compact_compact_separated (compact_diff hK hU) (compact_diff hK hV)
+  rcases compact_compact_separated (hK.diff hU) (hK.diff hV)
     (by rwa [diff_inter_diff, diff_eq_empty]) with ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩,
-  refine ⟨_, _, compact_diff hK h1O₁, compact_diff hK h1O₂,
+  refine ⟨_, _, hK.diff h1O₁, hK.diff h1O₂,
     by rwa [diff_subset_comm], by rwa [diff_subset_comm], by rw [← diff_inter, hO, diff_empty]⟩
 end
 
 lemma continuous.is_closed_map [compact_space α] [t2_space β] {f : α → β} (h : continuous f) :
   is_closed_map f :=
-λ s hs, (hs.compact.image h).is_closed
+λ s hs, (hs.is_compact.image h).is_closed
 
 lemma continuous.closed_embedding [compact_space α] [t2_space β] {f : α → β} (h : continuous f)
   (hf : function.injective f) : closed_embedding f :=
@@ -673,7 +673,7 @@ lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compac
 begin
   classical,
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
-  { refine ⟨λ _, ∅, λ i, compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
+  { refine ⟨λ _, ∅, λ i, is_compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
       finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
   simp only [finset.set_bUnion_insert] at hsC,
   simp only [finset.mem_insert] at hU,
@@ -702,7 +702,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
   -- we may find open sets V, W separating x from K \ U.
   -- Then K \ W is a compact neighborhood of x contained in U.
   let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
-    compact_compact_separated compact_singleton (compact_diff kc uo)
+    compact_compact_separated is_compact_singleton (is_compact.diff kc uo)
       (by rw [singleton_inter_eq_empty]; exact λ h, h.2 xu) in
   have wn : wᶜ ∈ 𝓝 x, from
    mem_nhds_sets_iff.mpr
@@ -710,7 +710,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
   ⟨k \ w,
    filter.inter_mem_sets kx wn,
    subset.trans (diff_subset_comm.mp kuw) un,
-   compact_diff kc wo⟩⟩
+   kc.diff wo⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_compact [t2_space α] [compact_space α] : locally_compact_space α :=
@@ -851,7 +851,7 @@ lemma normal_of_compact_t2 [compact_space α] [t2_space α] : normal_space α :=
 begin
   refine ⟨assume s t hs ht st, _⟩,
   simp only [disjoint_iff],
-  exact compact_compact_separated hs.compact ht.compact st.eq_bot
+  exact compact_compact_separated hs.is_compact ht.is_compact st.eq_bot
 end
 
 end normality
@@ -914,7 +914,7 @@ begin
   -- Now we find the required Z. We utilize the fact that X \ u ∪ v will be compact,
   -- so there must be some finite intersection of clopen neighbourhoods of X disjoint to it,
   -- but a finite intersection of clopen sets is clopen so we let this be our Z.
-  have H1 := ((is_closed_compl_iff.2 (is_open_union hu hv)).compact.inter_Inter_nonempty
+  have H1 := ((is_closed_compl_iff.2 (is_open.union hu hv)).is_compact.inter_Inter_nonempty
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),
@@ -941,7 +941,7 @@ begin
   -- write ⟦b⟧ as the intersection of all clopen subsets containing it
   rw [connected_component_eq_Inter_clopen, disjoint_iff_inter_eq_empty, inter_comm] at h,
   -- Now we show that this can be reduced to some clopen containing ⟦b⟧ being disjoint to ⟦a⟧
-  cases is_closed_connected_component.compact.elim_finite_subfamily_closed _ _ h
+  cases is_closed_connected_component.is_compact.elim_finite_subfamily_closed _ _ h
     with fin_a ha,
   swap, { exact λ Z, Z.2.1.2 },
   set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), ↑i) with hU,
@@ -955,7 +955,7 @@ begin
     (connected_components_preimage_image U ▸ eq.symm) hu_clopen.eq_union_connected_components,
   have huc : quotient.mk ⁻¹' (quotient.mk '' Uᶜ) = Uᶜ :=
     (connected_components_preimage_image Uᶜ ▸ eq.symm)
-      (is_clopen_compl hu_clopen).eq_union_connected_components,
+      (is_clopen.compl hu_clopen).eq_union_connected_components,
   -- showing that U and Uᶜ are open and separates ⟦a⟧ and ⟦b⟧
   refine ⟨_,_,_,_,_⟩,
   { rw [(quotient_map_iff.1 quotient_map_quotient_mk).2 _, hu],

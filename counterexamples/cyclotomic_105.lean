@@ -98,7 +98,7 @@ begin
   rw proper_divisors_105,
   repeat {rw finset.prod_insert _},
   rw [finset.prod_singleton, cyclotomic_one, cyclotomic_3, cyclotomic_5, cyclotomic_7,
-    cyclotomic_15, cyclotomic_21, cyclotomic_35],
+    cyclotomic_15, cyclotomic_21, cyclotomic_35, coeff_bit0_mul, coeff_bit1_mul],
   ring,
   repeat { norm_num }
 end

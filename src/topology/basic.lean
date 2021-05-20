@@ -584,13 +584,13 @@ begin
     exact ⟨mem_nhds_sets s_op a_in, s_op⟩ },
 end
 
-/-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:
+/-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of `s`:
 it contains an open set containing `s`. -/
 lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
   ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
 begin
   have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
-  choose! Z hZ hZ'  using this,
+  choose! Z hZ hZ' using this,
   refine ⟨⋃ x ∈ s, Z x, _, _, bUnion_subset hZ'⟩,
   { intros x hx,
     simp only [mem_Union],

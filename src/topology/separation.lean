@@ -956,7 +956,7 @@ lemma nhds_basis_clopen (x : α) : (𝓝 x).has_basis (λ s : set α, x ∈ s �
     have hNcl : ∀ Z : N, is_closed Z.val := (λ Z, Z.property.1.2),
     have hdir : directed superset (λ Z : N, Z.val),
     { rintros ⟨s, hs, hxs⟩ ⟨t, ht, hxt⟩,
-    exact ⟨⟨s ∩ t, hs.inter ht, ⟨hxs, hxt⟩⟩, inter_subset_left s t, inter_subset_right s t⟩ },
+      exact ⟨⟨s ∩ t, hs.inter ht, ⟨hxs, hxt⟩⟩, inter_subset_left s t, inter_subset_right s t⟩ },
     have h_nhd: ∀ y ∈ (⋂ Z : N, Z.val), U ∈ 𝓝 y,
     { intros y y_in,
       erw [this, mem_singleton_iff] at y_in,

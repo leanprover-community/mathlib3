@@ -404,7 +404,7 @@ lemma mul_inv_le_mul_inv_left (h : a ≤ b) (c : α) : c * b⁻¹ ≤ c * a⁻¹
 (mul_inv_le_mul_inv_iff_left c).mpr h
 
 /- The following lemma is probably superfluous. -/
-@[to_additive]
+@[to_additive sub_le_sub_left]
 lemma div_le_div_left'' (h : a ≤ b) (c : α) : c / b ≤ c / a :=
 (div_le_div_iff_left c).2 h
 

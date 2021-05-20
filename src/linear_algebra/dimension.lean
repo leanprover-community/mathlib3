@@ -168,6 +168,32 @@ cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype.val_injective⟩ s
 H _ (by { refine (of_vector_space_index.linear_independent K V).mono (λ y h, _),
           rw [finset.mem_coe, finset.mem_map] at h, rcases h with ⟨x, hx, rfl⟩, exact x.2 }))
 
+/-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
+lemma basis.nonempty_fintype_index_of_dim_lt_omega {ι : Type*}
+  (b : basis ι K V) (h : module.rank K V < cardinal.omega) :
+  nonempty (fintype ι) :=
+by rwa [← cardinal.lift_lt, ← b.mk_eq_dim,
+        -- ensure `omega` has the correct universe
+        cardinal.lift_omega, ← cardinal.lift_omega.{u_1 v},
+        cardinal.lift_lt, cardinal.lt_omega_iff_fintype] at h
+
+/-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
+noncomputable def basis.fintype_index_of_dim_lt_omega {ι : Type*}
+  (b : basis ι K V) (h : module.rank K V < cardinal.omega) :
+  fintype ι :=
+classical.choice (b.nonempty_fintype_index_of_dim_lt_omega h)
+
+/-- If a vector space has a finite dimension, all bases are indexed by a finite set. -/
+lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
+  (b : basis s K V) (h : module.rank K V < cardinal.omega) :
+  s.finite :=
+b.nonempty_fintype_index_of_dim_lt_omega h
+
+/-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
+lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < cardinal.omega) :
+  (basis.of_vector_space_index K V).finite :=
+(basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
+
 variables [add_comm_group V'] [module K V']
 
 /-- Two linearly equivalent vector spaces have the same dimension, a version with different
@@ -484,32 +510,6 @@ end
 lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s) :
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
-
-/-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
-lemma basis.nonempty_fintype_index_of_dim_lt_omega {ι : Type*}
-  (b : basis ι K V) (h : module.rank K V < cardinal.omega) :
-  nonempty (fintype ι) :=
-by rwa [← cardinal.lift_lt, ← b.mk_eq_dim,
-        -- ensure `omega` has the correct universe
-        cardinal.lift_omega, ← cardinal.lift_omega.{u_1 v},
-        cardinal.lift_lt, cardinal.lt_omega_iff_fintype] at h
-
-/-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
-noncomputable def basis.fintype_index_of_dim_lt_omega {ι : Type*}
-  (b : basis ι K V) (h : module.rank K V < cardinal.omega) :
-  fintype ι :=
-classical.choice (b.nonempty_fintype_index_of_dim_lt_omega h)
-
-/-- If a vector space has a finite dimension, all bases are indexed by a finite set. -/
-lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
-  (b : basis s K V) (h : module.rank K V < cardinal.omega) :
-  s.finite :=
-b.nonempty_fintype_index_of_dim_lt_omega h
-
-/-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
-lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < cardinal.omega) :
-  (basis.of_vector_space_index K V).finite :=
-(basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
 
 section rank
 

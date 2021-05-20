@@ -627,6 +627,15 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
+/-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
+`⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact` where we
+don't need to assume each `V i` closed because it follows from compactness since `α` is
+assumed to be Hausdorff. -/
+lemma exists_subset_nhd_of_compact [t2_space α] {ι : Type*} [nonempty ι] {V : ι → set α}
+  (hV : directed (⊇) V) (hV_cpct : ∀ i, is_compact (V i)) {U : set α}
+  (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
+exists_subset_nhd_of_compact' hV hV_cpct (λ i, (hV_cpct i).is_closed) hU
+
 lemma compact_exhaustion.is_closed [t2_space α] (K : compact_exhaustion α) (n : ℕ) :
   is_closed (K n) :=
 (K.is_compact n).is_closed

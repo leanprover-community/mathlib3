@@ -395,8 +395,8 @@ is_compact_singleton.union hs
 
 /-- If `V : ι → set α` is a decreasing family of closed compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. We assume each `V i` is compact *and* closed because `α` is
-not assumed to be Hausdorff. -/
-lemma exists_subset_nhd_of_compact {ι : Type*} [nonempty ι] {V : ι → set α} (hV : directed (⊇) V)
+not assumed to be Hausdorff. See `exists_subset_nhd_of_compact` for version assuming this. -/
+lemma exists_subset_nhd_of_compact' {ι : Type*} [nonempty ι] {V : ι → set α} (hV : directed (⊇) V)
   (hV_cpct : ∀ i, is_compact (V i)) (hV_closed : ∀ i, is_closed (V i))
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 begin
@@ -647,7 +647,7 @@ end
 lemma exists_subset_nhd_of_compact_space [compact_space α] {ι : Type*} [nonempty ι]
   {V : ι → set α} (hV : directed (⊇) V) (hV_closed : ∀ i, is_closed (V i))
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
-exists_subset_nhd_of_compact hV (λ i, (hV_closed i).is_compact) hV_closed hU
+exists_subset_nhd_of_compact' hV (λ i, (hV_closed i).is_compact) hV_closed hU
 
 lemma embedding.is_compact_iff_is_compact_image {f : α → β} (hf : embedding f) :
   is_compact s ↔ is_compact (f '' s) :=

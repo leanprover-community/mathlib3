@@ -75,7 +75,7 @@ decidable_of_iff (∃ t (hs : t ∈ s.powerset), p t (mem_powerset.1 hs))
 
 /-- For predicate `p` decidable on subsets, it is decidable whether `p` holds for every subset. -/
 instance decidable_forall_of_decidable_subsets {s : finset α} {p : Π t ⊆ s, Prop}
-  (hu : Π t (h : t ⊆ s), decidable (p t h)) : decidable (∀ t (h : t ⊆ s), p t h) :=
+  [hu : Π t (h : t ⊆ s), decidable (p t h)] : decidable (∀ t (h : t ⊆ s), p t h) :=
 decidable_of_iff (∀ t (h : t ∈ s.powerset), p t (mem_powerset.1 h))
 ⟨(λ h t hs, h t (mem_powerset.2 hs)), (λ h _ _, h _ _)⟩
 

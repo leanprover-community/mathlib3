@@ -140,10 +140,10 @@ begin
     ∃ (o : set M), is_open o ∧ x ∈ o ∧ o ⊆ e.source ∧ o ⊆ e'.source ∧
       o ∩ s ⊆ g ⁻¹' f.source ∧ o ∩ s ⊆  g⁻¹' f'.to_local_equiv.source,
   { have : f.source ∩ f'.source ∈ 𝓝 (g x) :=
-      mem_nhds_sets (is_open_inter f.open_source f'.open_source) ⟨xf, xf'⟩,
+      mem_nhds_sets (is_open.inter f.open_source f'.open_source) ⟨xf, xf'⟩,
     rcases mem_nhds_within.1 (hgs.preimage_mem_nhds_within this) with ⟨u, u_open, xu, hu⟩,
     refine ⟨u ∩ e.source ∩ e'.source, _, ⟨⟨xu, xe⟩, xe'⟩, _, _, _, _⟩,
-    { exact is_open_inter (is_open_inter u_open e.open_source) e'.open_source },
+    { exact is_open.inter (is_open.inter u_open e.open_source) e'.open_source },
     { assume x hx, exact hx.1.2 },
     { assume x hx, exact hx.2 },
     { assume x hx, exact (hu ⟨hx.1.1.1, hx.2⟩).1 },
@@ -199,7 +199,7 @@ begin
       simp only [this, hy] with mfld_simps } },
   rw this at E,
   apply (hG.is_local _ _).2 E,
-  { exact is_open_inter w.open_target
+  { exact is_open.inter w.open_target
       (e'.continuous_on_symm.preimage_open_of_open e'.open_target o_open) },
   { simp only [xe', xe, xo] with mfld_simps },
 end
@@ -245,7 +245,7 @@ begin
       mem_nhds_sets ((chart_at H' (g x))).open_source (mem_chart_source H' (g x)),
     rcases mem_nhds_within.1 (hcont.preimage_mem_nhds_within this) with ⟨v, v_open, xv, hv⟩,
     refine ⟨u ∩ v ∩ (chart_at H x).source, _, ⟨⟨xu, xv⟩, mem_chart_source _ _⟩, _, _, _⟩,
-    { exact is_open_inter (is_open_inter u_open v_open) (chart_at H x).open_source },
+    { exact is_open.inter (is_open.inter u_open v_open) (chart_at H x).open_source },
     { assume y hy, exact hy.2 },
     { assume y hy, exact hv ⟨hy.1.1.2, hy.2⟩ },
     { assume y hy, exact ust ⟨hy.1.1.1, hy.2⟩ } },

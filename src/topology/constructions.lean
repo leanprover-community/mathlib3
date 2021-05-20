@@ -165,7 +165,7 @@ show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
 
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
-is_open_inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
+is_open.inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
 
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
@@ -449,7 +449,7 @@ begin
   have : u = inl '' (inl ⁻¹' u) ∪ inr '' (inr ⁻¹' u),
   { ext (_|_); simp },
   rw [this, set.image_union, set.image_image, set.image_image],
-  exact is_open_union (h₁ _ hu₁) (h₂ _ hu₂)
+  exact is_open.union (h₁ _ hu₁) (h₂ _ hu₂)
 end
 
 lemma embedding_inl : embedding (@inl α β) :=

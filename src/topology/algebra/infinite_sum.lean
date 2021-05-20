@@ -1060,9 +1060,9 @@ alias summable_abs_iff ↔ summable.of_abs summable.abs
 section cauchy_seq
 open finset.Ico filter
 
-/-- If the extended distance between consequent points of a sequence is estimated
+/-- If the extended distance between consecutive points of a sequence is estimated
 by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
+lemma cauchy_seq_of_edist_le_of_summable [pseudo_emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
@@ -1083,9 +1083,9 @@ begin
   assumption_mod_cast
 end
 
-/-- If the distance between consequent points of a sequence is estimated by a summable series,
+/-- If the distance between consecutive points of a sequence is estimated by a summable series,
 then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma cauchy_seq_of_dist_le_of_summable [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine metric.cauchy_seq_iff'.2 (λε εpos, _),
@@ -1100,11 +1100,11 @@ begin
   ... < ε : hsum
 end
 
-lemma cauchy_seq_of_summable_dist [metric_space α] {f : ℕ → α}
+lemma cauchy_seq_of_summable_dist [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
 cauchy_seq_of_dist_le_of_summable _ (λ _, le_refl _) h
 
-lemma dist_le_tsum_of_dist_le_of_tendsto [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma dist_le_tsum_of_dist_le_of_tendsto [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a))
   (n : ℕ) :
   dist (f n) a ≤ ∑' m, d (n + m) :=
@@ -1117,18 +1117,18 @@ begin
   exact hd.comp_injective (add_right_injective n)
 end
 
-lemma dist_le_tsum_of_dist_le_of_tendsto₀ [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma dist_le_tsum_of_dist_le_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a)) :
   dist (f 0) a ≤ tsum d :=
 by simpa only [zero_add] using dist_le_tsum_of_dist_le_of_tendsto d hf hd ha 0
 
-lemma dist_le_tsum_dist_of_tendsto [metric_space α] {f : ℕ → α}
+lemma dist_le_tsum_dist_of_tendsto [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
   dist (f n) a ≤ ∑' m, dist (f (n+m)) (f (n+m).succ) :=
 show dist (f n) a ≤ ∑' m, (λx, dist (f x) (f x.succ)) (n + m), from
 dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
 
-lemma dist_le_tsum_dist_of_tendsto₀ [metric_space α] {f : ℕ → α}
+lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) :
   dist (f 0) a ≤ ∑' n, dist (f n) (f n.succ) :=
 by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0

@@ -840,7 +840,7 @@ lemma uniformity_has_basis_open_symmetric :
 begin
   simp only [← and_assoc],
   refine uniformity_has_basis_open.restrict (λ s hs, ⟨symmetrize_rel s, _⟩),
-  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open_inter hs.2 (hs.2.preimage continuous_swap)⟩,
+  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open.inter hs.2 (hs.2.preimage continuous_swap)⟩,
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
 end
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.homology
+import tactic.omega
 
 /-!
 # Chain complexes supported in a single degree

@@ -9,6 +9,7 @@ import data.mv_polynomial.pderiv
 import data.nat.choose.sum
 import linear_algebra.basis
 import ring_theory.polynomial.pochhammer
+import tactic.omega
 
 /-!
 # Bernstein polynomials

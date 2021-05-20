@@ -127,11 +127,11 @@ begin
   rw [finprod_eq_prod_plift_of_mul_support_subset this, finset.prod_empty]
 end
 
-@[to_additive] lemma finprod_of_empty (ha : α → false) (f : α → M) : ∏ᶠ i, f i = 1 :=
-by { rw ← finprod_one, congr' with x, exact (ha x).elim }
+@[to_additive] lemma finprod_of_is_empty [is_empty α] (f : α → M) : ∏ᶠ i, f i = 1 :=
+by { rw ← finprod_one, congr }
 
 @[simp, to_additive] lemma finprod_false (f : false → M) : ∏ᶠ i, f i = 1 :=
-finprod_of_empty id _
+finprod_of_is_empty _
 
 @[to_additive] lemma finprod_unique [unique α] (f : α → M) : ∏ᶠ i, f i = f (default α) :=
 begin
@@ -149,9 +149,8 @@ end
   ∏ᶠ i, f i = if h : p then f h else 1 :=
 begin
   split_ifs,
-  { haveI : unique p := ⟨⟨h⟩, λ _, rfl⟩,
-    exact finprod_unique f },
-  { exact finprod_of_empty h f }
+  { haveI : unique p := ⟨⟨h⟩, λ _, rfl⟩, exact finprod_unique f },
+  { haveI : is_empty p := ⟨h⟩, exact finprod_of_is_empty f }
 end
 
 @[to_additive] lemma finprod_eq_if {p : Prop} [decidable p] {x : M} :
@@ -699,5 +698,25 @@ lemma finsum_mul {R : Type*} [semiring R] (f : α → R) (r : R)
   (h : (function.support f).finite) :
   (∑ᶠ a : α, f a) * r = ∑ᶠ a : α, f a * r :=
 (add_monoid_hom.mul_right r).map_finsum h
+
+@[to_additive]
+lemma finprod_dmem {s : set α} [decidable_pred (∈ s)] (f : (Π (a : α), a ∈ s → M)) :
+  ∏ᶠ (a : α) (h : a ∈ s), f a h = ∏ᶠ (a : α) (h : a ∈ s), if h' : a ∈ s then f a h' else 1 :=
+finprod_congr (λ a, finprod_congr (λ ha, (dif_pos ha).symm))
+
+@[to_additive]
+lemma finprod_emb_domain' {f : α → β} (hf : function.injective f)
+  [decidable_pred (∈ set.range f)] (g : α → M) :
+  ∏ᶠ (b : β), (if h : b ∈ set.range f then g (classical.some h) else 1) = ∏ᶠ (a : α), g a :=
+begin
+  simp_rw [← finprod_eq_dif],
+  rw [finprod_dmem, finprod_mem_range hf, finprod_congr (λ a, _)],
+  rw [dif_pos (set.mem_range_self a), hf (classical.some_spec (set.mem_range_self a))]
+end
+
+@[to_additive]
+lemma finprod_emb_domain (f : α ↪ β) [decidable_pred (∈ set.range f)] (g : α → M) :
+  ∏ᶠ (b : β), (if h : b ∈ set.range f then g (classical.some h) else 1) = ∏ᶠ (a : α), g a :=
+finprod_emb_domain' f.injective g
 
 end type

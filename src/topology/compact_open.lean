@@ -119,7 +119,7 @@ continuous_generated_from $ begin
   intros y hy,
   change (coev α β y) '' s ⊆ u at hy,
   rw image_coev s at hy,
-  rcases generalized_tube_lemma compact_singleton sc uo hy
+  rcases generalized_tube_lemma is_compact_singleton sc uo hy
     with ⟨v, w, vo, wo, yv, sw, vwu⟩,
   refine ⟨v, _, vo, singleton_subset_iff.mp yv⟩,
   intros y' hy',

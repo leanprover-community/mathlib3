@@ -98,14 +98,14 @@ begin
   rw proper_divisors_105,
   repeat {rw finset.prod_insert _},
   rw [finset.prod_singleton, cyclotomic_one, cyclotomic_3, cyclotomic_5, cyclotomic_7,
-    cyclotomic_15, cyclotomic_21, cyclotomic_35, coeff_bit0_mul, coeff_bit1_mul],
+    cyclotomic_15, cyclotomic_21, cyclotomic_35],
   ring,
   repeat { norm_num }
 end
 
 lemma coeff_cyclotomic_105 : coeff (cyclotomic 105 ℤ) 7 = -2 :=
 begin
-  simp [cyclotomic_105, coeff_X_pow, coeff_one, coeff_X_of_ne_one],
+  simp [cyclotomic_105, coeff_X_pow, coeff_one, coeff_X_of_ne_one, coeff_bit0_mul, coeff_bit1_mul]
 end
 
 lemma not_forall_coeff_cyclotomic_neg_one_zero_one :

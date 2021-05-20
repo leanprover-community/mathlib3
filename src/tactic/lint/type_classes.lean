@@ -317,7 +317,7 @@ do tt ← is_prop d.type | return none,
 /- The file `logic/basic.lean` emphasizes the differences between what holds under classical
 and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
 to the list of lemmas which are not checked by the linter `decidable_classical`. -/
-attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
+attribute [nolint decidable_classical] dec_em dec_em' not.decidable_imp_symm
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen
 -/
 import algebra.associated
-import linear_algebra.determinant
+import linear_algebra.matrix.determinant
 import tactic.linarith
 import tactic.ring_exp
 
@@ -195,7 +195,7 @@ end
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
-  rw [mul_apply, smul_apply, one_apply, mul_boole],
+  rw [mul_apply, pi.smul_apply, pi.smul_apply, one_apply, smul_eq_mul, mul_boole],
   simp [mul_adjugate_apply, sum_cramer_apply, cramer_transpose_row_self],
 end
 

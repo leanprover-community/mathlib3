@@ -36,6 +36,7 @@ namespace category_theory.over
 
 instance (F : J ⥤ over X) [i : has_colimit (F ⋙ forget X)] : has_colimit F :=
 @@costructured_arrow.has_colimit _ _ _ _ i _
+
 instance [has_colimits_of_shape J C] : has_colimits_of_shape J (over X) := {}
 instance [has_colimits C] : has_colimits (over X) := {}
 
@@ -108,6 +109,7 @@ namespace category_theory.under
 
 instance (F : J ⥤ under X) [i : has_limit (F ⋙ forget X)] : has_limit F :=
 @@structured_arrow.has_limit _ _ _ _ i _
+
 instance [has_limits_of_shape J C] : has_limits_of_shape J (under X) := {}
 instance [has_limits C] : has_limits (under X) := {}
 

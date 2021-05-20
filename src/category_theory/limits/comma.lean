@@ -36,7 +36,7 @@ variables {L : A ⥤ T} {R : B ⥤ T}
 
 variables (F : J ⥤ comma L R)
 
-/-- (Implementation). An auxiliary cone which it is useful to build in order to construct limits
+/-- (Implementation). An auxiliary cone which is useful in order to construct limits
 in the comma category. -/
 @[simps]
 def limit_auxiliary_cone (c₁ : cone (F ⋙ fst L R)) :
@@ -83,7 +83,7 @@ def cone_of_preserves_is_limit [preserves_limit (F ⋙ snd L R) R]
       (t₁.uniq ((fst L R).map_cone s) _ (λ j, by simp [←w]))
       (t₂.uniq ((snd L R).map_cone s) _ (λ j, by simp [←w])) }
 
-/-- (Implementation). An auxiliary cocone which it is useful to build in order to construct colimits
+/-- (Implementation). An auxiliary cocone which is useful in order to construct colimits
 in the comma category. -/
 @[simps]
 def colimit_auxiliary_cocone (c₂ : cocone (F ⋙ snd L R)) :
@@ -164,6 +164,7 @@ instance has_limit (F : J ⥤ arrow T)
   [i₁ : has_limit (F ⋙ left_func)] [i₂ : has_limit (F ⋙ right_func)] :
   has_limit F :=
 @@comma.has_limit _ _ _ _ _ i₁ i₂ _
+
 instance has_limits_of_shape [has_limits_of_shape J T] : has_limits_of_shape J (arrow T) := {}
 instance has_limits [has_limits T] : has_limits (arrow T) := {}
 
@@ -171,6 +172,7 @@ instance has_colimit (F : J ⥤ arrow T)
   [i₁ : has_colimit (F ⋙ left_func)] [i₂ : has_colimit (F ⋙ right_func)] :
   has_colimit F :=
 @@comma.has_colimit _ _ _ _ _ i₁ i₂ _
+
 instance has_colimits_of_shape [has_colimits_of_shape J T] : has_colimits_of_shape J (arrow T) := {}
 instance has_colimits [has_colimits T] : has_colimits (arrow T) := {}
 

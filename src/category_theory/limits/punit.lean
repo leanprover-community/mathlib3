@@ -11,7 +11,7 @@ import category_theory.limits.has_limits
 # `discrete punit` has limits and colimits
 
 Mostly for the sake of constructing trivial examples, we show all (co)cones into `discrete punit`
-are (co)limit (co)cones, as well as showing such (co)cones exist, and `discrete punit` has all
+are (co)limit (co)cones. We also show that such (co)cones exist, and that `discrete punit` has all
 (co)limits.
 -/
 

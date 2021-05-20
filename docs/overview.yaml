@@ -138,16 +138,16 @@ Linear algebra:
     quotient space: 'submodule.quotient'
     tensor product: 'tensor_product'
     noetherian module: 'is_noetherian'
-    basis: 'is_basis'
+    basis: 'basis'
     multilinear map: 'multilinear_map'
     alternating map: 'alternating_map'
     general linear group: 'linear_map.general_linear_group'
   Duality:
     dual vector space: 'module.dual'
-    dual basis: 'is_basis.dual_basis'
+    dual basis: 'basis.dual_basis'
   Finite-dimensional vector spaces:
     finite-dimensionality : 'finite_dimensional'
-    isomorphism with $K^n$: 'module_equiv_finsupp'
+    isomorphism with $K^n$: 'basis.equiv_fun'
     isomorphism with bidual: 'module.eval_equiv'
   Matrices:
     ring-valued matrix: 'matrix'
@@ -195,6 +195,7 @@ Topology:
     Stone-Cech compactification: 'stone_cech'
     topological fiber bundle: 'is_topological_fiber_bundle'
     Urysohn's lemma: 'exists_continuous_zero_one_of_closed'
+    Stone-Weierstrass theorem: 'continuous_map.subalgebra_topological_closure_eq_top_of_separates_points'
   Uniform notions:
     uniform space: 'uniform_space'
     uniformly continuous function: 'metric.uniform_continuous_iff'

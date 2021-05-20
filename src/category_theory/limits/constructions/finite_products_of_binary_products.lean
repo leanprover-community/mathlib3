@@ -136,7 +136,7 @@ end }
 lemma has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
 ⟨λ J 𝒥₁ 𝒥₂, begin
   resetI,
-  rcases fintype.equiv_fin J with ⟨e⟩,
+  let e := fintype.equiv_fin J,
   apply has_limits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
   refine has_limits_of_shape_ulift_fin (fintype.card J),
 end⟩
@@ -205,8 +205,7 @@ def preserves_finite_products_of_preserves_binary_and_terminal
   preserves_limits_of_shape.{v} (discrete J) F :=
 begin
   classical,
-  refine trunc.rec_on_subsingleton (fintype.equiv_fin J) _,
-  intro e,
+  let e := fintype.equiv_fin J,
   haveI := preserves_ulift_fin_of_preserves_binary_and_terminal F (fintype.card J),
   apply preserves_limits_of_shape_of_equiv (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
 end
@@ -316,7 +315,7 @@ end }
 lemma has_finite_coproducts_of_has_binary_and_terminal : has_finite_coproducts C :=
 ⟨λ J 𝒥₁ 𝒥₂, begin
   resetI,
-  rcases fintype.equiv_fin J with ⟨e⟩,
+  let e := fintype.equiv_fin J,
   apply has_colimits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
   refine has_colimits_of_shape_ulift_fin (fintype.card J),
 end⟩
@@ -384,8 +383,7 @@ def preserves_finite_coproducts_of_preserves_binary_and_initial
   preserves_colimits_of_shape.{v} (discrete J) F :=
 begin
   classical,
-  refine trunc.rec_on_subsingleton (fintype.equiv_fin J) _,
-  intro e,
+  let e := fintype.equiv_fin J,
   haveI := preserves_ulift_fin_of_preserves_binary_and_initial F (fintype.card J),
   apply preserves_colimits_of_shape_of_equiv (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
 end

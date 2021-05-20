@@ -9,7 +9,6 @@ import deprecated.subfield
 import field_theory.normal
 import field_theory.separable
 import field_theory.tower
-import linear_algebra.matrix
 import ring_theory.polynomial
 
 /-!
@@ -43,7 +42,7 @@ instance fixed_by.is_subfield : is_subfield (fixed_by G F g) :=
   neg_mem := λ x hx, (smul_neg g x).trans $ congr_arg _ hx,
   one_mem := smul_one g,
   mul_mem := λ x y hx hy, (smul_mul' g x y).trans $ congr_arg2 _ hx hy,
-  inv_mem := λ x hx, (smul_inv F g x).trans $ congr_arg _ hx }
+  inv_mem := λ x hx, (smul_inv' F g x).trans $ congr_arg _ hx }
 
 namespace fixed_points
 
@@ -108,12 +107,12 @@ variables [fintype G] (x : F)
 /-- `minpoly G F x` is the minimal polynomial of `(x : F)` over `fixed_points G F`. -/
 def minpoly : polynomial (fixed_points G F) :=
 (prod_X_sub_smul G F x).to_subring _ $ λ c hc g,
-let ⟨hc0, n, hn⟩ := finsupp.mem_frange.1 hc in hn ▸ prod_X_sub_smul.coeff G F x g n
+let ⟨n, hc0, hn⟩ := polynomial.mem_frange_iff.1 hc in hn.symm ▸ prod_X_sub_smul.coeff G F x g n
 
 namespace minpoly
 
 theorem monic : (minpoly G F x).monic :=
-subtype.eq $ prod_X_sub_smul.monic G F x
+by { simp only [minpoly, polynomial.monic_to_subring], exact prod_X_sub_smul.monic G F x }
 
 theorem eval₂ :
   polynomial.eval₂ (is_subring.subtype $ fixed_points G F) x (minpoly G F x) = 0 :=

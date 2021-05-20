@@ -1366,7 +1366,9 @@ theorem exists_enc_dec [fintype Γ] :
   ∃ n (enc : Γ → vector bool n) (dec : vector bool n → Γ),
     enc (default _) = vector.repeat ff n ∧ ∀ a, dec (enc a) = a :=
 begin
-  rcases fintype.exists_equiv_fin Γ with ⟨n, ⟨F⟩⟩,
+  letI := classical.dec_eq Γ,
+  let n := fintype.card Γ,
+  obtain ⟨F⟩ := fintype.trunc_equiv_fin Γ,
   let G : fin n ↪ fin n → bool := ⟨λ a b, a = b,
     λ a b h, of_to_bool_true $ (congr_fun h b).trans $ to_bool_tt rfl⟩,
   let H := (F.to_embedding.trans G).trans

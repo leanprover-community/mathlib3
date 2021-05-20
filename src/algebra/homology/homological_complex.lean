@@ -54,13 +54,26 @@ structure homological_complex (c : complex_shape ι) :=
 (X : ι → V)
 (d : Π i j, X i ⟶ X j)
 (shape' : ∀ i j, ¬ c.rel i j → d i j = 0 . obviously)
-(d_comp_d' : ∀ i j k, d i j ≫ d j k = 0 . obviously)
+(d_comp_d' : ∀ i j k, c.rel i j → c.rel j k → d i j ≫ d j k = 0 . obviously)
 
-restate_axiom homological_complex.shape'
-restate_axiom homological_complex.d_comp_d'
+namespace homological_complex
 
-attribute [simp] homological_complex.shape
-attribute [simp, reassoc] homological_complex.d_comp_d
+restate_axiom shape'
+attribute [simp] shape
+
+variables {V} {c : complex_shape ι}
+
+@[simp, reassoc] lemma d_comp_d (C : homological_complex V c) (i j k : ι) :
+  C.d i j ≫ C.d j k = 0 :=
+begin
+  by_cases hij : c.rel i j,
+  { by_cases hjk : c.rel j k,
+    { exact C.d_comp_d' i j k hij hjk },
+    { rw [C.shape j k hjk, comp_zero] } },
+  { rw [C.shape i j hij, zero_comp] }
+end
+
+end homological_complex
 
 /--
 An `α`-indexed chain complex is a `homological_complex`
@@ -505,13 +518,11 @@ def of (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n =
   else
     0,
   shape' := λ i j w, by rw dif_neg (ne.symm w),
-  d_comp_d' := λ i j k,
+  d_comp_d' := λ i j k hij hjk,
   begin
-    split_ifs with h h' h',
-    { substs h h',
-      simp only [category.id_comp, eq_to_hom_refl],
-      exact sq k },
-    all_goals { simp },
+    dsimp at hij hjk, substs hij hjk,
+    simp only [category.id_comp, dif_pos rfl, eq_to_hom_refl],
+    exact sq k,
   end }
 
 variables (X : α → V) (d : Π n, X (n+1) ⟶ X n) (sq : ∀ n, d (n+1) ≫ d n = 0)

@@ -101,7 +101,7 @@ def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shap
   { X := λ i, F.obj (C.X i),
     d := λ i j, F.map (C.d i j),
     shape' := λ i j w, by rw [C.shape _ _ w, F.map_zero],
-    d_comp_d' := λ i j k, by rw [←F.map_comp, C.d_comp_d, F.map_zero], },
+    d_comp_d' := λ i j k _ _, by rw [←F.map_comp, C.d_comp_d, F.map_zero], },
   map := λ C D f,
   { f := λ i, F.map (f.f i),
     comm' := λ i j h, by { dsimp,  rw [←F.map_comp, ←F.map_comp, f.comm], }, }, }.

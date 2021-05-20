@@ -482,6 +482,27 @@ arrow.hom_mk (f.comm_to j)
 
 end hom
 
+namespace iso
+
+variables (C₁ C₂ : homological_complex V c)
+
+/-- Construct an isomorphism of complexes using components. -/
+@[simps]
+def of_components (fs : Π (i : ι), C₁.X i ≅ C₂.X i)
+  (comm : ∀ i j, (fs _).hom ≫ C₂.d _ _ = C₁.d i j ≫ (fs _).hom) : C₁ ≅ C₂ :=
+{ hom :=
+  { f := λ i, (fs _).hom,
+    comm' := comm },
+  inv :=
+  { f := λ i, (fs _).inv,
+    comm' := begin
+      intros i j,
+      rw [(fs i).inv_comp_eq, ← category.assoc, (fs j).eq_comp_inv],
+      exact (comm _ _).symm
+    end } }
+
+end iso
+
 end homological_complex
 
 namespace chain_complex

@@ -471,11 +471,57 @@ theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module
   is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
+/-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
+theorem monotone_stabilizes_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
+  (∀ (f : ℕ →ₘ submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
+    ↔ is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
+
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
 lemma is_noetherian.induction {R M} [ring R] [add_comm_group M] [module R M] [is_noetherian R M]
   {P : submodule R M → Prop} (hgt : ∀ I, (∀ J > I, P J) → P I)
   (I : submodule R M) : P I :=
 well_founded.recursion (well_founded_submodule_gt R M) I hgt
+
+/--
+For any endomorphism of a Noetherian module, there is some nontrivial iterate
+with disjoint kernel and range.
+-/
+theorem is_noetherian.exists_endomorphism_iterate_ker_inf_range_eq_bot
+   {R M} [ring R] [add_comm_group M] [module R M] [I : is_noetherian R M]
+  (f : M →ₗ[R] M) : ∃ n : ℕ, n ≠ 0 ∧ (f ^ n).ker ⊓ (f ^ n).range = ⊥ :=
+begin
+  obtain ⟨n, w⟩ := monotone_stabilizes_iff_noetherian.mpr I
+    (f.iterate_ker.comp ⟨λ n, n+1, λ n m w, by linarith⟩),
+  specialize w (2 * n + 1) (by linarith),
+  dsimp at w,
+  refine ⟨n+1, nat.succ_ne_zero _, _⟩,
+  rw eq_bot_iff,
+  rintros - ⟨h, ⟨y, rfl⟩⟩,
+  rw [mem_bot, ←linear_map.mem_ker, w],
+  erw linear_map.mem_ker at h ⊢,
+  change ((f ^ (n + 1)) * (f ^ (n + 1))) y = 0 at h,
+  rw ←pow_add at h,
+  convert h using 3,
+  linarith,
+end
+
+/-- Any surjective endomorphism of a Noetherian module is injective. -/
+theorem is_noetherian.injective_of_surjective_endomorphism
+  {R M} [ring R] [add_comm_group M] [module R M] [I : is_noetherian R M]
+  (f : M →ₗ[R] M) (s : surjective f) : injective f :=
+begin
+  obtain ⟨n, ne, w⟩ := is_noetherian.exists_endomorphism_iterate_ker_inf_range_eq_bot f,
+  rw [linear_map.range_eq_top.mpr (linear_map.iterate_surjective s n), inf_top_eq,
+    linear_map.ker_eq_bot] at w,
+  exact linear_map.injective_of_iterate_injective ne w,
+end
+
+/-- Any surjective endomorphism of a Noetherian module is bijective. -/
+theorem is_noetherian.bijective_of_surjective_endomorphism
+  {R M} [ring R] [add_comm_group M] [module R M] [I : is_noetherian R M]
+  (f : M →ₗ[R] M) (s : surjective f) : bijective f :=
+⟨is_noetherian.injective_of_surjective_endomorphism f s, s⟩
 
 /--
 A ring is Noetherian if it is Noetherian as a module over itself,

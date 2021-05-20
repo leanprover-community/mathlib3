@@ -189,22 +189,25 @@ begin
     push_neg at hX',
     obtain ⟨Y, hY⟩ := hX' hX,
     exact ⟨Y, hY.1, ⟨hY.2.1, (λ hYX, hY.2.2 (finset.subset.antisymm hY.2.1 hYX))⟩⟩, },
-  { rintro ⟨Y, hY⟩ ⟨hX, hX'⟩,
-    have := hX' hY.1 hY.2.1,
-    rw this at hY,
-    exact hY.2.2 (subset.refl Y), }
+  rintro ⟨Y, hY⟩ ⟨hX, hX'⟩,
+  have := hX' hY.1 hY.2.1,
+  rw this at hY,
+  exact hY.2.2 (subset.refl Y),
 end
 
 lemma subfacet [finite_dimensional ℝ E] (hX : X ∈ S.faces) :
   ∃ {Y}, Y ∈ S.facets ∧ X ⊆ Y :=
 begin
-  apply finset.strong_downward_induction_on' (λ Y hY, face_dimension_le_space_dimension hY) hX,
-  rintro Y hY h,
-  by_cases hYfacet : Y ∈ S.facets,
-  { exact ⟨Y, hYfacet, finset.subset.refl _⟩, },
-  { obtain ⟨Z, hZ₁, hZ₂⟩ := (not_facet_iff_subface hY).mp hYfacet,
-    obtain ⟨W, hW⟩ := h hZ₁ hZ₂,
-    exact ⟨W, hW.1, finset.subset.trans hZ₂.1 hW.2⟩, }
+  have := id hX,
+  revert this,
+  apply finset.strong_downward_induction_on X,
+  { rintro Y h hYcard hY,
+    by_cases hYfacet : Y ∈ S.facets,
+    { exact ⟨Y, hYfacet, finset.subset.refl _⟩, },
+    obtain ⟨Z, hZ, hYZ⟩ := (not_facet_iff_subface hY).mp hYfacet,
+    obtain ⟨W, hW⟩ := h (face_dimension_le_space_dimension hZ) hYZ hZ,
+    exact ⟨W, hW.1, finset.subset.trans hYZ.1 hW.2⟩ },
+  exact face_dimension_le_space_dimension hX,
 end
 
 lemma facets_empty (hS : S.faces = ∅) :
@@ -226,7 +229,7 @@ begin
     obtain ⟨Y, hY, hZ⟩ := subfacet hX,
     rw h at hY,
     apply hY },
-  { exact facets_empty }
+  exact facets_empty,
 end
 
 lemma facets_singleton (hS : S.faces = {X}) :
@@ -379,11 +382,12 @@ lemma simplex_combi_interiors_split_interiors (hY : affine_independent ℝ (λ p
 begin
   let S := simplicial_complex.of_simplex hY,
   let F := Y.powerset.filter (λ W : finset E, (X : set E) ⊆ convex_hull W),
-  obtain ⟨Z, hZ, hZmin⟩ := finset.inf' _
+  sorry
+  /-obtain ⟨Z, hZ, hZmin⟩ := finset.inf' _
   (begin
     use Y,
-    simp,
-    exact subset.trans (subset_convex_hull _) hXY
+    simp only [true_and, finset.mem_powerset_self, finset.mem_filter],
+    exact subset.trans (subset_convex_hull _) hXY,
   end : F.nonempty)
   begin
     rintro A B hA hB,
@@ -420,8 +424,7 @@ begin
   {
     sorry
   },
-  let t : E → ℝ := λ b, if hb : b ∈ Z then ∑ (a : E) in X, v a * u a b else 0,
-  sorry
+  let t : E → ℝ := λ b, if hb : b ∈ Z then ∑ (a : E) in X, v a * u a b else 0,-/
   /-rintro y (hyX : y ∈ X),
   obtain ⟨v, hvpos, hvsum, hvcenter⟩ := combi_interior_subset_positive_weighings hxX,
   obtain ⟨w, hwpos, hwsum, hwcenter⟩ := combi_interior_subset_positive_weighings hxW,-/

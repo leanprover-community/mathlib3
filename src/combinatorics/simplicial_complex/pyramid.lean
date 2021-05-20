@@ -15,7 +15,7 @@ already full dimensional or if v belongs to the convex hull of the space of X.
 -/
 noncomputable def simplicial_complex.pyramid (S : simplicial_complex E) (v : E) :
   simplicial_complex E :=
-if v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = S.dim + 1 then S else
+if v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = finite_dimensional.finrank ℝ E + 1 then S else
 { faces := {X' | ∃ X ∈ S.faces, X' ⊆ X ∪ {v}},
   indep := begin
     rintro X' ⟨X, hX, hX'X⟩,
@@ -30,7 +30,8 @@ if v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = S.dim 
 lemma subcomplex_pyramid :
   S.faces ⊆ (S.pyramid v).faces :=
 begin
-  by_cases v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces, (X : finset E).card = S.dim + 1,
+  by_cases v ∈ convex_hull S.space ∨ ∃ X ∈ S.faces,
+    (X : finset E).card = finite_dimensional.finrank ℝ E + 1,
   {
     sorry
   },
@@ -41,7 +42,8 @@ end
 lemma pyramid_mono (hS : S₁ ≤ S₂) :
    S₁.pyramid v ≤ S₂.pyramid v :=
 begin
-  by_cases v ∈ convex_hull S₁.space ∨ ∃ X ∈ S₁.faces, (X : finset E).card = S₁.dim + 1,
+  by_cases v ∈ convex_hull S₁.space ∨ ∃ X ∈ S₁.faces,
+    (X : finset E).card = finite_dimensional.finrank ℝ E  + 1,
   {
     sorry --easy case
   },
@@ -67,8 +69,8 @@ begin
   }
 end
 
-lemma pure_pyramid_of_pure [finite_dimensional ℝ E] (hn : n ≤ S.dim) (hv : v ∉ convex_hull S.space)
-  (hS : S.pure_of n) :
+lemma pure_pyramid_of_pure [finite_dimensional ℝ E] (hn : n ≤ finite_dimensional.finrank ℝ E)
+  (hv : v ∉ convex_hull S.space) (hS : S.pure_of n) :
   (S.pyramid v).pure_of (n + 1) :=
 begin
   sorry

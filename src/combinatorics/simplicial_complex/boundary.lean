@@ -299,7 +299,7 @@ end
 A m-simplex is on the boundary of a full dimensional complex iff it belongs to exactly one cell.
 Dull?
 -/
-lemma boundary_subcell_iff_one_surface (hS : S.full_dimensional) (hXcard : X.card = S.dim) :
+lemma boundary_subcell_iff_one_surface (hS : S.full_dimensional) (hXcard : X.card = finite_dimensional.finrank ℝ E) :
   X ∈ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 1 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in
@@ -327,7 +327,7 @@ end
 A m-simplex is not on the boundary of a full dimensional complex iff it belongs to exactly two
 cells.
 -/
-lemma not_boundary_subcell_iff_two_surfaces (hS : S.full_dimensional) (hXcard : X.card = S.dim) :
+lemma not_boundary_subcell_iff_two_surfaces (hS : S.full_dimensional) (hXcard : X.card = finite_dimensional.finrank ℝ E) :
   X ∉ S.boundary.faces ↔ nat.card {Y | Y ∈ S.faces ∧ X ⊂ Y} = 2 :=
   -- It's probably a bad idea to use `nat.card` since it's incredibly underdeveloped for doing
   -- actual maths in

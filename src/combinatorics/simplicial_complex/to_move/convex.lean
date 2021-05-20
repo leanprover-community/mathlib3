@@ -43,5 +43,22 @@ begin
   exact convex_hull_convex_hull_union,
 end
 
+lemma eq_left_or_right_or_mem_open_segment_of_mem_segment {x y z : E} (hz : z ∈ segment x y) :
+  z = x ∨ z = y ∨ z ∈ open_segment x y :=
+begin
+   obtain ⟨a, b, ha, hb, hab, hz⟩ := hz,
+  by_cases ha' : a = 0,
+  swap,
+  by_cases hb' : b = 0,
+  swap,
+  { right, right, exact ⟨a, b, ha.lt_of_ne (ne.symm ha'), hb.lt_of_ne (ne.symm hb'), hab, hz⟩ },
+  all_goals { simp only [*, add_zero, not_not, one_smul, zero_smul, zero_add, rfl] at *},
+  { left,
+    refl },
+  right,
+  left,
+  refl,
+end
+
 --TODO: Generalise to LCTVS
 variables [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}

@@ -311,7 +311,7 @@ end
 /- combi_interior X is the topological interior iff X is of dimension m -/
 lemma interiors_agree_of_full_dimensional [finite_dimensional ℝ E]
   (hX : affine_independent ℝ (λ p, p : (X : set E) → E))
-  (hXcard : X.card = finite_dimensional.findim ℝ E + 1) :
+  (hXcard : X.card = finite_dimensional.finrank ℝ E + 1) :
   combi_interior X = interior (convex_hull X) :=
 begin
   --rw ← closure_combi_interior_eq_convex_hull,
@@ -320,7 +320,7 @@ begin
 end
 
 lemma frontiers_agree_of_full_dimensional [finite_dimensional ℝ E]
-  (hXcard : X.card = finite_dimensional.findim ℝ E + 1) :
+  (hXcard : X.card = finite_dimensional.finrank ℝ E + 1) :
   combi_frontier X = frontier (convex_hull X) :=
 begin
   ext x,

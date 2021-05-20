@@ -125,7 +125,7 @@ end
 def simplicial_complex.to_polytopial_complex (S : simplicial_complex E) :
   polytopial_complex E :=
 { faces := S.faces,
-  indep := λ X hX, convex_independent_of_affine_independent (S.indep hX),
+  indep := λ X hX, (S.indep hX).convex_independent,
   down_closed := λ X Y hX hYX hY, S.down_closed hX hYX,
   disjoint := S.disjoint }
 
@@ -137,7 +137,7 @@ simplicial_complex.to_polytopial_complex p.to_simplicial_complex
 def polytopial_complex.coplanarless (P : polytopial_complex E) :
   Prop :=
 ∀ X Y ∈ P.faces, adjacent X Y → (X : set E) ⊆ affine_span ℝ (Y : set E) →
-  X.card = finite_dimensional.findim ℝ E + 1
+  X.card = finite_dimensional.finrank ℝ E + 1
 
 def polytopial_complex.to_simplicial_complex (P : polytopial_complex E) :
   simplicial_complex E :=

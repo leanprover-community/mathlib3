@@ -2621,7 +2621,7 @@ end densely_ordered
 lemma compact_Icc {a b : α} : is_compact (Icc a b) :=
 begin
   cases le_or_lt a b with hab hab, swap, { simp [hab] },
-  refine compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
+  refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
   contrapose! hf,
   rw [le_principal_iff],
   have hpt : ∀ x ∈ Icc a b, {x} ∉ f,
@@ -2667,15 +2667,15 @@ lemma compact_interval {a b : α} : is_compact (interval a b) := compact_Icc
 lemma compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
   [Π i, topological_space (α i)] [Π i, order_topology (α i)] (a b : Π i, α i) :
   is_compact (Icc a b) :=
-pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
+pi_univ_Icc a b ▸ is_compact_univ_pi $ λ i, compact_Icc
 
 instance compact_space_Icc (a b : α) : compact_space (Icc a b) :=
-compact_iff_compact_space.mp compact_Icc
+is_compact_iff_compact_space.mp compact_Icc
 
 instance compact_space_pi_Icc {ι : Type*} {α : ι → Type*}
   [Π i, conditionally_complete_linear_order (α i)] [Π i, topological_space (α i)]
   [Π i, order_topology (α i)] (a b : Π i, α i) : compact_space (Icc a b) :=
-compact_iff_compact_space.mp (compact_pi_Icc a b)
+is_compact_iff_compact_space.mp (compact_pi_Icc a b)
 
 @[priority 100] -- See note [lower instance priority]
 instance compact_space_of_complete_linear_order {α : Type*} [complete_linear_order α]

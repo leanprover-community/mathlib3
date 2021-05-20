@@ -15,11 +15,16 @@ import group_theory.finiteness
 # Noetherian rings and modules
 
 The following are equivalent for a module M over a ring R:
-1. Every increasing chain of submodule M₁ ⊆ M₂ ⊆ M₃ ⊆ ⋯ eventually stabilises.
+1. Every increasing chain of submodules M₁ ⊆ M₂ ⊆ M₃ ⊆ ⋯ eventually stabilises.
 2. Every submodule is finitely generated.
 
 A module satisfying these equivalent conditions is said to be a *Noetherian* R-module.
 A ring is a *Noetherian ring* if it is Noetherian as a module over itself.
+
+(Note that we do not assume yet that our rings are commutative,
+so perhaps this should be called "left Noetherian".
+To avoid cumbersome names once we specialize to the commutative case,
+we don't make this explicit in the declaration names.)
 
 ## Main definitions
 

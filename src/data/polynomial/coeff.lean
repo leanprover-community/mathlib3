@@ -171,7 +171,7 @@ lemma coeff_bit0_mul (P Q : polynomial R) (n : ℕ) :
   coeff (bit0 P * Q) n = 2 * coeff (P * Q) n :=
 by simp [bit0, add_mul]
 
-@[simp] lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
+lemma coeff_bit1_mul (P Q : polynomial R) (n : ℕ) :
   coeff (bit1 P * Q) n = 2 * coeff (P * Q) n + coeff Q n :=
 by simp [bit1, add_mul]
 

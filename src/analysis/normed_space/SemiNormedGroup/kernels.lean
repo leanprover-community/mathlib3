@@ -35,7 +35,7 @@ cofork.of_π
   (@SemiNormedGroup₁.mk_hom
     _ (SemiNormedGroup.of (quotient_add_group.quotient (normed_group_hom.range f.1)))
     f.1.range.normed_mk
-    (add_subgroup.is_quotient_quotient _).norm_le)
+    (normed_group_hom.is_quotient_quotient _).norm_le)
   begin
     ext,
     simp only [comp_apply, limits.zero_comp, normed_group_hom.zero_apply,
@@ -51,12 +51,12 @@ def cokernel_lift {X Y : SemiNormedGroup₁} (f : X ⟶ Y) (s : cokernel_cofork 
 begin
   fsplit,
   -- The lift itself:
-  { apply add_subgroup.lift _ s.π.1,
+  { apply normed_group_hom.lift _ s.π.1,
     rintro _ ⟨b, rfl⟩,
     change (f ≫ s.π) b = 0,
     simp, },
   -- The lift has norm at most one:
-  exact add_subgroup.lift_norm_noninc _ _ _ s.π.2,
+  exact normed_group_hom.lift_norm_noninc _ _ _ s.π.2,
 end
 
 instance : has_cokernels SemiNormedGroup₁ :=
@@ -66,12 +66,13 @@ instance : has_cokernels SemiNormedGroup₁ :=
       (cokernel_lift f)
       (λ s, begin
         ext,
-        apply f.1.range.lift_mk,
+        apply normed_group_hom.lift_mk f.1.range,
         rintro _ ⟨b, rfl⟩,
         change (f ≫ s.π) b = 0,
         simp,
       end)
-      (λ s m w, subtype.eq (f.1.range.lift_unique _ _ _ (congr_arg subtype.val w : _))), } }
+      (λ s m w, subtype.eq
+        (normed_group_hom.lift_unique f.1.range _ _ _ (congr_arg subtype.val w : _))), } }
 
 end SemiNormedGroup₁
 
@@ -91,18 +92,18 @@ instance : has_cokernels SemiNormedGroup :=
       end,
     is_colimit := is_colimit_aux _
       (λ s, begin
-        apply add_subgroup.lift _ s.π,
+        apply normed_group_hom.lift _ s.π,
         rintro _ ⟨b, rfl⟩,
         change (f ≫ s.π) b = 0,
         simp,
       end)
       (λ s, begin
         ext,
-        apply f.range.lift_mk,
+        apply normed_group_hom.lift_mk f.range,
         rintro _ ⟨b, rfl⟩,
         change (f ≫ s.π) b = 0,
         simp,
       end)
-      (λ s m w, f.range.lift_unique _ _ _ w), } }
+      (λ s m w, normed_group_hom.lift_unique f.range _ _ _ w), } }
 
 end SemiNormedGroup

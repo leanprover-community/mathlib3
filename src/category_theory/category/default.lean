@@ -294,7 +294,7 @@ def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
 
 alias hom_of_le ← has_le.le.hom
 
-@[simp] lemma hom_of_le_refl {U : α} : hom_of_le (le_refl U) = 𝟙 U := rfl
+@[simp] lemma hom_of_le_refl {U : α} : (le_refl U).hom = 𝟙 U := rfl
 @[simp] lemma hom_of_le_comp {U V W : α} (h : U ≤ V) (k : V ≤ W) :
   h.hom ≫ k.hom = (h.trans k).hom := rfl
 

@@ -193,4 +193,70 @@ begin
   rw [←r_one_pow, order_of_pow, order_of_r_one]
 end
 
+/--
+No reflection is central (if the group is non-degenerate).
+`i` is any `zmod n`.
+-/
+lemma sr_not_mem_center [fact (n > 2)] (i : zmod n): sr i * (r 1) ≠ (r 1) * r i :=
+by simp
+
+/--
+Rotations with order greater than 2 are not central.
+`i` is any `zmod n` term satisfying `2 * i ≠ 0`.
+-/
+lemma r_not_mem_center {i : zmod n} (h : 2 * i ≠ 0) : r i * (sr 1) ≠ (sr 1) * r i :=
+by simpa [sub_eq_add_neg, ← add_eq_zero_iff_neg_eq, ← two_mul]
+
+/--
+Rotations with order at most 2 are central.
+-/
+lemma r_mem_center {i : zmod n} (h : 2 * i = 0) (x : dihedral_group n) : r i * x = x * r i :=
+begin
+  cases x,
+  simp [add_comm],
+  simpa [sub_eq_add_neg, ← add_eq_zero_iff_neg_eq, ← two_mul],
+end
+
+/--
+Explicit definition of the center as a subgroup of `dihedral_group n`.
+Note that, for degenerate dihedral groups, this subgroup is not the actual center.
+-/
+def dihedral_group_center (n : ℕ) : subgroup (dihedral_group n) :=
+{ carrier := {x | ∃ i, 2 * i = 0 ∧ x = r i},
+  one_mem' := begin
+    rw one_def,
+    simp,
+  end,
+  mul_mem' := λ a b (ha : ∃ j, 2 * j = 0 ∧ a = r j) (hb : ∃ k, 2 * k = 0 ∧ b = r k), begin
+    simp,
+    cases ha with j hj,
+    cases hb with k hk,
+    use j + k,
+    split,
+    {
+      ring_nf,
+      rwa [hj.1, hk.1],
+      ring,
+    },
+    {
+      rwa [hj.2, hk.2],
+      exact rfl,
+    },
+  end,
+  inv_mem' := λ a (ha : ∃ j, 2 * j = 0 ∧ a = r j), begin
+    simp,
+    cases ha with j hj,
+    use -j,
+    split,
+    {
+      ring_nf,
+      rw hj.1,
+      ring,
+    },
+    {
+      rw hj.2,
+      exact rfl,
+    },
+  end, }
+
 end dihedral_group

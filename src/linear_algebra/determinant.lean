@@ -147,6 +147,7 @@ lemma det_aux_mul (b : basis ι A M) (f g : M →ₗ[A] M) :
   (f * g).det_aux b = f.det_aux b * g.det_aux b :=
 det_aux_comp b f g
 
+section
 open_locale classical
 
 /-- The determinant of an endomorphism independent of basis.
@@ -160,19 +161,32 @@ then { to_fun := @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ H.
        map_mul' := @det_aux_mul _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some }
 else 1
 
+lemma coe_det [decidable_eq M] : ⇑(linear_map.det : (M →ₗ[A] M) →* A) =
+  if H : ∃ (s : set M) (b : basis s A M), s.finite
+  then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ H.some_spec.some
+  else 1 :=
+by { ext, unfold linear_map.det,
+     split_ifs;
+       simp only [monoid_hom.coe_mk, monoid_hom.one_apply];
+       congr } -- use the correct `decidable_eq` instance
+
+end
+
 -- Auxiliary lemma, the `simp` normal form goes in the other direction
 -- (using `linear_map.det_to_matrix`)
-lemma det_eq_det_to_matrix_of_finite_set {s : set M} (b : basis s A M) (hs : fintype s)
-  (f : M →ₗ[A] M) : f.det = matrix.det (linear_map.to_matrix b b f) :=
+lemma det_eq_det_to_matrix_of_finite_set [decidable_eq M]
+  {s : set M} (b : basis s A M) (hs : fintype s) (f : M →ₗ[A] M) :
+  f.det = matrix.det (linear_map.to_matrix b b f) :=
 have ∃ (s : set M) (b : basis s A M), s.finite,
 from ⟨s, b, ⟨hs⟩⟩,
-by rw [linear_map.det, dif_pos this, monoid_hom.coe_mk, det_aux_eq _ b, det_aux_def]
+by rw [linear_map.coe_det, dif_pos, det_aux_eq _ b, det_aux_def]; assumption
 
 @[simp] lemma det_to_matrix
   (b : basis ι A M) (f : M →ₗ[A] M) :
   matrix.det (to_matrix b b f) = f.det :=
-by rw [det_eq_det_to_matrix_of_finite_set b.reindex_range (set.fintype_range _),
-       ← det_aux_def, ← det_aux_def, det_aux_eq b.reindex_range b]
+by { haveI := classical.dec_eq M,
+     rw [det_eq_det_to_matrix_of_finite_set b.reindex_range (set.fintype_range _),
+         ← det_aux_def, ← det_aux_def, det_aux_eq b.reindex_range b] }
 
 @[simp]
 lemma det_comp (f g : M →ₗ[A] M) : (f.comp g).det = f.det * g.det :=
@@ -184,7 +198,9 @@ linear_map.det.map_one
 
 lemma det_zero {ι : Type*} [fintype ι] [nonempty ι] (b : basis ι A M) :
   linear_map.det (0 : M →ₗ[A] M) = 0 :=
-by { rw [← det_to_matrix b, linear_equiv.map_zero, det_zero], assumption }
+by { haveI := classical.dec_eq ι,
+     rw [← det_to_matrix b, linear_equiv.map_zero, det_zero],
+     assumption }
 
 end linear_map
 

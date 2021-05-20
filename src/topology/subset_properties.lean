@@ -877,7 +877,7 @@ begin
           obtain ⟨V, hVc, hVU, hVU'⟩ := zorn.chain.directed_on hz U hU U' hU',
           exact ⟨⟨V, hVc⟩, set.compl_subset_compl.mpr hVU, set.compl_subset_compl.mpr hVU'⟩, },
         { exact λ U, (hc U.2).2.2, },
-        { exact λ U, is_closed.is_compact (is_closed_compl_iff.mpr (hc U.2).2.1), },
+        { exact λ U, (is_closed_compl_iff.mpr (hc U.2).2.1).is_compact, },
         { exact λ U, (is_closed_compl_iff.mpr (hc U.2).2.1), } } },
     { use Sᶜ,
       refine ⟨⟨set.subset.refl _, is_open_compl_iff.mpr hS, _⟩, λ U Uc, (hcne ⟨U, Uc⟩).elim⟩,

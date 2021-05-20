@@ -710,7 +710,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
   ⟨k \ w,
    filter.inter_mem_sets kx wn,
    subset.trans (diff_subset_comm.mp kuw) un,
-   is_compact.diff kc wo⟩⟩
+   kc.diff wo⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_compact [t2_space α] [compact_space α] : locally_compact_space α :=

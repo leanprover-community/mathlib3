@@ -167,10 +167,16 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors (op
 instance [integral_domain α] : integral_domain (opposite α) :=
 { .. opposite.no_zero_divisors α, .. opposite.comm_ring α, .. opposite.nontrivial α }
 
-instance [field α] : field (opposite α) :=
-{ mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ λ hx', hx $ unop_injective hx',
+instance [group_with_zero α] : group_with_zero (opposite α) :=
+{ mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
   inv_zero := unop_injective inv_zero,
-  .. opposite.comm_ring α, .. opposite.has_inv α, .. opposite.nontrivial α }
+  .. opposite.monoid_with_zero α, .. opposite.nontrivial α, .. opposite.has_inv α }
+
+instance [division_ring α] : division_ring (opposite α) :=
+{ .. opposite.group_with_zero α, .. opposite.ring α }
+
+instance [field α] : field (opposite α) :=
+{ .. opposite.division_ring α, .. opposite.comm_ring α }
 
 instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
 { smul := λ c x, op (c • unop x) }
@@ -178,7 +184,7 @@ instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
 instance (R : Type*) [monoid R] [mul_action R α] : mul_action R (opposite α) :=
 { one_smul := λ x, unop_injective $ one_smul R (unop x),
   mul_smul := λ r₁ r₂ x, unop_injective $ mul_smul r₁ r₂ (unop x),
-  ..opposite.has_scalar α R  }
+  ..opposite.has_scalar α R }
 
 instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   distrib_mul_action R (opposite α) :=

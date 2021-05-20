@@ -189,6 +189,9 @@ if h : a = 0 then by rw [h, (monomial n).map_zero]; exact bot_le else le_of_eq (
 lemma degree_C_mul_X_pow_le (n : ℕ) (a : R) : degree (C a * X ^ n) ≤ n :=
 by { rw C_mul_X_pow_eq_monomial, apply degree_monomial_le }
 
+lemma degree_C_mul_X_le (a : R) : degree (C a * X) ≤ 1 :=
+by simpa only [pow_one] using degree_C_mul_X_pow_le 1 a
+
 @[simp] lemma nat_degree_C_mul_X_pow (n : ℕ) (a : R) (ha : a ≠ 0) : nat_degree (C a * X ^ n) = n :=
 nat_degree_eq_of_degree_eq_some (degree_C_mul_X_pow n ha)
 

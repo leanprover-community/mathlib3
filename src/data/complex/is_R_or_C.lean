@@ -626,7 +626,7 @@ library_note "is_R_or_C instance"
 
 /-- An `is_R_or_C` field is finite-dimensional over `ℝ`, since it is spanned by `{1, I}`. -/
 @[nolint dangerous_instance] instance is_R_or_C_to_real : finite_dimensional ℝ K :=
-finite_dimensional.iff_fg.mpr ⟨{1, I},
+is_noetherian.iff_fg.mpr ⟨⟨{1, I},
   begin
     rw eq_top_iff,
     intros a _,
@@ -635,7 +635,7 @@ finite_dimensional.iff_fg.mpr ⟨{1, I},
     { rw submodule.mem_span_singleton,
       use im a },
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
-  end⟩
+  end⟩⟩
 
 /-- Over an `is_R_or_C` field, we can register the properness of finite-dimensional normed spaces as
 an instance. -/

@@ -80,7 +80,7 @@ src/data/nat/cast.lean : line 11 : ERR_MOD : Module docstring missing, or too la
 src/data/nat/dist.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/pairing.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/totient.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/option/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/data/option/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/option/defs.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/pequiv.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/pfun.lean : line 8 : ERR_MOD : Module docstring missing, or too late

@@ -189,7 +189,7 @@ Topology:
     sequential space: 'sequential_space'
     extension by continuity: 'dense_inducing.extend'
     compactness in terms of filters: 'is_compact'
-    compactness in terms of open covers (Borel-Lebesgue): 'compact_iff_finite_subcover'
+    compactness in terms of open covers (Borel-Lebesgue): 'is_compact_iff_finite_subcover'
     connectedness: 'connected_space'
     compact open topology: 'continuous_map.compact_open'
     Stone-Cech compactification: 'stone_cech'

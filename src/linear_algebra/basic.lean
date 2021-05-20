@@ -290,7 +290,6 @@ begin
       ← linear_map.comp_assoc, h, linear_map.comp_assoc, linear_map.mul_eq_comp], },
 end
 
-
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 
@@ -320,6 +319,7 @@ begin
   rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, coe_comp] at h,
   exact injective.of_comp h,
 end
+
 end
 
 section
@@ -1467,6 +1467,21 @@ by rw [range_eq_map, map_le_iff_le_comap, eq_top_iff]
 lemma map_le_range {f : M →ₗ[R] M₂} {p : submodule R M} : map f p ≤ range f :=
 set_like.coe_mono (set.image_subset_range f p)
 
+/--
+The decreasing sequence of submodules consisting of the ranges of the iterates of a linear map.
+-/
+@[simps]
+def iterate_range {R M} [ring R] [add_comm_group M] [module R M] (f : M →ₗ[R] M) :
+  ℕ →ₘ order_dual (submodule R M) :=
+⟨λ n, (f ^ n).range, λ n m w x h, begin
+  obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
+  rw linear_map.mem_range at h,
+  obtain ⟨m, rfl⟩ := h,
+  rw linear_map.mem_range,
+  use (f ^ c) m,
+  rw [pow_add, linear_map.mul_apply],
+end⟩
+
 /-- Restrict the codomain of a linear map `f` to `f.range`.
 
 This is the bundled version of `set.range_factorization`. -/
@@ -1509,7 +1524,6 @@ by rw ker_comp; exact comap_mono bot_le
 theorem disjoint_ker {f : M →ₗ[R] M₂} {p : submodule R M} :
   disjoint p (ker f) ↔ ∀ x ∈ p, f x = 0 → x = 0 :=
 by simp [disjoint_def]
-
 
 theorem ker_eq_bot' {f : M →ₗ[R] M₂} :
   ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
@@ -1575,6 +1589,18 @@ begin
   have : disjoint ⊤ f.ker, by { rw [disjoint_ker, ← map_zero f], exact λ x hx H, hf H },
   simpa [disjoint]
 end
+
+/--
+The increasing sequence of submodules consisting of the kernels of the iterates of a linear map.
+-/
+@[simps]
+def iterate_ker {R M} [ring R] [add_comm_group M] [module R M] (f : M →ₗ[R] M) :
+  ℕ →ₘ submodule R M :=
+⟨λ n, (f ^ n).ker, λ n m w x h, begin
+  obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
+  rw linear_map.mem_ker at h,
+  rw [linear_map.mem_ker, add_comm, pow_add, linear_map.mul_apply, h, linear_map.map_zero],
+end⟩
 
 end add_comm_monoid
 

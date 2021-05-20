@@ -288,7 +288,7 @@ lemma div_lt_div_iff_right (c : α) : a / c < b / c ↔ a < b :=
 by { rw [← mul_lt_mul_iff_right' c], simp [div_eq_mul_inv] }
 
 /- The following lemma is probably superfluous. -/
-@[to_additive]
+@[to_additive sub_lt_sub_right]
 lemma div_lt_div_right'' (h : a < b) (c : α) : a / c < b / c :=
 (div_lt_div_iff_right c).2 h
 

@@ -2635,6 +2635,25 @@ theorem fun_left_comp (f₁ : n → p) (f₂ : m → n) :
   fun_left R M (f₁ ∘ f₂) = (fun_left R M f₂).comp (fun_left R M f₁) :=
 rfl
 
+theorem fun_left_surjective_of_injective (f : m → n) (h : injective f) :
+  surjective (fun_left R M f) :=
+begin
+  intro g,
+  refine ⟨λ x, _, _⟩,
+  { by_cases h : x ∈ set.range f,
+    simp at h,
+    apply g,
+    exact h.some,
+    exact 0, },
+  { ext,
+    dsimp,
+    split_ifs with w,
+    { congr,
+      apply h,
+      exact Exists.some_spec w, },
+    { simpa using w, } },
+end
+
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/
 def fun_congr_left (e : m ≃ n) : (n → M) ≃ₗ[R] (m → M) :=

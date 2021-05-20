@@ -133,6 +133,9 @@ variables (f g)
 @[simp] lemma map_zero : f 0 = 0 :=
 f.to_distrib_mul_action_hom.map_zero
 
+lemma zero_of_injective_zero (h : function.injective f) {x : M} (w : f x = 0) : x = 0 :=
+by { apply h, simp [w], }
+
 variables (M M₂)
 /--
 A typeclass for `has_scalar` structures which can be moved through a `linear_map`.

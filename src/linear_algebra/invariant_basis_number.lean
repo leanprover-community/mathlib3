@@ -3,7 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import linear_algebra.finite_dimensional
+import ring_theory.principal_ideal_domain
 import ring_theory.ideal.basic
 
 /-!
@@ -20,7 +20,9 @@ sufficient that `(fin n → R) ≃ₗ[R] (fin m → R)` implies `n = m`.
 
 ## Main results
 
-We show that every nontrivial commutative ring has the invariant basis number property.
+We show that every nontrivial left-noetherian ring has the invariant basis number property,
+(and so in particular every division ring or field),
+and then use this to show every nontrivial commutative ring has the invariant basis number property.
 
 ## Future work
 
@@ -79,17 +81,42 @@ end
 end
 
 section
-open finite_dimensional
+variables (R : Type u) [ring R] [nontrivial R] [is_noetherian_ring R]
 
-/-- A field has invariant basis number. This will be superseded below by the fact that any nonzero
-    commutative ring has invariant basis number. -/
-lemma invariant_basis_number_field {K : Type u} [field K] : invariant_basis_number K :=
-⟨λ n m e,
-  calc n = fintype.card (fin n) : eq.symm $ fintype.card_fin n
-     ... = finrank K (fin n → K) : eq.symm $ finrank_eq_card_basis (pi.basis_fun K (fin n))
-     ... = finrank K (fin m → K) : linear_equiv.finrank_eq e
-     ... = fintype.card (fin m) : finrank_eq_card_basis (pi.basis_fun K (fin m))
-     ... = m                    : fintype.card_fin m⟩
+/-- Any nontrivial noetherian ring has invariant basis number. -/
+-- Note this includes fields,
+-- and we use this below to show any commutative ring also has invariant basis number.
+@[priority 100]
+instance noetherian_ring_invariant_basis_number : invariant_basis_number R :=
+⟨begin
+  intros n m e,
+  -- We only need to handle the case `(fin (m + n) → R) ≃ₗ[R] (fin m → R)`.
+  wlog h : m ≤ n,
+  obtain ⟨n, rfl⟩ := le_iff_exists_add.mp h,
+  -- Let `f` be the projection map discarding the last `n` coordinates.
+  let f : (fin (m + n) → R) →ₗ[R] (fin m → R) := linear_map.fun_left R R (fin.cast_add n),
+  have fs : function.surjective f :=
+    linear_map.fun_left_surjective_of_injective _ _ _ (fin.cast_add n).injective,
+  -- Since `f` composed with the inverse of `e` is a surjective endomorphism of
+  -- a noetherian module, it is injective, and so `f` itself is injective.
+  have fi : function.injective f :=
+    (is_noetherian.injective_of_surjective_endomorphism (e.symm.to_linear_map.comp f)
+      (function.surjective.comp (linear_equiv.surjective _) fs)).of_comp,
+  -- But this gives an easy contradiction when `n ≠ 0`.
+  cases n,
+  { refl, },
+  { let i : fin (m + n.succ) := fin.nat_add m 0,
+    let x : fin (m + n.succ) → R := finsupp.single i 1,
+    have z : f x = 0 := begin
+      ext j,
+      simp only [f, x, i, linear_map.fun_left_apply, pi.zero_apply],
+      rw finsupp.single_eq_of_ne,
+      refine fin.ne_of_vne _,
+      simp only [add_zero, fin.coe_zero, fin.val_eq_coe, fin.coe_nat_add, ne.def, fin.coe_cast_add],
+      exact j.2.ne.symm,
+    end,
+    simpa [x] using congr_fun (linear_map.zero_of_injective_zero _ fi z) i, },
+end⟩
 
 end
 
@@ -134,8 +161,7 @@ end
 end
 
 section
-local attribute [instance] invariant_basis_number_field
-local attribute [instance, priority 1] ideal.quotient.field
+local attribute [instance] ideal.quotient.field
 
 /-- Nontrivial commutative rings have the invariant basis number property. -/
 @[priority 100]

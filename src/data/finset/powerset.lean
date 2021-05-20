@@ -69,7 +69,7 @@ end
 
 /-- For predicate `p` decidable on subsets, it is decidable whether `p` holds for any subset. -/
 def decidable_exists_of_decidable_subsets {s : finset α} {p : ∀ t ⊆ s, Prop}
-  (hu : ∀ t (h : t ⊆ s), decidable (p t h)) : decidable (∃ t (h : t ⊆ s), p t h) :=
+  [hu : Π t (h : t ⊆ s), decidable (p t h)] : decidable (∃ t (h : t ⊆ s), p t h] :=
 decidable_of_iff (∃ t (hs : t ∈ s.powerset), p t (mem_powerset.1 hs))
 ⟨(λ ⟨t, _, hp⟩, ⟨t, _, hp⟩), (λ ⟨t, hs, hp⟩, ⟨t, mem_powerset.2 hs, hp⟩)⟩
 
@@ -103,24 +103,25 @@ lemma empty_mem_ssubsets {s : finset α} (h : s.nonempty) : ∅ ∈ s.ssubsets :
 by { rw [mem_ssubsets, ssubset_iff_subset_ne], exact ⟨empty_subset s, h.ne_empty.symm⟩, }
 
 /-- For predicate `p` decidable on ssubsets, it is decidable whether `p` holds for any ssubset. -/
-def decidable_exists_of_decidable_ssubsets {s : finset α} {p : ∀ t ⊂ s, Prop}
-  (hu : ∀ t (h : t ⊂ s), decidable (p t h)) : decidable (∃ t (h : t ⊂ s), p t h) :=
+instance decidable_exists_of_decidable_ssubsets {s : finset α} {p : ∀ t ⊂ s, Prop}
+  [hu : Π t h, decidable (p t h)] : decidable (∃ t h, p t h) :=
 decidable_of_iff (∃ t (hs : t ∈ s.ssubsets), p t (mem_ssubsets.1 hs))
 ⟨(λ ⟨t, _, hp⟩, ⟨t, _, hp⟩), (λ ⟨t, hs, hp⟩, ⟨t, mem_ssubsets.2 hs, hp⟩)⟩
 
 /-- For predicate `p` decidable on ssubsets, it is decidable whether `p` holds for every ssubset. -/
-def decidable_forall_of_decidable_ssubsets {s : finset α} {p : ∀ t ⊂ s, Prop}
-  (hu : ∀ t (h : t ⊂ s), decidable (p t h)) : decidable (∀ t (h : t ⊂ s), p t h) :=
+instance decidable_forall_of_decidable_ssubsets {s : finset α} {p : ∀ t ⊂ s, Prop}
+  [hu : Π t h, decidable (p t h)] : decidable (∀ t h, p t h) :=
 decidable_of_iff (∀ t (h : t ∈ s.ssubsets), p t (mem_ssubsets.1 h))
 ⟨(λ h t hs, h t (mem_ssubsets.2 hs)), (λ h _ _, h _ _)⟩
 
+-- TODO: do you actually need these instances for your real use case, or does lean find them automatically?
 variables (p : finset α → Prop) [decidable_pred p]
 
 instance decidable_exists_of_ssubsets (s : finset α) : decidable (∃ t ⊂ s, p t) :=
-decidable_exists_of_decidable_ssubsets infer_instance
+by apply_instance
 
 instance decidable_forall_of_ssubsets (s : finset α) : decidable (∀ t ⊂ s, p t) :=
-decidable_forall_of_decidable_ssubsets infer_instance
+by apply_instance
 
 end ssubsets
 

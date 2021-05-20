@@ -81,6 +81,12 @@ universe variables u v w x
 run_cmd do e ← tactic.get_env,
   tactic.set_env $ e.mk_protected `set.compl
 
+lemma has_subset.subset.trans {α : Type*} [has_subset α] [is_trans α (⊆)]
+  {a b c : α} (h : a ⊆ b)  (h': b ⊆ c) : a ⊆ c := trans h h'
+
+lemma has_subset.subset.antisymm {α : Type*} [has_subset α] [is_antisymm α (⊆)]
+  {a b : α} (h : a ⊆ b)  (h': b ⊆ a) : a = b := antisymm h h'
+
 namespace set
 
 variable {α : Type*}
@@ -227,6 +233,12 @@ hx.symm ▸ h
 
 theorem subset.antisymm {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
 set.ext $ λ x, ⟨@h₁ _, @h₂ _⟩
+
+instance {α : Type*} : is_trans (set α) set.subset :=
+⟨λ _ _ _, set.subset.trans⟩
+
+instance {α : Type*} : is_antisymm (set α) set.subset :=
+⟨λ _ _, set.subset.antisymm⟩
 
 theorem subset.antisymm_iff {a b : set α} : a = b ↔ a ⊆ b ∧ b ⊆ a :=
 ⟨λ e, ⟨e.subset, e.symm.subset⟩, λ ⟨h₁, h₂⟩, subset.antisymm h₁ h₂⟩

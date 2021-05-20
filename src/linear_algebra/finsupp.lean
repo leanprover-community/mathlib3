@@ -809,3 +809,14 @@ begin
   simp_rw ←exists_prop,
   exact finsupp.mem_span_iff_total R,
 end
+
+/-- If `subsingleton R`, then `M ≃ₗ[R] ι →₀ R` for any type `ι`. -/
+@[simps]
+def module.subsingleton_equiv (R M ι: Type*) [semiring R] [subsingleton R] [add_comm_monoid M]
+  [module R M] : M ≃ₗ[R] ι →₀ R :=
+{ to_fun := λ m, 0,
+  inv_fun := λ f, 0,
+  left_inv := λ m, by { letI := module.subsingleton R M, simp only [eq_iff_true_of_subsingleton] },
+  right_inv := λ f, by simp only [eq_iff_true_of_subsingleton],
+  map_add' := λ m n, (add_zero 0).symm,
+  map_smul' := λ r m, (smul_zero r).symm }

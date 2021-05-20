@@ -146,7 +146,7 @@ protected lemma second_countable_topology [topological_space.second_countable_to
 h.inducing.second_countable_topology
 
 lemma compact_image {s : set α} (h : α ≃ₜ β) : is_compact (h '' s) ↔ is_compact s :=
-h.embedding.compact_iff_compact_image.symm
+h.embedding.is_compact_iff_is_compact_image.symm
 
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image

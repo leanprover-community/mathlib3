@@ -316,7 +316,7 @@ begin
   intros s hs,
   rcases hf.is_closed_iff.1 hs with ⟨t, ht, rfl⟩,
   rw image_preimage_eq_inter_range,
-  exact is_closed_inter ht h
+  exact is_closed.inter ht h
 end
 
 section open_embedding

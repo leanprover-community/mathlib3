@@ -130,7 +130,7 @@ classical.by_contradiction $ λ h,
 have ∀ (a : ℕ) (ha : a ∈ s), a < x.val.succ,
   from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x.1 + 1),
     by rwa [add_right_comm, nat.add_sub_cancel' hax]⟩),
-infinite.not_fintype
+fintype.false
   ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
       (by simp [-multiset.range_succ])).to_finset,
@@ -161,7 +161,7 @@ not_lt_of_le this $
   ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _
 
 lemma lt_succ_self (x : s) : x < succ x :=
-calc x.1 ≤ x.1 + _ : le_add_right (le_refl _)
+calc x.1 ≤ x.1 + _ : le_self_add
 ... < succ x : nat.lt_succ_self (x.1 + _)
 
 lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=

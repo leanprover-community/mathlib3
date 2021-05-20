@@ -243,17 +243,17 @@ variables {R A B}
 
 end prod
 
-/-- Algebra over a subsemiring. -/
+/-- Algebra over a subsemiring. This builds upon `subsemiring.module`. -/
 instance of_subsemiring (S : subsemiring R) : algebra S A :=
-{ smul := λ s x, (s : R) • x,
+{ smul := (•),
   commutes' := λ r x, algebra.commutes r x,
   smul_def' := λ r x, algebra.smul_def r x,
   .. (algebra_map R A).comp (subsemiring.subtype S) }
 
-/-- Algebra over a subring. -/
+/-- Algebra over a subring. This builds upon `subring.module`. -/
 instance of_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   (S : subring R) : algebra S A :=
-{ smul := λ s x, (s : R) • x,
+{ smul := (•),
   commutes' := λ r x, algebra.commutes r x,
   smul_def' := λ r x, algebra.smul_def r x,
   .. (algebra_map R A).comp (subring.subtype S) }

@@ -709,6 +709,9 @@ end ring_equiv
 
 These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
 The only new result is `subsemiring.module`.
+
+A stronger result is provided elsewhere as `algebra.of_subsemiring` which uses the same scalar
+action.
 -/
 section actions
 

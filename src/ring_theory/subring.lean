@@ -844,6 +844,9 @@ by { convert add_subgroup.gsmul_mem G h k, simp }
 
 These are just copies of the definitions about `subsemiring` starting from
 `subsemiring.mul_action`.
+
+A stronger result is provided elsewhere as `algebra.of_subring` which uses the same scalar
+action.
 -/
 section actions
 

@@ -291,19 +291,19 @@ begin
 end
 
 lemma neg_left_iff (x y : R) : is_coprime (-x) y ↔ is_coprime x y :=
-⟨λ h, neg_neg x ▸ h.neg_left, is_coprime.neg_left⟩
+⟨λ h, neg_neg x ▸ h.neg_left, neg_left⟩
 
 lemma neg_right {x y : R} (h : is_coprime x y) : is_coprime x (-y) :=
 h.symm.neg_left.symm
 
 lemma neg_right_iff (x y : R) : is_coprime x (-y) ↔ is_coprime x y :=
-⟨λ h, neg_neg y ▸ h.neg_right, is_coprime.neg_right⟩
+⟨λ h, neg_neg y ▸ h.neg_right, neg_right⟩
 
 lemma neg_neg {x y : R} (h : is_coprime x y) : is_coprime (-x) (-y) :=
 h.neg_left.neg_right
 
 lemma neg_neg_iff (x y : R) : is_coprime (-x) (-y) ↔ is_coprime x y :=
-(is_coprime.neg_left_iff _ _).trans (is_coprime.neg_right_iff _ _)
+(neg_left_iff _ _).trans (neg_right_iff _ _)
 
 end comm_ring
 

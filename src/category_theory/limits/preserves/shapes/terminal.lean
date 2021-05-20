@@ -95,7 +95,7 @@ is_limit_map_cone_empty_cone_equiv G X (preserves_limit.preserves l)
 
 /-- Show that `G` preserves terminal objects in terms of `is_terminal`. -/
 -- TODO: reflects version
-def preserves_terminal_of_is_terminal_obj (h : ∀ X, is_terminal X → is_terminal (G.obj X)) :
+def preserves_terminal_of_is_terminal_of_obj (h : ∀ X, is_terminal X → is_terminal (G.obj X)) :
   preserves_terminal G :=
 begin
   apply preserves_terminal_of_preserves_limit_empty _,
@@ -103,6 +103,17 @@ begin
   refine (is_limit_cone_equiv_is_terminal _).symm _,
   refine h _ _,
   apply is_limit_cone_equiv_is_terminal _ t,
+end
+
+/-- Show that `G` preserves terminal objects in terms of `is_terminal`. -/
+-- TODO: reflects version
+def preserves_terminal_of_is_terminal_obj (hX : is_terminal X) (h : is_terminal (G.obj X)) :
+  preserves_terminal G :=
+begin
+  apply preserves_terminal_of_preserves_limit_empty _,
+  apply preserves_limit_of_preserves_limit_cone hX,
+  refine (is_limit_cone_equiv_is_terminal _).symm _,
+  exact h,
 end
 
 /-- The property of reflecting terminal objects expressed in terms of `is_terminal`. -/

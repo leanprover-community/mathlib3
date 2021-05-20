@@ -193,12 +193,12 @@ section
       λ h1l, by cases b with x y; exact
       have bm : (_*⟨_,_⟩ :ℤ√(d a1)) = 1, from pell.is_pell_norm.1 hp,
       have y0l : (0:ℤ√(d a1)) < ⟨x - x, y - -y⟩,
-        from sub_lt_sub'' h1l $ λ(hn : (1:ℤ√(d a1)) ≤ ⟨x, -y⟩),
+        from sub_lt_sub h1l $ λ(hn : (1:ℤ√(d a1)) ≤ ⟨x, -y⟩),
           by have t := mul_le_mul_of_nonneg_left hn (le_trans zero_le_one h1);
             rw [bm, mul_one] at t; exact h1l t,
       have yl2 : (⟨_, _⟩ : ℤ√_) < ⟨_, _⟩, from
         show (⟨x, y⟩ - ⟨x, -y⟩ : ℤ√(d a1)) < ⟨a, 1⟩ - ⟨a, -1⟩, from
-        sub_lt_sub'' (by exact ha) $ λ(hn : (⟨x, -y⟩ : ℤ√(d a1)) ≤ ⟨a, -1⟩),
+        sub_lt_sub (by exact ha) $ λ(hn : (⟨x, -y⟩ : ℤ√(d a1)) ≤ ⟨a, -1⟩),
         by have t := mul_le_mul_of_nonneg_right
           (mul_le_mul_of_nonneg_left hn (le_trans zero_le_one h1)) a1p;
             rw [bm, one_mul, mul_assoc, eq.trans (mul_comm _ _) a1m, mul_one] at t; exact ha t,

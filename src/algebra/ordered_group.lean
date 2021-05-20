@@ -282,7 +282,6 @@ begin
   simpa only [mul_inv_cancel_right] using F,
 end
 
-
 @[simp, to_additive]
 lemma div_lt_div_iff_right (c : α) : a / c < b / c ↔ a < b :=
 by { rw [← mul_lt_mul_iff_right' c], simp [div_eq_mul_inv] }
@@ -511,7 +510,7 @@ lemma mul_inv_lt_mul_inv (hab : a < b) (hcd : c < d) : a * d⁻¹ < b * c⁻¹ :
 calc a * d⁻¹ < b * d⁻¹ : (mul_lt_mul_iff_right' d⁻¹).mpr hab
          ... < b * c⁻¹ : mul_lt_mul_left_n b (inv_lt_inv_iff.mpr hcd)
 
-@[to_additive]
+@[to_additive sub_lt_sub]
 lemma div_lt_div'' (hab : a < b) (hcd : c < d) : a / d < b / c :=
 by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_inv_lt_mul_inv hab hcd }
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import tactic.basic
+import logic.is_empty
 
 /-!
 # Types with a unique term
@@ -55,6 +56,8 @@ attribute [class] unique
 instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
+
+instance : unique true := { default := trivial, uniq := λ x, rfl }
 
 lemma fin.eq_zero : ∀ n : fin 1, n = 0
 | ⟨n, hn⟩ := fin.eq_of_veq (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn))
@@ -117,13 +120,10 @@ instance pi.unique {β : Π a : α, Sort v} [Π a, unique (β a)] : unique (Π a
   .. pi.inhabited α }
 
 /-- There is a unique function on an empty domain. -/
-def pi.unique_of_empty (h : α → false) (β : Π a : α, Sort v) : unique (Π a, β a) :=
-{ default := λ a, (h a).elim,
-  uniq := λ f, funext $ λ a, (h a).elim }
-
-/-- There is a unique function whose domain is `pempty`. -/
-instance pi.pempty_unique (β : pempty.{u} → Sort v) : unique (Π a, β a) :=
-pi.unique_of_empty pempty.elim β
+instance pi.unique_of_is_empty [is_empty α] (β : Π a : α, Sort v) :
+  unique (Π a, β a) :=
+{ default := is_empty_elim,
+  uniq := λ f, funext is_empty_elim }
 
 namespace function
 

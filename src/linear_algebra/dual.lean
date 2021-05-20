@@ -198,8 +198,8 @@ lemma total_dual_basis [fintype ι] (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.dual_basis f (b i) = f i :=
 begin
   rw [finsupp.total_apply, finsupp.sum_fintype, linear_map.sum_apply],
-  { simp_rw [smul_apply, smul_eq_mul, dual_basis_apply_self, mul_boole,
-             finset.sum_ite_eq, if_pos (finset.mem_univ i)] },
+  { simp_rw [linear_map.smul_apply, smul_eq_mul, dual_basis_apply_self, mul_boole,
+      finset.sum_ite_eq, if_pos (finset.mem_univ i)] },
   { intro, rw zero_smul },
 end
 

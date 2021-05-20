@@ -484,6 +484,9 @@ namespace norm_noninc
 lemma bound_by_one (hf : f.norm_noninc) : f.bound_by 1 :=
 λ v, by simpa only [one_mul, nnreal.coe_one] using hf v
 
+lemma zero : (0 : normed_group_hom V₁ V₂).norm_noninc :=
+λ v, by simp
+
 lemma id : (id : normed_group_hom V V).norm_noninc :=
 λ v, le_rfl
 

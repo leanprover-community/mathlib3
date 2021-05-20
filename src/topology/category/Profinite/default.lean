@@ -183,12 +183,8 @@ def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}
   uniq' := λ S m h,
     (CompHaus.limit_cone_is_limit _).uniq (Profinite.to_CompHaus.map_cone S) _ h }
 
-def initial_cocone : limits.cocone (functor.empty Profinite.{u}) :=
-{ X := Profinite.of pempty,
-  ι := { app := λ j, pempty.elim j } }
-
-def initial_cocone_is_colimit : limits.is_colimit initial_cocone :=
-{ desc := λ s, ⟨pempty.elim, by apply_auto_param⟩ }
+def initial_pempty : limits.is_initial (of.{u} pempty) :=
+{ desc := λ s, { to_fun := pempty.elim } }
 
 instance {α β : Type*} [topological_space α] [topological_space β]
   [totally_disconnected_space α] [totally_disconnected_space β] :

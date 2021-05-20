@@ -8,6 +8,7 @@ import topology.category.Profinite
 import category_theory.sites.pretopology
 import category_theory.sites.sheaf_of_types
 import category_theory.sites.sheaf
+import category_theory.limits.opposites
 import algebra.category.Group
 import algebra.category.CommRing
 
@@ -120,16 +121,63 @@ def natural_fork {S S' : Profinite.{u}} (f : S' ⟶ S) :
 fork.of_ι (P.map (quiver.hom.op f)) (maps_comm P f)
 
 structure condensed_condition : Prop :=
-(empty : nonempty (preserves_limits_of_shape (discrete pempty) P))
-(bin_prod : nonempty (preserves_limits_of_shape (discrete walking_pair) P))
+(empty : nonempty (preserves_terminal P))
+(bin_prod : nonempty P.preserves_binary_products)
 (pullbacks : ∀ {S S' : Profinite.{u}} (f : S' ⟶ S) [epi f], nonempty (is_limit (natural_fork P f)))
+
+def preserves_terminal_of_is_proetale_sheaf (hP : presieve.is_sheaf proetale_topology P) :
+  preserves_terminal P :=
+begin
+  rw [proetale_topology, presieve.is_sheaf_pretopology] at hP,
+  apply preserves_terminal_of_is_terminal_obj,
+  apply terminal_op_of_initial Profinite.initial_pempty,
+  let R : presieve (Profinite.of pempty) := λ _, ∅,
+  have hR : R ∈ proetale_pretopology (Profinite.of pempty),
+  { refine ⟨pempty, infer_instance, pempty.elim, λ i, i.elim, λ i, i.elim, _⟩,
+    ext X f,
+    simp only [set.mem_empty_eq, false_iff],
+    rintro ⟨⟨⟩⟩ },
+  let t : presieve.family_of_elements P R := λ X f, false.elim,
+  have ht : t.compatible,
+  { rintro Y₁ Y₂ Z g₁ g₂ f₁ f₂ ⟨⟩ },
+  have : nonempty (unique (P.obj (op (Profinite.of pempty)))),
+  { obtain ⟨x, hx, hx'⟩ := hP _ hR _ ht,
+    refine ⟨⟨⟨x⟩, λ y, hx' y _⟩⟩,
+    rintro _ _ ⟨⟩ },
+  letI := classical.choice this,
+  apply (types.is_terminal_equiv_equiv_punit _).symm _,
+  apply equiv_of_unique_of_unique,
+end
+
+def preserves_binary_products_of_is_proetale_sheaf (hP : presieve.is_sheaf proetale_topology P) :
+  P.preserves_binary_products :=
+begin
+  rw [proetale_topology, presieve.is_sheaf_pretopology] at hP,
+
+  -- apply preserves_terminal_of_is_terminal_obj,
+  -- apply terminal_op_of_initial Profinite.initial_pempty,
+  -- let R : presieve (Profinite.of pempty) := λ _, ∅,
+  -- have hR : R ∈ proetale_pretopology (Profinite.of pempty),
+  -- { refine ⟨pempty, infer_instance, pempty.elim, λ i, i.elim, λ i, i.elim, _⟩,
+  --   ext X f,
+  --   simp only [set.mem_empty_eq, false_iff],
+  --   rintro ⟨⟨⟩⟩ },
+  -- let t : presieve.family_of_elements P R := λ X f, false.elim,
+  -- have ht : t.compatible,
+  -- { rintro Y₁ Y₂ Z g₁ g₂ f₁ f₂ ⟨⟩ },
+  -- have : nonempty (unique (P.obj (op (Profinite.of pempty)))),
+  -- { obtain ⟨x, hx, hx'⟩ := hP _ hR _ ht,
+  --   refine ⟨⟨⟨x⟩, λ y, hx' y _⟩⟩,
+  --   rintro _ _ ⟨⟩ },
+  -- letI := classical.choice this,
+  -- apply (types.is_terminal_equiv_equiv_punit _).symm _,
+  -- apply equiv_of_unique_of_unique,
+end
 
 lemma condensed_condition_of_is_sheaf (hP : presieve.is_sheaf proetale_topology P) :
   condensed_condition P :=
 begin
-  rw [proetale_topology, presieve.is_sheaf_pretopology] at hP,
-  refine ⟨_, _, _⟩,
-
-  -- rw [proetale_topology, is_sheaf_pretopology] at hP,
+  refine ⟨⟨_⟩, ⟨_⟩, _⟩,
+  { apply preserves_terminal_of_is_proetale_sheaf _ hP },
 
 end

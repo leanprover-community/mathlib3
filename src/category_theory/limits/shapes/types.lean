@@ -59,6 +59,14 @@ def terminal_limit_cone : limits.limit_cone (functor.empty (Type u)) :=
     π := by tidy, },
   is_limit := by tidy, }
 
+def is_terminal_punit : is_terminal (punit : Type u) := by tidy
+
+def is_terminal_equiv_equiv_punit (X : Type u) : is_terminal X ≃ (X ≃ punit) :=
+{ to_fun := λ x, (x.cone_point_unique_up_to_iso is_terminal_punit).to_equiv,
+  inv_fun := λ e, is_terminal_punit.of_iso e.to_iso.symm,
+  left_inv := λ x, subsingleton.elim _ _,
+  right_inv := λ x, subsingleton.elim _ _ }
+
 /-- The category of types has `pempty` as an initial object. -/
 def initial_limit_cone : limits.colimit_cocone (functor.empty (Type u)) :=
 { cocone :=

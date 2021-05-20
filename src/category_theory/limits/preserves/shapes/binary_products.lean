@@ -21,13 +21,15 @@ noncomputable theory
 
 universes v u₁ u₂
 
-open category_theory category_theory.category category_theory.limits
+namespace category_theory
+
+open category limits
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 variables (G : C ⥤ D)
 
-namespace category_theory.functor
+namespace functor
 
 abbreviation preserves_binary_product (X Y : C) := preserves_limit (pair X Y) G
 abbreviation reflects_binary_product (X Y : C) := reflects_limit (pair X Y) G
@@ -42,11 +44,17 @@ abbreviation preserves_binary_coproducts := preserves_colimits_of_shape (discret
 abbreviation reflects_binary_coproducts := reflects_colimits_of_shape (discrete walking_pair) G
 abbreviation creates_binary_coproducts := creates_colimits_of_shape (discrete walking_pair) G
 
-end category_theory.functor
+-- TODO: make reflects/creates versions and dualise this
+def preserves_binary_products_of_preserves_binary_product
+  [∀ X Y, G.preserves_binary_product X Y] :
+  G.preserves_binary_products :=
+{ preserves_limit := λ K, preserves_limit_of_iso_diagram G (diagram_iso_pair K).symm }
+
+end functor
 
 example [G.preserves_binary_products] (X Y : C) : G.preserves_binary_product X Y := infer_instance
 
-namespace category_theory.limits
+namespace limits
 
 section
 variables {P X Y Z : C} (f : P ⟶ X) (g : P ⟶ Y)
@@ -198,4 +206,4 @@ end
 
 end
 
-end category_theory.limits
+end limits

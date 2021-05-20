@@ -479,7 +479,8 @@ begin
     { exact ϕ.to_map.is_integral_of_surjective (localization_map_bijective_of_field hM
         ((quotient.maximal_ideal_iff_is_field_quotient _).mp
         (is_maximal_comap_C_of_is_maximal P hP')) _).2 },
-    { exact is_integral_localization_map_polynomial_quotient P pX hpX _ _ } }
+    { -- `convert` here is faster than `exact`, and this proof is near the time limit.
+      convert is_integral_localization_map_polynomial_quotient P pX hpX _ _ } }
 end
 
 /-- If `R` is a Jacobson ring, and `P` is a maximal ideal of `polynomial R`,

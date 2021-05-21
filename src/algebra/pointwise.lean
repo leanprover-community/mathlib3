@@ -504,7 +504,7 @@ Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
     (set_like.le_def.mp le_sup_right $ subset_closure ht)
 
 @[to_additive]
-lemma sup_eq_closure (H K : submonoid M) : H ⊔ K = closure (H * K) :=
+lemma sup_eq_closure (H K : submonoid M) : H ⊔ K = closure (H * K : set M) :=
 le_antisymm
   (sup_le
     (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)

@@ -190,6 +190,7 @@ begin
   exact hC.inter_left hCA,
 end
 
+/-
 instance : bounded_lattice (set_of (is_exposed A)) :=
 { sup := λ ⟨B, hB⟩ ⟨C, hC⟩, ⟨(⋂ (D : set E) (hD : is_exposed A D) (hDB : B ⊆ D) (hCB : C ⊆ D), D),
     begin
@@ -222,7 +223,7 @@ instance : bounded_lattice (set_of (is_exposed A)) :=
   top := ⟨A, refl A⟩,
   le_top := λ ⟨B, hB⟩, hB,
   bot := ⟨∅, is_exposed_empty⟩,
-  bot_le := λ ⟨B, hB⟩, is_exposed_empty }
+  bot_le := λ ⟨B, hB⟩, is_exposed_empty }-/
 
 --@Bhavik, I don't know how to use the right instances
 lemma is_extreme (hAB : is_exposed A B) :
@@ -233,21 +234,20 @@ begin
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
   have hlx₁ : l x₁ = l x,
   { apply le_antisymm (hxB.2 x₁ hx₁A),
-    rw [←smul_le_smul_iff_of_pos ha, ←add_le_add_iff_right (b • l x), ←add_smul, hab, one_smul],
+    rw [←@smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ ha, ←add_le_add_iff_right (b • l x), ←add_smul,
+      hab, one_smul],
     nth_rewrite 0 ←hx,
-    rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_left, smul_le_smul_iff_of_pos hb],
-    exact hxB.2 x₂ hx₂A,
-    sorry,
-    sorry
-  },
+    rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_left,
+      @smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ hb],
+    exact hxB.2 x₂ hx₂A, },
   have hlx₂ : l x₂ = l x,
   { apply le_antisymm (hxB.2 x₂ hx₂A),
-    rw [←smul_le_smul_iff_of_pos hb, ←add_le_add_iff_left (a • l x), ←add_smul, hab, one_smul],
+    rw [←@smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ hb, ←add_le_add_iff_left (a • l x), ←add_smul,
+      hab, one_smul],
     nth_rewrite 0 ←hx,
-    rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_right, smul_le_smul_iff_of_pos ha],
-    exact hxB.2 x₁ hx₁A,
-    sorry,
-    sorry },
+    rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_right,
+    @smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ ha],
+    exact hxB.2 x₁ hx₁A, },
   refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
   { rw hlx₁,
     exact hxB.2 y hy },
@@ -381,6 +381,20 @@ lemma exposed_points_empty :
 subset_empty_iff.1 exposed_points_subset
 
 /-! # Harder stuff -/
+
+/-- Eidelheit's Theorem -/
+theorem eq_Inter_halfspaces (hA₁ : convex A) (hA₂ : is_closed A) :
+  A = ⋂ (l : E →L[ℝ] ℝ), {x | ∃ y ∈ A, l x ≤ l y} :=
+begin
+  ext,
+  simp only [mem_Inter],
+  use λ hx l, ⟨x, hx, le_rfl⟩,
+  rintro hx,
+  by_contra,
+  obtain ⟨l, s, hlA, hl⟩ := geometric_hahn_banach_closed_point hA₁ hA₂ h,
+  obtain ⟨y, hy, hxy⟩ := hx l,
+  linarith [hlA y hy],
+end
 
 lemma closed_extreme_points [finite_dimensional ℝ E] (hE : finite_dimensional.finrank ℝ E = 2)
 (hA₁ : convex A) (hA₂ : is_closed A) :

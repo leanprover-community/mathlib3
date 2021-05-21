@@ -30,7 +30,7 @@ insertion from the set of closed elements to the underlying type (see `closure_o
   form a Galois connection.
 ## Implementation details
 Although `lower_adjoint` is technically a generalisation of `closure_operator` (by defining
-`to_fun := id`), it is diserable to have both as otherwise `id`s would be carried all over the
+`to_fun := id`), it is desirable to have both as otherwise `id`s would be carried all over the
 place when using concrete closure operators such as `convex_hull`.
 `lower_adjoint` really is a semibundled `structure` version of `galois_connection`.
 ## References

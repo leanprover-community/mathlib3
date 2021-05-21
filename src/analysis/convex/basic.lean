@@ -46,7 +46,7 @@ They are defined using `local notation`, so they are not available outside of th
 ## Implementation notes
 
 `convex_hull` is defined as a closure operator. This gives access to the `closure_operator` API
-while the impact on writing code is minimal as `convex_hull s` is automatically coerced to
+while the impact on writing code is minimal as `convex_hull s` is automatically elaborated as
 `⇑convex_hull s`.
 -/
 

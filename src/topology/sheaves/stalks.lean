@@ -311,8 +311,6 @@ begin
   exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ),
 end
 
-#check nat_trans.app_op
-
 @[simp, elementwise, reassoc]
 lemma stalk_pushforward_germ (f : X ⟶ Y) (F : X.presheaf C) (U : opens Y)
   (x : (opens.map f).obj U) :

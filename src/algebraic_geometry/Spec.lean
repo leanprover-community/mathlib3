@@ -18,44 +18,17 @@ Make it a functor.
 
 -/
 
+
 noncomputable theory
 
-universe u
-
 namespace algebraic_geometry
-
-open opposite
-
-set_option profiler true
 
 /--
 Spec of a commutative ring, as a `SheafedSpace`.
 -/
-def Spec.SheafedSpace : CommRingᵒᵖ ⥤ SheafedSpace CommRing :=
-{ obj := λ R, {
-    carrier := Spec.Top (unop R : CommRing),
-    .. structure_sheaf (unop R : CommRing) },
-  map := λ R S f, {
-    base := {
-      to_fun := prime_spectrum.comap f.unop,
-      continuous_to_fun := prime_spectrum.comap_continuous f.unop },
-    c := {
-      app := λ U, by {
-        refine structure_sheaf.comap _ _ f.unop (unop U)
-          ((topological_space.opens.map _).obj (unop U)) (λ p, _), refl,
-      },
-      naturality' := sorry
-    }
-  },
-  map_id' := λ R,
-  begin
-    sorry
-  end,
-  map_comp' := λ R S T f g,
-  begin
-    sorry
-  end,
-}
+def Spec.SheafedSpace (R : CommRing) : SheafedSpace CommRing :=
+{ carrier := Top.of (prime_spectrum R),
+  ..structure_sheaf R }
 
 /--
 Spec of a commutative ring, as a `PresheafedSpace`.

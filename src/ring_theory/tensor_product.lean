@@ -77,8 +77,8 @@ variables (R A M N)
 @[priority 500]
 instance algebra_tensor_module : module A (M ⊗[R] N) :=
 { smul := λ a, (lsmul R M a).rtensor N,
-  one_smul := λ x, by simp only [alg_hom.map_one, one_def, id.def, id_coe, rtensor_id],
-  mul_smul := λ a b x, by simp only [alg_hom.map_mul, mul_def, rtensor_comp, comp_apply],
+  one_smul := λ x, by simp only [alg_hom.map_one, one_eq_id, id.def, id_coe, rtensor_id],
+  mul_smul := λ a b x, by simp only [alg_hom.map_mul, rtensor_mul, mul_apply],
   smul_add := λ a x y, by simp only [map_add],
   smul_zero := λ a, by simp only [map_zero],
   add_smul := λ a b x, by simp only [alg_hom.map_add, add_apply, rtensor_add],
@@ -138,7 +138,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
       (lsmul R _ c).comp (lift (f.restrict_scalars R)) x,
     from ext_iff.1 $ tensor_product.ext $ λ x y,
     by simp only [comp_apply, algebra.lsmul_coe, smul_tmul, lift.tmul, coe_restrict_scalars_eq_coe,
-        f.map_smul, smul_apply'],
+        f.map_smul, smul_apply],
   .. lift (f.restrict_scalars R) }
 
 @[simp] lemma lift'_tmul (f : M →ₗ[A] (N →ₗ[R] P)) (x : M) (y : N) :
@@ -162,7 +162,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
 @[simps] def uncurry' : (M →ₗ[A] (N →ₗ[R] P)) →ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
 { to_fun := lift',
   map_add' := λ f g, ext $ λ x y, by simp only [lift'_tmul, add_apply],
-  map_smul' := λ c f, ext $ λ x y, by simp only [lift'_tmul, smul_apply'] }
+  map_smul' := λ c f, ext $ λ x y, by simp only [lift'_tmul, smul_apply] }
 
 /-- Heterobasic version of `tensor_product.lcurry`:
 

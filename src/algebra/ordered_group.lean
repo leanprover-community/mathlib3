@@ -345,6 +345,8 @@ lemma inv_le_inv_iff : b⁻¹ ≤ a⁻¹ ↔ a ≤ b :=
 by rw [← mul_le_mul_iff_left' b, ← mul_le_mul_iff_right' a, mul_right_inv, inv_mul_cancel_right,
       one_mul]
 
+alias neg_le_neg_iff ↔ le_of_neg_le_neg _
+
 @[to_additive le_neg]
 lemma le_inv' : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
 ⟨λ h, inv_le_inv_iff.mp ((inv_inv _).le.trans h), λ h, inv_le_inv_iff.mp ((inv_inv _).le.trans h)⟩

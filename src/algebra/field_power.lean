@@ -70,8 +70,8 @@ begin
     apply (inv_le_inv _ _).2,
     { apply pow_le_pow hx,
       have : -(↑(a+1) : ℤ) ≤ -(↑(b+1) : ℤ), from h,
-      have h' : ↑(b + 1) ≤ ↑(a + 1) := neg_le_neg_iff.mp this,
-      exact le_of_coe_nat_le_coe_nat h' },
+      have h' := le_of_neg_le_neg this,
+      apply le_of_coe_nat_le_coe_nat h' },
     repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
 end
 

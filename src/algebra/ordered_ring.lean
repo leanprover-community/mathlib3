@@ -806,10 +806,10 @@ instance ordered_ring.to_ordered_semiring : ordered_semiring α :=
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul_of_nonpos_left [@decidable_rel α (≤)]
   {a b c : α} (h : b ≤ a) (hc : c ≤ 0) : c * a ≤ c * b :=
-have -c ≥ 0,              from neg_nonneg.mpr hc,
+have -c ≥ 0,              from neg_nonneg_of_nonpos hc,
 have -c * b ≤ -c * a,     from decidable.mul_le_mul_of_nonneg_left h this,
 have -(c * b) ≤ -(c * a), by rwa [← neg_mul_eq_neg_mul, ← neg_mul_eq_neg_mul] at this,
-neg_le_neg_iff.mp this
+le_of_neg_le_neg this
 
 lemma mul_le_mul_of_nonpos_left {a b c : α} : b ≤ a → c ≤ 0 → c * a ≤ c * b :=
 by classical; exact decidable.mul_le_mul_of_nonpos_left
@@ -817,10 +817,10 @@ by classical; exact decidable.mul_le_mul_of_nonpos_left
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul_of_nonpos_right [@decidable_rel α (≤)]
   {a b c : α} (h : b ≤ a) (hc : c ≤ 0) : a * c ≤ b * c :=
-have -c ≥ 0,              from neg_nonneg.mpr hc,
+have -c ≥ 0,              from neg_nonneg_of_nonpos hc,
 have b * -c ≤ a * -c,     from decidable.mul_le_mul_of_nonneg_right h this,
 have -(b * c) ≤ -(a * c), by rwa [← neg_mul_eq_mul_neg, ← neg_mul_eq_mul_neg] at this,
-neg_le_neg_iff.mp this
+le_of_neg_le_neg this
 
 lemma mul_le_mul_of_nonpos_right {a b c : α} : b ≤ a → c ≤ 0 → a * c ≤ b * c :=
 by classical; exact decidable.mul_le_mul_of_nonpos_right
@@ -979,7 +979,7 @@ calc a < -a ↔ -(-a) < -a : by rw neg_neg
 @[simp] lemma abs_eq_neg_self : abs a = -a ↔ a ≤ 0 := by simp [abs]
 
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
-have nhc : 0 ≤ -c, from neg_nonneg.mpr hc,
+have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
 have h2 : -(c * b) < -(c * a), from neg_lt_neg h,
 have h3 : (-c) * b < (-c) * a, from calc
      (-c) * b = - (c * b)    : by rewrite neg_mul_eq_neg_mul

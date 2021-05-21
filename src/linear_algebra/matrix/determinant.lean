@@ -175,7 +175,7 @@ lemma det_mul_left_comm (M N P : matrix m m R) : det (M ⬝ (N ⬝ P)) = det (N 
 by rw [←matrix.mul_assoc, ←matrix.mul_assoc, det_mul, det_mul_comm M N, ←det_mul]
 
 /-- On square matrices, `mul_right_comm` applies under `det`. -/
-lemma det_mul_right_comm [decidable_eq m] (M N P : matrix m m R) :
+lemma det_mul_right_comm (M N P : matrix m m R) :
   det (M ⬝ N ⬝ P) = det (M ⬝ P ⬝ N) :=
 by rw [matrix.mul_assoc, matrix.mul_assoc, det_mul, det_mul_comm N P, ←det_mul]
 

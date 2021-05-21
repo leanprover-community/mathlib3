@@ -167,6 +167,8 @@ by rw [← mul_le_mul_iff_left' a, mul_one, mul_right_inv]
 lemma one_le_inv' : 1 ≤ a⁻¹ ↔ a ≤ 1 :=
 by rw [← mul_le_mul_iff_left' a, mul_right_inv, mul_one]
 
+alias  neg_nonneg ↔ nonpos_of_neg_nonneg _
+
 @[to_additive]
 lemma le_self_mul_iff_one_le (a : α) : a ≤ a * b ↔ 1 ≤ b :=
 by rw [← mul_le_mul_iff_left' a⁻¹, inv_mul_cancel_left, mul_left_inv]
@@ -726,6 +728,8 @@ by rw [lt_div_left, mul_comm, div_eq_mul_inv]
 @[to_additive]
 lemma lt_div_iff_mul_lt' : b < c / a ↔ a * b < c :=
 by rw [mul_comm, lt_div_iff_mul_lt]
+
+alias lt_sub_iff_add_lt' ↔ add_lt_of_lt_sub_left _
 
 @[to_additive]
 lemma div_lt_iff_mul : c / a < b ↔ c < a * b :=

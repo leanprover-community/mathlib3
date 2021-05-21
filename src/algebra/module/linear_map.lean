@@ -133,6 +133,9 @@ variables (f g)
 @[simp] lemma map_zero : f 0 = 0 :=
 f.to_distrib_mul_action_hom.map_zero
 
+@[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
+⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
+
 variables (M M₂)
 /--
 A typeclass for `has_scalar` structures which can be moved through a `linear_map`.
@@ -250,13 +253,12 @@ instance : is_add_group_hom f :=
 { map_add := map_add f }
 
 instance compatible_smul.int_module
-  {S : Type*} [semiring S] [module ℤ M]
-  [module S M] [module ℤ M₂] [module S M₂] : compatible_smul M M₂ ℤ S :=
+  {S : Type*} [semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
 ⟨λ f c x, begin
   induction c using int.induction_on,
   case hz : { simp },
-  case hp : n ih { simpa [add_smul] using ih },
-  case hn : n ih { simpa [sub_smul] using ih }
+  case hp : n ih { simp [add_smul, ih] },
+  case hn : n ih { simp [sub_smul, ih] }
 end⟩
 
 end add_comm_group
@@ -322,16 +324,29 @@ end is_linear_map
 abbreviation module.End (R : Type u) (M : Type v)
   [semiring R] [add_comm_monoid M] [module R M] := M →ₗ[R] M
 
+/-- Reinterpret an additive homomorphism as a `ℕ`-linear map. -/
+def add_monoid_hom.to_nat_linear_map [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂) :
+  M →ₗ[ℕ] M₂ :=
+⟨f, f.map_add, f.map_nat_module_smul⟩
+
 /-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
 def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :
   M →ₗ[ℤ] M₂ :=
 ⟨f, f.map_add, f.map_int_module_smul⟩
+
+@[simp] lemma add_monoid_hom.coe_to_int_linear_map [add_comm_group M] [add_comm_group M₂]
+  (f : M →+ M₂) :
+  ⇑f.to_int_linear_map = f := rfl
 
 /-- Reinterpret an additive homomorphism as a `ℚ`-linear map. -/
 def add_monoid_hom.to_rat_linear_map [add_comm_group M] [module ℚ M]
   [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
   M →ₗ[ℚ] M₂ :=
 { map_smul' := f.map_rat_module_smul, ..f }
+
+@[simp] lemma add_monoid_hom.coe_to_rat_linear_map [add_comm_group M] [module ℚ M]
+  [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
+  ⇑f.to_rat_linear_map = f := rfl
 
 /-! ### Linear equivalences -/
 section
@@ -469,6 +484,8 @@ lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 
 lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
 
+@[simp] lemma refl_symm [module R M] : (refl R M).symm = linear_equiv.refl R M := rfl
+
 @[simp] lemma trans_symm [module R M] [module R M₂] (f : M ≃ₗ[R] M₂) :
   f.trans f.symm = linear_equiv.refl R M :=
 by { ext x, simp }
@@ -531,6 +548,23 @@ def of_involutive [module R M] (f : M →ₗ[R] M) (hf : involutive f) : M ≃�
 @[simp] lemma coe_of_involutive [module R M] (f : M →ₗ[R] M) (hf : involutive f) :
   ⇑(of_involutive f hf) = f :=
 rfl
+
+variables (R)
+
+/-- If `M` and `M₂` are both `R`-semimodules and `S`-semimodules and `R`-semimodule structures
+are defined by an action of `R` on `S` (formally, we have two scalar towers), then any `S`-linear
+equivalence from `M` to `M₂` is also an `R`-linear equivalence.
+
+See also `linear_map.restrict_scalars`. -/
+@[simps]
+def restrict_scalars [module R M] [module R M₂]
+  {S : Type*} [semiring S] [module S M] [module S M₂]
+  [linear_map.compatible_smul M M₂ R S] (f : M ≃ₗ[S] M₂) : M ≃ₗ[R] M₂ :=
+{ to_fun := f,
+  inv_fun := f.symm,
+  left_inv := f.left_inv,
+  right_inv := f.right_inv,
+  .. f.to_linear_map.restrict_scalars R }
 
 end add_comm_monoid
 

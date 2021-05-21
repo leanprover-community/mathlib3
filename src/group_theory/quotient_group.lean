@@ -80,14 +80,30 @@ instance : group (quotient N) :=
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
 def mk' : G →* quotient N := monoid_hom.mk' (quotient_group.mk) (λ _ _, rfl)
 
+@[to_additive, simp]
+lemma coe_mk' : (mk' N : G → quotient N) = coe := rfl
+
+@[to_additive, simp]
+lemma mk'_apply (x : G) : mk' N x = x := rfl
+
+@[simp, to_additive quotient_add_group.eq_zero_iff]
+lemma eq_one_iff {N : subgroup G} [nN : N.normal] (x : G) : (x : quotient N) = 1 ↔ x ∈ N :=
+begin
+  refine quotient_group.eq.trans _,
+  rw [mul_one, subgroup.inv_mem_iff],
+end
+
 @[simp, to_additive quotient_add_group.ker_mk]
 lemma ker_mk :
   monoid_hom.ker (quotient_group.mk' N : G →* quotient_group.quotient N) = N :=
+subgroup.ext eq_one_iff
+
+@[to_additive quotient_add_group.eq_iff_sub_mem]
+lemma eq_iff_div_mem {N : subgroup G} [nN : N.normal] {x y : G} :
+  (x : quotient N) = y ↔ x / y ∈ N :=
 begin
-  ext g,
-  rw [monoid_hom.mem_ker, eq_comm],
-  show (((1 : G) : quotient_group.quotient N)) = g ↔ _,
-  rw [quotient_group.eq, one_inv, one_mul],
+  refine eq_comm.trans (quotient_group.eq.trans _),
+  rw [nN.mem_comm_iff, div_eq_mul_inv]
 end
 
 -- for commutative groups we don't need normality assumption

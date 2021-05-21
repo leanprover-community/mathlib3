@@ -93,7 +93,7 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
   (h_nhds : ∀(a:α) (u : set α), a ∈ u → is_open u → ∃v ∈ s, a ∈ v ∧ v ⊆ u) :
   is_topological_basis s :=
 begin
-  refine ⟨λ t₁ ht₁ t₂ ht₂ x hx, h_nhds _ _ hx (is_open_inter (h_open _ ht₁) (h_open _ ht₂)), _, _⟩,
+  refine ⟨λ t₁ ht₁ t₂ ht₂ x hx, h_nhds _ _ hx (is_open.inter (h_open _ ht₁) (h_open _ ht₂)), _, _⟩,
   { refine sUnion_eq_univ_iff.2 (λ a, _),
     rcases h_nhds a univ trivial is_open_univ with ⟨u, h₁, h₂, -⟩,
     exact ⟨u, h₁, h₂⟩ },

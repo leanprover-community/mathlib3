@@ -167,17 +167,22 @@ algebra.commutes' r x
 theorem left_comm (r : R) (x y : A) : x * (algebra_map R A r * y) = algebra_map R A r * (x * y) :=
 by rw [← mul_assoc, ← commutes, mul_assoc]
 
-@[simp] lemma mul_smul_comm (s : R) (x y : A) :
+instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
+⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, smul_def, smul_def, mul_assoc]⟩
+
+/-- This is just a special case of the global `mul_smul_comm` lemma that requires less typeclass
+search (and was here first). -/
+@[simp] protected lemma mul_smul_comm (s : R) (x y : A) :
   x * (s • y) = s • (x * y) :=
+-- TODO: set up `is_scalar_tower.smul_comm_class` earlier so that we can actually prove this using
+-- `mul_smul_comm s x y`.
 by rw [smul_def, smul_def, left_comm]
 
-@[simp] lemma smul_mul_assoc (r : R) (x y : A) :
+/-- This is just a special case of the global `smul_mul_assoc` lemma that requires less typeclass
+search (and was here first). -/
+@[simp] protected lemma smul_mul_assoc (r : R) (x y : A) :
   (r • x) * y = r • (x * y) :=
-by rw [smul_def, smul_def, mul_assoc]
-
-lemma smul_mul_smul (r s : R) (x y : A) :
-  (r • x) * (s • y) = (r * s) • (x * y) :=
-by rw [algebra.smul_mul_assoc, algebra.mul_smul_comm, smul_smul]
+smul_mul_assoc r x y
 
 section
 variables {r : R} {a : A}
@@ -529,17 +534,25 @@ protected def id : A →ₐ[R] A :=
 { commutes' := λ _, rfl,
   ..ring_hom.id A  }
 
+@[simp] lemma coe_id : ⇑(alg_hom.id R A) = id := rfl
+
+@[simp] lemma id_to_ring_hom : (alg_hom.id R A : A →+* A) = ring_hom.id _ := rfl
+
 end
 
-@[simp] lemma id_apply (p : A) : alg_hom.id R A p = p := rfl
+lemma id_apply (p : A) : alg_hom.id R A p = p := rfl
 
 /-- Composition of algebra homeomorphisms. -/
 def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ[R] C :=
 { commutes' := λ r : R, by rw [← φ₁.commutes, ← φ₂.commutes]; refl,
   .. φ₁.to_ring_hom.comp ↑φ₂ }
 
-@[simp] lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) :
-  φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
+@[simp] lemma coe_comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : ⇑(φ₁.comp φ₂) = φ₁ ∘ φ₂ := rfl
+
+lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) : φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
+
+lemma comp_to_ring_hom (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) :
+  ⇑(φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
 
 @[simp] theorem comp_id : φ.comp (alg_hom.id R A) = φ :=
 ext $ λ x, rfl
@@ -565,12 +578,20 @@ ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
 @[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
+lemma map_list_prod (s : list A) :
+  φ s.prod = (s.map φ).prod :=
+φ.to_ring_hom.map_list_prod s
+
 end semiring
 
 section comm_semiring
 
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
+
+lemma map_multiset_prod (s : multiset A) :
+  φ s.prod = (s.map φ).prod :=
+φ.to_ring_hom.map_multiset_prod s
 
 lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
   φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
@@ -750,8 +771,9 @@ instance : inhabited (A₁ ≃ₐ[R] A₁) := ⟨1⟩
 @[refl]
 def refl : A₁ ≃ₐ[R] A₁ := 1
 
-@[simp] lemma coe_refl : (@refl R A₁ _ _ _ : A₁ →ₐ[R] A₁) = alg_hom.id R A₁ :=
-alg_hom.ext (λ x, rfl)
+@[simp] lemma refl_to_alg_hom : ↑(refl : A₁ ≃ₐ[R] A₁) = alg_hom.id R A₁ := rfl
+
+@[simp] lemma coe_refl : ⇑(refl : A₁ ≃ₐ[R] A₁) = id := rfl
 
 /-- Algebra equivalences are symmetric. -/
 @[symm]
@@ -794,7 +816,10 @@ def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃�
 @[simp] lemma symm_apply_apply (e : A₁ ≃ₐ[R] A₂) : ∀ x, e.symm (e x) = x :=
   e.to_equiv.symm_apply_apply
 
-@[simp] lemma trans_apply (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) (x : A₁) :
+@[simp] lemma coe_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
+  ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
+
+lemma trans_apply (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) (x : A₁) :
   (e₁.trans e₂) x = e₂ (e₁ x) := rfl
 
 @[simp] lemma comp_symm (e : A₁ ≃ₐ[R] A₂) :
@@ -804,6 +829,10 @@ by { ext, simp }
 @[simp] lemma symm_comp (e : A₁ ≃ₐ[R] A₂) :
   alg_hom.comp ↑e.symm (e : A₁ →ₐ[R] A₂) = alg_hom.id R A₁ :=
 by { ext, simp }
+
+theorem left_inverse_symm (e : A₁ ≃ₐ[R] A₂) : function.left_inverse e.symm e := e.left_inv
+
+theorem right_inverse_symm (e : A₁ ≃ₐ[R] A₂) : function.right_inverse e.symm e := e.right_inv
 
 /-- If `A₁` is equivalent to `A₁'` and `A₂` is equivalent to `A₂'`, then the type of maps
 `A₁ →ₐ[R] A₂` is equivalent to the type of maps `A₁' →ₐ[R] A₂'`. -/
@@ -1101,8 +1130,11 @@ section nat
 
 variables {R : Type*} [semiring R]
 
+-- Lower the priority so that `algebra.id` is picked most of the time when working with
+-- `ℕ`-algebras. This is only an issue since `algebra.id` and `algebra_nat` are not yet defeq.
+-- TODO: fix this by adding an `of_nat` field to semirings.
 /-- Semiring ⥤ ℕ-Alg -/
-instance algebra_nat : algebra ℕ R :=
+@[priority 99] instance algebra_nat : algebra ℕ R :=
 { commutes' := nat.cast_commute,
   smul_def' := λ _ _, nsmul_eq_mul _ _,
   to_ring_hom := nat.cast_ring_hom R }
@@ -1265,8 +1297,11 @@ section int
 
 variables (R : Type*) [ring R]
 
+-- Lower the priority so that `algebra.id` is picked most of the time when working with
+-- `ℤ`-algebras. This is only an issue since `algebra.id ℤ` and `algebra_int ℤ` are not yet defeq.
+-- TODO: fix this by adding an `of_int` field to rings.
 /-- Ring ⥤ ℤ-Alg -/
-instance algebra_int : algebra ℤ R :=
+@[priority 99] instance algebra_int : algebra ℤ R :=
 { commutes' := int.cast_commute,
   smul_def' := λ _ _, gsmul_eq_mul _ _,
   to_ring_hom := int.cast_ring_hom R }
@@ -1305,13 +1340,14 @@ instance algebra {r : comm_semiring R}
 -- One could also build a `Π i, R i`-algebra structure on `Π i, A i`,
 -- when each `A i` is an `R i`-algebra, although I'm not sure that it's useful.
 
-variables (R) (f)
+variables {I} (R) (f)
 
-/-- `function.eval` as an `alg_hom`. The name matches `ring_hom.apply`, `monoid_hom.apply`, etc. -/
+/-- `function.eval` as an `alg_hom`. The name matches `pi.eval_ring_hom`, `pi.eval_monoid_hom`,
+etc. -/
 @[simps]
-def alg_hom.apply {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (f i)] (i : I) :
+def eval_alg_hom {r : comm_semiring R} [Π i, semiring (f i)] [Π i, algebra R (f i)] (i : I) :
   (Π i, f i) →ₐ[R] f i :=
-{ commutes' := λ r, rfl, .. ring_hom.apply f i}
+{ to_fun := λ f, f i, commutes' := λ r, rfl, .. pi.eval_ring_hom f i}
 
 end pi
 

@@ -94,8 +94,9 @@ theorem nsmul_mem {x : A} (hx : x ∈ S) (n : ℕ) : n • x ∈ S :=
 S.to_subsemiring.nsmul_mem hx n
 
 theorem gsmul_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
-  [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) (n : ℤ) : n •ℤ x ∈ S :=
-int.cases_on n (λ i, S.nsmul_mem hx i) (λ i, S.neg_mem $ S.nsmul_mem hx _)
+  [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : ∀ (n : ℤ), n • x ∈ S
+| (n : ℕ) := by { rw [gsmul_coe_nat], exact S.nsmul_mem hx n }
+| -[1+ n] := by { rw [gsmul_neg_succ_of_nat], exact S.neg_mem (S.nsmul_mem hx _) }
 
 theorem coe_nat_mem (n : ℕ) : (n : A) ∈ S :=
 S.to_subsemiring.coe_nat_mem n
@@ -302,19 +303,9 @@ def map (S : subalgebra R A) (f : A →ₐ[R] B) : subalgebra R B :=
 { algebra_map_mem' := λ r, f.commutes r ▸ set.mem_image_of_mem _ (S.algebra_map_mem r),
   .. S.to_subsemiring.map (f : A →+* B) }
 
-/-- Preimage of a subalgebra under an algebra homomorphism. -/
-def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
-{ algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
-    from (f.commutes r).symm ▸ S.algebra_map_mem r,
-  .. S.to_subsemiring.comap (f : A →+* B) }
-
 lemma map_mono {S₁ S₂ : subalgebra R A} {f : A →ₐ[R] B} :
   S₁ ≤ S₂ → S₁.map f ≤ S₂.map f :=
 set.image_subset f
-
-theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
-  map S f ≤ U ↔ S ≤ comap' U f :=
-set.image_subset_iff
 
 lemma map_injective {S₁ S₂ : subalgebra R A} (f : A →ₐ[R] B)
   (hf : function.injective f) (ih : S₁.map f = S₂.map f) : S₁ = S₂ :=
@@ -323,6 +314,24 @@ ext $ set.ext_iff.1 $ set.image_injective.2 hf $ set.ext $ set_like.ext_iff.mp i
 lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
   y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
 subsemiring.mem_map
+
+/-- Preimage of a subalgebra under an algebra homomorphism. -/
+def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
+{ algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
+    from (f.commutes r).symm ▸ S.algebra_map_mem r,
+  .. S.to_subsemiring.comap (f : A →+* B) }
+
+theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
+  map S f ≤ U ↔ S ≤ comap' U f :=
+set.image_subset_iff
+
+@[simp] lemma mem_comap (S : subalgebra R B) (f : A →ₐ[R] B) (x : A) :
+  x ∈ S.comap' f ↔ f x ∈ S :=
+iff.rfl
+
+@[simp, norm_cast] lemma coe_comap (S : subalgebra R B) (f : A →ₐ[R] B) :
+  (S.comap' f : set A) = f ⁻¹' (S : set B) :=
+by { ext, simp, }
 
 instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divisors A]
   [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
@@ -485,8 +494,11 @@ by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, alg
 @[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 subsemiring.subset_closure $ or.inr trivial
 
-@[simp] theorem coe_top : (⊤ : subalgebra R A).to_submodule = ⊤ :=
+@[simp] theorem top_to_submodule : (⊤ : subalgebra R A).to_submodule = ⊤ :=
 submodule.ext $ λ x, iff_of_true mem_top trivial
+
+@[simp] theorem top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ :=
+subsemiring.ext $ λ x, iff_of_true mem_top trivial
 
 @[simp] theorem coe_bot : ((⊥ : subalgebra R A) : set A) = set.range (algebra_map R A) :=
 by simp [set.ext_iff, algebra.mem_bot]
@@ -585,6 +597,29 @@ instance : unique (subalgebra R R) :=
     simp only [set.mem_range, mem_bot, id.map_eq_self, exists_apply_eq_apply, default],
   end
   .. algebra.subalgebra.inhabited }
+
+/-- Two subalgebras that are equal are also equivalent as algebras.
+
+This is the `subalgebra` version of `linear_equiv.of_eq` and `equiv.set.of_eq`. -/
+@[simps apply]
+def equiv_of_eq (S T : subalgebra R A) (h : S = T) : S ≃ₐ[R] T :=
+{ to_fun := λ x, ⟨x, h ▸ x.2⟩,
+  inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
+  map_mul' := λ _ _, rfl,
+  commutes' := λ _, rfl,
+  .. linear_equiv.of_eq _ _ (congr_arg to_submodule h) }
+
+@[simp] lemma equiv_of_eq_symm (S T : subalgebra R A) (h : S = T) :
+  (equiv_of_eq S T h).symm = equiv_of_eq T S h.symm :=
+rfl
+
+@[simp] lemma equiv_of_eq_rfl (S : subalgebra R A) :
+  equiv_of_eq S S rfl = alg_equiv.refl :=
+by { ext, refl }
+
+@[simp] lemma equiv_of_eq_trans (S T U : subalgebra R A) (hST : S = T) (hTU : T = U) :
+  (equiv_of_eq S T hST).trans (equiv_of_eq T U hTU) = equiv_of_eq S U (trans hST hTU) :=
+rfl
 
 end subalgebra
 

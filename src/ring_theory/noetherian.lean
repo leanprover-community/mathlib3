@@ -9,6 +9,7 @@ import linear_algebra.linear_independent
 import order.order_iso_nat
 import order.compactly_generated
 import ring_theory.ideal.operations
+import group_theory.finiteness
 
 /-!
 # Noetherian rings and modules
@@ -68,6 +69,28 @@ theorem fg_def {N : submodule R M} :
   rcases finite.exists_finset_coe h with ⟨t, rfl⟩,
   exact ⟨t, rfl⟩
 end⟩
+
+lemma fg_iff_add_submonoid_fg (P : submodule ℕ M) :
+  P.fg ↔ P.to_add_submonoid.fg :=
+⟨λ ⟨S, hS⟩, ⟨S, by simpa [← span_nat_eq_add_submonoid_closure] using hS⟩,
+  λ ⟨S, hS⟩, ⟨S, by simpa [← span_nat_eq_add_submonoid_closure] using hS⟩⟩
+
+lemma fg_iff_add_subgroup_fg {G : Type*} [add_comm_group G] (P : submodule ℤ G) :
+  P.fg ↔ P.to_add_subgroup.fg :=
+⟨λ ⟨S, hS⟩, ⟨S, by simpa [← span_int_eq_add_subgroup_closure] using hS⟩,
+  λ ⟨S, hS⟩, ⟨S, by simpa [← span_int_eq_add_subgroup_closure] using hS⟩⟩
+
+lemma fg_iff_exists_fin_generating_family {N : submodule R M} :
+  N.fg ↔ ∃ (n : ℕ) (s : fin n → M), span R (range s) = N :=
+begin
+  rw fg_def,
+  split,
+  { rintros ⟨S, Sfin, hS⟩,
+    obtain ⟨n, f, rfl⟩ := Sfin.fin_embedding,
+    exact ⟨n, f, hS⟩, },
+  { rintros ⟨n, s, hs⟩,
+    refine ⟨range s, finite_range s, hs⟩ },
+end
 
 /-- Nakayama's Lemma. Atiyah-Macdonald 2.5, Eisenbud 4.7, Matsumura 2.2, Stacks 00DV -/
 theorem exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul {R : Type*} [comm_ring R]
@@ -130,7 +153,7 @@ lemma fg_of_fg_map {R M P : Type*} [ring R] [add_comm_group M] [module R M]
   [add_comm_group P] [module R P] (f : M →ₗ[R] P) (hf : f.ker = ⊥) {N : submodule R M}
   (hfn : (N.map f).fg) : N.fg :=
 let ⟨t, ht⟩ := hfn in ⟨t.preimage f $ λ x _ y _ h, linear_map.ker_eq_bot.1 hf h,
-linear_map.map_injective hf $ by { rw [map_span, finset.coe_preimage,
+linear_map.map_injective hf $ by { rw [f.map_span, finset.coe_preimage,
     set.image_preimage_eq_inter_range, set.inter_eq_self_of_subset_left, ht],
   rw [← linear_map.range_coe, ← span_le, ht, ← map_top], exact map_mono le_top }⟩
 
@@ -420,7 +443,7 @@ lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
 
-lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M]
+lemma finite_of_linear_independent {R M} [ring R] [nontrivial R] [add_comm_group M]
   [module R M] [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) :
   s.finite :=
 begin
@@ -448,11 +471,57 @@ theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module
   is_noetherian R M :=
 by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
+/-- A module is Noetherian iff every increasing chain of submodules stabilizes. -/
+theorem monotone_stabilizes_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
+  (∀ (f : ℕ →ₘ submodule R M), ∃ n, ∀ m, n ≤ m → f n = f m)
+    ↔ is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.monotone_chain_condition]
+
 /-- If `∀ I > J, P I` implies `P J`, then `P` holds for all submodules. -/
 lemma is_noetherian.induction {R M} [ring R] [add_comm_group M] [module R M] [is_noetherian R M]
   {P : submodule R M → Prop} (hgt : ∀ I, (∀ J > I, P J) → P I)
   (I : submodule R M) : P I :=
 well_founded.recursion (well_founded_submodule_gt R M) I hgt
+
+/--
+For any endomorphism of a Noetherian module, there is some nontrivial iterate
+with disjoint kernel and range.
+-/
+theorem is_noetherian.exists_endomorphism_iterate_ker_inf_range_eq_bot
+   {R M} [ring R] [add_comm_group M] [module R M] [I : is_noetherian R M]
+  (f : M →ₗ[R] M) : ∃ n : ℕ, n ≠ 0 ∧ (f ^ n).ker ⊓ (f ^ n).range = ⊥ :=
+begin
+  obtain ⟨n, w⟩ := monotone_stabilizes_iff_noetherian.mpr I
+    (f.iterate_ker.comp ⟨λ n, n+1, λ n m w, by linarith⟩),
+  specialize w (2 * n + 1) (by linarith),
+  dsimp at w,
+  refine ⟨n+1, nat.succ_ne_zero _, _⟩,
+  rw eq_bot_iff,
+  rintros - ⟨h, ⟨y, rfl⟩⟩,
+  rw [mem_bot, ←linear_map.mem_ker, w],
+  erw linear_map.mem_ker at h ⊢,
+  change ((f ^ (n + 1)) * (f ^ (n + 1))) y = 0 at h,
+  rw ←pow_add at h,
+  convert h using 3,
+  linarith,
+end
+
+/-- Any surjective endomorphism of a Noetherian module is injective. -/
+theorem is_noetherian.injective_of_surjective_endomorphism
+  {R M} [ring R] [add_comm_group M] [module R M] [I : is_noetherian R M]
+  (f : M →ₗ[R] M) (s : surjective f) : injective f :=
+begin
+  obtain ⟨n, ne, w⟩ := is_noetherian.exists_endomorphism_iterate_ker_inf_range_eq_bot f,
+  rw [linear_map.range_eq_top.mpr (linear_map.iterate_surjective s n), inf_top_eq,
+    linear_map.ker_eq_bot] at w,
+  exact linear_map.injective_of_iterate_injective ne w,
+end
+
+/-- Any surjective endomorphism of a Noetherian module is bijective. -/
+theorem is_noetherian.bijective_of_surjective_endomorphism
+  {R M} [ring R] [add_comm_group M] [module R M] [I : is_noetherian R M]
+  (f : M →ₗ[R] M) (s : surjective f) : bijective f :=
+⟨is_noetherian.injective_of_surjective_endomorphism f s, s⟩
 
 /--
 A ring is Noetherian if it is Noetherian as a module over itself,

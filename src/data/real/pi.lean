@@ -63,7 +63,7 @@ theorem pi_lower_bound_start (n : ℕ) {a}
   (h : sqrt_two_add_series ((0:ℕ) / (1:ℕ)) n ≤ 2 - (a / 2 ^ (n + 1)) ^ 2) : a < π :=
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series n), rw [mul_comm],
-  refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sqr_le _),
+  refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sq_le _),
   rwa [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
 end
 
@@ -111,7 +111,7 @@ lemma sqrt_two_add_series_step_down (a b : ℕ) {c d n : ℕ} {z : ℝ}
   (h : a ^ 2 * d ≤ (2 * d + c) * b ^ 2) : z ≤ sqrt_two_add_series (c/d) (n+1) :=
 begin
   apply le_trans hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
-  apply le_sqrt_of_sqr_le,
+  apply le_sqrt_of_sq_le,
   have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
   have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
   rw [div_pow, add_div_eq_mul_add_div _ _ (ne_of_gt hd'), div_le_div_iff (pow_pos hb' _) hd'],
@@ -235,7 +235,7 @@ begin
             pow_mul x 2 i, ← mul_pow (-1) (x^2) i],
         ring_nf } },
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
-    have g_sum := @geom_sum_eq _ _ (-x^2) (by linarith [neg_nonpos.mpr (pow_two_nonneg x)]) k,
+    have g_sum := @geom_sum_eq _ _ (-x^2) (by linarith [neg_nonpos.mpr (sq_nonneg x)]) k,
     simp only [geom_sum, f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
@@ -276,18 +276,9 @@ begin
                ... = 1 - (u k) + (u k)^(2*(k:ℝ)+1) : by { rw [← pow_succ' (U:ℝ) (2*k)], norm_cast },
 end
 
-open finset interval_integral
+/-! ### The Wallis Product for Pi -/
 
-lemma integral_sin_pow_antimono (n : ℕ) :
-  ∫ (x : ℝ) in 0..π, sin x ^ (n + 1) ≤ ∫ (x : ℝ) in 0..π, sin x ^ n :=
-begin
-  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
-  { exact ((continuous_pow (n + 1)).comp continuous_sin).interval_integrable 0 π },
-  { exact ((continuous_pow n).comp continuous_sin).interval_integrable 0 π },
-  refine pow_le_pow_of_le_one _ (sin_le_one x) (nat.le_add_right n 1),
-  rw interval_of_le pi_pos.le at hx,
-  exact sin_nonneg_of_mem_Icc hx,
-end
+open finset interval_integral
 
 lemma integral_sin_pow_div_tendsto_one :
   tendsto (λ k, (∫ x in 0..π, sin x ^ (2 * k + 1)) / ∫ x in 0..π, sin x ^ (2 * k)) at_top (𝓝 1) :=
@@ -296,7 +287,7 @@ begin
     λ n, (div_le_one (integral_sin_pow_pos _)).mpr (integral_sin_pow_antimono _),
   have h₄ :
     ∀ n, (∫ x in 0..π, sin x ^ (2 * n + 1)) / ∫ x in 0..π, sin x ^ (2 * n) ≥ 2 * n / (2 * n + 1),
-  { intro, cases n,
+  { rintro ⟨n⟩,
     { have : 0 ≤ (1 + 1) / π, exact div_nonneg (by norm_num) pi_pos.le,
       simp [this] },
     calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
@@ -304,21 +295,19 @@ begin
       by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
         convert integral_sin_pow_antimono (2 * n + 1) using 1 }
     ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
-      by { symmetry, rw [eq_div_iff, nat.succ_eq_add_one],
-        convert (integral_sin_pow_succ_succ (2 * n + 1)).symm using 3,
-        simp [mul_add], ring, simp [mul_add], ring,
-        exact norm_num.ne_zero_of_pos  _ (integral_sin_pow_pos (2 * n + 1)) } },
+      by { rw div_eq_iff (integral_sin_pow_pos (2 * n + 1)).ne',
+           convert integral_sin_pow (2 * n + 1), simp with field_simps, norm_cast } },
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ _ (λ n, (h₄ n).le) (λ n, (h₃ n)),
   { refine metric.tendsto_at_top.mpr (λ ε hε, ⟨nat_ceil (1 / ε), λ n hn, _⟩),
     have h : (2:ℝ) * n / (2 * n + 1) - 1 = -1 / (2 * n + 1),
     { conv_lhs { congr, skip, rw ← @div_self _ _ ((2:ℝ) * n + 1) (by { norm_cast, linarith }), },
       rw [← sub_div, ← sub_sub, sub_self, zero_sub] },
     have hpos : (0:ℝ) < 2 * n + 1, { norm_cast, norm_num },
-    rw [real.dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
+    rw [dist_eq, h, abs_div, abs_neg, abs_one, abs_of_pos hpos, one_div_lt hpos hε],
     calc 1 / ε ≤ nat_ceil (1 / ε) : le_nat_ceil _
           ... ≤ n : by exact_mod_cast hn.le
           ... < 2 * n + 1 : by { norm_cast, linarith } },
-  exact tendsto_const_nhds,
+  { exact tendsto_const_nhds },
 end
 
 /-- This theorem establishes the Wallis Product for `π`. Our proof is largely about analyzing

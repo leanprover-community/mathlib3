@@ -106,11 +106,13 @@ by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsm
 tactic.pi_instance_derive_field
 
 instance [add_group α] : add_group (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
+  gsmul := λ n x i, gsmul n (x i) };
 tactic.pi_instance_derive_field
 
 instance [add_comm_group α] : add_comm_group (holor α ds) :=
-by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i) };
+by refine_struct { zero := (0 : holor α ds), add := (+), nsmul := λ n x i, nsmul n (x i),
+  gsmul := λ n x i, gsmul n (x i) };
 tactic.pi_instance_derive_field
 
 /- scalar product -/

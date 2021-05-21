@@ -3,14 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import algebra.group.pi
 import algebra.big_operators.order
-import algebra.module.basic
 import algebra.module.pi
 import group_theory.submonoid.basic
-import data.fintype.card
+import algebra.big_operators.ring
 import data.finset.preimage
-import data.multiset.antidiagonal
 import data.indicator_function
 
 /-!
@@ -909,7 +906,7 @@ instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.s
 @[simp] lemma coe_nat_sub (g₁ g₂ : α →₀ ℕ) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma nat_sub_apply (g₁ g₂ : α →₀ ℕ) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
-@[simp] lemma single_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
+@[simp] lemma single_nat_sub {a : α} {n₁ n₂ : ℕ} : single a (n₁ - n₂) = single a n₁ - single a n₂ :=
 begin
   ext f,
   by_cases h : (a = f),
@@ -955,6 +952,12 @@ instance [add_group G] : add_group (α →₀ G) :=
   sub            := has_sub.sub,
   sub_eq_add_neg := λ x y, ext (λ i, sub_eq_add_neg _ _),
   add_left_neg   := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
+  gsmul := λ n v, v.map_range ((•) n) (gsmul_zero _),
+  gsmul_zero' := λ v, by { ext i, simp },
+  gsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_gsmul] },
+  gsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
+    gsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
+    add_gsmul, add_nsmul, one_gsmul, gsmul_coe_nat, one_nsmul] },
   .. finsupp.add_monoid }
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
@@ -1635,6 +1638,12 @@ ext $ λ _, rfl
   (v - v').subtype_domain p = v.subtype_domain p - v'.subtype_domain p :=
 ext $ λ _, rfl
 
+@[simp] lemma single_neg {a : α} {b : G} : single a (-b) = -single a b :=
+(single_add_hom a : G →+ _).map_neg b
+
+@[simp] lemma single_sub {a : α} {b₁ b₂ : G} : single a (b₁ - b₂) = single a b₁ - single a b₂ :=
+(single_add_hom a : G →+ _).map_sub b₁ b₂
+
 end group
 
 end subtype_domain
@@ -1773,6 +1782,18 @@ variables [add_comm_monoid M] [add_comm_monoid N]
 finitely supported functions from `β` to `γ`. -/
 protected def curry (f : (α × β) →₀ M) : α →₀ (β →₀ M) :=
 f.sum $ λp c, single p.1 (single p.2 c)
+
+@[simp] lemma curry_apply (f : (α × β) →₀ M) (x : α) (y : β) :
+  f.curry x y = f (x, y) :=
+begin
+  have : ∀ (b : α × β), single b.fst (single b.snd (f b)) x y = if b = (x, y) then f b else 0,
+  { rintros ⟨b₁, b₂⟩,
+    simp [single_apply, ite_apply, prod.ext_iff, ite_and],
+    split_ifs; simp [single_apply, *] },
+  rw [finsupp.curry, sum_apply, sum_apply, finsupp.sum, finset.sum_eq_single, this, if_pos rfl],
+  { intros b hb b_ne, rw [this b, if_neg b_ne] },
+  { intros hxy, rw [this (x, y), if_pos rfl, not_mem_support_iff.mp hxy] }
+end
 
 lemma sum_curry_index (f : (α × β) →₀ M) (g : α → β → M → N)
   (hg₀ : ∀ a b, g a b 0 = 0) (hg₁ : ∀a b c₀ c₁, g a b (c₀ + c₁) = g a b c₀ + g a b c₁) :
@@ -2169,7 +2190,10 @@ variables {αs : ι → Type*} [has_zero M] (l : (Σ i, αs i) →₀ M)
 
 /-- Given `l`, a finitely supported function from the sigma type `Σ (i : ι), αs i` to `M` and
 an index element `i : ι`, `split l i` is the `i`th component of `l`,
-a finitely supported function from `as i` to `M`. -/
+a finitely supported function from `as i` to `M`.
+
+This is the `finsupp` version of `sigma.curry`.
+-/
 def split (i : ι) : αs i →₀ M :=
 l.comap_domain (sigma.mk i) (λ x1 x2 _ _ hx, heq_iff_eq.1 (sigma.mk.inj hx).2)
 
@@ -2213,6 +2237,41 @@ by simp only [finset.ext_iff, split_support, split, comap_domain, mem_image,
 lemma sigma_sum [add_comm_monoid N] (f : (Σ (i : ι), αs i) → M → N) :
   l.sum f = ∑ i in split_support l, (split l i).sum (λ (a : αs i) b, f ⟨i, a⟩ b) :=
 by simp only [sum, sigma_support, sum_sigma, split_apply]
+
+variables {η : Type*} [fintype η] {ιs : η → Type*} [has_zero α]
+
+/-- On a `fintype η`, `finsupp.split` is an equivalence between `(Σ (j : η), ιs j) →₀ α`
+and `Π j, (ιs j →₀ α)`.
+
+This is the `finsupp` version of `equiv.Pi_curry`. -/
+noncomputable def sigma_finsupp_equiv_pi_finsupp :
+  ((Σ j, ιs j) →₀ α) ≃ Π j, (ιs j →₀ α) :=
+{ to_fun := split,
+  inv_fun := λ f, on_finset
+    (finset.univ.sigma (λ j, (f j).support))
+    (λ ji, f ji.1 ji.2)
+    (λ g hg, finset.mem_sigma.mpr ⟨finset.mem_univ _, mem_support_iff.mpr hg⟩),
+  left_inv := λ f, by { ext, simp [split] },
+  right_inv := λ f, by { ext, simp [split] } }
+
+@[simp] lemma sigma_finsupp_equiv_pi_finsupp_apply
+  (f : (Σ j, ιs j) →₀ α) (j i) :
+sigma_finsupp_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
+
+/-- On a `fintype η`, `finsupp.split` is an additive equivalence between
+`(Σ (j : η), ιs j) →₀ α` and `Π j, (ιs j →₀ α)`.
+
+This is the `add_equiv` version of `finsupp.sigma_finsupp_equiv_pi_finsupp`.
+-/
+noncomputable def sigma_finsupp_add_equiv_pi_finsupp
+  {α : Type*} {ιs : η → Type*} [add_monoid α] :
+  ((Σ j, ιs j) →₀ α) ≃+ Π j, (ιs j →₀ α) :=
+{ map_add' := λ f g, by { ext, simp },
+  .. sigma_finsupp_equiv_pi_finsupp }
+
+@[simp] lemma sigma_finsupp_add_equiv_pi_finsupp_apply
+  {α : Type*} {ιs : η → Type*} [add_monoid α] (f : (Σ j, ιs j) →₀ α) (j i) :
+sigma_finsupp_add_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
 
 end sigma
 
@@ -2336,80 +2395,6 @@ instance : canonically_ordered_add_monoid (α →₀ ℕ) :=
   le_iff_exists_add := λ f g, ⟨λ H, ⟨g - f, (nat_add_sub_of_le H).symm⟩,
     λ ⟨c, hc⟩, hc.symm ▸ λ x, by simp⟩,
  .. (infer_instance : ordered_add_comm_monoid (α →₀ ℕ)) }
-
-/-- The `finsupp` counterpart of `multiset.antidiagonal`: the antidiagonal of
-`s : α →₀ ℕ` consists of all pairs `(t₁, t₂) : (α →₀ ℕ) × (α →₀ ℕ)` such that `t₁ + t₂ = s`.
-The finitely supported function `antidiagonal s` is equal to the multiplicities of these pairs. -/
-def antidiagonal (f : α →₀ ℕ) : ((α →₀ ℕ) × (α →₀ ℕ)) →₀ ℕ :=
-(f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
-
-@[simp] lemma mem_antidiagonal_support {f : α →₀ ℕ} {p : (α →₀ ℕ) × (α →₀ ℕ)} :
-  p ∈ (antidiagonal f).support ↔ p.1 + p.2 = f :=
-begin
-  rcases p with ⟨p₁, p₂⟩,
-  simp [antidiagonal, ← and.assoc, ← finsupp.to_multiset.apply_eq_iff_eq]
-end
-
-lemma swap_mem_antidiagonal_support {n : α →₀ ℕ} {f : (α →₀ ℕ) × (α →₀ ℕ)} :
-  f.swap ∈ (antidiagonal n).support ↔ f ∈ (antidiagonal n).support :=
-by simp only [mem_antidiagonal_support, add_comm, prod.swap]
-
-lemma antidiagonal_support_filter_fst_eq (f g : α →₀ ℕ)
-  [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.1 = g)] :
-  (antidiagonal f).support.filter (λ p, p.1 = g) = if g ≤ f then {(g, f - g)} else ∅ :=
-begin
-  ext ⟨a, b⟩,
-  suffices : a = g → (a + b = f ↔ g ≤ f ∧ b = f - g),
-  { simpa [apply_ite ((∈) (a, b)), ← and.assoc, @and.right_comm _ (a = _), and.congr_left_iff] },
-  unfreezingI {rintro rfl}, split,
-  { rintro rfl, exact ⟨le_add_right le_rfl, (nat_add_sub_cancel_left _ _).symm⟩ },
-  { rintro ⟨h, rfl⟩, exact nat_add_sub_of_le h }
-end
-
-lemma antidiagonal_support_filter_snd_eq (f g : α →₀ ℕ)
-  [D : Π (p : (α →₀ ℕ) × (α →₀ ℕ)), decidable (p.2 = g)] :
-  (antidiagonal f).support.filter (λ p, p.2 = g) = if g ≤ f then {(f - g, g)} else ∅ :=
-begin
-  ext ⟨a, b⟩,
-  suffices : b = g → (a + b = f ↔ g ≤ f ∧ a = f - g),
-  { simpa [apply_ite ((∈) (a, b)), ← and.assoc, and.congr_left_iff] },
-  unfreezingI {rintro rfl}, split,
-  { rintro rfl, exact ⟨le_add_left le_rfl, (nat_add_sub_cancel _ _).symm⟩ },
-  { rintro ⟨h, rfl⟩, exact nat_sub_add_cancel h }
-end
-
-@[simp] lemma antidiagonal_zero : antidiagonal (0 : α →₀ ℕ) = single (0,0) 1 :=
-by rw [← multiset.to_finsupp_singleton]; refl
-
-@[to_additive]
-lemma prod_antidiagonal_support_swap {M : Type*} [comm_monoid M] (n : α →₀ ℕ)
-  (f : (α →₀ ℕ) → (α →₀ ℕ) → M) :
-  ∏ p in (antidiagonal n).support, f p.1 p.2 = ∏ p in (antidiagonal n).support, f p.2 p.1 :=
-finset.prod_bij (λ p hp, p.swap) (λ p, swap_mem_antidiagonal_support.2) (λ p hp, rfl)
-  (λ p₁ p₂ _ _ h, prod.swap_injective h)
-  (λ p hp, ⟨p.swap, swap_mem_antidiagonal_support.2 hp, p.swap_swap.symm⟩)
-
-/-- The set `{m : α →₀ ℕ | m ≤ n}` as a `finset`. -/
-def Iic_finset (n : α →₀ ℕ) : finset (α →₀ ℕ) :=
-(antidiagonal n).support.image prod.fst
-
-@[simp] lemma mem_Iic_finset {m n : α →₀ ℕ} : m ∈ Iic_finset n ↔ m ≤ n :=
-by simp [Iic_finset, le_iff_exists_add, eq_comm]
-
-@[simp] lemma coe_Iic_finset (n : α →₀ ℕ) : ↑(Iic_finset n) = set.Iic n :=
-by { ext, simp }
-
-/-- Let `n : α →₀ ℕ` be a finitely supported function.
-The set of `m : α →₀ ℕ` that are coordinatewise less than or equal to `n`,
-is a finite set. -/
-lemma finite_le_nat (n : α →₀ ℕ) : set.finite {m | m ≤ n} :=
-by simpa using (Iic_finset n).finite_to_set
-
-/-- Let `n : α →₀ ℕ` be a finitely supported function.
-The set of `m : α →₀ ℕ` that are coordinatewise less than or equal to `n`,
-but not equal to `n` everywhere, is a finite set. -/
-lemma finite_lt_nat (n : α →₀ ℕ) : set.finite {m | m < n} :=
-(finite_le_nat n).subset $ λ m, le_of_lt
 
 end finsupp
 

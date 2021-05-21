@@ -44,6 +44,14 @@ instance [linear_ordered_add_comm_monoid_with_top α] :
   ..multiplicative.ordered_comm_monoid,
   ..multiplicative.linear_order }
 
+instance [linear_ordered_add_comm_group_with_top α] :
+  linear_ordered_comm_group_with_zero (multiplicative (order_dual α)) :=
+{ inv_zero := linear_ordered_add_comm_group_with_top.neg_top,
+  mul_inv_cancel := linear_ordered_add_comm_group_with_top.add_neg_cancel,
+  ..multiplicative.div_inv_monoid,
+  ..multiplicative.linear_ordered_comm_monoid_with_zero,
+  ..multiplicative.nontrivial }
+
 section linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_monoid_with_zero α]
@@ -174,7 +182,8 @@ have hb : b ≠ 0 := ne_zero_of_lt hab,
 have hd : d ≠ 0 := ne_zero_of_lt hcd,
 if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero hb hd } else
 if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero hb hd } else
-@mul_lt_mul''' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) hab hcd
+@mul_lt_mul''' _
+  (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) _ _ _ _ _ _ hab hcd
 
 lemma mul_inv_lt_of_lt_mul' (h : x < y * z) : x * z⁻¹ < y :=
 have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,
@@ -196,6 +205,13 @@ lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 @inv_le_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
 
+instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
+{ neg_top := inv_zero,
+  add_neg_cancel := λ a ha, mul_inv_cancel ha,
+  ..additive.sub_neg_monoid,
+  ..additive.linear_ordered_add_comm_monoid_with_top,
+  ..additive.nontrivial }
+
 namespace monoid_hom
 
 variables {R : Type*} [ring R] (f : R →* α)
@@ -203,7 +219,7 @@ variables {R : Type*} [ring R] (f : R →* α)
 theorem map_neg_one : f (-1) = 1 :=
 begin
   apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [pow_two, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
+  rw [sq, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
 end
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=

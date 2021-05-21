@@ -52,9 +52,9 @@ lemma dist_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} [non
 begin
   rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg,
       ←mul_self_inj_of_nonneg dist_nonneg dist_nonneg,
-      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+      dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
         p3 hp1,
-      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+      dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
         p3 hp2],
   simp
 end
@@ -125,13 +125,13 @@ begin
       cases hp1,
       { rw hp1,
         rw [hpo,
-            dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd
+            dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd
               (orthogonal_projection_mem p) hcc _ _
               (vsub_orthogonal_projection_mem_direction_orthogonal s p),
             ←dist_eq_norm_vsub V p, dist_comm _ cc],
         field_simp [hy0],
         ring },
-      { rw [dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+      { rw [dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
                _ (hps hp1),
             orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc, subtype.coe_mk,
             hcr _ hp1, dist_eq_norm_vsub V cc₂ cc, vadd_vsub, norm_smul, ←dist_eq_norm_vsub V,
@@ -160,7 +160,7 @@ begin
       rw [←hcr₃ p0 (set.mem_insert_of_mem _ hp0), hcc₃'',
           ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
           real.mul_self_sqrt (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)),
-          dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
+          dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq
             _ (hps hp0),
           orthogonal_projection_vadd_smul_vsub_orthogonal_projection _ _ hcc₃', h', hcr p0 hp0,
           dist_eq_norm_vsub V _ cc₃', vadd_vsub, norm_smul, ←dist_eq_norm_vsub V p,
@@ -168,7 +168,7 @@ begin
       ring },
     replace hcr₃ := hcr₃ p (set.mem_insert _ _),
     rw [hpo, hcc₃'', hcr₃val, ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
-        dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd
+        dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd
           (orthogonal_projection_mem p) hcc₃' _ _
           (vsub_orthogonal_projection_mem_direction_orthogonal s p),
         dist_comm, ←dist_eq_norm_vsub V p,
@@ -838,16 +838,16 @@ begin
   have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =
     r * r - s.circumradius * s.circumradius,
   { rw [dist_comm, ←h₁ 0,
-      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₁ h],
+      dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq p₁ h],
     simp [h₁', dist_comm p₁] },
   have hd₂ : dist p₂ s.circumcenter * dist p₂ s.circumcenter =
     r * r - s.circumradius * s.circumradius,
   { rw [dist_comm, ←h₂ 0,
-      dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
+      dist_sq_eq_dist_orthogonal_projection_sq_add_dist_orthogonal_projection_sq p₂ h],
     simp [h₂', dist_comm p₂] },
   rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
-      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_square,
-      ←real_inner_self_eq_norm_square, real_inner_smul_left, real_inner_smul_left,
+      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←real_inner_self_eq_norm_sq,
+      ←real_inner_self_eq_norm_sq, real_inner_smul_left, real_inner_smul_left,
       real_inner_smul_right, real_inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
   by_cases hp : p = orthogonal_projection span_s p,
   { rw [hp₁, hp₂, ←hp],

@@ -214,9 +214,22 @@ instance : has_sub (alternating_map R M N' ι) :=
 @[norm_cast] lemma coe_sub : (↑(g - g₂) : multilinear_map R (λ i : ι, M) N') = g - g₂ := rfl
 
 instance : add_comm_group (alternating_map R M N' ι) :=
-by refine {zero := 0, add := (+), neg := has_neg.neg,
-           sub := has_sub.sub, sub_eq_add_neg := _, .. alternating_map.add_comm_monoid, .. };
-   intros; ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+by refine
+{ zero := 0,
+  add := (+),
+  neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := _,
+  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
+  gsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
+  gsmul_zero' := _,
+  gsmul_succ' := _,
+  gsmul_neg' := _,
+  .. alternating_map.add_comm_monoid, .. };
+intros; ext;
+simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, gsmul_coe_nat]
 
 section distrib_mul_action
 
@@ -716,8 +729,6 @@ begin
   rw [multilinear_map.dom_dom_congr_mul, perm.sign_mul, units.coe_mul,
     perm.sum_congr_hom_apply, multilinear_map.dom_coprod_dom_dom_congr_sum_congr,
     perm.sign_sum_congr, units.coe_mul, ←mul_smul ↑al.sign ↑ar.sign, ←mul_smul],
-  -- resolve typeclass diamonds in `has_scalar`. `congr` alone seems to make a wrong turn.
-  congr' 3,
 end
 
 /-- Taking the `multilinear_map.alternatization` of the `multilinear_map.dom_coprod` of two

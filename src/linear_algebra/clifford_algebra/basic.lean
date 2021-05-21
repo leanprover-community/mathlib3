@@ -79,7 +79,7 @@ def ι : M →ₗ[R] clifford_algebra Q :=
 
 /-- As well as being linear, `ι Q` squares to the quadratic form -/
 @[simp]
-theorem ι_square_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
+theorem ι_sq_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
 begin
   erw [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes],
   refl,
@@ -88,9 +88,9 @@ end
 variables {Q} {A : Type*} [semiring A] [algebra R A]
 
 @[simp]
-theorem comp_ι_square_scalar (g : clifford_algebra Q →ₐ[R] A) (m : M) :
+theorem comp_ι_sq_scalar (g : clifford_algebra Q →ₐ[R] A) (m : M) :
   g (ι Q m) * g (ι Q m) = algebra_map _ _ (Q m) :=
-by rw [←alg_hom.map_mul, ι_square_scalar, alg_hom.commutes]
+by rw [←alg_hom.map_mul, ι_sq_scalar, alg_hom.commutes]
 
 variables (Q)
 
@@ -108,7 +108,7 @@ def lift :
       induction h,
       rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
-    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_square_scalar]⟩,
+    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
   left_inv := λ f, by { ext, simp [ι] },
   right_inv := λ F, by { ext, simp [ι] } }
 
@@ -138,7 +138,7 @@ attribute [irreducible] clifford_algebra ι lift
 
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :
-  lift Q ⟨g.to_linear_map.comp (ι Q), comp_ι_square_scalar _⟩ = g :=
+  lift Q ⟨g.to_linear_map.comp (ι Q), comp_ι_sq_scalar _⟩ = g :=
 begin
   convert (lift Q).apply_symm_apply g,
   rw lift_symm_apply,
@@ -177,7 +177,7 @@ begin
     algebra_map_mem' := h_grade0, },
   let of : { f : M →ₗ[R] s // ∀ m, f m * f m = algebra_map _ _ (Q m) } :=
   ⟨(ι Q).cod_restrict s.to_submodule h_grade1,
-    λ m, subtype.eq $ ι_square_scalar Q m ⟩,
+    λ m, subtype.eq $ ι_sq_scalar Q m ⟩,
   -- the mapping through the subalgebra is the identity
   have of_id : alg_hom.id R (clifford_algebra Q) = s.val.comp (lift Q of),
   { ext,

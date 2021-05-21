@@ -234,7 +234,7 @@ begin
   rw f.image_eq_inter_preimage_of_subset_support hs,
   refine continuous_on.preimage_closed_of_closed
     ((ext_chart_continuous_on_symm _ _).mono f.closed_ball_subset) _ hsc,
-  exact is_closed_inter is_closed_closed_ball I.closed_range
+  exact is_closed.inter is_closed_closed_ball I.closed_range
 end
 
 /-- If `f` is a smooth bump function and `s` closed subset of the support of `f` (i.e., of the open
@@ -406,7 +406,7 @@ instance : has_coe_to_fun (smooth_bump_covering I s) := ⟨_, to_fun⟩
   (h₁ h₂ h₃) : ⇑(mk ι c to_fun h₁ h₂ h₃ : smooth_bump_covering I s) = to_fun :=
 rfl
 
-/-- 
+/--
 We say that `f : smooth_bump_covering I s` is *subordinate* to a map `U : M → set M` if for each
 index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`

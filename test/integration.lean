@@ -30,6 +30,8 @@ example : ∫ x in 0..π/4, cos x = sqrt 2 / 2 := by simp
 example : ∫ x in 0..π, 2 * sin x = 4 := by norm_num
 example : ∫ x in 0..π/2, cos x / 2 = 1 / 2 := by simp
 example : ∫ x : ℝ in 0..1, 1 / (1 + x ^ 2) = π/4 := by simp
+example : ∫ x in 0..2*π, sin x ^ 2 = π := by simp [mul_div_cancel_left]
+example : ∫ x in 0..π/2, cos x ^ 2 / 2 = π/8 := by norm_num [div_div_eq_div_mul]
 example : ∫ x in 0..π, cos x ^ 2 - sin x ^ 2 = 0 := by simp [integral_cos_sq_sub_sin_sq]
 
 /- the exponential function -/

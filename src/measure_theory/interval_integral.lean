@@ -1541,7 +1541,7 @@ integral_eq_sub_of_has_deriv_at' hcont (by rwa [min_eq_left hab, max_eq_right ha
 theorem integral_eq_sub_of_has_deriv_at (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hcont' : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
-integral_eq_sub_of_has_deriv_at' (λ x hx, (hderiv x hx).continuous_at.continuous_within_at)
+integral_eq_sub_of_has_deriv_at' (has_deriv_at.continuous_on hderiv)
   (λ x hx, hderiv _ (mem_Icc_of_Ioo hx)) hcont'
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is differentiable at every `x` in `[a, b]` and
@@ -1566,14 +1566,8 @@ lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
   (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
   ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a :=
-begin
-  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
-  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
-  rw integral_eq_sub_of_has_deriv_at,
-  intros x hx;
-  { exact (hu x hx).mul (hv x hx) },
-  { exact (hcu'.mul hcv).add (hcu.mul hcv') }
-end
+integral_eq_sub_of_has_deriv_at (λ x hx, (hu x hx).mul (hv x hx)) $
+  (hcu'.mul (has_deriv_at.continuous_on hv)).add ((has_deriv_at.continuous_on hu).mul hcv')
 
 theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
@@ -1581,12 +1575,10 @@ theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
   ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
 begin
-  have hcu : continuous_on u _ := λ x hx, (hu x hx).continuous_at.continuous_within_at,
-  have hcv : continuous_on v _ := λ x hx, (hv x hx).continuous_at.continuous_within_at,
+  have hcv := has_deriv_at.continuous_on hv,
   rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
-  { apply integral_congr,
-    exact λ x hx, by simp [mul_comm] },
-  { exact ((hcu'.mul hcv).add (hcu.mul hcv')).interval_integrable },
+  { exact integral_congr (λ x hx, by simp only [mul_comm, add_sub_cancel']) },
+  { exact ((hcu'.mul hcv).add ((has_deriv_at.continuous_on hu).mul hcv')).interval_integrable },
   { exact (hcv.mul hcu').interval_integrable },
 end
 

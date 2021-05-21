@@ -187,13 +187,13 @@ variables {R A M N P}
 lemma curry'_inj : function.injective (@curry' R A M N P _ _ _ _ _ _ _ _ _ _ _ _ _) :=
 (lift.equiv' R A M N P).to_equiv.symm.injective
 
-variables (R A M N P)
-/-- Heterobasic version of `tensor_product.mk`:
-
-The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
-@[simps] def mk' : M →ₗ[A] N →ₗ[R] M ⊗[R] N :=
-{ map_smul' := λ c x, rfl,
-  .. mk R M N }
+-- variables (R A M N P)
+-- /-- Heterobasic version of `tensor_product.mk`:
+--
+-- The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
+-- @[simps] def mk' : M →ₗ[A] N →ₗ[R] M ⊗[R] N :=
+-- { map_smul' := λ c x, rfl,
+--   .. mk R M N }
 
 end comm_semiring
 
@@ -203,15 +203,15 @@ variables [add_comm_monoid M] [module A M]
 variables [add_comm_monoid N] [module R N] [module A N] [is_scalar_tower R A N]
 variables [add_comm_monoid P] [module R P]
 
-/-- Heterobasic version of `tensor_product.assoc`:
-
-Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/
-def assoc : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
-linear_equiv.of_linear
-  (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (N ⊗[R] P))
-  (uncurry A _ _ _ $ comp (uncurry' R A _ _ _) $ by apply curry; exact (mk' R A _ _))
-  (by apply mk_compr₂_inj; ext; refl)
-  (by apply curry'_inj; ext; refl)
+-- /-- Heterobasic version of `tensor_product.assoc`:
+--
+-- Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/
+-- def assoc : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
+-- linear_equiv.of_linear
+--   (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (N ⊗[R] P))
+--   (uncurry A _ _ _ $ comp (uncurry' R A _ _ _) $ by apply curry; exact (mk' R A _ _))
+--   (by apply mk_compr₂_inj; ext; refl)
+--   (by apply curry'_inj; ext; refl)
 
 end comm_semiring
 

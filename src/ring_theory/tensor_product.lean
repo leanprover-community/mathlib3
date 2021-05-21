@@ -38,25 +38,25 @@ variables {R A M N P : Type*}
 
 section restrict_scalars
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule A M]
-variables [add_comm_monoid N] [semimodule A N]
+variables [add_comm_monoid M] [module A M]
+variables [add_comm_monoid N] [module A N]
 
 variables (R A M N)
 
 @[priority 500]
-instance restrict_scalars.semimodule : semimodule R (M ⊗[A] N) :=
-show semimodule R (restrict_scalars R A (M ⊗ N)), from
-restrict_scalars.semimodule R A (M ⊗ N)
+instance restrict_scalars.module : module R (M ⊗[A] N) :=
+show module R (restrict_scalars R A (M ⊗ N)), from
+restrict_scalars.module R A (M ⊗ N)
 
 instance restrict_scalars.is_scalar_tower : is_scalar_tower R A (M ⊗[A] N) :=
 show is_scalar_tower R A (restrict_scalars R A (M ⊗ N)), from
 restrict_scalars.is_scalar_tower R A (M ⊗ N)
 
-variables [semimodule R M] [semimodule R N]
+variables [module R M] [module R N]
 
 /- Check that we didn't introduce a diamond. -/
-example : tensor_product.restrict_scalars.semimodule R R M N =
-          @tensor_product.semimodule R _ M N _ _ _ _ := rfl
+example : tensor_product.restrict_scalars.module R R M N =
+          @tensor_product.module R _ M N _ _ _ _ := rfl
 
 end restrict_scalars
 
@@ -69,13 +69,13 @@ open algebra (lsmul)
 
 section defn
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [semimodule R N]
+variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [module R N]
 
 variables (R A M N)
 
 @[priority 500]
-instance algebra_tensor_module : semimodule A (M ⊗[R] N) :=
+instance algebra_tensor_module : module A (M ⊗[R] N) :=
 { smul := λ a, (lsmul R M a).rtensor N,
   one_smul := λ x, by simp only [alg_hom.map_one, one_def, id.def, id_coe, rtensor_id],
   mul_smul := λ a b x, by simp only [alg_hom.map_mul, mul_def, rtensor_comp, comp_apply],
@@ -86,7 +86,7 @@ instance algebra_tensor_module : semimodule A (M ⊗[R] N) :=
 
 /- Check that we didn't introduce a diamond. -/
 example : tensor_product.algebra_tensor_module R R M N =
-          @tensor_product.semimodule R _ M N _ _ _ _ := rfl
+          @tensor_product.module R _ M N _ _ _ _ := rfl
 
 end defn
 
@@ -94,9 +94,9 @@ namespace algebra_tensor_module
 
 section semiring
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [semimodule R N]
-variables [add_comm_monoid P] [semimodule A P]
+variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [module R N]
+variables [add_comm_monoid P] [module A P]
 
 variables {R A M}
 
@@ -123,9 +123,9 @@ end semiring
 
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule R M] [semimodule A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [semimodule R N]
-variables [add_comm_monoid P] [semimodule R P] [semimodule A P] [is_scalar_tower R A P]
+variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+variables [add_comm_monoid N] [module R N]
+variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 variables {R A M N P}
 /-- Heterobasic version of `tensor_product.lift`:
@@ -199,9 +199,9 @@ end comm_semiring
 
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [semimodule A M]
-variables [add_comm_monoid N] [semimodule R N] [semimodule A N] [is_scalar_tower R A N]
-variables [add_comm_monoid P] [semimodule R P]
+variables [add_comm_monoid M] [module A M]
+variables [add_comm_monoid N] [module R N] [module A N] [is_scalar_tower R A N]
+variables [add_comm_monoid P] [module R P]
 
 /-- Heterobasic version of `tensor_product.assoc`:
 
@@ -230,7 +230,7 @@ section semiring
 
 variables {R A B M N : Type*} [comm_semiring R]
 variables [semiring A] [algebra R A] [semiring B] [algebra R B]
-variables [add_comm_monoid M] [semimodule R M] [add_comm_monoid N] [semimodule R N]
+variables [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
 variables (r : R) (f g : M →ₗ[R] N)
 
 variables (A)

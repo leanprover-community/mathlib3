@@ -26,7 +26,13 @@ def is_down_closed (G : finset V → Prop) : Prop :=
 
 --lemma szemeredi_regularity {G : finset V → Prop} (hG : is_partite G 2) {ε : ℝ} (ε_pos : 0 < ε) :
 
-def edges_pair (A B : finset V) : ℕ := sorry
+structure hypergraph (V : Type*) :=
+(edges : set (finset V))
+
+variable (G : hypergraph V)
+
+def edges_pair (A B : finset V) : finset (V × V) :=
+(finset.product A B).filter (λ e, e.1 ≠ e.2 ∧ {e.1, e.2} ∈ G.edges)
 
 def density_pair (A B : finset V) : ℚ := (edges_pair A B : ℚ)/(A.card * B.card)
 

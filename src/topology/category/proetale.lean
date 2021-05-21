@@ -149,12 +149,57 @@ begin
   apply equiv_of_unique_of_unique,
 end
 
+def my_cone (X Y : Profinite.{u}) : cone (pair (op X) (op Y)) :=
+binary_fan.mk
+  (quiver.hom.op ({ to_fun := sum.inl } : _ ⟶ Profinite.of (X ⊕ Y)))
+  (quiver.hom.op ({ to_fun := sum.inr }))
+
+def my_cone_is_limit (X Y : Profinite.{u}) : is_limit (my_cone X Y) :=
+{ lift := λ (s : binary_fan _ _),
+  begin
+    refine quiver.hom.op (_ : Profinite.of _ ⟶ unop s.X),
+    refine { to_fun := sum.elim s.fst.unop s.snd.unop, continuous_to_fun := _ },
+    apply continuous_sum_rec s.fst.unop.2 s.snd.unop.2,
+  end,
+  fac' := λ (s : binary_fan _ _) j,
+  begin
+    cases j,
+    { apply quiver.hom.unop_inj,
+      ext (x : X),
+      refl },
+    { apply quiver.hom.unop_inj,
+      ext (y : Y),
+      refl },
+  end,
+  uniq' := λ (s : binary_fan _ _) m w,
+  begin
+    apply quiver.hom.unop_inj,
+    ext (x | y); dsimp,
+    { rw ←(show _ = s.fst, from w walking_pair.left),
+      refl },
+    { rw ←(show _ = s.snd, from w walking_pair.right),
+      refl },
+  end }
+
 def preserves_binary_products_of_is_proetale_sheaf (hP : presieve.is_sheaf proetale_topology P) :
   P.preserves_binary_products :=
 begin
   rw [proetale_topology, presieve.is_sheaf_pretopology] at hP,
-  apply preserves_binary_products_of_preserves_binary_product,
-
+  apply preserves_binary_products_of_preserves_binary_product _,
+  rintro X Y,
+  op_induction X,
+  op_induction Y,
+  apply preserves_limit_of_preserves_limit_cone (my_cone_is_limit _ _) _,
+  apply (is_limit_map_cone_binary_fan_equiv _ _ _).symm _,
+  let R : presieve (Profinite.of (X ⊕ Y)),
+  { refine presieve.of_arrows
+      (λ j, walking_pair.cases_on j X Y : walking_pair → Profinite)
+      (λ j, walking_pair.cases_on j { to_fun := sum.inl } { to_fun := sum.inr }) },
+  have hR : R ∈ proetale_pretopology (Profinite.of (X ⊕ Y)),
+  { refine ⟨_, infer_instance, _, _, _, rfl⟩,
+    rintro (x | y),
+    { exact ⟨limits.walking_pair.left, x, rfl⟩ },
+    { exact ⟨limits.walking_pair.right, y, rfl⟩ } },
   -- apply preserves_terminal_of_is_terminal_obj,
   -- apply terminal_op_of_initial Profinite.initial_pempty,
   -- let R : presieve (Profinite.of pempty) := λ _, ∅,

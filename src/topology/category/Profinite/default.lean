@@ -220,8 +220,7 @@ has_colimits_of_reflective to_CompHaus
 -- lemma continuous_sum_elim
 
 def binary_coproduct_cocone (X Y : Profinite.{u}) : limits.cocone (limits.pair X Y) :=
-{ X := of (X ⊕ Y),
-  ι := { app := λ j, limits.walking_pair.cases_on j { to_fun := sum.inl } { to_fun := sum.inr } } }
+limits.binary_cofan.mk ({ to_fun := sum.inl } : _ ⟶ of (X ⊕ Y)) { to_fun := sum.inr }
 
 def binary_coproduct_colimit (X Y : Profinite.{u}) :
   limits.is_colimit (binary_coproduct_cocone X Y) :=

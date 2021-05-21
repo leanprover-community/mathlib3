@@ -33,7 +33,7 @@ derivatives are computed.
 
 log, sin, cos, tan, arcsin, arccos, arctan, angle, argument
 -/
-set_option profiler true
+
 noncomputable theory
 open_locale classical topological_space filter
 open set filter

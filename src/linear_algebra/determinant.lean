@@ -105,7 +105,7 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
-lemma is_basis.iff_det {v : ι → M} :
+lemma is_basis_iff_det {v : ι → M} :
   linear_independent R v ∧ span R (set.range v) = ⊤ ↔ is_unit (e.det v) :=
 begin
   split,
@@ -125,4 +125,4 @@ begin
 end
 
 lemma basis.is_unit_det (e' : basis ι R M) : is_unit (e.det e') :=
-(is_basis.iff_det e).mp ⟨e'.linear_independent, e'.span_eq⟩
+(is_basis_iff_det e).mp ⟨e'.linear_independent, e'.span_eq⟩

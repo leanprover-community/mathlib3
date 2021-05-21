@@ -1,23 +1,51 @@
 /-
 Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Metric spaces.
-
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
+-/
 
-Many definitions and theorems expected on metric spaces are already introduced on uniform spaces and
-topological spaces. For example:
-  open and closed sets, compactness, completeness, continuity and uniform continuity
+import topology.metric_space.emetric_space
+import topology.shrinking_lemma
+import topology.algebra.ordered.basic
+import data.fintype.intervals
+
+/-!
+# Metric spaces
+
+This file defines metric spaces. Many definitions and theorems expected
+on metric spaces are already introduced on uniform spaces and topological spaces.
+For example: open and closed sets, compactness, completeness, continuity and uniform continuity
+
+## Main definitions
+
+* `has_dist α`: Endows a space `α` with a function `dist a b`.
+* `pseudo_metric_space α`: A space endowed with a distance function, which can
+  be zero even if the two elements are non-equal.
+* `metric.ball x ε`: The set of all points `y` with `dist y x < ε`.
+* `metric.bounded s`: Whether a subset of a `pseudo_metric_space` is bounded.
+* `metric_space α`: A `pseudo_metric_space` with the guarantee `dist x y = 0 → x = y`.
+
+Additional useful definitions:
+
+* `nndist a b`: `dist` as a function to the non-negative reals.
+* `metric.closed_ball x ε`: The set of all points `y` with `dist y x ≤ ε`.
+* `metric.sphere x ε`: The set of all points `y` with `dist y x = ε`.
+* `proper_space α`: A `pseudo_metric_space` where all closed balls are compact.
+* `metric.diam s` : The `supr` of the distances of members of `s`.
+  Defined in terms of `emetric.diam`, for better handling of the case when it should be infinite.
+
+TODO (anyone): Add "Main results" section.
+
+## Implementation notes
 
 Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
 theory of `pseudo_metric_space`, where we don't require `dist x y = 0 → x = y` and we specialize
 to `metric_space` at the end.
 
+## Tags
+
+metric, pseudo_metric, dist
 -/
-import topology.metric_space.emetric_space
-import topology.shrinking_lemma
-import topology.algebra.ordered
-import data.fintype.intervals
 
 open set filter topological_space
 noncomputable theory
@@ -1303,7 +1331,7 @@ begin
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
   { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
       Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)⟩⟩ },
-  { exact ⟨⟨λ n, ∅, λ n, compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
+  { exact ⟨⟨λ n, ∅, λ n, is_compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
 end
 
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
@@ -1335,7 +1363,7 @@ end⟩
 /- A compact pseudometric space is proper -/
 @[priority 100] -- see Note [lower instance priority]
 instance proper_of_compact [compact_space α] : proper_space α :=
-⟨assume x r, is_closed_ball.compact⟩
+⟨assume x r, is_closed_ball.is_compact⟩
 
 /-- A proper space is locally compact -/
 @[priority 100] -- see Note [lower instance priority]
@@ -1366,7 +1394,7 @@ instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_s
 begin
   refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
   rw closed_ball_pi _ hr,
-  apply compact_pi_infinite (λb, _),
+  apply is_compact_pi_infinite (λb, _),
   apply (h b).compact_ball
 end
 
@@ -1550,7 +1578,7 @@ lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
   rintro ⟨hc, hb⟩,
-  cases s.eq_empty_or_nonempty with h h, {simp [h, compact_empty]},
+  cases s.eq_empty_or_nonempty with h h, {simp [h, is_compact_empty]},
   rcases h with ⟨x, hx⟩,
   rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
   exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
@@ -1727,6 +1755,9 @@ iff.intro eq_of_dist_eq_zero (assume : x = y, this ▸ dist_self _)
 @[simp] theorem zero_eq_dist {x y : γ} : 0 = dist x y ↔ x = y :=
 by rw [eq_comm, dist_eq_zero]
 
+theorem dist_ne_zero {x y : γ} : dist x y ≠ 0 ↔ x ≠ y :=
+by simpa only [not_iff_not] using dist_eq_zero
+
 @[simp] theorem dist_le_zero {x y : γ} : dist x y ≤ 0 ↔ x = y :=
 by simpa [le_antisymm_iff, dist_nonneg] using @dist_eq_zero _ _ x y
 
@@ -1844,6 +1875,20 @@ instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space �
 metric_space.induced coe (λ x y, subtype.ext) t
 
 theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
+
+instance : metric_space empty :=
+{ dist := λ _ _, 0,
+  dist_self := λ _, rfl,
+  dist_comm := λ _ _, rfl,
+  eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
+  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero, }
+
+instance : metric_space punit :=
+{ dist := λ _ _, 0,
+  dist_self := λ _, rfl,
+  dist_comm := λ _ _, rfl,
+  eq_of_dist_eq_zero := λ _ _ _, subsingleton.elim _ _,
+  dist_triangle := λ _ _ _, show (0:ℝ) ≤ 0 + 0, by rw add_zero, }
 
 section real
 
@@ -2001,7 +2046,7 @@ lemma second_countable_of_countable_discretization {α : Type u} [metric_space �
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,
-  { haveI : compact_space α := ⟨by rw hs; exact compact_empty⟩, by apply_instance },
+  { haveI : compact_space α := ⟨by rw hs; exact is_compact_empty⟩, by apply_instance },
   rcases hs with ⟨x0, hx0⟩,
   letI : inhabited α := ⟨x0⟩,
   refine second_countable_of_almost_dense_set (λε ε0, _),

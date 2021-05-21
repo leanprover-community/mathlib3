@@ -12,14 +12,14 @@ import group_theory.perm.sign
 /-!
 # Exterior Algebras
 
-We construct the exterior algebra of a semimodule `M` over a commutative semiring `R`.
+We construct the exterior algebra of a module `M` over a commutative semiring `R`.
 
 ## Notation
 
-The exterior algebra of the `R`-semimodule `M` is denoted as `exterior_algebra R M`.
+The exterior algebra of the `R`-module `M` is denoted as `exterior_algebra R M`.
 It is endowed with the structure of an `R`-algebra.
 
-Given a linear morphism `f : M → A` from a semimodule `M` to another `R`-algebra `A`, such that
+Given a linear morphism `f : M → A` from a module `M` to another `R`-algebra `A`, such that
 `cond : ∀ m : M, f m * f m = 0`, there is a (unique) lift of `f` to an `R`-algebra morphism,
 which is denoted `exterior_algebra.lift R f cond`.
 
@@ -45,8 +45,10 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 
 -/
 
-variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+universes u1 u2 u3
+
+variables (R : Type u1) [comm_semiring R]
+variables (M : Type u2) [add_comm_monoid M] [module R M]
 
 namespace exterior_algebra
 open tensor_algebra
@@ -61,7 +63,7 @@ inductive rel : tensor_algebra R M → tensor_algebra R M → Prop
 end exterior_algebra
 
 /--
-The exterior algebra of an `R`-semimodule `M`.
+The exterior algebra of an `R`-module `M`.
 -/
 @[derive [inhabited, semiring, algebra R]]
 def exterior_algebra := ring_quot (exterior_algebra.rel R M)
@@ -70,10 +72,8 @@ namespace exterior_algebra
 
 variables {M}
 
--- typeclass resolution times out here, so we give it a hand
-instance {S : Type*} [comm_ring S] [semimodule S M] : ring (exterior_algebra S M) :=
-let i : ring (tensor_algebra S M) := infer_instance in
-@ring_quot.ring (tensor_algebra S M) i (exterior_algebra.rel S M)
+instance {S : Type u3} [comm_ring S] [module S M] : ring (exterior_algebra S M) :=
+ring_quot.ring (exterior_algebra.rel S M)
 
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
@@ -86,7 +86,7 @@ variables {R}
 
 /-- As well as being linear, `ι m` squares to zero -/
 @[simp]
-theorem ι_square_zero (m : M) : (ι R m) * (ι R m) = 0 :=
+theorem ι_sq_zero (m : M) : (ι R m) * (ι R m) = 0 :=
 begin
   erw [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.map_zero _],
 end
@@ -94,9 +94,9 @@ end
 variables {A : Type*} [semiring A] [algebra R A]
 
 @[simp]
-theorem comp_ι_square_zero (g : exterior_algebra R M →ₐ[R] A)
+theorem comp_ι_sq_zero (g : exterior_algebra R M →ₐ[R] A)
   (m : M) : g (ι R m) * g (ι R m) = 0 :=
-by rw [←alg_hom.map_mul, ι_square_zero, alg_hom.map_zero]
+by rw [←alg_hom.map_mul, ι_sq_zero, alg_hom.map_zero]
 
 variables (R)
 
@@ -113,7 +113,7 @@ def lift : {f : M →ₗ[R] A // ∀ m, f m * f m = 0} ≃ (exterior_algebra R M
       induction h,
       rw [alg_hom.map_zero, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop] }⟩,
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι R), λ m, by rw [
-    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_square_zero]⟩,
+    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_zero]⟩,
   left_inv := λ f, by { ext, simp [ι] },
   right_inv := λ F, by { ext, simp [ι] } }
 
@@ -145,7 +145,7 @@ variables {R M}
 
 @[simp]
 theorem lift_comp_ι (g : exterior_algebra R M →ₐ[R] A) :
-  lift R ⟨g.to_linear_map.comp (ι R), comp_ι_square_zero _⟩ = g :=
+  lift R ⟨g.to_linear_map.comp (ι R), comp_ι_sq_zero _⟩ = g :=
 begin
   convert (lift R).apply_symm_apply g,
   rw lift_symm_apply,
@@ -183,7 +183,7 @@ begin
     algebra_map_mem' := h_grade0, },
   let of : { f : M →ₗ[R] s // ∀ m, f m * f m = 0 } :=
   ⟨(ι R).cod_restrict s.to_submodule h_grade1,
-    λ m, subtype.eq $ ι_square_zero m ⟩,
+    λ m, subtype.eq $ ι_sq_zero m ⟩,
   -- the mapping through the subalgebra is the identity
   have of_id : alg_hom.id R (exterior_algebra R M) = s.val.comp (lift R of),
   { ext,
@@ -215,7 +215,7 @@ lemma ι_left_inverse : function.left_inverse ι_inv (ι R : M → exterior_alge
 @[simp]
 lemma ι_add_mul_swap (x y : M) : ι R x * ι R y + ι R y * ι R x = 0 :=
 calc _ = ι R (x + y) * ι R (x + y) : by simp [mul_add, add_mul]
-   ... = _ : ι_square_zero _
+   ... = _ : ι_sq_zero _
 
 lemma ι_mul_prod_list {n : ℕ} (f : fin n → M) (i : fin n) :
   (ι R $ f i) * (list.of_fn $ λ i, ι R $ f i).prod = 0 :=
@@ -224,7 +224,7 @@ begin
   { exact i.elim0, },
   { rw [list.of_fn_succ, list.prod_cons, ←mul_assoc],
     by_cases h : i = 0,
-    { rw [h, ι_square_zero, zero_mul], },
+    { rw [h, ι_sq_zero, zero_mul], },
     { replace hn := congr_arg ((*) $ ι R $ f 0) (hn (λ i, f $ fin.succ i) (i.pred h)),
       simp only at hn,
       rw [fin.succ_pred, ←mul_assoc, mul_zero] at hn,

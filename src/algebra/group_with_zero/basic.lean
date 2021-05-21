@@ -144,7 +144,51 @@ end
 
 section
 
-variables [monoid_with_zero M₀] [nontrivial M₀] {a b : M₀}
+variables [mul_zero_one_class M₀]
+
+/-- Pullback a `mul_zero_one_class` instance along an injective function. -/
+protected def function.injective.mul_zero_one_class [has_mul M₀'] [has_zero M₀'] [has_one M₀']
+  (f : M₀' → M₀)
+  (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ a b, f (a * b) = f a * f b) :
+  mul_zero_one_class M₀' :=
+{ ..hf.mul_zero_class f zero mul, ..hf.mul_one_class f one mul }
+
+/-- Pushforward a `mul_zero_one_class` instance along an surjective function. -/
+protected def function.surjective.mul_zero_one_class [has_mul M₀'] [has_zero M₀'] [has_one M₀']
+  (f : M₀ → M₀')
+  (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1) (mul : ∀ a b, f (a * b) = f a * f b) :
+  mul_zero_one_class M₀' :=
+{ ..hf.mul_zero_class f zero mul, ..hf.mul_one_class f one mul }
+
+/-- In a monoid with zero, if zero equals one, then zero is the only element. -/
+lemma eq_zero_of_zero_eq_one (h : (0 : M₀) = 1) (a : M₀) : a = 0 :=
+by rw [← mul_one a, ← h, mul_zero]
+
+/-- In a monoid with zero, if zero equals one, then zero is the unique element.
+
+Somewhat arbitrarily, we define the default element to be `0`.
+All other elements will be provably equal to it, but not necessarily definitionally equal. -/
+def unique_of_zero_eq_one (h : (0 : M₀) = 1) : unique M₀ :=
+{ default := 0, uniq := eq_zero_of_zero_eq_one h }
+
+/-- In a monoid with zero, zero equals one if and only if all elements of that semiring
+are equal. -/
+theorem subsingleton_iff_zero_eq_one : (0 : M₀) = 1 ↔ subsingleton M₀ :=
+⟨λ h, @unique.subsingleton _ (unique_of_zero_eq_one h), λ h, @subsingleton.elim _ h _ _⟩
+
+alias subsingleton_iff_zero_eq_one ↔ subsingleton_of_zero_eq_one _
+
+lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
+@subsingleton.elim _ (subsingleton_of_zero_eq_one h) a b
+
+/-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
+lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=
+not_or_of_imp eq_zero_of_zero_eq_one
+end
+
+section
+
+variables [mul_zero_one_class M₀] [nontrivial M₀] {a b : M₀}
 
 /-- In a nontrivial monoid with zero, zero and one are different. -/
 @[simp] lemma zero_ne_one : 0 ≠ (1:M₀) :=
@@ -177,6 +221,28 @@ protected lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
 ⟨⟨0, 1, mt (congr_arg f) $ by { rw [zero, one], exact zero_ne_one }⟩⟩
 
 end
+
+section semigroup_with_zero
+
+/-- Pullback a `semigroup_with_zero` class along an injective function. -/
+protected def function.injective.semigroup_with_zero
+  [has_zero M₀'] [has_mul M₀'] [semigroup_with_zero M₀] (f : M₀' → M₀) (hf : injective f)
+  (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup_with_zero M₀' :=
+{ .. hf.mul_zero_class f zero mul,
+  .. ‹has_zero M₀'›,
+  .. hf.semigroup f mul }
+
+/-- Pushforward a `semigroup_with_zero` class along an surjective function. -/
+protected def function.surjective.semigroup_with_zero
+  [semigroup_with_zero M₀] [has_zero M₀'] [has_mul M₀'] (f : M₀ → M₀') (hf : surjective f)
+  (zero : f 0 = 0) (mul : ∀ x y, f (x * y) = f x * f y) :
+  semigroup_with_zero M₀' :=
+{ .. hf.mul_zero_class f zero mul,
+  .. ‹has_zero M₀'›,
+  .. hf.semigroup f mul }
+
+end semigroup_with_zero
 
 section monoid_with_zero
 
@@ -246,27 +312,6 @@ let ⟨u, hu⟩ := hb in hu ▸ u.mul_left_eq_zero
 
 end is_unit
 
-/-- In a monoid with zero, if zero equals one, then zero is the only element. -/
-lemma eq_zero_of_zero_eq_one (h : (0 : M₀) = 1) (a : M₀) : a = 0 :=
-by rw [← mul_one a, ← h, mul_zero]
-
-/-- In a monoid with zero, if zero equals one, then zero is the unique element.
-
-Somewhat arbitrarily, we define the default element to be `0`.
-All other elements will be provably equal to it, but not necessarily definitionally equal. -/
-def unique_of_zero_eq_one (h : (0 : M₀) = 1) : unique M₀ :=
-{ default := 0, uniq := eq_zero_of_zero_eq_one h }
-
-/-- In a monoid with zero, zero equals one if and only if all elements of that semiring
-are equal. -/
-theorem subsingleton_iff_zero_eq_one : (0 : M₀) = 1 ↔ subsingleton M₀ :=
-⟨λ h, @unique.subsingleton _ (unique_of_zero_eq_one h), λ h, @subsingleton.elim _ h _ _⟩
-
-alias subsingleton_iff_zero_eq_one ↔ subsingleton_of_zero_eq_one _
-
-lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
-@subsingleton.elim _ (subsingleton_of_zero_eq_one h) a b
-
 @[simp] theorem is_unit_zero_iff : is_unit (0 : M₀) ↔ (0:M₀) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
  λ h, @is_unit_of_subsingleton _ _ (subsingleton_of_zero_eq_one h) 0⟩
@@ -275,10 +320,6 @@ lemma eq_of_zero_eq_one (h : (0 : M₀) = 1) (a b : M₀) : a = b :=
 mt is_unit_zero_iff.1 zero_ne_one
 
 variable (M₀)
-
-/-- In a monoid with zero, either zero and one are nonequal, or zero is the only element. -/
-lemma zero_ne_one_or_forall_eq_0 : (0 : M₀) ≠ 1 ∨ (∀a:M₀, a = 0) :=
-not_or_of_imp eq_zero_of_zero_eq_one
 
 end monoid_with_zero
 
@@ -372,6 +413,14 @@ assume a_eq_0, by simpa [a_eq_0] using mul_inv_cancel h
 calc a⁻¹ * a = (a⁻¹ * a) * a⁻¹ * a⁻¹⁻¹ : by simp [inv_ne_zero h]
          ... = a⁻¹ * a⁻¹⁻¹             : by simp [h]
          ... = 1                       : by simp [inv_ne_zero h]
+
+lemma group_with_zero.mul_left_injective {x : G₀} (h : x ≠ 0) :
+  function.injective (λ y, x * y) :=
+λ y y' w, by simpa only [←mul_assoc, inv_mul_cancel h, one_mul] using congr_arg (λ y, x⁻¹ * y) w
+
+lemma group_with_zero.mul_right_injective {x : G₀} (h : x ≠ 0) :
+  function.injective (λ y, y * x) :=
+λ y y' w, by simpa only [mul_assoc, mul_inv_cancel h, mul_one] using congr_arg (λ y, y * x⁻¹) w
 
 @[simp] lemma inv_mul_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :
   (a * b⁻¹) * b = a :=

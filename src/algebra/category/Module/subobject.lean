@@ -3,7 +3,7 @@ Copyright (c) 2021 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import algebra.category.Module.basic
+import algebra.category.Module.epi_mono
 import category_theory.subobject.well_powered
 
 /-!
@@ -49,7 +49,7 @@ noncomputable def subobject_Module : subobject M ≃o submodule R M := order_iso
   map_rel_iff' := λ S T,
   begin
     refine ⟨λ h, _, λ h, mk_le_mk_of_comm ↟(submodule.of_le h) (by { ext, refl })⟩,
-    convert linear_map.range_comp_le_range (of_mk_le_mk h) ↾T.subtype,
+    convert linear_map.range_comp_le_range (of_mk_le_mk _ _ h) ↾T.subtype,
     { simpa only [←comp_def, of_mk_le_mk_comp] using (submodule.range_subtype _).symm },
     { exact (submodule.range_subtype _).symm }
   end })

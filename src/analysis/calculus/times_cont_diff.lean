@@ -163,7 +163,7 @@ local notation `∞` := (⊤ : with_top ℕ)
 universes u v w
 
 local attribute [instance, priority 1001]
-normed_group.to_add_comm_group normed_space.to_semimodule add_comm_group.to_add_comm_monoid
+normed_group.to_add_comm_group normed_space.to_module add_comm_group.to_add_comm_monoid
 
 open set fin
 open_locale topological_space
@@ -2331,8 +2331,8 @@ by simpa only [div_eq_mul_inv] using hf.mul times_cont_diff_const
 lemma times_cont_diff.pow {n : with_top ℕ} {f : E → 𝕜}
   (hf : times_cont_diff 𝕜 n f) :
   ∀ m : ℕ, times_cont_diff 𝕜 n (λ x, (f x) ^ m)
-| 0 := by simpa using times_cont_diff_const
-| (m + 1) := hf.mul (times_cont_diff.pow m)
+| 0       := by simpa using times_cont_diff_const
+| (m + 1) := by simpa [pow_succ] using hf.mul (times_cont_diff.pow m)
 
 lemma times_cont_diff_at.pow {n : with_top ℕ} {f : E → 𝕜} (hf : times_cont_diff_at 𝕜 n f x)
   (m : ℕ) : times_cont_diff_at 𝕜 n (λ y, f y ^ m) x :=

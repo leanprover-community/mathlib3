@@ -63,6 +63,7 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
   x = y ↔ true :=
 by cc
 
+/-- If all points are equal to a given point `x`, then `α` is a subsingleton. -/
 lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
 ⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
 
@@ -241,9 +242,21 @@ mt imp_intro
 
 theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
 
-theorem em (p : Prop) : p ∨ ¬ p := classical.em _
+theorem dec_em' (p : Prop) [decidable p] : ¬p ∨ p := (dec_em p).swap
 
-theorem or_not {p : Prop} : p ∨ ¬ p := em _
+theorem em (p : Prop) : p ∨ ¬p := classical.em _
+
+theorem em' (p : Prop) : ¬p ∨ p := (em p).swap
+
+theorem or_not {p : Prop} : p ∨ ¬p := em _
+
+theorem decidable.eq_or_ne [decidable (a = b)] : a = b ∨ a ≠ b := dec_em $ a = b
+
+theorem decidable.ne_or_eq [decidable (a = b)] : a ≠ b ∨ a = b := dec_em' $ a = b
+
+theorem eq_or_ne : a = b ∨ a ≠ b := em $ a = b
+
+theorem ne_or_eq : a ≠ b ∨ a = b := em' $ a = b
 
 theorem by_contradiction {p} : (¬p → false) → p := decidable.by_contradiction
 
@@ -882,6 +895,18 @@ by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
 @[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
   (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
 ⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
+
+@[simp] lemma exists_or_eq_left (y : α) (p : α → Prop) : ∃ (x : α), x = y ∨ p x :=
+⟨y, or.inl rfl⟩
+
+@[simp] lemma exists_or_eq_right (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ x = y :=
+⟨y, or.inr rfl⟩
+
+@[simp] lemma exists_or_eq_left' (y : α) (p : α → Prop) : ∃ (x : α), y = x ∨ p x :=
+⟨y, or.inl rfl⟩
+
+@[simp] lemma exists_or_eq_right' (y : α) (p : α → Prop) : ∃ (x : α), p x ∨ y = x :=
+⟨y, or.inr rfl⟩
 
 @[simp] theorem forall_apply_eq_imp_iff {f : α → β} {p : β → Prop} :
   (∀ a, ∀ b, f a = b → p b) ↔ (∀ a, p (f a)) :=

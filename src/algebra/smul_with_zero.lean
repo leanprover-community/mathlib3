@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import group_theory.group_action.defs
+import algebra.group_power.basic
+
 /-!
 # Introduce `smul_with_zero`
 
@@ -42,6 +44,10 @@ instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R 
 { smul := (*),
   smul_zero := mul_zero,
   zero_smul := zero_mul }
+
+instance add_monoid.to_smul_with_zero [add_monoid M] : smul_with_zero ℕ M :=
+{ smul_zero := nsmul_zero,
+  zero_smul := zero_nsmul }
 
 variables (R) {M} [has_zero R] [has_zero M] [smul_with_zero R M]
 

@@ -113,12 +113,16 @@ variables {M G A R}
 
 attribute [simp] smul_one smul_mul' smul_zero smul_add
 
-@[simp] lemma smul_inv [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
+@[simp] lemma smul_inv' [mul_semiring_action M F] (x : M) (m : F) : x • m⁻¹ = (x • m)⁻¹ :=
 (mul_semiring_action.to_semiring_hom M F x).map_inv _
 
 @[simp] lemma smul_pow [mul_semiring_action M R] (x : M) (m : R) (n : ℕ) :
   x • m ^ n = (x • m) ^ n :=
-nat.rec_on n (smul_one x) $ λ n ih, (smul_mul' x m (m ^ n)).trans $ congr_arg _ ih
+begin
+  induction n with n ih,
+  { rw [pow_zero, pow_zero], exact smul_one x },
+  { rw [pow_succ, pow_succ], exact (smul_mul' x m (m ^ n)).trans (congr_arg _ ih) }
+end
 
 end simp_lemmas
 

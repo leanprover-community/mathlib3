@@ -54,27 +54,30 @@ variables (R A)
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
 
 variables (R) {A} (s)
-theorem adjoin_eq_span : (adjoin R s).to_submodule = span R (monoid.closure s) :=
+
+theorem adjoin_eq_span : (adjoin R s).to_submodule = span R (submonoid.closure s) :=
 begin
   apply le_antisymm,
-  { intros r hr, rcases mem_closure_iff_exists_list.1 hr with ⟨L, HL, rfl⟩, clear hr,
+  { intros r hr, rcases subsemiring.mem_closure_iff_exists_list.1 hr with ⟨L, HL, rfl⟩, clear hr,
     induction L with hd tl ih, { exact zero_mem _ },
     rw list.forall_mem_cons at HL,
     rw [list.map_cons, list.sum_cons],
     refine submodule.add_mem _ _ (ih HL.2),
     replace HL := HL.1, clear ih tl,
-    suffices : ∃ z r (hr : r ∈ monoid.closure s), has_scalar.smul.{u v} z r = list.prod hd,
+    suffices : ∃ z r (hr : r ∈ submonoid.closure s), has_scalar.smul z r = list.prod hd,
     { rcases this with ⟨z, r, hr, hzr⟩, rw ← hzr,
       exact smul_mem _ _ (subset_span hr) },
-    induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem, one_smul _ _⟩ },
+    induction hd with hd tl ih, { exact ⟨1, 1, (submonoid.closure s).one_mem', one_smul _ _⟩ },
     rw list.forall_mem_cons at HL,
     rcases (ih HL.2) with ⟨z, r, hr, hzr⟩, rw [list.prod_cons, ← hzr],
     rcases HL.1 with ⟨hd, rfl⟩ | hs,
     { refine ⟨hd * z, r, hr, _⟩,
-      rw [smul_def, smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
-    { exact ⟨z, hd * r, is_submonoid.mul_mem (monoid.subset_closure hs) hr,
+      rw [algebra.smul_def, algebra.smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
+    { exact ⟨z, hd * r, submonoid.mul_mem _ (submonoid.subset_closure hs) hr,
         (mul_smul_comm _ _ _).symm⟩ } },
-  exact span_le.2 (show monoid.closure s ⊆ adjoin R s, from monoid.closure_subset subset_adjoin)
+  refine span_le.2 _,
+  change submonoid.closure s ≤ (adjoin R s).to_subsemiring.to_submonoid,
+  exact submonoid.closure_le.2 subset_adjoin
 end
 
 lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
@@ -109,8 +112,8 @@ le_antisymm
 theorem adjoin_eq_range :
   adjoin R s = (mv_polynomial.aeval (coe : s → A)).range :=
 le_antisymm
-  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, set.mem_univ _, mv_polynomial.eval₂_X _ _ _⟩)
-  (λ x ⟨p, _, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
+  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
+  (λ x ⟨p, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
     (λ r, by { rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C],
                exact (adjoin R s).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact subalgebra.add_mem _ hp hq)
@@ -119,8 +122,8 @@ le_antisymm
 
 theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
-  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, set.mem_univ _, polynomial.eval₂_X _ _⟩)
-  (λ y ⟨p, _, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
+  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
+  (λ y ⟨p, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
     (λ r, by { rw [polynomial.aeval_def, polynomial.eval₂_C],
                exact (adjoin R _).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact subalgebra.add_mem _ hp hq)
@@ -135,7 +138,7 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
   (adjoin R s).to_submodule * (adjoin R t).to_submodule :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
-  congr' 1 with z, simp [monoid.mem_closure_union_iff, set.mem_mul],
+  congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
 
 end comm_semiring
@@ -155,7 +158,6 @@ theorem mem_adjoin_iff {s : set A} {x : A} :
   is_submonoid.one_mem (λ _ _, is_add_submonoid.add_mem) (λ _ _, is_submonoid.mul_mem),
 suffices closure (set.range ⇑(algebra_map R A) ∪ s) ⊆ adjoin R s, from @this x,
 closure_subset subsemiring.subset_closure⟩
-
 
 theorem adjoin_eq_ring_closure (s : set A) :
   (adjoin R s : set A) = closure (set.range (algebra_map R A) ∪ s) :=
@@ -246,7 +248,7 @@ fg_of_fg_to_submodule (is_noetherian.noetherian S.to_submodule)
 
 lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
-by { rw [algebra.coe_top, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
+by { rw [algebra.top_to_submodule, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
 
 section
 open_locale classical

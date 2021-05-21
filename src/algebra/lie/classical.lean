@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import algebra.invertible
 import algebra.lie.skew_adjoint
 import algebra.lie.abelian
+import linear_algebra.matrix.trace
 
 /-!
 # Classical Lie algebras
@@ -358,7 +359,7 @@ begin
   symmetry,
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
     (indefinite_diagonal (unit ⊕ l) l R)
-    (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
+    (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.transpose_reindex _ _)).trans,
   apply lie_equiv.of_eq,
   ext A,
   rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,

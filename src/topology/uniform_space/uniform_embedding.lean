@@ -177,39 +177,47 @@ begin
   exact ⟨x, hx, hyf⟩
 end
 
-/-- A set is complete iff its image under a uniform embedding is complete. -/
-lemma is_complete_image_iff {m : α → β} {s : set α} (hm : uniform_embedding m) :
+lemma is_complete.complete_space_coe {s : set α} (hs : is_complete s) :
+  complete_space s :=
+complete_space_iff_is_complete_univ.2 $
+  is_complete_of_complete_image uniform_embedding_subtype_coe.to_uniform_inducing $ by simp [hs]
+
+/-- A set is complete iff its image under a uniform inducing map is complete. -/
+lemma is_complete_image_iff {m : α → β} {s : set α} (hm : uniform_inducing m) :
   is_complete (m '' s) ↔ is_complete s :=
 begin
-  refine ⟨is_complete_of_complete_image hm.to_uniform_inducing, λ c f hf fs, _⟩,
-  rw filter.le_principal_iff at fs,
-  have hfm : range m ∈ f, from mem_sets_of_superset fs (image_subset_range _ _),
-  let f' := comap m f,
-  have cf' : cauchy f' := hf.comap' hm.comap_uniformity.le (ne_bot.comap_of_range_mem hf.1 hfm),
-  have : f' ≤ 𝓟 s := by simp [f']; exact
-    ⟨m '' s, by simpa using fs, by simp [preimage_image_eq s hm.inj]⟩,
-  rcases c f' cf' this with ⟨x, xs, hx⟩,
-  existsi [m x, mem_image_of_mem m xs],
-  rwa [(uniform_embedding.embedding hm).to_inducing.nhds_eq_comap, comap_le_comap_iff hfm] at hx
+  refine ⟨is_complete_of_complete_image hm, λ c, _⟩,
+  haveI : complete_space s := c.complete_space_coe,
+  set m' : s → β := m ∘ coe,
+  suffices : is_complete (range m'), by rwa [range_comp, subtype.range_coe] at this,
+  have hm' : uniform_inducing m' := hm.comp uniform_embedding_subtype_coe.to_uniform_inducing,
+  intros f hf hfm,
+  rw filter.le_principal_iff at hfm,
+  have cf' : cauchy (comap m' f) :=
+    hf.comap' hm'.comap_uniformity.le (ne_bot.comap_of_range_mem hf.1 hfm),
+  rcases complete_space.complete cf' with ⟨x, hx⟩,
+  rw [hm'.inducing.nhds_eq_comap, comap_le_comap_iff hfm] at hx,
+  use [m' x, mem_range_self _, hx]
 end
 
-lemma complete_space_iff_is_complete_range {f : α → β} (hf : uniform_embedding f) :
+lemma complete_space_iff_is_complete_range {f : α → β} (hf : uniform_inducing f) :
   complete_space α ↔ is_complete (range f) :=
 by rw [complete_space_iff_is_complete_univ, ← is_complete_image_iff hf, image_univ]
 
+lemma uniform_inducing.is_complete_range [complete_space α] {f : α → β}
+  (hf : uniform_inducing f) :
+  is_complete (range f) :=
+(complete_space_iff_is_complete_range hf).1 ‹_›
+
 lemma complete_space_congr {e : α ≃ β} (he : uniform_embedding e) :
   complete_space α ↔ complete_space β :=
-by rw [complete_space_iff_is_complete_range he, e.range_eq_univ,
+by rw [complete_space_iff_is_complete_range he.to_uniform_inducing, e.range_eq_univ,
   complete_space_iff_is_complete_univ]
 
 lemma complete_space_coe_iff_is_complete {s : set α} :
   complete_space s ↔ is_complete s :=
-(complete_space_iff_is_complete_range uniform_embedding_subtype_coe).trans $
+(complete_space_iff_is_complete_range uniform_embedding_subtype_coe.to_uniform_inducing).trans $
   by rw [subtype.range_coe]
-
-lemma is_complete.complete_space_coe {s : set α} (hs : is_complete s) :
-  complete_space s :=
-complete_space_coe_iff_is_complete.2 hs
 
 lemma is_closed.complete_space_coe [complete_space α] {s : set α} (hs : is_closed s) :
   complete_space s :=

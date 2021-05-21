@@ -21,6 +21,8 @@ finitely many vertices.
 
 * `neighbor_set` is the `set` of vertices adjacent to a given vertex
 
+* `common_neighbors` is the intersection of the neighbor sets of two given vertices
+
 * `neighbor_finset` is the `finset` of vertices adjacent to a given vertex,
    if `neighbor_set` is finite
 

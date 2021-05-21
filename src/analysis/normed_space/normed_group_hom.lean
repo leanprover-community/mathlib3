@@ -389,7 +389,7 @@ def comp_hom : (normed_group_hom V₂ V₃) →+ (normed_group_hom V₁ V₂) �
 add_monoid_hom.mk' (λ g, add_monoid_hom.mk' (λ f, g.comp f)
   (by { intros, ext, exact g.map_add _ _ }))
   (by { intros, ext, simp only [comp_apply, pi.add_apply, function.comp_app,
-                                add_monoid_hom.add_apply, add_monoid_hom.coe_mk', coe_add] })
+                                add_monoid_hom.add_apply, add_monoid_hom.mk'_apply, coe_add] })
 
 @[simp] lemma comp_zero (f : normed_group_hom V₂ V₃) : f.comp (0 : normed_group_hom V₁ V₂) = 0 :=
 by { ext, exact f.map_zero }
@@ -410,6 +410,9 @@ variables [semi_normed_group V] [semi_normed_group W] [semi_normed_group V₁] [
 { to_fun := (coe : s → V),
   map_add' := λ v w, add_subgroup.coe_add _ _ _,
   bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
+
+lemma norm_incl {V' : add_subgroup V} (x : V') : ∥incl _ x∥ = ∥x∥ :=
+rfl
 
 /-!### Kernel -/
 section kernels
@@ -434,6 +437,16 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
   (incl g.ker).comp (ker.lift f g h) = f :=
 by { ext, refl }
 
+@[simp]
+lemma ker_zero : (0 : normed_group_hom V₁ V₂).ker = ⊤ :=
+by { ext, simp [mem_ker] }
+
+lemma coe_ker : (f.ker : set V₁) = (f : V₁ → V₂) ⁻¹' {0} := rfl
+
+lemma is_closed_ker {V₂ : Type*} [normed_group V₂] (f : normed_group_hom V₁ V₂) :
+  is_closed (f.ker : set V₁) :=
+f.coe_ker ▸ is_closed.preimage f.continuous (t1_space.t1 0)
+
 end kernels
 
 /-! ### Range -/
@@ -448,6 +461,16 @@ def range : add_subgroup V₂ := f.to_add_monoid_hom.range
 lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=
 by { rw [range, add_monoid_hom.mem_range], refl }
 
+lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.range :=
+by { erw add_monoid_hom.map_range, refl }
+
+lemma incl_range (s : add_subgroup V₁) : (incl s).range = s :=
+by { ext x, exact ⟨λ ⟨y, hy⟩, by { rw ← hy; simp }, λ hx, ⟨⟨x, hx⟩, by simp⟩⟩ }
+
+@[simp]
+lemma range_comp_incl_top : (f.comp (incl (⊤ : add_subgroup V₁))).range = f.range :=
+by simpa [comp_range, incl_range, ← add_monoid_hom.range_eq_map]
+
 end range
 
 variables {f : normed_group_hom V W}
@@ -460,6 +483,9 @@ namespace norm_noninc
 
 lemma bound_by_one (hf : f.norm_noninc) : f.bound_by 1 :=
 λ v, by simpa only [one_mul, nnreal.coe_one] using hf v
+
+lemma zero : (0 : normed_group_hom V₁ V₂).norm_noninc :=
+λ v, by simp
 
 lemma id : (id : normed_group_hom V V).norm_noninc :=
 λ v, le_rfl

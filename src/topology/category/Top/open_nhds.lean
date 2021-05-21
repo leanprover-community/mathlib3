@@ -66,6 +66,9 @@ full_subcategory_inclusion _
 
 @[simp] lemma inclusion_obj (x : X) (U) (p) : (inclusion x).obj ⟨U,p⟩ = U := rfl
 
+lemma open_embedding {x : X} (U : open_nhds x) : open_embedding (U.1.inclusion) :=
+U.1.open_embedding
+
 instance open_nhds_is_filtered (x : X) : is_filtered (open_nhds x)ᵒᵖ :=
 { nonempty := ⟨op ⊤⟩,
   cocone_objs := λ U V, ⟨op (unop U ⊓ unop V),

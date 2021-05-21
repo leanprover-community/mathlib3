@@ -138,10 +138,20 @@ instance [distrib α] : distrib (opposite α) :=
   right_distrib := λ x y z, unop_injective $ mul_add (unop z) (unop x) (unop y),
   .. opposite.has_add α, .. opposite.has_mul α }
 
+instance [mul_zero_class α] : mul_zero_class (opposite α) :=
+{ zero := 0,
+  mul := (*),
+  zero_mul := λ x, unop_injective $ mul_zero $ unop x,
+  mul_zero := λ x, unop_injective $ zero_mul $ unop x }
+
+instance [mul_zero_one_class α] : mul_zero_one_class (opposite α) :=
+{ .. opposite.mul_zero_class α, .. opposite.mul_one_class α }
+
+instance [monoid_with_zero α] : monoid_with_zero (opposite α) :=
+{ .. opposite.monoid α, .. opposite.mul_zero_one_class α }
+
 instance [semiring α] : semiring (opposite α) :=
-{ zero_mul := λ x, unop_injective $ mul_zero $ unop x,
-  mul_zero := λ x, unop_injective $ zero_mul $ unop x,
-  .. opposite.add_comm_monoid α, .. opposite.monoid α, .. opposite.distrib α }
+{ .. opposite.add_comm_monoid α, .. opposite.monoid_with_zero α, .. opposite.distrib α }
 
 instance [ring α] : ring (opposite α) :=
 { .. opposite.add_comm_group α, .. opposite.monoid α, .. opposite.semiring α }
@@ -157,10 +167,16 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors (op
 instance [integral_domain α] : integral_domain (opposite α) :=
 { .. opposite.no_zero_divisors α, .. opposite.comm_ring α, .. opposite.nontrivial α }
 
-instance [field α] : field (opposite α) :=
-{ mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ λ hx', hx $ unop_injective hx',
+instance [group_with_zero α] : group_with_zero (opposite α) :=
+{ mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
   inv_zero := unop_injective inv_zero,
-  .. opposite.comm_ring α, .. opposite.has_inv α, .. opposite.nontrivial α }
+  .. opposite.monoid_with_zero α, .. opposite.nontrivial α, .. opposite.has_inv α }
+
+instance [division_ring α] : division_ring (opposite α) :=
+{ .. opposite.group_with_zero α, .. opposite.ring α }
+
+instance [field α] : field (opposite α) :=
+{ .. opposite.division_ring α, .. opposite.comm_ring α }
 
 instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
 { smul := λ c x, op (c • unop x) }
@@ -168,13 +184,25 @@ instance (R : Type*) [has_scalar R α] : has_scalar R (opposite α) :=
 instance (R : Type*) [monoid R] [mul_action R α] : mul_action R (opposite α) :=
 { one_smul := λ x, unop_injective $ one_smul R (unop x),
   mul_smul := λ r₁ r₂ x, unop_injective $ mul_smul r₁ r₂ (unop x),
-  ..opposite.has_scalar α R  }
+  ..opposite.has_scalar α R }
 
 instance (R : Type*) [monoid R] [add_monoid α] [distrib_mul_action R α] :
   distrib_mul_action R (opposite α) :=
 { smul_add := λ r x₁ x₂, unop_injective $ smul_add r (unop x₁) (unop x₂),
   smul_zero := λ r, unop_injective $ smul_zero r,
   ..opposite.mul_action α R }
+
+/-- Like `monoid.to_mul_action`, but multiplies on the right. -/
+instance monoid.to_opposite_mul_action [monoid α] : mul_action (opposite α) α :=
+{ smul := λ c x, x * c.unop,
+  one_smul := mul_one,
+  mul_smul := λ x y r, (mul_assoc _ _ _).symm }
+
+-- The above instance does not create an unwanted diamond, the two paths to
+-- `mul_action (opposite α) (opposite α)` are defeq.
+example [monoid α] : monoid.to_mul_action (opposite α) = opposite.mul_action α (opposite α) := rfl
+
+lemma op_smul_eq_mul [monoid α] {a a' : α} : op a • a' = a' * a := rfl
 
 @[simp] lemma op_zero [has_zero α] : op (0 : α) = 0 := rfl
 @[simp] lemma unop_zero [has_zero α] : unop (0 : αᵒᵖ) = 0 := rfl
@@ -274,13 +302,29 @@ end opposite
 
 open opposite
 
+/-- Inversion on a group is a `mul_equiv` to the opposite group. When `G` is commutative, there is
+`mul_equiv.inv`. -/
+@[simps {fully_applied := ff}]
+def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵒᵖ :=
+{ to_fun := opposite.op ∘ has_inv.inv,
+  inv_fun := has_inv.inv ∘ opposite.unop,
+  map_mul' := λ x y, unop_injective $ mul_inv_rev x y,
+  ..(equiv.inv G).trans equiv_to_opposite}
+
+/-- A monoid homomorphism `f : R →* S` such that `f x` commutes with `f y` for all `x, y` defines
+a monoid homomorphism to `Sᵒᵖ`. -/
+@[simps {fully_applied := ff}]
+def monoid_hom.to_opposite {R S : Type*} [mul_one_class R] [mul_one_class S] (f : R →* S)
+  (hf : ∀ x y, commute (f x) (f y)) : R →* Sᵒᵖ :=
+{ to_fun := opposite.op ∘ f,
+  map_one' := congr_arg op f.map_one,
+  map_mul' := λ x y, by simp [(hf x y).eq] }
+
 /-- A ring homomorphism `f : R →+* S` such that `f x` commutes with `f y` for all `x, y` defines
 a ring homomorphism to `Sᵒᵖ`. -/
+@[simps {fully_applied := ff}]
 def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   (hf : ∀ x y, commute (f x) (f y)) : R →+* Sᵒᵖ :=
-{ map_one' := congr_arg op f.map_one,
-  map_mul' := λ x y, by simp [(hf x y).eq],
-  .. (opposite.op_add_equiv : S ≃+ Sᵒᵖ).to_add_monoid_hom.comp ↑f }
-
-@[simp] lemma ring_hom.coe_to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
-  (hf : ∀ x y, commute (f x) (f y)) : ⇑(f.to_opposite hf) = op ∘ f := rfl
+{ to_fun := opposite.op ∘ f,
+  .. ((opposite.op_add_equiv : S ≃+ Sᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵒᵖ),
+  .. f.to_monoid_hom.to_opposite hf }

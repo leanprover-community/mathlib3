@@ -489,7 +489,7 @@ begin
   have H1 := H (u ∩ s) (v ∩ s),
   rw [subset_inter_iff, subset_inter_iff] at H1,
   simp only [subset.refl, and_true] at H1,
-  apply H1 (is_closed_inter hu hs) (is_closed_inter hv hs),
+  apply H1 (is_closed.inter hu hs) (is_closed.inter hv hs),
   { rw ←inter_distrib_right,
     apply subset_inter_iff.2,
     exact ⟨hss, subset.refl s⟩ },
@@ -591,8 +591,8 @@ begin
     { exact h } },
 
   -- Now we show T₁, T₂ are closed, cover connected_component t and are disjoint.
-  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed_inter hT hu))),
-  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed_inter hT hv))),
+  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed.inter hT hu))),
+  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed.inter hT hv))),
 
   have T_decomp : connected_component t ⊆ T₁ ∪ T₂,
   { intros t' ht',

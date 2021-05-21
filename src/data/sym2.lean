@@ -6,9 +6,6 @@ Authors: Kyle Miller
 import tactic.linarith
 import data.sym
 
-open function
-open sym
-
 /-!
 # The symmetric square
 
@@ -39,6 +36,9 @@ term of the symmetric square.
 
 symmetric square, unordered pairs, symmetric powers
 -/
+
+open function
+open sym
 
 universe u
 variables {α : Type u}

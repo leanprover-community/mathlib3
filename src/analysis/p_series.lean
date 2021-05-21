@@ -42,11 +42,11 @@ namespace finset
 variables {M : Type*} [ordered_add_comm_monoid M] {f : ℕ → M}
 
 lemma le_sum_condensed' (hf : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) (n : ℕ) :
-  (∑ k in Ico 1 (2 ^ n), f k) ≤ ∑ k in range n, (2 ^ k) •ℕ f (2 ^ k) :=
+  (∑ k in Ico 1 (2 ^ n), f k) ≤ ∑ k in range n, (2 ^ k) • f (2 ^ k) :=
 begin
   induction n with n ihn, { simp },
-  suffices : (∑ k in Ico (2 ^ n) (2 ^ (n + 1)), f k) ≤ (2 ^ n) •ℕ f (2 ^ n),
-  { rw [sum_range_succ, add_comm, ← sum_Ico_consecutive],
+  suffices : (∑ k in Ico (2 ^ n) (2 ^ (n + 1)), f k) ≤ (2 ^ n) • f (2 ^ n),
+  { rw [sum_range_succ, ← sum_Ico_consecutive],
     exact add_le_add ihn this,
     exacts [n.one_le_two_pow, nat.pow_le_pow_of_le_right zero_lt_two n.le_succ] },
   have : ∀ k ∈ Ico (2 ^ n) (2 ^ (n + 1)), f k ≤ f (2 ^ n) :=
@@ -56,18 +56,18 @@ begin
 end
 
 lemma le_sum_condensed (hf : ∀ ⦃m n⦄, 0 < m → m ≤ n → f n ≤ f m) (n : ℕ) :
-  (∑ k in range (2 ^ n), f k) ≤ f 0 + ∑ k in range n, (2 ^ k) •ℕ f (2 ^ k) :=
+  (∑ k in range (2 ^ n), f k) ≤ f 0 + ∑ k in range n, (2 ^ k) • f (2 ^ k) :=
 begin
   convert add_le_add_left (le_sum_condensed' hf n) (f 0),
-  rw [← sum_range_add_sum_Ico _ n.one_le_two_pow, sum_range_succ, sum_range_zero, add_zero]
+  rw [← sum_range_add_sum_Ico _ n.one_le_two_pow, sum_range_succ, sum_range_zero, zero_add]
 end
 
 lemma sum_condensed_le' (hf : ∀ ⦃m n⦄, 1 < m → m ≤ n → f n ≤ f m) (n : ℕ) :
-  (∑ k in range n, (2 ^ k) •ℕ f (2 ^ (k + 1))) ≤ ∑ k in Ico 2 (2 ^ n + 1), f k :=
+  (∑ k in range n, (2 ^ k) • f (2 ^ (k + 1))) ≤ ∑ k in Ico 2 (2 ^ n + 1), f k :=
 begin
   induction n with n ihn, { simp },
-  suffices : (2 ^ n) •ℕ f (2 ^ (n + 1)) ≤ ∑ k in Ico (2 ^ n + 1) (2 ^ (n + 1) + 1), f k,
-  { rw [sum_range_succ, add_comm, ← sum_Ico_consecutive],
+  suffices : (2 ^ n) • f (2 ^ (n + 1)) ≤ ∑ k in Ico (2 ^ n + 1) (2 ^ (n + 1) + 1), f k,
+  { rw [sum_range_succ, ← sum_Ico_consecutive],
     exact add_le_add ihn this,
     exacts [add_le_add_right n.one_le_two_pow _,
       add_le_add_right (nat.pow_le_pow_of_le_right zero_lt_two n.le_succ) _] },
@@ -79,7 +79,7 @@ begin
 end
 
 lemma sum_condensed_le (hf : ∀ ⦃m n⦄, 1 < m → m ≤ n → f n ≤ f m) (n : ℕ) :
-  (∑ k in range (n + 1), (2 ^ k) •ℕ f (2 ^ k)) ≤ f 1 + 2 •ℕ ∑ k in Ico 2 (2 ^ n + 1), f k :=
+  (∑ k in range (n + 1), (2 ^ k) • f (2 ^ k)) ≤ f 1 + 2 • ∑ k in Ico 2 (2 ^ n + 1), f k :=
 begin
   convert add_le_add_left (nsmul_le_nsmul_of_le_right (sum_condensed_le' hf n) 2) (f 1),
   simp [sum_range_succ', add_comm, pow_succ, mul_nsmul, sum_nsmul]

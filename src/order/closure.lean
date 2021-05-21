@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yaël Dillies
 -/
 import data.set_like
-import order.basic
 import order.preorder_hom
 import order.galois_connection
-import tactic.monotonicity
 
 /-!
 # Closure operators between preorders
@@ -383,6 +381,14 @@ variables [set_like α β] (l : lower_adjoint (coe : α → set β))
 lemma subset_closure (s : set β) : s ⊆ l s :=
 l.le_closure s
 
+/-- A lower adjoint forms a Galois insertion with the corresponding coercion. -/
+protected def gi :
+  galois_insertion l coe :=
+{ choice := λ x _, l x,
+  gc := l.gc,
+  le_l_u := λ x, l.subset_closure x,
+  choice_eq := λ x hx, rfl }
+
 lemma le_iff_subset (s : set β) (S : α) : l s ≤ S ↔ s ⊆ S :=
 l.gc s S
 
@@ -391,7 +397,10 @@ by { simp_rw [←set_like.mem_coe, ←set.singleton_subset_iff, ←l.le_iff_subs
   exact ⟨λ h S, h.trans, λ h, h _ le_rfl⟩ }
 
 lemma eq_of_le {s : set β} {S : α} (h₁ : s ⊆ S) (h₂ : S ≤ l s) : l s = S :=
-((l.le_iff_subset _ _).2 h₁).antisymm h₂
+((l.le_iff_subset s S).2 h₁).antisymm h₂
+
+lemma closure_eq (x : α) : l x = x :=
+l.gi.l_u_eq _
 
 lemma closure_union_closure_subset (x y : α) :
   (l x : set β) ∪ (l y) ⊆ l (x ∪ y) :=

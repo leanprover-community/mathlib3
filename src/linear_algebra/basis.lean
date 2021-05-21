@@ -634,7 +634,8 @@ basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_fintyp
 
 @[simp] lemma basis.coe_of_equiv_fun (e : M ≃ₗ[R] (ι → R)) :
   (basis.of_equiv_fun e : ι → M) = λ i, e.symm (function.update 0 i 1) :=
-funext $ λ i, e.injective $ funext $ λ j, by simp [basis.of_equiv_fun, finsupp.single_eq_update]
+funext $ λ i, e.injective $ funext $ λ j,
+  by simp [basis.of_equiv_fun, ←finsupp.single_eq_pi_single, finsupp.single_eq_update]
 
 variables (S : Type*) [semiring S] [module S M']
 variables [smul_comm_class R S M']

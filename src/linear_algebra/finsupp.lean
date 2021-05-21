@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
 import linear_algebra.basic
+import linear_algebra.pi
 
 /-!
 # Properties of the module `α →₀ M`
@@ -820,3 +821,62 @@ def module.subsingleton_equiv (R M ι: Type*) [semiring R] [subsingleton R] [add
   right_inv := λ f, by simp only [eq_iff_true_of_subsingleton],
   map_add' := λ m n, (add_zero 0).symm,
   map_smul' := λ r m, (smul_zero r).symm }
+
+namespace linear_map
+
+variables {R M} {α : Type*}
+open finsupp function
+
+/-- A surjective linear map to finitely supported functions has a splitting. -/
+-- See also `linear_map.splitting_of_fun_on_fintype_surjective`
+def splitting_of_finsupp_surjective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) : (α →₀ R) →ₗ[R] M :=
+finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)
+
+lemma splitting_of_finsupp_surjective_splits (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+  f.comp (splitting_of_finsupp_surjective f s) = linear_map.id :=
+begin
+  ext x y,
+  dsimp [splitting_of_finsupp_surjective],
+  congr,
+  rw [sum_single_index, one_smul],
+  { exact (s (finsupp.single x 1)).some_spec, },
+  { rw zero_smul, },
+end
+
+lemma splitting_of_finsupp_surjective_injective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+  injective (splitting_of_finsupp_surjective f s) :=
+begin
+  apply injective.of_comp,
+  convert injective_id,
+  exact congr_arg linear_map.to_fun (splitting_of_finsupp_surjective_splits f s),
+end
+
+/-- A surjective linear map to functions on a finite type has a splitting. -/
+-- See also `linear_map.splitting_of_finsupp_surjective`
+def splitting_of_fun_on_fintype_surjective [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
+  (α → R) →ₗ[R] M :=
+(finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)).comp
+  (@linear_equiv_fun_on_fintype R R α _ _ _ _).symm.to_linear_map
+
+lemma splitting_of_fun_on_fintype_surjective_splits
+  [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
+  f.comp (splitting_of_fun_on_fintype_surjective f s) = linear_map.id :=
+begin
+  ext x y,
+  dsimp [splitting_of_fun_on_fintype_surjective],
+  rw [linear_equiv_fun_on_fintype_symm_single, finsupp.sum_single_index, one_smul,
+    linear_map.id_coe, id_def,
+    (s (finsupp.single x 1)).some_spec, finsupp.single_eq_pi_single],
+  rw [zero_smul],
+end
+
+lemma splitting_of_fun_on_fintype_surjective_injective
+  [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
+  injective (splitting_of_fun_on_fintype_surjective f s) :=
+begin
+  apply injective.of_comp,
+  convert injective_id,
+  exact congr_arg linear_map.to_fun (splitting_of_fun_on_fintype_surjective_splits f s),
+end
+
+end linear_map

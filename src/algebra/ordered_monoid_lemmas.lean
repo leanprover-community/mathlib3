@@ -78,7 +78,7 @@ obtained from `(n₁, n₂)` by "acting upon it by `m`".
 
 If `m : M` and `h : r n₁ n₂`, then `covariant_class.covc m h : r (μ m n₁) (μ m n₂)`.
 -/
-class covariant_class :=
+class covariant_class : Prop :=
 (covc :  covariant M N μ r)
 
 /--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
@@ -93,7 +93,7 @@ also holds for the pair `(n₁, n₂)`.
 
 If `m : M` and `h : r (μ m n₁) (μ m n₂)`, then `contravariant_class.covtc m h : r n₁ n₂`.
 -/
-class contravariant_class :=
+class contravariant_class : Prop :=
 (covtc : contravariant M N μ r)
 
 lemma covariant_le_iff_contravariant_lt [linear_order N] :

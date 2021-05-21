@@ -158,7 +158,7 @@ instance noetherian_ring_rank_condition : rank_condition R :=
     simp only [add_zero, fin.coe_zero, fin.val_eq_coe, fin.coe_nat_add, ne.def, fin.coe_cast_add],
     exact j.2.ne.symm,
   end,
-  simpa [x] using congr_fun (linear_map.zero_of_injective_zero _ gi z) i,
+  simpa [x] using congr_fun ((g.map_eq_zero_iff gi).mp z) i,
 end⟩
 
 end

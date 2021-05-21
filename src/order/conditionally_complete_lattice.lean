@@ -111,6 +111,25 @@ instance conditionally_complete_linear_order_of_complete_linear_order [complete_
   conditionally_complete_linear_order α :=
 { ..conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
 
+section order_dual
+
+instance (α : Type*) [conditionally_complete_lattice α] :
+  conditionally_complete_lattice (order_dual α) :=
+{ le_cSup := @conditionally_complete_lattice.cInf_le α _,
+  cSup_le := @conditionally_complete_lattice.le_cInf α _,
+  le_cInf := @conditionally_complete_lattice.cSup_le α _,
+  cInf_le := @conditionally_complete_lattice.le_cSup α _,
+  ..order_dual.has_Inf α,
+  ..order_dual.has_Sup α,
+  ..order_dual.lattice α }
+
+instance (α : Type*) [conditionally_complete_linear_order α] :
+  conditionally_complete_linear_order (order_dual α) :=
+{ ..order_dual.conditionally_complete_lattice α,
+  ..order_dual.linear_order α }
+
+end order_dual
+
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}
 
@@ -750,25 +769,6 @@ noncomputable instance : complete_linear_order enat :=
   ..enat.bounded_lattice }
 
 end enat
-
-section order_dual
-
-instance (α : Type*) [conditionally_complete_lattice α] :
-  conditionally_complete_lattice (order_dual α) :=
-{ le_cSup := @cInf_le α _,
-  cSup_le := @le_cInf α _,
-  le_cInf := @cSup_le α _,
-  cInf_le := @le_cSup α _,
-  ..order_dual.has_Inf α,
-  ..order_dual.has_Sup α,
-  ..order_dual.lattice α }
-
-instance (α : Type*) [conditionally_complete_linear_order α] :
-  conditionally_complete_linear_order (order_dual α) :=
-{ ..order_dual.conditionally_complete_lattice α,
-  ..order_dual.linear_order α }
-
-end order_dual
 
 namespace monotone
 variables [preorder α] [conditionally_complete_lattice β] {f : α → β} (h_mono : monotone f)

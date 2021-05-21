@@ -321,10 +321,6 @@ begin
   simp only [pow_succ, ih, span_singleton_mul_span_singleton],
 end
 
-lemma span_singleton_sq (s : R) :
-  span {s} ^ 2 = (span {s ^ 2} : ideal R) :=
-span_singleton_pow s 2
-
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
 

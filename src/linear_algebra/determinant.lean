@@ -67,17 +67,11 @@ basis.index_equiv (basis.of_equiv_fun e.symm) (pi.basis_fun _ _)
 
 /-- If `M` and `M'` are each other's inverse matrices, they are square matrices up to
 equivalence of types. -/
-def matrix.equiv_of_inv [decidable_eq m] [decidable_eq n]
+def matrix.index_equiv_of_inv [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   m ≃ n :=
-let e : (m → A) ≃ₗ[A] (n → A) :=
-{ to_fun := matrix.to_lin' M',
-  inv_fun := M.to_lin',
-  left_inv := λ x, by rw [← matrix.to_lin'_mul_apply, hMM', matrix.to_lin'_one, id_apply],
-  right_inv := λ x, by rw [← matrix.to_lin'_mul_apply, hM'M, matrix.to_lin'_one, id_apply],
-  .. matrix.to_lin' M' } in
-equiv_of_pi_lequiv_pi e
+equiv_of_pi_lequiv_pi (matrix.to_lin'_of_inv hMM' hM'M)
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
 lemma matrix.det_conjugate
@@ -89,7 +83,7 @@ begin
   letI := classical.dec_eq A,
   -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
   -- This turns the problem into one for square matrices, which is easy.
-  let e : m ≃ n := matrix.equiv_of_inv hMM' hM'M,
+  let e : m ≃ n := matrix.index_equiv_of_inv hMM' hM'M,
   have : det (matrix.reindex_linear_equiv e (equiv.refl _) M ⬝ N ⬝
               matrix.reindex_linear_equiv (equiv.refl _) e M') =
          det N,

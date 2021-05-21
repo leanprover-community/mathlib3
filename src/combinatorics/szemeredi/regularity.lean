@@ -25,3 +25,23 @@ def is_down_closed (G : finset V → Prop) : Prop :=
 --def is_quasi_random :
 
 --lemma szemeredi_regularity {G : finset V → Prop} (hG : is_partite G 2) {ε : ℝ} (ε_pos : 0 < ε) :
+
+def edges_pair (A B : finset V) : ℕ := sorry
+
+def density_pair (A B : finset V) : ℚ := (edges_pair A B : ℚ)/(A.card * B.card)
+
+def density_diff (A B A' B' : finset V) : ℚ := abs (density_pair A B - density_pair A' B')
+
+def uniform_pair (A B : finset V) (ε : ℝ): ∀ A' ⊆ A, ε * A.card ≤ A'.card → ∀ B' ⊆ B,
+  ε * B.card ≤ B'.card → density_diff A B A' B' < ε
+
+def uniform_partition (P : finset (finset V))
+
+variables {A B A' B' : finset V}
+
+lemma LemmaB {δ : ℝ} (hAA' : A' ⊆ A) (hA' : ε * A.card ≤ A'.card) (hAnemp : A.nonempty)
+  (hBB' : B' ⊆ B) (hB' : (1 - δ) * B.card ≤ B'.card) (hBnemp : B.nonempty) :
+  density_diff A B A' B' ≤ 2 * δ :=
+begin
+  sorry
+end

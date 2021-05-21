@@ -51,7 +51,7 @@ instance [nontrivial α] : nontrivial (opposite α) :=
 let ⟨x, y, h⟩ := exists_pair_ne α in nontrivial_of_ne (op x) (op y) (op_injective.ne h)
 
 section
-local attribute [reducible] opposite
+local attribute [semireducible] opposite
 @[simp] lemma unop_eq_zero_iff [has_zero α] (a : αᵒᵖ) : a.unop = (0 : α) ↔ a = (0 : αᵒᵖ) :=
 iff.refl _
 
@@ -104,7 +104,7 @@ instance [has_one α] : has_one (opposite α) :=
 { one := op 1 }
 
 section
-local attribute [reducible] opposite
+local attribute [semireducible] opposite
 @[simp] lemma unop_eq_one_iff [has_one α] (a : αᵒᵖ) : a.unop = 1 ↔ a = 1 :=
 iff.refl _
 

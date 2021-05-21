@@ -33,7 +33,7 @@ derivatives are computed.
 
 log, sin, cos, tan, arcsin, arccos, arctan, angle, argument
 -/
-
+set_option profiler true
 noncomputable theory
 open_locale classical topological_space filter
 open set filter
@@ -1382,7 +1382,7 @@ begin
   have := this.1, rw [le_sub_iff_add_le, hx] at this,
   refine lt_of_lt_of_le _ this,
   rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
-  refine lt_sub_iff_add_lt'.mp _,
+  apply add_lt_of_lt_sub_left,
   rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹,
     by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
   apply mul_lt_mul',

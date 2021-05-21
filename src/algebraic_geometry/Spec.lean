@@ -28,8 +28,6 @@ open opposite
 
 set_option profiler true
 
-#check continuous_map.ext
-
 /--
 Spec of a commutative ring, as a `SheafedSpace`.
 -/
@@ -51,25 +49,13 @@ def Spec.SheafedSpace : CommRingᵒᵖ ⥤ SheafedSpace CommRing :=
   },
   map_id' := λ R,
   begin
-    apply algebraic_geometry.PresheafedSpace.ext, swap,
-    { ext1 x, dsimp, erw prime_spectrum.comap_id, refl, },
-    ext U s p,
-    dsimp at *,
-    erw [PresheafedSpace.id_c_app],
     sorry
   end,
   map_comp' := λ R S T f g,
   begin
-    apply algebraic_geometry.PresheafedSpace.ext, swap,
-    { ext1 x, dsimp, erw prime_spectrum.comap_comp, },
-    ext U s p,
-    dsimp at *,
-    erw PresheafedSpace.comp_c_app,
-
+    sorry
   end,
 }
-
-#print Spec.SheafedSpace
 
 /--
 Spec of a commutative ring, as a `PresheafedSpace`.

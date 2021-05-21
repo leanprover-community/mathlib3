@@ -136,7 +136,7 @@ begin
   cases le_or_lt 0 a with h h,
   { exact fpow_nonneg h _ },
   { rw [←fpow_even_neg _ hn],
-    replace h : 0 ≤ -a := neg_nonneg.mpr h.le,
+    replace h : 0 ≤ -a := neg_nonneg_of_nonpos (le_of_lt h),
     exact fpow_nonneg h _ }
 end
 

@@ -477,7 +477,7 @@ alias sub_lt_self_iff ↔ _ sub_lt_self
 
 /- The following lemmas are probably superfluous.  From here... -/
 @[to_additive]
-lemma one_lt_of_inv_lt_one_ (h : a⁻¹ < 1) : 1 < a :=
+lemma one_lt_of_inv_lt_one (h : a⁻¹ < 1) : 1 < a :=
 inv_lt_one_iff_one_lt.mp h
 
 @[to_additive neg_of_neg_pos]

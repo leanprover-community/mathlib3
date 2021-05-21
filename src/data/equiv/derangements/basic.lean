@@ -80,7 +80,6 @@ end
 lemma is_derangement_iff_opfp_and_ne (a : α) (f : perm α) :
   is_derangement f ↔ only_possible_fixed_point f a ∧ f a ≠ a :=
 begin
-  unfold is_derangement only_possible_fixed_point,
   split,
   { intro h_derangement,
     split,
@@ -106,9 +105,7 @@ begin
   { apply equiv.trans _ (subtype_subtype_equiv_subtype_exists _ _).symm,
     apply subtype_equiv_right,
     intro f,
-    simp only [exists_prop, set.mem_set_of_eq],
-    rw and_comm,
-    exact eofp_iff_opfp_and_eq _ _ },
+    simp_rw [exists_prop, set.mem_set_of_eq, eofp_iff_opfp_and_eq, and_comm] },
   { refine subtype_equiv key_equiv _,
     rintro ⟨f, _⟩,
     simp [key_equiv, equiv.set.compl, derangements, is_derangement,

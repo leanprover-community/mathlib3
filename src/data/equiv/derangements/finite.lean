@@ -37,17 +37,12 @@ open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] [fintype α]
 
-instance : decidable_pred (@is_derangement α) :=
-begin
-  intro f,
-  apply fintype.decidable_forall_fintype,
-end
+instance : decidable_pred (@is_derangement α) := λ _, fintype.decidable_forall_fintype
 
 instance : fintype (derangements α) :=
 begin
-  have : fintype (perm α) := by apply_instance,
-  dsimp [derangements],
-  exact set_fintype (set_of is_derangement),
+  rw [derangements],
+  apply_instance
 end
 
 /-- The number of derangements on an `n`-element set. -/
@@ -56,7 +51,6 @@ def num_derangements (n : ℕ) : ℕ := card (derangements (fin n))
 @[simp] lemma num_derangements_invariant (α : Type*) [fintype α] [decidable_eq α] :
   card (derangements α) = num_derangements (card α) :=
 begin
-  unfold num_derangements,
   apply card_eq.mpr,  -- card_eq because we don't need the specific equivalence
   use derangements_congr (equiv_fin α),
 end
@@ -64,18 +58,14 @@ end
 theorem num_derangements_recursive (n : ℕ) :
   num_derangements (n+2) = (n+1) * num_derangements n + (n+1) * num_derangements (n+1) :=
 begin
-  let X := fin(n+1),
-  -- TODO why can't it infer the `fintype` instances unless i bestow a name on `everything_but`?
-  let everything_but : X → set X := λ a, {a}ᶜ,
-  have card_everything_but : ∀ a : X, card (everything_but a) = n,
+  have card_everything_but : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = n,
   { intro a,
-    simp only [everything_but, fintype.card_of_finset, set.mem_compl_singleton_iff],
-    rw finset.filter_ne' _ a,
-    rw finset.card_erase_of_mem (finset.mem_univ a),
+    simp only [fintype.card_of_finset, set.mem_compl_singleton_iff],
+    rw [finset.filter_ne' _ a, finset.card_erase_of_mem (finset.mem_univ a)],
     simp },
-  have key := card_congr (@derangements_recursion_equiv X _),
+  have key := card_congr (@derangements_recursion_equiv (fin (n+1)) _),
   rw [num_derangements_invariant, fintype.card_option, fintype.card_fin] at key,
-  simp [card_everything_but, mul_add, key],
+  simp [card_everything_but, mul_add, key]
 end
 
 lemma num_derangements_0 : num_derangements 0 = 1 := rfl
@@ -94,8 +84,6 @@ begin
   -- now we have n ≥ 2
   rw num_derangements_recursive,
   push_cast,
-  -- TODO can these proofs be inferred from some tactic? i tried linarith,
-  -- but for some reason that didn't work
   rw hyp n (nat.lt_succ_of_le (nat.le_succ _)),
   rw hyp n.succ (lt_add_one _),
   -- push all the constants inside the sums, strip off some trailing terms,
@@ -125,10 +113,7 @@ begin
     ring },
   -- show that `(n+1) * (-1)^(n+1) ((n+1)! / (n+1)!)` (from the n+1 sum) =
   -- `(-1)^(n+1) ((n+2)! / (n+1)!) + (-1)^(n+2) ((n+2)! / (n+2)!)` (from the n+2 sum)
-  { -- get rid of all n.succ
-    simp only [←nat.add_one, pow_succ],
-    -- simplify the arguments to desc_fac, and then evaluate them explicitly
-    simp only [nat.sub_self, nat.add_sub_cancel_left, nat.desc_fac_succ, nat.desc_fac_zero],
-    push_cast,
+  { -- simplify the arguments to desc_fac, and then evaluate them explicitly
+    norm_num [pow_succ, ←nat.add_one, nat.desc_fac_succ, nat.desc_fac_zero],
     ring },
 end

@@ -155,7 +155,7 @@ linear_map.to_matrix'_comp f g
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
 @[simps]
-def matrix.to_lin'_of_inv [decidable_eq m] [decidable_eq n]
+def matrix.to_lin'_of_inv [decidable_eq m]
   {M : matrix m n R} {M' : matrix n m R}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   (m → R) ≃ₗ[R] (n → R) :=
@@ -374,7 +374,7 @@ by rw [matrix.to_lin_mul v₁ v₂, linear_map.comp_apply]
 /-- If `M` and `M` are each other's inverse matrices, `matrix.to_lin M` and `matrix.to_lin M'`
 form a linear equivalence. -/
 @[simps]
-def matrix.to_lin_of_inv [decidable_eq m] [decidable_eq n]
+def matrix.to_lin_of_inv [decidable_eq m]
   {M : matrix m n R} {M' : matrix n m R}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   M₁ ≃ₗ[R] M₂ :=

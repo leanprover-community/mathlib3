@@ -152,6 +152,19 @@ lemma linear_map.to_matrix'_mul [decidable_eq m]
   (f * g).to_matrix' = f.to_matrix' ⬝ g.to_matrix' :=
 linear_map.to_matrix'_comp f g
 
+/-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
+and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
+@[simps]
+def matrix.to_lin'_of_inv [decidable_eq m] [decidable_eq n]
+  {M : matrix m n R} {M' : matrix n m R}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  (m → R) ≃ₗ[R] (n → R) :=
+{ to_fun := matrix.to_lin' M',
+  inv_fun := M.to_lin',
+  left_inv := λ x, by rw [← matrix.to_lin'_mul_apply, hMM', matrix.to_lin'_one, id_apply],
+  right_inv := λ x, by rw [← matrix.to_lin'_mul_apply, hM'M, matrix.to_lin'_one, id_apply],
+  .. matrix.to_lin' M' }
+
 /-- Linear maps `(n → R) →ₗ[R] (n → R)` are algebra equivalent to `matrix n n R`. -/
 def linear_map.to_matrix_alg_equiv' : ((n → R) →ₗ[R] (n → R)) ≃ₐ[R] matrix n n R :=
 alg_equiv.of_linear_equiv linear_map.to_matrix' linear_map.to_matrix'_mul
@@ -357,6 +370,19 @@ lemma matrix.to_lin_mul_apply [decidable_eq m]
   matrix.to_lin v₁ v₃ (A ⬝ B) x =
     (matrix.to_lin v₂ v₃ A) (matrix.to_lin v₁ v₂ B x) :=
 by rw [matrix.to_lin_mul v₁ v₂, linear_map.comp_apply]
+
+/-- If `M` and `M` are each other's inverse matrices, `matrix.to_lin M` and `matrix.to_lin M'`
+form a linear equivalence. -/
+@[simps]
+def matrix.to_lin_of_inv [decidable_eq m] [decidable_eq n]
+  {M : matrix m n R} {M' : matrix n m R}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  M₁ ≃ₗ[R] M₂ :=
+{ to_fun := matrix.to_lin v₁ v₂ M,
+  inv_fun := matrix.to_lin v₂ v₁ M',
+  left_inv := λ x, by rw [← matrix.to_lin_mul_apply, hM'M, matrix.to_lin_one, id_apply],
+  right_inv := λ x, by rw [← matrix.to_lin_mul_apply, hMM', matrix.to_lin_one, id_apply],
+  .. matrix.to_lin v₁ v₂ M }
 
 /-- Given a basis of a module `M₁` over a commutative ring `R`, we get an algebra
 equivalence between linear maps `M₁ →ₗ M₁` and square matrices over `R` indexed by the basis. -/

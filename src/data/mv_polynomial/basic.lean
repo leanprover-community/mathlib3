@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import data.polynomial.eval
+import data.finsupp.antidiagonal
 
 /-!
 # Multivariate polynomials
@@ -404,7 +405,7 @@ begin
 end
 
 lemma coeff_mul (p q : mv_polynomial σ R) (n : σ →₀ ℕ) :
-  coeff n (p * q) = ∑ x in (antidiagonal n).support, coeff x.1 p * coeff x.2 q :=
+  coeff n (p * q) = ∑ x in antidiagonal n, coeff x.1 p * coeff x.2 q :=
 begin
   rw mul_def,
   -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij_ne_zero`,
@@ -419,7 +420,7 @@ begin
   -- We are now ready to show that both sums are equal using `finset.sum_bij_ne_zero`.
   apply finset.sum_bij_ne_zero (λ (x : (σ →₀ ℕ) × (σ →₀ ℕ)) _ _, (x.1, x.2)),
   { intros x hx hx',
-    simp only [mem_antidiagonal_support, eq_self_iff_true, if_false, forall_true_iff],
+    simp only [mem_antidiagonal, eq_self_iff_true, if_false, forall_true_iff],
     contrapose! hx',
     rw [if_neg hx'] },
   { rintros ⟨i, j⟩ ⟨k, l⟩ hij hij' hkl hkl',
@@ -429,7 +430,7 @@ begin
     { simp only [mem_support_iff, finset.mem_product],
       contrapose! hij',
       exact mul_eq_zero_of_ne_zero_imp_eq_zero hij' },
-    { rw [mem_antidiagonal_support] at hij,
+    { rw [mem_antidiagonal] at hij,
       simp only [exists_prop, true_and, ne.def, if_pos hij, hij', not_false_iff] } },
   { intros x hx hx',
     simp only [ne.def] at hx' ⊢,
@@ -441,11 +442,11 @@ end
 @[simp] lemma coeff_mul_X (m) (s : σ) (p : mv_polynomial σ R) :
   coeff (m + single s 1) (p * X s) = coeff m p :=
 begin
-  have : (m, single s 1) ∈ (m + single s 1).antidiagonal.support := mem_antidiagonal_support.2 rfl,
+  have : (m, single s 1) ∈ (m + single s 1).antidiagonal := mem_antidiagonal.2 rfl,
   rw [coeff_mul, ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
       finset.sum_eq_zero, add_zero, coeff_X, mul_one],
   rintros ⟨i,j⟩ hij,
-  rw [finset.mem_erase, mem_antidiagonal_support] at hij,
+  rw [finset.mem_erase, mem_antidiagonal] at hij,
   by_cases H : single s 1 = j,
   { subst j, simpa using hij },
   { rw [coeff_X', if_neg H, mul_zero] },
@@ -981,4 +982,5 @@ eval₂_hom_eq_zero _ _ _ h
 end aeval
 
 end comm_semiring
+
 end mv_polynomial

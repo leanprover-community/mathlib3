@@ -19,7 +19,7 @@ characterising these structures.
 
 If you need a lemma which is proved about `α →ᵇ β` but not for `C(α, β)` when `α` is compact,
 you should restate it here. You can also use
-`bounded_continuous_function.equiv_continuous_map_of_compact` to functions back and forth.
+`bounded_continuous_function.equiv_continuous_map_of_compact` to move functions back and forth.
 
 -/
 

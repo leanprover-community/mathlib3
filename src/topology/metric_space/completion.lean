@@ -100,7 +100,7 @@ begin
       { have : {x : completion α × completion α | ε ≤ dist (x.fst) (x.snd) ∨ (x.fst, x.snd) ∈ t}
                = {p : completion α × completion α | ε ≤ dist p.1 p.2} ∪ t, by ext; simp,
         rw this,
-        apply is_closed_union _ tclosed,
+        apply is_closed.union _ tclosed,
         exact is_closed_le continuous_const completion.uniform_continuous_dist.continuous },
       { assume x y,
         rw completion.dist_eq,

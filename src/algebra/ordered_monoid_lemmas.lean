@@ -555,12 +555,28 @@ lt_mul_of_one_le_of_lt ha.le hbc
 
 end contravariant
 
-variables [covariant_class α α (*) (≤)]
-  [covariant_class α α (function.swap (*)) (≤)]
+@[to_additive add_nonpos]
+lemma mul_le_one'' [covariant_class α α (function.swap (*)) (≤)]
+  (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
+calc  a * b ≤ 1 * b : mul_le_mul_right' ha b
+        ... = b     : one_mul b
+        ... ≤ 1     : hb
+
+variable [covariant_class α α (*) (≤)]
+
+@[to_additive add_nonpos]
+lemma mul_le_one' (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
+calc  a * b ≤ a * 1 : mul_le_mul_left' hb a
+        ... = a     : mul_one a
+        ... ≤ 1     : ha
+
+variable [covariant_class α α (function.swap (*)) (≤)]
 
 @[to_additive]
 lemma le_mul_of_one_le_of_le (ha : 1 ≤ a) (hbc : b ≤ c) : b ≤ a * c :=
-one_mul b ▸ mul_le_mul' ha hbc
+calc  b = 1 * b : (one_mul b).symm
+    ... ≤ a * b : mul_le_mul_right' ha b
+    ... ≤ a * c : mul_le_mul_left' hbc a
 
 @[to_additive]
 lemma le_mul_of_le_of_one_le (hbc : b ≤ c) (ha : 1 ≤ a) : b ≤ c * a :=
@@ -569,10 +585,6 @@ mul_one b ▸ mul_le_mul' hbc ha
 @[to_additive add_nonneg]
 lemma one_le_mul (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
 le_mul_of_one_le_of_le ha hb
-
-@[to_additive add_nonpos]
-lemma mul_le_one' (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 :=
-one_mul (1:α) ▸ (mul_le_mul' ha hb)
 
 @[to_additive]
 lemma mul_le_of_le_one_of_le' (ha : a ≤ 1) (hbc : b ≤ c) : a * b ≤ c :=
@@ -772,7 +784,9 @@ section special
 
 @[to_additive]
 lemma mul_lt_one_of_le_one_of_lt_one (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
-one_mul (1:α) ▸ (mul_lt_mul_of_le_of_lt ha hb)
+calc  a * b ≤  1 * b     : mul_le_mul_right' ha b
+        ... = b : one_mul b
+        ... < 1 : hb
 
 @[to_additive]
 lemma lt_mul_of_le_of_one_lt (hbc : b ≤ c) (ha : 1 < a) : b < c * a :=
@@ -785,10 +799,10 @@ lemma mul_lt_of_le_of_lt_one (hbc : b ≤ c) (ha : a < 1) : b * a < c :=
 calc b * a < b * 1 : mul_lt_mul_left' ha b
        ... ≤ c * 1 : mul_le_mul_right' hbc 1
        ... = c     : mul_one c
-
+#lint
 @[to_additive]
 lemma mul_lt_of_le_one_of_lt (ha : a ≤ 1) (hbc : b < c) : a * b < c :=
-one_mul c ▸ mul_lt_mul_of_le_of_lt ha hbc
+mul_lt_of_le_one_of_lt' ha hbc
 
 end special
 

@@ -108,10 +108,6 @@ class order_closed_topology (α : Type*) [topological_space α] [preorder α] : 
 
 instance : Π [topological_space α], topological_space (order_dual α) := id
 
-@[to_additive]
-instance [topological_space α] [has_mul α] [h : has_continuous_mul α] :
-  has_continuous_mul (order_dual α) := h
-
 section order_closed_topology
 
 section preorder

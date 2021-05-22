@@ -208,58 +208,54 @@ section right
 section covariant_le_right
 variables [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
 
-@[simp, to_additive]
-lemma mul_le_mul_iff_right' (c : α) : a * c ≤ b * c ↔ a ≤ b :=
-⟨λ h, by simpa using mul_le_mul_right' h c⁻¹, λ h, mul_le_mul_right' h _⟩
-
 @[to_additive]
 lemma mul_inv_le_iff'' : a * c⁻¹ ≤ b ↔ a ≤ b * c :=
-by rwa [← mul_le_mul_iff_right' c, inv_mul_cancel_right]
+by rwa [← mul_le_mul_iff_right c, inv_mul_cancel_right]
 
 @[to_additive neg_nonpos_iff]
 lemma inv_le_one_iff' : a⁻¹ ≤ 1 ↔ 1 ≤ a :=
-by rw [← mul_le_mul_iff_right' a, mul_left_inv, one_mul]
+by rw [← mul_le_mul_iff_right a, mul_left_inv, one_mul]
 
 @[to_additive right.nonpos_of_neg_nonneg]
 lemma right.le_one_of_one_le_inv : 1 ≤ a⁻¹ ↔ a ≤ 1 :=
-by rw [← mul_le_mul_iff_right' a, mul_left_inv, one_mul]
+by rw [← mul_le_mul_iff_right a, mul_left_inv, one_mul]
 
 @[to_additive]
 lemma le_inv_iff_mul_le_one : a ≤ b⁻¹ ↔ a * b ≤ 1 :=
-by rw [← mul_le_mul_iff_right' b, mul_left_inv]
+by rw [← mul_le_mul_iff_right b, mul_left_inv]
 @[simp, to_additive]
 lemma div_le_div_iff_right (c : α) : a / c ≤ b / c ↔ a ≤ b :=
-by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_le_mul_iff_right' c⁻¹ }
+by { rw [div_eq_mul_inv, div_eq_mul_inv], exact mul_le_mul_iff_right c⁻¹ }
 
 @[simp, to_additive sub_nonneg]
 lemma one_le_div'' : 1 ≤ a / b ↔ b ≤ a :=
-by rw [← mul_le_mul_iff_right' b, one_mul, div_eq_mul_inv, inv_mul_cancel_right]
+by rw [← mul_le_mul_iff_right b, one_mul, div_eq_mul_inv, inv_mul_cancel_right]
 
 alias sub_nonneg ↔ le_of_sub_nonneg sub_nonneg_of_le
 
 @[simp, to_additive sub_nonpos]
 lemma div_le_one'' : a / b ≤ 1 ↔ a ≤ b :=
-by rw [← mul_le_mul_iff_right' b, one_mul, div_eq_mul_inv, inv_mul_cancel_right]
+by rw [← mul_le_mul_iff_right b, one_mul, div_eq_mul_inv, inv_mul_cancel_right]
 
 alias sub_nonpos ↔ le_of_sub_nonpos sub_nonpos_of_le
 
 @[to_additive]
 lemma le_div_iff_mul_le_right : b ≤ c / a ↔ b * a ≤ c :=
-by rw [← mul_le_mul_iff_right' a, div_eq_mul_inv, inv_mul_cancel_right]
+by rw [← mul_le_mul_iff_right a, div_eq_mul_inv, inv_mul_cancel_right]
 
 @[to_additive]
 lemma le_div_iff_mul_le : a ≤ c / b ↔ a * b ≤ c :=
-by rw [← mul_le_mul_iff_right' b, div_eq_mul_inv, inv_mul_cancel_right]
+by rw [← mul_le_mul_iff_right b, div_eq_mul_inv, inv_mul_cancel_right]
 
 alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 
 @[to_additive]
 lemma div_le_iff_le_mul_left : a / b ≤ c ↔ a ≤ c * b :=
-by rw [← mul_le_mul_iff_right' b, div_eq_mul_inv, inv_mul_cancel_right]
+by rw [← mul_le_mul_iff_right b, div_eq_mul_inv, inv_mul_cancel_right]
 
 @[to_additive]
 lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
-by rw [← mul_le_mul_iff_right' c, div_eq_mul_inv, inv_mul_cancel_right]
+by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
 /- The following lemmas are probably superfluous. From here... -/
 @[to_additive sub_le_sub_right]
@@ -339,12 +335,12 @@ variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swa
 
 @[to_additive]
 lemma mul_inv_le_inv_mul_iff : a * b⁻¹ ≤ c⁻¹ * d ↔ c * a ≤ d * b :=
-by rw [← mul_le_mul_iff_left' c, ← mul_le_mul_iff_right' b, mul_inv_cancel_left, mul_assoc,
+by rw [← mul_le_mul_iff_left' c, ← mul_le_mul_iff_right b, mul_inv_cancel_left, mul_assoc,
     inv_mul_cancel_right]
 
 @[simp, to_additive]
 lemma inv_le_inv_iff : b⁻¹ ≤ a⁻¹ ↔ a ≤ b :=
-by rw [← mul_le_mul_iff_left' b, ← mul_le_mul_iff_right' a, mul_right_inv, inv_mul_cancel_right,
+by rw [← mul_le_mul_iff_left' b, ← mul_le_mul_iff_right a, mul_right_inv, inv_mul_cancel_right,
       one_mul]
 
 alias neg_le_neg_iff ↔ le_of_neg_le_neg _
@@ -415,7 +411,7 @@ alias sub_le_self_iff ↔ _ sub_le_self
 
 @[simp, to_additive]
 lemma inv_le_mul_inv_iff_le_mul : b⁻¹ ≤ a * c⁻¹ ↔ c ≤ b * a :=
-by rw [← mul_le_mul_iff_right' c, ← mul_le_mul_iff_left' b, ← mul_assoc, mul_right_inv,
+by rw [← mul_le_mul_iff_right c, ← mul_le_mul_iff_left' b, ← mul_assoc, mul_right_inv,
       inv_mul_cancel_right, one_mul]
 
 /- This version is to get a slightly different `to_additive` statement. -/
@@ -425,7 +421,7 @@ by rw [div_eq_mul_inv, inv_le_mul_inv_iff_le_mul]
 
 @[to_additive]
 lemma inv_le_mul_inv_iff_le_mul' : a⁻¹ ≤ b * c⁻¹ ↔ c ≤ a * b :=
-by rw [← mul_le_mul_iff_right' c, ← mul_le_mul_iff_left' a, ← mul_assoc, mul_right_inv,
+by rw [← mul_le_mul_iff_right c, ← mul_le_mul_iff_left' a, ← mul_assoc, mul_right_inv,
       inv_mul_cancel_right, one_mul]
 
 @[to_additive]
@@ -438,7 +434,7 @@ by rw [div_eq_mul_inv, inv_le_mul_inv_iff_le_mul]
 
 @[to_additive]
 lemma mul_inv_le : a * b⁻¹ ≤ c ↔ c⁻¹ * a ≤ b :=
-by rw [← mul_le_mul_iff_left' c⁻¹, ← mul_le_mul_iff_right' b, ← mul_assoc, mul_left_inv,
+by rw [← mul_le_mul_iff_left' c⁻¹, ← mul_le_mul_iff_right b, ← mul_assoc, mul_left_inv,
       inv_mul_cancel_right, one_mul]
 
 @[to_additive]
@@ -447,7 +443,7 @@ by rw [div_eq_mul_inv, mul_inv_le]
 
 @[to_additive]
 theorem le_mul_inv : a ≤ b * c⁻¹ ↔ c ≤ a⁻¹ * b :=
-by rw [← mul_le_mul_iff_left' a⁻¹, ← mul_le_mul_iff_right' c, ← mul_assoc, mul_left_inv,
+by rw [← mul_le_mul_iff_left' a⁻¹, ← mul_le_mul_iff_right c, ← mul_assoc, mul_left_inv,
       inv_mul_cancel_right, one_mul]
 
 @[to_additive]
@@ -648,7 +644,7 @@ le_trans h (one_le_inv'.2 h)
 
 @[to_additive neg_le_iff_add_nonneg]
 lemma inv_le_iff_one_le_mul : a⁻¹ ≤ b ↔ 1 ≤ b * a :=
-(mul_le_mul_iff_right' a).symm.trans $ by rw inv_mul_self
+(mul_le_mul_iff_right a).symm.trans $ by rw inv_mul_self
 
 @[simp, to_additive]
 lemma mul_inv_le_iff_le_mul' : a * b⁻¹ ≤ c ↔ a ≤ b * c :=

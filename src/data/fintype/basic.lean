@@ -51,7 +51,7 @@ univ_nonempty_iff.2 ‹_›
 lemma univ_eq_empty : (univ : finset α) = ∅ ↔ ¬nonempty α :=
 by rw [← univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
 
-lemma univ_eq_empty' : (univ : finset α) = ∅ ↔ is_empty α:=
+lemma univ_eq_empty' : (univ : finset α) = ∅ ↔ is_empty α :=
 univ_eq_empty.trans (not_nonempty_iff)
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a

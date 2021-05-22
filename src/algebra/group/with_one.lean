@@ -97,6 +97,7 @@ instance [semigroup α] : monoid (with_one α) :=
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
+
 /-- `coe` as a bundled morphism -/
 @[to_additive "`coe` as a bundled morphism", simps apply]
 def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=

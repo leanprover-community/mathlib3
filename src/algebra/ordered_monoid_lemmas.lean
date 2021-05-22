@@ -170,46 +170,49 @@ section has_mul
 variables [has_mul N]
 
 section has_le
-variables [has_le N] (m : M) (a : N) {b c : N}
+variables [has_le N]
 
 @[simp, to_additive]
-lemma mul_le_mul_iff_left [covariant_class N N (*) (≤)] [contravariant_class N N (*) (≤)] :
+lemma mul_le_mul_iff_left [covariant_class N N (*) (≤)] [contravariant_class N N (*) (≤)]
+  (a : N) {b c : N} :
   a * b ≤ a * c ↔ b ≤ c :=
 rel_iff_cov N N (*) (≤) a
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_right
-  [covariant_class N N (function.swap (*)) (≤)] [contravariant_class N N (function.swap (*)) (≤)] :
+  [covariant_class N N (function.swap (*)) (≤)] [contravariant_class N N (function.swap (*)) (≤)]
+  (a : N) {b c : N} :
   b * a ≤ c * a ↔ b ≤ c :=
 rel_iff_cov N N (function.swap (*)) (≤) a
 
 @[to_additive]
-lemma mul_le_mul_left_n [covariant_class N N (*) (≤)] (bc : b ≤ c) :
+lemma mul_le_mul_left_n [covariant_class N N (*) (≤)]
+  (a : N) {b c : N} (bc : b ≤ c) :
   a * b ≤ a * c :=
 covariant_class.covc _ bc
 
 @[to_additive]
 lemma le_of_mul_le_mul_left_n [contravariant_class N N (*) (≤)]
-  (bc : a * b ≤ a * c) :
+  (a : N) {b c : N} (bc : a * b ≤ a * c) :
   b ≤ c :=
 contravariant_class.covtc _ bc
 
 @[to_additive]
 lemma mul_le_mul_right_n [covariant_class N N (function.swap (*)) (≤)]
-  (bc : b ≤ c) :
+  (a : N) {b c : N} (bc : b ≤ c) :
   b * a ≤ c * a :=
 covariant_class.covc a bc
 
 @[to_additive]
 lemma le_of_mul_le_mul_right_n [contravariant_class N N (function.swap (*)) (≤)]
-  (bc : b * a ≤ c * a) :
+  (a : N) {b c : N} (bc : b * a ≤ c * a) :
   b ≤ c :=
 contravariant_class.covtc a bc
 
 /- The prime on this lemma is present only on the multiplicative version.  The unprimed version
 is taken by the analogous lemma for semiring, with an extra non-negativity assumption. -/
 @[to_additive add_le_add_left]
-lemma mul_le_mul_left' [covariant_class N N (*) (≤)] (bc : b ≤ c) (a) :
+lemma mul_le_mul_left' [covariant_class N N (*) (≤)] {b c : N} (bc : b ≤ c) (a : N) :
   a * b ≤ a * c :=
 covariant_class.covc _ bc
 
@@ -217,58 +220,62 @@ covariant_class.covc _ bc
 is taken by the analogous lemma for semiring, with an extra non-negativity assumption. -/
 @[to_additive add_le_add_right]
 lemma mul_le_mul_right' [covariant_class N N (function.swap (*)) (≤)]
-  (bc : b ≤ c) (a) :
+  {b c : N} (bc : b ≤ c) (a : N) :
   b * a ≤ c * a :=
 covariant_class.covc a bc
 
 end has_le
 
 section has_lt
-variables [has_lt N] (m : M) (a : N) {b c : N}
+variables [has_lt N]
 
 @[simp, to_additive]
-lemma mul_lt_mul_iff_left [covariant_class N N (*) (<)] [contravariant_class N N (*) (<)] :
+lemma mul_lt_mul_iff_left [covariant_class N N (*) (<)] [contravariant_class N N (*) (<)]
+  (a : N) {b c : N} :
   a * b < a * c ↔ b < c :=
 rel_iff_cov N N (*) (<) a
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_right
-  [covariant_class N N (function.swap (*)) (<)] [contravariant_class N N (function.swap (*)) (<)] :
+  [covariant_class N N (function.swap (*)) (<)] [contravariant_class N N (function.swap (*)) (<)]
+  (a : N) {b c : N} :
   b * a < c * a ↔ b < c :=
 rel_iff_cov N N (function.swap (*)) (<) a
 
 @[to_additive]
-lemma mul_lt_mul_left_n [covariant_class N N (*) (<)] (bc : b < c) :
+lemma mul_lt_mul_left_n [covariant_class N N (*) (<)]
+  (a : N) {b c : N} (bc : b < c) :
   a * b < a * c :=
 covariant_class.covc _ bc
 
 @[to_additive]
-lemma lt_of_mul_lt_mul_left_n [contravariant_class N N (*) (<)] (bc : a * b < a * c) :
+lemma lt_of_mul_lt_mul_left_n [contravariant_class N N (*) (<)]
+  (a : N) {b c : N} (bc : a * b < a * c) :
   b < c :=
 contravariant_class.covtc _ bc
 
 @[to_additive]
 lemma mul_lt_mul_right_n [covariant_class N N (function.swap (*)) (<)]
-  (bc : b < c) :
+  (a : N) {b c : N} (bc : b < c) :
   b * a < c * a :=
 covariant_class.covc a bc
 
 /- Keeping same name.  From here... -/
 @[to_additive add_lt_add_right]
 lemma mul_lt_mul_right' [covariant_class N N (function.swap (*)) (<)]
-  (bc : b < c) (a) :
+  (a : N) {b c : N} (bc : b < c) :
   b * a < c * a :=
 covariant_class.covc a bc
 
 @[to_additive add_lt_add_left]
-lemma mul_lt_mul_left' [covariant_class N N (*) (<)] (bc : b < c) (a) :
+lemma mul_lt_mul_left' [covariant_class N N (*) (<)] {b c : N} (bc : b < c) (a : N) :
   a * b < a * c :=
 covariant_class.covc _ bc
 /-  ...to here. -/
 
 @[to_additive]
 lemma lt_of_mul_lt_mul_right_n [contravariant_class N N (function.swap (*)) (<)]
-  (bc : b * a < c * a) :
+  (a : N) {b c : N} (bc : b * a < c * a) :
   b < c :=
 contravariant_class.covtc a bc
 
@@ -363,7 +370,7 @@ h.trans (mul_le_mul_left_n b hle)
 @[to_additive]
 lemma mul_lt_mul_of_lt_of_le [covariant_class α α (function.swap (*)) (<)]
   (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
-(mul_le_mul_left_n _ h₂).trans_lt (mul_lt_mul_right' h₁ d)
+(mul_le_mul_left_n _ h₂).trans_lt (mul_lt_mul_right' d h₁)
 
 end has_mul
 
@@ -477,7 +484,7 @@ variable [covariant_class α α (function.swap (*)) (<)]
 @[to_additive lt_add_of_pos_left]
 lemma lt_mul_of_one_lt_left' (a : α) {b : α} (h : 1 < b) : a < b * a :=
 calc a = 1 * a : (one_mul _).symm
-   ... < b * a : mul_lt_mul_right' h a
+   ... < b * a : mul_lt_mul_right' a h
 
 end lt_right
 

@@ -343,6 +343,10 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
+  decl   : fintype.card_embedding
+  links  :
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/93_birthday_problem.lean
+  author : Eric Rodriguez
 94:
   title  : The Law of Cosines
   decl   : euclidean_geometry.dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle

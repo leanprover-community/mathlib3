@@ -55,7 +55,7 @@ begin
   use derangements_congr (equiv_fin α),
 end
 
-theorem num_derangements_recursive (n : ℕ) :
+theorem num_derangements_succ (n : ℕ) :
   num_derangements (n+2) = (n+1) * num_derangements n + (n+1) * num_derangements (n+1) :=
 begin
   have card_everything_but : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = n,
@@ -82,19 +82,17 @@ begin
   cases n, { rw num_derangements_0, simp },
   cases n, { rw num_derangements_1, simp [finset.sum_range_succ] },
   -- now we have n ≥ 2
-  rw num_derangements_recursive,
+  rw num_derangements_succ,
   push_cast,
-  rw hyp n (nat.lt_succ_of_le (nat.le_succ _)),
-  rw hyp n.succ (lt_add_one _),
+  have n_le : n < n + 2 := nat.lt_succ_of_le (nat.le_succ _),
+  have n_succ_le : n + 1 < n + 2 := lt_add_one _,
+  rw [hyp n n_le, hyp n.succ n_succ_le],
   -- push all the constants inside the sums, strip off some trailing terms,
   -- and compare term-wise
-  repeat { rw finset.mul_sum },
-  conv_lhs { congr, skip, rw finset.sum_range_succ },
-  rw [← add_assoc, ← finset.sum_add_distrib],
-  conv_rhs {
-    rw finset.sum_range_succ,
-    rw finset.sum_range_succ,
-    rw add_assoc },
+  simp only [finset.mul_sum],
+  simp only [finset.sum_range_succ _ (n+1), finset.sum_range_succ _ (n+2)],
+  conv_lhs { rw ←add_assoc, rw ←finset.sum_add_distrib },
+  conv_rhs { rw add_assoc },
   -- now both sides are of the form `sum (x : ℕ) in finset.range(n+1) (...) + (...)`, in such
   -- a way that we can just check that the LHS and RHS match up in each summand
   congr' 1,

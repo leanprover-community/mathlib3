@@ -44,6 +44,26 @@ protected noncomputable def std_simplex (ι : Type*) [fintype ι] : polyhedron (
 
 end polyhedron
 
+namespace continuous_linear_map
+variables {F : Type*} [normed_group F] [normed_space ℝ F] (l : E →L[ℝ] F)
+
+def image_polyhedron (P : polyhedron E) : polyhedron F :=
+{ carrier := l '' P,
+  hcarrier := begin
+    have f : (E →L[ℝ] ℝ) × ℝ → (F →L[ℝ] ℝ) × ℝ,
+    {
+      rintro ⟨lr, r⟩,
+      split,
+      sorry,
+      sorry
+      --exact ⟨lr ∘ l, r⟩,
+    },
+    use finset.image f P.Hrepr,
+    sorry
+  end }
+
+end continuous_linear_map
+
 lemma is_exposed_of_mem_faces {P Q : polyhedron E} (hQ : Q ∈ P.faces) : is_exposed (P : set E) Q :=
 begin
   intro hQnemp,
@@ -164,7 +184,7 @@ variables {F : Type*} [normed_group F] [normed_space ℝ F] (l : E →ₗ[ℝ] F
 
 def image_polytope (P : polytope E) : polytope F :=
 { carrier := l '' P,
-  hcarrier :=  ⟨finset.image l P.Vrepr, by rw [P.eq_convex_hull_Vrepr, finset.coe_image,
+  hcarrier := ⟨finset.image l P.Vrepr, by rw [P.eq_convex_hull_Vrepr, finset.coe_image,
     l.convex_hull_image]⟩ }
 
 end linear_map

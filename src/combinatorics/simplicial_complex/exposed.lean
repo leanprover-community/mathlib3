@@ -328,7 +328,7 @@ begin
   rintro ⟨hxA, hxfA⟩,
   obtain ⟨y, hyA⟩ := id hA₂,
   obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hA₁) is_open_interior hxfA.2,
-  refine ⟨{x ∈ A | ∀ y ∈ A, l y ≤ l x}, ⟨l, rfl⟩, λ h,
+  refine ⟨{x ∈ A | ∀ y ∈ A, l y ≤ l x}, λ _, ⟨l, rfl⟩, λ h,
     not_le.2 (hl y hyA) ((h (interior_subset hyA)).2 x hxA), hxA, λ z hzA, _⟩,
   suffices h : l '' closure (interior A) ⊆ closure (Iio (l x)),
   { rw [closure_Iio, ←closure_eq_closure_interior hA₁ hA₂] at h,

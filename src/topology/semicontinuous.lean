@@ -11,6 +11,42 @@ import topology.instances.ennreal
 
 /-!
 # Semicontinuous maps
+
+A function `f` from a topological space `α` to an ordered space `β` is lower semicontinuous at a
+point `x` if, for any `ε > 0`, for any `x'` close enough to `x`, one has `f x' > f x - ε`. In other
+words, `f` can jump up, but it can not jump down. Upper semicontinuous functions are defined
+similarly.
+
+This file introduces these notions, and a basic API around them mimicking the API for continuous
+functions.
+
+## Main definitions and results
+
+We introduce 4 definitions related to lower semicontinuity:
+* `lower_semicontinuous_within_at f s x`
+* `lower_semicontinuous_at f x`
+* `lower_semicontinuous_on f s`
+* `lower_semicontinuous f`
+
+We build a basic API using dot notation around these notions, and we prove that
+* constant functions are lower semicontinuous;
+* `indicator s (λ _, y)` is lower semicontinuous when `s` is open and `0 ≤ y`, or when `s` is closed
+  and `y ≤ 0`;
+* continuous functions are lower semicontinuous;
+* a sum of two (or finitely many) lower semicontinuous functions is lower semicontinuous;
+* a supremum of a family of lower semicontinuous functions is lower semicontinuous;
+* An infinite sum of `ℝ≥0∞`-valued lower semicontinuous functions is lower semicontinuous.
+
+Similar results are stated and proved for upper semicontinuity.
+
+We also prove that a function is continuous if and only if it is both lower and upper
+semicontinuous.
+
+## Implementation details
+
+All the nontrivial results for upper semicontinuous functions are deduced from the corresponding
+ones for lower semicontinuous functions using `order_dual`.
+
 -/
 
 open_locale topological_space big_operators ennreal
@@ -665,33 +701,25 @@ begin
       assume a,
       have : f a = f x := le_antisymm (Hu _) (Hl _),
       rw this,
-      apply mem_of_mem_nhds,
-
-    }
-  }
-
+      exact mem_of_mem_nhds hv } }
 end
 
-#exit
+lemma continuous_at_iff_lower_upper_semicontinuous_at {f : α → γ} :
+  continuous_at f x ↔ (lower_semicontinuous_at f x ∧ upper_semicontinuous_at f x) :=
+by simp_rw [← continuous_within_at_univ, ← lower_semicontinuous_within_at_univ_iff,
+  ← upper_semicontinuous_within_at_univ_iff,
+  continuous_within_at_iff_lower_upper_semicontinuous_within_at]
 
+lemma continuous_on_iff_lower_upper_semicontinuous_on {f : α → γ} :
+  continuous_on f s ↔ (lower_semicontinuous_on f s ∧ upper_semicontinuous_on f s) :=
+begin
+  simp only [continuous_on, continuous_within_at_iff_lower_upper_semicontinuous_within_at],
+  exact ⟨λ H, ⟨λ x hx, (H x hx).1, λ x hx, (H x hx).2⟩, λ H x hx, ⟨H.1 x hx, H.2 x hx⟩⟩
+end
 
-lemma exists_Ioc_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ l, l < a) :
-  ∃ l < a, Ioc l a ⊆ s :=
-let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ioc_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.2, hl.snd⟩
-
-lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ u, a < u) :
-
-
-lemma continuous_at.lower_semicontinuous_at {f : α → γ}
-  (h : continuous_at f x) : lower_semicontinuous_at f x :=
-λ y hy, h (Ioi_mem_nhds hy)
-
-lemma continuous_on.lower_semicontinuous_on {f : α → γ}
-  (h : continuous_on f s) : lower_semicontinuous_on f s :=
-λ x hx, (h x hx).lower_semicontinuous_within_at
-
-lemma continuous.lower_semicontinuous {f : α → γ}
-  (h : continuous f) : lower_semicontinuous f :=
-λ x, h.continuous_at.lower_semicontinuous_at
+lemma continuous_iff_lower_upper_semicontinuous {f : α → γ} :
+  continuous f ↔ (lower_semicontinuous f ∧ upper_semicontinuous f) :=
+by simp_rw [continuous_iff_continuous_on_univ, continuous_on_iff_lower_upper_semicontinuous_on,
+    lower_semicontinuous_on_univ_iff, upper_semicontinuous_on_univ_iff]
 
 end

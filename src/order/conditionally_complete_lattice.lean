@@ -421,6 +421,30 @@ instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}
 
+lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : finite s) : Sup s ∈ s :=
+begin
+  classical,
+  revert h,
+  apply finite.induction_on hs,
+  { simp },
+  rintros a t hat t_fin ih -,
+  rcases t.eq_empty_or_nonempty with rfl | ht,
+  { simp },
+  { rw cSup_insert t_fin.bdd_above ht,
+    by_cases ha : a ≤ Sup t,
+    { simp [sup_eq_right.mpr ha, ih ht] },
+    { simp only [sup_eq_left, mem_insert_iff, (not_le.mp ha).le, true_or] } }
+end
+
+lemma finset.nonempty.cSup_mem {s : finset α} (h : s.nonempty) : Sup (s : set α) ∈ s :=
+set.nonempty.cSup_mem h s.finite_to_set
+
+lemma set.nonempty.cInf_mem (h : s.nonempty) (hs : finite s) : Inf s ∈ s :=
+@set.nonempty.cSup_mem (order_dual α) _ _ h hs
+
+lemma finset.nonempty.cInf_mem {s : finset α} (h : s.nonempty) : Inf (s : set α) ∈ s :=
+set.nonempty.cInf_mem h s.finite_to_set
+
 /-- When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
 a linear order. -/
 lemma exists_lt_of_lt_cSup (hs : s.nonempty) (hb : b < Sup s) : ∃a∈s, b < a :=
@@ -708,7 +732,6 @@ noncomputable instance : complete_linear_order enat :=
   ..enat.bounded_lattice }
 
 end enat
-
 
 namespace monotone
 variables [preorder α] [conditionally_complete_lattice β] {f : α → β} (h_mono : monotone f)

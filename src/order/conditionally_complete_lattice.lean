@@ -389,6 +389,12 @@ by { convert supr_unique, apply_instance }
 @[simp] theorem infi_unit {f : unit → α} : (⨅ x, f x) = f () :=
 @supr_unit (order_dual α) _ _
 
+@[simp] lemma csupr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
+by haveI := unique_prop hp; exact supr_unique
+
+@[simp] lemma cinfi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
+@csupr_pos (order_dual α) _ _ _ hp
+
 /-- Nested intervals lemma: if `f` is a monotonically increasing sequence, `g` is a monotonically
 decreasing sequence, and `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals
 `[f n, g n]`. -/
@@ -477,8 +483,16 @@ end conditionally_complete_linear_order
 
 section conditionally_complete_linear_order_bot
 
-lemma cSup_empty [conditionally_complete_linear_order_bot α] : (Sup ∅ : α) = ⊥ :=
+variables [conditionally_complete_linear_order_bot α]
+
+lemma cSup_empty : (Sup ∅ : α) = ⊥ :=
 conditionally_complete_linear_order_bot.cSup_empty
+
+@[simp] lemma csupr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
+begin
+  have : ¬nonempty p := by simp [hp],
+  rw [supr, range_eq_empty.mpr this, cSup_empty],
+end
 
 end conditionally_complete_linear_order_bot
 

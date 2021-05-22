@@ -182,7 +182,7 @@ begin
     use [S, S_in],
     change y ∉ ball x S,
     intro y_in,
-    have : y ∈ U ∩ V := ⟨S_sub y_in, mem_of_nhds V_in⟩,
+    have : y ∈ U ∩ V := ⟨S_sub y_in, mem_of_mem_nhds V_in⟩,
     rwa H at this },
 end
 
@@ -191,7 +191,7 @@ instance separated_regular [separated_space α] : regular_space α :=
 { t0 := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space.t0 },
   regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
-      from mem_nhds_sets hs.is_open_compl ha,
+      from is_open.mem_nhds hs.is_open_compl ha,
     have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in

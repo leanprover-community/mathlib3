@@ -130,7 +130,7 @@ classical.by_cases mem_sets_of_eq_bot $
   have a ∈ t,
     from ht₂ a ha (hfa.of_inf_left),
   have tᶜ ∩ t ∈ 𝓝[tᶜ] a,
-    from inter_mem_nhds_within _ (mem_nhds_sets ht₁ this),
+    from inter_mem_nhds_within _ (is_open.mem_nhds ht₁ this),
   have A : 𝓝[tᶜ] a = ⊥,
     from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
   have 𝓝[tᶜ] a ≠ ⊥,
@@ -158,7 +158,7 @@ hι.elim $ λ i₀, is_compact.induction_on hs ⟨i₀, empty_subset _⟩
   (λ s₁ s₂ ⟨i, hi⟩ ⟨j, hj⟩, let ⟨k, hki, hkj⟩ := hdU i j in
     ⟨k, union_subset (subset.trans hi hki) (subset.trans hj hkj)⟩)
   (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hsU hx) in
-    ⟨U i, mem_nhds_within_of_mem_nhds (mem_nhds_sets (hUo i) hi), i, subset.refl _⟩)
+    ⟨U i, mem_nhds_within_of_mem_nhds (is_open.mem_nhds (hUo i) hi), i, subset.refl _⟩)
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
@@ -856,7 +856,7 @@ locally_compact_space_of_has_basis this $ λ x s ⟨⟨_, h₁⟩, _, h₂⟩, h
 lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
   (hU : is_open U) (hx : x ∈ U) : ∃ (K : set α), is_compact K ∧ x ∈ interior K ∧ K ⊆ U :=
 begin
-  rcases locally_compact_space.local_compact_nhds x U (mem_nhds_sets hU hx) with ⟨K, h1K, h2K, h3K⟩,
+  rcases locally_compact_space.local_compact_nhds x U (is_open.mem_nhds hU hx) with ⟨K, h1K, h2K, h3K⟩,
   exact ⟨K, h3K, mem_interior_iff_mem_nhds.2 h1K, h2K⟩,
 end
 

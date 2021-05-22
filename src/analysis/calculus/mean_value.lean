@@ -104,7 +104,7 @@ begin
     refine nonempty_of_mem_sets (inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)),
     have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
       from A x (Ico_subset_Icc_self xab)
-        (mem_nhds_sets (is_open_lt continuous_fst continuous_snd) hxB),
+        (is_open.mem_nhds (is_open_lt continuous_fst continuous_snd) hxB),
     have : ∀ᶠ x in 𝓝[Ioi x] x, f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
     exact this.mono (λ y, le_of_lt) },
@@ -739,9 +739,9 @@ omit hff'
 lemma exists_ratio_deriv_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * (deriv f c) = (f b - f a) * (deriv g c) :=
 exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
-  (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+  (λ x hx, ((hfd x hx).differentiable_at $ is_open.mem_nhds is_open_Ioo hx).has_deriv_at)
   g (deriv g) hgc $
-    λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at
+    λ x hx, ((hgd x hx).differentiable_at $ is_open.mem_nhds is_open_Ioo hx).has_deriv_at
 
 omit hfc
 
@@ -759,7 +759,7 @@ exists_ratio_has_deriv_at_eq_ratio_slope' _ _ hab _ _
 /-- Lagrange's Mean Value Theorem, `deriv` version. -/
 lemma exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=
 exists_has_deriv_at_eq_slope f (deriv f) hab hfc
-  (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+  (λ x hx, ((hfd x hx).differentiable_at $ is_open.mem_nhds is_open_Ioo hx).has_deriv_at)
 
 end interval
 
@@ -1078,7 +1078,7 @@ begin
     { unfold continuous_on,
       exact λ t Ht, (hfg t Ht).continuous_within_at },
     { refine λ t Ht, (hfg t $ hIccIoo Ht).has_deriv_at _,
-      refine mem_nhds_sets_iff.mpr _,
+      refine mem_nhds_iff.mpr _,
       use (Ioo (0:ℝ) 1),
       refine ⟨hIccIoo, _, Ht⟩,
       simp [real.Ioo_eq_ball, is_open_ball] } },

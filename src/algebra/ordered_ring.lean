@@ -1396,6 +1396,8 @@ instance : no_zero_divisors (with_top α) :=
 
 end no_zero_divisors
 
+section canonically_ordered_comm_semiring
+
 variables [canonically_ordered_comm_semiring α]
 
 private lemma comm (a b : with_top α) : a * b = b * a :=
@@ -1454,5 +1456,7 @@ begin
   lift b to α using ne_top_of_lt hb,
   simp only [← coe_mul, coe_lt_top]
 end
+
+end canonically_ordered_comm_semiring
 
 end with_top

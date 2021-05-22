@@ -246,7 +246,7 @@ begin
     rw pow_zero,
     exact real.dist_le_of_mem_Icc_01 (c.lim_mem_Icc _) (c.lim_mem_Icc _) },
   { by_cases hxl : x ∈ c.left.U,
-    { filter_upwards [mem_nhds_sets c.left.open_U hxl, ihn c.left],
+    { filter_upwards [is_open.mem_nhds c.left.open_U hxl, ihn c.left],
       intros y hyl hyd,
       rw [pow_succ, c.lim_eq_midpoint, c.lim_eq_midpoint,
         c.right.lim_of_mem_C _ (c.left_U_subset_right_C hyl),
@@ -255,7 +255,7 @@ begin
       rw [dist_self, add_zero, div_eq_inv_mul],
       exact mul_le_mul h1234.le hyd dist_nonneg (h0.trans h1234).le },
     { replace hxl : x ∈ c.left.right.Cᶜ, from compl_subset_compl.2 c.left.right.subset hxl,
-      filter_upwards [mem_nhds_sets (is_open_compl_iff.2 c.left.right.closed_C) hxl,
+      filter_upwards [is_open.mem_nhds (is_open_compl_iff.2 c.left.right.closed_C) hxl,
         ihn c.left.right, ihn c.right],
       intros y hyl hydl hydr,
       replace hxl : x ∉ c.left.left.U, from compl_subset_compl.2 c.left.left_U_subset_right_C hxl,
@@ -271,7 +271,7 @@ begin
       generalize : (3 / 4 : ℝ) ^ n = r,
       field_simp [(@zero_lt_two ℝ _ _).ne'], ring } }
 end
-  
+
 end CU
 
 end urysohns

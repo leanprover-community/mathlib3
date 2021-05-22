@@ -1019,10 +1019,10 @@ instance order_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
                 from lt_of_not_ge $ assume hbc, h ⟨lt_of_lt_of_le hb₁ hbc, le_of_lt hca⟩ hcs,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (is_open.mem_nhds (is_open_lt' _) hb₂) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_lt' _).mem_nhds hb₂) $
                 assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (is_open.mem_nhds (is_open_lt' _) hl) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_lt' _).mem_nhds hl) $
                 assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
           end)
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -1036,10 +1036,10 @@ instance order_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
                 from lt_of_not_ge $ assume hbc, h ⟨le_of_lt hca, lt_of_le_of_lt hbc hb₂⟩ hcs,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (is_open.mem_nhds (is_open_gt' _) hb₁) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_gt' _).mem_nhds hb₁) $
                 assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (is_open.mem_nhds (is_open_gt' _) hu) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_gt' _).mem_nhds hu) $
                 assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
           end)
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,

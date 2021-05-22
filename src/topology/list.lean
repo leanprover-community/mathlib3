@@ -146,7 +146,8 @@ continuous_iff_continuous_at.mpr $ assume a, tendsto_remove_nth
 lemma tendsto_prod [monoid α] [has_continuous_mul α] {l : list α} :
   tendsto list.prod (𝓝 l) (𝓝 l.prod) :=
 begin
-  induction l with x l ih, { simp [nhds_nil, mem_of_mem_nhds, tendsto_pure_left] {contextual := tt} },
+  induction l with x l ih,
+  { simp [nhds_nil, mem_of_mem_nhds, tendsto_pure_left] {contextual := tt} },
   simp_rw [tendsto_cons_iff, prod_cons],
   have := continuous_iff_continuous_at.mp continuous_mul (x, l.prod),
   rw [continuous_at, nhds_prod_eq] at this,

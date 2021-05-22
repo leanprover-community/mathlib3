@@ -302,7 +302,7 @@ begin
   have : ∀x:α, ∃U, x ∈ U ∧ is_open U ∧ ∀ (y z ∈ U) {f : α →ᵇ β},
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
-          ⟨V, VU, openV, xV⟩ := mem_nhds_iff.1 nhdsU in
+          ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
       ⟨V, xV, openV, λy z hy hz f hf, hU y z (VU hy) (VU hz) f hf⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A

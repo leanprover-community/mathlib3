@@ -1078,7 +1078,7 @@ begin
     { unfold continuous_on,
       exact λ t Ht, (hfg t Ht).continuous_within_at },
     { refine λ t Ht, (hfg t $ hIccIoo Ht).has_deriv_at _,
-      refine mem_nhds_iff.mpr _,
+      refine _root_.mem_nhds_iff.mpr _,
       use (Ioo (0:ℝ) 1),
       refine ⟨hIccIoo, _, Ht⟩,
       simp [real.Ioo_eq_ball, is_open_ball] } },
@@ -1113,7 +1113,7 @@ begin
 -- turn little-o definition of strict_fderiv into an epsilon-delta statement
   refine is_o_iff.mpr (λ c hc, metric.eventually_nhds_iff_ball.mpr _),
 -- the correct ε is the modulus of continuity of f'
-  rcases mem_nhds_iff.mp (inter_mem_sets hder (hcont $ ball_mem_nhds _ hc)) with ⟨ε, ε0, hε⟩,
+  rcases metric.mem_nhds_iff.mp (inter_mem_sets hder (hcont $ ball_mem_nhds _ hc)) with ⟨ε, ε0, hε⟩,
   refine ⟨ε, ε0, _⟩,
 -- simplify formulas involving the product E × E
   rintros ⟨a, b⟩ h,

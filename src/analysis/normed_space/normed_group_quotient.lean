@@ -268,7 +268,7 @@ lemma quotient_nhd_basis (S : add_subgroup M) :
       exact lt_of_le_of_lt (quotient_norm_mk_le S x) x_in },
     apply filter.mem_sets_of_superset _ (set.subset.trans this h),
     clear h U this,
-    apply mem_nhds,
+    apply is_open.mem_nhds,
     { change is_open ((mk' S) ⁻¹' _),
       erw quotient_add_group.preimage_image_coe,
       apply is_open_Union,

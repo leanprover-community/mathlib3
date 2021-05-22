@@ -314,7 +314,7 @@ lemma image_mem_nhds (hf : approximates_linear_on f f' s c) (f'symm : f'.nonline
   {x : E} (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
   f '' s ∈ 𝓝 (f x) :=
 begin
-  obtain ⟨t, hts, ht, xt⟩ : ∃ t ⊆ s, is_open t ∧ x ∈ t := mem_nhds_iff.1 hs,
+  obtain ⟨t, hts, ht, xt⟩ : ∃ t ⊆ s, is_open t ∧ x ∈ t := _root_.mem_nhds_iff.1 hs,
   have := is_open.mem_nhds ((hf.mono_set hts).open_image f'symm ht hc) (mem_image_of_mem _ xt),
   exact mem_sets_of_superset this (image_subset _ hts),
 end

@@ -263,7 +263,7 @@ covariant_class.covc a bc
 /- Keeping same name.  From here... -/
 @[to_additive add_lt_add_right]
 lemma mul_lt_mul_right' [covariant_class N N (function.swap (*)) (<)]
-  (a : N) {b c : N} (bc : b < c) :
+  {b c : N} (bc : b < c) (a : N) :
   b * a < c * a :=
 covariant_class.covc a bc
 
@@ -370,7 +370,7 @@ h.trans (mul_le_mul_left_n b hle)
 @[to_additive]
 lemma mul_lt_mul_of_lt_of_le [covariant_class α α (function.swap (*)) (<)]
   (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
-(mul_le_mul_left_n _ h₂).trans_lt (mul_lt_mul_right' d h₁)
+(mul_le_mul_left_n _ h₂).trans_lt (mul_lt_mul_right' h₁ d)
 
 end has_mul
 
@@ -484,7 +484,7 @@ variable [covariant_class α α (function.swap (*)) (<)]
 @[to_additive lt_add_of_pos_left]
 lemma lt_mul_of_one_lt_left' (a : α) {b : α} (h : 1 < b) : a < b * a :=
 calc a = 1 * a : (one_mul _).symm
-   ... < b * a : mul_lt_mul_right' a h
+   ... < b * a : mul_lt_mul_right' h a
 
 end lt_right
 

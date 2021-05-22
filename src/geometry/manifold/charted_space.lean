@@ -382,7 +382,7 @@ def id_restr_groupoid : structure_groupoid H :=
 { members := {e | ∃ {s : set H} (h : is_open s), e ≈ local_homeomorph.of_set s h},
   trans' := begin
     rintros e e' ⟨s, hs, hse⟩ ⟨s', hs', hse'⟩,
-    refine ⟨s ∩ s', is_open_inter hs hs', _⟩,
+    refine ⟨s ∩ s', is_open.inter hs hs', _⟩,
     have := local_homeomorph.eq_on_source.trans' hse hse',
     rwa local_homeomorph.of_set_trans_of_set at this,
   end,
@@ -417,7 +417,7 @@ instance closed_under_restriction_id_restr_groupoid :
   closed_under_restriction (@id_restr_groupoid H _) :=
 ⟨ begin
     rintros e ⟨s', hs', he⟩ s hs,
-    use [s' ∩ s, is_open_inter hs' hs],
+    use [s' ∩ s, is_open.inter hs' hs],
     refine setoid.trans (local_homeomorph.eq_on_source.restr he s) _,
     exact ⟨by simp only [hs.interior_eq] with mfld_simps, by simp only with mfld_simps⟩,
   end ⟩

@@ -766,7 +766,7 @@ begin
       use j,
       apply multiset.mem_to_finset.2 hj },
     rw nat.is_unit_iff,
-    omega },
+    norm_num },
 end
 
 @[simp] lemma coe_zeta_mul_coe_moebius [comm_ring R] : (ζ * μ : arithmetic_function R) = 1 :=

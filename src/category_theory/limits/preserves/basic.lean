@@ -436,6 +436,16 @@ def preserves_limits_of_reflects_of_preserves [preserves_limits (F ⋙ G)] [refl
 { preserves_limits_of_shape := λ J 𝒥₁,
     by exactI preserves_limits_of_shape_of_reflects_of_preserves F G }
 
+/-- Transfer reflection of limits along a natural isomorphism in the diagram. -/
+def reflects_limit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [reflects_limit K₁ F] : reflects_limit K₂ F :=
+{ reflects := λ c t,
+  begin
+    apply is_limit.postcompose_inv_equiv h c (is_limit_of_reflects F _),
+    apply ((is_limit.postcompose_inv_equiv (iso_whisker_right h F : _) _).symm t).of_iso_limit _,
+    exact cones.ext (iso.refl _) (by tidy),
+  end }
+
 /-- Transfer reflection of a limit along a natural isomorphism in the functor. -/
 def reflects_limit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_limit K F] :
   reflects_limit K G :=
@@ -509,6 +519,16 @@ def preserves_colimits_of_reflects_of_preserves [preserves_colimits (F ⋙ G)]
   [reflects_colimits G] : preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥₁,
     by exactI preserves_colimits_of_shape_of_reflects_of_preserves F G }
+
+/-- Transfer reflection of colimits along a natural isomorphism in the diagram. -/
+def reflects_colimit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [reflects_colimit K₁ F] : reflects_colimit K₂ F :=
+{ reflects := λ c t,
+  begin
+    apply is_colimit.precompose_hom_equiv h c (is_colimit_of_reflects F _),
+    apply ((is_colimit.precompose_hom_equiv (iso_whisker_right h F : _) _).symm t).of_iso_colimit _,
+    exact cocones.ext (iso.refl _) (by tidy),
+  end }
 
 /-- Transfer reflection of a colimit along a natural isomorphism in the functor. -/
 def reflects_colimit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_colimit K F] :

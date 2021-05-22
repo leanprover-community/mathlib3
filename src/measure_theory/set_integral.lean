@@ -649,7 +649,7 @@ lemma continuous_on.measurable_at_filter
   [topological_space α] [opens_measurable_space α] [borel_space E]
   {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : continuous_on f s) :
   ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
-λ x hx, ⟨s, mem_nhds_sets hs hx, hf.ae_measurable hs.measurable_set⟩
+λ x hx, ⟨s, is_open.mem_nhds hs hx, hf.ae_measurable hs.measurable_set⟩
 
 lemma continuous_at.measurable_at_filter
   [topological_space α] [opens_measurable_space α] [borel_space E]

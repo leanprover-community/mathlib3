@@ -555,7 +555,7 @@ is_open_compl_iff.1 $ is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subse
   ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }⟩
 
 theorem ball_mem_nhds (x : α) {ε : ℝ≥0∞} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
-mem_nhds_sets is_open_ball (mem_ball_self ε0)
+is_open.mem_nhds is_open_ball (mem_ball_self ε0)
 
 theorem ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
   (ball x r).prod (ball y r) = ball (x, y) r :=
@@ -700,7 +700,7 @@ begin
     `B = ball x (1 / 2 ^ (n + k + 1)) ⊆ D n i`. -/
     intro x,
     rcases Dcov x with ⟨n, i, hn⟩,
-    have : D n i ∈ 𝓝 x, from mem_nhds_sets (Dopen _ _) hn,
+    have : D n i ∈ 𝓝 x, from is_open.mem_nhds (Dopen _ _) hn,
     rcases (nhds_basis_uniformity uniformity_basis_edist_inv_two_pow).mem_iff.1 this
       with ⟨k, -, hsub : ball x (2⁻¹ ^ k) ⊆ D n i⟩,
     set B := ball x (2⁻¹ ^ (n + k + 1)),

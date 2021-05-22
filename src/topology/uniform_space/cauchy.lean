@@ -598,7 +598,7 @@ begin
     exact is_open_ball x (hto k).2.1 },
   { intros x V hxV hVo,
     simp only [mem_bUnion_iff, mem_range, exists_prop],
-    rcases uniform_space.mem_nhds_iff.1 (mem_nhds_sets hVo hxV) with ⟨U, hU, hUV⟩,
+    rcases uniform_space.mem_nhds_iff.1 (is_open.mem_nhds hVo hxV) with ⟨U, hU, hUV⟩,
     rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
     rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,
     rcases hsd.inter_open_nonempty (ball x $ t k) (uniform_space.is_open_ball x (hto k).2.1)

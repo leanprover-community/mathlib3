@@ -224,7 +224,8 @@ lemma filter.has_basis.exists_inter_eq_singleton_of_mem_discrete
 begin
   rcases (nhds_within_has_basis hb s).mem_iff.1 (singleton_mem_nhds_within_of_mem_discrete hx)
     with ⟨i, hi, hix⟩,
-  exact ⟨i, hi, subset.antisymm hix $ singleton_subset_iff.2 ⟨mem_of_mem_nhds $ hb.mem_of_mem hi, hx⟩⟩
+  exact ⟨i, hi, subset.antisymm hix $ singleton_subset_iff.2
+    ⟨mem_of_mem_nhds $ hb.mem_of_mem hi, hx⟩⟩
 end
 
 /-- A point `x` in a discrete subset `s` of a topological space admits a neighbourhood

@@ -323,7 +323,8 @@ lemma map_nhds_eq (hf : approximates_linear_on f f' s c) (f'symm : f'.nonlinear_
   {x : E} (hs : s ∈ 𝓝 x) (hc : subsingleton F ∨ c < f'symm.nnnorm⁻¹) :
   map f (𝓝 x) = 𝓝 (f x) :=
 begin
-  refine le_antisymm ((hf.continuous_on x (mem_of_mem_nhds hs)).continuous_at hs) (le_map (λ t ht, _)),
+  refine le_antisymm ((hf.continuous_on x (mem_of_mem_nhds hs)).continuous_at hs)
+    (le_map (λ t ht, _)),
   have : f '' (s ∩ t) ∈ 𝓝 (f x) := (hf.mono_set (inter_subset_left s t)).image_mem_nhds
     f'symm (inter_mem_sets hs ht) hc,
   exact mem_sets_of_superset this (image_subset _ (inter_subset_right _ _)),

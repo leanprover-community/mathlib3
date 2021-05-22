@@ -627,6 +627,15 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
+/-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
+`⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact` where we
+don't need to assume each `V i` closed because it follows from compactness since `α` is
+assumed to be Hausdorff. -/
+lemma exists_subset_nhd_of_compact [t2_space α] {ι : Type*} [nonempty ι] {V : ι → set α}
+  (hV : directed (⊇) V) (hV_cpct : ∀ i, is_compact (V i)) {U : set α}
+  (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
+exists_subset_nhd_of_compact' hV hV_cpct (λ i, (hV_cpct i).is_closed) hU
+
 lemma compact_exhaustion.is_closed [t2_space α] (K : compact_exhaustion α) (n : ℕ) :
   is_closed (K n) :=
 (K.is_compact n).is_closed
@@ -914,7 +923,7 @@ begin
   -- Now we find the required Z. We utilize the fact that X \ u ∪ v will be compact,
   -- so there must be some finite intersection of clopen neighbourhoods of X disjoint to it,
   -- but a finite intersection of clopen sets is clopen so we let this be our Z.
-  have H1 := ((is_closed_compl_iff.2 (is_open.union hu hv)).is_compact.inter_Inter_nonempty
+  have H1 := ((is_closed_compl_iff.2 (hu.union hv)).is_compact.inter_Inter_nonempty
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),
@@ -925,6 +934,50 @@ begin
   { exact mem_bInter_iff.2 (λ Z hZ, Z.2.2) },
   { rwa [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint, compl_compl] at H2 }
 end
+
+section profinite
+
+open topological_space
+
+variables [compact_space α] [t2_space α] [totally_disconnected_space α]
+
+lemma nhds_basis_clopen (x : α) : (𝓝 x).has_basis (λ s : set α, x ∈ s ∧ is_clopen s) id :=
+⟨λ U, begin
+  split,
+  { have : connected_component x = {x},
+      from totally_disconnected_space_iff_connected_component_singleton.mp ‹_› x,
+    rw connected_component_eq_Inter_clopen at this,
+    intros hU,
+    let N := {Z // is_clopen Z ∧ x ∈ Z},
+    suffices : ∃ Z : N, Z.val ⊆ U,
+    { rcases this with ⟨⟨s, hs, hs'⟩, hs''⟩,
+      exact ⟨s, ⟨hs', hs⟩, hs''⟩ },
+    haveI : nonempty N := ⟨⟨univ, is_clopen_univ, mem_univ x⟩⟩,
+    have hNcl : ∀ Z : N, is_closed Z.val := (λ Z, Z.property.1.2),
+    have hdir : directed superset (λ Z : N, Z.val),
+    { rintros ⟨s, hs, hxs⟩ ⟨t, ht, hxt⟩,
+      exact ⟨⟨s ∩ t, hs.inter ht, ⟨hxs, hxt⟩⟩, inter_subset_left s t, inter_subset_right s t⟩ },
+    have h_nhd: ∀ y ∈ (⋂ Z : N, Z.val), U ∈ 𝓝 y,
+    { intros y y_in,
+      erw [this, mem_singleton_iff] at y_in,
+      rwa y_in },
+    exact exists_subset_nhd_of_compact_space hdir hNcl h_nhd },
+  { rintro ⟨V, ⟨hxV, V_op, -⟩, hUV : V ⊆ U⟩,
+    rw mem_nhds_sets_iff,
+    exact ⟨V, hUV, V_op, hxV⟩ }
+end⟩
+
+lemma is_topological_basis_clopen : is_topological_basis {s : set α | is_clopen s} :=
+begin
+  apply is_topological_basis_of_open_of_nhds (λ U (hU : is_clopen U), hU.1),
+  intros x U hxU U_op,
+  have : U ∈ 𝓝 x,
+  from mem_nhds_sets U_op hxU,
+  rcases (nhds_basis_clopen x).mem_iff.mp this with ⟨V, ⟨hxV, hV⟩, hVU : V ⊆ U⟩,
+  use V,
+  tauto
+end
+end profinite
 
 section connected_component_setoid
 local attribute [instance] connected_component_setoid

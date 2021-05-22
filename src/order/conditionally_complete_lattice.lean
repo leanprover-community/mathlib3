@@ -53,6 +53,14 @@ noncomputable instance {α : Type*} [has_Sup α] : has_Sup (with_bot α) :=
 noncomputable instance {α : Type*} [preorder α] [has_Inf α] : has_Inf (with_bot α) :=
 ⟨(@with_top.has_Sup (order_dual α) _ _).Sup⟩
 
+@[simp]
+theorem with_top.cInf_empty {α : Type*} [has_Inf α] : Inf (∅ : set (with_top α)) = ⊤ :=
+if_pos $ set.empty_subset _
+
+@[simp]
+theorem with_bot.cSup_empty {α : Type*} [has_Sup α] : Sup (∅ : set (with_bot α)) = ⊥ :=
+if_pos $ set.empty_subset _
+
 end -- section
 
 /-- A conditionally complete lattice is a lattice in which
@@ -784,13 +792,6 @@ noncomputable instance with_top.with_bot.bounded_lattice {α : Type*}
 { ..with_top.order_bot,
   ..with_top.order_top,
   ..conditionally_complete_lattice.to_lattice _ }
-
-theorem with_bot.cSup_empty {α : Type*} [conditionally_complete_lattice α] :
-  Sup (∅ : set (with_bot α)) = ⊥ :=
-begin
-  show ite _ _ _ = ⊥,
-  split_ifs; finish,
-end
 
 noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   [conditionally_complete_lattice α] : complete_lattice (with_top (with_bot α)) :=

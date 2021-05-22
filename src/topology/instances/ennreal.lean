@@ -172,7 +172,7 @@ nhds_within_Ioi_coe_ne_bot
 -- • (x - y ≤ ε ↔ x ≤ ε + y) is true, while (x - y < ε ↔ x < ε + y) is not
 lemma Icc_mem_nhds : x ≠ ⊤ → 0 < ε → Icc (x - ε) (x + ε) ∈ 𝓝 x :=
 begin
-  assume xt ε0, rw mem_nhds_iff,
+  assume xt ε0, rw _root_.mem_nhds_iff,
   by_cases x0 : x = 0,
   { use Iio (x + ε),
     have : Iio (x + ε) ⊆ Icc (x - ε) (x + ε), assume a, rw x0, simpa using le_of_lt,

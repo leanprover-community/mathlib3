@@ -178,7 +178,7 @@ begin
       by_contra H,
       exact hxy (h ⟨H⟩) },
     rcases inf_eq_bot_iff.mp this with ⟨U, U_in, V, V_in, H⟩,
-    rcases mem_nhds_iff.mp U_in with ⟨S, S_in, S_sub⟩,
+    rcases uniform_space.mem_nhds_iff.mp U_in with ⟨S, S_in, S_sub⟩,
     use [S, S_in],
     change y ∉ ball x S,
     intro y_in,

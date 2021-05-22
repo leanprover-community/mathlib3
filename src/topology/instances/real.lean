@@ -68,7 +68,7 @@ uniform_embedding_comap rat.cast_injective
 theorem dense_embedding_of_rat : dense_embedding (coe : ℚ → ℝ) :=
 uniform_embedding_of_rat.dense_embedding $
 λ x, mem_closure_iff_nhds.2 $ λ t ht,
-let ⟨ε,ε0, hε⟩ := mem_nhds_iff.1 ht in
+let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨q, h⟩ := exists_rat_near x ε0 in
 ⟨_, hε (mem_ball'.2 h), q, rfl⟩
 

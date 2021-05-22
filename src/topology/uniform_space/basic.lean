@@ -583,7 +583,7 @@ end
 lemma uniform_space.mem_closure_iff_ball {s : set α} {x} :
   x ∈ closure s ↔ ∀ {V}, V ∈ 𝓤 α → (ball x V ∩ s).nonempty :=
 begin
-  simp_rw [mem_closure_iff_nhds, mem_nhds_iff],
+  simp_rw [mem_closure_iff_nhds, uniform_space.mem_nhds_iff],
   split,
   { intros h V V_in,
     exact h (ball x V) ⟨V, V_in, subset.refl _⟩ },
@@ -665,7 +665,7 @@ lemma nhdset_of_mem_uniformity {d : set (α×α)} (s : set (α×α)) (hd : d ∈
   ∃(t : set (α×α)), is_open t ∧ s ⊆ t ∧ t ⊆ {p | ∃x y, (p.1, x) ∈ d ∧ (x, y) ∈ s ∧ (y, p.2) ∈ d} :=
 let cl_d := {p:α×α | ∃x y, (p.1, x) ∈ d ∧ (x, y) ∈ s ∧ (y, p.2) ∈ d} in
 have ∀p ∈ s, ∃t ⊆ cl_d, is_open t ∧ p ∈ t, from
-  assume ⟨x, y⟩ hp, mem_nhds_iff.mp $
+  assume ⟨x, y⟩ hp, _root_.mem_nhds_iff.mp $
   show cl_d ∈ 𝓝 (x, y),
   begin
     rw [nhds_eq_uniformity_prod, mem_lift'_sets],

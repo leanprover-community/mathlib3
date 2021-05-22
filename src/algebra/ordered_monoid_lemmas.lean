@@ -51,7 +51,7 @@ as it is easier to use. -/
 -- use ⇒, as per Eric's suggestion?
 section variants
 
-variables {M N : Type*} (μ : M → N → N) (r : N → N → Prop) (m : M) {a b c : N}
+variables {M N : Type*} (μ : M → N → N) (r : N → N → Prop)
 
 
 variables (M N)
@@ -96,7 +96,7 @@ If `m : M` and `h : r (μ m n₁) (μ m n₂)`, then `contravariant_class.covtc 
 class contravariant_class : Prop :=
 (covtc : contravariant M N μ r)
 
-lemma rel_iff_cov [covariant_class M N μ r] [contravariant_class M N μ r] :
+lemma rel_iff_cov [covariant_class M N μ r] [contravariant_class M N μ r] (m : M) {a b : N} :
   r (μ m a) (μ m b) ↔ r a b :=
 ⟨contravariant_class.covtc _,covariant_class.covc _⟩
 
@@ -167,10 +167,10 @@ instance right_cancel_semigroup.to_contravariant_mul_lt {α : Type*} [right_canc
 
 variables {M N}
 section has_mul
-variables (a) [has_mul N]
+variables [has_mul N]
 
 section has_le
-variables [has_le N]
+variables [has_le N] (m : M) (a : N) {b c : N}
 
 @[simp, to_additive]
 lemma mul_le_mul_iff_left [covariant_class N N (*) (≤)] [contravariant_class N N (*) (≤)] :
@@ -224,7 +224,7 @@ covariant_class.covc a bc
 end has_le
 
 section has_lt
-variables (a) [has_lt N]
+variables [has_lt N] (m : M) (a : N) {b c : N}
 
 @[simp, to_additive]
 lemma mul_lt_mul_iff_left [covariant_class N N (*) (<)] [contravariant_class N N (*) (<)] :

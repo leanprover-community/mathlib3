@@ -57,7 +57,10 @@ instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
 
-instance : unique true := { default := trivial, uniq := λ x, rfl }
+def unique_prop {p : Prop} (h : p) : unique p :=
+{ default := h, uniq := λ x, rfl }
+
+instance : unique true := unique_prop trivial
 
 lemma fin.eq_zero : ∀ n : fin 1, n = 0
 | ⟨n, hn⟩ := fin.eq_of_veq (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn))

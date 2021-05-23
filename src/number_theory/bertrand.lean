@@ -20,26 +20,6 @@ open_locale big_operators
 private def α (n : nat) (p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p (nat.choose (2 * n) n)
 
-/-
-def primes_le (n : nat) : finset {m : nat // m ≤ n ∧ nat.prime m} :=
-begin
-  have r : finset {m : nat // m ≤ n ∧ nat.prime m} = finset {m : nat // m < n + 1 ∧ nat.prime m},
-  { congr, ext,
-    split,
-    { rintros ⟨x_le_n, x_prime⟩,
-      exact ⟨nat.lt_succ_iff.mpr x_le_n, x_prime⟩, },
-    { rintros ⟨x_lt_sn, x_prime⟩,
-      exact ⟨nat.lt_succ_iff.mp x_lt_sn, x_prime ⟩, }, },
-  simpa only [r, finset.mem_filter, finset.mem_range] using (finset.filter nat.prime (finset.range (n + 1))).attach,
-end
-
-lemma alpha_eq (n : nat) (n_pos : 0 < n) :
-  nat.choose (2 * n) n = ∏ p in primes_le n, p.val ^ (α n n_pos p p.property.2) :=
-begin
-sorry
-end
--/
-
 lemma central_binom_nonzero (n : ℕ) : nat.choose (2 * n) n ≠ 0 :=
 ne_of_gt (nat.choose_pos (by linarith))
 
@@ -319,14 +299,14 @@ lemma central_binom_factorization (n : ℕ) :
 
 def central_binom_lower_bound := nat.four_pow_le_two_mul_add_one_mul_central_binom
 
-lemma prod_of_pos_is_pos {S: _} (p_pos: ∀ p, p ∈ S → 0 < p): 0 < ∏ p in S, p :=
+lemma prod_of_pos_is_pos {S: finset ℕ} {f: ℕ → ℕ} (p_pos: ∀ p, p ∈ S → 0 < f p): 0 < ∏ p in S, f p :=
 begin
-  have f : ∀ p, p ∈ S → p ≠ 0, by
+  have prop : ∀ p, p ∈ S → f p ≠ 0, by
     { intros p p_in_s,
       specialize p_pos p p_in_s,
       linarith, },
-  let e := finset.prod_ne_zero_iff.2 f,
-  cases lt_or_ge 0 (∏ p in S, p),
+  let e := finset.prod_ne_zero_iff.2 prop,
+  cases lt_or_ge 0 (∏ p in S, f p),
   { exact h, },
   { exfalso,
     simp only [ge_iff_le, le_zero_iff] at h,
@@ -360,29 +340,10 @@ begin
     exact nat.lt_asymm bad bad, },
   { refl, },
   { exfalso,
-    sorry, }
-end
-
-lemma sqrt_iff_le (a n : ℕ) : a ^ 2 ≤ n ↔ a ≤ nat.sqrt n :=
-begin
-  split,
-  { intros h,
-    cases le_or_gt a (nat.sqrt n),
-    { exact h_1, },
-    { exfalso,
-      simp only [gt_iff_lt] at h_1,
-      have small : (nat.sqrt n) ^ 2 < a ^ 2, by
-        calc (nat.sqrt n) ^ 2 = nat.sqrt n * nat.sqrt n: by ring
-        ... < a * a: nat.mul_self_lt_mul_self h_1
-        ... = a ^ 2: by ring,
-      have e: a = nat.sqrt n := intervening_sqrt (le_of_lt small) h,
-      rw e at small,
-      exact nat.lt_asymm small small, }, },
-  { intros h,
-    calc a ^ 2
-        = a * a: by ring
-        ... ≤ nat.sqrt n * nat.sqrt n: mul_le_mul' h h
-        ... ≤ n: nat.sqrt_le n, },
+    have r: n < a ^ 2 :=
+      calc n < a * a: nat.sqrt_lt.1 H
+      ... = a ^ 2: by ring,
+    linarith, },
 end
 
 lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop} [_inst : decidable_pred f][_inst : decidable_pred g] : ((S.filter g).filter f).card ≤ (S.filter f).card :=
@@ -453,13 +414,8 @@ begin
           exact h, },
         exact x_le_two_mul_n, }, },
 
-    have pow_pos: ∀ (i : ℕ), 0 < (2 * n) ^ i,
-    { intros i,
-      induction i with i hyp,
-      { simp only [nat.succ_pos', pow_zero], },
-      { calc 0 < (2 * n) ^ i : hyp
-      ... ≤ (2 * n) ^ i * (2 * n): nat.le_mul_of_pos_right (by linarith)
-      ... = (2 * n) ^ (i + 1): by ring_nf, }, },
+    have double_pow_pos: ∀ (i : ℕ), 0 < (2 * n) ^ i,
+    { intros _, exact pow_pos (by linarith) _ },
 
     have binom_inequality : (2 * n).choose n < (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
       calc (2 * n).choose n
@@ -521,7 +477,14 @@ begin
                           (finset.filter nat.prime
                             (finset.range (2 * n / 3 + 1))),
                    p ^ (padic_val_nat p ((2 * n).choose n)))
-                   : sorry
+                   : begin
+                    refine (nat.mul_left_inj _).2 _,
+                    { refine prod_of_pos_is_pos _,
+                      intros p hyp,
+                      simp only [finset.mem_filter, finset.mem_range] at hyp,
+                      exact pow_pos (nat.prime.pos hyp.1.2) (padic_val_nat p ((2 * n).choose n)), },
+                    { sorry },
+                   end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *
                 (∏ p in finset.filter (λ p, (2 * n) < p ^ 2)
@@ -592,7 +555,7 @@ begin
       ...     < (2 * n) ^ (nat.sqrt (2 * n))
                  *
                 4 ^ (2 * n / 3 + 1)
-                : (mul_lt_mul_left (pow_pos (nat.sqrt (2 * n)))).mpr (pow_lt_pow (by simp only [nat.succ_pos', nat.one_lt_bit0_iff, nat.one_le_bit0_iff]) (by simp only [nat.succ_pos', lt_add_iff_pos_right])),
+                : (mul_lt_mul_left (pow_pos (by linarith) _)).mpr (pow_lt_pow (by simp only [nat.succ_pos', nat.one_lt_bit0_iff, nat.one_le_bit0_iff]) (by simp only [nat.succ_pos', lt_add_iff_pos_right])),
 
     have false_inequality : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1), by
       calc 4 ^ n ≤ (2 * n + 1) * (2 * n).choose n : central_binom_lower_bound n

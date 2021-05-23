@@ -12,8 +12,8 @@ This file defines several small linters:
   - `ge_or_gt` checks that `>` and `≥` do not occur in the statement of theorems.
   - `dup_namespace` checks that no declaration has a duplicated namespace such as `list.list.monad`.
   - `unused_arguments` checks that definitions and theorems do not have unused arguments.
-  - `doc_blame` checks that every definition has a documentation string
-  - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default)
+  - `doc_blame` checks that every definition has a documentation string.
+  - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default).
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
   - `check_type` checks that the statement of a declaration is well-typed.
 -/
@@ -89,7 +89,7 @@ return $ if d.type.contains_constant (λ n, n ∈ illegal_ge_gt) &&
 @[linter] meta def linter.ge_or_gt : linter :=
 { test := ge_or_gt_in_statement,
   auto_decls := ff,
-  no_errors_found := "Not using ≥/> in declarations",
+  no_errors_found := "Not using ≥/> in declarations.",
   errors_found := "The following declarations use ≥/>, probably in a way where we would prefer
   to use ≤/< instead. See note [nolint_ge] for more information.",
   is_fast := ff }
@@ -122,8 +122,8 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 @[linter] meta def linter.dup_namespace : linter :=
 { test := dup_namespace,
   auto_decls := ff,
-  no_errors_found := "No declarations have a duplicate namespace",
-  errors_found := "DUPLICATED NAMESPACES IN NAME" }
+  no_errors_found := "No declarations have a duplicate namespace.",
+  errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
 
 
@@ -173,8 +173,8 @@ private meta def unused_arguments (d : declaration) : tactic (option string) := 
 @[linter] meta def linter.unused_arguments : linter :=
 { test := unused_arguments,
   auto_decls := ff,
-  no_errors_found := "No unused arguments",
-  errors_found := "UNUSED ARGUMENTS" }
+  no_errors_found := "No unused arguments.",
+  errors_found := "UNUSED ARGUMENTS." }
 
 attribute [nolint unused_arguments] imp_intro
 
@@ -201,14 +201,14 @@ private meta def doc_blame_report_thm : declaration → tactic (option string)
     (doc_blame_report_defn d) (return none),
   auto_decls := ff,
   no_errors_found := "No definitions are missing documentation.",
-  errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
+  errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:" }
 
 /-- A linter for checking theorem doc strings. This is not in the default linter set. -/
 meta def linter.doc_blame_thm : linter :=
 { test := doc_blame_report_thm,
   auto_decls := ff,
   no_errors_found := "No theorems are missing documentation.",
-  errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
+  errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:",
   is_fast := ff }
 
 
@@ -243,8 +243,8 @@ has been used. -/
 @[linter] meta def linter.def_lemma : linter :=
 { test := incorrect_def_lemma,
   auto_decls := ff,
-  no_errors_found := "All declarations correctly marked as def/lemma",
-  errors_found := "INCORRECT DEF/LEMMA" }
+  no_errors_found := "All declarations correctly marked as def/lemma.",
+  errors_found := "INCORRECT DEF/LEMMA:" }
 
 attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
@@ -258,9 +258,9 @@ meta def linter.check_type : linter :=
 { test := check_type,
   auto_decls := ff,
   no_errors_found :=
-    "The statements of all declarations type-check with default reducibility settings",
+    "The statements of all declarations type-check with default reducibility settings.",
   errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK.
 Some definitions in the statement are marked @[irreducible], which means that the statement is " ++
 "now ill-formed. It is likely that these definitions were locally marked as @[reducible] or " ++
-"@[semireducible]. This can especially cause problems with type class inference or @[simps]",
+"@[semireducible]. This can especially cause problems with type class inference or @[simps].",
   is_fast := tt }

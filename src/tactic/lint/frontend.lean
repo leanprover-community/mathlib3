@@ -144,9 +144,9 @@ let formatted_results := results.map $ λ ⟨linter_name, linter, results⟩,
       | none := print_warnings env results
       | some dropped := grouped_by_filename env results dropped (print_warnings env)
       end in
-    report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings ++ "\n"
+    report_str ++ "/- " ++ linter.errors_found ++ " -/\n" ++ warnings ++ "\n"
   else if verbose = lint_verbosity.high then
-    "/- OK: " ++ linter.no_errors_found ++ ". -/"
+    "/- OK: " ++ linter.no_errors_found ++ " -/"
   else format.nil,
 let s := format.intercalate "\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
 let s := if verbose = lint_verbosity.low then s else

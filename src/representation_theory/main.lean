@@ -3,11 +3,14 @@ Copyright (c) 2021 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang
 -/
-import representation_theory.pi_map
-import linear_algebra.finite_dimensional
+import linear_algebra.pi
+import ring_theory.simple_module
+import algebra.direct_sum
+import linear_algebra.matrix
 
+universes u v w
 open_locale direct_sum classical big_operators
-open classical linear_map finite_dimensional
+open classical linear_map
 noncomputable theory
 /-!
 # Simple Modules
@@ -112,8 +115,7 @@ def add_monoid_hom.fun_congr_right {M N : Type*} (n : Type*) [fintype n]
   right_inv := λ x, by { ext, sorry } }
 
 variables {F A M : Type*} [field F] [ring A] [add_comm_monoid M]
-variables [algebra F A] [module A M]
-variables [finite_dimensional F A]
+variables [module A M]
 
 instance module.End.module {R M S : Type*}
   [semiring R] [semiring S] [add_comm_monoid M]
@@ -170,7 +172,7 @@ begin
   simp only [fintype.sum_apply, map_sum],
 end
 
-def equiv_to_matrix {n : Type*} [fintype n] {R E : Type*}
+def equiv_to_matrix (n : Type u) [fintype n] (R : Type v) (E : Type w)
   [semiring R] [add_comm_monoid E] [module R E] :
   module.End R (n → E) ≃+* matrix n n (module.End R E) :=
 { to_fun := λ f j i,
@@ -206,185 +208,3 @@ def equiv_to_matrix {n : Type*} [fintype n] {R E : Type*}
   right_inv := _ }
 --((linear_map.fun_congr_right ℕ n (linear_map.co_lsum R ℕ E (λ i : n, E))).trans
   --(lsum R (λ i : n, E) ℕ)).symm
-
-/- lemma equiv_to_matrix_apply {n : Type*} [fintype n] {R E : Type*}
-  [semiring R] [add_comm_monoid E] [module R E] (i j : n)
-  (f : module.End R (n → E)) : equiv_to_matrix f i j = 0 :=
-begin
-  ext x,
-  rw equiv_to_matrix,
-  simp [lsum, linear_map.co_lsum, linear_map.fun_congr_right],
-  dsimp,
-end
-
-lemma equiv_to_matrix_mul {n : Type*} [fintype n] {R E : Type*}
-  [semiring R] [add_comm_monoid E] [module R E] (x y : module.End R (n → E)) :
-  equiv_to_matrix (x * y) = equiv_to_matrix x * equiv_to_matrix y :=
-begin
-  ext i k B,
-  rw matrix.mul_eq_mul,
-  rw matrix.mul_apply,
-  sorry
-end
-
-def equiv_to_matrix' {n : Type*} [fintype n] {R E : Type*}
-  [semiring R] [add_comm_monoid E] [module R E] :
-  module.End R (n → E) ≃+* matrix n n (module.End R E) :=
-{ to_fun := equiv_to_matrix,
-  inv_fun := equiv_to_matrix.symm,
-  left_inv := λ x, by simp only [linear_equiv.symm_apply_apply],
-  right_inv := λ x, by simp only [linear_equiv.apply_symm_apply],
-  map_mul' := equiv_to_matrix_mul,
-  map_add' := λ x y, by { ext, simp only [linear_equiv.map_add], } } -/
-
-variables (A)
-
-instance submodule.setoid : setoid (submodule A A) :=
-{ r := λ n m, nonempty (n ≃ₗ[A] m),
-  iseqv := ⟨λ x, ⟨linear_equiv.refl A x⟩, λ x y h, ⟨h.some.symm⟩,
-    λ x y z hxy hyz, ⟨hxy.some.trans hyz.some⟩⟩ }
-
-def atom_setoid := subtype.setoid (λ s : submodule A A, is_atom s)
-def atom_quot := quotient $ atom_setoid A
-
-def setoid.class {α : Type*} (r : setoid α) (y : α) := {x : α | r.rel x y}
-
-/-
-
-variables {D : Type*} [field D] {n : Type*} [fintype n] [decidable_eq n]
-
-instance matrix_smul : module (matrix n n D) (n → D) :=
-{ smul := matrix.mul_vec,
-  one_smul := λ v, by simp only [matrix.mul_vec_one],
-  mul_smul := λ x y v, by simp only [matrix.mul_vec_mul_vec, matrix.mul_eq_mul],
-  smul_add := matrix.mul_vec_add,
-  smul_zero := matrix.mul_vec_zero,
-  add_smul := matrix.add_mul_vec,
-  zero_smul := λ v, by { ext, simp, rw ← matrix.diagonal_zero, rw matrix.mul_vec_diagonal, simp, } }
-
-def dfinsupp.equiv_fun_on_fintype {ι : Type*} {M : ι → Type*} [∀ i, has_zero (M i)] [fintype ι] :
-  (Π₀ i, M i) ≃ (Π i, M i) :=
-{ to_fun := λ f a, f a,
-  inv_fun := λ f, dfinsupp.mk finset.univ (λ x, f x),
-  left_inv := λ f, by { ext, simp, congr, },
-  right_inv := λ f, by { ext, simp, congr, }, }
-
-def pi.to_dfinsupp_of_fintype {ι : Type*} {M : ι → Type*} [∀ i, has_zero (M i)] [fintype ι] :
-  (Π i, M i) ≃ (Π₀ i, M i) := dfinsupp.equiv_fun_on_fintype.symm
-
-def transport_one {α β : Type*} [hα : has_one α] (h : α ≃ β) : has_one β :=
-{ one := h hα.one }
-
-def transport_monoid {α β : Type*} [hα : mul_one_class α] (h : α ≃ β) : mul_one_class β :=
-{! !}
-
-instance semiring_direct_sum {ι : Type*} {D : ι → Type*} [∀ i, semiring (D i)] :
-  semiring (Π₀ (i : ι), D i) := sorry
-
-variables (R : Type*) [comm_ring R] (A : Type*) [comm_ring A] [algebra R A] [algebra R D]
-
-instance boo : algebra R (matrix n n D) := by apply_instance
-
-instance submodule.setoid : setoid (submodule A A) :=
-{ r := λ n m, nonempty (n ≃ₗ[A] m),
-  iseqv := ⟨λ x, ⟨linear_equiv.refl A x⟩, λ x y h, ⟨h.some.symm⟩,
-    λ x y z hxy hyz, ⟨hxy.some.trans hyz.some⟩⟩ }
-
-def atom_setoid := subtype.setoid (λ s : submodule A A, is_atom s)
-def atom_quot := quotient $ atom_setoid A
-
-def setoid.class {α : Type*} (r : setoid α) (y : α) := {x : α | r.rel x y}
-
-#check λ s, ((atom_setoid A).class s).
-
-def decompose : A ≃ₗ[A] Π s : atom_quot A, (Π i : (atom_setoid A).class s.out, i.val) := sorry
-
-def decompose' :
-  A ≃ₗ[A] Π s : atom_quot A, (⨆ i : (atom_setoid A).class s.out, i.val : submodule A A) := sorry
-
-variables (p : submodule A A) (s : atom_quot A) (a : (atom_setoid A).class s.out)
-#check a.val.val
-#check supr (λ a : (atom_setoid A).class s.out, a.val.val)
-#check Sup ((submodule.setoid A).class p)
-#check (submodule.setoid A).class p
-
-def decompose'' [nontrivial A] (s : atom_quot A) :
-  (Π i : (atom_setoid A).class s.out, i.val) ≃ₗ[A]
-  (⨆ i : (atom_setoid A).class s.out, i.val : submodule A A) :=
-begin
-  haveI : fintype ((atom_setoid A).class s.out) := sorry,
-  convert submodule.prod_equiv_of_independent (λ i : (atom_setoid A).class s.out, i.val.val) _,
-  sorry,
-end
-
-lemma submodule.mem_coe_supr {ι : Type*} [fintype ι] {s : ι → submodule A A} (x : Π i : ι, s i) :
-  ∑ i, (x i).val ∈ supr s :=
-begin
-  rw submodule.mem_supr,
-  intros t ht,
-  apply submodule.sum_mem,
-  intros i hi,
-  exact ht i (x i).2,
-end
-
-def decompose''' {ι : Type*} [fintype ι] {s : ι → submodule A A} (h : complete_lattice.independent s) :
-  (Π i : ι, s i) ≃ₗ[A] (supr s : submodule A A) :=
-{ to_fun := λ x, ⟨∑ i, (x i).val, submodule.mem_coe_supr A x⟩,
-  map_add' := λ x y, by { ext, simp [finset.sum_add_distrib] },
-  map_smul' := λ a x, by { ext, simp [finset.mul_sum], },
-  inv_fun := λ x i, ⟨_, _⟩,
-  left_inv := _,
-  right_inv := _ }
-
-def decompose'''' {ι : Type*} [fintype ι] {s t : submodule A A} (h : s ⊓ t = ⊥) :
-  (s × t) ≃ₗ[A] (s ⊔ t : submodule A A) :=
-{ to_fun := λ x, ⟨x.1.val + x.2.val, sorry⟩,
-  map_add' := sorry,
-  map_smul' := sorry,
-  inv_fun := λ x, _,
-  left_inv := _,
-  right_inv := _ }
-
-
-
-
-
-
-lemma lem21a : is_simple_module (matrix n n D) (n → D) := sorry
-
-def lem21b : matrix n n D ≃ₗ[matrix n n D] (⨁ (i : n), n → D) := sorry
-
-lemma thm21a {ι : Type*} {D : ι → Type*} [∀ i, division_ring (D i)] :
-  is_semisimple_module (Π (i : ι), matrix n n (D i)) (Π (i : ι), matrix n n (D i)) := sorry
-
-lemma direct_sum_equiv_Sup {ι : Type*} (s : ι → submodule A A) (h : complete_lattice.independent s) :
-  (Π i, s i) ≃ ↥(supr s) :=
-begin
-  sorry
-end
-
-
-
-lemma thm31 {ι : Type*} (f : ι → submodule A A) :
-  is_semisimple_module A A → ∃ (s : set (submodule A A)),
-  ∀ n : submodule A A, is_simple_module A n → n ∈ s :=
-begin
-
-  sorry
-end
-
-
-instance bruh {ι : Type*} (R : ι → Type*) [∀ i, comm_semiring (R i)]
-  {A : ι → Type*} [∀ i, semiring (A i)] [hRA : ∀ i, algebra (R i) (A i)] :
-  algebra (Π i, R i) (Π i, A i) :=
-{ smul := λ r x i, (r i) • (x i),
-  to_fun := λ r i, (hRA i).to_fun (r i),
-  map_one' := sorry,
-  map_mul' := sorry,
-  map_zero' := sorry,
-  map_add' := sorry,
-  commutes' := sorry,
-  smul_def' := sorry }
-
-
--/

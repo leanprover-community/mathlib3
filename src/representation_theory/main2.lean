@@ -6,6 +6,7 @@ Authors: Hanting Zhang
 import representation_theory.pi_map
 import linear_algebra.finite_dimensional
 
+universes u v w
 open_locale direct_sum classical big_operators
 open classical linear_map finite_dimensional
 noncomputable theory
@@ -108,8 +109,8 @@ begin
 end
 
 def linear_map.End_pi_linear_equiv
-  (R : Type*) {ι : Type*} [fintype ι] [decidable_eq ι] [semiring R]
-  (φ : ι → Type*) [Π (i : ι), add_comm_monoid (φ i)] [Π (i : ι), module R (φ i)]
+  (R : Type u) {ι : Type v} [fintype ι] [decidable_eq ι] [semiring R]
+  (φ : ι → Type w) [Π (i : ι), add_comm_monoid (φ i)] [Π (i : ι), module R (φ i)]
   (hp : pairwise (λ i j, ∀ f : φ i →ₗ[R] φ j, f = 0)) :
   module.End R (Π i, φ i) ≃+* Π i, module.End R (φ i) :=
 ring_equiv.of_bijective (linear_map.End_pi_linear_map R φ hp)

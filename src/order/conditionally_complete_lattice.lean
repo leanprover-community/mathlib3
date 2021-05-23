@@ -762,6 +762,42 @@ lemma le_cInf_image {s : set α} (hs : s.nonempty) {B : α} (hB: B ∈ lower_bou
 
 end monotone
 
+/-!
+### Relation between `Sup` / `Inf` and `finset.sup'` / `finset.inf'`
+
+Like the `Sup` of a `conditionally_complete_lattice`, `finset.sup'` also requires the set to be
+non-empty. As a result, we can translate between the two.
+-/
+
+namespace finset
+
+lemma sup'_eq_cSup_image [conditionally_complete_lattice β] (s : finset α) (H) (f : α → β) :
+  s.sup' H f = Sup (f '' s) :=
+begin
+  apply le_antisymm,
+  { refine (finset.sup'_le _ _ $ λ a ha, _),
+    refine le_cSup ⟨s.sup' H f, _⟩ ⟨a, ha, rfl⟩,
+    rintros i ⟨j, hj, rfl⟩,
+    exact finset.le_sup' _ hj },
+  { apply cSup_le ((coe_nonempty.mpr H).image _),
+    rintros _ ⟨a, ha, rfl⟩,
+    exact finset.le_sup' _ ha, }
+end
+
+lemma inf'_eq_cInf_image [conditionally_complete_lattice β] (s : finset α) (H) (f : α → β) :
+  s.inf' H f = Inf (f '' s) :=
+@sup'_eq_cSup_image _ (order_dual β) _ _ _ _
+
+lemma sup'_id_eq_cSup [conditionally_complete_lattice α] (s : finset α) (H) :
+  s.sup' H id = Sup s :=
+by rw [sup'_eq_cSup_image s H, set.image_id]
+
+lemma inf'_id_eq_cInf [conditionally_complete_lattice α] (s : finset α) (H) :
+  s.inf' H id = Inf s :=
+@sup'_id_eq_cSup (order_dual α) _ _ _
+
+end finset
+
 section with_top_bot
 
 /-!

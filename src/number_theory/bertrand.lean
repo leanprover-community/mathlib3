@@ -393,45 +393,72 @@ begin
                    p ^ (padic_val_nat p ((2 * n).choose n)))
                       : central_binom_factorization_small.symm
       ...     = (∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),
-                   if p ≤ nat.sqrt (2 * n) then p ^ (padic_val_nat p ((2 * n).choose n)) else p ^ (padic_val_nat p ((2 * n).choose n)))
+                   if p ^ 2 ≤ 2 * n then p ^ (padic_val_nat p ((2 * n).choose n)) else p ^ (padic_val_nat p ((2 * n).choose n)))
                        : by simp only [if_t_t]
-      ...     = (∏ p in finset.filter (λ p, p ≤ nat.sqrt (2 * n))
+      ...     = (∏ p in finset.filter (λ p, p ^ 2 ≤ 2 * n)
                           (finset.filter nat.prime
                             (finset.range (2 * n / 3 + 1))),
                     p ^ (padic_val_nat p ((2 * n).choose n)))
                  *
-                (∏ p in finset.filter (λ p, ¬p ≤ nat.sqrt (2 * n)) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))),
+                (∏ p in finset.filter (λ p, ¬p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))),
                     p ^ (padic_val_nat p ((2 * n).choose n)))
                     : finset.prod_ite _ _
-      ...     = (∏ p in finset.filter (λ p, p ≤ nat.sqrt (2 * n))
+      ...     = (∏ p in finset.filter (λ p, p ^ 2 ≤ 2 * n)
                           (finset.filter nat.prime
                             (finset.range (2 * n / 3 + 1))),
                    p ^ (padic_val_nat p ((2 * n).choose n)))
                  *
-                (∏ p in finset.filter (λ p, nat.sqrt (2 * n) < p)
+                (∏ p in finset.filter (λ p, (2 * n) < p ^ 2)
                           (finset.filter nat.prime
                             (finset.range (2 * n / 3 + 1))),
                    p ^ (padic_val_nat p ((2 * n).choose n)))
                      : by simp only [not_le, finset.filter_congr_decidable]
-      ...     < (2 * n) ^ (nat.sqrt (2 * n))
+      ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *
-                (∏ p in finset.filter (λ p, nat.sqrt (2 * n) < p)
+                (∏ p in finset.filter (λ p, (2 * n) < p ^ 2)
                           (finset.filter nat.prime
                             (finset.range (2 * n / 3 + 1))),
                    p ^ (padic_val_nat p ((2 * n).choose n)))
-                     : sorry
+                     : begin
+                       refine (nat.mul_le_mul_right _ _),
+                        -- TODO: do we need to add one to the nat.sqrt(2*n)?
+                        sorry,
+                     end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *
-                (∏ p in finset.filter (λ p, nat.sqrt (2 * n) < p)
+                (∏ p in finset.filter (λ p, (2 * n) < p ^ 2)
                           (finset.filter nat.prime
                             (finset.range (2 * n / 3 + 1))),
                    p ^ 1)
-                     : sorry
+                     : begin
+                       refine nat.mul_le_mul_left _ _,
+                        { refine finset.prod_le_prod'' _,
+                          intros i hyp,
+                          simp only [finset.mem_filter, finset.mem_range] at hyp,
+                          cases hyp with i_facts sqrt_two_n_lt_i,
+                          refine pow_le_pow _ _,
+                          { cases le_or_gt 1 i,
+                            { exact h, },
+                            { have i_zero : i = 0, by linarith,
+                              rw i_zero at i_facts,
+                              exfalso,
+                              exact nat.not_prime_zero i_facts.2, }, },
+                          { exact @claim_2 i (fact_iff.2 i_facts.2) n (by linarith) sqrt_two_n_lt_i, }, },
+                     end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *
                 (∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),
                    p ^ 1)
-                     : sorry
+                     : begin
+                       refine nat.mul_le_mul_left _ _,
+                       refine finset.prod_le_prod_of_subset_of_one_le' (finset.filter_subset _ _) _,
+                        { intros i hyp1 hyp2,
+                        cases le_or_gt 1 i,
+                        { ring_nf, exact h, },
+                        { have i_zero : i = 0, by linarith,
+                          simp only [i_zero, true_and, nat.succ_pos', finset.mem_filter, finset.mem_range] at hyp1,
+                          exfalso, exact nat.not_prime_zero hyp1, }, }
+                     end
       ...     = (2 * n) ^ (nat.sqrt (2 * n))
                  *
                 (∏ p in finset.filter nat.prime (finset.range (2 * n / 3 + 1)),

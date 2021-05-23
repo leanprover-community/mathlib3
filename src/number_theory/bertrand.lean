@@ -367,6 +367,21 @@ begin
   exact s,
 end
 
+lemma even_prime_is_small {a n : ℕ} (p : nat.prime a) (n_big : 2 < n) (small : a^2 ≤ 2 * n): a ^ 2 < 2 * n :=
+begin
+  sorry
+end
+
+lemma false_inequality_is_false {n : ℕ} (n_large : 460 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+begin
+  sorry,
+end
+
+lemma foo {n : ℕ} : (finset.filter (λ p, p ^ 2 < 2 * n) (finset.range (2 * n / 3 + 1))).card ≤ (finset.filter (λ p, p < nat.sqrt (2 * n)) (finset.range (2 * n / 3 + 1))).card :=
+begin
+  sorry,
+end
+
 lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   by_contradiction no_prime,
@@ -483,7 +498,13 @@ begin
                       intros p hyp,
                       simp only [finset.mem_filter, finset.mem_range] at hyp,
                       exact pow_pos (nat.prime.pos hyp.1.2) (padic_val_nat p ((2 * n).choose n)), },
-                    { sorry },
+                    { refine congr_arg (λ i, (2 * n) ^ i) _,
+                      refine congr_arg (λ s, finset.card s) _,
+                      ext1,
+                      split,
+                      { intro h, simp at h, simp, split, exact h.1, exact even_prime_is_small h.1.2 (by linarith) h.2, },
+                      { intro h, simp at h, simp, split, exact h.1, linarith, }
+                     },
                    end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *
@@ -496,12 +517,7 @@ begin
                        refine pow_le_pow (by linarith) _,
                        calc (finset.filter (λ p, p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card
                            ≤ (finset.filter (λ p, p ^ 2 < 2 * n) (finset.range (2 * n / 3 + 1))).card: filter_filter_card_le_filter_card
-                           ... = (finset.filter (λ p, p < nat.sqrt (2 * n)) (finset.range (2 * n / 3 + 1))).card: congr_arg finset.card (by{
-                              ext1,
-                              simp only [finset.mem_filter, finset.mem_range, and.congr_right_iff],
-                              intros _,
-                              sorry,
-                              })
+                           ... ≤ (finset.filter (λ p, p < nat.sqrt (2 * n)) (finset.range (2 * n / 3 + 1))).card: foo
                            ... ≤ nat.sqrt (2 * n): @filter_size _ (nat.sqrt (2 * n)),
                      end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
@@ -563,11 +579,10 @@ begin
                     : nat.mul_lt_mul_of_pos_left binom_inequality (by linarith)
         ...      = (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) : by ring,
 
-    sorry
-
+    exfalso,
+    exact false_inequality_is_false (by linarith) false_inequality,
 end
 
-/-
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
 cases le_or_lt 750 n,
@@ -604,5 +619,3 @@ interval_cases n,
 { use 3, norm_num },
 { use 5, norm_num },
 end
-
--/

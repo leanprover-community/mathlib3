@@ -56,7 +56,7 @@ begin
   rw [image_preimage_eq_inter_range, mem_closure_iff],
   intros U U_op b_in,
   rw ←inter_assoc,
-  exact (dense_iff_inter_open.1 di.dense) _ (is_open_inter U_op s_op) ⟨b, b_in, b_in_s⟩
+  exact (dense_iff_inter_open.1 di.dense) _ (is_open.inter U_op s_op) ⟨b, b_in, b_in_s⟩
 end
 
 lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :

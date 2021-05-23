@@ -598,6 +598,29 @@ instance : unique (subalgebra R R) :=
   end
   .. algebra.subalgebra.inhabited }
 
+/-- Two subalgebras that are equal are also equivalent as algebras.
+
+This is the `subalgebra` version of `linear_equiv.of_eq` and `equiv.set.of_eq`. -/
+@[simps apply]
+def equiv_of_eq (S T : subalgebra R A) (h : S = T) : S ≃ₐ[R] T :=
+{ to_fun := λ x, ⟨x, h ▸ x.2⟩,
+  inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
+  map_mul' := λ _ _, rfl,
+  commutes' := λ _, rfl,
+  .. linear_equiv.of_eq _ _ (congr_arg to_submodule h) }
+
+@[simp] lemma equiv_of_eq_symm (S T : subalgebra R A) (h : S = T) :
+  (equiv_of_eq S T h).symm = equiv_of_eq T S h.symm :=
+rfl
+
+@[simp] lemma equiv_of_eq_rfl (S : subalgebra R A) :
+  equiv_of_eq S S rfl = alg_equiv.refl :=
+by { ext, refl }
+
+@[simp] lemma equiv_of_eq_trans (S T U : subalgebra R A) (hST : S = T) (hTU : T = U) :
+  (equiv_of_eq S T hST).trans (equiv_of_eq T U hTU) = equiv_of_eq S U (trans hST hTU) :=
+rfl
+
 end subalgebra
 
 section nat

@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.bilinear_form
+import linear_algebra.trace
 import ring_theory.power_basis
 
 /-!

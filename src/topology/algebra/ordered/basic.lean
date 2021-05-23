@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import tactic.tfae
-import algebra.archimedean
-import order.liminf_limsup
+import algebra.group_with_zero.power
 import data.set.intervals.pi
 import topology.algebra.group
-import topology.extend_from_subset
 import order.filter.interval
 
 /-!
@@ -95,7 +93,7 @@ for specific types.
 -/
 
 open classical set filter topological_space
-open function (curry uncurry)
+open function
 open_locale topological_space classical filter
 
 universes u v w
@@ -139,7 +137,7 @@ instance : order_closed_topology (order_dual α) :=
 ⟨(@order_closed_topology.is_closed_le' α _ _ _).preimage continuous_swap⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
-is_closed_inter is_closed_Ici is_closed_Iic
+is_closed.inter is_closed_Ici is_closed_Iic
 
 @[simp] lemma closure_Icc (a b : α) : closure (Icc a b) = Icc a b :=
 is_closed_Icc.closure_eq
@@ -230,7 +228,7 @@ include t
 
 private lemma is_closed_eq_aux : is_closed {p : α × α | p.1 = p.2} :=
 by simp only [le_antisymm_iff];
-   exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
+   exact is_closed.inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
 @[priority 90] -- see Note [lower instance priority]
 instance order_closed_topology.to_t2_space : t2_space α :=
@@ -265,7 +263,7 @@ lemma is_open_Ioi : is_open (Ioi a) :=
 is_open_lt continuous_const continuous_id
 
 lemma is_open_Ioo : is_open (Ioo a b) :=
-is_open_inter is_open_Ioi is_open_Iio
+is_open.inter is_open_Ioi is_open_Iio
 
 @[simp] lemma interior_Ioi : interior (Ioi a) = Ioi a :=
 is_open_Ioi.interior_eq
@@ -1043,7 +1041,7 @@ instance order_topology.regular_space : regular_space α :=
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
           nhds_within_empty _⟩),
     let ⟨t₂, ht₂o, ht₂s, ht₂a⟩ := this in
-    ⟨t₁ ∪ t₂, is_open_union ht₁o ht₂o,
+    ⟨t₁ ∪ t₂, is_open.union ht₁o ht₂o,
       assume x hx,
       have x ≠ a, from assume eq, ha $ eq ▸ hx,
       (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
@@ -1115,7 +1113,7 @@ section pi
 /-!
 ### Intervals in `Π i, π i` belong to `𝓝 x`
 
-For each leamma `pi_Ixx_mem_nhds` we add a non-dependent version `pi_Ixx_mem_nhds'` because
+For each lemma `pi_Ixx_mem_nhds` we add a non-dependent version `pi_Ixx_mem_nhds'` because
 sometimes Lean fails to unify different instances while trying to apply the dependent version to,
 e.g., `ι → ℝ`.
 -/
@@ -2428,7 +2426,7 @@ begin
   assume y hy,
   have : is_closed (s ∩ Icc a y),
   { suffices : s ∩ Icc a y = s ∩ Icc a b ∩ Icc a y,
-    { rw this, exact is_closed_inter hs is_closed_Icc },
+    { rw this, exact is_closed.inter hs is_closed_Icc },
     rw [inter_assoc],
     congr,
     exact (inter_eq_self_of_subset_right $ Icc_subset_Icc_right hy.2).symm },
@@ -2465,7 +2463,7 @@ begin
   by_contradiction hst,
   suffices : Icc x y ⊆ s,
     from hst ⟨y, xyab $ right_mem_Icc.2 hxy, this $ right_mem_Icc.2 hxy, hy.2⟩,
-  apply (is_closed_inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
+  apply (is_closed.inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
   rintros z ⟨zs, hz⟩,
   have zt : z ∈ tᶜ, from λ zt, hst ⟨z, xyab $ Ico_subset_Icc_self hz, zs, zt⟩,
   have : tᶜ ∩ Ioc z y ∈ 𝓝[Ioi z] z,
@@ -2623,7 +2621,7 @@ end densely_ordered
 lemma compact_Icc {a b : α} : is_compact (Icc a b) :=
 begin
   cases le_or_lt a b with hab hab, swap, { simp [hab] },
-  refine compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
+  refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
   contrapose! hf,
   rw [le_principal_iff],
   have hpt : ∀ x ∈ Icc a b, {x} ∉ f,
@@ -2669,15 +2667,15 @@ lemma compact_interval {a b : α} : is_compact (interval a b) := compact_Icc
 lemma compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
   [Π i, topological_space (α i)] [Π i, order_topology (α i)] (a b : Π i, α i) :
   is_compact (Icc a b) :=
-pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
+pi_univ_Icc a b ▸ is_compact_univ_pi $ λ i, compact_Icc
 
 instance compact_space_Icc (a b : α) : compact_space (Icc a b) :=
-compact_iff_compact_space.mp compact_Icc
+is_compact_iff_compact_space.mp compact_Icc
 
 instance compact_space_pi_Icc {ι : Type*} {α : ι → Type*}
   [Π i, conditionally_complete_linear_order (α i)] [Π i, topological_space (α i)]
   [Π i, order_topology (α i)] (a b : Π i, α i) : compact_space (Icc a b) :=
-compact_iff_compact_space.mp (compact_pi_Icc a b)
+is_compact_iff_compact_space.mp (compact_pi_Icc a b)
 
 @[priority 100] -- See note [lower instance priority]
 instance compact_space_of_complete_linear_order {α : Type*} [complete_linear_order α]
@@ -2781,137 +2779,6 @@ lemma continuous.exists_forall_ge {α : Type*} [topological_space α] [nonempty 
 @continuous.exists_forall_le (order_dual β) _ _ _ _ _ _ _ hf hlim
 
 end conditionally_complete_linear_order
-
-section liminf_limsup
-
-section order_closed_topology
-variables [semilattice_sup α] [topological_space α] [order_topology α]
-
-lemma is_bounded_le_nhds (a : α) : (𝓝 a).is_bounded (≤) :=
-match forall_le_or_exists_lt_sup a with
-| or.inl h := ⟨a, eventually_of_forall h⟩
-| or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
-end
-
-lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α}
-  (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
-(is_bounded_le_nhds a).mono h
-
-lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
-(is_bounded_le_nhds a).is_cobounded_flip
-
-lemma filter.tendsto.is_cobounded_under_ge {f : filter β} {u : β → α} {a : α}
-  [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≥) u :=
-h.is_bounded_under_le.is_cobounded_flip
-
-end order_closed_topology
-
-section order_closed_topology
-variables [semilattice_inf α] [topological_space α] [order_topology α]
-
-lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
-@is_bounded_le_nhds (order_dual α) _ _ _ a
-
-lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α}
-  (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
-(is_bounded_ge_nhds a).mono h
-
-lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
-(is_bounded_ge_nhds a).is_cobounded_flip
-
-lemma filter.tendsto.is_cobounded_under_le {f : filter β} {u : β → α} {a : α}
-  [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=
-h.is_bounded_under_ge.is_cobounded_flip
-
-end order_closed_topology
-
-section conditionally_complete_linear_order
-variables [conditionally_complete_linear_order α]
-
-theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
-  ∀ᶠ a in f, a < b :=
-let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
-mem_sets_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
-
-theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → b < f.Liminf →
-  ∀ᶠ a in f, b < a :=
-@lt_mem_sets_of_Limsup_lt (order_dual α) _
-
-variables [topological_space α] [order_topology α]
-
-/-- If the liminf and the limsup of a filter coincide, then this filter converges to
-their common value, at least if the filter is eventually bounded above and below. -/
-theorem le_nhds_of_Limsup_eq_Liminf {f : filter α} {a : α}
-  (hl : f.is_bounded (≤)) (hg : f.is_bounded (≥)) (hs : f.Limsup = a) (hi : f.Liminf = a) :
-  f ≤ 𝓝 a :=
-tendsto_order.2 $ and.intro
-  (assume b hb, gt_mem_sets_of_Liminf_gt hg $ hi.symm ▸ hb)
-  (assume b hb, lt_mem_sets_of_Limsup_lt hl $ hs.symm ▸ hb)
-
-theorem Limsup_nhds (a : α) : Limsup (𝓝 a) = a :=
-cInf_intro (is_bounded_le_nhds a)
-  (assume a' (h : {n : α | n ≤ a'} ∈ 𝓝 a), show a ≤ a', from @mem_of_nhds α _ a _ h)
-  (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ 𝓝 a), c < b, from
-    match dense_or_discrete a b with
-    | or.inl ⟨c, hac, hcb⟩ := ⟨c, ge_mem_nhds hac, hcb⟩
-    | or.inr ⟨_, h⟩        := ⟨a, (𝓝 a).sets_of_superset (gt_mem_nhds hba) h, hba⟩
-    end)
-
-theorem Liminf_nhds : ∀ (a : α), Liminf (𝓝 a) = a :=
-@Limsup_nhds (order_dual α) _ _ _
-
-/-- If a filter is converging, its limsup coincides with its limit. -/
-theorem Liminf_eq_of_le_nhds {f : filter α} {a : α} [ne_bot f] (h : f ≤ 𝓝 a) : f.Liminf = a :=
-have hb_ge : is_bounded (≥) f, from (is_bounded_ge_nhds a).mono h,
-have hb_le : is_bounded (≤) f, from (is_bounded_le_nhds a).mono h,
-le_antisymm
-  (calc f.Liminf ≤ f.Limsup : Liminf_le_Limsup hb_le hb_ge
-    ... ≤ (𝓝 a).Limsup :
-      Limsup_le_Limsup_of_le h hb_ge.is_cobounded_flip (is_bounded_le_nhds a)
-    ... = a : Limsup_nhds a)
-  (calc a = (𝓝 a).Liminf : (Liminf_nhds a).symm
-    ... ≤ f.Liminf :
-      Liminf_le_Liminf_of_le h (is_bounded_ge_nhds a) hb_le.is_cobounded_flip)
-
-/-- If a filter is converging, its liminf coincides with its limit. -/
-theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α} [ne_bot f], f ≤ 𝓝 a → f.Limsup = a :=
-@Liminf_eq_of_le_nhds (order_dual α) _ _ _
-
-/-- If a function has a limit, then its limsup coincides with its limit. -/
-theorem filter.tendsto.limsup_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
-  (h : tendsto u f (𝓝 a)) : limsup f u = a :=
-Limsup_eq_of_le_nhds h
-
-/-- If a function has a limit, then its liminf coincides with its limit. -/
-theorem filter.tendsto.liminf_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
-  (h : tendsto u f (𝓝 a)) : liminf f u = a :=
-Liminf_eq_of_le_nhds h
-
-end conditionally_complete_linear_order
-
-section complete_linear_order
-variables [complete_linear_order α] [topological_space α] [order_topology α]
--- In complete_linear_order, the above theorems take a simpler form
-
-/-- If the liminf and the limsup of a function coincide, then the limit of the function
-exists and has the same value -/
-theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
-  (hinf : liminf f u = a) (hsup : limsup f u = a) : tendsto u f (𝓝 a) :=
-le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot hsup hinf
-
-/-- If a number `a` is less than or equal to the `liminf` of a function `f` at some filter
-and is greater than or equal to the `limsup` of `f`, then `f` tends to `a` along this filter. -/
-theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : α}
-  (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a) :
-  tendsto u f (𝓝 a) :=
-if hf : f = ⊥ then hf.symm ▸ tendsto_bot
-else by haveI : ne_bot f := ⟨hf⟩; exact tendsto_of_liminf_eq_limsup
-  (le_antisymm (le_trans liminf_le_limsup hsup) hinf)
-  (le_antisymm hsup (le_trans hinf liminf_le_limsup))
-
-end complete_linear_order
-
-end liminf_limsup
 
 end order_topology
 
@@ -3048,71 +2915,6 @@ lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_ord
   [topological_space β] {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iic a) a ∧ continuous_within_at f (Ici a) a :=
 by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_left_sup_nhds_right]
-
-lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
-  [order_topology α] [topological_space β] [regular_space β] {f : α → β} {a b : α}
-  {la lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
-  continuous_on (extend_from (Ioo a b) f) (Icc a b) :=
-begin
-  apply continuous_on_extend_from,
-  { rw closure_Ioo hab, },
-  { intros x x_in,
-    rcases mem_Ioo_or_eq_endpoints_of_mem_Icc x_in with rfl | rfl | h,
-    { use la,
-      simpa [hab] },
-    { use lb,
-      simpa [hab] },
-    { use [f x, hf x h] } }
-end
-
-lemma eq_lim_at_left_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
-  [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  {la : β} (hab : a < b) (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) :
-  extend_from (Ioo a b) f a = la :=
-begin
-  apply extend_from_eq,
-  { rw closure_Ioo hab,
-    simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc] },
-  { simpa [hab] }
-end
-
-lemma eq_lim_at_right_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
-  [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  {lb : β} (hab : a < b) (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
-  extend_from (Ioo a b) f b = lb :=
-begin
-  apply extend_from_eq,
-  { rw closure_Ioo hab,
-    simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc] },
-  { simpa [hab] }
-end
-
-lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
-  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
-  [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (𝓝[Ioi a] a) (𝓝 la)) :
-  continuous_on (extend_from (Ioo a b) f) (Ico a b) :=
-begin
-  apply continuous_on_extend_from,
-  { rw [closure_Ioo hab], exact Ico_subset_Icc_self, },
-  { intros x x_in,
-    rcases mem_Ioo_or_eq_left_of_mem_Ico x_in with rfl | h,
-    { use la,
-      simpa [hab] },
-    { use [f x, hf x h] } }
-end
-
-lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
-  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
-  [regular_space β] {f : α → β} {a b : α} {lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (hb : tendsto f (𝓝[Iio b] b) (𝓝 lb)) :
-  continuous_on (extend_from (Ioo a b) f) (Ioc a b) :=
-begin
-  have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ f _ _ _ hab,
-  erw [dual_Ico, dual_Ioi, dual_Ioo] at this,
-  exact this hf hb
-end
 
 lemma continuous_within_at_Ioi_iff_Ici {α β : Type*} [topological_space α] [partial_order α]
   [topological_space β] {a : α} {f : α → β} :

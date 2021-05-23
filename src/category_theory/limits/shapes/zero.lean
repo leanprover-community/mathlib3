@@ -177,8 +177,9 @@ This can not be a global instance as it will trigger for every `has_zero C` type
 protected def has_zero : has_zero C :=
 { zero := has_zero_object.zero }
 
-local attribute [instance] has_zero_object.has_zero
-local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
+localized "attribute [instance] category_theory.limits.has_zero_object.has_zero" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.unique_to" in zero_object
+localized "attribute [instance] category_theory.limits.has_zero_object.unique_from" in zero_object
 
 @[ext]
 lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
@@ -217,7 +218,7 @@ has_initial_of_unique 0
 lemma has_terminal : has_terminal C :=
 has_terminal_of_unique 0
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance {B : Type*} [category B] [has_zero_morphisms C] : has_zero_object (B ⥤ C) :=
 { zero := { obj := λ X, 0, map := λ X Y f, 0, },
@@ -233,7 +234,7 @@ end has_zero_object
 
 section
 variables [has_zero_object C] [has_zero_morphisms C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 @[simp]
 lemma id_zero : 𝟙 (0 : C) = (0 : 0 ⟶ 0) :=
@@ -343,7 +344,7 @@ def is_iso_zero_self_equiv (X : C) : is_iso (0 : X ⟶ X) ≃ (𝟙 X = 0) :=
 by simpa using is_iso_zero_equiv X X
 
 variables [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /--
 A zero morphism `0 : X ⟶ Y` is an isomorphism if and only if
@@ -415,7 +416,7 @@ lemma image_ι_comp_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f
 zero_of_epi_comp (factor_thru_image f) $ by simp [h]
 
 variables [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /--
 The zero morphism has a `mono_factorisation` through the zero object.

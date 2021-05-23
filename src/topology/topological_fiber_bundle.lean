@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.local_homeomorph
-import topology.algebra.ordered
+import topology.algebra.ordered.basic
 
 /-!
 # Fiber bundles
@@ -489,9 +489,9 @@ def bundle_trivialization.restr_open (e : bundle_trivialization F proj) (s : set
   (hs : is_open s) :
   bundle_trivialization F proj :=
 { to_local_homeomorph := ((e.is_image_preimage_prod s).symm.restr
-    (is_open_inter e.open_target (hs.prod is_open_univ))).symm,
+    (is_open.inter e.open_target (hs.prod is_open_univ))).symm,
   base_set := e.base_set ∩ s,
-  open_base_set := is_open_inter e.open_base_set hs,
+  open_base_set := is_open.inter e.open_base_set hs,
   source_eq := by simp [e.source_eq],
   target_eq := by simp [e.target_eq, prod_univ],
   proj_to_fun := λ p hp, e.proj_to_fun p hp.1 }
@@ -561,7 +561,7 @@ noncomputable def bundle_trivialization.disjoint_union (e e' : bundle_trivializa
     (λ x hx, by { rw [e.source_eq, e'.source_eq] at hx, exact H hx })
     (λ x hx, by { rw [e.target_eq, e'.target_eq] at hx, exact H ⟨hx.1.1, hx.2.1⟩ }),
   base_set := e.base_set ∪ e'.base_set,
-  open_base_set := is_open_union e.open_base_set e'.open_base_set,
+  open_base_set := is_open.union e.open_base_set e'.open_base_set,
   source_eq := congr_arg2 (∪) e.source_eq e'.source_eq,
   target_eq := (congr_arg2 (∪) e.target_eq e'.target_eq).trans union_prod.symm,
   proj_to_fun :=
@@ -767,9 +767,9 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
     { simp [hx] },
   end,
   open_source :=
-    (is_open_inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
+    (is_open.inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
   open_target :=
-    (is_open_inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
+    (is_open.inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
   continuous_to_fun  :=
     continuous_on.prod continuous_fst.continuous_on (Z.coord_change_continuous i j),
   continuous_inv_fun := by simpa [inter_comm]

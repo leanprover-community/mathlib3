@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
+import topology.algebra.ordered.liminf_limsup
 /-!
 # Extended non-negative reals
 -/
@@ -601,6 +602,10 @@ begin
   { exact assume s t hst, finset.sum_le_sum_of_subset (finset.range_subset.2 hst) }
 end
 
+lemma tendsto_nat_tsum (f : ℕ → ℝ≥0∞) :
+  tendsto (λn:ℕ, ∑ i in finset.range n, f i) at_top (𝓝 (∑' n, f n)) :=
+by { rw ← has_sum_iff_tendsto_nat, exact ennreal.summable.has_sum }
+
 lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ℝ≥0∞} (hf : ∑' i, f i ≠ ∞) (x : α) :
   (((ennreal.to_nnreal ∘ f) x : ℝ≥0) : ℝ≥0∞) = f x :=
 coe_to_nnreal $ ennreal.ne_top_of_tsum_ne_top hf _
@@ -846,7 +851,7 @@ lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ℝ≥0∞) (h : x ∈ ball a r)
 end
 
 section
-variable [emetric_space α]
+variable [pseudo_emetric_space α]
 open emetric
 
 lemma tendsto_iff_edist_tendsto_0 {l : filter β} {f : β → α} {y : α} :

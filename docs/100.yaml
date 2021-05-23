@@ -55,6 +55,9 @@
   author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:
   title  : Insolvability of General Higher Degree Equations
+  author: Thomas Browning
+  links :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/16_abel_ruffini.lean
 17:
   title  : De Moivre’s Theorem
   decl   : complex.cos_add_sin_mul_I_pow
@@ -278,7 +281,7 @@
   title  : Sum of kth powers
   decls  :
     - sum_range_pow
-    - sum_range_pow'
+    - sum_Ico_pow
   author : mathlib (Moritz Firsching, Fabian Kruse, Ashvni Narayanan)
 78:
   title  : The Cauchy-Schwarz Inequality
@@ -343,6 +346,10 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
+  decl   : fintype.card_embedding
+  links  :
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/93_birthday_problem.lean
+  author : Eric Rodriguez
 94:
   title  : The Law of Cosines
   decl   : euclidean_geometry.dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle

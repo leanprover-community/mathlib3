@@ -925,7 +925,7 @@ begin
     simp [nat.is_unit_iff.mp hunit] },
   { intros a p ha hprime hind n hcop h hpos,
     rw hind (nat.coprime.coprime_mul_left hcop) h hpos, clear hind,
-    replace hprime := nat.prime_iff_prime.2 hprime,
+    replace hprime := nat.prime_iff.2 hprime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
     haveI := fact.mk hprime,
     rw [minpoly_eq_pow

@@ -69,7 +69,7 @@ end has_top
 
 section has_bot
 variables [has_zero_morphisms C] [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance {X : C} : has_bot (mono_over X) :=
 { bot := mk' (0 : 0 ⟶ X) }
@@ -246,7 +246,7 @@ end order_top
 
 section order_bot
 variables [has_zero_morphisms C] [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance order_bot {X : C} : order_bot (subobject X) :=
 { bot := quotient.mk' ⊥,

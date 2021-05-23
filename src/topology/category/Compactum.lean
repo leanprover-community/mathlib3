@@ -155,7 +155,7 @@ end
 instance {X : Compactum} : compact_space X :=
 begin
   constructor,
-  rw compact_iff_ultrafilter_le_nhds,
+  rw is_compact_iff_ultrafilter_le_nhds,
   intros F h,
   refine ⟨X.str F, by tauto, _⟩,
   rw le_nhds_iff,

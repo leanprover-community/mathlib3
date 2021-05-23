@@ -1522,7 +1522,7 @@ Please consider using `is_scalar_tower` instead.
 `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
 
-The type synonym `semimodule.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+The type synonym `module.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
 -/
 def normed_space.restrict_scalars : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin

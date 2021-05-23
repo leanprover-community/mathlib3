@@ -600,11 +600,6 @@ instance group.to_cancel_monoid : cancel_monoid G :=
   mul_left_cancel := λ a b c h, by rw [← inv_mul_cancel_left a b, h, inv_mul_cancel_left],
   ..‹group G› }
 
-@[to_additive]
-instance group.to_cancel_monoid : cancel_monoid G :=
-{ ..‹group G›, .. group.to_left_cancel_semigroup,
-  ..group.to_right_cancel_semigroup }
-
 end group
 
 /-- A commutative group is a group with commutative `(*)`. -/

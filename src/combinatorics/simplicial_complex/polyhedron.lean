@@ -2,7 +2,7 @@ import combinatorics.simplicial_complex.exposed
 import combinatorics.simplicial_complex.convex_join
 
 open set
-open_locale classical
+open_locale classical big_operators
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {X Y : finset E} {C : set E}
 
@@ -11,7 +11,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {X Y : finse
 /-- A polyhedron is an intersection of finitely many halfspaces. -/
 structure polyhedron (E : Type*) [normed_group E] [normed_space ℝ E] :=
 (carrier : set E)
-(hcarrier : ∃ Hrepr : finset ((E →L[ℝ] ℝ) × ℝ), carrier = {x | ∀ l ∈ Hrepr, (l.1 x : ℝ) ≤ l.2})
+(hcarrier : ∃ Hrepr : finset ((E →L[ℝ] ℝ) × ℝ), carrier = {x | ∀ l ∈ Hrepr, (l.2 : ℝ) ≤ l.1 x})
 
 namespace polyhedron
 
@@ -25,7 +25,7 @@ end
 noncomputable def Hrepr (P : polyhedron E) : finset ((E →L[ℝ] ℝ) × ℝ) :=
 classical.some P.hcarrier
 
-lemma eq_Hrepr (P : polyhedron E) : (P : set E) = {x | ∀ l ∈ P.Hrepr, (l.1 x : ℝ) ≤ l.2} :=
+lemma eq_Hrepr (P : polyhedron E) : (P : set E) = {x | ∀ l ∈ P.Hrepr, (l.2 : ℝ) ≤ l.1 x} :=
 classical.some_spec P.hcarrier
 
 lemma convex (P : polyhedron E) : convex (P : set E) := sorry
@@ -39,26 +39,81 @@ lemma faces_finite {P : polyhedron E} : finite P.faces := sorry
 protected noncomputable def std_simplex (ι : Type*) [fintype ι] : polyhedron (ι → ℝ) :=
 { carrier := std_simplex ι,
   hcarrier := begin
-    sorry
+    let f : ι → ((ι → ℝ) →L[ℝ] ℝ) × ℝ := λ i, ⟨{ to_fun := λ x, x i,
+      map_add' := λ x y, rfl,
+      map_smul' := λ c x, rfl }, 0⟩,
+    let f₁ : (ι → ℝ) →L[ℝ] ℝ := { to_fun := λ x, ∑ (i : ι), x i,
+      map_add' := λ x y, sorry,
+      map_smul' := λ c x, sorry },
+    use (finset.image f finset.univ) ∪ {⟨f₁, 1⟩} ∪ {⟨-f₁, -1⟩},
+    rw std_simplex_eq_inter,
+    ext,
+    split,
+    { rintro ⟨hx, hx₁⟩ l hl,
+      simp at hl,
+      obtain ⟨i, hl⟩ | rfl | rfl := hl,
+      { rw ←hl,
+        simp only [mem_Inter] at hx,
+        exact hx i },
+      { exact ge_of_eq hx₁ },
+      simp only [neg_le_neg_iff, linear_map.coe_mk, continuous_linear_map.coe_mk',
+        continuous_linear_map.neg_apply],
+      exact le_of_eq hx₁ },
+    rintro hx,
+    apply mem_inter,
+    { simp only [mem_Inter],
+      intro i,
+      apply hx (f i),
+      apply finset.mem_union_left,
+      apply finset.mem_union_left,
+      apply finset.mem_image_of_mem,
+      exact finset.mem_univ i },
+    apply le_antisymm,
+    { rw ←neg_le_neg_iff,
+      apply hx ⟨-f₁, -1⟩,
+      apply finset.mem_union_right,
+      exact finset.mem_singleton_self _ },
+    apply hx ⟨f₁, 1⟩,
+    apply finset.mem_union_left,
+    apply finset.mem_union_right,
+    exact finset.mem_singleton_self _,
   end }
+
+protected lemma std_simplex_eq (ι : Type*) [fintype ι] :
+  (polyhedron.std_simplex ι : set (ι → ℝ)) = std_simplex ι :=
+rfl
 
 end polyhedron
 
 namespace continuous_linear_map
-variables {F : Type*} [normed_group F] [normed_space ℝ F] (l : E →L[ℝ] F)
+variables {F : Type*} [normed_group F] [normed_space ℝ F] (L : E →L[ℝ] F)
 
 def image_polyhedron (P : polyhedron E) : polyhedron F :=
-{ carrier := l '' P,
+{ carrier := L '' P,
   hcarrier := begin
-    have f : (E →L[ℝ] ℝ) × ℝ → (F →L[ℝ] ℝ) × ℝ,
-    {
-      rintro ⟨lr, r⟩,
-      split,
-      sorry,
-      sorry
-      --exact ⟨lr ∘ l, r⟩,
-    },
+    let f : (E →L[ℝ] ℝ) × ℝ → (F →L[ℝ] ℝ) × ℝ := λ l, ⟨begin
+      --have := l.1,
+      have := continuous_linear_map.comp _ L,
+      have : F → set E := λ x, this ⁻¹' {x},
+    end, l.2⟩,
     use finset.image f P.Hrepr,
+  end }
+
+lemma image_polyhedron_eq (P : polyhedron E) : (L.image_polyhedron P : set F) = L '' P := rfl
+
+def preimage_polyhedron (P : polyhedron F) : polyhedron E :=
+{ carrier := L ⁻¹' P,
+  hcarrier := begin
+    let f : (F →L[ℝ] ℝ) × ℝ → (E →L[ℝ] ℝ) × ℝ := λ l, ⟨l.1.comp L, l.2⟩,
+    use finset.image f P.Hrepr,
+    ext,
+    split,
+    {
+      rintro hx l hl,
+      rw mem_preimage at hx,
+      rw finset.mem_image at hl,
+      obtain ⟨l', hl', rfl⟩ := hl,
+    },
     sorry
   end }
 
@@ -189,13 +244,33 @@ def image_polytope (P : polytope E) : polytope F :=
 
 end linear_map
 
+lemma finset.convex_hull_eq_image {s : finset E} :
+  convex_hull (s : set E) = (⇑(∑ x : (s : set E),
+  (@linear_map.proj ℝ (s : set E) _ (λ i, ℝ) _ _ x).smul_right x.1)) '' (std_simplex (s : set E)) :=
+begin
+  have := (∑ x : (s : set E),
+  (@linear_map.proj ℝ (s : set E) _ (λ i, ℝ) _ _ x).smul_right x.1),
+  have := (∑ x : (s : set E),
+  (@continuous_linear_map.proj ℝ _ (s : set E) (λ i, ℝ) _ _ _ x).smul_right x.1),
+end
 
 namespace polytope
 
 protected def polyhedron (P : polytope E) : polyhedron E :=
 { carrier := P,
   hcarrier := begin
-    sorry
+    let Q :=
+continuous_linear_map.image_polyhedron (∑ x : (P.Vrepr : set E), (@continuous_linear_map.proj ℝ _
+  (P.Vrepr : set E) (λ i, ℝ) _ _ _ x).smul_right x.1) (polyhedron.std_simplex (P.Vrepr : set E)),
+  use Q.Hrepr,
+  rw [P.eq_convex_hull_Vrepr, finset.convex_hull_eq_image, ←Q.eq_Hrepr,
+    continuous_linear_map.image_polyhedron_eq, polyhedron.std_simplex_eq],
+  --have : ⇑(∑ (x : (P.Vrepr : set E)), (@linear_map.proj ℝ (P.Vrepr : set E) _ (λ i, ℝ) _ _ x).smul_right x.1) =
+  --  ⇑(∑ (x : (P.Vrepr : set E)), (@continuous_linear_map.proj ℝ _ (P.Vrepr : set E) (λ i, ℝ) _ _ _ x).smul_right x.1),
+  simp,
   end }
+
+lemma polyhedron_eq (P : polytope E) : (P.polyhedron : set E) = P :=
+rfl
 
 end polytope

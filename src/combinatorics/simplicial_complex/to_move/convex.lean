@@ -60,5 +60,14 @@ begin
   refl,
 end
 
+theorem convex_open_segment (a b : E) :
+convex (open_segment a b) :=
+begin
+  have : (λ (t : ℝ), a + t • (b - a)) = (λz : E, a + z) ∘ (λ t : ℝ, t • (b - a)) := rfl,
+  rw [open_segment_eq_image', this, image_comp],
+  refine ((convex_Ioo _ _).is_linear_image _).translate _,
+  exact is_linear_map.is_linear_map_smul' _,
+end
+
 --TODO: Generalise to LCTVS
 variables [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}

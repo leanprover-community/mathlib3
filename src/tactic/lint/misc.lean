@@ -258,6 +258,6 @@ meta def linter.check_type : linter :=
     "The statements of all declarations type-check with default reducibility settings",
   errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK.
 Some definitions in the statement are marked @[irreducible], which means that the statement is " ++
-"now ill-formed. It is likely that these definitions were locally marked @[reducible], and that " ++
-"type-class instances were applied that don't apply when the definitions are @[irreducible].",
+"now ill-formed. It is likely that these definitions were locally marked as @[reducible] or " ++
+"@[semireducible]. This can especially cause problems with type class inference or @[simps]",
   is_fast := tt }

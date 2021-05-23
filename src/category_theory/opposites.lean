@@ -264,8 +264,6 @@ end
 section
 variables {F G : Cᵒᵖ ⥤ D}
 
-local attribute [semireducible] quiver.opposite
-
 /--
 Given a natural transformation `α : F ⟶ G`, for `F G : Cᵒᵖ ⥤ D`,
 taking `op` of each component gives a natural transformation `G.right_op ⟶ F.right_op`.
@@ -275,8 +273,7 @@ taking `op` of each component gives a natural transformation `G.right_op ⟶ F.r
   naturality' := begin
     intros X Y f,
     dsimp,
-    erw α.naturality,
-    refl,
+    simp_rw [← op_comp, α.naturality]
   end }
 
 /--

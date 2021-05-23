@@ -93,15 +93,24 @@ instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
   ..with_one.mul_one_class }
 
+example [semigroup α] :
+  @monoid.to_mul_one_class _ (@with_one.monoid α _) = @with_one.mul_one_class α _ := rfl
+
 @[to_additive]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
 
+section
+-- workaround: we make `with_one`/`with_zero` irreducible for this definition, otherwise `simps`
+-- will unfold it in the statement of the lemma it generates.
+local attribute [irreducible] with_one with_zero
 /-- `coe` as a bundled morphism -/
 @[to_additive "`coe` as a bundled morphism", simps apply]
 def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
 { to_fun := coe, map_mul' := λ x y, rfl }
+
+end
 
 section lift
 

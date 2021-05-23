@@ -281,7 +281,7 @@
   title  : Sum of kth powers
   decls  :
     - sum_range_pow
-    - sum_range_pow'
+    - sum_Ico_pow
   author : mathlib (Moritz Firsching, Fabian Kruse, Ashvni Narayanan)
 78:
   title  : The Cauchy-Schwarz Inequality

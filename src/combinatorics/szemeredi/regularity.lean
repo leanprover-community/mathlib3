@@ -1,17 +1,21 @@
 import data.finset.basic
 import data.real.basic
 
+noncomputable_theory
 open_locale classical
 variables {V : Type*} {k n r : ℕ}
 
 def is_down_closed (G : finset V → Prop) : Prop :=
 ∀ x y : finset V, x ≤ y → G y → G x
 
+@[class]
 structure hypergraph (V : Type*) :=
-(edges : set (finset V))
+(edges' : set (finset V))
 
 namespace hypergraph
-variables (G : hypergraph V) {A B A' B' : finset V}
+variables [hypergraph V] {A B A' B' : finset V}
+
+def edges : set (finset V) := ‹hypergraph V›.edges'
 
 noncomputable def edges_pair (A B : finset V) : finset (V × V) :=
 (finset.product A B).filter (λ e, e.1 ≠ e.2 ∧ {e.1, e.2} ∈ G.edges)
@@ -20,9 +24,8 @@ lemma edges_pair_mono_left (hA : A' ⊆ A) (B : finset V) : G.edges_pair A' B �
 begin
   rintro e he,
   unfold edges_pair at ⊢ he,
-  rw finset.mem_filter at ⊢ he,
-  refine ⟨⟩
-  have := finset.m
+  rw [finset.mem_filter, finset.mem_product] at ⊢ he,
+  refine ⟨_, he.2.1, he.2.2⟩,
 end
 
 noncomputable def density_pair (A B : finset V) : ℝ := (G.edges_pair A B).card/(A.card * B.card)
@@ -31,6 +34,10 @@ noncomputable def density_diff (A B A' B' : finset V) : ℝ :=
 abs (G.density_pair A B - G.density_pair A' B')
 
 def uniform_pair (A B : finset V) (ε : ℝ) : Prop :=
+∀ A' ⊆ A, ε * A.card ≤ A'.card → ∀ B' ⊆ B, ε * B.card ≤ B'.card →
+  G.density_diff A B A' B' < ε
+
+def partition_index (A B : finset V) (ε : ℝ) : ℝ :=
 ∀ A' ⊆ A, ε * A.card ≤ A'.card → ∀ B' ⊆ B, ε * B.card ≤ B'.card →
   G.density_diff A B A' B' < ε
 

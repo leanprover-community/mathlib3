@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2020 Patrick Stevens. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Patrick Stevens, Bolton Bailey
+-/
+
 import data.nat.prime
 import data.finset.intervals
 import data.nat.multiplicity

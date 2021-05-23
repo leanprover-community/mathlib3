@@ -54,7 +54,7 @@
     - interval_integral.integral_eq_sub_of_has_deriv_right_of_le
   author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:
-  title  : Insolvability of General Higher Degree Equations
+  title  : Insolvability of General Higher Degree Equations (Abel-Ruffini Theorem)
   author: Thomas Browning
   links :
     mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/16_abel_ruffini.lean

@@ -29,7 +29,7 @@ variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : polynomial �
 
 lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
 begin
-  obtain ⟨x₀, hx₀⟩ := polynomial.exists_max_root P hP,
+  obtain ⟨x₀, hx₀⟩ := exists_max_root P hP,
   refine filter.eventually_at_top.mpr (⟨x₀ + 1, λ x hx h, _⟩),
   exact absurd (hx₀ x h) (not_le.mpr (lt_of_lt_of_le (lt_add_one x₀) hx)),
 end
@@ -161,7 +161,7 @@ lemma div_tendsto_zero_iff_degree_lt (hQ : Q ≠ 0) :
 begin
   refine ⟨λ h, _, div_tendsto_zero_of_degree_lt P Q⟩,
   by_cases hPQ : P.leading_coeff / Q.leading_coeff = 0,
-  { rw div_eq_zero_iff at hPQ,
+  { simp only [div_eq_mul_inv, inv_eq_zero, mul_eq_zero] at hPQ,
     cases hPQ with hP0 hQ0,
     { rw [leading_coeff_eq_zero.1 hP0, degree_zero],
       exact bot_lt_iff_ne_bot.2 (λ hQ', hQ (degree_eq_bot.1 hQ')) },

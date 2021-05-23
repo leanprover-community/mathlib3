@@ -1079,11 +1079,11 @@ lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
 mem_nhds_iff_exists_Ioo_subset' (no_bot a) (no_top a)
 
-lemma nhds_basis_Ioo' {a : α} (hl : ∃l, l < a) (hu : ∃u, a < u) :
+lemma nhds_basis_Ioo' {a : α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :
   (𝓝 a).has_basis (λ b : α × α, b.1 < a ∧ a < b.2) (λ b, Ioo b.1 b.2) :=
 ⟨λ s, (mem_nhds_iff_exists_Ioo_subset' hl hu).trans $ by simp⟩
 
-lemma nhds_basis_Ioo [no_top_order α] [no_bot_order α] {a : α} :
+lemma nhds_basis_Ioo [no_top_order α] [no_bot_order α] (a : α) :
   (𝓝 a).has_basis (λ b : α × α, b.1 < a ∧ a < b.2) (λ b, Ioo b.1 b.2) :=
 nhds_basis_Ioo' (no_bot a) (no_top a)
 
@@ -1563,6 +1563,48 @@ lemma filter.tendsto.abs {f : β → α} {a : α} {l : filter β} (h : tendsto f
   tendsto (λ x, |f x|) l (𝓝 (|a|)) :=
 (continuous_abs.tendsto _).comp h
 
+lemma nhds_basis_Ioo_pos [no_bot_order α] [no_top_order α] (a : α) :
+  (𝓝 a).has_basis (λ ε : α, (0 : α) < ε) (λ ε, Ioo (a-ε) (a+ε)) :=
+⟨begin
+  refine λ t, (nhds_basis_Ioo a).mem_iff.trans ⟨_, _⟩,
+  { rintros ⟨⟨l, u⟩, ⟨hl : l < a, hu : a < u⟩, h' : Ioo l u ⊆ t⟩,
+    refine ⟨min (a-l) (u-a), by apply lt_min; rwa sub_pos, _⟩,
+    rintros x ⟨hx, hx'⟩,
+    apply h',
+    rw [sub_lt, lt_min_iff, sub_lt_sub_iff_left] at hx,
+    rw [← sub_lt_iff_lt_add', lt_min_iff, sub_lt_sub_iff_right] at hx',
+    exact ⟨hx.1, hx'.2⟩ },
+  { rintros ⟨ε, ε_pos, h⟩,
+    exact ⟨(a-ε, a+ε), by simp [ε_pos], h⟩ },
+end⟩
+
+lemma nhds_basis_abs_sub_lt [no_bot_order α] [no_top_order α] (a : α) :
+  (𝓝 a).has_basis (λ ε : α, (0 : α) < ε) (λ ε, {b | abs (b - a) < ε}) :=
+begin
+  convert nhds_basis_Ioo_pos a,
+  { ext ε,
+    change abs (x - a) < ε ↔ a - ε < x ∧ x < a + ε,
+    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a] },
+end
+
+variable (α)
+
+lemma nhds_basis_zero_abs_sub_lt [no_bot_order α] [no_top_order α] :
+  (𝓝 (0 : α)).has_basis (λ ε : α, (0 : α) < ε) (λ ε, {b | abs b < ε}) :=
+by simpa using nhds_basis_abs_sub_lt (0 : α)
+
+variable {α}
+
+/-- If `a` is positive we can form a basis from only nonnegative `Ioo` intervals -/
+lemma nhds_basis_Ioo_pos_of_pos [no_bot_order α] [no_top_order α]
+  {a : α} (ha : 0 < a) :
+  (𝓝 a).has_basis (λ ε : α, (0 : α) < ε ∧ ε ≤ a) (λ ε, Ioo (a-ε) (a+ε)) :=
+⟨ λ t, (nhds_basis_Ioo_pos a).mem_iff.trans
+  ⟨λ h, let ⟨i, hi, hit⟩ := h in
+    ⟨min i a, ⟨lt_min hi ha, min_le_right i a⟩, trans (Ioo_subset_Ioo
+    (sub_le_sub_left (min_le_left i a) a) (add_le_add_left (min_le_left i a) a)) hit⟩,
+  λ h, let ⟨i, hi, hit⟩ := h in ⟨i, hi.1, hit⟩ ⟩ ⟩
+
 section
 
 variables [topological_space β] {b : β} {a : α} {s : set β}
@@ -1617,96 +1659,24 @@ section linear_ordered_field
 variables [linear_ordered_field α] [topological_space α] [order_topology α]
 variables {l : filter β} {f g : β → α}
 
-lemma mem_nhds_iff_exists_pos_Ioo_subset {a : α} {s : set α} (ha : 0 < a):
-  s ∈ 𝓝 a ↔ ∃ l u, 0 < l ∧ a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
-begin
-  refine iff.trans (mem_nhds_iff_exists_Ioo_subset) ⟨_, _⟩,
-  { rintro ⟨l, u, hlu⟩,
-    obtain ⟨m, hm⟩ := exists_between (ha : (0 : α) < a),
-    exact ⟨max m l, u, lt_max_iff.mpr (or.inl hm.1), ⟨max_lt hm.2 hlu.1.1, hlu.1.2⟩,
-      set.subset.trans (set.Ioo_subset_Ioo (le_max_right m l) le_rfl) hlu.2⟩ },
-  { rintro ⟨l, u, hl, hlu⟩,
-    exact ⟨l, u, hlu⟩ }
-end
-
 section continuous_mul
-
-/-- See `mul_tendsto_nhds_zero_right` for a general form of this lemma -/
-private lemma mul_tendsto_nhds_zero_right_of_neg {x : α} (hx : x < 0) :
-  tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 x) $ 𝓝 0 :=
-begin
-  intros s hs,
-  rw [mem_map, ← nhds_prod_eq, mem_nhds_prod_iff],
-  obtain ⟨l, u, ⟨hl, hu⟩, hlu⟩ := mem_nhds_iff_exists_Ioo_subset.1 hs,
-  obtain ⟨ε, hε⟩ := exists_between hx,
-  have hxε : x + ε < 0 := add_neg hx hε.2,
-  refine ⟨set.Ioo (u / (x + ε)) (l / (x + ε)),
-    Ioo_mem_nhds (div_neg_iff.mpr (or.inl ⟨hu, hxε⟩)) (div_pos_iff.2 (or.inr ⟨hl, hxε⟩)),
-    set.Ioo (x + ε) (x - ε), Ioo_mem_nhds (by linarith) (by linarith),
-    λ y hy, hlu ⟨_, _⟩⟩,
-  { by_cases hy0 : y.1 ≤ 0,
-    exact lt_of_lt_of_le hl (mul_nonneg_iff.2
-      (or.inr ⟨hy0, le_of_lt (lt_trans hy.2.2 (sub_lt_zero.2 hε.1))⟩)),
-    exact lt_trans ((lt_div_iff_of_neg hxε).1 hy.1.2)
-      (mul_lt_mul_of_pos_left hy.2.1 (not_le.1 hy0)) },
-  { by_cases hy0 : y.1 < 0,
-    exact lt_trans (mul_lt_mul_of_neg_left hy.2.1 hy0) ((div_lt_iff_of_neg hxε).1 hy.1.1),
-    exact lt_of_le_of_lt (mul_nonpos_iff.2 (or.inl ⟨not_lt.1 hy0,
-      le_of_lt (lt_trans hy.2.2 (sub_lt_zero.2 hε.1))⟩)) hu }
-end
-
-/-- See `mul_tendsto_nhds_zero_right` for a general form of this lemma -/
-private lemma mul_tendsto_nhds_zero_right_of_pos {x : α} (hx : 0 < x) :
-  tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 x) $ 𝓝 0 :=
-begin
-  intros s hs,
-  rw [mem_map, ← nhds_prod_eq, mem_nhds_prod_iff],
-  obtain ⟨l, u, ⟨hl, hu⟩, hlu⟩ := mem_nhds_iff_exists_Ioo_subset.1 hs,
-  obtain ⟨ε, hε⟩ := exists_between hx,
-  have hxε : 0 < x + ε := add_pos hx hε.1,
-  refine ⟨set.Ioo (l / (x + ε)) (u / (x + ε)),
-    Ioo_mem_nhds (div_neg_iff.2 (or.inr ⟨hl, hxε⟩)) (div_pos hu hxε),
-    set.Ioo (x - ε) (x + ε), Ioo_mem_nhds (by linarith) (by linarith),
-    λ y hy, hlu ⟨_, _⟩⟩,
-  { by_cases hy0 : y.1 < 0,
-    exact lt_trans ((div_lt_iff hxε).1 hy.1.1)
-      (mul_lt_mul_of_neg_left hy.2.2 hy0),
-    exact lt_of_lt_of_le hl (mul_nonneg (not_lt.mp hy0)
-      (le_trans (sub_nonneg.2 (le_of_lt hε.2)) (le_of_lt hy.2.1))) },
-  { by_cases hy0 : 0 ≤ y.1,
-    exact (div_mul_cancel u (ne.symm (ne_of_lt (hxε)))) ▸
-      mul_lt_mul'' hy.1.2 hy.2.2 hy0 (le_trans (sub_nonneg.2 (le_of_lt hε.2)) (le_of_lt hy.2.1)),
-    exact lt_trans (mul_neg_iff.2 (or.inr ⟨not_le.1 hy0, lt_trans (sub_pos.2 hε.2) hy.2.1⟩)) hu }
-end
-
-/-- See `mul_tendsto_nhds_zero_right` for a general form of this lemma -/
-private lemma mul_tendsto_nhds_zero_zero :
-  tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 0) $ 𝓝 0 :=
-begin
-  intros s hs,
-  rw [mem_map, ← nhds_prod_eq, mem_nhds_prod_iff],
-  obtain ⟨l, u, ⟨hl, hu⟩, hlu⟩ := mem_nhds_iff_exists_Ioo_subset.1 hs,
-  let ε := min (-l) u,
-  have hε : 0 < ε := lt_min (lt_neg.1 (lt_of_lt_of_le hl (le_of_eq neg_zero.symm))) hu,
-  have hεs : set.Ioo (-ε) ε ⊆ s := set.subset.trans
-    (set.Ioo_subset_Ioo (le_neg.1 (min_le_left (-l) u)) (min_le_right (-l) u)) hlu,
-  refine ⟨set.Ioo (-1) 1, Ioo_mem_nhds (by linarith) (zero_lt_one),
-    set.Ioo (-ε) ε, Ioo_mem_nhds (by linarith only [hε]) hε, λ y hy, hεs _⟩,
-  have : abs (y.fst * y.snd) < ε,
-  { rw [abs_mul, ← one_mul ε],
-    exact mul_lt_mul'' (max_lt hy.1.2 (neg_lt.2 hy.1.1)) (max_lt hy.2.2 (neg_lt.2 hy.2.1))
-      (abs_nonneg y.1) (abs_nonneg y.2) },
-  exact ⟨neg_lt_of_abs_lt this, lt_of_le_of_lt (le_abs_self _) this⟩,
-end
 
 lemma mul_tendsto_nhds_zero_right (x : α) :
   tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 x) $ 𝓝 0 :=
 begin
-  by_cases hx : x < 0,
-  { exact mul_tendsto_nhds_zero_right_of_neg hx },
-  { by_cases hx0 : 0 = x,
-    { exact hx0 ▸ mul_tendsto_nhds_zero_zero },
-    { exact mul_tendsto_nhds_zero_right_of_pos (lt_of_le_of_ne (not_lt.1 hx) hx0) } }
+  have hx : 0 < 2 * (1 + abs x) := (mul_pos (zero_lt_two) $
+    lt_of_lt_of_le zero_lt_one $ le_add_of_le_of_nonneg le_rfl (abs_nonneg x)),
+  rw ((nhds_basis_zero_abs_sub_lt α).prod $ nhds_basis_abs_sub_lt x).tendsto_iff
+     (nhds_basis_zero_abs_sub_lt α),
+  refine λ ε ε_pos, ⟨(ε/(2 * (1 + abs x)), 1), ⟨div_pos ε_pos hx, zero_lt_one⟩, _⟩,
+  suffices : ∀ (a b : α), abs a < ε / (2 * (1 + abs x)) → abs (b - x) < 1 → (abs a) * (abs b) < ε,
+  by simpa only [and_imp, prod.forall, mem_prod, ← abs_mul],
+  intros a b h h',
+  refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left _ (abs_nonneg a)) ((lt_div_iff hx).1 h),
+  calc abs b = abs ((b - x) + x) : by rw sub_add_cancel b x
+    ... ≤ abs (b - x) + abs x : abs_add (b - x) x
+    ... ≤ 1 + abs x : add_le_add_right (le_of_lt h') (abs x)
+    ... ≤ 2 * (1 + abs x) : by linarith,
 end
 
 lemma mul_tendsto_nhds_zero_left (x : α) :
@@ -1723,28 +1693,29 @@ end
 lemma nhds_eq_map_mul_left_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
   𝓝 x₀ = map (λ x, x₀*x) (𝓝 1) :=
 begin
-  refine filter.ext (λ s, _),
-  simp only [filter.mem_map, mem_nhds_iff_exists_Ioo_subset],
-  refine ⟨λ hs, _, λ hs, _⟩,
-  { obtain ⟨l, u, hlu, hlus⟩ := hs,
-    by_cases hx : x₀ > 0,
-    { refine ⟨l / x₀, u / x₀, ⟨(div_lt_one hx).2 hlu.1, (one_lt_div hx).2 hlu.2⟩,
-        λ y hy, hlus ⟨(div_lt_iff' hx).1 hy.1, (lt_div_iff' hx).1 hy.2⟩⟩ },
-    { replace hx : x₀ < 0 := lt_of_le_of_ne (not_lt.1 hx) hx₀,
-      refine ⟨u / x₀, l / x₀, ⟨(div_lt_one_of_neg hx).2 hlu.2, (one_lt_div_of_neg hx).2 hlu.1⟩,
-        λ y hy, hlus ⟨(lt_div_iff_of_neg' hx).1 hy.2, (div_lt_iff_of_neg' hx).1 hy.1⟩⟩ } },
-  { obtain ⟨l, u, hlu, hlus⟩ := hs,
-    by_cases hx : x₀ > 0,
-    { refine ⟨x₀ * l, x₀ * u, ⟨_, _⟩, λ y hy, _⟩,
-      exact lt_of_lt_of_le (mul_lt_mul_of_pos_left hlu.1 hx) (le_of_eq (mul_one x₀)),
-      exact lt_of_le_of_lt (le_of_eq (mul_one x₀).symm) (mul_lt_mul' le_rfl hlu.2 zero_le_one hx),
-      exact (mul_div_cancel' y hx₀) ▸ hlus ⟨(lt_div_iff' hx).2 hy.1, (div_lt_iff' hx).2 hy.2⟩ },
-    { replace hx : x₀ < 0 := lt_of_le_of_ne (not_lt.1 hx) hx₀,
-      refine ⟨x₀ * u, x₀ * l, ⟨_, _⟩, λ y hy, _⟩,
-      exact lt_of_lt_of_le (mul_lt_mul_of_neg_left hlu.2 hx) (le_of_eq (mul_one x₀)),
-      exact lt_of_le_of_lt (le_of_eq (mul_one x₀).symm) (mul_lt_mul_of_neg_left hlu.1 hx),
-      exact (mul_div_cancel' y hx₀) ▸ hlus ⟨(lt_div_iff_of_neg' hx).2 hy.2,
-        (div_lt_iff_of_neg' hx).2 hy.1⟩ } },
+  have hx₀' : 0 < abs x₀ := abs_pos.2 hx₀,
+  refine filter.ext (λ t, _),
+  simp only [exists_prop, set_of_subset_set_of, (nhds_basis_abs_sub_lt x₀).mem_iff,
+    (nhds_basis_abs_sub_lt (1 : α)).mem_iff, filter.mem_map],
+  refine ⟨λ h, _, λ h, _⟩,
+  { obtain ⟨i, hi, hit⟩ := h,
+    refine ⟨i / (abs x₀), div_pos hi (abs_pos.2 hx₀), λ x hx, hit _⟩,
+    calc abs (x₀ * x - x₀) = abs (x₀ * (x - 1)) : congr_arg abs (by ring_nf)
+      ... = abs x₀ * abs (x - 1) : abs_mul x₀ (x - 1)
+      ... < abs x₀ * (i / abs x₀) : mul_lt_mul' le_rfl hx (abs_nonneg (x - 1)) (abs_pos.2 hx₀)
+      ... = abs x₀ * i / abs x₀ : by ring
+      ... = i : mul_div_cancel_left i (λ h, hx₀ (abs_eq_zero.1 h)) },
+  { obtain ⟨i, hi, hit⟩ := h,
+    refine ⟨i * (abs x₀), mul_pos hi (abs_pos.2 hx₀), λ x hx, _⟩,
+    have : abs (x / x₀ - 1) < i,
+    calc abs (x / x₀ - 1) = abs (x / x₀ - x₀ / x₀) : (by rw div_self hx₀)
+    ... = abs ((x - x₀) / x₀) : congr_arg abs (sub_div x x₀ x₀).symm
+    ... = abs (x - x₀) / abs x₀ : abs_div (x - x₀) x₀
+    ... < i * abs x₀ / abs x₀ : div_lt_div hx le_rfl
+      (mul_nonneg (le_of_lt hi) (abs_nonneg x₀)) (abs_pos.2 hx₀)
+    ... = i : by rw [← mul_div_assoc', div_self (ne_of_lt $ abs_pos.2 hx₀).symm, mul_one],
+    specialize hit (x / x₀) this,
+    rwa [mul_div_assoc', mul_div_cancel_left x hx₀] at hit }
 end
 
 lemma nhds_eq_map_mul_right_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
@@ -1754,21 +1725,27 @@ by simp_rw [mul_comm _ x₀, nhds_eq_map_mul_left_nhds_one hx₀]
 lemma mul_tendsto_nhds_one_nhds_one :
   tendsto (uncurry ((*) : α → α → α)) (𝓝 1 ×ᶠ 𝓝 1) $ 𝓝 1 :=
 begin
-  intros s hs,
-  obtain ⟨l, u, hl0, hlu, hlus⟩ :=
-    (mem_nhds_iff_exists_pos_Ioo_subset (zero_lt_one : (0 : α) < 1)).mp hs,
-  obtain ⟨l', hl'⟩ := exists_between hlu.1,
-  have hl0' : 0 < l' := lt_trans hl0 hl'.1,
-  obtain ⟨u', hu'⟩ := exists_between hlu.2,
-  have hu0' : 0 < u' := lt_trans zero_lt_one hu'.1,
-  rw [filter.mem_map, filter.mem_prod_iff],
-  refine ⟨set.Ioo l' u', Ioo_mem_nhds hl'.2 hu'.1, set.Ioo (l / l') (u / u'),
-    Ioo_mem_nhds ((div_lt_one hl0').mpr hl'.1) ((one_lt_div hu0').mpr hu'.2), λ y hy, hlus ⟨_, _⟩⟩,
-  exact (mul_div_cancel' l (ne.symm (ne_of_lt hl0'))) ▸
-    mul_lt_mul'' hy.1.1 hy.2.1 (le_of_lt hl0') (div_nonneg (le_of_lt hl0) (le_of_lt hl0')),
-  exact (mul_div_cancel' u (ne.symm (ne_of_lt (lt_trans zero_lt_one hu'.1)))) ▸
-    mul_lt_mul'' hy.1.2 hy.2.2 (le_of_lt (lt_trans hl0' hy.1.1))
-    (le_of_lt (lt_trans (div_pos (hl0) (hl0')) hy.2.1)),
+  rw ((nhds_basis_Ioo_pos (1 : α)).prod $ nhds_basis_Ioo_pos (1 : α)).tendsto_iff
+     (nhds_basis_Ioo_pos_of_pos (zero_lt_one : (0 : α) < 1)),
+  intros ε hε,
+  have hε' : 0 ≤ 1 - ε / 4 := by linarith,
+  have ε_pos : 0 < ε / 4 := by linarith,
+  have ε_pos' : 0 < ε / 2 := by linarith,
+  simp only [and_imp, prod.forall, mem_Ioo, function.uncurry_apply_pair, mem_prod, prod.exists],
+  refine ⟨ε/4, ε/4, ⟨ε_pos, ε_pos⟩, λ a b ha ha' hb hb', _⟩,
+  have ha0 : 0 ≤ a := le_trans hε' (le_of_lt ha),
+  have hb0 : 0 ≤ b := le_trans hε' (le_of_lt hb),
+  refine ⟨lt_of_le_of_lt _ (mul_lt_mul'' ha hb hε' hε'),
+    lt_of_lt_of_le (mul_lt_mul'' ha' hb' ha0 hb0) _⟩,
+  { calc 1 - ε = 1 - ε / 2 - ε/2 : by ring_nf
+    ... ≤ 1 - ε/2 - ε/2 + (ε/2)*(ε/2) : le_add_of_nonneg_right (le_of_lt (mul_pos ε_pos' ε_pos'))
+    ... = (1 - ε/2) * (1 - ε/2) : by ring_nf
+    ... ≤ (1 - ε/4) * (1 - ε/4) : mul_le_mul (by linarith) (by linarith) (by linarith) hε' },
+  { calc (1 + ε/4) * (1 + ε/4) = 1 + ε/2 + (ε/4)*(ε/4) : by ring_nf
+    ... = 1 + ε/2 + (ε * ε) / 16 : by ring_nf
+    ... ≤ 1 + ε/2 + ε/2 : add_le_add_left (div_le_div (le_of_lt hε.1) (le_trans
+      ((mul_le_mul_left hε.1).2 hε.2) (le_of_eq $ mul_one ε)) zero_lt_two (by linarith)) (1 + ε/2)
+    ... ≤ 1 + ε : by ring_nf }
 end
 
 @[priority 100]

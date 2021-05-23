@@ -245,25 +245,6 @@ begin
   ...    ≤ 2 * n : nat.mul_le_mul_left _ (nat.mod_le n _),
 end
 
-/--
-"The mean of a bounded list is less than or equal to the bound".
--/
--- lemma mean_le_biggest {A B : Type*} [decidable_eq A] [ordered_semiring B]
---   (f : A → B) {m : B} (s : finset A) (bound : ∀ x ∈ s, f x ≤ m) : ∑ i in s, f i ≤ s.card * m :=
--- begin
---   rw ← @smul_eq_mul B _ s.card m,
---   rw ← @finset.sum_const _ _ s _ m,
---   apply finset.sum_le_sum bound,
--- end
-
--- lemma choose_le_middle_2 (r n : ℕ) : nat.choose (2 * n) r ≤ nat.choose (2 * n) n :=
--- begin
---   have s : (2 * n) / 2 = n, by exact nat.mul_div_cancel_left n (by linarith),
---   simpa [] using (@choose_le_middle r (2 * n)),
--- end
-
-/-
-
 /-
 Then:
 4^n ≤ 2nCn * (2 * n + 1) (by choose_halfway_is_big)
@@ -286,11 +267,14 @@ so 4^(n/3) ≤ (2n)^(sqrt 2n) (2n+1)
 and this is Clearly False for sufficiently large n.
 -/
 
--/
-
 lemma two_n_div_3_le_two_mul_n_choose_n (n : ℕ) : 2 * n / 3 < (2 * n).choose n :=
 begin
-  sorry
+  cases n,
+  { simp only [nat.succ_pos', nat.choose_self, nat.zero_div, mul_zero], },
+  calc 2 * (n + 1) / 3 < 2 * (n + 1): nat.div_lt_self (by norm_num) (by norm_num)
+  ... = (2 * (n + 1)).choose(1): by norm_num
+  ... ≤ (2 * (n + 1)).choose(2 * (n + 1) / 2): nat.choose_le_middle 1 (2 * (n + 1))
+  ... = (2 * (n + 1)).choose(n + 1): by simp only [nat.succ_pos', nat.mul_div_right]
 end
 
 lemma not_pos_iff_zero (n : ℕ) : ¬ 0 < n ↔ n = 0 :=
@@ -304,7 +288,21 @@ lemma alskjhads (n x : ℕ): 2 * n / 3 + 1 ≤ x -> 2 * n < 3 * x :=
 begin
   intro h,
   rw nat.add_one_le_iff at h,
-  sorry
+  cases lt_or_ge (2 * n) (3 * x),
+  { exact h_1, },
+  { exfalso,
+    simp only [ge_iff_le] at h_1,
+    induction x,
+    { simp at h, exact h, },
+    { apply x_ih,
+      cases lt_or_ge (2 * n / 3) x_n,
+      { exact h_2, },
+      { have r : 2 * n / 3 = x_n, by omega,
+        exfalso,
+        subst r,
+        exact nat.lt_le_antisymm (nat.lt_mul_div_succ (2 * n) (by norm_num)) h_1, },
+      { calc 3 * x_n ≤ 3 * (x_n + 1): by norm_num
+        ... ≤ 2 * n: h_1, }, }, },
 end
 
 lemma central_binom_factorization (n : ℕ) :
@@ -327,6 +325,79 @@ begin
   { exfalso,
     simp only [ge_iff_le, le_zero_iff] at h,
     exact e h, },
+end
+
+lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=
+begin
+  ext1,
+  simp only [finset.mem_filter],
+  exact and_assoc (a ∈ S) (g a),
+end
+
+lemma interchange_and_in_filter {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : S.filter (λ i, g i ∧ f i) = S.filter (λ i, f i ∧ g i) :=
+begin
+  ext1,
+  simp only [finset.mem_filter, and.congr_right_iff],
+  intros _,
+  exact and.comm,
+end
+
+lemma intervening_sqrt {a n : ℕ} (small : (nat.sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n) : a = nat.sqrt n :=
+begin
+  rcases lt_trichotomy a (nat.sqrt n) with H|rfl|H,
+  { exfalso,
+    have bad : a ^ 2 < a ^ 2, by
+      calc a ^ 2 = a * a: by ring
+      ... < (nat.sqrt n) * nat.sqrt n : nat.mul_self_lt_mul_self H
+      ... = (nat.sqrt n) ^ 2: by ring
+      ... ≤ a ^ 2 : small,
+    exact nat.lt_asymm bad bad, },
+  { refl, },
+  { exfalso,
+    sorry, }
+end
+
+lemma sqrt_iff_le (a n : ℕ) : a ^ 2 ≤ n ↔ a ≤ nat.sqrt n :=
+begin
+  split,
+  { intros h,
+    cases le_or_gt a (nat.sqrt n),
+    { exact h_1, },
+    { exfalso,
+      simp only [gt_iff_lt] at h_1,
+      have small : (nat.sqrt n) ^ 2 < a ^ 2, by
+        calc (nat.sqrt n) ^ 2 = nat.sqrt n * nat.sqrt n: by ring
+        ... < a * a: nat.mul_self_lt_mul_self h_1
+        ... = a ^ 2: by ring,
+      have e: a = nat.sqrt n := intervening_sqrt (le_of_lt small) h,
+      rw e at small,
+      exact nat.lt_asymm small small, }, },
+  { intros h,
+    calc a ^ 2
+        = a * a: by ring
+        ... ≤ nat.sqrt n * nat.sqrt n: mul_le_mul' h h
+        ... ≤ n: nat.sqrt_le n, },
+end
+
+lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop} [_inst : decidable_pred f][_inst : decidable_pred g] : ((S.filter g).filter f).card ≤ (S.filter f).card :=
+begin
+  calc ((S.filter g).filter f).card = (S.filter (λ i, g i ∧ f i)).card: congr_arg finset.card interchange_filters
+  ... = (S.filter (λ i, f i ∧ g i)).card: congr_arg finset.card interchange_and_in_filter
+  ... = ((S.filter f).filter g).card: congr_arg finset.card interchange_filters.symm
+  ... ≤ (S.filter f).card: (finset.filter f S).card_filter_le g,
+end
+
+lemma filter_size {S : finset ℕ} {a : ℕ} : (finset.filter (λ p, p < a) S).card ≤ a :=
+begin
+  have t : ∀ i, i ∈ (S.filter (λ p, p < a)) → i ∈ finset.range(a),
+    { intros i hyp,
+      simp only [finset.mem_filter] at hyp,
+      simp only [finset.mem_range],
+      exact hyp.2, },
+  have r: S.filter (λ p, p < a) ⊆ finset.range(a) := finset.subset_iff.mpr t,
+  have s: (S.filter (λ p, p < a)).card ≤ (finset.range(a)).card := finset.card_le_of_subset r,
+  simp only [finset.card_range] at s,
+  exact s,
 end
 
 lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
@@ -413,6 +484,38 @@ begin
                             (finset.range (2 * n / 3 + 1))),
                    p ^ (padic_val_nat p ((2 * n).choose n)))
                      : by simp only [not_le, finset.filter_congr_decidable]
+      ...     ≤ (∏ p in finset.filter (λ p, p ^ 2 ≤ 2 * n)
+                          (finset.filter nat.prime
+                            (finset.range (2 * n / 3 + 1))),
+                   2 * n)
+                 *
+                (∏ p in finset.filter (λ p, (2 * n) < p ^ 2)
+                          (finset.filter nat.prime
+                            (finset.range (2 * n / 3 + 1))),
+                   p ^ (padic_val_nat p ((2 * n).choose n)))
+                     : begin
+                       refine (nat.mul_le_mul_right _ _),
+                       refine finset.prod_le_prod'' _,
+                       intros i hyp,
+                       simp only [finset.mem_filter, finset.mem_range] at hyp,
+                       exact @claim_1 i (fact_iff.2 hyp.1.2) n (by linarith),
+                     end
+      ...     = (2 * n) ^ finset.card (finset.filter (λ p, p ^ 2 ≤ 2 * n)
+                                        (finset.filter nat.prime (finset.range (2 * n / 3 + 1))))
+                *
+                (∏ p in finset.filter (λ p, (2 * n) < p ^ 2)
+                          (finset.filter nat.prime
+                            (finset.range (2 * n / 3 + 1))),
+                   p ^ (padic_val_nat p ((2 * n).choose n)))
+                   : by simp only [finset.prod_const]
+      ...     = (2 * n) ^ finset.card (finset.filter (λ p, p ^ 2 < 2 * n)
+                                        (finset.filter nat.prime (finset.range (2 * n / 3 + 1))))
+                *
+                (∏ p in finset.filter (λ p, (2 * n) < p ^ 2)
+                          (finset.filter nat.prime
+                            (finset.range (2 * n / 3 + 1))),
+                   p ^ (padic_val_nat p ((2 * n).choose n)))
+                   : sorry
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *
                 (∏ p in finset.filter (λ p, (2 * n) < p ^ 2)
@@ -421,8 +524,16 @@ begin
                    p ^ (padic_val_nat p ((2 * n).choose n)))
                      : begin
                        refine (nat.mul_le_mul_right _ _),
-                        -- TODO: do we need to add one to the nat.sqrt(2*n)?
-                        sorry,
+                       refine pow_le_pow (by linarith) _,
+                       calc (finset.filter (λ p, p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card
+                           ≤ (finset.filter (λ p, p ^ 2 < 2 * n) (finset.range (2 * n / 3 + 1))).card: filter_filter_card_le_filter_card
+                           ... = (finset.filter (λ p, p < nat.sqrt (2 * n)) (finset.range (2 * n / 3 + 1))).card: congr_arg finset.card (by{
+                              ext1,
+                              simp only [finset.mem_filter, finset.mem_range, and.congr_right_iff],
+                              intros _,
+                              sorry,
+                              })
+                           ... ≤ nat.sqrt (2 * n): @filter_size _ (nat.sqrt (2 * n)),
                      end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *

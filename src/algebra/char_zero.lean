@@ -184,3 +184,17 @@ instance {R : Type*} [add_monoid R] [has_one R] [char_zero R] : char_zero (with_
 { cast_injective := λ m n h, by rwa [← coe_nat, ← coe_nat n, coe_eq_coe, nat.cast_inj] at h }
 
 end with_top
+
+section ring_hom
+
+variables {R S : Type*} [semiring R] [semiring S]
+
+lemma ring_hom.char_zero (ϕ : R →+* S) [hS : char_zero S] : char_zero R :=
+⟨λ a b h, char_zero.cast_injective (by rw [←ϕ.map_nat_cast, ←ϕ.map_nat_cast, h])⟩
+
+lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) :
+  char_zero R ↔ char_zero S :=
+⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, ϕ.map_nat_cast, ϕ.map_nat_cast]⟩,
+  λ hS, by exactI ϕ.char_zero⟩
+
+end ring_hom

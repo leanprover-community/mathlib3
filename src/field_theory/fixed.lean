@@ -9,7 +9,6 @@ import deprecated.subfield
 import field_theory.normal
 import field_theory.separable
 import field_theory.tower
-import linear_algebra.matrix
 import ring_theory.polynomial
 
 /-!
@@ -43,7 +42,7 @@ instance fixed_by.is_subfield : is_subfield (fixed_by G F g) :=
   neg_mem := λ x hx, (smul_neg g x).trans $ congr_arg _ hx,
   one_mem := smul_one g,
   mul_mem := λ x y hx hy, (smul_mul' g x y).trans $ congr_arg2 _ hx hy,
-  inv_mem := λ x hx, (smul_inv F g x).trans $ congr_arg _ hx }
+  inv_mem := λ x hx, (smul_inv' F g x).trans $ congr_arg _ hx }
 
 namespace fixed_points
 
@@ -205,7 +204,7 @@ begin
 end
 
 instance : finite_dimensional (fixed_points G F) F :=
-finite_dimensional.finite_dimensional_iff_dim_lt_omega.2 $
+is_noetherian.iff_dim_lt_omega.2 $
 lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
 
 lemma finrank_le_card : finrank (fixed_points G F) F ≤ fintype.card G :=

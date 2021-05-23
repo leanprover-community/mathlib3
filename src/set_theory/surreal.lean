@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.pgame
+import set_theory.game
 
 /-!
 # Surreal numbers
@@ -29,9 +29,6 @@ At this point, we have defined addition and negation (from pregames), and shown 
 an additive semigroup. It would be very little work to finish showing that the surreals form an
 ordered commutative group.
 
-We define the operations of multiplication and inverse on surreals, but do not yet establish any of
-the necessary properties to show the surreals form an ordered field.
-
 ## Embeddings
 It would be nice projects to define the group homomorphism `surreal → game`, and also `ℤ → surreal`,
 and then the homomorphic inclusion of the dyadic rationals into surreals, and finally
@@ -45,186 +42,9 @@ One can also map all the ordinals into the surreals!
 
 universes u
 
+local infix ` ≈ ` := pgame.equiv
+
 namespace pgame
-
-/-! Multiplicative operations can be defined at the level of pre-games, but as
-they are only useful on surreal numbers, we define them here. -/
-
-/-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
-def mul (x y : pgame) : pgame :=
-begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
-  induction y with yl yr yL yR IHyl IHyr,
-  have y := mk yl yr yL yR,
-  refine ⟨xl × yl ⊕ xr × yr, xl × yr ⊕ xr × yl, _, _⟩; rintro (⟨i, j⟩ | ⟨i, j⟩),
-  { exact IHxl i y + IHyl j - IHxl i (yL j) },
-  { exact IHxr i y + IHyr j - IHxr i (yR j) },
-  { exact IHxl i y + IHyr j - IHxl i (yR j) },
-  { exact IHxr i y + IHyl j - IHxr i (yL j) }
-end
-
-instance : has_mul pgame := ⟨mul⟩
-
-/-- An explicit description of the moves for Left in `x * y`. -/
-def left_moves_mul (x y : pgame) : (x * y).left_moves
-  ≃ x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves :=
-by { cases x, cases y, refl, }
-
-/-- An explicit description of the moves for Right in `x * y`. -/
-def right_moves_mul (x y : pgame) : (x * y).right_moves
-  ≃ x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves :=
-by { cases x, cases y, refl, }
-
-@[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
-  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
- rfl
-
-@[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
-   (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i, j)))
-   = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
-by {cases x, cases y, refl}
-
-@[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j))
-  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j :=
-rfl
-
-@[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
-   (x * y).move_left ((left_moves_mul x y).symm (sum.inr (i, j)))
-   = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
-by {cases x, cases y, refl}
-
-@[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j))
-  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j :=
-rfl
-
-@[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
-   (x * y).move_right ((right_moves_mul x y).symm (sum.inl (i, j)))
-   = x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
-by {cases x, cases y, refl}
-
-@[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
-  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
-rfl
-
-@[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
-   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i, j)))
-   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
-by {cases x, cases y, refl}
-
-/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
-and `c` has the same moves as `z`, then `a + b - c` has the same moves as `x + y - z`.
-This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-def add_sub_relabelling {a b c x y z : pgame}
-  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
-  (a + b - c).relabelling (x + y - z) :=
-(h₁.add_congr h₂).sub_congr h₃
-
-/-- If `a` has the same moves as `x`, `b` has the same moves as `y`,
-and `c` has the same moves as `z`, then `a + b - c` has the same moves as `y + x - z`.
-This lemma is repeatedly used for simplifying multiplication of surreal numbers. -/
-def add_comm_sub_relabelling {a b c x y z : pgame}
-  (h₁ : a.relabelling x) (h₂ : b.relabelling y) (h₃ : c.relabelling z) :
-  (a + b - c).relabelling (y + x - z) :=
-((add_comm_relabelling a b).trans (h₂.add_congr h₁)).sub_congr h₃
-
-/-- `x * y` has exactly the same moves as `y * x`. -/
-def mul_comm_relabelling (x y : pgame.{u}) : (x * y).relabelling (y * x) :=
-begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
-  induction y with yl yr yL yR IHyl IHyr,
-  let x := mk xl xr xL xR,
-  let y := mk yl yr yL yR,
-  refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _), _, _, _⟩,
-  calc
-   (x * y).right_moves
-       ≃ xl × yr ⊕ xr × yl : by refl
-   ... ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
-   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)
-   ... ≃ (y * x).right_moves : by refl,
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { exact add_comm_sub_relabelling (IHxl i y) (IHyl j) (IHxl i (yL j)) },
-    { exact add_comm_sub_relabelling (IHxr i y) (IHyr j) (IHxr i (yR j)) }},
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { exact add_comm_sub_relabelling (IHxr j y) (IHyl i) (IHxr j (yL i)) },
-    { exact add_comm_sub_relabelling (IHxl j y) (IHyr i) (IHxl j (yR i)) }}
-end
-
-/-- `x * y` is equivalent to `y * x`. -/
-theorem mul_comm_equiv (x y : pgame) : (x * y).equiv (y * x) :=
-(mul_comm_relabelling x y).equiv
-
-/-- `x * 0` has exactly the same moves as `0`. -/
-def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
-| (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro ⟨⟩⟩
-
-/-- `x * 0` is equivalent to `0`. -/
-theorem mul_zero_equiv (x : pgame) : (x * 0).equiv 0 :=
-(mul_zero_relabelling x).equiv
-
-/-- `0 * x` has exactly the same moves as `0`. -/
-def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
-| (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro ⟨⟩⟩
-
-/-- `0 * x` is equivalent to `0`. -/
-theorem zero_mul_equiv (x : pgame) : (0 * x).equiv 0 :=
-(zero_mul_relabelling x).equiv
-
-/-- Because the two halves of the definition of `inv` produce more elements
-of each side, we have to define the two families inductively.
-This is the indexing set for the function, and `inv_val` is the function part. -/
-inductive inv_ty (l r : Type u) : bool → Type u
-| zero : inv_ty ff
-| left₁ : r → inv_ty ff → inv_ty ff
-| left₂ : l → inv_ty tt → inv_ty ff
-| right₁ : l → inv_ty ff → inv_ty tt
-| right₂ : r → inv_ty tt → inv_ty tt
-
-/-- Because the two halves of the definition of `inv` produce more elements
-of each side, we have to define the two families inductively.
-This is the function part, defined by recursion on `inv_ty`. -/
-def inv_val {l r} (L : l → pgame) (R : r → pgame)
-  (IHl : l → pgame) (IHr : r → pgame) : ∀ {b}, inv_ty l r b → pgame
-| _ inv_ty.zero := 0
-| _ (inv_ty.left₁ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
-| _ (inv_ty.left₂ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
-| _ (inv_ty.right₁ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
-| _ (inv_ty.right₂ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
-
-/-- The inverse of a positive surreal number `x = {L | R}` is
-given by `x⁻¹ = {0,
-  (1 + (R - x) * x⁻¹L) * R, (1 + (L - x) * x⁻¹R) * L |
-  (1 + (L - x) * x⁻¹L) * L, (1 + (R - x) * x⁻¹R) * R}`.
-Because the two halves `x⁻¹L, x⁻¹R` of `x⁻¹` are used in their own
-definition, the sets and elements are inductively generated. -/
-def inv' : pgame → pgame
-| ⟨l, r, L, R⟩ :=
-  let l' := {i // 0 < L i},
-      L' : l' → pgame := λ i, L i.1,
-      IHl' : l' → pgame := λ i, inv' (L i.1),
-      IHr := λ i, inv' (R i) in
-  ⟨inv_ty l' r ff, inv_ty l' r tt,
-    inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
-
-/-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
-noncomputable def inv (x : pgame) : pgame :=
-by classical; exact
-if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
-
-noncomputable instance : has_inv pgame := ⟨inv⟩
-noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
 /-- A pre-game is numeric if everything in the L set is less than everything in the R set,
 and all the elements of L and R are also numeric. -/
@@ -382,7 +202,6 @@ end pgame
 
 /-- The equivalence on numeric pre-games. -/
 def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
-local infix ` ≈ ` := surreal.equiv
 
 instance surreal.setoid : setoid {x // pgame.numeric x} :=
 ⟨λ x y, x.1.equiv y.1,

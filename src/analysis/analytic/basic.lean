@@ -914,7 +914,7 @@ begin
   -- defining `p.change_origin`, by definition
   have J : ∀k, has_sum (λ c, A ⟨k, c⟩) (p.change_origin x k (λ(i : fin k), y)),
   { assume k,
-    have : (nnnorm x : ℝ≥0∞) < radius p := lt_of_le_of_lt (le_add_right (le_refl _)) h,
+    have : (nnnorm x : ℝ≥0∞) < radius p := lt_of_le_of_lt (le_self_add) h,
     convert continuous_multilinear_map.has_sum_eval (p.change_origin_has_sum k this)
       (λ(i : fin k), y),
     ext ⟨_, _, _⟩,

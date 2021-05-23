@@ -40,7 +40,7 @@ theorem is_open_univ : is_open α set.univ :=
 ⟨λ x y h, by simp only [set.mem_univ]; refl',
   by convert @complete_lattice.top_continuous α Prop _ _; ext; simp ⟩
 
-theorem is_open_inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
+theorem is_open.inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
 begin
   simp only [is_open, exists_imp_distrib, continuous'],
   intros h₀ h₁ h₂ h₃,
@@ -86,7 +86,7 @@ instance Scott.topological_space (α : Type u) [omega_complete_partial_order α]
   topological_space (Scott α) :=
 { is_open := Scott.is_open α,
   is_open_univ := Scott.is_open_univ α,
-  is_open_inter := Scott.is_open_inter α,
+  is_open_inter := Scott.is_open.inter α,
   is_open_sUnion := Scott.is_open_sUnion α }
 
 section not_below

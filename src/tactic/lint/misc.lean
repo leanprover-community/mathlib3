@@ -15,7 +15,7 @@ This file defines several small linters:
   - `doc_blame` checks that every definition has a documentation string
   - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default)
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
-  - `check_type` checks that the statement of a declaration is well-typed
+  - `check_type` checks that the statement of a declaration is well-typed.
 -/
 
 open tactic expr

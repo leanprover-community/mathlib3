@@ -5,10 +5,12 @@ Authors: Markus Himmel
 -/
 import algebra.category.Module.kernels
 import algebra.category.Module.limits
-import category_theory.abelian.basic
+import category_theory.abelian.exact
 
 /-!
 # The category of left R-modules is abelian.
+
+Additionally, two linear maps are exact in the categorical sense iff `range f = ker g`.
 -/
 
 open category_theory
@@ -16,10 +18,10 @@ open category_theory.limits
 
 noncomputable theory
 
-universe u
+universes v u
 
 namespace Module
-variables {R : Type u} [ring R] {M N : Module R} (f : M ⟶ N)
+variables {R : Type u} [ring R] {M N : Module.{v} R} (f : M ⟶ N)
 
 /-- In the category of modules, every monomorphism is normal. -/
 def normal_mono (hf : mono f) : normal_mono f :=
@@ -66,10 +68,22 @@ def normal_epi (hf : epi f) : normal_epi f :=
 
 /-- The category of R-modules is abelian. -/
 instance : abelian (Module R) :=
-{ has_finite_products := by { dsimp [has_finite_products], apply_instance },
+{ has_finite_products := ⟨by apply_instance⟩,
   has_kernels := by apply_instance,
   has_cokernels := has_cokernels_Module,
   normal_mono := λ X Y, normal_mono,
   normal_epi := λ X Y, normal_epi }
+
+variables {O : Module.{v} R} (g : N ⟶ O)
+
+open linear_map
+local attribute [instance] preadditive.has_equalizers_of_has_kernels
+
+theorem exact_iff : exact f g ↔ f.range = g.ker :=
+begin
+  rw abelian.exact_iff' f g (kernel_is_limit _) (cokernel_is_colimit _),
+  exact ⟨λ h, le_antisymm (range_le_ker_iff.2 h.1) (ker_le_range_iff.2 h.2),
+    λ h, ⟨range_le_ker_iff.1 $ le_of_eq h, ker_le_range_iff.1 $ le_of_eq h.symm⟩⟩
+end
 
 end Module

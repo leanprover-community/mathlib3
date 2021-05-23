@@ -5,9 +5,33 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.eq_to_hom
 
+/-!
+# Discrete categories
+
+We define `discrete α := α` for any type `α`, and use this type alias
+to provide a `small_category` instance whose only morphisms are the identities.
+
+There is an annoying technical difficulty that it has turned out to be inconvenient
+to allow categories with morphisms living in `Prop`,
+so instead of defining `X ⟶ Y` in `discrete α` as `X = Y`,
+one might define it as `plift (X = Y)`.
+In fact, to allow `discrete α` to be a `small_category`
+(i.e. with morphisms in the same universe as the objects),
+we actually define the hom type `X ⟶ Y` as `ulift (plift (X = Y))`.
+
+`discrete.functor` promotes a function `f : I → C` (for any category `C`) to a functor
+`discrete.functor f : discrete I ⥤ C`.
+
+Similarly, `discrete.nat_trans` and `discrete.nat_iso` promote `I`-indexed families of morphisms,
+or `I`-indexed families of isomorphisms to natural transformations or natural isomorphism.
+
+We show equivalences of types are the same as (categorical) equivalences of the corresponding
+discrete categories.
+-/
+
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 /--
 A type synonym for promoting any type to a category,
@@ -15,6 +39,14 @@ with the only morphisms being equalities.
 -/
 def discrete (α : Type u₁) := α
 
+/--
+The "discrete" category on a type, whose morphisms are equalities.
+
+Because we do not allow morphisms in `Prop` (only in `Type`),
+somewhat annoyingly we have to define `X ⟶ Y` as `ulift (plift (X = Y))`.
+
+See https://stacks.math.columbia.edu/tag/001A
+-/
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 { hom  := λ X Y, ulift (plift (X = Y)),
   id   := λ X, ulift.up (plift.up rfl),
@@ -30,9 +62,15 @@ by { dsimp [discrete], apply_instance }
 instance [subsingleton α] : subsingleton (discrete α) :=
 by { dsimp [discrete], apply_instance }
 
+/-- Extract the equation from a morphism in a discrete category. -/
+lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
+
 @[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
 
 variables {C : Type u₂} [category.{v₂} C]
+
+instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
+⟨⟨eq_to_hom (eq_of_hom f).symm, by tidy⟩⟩
 
 /--
 Any function `I → C` gives a functor `discrete I ⥤ C`.
@@ -109,8 +147,8 @@ def equivalence {I J : Type u₁} (e : I ≃ J) : discrete I ≌ discrete J :=
 def equiv_of_equivalence {α β : Type u₁} (h : discrete α ≌ discrete β) : α ≃ β :=
 { to_fun := h.functor.obj,
   inv_fun := h.inverse.obj,
-  left_inv := λ a, (h.unit_iso.app a).2.1.1,
-  right_inv := λ a, (h.counit_iso.app a).1.1.1 }
+  left_inv := λ a, eq_of_hom (h.unit_iso.app a).2,
+  right_inv := λ a, eq_of_hom (h.counit_iso.app a).1 }
 
 end discrete
 

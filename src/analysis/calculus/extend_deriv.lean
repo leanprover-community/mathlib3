@@ -47,7 +47,7 @@ begin
   /- One needs to show that `∥f y - f x - f' (y - x)∥ ≤ ε ∥y - x∥` for `y` close to `x` in `closure
   s`, where `ε` is an arbitrary positive constant. By continuity of the functions, it suffices to
   prove this for nearby points inside `s`. In a neighborhood of `x`, the derivative of `f` is
-  arbitrarily close to f' by assumption. The mean value inequality completes the proof. -/
+  arbitrarily close to `f'` by assumption. The mean value inequality completes the proof. -/
   assume ε ε_pos,
   obtain ⟨δ, δ_pos, hδ⟩ : ∃ δ > 0, ∀ y ∈ s, dist y x < δ → ∥fderiv ℝ f y - f'∥ < ε,
     by simpa [dist_zero_right] using tendsto_nhds_within_nhds.1 h ε ε_pos,
@@ -69,7 +69,7 @@ begin
     have bound : ∀ z ∈ (B ∩ s), ∥fderiv_within ℝ f (B ∩ s) z - f'∥ ≤ ε,
     { intros z z_in,
       convert le_of_lt (hδ _ z_in.2 z_in.1),
-      have op : is_open (B ∩ s) := is_open_inter is_open_ball s_open,
+      have op : is_open (B ∩ s) := is_open_ball.inter s_open,
       rw differentiable_at.fderiv_within _ (op.unique_diff_on z z_in),
       exact (diff z z_in).differentiable_at (mem_nhds_sets op z_in) },
     simpa using conv.norm_image_sub_le_of_norm_fderiv_within_le' diff bound u_in v_in },
@@ -125,7 +125,7 @@ begin
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
   { simp [deriv_fderiv.symm],
     refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_le_left (nhds_within_mono _ Ioo_subset_Ioi_self) f_lim' },
+    exact tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim' },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc a b) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
@@ -162,7 +162,7 @@ begin
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
   { simp [deriv_fderiv.symm],
     refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_le_left (nhds_within_mono _ Ioo_subset_Iio_self) f_lim' },
+    exact tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim' },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc b a) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],

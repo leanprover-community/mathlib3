@@ -9,5 +9,7 @@ meta def error_msg (s : string) : bool := @undefined_core bool $ s ++ ".decidabl
 
 meta def examine (b : Prop) [decidable b] : bool := b
 
-#eval examine $ ff ∧ (error_msg "and")
-#eval examine $ tt ∨ (error_msg "or")
+open tactic
+
+run_cmd do e ← to_expr ```(examine (ff ∧ (error_msg "and"))) >>= eval_expr bool, guard (e = ff)
+run_cmd do e ← to_expr ```(examine (tt ∨ (error_msg "or"))) >>= eval_expr bool, guard (e = tt)

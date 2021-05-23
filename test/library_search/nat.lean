@@ -8,7 +8,6 @@ import data.nat.basic
 
 namespace test.library_search
 
-
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true
 /- For debugging purposes, we can display the list of lemmas: -/
@@ -75,7 +74,7 @@ by library_search -- Says: `exact nat.mul_div_left a h`
 example (a b : ℕ) (h : b ≠ 0) : (a * b) / b = a :=
 begin
   success_if_fail { library_search },
-  library_search [nat.pos_iff_ne_zero.mpr],
+  library_search [pos_iff_ne_zero.mpr],
 end
 
 end test.library_search

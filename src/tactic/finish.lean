@@ -26,18 +26,6 @@ We provide the following tactics:
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)
 
-## Implementation notes
-
-The variants `ifinish`, `iclarify`, and `isafe` try to restrict to intuitionistic logic. But the
-`done` tactic leaks classical logic:
-
-```lean
-example {P : Prop} : ¬¬P → P :=
-by using_smt (do smt_tactic.intros, smt_tactic.close)
-```
-
-They also do not work well with the current heuristic instantiation method used by `ematch`.
-So they are left here mainly for reference.
 -/
 
 declare_trace auto.done
@@ -69,13 +57,11 @@ meta def add_simps : simp_lemmas → list name → tactic simp_lemmas
 /--
 Configuration information for the auto tactics.
 * `(use_simp := tt)`: call the simplifier
-* `(classical := tt)`: use classical logic
 * `(max_ematch_rounds := 20)`: for the "done" tactic
 -/
 @[derive decidable_eq, derive inhabited]
 structure auto_config : Type :=
 (use_simp := tt)
-(classical := tt)
 (max_ematch_rounds := 20)
 
 /-!
@@ -88,15 +74,11 @@ we replace the goal `p` with `∀ f, (p → f) → f` and introduce.
 theorem by_contradiction_trick (p : Prop) (h : ∀ f : Prop, (p → f) → f) : p :=
 h p id
 
-meta def preprocess_goal (cfg : auto_config) : tactic unit :=
+meta def preprocess_goal : tactic unit :=
 do repeat (intro1 >> skip),
    tgt ← target >>= whnf_reducible,
    if (¬ (is_false tgt)) then
-     if cfg.classical then
-       (mk_mapp ``classical.by_contradiction [some tgt]) >>= apply >> intro1 >> skip
-     else
-       (mk_mapp ``decidable.by_contradiction [some tgt, none] >>= apply >> intro1 >> skip) <|>
-       applyc ``by_contradiction_trick >> intro1 >> intro1 >> skip
+     (mk_mapp ``classical.by_contradiction [some tgt]) >>= apply >> intro1 >> skip
    else
      skip
 
@@ -145,8 +127,7 @@ do e ← whnf_reducible e,
    | `(¬ %%ne) :=
       (do ne ← whnf_reducible ne,
       match ne with
-      | `(¬ %%a)      := if ¬ cfg.classical then return none
-                         else do pr ← mk_app ``not_not_eq [a],
+      | `(¬ %%a)      := do pr ← mk_app ``not_not_eq [a],
                             return (some (a, pr))
       | `(%%a ∧ %%b)  := do pr ← mk_app ``not_and_eq [a, b],
                             return (some (`(¬ %%a ∨ ¬ %%b), pr))
@@ -155,8 +136,7 @@ do e ← whnf_reducible e,
       | `(Exists %%p) := do pr ← mk_app ``not_exists_eq [p],
                             `(%%_ = %%e') ← infer_type pr,
                             return (some (e', pr))
-      | (pi n bi d p) := if ¬ cfg.classical then return none
-                         else if p.has_var then do
+      | (pi n bi d p) := if p.has_var then do
                             pr ← mk_app ``not_forall_eq [lam n bi d (expr.abstract_local p n)],
                             `(%%_ = %%e') ← infer_type pr,
                             return (some (e', pr))
@@ -198,14 +178,11 @@ do t ← infer_type h,
    skip
 
 meta def normalize_hyp (cfg : auto_config) (simps : simp_lemmas) (h : expr) : tactic unit :=
-(do h ← simp_hyp simps [] h, try (normalize_negations cfg h)) <|>
+(do (h, _) ← simp_hyp simps [] h, try (normalize_negations cfg h)) <|>
 try (normalize_negations cfg h)
 
 meta def normalize_hyps (cfg : auto_config) : tactic unit :=
-do simps ← if cfg.classical then
-             add_simps simp_lemmas.mk classical_normalize_lemma_names
-           else
-             add_simps simp_lemmas.mk common_normalize_lemma_names,
+do simps ← add_simps simp_lemmas.mk classical_normalize_lemma_names,
    local_context >>= monad.mapm' (normalize_hyp cfg simps)
 
 /-!
@@ -286,7 +263,7 @@ meta def split_hyps : tactic unit := local_context >>= split_hyps_aux >>= guardb
 /-- Eagerly apply all the preprocessing rules -/
 meta def preprocess_hyps (cfg : auto_config) : tactic unit :=
 do repeat (intro1 >> skip),
-   preprocess_goal cfg,
+   preprocess_goal,
    normalize_hyps cfg,
    repeat (do_substs <|> split_hyps <|> eelim /-<|> self_simplify_hyps-/)
 
@@ -335,8 +312,8 @@ do p ← resolve_name n,
                         report_invalid_em_lemma n
    end
 
-private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool) (hs : hinst_lemmas)
-  : pexpr → smt_tactic hinst_lemmas
+private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool)
+  (hs : hinst_lemmas) : pexpr → smt_tactic hinst_lemmas
 | p@(expr.const c [])          := add_hinst_lemma_from_name md lhs_lemma c hs p
 | p@(expr.local_const c _ _ _) := add_hinst_lemma_from_name md lhs_lemma c hs p
 | p                          := do new_e ← to_expr p, h ← hinst_lemma.mk_core md new_e lhs_lemma,
@@ -422,7 +399,8 @@ it will:
 - (if `opt` is `case_option.at_most_one`) fail if it produces more than one goal, and
 - (if `opt` is `case_option.accept`) ignore the number of goals it produces.
 -/
-meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) : case_option → tactic unit :=
+meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) :
+  case_option → tactic unit :=
 λ co, focus1 $
 do trace_state_if_enabled `auto.finish "entering safe_core",
    if cfg.use_simp then do
@@ -463,27 +441,6 @@ parameter fixed at `case_option.force`.
 -/
 meta def finish (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.force
-
-/--
-`iclarify` is like `clarify`, but in some places restricts to intuitionistic logic.
-Classical logic still leaks, so this tactic is deprecated.
--/
-meta def iclarify (s : simp_lemmas × list name) (ps : list pexpr)
-  (cfg : auto_config := {}) : tactic unit := clarify s ps {classical := ff, ..cfg}
-
-/--
-`isafe` is like `safe`, but in some places restricts to intuitionistic logic.
-Classical logic still leaks, so this tactic is deprecated.
--/
-meta def isafe (s : simp_lemmas × list name) (ps : list pexpr)
-  (cfg : auto_config := {}) : tactic unit := safe s ps {classical := ff, ..cfg}
-
-/--
-`ifinish` is like `finish`, but in some places restricts to intuitionistic logic.
-Classical logic still leaks, so this tactic is deprecated.
--/
-meta def ifinish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
-  finish s ps {classical := ff, ..cfg}
 
 end auto
 
@@ -584,29 +541,6 @@ add_tactic_doc
                   `tactic.interactive.safe],
   tags        := ["logic", "finishing"] }
 
-/--
-`iclarify` is like `clarify`, but only uses intuitionistic logic.
--/
-meta def iclarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
-  (cfg : auto_config := {}) : tactic unit :=
-do s ← mk_simp_set ff [] hs,
-   auto.iclarify s (ps.get_or_else []) cfg
-
-/--
-`isafe` is like `safe`, but only uses intuitionistic logic.
--/
-meta def isafe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
-  (cfg : auto_config := {}) : tactic unit :=
-do s ← mk_simp_set ff [] hs,
-   auto.isafe s (ps.get_or_else []) cfg
-
-/--
-`ifinish` is like `finish`, but only uses intuitionistic logic.
--/
-meta def ifinish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
-  (cfg : auto_config := {}) : tactic unit :=
-do s ← mk_simp_set ff [] hs,
-   auto.ifinish s (ps.get_or_else []) cfg
 
 end interactive
 end tactic

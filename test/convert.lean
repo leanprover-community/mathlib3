@@ -19,3 +19,5 @@ begin
   convert preimage_empty,
   rw [←preimage_inter,this],
 end
+
+example (P : Prop) (h : P) : P := by convert h

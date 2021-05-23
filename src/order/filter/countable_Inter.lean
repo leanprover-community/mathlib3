@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import order.filter.basic
 import data.set.countable
@@ -55,6 +55,51 @@ lemma eventually_countable_ball {S : set ι} (hS : countable S) {p : Π (x : α)
   (∀ᶠ x in l, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᶠ x in l, p x i ‹_› :=
 by simpa only [filter.eventually, set_of_forall]
   using @countable_bInter_mem_sets _ _ l _ _ hS (λ i hi, {x | p x i hi})
+
+lemma eventually_le.countable_Union [encodable ι] {s t : ι → set α} (h : ∀ i, s i ≤ᶠ[l] t i) :
+  (⋃ i, s i) ≤ᶠ[l] ⋃ i, t i :=
+(eventually_countable_forall.2 h).mono $ λ x hst hs, mem_Union.2 $
+  (mem_Union.1 hs).imp hst
+
+lemma eventually_eq.countable_Union [encodable ι] {s t : ι → set α} (h : ∀ i, s i =ᶠ[l] t i) :
+  (⋃ i, s i) =ᶠ[l] ⋃ i, t i :=
+(eventually_le.countable_Union (λ i, (h i).le)).antisymm
+  (eventually_le.countable_Union (λ i, (h i).symm.le))
+
+lemma eventually_le.countable_bUnion {S : set ι} (hS : countable S) {s t : Π i ∈ S, set α}
+  (h : ∀ i ∈ S, s i ‹_› ≤ᶠ[l] t i ‹_›) : (⋃ i ∈ S, s i ‹_›) ≤ᶠ[l] ⋃ i ∈ S, t i ‹_› :=
+begin
+  simp only [bUnion_eq_Union],
+  haveI := hS.to_encodable,
+  exact eventually_le.countable_Union (λ i, h i i.2)
+end
+
+lemma eventually_eq.countable_bUnion {S : set ι} (hS : countable S) {s t : Π i ∈ S, set α}
+  (h : ∀ i ∈ S, s i ‹_› =ᶠ[l] t i ‹_›) : (⋃ i ∈ S, s i ‹_›) =ᶠ[l] ⋃ i ∈ S, t i ‹_› :=
+(eventually_le.countable_bUnion hS (λ i hi, (h i hi).le)).antisymm
+  (eventually_le.countable_bUnion hS (λ i hi, (h i hi).symm.le))
+
+lemma eventually_le.countable_Inter [encodable ι] {s t : ι → set α} (h : ∀ i, s i ≤ᶠ[l] t i) :
+  (⋂ i, s i) ≤ᶠ[l] ⋂ i, t i :=
+(eventually_countable_forall.2 h).mono $ λ x hst hs, mem_Inter.2 $ λ i, hst _ (mem_Inter.1 hs i)
+
+lemma eventually_eq.countable_Inter [encodable ι] {s t : ι → set α} (h : ∀ i, s i =ᶠ[l] t i) :
+  (⋂ i, s i) =ᶠ[l] ⋂ i, t i :=
+(eventually_le.countable_Inter (λ i, (h i).le)).antisymm
+  (eventually_le.countable_Inter (λ i, (h i).symm.le))
+
+lemma eventually_le.countable_bInter {S : set ι} (hS : countable S) {s t : Π i ∈ S, set α}
+  (h : ∀ i ∈ S, s i ‹_› ≤ᶠ[l] t i ‹_›) : (⋂ i ∈ S, s i ‹_›) ≤ᶠ[l] ⋂ i ∈ S, t i ‹_› :=
+begin
+  simp only [bInter_eq_Inter],
+  haveI := hS.to_encodable,
+  exact eventually_le.countable_Inter (λ i, h i i.2)
+end
+
+lemma eventually_eq.countable_bInter {S : set ι} (hS : countable S) {s t : Π i ∈ S, set α}
+  (h : ∀ i ∈ S, s i ‹_› =ᶠ[l] t i ‹_›) : (⋂ i ∈ S, s i ‹_›) =ᶠ[l] ⋂ i ∈ S, t i ‹_› :=
+(eventually_le.countable_bInter hS (λ i hi, (h i hi).le)).antisymm
+  (eventually_le.countable_bInter hS (λ i hi, (h i hi).symm.le))
 
 instance countable_Inter_filter_principal (s : set α) : countable_Inter_filter (𝓟 s) :=
 ⟨λ S hSc hS, subset_sInter hS⟩

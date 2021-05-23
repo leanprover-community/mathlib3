@@ -5,7 +5,8 @@ Authors: Chris Hughes
 -/
 import data.matrix.basic
 import data.pequiv
-/-
+
+/-!
 # partial equivalences for matrices
 
 Using partial equivalences to represent matrices.
@@ -36,7 +37,7 @@ open matrix
 
 universes u v
 
-variables {k l m n : Type u}
+variables {k l m n : Type*}
 variables [fintype k] [fintype l] [fintype m] [fintype n]
 variables {α : Type v}
 
@@ -70,11 +71,10 @@ lemma matrix_mul_apply [semiring α] [decidable_eq n] (M : matrix l m α) (f : m
 begin
   dsimp [to_matrix, matrix.mul_apply],
   cases h : f.symm j with fj,
-  { simp [h, f.eq_some_iff.symm] },
-  { conv in (_ ∈ _) { rw ← f.mem_iff_mem },
-    rw finset.sum_eq_single fj,
-    { simp [h, f.eq_some_iff.symm], },
-    { intros b H n, simp [h, f.eq_some_iff.symm, n.symm], },
+  { simp [h, ← f.eq_some_iff] },
+  { rw finset.sum_eq_single fj,
+    { simp [h, ← f.eq_some_iff], },
+    { intros b H n, simp [h, ← f.eq_some_iff, n.symm], },
     { simp, } }
 end
 
@@ -101,7 +101,7 @@ begin
   assume f g,
   refine not_imp_not.1 _,
   simp only [matrix.ext_iff.symm, to_matrix, pequiv.ext_iff,
-    classical.not_forall, exists_imp_distrib],
+    not_forall, exists_imp_distrib],
   assume i hi,
   use i,
   cases hf : f i with fi,
@@ -135,13 +135,14 @@ by rw [← to_matrix_trans, single_trans_single_of_ne hb, to_matrix_bot]
 
 /-- Restatement of `single_mul_single`, which will simplify expressions in `simp` normal form,
   when associativity may otherwise need to be carefully applied. -/
-@[simp] lemma single_mul_single_right [decidable_eq k] [decidable_eq m] [decidable_eq n] [semiring α]
-  (a : m) (b : n) (c : k) (M : matrix k l α) :
+@[simp] lemma single_mul_single_right [decidable_eq k] [decidable_eq m] [decidable_eq n]
+  [semiring α] (a : m) (b : n) (c : k) (M : matrix k l α) :
   (single a b).to_matrix ⬝ ((single b c).to_matrix ⬝ M) = (single a c).to_matrix ⬝ M :=
 by rw [← matrix.mul_assoc, single_mul_single]
 
 /-- We can also define permutation matrices by permuting the rows of the identity matrix. -/
-lemma equiv_to_pequiv_to_matrix [decidable_eq n] [has_zero α] [has_one α] (σ : equiv n n) (i j : n) :
+lemma equiv_to_pequiv_to_matrix [decidable_eq n] [has_zero α] [has_one α] (σ : equiv n n)
+  (i j : n) :
   σ.to_pequiv.to_matrix i j = (1 : matrix n n α) (σ i) j :=
 if_congr option.some_inj rfl rfl
 

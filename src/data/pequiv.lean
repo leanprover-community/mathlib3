@@ -86,7 +86,7 @@ lemma trans_eq_some (f : α ≃. β) (g : β ≃. γ) (a : α) (c : γ) :
 lemma trans_eq_none (f : α ≃. β) (g : β ≃. γ) (a : α) :
   f.trans g a = none ↔ (∀ b c, b ∉ f a ∨ c ∉ g b) :=
 begin
-  simp only [eq_none_iff_forall_not_mem, mem_trans, classical.imp_iff_not_or.symm],
+  simp only [eq_none_iff_forall_not_mem, mem_trans, imp_iff_not_or.symm],
   push_neg, tauto
 end
 
@@ -139,8 +139,7 @@ by dsimp [of_set]; split_ifs; split; finish
 
 @[simp] lemma of_set_symm : (of_set s).symm = of_set s := rfl
 
-@[simp] lemma of_set_univ : of_set set.univ = pequiv.refl α :=
-by ext; dsimp [of_set]; simp [eq_comm]
+@[simp] lemma of_set_univ : of_set set.univ = pequiv.refl α := rfl
 
 @[simp] lemma of_set_eq_refl {s : set α} [decidable_pred s] :
   of_set s = pequiv.refl α ↔ s = set.univ :=

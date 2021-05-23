@@ -108,7 +108,7 @@ attribute [class] list_short
 attribute [instance] list_short.nil list_short.cons
 
 instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (list.length L)),
-  short (list.nth_le L (i.val) i.is_lt)
+  short (list.nth_le L i i.is_lt)
 | [] _ n := begin exfalso, rcases n with ⟨_, ⟨⟩⟩, end
 | (hd :: tl) (@list_short.cons _ S _ _) ⟨0, _⟩ := S
 | (hd :: tl) (@list_short.cons _ _ _ S) ⟨n+1, h⟩ :=
@@ -116,7 +116,9 @@ instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (li
 
 instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R],
   short (pgame.of_lists L R)
-| L R _ _ := by { resetI, apply short.mk; { intros, apply_instance } }
+| L R _ _ := by { resetI, apply short.mk,
+  { intros, apply_instance },
+  { intros, apply pgame.list_short_nth_le /- where does the subtype.val come from? -/ } }
 
 /-- If `x` is a short game, and `y` is a relabelling of `x`, then `y` is also short. -/
 def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short x), short y
@@ -182,14 +184,16 @@ def le_lt_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤
 begin
   resetI,
   split,
-  { apply @and.decidable _ _ _ _,
+  { refine @decidable_of_iff' _ _ mk_le_mk (id _),
+    apply @and.decidable _ _ _ _,
     { apply @fintype.decidable_forall_fintype xl _ _ (by apply_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).2; apply_instance, },
     { apply @fintype.decidable_forall_fintype yr _ _ (by apply_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).2; apply_instance, }, },
-  { apply @or.decidable _ _ _ _,
+  { refine @decidable_of_iff' _ _ mk_lt_mk (id _),
+    apply @or.decidable _ _ _ _,
     { apply @fintype.decidable_exists_fintype yl _ _ (by apply_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).1; apply_instance, },
@@ -220,7 +224,8 @@ example : short (0 + 0) := by apply_instance
 
 example : decidable ((1 : pgame) ≤ 1) := by apply_instance
 
-example : (0 : pgame) ≤ 0 := dec_trivial
-example : (1 : pgame) ≤ 1 := dec_trivial
+-- No longer works since definitional reduction of well-founded definitions has been restricted.
+-- example : (0 : pgame) ≤ 0 := dec_trivial
+-- example : (1 : pgame) ≤ 1 := dec_trivial
 
 end pgame

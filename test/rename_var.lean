@@ -3,9 +3,9 @@ import tactic.rename_var
 example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : true :=
 begin
   rename_var n q at h,
-  guard_hyp_strict h := ∀ (q : ℕ), ∃ (m : ℕ), P q m,
+  guard_hyp_strict h : ∀ (q : ℕ), ∃ (m : ℕ), P q m,
   rename_var m z at h,
-  guard_hyp_strict h := ∀ (q : ℕ), ∃ (z : ℕ), P q z,
+  guard_hyp_strict h : ∀ (q : ℕ), ∃ (z : ℕ), P q z,
   trivial
 end
 
@@ -21,6 +21,6 @@ end
 example (h : (λ n : ℕ, n) = id) : true :=
 begin
   rename_var n m at h,
-  guard_hyp_strict h := (λ (m : ℕ), m) = id,
+  guard_hyp_strict h : (λ (m : ℕ), m) = id,
   trivial
 end

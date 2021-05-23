@@ -35,5 +35,9 @@ rfl
 @[simp] lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=
 coe_nodup.2 $ list.nat.nodup_antidiagonal n
 
+@[simp] lemma antidiagonal_succ {n : ℕ} :
+  antidiagonal (n + 1) = (0, n + 1) ::ₘ ((antidiagonal n).map (prod.map nat.succ id)) :=
+by simp only [antidiagonal, list.nat.antidiagonal_succ, coe_map, cons_coe]
+
 end nat
 end multiset

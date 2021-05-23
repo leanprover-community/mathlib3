@@ -74,7 +74,8 @@ lemma iterated_deriv_within_eq_iterated_fderiv_within :
 Fréchet derivative -/
 lemma iterated_deriv_within_eq_equiv_comp :
   iterated_deriv_within n f s
-  = (continuous_multilinear_map.pi_field_equiv 𝕜 (fin n) F).symm ∘ (iterated_fderiv_within 𝕜 n f s) :=
+  = (continuous_multilinear_map.pi_field_equiv 𝕜 (fin n) F).symm ∘
+    (iterated_fderiv_within 𝕜 n f s) :=
 by { ext x, refl }
 
 /-- Write the iterated Fréchet derivative as the composition of a continuous linear equiv and the
@@ -119,7 +120,8 @@ lemma times_cont_diff_on_of_continuous_on_differentiable_on_deriv {n : with_top 
 begin
   apply times_cont_diff_on_of_continuous_on_differentiable_on,
   { simpa [iterated_fderiv_within_eq_equiv_comp, continuous_linear_equiv.comp_continuous_on_iff] },
-  { simpa [iterated_fderiv_within_eq_equiv_comp, continuous_linear_equiv.comp_differentiable_on_iff] }
+  { simpa [iterated_fderiv_within_eq_equiv_comp,
+      continuous_linear_equiv.comp_differentiable_on_iff] }
 end
 
 /-- To check that a function is `n` times continuously differentiable, it suffices to check that its

@@ -13,7 +13,8 @@ An isomorphism `α : X ≅ Y` defines
 - a monoid isomorphism `conj : End X ≃* End Y` by `α.conj f = α.inv ≫ f ≫ α.hom`;
 - a group isomorphism `conj_Aut : Aut X ≃* Aut Y` by `α.conj_Aut f = α.symm ≪≫ f ≪≫ α`.
 
-For completeness, we also define `hom_congr : (X ≅ X₁) → (Y ≅ Y₁) → (X ⟶ Y) ≃ (X₁ ⟶ Y₁)`, cf. `equiv.arrow_congr`.
+For completeness, we also define `hom_congr : (X ≅ X₁) → (Y ≅ Y₁) → (X ⟶ Y) ≃ (X₁ ⟶ Y₁)`,
+cf. `equiv.arrow_congr`.
 -/
 
 universes v u
@@ -35,23 +36,24 @@ def hom_congr {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) :
   right_inv := λ f, show α.inv ≫ (α.hom ≫ f ≫ β.inv) ≫ β.hom = f,
     by rw [category.assoc, category.assoc, β.inv_hom_id, α.inv_hom_id_assoc, category.comp_id] }
 
+@[simp]
 lemma hom_congr_apply {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) (f : X ⟶ Y) :
   α.hom_congr β f = α.inv ≫ f ≫ β.hom :=
 rfl
 
 lemma hom_congr_comp {X Y Z X₁ Y₁ Z₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) (γ : Z ≅ Z₁)
   (f : X ⟶ Y) (g : Y ⟶ Z) :
-  α.hom_congr γ (f ≫ g) = (α.hom_congr β f) ≫ (hom_congr β γ g) :=
-by simp only [hom_congr_apply, category.assoc, β.hom_inv_id_assoc]
+  α.hom_congr γ (f ≫ g) = α.hom_congr β f ≫ β.hom_congr γ g :=
+by simp
 
 @[simp] lemma hom_congr_refl {X Y : C} (f : X ⟶ Y) :
   (iso.refl X).hom_congr (iso.refl Y) f = f :=
-by simp only [hom_congr_apply, iso.refl, category.comp_id, category.id_comp]
+by simp
 
 @[simp] lemma hom_congr_trans {X₁ Y₁ X₂ Y₂ X₃ Y₃ : C}
   (α₁ : X₁ ≅ X₂) (β₁ : Y₁ ≅ Y₂) (α₂ : X₂ ≅ X₃) (β₂ : Y₂ ≅ Y₃) (f : X₁ ⟶ Y₁) :
   (α₁ ≪≫ α₂).hom_congr (β₁ ≪≫ β₂) f = (α₁.hom_congr β₁).trans (α₂.hom_congr β₂) f :=
-by simp only [hom_congr_apply, equiv.trans_apply, iso.trans, category.assoc]
+by simp
 
 @[simp] lemma hom_congr_symm {X₁ Y₁ X₂ Y₂ : C} (α : X₁ ≅ X₂) (β : Y₁ ≅ Y₂) :
   (α.hom_congr β).symm = α.symm.hom_congr β.symm :=
@@ -125,7 +127,7 @@ variables {C : Type u} [category.{v} C] {D : Type u₁} [category.{v₁} D] (F :
 
 lemma map_hom_congr {X Y X₁ Y₁ : C} (α : X ≅ X₁) (β : Y ≅ Y₁) (f : X ⟶ Y) :
   F.map (iso.hom_congr α β f) = iso.hom_congr (F.map_iso α) (F.map_iso β) (F.map f) :=
-by simp only [iso.hom_congr_apply, F.map_comp, F.map_iso_inv, F.map_iso_hom]
+by simp
 
 lemma map_conj {X Y : C} (α : X ≅ Y) (f : End X) :
   F.map (α.conj f) = (F.map_iso α).conj (F.map f) :=

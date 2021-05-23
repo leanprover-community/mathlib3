@@ -249,11 +249,11 @@ m.entries.foldl (λ d s, f d s.1 s.2) (λ d s t, H _ _ _ _ _) d
 
 /-- `any f s` returns `tt` iff there exists a value `v` in `s` such that `f v = tt`. -/
 def any (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∨ f y z) (by simp [or_assoc]; intros; congr' 2; rw or_comm) ff
+s.foldl (λ x y z, x ∨ f y z) (by { intros,  simp [or.right_comm] }) ff
 
 /-- `all f s` returns `tt` iff `f v = tt` for all values `v` in `s`. -/
 def all (f : Π x, β x → bool) (s : finmap β) : bool :=
-s.foldl (λ x y z, x ∧ f y z) (by simp [and_assoc]; intros; congr' 2; rw and_comm) ff
+s.foldl (λ x y z, x ∧ f y z) (by { intros, simp [and.right_comm] }) ff
 
 /-! ### erase -/
 
@@ -314,7 +314,7 @@ lift_on s (λ t, ⟦insert a b t⟧) $
   insert a b ⟦s⟧ = ⟦s.insert a b⟧ := by simp [insert]
 
 theorem insert_entries_of_neg {a : α} {b : β a} {s : finmap β} : a ∉ s →
-  (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
+  (insert a b s).entries = ⟨a, b⟩ ::ₘ s.entries :=
 induction_on s $ λ s h,
 by simp [insert_entries_of_neg (mt mem_to_finmap.1 h)]
 

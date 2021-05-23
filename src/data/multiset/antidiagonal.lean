@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.multiset.powerset
 
@@ -53,9 +53,9 @@ by simp [powerset_aux']
 quotient.induction_on s $ λ l,
 by simp [powerset_aux']
 
-@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = (0, 0)::0 := rfl
+@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = (0, 0) ::ₘ 0 := rfl
 
-@[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a::s) =
+@[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a ::ₘ s) =
   map (prod.map id (cons a)) (antidiagonal s) +
   map (prod.map (cons a) id) (antidiagonal s) :=
 quotient.induction_on s $ λ l, begin

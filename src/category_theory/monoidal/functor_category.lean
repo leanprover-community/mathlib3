@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.braided
 import category_theory.functor_category
 import category_theory.const
 
@@ -116,11 +116,46 @@ lemma right_unitor_inv_app {F : C ⥤ D} {X} :
 
 @[simp]
 lemma associator_hom_app {F G H : C ⥤ D} {X} :
-  ((α_ F G H).hom : (F ⊗ G) ⊗ H ⟶ F ⊗ (G ⊗ H)).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).hom := rfl
+  ((α_ F G H).hom : (F ⊗ G) ⊗ H ⟶ F ⊗ (G ⊗ H)).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).hom :=
+rfl
 
 @[simp]
 lemma associator_inv_app {F G H : C ⥤ D} {X} :
-  ((α_ F G H).inv : F ⊗ (G ⊗ H) ⟶ (F ⊗ G) ⊗ H).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).inv := rfl
+  ((α_ F G H).inv : F ⊗ (G ⊗ H) ⟶ (F ⊗ G) ⊗ H).app X = (α_ (F.obj X) (G.obj X) (H.obj X)).inv :=
+rfl
 
+section braided_category
+
+open category_theory.braided_category
+variables [braided_category.{v₂} D]
+
+/--
+When `C` is any category, and `D` is a braided monoidal category,
+the natural pointwise monoidal structure on the functor category `C ⥤ D`
+is also braided.
+-/
+instance functor_category_braided : braided_category (C ⥤ D) :=
+{ braiding := λ F G, nat_iso.of_components (λ X, β_ _ _) (by tidy),
+  hexagon_forward' := λ F G H, by { ext X, apply hexagon_forward, },
+  hexagon_reverse' := λ F G H, by { ext X, apply hexagon_reverse, }, }
+
+example : braided_category (C ⥤ D) := category_theory.monoidal.functor_category_braided
+
+end braided_category
+
+section symmetric_category
+
+open category_theory.symmetric_category
+variables [symmetric_category.{v₂} D]
+
+/--
+When `C` is any category, and `D` is a symmetric monoidal category,
+the natural pointwise monoidal structure on the functor category `C ⥤ D`
+is also symmetric.
+-/
+instance functor_category_symmetric : symmetric_category (C ⥤ D) :=
+{ symmetry' := λ F G, by { ext X, apply symmetry, },}
+
+end symmetric_category
 
 end category_theory.monoidal

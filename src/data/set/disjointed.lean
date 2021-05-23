@@ -26,14 +26,17 @@ theorem set.pairwise_on.on_injective {s : set α} {r : α → α → Prop} (hs :
   pairwise (r on f) :=
 λ i j hij, hs _ (hfs i) _ (hfs j) (hf.ne hij)
 
+theorem pairwise.mono {p q : α → α → Prop} (h : ∀ ⦃i j⦄, p i j → q i j) (hp : pairwise p) :
+  pairwise q :=
+λ i j hij, h (hp i j hij)
+
 theorem pairwise_on_bool {r} (hr : symmetric r) {a b : α} :
   pairwise (r on (λ c, cond c a b)) ↔ r a b :=
-by simp [pairwise, bool.forall_bool, function.on_fun];
-   exact and_iff_right_of_imp (@hr _ _)
+by simpa [pairwise, function.on_fun] using @hr a b
 
 theorem pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
-pairwise_on_bool $ λ _ _, disjoint.symm
+pairwise_on_bool disjoint.symm
 
 theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
 λ x hx y hy, h x y
@@ -67,13 +70,18 @@ ext $ λ a, by simp [nat.lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_d
 lemma Inter_lt_succ {f : ℕ → set α} {n} : (⋂i < nat.succ n, f i) = f n ∩ (⋂i < n, f i) :=
 ext $ λ a, by simp [nat.lt_succ_iff_lt_or_eq, or_imp_distrib, forall_and_distrib, and_comm]
 
-lemma Union_disjointed {f : ℕ → set α} : (⋃n, disjointed f n) = (⋃n, f n) :=
-subset.antisymm (Union_subset_Union $ assume i, inter_subset_left _ _) $
-  assume x h,
-  have ∃n, x ∈ f n, from mem_Union.mp h,
+lemma subset_Union_disjointed {f : ℕ → set α} {n} : f n ⊆ ⋃ i < n.succ, disjointed f i :=
+λ x hx,
+  have ∃ k, x ∈ f k, from ⟨n, hx⟩,
   have hn : ∀ (i : ℕ), i < nat.find this → x ∉ f i,
     from assume i, nat.find_min this,
-  mem_Union.mpr ⟨nat.find this, nat.find_spec this, by simp; assumption⟩
+  have hlt : nat.find this < n.succ,
+    from (nat.find_min' this hx).trans_lt n.lt_succ_self,
+  mem_bUnion hlt ⟨nat.find_spec this, mem_bInter hn⟩
+
+lemma Union_disjointed {f : ℕ → set α} : (⋃n, disjointed f n) = (⋃n, f n) :=
+subset.antisymm (Union_subset_Union $ assume i, inter_subset_left _ _)
+  (Union_subset $ λ n, subset.trans subset_Union_disjointed (bUnion_subset_Union _ _))
 
 lemma disjointed_induct {f : ℕ → set α} {n : ℕ} {p : set α → Prop}
   (h₁ : p (f n)) (h₂ : ∀t i, p t → p (t \ f i)) :
@@ -96,11 +104,9 @@ have (⋂i (h : i < n + 1), (f i)ᶜ) = (f n)ᶜ,
     (le_infi $ assume i, le_infi $ assume hi, compl_le_compl $ hf $ nat.le_of_succ_le_succ hi),
 by simp [disjointed, this, diff_eq]
 
-lemma Union_disjointed_of_mono {f : ℕ → set α} (hf : monotone f) :
-  ∀ n : ℕ, (⋃i<n.succ, disjointed f i) = f n
-| 0 := by rw [Union_lt_succ]; simp [disjointed, nat.not_lt_zero]
-| (n+1) := by rw [Union_lt_succ,
-  disjointed_of_mono hf, Union_disjointed_of_mono n,
-  diff_union_self, union_eq_self_of_subset_right (hf (nat.le_succ _))]
+lemma Union_disjointed_of_mono {f : ℕ → set α} (hf : monotone f) (n : ℕ) :
+  (⋃i<n.succ, disjointed f i) = f n :=
+subset.antisymm (bUnion_subset $ λ k hk, subset.trans disjointed_subset $ hf $ nat.lt_succ_iff.1 hk)
+  subset_Union_disjointed
 
 end set

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Minchao Wu, Chris Hughes
 -/
 import data.list.basic
-/-
+/-!
 # Minimum and maximum of lists
 
 ## Main definitions
@@ -19,7 +19,7 @@ The main definitions are `argmax`, `argmin`, `minimum` and `maximum` for lists.
 `[]`
 -/
 namespace list
-variables {α : Type*} {β : Type*} [decidable_linear_order β]
+variables {α : Type*} {β : Type*} [linear_order β]
 
 /-- Auxiliary definition to define `argmax` -/
 def argmax₂ (f : α → β) (a : option α) (b : α) : option α :=
@@ -193,7 +193,7 @@ theorem argmin_eq_some_iff [decidable_eq α] {f : α → β} {m : α} {l : list 
   argmin f l = some m ↔ m ∈ l ∧ (∀ a ∈ l, f m ≤ f a) ∧
     (∀ a ∈ l, f a ≤ f m → l.index_of m ≤ l.index_of a) := mem_argmin_iff
 
-variable [decidable_linear_order α]
+variable [linear_order α]
 
 /-- `maximum l` returns an `with_bot α`, the largest element of `l` for nonempty lists, and `⊥` for
 `[]`  -/

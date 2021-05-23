@@ -13,6 +13,8 @@ This file lifts constructions of stalks and pushforwards of stalks to work with
 the category of presheafed spaces.
 -/
 
+noncomputable theory
+
 universes v u v' u'
 
 open category_theory
@@ -28,10 +30,37 @@ open Top.presheaf
 
 namespace algebraic_geometry.PresheafedSpace
 
-def stalk (X : PresheafedSpace C) (x : X) : C := X.𝒪.stalk x
+/--
+The stalk at `x` of a `PresheafedSpace`.
+-/
+def stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
 
+/--
+A morphism of presheafed spaces induces a morphism of stalks.
+-/
 def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α.base x) ⟶ X.stalk x :=
-(stalk_functor C (α.base x)).map (α.c) ≫ X.𝒪.stalk_pushforward C α.base x
+(stalk_functor C (α.base x)).map (α.c) ≫ X.presheaf.stalk_pushforward C α.base x
+
+section restrict
+
+-- PROJECT: restriction preserves stalks.
+-- We'll want to define cofinal functors, show precomposing with a cofinal functor preserves
+-- colimits, and (easily) verify that "open neighbourhoods of x within U" is cofinal in "open
+-- neighbourhoods of x".
+/-
+def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
+  (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :
+  (X.restrict f h).stalk x ≅ X.stalk (f x) :=
+begin
+  dsimp only [stalk, Top.presheaf.stalk, stalk_functor],
+  dsimp [colim],
+  sorry
+end
+
+-- TODO `restrict_stalk_iso` is compatible with `germ`.
+-/
+
+end restrict
 
 namespace stalk_map
 
@@ -40,7 +69,7 @@ begin
   dsimp [stalk_map],
   simp only [stalk_pushforward.id],
   rw [←map_comp],
-  convert (stalk_functor C x).map_id X.𝒪,
+  convert (stalk_functor C x).map_id X.presheaf,
   tidy,
 end
 

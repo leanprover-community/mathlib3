@@ -27,6 +27,9 @@ namespace topological_space
 /-- The type of closed subsets of a topological space. -/
 def closeds := {s : set α // is_closed s}
 
+/-- The type of closed subsets is inhabited, with default element the empty set. -/
+instance : inhabited (closeds α) := ⟨⟨∅, is_closed_empty ⟩⟩
+
 /-- The compact sets of a topological space. See also `nonempty_compacts`. -/
 def compacts : Type* := { s : set α // is_compact s }
 
@@ -34,6 +37,11 @@ def compacts : Type* := { s : set α // is_compact s }
 non-emptiness will be useful in metric spaces, as we will be able to put
 a distance (and not merely an edistance) on this space. -/
 def nonempty_compacts := {s : set α // s.nonempty ∧ is_compact s}
+
+/-- In an inhabited space, the type of nonempty compact subsets is also inhabited, with
+default element the singleton set containing the default element. -/
+instance nonempty_compacts_inhabited [inhabited α] : inhabited (nonempty_compacts α) :=
+⟨⟨{default α}, singleton_nonempty (default α), is_compact_singleton ⟩⟩
 
 /-- The compact sets with nonempty interior of a topological space. See also `compacts` and
   `nonempty_compacts`. -/
@@ -45,10 +53,10 @@ variables {α}
 namespace compacts
 
 instance : semilattice_sup_bot (compacts α) :=
-subtype.semilattice_sup_bot compact_empty (λ K₁ K₂, is_compact.union)
+subtype.semilattice_sup_bot is_compact_empty (λ K₁ K₂, is_compact.union)
 
 instance [t2_space α]: semilattice_inf_bot (compacts α) :=
-subtype.semilattice_inf_bot compact_empty (λ K₁ K₂, is_compact.inter)
+subtype.semilattice_inf_bot is_compact_empty (λ K₁ K₂, is_compact.inter)
 
 instance [t2_space α] : lattice (compacts α) :=
 subtype.lattice (λ K₁ K₂, is_compact.union) (λ K₁ K₂, is_compact.inter)
@@ -93,7 +101,7 @@ open topological_space set
 variable {α}
 
 instance nonempty_compacts.to_compact_space {p : nonempty_compacts α} : compact_space p.val :=
-⟨compact_iff_compact_univ.1 p.property.2⟩
+⟨is_compact_iff_is_compact_univ.1 p.property.2⟩
 
 instance nonempty_compacts.to_nonempty {p : nonempty_compacts α} : nonempty p.val :=
 p.property.1.to_subtype

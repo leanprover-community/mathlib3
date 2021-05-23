@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton
 -/
 import category_theory.fully_faithful
-import category_theory.groupoid
 
 namespace category_theory
 
-universes v u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
 
 section induced
 
@@ -75,12 +74,6 @@ instance induced_category.faithful : faithful (induced_functor F) := {}
 
 end induced
 
-instance induced_category.groupoid {C : Type u₁} (D : Type u₂) [groupoid.{v} D] (F : C → D) :
-   groupoid.{v} (induced_category D F) :=
-{ inv       := λ X Y f, groupoid.inv f,
-  inv_comp' := λ X Y f, groupoid.inv_comp f,
-  comp_inv' := λ X Y f, groupoid.comp_inv f,
-  .. induced_category.category F }
 
 section full_subcategory
 /- A full subcategory is the special case of an induced category with F = subtype.val. -/
@@ -88,6 +81,11 @@ section full_subcategory
 variables {C : Type u₂} [category.{v} C]
 variables (Z : C → Prop)
 
+/--
+The category structure on a subtype; morphisms just ignore the property.
+
+See https://stacks.math.columbia.edu/tag/001D. We do not define 'strictly full' subcategories.
+-/
 instance full_subcategory : category.{v} {X : C // Z X} :=
 induced_category.category subtype.val
 

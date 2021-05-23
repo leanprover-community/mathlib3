@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kenny Lau.
+Authors: Kenny Lau
 -/
 
 import ring_theory.polynomial
@@ -96,7 +96,7 @@ end
 
 theorem degree_interpolate_lt : (interpolate s f).degree < s.card :=
 if H : s = ∅ then by { subst H, rw [interpolate_empty, degree_zero], exact with_bot.bot_lt_coe _ }
-else lt_of_le_of_lt (degree_sum_le _ _) $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
+else (degree_sum_le _ _).trans_lt $ (finset.sup_lt_iff $ with_bot.bot_lt_coe s.card).2 $ λ b _,
 calc  (C (f b) * basis s b).degree
     ≤ (C (f b)).degree + (basis s b).degree : degree_mul_le _ _
 ... ≤ 0 + (basis s b).degree : add_le_add_right degree_C_le _
@@ -131,8 +131,9 @@ theorem eq_zero_of_eval_eq_zero {f : polynomial F'} (hf1 : f.degree < s'.card)
   (hf2 : ∀ x ∈ s', f.eval x = 0) : f = 0 :=
 by_contradiction $ λ hf3, not_le_of_lt hf1 $
 calc  (s'.card : with_bot ℕ)
-    ≤ f.roots.card : with_bot.coe_le_coe.2 $ finset.card_le_of_subset $ λ x hx,
-        (mem_roots hf3).2 $ hf2 x hx
+    ≤ f.roots.to_finset.card : with_bot.coe_le_coe.2 $ finset.card_le_of_subset $ λ x hx,
+        (multiset.mem_to_finset).mpr $ (mem_roots hf3).2 $ hf2 x hx
+... ≤ f.roots.card : with_bot.coe_le_coe.2 $ f.roots.to_finset_card_le
 ... ≤ f.degree : card_roots hf3
 
 theorem eq_of_eval_eq {f g : polynomial F'} (hf : f.degree < s'.card) (hg : g.degree < s'.card)

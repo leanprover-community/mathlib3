@@ -42,7 +42,7 @@ For each of the following structures we prove that if `β` has this structure, t
 
 * one-operation algebraic structures up to `comm_group`;
 * `mul_zero_class`, `distrib`, `semiring`, `comm_semiring`, `ring`, `comm_ring`;
-* `mul_action`, `distrib_mul_action`, `semimodule`;
+* `mul_action`, `distrib_mul_action`, `module`;
 * `preorder`, `partial_order`, and `lattice` structures up to `bounded_lattice`;
 * `ordered_cancel_comm_monoid` and `ordered_cancel_add_comm_monoid`.
 
@@ -311,15 +311,24 @@ lemma coe_inv [has_inv G] (f : α → G) : ↑f⁻¹ = (f⁻¹ : germ l G) := rf
 attribute [norm_cast] coe_inv coe_neg
 
 @[to_additive]
+instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
+
+@[simp, norm_cast, to_additive]
+lemma coe_div [has_div M] (f g : α → M) : ↑(f / g) = (f / g : germ l M) := rfl
+
+@[to_additive]
+instance [div_inv_monoid G] : div_inv_monoid (germ l G) :=
+{ inv := has_inv.inv,
+  div := has_div.div,
+  div_eq_mul_inv := by { rintros ⟨f⟩ ⟨g⟩, exact congr_arg (quot.mk _) (div_eq_mul_inv f g) },
+  .. germ.monoid }
+
+@[to_additive]
 instance [group G] : group (germ l G) :=
 { mul := (*),
   one := 1,
-  inv := has_inv.inv,
-  mul_left_inv := λ f, induction_on f $ λ f, by { norm_cast, rw [mul_left_inv] },
-  .. germ.monoid }
-
-@[simp, norm_cast]
-lemma coe_sub [add_group G] (f  g : α → G) : ↑(f - g) = (f - g : germ l G) := rfl
+  mul_left_inv := by { rintros ⟨f⟩, exact congr_arg (quot.mk _) (mul_left_inv f) },
+  .. germ.div_inv_monoid }
 
 @[to_additive]
 instance [comm_group G] : comm_group (germ l G) :=
@@ -405,23 +414,24 @@ instance distrib_mul_action' [monoid M] [add_monoid N] [distrib_mul_action M N] 
 { smul_add := λ c f g, induction_on₃ c f g $ λ c f g, by { norm_cast, simp only [smul_add] },
   smul_zero := λ c, induction_on c $ λ c, by simp only [← coe_zero, ← coe_smul', smul_zero] }
 
-instance [semiring R] [add_comm_monoid M] [semimodule R M] :
-  semimodule R (germ l M) :=
+instance [semiring R] [add_comm_monoid M] [module R M] :
+  module R (germ l M) :=
 { add_smul := λ c₁ c₂ f, induction_on f $ λ f, by { norm_cast, simp only [add_smul] },
   zero_smul := λ f, induction_on f $ λ f, by { norm_cast, simp only [zero_smul, coe_zero] } }
 
-instance semimodule' [semiring R] [add_comm_monoid M] [semimodule R M] :
-  semimodule (germ l R) (germ l M) :=
+instance module' [semiring R] [add_comm_monoid M] [module R M] :
+  module (germ l R) (germ l M) :=
 { add_smul := λ c₁ c₂ f, induction_on₃ c₁ c₂ f $ λ c₁ c₂ f, by { norm_cast, simp only [add_smul] },
   zero_smul := λ f, induction_on f $ λ f, by simp only [← coe_zero, ← coe_smul', zero_smul] }
 
 end module
 
 instance [has_le β] : has_le (germ l β) :=
-⟨λ f g, quotient.lift_on₂' f g l.eventually_le $
-  λ f f' g g' h h', propext $ eventually_le_congr h h'⟩
+⟨lift_rel (≤)⟩
 
 @[simp] lemma coe_le [has_le β] : (f : germ l β) ≤ g ↔ (f ≤ᶠ[l] g) := iff.rfl
+
+lemma le_def [has_le β] : ((≤) : germ l β → germ l β → Prop) = lift_rel (≤) := rfl
 
 lemma const_le [has_le β] {x y : β} (h : x ≤ y) : (↑x : germ l β) ≤ ↑y :=
 lift_rel_const h
@@ -512,8 +522,7 @@ instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid (germ l β
     H.mono $ λ x H, mul_le_mul_left' H _,
   le_of_mul_le_mul_left := λ f g h, induction_on₃ f g h $ λ f g h H,
     H.mono $ λ x, le_of_mul_le_mul_left',
-  .. germ.partial_order, .. germ.comm_monoid, .. germ.left_cancel_semigroup,
-  .. germ.right_cancel_semigroup }
+  .. germ.partial_order, .. germ.comm_monoid, .. germ.left_cancel_semigroup }
 
 @[to_additive]
 instance ordered_comm_group [ordered_comm_group β] : ordered_comm_group (germ l β) :=

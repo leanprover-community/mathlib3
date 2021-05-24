@@ -367,9 +367,24 @@ begin
   exact s,
 end
 
-lemma even_prime_is_small {a n : ℕ} (p : nat.prime a) (n_big : 2 < n) (small : a^2 ≤ 2 * n): a ^ 2 < 2 * n :=
+lemma even_prime_is_two {p : ℕ} (pr: nat.prime p) (div: 2 ∣ p) : p = 2 :=
 begin
   sorry
+end
+
+lemma even_prime_is_small {a n : ℕ} (a_prime : nat.prime a) (n_big : 2 < n) (small : a ^ 2 ≤ 2 * n): a ^ 2 < 2 * n :=
+begin
+  cases lt_or_ge (a ^ 2) (2 * n),
+  { exact h, },
+  { have t : a * a = 2 * n, by
+      calc a * a = a ^ 2: by ring
+      ... = 2 * n: by linarith,
+
+    have two_prime : nat.prime 2, by norm_num,
+    have a_even : 2 ∣ a := (or_self _).mp ((nat.prime.dvd_mul two_prime).mp ⟨n, t⟩),
+    have a_two : a = 2 := even_prime_is_two a_prime a_even,
+    subst a_two,
+    linarith, },
 end
 
 lemma false_inequality_is_false {n : ℕ} (n_large : 460 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=

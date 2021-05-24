@@ -369,7 +369,9 @@ end
 
 lemma even_prime_is_two {p : ℕ} (pr: nat.prime p) (div: 2 ∣ p) : p = 2 :=
 begin
-  sorry
+  rcases pr with ⟨_, divs⟩,
+  specialize divs 2 div,
+  cc,
 end
 
 lemma even_prime_is_small {a n : ℕ} (a_prime : nat.prime a) (n_big : 2 < n) (small : a ^ 2 ≤ 2 * n): a ^ 2 < 2 * n :=
@@ -392,9 +394,47 @@ begin
   sorry,
 end
 
-lemma foo {n : ℕ} : (finset.filter (λ p, p ^ 2 < 2 * n) (finset.range (2 * n / 3 + 1))).card ≤ (finset.filter (λ p, p < nat.sqrt (2 * n)) (finset.range (2 * n / 3 + 1))).card :=
+lemma blah {a : _} {A : finset a} {B : finset a} (p : A ⊆ B) : A.card ≤ B.card :=
 begin
-  sorry,
+  exact finset.card_le_of_subset p
+end
+
+lemma foo {n : ℕ} : (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card ≤ nat.sqrt (2 * n) :=
+begin
+  have t : ∀ p, p ^ 2 ≤ 2 * n ↔ p ≤ nat.sqrt (2 * n),
+  { intro p,
+    have r : p ^ 2 = p * p, by ring,
+    rw r,
+    exact nat.le_sqrt.symm, },
+
+  have u : ∀ p, (p ^ 2 < 2 * n) → p ^ 2 ≤ 2 * n, by
+  { intros p hyp,
+    exact le_of_lt hyp, },
+
+  have v : finset.filter (λ p, p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) ⊆
+    finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))),
+    by sorry,
+
+  have w : finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1))) =
+    finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))),
+    by sorry,
+
+  have g : finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))) =
+    finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1))),
+    by sorry,
+
+  have h : (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))) ⊆ finset.Ico 2 (nat.sqrt (2 * n) + 1),
+    by sorry,
+
+  calc (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card
+      ≤ (finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card: finset.card_le_of_subset v
+  ... = (finset.filter (λ p, p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card w
+  ... = (finset.filter (λ p, 2 ≤ p ^ 2 ∧ p ^ 2 ≤ 2 * n) (finset.filter nat.prime (finset.Ico 2 (2 * n / 3 + 1)))).card: congr_arg finset.card g
+  ... ≤ (finset.Ico 2 (nat.sqrt (2 * n) + 1)).card: finset.card_le_of_subset h
+  ... = nat.sqrt (2 * n) + 1 - 2: finset.Ico.card 2 (nat.sqrt (2 * n) + 1)
+  ... = nat.sqrt (2 * n) - 1: by ring
+  ... ≤ nat.sqrt (2 * n): (nat.sqrt (2 * n)).sub_le 1,
+
 end
 
 lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
@@ -530,10 +570,7 @@ begin
                      : begin
                        refine (nat.mul_le_mul_right _ _),
                        refine pow_le_pow (by linarith) _,
-                       calc (finset.filter (λ p, p ^ 2 < 2 * n) (finset.filter nat.prime (finset.range (2 * n / 3 + 1)))).card
-                           ≤ (finset.filter (λ p, p ^ 2 < 2 * n) (finset.range (2 * n / 3 + 1))).card: filter_filter_card_le_filter_card
-                           ... ≤ (finset.filter (λ p, p < nat.sqrt (2 * n)) (finset.range (2 * n / 3 + 1))).card: foo
-                           ... ≤ nat.sqrt (2 * n): @filter_size _ (nat.sqrt (2 * n)),
+                       exact foo,
                      end
       ...     ≤ (2 * n) ^ (nat.sqrt (2 * n))
                  *

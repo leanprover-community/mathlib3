@@ -1007,6 +1007,14 @@ variables [bounded_lattice α] {a : α}
 @[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
 @[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
 
+lemma eq_bot_of_disjoint_absorbs
+  {a b : α} (w : disjoint a b) (h : a ⊔ b = a) : b = ⊥ :=
+begin
+  rw disjoint_iff at w,
+  rw [←w, right_eq_inf],
+  rwa sup_eq_left at h,
+end
+
 end bounded_lattice
 
 section bounded_distrib_lattice

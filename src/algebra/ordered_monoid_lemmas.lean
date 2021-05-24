@@ -263,8 +263,8 @@ lemma mul_le_mul_left_n [covariant_class N N (*) (≤)]
   a * b ≤ a * c :=
 covariant_class.covc _ bc
 
-@[to_additive]
-lemma le_of_mul_le_mul_left_n [contravariant_class N N (*) (≤)]
+@[to_additive le_of_add_le_add_left]
+lemma le_of_mul_le_mul_left' [contravariant_class N N (*) (≤)]
   (a : N) {b c : N} (bc : a * b ≤ a * c) :
   b ≤ c :=
 contravariant_class.covtc _ bc
@@ -275,8 +275,8 @@ lemma mul_le_mul_right_n [covariant_class N N (function.swap (*)) (≤)]
   b * a ≤ c * a :=
 covariant_class.covc a bc
 
-@[to_additive]
-lemma le_of_mul_le_mul_right_n [contravariant_class N N (function.swap (*)) (≤)]
+@[to_additive le_of_add_le_add_right]
+lemma le_of_mul_le_mul_right' [contravariant_class N N (function.swap (*)) (≤)]
   (a : N) {b c : N} (bc : b * a ≤ c * a) :
   b ≤ c :=
 contravariant_class.covtc a bc
@@ -459,7 +459,7 @@ def contravariant.to_left_cancel_semigroup [semigroup N] [partial_order N]
   [contravariant_class N N ((*) : N → N → N) (≤)] :
   left_cancel_semigroup N :=
 { mul_left_cancel := λ a b c bc,
-    (le_of_mul_le_mul_left_n a bc.le).antisymm (le_of_mul_le_mul_left_n a bc.ge),
+    (le_of_mul_le_mul_left' a bc.le).antisymm (le_of_mul_le_mul_left' a bc.ge),
   ..‹semigroup N› }
 
 /- This is not instance, since we want to have an instance from `right_cancel_semigroup`s
@@ -473,7 +473,7 @@ def contravariant.to_right_cancel_semigroup [semigroup N] [partial_order N]
   [contravariant_class N N (function.swap (*) : N → N → N) (≤)] :
   right_cancel_semigroup N :=
 { mul_right_cancel := λ a b c bc,
-    le_antisymm (le_of_mul_le_mul_right_n b bc.le) (le_of_mul_le_mul_right_n b bc.ge)
+    le_antisymm (le_of_mul_le_mul_right' b bc.le) (le_of_mul_le_mul_right' b bc.ge)
   ..‹semigroup N› }
 
 end variants
@@ -841,28 +841,6 @@ lemma monotone.mul'
 λ x y h, mul_le_mul' (hf h) (hg h)
 
 end mono
-
-@[to_additive le_of_add_le_add_left]
-lemma le_of_mul_le_mul_left' [left_cancel_semigroup α] [partial_order α]
-  [contravariant_class α α (*) (<)]
-  {a b c : α} (bc : a * b ≤ a * c) :
-  b ≤ c :=
-begin
-  cases le_iff_eq_or_lt.mp bc,
-  { exact le_iff_eq_or_lt.mpr (or.inl ((mul_right_inj a).mp h)) },
-  { exact (lt_of_mul_lt_mul_left' _ h).le }
-end
-
-@[to_additive le_of_add_le_add_right]
-lemma le_of_mul_le_mul_right' [partial_order α] [right_cancel_semigroup α]
-  [contravariant_class α α (function.swap (*)) (<)]
-  {a b c : α} (bc : b * a ≤ c * a) :
-  b ≤ c :=
-begin
-  cases le_iff_eq_or_lt.mp bc,
-  { exact le_iff_eq_or_lt.mpr (or.inl ((mul_left_inj a).mp h)) },
-  { exact (lt_of_mul_lt_mul_right' _ h).le }
-end
 
 variable [partial_order α]
 

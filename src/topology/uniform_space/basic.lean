@@ -840,7 +840,7 @@ lemma uniformity_has_basis_open_symmetric :
 begin
   simp only [← and_assoc],
   refine uniformity_has_basis_open.restrict (λ s hs, ⟨symmetrize_rel s, _⟩),
-  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open_inter hs.2 (hs.2.preimage continuous_swap)⟩,
+  exact ⟨⟨symmetrize_mem_uniformity hs.1, is_open.inter hs.2 (hs.2.preimage continuous_swap)⟩,
     symmetric_symmetrize_rel s, symmetrize_rel_subset_self s⟩
 end
 
@@ -1089,7 +1089,7 @@ lemma to_topological_space_inf {u v : uniform_space α} :
 by rw [to_topological_space_Inf, infi_pair]
 
 instance : uniform_space empty := ⊥
-instance : uniform_space unit := ⊥
+instance : uniform_space punit := ⊥
 instance : uniform_space bool := ⊥
 instance : uniform_space ℕ := ⊥
 instance : uniform_space ℤ := ⊥

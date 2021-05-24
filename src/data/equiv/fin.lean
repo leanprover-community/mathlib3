@@ -17,15 +17,15 @@ variables {m n : ℕ}
 
 /-- Equivalence between `fin 0` and `empty`. -/
 def fin_zero_equiv : fin 0 ≃ empty :=
-⟨fin_zero_elim, empty.elim, assume a, fin_zero_elim a, assume a, empty.elim a⟩
+equiv.equiv_empty _
 
 /-- Equivalence between `fin 0` and `pempty`. -/
 def fin_zero_equiv' : fin 0 ≃ pempty.{u} :=
-equiv.equiv_pempty fin.elim0
+equiv.equiv_pempty _
 
-/-- Equivalence between `fin 1` and `punit`. -/
-def fin_one_equiv : fin 1 ≃ punit :=
-⟨λ_, (), λ_, 0, fin.cases rfl (λa, fin_zero_elim a), assume ⟨⟩, rfl⟩
+/-- Equivalence between `fin 1` and `unit`. -/
+def fin_one_equiv : fin 1 ≃ unit :=
+equiv_punit_of_unique
 
 /-- Equivalence between `fin 2` and `bool`. -/
 def fin_two_equiv : fin 2 ≃ bool :=

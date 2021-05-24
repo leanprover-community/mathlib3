@@ -813,7 +813,7 @@ instance linear_ordered_comm_group.to_ordered_comm_group : ordered_comm_group α
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   linear_ordered_cancel_comm_monoid α :=
-{ le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
+{ le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left' _,
   mul_left_cancel := λ x y z, mul_left_cancel,
   ..‹linear_ordered_comm_group α› }
 

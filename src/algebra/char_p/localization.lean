@@ -59,10 +59,8 @@ instance char_p [h: char_p R p]: char_p (fraction_ring R) p :=
     }
   end}
 
-/--
-  If `R` has characteristic `0`, then so does `fraction_ring R`.
--/
-instance char_zero [h: char_zero R]: char_zero (fraction_ring R) :=
+/-- If `R` has characteristic `0`, then so does `fraction_ring R`. -/
+instance [char_zero R] : char_zero (fraction_ring R) :=
 char_p.char_p_to_char_zero (fraction_ring R)
 
 end fraction_ring

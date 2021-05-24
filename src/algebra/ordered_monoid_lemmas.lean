@@ -265,7 +265,7 @@ covariant_class.covc _ bc
 
 @[to_additive le_of_add_le_add_left]
 lemma le_of_mul_le_mul_left' [contravariant_class N N (*) (≤)]
-  (a : N) {b c : N} (bc : a * b ≤ a * c) :
+  {a b c : N} (bc : a * b ≤ a * c) :
   b ≤ c :=
 contravariant_class.covtc _ bc
 
@@ -322,7 +322,7 @@ covariant_class.covc _ bc
 
 @[to_additive lt_of_add_lt_add_left]
 lemma lt_of_mul_lt_mul_left' [contravariant_class N N (*) (<)]
-  (a : N) {b c : N} (bc : a * b < a * c) :
+  {a b c : N} (bc : a * b < a * c) :
   b < c :=
 contravariant_class.covtc _ bc
 
@@ -596,7 +596,7 @@ def contravariant.to_left_cancel_semigroup [semigroup N] [partial_order N]
   [contravariant_class N N ((*) : N → N → N) (≤)] :
   left_cancel_semigroup N :=
 { mul_left_cancel := λ a b c bc,
-    (le_of_mul_le_mul_left' a bc.le).antisymm (le_of_mul_le_mul_left' a bc.ge),
+    (le_of_mul_le_mul_left' bc.le).antisymm (le_of_mul_le_mul_left' bc.ge),
   ..‹semigroup N› }
 
 /- This is not instance, since we want to have an instance from `right_cancel_semigroup`s

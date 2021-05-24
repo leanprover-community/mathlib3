@@ -146,8 +146,7 @@ begin
   { rw finset.prod_range_zero,
     apply det_eq_one_of_card_eq_zero,
     apply fintype.card_eq_zero_iff.mpr,
-    intro i,
-    exact nat.not_lt_zero (b i) (hn i) },
+    exact ⟨λ i, nat.not_lt_zero (b i) (hn i)⟩ },
   { rw [finset.prod_range_succ_comm],
     have h2 : (M.to_square_block_prop (λ (i : m), b i = n.succ)).det =
       (M.to_square_block' b n.succ).det,
@@ -202,6 +201,7 @@ begin
   { intros k hk hbk,
     apply det_eq_one_of_card_eq_zero,
     apply fintype.card_eq_zero_iff.mpr,
+    constructor,
     simp only [subtype.forall],
     intros a hba, apply hbk,
     apply finset.mem_image.mpr,

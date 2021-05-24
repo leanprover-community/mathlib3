@@ -113,7 +113,7 @@ section roots
 
 open multiset
 
-local attribute [reducible] with_zero
+local attribute [semireducible] with_zero
 
 lemma degree_eq_zero_of_is_unit (h : is_unit p) : degree p = 0 :=
 let ⟨q, hq⟩ := is_unit_iff_dvd_one.1 h in
@@ -509,7 +509,7 @@ end
 
 lemma zero_of_eval_zero [infinite R] (p : polynomial R) (h : ∀ x, p.eval x = 0) : p = 0 :=
 by classical; by_contradiction hp; exact
-infinite.not_fintype ⟨p.roots.to_finset, λ x, multiset.mem_to_finset.mpr ((mem_roots hp).mpr (h _))⟩
+fintype.false ⟨p.roots.to_finset, λ x, multiset.mem_to_finset.mpr ((mem_roots hp).mpr (h _))⟩
 
 lemma funext [infinite R] {p q : polynomial R} (ext : ∀ r : R, p.eval r = q.eval r) : p = q :=
 begin

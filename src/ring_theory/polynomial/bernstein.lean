@@ -9,7 +9,6 @@ import data.mv_polynomial.pderiv
 import data.nat.choose.sum
 import linear_algebra.basis
 import ring_theory.polynomial.pochhammer
-import tactic.omega
 
 /-!
 # Bernstein polynomials
@@ -94,9 +93,9 @@ begin
   dsimp [bernstein_polynomial],
   split_ifs,
   { subst h, simp, },
-  { by_cases w : 0 < n - ν,
-    { simp [zero_pow w], },
-    { simp [(show n < ν, by omega), nat.choose_eq_zero_of_lt], }, },
+  { obtain w | w := (n - ν).eq_zero_or_pos,
+    { simp [nat.choose_eq_zero_of_lt ((nat.le_of_sub_eq_zero w).lt_of_ne (ne.symm h))] },
+    { simp [zero_pow w] } },
 end.
 
 lemma derivative_succ_aux (n ν : ℕ) :
@@ -148,9 +147,7 @@ lemma iterate_derivative_at_0_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
 begin
   cases ν,
   { rintro ⟨⟩, },
-  { intro w,
-    replace w := nat.lt_succ_iff.mp w,
-    revert w,
+  { rw nat.lt_succ_iff,
     induction k with k ih generalizing n ν,
     { simp [eval_at_0], },
     { simp only [derivative_succ, int.coe_nat_eq_zero, int.nat_cast_eq_coe_nat, mul_eq_zero,
@@ -159,12 +156,9 @@ begin
         polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
       intro h,
       apply mul_eq_zero_of_right,
-      rw ih,
-      simp only [sub_zero],
-      convert @ih (n-1) (ν-1) _,
-      { omega, },
-      { omega, },
-      { exact le_of_lt h, }, }, },
+      rw [ih _ _ (nat.le_of_succ_le h), sub_zero],
+      convert ih _ _ (nat.pred_le_pred h),
+      exact (nat.succ_pred_eq_of_pos (k.succ_pos.trans_le h)).symm } },
 end
 
 @[simp]
@@ -188,17 +182,16 @@ begin
         iterate_derivative_sub, iterate_derivative_cast_nat_mul,
         eval_one, eval_mul, eval_add, eval_sub, eval_X, eval_comp, eval_nat_cast,
         function.comp_app, function.iterate_succ, pochhammer_succ_left],
-      by_cases h'' : ν = 0,
-      { simp [h''] },
-      { have : n - 1 - (ν - 1) = n - ν := by omega,
+      obtain rfl | h'' := ν.eq_zero_or_pos,
+      { simp },
+      { have : n - 1 - (ν - 1) = n - ν,
+        { rw ←nat.succ_le_iff at h'',
+          rw [nat.sub_sub, add_comm, nat.sub_add_cancel h''] },
         rw [this, pochhammer_eval_succ],
-        have : n - ν + ν = n := by omega,
-        rw_mod_cast this } } },
+        rw_mod_cast nat.sub_add_cancel (h'.trans n.pred_le) } } },
   { simp only [not_le] at h,
-    have w₁ : n - (ν - 1) = 0, { omega, },
-    have w₂ : ν ≠ 0, { omega, },
-    rw [w₁, eq_zero_of_lt R h],
-    simp [w₂], }
+    rw [nat.sub_eq_zero_of_le (nat.le_pred_of_lt h), eq_zero_of_lt R h],
+    simp [pos_iff_ne_zero.mp (pos_of_gt h)] },
 end
 
 lemma iterate_derivative_at_0_ne_zero [char_zero R] (n ν : ℕ) (h : ν ≤ n) :
@@ -209,10 +202,10 @@ begin
   simp only [←pochhammer_eval_cast],
   norm_cast,
   apply ne_of_gt,
-  by_cases h : ν = 0,
-  { subst h, simp, },
-  { apply pochhammer_pos,
-    omega, },
+  obtain rfl|h' := nat.eq_zero_or_pos ν,
+  { simp, },
+  { rw ← nat.succ_pred_eq_of_pos h' at h,
+    exact pochhammer_pos _ _ (nat.sub_pos_of_lt (nat.lt_of_succ_le h)) }
 end
 
 /-!
@@ -223,7 +216,7 @@ lemma iterate_derivative_at_1_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
   k < n - ν → (polynomial.derivative^[k] (bernstein_polynomial R n ν)).eval 1 = 0 :=
 begin
   intro w,
-  rw flip' _ _ _ (show ν ≤ n, by omega),
+  rw flip' _ _ _ (nat.lt_of_sub_pos (pos_of_gt w)).le,
   simp [polynomial.eval_comp, iterate_derivative_at_0_eq_zero_of_lt R n w],
 end
 
@@ -234,26 +227,19 @@ lemma iterate_derivative_at_1 (n ν : ℕ) (h : ν ≤ n) :
 begin
   rw flip' _ _ _ h,
   simp [polynomial.eval_comp, h],
-  by_cases h' : n = ν,
-  { subst h', simp, },
-  { replace h : ν < n, { omega, },
-    congr,
+  obtain rfl | h' := h.eq_or_lt,
+  { simp, },
+  { congr,
     norm_cast,
-    congr,
-    omega, },
+    rw [nat.sub_sub, nat.sub_sub_self (nat.succ_le_iff.mpr h')] },
 end
 
 lemma iterate_derivative_at_1_ne_zero [char_zero R] (n ν : ℕ) (h : ν ≤ n) :
   (polynomial.derivative^[n-ν] (bernstein_polynomial R n ν)).eval 1 ≠ 0 :=
 begin
-  simp only [bernstein_polynomial.iterate_derivative_at_1 _ _ _ h, ne.def,
-    int.coe_nat_eq_zero, neg_one_pow_mul_eq_zero_iff, nat.cast_eq_zero],
-    rw ←nat.cast_succ,
-  simp only [←pochhammer_eval_cast],
-  norm_cast,
-  apply ne_of_gt,
-  apply pochhammer_pos,
-  exact nat.succ_pos ν,
+  rw [bernstein_polynomial.iterate_derivative_at_1 _ _ _ h, ne.def, neg_one_pow_mul_eq_zero_iff,
+    ←nat.cast_succ, ←pochhammer_eval_cast, ←nat.cast_zero, nat.cast_inj],
+  exact (pochhammer_pos _ _ (nat.succ_pos ν)).ne',
 end
 
 open submodule
@@ -287,7 +273,7 @@ begin
       apply span_induction m,
       { simp,
         rintro ⟨a, w⟩, simp only [fin.coe_mk],
-        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ _ (show n - k < n - a, by omega)], },
+        rw [iterate_derivative_at_1_eq_zero_of_lt ℚ n ((nat.sub_lt_sub_left_iff h).mpr w)] },
       { simp, },
       { intros x y hx hy, simp [hx, hy], },
       { intros a x h, simp [h], }, }, },

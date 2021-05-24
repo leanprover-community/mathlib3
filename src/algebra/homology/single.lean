@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.homology
-import tactic.omega
 
 /-!
 # Chain complexes supported in a single degree
@@ -109,8 +108,6 @@ open homological_complex
 
 namespace chain_complex
 
--- TODO: dualize to cochain_complexes
-
 local attribute [instance] has_zero_object.has_zero
 
 /--
@@ -187,11 +184,11 @@ def to_single₀_equiv (C : chain_complex V ℕ) (X : V) :
     | 0 := f.1
     | (n+1) := 0
     end,
-    comm' := λ i j, begin
+    comm' := λ i j h, begin
       rcases i with _|_|i; cases j; unfold_aux; simp only [comp_zero, zero_comp, single₀_obj_X_d],
       { rw [C.shape, zero_comp], simp, },
       { exact f.2.symm, },
-      { rw [C.shape, zero_comp], simp only [complex_shape.down_rel, zero_add], omega, },
+      { rw [C.shape, zero_comp], simp [i.succ_succ_ne_one.symm] },
     end, },
   left_inv := λ f, begin
     ext i,
@@ -221,3 +218,117 @@ instance : faithful (single₀ V) := faithful.of_iso (single₀_iso_single V).sy
 instance : full (single₀ V) := full.of_iso (single₀_iso_single V).symm
 
 end chain_complex
+
+namespace cochain_complex
+
+local attribute [instance] has_zero_object.has_zero
+
+/--
+`cochain_complex.single₀ V` is the embedding of `V` into `cochain_complex V ℕ`
+as cochain complexes supported in degree 0.
+
+This is naturally isomorphic to `single V _ 0`, but has better definitional properties.
+-/
+def single₀ : V ⥤ cochain_complex V ℕ :=
+{ obj := λ X,
+  { X := λ n, match n with
+    | 0 := X
+    | (n+1) := 0
+    end,
+    d := λ i j, 0, },
+  map := λ X Y f,
+  { f := λ n, match n with
+    | 0 := f
+    | (n+1) := 0
+    end, },
+  map_id' := λ X, by { ext n, cases n, refl, dsimp, unfold_aux, simp, },
+  map_comp' := λ X Y Z f g, by { ext n, cases n, refl, dsimp, unfold_aux, simp, } }
+
+@[simp] lemma single₀_obj_X_0 (X : V) : ((single₀ V).obj X).X 0 = X := rfl
+@[simp] lemma single₀_obj_X_succ (X : V) (n : ℕ) : ((single₀ V).obj X).X (n+1) = 0 := rfl
+@[simp] lemma single₀_obj_X_d (X : V) (i j : ℕ) : ((single₀ V).obj X).d i j = 0 := rfl
+@[simp] lemma single₀_obj_X_d_from (X : V) (j : ℕ) : ((single₀ V).obj X).d_from j = 0 :=
+by { rw [d_from_eq ((single₀ V).obj X) rfl], simp, }
+@[simp] lemma single₀_obj_X_d_to (X : V) (i : ℕ) : ((single₀ V).obj X).d_to i = 0 :=
+begin
+  cases i,
+  { rw [d_to_eq_zero], simp, },
+  { rw [d_to_eq ((single₀ V).obj X) rfl], simp, },
+end
+@[simp] lemma single₀_map_f_0 {X Y : V} (f : X ⟶ Y) : ((single₀ V).map f).f 0 = f := rfl
+@[simp] lemma single₀_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
+  ((single₀ V).map f).f (n+1) = 0 := rfl
+
+section
+variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
+
+/--
+Sending objects to cochain complexes supported at `0` then taking `0`-th homology
+is the same as doing nothing.
+-/
+noncomputable
+def homology_functor_0_single₀ : single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
+nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
+  (λ X Y f, by { ext, dsimp [homology_functor], simp, })
+
+/--
+Sending objects to cochain complexes supported at `0` then taking `(n+1)`-st homology
+is the same as the zero functor.
+-/
+noncomputable
+def homology_functor_succ_single₀ (n : ℕ) : single₀ V ⋙ homology_functor V _ (n+1) ≅ 0 :=
+nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
+  (λ X Y f, by ext)
+
+end
+
+variables {V}
+
+/--
+Morphisms from a single object cochain complex with `X` concentrated in degree 0
+to a `ℕ`-indexed cochain complex `C`
+are the same as morphisms `f : X ⟶ C.X 0` such that `f ≫ C.d 0 1 = 0`.
+-/
+def from_single₀_equiv (C : cochain_complex V ℕ) (X : V) :
+  ((single₀ V).obj X ⟶ C) ≃ { f : X ⟶ C.X 0 // f ≫ C.d 0 1 = 0 } :=
+{ to_fun := λ f, ⟨f.f 0, by { rw f.comm 0 1, simp, }⟩,
+  inv_fun := λ f,
+  { f := λ i, match i with
+    | 0 := f.1
+    | (n+1) := 0
+    end,
+    comm' := λ i j h, begin
+      rcases j with _|_|j; cases i; unfold_aux; simp only [comp_zero, zero_comp, single₀_obj_X_d],
+      { convert comp_zero, rw [C.shape], simp, },
+      { exact f.2, },
+      { convert comp_zero, rw [C.shape], simp only [complex_shape.up_rel, zero_add],
+        exact (nat.one_lt_succ_succ j).ne },
+    end, },
+  left_inv := λ f, begin
+    ext i,
+    rcases i,
+    { refl, },
+    { ext, },
+  end,
+  right_inv := by tidy, }
+
+variables (V)
+
+/-- `single₀` is the same as `single V _ 0`. -/
+def single₀_iso_single : single₀ V ≅ single V _ 0 :=
+nat_iso.of_components
+  (λ X,
+  { hom := { f := λ i, by { cases i; simpa using 𝟙 _, } },
+    inv := { f := λ i, by { cases i; simpa using 𝟙 _, } },
+    hom_inv_id' := by { ext (_|i); { dsimp, simp, }, },
+    inv_hom_id' := begin
+      ext (_|i),
+      { apply category.id_comp, },
+      { apply has_zero_object.to_zero_ext, },
+    end, })
+  (λ X Y f, by { ext (_|i); { dsimp, simp, }, })
+
+instance : faithful (single₀ V) := faithful.of_iso (single₀_iso_single V).symm
+instance : full (single₀ V) := full.of_iso (single₀_iso_single V).symm
+
+end cochain_complex

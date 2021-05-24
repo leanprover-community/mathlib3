@@ -54,7 +54,7 @@ theorem hall_hard_inductive_zero (t : ι → finset α) (hn : fintype.card ι = 
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
   rw fintype.card_eq_zero_iff at hn,
-  exact ⟨λ x, (hn x).elim, by tauto⟩,
+  exactI ⟨is_empty_elim, is_empty_elim, is_empty_elim⟩,
 end
 
 variables {t : ι → finset α} [decidable_eq α]

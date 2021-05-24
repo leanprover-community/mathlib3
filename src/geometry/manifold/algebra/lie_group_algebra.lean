@@ -17,7 +17,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 def Lb (I : model_with_corners 𝕜 E H)
   (G : Type*) [topological_space G] [charted_space H G] [smooth_manifold_with_corners I G]
-  [group G] [topological_group G] [lie_group I G] (g : G) : C∞(I, G; I, G) :=
+  [group G] [topological_group G] [lie_group I G] (g : G) : C^∞⟮I, G; I, G⟯ :=
 ⟨(L g), smooth_mul_left⟩
 
 @[simp] lemma Lb_apply (I : model_with_corners 𝕜 E H)
@@ -29,35 +29,36 @@ def Lb (I : model_with_corners 𝕜 E H)
   (G : Type*) [topological_space G] [charted_space H G] [smooth_manifold_with_corners I G]
   [group G] [topological_group G] [lie_group I G] (g h : G) :
   Lb I G (g * h) = (Lb I G g).comp (Lb I G h) :=
-by ext; simp only [smooth_map.comp_apply, Lb_apply, mul_assoc]
+by ext; simp only [times_cont_mdiff_map.comp_apply, Lb_apply, mul_assoc]
 
 lemma Lb_apply_one (I : model_with_corners 𝕜 E H) {G : Type*} [topological_space G]
   [charted_space H G] [smooth_manifold_with_corners I G] [group G] [topological_group G]
   [lie_group I G] (g : G) : (Lb I G g) 1 = g := by rw [Lb_apply, mul_one]
 
-structure left_invariant_vector_field (I : model_with_corners 𝕜 E H)
-  (G : Type*) [topological_space G] [charted_space H G] [smooth_manifold_with_corners I G]
-  [group G] [topological_group G] [lie_group I G] extends vector_field_derivation I G :=
-(left_invariant' : ∀ f g, to_vector_field_derivation.eval g f = (fd (Lb I G g)) (1 : G) (to_vector_field_derivation.eval (1 : G)) f)
+structure left_invariant_derivation (I : model_with_corners 𝕜 E H)
+  (G : Type*) [topological_space G] [charted_space H G]
+  [group G] [topological_group G] [lie_group I G]
+  extends derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯ :=
+(left_invariant' : ∀ f g, to_derivation.eval g f = (fd (Lb I G g)) (1 : G) (to_derivation.eval (1 : G)) f)
 
 variables {I : model_with_corners 𝕜 E H}
   {G : Type*} [topological_space G] [charted_space H G] [smooth_manifold_with_corners I G]
   [group G] [topological_group G] [lie_group I G]
 
-namespace left_invariant_vector_field
+namespace left_invariant_derivation
 
-instance : has_coe (left_invariant_vector_field I G) (vector_field_derivation I G)
+instance : has_coe (left_invariant_derivation I G) (vector_field_derivation I G)
 := ⟨λ X, X.to_vector_field_derivation⟩
 
-@[simp] lemma to_vfield_der_eq_coe (X : left_invariant_vector_field I G) :
+@[simp] lemma to_vfield_der_eq_coe (X : left_invariant_derivation I G) :
   X.to_vector_field_derivation = X := rfl
 
-@[simp] lemma coe_lift_eq_coe (X : left_invariant_vector_field I G) :
+@[simp] lemma coe_lift_eq_coe (X : left_invariant_derivation I G) :
   ⇑(X : vector_field_derivation I G) = (X : C∞(I, G; 𝕜) → C∞(I, G; 𝕜)) := rfl
 
 variables
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M] {x : M}
-(X Y : left_invariant_vector_field I G) (f : C∞(I, G; 𝕜)) (g h : G)
+(X Y : left_invariant_derivation I G) (f : C∞(I, G; 𝕜)) (g h : G)
 
 def eval : point_derivation I G g :=
 X.to_vector_field_derivation.eval g
@@ -78,11 +79,11 @@ by rw [left_invariant, Lb_mul, ←fdifferential_comp, function.comp, apply_fdiff
 by ext h; rw [smooth_map.comp_apply, Lb_apply, ←eval_apply, left_invariant_ext,
   apply_fdifferential, eval_apply]
 
-instance : has_zero (left_invariant_vector_field I G) := ⟨⟨0, λ f g,
+instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,
   by { simp only [vector_field_derivation.zero_apply, vector_field_derivation.eval_apply], sorry }⟩⟩
-instance : inhabited (left_invariant_vector_field I G) := ⟨0⟩
+instance : inhabited (left_invariant_derivation I G) := ⟨0⟩
 
-instance : add_comm_group (left_invariant_vector_field I G) :=
+instance : add_comm_group (left_invariant_derivation I G) :=
 {
   add := λ X Y, ⟨X + Y, λ f g, by { sorry }⟩,
   add_assoc := λ X Y Z, ext $ λ a, add_assoc _ _ _,
@@ -91,10 +92,10 @@ instance : add_comm_group (left_invariant_vector_field I G) :=
   add_comm := λ X Y, ext $ λ a, add_comm _ _,
   neg := λ X, ⟨-X⟩,
   add_left_neg := λ X, ext $ λ a, add_left_neg _,
-  ..left_invariant_vector_field.has_zero
+  ..left_invariant_derivation.has_zero
 }
 
-instance : module 𝕜 (left_invariant_vector_field I G) :=
+instance : module 𝕜 (left_invariant_derivation I G) :=
 semimodule.of_core $
 {
   smul := λ r X, ⟨r • X, λ f g, by { sorry, }⟩,
@@ -105,7 +106,7 @@ semimodule.of_core $
   ..vector_field_derivation.has_scalar
 }
 
-instance : has_bracket (left_invariant_vector_field I G) :=
+instance : has_bracket (left_invariant_derivation I G) :=
 { bracket := λ X Y, ⟨⁅X, Y⁆, begin
     intros f g,
     have hX := X.left_invariant' (Y f) g, have hY := Y.left_invariant' (X f) g,
@@ -121,13 +122,13 @@ instance : has_bracket (left_invariant_vector_field I G) :=
 lemma commutator_apply : ⁅X, Y⁆ f = X (Y f) - Y (X f) :=
 by rw [commutator_coe_vector_field_derivation, vector_field_derivation.commutator_apply]; refl
 
-instance : lie_ring (left_invariant_vector_field I G) :=
+instance : lie_ring (left_invariant_derivation I G) :=
 { add_lie := λ X Y Z, by { sorry },
   lie_add := λ X Y Z, by { sorry },
   lie_self := λ X, by { sorry },
   jacobi := λ X Y Z, by { sorry } }
 
-instance : lie_algebra 𝕜 (left_invariant_vector_field I G) :=
+instance : lie_algebra 𝕜 (left_invariant_derivation I G) :=
 { lie_smul := λ X Y Z, by { sorry, } }
 
-end left_invariant_vector_field
+end left_invariant_derivation

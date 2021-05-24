@@ -6,7 +6,7 @@ Authors: Nicolò Cavalleri
 
 import geometry.manifold.algebra.smooth_functions
 import ring_theory.derivation
-import geometry.manifold.temporary_to_be_removed
+--import geometry.manifold.temporary_to_be_removed
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -15,22 +15,33 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 open_locale manifold
 
-def module_point_derivation (x : M) : module C∞(I, M; 𝕜) 𝕜 :=
-{ smul := λ f k, f x * k,
-  one_smul := λ k, one_mul k,
+namespace point_derivation
+
+def has_scalar (x : M) : has_scalar C^∞⟮I, M; 𝕜⟯ 𝕜 :=
+{ smul := λ f k, f x * k }
+
+lemma scalar_def {x : M} {f : C^∞⟮I, M; 𝕜⟯} {k : 𝕜} :
+  @has_scalar.smul C^∞⟮I, M; 𝕜⟯ 𝕜 (has_scalar I M x) f k = f x * k := rfl
+
+def module (x : M) : module C^∞⟮I, M; 𝕜⟯ 𝕜 :=
+{ one_smul := λ k, one_mul k,
   mul_smul := λ f g k, mul_assoc _ _ _,
   smul_add := λ f g k, mul_add _ _ _,
   smul_zero := λ f, mul_zero _,
   add_smul := λ f g k, add_mul _ _ _,
-  zero_smul := λ f, zero_mul _ }
+  zero_smul := λ f, zero_mul _,
+  ..point_derivation.has_scalar I M x }
 
-def compatible_semimodule_tangent_space (x : M) :
-  @compatible_semimodule 𝕜 C∞(I, M; 𝕜) _ _ _ 𝕜 _ (module_point_derivation I M x) _ :=
-{ compatible_smul := λ h k, rfl, }
+def is_scalar_tower (x : M) :
+  @is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ 𝕜 _ (has_scalar I M x) _ :=
+{ smul_assoc := λ k f h, by { simp only [scalar_def, algebra.id.smul_eq_mul,
+    smooth_map.coe_smul, pi.smul_apply, mul_assoc]} }
+
+end point_derivation
 
 @[reducible] def point_derivation (x : M) :=
-  @derivation 𝕜 C∞(I, M; 𝕜) _ _ _ 𝕜 _ (module_point_derivation I M x) _
-  (compatible_semimodule_tangent_space I M x)
+  @derivation 𝕜 C^∞⟮I, M; 𝕜⟯ _ _ _ 𝕜 _ (point_derivation.module I M x) _
+    (point_derivation.is_scalar_tower I M x)
 
 def tangent_bundle_derivation := Σ x : M, point_derivation I M x
 
@@ -48,26 +59,20 @@ typecheck -/
 
 section
 
+/- Why do I need to rewrite extensionality rules for reducible defs? -/
 namespace point_derivation
 
-variables {I} {M} {x y : M} {v w : point_derivation I M x} (f g : C∞(I, M; 𝕜)) (r : 𝕜)
+variables {I} {M} {x y : M} {v w : point_derivation I M x} (f g : C^∞⟮I, M; 𝕜⟯) (r : 𝕜)
 
 lemma coe_injective (h : ⇑v = w) : v = w :=
-@derivation.coe_injective 𝕜 _ C∞(I, M; 𝕜) _ _ 𝕜 _ (module_point_derivation I M x) _
-(compatible_semimodule_tangent_space I M x) v w h
+@derivation.coe_injective 𝕜 _ C^∞⟮I, M; 𝕜⟯ _ _ 𝕜 _ (point_derivation.module I M x) _
+  (point_derivation.is_scalar_tower I M x) v w h
 
 @[ext] theorem ext (h : ∀ f, v f = w f) : v = w :=
 coe_injective $ funext h
 
-variables {u : point_derivation I M y}
-
-theorem hext (h1 : x = y) (h2 : ∀ f, v f = u f) : v == u :=
-begin
-  cases h1,
-  rw heq_iff_eq at *,
-  ext,
-  exact h2 f,
-end
+theorem hext {u : point_derivation I M y} (h1 : x = y) (h2 : ∀ f, v f = u f) : v == u :=
+by { cases h1, rw heq_iff_eq, ext, exact h2 f }
 
 end point_derivation
 
@@ -75,135 +80,71 @@ end
 
 section
 
-variables {I} {M} {X Y : vector_field_derivation I M} (f g : C∞(I, M; 𝕜)) (r : 𝕜)
+/-
+(X : @derivation 𝕜 C^∞⟮I, M; 𝕜⟯ _
+  (@comm_ring.to_comm_semiring C^∞⟮I, M; 𝕜⟯ smooth_map_comm_ring) times_cont_mdiff_map.algebra C^∞⟮I, M; 𝕜⟯ _
+  (semiring.to_module) (smooth_map_module) _)
 
-namespace vector_field_derivation
+  (X Y :
+  @derivation 𝕜
+  C^∞⟮I, M; 𝕜⟯
+  (@comm_ring.to_comm_semiring 𝕜 (@semi_normed_comm_ring.to_comm_ring 𝕜 (@normed_comm_ring.to_semi_normed_comm_ring 𝕜 (@normed_field.to_normed_comm_ring 𝕜 (@nondiscrete_normed_field.to_normed_field 𝕜 _inst_1)))))
+  (@comm_ring.to_comm_semiring C^∞⟮I, M; 𝕜⟯ smooth_map_comm_ring)
+  times_cont_mdiff_map.algebra
+  C^∞⟮I, M; 𝕜⟯
+  (@add_comm_group.to_cancel_add_comm_monoid C^⊤⟮I, M; 𝓘(𝕜, 𝕜), 𝕜⟯ _)
+  (semiring.to_module)
+  (smooth_map_module)
+  (_root_.is_scalar_tower.right))
+-/
 
-instance : has_coe_to_fun (vector_field_derivation I M) := ⟨_, λ X, X.to_linear_map.to_fun⟩
+/-#check is_scalar_tower.right
 
-instance has_coe_to_derivation :
-  has_coe (vector_field_derivation I M) (derivation 𝕜 C∞(I, M; 𝕜) C∞(I, M; 𝕜)) :=
-⟨to_derivation⟩
+set_option trace.class_instances true-/
 
-instance has_coe_to_linear_map :
-  has_coe (vector_field_derivation I M) (C∞(I, M; 𝕜) →ₗ[𝕜] C∞(I, M; 𝕜)) :=
-  ⟨λ X, X.to_linear_map⟩
+variables {I} {M} (X Y : derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^⊤⟮I, M; 𝓘(𝕜, 𝕜), 𝕜⟯)
+  (f g : C^∞⟮I, M; 𝕜⟯) (r : 𝕜)
 
-@[simp] lemma to_fun_eq_coe : X.to_fun = ⇑X := rfl
+set_option trace.class_instances false
 
-
-@[simp, norm_cast]
-lemma coe_linear_map (X : vector_field_derivation I M) :
-  ⇑(X : C∞(I, M; 𝕜) →ₗ[𝕜] C∞(I, M; 𝕜)) = X := rfl
-
-lemma coe_injective (h : ⇑X = Y) : X = Y :=
-by { cases X, cases Y, congr', exact derivation.coe_injective h }
-
-@[ext] theorem ext (h : ∀ f, X f = Y f) : X = Y :=
-coe_injective $ funext h
-
-variables (X Y)
-
-@[simp] lemma map_add : X (f + g) = X f + X g := derivation.map_add _ _ _
-@[simp] lemma map_zero : X 0 = 0 := derivation.map_zero _
-@[simp] lemma map_smul : X (r • f) = r • X f := derivation.map_smul _ _ _
-@[simp] lemma leibniz : X (f * g) = f • X g + g • X f := derivation.leibniz _ _ _
-@[simp] lemma map_one_eq_zero : X 1 = 0 := derivation.map_one_eq_zero _
-@[simp] lemma map_neg : X (-f) = -X f := derivation.map_neg _ _
-@[simp] lemma map_sub : X (f - g) = X f - X g := derivation.map_sub _ _ _
-
-instance : has_zero (vector_field_derivation I M) := ⟨⟨(0 : derivation 𝕜 C∞(I, M; 𝕜) C∞(I, M; 𝕜))⟩⟩
-instance : inhabited (vector_field_derivation I M) := ⟨0⟩
-
-instance : add_comm_group (vector_field_derivation I M) :=
-{ add := λ X Y, ⟨X + Y⟩,
-  add_assoc := λ X Y Z, ext $ λ a, add_assoc _ _ _,
-  zero_add := λ X, ext $ λ a, zero_add _,
-  add_zero := λ X, ext $ λ a, add_zero _,
-  add_comm := λ X Y, ext $ λ a, add_comm _ _,
-  neg := λ X, ⟨-X⟩,
-  add_left_neg := λ X, ext $ λ a, add_left_neg _,
-  ..vector_field_derivation.has_zero }
-
-@[simp] lemma add_apply : (X + Y) f = X f + Y f := rfl
-@[simp] lemma zero_apply : (0 : vector_field_derivation I M) f = 0 := rfl
-
-instance : has_bracket (vector_field_derivation I M) :=
-{ bracket := λ X Y, ⟨⁅X, Y⁆⟩ }
-
-@[simp] lemma commutator_to_derivation_coe : ⁅X, Y⁆.to_derivation = ⁅X, Y⁆ := rfl
-
-@[simp] lemma commutator_coe_derivation :
-  ⇑⁅X, Y⁆ = (⁅X, Y⁆ : derivation 𝕜 C∞(I, M; 𝕜) C∞(I, M; 𝕜)) := rfl
-
-@[simp] lemma commutator_apply : ⁅X, Y⁆ f = X (Y f) - Y (X f) :=
-by rw [commutator_coe_derivation, derivation.commutator_apply]; refl
-
-instance : lie_ring (vector_field_derivation I M) :=
-{ add_lie := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_add], ring, },
-  lie_add := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_add], ring },
-  lie_self := λ X, by { ext1 f, simp only [commutator_apply, zero_apply, sub_self] },
-  jacobi := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_sub,
-    zero_apply], ring }, }
-
-instance : has_scalar 𝕜 (vector_field_derivation I M) :=
-{ smul := λ k X, ⟨k • X⟩ }
-
-instance kmodule : module 𝕜 (vector_field_derivation I M) :=
-semimodule.of_core $
-{ mul_smul := λ r s X, ext $ λ b, mul_smul _ _ _,
-  one_smul := λ X, ext $ λ b, one_smul 𝕜 _,
-  smul_add := λ r X Y, ext $ λ b, smul_add _ _ _,
-  add_smul := λ r s X, ext $ λ b, add_smul _ _ _,
-  ..vector_field_derivation.has_scalar }
-
-@[simp] lemma smul_apply : (r • X) f = r • X f := rfl
-
-instance : lie_algebra 𝕜 (vector_field_derivation I M) :=
-{ lie_smul := λ X Y Z, by { ext1 f, simp only [commutator_apply, smul_apply, map_smul, smul_sub] },
-  ..vector_field_derivation.kmodule, }
-
-def eval (X : vector_field_derivation I M) (x : M) : point_derivation I M x :=
+def derivation.eval (x : M) : point_derivation I M x :=
 { to_fun := λ f, (X f) x,
-  map_add' := λ f g, by { rw map_add, refl },
-  map_smul' := λ f g, by { rw [map_smul, algebra.id.smul_eq_mul], refl },
-  leibniz' := λ h k, by { dsimp only [], rw [leibniz, algebra.id.smul_eq_mul], refl } }
+  map_add' := λ f g, by { rw derivation.map_add, refl },
+  map_smul' := λ f g, by { rw [derivation.map_smul, algebra.id.smul_eq_mul], refl },
+  leibniz' := λ h k, by { dsimp only [], rw [derivation.leibniz, algebra.id.smul_eq_mul], refl } }
 
 @[simp] lemma eval_apply (x : M) : X.eval x f = (X f) x := rfl
 
 @[simp] lemma eval_add (x : M) :
   (X + Y).eval x = X.eval x + Y.eval x :=
-by ext f; simp only [derivation.add_apply, add_apply, eval_apply, smooth_map.add_apply]
+by ext f; simp only [derivation.add_apply, eval_apply, smooth_map.coe_add, pi.add_apply]
 
 /- to be moved -/
 @[simp] lemma ring_commutator.apply {α : Type*} {R : Type*} [ring R] (f g : α → R) (a : α) :
-  ⁅f, g⁆ a = ⁅f a, g a⁆ :=
-by simp only [ring_commutator.commutator, pi.mul_apply, pi.sub_apply]
-
-/- instance : has_coe_to_fun (vector_field_derivation I M) := ⟨_, λ X, eval X⟩ polymorphysm of coercions to functions is not possible? -/
-
-end vector_field_derivation
+  ⁅f, g⁆ a = ⁅f a, g a⁆ := rfl
 
 variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
 
-def fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) : (point_derivation I' M' (f x)) :=
+def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I M x) :
+  (point_derivation I' M' (f x)) :=
 { to_fun := λ g, v (g.comp f),
-  map_add' := λ g h, by { rw smooth_map.add_comp, },
-  map_smul' := λ k g, by { rw smooth_map.smul_comp, },
-  leibniz' := λ f g, by {dsimp only [], sorry}, } /-TODO: change it so that it is a linear map -/
+  map_add' := λ g h, by rw [smooth_map.add_comp, derivation.map_add],
+  map_smul' := λ k g, by rw [smooth_map.smul_comp, derivation.map_smul],
+  leibniz' := λ g h, by {simp only [derivation.leibniz, smooth_map.mul_comp], refl} } /-TODO: change it so that it is a linear map -/
 
 localized "notation `fd` := fdifferential" in manifold
 
-lemma apply_fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) (g : C∞(I', M'; 𝕜)) :
+lemma apply_fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I M x)
+  (g : C^∞⟮I', M'; 𝕜⟯) :
   fd f x v g = v (g.comp f) := rfl
 
 variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M''] [smooth_manifold_with_corners I'' M'']
 
-@[simp] lemma fdifferential_comp (g : C∞(I', M'; I'', M'')) (f : C∞(I, M; I', M')) (x : M) :
+@[simp] lemma fdifferential_comp (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
   (fd g (f x)) ∘ (fd f x) = fd (g.comp f) x :=
 by { ext, simp only [apply_fdifferential], refl }
 

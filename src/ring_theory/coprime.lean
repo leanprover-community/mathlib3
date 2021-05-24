@@ -169,18 +169,28 @@ by { rw [← finset.card_range n, ← finset.prod_const], exact is_coprime.prod_
 theorem is_coprime.pow (H : is_coprime x y) : is_coprime (x ^ m) (y ^ n) :=
 H.pow_left.pow_right
 
-theorem is_coprime.of_pow_left (hm : 0 < m) (h : is_coprime (x ^ m) y) : is_coprime x y :=
+theorem is_coprime.pow_left_iff (hm : 0 < m) : is_coprime (x ^ m) y ↔ is_coprime x y :=
 begin
+  refine ⟨λ h, _, is_coprime.pow_left⟩,
   rw [← finset.card_range m, ← finset.prod_const] at h,
   exact h.of_prod_left 0 (finset.mem_range.mpr hm),
 end
 
-theorem is_coprime.of_pow_right (hm : 0 < m) (h : is_coprime x (y ^ m)) : is_coprime x y :=
-(h.symm.of_pow_left hm).symm
+theorem is_coprime.pow_right_iff (hm : 0 < m) : is_coprime x (y ^ m) ↔ is_coprime x y :=
+is_coprime_comm.trans $ (is_coprime.pow_left_iff hm).trans $ is_coprime_comm
 
-theorem is_coprime.of_pow (hm : 0 < m) (hn : 0 < n) (h : is_coprime (x ^ m) (y ^ n)) :
-  is_coprime x y :=
-(h.of_pow_left hm).of_pow_right hn
+theorem is_coprime.pow_iff (hm : 0 < m) (hn : 0 < n) :
+  is_coprime (x ^ m) (y ^ n) ↔ is_coprime x y :=
+(is_coprime.pow_left_iff hm).trans $ is_coprime.pow_right_iff hn
+
+theorem is_coprime.of_coprime_of_dvd_left (h : is_coprime y z) (hdvd : x ∣ y) : is_coprime x z :=
+begin
+  obtain ⟨d, rfl⟩ := hdvd,
+  exact is_coprime.of_mul_left_left h
+end
+
+theorem is_coprime.of_coprime_of_dvd_right (h : is_coprime z y) (hdvd : x ∣ y) : is_coprime z x :=
+(h.symm.of_coprime_of_dvd_left hdvd).symm
 
 theorem is_coprime.is_unit_of_dvd (H : is_coprime x y) (d : x ∣ y) : is_unit x :=
 let ⟨k, hk⟩ := d in is_coprime_self.1 $ is_coprime.of_mul_right_left $
@@ -188,12 +198,7 @@ show is_coprime x (x * k), from hk ▸ H
 
 theorem is_coprime.is_unit_of_dvd' {a b x : R} (h : is_coprime a b) (ha : x ∣ a) (hb : x ∣ b) :
   is_unit x :=
-begin
-  rw ←is_coprime_self,
-  obtain ⟨a', rfl⟩ := ha,
-  obtain ⟨b', rfl⟩ := hb,
-  exact h.of_mul_left_left.of_mul_right_left,
-end
+(h.of_coprime_of_dvd_left ha).is_unit_of_dvd hb
 
 theorem is_coprime.map (H : is_coprime x y) {S : Type v} [comm_semiring S] (f : R →+* S) :
   is_coprime (f x) (f y) :=

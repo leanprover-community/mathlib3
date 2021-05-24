@@ -44,7 +44,7 @@ instance char_p [char_p R p] : char_p (fraction_ring R) p :=
       change (algebra_map ℕ (fraction_ring R)) x = (algebra_map ℕ (fraction_ring R)) 0,
       rw is_scalar_tower.algebra_map_apply ℕ R (fraction_ring R) x,
       simp [hR.mpr hp] }
-  end}
+  end }
 
 /-- If `R` has characteristic `0`, then so does `fraction_ring R`. -/
 instance [char_zero R] : char_zero (fraction_ring R) :=

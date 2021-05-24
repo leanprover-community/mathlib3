@@ -160,45 +160,6 @@ begin
   ext,
 end
 
-@[priority 100]
-instance noetherian_ring_rank_condition' : rank_condition R :=
-@rank_condition_of_strong_rank_condition R _ (noetherian_ring_strong_rank_condition R)
-
-/-- Any nontrivial noetherian ring satisfies the rank condition. -/
--- Note this includes fields,
--- and we use this below to show any commutative ring has invariant basis number.
-@[priority 100]
-instance noetherian_ring_rank_condition : rank_condition R :=
-⟨begin
-  intros n m f fs,
-  by_contradiction h,
-  rw [not_le, ←nat.add_one_le_iff, le_iff_exists_add] at h,
-  obtain ⟨m, rfl⟩ := h,
-  -- Let `g` be the projection map discarding the last `n` coordinates.
-  let g : (fin ((n + 1) + m) → R) →ₗ[R] (fin n → R) :=
-    linear_map.fun_left R R ((fin.cast_add 1).trans (fin.cast_add m)),
-  have gs : function.surjective g :=
-    linear_map.fun_left_surjective_of_injective _ _ _
-      ((fin.cast_add m).injective.comp (fin.cast_add 1).injective),
-  -- Since `g` composed with the `f` is a surjective endomorphism of
-  -- a noetherian module, it is injective, and so `f` itself is injective.
-  have gi : function.injective g :=
-    (is_noetherian.injective_of_surjective_endomorphism (f.comp g)
-      (function.surjective.comp fs gs)).of_comp,
-  -- But this gives an easy contradiction.
-  let i : fin (n + 1 + m) := fin.cast_add m (fin.nat_add n 0),
-  let x : fin (n + 1 + m) → R := finsupp.single i 1,
-  have z : g x = 0 := begin
-    ext j,
-    simp only [g, x, i, linear_map.fun_left_apply, pi.zero_apply],
-    rw finsupp.single_eq_of_ne,
-    refine fin.ne_of_vne _,
-    simp only [add_zero, fin.coe_zero, fin.val_eq_coe, fin.coe_nat_add, ne.def, fin.coe_cast_add],
-    exact j.2.ne.symm,
-  end,
-  simpa [x] using congr_fun ((g.map_eq_zero_iff gi).mp z) i,
-end⟩
-
 end
 
 /-!

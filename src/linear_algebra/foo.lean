@@ -176,8 +176,10 @@ disjoint.mono_right (tailing_le_tunnel f i _) (tailings_disjoint_tunnel f i _)
 end tunnel
 
 open function
-variables {R : Type*} [ring R]
-variables {M N : Type*} [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+universes u v w
+
+variables {R : Type u} [ring R]
+variables {M : Type v} {N : Type w} [add_comm_group M] [module R M] [add_comm_group N] [module R N]
 
 /--
 A sequence `f` of submodules of a noetherian module,
@@ -197,7 +199,7 @@ end
 If `M ⊕ N` embeds into `M`, for `M` noetherian over `R`, then `N` is trivial.
 -/
 def is_noetherian.equiv_punit_of_prod_injective [I : is_noetherian R M]
-  (f : M × N →ₗ[R] M) (i : injective f) : N ≃ₗ[R] punit :=
+  (f : M × N →ₗ[R] M) (i : injective f) : N ≃ₗ[R] punit.{w+1} :=
 begin
   apply nonempty.some,
   obtain ⟨n, w⟩ := disjoint_partial_sups_eventually_bot (tailing f i)

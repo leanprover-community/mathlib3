@@ -571,7 +571,6 @@ lemma right.one_le_mul [covariant_class N N (function.swap (*)) (≤)]
 calc  1 ≤ b     : hb
     ... = 1 * b : (one_mul b).symm
     ... ≤ a * b : mul_le_mul_right' ha b
-#ch
 
 /-- Assumes right covariance. -/
 @[to_additive right.pos_add]

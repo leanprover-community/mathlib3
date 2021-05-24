@@ -11,7 +11,7 @@ This file provides the action of a unit on a type `α`, `has_scalar (units M) α
 `has_scalar M α`, with the obvious definition stated in `units.smul_def`. This definition preserves
 `mul_action` and `distrib_mul_action` structures too.
 
-Additionally, a `mul_action G M` for some group `G` satisfying some additional propeties admits a
+Additionally, a `mul_action G M` for some group `G` satisfying some additional properties admits a
 `mul_action G (units M)` structure, again with the obvious definition stated in `units.coe_smul`.
 These instances use a primed name.
 

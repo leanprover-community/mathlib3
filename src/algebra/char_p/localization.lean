@@ -40,19 +40,10 @@ instance char_p [char_p R p] : char_p (fraction_ring R) p :=
       rw ←hR,
       apply fraction_map.injective (fraction_ring.of R),
       simp [hp] },
-    {
-      -- Want: p ∣ (x:ℕ) → (x:K) = 0
-      intro hp,
-      have hR' := hR.elim_right hp,
-      -- From here on we have `(x:R) = 0` and want to show that `(x:fraction_ring R) = 0`.
-      -- That should be shorter, the only ingredient
-      -- is using `is_scalar_tower`.
+    { intro hp,
       change (algebra_map ℕ (fraction_ring R)) x = (algebra_map ℕ (fraction_ring R)) 0,
       rw is_scalar_tower.algebra_map_apply ℕ R (fraction_ring R) x,
-      change (algebra_map ℕ R) x = (algebra_map ℕ R) 0 at hR',
-      rw hR',
-      simp,
-    }
+      simp [hR.mpr hp] }
   end}
 
 /-- If `R` has characteristic `0`, then so does `fraction_ring R`. -/

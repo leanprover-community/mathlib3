@@ -36,20 +36,10 @@ instance char_p [char_p R p] : char_p (fraction_ring R) p :=
     intro x,
     have hR := char_p.cast_eq_zero_iff R p x,
     split,
-    {
-      -- Want: (x:K) = 0 → p ∣ (x:ℕ)
-      intro hp,
-      apply hR.elim_left,
-      -- From here on we have `(x:fraction_ring R) = 0` and want to show that `(x:R) = 0`.
-      -- That should be shorter,
-      -- the only real ingredient is `(fraction_map.injective (fraction_ring.of R))`.
-      change (coe : ℕ → R) x = 0,
-      have q := (fraction_map.injective (fraction_ring.of R)),
-      unfold function.injective at q,
-      apply q,
-      simp,
-      exact hp,
-    },
+    { intro hp,
+      rw ←hR,
+      apply fraction_map.injective (fraction_ring.of R),
+      simp [hp] },
     {
       -- Want: p ∣ (x:ℕ) → (x:K) = 0
       intro hp,

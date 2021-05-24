@@ -36,30 +36,6 @@ namespace tensor_product
 
 variables {R A M N P : Type*}
 
-section restrict_scalars
-variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [module A M]
-variables [add_comm_monoid N] [module A N]
-
-variables (R A M N)
-
-@[priority 500]
-instance restrict_scalars.module : module R (M ⊗[A] N) :=
-show module R (restrict_scalars R A (M ⊗ N)), from
-restrict_scalars.module R A (M ⊗ N)
-
-instance restrict_scalars.is_scalar_tower : is_scalar_tower R A (M ⊗[A] N) :=
-show is_scalar_tower R A (restrict_scalars R A (M ⊗ N)), from
-restrict_scalars.is_scalar_tower R A (M ⊗ N)
-
-variables [module R M] [module R N]
-
-/- Check that we didn't introduce a diamond. -/
-example : tensor_product.restrict_scalars.module R R M N =
-          @tensor_product.module R _ M N _ _ _ _ := rfl
-
-end restrict_scalars
-
 /-!
 ### The `A`-module structure on `A ⊗[R] M`
 -/
@@ -199,9 +175,18 @@ end comm_semiring
 
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
-variables [add_comm_monoid M] [module A M]
+variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [module R N] [module A N] [is_scalar_tower R A N]
 variables [add_comm_monoid P] [module R P]
+
+instance : is_scalar_tower R A (M ⊗[A] N) :=
+{ smul_assoc := λ r a x,
+  begin
+    apply x.induction_on,
+    { simp only [smul_zero], },
+    { intros m n, simp only [smul_assoc, smul_tmul], refl, },
+    { intros x₁ x₂ h₁ h₂, simp only [h₁, h₂, smul_add], },
+  end }
 
 /-- Heterobasic version of `tensor_product.assoc`:
 

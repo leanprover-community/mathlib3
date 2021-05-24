@@ -496,12 +496,12 @@ inv_involutive'.injective
 
 @[simp] lemma inv_inj' : g⁻¹ = h⁻¹ ↔ g = h := inv_injective'.eq_iff
 
-/-- This is the analogue of `inv_eq_iff_inv_eq` for `group`.
+/-- This is the analogue of `inv_eq_iff_inv_eq` for `group_with_zero`.
   It could also be named `inv_eq_iff_inv_eq'`. -/
 lemma inv_eq_iff : g⁻¹ = h ↔ h⁻¹ = g :=
 by rw [← inv_inj', eq_comm, inv_inv']
 
-/-- This is the analogue of `eq_inv_iff_eq_inv` for `group`.
+/-- This is the analogue of `eq_inv_iff_eq_inv` for `group_with_zero`.
   It could also be named `eq_inv_iff_eq_inv'`. -/
 lemma eq_inv_iff : a = b⁻¹ ↔ b = a⁻¹ :=
 by rw [eq_comm, inv_eq_iff, eq_comm]

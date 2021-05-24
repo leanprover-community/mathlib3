@@ -112,6 +112,16 @@ begin
   rw [sup_comm, is_modular_lattice.sup_inf_sup_assoc, hsup.eq_bot, bot_sup_eq]
 end
 
+theorem disjoint.disjoint_sup_left_of_disjoint_sup_right
+  [bounded_lattice α] [is_modular_lattice α] {a b c : α}
+  (h : disjoint b c) (hsup : disjoint a (b ⊔ c)) :
+  disjoint (a ⊔ b) c :=
+begin
+  rw [disjoint.comm, sup_comm],
+  apply disjoint.disjoint_sup_right_of_disjoint_sup_left h.symm,
+  rwa [sup_comm, disjoint.comm] at hsup,
+end
+
 namespace is_modular_lattice
 
 variables [bounded_lattice α] [is_modular_lattice α] {a : α}

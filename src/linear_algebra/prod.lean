@@ -324,6 +324,52 @@ by rw [range_eq_map, ← prod_top, prod_map_fst]
 @[simp] theorem range_snd : (snd R M M₂).range = ⊤ :=
 by rw [range_eq_map, ← prod_top, prod_map_snd]
 
+variables (R M M₂)
+
+/-- `M` as a submodule of `M × N`. -/
+def fst : submodule R (M × M₂) := (⊥ : submodule R M₂).comap (linear_map.snd R M M₂)
+
+@[simps] def fst_equiv : submodule.fst R M M₂ ≃ₗ[R] M :=
+{ to_fun := λ x, x.1.1,
+  inv_fun := λ m, ⟨⟨m, 0⟩, by tidy⟩,
+  map_add' := by simp,
+  map_smul' := by simp,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+lemma fst_map_fst : (submodule.fst R M M₂).map (linear_map.fst R M M₂) = ⊤ :=
+by tidy
+lemma fst_map_snd : (submodule.fst R M M₂).map (linear_map.snd R M M₂) = ⊥ :=
+by { tidy, exact 0, }
+
+/-- `N` as a submodule of `M × N`. -/
+def snd : submodule R (M × M₂) := (⊥ : submodule R M).comap (linear_map.fst R M M₂)
+
+@[simps] def snd_equiv : submodule.snd R M M₂ ≃ₗ[R] M₂ :=
+{ to_fun := λ x, x.1.2,
+  inv_fun := λ n, ⟨⟨0, n⟩, by tidy⟩,
+  map_add' := by simp,
+  map_smul' := by simp,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+lemma snd_map_fst : (submodule.snd R M M₂).map (linear_map.fst R M M₂) = ⊥ :=
+by { tidy, exact 0, }
+lemma snd_map_snd : (submodule.snd R M M₂).map (linear_map.snd R M M₂) = ⊤ :=
+by tidy
+
+lemma fst_sup_snd : submodule.fst R M M₂ ⊔ submodule.snd R M M₂ = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintro ⟨m, n⟩ -,
+  rw [show (m, n) = (m, 0) + (0, n), by simp],
+  apply submodule.add_mem (submodule.fst R M M₂ ⊔ submodule.snd R M M₂),
+  { exact submodule.mem_sup_left (submodule.mem_comap.mpr (by simp)), },
+  { exact submodule.mem_sup_right (submodule.mem_comap.mpr (by simp)), },
+end
+
+lemma fst_inf_snd : submodule.fst R M M₂ ⊓ submodule.snd R M M₂ = ⊥ := by tidy
+
 end submodule
 
 namespace linear_equiv

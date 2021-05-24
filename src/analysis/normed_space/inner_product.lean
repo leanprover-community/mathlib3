@@ -2289,13 +2289,7 @@ local attribute [instance] finite_dimensional_bot
 
 /-- The orthogonal projection onto the trivial submodule is the zero map. -/
 @[simp] lemma orthogonal_projection_bot : orthogonal_projection (⊥ : submodule 𝕜 E) = 0 :=
-begin
-  ext u,
-  apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
-  { simp },
-  { intros w hw,
-    simp [(submodule.mem_bot 𝕜).mp hw] }
-end
+by ext
 
 variables (K)
 

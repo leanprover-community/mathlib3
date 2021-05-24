@@ -2,10 +2,6 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Denumerable (countably infinite) types, as a typeclass extending
-encodable. This is used to provide explicit encode/decode functions
-from nat, where the functions are known inverses of each other.
 -/
 import data.equiv.encodable.basic
 import data.sigma
@@ -13,9 +9,20 @@ import data.fintype.basic
 import data.list.min_max
 open nat
 
-/-- A denumerable type is one which is (constructively) bijective with ℕ.
-  Although we already have a name for this property, namely `α ≃ ℕ`,
-  we are here interested in using it as a typeclass. -/
+/-!
+# Denumerable types
+
+This file defines denumerable (countably infinite) types as a typeclass extending `encodable`. This
+is used to provide explicit encode/decode functions from and to `ℕ`, with the information that those
+functions are inverses of each other.
+
+## Implementation notes
+
+We already have a name for this property, namely `α ≃ ℕ`, but here we are interested in using it as
+a typeclass.
+-/
+
+/-- A denumerable type is (constructively) bijective with `ℕ`. Typeclass equivalent of `α ≃ ℕ`. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
 
@@ -30,6 +37,7 @@ theorem decode_is_some (α) [denumerable α] (n : ℕ) :
 option.is_some_iff_exists.2 $
 (decode_inv n).imp $ λ a, Exists.fst
 
+/-- Returns the `n`-th element of `α` indexed by the decoding. -/
 def of_nat (α) [f : denumerable α] (n : ℕ) : α :=
 option.get (decode_is_some α n)
 
@@ -49,15 +57,19 @@ by rwa [of_nat_of_decode h]
 @[simp] theorem of_nat_encode (a) : of_nat α (encode a) = a :=
 of_nat_of_decode (encodek _)
 
+/-- A denumerable type is equivalent to `ℕ`. -/
 def eqv (α) [denumerable α] : α ≃ ℕ :=
 ⟨encode, of_nat α, of_nat_encode, encode_of_nat⟩
 
+/-- A type equivalent to `ℕ` is denumerable. -/
 def mk' {α} (e : α ≃ ℕ) : denumerable α :=
 { encode := e,
   decode := some ∘ e.symm,
   encodek := λ a, congr_arg some (e.symm_apply_apply _),
   decode_inv := λ n, ⟨_, rfl, e.apply_symm_apply _⟩ }
 
+/-- Denumerability is conserved by equivalences. This is transitivity of equivalence the denumerable
+way. -/
 def of_equiv (α) {β} [denumerable α] (e : β ≃ α) : denumerable β :=
 { decode_inv := λ n, by simp,
   ..encodable.of_equiv _ e }
@@ -66,14 +78,25 @@ def of_equiv (α) {β} [denumerable α] (e : β ≃ α) : denumerable β :=
   (n) : @of_nat β (of_equiv _ e) n = e.symm (of_nat α n) :=
 by apply of_nat_of_decode; show option.map _ _ = _; simp
 
+/-- All denumerable types are equivalent. -/
 def equiv₂ (α β) [denumerable α] [denumerable β] : α ≃ β := (eqv α).trans (eqv β).symm
 
-instance nat : denumerable nat := ⟨λ n, ⟨_, rfl, rfl⟩⟩
+/-- `ℕ` is denumerable. -/
+instance nat : denumerable ℕ := ⟨λ n, ⟨_, rfl, rfl⟩⟩
 
 @[simp] theorem of_nat_nat (n) : of_nat ℕ n = n := rfl
 
-instance option : denumerable (option α) := ⟨λ n, by cases n; simp⟩
+/-- If `α` is denumerable, then `option α` is too. -/
+instance option : denumerable (option α) := ⟨λ n, begin
+  cases n,
+  { refine ⟨none, _, encode_none⟩,
+    rw [decode_option_zero, option.mem_def] },
+  refine ⟨some (of_nat α n), _, _⟩,
+  { rw [decode_option_succ, decode_eq_of_nat, option.map_some', option.mem_def] },
+  rw [encode_some, encode_of_nat],
+end⟩
 
+/-- If `α` and `β` are denumerable, then their sum is too. -/
 instance sum : denumerable (α ⊕ β) :=
 ⟨λ n, begin
   suffices : ∃ a ∈ @decode_sum α β _ _ n,
@@ -84,6 +107,7 @@ end⟩
 section sigma
 variables {γ : α → Type*} [∀ a, denumerable (γ a)]
 
+/-- A denumerable collection of denumerable sets is denumerable. -/
 instance sigma : denumerable (sigma γ) :=
 ⟨λ n, by simp [decode_sigma]; exact ⟨_, _, ⟨rfl, heq.rfl⟩, by simp⟩⟩
 
@@ -94,6 +118,7 @@ by rw [← decode_eq_of_nat, decode_sigma_val]; simp; refl
 
 end sigma
 
+/-- If `α` and `β` are denumerable, then their product is too. -/
 instance prod : denumerable (α × β) :=
 of_equiv _ (equiv.sigma_equiv_prod α β).symm
 
@@ -104,14 +129,19 @@ by simp; refl
 @[simp] theorem prod_nat_of_nat : of_nat (ℕ × ℕ) = unpair :=
 by funext; simp
 
+/-- `ℤ` is denumerable. -/
 instance int : denumerable ℤ := denumerable.mk' equiv.int_equiv_nat
 
+/-- `ℕ+` is denumerable. -/
 instance pnat : denumerable ℕ+ := denumerable.mk' equiv.pnat_equiv_nat
 
+/-- The lift of a denumerable set is denumerable. -/
 instance ulift : denumerable (ulift α) := of_equiv _ equiv.ulift
 
+/-- The lift of a denumerable set is denumerable. -/
 instance plift : denumerable (plift α) := of_equiv _ equiv.plift
 
+/-- If `α` is denumerable, then `α × α` and `α` are equivalent. -/
 def pair : α × α ≃ α := equiv₂ _ _
 
 end
@@ -119,6 +149,8 @@ end denumerable
 
 namespace nat.subtype
 open function encodable
+
+/-! ### Subsets of `ℕ` -/
 
 variables {s : set ℕ} [infinite s]
 
@@ -140,6 +172,7 @@ end classical
 
 variable [decidable_pred s]
 
+/-- Returns the next natural in a set, according to the usual ordering of `ℕ`. -/
 def succ (x : s) : s :=
 have h : ∃ m, x.1 + m + 1 ∈ s, from exists_succ x,
 ⟨x.1 + nat.find h + 1, nat.find_spec h⟩
@@ -168,6 +201,7 @@ lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=
 ⟨λ h, le_of_not_gt (λ h', not_le_of_gt h (succ_le_of_lt h')),
   λ h, lt_of_le_of_lt h (lt_succ_self _)⟩
 
+/-- Returns the `n`-th element of a set, according to the usual ordering of `ℕ`. -/
 def of_nat (s : set ℕ) [decidable_pred s] [infinite s] : ℕ → s
 | 0     := ⊥
 | (n+1) := succ (of_nat n)
@@ -184,11 +218,11 @@ begin
   { exact ⟨0, le_antisymm (@bot_le s _ _)
       (le_of_not_gt (λ h, list.not_mem_nil (⊥ : s) $
         by rw [← list.maximum_eq_none.1 hmax, hmt]; exact h))⟩ },
-  { cases of_nat_surjective_aux m.2 with a ha,
-    exact ⟨a + 1, le_antisymm
-      (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf _ hmax)) $
-      by rw of_nat; exact le_succ_of_forall_lt_le
-        (λ z hz, by rw ha; cases m; exact list.le_maximum_of_mem (hmt.2 hz) hmax)⟩ }
+  cases of_nat_surjective_aux m.2 with a ha,
+  exact ⟨a + 1, le_antisymm
+    (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf _ hmax)) $
+    by rw of_nat; exact le_succ_of_forall_lt_le
+      (λ z hz, by rw ha; cases m; exact list.le_maximum_of_mem (hmt.2 hz) hmax)⟩
 end
 using_well_founded {dec_tac := `[tauto]}
 
@@ -207,29 +241,27 @@ open finset
 private lemma right_inverse_aux : ∀ n, to_fun_aux (of_nat s n) = n
 | 0 := begin
   rw [to_fun_aux_eq, card_eq_zero, eq_empty_iff_forall_not_mem],
-  assume n,
-  rw [mem_filter, of_nat, mem_range],
-  assume h,
-  exact not_lt_of_le bot_le (show (⟨n, h.2⟩ : s) < ⊥, from h.1)
+  rintro n hn,
+  rw [mem_filter, of_nat, mem_range] at hn,
+  exact bot_le.not_lt (show (⟨n, hn.2⟩ : s) < ⊥, from hn.1),
 end
 | (n+1) := have ih : to_fun_aux (of_nat s n) = n, from right_inverse_aux n,
 have h₁ : (of_nat s n : ℕ) ∉ (range (of_nat s n)).filter s, by simp,
 have h₂ : (range (succ (of_nat s n))).filter s =
-    insert (of_nat s n) ((range (of_nat s n)).filter s),
+  insert (of_nat s n) ((range (of_nat s n)).filter s),
   begin
     simp only [finset.ext_iff, mem_insert, mem_range, mem_filter],
-    assume m,
-    exact ⟨λ h, by simp only [h.2, and_true]; exact or.symm
+    exact λ m, ⟨λ h, by simp only [h.2, and_true]; exact or.symm
         (lt_or_eq_of_le ((@lt_succ_iff_le _ _ _ ⟨m, h.2⟩ _).1 h.1)),
       λ h, h.elim (λ h, h.symm ▸ ⟨lt_succ_self _, subtype.property _⟩)
-        (λ h, ⟨lt_of_le_of_lt (le_of_lt h.1) (lt_succ_self _), h.2⟩)⟩
+        (λ h, ⟨h.1.trans (lt_succ_self _), h.2⟩)⟩,
   end,
 begin
-  clear_aux_decl,
-  simp only [to_fun_aux_eq, of_nat, range_succ] at *,
+  simp only [to_fun_aux_eq, of_nat, range_succ] at ⊢ ih,
   conv {to_rhs, rw [← ih, ← card_insert_of_not_mem h₁, ← h₂] },
 end
 
+/-- Any infinite set of naturals is denumerable. -/
 def denumerable (s : set ℕ) [decidable_pred s] [infinite s] : denumerable s :=
 denumerable.of_equiv ℕ
 { to_fun := to_fun_aux,
@@ -243,6 +275,7 @@ end nat.subtype
 namespace denumerable
 open encodable
 
+/-- An infinite encodable type is denumerable. -/
 def of_encodable_of_infinite (α : Type*) [encodable α] [infinite α] : denumerable α :=
 begin
   letI := @decidable_range_encode α _;

@@ -179,18 +179,6 @@ apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
 apply_nolint dfinsupp.pre doc_blame
 apply_nolint dfinsupp.zip_with_def unused_arguments
 
--- data/equiv/denumerable.lean
-apply_nolint denumerable.equiv₂ doc_blame
-apply_nolint denumerable.eqv doc_blame
-apply_nolint denumerable.mk' doc_blame
-apply_nolint denumerable.of_encodable_of_infinite doc_blame
-apply_nolint denumerable.of_equiv doc_blame
-apply_nolint denumerable.of_nat doc_blame
-apply_nolint denumerable.pair doc_blame
-apply_nolint nat.subtype.denumerable doc_blame
-apply_nolint nat.subtype.of_nat doc_blame
-apply_nolint nat.subtype.succ doc_blame
-
 -- data/equiv/encodable/basic.lean
 apply_nolint encodable.choose doc_blame
 apply_nolint encodable.choose_x doc_blame

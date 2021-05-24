@@ -34,8 +34,8 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 -/
 
 /-- ereal : The type `[-∞, ∞]` -/
-@[derive [linear_order, order_bot, order_top,
-  has_Sup, has_Inf, complete_lattice, has_add]]
+@[derive [order_bot, order_top,
+  has_Sup, has_Inf, complete_lattice, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
 namespace ereal
@@ -49,6 +49,26 @@ by { unfold_coes, simp [option.some_inj] }
 
 instance : has_zero ereal := ⟨(0 : ℝ)⟩
 instance : inhabited ereal := ⟨0⟩
+
+def to_real : ereal → ℝ
+| ⊥       := 0
+| ⊤       := 0
+| (x : ℝ) := x
+
+@[simp] lemma to_real_top : to_real ⊤ = 0 := rfl
+@[simp] lemma to_real_bot : to_real ⊥ = 0 := rfl
+@[simp] lemma to_real_coe (x : ℝ) : to_real (x : ereal) = x := rfl
+
+@[simp] lemma bot_lt_coe (x : ℝ) : (⊥ : ereal) < x :=
+by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
+@[simp] lemma bot_ne_coe (x : ℝ) : (⊥ : ereal) ≠ x := (bot_lt_coe x).ne
+@[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
+lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
+@[simp] lemma coe_lt_top (x : ℝ) : (x : ereal) < ⊤ := with_top.coe_lt_top _
+@[simp] lemma coe_ne_top (x : ℝ) : (x : ereal) ≠ ⊤ := (coe_lt_top x).ne
+
+@[simp, norm_cast] lemma coe_add (x y : ℝ) : ((x + y : ℝ) : ereal) = (x : ereal) + (y : ereal) :=
+rfl
 
 /-! ### Negation -/
 
@@ -91,5 +111,19 @@ protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=
 /-- a ≤ -b → b ≤ -a on ereal -/
 theorem le_neg_of_le_neg {a b : ereal} (h : a ≤ -b) : b ≤ -a :=
 by rwa [←ereal.neg_neg b, ereal.neg_le, ereal.neg_neg]
+
+lemma exists_rat_btwn_of_lt : Π (a : ereal) (b : ereal) (hab : a < b),
+  ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b
+| ⊤ b h := (not_top_lt h).elim
+| (a : ℝ) ⊥ h := (lt_irrefl _ ((bot_lt_coe a).trans h)).elim
+| (a : ℝ) (b : ℝ) h := by simp [exists_rat_btwn (ereal.coe_real_lt.1 h)]
+| (a : ℝ) ⊤ h := let ⟨b, hab⟩ := exists_rat_gt a in ⟨b, by simpa using hab, coe_lt_top _⟩
+| ⊥ ⊥ h := (lt_irrefl _ h).elim
+| ⊥ (a : ℝ) h := let ⟨b, hab⟩ := exists_rat_lt a in ⟨b, bot_lt_coe _, by simpa using hab⟩
+| ⊥ ⊤ h := ⟨0, bot_lt_coe _, coe_lt_top _⟩
+
+lemma lt_iff_exists_rat_btwn (a b : ereal) :
+  a < b ↔ ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b :=
+⟨λ hab, exists_rat_btwn_of_lt a b hab, λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
 end ereal

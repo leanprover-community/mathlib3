@@ -8,6 +8,7 @@ import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import topology.G_delta
 import measure_theory.arithmetic
+import topology.semicontinuous
 
 /-!
 # Borel (measurable) space
@@ -586,12 +587,20 @@ begin
   rintro _ ⟨x, rfl⟩, exact hf x
 end
 
+lemma upper_semicontinuous.measurable [topological_space δ] [opens_measurable_space δ]
+  {f : δ → α} (hf : upper_semicontinuous f) : measurable f :=
+measurable_of_Iio (λ y, (hf.is_open_preimage y).measurable_set)
+
 lemma measurable_of_Ioi {f : δ → α} (hf : ∀ x, measurable_set (f ⁻¹' Ioi x)) : measurable f :=
 begin
   convert measurable_generate_from _,
   exact borel_space.measurable_eq.trans (borel_eq_generate_Ioi _),
   rintro _ ⟨x, rfl⟩, exact hf x
 end
+
+lemma lower_semicontinuous.measurable [topological_space δ] [opens_measurable_space δ]
+  {f : δ → α} (hf : lower_semicontinuous f) : measurable f :=
+measurable_of_Ioi (λ y, (hf.is_open_preimage y).measurable_set)
 
 lemma measurable_of_Iic {f : δ → α} (hf : ∀ x, measurable_set (f ⁻¹' Iic x)) : measurable f :=
 begin

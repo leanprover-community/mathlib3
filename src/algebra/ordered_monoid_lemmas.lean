@@ -428,8 +428,6 @@ lemma mul_lt_iff_lt_one_right'
   a * b < b ↔ a < 1 :=
 iff.trans (by rw one_mul) (mul_lt_mul_iff_right b)
 
-
-#che
 end has_lt
 
 section preorder
@@ -450,6 +448,46 @@ calc  b < c     : hbc
     ... ≤ c * a : mul_le_mul_left' ha c
 
 @[to_additive]
+lemma mul_lt_of_lt_of_le_one [covariant_class N N (*) (≤)]
+  {a b c : N} (hbc : b < c) (ha : a ≤ 1)  : b * a < c :=
+calc  b * a ≤ b * 1 : mul_le_mul_left' ha b
+        ... = b     : mul_one b
+        ... < c     : hbc
+
+@[to_additive]
+lemma lt_mul_of_le_of_one_lt [covariant_class N N (*) (<)]
+  {a b c : N} (hbc : b ≤ c) (ha : 1 < a) : b < c * a :=
+calc  b ≤ c     : hbc
+    ... = c * 1 : (mul_one c).symm
+    ... < c * a : mul_lt_mul_left' ha c
+
+@[to_additive]
+lemma mul_lt_one_of_le_one_of_lt_one [covariant_class N N (function.swap (*)) (≤)]
+  {a b : N} (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
+calc  a * b ≤  1 * b : mul_le_mul_right' ha b
+        ... = b      : one_mul b
+        ... < 1      : hb
+
+/--
+Assume monotonicity on the `left`. The lemma assuming `right` is `right.mul_lt_one`. -/
+@[to_additive]
+lemma left.mul_lt_one [covariant_class N N (*) (<)]
+  {a b : N} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
+calc  a * b < a * 1 : mul_lt_mul_left' hb a
+        ... = a     : mul_one a
+        ... < 1     : ha
+
+/--
+Assume monotonicity on the `right`. The lemma assuming `left` is `left.mul_lt_one`. -/
+@[to_additive]
+lemma right.mul_lt_one [covariant_class N N (function.swap (*)) (<)]
+  {a b : N} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
+calc  a * b < 1 * b : mul_lt_mul_right' ha b
+        ... = b     : one_mul b
+        ... < 1     : hb
+
+
+@[to_additive]
 lemma mul_le_of_le_one_of_le [covariant_class N N (function.swap (*)) (≤)]
   {a b c : N} (ha : a ≤ 1) (hbc : b ≤ c) :
   a * b ≤ c :=
@@ -457,6 +495,21 @@ calc  a * b ≤ 1 * b : mul_le_mul_right' ha b
         ... = b     : one_mul b
         ... ≤ c     : hbc
 
+@[to_additive]
+lemma mul_lt_of_le_of_lt_one
+  [covariant_class N N (*) (<)] [covariant_class N N (function.swap (*)) (≤)]
+  {a b c: N} (hbc : b ≤ c) (ha : a < 1) : b * a < c :=
+calc  b * a ≤ c * a : mul_le_mul_right' hbc a
+        ... < c * 1 : mul_lt_mul_left' ha c
+        ... = c     : mul_one c
+
+@[to_additive]
+lemma mul_lt_of_le_one_of_lt
+  [covariant_class N N (*) (<)] [covariant_class N N (function.swap (*)) (≤)]
+  {a b c: N} (ha : a ≤ 1) (hbc : b < c) : a * b < c :=
+calc  a * b < a * c : mul_lt_mul_left' hbc a
+        ... ≤ 1 * c : mul_le_mul_right' ha c
+        ... = c     : one_mul c
 
 @[to_additive]
 lemma mul_lt_of_lt_one_of_le [covariant_class N N (function.swap (*)) (<)]
@@ -479,8 +532,6 @@ lemma lt_mul_of_one_lt_of_le [covariant_class N N (function.swap (*)) (<)]
 calc  b ≤ c     : hbc
     ... = 1 * c : (one_mul c).symm
     ... < a * c : mul_lt_mul_right' ha c
-
-
 
 /-- Assumes left covariance. -/
 @[to_additive left.pos_add]
@@ -889,77 +940,3 @@ lemma monotone.mul'
 λ x y h, mul_le_mul' (hf h) (hg h)
 
 end mono
-
-variable [partial_order α]
-
-section right_co_cos
-
-variables [right_cancel_monoid α]
-  [covariant_class α α (*) (≤)]
-  [covariant_class α α (function.swap (*)) (≤)]
-
-@[to_additive]
-lemma lt_mul_of_lt_of_one_le (hbc : b < c) (ha : 1 ≤ a) : b < c * a :=
-calc  b < c     : hbc
-    ... = c * 1 : (mul_one c).symm
-    ... ≤ c * a : mul_le_mul_left' ha c
-
---mul_one b ▸ mul_lt_mul_of_lt_of_le hbc ha
-
-@[to_additive]
-lemma mul_lt_of_lt_of_le_one (hbc : b < c) (ha : a ≤ 1)  : b * a < c :=
-mul_one c ▸ mul_lt_mul_of_lt_of_le hbc ha
-
-end right_co_cos
-
-variables [cancel_monoid α]
-  [covariant_class α α (*) (≤)]
-  [covariant_class α α (function.swap (*)) (≤)]
-
-section special
-
-@[to_additive]
-lemma mul_lt_one_of_le_one_of_lt_one (ha : a ≤ 1) (hb : b < 1) : a * b < 1 :=
-calc  a * b ≤  1 * b     : mul_le_mul_right' ha b
-        ... = b : one_mul b
-        ... < 1 : hb
-
-@[to_additive]
-lemma lt_mul_of_le_of_one_lt (hbc : b ≤ c) (ha : 1 < a) : b < c * a :=
-calc  b ≤ c     : hbc
-    ... = c * 1 : (mul_one c).symm
-    ... < c * a : mul_lt_mul_left' ha c
-
-@[to_additive]
-lemma mul_lt_of_le_of_lt_one (hbc : b ≤ c) (ha : a < 1) : b * a < c :=
-calc b * a < b * 1 : mul_lt_mul_left' ha b
-       ... ≤ c * 1 : mul_le_mul_right' hbc 1
-       ... = c     : mul_one c
-#lint
-@[to_additive]
-lemma mul_lt_of_le_one_of_lt (ha : a ≤ 1) (hbc : b < c) : a * b < c :=
-mul_lt_of_le_one_of_lt' ha hbc
-
-end special
-
-@[to_additive]
-lemma mul_lt_one (ha : a < 1) (hb : b < 1) : a * b < 1 :=
-mul_lt_one' ha hb
-
-/-
-@[to_additive]
-lemma lt_mul_of_one_lt_of_lt (ha : 1 < a) (hbc : b < c) : b < a * c :=
-lt_mul_of_one_lt_of_lt' ha hbc
-
-@[to_additive]
-lemma lt_mul_of_lt_of_one_lt (hbc : b < c) (ha : 1 < a) : b < c * a :=
-lt_mul_of_lt_of_one_lt' hbc ha
-
-@[to_additive]
-lemma mul_lt_of_lt_one_of_lt (ha : a < 1) (hbc : b < c) : a * b < c :=
-mul_lt_of_lt_one_of_lt' ha hbc
-
-@[to_additive]
-lemma mul_lt_of_lt_of_lt_one (hbc : b < c) (ha : a < 1) : b * a < c :=
-mul_lt_of_lt_of_lt_one' hbc ha
--/

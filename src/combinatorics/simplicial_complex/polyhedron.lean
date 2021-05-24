@@ -17,6 +17,13 @@ namespace polyhedron
 
 instance : has_coe (polyhedron E) (set E) := { coe := λ P, P.carrier }
 
+instance : has_bot (polyhedron E) :=
+{ bot := { carrier := ∅, hcarrier := ⟨{(0, 1)}, (subset_empty_iff.1 (begin
+    rintro x hx,
+    have : (1 : ℝ) ≤ 0 := hx (0, 1) (finset.mem_singleton_self _),
+    linarith,
+  end)).symm⟩ } }
+
 @[ext] protected lemma ext {P Q : polyhedron E} (h : (P : set E) = Q) : P = Q :=
 begin
   sorry
@@ -28,13 +35,19 @@ classical.some P.hcarrier
 lemma eq_Hrepr (P : polyhedron E) : (P : set E) = {x | ∀ l ∈ P.Hrepr, (l.2 : ℝ) ≤ l.1 x} :=
 classical.some_spec P.hcarrier
 
-lemma convex (P : polyhedron E) : convex (P : set E) := sorry
+lemma eq_Inter_halfspaces (P : polyhedron E) :
+  (P : set E) = ⋂ l ∈ P.Hrepr, {x | (l.2 : ℝ) ≤ l.1 x} :=
+begin
+  rw P.eq_Hrepr,
+  ext,
+  simp only [mem_Inter, mem_set_of_eq],
+end
 
-def faces (P : polyhedron E) : set (polyhedron E) :=
-{Q | (Q : set E).nonempty → ∃ l : (E →L[ℝ] ℝ) × ℝ, Q.Hrepr = insert l P.Hrepr ∧
-  (Q : set E) = {x ∈ P | ∀ y ∈ (P : set E), l.1 y ≤ l.1 x}}
-
-lemma faces_finite {P : polyhedron E} : finite P.faces := sorry
+lemma convex (P : polyhedron E) : convex (P : set E) :=
+begin
+  rw P.eq_Inter_halfspaces,
+  exact convex_Inter (λ l, convex_Inter (λ hl, convex_halfspace_ge l.1.is_linear l.2)),
+end
 
 protected noncomputable def std_simplex (ι : Type*) [fintype ι] : polyhedron (ι → ℝ) :=
 { carrier := std_simplex ι,
@@ -83,7 +96,74 @@ protected lemma std_simplex_eq (ι : Type*) [fintype ι] :
   (polyhedron.std_simplex ι : set (ι → ℝ)) = std_simplex ι :=
 rfl
 
+def faces (P : polyhedron E) : set (polyhedron E) :=
+{Q | (Q : set E).nonempty → ∃ s ⊆ P.Hrepr, (Q : set E) = {x ∈ P | ∀ l ∈ s, (l.1 x : ℝ) ≤ l.2}}
+--{Q | (Q : set E).nonempty → ∃ l : (E →L[ℝ] ℝ) × ℝ, Q.Hrepr = insert l P.Hrepr ∧
+  --(Q : set E) = {x ∈ P | ∀ y ∈ (P : set E), l.1 y ≤ l.1 x}}
+
+lemma is_exposed_of_mem_faces {P Q : polyhedron E} (hQ : Q ∈ P.faces) : is_exposed (P : set E) Q :=
+begin
+  intro hQnemp,
+  obtain ⟨s, hs, hQcarr⟩ := hQ hQnemp,
+  obtain rfl | hsnemp := s.eq_empty_or_nonempty,
+  {
+    use 0,
+    rw hQcarr,
+    apply congr_arg (has_inter.inter ↑P),
+    simp only [finset.not_mem_empty, forall_false_left, continuous_linear_map.zero_apply, forall_const],
+    refine subset.antisymm (λ _ _ _ _, le_refl 0) (λ _ _, _),
+    sorry,
+  },
+  let s' := {l | ∃ lr ∈ s, (lr.1 : E →L[ℝ] ℝ) = l},
+  obtain ⟨l, hl⟩ := hsnemp,
+  have hsnemp' := s'.nonempty,
+  sorry
+  --have := is_exposed.sInter hsnemp',
+  --exact ⟨l.1, hQcarr⟩,
+end
+
+lemma subset_of_mem_faces {P Q : polyhedron E} (hQ : Q ∈ P.faces) : (Q : set E) ⊆ P :=
+(is_exposed_of_mem_faces hQ).subset
+
+lemma bot_mem_faces (P : polyhedron E) : ⊥ ∈ P.faces :=
+begin
+  intro h,
+  exfalso,
+  exact empty_not_nonempty h,
+end
+
+lemma self_mem_faces (P : polyhedron E) : P ∈ P.faces :=
+begin
+  intro h,
+  refine ⟨∅, empty_subset _, (inter_eq_left_iff_subset.2 (λ x _, _)).symm⟩,
+  rintro l hl,
+  exfalso,
+  exact hl,
+end
+
+lemma faces_finite (P : polyhedron E) : finite P.faces := sorry
+
 end polyhedron
+
+def is_exposed.to_face {P : polyhedron E} {A : set E} (hA : is_exposed (P : set E) A) :
+  polyhedron E :=
+{ carrier := A,
+  hcarrier := begin
+    obtain rfl | hAnemp := A.eq_empty_or_nonempty,
+    { exact (⊥ : polyhedron E).hcarrier },
+    obtain ⟨l, rfl⟩ := hA hAnemp,
+    sorry
+  end }
+
+lemma is_exposed.to_face_eq {P : polyhedron E} {A : set E} (hA : is_exposed (P : set E) A) :
+  (hA.to_face : set E) = A :=
+rfl
+
+lemma is_exposed.to_face_mem_face {P : polyhedron E} {A : set E} (hA : is_exposed (P : set E) A) :
+  hA.to_face ∈ P.faces :=
+begin
+  sorry
+end
 
 namespace continuous_linear_map
 variables {F : Type*} [normed_group F] [normed_space ℝ F] (L : E →L[ℝ] F)
@@ -92,11 +172,13 @@ def image_polyhedron (P : polyhedron E) : polyhedron F :=
 { carrier := L '' P,
   hcarrier := begin
     let f : (E →L[ℝ] ℝ) × ℝ → (F →L[ℝ] ℝ) × ℝ := λ l, ⟨begin
+      sorry
       --have := l.1,
-      have := continuous_linear_map.comp _ L,
-      have : F → set E := λ x, this ⁻¹' {x},
+      --have := continuous_linear_map.comp _ L,
+      --have : F → set E := λ x, this ⁻¹' {x},
     end, l.2⟩,
     use finset.image f P.Hrepr,
+    sorry
   end }
 
 lemma image_polyhedron_eq (P : polyhedron E) : (L.image_polyhedron P : set F) = L '' P := rfl
@@ -113,22 +195,16 @@ def preimage_polyhedron (P : polyhedron F) : polyhedron E :=
       rw mem_preimage at hx,
       rw finset.mem_image at hl,
       obtain ⟨l', hl', rfl⟩ := hl,
+      sorry
     },
     sorry
   end }
 
 end continuous_linear_map
 
-lemma is_exposed_of_mem_faces {P Q : polyhedron E} (hQ : Q ∈ P.faces) : is_exposed (P : set E) Q :=
-begin
-  intro hQnemp,
-  obtain ⟨l, hl, hQcarr⟩ := hQ hQnemp,
-  exact ⟨l.1, hQcarr⟩,
-end
-
 /---/
-instance lattice_polyhedrons : semilattice_inf_top (polyhedron E) :=
-{ le := (λ X Y, (X : set E) ⊆ Y),
+def lattice_polyhedrons : semilattice_inf_top (polyhedron E) :=
+{ le := λ X Y, (X : set E) ⊆ Y,
   le_refl := λ X, subset.refl X,
   le_trans := λ X Y Z, subset.trans,
   le_antisymm := λ X Y hXY hYX, polyhedron.ext (subset.antisymm (hXY : _ ⊆ _) (hYX : _ ⊆ _)),
@@ -168,6 +244,55 @@ instance lattice_polyhedrons : semilattice_inf_top (polyhedron E) :=
 
 lemma faces_mono {P Q : polyhedron E} (hPQ : P ≤ Q) : P.faces ⊆ Q.faces := sorry
 
+open polyhedron
+
+def face_order_polyhedrons : order_bot (polyhedron E) :=
+{ le := λ X Y, X ∈ Y.faces,
+  le_refl := λ X, X.self_mem_faces,
+  le_trans := λ X Y Z hXY hYZ hXnemp, begin
+    obtain ⟨sX, hX⟩ := hXY hXnemp,
+    sorry
+  end,
+  le_antisymm := λ X Y hXY hYX, polyhedron.ext (subset.antisymm (subset_of_mem_faces hXY)
+    (subset_of_mem_faces hYX)),
+
+  bot := ⊥,
+  bot_le := λ X, X.bot_mem_faces }
+
+/-- The faces of a polyhedron form a bounded and graded lattice. The grading function is the
+dimensican of the face. -/
+def face_lattice_polyhedron (P : polyhedron E) : bounded_lattice P.faces :=
+{ le := λ ⟨X, hX⟩ ⟨Y, hY⟩, X ∈ Y.faces,
+  le_refl := λ ⟨X, hX⟩, X.self_mem_faces,
+  le_trans := λ ⟨X, hX⟩ ⟨Y, hY⟩ ⟨Z, hZ⟩ hXY hYZ hXnemp, begin
+    obtain ⟨sX, hX⟩ := hXY hXnemp,
+    sorry
+  end,
+  le_antisymm := λ ⟨X, hX⟩ ⟨Y, hY⟩ hXY hYX, polyhedron.ext (subset.antisymm (subset_of_mem_faces hXY)
+    (subset_of_mem_faces hYX)),
+
+  inf := λ X Y, { carrier := X ∩ Y,
+  hcarrier := begin
+    use X.Hrepr ∪ Y.Hrepr,
+    rw [X.eq_Hrepr, Y.eq_Hrepr],
+    apply subset.antisymm,
+    { rintro x ⟨hxX, hxY⟩ l hl,
+      cases finset.mem_union.1 hl,
+      { exact hxX l h },
+      exact hxY l h },
+    rintro x hx,
+    exact ⟨λ l hl, hx l (finset.mem_union_left _ hl), λ l hl, hx l (finset.mem_union_right _ hl)⟩,
+  end },
+  inf_le_left := λ ⟨X, hX⟩ ⟨Y, hY⟩, inter_subset_left X Y,
+  inf_le_right := λ ⟨X, hX⟩ ⟨Y, hY⟩, inter_subset_right X Y,
+  le_inf := λ ⟨X, hX⟩ ⟨Y, hY⟩ Z, subset_inter,
+
+  bot := ⟨⊥, P.bot_mem_faces⟩,
+  bot_le := λ ⟨X, hX⟩, X.bot_mem_faces,
+
+  top := ⟨P, P.self_mem_faces⟩,
+  le_top := λ ⟨X, hX⟩, hX }
+
 /-! ### Polytopes -/
 
 /-- A polytope is the convex hull of a finite number of points. -/
@@ -179,8 +304,8 @@ namespace polytope
 
 instance : has_coe (polytope E) (set E) := { coe := λ P, P.carrier }
 
-instance : has_emptyc (polytope E) :=
-{ emptyc := { carrier := ∅, hcarrier := ⟨∅, convex_hull_empty.symm⟩ } }
+instance : has_bot (polytope E) :=
+{ bot := { carrier := ∅, hcarrier := ⟨∅, convex_hull_empty.symm⟩ } }
 
 @[ext] protected lemma ext {P Q : polytope E} (h : (P : set E) = Q) : P = Q :=
 begin
@@ -245,13 +370,16 @@ def image_polytope (P : polytope E) : polytope F :=
 end linear_map
 
 lemma finset.convex_hull_eq_image {s : finset E} :
-  convex_hull (s : set E) = (⇑(∑ x : (s : set E),
-  (@linear_map.proj ℝ (s : set E) _ (λ i, ℝ) _ _ x).smul_right x.1)) '' (std_simplex (s : set E)) :=
+  convex_hull (s : set E) =
+  (⇑(∑ x : (s : set E), (@linear_map.proj ℝ (s : set E) _ (λ i, ℝ) _ _ x).smul_right x.1)) ''
+  (std_simplex (s : set E)) :=
 begin
   have := (∑ x : (s : set E),
   (@linear_map.proj ℝ (s : set E) _ (λ i, ℝ) _ _ x).smul_right x.1),
   have := (∑ x : (s : set E),
   (@continuous_linear_map.proj ℝ _ (s : set E) (λ i, ℝ) _ _ _ x).smul_right x.1),
+  rw set.finite.convex_hull_eq_image (finset.finite_to_set _),
+  sorry
 end
 
 namespace polytope

@@ -18,43 +18,13 @@ lemma continuous_linear_map.to_exposed.is_exposed :
   is_exposed A (l.to_exposed A) :=
 λ h, ⟨l, rfl⟩
 
-lemma is_exposed_iff_normalized (hAB : ¬A ⊆ B) :
-  is_exposed A B ↔ B.nonempty → ∃ l : E →L[ℝ] ℝ, ∥l∥ = 1 ∧ B = {x ∈ A | ∀ y ∈ A, l y ≤ l x} :=
-begin
-  apply imp_congr iff.rfl,
-  refine ⟨_, λ ⟨l, _, hB⟩, ⟨l, hB⟩⟩,
-  rintro ⟨l, hB⟩,
-  refine ⟨(1/∥l∥) • l, sorry, _⟩,
-  let x : E := sorry,
-  let y : E := sorry,
-  have : (1 / ∥l∥) • l x ≤ (1 / ∥l∥) • l y ↔ l x ≤ l y,
-  {
-    refine mul_le_mul_left _,
-    refine div_pos _ _,
-    sorry,
-    sorry
-  },
-  rw hB,
-  ext z,
-  split,
-  {
-    rintro ⟨hzA, h⟩,
-    refine ⟨hzA, λ w hw, _⟩,
-    simp only [continuous_linear_map.smul_apply],
-    sorry--refine submodule.smul_mono_right _ _ _ _,
-  },
-  sorry
-end
-
 namespace is_exposed
 
 lemma subset (hAB : is_exposed A B) :
   B ⊆ A :=
 begin
-  cases B.eq_empty_or_nonempty,
-  { rw h,
-    exact empty_subset _ },
-  obtain ⟨_, rfl⟩ := hAB h,
+  rintro x hx,
+  obtain ⟨_, rfl⟩ := hAB ⟨x, hx⟩,
   exact λ x hx, hx.1,
 end
 
@@ -65,55 +35,6 @@ end
 lemma antisymm (hB : is_exposed A B) (hA : is_exposed B A) :
   A = B :=
 subset.antisymm hA.subset hB.subset
-
-@[trans] lemma trans (hB : is_exposed A B) (hC : is_exposed B C) :
-  is_exposed A C :=
-begin
-  rintro hCnemp,
-  by_cases hAB : A ⊆ B,
-  { rw subset.antisymm hAB hB.subset,
-    exact hC hCnemp },
-  by_cases hBC : B ⊆ C,
-  { rw subset.antisymm hC.subset hBC,
-    exact hB (nonempty.mono hC.subset hCnemp) },
-  sorry
-  /-
-  rw is_exposed_iff_normalized hAB at hB,
-  rw is_exposed_iff_normalized hBC at hC,
-  obtain ⟨l₁, hl₁, hB⟩ := hB,
-  obtain ⟨l₂, hl₂, hC⟩ := hC,
-  refine ⟨l₁ + l₂, _⟩,
-  rw hC,
-  ext x,
-  split,
-  {
-    rintro ⟨hxB, hxl₂⟩,
-    rw hB at hxB,
-    obtain ⟨hxA, hxl₁⟩ := hxB,
-    use hxA,
-    rintro y hy,
-    have := hxl₁ y hy,
-    sorry
-  },
-  rintro ⟨hxA, hx⟩,
-  rw hB,
-  refine ⟨⟨hxA, _⟩, _⟩,
-  {
-    rintro y hy,
-    have := hx y hy,
-    sorry
-  },
-  rintro y ⟨hyA, hy⟩,
-  apply (add_le_add_iff_left (l₁ y)).1,
-  calc
-    l₁ y + l₂ y ≤ l₁ x + l₂ x : hx y hyA
-            ... ≤ l₁ y + l₂ x : add_le_add_right (hy x hxA) _,-/
-end
-
-instance : is_partial_order (set E) is_exposed :=
-{ refl := refl,
-  trans := λ A B C hB, hB.trans,
-  antisymm := λ A B hB, hB.antisymm }
 
 lemma is_exposed_empty : is_exposed A ∅ :=
 λ ⟨x, hx⟩, by { exfalso, exact hx }
@@ -147,28 +68,22 @@ begin
     (hy x hxB.1)),
 end
 
-lemma Inter {ι : Type*} [nonempty ι] {F : ι → set E}
-  (hAF : ∀ i : ι, is_exposed A (F i)) :
-  is_exposed A (⋂ i : ι, F i) :=
-begin
-  rintro ⟨x, hx⟩,
-  obtain i := classical.arbitrary ι,
-  rw mem_Inter at hx,
-  sorry
-end
-
-lemma bInter {F : set (set E)} (hF : F.nonempty)
-  (hAF : ∀ B ∈ F, is_exposed A B) :
-  is_exposed A (⋂ B ∈ F, B) :=
-begin
-  sorry
-end
-
-lemma sInter {F : set (set E)} (hF : F.nonempty)
+lemma sInter {F : finset (set E)} (hF : F.nonempty)
   (hAF : ∀ B ∈ F, is_exposed A B) :
   is_exposed A (⋂₀ F) :=
 begin
-  sorry
+  revert hF F,
+  refine finset.induction _ _,
+  { rintro h,
+    exfalso,
+    exact empty_not_nonempty h },
+  rintro C F _ hF _ hCF,
+  rw [finset.coe_insert, sInter_insert],
+  obtain rfl | hFnemp := F.eq_empty_or_nonempty,
+  { rw [finset.coe_empty, sInter_empty, inter_univ],
+    exact hCF C (finset.mem_singleton_self C) },
+  exact (hCF C (finset.mem_insert_self C F)).inter (hF hFnemp (λ B hB,
+    hCF B(finset.mem_insert_of_mem hB))),
 end
 
 lemma inter_left (hC : is_exposed A C) (hCB : C ⊆ B) :
@@ -225,7 +140,6 @@ instance : bounded_lattice (set_of (is_exposed A)) :=
   bot := ⟨∅, is_exposed_empty⟩,
   bot_le := λ ⟨B, hB⟩, is_exposed_empty }-/
 
---@Bhavik, I don't know how to use the right instances
 lemma is_extreme (hAB : is_exposed A B) :
   is_extreme A B :=
 begin
@@ -255,7 +169,7 @@ begin
   exact hxB.2 y hy,
 end
 
-lemma  is_convex (hAB : is_exposed A B) (hA : convex A) :
+lemma is_convex (hAB : is_exposed A B) (hA : convex A) :
   convex B :=
 begin
   cases B.eq_empty_or_nonempty,
@@ -278,12 +192,13 @@ end
 lemma is_closed (hAB : is_exposed A B) (hA : is_closed A) :
   is_closed B :=
 begin
-  cases B.eq_empty_or_nonempty with hB hB,
+  obtain hB | hB := B.eq_empty_or_nonempty,
   { rw hB,
     exact is_closed_empty },
   obtain ⟨l, rfl⟩ := hAB hB,
   apply is_closed_inter hA,
   refine closure_eq_iff_is_closed.1 (subset.antisymm _ subset_closure),
+  sorry
   /-rw sequentie
   rw ←is_seq_closed_iff_is_closed,
   apply is_seq_closed_of_def,
@@ -358,12 +273,12 @@ iff.rfl
 lemma mem_exposed_points_iff_exposed_singleton :
   x ∈ A.exposed_points ↔ is_exposed A {x} :=
 begin
-  use λ ⟨hxA, l, hl⟩ h, ⟨l, eq.symm $ eq_singleton_iff_unique_mem.2 ⟨⟨hxA, λ y hy, (hl y hy).1⟩, λ z hz,
-    (hl z hz.1).2 (hz.2 x hxA)⟩⟩,
+  use λ ⟨hxA, l, hl⟩ h, ⟨l, eq.symm $ eq_singleton_iff_unique_mem.2 ⟨⟨hxA, λ y hy, (hl y hy).1⟩,
+    λ z hz, (hl z hz.1).2 (hz.2 x hxA)⟩⟩,
   rintro h,
   obtain ⟨l, hl⟩ := h ⟨x, mem_singleton _⟩,
   rw [eq_comm, eq_singleton_iff_unique_mem] at hl,
-  exact ⟨hl.1.1, l, λ y hy, ⟨hl.1.2 y hy, λ hxy, hl.2 y ⟨hy, λ z hz, le_trans (hl.1.2 z hz) hxy⟩⟩⟩,
+  exact ⟨hl.1.1, l, λ y hy, ⟨hl.1.2 y hy, λ hxy, hl.2 y ⟨hy, λ z hz, (hl.1.2 z hz).trans hxy⟩⟩⟩,
 end
 
 lemma exposed_points_subset :

@@ -366,7 +366,7 @@ classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel' ha $ h₂.symm ▸ 
 end cancel_monoid_with_zero
 
 section group_with_zero
-variables [group_with_zero G₀]
+variables [group_with_zero G₀] {a b c g h x : G₀}
 
 alias div_eq_mul_inv ← division_def
 
@@ -396,38 +396,38 @@ protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀
   .. hf.monoid_with_zero f zero one mul,
   .. hf.div_inv_monoid f one mul inv div }
 
-@[simp] lemma mul_inv_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :
+@[simp] lemma mul_inv_cancel_right' (h : b ≠ 0) (a : G₀) :
   (a * b) * b⁻¹ = a :=
 calc (a * b) * b⁻¹ = a * (b * b⁻¹) : mul_assoc _ _ _
                ... = a             : by simp [h]
 
-@[simp] lemma mul_inv_cancel_left' {a : G₀} (h : a ≠ 0) (b : G₀) :
+@[simp] lemma mul_inv_cancel_left' (h : a ≠ 0) (b : G₀) :
   a * (a⁻¹ * b) = b :=
 calc a * (a⁻¹ * b) = (a * a⁻¹) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
 
-lemma inv_ne_zero {a : G₀} (h : a ≠ 0) : a⁻¹ ≠ 0 :=
+lemma inv_ne_zero (h : a ≠ 0) : a⁻¹ ≠ 0 :=
 assume a_eq_0, by simpa [a_eq_0] using mul_inv_cancel h
 
-@[simp] lemma inv_mul_cancel {a : G₀} (h : a ≠ 0) : a⁻¹ * a = 1 :=
+@[simp] lemma inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
 calc a⁻¹ * a = (a⁻¹ * a) * a⁻¹ * a⁻¹⁻¹ : by simp [inv_ne_zero h]
          ... = a⁻¹ * a⁻¹⁻¹             : by simp [h]
          ... = 1                       : by simp [inv_ne_zero h]
 
-lemma group_with_zero.mul_left_injective {x : G₀} (h : x ≠ 0) :
+lemma group_with_zero.mul_left_injective (h : x ≠ 0) :
   function.injective (λ y, x * y) :=
 λ y y' w, by simpa only [←mul_assoc, inv_mul_cancel h, one_mul] using congr_arg (λ y, x⁻¹ * y) w
 
-lemma group_with_zero.mul_right_injective {x : G₀} (h : x ≠ 0) :
+lemma group_with_zero.mul_right_injective (h : x ≠ 0) :
   function.injective (λ y, y * x) :=
 λ y y' w, by simpa only [mul_assoc, mul_inv_cancel h, mul_one] using congr_arg (λ y, y * x⁻¹) w
 
-@[simp] lemma inv_mul_cancel_right' {b : G₀} (h : b ≠ 0) (a : G₀) :
+@[simp] lemma inv_mul_cancel_right' (h : b ≠ 0) (a : G₀) :
   (a * b⁻¹) * b = a :=
 calc (a * b⁻¹) * b = a * (b⁻¹ * b) : mul_assoc _ _ _
                ... = a             : by simp [h]
 
-@[simp] lemma inv_mul_cancel_left' {a : G₀} (h : a ≠ 0) (b : G₀) :
+@[simp] lemma inv_mul_cancel_left' (h : a ≠ 0) (b : G₀) :
   a⁻¹ * (a * b) = b :=
 calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
@@ -483,24 +483,55 @@ by rw [div_eq_mul_inv, mul_inv_mul_self a]
 lemma inv_involutive' : function.involutive (has_inv.inv : G₀ → G₀) :=
 inv_inv'
 
-lemma eq_inv_of_mul_right_eq_one {a b : G₀} (h : a * b = 1) :
+lemma eq_inv_of_mul_right_eq_one (h : a * b = 1) :
   b = a⁻¹ :=
 by rw [← inv_mul_cancel_left' (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
 
-lemma eq_inv_of_mul_left_eq_one {a b : G₀} (h : a * b = 1) :
+lemma eq_inv_of_mul_left_eq_one (h : a * b = 1) :
   a = b⁻¹ :=
 by rw [← mul_inv_cancel_right' (right_ne_zero_of_mul_eq_one h) a, h, one_mul]
 
 lemma inv_injective' : function.injective (@has_inv.inv G₀ _) :=
 inv_involutive'.injective
 
-@[simp] lemma inv_inj' {g h : G₀} : g⁻¹ = h⁻¹ ↔ g = h := inv_injective'.eq_iff
+@[simp] lemma inv_inj' : g⁻¹ = h⁻¹ ↔ g = h := inv_injective'.eq_iff
 
-lemma inv_eq_iff {g h : G₀} : g⁻¹ = h ↔ h⁻¹ = g :=
+/-- This is the analogue of `inv_eq_iff_inv_eq` for `group`.
+  It could also be named `inv_eq_iff_inv_eq'`. -/
+lemma inv_eq_iff : g⁻¹ = h ↔ h⁻¹ = g :=
 by rw [← inv_inj', eq_comm, inv_inv']
 
-@[simp] lemma inv_eq_one' {g : G₀} : g⁻¹ = 1 ↔ g = 1 :=
+/-- This is the analogue of `eq_inv_iff_eq_inv` for `group`.
+  It could also be named `eq_inv_iff_eq_inv'`. -/
+lemma eq_inv_iff : a = b⁻¹ ↔ b = a⁻¹ :=
+by rw [eq_comm, inv_eq_iff, eq_comm]
+
+@[simp] lemma inv_eq_one' : g⁻¹ = 1 ↔ g = 1 :=
 by rw [inv_eq_iff, inv_one, eq_comm]
+
+lemma eq_mul_inv_iff_mul_eq' (hc : c ≠ 0) : a = b * c⁻¹ ↔ a * c = b :=
+by split; rintro rfl; [rw inv_mul_cancel_right' hc, rw mul_inv_cancel_right' hc]
+
+lemma eq_inv_mul_iff_mul_eq' (hb : b ≠ 0) : a = b⁻¹ * c ↔ b * a = c :=
+by split; rintro rfl; [rw mul_inv_cancel_left' hb, rw inv_mul_cancel_left' hb]
+
+lemma inv_mul_eq_iff_eq_mul' (ha : a ≠ 0) : a⁻¹ * b = c ↔ b = a * c :=
+by rw [eq_comm, eq_inv_mul_iff_mul_eq' ha, eq_comm]
+
+lemma mul_inv_eq_iff_eq_mul' (hb : b ≠ 0) : a * b⁻¹ = c ↔ a = c * b :=
+by rw [eq_comm, eq_mul_inv_iff_mul_eq' hb, eq_comm]
+
+lemma mul_inv_eq_one' (hb : b ≠ 0) : a * b⁻¹ = 1 ↔ a = b :=
+by rw [mul_inv_eq_iff_eq_mul' hb, one_mul]
+
+lemma inv_mul_eq_one' (ha : a ≠ 0) : a⁻¹ * b = 1 ↔ a = b :=
+by rw [inv_mul_eq_iff_eq_mul' ha, mul_one, eq_comm]
+
+lemma mul_eq_one_iff_eq_inv' (hb : b ≠ 0) : a * b = 1 ↔ a = b⁻¹ :=
+by { convert mul_inv_eq_one' (inv_ne_zero hb), rw [inv_inv'] }
+
+lemma mul_eq_one_iff_inv_eq' (ha : a ≠ 0) : a * b = 1 ↔ a⁻¹ = b :=
+by { convert inv_mul_eq_one' (inv_ne_zero ha), rw [inv_inv'] }
 
 end group_with_zero
 

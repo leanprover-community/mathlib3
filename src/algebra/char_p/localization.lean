@@ -27,20 +27,22 @@ If `R` is an `integral_domain` then the `fraction_ring R` has the same character
 
 namespace fraction_ring
 
-variables (R: Type*) [integral_domain R] (p: ℕ)
+variables (R : Type*) [integral_domain R] (p : ℕ)
 
-/--
-  If `R` has characteristic `p`, then so does `fraction_ring R`.
--/
-instance char_p [h: char_p R p]: char_p (fraction_ring R) p :=
+/-- If `R` has characteristic `p`, then so does `fraction_ring R`. -/
+instance char_p [char_p R p] : char_p (fraction_ring R) p :=
 { cast_eq_zero_iff :=
   begin
     intro x,
-    have hR:= char_p.cast_eq_zero_iff R p x,
+    have hR := char_p.cast_eq_zero_iff R p x,
     split,
     {
+      -- Want: (x:K) = 0 → p ∣ (x:ℕ)
       intro hp,
       apply hR.elim_left,
+      -- From here on we have `(x:fraction_ring R) = 0` and want to show that `(x:R) = 0`.
+      -- That should be shorter,
+      -- the only real ingredient is `(fraction_map.injective (fraction_ring.of R))`.
       change (coe : ℕ → R) x = 0,
       have q := (fraction_map.injective (fraction_ring.of R)),
       unfold function.injective at q,
@@ -49,8 +51,12 @@ instance char_p [h: char_p R p]: char_p (fraction_ring R) p :=
       exact hp,
     },
     {
+      -- Want: p ∣ (x:ℕ) → (x:K) = 0
       intro hp,
       have hR' := hR.elim_right hp,
+      -- From here on we have `(x:R) = 0` and want to show that `(x:fraction_ring R) = 0`.
+      -- That should be shorter, the only ingredient
+      -- is using `is_scalar_tower`.
       change (algebra_map ℕ (fraction_ring R)) x = (algebra_map ℕ (fraction_ring R)) 0,
       rw is_scalar_tower.algebra_map_apply ℕ R (fraction_ring R) x,
       change (algebra_map ℕ R) x = (algebra_map ℕ R) 0 at hR',

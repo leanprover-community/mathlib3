@@ -57,13 +57,13 @@ abbreviation det (M : matrix n n R) : R :=
 det_row_multilinear M
 
 lemma det_apply (M : matrix n n R) :
-  M.det = ∑ σ : perm n, (σ.sign : ℤ) • ∏ i, M (σ i) i :=
+  M.det = ∑ σ : perm n, σ.sign • ∏ i, M (σ i) i :=
 multilinear_map.alternatization_apply _ M
 
 -- This is what the old definition was. We use it to avoid having to change the old proofs below
 lemma det_apply' (M : matrix n n R) :
   M.det = ∑ σ : perm n, ε σ * ∏ i, M (σ i) i :=
-by simp [det_apply]
+by simp [det_apply, units.smul_def]
 
 @[simp] lemma det_diagonal {d : n → R} : det (diagonal d) = ∏ i, d i :=
 begin
@@ -182,7 +182,8 @@ end
 
 /-- Permuting the columns changes the sign of the determinant. -/
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
-((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans (by simp)
+((det_row_multilinear : alternating_map R (n → R) R n).map_perm M σ).trans
+  (by simp [units.smul_def])
 
 /-- Permuting rows and columns with the same equivalence has no effect. -/
 @[simp]
@@ -577,7 +578,7 @@ begin
         equiv.perm.decompose_fin_symm_apply_zero, fin.coe_zero, one_mul,
         equiv.perm.decompose_fin.symm_sign, equiv.swap_self, if_true, id.def, eq_self_iff_true,
         equiv.perm.decompose_fin_symm_apply_succ, fin.succ_above_zero, equiv.coe_refl, pow_zero,
-        algebra.mul_smul_comm] },
+        mul_smul_comm] },
   -- `univ_perm_fin_succ` gives a different embedding of `perm (fin n)` into
   -- `perm (fin n.succ)` than the determinant of the submatrix we want,
   -- permute `A` so that we get the correct one.

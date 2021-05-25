@@ -174,7 +174,7 @@ def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α
   .. linear_order.lift f hf }
 
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
-add_pos h h
+add_pos' h h
 
 namespace units
 
@@ -926,3 +926,6 @@ instance [div_inv_monoid α] : div_inv_monoid (order_dual α) :=
 { ..show div_inv_monoid α, by apply_instance }
 
 end type_tags
+--for linarith?
+theorem add_pos [ordered_add_comm_monoid α] {a b : α} : 0 < a → 0 < b → 0 < a + b :=
+add_pos'

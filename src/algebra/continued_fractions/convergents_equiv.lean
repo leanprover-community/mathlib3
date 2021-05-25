@@ -250,7 +250,7 @@ nat.strong_induction_on m
       { refl },
       { -- get some inequalities to instantiate the IH for m'' and m'' + 1
         have m'_lt_n : m'' + 1 < n' + 1, from m_le_n,
-        have : m'' + 1 < m'' + 2, by linarith,
+        have : m'' + 1 < m'' + 2, exact lt_add_one (m'' + 1), --linarith,
         have succ_m''th_conts_aux_eq := IH (m'' + 1) this (le_of_lt m'_lt_n),
         have : m'' < m'' + 2, by linarith,
         have m''th_conts_aux_eq := IH m'' this (le_of_lt $ lt_of_lt_of_le (by linarith) n'.le_succ),
@@ -370,12 +370,14 @@ begin
               rwa this },
             split,
             { exact (s_pos (nat.lt.step m_lt_n) mth_s_eq).left },
-            { have : 0 < gp_m.b, from (s_pos (nat.lt.step m_lt_n) mth_s_eq).right,
-              have : 0 < gp_succ_m.a / gp_succ_m.b, by
+            { have t1 : 0 < gp_m.b, from (s_pos (nat.lt.step m_lt_n) mth_s_eq).right,
+              have t2 : 0 < gp_succ_m.a / gp_succ_m.b, by
               { have : 0 < gp_succ_m.a ∧ 0 < gp_succ_m.b, from
                   s_pos (lt_add_one $ m + 1) s_succ_mth_eq,
                 exact (div_pos this.left this.right) },
-              linarith } },
+              linarith,
+              exact add_pos t1 t2,
+               } },
           { -- the easy case: before the squashed position, nothing changes
             have : g.s.nth m = some gp', by {
               have : g'.s.nth m = g.s.nth m, from squash_gcf_nth_of_lt succ_m_lt_n,

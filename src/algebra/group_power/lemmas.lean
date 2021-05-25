@@ -11,6 +11,7 @@ import data.int.cast
 import data.equiv.basic
 import data.equiv.mul_add
 import deprecated.group
+import algebra.ordered_group
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -237,6 +238,7 @@ begin
   by_cases a0 : 0 ≤ a; by_cases b0 : 0 ≤ b,
   { simp [a0, b0, abs_of_nonneg, add_nonneg a0 b0] },
   { exact (lt_irrefl (0 : α) (a0.trans_lt (hle.trans_lt (not_le.mp b0)))).elim },
+  simp [(not_le.mp a0).le, abs_of_nonpos, add_nonpos, add_comm],
   any_goals { simp [(not_le.mp a0).le, (not_le.mp b0).le, abs_of_nonpos, add_nonpos, add_comm] },
   obtain F := (not_le.mp a0),
   have : (abs (a + b) = -a + b ↔ b ≤ 0) ↔ (abs (a + b) =

@@ -74,7 +74,7 @@ def matrix.index_equiv_of_inv [decidable_eq m] [decidable_eq n]
 equiv_of_pi_lequiv_pi (matrix.to_lin'_of_inv hMM' hM'M)
 
 /-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
-lemma matrix.det_conjugate
+lemma matrix.det_conj
   [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :

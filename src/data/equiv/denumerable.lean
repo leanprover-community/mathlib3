@@ -86,7 +86,7 @@ instance nat : denumerable ℕ := ⟨λ n, ⟨_, rfl, rfl⟩⟩
 
 @[simp] theorem of_nat_nat (n) : of_nat ℕ n = n := rfl
 
-/-- If `α` is denumerable, then `option α` is too. -/
+/-- If `α` is denumerable, then so is `option α`. -/
 instance option : denumerable (option α) := ⟨λ n, begin
   cases n,
   { refine ⟨none, _, encode_none⟩,
@@ -96,7 +96,7 @@ instance option : denumerable (option α) := ⟨λ n, begin
   rw [encode_some, encode_of_nat],
 end⟩
 
-/-- If `α` and `β` are denumerable, then their sum is too. -/
+/-- If `α` and `β` are denumerable, then so is their sum. -/
 instance sum : denumerable (α ⊕ β) :=
 ⟨λ n, begin
   suffices : ∃ a ∈ @decode_sum α β _ _ n,
@@ -107,7 +107,7 @@ end⟩
 section sigma
 variables {γ : α → Type*} [∀ a, denumerable (γ a)]
 
-/-- A denumerable collection of denumerable sets is denumerable. -/
+/-- A denumerable collection of denumerable types is denumerable. -/
 instance sigma : denumerable (sigma γ) :=
 ⟨λ n, by simp [decode_sigma]; exact ⟨_, _, ⟨rfl, heq.rfl⟩, by simp⟩⟩
 
@@ -118,7 +118,7 @@ by rw [← decode_eq_of_nat, decode_sigma_val]; simp; refl
 
 end sigma
 
-/-- If `α` and `β` are denumerable, then their product is too. -/
+/-- If `α` and `β` are denumerable, then so is their product. -/
 instance prod : denumerable (α × β) :=
 of_equiv _ (equiv.sigma_equiv_prod α β).symm
 
@@ -189,7 +189,7 @@ have hx : ∃ m, y.1 + m + 1 ∈ s, from exists_succ _,
 show x.1 ≤ y.1 + nat.find hx + 1,
 from le_of_not_gt $ λ hxy,
 have y.1 + nat.find hx + 1 ≤ y.1 := h ⟨_, nat.find_spec hx⟩ hxy,
-not_lt_of_le this $
+(h ⟨_, nat.find_spec hx⟩ hxy).not_lt $
   calc y.1 ≤ y.1 + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
   ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _
 
@@ -266,8 +266,7 @@ def denumerable (s : set ℕ) [decidable_pred s] [infinite s] : denumerable s :=
 denumerable.of_equiv ℕ
 { to_fun := to_fun_aux,
   inv_fun := of_nat s,
-  left_inv := left_inverse_of_surjective_of_right_inverse
-    of_nat_surjective right_inverse_aux,
+  left_inv := left_inverse_of_surjective_of_right_inverse of_nat_surjective right_inverse_aux,
   right_inv := right_inverse_aux }
 
 end nat.subtype
@@ -282,8 +281,7 @@ begin
   letI : infinite (set.range (@encode α _)) :=
     infinite.of_injective _ (equiv.of_injective _ encode_injective).injective,
   letI := nat.subtype.denumerable (set.range (@encode α _)),
-  exact denumerable.of_equiv (set.range (@encode α _))
-    (equiv_range_encode α)
+  exact denumerable.of_equiv (set.range (@encode α _)) (equiv_range_encode α),
 end
 
 end denumerable

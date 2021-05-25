@@ -441,32 +441,32 @@ variable [encodable γ]
 
 /-- You can compute a sum over an encodably type by summing over the natural numbers and
   taking a supremum. This is useful for outer measures. -/
-theorem tsum_supr_decode2 [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
-  (s : γ → β) : ∑' i : ℕ, m (⨆ b ∈ decode2 γ i, s b) = ∑' b : γ, m (s b) :=
+theorem tsum_supr_decode₂ [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
+  (s : γ → β) : ∑' i : ℕ, m (⨆ b ∈ decode₂ γ i, s b) = ∑' b : γ, m (s b) :=
 begin
-  have H : ∀ n, m (⨆ b ∈ decode2 γ n, s b) ≠ 0 → (decode2 γ n).is_some,
+  have H : ∀ n, m (⨆ b ∈ decode₂ γ n, s b) ≠ 0 → (decode₂ γ n).is_some,
   { intros n h,
-    cases decode2 γ n with b,
+    cases decode₂ γ n with b,
     { refine (h $ by simp [m0]).elim },
     { exact rfl } },
   symmetry, refine tsum_eq_tsum_of_ne_zero_bij (λ a, option.get (H a.1 a.2)) _ _ _,
   { rintros ⟨m, hm⟩ ⟨n, hn⟩ e,
-    have := mem_decode2.1 (option.get_mem (H n hn)),
-    rwa [← e, mem_decode2.1 (option.get_mem (H m hm))] at this },
+    have := mem_decode₂.1 (option.get_mem (H n hn)),
+    rwa [← e, mem_decode₂.1 (option.get_mem (H m hm))] at this },
   { intros b h,
     refine ⟨⟨encode b, _⟩, _⟩,
     { simp only [mem_support, encodek2] at h ⊢, convert h, simp [set.ext_iff, encodek2] },
     { exact option.get_of_mem _ (encodek2 _) } },
   { rintros ⟨n, h⟩, dsimp only [subtype.coe_mk],
     transitivity, swap,
-    rw [show decode2 γ n = _, from option.get_mem (H n h)],
+    rw [show decode₂ γ n = _, from option.get_mem (H n h)],
     congr, simp [ext_iff, -option.some_get] }
 end
 
-/-- `tsum_supr_decode2` specialized to the complete lattice of sets. -/
-theorem tsum_Union_decode2 (m : set β → α) (m0 : m ∅ = 0)
-  (s : γ → set β) : ∑' i, m (⋃ b ∈ decode2 γ i, s b) = ∑' b, m (s b) :=
-tsum_supr_decode2 m m0 s
+/-- `tsum_supr_decode₂` specialized to the complete lattice of sets. -/
+theorem tsum_Union_decode₂ (m : set β → α) (m0 : m ∅ = 0)
+  (s : γ → set β) : ∑' i, m (⋃ b ∈ decode₂ γ i, s b) = ∑' b, m (s b) :=
+tsum_supr_decode₂ m m0 s
 
 /-! Some properties about measure-like functions.
   These could also be functions defined on complete sublattices of sets, with the property
@@ -478,7 +478,7 @@ tsum_supr_decode2 m m0 s
 theorem rel_supr_tsum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ∑' i, m (s i))
   (s : γ → β) : R (m (⨆ b : γ, s b)) ∑' b : γ, m (s b) :=
-by { rw [← supr_decode2, ← tsum_supr_decode2 _ m0 s], exact m_supr _ }
+by { rw [← supr_decode₂, ← tsum_supr_decode₂ _ m0 s], exact m_supr _ }
 
 /-- If a function is countably sub-additive then it is sub-additive on finite sets -/
 theorem rel_supr_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)

@@ -54,8 +54,8 @@ The co-Yoneda embedding, as a functor from `Cᵒᵖ` into co-presheaves on `C`.
 namespace yoneda
 
 lemma obj_map_id {X Y : C} (f : op X ⟶ op Y) :
-  ((@yoneda C _).obj X).map f (𝟙 X) = ((@yoneda C _).map f.unop).app (op Y) (𝟙 Y) :=
-by obviously
+  (yoneda.obj X).map f (𝟙 X) = (yoneda.map f.unop).app (op Y) (𝟙 Y) :=
+by { dsimp, simp }
 
 @[simp] lemma naturality {X Y : C} (α : yoneda.obj X ⟶ yoneda.obj Y)
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
@@ -66,20 +66,16 @@ The Yoneda embedding is full.
 
 See https://stacks.math.columbia.edu/tag/001P.
 -/
-instance yoneda_full : full (@yoneda C _) :=
-{ preimage := λ X Y f, (f.app (op X)) (𝟙 X) }
+instance yoneda_full : full (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
+{ preimage := λ X Y f, f.app (op X) (𝟙 X) }
 
 /--
 The Yoneda embedding is faithful.
 
 See https://stacks.math.columbia.edu/tag/001P.
 -/
-instance yoneda_faithful : faithful (@yoneda C _) :=
-{ map_injective' := λ X Y f g p,
-  begin
-    injection p with h,
-    convert (congr_fun (congr_fun h (op X)) (𝟙 X)); dsimp; simp,
-  end }
+instance yoneda_faithful : faithful (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
+{ map_injective' := λ X Y f g p, by convert (congr_fun (congr_app p (op X)) (𝟙 X)); dsimp; simp }
 
 /-- Extensionality via Yoneda. The typical usage would be
 ```
@@ -108,16 +104,15 @@ namespace coyoneda
 
 @[simp] lemma naturality {X Y : Cᵒᵖ} (α : coyoneda.obj X ⟶ coyoneda.obj Y)
   {Z Z' : C} (f : Z' ⟶ Z) (h : unop X ⟶ Z') : (α.app Z' h) ≫ f = α.app Z (h ≫ f) :=
-begin erw [functor_to_types.naturality], refl end
+(functor_to_types.naturality _ _ α f h).symm
 
-instance coyoneda_full : full (@coyoneda C _) :=
-{ preimage := λ X Y f, ((f.app (unop X)) (𝟙 _)).op }
+instance coyoneda_full : full (coyoneda : Cᵒᵖ ⥤ C ⥤ Type v₁) :=
+{ preimage := λ X Y f, (f.app _ (𝟙 X.unop)).op }
 
-instance coyoneda_faithful : faithful (@coyoneda C _) :=
+instance coyoneda_faithful : faithful (coyoneda : Cᵒᵖ ⥤ C ⥤ Type v₁) :=
 { map_injective' := λ X Y f g p,
   begin
-    injection p with h,
-    have t := (congr_fun (congr_fun h (unop X)) (𝟙 _)),
+    have t := congr_fun (congr_app p X.unop) (𝟙 _),
     simpa using congr_arg quiver.hom.op t,
   end }
 
@@ -135,69 +130,55 @@ is_iso_of_fully_faithful coyoneda f
 
 end coyoneda
 
-/--
-A presheaf `F` is representable if there is object `X` so `F ≅ yoneda.obj X`.
-
-See https://stacks.math.columbia.edu/tag/001Q.
--/
-class representable (F : Cᵒᵖ ⥤ Type v₁) : Prop :=
-(has_representation : ∃ X (f : yoneda.obj X ⟶ F), is_iso f)
-
-noncomputable def representable.X (F : Cᵒᵖ ⥤ Type v₁) [representable F] : C :=
-(representable.has_representation : ∃ X (f : _ ⟶ F), _).some
-
-noncomputable def representable.f (F : Cᵒᵖ ⥤ Type v₁) [representable F] :
-  yoneda.obj (representable.X F) ⟶ F :=
-representable.has_representation.some_spec.some
-
-instance (F : Cᵒᵖ ⥤ Type v₁) [representable F] : is_iso (representable.f F) :=
-representable.has_representation.some_spec.some_spec
-
-noncomputable def representable.w (F : Cᵒᵖ ⥤ Type v₁) [representable F] :
-  yoneda.obj (representable.X F) ≅ F :=
-as_iso (representable.f F)
-
-noncomputable def representable.w_app (F : Cᵒᵖ ⥤ Type v₁) [representable F] (X : C) :
-  (X ⟶ representable.X F) ≅ F.obj (op X) :=
-(representable.w F).app (op X)
+namespace functor
 
 /--
-A functor `F` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
+A functor `F : C ⥤ Type v₁` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
 
 See https://stacks.math.columbia.edu/tag/001Q.
 -/
 class corepresentable (F : C ⥤ Type v₁) : Prop :=
-(has_representation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
+(has_corepresentation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
 
-noncomputable def corepresentable.X (F : C ⥤ Type v₁) [corepresentable F] : C :=
-(corepresentable.has_representation : ∃ X (f : _ ⟶ F), _).some.unop
+section
 
-noncomputable def corepresentable.f (F : C ⥤ Type v₁) [corepresentable F] :
-  coyoneda.obj (op (corepresentable.X F)) ⟶ F :=
-corepresentable.has_representation.some_spec.some
+variables (F : C ⥤ Type v₁)
+variable [F.corepresentable]
 
-instance (F : C ⥤ Type v₁) [corepresentable F] : is_iso (corepresentable.f F) :=
-corepresentable.has_representation.some_spec.some_spec
+noncomputable def X : C :=
+(corepresentable.has_corepresentation : ∃ X (f : _ ⟶ F), _).some.unop
 
-noncomputable def corepresentable.w (F : C ⥤ Type v₁) [corepresentable F] :
-  coyoneda.obj (op (corepresentable.X F)) ≅ F :=
-as_iso (corepresentable.f F)
+noncomputable def f : coyoneda.obj (op F.X) ⟶ F :=
+corepresentable.has_corepresentation.some_spec.some
 
-noncomputable def corepresentable.w_app (F : C ⥤ Type v₁) [corepresentable F] (X : C) :
-  (corepresentable.X F ⟶ X) ≅ F.obj X :=
-(corepresentable.w F).app X
+noncomputable def x : F.obj F.X :=
+F.f.app F.X (𝟙 F.X)
 
-end category_theory
+instance : is_iso F.f :=
+corepresentable.has_corepresentation.some_spec.some_spec
 
-namespace category_theory
--- For the rest of the file, we are using product categories,
--- so need to restrict to the case morphisms are in 'Type', not 'Sort'.
+noncomputable def w : coyoneda.obj (op F.X) ≅ F :=
+as_iso F.f
 
-universes v₁ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+noncomputable def w_app (X : C) : (F.X ⟶ X) ≅ F.obj X :=
+F.w.app X
+
+lemma w_app_hom (X : C) (f : F.X ⟶ X) :
+  (F.w_app X).hom f = F.map f F.x :=
+begin
+  change F.f.app X f = (F.f.app F.X ≫ F.map f) (𝟙 F.X),
+  rw ←F.f.naturality,
+  dsimp,
+  simp
+end
+
+end
+
+end functor
 
 open opposite
 
-variables (C : Type u₁) [category.{v₁} C]
+variables (C)
 
 -- We need to help typeclass inference with some awkward universe levels here.
 instance prod_category_instance_1 : category ((Cᵒᵖ ⥤ Type v₁) × Cᵒᵖ) :=
@@ -280,7 +261,7 @@ The isomorphism between `yoneda.obj X ⟶ F` and `F.obj (op X)`
 (we need to insert a `ulift` to get the universes right!)
 given by the Yoneda lemma.
 -/
-@[simp] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) :
+@[simps] def yoneda_sections (X : C) (F : Cᵒᵖ ⥤ Type v₁) :
   (yoneda.obj X ⟶ F) ≅ ulift.{u₁} (F.obj (op X)) :=
 (yoneda_lemma C).app (op X, F)
 
@@ -290,15 +271,6 @@ and elements of `F.obj X`, without any universe switching.
 -/
 def yoneda_equiv {X : C} {F : Cᵒᵖ ⥤ Type v₁} : (yoneda.obj X ⟶ F) ≃ F.obj (op X) :=
 (yoneda_sections X F).to_equiv.trans equiv.ulift
-
-lemma yoneda_equiv_naturality {X Y : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) (g : Y ⟶ X) :
-  F.map g.op (yoneda_equiv f) = yoneda_equiv (yoneda.map g ≫ f) :=
-begin
-  change (f.app (op X) ≫ F.map g.op) (𝟙 X) = f.app (op Y) (𝟙 Y ≫ g),
-  rw ← f.naturality,
-  dsimp,
-  simp,
-end
 
 @[simp]
 lemma yoneda_equiv_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) :
@@ -310,6 +282,15 @@ lemma yoneda_equiv_symm_app_apply {X : C} {F : Cᵒᵖ ⥤ Type v₁} (x : F.obj
   (Y : Cᵒᵖ) (f : Y.unop ⟶ X) :
   (yoneda_equiv.symm x).app Y f = F.map f.op x :=
 rfl
+
+lemma yoneda_equiv_naturality {X Y : C} {F : Cᵒᵖ ⥤ Type v₁} (f : yoneda.obj X ⟶ F) (g : Y ⟶ X) :
+  F.map g.op (yoneda_equiv f) = yoneda_equiv (yoneda.map g ≫ f) :=
+begin
+  change (f.app (op X) ≫ F.map g.op) (𝟙 X) = f.app (op Y) (𝟙 Y ≫ g),
+  rw ←f.naturality,
+  dsimp,
+  simp,
+end
 
 /--
 When `C` is a small category, we can restate the isomorphism from `yoneda_sections`

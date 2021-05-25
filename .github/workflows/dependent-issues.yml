@@ -16,6 +16,16 @@ on:
     - cron: '15 * * * *' # schedule hourly check for external dependencies
 
 jobs:
+  cancel:
+    name: 'Cancel Previous Runs (dependent issues)'
+    runs-on: ubuntu-latest
+    # timeout-minutes: 3
+    steps:
+      - uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          all_but_latest: true
+          access_token: ${{ github.token }}
+
   check:
     runs-on: ubuntu-latest
     steps:

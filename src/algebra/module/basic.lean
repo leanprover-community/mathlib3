@@ -119,6 +119,10 @@ variables {R M}
 @[simp] lemma smul_add_hom_apply (r : R) (x : M) :
   smul_add_hom R M r x = r • x := rfl
 
+@[simp] lemma smul_add_hom_one {R M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
+  smul_add_hom R M 1 = add_monoid_hom.id _ :=
+const_smul_hom_one
+
 lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
 
@@ -334,6 +338,10 @@ end add_comm_group
 
 namespace add_monoid_hom
 
+lemma map_nat_module_smul [add_comm_monoid M] [add_comm_monoid M₂]
+  (f : M →+ M₂) (x : ℕ) (a : M) : f (x • a) = x • f a :=
+by simp only [f.map_nsmul]
+
 lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
 by simp only [f.map_gsmul]
@@ -432,11 +440,17 @@ section add_comm_group -- `R` can still be a semiring here
 
 variables [semiring R] [add_comm_group M] [module R M]
 
-lemma smul_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
+section smul_injective
+
+variables (M)
+
+lemma smul_left_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective (λ (x : M), c • x) :=
 λ x y h, sub_eq_zero.mp ((smul_eq_zero.mp
   (calc c • (x - y) = c • x - c • y : smul_sub c x y
                 ... = 0 : sub_eq_zero.mpr h)).resolve_left hc)
+
+end smul_injective
 
 section nat
 
@@ -457,9 +471,23 @@ end add_comm_group
 
 section module
 
+variables [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+
+section smul_injective
+
+variables (R)
+
+lemma smul_right_injective {x : M} (hx : x ≠ 0) :
+  function.injective (λ (c : R), c • x) :=
+λ c d h, sub_eq_zero.mp ((smul_eq_zero.mp
+  (calc (c - d) • x = c • x - d • x : sub_smul c d x
+                ... = 0 : sub_eq_zero.mpr h)).resolve_right hx)
+
+end smul_injective
+
 section nat
 
-variables {R} [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M] [char_zero R]
+variables [char_zero R]
 
 lemma ne_neg_of_ne_zero [no_zero_divisors R] {v : R} (hv : v ≠ 0) : v ≠ -v :=
 λ h, hv (eq_zero_of_eq_neg R h)

@@ -133,6 +133,9 @@ variables (f g)
 @[simp] lemma map_zero : f 0 = 0 :=
 f.to_distrib_mul_action_hom.map_zero
 
+@[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
+⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
+
 variables (M M₂)
 /--
 A typeclass for `has_scalar` structures which can be moved through a `linear_map`.
@@ -321,16 +324,29 @@ end is_linear_map
 abbreviation module.End (R : Type u) (M : Type v)
   [semiring R] [add_comm_monoid M] [module R M] := M →ₗ[R] M
 
+/-- Reinterpret an additive homomorphism as a `ℕ`-linear map. -/
+def add_monoid_hom.to_nat_linear_map [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂) :
+  M →ₗ[ℕ] M₂ :=
+⟨f, f.map_add, f.map_nat_module_smul⟩
+
 /-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
 def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :
   M →ₗ[ℤ] M₂ :=
 ⟨f, f.map_add, f.map_int_module_smul⟩
+
+@[simp] lemma add_monoid_hom.coe_to_int_linear_map [add_comm_group M] [add_comm_group M₂]
+  (f : M →+ M₂) :
+  ⇑f.to_int_linear_map = f := rfl
 
 /-- Reinterpret an additive homomorphism as a `ℚ`-linear map. -/
 def add_monoid_hom.to_rat_linear_map [add_comm_group M] [module ℚ M]
   [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
   M →ₗ[ℚ] M₂ :=
 { map_smul' := f.map_rat_module_smul, ..f }
+
+@[simp] lemma add_monoid_hom.coe_to_rat_linear_map [add_comm_group M] [module ℚ M]
+  [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
+  ⇑f.to_rat_linear_map = f := rfl
 
 /-! ### Linear equivalences -/
 section

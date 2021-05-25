@@ -925,7 +925,7 @@ begin
     simp [nat.is_unit_iff.mp hunit] },
   { intros a p ha hprime hind n hcop h hpos,
     rw hind (nat.coprime.coprime_mul_left hcop) h hpos, clear hind,
-    replace hprime := nat.prime_iff_prime.2 hprime,
+    replace hprime := nat.prime_iff.2 hprime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
     haveI := fact.mk hprime,
     rw [minpoly_eq_pow
@@ -964,7 +964,7 @@ n.totient = (primitive_roots n K).card : (h.card_primitive_roots hpos).symm
 ... ≤ P_K.roots.card : multiset.to_finset_card_le _
 ... ≤ P_K.nat_degree : (card_roots' $ map_monic_ne_zero
         (minpoly.monic $ is_integral h hpos))
-... ≤ P.nat_degree : nat_degree_map_le _
+... ≤ P.nat_degree : nat_degree_map_le _ _
 
 end minpoly
 

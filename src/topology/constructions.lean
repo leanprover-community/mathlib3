@@ -64,6 +64,10 @@ instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_spac
 instance ulift.topological_space [t : topological_space α] : topological_space (ulift.{v u} α) :=
 t.induced ulift.down
 
+lemma quotient.preimage_mem_nhds [topological_space α] [s : setoid α]
+  {V : set $ quotient s} {a : α} (hs : V ∈ 𝓝 (quotient.mk a)) : quotient.mk ⁻¹' V ∈ 𝓝 a :=
+preimage_nhds_coinduced hs
+
 /-- The image of a dense set under `quotient.mk` is a dense set. -/
 lemma dense.quotient [setoid α] [topological_space α] {s : set α} (H : dense s) :
   dense (quotient.mk '' s) :=
@@ -161,7 +165,7 @@ show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
 
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
-is_open_inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
+is_open.inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
 
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
@@ -190,7 +194,7 @@ lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
   s.prod t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
 by rw [nhds_prod_eq, prod_mem_prod_iff]
 
-lemma prod_mem_nhds_sets {s : set α} {t : set β} {a : α} {b : β}
+lemma prod_is_open.mem_nhds {s : set α} {t : set β} {a : α} {b : β}
   (ha : s ∈ 𝓝 a) (hb : t ∈ 𝓝 b) : set.prod s t ∈ 𝓝 (a, b) :=
 prod_mem_nhds_iff.2 ⟨ha, hb⟩
 
@@ -288,7 +292,7 @@ begin
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
   simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
-  exact mem_sets_of_superset hu (λ z hz, H _ hz _ (mem_of_nhds hv) rfl)
+  exact mem_sets_of_superset hu (λ z hz, H _ hz _ (mem_of_mem_nhds hv) rfl)
 end
 
 @[simp] lemma map_fst_nhds (x : α × β) : map prod.fst (𝓝 x) = 𝓝 x.1 :=
@@ -307,7 +311,7 @@ begin
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
   simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
-  exact mem_sets_of_superset hv (λ z hz, H _ (mem_of_nhds hu) _ hz rfl)
+  exact mem_sets_of_superset hv (λ z hz, H _ (mem_of_mem_nhds hu) _ hz rfl)
 end
 
 @[simp] lemma map_snd_nhds (x : α × β) : map prod.snd (𝓝 x) = 𝓝 x.2 :=
@@ -445,7 +449,7 @@ begin
   have : u = inl '' (inl ⁻¹' u) ∪ inr '' (inr ⁻¹' u),
   { ext (_|_); simp },
   rw [this, set.image_union, set.image_image, set.image_image],
-  exact is_open_union (h₁ _ hu₁) (h₂ _ hu₂)
+  exact is_open.union (h₁ _ hu₁) (h₂ _ hu₂)
 end
 
 lemma embedding_inl : embedding (@inl α β) :=
@@ -565,7 +569,7 @@ lemma continuous_subtype_nhds_cover {ι : Sort*} {f : α → β} {c : ι → α 
   continuous f :=
 continuous_iff_continuous_at.mpr $ assume x,
   let ⟨i, (c_sets : {x | c i x} ∈ 𝓝 x)⟩ := c_cover x in
-  let x' : subtype (c i) := ⟨x, mem_of_nhds c_sets⟩ in
+  let x' : subtype (c i) := ⟨x, mem_of_mem_nhds c_sets⟩ in
   calc map f (𝓝 x) = map f (map coe (𝓝 x')) :
       congr_arg (map f) (map_nhds_subtype_coe_eq _ $ c_sets).symm
     ... = map (λx:subtype (c i), f x) (𝓝 x') : rfl

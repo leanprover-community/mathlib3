@@ -519,11 +519,14 @@ begin
   exact exp_order_iso.symm.continuous.comp (continuous_subtype_mk _ continuous_subtype_coe.norm)
 end
 
+@[continuity] lemma continuous_log : continuous (λ x : {x : ℝ // x ≠ 0}, log x) :=
+continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, hx
+
 @[continuity] lemma continuous_log' : continuous (λ x : {x : ℝ // 0 < x}, log x) :=
 continuous_on_iff_continuous_restrict.1 $ continuous_on_log.mono $ λ x hx, ne_of_gt hx
 
 lemma continuous_at_log (hx : x ≠ 0) : continuous_at log x :=
-(continuous_on_log x hx).continuous_at $ mem_nhds_sets is_open_compl_singleton hx
+(continuous_on_log x hx).continuous_at $ is_open.mem_nhds is_open_compl_singleton hx
 
 @[simp] lemma continuous_at_log_iff : continuous_at log x ↔ x ≠ 0 :=
 begin
@@ -582,7 +585,7 @@ end
 lemma times_cont_diff_at_log {n : with_top ℕ} : times_cont_diff_at ℝ n log x ↔ x ≠ 0 :=
 ⟨λ h, continuous_at_log_iff.1 h.continuous_at,
   λ hx, (times_cont_diff_on_log x hx).times_cont_diff_at $
-    mem_nhds_sets is_open_compl_singleton hx⟩
+    is_open.mem_nhds is_open_compl_singleton hx⟩
 
 end real
 

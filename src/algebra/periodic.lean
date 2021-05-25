@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
 import data.int.parity
-import algebra.module
+import algebra.module.opposites
 
 /-!
 # Periodicity
@@ -90,11 +90,7 @@ h.const_inv_smul' a
 lemma periodic.mul_const [division_ring α]
   (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a)) (c * a⁻¹) :=
-begin
-  intro x,
-  by_cases ha : a = 0, { simp only [ha, mul_zero] },
-  simpa only [add_mul, inv_mul_cancel_right' ha] using h (x * a),
-end
+h.const_smul' $ opposite.op a
 
 lemma periodic.mul_const' [division_ring α]
   (h : periodic f c) (a : α) :
@@ -104,7 +100,7 @@ by simpa only [div_eq_mul_inv] using h.mul_const a
 lemma periodic.mul_const_inv [division_ring α]
   (h : periodic f c) (a : α) :
   periodic (λ x, f (x * a⁻¹)) (c * a) :=
-by simpa only [inv_inv'] using h.mul_const a⁻¹
+h.const_inv_smul' $ opposite.op a
 
 lemma periodic.div_const [division_ring α]
   (h : periodic f c) (a : α) :
@@ -325,7 +321,7 @@ h.const_inv_smul' ha
 lemma antiperiodic.mul_const [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a)) (c * a⁻¹) :=
-λ x, by simpa only [add_mul, inv_mul_cancel_right' ha] using h (x * a)
+h.const_smul' $ (opposite.op_ne_zero_iff a).mpr ha
 
 lemma antiperiodic.mul_const' [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
@@ -335,7 +331,7 @@ by simpa only [div_eq_mul_inv] using h.mul_const ha
 lemma antiperiodic.mul_const_inv [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :
   antiperiodic (λ x, f (x * a⁻¹)) (c * a) :=
-by simpa only [inv_inv'] using h.mul_const (inv_ne_zero ha)
+h.const_inv_smul' $ (opposite.op_ne_zero_iff a).mpr ha
 
 lemma antiperiodic.div_inv [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :

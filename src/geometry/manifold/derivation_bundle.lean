@@ -104,7 +104,7 @@ end
 
 section
 
-variables {I} {M} (X Y : derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^⊤⟮I, M; 𝕜⟯)
+variables {I} {M} (X Y : derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯)
   (f g : C^∞⟮I, M; 𝕜⟯) (r : 𝕜)
 
 namespace derivation

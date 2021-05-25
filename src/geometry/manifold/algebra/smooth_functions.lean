@@ -41,8 +41,7 @@ lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
   ⇑(f * g) = f * g := rfl
 
 @[simp, to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
-  [has_continuous_mul G] [charted_space H' G]
-  [has_smooth_mul I' G] (f g : C^∞⟮I'', N'; I', G⟯) (h : C^∞⟮I, N; I'', N'⟯) :
+  [charted_space H' G] [has_smooth_mul I' G] (f g : C^∞⟮I'', N'; I', G⟯) (h : C^∞⟮I, N; I'', N'⟯) :
 (f * g).comp h = (f.comp h) * (g.comp h) :=
 by ext; simp only [times_cont_mdiff_map.comp_apply, coe_mul, pi.mul_apply]
 

@@ -383,7 +383,7 @@ variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
 /-- The function between prime spectra of commutative rings induced by a ring homomorphism.
 This function is continuous. -/
 def comap (f : R →+* S) : prime_spectrum S → prime_spectrum R :=
-λ y, ⟨ideal.comap f y.as_ideal, by exact ideal.is_prime.comap _⟩
+λ y, ⟨ideal.comap f y.as_ideal, infer_instance⟩
 
 variables (f : R →+* S)
 
@@ -472,7 +472,7 @@ begin
 end
 
 lemma is_compact_basic_open (f : R) : is_compact (basic_open f : set (prime_spectrum R)) :=
-compact_of_finite_subfamily_closed $ λ ι Z hZc hZ,
+is_compact_of_finite_subfamily_closed $ λ ι Z hZc hZ,
 begin
   let I : ι → ideal R := λ i, vanishing_ideal (Z i),
   have hI : ∀ i, Z i = zero_locus (I i) := λ i,

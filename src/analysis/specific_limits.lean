@@ -367,7 +367,7 @@ lemma tsum_geometric_nnreal {r : ℝ≥0} (hr : r < 1) : ∑'n:ℕ, r ^ n = (1 -
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
 and for `1 ≤ r` the RHS equals `∞`. -/
-lemma ennreal.tsum_geometric (r : ℝ≥0∞) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
+@[simp] lemma ennreal.tsum_geometric (r : ℝ≥0∞) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
 begin
   cases lt_or_le r 1 with hr hr,
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,

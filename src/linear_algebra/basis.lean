@@ -753,14 +753,13 @@ end span
 
 lemma smul_group_linear_independent
   {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
-  [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} :
-  linear_independent R (w • v) :=
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : ι → M} (hv : linear_independent R v)
+  {w : ι → G} : linear_independent R (w • v) :=
 begin
-  have hw₁' := v.linear_independent,
-  rw linear_independent_iff'' at hw₁' ⊢,
+  rw linear_independent_iff'' at hv ⊢,
   intros s g hgs hsum i,
   refine (smul_eq_zero_iff_eq (w i)).1 _,
-  refine hw₁' s (λ i, w i • g i) (λ i hi, _) _ i,
+  refine hv s (λ i, w i • g i) (λ i hi, _) _ i,
   { dsimp only,
     exact (hgs i hi).symm ▸ smul_zero _ },
   { rw [← hsum, finset.sum_congr rfl _],
@@ -769,13 +768,12 @@ end
 
 lemma smul_group_span_eq_top
   {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
-  [is_scalar_tower G R M] {v : basis ι R M} {w : ι → G} :
+  [is_scalar_tower G R M] {v : ι → M} (hv : submodule.span R (set.range v) = ⊤) {w : ι → G} :
   submodule.span R (set.range (w • v)) = ⊤ :=
 begin
-  have hw₁' := v.span_eq,
   rw eq_top_iff,
   intros j hj,
-  rw ← hw₁' at hj,
+  rw ← hv at hj,
   rw submodule.mem_span at hj ⊢,
   refine λ p hp, hj p (λ u hu, _),
   obtain ⟨i, rfl⟩ := hu,
@@ -788,23 +786,23 @@ end
 def smul_group {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
   basis ι R M :=
-@basis.mk ι R M (w • v) _ _ _ smul_group_linear_independent smul_group_span_eq_top
+@basis.mk ι R M (w • v) _ _ _
+  (smul_group_linear_independent v.linear_independent) (smul_group_span_eq_top v.span_eq)
 
 lemma smul_group_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
   v.smul_group w i = (w • v : ι → M) i :=
-mk_apply smul_group_linear_independent smul_group_span_eq_top i
+mk_apply (smul_group_linear_independent v.linear_independent) (smul_group_span_eq_top v.span_eq) i
 
 -- This lemma cannot be proved with `smul_group_linear_independent` since the action of
 -- `units R` on `R` is not commutative.
-lemma smul_of_is_unit_linear_independent {v : basis ι R M} {w : ι → units R} :
-  linear_independent R (w • v) :=
+lemma smul_of_is_unit_linear_independent {v : ι → M} (hv : linear_independent R v)
+  {w : ι → units R} : linear_independent R (w • v) :=
 begin
-  have hw₁' := v.linear_independent,
-  rw linear_independent_iff'' at hw₁' ⊢,
+  rw linear_independent_iff'' at hv ⊢,
   intros s g hgs hsum i,
   rw ← (w i).mul_left_eq_zero,
-  refine hw₁' s (λ i, g i • w i) (λ i hi, _) _ i,
+  refine hv s (λ i, g i • w i) (λ i hi, _) _ i,
   { dsimp only,
     exact (hgs i hi).symm ▸ zero_smul _ _ },
   { rw [← hsum, finset.sum_congr rfl _],
@@ -813,19 +811,21 @@ begin
     refl }
 end
 
-lemma smul_of_is_unit_span_eq_top {v : basis ι R M} {w : ι → units R} :
-  submodule.span R (set.range (w • v)) = ⊤ :=
-smul_group_span_eq_top
+lemma smul_of_is_unit_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
+  {w : ι → units R} : submodule.span R (set.range (w • v)) = ⊤ :=
+smul_group_span_eq_top hv
 
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
 provides the basis corresponding to `w • v`. -/
 def smul_of_is_unit (v : basis ι R M) (w : ι → units R) :
   basis ι R M :=
-@basis.mk ι R M (w • v) _ _ _ smul_of_is_unit_linear_independent smul_of_is_unit_span_eq_top
+@basis.mk ι R M (w • v) _ _ _
+  (smul_of_is_unit_linear_independent v.linear_independent) (smul_of_is_unit_span_eq_top v.span_eq)
 
 lemma smul_of_is_unit_apply {v : basis ι R M} {w : ι → units R} (i : ι) :
   v.smul_of_is_unit w i = w i • v i :=
-mk_apply smul_of_is_unit_linear_independent smul_of_is_unit_span_eq_top i
+mk_apply (smul_of_is_unit_linear_independent v.linear_independent)
+  (smul_of_is_unit_span_eq_top v.span_eq) i
 
 end basis
 

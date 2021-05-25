@@ -1256,3 +1256,93 @@ def is_countably_spanning (C : set (set α)) : Prop :=
 lemma is_countably_spanning_measurable_set [measurable_space α] :
   is_countably_spanning {s : set α | measurable_set s} :=
 ⟨λ _, univ, λ _, measurable_set.univ, Union_const _⟩
+
+namespace measurable_set
+
+/-!
+### Typeclasses on `subtype measurable_set`
+-/
+
+variables [measurable_space α]
+
+instance : has_mem α (subtype (measurable_set : set α → Prop)) :=
+⟨λ a s, a ∈ (s : set α)⟩
+
+@[simp] lemma mem_coe (a : α) (s : subtype (measurable_set : set α → Prop)) :
+  a ∈ (s : set α) ↔ a ∈ s := iff.rfl
+
+instance : has_emptyc (subtype (measurable_set : set α → Prop)) :=
+⟨⟨∅, measurable_set.empty⟩⟩
+
+@[simp] lemma coe_empty : ↑(∅ : subtype (measurable_set : set α → Prop)) = (∅ : set α) := rfl
+
+instance [measurable_singleton_class α] : has_insert α (subtype (measurable_set : set α → Prop)) :=
+⟨λ a s, ⟨has_insert.insert a s, s.prop.insert a⟩⟩
+
+@[simp] lemma coe_insert [measurable_singleton_class α] (a : α)
+  (s : subtype (measurable_set : set α → Prop)) :
+  ↑(has_insert.insert a s) = (has_insert.insert a s : set α) := rfl
+
+instance : has_compl (subtype (measurable_set : set α → Prop)) :=
+⟨λ x, ⟨xᶜ, x.prop.compl⟩⟩
+
+@[simp] lemma coe_compl (s : subtype (measurable_set : set α → Prop)) : ↑(sᶜ) = (sᶜ : set α) := rfl
+
+instance : has_union (subtype (measurable_set : set α → Prop)) :=
+⟨λ x y, ⟨x ∪ y, x.prop.union y.prop⟩⟩
+
+@[simp] lemma coe_union (s t : subtype (measurable_set : set α → Prop)) :
+  ↑(s ∪ t) = (s ∪ t : set α) := rfl
+
+instance : has_inter (subtype (measurable_set : set α → Prop)) :=
+⟨λ x y, ⟨x ∩ y, x.prop.inter y.prop⟩⟩
+
+@[simp] lemma coe_inter (s t : subtype (measurable_set : set α → Prop)) :
+  ↑(s ∩ t) = (s ∩ t : set α) := rfl
+
+instance : has_sdiff (subtype (measurable_set : set α → Prop)) :=
+⟨λ x y, ⟨x \ y, x.prop.diff y.prop⟩⟩
+
+@[simp] lemma coe_sdiff (s t : subtype (measurable_set : set α → Prop)) :
+  ↑(s \ t) = (s \ t : set α) := rfl
+
+instance : has_bot (subtype (measurable_set : set α → Prop)) :=
+⟨⟨⊥, measurable_set.empty⟩⟩
+
+@[simp] lemma coe_bot : ↑(⊥ : subtype (measurable_set : set α → Prop)) = (⊥ : set α) := rfl
+
+instance : has_top (subtype (measurable_set : set α → Prop)) :=
+⟨⟨⊤, measurable_set.univ⟩⟩
+
+@[simp] lemma coe_top : ↑(⊤ : subtype (measurable_set : set α → Prop)) = (⊤ : set α) := rfl
+
+instance : partial_order (subtype (measurable_set : set α → Prop)) :=
+partial_order.lift _ subtype.coe_injective
+
+instance : bounded_distrib_lattice (subtype (measurable_set : set α → Prop)) :=
+{ sup := (∪),
+  le_sup_left := λ a b, show (a : set α) ≤ a ⊔ b, from le_sup_left,
+  le_sup_right := λ a b, show (b : set α) ≤ a ⊔ b, from le_sup_right,
+  sup_le := λ a b c ha hb, show (a ⊔ b : set α) ≤ c, from sup_le ha hb,
+  inf := (∩),
+  inf_le_left := λ a b, show (a ⊓ b : set α) ≤ a, from inf_le_left,
+  inf_le_right := λ a b, show (a ⊓ b : set α) ≤ b, from inf_le_right,
+  le_inf := λ a b c ha hb, show (a : set α) ≤ b ⊓ c, from le_inf ha hb,
+  top := ⊤,
+  le_top := λ a, show (a : set α) ≤ ⊤, from le_top,
+  bot := ⊥,
+  bot_le := λ a, show (⊥ : set α) ≤ a, from bot_le,
+  le_sup_inf := λ x y z, show ((x ⊔ y) ⊓ (x ⊔ z) : set α) ≤ x ⊔ y ⊓ z, from le_sup_inf,
+  .. measurable_set.subtype.partial_order }
+
+instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
+{ sdiff := (\),
+  sup_inf_sdiff := λ a b, subtype.eq $ sup_inf_sdiff a b,
+  inf_inf_sdiff := λ a b, subtype.eq $ inf_inf_sdiff a b,
+  compl := has_compl.compl,
+  inf_compl_le_bot := λ a, boolean_algebra.inf_compl_le_bot (a : set α),
+  top_le_sup_compl := λ a, boolean_algebra.top_le_sup_compl (a : set α),
+  sdiff_eq := λ a b, subtype.eq $ sdiff_eq,
+  .. measurable_set.subtype.bounded_distrib_lattice }
+
+end measurable_set

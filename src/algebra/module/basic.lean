@@ -210,6 +210,9 @@ variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
 eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
 
+@[simp] theorem units.neg_smul (u : units R) (x : M) : -u • x = - (u • x) :=
+by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
+
 variables (R)
 theorem neg_one_smul (x : M) : (-1 : R) • x = -x := by simp
 variables {R}
@@ -502,7 +505,7 @@ variables [division_ring R] [add_comm_group M] [module R M]
 
 @[priority 100] -- see note [lower instance priority]
 instance no_zero_smul_divisors.of_division_ring : no_zero_smul_divisors R M :=
-⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h⟩
+⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩
 
 end division_ring
 

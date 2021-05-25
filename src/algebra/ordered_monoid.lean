@@ -849,7 +849,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
 
-
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
 { le_of_mul_le_mul_left := λ a b c : α, le_of_mul_le_mul_left',

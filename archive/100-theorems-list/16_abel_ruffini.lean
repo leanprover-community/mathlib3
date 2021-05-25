@@ -22,7 +22,7 @@ Then all that remains is the construction of a specific polynomial satisfying th
 
 namespace abel_ruffini
 
-open function polynomial polynomial.gal
+open function polynomial polynomial.gal ideal
 
 local attribute [instance] splits_ℚ_ℂ
 
@@ -48,43 +48,37 @@ lemma degree_Phi : (Φ R a b).degree = ↑5 :=
 begin
   suffices : degree (X ^ 5 - C ↑a * X) = ↑5,
   { rwa [Φ, degree_add_eq_left_of_degree_lt],
-    rw this,
-    exact lt_of_le_of_lt degree_C_le (with_bot.coe_lt_coe.mpr (nat.zero_lt_bit1 2)) },
-  rw [degree_sub_eq_left_of_degree_lt, degree_X_pow],
-  rw [degree_X_pow, ←pow_one X],
-  exact lt_of_le_of_lt (degree_C_mul_X_pow_le _ _)
-    (with_bot.coe_lt_coe.mpr (nat.one_lt_bit1 two_ne_zero)),
+    convert degree_C_le.trans_lt (with_bot.coe_lt_coe.mpr (nat.zero_lt_bit1 2)) },
+  rw degree_sub_eq_left_of_degree_lt; rw degree_X_pow,
+  exact (degree_C_mul_X_le _).trans_lt (with_bot.coe_lt_coe.mpr (nat.one_lt_bit1 two_ne_zero)),
 end
 
 lemma nat_degree_Phi : (Φ R a b).nat_degree = 5 :=
 nat_degree_eq_of_degree_eq_some (degree_Phi a b)
 
 lemma leading_coeff_Phi : (Φ R a b).leading_coeff = 1 :=
-by rw [leading_coeff, nat_degree_Phi, coeff_five_Phi]
+by rw [polynomial.leading_coeff, nat_degree_Phi, coeff_five_Phi]
 
 lemma monic_Phi : (Φ R a b).monic :=
 leading_coeff_Phi a b
 
-lemma irreducible_Phi (p : ℕ) (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b) (hp2b : ¬ (p ^ 2 ∣ b)) :
+lemma irreducible_Phi (p : ℕ) (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b) (hp2b : ¬ p ^ 2 ∣ b) :
   irreducible (Φ ℚ a b) :=
 begin
   rw [←map_Phi a b (int.cast_ring_hom ℚ), ←is_primitive.int.irreducible_iff_irreducible_map_cast],
   apply irreducible_of_eisenstein_criterion,
-  { rwa [ideal.span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero),
-      int.prime_iff_nat_abs_prime] },
-  { rw [leading_coeff_Phi, ideal.mem_span_singleton],
+  { rwa [span_singleton_prime (int.coe_nat_ne_zero.mpr hp.ne_zero), int.prime_iff_nat_abs_prime] },
+  { rw [leading_coeff_Phi, mem_span_singleton],
     exact_mod_cast mt nat.dvd_one.mp (hp.ne_one) },
   { intros n hn,
-    rw ideal.mem_span_singleton,
+    rw mem_span_singleton,
     rw [degree_Phi, with_bot.coe_lt_coe] at hn,
     interval_cases n with hn;
     simp [Φ, coeff_X_pow, coeff_C, int.coe_nat_dvd.mpr, hpb, hpa, -ring_hom.eq_int_cast] },
   { simp only [degree_Phi, ←with_bot.coe_zero, with_bot.coe_lt_coe, nat.succ_pos'] },
-  { rwa [coeff_zero_Phi, pow_two, ideal.span_singleton_mul_span_singleton, ←pow_two,
-      ideal.mem_span_singleton, ←int.coe_nat_pow],
-    norm_num,
+  { rw [coeff_zero_Phi, span_singleton_pow, mem_span_singleton, int.nat_cast_eq_coe_nat],
     exact mt int.coe_nat_dvd.mp hp2b },
-  all_goals { exact polynomial.monic.is_primitive (monic_Phi a b) },
+  all_goals { exact monic.is_primitive (monic_Phi a b) },
 end
 
 lemma real_roots_Phi_le : fintype.card ((Φ ℚ a b).root_set ℝ) ≤ 3 :=
@@ -152,7 +146,7 @@ begin
 end
 
 theorem not_solvable_by_rad (p : ℕ) (x : ℂ) (hx : aeval x (Φ ℚ a b) = 0) (hab : b < a)
-  (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b) (hp2b : ¬ (p ^ 2 ∣ b))  :
+  (hp : p.prime) (hpa : p ∣ a) (hpb : p ∣ b) (hp2b : ¬ p ^ 2 ∣ b) :
   ¬ is_solvable_by_rad ℚ x :=
 begin
   have h_irred := irreducible_Phi a b p hp hpa hpb hp2b,

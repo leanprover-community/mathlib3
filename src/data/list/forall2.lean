@@ -173,10 +173,11 @@ lemma rel_reverse : (forall₂ r ⇒ forall₂ r) reverse reverse
   by simp only [reverse_cons];
   from rel_append (rel_reverse h₂) (forall₂.cons h₁ forall₂.nil)
 
-lemma forall₂_iff_reverse {l₁ l₂} : forall₂ r l₁ l₂ ↔ forall₂ r l₁.reverse l₂.reverse :=
+@[simp]
+lemma forall₂_reverse_iff {l₁ l₂} : forall₂ r l₁.reverse l₂.reverse ↔ forall₂ r l₁ l₂ :=
 iff.intro
-  (assume h, rel_reverse h)
   (assume h, by rw [← reverse_reverse l₁, ← reverse_reverse l₂]; from rel_reverse h)
+  (assume h, rel_reverse h)
 
 lemma rel_join : (forall₂ (forall₂ r) ⇒ forall₂ r) join join
 | [] [] forall₂.nil := forall₂.nil

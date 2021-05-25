@@ -158,7 +158,7 @@ variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 
 @[simp] lemma fdifferential_comp (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
-  (𝒅g (f x)) ∘ (𝒅f x) = 𝒅(g.comp f) x :=
+  (𝒅g (f x)).comp (𝒅f x) = 𝒅(g.comp f) x :=
 by { ext, simp only [apply_fdifferential], refl }
 
 end

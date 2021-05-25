@@ -56,7 +56,7 @@ instance covariant_class_comm_semigroup.to_covariant_class_right (M : Type*) [co
   [has_le M] [covariant_class M M (*) (≤)] :
   covariant_class M M (function.swap (*)) (≤) :=
 { covc := λ a b c bc, by { show b * a ≤ c * a,
-    simp [mul_comm _ a, mul_le_mul_left_n a bc] } }
+    simp [mul_comm _ a, mul_le_mul_left' bc a] } }
 
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :

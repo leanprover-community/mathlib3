@@ -440,6 +440,12 @@ calc  b * a ≤ b * 1 : mul_le_mul_left' ha b
         ... = b     : mul_one b
         ... ≤ c     : hbc
 
+/-  Lemma stated for preserving an old name. -/
+@[to_additive]
+lemma mul_le_one' [covariant_class N N (*) (≤)]
+  {a b : N} (hbc : b ≤ 1) (ha : a ≤ 1) : b * a ≤ 1 :=
+mul_le_of_le_of_le_one hbc ha
+
 @[to_additive]
 lemma lt_mul_of_lt_of_one_le [covariant_class N N (*) (≤)]
   {a b c : N} (hbc : b < c) (ha : 1 ≤ a) : b < c * a :=

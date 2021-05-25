@@ -38,7 +38,7 @@ begin
   have a_pos : 0 < a, by simp [a],
   have a_lt_one : a < 1 := nnreal.two_inv_lt_one,
   let s := spanning_sets μ,
-  let g := λ x, ∑' n, set.indicator (s n) (λ x, δ * a^n / (max 1 (μ (s n)).to_nnreal)) x,
+  let g := λ x, ∑' n, (set.indicator (s n) (λ x, δ * a^n / (max 1 (μ (s n)).to_nnreal)) x),
   have A : summable (λ (n : ℕ), δ * a^n) := (nnreal.summable_geometric a_lt_one).mul_left _,
   have B : summable (λ (n : ℕ), δ * a^n / (max 1 (μ (s n)).to_nnreal)),
   { apply nnreal.summable_of_le (λ n, _) A,
@@ -53,7 +53,7 @@ begin
     { exact le_refl _ },
     { exact bot_le } },
   refine ⟨g, λ x, _, _, _⟩,
-  { apply tsum_nonpos,
+  { have Z := tsum_pos,
 
   }
 

@@ -177,6 +177,88 @@ lemma order_single (h : r ≠ 0) : (single a r).order = a :=
     (support_nonempty_iff.2 (single_ne_zero h))))
 
 end order
+
+section domain
+variables {Γ' : Type*} [partial_order Γ']
+
+/-- Extends the domain of a `hahn_series` by an `order_embedding`. -/
+def emb_domain (f : Γ ↪o Γ') : hahn_series Γ R → hahn_series Γ' R :=
+λ x, { coeff := λ (b : Γ'),
+  if h : b ∈ f '' x.support then x.coeff (classical.some h) else 0,
+  is_pwo_support' := (x.is_pwo_support.image_of_monotone f.monotone).mono (λ b hb, begin
+    contrapose! hb,
+    rw [function.mem_support, dif_neg hb, not_not],
+  end) }
+
+@[simp]
+lemma emb_domain_coeff {f : Γ ↪o Γ'} {x : hahn_series Γ R} {a : Γ} :
+  (emb_domain f x).coeff (f a) = x.coeff a :=
+begin
+  rw emb_domain,
+  dsimp only,
+  by_cases ha : a ∈ x.support,
+  { rw dif_pos (set.mem_image_of_mem f ha),
+    exact congr rfl (f.injective (classical.some_spec (set.mem_image_of_mem f ha)).2) },
+  { rw [dif_neg, not_not.1 (λ c, ha ((mem_support _ _).2 c))],
+    contrapose! ha,
+    obtain ⟨b, hb1, hb2⟩ := (set.mem_image _ _ _).1 ha,
+    rwa f.injective hb2 at hb1 }
+end
+
+@[simp]
+lemma emb_domain_mk_coeff {f : Γ → Γ'}
+  (hfi : function.injective f) (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g')
+  {x : hahn_series Γ R} {a : Γ} :
+  (emb_domain ⟨⟨f, hfi⟩, hf⟩ x).coeff (f a) = x.coeff a :=
+begin
+  apply eq.trans (congr rfl _) emb_domain_coeff,
+  simp,
+end
+
+lemma emb_domain_notin_image_support {f : Γ ↪o Γ'} {x : hahn_series Γ R} {b : Γ'}
+  (hb : b ∉ f '' x.support) : (emb_domain f x).coeff b = 0 :=
+dif_neg hb
+
+lemma support_emb_domain_subset {f : Γ ↪o Γ'} {x : hahn_series Γ R} :
+  support (emb_domain f x) ⊆ f '' x.support :=
+begin
+  intros g hg,
+  contrapose! hg,
+  rw [mem_support, emb_domain_notin_image_support hg, not_not],
+end
+
+lemma emb_domain_notin_range {f : Γ ↪o Γ'} {x : hahn_series Γ R} {b : Γ'}
+  (hb : b ∉ set.range f) : (emb_domain f x).coeff b = 0 :=
+emb_domain_notin_image_support (λ con, hb (set.image_subset_range _ _ con))
+
+@[simp]
+lemma emb_domain_zero {f : Γ ↪o Γ'} : emb_domain f (0 : hahn_series Γ R) = 0 :=
+by { ext, simp [emb_domain_notin_image_support] }
+
+@[simp]
+lemma emb_domain_single {f : Γ ↪o Γ'} {g : Γ} {r : R} :
+  emb_domain f (single g r) = single (f g) r :=
+begin
+  ext g',
+  by_cases h : g' = f g,
+  { simp [h] },
+  rw [emb_domain_notin_image_support, single_coeff_of_ne h],
+  by_cases hr : r = 0,
+  { simp [hr] },
+  rwa [support_single_of_ne hr, set.image_singleton, set.mem_singleton_iff],
+end
+
+lemma emb_domain_injective {f : Γ ↪o Γ'} :
+  function.injective (emb_domain f : hahn_series Γ R → hahn_series Γ' R) :=
+λ x y xy, begin
+  ext g,
+  rw [ext_iff, function.funext_iff] at xy,
+  have xyg := xy (f g),
+  rwa [emb_domain_coeff, emb_domain_coeff] at xyg,
+end
+
+end domain
+
 end zero
 
 section addition
@@ -322,6 +404,27 @@ instance : module R (hahn_series Γ V) :=
 @[simps] def coeff.linear_map (g : Γ) : (hahn_series Γ R) →ₗ[R] R :=
 { map_smul' := λ r s, rfl,
   ..coeff.add_monoid_hom g }
+
+section domain
+variables {Γ' : Type*} [partial_order Γ']
+
+/-- Extending the domain of Hahn series is a linear map. -/
+@[simps] def emb_domain_linear_map (f : Γ ↪o Γ') : hahn_series Γ R →ₗ[R] hahn_series Γ' R :=
+⟨emb_domain f, λ x y, begin
+  ext g,
+  by_cases hg : g ∈ set.range f,
+  { obtain ⟨a, rfl⟩ := hg,
+    simp },
+  { simp [emb_domain_notin_range, hg] }
+end, λ x y, begin
+  ext g,
+  by_cases hg : g ∈ set.range f,
+  { obtain ⟨a, rfl⟩ := hg,
+    simp },
+  { simp [emb_domain_notin_range, hg] }
+end⟩
+
+end domain
 
 end module
 
@@ -673,6 +776,62 @@ begin
   { exact order_single h }
 end
 
+section domain
+variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
+
+/-- Extending the domain of Hahn series is a ring homomorphism. -/
+@[simps] def emb_domain_ring_hom (f : Γ →+ Γ') (hfi : function.injective f)
+  (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g') :
+  hahn_series Γ R →+* hahn_series Γ' R :=
+⟨emb_domain_linear_map ⟨⟨f, hfi⟩, hf⟩, emb_domain_single.trans begin
+    simp only [rel_embedding.coe_fn_mk, function.embedding.coe_fn_mk, add_monoid_hom.map_zero],
+    rw [← C_apply, C_one],
+  end,
+  λ x y, begin
+    simp only [emb_domain_linear_map_apply],
+    ext g,
+    by_cases hg : g ∈ set.range (⟨⟨f, hfi⟩, hf⟩ : Γ ↪o Γ'),
+    { obtain ⟨g, rfl⟩ := hg,
+      simp only [mul_coeff, emb_domain_mk_coeff, emb_domain_linear_map_apply],
+      transitivity ∑ ij in (add_antidiagonal x.is_pwo_support y.is_pwo_support g).map
+        (function.embedding.prod_map ⟨f, hfi⟩ ⟨f, hfi⟩),
+        (emb_domain ⟨⟨f, hfi⟩, hf⟩ x).coeff (ij.1) *
+        (emb_domain ⟨⟨f, hfi⟩, hf⟩ y).coeff (ij.2),
+      { simp },
+      apply sum_subset,
+      { rintro ⟨i, j⟩ hij,
+        simp only [exists_prop, mem_map, prod.mk.inj_iff, function.embedding.coe_fn_mk,
+          mem_add_antidiagonal, ne.def, function.embedding.coe_prod_map, mem_support,
+          prod.exists] at hij,
+        obtain ⟨i, j, ⟨rfl, hx, hy⟩, rfl, rfl⟩ := hij,
+        simp [hx, hy], },
+      { rintro ⟨_, _⟩ h1 h2,
+        contrapose! h2,
+        obtain ⟨i, hi, rfl⟩ := support_emb_domain_subset (ne_zero_and_ne_zero_of_mul h2).1,
+        obtain ⟨j, hj, rfl⟩ := support_emb_domain_subset (ne_zero_and_ne_zero_of_mul h2).2,
+        simp only [exists_prop, mem_map, prod.mk.inj_iff, function.embedding.coe_fn_mk,
+          mem_add_antidiagonal, ne.def, function.embedding.coe_prod_map, mem_support,
+          prod.exists],
+        simp only [mem_add_antidiagonal, rel_embedding.coe_fn_mk, emb_domain_mk_coeff,
+          function.embedding.coe_fn_mk, ne.def, mem_support, ← f.map_add] at h1,
+        exact ⟨i, j, ⟨hfi h1.1, h1.2.1, h1.2.2⟩, rfl⟩, } },
+    { rw [emb_domain_notin_range hg, eq_comm],
+      contrapose! hg,
+      obtain ⟨_, _, hi, hj, rfl⟩ := support_mul_subset_add_support ((mem_support _ _).2 hg),
+      obtain ⟨i, hi, rfl⟩ := support_emb_domain_subset hi,
+      obtain ⟨j, hj, rfl⟩ := support_emb_domain_subset hj,
+      refine ⟨i + j, _⟩,
+      simp, }
+  end,
+  linear_map.map_zero _, linear_map.map_add _⟩
+
+lemma emb_domain_ring_hom_C {f : Γ →+ Γ'} {hfi : function.injective f}
+  {hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g'} {r : R} :
+  emb_domain_ring_hom f hfi hf (C r) = C r :=
+emb_domain_single.trans (by simp)
+
+end domain
+
 end semiring
 
 section algebra
@@ -702,6 +861,18 @@ instance [nontrivial Γ] [nontrivial R] : nontrivial (subalgebra R (hahn_series 
   rw [single_coeff_same, algebra_map_apply, C_apply, single_coeff_of_ne ha],
   exact zero_ne_one
 end⟩⟩
+
+section domain
+variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
+
+/-- Extending the domain of Hahn series is an algebra homomorphism. -/
+@[simps] def emb_domain_alg_hom (f : Γ →+ Γ') (hfi : function.injective f)
+  (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g') :
+  hahn_series Γ A →ₐ[R] hahn_series Γ' A :=
+{ commutes' := λ r, emb_domain_ring_hom_C,
+  .. emb_domain_ring_hom f hfi hf }
+
+end domain
 
 end algebra
 
@@ -739,6 +910,13 @@ power_series.coeff_mk _ _
 lemma coeff_to_power_series_symm {f : power_series R} {n : ℕ} :
   (hahn_series.to_power_series.symm f).coeff n = power_series.coeff R n f := rfl
 
+variables [ordered_semiring Γ] [nontrivial Γ]
+/-- Casts a power series as a Hahn series with coefficients from an `ordered_semiring`. -/
+@[simps] def of_power_series : (power_series R) →+* hahn_series Γ R :=
+(hahn_series.emb_domain_ring_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
+  (λ _ _, nat.cast_le)).comp
+  (ring_equiv.to_ring_hom to_power_series.symm)
+
 end semiring
 
 section algebra
@@ -758,11 +936,19 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
   end,
   .. to_power_series }
 
+variables [ordered_semiring Γ] [nontrivial Γ]
+/-- Casting a power series as a Hahn series with coefficients from an `ordered_semiring`
+  is an algebra homomorphism. -/
+@[simps] def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=
+(hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
+  (λ _ _, nat.cast_le)).comp
+  (alg_equiv.to_alg_hom (to_power_series_alg R).symm)
+
 end algebra
 
 section valuation
 
-variables [linear_ordered_add_comm_group Γ] [integral_domain R] [nontrivial R]
+variables [linear_ordered_add_comm_group Γ] [integral_domain R]
 
 instance : linear_ordered_comm_group (multiplicative Γ) :=
 { .. (infer_instance : linear_order (multiplicative Γ)),
@@ -821,6 +1007,24 @@ begin
 end
 
 end valuation
+
+lemma is_pwo_Union_support_powers [linear_ordered_add_comm_group Γ] [integral_domain R]
+  {x : hahn_series Γ R} (hx : 0 < add_val Γ R x) :
+  (⋃ n : ℕ, (x ^ n).support).is_pwo :=
+begin
+  apply (x.is_wf_support.is_pwo.add_submonoid_closure (λ g hg, _)).mono _,
+  { exact with_top.coe_le_coe.1 (le_trans (le_of_lt hx) (add_val_le_of_coeff_ne_zero hg)) },
+  refine set.Union_subset (λ n, _),
+  induction n with n ih;
+  intros g hn,
+  { simp only [exists_prop, and_true, set.mem_singleton_iff, set.set_of_eq_eq_singleton,
+      mem_support, ite_eq_right_iff, ne.def, not_false_iff, one_ne_zero,
+      pow_zero, not_forall, one_coeff] at hn,
+    rw [hn, set_like.mem_coe],
+    exact add_submonoid.zero_mem _ },
+  { obtain ⟨i, j, hi, hj, rfl⟩ := support_mul_subset_add_support hn,
+    exact set_like.mem_coe.2 (add_submonoid.add_mem _ (add_submonoid.subset_closure hi) (ih hj)) }
+end
 
 section
 variables (Γ) (R) [partial_order Γ] [add_comm_monoid R]
@@ -1129,6 +1333,133 @@ end
 
 end emb_domain
 
+section powers
+
+variables [linear_ordered_add_comm_group Γ] [integral_domain R]
+
+/-- The powers of an element of positive valuation form a summable family. -/
+def powers (x : hahn_series Γ R) (hx : 0 < add_val Γ R x) :
+  summable_family Γ R ℕ :=
+{ to_fun := λ n, x ^ n,
+  is_pwo_Union_support' := is_pwo_Union_support_powers hx,
+  finite_co_support' := λ g, begin
+    have hpwo := (is_pwo_Union_support_powers hx),
+    by_cases hg : g ∈ ⋃ n : ℕ, {g | (x ^ n).coeff g ≠ 0 },
+    swap, { exact set.finite_empty.subset (λ n hn, hg (set.mem_Union.2 ⟨n, hn⟩)) },
+    apply hpwo.is_wf.induction hg,
+    intros y ys hy,
+    refine ((((add_antidiagonal x.is_pwo_support hpwo y).finite_to_set.bUnion (λ ij hij,
+      hy ij.snd _ _)).image nat.succ).union (set.finite_singleton 0)).subset _,
+    { exact (mem_add_antidiagonal.1 (mem_coe.1 hij)).2.2 },
+    { obtain ⟨rfl, hi, hj⟩ := mem_add_antidiagonal.1 (mem_coe.1 hij),
+      rw [← zero_add ij.snd, ← add_assoc, add_zero],
+      exact add_lt_add_right (with_top.coe_lt_coe.1
+        (lt_of_lt_of_le hx (add_val_le_of_coeff_ne_zero hi))) _, },
+    { intros n hn,
+      cases n,
+      { exact set.mem_union_right _ (set.mem_singleton 0) },
+      { obtain ⟨i, j, hi, hj, rfl⟩ := support_mul_subset_add_support hn,
+        refine set.mem_union_left _ ⟨n, set.mem_Union.2 ⟨⟨i, j⟩, set.mem_Union.2 ⟨_, hj⟩⟩, rfl⟩,
+        simp only [true_and, set.mem_Union, mem_add_antidiagonal, mem_coe, eq_self_iff_true,
+          ne.def, mem_support, set.mem_set_of_eq],
+        exact ⟨hi, ⟨n, hj⟩⟩ } }
+  end }
+
+variables {x : hahn_series Γ R} (hx : 0 < add_val Γ R x)
+
+@[simp] lemma coe_powers : ⇑(powers x hx) = pow x := rfl
+
+lemma emb_domain_succ_smul_powers :
+  (x • powers x hx).emb_domain ⟨nat.succ, nat.succ_injective⟩ =
+    powers x hx - of_finsupp (finsupp.single 0 1) :=
+begin
+  apply summable_family.ext (λ n, _),
+  cases n,
+  { rw [emb_domain_notin_range, sub_apply, coe_powers, pow_zero, coe_of_finsupp,
+      finsupp.single_eq_same, sub_self],
+    rw [set.mem_range, not_exists],
+    exact nat.succ_ne_zero },
+  { refine eq.trans (emb_domain_image _ ⟨nat.succ, nat.succ_injective⟩) _,
+    simp only [pow_succ, coe_powers, coe_sub, smul_apply, coe_of_finsupp, pi.sub_apply],
+    rw [finsupp.single_eq_of_ne (n.succ_ne_zero).symm, sub_zero] }
+end
+
+lemma one_sub_self_mul_hsum_powers :
+  (1 - x) * (powers x hx).hsum = 1 :=
+begin
+  rw [← hsum_smul, sub_smul, one_smul, hsum_sub,
+    ← hsum_emb_domain (x • powers x hx) ⟨nat.succ, nat.succ_injective⟩,
+    emb_domain_succ_smul_powers],
+  simp,
+end
+
+end powers
+
 end summable_family
+
+section inversion
+
+variables [linear_ordered_add_comm_group Γ]
+
+section integral_domain
+variable [integral_domain R]
+
+lemma unit_aux (x : hahn_series Γ R) {r : R} (hr : r * x.coeff x.order = 1) :
+  0 < add_val Γ R (1 - C r * (single (- x.order) 1) * x) :=
+begin
+  have h10 : (1 : R) ≠ 0 := one_ne_zero,
+  have x0 : x ≠ 0 := ne_zero_of_coeff_ne_zero (right_ne_zero_of_mul_eq_one hr),
+  refine lt_of_le_of_ne ((add_val Γ R).map_le_sub (ge_of_eq (add_val Γ R).map_one) _) _,
+  { simp only [add_valuation.map_mul],
+    rw [add_val_apply_of_ne x0, add_val_apply_of_ne (single_ne_zero h10),
+      add_val_apply_of_ne _, order_C, order_single h10, with_top.coe_zero, zero_add,
+      ← with_top.coe_add, neg_add_self, with_top.coe_zero],
+    { exact le_refl 0 },
+    { exact C_ne_zero (left_ne_zero_of_mul_eq_one hr) } },
+  { rw [add_val_apply, ← with_top.coe_zero],
+    split_ifs,
+    { apply with_top.coe_ne_top },
+    rw [ne.def, with_top.coe_eq_coe],
+    intro con,
+    apply coeff_order_ne_zero h,
+    rw [← con, mul_assoc, sub_coeff, one_coeff, if_pos rfl, C_mul_eq_smul, smul_coeff, smul_eq_mul,
+      ← add_neg_self x.order, single_mul_coeff_add, one_mul, hr, sub_self] }
+end
+
+lemma is_unit_iff {x : hahn_series Γ R} :
+  is_unit x ↔ is_unit (x.coeff x.order) :=
+begin
+  split,
+  { rintro ⟨⟨u, i, ui, iu⟩, rfl⟩,
+    refine is_unit_of_mul_eq_one (u.coeff u.order) (i.coeff i.order)
+      ((mul_coeff_order_add_order (left_ne_zero_of_mul_eq_one ui)
+      (right_ne_zero_of_mul_eq_one ui)).symm.trans _),
+    rw [ui, one_coeff, if_pos],
+    rw [← order_mul (left_ne_zero_of_mul_eq_one ui)
+      (right_ne_zero_of_mul_eq_one ui), ui, order_one] },
+  { rintro ⟨⟨u, i, ui, iu⟩, h⟩,
+    rw [units.coe_mk] at h,
+    rw h at iu,
+    have h := summable_family.one_sub_self_mul_hsum_powers (unit_aux x iu),
+    rw [sub_sub_cancel] at h,
+    exact is_unit_of_mul_is_unit_right (is_unit_of_mul_eq_one _ _ h) },
+end
+
+end integral_domain
+
+instance [field R] : field (hahn_series Γ R) :=
+{ inv := λ x, if x0 : x = 0 then 0 else (C (x.coeff x.order)⁻¹ * (single (-x.order)) 1 *
+      (summable_family.powers _ (unit_aux x (inv_mul_cancel (coeff_order_ne_zero x0)))).hsum),
+  inv_zero := dif_pos rfl,
+  mul_inv_cancel := λ x x0, begin
+    refine (congr rfl (dif_neg x0)).trans _,
+    have h := summable_family.one_sub_self_mul_hsum_powers
+      (unit_aux x (inv_mul_cancel (coeff_order_ne_zero x0))),
+    rw [sub_sub_cancel] at h,
+    rw [← mul_assoc, mul_comm x, h],
+  end,
+  .. hahn_series.integral_domain }
+
+end inversion
 
 end hahn_series

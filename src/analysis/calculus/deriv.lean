@@ -426,7 +426,7 @@ h.congr_of_eventually_eq h₁ (h₁.eq_of_nhds_within hx)
 
 lemma has_deriv_at.congr_of_eventually_eq (h : has_deriv_at f f' x)
   (h₁ : f₁ =ᶠ[𝓝 x] f) : has_deriv_at f₁ f' x :=
-has_deriv_at_filter.congr_of_eventually_eq h h₁ (mem_of_nhds h₁ : _)
+has_deriv_at_filter.congr_of_eventually_eq h h₁ (mem_of_mem_nhds h₁ : _)
 
 lemma filter.eventually_eq.deriv_within_eq (hs : unique_diff_within_at 𝕜 s x)
   (hL : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
@@ -1338,7 +1338,7 @@ begin
   suffices : is_o (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x * x)⁻¹ - (p.1 * p.2)⁻¹))
     (λ (p : 𝕜 × 𝕜), (p.1 - p.2) * 1) (𝓝 (x, x)),
   { refine this.congr' _ (eventually_of_forall $ λ _, mul_one _),
-    refine eventually.mono (mem_nhds_sets (is_open_ne.prod is_open_ne) ⟨hx, hx⟩) _,
+    refine eventually.mono (is_open.mem_nhds (is_open_ne.prod is_open_ne) ⟨hx, hx⟩) _,
     rintro ⟨y, z⟩ ⟨hy, hz⟩,
     simp only [mem_set_of_eq] at hy hz, -- hy : y ≠ 0, hz : z ≠ 0
     field_simp [hx, hy, hz], ring, },
@@ -1833,7 +1833,7 @@ begin
       sub_zero, int.cast_one] },
   { rw [function.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc,
       int.coe_nat_succ, ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
-    exact filter.eventually_eq.deriv_eq (eventually.mono (mem_nhds_sets is_open_ne hx) @ihk) }
+    exact filter.eventually_eq.deriv_eq (eventually.mono (is_open.mem_nhds is_open_ne hx) @ihk) }
 end
 
 end fpow
@@ -1846,12 +1846,12 @@ variables {f : ℝ → ℝ} {f' : ℝ} {s : set ℝ} {x : ℝ} {r : ℝ}
 
 lemma has_deriv_within_at.limsup_slope_le (hf : has_deriv_within_at f f' s x) (hr : f' < r) :
   ∀ᶠ z in 𝓝[s \ {x}] x, (z - x)⁻¹ * (f z - f x) < r :=
-has_deriv_within_at_iff_tendsto_slope.1 hf (mem_nhds_sets is_open_Iio hr)
+has_deriv_within_at_iff_tendsto_slope.1 hf (is_open.mem_nhds is_open_Iio hr)
 
 lemma has_deriv_within_at.limsup_slope_le' (hf : has_deriv_within_at f f' s x)
   (hs : x ∉ s) (hr : f' < r) :
   ∀ᶠ z in 𝓝[s] x, (z - x)⁻¹ * (f z - f x) < r :=
-(has_deriv_within_at_iff_tendsto_slope' hs).1 hf (mem_nhds_sets is_open_Iio hr)
+(has_deriv_within_at_iff_tendsto_slope' hs).1 hf (is_open.mem_nhds is_open_Iio hr)
 
 lemma has_deriv_within_at.liminf_right_slope_le
   (hf : has_deriv_within_at f f' (Ici x) x) (hr : f' < r) :
@@ -1877,7 +1877,7 @@ lemma has_deriv_within_at.limsup_norm_slope_le
 begin
   have hr₀ : 0 < r, from lt_of_le_of_lt (norm_nonneg f') hr,
   have A : ∀ᶠ z in 𝓝[s \ {x}] x, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
-    from (has_deriv_within_at_iff_tendsto_slope.1 hf).norm (mem_nhds_sets is_open_Iio hr),
+    from (has_deriv_within_at_iff_tendsto_slope.1 hf).norm (is_open.mem_nhds is_open_Iio hr),
   have B : ∀ᶠ z in 𝓝[{x}] x, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
     from mem_sets_of_superset self_mem_nhds_within
       (singleton_subset_iff.2 $ by simp [hr₀]),

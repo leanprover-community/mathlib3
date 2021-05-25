@@ -62,9 +62,17 @@ lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
   nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
 by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
 
-@[priority 100] -- see Note [lower instance priority]
+/--
+See Note [lower instance priority]
+
+Note that since this and `nonempty_of_inhabited` are the most "obvious" way to find a nonempty
+instance if no direct instance can be found, we give this a higher priority than the usual `100`.
+-/
+@[priority 500]
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
 let ⟨x, _⟩ := exists_pair_ne α in ⟨x⟩
+
+attribute [instance, priority 500] nonempty_of_inhabited
 
 /-- An inhabited type is either nontrivial, or has a unique element. -/
 noncomputable def nontrivial_psum_unique (α : Type*) [inhabited α] :

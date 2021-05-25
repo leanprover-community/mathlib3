@@ -3,13 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.basic
 import data.equiv.denumerable
-import data.set.finite
-import order.rel_iso
 import order.preorder_hom
 import order.conditionally_complete_lattice
-import logic.function.iterate
 
 namespace rel_embedding
 

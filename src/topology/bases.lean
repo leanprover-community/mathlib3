@@ -93,7 +93,7 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
   (h_nhds : ∀(a:α) (u : set α), a ∈ u → is_open u → ∃v ∈ s, a ∈ v ∧ v ⊆ u) :
   is_topological_basis s :=
 begin
-  refine ⟨λ t₁ ht₁ t₂ ht₂ x hx, h_nhds _ _ hx (is_open_inter (h_open _ ht₁) (h_open _ ht₂)), _, _⟩,
+  refine ⟨λ t₁ ht₁ t₂ ht₂ x hx, h_nhds _ _ hx (is_open.inter (h_open _ ht₁) (h_open _ ht₂)), _, _⟩,
   { refine sUnion_eq_univ_iff.2 (λ a, _),
     rcases h_nhds a univ trivial is_open_univ with ⟨u, h₁, h₂, -⟩,
     exact ⟨u, h₁, h₂⟩ },
@@ -132,7 +132,7 @@ by { rw hb.eq_generate_from, exact generate_open.basic s hs }
 lemma is_topological_basis.exists_subset_of_mem_open {b : set (set α)}
   (hb : is_topological_basis b) {a:α} {u : set α} (au : a ∈ u)
   (ou : is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
-hb.mem_nhds_iff.1 $ mem_nhds_sets ou au
+hb.mem_nhds_iff.1 $ is_open.mem_nhds ou au
 
  /-- Any open set is the union of the basis sets contained in it. -/
 lemma is_topological_basis.open_eq_sUnion' {B : set (set α)}
@@ -174,7 +174,7 @@ begin
   { rintro _ ⟨u₁, u₂, hu₁, hu₂, rfl⟩,
     exact (h₁.is_open hu₁).prod (h₂.is_open hu₂) },
   { rintro ⟨a, b⟩ u hu uo,
-    rcases (h₁.nhds_has_basis.prod_nhds h₂.nhds_has_basis).mem_iff.1 (mem_nhds_sets uo hu)
+    rcases (h₁.nhds_has_basis.prod_nhds h₂.nhds_has_basis).mem_iff.1 (is_open.mem_nhds uo hu)
       with ⟨⟨s, t⟩, ⟨⟨hs, ha⟩, ht, hb⟩, hu⟩,
     exact ⟨s.prod t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
 end

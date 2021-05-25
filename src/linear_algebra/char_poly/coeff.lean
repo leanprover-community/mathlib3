@@ -9,7 +9,7 @@ import data.matrix.char_p
 import field_theory.finite.basic
 import group_theory.perm.cycles
 import linear_algebra.char_poly.basic
-import linear_algebra.matrix
+import linear_algebra.matrix.trace
 import ring_theory.polynomial.basic
 import ring_theory.power_basis
 
@@ -81,7 +81,7 @@ begin
 end
 
 lemma det_of_card_zero (h : fintype.card n = 0) (M : matrix n n R) : M.det = 1 :=
-by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext, tauto }
+by { rw fintype.card_eq_zero_iff at h, suffices : M = 1, { simp [this] }, ext i, exact h.elim i }
 
 theorem char_poly_degree_eq_dim [nontrivial R] (M : matrix n n R) :
 (char_poly M).degree = fintype.card n :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.basic
+import logic.is_empty
 
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -401,11 +402,8 @@ begin
   congr,
 end
 
-lemma choice_eq_none {α : Type*} (h : α → false) : choice α = none :=
-begin
-  dsimp [choice],
-  rw dif_neg (not_nonempty_iff_imp_false.mpr h),
-end
+lemma choice_eq_none (α : Type*) [is_empty α] : choice α = none :=
+dif_neg (not_nonempty_iff_imp_false.mpr is_empty_elim)
 
 lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempty α :=
 begin

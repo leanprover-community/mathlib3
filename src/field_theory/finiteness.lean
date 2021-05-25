@@ -85,7 +85,7 @@ set.finite.coe_to_finset _
 
 @[simp] lemma coe_sort_finset_basis_index [is_noetherian K V] :
   ((finset_basis_index K V) : Type*) = basis.of_vector_space_index K V :=
-set.finite.coe_to_finset _
+set.finite.coe_sort_to_finset _
 
 /--
 In a noetherian module over a division ring, there exists a finite basis.

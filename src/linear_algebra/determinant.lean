@@ -80,20 +80,17 @@ lemma matrix.det_conjugate
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N ⬝ M') = det N :=
 begin
-  letI := classical.dec_eq A,
   -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
-  -- This turns the problem into one for square matrices, which is easy.
+  -- This turns the problem into one for square matrices (`matrix.det_units_conj`), which is easy.
   let e : m ≃ n := matrix.index_equiv_of_inv hMM' hM'M,
-  have : det (matrix.reindex_linear_equiv e (equiv.refl _) M ⬝ N ⬝
-              matrix.reindex_linear_equiv (equiv.refl _) e M') =
-         det N,
-  { rw [det_mul, det_mul, mul_comm, ← mul_assoc, ← det_mul, ← matrix.reindex_linear_equiv_mul,
-        matrix.reindex_linear_equiv_refl_refl, hM'M, linear_equiv.refl_apply, det_one, one_mul] },
-  convert this,
-  rw [← matrix.det_reindex_linear_equiv_self e (M ⬝ N ⬝ M'),
-      matrix.reindex_linear_equiv_mul e (equiv.refl n) e,
-      matrix.reindex_linear_equiv_mul e (equiv.refl n) (equiv.refl n),
-      matrix.reindex_linear_equiv_refl_refl, linear_equiv.refl_apply]
+  let U : units (matrix n n A) :=
+    ⟨M.minor e.symm (equiv.refl _),
+     M'.minor (equiv.refl _) e.symm,
+     by rw [mul_eq_mul, ←minor_mul_equiv, hMM', minor_one_equiv],
+     by rw [mul_eq_mul, ←minor_mul_equiv, hM'M, minor_one_equiv]⟩,
+  rw [← matrix.det_units_conj U N, ← det_minor_equiv_self e.symm],
+  simp only [minor_mul_equiv _ _ _ (equiv.refl n) _, equiv.coe_refl, minor_id_id,
+             units.coe_mk, units.inv_mk]
 end
 
 end conjugate

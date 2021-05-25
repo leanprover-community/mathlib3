@@ -50,6 +50,12 @@ by { unfold_coes, simp [option.some_inj] }
 instance : has_zero ereal := ⟨(0 : ℝ)⟩
 instance : inhabited ereal := ⟨0⟩
 
+protected lemma cases : ∀ (a : ereal), a = ⊥ ∨ (∃ (x : ℝ), a = x) ∨ a = ⊤
+| ⊤ := by simp
+| ⊥ := by simp
+| (a : ℝ) := by simp
+
+
 def to_real : ereal → ℝ
 | ⊥       := 0
 | ⊤       := 0
@@ -61,14 +67,41 @@ def to_real : ereal → ℝ
 
 @[simp] lemma bot_lt_coe (x : ℝ) : (⊥ : ereal) < x :=
 by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
-@[simp] lemma bot_ne_coe (x : ℝ) : (⊥ : ereal) ≠ x := (bot_lt_coe x).ne
+@[simp] lemma coe_ne_bot (x : ℝ) : (x : ereal) ≠ ⊥  := (bot_lt_coe x).ne.symm
 @[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
 lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
 @[simp] lemma coe_lt_top (x : ℝ) : (x : ereal) < ⊤ := with_top.coe_lt_top _
 @[simp] lemma coe_ne_top (x : ℝ) : (x : ereal) ≠ ⊤ := (coe_lt_top x).ne
 
+
+/-! ### Addition -/
+
 @[simp, norm_cast] lemma coe_add (x y : ℝ) : ((x + y : ℝ) : ereal) = (x : ereal) + (y : ereal) :=
 rfl
+
+@[simp] lemma add_top (x : ereal) : x + ⊤ = ⊤ := add_top _
+@[simp] lemma top_add (x : ereal) : ⊤ + x = ⊤ := top_add _
+
+@[simp] lemma bot_add_bot : (⊥ : ereal) + ⊥ = ⊥ := rfl
+@[simp] lemma bot_add_coe (x : ℝ) : (⊥ : ereal) + x = ⊥ := rfl
+@[simp] lemma coe_add_bot (x : ℝ) : (x : ereal) + ⊥ = ⊥ := rfl
+
+lemma add_lt_add_right_coe {x y : ereal} (h : x < y) (z : ℝ) : x + z < y + z :=
+begin
+  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨y, rfl⟩|rfl,
+  { exact (lt_irrefl _ h).elim },
+  { simp only [bot_lt_coe, bot_add_coe, ← coe_add] },
+  { simp },
+  { exact (lt_irrefl _ (h.trans (bot_lt_coe x))).elim },
+  { norm_cast at h ⊢, exact add_lt_add_right h _ },
+  { simp only [← coe_add, top_add, coe_lt_top] },
+  { exact (lt_irrefl _ (h.trans_le le_top)).elim },
+  { exact (lt_irrefl _ (h.trans_le le_top)).elim },
+  { exact (lt_irrefl _ (h.trans_le le_top)).elim },
+end
+
+lemma add_lt_add_left_coe {x y : ereal} (h : x < y) (z : ℝ) : (z : ereal) + x < z + y :=
+by simpa [add_comm] using add_lt_add_right_coe h z
 
 /-! ### Negation -/
 

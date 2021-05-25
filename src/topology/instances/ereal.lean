@@ -45,11 +45,6 @@ instance : second_countable_topology ereal :=
     exact mem_Union.2 ⟨q, by simp⟩ },
 end⟩
 
-lemma ereal_cases : ∀ (a : ereal), a = ⊥ ∨ (∃ (x : ℝ), a = x) ∨ a = ⊤
-| ⊤ := by simp
-| ⊥ := by simp
-| (a : ℝ) := by simp
-
 lemma embedding_coe : embedding (coe : ℝ → ereal) :=
 ⟨⟨begin
   refine le_antisymm _ _,
@@ -119,6 +114,14 @@ begin
     { simpa using hr, } }
 end
 
+lemma mem_nhds_top_iff {s : set ereal} :
+  s ∈ 𝓝 (⊤ : ereal) ↔ ∃ (y : ℝ), Ioi (y : ereal) ⊆ s :=
+begin
+  rw [nhds_top', mem_infi],
+  { refl },
+  exact λ x y, ⟨max x y, by simp [le_refl], by simp [le_refl]⟩,
+end
+
 lemma tendsto_nhds_top_iff_real {m : α → ereal} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ, ∀ᶠ a in f, ↑x < m a :=
 by simp only [nhds_top', mem_Ioi, tendsto_infi, tendsto_principal]
@@ -133,7 +136,10 @@ lemma tendsto_coe_add_at_top (y : ℝ) :
 begin
   simp [tendsto_nhds_top_iff_real],
   assume x,
-  simp [nhds_top'],
+  apply mem_nhds_top_iff.2 ⟨x - y, _⟩,
+  assume z hz,
+  simp,
+  simp at hz,
 end
 
 #exit

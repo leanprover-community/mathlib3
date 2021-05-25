@@ -21,9 +21,6 @@ open linear_map
 open_locale Module
 
 /-- The categorical notion of projective object agrees with the explicit module-theoretic notion. -/
--- Note we only prove this when `R` and `P` live in the same universe.
--- Otherwise to use `of_lifting_property'` we need to deal with
--- morphisms between modules in different universes.
 theorem is_projective.iff_projective {R : Type u} [ring R]
   {P : Type (max u v)} [add_comm_group P] [module R P] :
   is_projective R P ↔ projective (Module.of R P) :=

@@ -81,14 +81,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M' : Type*} [topological_space M'] [charted_space H'' M']
 
-localized "notation `L_add` := left_add" in lie_group
-
-localized "notation `R_add` := right_add" in lie_group
-
-localized "notation `L` := left_mul" in lie_group
-
-localized "notation `R` := right_mul" in lie_group
-
 section
 
 variable (I)

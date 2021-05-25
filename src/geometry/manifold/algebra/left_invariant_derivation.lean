@@ -30,18 +30,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (G : Type*) [topological_space G] [charted_space H G]
   [group G] [lie_group I G] (g h : G)
 
-/-- Left multiplication by `g`. It is meant to mimic the usual notation in Lie groups. -/
-def Lb : C^∞⟮I, G; I, G⟯ := ⟨(L g), smooth_mul_left⟩
-
-variable {G}
-
-@[simp] lemma Lb_apply : (Lb I G g) h = g * h := rfl
-
-@[simp] lemma Lb_mul : Lb I G (g * h) = (Lb I G g).comp (Lb I G h) :=
-by ext; simp only [times_cont_mdiff_map.comp_apply, Lb_apply, mul_assoc]
-
-lemma Lb_apply_one : (Lb I G g) 1 = g := by rw [Lb_apply, mul_one]
-
 variable (G)
 
 /--
@@ -51,7 +39,7 @@ A global derivation is left-invariant if it is equal to its pullback along left 
 an arbitrary element of `G`.
 -/
 structure left_invariant_derivation extends derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯ :=
-(left_invariant'' : ∀ f g, (fd (Lb I G g)) (1 : G) (derivation.eval_at (1 : G) to_derivation) f =
+(left_invariant'' : ∀ f g, 𝒅(𝑳 I g) 1 (derivation.eval_at 1 to_derivation) f =
   derivation.eval_at g to_derivation f)
 
 variables {I G}
@@ -82,7 +70,7 @@ variables (X Y f)
 @[simp] lemma coe_lift_eq_coe :
   ⇑(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = (X : C^∞⟮I, G; 𝕜⟯ → C^∞⟮I, G; 𝕜⟯) := rfl
 
-lemma left_invariant' : (fd (Lb I G g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f =
+lemma left_invariant' : (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f =
   derivation.eval_at g ↑X f := by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
 
 instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,
@@ -147,21 +135,21 @@ lemma eval_at_apply : eval_at g X f = (X f) g := rfl
 
 @[simp] lemma eval_at_coe : derivation.eval_at g ↑X = eval_at g X := rfl
 
-lemma left_invariant : (fd (Lb I G g)) (1 : G) (eval_at (1 : G) X) f = eval_at g X f :=
+lemma left_invariant : (𝒅(𝑳 I g)) (1 : G) (eval_at (1 : G) X) f = eval_at g X f :=
 (X.left_invariant'' f g)
 
-lemma eval_at_mul : eval_at (g * h) X f = (fd (Lb I G g)) h (eval_at h X) f :=
-by rw [←left_invariant, Lb_mul, ←fdifferential_comp, function.comp, apply_fdifferential,
+lemma eval_at_mul : eval_at (g * h) X f = (𝒅(𝑳 I g)) h (eval_at h X) f :=
+by rw [←left_invariant, L_mul, ←fdifferential_comp, function.comp, apply_fdifferential,
   left_invariant, ←apply_fdifferential]
 
-lemma comp_Lb : (X f).comp (Lb I G g) = X (f.comp (Lb I G g)) :=
-by ext h; rw [times_cont_mdiff_map.comp_apply, Lb_apply, ←eval_at_apply, eval_at_mul,
+lemma comp_L : (X f).comp (𝑳 I g) = X (f.comp (𝑳 I g)) :=
+by ext h; rw [times_cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_at_mul,
   apply_fdifferential, eval_at_apply]
 
 instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivation I G) :=
 { bracket := λ X Y, ⟨⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆, λ f g, begin
     have hX := left_invariant' g X (Y f), have hY := left_invariant' g Y (X f),
-    rw [apply_fdifferential, derivation.eval_apply] at hX hY ⊢, rw [comp_Lb] at hX hY,
+    rw [apply_fdifferential, derivation.eval_apply] at hX hY ⊢, rw [comp_L] at hX hY,
     rw [derivation.commutator_apply, smooth_map.coe_sub, pi.sub_apply, coe_lift_eq_coe],
     rw [coe_lift_eq_coe] at hX hY ⊢, rw [hX, hY], refl end⟩ }
 

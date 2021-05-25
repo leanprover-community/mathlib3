@@ -146,18 +146,19 @@ def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) : (point_derivation I M 
   map_smul' := λ k v, rfl,
   map_add' := λ v w, rfl }
 
-localized "notation `fd` := fdifferential" in manifold
+/- Standard notion for the differential. The abbreviation is `MId`. -/
+localized "notation `𝒅` := fdifferential" in manifold
 
 lemma apply_fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I M x)
   (g : C^∞⟮I', M'; 𝕜⟯) :
-  fd f x v g = v (g.comp f) := rfl
+  𝒅f x v g = v (g.comp f) := rfl
 
 variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 
 @[simp] lemma fdifferential_comp (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
-  (fd g (f x)) ∘ (fd f x) = fd (g.comp f) x :=
+  (𝒅g (f x)) ∘ (𝒅f x) = 𝒅(g.comp f) x :=
 by { ext, simp only [apply_fdifferential], refl }
 
 end

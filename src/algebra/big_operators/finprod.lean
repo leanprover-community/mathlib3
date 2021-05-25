@@ -727,7 +727,7 @@ by tidy
 /-- Note that `b ∈ (s.filter (λ ab, prod.fst ab = a)).image prod.snd` iff `(a, b) ∈ s` so we can
 simplify the right hand side of this lemma. However the form stated here is more useful for
 iterating this lemma, e.g., if we have `f : α × β × γ → M`. -/
-@[to_additive] lemma finprod_mem_finset_of_product' [decidable_eq α] [decidable_eq β]
+@[to_additive] lemma finprod_mem_finset_product' [decidable_eq α] [decidable_eq β]
   (s : finset (α × β)) (f : α × β → M) :
   ∏ᶠ ab (h : ab ∈ s), f ab =
   ∏ᶠ a b (h : b ∈ (s.filter (λ ab, prod.fst ab = a)).image prod.snd), f (a, b) :=
@@ -743,25 +743,25 @@ begin
   finish,
 end
 
-/-- See also `finprod_mem_finset_of_product'`. -/
-@[to_additive] lemma finprod_mem_finset_of_product (s : finset (α × β)) (f : α × β → M) :
+/-- See also `finprod_mem_finset_product'`. -/
+@[to_additive] lemma finprod_mem_finset_product (s : finset (α × β)) (f : α × β → M) :
   ∏ᶠ ab (h : ab ∈ s), f ab = ∏ᶠ a b (h : (a, b) ∈ s), f (a, b) :=
-by { classical, rw finprod_mem_finset_of_product', simp, }
+by { classical, rw finprod_mem_finset_product', simp, }
 
-@[to_additive] lemma finprod_mem_finset_of_product₂ {γ : Type*}
+@[to_additive] lemma finprod_mem_finset_product₃ {γ : Type*}
   (s : finset (α × β × γ)) (f : α × β × γ → M) :
   ∏ᶠ abc (h : abc ∈ s), f abc = ∏ᶠ a b c (h : (a, b, c) ∈ s), f (a, b, c) :=
-by { classical, rw finprod_mem_finset_of_product', simp_rw finprod_mem_finset_of_product', simp, }
+by { classical, rw finprod_mem_finset_product', simp_rw finprod_mem_finset_product', simp, }
 
 @[to_additive] lemma finprod_curry (f : α × β → M) (hf : (mul_support f).finite) :
   ∏ᶠ ab, f ab = ∏ᶠ a b, f (a, b) :=
 begin
   have h₁ : ∀ a, ∏ᶠ (h : a ∈ hf.to_finset), f a = f a, { simp, },
   have h₂ : ∏ᶠ a, f a = ∏ᶠ a (h : a ∈ hf.to_finset), f a, { simp, },
-  simp_rw [h₂, finprod_mem_finset_of_product, h₁],
+  simp_rw [h₂, finprod_mem_finset_product, h₁],
 end
 
-@[to_additive] lemma finprod_curry₂ {γ : Type*} (f : α × β × γ → M) (h : (mul_support f).finite) :
+@[to_additive] lemma finprod_curry₃ {γ : Type*} (f : α × β × γ → M) (h : (mul_support f).finite) :
   ∏ᶠ abc, f abc = ∏ᶠ a b c, f (a, b, c) :=
 by { rw finprod_curry f h, congr, ext a, rw finprod_curry, simp [h], }
 

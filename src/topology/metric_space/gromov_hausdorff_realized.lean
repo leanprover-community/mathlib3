@@ -227,7 +227,7 @@ begin
                ∩ (⋂x y, {f : Cb α β | f (x, y) ≤ max_var α β}) :=
     begin ext, unfold candidates_b, unfold candidates, simp [-sum.forall], refl end,
   rw this,
-  repeat { apply is_closed_inter _ _
+  repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _
        <|> apply I1 _ _
        <|> apply I2 _ _

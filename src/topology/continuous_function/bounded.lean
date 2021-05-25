@@ -59,7 +59,7 @@ rfl
 
 /-- A continuous function on a compact space is automatically a bounded continuous function. -/
 def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
-⟨f, bounded_range_iff.1 $ bounded_of_compact $ compact_range f.continuous⟩
+⟨f, bounded_range_iff.1 $ bounded_of_compact $ is_compact_range f.continuous⟩
 
 @[simp] lemma mk_of_compact_apply [compact_space α] (f : C(α, β)) (a : α) :
   mk_of_compact f a = f a :=
@@ -189,7 +189,7 @@ instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)�
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
 have Hs : _ := continuous_iff'.1 f.continuous x (ε/2) (half_pos ε0),
-mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
+mem_sets_of_superset (prod_is_open.mem_nhds (ball_mem_nhds _ (half_pos ε0)) Hs) $
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
   ... < ε/2 + ε/2 : add_lt_add (lt_of_le_of_lt (dist_coe_le_dist _) hg) hy
@@ -302,7 +302,7 @@ begin
   have : ∀x:α, ∃U, x ∈ U ∧ is_open U ∧ ∀ (y z ∈ U) {f : α →ᵇ β},
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
-          ⟨V, VU, openV, xV⟩ := mem_nhds_sets_iff.1 nhdsU in
+          ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
       ⟨V, xV, openV, λy z hy hz f hf, hU y z (VU hy) (VU hz) f hf⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A
@@ -357,7 +357,7 @@ begin
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
   refine compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
-  { haveI : compact_space s := compact_iff_compact_space.1 hs,
+  { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
       (λ x ε ε0, bex.imp_right (λ U U_nhds hU y z hy hz f hf, _) (H x ε ε0)),
     calc dist (f y) (f z) = dist (F f y) (F f z) : rfl

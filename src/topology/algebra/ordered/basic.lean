@@ -137,7 +137,7 @@ instance : order_closed_topology (order_dual α) :=
 ⟨(@order_closed_topology.is_closed_le' α _ _ _).preimage continuous_swap⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
-is_closed_inter is_closed_Ici is_closed_Iic
+is_closed.inter is_closed_Ici is_closed_Iic
 
 @[simp] lemma closure_Icc (a b : α) : closure (Icc a b) = Icc a b :=
 is_closed_Icc.closure_eq
@@ -228,7 +228,7 @@ include t
 
 private lemma is_closed_eq_aux : is_closed {p : α × α | p.1 = p.2} :=
 by simp only [le_antisymm_iff];
-   exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
+   exact is_closed.inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
 @[priority 90] -- see Note [lower instance priority]
 instance order_closed_topology.to_t2_space : t2_space α :=
@@ -263,7 +263,7 @@ lemma is_open_Ioi : is_open (Ioi a) :=
 is_open_lt continuous_const continuous_id
 
 lemma is_open_Ioo : is_open (Ioo a b) :=
-is_open_inter is_open_Ioi is_open_Iio
+is_open.inter is_open_Ioi is_open_Iio
 
 @[simp] lemma interior_Ioi : interior (Ioi a) = Ioi a :=
 is_open_Ioi.interior_eq
@@ -533,7 +533,7 @@ by simp only [continuous_within_at, nhds_within_Ioo_eq_nhds_within_Iio h]
 
 lemma Ioo_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
   Ioo a c ∈ 𝓝[Ici b] b :=
-mem_nhds_within_of_mem_nhds $ mem_nhds_sets is_open_Ioo H
+mem_nhds_within_of_mem_nhds $ is_open.mem_nhds is_open_Ioo H
 
 lemma Ioc_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
   Ioc a c ∈ 𝓝[Ici b] b :=
@@ -574,7 +574,7 @@ by simp only [continuous_within_at, nhds_within_Ico_eq_nhds_within_Ici h]
 
 lemma Ioo_mem_nhds_within_Iic {a b c : α} (H : b ∈ Ioo a c) :
   Ioo a c ∈ 𝓝[Iic b] b :=
-mem_nhds_within_of_mem_nhds $ mem_nhds_sets is_open_Ioo H
+mem_nhds_within_of_mem_nhds $ is_open.mem_nhds is_open_Ioo H
 
 lemma Ico_mem_nhds_within_Iic {a b c : α} (H : b ∈ Ioo a c) :
   Ico a c ∈ 𝓝[Iic b] b :=
@@ -715,13 +715,13 @@ lemma is_open_gt' (a : α) : is_open {b:α | b < a} :=
 by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ ⟨a, or.inr rfl⟩
 
 lemma lt_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 b, a < x :=
-mem_nhds_sets (is_open_lt' _) h
+is_open.mem_nhds (is_open_lt' _) h
 
 lemma le_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 b, a ≤ x :=
 (𝓝 b).sets_of_superset (lt_mem_nhds h) $ assume b hb, le_of_lt hb
 
 lemma gt_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 a, x < b :=
-mem_nhds_sets (is_open_gt' _) h
+is_open.mem_nhds (is_open_gt' _) h
 
 lemma ge_mem_nhds {a b : α} (h : a < b) : ∀ᶠ x in 𝓝 a, x ≤ b :=
 (𝓝 a).sets_of_superset (gt_mem_nhds h) $ assume b hb, le_of_lt hb
@@ -1006,7 +1006,7 @@ lemma order_topology.t2_space : t2_space α := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
 instance order_topology.regular_space : regular_space α :=
 { regular := assume s a hs ha,
-    have hs' : sᶜ ∈ 𝓝 a, from mem_nhds_sets hs.is_open_compl ha,
+    have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
       from by_cases
         (assume h : ∃l, l < a,
@@ -1015,10 +1015,10 @@ instance order_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
                 from lt_of_not_ge $ assume hbc, h ⟨lt_of_lt_of_le hb₁ hbc, le_of_lt hca⟩ hcs,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hb₂) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_lt' _).mem_nhds hb₂) $
                 assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hl) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_lt' _).mem_nhds hl) $
                 assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
           end)
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -1032,16 +1032,16 @@ instance order_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
                 from lt_of_not_ge $ assume hbc, h ⟨le_of_lt hca, lt_of_le_of_lt hbc hb₂⟩ hcs,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hb₁) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_gt' _).mem_nhds hb₁) $
                 assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hu) $
+              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_gt' _).mem_nhds hu) $
                 assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
           end)
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
           nhds_within_empty _⟩),
     let ⟨t₂, ht₂o, ht₂s, ht₂a⟩ := this in
-    ⟨t₁ ∪ t₂, is_open_union ht₁o ht₂o,
+    ⟨t₁ ∪ t₂, is_open.union ht₁o ht₂o,
       assume x hx,
       have x ≠ a, from assume eq, ha $ eq ▸ hx,
       (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
@@ -1062,7 +1062,7 @@ begin
     { exact hu ⟨hax, hx.2⟩ },
     { exact hl ⟨hx.1, hax⟩ } },
   { rintros ⟨l, u, ha, h⟩,
-    apply mem_sets_of_superset (mem_nhds_sets is_open_Ioo ha) h }
+    apply mem_sets_of_superset (is_open.mem_nhds is_open_Ioo ha) h }
 end
 
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`.
@@ -1085,10 +1085,10 @@ lemma filter.eventually.exists_Ioo_subset [no_top_order α] [no_bot_order α] {a
 mem_nhds_iff_exists_Ioo_subset.1 hp
 
 lemma Iio_mem_nhds {a b : α} (h : a < b) : Iio b ∈ 𝓝 a :=
-mem_nhds_sets is_open_Iio h
+is_open.mem_nhds is_open_Iio h
 
 lemma Ioi_mem_nhds {a b : α} (h : a < b) : Ioi a ∈ 𝓝 b :=
-mem_nhds_sets is_open_Ioi h
+is_open.mem_nhds is_open_Ioi h
 
 lemma Iic_mem_nhds {a b : α} (h : a < b) : Iic b ∈ 𝓝 a :=
 mem_sets_of_superset (Iio_mem_nhds h) Iio_subset_Iic_self
@@ -1097,7 +1097,7 @@ lemma Ici_mem_nhds {a b : α} (h : a < b) : Ici a ∈ 𝓝 b :=
 mem_sets_of_superset (Ioi_mem_nhds h) Ioi_subset_Ici_self
 
 lemma Ioo_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioo a b ∈ 𝓝 x :=
-mem_nhds_sets is_open_Ioo ⟨ha, hb⟩
+is_open.mem_nhds is_open_Ioo ⟨ha, hb⟩
 
 lemma Ioc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Ioc a b ∈ 𝓝 x :=
 mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ioc_self
@@ -1531,7 +1531,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
       refine linear_ordered_add_comm_group.tendsto_nhds.2 (λ ε ε0, _),
       rcases dense_or_discrete 0 ε with (⟨δ, δ0, δε⟩|⟨h₁, h₂⟩),
       { -- If there exists `δ ∈ (0, ε)`, then we choose `δ`-nhd of `a` and `(ε-δ)`-nhd of `b`
-        filter_upwards [prod_mem_nhds_sets (eventually_abs_sub_lt a δ0)
+        filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a δ0)
           (eventually_abs_sub_lt b (sub_pos.2 δε))],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < δ, hy : |y - b| < ε - δ⟩,
         rw [add_sub_comm],
@@ -1542,7 +1542,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         have hε : ∀ {x y}, abs (x - y) < ε → x = y,
         { intros x y h,
           simpa [sub_eq_zero] using h₂ _ h },
-        filter_upwards [prod_mem_nhds_sets (eventually_abs_sub_lt a ε0)
+        filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a ε0)
           (eventually_abs_sub_lt b ε0)],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < ε, hy : |y - b| < ε⟩,
         simpa [hε hx, hε hy] }
@@ -1782,7 +1782,7 @@ lemma is_lub_of_mem_nhds {s : set α} {a : α} {f : filter α}
 ⟨hsa, assume b hb,
   not_lt.1 $ assume hba,
   have s ∩ {a | b < a} ∈ f ⊓ 𝓝 a,
-    from inter_mem_inf_sets hsf (mem_nhds_sets (is_open_lt' _) hba),
+    from inter_mem_inf_sets hsf (is_open.mem_nhds (is_open_lt' _) hba),
   let ⟨x, ⟨hxs, hxb⟩⟩ := nonempty_of_mem_sets this in
   have b < b, from lt_of_lt_of_le hxb $ hb hxs,
   lt_irrefl b this⟩
@@ -2429,7 +2429,7 @@ begin
   assume y hy,
   have : is_closed (s ∩ Icc a y),
   { suffices : s ∩ Icc a y = s ∩ Icc a b ∩ Icc a y,
-    { rw this, exact is_closed_inter hs is_closed_Icc },
+    { rw this, exact is_closed.inter hs is_closed_Icc },
     rw [inter_assoc],
     congr,
     exact (inter_eq_self_of_subset_right $ Icc_subset_Icc_right hy.2).symm },
@@ -2466,7 +2466,7 @@ begin
   by_contradiction hst,
   suffices : Icc x y ⊆ s,
     from hst ⟨y, xyab $ right_mem_Icc.2 hxy, this $ right_mem_Icc.2 hxy, hy.2⟩,
-  apply (is_closed_inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
+  apply (is_closed.inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
   rintros z ⟨zs, hz⟩,
   have zt : z ∈ tᶜ, from λ zt, hst ⟨z, xyab $ Ico_subset_Icc_self hz, zs, zt⟩,
   have : tᶜ ∩ Ioc z y ∈ 𝓝[Ioi z] z,
@@ -2624,7 +2624,7 @@ end densely_ordered
 lemma compact_Icc {a b : α} : is_compact (Icc a b) :=
 begin
   cases le_or_lt a b with hab hab, swap, { simp [hab] },
-  refine compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
+  refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
   contrapose! hf,
   rw [le_principal_iff],
   have hpt : ∀ x ∈ Icc a b, {x} ∉ f,
@@ -2670,15 +2670,15 @@ lemma compact_interval {a b : α} : is_compact (interval a b) := compact_Icc
 lemma compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
   [Π i, topological_space (α i)] [Π i, order_topology (α i)] (a b : Π i, α i) :
   is_compact (Icc a b) :=
-pi_univ_Icc a b ▸ compact_univ_pi $ λ i, compact_Icc
+pi_univ_Icc a b ▸ is_compact_univ_pi $ λ i, compact_Icc
 
 instance compact_space_Icc (a b : α) : compact_space (Icc a b) :=
-compact_iff_compact_space.mp compact_Icc
+is_compact_iff_compact_space.mp compact_Icc
 
 instance compact_space_pi_Icc {ι : Type*} {α : ι → Type*}
   [Π i, conditionally_complete_linear_order (α i)] [Π i, topological_space (α i)]
   [Π i, order_topology (α i)] (a b : Π i, α i) : compact_space (Icc a b) :=
-compact_iff_compact_space.mp (compact_pi_Icc a b)
+is_compact_iff_compact_space.mp (compact_pi_Icc a b)
 
 @[priority 100] -- See note [lower instance priority]
 instance compact_space_of_complete_linear_order {α : Type*} [complete_linear_order α]

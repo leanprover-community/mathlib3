@@ -27,7 +27,7 @@ As an example, the `fraction_ring R` of an integral domain `R` has the same char
 
 
 /-- If the algebra map `R →+* A` is injective then `A` has the same characteristic as `R`. -/
-def char_p_of_injective_algebra_map {R A: Type*} [comm_semiring R] [semiring A] [algebra R A]
+lemma char_p_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (h : function.injective (algebra_map R A)) (p : ℕ) [char_p R p] : char_p A p :=
 { cast_eq_zero_iff := λx,
   begin
@@ -40,16 +40,16 @@ def char_p_of_injective_algebra_map {R A: Type*} [comm_semiring R] [semiring A] 
 }
 
 /-- If the algebra map `R →+*A` is injective then `A` has the same characteristic as `R`. -/
-def char_zero_of_injective_algebra_map {R A: Type*} [comm_semiring R] [semiring A] [algebra R A]
-  (h : function.injective (algebra_map R A)) (p : ℕ) [char_zero R] : char_zero A :=
-{ cast_injective := λx y hxy,
+lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  (h : function.injective (algebra_map R A)) [char_zero R] : char_zero A :=
+{ cast_injective := λ x y hxy,
   begin
     change algebra_map ℕ A x = algebra_map ℕ A y at hxy,
     rw is_scalar_tower.algebra_map_apply ℕ R A x at hxy,
     rw is_scalar_tower.algebra_map_apply ℕ R A y at hxy,
     exact char_zero.cast_injective (h hxy),
-  end
-}       -- Another proof would be a direct corollary of the `char_p` analogue:
+  end }
+        -- Another proof would be a direct corollary of the `char_p` analogue:
         -- `:= @char_p.char_p_to_char_zero A _ (char_p_of_injective_algebra_map h 0)`.
         -- However, `char_p_to_char_zero` would require `ring A`.
 

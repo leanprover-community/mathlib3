@@ -559,6 +559,19 @@ calc  1 < b     : hb
 
 end preorder
 
+
+@[to_additive le_add_of_nonneg_right]
+lemma le_mul_of_one_le_right' [has_le N] [covariant_class N N (*) (≤)] {a b : N} (h : 1 ≤ b) :
+  a ≤ a * b :=
+calc  a = a * 1  : (mul_one _).symm
+    ... ≤ a * b  : mul_le_mul_left' h a
+
+@[to_additive add_le_of_nonpos_right]
+lemma mul_le_of_le_one_right' [has_le N] [covariant_class N N (*) (≤)] {a b : N} (h : b ≤ 1) :
+  a * b ≤ a :=
+calc  a * b ≤ a * 1 : mul_le_mul_left' h a
+        ... = a     : mul_one a
+
 end mul_one_class
 
 /- This is not instance, since we want to have an instance from `left_cancel_semigroup`s
@@ -648,16 +661,6 @@ end has_mul
 -- here we start using properties of one.
 section mul_one_class
 variables [mul_one_class α] [covariant_class α α (*) (≤)]
-
-@[to_additive le_add_of_nonneg_right]
-lemma le_mul_of_one_le_right' (h : 1 ≤ b) : a ≤ a * b :=
-calc  a = a * 1  : (mul_one _).symm
-    ... ≤ a * b  : mul_le_mul_left' h a
-
-@[to_additive add_le_of_nonpos_right]
-lemma mul_le_of_le_one_right' (h : b ≤ 1) : a * b ≤ a :=
-calc  a * b ≤ a * 1 : mul_le_mul_left' h a
-        ... = a     : mul_one a
 
 @[to_additive]
 lemma lt_of_mul_lt_of_one_le_left (h : a * b < c) (hle : 1 ≤ b) : a < c :=

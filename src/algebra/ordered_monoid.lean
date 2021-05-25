@@ -340,7 +340,7 @@ end has_one
 instance [has_add α] : has_add (with_top α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
 
-local attribute [reducible] with_zero
+local attribute [semireducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
@@ -558,9 +558,15 @@ end
 calc a = 1 * a : by simp
   ... ≤ b * c : mul_le_mul' (one_le _) h
 
+@[to_additive] lemma le_mul_self : a ≤ b * a :=
+le_mul_left (le_refl a)
+
 @[to_additive] lemma le_mul_right (h : a ≤ b) : a ≤ b * c :=
 calc a = a * 1 : by simp
   ... ≤ b * c : mul_le_mul' h (one_le _)
+
+@[to_additive] lemma le_self_mul : a ≤ a * c :=
+le_mul_right (le_refl a)
 
 local attribute [semireducible] with_zero
 
@@ -609,6 +615,9 @@ instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
 { exists_mul_of_le := λ a b hab, le_iff_exists_mul.mp hab }
 
 end canonically_ordered_monoid
+
+lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
+lt_of_le_of_lt (zero_le _) h
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/
@@ -749,7 +758,7 @@ lemma with_bot.add_lt_add_iff_left :
     { norm_cast, exact add_lt_add_iff_left _ }
   end
 
-local attribute [reducible] with_zero
+local attribute [semireducible] with_zero
 
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
@@ -839,7 +848,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
   lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
-
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=

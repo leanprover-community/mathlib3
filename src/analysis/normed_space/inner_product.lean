@@ -2817,7 +2817,7 @@ lemma orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] :
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
 instance [finite_dimensional 𝕜 E] : fintype (orthonormal_basis_index 𝕜 E) :=
-finite_dimensional.fintype_basis_index (orthonormal_basis 𝕜 E)
+is_noetherian.fintype_basis_index (orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}
 

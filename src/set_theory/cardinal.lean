@@ -868,10 +868,10 @@ noncomputable def to_enat : cardinal →+ enat :=
         rw [← nat.cast_add, to_nat_cast, enat.coe_add] },
       { rw [if_neg hy, if_neg, enat.add_top],
         contrapose! hy,
-        apply lt_of_le_of_lt (le_add_left (le_refl y)) hy } },
+        apply lt_of_le_of_lt le_add_self hy } },
     { rw [if_neg hx, if_neg, enat.top_add],
       contrapose! hx,
-      apply lt_of_le_of_lt (le_add_right (le_refl x)) hx },
+      apply lt_of_le_of_lt le_self_add hx },
   end }
 
 @[simp]

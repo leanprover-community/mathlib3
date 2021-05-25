@@ -133,6 +133,9 @@ variables (f g)
 @[simp] lemma map_zero : f 0 = 0 :=
 f.to_distrib_mul_action_hom.map_zero
 
+@[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
+⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
+
 variables (M M₂)
 /--
 A typeclass for `has_scalar` structures which can be moved through a `linear_map`.
@@ -257,6 +260,12 @@ instance compatible_smul.int_module
   case hp : n ih { simp [add_smul, ih] },
   case hn : n ih { simp [sub_smul, ih] }
 end⟩
+
+instance compatible_smul.units {R S : Type*}
+  [monoid R] [mul_action R M] [mul_action R M₂] [semiring S] [module S M] [module S M₂]
+  [compatible_smul M M₂ R S] :
+  compatible_smul M M₂ (units R) S :=
+⟨λ f c x, (compatible_smul.map_smul f (c : R) x : _)⟩
 
 end add_comm_group
 

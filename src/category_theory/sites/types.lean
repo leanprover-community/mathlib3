@@ -20,6 +20,7 @@ Then we prove that the topology defined is the canonical topology.
 universe u
 
 namespace category_theory
+open_locale category_theory.Type
 
 /-- A Grothendieck topology associated to the category of all types.
 A sieve is a covering iff it is jointly surjective. -/
@@ -105,7 +106,7 @@ lemma eval_map (S : (Type u)ᵒᵖ ⥤ Type u) (α β) (f : β ⟶ α) (s x) :
 by { simp_rw [eval, ← functor_to_types.map_comp_apply, ← op_comp], refl }
 
 /-- Given a sheaf `S`, construct an isomorphism `S ≅ [-, S(*)]`. -/
-@[simps {rhs_md := semireducible}] noncomputable def equiv_yoneda (S : (Type u)ᵒᵖ ⥤ Type u)
+@[simps] noncomputable def equiv_yoneda (S : (Type u)ᵒᵖ ⥤ Type u)
   (hs : is_sheaf types_grothendieck_topology S) :
   S ≅ yoneda.obj (S.obj (op punit)) :=
 nat_iso.of_components (λ α, equiv.to_iso $ eval_equiv S hs $ unop α) $ λ α β f,
@@ -127,7 +128,7 @@ lemma eval_app (S₁ S₂ : SheafOfTypes.{u} types_grothendieck_topology)
 
 /-- `yoneda'` induces an equivalence of category between `Type u` and
 `Sheaf types_grothendieck_topology`. -/
-@[simps {rhs_md := semireducible}] noncomputable def type_equiv :
+@[simps] noncomputable def type_equiv :
   Type u ≌ SheafOfTypes types_grothendieck_topology :=
 equivalence.mk
   yoneda'

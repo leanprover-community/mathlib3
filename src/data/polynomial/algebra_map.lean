@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 
 import data.polynomial.eval
+import algebra.algebra.tower
 
 /-!
 # Theory of univariate polynomials
@@ -27,7 +28,20 @@ variables [comm_semiring R] {p q r : polynomial R}
 variables [semiring A] [algebra R A]
 
 /-- Note that this instance also provides `algebra R (polynomial R)`. -/
-instance algebra_of_algebra : algebra R (polynomial A) := add_monoid_algebra.algebra
+instance algebra_of_algebra : algebra R (polynomial A) :=
+{ smul_def' := λ r p, begin
+    rcases p,
+    simp only [C, monomial, monomial_fun, ring_hom.coe_mk, ring_hom.to_fun_eq_coe,
+      function.comp_app, ring_hom.coe_comp, smul_to_finsupp, mul_to_finsupp],
+    exact algebra.smul_def' _ _,
+  end,
+  commutes' := λ r p, begin
+    rcases p,
+    simp only [C, monomial, monomial_fun, ring_hom.coe_mk, ring_hom.to_fun_eq_coe,
+      function.comp_app, ring_hom.coe_comp, mul_to_finsupp],
+    convert algebra.commutes' r p,
+  end,
+  .. C.comp (algebra_map R A) }
 
 lemma algebra_map_apply (r : R) :
   algebra_map R (polynomial A) r = C (algebra_map R A r) :=
@@ -43,6 +57,17 @@ lemma C_eq_algebra_map {R : Type*} [comm_ring R] (r : R) :
   C r = algebra_map R (polynomial R) r :=
 rfl
 
+instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
+⟨⟨⊥, ⊤, begin
+  rw [ne.def, set_like.ext_iff, not_forall],
+  refine ⟨X, _⟩,
+  simp only [algebra.mem_bot, not_exists, set.mem_range, iff_true, algebra.mem_top,
+    algebra_map_apply, not_forall],
+  intro x,
+  rw [ext_iff, not_forall],
+  refine ⟨1, _⟩,
+  simp [coeff_C],
+end⟩⟩
 
 @[simp]
 lemma alg_hom_eval₂_algebra_map
@@ -50,8 +75,9 @@ lemma alg_hom_eval₂_algebra_map
   (p : polynomial R) (f : A →ₐ[R] B) (a : A) :
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
-  dsimp [eval₂, finsupp.sum],
-  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast, alg_hom.commutes],
+  dsimp [eval₂, sum],
+  simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast,
+    alg_hom.commutes],
 end
 
 @[simp]
@@ -60,7 +86,7 @@ lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
   conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
-  dsimp [eval₂, finsupp.sum],
+  dsimp [eval₂, sum],
   simp only [f.map_sum, f.map_mul, f.map_pow, ring_hom.eq_int_cast, ring_hom.map_int_cast],
   simp [polynomial.C_eq_algebra_map],
 end
@@ -76,19 +102,6 @@ lemma eval₂_algebra_map_int_X {R : Type*} [ring R] (p : polynomial ℤ) (f : p
   eval₂ (algebra_map ℤ R) (f X) p = f p :=
 -- Unfortunately `f.to_int_alg_hom` doesn't work here, as typeclasses don't match up correctly.
 eval₂_algebra_map_X p { commutes' := λ n, by simp, .. f }
-
-section comp
-
-lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
-  eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
-by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
-
-lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
-
-instance comp.is_semiring_hom : is_semiring_hom (λ q : polynomial R, q.comp p) :=
-by unfold comp; apply_instance
-
-end comp
 
 end comm_semiring
 
@@ -108,7 +121,11 @@ def aeval : polynomial R →ₐ[R] A :=
 variables {R A}
 
 @[ext] lemma alg_hom_ext {f g : polynomial R →ₐ[R] A} (h : f X = g X) : f = g :=
-by { ext, exact h }
+begin
+  ext p,
+  rw [← sum_monomial_eq p],
+  simp [sum, f.map_sum, g.map_sum, monomial_eq_smul_X, h],
+end
 
 theorem aeval_def (p : polynomial R) : aeval x p = eval₂ (algebra_map R A) x p := rfl
 
@@ -119,7 +136,7 @@ alg_hom.map_zero (aeval x)
 
 @[simp] lemma aeval_C (r : R) : aeval x (C r) = algebra_map R A r := eval₂_C _ x
 
-lemma aeval_monomial {n : ℕ} {r : R} : aeval x (monomial n r) = (algebra_map _ _ r) * x^n :=
+@[simp] lemma aeval_monomial {n : ℕ} {r : R} : aeval x (monomial n r) = (algebra_map _ _ r) * x^n :=
 eval₂_monomial _ _
 
 @[simp] lemma aeval_X_pow {n : ℕ} : aeval x ((X : polynomial R)^n) = x^n :=
@@ -147,6 +164,11 @@ lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
   aeval x (p.comp q) = (aeval (aeval x q) p) :=
 eval₂_comp (algebra_map R A)
 
+@[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
+  [is_scalar_tower R A B] (b : B) (p : polynomial R) :
+  aeval b (p.map (algebra_map R A)) = aeval b p :=
+by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
+
 theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=
 begin
@@ -166,14 +188,24 @@ theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : polynomial R) :
   aeval (f x) p = f (aeval x p) :=
 alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 
+lemma aeval_algebra_map_apply (x : R) (p : polynomial R) :
+  aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
+aeval_alg_hom_apply (algebra.of_id R A) x p
+
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : polynomial R → R) = eval r := rfl
 
+@[simp] lemma aeval_fn_apply {X : Type*} (g : polynomial R) (f : X → R) (x : X) :
+  ((aeval f) g) x = aeval (f x) g :=
+(aeval_alg_hom_apply (pi.eval_alg_hom _ _ x) f g).symm
+
+@[norm_cast] lemma aeval_subalgebra_coe
+  (g : polynomial R) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
+  (aeval f g : A) = aeval (f : A) g :=
+(aeval_alg_hom_apply s.val f g).symm
+
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
-
-lemma pow_comp (p q : polynomial R) (k : ℕ) : (p ^ k).comp q = (p.comp q) ^ k :=
-by { unfold comp, rw ← coe_eval₂_ring_hom, apply ring_hom.map_pow }
 
 variables [comm_ring S] {f : R →+* S}
 
@@ -197,15 +229,15 @@ begin
   by_cases hf : f = 0,
   { simp [hf] },
   by_cases hi : i ∈ f.support,
-  { unfold polynomial.eval polynomial.eval₂ finsupp.sum id at dvd_eval,
+  { rw [eval, eval₂, sum] at dvd_eval,
     rw [←finset.insert_erase hi, finset.sum_insert (finset.not_mem_erase _ _)] at dvd_eval,
     refine (dvd_add_left _).mp dvd_eval,
     apply finset.dvd_sum,
     intros j hj,
     exact dvd_terms j (finset.ne_of_mem_erase hj) },
   { convert dvd_zero p,
-    convert _root_.zero_mul _,
-    exact finsupp.not_mem_support_iff.mp hi }
+    rw not_mem_support_iff at hi,
+    simp [hi] }
 end
 
 lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)

@@ -45,7 +45,8 @@ A type synonym for `β → C`, used for `β`-graded objects in a category `C`
 with a shift functor given by translation by `s`.
 -/
 @[nolint unused_arguments] -- `s` is here to distinguish type synonyms asking for different shifts
-abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) : Type (max w u) := graded_object β C
+abbreviation graded_object_with_shift {β : Type w} [add_comm_group β] (s : β) (C : Type u) :
+  Type (max w u) := graded_object β C
 
 namespace graded_object
 
@@ -68,7 +69,8 @@ def comap_eq {β γ : Type w} {f g : β → γ} (h : f = g) : comap (λ _, C) f 
 { hom := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end },
   inv := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end }, }
 
-lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) : comap_eq C h.symm = (comap_eq C h).symm :=
+lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) :
+  comap_eq C h.symm = (comap_eq C h).symm :=
 by tidy
 
 lemma comap_eq_trans {β γ : Type w} {f g h : β → γ} (k : f = g) (l : g = h) :
@@ -93,7 +95,8 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 
 end
 
-instance has_shift {β : Type*} [add_comm_group β] (s : β) : has_shift (graded_object_with_shift s C) :=
+instance has_shift {β : Type*} [add_comm_group β] (s : β) :
+  has_shift (graded_object_with_shift s C) :=
 { shift := comap_equiv C
   { to_fun := λ b, b-s,
     inv_fun := λ b, b+s,
@@ -119,7 +122,7 @@ lemma zero_apply [has_zero_morphisms C] (β : Type w) (X Y : graded_object β C)
   (0 : X ⟶ Y) b = 0 := rfl
 
 section
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
   has_zero_object.{(max w v)} (graded_object β C) :=

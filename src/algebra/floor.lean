@@ -7,6 +7,7 @@ import tactic.linarith
 import tactic.abel
 import algebra.ordered_group
 import data.set.intervals.basic
+
 /-!
 # Floor and Ceil
 
@@ -289,3 +290,35 @@ lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)
 
 lemma le_of_nat_ceil_le {x : α} {n : ℕ} (h : nat_ceil x ≤ n) : x ≤ n :=
 le_trans (le_nat_ceil x) (by exact_mod_cast h)
+
+namespace int
+
+@[simp] lemma preimage_Ioo {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioo x y)) = set.Ioo (floor x) (ceil y) :=
+by { ext, simp [floor_lt, lt_ceil] }
+
+@[simp] lemma preimage_Ico {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ico x y)) = set.Ico (ceil x) (ceil y) :=
+by { ext, simp [ceil_le, lt_ceil] }
+
+@[simp] lemma preimage_Ioc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Ioc x y)) = set.Ioc (floor x) (floor y) :=
+by { ext, simp [floor_lt, le_floor] }
+
+@[simp] lemma preimage_Icc {x y : α} :
+  ((coe : ℤ → α) ⁻¹' (set.Icc x y)) = set.Icc (ceil x) (floor y) :=
+by { ext, simp [ceil_le, le_floor] }
+
+@[simp] lemma preimage_Ioi {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ioi x)) = set.Ioi (floor x) :=
+by { ext, simp [floor_lt] }
+
+@[simp] lemma preimage_Ici {x : α} : ((coe : ℤ → α) ⁻¹' (set.Ici x)) = set.Ici (ceil x) :=
+by { ext, simp [ceil_le] }
+
+@[simp] lemma preimage_Iio {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iio x)) = set.Iio (ceil x) :=
+by { ext, simp [lt_ceil] }
+
+@[simp] lemma preimage_Iic {x : α} : ((coe : ℤ → α) ⁻¹' (set.Iic x)) = set.Iic (floor x) :=
+by { ext, simp [le_floor] }
+
+end int

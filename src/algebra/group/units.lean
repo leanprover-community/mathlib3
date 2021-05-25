@@ -56,6 +56,10 @@ variables [monoid α]
 @[to_additive] instance [decidable_eq α] : decidable_eq (units α) :=
 λ a b, decidable_of_iff' _ ext_iff
 
+@[simp, to_additive] theorem mk_coe (u : units α) (y h₁ h₂) :
+  mk (u : α) y h₁ h₂ = u :=
+ext rfl
+
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
@@ -77,6 +81,8 @@ attribute [norm_cast] add_units.coe_zero
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]
+
+@[simp, to_additive] lemma inv_mk (x y : α) (h₁ h₂) : (mk x y h₁ h₂)⁻¹ = mk y x h₂ h₁ := rfl
 
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
 
@@ -230,7 +236,7 @@ def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, (u : M) = a
 ⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
 
 @[simp, to_additive is_add_unit_add_unit]
-lemma is_unit_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
+protected lemma units.is_unit [monoid M] (u : units M) : is_unit (u : M) := ⟨u, rfl⟩
 
 @[simp, to_additive is_add_unit_zero]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
@@ -259,6 +265,7 @@ iff.intro
     by rwa [mul_assoc, units.mul_inv, mul_one] at this)
   (assume ⟨v, hv⟩, hv ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
 
+@[to_additive]
 lemma is_unit.mul [monoid M] {x y : M} : is_unit x → is_unit y → is_unit (x * y) :=
 by { rintros ⟨x, rfl⟩ ⟨y, rfl⟩, exact ⟨x * y, units.coe_mul _ _⟩ }
 
@@ -271,6 +278,11 @@ is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
 @[to_additive] theorem is_unit_of_mul_is_unit_right [comm_monoid M] {x y : M}
   (hu : is_unit (x * y)) : is_unit y :=
 @is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
+
+@[simp]
+lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
+⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
+  λ h, is_unit.mul h.1 h.2⟩
 
 @[to_additive] theorem is_unit.mul_right_inj [monoid M] {a b c : M} (ha : is_unit a) :
   a * b = a * c ↔ b = c :=

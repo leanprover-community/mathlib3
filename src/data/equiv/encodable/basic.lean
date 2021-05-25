@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Leonardo de Moura, Mario Carneiro
+Authors: Leonardo de Moura, Mario Carneiro
 
 Type class for encodable Types.
 Note that every encodable Type is countable.
@@ -30,6 +30,10 @@ open encodable
 
 theorem encode_injective [encodable α] : function.injective (@encode α _)
 | x y e := option.some.inj $ by rw [← encodek, e, encodek]
+
+lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
+  surjective (λ n, (encodable.decode α n).iget) :=
+λ x, ⟨encodable.encode x, by simp_rw [encodable.encodek]⟩
 
 /- This is not set as an instance because this is usually not the best way
   to infer decidability. -/

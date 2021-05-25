@@ -89,7 +89,8 @@ protected noncomputable def pilex.linear_order [linear_order ι]
   decidable_le := classical.dec_rel _,
   ..pilex.partial_order }
 
-instance [linear_order ι] [∀ a, ordered_add_comm_group (β a)] : ordered_add_comm_group (pilex ι β) :=
+instance [linear_order ι] [∀ a, ordered_add_comm_group (β a)] :
+  ordered_add_comm_group (pilex ι β) :=
 { add_le_add_left := λ x y hxy z,
     hxy.elim
       (λ ⟨i, hi⟩,

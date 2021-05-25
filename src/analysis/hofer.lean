@@ -38,7 +38,8 @@ begin
     rw [div_mul_eq_mul_div, le_div_iff, mul_assoc, mul_le_mul_left ε_pos, mul_comm],
     exact pow_pos (by norm_num) k, },
   -- Now let's specialize to `ε/2^k`
-  replace H : ∀ k : ℕ, ∀ x', d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x' → ∃ y, d x' y ≤ ε/2^k ∧ 2 * ϕ x' < ϕ y,
+  replace H : ∀ k : ℕ, ∀ x', d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x' →
+    ∃ y, d x' y ≤ ε/2^k ∧ 2 * ϕ x' < ϕ y,
   { intros k x',
     push_neg at H,
     simpa [reformulation] using
@@ -62,7 +63,7 @@ begin
   { intro n,
     induction n using nat.case_strong_induction_on with n IH,
     { specialize hu 0,
-      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le] using hu },
+      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le, le_refl] using hu },
     have A : d (u (n+1)) x ≤ 2 * ε,
     { rw [dist_comm],
       let r := range (n+1), -- range (n+1) = {0, ..., n}
@@ -83,11 +84,8 @@ begin
   clear hu key,
   -- Hence u is Cauchy
   have cauchy_u : cauchy_seq u,
-  { apply cauchy_seq_of_le_geometric _ ε (by norm_num : 1/(2:ℝ) < 1),
-    intro n,
-    convert key₁ n,
-    rw [one_div, inv_pow'],
-    congr },
+  { refine cauchy_seq_of_le_geometric _ ε one_half_lt_one (λ n, _),
+    simpa only [one_div, inv_pow'] using key₁ n },
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,

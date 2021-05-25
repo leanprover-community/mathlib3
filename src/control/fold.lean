@@ -62,35 +62,42 @@ namespace monoid
 variables {m : Type u → Type u} [monad m]
 variables {α β : Type u}
 /--
-For a list, foldl f x [y₀,y₁] reduces as follows
-  calc  foldl f x [y₀,y₁]
-      = foldl f (f x y₀) [y₁]      : rfl
-  ... = foldl f (f (f x y₀) y₁) [] : rfl
-  ... = f (f x y₀) y₁              : rfl
+For a list, foldl f x [y₀,y₁] reduces as follows:
 
-with f : α → β → α
-     x : α
-     [y₀,y₁] : list β
+```
+calc  foldl f x [y₀,y₁]
+    = foldl f (f x y₀) [y₁]      : rfl
+... = foldl f (f (f x y₀) y₁) [] : rfl
+... = f (f x y₀) y₁              : rfl
+```
+with
+```
+f : α → β → α
+x : α
+[y₀,y₁] : list β
+```
 
 We can view the above as a composition of functions:
-
-  ... = f (f x y₀) y₁              : rfl
-  ... = flip f y₁ (flip f y₀ x)    : rfl
-  ... = (flip f y₁ ∘ flip f y₀) x  : rfl
+```
+... = f (f x y₀) y₁              : rfl
+... = flip f y₁ (flip f y₀ x)    : rfl
+... = (flip f y₁ ∘ flip f y₀) x  : rfl
+```
 
 We can use traverse and const to construct this composition:
-
-  calc   const.run (traverse (λ y, const.mk' (flip f y)) [y₀,y₁]) x
-       = const.run ((::) <$> const.mk' (flip f y₀) <*> traverse (λ y, const.mk' (flip f y)) [y₁]) x
-  ...  = const.run ((::) <$> const.mk' (flip f y₀) <*>
-           ( (::) <$> const.mk' (flip f y₁) <*> traverse (λ y, const.mk' (flip f y)) [] )) x
-  ...  = const.run ((::) <$> const.mk' (flip f y₀) <*>
-           ( (::) <$> const.mk' (flip f y₁) <*> pure [] )) x
-  ...  = const.run ( ((::) <$> const.mk' (flip f y₁) <*> pure []) ∘
-           ((::) <$> const.mk' (flip f y₀)) ) x
-  ...  = const.run ( const.mk' (flip f y₁) ∘ const.mk' (flip f y₀) ) x
-  ...  = const.run ( flip f y₁ ∘ flip f y₀ ) x
-  ...  = f (f x y₀) y₁
+```
+calc   const.run (traverse (λ y, const.mk' (flip f y)) [y₀,y₁]) x
+     = const.run ((::) <$> const.mk' (flip f y₀) <*> traverse (λ y, const.mk' (flip f y)) [y₁]) x
+...  = const.run ((::) <$> const.mk' (flip f y₀) <*>
+         ( (::) <$> const.mk' (flip f y₁) <*> traverse (λ y, const.mk' (flip f y)) [] )) x
+...  = const.run ((::) <$> const.mk' (flip f y₀) <*>
+         ( (::) <$> const.mk' (flip f y₁) <*> pure [] )) x
+...  = const.run ( ((::) <$> const.mk' (flip f y₁) <*> pure []) ∘
+         ((::) <$> const.mk' (flip f y₀)) ) x
+...  = const.run ( const.mk' (flip f y₁) ∘ const.mk' (flip f y₀) ) x
+...  = const.run ( flip f y₁ ∘ flip f y₀ ) x
+...  = f (f x y₀) y₁
+```
 
 And this is how `const` turns a monoid into an applicative functor and
 how the monoid of endofunctions define `foldl`.
@@ -190,7 +197,8 @@ lemma free.map_eq_map (f : α → β) (xs : list α) :
   f <$> xs = free.map f xs := rfl
 
 instance (f : α → β) : is_monoid_hom (free.map f) :=
-{ map_mul := λ x y, by simp only [free.map, free_monoid.mul_def, list.map_append, free_add_monoid.add_def],
+{ map_mul := λ x y,
+    by simp only [free.map, free_monoid.mul_def, list.map_append, free_add_monoid.add_def],
   map_one := by simp only [free.map, free_monoid.one_def, list.map, free_add_monoid.zero_def] }
 
 instance fold_foldl (f : β → α → β) :
@@ -205,7 +213,12 @@ lemma foldl.unop_of_free_monoid  (f : β → α → β) (xs : free_monoid α) (a
 instance fold_foldr (f : α → β → β) :
   is_monoid_hom (foldr.of_free_monoid f) :=
 { map_one := rfl,
-  map_mul := by intros; simp only [free_monoid.mul_def, foldr.of_free_monoid, list.foldr_append, flip]; refl }
+  map_mul :=
+    begin
+      intros,
+      simp only [free_monoid.mul_def, foldr.of_free_monoid, list.foldr_append, flip],
+      refl
+    end }
 
 variables (m : Type u → Type u) [monad m] [is_lawful_monad m]
 

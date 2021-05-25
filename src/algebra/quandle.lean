@@ -62,12 +62,14 @@ Use `open_locale quandles` to use these.
 
 ## Todo
 
-* If g is the Lie algebra of a Lie group G, then (x ◃ y) = Ad (exp x) x forms a quandle
-* If X is a symmetric space, then each point has a corresponding involution that acts on X, forming a quandle.
-* Alexander quandle with `a ◃ b = t * b + (1 - t) * b`, with `a` and `b` elements of a module over Z[t,t⁻¹].
-* If G is a group, H a subgroup, and z in H, then there is a quandle `(G/H;z)` defined by
-  `yH ◃ xH = yzy⁻¹xH`.  Every homogeneous quandle (i.e., a quandle Q whose automorphism group acts
-  transitively on Q as a set) is isomorphic to such a quandle.
+* If `g` is the Lie algebra of a Lie group `G`, then `(x ◃ y) = Ad (exp x) x` forms a quandle.
+* If `X` is a symmetric space, then each point has a corresponding involution that acts on `X`,
+  forming a quandle.
+* Alexander quandle with `a ◃ b = t * b + (1 - t) * b`, with `a` and `b` elements
+  of a module over `Z[t,t⁻¹]`.
+* If `G` is a group, `H` a subgroup, and `z` in `H`, then there is a quandle `(G/H;z)` defined by
+  `yH ◃ xH = yzy⁻¹xH`.  Every homogeneous quandle (i.e., a quandle `Q` whose automorphism group acts
+  transitively on `Q` as a set) is isomorphic to such a quandle.
   There is a generalization to this arbitrary quandles in [Joyce's paper (Theorem 7.2)][Joyce1982].
 
 ## Tags
@@ -308,7 +310,7 @@ def conj (G : Type*) := G
 instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
 { act := (λ x, @mul_aut.conj G _ x),
   self_distrib := λ x y z, begin
-    dsimp only [mul_equiv.to_equiv_apply, mul_aut.conj_apply, conj],
+    dsimp only [mul_equiv.coe_to_equiv, mul_aut.conj_apply, conj],
     group,
   end,
   inv_act := (λ x, (@mul_aut.conj G _ x).symm),
@@ -459,7 +461,8 @@ Relations for the enveloping group. This is a type-valued relation because
 is well-defined.  The relation `pre_envel_group_rel` is the `Prop`-valued version,
 which is used to define `envel_group` itself.
 -/
-inductive pre_envel_group_rel' (R : Type u) [rack R] : pre_envel_group R → pre_envel_group R → Type u
+inductive pre_envel_group_rel' (R : Type u) [rack R] :
+  pre_envel_group R → pre_envel_group R → Type u
 | refl {a : pre_envel_group R} : pre_envel_group_rel' a a
 | symm {a b : pre_envel_group R} (hab : pre_envel_group_rel' a b) : pre_envel_group_rel' b a
 | trans {a b c : pre_envel_group R}

@@ -17,7 +17,6 @@ See also `data/set/intervals.lean` for `set.Ico`, modelling intervals in general
 `multiset.Ico` and `finset.Ico` for `n ≤ x < m` as a multiset or as a finset.
 
 @TODO (anyone): Define `Ioo` and `Icc`, state basic lemmas about them.
-@TODO (anyone): Prove that `finset.Ico` and `set.Ico` agree.
 @TODO (anyone): Also do the versions for integers?
 @TODO (anyone): One could generalise even further, defining
 'locally finite partial orders', for which `set.Ico a b` is `[finite]`, and

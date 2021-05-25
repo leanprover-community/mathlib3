@@ -418,8 +418,8 @@ instance : add_comm_monoid (M ⊗[R] N) :=
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance distrib_mul_action' : distrib_mul_action R'' (M ⊗[R] N) :=
-have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+instance distrib_mul_action' : distrib_mul_action R' (M ⊗[R] N) :=
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x

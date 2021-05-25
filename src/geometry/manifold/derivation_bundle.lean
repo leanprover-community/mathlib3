@@ -6,23 +6,47 @@ Authors: Nicolò Cavalleri
 
 import geometry.manifold.algebra.smooth_functions
 import ring_theory.derivation
---import geometry.manifold.temporary_to_be_removed
+
+/-!
+
+# Derivation bundle
+
+In this file we define the derivations at a point of a manifold on the algebra of smooth fuctions.
+Moreover we define the total bundle of derivation (although at the moment it has not been given a
+topology). Finally we define the differential of a function in terms of derivations.
+
+The content of this file is not meant to be regarded as an alternative definition to the current
+tangent bundle but rather as a purely algebraic theory that provides a purely algebraic definition
+of the Lie algebra for a Lie group.
+
+-/
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+(M : Type*) [topological_space M] [charted_space H M]
 
 open_locale manifold
 
+namespace instances
+def smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := infer_instance
+attribute [instance, priority 10000] smooth_functions_algebra
+def tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := infer_instance
+attribute [instance, priority 10000] tower
+def sizeof : has_sizeof (derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^⊤⟮I, M; 𝕜⟯) := infer_instance
+attribute [instance, priority 100000] sizeof
+end instances
+
 namespace point_derivation
 
+/-- The scalar multiplication depends on the point `x : M`. -/
 def has_scalar (x : M) : has_scalar C^∞⟮I, M; 𝕜⟯ 𝕜 :=
 { smul := λ f k, f x * k }
 
 lemma scalar_def {x : M} {f : C^∞⟮I, M; 𝕜⟯} {k : 𝕜} :
   @has_scalar.smul C^∞⟮I, M; 𝕜⟯ 𝕜 (has_scalar I M x) f k = f x * k := rfl
 
+/-- The scalar multiplication defined above gives rise to a module structure. -/
 def module (x : M) : module C^∞⟮I, M; 𝕜⟯ 𝕜 :=
 { one_smul := λ k, one_mul k,
   mul_smul := λ f g k, mul_assoc _ _ _,
@@ -32,30 +56,30 @@ def module (x : M) : module C^∞⟮I, M; 𝕜⟯ 𝕜 :=
   zero_smul := λ f, zero_mul _,
   ..point_derivation.has_scalar I M x }
 
-def is_scalar_tower (x : M) :
+lemma is_scalar_tower (x : M) :
   @is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ 𝕜 _ (has_scalar I M x) _ :=
 { smul_assoc := λ k f h, by { simp only [scalar_def, algebra.id.smul_eq_mul,
     smooth_map.coe_smul, pi.smul_apply, mul_assoc]} }
 
 end point_derivation
 
+/-- The derivations at a point of a manifold. Some regard this as a possible definition of the
+tangent space -/
 @[reducible] def point_derivation (x : M) :=
   @derivation 𝕜 C^∞⟮I, M; 𝕜⟯ _ _ _ 𝕜 _ (point_derivation.module I M x) _
     (point_derivation.is_scalar_tower I M x)
 
-def tangent_bundle_derivation := Σ x : M, point_derivation I M x
-
-/-instance : has_add (tangent_bundle_derivation I M) :=
-{ add := λ v w, sigma.mk v.1 (v.2 + w.2) }-/
+/-- The total bundle of point derivations. -/
+def derivation_bundle := Σ x : M, point_derivation I M x
 
 variables {I M}
 
-def tangent_space_inclusion {x : M} (v : point_derivation I M x) : tangent_bundle_derivation I M :=
+/-- The inclusion map of derivations at a point into the total bundle. -/
+def derivation_inclusion {x : M} (v : point_derivation I M x) : derivation_bundle I M :=
 sigma.mk x v
 
-/- Something weird is happening. Does not find the instance of smooth manifolds with corners.
-Moreover if I define it as a reducible def .eval does not work... It also takes very long time to
-typecheck -/
+instance [inhabited M] : inhabited (derivation_bundle I M) :=
+⟨derivation_inclusion (0 : point_derivation I M (default M))⟩
 
 section
 
@@ -80,59 +104,47 @@ end
 
 section
 
-/-
-(X : @derivation 𝕜 C^∞⟮I, M; 𝕜⟯ _
-  (@comm_ring.to_comm_semiring C^∞⟮I, M; 𝕜⟯ smooth_map_comm_ring) times_cont_mdiff_map.algebra C^∞⟮I, M; 𝕜⟯ _
-  (semiring.to_module) (smooth_map_module) _)
-
-  (X Y :
-  @derivation 𝕜
-  C^∞⟮I, M; 𝕜⟯
-  (@comm_ring.to_comm_semiring 𝕜 (@semi_normed_comm_ring.to_comm_ring 𝕜 (@normed_comm_ring.to_semi_normed_comm_ring 𝕜 (@normed_field.to_normed_comm_ring 𝕜 (@nondiscrete_normed_field.to_normed_field 𝕜 _inst_1)))))
-  (@comm_ring.to_comm_semiring C^∞⟮I, M; 𝕜⟯ smooth_map_comm_ring)
-  times_cont_mdiff_map.algebra
-  C^∞⟮I, M; 𝕜⟯
-  (@add_comm_group.to_cancel_add_comm_monoid C^⊤⟮I, M; 𝓘(𝕜, 𝕜), 𝕜⟯ _)
-  (semiring.to_module)
-  (smooth_map_module)
-  (_root_.is_scalar_tower.right))
--/
-
-/-#check is_scalar_tower.right
-
-set_option trace.class_instances true-/
-
-variables {I} {M} (X Y : derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^⊤⟮I, M; 𝓘(𝕜, 𝕜), 𝕜⟯)
+variables {I} {M} (X Y : derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^⊤⟮I, M; 𝕜⟯)
   (f g : C^∞⟮I, M; 𝕜⟯) (r : 𝕜)
 
-set_option trace.class_instances false
+namespace derivation
 
-def derivation.eval (x : M) : point_derivation I M x :=
+/-- Evaluation of a global derivation at a point, giving a point derivation in the most natural
+possible way. -/
+def eval_map (x : M) : point_derivation I M x :=
 { to_fun := λ f, (X f) x,
   map_add' := λ f g, by { rw derivation.map_add, refl },
   map_smul' := λ f g, by { rw [derivation.map_smul, algebra.id.smul_eq_mul], refl },
   leibniz' := λ h k, by { dsimp only [], rw [derivation.leibniz, algebra.id.smul_eq_mul], refl } }
 
-@[simp] lemma eval_apply (x : M) : X.eval x f = (X f) x := rfl
+/-- The evaluation is a linear map. -/
+def eval_at (x : M) : (derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^⊤⟮I, M; 𝕜⟯) →ₗ[𝕜] point_derivation I M x :=
+{ to_fun := λ X, X.eval_map x,
+  map_add' := λ X Y, rfl,
+  map_smul' := λ k X, rfl }
 
-@[simp] lemma eval_add (x : M) :
-  (X + Y).eval x = X.eval x + Y.eval x :=
-by ext f; simp only [derivation.add_apply, eval_apply, smooth_map.coe_add, pi.add_apply]
+lemma eval_apply (x : M) : eval_at x X f = (X f) x := rfl
 
-/- to be moved -/
-@[simp] lemma ring_commutator.apply {α : Type*} {R : Type*} [ring R] (f g : α → R) (a : α) :
-  ⁅f, g⁆ a = ⁅f a, g a⁆ := rfl
+end derivation
 
 variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
+{M' : Type*} [topological_space M'] [charted_space H' M']
 
-def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I M x) :
+/-- The differential of a function interpreted in the context of derivations. -/
+def fdifferential_map (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I M x) :
   (point_derivation I' M' (f x)) :=
 { to_fun := λ g, v (g.comp f),
   map_add' := λ g h, by rw [smooth_map.add_comp, derivation.map_add],
   map_smul' := λ k g, by rw [smooth_map.smul_comp, derivation.map_smul],
-  leibniz' := λ g h, by {simp only [derivation.leibniz, smooth_map.mul_comp], refl} } /-TODO: change it so that it is a linear map -/
+  leibniz' := λ g h, by {simp only [derivation.leibniz, smooth_map.mul_comp], refl} }
+
+/-- The differential is a linear map. -/
+def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) : (point_derivation I M x) →ₗ[𝕜]
+  (point_derivation I' M' (f x)) :=
+{ to_fun := fdifferential_map f x,
+  map_smul' := λ k v, rfl,
+  map_add' := λ v w, rfl }
 
 localized "notation `fd` := fdifferential" in manifold
 
@@ -142,7 +154,7 @@ lemma apply_fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_deriv
 
 variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
-{M'' : Type*} [topological_space M''] [charted_space H'' M''] [smooth_manifold_with_corners I'' M'']
+{M'' : Type*} [topological_space M''] [charted_space H'' M'']
 
 @[simp] lemma fdifferential_comp (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
   (fd g (f x)) ∘ (fd f x) = fd (g.comp f) x :=

@@ -73,10 +73,10 @@ by { cases X, cases Y, congr', exact derivation.coe_injective h }
 @[ext] theorem ext (h : ∀ f, X f = Y f) : X = Y :=
 coe_injective $ funext h
 
+variables (X Y f)
+
 @[simp] lemma coe_lift_eq_coe :
   ⇑(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = (X : C^∞⟮I, G; 𝕜⟯ → C^∞⟮I, G; 𝕜⟯) := rfl
-
-variables (X Y f)
 
 lemma left_invariant' : (fd (Lb I G g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f =
   derivation.eval_at g ↑X f := by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
@@ -156,11 +156,9 @@ by ext h; rw [times_cont_mdiff_map.comp_apply, Lb_apply, ←eval_at_apply, eval_
 instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivation I G) :=
 { bracket := λ X Y, ⟨⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆, λ f g, begin
     have hX := left_invariant' g X (Y f), have hY := left_invariant' g Y (X f),
-    simp only [apply_fdifferential, derivation.eval_apply,
-      coe_lift_eq_coe, comp_Lb] at hX hY,
-    simp only [apply_fdifferential, derivation.eval_apply,
-      derivation.commutator_apply, coe_lift_eq_coe,
-      smooth_map.coe_sub, pi.sub_apply, hX, hY, comp_Lb], end⟩ }
+    rw [apply_fdifferential, derivation.eval_apply] at hX hY ⊢, rw [comp_Lb] at hX hY,
+    rw [derivation.commutator_apply, smooth_map.coe_sub, pi.sub_apply, coe_lift_eq_coe],
+    rw [coe_lift_eq_coe] at hX hY ⊢, rw [hX, hY], refl end⟩ }
 
 @[simp] lemma commutator_coe_derivation :
   ⇑⁅X, Y⁆ = (⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆ :

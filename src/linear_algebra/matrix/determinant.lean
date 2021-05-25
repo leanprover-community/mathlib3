@@ -166,6 +166,26 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
 
+/-- On square matrices, `mul_comm` applies under `det`. -/
+lemma det_mul_comm (M N : matrix m m R) : det (M ⬝ N) = det (N ⬝ M) :=
+by rw [det_mul, det_mul, mul_comm]
+
+/-- On square matrices, `mul_left_comm` applies under `det`. -/
+lemma det_mul_left_comm (M N P : matrix m m R) : det (M ⬝ (N ⬝ P)) = det (N ⬝ (M ⬝ P)) :=
+by rw [←matrix.mul_assoc, ←matrix.mul_assoc, det_mul, det_mul_comm M N, ←det_mul]
+
+/-- On square matrices, `mul_right_comm` applies under `det`. -/
+lemma det_mul_right_comm (M N P : matrix m m R) :
+  det (M ⬝ N ⬝ P) = det (M ⬝ P ⬝ N) :=
+by rw [matrix.mul_assoc, matrix.mul_assoc, det_mul, det_mul_comm N P, ←det_mul]
+
+lemma det_units_conj (M : units (matrix m m R)) (N : matrix m m R) :
+  det (↑M ⬝ N ⬝ ↑M⁻¹ : matrix m m R) = det N :=
+by rw [det_mul_right_comm, ←mul_eq_mul, ←mul_eq_mul, units.mul_inv, one_mul]
+
+lemma det_units_conj' (M : units (matrix m m R)) (N : matrix m m R) :
+  det (↑M⁻¹ ⬝ N ⬝ ↑M : matrix m m R) = det N := det_units_conj M⁻¹ N
+
 /-- Transposing a matrix preserves the determinant. -/
 @[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
 begin

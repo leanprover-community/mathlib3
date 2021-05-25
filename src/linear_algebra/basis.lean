@@ -751,11 +751,6 @@ end
 
 end span
 
--- TODO: remove when #7438 is merged
-lemma smul_eq_zero_iff_eq {α} {β} (a : α) {x : β} [group α] [add_monoid β]
-  [distrib_mul_action α β] : a • x = 0 ↔ x = 0 :=
-⟨λ h, by rw [← inv_smul_smul a x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
-
 lemma smul_group_linear_independent
   {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} :
@@ -800,48 +795,38 @@ lemma smul_group_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_m
   v.smul_group w i = (w • v : ι → M) i :=
 mk_apply smul_group_linear_independent smul_group_span_eq_top i
 
--- This is provable with `smul_group_linear_independent` with `G = unit R` after #7438.
-lemma smul_of_is_unit_linear_independent {v : basis ι R M} {w : ι → R}
-  (hw : ∀ i : ι, is_unit (w i)) : linear_independent R (w • v) :=
+-- This lemma cannot be proved with `smul_group_linear_independent` since the action of
+-- `units R` on `R` is not commutative.
+lemma smul_of_is_unit_linear_independent {v : basis ι R M} {w : ι → units R} :
+  linear_independent R (w • v) :=
 begin
   have hw₁' := v.linear_independent,
   rw linear_independent_iff'' at hw₁' ⊢,
   intros s g hgs hsum i,
-  obtain ⟨wi, hwi⟩ := hw i,
-  rw [←wi.mul_left_eq_zero, hwi],
+  rw ← (w i).mul_left_eq_zero,
   refine hw₁' s (λ i, g i • w i) (λ i hi, _) _ i,
   { dsimp only,
     exact (hgs i hi).symm ▸ zero_smul _ _ },
   { rw [← hsum, finset.sum_congr rfl _],
-    intros, erw [pi.smul_apply, smul_assoc] }
+    intros,
+    erw [pi.smul_apply, smul_assoc],
+    refl }
 end
 
 -- This is provable with `smul_group_span_eq_top` with `G = unit R` after #7438.
-lemma smul_of_is_unit_span_eq_top {v : basis ι R M} {w : ι → R}
-  (hw : ∀ i : ι, is_unit (w i)) : submodule.span R (set.range (w • v)) = ⊤ :=
-begin
-  have hw₁' := v.span_eq,
-  rw eq_top_iff,
-  intros j hj,
-  rw ← hw₁' at hj,
-  rw submodule.mem_span at hj ⊢,
-  refine λ p hp, hj p (λ u hu, _),
-  obtain ⟨i, rfl⟩ := hu,
-  obtain ⟨wi, hwi⟩ := hw i,
-  have : ↑wi⁻¹ • w i • v i ∈ p := p.smul_mem ↑wi⁻¹ (hp ⟨i, rfl⟩),
-  rwa [←hwi, units.inv_smul_smul] at this
-end
+lemma smul_of_is_unit_span_eq_top {v : basis ι R M} {w : ι → units R} :
+  submodule.span R (set.range (w • v)) = ⊤ :=
+smul_group_span_eq_top
 
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
 provides the basis corresponding to `w • v`. -/
-def smul_of_is_unit (v : basis ι R M) {w : ι → R} (hw : ∀ i : ι, is_unit (w i)) :
+def smul_of_is_unit (v : basis ι R M) (w : ι → units R) :
   basis ι R M :=
-@basis.mk ι R M (w • v) _ _ _
-  (basis.smul_of_is_unit_linear_independent hw) (basis.smul_of_is_unit_span_eq_top hw)
+@basis.mk ι R M (w • v) _ _ _ smul_of_is_unit_linear_independent smul_of_is_unit_span_eq_top
 
-lemma smul_of_is_unit_apply {v : basis ι R M} {w : ι → R} (hw : ∀ i : ι, is_unit (w i))
-  (i : ι) : v.smul_of_is_unit hw i = w i • v i :=
-mk_apply (smul_of_is_unit_linear_independent hw) (smul_of_is_unit_span_eq_top hw) i
+lemma smul_of_is_unit_apply {v : basis ι R M} {w : ι → units R} (i : ι) :
+  v.smul_of_is_unit w i = w i • v i :=
+mk_apply smul_of_is_unit_linear_independent smul_of_is_unit_span_eq_top i
 
 end basis
 

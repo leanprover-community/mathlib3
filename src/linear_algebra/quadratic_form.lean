@@ -807,17 +807,6 @@ let ⟨v, hv₁, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁⟩
 
 end bilin_form
 
--- TODO: Remove both instances after #7438 is merged
-instance units.distrib_mul_action : distrib_mul_action (units R) R :=
-{ smul := λ r s, (r : R) * s,
-  one_smul := one_mul,
-  mul_smul := λ _ _, mul_assoc _ _,
-  smul_add := λ _ _, mul_add _ _,
-  smul_zero := λ _, mul_zero _ }
-
-instance units.smul_comm_class : smul_comm_class (units R₁) R₁ R₁ :=
-{ smul_comm := λ _, mul_left_comm _ }
-
 namespace quadratic_form
 
 open_locale big_operators
@@ -907,6 +896,7 @@ end
 
 section complex
 
+#check is_unit.unit
 /-- The isometry between a weighted sum of squares on the complex numbers and the
 sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → units ℂ) :
@@ -916,13 +906,13 @@ begin
   { intros i hi,
     exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
   convert (weighted_sum_squares ℂ w).isometry_basis_repr
-    ((pi.basis_fun ℂ ι).smul_of_is_unit (λ i, is_unit_iff_ne_zero.2 (hw' i))),
+    ((pi.basis_fun ℂ ι).smul_of_is_unit (λ i, (is_unit_iff_ne_zero.2 $ hw' i).unit)),
   ext1 v,
   erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
-  have hsum : (∑ (i : ι), v i • (w i : ℂ) ^ - (1 / 2 : ℂ) • (pi.basis_fun ℂ ι) i) j
-    = v j • w j ^ - (1 / 2 : ℂ),
-  { rw [finset.sum_apply, sum_eq_single j, pi.basis_fun_apply,
+  have hsum : (∑ (i : ι), v i • ((is_unit_iff_ne_zero.2 $ hw' i).unit : ℂ) •
+    (pi.basis_fun ℂ ι) i) j = v j • w j ^ - (1 / 2 : ℂ),
+  { rw [finset.sum_apply, sum_eq_single j, pi.basis_fun_apply, is_unit.unit_spec,
         linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_same,
         smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
     intros i _ hij,

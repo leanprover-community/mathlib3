@@ -197,6 +197,10 @@ theorem lower_semicontinuous_iff_is_open :
   lower_semicontinuous f ↔ ∀ y, is_open (f ⁻¹' (Ioi y)) :=
 ⟨λ H y, is_open_iff_mem_nhds.2 (λ x hx, H x y hx), λ H x y y_lt, is_open.mem_nhds (H y) y_lt⟩
 
+lemma lower_semicontinuous.is_open_preimage (hf : lower_semicontinuous f) (y : β) :
+  is_open (f ⁻¹' (Ioi y)) :=
+lower_semicontinuous_iff_is_open.1 hf y
+
 section
 variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
 
@@ -222,16 +226,20 @@ end
 
 section
 variables {ι : Type*} {γ : Type*} [linear_ordered_add_comm_monoid γ]
-[topological_space γ] [order_topology γ] [has_continuous_add γ]
+[topological_space γ] [order_topology γ]
 
-lemma lower_semicontinuous_within_at.add {f g : α → γ}
-  (hf : lower_semicontinuous_within_at f s x) (hg : lower_semicontinuous_within_at g s x) :
+/-- The sum of two lower semicontinuous functions is lower semicontinuous. Formulated with an
+explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
+the lemma uses `[has_continuous_add]`. -/
+lemma lower_semicontinuous_within_at.add' {f g : α → γ}
+  (hf : lower_semicontinuous_within_at f s x) (hg : lower_semicontinuous_within_at g s x)
+  (hcont : continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
   lower_semicontinuous_within_at (λ z, f z + g z) s x :=
 begin
   assume y hy,
-  obtain ⟨u, v, u_open, v_open, xu, xv, h⟩ : ∃ (u v : set γ), is_open u ∧ is_open v ∧
-    f x ∈ u ∧ g x ∈ v ∧ u.prod v ⊆ {p : γ × γ | y < p.fst + p.snd} :=
-  is_open_prod_iff.1 (continuous_add.is_open_preimage _ is_open_Ioi) (f x) (g x) hy,
+  obtain ⟨u, v, u_open, xu, v_open, xv, h⟩ : ∃ (u v : set γ), is_open u ∧ f x ∈ u ∧ is_open v ∧
+    g x ∈ v ∧ u.prod v ⊆ {p : γ × γ | y < p.fst + p.snd} :=
+  mem_nhds_prod_iff'.1 (hcont (is_open_Ioi.mem_nhds hy)),
   by_cases hx₁ : ∃ l, l < f x,
   { obtain ⟨z₁, z₁lt, h₁⟩ : ∃ z₁ < f x, Ioc z₁ (f x) ⊆ u :=
       exists_Ioc_subset_of_mem_nhds (u_open.mem_nhds xu) hx₁,
@@ -282,20 +290,66 @@ begin
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (hx₂ (g z)) } },
 end
 
+/-- The sum of two lower semicontinuous functions is lower semicontinuous. Formulated with an
+explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
+the lemma uses `[has_continuous_add]`. -/
+lemma lower_semicontinuous_at.add' {f g : α → γ}
+  (hf : lower_semicontinuous_at f x) (hg : lower_semicontinuous_at g x)
+  (hcont : continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
+  lower_semicontinuous_at (λ z, f z + g z) x :=
+by { simp_rw [← lower_semicontinuous_within_at_univ_iff] at *, exact hf.add' hg hcont }
+
+/-- The sum of two lower semicontinuous functions is lower semicontinuous. Formulated with an
+explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
+the lemma uses `[has_continuous_add]`. -/
+lemma lower_semicontinuous_on.add' {f g : α → γ}
+  (hf : lower_semicontinuous_on f s) (hg : lower_semicontinuous_on g s)
+  (hcont : ∀ x ∈ s, continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
+  lower_semicontinuous_on (λ z, f z + g z) s :=
+λ x hx, (hf x hx).add' (hg x hx) (hcont x hx)
+
+/-- The sum of two lower semicontinuous functions is lower semicontinuous. Formulated with an
+explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
+the lemma uses `[has_continuous_add]`. -/
+lemma lower_semicontinuous.add' {f g : α → γ}
+  (hf : lower_semicontinuous f) (hg : lower_semicontinuous g)
+  (hcont : ∀ x, continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
+  lower_semicontinuous (λ z, f z + g z) :=
+λ x, (hf x).add' (hg x) (hcont x)
+
+variable [has_continuous_add γ]
+
+/-- The sum of two lower semicontinuous functions is lower semicontinuous. Formulated with
+`[has_continuous_add]`. The primed version of the lemma uses an explicit continuity assumption on
+addition, for application to `ereal`. -/
+lemma lower_semicontinuous_within_at.add {f g : α → γ}
+  (hf : lower_semicontinuous_within_at f s x) (hg : lower_semicontinuous_within_at g s x) :
+  lower_semicontinuous_within_at (λ z, f z + g z) s x :=
+hf.add' hg continuous_add.continuous_at
+
+/-- The sum of two lower semicontinuous functions is lower semicontinuous. Formulated with
+`[has_continuous_add]`. The primed version of the lemma uses an explicit continuity assumption on
+addition, for application to `ereal`. -/
 lemma lower_semicontinuous_at.add {f g : α → γ}
   (hf : lower_semicontinuous_at f x) (hg : lower_semicontinuous_at g x) :
   lower_semicontinuous_at (λ z, f z + g z) x :=
-by { simp_rw [← lower_semicontinuous_within_at_univ_iff] at *, exact hf.add hg }
+hf.add' hg continuous_add.continuous_at
 
+/-- The sum of two lower semicontinuous functions is lower semicontinuous. Formulated with
+`[has_continuous_add]`. The primed version of the lemma uses an explicit continuity assumption on
+addition, for application to `ereal`. -/
 lemma lower_semicontinuous_on.add {f g : α → γ}
   (hf : lower_semicontinuous_on f s) (hg : lower_semicontinuous_on g s) :
   lower_semicontinuous_on (λ z, f z + g z) s :=
-λ x hx, (hf x hx).add (hg x hx)
+hf.add' hg (λ x hx, continuous_add.continuous_at)
 
+/-- The sum of two lower semicontinuous functions is lower semicontinuous. Formulated with
+`[has_continuous_add]`. The primed version of the lemma uses an explicit continuity assumption on
+addition, for application to `ereal`. -/
 lemma lower_semicontinuous.add {f g : α → γ}
   (hf : lower_semicontinuous f) (hg : lower_semicontinuous g) :
   lower_semicontinuous (λ z, f z + g z) :=
-λ x, (hf x).add (hg x)
+hf.add' hg (λ x, continuous_add.continuous_at)
 
 lemma lower_semicontinuous_within_at_sum {f : ι → α → γ} {a : finset ι}
   (ha : ∀ i ∈ a, lower_semicontinuous_within_at (f i) s x) :
@@ -546,6 +600,10 @@ theorem upper_semicontinuous_iff_is_open :
   upper_semicontinuous f ↔ ∀ y, is_open (f ⁻¹' (Iio y)) :=
 ⟨λ H y, is_open_iff_mem_nhds.2 (λ x hx, H x y hx), λ H x y y_lt, is_open.mem_nhds (H y) y_lt⟩
 
+lemma upper_semicontinuous.is_open_preimage (hf : upper_semicontinuous f) (y : β) :
+  is_open (f ⁻¹' (Iio y)) :=
+upper_semicontinuous_iff_is_open.1 hf y
+
 section
 variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
 
@@ -571,27 +629,77 @@ end
 
 section
 variables {ι : Type*} {γ : Type*} [linear_ordered_add_comm_monoid γ]
-[topological_space γ] [order_topology γ] [has_continuous_add γ]
+[topological_space γ] [order_topology γ]
 
+/-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with an
+explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
+the lemma uses `[has_continuous_add]`. -/
+lemma upper_semicontinuous_within_at.add' {f g : α → γ}
+  (hf : upper_semicontinuous_within_at f s x) (hg : upper_semicontinuous_within_at g s x)
+  (hcont : continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
+  upper_semicontinuous_within_at (λ z, f z + g z) s x :=
+@lower_semicontinuous_within_at.add' α _ x s (order_dual γ) _ _ _ _ _ hf hg hcont
+
+/-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with an
+explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
+the lemma uses `[has_continuous_add]`. -/
+lemma upper_semicontinuous_at.add' {f g : α → γ}
+  (hf : upper_semicontinuous_at f x) (hg : upper_semicontinuous_at g x)
+  (hcont : continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
+  upper_semicontinuous_at (λ z, f z + g z) x :=
+by { simp_rw [← upper_semicontinuous_within_at_univ_iff] at *, exact hf.add' hg hcont }
+
+/-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with an
+explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
+the lemma uses `[has_continuous_add]`. -/
+lemma upper_semicontinuous_on.add' {f g : α → γ}
+  (hf : upper_semicontinuous_on f s) (hg : upper_semicontinuous_on g s)
+  (hcont : ∀ x ∈ s, continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
+  upper_semicontinuous_on (λ z, f z + g z) s :=
+λ x hx, (hf x hx).add' (hg x hx) (hcont x hx)
+
+/-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with an
+explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
+the lemma uses `[has_continuous_add]`. -/
+lemma upper_semicontinuous.add' {f g : α → γ}
+  (hf : upper_semicontinuous f) (hg : upper_semicontinuous g)
+  (hcont : ∀ x, continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
+  upper_semicontinuous (λ z, f z + g z) :=
+λ x, (hf x).add' (hg x) (hcont x)
+
+variable [has_continuous_add γ]
+
+/-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with
+`[has_continuous_add]`. The primed version of the lemma uses an explicit continuity assumption on
+addition, for application to `ereal`. -/
 lemma upper_semicontinuous_within_at.add {f g : α → γ}
   (hf : upper_semicontinuous_within_at f s x) (hg : upper_semicontinuous_within_at g s x) :
   upper_semicontinuous_within_at (λ z, f z + g z) s x :=
-@lower_semicontinuous_within_at.add α _ x s (order_dual γ) _ _ _ _ _ _ hf hg
+hf.add' hg continuous_add.continuous_at
 
+/-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with
+`[has_continuous_add]`. The primed version of the lemma uses an explicit continuity assumption on
+addition, for application to `ereal`. -/
 lemma upper_semicontinuous_at.add {f g : α → γ}
   (hf : upper_semicontinuous_at f x) (hg : upper_semicontinuous_at g x) :
   upper_semicontinuous_at (λ z, f z + g z) x :=
-by { simp_rw [← upper_semicontinuous_within_at_univ_iff] at *, exact hf.add hg }
+hf.add' hg continuous_add.continuous_at
 
+/-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with
+`[has_continuous_add]`. The primed version of the lemma uses an explicit continuity assumption on
+addition, for application to `ereal`. -/
 lemma upper_semicontinuous_on.add {f g : α → γ}
   (hf : upper_semicontinuous_on f s) (hg : upper_semicontinuous_on g s) :
   upper_semicontinuous_on (λ z, f z + g z) s :=
-λ x hx, (hf x hx).add (hg x hx)
+hf.add' hg (λ x hx, continuous_add.continuous_at)
 
+/-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with
+`[has_continuous_add]`. The primed version of the lemma uses an explicit continuity assumption on
+addition, for application to `ereal`. -/
 lemma upper_semicontinuous.add {f g : α → γ}
   (hf : upper_semicontinuous f) (hg : upper_semicontinuous g) :
   upper_semicontinuous (λ z, f z + g z) :=
-λ x, (hf x).add (hg x)
+hf.add' hg (λ x, continuous_add.continuous_at)
 
 lemma upper_semicontinuous_within_at_sum {f : ι → α → γ} {a : finset ι}
   (ha : ∀ i ∈ a, upper_semicontinuous_within_at (f i) s x) :

@@ -37,19 +37,19 @@ variables {R : Type u} [ring R] {M : Module.{(max u v)} R}
 
 /-- Modules that have a basis are projective. -/
 -- We transport the corresponding result from `is_projective`.
-lemma projective_of_free {ι : Type*} {v : ι → M} (hv : is_basis R v) : projective M :=
+lemma projective_of_free {ι : Type*} (b : basis ι R M) : projective M :=
 projective.of_iso (Module.of_self_iso _)
-  ((is_projective.iff_projective).mp (is_projective.of_free hv))
+  ((is_projective.iff_projective).mp (is_projective.of_free b))
 
 /-- The category of modules has enough projectives, since every module is a quotient of a free
     module. -/
 instance Module_enough_projectives : enough_projectives (Module.{max u v} R) :=
 { presentation :=
-  λ M, have hb : is_basis R (λ m : M, finsupp.single m (1 : R)) := finsupp.is_basis_single_one,
+  λ M,
   ⟨{ P := Module.of R (M →₀ R),
-    projective := projective_of_free finsupp.is_basis_single_one,
-    f := hb.constr id,
+    projective := projective_of_free finsupp.basis_single_one,
+    f := finsupp.basis_single_one.constr ℕ id,
     epi := (epi_iff_range_eq_top _).mpr
-      (range_eq_top.2 (λ m, ⟨finsupp.single m (1 : R), by simp⟩)) }⟩, }
+      (range_eq_top.2 (λ m, ⟨finsupp.single m (1 : R), by simp [basis.constr]⟩)) }⟩, }
 
 end Module

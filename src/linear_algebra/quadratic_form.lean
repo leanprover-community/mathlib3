@@ -896,7 +896,6 @@ end
 
 section complex
 
-#check is_unit.unit
 /-- The isometry between a weighted sum of squares on the complex numbers and the
 sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → units ℂ) :

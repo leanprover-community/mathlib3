@@ -199,7 +199,7 @@ left.one_le_inv_iff.mpr h
 -/
 
 @[simp, to_additive]
-lemma inv_lt_inv_iff : b⁻¹ < a⁻¹ ↔ a < b :=
+lemma inv_lt_inv_iff : a⁻¹ < b⁻¹ ↔ b < a :=
 by { rw [← mul_lt_mul_iff_left a, ← mul_lt_mul_iff_right b], simp }
 
 /-  Simple application: save the name? Appears as a `norm_num` lemma.

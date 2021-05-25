@@ -200,7 +200,7 @@ lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ 
 by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ hx, lt_trans ih (pow_lt_pow_succ hx)] }
 
 lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
-@inv_lt_inv_iff _ _ (units.mk0 b hb) (units.mk0 a ha)
+@inv_lt_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
 
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 @inv_le_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)

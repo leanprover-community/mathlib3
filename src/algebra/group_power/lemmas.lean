@@ -11,7 +11,6 @@ import data.int.cast
 import data.equiv.basic
 import data.equiv.mul_add
 import deprecated.group
-import algebra.ordered_group
 
 /-!
 # Lemmas about power operations on monoids and groups

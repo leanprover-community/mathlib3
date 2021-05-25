@@ -1775,6 +1775,9 @@ mem_map_of_injective f.2
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
 
+lemma apply_coe_mem_map (f : α ↪ β) (s : finset α) (x : s) : f x ∈ s.map f :=
+mem_map_of_mem f x.prop
+
 @[simp, norm_cast] theorem coe_map (f : α ↪ β) (s : finset α) : (s.map f : set β) = f '' s :=
 set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
 

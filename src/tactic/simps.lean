@@ -344,7 +344,8 @@ Expected type:\n  {raw_expr_type}" },
        "[simps] > Generated raw projection data: \n{(raw_univs, projs)}",
     return (raw_univs, projs)
 
-/-- Parse a rule for `initialize_simps_projections`. It is either `<name>→<name>` or `-<name>`.-/
+/-- Parse a rule for `initialize_simps_projections`. It is either `<name>→<name>` or `-<name>`,
+  possibly following by `as_prefix`.-/
 meta def simps_parse_rule : parser projection_rule :=
 prod.mk <$>
   ((λ x y, inl (x, y)) <$> ident <*> (tk "->" >> ident) <|> inr <$> (tk "-" >> ident)) <*>
@@ -457,20 +458,18 @@ def lemmas_only : simps_cfg := {attrs := []}
 
   Example 1: ``simps_get_projection_exprs env `(α × β) `(⟨x, y⟩)`` will give the output
   ```
-    [(`(x), `(@prod.fst.{u v} α β), `fst, [0], tt),
-     (`(y), `(@prod.snd.{u v} α β), `snd, [1], tt)]
+    [(`(x), `fst, `(@prod.fst.{u v} α β), [0], tt, ff),
+     (`(y), `snd, `(@prod.snd.{u v} α β), [1], tt, ff)]
   ```
 
   Example 2: ``simps_get_projection_exprs env `(α ≃ α) `(⟨id, id, λ _, rfl, λ _, rfl⟩)``
   will give the output
   ```
-    [(`(id), `(@equiv.to_fun.{u u} α α), `apply, [0], tt),
-     (`(id), `(@equiv.inv_fun.{u u} α α), `symm_apply, [1], tt),
+    [(`(id), `apply, `(coe), [0], tt, ff),
+     (`(id), `symm_apply, `(λ f, ⇑f.symm), [1], tt, ff),
      ...,
      ...]
   ```
-  The last two fields of the list correspond to the propositional fields of the structure,
-  and are rarely/never used.
 -/
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) (cfg : simps_cfg) : tactic $ list $ expr × projection_data := do
@@ -486,7 +485,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
       { expr := (proj.expr.instantiate_univ_params univs).instantiate_lambdas_or_apps params,
         proj_nrs := proj.proj_nrs.tail,
         .. proj }),
-  return  new_proj_data
+  return new_proj_data
 
 /-- Add a lemma with `nm` stating that `lhs = rhs`. `type` is the type of both `lhs` and `rhs`,
   `args` is the list of local constants occurring, and `univs` is the list of universe variables.

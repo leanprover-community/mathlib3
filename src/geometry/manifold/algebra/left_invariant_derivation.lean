@@ -12,7 +12,7 @@ import ring_theory.derivation
 # Left invariant derivations
 
 In this file we define the concept of left invariant derivation for a Lie group. The concept is the
-analogous of the more classical conept of left invariant vector fields, and this analogy "commutes"
+analogous to the more classical concept of left invariant vector fields, and this analogy "commutes"
 with the isomorphism between global derivations and left invariant vector fields.
 
 Moreover we prove that `left_invariant_derivation I G` has the structure of a Lie algebra, hence
@@ -44,8 +44,12 @@ lemma Lb_apply_one : (Lb I G g) 1 = g := by rw [Lb_apply, mul_one]
 
 variable (G)
 
-/--  A global derivation is left invatiant if it can be reconstructed by knowing its value at the
-identity. -/
+/--
+Left-invariant global derivations.
+
+A global derivation is left-invariant if it is equal to its pullback along left multiplication by
+an arbitrary element of `G`.
+-/
 structure left_invariant_derivation extends derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯ :=
 (left_invariant'' : ∀ f g, (fd (Lb I G g)) (1 : G) (derivation.eval_at (1 : G) to_derivation) f =
   derivation.eval_at g to_derivation f)
@@ -97,8 +101,9 @@ instance : has_neg (left_invariant_derivation I G) :=
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
 @[simp] lemma coe_neg : ⇑(-X) = -X := rfl
-@[simp] lemma lift_add : (↑(X + Y) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = X + Y := rfl
-@[simp] lemma lift_zero :
+@[simp, norm_cast] lemma lift_add :
+  (↑(X + Y) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = X + Y := rfl
+@[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 @[simp] lemma map_add : X (f + f') = X f + X f' := is_add_hom.map_add X f f'
 @[simp] lemma map_zero : X 0 = 0 := is_add_monoid_hom.map_zero X

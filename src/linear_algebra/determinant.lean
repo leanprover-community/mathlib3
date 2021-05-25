@@ -108,7 +108,7 @@ lemma det_to_matrix_eq_det_to_matrix [decidable_eq κ]
   det (linear_map.to_matrix b b f) = det (linear_map.to_matrix c c f) :=
 by rw [← linear_map_to_matrix_mul_basis_to_matrix c b c,
        ← basis_to_matrix_mul_linear_map_to_matrix b c b,
-       matrix.det_conjugate]; rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
+       matrix.det_conj]; rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
 /-- The determinant of an endomorphism given a basis.
 

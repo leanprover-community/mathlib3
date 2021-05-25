@@ -650,6 +650,16 @@ namespace nnreal
 
 open_locale nnreal
 
+lemma tsum_eq_to_nnreal_tsum {f : β → ℝ≥0} :
+  (∑' b, f b) = (∑' b, (f b : ℝ≥0∞)).to_nnreal :=
+begin
+  by_cases h : summable f,
+  { rw [← ennreal.coe_tsum h, ennreal.to_nnreal_coe] },
+  { have A := tsum_eq_zero_of_not_summable h,
+    simp only [← ennreal.tsum_coe_ne_top_iff_summable, not_not] at h,
+    simp only [h, ennreal.top_to_nnreal, A] }
+end
+
 /-- Comparison test of convergence of `ℝ≥0`-valued series. -/
 lemma exists_le_has_sum_of_le {f g : β → ℝ≥0} {r : ℝ≥0}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
@@ -764,7 +774,7 @@ has_sum_lt h hi (summable_of_le h hg).has_sum hg.has_sum
   ∑' n, f n < ∑' n, g n :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hg
 
-lemma tsum_pos {g : α → ℝ≥0} {i : α} (hg : summable g) {hi : 0 < g i} :
+lemma tsum_pos {g : α → ℝ≥0} (hg : summable g) (i : α) (hi : 0 < g i) :
   0 < ∑' b, g b :=
 by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 

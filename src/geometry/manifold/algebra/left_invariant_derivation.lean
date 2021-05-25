@@ -86,22 +86,17 @@ instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,
 
 instance : inhabited (left_invariant_derivation I G) := ⟨0⟩
 
-instance : add_comm_group (left_invariant_derivation I G) :=
-{ add := λ X Y, ⟨X + Y, λ f g, by {simp only [linear_map.map_add,
-          derivation.coe_add, left_invariant', pi.add_apply] } ⟩,
-  neg := λ X, ⟨-X, λ f g, by { simp only [linear_map.map_neg, derivation.coe_neg,
-          left_invariant', pi.neg_apply] }⟩,
-  add_assoc := λ X Y Z, ext $ λ a, add_assoc _ _ _,
-  zero_add := λ X, ext $ λ a, zero_add _,
-  add_zero := λ X, ext $ λ a, add_zero _,
-  add_comm := λ X Y, ext $ λ a, add_comm _ _,
-  add_left_neg := λ X, ext $ λ a, add_left_neg _,
-  ..left_invariant_derivation.has_zero }
+instance : has_add (left_invariant_derivation I G) :=
+{ add := λ X Y, ⟨X + Y, λ f g, by simp only [linear_map.map_add,
+          derivation.coe_add, left_invariant', pi.add_apply]⟩ }
+
+instance : has_neg (left_invariant_derivation I G) :=
+{ neg := λ X, ⟨-X, λ f g, by simp only [linear_map.map_neg, derivation.coe_neg,
+          left_invariant', pi.neg_apply]⟩ }
 
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
 @[simp] lemma coe_neg : ⇑(-X) = -X := rfl
-@[simp] lemma coe_sub : ⇑(X - Y) = X - Y := by simp only [sub_eq_add_neg, coe_add, coe_neg]
 @[simp] lemma lift_add : (↑(X + Y) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = X + Y := rfl
 @[simp] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
@@ -109,6 +104,18 @@ instance : add_comm_group (left_invariant_derivation I G) :=
 @[simp] lemma map_zero : X 0 = 0 := is_add_monoid_hom.map_zero X
 @[simp] lemma map_neg : X (-f) = -X f := linear_map.map_neg X f
 @[simp] lemma map_sub : X (f - f') = X f - X f' := linear_map.map_sub X f f'
+
+instance : add_comm_group (left_invariant_derivation I G) :=
+{ add_assoc := λ X Y Z, by { ext1 f, simp only [coe_add], rw add_assoc ⇑X Y Z },
+  zero_add := λ X, by { ext1 f, simp only [coe_add, coe_zero], rw zero_add ⇑X },
+  add_zero := λ X,by { ext1 f, simp only [coe_add, coe_zero], rw add_zero ⇑X },
+  add_comm := λ X Y, by { ext1 f, simp only [coe_add], rw add_comm ⇑X Y },
+  add_left_neg := λ X, by { ext1 f, simp only [coe_add, coe_neg, coe_zero], rw add_left_neg ⇑X },
+  ..left_invariant_derivation.has_zero,
+  ..left_invariant_derivation.has_add,
+  ..left_invariant_derivation.has_neg }
+
+@[simp] lemma coe_sub : ⇑(X - Y) = X - Y := by simp only [sub_eq_add_neg, coe_add, coe_neg]
 
 instance : module 𝕜 (left_invariant_derivation I G) :=
 module.of_core $
@@ -156,8 +163,8 @@ instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivatio
       smooth_map.coe_sub, pi.sub_apply, hX, hY, comp_Lb], end⟩ }
 
 @[simp] lemma commutator_coe_derivation :
-  ⇑⁅X, Y⁆ =
-  (⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆ : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) := rfl
+  ⇑⁅X, Y⁆ = (⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆ :
+  derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) := rfl
 
 lemma commutator_apply : ⁅X, Y⁆ f = X (Y f) - Y (X f) := rfl
 

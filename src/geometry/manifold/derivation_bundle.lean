@@ -12,7 +12,7 @@ import ring_theory.derivation
 # Derivation bundle
 
 In this file we define the derivations at a point of a manifold on the algebra of smooth fuctions.
-Moreover we define the total bundle of derivation (although at the moment it has not been given a
+Moreover we define the total bundle of derivations (although at the moment it has not been given a
 topology). Finally we define the differential of a function in terms of derivations.
 
 The content of this file is not meant to be regarded as an alternative definition to the current

@@ -813,7 +813,6 @@ begin
     refl }
 end
 
--- This is provable with `smul_group_span_eq_top` with `G = unit R` after #7438.
 lemma smul_of_is_unit_span_eq_top {v : basis ι R M} {w : ι → units R} :
   submodule.span R (set.range (w • v)) = ⊤ :=
 smul_group_span_eq_top

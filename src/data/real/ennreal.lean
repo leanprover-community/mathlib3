@@ -83,6 +83,10 @@ def ennreal := with_top ℝ≥0
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
+instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
+{ .. ennreal.canonically_ordered_comm_semiring,
+  .. ennreal.complete_linear_order }
+
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
 
@@ -335,7 +339,8 @@ by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 lemma pow_eq_top : ∀ n:ℕ, a^n=∞ → a=∞
 | 0 := by simp
-| (n+1) := λ o, (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left
+| (n+1) := λ o, by { rw pow_succ at o,
+                     exact (mul_eq_top.1 o).elim (λ h, pow_eq_top n h.2) and.left }
 
 lemma pow_ne_top (h : a ≠ ∞) {n:ℕ} : a^n ≠ ∞ :=
 mt (pow_eq_top n) h
@@ -457,7 +462,7 @@ with_top.lt_iff_exists_coe_btwn
 
 lemma lt_iff_exists_add_pos_lt : a < b ↔ (∃ r : ℝ≥0, 0 < r ∧ a + r < b) :=
 begin
-  refine ⟨λ hab, _, λ ⟨r, rpos, hr⟩, lt_of_le_of_lt (le_add_right (le_refl _)) hr⟩,
+  refine ⟨λ hab, _, λ ⟨r, rpos, hr⟩, lt_of_le_of_lt (le_self_add) hr⟩,
   cases a, { simpa using hab },
   rcases lt_iff_exists_real_btwn.1 hab with ⟨c, c_nonneg, ac, cb⟩,
   let d : ℝ≥0 := ⟨c, c_nonneg⟩,
@@ -700,7 +705,7 @@ begin
 end
 
 lemma sub_le_self (a b : ℝ≥0∞) : a - b ≤ a :=
-ennreal.sub_le_iff_le_add.2 $ le_add_right (le_refl a)
+ennreal.sub_le_iff_le_add.2 $ le_self_add
 
 @[simp] lemma sub_zero : a - 0 = a :=
 eq.trans (add_zero (a - 0)).symm $ by simp
@@ -1133,7 +1138,7 @@ begin
   exact sub_eq_of_add_eq (mul_ne_top coe_ne_top $ by simp) (add_halves a)
 end
 
-lemma one_sub_inv_two : (1:ℝ≥0∞) - 2⁻¹ = 2⁻¹ :=
+@[simp] lemma one_sub_inv_two : (1:ℝ≥0∞) - 2⁻¹ = 2⁻¹ :=
 by simpa only [div_eq_mul_inv, one_mul] using sub_half one_ne_top
 
 lemma exists_inv_nat_lt {a : ℝ≥0∞} (h : a ≠ 0) :

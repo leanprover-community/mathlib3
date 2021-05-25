@@ -226,7 +226,7 @@ begin
                ∩ (⋂x y, {f : Cb α β | f (x, y) ≤ max_var α β}) :=
     begin ext, unfold candidates_b, unfold candidates, simp [-sum.forall], refl end,
   rw this,
-  repeat { apply is_closed_inter _ _
+  repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _
        <|> apply I1 _ _
        <|> apply I2 _ _
@@ -309,7 +309,9 @@ begin
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
-        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _)
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
+        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
       end,
     exact le_trans A B },
   { have A : (⨅ x, candidates_b_dist α β (inl x, inr y)) ≤
@@ -321,6 +323,8 @@ begin
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _)
       end,
     exact le_trans A B },

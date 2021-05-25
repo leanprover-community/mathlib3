@@ -121,6 +121,8 @@ meta def work_on_goal : parse small_nat → itactic → tactic unit
 /--
 `swap n` will move the `n`th goal to the front.
 `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+See also `tactic.interactive.rotate`, which moves the first `n` goals to the back.
 -/
 meta def swap (n := 2) : tactic unit :=
 do gs ← get_goals,
@@ -135,7 +137,11 @@ add_tactic_doc
   decl_names := [`tactic.interactive.swap],
   tags       := ["goal management"] }
 
-/-- `rotate` moves the first goal to the back. `rotate n` will do this `n` times. -/
+/--
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.
+
+See also `tactic.interactive.swap`, which moves the `n`th goal to the front.
+-/
 meta def rotate (n := 1) : tactic unit := tactic.rotate n
 
 add_tactic_doc
@@ -328,7 +334,7 @@ literals. It creates a goal for each missing field and tags it with the name of 
 field so that `have_field` can be used to generically refer to the field currently
 being refined.
 
-As an example, we can use `refine_struct` to automate the construction semigroup
+As an example, we can use `refine_struct` to automate the construction of semigroup
 instances:
 
 ```lean

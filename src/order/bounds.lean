@@ -413,26 +413,34 @@ lemma lower_bounds_Ico (h : a < b) : lower_bounds (Ico a b) = Iic a :=
 
 section
 
-variables [linear_order γ] [densely_ordered γ]
+variables [semilattice_sup γ] [densely_ordered γ]
 
-lemma is_glb_Ioo {a b : γ} (hab : a < b) : is_glb (Ioo a b) a :=
+lemma is_glb_Ioo {a b : γ} (h : a < b) :
+  is_glb (Ioo a b) a :=
+⟨λ x hx, hx.1.le, λ x hx,
 begin
-  refine ⟨λx hx, le_of_lt hx.1, λy hy, le_of_not_lt $ λ h, _⟩,
-  have : a < min b y, by { rw lt_min_iff, exact ⟨hab, h⟩ },
-  rcases exists_between this with ⟨z, az, zy⟩,
-  rw lt_min_iff at zy,
-  exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, zy.1⟩) zy.2)
-end
+  cases eq_or_lt_of_le (le_sup_right : a ≤ x ⊔ a) with h₁ h₂,
+  { exact h₁.symm ▸ le_sup_left },
+  obtain ⟨y, lty, ylt⟩ := exists_between h₂,
+  apply (not_lt_of_le (sup_le (hx ⟨lty, ylt.trans_le (sup_le _ h.le)⟩) lty.le) ylt).elim,
+  obtain ⟨u, au, ub⟩ := exists_between h,
+  apply (hx ⟨au, ub⟩).trans ub.le,
+end⟩
 
 lemma lower_bounds_Ioo {a b : γ} (hab : a < b) : lower_bounds (Ioo a b) = Iic a :=
 (is_glb_Ioo hab).lower_bounds_eq
 
 lemma is_glb_Ioc {a b : γ} (hab : a < b) : is_glb (Ioc a b) a :=
-(is_glb_Ioo hab).of_subset_of_superset (is_glb_Icc $ le_of_lt hab)
-  Ioo_subset_Ioc_self Ioc_subset_Icc_self
+(is_glb_Ioo hab).of_subset_of_superset (is_glb_Icc hab.le) Ioo_subset_Ioc_self Ioc_subset_Icc_self
 
 lemma lower_bound_Ioc {a b : γ} (hab : a < b) : lower_bounds (Ioc a b) = Iic a :=
 (is_glb_Ioc hab).lower_bounds_eq
+
+end
+
+section
+
+variables [semilattice_inf γ] [densely_ordered γ]
 
 lemma is_lub_Ioo {a b : γ} (hab : a < b) : is_lub (Ioo a b) b :=
 by simpa only [dual_Ioo] using @is_glb_Ioo (order_dual γ) _ _ b a hab

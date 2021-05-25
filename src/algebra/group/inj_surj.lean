@@ -123,6 +123,16 @@ protected def comm_monoid [comm_monoid M₂] (f : M₁ → M₂) (hf : injective
   comm_monoid M₁ :=
 { .. hf.comm_semigroup f mul, .. hf.monoid f one mul }
 
+/-- A type endowed with `1` and `*` is a cancel commutative monoid,
+if it admits an injective map that preserves `1` and `*` to a cancel commutative monoid. -/
+@[to_additive add_cancel_comm_monoid
+"A type endowed with `0` and `+` is an additive cancel commutative monoid,
+if it admits an injective map that preserves `0` and `+` to an additive cancel commutative monoid."]
+protected def cancel_comm_monoid [cancel_comm_monoid M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) :
+  cancel_comm_monoid M₁ :=
+{ .. hf.left_cancel_semigroup f mul, .. hf.comm_monoid f one mul }
+
 variables [has_inv M₁] [has_div M₁]
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`

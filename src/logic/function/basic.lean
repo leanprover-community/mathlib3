@@ -571,6 +571,10 @@ protected lemma ite_not (P : Prop) [decidable P] (x : α) :
   f (ite P x (f x)) = ite (¬ P) x (f x) :=
 by rw [apply_ite f, h, ite_not]
 
+/-- An involution commutes across an equality. Compare to `function.injective.eq_iff`. -/
+protected lemma eq_iff {x y : α} : f x = y ↔ x = f y :=
+h.injective.eq_iff' (h y)
+
 end involutive
 
 /-- The property of a binary function `f : α → β → γ` being injective.
@@ -648,10 +652,5 @@ lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y �
 
 /-- A set of functions "separates points"
 if for each pair of distinct points there is a function taking different values on them. -/
-def separates_points {α β : Type*} (A : set (α → β)) : Prop :=
+def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ ⦃x y : α⦄, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
-
-/-- A set of functions "separates points strongly"
-if for each pair of distinct points there is a function with specified values on them.  -/
-def separates_points_strongly {α β : Type*} (A : set (α → β)) : Prop :=
-∀ (x y : α), x ≠ y → ∀ (a b : β), ∃ f ∈ A, (f x : β) = a ∧ f y = b

@@ -666,6 +666,20 @@ begin
   exact (u_open.measurable_set.inter hs).union ((measurable_zero ht.measurable_set).diff hs)
 end
 
+/-- If a function is continuous on an open set `s`, then it is measurable at the filter `𝓝 x` for
+  all `x ∈ s`. -/
+lemma continuous_on.measurable_at_filter
+  [topological_space α] [opens_measurable_space α] [borel_space E]
+  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : continuous_on f s) :
+  ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
+λ x hx, ⟨s, is_open.mem_nhds hs hx, hf.ae_measurable hs.measurable_set⟩
+
+lemma continuous_at.measurable_at_filter
+  [topological_space α] [opens_measurable_space α] [borel_space E]
+  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : ∀ x ∈ s, continuous_at f x) :
+  ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
+continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
+
 lemma continuous_on.integrable_at_nhds_within
   [topological_space α] [opens_measurable_space α] [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α} {t : set α} {f : α → E}
@@ -786,6 +800,11 @@ begin
   all_goals { assumption }
 end
 
+lemma integral_apply {H : Type*} [normed_group H] [normed_space ℝ H]
+  [second_countable_topology $ H →L[ℝ] E] {φ : α → H →L[ℝ] E} (φ_int : integrable φ μ) (v : H) :
+  (∫ a, φ a ∂μ) v = ∫ a, φ a v ∂μ :=
+((continuous_linear_map.apply ℝ E v).integral_comp_comm φ_int).symm
+
 lemma integral_comp_comm' (L : E →L[ℝ] F) {K} (hL : antilipschitz_with K L) (φ : α → E) :
   ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
 begin
@@ -819,11 +838,11 @@ variables [borel_space E] [second_countable_topology E] [complete_space E]
 @[norm_cast] lemma integral_of_real {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
   {f : α → ℝ} :
   ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm is_R_or_C.of_real_li f
+linear_isometry.integral_comp_comm (@is_R_or_C.of_real_li 𝕜 _) f
 
 lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜] {f : α → 𝕜} :
   ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm is_R_or_C.conj_li f
+linear_isometry.integral_comp_comm (@is_R_or_C.conj_li 𝕜 _) f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

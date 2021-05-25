@@ -41,17 +41,17 @@ lemma is_cau_of_decreasing_bounded (f : ℕ → α) {a : α} {m : ℕ} (ham : �
   (hnm : ∀ n ≥ m, f n.succ ≤ f n) : is_cau_seq abs f :=
 λ ε ε0,
 let ⟨k, hk⟩ := archimedean.arch a ε0 in
-have h : ∃ l, ∀ n ≥ m, a - l •ℕ ε < f n :=
+have h : ∃ l, ∀ n ≥ m, a - l • ε < f n :=
   ⟨k + k + 1, λ n hnm, lt_of_lt_of_le
-    (show a - (k + (k + 1)) •ℕ ε < -abs (f n),
+    (show a - (k + (k + 1)) • ε < -abs (f n),
       from lt_neg.1 $ lt_of_le_of_lt (ham n hnm) (begin
-        rw [neg_sub, lt_sub_iff_add_lt, add_nsmul],
+        rw [neg_sub, lt_sub_iff_add_lt, add_nsmul, add_nsmul, one_nsmul],
         exact add_lt_add_of_le_of_lt hk (lt_of_le_of_lt hk
-          (lt_add_of_pos_left _ ε0)),
+          (lt_add_of_pos_right _ ε0)),
       end))
     (neg_le.2 $ (abs_neg (f n)) ▸ le_abs_self _)⟩,
 let l := nat.find h in
-have hl : ∀ (n : ℕ), n ≥ m → f n > a - l •ℕ ε := nat.find_spec h,
+have hl : ∀ (n : ℕ), n ≥ m → f n > a - l • ε := nat.find_spec h,
 have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
@@ -62,8 +62,8 @@ begin
   assume j hj,
   have hfij : f j ≤ f i := forall_ge_le_of_forall_le_succ f hnm _ hi.1 hj,
   rw [abs_of_nonpos (sub_nonpos.2 hfij), neg_sub, sub_lt_iff_lt_add'],
-  exact calc f i ≤ a - (nat.pred l) •ℕ ε : hi.2
-    ... = a - l •ℕ ε + ε :
+  exact calc f i ≤ a - (nat.pred l) • ε : hi.2
+    ... = a - l • ε + ε :
       by conv {to_rhs, rw [← nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hl0), succ_nsmul',
         sub_add, add_sub_cancel] }
     ... < f j + ε : add_lt_add_right (hl j (le_trans hi.1 hj)) _
@@ -607,20 +607,20 @@ by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
 lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_zero]
 
-lemma cosh_square : cosh x ^ 2 = sinh x ^ 2 + 1 :=
+lemma cosh_sq : cosh x ^ 2 = sinh x ^ 2 + 1 :=
 begin
   rw ← cosh_sq_sub_sinh_sq x,
   ring
 end
 
-lemma sinh_square : sinh x ^ 2 = cosh x ^ 2 - 1 :=
+lemma sinh_sq : sinh x ^ 2 = cosh x ^ 2 - 1 :=
 begin
   rw ← cosh_sq_sub_sinh_sq x,
   ring
 end
 
 lemma cosh_two_mul : cosh (2 * x) = cosh x ^ 2 + sinh x ^ 2 :=
-by rw [two_mul, cosh_add, pow_two, pow_two]
+by rw [two_mul, cosh_add, sq, sq]
 
 lemma sinh_two_mul : sinh (2 * x) = 2 * sinh x * cosh x :=
 begin
@@ -634,7 +634,7 @@ begin
   rw [← h1, cosh_add x (2 * x)],
   simp only [cosh_two_mul, sinh_two_mul],
   have h2 : sinh x * (2 * sinh x * cosh x) = 2 * cosh x * sinh x ^ 2, by ring,
-  rw [h2, sinh_square],
+  rw [h2, sinh_sq],
   ring
 end
 
@@ -644,7 +644,7 @@ begin
   rw [← h1, sinh_add x (2 * x)],
   simp only [cosh_two_mul, sinh_two_mul],
   have h2 : cosh x * (2 * sinh x * cosh x) = 2 * sinh x * cosh x ^ 2, by ring,
-  rw [h2, cosh_square],
+  rw [h2, cosh_sq],
   ring,
 end
 
@@ -820,7 +820,7 @@ eq.trans
 by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma cos_two_mul' : cos (2 * x) = cos x ^ 2 - sin x ^ 2 :=
-by rw [two_mul, cos_add, ← pow_two, ← pow_two]
+by rw [two_mul, cos_add, ← sq, ← sq]
 
 lemma cos_two_mul : cos (2 * x) = 2 * cos x ^ 2 - 1 :=
 by rw [cos_two_mul', eq_sub_iff_add_eq.2 (sin_sq_add_cos_sq x),
@@ -829,13 +829,13 @@ by rw [cos_two_mul', eq_sub_iff_add_eq.2 (sin_sq_add_cos_sq x),
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
 
-lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+lemma cos_sq : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
 by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div]
 
-lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
+lemma cos_sq' : cos x ^ 2 = 1 - sin x ^ 2 :=
 by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
-lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+lemma sin_sq : sin x ^ 2 = 1 - cos x ^ 2 :=
 by rw [←sin_sq_add_cos_sq x, add_sub_cancel]
 
 lemma inv_one_add_tan_sq {x : ℂ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2 :=
@@ -850,9 +850,9 @@ lemma cos_three_mul : cos (3 * x) = 4 * cos x ^ 3 - 3 * cos x :=
 begin
   have h1 : x + 2 * x = 3 * x, by ring,
   rw [← h1, cos_add x (2 * x)],
-  simp only [cos_two_mul, sin_two_mul, mul_add, mul_sub, mul_one, pow_two],
+  simp only [cos_two_mul, sin_two_mul, mul_add, mul_sub, mul_one, sq],
   have h2 : 4 * cos x ^ 3 = 2 * cos x * cos x * cos x + 2 * cos x * cos x ^ 2, by ring,
-  rw [h2, cos_square'],
+  rw [h2, cos_sq'],
   ring
 end
 
@@ -860,9 +860,9 @@ lemma sin_three_mul : sin (3 * x) = 3 * sin x - 4 * sin x ^ 3 :=
 begin
   have h1 : x + 2 * x = 3 * x, by ring,
   rw [← h1, sin_add x (2 * x)],
-  simp only [cos_two_mul, sin_two_mul, cos_square'],
+  simp only [cos_two_mul, sin_two_mul, cos_sq'],
   have h2 : cos x * (2 * sin x * cos x) = 2 * sin x * cos x ^ 2, by ring,
-  rw [h2, cos_square'],
+  rw [h2, cos_sq'],
   ring
 end
 
@@ -994,16 +994,16 @@ of_real_inj.1 $ by simp
 by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma sin_sq_le_one : sin x ^ 2 ≤ 1 :=
-by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right (pow_two_nonneg _)
+by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right (sq_nonneg _)
 
 lemma cos_sq_le_one : cos x ^ 2 ≤ 1 :=
-by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (pow_two_nonneg _)
+by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (sq_nonneg _)
 
 lemma abs_sin_le_one : abs' (sin x) ≤ 1 :=
-abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, sin_sq_le_one]
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← sq, sin_sq_le_one]
 
 lemma abs_cos_le_one : abs' (cos x) ≤ 1 :=
-abs_le_one_iff_mul_self_le_one.2 $ by simp only [← pow_two, cos_sq_le_one]
+abs_le_one_iff_mul_self_le_one.2 $ by simp only [← sq, cos_sq_le_one]
 
 lemma sin_le_one : sin x ≤ 1 :=
 (abs_le.1 (abs_sin_le_one _)).2
@@ -1026,14 +1026,22 @@ by rw ← of_real_inj; simp [cos_two_mul']
 lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw ← of_real_inj; simp [sin_two_mul]
 
-lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
-of_real_inj.1 $ by simpa using cos_square x
+lemma cos_sq : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
+of_real_inj.1 $ by simpa using cos_sq x
 
-lemma cos_square' : cos x ^ 2 = 1 - sin x ^ 2 :=
+lemma cos_sq' : cos x ^ 2 = 1 - sin x ^ 2 :=
 by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
 
-lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
+lemma sin_sq : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
+
+lemma abs_sin_eq_sqrt_one_sub_cos_sq (x : ℝ) :
+  abs' (sin x) = sqrt (1 - cos x ^ 2) :=
+by rw [← sin_sq, sqrt_sq_eq_abs]
+
+lemma abs_cos_eq_sqrt_one_sub_sin_sq (x : ℝ) :
+  abs' (cos x) = sqrt (1 - sin x ^ 2) :=
+by rw [← cos_sq', sqrt_sq_eq_abs]
 
 lemma inv_one_add_tan_sq {x : ℝ} (hx : cos x ≠ 0) : (1 + tan x ^ 2)⁻¹ = cos x ^ 2  :=
 have complex.cos x ≠ 0, from mt (congr_arg re) hx,
@@ -1045,7 +1053,7 @@ by simp only [← tan_mul_cos hx, mul_pow, ← inv_one_add_tan_sq hx, div_eq_mul
 
 lemma inv_sqrt_one_add_tan_sq {x : ℝ} (hx : 0 < cos x) :
   (sqrt (1 + tan x ^ 2))⁻¹ = cos x :=
-by rw [← sqrt_sqr hx.le, ← sqrt_inv, inv_one_add_tan_sq hx.ne']
+by rw [← sqrt_sq hx.le, ← sqrt_inv, inv_one_add_tan_sq hx.ne']
 
 lemma tan_div_sqrt_one_add_tan_sq {x : ℝ} (hx : 0 < cos x) :
   tan x / sqrt (1 + tan x ^ 2) = sin x :=
@@ -1105,11 +1113,11 @@ by rw ← of_real_inj; simp [sinh_add_cosh]
 lemma cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 by rw ← of_real_inj; simp [cosh_sq_sub_sinh_sq]
 
-lemma cosh_square : cosh x ^ 2 = sinh x ^ 2 + 1 :=
-by rw ← of_real_inj; simp [cosh_square]
+lemma cosh_sq : cosh x ^ 2 = sinh x ^ 2 + 1 :=
+by rw ← of_real_inj; simp [cosh_sq]
 
-lemma sinh_square : sinh x ^ 2 = cosh x ^ 2 - 1 :=
-by rw ← of_real_inj; simp [sinh_square]
+lemma sinh_sq : sinh x ^ 2 = cosh x ^ 2 - 1 :=
+by rw ← of_real_inj; simp [sinh_sq]
 
 lemma cosh_two_mul : cosh (2 * x) = cosh x ^ 2 + sinh x ^ 2 :=
 by rw ← of_real_inj; simp [cosh_two_mul]
@@ -1288,7 +1296,7 @@ calc abs (exp x - 1 - x) = abs (exp x - ∑ m in range 2, x ^ m / m!) :
 ... ≤ (abs x)^2 * (nat.succ 2 * (2! * (2 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... ≤ (abs x)^2 * 1 :
-  mul_le_mul_of_nonneg_left (by norm_num) (pow_two_nonneg (abs x))
+  mul_le_mul_of_nonneg_left (by norm_num) (sq_nonneg (abs x))
 ... = (abs x)^2 :
   by rw [mul_one]
 
@@ -1419,7 +1427,7 @@ calc 0 < (1 - x ^ 2 / 2) - abs' x ^ 4 * (5 / 96) :
           ≤ 1 * (5 / 96) + 1 / 2 :
         add_le_add
           (mul_le_mul_of_nonneg_right (pow_le_one _ (abs_nonneg _) hx) (by norm_num))
-          ((div_le_div_right (by norm_num)).2 (by rw [pow_two, ← abs_mul_self, _root_.abs_mul];
+          ((div_le_div_right (by norm_num)).2 (by rw [sq, ← abs_mul_self, _root_.abs_mul];
             exact mul_le_one hx (abs_nonneg _) hx))
       ... < 1 : by norm_num)
 ... ≤ cos x : sub_le.1 (abs_sub_le_iff.1 (cos_bound hx)).2
@@ -1461,7 +1469,7 @@ calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
 ... = _ : real.cos_two_mul 1
 ... ≤ 2 * (2 / 3) ^ 2 - 1 :
   sub_le_sub_right (mul_le_mul_of_nonneg_left
-    (by rw [pow_two, pow_two]; exact
+    (by rw [sq, sq]; exact
       mul_self_le_mul_self (le_of_lt cos_one_pos)
         cos_one_le)
     (by norm_num)) _
@@ -1473,7 +1481,7 @@ namespace complex
 
 lemma abs_cos_add_sin_mul_I (x : ℝ) : abs (cos x + sin x * I) = 1 :=
 have _ := real.sin_sq_add_cos_sq x,
-by simp [add_comm, abs, norm_sq, pow_two, *, sin_of_real_re, cos_of_real_re, mul_re] at *
+by simp [add_comm, abs, norm_sq, sq, *, sin_of_real_re, cos_of_real_re, mul_re] at *
 
 lemma abs_exp_eq_iff_re_eq {x y : ℂ} : abs (exp x) = abs (exp y) ↔ x.re = y.re :=
 by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y,

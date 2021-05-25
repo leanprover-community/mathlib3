@@ -942,8 +942,7 @@ open topological_space
 variables [t2_space α]
 
 /-- A Hausdorff space with a clopen basis is totally separated. -/
-lemma tot_sep_of_zero_dim [t2_space α]
-  (h : topological_space.is_topological_basis {s : set α | is_clopen s} )
+lemma tot_sep_of_zero_dim (h : topological_space.is_topological_basis {s : set α | is_clopen s} )
     : totally_separated_space α :=
 begin
   constructor,

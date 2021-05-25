@@ -127,6 +127,15 @@ set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union_eq, mem_se
   mul_support f = mul_support (λ x, (f x).1) ∪ mul_support (λ x, (f x).2) :=
 by simp only [← mul_support_prod_mk, prod.mk.eta]
 
+@[to_additive] lemma mul_support_along_fiber_subset (f : α × β → M) (a : α) :
+  mul_support (λ b, f (a, b)) ⊆ (mul_support f).image prod.snd :=
+by tidy
+
+@[simp, to_additive] lemma mul_support_along_fiber_finite_of_finite
+  (f : α × β → M) (a : α) (h : (mul_support f).finite) :
+  (mul_support (λ b, f (a, b))).finite :=
+(h.image prod.snd).subset (mul_support_along_fiber_subset f a)
+
 end has_one
 
 @[to_additive] lemma mul_support_mul [monoid M] (f g : α → M) :

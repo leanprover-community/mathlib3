@@ -385,7 +385,7 @@ iff.trans (by rw one_mul) (mul_le_mul_iff_right a)
 @[simp, to_additive add_le_iff_nonpos_left]
 lemma mul_le_iff_le_one_left'
   [covariant_class N N (function.swap (*)) (≤)] [contravariant_class N N (function.swap (*)) (≤)]
-  {a : N} (b : N) :
+  {a b : N} :
   a * b ≤ b ↔ a ≤ 1 :=
 iff.trans (by rw one_mul) (mul_le_mul_iff_right b)
 
@@ -410,8 +410,7 @@ iff.trans (by rw mul_one) (mul_lt_mul_iff_left a)
 
 @[simp, to_additive add_lt_iff_neg_left]
 lemma mul_lt_iff_lt_one_left'
-  [covariant_class N N (*) (<)] [contravariant_class N N (*) (<)]
-  (a : N) {b : N} :
+  [covariant_class N N (*) (<)] [contravariant_class N N (*) (<)] {a b : N} :
   a * b < a ↔ b < 1 :=
 iff.trans (by rw mul_one) (mul_lt_mul_iff_left a)
 

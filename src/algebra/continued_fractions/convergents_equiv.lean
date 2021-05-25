@@ -375,9 +375,7 @@ begin
               { have : 0 < gp_succ_m.a ∧ 0 < gp_succ_m.b, from
                   s_pos (lt_add_one $ m + 1) s_succ_mth_eq,
                 exact (div_pos this.left this.right) },
-              linarith,
-              exact add_pos t1 t2,
-               } },
+              exact add_pos t1 t2 } },
           { -- the easy case: before the squashed position, nothing changes
             have : g.s.nth m = some gp', by {
               have : g'.s.nth m = g.s.nth m, from squash_gcf_nth_of_lt succ_m_lt_n,

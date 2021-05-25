@@ -1496,11 +1496,11 @@ begin
      refine inter_mem_inf_sets
       (mem_infi_sets (a - ε) $ mem_infi_sets (sub_lt_self a ε0) _)
       (mem_infi_sets (ε + a) $ mem_infi_sets (by simpa) _),
-    exact mem_principal_sets.mp (λ h, sub_lt_iff_lt_add'.mp),
+    refine mem_principal_sets.mp (λ h j, sub_lt.mp (mem_Ioi.mp j)),
     exact mem_principal_sets.mp (λ x, sub_lt_iff_lt_add.mpr) },
   { intros b hb,
-    exact mem_infi_sets (a - b) (mem_infi_sets (sub_pos.2 hb) (λ x h,
-      (sub_sub_cancel _ _).symm.le.trans_lt (sub_lt_iff_add.mpr h.1))) },
+    refine mem_infi_sets (a - b) (mem_infi_sets (sub_pos.2 hb) (λ x h,
+      (sub_sub_cancel _ _).symm.le.trans_lt (sub_lt.mpr h.1))) },
   { intros b hb,
     exact mem_infi_sets (b - a) (mem_infi_sets (sub_pos.2 hb) (by simp [Iio])) }
 end

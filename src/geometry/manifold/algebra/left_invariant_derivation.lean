@@ -139,8 +139,8 @@ lemma left_invariant : (𝒅(𝑳 I g)) (1 : G) (eval_at (1 : G) X) f = eval_at 
 (X.left_invariant'' f g)
 
 lemma eval_at_mul : eval_at (g * h) X f = (𝒅(𝑳 I g)) h (eval_at h X) f :=
-by rw [←left_invariant, L_mul, ←fdifferential_comp, function.comp, apply_fdifferential,
-  left_invariant, ←apply_fdifferential]
+by rw [←left_invariant, L_mul, ←fdifferential_comp, apply_fdifferential, linear_map.comp_apply,
+  apply_fdifferential, left_invariant]
 
 lemma comp_L : (X f).comp (𝑳 I g) = X (f.comp (𝑳 I g)) :=
 by ext h; rw [times_cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_at_mul,

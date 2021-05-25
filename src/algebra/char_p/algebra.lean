@@ -36,8 +36,7 @@ lemma char_p_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring 
     rw is_scalar_tower.algebra_map_apply ℕ R A x,
     refine iff.trans _ h.eq_iff,
     rw ring_hom.map_zero,
-  end
-}
+  end }
 
 /-- If the algebra map `R →+*A` is injective then `A` has the same characteristic as `R`. -/
 lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]

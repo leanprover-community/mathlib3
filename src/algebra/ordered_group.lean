@@ -484,14 +484,14 @@ end ordered_comm_group
 
 --  TODO: convert these lemmas to `mul + [to_additive]`?
 section ordered_add_comm_group
-variables [ordered_add_comm_group α] {a b c d : α}
-
 @[to_additive]
-lemma div_le_div [ordered_comm_group α] (hab : a ≤ b) (hcd : c ≤ d) : a / d ≤ b / c :=
+lemma div_le_div [ordered_comm_group α] {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) : a / d ≤ b / c :=
 begin
   rw [div_eq_mul_inv, div_eq_mul_inv, mul_comm b, mul_inv_le_inv_mul_iff, mul_comm],
   exact mul_le_mul' hab hcd
 end
+
+variables [ordered_add_comm_group α] {a b c d : α}
 
 --lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
 --sub_le_sub hab hcd --simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg_iff.mpr hcd)

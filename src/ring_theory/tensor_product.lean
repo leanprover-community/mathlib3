@@ -160,7 +160,7 @@ linear_equiv.of_linear (uncurry' R A M N P) (lcurry' R A M N P)
   (linear_map.ext $ λ f, linear_map.ext $ λ x, linear_map.ext $ λ y, lift'_tmul f x y)
 
 variables {R A M N P}
-lemma curry'_inj : function.injective (@curry' R A M N P _ _ _ _ _ _ _ _ _ _ _ _ _) :=
+lemma curry'_inj : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
 (lift.equiv' R A M N P).to_equiv.symm.injective
 
 variables (R A M N P)

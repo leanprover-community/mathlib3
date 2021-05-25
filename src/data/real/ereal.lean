@@ -40,9 +40,9 @@ def ereal := with_top (with_bot ℝ)
 
 namespace ereal
 instance : has_coe ℝ ereal := ⟨some ∘ some⟩
-@[simp, norm_cast] protected lemma coe_real_le {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
+@[simp, norm_cast] protected lemma coe_le_coe_iff {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
 by { unfold_coes, norm_num }
-@[simp, norm_cast] protected lemma coe_real_lt {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
+@[simp, norm_cast] protected lemma coe_lt_coe_iff {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
 by { unfold_coes, norm_num }
 @[simp, norm_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
 by { unfold_coes, simp [option.some_inj] }
@@ -50,6 +50,8 @@ by { unfold_coes, simp [option.some_inj] }
 instance : has_zero ereal := ⟨(0 : ℝ)⟩
 instance : inhabited ereal := ⟨0⟩
 
+/-- A way to case on an element of `ereal`, separating the bot, real and top cases.
+A typical invocation looks like `rcases x.cases with rfl|⟨x, rfl⟩|rfl` -/
 protected lemma cases : ∀ (a : ereal), a = ⊥ ∨ (∃ (x : ℝ), a = x) ∨ a = ⊤
 | ⊤ := by simp
 | ⊥ := by simp
@@ -72,7 +74,6 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
 @[simp] lemma coe_lt_top (x : ℝ) : (x : ereal) < ⊤ := with_top.coe_lt_top _
 @[simp] lemma coe_ne_top (x : ℝ) : (x : ereal) ≠ ⊤ := (coe_lt_top x).ne
-
 
 /-! ### Addition -/
 
@@ -102,6 +103,15 @@ end
 
 lemma add_lt_add_left_coe {x y : ereal} (h : x < y) (z : ℝ) : (z : ereal) + x < z + y :=
 by simpa [add_comm] using add_lt_add_right_coe h z
+
+lemma add_lt_add {x y z t : ereal} (h1 : x < y) (h2 : z < t) : x + z < y + t :=
+begin
+  rcases y.cases with rfl|⟨y, rfl⟩|rfl,
+  { exact (lt_irrefl _ (bot_le.trans_lt h1)).elim },
+  { calc x + z ≤ y + z : add_le_add h1.le (le_refl _)
+    ... < y + t : add_lt_add_left_coe h2 _ },
+  { simp [lt_top_iff_ne_top, with_top.add_eq_top, h1.ne, (h2.trans_le le_top).ne] }
+end
 
 /-! ### Negation -/
 
@@ -145,18 +155,18 @@ protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=
 theorem le_neg_of_le_neg {a b : ereal} (h : a ≤ -b) : b ≤ -a :=
 by rwa [←ereal.neg_neg b, ereal.neg_le, ereal.neg_neg]
 
-lemma exists_rat_btwn_of_lt : Π (a : ereal) (b : ereal) (hab : a < b),
+lemma exists_rat_btwn_of_lt : Π {a b : ereal} (hab : a < b),
   ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b
 | ⊤ b h := (not_top_lt h).elim
 | (a : ℝ) ⊥ h := (lt_irrefl _ ((bot_lt_coe a).trans h)).elim
-| (a : ℝ) (b : ℝ) h := by simp [exists_rat_btwn (ereal.coe_real_lt.1 h)]
+| (a : ℝ) (b : ℝ) h := by simp [exists_rat_btwn (ereal.coe_lt_coe_iff.1 h)]
 | (a : ℝ) ⊤ h := let ⟨b, hab⟩ := exists_rat_gt a in ⟨b, by simpa using hab, coe_lt_top _⟩
 | ⊥ ⊥ h := (lt_irrefl _ h).elim
 | ⊥ (a : ℝ) h := let ⟨b, hab⟩ := exists_rat_lt a in ⟨b, bot_lt_coe _, by simpa using hab⟩
 | ⊥ ⊤ h := ⟨0, bot_lt_coe _, coe_lt_top _⟩
 
-lemma lt_iff_exists_rat_btwn (a b : ereal) :
+lemma lt_iff_exists_rat_btwn {a b : ereal} :
   a < b ↔ ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b :=
-⟨λ hab, exists_rat_btwn_of_lt a b hab, λ ⟨x, ax, xb⟩, ax.trans xb⟩
+⟨λ hab, exists_rat_btwn_of_lt hab, λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
 end ereal

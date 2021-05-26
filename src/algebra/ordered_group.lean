@@ -100,7 +100,7 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
 
-section group_le
+section group
 variables [group α]
 
 section typeclasses_left_le
@@ -304,18 +304,18 @@ by simp [div_eq_mul_inv]
 
 end typeclasses_left_right_lt
 
-section pre_order_left
+section pre_order
 variable [preorder α]
 
 section left_le
 variables [covariant_class α α (*) (≤)] {a : α}
 
 @[to_additive]
-lemma inv_le_self (h : 1 ≤ a) : a⁻¹ ≤ a :=
+lemma left.inv_le_self (h : 1 ≤ a) : a⁻¹ ≤ a :=
 le_trans (left.inv_le_one_iff.mpr h) h
 
 @[to_additive]
-lemma self_le_inv (h : a ≤ 1) : a ≤ a⁻¹ :=
+lemma left.self_le_inv (h : a ≤ 1) : a ≤ a⁻¹ :=
 le_trans h (left.one_le_inv_iff.mpr h)
 
 end left_le
@@ -324,14 +324,36 @@ section left_lt
 variables [covariant_class α α (*) (<)] {a : α}
 
 @[to_additive]
-lemma inv_lt_self (h : 1 < a) : a⁻¹ < a :=
+lemma left.inv_lt_self (h : 1 < a) : a⁻¹ < a :=
 (left.inv_lt_one_iff.mpr h).trans h
 
 end left_lt
 
-end pre_order_left
+section right_le
+variables [covariant_class α α (function.swap (*)) (≤)] {a : α}
 
-end group_le
+@[to_additive]
+lemma right.inv_le_self (h : 1 ≤ a) : a⁻¹ ≤ a :=
+le_trans (right.inv_le_one_iff.mpr h) h
+
+@[to_additive]
+lemma right.self_le_inv (h : a ≤ 1) : a ≤ a⁻¹ :=
+le_trans h (right.one_le_inv_iff.mpr h)
+
+end right_le
+
+section right_lt
+variables [covariant_class α α (function.swap (*)) (<)] {a : α}
+
+@[to_additive]
+lemma right.inv_lt_self (h : 1 < a) : a⁻¹ < a :=
+(right.inv_lt_one_iff.mpr h).trans h
+
+end right_lt
+
+end pre_order
+
+end group
 
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c d : α}

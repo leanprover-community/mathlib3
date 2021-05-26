@@ -150,7 +150,7 @@ begin
   exact ⟨a, b, ha, hb, hx⟩,
 end
 
-lemma convex_join_segments {a b c d : E} :
+lemma convex_hull_quadruple {a b c d : E} :
   convex_join (segment a b) (segment c d) = convex_hull {a, b, c, d} :=
 begin
   rw [finite.convex_hull_eq, convex_join_eq_of_nonempty ⟨a, left_mem_segment _ _⟩
@@ -248,6 +248,10 @@ begin
   }-/
 end
 
+lemma convex_hull_triple {a b c : E} :
+  convex_join (segment a b) {c} = convex_hull {a, b, c} :=
+by rw [←pair_eq_singleton, ←convex_hull_quadruple, segment_same, pair_eq_singleton]
+
 lemma convex_convex_join (hA : convex A) (hB : convex B) :
   convex (convex_join A B) :=
 begin
@@ -265,7 +269,7 @@ begin
   obtain ⟨ay, b_y, hay, hby, hy⟩ := hy,
   have h : z ∈ convex_join (segment ax ay) (segment bx b_y),
   { have triv : ({ax, ay, bx, b_y} : set E) = {ax, bx, ay, b_y} := by simp only [set.insert_comm],
-    rw [convex_join_segments, triv, ←convex_join_segments],
+    rw [convex_hull_quadruple, triv, ←convex_hull_quadruple],
     exact segment_subset_convex_join hx hy hz },
   rw convex_join_eq_of_nonempty ⟨ax, left_mem_segment _ _⟩ ⟨bx, left_mem_segment _ _⟩ at h,
   simp only [mem_Union] at h,

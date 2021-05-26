@@ -106,20 +106,25 @@ begin
   intro hQnemp,
   obtain ⟨s, hs, hQcarr⟩ := hQ hQnemp,
   obtain rfl | hsnemp := s.eq_empty_or_nonempty,
-  {
-    use 0,
+  /-{ use 0,
     rw hQcarr,
     apply congr_arg (has_inter.inter ↑P),
-    simp only [finset.not_mem_empty, forall_false_left, continuous_linear_map.zero_apply, forall_const],
-    refine subset.antisymm (λ _ _ _ _, le_refl 0) (λ _ _, _),
+    ext, simp,
+    exact λ _ _, le_rfl },-/
     sorry,
-  },
-  let s' := {l | ∃ lr ∈ s, (lr.1 : E →L[ℝ] ℝ) = l},
-  obtain ⟨l, hl⟩ := hsnemp,
-  have hsnemp' := s'.nonempty,
-  sorry
-  --have := is_exposed.sInter hsnemp',
-  --exact ⟨l.1, hQcarr⟩,
+  refine ⟨-((finset.image prod.fst s).sum id), _⟩,
+  rw [hQcarr, P.eq_Hrepr],
+  refine subset.antisymm (λ x hx, ⟨hx.1, λ y hy, _⟩) (λ x hx, ⟨hx.1, λ la hla, _⟩),
+  { simp only [neg_le_neg_iff, finset.sum_apply, id.def, continuous_linear_map.coe_sum',
+    continuous_linear_map.neg_apply],
+    apply finset.sum_le_sum,
+    rintro l hl,
+    rw finset.mem_image at hl,
+    obtain ⟨la, hla, hl⟩ := hl,
+    rw ←hl,
+    exact (hx.2 la hla).trans (hy la (hs hla)) },
+  have := hx.1 la (hs hla),
+  dsimp at hx,
 end
 
 lemma subset_of_mem_faces {P Q : polyhedron E} (hQ : Q ∈ P.faces) : (Q : set E) ⊆ P :=
@@ -142,6 +147,64 @@ begin
 end
 
 lemma faces_finite (P : polyhedron E) : finite P.faces := sorry
+
+instance face_lattice {P : polyhedron E} : complete_lattice P.faces :=
+{ le := λ ⟨X, hX⟩ ⟨Y, hY⟩, X ∈ Y.faces,
+  le_refl := λ ⟨X, hX⟩, X.self_mem_faces,
+  le_trans := λ ⟨X, hX⟩ ⟨Y, hY⟩ ⟨Z, hZ⟩ hXY hYZ hXnemp, begin
+    obtain ⟨sX, hX⟩ := hXY hXnemp,
+    sorry
+  end,
+  le_antisymm := λ ⟨X, hX⟩ ⟨Y, hY⟩ hXY hYX, polyhedron.ext (subset.antisymm (subset_of_mem_faces hXY)
+    (subset_of_mem_faces hYX)),
+
+  sup := λ ⟨X, hX⟩, if hXnemp : (X : set E) = ∅ then id else (λ ⟨Y, hY⟩, if hYnemp : (Y : set E) = ∅
+    then ⟨X, hX⟩ else begin
+      rw [←ne.def, ne_empty_iff_nonempty] at hXnemp hYnemp,
+      let sX := classical.some (hX hXnemp),
+      have hsX := classical.some (classical.some_spec (hX hXnemp)),
+      have hX := classical.some_spec (classical.some_spec (hX hXnemp)),
+      let sY := classical.some (hY hYnemp),
+      have hsY := classical.some (classical.some_spec (hY hYnemp)),
+      have hY := classical.some_spec (classical.some_spec (hY hYnemp)),
+      --refine ⟨sX ∩ sY, _⟩,
+    --classical,
+  sorry
+  end⟩,
+  le_sup_left := _,
+  le_sup_right := _,≠
+  sup_le := _,
+
+  inf := λ ⟨X, hX⟩, if hXnemp : (X : set E) = ∅ then id else (λ ⟨Y, hY⟩, if hYnemp : (Y : set E) = ∅
+    then ⟨X, hX⟩ else begin
+      rw [←ne.def, ne_empty_iff_nonempty] at hXnemp hYnemp,
+      let sX := classical.some (hX hXnemp),
+      have hsX := classical.some (classical.some_spec (hX hXnemp)),
+      have hX := classical.some_spec (classical.some_spec (hX hXnemp)),
+      let sY := classical.some (hY hYnemp),
+      have hsY := classical.some (classical.some_spec (hY hYnemp)),
+      have hY := classical.some_spec (classical.some_spec (hY hYnemp)),
+      refine ⟨X ∩ Y, _⟩,
+    --classical,
+  sorry
+  end⟩,
+  inf_le_left := _,
+  inf_le_right := _,
+  le_inf := _,
+
+  top := _,
+  le_top := _,
+
+  bot := ⟨⊥, P.bot_mem_faces⟩,
+  bot_le := λ ⟨X, hX⟩, X.bot_mem_faces,
+
+  Sup := _,
+  le_Sup := _,
+  Sup_le := _,
+
+  Inf := _,
+  Inf_le := _,
+  le_Inf := _ }
 
 end polyhedron
 

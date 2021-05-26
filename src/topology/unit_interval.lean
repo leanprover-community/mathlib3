@@ -39,9 +39,13 @@ instance has_zero : has_zero I := ⟨⟨0, by split ; norm_num⟩⟩
 
 @[simp, norm_cast] lemma coe_zero : ((0 : I) : ℝ) = 0 := rfl
 
+@[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : I) = 0 := rfl
+
 instance has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
 
 @[simp, norm_cast] lemma coe_one : ((1 : I) : ℝ) = 1 := rfl
+
+@[simp] lemma mk_one (h : (1 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨1, h⟩ : I) = 1 := rfl
 
 instance : nonempty I := ⟨0⟩
 

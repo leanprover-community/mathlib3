@@ -807,22 +807,37 @@ rfl
 
 variables (R M N P Q)
 
+/-- A tensor product analogue of `mul_left_comm`. -/
+def left_comm : M ⊗[R] (N ⊗[R] P) ≃ₗ[R] N ⊗[R] (M ⊗[R] P) :=
+let e₁ := (tensor_product.assoc R M N P).symm,
+    e₂ := congr (tensor_product.comm R M N) (1 : P ≃ₗ[R] P),
+    e₃ := (tensor_product.assoc R N M P) in
+e₁.trans $ e₂.trans e₃
+
 /-- This special case is worth defining explicitly since it is useful for defining multiplication
 on tensor products of modules carrying multiplications (e.g., associative rings, Lie rings, ...).
 
 E.g., suppose `M = P` and `N = Q` and that `M` and `N` carry bilinear multiplications:
 `M ⊗ M → M` and `N ⊗ N → N`. Using `map`, we can define `(M ⊗ M) ⊗ (N ⊗ N) → M ⊗ N` which, when
 combined with this definition, yields a bilinear multiplication on `M ⊗ N`:
-`(M ⊗ N) ⊗ (M ⊗ N) → M ⊗ N`. -/
+`(M ⊗ N) ⊗ (M ⊗ N) → M ⊗ N`.
+
+See also `mul_mul_mul_comm`. -/
 def comm_two_in_four : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] (M ⊗[R] P) ⊗[R] (N ⊗[R] Q) :=
 let e₁ := tensor_product.assoc R M N (P ⊗[R] Q),
-    e₂ := congr (1 : M ≃ₗ[R] M) (tensor_product.assoc R N P Q).symm,
-    e₃ := congr (1 : M ≃ₗ[R] M) (congr (tensor_product.comm R N P) (1 : Q ≃ₗ[R] Q)),
-    e₄ := congr (1 : M ≃ₗ[R] M) (tensor_product.assoc R P N Q),
-    e₅ := (tensor_product.assoc R M P (N ⊗[R] Q)).symm in
-(((e₁.trans e₂).trans e₃).trans e₄).trans e₅
+    e₂ := congr (1 : M ≃ₗ[R] M) (left_comm R N P Q),
+    e₃ := (tensor_product.assoc R M P (N ⊗[R] Q)).symm in
+e₁.trans $ e₂.trans e₃
 
 variables {M N P Q}
+
+@[simp] lemma left_comm_tmul (m : M) (n : N) (p : P) :
+  left_comm R M N P (m ⊗ₜ (n ⊗ₜ p)) = n ⊗ₜ (m ⊗ₜ p) :=
+rfl
+
+@[simp] lemma left_comm_symm_tmul (m : M) (n : N) (p : P) :
+  (left_comm R M N P).symm (n ⊗ₜ (m ⊗ₜ p)) = m ⊗ₜ (n ⊗ₜ p) :=
+rfl
 
 @[simp] lemma comm_two_in_four_tmul (m : M) (n : N) (p : P) (q : Q) :
   comm_two_in_four R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=

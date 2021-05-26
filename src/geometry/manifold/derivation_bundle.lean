@@ -28,16 +28,10 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 open_locale manifold
 
-namespace instances
-def smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := infer_instance
-attribute [instance, priority 10000] smooth_functions_algebra
-def tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := infer_instance
-attribute [instance, priority 10000] tower
-def sizeof : has_sizeof (derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^⊤⟮I, M; 𝕜⟯) := infer_instance
-attribute [instance, priority 100000] sizeof
-end instances
-
 namespace point_derivation
+
+instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
+instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
 def smooth_funtions.eval' (x : M) : C^∞⟮I, M; 𝕜⟯ →+* 𝕜 :=
 { to_fun    := λ f, f x,
@@ -56,10 +50,13 @@ def smooth_functions.eval (x : M) :
 def module (x : M) : module C^∞⟮I, M; 𝕜⟯ 𝕜 :=
 @algebra.to_module _ _ _ _ (point_derivation.algebra I x)
 
+lemma scalar_def {x : M} {f : C^∞⟮I, M; 𝕜⟯} {k : 𝕜} :
+  @has_scalar.smul C^∞⟮I, M; 𝕜⟯ 𝕜 (point_derivation.algebra I x).to_has_scalar f k = f x * k := rfl
+
 lemma is_scalar_tower (x : M) :
   @is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ 𝕜 _ (point_derivation.algebra I x).to_has_scalar _ :=
-{ smul_assoc := λ k f h, by { simp only [scalar_def, algebra.id.smul_eq_mul,
-    smooth_map.coe_smul, pi.smul_apply, mul_assoc]} }
+{ smul_assoc := λ k f h, by { simp only [scalar_def, algebra.id.smul_eq_mul, smooth_map.coe_smul,
+  pi.smul_apply, mul_assoc]} }
 
 end point_derivation
 

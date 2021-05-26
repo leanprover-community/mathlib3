@@ -27,10 +27,7 @@ open_locale lie_group manifold
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(G : Type*) [topological_space G] [charted_space H G]
-  [group G] [lie_group I G] (g h : G)
-
-variable (G)
+(G : Type*) [topological_space G] [charted_space H G] [monoid G] [has_smooth_mul I G] (g h : G)
 
 -- Generate trivial has_sizeof instance.
 local attribute [instance, priority 10000]
@@ -143,7 +140,7 @@ lemma left_invariant : (𝒅(𝑳 I g)) (1 : G) (eval_at (1 : G) X) f = eval_at 
 (X.left_invariant'' f g)
 
 lemma eval_at_mul : eval_at (g * h) X f = (𝒅(𝑳 I g)) h (eval_at h X) f :=
-by rw [←left_invariant, L_mul, ←fdifferential_comp, apply_fdifferential, linear_map.comp_apply,
+by rw [←left_invariant, L_mul, fdifferential_comp, apply_fdifferential, linear_map.comp_apply,
   apply_fdifferential, left_invariant]
 
 lemma comp_L : (X f).comp (𝑳 I g) = X (f.comp (𝑳 I g)) :=

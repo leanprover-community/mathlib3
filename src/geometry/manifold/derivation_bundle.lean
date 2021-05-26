@@ -160,9 +160,6 @@ variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 
-lemma fdifferential_comp' (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
-  (𝒅g (f x)) ∘ (𝒅f x) = (𝒅g (f x)).comp (𝒅f x) := rfl
-
 @[simp] lemma fdifferential_comp (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
   𝒅(g.comp f) x = (𝒅g (f x)).comp (𝒅f x) := rfl
 

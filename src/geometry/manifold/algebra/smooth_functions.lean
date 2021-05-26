@@ -5,7 +5,6 @@ Authors: Nicolò Cavalleri
 -/
 
 import geometry.manifold.algebra.structures
-import geometry.manifold.times_cont_mdiff_map
 
 /-!
 # Algebraic structures over smooth functions
@@ -116,26 +115,6 @@ instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]
   comm_group C^∞⟮I, N; I', G⟯ :=
 { ..smooth_map_group,
   ..smooth_map_comm_monoid }
-
-variables (I') {G : Type*} [group G] [topological_space G] [charted_space H' G] [lie_group I' G]
-  (g h : G)
-
-/-- Left multiplication by `g`. It is meant to mimic the usual notation in Lie groups. -/
-def smooth_left_mul : C^∞⟮I', G; I', G⟯ := ⟨(left_mul g), smooth_mul_left⟩
-
-/- Left multiplication. The abbreviation is `MIL`. -/
-localized "notation `𝑳` := smooth_left_mul" in lie_group
-
-open_locale lie_group
-
-variable {G}
-
-@[simp] lemma L_apply : (𝑳 I' g) h = g * h := rfl
-
-@[simp] lemma L_mul : 𝑳 I' (g * h) = (𝑳 I' g).comp (𝑳 I' h) :=
-by ext; simp only [times_cont_mdiff_map.comp_apply, L_apply, mul_assoc]
-
-lemma L_apply_one : (𝑳 I' g) 1 = g := by rw [L_apply, mul_one]
 
 end group_structure
 

@@ -278,32 +278,30 @@ begin
         ... = μ s + (μ Uᶜ + ε) : by abel } },
   -- check for disjoint unions
   { assume s s_disj s_meas hs ε εpos,
-    set δ := ε / 2 with hδ,
-    have δpos : 0 < δ := ennreal.half_pos εpos,
-    let a : ℝ≥0∞ := 2⁻¹,
-    have a_pos : 0 < a, by simp [a],
     split,
-    -- the approximating open set is constructed by taking for `s n` and approximating open set
-    -- `U n` with measure at most `μ (s n) + 2^(-n) (ε/2)`, and taking the union of these.
-    { have : ∀ n, ∃ (U : set α), is_open U ∧ s n ⊆ U ∧ μ U ≤ μ (s n) + δ * a ^ n :=
-        λ n, (hs n _ (ennreal.mul_pos.2 ⟨δpos, ennreal.pow_pos a_pos n⟩)).1,
+    -- the approximating open set is constructed by taking for each `s n` an approximating open set
+    -- `U n` with measure at most `μ (s n) + δ n` for a summable `δ`, and taking the union of these.
+    { rcases ennreal.exists_pos_sum_of_encodable' εpos ℕ with ⟨δ, δpos, hδ⟩,
+      have : ∀ n, ∃ (U : set α), is_open U ∧ s n ⊆ U ∧ μ U ≤ μ (s n) + δ n :=
+        λ n, (hs n _ (δpos n).gt).1,
       choose U hU using this,
       refine ⟨(⋃ n, U n), is_open_Union (λ n, (hU n).1), Union_subset_Union (λ n, (hU n).2.1), _⟩,
       calc
       μ (⋃ (n : ℕ), U n)
           ≤ ∑' n, μ (U n) : measure_Union_le _
-      ... ≤ ∑' n, (μ (s n) + δ * a ^ n) : ennreal.tsum_le_tsum (λ n, (hU n).2.2)
-      ... = ∑' n, μ (s n) + δ * ∑' n, a ^ n : by rw [ennreal.tsum_add, ennreal.tsum_mul_left]
-      ... = μ (⋃ (i : ℕ), s i) + ε :
+      ... ≤ ∑' n, (μ (s n) + δ n) : ennreal.tsum_le_tsum (λ n, (hU n).2.2)
+      ... ≤ μ (⋃ (i : ℕ), s i) + ε :
       begin
-        congr' 1, { rw measure_Union s_disj s_meas },
-        simp only [δ, ennreal.tsum_geometric, ennreal.inv_inv, ennreal.one_sub_inv_two],
-        exact ennreal.mul_div_cancel two_ne_zero' ennreal.coe_ne_top,
+        rw [ennreal.tsum_add],
+        refine add_le_add (le_of_eq _) hδ.le,
+        exact (measure_Union s_disj s_meas).symm,
       end },
     -- the approximating closed set is constructed by considering finitely many sets `s i`, which
     -- cover all the measure up to `ε/2`, approximating each of these by a closed set `F i`, and
     -- taking the union of these (finitely many) `F i`.
-    { have L : tendsto (λ n, ∑ i in finset.range n, μ (s i) + δ) at_top (𝓝 (μ (⋃ i, s i) + δ)),
+    { set δ := ε / 2 with hδ,
+      have δpos : 0 < δ := ennreal.half_pos εpos,
+      have L : tendsto (λ n, ∑ i in finset.range n, μ (s i) + δ) at_top (𝓝 (μ (⋃ i, s i) + δ)),
       { rw measure_Union s_disj s_meas,
         refine tendsto.add (ennreal.tendsto_nat_tsum _) tendsto_const_nhds },
       have nu_lt : μ (⋃ i, s i) < μ (⋃ i, s i) + δ,
@@ -510,10 +508,7 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
     -/
     assume A hA,
     apply ennreal.le_of_forall_pos_le_add (λ ε εpos μA, le_of_lt _),
-    set δ := ((ε : ℝ≥0∞) / 2) / 2 with hδ,
-    have δpos : 0 < δ := ennreal.half_pos (ennreal.half_pos $ ennreal.coe_pos.2 εpos),
-    let a : ℝ≥0∞ := 2⁻¹,
-    have a_pos : 0 < a, by simp [a],
+    rcases ennreal.exists_pos_sum_of_encodable' (ennreal.coe_pos.2 εpos) ℕ with ⟨δ, δpos, hδ⟩,
     have B : compact_exhaustion X := default _,
     let C := disjointed (λ n, B n),
     have C_meas : ∀ n, measurable_set (C n) :=
@@ -527,7 +522,7 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
         exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
           (disjoint_disjointed m n hmn), },
       { exact (λ n, hA.inter (C_meas n)) } },
-    have : ∀ n, ∃ U, is_open U ∧ (A ∩ C n ⊆ U) ∧ (μ U ≤ μ (A ∩ C n) + δ * a ^ n),
+    have : ∀ n, ∃ U, is_open U ∧ (A ∩ C n ⊆ U) ∧ (μ U ≤ μ (A ∩ C n) + δ n),
     { assume n,
       set ν := μ.restrict (B (n+1)) with hν,
       haveI : finite_measure ν :=
@@ -535,11 +530,10 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
         rw [restrict_apply measurable_set.univ, univ_inter],
         exact is_compact.measure_lt_top (B.is_compact _),
       end⟩,
-      have : (⨅ (U : set X) (h : is_open U) (h2 : A ∩ C n ⊆ U), ν U) < ν (A ∩ C n) + δ * a^n :=
+      have : (⨅ (U : set X) (h : is_open U) (h2 : A ∩ C n ⊆ U), ν U) < ν (A ∩ C n) + δ n :=
       begin
-        have : 0 < δ * a ^ n := ennreal.mul_pos.2 ⟨δpos, ennreal.pow_pos a_pos n⟩,
         refine (weakly_regular.outer_regular (hA.inter (C_meas n))).trans_lt _,
-        simpa only [add_zero] using (ennreal.add_lt_add_iff_left (measure_lt_top ν _)).mpr this,
+        simpa only [add_zero] using (ennreal.add_lt_add_iff_left (measure_lt_top ν _)).mpr (δpos n),
       end,
       simp only [infi_lt_iff] at this,
       rcases this with ⟨U, U_open, UA, νU⟩,
@@ -550,25 +544,18 @@ instance of_sigma_compact_space_of_locally_finite_measure {X : Type*}
       { simp only [hν, restrict_apply' (B.is_compact _).measurable_set] at νU,
         calc μ (U ∩ interior (B (n + 1))) ≤ μ (U ∩ B (n + 1)) :
           measure_mono (inter_subset_inter_right _ interior_subset)
-        ... ≤ μ (A ∩ C n ∩ B (n + 1)) + δ * a^n : νU.le
-        ... ≤ μ (A ∩ C n) + δ * a^n :
+        ... ≤ μ (A ∩ C n ∩ B (n + 1)) + δ n : νU.le
+        ... ≤ μ (A ∩ C n) + δ n :
           add_le_add (measure_mono (inter_subset_left _ _)) (le_refl _) } },
     choose U hU using this,
     simp_rw [infi_lt_iff],
     refine ⟨⋃ n, U n, is_open_Union (λ n, (hU n).1), _, _⟩,
     { rw A_eq, exact Union_subset_Union (λ n, (hU n).2.1) },
     { calc μ (⋃ (n : ℕ), U n)
-      ≤ ∑' n, μ (U n) : measure_Union_le _
-      ... ≤ ∑' n, (μ (A ∩ C n) + δ * a ^ n) : ennreal.tsum_le_tsum (λ n, (hU n).2.2)
-      ... = ∑' n, μ (A ∩ C n) + δ * ∑' n, a ^ n : by rw [ennreal.tsum_add, ennreal.tsum_mul_left]
-      ... = μ A + ε / 2 :
-        begin
-          congr' 1, { exact μA_eq.symm },
-          simp only [δ, ennreal.tsum_geometric, ennreal.inv_inv, ennreal.one_sub_inv_two],
-          exact ennreal.mul_div_cancel two_ne_zero' ennreal.coe_ne_top,
-        end
-      ... < μ A + ε : by simpa using (ennreal.add_lt_add_iff_left μA).2
-          (ennreal.half_lt_self (ne_of_gt (ennreal.coe_pos.2 εpos)) (ennreal.coe_ne_top)) }
+          ≤ ∑' n, μ (U n) : measure_Union_le _
+      ... ≤ ∑' n, (μ (A ∩ C n) + δ n) : ennreal.tsum_le_tsum (λ n, (hU n).2.2)
+      ... < μ A + ε :
+        by { rw [ennreal.tsum_add, μA_eq.symm], exact (ennreal.add_lt_add_iff_left μA).2 hδ } }
   end }
 
 /-- Given a regular measure, any measurable set of finite mass can be approximated from
@@ -618,8 +605,7 @@ begin
         apply union_subset_union (subset.refl _),
         apply diff_subset_diff (subset.trans FA AU) (subset.refl _),
       end
-    ... ≤ μ (F ∩ K) + μ (U \ K) + δ :
-      add_le_add (measure_union_le _ _) (le_refl _)
+    ... ≤ μ (F ∩ K) + μ (U \ K) + δ : add_le_add (measure_union_le _ _) (le_refl _)
     ... ≤ μ (F ∩ K) + δ + δ :
       begin
         refine add_le_add (add_le_add (le_refl _) _) (le_refl _),

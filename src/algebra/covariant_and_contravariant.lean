@@ -202,6 +202,14 @@ begin
   { exact (h _ bc).le }
 end
 
+lemma contravariant_le_iff_contravariant_lt [partial_order N] :
+  contravariant M N μ (≤) → contravariant M N μ (<) :=
+begin
+  refine λ h a b c bc, lt_iff_le_and_ne.mpr ⟨h a bc.le, _⟩,
+  rintro rfl,
+  exact lt_irrefl _ bc,
+end
+
 lemma covariant_le_iff_contravariant_lt [linear_order N] :
   covariant M N μ (≤) ↔ contravariant M N μ (<) :=
 ⟨ λ h a b c bc, not_le.mp (λ k, not_le.mpr bc (h _ k)),

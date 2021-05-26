@@ -3,15 +3,24 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
+
 import algebra.group.defs
+
 /-!
-This file begins the splitting of the ordering assumptions from the algebraic assumptions on the
+
+# Covariants and contravariants
+
+This file contains general lemmas and instances to work with the interactions between a relation and
+an action on a Type.
+
+The intended application is the splitting of the ordering from the algebraic assumptions on the
 operations in the `ordered_[...]` hierarchy.
 
-The strategy is to introduce two more flexible typeclasses, covariant_class and contravariant_class.
+The strategy is to introduce two more flexible typeclasses, `covariant_class` and
+`contravariant_class`.
 
-* covariant_class models the implication a ≤ b → c * a ≤ c * b (multiplication is monotone),
-* contravariant_class models the implication a * b < a * c → b < c.
+* `covariant_class` models the implication `a ≤ b → c * a ≤ c * b` (multiplication is monotone),
+* `contravariant_class` models the implication `a * b < a * c → b < c`.
 
 Since `co(ntra)variant_class` takes as input the operation (typically `(+)` or `(*)`) and the order
 relation (typically `(≤)` or `(<)`), these are the only two typeclasses that I have used.
@@ -44,14 +53,13 @@ However, sometimes as a **non-typeclass** assumption, we prefer `flip (*)` (or `
 as it is easier to use. -/
 
 -- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
--- TODO: relationship with add_con
+-- TODO: relationship with `add_con`
 -- include equivalence of `left_cancel_semigroup` with
 -- `semigroup partial_order contravariant_class α α (*) (≤)`?
 -- use ⇒, as per Eric's suggestion?
 section variants
 
 variables {M N : Type*} (μ : M → N → N) (r : N → N → Prop)
-
 
 variables (M N)
 /-- `covariant` is useful to formulate succintly statements about the interactions between an

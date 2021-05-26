@@ -133,14 +133,24 @@ variables (f : M →ₗ[A] N)
 linear map is a derivation. Furthermore, this operation is linear on the spaces of derivations. -/
 def comp : derivation R A M →ₗ[R] derivation R A N :=
 { to_fun    := λ D,
-  { leibniz'  := λ a b, by simp only [coe_fn_coe, function.comp_app, linear_map.coe_comp,
-      linear_map.coe_coe_is_scalar_tower, leibniz, linear_map.map_smul, linear_map.to_fun_eq_coe,
-      linear_map.map_add],
+  { leibniz'  := λ a b,
+      begin
+        simp only [coe_fn_coe, function.comp_app, linear_map.coe_comp, linear_map.map_add, leibniz,
+          linear_map.coe_coe_is_scalar_tower, linear_map.map_smul, linear_map.to_fun_eq_coe],
+      end,
     .. (f : M →ₗ[R] N).comp (D : A →ₗ[R] M), },
-  map_add'  := λ D₁ D₂, by ext; simp only [mk_coe, add_apply, coe_fn_coe, linear_map.coe_mk,
-    function.comp_app, linear_map.coe_comp, linear_map.to_fun_eq_coe, linear_map.map_add],
-  map_smul' := λ r D, by ext; simp only [coe_fn_coe, Rsmul_apply, linear_map.map_smul_of_tower,
-    mk_coe, linear_map.coe_mk, function.comp_app, linear_map.coe_comp, linear_map.to_fun_eq_coe], }
+  map_add'  := λ D₁ D₂,
+    begin
+      ext,
+      simp only [mk_coe, add_apply, coe_fn_coe, linear_map.coe_mk, function.comp_app,
+      linear_map.coe_comp, linear_map.to_fun_eq_coe, linear_map.map_add],
+    end,
+  map_smul' := λ r D,
+    begin
+      ext,
+      simp only [coe_fn_coe, Rsmul_apply, linear_map.map_smul_of_tower, mk_coe, linear_map.coe_mk,
+      function.comp_app, linear_map.coe_comp, linear_map.to_fun_eq_coe],
+    end, }
 
 @[simp] lemma coe_to_linear_map_comp :
   (comp f D : A →ₗ[R] N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=

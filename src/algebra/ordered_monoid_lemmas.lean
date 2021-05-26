@@ -6,7 +6,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Dami
 import algebra.covariant_and_contravariant
 import order.basic
 
-
 /-!
 # Ordered monoids
 
@@ -17,6 +16,11 @@ This file develops the basics of ordered monoids.
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
+
+## Remark
+
+No monoid is actually present in this file: all assumptions have been generalized to `has_mul` or
+`mul_one_class`.
 
 -/
 
@@ -650,17 +654,15 @@ section mono
 variables [has_mul α] [preorder α]
   {β : Type*} [preorder β] {f g : β → α}
 
-@[to_additive monotone.add_const]
-lemma monotone.mul_const' [covariant_class α α (function.swap (*)) (≤)]
-  (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
-λ x y h, mul_le_mul_right' (hf h) a
---hf.mul' monotone_const
-
 @[to_additive monotone.const_add]
 lemma monotone.const_mul' [covariant_class α α (*) (≤)] (hf : monotone f) (a : α) :
   monotone (λ x, a * f x) :=
 λ x y h, mul_le_mul_left' (hf h) a
---monotone_const.mul' hf
+
+@[to_additive monotone.add_const]
+lemma monotone.mul_const' [covariant_class α α (function.swap (*)) (≤)]
+  (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
+λ x y h, mul_le_mul_right' (hf h) a
 
 @[to_additive monotone.add]
 lemma monotone.mul'

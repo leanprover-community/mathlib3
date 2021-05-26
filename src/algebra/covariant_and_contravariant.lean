@@ -105,7 +105,7 @@ class contravariant_class : Prop :=
 
 lemma rel_iff_cov [covariant_class M N μ r] [contravariant_class M N μ r] (m : M) {a b : N} :
   r (μ m a) (μ m b) ↔ r a b :=
-⟨contravariant_class.covtc _,covariant_class.covc _⟩
+⟨contravariant_class.covtc _, covariant_class.covc _⟩
 
 section covariant
 variables {M N μ r} [covariant_class M N μ r]
@@ -192,6 +192,15 @@ end M_eq_N
  -/
 
 end contravariant
+
+lemma covariant_le_iff_covariant_lt [partial_order N] :
+  covariant M N μ (<) → covariant M N μ (≤) :=
+begin
+  refine λ h a b c bc, _,
+  rcases le_iff_eq_or_lt.mp bc with rfl | bc,
+  { exact rfl.le },
+  { exact (h _ bc).le }
+end
 
 lemma covariant_le_iff_contravariant_lt [linear_order N] :
   covariant M N μ (≤) ↔ contravariant M N μ (<) :=

@@ -107,6 +107,20 @@ lemma act_rel_act_of_rel (m : M) {a b : N} (ab : r a b) :
   r (μ m a) (μ m b) :=
 covariant_class.covc _ ab
 
+lemma group.covariant_iff_contravariant [group N] :
+  covariant N N (*) r ↔ contravariant N N (*) r :=
+begin
+  refine ⟨λ h a b c bc, _, λ h a b c bc, _⟩,
+  { rw [← inv_mul_cancel_left a b, ← inv_mul_cancel_left a c],
+    exact h a⁻¹ bc },
+  { rw [← inv_mul_cancel_left a b, ← inv_mul_cancel_left a c] at bc,
+    exact h a⁻¹ bc }
+end
+
+lemma covconv [group N] [cov : covariant_class N N (*) r] : contravariant_class N N (*) r :=
+{ covtc := λ a b c bc, group.covariant_iff_contravariant.mp cov.covc _ bc }
+
+
 section is_trans
 variables [is_trans N r] (m n : M) {a b c d : N}
 

@@ -22,6 +22,24 @@ set_option old_structure_cmd true
 universe u
 variable {α : Type u}
 
+@[to_additive]
+instance group.covariant_class_le.to_contravariant_class_le
+  [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
+{ covtc := λ a b c bc, by { convert covariant_class.covc (a⁻¹) bc;
+    exact eq_inv_mul_of_mul_eq rfl <|> assumption } }
+
+@[to_additive]
+instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
+  [covariant_class α α (function.swap (*)) (≤)] : contravariant_class α α (function.swap (*)) (≤) :=
+{ covtc := λ a b c bc, by { convert @covariant_class.covc α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
+    exact eq_mul_inv_of_mul_eq rfl } }
+
+@[to_additive]
+instance group.covariant_class_lt.to_contravariant_class_lt
+  [group α] [has_lt α] [covariant_class α α (*) (<)] : contravariant_class α α (*) (<) :=
+{ covtc := λ a b c bc, by { convert covariant_class.covc (a⁻¹) bc;
+    exact eq_inv_mul_of_mul_eq rfl <|> assumption } }
+
 /-- An ordered additive commutative group is an additive commutative group
 with a partial order in which addition is strictly monotone. -/
 @[protect_proj, ancestor add_comm_group partial_order]
@@ -43,13 +61,12 @@ instance ordered_comm_group.to_covariant_class_left (α : Type u) [ordered_comm_
 @[to_additive]
 instance units.covariant_class [ordered_comm_monoid α] :
   covariant_class (units α) (units α) (*) (≤) :=
-{ covc := λ a b c bc, by {
-  rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
+{ covc := λ a b c bc, by { rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
   { exact rfl.le },
-  refine le_iff_eq_or_lt.mpr (or.inr _),
-  refine units.coe_lt_coe.mp _,
-  cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
-  exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
+  { refine le_iff_eq_or_lt.mpr (or.inr _),
+    refine units.coe_lt_coe.mp _,
+    cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
+    exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } } }
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
@@ -58,37 +75,12 @@ instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group 
   .. units.partial_order,
   .. (infer_instance : comm_group (units α)) }
 
-section ordered_comm_group
-variables [ordered_comm_group α] {a b c d : α}
-
-@[to_additive ordered_add_comm_group.add_lt_add_left]
-lemma ordered_comm_group.mul_lt_mul_left' (a b : α) (h : a < b) (c : α) : c * a < c * b :=
-begin
-  rw lt_iff_le_not_le at h ⊢,
-  split,
-  { apply ordered_comm_group.mul_le_mul_left _ _ h.1 },
-  { intro w,
-    replace w : c⁻¹ * (c * b) ≤ c⁻¹ * (c * a) := ordered_comm_group.mul_le_mul_left _ _ w _,
-    simp only [mul_one, mul_comm, mul_left_inv, mul_left_comm] at w,
-    exact h.2 w },
-end
-
-@[to_additive ordered_add_comm_group.le_of_add_le_add_left]
-lemma ordered_comm_group.le_of_mul_le_mul_left (h : a * b ≤ a * c) : b ≤ c :=
-have a⁻¹ * (a * b) ≤ a⁻¹ * (a * c), from ordered_comm_group.mul_le_mul_left _ _ h _,
-begin simp [inv_mul_cancel_left] at this, assumption end
-
-@[to_additive]
-lemma ordered_comm_group.lt_of_mul_lt_mul_left (h : a * b < a * c) : b < c :=
-have a⁻¹ * (a * b) < a⁻¹ * (a * c), from ordered_comm_group.mul_lt_mul_left' _ _ h _,
-begin simp [inv_mul_cancel_left] at this, assumption end
-
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] :
   ordered_cancel_comm_monoid α :=
 { mul_left_cancel       := @mul_left_cancel α _,
-  le_of_mul_le_mul_left := @ordered_comm_group.le_of_mul_le_mul_left α _,
+  le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
 
 @[priority 100, to_additive]
@@ -96,6 +88,10 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   [ordered_comm_group α] :
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
+
+
+section ordered_comm_group
+variables [ordered_comm_group α] {a b c d : α}
 
 @[simp, to_additive]
 lemma inv_le_inv_iff : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
@@ -105,16 +101,14 @@ alias neg_le_neg_iff ↔ le_of_neg_le_neg _
 
 /--  Uses `left` co(ntra)variant. -/
 @[simp, to_additive left.neg_nonpos_iff]
-lemma left.inv_le_one_iff {N : Type*} [group N] [has_le N]
-  [covariant_class N N (*) (≤)] [contravariant_class N N (*) (≤)] {a : N} :
+lemma left.inv_le_one_iff {N : Type*} [group N] [has_le N] [covariant_class N N (*) (≤)] {a : N} :
   a⁻¹ ≤ 1 ↔ 1 ≤ a :=
 by { rw [← mul_le_mul_iff_left a], simp }
 
 /--  Uses `right` co(ntra)variant. -/
 @[simp, to_additive right.neg_nonpos_iff]
 lemma right.inv_le_one_iff {N : Type*} [group N] [has_le N]
-  [covariant_class N N (function.swap (*)) (≤)] [contravariant_class N N (function.swap (*)) (≤)]
-  {a : N} :
+  [covariant_class N N (function.swap (*)) (≤)] {a : N} :
   a⁻¹ ≤ 1 ↔ 1 ≤ a :=
 by { rw [← mul_le_mul_iff_right a], simp }
 
@@ -466,6 +460,22 @@ left.inv_lt_one_iff
 lemma one_lt_inv' : 1 < a⁻¹ ↔ a < 1 :=
 left.one_lt_inv_iff
 
+/-  Simple application: save the name? -/
+@[to_additive ordered_add_comm_group.add_lt_add_left]
+lemma ordered_comm_group.mul_lt_mul_left' (a b : α) (h : a < b) (c : α) : c * a < c * b :=
+mul_lt_mul_left' h c
+
+/-  Simple application: save the name? -/
+@[to_additive ordered_add_comm_group.le_of_add_le_add_left]
+lemma ordered_comm_group.le_of_mul_le_mul_left (h : a * b ≤ a * c) : b ≤ c :=
+(mul_le_mul_iff_left a).mp h
+
+/-  Simple application: save the name? -/
+@[to_additive]
+lemma ordered_comm_group.lt_of_mul_lt_mul_left (h : a * b < a * c) : b < c :=
+(mul_lt_mul_iff_left a).mp h
+
+
 /-- Pullback an `ordered_comm_group` under an injective map. -/
 @[to_additive function.injective.ordered_add_comm_group
 "Pullback an `ordered_add_comm_group` under an injective map."]
@@ -675,7 +685,7 @@ def function.injective.linear_ordered_comm_group {β : Type*}
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'
   (a b : α) (h : a < b) (c : α) : c * a < c * b :=
-ordered_comm_group.mul_lt_mul_left' a b h c
+mul_lt_mul_left' h c
 
 @[to_additive min_neg_neg]
 lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=

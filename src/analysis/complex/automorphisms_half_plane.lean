@@ -32,11 +32,12 @@ def re (z : ℍ) := z.point.re
 
 @[simp] lemma coe_re (z : ℍ) : (z:ℂ).re = z.re := rfl
 
-@[ext] lemma ext {z w : ℍ} (h : (z:ℂ)=(w:ℂ)) : z = w :=
+@[ext] lemma ext {z w : ℍ} (h : (z:ℂ) = (w:ℂ)) : z = w :=
 begin
-  --Heather homework :)
-
-  sorry,
+  tactic.unfreeze_local_instances,
+  cases z,
+  cases w,
+  congr'
 end
 
 @[ext] lemma ext_iff (z w : ℍ) : z = w ↔ (z:ℂ)=(w:ℂ) := ⟨λ h, by rw h, ext⟩
@@ -53,20 +54,17 @@ def top (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
 
 def bottom (g : SL(2, ℝ)) (z : ℍ) : ℂ := (g 1 0) * z + (g 1 1)
 
+-- move this to special linear group file
+lemma matrix.special_linear_group.det_ne_zero {n : ℕ} (g : SL(n, ℝ)) :
+  det g ≠ 0 :=
+by { rw g.det_coe_fun, norm_num }
 
--- move this to special linear group file and do for any row
-lemma matrix.special_linear_group.row_nonzero {n:ℕ} (g : SL(n, ℝ)) (i : fin n):
-g i ≠ 0 :=
-begin
-  intros h,
-  suffices : 0 = (1 : ℝ),
-  { norm_num at this, },
-  have this2 : ∀ j, g i j = 0 := by simp [h],
-  simpa [det_eq_zero_of_row_eq_zero (i : fin n) this2] using g.det_coe_fun,
-end
+-- move this to special linear group file
+lemma matrix.special_linear_group.row_nonzero {n : ℕ} (g : SL(n, ℝ)) (i : fin n):
+  g i ≠ 0 :=
+λ h, g.det_ne_zero $ det_eq_zero_of_row_eq_zero i $ by simp [h]
 
-
-lemma bottom_nonzero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠  0 :=
+lemma bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : bottom g z ≠ 0 :=
 begin
   intros h,
   apply g.row_nonzero 1,
@@ -80,14 +78,15 @@ begin
   simpa [bottom, this] using this1,
 end
 
+
 def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z
 
 lemma im_smul_mat (g : SL(2, ℝ)) (z : ℍ) :
-(smul_aux' g z).im = z.im / (bottom g z).norm_sq :=
+  (smul_aux' g z).im = z.im / (bottom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (bottom g z).norm_sq,
-  have : NsqBot ≠ 0 := by simp [complex.norm_sq_pos, bottom_nonzero g z, NsqBot],
+  have : NsqBot ≠ 0 := by simp [complex.norm_sq_pos, bottom_ne_zero g z, NsqBot],
   field_simp [smul_aux', bottom, top],
   convert congr_arg (λ x, x*z.im*NsqBot^2) g.det_coe_fun using 1,
   { simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
@@ -100,10 +99,21 @@ def smul_aux (g : SL(2,ℝ)) (z : ℍ) : ℍ :=
 { point := smul_aux' g z,
   im_pos' := begin
     rw im_smul_mat,
-    exact div_pos z.im_pos (complex.norm_sq_pos.mpr (bottom_nonzero g z)),
+    exact div_pos z.im_pos (complex.norm_sq_pos.mpr (bottom_ne_zero g z)),
   end }
 
 @[simp] lemma smul_aux_def {g : SL(2,ℝ)} {z : ℍ} : (smul_aux g z : ℂ) = top g z / bottom g z := by refl
+
+example (a b c : ℝ) (h : b ≠ 0) : a / b = c ↔ a = c * b := div_eq_iff h
+
+
+lemma foo (g : SL(2, ℝ)) (z w : ℍ) :
+  smul_aux g z = w ↔ (g 0 0 : ℂ) * z + g 0 1 = w * bottom g z :=
+begin
+  rw upper_half_plane.ext_iff,
+  exact div_eq_iff (bottom_ne_zero g z),
+end
+
 
 ----- TIDY THIS UP LATER...
 /-
@@ -160,22 +170,26 @@ end
 
 lemma bot_cocycle (x y : SL(2,ℝ)) (z : ℍ) :
   bottom (x * y) z = bottom x (smul_aux y z) * bottom y z :=
+show bottom (x * y) z = (_ * (_ / _) + _) * bottom y z, by
 begin
-  simp only [smul_aux, smul_aux'],
-  set botYZ := bottom y z,
-  have d1 : botYZ ≠ 0 := bottom_nonzero _ z,
-  simp only [top, bottom],
-  rw ← upper_half_plane.coe_point {point := ((y 0 0) * z + (y 0 1)) / botYZ, im_pos' := _},
-  field_simp,
-  simp [botYZ, bottom, matrix.mul, dot_product, fin.sum_univ_succ],
+  field_simp [bottom_ne_zero],
+  simp [top, bottom, matrix.mul, dot_product, fin.sum_univ_succ],
   ring,
 end
 
 lemma smul_mul (x y : SL(2, ℝ)) (z : ℍ) :
-smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
+  smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
 begin
-  set YZ := smul_aux y z,
+  rw upper_half_plane.ext_iff,
+  change _ / _ = _ / _,
+  rw bot_cocycle,
+  field_simp [bottom_ne_zero],
+  set bYZ := bottom x (smul_aux y z),
+  change _ = (_ * (_ / _) + _)  * _,
+  simp [top, bottom],
+  ring,
   simp only [smul_aux, smul_aux'],
+  apply
   set botxYZ := bottom x YZ,
   set botxyZ := bottom (x*y) z,
   rw upper_half_plane.ext_iff,
@@ -185,8 +199,8 @@ begin
 --  rw ← upper_half_plane.coe_point,
   have : (({point := top x YZ / botxYZ, im_pos' := _}:ℍ):ℂ) = top x YZ / botxYZ := rfl,
   rw this, clear this,
-  have xYZ_nonzero : botxYZ ≠ 0 := bottom_nonzero _ YZ,
-  have xyZ_nonzero : botxyZ ≠ 0 := bottom_nonzero _ z,
+  have xYZ_nonzero : botxYZ ≠ 0 := bottom_ne_zero _ YZ,
+  have xyZ_nonzero : botxyZ ≠ 0 := bottom_ne_zero _ z,
   field_simp,
   simp only [botxYZ, bottom, YZ, smul_aux],
   simp only [smul_aux'],

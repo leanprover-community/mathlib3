@@ -75,7 +75,7 @@ protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x �
 by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
 
 /-- The bottom submodule is linearly equivalent to punit as an `R`-module. -/
-@[simps] def submodule.bot_equiv_punit : (⊥ : submodule R M) ≃ₗ[R] punit :=
+@[simps] def bot_equiv_punit : (⊥ : submodule R M) ≃ₗ[R] punit :=
 { to_fun := λ x, punit.star,
   inv_fun := λ x, 0,
   map_add' := by { intros, ext, },
@@ -102,7 +102,7 @@ lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
 
 /-- The top submodule is linearly equivalent to the module. -/
-@[simps] def submodule.top_equiv_self : (⊤ : submodule R M) ≃ₗ[R] M :=
+@[simps] def top_equiv_self : (⊤ : submodule R M) ≃ₗ[R] M :=
 { to_fun := λ x, x,
   inv_fun := λ x, ⟨x, by simp⟩,
   map_add' := by { intros, refl, },

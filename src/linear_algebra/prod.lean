@@ -330,6 +330,7 @@ variables (R M M₂)
 /-- `M` as a submodule of `M × N`. -/
 def fst : submodule R (M × M₂) := (⊥ : submodule R M₂).comap (linear_map.snd R M M₂)
 
+/-- `M` as a submodule of `M × N` is isomorphic to `M`. -/
 @[simps] def fst_equiv : submodule.fst R M M₂ ≃ₗ[R] M :=
 { to_fun := λ x, x.1.1,
   inv_fun := λ m, ⟨⟨m, 0⟩, by tidy⟩,
@@ -346,6 +347,7 @@ by { tidy, exact 0, }
 /-- `N` as a submodule of `M × N`. -/
 def snd : submodule R (M × M₂) := (⊥ : submodule R M).comap (linear_map.fst R M M₂)
 
+/-- `N` as a submodule of `M × N` is isomorphic to `N`. -/
 @[simps] def snd_equiv : submodule.snd R M M₂ ≃ₗ[R] M₂ :=
 { to_fun := λ x, x.1.2,
   inv_fun := λ n, ⟨⟨0, n⟩, by tidy⟩,
@@ -483,24 +485,25 @@ open function
 /-- An auxiliary construction for `tunnel`.
 The composition of `f`, followed by the isomorphism back to `K`,
 followed by the inclusion of this submodule back into `M`. -/
-def tunnel_aux (f : M × N →ₗ[R] M) (i : injective f) (Kφ : Σ K : submodule R M, K ≃ₗ[R] M) :
+def tunnel_aux (f : M × N →ₗ[R] M) (Kφ : Σ K : submodule R M, K ≃ₗ[R] M) :
   M × N →ₗ[R] M :=
 (Kφ.1.subtype.comp Kφ.2.symm.to_linear_map).comp f
 
 lemma tunnel_aux_injective
   (f : M × N →ₗ[R] M) (i : injective f) (Kφ : Σ K : submodule R M, K ≃ₗ[R] M) :
-  injective (tunnel_aux f i Kφ) :=
+  injective (tunnel_aux f Kφ) :=
 (subtype.val_injective.comp Kφ.2.symm.injective).comp i
 
 noncomputable theory
 
+/-- Auxilliary definition for `tunnel`. -/
 -- Even though we have `noncomputable theory`,
 -- we get an error without another `noncomputable` here.
 noncomputable def tunnel' (f : M × N →ₗ[R] M) (i : injective f) :
   ℕ → Σ (K : submodule R M), K ≃ₗ[R] M
 | 0 := ⟨⊤, linear_equiv.of_top ⊤ rfl⟩
 | (n+1) :=
-⟨(submodule.fst R M N).map (tunnel_aux f i (tunnel' n)),
+⟨(submodule.fst R M N).map (tunnel_aux f (tunnel' n)),
   ((submodule.fst R M N).equiv_map_of_injective _ (tunnel_aux_injective f i (tunnel' n))).symm.trans
     (submodule.fst_equiv R M N)⟩
 
@@ -520,7 +523,7 @@ Give an injective map `f : M × N →ₗ[R] M` we can find a sequence of submodu
 all isomorphic to `N`.
 -/
 def tailing (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) : submodule R M :=
-(submodule.snd R M N).map (tunnel_aux f i (tunnel' f i n))
+(submodule.snd R M N).map (tunnel_aux f (tunnel' f i n))
 
 /-- Each `tailing f i n` is a copy of `N`. -/
 def tailing_linear_equiv (f : M × N →ₗ[R] M) (i : injective f) (n : ℕ) : tailing f i n ≃ₗ[R] N :=
@@ -541,7 +544,7 @@ begin
   rw disjoint_iff,
   dsimp [tailing, tunnel, tunnel'],
   rw [submodule.map_inf_eq_map_inf_comap,
-    submodule.comap_map_eq_of_injective (tunnel_aux_injective _ _ _), inf_comm,
+    submodule.comap_map_eq_of_injective (tunnel_aux_injective _ i _), inf_comm,
     submodule.fst_inf_snd, submodule.map_bot],
 end
 

@@ -262,6 +262,9 @@ rfl
   (pi_ring R M ι S).symm f g = ∑ i, g i • f i :=
 by simp [pi_ring, linear_map.lsum]
 
+/--
+`equiv.sum_arrow_equiv_prod_arrow` as a linear equivalence.
+-/
 -- TODO additive version?
 def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoid M] [module R M] :
   ((α ⊕ β) → M) ≃ₗ[R] (α → M) × (β → M) :=

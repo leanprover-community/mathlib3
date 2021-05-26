@@ -7,6 +7,7 @@ import linear_algebra.basis
 import linear_algebra.finsupp_vector_space
 import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
+import linear_algebra.free_module2
 
 /-! # Free modules
 
@@ -408,6 +409,14 @@ noncomputable def module.free_of_finite_type_torsion_free' [module.finite R M]
   [no_zero_smul_divisors R M] :
   Σ (n : ℕ), basis (fin n) R M :=
 module.free_of_finite_type_torsion_free module.finite.exists_fin.some_spec.some_spec
+
+instance submodule.free_of_pid [module.finite R M] [no_zero_smul_divisors R M]
+  (N : submodule R M) : module.free R N :=
+module.free.of_basis (submodule.basis_of_pid
+  (module.free_of_finite_type_torsion_free'.snd : basis _ R M) N).snd
+
+instance free_of_pid [module.finite R M] [no_zero_smul_divisors R M] : module.free R M :=
+module.free.of_basis module.free_of_finite_type_torsion_free'.snd
 
 end principal_ideal_domain
 

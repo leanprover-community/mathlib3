@@ -6,7 +6,10 @@ Authors: Nicolò Cavalleri, Sebastien Gouezel
 
 import topology.topological_fiber_bundle
 import topology.algebra.module
+import topology.continuous_function.algebra
 import linear_algebra.dual
+import data.equiv.transfer_instance
+
 
 /-!
 # Topological vector bundles
@@ -240,5 +243,58 @@ variables {R B F}
 lemma is_topological_vector_bundle_is_topological_fiber_bundle :
   is_topological_fiber_bundle F (proj E) :=
 λ x, ⟨(trivialization_at R F E x).to_bundle_trivialization, mem_base_set_trivialization_at R F E x⟩
+
+section sections
+
+structure right_inv {α: Type*} {β: Type*} (f : α → β) :=
+(to_fun : β → α)
+(right_inv : f ∘ to_fun = id)
+
+variables {α: Type*} {β: Type*} {f : α → β} {g h : right_inv f}
+instance : has_coe_to_fun (right_inv f) := ⟨_, right_inv.to_fun⟩
+
+lemma coe_injective (H : ⇑g = h) : g = h :=
+by { cases g, cases h, congr' }
+
+@[ext] theorem ext (H : ∀ a, g a = h a) : g = h :=
+coe_injective $ funext H
+
+variables {f}
+
+def right_inv.to_pi (g : right_inv (proj E)) : Π x, E x :=
+λ x, cast (congr_arg E (congr_fun g.right_inv x)) (g x).2
+
+lemma right_inv.to_pi_apply (g : right_inv (proj E)) (x : B) : g.to_pi x == (g x).2 :=
+cast_heq (right_inv.to_pi._proof_1 g x) (g x).snd
+
+def pi.to_right_inv (g : Π x, E x) : right_inv (proj E) :=
+{ to_fun := λ x, ⟨x, g x⟩, right_inv := rfl }
+
+lemma pi.to_right_inv_apply (g : Π x, E x) (x : B) : (pi.to_right_inv g) x = ⟨x, g x⟩ := rfl
+
+def pi_right_inv_equiv : equiv (Π x, E x) (right_inv (proj E)) :=
+{ to_fun := pi.to_right_inv,
+  inv_fun := right_inv.to_pi,
+  left_inv := λ g, rfl,
+  right_inv := λ g, by { ext, exact (congr_fun g.right_inv a).symm, exact right_inv.to_pi_apply g a } }
+
+instance : add_comm_monoid (right_inv (proj E)) := equiv.add_comm_monoid pi_right_inv_equiv.symm
+instance : module R (right_inv (proj E)) := equiv.module R pi_right_inv_equiv.symm
+
+set_option old_structure_cmd true
+
+variables [topological_space α] [topological_space β]
+
+structure continuous_section (f : α → β) extends right_inv f, C(β, α)
+
+instance : has_coe (continuous_section (f : α → β)) (right_inv f) :=
+⟨continuous_section.to_right_inv⟩
+
+instance : add_comm_group (continuous_section (proj E)) :=
+{
+  add := λ g h, ⟨(g : right_inv (proj E)), by { sorry }, by { sorry }⟩,
+}
+
+end sections
 
 end topological_vector_bundle

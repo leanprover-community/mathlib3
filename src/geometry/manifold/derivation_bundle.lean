@@ -33,18 +33,21 @@ namespace point_derivation
 instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
 instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
-def smooth_funtions.eval' (x : M) : C^∞⟮I, M; 𝕜⟯ →+* 𝕜 :=
+/-- Evaluation at a point is a ring homomorphism. -/
+def smooth_funtion.eval' (x : M) : C^∞⟮I, M; 𝕜⟯ →+* 𝕜 :=
 { to_fun    := λ f, f x,
   map_one'  := rfl,
   map_mul'  := λ f g, rfl,
   map_zero' := rfl,
   map_add'  := λ f g, rfl }
 
-def algebra (x : M) : algebra C^∞⟮I, M; 𝕜⟯ 𝕜 := (smooth_funtions.eval' I x).to_algebra
+/-- The above evaluation gives rise to an algebra structure of `C^∞⟮I, M; 𝕜⟯` on `𝕜`. -/
+def algebra (x : M) : algebra C^∞⟮I, M; 𝕜⟯ 𝕜 := (smooth_funtion.eval' I x).to_algebra
 
-def smooth_functions.eval (x : M) :
+/-- With the above algebra structure evaluation is actually an algebra morphism. -/
+def smooth_function.eval (x : M) :
   @alg_hom C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ 𝕜 _ _ _ _ (point_derivation.algebra I x) :=
-{ commutes' := λ k, rfl, ..smooth_funtions.eval' I x }
+{ commutes' := λ k, rfl, ..smooth_funtion.eval' I x }
 
 /-- The scalar multiplication defined above gives rise to a module structure. -/
 def module (x : M) : module C^∞⟮I, M; 𝕜⟯ 𝕜 :=
@@ -106,10 +109,13 @@ section
 variables (I) {M} (X Y : derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯)
   (f g : C^∞⟮I, M; 𝕜⟯) (r : 𝕜)
 
+/-- Evaluation at a point gives rise to a `C^∞⟮I, M; 𝕜⟯`-linear map between `C^∞⟮I, M; 𝕜⟯` and `𝕜`.
+ -/
 def smooth_function.eval_at (x : M) :
   @linear_map C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ 𝕜 _ _ _ _ (point_derivation.module I x) :=
 @alg_hom.to_linear_map C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ 𝕜 _ _ _ _ (point_derivation.algebra I x)
-  (point_derivation.smooth_functions.eval I x)
+  (point_derivation.smooth_function.eval I x)
+
 namespace derivation
 
 variable {I}
@@ -154,12 +160,10 @@ variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {M'' : Type*} [topological_space M''] [charted_space H'' M'']
 
-@[simp] lemma fdifferential_comp' (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
-  (𝒅g (f x)) ∘ (𝒅f x) = 𝒅(g.comp f) x :=
-by { ext, simp only [apply_fdifferential], refl }
+lemma fdifferential_comp' (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
+  (𝒅g (f x)) ∘ (𝒅f x) = (𝒅g (f x)).comp (𝒅f x) := rfl
 
 @[simp] lemma fdifferential_comp (g : C^∞⟮I', M'; I'', M''⟯) (f : C^∞⟮I, M; I', M'⟯) (x : M) :
-  (𝒅g (f x)).comp (𝒅f x) = 𝒅(g.comp f) x :=
-by { ext, simp only [apply_fdifferential], refl }
+  𝒅(g.comp f) x = (𝒅g (f x)).comp (𝒅f x) := rfl
 
 end

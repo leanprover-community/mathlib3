@@ -88,6 +88,10 @@ begin
   refl
 end
 
+lemma density_pair_le_one (U W : finset V) :
+  density_pair G U W ≤ 1 :=
+sorry
+
 noncomputable def density_sym2 : sym2 (finset V) → ℝ :=
 quotient.lift (function.uncurry (density_pair G))
   (by { rintros _ _ ⟨_, _⟩, { refl }, apply density_pair_symm })
@@ -132,7 +136,27 @@ let t : ℕ := (max l (ceil (real.log (100 / ε^5) / real.log 4) + 1).nat_abs),
  in N * 16^N
 
 noncomputable def equipartition.index [fintype V] (P : equipartition V) : ℝ :=
-P.size ^ (-2 : ℝ) * ∑ (i : sym2 (finset V)), if i.is_diag then 0 else (density_sym2 G i)^2
+(∑ (i : sym2 (finset V)), if i.is_diag then 0 else (density_sym2 G i)^2) / P.size ^ 2
+
+theorem index_le_half [fintype V] (P : equipartition V) :
+  P.index G ≤ 1/2 :=
+begin
+  rw [equipartition.index],
+  sorry
+end
+
+/--
+The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then we
+can make a (much bigger) equipartition with a higher index.
+(This is helpful since the index is bounded by a constant, so this process eventually terminates
+and gives a uniform equipartition).
+-/
+theorem increment (G : simple_graph V) [fintype V] (P : equipartition V) (ε : ℝ)
+  (h₁ : P.size * 16^P.size ≤ card V) (h₂ : 100 < ε^5 * 4^P.size) (hP : ¬P.is_uniform G ε) :
+  ∃ (Q : equipartition V), Q.size = P.size * 4^P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
+begin
+  sorry
+end
 
 /-- Effective Szemeredi's regularity lemma: For any sufficiently big graph, there is a uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/

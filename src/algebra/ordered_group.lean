@@ -336,21 +336,6 @@ end group_le
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c d : α}
 
-/-  Uses commutative.  The single prime is for fields. -/
-@[simp, to_additive]
-lemma inv_mul_le_iff'' : c⁻¹ * a ≤ b ↔ a ≤ b * c :=
-by rw [mul_comm, mul_inv_le_iff_le_mul]
-
-/-  Uses commutative. The single prime is for fields. -/
-@[simp, to_additive]
-lemma inv_mul_lt_iff'' : c⁻¹ * a < b ↔ a < b * c :=
-by rw [mul_comm, mul_inv_lt_iff_lt_mul]
-
-/-  Uses commutative. -/
-@[simp, to_additive]
-lemma mul_inv_le_iff_le_mul' : a * b⁻¹ ≤ c ↔ a ≤ b * c :=
-by rw [← inv_mul_le_iff_le_mul, mul_comm]
-
 /-  Uses commutative. -/
 @[simp, to_additive]
 lemma inv_mul_le_iff_le_mul' : c⁻¹ * a ≤ b ↔ a ≤ b * c :=
@@ -360,6 +345,11 @@ by rw [inv_mul_le_iff_le_mul, mul_comm]
 @[to_additive]
 lemma inv_mul_lt_iff_lt_mul_right : c⁻¹ * a < b ↔ a < b * c :=
 by rw [inv_mul_lt_iff_lt_mul, mul_comm]
+
+/-  Uses commutative. -/
+@[simp, to_additive]
+lemma mul_inv_le_iff_le_mul' : a * b⁻¹ ≤ c ↔ a ≤ b * c :=
+by rw [← inv_mul_le_iff_le_mul, mul_comm]
 
 /-  Uses commutative. -/
 @[to_additive add_neg_le_add_neg_iff]

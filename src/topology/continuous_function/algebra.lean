@@ -255,7 +255,8 @@ instance {α : Type*} {β : Type*} [topological_space α]
   ..continuous_map.add_comm_group,
   ..continuous_map.comm_monoid,}
 
-/-- Coercion to a function as an `ring_hom`. -/
+/-- Coercion to a function as a `ring_hom`. -/
+@[simps]
 def coe_fn_ring_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : C(α, β) →+* (α → β) :=
 { to_fun := coe_fn,
@@ -339,7 +340,8 @@ instance module : module R C(α, M) :=
 
 variables (R)
 
-/-- Coercion to a function as an `linear_map`. -/
+/-- Coercion to a function as a `linear_map`. -/
+@[simps]
 def coe_fn_linear_map : C(α, M) →ₗ[R] (α → M) :=
 { to_fun := coe_fn,
   map_smul' := smul_coe,
@@ -421,6 +423,7 @@ instance continuous_map.algebra : algebra R C(α, A) :=
 variables (R)
 
 /-- Coercion to a function as an `alg_hom`. -/
+@[simps]
 def continuous_map.coe_fn_alg_hom : C(α, A) →ₐ[R] (α → A) :=
 { to_fun := coe_fn,
   commutes' := λ r, rfl,

@@ -22,7 +22,7 @@ section factorial
 
 variables {m n : ℕ}
 
-@[simp] theorem factorial_zero : 0! = 1! := rfl
+@[simp] theorem factorial_zero : 0! = 1 := rfl
 
 @[simp] theorem factorial_succ (n : ℕ) : n.succ! = succ n * n! := rfl
 

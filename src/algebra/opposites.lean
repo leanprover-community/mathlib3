@@ -59,6 +59,12 @@ iff.refl _
 iff.refl _
 end
 
+lemma unop_ne_zero_iff {α} [has_zero α] (a : αᵒᵖ) : a.unop ≠ (0 : α) ↔ a ≠ (0 : αᵒᵖ) :=
+not_iff_not.mpr $ unop_eq_zero_iff a
+
+lemma op_ne_zero_iff {α} [has_zero α] (a : α) : op a ≠ (0 : αᵒᵖ) ↔ a ≠ (0 : α) :=
+not_iff_not.mpr $ op_eq_zero_iff a
+
 instance [add_zero_class α] : add_zero_class (opposite α) :=
 { zero_add := λ x, unop_injective $ zero_add $ unop x,
   add_zero := λ x, unop_injective $ add_zero $ unop x,

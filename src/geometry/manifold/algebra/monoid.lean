@@ -131,7 +131,7 @@ open_locale lie_group
 by { ext, simp only [times_cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
 
 lemma L_apply_one {G : Type*} [monoid G] [topological_space G] [charted_space H G]
-  [has_smooth_mul I G] (g h : G) : (𝑳 I g) 1 = g := by rw [L_apply, mul_one]
+  [has_smooth_mul I G] (g : G) : (𝑳 I g) 1 = g := by rw [L_apply, mul_one]
 
 /- Instance of product -/
 @[to_additive]

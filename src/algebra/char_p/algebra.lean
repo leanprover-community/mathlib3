@@ -48,13 +48,12 @@ lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiri
     rw is_scalar_tower.algebra_map_apply ℕ R A y at hxy,
     exact char_zero.cast_injective (h hxy),
   end }
-        -- Another proof would be a direct corollary of the `char_p` analogue:
-        -- `:= @char_p.char_p_to_char_zero A _ (char_p_of_injective_algebra_map h 0)`.
-        -- However, `char_p_to_char_zero` would require `ring A`.
+-- `char_p.char_p_to_char_zero A _ (char_p_of_injective_algebra_map h 0)` does not work
+-- here as it would require `ring A`.
 
 namespace fraction_ring
 
-variables {R: Type*} [integral_domain R] (p : ℕ)
+variables {R : Type*} [integral_domain R] (p : ℕ)
 
 /-- If `R` has characteristic `p`, then so does `fraction_ring R`. -/
 instance char_p [char_p R p] : char_p (fraction_ring R) p :=

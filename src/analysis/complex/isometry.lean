@@ -7,6 +7,7 @@ import analysis.complex.basic
 import data.complex.exponential
 import data.real.sqrt
 import analysis.normed_space.linear_isometry
+import algebra.group.units
 
 /-!
 # Isometries of the Complex Plane
@@ -41,7 +42,7 @@ lemma linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re {f : ℂ →ₗᵢ
   (f z).im = z.im ∨ (f z).im = -z.im :=
 begin
   specialize h₁ z,
-  simp [complex.abs] at h₁,
+  simp only [complex.abs] at h₁,
   rwa [real.sqrt_inj (norm_sq_nonneg _) (norm_sq_nonneg _), norm_sq_apply (f z), norm_sq_apply z,
     h₂, add_left_cancel_iff, mul_self_eq_mul_self_iff] at h₁,
 end
@@ -119,10 +120,7 @@ begin
   let a := f 1,
   use a,
   split,
-  { change ∥a∥ = 1,
-    simp only [a],
-    rw linear_isometry.norm_map,
-    simp },
+  { simp only [← norm_eq_abs, a, linear_isometry.norm_map, norm_one] },
   { let g : ℂ →ₗᵢ[ℝ] ℂ :=
     { to_fun := λ z, a⁻¹ * f z,
       map_add' := by {
@@ -136,10 +134,9 @@ begin
       norm_map' := by {
         intros x,
         simp,
-        change ∥f 1∥⁻¹ * ∥f x∥ = ∥x∥,
+        suffices : ∥f 1∥⁻¹ * ∥f x∥ = ∥x∥, { simpa },
         iterate 2 { rw linear_isometry.norm_map },
         simp } },
-    have hg0 : g 0 = 0 := g.map_zero,
     have hg1 : g 1 = 1 := by {
       change a⁻¹ * a = 1,
       rw inv_mul_cancel,
@@ -148,7 +145,7 @@ begin
       change 0 < ∥a∥ ^ 2,
       rw linear_isometry.norm_map,
       simp,
-      apply zero_lt_one },
+      simp [zero_lt_one] },
     have h : (∀ z, g z = z) ∨ (∀ z, g z = conj z) := linear_isometry_complex_aux g hg1,
     change (∀ z, a⁻¹ * f z = z) ∨ (∀ z, a⁻¹ * f z = conj z) at h,
     have ha : a ≠ 0 := by {
@@ -157,15 +154,6 @@ begin
       change 0 < ∥a∥ ^ 2,
       rw linear_isometry.norm_map,
       simp,
-      apply zero_lt_one },
-    have ha_inv : a⁻¹ ≠ 0 := by {
-      exact inv_ne_zero ha },
-    conv in (_ = _) {
-      rw ← mul_right_inj' ha_inv, rw ← mul_assoc, rw inv_mul_cancel ha, rw one_mul },
-    conv {
-      congr,
-      skip,
-      find (_ = _) {
-        rw ← mul_right_inj' ha_inv, rw ← mul_assoc, rw inv_mul_cancel ha, rw one_mul } },
-    exact h },
+      simp [zero_lt_one] },
+    simpa only [← inv_mul_eq_iff_eq_mul' ha] }
 end

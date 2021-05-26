@@ -7,6 +7,14 @@ Authors: Riccardo Brasca
 import linear_algebra.basis
 import logic.small
 
+/-!
+
+# Free modules
+
+TODO
+
+-/
+
 universes u v w z
 
 variables (R : Type u) (M : Type v) [semiring R] [add_comm_monoid M] [module R M]
@@ -35,7 +43,7 @@ variables (R M) [module.free R M] (N : Type z) [add_comm_monoid N] [module R N]
 
 /-- If `[finite_free R M]` then `choose_basis_index R M` is the `ι` which indexes the basis
   `ι → M`. -/
-def choose_basis_index := (exists_basis R M).some.1
+@[nolint has_inhabited_instance] def choose_basis_index := (exists_basis R M).some.1
 
 /-- If `[finite_free R M]` then `choose_basis : ι → M` is the basis.
 Here `ι = choose_basis_index R M`. -/
@@ -44,6 +52,7 @@ noncomputable def choose_basis : basis (choose_basis_index R M) R M := (exists_b
 /-- The isomorphism `M ≃ₗ[R] (choose_basis_index R M →₀ R)`. -/
 noncomputable def repr : M ≃ₗ[R] (choose_basis_index R M →₀ R) := (choose_basis R M).repr
 
+@[priority 100]
 instance no_zero_smul_divisors [no_zero_divisors R] : no_zero_smul_divisors R M :=
 basis.no_zero_smul_divisors $ choose_basis R M
 

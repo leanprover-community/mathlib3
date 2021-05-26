@@ -797,14 +797,19 @@ variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
         (function.embedding.prod_map ⟨f, hfi⟩ ⟨f, hfi⟩),
         (emb_domain ⟨⟨f, hfi⟩, hf⟩ x).coeff (ij.1) *
         (emb_domain ⟨⟨f, hfi⟩, hf⟩ y).coeff (ij.2),
-      { simp },
+      { simp only [rel_embedding.coe_fn_mk, hahn_series.emb_domain_mk_coeff, hahn_series.mul_coeff,
+          _root_.prod_map, finset.sum_map, finset.sum_congr,
+          function.embedding.coe_fn_mk, function.embedding.coe_prod_map], },
       apply sum_subset,
       { rintro ⟨i, j⟩ hij,
         simp only [exists_prop, mem_map, prod.mk.inj_iff, function.embedding.coe_fn_mk,
           mem_add_antidiagonal, ne.def, function.embedding.coe_prod_map, mem_support,
           prod.exists] at hij,
         obtain ⟨i, j, ⟨rfl, hx, hy⟩, rfl, rfl⟩ := hij,
-        simp [hx, hy], },
+        simp only [hx, hy, hahn_series.mem_support, hahn_series.emb_domain_mk_coeff,
+          rel_embedding.coe_fn_mk, add_monoid_hom.map_add, add_monoid_hom.to_fun_eq_coe,
+          add_left_inj, function.embedding.coe_fn_mk, finset.mem_add_antidiagonal,
+          eq_self_iff_true, ne.def, not_false_iff, and_self], },
       { rintro ⟨_, _⟩ h1 h2,
         contrapose! h2,
         obtain ⟨i, hi, rfl⟩ := support_emb_domain_subset (ne_zero_and_ne_zero_of_mul h2).1,
@@ -814,14 +819,16 @@ variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
           prod.exists],
         simp only [mem_add_antidiagonal, rel_embedding.coe_fn_mk, emb_domain_mk_coeff,
           function.embedding.coe_fn_mk, ne.def, mem_support, ← f.map_add] at h1,
-        exact ⟨i, j, ⟨hfi h1.1, h1.2.1, h1.2.2⟩, rfl⟩, } },
+        exact ⟨i, j, ⟨hfi h1.1, h1.2.1, h1.2.2⟩, rfl⟩, }
+        },
     { rw [emb_domain_notin_range hg, eq_comm],
       contrapose! hg,
       obtain ⟨_, _, hi, hj, rfl⟩ := support_mul_subset_add_support ((mem_support _ _).2 hg),
       obtain ⟨i, hi, rfl⟩ := support_emb_domain_subset hi,
       obtain ⟨j, hj, rfl⟩ := support_emb_domain_subset hj,
       refine ⟨i + j, _⟩,
-      simp, }
+      simp only [rel_embedding.coe_fn_mk, add_monoid_hom.map_add, add_left_inj,
+        function.embedding.coe_fn_mk], }
   end,
   linear_map.map_zero _, linear_map.map_add _⟩
 

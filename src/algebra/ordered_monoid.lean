@@ -340,7 +340,7 @@ end has_one
 instance [has_add α] : has_add (with_top α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
 
-local attribute [reducible] with_zero
+local attribute [semireducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
@@ -758,7 +758,7 @@ lemma with_bot.add_lt_add_iff_left :
     { norm_cast, exact add_lt_add_iff_left _ }
   end
 
-local attribute [reducible] with_zero
+local attribute [semireducible] with_zero
 
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
@@ -848,7 +848,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
   lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
-
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=

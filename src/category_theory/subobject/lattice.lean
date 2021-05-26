@@ -516,7 +516,7 @@ wide_pullback_shape.wide_cospan A
     ((equiv_shrink (subobject A)).symm j).arrow :=
 rfl
 
-/-- Auxilliary construction of a cone for `le_Inf`. -/
+/-- Auxiliary construction of a cone for `le_Inf`. -/
 def le_Inf_cone {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
   cone (wide_cospan s) :=
 wide_pullback_shape.mk_cone f.arrow

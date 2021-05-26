@@ -48,12 +48,32 @@ variables (G : simple_graph V) [decidable_rel G.adj]
 def edges_pair_finset (U W : finset V) : finset (V × V) :=
 (U.product W).filter (λ e, G.adj e.1 e.2)
 
+lemma mem_edges_pair_finset (U W : finset V) (x : V × V) :
+  x ∈ edges_pair_finset G U W ↔ x.1 ∈ U ∧ x.2 ∈ W ∧ G.adj x.1 x.2 :=
+by simp [edges_pair_finset, and_assoc]
+
+lemma mem_edges_pair_finset' (U W : finset V) (x y : V) :
+  (x, y) ∈ edges_pair_finset G U W ↔ x ∈ U ∧ y ∈ W ∧ G.adj x y :=
+mem_edges_pair_finset _ _ _ _
+
 def edges_count_finset (U W : finset V) : ℕ :=
 (edges_pair_finset G U W).card
 
 lemma edges_count_finset_symm (U W : finset V) :
   edges_count_finset G U W = edges_count_finset G W U :=
-sorry
+begin
+  apply finset.card_congr (λ (i : V × V) hi, (i.2, i.1)) _ _ _,
+  { rintro ⟨i, j⟩ h,
+    simp only [mem_edges_pair_finset'] at h ⊢,
+    rwa [G.edge_symm, and.left_comm] },
+  { rintro ⟨i₁, j₁⟩ ⟨i₂, j₂⟩ h₁ h₂ h,
+    rcases h,
+    refl },
+  { rintro ⟨i₁, j₁⟩ h,
+    refine ⟨⟨j₁, i₁⟩, _, rfl⟩,
+    { simp only [mem_edges_pair_finset'] at h ⊢,
+      rwa [G.edge_symm, and.left_comm] } }
+end
 
 def edges_count : sym2 (finset V) → ℕ :=
 quotient.lift (function.uncurry (edges_count_finset G))

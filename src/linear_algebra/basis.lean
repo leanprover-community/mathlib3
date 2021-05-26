@@ -780,21 +780,33 @@ lemma smul_group_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_m
 mk_apply
   (linear_independent.group_smul v.linear_independent w) (smul_group_span_eq_top v.span_eq) i
 
-lemma smul_of_is_unit_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
+lemma smul_of_units_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
   {w : ι → units R} : submodule.span R (set.range (w • v)) = ⊤ :=
 smul_group_span_eq_top hv
 
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
 provides the basis corresponding to `w • v`. -/
-def smul_of_is_unit (v : basis ι R M) (w : ι → units R) :
+def smul_of_units (v : basis ι R M) (w : ι → units R) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
-  (linear_independent.units_smul v.linear_independent w) (smul_of_is_unit_span_eq_top v.span_eq)
+  (linear_independent.units_smul v.linear_independent w) (smul_of_units_span_eq_top v.span_eq)
 
-lemma smul_of_is_unit_apply {v : basis ι R M} {w : ι → units R} (i : ι) :
-  v.smul_of_is_unit w i = w i • v i :=
+lemma smul_of_units_apply {v : basis ι R M} {w : ι → units R} (i : ι) :
+  v.smul_of_units w i = w i • v i :=
 mk_apply
-  (linear_independent.units_smul v.linear_independent w) (smul_of_is_unit_span_eq_top v.span_eq) i
+  (linear_independent.units_smul v.linear_independent w) (smul_of_units_span_eq_top v.span_eq) i
+
+/-- A version of `smul_of_units` that uses `is_unit`. -/
+def smul_of_is_unit (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):
+  basis ι R M :=
+smul_of_units v (λ i, (hw i).unit)
+
+lemma smul_of_is_unit_apply {v : basis ι R M} {w : ι → R} (hw : ∀ i, is_unit (w i)) (i : ι) :
+  v.smul_of_is_unit hw i = w i • v i :=
+begin
+  convert smul_of_units_apply i,
+  exact (is_unit.unit_spec (hw i)).symm,
+end
 
 end basis
 

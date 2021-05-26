@@ -905,7 +905,7 @@ begin
   { intros i hi,
     exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
   convert (weighted_sum_squares ℂ w).isometry_basis_repr
-    ((pi.basis_fun ℂ ι).smul_of_is_unit (λ i, (is_unit_iff_ne_zero.2 $ hw' i).unit)),
+    ((pi.basis_fun ℂ ι).smul_of_units (λ i, (is_unit_iff_ne_zero.2 $ hw' i).unit)),
   ext1 v,
   erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
@@ -919,7 +919,7 @@ begin
         function.update_noteq hij.symm, pi.zero_apply, smul_eq_mul, smul_eq_mul,
         mul_zero, mul_zero],
     intro hj', exact false.elim (hj' hj) },
-  simp_rw basis.smul_of_is_unit_apply,
+  simp_rw basis.smul_of_units_apply,
   erw [hsum, smul_eq_mul],
   suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
   { erw [pi.one_apply, ← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
@@ -932,8 +932,8 @@ the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
   [finite_dimensional ℂ M] (Q : quadratic_form ℂ M) (hQ : (associated Q).nondegenerate) :
   equivalent Q (weighted_sum_squares ℂ (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
-let ⟨w, hw₁⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
-  nonempty.intro $ (classical.choice hw₁).trans (isometry_sum_squares w)
+let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
+  ⟨hw₁.trans (isometry_sum_squares w)⟩
 
 end complex
 

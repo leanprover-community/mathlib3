@@ -710,8 +710,8 @@ end ring_equiv
 These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
 The only new result is `subsemiring.module`.
 
-A stronger result is provided elsewhere as `algebra.of_subsemiring` which uses the same scalar
-action.
+When `R` is commutative, `algebra.of_subsemiring` provides a stronger result than those found in
+this file, which uses the same scalar action.
 -/
 section actions
 

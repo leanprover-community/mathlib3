@@ -28,16 +28,10 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 open_locale manifold
 
-namespace instances
-def smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := infer_instance
-attribute [instance, priority 10000] smooth_functions_algebra
-def tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := infer_instance
-attribute [instance, priority 10000] tower
-def sizeof : has_sizeof (derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^⊤⟮I, M; 𝕜⟯) := infer_instance
-attribute [instance, priority 100000] sizeof
-end instances
-
 namespace point_derivation
+
+instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
+instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
 /-- The scalar multiplication depends on the point `x : M`. -/
 def has_scalar (x : M) : has_scalar C^∞⟮I, M; 𝕜⟯ 𝕜 :=

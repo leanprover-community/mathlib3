@@ -32,6 +32,10 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 variable (G)
 
+-- Generate trivial has_sizeof instance.
+local attribute [instance, priority 10000]
+private def disable_has_sizeof {α} : has_sizeof α := ⟨λ _, 0⟩
+
 /--
 Left-invariant global derivations.
 

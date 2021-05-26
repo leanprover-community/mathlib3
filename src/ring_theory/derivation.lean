@@ -211,6 +211,20 @@ def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
 @[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :
   f.comp_der D a = f (D a) := rfl
 
+@[simp] lemma derivation.mk_coe (f : A →ₗ[R] M) (h) :
+  ((⟨f, h⟩ : derivation R A M) : A → M) = f :=
+rfl
+
+def derivation.comp (f : M →ₗ[A] N) : derivation R A M →ₗ[R] derivation R A N :=
+{ to_fun    := λ D,
+  { leibniz'  := λ a b, by simp only [map_add, derivation.leibniz, coe_coe_is_scalar_tower,
+            function.comp_app, to_fun_eq_coe, derivation.coe_fn_coe, map_smul, coe_comp],
+    .. (f : M →ₗ[R] N).comp (D : A →ₗ[R] M), },
+  map_add'  := λ D₁ D₂, by ext; simp only [map_add, coe_mk, pi.add_apply, function.comp_app,
+            to_fun_eq_coe, derivation.coe_fn_coe, derivation.coe_add, derivation.mk_coe, coe_comp],
+  map_smul' := λ r D, by ext; simp only [derivation.Rsmul_apply, coe_mk, map_smul_of_tower,
+            function.comp_app, to_fun_eq_coe, derivation.coe_fn_coe, derivation.mk_coe, coe_comp], }
+
 end linear_map
 
 end comp_der

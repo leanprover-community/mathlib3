@@ -99,11 +99,11 @@ instance : has_neg (left_invariant_derivation I G) :=
 @[simp] lemma map_sub : X (f - f') = X f - X f' := linear_map.map_sub X f f'
 
 instance : add_comm_group (left_invariant_derivation I G) :=
-{ add_assoc := λ X Y Z, by { ext1 f, simp only [coe_add], rw add_assoc ⇑X Y Z },
-  zero_add := λ X, by { ext1 f, simp only [coe_add, coe_zero], rw zero_add ⇑X },
-  add_zero := λ X,by { ext1 f, simp only [coe_add, coe_zero], rw add_zero ⇑X },
-  add_comm := λ X Y, by { ext1 f, simp only [coe_add], rw add_comm ⇑X Y },
-  add_left_neg := λ X, by { ext1 f, simp only [coe_add, coe_neg, coe_zero], rw add_left_neg ⇑X },
+{ add_assoc := λ X Y Z, ext $ λ a, add_assoc _ _ _,
+  zero_add := λ X, ext $ λ a, zero_add _,
+  add_zero := λ X, ext $ λ a, add_zero _,
+  add_comm := λ X Y, ext $ λ a, add_comm _ _,
+  add_left_neg := λ X, ext $ λ a, add_left_neg _,
   ..left_invariant_derivation.has_zero,
   ..left_invariant_derivation.has_add,
   ..left_invariant_derivation.has_neg }
@@ -126,7 +126,7 @@ module.of_core $
 
 /-- Evaluation at a point for left invariant derivation. Same thing as for generic global
 derivations.-/
-def eval_at : (left_invariant_derivation I G) →ₗ[𝕜] (point_derivation I G g) :=
+def eval_at : (left_invariant_derivation I G) →ₗ[𝕜] (point_derivation I g) :=
 { to_fun := λ X, derivation.eval_at g ↑X,
   map_add' := λ X Y, rfl,
   map_smul' := λ k X, rfl }
@@ -139,8 +139,8 @@ lemma left_invariant : (𝒅(𝑳 I g)) (1 : G) (eval_at (1 : G) X) f = eval_at 
 (X.left_invariant'' f g)
 
 lemma eval_at_mul : eval_at (g * h) X f = (𝒅(𝑳 I g)) h (eval_at h X) f :=
-by rw [←left_invariant, L_mul, ←fdifferential_comp, function.comp, apply_fdifferential,
-  left_invariant, ←apply_fdifferential]
+by rw [←left_invariant, L_mul, ←fdifferential_comp, apply_fdifferential, linear_map.comp_apply,
+  apply_fdifferential, left_invariant]
 
 lemma comp_L : (X f).comp (𝑳 I g) = X (f.comp (𝑳 I g)) :=
 by ext h; rw [times_cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_at_mul,

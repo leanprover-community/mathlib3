@@ -496,7 +496,7 @@ lemma tunnel_aux_injective
 
 noncomputable theory
 
-/-- Auxilliary definition for `tunnel`. -/
+/-- Auxiliary definition for `tunnel`. -/
 -- Even though we have `noncomputable theory`,
 -- we get an error without another `noncomputable` here.
 noncomputable def tunnel' (f : M × N →ₗ[R] M) (i : injective f) :

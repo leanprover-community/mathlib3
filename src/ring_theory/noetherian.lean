@@ -563,7 +563,7 @@ begin
   apply nonempty.intro,
   refine (f.tailing_linear_equiv i n).symm.trans _,
   rw w,
-  exact submodule.submodule.bot_equiv_punit,
+  exact submodule.bot_equiv_punit,
 end
 
 end

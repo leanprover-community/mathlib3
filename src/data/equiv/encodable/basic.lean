@@ -10,9 +10,9 @@ import order.directed
 /-!
 # Encodable types
 
-This file defines encodable (constructively countable) types as a typeclass extending `encodable`. This
-is used to provide explicit encode/decode functions from and to `ℕ`, with the information that those
-functions are inverses of each other.
+This file defines encodable (constructively countable) types as a typeclass extending `encodable`.
+This is used to provide explicit encode/decode functions from and to `ℕ`, with the information that
+those functions are inverses of each other.
 
 ## Main declarations
 

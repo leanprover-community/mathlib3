@@ -1,6 +1,7 @@
 import data.finset.basic
 import data.real.basic
 
+noncomputable theory
 open_locale classical
 variables {V : Type*} [fintype V] {k n r : ℕ}
 

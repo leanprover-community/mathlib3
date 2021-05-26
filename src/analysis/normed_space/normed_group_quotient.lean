@@ -61,7 +61,7 @@ shouldn't be needed outside of this file setting up the theory.
 Since `quotient S` is automatically a topological space (as any quotient of a topological space),
 one needs to be careful while defining the `semi_normed_group` instance to avoid having two
 different topologies on this quotient. This is not purely a technological issue.
-Mathematically there is something to prove. The main point is proved in the auxilliary lemma
+Mathematically there is something to prove. The main point is proved in the auxiliary lemma
 `quotient_nhd_basis` that has no use beyond this verification and states that zero in the quotient
 admits as basis of neighborhoods in the quotient topology the sets `{x | ∥x∥ < ε}` for positive `ε`.
 

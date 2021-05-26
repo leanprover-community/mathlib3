@@ -98,7 +98,7 @@ meta def projections_info (l : list (name × expr × list ℕ × bool)) (pref : 
   let to_print := string.join $ to_print.intersperse "\n        > ",
   return format!"[simps] > {pref} {str}:\n        > {to_print}"
 
-/-- Auxilliary function of `get_composite_of_projections`. -/
+/-- Auxiliary function of `get_composite_of_projections`. -/
 meta def get_composite_of_projections_aux : Π (str : name) (proj : string) (x : expr)
   (pos : list ℕ) (args : list expr), tactic (expr × list ℕ) | str proj x pos args := do
   e ← get_env,

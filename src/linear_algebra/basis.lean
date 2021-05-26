@@ -772,13 +772,13 @@ def smul_group {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_actio
   [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
-  (linear_independent.group_smul v.linear_independent w) (smul_group_span_eq_top v.span_eq)
+  (v.linear_independent.group_smul w) (smul_group_span_eq_top v.span_eq)
 
 lemma smul_group_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
   v.smul_group w i = (w • v : ι → M) i :=
 mk_apply
-  (linear_independent.group_smul v.linear_independent w) (smul_group_span_eq_top v.span_eq) i
+  (v.linear_independent.group_smul w) (smul_group_span_eq_top v.span_eq) i
 
 lemma units_smul_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
   {w : ι → units R} : submodule.span R (set.range (w • v)) = ⊤ :=
@@ -789,12 +789,12 @@ provides the basis corresponding to `w • v`. -/
 def units_smul (v : basis ι R M) (w : ι → units R) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
-  (linear_independent.units_smul v.linear_independent w) (units_smul_span_eq_top v.span_eq)
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq)
 
 lemma units_smul_apply {v : basis ι R M} {w : ι → units R} (i : ι) :
   v.units_smul w i = w i • v i :=
 mk_apply
-  (linear_independent.units_smul v.linear_independent w) (units_smul_span_eq_top v.span_eq) i
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq) i
 
 /-- A version of `smul_of_units` that uses `is_unit`. -/
 def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):

@@ -67,15 +67,15 @@ since all of the names from the list are taken and `n_2` is the first unused
 variation of `n`.
 -/
 meta def get_unused_name_reserved (ns : list name) (reserved : name_set) :
-  tactic name := do
-  let fallback := match ns with | [] := `x | x :: _ := x end,
-  (first $ ns.map $ λ n, do {
-    guard (¬ reserved.contains n),
-    fail_if_success (resolve_name n),
-    pure n
-  })
-  <|>
-  get_unused_name_reserved_aux fallback reserved none
+  tactic name :=
+(first $ ns.map $ λ n, do {
+  guard (¬ reserved.contains n),
+  fail_if_success (resolve_name n),
+  pure n
+})
+<|>
+(do let fallback := match ns with | [] := `x | x :: _ := x end,
+    get_unused_name_reserved_aux fallback reserved none)
 
 /--
 `intro_fresh_reserved ns reserved` introduces a hypothesis. The hypothesis
@@ -111,9 +111,17 @@ ns.mmap $ λ spec,
 
 /--
 `rename_fresh renames reserved`, given a map `renames` which associates the
-unique names of some hypotheses `hᵢ` with name lists `nsᵢ`, renames each `hᵢ` to
-a fresh name from `nsᵢ`, excluding the names in `reserved`. The `nsᵢ` must be
-nonempty. See `tactic.get_unused_name_reserved` for the full algorithm.
+unique names of some hypotheses `hᵢ` with either a name `nᵢ` or a nonempty (!)
+name list `nsᵢ`, renames each `hᵢ` as follows:
+
+- If `hᵢ` is associated with a name `nᵢ`, it is renamed to `nᵢ`. This may
+  introduce shadowing if there is another hypothesis `nᵢ` in the context.
+- If `hᵢ` is associated with a name list `nsᵢ`, it is renamed to the first
+  unused name from `nsᵢ`. If none of the names is unused, `hᵢ` is renamed to a
+  fresh name based on the first name of `nᵢ`. A name is considered used if it
+  appears in the context or in the environment or in `reserved`.
+
+See `tactic.get_unused_name_reserved` for the full algorithm.
 
 The hypotheses are renamed in context order, so hypotheses which occur earlier
 in the context are renamed before hypotheses that occur later in the context.
@@ -127,13 +135,13 @@ pairs are returned in context order. Note that the returned list may contain
 hypotheses which do not appear in `renames` but had to be temporarily reverted
 due to dependencies.
 -/
-meta def rename_fresh (renames : name_map (list name)) (reserved : name_set) :
-  tactic (list (expr × expr)) := do
+meta def rename_fresh (renames : name_map (name ⊕ list name))
+  (reserved : name_set) : tactic (list (expr × expr)) := do
   (_, reverted) ← revert_name_set $ name_set.of_list $ renames.keys,
   let renames := reverted.map $ λ h,
     match renames.find h.local_uniq_name with
     | none := sum.inl h.local_pp_name
-    | some new_names := sum.inr new_names
+    | some new_names := new_names
     end,
   let reserved := reserved.insert_list $ renames.filter_map sum.get_left,
   new_hyps ← intro_lst_fresh_reserved renames reserved,

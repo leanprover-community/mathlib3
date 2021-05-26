@@ -751,7 +751,7 @@ end
 
 end span
 
-lemma smul_group_span_eq_top
+lemma group_smul_span_eq_top
   {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] {v : ι → M} (hv : submodule.span R (set.range v) = ⊤) {w : ι → G} :
   submodule.span R (set.range (w • v)) = ⊤ :=
@@ -767,22 +767,22 @@ begin
 end
 
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` are elements of a group,
-`smul_group` provides the basis corresponding to `w • v`. -/
-def smul_group {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+`group_smul` provides the basis corresponding to `w • v`. -/
+def group_smul {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
-  (v.linear_independent.group_smul w) (smul_group_span_eq_top v.span_eq)
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq)
 
-lemma smul_group_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+lemma group_smul_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
-  v.smul_group w i = (w • v : ι → M) i :=
+  v.group_smul w i = (w • v : ι → M) i :=
 mk_apply
-  (v.linear_independent.group_smul w) (smul_group_span_eq_top v.span_eq) i
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq) i
 
 lemma units_smul_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
   {w : ι → units R} : submodule.span R (set.range (w • v)) = ⊤ :=
-smul_group_span_eq_top hv
+group_smul_span_eq_top hv
 
 /-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
 provides the basis corresponding to `w • v`. -/

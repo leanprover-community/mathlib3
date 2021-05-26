@@ -461,7 +461,7 @@ begin
     intros, erw [pi.smul_apply, smul_assoc, smul_comm] },
 end
 
--- This lemma cannot be proved with `smul_group_linear_independent` since the action of
+-- This lemma cannot be proved with `linear_independent.group_smul` since the action of
 -- `units R` on `R` is not commutative.
 lemma linear_independent.units_smul {v : ι → M} (hv : linear_independent R v)
   (w : ι → units R) : linear_independent R (w • v) :=

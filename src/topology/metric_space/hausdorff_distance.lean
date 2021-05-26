@@ -34,8 +34,8 @@ namespace emetric
 
 section inf_edist
 
-variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α}
-  {Φ : α → β}
+variables {α : Type u} {β : Type v} [pseudo_emetric_space α] [pseudo_emetric_space β] {x y : α}
+{s t : set α} {Φ : α → β}
 
 /-! ### Distance of a point to a set as a function into `ℝ≥0∞`. -/
 
@@ -80,6 +80,7 @@ calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
 ... = (⨅ z ∈ s, edist y z) + edist x y : by simp only [ennreal.infi_add]
 
 /-- The edist to a set depends continuously on the point -/
+@[continuity]
 lemma continuous_inf_edist : continuous (λx, inf_edist x s) :=
 continuous_of_le_add_edist 1 (by simp) $
   by simp only [one_mul, inf_edist_le_inf_edist_add_edist, forall_2_true_iff]
@@ -108,7 +109,7 @@ lemma mem_closure_iff_inf_edist_zero : x ∈ closure s ↔ inf_edist x s = 0 :=
 λh, emetric.mem_closure_iff.2 $ λε εpos, exists_edist_lt_of_inf_edist_lt (by rwa h)⟩
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum edistance to this set vanishes -/
-lemma mem_iff_ind_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
+lemma mem_iff_inf_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
 begin
   convert ← mem_closure_iff_inf_edist_zero,
   exact h.closure_eq
@@ -125,16 +126,16 @@ end inf_edist --section
 
 /-- The Hausdorff edistance between two sets is the smallest `r` such that each set
 is contained in the `r`-neighborhood of the other one -/
-@[irreducible] def Hausdorff_edist {α : Type u} [emetric_space α] (s t : set α) : ℝ≥0∞ :=
+@[irreducible] def Hausdorff_edist {α : Type u} [pseudo_emetric_space α] (s t : set α) : ℝ≥0∞ :=
 (⨆ x ∈ s, inf_edist x t) ⊔ (⨆ y ∈ t, inf_edist y s)
 
-lemma Hausdorff_edist_def {α : Type u} [emetric_space α] (s t : set α) :
+lemma Hausdorff_edist_def {α : Type u} [pseudo_emetric_space α] (s t : set α) :
   Hausdorff_edist s t = (⨆ x ∈ s, inf_edist x t) ⊔ (⨆ y ∈ t, inf_edist y s) :=
 by rw Hausdorff_edist
 
 section Hausdorff_edist
 
-variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
+variables {α : Type u} {β : Type v} [pseudo_emetric_space α] [pseudo_emetric_space β]
           {x y : α} {s t u : set α} {Φ : α → β}
 
 /-- The Hausdorff edistance of a set to itself vanishes -/
@@ -323,7 +324,7 @@ modulo some tedious rewriting of inequalities from one to the other. -/
 
 namespace metric
 section
-variables {α : Type u} {β : Type v} [metric_space α] [metric_space β]
+variables {α : Type u} {β : Type v} [pseudo_metric_space α] [pseudo_metric_space β]
   {s t u : set α} {x y : α} {Φ : α → β}
 open emetric
 
@@ -413,6 +414,7 @@ lemma uniform_continuous_inf_dist_pt :
 (lipschitz_inf_dist_pt s).uniform_continuous
 
 /-- The minimal distance to a set is continuous in point -/
+@[continuity]
 lemma continuous_inf_dist_pt : continuous (λx, inf_dist x s) :=
 (uniform_continuous_inf_dist_pt s).continuous
 

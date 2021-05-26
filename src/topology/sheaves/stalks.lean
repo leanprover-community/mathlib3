@@ -124,7 +124,7 @@ lemma germ_ext {D : Type u} [category.{v} D] [concrete_category D] [has_colimits
   (ih : F.map iWU.op sU = F.map iWV.op sV) :
   F.germ ⟨x, hxU⟩ sU = F.germ ⟨x, hxV⟩ sV :=
 by erw [← F.germ_res iWU ⟨x, hxW⟩,
-    ← F.germ_res iWV ⟨x, hxW⟩, coe_comp, coe_comp, ih]
+    ← F.germ_res iWV ⟨x, hxW⟩, comp_apply, comp_apply, ih]
 
 end
 

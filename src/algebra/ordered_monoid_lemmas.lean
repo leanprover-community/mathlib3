@@ -183,7 +183,7 @@ calc  b * a ≤ b * 1 : mul_le_mul_left' ha b
         ... ≤ c     : hbc
 
 alias mul_le_of_le_of_le_one ← mul_le_one'
-alias add_le_of_le_of_nonpos ← add_nonpos'
+attribute [to_additive] mul_le_one'
 
 @[to_additive]
 lemma lt_mul_of_lt_of_one_le [covariant_class α α (*) (≤)]

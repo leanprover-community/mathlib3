@@ -406,164 +406,83 @@ end has_lt
 
 end comm_group
 
+alias le_inv' ↔ le_inv_of_le_inv _
+attribute [to_additive] le_inv_of_le_inv
+
+alias left.inv_le_one_iff ↔ one_le_of_inv_le_one _
+attribute [to_additive] one_le_of_inv_le_one
+
+alias left.one_le_inv_iff ↔ le_one_of_one_le_inv _
+attribute [to_additive nonpos_of_neg_nonneg] le_one_of_one_le_inv
+
+alias inv_lt_inv_iff ↔ lt_of_inv_lt_inv _
+attribute [to_additive] lt_of_inv_lt_inv
+
+alias left.inv_lt_one_iff ↔ one_lt_of_inv_inv _
+attribute [to_additive] one_lt_of_inv_inv
+
+alias left.inv_lt_one_iff ← inv_lt_one_iff_one_lt
+attribute [to_additive] inv_lt_one_iff_one_lt
+
+alias left.one_lt_inv_iff ↔  inv_of_one_lt_inv _
+attribute [to_additive neg_of_neg_pos] inv_of_one_lt_inv
+
+alias left.one_lt_inv_iff ↔ _ one_lt_inv_of_inv
+attribute [to_additive neg_pos_of_neg] one_lt_inv_of_inv
+
+alias le_inv_mul_iff_mul_le ↔ mul_le_of_le_inv_mul _
+attribute [to_additive] mul_le_of_le_inv_mul
+
+alias le_inv_mul_iff_mul_le ↔ _ le_inv_mul_of_mul_le
+attribute [to_additive] le_inv_mul_of_mul_le
+
+alias inv_mul_iff_le_mul ↔ le_mul_of_inv_mul_le _
+attribute [to_additive] le_mul_of_inv_mul_le
+
+alias inv_mul_iff_le_mul ↔ _ inv_mul_le_of_le_mul
+attribute [to_additive] inv_mul_le_of_le_mul
+
+alias le_mul_of_inv_mul_le ← le_mul_of_inv_mul_le_left
+attribute [to_additive] le_mul_of_inv_mul_le_left
+
+alias inv_mul_le_of_le_mul ← inv_mul_le_left_of_le_mul
+attribute [to_additive] inv_mul_le_left_of_le_mul
+
+alias lt_inv_mul_iff_mul_lt ↔ mul_lt_of_lt_inv_mul _
+attribute [to_additive] mul_lt_of_lt_inv_mul
+
+alias lt_inv_mul_iff_mul_lt ↔ _ lt_inv_mul_of_mul_lt
+attribute [to_additive] lt_inv_mul_of_mul_lt
+
+alias inv_mul_lt_iff_lt_mul ↔ lt_mul_of_inv_mul_lt _
+attribute [to_additive] lt_mul_of_inv_mul_lt
+
+alias inv_mul_lt_iff_lt_mul ↔ _ inv_mul_lt_of_lt_mul
+attribute [to_additive] inv_mul_lt_of_lt_mul
+
+alias lt_mul_of_inv_mul_lt ← lt_mul_of_inv_mul_lt_left
+attribute [to_additive] lt_mul_of_inv_mul_lt_left
+
+alias inv_mul_lt_of_lt_mul ← inv_mul_lt_left_of_lt_mul
+attribute [to_additive] inv_mul_lt_left_of_lt_mul
+
+alias left.inv_le_one_iff ← inv_le_one'
+attribute [to_additive neg_nonpos] inv_le_one'
+
+alias left.one_le_inv_iff ← one_le_inv'
+attribute [to_additive neg_nonneg] one_le_inv'
+
+alias left.inv_lt_one_iff ← inv_lt_one'
+attribute [to_additive neg_lt_zero] inv_lt_one'
+
+alias left.one_lt_inv_iff ← one_lt_inv'
+attribute [to_additive neg_pos] one_lt_inv'
+
+alias mul_lt_mul_left' ← ordered_comm_group.mul_lt_mul_left'
+attribute [to_additive ordered_add_comm_group.add_lt_add_left] ordered_comm_group.mul_lt_mul_left'
+
 section ordered_comm_group
-variables [ordered_comm_group α] {a b c d : α}
-
-/-
-Simple application: remove?
---#check @inv_le_inv'
-@[to_additive neg_le_neg]
-lemma inv_le_inv' (h : a ≤ b) : b⁻¹ ≤ a⁻¹ :=
-inv_le_inv_iff.mpr h
-
-@[to_additive]
-lemma le_of_inv_le_inv (h : b⁻¹ ≤ a⁻¹) : a ≤ b :=
-inv_le_inv_iff.mp h
--/
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma le_inv_of_le_inv (h : a ≤ b⁻¹) : b ≤ a⁻¹ :=
-le_inv'.mp h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma one_le_of_inv_le_one (h : a⁻¹ ≤ 1) : 1 ≤ a :=
-left.inv_le_one_iff.mp h
-
-/-  Simple application: save the name? The prime is present to avoid clashing with the `linarith`
-lemma.  This lemma is restated with correct assumptions for `norm_num` at the bottom of the file.
-@[to_additive neg_nonpos_of_nonneg']
-lemma inv_le_one_of_one_le (h : 1 ≤ a) : a⁻¹ ≤ 1 :=
-left.inv_le_one_iff.mpr h
- -/
-
-/-  Simple application: save the name? -/
-@[to_additive nonpos_of_neg_nonneg]
-lemma le_one_of_one_le_inv (h : 1 ≤ a⁻¹) : a ≤ 1 :=
-left.one_le_inv_iff.mp h
-
-/-  Simple application: save the name?  Stated at the bottom for `linarith`.
-@[to_additive neg_nonneg_of_nonpos]
-lemma one_le_inv_of_le_one (h : a ≤ 1) : 1 ≤ a⁻¹ :=
-left.one_le_inv_iff.mpr h
--/
-
-/-  Simple application: save the name? Appears as a `norm_num` lemma.
-@[to_additive neg_lt_neg]
-lemma inv_lt_inv' (h : a < b) : b⁻¹ < a⁻¹ :=
-inv_lt_inv_iff.mpr h
--/
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma lt_of_inv_lt_inv (h : b⁻¹ < a⁻¹) : a < b :=
-inv_lt_inv_iff.mp h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma one_lt_of_inv_inv (h : a⁻¹ < 1) : 1 < a :=
-left.inv_lt_one_iff.mp h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma inv_lt_one_iff_one_lt : a⁻¹ < 1 ↔ 1 < a :=
-left.inv_lt_one_iff
-
-/-  Simple application: save the name? -/
-@[to_additive neg_of_neg_pos]
-lemma inv_of_one_lt_inv (h : 1 < a⁻¹) : a < 1 :=
-left.one_lt_inv_iff.mp h
-
-/-  Simple application: save the name? -/
-@[to_additive neg_pos_of_neg]
-lemma one_lt_inv_of_inv (h : a < 1) : 1 < a⁻¹ :=
-left.one_lt_inv_iff.mpr h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma mul_le_of_le_inv_mul (h : b ≤ a⁻¹ * c) : a * b ≤ c :=
-le_inv_mul_iff_mul_le.mp h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma le_inv_mul_of_mul_le (h : a * b ≤ c) : b ≤ a⁻¹ * c :=
-le_inv_mul_iff_mul_le.mpr h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma le_mul_of_inv_mul_le (h : b⁻¹ * a ≤ c) : a ≤ b * c :=
-inv_mul_iff_le_mul.mp h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma inv_mul_le_of_le_mul (h : a ≤ b * c) : b⁻¹ * a ≤ c :=
-inv_mul_iff_le_mul.mpr h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma le_mul_of_inv_mul_le_left (h : b⁻¹ * a ≤ c) : a ≤ b * c :=
-le_mul_of_inv_mul_le h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma inv_mul_le_left_of_le_mul (h : a ≤ b * c) : b⁻¹ * a ≤ c :=
-inv_mul_le_of_le_mul h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma mul_lt_of_lt_inv_mul (h : b < a⁻¹ * c) : a * b < c :=
-lt_inv_mul_iff_mul_lt.mp h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma lt_inv_mul_of_mul_lt (h : a * b < c) : b < a⁻¹ * c :=
-lt_inv_mul_iff_mul_lt.mpr h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma lt_mul_of_inv_mul_lt (h : b⁻¹ * a < c) : a < b * c :=
-inv_mul_lt_iff_lt_mul.mp h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma inv_mul_lt_of_lt_mul (h : a < b * c) : b⁻¹ * a < c :=
-inv_mul_lt_iff_lt_mul.mpr h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma lt_mul_of_inv_mul_lt_left (h : b⁻¹ * a < c) : a < b * c :=
-lt_mul_of_inv_mul_lt h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma inv_mul_lt_left_of_lt_mul (h : a < b * c) : b⁻¹ * a < c :=
-inv_mul_lt_of_lt_mul h
-
-/-  Simple application: save the name? -/
-@[simp, to_additive neg_nonpos]
-lemma inv_le_one' : a⁻¹ ≤ 1 ↔ 1 ≤ a :=
-left.inv_le_one_iff
-
-/-  Simple application: save the name? -/
-@[simp, to_additive neg_nonneg]
-lemma one_le_inv' : 1 ≤ a⁻¹ ↔ a ≤ 1 :=
-left.one_le_inv_iff
-
-/-  Simple application: save the name? -/
-@[to_additive neg_lt_zero]
-lemma inv_lt_one' : a⁻¹ < 1 ↔ 1 < a :=
-left.inv_lt_one_iff
-
-/-  Simple application: save the name? -/
-@[to_additive neg_pos]
-lemma one_lt_inv' : 1 < a⁻¹ ↔ a < 1 :=
-left.one_lt_inv_iff
-
-/-  Simple application: save the name? -/
-@[to_additive ordered_add_comm_group.add_lt_add_left]
-lemma ordered_comm_group.mul_lt_mul_left' (a b : α) (h : a < b) (c : α) : c * a < c * b :=
-mul_lt_mul_left' h c
+variables [ordered_comm_group α] {a b c : α}
 
 /-  Simple application: save the name? -/
 @[to_additive ordered_add_comm_group.le_of_add_le_add_left]

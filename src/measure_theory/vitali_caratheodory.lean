@@ -52,22 +52,44 @@ begin
     ... = ∫⁻ (x : α), f x ∂μ + ε : by rw [add_assoc, ← ennreal.coe_add, nnreal.add_halves] },
 end
 
+variable {μ}
+
 /-- Given an integrable function `f`, there exists an upper semicontinuous function `g ≤ f` with
 integral arbitrarily close to that of `f`. -/
 lemma ennreal.exists_upper_semicontinuous_le
-  (f : α → ℝ≥0∞) (hf : measurable f) (int_f : ∫⁻ x, f x ∂μ < ∞) (ε : ℝ≥0∞) (εpos : 0 < ε) :
-  ∃ g : α → ℝ≥0∞, (∀ x, g x ≤ f x) ∧ lower_semicontinuous g ∧ (∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x ∂μ + ε) :=
+  (f : α → ℝ≥0) (hf : measurable f) (int_f : ∫⁻ x, f x ∂μ < ∞) {ε : ℝ≥0} (εpos : 0 < ε) :
+  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ lower_semicontinuous g ∧ (∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x ∂μ + ε) :=
 begin
   sorry
 end
 
-lemma real.exists_le_lower_semicontinuous
-  (f : α → ℝ) (hf : integrable f μ) (ε : ℝ) (εpos : 0 < ε) :
-  ∃ g : α → ereal, (∀ x, (f x : ereal) ≤ g x) ∧ lower_semicontinuous g ∧
+lemma real.exists_le_lower_semicontinuous [sigma_finite μ]
+  (f : α → ℝ) (fmeas : measurable f) (hf : integrable f μ) (ε : ℝ) (εpos : 0 < ε) :
+  ∃ g : α → ereal, (∀ x, (f x : ereal) < g x) ∧ lower_semicontinuous g ∧
   (∀ᵐ x ∂ μ, g x < ⊤) ∧
   (∫ x, ereal.to_real (g x) ∂μ ≤ ∫ x, f x ∂μ + ε) :=
 begin
-  sorry
+  let δ : ℝ≥0 := ⟨ε, εpos.le⟩,
+  have δpos : 0 < δ := sorry,
+  let fp : α → ℝ≥0 := λ x, nnreal.of_real (f x),
+  rcases ennreal.exists_lt_lower_semicontinuous μ fp fmeas.nnreal_of_real δpos with
+    ⟨gp, fp_lt_gp, gpcont, gpint⟩,
+  let fm : α → ℝ≥0 := λ x, nnreal.of_real (-f x),
+  have : ∫⁻ x, fm x ∂μ < ∞ := sorry,
+  rcases ennreal.exists_upper_semicontinuous_le fm fmeas.neg.nnreal_of_real this δpos with
+    ⟨gm, gm_le_fm, gmcont, gmint⟩,
+  let g : α → ereal := λ x, (gp x : ereal) - (gm x),
+  have : ∀ x, (f x : ereal) ≤ g x,
+  { assume x,
+    rw ereal.coe_eq_coe_ennreal_sub_coe_ennreal (f x),
+    refine ereal.sub_le_sub _ _,
+    { simp, exact (fp_lt_gp x).le },
+    { simp, exact (gm_le_fm x) } },
+  have : lower_semicontinuous (λ x, (gp x : ereal)),
+  {
+
+  }
+
 end
 
 

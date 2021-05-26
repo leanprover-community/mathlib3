@@ -386,6 +386,8 @@ by simpa [-of_real_pos] using (not_iff_not.2 (@of_real_pos r))
 lemma of_real_of_nonpos {r : ℝ} : r ≤ 0 → nnreal.of_real r = 0 :=
 of_real_eq_zero.2
 
+@[simp] lemma coe_of_real' (r : ℝ) : (nnreal.of_real r : ℝ) = max r 0 := rfl
+
 @[simp] lemma of_real_le_of_real_iff {r p : ℝ} (hp : 0 ≤ p) :
   nnreal.of_real r ≤ nnreal.of_real p ↔ r ≤ p :=
 by simp [nnreal.coe_le_coe.symm, nnreal.of_real, hp]

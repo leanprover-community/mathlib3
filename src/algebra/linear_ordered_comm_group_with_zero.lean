@@ -171,7 +171,8 @@ lemma div_le_div' (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
 begin
   by_cases ha : a = 0, { simp [ha] },
   by_cases hc : c = 0, { simp [inv_ne_zero hb, hc, hd], },
-  exact @div_le_div_iff' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd)
+  exact @mul_inv_le_mul_inv_iff' _ _ _ _
+    (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd)
 end
 
 @[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=

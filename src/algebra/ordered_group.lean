@@ -336,14 +336,14 @@ end group_le
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c d : α}
 
-/-  Uses commutative. -/
+/-  Uses commutative.  The single prime is for fields. -/
 @[simp, to_additive]
-lemma inv_mul_le_iff' : c⁻¹ * a ≤ b ↔ a ≤ b * c :=
+lemma inv_mul_le_iff'' : c⁻¹ * a ≤ b ↔ a ≤ b * c :=
 by rw [mul_comm, mul_inv_le_iff_le_mul]
 
-/-  Uses commutative. -/
+/-  Uses commutative. The single prime is for fields. -/
 @[simp, to_additive]
-lemma inv_mul_lt_iff' : c⁻¹ * a < b ↔ a < b * c :=
+lemma inv_mul_lt_iff'' : c⁻¹ * a < b ↔ a < b * c :=
 by rw [mul_comm, mul_inv_lt_iff_lt_mul]
 
 /-  Uses commutative. -/

@@ -415,6 +415,7 @@ instance submodule.free_of_pid [module.finite R M] [no_zero_smul_divisors R M]
 module.free.of_basis (submodule.basis_of_pid
   (module.free_of_finite_type_torsion_free'.snd : basis _ R M) N).snd
 
+@[priority 100]
 instance free_of_pid [module.finite R M] [no_zero_smul_divisors R M] : module.free R M :=
 module.free.of_basis module.free_of_finite_type_torsion_free'.snd
 

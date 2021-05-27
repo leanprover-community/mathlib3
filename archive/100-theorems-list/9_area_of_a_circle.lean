@@ -60,11 +60,11 @@ begin
   simp only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
   split;
   intro h,
-  { cases abs_lt_of_sqr_lt_sqr' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) r.2,
+  { cases abs_lt_of_sq_lt_sq' (lt_of_add_lt_of_nonneg_left h (sq_nonneg p.2)) r.2,
     rw [add_comm, ← lt_sub_iff_add_lt] at h,
-    exact ⟨⟨left, right.le⟩, sqr_lt.mp h⟩ },
+    exact ⟨⟨left, right.le⟩, sq_lt.mp h⟩ },
   { rw [add_comm, ← lt_sub_iff_add_lt],
-    exact sqr_lt.mpr h.2 },
+    exact sq_lt.mpr h.2 },
 end
 
 /-- The disc is a `measurable_set`. -/
@@ -94,11 +94,11 @@ begin
       ((has_deriv_at_const x (r:ℝ)⁻¹).mul (has_deriv_at_id' x)))).add
         ((has_deriv_at_id' x).mul (((has_deriv_at_id' x).pow.const_sub ((r:ℝ)^2)).sqrt _)),
     { have h : sqrt (1 - x ^ 2 / r ^ 2) * r = sqrt (r ^ 2 - x ^ 2),
-      { rw [← sqrt_sqr hle, ← sqrt_mul, sub_mul, sqrt_sqr hle, div_mul_eq_mul_div_comm,
+      { rw [← sqrt_sq hle, ← sqrt_mul, sub_mul, sqrt_sq hle, div_mul_eq_mul_div_comm,
             div_self (pow_ne_zero 2 hlt.ne'), one_mul, mul_one],
-        simpa [sqrt_sqr hle, div_le_one (pow_pos hlt 2)] using sqr_le_sqr' hx1.le hx2.le },
+        simpa [sqrt_sq hle, div_le_one (pow_pos hlt 2)] using sq_le_sq' hx1.le hx2.le },
       field_simp,
-      rw [h, mul_left_comm, ← pow_two, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
+      rw [h, mul_left_comm, ← sq, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
           add_left_comm, div_add_div_same, tactic.ring.add_neg_eq_sub, div_sqrt, two_mul] },
     { suffices : -(1:ℝ) < r⁻¹ * x, by exact this.ne',
       calc -(1:ℝ) = r⁻¹ * -r : by simp [hlt.ne']

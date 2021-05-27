@@ -509,7 +509,7 @@ lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
 @[norm_cast] lemma coe_sub : ∀ {x y : ℚ}, (↑(x - y) : ℚ_[p]) = ↑x - ↑y := by simp [cast_eq_of_rat]
 @[norm_cast] lemma coe_div : ∀ {x y : ℚ}, (↑(x / y) : ℚ_[p]) = ↑x / ↑y := by simp [cast_eq_of_rat]
 
-@[norm_cast] lemma coe_one : (↑1 : ℚ_[p]) = 1 := rfl
+@[norm_cast] lemma coe_one : (↑1 : ℚ_[p]) = 1 := by simp [cast_eq_of_rat]
 @[norm_cast] lemma coe_zero : (↑0 : ℚ_[p]) = 0 := rfl
 
 lemma const_equiv {q r : ℚ} : const (padic_norm p) q ≈ const (padic_norm p) r ↔ q = r :=
@@ -822,8 +822,7 @@ instance : nondiscrete_normed_field ℚ_[p] :=
     simp only [if_neg] {discharger := `[exact_mod_cast h0]},
     norm_cast,
     simp only [padic_val_rat.inv] {discharger := `[exact_mod_cast h0]},
-    rw [neg_neg, padic_val_rat.padic_val_rat_self h1],
-    erw _root_.pow_one,
+    rw [neg_neg, padic_val_rat.padic_val_rat_self h1, gpow_one],
     exact_mod_cast h1,
   end⟩ }
 
@@ -904,7 +903,7 @@ begin
       rw H,
       apply dvd_zero },
     { norm_cast at H ⊢,
-      convert fpow_zero _,
+      convert gpow_zero _,
       simp only [neg_eq_zero],
       rw padic_val_rat.padic_val_rat_of_int _ hp.1.ne_one H,
       norm_cast,

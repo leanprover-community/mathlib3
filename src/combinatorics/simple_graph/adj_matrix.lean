@@ -3,9 +3,9 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
-import linear_algebra.matrix
-import data.rel
 import combinatorics.simple_graph.basic
+import data.rel
+import linear_algebra.matrix.trace
 
 /-!
 # Adjacency Matrices

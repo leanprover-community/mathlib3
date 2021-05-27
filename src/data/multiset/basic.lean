@@ -8,11 +8,8 @@ import algebra.group_power
 
 /-!
 # Multisets
-
 These are implemented as the quotient of a list by permutations.
-
 ## Notation
-
 We define the global infix notation `::ₘ` for `multiset.cons`.
 -/
 
@@ -106,7 +103,6 @@ section rec
 variables {C : multiset α → Sort*}
 
 /-- Dependent recursor on multisets.
-
 TODO: should be @[recursor 6], but then the definition of `multiset.pi` fails with a stack
 overflow in `whnf`.
 -/
@@ -268,9 +264,11 @@ classical.some (quotient.exists_rep s)
 @[simp] lemma to_list_zero {α : Type*} : (multiset.to_list 0 : list α) = [] :=
 (multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
 
+@[simp, norm_cast]
 lemma coe_to_list {α : Type*} (s : multiset α) : (s.to_list : multiset α) = s :=
 classical.some_spec (quotient.exists_rep _)
 
+@[simp]
 lemma mem_to_list {α : Type*} (a : α) (s : multiset α) : a ∈ s.to_list ↔ a ∈ s :=
 by rw [←multiset.mem_coe, multiset.coe_to_list]
 
@@ -390,7 +388,7 @@ theorem le_iff_exists_add {s t : multiset α} : s ≤ t ↔ ∃ u, t = s + u :=
  λ ⟨u, e⟩, e.symm ▸ le_add_right _ _⟩
 
 instance : canonically_ordered_add_monoid (multiset α) :=
-{ lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _,
+{ lt_of_add_lt_add_left := λ a b c, (add_lt_add_iff_left a).mp,
   le_iff_exists_add     := @le_iff_exists_add _,
   bot                   := 0,
   bot_le                := multiset.zero_le,
@@ -464,12 +462,39 @@ theorem strong_induction_eq {p : multiset α → Sort*}
   (s : multiset α) (H) : @strong_induction_on _ p s H =
     H s (λ t h, @strong_induction_on _ p t H) :=
 by rw [strong_induction_on]
-
 @[elab_as_eliminator] lemma case_strong_induction_on {p : multiset α → Prop}
   (s : multiset α) (h₀ : p 0) (h₁ : ∀ a s, (∀t ≤ s, p t) → p (a ::ₘ s)) : p s :=
 multiset.strong_induction_on s $ assume s,
 multiset.induction_on s (λ _, h₀) $ λ a s _ ih, h₁ _ _ $
 λ t h, ih _ $ lt_of_le_of_lt h $ lt_cons_self _ _
+
+/-- Suppose that, given that `p t` can be defined on all supersets of `s` of cardinality less than
+`n`, one knows how to define `p s`. Then one can inductively define `p s` for all multisets `s` of
+cardinality less than `n`, starting from multisets of card `n` and iterating. This
+can be used either to define data, or to prove properties. -/
+def strong_downward_induction {p : multiset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : multiset α},
+  t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n → p t₁) :
+  ∀ (s : multiset α), s.card ≤ n → p s
+| s := H s (λ t ht h, have n - card t < n - card s,
+     from (nat.sub_lt_sub_left_iff ht).2 (card_lt_of_lt h),
+  strong_downward_induction t ht)
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : multiset α), n - t.card)⟩]}
+
+lemma strong_downward_induction_eq {p : multiset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : multiset α},
+  t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n → p t₁) (s : multiset α) :
+  strong_downward_induction H s = H s (λ t ht hst, strong_downward_induction H t ht) :=
+by rw strong_downward_induction
+
+/-- Analogue of `strong_downward_induction` with order of arguments swapped. -/
+@[elab_as_eliminator] def strong_downward_induction_on {p : multiset α → Sort*} {n : ℕ} :
+  ∀ (s : multiset α), (∀ t₁, (∀ {t₂ : multiset α}, t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n →
+  p t₁) → s.card ≤ n → p s :=
+λ s H, strong_downward_induction H s
+
+lemma strong_downward_induction_on_eq {p : multiset α → Sort*} (s : multiset α) {n : ℕ} (H : ∀ t₁,
+  (∀ {t₂ : multiset α}, t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n → p t₁) :
+  s.strong_downward_induction_on H = H s (λ t ht h, t.strong_downward_induction_on H ht) :=
+by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
 /-! ### Singleton -/
 instance : has_singleton α (multiset α) := ⟨λ a, a ::ₘ 0⟩
@@ -896,6 +921,11 @@ theorem prod_hom_rel [comm_monoid β] [comm_monoid γ] (s : multiset α) {r : β
 quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
+@[simp, to_additive]
+lemma prod_map_inv {G : Type*} [comm_group G] (m : multiset G) :
+  (m.map has_inv.inv).prod = m.prod⁻¹ :=
+m.prod_hom (monoid_hom.of has_inv.inv)
+
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
@@ -1024,11 +1054,17 @@ multiset.induction_on s (λ _, dvd_zero _)
 @[simp] theorem sum_map_singleton (s : multiset α) : (s.map (λ a, a ::ₘ 0)).sum = s :=
 multiset.induction_on s (by simp) (by simp)
 
+@[simp, to_additive] theorem prod_to_list [comm_monoid α] (s : multiset α) :
+  s.to_list.prod = s.prod :=
+begin
+  conv_rhs { rw ←coe_to_list s, },
+  rw coe_prod,
+end
+
 /-! ### Join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
   operation, that is, the union of all the sets.
-
      join {{1, 2}, {1, 2}, {0, 1}} = {0, 1, 1, 1, 2, 2} -/
 def join : multiset (multiset α) → multiset α := sum
 

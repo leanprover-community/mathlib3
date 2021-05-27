@@ -65,10 +65,10 @@ do
    (vs,t) ← infer_type h >>= open_pis,
    (lhs,rhs) ← match_eq t,
    struct_inst ← get_cat_inst lhs <|> get_cat_inst rhs <|> fail "no composition found in statement",
-   `(@has_hom.hom _ %%hom_inst %%X %%Y) ← infer_type lhs,
+   `(@quiver.hom _ %%hom_inst %%X %%Y) ← infer_type lhs,
    C ← infer_type X,
    X' ← mk_local' `X' binder_info.implicit C,
-   ft ← to_expr ``(@has_hom.hom _ %%hom_inst %%Y %%X'),
+   ft ← to_expr ``(@quiver.hom _ %%hom_inst %%Y %%X'),
    f' ← mk_local_def `f' ft,
    t' ← to_expr ``(@category_struct.comp _ %%struct_inst _ _ _%%lhs %%f' =
                      @category_struct.comp _ %%struct_inst _ _ _ %%rhs %%f'),

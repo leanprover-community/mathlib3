@@ -10,6 +10,81 @@ open finset fintype
 
 universe u
 
+lemma prod_quotient_sym2_not_diag {α : Type u} [decidable_eq α] (s : finset α) :
+  (finset.filter (λ (a : sym2 α), ¬a.is_diag) (finset.image quotient.mk (s.product s))).card =
+    s.card.choose 2 :=
+begin
+  let ordered_pairs : finset (α × α) := (s.product s).filter (λ (x : α × α), ¬(x.1 = x.2)),
+  have : ordered_pairs.card = s.card * (s.card - 1),
+  { rw [nat.mul_sub_left_distrib, mul_one],
+    change finset.card (finset.filter _ _) = _,
+    rw [finset.filter_not, card_sdiff (filter_subset _ _), finset.card_product],
+    congr' 1,
+    refine finset.card_congr (λ (x : _ × _) _, x.1) _ _ _,
+    { rintro ⟨x, y⟩ h,
+      simp only [mem_filter, mem_product] at h,
+      apply h.1.1 },
+    { simp only [true_and, prod.forall, mem_filter, mem_product],
+      rintro a b ⟨x, y⟩ ⟨⟨_, _⟩, rfl⟩ ⟨_, rfl : x = y⟩ (rfl : a = x),
+      refl },
+    { simp only [exists_prop, mem_filter, imp_self, exists_and_distrib_right, implies_true_iff,
+        exists_eq_right, exists_eq_right', and_self, prod.exists, mem_product] } },
+  rw [nat.choose_two_right, ←this],
+  symmetry,
+  apply nat.div_eq_of_eq_mul_right (show 0 < 2, by norm_num),
+  have : ∀ x ∈ ordered_pairs,
+    quotient.mk x ∈ ((s.product s).image quotient.mk).filter (λ (a : sym2 α), ¬a.is_diag),
+  { rintro ⟨x, y⟩ hx,
+    simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,
+      prod.exists, mem_product],
+    simp only [mem_filter, mem_product] at hx,
+    refine ⟨⟨_, _, hx.1, or.inl ⟨rfl, rfl⟩⟩, hx.2⟩ },
+  rw [card_eq_sum_card_fiberwise this, finset.sum_const_nat, mul_comm],
+  refine quotient.ind _,
+  rintro ⟨x, y⟩ hxy,
+  simp only [mem_image, exists_prop, mem_filter, sym2.is_diag_iff_proj_eq, sym2.eq_iff,
+    prod.exists, mem_product] at hxy,
+  have : x ∈ s ∧ y ∈ s,
+  { rcases hxy with ⟨⟨x, y, ⟨_, _⟩, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩⟩, _⟩;
+    refine ⟨‹_›, ‹_›⟩ },
+  have : filter (λ (z : α × α), ⟦z⟧ = ⟦(x, y)⟧) ordered_pairs = ({(x,y), (y,x)} : finset _),
+  { ext ⟨x₁, y₁⟩,
+    simp only [true_and, mem_filter, mem_insert, mem_product, mem_singleton, sym2.eq_iff,
+      and_iff_right_iff_imp, prod.mk.inj_iff],
+    rintro (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
+    { refine ⟨‹_›, hxy.2⟩, },
+    refine ⟨⟨this.2, this.1⟩, ne.symm hxy.2⟩ },
+  rw [this, card_insert_of_not_mem, card_singleton],
+  simp only [not_and, prod.mk.inj_iff, mem_singleton],
+  rintro rfl,
+  apply hxy.2
+end
+
+lemma card_sym2_not_diag {α : Type u} [decidable_eq α] [fintype α] :
+  (univ.filter (λ (a : sym2 α), ¬a.is_diag)).card = (card α).choose 2 :=
+prod_quotient_sym2_not_diag (univ : finset α)
+
+lemma sym2.injective {α : Type u} : function.injective (sym2.diag : α → sym2 α) :=
+begin
+  rintro x y (h : ⟦_⟧ = ⟦_⟧),
+  rw sym2.eq_iff at h,
+  simpa using h
+end
+
+lemma card_sym2 {α : Type u} [decidable_eq α] [fintype α] :
+  card (sym2 α) = card α * (card α + 1) / 2 :=
+begin
+  have : univ.filter (λ (x : sym2 α), x.is_diag) = univ.image sym2.diag,
+  { ext,
+    simp [sym2.is_diag] },
+  rw [←finset.card_univ, ←filter_union_filter_neg_eq sym2.is_diag (univ : finset (sym2 α)),
+    card_disjoint_union, this, card_image_of_injective _ sym2.injective, card_sym2_not_diag,
+    nat.choose_two_right, finset.card_univ, add_comm, ←nat.triangle_succ, nat.succ_sub_one,
+    mul_comm],
+  rw disjoint_iff_inter_eq_empty,
+  apply filter_inter_filter_neg_eq,
+end
+
 def equitable_on {α : Type*} (s : set α) (f : α → ℕ) : Prop :=
   ∀ ⦃a₁ a₂⦄, a₁ ∈ s → a₂ ∈ s → f a₁ ≤ f a₂ → f a₂ - f a₁ ≤ 1
 
@@ -83,8 +158,7 @@ lemma density_pair_le_one (U W : finset V) :
   G.density_pair U W ≤ 1 :=
 begin
   rw density_pair,
-  norm_cast,
-  refine div_le_one_of_le _ (nat.cast_nonneg _),
+  refine div_le_one_of_le _ (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)),
   norm_cast,
   rw [edges_count_finset, edges_pair_finset, ←finset.card_product],
   exact finset.card_filter_le _ _,
@@ -135,16 +209,33 @@ open_locale classical
 
 def size : ℕ := card P.parts
 
-def pair_in_partition :
-  sym2 (finset V) → Prop :=
-quotient.lift (λ (ij : finset V × finset V), ij.1 ∈ P.parts ∧ ij.2 ∈ P.parts)
-  (by { rintros _ _ ⟨_, _⟩, { refl }, ext, apply and_comm })
+def distinct_unordered_pairs [fintype V] (P : equipartition V) :
+  finset (sym2 (finset V)) :=
+((P.parts.product P.parts).image quotient.mk).filter (λ (a : sym2 _), ¬a.is_diag)
+
+lemma mem_distinct_unordered_pairs [fintype V] (P : equipartition V)
+  (U W : finset V) :
+  ⟦(U, W)⟧ ∈ P.distinct_unordered_pairs ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W :=
+begin
+  rw [equipartition.distinct_unordered_pairs, finset.mem_filter],
+  simp only [mem_image, exists_prop, sym2.is_diag_iff_proj_eq, sym2.eq_iff, prod.exists,
+    mem_product],
+  split,
+  { rintro ⟨⟨U, W, ⟨hU, hW⟩, ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩⟩, _⟩;
+    exact ⟨‹_›, ‹_›, ‹_›⟩ },
+  { rintro ⟨h₁, h₂, h₃⟩,
+    exact ⟨⟨_, _, ⟨h₁, h₂⟩, or.inl ⟨rfl, rfl⟩⟩, h₃⟩ }
+end
+
+lemma distinct_unordered_pairs_size [fintype V] (P : equipartition V) :
+  P.distinct_unordered_pairs.card = P.size.choose 2 :=
+by rw [distinct_unordered_pairs, equipartition.size, prod_quotient_sym2_not_diag]
 
 variables (G : simple_graph V) [decidable_rel G.adj]
 
 noncomputable def non_uniform_parts [fintype V] (ε : ℝ) :
   finset (sym2 (finset V)) :=
-univ.filter (λ a, pair_in_partition P a ∧ ¬a.is_diag ∧ ¬G.is_uniform_sym2 ε a)
+P.distinct_unordered_pairs.filter (λ a, ¬G.is_uniform_sym2 ε a)
 
 def is_uniform [fintype V] (ε : ℝ) : Prop :=
 ((P.non_uniform_parts G ε).card : ℝ) ≤ ε * P.size.choose 2
@@ -178,14 +269,11 @@ end
 end equipartition
 
 def exp_bound : ℕ → ℕ := λ n, n * 4^n
-/-def iterate_exp (t : ℕ) : ℕ → ℕ
-| 0 := t
-| (j+1) := iterate_exp j * 4^iterate_exp j-/
 
 /-- An explicit bound in Szemeredi's regularity lemma. -/
 noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
-let t : ℕ := (max l (ceil (real.log (100 / ε^5) / real.log 4) + 1).nat_abs),
-    N : ℕ := exp_bound^[(ceil (4 * ε^(-5 : ℝ))).nat_abs] t
+let t : ℕ := max l (⌈real.log (100 / ε^5) / real.log 4⌉ + 1).nat_abs,
+    N : ℕ := exp_bound^[⌈4 * ε^(-5 : ℝ)⌉.nat_abs] t
  in N * 16^N
 
 open_locale classical
@@ -204,10 +292,69 @@ begin
   sorry
 end
 
+@[simps]
+def discrete_equipartition (V : Type*) [decidable_eq V] [fintype V] : equipartition V :=
+{ parts := finset.univ.image singleton,
+  disjoint :=
+  begin
+    simp only [mem_image, mem_univ, exists_true_left, exists_imp_distrib],
+    rintro a₁ a₂ i ⟨⟩ rfl j ⟨⟩ rfl k,
+    simp only [mem_singleton],
+    rintro rfl rfl,
+    refl
+  end,
+  covering := λ v, ⟨{v}, by simp, by simp⟩,
+  sizes := λ a b,
+  begin
+    simp only [set.image_univ, set.mem_range, coe_univ, exists_imp_distrib, coe_image],
+    rintro _ rfl _ rfl,
+    simp,
+  end }
+
+lemma discrete_equipartition_size [fintype V] : (discrete_equipartition V).size = card V :=
+begin
+  change finset.card (finset.univ.image _) = _,
+  rw [finset.card_image_of_injective, finset.card_univ],
+  intros i j k,
+  rwa singleton_inj at k,
+end
+
+lemma discrete_equipartition.non_uniform_parts [fintype V] (ε : ℝ) (hε₁ : 0 < ε):
+  (discrete_equipartition V).non_uniform_parts G ε = ∅ :=
+begin
+  rw [equipartition.non_uniform_parts, filter_false_of_mem],
+  intro x,
+  apply quotient.induction_on x,
+  rintro ⟨U, W⟩ h,
+  simp only [not_not],
+  rintro U' (hU' : U' ⊆ U) W' (hW' : W' ⊆ W) (hU : ε * U.card ≤ _) (hW : ε * W.card ≤ _),
+  simp only [equipartition.mem_distinct_unordered_pairs, discrete_equipartition_parts,
+    mem_image, mem_univ, ne.def, exists_true_left] at h,
+  obtain ⟨⟨x, _, rfl⟩, ⟨y, _, rfl⟩, t⟩ := h,
+  have : U'.nonempty,
+  {
+
+  }
+
+end
+
+def discrete_partition_is_uniform [fintype V] (ε : ℝ) :
+  (discrete_equipartition V).is_uniform G ε :=
+begin
+  change _ ≤ _,
+  rw [discrete_equipartition_size],
+  simp,
+end
+
 /-- Effective Szemeredi's regularity lemma: For any sufficiently big graph, there is a uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
 theorem szemeredi_regularity (ε : ℝ) (hε₁ : 0 < ε) (hε₂ : ε < 1) (l : ℕ) (hG : l ≤ card V) :
   ∃ (P : equipartition V), l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
-sorry
+begin
+  cases le_total (card V) (szemeredi_bound ε l),
+  {
+
+  }
+end
 
 end

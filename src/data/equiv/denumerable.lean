@@ -188,7 +188,6 @@ lemma le_succ_of_forall_lt_le {x y : s} (h : ∀ z < x, z ≤ y) : x ≤ succ y 
 have hx : ∃ m, y.1 + m + 1 ∈ s, from exists_succ _,
 show x.1 ≤ y.1 + nat.find hx + 1,
 from le_of_not_gt $ λ hxy,
-have y.1 + nat.find hx + 1 ≤ y.1 := h ⟨_, nat.find_spec hx⟩ hxy,
 (h ⟨_, nat.find_spec hx⟩ hxy).not_lt $
   calc y.1 ≤ y.1 + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
   ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _

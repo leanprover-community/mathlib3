@@ -1493,14 +1493,15 @@ begin
     mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add' _ _ _ _ a, @sub_lt _ _ _ _ a, set_of_and],
   refine ⟨_, _, _⟩,
   { intros ε ε0,
-     refine inter_mem_inf_sets
+    refine inter_mem_inf_sets
       (mem_infi_sets (a - ε) $ mem_infi_sets (sub_lt_self a ε0) _)
       (mem_infi_sets (ε + a) $ mem_infi_sets (by simpa) _),
-    refine mem_principal_sets.mp (λ h j, sub_lt.mp (mem_Ioi.mp j)),
+    refine mem_principal_sets.mp (λ h j, sub_lt_iff_lt_add'.mp (mem_Ioi.mp j)),
+--    refine mem_principal_sets.mp (λ h j, sub_lt.mp (mem_Ioi.mp j)),
     exact mem_principal_sets.mp (λ x, sub_lt_iff_lt_add.mpr) },
   { intros b hb,
     refine mem_infi_sets (a - b) (mem_infi_sets (sub_pos.2 hb) (λ x h,
-      (sub_sub_cancel _ _).symm.le.trans_lt (sub_lt.mpr h.1))) },
+      (sub_sub_cancel _ _).symm.le.trans_lt (sub_lt_iff_lt_add'.mpr h.1))) },
   { intros b hb,
     exact mem_infi_sets (b - a) (mem_infi_sets (sub_pos.2 hb) (by simp [Iio])) }
 end

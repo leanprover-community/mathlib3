@@ -161,7 +161,7 @@ end
 
 variables {H : Dᵒᵖ ⥤ E}
 
-/-- An auxilliary construction for `extend_cone`, moving `op` around. -/
+/-- An auxiliary construction for `extend_cone`, moving `op` around. -/
 @[simps]
 def extend_cone_cone_to_cocone {F : C ⥤ D} {H : Dᵒᵖ ⥤ E} (c : cone (F.op ⋙ H)) :
   cocone (F ⋙ H.right_op) :=
@@ -171,7 +171,7 @@ def extend_cone_cone_to_cocone {F : C ⥤ D} {H : Dᵒᵖ ⥤ E} (c : cone (F.op
     naturality' := λ j j' f,
     begin apply quiver.hom.unop_inj, dsimp, simp only [category.id_comp], exact c.w f.op, end }}
 
-/-- An auxilliary construction for `extend_cone`, moving `op` around. -/
+/-- An auxiliary construction for `extend_cone`, moving `op` around. -/
 @[simps]
 def extend_cone_cocone_to_cone (c : cocone H.right_op) : cone H :=
 { X := unop c.X,

@@ -13,9 +13,10 @@ import topology.instances.ennreal
 # Semicontinuous maps
 
 A function `f` from a topological space `α` to an ordered space `β` is lower semicontinuous at a
-point `x` if, for any `ε > 0`, for any `x'` close enough to `x`, one has `f x' > f x - ε`. In other
-words, `f` can jump up, but it can not jump down. Upper semicontinuous functions are defined
-similarly.
+point `x` if, for any `y < f x`, for any `x'` close enough to `x`, one has `f x' > y`. In other
+words, `f` can jump up, but it can not jump down.
+
+Upper semicontinuous functions are defined similarly.
 
 This file introduces these notions, and a basic API around them mimicking the API for continuous
 functions.
@@ -59,23 +60,27 @@ variables {α : Type*} [topological_space α] {β : Type*} [preorder β]
 ### Lower semicontinuous functions
 -/
 
-/-- A function `f` is lower semicontinuous at `x` within a set `s` if, for any `ε > 0`, for all
-`x'` close enough to `x` in  `s`, then `f x'` is at least `f x - ε`. -/
+/-- A real function `f` is lower semicontinuous at `x` within a set `s` if, for any `ε > 0`, for all
+`x'` close enough to `x` in  `s`, then `f x'` is at least `f x - ε`. We formulate this in a general
+preordered space, using an arbitrary `y < f x` instead of `f x - ε`. -/
 def lower_semicontinuous_within_at (f : α → β) (s : set α) (x : α) :=
 ∀ y < f x, ∀ᶠ x' in 𝓝[s] x, y < f x'
 
-/-- A function `f` is lower semicontinuous on a set `s` if, for any `ε > 0`, for any `x ∈ s`,
-for all `x'` close enough to `x` in `s`, then `f x'` is at least `f x - ε`. -/
+/-- A real function `f` is lower semicontinuous on a set `s` if, for any `ε > 0`, for any `x ∈ s`,
+for all `x'` close enough to `x` in `s`, then `f x'` is at least `f x - ε`. We formulate this in
+a general preordered space, using an arbitrary `y < f x` instead of `f x - ε`.-/
 def lower_semicontinuous_on (f : α → β) (s : set α) :=
 ∀ x ∈ s, lower_semicontinuous_within_at f s x
 
-/-- A function `f` is lower semicontinuous at `x` if, for any `ε > 0`, for all `x'` close enough
-to `x`, then `f x'` is at least `f x - ε`. -/
+/-- A real function `f` is lower semicontinuous at `x` if, for any `ε > 0`, for all `x'` close
+enough to `x`, then `f x'` is at least `f x - ε`. We formulate this in a general preordered space,
+using an arbitrary `y < f x` instead of `f x - ε`. -/
 def lower_semicontinuous_at (f : α → β) (x : α) :=
 ∀ y < f x, ∀ᶠ x' in 𝓝 x, y < f x'
 
-/-- A function `f` is lower semicontinuous if, for any `ε > 0`, for any `x`, for all `x'` close
-enough to `x`, then `f x'` is at least `f x - ε`. -/
+/-- A real function `f` is lower semicontinuous if, for any `ε > 0`, for any `x`, for all `x'` close
+enough to `x`, then `f x'` is at least `f x - ε`. We formulate this in a general preordered space,
+using an arbitrary `y < f x` instead of `f x - ε`. -/
 def lower_semicontinuous (f : α → β) :=
 ∀ x, lower_semicontinuous_at f x
 
@@ -477,23 +482,27 @@ end
 ### Upper semicontinuous functions
 -/
 
-/-- A function `f` is upper semicontinuous at `x` within a set `s` if, for any `ε > 0`, for all
-`x'` close enough to `x` in  `s`, then `f x'` is at most `f x + ε`. -/
+/-- A real function `f` is upper semicontinuous at `x` within a set `s` if, for any `ε > 0`, for all
+`x'` close enough to `x` in  `s`, then `f x'` is at most `f x + ε`. We formulate this in a general
+preordered space, using an arbitrary `y > f x` instead of `f x + ε`. -/
 def upper_semicontinuous_within_at (f : α → β) (s : set α) (x : α) :=
 ∀ y, f x < y → ∀ᶠ x' in 𝓝[s] x, f x' < y
 
-/-- A function `f` is upper semicontinuous on a set `s` if, for any `ε > 0`, for any `x ∈ s`,
-for all `x'` close enough to `x` in `s`, then `f x'` is at most `f x + ε`. -/
+/-- A real function `f` is upper semicontinuous on a set `s` if, for any `ε > 0`, for any `x ∈ s`,
+for all `x'` close enough to `x` in `s`, then `f x'` is at most `f x + ε`. We formulate this in a
+general preordered space, using an arbitrary `y > f x` instead of `f x + ε`.-/
 def upper_semicontinuous_on (f : α → β) (s : set α) :=
 ∀ x ∈ s, upper_semicontinuous_within_at f s x
 
-/-- A function `f` is upper semicontinuous at `x` if, for any `ε > 0`, for all `x'` close enough
-to `x`, then `f x'` is at most `f x + ε`. -/
+/-- A real function `f` is upper semicontinuous at `x` if, for any `ε > 0`, for all `x'` close
+enough to `x`, then `f x'` is at most `f x + ε`. We formulate this in a general preordered space,
+using an arbitrary `y > f x` instead of `f x + ε`. -/
 def upper_semicontinuous_at (f : α → β) (x : α) :=
 ∀ y, f x < y → ∀ᶠ x' in 𝓝 x, f x' < y
 
-/-- A function `f` is upper semicontinuous if, for any `ε > 0`, for any `x`, for all `x'` close
-enough to `x`, then `f x'` is at most `f x + ε`. -/
+/-- A real function `f` is upper semicontinuous if, for any `ε > 0`, for any `x`, for all `x'`
+close enough to `x`, then `f x'` is at most `f x + ε`. We formulate this in a general preordered
+space, using an arbitrary `y > f x` instead of `f x + ε`.-/
 def upper_semicontinuous (f : α → β) :=
 ∀ x, upper_semicontinuous_at f x
 

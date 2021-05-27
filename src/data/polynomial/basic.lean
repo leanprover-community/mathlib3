@@ -42,7 +42,7 @@ equal to `0`.
 The raw implementation of the equivalence between `polynomial R` and `add_monoid_algebra R ℕ` is
 done through `of_finsupp` and `to_finsupp` (or, equivalently, `rcases p` when `p` is a polynomial
 gives an element `q` of `add_monoid_algebra R ℕ`, and conversely `⟨q⟩` gives back `p`). The
-equivalence is also registered as an algebra equiv in `polynomial.to_finsupp_iso`. These should
+equivalence is also registered as a ring equiv in `polynomial.to_finsupp_iso`. These should
 in general not be used once the basic API for polynomials is constructed.
 -/
 
@@ -148,7 +148,7 @@ instance [subsingleton R] : unique (polynomial R) :=
 
 variable (R)
 
-/-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
+/-- Ring isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
 def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
 { to_fun := λ ⟨p⟩, p,
@@ -157,6 +157,17 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   right_inv := λ p, rfl,
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp], refl },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp], refl } }
+
+lemma to_finsupp_iso_apply (P : polynomial R) : to_finsupp_iso R P = P.to_finsupp :=
+begin
+  revert P,
+  rw forall_iff_forall_finsupp,
+  intro f,
+  refl
+end
+
+lemma to_finsupp_iso_symm_apply_to_finsupp (f : add_monoid_algebra R ℕ) :
+  (((to_finsupp_iso R).symm) f).to_finsupp = f := rfl
 
 variable {R}
 

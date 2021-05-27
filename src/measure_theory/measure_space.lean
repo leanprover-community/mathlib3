@@ -519,16 +519,16 @@ begin
   { simp only [supr_of_empty hι, Union], exact measure_empty },
   resetI,
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
-  have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode2 ι n, s b) n) :=
-    measurable_set.disjointed (measurable_set.bUnion_decode2 h),
-  rw [← encodable.Union_decode2, ← Union_disjointed, measure_Union disjoint_disjointed this,
+  have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
+    measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
+  rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union disjoint_disjointed this,
     ennreal.tsum_eq_supr_nat],
   simp only [← measure_bUnion_finset (disjoint_disjointed.pairwise_on _) (λ n _, this n)],
   refine supr_le (λ n, _),
-  refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode2 ι k), s i)) _,
+  refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
   exact measure_mono (bUnion_subset_bUnion_right (λ k hk, disjointed_subset)),
   simp only [← finset.set_bUnion_option_to_finset, ← finset.set_bUnion_bUnion],
-  generalize : (finset.range n).bUnion (λ k, (encodable.decode2 ι k).to_finset) = t,
+  generalize : (finset.range n).bUnion (λ k, (encodable.decode₂ ι k).to_finset) = t,
   rcases hd.finset_le t with ⟨i, hi⟩,
   exact le_supr_of_le i (measure_mono $ bUnion_subset hi)
 end

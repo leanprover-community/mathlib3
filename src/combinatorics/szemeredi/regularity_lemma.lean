@@ -90,7 +90,14 @@ end
 
 lemma density_pair_le_one (U W : finset V) :
   density_pair G U W ≤ 1 :=
-sorry
+begin
+  rw density_pair,
+  norm_cast,
+  refine div_le_one_of_le _ (nat.cast_nonneg _),
+  norm_cast,
+  rw [edges_count_finset, edges_pair_finset, ←finset.card_product],
+  exact finset.card_filter_le _ _,
+end
 
 noncomputable def density_sym2 : sym2 (finset V) → ℝ :=
 quotient.lift (function.uncurry (density_pair G))
@@ -125,14 +132,15 @@ univ.filter (λ a, pair_in_partition P a ∧ ¬a.is_diag ∧ ¬is_uniform_sym2 G
 def equipartition.is_uniform [fintype V] (P : equipartition V) (ε : ℝ) : Prop :=
 ((P.non_uniform_parts G ε).card : ℝ) ≤ ε * P.size.choose 2
 
-def iterate_exp (t : ℕ) : ℕ → ℕ
+def exp_bound : ℕ → ℕ := λ n, n * 4^n
+/-def iterate_exp (t : ℕ) : ℕ → ℕ
 | 0 := t
-| (j+1) := iterate_exp j * 4^iterate_exp j
+| (j+1) := iterate_exp j * 4^iterate_exp j-/
 
 /-- An explicit bound in Szemeredi's regularity lemma. -/
 noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
 let t : ℕ := (max l (ceil (real.log (100 / ε^5) / real.log 4) + 1).nat_abs),
-    N : ℕ := iterate_exp t (ceil (4 * ε^(-5 : ℝ))).nat_abs
+    N : ℕ := exp_bound^[(ceil (4 * ε^(-5 : ℝ))).nat_abs] t
  in N * 16^N
 
 noncomputable def equipartition.index [fintype V] (P : equipartition V) : ℝ :=
@@ -142,6 +150,10 @@ theorem index_le_half [fintype V] (P : equipartition V) :
   P.index G ≤ 1/2 :=
 begin
   rw [equipartition.index],
+  apply div_le_div,
+  sorry,
+  sorry,
+  sorry,
   sorry
 end
 
@@ -153,7 +165,7 @@ and gives a uniform equipartition).
 -/
 theorem increment (G : simple_graph V) [fintype V] (P : equipartition V) (ε : ℝ)
   (h₁ : P.size * 16^P.size ≤ card V) (h₂ : 100 < ε^5 * 4^P.size) (hP : ¬P.is_uniform G ε) :
-  ∃ (Q : equipartition V), Q.size = P.size * 4^P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
+  ∃ (Q : equipartition V), Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
 begin
   sorry
 end

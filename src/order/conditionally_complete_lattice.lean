@@ -400,14 +400,14 @@ by haveI := unique_prop hp; exact supr_unique
 /--Introduction rule to prove that `b` is the supremum of `f`: it suffices to check that `b`
 is larger than `f i` for all `i`, and that this is not the case of any `w<b`.
 See `supr_intro` for a version in complete lattices. -/
-theorem csupr_intro [nonempty ι] {f : ι → α} (h₁ : ∀ i, f i ≤ b) (h₂ : ∀ w, w < b → (∃ i, w < f i)) :
+theorem csupr_intro [nonempty ι] {f : ι → α} (h₁ : ∀ i, f i ≤ b) (h₂ : ∀ w, w < b → (∃ i, w < f i)):
   (⨆ (i : ι), f i) = b :=
 cSup_intro (range_nonempty f) (forall_range_iff.mpr h₁) (λ w hw, exists_range_iff.mpr $ h₂ w hw)
 
 /--Introduction rule to prove that `b` is the infimum of `f`: it suffices to check that `b`
 is smaller than `f i` for all `i`, and that this is not the case of any `w>b`.
 See `infi_intro` for a version in complete lattices. -/
-theorem cinfi_intro [nonempty ι] {f : ι → α} (h₁ : ∀ i, b ≤ f i) (h₂ : ∀ w, b < w → (∃ i, f i < w)) :
+theorem cinfi_intro [nonempty ι] {f : ι → α} (h₁ : ∀ i, b ≤ f i) (h₂ : ∀ w, b < w → (∃ i, f i < w)):
   (⨅ (i : ι), f i) = b :=
 @csupr_intro (order_dual α) _ _ _ _ ‹_› ‹_› ‹_›
 

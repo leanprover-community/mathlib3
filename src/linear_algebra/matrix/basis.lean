@@ -142,15 +142,14 @@ by { haveI := classical.dec_eq ι',
 
 /-- A generalization of `basis.to_matrix_self`, in the opposite direction. -/
 @[simp] lemma basis.to_matrix_mul_to_matrix
-  {ι'' : Type*} [fintype ι''] (b'' : basis ι'' R M) :
+  {ι'' : Type*} [fintype ι''] (b'' : ι'' → M) :
   b.to_matrix b' ⬝ b'.to_matrix b'' = b.to_matrix b'' :=
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq ι',
   haveI := classical.dec_eq ι'',
-  rw [← linear_map.to_matrix_id_eq_basis_to_matrix b' b,
-      ← linear_map.to_matrix_id_eq_basis_to_matrix b'' b',
-      ← to_matrix_comp, id_comp, linear_map.to_matrix_id_eq_basis_to_matrix],
+  ext i j,
+  simp only [matrix.mul_apply, basis.to_matrix_apply, basis.sum_repr_mul_repr],
 end
 
 end mul_linear_map_to_matrix

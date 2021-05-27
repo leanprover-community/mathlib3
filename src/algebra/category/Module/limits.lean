@@ -147,7 +147,7 @@ variables (f : Π i j, i ≤ j → G i →ₗ[R] G j) [module.directed_system G 
 @[simps]
 def direct_limit_diagram : ι ⥤ Module R :=
 { obj := λ i, Module.of R (G i),
-  map := λ i j hij, f i j (le_of_hom hij),
+  map := λ i j hij, f i j hij.le,
   map_id' := λ i, by { ext x, apply module.directed_system.map_self },
   map_comp' := λ i j k hij hjk,
   begin

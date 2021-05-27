@@ -193,7 +193,7 @@ end M_eq_N
 
 end contravariant
 
-lemma covariant_le_iff_covariant_lt [partial_order N] :
+lemma covariant_le_of_covariant_lt [partial_order N] :
   covariant M N μ (<) → covariant M N μ (≤) :=
 begin
   refine λ h a b c bc, _,
@@ -202,7 +202,7 @@ begin
   { exact (h _ bc).le }
 end
 
-lemma contravariant_le_iff_contravariant_lt [partial_order N] :
+lemma contravariant_lt_of_contravariant_le [partial_order N] :
   contravariant M N μ (≤) → contravariant M N μ (<) :=
 begin
   refine λ h a b c bc, lt_iff_le_and_ne.mpr ⟨h a bc.le, _⟩,

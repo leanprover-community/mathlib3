@@ -16,7 +16,12 @@ those functions are inverses of each other.
 
 ## Main declarations
 
-
+* `encodable α`: States that there exists an explicit encoding function `encode : α → ℕ` with a
+  partial inverse `decode : ℕ → option α`.
+* `decode₂`: Version of `decode` that is equal to `none` outside of the range of `encode`. Useful as
+  we do not require this in the definition of `decode`.
+* `ulower α`: Any encodable type has an equivalent type living in the lowest universe, namely a
+  subtype of `ℕ`. `ulower α` finds it.
 
 ## Implementation notes
 

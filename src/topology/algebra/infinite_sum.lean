@@ -455,8 +455,8 @@ begin
     rwa [← e, mem_decode₂.1 (option.get_mem (H m hm))] at this },
   { intros b h,
     refine ⟨⟨encode b, _⟩, _⟩,
-    { simp only [mem_support, encodek2] at h ⊢, convert h, simp [set.ext_iff, encodek2] },
-    { exact option.get_of_mem _ (encodek2 _) } },
+    { simp only [mem_support, encodek₂] at h ⊢, convert h, simp [set.ext_iff, encodek₂] },
+    { exact option.get_of_mem _ (encodek₂ _) } },
   { rintros ⟨n, h⟩, dsimp only [subtype.coe_mk],
     transitivity, swap,
     rw [show decode₂ γ n = _, from option.get_mem (H n h)],
@@ -524,10 +524,10 @@ variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ 
 
 lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
   has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
-by simp [has_sum, tendsto_pi]
+by simp only [has_sum, tendsto_pi, sum_apply]
 
 lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
-by simp [summable, pi.has_sum, classical.skolem]
+by simp only [summable, pi.has_sum, skolem]
 
 lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
   (∑' i, f i) x = ∑' i, f i x :=
@@ -553,7 +553,7 @@ lemma summable_neg_iff : summable (λ b, - f b) ↔ summable f :=
 ⟨summable.of_neg, summable.neg⟩
 
 lemma has_sum.sub (hf : has_sum f a₁) (hg : has_sum g a₂) : has_sum (λb, f b - g b) (a₁ - a₂) :=
-by { simp [sub_eq_add_neg], exact hf.add hg.neg }
+by { simp only [sub_eq_add_neg], exact hf.add hg.neg }
 
 lemma summable.sub (hf : summable f) (hg : summable g) : summable (λb, f b - g b) :=
 (hf.has_sum.sub hg.has_sum).summable
@@ -564,8 +564,9 @@ begin
   convert ((has_sum_ite_eq b _).add hf),
   ext b',
   by_cases h : b' = b,
-  { rw h, simp, },
-  { simp [h] },
+  { rw [h, update_same],
+    simp only [eq_self_iff_true, if_true, sub_add_cancel] },
+  simp only [h, update_noteq, if_false, ne.def, zero_add, not_false_iff],
 end
 
 lemma summable.update (hf : summable f) (b : β) [decidable_eq β] (a : α) :
@@ -644,11 +645,11 @@ iff.symm $ (equiv.add_right (∑ i in range k, f i)).summable_iff_of_has_sum_iff
 
 lemma has_sum_nat_add_iff' {f : ℕ → α} (k : ℕ) {a : α} :
   has_sum (λ n, f (n + k)) (a - ∑ i in range k, f i) ↔ has_sum f a :=
-by simp [has_sum_nat_add_iff]
+by simp only [has_sum_nat_add_iff, sub_add_cancel]
 
 lemma sum_add_tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
   (∑ i in range k, f i) + (∑' i, f (i + k)) = ∑' i, f i :=
-by simpa [add_comm] using
+by simpa only [add_comm] using
   ((has_sum_nat_add_iff k).1 ((summable_nat_add_iff k).2 h).has_sum).unique h.has_sum
 
 lemma tsum_eq_zero_add [t2_space α] {f : ℕ → α} (hf : summable f) :
@@ -1060,9 +1061,9 @@ alias summable_abs_iff ↔ summable.of_abs summable.abs
 section cauchy_seq
 open finset.Ico filter
 
-/-- If the extended distance between consecutive points of a sequence is estimated
+/-- If the extended distance between consequent points of a sequence is estimated
 by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_edist_le_of_summable [pseudo_emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
+lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
@@ -1083,9 +1084,9 @@ begin
   assumption_mod_cast
 end
 
-/-- If the distance between consecutive points of a sequence is estimated by a summable series,
+/-- If the distance between consequent points of a sequence is estimated by a summable series,
 then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_dist_le_of_summable [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine metric.cauchy_seq_iff'.2 (λε εpos, _),
@@ -1100,11 +1101,11 @@ begin
   ... < ε : hsum
 end
 
-lemma cauchy_seq_of_summable_dist [pseudo_metric_space α] {f : ℕ → α}
+lemma cauchy_seq_of_summable_dist [metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
 cauchy_seq_of_dist_le_of_summable _ (λ _, le_refl _) h
 
-lemma dist_le_tsum_of_dist_le_of_tendsto [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma dist_le_tsum_of_dist_le_of_tendsto [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a))
   (n : ℕ) :
   dist (f n) a ≤ ∑' m, d (n + m) :=
@@ -1117,18 +1118,18 @@ begin
   exact hd.comp_injective (add_right_injective n)
 end
 
-lemma dist_le_tsum_of_dist_le_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma dist_le_tsum_of_dist_le_of_tendsto₀ [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a)) :
   dist (f 0) a ≤ tsum d :=
 by simpa only [zero_add] using dist_le_tsum_of_dist_le_of_tendsto d hf hd ha 0
 
-lemma dist_le_tsum_dist_of_tendsto [pseudo_metric_space α] {f : ℕ → α}
+lemma dist_le_tsum_dist_of_tendsto [metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
   dist (f n) a ≤ ∑' m, dist (f (n+m)) (f (n+m).succ) :=
 show dist (f n) a ≤ ∑' m, (λx, dist (f x) (f x.succ)) (n + m), from
 dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
 
-lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
+lemma dist_le_tsum_dist_of_tendsto₀ [metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) :
   dist (f 0) a ≤ ∑' n, dist (f n) (f n.succ) :=
 by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0

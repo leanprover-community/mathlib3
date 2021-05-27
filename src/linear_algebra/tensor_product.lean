@@ -820,7 +820,8 @@ on tensor products of modules carrying multiplications (e.g., associative rings,
 E.g., suppose `M = P` and `N = Q` and that `M` and `N` carry bilinear multiplications:
 `M ⊗ M → M` and `N ⊗ N → N`. Using `map`, we can define `(M ⊗ M) ⊗ (N ⊗ N) → M ⊗ N` which, when
 combined with this definition, yields a bilinear multiplication on `M ⊗ N`:
-`(M ⊗ N) ⊗ (M ⊗ N) → M ⊗ N`.
+`(M ⊗ N) ⊗ (M ⊗ N) → M ⊗ N`. In particular we could use this to define the multiplication in
+the `tensor_product.semiring` instance (currently defined "by hand" using `tensor_product.mul`).
 
 See also `mul_mul_mul_comm`. -/
 def comm_two_in_four : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] (M ⊗[R] P) ⊗[R] (N ⊗[R] Q) :=

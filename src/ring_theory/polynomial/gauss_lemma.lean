@@ -157,6 +157,8 @@ begin
     simp [s0, mem_non_zero_divisors_iff_ne_zero] }
 end
 
+variables (K)
+
 lemma is_primitive.dvd_iff_fraction_map_dvd_fraction_map {p q : polynomial R}
   (hp : p.is_primitive) (hq : q.is_primitive) :
   (p ∣ q) ↔ (p.map (algebra_map R K) ∣ q.map (algebra_map R K)) :=
@@ -175,7 +177,7 @@ hp.irreducible_iff_irreducible_map_fraction_map
 lemma is_primitive.int.dvd_iff_map_cast_dvd_map_cast (p q : polynomial ℤ)
   (hp : p.is_primitive) (hq : q.is_primitive) :
   (p ∣ q) ↔ (p.map (int.cast_ring_hom ℚ) ∣ q.map (int.cast_ring_hom ℚ)) :=
-hp.dvd_iff_fraction_map_dvd_fraction_map hq
+hp.dvd_iff_fraction_map_dvd_fraction_map ℚ hq
 
 end gcd_monoid
 end polynomial

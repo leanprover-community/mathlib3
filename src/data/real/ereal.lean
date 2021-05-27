@@ -130,11 +130,19 @@ rfl
 
 /-! ### ennreal coercion -/
 
+@[simp] lemma to_real_coe_ennreal : ∀ {x : ℝ≥0∞}, to_real (x : ereal) = ennreal.to_real x
+| ⊤ := rfl
+| (some x) := rfl
+
 lemma coe_nnreal_eq_coe_real (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) = (x : ℝ) := rfl
 
 @[simp] lemma coe_ennreal_top : ((⊤ : ℝ≥0∞) : ereal) = ⊤ := rfl
 
-@[simp] lemma coe_nnreal_ne_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) ≠ ⊤ := dec_trivial
+@[simp] lemma coe_ennreal_eq_top_iff : ∀ {x : ℝ≥0∞}, (x : ereal) = ⊤ ↔ x = ⊤
+| ⊤ := by simp
+| (some x) := by { simp only [ennreal.coe_ne_top, iff_false, ennreal.some_eq_coe], dec_trivial }
+
+lemma coe_nnreal_ne_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) ≠ ⊤ := dec_trivial
 
 @[simp] lemma coe_nnreal_lt_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) < ⊤ := dec_trivial
 
@@ -200,6 +208,14 @@ lemma lt_iff_exists_rat_btwn {a b : ereal} :
 @[simp] lemma bot_add_coe (x : ℝ) : (⊥ : ereal) + x = ⊥ := rfl
 @[simp] lemma coe_add_bot (x : ℝ) : (x : ereal) + ⊥ = ⊥ := rfl
 
+lemma to_real_add : ∀ {x y : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) (hy : y ≠ ⊤) (h'y : y ≠ ⊥),
+  to_real (x + y) = to_real x + to_real y
+| ⊥ y hx h'x hy h'y := (h'x rfl).elim
+| ⊤ y hx h'x hy h'y := (hx rfl).elim
+| x ⊤ hx h'x hy h'y := (hy rfl).elim
+| x ⊥ hx h'x hy h'y := (h'y rfl).elim
+| (x : ℝ) (y : ℝ) hx h'x hy h'y := by simp [← ereal.coe_add]
+
 lemma add_lt_add_right_coe {x y : ereal} (h : x < y) (z : ℝ) : x + z < y + z :=
 begin
   rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨y, rfl⟩|rfl,
@@ -236,6 +252,14 @@ begin
   { simp [lt_top_iff_ne_top, with_top.add_eq_top, h1.ne, (h2.trans_le le_top).ne] }
 end
 
+@[simp] lemma ad_eq_top_iff {x y : ereal} : x + y = ⊤ ↔ x = ⊤ ∨ y = ⊤ :=
+begin
+  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨x, rfl⟩|rfl;
+  simp [← ereal.coe_add],
+end
+
+@[simp] lemma add_lt_top_iff {x y : ereal} : x + y < ⊤ ↔ x < ⊤ ∧ y < ⊤ :=
+by simp [lt_top_iff_ne_top, not_or_distrib]
 
 /-! ### Negation -/
 
@@ -263,6 +287,11 @@ theorem neg_inj {a b : ereal} (h : -a = -b) : a = b := by rw [←ereal.neg_neg a
 
 @[simp] theorem neg_eq_neg_iff (a b : ereal) : - a = - b ↔ a = b :=
 ⟨λ h, neg_inj h, λ h, by rw [h]⟩
+
+@[simp] lemma to_real_neg : ∀ {a : ereal}, to_real (-a) = - to_real a
+| ⊤ := by simp
+| ⊥ := by simp
+| (x : ℝ) := rfl
 
 /-- Even though ereal is not an additive group, -a = b ↔ -b = a still holds -/
 theorem neg_eq_iff_neg_eq {a b : ereal} : -a = b ↔ -b = a :=
@@ -321,6 +350,8 @@ noncomputable instance : has_sub ereal := ⟨ereal.sub⟩
 @[simp] lemma sub_zero (x : ereal) : x - 0 = x := by { change x + (-0) = x, simp }
 @[simp] lemma zero_sub (x : ereal) : 0 - x = - x := by { change 0 + (-x) = - x, simp }
 
+lemma sub_eq_add_neg (x y : ereal) : x - y = x + -y := rfl
+
 lemma sub_le_sub {x y z t : ereal} (h : x ≤ y) (h' : t ≤ z) : x - z ≤ y - t :=
 add_le_add h (neg_le_neg_iff.2 h')
 
@@ -342,6 +373,15 @@ begin
     simp only [nnreal.of_real_of_nonpos h.le, this, zero_sub, neg_eq_neg_iff, coe_neg,
       ennreal.coe_zero, coe_ennreal_zero, coe_coe],
     refl }
+end
+
+lemma to_real_sub {x y : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) (hy : y ≠ ⊤) (h'y : y ≠ ⊥) :
+  to_real (x - y) = to_real x - to_real y :=
+begin
+  rw [ereal.sub_eq_add_neg, to_real_add hx h'x, to_real_neg],
+  { refl },
+  { simpa using hy },
+  { simpa using h'y }
 end
 
 end ereal

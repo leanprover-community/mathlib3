@@ -17,7 +17,11 @@ TODO
 
 universes u v w z
 
-variables (R : Type u) (M : Type v) [semiring R] [add_comm_monoid M] [module R M]
+variables (R : Type u) (M : Type v)
+
+section basic
+
+variables [semiring R] [add_comm_monoid M] [module R M]
 
 /-- `finite_free R M` is the statement that the `R`-module `R` is free of finite rank.-/
 class module.free : Prop :=
@@ -37,9 +41,14 @@ variables {R M}
 lemma module.free.of_basis {ι : Type w} (b : basis ι R M) : module.free R M :=
 (module.free_def R M).2 ⟨set.range b, ⟨b.reindex_range⟩⟩
 
+end basic
+
 namespace module.free
 
-variables (R M) [module.free R M] (N : Type z) [add_comm_monoid N] [module R N]
+section semiring
+
+variables (R M) [semiring R] [add_comm_monoid M] [module R M] [module.free R M]
+variables (N : Type z) [add_comm_monoid N] [module R N]
 
 /-- If `[finite_free R M]` then `choose_basis_index R M` is the `ι` which indexes the basis
   `ι → M`. -/
@@ -77,9 +86,16 @@ instance of_self : module.free R R := of_basis $ basis.singleton unit R
 lemma of_zero [subsingleton N] : module.free R N :=
 of_basis $ basis.empty _ not_nonempty_pempty
 
+end semiring
+
+section division_ring
+
+variables [division_ring R] [add_comm_group M] [module R M]
+
 @[priority 100]
-instance of_vector_space (K : Type u) (V : Type v) [division_ring K] [add_comm_group V]
-  [module K V] : module.free K V :=
-of_basis (basis.of_vector_space K V)
+instance of_vector_space : module.free R M :=
+of_basis (basis.of_vector_space R M)
+
+end division_ring
 
 end module.free

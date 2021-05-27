@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import ring_theory.ideal.operations
 import linear_algebra.finsupp_vector_space
 import algebra.char_p.basic
+import linear_algebra.free_module2
 
 /-!
 # Multivariate polynomials over commutative rings
@@ -113,6 +114,12 @@ def basis_monomials : basis (σ →₀ ℕ) R (mv_polynomial σ R) := finsupp.ba
 @[simp] lemma coe_basis_monomials :
   (basis_monomials σ R : (σ →₀ ℕ) → mv_polynomial σ R) = λ s, monomial s 1 :=
 rfl
+
+instance of_mv_polynomial : module.free R (mv_polynomial σ R) :=
+module.free.of_basis (basis_monomials σ R)
+
+instance of_polynomial : module.free R (polynomial R) :=
+module.free.of_equiv (mv_polynomial.punit_alg_equiv R).to_linear_equiv
 
 end degree
 

@@ -635,7 +635,7 @@ def curry (f : M ⊗ N →ₗ P) : M →ₗ N →ₗ P := lcurry R M N P f
   curry f m n = f (m ⊗ₜ n) := rfl
 
 lemma curry_inj : function.injective (curry : (M ⊗[R] N →ₗ[R] P) → (M →ₗ[R] N →ₗ[R] P)) :=
-λ g h H, by { ext m n, simp only [linear_map.compr₂_apply, mk_apply, ← curry_apply, H], }
+λ g h H, mk_compr₂_inj H
 
 theorem ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
   (H : ∀ x y z, g ((x ⊗ₜ y) ⊗ₜ z) = h ((x ⊗ₜ y) ⊗ₜ z)) : g = h :=

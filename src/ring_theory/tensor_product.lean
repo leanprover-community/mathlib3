@@ -104,6 +104,10 @@ bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N �
 { map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
   .. curry (f.restrict_scalars R) }
 
+lemma restrict_scalars_curry' (f : (M ⊗[R] N) →ₗ[A] P) :
+  restrict_scalars R (curry' f) = curry (f.restrict_scalars R) :=
+rfl
+
 variables (R A M N P)
 /-- Heterobasic version of `tensor_product.uncurry`:
 

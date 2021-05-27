@@ -1308,6 +1308,18 @@ begin
   { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
 end
 
+@[to_additive]
+lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
+  (prod_map f g).ker = prod f.ker g.ker :=
+begin
+  ext x,
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw mem_ker at h,
+    simpa [mem_prod, mem_ker] using h },
+  { rw [mem_prod, mem_ker, mem_ker] at h,
+    simpa [mem_ker] using h }
+end
+
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
 def eq_locus (f g : G →* N) : subgroup G :=

@@ -179,6 +179,17 @@ def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →�
 @[simp] theorem prod_map_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) (x) :
   f.prod_map g x = (f x.1, g x.2) := rfl
 
+lemma ker_prod_map (f : M →ₗ[R] M₂) (g : M₃ →ₗ[R] M₄) :
+  (linear_map.prod_map f g).ker = submodule.prod f.ker g.ker :=
+begin
+  ext x,
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw mem_ker at h,
+    simpa [submodule.mem_prod, mem_ker] using h },
+  { rw [submodule.mem_prod, mem_ker, mem_ker] at h,
+    simpa [mem_ker] using h }
+end
+
 end linear_map
 
 end prod

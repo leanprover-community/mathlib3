@@ -173,6 +173,18 @@ lemma ae_cover.ae_tendsto_indicator {β : Type*} [has_zero β] [topological_spac
 hφ.ae_eventually_mem.mono (λ x hx, tendsto_const_nhds.congr' $
   hx.mono $ λ n hn, (indicator_of_mem hn _).symm)
 
+#check le_csupr
+
+lemma ae_cover.ae_csupr_indicator_nnreal
+  {f : α → ℝ≥0∞} {φ : ι → set α} (hφ : ae_cover μ φ) :
+  ∀ᵐ x ∂μ, (⨆ (i : ι), (φ i).indicator f x) = f x :=
+begin
+  filter_upwards [hφ.ae_eventually_mem],
+  intros x hx,
+  refine le_antisymm (csupr_le _) (le_csupr_of_le _ _),
+  {  }
+end
+
 lemma ae_cover_restrict_of_ae_imp {s : set α} {φ : ι → set α}
   (hs : measurable_set s) (ae_eventually_mem : ∀ᵐ x ∂μ, x ∈ s → ∀ᶠ n in at_top, x ∈ φ n)
   --(mono : monotone φ)
@@ -210,10 +222,20 @@ section ae_cover_mono
 variables {α ι : Type*} [ordered_semiring ι] [archimedean ι]
   [measurable_space α] {μ : measure α}
 
-lemma ae_cover.bUnion_ae_cover {φ : ι → set α} (hφ : ae_cover μ φ) :
+lemma ae_cover.Union_nat_ae_cover {φ : ι → set α} (hφ : ae_cover μ φ) :
   ae_cover μ (λ (n : ℕ), ⋃ k ≤ n, φ k) :=
-{ ae_eventually_mem := hφ.ae_eventually_mem.mono sorry,
-  measurable := sorry }
+{ ae_eventually_mem := hφ.ae_eventually_mem.mono (λ x h,
+    (tendsto_coe_nat_at_top_at_top.eventually h).mono
+    (λ i hi, by rw mem_Union; use i; rw mem_Union; exact ⟨le_refl i, hi⟩)),
+  measurable := λ i, measurable_set.Union (λ n, measurable_set.Union_Prop $ λ _, hφ.measurable n) }
+
+--lemma ae_cover.supr_indicator_eq_supr_Union_nat {φ : ι → set α} (hφ : ae_cover μ φ)
+--  {f : α → ℝ≥0∞} :
+--  (λ x, ⨆ (i : ι), indicator (φ i) f x) =ᵐ[μ] (λ x, ⨆ (i : ℕ), indicator (⋃ k ≤ i, φ k) f x) :=
+--begin
+--  have hφ' := hφ.Union_nat_ae_cover,
+--
+--end
 
 end ae_cover_mono
 
@@ -230,12 +252,13 @@ tendsto_at_top_csupr
 
 variables [linear_ordered_semiring ι] [archimedean ι]
 
+set_option profiler true
 lemma lintegral_eq_supr {φ : ι → set α} (hφ : ae_cover μ φ) {f : α → ℝ≥0∞}
   (hfm : measurable f) :
   ∫⁻ x, f x ∂μ = ⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ :=
 begin
-  have hφ' := hφ.coe_nat,
-  let F := λ (n : ℕ), indicator (φ n) f,
+  have hφ' := hφ.Union_nat_ae_cover,
+  let F := λ (n : ℕ), indicator (⋃ k ≤ n, φ k) f,
   have F_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, F n x) at_top (𝓝 $ f x) :=
     hφ'.ae_tendsto_indicator,
   --have F_mono : ∀ x, monotone (λ n, F n x) :=
@@ -243,8 +266,8 @@ begin
   --have f_eq_supr_F : ∀ᵐ x ∂μ, f x = ⨆ (n : ℕ), F n x :=
   --  F_tendsto.mono (λ x hx, tendsto_nhds_unique hx
   --    (tendsto_at_top_csupr (F_mono x) ⟨⊤, λ _ _, le_top⟩)),
-  have lintegral_F_eq : ∀ n, ∫⁻ (x : α), F n x ∂μ = ∫⁻ x in φ n, f x ∂μ :=
-    λ n, lintegral_indicator _ (hφ.measurable n),
+  have lintegral_F_eq : ∀ n, ∫⁻ (x : α), F n x ∂μ = ∫⁻ x in (⋃ k ≤ n, φ k), f x ∂μ :=
+    λ n, lintegral_indicator _ (hφ'.measurable n),
   --have lintegral_f_mono_iota : monotone (λ i, ∫⁻ x in φ i, f x ∂μ) :=
   --  (λ i j hij, lintegral_mono' (measure.restrict_mono (hφ.mono hij) (le_refl _)) (le_refl _)),
   rw [lintegral_congr_ae f_eq_supr_F, supr_eq_supr_coe_nat_of_monotone lintegral_f_mono_iota],

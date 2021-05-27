@@ -174,6 +174,19 @@ lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
   s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), set.prod u v ⊆ s :=
 by rw [nhds_prod_eq, mem_prod_iff]
 
+lemma mem_nhds_prod_iff' {a : α} {b : β} {s : set (α × β)} :
+  s ∈ 𝓝 (a, b) ↔ ∃ u v, is_open u ∧ a ∈ u ∧ is_open v ∧ b ∈ v ∧ set.prod u v ⊆ s :=
+begin
+  rw mem_nhds_prod_iff,
+  split,
+  { rintros ⟨u, Hu, v, Hv, h⟩,
+    rcases mem_nhds_iff.1 Hu with ⟨u', u'u, u'_open, Hu'⟩,
+    rcases mem_nhds_iff.1 Hv with ⟨v', v'v, v'_open, Hv'⟩,
+    exact ⟨u', v', u'_open, Hu', v'_open, Hv', (set.prod_mono u'u v'v).trans h⟩ },
+  { rintros ⟨u, v, u_open, au, v_open, bv, huv⟩,
+    exact ⟨u, u_open.mem_nhds au, v, v_open.mem_nhds bv, huv⟩ }
+end
+
 lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
   {sa : ιa → set α} {sb : ιb → set β} {a : α} {b : β} (ha : (𝓝 a).has_basis pa sa)
   (hb : (𝓝 b).has_basis pb sb) :

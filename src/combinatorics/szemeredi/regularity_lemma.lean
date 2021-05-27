@@ -205,7 +205,6 @@ structure equipartition (V : Type u) [decidable_eq V] :=
 
 namespace equipartition
 variables [decidable_eq V] (P : equipartition V)
-open_locale classical
 
 def size : ℕ := card P.parts
 
@@ -231,7 +230,8 @@ lemma distinct_unordered_pairs_size [fintype V] (P : equipartition V) :
   P.distinct_unordered_pairs.card = P.size.choose 2 :=
 by rw [distinct_unordered_pairs, equipartition.size, prod_quotient_sym2_not_diag]
 
-variables (G : simple_graph V) [decidable_rel G.adj]
+variables (G : simple_graph V)
+open_locale classical
 
 noncomputable def non_uniform_parts [fintype V] (ε : ℝ) :
   finset (sym2 (finset V)) :=
@@ -311,7 +311,7 @@ def discrete_equipartition (V : Type*) [decidable_eq V] [fintype V] : equipartit
     simp,
   end }
 
-lemma discrete_equipartition_size [fintype V] : (discrete_equipartition V).size = card V :=
+lemma discrete_equipartition_size : (discrete_equipartition V).size = card V :=
 begin
   change finset.card (finset.univ.image _) = _,
   rw [finset.card_image_of_injective, finset.card_univ],
@@ -319,31 +319,33 @@ begin
   rwa singleton_inj at k,
 end
 
-lemma discrete_equipartition.non_uniform_parts [fintype V] (ε : ℝ) (hε₁ : 0 < ε):
+lemma discrete_equipartition.non_uniform_parts (ε : ℝ) (hε₁ : 0 < ε):
   (discrete_equipartition V).non_uniform_parts G ε = ∅ :=
 begin
-  rw [equipartition.non_uniform_parts, filter_false_of_mem],
-  intro x,
-  apply quotient.induction_on x,
-  rintro ⟨U, W⟩ h,
-  simp only [not_not],
-  rintro U' (hU' : U' ⊆ U) W' (hW' : W' ⊆ W) (hU : ε * U.card ≤ _) (hW : ε * W.card ≤ _),
-  simp only [equipartition.mem_distinct_unordered_pairs, discrete_equipartition_parts,
-    mem_image, mem_univ, ne.def, exists_true_left] at h,
-  obtain ⟨⟨x, _, rfl⟩, ⟨y, _, rfl⟩, t⟩ := h,
-  have : U'.nonempty,
-  {
+  sorry
+  -- rw [equipartition.non_uniform_parts, filter_false_of_mem],
+  -- intro x,
+  -- apply quotient.induction_on x,
+  -- rintro ⟨U, W⟩ h,
+  -- simp only [not_not],
+  -- rintro U' (hU' : U' ⊆ U) W' (hW' : W' ⊆ W) (hU : ε * U.card ≤ _) (hW : ε * W.card ≤ _),
+  -- simp only [equipartition.mem_distinct_unordered_pairs, discrete_equipartition_parts,
+  --   mem_image, mem_univ, ne.def, exists_true_left] at h,
+  -- obtain ⟨⟨x, _, rfl⟩, ⟨y, _, rfl⟩, t⟩ := h,
+  -- have : U'.nonempty,
+  -- {
 
-  }
+  -- }
 
 end
 
 def discrete_partition_is_uniform [fintype V] (ε : ℝ) :
   (discrete_equipartition V).is_uniform G ε :=
 begin
-  change _ ≤ _,
-  rw [discrete_equipartition_size],
-  simp,
+  sorry
+  -- change _ ≤ _,
+  -- rw [discrete_equipartition_size],
+  -- simp,
 end
 
 /-- Effective Szemeredi's regularity lemma: For any sufficiently big graph, there is a uniform

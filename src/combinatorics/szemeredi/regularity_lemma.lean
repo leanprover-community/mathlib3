@@ -60,10 +60,10 @@ begin
   { rintro ⟨i₁, j₁⟩ ⟨i₂, j₂⟩ h₁ h₂ h,
     rcases h,
     refl },
-  { rintro ⟨i₁, j₁⟩ h,
-    refine ⟨⟨j₁, i₁⟩, _, rfl⟩,
-    { simp only [mem_edges_pair_finset'] at h ⊢,
-      rwa [G.edge_symm, and.left_comm] } }
+  rintro ⟨i₁, j₁⟩ h,
+  refine ⟨⟨j₁, i₁⟩, _, rfl⟩,
+  simp only [mem_edges_pair_finset'] at h ⊢,
+  rwa [G.edge_symm, and.left_comm],
 end
 
 def edges_count : sym2 (finset V) → ℕ :=
@@ -77,6 +77,19 @@ lemma density_pair_symm (U W : finset V) : G.density_pair U W = G.density_pair W
 begin
   rw [density_pair, mul_comm, edges_count_finset_symm],
   refl
+end
+
+lemma density_pair_nonneg (U W : finset V) :
+  0 ≤ G.density_pair U W :=
+begin
+  rw [density_pair],
+  apply div_nonneg,
+  { norm_cast,
+    exact nat.zero_le _ },
+  norm_cast,
+  apply mul_nonneg,
+  exact nat.zero_le _,
+  exact nat.zero_le _,
 end
 
 lemma density_pair_le_one (U W : finset V) :
@@ -95,15 +108,19 @@ quotient.lift (function.uncurry (density_pair G))
   (by { rintros _ _ ⟨_, _⟩, { refl }, apply density_pair_symm })
 
 lemma density_sym2_le_one (s : sym2 (finset V)) :
-  density_sym2 G s ≤ 1 :=
+  G.density_sym2 s ≤ 1 :=
 begin
-  sorry
+  apply quotient.induction_on s,
+  rintro xy,
+  apply density_pair_le_one,
 end
 
 lemma density_sym2_nonneg (s : sym2 (finset V)) :
-  0 ≤ density_sym2 G s :=
+  0 ≤ G.density_sym2 s :=
 begin
-  sorry
+  apply quotient.induction_on s,
+  rintro xy,
+  apply density_pair_nonneg,
 end
 
 def is_uniform (ε : ℝ) (U W : finset V) : Prop :=

@@ -814,6 +814,18 @@ let e₁ := (tensor_product.assoc R M N P).symm,
     e₃ := (tensor_product.assoc R N M P) in
 e₁.trans $ e₂.trans e₃
 
+variables {M N P Q}
+
+@[simp] lemma left_comm_tmul (m : M) (n : N) (p : P) :
+  left_comm R M N P (m ⊗ₜ (n ⊗ₜ p)) = n ⊗ₜ (m ⊗ₜ p) :=
+rfl
+
+@[simp] lemma left_comm_symm_tmul (m : M) (n : N) (p : P) :
+  (left_comm R M N P).symm (n ⊗ₜ (m ⊗ₜ p)) = m ⊗ₜ (n ⊗ₜ p) :=
+rfl
+
+variables (M N P Q)
+
 /-- This special case is worth defining explicitly since it is useful for defining multiplication
 on tensor products of modules carrying multiplications (e.g., associative rings, Lie rings, ...).
 
@@ -831,14 +843,6 @@ let e₁ := tensor_product.assoc R M N (P ⊗[R] Q),
 e₁.trans $ e₂.trans e₃
 
 variables {M N P Q}
-
-@[simp] lemma left_comm_tmul (m : M) (n : N) (p : P) :
-  left_comm R M N P (m ⊗ₜ (n ⊗ₜ p)) = n ⊗ₜ (m ⊗ₜ p) :=
-rfl
-
-@[simp] lemma left_comm_symm_tmul (m : M) (n : N) (p : P) :
-  (left_comm R M N P).symm (n ⊗ₜ (m ⊗ₜ p)) = m ⊗ₜ (n ⊗ₜ p) :=
-rfl
 
 @[simp] lemma comm_two_in_four_tmul (m : M) (n : N) (p : P) (q : Q) :
   comm_two_in_four R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=

@@ -544,7 +544,7 @@ meta def to_name_spec (auto_candidates : tactic (list name)) :
 
 end with_pattern
 
-/-
+/--
 If `h` refers to a hypothesis, `clear_dependent_if_exists h` clears `h` clears
 `h` and any hypotheses which depend on it. Otherwise, the tactic does nothing.
 -/

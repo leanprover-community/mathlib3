@@ -503,27 +503,30 @@ def function.injective.ordered_comm_group [ordered_comm_group α] {β : Type*}
   ..hf.ordered_comm_monoid f one mul,
   ..hf.comm_group f one mul inv div }
 
---  TODO: convert these lemmas to `mul + [to_additive]`?
-section ordered_add_comm_group
+section comm_group
+variables [comm_group α] [preorder α] [covariant_class α α (*) (≤)]
+
+/-  I (DT) did not try to minimise the assumptions. -/
 @[to_additive sub_le_sub]
-lemma div_le_div'' [ordered_comm_group α] {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) :
+lemma div_le_div'' {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) :
   a / d ≤ b / c :=
 begin
   rw [div_eq_mul_inv, div_eq_mul_inv, mul_comm b, mul_inv_le_inv_mul_iff, mul_comm],
   exact mul_le_mul' hab hcd
 end
 
-variables [ordered_add_comm_group α] {a b c d : α}
+end comm_group
 
---lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
---sub_le_sub hab hcd --simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg_iff.mpr hcd)
+/-
+TODO: convert these lemmas to `mul + [to_additive]`?  Similar to
+`Section comm_group` above.
+-/
 
-lemma sub_lt_sub (hab : a < b) (hcd : c < d) : a - d < b - c :=
-by simpa only [sub_eq_add_neg] using add_lt_add hab (neg_lt_neg_iff.mpr hcd)
+section add_comm_group
+variables [add_comm_group α] [preorder α]
 
-alias sub_le_self_iff ↔ _ sub_le_self
-
-alias sub_lt_self_iff ↔ _ sub_lt_self
+section covariant_add_le
+variables [covariant_class α α (+) (≤)] {a b c d : α}
 
 lemma sub_le_sub_iff : a - b ≤ c - d ↔ a + d ≤ c + b :=
 by simpa only [sub_eq_add_neg] using add_neg_le_add_neg_iff
@@ -542,20 +545,6 @@ by simpa only [sub_eq_add_neg] using add_le_add_iff_right _
 lemma sub_le_sub_right (h : a ≤ b) (c : α) : a - c ≤ b - c :=
 (sub_le_sub_iff_right c).2 h
 
-@[simp]
-lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, add_lt_add_iff_left, neg_lt_neg_iff]
-
-lemma sub_lt_sub_left (h : a < b) (c : α) : c - b < c - a :=
-(sub_lt_sub_iff_left c).2 h
-
-@[simp]
-lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
-by simpa only [sub_eq_add_neg] using add_lt_add_iff_right _
-
-lemma sub_lt_sub_right (h : a < b) (c : α) : a - c < b - c :=
-(sub_lt_sub_iff_right c).2 h
-
 @[simp] lemma sub_nonneg : 0 ≤ a - b ↔ b ≤ a :=
 by rw [← sub_self a, sub_le_sub_iff_left]
 
@@ -565,16 +554,6 @@ alias sub_nonneg ↔ le_of_sub_nonneg sub_nonneg_of_le
 by rw [← sub_self b,  sub_le_sub_iff_right]
 
 alias sub_nonpos ↔ le_of_sub_nonpos sub_nonpos_of_le
-
-@[simp] lemma sub_pos : 0 < a - b ↔ b < a :=
-by rw [← sub_self a, sub_lt_sub_iff_left]
-
-alias sub_pos ↔ lt_of_sub_pos sub_pos_of_lt
-
-@[simp] lemma sub_lt_zero : a - b < 0 ↔ a < b :=
-by rw [← sub_self b, sub_lt_sub_iff_right]
-
-alias sub_lt_zero ↔ lt_of_sub_neg sub_neg_of_lt
 
 lemma le_sub_iff_add_le' : b ≤ c - a ↔ a + b ≤ c :=
 by rw [sub_eq_add_neg, add_comm, le_neg_add_iff_add_le]
@@ -603,6 +582,48 @@ sub_le_iff_le_add'.trans sub_le_iff_le_add.symm
 
 theorem le_sub : a ≤ b - c ↔ c ≤ b - a :=
 le_sub_iff_add_le'.trans le_sub_iff_add_le.symm
+
+end covariant_add_le
+
+section covariant_add_lt
+variables [covariant_class α α (+) (<)] {a b c d : α}
+
+--lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
+--sub_le_sub hab hcd --simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg_iff.mpr hcd)
+
+lemma sub_lt_sub (hab : a < b) (hcd : c < d) : a - d < b - c :=
+begin
+  rw [sub_eq_add_neg, sub_eq_add_neg],
+  refine add_neg_lt_add_neg_iff.mpr (add_lt_add_of_lt_of_lt hab hcd),
+end
+
+alias sub_le_self_iff ↔ _ sub_le_self
+
+alias sub_lt_self_iff ↔ _ sub_lt_self
+
+@[simp]
+lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, add_lt_add_iff_left, neg_lt_neg_iff]
+
+lemma sub_lt_sub_left (h : a < b) (c : α) : c - b < c - a :=
+(sub_lt_sub_iff_left c).2 h
+
+@[simp]
+lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
+by simpa only [sub_eq_add_neg] using add_lt_add_iff_right _
+
+lemma sub_lt_sub_right (h : a < b) (c : α) : a - c < b - c :=
+(sub_lt_sub_iff_right c).2 h
+
+@[simp] lemma sub_pos : 0 < a - b ↔ b < a :=
+by rw [← sub_self a, sub_lt_sub_iff_left]
+
+alias sub_pos ↔ lt_of_sub_pos sub_pos_of_lt
+
+@[simp] lemma sub_lt_zero : a - b < 0 ↔ a < b :=
+by rw [← sub_self b, sub_lt_sub_iff_right]
+
+alias sub_lt_zero ↔ lt_of_sub_neg sub_neg_of_lt
 
 lemma lt_sub_iff_add_lt' : b < c - a ↔ a + b < c :=
 by rw [sub_eq_add_neg, add_comm, lt_neg_add_iff_add_lt]
@@ -636,7 +657,9 @@ sub_lt_iff_lt_add'.trans sub_lt_iff_lt_add.symm
 theorem lt_sub : a < b - c ↔ c < b - a :=
 lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
 
-end ordered_add_comm_group
+end covariant_add_lt
+
+end add_comm_group
 
 /-!
 
@@ -891,10 +914,10 @@ abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
   add_le_add (le_abs_self _) (le_abs_self _)⟩
 
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
-by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
+by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ _ _ _ b, and_comm, sub_le_iff_le_add']
 
 lemma abs_sub_lt_iff : abs (a - b) < c ↔ a - b < c ∧ b - a < c :=
-by rw [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ b, and_comm]
+by rw [abs_lt, neg_lt_sub_iff_lt_add, @sub_lt_iff_lt_add' _ _ _ _ _ b, and_comm, sub_lt_iff_lt_add']
 
 lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
 sub_le.1 $ (abs_sub_le_iff.1 h).2

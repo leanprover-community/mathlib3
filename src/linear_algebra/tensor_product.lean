@@ -370,8 +370,7 @@ action. Two natural ways in which this situation arises are:
 
 Note that in the special case that `R = R'`, since `R` is commutative, we just get the usual scalar
 action on a tensor product of two modules. This special case is important enough that, for
-perfomance reasons, we explicitly define it below, and reduce the priority of this instance. -/
-@[priority 500]
+performance reasons, we explicitly define it below. -/
 instance left_has_scalar : has_scalar R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
@@ -425,7 +424,6 @@ instance : add_comm_monoid (M ⊗[R] N) :=
   nsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
   .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
 
-@[priority 500] -- See doc string for `left_has_scalar`.
 instance left_distrib_mul_action : distrib_mul_action R' (M ⊗[R] N) :=
 have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
@@ -447,7 +445,6 @@ rfl
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
-@[priority 500] -- See doc string for `left_has_scalar`.
 instance left_module : module R'' (M ⊗[R] N) :=
 { smul := (•),
   add_smul := tensor_product.add_smul,

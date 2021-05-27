@@ -3,14 +3,12 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 -/
-
 import data.equiv.ring
 import group_theory.monoid_localization
 import ring_theory.ideal.operations
 import ring_theory.algebraic
 import ring_theory.integral_closure
 import ring_theory.non_zero_divisors
-import category_theory.eq_to_hom
 
 /-!
 # Localizations of commutative rings
@@ -1252,25 +1250,29 @@ end
 variables (I)
 
 variables (J : ideal S) [hJ : J.is_prime] (f : R →+* S) (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J)
-include hJ hIJ
+--include hJ hIJ
 
 /-- For a ring hom `f : P →+* R` and a prime ideal `I` in `R`, the induced ring hom from the
 localization of `P` at `ideal.comap f I` to the localization of `R` at `I` -/
-noncomputable def local_ring_hom : at_prime I →+* at_prime J :=
+noncomputable def local_ring_hom (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) : at_prime I →+* at_prime J :=
 (localization.of _).map
   (λ x, show f x ∈ J.prime_compl, from λ hfxJ, x.2 ((hIJ x).mpr hfxJ))
   (localization.of _)
 
-lemma local_ring_hom_to_map (x : R) :
+lemma local_ring_hom_to_map (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) (x : R) :
   local_ring_hom I J f hIJ ((localization.of _).to_map x) = (localization.of _).to_map (f x) :=
 map_eq _ _ _
 
-lemma local_ring_hom_mk' (x : R) (y : I.prime_compl) :
+lemma local_ring_hom_mk' (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) (x : R) (y : I.prime_compl) :
   local_ring_hom I J f hIJ ((localization.of _).mk' x y) =
   (localization.of _).mk' (f x) ⟨f y, λ hfyJ, y.2 ((hIJ y).mpr hfyJ)⟩ :=
 map_mk' _ _ _ _
 
-instance is_local_ring_hom_local_ring_hom : is_local_ring_hom (local_ring_hom I J f hIJ) :=
+instance is_local_ring_hom_local_ring_hom (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) : is_local_ring_hom (local_ring_hom I J f hIJ) :=
 begin
   constructor,
   intros x hx,
@@ -1280,7 +1282,8 @@ begin
   exact λ hr, hx ((hIJ r).mp hr),
 end
 
-lemma local_ring_hom_unique {j : at_prime I →+* at_prime J}
+lemma local_ring_hom_unique (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) {j : at_prime I →+* at_prime J}
   (hj : ∀ x : R, j ((localization.of _).to_map x) = (localization.of _).to_map (f x)) :
   local_ring_hom I J f hIJ = j :=
 map_unique _ _ hj
@@ -1289,8 +1292,8 @@ map_unique _ _ hj
   local_ring_hom I I (ring_hom.id R) (λ r, iff.rfl) = ring_hom.id (at_prime I) :=
 local_ring_hom_unique _ _ _ _ (λ x, rfl)
 
-@[simp] lemma local_ring_hom_comp (K : ideal P) [hK : K.is_prime] (g : S →+* P)
-  (hJK : ∀ s : S, s ∈ J ↔ g s ∈ K) :
+@[simp] lemma local_ring_hom_comp (J : ideal S) [hJ : J.is_prime] (K : ideal P) [hK : K.is_prime]
+  (f : R →+* S) (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J)  (g : S →+* P) (hJK : ∀ s : S, s ∈ J ↔ g s ∈ K) :
   local_ring_hom I K (g.comp f) (λ r, iff.trans (hIJ r) (hJK (f r))) =
   (local_ring_hom J K g hJK).comp (local_ring_hom I J f hIJ) :=
 local_ring_hom_unique _ _ _ _

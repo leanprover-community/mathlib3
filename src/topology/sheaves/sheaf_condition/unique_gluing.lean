@@ -250,7 +250,7 @@ lemma exists_unique_gluing' (V : opens X) (iUV : Π i : ι, U i ⟶ V) (hcover :
   (sf : Π i : ι, F.presheaf.obj (op (U i))) (h : is_compatible F.presheaf U sf) :
   ∃! s : F.presheaf.obj (op V), ∀ i : ι, F.presheaf.map (iUV i).op s = sf i :=
 begin
-  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, le_of_hom (iUV i))),
+  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, (iUV i).le)),
   obtain ⟨gl, gl_spec, gl_uniq⟩ := F.exists_unique_gluing U sf h,
   refine ⟨F.presheaf.map (eq_to_hom V_eq_supr_U).op gl, (λ i,_), (λ gl' gl'_spec,_)⟩,
   { rw ← functor_to_types.map_comp_apply,
@@ -279,7 +279,7 @@ lemma eq_of_locally_eq' (V : opens X) (iUV : Π i : ι, U i ⟶ V) (hcover : V �
   (s t : F.presheaf.obj (op V))
   (h : ∀ i, F.presheaf.map (iUV i).op s = F.presheaf.map (iUV i).op t) : s = t :=
 begin
-  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, le_of_hom (iUV i))),
+  have V_eq_supr_U : V = supr U := le_antisymm hcover (supr_le (λ i, (iUV i).le)),
   suffices : F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op s =
              F.presheaf.map (eq_to_hom V_eq_supr_U.symm).op t,
   { convert congr_arg (F.presheaf.map (eq_to_hom V_eq_supr_U).op) this ;

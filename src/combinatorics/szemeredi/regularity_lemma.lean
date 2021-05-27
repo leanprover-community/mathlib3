@@ -102,14 +102,12 @@ begin
     { apply hf ha₁ ha₂ h },
     rw nat.sub_eq_zero_of_le h,
     apply zero_le_one },
-  { intros hf a₁ a₂ ha₁ ha₂ _,
-    apply hf ha₁ ha₂ }
+  intros hf a₁ a₂ ha₁ ha₂ _,
+  apply hf ha₁ ha₂
 end
 
-variables {V : Type u}
-
 namespace simple_graph
-variables [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
+variables {V : Type u} [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
 
 def edges_pair_finset (U W : finset V) : finset (V × V) :=
 (U.product W).filter (λ e, G.adj e.1 e.2)
@@ -221,9 +219,14 @@ structure equipartition (V : Type u) [decidable_eq V] :=
 (sizes : equitable_on (parts : set (finset V)) finset.card)
 
 namespace equipartition
-variables [decidable_eq V] (P : equipartition V)
+variables {V : Type u} [decidable_eq V] (P : equipartition V)
 
-def size : ℕ := card P.parts
+/-lemma Union_eq_univ : (⋃ (s : finset V) (s ∈ P.parts), s) : set V) = set.univ :=
+begin
+
+end-/
+
+protected def size : ℕ := card P.parts
 
 def distinct_unordered_pairs [fintype V] (P : equipartition V) :
   finset (sym2 (finset V)) :=
@@ -254,6 +257,9 @@ noncomputable def non_uniform_parts [fintype V] (ε : ℝ) :
   finset (sym2 (finset V)) :=
 P.distinct_unordered_pairs.filter (λ a, ¬G.is_uniform_sym2 ε a)
 
+--doesn't work TODO: make a MWE
+--#print non_uniform_parts
+
 def is_uniform [fintype V] (ε : ℝ) : Prop :=
 ((P.non_uniform_parts G ε).card : ℝ) ≤ ε * P.size.choose 2
 
@@ -263,14 +269,11 @@ noncomputable def index [fintype V] (P : equipartition V) : ℝ :=
 theorem index_le_half [fintype V] (P : equipartition V) :
   P.index G ≤ 1/2 :=
 begin
-  rw [equipartition.index],
-  rw le_div_iff,
-  rw div_mul_eq_mul_div,
+  rw [equipartition.index, le_div_iff, div_mul_eq_mul_div],
   apply div_le_of_nonneg_of_le_mul,
   { exact pow_nonneg (nat.cast_nonneg _) _ },
   { exact zero_le_one },
-  {
-    rw [finset.sum_ite, finset.sum_const_zero, zero_add, one_mul],
+  { rw [finset.sum_ite, finset.sum_const_zero, zero_add, one_mul],
     have : (∑ (x : sym2 (finset V)) in univ.filter (λ (x : sym2 (finset V)), ¬x.is_diag),
       G.density_sym2 x ^ 2) ≤ (univ.filter (λ (x : sym2 (finset V)), ¬x.is_diag)).card,
     { rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
@@ -285,29 +288,7 @@ end
 
 end equipartition
 
-def exp_bound : ℕ → ℕ := λ n, n * 4^n
-
-/-- An explicit bound in Szemeredi's regularity lemma. -/
-noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
-let t : ℕ := max l (⌈real.log (100 / ε^5) / real.log 4⌉ + 1).nat_abs,
-    N : ℕ := exp_bound^[⌈4 * ε^(-5 : ℝ)⌉.nat_abs] t
- in N * 16^N
-
-open_locale classical
-variables [decidable_eq V] [fintype V] (G : simple_graph V) [decidable_rel G.adj]
-
-/--
-The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then we
-can make a (much bigger) equipartition with a higher index.
-(This is helpful since the index is bounded by a constant, so this process eventually terminates
-and gives a uniform equipartition).
--/
-theorem increment (P : equipartition V) (ε : ℝ) (h₁ : P.size * 16^P.size ≤ card V)
-  (h₂ : 100 < ε^5 * 4^P.size) (hP : ¬P.is_uniform G ε) :
-  ∃ (Q : equipartition V), Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
-begin
-  sorry
-end
+/-! ### Discrete and dummy equipartitions -/
 
 @[simps]
 def discrete_equipartition (V : Type*) [decidable_eq V] [fintype V] : equipartition V :=
@@ -325,10 +306,13 @@ def discrete_equipartition (V : Type*) [decidable_eq V] [fintype V] : equipartit
   begin
     simp only [set.image_univ, set.mem_range, coe_univ, exists_imp_distrib, coe_image],
     rintro _ rfl _ rfl,
-    simp,
+    simp only [implies_true_iff, zero_le', card_singleton],
   end }
 
-lemma discrete_equipartition_size : (discrete_equipartition V).size = card V :=
+namespace discrete_equipartition
+variables {V : Type u} [decidable_eq V] [fintype V] (G : simple_graph V)
+
+protected lemma size : (discrete_equipartition V).size = card V :=
 begin
   change finset.card (finset.univ.image _) = _,
   rw [finset.card_image_of_injective, finset.card_univ],
@@ -336,44 +320,126 @@ begin
   rwa singleton_inj at k,
 end
 
-lemma discrete_equipartition.non_uniform_parts (ε : ℝ) (hε₁ : 0 < ε):
+open equipartition -- used for `rw non_uniform_parts at hUW`. Shouldn't be though...
+
+lemma non_uniform_parts {ε : ℝ} (hε : 0 < ε) :
   (discrete_equipartition V).non_uniform_parts G ε = ∅ :=
 begin
-  sorry
-  -- rw [equipartition.non_uniform_parts, filter_false_of_mem],
-  -- intro x,
-  -- apply quotient.induction_on x,
-  -- rintro ⟨U, W⟩ h,
-  -- simp only [not_not],
-  -- rintro U' (hU' : U' ⊆ U) W' (hW' : W' ⊆ W) (hU : ε * U.card ≤ _) (hW : ε * W.card ≤ _),
-  -- simp only [equipartition.mem_distinct_unordered_pairs, discrete_equipartition_parts,
-  --   mem_image, mem_univ, ne.def, exists_true_left] at h,
-  -- obtain ⟨⟨x, _, rfl⟩, ⟨y, _, rfl⟩, t⟩ := h,
-  -- have : U'.nonempty,
-  -- {
-
-  -- }
-
+  rw eq_empty_iff_forall_not_mem,
+  intro x,
+  apply quotient.induction_on x,
+  rintro ⟨U, W⟩ hUW,
+  rw [non_uniform_parts, finset.mem_filter, mem_distinct_unordered_pairs,
+    discrete_equipartition_parts, mem_image, mem_image] at hUW, --problem with `non_uniform_parts`
+  apply hUW.2,
+  rintro U' (hU' : U' ⊆ U) W' (hW' : W' ⊆ W) (hU : ε * U.card ≤ _) (hW : ε * W.card ≤ _),
+  obtain ⟨⟨x, _, rfl⟩, ⟨y, _, rfl⟩, t⟩ := hUW.1,
+  rw [card_singleton, nat.cast_one, mul_one] at hU hW,
+  obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
+  { rw [finset.card_empty, nat.cast_zero] at hU,
+    exfalso,
+    exact hε.not_le hU },
+  obtain rfl | rfl := finset.subset_singleton_iff.1 hW',
+  { rw [finset.card_empty, nat.cast_zero] at hW,
+    exfalso,
+    exact hε.not_le hW },
+  rw [sub_self, abs_zero],
+  exact hε,
 end
 
-def discrete_partition_is_uniform [fintype V] (ε : ℝ) :
+def is_uniform {ε : ℝ} (hε : 0 < ε) :
   (discrete_equipartition V).is_uniform G ε :=
 begin
-  sorry
-  -- change _ ≤ _,
-  -- rw [discrete_equipartition_size],
-  -- simp,
+  rw [is_uniform, discrete_equipartition.size, discrete_equipartition.non_uniform_parts _ hε,
+    finset.card_empty, nat.cast_zero],--problem with `is_uniform`
+  exact mul_nonneg hε.le (nat.cast_nonneg _),
 end
+
+end discrete_equipartition
+
+/-- Arbitrary equipartition into `n` parts -/
+@[simps]
+def dummy_equipartition (V : Type*) [decidable_eq V] [fintype V] (n : ℕ) : equipartition V :=
+{ parts := finset.univ.image singleton,
+  disjoint :=
+  begin
+    simp only [mem_image, mem_univ, exists_true_left, exists_imp_distrib],
+    rintro a₁ a₂ i ⟨⟩ rfl j ⟨⟩ rfl k,
+    simp only [mem_singleton],
+    rintro rfl rfl,
+    refl
+  end,
+  covering := λ v, ⟨{v}, by simp, by simp⟩,
+  sizes := λ a b,
+  begin
+    simp only [set.image_univ, set.mem_range, coe_univ, exists_imp_distrib, coe_image],
+    rintro _ rfl _ rfl,
+    simp only [implies_true_iff, zero_le', card_singleton],
+  end }
+
+protected lemma dummy_equipartition.size {V : Type u} [decidable_eq V] [fintype V] {n : ℕ} :
+  (dummy_equipartition V n).size = n :=
+begin
+  sorry,
+end
+
+/-! ### The actual proof -/
+
+def exp_bound : ℕ → ℕ := λ n, n * 4^n
+
+lemma le_exp_bound (n : ℕ) :
+  n ≤ exp_bound n :=
+nat.le_mul_of_pos_right (pow_pos (by norm_num) n)
+
+/-- An explicit bound in Szemeredi's regularity lemma. -/
+noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
+let t : ℕ := max l (⌈real.log (100 / ε^5) / real.log 4⌉ + 1).nat_abs,
+    N : ℕ := exp_bound^[⌈4 * ε^(-5 : ℝ)⌉.nat_abs] t
+ in N * 16^N
+
+open_locale classical
+variables {V : Type u} [fintype V] (G : simple_graph V)
+include G
+
+/--
+The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then we
+can make a (much bigger) equipartition with a higher index.
+(This is helpful since the index is bounded by a constant, so this process eventually terminates
+and gives a uniform equipartition).
+-/
+theorem increment (P : equipartition V) (ε : ℝ) (h₁ : P.size * 16^P.size ≤ card V)
+  (h₂ : 100 < ε^5 * 4^P.size) (hP : ¬P.is_uniform G ε) :
+  ∃ (Q : equipartition V), Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
+begin
+  sorry
+end
+
+open discrete_equipartition
+
+--have the problem that I must prove stuff (namely the equivalent of `hl`) while defining data
+/-/-- The equipartition refinement operation -/
+def szemeredi_equipartition {ε : ℝ} {l : ℕ} (hl : 100 < ε ^ 5 * 4^l) : ℕ → equipartition V
+| 0       := dummy_equipartition V l
+| (n + 1) := dite ((szemeredi_equipartition n).size * 16 ^ (szemeredi_equipartition n).size ≤ card V)
+  begin
+    intro h,
+    have := increment G (szemeredi_equipartition n) ε h,
+  end
+  (λ _, discrete_equipartition V) --this can probably be changed to something smarter-/
 
 /-- Effective Szemeredi's regularity lemma: For any sufficiently big graph, there is a uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
-theorem szemeredi_regularity (ε : ℝ) (hε₁ : 0 < ε) (hε₂ : ε < 1) (l : ℕ) (hG : l ≤ card V) :
+theorem szemeredi_regularity {ε : ℝ} (hε₁ : 0 < ε) (hε₂ : ε < 1) (l : ℕ) (hG : l ≤ card V) :
   ∃ (P : equipartition V), l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
   cases le_total (card V) (szemeredi_bound ε l),
-  {
-
-  }
+  { use discrete_equipartition V,
+    sorry
+    --rw discrete_equipartition.size, --beurk, again the same problem
+    --exact ⟨hG, h, discrete_partition.is_uniform G hε₁⟩
+    },
+  --use szemeredi_equipartition ???,
+  sorry
 end
 
 end

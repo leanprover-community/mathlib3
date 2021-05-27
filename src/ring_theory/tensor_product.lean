@@ -43,29 +43,6 @@ variables {R A M N P : Type*}
 open linear_map
 open algebra (lsmul)
 
-section defn
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [module R N]
-
-variables (R A M N)
-
-@[priority 500]
-instance algebra_tensor_module : module A (M ⊗[R] N) :=
-{ smul := λ a, (lsmul R M a).rtensor N,
-  one_smul := λ x, by simp only [alg_hom.map_one, one_eq_id, id.def, id_coe, rtensor_id],
-  mul_smul := λ a b x, by simp only [alg_hom.map_mul, rtensor_mul, mul_apply],
-  smul_add := λ a x y, by simp only [map_add],
-  smul_zero := λ a, by simp only [map_zero],
-  add_smul := λ a b x, by simp only [alg_hom.map_add, add_apply, rtensor_add],
-  zero_smul := λ x, by simp only [rtensor_zero, alg_hom.map_zero, zero_apply] }
-
-/- Check that we didn't introduce a diamond. -/
-example : tensor_product.algebra_tensor_module R R M N =
-          @tensor_product.module R _ M N _ _ _ _ := rfl
-
-end defn
-
 namespace algebra_tensor_module
 
 section semiring
@@ -77,8 +54,6 @@ variables [add_comm_monoid P] [module A P]
 variables {R A M}
 
 lemma smul_def (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
-
-@[simp] lemma smul_tmul (c : A) (x : M) (y : N) : c • (x ⊗ₜ[R] y) = (c • x) ⊗ₜ[R] y := rfl
 
 @[ext] theorem ext {g h : (M ⊗[R] N) →ₗ[A] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
@@ -113,7 +88,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
 { map_smul' := λ c, show ∀ x : M ⊗[R] N, (lift (f.restrict_scalars R)).comp (lsmul R _ c) x =
       (lsmul R _ c).comp (lift (f.restrict_scalars R)) x,
     from ext_iff.1 $ tensor_product.ext $ λ x y,
-    by simp only [comp_apply, algebra.lsmul_coe, smul_tmul, lift.tmul, coe_restrict_scalars_eq_coe,
+    by simp only [comp_apply, algebra.lsmul_coe, smul_tmul', lift.tmul, coe_restrict_scalars_eq_coe,
         f.map_smul, smul_apply],
   .. lift (f.restrict_scalars R) }
 
@@ -184,7 +159,7 @@ instance : is_scalar_tower R A (M ⊗[A] N) :=
   begin
     apply x.induction_on,
     { simp only [smul_zero], },
-    { intros m n, simp only [smul_assoc, smul_tmul], refl, },
+    { intros m n, simp only [smul_assoc, smul_tmul'], },
     { intros x₁ x₂ h₁ h₂, simp only [h₁, h₂, smul_add], },
   end }
 

@@ -221,8 +221,8 @@ variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
   [add_comm_monoid S]
 variables [module R M] [module R N] [module R P] [module R Q] [module R S]
-variables [distrib_mul_action R' M] [distrib_mul_action R' N]
-variables [module R'' M] [module R'' N]
+variables [distrib_mul_action R' M]
+variables [module R'' M]
 include R
 
 variables (M N)
@@ -325,7 +325,7 @@ Note that `module R' (M ⊗[R] N)` is available even without this typeclass on `
 needed if `tensor_product.smul_tmul`, `tensor_product.smul_tmul'`, or `tensor_product.tmul_smul` is
 used.
 -/
-class compatible_smul :=
+class compatible_smul [distrib_mul_action R' N] :=
 (smul_tmul : ∀ (r : R') (m : M) (n : N), (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n))
 
 end
@@ -334,7 +334,7 @@ end
 `mul_action.is_scalar_tower.left`. -/
 @[priority 100]
 instance compatible_smul.is_scalar_tower
-  [has_scalar R' R] [is_scalar_tower R' R M] [is_scalar_tower R' R N] :
+  [has_scalar R' R] [is_scalar_tower R' R M] [distrib_mul_action R' N] [is_scalar_tower R' R N] :
   compatible_smul R R' M N :=
 ⟨λ r m n, begin
   conv_lhs {rw ← one_smul R m},
@@ -344,7 +344,7 @@ instance compatible_smul.is_scalar_tower
 end⟩
 
 /-- `smul` can be moved from one side of the product to the other .-/
-lemma smul_tmul [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
+lemma smul_tmul [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
   (r • m) ⊗ₜ n = m ⊗ₜ[R] (r • n) :=
 compatible_smul.smul_tmul _ _ _
 
@@ -356,14 +356,23 @@ theorem smul.aux_of {R' : Type*} [has_scalar R' M] (r : R') (m : M) (n : N) :
   smul.aux r (free_add_monoid.of (m, n)) = (r • m) ⊗ₜ[R] n :=
 rfl
 
-variables [smul_comm_class R R' M] [smul_comm_class R R' N]
-variables [smul_comm_class R R'' M] [smul_comm_class R R'' N]
+variables [smul_comm_class R R' M]
+variables [smul_comm_class R R'' M]
 
--- Most of the time we want the instance below this one, which is easier for typeclass resolution
--- to find. The `unused_arguments` is from one of the two comm_classes - while we only make use
--- of one, it makes sense to make the API symmetric.
-@[nolint unused_arguments]
-instance has_scalar' : has_scalar R' (M ⊗[R] N) :=
+/-- Given two modules over a commutative semiring `R`, if one of the factors carries a
+(distributive) action of a second type of scalars `R'`, which commutes with the action of `R`, then
+the tensor product (over `R`) carries an action of `R'`.
+
+This instance defines this `R'` action in the case that it is the left module which has the `R'`
+action. Two natural ways in which this situation arises are:
+ * Extension of scalars
+ * A tensor product of a group representation with a module not carrying an action
+
+Note that in the special case that `R = R'`, since `R` is commutative, we just get the usual scalar
+action on a tensor product of two modules. This special case is important enough that, for
+perfomance reasons, we explicitly define it below, and reduce the priority of this instance. -/
+@[priority 500]
+instance left_has_scalar : has_scalar R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
 | _, _, (eqv.of_zero_left n)       := (add_con.ker_rel _).2 $
@@ -380,7 +389,7 @@ add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
     by simp_rw [add_monoid_hom.map_add, add_comm]
 end⟩
 
-instance : has_scalar R (M ⊗[R] N) := tensor_product.has_scalar'
+instance : has_scalar R (M ⊗[R] N) := tensor_product.left_has_scalar
 
 protected theorem smul_zero (r : R') : (r • 0 : M ⊗[R] N) = 0 :=
 add_monoid_hom.map_zero _
@@ -416,9 +425,8 @@ instance : add_comm_monoid (M ⊗[R] N) :=
   nsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
   .. tensor_product.add_comm_semigroup _ _, .. tensor_product.add_zero_class _ _}
 
--- Most of the time we want the instance below this one, which is easier for typeclass resolution
--- to find.
-instance distrib_mul_action' : distrib_mul_action R' (M ⊗[R] N) :=
+@[priority 500] -- See doc string for `left_has_scalar`.
+instance left_distrib_mul_action : distrib_mul_action R' (M ⊗[R] N) :=
 have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
@@ -429,28 +437,24 @@ have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
   one_smul := tensor_product.one_smul,
   smul_zero := tensor_product.smul_zero }
 
-instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.distrib_mul_action'
+instance : distrib_mul_action R (M ⊗[R] N) := tensor_product.left_distrib_mul_action
 
--- note that we don't actually need `compatible_smul` here, but we include it for symmetry
--- with `tmul_smul` to avoid exposing our asymmetric definition.
-@[nolint unused_arguments]
-theorem smul_tmul' [compatible_smul R R' M N] (r : R') (m : M) (n : N) :
+theorem smul_tmul' (r : R') (m : M) (n : N) :
   r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
 rfl
 
-@[simp] lemma tmul_smul [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
+@[simp] lemma tmul_smul [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
--- Most of the time we want the instance below this one, which is easier for typeclass resolution
--- to find.
-instance module' : module R'' (M ⊗[R] N) :=
+@[priority 500] -- See doc string for `left_has_scalar`.
+instance left_module : module R'' (M ⊗[R] N) :=
 { smul := (•),
   add_smul := tensor_product.add_smul,
   zero_smul := tensor_product.zero_smul,
-  ..tensor_product.distrib_mul_action' }
+  ..tensor_product.left_distrib_mul_action }
 
-instance : module R (M ⊗[R] N) := tensor_product.module'
+instance : module R (M ⊗[R] N) := tensor_product.left_module
 
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
@@ -1005,7 +1009,7 @@ lemma sub_tmul (m₁ m₂ : M) (n : N) : (m₁ - m₂) ⊗ₜ n = (m₁ ⊗ₜ[R
 /--
 While the tensor product will automatically inherit a ℤ-module structure from
 `add_comm_group.int_module`, that structure won't be compatible with lemmas like `tmul_smul` unless
-we use a `ℤ-module` instance provided by `tensor_product.module'`.
+we use a `ℤ-module` instance provided by `tensor_product.left_module`.
 
 When `R` is a `ring` we get the required `tensor_product.compatible_smul` instance through
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.

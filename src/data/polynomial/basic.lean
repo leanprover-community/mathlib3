@@ -264,11 +264,12 @@ by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
 @[simp] lemma monomial_mul_C : monomial n a * C b = monomial n (a * b) :=
 by simp only [←monomial_zero_left, monomial_mul_monomial, add_zero]
 
-/-- `X` is the polynomial variable (aka indeterminant). -/
+/-- `X` is the polynomial variable (aka indeterminate). -/
 def X : polynomial R := monomial 1 1
 
 lemma monomial_one_one_eq_X : monomial 1 (1 : R) = X := rfl
-lemma monomial_one_right_eq_X_pow (n : ℕ) : monomial n 1 = X^n :=
+
+lemma monomial_one_right_eq_X_pow (n : ℕ) : monomial n (1 : R) = X^n :=
 begin
   induction n with n ih,
   { simp [monomial_zero_one], },

@@ -77,4 +77,8 @@ instance of_self : module.free R R := of_basis $ basis.singleton unit R
 lemma of_zero [subsingleton N] : module.free R N :=
 of_basis $ basis.empty _ not_nonempty_pempty
 
+instance of_vector_space (K : Type u) (V : Type v) [division_ring K] [add_comm_group V]
+  [module K V] : module.free K V :=
+of_basis (basis.of_vector_space K V)
+
 end module.free

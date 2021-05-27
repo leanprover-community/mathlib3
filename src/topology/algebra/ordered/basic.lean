@@ -1497,7 +1497,6 @@ begin
       (mem_infi_sets (a - ε) $ mem_infi_sets (sub_lt_self a ε0) _)
       (mem_infi_sets (ε + a) $ mem_infi_sets (by simpa) _),
     refine mem_principal_sets.mp (λ h j, sub_lt_iff_lt_add'.mp (mem_Ioi.mp j)),
---    refine mem_principal_sets.mp (λ h j, sub_lt.mp (mem_Ioi.mp j)),
     exact mem_principal_sets.mp (λ x, sub_lt_iff_lt_add.mpr) },
   { intros b hb,
     refine mem_infi_sets (a - b) (mem_infi_sets (sub_pos.2 hb) (λ x h,

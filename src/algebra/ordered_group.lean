@@ -481,24 +481,18 @@ attribute [to_additive neg_pos] one_lt_inv'
 alias mul_lt_mul_left' ← ordered_comm_group.mul_lt_mul_left'
 attribute [to_additive ordered_add_comm_group.add_lt_add_left] ordered_comm_group.mul_lt_mul_left'
 
-section ordered_comm_group
-variables [ordered_comm_group α] {a b c : α}
+alias le_of_mul_le_mul_left' ← ordered_comm_group.le_of_mul_le_mul_left
+attribute [to_additive ordered_add_comm_group.le_of_add_le_add_left]
+  ordered_comm_group.le_of_mul_le_mul_left
 
-/-  Simple application: save the name? -/
-@[to_additive ordered_add_comm_group.le_of_add_le_add_left]
-lemma ordered_comm_group.le_of_mul_le_mul_left (h : a * b ≤ a * c) : b ≤ c :=
-(mul_le_mul_iff_left a).mp h
-
-/-  Simple application: save the name? -/
-@[to_additive]
-lemma ordered_comm_group.lt_of_mul_lt_mul_left (h : a * b < a * c) : b < c :=
-(mul_lt_mul_iff_left a).mp h
-
+alias lt_of_mul_lt_mul_left' ← ordered_comm_group.lt_of_mul_lt_mul_left
+attribute [to_additive ordered_add_comm_group.lt_of_add_lt_add_left]
+  ordered_comm_group.lt_of_mul_lt_mul_left
 
 /-- Pullback an `ordered_comm_group` under an injective map. -/
 @[to_additive function.injective.ordered_add_comm_group
 "Pullback an `ordered_add_comm_group` under an injective map."]
-def function.injective.ordered_comm_group {β : Type*}
+def function.injective.ordered_comm_group [ordered_comm_group α] {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
@@ -508,8 +502,6 @@ def function.injective.ordered_comm_group {β : Type*}
 { ..partial_order.lift f hf,
   ..hf.ordered_comm_monoid f one mul,
   ..hf.comm_group f one mul inv div }
-
-end ordered_comm_group
 
 --  TODO: convert these lemmas to `mul + [to_additive]`?
 section ordered_add_comm_group

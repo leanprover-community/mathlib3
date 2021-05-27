@@ -370,7 +370,7 @@ action. Two natural ways in which this situation arises are:
 
 Note that in the special case that `R = R'`, since `R` is commutative, we just get the usual scalar
 action on a tensor product of two modules. This special case is important enough that, for
-performance reasons, we explicitly define it below. -/
+performance reasons, we define it explicitly below. -/
 instance left_has_scalar : has_scalar R' (M ⊗[R] N) :=
 ⟨λ r, (add_con_gen (tensor_product.eqv R M N)).lift (smul.aux r : _ →+ M ⊗[R] N) $
 add_con.add_con_gen_le $ λ x y hxy, match x, y, hxy with
@@ -441,7 +441,8 @@ theorem smul_tmul' (r : R') (m : M) (n : N) :
   r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n :=
 rfl
 
-@[simp] lemma tmul_smul [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
+@[simp] lemma tmul_smul
+  [distrib_mul_action R' N] [compatible_smul R R' M N] (r : R') (x : M) (y : N) :
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 

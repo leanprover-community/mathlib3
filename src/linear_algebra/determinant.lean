@@ -128,6 +128,7 @@ lemma det_aux_def (b : basis ι A M) (f : M →ₗ[A] M) :
   linear_map.det_aux (trunc.mk b) f = matrix.det (linear_map.to_matrix b b f) :=
 rfl
 
+-- Discourage the elaborator from unfolding `det_aux` and producing a huge term.
 attribute [irreducible] linear_map.det_aux
 
 lemma det_aux_def' {ι' : Type*} [fintype ι'] [decidable_eq ι']
@@ -167,6 +168,7 @@ by { ext, unfold linear_map.det,
 
 end
 
+-- Discourage the elaborator from unfolding `det` and producing a huge term.
 attribute [irreducible] linear_map.det
 
 -- Auxiliary lemma, the `simp` normal form goes in the other direction

@@ -58,7 +58,7 @@ variable {μ}
 integral arbitrarily close to that of `f`. -/
 lemma ennreal.exists_upper_semicontinuous_le
   (f : α → ℝ≥0) (hf : measurable f) (int_f : ∫⁻ x, f x ∂μ < ∞) {ε : ℝ≥0} (εpos : 0 < ε) :
-  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ lower_semicontinuous g ∧ (∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x ∂μ + ε) :=
+  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ upper_semicontinuous g ∧ (∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x ∂μ + ε) :=
 begin
   sorry
 end
@@ -66,8 +66,7 @@ end
 lemma real.exists_le_lower_semicontinuous [sigma_finite μ]
   (f : α → ℝ) (fmeas : measurable f) (hf : integrable f μ) (ε : ℝ) (εpos : 0 < ε) :
   ∃ g : α → ereal, (∀ x, (f x : ereal) < g x) ∧ lower_semicontinuous g ∧
-  (∀ᵐ x ∂ μ, g x < ⊤) ∧
-  (∫ x, ereal.to_real (g x) ∂μ ≤ ∫ x, f x ∂μ + ε) :=
+  (∀ᵐ x ∂ μ, g x < ⊤) ∧ (∫ x, ereal.to_real (g x) ∂μ ≤ ∫ x, f x ∂μ + ε) :=
 begin
   let δ : ℝ≥0 := ⟨ε, εpos.le⟩,
   have δpos : 0 < δ := sorry,
@@ -79,16 +78,30 @@ begin
   rcases ennreal.exists_upper_semicontinuous_le fm fmeas.neg.nnreal_of_real this δpos with
     ⟨gm, gm_le_fm, gmcont, gmint⟩,
   let g : α → ereal := λ x, (gp x : ereal) - (gm x),
-  have : ∀ x, (f x : ereal) ≤ g x,
+  refine ⟨g, _, _, _, _⟩,
+  show ∀ x, (f x : ereal) < g x,
   { assume x,
     rw ereal.coe_eq_coe_ennreal_sub_coe_ennreal (f x),
-    refine ereal.sub_le_sub _ _,
-    { simp, exact (fp_lt_gp x).le },
-    { simp, exact (gm_le_fm x) } },
-  have : lower_semicontinuous (λ x, (gp x : ereal)),
-  {
+    refine ereal.sub_lt_sub_of_lt_of_le _ _ _ _,
+    { simp only [ereal.coe_ennreal_lt_coe_ennreal_iff, coe_coe], exact (fp_lt_gp x) },
+    { simp only [ennreal.coe_le_coe, ereal.coe_ennreal_le_coe_ennreal_iff, coe_coe],
+      exact (gm_le_fm x) },
+    { simp only [ereal.coe_ennreal_ne_bot, ne.def, not_false_iff, coe_coe] },
+    { simp only [ereal.coe_nnreal_ne_top, ne.def, not_false_iff, coe_coe] } },
+  show lower_semicontinuous g,
+  { apply lower_semicontinuous.add',
+    { exact ereal.continuous_coe_ennreal.comp_lower_semicontinuous gpcont
+        (λ x y hxy, ereal.coe_ennreal_le_coe_ennreal_iff.2 hxy) },
+    { apply ereal.continuous_neg.comp_upper_semicontinuous_antimono _
+        (λ x y hxy, ereal.neg_le_neg_iff.2 hxy),
+      dsimp,
+      apply ereal.continuous_coe_ennreal.comp_upper_semicontinuous _
+        (λ x y hxy, ereal.coe_ennreal_le_coe_ennreal_iff.2 hxy),
+      exact ennreal.continuous_coe.comp_upper_semicontinuous gmcont
+        (λ x y hxy, ennreal.coe_le_coe.2 hxy) },
+    { assume x,
+      exact ereal.continuous_at_add (by simp) (by simp) } },
 
-  }
 
 end
 

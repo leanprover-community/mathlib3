@@ -6,6 +6,23 @@ Authors: Sébastien Gouëzel
 import topology.instances.ennreal
 import data.real.ereal
 
+/-!
+# Topological structure on `ereal`
+
+We endow `ereal` with the order topology, and prove basic properties of this topology.
+
+## Main results
+
+* `coe : ℝ → ennreal` is an open embedding
+* `coe : ℝ≥0∞ → ennreal` is an embedding
+* The addition on `ereal` is continuous except at `(⊥, ⊤)` and at `(⊤, ⊥)`.
+* Negation is a homeomorphism on `ereal`.
+
+## Implementation
+
+Most proofs are adapted from the corresponding proofs on `ℝ≥0∞`.
+-/
+
 noncomputable theory
 
 open classical set filter metric topological_space
@@ -39,6 +56,9 @@ instance : second_countable_topology ereal :=
     exact mem_Union.2 ⟨q, by simp⟩ },
 end⟩
 
+
+/-! ### Real coercion -/
+
 lemma embedding_coe : embedding (coe : ℝ → ereal) :=
 ⟨⟨begin
   refine le_antisymm _ _,
@@ -55,14 +75,14 @@ lemma embedding_coe : embedding (coe : ℝ → ereal) :=
     { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
       { simp only [not_lt_bot, set_of_false, is_open_empty] },
       { simp only [ereal.coe_lt_coe_iff], exact is_open_Iio },
-      { simp only [is_open_univ, coe_lt_top, set_of_true]} } },
+      { simp only [is_open_univ, coe_lt_top, set_of_true] } } },
   { rw [@order_topology.topology_eq_generate_intervals ℝ _],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,
     exact ⟨Iio a, is_open_Iio, by simp [Iio]⟩ }
   end⟩,
-  assume a b, by simp only [imp_self, ereal.coe_real_inj']⟩
+  assume a b, by simp only [imp_self, ereal.coe_eq_coe_iff]⟩
 
 lemma open_embedding_coe : open_embedding (coe : ℝ → ereal) :=
 ⟨embedding_coe,
@@ -75,7 +95,7 @@ begin
   { simp only [mem_range, right_mem_Ioo, exists_false, coe_ne_top] }
 end⟩
 
-@[norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ} {a : ℝ} :
+@[norm_cast] lemma tendsto_coe {α : Type*} {f : filter α} {m : α → ℝ} {a : ℝ} :
   tendsto (λ a, (m a : ereal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 
@@ -92,6 +112,63 @@ lemma nhds_coe {r : ℝ} : 𝓝 (r : ereal) = (𝓝 r).map coe :=
 lemma nhds_coe_coe {r p : ℝ} :
   𝓝 ((r : ereal), (p : ereal)) = (𝓝 (r, p)).map (λp:ℝ × ℝ, (p.1, p.2)) :=
 ((open_embedding_coe.prod open_embedding_coe).map_nhds_eq (r, p)).symm
+
+
+/-! ### ennreal coercion -/
+
+lemma embedding_coe_ennreal : embedding (coe : ℝ≥0∞ → ereal) :=
+⟨⟨begin
+  refine le_antisymm _ _,
+  { rw [@order_topology.topology_eq_generate_intervals ereal _,
+      ← coinduced_le_iff_le_induced],
+    refine le_generate_from (assume s ha, _),
+    rcases ha with ⟨a, rfl | rfl⟩,
+    show is_open {b : ℝ≥0∞ | a < ↑b},
+    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+      { simp only [is_open_univ, bot_lt_coe_ennreal, set_of_true] },
+      { rcases le_or_lt 0 x with h|h,
+        { have : (x : ereal) = ((id ⟨x, h⟩ : ℝ≥0) : ℝ≥0∞) := rfl,
+          rw this,
+          simp only [id.def, coe_ennreal_lt_coe_ennreal_iff],
+          exact is_open_Ioi, },
+        { have : ∀ (y : ℝ≥0∞), (x : ereal) < y := λ y,
+            (ereal.coe_lt_coe_iff.2 h).trans_le (coe_ennreal_nonneg _),
+          simp only [this, is_open_univ, set_of_true] } },
+      { simp only [set_of_false, is_open_empty, not_top_lt] } },
+    show is_open {b : ℝ≥0∞ | ↑b < a},
+    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+      { simp only [not_lt_bot, set_of_false, is_open_empty] },
+      { rcases le_or_lt 0 x with h|h,
+        { have : (x : ereal) = ((id ⟨x, h⟩ : ℝ≥0) : ℝ≥0∞) := rfl,
+          rw this,
+          simp only [id.def, coe_ennreal_lt_coe_ennreal_iff],
+          exact is_open_Iio, },
+        { convert is_open_empty,
+          apply eq_empty_iff_forall_not_mem.2 (λ y hy, lt_irrefl (x : ereal) _),
+          exact ((ereal.coe_lt_coe_iff.2 h).trans_le (coe_ennreal_nonneg y)).trans hy } },
+      { simp only [← coe_ennreal_top, coe_ennreal_lt_coe_ennreal_iff],
+        exact is_open_Iio } } },
+  { rw [@order_topology.topology_eq_generate_intervals ℝ≥0∞ _],
+    refine le_generate_from (assume s ha, _),
+    rcases ha with ⟨a, rfl | rfl⟩,
+    exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,
+    exact ⟨Iio a, is_open_Iio, by simp [Iio]⟩ }
+  end⟩,
+  assume a b, by simp only [imp_self, coe_ennreal_eq_coe_ennreal_iff]⟩
+
+@[norm_cast] lemma tendsto_coe_ennreal {α : Type*} {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
+  tendsto (λ a, (m a : ereal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
+embedding_coe_ennreal.tendsto_nhds_iff.symm
+
+lemma continuous_coe_ennreal : continuous (coe : ℝ≥0∞ → ereal) :=
+embedding_coe_ennreal.continuous
+
+lemma continuous_coe_ennreal_iff {f : α → ℝ≥0∞} :
+  continuous (λa, (f a : ereal)) ↔ continuous f :=
+embedding_coe_ennreal.continuous_iff.symm
+
+
+/-! ### Neighborhoods of infinity -/
 
 lemma nhds_top : 𝓝 (⊤ : ereal) = ⨅ a ≠ ⊤, 𝓟 (Ioi a) :=
 nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
@@ -116,7 +193,7 @@ begin
   exact λ x y, ⟨max x y, by simp [le_refl], by simp [le_refl]⟩,
 end
 
-lemma tendsto_nhds_top_iff_real {m : α → ereal} {f : filter α} :
+lemma tendsto_nhds_top_iff_real {α : Type*} {m : α → ereal} {f : filter α} :
   tendsto m f (𝓝 ⊤) ↔ ∀ x : ℝ, ∀ᶠ a in f, ↑x < m a :=
 by simp only [nhds_top', mem_Ioi, tendsto_infi, tendsto_principal]
 
@@ -143,9 +220,12 @@ begin
   exact λ x y, ⟨min x y, by simp [le_refl], by simp [le_refl]⟩,
 end
 
-lemma tendsto_nhds_bot_iff_real {m : α → ereal} {f : filter α} :
+lemma tendsto_nhds_bot_iff_real {α : Type*} {m : α → ereal} {f : filter α} :
   tendsto m f (𝓝 ⊥) ↔ ∀ x : ℝ, ∀ᶠ a in f, m a < x :=
 by simp only [nhds_bot', mem_Iio, tendsto_infi, tendsto_principal]
+
+
+/-! ### Continuity of addition -/
 
 lemma continuous_at_add_coe_coe (a b :ℝ) :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (a, b) :=
@@ -244,5 +324,14 @@ begin
   { exact continuous_at_add_top_coe _ },
   { exact continuous_at_add_top_top },
 end
+
+/-! ### Negation-/
+
+/-- Negation on `ereal` as a homeomorphism -/
+def neg_homeo : ereal ≃ₜ ereal :=
+neg_order_iso.to_homeomorph
+
+lemma continuous_neg : continuous (λ (x : ereal), -x) :=
+neg_homeo.continuous
 
 end ereal

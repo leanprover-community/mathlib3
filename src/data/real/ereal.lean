@@ -14,11 +14,20 @@ referred to as ⊤ and ⊥. It is implemented as `with_top (with_bot ℝ)`
 
 Addition and multiplication are problematic in the presence of ±∞, but
 negation has a natural definition and satisfies the usual properties.
-An addition is derived, but `ereal` is not even a monoid (there is no identity).
 
-`ereal` is a `complete_lattice`; this is now deduced by type class inference from
-the fact that `with_top (with_bot L)` is a complete lattice if `L` is
-a conditionally complete lattice.
+An ad hoc addition is defined, for which `ereal` is an `add_comm_monoid`, and even an ordered one
+(if `a ≤ a'` and `b ≤ b'` then `a + b ≤ a' + b'`).
+Note however that addition is badly behaved at `(⊥, ⊤)` and `(⊤, ⊥)` so this can not be upgraded
+to a group structure. Our choice is that `⊥ + ⊤ = ⊤ + ⊥ = ⊤`.
+
+An ad hoc subtraction is then defined by `x - y = x + (-y)`. It does not have nice properties,
+but it is sometimes convenient to have.
+
+`ereal` is a `complete_linear_order`; this is deduced by type class inference from
+the fact that `with_top (with_bot L)` is a complete linear order if `L` is
+a conditionally complete linear order.
+
+Coercions from `ℝ` and from `ℝ≥0∞` are registered, and their basic properties are proved.
 
 ## Tags
 
@@ -38,18 +47,23 @@ open_locale ennreal nnreal
 
 /-- ereal : The type `[-∞, ∞]` -/
 @[derive [order_bot, order_top,
-  has_Sup, has_Inf, complete_lattice, linear_ordered_add_comm_monoid_with_top]]
+  has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
 namespace ereal
+
+@[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
+@[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
+
 instance : has_coe ℝ ereal := ⟨some ∘ some⟩
 @[simp, norm_cast] protected lemma coe_le_coe_iff {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
 by { unfold_coes, norm_num }
 @[simp, norm_cast] protected lemma coe_lt_coe_iff {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
 by { unfold_coes, norm_num }
-@[simp, norm_cast] protected lemma coe_real_inj' {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
+@[simp, norm_cast] protected lemma coe_eq_coe_iff {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
 by { unfold_coes, simp [option.some_inj] }
 
+/-- The canonical map from nonnegative extended reals to extended reals -/
 def _root_.ennreal.to_ereal : ℝ≥0∞ → ereal
 | ⊤ := ⊤
 | (some x) := x.1
@@ -66,43 +80,91 @@ protected lemma cases : ∀ (a : ereal), a = ⊥ ∨ (∃ (x : ℝ), a = x) ∨ 
 | ⊥ := by simp
 | (a : ℝ) := by simp
 
+
 /-! ### Real coercion -/
 
+/-- The map from extended reals to reals sending infinities to zero. -/
 def to_real : ereal → ℝ
 | ⊥       := 0
 | ⊤       := 0
 | (x : ℝ) := x
 
 @[simp] lemma to_real_top : to_real ⊤ = 0 := rfl
+
 @[simp] lemma to_real_bot : to_real ⊥ = 0 := rfl
+
+@[simp] lemma to_real_zero : to_real 0 = 0 := rfl
+
 @[simp] lemma to_real_coe (x : ℝ) : to_real (x : ereal) = x := rfl
 
 @[simp] lemma bot_lt_coe (x : ℝ) : (⊥ : ereal) < x :=
 by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
-@[simp] lemma coe_ne_bot (x : ℝ) : (x : ereal) ≠ ⊥  := (bot_lt_coe x).ne.symm
-@[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
-lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
+
+@[simp] lemma coe_ne_bot (x : ℝ) : (x : ereal) ≠ ⊥  := (bot_lt_coe x).ne'
+
+@[simp] lemma bot_ne_coe (x : ℝ) : (⊥ : ereal) ≠ x := (bot_lt_coe x).ne
+
 @[simp] lemma coe_lt_top (x : ℝ) : (x : ereal) < ⊤ := with_top.coe_lt_top _
+
 @[simp] lemma coe_ne_top (x : ℝ) : (x : ereal) ≠ ⊤ := (coe_lt_top x).ne
+
+@[simp] lemma top_ne_coe (x : ℝ) : (⊤ : ereal) ≠ x := (coe_lt_top x).ne'
+
+@[simp] lemma bot_lt_zero : (⊥ : ereal) < 0 := bot_lt_coe 0
+
+@[simp] lemma bot_ne_zero : (⊥ : ereal) ≠ 0 := (coe_ne_bot 0).symm
+
+@[simp] lemma zero_ne_bot : (0 : ereal) ≠ ⊥ := coe_ne_bot 0
+
+@[simp] lemma zero_lt_top : (0 : ereal) < ⊤ := coe_lt_top 0
+
+@[simp] lemma zero_ne_top : (0 : ereal) ≠ ⊤ := coe_ne_top 0
+
+@[simp] lemma top_ne_zero : (⊤ : ereal) ≠ 0 := (coe_ne_top 0).symm
 
 @[simp, norm_cast] lemma coe_add (x y : ℝ) : ((x + y : ℝ) : ereal) = (x : ereal) + (y : ereal) :=
 rfl
 
 @[simp] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
 
+
 /-! ### ennreal coercion -/
 
+lemma coe_nnreal_eq_coe_real (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) = (x : ℝ) := rfl
+
 @[simp] lemma coe_ennreal_top : ((⊤ : ℝ≥0∞) : ereal) = ⊤ := rfl
-lemma coe_ennreal_nonneg : ∀ (x : ℝ≥0∞), (0 : ereal) ≤ x
-| ⊤ := le_top
-| (some x) :=
-    begin
-      change ((0 : ℝ) : ereal) ≤ x.1,
-      rw ereal.coe_le_coe_iff,
-      exact x.2
-    end
 
 @[simp] lemma coe_nnreal_ne_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) ≠ ⊤ := dec_trivial
+
+@[simp] lemma coe_nnreal_lt_top (x : ℝ≥0) : ((x : ℝ≥0∞) : ereal) < ⊤ := dec_trivial
+
+@[simp, norm_cast] lemma coe_ennreal_le_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
+  (x : ereal) ≤ (y : ereal) ↔ x ≤ y
+| x ⊤ := by simp
+| ⊤ (some y) := by simp
+| (some x) (some y) := by simp [coe_nnreal_eq_coe_real]
+
+@[simp, norm_cast] lemma coe_ennreal_lt_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
+  (x : ereal) < (y : ereal) ↔ x < y
+| ⊤ ⊤ := by simp
+| (some x) ⊤ := by simp
+| ⊤ (some y) := by simp
+| (some x) (some y) := by simp [coe_nnreal_eq_coe_real]
+
+@[simp, norm_cast] lemma coe_ennreal_eq_coe_ennreal_iff : ∀ {x y : ℝ≥0∞},
+  (x : ereal) = (y : ereal) ↔ x = y
+| ⊤ ⊤ := by simp
+| (some x) ⊤ := by simp
+| ⊤ (some y) := by simp [(coe_nnreal_lt_top y).ne']
+| (some x) (some y) := by simp [coe_nnreal_eq_coe_real]
+
+lemma coe_ennreal_nonneg (x : ℝ≥0∞) : (0 : ereal) ≤ x :=
+coe_ennreal_le_coe_ennreal_iff.2 (zero_le x)
+
+@[simp] lemma bot_lt_coe_ennreal (x : ℝ≥0∞) : (⊥ : ereal) < x :=
+(bot_lt_coe 0).trans_le (coe_ennreal_nonneg _)
+
+@[simp] lemma coe_ennreal_ne_bot (x : ℝ≥0∞) : (x : ereal) ≠ ⊥ := (bot_lt_coe_ennreal x).ne'
 
 @[simp, norm_cast] lemma coe_ennreal_add : ∀ (x y : ennreal), ((x + y : ℝ≥0∞) : ereal) = x + y
 | ⊤ y := rfl
@@ -111,15 +173,6 @@ lemma coe_ennreal_nonneg : ∀ (x : ℝ≥0∞), (0 : ereal) ≤ x
 
 @[simp] lemma coe_ennreal_zero : ((0 : ℝ≥0∞) : ereal) = 0 := rfl
 
-@[simp, norm_cast] lemma coe_ennreal_le_coe_ennreal_iff : ∀ {x y : ℝ≥0∞}, (x : ereal) ≤ y ↔ x ≤ y
-| x ⊤ := by simp
-| ⊤ (some y) := by simp
-| (some x) (some y) :=
-  begin
-     simp only [ennreal.coe_le_coe, ennreal.some_eq_coe],
-     change (x.1 : ereal) ≤ (y.1 : ereal) ↔ x ≤ y,
-     simp,
-  end
 
 /-! ### Order -/
 
@@ -136,6 +189,7 @@ lemma exists_rat_btwn_of_lt : Π {a b : ereal} (hab : a < b),
 lemma lt_iff_exists_rat_btwn {a b : ereal} :
   a < b ↔ ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b :=
 ⟨λ hab, exists_rat_btwn_of_lt hab, λ ⟨x, ax, xb⟩, ax.trans xb⟩
+
 
 /-! ### Addition -/
 
@@ -160,6 +214,16 @@ begin
   { exact (lt_irrefl _ (h.trans_le le_top)).elim },
 end
 
+lemma add_lt_add_of_lt_of_le {x y z t : ereal} (h : x < y) (h' : z ≤ t) (hz : z ≠ ⊥) (ht : t ≠ ⊤) :
+  x + z < y + t :=
+begin
+  rcases z.cases with rfl|⟨z, rfl⟩|rfl,
+  { simpa only using hz },
+  { calc x + z < y + z : add_lt_add_right_coe h _
+           ... ≤ y + t : add_le_add (le_refl _) h' },
+  { exact (ht (top_le_iff.1 h')).elim }
+end
+
 lemma add_lt_add_left_coe {x y : ereal} (h : x < y) (z : ℝ) : (z : ereal) + x < z + y :=
 by simpa [add_comm] using add_lt_add_right_coe h z
 
@@ -171,6 +235,7 @@ begin
     ... < y + t : add_lt_add_left_coe h2 _ },
   { simp [lt_top_iff_ne_top, with_top.add_eq_top, h1.ne, (h2.trans_le le_top).ne] }
 end
+
 
 /-! ### Negation -/
 
@@ -204,6 +269,15 @@ theorem neg_eq_iff_neg_eq {a b : ereal} : -a = b ↔ -b = a :=
 ⟨by {intro h, rw ←h, exact ereal.neg_neg a},
  by {intro h, rw ←h, exact ereal.neg_neg b}⟩
 
+@[simp] lemma neg_eg_top_iff {x : ereal} : - x = ⊤ ↔ x = ⊥ :=
+by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+
+@[simp] lemma neg_eg_bot_iff {x : ereal} : - x = ⊥ ↔ x = ⊤ :=
+by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+
+@[simp] lemma neg_eg_zero_iff {x : ereal} : - x = 0 ↔ x = 0 :=
+by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
+
 /-- if -a ≤ b then -b ≤ a on ereal -/
 protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | ⊥ ⊥ h := h
@@ -226,7 +300,22 @@ by conv_lhs { rw [ereal.neg_le, ereal.neg_neg] }
 
 @[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
 
+/-- Negation as an order reversing isomorphism on `ereal`. -/
+def neg_order_iso : ereal ≃o (order_dual ereal) :=
+{ to_fun := ereal.neg,
+  inv_fun := ereal.neg,
+  left_inv := ereal.neg_neg,
+  right_inv := ereal.neg_neg,
+  map_rel_iff' := λ x y, neg_le_neg_iff }
+
+
+/-! ### Subtraction -/
+
+/-- Subtraction on `ereal`, defined by `x - y = x + (-y)`. Since addition is badly behaved at some
+points, so is subtraction. There is no standard algebraic typeclass involving subtraction that is
+registered on `ereal` because of this bad behavior. -/
 protected noncomputable def sub (x y : ereal) : ereal := x + (-y)
+
 noncomputable instance : has_sub ereal := ⟨ereal.sub⟩
 
 @[simp] lemma sub_zero (x : ereal) : x - 0 = x := by { change x + (-0) = x, simp }
@@ -234,6 +323,10 @@ noncomputable instance : has_sub ereal := ⟨ereal.sub⟩
 
 lemma sub_le_sub {x y z t : ereal} (h : x ≤ y) (h' : t ≤ z) : x - z ≤ y - t :=
 add_le_add h (neg_le_neg_iff.2 h')
+
+lemma sub_lt_sub_of_lt_of_le {x y z t : ereal} (h : x < y) (h' : z ≤ t) (hz : z ≠ ⊥) (ht : t ≠ ⊤) :
+  x - t < y - z :=
+add_lt_add_of_lt_of_le h (neg_le_neg_iff.2 h') (by simp [ht]) (by simp [hz])
 
 lemma coe_eq_coe_ennreal_sub_coe_ennreal (x : ℝ) :
   (x : ereal) = nnreal.of_real x - nnreal.of_real (-x) :=

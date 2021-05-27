@@ -804,9 +804,8 @@ in which multiplication is cancellative and monotone. -/
 class linear_ordered_cancel_comm_monoid (α : Type u)
   extends ordered_cancel_comm_monoid α, linear_ordered_comm_monoid α
 
-section linear_ordered_cancel_comm_monoid
-
-variables [linear_ordered_cancel_comm_monoid α]
+section covariant_class_mul_le
+variables [cancel_comm_monoid α] [linear_order α] [covariant_class α α (*) (≤)]
 
 @[to_additive] lemma min_mul_mul_left (a b c : α) : min (a * b) (a * c) = a * min b c :=
 (monotone_id.const_mul' a).map_min.symm
@@ -834,6 +833,11 @@ min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 @[to_additive]
 lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
+
+end covariant_class_mul_le
+
+section linear_ordered_cancel_comm_monoid
+variables [linear_ordered_cancel_comm_monoid α]
 
 /-- Pullback a `linear_ordered_cancel_comm_monoid` under an injective map. -/
 @[to_additive function.injective.linear_ordered_cancel_add_comm_monoid

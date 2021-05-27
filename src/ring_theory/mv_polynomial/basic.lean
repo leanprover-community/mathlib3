@@ -120,15 +120,8 @@ end mv_polynomial
 
 /-- The monomials form a basis on `polynomial R`. -/
 noncomputable def polynomial.basis_monomials : basis ℕ R (polynomial R) :=
-((mv_polynomial.basis_monomials punit R).reindex
-  (finsupp.equiv_fun_on_fintype.trans (equiv.punit_arrow_equiv ℕ))).map
-  (mv_polynomial.punit_alg_equiv R).to_linear_equiv
+finsupp.basis_single_one.map (polynomial.to_finsupp_iso_alg R).to_linear_equiv.symm
 
 @[simp] lemma polynomial.coe_basis_monomials :
   (polynomial.basis_monomials R : ℕ → polynomial R) = λ s, polynomial.monomial s 1 :=
-begin
-  apply funext,
-  intro n,
-  simpa [polynomial.basis_monomials, finsupp.equiv_fun_on_fintype] using
-    (polynomial.monomial_one_right_eq_X_pow n).symm
-end
+funext $ λ n, polynomial.to_finsupp_iso_symm_single

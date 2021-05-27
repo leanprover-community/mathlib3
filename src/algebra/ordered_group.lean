@@ -793,21 +793,14 @@ instance linear_ordered_comm_group.to_no_bot_order [nontrivial α] : no_bot_orde
 end linear_ordered_comm_group
 
 section covariant_add_le
-variables [add_comm_group α] [linear_order α]
 
-section abc
-variables {a b c : α}
+section has_neg
+variables [has_neg α] [linear_order α] {a b: α}
 
 /-- `abs a` is the absolute value of `a`. -/
-def abs (a : α) : α := max a (-a)
+def abs {α : Type*} [has_neg α] [linear_order α] (a : α) : α := max a (-a)
 
 lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
-
-@[simp] lemma abs_neg (a : α) : abs (-a) = abs a :=
-begin unfold abs, rw [max_comm, neg_neg] end
-
-lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
-by rw [← neg_sub, abs_neg]
 
 lemma abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
 
@@ -819,24 +812,32 @@ lemma neg_le_abs_self (a : α) : -a ≤ abs a := le_max_right _ _
 
 lemma lt_abs : a < abs b ↔ a < b ∨ a < -b := lt_max_iff
 
-lemma eq_or_eq_neg_of_abs_eq (h : abs a = b) : a = b ∨ a = -b :=
-by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a
-
-lemma abs_eq_abs : abs a = abs b ↔ a = b ∨ a = -b :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { obtain rfl | rfl := eq_or_eq_neg_of_abs_eq h;
-    simpa only [neg_eq_iff_neg_eq, neg_inj, or.comm, @eq_comm _ (-b)] using abs_choice b },
-  { cases h; simp only [h, abs_neg] },
-end
-
 theorem abs_le_abs (h₀ : a ≤ b) (h₁ : -a ≤ b) : abs a ≤ abs b :=
 (abs_le'.2 ⟨h₀, h₁⟩).trans (le_abs_self b)
 
 lemma abs_by_cases (P : α → Prop) {a : α} (h1 : P a) (h2 : P (-a)) : P (abs a) :=
 sup_ind _ _ h1 h2
 
-end abc
+end has_neg
+
+variables [add_comm_group α] [linear_order α]
+
+@[simp] lemma abs_neg (a : α) : abs (-a) = abs a :=
+begin unfold abs, rw [max_comm, neg_neg] end
+
+lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
+by rw [← neg_sub, abs_neg]
+
+lemma eq_or_eq_neg_of_abs_eq {a b : α} (h : abs a = b) : a = b ∨ a = -b :=
+by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a
+
+lemma abs_eq_abs {a b : α} : abs a = abs b ↔ a = b ∨ a = -b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { obtain rfl | rfl := eq_or_eq_neg_of_abs_eq h;
+    simpa only [neg_eq_iff_neg_eq, neg_inj, or.comm, @eq_comm _ (-b)] using abs_choice b },
+  { cases h; simp only [h, abs_neg] },
+end
 
 variables [covariant_class α α (+) (≤)] {a b c : α}
 

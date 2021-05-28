@@ -82,11 +82,5 @@ def upper_bound (t : ℕ) : ℕ → ℕ
 lemma szemeredi_regularity {ε : ℝ} (ε_pos : 0 < ε) (ε_lt_one : ε < 1) (l : ℕ) :
   ∃ L : ℕ, L = L := --, ∀ V : Type* fintype V → L ≤ fintype.card V →
 begin
-  /-suffices : ,
-  {
-    sorry
-  },-/
-  let t : ℕ := sorry,
-
-
+  sorry
 end

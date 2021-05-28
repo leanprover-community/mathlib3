@@ -389,8 +389,12 @@ begin
   set g' : add_monoid_algebra R ℕ →+ M := g.comp (to_finsupp_iso R).symm with hg',
   have : ∀ n a, f' (single n a) = g' (single n a) := λ n, by simp [hf', hg', h n],
   have A : f' = g' := finsupp.add_hom_ext this,
-  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', add_monoid_hom.comp_assoc], ext x, simp },
-  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', add_monoid_hom.comp_assoc], ext x, simp },
+  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', add_monoid_hom.comp_assoc], ext x,
+  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
+    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
+  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', add_monoid_hom.comp_assoc], ext x,
+  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
+    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
   rw [B, C, A],
 end
 

@@ -763,6 +763,12 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
   ((equiv.sum_equiv_sigma_bool _ _).symm.trans
     (equiv.sum_congr equiv.ulift equiv.ulift))
 
+noncomputable def fintype.sum_left {α β} [fintype (α ⊕ β)] :=
+fintype.of_injective (sum.inl : α → α ⊕ β) (λ _ _, sum.inl.inj)
+
+noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] :=
+fintype.of_injective (sum.inr : β → α ⊕ β) (λ _ _, sum.inr.inj)
+
 namespace fintype
 variables [fintype α] [fintype β]
 

@@ -1308,6 +1308,18 @@ begin
   { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
 end
 
+@[to_additive]
+lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
+  (prod_map f g).ker = prod f.ker g.ker :=
+begin
+  ext x,
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw mem_ker at h,
+    simpa [mem_prod, mem_ker] using h },
+  { rw [mem_prod, mem_ker, mem_ker] at h,
+    simpa [mem_ker] using h }
+end
+
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
 def eq_locus (f g : G →* N) : subgroup G :=
@@ -1808,3 +1820,48 @@ set.subset.antisymm
 end subgroup
 
 end pointwise
+
+/-! ### Actions by `subgroup`s
+
+These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
+-/
+section actions
+
+namespace subgroup
+
+variables {α β : Type*}
+
+/-- The action by a subgroup is the action by the underlying group. -/
+@[to_additive /-"The additive action by an add_subgroup is the action by the underlying
+add_group. "-/]
+instance [mul_action G α] (S : subgroup G) : mul_action S α :=
+S.to_submonoid.mul_action
+
+@[to_additive]
+lemma smul_def [mul_action G α] {S : subgroup G} (g : S) (m : α) : g • m = (g : G) • m := rfl
+
+@[to_additive]
+instance smul_comm_class_left
+  [mul_action G β] [has_scalar α β] [smul_comm_class G α β] (S : subgroup G) :
+  smul_comm_class S α β :=
+S.to_submonoid.smul_comm_class_left
+
+@[to_additive]
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action G β] [smul_comm_class α G β] (S : subgroup G) :
+  smul_comm_class α S β :=
+S.to_submonoid.smul_comm_class_right
+
+/-- Note that this provides `is_scalar_tower S G G` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action G α] [mul_action G β] [is_scalar_tower G α β] (S : subgroup G) :
+  is_scalar_tower S α β :=
+S.to_submonoid.is_scalar_tower
+
+/-- The action by a subgroup is the action by the underlying group. -/
+instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=
+S.to_submonoid.distrib_mul_action
+
+end subgroup
+
+end actions

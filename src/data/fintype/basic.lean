@@ -763,9 +763,13 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
   ((equiv.sum_equiv_sigma_bool _ _).symm.trans
     (equiv.sum_congr equiv.ulift equiv.ulift))
 
+/-- Given that `α ⊕ β` is a fintype, `α` is also a fintype. This is non-computable as it uses
+that `sum.inl` is an injection, but there's no clear inverse if `α` is empty. -/
 noncomputable def fintype.sum_left {α β} [fintype (α ⊕ β)] :=
 fintype.of_injective (sum.inl : α → α ⊕ β) (λ _ _, sum.inl.inj)
 
+/-- Given that `α ⊕ β` is a fintype, `β` is also a fintype. This is non-computable as it uses
+that `sum.inr` is an injection, but there's no clear inverse if `β` is empty. -/
 noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] :=
 fintype.of_injective (sum.inr : β → α ⊕ β) (λ _ _, sum.inr.inj)
 

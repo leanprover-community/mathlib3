@@ -55,7 +55,7 @@ variables {R A M}
 
 lemma smul_def (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
 
-@[ext] theorem ext {g h : (M ⊗[R] N) →ₗ[A] P}
+theorem ext {g h : (M ⊗[R] N) →ₗ[A] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
 linear_map.ext $ λ z, tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
 λ x y ihx ihy, by rw [g.map_add, h.map_add, ihx, ihy]
@@ -139,7 +139,12 @@ linear_equiv.of_linear (uncurry' R A M N P) (lcurry' R A M N P)
   (linear_map.ext $ λ f, linear_map.ext $ λ x, linear_map.ext $ λ y, lift'_tmul f x y)
 
 variables {R A M N P}
-lemma curry'_inj : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
+
+/-- Just as `tensor_product.mk_compr₂_inj` is marked `ext` instead of `tensor_product.ext`, this is
+a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` above.
+
+See note [partially-applied ext lemmas]. -/
+@[ext] lemma curry'_inj : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
 (lift.equiv' R A M N P).to_equiv.symm.injective
 
 variables (R A M N P)

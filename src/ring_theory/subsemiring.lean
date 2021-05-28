@@ -746,7 +746,8 @@ S.to_submonoid.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
 instance
-  [has_scalar α β] [mul_action R' α] [mul_action R' β] [is_scalar_tower R' α β] (S : subsemiring R') :
+  [has_scalar α β] [mul_action R' α] [mul_action R' β] [is_scalar_tower R' α β]
+  (S : subsemiring R') :
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 

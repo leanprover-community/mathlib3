@@ -17,8 +17,6 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 local infix ` ≃ `:25 := equiv
 
--- initialize_simps_projections equiv
-
 /- Since `prod` and `pprod` are a special case for `@[simps]`, we define a new structure to test
   the basic functionality.-/
 structure my_prod (α β : Type*) := (fst : α) (snd : β)
@@ -41,7 +39,7 @@ run_cmd do
 example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
 example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]
 
-/- the declarations are simp-lemmas -/
+/- the declarations are `simp` lemmas -/
 @[simps] def foo : ℕ × ℤ := (1, 2)
 
 example : foo.1 = 1 := by simp
@@ -67,7 +65,7 @@ run_cmd do
   let nm := `foo.bar1,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params ff {} [] []
+  simps_add_projections e nm d.type lhs d.value [] d.univ_params ff {} [] []
 
 
 /- test that if a non-constructor is given as definition, then
@@ -239,24 +237,24 @@ run_cmd do
   guard $ 12 = e.fold 0 -- there are no other lemmas generated
     (λ d n, n + if d.to_name.components.init.ilast = `specify then 1 else 0),
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["fst_fst"])
-    "Invalid simp-lemma specify.specify1_fst_fst.
+    "Invalid simp lemma specify.specify1_fst_fst.
 Projection fst doesn't exist, because target is not a structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["foo_fst"])
-    "Invalid simp-lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
+    "Invalid simp lemma specify.specify1_foo_fst. Structure prod does not have projection foo.
 The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
 Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify1 {} ["snd_bar"])
-    "Invalid simp-lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
+    "Invalid simp lemma specify.specify1_snd_bar. Structure prod does not have projection bar.
 The known projections are:
   [fst, snd]
 You can also see this information by running
   `initialize_simps_projections? prod`.
 Note: these projection names might not correspond to the projection names of the structure.",
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
-    "Invalid simp-lemma specify.specify5_snd_snd.
+    "Invalid simp lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
   classical.choice specify.specify5._proof_1"
 
@@ -269,13 +267,6 @@ run_cmd do
   d2 ← e.get `test_extra_2,
   guard $ d1.type =ₐ d2.type,
   skip
-
-/- check short_name option -/
-@[simps {short_name := tt}] def short_name1 : my_prod ℕ ℕ × my_prod ℕ ℕ := ⟨⟨1, 2⟩, 3, 4⟩
-run_cmd do
-  e ← get_env,
-  e.get `short_name1_fst, e.get `short_name1_fst_2,
-  e.get `short_name1_snd, e.get `short_name1_snd_2
 
 /- check simp_rhs option -/
 @[simps {simp_rhs := tt}] def equiv.trans {α β γ} (f : α ≃ β) (g : β ≃ γ) : α ≃ γ :=
@@ -630,13 +621,13 @@ def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
 
 /-- See Note [custom simps projection] -/
 def equiv.simps.symm_apply (e : α ≃ β) : β → α := e.symm
--- set_option trace.simps.debug true
+
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 
 run_cmd do
   e ← get_env,
   data ← simps_get_raw_projections e `manual_projection_names.equiv,
-  guard $ data.2.map prod.fst = [`apply, `symm_apply]
+  guard $ data.2.map projection_data.name = [`apply, `symm_apply]
 
 @[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
@@ -651,9 +642,53 @@ by simp only [equiv.trans_symm_apply]
 @[simps apply symm_apply] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
 
--- initialize_simps_projections equiv
 
 end manual_projection_names
+
+namespace prefix_projection_names
+
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+
+local infix ` ≃ `:25 := prefix_projection_names.equiv
+
+variables {α β γ : Sort*}
+
+instance : has_coe_to_fun $ α ≃ β := ⟨_, equiv.to_fun⟩
+
+def equiv.symm (e : α ≃ β) : β ≃ α := ⟨e.inv_fun, e.to_fun⟩
+
+/-- See Note [custom simps projection] -/
+def equiv.simps.symm_apply (e : α ≃ β) : β → α := e.symm
+initialize_simps_projections equiv (to_fun → coe as_prefix, inv_fun → symm_apply)
+
+run_cmd do
+  e ← get_env,
+  data ← simps_get_raw_projections e `prefix_projection_names.equiv,
+  guard $ data.2.map projection_data.name = [`coe, `symm_apply],
+  guard $ data.2.map projection_data.is_prefix = [tt, ff]
+
+@[simps {simp_rhs := tt}] protected def equiv.trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+example (e₁ : α ≃ β) (e₂ : β ≃ γ) (x : α) : (e₁.trans e₂) x = e₂ (e₁ x) :=
+by simp only [equiv.coe_trans]
+
+-- the new projection names are parsed correctly
+@[simps coe symm_apply] protected def equiv.trans2 (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm⟩
+
+-- it interacts somewhat well with multiple projections (though the generated name is not great)
+@[simps snd_coe_fst] def foo {α β γ δ : Type*} (x : α) (e₁ : α ≃ β) (e₂ : γ ≃ δ) :
+  α × (α × γ ≃ β × δ) :=
+⟨x, prod.map e₁ e₂, prod.map e₁.symm e₂.symm⟩
+
+example {α β γ δ : Type*} (x : α) (e₁ : α ≃ β) (e₂ : γ ≃ δ) (z : α × γ) :
+  ((foo x e₁ e₂).2 z).1 = e₁ z.1 :=
+by simp only [coe_foo_snd_fst]
+
+end prefix_projection_names
 
 
 -- test transparency setting

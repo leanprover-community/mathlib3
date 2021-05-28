@@ -588,7 +588,7 @@ begin
   assume u hu x hx,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hx with ⟨r', xr', hr'⟩,
   have : emetric.ball (0 : E) r' ∈ 𝓝 x :=
-    mem_nhds_sets emetric.is_open_ball xr',
+    is_open.mem_nhds emetric.is_open_ball xr',
   refine ⟨emetric.ball (0 : E) r', mem_nhds_within_of_mem_nhds this, _⟩,
   simpa [metric.emetric_ball_nnreal] using hf.tendsto_uniformly_on hr' u hu
 end

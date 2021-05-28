@@ -386,6 +386,19 @@ begin
   exact λ _ _, sq_nonneg _,
 end
 
+-- TODO: generalise
+lemma nat.choose_two_le_half_sq (n : ℕ) : (n.choose 2 : ℝ) ≤ n^2 / 2 :=
+begin
+  rw le_div_iff (show 0 < (2:ℝ), by norm_num),
+  norm_cast,
+  induction n with n ih,
+  { simp },
+  { rw [nat.choose_succ_succ, nat.choose_one_right, add_mul],
+    apply le_trans (add_le_add_left ih _) _,
+    rw [nat.succ_eq_one_add, add_sq, one_pow, add_assoc, mul_one, mul_comm 2 n],
+    apply nat.le_add_left, }
+end
+
 lemma index_le_half [fintype V] (P : equipartition V) :
   P.index G ≤ 1/2 :=
 begin

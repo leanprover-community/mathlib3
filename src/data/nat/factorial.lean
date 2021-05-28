@@ -4,15 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes, Floris van Doorn
 -/
 import data.nat.basic
+
 /-!
 # The factorial function
 
+## Main declarations
+* `factorial`: The factorial
+* `asc_fac`: The ascending factorial. Note that it runs from `n + 1` to `n + k` and *not* from `n`
+  to `n + k - 1`. We might want to change that in the future.
 -/
 
 namespace nat
 
 /-- `nat.factorial n` is the factorial of `n`. -/
-@[simp] def factorial : nat → nat
+@[simp] def factorial : ℕ → ℕ
 | 0        := 1
 | (succ n) := succ n * factorial n
 
@@ -41,9 +46,9 @@ theorem factorial_dvd_factorial {m n} (h : m ≤ n) : m! ∣ n! :=
 begin
   induction n with n IH; simp,
   { have := eq_zero_of_le_zero h, subst m, simp },
-  { cases eq_or_lt_of_le h with he hl,
-    { subst m, simp },
-    { apply dvd_mul_of_dvd_right (IH (le_of_lt_succ hl)) } }
+  obtain he | hl := h.eq_or_lt,
+  { subst m, simp },
+  exact dvd_mul_of_dvd_right (IH (le_of_lt_succ hl)) _,
 end
 
 theorem dvd_factorial : ∀ {m n}, 0 < m → m ≤ n → m ∣ n!
@@ -65,12 +70,13 @@ lemma factorial_lt (h0 : 0 < n) : n! < m! ↔ n < m :=
 begin
   split; intro h,
   { rw [← not_le], intro hmn, apply not_le_of_lt h (factorial_le hmn) },
-  { have : ∀(n : ℕ), 0 < n → n! < n.succ!,
-    { intros k hk, rw [factorial_succ, succ_mul, lt_add_iff_pos_left],
-      apply mul_pos hk (factorial_pos k) },
-    induction h with k hnk generalizing h0,
-    { exact this _ h0, },
-    { refine lt_trans (h_ih h0) (this _ _), exact lt_trans h0 (lt_of_succ_le hnk) }}
+  have : ∀(n : ℕ), 0 < n → n! < n.succ!,
+  { intros k hk, rw [factorial_succ, succ_mul, lt_add_iff_pos_left],
+    apply mul_pos hk (factorial_pos k) },
+  induction h with k hnk generalizing h0,
+  { exact this _ h0, },
+  refine lt_trans (h_ih h0) (this _ _),
+  exact lt_trans h0 (lt_of_succ_le hnk),
 end
 
 lemma one_lt_factorial : 1 < n! ↔ 1 < n :=
@@ -79,20 +85,21 @@ by { convert factorial_lt _, refl, exact one_pos }
 lemma factorial_eq_one : n! = 1 ↔ n ≤ 1 :=
 begin
   split; intro h,
-  { rw [← not_lt, ← one_lt_factorial, h], apply lt_irrefl },
-  { cases h with h h, refl, cases h, refl }
+  { rw [← not_lt, ← one_lt_factorial, h],
+    apply lt_irrefl },
+  cases h with h h, refl, cases h, refl,
 end
 
 lemma factorial_inj (h0 : 1 < n!) : n! = m! ↔ n = m :=
 begin
   split; intro h,
-  { rcases lt_trichotomy n m with hnm|hnm|hnm,
+  { obtain hnm | hnm | hnm := lt_trichotomy,
     { exfalso, rw [← factorial_lt, h] at hnm, exact lt_irrefl _ hnm,
       rw [one_lt_factorial] at h0, exact lt_trans one_pos h0 },
     { exact hnm },
-    { exfalso, rw [← factorial_lt, h] at hnm, exact lt_irrefl _ hnm,
-      rw [h, one_lt_factorial] at h0, exact lt_trans one_pos h0 }},
-  { rw h }
+    exfalso, rw [← factorial_lt, h] at hnm, exact lt_irrefl _ hnm,
+      rw [h, one_lt_factorial] at h0, exact lt_trans one_pos h0 },
+  rw h,
 end
 
 lemma self_le_factorial : ∀ n : ℕ, n ≤ n!
@@ -123,7 +130,7 @@ begin
   cases hn,
   { rw factorial_one,
     exact lt_factorial_self (succ_le_succ hi) },
-  { exact add_factorial_succ_lt_factorial_add_succ _ hi }
+  exact add_factorial_succ_lt_factorial_add_succ _ hi,
 end
 
 lemma add_factorial_succ_le_factorial_add_succ (i : ℕ) (n : ℕ) :
@@ -131,11 +138,11 @@ lemma add_factorial_succ_le_factorial_add_succ (i : ℕ) (n : ℕ) :
 begin
   by_cases i2 : 2 ≤ i,
   { exact (n.add_factorial_succ_lt_factorial_add_succ i2).le },
-  { cases (not_le.mp i2) with _ i0,
-    { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
-      rw [add_mul, one_mul, add_comm 1 n],
-      exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
-    { rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add] } }
+  cases (not_le.mp i2) with _ i0,
+  { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
+    rw [add_mul, one_mul, add_comm 1 n],
+    exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
+  rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add],
 end
 
 lemma add_factorial_le_factorial_add (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :
@@ -143,28 +150,84 @@ lemma add_factorial_le_factorial_add (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :
 begin
   cases n1 with h,
   { exact self_le_factorial _ },
-  { exact add_factorial_succ_le_factorial_add_succ i h }
+  exact add_factorial_succ_le_factorial_add_succ i h,
 end
 
 end factorial
 
+/-! ### Ascending and descending factorials -/
+
+section asc_fac
+
+/-- asc_fac n k = (n + k)! / n! (as seen in `nat.asc_fac_eq_div`), but implemented recursively to
+allow for quick computation when using `norm_num`. This is closely related to `pochhammer`, but much
+less general. -/
+def asc_fac (n : ℕ) : ℕ → ℕ
+| 0 := 1
+| (k + 1) := (n + k + 1) * asc_fac k
+
+@[simp] lemma asc_fac_zero (n : ℕ) : asc_fac n 0 = 1 := rfl
+
+@[simp] lemma zero_asc_fac (k : ℕ) : asc_fac 0 k = k! :=
+begin
+  induction k with t ht, refl,
+  unfold asc_fac, rw [ht, zero_add, nat.factorial_succ]
+end
+
+lemma asc_fac_succ {n k : ℕ} : asc_fac n k.succ = (n + k + 1) * asc_fac n k := rfl
+
+lemma succ_asc_fac (n : ℕ) : ∀ k, (n + 1) * asc_fac n.succ k = (n + k + 1) * asc_fac n k
+| 0 := by rw [add_zero, asc_fac_zero, asc_fac_zero]
+| (k + 1) := by rw [asc_fac, mul_left_comm, succ_asc_fac, asc_fac, succ_add, ← add_assoc]
+
+/-- `asc_fac n k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
+See `nat.asc_fac_eq_div` if you really need the version that uses ℕ-division. -/
+theorem factorial_mul_asc_fac (n : ℕ) : ∀ k, n! * asc_fac n k = (n + k)!
+| 0 := by rw [asc_fac, add_zero, mul_one]
+| (k + 1) := by rw [asc_fac_succ, mul_left_comm, factorial_mul_asc_fac, ← add_assoc, factorial]
+
+/-- Avoid in favour of `nat.factorial_mul_asc_fac` if you can. ℕ-division isn't worth it. -/
+lemma asc_fac_eq_div (n k : ℕ) : asc_fac n k = (n + k)! / n! :=
+begin
+  apply mul_left_cancel' (factorial_ne_zero n),
+  rw factorial_mul_asc_fac,
+  exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
+end
+
+lemma asc_fac_of_sub {n k : ℕ} (h : n < k) :
+  (k - n) * (k - n).asc_fac n = (k - (n + 1)).asc_fac (n + 1) :=
+begin
+  set t := k - n.succ with ht,
+  suffices h' : k - n = t.succ, by rw [←ht, h', succ_asc_fac, asc_fac_succ],
+  rw [ht, succ_eq_add_one, ←sub_sub_assoc h (succ_pos _), succ_sub_one],
+end
+
+end asc_fac
+
 section desc_fac
 
-/-- desc_fac n k = (n + k)! / n! (as seen in `nat.desc_fac_eq_div`), but implemented recursively.
-This is closely related to `pochhammer`, but much less general. -/
-def desc_fac (n : ℕ) : ℕ → ℕ
-| 0 := 1
-| (k + 1) := (n + k + 1) * desc_fac k
+/-- desc_fac n k = n! / (n - k)! (as seen in `nat.desc_fac_eq_div`), but implemented recursively to
+allow for quick computation when using `norm_num`. This is closely related to `pochhammer`, but much
+less general. -/
+def desc_fac : ℕ → ℕ → ℕ
+| n 0 := 1
+| 0 (k + 1) := 0
+| n.succ (k + 1) := (n + 1) * desc_fac n k
+
+#exit
 
 @[simp] lemma desc_fac_zero (n : ℕ) : desc_fac n 0 = 1 := rfl
 
-@[simp] lemma zero_desc_fac (k : ℕ) : desc_fac 0 k = k! :=
+@[simp] lemma zero_desc_fac {k : ℕ} (hk : 0 < k) : desc_fac 0 k = 0 :=
 begin
   induction k with t ht, refl,
   unfold desc_fac, rw [ht, zero_add, nat.factorial_succ]
 end
 
-lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n + k + 1) * desc_fac n k := rfl
+lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n - k) * desc_fac n k :=
+begin
+  induction
+end
 
 lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k
 | 0 := by rw [add_zero, desc_fac_zero, desc_fac_zero]

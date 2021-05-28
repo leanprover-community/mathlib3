@@ -90,12 +90,8 @@ a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` above.
 
 See note [partially-applied ext lemmas]. -/
 @[ext] lemma curry'_inj : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
-begin
-  intros g h H,
-  suffices : curry (g.restrict_scalars R) = curry (h.restrict_scalars R),
-  { exact linear_map.restrict_scalars_injective R (curry_inj this), },
-  simp only [← restrict_scalars_curry', H],
-end
+λ x y h, linear_map.restrict_scalars_injective R $ curry_inj $
+  (congr_arg (linear_map.restrict_scalars R) h : _)
 
 end semiring
 

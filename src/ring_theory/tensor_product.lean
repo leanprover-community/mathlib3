@@ -70,6 +70,33 @@ instance is_scalar_tower :
     simp only [algebra_tensor_module.smul_def, alg_hom.map_smul, smul_apply, rtensor_smul]
   end }
 
+variables {R A M N P}
+variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
+
+/-- Heterobasic version of `tensor_product.curry`:
+
+Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
+bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
+@[simps] def curry' (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
+{ map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
+  .. curry (f.restrict_scalars R) }
+
+lemma restrict_scalars_curry' (f : (M ⊗[R] N) →ₗ[A] P) :
+  restrict_scalars R (curry' f) = curry (f.restrict_scalars R) :=
+rfl
+
+/-- Just as `tensor_product.mk_compr₂_inj` is marked `ext` instead of `tensor_product.ext`, this is
+a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` above.
+
+See note [partially-applied ext lemmas]. -/
+@[ext] lemma curry'_inj : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
+begin
+  intros g h H,
+  suffices : curry (g.restrict_scalars R) = curry (h.restrict_scalars R),
+  { exact linear_map.restrict_scalars_injective R (curry_inj this), },
+  simp only [← restrict_scalars_curry', H],
+end
+
 end semiring
 
 section comm_semiring
@@ -96,17 +123,6 @@ the given bilinear map `M →[A] N →[R] P`. -/
   lift' f (x ⊗ₜ y) = f x y :=
 lift.tmul' x y
 
-/-- Heterobasic version of `tensor_product.curry`:
-
-Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
-bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
-@[simps] def curry' (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
-{ map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
-  .. curry (f.restrict_scalars R) }
-
-lemma restrict_scalars_curry' (f : (M ⊗[R] N) →ₗ[A] P) :
-  restrict_scalars R (curry' f) = curry (f.restrict_scalars R) :=
-rfl
 
 variables (R A M N P)
 /-- Heterobasic version of `tensor_product.uncurry`:
@@ -137,15 +153,6 @@ def lift.equiv' : (M →ₗ[A] (N →ₗ[R] P)) ≃ₗ[A] ((M ⊗[R] N) →ₗ[A
 linear_equiv.of_linear (uncurry' R A M N P) (lcurry' R A M N P)
   (linear_map.ext $ λ f, ext $ λ x y, lift'_tmul _ x y)
   (linear_map.ext $ λ f, linear_map.ext $ λ x, linear_map.ext $ λ y, lift'_tmul f x y)
-
-variables {R A M N P}
-
-/-- Just as `tensor_product.mk_compr₂_inj` is marked `ext` instead of `tensor_product.ext`, this is
-a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` above.
-
-See note [partially-applied ext lemmas]. -/
-@[ext] lemma curry'_inj : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
-(lift.equiv' R A M N P).to_equiv.symm.injective
 
 variables (R A M N P)
 /-- Heterobasic version of `tensor_product.mk`:

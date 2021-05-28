@@ -155,7 +155,7 @@ end comm_semiring
 section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
 variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
-variables [add_comm_monoid N] [module R N] [module A N] [is_scalar_tower R A N]
+variables [add_comm_monoid N] [module A N]
 variables [add_comm_monoid P] [module R P]
 
 instance : is_scalar_tower R A (M ⊗[A] N) :=
@@ -170,7 +170,7 @@ instance : is_scalar_tower R A (M ⊗[A] N) :=
 /-- Heterobasic version of `tensor_product.assoc`:
 
 Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/
-def assoc : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
+def assoc [module R N] [is_scalar_tower R A N] : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
 linear_equiv.of_linear
   (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (N ⊗[R] P))
   (uncurry A _ _ _ $ comp (uncurry' R A _ _ _) $ by apply curry; exact (mk' R A _ _))

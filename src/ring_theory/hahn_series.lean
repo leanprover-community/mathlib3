@@ -797,14 +797,19 @@ variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
         (function.embedding.prod_map ⟨f, hfi⟩ ⟨f, hfi⟩),
         (emb_domain ⟨⟨f, hfi⟩, hf⟩ x).coeff (ij.1) *
         (emb_domain ⟨⟨f, hfi⟩, hf⟩ y).coeff (ij.2),
-      { simp },
+      { dsimp only [rel_embedding.coe_fn_mk],
+        simp only [hahn_series.emb_domain_mk_coeff, _root_.prod_map, eq_self_iff_true,
+                   function.embedding.coe_fn_mk, hahn_series.mul_coeff, finset.sum_map,
+                   function.embedding.coe_prod_map, finset.sum_congr] },
       apply sum_subset,
       { rintro ⟨i, j⟩ hij,
         simp only [exists_prop, mem_map, prod.mk.inj_iff, function.embedding.coe_fn_mk,
           mem_add_antidiagonal, ne.def, function.embedding.coe_prod_map, mem_support,
           prod.exists] at hij,
         obtain ⟨i, j, ⟨rfl, hx, hy⟩, rfl, rfl⟩ := hij,
-        simp [hx, hy], },
+        simp only [hx, hy, mem_add_antidiagonal, rel_embedding.coe_fn_mk, add_monoid_hom.map_add,
+                   add_monoid_hom.to_fun_eq_coe, emb_domain_mk_coeff, eq_self_iff_true,
+                   function.embedding.coe_fn_mk, ne.def, not_false_iff, and_self, mem_support], },
       { rintro ⟨_, _⟩ h1 h2,
         contrapose! h2,
         obtain ⟨i, hi, rfl⟩ := support_emb_domain_subset (ne_zero_and_ne_zero_of_mul h2).1,
@@ -821,7 +826,7 @@ variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
       obtain ⟨i, hi, rfl⟩ := support_emb_domain_subset hi,
       obtain ⟨j, hj, rfl⟩ := support_emb_domain_subset hj,
       refine ⟨i + j, _⟩,
-      simp, }
+      simp only [rel_embedding.coe_fn_mk, add_monoid_hom.map_add, function.embedding.coe_fn_mk] }
   end,
   linear_map.map_zero _, linear_map.map_add _⟩
 

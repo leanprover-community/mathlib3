@@ -55,13 +55,6 @@ variables {R A M}
 
 lemma smul_def (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
 
-theorem ext {g h : (M ⊗[R] N) →ₗ[A] P}
-  (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
-linear_map.ext $ λ z, tensor_product.induction_on z (by simp_rw linear_map.map_zero) H $
-λ x y ihx ihy, by rw [g.map_add, h.map_add, ihx, ihy]
-
-variables (R A M N)
-
 instance is_scalar_tower :
   is_scalar_tower R A (M ⊗[R] N) :=
 { smul_assoc :=
@@ -92,6 +85,10 @@ See note [partially-applied ext lemmas]. -/
 @[ext] lemma curry'_inj : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
 λ x y h, linear_map.restrict_scalars_injective R $ curry_inj $
   (congr_arg (linear_map.restrict_scalars R) h : _)
+
+theorem ext {g h : (M ⊗[R] N) →ₗ[A] P}
+  (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
+curry'_inj $ linear_map.ext₂ H
 
 end semiring
 

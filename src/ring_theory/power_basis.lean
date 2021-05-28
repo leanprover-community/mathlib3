@@ -81,7 +81,7 @@ begin
   { ext n,
     simp_rw [set.mem_range, set.mem_image, finset.mem_coe, finset.mem_range],
     exact ⟨λ ⟨⟨i, hi⟩, hy⟩, ⟨i, hi, hy⟩, λ ⟨i, hi, hy⟩, ⟨⟨i, hi⟩, hy⟩⟩ },
-  simp only [this, finsupp.mem_span_iff_total, degree_lt_iff_coeff_zero, exists_iff_exists_finsupp,
+  simp only [this, finsupp.mem_span_image_iff_total, degree_lt_iff_coeff_zero, exists_iff_exists_finsupp,
     coeff, aeval, eval₂_ring_hom', eval₂_eq_sum, polynomial.sum, support, finsupp.mem_supported',
     finsupp.total, finsupp.sum, algebra.smul_def, eval₂_zero, exists_prop, linear_map.id_coe,
     eval₂_one, id.def, not_lt, finsupp.coe_lsum, linear_map.coe_smul_right, finset.mem_range,

@@ -41,6 +41,11 @@ lemma periodic.comp [has_add α]
   periodic (g ∘ f) c :=
 by simp * at *
 
+lemma periodic.comp_add_hom [has_add α] [has_add γ]
+  (h : periodic f c) (g : add_hom γ α) (g_inv : α → γ) (hg : right_inverse g_inv g) :
+  periodic (f ∘ g) (g_inv c) :=
+λ x, by simp only [hg c, h (g x), add_hom.map_add, comp_app]
+
 @[to_additive]
 lemma periodic.mul [has_add α] [has_mul β]
   (hf : periodic f c) (hg : periodic g c) :

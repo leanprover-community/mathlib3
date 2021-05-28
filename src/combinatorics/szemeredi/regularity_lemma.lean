@@ -289,6 +289,15 @@ def is_uniform (ε : ℝ) (U W : finset V) : Prop :=
 ∀ U', U' ⊆ U → ∀ W', W' ⊆ W → ε * U.card ≤ U'.card → ε * W.card ≤ W'.card →
 abs (density_pair G U' W' - density_pair G U W) < ε
 
+/-- If the pair `(U,W)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
+lemma is_uniform_mono {ε ε' : ℝ} {U W : finset V} (h : ε ≤ ε') (hε : is_uniform G ε U W) :
+  is_uniform G ε' U W :=
+begin
+  intros U' hU' W' hW' hU hW,
+  apply (hε _ hU' _ hW' (le_trans _ hU) (le_trans _ hW)).trans_le h;
+  apply mul_le_mul_of_nonneg_right h (nat.cast_nonneg _),
+end
+
 lemma is_uniform_symmetric (ε : ℝ) : symmetric (is_uniform G ε) :=
 begin
   intros U W h W' hW' U' hU' hW hU,

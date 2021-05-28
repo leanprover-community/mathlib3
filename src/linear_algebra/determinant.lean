@@ -113,6 +113,11 @@ by rw [← linear_map_to_matrix_mul_basis_to_matrix c b c,
 /-- The determinant of an endomorphism given a basis.
 
 See `linear_map.det` for a version that populates the basis non-computably.
+
+Although the `trunc (basis ι A M)` parameter makes it slightly more convenient to switch bases,
+there is no good way to generalize over universe parameters, so we can't fully state in `det_aux`'s
+type that it does not depend on the choice of basis. Instead you can use the `det_aux_def'` lemma,
+or avoid mentioning a basis at all using `linear_map.det`.
 -/
 def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift

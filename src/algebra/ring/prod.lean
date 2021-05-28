@@ -65,7 +65,7 @@ end prod
 
 namespace ring_hom
 
-variables (R S) [semiring R] [semiring S]
+variables (R S) [non_assoc_semiring R] [non_assoc_semiring S]
 
 /-- Given semirings `R`, `S`, the natural projection homomorphism from `R × S` to `R`.-/
 def fst : R × S →+* R := { to_fun := prod.fst, .. monoid_hom.fst R S, .. add_monoid_hom.fst R S }
@@ -80,7 +80,7 @@ variables {R S}
 
 section prod
 
-variables [semiring T] (f : R →+* S) (g : R →+* T)
+variables [non_assoc_semiring T] (f : R →+* S) (g : R →+* T)
 
 /-- Combine two ring homomorphisms `f : R →+* S`, `g : R →+* T` into `f.prod g : R →+* S × T`
 given by `(f.prod g) x = (f x, g x)` -/
@@ -104,7 +104,8 @@ end prod
 
 section prod_map
 
-variables [semiring R'] [semiring S'] [semiring T] (f : R →+* R') (g : S →+* S')
+variables [non_assoc_semiring R'] [non_assoc_semiring S'] [non_assoc_semiring T]
+variables (f : R →+* R') (g : S →+* S')
 
 /-- `prod.map` as a `ring_hom`. -/
 def prod_map : R × S →* R' × S' := (f.comp (fst R S)).prod (g.comp (snd R S))
@@ -123,7 +124,7 @@ end prod_map
 end ring_hom
 
 namespace ring_equiv
-variables {R S} [semiring R] [semiring S]
+variables {R S} [non_assoc_semiring R] [non_assoc_semiring S]
 
 /-- Swapping components as an equivalence of (semi)rings. -/
 def prod_comm : R × S ≃+* S × R :=

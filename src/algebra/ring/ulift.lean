@@ -51,7 +51,7 @@ tactic.pi_instance_derive_field
 /--
 The ring equivalence between `ulift α` and `α`.
 -/
-def ring_equiv [semiring α] : ulift α ≃+* α :=
+def ring_equiv [non_unital_non_assoc_semiring α] : ulift α ≃+* α :=
 { to_fun := ulift.down,
   inv_fun := ulift.up,
   map_mul' := λ x y, rfl,

@@ -221,11 +221,11 @@ by split_ifs; refl
 -- `mul_ite` and `ite_mul`.
 attribute [simp] mul_ite ite_mul
 
-@[simp] lemma mul_boole {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+@[simp] lemma mul_boole {α} [non_assoc_semiring α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
 by simp
 
-@[simp] lemma boole_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+@[simp] lemma boole_mul {α} [non_assoc_semiring α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
 by simp
 
@@ -267,23 +267,24 @@ end semiring
 namespace add_monoid_hom
 
 /-- Left multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
-def mul_left {R : Type*} [semiring R] (r : R) : R →+ R :=
+def mul_left {R : Type*} [non_unital_non_assoc_semiring R] (r : R) : R →+ R :=
 { to_fun := (*) r,
   map_zero' := mul_zero r,
   map_add' := mul_add r }
 
-@[simp] lemma coe_mul_left {R : Type*} [semiring R] (r : R) : ⇑(mul_left r) = (*) r := rfl
+@[simp] lemma coe_mul_left {R : Type*} [non_unital_non_assoc_semiring R] (r : R) :
+  ⇑(mul_left r) = (*) r := rfl
 
 /-- Right multiplication by an element of a (semi)ring is an `add_monoid_hom` -/
-def mul_right {R : Type*} [semiring R] (r : R) : R →+ R :=
+def mul_right {R : Type*} [non_unital_non_assoc_semiring R] (r : R) : R →+ R :=
 { to_fun := λ a, a * r,
   map_zero' := zero_mul r,
   map_add' := λ _ _, add_mul _ _ r }
 
-@[simp] lemma coe_mul_right {R : Type*} [semiring R] (r : R) :
+@[simp] lemma coe_mul_right {R : Type*} [non_unital_non_assoc_semiring R] (r : R) :
   ⇑(mul_right r) = (* r) := rfl
 
-lemma mul_right_apply {R : Type*} [semiring R] (a r : R) :
+lemma mul_right_apply {R : Type*} [non_unital_non_assoc_semiring R] (a r : R) :
   mul_right r a = a * r := rfl
 
 end add_monoid_hom
@@ -292,7 +293,7 @@ end add_monoid_hom
 
 This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
 sensible order, even though `monoid_with_zero_hom` already extends `monoid_hom`. -/
-structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
+structure ring_hom (α : Type*) (β : Type*) [non_assoc_semiring α] [non_assoc_semiring β]
   extends monoid_hom α β, add_monoid_hom α β, monoid_with_zero_hom α β
 
 infixr ` →+* `:25 := ring_hom
@@ -317,7 +318,7 @@ section coe
 Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
 See note [implicit instance arguments].
 -/
-variables {rα : semiring α} {rβ : semiring β}
+variables {rα : non_assoc_semiring α} {rβ : non_assoc_semiring β}
 
 include rα rβ
 
@@ -353,7 +354,7 @@ rfl
 
 end coe
 
-variables [rα : semiring α] [rβ : semiring β]
+variables [rα : non_assoc_semiring α] [rβ : non_assoc_semiring β]
 
 section
 include rα rβ
@@ -426,13 +427,14 @@ mt f.codomain_trivial_iff_map_one_eq_zero.mpr zero_ne_one
 lemma domain_nontrivial [nontrivial β] : nontrivial α :=
 ⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero⟩⟩
 
-lemma is_unit_map (f : α →+* β) {a : α} (h : is_unit a) : is_unit (f a) :=
-h.map (f.to_monoid_hom)
 
 end
 
+lemma is_unit_map [semiring α] [semiring β] (f : α →+* β) {a : α} (h : is_unit a) : is_unit (f a) :=
+h.map f.to_monoid_hom
+
 /-- The identity ring homomorphism from a semiring to itself. -/
-def id (α : Type*) [semiring α] : α →+* α :=
+def id (α : Type*) [non_assoc_semiring α] : α →+* α :=
 by refine {to_fun := id, ..}; intros; refl
 
 include rα
@@ -441,7 +443,7 @@ instance : inhabited (α →+* α) := ⟨id α⟩
 
 @[simp] lemma id_apply (x : α) : ring_hom.id α x = x := rfl
 
-variable {rγ : semiring γ}
+variable {rγ : non_assoc_semiring γ}
 include rβ rγ
 
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
@@ -453,7 +455,7 @@ def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
   map_mul' := λ x y, by simp}
 
 /-- Composition of semiring homomorphisms is associative. -/
-lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h : γ →+* δ) :
+lemma comp_assoc {δ} {rδ: non_assoc_semiring δ} (f : α →+* β) (g : β →+* γ) (h : γ →+* δ) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 
 @[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
@@ -693,12 +695,13 @@ namespace ring_hom
   f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [ring α] [semiring β] (f : α →+* β) :
+theorem injective_iff {α β} [ring α] [non_assoc_semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
-def mk' {γ} [semiring α] [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) :
+def mk' {γ} [non_assoc_semiring α] [ring γ] (f : α →* γ)
+  (map_add : ∀ a b : α, f (a + b) = f a + f b) :
   α →+* γ :=
 { to_fun := f,
   .. add_monoid_hom.mk' f map_add, .. f }

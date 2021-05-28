@@ -60,8 +60,8 @@ tactic.pi_instance_derive_field
 /-- A family of ring homomorphisms `f a : γ →+* β a` defines a ring homomorphism
 `pi.ring_hom f : γ →+* Π a, β a` given by `pi.ring_hom f x b = f b x`. -/
 protected def ring_hom
-  {α : Type u} {β : α → Type v} [R : Π a : α, semiring (β a)]
-  {γ : Type w} [semiring γ] (f : Π a : α, γ →+* β a) :
+  {α : Type u} {β : α → Type v} [R : Π a : α, non_assoc_semiring (β a)]
+  {γ : Type w} [non_assoc_semiring γ] (f : Π a : α, γ →+* β a) :
   γ →+* Π a, β a :=
 { to_fun := λ x b, f b x,
   map_add' := λ x y, funext $ λ z, (f z).map_add x y,
@@ -70,8 +70,8 @@ protected def ring_hom
   map_zero' := funext $ λ z, (f z).map_zero }
 
 @[simp] lemma ring_hom_apply
-  {α : Type u} {β : α → Type v} [R : Π a : α, semiring (β a)]
-  {γ : Type w} [semiring γ] (f : Π a : α, γ →+* β a) (g) (a) :
+  {α : Type u} {β : α → Type v} [R : Π a : α, non_assoc_semiring (β a)]
+  {γ : Type w} [non_assoc_semiring γ] (f : Π a : α, γ →+* β a) (g) (a) :
   pi.ring_hom f g a = f a g :=
 rfl
 
@@ -81,7 +81,7 @@ section ring_hom
 
 variable {I : Type*}     -- The indexing type
 variable (f : I → Type*) -- The family of types already equipped with instances
-variables [Π i, semiring (f i)]
+variables [Π i, non_assoc_semiring (f i)]
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
 homomorphism. -/

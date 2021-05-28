@@ -9,6 +9,7 @@ import analysis.normed_space.finite_dimension
 import topology.G_delta
 import measure_theory.arithmetic
 import topology.semicontinuous
+import topology.instances.ereal
 
 /-!
 # Borel (measurable) space
@@ -872,6 +873,9 @@ instance nnreal.borel_space : borel_space ℝ≥0 := subtype.borel_space _
 instance ennreal.measurable_space : measurable_space ℝ≥0∞ := borel ℝ≥0∞
 instance ennreal.borel_space : borel_space ℝ≥0∞ := ⟨rfl⟩
 
+instance ereal.measurable_space : measurable_space ereal := borel ereal
+instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
+
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
 
@@ -1036,6 +1040,17 @@ lemma measurable.ennreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, ennreal.of_real (f x)) :=
 ennreal.continuous_of_real.measurable.comp hf
 
+lemma measurable.ereal_of_real {f : α → ℝ} (hf : measurable f) :
+  measurable (λ x, ereal.of_real (f x)) :=
+ereal.continuous_coe.measurable.comp hf
+
+lemma ereal.measurable_coe : measurable (coe : ℝ → ereal) :=
+ereal.continuous_coe.measurable
+
+lemma measurable.ereal_coe {f : α → ℝ} (hf : measurable f) :
+  measurable (λ x, (f x : ereal)) :=
+ereal.measurable_coe.comp hf
+
 /-- The set of finite `ℝ≥0∞` numbers is `measurable_equiv` to `ℝ≥0`. -/
 def measurable_equiv.ennreal_equiv_nnreal : {r : ℝ≥0∞ | r ≠ ∞} ≃ᵐ ℝ≥0 :=
 ennreal.ne_top_homeomorph_nnreal.to_measurable_equiv
@@ -1136,6 +1151,67 @@ lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0�
   ae_measurable (λ x, ∑' i, f i x) μ :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
   exact λ s, finset.ae_measurable_sum s (λ i _, h i) }
+
+
+namespace ereal
+
+lemma measurable_of_measurable_real {f : ereal → α}
+  (h : measurable (λ p : ℝ, f p)) : measurable f :=
+measurable_of_measurable_on_compl_finite {⊥, ⊤}
+  (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
+
+/-- `ℝ≥0∞` is `measurable_equiv` to `ℝ≥0 ⊕ unit`. -/
+def ennreal_equiv_sum : ℝ≥0∞ ≃ᵐ ℝ≥0 ⊕ unit :=
+{ measurable_to_fun  := measurable_of_measurable_nnreal measurable_inl,
+  measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ℝ≥0∞ unit _ _ ∞),
+  .. equiv.option_equiv_sum_punit ℝ≥0 }
+
+open function (uncurry)
+
+lemma measurable_of_measurable_nnreal_prod [measurable_space β] [measurable_space γ]
+  {f : ℝ≥0∞ × β → γ} (H₁ : measurable (λ p : ℝ≥0 × β, f (p.1, p.2)))
+  (H₂ : measurable (λ x, f (∞, x))) :
+  measurable f :=
+let e : ℝ≥0∞ × β ≃ᵐ ℝ≥0 × β ⊕ unit × β :=
+  (ennreal_equiv_sum.prod_congr (measurable_equiv.refl β)).trans
+    (measurable_equiv.sum_prod_distrib _ _ _) in
+e.symm.measurable_coe_iff.1 $ measurable_sum H₁ (H₂.comp measurable_id.snd)
+
+lemma measurable_of_measurable_nnreal_nnreal [measurable_space β]
+  {f : ℝ≥0∞ × ℝ≥0∞ → β} (h₁ : measurable (λ p : ℝ≥0 × ℝ≥0, f (p.1, p.2)))
+  (h₂ : measurable (λ r : ℝ≥0, f (∞, r))) (h₃ : measurable (λ r : ℝ≥0, f (r, ∞))) :
+  measurable f :=
+measurable_of_measurable_nnreal_prod
+  (measurable_swap_iff.1 $ measurable_of_measurable_nnreal_prod (h₁.comp measurable_swap) h₃)
+  (measurable_of_measurable_nnreal h₂)
+
+lemma measurable_of_real : measurable ennreal.of_real :=
+ennreal.continuous_of_real.measurable
+
+lemma measurable_to_real : measurable ennreal.to_real :=
+ennreal.measurable_of_measurable_nnreal nnreal.measurable_coe
+
+lemma measurable_to_nnreal : measurable ennreal.to_nnreal :=
+ennreal.measurable_of_measurable_nnreal measurable_id
+
+instance : has_measurable_mul₂ ℝ≥0∞ :=
+begin
+  refine ⟨measurable_of_measurable_nnreal_nnreal _ _ _⟩,
+  { simp only [← ennreal.coe_mul, measurable_mul.ennreal_coe] },
+  { simp only [ennreal.top_mul, ennreal.coe_eq_zero],
+    exact measurable_const.piecewise (measurable_set_singleton _) measurable_const },
+  { simp only [ennreal.mul_top, ennreal.coe_eq_zero],
+    exact measurable_const.piecewise (measurable_set_singleton _) measurable_const }
+end
+
+instance : has_measurable_sub₂ ℝ≥0∞ :=
+⟨by apply measurable_of_measurable_nnreal_nnreal;
+  simp [← ennreal.coe_sub, continuous_sub.measurable.ennreal_coe]⟩
+
+instance : has_measurable_inv ℝ≥0∞ := ⟨ennreal.continuous_inv.measurable⟩
+
+end ennreal
+
 
 section normed_group
 

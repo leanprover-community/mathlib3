@@ -55,13 +55,15 @@ namespace ereal
 @[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
 @[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
 
-instance : has_coe ℝ ereal := ⟨some ∘ some⟩
+def of_real : ℝ → ereal := some ∘ some
+
+instance : has_coe ℝ ereal := ⟨ereal.of_real⟩
 @[simp, norm_cast] protected lemma coe_le_coe_iff {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
-by { unfold_coes, norm_num }
+by { unfold_coes, simp [ereal.of_real] }
 @[simp, norm_cast] protected lemma coe_lt_coe_iff {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
-by { unfold_coes, norm_num }
+by { unfold_coes, simp [ereal.of_real] }
 @[simp, norm_cast] protected lemma coe_eq_coe_iff {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
-by { unfold_coes, simp [option.some_inj] }
+by { unfold_coes, simp [ereal.of_real, option.some_inj] }
 
 /-- The canonical map from nonnegative extended reals to extended reals -/
 def _root_.ennreal.to_ereal : ℝ≥0∞ → ereal
@@ -197,6 +199,16 @@ lemma exists_rat_btwn_of_lt : Π {a b : ereal} (hab : a < b),
 lemma lt_iff_exists_rat_btwn {a b : ereal} :
   a < b ↔ ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b :=
 ⟨λ hab, exists_rat_btwn_of_lt hab, λ ⟨x, ax, xb⟩, ax.trans xb⟩
+
+/-- The set of numbers in `ℝ≥0∞` that are not equal to `∞` is equivalent to `ℝ≥0`. -/
+def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=
+{ to_fun := λ x, ereal.to_real x,
+  inv_fun := λ x, ⟨x, by simp⟩,
+  left_inv := λ ⟨x, hx⟩, subtype.eq $ begin
+    simp,
+  end,
+  right_inv := λ x, to_nnreal_coe }
+
 
 
 /-! ### Addition -/

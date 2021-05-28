@@ -118,10 +118,16 @@ end degree
 
 end mv_polynomial
 
-/-- The monomials form a basis on `polynomial R`. -/
-noncomputable def polynomial.basis_monomials : basis ℕ R (polynomial R) :=
-finsupp.basis_single_one.map (polynomial.to_finsupp_iso_alg R).to_linear_equiv.symm
 
-@[simp] lemma polynomial.coe_basis_monomials :
-  (polynomial.basis_monomials R : ℕ → polynomial R) = λ s, polynomial.monomial s 1 :=
-funext $ λ n, polynomial.to_finsupp_iso_symm_single
+/- this is here to avoid import cycle issues -/
+namespace polynomial
+
+/-- The monomials form a basis on `polynomial R`. -/
+noncomputable def basis_monomials : basis ℕ R (polynomial R) :=
+finsupp.basis_single_one.map (to_finsupp_iso_alg R).to_linear_equiv.symm
+
+@[simp] lemma coe_basis_monomials :
+  (basis_monomials R : ℕ → polynomial R) = λ s, monomial s 1 :=
+funext $ λ n, to_finsupp_iso_symm_single
+
+end polynomial

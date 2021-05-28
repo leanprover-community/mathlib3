@@ -150,6 +150,7 @@ variable (R)
 
 /-- Ring isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
+@[simps]
 def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
 { to_fun := λ p, p.to_finsupp,
   inv_fun := λ p, ⟨p⟩,
@@ -157,11 +158,6 @@ def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
   right_inv := λ p, rfl,
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
-
-lemma to_finsupp_iso_apply (P : polynomial R) : to_finsupp_iso R P = P.to_finsupp := rfl
-
-lemma to_finsupp_iso_symm_apply_to_finsupp (f : add_monoid_algebra R ℕ) :
-  (((to_finsupp_iso R).symm) f).to_finsupp = f := rfl
 
 variable {R}
 

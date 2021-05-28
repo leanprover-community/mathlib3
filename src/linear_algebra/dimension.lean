@@ -76,16 +76,27 @@ section strong_rank_condition
 variables (R : Type u) [ring R] [strong_rank_condition R]
 variables (M : Type*) [add_comm_group M] [module R M]
 
-attribute [class] set.finite
-attribute [instance] set.finite.fintype
-
-noncomputable instance set.finite.fintype' {α : Type*} {s : set α} [h : finite s] : fintype s :=
-classical.choice h
+/--
+Analogue of `finsupp.total` for finite types.
+(i.e. allows working with arbitrary functions rather than finitely support ones)
+-/
+-- TODO find a home, write API
+def fintype.total (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M]
+  (α : Type*) [fintype α] (f : α → M) : (α → R) →ₗ[R] M :=
+(finsupp.total α M R f).comp (finsupp.linear_equiv_fun_on_fintype R R α).symm.to_linear_map
 
 lemma linear_independent_le_span {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
-  (w : set M) [w.finite] (s : span R w = ⊤) :
+  (w : set M) [fintype w] (s : span R w = ⊤) :
   fintype.card ι ≤ fintype.card w :=
-sorry
+begin
+  fapply card_le_of_injective R,
+  apply fintype.total,
+  intro i,
+  have m : v i ∈ span R w, sorry,
+  rw finsupp.mem_span_iff_total at m,
+end
+
+
 
 end strong_rank_condition
 

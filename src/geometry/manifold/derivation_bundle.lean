@@ -122,9 +122,8 @@ variable {I}
 
 /-- The evaluation at a point as a linear map. -/
 def eval_at (x : M) : (derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯) →ₗ[𝕜] point_derivation I x :=
-@linear_map.derivation.comp 𝕜 _ C^∞⟮I, M; 𝕜⟯ _ _ C^∞⟮I, M; 𝕜⟯ _ _ _ 𝕜 _
-  (point_derivation.module I x) _ _ (point_derivation.is_scalar_tower I x)
-  (smooth_function.eval_at I x)
+@linear_map.comp_der 𝕜 _ C^∞⟮I, M; 𝕜⟯ _ _ C^∞⟮I, M; 𝕜⟯ _ _ _ _ 𝕜 _ (point_derivation.module I x) _
+  (point_derivation.is_scalar_tower I x) (smooth_function.eval_at I x)
 
 lemma eval_apply (x : M) : eval_at x X f = (X f) x := rfl
 

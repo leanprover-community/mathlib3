@@ -237,7 +237,7 @@ eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simp [w]
 -- it is possible to see its source and target
 -- (`h` will just display as `_`, because it is in `Prop`).
 def of_le {B : C} (X Y : subobject B) (h : X ≤ Y) : (X : C) ⟶ (Y : C) :=
-underlying.map $ hom_of_le h
+underlying.map $ h.hom
 
 @[simp, reassoc] lemma of_le_arrow {B : C} {X Y : subobject B} (h : X ≤ Y) :
   of_le X Y h ≫ Y.arrow = X.arrow :=

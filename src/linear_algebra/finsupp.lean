@@ -477,7 +477,24 @@ begin
   apply total_emb_domain R ⟨f, hf⟩ l
 end
 
-theorem span_eq_map_total (s : set α):
+theorem span_eq_map_total (s : set M) :
+  span R s = submodule.map (finsupp.total s M R coe) ⊤ :=
+begin
+  apply span_eq_of_le,
+  { intros x hx,
+    fsplit,
+    use finsupp.single ⟨x, hx⟩ (1 : R),
+    simp, },
+  { rw [←range_eq_map, range_total],
+    convert le_refl _,
+    simp, }
+end
+
+theorem mem_span_iff_total (s : set M) (x : M) :
+  x ∈ span R s ↔ ∃ l : s →₀ R, finsupp.total s M R coe l = x :=
+by { rw span_eq_map_total, simp, }
+
+theorem span_image_eq_map_total (s : set α):
   span R (v '' s) = submodule.map (finsupp.total α M R v) (supported R R s) :=
 begin
   apply span_eq_of_le,
@@ -496,9 +513,9 @@ begin
     refine sum_mem _ _, simp [this] }
 end
 
-theorem mem_span_iff_total {s : set α} {x : M} :
+theorem mem_span_image_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
-by rw span_eq_map_total; simp
+by { rw span_image_eq_map_total, simp, }
 
 variables (α) (M) (v)
 
@@ -509,7 +526,7 @@ The subset is indicated by a set `s : set α` of indices.
 -/
 protected def total_on (s : set α) : supported R R s →ₗ[R] span R (v '' s) :=
 linear_map.cod_restrict _ ((finsupp.total _ _ _ v).comp (submodule.subtype (supported R R s))) $
-  λ ⟨l, hl⟩, (mem_span_iff_total _).2 ⟨l, hl, rfl⟩
+  λ ⟨l, hl⟩, (mem_span_image_iff_total _).2 ⟨l, hl, rfl⟩
 
 variables {α} {M} {v}
 
@@ -517,7 +534,7 @@ theorem total_on_range (s : set α) : (finsupp.total_on α M R v s).range = ⊤ 
 begin
   rw [finsupp.total_on, linear_map.range_eq_map, linear_map.map_cod_restrict,
     ← linear_map.range_le_iff_comap, range_subtype, map_top, linear_map.range_comp, range_subtype],
-  exact (span_eq_map_total _ _).le
+  exact (span_image_eq_map_total _ _).le
 end
 
 theorem total_comp (f : α' → α) :
@@ -773,7 +790,7 @@ lemma submodule.exists_finset_of_mem_supr
 begin
   obtain ⟨f, hf, rfl⟩ : ∃ f ∈ finsupp.supported R R (⋃ i, ↑(p i)), finsupp.total M M R id f = m,
   { have aux : (id : M → M) '' (⋃ (i : ι), ↑(p i)) = (⋃ (i : ι), ↑(p i)) := set.image_id _,
-    rwa [supr_eq_span, ← aux, finsupp.mem_span_iff_total R] at hm },
+    rwa [supr_eq_span, ← aux, finsupp.mem_span_image_iff_total R] at hm },
   let t : finset M := f.support,
   have ht : ∀ x : {x // x ∈ t}, ∃ i, ↑x ∈ p i,
   { intros x,
@@ -796,7 +813,7 @@ end
 
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=
-⟨λ hx, let ⟨v, hvs, hvx⟩ := (finsupp.mem_span_iff_total _).1
+⟨λ hx, let ⟨v, hvs, hvx⟩ := (finsupp.mem_span_image_iff_total _).1
     (show x ∈ span R (id '' (↑s : set M)), by rwa set.image_id) in
   ⟨v, hvx ▸ (finsupp.total_apply_of_mem_supported _ hvs).symm⟩,
 λ ⟨f, hf⟩, hf ▸ sum_mem _ (λ i hi, smul_mem _ _ $ subset_span hi)⟩
@@ -809,7 +826,7 @@ lemma mem_span_set {m : M} {s : set M} :
 begin
   conv_lhs { rw ←set.image_id s },
   simp_rw ←exists_prop,
-  exact finsupp.mem_span_iff_total R,
+  exact finsupp.mem_span_image_iff_total R,
 end
 
 /-- If `subsingleton R`, then `M ≃ₗ[R] ι →₀ R` for any type `ι`. -/

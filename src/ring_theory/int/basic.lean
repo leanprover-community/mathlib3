@@ -280,9 +280,6 @@ begin
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 
-instance nat.unique_units : unique (units ℕ) :=
-{ default := 1, uniq := nat.units_eq_one }
-
 open unique_factorization_monoid
 
 theorem nat.factors_eq {n : ℕ} : factors n = n.factors :=

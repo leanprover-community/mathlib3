@@ -343,7 +343,7 @@ have de' : dense_embedding (dense_embedding.subtype_emb p e),
 have ue' : uniform_embedding (dense_embedding.subtype_emb p e),
   from uniform_embedding_subtype_emb _ he de,
 have b ∈ closure (e '' {x | p x}),
-  from (closure_mono $ monotone_image $ hp) (mem_of_nhds hb),
+  from (closure_mono $ monotone_image $ hp) (mem_of_mem_nhds hb),
 let ⟨c, (hc : tendsto (f ∘ subtype.val)
      (comap (dense_embedding.subtype_emb p e) (𝓝 ⟨b, this⟩)) (𝓝 c))⟩ :=
   uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in

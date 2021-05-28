@@ -167,6 +167,19 @@ lemma rel_append : (forall₂ r ⇒ forall₂ r ⇒ forall₂ r) append append
 | [] [] h l₁ l₂ hl := hl
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) l₁ l₂ hl := forall₂.cons h₁ (rel_append h₂ hl)
 
+lemma rel_reverse : (forall₂ r ⇒ forall₂ r) reverse reverse
+| [] [] forall₂.nil := forall₂.nil
+| (a::as) (b::bs) (forall₂.cons h₁ h₂) := begin
+  simp only [reverse_cons],
+  exact rel_append (rel_reverse h₂) (forall₂.cons h₁ forall₂.nil)
+end
+
+@[simp]
+lemma forall₂_reverse_iff {l₁ l₂} : forall₂ r (reverse l₁) (reverse l₂) ↔ forall₂ r l₁ l₂ :=
+iff.intro
+  (assume h, by { rw [← reverse_reverse l₁, ← reverse_reverse l₂], exact rel_reverse h })
+  (assume h, rel_reverse h)
+
 lemma rel_join : (forall₂ (forall₂ r) ⇒ forall₂ r) join join
 | [] [] forall₂.nil := forall₂.nil
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) := rel_append h₁ (rel_join h₂)

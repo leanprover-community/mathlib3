@@ -81,6 +81,17 @@ lemma interval_integrable_exp : interval_integrable exp μ a b :=
 continuous_exp.interval_integrable a b
 
 @[simp]
+lemma interval_integrable.log
+  (hf : continuous_on f (interval a b)) (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
+  interval_integrable (λ x, log (f x)) μ a b :=
+(continuous_on.log hf h).interval_integrable
+
+@[simp]
+lemma interval_integrable_log (h : (0:ℝ) ∉ interval a b) :
+  interval_integrable log μ a b :=
+interval_integrable.log continuous_on_id $ λ x hx, ne_of_mem_of_not_mem hx h
+
+@[simp]
 lemma interval_integrable_sin : interval_integrable sin μ a b :=
 continuous_sin.interval_integrable a b
 

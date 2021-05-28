@@ -749,11 +749,11 @@ le_antisymm le_top (le_infi $ assume i, false.elim i)
 @[simp] theorem supr_false {s : false → α} : supr s = ⊥ :=
 le_antisymm (supr_le $ assume i, false.elim i) bot_le
 
-@[simp] theorem infi_true {s : true → α} : infi s = s trivial :=
-le_antisymm (infi_le _ _) (le_infi $ assume ⟨⟩, le_refl _)
+theorem infi_true {s : true → α} : infi s = s trivial :=
+infi_pos trivial
 
-@[simp] theorem supr_true {s : true → α} : supr s = s trivial :=
-le_antisymm (supr_le $ assume ⟨⟩, le_refl _) (le_supr _ _)
+theorem supr_true {s : true → α} : supr s = s trivial :=
+supr_pos trivial
 
 @[simp] theorem infi_exists {p : ι → Prop} {f : Exists p → α} :
   (⨅ x, f x) = (⨅ i, ⨅ h:p i, f ⟨i, h⟩) :=

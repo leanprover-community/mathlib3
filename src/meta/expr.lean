@@ -62,7 +62,7 @@ meta def get_nth_prefix : name → ℕ → name
 | nm 0 := nm
 | nm (n + 1) := get_nth_prefix nm.get_prefix n
 
-/-- Auxilliary definition for `pop_nth_prefix` -/
+/-- Auxiliary definition for `pop_nth_prefix` -/
 private meta def pop_nth_prefix_aux : name → ℕ → name × ℕ
 | anonymous n := (anonymous, 1)
 | nm n := let (pfx, height) := pop_nth_prefix_aux nm.get_prefix n in
@@ -77,7 +77,7 @@ prod.fst $ pop_nth_prefix_aux nm n
 meta def pop_prefix (n : name) : name :=
 pop_nth_prefix n 1
 
-/-- Auxilliary definition for `from_components` -/
+/-- Auxiliary definition for `from_components` -/
 private def from_components_aux : name → list string → name
 | n [] := n
 | n (s :: rest) := from_components_aux (name.mk_string s n) rest
@@ -95,10 +95,21 @@ meta def sanitize_name : name → name
 | (name.mk_string s p) := name.mk_string s $ sanitize_name p
 | (name.mk_numeral s p) := name.mk_string sformat!"n{s}" $ sanitize_name p
 
-/-- Append a string to the last component of a name -/
+/-- Append a string to the last component of a name. -/
 def append_suffix : name → string → name
 | (mk_string s n) s' := mk_string (s ++ s') n
 | n _ := n
+
+/-- Update the last component of a name. -/
+def update_last (f : string → string) : name → name
+| (mk_string s n) := mk_string (f s) n
+| n := n
+
+/-- `append_to_last nm s is_prefix` adds `s` to the last component of `nm`,
+  either as prefix or as suffix (specified by `is_prefix`), separated by `_`.
+  Used by `simps_add_projections`. -/
+def append_to_last (nm : name) (s : string) (is_prefix : bool) : name :=
+nm.update_last $ λ s', if is_prefix then s ++ "_" ++ s' else s' ++ "_" ++ s
 
 /-- The first component of a name, turning a number to a string -/
 meta def head : name → string
@@ -660,7 +671,7 @@ meta def lambda_body : expr → expr
 | (lam n bi d b) := lambda_body b
 | e             := e
 
-/-- Auxilliary defintion for `pi_binders`.
+/-- Auxiliary defintion for `pi_binders`.
   See note [open expressions]. -/
 meta def pi_binders_aux : list binder → expr → list binder × expr
 | es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
@@ -674,7 +685,7 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 meta def pi_binders (e : expr) : list binder × expr :=
 let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
-/-- Auxilliary defintion for `get_app_fn_args`. -/
+/-- Auxiliary defintion for `get_app_fn_args`. -/
 meta def get_app_fn_args_aux : list expr → expr → expr × list expr
 | r (app f a) := get_app_fn_args_aux (a::r) f
 | r e         := (e, r)

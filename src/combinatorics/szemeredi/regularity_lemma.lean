@@ -96,6 +96,18 @@ begin
   apply filter_inter_filter_neg_eq,
 end
 
+lemma between_nat_iff {a t : ℕ} :
+  (a = t ∨ a = t+1) ↔ (t ≤ a ∧ a ≤ t+1) :=
+begin
+  split,
+  { rintro (rfl | rfl);
+    simp },
+  rintro ⟨h₁, h₂⟩,
+  obtain h | h := h₁.eq_or_lt,
+  { exact or.inl h.symm },
+  exact or.inr (le_antisymm h₂ (nat.succ_le_of_lt h)),
+end
+
 /-! ### Prerequisites for SRL -/
 
 /-- A set is equitable if no element value is more than one bigger than another. -/
@@ -147,18 +159,6 @@ begin
     { simp [hx₁', hx₂'] } }
 end
 
-lemma between_nat_iff {a t : ℕ} :
-  (a = t ∨ a = t+1) ↔ (t ≤ a ∧ a ≤ t+1) :=
-begin
-  split,
-  { rintro (rfl | rfl);
-    simp },
-  { rintro ⟨h₁, h₂⟩,
-    cases eq_or_lt_of_le h₁ with h h,
-    { exact or.inl h.symm },
-    { exact or.inr (le_antisymm h₂ (nat.succ_le_of_lt h)) } },
-end
-
 lemma equitable_on_finset_iff_eq_average {α : Type*} (s : finset α) (f : α → ℕ) :
   equitable_on (s : set α) f ↔
     ∀ a ∈ s, f a = (∑ i in s, f i) / s.card ∨ f a = (∑ i in s, f i) / s.card + 1 :=
@@ -203,7 +203,7 @@ end
 namespace simple_graph
 variables {V : Type u} [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
 
-/-- Number of edges between two -/
+/-- Finset of edges between two finsets of vertices -/
 def edges_pair_finset (U W : finset V) : finset (V × V) :=
 (U.product W).filter (λ e, G.adj e.1 e.2)
 
@@ -215,11 +215,12 @@ lemma mem_edges_pair_finset' (U W : finset V) (x y : V) :
   (x, y) ∈ G.edges_pair_finset U W ↔ x ∈ U ∧ y ∈ W ∧ G.adj x y :=
 mem_edges_pair_finset _ _ _ _
 
-def edges_count_finset (U W : finset V) : ℕ :=
+/-- Number of edges between two finsets of vertices -/
+def edges_count_pair (U W : finset V) : ℕ :=
 (G.edges_pair_finset U W).card
 
-lemma edges_count_finset_symm (U W : finset V) :
-  G.edges_count_finset U W = G.edges_count_finset W U :=
+lemma edges_count_pair_symm (U W : finset V) :
+  G.edges_count_pair U W = G.edges_count_pair W U :=
 begin
   apply finset.card_congr (λ (i : V × V) hi, (i.2, i.1)) _ _ _,
   { rintro ⟨i, j⟩ h,
@@ -234,43 +235,38 @@ begin
   rwa [G.edge_symm, and.left_comm],
 end
 
-def edges_count : sym2 (finset V) → ℕ :=
-quotient.lift (function.uncurry (edges_count_finset G))
-  (by { rintros _ _ ⟨_, _⟩, { refl }, apply edges_count_finset_symm })
+/-- Number of edges between a pair of finsets of vertices. `sym2` variant of `edges_count_pair`. -/
+def edges_count_sym2 : sym2 (finset V) → ℕ :=
+quotient.lift (function.uncurry (edges_count_pair G))
+  (by { rintros _ _ ⟨_, _⟩, { refl }, apply edges_count_pair_symm })
 
+/-- Edge density between two finsets of vertices -/
 noncomputable def density_pair (U W : finset V) : ℝ :=
-G.edges_count_finset U W / (U.card * W.card)
+G.edges_count_pair U W / (U.card * W.card)
 
 lemma density_pair_symm (U W : finset V) : G.density_pair U W = G.density_pair W U :=
 begin
-  rw [density_pair, mul_comm, edges_count_finset_symm],
+  rw [density_pair, mul_comm, edges_count_pair_symm],
   refl
 end
 
 lemma density_pair_nonneg (U W : finset V) :
   0 ≤ G.density_pair U W :=
 begin
-  rw [density_pair],
-  apply div_nonneg,
-  { norm_cast,
-    exact nat.zero_le _ },
-  norm_cast,
-  apply mul_nonneg,
-  exact nat.zero_le _,
-  exact nat.zero_le _,
+  apply div_nonneg;
+  exact_mod_cast nat.zero_le _,
 end
 
 lemma density_pair_le_one (U W : finset V) :
   G.density_pair U W ≤ 1 :=
 begin
-  rw density_pair,
   refine div_le_one_of_le _ (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)),
   norm_cast,
-  rw [edges_count_finset, edges_pair_finset, ←finset.card_product],
+  rw [edges_count_pair, edges_pair_finset, ←finset.card_product],
   exact finset.card_filter_le _ _,
 end
 
-/-- `sym2` variant of `density_pair` -/
+/-- Edge density between a pair of finsets of vertices. `sym2` variant of `density_pair`. -/
 noncomputable def density_sym2 : sym2 (finset V) → ℝ :=
 quotient.lift (function.uncurry (density_pair G))
   (by { rintros _ _ ⟨_, _⟩, { refl }, apply density_pair_symm })
@@ -297,11 +293,14 @@ begin
   apply h _ hU' _ hW' hU hW,
 end
 
+/-- `sym2` variant of `is_uniform` -/
 def is_uniform_sym2 (ε : ℝ) : sym2 (finset V) → Prop :=
 sym2.from_rel (is_uniform_symmetric G ε)
 
 end simple_graph
 
+/-- An equipartition of a type `V` is a partition whose maximal part has size at most one more than
+the size of the minimal part. This is enforced using `equitable_on`. -/
 structure equipartition (V : Type u) [decidable_eq V] :=
 (parts : finset (finset V))
 (disjoint : ∀ (a₁ a₂ ∈ parts) x, x ∈ a₁ → x ∈ a₂ → a₁ = a₂)
@@ -319,17 +318,20 @@ end-/
 lemma ext (P Q : equipartition V) : P.parts = Q.parts → P = Q :=
 by { cases P, cases Q, intro h, congr' 1 }
 
-protected def size : ℕ := card P.parts
+/-- The size of an equipartition is its number of parts. -/
+protected def size : ℕ := P.parts.card
 
-def distinct_unordered_pairs [fintype V] (P : equipartition V) :
+/-- `sym2` variant of `equipartition.parts`. We exclude the diagonal, as these do not make sense nor
+behave well in the context of Szemerédi's Regularity Lemma. -/
+def distinct_unordered_parts_pairs [fintype V] (P : equipartition V) :
   finset (sym2 (finset V)) :=
 ((P.parts.product P.parts).image quotient.mk).filter (λ (a : sym2 _), ¬a.is_diag)
 
-lemma mem_distinct_unordered_pairs [fintype V] (P : equipartition V)
+lemma mem_distinct_unordered_parts_pairs [fintype V] (P : equipartition V)
   (U W : finset V) :
-  ⟦(U, W)⟧ ∈ P.distinct_unordered_pairs ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W :=
+  ⟦(U, W)⟧ ∈ P.distinct_unordered_parts_pairs ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W :=
 begin
-  rw [equipartition.distinct_unordered_pairs, finset.mem_filter],
+  rw [equipartition.distinct_unordered_parts_pairs, finset.mem_filter],
   simp only [mem_image, exists_prop, sym2.is_diag_iff_proj_eq, sym2.eq_iff, prod.exists,
     mem_product],
   split,
@@ -339,25 +341,31 @@ begin
   exact ⟨⟨_, _, ⟨h₁, h₂⟩, or.inl ⟨rfl, rfl⟩⟩, h₃⟩,
 end
 
-lemma distinct_unordered_pairs_size [fintype V] (P : equipartition V) :
-  P.distinct_unordered_pairs.card = P.size.choose 2 :=
-by rw [distinct_unordered_pairs, equipartition.size, prod_quotient_sym2_not_diag]
+lemma distinct_unordered_parts_pairs_size [fintype V] (P : equipartition V) :
+  P.distinct_unordered_parts_pairs.card = P.size.choose 2 :=
+by rw [distinct_unordered_parts_pairs, equipartition.size, prod_quotient_sym2_not_diag]
 
 variables (G : simple_graph V)
 open_locale classical
 
 noncomputable def non_uniform_parts [fintype V] (ε : ℝ) :
   finset (sym2 (finset V)) :=
-P.distinct_unordered_pairs.filter (λ a, ¬G.is_uniform_sym2 ε a)
+P.distinct_unordered_parts_pairs.filter (λ a, ¬G.is_uniform_sym2 ε a)
 
 --doesn't work TODO: make a MWE
 --#print non_uniform_parts
 
+/-- An equipartition is ε-uniform iff at most a proportion of ε of its pairs of parts are
+not ε-uniform. -/
 def is_uniform [fintype V] (ε : ℝ) : Prop :=
 ((P.non_uniform_parts G ε).card : ℝ) ≤ ε * P.size.choose 2
 
+/-- The index is the auxiliary quantity that drives the induction process in the proof of
+Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a suitable equipartition,
+we will find a new one that has an index greater than the previous one plus some fixed constant.
+Then `index_le_half` ensures this process only happens finitely many times. -/
 noncomputable def index [fintype V] (P : equipartition V) : ℝ :=
-(∑ x in P.distinct_unordered_pairs, G.density_sym2 x^2)/P.size^2
+(∑ x in P.distinct_unordered_parts_pairs, G.density_sym2 x^2)/P.size^2
 
 lemma index_nonneg [fintype V] (P : equipartition V) :
   0 ≤ P.index G :=
@@ -365,7 +373,7 @@ begin
   rw equipartition.index,
   refine div_nonneg _ (sq_nonneg _),
   rw ←finset.sum_const_zero,
-  apply finset.sum_le_sum,
+  apply finset.sum_le_sum, -- this may be `apply` abuse
   exact λ _ _, sq_nonneg _,
 end
 
@@ -375,11 +383,11 @@ begin
   rw equipartition.index,
   apply div_le_of_nonneg_of_le_mul (sq_nonneg _),
   { norm_num },
-  suffices h : (∑ (x : sym2 (finset V)) in P.distinct_unordered_pairs, G.density_sym2 x ^ 2) ≤
-    P.distinct_unordered_pairs.card,
+  suffices h : (∑ (x : sym2 (finset V)) in P.distinct_unordered_parts_pairs, G.density_sym2 x ^ 2) ≤
+    P.distinct_unordered_parts_pairs.card,
   {
     apply h.trans,
-    rw [distinct_unordered_pairs_size, div_mul_eq_mul_div, one_mul],
+    rw [distinct_unordered_parts_pairs_size, div_mul_eq_mul_div, one_mul],
     sorry
   },
   rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
@@ -387,85 +395,13 @@ begin
   rintro s _,
   rw [sq, ←abs_le_one_iff_mul_self_le_one, abs_eq_self.2 (G.density_sym2_nonneg _)],
   exact G.density_sym2_le_one _,
-  /-
-  rw [equipartition.index, le_div_iff, div_mul_eq_mul_div],
-  apply div_le_of_nonneg_of_le_mul,
-  { exact pow_nonneg (nat.cast_nonneg _) _ },
-  { exact zero_le_one },
-  { rw [finset.sum_ite, finset.sum_const_zero, zero_add, one_mul],
-    have : (∑ (x : sym2 (finset V)) in univ.filter (λ (x : sym2 (finset V)), ¬x.is_diag),
-      G.density_sym2 x ^ 2) ≤ (univ.filter (λ (x : sym2 (finset V)), ¬x.is_diag)).card,
-    { rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
-      apply finset.sum_le_sum,
-      rintro s _,
-      rw [sq, ←abs_le_one_iff_mul_self_le_one, abs_eq_self.2 (G.density_sym2_nonneg _)],
-      exact G.density_sym2_le_one _ },
-    sorry
-  },
-  exact zero_lt_two,
-  -/
 end
-
-/-
-
-noncomputable def index [fintype V] (P : equipartition V) : ℝ :=
-(∑ (i : sym2 (finset V)), if i.is_diag then 0 else (G.density_sym2 i)^2) / P.size ^ 2
-
-lemma index_eq [fintype V] (P : equipartition V) :
-  P.index G = (∑ x in univ.filter (λ y : sym2 (finset V), ¬y.is_diag), G.density_sym2 x^2)
-  /P.size^2 :=
-by rw [equipartition.index, finset.sum_ite, finset.sum_const_zero, zero_add]
-
-lemma index_nonneg [fintype V] (P : equipartition V) :
-  0 ≤ P.index G :=
-begin
-  rw P.index_eq G,
-  refine div_nonneg _ (sq_nonneg _),
-  rw ←finset.sum_const_zero,
-  apply finset.sum_le_sum,
-  exact λ _ _, sq_nonneg _,
-end
-
-lemma index_le_half [fintype V] (P : equipartition V) :
-  P.index G ≤ 1/2 :=
-begin
-  rw P.index_eq G,
-  apply div_le_of_nonneg_of_le_mul (sq_nonneg _),
-  { norm_num },
-  suffices h : (∑ (x : sym2 (finset V)) in univ.filter (λ (x : sym2 (finset V)), ¬x.is_diag),
-    G.density_sym2 x ^ 2) ≤ (univ.filter (λ (x : sym2 (finset V)), ¬x.is_diag)).card,
-  {
-    apply h.trans,
-    rw [div_mul_eq_mul_div, one_mul, card_sym2_not_diag, equipartition.size],
-  },
-  rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
-  apply finset.sum_le_sum,
-  rintro s _,
-  rw [sq, ←abs_le_one_iff_mul_self_le_one, abs_eq_self.2 (G.density_sym2_nonneg _)],
-  exact G.density_sym2_le_one _,
-  /-
-  rw [equipartition.index, le_div_iff, div_mul_eq_mul_div],
-  apply div_le_of_nonneg_of_le_mul,
-  { exact pow_nonneg (nat.cast_nonneg _) _ },
-  { exact zero_le_one },
-  { rw [finset.sum_ite, finset.sum_const_zero, zero_add, one_mul],
-    have : (∑ (x : sym2 (finset V)) in univ.filter (λ (x : sym2 (finset V)), ¬x.is_diag),
-      G.density_sym2 x ^ 2) ≤ (univ.filter (λ (x : sym2 (finset V)), ¬x.is_diag)).card,
-    { rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
-      apply finset.sum_le_sum,
-      rintro s _,
-      rw [sq, ←abs_le_one_iff_mul_self_le_one, abs_eq_self.2 (G.density_sym2_nonneg _)],
-      exact G.density_sym2_le_one _ },
-    sorry
-  },
-  exact zero_lt_two,
-  -/
-end-/
 
 end equipartition
 
 /-! ### Discrete and dummy equipartitions -/
 
+/-- The discrete equipartition of a fintype is the partition in singletons. -/
 @[simps]
 def discrete_equipartition (V : Type*) [decidable_eq V] [fintype V] : equipartition V :=
 { parts := finset.univ.image singleton,
@@ -506,7 +442,7 @@ begin
   intro x,
   apply quotient.induction_on x,
   rintro ⟨U, W⟩ hUW,
-  rw [non_uniform_parts, finset.mem_filter, mem_distinct_unordered_pairs,
+  rw [non_uniform_parts, finset.mem_filter, mem_distinct_unordered_parts_pairs,
     discrete_equipartition_parts, mem_image, mem_image] at hUW, --problem with `non_uniform_parts`
   apply hUW.2,
   rintro U' (hU' : U' ⊆ U) W' (hW' : W' ⊆ W) (hU : ε * U.card ≤ _) (hW : ε * W.card ≤ _),
@@ -524,7 +460,7 @@ begin
   exact hε,
 end
 
-def is_uniform {ε : ℝ} (hε : 0 < ε) :
+lemma is_uniform {ε : ℝ} (hε : 0 < ε) :
   (discrete_equipartition V).is_uniform G ε :=
 begin
   rw [is_uniform, discrete_equipartition.size, discrete_equipartition.non_uniform_parts _ hε,
@@ -558,13 +494,16 @@ end
 
 /-! ### The actual proof -/
 
+/-- Auxiliary function to explicit the bound on the size of the equipartition in the proof of
+Szemerédi's Regularity Lemma -/
 def exp_bound (n : ℕ) : ℕ := n * 4^n
 
 lemma le_exp_bound (n : ℕ) :
   n ≤ exp_bound n :=
 nat.le_mul_of_pos_right (pow_pos (by norm_num) n)
 
-/-- An explicit bound in Szemeredi's regularity lemma. -/
+/-- An explicit bound on the size of the equipartition in the proof of Szemerédi's Regularity Lemma
+-/
 noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
 let t : ℕ := max l (⌈real.log (100 / ε^5) / real.log 4⌉ + 1).nat_abs,
     N : ℕ := exp_bound^[⌈4 * ε^(-5 : ℝ)⌉.nat_abs] t
@@ -573,12 +512,10 @@ let t : ℕ := max l (⌈real.log (100 / ε^5) / real.log 4⌉ + 1).nat_abs,
 open_locale classical
 variables {V : Type u} [fintype V] (G : simple_graph V)
 
-/--
-The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then we
-can make a (much bigger) equipartition with a slightly higher index.
-(This is helpful since the index is bounded by a constant, so this process eventually terminates
-and gives a uniform equipartition).
--/
+/-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
+we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
+index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
+yields a not-too-big uniform equipartition. -/
 theorem increment (P : equipartition V) (ε : ℝ) (h₁ : P.size * 16^P.size ≤ card V)
   (h₂ : 100 < ε^5 * 4^P.size) (hP : ¬P.is_uniform G ε) :
   ∃ (Q : equipartition V), Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
@@ -623,9 +560,9 @@ protected lemma size {ε : ℝ} {l : ℕ} (hεl : 100 < ε ^ 5 * 4^l) (n : ℕ) 
 protected lemma index (hl : 100 < ε ^ 5 * 4^l)
 -/
 
-
 end szemeredi_equipartition
-/-- Effective Szemeredi's regularity lemma: For any sufficiently big graph, there is a uniform
+
+/-- Effective Szemeredi's regularity lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
 theorem szemeredi_regularity {ε : ℝ} (hε₁ : 0 < ε) (hε₂ : ε < 1) (l : ℕ) (hG : l ≤ card V) :
   ∃ (P : equipartition V), l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=

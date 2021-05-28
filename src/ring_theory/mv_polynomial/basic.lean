@@ -128,6 +128,6 @@ finsupp.basis_single_one.map (to_finsupp_iso_alg R).to_linear_equiv.symm
 
 @[simp] lemma coe_basis_monomials :
   (basis_monomials R : ℕ → polynomial R) = λ s, monomial s 1 :=
-funext $ λ n, to_finsupp_iso_symm_single
+_root_.funext $ λ n, to_finsupp_iso_symm_single
 
 end polynomial

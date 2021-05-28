@@ -759,12 +759,12 @@ alg_hom.comp (by { rw ← adjoin_roots L f, exact classical.choice (lift_of_spli
   algebra.to_top
 
 theorem finite_dimensional (f : polynomial K) [is_splitting_field K L f] : finite_dimensional K L :=
-finite_dimensional.iff_fg.2 $ @algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
+is_noetherian.iff_fg.2 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
   then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
   else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
-    (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)
+    (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
 
 instance (f : polynomial K) : _root_.finite_dimensional K f.splitting_field :=
 finite_dimensional f.splitting_field f

@@ -713,3 +713,51 @@ def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g 
   (sof_left_inverse h).symm x = g x := rfl
 
 end ring_equiv
+
+/-! ### Actions by `subsemiring`s
+
+These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
+The only new result is `subsemiring.module`.
+
+When `R` is commutative, `algebra.of_subsemiring` provides a stronger result than those found in
+this file, which uses the same scalar action.
+-/
+section actions
+
+namespace subsemiring
+
+variables {α β : Type*}
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [mul_action R α] (S : subsemiring R) : mul_action S α :=
+S.to_submonoid.mul_action
+
+lemma smul_def [mul_action R α] {S : subsemiring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
+
+instance smul_comm_class_left
+  [mul_action R β] [has_scalar α β] [smul_comm_class R α β] (S : subsemiring R) :
+  smul_comm_class S α β :=
+S.to_submonoid.smul_comm_class_left
+
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action R β] [smul_comm_class α R β] (S : subsemiring R) :
+  smul_comm_class α S β :=
+S.to_submonoid.smul_comm_class_right
+
+/-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action R α] [mul_action R β] [is_scalar_tower R α β] (S : subsemiring R) :
+  is_scalar_tower S α β :=
+S.to_submonoid.is_scalar_tower
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [add_monoid α] [distrib_mul_action R α] (S : subsemiring R) : distrib_mul_action S α :=
+S.to_submonoid.distrib_mul_action
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [add_comm_monoid α] [module R α] (S : subsemiring R) : module S α :=
+{ smul := (•), .. module.comp_hom _ S.subtype }
+
+end subsemiring
+
+end actions

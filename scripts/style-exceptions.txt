@@ -5,7 +5,7 @@ src/category_theory/adjunction/fully_faithful.lean : line 10 : ERR_MOD : Module 
 src/category_theory/adjunction/limits.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/category/Kleisli.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/endomorphism.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/epi_mono.lean : line 14 : ERR_MOD : Module docstring missing, or too late
+src/category_theory/epi_mono.lean : line 15 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/eq_to_hom.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/full_subcategory.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/fully_faithful.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -13,7 +13,7 @@ src/category_theory/functor.lean : line 18 : ERR_MOD : Module docstring missing,
 src/category_theory/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/groupoid.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/cones.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/creates.lean : line 329 : ERR_LIN : Line has more than 100 characters
+src/category_theory/limits/creates.lean : line 338 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/creates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/lattice.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -80,7 +80,7 @@ src/data/nat/cast.lean : line 11 : ERR_MOD : Module docstring missing, or too la
 src/data/nat/dist.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/pairing.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/totient.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/option/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
+src/data/option/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/option/defs.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/pequiv.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/pfun.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -124,7 +124,7 @@ src/order/directed.lean : line 9 : ERR_MOD : Module docstring missing, or too la
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/lexicographic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/order/omega_complete_partial_order.lean : line 51 : ERR_LIN : Line has more than 100 characters
-src/order/order_iso_nat.lean : line 14 : ERR_MOD : Module docstring missing, or too late
+src/order/order_iso_nat.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/pilex.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/rel_iso.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/zorn.lean : line 11 : ERR_MOD : Module docstring missing, or too late
@@ -141,8 +141,8 @@ src/tactic/converter/interactive.lean : line 53 : ERR_LIN : Line has more than 1
 src/tactic/converter/old_conv.lean : line 272 : ERR_LIN : Line has more than 100 characters
 src/tactic/converter/old_conv.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/core.lean : line 17 : ERR_MOD : Module docstring missing, or too late
-src/tactic/core.lean : line 2147 : ERR_LIN : Line has more than 100 characters
-src/tactic/core.lean : line 2308 : ERR_LIN : Line has more than 100 characters
+src/tactic/core.lean : line 2154 : ERR_LIN : Line has more than 100 characters
+src/tactic/core.lean : line 2315 : ERR_LIN : Line has more than 100 characters
 src/tactic/delta_instance.lean : line 67 : ERR_LIN : Line has more than 100 characters
 src/tactic/delta_instance.lean : line 75 : ERR_LIN : Line has more than 100 characters
 src/tactic/delta_instance.lean : line 8 : ERR_MOD : Module docstring missing, or too late
@@ -154,10 +154,10 @@ src/tactic/find.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/generalizes.lean : line 118 : ERR_LIN : Line has more than 100 characters
 src/tactic/hint.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/induction.lean : line 1252 : ERR_RNT : Reserved notation outside tactic.reserved_notation
-src/tactic/interactive.lean : line 1057 : ERR_LIN : Line has more than 100 characters
-src/tactic/interactive.lean : line 379 : ERR_LIN : Line has more than 100 characters
-src/tactic/interactive.lean : line 643 : ERR_LIN : Line has more than 100 characters
-src/tactic/interactive.lean : line 846 : ERR_LIN : Line has more than 100 characters
+src/tactic/interactive.lean : line 1063 : ERR_LIN : Line has more than 100 characters
+src/tactic/interactive.lean : line 385 : ERR_LIN : Line has more than 100 characters
+src/tactic/interactive.lean : line 649 : ERR_LIN : Line has more than 100 characters
+src/tactic/interactive.lean : line 852 : ERR_LIN : Line has more than 100 characters
 src/tactic/interactive.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/interactive_expr.lean : line 153 : ERR_LIN : Line has more than 100 characters
 src/tactic/interactive_expr.lean : line 173 : ERR_LIN : Line has more than 100 characters
@@ -175,7 +175,7 @@ src/tactic/interval_cases.lean : line 246 : ERR_LIN : Line has more than 100 cha
 src/tactic/interval_cases.lean : line 32 : ERR_MOD : Module docstring missing, or too late
 src/tactic/lean_core_docs.lean : line 733 : ERR_LIN : Line has more than 100 characters
 src/tactic/lean_core_docs.lean : line 766 : ERR_LIN : Line has more than 100 characters
-src/tactic/lift.lean : line 95 : ERR_LIN : Line has more than 100 characters
+src/tactic/lift.lean : line 94 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/elimination.lean : line 121 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/parsing.lean : line 19 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/preprocessing.lean : line 223 : ERR_LIN : Line has more than 100 characters

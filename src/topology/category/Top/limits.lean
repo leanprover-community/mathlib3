@@ -130,11 +130,11 @@ begin
   classical,
   use λ (j' : Jᵒᵖ),
     if h : j'.unop ≤ j.unop then
-      F.map (hom_of_le h).op (classical.arbitrary (F.obj j))
+      F.map h.hom.op (classical.arbitrary (F.obj j))
     else
       classical.arbitrary _,
   intros j' fle,
-  simp only [dif_pos (le_of_hom fle.unop)],
+  simp only [dif_pos fle.unop.le, dif_pos le_rfl],
   dsimp, simp,
 end
 
@@ -180,7 +180,7 @@ begin
   { haveI := h,
     obtain ⟨u, hu⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
       (partial_sections F) (partial_sections.directed F) (partial_sections.nonempty F)
-      (λ j, is_closed.compact (partial_sections.closed F j)) (partial_sections.closed F),
+      (λ j, is_closed.is_compact (partial_sections.closed F j)) (partial_sections.closed F),
     use u,
     intros j j' f,
     specialize hu (partial_sections F j),

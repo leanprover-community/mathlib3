@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.image_to_kernel
-import category_theory.subobject.lattice
+import algebra.homology.homological_complex
 import category_theory.graded_object
 
 /-!

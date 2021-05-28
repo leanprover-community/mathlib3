@@ -792,7 +792,7 @@ lemma mem_map_of_mem (f : G →* N) {K : subgroup G} {x : G} (hx : x ∈ K) : f 
 mem_image_of_mem f hx
 
 @[to_additive]
-lemma apply_coe_mem_map (f : G →* N) {K : subgroup G} (x : K) : f x ∈ K.map f :=
+lemma apply_coe_mem_map (f : G →* N) (K : subgroup G) (x : K) : f x ∈ K.map f :=
 mem_map_of_mem f x.prop
 
 @[to_additive]
@@ -1808,3 +1808,48 @@ set.subset.antisymm
 end subgroup
 
 end pointwise
+
+/-! ### Actions by `subgroup`s
+
+These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
+-/
+section actions
+
+namespace subgroup
+
+variables {α β : Type*}
+
+/-- The action by a subgroup is the action by the underlying group. -/
+@[to_additive /-"The additive action by an add_subgroup is the action by the underlying
+add_group. "-/]
+instance [mul_action G α] (S : subgroup G) : mul_action S α :=
+S.to_submonoid.mul_action
+
+@[to_additive]
+lemma smul_def [mul_action G α] {S : subgroup G} (g : S) (m : α) : g • m = (g : G) • m := rfl
+
+@[to_additive]
+instance smul_comm_class_left
+  [mul_action G β] [has_scalar α β] [smul_comm_class G α β] (S : subgroup G) :
+  smul_comm_class S α β :=
+S.to_submonoid.smul_comm_class_left
+
+@[to_additive]
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action G β] [smul_comm_class α G β] (S : subgroup G) :
+  smul_comm_class α S β :=
+S.to_submonoid.smul_comm_class_right
+
+/-- Note that this provides `is_scalar_tower S G G` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action G α] [mul_action G β] [is_scalar_tower G α β] (S : subgroup G) :
+  is_scalar_tower S α β :=
+S.to_submonoid.is_scalar_tower
+
+/-- The action by a subgroup is the action by the underlying group. -/
+instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=
+S.to_submonoid.distrib_mul_action
+
+end subgroup
+
+end actions

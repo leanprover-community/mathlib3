@@ -52,7 +52,7 @@ begin
   rw [zero_smul, add_zero] at this,
   rcases nonempty_of_mem_sets (inter_mem_sets (mem_map.1 (this hy)) self_mem_nhds_within)
     with ⟨_, hu, u, rfl⟩,
-  have hy' : y ∈ ↑s := mem_of_nhds hy,
+  have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
   exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
 end
 

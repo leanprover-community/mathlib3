@@ -295,7 +295,7 @@ begin
   contrapose! hd, cases hd,
   rw finset.sum_eq_zero,
   rintro ⟨d₁, d₂⟩ H,
-  rw finsupp.mem_antidiagonal_support at H,
+  rw finsupp.mem_antidiagonal at H,
   subst H,
   obtain H|H : i ∈ d₁.support ∨ i ∈ d₂.support,
   { simpa only [finset.mem_union] using finsupp.support_add hi, },

@@ -29,7 +29,14 @@ by { lift n to ℕ using ge.le _, trivial, guard_target (n ≥ 0), exact hn }
 
 example (n : ℤ) (hn : 0 ≤ 1 * n) : true :=
 begin
-  lift n to ℕ using by { simpa [int.one_mul] using hn } with k, -- the braces are optional
+  lift n to ℕ using by { simpa [int.one_mul] using hn } with k,
+  -- the above braces are optional, but it would be bad style to remove them (see next example)
   guard_hyp hn : 0 ≤ 1 * ((k : ℕ) : ℤ),
+  trivial
+end
+
+example (n : ℤ) (hn : 0 ≤ n ↔ true) : true :=
+begin
+  lift n to ℕ using by { simp [hn] } with k, -- the braces are not optional here
   trivial
 end

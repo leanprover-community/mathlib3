@@ -57,6 +57,8 @@ example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 7 = h := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 37 = f := by simp
 example {a b c d e f g h : α} : ![a, b, c, d, e, f, g, h] 99 = d := by simp
 
+-- note for the below: `fin.sum_univ_zero` may go
+
 example {α : Type*} [comm_ring α] {a b c d : α} :
   matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
 begin

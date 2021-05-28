@@ -22,7 +22,7 @@ Filtered colimits are often better behaved than arbitrary colimits.
 See `category_theory/limits/types` for some details.
 
 Filtered categories are nice because colimits indexed by filtered categories tend to be
-easier to describe than general colimits (and often often preserved by functors).
+easier to describe than general colimits (and more often preserved by functors).
 
 In this file we show that any functor from a finite category to a filtered category admits a cocone:
 * `cocone_nonempty [fin_category J] [is_filtered C] (F : J ⥤ C) : nonempty (cocone F)`
@@ -30,10 +30,8 @@ More generally,
 for any finite collection of objects and morphisms between them in a filtered category
 (even if not closed under composition) there exists some object `Z` receiving maps from all of them,
 so that all the triangles (one edge from the finite set, two from morphisms to `Z`) commute.
-This formulation is often more useful in practice. We give two variants,
-`sup_exists'`, which takes a single finset of objects, and a finset of morphisms
-(bundled with their sources and targets), and
-`sup_exists`, which takes a finset of objects, and an indexed family (indexed by source and target)
+This formulation is often more useful in practice and is available via `sup_exists`,
+which takes a finset of objects, and an indexed family (indexed by source and target)
 of finsets of morphisms.
 
 We also provide all of the above API for cofiltered categories.

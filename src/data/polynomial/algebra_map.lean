@@ -61,6 +61,7 @@ variable (R)
 
 /-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
+@[simps]
 def to_finsupp_iso_alg : polynomial R ≃ₐ[R] add_monoid_algebra R ℕ :=
 { commutes' := λ r,
   begin

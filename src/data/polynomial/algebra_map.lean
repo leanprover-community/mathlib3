@@ -70,12 +70,6 @@ def to_finsupp_iso_alg : polynomial R ≃ₐ[R] add_monoid_algebra R ℕ :=
   end,
   ..to_finsupp_iso R }
 
-lemma to_finsupp_iso_alg_apply (P : polynomial R) : to_finsupp_iso_alg R P = P.to_finsupp :=
-to_finsupp_iso_apply R P
-
-lemma to_finsupp_iso_alg_symm_apply_to_finsupp (f : add_monoid_algebra R ℕ) :
-  (((to_finsupp_iso R).symm) f).to_finsupp = f := rfl
-
 variable {R}
 
 instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=

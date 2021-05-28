@@ -365,7 +365,7 @@ by rw [mul_comm, const_mul_cancel]
 
 /-- The canonical ring homomorphism interpreting an element of `R` as
 a section of the structure sheaf. -/
-def to_open (U : opens (Spec.Top R)) : CommRing.of R ⟶ (structure_sheaf R).presheaf.obj (op U) :=
+@[simps] def to_open (U : opens (Spec.Top R)) : CommRing.of R ⟶ (structure_sheaf R).presheaf.obj (op U) :=
 { to_fun := λ f, ⟨λ x, (localization.of _).to_map f,
     λ x, ⟨U, x.2, 𝟙 _, f, 1, λ y, ⟨(ideal.ne_top_iff_one _).1 y.1.2.1,
       by { rw [ring_hom.map_one, mul_one], refl } ⟩⟩⟩,
@@ -376,10 +376,6 @@ def to_open (U : opens (Spec.Top R)) : CommRing.of R ⟶ (structure_sheaf R).pre
 
 @[simp] lemma to_open_res (U V : opens (Spec.Top R)) (i : V ⟶ U) :
   to_open R U ≫ (structure_sheaf R).presheaf.map i.op = to_open R V :=
-rfl
-
-@[simp] lemma to_open_apply (U : opens (Spec.Top R)) (f : R) (x : U) :
-  (to_open R U f).1 x = (localization.of _).to_map f :=
 rfl
 
 lemma to_open_eq_const (U : opens (Spec.Top R)) (f : R) : to_open R U f =
@@ -489,7 +485,7 @@ ring_hom.ext_iff.1 (to_stalk_comp_stalk_to_fiber_ring_hom R x) _
 
 /-- The ring isomorphism between the stalk of the structure sheaf of `R` at a point `p`
 corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
-def stalk_iso (x : Spec.Top R) :
+@[simps] def stalk_iso (x : Spec.Top R) :
   (structure_sheaf R).presheaf.stalk x ≅ CommRing.of (localization.at_prime x.as_ideal) :=
 { hom := stalk_to_fiber_ring_hom R x,
   inv := localization_to_stalk R x,
@@ -802,7 +798,7 @@ section comap
 
 variables {R} {S : Type u} [comm_ring S] {P : Type u} [comm_ring P]
 
-def structure_sheaf.comap (f : R →+* S) (U : opens (Spec.Top R)) (V : opens (Spec.Top S))
+@[simps] def structure_sheaf.comap (f : R →+* S) (U : opens (Spec.Top R)) (V : opens (Spec.Top S))
   (hUV : ∀ p : prime_spectrum S, p ∈ V ↔ comap f p ∈ U) :
   (structure_sheaf R).presheaf.obj (op U) →+* (structure_sheaf S).presheaf.obj (op V) :=
 { to_fun := λ s, ⟨λ p, localization.local_ring_hom ((comap f (p : Spec.Top S)).as_ideal) _ f
@@ -835,21 +831,16 @@ def structure_sheaf.comap (f : R →+* S) (U : opens (Spec.Top R)) (V : opens (S
         ring_hom.map_mul], refl },
 }
 
-@[simp] lemma structure_sheaf.comap_apply (f : R →+* S) (U : opens (Spec.Top R))
-  (V : opens (Spec.Top S)) (hUV : ∀ p : prime_spectrum S, p ∈ V ↔ comap f p ∈ U)
-  (s : (structure_sheaf R).presheaf.obj (op U)) (p : V) :
-  (structure_sheaf.comap f U V hUV s).1 p =
-  localization.local_ring_hom ((comap f p.1).as_ideal) _ f
-    (λ r, iff.rfl) (s.1 ⟨_, (hUV p.1).mp p.2⟩ : _) := rfl
+#check structure_sheaf.comap_apply_coe
 
 lemma structure_sheaf.comap_id (U U' : opens (Spec.Top R)) (hUU' : U = U') :
   structure_sheaf.comap (ring_hom.id R) U U'
     (λ p, by rw [hUU', prime_spectrum.comap_id, id.def]) =
   eq_to_hom (show (structure_sheaf R).presheaf.obj (op U) = _, by rw hUU') :=
-ring_hom.ext $ λ s, subtype.eq $ funext $
+ring_hom.ext $ λ s, subtype.ext $ funext $
 begin
   rintro ⟨p, hpU⟩,
-  rw structure_sheaf.comap_apply,
+  rw structure_sheaf.comap_apply_coe,
   obtain ⟨V, hpV, i, h⟩ := s.2 ⟨p, hUU'.symm ▸ hpU⟩,
   obtain ⟨f, g, h'⟩ := h.eq_mk',
   obtain ⟨hg₁, s_eq₁⟩ := h' ⟨p, hpV⟩,
@@ -866,11 +857,20 @@ lemma structure_sheaf.comap_comp (f : R →+* S) (g : S →+* P)
   (hVW : ∀ p : prime_spectrum P, p ∈ W ↔ comap g p ∈ V) :
   structure_sheaf.comap (g.comp f) U W (λ p, iff.trans (hVW p) (hUV (comap g p))) =
     (structure_sheaf.comap g V W hVW).comp (structure_sheaf.comap f U V hUV) :=
-ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
+ring_hom.ext $ λ s, subtype.ext $ funext $ λ p,
 begin
-  rw structure_sheaf.comap_apply,
+  rw structure_sheaf.comap_apply_coe,
   erw localization.local_ring_hom_comp _ (comap g p.1).as_ideal,
   refl,
+end
+
+@[elementwise, reassoc] lemma to_open_comap (f : R →+* S) :
+  to_open R ⊤ ≫ structure_sheaf.comap f ⊤ ⊤ (λ p, by refl) =
+  @category_theory.category_struct.comp _ _ (CommRing.of R) (CommRing.of S) _ f (to_open S ⊤) :=
+ring_hom.ext $ λ s, subtype.ext $ funext $ λ p,
+begin
+  simp only [comp_apply, structure_sheaf.comap_apply_coe, subtype.val_eq_coe, to_open_apply_coe],
+  erw localization.local_ring_hom_to_map,
 end
 
 end comap

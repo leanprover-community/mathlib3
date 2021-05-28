@@ -35,7 +35,7 @@ although that is a consequence.)
 -/
 structure Scheme extends X : LocallyRingedSpace :=
 (local_affine : ∀ x : X, ∃ (U : open_nhds x) (R : CommRing),
-  nonempty (X.to_PresheafedSpace.restrict _ U.open_embedding ≅ Spec.PresheafedSpace R))
+  nonempty (X.to_PresheafedSpace.restrict _ U.open_embedding ≅ (Spec.SheafedSpace_obj R).to_PresheafedSpace))
 
 -- PROJECT
 -- In fact, we can make the isomorphism `i` above an isomorphism in `LocallyRingedSpace`.
@@ -63,8 +63,8 @@ def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
 -/
 noncomputable
 def Spec (R : CommRing) : Scheme :=
-{ local_affine := λ x, ⟨⟨⊤, trivial⟩, R, ⟨(Spec.PresheafedSpace R).restrict_top_iso⟩⟩,
-  .. Spec.LocallyRingedSpace R }
+{ local_affine := λ x, ⟨⟨⊤, trivial⟩, R, ⟨(Spec.SheafedSpace_obj R).to_PresheafedSpace.restrict_top_iso⟩⟩,
+  .. Spec.LocallyRingedSpace_obj R }
 
 /--
 The empty scheme, as `Spec 0`.

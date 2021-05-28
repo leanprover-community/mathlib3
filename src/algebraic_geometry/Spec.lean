@@ -18,6 +18,7 @@ Make it a functor.
 
 -/
 
+universe u
 
 noncomputable theory
 
@@ -25,94 +26,85 @@ namespace algebraic_geometry
 open opposite
 open category_theory
 
+set_option profiler true
+
+def Spec.Top_obj (R : CommRing) : Top := Top.of (prime_spectrum R)
+
+@[simps] def Spec.Top_map {R S : CommRing} (f : R ⟶ S) :
+  Spec.Top_obj S ⟶ Spec.Top_obj R :=
+{ to_fun := prime_spectrum.comap f,
+  continuous_to_fun := prime_spectrum.comap_continuous f }
+
+@[simp] lemma Spec.Top_map_id (R : CommRing) :
+  Spec.Top_map (𝟙 R) = 𝟙 (Spec.Top_obj R) :=
+continuous_map.ext $ λ x,
+by erw [Spec.Top_map_to_fun, prime_spectrum.comap_id, id.def, Top.id_app]
+
+@[simp] lemma Spec.Top_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
+  Spec.Top_map (f ≫ g) = Spec.Top_map g ≫ Spec.Top_map f :=
+continuous_map.ext $ λ x,
+begin
+  dsimp only [Spec.Top_map_to_fun, Top.comp_app],
+  erw prime_spectrum.comap_comp,
+end
+
+@[simps] def Spec.to_Top : CommRingᵒᵖ ⥤ Top :=
+{ obj := λ R, Spec.Top_obj (unop R),
+  map := λ R S f, Spec.Top_map f.unop,
+  map_id' := λ R, by rw [unop_id, Spec.Top_map_id],
+  map_comp' := λ R S T f g, by rw [unop_comp, Spec.Top_map_comp] }
+
 /--
 Spec of a commutative ring, as a `SheafedSpace`.
 -/
-def Spec.SheafedSpace (R : CommRing) : SheafedSpace CommRing :=
-{ carrier := Top.of (prime_spectrum R),
-  ..structure_sheaf R }
+@[simps] def Spec.SheafedSpace_obj (R : CommRing) : SheafedSpace CommRing :=
+{ carrier := Spec.Top_obj R, ..structure_sheaf R }
 
-def Spec.Top_functor : CommRingᵒᵖ ⥤ Top :=
-{ obj := λ R, Top.of (prime_spectrum (unop R : CommRing)),
-  map := λ R S f, {
-    to_fun := prime_spectrum.comap f.unop,
-    continuous_to_fun := prime_spectrum.comap_continuous f.unop
-  },
-  map_id' := λ R, continuous_map.ext $ λ x,
-  begin
-    -- tidy can solve this, but it takes too long
-    simp only [continuous_map.coe_mk, Top.id_app, category_theory.unop_id],
-    erw [prime_spectrum.comap_id, id.def],
-  end,
-}
+@[simps] def Spec.comap {R S : CommRing} (f : R ⟶ S) :
+  (structure_sheaf R).presheaf ⟶ Spec.Top_map f _* (structure_sheaf S).presheaf :=
+{ app := λ U, structure_sheaf.comap f (unop U)
+    ((topological_space.opens.map (Spec.Top_map f)).obj (unop U)) (λ p, iff.rfl),
+  naturality' := λ U V i, ring_hom.ext $ λ s, subtype.eq $ funext $ λ p, rfl }
 
-def Spec.functor_to_SheafedSpace : CommRingᵒᵖ ⥤ SheafedSpace CommRing :=
-{ obj := λ R, {
-    carrier := Spec.Top_functor.obj R,
-    ..structure_sheaf (unop R : CommRing)
-  },
-  map := λ R S f, {
-    base := Spec.Top_functor.map f,
-    c := {
-      app := λ U, structure_sheaf.comap f.unop (unop U)
-        ((topological_space.opens.map (Spec.Top_functor.map f)).obj (unop U)) (λ p, iff.rfl),
-      naturality' := λ U V i, ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
-      begin
-        dsimp only [PresheafedSpace.mk_coe],
-        rw [category_theory.comp_apply, structure_sheaf.comap_apply],
-        refl,
-      end
-      }
-    },
-  map_id' := λ R, PresheafedSpace.ext _ _ (Spec.Top_functor.map_id R) $
-    category_theory.nat_trans.ext _ _ $ funext $ λ U,
-  begin
-    dsimp only [PresheafedSpace.mk_coe,
-      Top.presheaf.pushforward_obj_obj, Top.presheaf.pushforward_obj_map,
-      functor.op_obj, functor.op_map, functor.comp_obj,
-      nat_trans.comp_app, nat_trans.op_app,
-      SheafedSpace.id_base, SheafedSpace.id_c_app,
-      whisker_right_app, topological_space.opens.map_iso_inv_app,
-      unop_op, unop_id],
-    erw [PresheafedSpace.id_c_app, structure_sheaf.comap_id], swap,
-    { rw [Spec.Top_functor.map_id, topological_space.opens.map_id_obj_unop] },
-    rw [eq_to_hom_op, eq_to_hom_map, eq_to_hom_trans],
-    refl,
-  end,
-  map_comp' := λ R S T f g,
-    PresheafedSpace.ext _ _ (Spec.Top_functor.map_comp f g) $
-    category_theory.nat_trans.ext _ _ $ funext $ λ U,
-  begin
-    dsimp only [PresheafedSpace.mk_coe,
-      Top.presheaf.pushforward_obj_obj, Top.presheaf.pushforward_obj_map,
-      functor.op_obj, functor.op_map, functor.comp_obj,
-      nat_trans.comp_app, nat_trans.op_app,
-      SheafedSpace.comp_base, SheafedSpace.comp_c_app,
-      whisker_right_app, topological_space.opens.map_iso_inv_app,
-      unop_op, unop_comp, eq_to_hom_refl, category_theory.op_id],
-    rw [Top.presheaf.pushforward.comp_inv_app, ← category.assoc],
-    dsimp only [Top.presheaf.pushforward_obj_obj, functor.op_obj, unop_op],
-    rw ← (structure_sheaf (unop R : CommRing)).presheaf.map_id,
-    erw structure_sheaf.comap_comp g.unop f.unop _
-      ((topological_space.opens.map (Spec.Top_functor.map g)).obj (unop U)) _ _ _,
-    change (_ ≫ _) ≫ _ = (_ ≫ _) ≫ _,
-    refl,
-  end
-}
+@[simps] def Spec.SheafedSpace_map {R S : CommRing} (f : R ⟶ S) :
+  Spec.SheafedSpace_obj S ⟶ Spec.SheafedSpace_obj R :=
+{ base := Spec.Top_map f,
+  c := Spec.comap f }
 
-/--
-Spec of a commutative ring, as a `PresheafedSpace`.
--/
-def Spec.PresheafedSpace (R : CommRing) : PresheafedSpace CommRing :=
-(Spec.SheafedSpace R).to_PresheafedSpace
+@[simp] lemma Spec.SheafedSpace_map_id {R : CommRing} :
+  Spec.SheafedSpace_map (𝟙 R) = 𝟙 (Spec.SheafedSpace_obj R) :=
+PresheafedSpace.ext _ _ (Spec.Top_map_id R) $ category_theory.nat_trans.ext _ _ $ funext $ λ U,
+begin
+  dsimp,
+  erw [PresheafedSpace.id_c_app, structure_sheaf.comap_id], swap,
+    { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
+  rw [eq_to_hom_op, eq_to_hom_map, eq_to_hom_trans],
+  refl,
+end
+
+@[simp] lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
+  Spec.SheafedSpace_map (f ≫ g) = Spec.SheafedSpace_map g ≫ Spec.SheafedSpace_map f :=
+PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ category_theory.nat_trans.ext _ _ $ funext $ λ U,
+begin
+  dsimp,
+  erw [Top.presheaf.pushforward.comp_inv_app, ← category.assoc, category.comp_id,
+    (structure_sheaf T).presheaf.map_id, category.comp_id, structure_sheaf.comap_comp],
+  refl,
+end
+
+@[simps] def Spec.to_SheafedSpace : CommRingᵒᵖ ⥤ SheafedSpace CommRing :=
+{ obj := λ R, Spec.SheafedSpace_obj (unop R),
+  map := λ R S f, Spec.SheafedSpace_map f.unop,
+  map_id' := λ R, by rw [unop_id, Spec.SheafedSpace_map_id],
+  map_comp' := λ R S T f g, by rw [unop_comp, Spec.SheafedSpace_map_comp] }
 
 /--
 Spec of a commutative ring, as a `LocallyRingedSpace`.
 -/
-def Spec.LocallyRingedSpace (R : CommRing) : LocallyRingedSpace :=
+@[simps] def Spec.LocallyRingedSpace_obj (R : CommRing) : LocallyRingedSpace :=
 { local_ring := λ x, @@ring_equiv.local_ring _
     (show local_ring (localization.at_prime _), by apply_instance) _
     (category_theory.iso.CommRing_iso_to_ring_equiv $ stalk_iso R x).symm,
-  .. Spec.SheafedSpace R }
+  .. Spec.SheafedSpace_obj R }
 
 end algebraic_geometry

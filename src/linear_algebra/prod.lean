@@ -182,7 +182,7 @@ def prod_map (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : (M × M₂) →�
 lemma prod_map_comap_prod (f : M →ₗ[R] M₂) (g : M₃ →ₗ[R] M₄) (S : submodule R M₂)
   (S' : submodule R M₄) :
   (submodule.prod S S').comap (linear_map.prod_map f g) = (S.comap f).prod (S'.comap g) :=
-set_like.coe_injective $ set.prod.map_preimage_set_prod f g _ _
+set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 
 lemma ker_prod_map (f : M →ₗ[R] M₂) (g : M₃ →ₗ[R] M₄) :
   (linear_map.prod_map f g).ker = submodule.prod f.ker g.ker :=

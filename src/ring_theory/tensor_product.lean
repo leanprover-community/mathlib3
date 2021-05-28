@@ -179,8 +179,8 @@ def assoc [module R N] [is_scalar_tower R A N] : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[
 linear_equiv.of_linear
   (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (N ⊗[R] P))
   (uncurry A _ _ _ $ comp (uncurry' R A _ _ _) $ by apply curry; exact (mk' R A _ _))
-  (by apply mk_compr₂_inj; ext; refl)
-  (by apply curry'_injective; ext; refl)
+  (by { ext, refl, })
+  (by { ext, refl, })
 
 end comm_semiring
 

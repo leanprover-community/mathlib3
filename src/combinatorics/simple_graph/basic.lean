@@ -500,6 +500,15 @@ begin
   exact set.card_le_of_subset (set.inter_subset_left _ _),
 end
 
+lemma card_common_neighbors_le_degree_left' [decidable_rel G.adj] (v w : V) :
+  finset.card (G.common_neighbors v w).to_finset ≤ G.degree v :=
+begin
+  apply finset.card_le_of_subset,
+  unfold common_neighbors,
+  rw neighbor_finset,
+  simp,
+end
+
 lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
 begin
@@ -560,6 +569,23 @@ instance has_compl : has_compl (simple_graph V) :=
 
 @[simp]
 lemma compl_adj (G : simple_graph V) (v w : V) : Gᶜ.adj v w ↔ v ≠ w ∧ ¬G.adj v w := iff.rfl
+
+lemma adj_compl (G : simple_graph V) (v w : V) : G.adj v w ↔ v ≠ w ∧ ¬ Gᶜ.adj v w :=
+begin
+  split,
+  intros h,
+  refine ⟨G.ne_of_adj h, _⟩,
+  rw compl_adj,
+  push_neg,
+  intros h2,
+  exact h,
+
+  intros h,
+  cases h with h1 h2,
+  simp at h2,
+  specialize h2 h1,
+  exact h2,
+end
 
 instance compl_adj_decidable (V : Type u) [decidable_eq V] (G : simple_graph V)
   [decidable_rel G.adj] : decidable_rel Gᶜ.adj := λ v w, and.decidable

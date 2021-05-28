@@ -113,6 +113,24 @@ lemma nhds_coe_coe {r p : ℝ} :
   𝓝 ((r : ereal), (p : ereal)) = (𝓝 (r, p)).map (λp:ℝ × ℝ, (p.1, p.2)) :=
 ((open_embedding_coe.prod open_embedding_coe).map_nhds_eq (r, p)).symm
 
+lemma tendsto_to_real {a : ereal} (ha : a ≠ ⊤) (h'a : a ≠ ⊥) :
+  tendsto ereal.to_real (𝓝 a) (𝓝 a.to_real) :=
+begin
+  lift a to ℝ using and.intro ha h'a,
+  rw [nhds_coe, tendsto_map'_iff],
+  exact tendsto_id
+end
+
+lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤} : set ereal).compl :=
+λ a ha, continuous_at.continuous_within_at (tendsto_to_real
+  (by { simp [not_or_distrib] at ha, exact ha.2 }) (by { simp [not_or_distrib] at ha, exact ha.1 }))
+
+/-- The set of finite `ereal` numbers is homeomorphic to `ℝ`. -/
+def ne_bot_top_homeomorph_real : ({⊥, ⊤} : set ereal).compl ≃ₜ ℝ :=
+{ continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_real,
+  continuous_inv_fun := continuous_subtype_mk _ continuous_coe,
+  .. ne_top_bot_equiv_real }
+
 
 /-! ### ennreal coercion -/
 

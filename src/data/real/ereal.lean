@@ -82,8 +82,18 @@ protected lemma cases : ∀ (a : ereal), a = ⊥ ∨ (∃ (x : ℝ), a = x) ∨ 
 | ⊥ := by simp
 | (a : ℝ) := by simp
 
-
 /-! ### Real coercion -/
+
+instance : can_lift ereal ℝ :=
+{ coe := coe,
+  cond := λ r, r ≠ ⊤ ∧ r ≠ ⊥,
+  prf := λ x hx,
+  begin
+    rcases x.cases with rfl|⟨x, rfl⟩|rfl,
+    { simpa using hx },
+    { simp },
+    { simpa using hx }
+  end }
 
 /-- The map from extended reals to reals sending infinities to zero. -/
 def to_real : ereal → ℝ
@@ -129,6 +139,15 @@ rfl
 
 @[simp] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
 
+lemma to_real_le_to_real {x y : ereal} (h : x ≤ y) (hx : x ≠ ⊥) (hy : y ≠ ⊤) :
+  x.to_real ≤ y.to_real :=
+begin
+  lift x to ℝ,
+  lift y to ℝ,
+  { simpa using h },
+  { simp [hy, ((bot_lt_iff_ne_bot.2 hx).trans_le h).ne'] },
+  { simp [hx, (h.trans_lt (lt_top_iff_ne_top.2 hy)).ne], },
+end
 
 /-! ### ennreal coercion -/
 
@@ -205,11 +224,11 @@ def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=
 { to_fun := λ x, ereal.to_real x,
   inv_fun := λ x, ⟨x, by simp⟩,
   left_inv := λ ⟨x, hx⟩, subtype.eq $ begin
-    simp,
+    lift x to ℝ,
+    { simp },
+    { simpa [not_or_distrib, and_comm] using hx }
   end,
-  right_inv := λ x, to_nnreal_coe }
-
-
+  right_inv := λ x, by simp }
 
 /-! ### Addition -/
 

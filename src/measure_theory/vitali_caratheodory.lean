@@ -63,6 +63,7 @@ begin
   sorry
 end
 
+
 lemma zoug {f : α → ℝ} (hf : integrable f μ) :
   ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
 begin
@@ -72,6 +73,29 @@ begin
   simp,
   exact le_abs_self _,
 end
+
+lemma ennreal.exists_upper_semicontinuous_le' (f : α → ℝ≥0) (hf : measurable f)
+  (int_f : integrable (λ x, (f x : ℝ)) μ) {ε : ℝ≥0} (εpos : 0 < ε) :
+  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ upper_semicontinuous g
+  ∧ (∫ x, (f x : ℝ) ∂μ ≤ ∫ x, g x ∂μ + ε) :=
+begin
+  have If : ∫⁻ x, f x ∂ μ < ∞, by { convert zoug int_f, simp },
+  rcases ennreal.exists_upper_semicontinuous_le f hf If εpos with ⟨g, gf, gcont, gint⟩,
+  have Ig : ∫⁻ x, g x ∂ μ < ∞,
+  { apply lt_of_le_of_lt ( lintegral_mono (λ x, _)) If,
+    simpa using gf x },
+  refine ⟨g, gf, gcont, _⟩,
+  rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
+  { convert ennreal.to_real_mono _ gint,
+    { simp },
+    { rw ennreal.to_real_add Ig.ne ennreal.coe_ne_top, simp },
+    { simpa using Ig.ne } },
+  { apply filter.eventually_of_forall, simp },
+  { exact gcont.measurable.nnreal_coe.ae_measurable },
+  { apply filter.eventually_of_forall, simp },
+  { exact hf.nnreal_coe.ae_measurable }
+end
+
 
 lemma integrable_to_real_of_lintegral_lt_top
   {f : α → ℝ≥0∞} (hf : measurable f) (If : ∫⁻ x, f x ∂μ < ∞) :
@@ -106,7 +130,7 @@ begin
   have gp_lt_top : ∀ᵐ (x : α) ∂μ, gp x < ⊤ := ae_lt_top gpcont.measurable gpint_lt,
   let fm : α → ℝ≥0 := λ x, nnreal.of_real (-f x),
   have int_fm : ∫⁻ x, fm x ∂μ < ∞ := zoug hf.neg,
-  rcases ennreal.exists_upper_semicontinuous_le fm fmeas.neg.nnreal_of_real int_fm δpos with
+  rcases ennreal.exists_upper_semicontinuous_le' fm fmeas.neg.nnreal_of_real int_fm δpos with
     ⟨gm, gm_le_fm, gmcont, gmint⟩,
   let g : α → ereal := λ x, (gp x : ereal) - (gm x),
   refine ⟨g, _, _, _, _⟩,
@@ -131,6 +155,7 @@ begin
         ... ≤ ∥f x∥ : by simp [fm, real.norm_eq_abs, abs_nonneg, neg_le_abs_self]
       end-/
     ... = ennreal.to_real (∫⁻ (x : α), gp x ∂ μ) - ∫ (x : α), gm x ∂μ :
+    sorry/-
     begin
       congr' 1,
       rw integral_eq_lintegral_of_nonneg_ae,
@@ -141,12 +166,10 @@ begin
         simp [hx.ne] },
       { apply filter.eventually_of_forall (λ x, _),
         simp },
-      { apply measurable.ae_measurable,
-
-
-      }
-
-    end
+      { exact gpcont.measurable.ereal_coe_ennreal.ereal_to_real.ae_measurable },
+    end-/
+    ... ≤ ennreal.to_real (∫⁻ (x : α), ↑(fp x) ∂μ + ↑δ) - ∫ (x : α), gm x ∂μ :
+      sub_le_sub (ennreal.to_real_mono (by simp [int_fp.ne]) gpint) (le_refl _)
     ... < ∫ (x : α), f x ∂μ + ε : sorry,
   show ∀ᵐ (x : α) ∂μ, g x < ⊤,
   { filter_upwards [gp_lt_top],

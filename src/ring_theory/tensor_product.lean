@@ -223,13 +223,13 @@ lemma base_change_eq_ltensor :
 
 @[simp] lemma base_change_add :
   (f + g).base_change A = f.base_change A + g.base_change A :=
-by { ext, simp only [base_change_eq_ltensor, add_apply, ltensor_add] }
+by { ext, simp [base_change_eq_ltensor], }
 
 @[simp] lemma base_change_zero : base_change A (0 : M →ₗ[R] N) = 0 :=
-by { ext, simp only [base_change_eq_ltensor, zero_apply, ltensor_zero] }
+by { ext, simp [base_change_eq_ltensor], }
 
 @[simp] lemma base_change_smul : (r • f).base_change A = r • (f.base_change A) :=
-by { ext a m, simp only [base_change_tmul, smul_apply, tmul_smul] }
+by { ext, simp [base_change_tmul], }
 
 variables (R A M N)
 /-- `base_change` as a linear map. -/
@@ -249,10 +249,10 @@ variables (f g : M →ₗ[R] N)
 
 @[simp] lemma base_change_sub :
   (f - g).base_change A = f.base_change A - g.base_change A :=
-by { ext, simp only [base_change_eq_ltensor, sub_apply, ltensor_sub] }
+by { ext, simp [base_change_eq_ltensor], }
 
 @[simp] lemma base_change_neg : (-f).base_change A = -(f.base_change A) :=
-by { ext, simp only [base_change_eq_ltensor, neg_apply, ltensor_neg] }
+by { ext, simp [base_change_eq_ltensor], }
 
 end ring
 

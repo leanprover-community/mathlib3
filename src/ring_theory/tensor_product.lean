@@ -49,22 +49,17 @@ section semiring
 variables [comm_semiring R] [semiring A] [algebra R A]
 variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [module R N]
-variables [add_comm_monoid P] [module A P]
+variables [add_comm_monoid P] [module A P] [module R P] [module A P] [is_scalar_tower R A P]
 
-variables {R A M}
-
-lemma smul_def (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
+lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
 
 instance is_scalar_tower :
   is_scalar_tower R A (M ⊗[R] N) :=
 { smul_assoc :=
   begin
     intros r a x,
-    simp only [algebra_tensor_module.smul_def, alg_hom.map_smul, smul_apply, rtensor_smul]
+    simp only [smul_eq_lsmul_rtensor, alg_hom.map_smul, smul_apply, rtensor_smul],
   end }
-
-variables {R A M N P}
-variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 /-- Heterobasic version of `tensor_product.curry`:
 
@@ -79,7 +74,7 @@ lemma restrict_scalars_curry' (f : (M ⊗[R] N) →ₗ[A] P) :
 rfl
 
 /-- Just as `tensor_product.mk_compr₂_inj` is marked `ext` instead of `tensor_product.ext`, this is
-a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` above.
+a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` below.
 
 See note [partially-applied ext lemmas]. -/
 @[ext] lemma curry'_injective : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
@@ -98,7 +93,6 @@ variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [module R N]
 variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
-variables {R A M N P}
 /-- Heterobasic version of `tensor_product.lift`:
 
 Constructing a linear map `M ⊗[R] N →[A] P` given a bilinear map `M →[A] N →[R] P` with the
@@ -115,7 +109,6 @@ the given bilinear map `M →[A] N →[R] P`. -/
 @[simp] lemma lift'_tmul (f : M →ₗ[A] (N →ₗ[R] P)) (x : M) (y : N) :
   lift' f (x ⊗ₜ y) = f x y :=
 lift.tmul' x y
-
 
 variables (R A M N P)
 /-- Heterobasic version of `tensor_product.uncurry`:

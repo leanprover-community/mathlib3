@@ -210,10 +210,7 @@ lemma emb_domain_mk_coeff {f : Γ → Γ'}
   (hfi : function.injective f) (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g')
   {x : hahn_series Γ R} {a : Γ} :
   (emb_domain ⟨⟨f, hfi⟩, hf⟩ x).coeff (f a) = x.coeff a :=
-begin
-  apply eq.trans (congr rfl _) emb_domain_coeff,
-  simp,
-end
+emb_domain_coeff
 
 lemma emb_domain_notin_image_support {f : Γ ↪o Γ'} {x : hahn_series Γ R} {b : Γ'}
   (hb : b ∉ f '' x.support) : (emb_domain f x).coeff b = 0 :=

@@ -49,7 +49,7 @@ section semiring
 variables [comm_semiring R] [semiring A] [algebra R A]
 variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [module R N]
-variables [add_comm_monoid P] [module A P] [module R P] [module A P] [is_scalar_tower R A P]
+variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
 
@@ -92,7 +92,18 @@ section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
 variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [module R N]
-variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
+variables [add_comm_monoid P] [module A P]
+
+instance : is_scalar_tower R A (M ⊗[A] P) :=
+{ smul_assoc := λ r a x,
+  begin
+    apply x.induction_on,
+    { simp only [smul_zero], },
+    { intros m n, simp only [smul_assoc, smul_tmul'], },
+    { intros x₁ x₂ h₁ h₂, simp only [h₁, h₂, smul_add], },
+  end }
+
+variables [module R P] [is_scalar_tower R A P]
 
 /-- Heterobasic version of `tensor_product.lift`:
 
@@ -149,21 +160,12 @@ The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 { map_smul' := λ c x, rfl,
   .. mk R M N }
 
-instance : is_scalar_tower R A (M ⊗[A] P) :=
-{ smul_assoc := λ r a x,
-  begin
-    apply x.induction_on,
-    { simp only [smul_zero], },
-    { intros m n, simp only [smul_assoc, smul_tmul'], },
-    { intros x₁ x₂ h₁ h₂, simp only [h₁, h₂, smul_add], },
-  end }
-
 /-- Heterobasic version of `tensor_product.assoc`:
 
 Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/
-def assoc [module A N] [is_scalar_tower R A N] : ((M ⊗[A] N) ⊗[R] P) ≃ₗ[A] (M ⊗[A] (N ⊗[R] P)) :=
+def assoc : ((M ⊗[A] P) ⊗[R] N) ≃ₗ[A] (M ⊗[A] (P ⊗[R] N)) :=
 linear_equiv.of_linear
-  (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (N ⊗[R] P))
+  (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (P ⊗[R] N))
   (uncurry A _ _ _ $ comp (uncurry' R A _ _ _) $ by apply curry; exact (mk' R A _ _))
   (by { ext, refl, })
   (by { ext, refl, })

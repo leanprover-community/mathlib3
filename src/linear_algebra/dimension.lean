@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 import linear_algebra.basis
 import linear_algebra.std_basis
 import set_theory.cardinal_ordinal
+import linear_algebra.invariant_basis_number
 
 /-!
 # Dimension of modules and vector spaces
@@ -69,6 +70,24 @@ cardinal.sup.{v v}
   (λ ι : {s : set V // linear_independent K (coe : s → V)}, cardinal.mk ι.1)
 
 end
+
+section strong_rank_condition
+
+variables (R : Type u) [ring R] [strong_rank_condition R]
+variables (M : Type*) [add_comm_group M] [module R M]
+
+attribute [class] set.finite
+attribute [instance] set.finite.fintype
+
+noncomputable instance set.finite.fintype' {α : Type*} {s : set α} [h : finite s] : fintype s :=
+classical.choice h
+
+lemma linear_independent_le_span {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
+  (w : set M) [w.finite] (s : span R w = ⊤) :
+  fintype.card ι ≤ fintype.card w :=
+sorry
+
+end strong_rank_condition
 
 section division_ring
 variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]

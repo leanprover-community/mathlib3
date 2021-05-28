@@ -74,18 +74,46 @@ variables (R : Type u) [ring R]
 class strong_rank_condition : Prop :=
 (le_of_fin_injective : ∀ {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)), injective f → n ≤ m)
 
+section
+variables {R}
+
 lemma le_of_fin_injective [strong_rank_condition R] {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)) :
   injective f → n ≤ m :=
 strong_rank_condition.le_of_fin_injective f
+
+lemma card_le_of_injective [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) →ₗ[R] (β → R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
+begin
+  let P := linear_map.fun_congr_left R R (fintype.equiv_fin α),
+  let Q := linear_map.fun_congr_left R R (fintype.equiv_fin β),
+  exact le_of_fin_injective ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
+    (((linear_equiv.symm Q).injective.comp i).comp (linear_equiv.injective P)),
+end
+
+end
 
 /-- We say that `R` satisfies the rank condition if `(fin n → R) →ₗ[R] (fin m → R)` surjective
     implies `m ≤ n`. -/
 class rank_condition : Prop :=
 (le_of_fin_surjective : ∀ {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)), surjective f → m ≤ n)
 
+section
+variables {R}
+
 lemma le_of_fin_surjective [rank_condition R] {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)) :
   surjective f → m ≤ n :=
 rank_condition.le_of_fin_surjective f
+
+lemma card_le_of_surjective [rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) →ₗ[R] (β → R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
+begin
+  let P := linear_map.fun_congr_left R R (fintype.equiv_fin α),
+  let Q := linear_map.fun_congr_left R R (fintype.equiv_fin β),
+  exact le_of_fin_surjective ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
+    (((linear_equiv.symm Q).surjective.comp i).comp (linear_equiv.surjective P)),
+end
+
+end
 
 /--
 By the universal property for free modules, any surjective map `(fin n → R) →ₗ[R] (fin m → R)`
@@ -95,7 +123,7 @@ from which the strong rank condition gives the necessary inequality for the rank
 @[priority 100]
 instance rank_condition_of_strong_rank_condition [strong_rank_condition R] : rank_condition R :=
 { le_of_fin_surjective := λ n m f s,
-    le_of_fin_injective R _ (f.splitting_of_fun_on_fintype_surjective_injective s), }
+    le_of_fin_injective _ (f.splitting_of_fun_on_fintype_surjective_injective s), }
 
 /-- We say that `R` has the invariant basis number property if `(fin n → R) ≃ₗ[R] (fin m → R)`
     implies `n = m`. This gives rise to a well-defined notion of rank of a finitely generated free
@@ -106,8 +134,8 @@ class invariant_basis_number : Prop :=
 @[priority 100]
 instance invariant_basis_number_of_rank_condition [rank_condition R] : invariant_basis_number R :=
 { eq_of_fin_equiv := λ n m e, le_antisymm
-    (le_of_fin_surjective R e.symm.to_linear_map e.symm.surjective)
-    (le_of_fin_surjective R e.to_linear_map e.surjective) }
+    (le_of_fin_surjective e.symm.to_linear_map e.symm.surjective)
+    (le_of_fin_surjective e.to_linear_map e.surjective) }
 
 end
 
@@ -116,6 +144,11 @@ variables (R : Type u) [ring R] [invariant_basis_number R]
 
 lemma eq_of_fin_equiv {n m : ℕ} : ((fin n → R) ≃ₗ[R] (fin m → R)) → n = m :=
 invariant_basis_number.eq_of_fin_equiv
+
+lemma card_eq_of_lequiv [rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) ≃ₗ[R] (β → R)) : fintype.card α = fintype.card β :=
+eq_of_fin_equiv R (((linear_map.fun_congr_left R R (fintype.equiv_fin α)).trans f).trans
+  ((linear_map.fun_congr_left R R (fintype.equiv_fin β)).symm))
 
 lemma nontrivial_of_invariant_basis_number : nontrivial R :=
 begin

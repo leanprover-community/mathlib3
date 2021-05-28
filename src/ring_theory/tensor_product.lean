@@ -77,7 +77,8 @@ rfl
 a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` below.
 
 See note [partially-applied ext lemmas]. -/
-@[ext] lemma curry'_injective : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
+@[ext] lemma curry'_injective :
+  function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
 λ x y h, linear_map.restrict_scalars_injective R $ curry_injective $
   (congr_arg (linear_map.restrict_scalars R) h : _)
 

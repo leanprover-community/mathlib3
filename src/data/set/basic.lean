@@ -2230,6 +2230,9 @@ set.subset.antisymm (snd_image_prod_subset _ _)
 lemma prod_diff_prod : s.prod t \ s₁.prod t₁ = s.prod (t \ t₁) ∪ (s \ s₁).prod t :=
 by { ext x, by_cases h₁ : x.1 ∈ s₁; by_cases h₂ : x.2 ∈ t₁; simp * }
 
+lemma prod.map_preimage_set_prod (f : α → γ) (g : β → δ) (c : set γ) (d : set δ) :
+  prod.map f g ⁻¹' c.prod d = (f ⁻¹' c).prod (g ⁻¹' d) := rfl
+
 /-- A product set is included in a product set if and only factors are included, or a factor of the
 first set is empty. -/
 lemma prod_subset_prod_iff :

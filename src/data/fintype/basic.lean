@@ -486,6 +486,7 @@ arbitrary `fintype` instances, use either `fintype.card_le_one_iff_subsingleton`
   fintype.card α = 1 :=
 subsingleton.elim (of_subsingleton $ default α) h ▸ card_of_subsingleton _
 
+@[priority 100] -- see Note [lower instance priority]
 instance of_is_empty [is_empty α] : fintype α := ⟨∅, is_empty_elim⟩
 
 /-- Note: this lemma is specifically about `fintype.of_is_empty`. For a statement about
@@ -500,7 +501,7 @@ open_locale classical
 variables (α)
 
 /-- Any subsingleton type is (noncomputably) a fintype (with zero or one terms). -/
-@[priority 100]
+@[priority 5] -- see Note [lower instance priority]
 noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
 if h : nonempty α then
   of_subsingleton (nonempty.some h)

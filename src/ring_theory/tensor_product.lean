@@ -82,13 +82,13 @@ rfl
 a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` above.
 
 See note [partially-applied ext lemmas]. -/
-@[ext] lemma curry'_inj : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
-λ x y h, linear_map.restrict_scalars_injective R $ curry_inj $
+@[ext] lemma curry'_injective : function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
+λ x y h, linear_map.restrict_scalars_injective R $ curry_injective $
   (congr_arg (linear_map.restrict_scalars R) h : _)
 
 theorem ext {g h : (M ⊗[R] N) →ₗ[A] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
-curry'_inj $ linear_map.ext₂ H
+curry'_injective $ linear_map.ext₂ H
 
 end semiring
 
@@ -180,7 +180,7 @@ linear_equiv.of_linear
   (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (N ⊗[R] P))
   (uncurry A _ _ _ $ comp (uncurry' R A _ _ _) $ by apply curry; exact (mk' R A _ _))
   (by apply mk_compr₂_inj; ext; refl)
-  (by apply curry'_inj; ext; refl)
+  (by apply curry'_injective; ext; refl)
 
 end comm_semiring
 

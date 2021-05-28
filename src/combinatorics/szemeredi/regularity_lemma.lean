@@ -120,6 +120,86 @@ begin
   apply hf ha₁ ha₂
 end
 
+lemma equitable_iff_almost_eq_constant {α : Type*} (s : set α) (f : α → ℕ) :
+  equitable_on s f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
+begin
+  classical,
+  split,
+  { rw equitable_on_iff,
+    rcases s.eq_empty_or_nonempty with rfl | hs,
+    { simp },
+    { intros h,
+      refine ⟨nat.find (set.nonempty.image f hs), _⟩,
+      obtain ⟨w, hw₁, hw₂⟩ := nat.find_spec (set.nonempty.image f hs),
+      intros a ha,
+      have : nat.find (set.nonempty.image f hs) ≤ f a := nat.find_min' _ ⟨_, ha, rfl⟩,
+      cases eq_or_lt_of_le this with q q,
+      { exact or.inl q.symm },
+      { refine or.inr (le_antisymm _ (nat.succ_le_of_lt q)),
+        rw [←hw₂, ←nat.sub_le_left_iff_le_add],
+        apply h hw₁ ha } } },
+  { rintro ⟨b, hb⟩ x₁ x₂ hx₁ hx₂ h,
+    rcases hb x₁ hx₁ with rfl | hx₁';
+    cases hb x₂ hx₂ with hx₂' hx₂',
+    { simp [hx₂'] },
+    { simp [hx₂'] },
+    { simpa [hx₁', hx₂'] using h },
+    { simp [hx₁', hx₂'] } }
+end
+
+lemma between_nat_iff {a t : ℕ} :
+  (a = t ∨ a = t+1) ↔ (t ≤ a ∧ a ≤ t+1) :=
+begin
+  split,
+  { rintro (rfl | rfl);
+    simp },
+  { rintro ⟨h₁, h₂⟩,
+    cases eq_or_lt_of_le h₁ with h h,
+    { exact or.inl h.symm },
+    { exact or.inr (le_antisymm h₂ (nat.succ_le_of_lt h)) } },
+end
+
+lemma equitable_on_finset_iff_eq_average {α : Type*} (s : finset α) (f : α → ℕ) :
+  equitable_on (s : set α) f ↔
+    ∀ a ∈ s, f a = (∑ i in s, f i) / s.card ∨ f a = (∑ i in s, f i) / s.card + 1 :=
+begin
+  rw equitable_iff_almost_eq_constant,
+  split,
+  { rintro ⟨b, hb⟩,
+    by_cases h : ∀ a ∈ s, f a = b+1,
+    { clear hb,
+      intros a ha,
+      left,
+      symmetry,
+      apply nat.div_eq_of_eq_mul_left (finset.card_pos.2 ⟨_, ha⟩),
+      rw [mul_comm, sum_const_nat],
+      intros c hc,
+      rw [h _ ha, h _ hc] },
+    { suffices : b = (∑ i in s, f i) / s.card,
+      { simp_rw [←this],
+          apply hb },
+      simp_rw between_nat_iff at hb,
+      symmetry,
+      apply nat.div_eq_of_lt_le,
+      { apply le_trans _ (sum_le_sum (λ a ha, (hb a ha).1)),
+        simp [mul_comm] },
+      push_neg at h,
+      rcases h with ⟨x, hx₁, hx₂⟩,
+      apply (sum_lt_sum (λ a ha, (hb a ha).2) ⟨_, hx₁, lt_of_le_of_ne (hb _ hx₁).2 hx₂⟩).trans_le,
+      rw [mul_comm, sum_const_nat],
+      simp } },
+  { intro h,
+    refine ⟨_, h⟩ }
+end
+
+lemma equitable_on_finset_iff {α : Type*} (s : finset α) (f : α → ℕ) :
+  equitable_on (s : set α) f ↔
+    ∀ a ∈ s, (∑ i in s, f i) / s.card ≤ f a ∧ f a ≤ (∑ i in s, f i) / s.card + 1 :=
+begin
+  rw equitable_on_finset_iff_eq_average,
+  simp_rw [between_nat_iff],
+end
+
 namespace simple_graph
 variables {V : Type u} [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
 
@@ -226,7 +306,7 @@ structure equipartition (V : Type u) [decidable_eq V] :=
 (parts : finset (finset V))
 (disjoint : ∀ (a₁ a₂ ∈ parts) x, x ∈ a₁ → x ∈ a₂ → a₁ = a₂)
 (covering : ∀ v, ∃ (a ∈ parts), v ∈ a) -- TODO: add a lemma saying the union is everything
-(sizes : equitable_on (parts : set (finset V)) finset.card)
+(sizes : equitable_on (parts : set (finset V)) card)
 
 namespace equipartition
 variables {V : Type u} [decidable_eq V] (P : equipartition V)
@@ -235,6 +315,9 @@ variables {V : Type u} [decidable_eq V] (P : equipartition V)
 begin
 
 end-/
+
+lemma ext (P Q : equipartition V) : P.parts = Q.parts → P = Q :=
+by { cases P, cases Q, intro h, congr' 1 }
 
 protected def size : ℕ := card P.parts
 
@@ -445,7 +528,7 @@ def is_uniform {ε : ℝ} (hε : 0 < ε) :
   (discrete_equipartition V).is_uniform G ε :=
 begin
   rw [is_uniform, discrete_equipartition.size, discrete_equipartition.non_uniform_parts _ hε,
-    finset.card_empty, nat.cast_zero],--problem with `is_uniform`
+    finset.card_empty, nat.cast_zero],
   exact mul_nonneg hε.le (nat.cast_nonneg _),
 end
 
@@ -470,12 +553,12 @@ end,
 protected lemma dummy_equipartition.size {V : Type u} [decidable_eq V] [fintype V] {n : ℕ} :
   (dummy_equipartition V n).size = n :=
 begin
-  sorry,
+  sorry, -- this is false in general
 end
 
 /-! ### The actual proof -/
 
-def exp_bound : ℕ → ℕ := λ n, n * 4^n
+def exp_bound (n : ℕ) : ℕ := n * 4^n
 
 lemma le_exp_bound (n : ℕ) :
   n ≤ exp_bound n :=
@@ -489,7 +572,6 @@ let t : ℕ := max l (⌈real.log (100 / ε^5) / real.log 4⌉ + 1).nat_abs,
 
 open_locale classical
 variables {V : Type u} [fintype V] (G : simple_graph V)
-include G
 
 /--
 The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then we
@@ -508,7 +590,7 @@ open discrete_equipartition
 
 --have the problem that I must prove stuff (namely the equivalent of `hl`) while defining data
 /-- The equipartition refinement operation -/
-def szemeredi_equipartition (ε : ℝ) (l : ℕ) : ℕ → equipartition V
+noncomputable def szemeredi_equipartition (ε : ℝ) (l : ℕ) : ℕ → equipartition V
 | 0       := dummy_equipartition V l
 | (n + 1) := dite ((szemeredi_equipartition n).size * 16^(szemeredi_equipartition n).size ≤ card V
   ∧ 100 < ε ^ 5 * 4^(szemeredi_equipartition n).size ∧ ¬(szemeredi_equipartition n).is_uniform G ε)

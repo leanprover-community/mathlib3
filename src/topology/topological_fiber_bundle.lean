@@ -979,3 +979,30 @@ begin
 end
 
 end topological_fiber_bundle_core
+
+lemma continuous_within_at_prod_iff {α : Type*} {β : Type*} {γ : Type*} [topological_space α]
+  [topological_space β] [topological_space γ] {f : α → β × γ} {s : set α} {x : α} :
+  continuous_within_at f s x ↔ continuous_within_at (prod.fst ∘ f) s x ∧
+  continuous_within_at (prod.snd ∘ f) s x :=
+begin
+  split,
+  {
+    intro h,
+    split,
+    {
+      refine (continuous_within_at_fst.comp h (_ : s ⊆ f ⁻¹' univ)),
+      simp only [preimage_univ, subset_univ],
+    },
+    {
+      refine (continuous_within_at_snd.comp h (_ : s ⊆ f ⁻¹' univ)),
+      simp only [preimage_univ, subset_univ],
+    }
+  },
+  {
+    rintro ⟨h1, h2⟩,
+    convert h1.prod h2,
+    ext a,
+    refl,
+    refl,
+  }
+end

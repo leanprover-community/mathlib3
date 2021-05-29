@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import algebra.homology.complex_shape
 import category_theory.subobject.limits
+import category_theory.graded_object
 
 /-!
 # Homological complexes.
@@ -500,6 +501,23 @@ arrow.hom_mk (f.comm_to j)
 @[simp] lemma sq_to_right (f : hom C₁ C₂) (j : ι) : (f.sq_to j).right = f.f j := rfl
 
 end hom
+
+variables (V c)
+
+/-- The functor picking out the `i`-th object of a complex. -/
+@[simps] def eval (i : ι) : homological_complex V c ⥤ V :=
+{ obj := λ C, C.X i,
+  map := λ C D f, f.f i, }
+
+/-- The functor forgetting the differential in a complex, obtaining a graded object. -/
+@[simps] def forget : homological_complex V c ⥤ graded_object ι V :=
+{ obj := λ C, C.X,
+  map := λ _ _ f, f.f }
+
+/-- Forgetting the differentials than pickout out the `i`-th object is the same as
+just picking out the `i`-th object. -/
+@[simps] def forget_eval (i : ι) : forget V c ⋙ graded_object.eval i ≅ eval V c i :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 end homological_complex
 

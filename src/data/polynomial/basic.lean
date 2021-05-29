@@ -42,7 +42,7 @@ equal to `0`.
 The raw implementation of the equivalence between `polynomial R` and `add_monoid_algebra R ℕ` is
 done through `of_finsupp` and `to_finsupp` (or, equivalently, `rcases p` when `p` is a polynomial
 gives an element `q` of `add_monoid_algebra R ℕ`, and conversely `⟨q⟩` gives back `p`). The
-equivalence is also registered as an algebra equiv in `polynomial.to_finsupp_iso`. These should
+equivalence is also registered as a ring equiv in `polynomial.to_finsupp_iso`. These should
 in general not be used once the basic API for polynomials is constructed.
 -/
 
@@ -148,15 +148,16 @@ instance [subsingleton R] : unique (polynomial R) :=
 
 variable (R)
 
-/-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
+/-- Ring isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
+@[simps]
 def to_finsupp_iso : polynomial R ≃+* add_monoid_algebra R ℕ :=
-{ to_fun := λ ⟨p⟩, p,
+{ to_fun := λ p, p.to_finsupp,
   inv_fun := λ p, ⟨p⟩,
   left_inv := λ ⟨p⟩, rfl,
   right_inv := λ p, rfl,
-  map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp], refl },
-  map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp], refl } }
+  map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
+  map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
 
 variable {R}
 
@@ -264,11 +265,12 @@ by simp only [←monomial_zero_left, monomial_mul_monomial, zero_add]
 @[simp] lemma monomial_mul_C : monomial n a * C b = monomial n (a * b) :=
 by simp only [←monomial_zero_left, monomial_mul_monomial, add_zero]
 
-/-- `X` is the polynomial variable (aka indeterminant). -/
+/-- `X` is the polynomial variable (aka indeterminate). -/
 def X : polynomial R := monomial 1 1
 
 lemma monomial_one_one_eq_X : monomial 1 (1 : R) = X := rfl
-lemma monomial_one_right_eq_X_pow (n : ℕ) : monomial n 1 = X^n :=
+
+lemma monomial_one_right_eq_X_pow (n : ℕ) : monomial n (1 : R) = X^n :=
 begin
   induction n with n ih,
   { simp [monomial_zero_one], },
@@ -387,8 +389,12 @@ begin
   set g' : add_monoid_algebra R ℕ →+ M := g.comp (to_finsupp_iso R).symm with hg',
   have : ∀ n a, f' (single n a) = g' (single n a) := λ n, by simp [hf', hg', h n],
   have A : f' = g' := finsupp.add_hom_ext this,
-  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', add_monoid_hom.comp_assoc], ext x, simp },
-  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', add_monoid_hom.comp_assoc], ext x, simp },
+  have B : f = f'.comp (to_finsupp_iso R), by { rw [hf', add_monoid_hom.comp_assoc], ext x,
+  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
+    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
+  have C : g = g'.comp (to_finsupp_iso R), by { rw [hg', add_monoid_hom.comp_assoc], ext x,
+  simp only [ring_equiv.symm_apply_apply, add_monoid_hom.coe_comp, function.comp_app,
+    ring_hom.coe_add_monoid_hom, ring_equiv.coe_to_ring_hom, coe_coe]},
   rw [B, C, A],
 end
 

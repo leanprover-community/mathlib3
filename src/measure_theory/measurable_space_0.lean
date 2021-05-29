@@ -397,83 +397,9 @@ end
 
 end complete_lattice
 
-section functors
-variables {m m₁ m₂ : measurable_space α} {m' : measurable_space β} {f : α → β} {g : β → α}
-
-/-- The forward image of a measure space under a function. `map f m` contains the sets `s : set β`
-  whose preimage under `f` is measurable. -/
-protected def map (f : α → β) (m : measurable_space α) : measurable_space β :=
-{ measurable_set'      := λ s, m.measurable_set' $ f ⁻¹' s,
-  measurable_set_empty := m.measurable_set_empty,
-  measurable_set_compl := assume s hs, m.measurable_set_compl _ hs,
-  measurable_set_Union := assume f hf, by { rw preimage_Union, exact m.measurable_set_Union _ hf }}
-
-@[simp] lemma map_id : m.map id = m :=
-measurable_space.ext $ assume s, iff.rfl
-
-@[simp] lemma map_comp {f : α → β} {g : β → γ} : (m.map f).map g = m.map (g ∘ f) :=
-measurable_space.ext $ assume s, iff.rfl
-
-/-- The reverse image of a measure space under a function. `comap f m` contains the sets `s : set α`
-  such that `s` is the `f`-preimage of a measurable set in `β`. -/
-protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
-{ measurable_set'      := λ s, ∃s', m.measurable_set' s' ∧ f ⁻¹' s' = s,
-  measurable_set_empty := ⟨∅, m.measurable_set_empty, rfl⟩,
-  measurable_set_compl := assume s ⟨s', h₁, h₂⟩, ⟨s'ᶜ, m.measurable_set_compl _ h₁, h₂ ▸ rfl⟩,
-  measurable_set_Union := assume s hs,
-    let ⟨s', hs'⟩ := classical.axiom_of_choice hs in
-    ⟨⋃ i, s' i, m.measurable_set_Union _ (λ i, (hs' i).left), by simp [hs'] ⟩ }
-
-@[simp] lemma comap_id : m.comap id = m :=
-measurable_space.ext $ assume s, ⟨assume ⟨s', hs', h⟩, h ▸ hs', assume h, ⟨s, h, rfl⟩⟩
-
-@[simp] lemma comap_comp {f : β → α} {g : γ → β} : (m.comap f).comap g = m.comap (f ∘ g) :=
-measurable_space.ext $ assume s,
-  ⟨assume ⟨t, ⟨u, h, hu⟩, ht⟩, ⟨u, h, ht ▸ hu ▸ rfl⟩, assume ⟨t, h, ht⟩, ⟨f ⁻¹' t, ⟨_, h, rfl⟩, ht⟩⟩
-
-lemma comap_le_iff_le_map {f : α → β} : m'.comap f ≤ m ↔ m' ≤ m.map f :=
-⟨assume h s hs, h _ ⟨_, hs, rfl⟩, assume h s ⟨t, ht, heq⟩, heq ▸ h _ ht⟩
-
-lemma gc_comap_map (f : α → β) :
-  galois_connection (measurable_space.comap f) (measurable_space.map f) :=
-assume f g, comap_le_iff_le_map
-
-lemma map_mono (h : m₁ ≤ m₂) : m₁.map f ≤ m₂.map f := (gc_comap_map f).monotone_u h
-lemma monotone_map : monotone (measurable_space.map f) := assume a b h, map_mono h
-lemma comap_mono (h : m₁ ≤ m₂) : m₁.comap g ≤ m₂.comap g := (gc_comap_map g).monotone_l h
-lemma monotone_comap : monotone (measurable_space.comap g) := assume a b h, comap_mono h
-
-@[simp] lemma comap_bot : (⊥ : measurable_space α).comap g = ⊥ := (gc_comap_map g).l_bot
-@[simp] lemma comap_sup : (m₁ ⊔ m₂).comap g = m₁.comap g ⊔ m₂.comap g := (gc_comap_map g).l_sup
-@[simp] lemma comap_supr {m : ι → measurable_space α} : (⨆i, m i).comap g = (⨆i, (m i).comap g) :=
-(gc_comap_map g).l_supr
-
-@[simp] lemma map_top : (⊤ : measurable_space α).map f = ⊤ := (gc_comap_map f).u_top
-@[simp] lemma map_inf : (m₁ ⊓ m₂).map f = m₁.map f ⊓ m₂.map f := (gc_comap_map f).u_inf
-@[simp] lemma map_infi {m : ι → measurable_space α} : (⨅i, m i).map f = (⨅i, (m i).map f) :=
-(gc_comap_map f).u_infi
-
-lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).l_u_le _
-lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
-
-end functors
-
-lemma generate_from_le_generate_from {s t : set (set α)} (h : s ⊆ t) :
-  generate_from s ≤ generate_from t :=
-gi_generate_from.gc.monotone_l h
-
-lemma generate_from_sup_generate_from {s t : set (set α)} :
-  generate_from s ⊔ generate_from t = generate_from (s ∪ t) :=
-(@gi_generate_from α).gc.l_sup.symm
-
-lemma comap_generate_from {f : α → β} {s : set (set β)} :
-  (generate_from s).comap f = generate_from (preimage f '' s) :=
-le_antisymm
-  (comap_le_iff_le_map.2 $ generate_from_le $ assume t hts,
-    generate_measurable.basic _ $ mem_image_of_mem _ $ hts)
-  (generate_from_le $ assume t ⟨u, hu, eq⟩, eq ▸ ⟨u, generate_measurable.basic _ hu, rfl⟩)
 
 end measurable_space
+
 
 section measurable_functions
 open measurable_space
@@ -482,30 +408,6 @@ open measurable_space
   measurable set is measurable. -/
 def measurable [measurable_space α] [measurable_space β] (f : α → β) : Prop :=
 ∀ ⦃t : set β⦄, measurable_set t → measurable_set (f ⁻¹' t)
-
-lemma measurable_iff_le_map {m₁ : measurable_space α} {m₂ : measurable_space β} {f : α → β} :
-  measurable f ↔ m₂ ≤ m₁.map f :=
-iff.rfl
-
-alias measurable_iff_le_map ↔ measurable.le_map measurable.of_le_map
-
-lemma measurable_iff_comap_le {m₁ : measurable_space α} {m₂ : measurable_space β} {f : α → β} :
-  measurable f ↔ m₂.comap f ≤ m₁ :=
-comap_le_iff_le_map.symm
-
-alias measurable_iff_comap_le ↔ measurable.comap_le measurable.of_comap_le
-
-lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space β} {f : α → β}
-  (hf : @measurable α β ma mb f) (ha : ma ≤ ma') (hb : mb' ≤ mb) :
-  @measurable α β ma' mb' f :=
-λ t ht, ha _ $ hf $ hb _ ht
-
-lemma measurable_from_top [measurable_space β] {f : α → β} : @measurable _ _ ⊤ _ f :=
-λ s hs, trivial
-
-lemma measurable_generate_from [measurable_space α] {s : set (set β)} {f : α → β}
-  (h : ∀ t ∈ s, measurable_set (f ⁻¹' t)) : @measurable _ _ _ (generate_from s) f :=
-measurable.of_le_map $ generate_from_le h
 
 variables [measurable_space α] [measurable_space β] [measurable_space γ]
 

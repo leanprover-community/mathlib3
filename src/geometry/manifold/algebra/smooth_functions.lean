@@ -33,7 +33,7 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H'
 ⟨λ f g, ⟨f * g, f.smooth.mul g.smooth⟩⟩
 
 @[simp, to_additive]
-lemma mul_coe {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
+lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
   [has_smooth_mul I' G] (f g : C^∞⟮I, N; I', G⟯) :
   ⇑(f * g) = f * g := rfl
 
@@ -43,7 +43,7 @@ instance has_one {G : Type*} [monoid G] [topological_space G] [charted_space H' 
 ⟨times_cont_mdiff_map.const (1 : G)⟩
 
 @[simp, to_additive]
-lemma one_coe {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
+lemma coe_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
   ⇑(1 : C^∞⟮I, N; I', G⟯) = 1 := rfl
 
 section group_structure
@@ -76,7 +76,7 @@ instance monoid {G : Type*} [monoid G] [topological_space G]
   simps]
 def coe_fn_monoid_hom {G : Type*} [monoid G] [topological_space G]
   [charted_space H' G] [has_smooth_mul I' G] : C^∞⟮I, N; I', G⟯ →* (N → G) :=
-{ to_fun := coe_fn, map_one' := one_coe, map_mul' := mul_coe }
+{ to_fun := coe_fn, map_one' := coe_one, map_mul' := coe_mul }
 
 @[to_additive]
 instance comm_monoid {G : Type*} [comm_monoid G] [topological_space G]
@@ -167,13 +167,13 @@ In this section we show that smooth functions valued in a vector space `M` over 
 field `𝕜` inherit a vector space structure.
 -/
 
-instance smooth_map.has_scalar
+instance has_scalar
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   has_scalar 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
 
 @[simp]
-lemma smul_coe {V : Type*} [normed_group V] [normed_space 𝕜 V]
+lemma scoe_mul {V : Type*} [normed_group V] [normed_space 𝕜 V]
   (r : 𝕜) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
   ⇑(r • f) = r • f := rfl
 
@@ -191,7 +191,7 @@ module.of_core $
 def coe_fn_linear_map {V : Type*} [normed_group V] [normed_space 𝕜 V] :
 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ →ₗ[𝕜] (N → V) :=
 { to_fun := coe_fn,
-  map_smul' := smul_coe,
+  map_smul' := scoe_mul,
   ..(coe_fn_add_monoid_hom : C^∞⟮I, N; 𝓘(𝕜, V), V⟯ →+ _) }
 
 end module_structure
@@ -229,10 +229,10 @@ def coe_fn_alg_hom : C^∞⟮I, N; 𝓘(𝕜, A), A⟯ →ₐ[𝕜] (N → A) :=
 { to_fun := coe_fn,
   commutes' := λ r, rfl,
   -- `..(smooth_map.coe_fn_ring_hom : C^∞⟮I, N; 𝓘(𝕜, A), A⟯ →+* _)` times out for some reason
-  map_zero' := smooth_map.zero_coe,
-  map_one' := smooth_map.one_coe,
-  map_add' := smooth_map.add_coe,
-  map_mul' := smooth_map.mul_coe }
+  map_zero' := smooth_map.coe_zero,
+  map_one' := smooth_map.coe_one,
+  map_add' := smooth_map.coe_add,
+  map_mul' := smooth_map.coe_mul }
 
 end algebra_structure
 

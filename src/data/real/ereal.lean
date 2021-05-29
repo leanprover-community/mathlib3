@@ -392,7 +392,7 @@ lemma sub_lt_sub_of_lt_of_le {x y z t : ereal} (h : x < y) (h' : z ≤ t) (hz : 
   x - t < y - z :=
 add_lt_add_of_lt_of_le h (neg_le_neg_iff.2 h') (by simp [ht]) (by simp [hz])
 
-lemma coe_eq_coe_ennreal_sub_coe_ennreal (x : ℝ) :
+lemma coe_real_ereal_eq_coe_to_nnreal_sub_coe_to_nnreal (x : ℝ) :
   (x : ereal) = real.to_nnreal x - real.to_nnreal (-x) :=
 begin
   rcases le_or_lt 0 x with h|h,

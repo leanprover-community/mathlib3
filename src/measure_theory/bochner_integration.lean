@@ -1277,6 +1277,14 @@ begin
     rw [this, hfi], refl }
 end
 
+lemma integral_eq_integral_pos_part_sub_integral_neg_part {f : α → ℝ} (hf : integrable f μ) :
+  ∫ a, f a ∂μ = (∫ a, real.to_nnreal (f a) ∂μ) - (∫ a, real.to_nnreal (-f a) ∂μ) :=
+begin
+  rw [← integral_sub hf.real_to_nnreal],
+  { simp },
+  { exact hf.neg.real_to_nnreal }
+end
+
 lemma integral_nonneg_of_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) : 0 ≤ ∫ a, f a ∂μ :=
 begin
   by_cases hfm : ae_measurable f μ,
@@ -1295,7 +1303,7 @@ end
 lemma integral_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ∞) :
   ∫ a, (f a).to_real ∂μ = (∫⁻ a, f a ∂μ).to_real :=
 begin
-  rw [integral_eq_lintegral_of_nonneg_ae _ hfm.to_real],
+  rw [integral_eq_lintegral_of_nonneg_ae _ hfm.ennreal_to_real],
   { rw lintegral_congr_ae, refine hf.mp (eventually_of_forall _),
     intros x hx, rw [lt_top_iff_ne_top] at hx, simp [hx] },
   { exact (eventually_of_forall $ λ x, ennreal.to_real_nonneg) }

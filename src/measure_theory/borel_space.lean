@@ -1017,30 +1017,33 @@ end real
 
 variable [measurable_space α]
 
-lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
+lemma measurable.real_to_nnreal {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, real.to_nnreal (f x)) :=
 nnreal.continuous_of_real.measurable.comp hf
 
-lemma ae_measurable.nnreal_of_real {f : α → ℝ} {μ : measure α} (hf : ae_measurable f μ) :
+lemma ae_measurable.real_to_nnreal {f : α → ℝ} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, real.to_nnreal (f x)) μ :=
 nnreal.continuous_of_real.measurable.comp_ae_measurable hf
 
-lemma nnreal.measurable_coe : measurable (coe : ℝ≥0 → ℝ) :=
+lemma measurable_coe_nnreal_real : measurable (coe : ℝ≥0 → ℝ) :=
 nnreal.continuous_coe.measurable
 
-lemma measurable.nnreal_coe {f : α → ℝ≥0} (hf : measurable f) :
+lemma measurable.coe_nnreal_real {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ℝ)) :=
-nnreal.measurable_coe.comp hf
+measurable_coe_nnreal_real.comp hf
 
-lemma ae_measurable.nnreal_coe {f : α → ℝ≥0} {μ : measure α} (hf : ae_measurable f μ) :
+lemma ae_measurable.coe_nnreal_real {f : α → ℝ≥0} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, (f x : ℝ)) μ :=
-nnreal.measurable_coe.comp_ae_measurable hf
+measurable_coe_nnreal_real.comp_ae_measurable hf
 
-lemma measurable.ennreal_coe {f : α → ℝ≥0} (hf : measurable f) :
+lemma measurable_coe_nnreal_ennreal : measurable (coe : ℝ≥0 → ℝ≥0∞) :=
+ennreal.continuous_coe.measurable
+
+lemma measurable.coe_nnreal_ennreal {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ℝ≥0∞)) :=
 ennreal.continuous_coe.measurable.comp hf
 
-lemma ae_measurable.ennreal_coe {f : α → ℝ≥0} {μ : measure α} (hf :  ae_measurable f μ) :
+lemma ae_measurable.coe_nnreal_ennreal {f : α → ℝ≥0} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, (f x : ℝ≥0∞)) μ :=
 ennreal.continuous_coe.measurable.comp_ae_measurable hf
 
@@ -1054,9 +1057,6 @@ ennreal.ne_top_homeomorph_nnreal.to_measurable_equiv
 
 namespace ennreal
 
-lemma measurable_coe : measurable (coe : ℝ≥0 → ℝ≥0∞) :=
-measurable_id.ennreal_coe
-
 lemma measurable_of_measurable_nnreal {f : ℝ≥0∞ → α}
   (h : measurable (λ p : ℝ≥0, f p)) : measurable f :=
 measurable_of_measurable_on_compl_singleton ∞
@@ -1065,7 +1065,8 @@ measurable_of_measurable_on_compl_singleton ∞
 /-- `ℝ≥0∞` is `measurable_equiv` to `ℝ≥0 ⊕ unit`. -/
 def ennreal_equiv_sum : ℝ≥0∞ ≃ᵐ ℝ≥0 ⊕ unit :=
 { measurable_to_fun  := measurable_of_measurable_nnreal measurable_inl,
-  measurable_inv_fun := measurable_sum measurable_coe (@measurable_const ℝ≥0∞ unit _ _ ∞),
+  measurable_inv_fun := measurable_sum measurable_coe_nnreal_ennreal
+    (@measurable_const ℝ≥0∞ unit _ _ ∞),
   .. equiv.option_equiv_sum_punit ℝ≥0 }
 
 open function (uncurry)
@@ -1091,7 +1092,7 @@ lemma measurable_of_real : measurable ennreal.of_real :=
 ennreal.continuous_of_real.measurable
 
 lemma measurable_to_real : measurable ennreal.to_real :=
-ennreal.measurable_of_measurable_nnreal nnreal.measurable_coe
+ennreal.measurable_of_measurable_nnreal measurable_coe_nnreal_real
 
 lemma measurable_to_nnreal : measurable ennreal.to_nnreal :=
 ennreal.measurable_of_measurable_nnreal measurable_id
@@ -1099,7 +1100,7 @@ ennreal.measurable_of_measurable_nnreal measurable_id
 instance : has_measurable_mul₂ ℝ≥0∞ :=
 begin
   refine ⟨measurable_of_measurable_nnreal_nnreal _ _ _⟩,
-  { simp only [← ennreal.coe_mul, measurable_mul.ennreal_coe] },
+  { simp only [← ennreal.coe_mul, measurable_mul.coe_nnreal_ennreal] },
   { simp only [ennreal.top_mul, ennreal.coe_eq_zero],
     exact measurable_const.piecewise (measurable_set_singleton _) measurable_const },
   { simp only [ennreal.mul_top, ennreal.coe_eq_zero],
@@ -1108,25 +1109,29 @@ end
 
 instance : has_measurable_sub₂ ℝ≥0∞ :=
 ⟨by apply measurable_of_measurable_nnreal_nnreal;
-  simp [← ennreal.coe_sub, continuous_sub.measurable.ennreal_coe]⟩
+  simp [← ennreal.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
 
 instance : has_measurable_inv ℝ≥0∞ := ⟨ennreal.continuous_inv.measurable⟩
 
 end ennreal
 
-lemma measurable.to_nnreal {f : α → ℝ≥0∞} (hf : measurable f) :
+lemma measurable.ennreal_to_nnreal {f : α → ℝ≥0∞} (hf : measurable f) :
   measurable (λ x, (f x).to_nnreal) :=
 ennreal.measurable_to_nnreal.comp hf
 
-lemma measurable_ennreal_coe_iff {f : α → ℝ≥0} :
-  measurable (λ x, (f x : ℝ≥0∞)) ↔ measurable f :=
-⟨λ h, h.to_nnreal, λ h, h.ennreal_coe⟩
+lemma ae_measurable.ennreal_to_nnreal {f : α → ℝ≥0∞} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x, (f x).to_nnreal) μ :=
+ennreal.measurable_to_nnreal.comp_ae_measurable hf
 
-lemma measurable.to_real {f : α → ℝ≥0∞} (hf : measurable f) :
+lemma measurable_coe_nnreal_ennreal_iff {f : α → ℝ≥0} :
+  measurable (λ x, (f x : ℝ≥0∞)) ↔ measurable f :=
+⟨λ h, h.ennreal_to_nnreal, λ h, h.coe_nnreal_ennreal⟩
+
+lemma measurable.ennreal_to_real {f : α → ℝ≥0∞} (hf : measurable f) :
   measurable (λ x, ennreal.to_real (f x)) :=
 ennreal.measurable_to_real.comp hf
 
-lemma ae_measurable.to_real {f : α → ℝ≥0∞} {μ : measure α} (hf : ae_measurable f μ) :
+lemma ae_measurable.ennreal_to_real {f : α → ℝ≥0∞} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, ennreal.to_real (f x)) μ :=
 ennreal.measurable_to_real.comp_ae_measurable hf
 
@@ -1140,7 +1145,7 @@ lemma measurable.nnreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0} (h 
   measurable (λ x, ∑' i, f i x) :=
 begin
   simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
-  exact (measurable.ennreal_tsum (λ i, (h i).ennreal_coe)).to_nnreal,
+  exact (measurable.ennreal_tsum (λ i, (h i).coe_nnreal_ennreal)).ennreal_to_nnreal,
 end
 
 lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} {μ : measure α}
@@ -1149,39 +1154,48 @@ lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0�
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
   exact λ s, finset.ae_measurable_sum s (λ i _, h i) }
 
-namespace ereal
 
-lemma measurable_coe : measurable (coe : ℝ → ereal) :=
+lemma measurable_coe_real_ereal : measurable (coe : ℝ → ereal) :=
 ereal.continuous_coe.measurable
 
-lemma _root_.measurable.ereal_coe {f : α → ℝ} (hf : measurable f) :
+lemma measurable.coe_real_ereal {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, (f x : ereal)) :=
-ereal.measurable_coe.comp hf
+measurable_coe_real_ereal.comp hf
+
+lemma ae_measurable.coe_real_ereal {f : α → ℝ} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x, (f x : ereal)) μ :=
+measurable_coe_real_ereal.comp_ae_measurable hf
 
 /-- The set of finite `ereal` numbers is `measurable_equiv` to `ℝ`. -/
-def _root_.measurable_equiv.ereal_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ᵐ ℝ :=
+def measurable_equiv.ereal_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ᵐ ℝ :=
 ereal.ne_bot_top_homeomorph_real.to_measurable_equiv
 
-lemma measurable_of_measurable_real {f : ereal → α}
+lemma ereal.measurable_of_measurable_real {f : ereal → α}
   (h : measurable (λ p : ℝ, f p)) : measurable f :=
 measurable_of_measurable_on_compl_finite {⊥, ⊤} (by simp)
   (measurable_equiv.ereal_equiv_real.symm.measurable_coe_iff.1 h)
 
-lemma measurable_to_real : measurable ereal.to_real :=
+lemma measurable_ereal_to_real : measurable ereal.to_real :=
 ereal.measurable_of_measurable_real (by simpa using measurable_id)
 
-lemma _root_.measurable.ereal_to_real {f : α → ereal} (hf : measurable f) :
+lemma measurable.ereal_to_real {f : α → ereal} (hf : measurable f) :
   measurable (λ x, (f x).to_real) :=
-measurable.comp measurable_to_real hf
+measurable_ereal_to_real.comp hf
 
-lemma measurable_coe_ennreal : measurable (coe : ℝ≥0∞ → ereal) :=
-continuous_coe_ennreal.measurable
+lemma ae_measurable.ereal_to_real {f : α → ereal} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x, (f x).to_real) μ :=
+measurable_ereal_to_real.comp_ae_measurable hf
 
-lemma _root_.measurable.ereal_coe_ennreal {f : α → ℝ≥0∞} (hf : measurable f) :
+lemma measurable_coe_ennreal_ereal : measurable (coe : ℝ≥0∞ → ereal) :=
+continuous_coe_ennreal_ereal.measurable
+
+lemma measurable.coe_ereal_ennreal {f : α → ℝ≥0∞} (hf : measurable f) :
   measurable (λ x, (f x : ereal)) :=
-measurable_coe_ennreal.comp hf
+measurable_coe_ennreal_ereal.comp hf
 
-end ereal
+lemma ae_measurable.coe_ereal_ennreal {f : α → ℝ≥0∞} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x, (f x : ereal)) μ :=
+measurable_coe_ennreal_ereal.comp_ae_measurable hf
 
 section normed_group
 
@@ -1208,11 +1222,11 @@ lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable
 measurable_nnnorm.comp_ae_measurable hf
 
 lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ℝ≥0∞)) :=
-measurable_nnnorm.ennreal_coe
+measurable_nnnorm.coe_nnreal_ennreal
 
 lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
   measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
-hf.nnnorm.ennreal_coe
+hf.nnnorm.coe_nnreal_ennreal
 
 lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
   ae_measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
@@ -1233,12 +1247,12 @@ lemma measurable_of_tendsto_nnreal' {ι ι'} {f : ι → α → ℝ≥0} {g : α
   [ne_bot u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) {p : ι' → Prop}
   {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) : measurable g :=
 begin
-  rw [tendsto_pi] at lim, rw [← measurable_ennreal_coe_iff],
+  rw [tendsto_pi] at lim, rw [← measurable_coe_nnreal_ennreal_iff],
   have : ∀ x, liminf u (λ n, (f n x : ℝ≥0∞)) = (g x : ℝ≥0∞) :=
   λ x, ((ennreal.continuous_coe.tendsto (g x)).comp (lim x)).liminf_eq,
   simp_rw [← this],
   show measurable (λ x, liminf u (λ n, (f n x : ℝ≥0∞))),
-  exact measurable_liminf' (λ i, (hf i).ennreal_coe) hu hs,
+  exact measurable_liminf' (λ i, (hf i).coe_nnreal_ennreal) hu hs,
 end
 
 /-- A sequential limit of measurable `ℝ≥0` valued functions is measurable. -/

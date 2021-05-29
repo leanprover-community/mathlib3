@@ -1036,7 +1036,7 @@ theorem nnreal.lintegral_mul_le_Lp_mul_Lq {p q : ℝ} (hpq : p.is_conjugate_expo
   ∫⁻ a, (f * g) a ∂μ ≤ (∫⁻ a, (f a)^p ∂μ)^(1/p) * (∫⁻ a, (g a)^q ∂μ)^(1/q) :=
 begin
   simp_rw [pi.mul_apply, ennreal.coe_mul],
-  exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.ennreal_coe hg.ennreal_coe,
+  exact ennreal.lintegral_mul_le_Lp_mul_Lq μ hpq hf.coe_nnreal_ennreal hg.coe_nnreal_ennreal,
 end
 
 end lintegral

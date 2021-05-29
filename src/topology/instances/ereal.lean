@@ -178,7 +178,7 @@ lemma embedding_coe_ennreal : embedding (coe : ℝ≥0∞ → ereal) :=
   tendsto (λ a, (m a : ereal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe_ennreal.tendsto_nhds_iff.symm
 
-lemma continuous_coe_ennreal : continuous (coe : ℝ≥0∞ → ereal) :=
+lemma _root_.continuous_coe_ennreal_ereal : continuous (coe : ℝ≥0∞ → ereal) :=
 embedding_coe_ennreal.continuous
 
 lemma continuous_coe_ennreal_iff {f : α → ℝ≥0∞} :

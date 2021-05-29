@@ -73,7 +73,7 @@ end
 
 section
 variables (R : Type u) [ring R] [nontrivial R]
-variables (M : Type*) [add_comm_group M] [module R M]
+variables (M : Type v) [add_comm_group M] [module R M]
 
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.
@@ -115,7 +115,7 @@ end
 section strong_rank_condition
 
 variables (R : Type u) [ring R] [strong_rank_condition R]
-variables (M : Type*) [add_comm_group M] [module R M]
+variables (M : Type v) [add_comm_group M] [module R M]
 
 /--
 Pick some representation of `x : span R w` as a linear combination in `w`,
@@ -190,8 +190,8 @@ end strong_rank_condition
 
 section rank_condition
 
-variables (R : Type u) [ring R] [rank_condition R]
-variables (M : Type*) [add_comm_group M] [module R M]
+variables {R : Type u} [ring R] [nontrivial R] [rank_condition R]
+variables {M : Type v} [add_comm_group M] [module R M]
 
 /--
 If `R` satisfies the rank condition,
@@ -201,8 +201,8 @@ the cardinality of `ι` is bounded by the cardinality of `w`.
 -/
 -- Note that if `R` satisfies the strong rank condition,
 -- this already follows from `linear_independent_le_span` above.
-lemma basis_le_span {ι : Type*} [fintype ι] (b : basis ι R M)
-  (w : set M) [fintype w] (s : span R w = ⊤) :
+lemma basis.le_span'' {ι : Type*} [fintype ι] (b : basis ι R M)
+  {w : set M} [fintype w] (s : span R w = ⊤) :
   fintype.card ι ≤ fintype.card w :=
 begin
    -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
@@ -215,26 +215,31 @@ begin
     simpa using s, },
 end
 
-end rank_condition
+/-- A variant of `basis_le_span''` which does not require assuming the basis is finite. -/
+lemma basis_le_span' {ι : Type*} (b : basis ι R M)
+  {w : set M} [fintype w] (s : span R w = ⊤) :
+  cardinal.mk ι ≤ fintype.card w :=
+begin
+  haveI := basis_fintype_of_finite_spans R M w s b,
+  rw cardinal.fintype_card ι,
+  simp only [cardinal.nat_cast_le],
+  exact basis.le_span'' b s,
+end
 
-section division_ring
-variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
-variables {K V}
-
-theorem basis.le_span {J : set V} (v : basis ι K V)
-   (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
+theorem basis.le_span {J : set M} (v : basis ι R M)
+   (hJ : span R J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
   { have := cardinal.mk_range_eq_of_injective v.injective,
     let S : J → set ι := λ j, ↑(v.repr j).support,
-    let S' : J → set V := λ j, v '' S j,
+    let S' : J → set M := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
     { intros b hb,
       rcases mem_range.1 hb with ⟨i, hi⟩,
-      have : span K J ≤ comap v.repr.to_linear_map (finsupp.supported K K (⋃ j, S j)) :=
+      have : span R J ≤ comap v.repr.to_linear_map (finsupp.supported R R (⋃ j, S j)) :=
         span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
       rw hJ at this,
-      replace : v.repr (v i) ∈ (finsupp.supported K K (⋃ j, S j)) := this trivial,
+      replace : v.repr (v i) ∈ (finsupp.supported R R (⋃ j, S j)) := this trivial,
       rw [v.repr_self, finsupp.mem_supported,
         finsupp.support_single_ne_zero one_ne_zero] at this,
       { subst b,
@@ -248,16 +253,15 @@ begin
       (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
     { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ (finset.finite_to_set _).image _) },
     { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
-  { rcases exists_finite_card_le_of_finite_of_linear_independent_of_span
-      (cardinal.lt_omega_iff_finite.1 oJ) v.linear_independent.to_subtype_range _ with ⟨fI, hi⟩,
-    { rwa [← cardinal.nat_cast_le, cardinal.finset_card, set.finite.coe_to_finset,
-        cardinal.finset_card, set.finite.coe_to_finset] at hi, },
-    { rw hJ, apply set.subset_univ } },
+  { haveI : fintype J := (cardinal.lt_omega_iff_fintype.mp oJ).some,
+    rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
+    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
+    simp, },
 end
 
 /-- The dimension theorem: if `v` and `v'` are two bases, their index types
 have the same cardinalities. -/
-theorem mk_eq_mk_of_basis (v : basis ι K V) (v' : basis ι' K V) :
+theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
 begin
   rw ←cardinal.lift_inj.{(max w w') v},
@@ -275,9 +279,17 @@ begin
       apply (cardinal.mk_range_eq_of_injective v.injective).symm, }, }
 end
 
-theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι K V) (v' : basis ι' K V) :
+theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.mk ι = cardinal.mk ι' :=
 cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
+
+end rank_condition
+
+section division_ring
+variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables {K V}
+
+example : is_noetherian_ring K := by apply_instance
 
 theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι K V) :
   cardinal.mk ι = module.rank K V :=

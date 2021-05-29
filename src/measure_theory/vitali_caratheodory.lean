@@ -18,6 +18,66 @@ variables {α : Type*} [topological_space α] [measurable_space α] [borel_space
 
 namespace measure_theory
 
+local infixr ` →ₛ `:25 := simple_func
+
+
+/-- Given a measurable function `f` with values in `ℝ≥0`, there exists a lower semicontinuous
+function `g ≥ f` with integral arbitrarily close to that of `f`. Formulation in terms of
+`lintegral`.
+Auxiliary lemma for Vitali-Carathéodory theorem `exists_lt_lower_semicontinuous_integral_lt`. -/
+lemma simple_func.exists_le_lower_semicontinuous_lintegral_ge :
+  ∀ (f : α →ₛ ℝ≥0), ∀ {ε : ℝ≥0∞} (εpos : 0 < ε),
+  ∃ g : α → ℝ≥0, (∀ x, f x ≤ g x) ∧ lower_semicontinuous g ∧
+    (∫⁻ x, g x ∂μ ≤ ∫⁻ x, f x ∂μ + ε) :=
+begin
+  refine simple_func.induction _ _,
+  sorry,
+  /-{ assume c s hs ε εpos,
+    let f := simple_func.piecewise s hs (simple_func.const α c) (simple_func.const α 0),
+    by_cases h : ∫⁻ x, f x ∂μ = ⊤,
+    { refine ⟨λ x, c, λ x, _, lower_semicontinuous_const,
+             by simp only [ennreal.top_add, le_top, h]⟩,
+      simp only [simple_func.coe_const, simple_func.const_zero, simple_func.coe_zero,
+        set.piecewise_eq_indicator, simple_func.coe_piecewise],
+      exact set.indicator_le_self _ _ _ },
+    by_cases hc : c = 0,
+    { refine ⟨λ x, 0, _, lower_semicontinuous_const, _⟩,
+      { simp only [hc, set.indicator_zero', pi.zero_apply, simple_func.const_zero, implies_true_iff,
+          eq_self_iff_true, simple_func.coe_zero, set.piecewise_eq_indicator,
+          simple_func.coe_piecewise, le_zero_iff] },
+      { simp only [lintegral_const, zero_mul, zero_le, ennreal.coe_zero] } },
+    have : μ s < μ s + ε / c,
+    { have : (0 : ℝ≥0∞) < ε / c := ennreal.div_pos_iff.2 ⟨εpos.ne', ennreal.coe_ne_top⟩,
+      simpa using (ennreal.add_lt_add_iff_left _).2 this,
+      simpa only [hs, hc, lt_top_iff_ne_top, true_and, simple_func.coe_const, function.const_apply,
+        lintegral_const, ennreal.coe_indicator, set.univ_inter, ennreal.coe_ne_top,
+        measurable_set.univ, with_top.mul_eq_top_iff, simple_func.const_zero, or_false,
+        lintegral_indicator, ennreal.coe_eq_zero, ne.def, not_false_iff, simple_func.coe_zero,
+        set.piecewise_eq_indicator, simple_func.coe_piecewise, false_and, restrict_apply] using h },
+    obtain ⟨u, u_open, su, μu⟩ : ∃ u, is_open u ∧ s ⊆ u ∧ μ u < μ s + ε / c :=
+      hs.exists_is_open_lt_of_lt _ this,
+    refine ⟨set.indicator u (λ x, c), λ x, _, u_open.lower_semicontinuous_indicator (zero_le _), _⟩,
+    { simp only [simple_func.coe_const, simple_func.const_zero, simple_func.coe_zero,
+        set.piecewise_eq_indicator, simple_func.coe_piecewise],
+      exact set.indicator_le_indicator_of_subset su (λ x, zero_le _) _ },
+    { suffices : (c : ℝ≥0∞) * μ u ≤ c * μ s + ε, by
+        simpa only [hs, u_open.measurable_set, simple_func.coe_const, function.const_apply,
+          lintegral_const, ennreal.coe_indicator, set.univ_inter, measurable_set.univ,
+          simple_func.const_zero, lintegral_indicator, simple_func.coe_zero,
+          set.piecewise_eq_indicator, simple_func.coe_piecewise, restrict_apply],
+      calc (c : ℝ≥0∞) * μ u ≤ c * (μ s + ε / c) : ennreal.mul_le_mul (le_refl _) μu.le
+      ... = c * μ s + ε :
+        begin
+          simp_rw [mul_add],
+          rw ennreal.mul_div_cancel' _ ennreal.coe_ne_top,
+          simpa using hc,
+        end } },-/
+
+end
+
+#exit
+
+
 /-- Given a measurable function `f` with values in `ℝ≥0`, there exists a lower semicontinuous
 function `g ≥ f` with integral arbitrarily close to that of `f`. Formulation in terms of
 `lintegral`.
@@ -30,6 +90,8 @@ begin
   { refine ⟨λ x, ∞, λ x, le_top, lower_semicontinuous_const, by simp [int_f]⟩ },
   sorry
 end
+
+#exit
 
 /-- Given a measurable function `f` with values in `ℝ≥0` in a sigma-finite space, there exists a
 lower semicontinuous function `g > f` with integral arbitrarily close to that of `f`.

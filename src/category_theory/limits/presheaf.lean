@@ -88,7 +88,7 @@ def restrict_yoneda_hom_equiv (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ)
 { to_fun := λ k,
   { app := λ c p, k.1 (opposite.op ⟨_, p⟩),
     naturality' := λ c c' f, funext $ λ p,
-      (k.2 (has_hom.hom.op ⟨f, rfl⟩ :
+      (k.2 (quiver.hom.op ⟨f, rfl⟩ :
               (opposite.op ⟨c', P.map f p⟩ : P.elementsᵒᵖ) ⟶ opposite.op ⟨c, p⟩)).symm },
   inv_fun := λ τ,
   { val := λ p, τ.app p.unop.1 p.unop.2,

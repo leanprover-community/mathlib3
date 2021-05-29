@@ -1013,7 +1013,7 @@ theorem is_o.pow {f : α → R} {g : α → 𝕜} (h : is_o f g l) {n : ℕ} (hn
 begin
   cases n, exact hn.false.elim, clear hn,
   induction n with n ihn, { simpa only [pow_one] },
-  exact h.mul ihn
+  convert h.mul ihn; simp [pow_succ]
 end
 
 /-! ### Scalar multiplication -/

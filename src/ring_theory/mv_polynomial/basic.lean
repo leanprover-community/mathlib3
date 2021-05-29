@@ -25,7 +25,7 @@ that the monomials form a basis.
 
 * The multivariate polynomial ring over a commutative ring of positive characteristic has positive
   characteristic.
-* `is_basis_monomials`: shows that the monomials form a basis of the vector space of multivariate
+* `basis_monomials`: shows that the monomials form a basis of the vector space of multivariate
   polynomials.
 
 ## TODO
@@ -107,23 +107,12 @@ end
 
 variables (σ R)
 
-lemma is_basis_monomials :
-  is_basis R ((λs, (monomial s 1 : mv_polynomial σ R))) :=
-suffices is_basis R (λ (sa : Σ _, unit), (monomial sa.1 1 : mv_polynomial σ R)),
-begin
-  apply is_basis.comp this (λ (s : σ →₀ ℕ), ⟨s, punit.star⟩),
-  split,
-  { intros x y hxy,
-    simpa using hxy },
-  { rintros ⟨x₁, x₂⟩,
-    use x₁,
-    rw punit_eq punit.star x₂ }
-end,
-begin
-  apply finsupp.is_basis_single (λ _ _, (1 : R)),
-  intro _,
-  apply is_basis_singleton_one,
-end
+/-- The monomials form a basis on `mv_polynomial σ R`. -/
+def basis_monomials : basis (σ →₀ ℕ) R (mv_polynomial σ R) := finsupp.basis_single_one
+
+@[simp] lemma coe_basis_monomials :
+  (basis_monomials σ R : (σ →₀ ℕ) → mv_polynomial σ R) = λ s, monomial s 1 :=
+rfl
 
 end degree
 

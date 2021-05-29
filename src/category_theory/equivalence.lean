@@ -356,13 +356,16 @@ section
 -- but let's not encourage using it.
 -- The power structure is nevertheless useful.
 
-/-- Powers of an auto-equivalence. -/
+/-- Natural number powers of an auto-equivalence.  Use `(^)` instead. -/
+def pow_nat (e : C ≌ C) : ℕ → (C ≌ C)
+| 0 := equivalence.refl
+| 1 := e
+| (n+2) := e.trans (pow_nat (n+1))
+
+/-- Powers of an auto-equivalence.  Use `(^)` instead. -/
 def pow (e : C ≌ C) : ℤ → (C ≌ C)
-| (int.of_nat 0) := equivalence.refl
-| (int.of_nat 1) := e
-| (int.of_nat (n+2)) := e.trans (pow (int.of_nat (n+1)))
-| (int.neg_succ_of_nat 0) := e.symm
-| (int.neg_succ_of_nat (n+1)) := e.symm.trans (pow (int.neg_succ_of_nat n))
+| (int.of_nat n) := e.pow_nat n
+| (int.neg_succ_of_nat n) := e.symm.pow_nat (n+1)
 
 instance : has_pow (C ≌ C) ℤ := ⟨pow⟩
 
@@ -560,9 +563,8 @@ def equivalence.to_order_iso (e : α ≌ β) : α ≃o β :=
   left_inv := λ a, (e.unit_iso.app a).to_eq.symm,
   right_inv := λ b, (e.counit_iso.app b).to_eq,
   map_rel_iff' := λ a a',
-    ⟨λ h, le_of_hom
-      ((equivalence.unit e).app a ≫ e.inverse.map (hom_of_le h) ≫ (equivalence.unit_inv e).app a'),
-     λ (h : a ≤ a'), le_of_hom (e.functor.map (hom_of_le h))⟩, }
+    ⟨λ h, ((equivalence.unit e).app a ≫ e.inverse.map h.hom ≫ (equivalence.unit_inv e).app a').le,
+     λ (h : a ≤ a'), (e.functor.map h.hom).le⟩, }
 
 -- `@[simps]` on `equivalence.to_order_iso` produces lemmas that fail the `simp_nf` linter,
 -- so we provide them by hand:

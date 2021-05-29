@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import tactic
+import tactic.interval_cases
 import data.nat.modeq
 
 /-!

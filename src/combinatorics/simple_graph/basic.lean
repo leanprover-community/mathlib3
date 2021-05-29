@@ -328,6 +328,14 @@ lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
 set.mem_to_finset
 
+variables (w : V) [fintype (G.neighbor_set w)]
+
+def common_neighbor_finset [decidable_eq V] : finset V := G.neighbor_finset v ∩ G.neighbor_finset w
+
+@[simp] lemma mem_common_neighbor_finset [decidable_eq V] {u : V} :
+  u ∈ G.common_neighbor_finset v w ↔ G.adj v u ∧ G.adj w u :=
+by simp [common_neighbor_finset]
+
 end finite_at
 
 section locally_finite
@@ -509,6 +517,15 @@ begin
   simp,
 end
 
+lemma card_common_neighbors_le_degree_left'' [decidable_eq V] [decidable_rel G.adj] (v w : V)
+  [fintype (G.neighbor_set v)] [fintype (G.neighbor_set w)] :
+  finset.card (G.common_neighbor_finset v w) ≤ G.degree v :=
+begin
+  apply finset.card_le_of_subset,
+  unfold common_neighbor_finset,
+  exact inter_subset_left _ _,
+end
+
 lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
 begin
@@ -650,6 +667,14 @@ end
 
 lemma compl_neighbor_set (G : simple_graph V) [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
+begin
+  ext w,
+  simp,
+  exact ⟨λ ⟨hne, hnadj⟩, ⟨hnadj, ne.symm hne⟩, λ ⟨hnadj, hne⟩, ⟨ne.symm hne, hnadj⟩⟩,
+end
+
+lemma compl_neighbor_finset (G : simple_graph V) [decidable_rel G.adj] (v : V) [fintype V] :
+  Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
 begin
   ext w,
   simp,

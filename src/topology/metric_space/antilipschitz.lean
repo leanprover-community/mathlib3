@@ -22,7 +22,7 @@ we do not have a `posreal` type.
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-open_locale nnreal
+open_locale nnreal uniformity
 open set
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
@@ -108,33 +108,39 @@ begin
   rwa [hg x, hg y] at this
 end
 
-lemma uniform_embedding_of_injective (hfinj : function.injective f) (hf : antilipschitz_with K f)
-  (hfc : uniform_continuous f) : uniform_embedding f :=
+lemma comap_uniformity_le (hf : antilipschitz_with K f) :
+  (𝓤 β).comap (prod.map f f) ≤ 𝓤 α :=
 begin
-  refine emetric.uniform_embedding_iff.2 ⟨hfinj, hfc, λ δ δ0, _⟩,
-  by_cases hK : K = 0,
-  { refine ⟨1, ennreal.zero_lt_one, λ x y _, lt_of_le_of_lt _ δ0⟩,
-    simpa only [hK, ennreal.coe_zero, zero_mul] using hf x y },
-  { refine ⟨K⁻¹ * δ, _, λ x y hxy, lt_of_le_of_lt (hf x y) _⟩,
-    { exact canonically_ordered_semiring.mul_pos.2 ⟨ennreal.inv_pos.2 ennreal.coe_ne_top, δ0⟩ },
-    { rw [mul_comm, ← div_eq_mul_inv] at hxy,
-      have := ennreal.mul_lt_of_lt_div hxy,
-      rwa mul_comm } }
+  refine ((uniformity_basis_edist.comap _).le_basis_iff uniformity_basis_edist).2 (λ ε h₀, _),
+  refine ⟨K⁻¹ * ε, ennreal.mul_pos.2 ⟨ennreal.inv_pos.2 ennreal.coe_ne_top, h₀⟩, _⟩,
+  refine λ x hx, (hf x.1 x.2).trans_lt _,
+  rw [mul_comm, ← div_eq_mul_inv] at hx,
+  rw mul_comm,
+  exact ennreal.mul_lt_of_lt_div hx
 end
 
-lemma uniform_embedding {α : Type*} {β : Type*} [emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
-  {f : α → β} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) : uniform_embedding f :=
-uniform_embedding_of_injective hf.injective hf hfc
+protected lemma uniform_inducing (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
+  uniform_inducing f :=
+⟨le_antisymm hf.comap_uniformity_le hfc.le_comap⟩
+
+protected lemma uniform_embedding {α : Type*} {β : Type*} [emetric_space α] [pseudo_emetric_space β]
+  {K : ℝ≥0} {f : α → β} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
+  uniform_embedding f :=
+⟨hf.uniform_inducing hfc, hf.injective⟩
+
+lemma is_complete_range [complete_space α] (hf : antilipschitz_with K f)
+  (hfc : uniform_continuous f) : is_complete (range f) :=
+(hf.uniform_inducing hfc).is_complete_range
+
+lemma is_closed_range {α β : Type*} [pseudo_emetric_space α] [emetric_space β] [complete_space α]
+  {f : α → β} {K : ℝ≥0} (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
+  is_closed (range f) :=
+(hf.is_complete_range hfc).is_closed
 
 lemma closed_embedding {α : Type*} {β : Type*} [emetric_space α] [emetric_space β] {K : ℝ≥0}
   {f : α → β} [complete_space α] (hf : antilipschitz_with K f) (hfc : uniform_continuous f) :
   closed_embedding f :=
-{ closed_range :=
-  begin
-    apply is_complete.is_closed,
-    rw ← complete_space_iff_is_complete_range (hf.uniform_embedding hfc),
-    apply_instance,
-  end,
+{ closed_range := hf.is_closed_range hfc,
   .. (hf.uniform_embedding hfc).embedding }
 
 lemma subtype_coe (s : set α) : antilipschitz_with 1 (coe : s → α) :=

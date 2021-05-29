@@ -1124,8 +1124,8 @@ variables {E p μ 𝕜}
 
 lemma coe_Lp_submodule : (Lp_submodule E p μ 𝕜).to_add_subgroup = Lp E p μ := rfl
 
-instance : semimodule 𝕜 (Lp E p μ) :=
-{ .. (Lp_submodule E p μ 𝕜).semimodule }
+instance : module 𝕜 (Lp E p μ) :=
+{ .. (Lp_submodule E p μ 𝕜).module }
 
 lemma coe_fn_smul (c : 𝕜) (f : Lp E p μ) : ⇑(c • f) =ᵐ[μ] c • f := ae_eq_fun.coe_fn_smul _ _
 
@@ -1781,7 +1781,7 @@ def to_Lp [normed_field 𝕜] [opens_measurable_space 𝕜] [normed_space 𝕜 E
 linear_map.mk_continuous
   (linear_map.cod_restrict
     (Lp.Lp_submodule E p μ 𝕜)
-    ((continuous_map.to_ae_eq_fun_linear_map μ).comp (forget_boundedness_linear_map α E))
+    ((continuous_map.to_ae_eq_fun_linear_map μ).comp (forget_boundedness_linear_map α E 𝕜))
     mem_Lp)
   _
   Lp_norm_le

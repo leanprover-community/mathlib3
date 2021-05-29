@@ -26,6 +26,8 @@ namespace rel_hom
 
 instance : has_coe_to_fun (r →r s) := ⟨λ _, α → β, λ o, o.to_fun⟩
 
+initialize_simps_projections rel_hom (to_fun → apply)
+
 theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel'
 
 @[simp] theorem coe_fn_mk (f : α → β) (o) :
@@ -45,16 +47,12 @@ theorem ext_iff {f g : r →r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 /-- Identity map is a relation homomorphism. -/
-@[refl] protected def id (r : α → α → Prop) : r →r r :=
-⟨id, λ a b, id⟩
+@[refl, simps] protected def id (r : α → α → Prop) : r →r r :=
+⟨λ x, x, λ a b x, x⟩
 
 /-- Composition of two relation homomorphisms is a relation homomorphism. -/
-@[trans] protected def comp (g : s →r t) (f : r →r s) : r →r t :=
-⟨g.1 ∘ f.1, λ a b h, g.2 (f.2 h)⟩
-
-@[simp] theorem id_apply (x : α) : rel_hom.id r x = x := rfl
-
-@[simp] theorem comp_apply (g : s →r t) (f : r →r s) (a : α) : (g.comp f) a = g (f a) := rfl
+@[trans, simps] protected def comp (g : s →r t) (f : r →r s) : r →r t :=
+⟨λ x, g (f x), λ a b h, g.2 (f.2 h)⟩
 
 /-- A relation homomorphism is also a relation homomorphism between dual relations. -/
 protected def swap (f : r →r s) : swap r →r swap s :=
@@ -157,6 +155,12 @@ instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : r ↪r s) : α → β := h
+
+initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_embedding)
+
 @[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
 
 @[simp] lemma coe_coe_fn (f : r ↪r s) : ((f : r →r s) : α → β) = f := rfl
@@ -182,7 +186,7 @@ theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 /-- Identity map is a relation embedding. -/
-@[refl] protected def refl (r : α → α → Prop) : r ↪r r :=
+@[refl, simps] protected def refl (r : α → α → Prop) : r ↪r r :=
 ⟨embedding.refl _, λ a b, iff.rfl⟩
 
 /-- Composition of two relation embeddings is a relation embedding. -/
@@ -191,11 +195,9 @@ theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
 
 instance (r : α → α → Prop) : inhabited (r ↪r r) := ⟨rel_embedding.refl _⟩
 
-@[simp] theorem refl_apply (x : α) : rel_embedding.refl r x = x := rfl
-
 theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
 
-@[simp] theorem coe_trans (f : r ↪r s) (g : s ↪r t)  : ⇑(f.trans g) = g ∘ f := rfl
+@[simp] theorem coe_trans (f : r ↪r s) (g : s ↪r t) : ⇑(f.trans g) = g ∘ f := rfl
 
 /-- A relation embedding is also a relation embedding between dual relations. -/
 protected def swap (f : r ↪r s) : swap r ↪r swap s :=
@@ -260,6 +262,22 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
+
+/--
+To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it
+suffices to give a function together with a proof that it satisfies `s (f a) (f b) ↔ r a b`.
+-/
+def of_map_rel_iff (f : α → β) [is_antisymm α r] [is_refl β s]
+  (hf : ∀ a b, s (f a) (f b) ↔ r a b) : r ↪r s :=
+{ to_fun := f,
+  inj' := λ x y h, antisymm ((hf _ _).1 (h ▸ refl _)) ((hf _ _).1 (h ▸ refl _)),
+  map_rel_iff' := hf }
+
+@[simp]
+lemma of_map_rel_iff_coe (f : α → β) [is_antisymm α r] [is_refl β s]
+  (hf : ∀ a b, s (f a) (f b) ↔ r a b) :
+  ⇑(of_map_rel_iff f hf : r ↪r s) = f :=
+rfl
 
 /-- It suffices to prove `f` is monotone between strict relations
   to show it is a relation embedding. -/
@@ -326,21 +344,28 @@ f.lt_embedding.is_well_order
 protected def dual : order_dual α ↪o order_dual β :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
-/-- A sctrictly monotone map from a linear order is an order embedding. --/
+/--
+To define an order embedding from a partial order to a preorder it suffices to give a function
+together with a proof that it satisfies `f a ≤ f b ↔ a ≤ b`.
+-/
+def of_map_rel_iff {α β} [partial_order α] [preorder β] (f : α → β)
+  (hf : ∀ a b, f a ≤ f b ↔ a ≤ b) : α ↪o β :=
+rel_embedding.of_map_rel_iff f hf
+
+@[simp] lemma coe_of_map_rel_iff {α β} [partial_order α] [preorder β] {f : α → β} (h) :
+  ⇑(of_map_rel_iff f h) = f := rfl
+
+/-- A strictly monotone map from a linear order is an order embedding. --/
 def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   (h : strict_mono f) : α ↪o β :=
-{ to_fun := f,
-  inj' := strict_mono.injective h,
-  map_rel_iff' := λ a b, h.le_iff_le }
+of_map_rel_iff f (λ _ _, h.le_iff_le)
 
 @[simp] lemma coe_of_strict_mono {α β} [linear_order α] [preorder β] {f : α → β}
   (h : strict_mono f) : ⇑(of_strict_mono f h) = f := rfl
 
 /-- Embedding of a subtype into the ambient type as an `order_embedding`. -/
-def subtype (p : α → Prop) : subtype p ↪o α :=
+@[simps {fully_applied := ff}] def subtype (p : α → Prop) : subtype p ↪o α :=
 ⟨embedding.subtype p, λ x y, iff.rfl⟩
-
-@[simp] lemma coe_subtype (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
 end order_embedding
 
@@ -393,16 +418,25 @@ coe_fn_injective (funext h)
 theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-/-- Identity map is a relation isomorphism. -/
-@[refl] protected def refl (r : α → α → Prop) : r ≃r r :=
-⟨equiv.refl _, λ a b, iff.rfl⟩
-
 /-- Inverse map of a relation isomorphism is a relation isomorphism. -/
 @[symm] protected def symm (f : r ≃r s) : s ≃r r :=
 ⟨f.to_equiv.symm, λ a b, by erw [← f.map_rel_iff, f.1.apply_symm_apply, f.1.apply_symm_apply]⟩
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (h : r ≃r s) : α → β := h
+/-- See Note [custom simps projection]. -/
+def simps.symm_apply (h : r ≃r s) : β → α := h.symm
+
+initialize_simps_projections rel_iso
+  (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, -to_equiv)
+
+/-- Identity map is a relation isomorphism. -/
+@[refl, simps apply] protected def refl (r : α → α → Prop) : r ≃r r :=
+⟨equiv.refl _, λ a b, iff.rfl⟩
+
 /-- Composition of two relation isomorphisms is a relation isomorphism. -/
-@[trans] protected def trans (f₁ : r ≃r s) (f₂ : s ≃r t) : r ≃r t :=
+@[trans, simps apply] protected def trans (f₁ : r ≃r s) (f₂ : s ≃r t) : r ≃r t :=
 ⟨f₁.to_equiv.trans f₂.to_equiv, λ a b, f₂.map_rel_iff.trans f₁.map_rel_iff⟩
 
 instance (r : α → α → Prop) : inhabited (r ≃r r) := ⟨rel_iso.refl _⟩
@@ -414,11 +448,6 @@ protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
 ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 @[simp] theorem coe_fn_symm_mk (f o) : ((@rel_iso.mk _ _ r s f o).symm : β → α) = f.symm :=
-rfl
-
-@[simp] theorem refl_apply (x : α) : rel_iso.refl r x = x := rfl
-
-@[simp] theorem trans_apply (f : r ≃r s) (g : s ≃r t) (a : α) : (f.trans g) a = g (f a) :=
 rfl
 
 @[simp] theorem apply_symm_apply  (e : r ≃r s) (x : β) : e (e.symm x) = x :=
@@ -446,11 +475,9 @@ f.injective.eq_iff
 protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
 
 /-- A surjective relation embedding is a relation isomorphism. -/
+@[simps apply]
 noncomputable def of_surjective (f : r ↪r s) (H : surjective f) : r ≃r s :=
 ⟨equiv.of_bijective f ⟨f.injective, H⟩, λ a b, f.map_rel_iff⟩
-
-@[simp] theorem of_surjective_coe (f : r ↪r s) (H) : (of_surjective f H : α → β) = f :=
-rfl
 
 /--
 Given relation isomorphisms `r₁ ≃r r₂` and `s₁ ≃r s₂`, construct a relation isomorphism for the
@@ -516,6 +543,15 @@ protected lemma surjective (e : α ≃o β) : surjective e := e.to_equiv.surject
 @[simp] lemma apply_eq_iff_eq (e : α ≃o β) {x y : α} : e x = e y ↔ x = y :=
 e.to_equiv.apply_eq_iff_eq
 
+/-- Identity order isomorphism. -/
+def refl (α : Type*) [has_le α] : α ≃o α := rel_iso.refl (≤)
+
+@[simp] lemma coe_refl : ⇑(refl α) = id := rfl
+
+lemma refl_apply (x : α) : refl α x = x := rfl
+
+@[simp] lemma refl_to_equiv : (refl α).to_equiv = equiv.refl α := rfl
+
 /-- Inverse of an order isomorphism. -/
 def symm (e : α ≃o β) : β ≃o α := e.symm
 
@@ -524,6 +560,8 @@ e.to_equiv.apply_symm_apply x
 
 @[simp] lemma symm_apply_apply (e : α ≃o β) (x : α) : e.symm (e x) = x :=
 e.to_equiv.symm_apply_apply x
+
+@[simp] lemma symm_refl (α : Type*) [has_le α] : (refl α).symm = refl α := rfl
 
 lemma apply_eq_iff_eq_symm_apply (e : α ≃o β) (x : α) (y : β) : e x = y ↔ x = e.symm y :=
 e.to_equiv.apply_eq_iff_eq_symm_apply
@@ -544,6 +582,10 @@ lemma symm_injective : injective (symm : (α ≃o β) → (β ≃o α)) :=
 @[simp] lemma coe_trans (e : α ≃o β) (e' : β ≃o γ) : ⇑(e.trans e') = e' ∘ e := rfl
 
 lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
+
+@[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
+
+@[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
 
 end has_le
 

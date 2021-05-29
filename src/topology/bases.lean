@@ -166,6 +166,9 @@ begin
   exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
 end
 
+protected lemma is_topological_basis.univ : is_topological_basis { U : set α | is_open U } :=
+is_topological_basis_of_open_of_nhds (by tauto) (by tauto)
+
 protected lemma is_topological_basis.prod {β} [topological_space β] {B₁ : set (set α)}
   {B₂ : set (set β)} (h₁ : is_topological_basis B₁) (h₂ : is_topological_basis B₂) :
   is_topological_basis (image2 set.prod B₁ B₂) :=
@@ -177,6 +180,54 @@ begin
     rcases (h₁.nhds_has_basis.prod_nhds h₂.nhds_has_basis).mem_iff.1 (is_open.mem_nhds uo hu)
       with ⟨⟨s, t⟩, ⟨⟨hs, ha⟩, ht, hb⟩, hu⟩,
     exact ⟨s.prod t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
+end
+
+protected lemma is_topological_basis.pi {ι : Type*} {Xs : ι → Type*}
+  [∀ i, topological_space (Xs i)] {Ts : Π i, set (set (Xs i))}
+  (cond : ∀ i, is_topological_basis (Ts i)) :
+  is_topological_basis {S : set (Π i, Xs i) | ∃ (Us : Π i, set (Xs i)) (F : finset ι),
+    (∀ i, i ∈ F → (Us i) ∈ Ts i) ∧ S = (F : set ι).pi Us } :=
+begin
+  classical,
+  refine is_topological_basis_of_open_of_nhds _ _,
+  { rintro _ ⟨Us, F, h1, rfl⟩,
+    apply is_open_set_pi F.finite_to_set,
+    intros i hi,
+    exact is_topological_basis.is_open (cond i) (h1 i hi) },
+  { intros a U ha hU,
+    have : U ∈ nhds a := is_open.mem_nhds hU ha,
+    rw nhds_pi at this,
+    rw filter.mem_infi_iff at this,
+    obtain ⟨F, hF, V, hV1, hV2⟩ := this,
+    choose Us' hUs' using hV1,
+    obtain ⟨hUs1, hUs2⟩ := ⟨λ i, (hUs' i).1, λ i, (hUs' i).2⟩,
+    have : ∀ i : F, ∃ (T : set (Xs i)) (hT : T ∈ Ts i), a i ∈ T ∧ T ⊆ Us' i,
+    { intros i,
+      specialize hUs1 i,
+      rwa  (cond i).mem_nhds_iff at hUs1 },
+    choose Us'' hUs'' using this,
+    let Us : Π (i : ι), set (Xs i) := λ i,
+      if hi : i ∈ F then Us'' ⟨i, hi⟩ else set.univ,
+    refine ⟨F.pi Us, ⟨Us, hF.to_finset, λ i hi, _, by simp⟩, _, _⟩,
+    { dsimp [Us],
+      erw dif_pos,
+      swap, { simpa using hi },
+      apply (hUs'' _).1 },
+    { rw set.mem_pi,
+      intros i hi,
+      dsimp [Us],
+      rw dif_pos hi,
+      apply (hUs'' _).2.1 },
+    { intros x hx,
+      apply hV2,
+      rintros - ⟨i, rfl⟩,
+      apply hUs2,
+      apply (hUs'' _).2.2,
+      convert hx i i.2,
+      dsimp [Us],
+      erw dif_pos i.2,
+      cases i,
+      refl } },
 end
 
 lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_open (U i))

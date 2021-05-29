@@ -760,8 +760,9 @@ instance totally_separated_space.of_discrete
   (α : Type*) [topological_space α] [discrete_topology α] : totally_separated_space α :=
 ⟨λ a _ b _ h, ⟨{b}ᶜ, {b}, is_open_discrete _, is_open_discrete _, by simpa⟩⟩
 
-lemma exists_clopen_of_totally_separated {α : Type*} [topological_space α] [totally_separated_space α]
-  {x y : α} (hxy : x ≠ y) : ∃ (U : set α) (hU : is_clopen U), x ∈ U ∧ y ∈ Uᶜ :=
+lemma exists_clopen_of_totally_separated {α : Type*} [topological_space α]
+  [totally_separated_space α] {x y : α} (hxy : x ≠ y) :
+  ∃ (U : set α) (hU : is_clopen U), x ∈ U ∧ y ∈ Uᶜ :=
 begin
   obtain ⟨U, V, hU, hV, Ux, Vy, f, disj⟩ :=
     totally_separated_space.is_totally_separated_univ α x (set.mem_univ x) y (set.mem_univ y) hxy,

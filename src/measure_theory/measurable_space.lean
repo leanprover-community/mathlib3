@@ -160,6 +160,7 @@ lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space 
   @measurable α β ma' mb' f :=
 λ t ht, ha _ $ hf $ hb _ ht
 
+@[measurability]
 lemma measurable_from_top [measurable_space β] {f : α → β} : @measurable _ _ ⊤ _ f :=
 λ s hs, trivial
 
@@ -169,6 +170,11 @@ measurable.of_le_map $ generate_from_le h
 
 variables [measurable_space α] [measurable_space β] [measurable_space γ]
 
+@[measurability]
+lemma measurable_set_preimage {f : α → β} {t : set β} (hf : measurable f) (ht : measurable_set t) :
+  measurable_set (f ⁻¹' t) :=
+hf ht
+
 @[measurability] lemma measurable.iterate {f : α → α} (hf : measurable f) : ∀ n, measurable (f^[n])
 | 0 := measurable_id
 | (n+1) := (measurable.iterate n).comp hf
@@ -177,6 +183,7 @@ variables [measurable_space α] [measurable_space β] [measurable_space γ]
 lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :=
 λ s hs, @subsingleton.measurable_set α _ _ _
 
+@[measurability]
 lemma measurable.piecewise {s : set α} {_ : decidable_pred s} {f g : α → β}
   (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
   measurable (piecewise s f g) :=
@@ -195,6 +202,7 @@ lemma measurable.ite {p : α → Prop} {_ : decidable_pred p} {f g : α → β}
   measurable (λ x, ite (p x) (f x) (g x)) :=
 measurable.piecewise hp hf hg
 
+@[measurability]
 lemma measurable.indicator [has_zero β] {s : set α} {f : α → β}
   (hf : measurable f) (hs : measurable_set s) : measurable (s.indicator f) :=
 hf.piecewise hs measurable_const
@@ -209,10 +217,12 @@ begin
   exact eq_empty_of_not_nonempty h _,
 end
 
-@[to_additive] lemma measurable_set_mul_support [has_one β]
+@[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
   [measurable_singleton_class β] {f : α → β} (hf : measurable f) :
   measurable_set (mul_support f) :=
 hf (measurable_set_singleton 1).compl
+
+attribute [measurability] measurable_set_support
 
 /-- If a function coincides with a measurable function outside of a countable set, it is
 measurable. -/
@@ -306,6 +316,7 @@ measurable_space.le_map_comap
   measurable (λ a : α, (f a : β)) :=
 measurable_subtype_coe.comp hf
 
+@[measurability]
 lemma measurable.subtype_mk {p : β → Prop} {f : α → β} (hf : measurable f) {h : ∀ x, p (f x)} :
   measurable (λ x, (⟨f x, h x⟩ : subtype p)) :=
 λ t ⟨s, hs⟩, hs.2 ▸ by simp only [← preimage_comp, (∘), subtype.coe_mk, hf hs.1]
@@ -396,6 +407,7 @@ measurable.prod measurable_snd measurable_fst
 lemma measurable_swap_iff {f : α × β → γ} : measurable (f ∘ prod.swap) ↔ measurable f :=
 ⟨λ hf, by { convert hf.comp measurable_swap, ext ⟨x, y⟩, refl }, λ hf, hf.comp measurable_swap⟩
 
+@[measurability]
 lemma measurable_set.prod {s : set α} {t : set β} (hs : measurable_set s) (ht : measurable_set t) :
   measurable_set (s.prod t) :=
 measurable_set.inter (measurable_fst hs) (measurable_snd ht)
@@ -450,16 +462,16 @@ lemma measurable_pi_iff {g : α → Π a, π a} :
 by simp_rw [measurable_iff_comap_le, measurable_space.pi, measurable_space.comap_supr,
     measurable_space.comap_comp, function.comp, supr_le_iff]
 
---@[measurability]
+@[measurability]
 lemma measurable_pi_apply (a : δ) : measurable (λ f : Π a, π a, f a) :=
 measurable.of_comap_le $ le_supr _ a
 
---@[measurability]
+@[measurability]
 lemma measurable.eval {a : δ} {g : α → Π a, π a}
   (hg : measurable g) : measurable (λ x, g x a) :=
 (measurable_pi_apply a).comp hg
 
---@[measurability]
+@[measurability]
 lemma measurable_pi_lambda (f : α → Π a, π a) (hf : ∀ a, measurable (λ c, f c a)) :
   measurable f :=
 measurable_pi_iff.mpr hf
@@ -478,6 +490,7 @@ end
 
 /- Even though we cannot use projection notation, we still keep a dot to be consistent with similar
   lemmas, like `measurable_set.prod`. -/
+@[measurability]
 lemma measurable_set.pi {s : set δ} {t : Π i : δ, set (π i)} (hs : countable s)
   (ht : ∀ i ∈ s, measurable_set (t i)) :
   measurable_set (s.pi t) :=

@@ -125,6 +125,7 @@ begin
     (λ b _, measurable_set.inter (h b) (f.measurable_set_fiber _))
 end
 
+@[measurability]
 theorem measurable_set_preimage (f : α →ₛ β) (s) : measurable_set (f ⁻¹' s) :=
 measurable_set_cut (λ _ b, b ∈ s) f (λ b, measurable_set.const (b ∈ s))
 

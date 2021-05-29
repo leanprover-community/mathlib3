@@ -39,6 +39,26 @@ attribute [measurability]
   measurable_const
   ae_measurable_const
   ae_measurable.measurable_mk
+  measurable_set.empty
+  measurable_set.univ
+  measurable_set.compl
+  subsingleton.measurable_set
+  measurable_set.Union
+  measurable_set.Inter
+  measurable_set.Union_Prop
+  measurable_set.Inter_Prop
+  measurable_set.union
+  measurable_set.inter
+  measurable_set.diff
+  measurable_set.ite
+  measurable_set.disjointed
+  measurable_set.const
+  measurable_set.insert
+  measurable_set_eq
+  set.finite.measurable_set
+  finset.measurable_set
+  set.countable.measurable_set
+  measurable_space.measurable_set_top
 
 -- As we will be using `apply_rules` with `md := semireducible`,
 -- we need another version of `measurable_id`.
@@ -100,6 +120,7 @@ do t ← tactic.target,
   match t with
   | `(measurable %%l) := done
   | `(ae_measurable %%l %%r) := done
+  | `(measurable_set %%l) := done
   | _ := skip
   end
 

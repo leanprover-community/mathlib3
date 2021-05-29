@@ -186,9 +186,11 @@ variables [topological_space α] [measurable_space α] [opens_measurable_space �
    [topological_space γ₂] [measurable_space γ₂] [borel_space γ₂]
    [measurable_space δ]
 
+@[measurability]
 lemma is_open.measurable_set (h : is_open s) : measurable_set s :=
 opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
 
+@[measurability]
 lemma measurable_set_interior : measurable_set (interior s) := is_open_interior.measurable_set
 
 lemma is_Gδ.measurable_set (h : is_Gδ s) : measurable_set s :=
@@ -201,12 +203,15 @@ lemma measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
   measurable_set {x | continuous_at f x} :=
 (is_Gδ_set_of_continuous_at f).measurable_set
 
+@[measurability]
 lemma is_closed.measurable_set (h : is_closed s) : measurable_set s :=
 h.is_open_compl.measurable_set.of_compl
 
+@[measurability]
 lemma is_compact.measurable_set [t2_space α] (h : is_compact s) : measurable_set s :=
 h.is_closed.measurable_set
 
+@[measurability]
 lemma measurable_set_closure : measurable_set (closure s) :=
 is_closed_closure.measurable_set
 
@@ -283,9 +288,12 @@ end
 section preorder
 variables [preorder α] [order_closed_topology α] {a b : α}
 
-@[simp] lemma measurable_set_Ici : measurable_set (Ici a) := is_closed_Ici.measurable_set
-@[simp] lemma measurable_set_Iic : measurable_set (Iic a) := is_closed_Iic.measurable_set
-@[simp] lemma measurable_set_Icc : measurable_set (Icc a b) := is_closed_Icc.measurable_set
+@[simp, measurability]
+lemma measurable_set_Ici : measurable_set (Ici a) := is_closed_Ici.measurable_set
+@[simp, measurability]
+lemma measurable_set_Iic : measurable_set (Iic a) := is_closed_Iic.measurable_set
+@[simp, measurability]
+lemma measurable_set_Icc : measurable_set (Icc a b) := is_closed_Icc.measurable_set
 
 instance nhds_within_Ici_is_measurably_generated :
   (𝓝[Ici b] a).is_measurably_generated :=
@@ -309,9 +317,11 @@ section partial_order
 variables [partial_order α] [order_closed_topology α] [second_countable_topology α]
   {a b : α}
 
+@[measurability]
 lemma measurable_set_le' : measurable_set {p : α × α | p.1 ≤ p.2} :=
 order_closed_topology.is_closed_le'.measurable_set
 
+@[measurability]
 lemma measurable_set_le {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable_set {a | f a ≤ g a} :=
 hf.prod_mk hg measurable_set_le'
@@ -321,14 +331,17 @@ end partial_order
 section linear_order
 variables [linear_order α] [order_closed_topology α] {a b : α}
 
-@[simp] lemma measurable_set_Iio : measurable_set (Iio a) := is_open_Iio.measurable_set
-@[simp] lemma measurable_set_Ioi : measurable_set (Ioi a) := is_open_Ioi.measurable_set
-@[simp] lemma measurable_set_Ioo : measurable_set (Ioo a b) := is_open_Ioo.measurable_set
+@[simp, measurability]
+lemma measurable_set_Iio : measurable_set (Iio a) := is_open_Iio.measurable_set
+@[simp, measurability]
+lemma measurable_set_Ioi : measurable_set (Ioi a) := is_open_Ioi.measurable_set
+@[simp, measurability]
+lemma measurable_set_Ioo : measurable_set (Ioo a b) := is_open_Ioo.measurable_set
 
-@[simp] lemma measurable_set_Ioc : measurable_set (Ioc a b) :=
+@[simp, measurability] lemma measurable_set_Ioc : measurable_set (Ioc a b) :=
 measurable_set_Ioi.inter measurable_set_Iic
 
-@[simp] lemma measurable_set_Ico : measurable_set (Ico a b) :=
+@[simp, measurability] lemma measurable_set_Ico : measurable_set (Ico a b) :=
 measurable_set_Ici.inter measurable_set_Iio
 
 instance nhds_within_Ioi_is_measurably_generated :
@@ -341,9 +354,11 @@ measurable_set_Iio.nhds_within_is_measurably_generated _
 
 variables [second_countable_topology α]
 
+@[measurability]
 lemma measurable_set_lt' : measurable_set {p : α × α | p.1 < p.2} :=
 (is_open_lt continuous_fst continuous_snd).measurable_set
 
+@[measurability]
 lemma measurable_set_lt {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
@@ -354,6 +369,7 @@ section linear_order
 
 variables [linear_order α] [order_closed_topology α]
 
+@[measurability]
 lemma measurable_set_interval {a b : α} : measurable_set (interval a b) :=
 measurable_set_Icc
 
@@ -385,6 +401,7 @@ end linear_order
 
 /-- A continuous function from an `opens_measurable_space` to a `borel_space`
 is measurable. -/
+@[measurability]
 lemma continuous.measurable {f : α → γ} (hf : continuous f) :
   measurable f :=
 hf.borel_measurable.mono opens_measurable_space.borel_le
@@ -392,9 +409,11 @@ hf.borel_measurable.mono opens_measurable_space.borel_le
 
 /-- A continuous function from an `opens_measurable_space` to a `borel_space`
 is ae-measurable. -/
+@[measurability]
 lemma continuous.ae_measurable {f : α → γ} (h : continuous f) (μ : measure α) : ae_measurable f μ :=
 h.measurable.ae_measurable
 
+@[measurability]
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :
   measurable f :=
 hf.continuous.measurable
@@ -525,6 +544,7 @@ instance prod.borel_space [second_countable_topology α] [second_countable_topol
   borel_space (α × β) :=
 ⟨le_antisymm prod_le_borel_prod opens_measurable_space.borel_le⟩
 
+@[measurability]
 lemma closed_embedding.measurable_inv_fun [n : nonempty β] {g : β → γ} (hg : closed_embedding g) :
   measurable (function.inv_fun g) :=
 begin
@@ -886,9 +906,11 @@ variables [measurable_space β] {x : α} {ε : ℝ}
 
 open metric
 
+@[measurability]
 lemma measurable_set_ball : measurable_set (metric.ball x ε) :=
 metric.is_open_ball.measurable_set
 
+@[measurability]
 lemma measurable_set_closed_ball : measurable_set (metric.closed_ball x ε) :=
 metric.is_closed_ball.measurable_set
 
@@ -939,6 +961,7 @@ variables [measurable_space β] {x : α} {ε : ℝ≥0∞}
 
 open emetric
 
+@[measurability]
 lemma measurable_set_eball : measurable_set (emetric.ball x ε) :=
 emetric.is_open_ball.measurable_set
 

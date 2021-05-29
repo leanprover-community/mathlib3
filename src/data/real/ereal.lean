@@ -50,20 +50,22 @@ open_locale ennreal nnreal
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
+/-- The canonical inclusion froms reals to ereals. Do not use directly : as this is registered as
+a coercion, use the coercion instead. -/
+def real.to_ereal : ℝ → ereal := some ∘ some
+
 namespace ereal
 
 @[simp] lemma bot_lt_top : (⊥ : ereal) < ⊤ := with_top.coe_lt_top _
 @[simp] lemma bot_ne_top : (⊥ : ereal) ≠ ⊤ := bot_lt_top.ne
 
-def of_real : ℝ → ereal := some ∘ some
-
-instance : has_coe ℝ ereal := ⟨ereal.of_real⟩
+instance : has_coe ℝ ereal := ⟨real.to_ereal⟩
 @[simp, norm_cast] protected lemma coe_le_coe_iff {x y : ℝ} : (x : ereal) ≤ (y : ereal) ↔ x ≤ y :=
-by { unfold_coes, simp [ereal.of_real] }
+by { unfold_coes, simp [real.to_ereal] }
 @[simp, norm_cast] protected lemma coe_lt_coe_iff {x y : ℝ} : (x : ereal) < (y : ereal) ↔ x < y :=
-by { unfold_coes, simp [ereal.of_real] }
+by { unfold_coes, simp [real.to_ereal] }
 @[simp, norm_cast] protected lemma coe_eq_coe_iff {x y : ℝ} : (x : ereal) = (y : ereal) ↔ x = y :=
-by { unfold_coes, simp [ereal.of_real, option.some_inj] }
+by { unfold_coes, simp [real.to_ereal, option.some_inj] }
 
 /-- The canonical map from nonnegative extended reals to extended reals -/
 def _root_.ennreal.to_ereal : ℝ≥0∞ → ereal
@@ -391,17 +393,17 @@ lemma sub_lt_sub_of_lt_of_le {x y z t : ereal} (h : x < y) (h' : z ≤ t) (hz : 
 add_lt_add_of_lt_of_le h (neg_le_neg_iff.2 h') (by simp [ht]) (by simp [hz])
 
 lemma coe_eq_coe_ennreal_sub_coe_ennreal (x : ℝ) :
-  (x : ereal) = nnreal.of_real x - nnreal.of_real (-x) :=
+  (x : ereal) = real.to_nnreal x - real.to_nnreal (-x) :=
 begin
   rcases le_or_lt 0 x with h|h,
-  { have : nnreal.of_real x = ⟨x, h⟩, by { ext, simp [h] },
-    simp only [nnreal.of_real_of_nonpos (neg_nonpos.mpr h), this, sub_zero, ennreal.coe_zero,
+  { have : real.to_nnreal x = ⟨x, h⟩, by { ext, simp [h] },
+    simp only [real.to_nnreal_of_nonpos (neg_nonpos.mpr h), this, sub_zero, ennreal.coe_zero,
       coe_ennreal_zero, coe_coe],
     refl },
   { have : (x : ereal) = - (- x : ℝ), by simp,
     conv_lhs { rw this },
-    have : nnreal.of_real (-x) = ⟨-x, neg_nonneg.mpr h.le⟩, by { ext, simp [neg_nonneg.mpr h.le], },
-    simp only [nnreal.of_real_of_nonpos h.le, this, zero_sub, neg_eq_neg_iff, coe_neg,
+    have : real.to_nnreal (-x) = ⟨-x, neg_nonneg.mpr h.le⟩, by { ext, simp [neg_nonneg.mpr h.le], },
+    simp only [real.to_nnreal_of_nonpos h.le, this, zero_sub, neg_eq_neg_iff, coe_neg,
       ennreal.coe_zero, coe_ennreal_zero, coe_coe],
     refl }
 end

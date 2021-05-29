@@ -34,8 +34,6 @@ lemma ennreal.exists_lt_lower_semicontinuous [sigma_finite μ]
   ∃ g : α → ℝ≥0∞, (∀ x, (f x : ℝ≥0∞) < g x) ∧ lower_semicontinuous g ∧
     (∫⁻ x, g x ∂μ ≤ ∫⁻ x, f x ∂μ + ε) :=
 begin
---  by_cases int_f : ∫⁻ x, f x ∂μ = ∞,
---  { refine ⟨λ x, ∞, λ x, ennreal.coe_lt_top, lower_semicontinuous_const, by simp [int_f]⟩ },
   rcases exists_integrable_pos_of_sigma_finite μ (nnreal.half_pos εpos) with ⟨w, wpos, wmeas, wint⟩,
   let f' := λ x, ((f x + w x : ℝ≥0) : ℝ≥0∞),
   rcases ennreal.exists_le_lower_semicontinuous μ f' (fmeas.add wmeas).ennreal_coe
@@ -54,15 +52,6 @@ end
 
 variable {μ}
 
-/-- Given an integrable function `f`, there exists an upper semicontinuous function `g ≤ f` with
-integral arbitrarily close to that of `f`. -/
-lemma ennreal.exists_upper_semicontinuous_le
-  (f : α → ℝ≥0) (hf : measurable f) (int_f : ∫⁻ x, f x ∂μ < ∞) {ε : ℝ≥0} (εpos : 0 < ε) :
-  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ upper_semicontinuous g ∧ (∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x ∂μ + ε) :=
-begin
-  sorry
-end
-
 
 lemma zoug {f : α → ℝ} (hf : integrable f μ) :
   ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
@@ -74,20 +63,74 @@ begin
   exact le_abs_self _,
 end
 
-lemma ennreal.exists_upper_semicontinuous_le' (f : α → ℝ≥0) (hf : measurable f)
-  (int_f : integrable (λ x, (f x : ℝ)) μ) {ε : ℝ≥0} (εpos : 0 < ε) :
-  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ upper_semicontinuous g
-  ∧ (∫ x, (f x : ℝ) ∂μ ≤ ∫ x, g x ∂μ + ε) :=
+lemma ennreal.exists_lt_lower_semicontinuous' [sigma_finite μ] (f : α → ℝ≥0)
+  (fmeas : measurable f) (fint : ∫⁻ x, f x ∂ μ < ∞) {ε : ℝ} (εpos : 0 < ε) :
+  ∃ g : α → ℝ≥0∞, (∀ x, (f x : ℝ≥0∞) < g x) ∧ lower_semicontinuous g ∧ (∀ᵐ x ∂ μ, g x < ⊤)
+  ∧ (integrable (λ x, (g x).to_real) μ) ∧ (∫ x, (g x).to_real ∂μ < ∫ x, f x ∂μ + ε) :=
 begin
-  have If : ∫⁻ x, f x ∂ μ < ∞, by { convert zoug int_f, simp },
-  rcases ennreal.exists_upper_semicontinuous_le f hf If εpos with ⟨g, gf, gcont, gint⟩,
+  let δ : ℝ≥0 := ⟨ε/2, (half_pos εpos).le⟩,
+  have δpos : 0 < δ := half_pos εpos,
+  have int_f_ne_top : ∫⁻ (a : α), (f a) ∂μ ≠ ⊤ := lt_top_iff_ne_top.1 fint,
+  rcases ennreal.exists_lt_lower_semicontinuous μ f fmeas δpos with ⟨g, f_lt_g, gcont, gint⟩,
+  have gint_lt : ∫⁻ (x : α), g x ∂μ < ∞ := calc
+    ∫⁻ (x : α), g x ∂μ ≤ ∫⁻ (x : α), ↑(f x) ∂μ + δ : gint
+      ... < ⊤ : by simpa using fint,
+  have g_lt_top : ∀ᵐ (x : α) ∂μ, g x < ⊤ := ae_lt_top gcont.measurable gint_lt,
+  have Ig : ∫⁻ (a : α), ennreal.of_real (g a).to_real ∂μ = ∫⁻ (a : α), g a ∂μ,
+  { apply lintegral_congr_ae,
+    filter_upwards [g_lt_top],
+    assume x hx,
+    simp only [hx.ne, ennreal.of_real_to_real, ne.def, not_false_iff] },
+  refine ⟨g, f_lt_g, gcont, g_lt_top, _, _⟩,
+  { refine ⟨gcont.measurable.to_real.ae_measurable, _⟩,
+    simp [has_finite_integral_iff_norm, real.norm_eq_abs, abs_of_nonneg],
+    convert gint_lt using 1 },
+  { rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
+    { calc
+      ennreal.to_real (∫⁻ (a : α), ennreal.of_real (g a).to_real ∂μ)
+          = ennreal.to_real (∫⁻ (a : α), g a ∂μ) : by congr' 1
+      ... ≤ ennreal.to_real (∫⁻ (a : α), f a ∂μ + δ) :
+        begin
+          apply ennreal.to_real_mono _ gint,
+          simpa using int_f_ne_top,
+        end
+      ... = ennreal.to_real (∫⁻ (a : α), f a ∂μ) + δ :
+        by rw [ennreal.to_real_add int_f_ne_top ennreal.coe_ne_top, ennreal.coe_to_real]
+      ... < ennreal.to_real (∫⁻ (a : α), f a ∂μ) + ε :
+        add_lt_add_left (by simp [δ, half_lt_self εpos]) _
+      ... = (∫⁻ (a : α), ennreal.of_real ↑(f a) ∂μ).to_real + ε :
+        by simp },
+    { apply filter.eventually_of_forall (λ x, _), simp },
+    { exact fmeas.nnreal_coe.ae_measurable, },
+    { apply filter.eventually_of_forall (λ x, _), simp },
+    { apply gcont.measurable.to_real.ae_measurable } }
+end
+
+/-- Given an integrable function `f`, there exists an upper semicontinuous function `g ≤ f` with
+integral arbitrarily close to that of `f`. -/
+lemma ennreal.exists_upper_semicontinuous_le
+  (f : α → ℝ≥0) (hf : measurable f) (int_f : ∫⁻ x, f x ∂μ < ∞) {ε : ℝ≥0} (εpos : 0 < ε) :
+  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ upper_semicontinuous g ∧ (∫⁻ x, f x ∂μ ≤ ∫⁻ x, g x ∂μ + ε) :=
+begin
+  sorry
+end
+
+lemma ennreal.exists_upper_semicontinuous_le' (f : α → ℝ≥0) (hf : measurable f)
+  (If : ∫⁻ x, f x ∂ μ < ∞) {ε : ℝ} (εpos : 0 < ε) :
+  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ upper_semicontinuous g
+  ∧ (∫ x, (f x : ℝ) ∂μ - ε ≤ ∫ x, g x ∂μ) :=
+begin
+  let δ : ℝ≥0 := ⟨ε, εpos.le⟩,
+  have δpos : 0 < δ := εpos,
+  rcases ennreal.exists_upper_semicontinuous_le f hf If δpos with ⟨g, gf, gcont, gint⟩,
   have Ig : ∫⁻ x, g x ∂ μ < ∞,
   { apply lt_of_le_of_lt ( lintegral_mono (λ x, _)) If,
     simpa using gf x },
   refine ⟨g, gf, gcont, _⟩,
   rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
-  { convert ennreal.to_real_mono _ gint,
-    { simp },
+  { rw sub_le_iff_le_add,
+    convert ennreal.to_real_mono _ gint,
+    { simp, },
     { rw ennreal.to_real_add Ig.ne ennreal.coe_ne_top, simp },
     { simpa using Ig.ne } },
   { apply filter.eventually_of_forall, simp },
@@ -96,6 +139,27 @@ begin
   { exact hf.nnreal_coe.ae_measurable }
 end
 
+
+lemma integrable.of_real
+  {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λ x, (real.to_nnreal (f x) : ℝ)) μ :=
+begin
+  split,
+  have Z := ae_measurable.nnreal_of_real,
+
+  apply measurable.comp_ae_measurable nnreal.measurable_coe _,
+  apply hf.ae_measurable.nnreal_of_real,
+
+
+  refine ⟨hf.to_real.ae_measurable, _⟩,
+  rw has_finite_integral_iff_norm,
+  simp only [real.norm_eq_abs, abs_of_nonneg, ennreal.to_real_nonneg],
+  convert If using 1,
+  apply lintegral_congr_ae,
+  filter_upwards [ae_lt_top hf If],
+  assume x hx,
+  simp [hx.ne],
+end
 
 lemma integrable_to_real_of_lintegral_lt_top
   {f : α → ℝ≥0∞} (hf : measurable f) (If : ∫⁻ x, f x ∂μ < ∞) :
@@ -111,24 +175,19 @@ begin
   simp [hx.ne],
 end
 
-lemma zoug3 : measurable (ennreal.to_real) := ennreal.measurable_to_real
-
 lemma real.exists_le_lower_semicontinuous [sigma_finite μ]
   (f : α → ℝ) (fmeas : measurable f) (hf : integrable f μ) (ε : ℝ) (εpos : 0 < ε) :
   ∃ g : α → ereal, (∀ x, (f x : ereal) < g x) ∧ lower_semicontinuous g ∧
   (∀ᵐ x ∂ μ, g x < ⊤) ∧ (∫ x, ereal.to_real (g x) ∂μ < ∫ x, f x ∂μ + ε) :=
 begin
   let δ : ℝ≥0 := ⟨ε, εpos.le⟩,
-  have δpos : 0 < δ := sorry,
-  let fp : α → ℝ≥0 := λ x, nnreal.of_real (f x),
+  have δpos : 0 < δ := εpos,
+  let fp : α → ℝ≥0 := λ x, real.to_nnreal (f x),
+  have : integrable (λ x, (fp x : ℝ)) μ := hf.of_real,
   have int_fp : ∫⁻ x, fp x ∂μ < ∞ := zoug hf,
-  rcases ennreal.exists_lt_lower_semicontinuous μ fp fmeas.nnreal_of_real δpos with
-    ⟨gp, fp_lt_gp, gpcont, gpint⟩,
-  have gpint_lt : ∫⁻ (x : α), gp x ∂μ < ∞ := calc
-    ∫⁻ (x : α), gp x ∂μ ≤ ∫⁻ (x : α), ↑(fp x) ∂μ + δ : gpint
-      ... < ⊤ : by simp [int_fp],
-  have gp_lt_top : ∀ᵐ (x : α) ∂μ, gp x < ⊤ := ae_lt_top gpcont.measurable gpint_lt,
-  let fm : α → ℝ≥0 := λ x, nnreal.of_real (-f x),
+  rcases ennreal.exists_lt_lower_semicontinuous' fp fmeas.nnreal_of_real int_fp δpos with
+    ⟨gp, fp_lt_gp, gpcont, gp_lt_top, gp_integrable, gpint⟩,
+  let fm : α → ℝ≥0 := λ x, real.to_nnreal (-f x),
   have int_fm : ∫⁻ x, fm x ∂μ < ∞ := zoug hf.neg,
   rcases ennreal.exists_upper_semicontinuous_le' fm fmeas.neg.nnreal_of_real int_fm δpos with
     ⟨gm, gm_le_fm, gmcont, gmint⟩,

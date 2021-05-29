@@ -46,7 +46,7 @@ integrable, function space, l1
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators ennreal measure_theory
+open_locale classical topological_space big_operators ennreal measure_theory nnreal
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -111,6 +111,10 @@ begin
   rwa [real.norm_eq_abs, abs_of_nonneg]
 end,
 by rw [has_finite_integral_iff_norm, lintegral_eq]
+
+lemma has_finite_integral_iff_of_nnreal {f : α → ℝ≥0} :
+  has_finite_integral (λ x, (f x : ℝ)) μ ↔ ∫⁻ a, f a ∂μ < ∞ :=
+by simp [has_finite_integral_iff_norm]
 
 lemma has_finite_integral.mono {f : α → β} {g : α → γ} (hg : has_finite_integral g μ)
   (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) : has_finite_integral f μ :=

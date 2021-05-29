@@ -137,8 +137,7 @@ begin
       rw norm_sq_eq_abs,
       change 0 < ∥a∥ ^ 2,
       rw linear_isometry.norm_map,
-      simp,
-      simp [zero_lt_one] },
+      simp },
     have h : (∀ z, g z = z) ∨ (∀ z, g z = conj z) := linear_isometry_complex_aux g hg1,
     change (∀ z, a⁻¹ * f z = z) ∨ (∀ z, a⁻¹ * f z = conj z) at h,
     have ha : a ≠ 0 := by {
@@ -146,7 +145,6 @@ begin
       rw norm_sq_eq_abs,
       change 0 < ∥a∥ ^ 2,
       rw linear_isometry.norm_map,
-      simp,
-      simp [zero_lt_one] },
+      simp },
     simpa only [← inv_mul_eq_iff_eq_mul' ha] }
 end

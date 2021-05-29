@@ -1233,7 +1233,7 @@ begin
   rw [h₁, h₂, ennreal.of_real, nnnorm],
   congr' 1,
   apply nnreal.eq,
-  simp [real.norm_of_nonneg, le_max_right, nnreal.coe_of_real]
+  simp [real.norm_of_nonneg, le_max_right, real.coe_to_nnreal]
 end,
 -- Go to the `L¹` space
 have eq₂ : ennreal.to_real (∫⁻ a, (ennreal.of_real $ - f a) ∂μ)  = ∥Lp.neg_part f₁∥ :=
@@ -1246,7 +1246,7 @@ begin
   rw [h₁, h₂, ennreal.of_real, nnnorm],
   congr' 1,
   apply nnreal.eq,
-  simp only [real.norm_of_nonneg, min_le_right, neg_nonneg, nnreal.coe_of_real', subtype.coe_mk],
+  simp only [real.norm_of_nonneg, min_le_right, neg_nonneg, real.coe_to_nnreal', subtype.coe_mk],
   rw ← max_neg_neg,
   simp,
 end,

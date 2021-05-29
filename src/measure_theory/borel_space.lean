@@ -8,8 +8,6 @@ import analysis.complex.basic
 import analysis.normed_space.finite_dimension
 import topology.G_delta
 import measure_theory.arithmetic
-import topology.semicontinuous
-import topology.instances.ereal
 
 /-!
 # Borel (measurable) space
@@ -588,20 +586,12 @@ begin
   rintro _ ⟨x, rfl⟩, exact hf x
 end
 
-lemma upper_semicontinuous.measurable [topological_space δ] [opens_measurable_space δ]
-  {f : δ → α} (hf : upper_semicontinuous f) : measurable f :=
-measurable_of_Iio (λ y, (hf.is_open_preimage y).measurable_set)
-
 lemma measurable_of_Ioi {f : δ → α} (hf : ∀ x, measurable_set (f ⁻¹' Ioi x)) : measurable f :=
 begin
   convert measurable_generate_from _,
   exact borel_space.measurable_eq.trans (borel_eq_generate_Ioi _),
   rintro _ ⟨x, rfl⟩, exact hf x
 end
-
-lemma lower_semicontinuous.measurable [topological_space δ] [opens_measurable_space δ]
-  {f : δ → α} (hf : lower_semicontinuous f) : measurable f :=
-measurable_of_Ioi (λ y, (hf.is_open_preimage y).measurable_set)
 
 lemma measurable_of_Iic {f : δ → α} (hf : ∀ x, measurable_set (f ⁻¹' Iic x)) : measurable f :=
 begin
@@ -873,9 +863,6 @@ instance nnreal.borel_space : borel_space ℝ≥0 := subtype.borel_space _
 instance ennreal.measurable_space : measurable_space ℝ≥0∞ := borel ℝ≥0∞
 instance ennreal.borel_space : borel_space ℝ≥0∞ := ⟨rfl⟩
 
-instance ereal.measurable_space : measurable_space ereal := borel ereal
-instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
-
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
 
@@ -1017,11 +1004,11 @@ end real
 
 variable [measurable_space α]
 
-lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
+lemma measurable.real_to_nnreal {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, real.to_nnreal (f x)) :=
 nnreal.continuous_of_real.measurable.comp hf
 
-lemma ae_measurable.nnreal_of_real {f : α → ℝ} {μ : measure α} (hf : ae_measurable f μ) :
+lemma ae_measurable.real_to_nnreal {f : α → ℝ} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, real.to_nnreal (f x)) μ :=
 nnreal.continuous_of_real.measurable.comp_ae_measurable hf
 
@@ -1148,40 +1135,6 @@ lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0�
   ae_measurable (λ x, ∑' i, f i x) μ :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
   exact λ s, finset.ae_measurable_sum s (λ i _, h i) }
-
-namespace ereal
-
-lemma measurable_coe : measurable (coe : ℝ → ereal) :=
-ereal.continuous_coe.measurable
-
-lemma _root_.measurable.ereal_coe {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, (f x : ereal)) :=
-ereal.measurable_coe.comp hf
-
-/-- The set of finite `ereal` numbers is `measurable_equiv` to `ℝ`. -/
-def _root_.measurable_equiv.ereal_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ᵐ ℝ :=
-ereal.ne_bot_top_homeomorph_real.to_measurable_equiv
-
-lemma measurable_of_measurable_real {f : ereal → α}
-  (h : measurable (λ p : ℝ, f p)) : measurable f :=
-measurable_of_measurable_on_compl_finite {⊥, ⊤} (by simp)
-  (measurable_equiv.ereal_equiv_real.symm.measurable_coe_iff.1 h)
-
-lemma measurable_to_real : measurable ereal.to_real :=
-ereal.measurable_of_measurable_real (by simpa using measurable_id)
-
-lemma _root_.measurable.ereal_to_real {f : α → ereal} (hf : measurable f) :
-  measurable (λ x, (f x).to_real) :=
-measurable.comp measurable_to_real hf
-
-lemma measurable_coe_ennreal : measurable (coe : ℝ≥0∞ → ereal) :=
-continuous_coe_ennreal.measurable
-
-lemma _root_.measurable.ereal_coe_ennreal {f : α → ℝ≥0∞} (hf : measurable f) :
-  measurable (λ x, (f x : ereal)) :=
-measurable_coe_ennreal.comp hf
-
-end ereal
 
 section normed_group
 

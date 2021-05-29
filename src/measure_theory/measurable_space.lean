@@ -578,10 +578,6 @@ begin
   exact (hf ht).inter h.measurable_set.of_compl,
 end
 
-lemma measurable_of_fintype [fintype α] [measurable_singleton_class α] (f : α → β) :
-  measurable f :=
-λ s hs, (finite.of_fintype (f ⁻¹' s)).measurable_set
-
 end measurable_functions
 
 section constructions
@@ -681,29 +677,12 @@ begin
       subtype.range_coe, ← inter_distrib_left, univ_subset_iff.1 h, inter_univ],
 end
 
-instance {α} {p : α → Prop} [measurable_space α] [measurable_singleton_class α] :
-  measurable_singleton_class (subtype p) :=
-{ measurable_set_singleton := λ x,
-  begin
-    have : measurable_set {(x : α)} := measurable_set_singleton _,
-    convert @measurable_subtype_coe α _ p _ this,
-    ext y,
-    simp [subtype.ext_iff],
-  end }
-
-lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
-  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (set.restrict f sᶜ)) :
-  measurable f :=
-begin
-  letI : fintype s := finite.fintype hs,
-  exact measurable_of_measurable_union_cover s sᶜ hs.measurable_set hs.measurable_set.compl
-    (by simp only [union_compl_self]) (measurable_of_fintype _) hf
-end
-
 lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α]
   {f : α → β} (a : α) (hf : measurable (set.restrict f {x | x ≠ a})) :
   measurable f :=
-measurable_of_measurable_on_compl_finite {a} (finite_singleton a) hf
+measurable_of_measurable_union_cover _ _ measurable_set_eq measurable_set_eq.compl
+  (λ x hx, classical.em _)
+  (@subsingleton.measurable {x | x = a} _ _ _ ⟨λ x y, subtype.eq $ x.2.trans y.2.symm⟩ _) hf
 
 end subtype
 

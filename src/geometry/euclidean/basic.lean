@@ -499,7 +499,7 @@ by rw [dist_left_midpoint p1 p2, dist_right_midpoint p1 p2]
 /-- If M is the midpoint of the segment AB, then ∠AMB = π. -/
 lemma angle_midpoint_eq_pi (p1 p2 : P) (hp1p2 : p1 ≠ p2) : ∠ p1 (midpoint ℝ p1 p2) p2 = π :=
 have p2 -ᵥ midpoint ℝ p1 p2 = -(p1 -ᵥ midpoint ℝ p1 p2), by { rw neg_vsub_eq_vsub_rev, simp },
-by simp [angle, this, hp1p2, -zero_lt_one]
+by simp [angle, this, hp1p2]
 
 /-- If M is the midpoint of the segment AB and C is the same distance from A as it is from B
 then ∠CMA = π / 2. -/

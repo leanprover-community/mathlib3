@@ -650,16 +650,6 @@ namespace nnreal
 
 open_locale nnreal
 
-lemma tsum_eq_to_nnreal_tsum {f : β → ℝ≥0} :
-  (∑' b, f b) = (∑' b, (f b : ℝ≥0∞)).to_nnreal :=
-begin
-  by_cases h : summable f,
-  { rw [← ennreal.coe_tsum h, ennreal.to_nnreal_coe] },
-  { have A := tsum_eq_zero_of_not_summable h,
-    simp only [← ennreal.tsum_coe_ne_top_iff_summable, not_not] at h,
-    simp only [h, ennreal.top_to_nnreal, A] }
-end
-
 /-- Comparison test of convergence of `ℝ≥0`-valued series. -/
 lemma exists_le_has_sum_of_le {f g : β → ℝ≥0} {r : ℝ≥0}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
@@ -752,31 +742,6 @@ begin
   convert tendsto_sum_nat_add (λ i, (f i : ℝ)),
   norm_cast,
 end
-
-lemma has_sum_lt {f g : α → ℝ≥0} {sf sg : ℝ≥0} {i : α} (h : ∀ (a : α), f a ≤ g a) (hi : f i < g i)
-  (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
-begin
-  have A : ∀ (a : α), (f a : ℝ) ≤ g a := λ a, nnreal.coe_le_coe.2 (h a),
-  have : (sf : ℝ) < sg :=
-    has_sum_lt A (nnreal.coe_lt_coe.2 hi) (has_sum_coe.2 hf) (has_sum_coe.2 hg),
-  exact nnreal.coe_lt_coe.1 this
-end
-
-@[mono] lemma has_sum_strict_mono
-  {f g : α → ℝ≥0} {sf sg : ℝ≥0} (hf : has_sum f sf) (hg : has_sum g sg) (h : f < g) : sf < sg :=
-let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt hle hi hf hg
-
-lemma tsum_lt_tsum {f g : α → ℝ≥0} {i : α} (h : ∀ (a : α), f a ≤ g a) (hi : f i < g i)
-  (hg : summable g) : ∑' n, f n < ∑' n, g n :=
-has_sum_lt h hi (summable_of_le h hg).has_sum hg.has_sum
-
-@[mono] lemma tsum_strict_mono {f g : α → ℝ≥0} (hg : summable g) (h : f < g) :
-  ∑' n, f n < ∑' n, g n :=
-let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hg
-
-lemma tsum_pos {g : α → ℝ≥0} (hg : summable g) (i : α) (hi : 0 < g i) :
-  0 < ∑' b, g b :=
-by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 
 end nnreal
 

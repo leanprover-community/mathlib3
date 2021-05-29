@@ -181,7 +181,7 @@ begin
 end
 
 /-- If `v` is a linearly independent family of vectors and the kernel of a linear map `f` is
-disjoint with the sumodule spaned by the vectors of `v`, then `f ∘ v` is a linearly independent
+disjoint with the submodule spanned by the vectors of `v`, then `f ∘ v` is a linearly independent
 family of vectors. See also `linear_independent.map'` for a special case assuming `ker f = ⊥`. -/
 lemma linear_independent.map (hv : linear_independent R v) {f : M →ₗ[R] M'}
   (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
@@ -458,6 +458,19 @@ begin
   rw [hv.injective_total.eq_iff] at H, subst l₂,
   have : l₁ = 0 := finsupp.disjoint_supported_supported hs (submodule.mem_inf.2 ⟨hl₁, hl₂⟩),
   simp [this]
+end
+
+lemma linear_independent.not_mem_span_image [nontrivial R] (hv : linear_independent R v) {s : set ι}
+  {x : ι} (h : x ∉ s) :
+  v x ∉ submodule.span R (v '' s) :=
+begin
+  have h' : v x ∈ submodule.span R (v '' {x}),
+  { rw set.image_singleton,
+    exact mem_span_singleton_self (v x), },
+  intro w,
+  apply linear_independent.ne_zero x hv,
+  refine disjoint_def.1 (hv.disjoint_span_image _) (v x) h' w,
+  simpa using h,
 end
 
 lemma linear_independent_sum {v : ι ⊕ ι' → M} :

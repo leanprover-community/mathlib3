@@ -71,6 +71,47 @@ cardinal.sup.{v v}
 
 end
 
+section
+variables (R : Type u) [ring R] [nontrivial R]
+variables (M : Type*) [add_comm_group M] [module R M]
+
+/--
+Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.
+-/
+-- This result apparently doesn't hold in general
+-- if we replace "basis" with "linearly independent set"!
+def basis_fintype_of_finite_spans (w : set M) [fintype w] (s : span R w = ⊤)
+  {ι : Type*} (b : basis ι R M) : fintype ι :=
+begin
+  -- We'll work by contradiction, assuming `ι` is infinite.
+  apply fintype_of_not_infinite _,
+  introI i,
+  -- Let `S` be the union of the supports of `x ∈ w` expressed as linear combinations of `b`.
+  -- This is a finite set since `w` is finite.
+  let S : finset ι := finset.univ.sup (λ x : w, (b.repr x).support),
+  let bS : set M := b '' S,
+  have h : ∀ x ∈ w, x ∈ span R bS,
+  { intros x m,
+    rw [←b.total_repr x, finsupp.span_image_eq_map_total, submodule.mem_map],
+    use b.repr x,
+    simp only [and_true, eq_self_iff_true, finsupp.mem_supported],
+    change (b.repr x).support ≤ S,
+    convert (finset.le_sup (by simp : (⟨x, m⟩ : w) ∈ finset.univ)),
+    refl, },
+  -- Thus this finite subset of the basis elements spans the entire module.
+  have k : span R bS = ⊤ := eq_top_iff.2 (le_trans s.ge (span_le.2 h)),
+
+  -- Now there is some `x : ι` not in `S`, since `ι` is infinite.
+  obtain ⟨x, nm⟩ := infinite.exists_not_mem_finset S,
+  -- However it must be in the span of the finite subset,
+  have k' : b x ∈ span R bS, { rw k, exact mem_top, },
+  -- giving the desire contradiction.
+  refine b.linear_independent.not_mem_span_image _ k',
+  exact nm,
+end
+
+end
+
 section strong_rank_condition
 
 variables (R : Type u) [ring R] [strong_rank_condition R]
@@ -165,7 +206,7 @@ lemma basis_le_span {ι : Type*} [fintype ι] (b : basis ι R M)
   fintype.card ι ≤ fintype.card w :=
 begin
    -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
-   -- by expressing an linear combination in `w` as a linear combination in `ι`.
+   -- by expressing a linear combination in `w` as a linear combination in `ι`.
    fapply card_le_of_surjective' R,
    { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
    { apply surjective.comp,

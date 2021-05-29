@@ -205,8 +205,9 @@ lemma cInf_upper_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s.nonempty)
 
 /--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
 is larger than all elements of `s`, and that this is not the case of any `w<b`.
-See `Sup_intro` for a version in complete lattices. -/
-theorem cSup_intro (_ : s.nonempty) (_ : ∀a∈s, a ≤ b) (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
+See `Sup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in complete lattices. -/
+theorem cSup_eq_of_forall_le_of_forall_lt_exists_gt (_ : s.nonempty)
+  (_ : ∀a∈s, a ≤ b) (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
 have bdd_above s := ⟨b, by assumption⟩,
 have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (cSup_le ‹_› ‹∀a∈s, a ≤ b›),
 have ¬(Sup s < b) :=
@@ -218,9 +219,10 @@ show Sup s = b, by finish
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
 is smaller than all elements of `s`, and that this is not the case of any `w>b`.
-See `Inf_intro` for a version in complete lattices. -/
-theorem cInf_intro (_ : s.nonempty) (_ : ∀a∈s, b ≤ a) (H : ∀w, b < w → (∃a∈s, a < w)) : Inf s = b :=
-@cSup_intro (order_dual α) _ _ _ ‹_› ‹_› ‹_›
+See `Inf_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in complete lattices. -/
+theorem cInf_eq_of_forall_ge_of_forall_gt_exists_lt (_ : s.nonempty) (_ : ∀a∈s, b ≤ a)
+  (H : ∀w, b < w → (∃a∈s, a < w)) : Inf s = b :=
+@cSup_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ _ ‹_› ‹_› ‹_›
 
 /--b < Sup s when there is an element a in s with b < a, when s is bounded above.
 This is essentially an iff, except that the assumptions for the two implications are
@@ -308,7 +310,8 @@ theorem cInf_insert (hs : bdd_below s) (sne : s.nonempty) : Inf (insert a s) = a
 (is_glb_Ioc h).cInf_eq (nonempty_Ioc.2 h)
 
 @[simp] lemma cInf_Ioi [no_top_order α] [densely_ordered α] : Inf (Ioi a) = a :=
-cInf_intro nonempty_Ioi (λ _, le_of_lt) (λ w hw, by simpa using exists_between hw)
+cInf_eq_of_forall_ge_of_forall_gt_exists_lt nonempty_Ioi (λ _, le_of_lt)
+  (λ w hw, by simpa using exists_between hw)
 
 @[simp] lemma cInf_Ioo [densely_ordered α] (h : a < b) : Inf (Ioo a b) = a :=
 (is_glb_Ioo h).cInf_eq (nonempty_Ioo.2 h)
@@ -322,7 +325,8 @@ cInf_intro nonempty_Ioi (λ _, le_of_lt) (λ w hw, by simpa using exists_between
 @[simp] lemma cSup_Iic : Sup (Iic a) = a := is_greatest_Iic.cSup_eq
 
 @[simp] lemma cSup_Iio [no_bot_order α] [densely_ordered α] : Sup (Iio a) = a :=
-cSup_intro nonempty_Iio (λ _, le_of_lt) (λ w hw, by simpa [and_comm] using exists_between hw)
+cSup_eq_of_forall_le_of_forall_lt_exists_gt nonempty_Iio (λ _, le_of_lt)
+  (λ w hw, by simpa [and_comm] using exists_between hw)
 
 @[simp] lemma cSup_Ioc (h : a < b) : Sup (Ioc a b) = b :=
 (is_lub_Ioc h).cSup_eq (nonempty_Ioc.2 h)
@@ -399,17 +403,18 @@ by haveI := unique_prop hp; exact supr_unique
 
 /--Introduction rule to prove that `b` is the supremum of `f`: it suffices to check that `b`
 is larger than `f i` for all `i`, and that this is not the case of any `w<b`.
-See `supr_intro` for a version in complete lattices. -/
-theorem csupr_intro [nonempty ι] {f : ι → α} (h₁ : ∀ i, f i ≤ b) (h₂ : ∀ w, w < b → (∃ i, w < f i)):
-  (⨆ (i : ι), f i) = b :=
-cSup_intro (range_nonempty f) (forall_range_iff.mpr h₁) (λ w hw, exists_range_iff.mpr $ h₂ w hw)
+See `supr_eq_of_forall_le_of_forall_lt_exists_gt` for a version in complete lattices. -/
+theorem csupr_eq_of_forall_le_of_forall_lt_exists_gt [nonempty ι] {f : ι → α} (h₁ : ∀ i, f i ≤ b)
+  (h₂ : ∀ w, w < b → (∃ i, w < f i)) : (⨆ (i : ι), f i) = b :=
+cSup_eq_of_forall_le_of_forall_lt_exists_gt (range_nonempty f) (forall_range_iff.mpr h₁)
+  (λ w hw, exists_range_iff.mpr $ h₂ w hw)
 
 /--Introduction rule to prove that `b` is the infimum of `f`: it suffices to check that `b`
 is smaller than `f i` for all `i`, and that this is not the case of any `w>b`.
-See `infi_intro` for a version in complete lattices. -/
-theorem cinfi_intro [nonempty ι] {f : ι → α} (h₁ : ∀ i, b ≤ f i) (h₂ : ∀ w, b < w → (∃ i, f i < w)):
-  (⨅ (i : ι), f i) = b :=
-@csupr_intro (order_dual α) _ _ _ _ ‹_› ‹_› ‹_›
+See `infi_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in complete lattices. -/
+theorem cinfi_eq_of_forall_ge_of_forall_gt_exists_lt [nonempty ι] {f : ι → α} (h₁ : ∀ i, b ≤ f i)
+  (h₂ : ∀ w, b < w → (∃ i, f i < w)) : (⨅ (i : ι), f i) = b :=
+@csupr_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ _ _ ‹_› ‹_› ‹_›
 
 /-- Nested intervals lemma: if `f` is a monotonically increasing sequence, `g` is a monotonically
 decreasing sequence, and `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals

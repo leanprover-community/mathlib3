@@ -760,7 +760,7 @@ instance totally_separated_space.of_discrete
   (α : Type*) [topological_space α] [discrete_topology α] : totally_separated_space α :=
 ⟨λ a _ b _ h, ⟨{b}ᶜ, {b}, is_open_discrete _, is_open_discrete _, by simpa⟩⟩
 
-lemma exists_clopen_of_tot_sep {α : Type*} [topological_space α] [totally_separated_space α]
+lemma exists_clopen_of_totally_separated {α : Type*} [topological_space α] [totally_separated_space α]
   {x y : α} (hxy : x ≠ y) : ∃ (U : set α) (hU : is_clopen U), x ∈ U ∧ y ∈ Uᶜ :=
 begin
   obtain ⟨U, V, hU, hV, Ux, Vy, f, disj⟩ :=
@@ -768,7 +768,7 @@ begin
   have clopen_U := is_clopen_inter_of_disjoint_cover_clopen (is_clopen_univ) f hU hV disj,
   rw set.univ_inter _ at clopen_U,
   rw [←set.subset_compl_iff_disjoint, set.subset_compl_comm] at disj,
-  refine ⟨U, clopen_U, Ux, disj Vy⟩,
+  exact ⟨U, clopen_U, Ux, disj Vy⟩,
 end
 
 end totally_separated

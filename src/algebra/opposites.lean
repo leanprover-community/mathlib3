@@ -334,3 +334,21 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
 { to_fun := opposite.op ∘ f,
   .. ((opposite.op_add_equiv : S ≃+ Sᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵒᵖ),
   .. f.to_monoid_hom.to_opposite hf }
+
+/-- The units of the opposites are equivalent to the opposites of the units. -/
+def units.op_equiv {R} [monoid R] : units Rᵒᵖ ≃* (units R)ᵒᵖ :=
+{ to_fun := λ u, op ⟨unop u, unop ↑(u⁻¹), op_injective u.4, op_injective u.3⟩,
+  inv_fun := op_induction $ λ u, ⟨op ↑(u), op ↑(u⁻¹), unop_injective $ u.4, unop_injective u.3⟩,
+  map_mul' := λ x y, unop_injective $ units.ext $ rfl,
+  left_inv := λ x, units.ext $ rfl,
+  right_inv := λ x, unop_injective $ units.ext $ rfl }
+
+@[simp]
+lemma units.coe_unop_op_equiv {R} [monoid R] (u : units Rᵒᵖ) :
+  ((units.op_equiv u).unop : R) = unop (u : Rᵒᵖ) :=
+rfl
+
+@[simp]
+lemma units.coe_op_equiv_symm {R} [monoid R] (u : (units R)ᵒᵖ) :
+  (units.op_equiv.symm u : Rᵒᵖ) = op (u.unop : R) :=
+rfl

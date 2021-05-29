@@ -524,6 +524,11 @@ def iso_of_components (f : Π i, C₁.X i ≅ C₂.X i)
   hom_inv_id' := by { ext i, exact (f i).hom_inv_id },
   inv_hom_id' := by { ext i, exact (f i).inv_hom_id } }
 
+@[simp] lemma iso_of_components_app (f : Π i, C₁.X i ≅ C₂.X i)
+  (hf : ∀ i j, c.rel i j → (f i).hom ≫ C₂.d i j = C₁.d i j ≫ (f j).hom) (i : ι) :
+  iso_app (iso_of_components f hf) i = f i :=
+by { ext, simp, }
+
 end hom
 
 end homological_complex

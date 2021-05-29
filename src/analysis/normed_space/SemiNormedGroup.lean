@@ -37,6 +37,8 @@ instance (M : SemiNormedGroup) : semi_normed_group M := M.str
 
 @[simp] lemma coe_of (V : Type u) [semi_normed_group V] : (SemiNormedGroup.of V : Type u) = V := rfl
 @[simp] lemma coe_id (V : SemiNormedGroup) : ⇑(𝟙 V) = id := rfl
+@[simp] lemma coe_comp {M N K : SemiNormedGroup} (f : M ⟶ N) (g : N ⟶ K) :
+  ((f ≫ g) : M → K) = g ∘ f := rfl
 
 instance : has_zero SemiNormedGroup := ⟨of punit⟩
 instance : inhabited SemiNormedGroup := ⟨0⟩

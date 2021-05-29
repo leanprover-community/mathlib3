@@ -9,14 +9,10 @@ import ring_theory.algebra_tower
 
 /-!
 # Derivations
-
 This file defines derivation. A derivation `D` from the `R`-algebra `A` to the `A`-module `M` is an
 `R`-linear map that satisfy the Leibniz rule `D (a * b) = a * D b + D a * b`.
-
 ## Notation
-
 The notation `⁅D1, D2⁆` is used for the commutator of two derivations.
-
 TODO: this file is just a stub to go on with some PRs in the geometry section. It only
 implements the definition of derivations in commutative algebra. This will soon change: as soon
 as bimodules will be there in mathlib I will change this file to take into account the
@@ -52,14 +48,15 @@ instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 ⟨λ D, D.to_linear_map⟩
 
 @[simp] lemma mk_coe (f : A →ₗ[R] M) (h) : ((⟨f, h⟩ : derivation R A M) : A → M) = f := rfl
+
 @[simp] lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
 
 @[simp, norm_cast]
 lemma coe_fn_coe (f : derivation R A M) :
   ⇑(f : A →ₗ[R] M) = f := rfl
 
-lemma coe_injective (h : ⇑D1 = D2) : D1 = D2 :=
-by { cases D1, cases D2, congr', exact linear_map.coe_injective h }
+lemma coe_injective (H : ⇑D1 = D2) : D1 = D2 :=
+by { cases D1, cases D2, congr', exact linear_map.coe_injective H }
 
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
 coe_injective $ funext H
@@ -93,8 +90,7 @@ instance : add_comm_monoid (derivation R A M) :=
   add_comm := λ D E, ext $ λ a, add_comm _ _,
   ..derivation.has_zero }
 
-@[simp] lemma coe_add : ⇑(D1 + D2) = D1 + D2 := rfl
-@[simp] lemma coe_zero : ⇑(0 : derivation R A M) = 0 := rfl
+@[simp] lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
 
 @[priority 100]
 instance derivation.Rmodule : module R (derivation R A M) :=
@@ -131,14 +127,34 @@ variables (f : M →ₗ[A] N)
 
 /-- We can push forward derivations using linear maps, i.e., the composition of a derivation with a
 linear map is a derivation. Furthermore, this operation is linear on the spaces of derivations. -/
-def _root_.linear_map.comp_der : derivation R A M →ₗ[R] derivation R A N :=
+def comp : derivation R A M →ₗ[R] derivation R A N :=
 { to_fun    := λ D,
-  { leibniz'  := λ a b, by simp only [coe_fn_coe, function.comp_app, linear_map.coe_comp,
-                      linear_map.map_add, leibniz, linear_map.coe_coe_is_scalar_tower,
-                      linear_map.map_smul, linear_map.to_fun_eq_coe],
+  { leibniz'  := λ a b,
+      begin
+        simp only [coe_fn_coe, function.comp_app, linear_map.coe_comp, linear_map.map_add, leibniz,
+          linear_map.coe_coe_is_scalar_tower, linear_map.map_smul, linear_map.to_fun_eq_coe],
+      end,
     .. (f : M →ₗ[R] N).comp (D : A →ₗ[R] M), },
-  map_add'  := λ D₁ D₂, by { ext, exact linear_map.map_add _ _ _, },
-  map_smul' := λ r D, by { ext, exact linear_map.map_smul _ _ _, }, }
+  map_add'  := λ D₁ D₂,
+    begin
+      ext,
+      simp only [mk_coe, add_apply, coe_fn_coe, linear_map.coe_mk, function.comp_app,
+      linear_map.coe_comp, linear_map.to_fun_eq_coe, linear_map.map_add],
+    end,
+  map_smul' := λ r D,
+    begin
+      ext,
+      simp only [coe_fn_coe, Rsmul_apply, linear_map.map_smul_of_tower, mk_coe, linear_map.coe_mk,
+      function.comp_app, linear_map.coe_comp, linear_map.to_fun_eq_coe],
+    end, }
+
+@[simp] lemma coe_to_linear_map_comp :
+  (comp f D : A →ₗ[R] N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
+rfl
+
+@[simp] lemma coe_comp :
+  (comp f D : A → N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
+rfl
 
 end push_forward
 
@@ -166,8 +182,7 @@ instance : add_comm_group (derivation R A M) :=
   add_left_neg := λ D, ext $ λ a, add_left_neg _,
   ..derivation.add_comm_monoid }
 
-@[simp] lemma coe_sub : ⇑(D1 - D2) = D1 - D2 := rfl
-@[simp] lemma coe_neg : ⇑(-D2) = -D2 := rfl
+@[simp] lemma sub_apply : (D1 - D2) a = D1 a - D2 a := rfl
 
 end
 
@@ -192,11 +207,11 @@ instance : has_bracket (derivation R A A) (derivation R A A) := ⟨derivation.co
 lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 
 instance : lie_ring (derivation R A A) :=
-{ add_lie := λ d e f, by ext; simp only [commutator_apply, coe_add, map_add, pi.add_apply]; ring,
-  lie_add := λ d e f, by ext; simp only [commutator_apply, coe_add, map_add, pi.add_apply]; ring,
-  lie_self := λ d, by { ext a, simp only [commutator_apply, coe_add, map_add], ring_nf, },
+{ add_lie     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring_nf, },
   leibniz_lie := λ d e f,
-    by { ext a, simp only [commutator_apply, coe_add, coe_sub, map_sub, pi.add_apply], ring, } }
+    by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
 
 instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, Rsmul_apply]},
@@ -207,3 +222,28 @@ end lie_structures
 end
 
 end derivation
+
+section comp_der
+
+namespace linear_map
+
+variables {R : Type*} [comm_semiring R]
+variables {A : Type*} [comm_semiring A] [algebra R A]
+variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
+variables {N : Type*} [add_cancel_comm_monoid N] [module A N] [module R N]
+variables [is_scalar_tower R A M] [is_scalar_tower R A N]
+
+/-- The composition of a linear map and a derivation is a derivation. -/
+def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
+{ to_fun := λ a, f (D a),
+  map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
+  map_smul' := λ r a, by rw [derivation.map_smul, map_smul_of_tower],
+  leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add,
+                                   add_comm] }
+
+@[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :
+  f.comp_der D a = f (D a) := rfl
+
+end linear_map
+
+end comp_der

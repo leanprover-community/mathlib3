@@ -62,8 +62,6 @@ instance of_associative_ring : lie_ring A :=
 
 lemma of_associative_ring_bracket (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
-lemma lie_apply {α : Type*} (f g : α → A) (a : α) : ⁅f, g⁆ a = ⁅f a, g a⁆ := rfl
-
 end lie_ring
 
 namespace lie_algebra

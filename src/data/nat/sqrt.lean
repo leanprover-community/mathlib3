@@ -180,8 +180,11 @@ theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
  λ ⟨h₁, h₂⟩, le_antisymm (le_sqrt.2 h₁) (le_of_lt_succ $ sqrt_lt.2 h₂)⟩
 
 theorem eq_sqrt' {n q} : q = sqrt n ↔ q ^ 2 ≤ n ∧ n < (q+1) ^ 2 :=
-⟨λ e, ⟨eq.trans_le (sq q) ((@eq_sqrt n q).1 e).1, trans_rel_left (λ i j, i < j) ((@eq_sqrt n q).1 e).2 (sq _).symm⟩,
- λ ⟨e1, e2⟩, (@eq_sqrt n q).2 ⟨eq.trans_le (sq _).symm e1, trans_rel_left (λ i j, i < j) e2 (sq _)⟩⟩
+⟨λ e,
+  ⟨eq.trans_le (sq q) ((@eq_sqrt n q).1 e).1,
+   trans_rel_left (λ i j, i < j) ((@eq_sqrt n q).1 e).2 (sq _).symm⟩,
+ λ ⟨e1, e2⟩,
+  (@eq_sqrt n q).2 ⟨eq.trans_le (sq _).symm e1, trans_rel_left (λ i j, i < j) e2 (sq _)⟩⟩
 
 theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
 le_of_lt_succ $ (@sqrt_lt n 2).1 $

@@ -169,22 +169,41 @@ begin
   exact mul_le_mul_left _ hk,
 end
 
-lemma desc_fac_eq_factorial_mul_choose (n k : ℕ) : desc_fac n k = k! * (n + k).choose k :=
+lemma asc_fact_eq_factorial_mul_choose (n k : ℕ) : n.asc_fact k = k! * (n + k).choose k :=
 begin
   rw mul_comm,
   apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
-  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←factorial_mul_desc_fac, mul_comm],
+  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←factorial_mul_asc_fact, mul_comm],
   exact le_add_left k n
 end
 
-lemma factorial_dvd_desc_fac (n k : ℕ) : k! ∣ desc_fac n k :=
-⟨(n+k).choose k, desc_fac_eq_factorial_mul_choose _ _⟩
+lemma factorial_dvd_asc_fact (n k : ℕ) : k! ∣ n.asc_fact k :=
+⟨(n+k).choose k, asc_fact_eq_factorial_mul_choose _ _⟩
 
-lemma choose_eq_desc_fac_div_factorial (n k : ℕ) : (n + k).choose k = desc_fac n k / k! :=
+lemma choose_eq_asc_fact_div_factorial (n k : ℕ) : (n + k).choose k = n.asc_fact k / k! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero k),
-  rw ←desc_fac_eq_factorial_mul_choose,
-  exact (nat.mul_div_cancel' $ factorial_dvd_desc_fac _ _).symm
+  rw ←asc_fact_eq_factorial_mul_choose,
+  exact (nat.mul_div_cancel' $ factorial_dvd_asc_fact _ _).symm,
+end
+
+lemma desc_fact_eq_factorial_mul_choose (n k : ℕ) : n.desc_fact k = k! * n.choose k :=
+begin
+  obtain h | h := nat.lt_or_ge n k,
+  { rw [desc_fact_eq_zero_iff_lt.2 h, choose_eq_zero_of_lt h, mul_zero] },
+  rw mul_comm,
+  apply mul_right_cancel' (factorial_ne_zero (n - k)),
+  rw [choose_mul_factorial_mul_factorial h, ←factorial_mul_desc_fact h, mul_comm],
+end
+
+lemma factorial_dvd_desc_fact (n k : ℕ) : k! ∣ n.desc_fact k :=
+⟨n.choose k, desc_fact_eq_factorial_mul_choose _ _⟩
+
+lemma choose_eq_desc_fact_div_factorial (n k : ℕ) : n.choose k = n.desc_fact k / k! :=
+begin
+  apply mul_left_cancel' (factorial_ne_zero k),
+  rw ←desc_fact_eq_factorial_mul_choose,
+  exact (nat.mul_div_cancel' $ factorial_dvd_desc_fact _ _).symm,
 end
 
 /-! ### Inequalities -/
@@ -207,8 +226,8 @@ decreasing_induction
   (λ _ k a,
       (eq_or_lt_of_le a).elim
         (λ t, t.symm ▸ le_refl _)
-        (λ h, trans (choose_le_succ_of_lt_half_left h) (k h)))
-  hr (λ _, le_refl _) hr
+        (λ h, (choose_le_succ_of_lt_half_left h).trans (k h)))
+  hr (λ _, le_rfl) hr
 
 /-- `choose n r` is maximised when `r` is `n/2`. -/
 lemma choose_le_middle (r n : ℕ) : choose n r ≤ choose n (n/2) :=

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Chris Hughes, Floris van Doorn
+Authors: Mario Carneiro, Chris Hughes, Floris van Doorn, Yaël Dillies
 -/
 import data.nat.basic
 
@@ -10,7 +10,7 @@ import data.nat.basic
 
 ## Main declarations
 * `factorial`: The factorial
-* `asc_fac`: The ascending factorial. Note that it runs from `n + 1` to `n + k` and *not* from `n`
+* `asc_fact`: The ascending factorial. Note that it runs from `n + 1` to `n + k` and *not* from `n`
   to `n + k - 1`. We might want to change that in the future.
 -/
 
@@ -93,7 +93,7 @@ end
 lemma factorial_inj (h0 : 1 < n!) : n! = m! ↔ n = m :=
 begin
   split; intro h,
-  { obtain hnm | hnm | hnm := lt_trichotomy,
+  { obtain hnm | hnm | hnm := lt_trichotomy n m,
     { exfalso, rw [← factorial_lt, h] at hnm, exact lt_irrefl _ hnm,
       rw [one_lt_factorial] at h0, exact lt_trans one_pos h0 },
     { exact hnm },
@@ -157,104 +157,189 @@ end factorial
 
 /-! ### Ascending and descending factorials -/
 
-section asc_fac
+section asc_fact
 
-/-- asc_fac n k = (n + k)! / n! (as seen in `nat.asc_fac_eq_div`), but implemented recursively to
-allow for quick computation when using `norm_num`. This is closely related to `pochhammer`, but much
-less general. -/
-def asc_fac (n : ℕ) : ℕ → ℕ
+/-- n.asc_fact k = (n + k)! / n! (as seen in `nat.asc_fact_eq_div`), but implemented recursively to
+allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`, but
+much less general. -/
+def asc_fact (n : ℕ) : ℕ → ℕ
 | 0 := 1
-| (k + 1) := (n + k + 1) * asc_fac k
+| (k + 1) := (n + k + 1) * asc_fact k
 
-@[simp] lemma asc_fac_zero (n : ℕ) : asc_fac n 0 = 1 := rfl
+@[simp] lemma asc_fact_zero (n : ℕ) : asc_fact n 0 = 1 := rfl
 
-@[simp] lemma zero_asc_fac (k : ℕ) : asc_fac 0 k = k! :=
+@[simp] lemma zero_asc_fact (k : ℕ) : asc_fact 0 k = k! :=
 begin
   induction k with t ht, refl,
-  unfold asc_fac, rw [ht, zero_add, nat.factorial_succ]
+  unfold asc_fact, rw [ht, zero_add, nat.factorial_succ]
 end
 
-lemma asc_fac_succ {n k : ℕ} : asc_fac n k.succ = (n + k + 1) * asc_fac n k := rfl
+lemma asc_fact_succ {n k : ℕ} : n.asc_fact k.succ = (n + k + 1) * n.asc_fact k := rfl
 
-lemma succ_asc_fac (n : ℕ) : ∀ k, (n + 1) * asc_fac n.succ k = (n + k + 1) * asc_fac n k
-| 0 := by rw [add_zero, asc_fac_zero, asc_fac_zero]
-| (k + 1) := by rw [asc_fac, mul_left_comm, succ_asc_fac, asc_fac, succ_add, ← add_assoc]
+lemma succ_asc_fact (n : ℕ) : ∀ k, (n + 1) * asc_fact n.succ k = (n + k + 1) * n.asc_fact k
+| 0 := by rw [add_zero, asc_fact_zero, asc_fact_zero]
+| (k + 1) := by rw [asc_fact, mul_left_comm, succ_asc_fact, asc_fact, succ_add, ← add_assoc]
 
-/-- `asc_fac n k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
-See `nat.asc_fac_eq_div` if you really need the version that uses ℕ-division. -/
-theorem factorial_mul_asc_fac (n : ℕ) : ∀ k, n! * asc_fac n k = (n + k)!
-| 0 := by rw [asc_fac, add_zero, mul_one]
-| (k + 1) := by rw [asc_fac_succ, mul_left_comm, factorial_mul_asc_fac, ← add_assoc, factorial]
+/-- `n.asc_fact k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
+See `nat.asc_fact_eq_div` if you really need the version that uses ℕ-division. -/
+theorem factorial_mul_asc_fact (n : ℕ) : ∀ k, n! * n.asc_fact k = (n + k)!
+| 0 := by rw [asc_fact, add_zero, mul_one]
+| (k + 1) := by rw [asc_fact_succ, mul_left_comm, factorial_mul_asc_fact, ← add_assoc, factorial]
 
-/-- Avoid in favour of `nat.factorial_mul_asc_fac` if you can. ℕ-division isn't worth it. -/
-lemma asc_fac_eq_div (n k : ℕ) : asc_fac n k = (n + k)! / n! :=
+/-- Avoid in favour of `nat.factorial_mul_asc_fact` if you can. ℕ-division isn't worth it. -/
+lemma asc_fact_eq_div (n k : ℕ) : n.asc_fact k = (n + k)! / n! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero n),
-  rw factorial_mul_asc_fac,
+  rw factorial_mul_asc_fact,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
 end
 
-lemma asc_fac_of_sub {n k : ℕ} (h : n < k) :
-  (k - n) * (k - n).asc_fac n = (k - (n + 1)).asc_fac (n + 1) :=
+lemma asc_fact_of_sub {n k : ℕ} (h : k < n) :
+  (n - k) * (n - k).asc_fact k = (n - (k + 1)).asc_fact (k + 1) :=
 begin
-  set t := k - n.succ with ht,
-  suffices h' : k - n = t.succ, by rw [←ht, h', succ_asc_fac, asc_fac_succ],
+  set t := n - k.succ with ht,
+  suffices h' : n - k = t.succ, by rw [←ht, h', succ_asc_fact, asc_fact_succ],
   rw [ht, succ_eq_add_one, ←sub_sub_assoc h (succ_pos _), succ_sub_one],
 end
 
-end asc_fac
+lemma pow_le_asc_fact (n : ℕ) : ∀ (k : ℕ), (n + 1)^k ≤ n.asc_fact k
+| 0 := by rw [asc_fact_zero, pow_zero]
+| (k + 1) := begin
+  rw [asc_fact_succ, pow_succ],
+  exact nat.mul_le_mul (nat.add_le_add_right le_self_add _) (pow_le_asc_fact k),
+end
 
-section desc_fac
+lemma pow_lt_asc_fact (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → (n + 1)^k < n.asc_fact k
+| 0 := by rintro ⟨⟩
+| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| (k + 2) := λ _, begin
+  rw [asc_fact_succ, pow_succ],
+  exact nat.mul_lt_mul (nat.add_lt_add_right (nat.lt_add_of_pos_right (succ_pos k)) 1)
+    (pow_le_asc_fact n _) (pow_pos (succ_pos n) _),
+end
 
-/-- desc_fac n k = n! / (n - k)! (as seen in `nat.desc_fac_eq_div`), but implemented recursively to
-allow for quick computation when using `norm_num`. This is closely related to `pochhammer`, but much
-less general. -/
-def desc_fac : ℕ → ℕ → ℕ
+lemma asc_fact_le_pow (n : ℕ) : ∀ (k : ℕ), n.asc_fact k ≤ (n + k)^k
+| 0 := by rw [asc_fact_zero, pow_zero]
+| (k + 1) := begin
+  rw [asc_fact_succ, pow_succ],
+  exact nat.mul_le_mul_of_nonneg_left ((asc_fact_le_pow k).trans (nat.pow_le_pow_of_le_left
+  (le_succ _) _)),
+end
+
+lemma asc_fact_lt_pow (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → n.asc_fact k < (n + k)^k
+| 0 := by rintro ⟨⟩
+| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| (k + 2) := λ _, begin
+  rw [asc_fact_succ, pow_succ],
+  refine nat.mul_lt_mul' (le_refl _) (lt_of_le_of_lt (asc_fact_le_pow n _)
+    (pow_lt_pow_of_lt_left (lt_add_one _) (succ_pos _))) (succ_pos _),
+end
+
+lemma asc_fact_pos (n k : ℕ) : 0 < n.asc_fact k :=
+lt_of_lt_of_le (pow_pos (succ_pos n) k) (pow_le_asc_fact n k)
+
+end asc_fact
+
+section desc_fact
+
+/-- n.desc_fact k = n! / (n - k)! (as seen in `nat.desc_fact_eq_div`), but implemented recursively
+to allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`, but
+much less general. -/
+def desc_fact : ℕ → ℕ → ℕ
 | n 0 := 1
-| 0 (k + 1) := 0
-| n.succ (k + 1) := (n + 1) * desc_fac n k
+| n (k + 1) := (n - k) * n.desc_fact k
 
-#exit
+@[simp] lemma desc_fact_zero (n : ℕ) : n.desc_fact 0 = 1 := rfl
 
-@[simp] lemma desc_fac_zero (n : ℕ) : desc_fac n 0 = 1 := rfl
+@[simp] lemma desc_fact_succ (n k : ℕ) : n.desc_fact k.succ = (n - k) * n.desc_fact k := rfl
 
-@[simp] lemma zero_desc_fac {k : ℕ} (hk : 0 < k) : desc_fac 0 k = 0 :=
-begin
-  induction k with t ht, refl,
-  unfold desc_fac, rw [ht, zero_add, nat.factorial_succ]
+lemma zero_desc_fact_succ (k : ℕ) :
+  desc_fact 0 k.succ = 0 :=
+by rw [desc_fact_succ, nat.zero_sub, zero_mul]
+
+@[simp] lemma desc_fact_one (n : ℕ) :
+  n.desc_fact 1 = n :=
+by rw [desc_fact_succ, desc_fact_zero, mul_one, nat.sub_zero]
+
+@[simp] lemma succ_desc_fact_succ (n : ℕ) :
+  ∀ k : ℕ, (n + 1).desc_fact (k + 1) = (n + 1) * n.desc_fact k
+| 0        := by rw [desc_fact_zero, desc_fact_one, mul_one]
+| (succ k) := by rw [desc_fact_succ, succ_desc_fact_succ, desc_fact_succ, succ_sub_succ,
+  mul_left_comm]
+
+lemma succ_desc_fact (n : ℕ) : ∀ k, (n + 1 - k) * (n + 1).desc_fact k = (n + 1) * n.desc_fact k
+| 0 := by rw [nat.sub_zero, desc_fact_zero, desc_fact_zero]
+| (k + 1) := by rw [desc_fact, succ_desc_fact, desc_fact_succ, succ_sub_succ, mul_left_comm]
+
+lemma desc_fact_self : ∀ n : ℕ, n.desc_fact n = n!
+| 0        := by rw [desc_fact_zero, factorial_zero]
+| (succ n) := by rw [succ_desc_fact_succ, desc_fact_self, factorial_succ]
+
+@[simp] lemma desc_fact_eq_zero_iff_lt {n : ℕ} : ∀ {k : ℕ}, n.desc_fact k = 0 ↔ n < k
+| 0        := by simp only [desc_fact_zero, nat.one_ne_zero, not_lt_zero]
+| (succ k) := begin
+  rw [desc_fact_succ, mul_eq_zero, desc_fact_eq_zero_iff_lt, lt_succ_iff, nat.sub_eq_zero_iff_le,
+  lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
+  exact λ h _, h,
 end
 
-lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n - k) * desc_fac n k :=
+lemma add_desc_fact_eq_asc_fact (n : ℕ) : ∀ k : ℕ, (n + k).desc_fact k = n.asc_fact k
+| 0        := by rw [asc_fact_zero, desc_fact_zero]
+| (succ k) := by rw [nat.add_succ, succ_desc_fact_succ, asc_fact_succ, add_desc_fact_eq_asc_fact]
+
+/-- `n.desc_fact k = n! / (n - k)!`. However, this lemma states a reformulation to avoid ℕ-division.
+See `nat.desc_fact_eq_div` if you really need the version that uses ℕ-division. -/
+theorem factorial_mul_desc_fact : ∀ {n k : ℕ}, k ≤ n → (n - k)! * n.desc_fact k = n!
+| n        0        := λ _, by rw [desc_fact_zero, mul_one, nat.sub_zero]
+| 0        (succ k) := λ h, by { exfalso, exact not_succ_le_zero k h }
+| (succ n) (succ k) := λ h, by rw [succ_desc_fact_succ, succ_sub_succ, ←mul_assoc,
+  mul_comm (n - k)!, mul_assoc, factorial_mul_desc_fact (nat.succ_le_succ_iff.1 h), factorial_succ]
+
+/-- Avoid in favour of `nat.factorial_mul_desc_fact` if you can. ℕ-division isn't worth it. -/
+lemma desc_fact_eq_div {n k : ℕ} (h : k ≤ n) : n.desc_fact k = n! / (n - k)! :=
 begin
-  induction
+  apply mul_left_cancel' (factorial_ne_zero (n - k)),
+  rw factorial_mul_desc_fact h,
+  exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ sub_le n k).symm,
 end
 
-lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k
-| 0 := by rw [add_zero, desc_fac_zero, desc_fac_zero]
-| (k + 1) := by rw [desc_fac, mul_left_comm, succ_desc_fac, desc_fac, succ_add, ← add_assoc]
-
-/-- `desc_fac n k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
-See `nat.desc_fac_eq_div` if you really need the version that uses ℕ-division. -/
-theorem factorial_mul_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
-| 0 := by rw [desc_fac, add_zero, mul_one]
-| (k + 1) := by rw [desc_fac_succ, mul_left_comm, factorial_mul_desc_fac, ← add_assoc, factorial]
-
-/-- Avoid in favour of `nat.factorial_mul_desc_fac` if you can. ℕ-division isn't worth it. -/
-lemma desc_fac_eq_div (n k : ℕ) : desc_fac n k = (n + k)! / n! :=
-begin
-  apply mul_left_cancel' (factorial_ne_zero n),
-  rw factorial_mul_desc_fac,
-  exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
+lemma pow_le_desc_fact (n : ℕ) : ∀ (k : ℕ), (n + 1 - k)^k ≤ n.desc_fact k
+| 0 := by rw [desc_fact_zero, pow_zero]
+| (k + 1) := begin
+  rw [desc_fact_succ, pow_succ, succ_sub_succ],
+  exact nat.mul_le_mul_of_nonneg_left (le_trans (nat.pow_le_pow_of_le_left
+    (nat.sub_le_sub_right (le_succ _) _) k) (pow_le_desc_fact k)),
 end
 
-lemma desc_fac_of_sub {n k : ℕ} (h : n < k) :
-  (k - n) * (k - n).desc_fac n = (k - (n + 1)).desc_fac (n + 1) :=
-begin
-  set t := k - n.succ with ht,
-  suffices h' : k - n = t.succ, by rw [←ht, h', succ_desc_fac, desc_fac_succ],
-  rw [ht, succ_eq_add_one, ←sub_sub_assoc h (succ_pos _), succ_sub_one],
+lemma pow_lt_desc_fact {n : ℕ} : ∀ {k : ℕ}, 2 ≤ k → k ≤ n → (n + 1 - k)^k < n.desc_fact k
+| 0 := by rintro ⟨⟩
+| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| 2 := λ _ h, begin
+  rw [desc_fact_succ, pow_succ, succ_sub_succ, pow_one, desc_fact_one],
+  exact nat.mul_lt_mul_of_pos_left (nat.sub_lt_self (lt_of_lt_of_le zero_lt_two h) zero_lt_one)
+    (nat.sub_pos_of_lt h),
+end
+| (k + 3) := λ _ h, begin
+  rw [desc_fact_succ, pow_succ, succ_sub_succ],
+  exact nat.mul_lt_mul_of_pos_left (lt_of_le_of_lt (nat.pow_le_pow_of_le_left (nat.sub_le_sub_right
+    (le_succ n) _) _) (pow_lt_desc_fact le_add_self ((le_succ _).trans h))) (nat.sub_pos_of_lt h),
 end
 
-end desc_fac
+lemma desc_fact_le_pow (n : ℕ) : ∀ (k : ℕ), n.desc_fact k ≤ n^k
+| 0 := by rw [desc_fact_zero, pow_zero]
+| (k + 1) := begin
+  rw [desc_fact_succ, pow_succ],
+  exact nat.mul_le_mul (sub_le _ _) (desc_fact_le_pow k),
+end
+
+lemma desc_fact_lt_pow {n : ℕ} (hn : 1 ≤ n) : ∀ {k : ℕ}, 2 ≤ k → n.desc_fact k < n^k
+| 0 := by rintro ⟨⟩
+| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| (k + 2) := λ _, begin
+  rw [desc_fact_succ, pow_succ', mul_comm],
+  exact nat.mul_lt_mul' (desc_fact_le_pow _ _) (nat.sub_lt_self hn k.zero_lt_succ) (pow_pos hn _),
+end
+
+end desc_fact
 
 end nat

@@ -77,28 +77,104 @@ variables (R : Type u) [ring R] [strong_rank_condition R]
 variables (M : Type*) [add_comm_group M] [module R M]
 
 /--
-Analogue of `finsupp.total` for finite types.
-(i.e. allows working with arbitrary functions rather than finitely support ones)
+Pick some representation of `x : span R w` as a linear combination in `w`,
+using the axiom of choice.
 -/
--- TODO find a home, write API
-def fintype.total (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M]
-  (α : Type*) [fintype α] (f : α → M) : (α → R) →ₗ[R] M :=
-(finsupp.total α M R f).comp (finsupp.linear_equiv_fun_on_fintype R R α).symm.to_linear_map
+def span.repr (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M] (w : set M) :
+  span R w → (w →₀ R) :=
+λ x, ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
 
+@[simp] lemma span.finsupp_total_repr (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M] (w : set M) (x : span R w) :
+  finsupp.total w M R coe (span.repr R M w x) = x :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+
+attribute [irreducible] span.repr
+
+
+lemma submodule.mem_span' (R : Type*) [semiring R] {M : Type*} [add_comm_monoid M] [module R M]
+  (w : set M) (x : M) (h : x ∈ w) :
+  x ∈ span R w :=
+begin
+  apply submodule.mem_span.2,
+  intros p q,
+  exact q h,
+end
+
+lemma submodule.le_span (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M]
+  (w : set M) : w ≤ span R w :=
+λ m h, submodule.mem_span' R _ _ h
+
+open submodule
+
+/--
+If `R` satisfies the strong rank condition,
+then for any linearly independent finite family `v : ι → M`
+contained in the span of some finite `w : set M`,
+the cardinality of `ι` is bounded by the cardinality of `w`.
+-/
+lemma linear_independent_le_span' {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
+  (w : set M) [fintype w] (s : range v ≤ span R w) :
+  fintype.card ι ≤ fintype.card w :=
+begin
+  -- We construct an injective linear map `(ι → R) →ₗ[R] (w → R)`,
+  -- by thinking of `f : ι → R` as a linear combination of the finite family `v`,
+  -- and expressing that (using the axiom of choice) as a linear combination over `w`.
+  -- We can do this linearly by constructing the map on a basis.
+  fapply card_le_of_injective' R,
+  { apply finsupp.total,
+    exact λ i, span.repr R M w ⟨v i, s (mem_range_self i)⟩, },
+  { intros f g h,
+    apply_fun finsupp.total w M R coe at h,
+    simp only [finsupp.total_total, submodule.coe_mk, span.finsupp_total_repr] at h,
+    rw [←sub_eq_zero, ←linear_map.map_sub] at h,
+    exact sub_eq_zero.mp (linear_independent_iff.mp i _ h), },
+end
+
+/--
+If `R` satisfies the strong rank condition,
+then for any linearly independent finite family `v : ι → M`
+and any finite spanning set `w : set M`,
+the cardinality of `ι` is bounded by the cardinality of `w`.
+-/
 lemma linear_independent_le_span {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
   (w : set M) [fintype w] (s : span R w = ⊤) :
   fintype.card ι ≤ fintype.card w :=
 begin
-  fapply card_le_of_injective R,
-  apply fintype.total,
-  intro i,
-  have m : v i ∈ span R w, sorry,
-  rw finsupp.mem_span_iff_total at m,
+  apply linear_independent_le_span' R M v i w,
+  rw s,
+  exact le_top,
 end
 
-
-
 end strong_rank_condition
+
+section rank_condition
+
+variables (R : Type u) [ring R] [rank_condition R]
+variables (M : Type*) [add_comm_group M] [module R M]
+
+/--
+If `R` satisfies the rank condition,
+then for any finite basis `b : basis ι R M`,
+and any finite spanning set `w : set M`,
+the cardinality of `ι` is bounded by the cardinality of `w`.
+-/
+-- Note that if `R` satisfies the strong rank condition,
+-- this already follows from `linear_independent_le_span` above.
+lemma basis_le_span {ι : Type*} [fintype ι] (b : basis ι R M)
+  (w : set M) [fintype w] (s : span R w = ⊤) :
+  fintype.card ι ≤ fintype.card w :=
+begin
+   -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
+   -- by expressing an linear combination in `w` as a linear combination in `ι`.
+   fapply card_le_of_surjective' R,
+   { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
+   { apply surjective.comp,
+    apply linear_equiv.surjective,
+    rw [←linear_map.range_eq_top, finsupp.range_total],
+    simpa using s, },
+end
+
+end rank_condition
 
 section division_ring
 variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]

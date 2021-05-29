@@ -87,6 +87,15 @@ begin
     (((linear_equiv.symm Q).injective.comp i).comp (linear_equiv.injective P)),
 end
 
+lemma card_le_of_injective' [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
+begin
+  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
+  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  exact card_le_of_injective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
+    ((P.injective.comp i).comp Q.injective)
+end
+
 /-- We say that `R` satisfies the rank condition if `(fin n → R) →ₗ[R] (fin m → R)` surjective
     implies `m ≤ n`. -/
 class rank_condition : Prop :=
@@ -103,6 +112,15 @@ begin
   let Q := linear_map.fun_congr_left R R (fintype.equiv_fin β),
   exact le_of_fin_surjective R ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
     (((linear_equiv.symm Q).surjective.comp i).comp (linear_equiv.surjective P)),
+end
+
+lemma card_le_of_surjective' [rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
+begin
+  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
+  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  exact card_le_of_surjective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
+    ((P.surjective.comp i).comp Q.surjective)
 end
 
 /--

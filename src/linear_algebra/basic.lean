@@ -87,19 +87,18 @@ begin
 end
 
 variables (R M)
+variables [add_comm_monoid M] [semiring R] [module R M]
 
 /-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
 `α →₀ β` and `α → β`. -/
-@[simps apply] noncomputable def linear_equiv_fun_on_fintype (α) [fintype α] [add_comm_monoid M]
-  [semiring R] [module R M] :
+@[simps apply] noncomputable def linear_equiv_fun_on_fintype (α) [fintype α] :
   (α →₀ M) ≃ₗ[R] (α → M) :=
 { to_fun := coe_fn,
   map_add' := λ f g, by { ext, refl },
   map_smul' := λ c f, by { ext, refl },
   .. equiv_fun_on_fintype }
 
-@[simp] lemma linear_equiv_fun_on_fintype_single {α} [decidable_eq α] [fintype α]
-  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
+@[simp] lemma linear_equiv_fun_on_fintype_single {α} [decidable_eq α] [fintype α] (x : α) (m : M) :
   (linear_equiv_fun_on_fintype R M α) (single x m) = pi.single x m :=
 begin
   ext a,
@@ -108,13 +107,16 @@ begin
 end
 
 @[simp] lemma linear_equiv_fun_on_fintype_symm_single {α} [decidable_eq α] [fintype α]
-  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
-  (linear_equiv_fun_on_fintype R M α).symm (pi.single x m) = single x m :=
+  (x : α) (m : M) : (linear_equiv_fun_on_fintype R M α).symm (pi.single x m) = single x m :=
 begin
   ext a,
   change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
   convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
 end
+
+@[simp] lemma linear_equiv_fun_on_fintype_symm_coe {α} [fintype α] (f : α →₀ M) :
+  (linear_equiv_fun_on_fintype R M α).symm f = f :=
+by { ext, simp [linear_equiv_fun_on_fintype], }
 
 end finsupp
 

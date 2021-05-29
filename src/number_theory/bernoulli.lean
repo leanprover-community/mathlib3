@@ -261,7 +261,8 @@ end
 
 section faulhaber
 
-/-- Faulhaber's theorem relating the sum of of p-th powers to the Bernoulli numbers.
+/-- Faulhaber's theorem relating the sum of of p-th powers to the Bernoulli numbers:
+$$\sum_{k=0}^{n-1} k^p = \sum_{i=0}^p B_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 See https://proofwiki.org/wiki/Faulhaber%27s_Formula and [orosi2018faulhaber] for
 the proof provided here. -/
 theorem sum_range_pow (n p : ℕ) :
@@ -317,9 +318,10 @@ begin
   field_simp [mul_right_comm _ ↑p!, ← mul_assoc _ _ ↑p!, cast_add_one_ne_zero, hne],
 end
 
-/-- Alternate form of Faulhaber's theorem, relating the sum of p-th powers to the Bernoulli numbers.
+/-- Alternate form of Faulhaber's theorem, relating the sum of p-th powers to the Bernoulli numbers:
+$$\sum_{k=1}^{n} k^p = \sum_{i=0}^p (-1)^iB_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 Deduced from `sum_range_pow`. -/
-theorem sum_range_pow' (n p : ℕ) :
+theorem sum_Ico_pow (n p : ℕ) :
   ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p =
     ∑ i in range (p + 1), bernoulli' i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin

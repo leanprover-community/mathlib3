@@ -3,9 +3,11 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.free_module
 import linear_algebra.matrix.basis
-import linear_algebra.matrix.to_linear_equiv
 import linear_algebra.matrix.diagonal
+import linear_algebra.matrix.to_linear_equiv
+import linear_algebra.matrix.reindex
 import linear_algebra.multilinear
 import linear_algebra.dual
 import ring_theory.algebra_tower
@@ -51,6 +53,47 @@ variables {M : Type*} [add_comm_group M] [module R M]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 variables (e : basis ι R M)
+
+section conjugate
+
+variables {A : Type*} [integral_domain A]
+variables {m n : Type*} [fintype m] [fintype n]
+
+
+/-- If `R^m` and `R^n` are linearly equivalent, then `m` and `n` are also equivalent. -/
+def equiv_of_pi_lequiv_pi {R : Type*} [integral_domain R]
+  (e : (m → R) ≃ₗ[R] (n → R)) : m ≃ n :=
+basis.index_equiv (basis.of_equiv_fun e.symm) (pi.basis_fun _ _)
+
+/-- If `M` and `M'` are each other's inverse matrices, they are square matrices up to
+equivalence of types. -/
+def matrix.index_equiv_of_inv [decidable_eq m] [decidable_eq n]
+  {M : matrix m n A} {M' : matrix n m A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  m ≃ n :=
+equiv_of_pi_lequiv_pi (matrix.to_lin'_of_inv hMM' hM'M)
+
+/-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
+lemma matrix.det_conj
+  [decidable_eq m] [decidable_eq n]
+  {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
+  (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
+  det (M ⬝ N ⬝ M') = det N :=
+begin
+  -- Although `m` and `n` are different a priori, we will show they have the same cardinality.
+  -- This turns the problem into one for square matrices (`matrix.det_units_conj`), which is easy.
+  let e : m ≃ n := matrix.index_equiv_of_inv hMM' hM'M,
+  let U : units (matrix n n A) :=
+    ⟨M.minor e.symm (equiv.refl _),
+     M'.minor (equiv.refl _) e.symm,
+     by rw [mul_eq_mul, ←minor_mul_equiv, hMM', minor_one_equiv],
+     by rw [mul_eq_mul, ←minor_mul_equiv, hM'M, minor_one_equiv]⟩,
+  rw [← matrix.det_units_conj U N, ← det_minor_equiv_self e.symm],
+  simp only [minor_mul_equiv _ _ _ (equiv.refl n) _, equiv.coe_refl, minor_id_id,
+             units.coe_mk, units.inv_mk]
+end
+
+end conjugate
 
 lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') (v : basis ι R M) (v' : basis ι R M') :
   is_unit (linear_map.to_matrix v v' f).det :=
@@ -105,7 +148,7 @@ lemma basis.det_apply (v : ι → M) : e.det v = det (e.to_matrix v) := rfl
 lemma basis.det_self : e.det e = 1 :=
 by simp [e.det_apply]
 
-lemma is_basis.iff_det {v : ι → M} :
+lemma is_basis_iff_det {v : ι → M} :
   linear_independent R v ∧ span R (set.range v) = ⊤ ↔ is_unit (e.det v) :=
 begin
   split,
@@ -123,3 +166,6 @@ begin
     rw ← this,
     exact ⟨v'.linear_independent, v'.span_eq⟩ },
 end
+
+lemma basis.is_unit_det (e' : basis ι R M) : is_unit (e.det e') :=
+(is_basis_iff_det e).mp ⟨e'.linear_independent, e'.span_eq⟩

@@ -279,7 +279,7 @@ A category `is_cofiltered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/002V.
+See https://stacks.math.columbia.edu/tag/04AZ.
 -/
 class is_cofiltered extends is_cofiltered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -324,7 +324,7 @@ noncomputable def min_to_right (j j' : C) : min j j' ⟶ j' :=
 /--
 `eq f f'`, for morphisms `f f' : j ⟶ j'`, is an arbitrary choice of object
 which admits a morphism `eq_hom f f' : eq f f' ⟶ j` such that
-`eq_condition : ceq_hom f f' ≫ f = coeq_hom f f' ≫ f'`.
+`eq_condition : eq_hom f f' ≫ f = eq_hom f f' ≫ f'`.
 Its existence is ensured by `is_cofiltered`.
 -/
 noncomputable def eq {j j' : C} (f f' : j ⟶ j') : C :=
@@ -332,7 +332,7 @@ noncomputable def eq {j j' : C} (f f' : j ⟶ j') : C :=
 
 /--
 `eq_hom f f'`, for morphisms `f f' : j ⟶ j'`, is an arbitrary choice of morphism
-`eq_hom f f' : coeq f f' ⟶ j` such that
+`eq_hom f f' : eq f f' ⟶ j` such that
 `eq_condition : eq_hom f f' ≫ f = eq_hom f f' ≫ f'`.
 Its existence is ensured by `is_cofiltered`.
 -/
@@ -341,7 +341,7 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 
 /--
 `eq_condition f f'`, for morphisms `f f' : j ⟶ j'`, is the proof that
-`eq_hom f f' ≫ f = coeq_hom f f' ≫ f'`.
+`eq_hom f f' ≫ f = eq_hom f f' ≫ f'`.
 -/
 @[simp, reassoc]
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
@@ -413,9 +413,9 @@ def inf_to {X : C} (m : X ∈ O) :
 (inf_exists O H).some_spec.some m
 
 /--
-The triangles of consisting of a morphism in `H` and the maps from `inf O H` commute.
+The triangles consisting of a morphism in `H` and the maps from `inf O H` commute.
 -/
-lemma to_sup_commutes
+lemma inf_to_commutes
   {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y}
   (mf : (⟨X, Y, mX, mY, f⟩ : Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) ∈ H) :
   inf_to O H mX ≫ f = inf_to O H mY :=

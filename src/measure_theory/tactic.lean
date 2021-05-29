@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Reid Barton. All rights reserved.
+Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton
+Authors: Rémy Degenne
 -/
 import tactic.auto_cases
 import tactic.tidy
@@ -11,14 +11,15 @@ import measure_theory.measure_space_0
 /-!
 # Tactics for measure theory
 
-Currently we have one domain-specific tactic for measure theory: `continuity`.
+Currently we have one domain-specific tactic for measure theory: `measurability`.
 
+This tactic is mostly a copy of the `continuity` tactic.
 -/
 
 /-!
 ### `measurability` tactic
 
-Automatically solve goals of the form `measurable f` and `ae_measurable f`.
+Automatically solve goals of the form `measurable f` and `ae_measurable f μ`.
 
 Mark lemmas with `@[measurability]` to add them to the set of lemmas
 used by `measurability`. Note: `to_additive` doesn't know yet how to
@@ -29,9 +30,10 @@ copy the attribute to the additive version.
 @[user_attribute]
 meta def measurability : user_attribute :=
 { name := `measurability,
-  descr := "lemmas usable to prove measurability" }
+  descr := "lemmas usable to prove (ae)-measurability" }
 
--- Mark some measurability lemmas already defined in `measure_theory.measurable_space`
+/- Mark some measurability lemmas already defined in `measure_theory.measurable_space_0` and
+`measure_theory.measure_space_0` -/
 attribute [measurability]
   measurable_id
   measurable_const
@@ -67,12 +69,33 @@ meta def apply_measurable.comp : tactic unit :=
   refine measurable.comp _ _;
   fail_if_success { exact measurable_id }]
 
+/--
+Tactic to apply `measurable.comp_ae_measurable` when appropriate.
+
+Applying `measurable.comp_ae_measurable` is not always a good idea, so we have some
+extra logic here to try to avoid bad cases.
+
+* If the function we're trying to prove measurable is actually
+  constant, and that constant is a function application `f z`, then
+  `measurable.comp_ae_measurable` would produce new goals `measurable f`, `measurable
+  (λ _, z)`, which is silly. We avoid this by failing if we could
+  apply measurable_const.
+
+* `measurable.comp_ae_measurable` will always succeed on `measurable (λ x, f x)` and
+  produce new goals `measurable (λ x, x)`, `measurable f`. We detect
+  this by failing if a new goal can be closed by applying
+  `measurable_id`.
+-/
 meta def apply_measurable.comp_ae_measurable : tactic unit :=
 `[fail_if_success { exact ae_measurable_const };
   refine measurable.comp_ae_measurable _ _;
   fail_if_success { exact measurable_id }]
 
-meta def try_intros' : tactic unit :=
+/--
+We don't want the intros1 tactic to apply to a goal of the form `measurable f`. This tactic tests
+the target to see if it matches that form.
+ -/
+meta def intros_if_not_measurable : tactic unit :=
 do t ← tactic.target,
   match t with
   | `(measurable %%l) := done
@@ -85,7 +108,7 @@ meta def measurability_tactics (md : transparency := semireducible) : list (tact
 [
   propositional_goal >> assumption
                         >> pure "assumption",
-  try_intros' >> intros1
+  intros_if_not_measurable >> intros1
                         >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   apply_rules [``(measurability)] 50 { md := md }
                         >> pure "apply_rules measurability",
@@ -114,17 +137,8 @@ trace_fn measurability_core
 meta def measurability' : tactic unit := measurability none none {}
 
 /--
-`measurability` solves goals of the form `measurable f` by applying lemmas tagged with the
-`measurability` user attribute.
-
-```
-example {X Y : Type*} [topological_space X] [topological_space Y]
-  (f₁ f₂ : X → Y) (hf₁ : continuous f₁) (hf₂ : continuous f₂)
-  (g : Y → ℝ) (hg : continuous g) : continuous (λ x, (max (g (f₁ x)) (g (f₂ x))) + 1) :=
-by continuity
-```
-will discharge the goal, generating a proof term like
-`((continuous.comp hg hf₁).max (continuous.comp hg hf₂)).add continuous_const`
+`measurability` solves goals of the form `measurable f` or `ae_measurable f μ` by applying
+lemmas tagged with the `measurability` user attribute.
 
 You can also use `measurability!`, which applies lemmas with `{ md := semireducible }`.
 The default behaviour is more conservative, and only unfolds `reducible` definitions

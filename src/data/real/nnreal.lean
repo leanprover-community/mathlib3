@@ -518,7 +518,7 @@ end
 sub_le_iff_le_add.2 $ le_add_right $ le_refl r
 
 lemma add_sub_cancel {r p : ℝ≥0} : (p + r) - r = p :=
-nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add_left (le_refl _)
+nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add_self
 
 lemma add_sub_cancel' {r p : ℝ≥0} : (r + p) - r = p :=
 by rw [add_comm, add_sub_cancel]
@@ -545,7 +545,7 @@ begin
       nnreal.coe_sub (le_of_lt (sub_pos.1 (lt_of_le_of_lt (zero_le _) H))),
     rwa [← nnreal.coe_lt_coe, this, lt_sub_iff_add_lt, ← nnreal.coe_add] at H },
   { assume H,
-    have : r ≤ q := le_trans (le_add_left (le_refl _)) (le_of_lt H),
+    have : r ≤ q := le_trans (le_add_self) (le_of_lt H),
     rwa [← nnreal.coe_lt_coe, nnreal.coe_sub this, lt_sub_iff_add_lt, ← nnreal.coe_add] }
 end
 
@@ -596,8 +596,26 @@ by rw [div_eq_inv_mul, ← mul_le_iff_le_inv hr, mul_comm]
 lemma div_le_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ b * r :=
 @div_le_iff ℝ _ a r b $ pos_iff_ne_zero.2 hr
 
+lemma div_le_iff' {a b r : ℝ≥0} (hr : r ≠ 0) : a / r ≤ b ↔ a ≤ r * b :=
+@div_le_iff' ℝ _ a r b $ pos_iff_ne_zero.2 hr
+
+lemma le_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
+@le_div_iff ℝ _ a b r $ pos_iff_ne_zero.2 hr
+
+lemma le_div_iff' {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ r * a ≤ b :=
+@le_div_iff' ℝ _ a b r $ pos_iff_ne_zero.2 hr
+
+lemma div_lt_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a / r < b ↔ a < b * r :=
+lt_iff_lt_of_le_iff_le (le_div_iff hr)
+
+lemma div_lt_iff' {a b r : ℝ≥0} (hr : r ≠ 0) : a / r < b ↔ a < r * b :=
+lt_iff_lt_of_le_iff_le (le_div_iff' hr)
+
 lemma lt_div_iff {a b r : ℝ≥0} (hr : r ≠ 0) : a < b / r ↔ a * r < b :=
 lt_iff_lt_of_le_iff_le (div_le_iff hr)
+
+lemma lt_div_iff' {a b r : ℝ≥0} (hr : r ≠ 0) : a < b / r ↔ r * a < b :=
+lt_iff_lt_of_le_iff_le (div_le_iff' hr)
 
 lemma mul_lt_of_lt_div {a b r : ℝ≥0} (h : a < b / r) : a * r < b :=
 begin
@@ -642,9 +660,6 @@ half_lt_self (bot_lt_iff_ne_bot.2 h)
 
 lemma two_inv_lt_one : (2⁻¹:ℝ≥0) < 1 :=
 by simpa using half_lt_self zero_ne_one.symm
-
-lemma div_lt_iff {a b c : ℝ≥0} (hc : c ≠ 0) : b / c < a ↔ b < a * c :=
-lt_iff_lt_of_le_iff_le $ nnreal.le_div_iff_mul_le hc
 
 lemma div_lt_one_of_lt {a b : ℝ≥0} (h : a < b) : a / b < 1 :=
 begin

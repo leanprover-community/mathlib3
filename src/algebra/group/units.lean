@@ -249,7 +249,7 @@ theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
   {a : M} (h : is_unit a) : ∃ b, a * b = 1 :=
 by { rcases h with ⟨⟨a, b, hab, _⟩, rfl⟩, exact ⟨b, hab⟩ }
 
-@[to_additive is_add_unit.exists_neg] theorem is_unit.exists_left_inv [monoid M]
+@[to_additive is_add_unit.exists_neg'] theorem is_unit.exists_left_inv [monoid M]
   {a : M} (h : is_unit a) : ∃ b, b * a = 1 :=
 by { rcases h with ⟨⟨a, b, _, hba⟩, rfl⟩, exact ⟨b, hba⟩ }
 

@@ -54,21 +54,21 @@ $$c:G^{n+1}\to M$$ which are homogeneous in the sense that $$c(s(g_i)_i)=s\bub c
 
 -/
 @[ext] structure cochain_succ :=
-(c : (fin n → G) → M)
-(hc : ∀ (s : G) (g : fin n → G), s • c g = c (λ i, s * g i))
+(to_fun : (fin n → G) → M)
+(smul_apply' : ∀ (s : G) (g : fin n → G), s • to_fun g = to_fun (λ i, s * g i))
 
 namespace cochain_succ
 
 instance : has_coe_to_fun (cochain_succ G M n) :=
 { F := _,
-  coe := cochain_succ.c }
+  coe := to_fun }
 
 @[ext] theorem ext' (c₁ c₂ : cochain_succ G M n) (h : ∀ g : fin n → G, c₁ g = c₂ g) : c₁ = c₂ :=
 ext c₁ c₂ (funext (λ (x : fin n → G), h x))
 
 def zero : cochain_succ G M n :=
-{ c := λ _, 0,
-  hc := λ s g, smul_zero s }
+{ to_fun := λ _, 0,
+  smul_apply' := λ s g, smul_zero s }
 
 instance : has_zero (cochain_succ G M n) := ⟨zero G M n⟩
 
@@ -76,20 +76,20 @@ instance : has_zero (cochain_succ G M n) := ⟨zero G M n⟩
 
 variables {G M n}
 
-lemma homo (c : cochain_succ G M n) (s : G) (g : fin n → G) : s • c g = c (λ i, s * g i) :=
-c.hc s g
+@[simp] lemma smul_apply (c : cochain_succ G M n) (s : G) (g : fin n → G) : s • c g = c (λ i, s * g i) :=
+c.smul_apply' s g
 
 def neg (c₁ : cochain_succ G M n): cochain_succ G M n :=
-{ c := λ g, -c₁ g,
-  hc := λ s g, by {rw ← homo, apply smul_neg }, }
+{ to_fun := λ g, -c₁ g,
+  smul_apply' := λ s g, by {rw ← smul_apply, apply smul_neg }, }
 
 instance : has_neg (cochain_succ G M n) := ⟨neg⟩
 
 @[simp] lemma neg_apply (c : cochain_succ G M n) (g : fin n → G) : (-c : cochain_succ G M n) g = -(c g) := rfl
 
 def add (c₁ c₂ : cochain_succ G M n) : cochain_succ G M n :=
-{ c := λ g, c₁.c g + c₂.c g,
-  hc := by {intros, simp [cochain_succ.hc, c₂.hc, *] at *}, }
+{ to_fun := λ g, c₁ g + c₂ g,
+  smul_apply' := by {intros, simp * at *}, }
 
 instance : has_add (cochain_succ G M n) := ⟨add⟩
 
@@ -105,7 +105,12 @@ instance : add_comm_group.add_comm_group_aux (cochain_succ G M n) :=
 
 end cochain_succ
 
-def d {i j : ℕ} (hij : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j := sorry
+def d {i j : ℕ} (hij : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j :=
+{ to_fun := λ c,
+  { to_fun := λ g, (finset.range j).sum (λ k, if hk : k < j then (-1 : ℤ)^k • c sorry else 0),
+    smul_apply' := sorry },
+  map_zero' := sorry,
+  map_add' := sorry }
 
 --def H (n : ℕ) (G : Type uG) [group G] (M : Type uM) [add_comm_group M]
 --  [distrib_mul_action G M] := sorry

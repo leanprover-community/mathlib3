@@ -214,7 +214,7 @@ variables (V c)
 { obj := λ C, C.X,
   map := λ _ _ f, f.f }
 
-/-- Forgetting the differentials than pickout out the `i`-th object is the same as
+/-- Forgetting the differentials than picking out the `i`-th object is the same as
 just picking out the `i`-th object. -/
 @[simps] def forget_eval (i : ι) : forget V c ⋙ graded_object.eval i ≅ eval V c i :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)

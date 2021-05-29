@@ -43,6 +43,17 @@ instance : inhabited SemiNormedGroup := ⟨0⟩
 
 instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup := {}
 
+@[simp] lemma zero_apply {V W : SemiNormedGroup} (x : V) : (0 : V ⟶ W) x = 0 := rfl
+
+instance has_zero_object : limits.has_zero_object SemiNormedGroup.{u} :=
+{ zero := 0,
+  unique_to := λ X,
+  { default := 0,
+    uniq := λ a, by { ext ⟨⟩, exact a.map_zero, }, },
+  unique_from := λ X,
+  { default := 0,
+    uniq := λ f, by ext } }
+
 end SemiNormedGroup
 
 /--
@@ -111,6 +122,15 @@ instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup₁ :=
   zero_comp' := λ X Y Z f, by { ext, simp, }, }
 
 @[simp] lemma zero_apply {V W : SemiNormedGroup₁} (x : V) : (0 : V ⟶ W) x = 0 := rfl
+
+instance has_zero_object : limits.has_zero_object SemiNormedGroup₁.{u} :=
+{ zero := 0,
+  unique_to := λ X,
+  { default := 0,
+    uniq := λ a, by { ext ⟨⟩, exact a.1.map_zero, }, },
+  unique_from := λ X,
+  { default := 0,
+    uniq := λ f, by ext } }
 
 lemma iso_isometry {V W : SemiNormedGroup₁} (i : V ≅ W) :
   isometry i.hom :=

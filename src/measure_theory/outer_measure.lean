@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
-import measure_theory.measurable_space
+import measure_theory.measurable_space_0
 import measure_theory.pi_system
 import data.matrix.notation
 import topology.algebra.infinite_sum
@@ -1070,7 +1070,7 @@ le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 /-- If `P u` is `false` for any set `u` that has nonempty intersection both with `s` and `t`, then
 `μ (s ∪ t) = μ s + μ t`, where `μ = induced_outer_measure m P0 m0`.
 
-E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that 
+E.g., if `α` is an (e)metric space and `P u = diam u < r`, then this lemma implies that
 `μ (s ∪ t) = μ s + μ t` on any two sets such that `r ≤ edist x y` for all `x ∈ s` and `y ∈ t`. -/
 lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :

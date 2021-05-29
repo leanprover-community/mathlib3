@@ -129,9 +129,11 @@ theorem measurable_set_preimage (f : α →ₛ β) (s) : measurable_set (f ⁻¹
 measurable_set_cut (λ _ b, b ∈ s) f (λ b, measurable_set.const (b ∈ s))
 
 /-- A simple function is measurable -/
+@[measurability]
 protected theorem measurable [measurable_space β] (f : α →ₛ β) : measurable f :=
 λ s _, measurable_set_preimage f s
 
+@[measurability]
 protected theorem ae_measurable [measurable_space β] {μ : measure α} (f : α →ₛ β) :
   ae_measurable f μ :=
 f.measurable.ae_measurable
@@ -1119,7 +1121,7 @@ calc (∫⁻ a, f a ∂μ) = (∫⁻ a, ⨆n, (eapprox f n : α → ℝ≥0∞) 
 ... = (⨆n, ∫⁻ a, (eapprox f n : α → ℝ≥0∞) a ∂μ) :
 begin
   rw [lintegral_supr],
-  { assume n, exact (eapprox f n).measurable },
+  { measurability, },
   { assume i j h, exact (monotone_eapprox f h) }
 end
 ... = (⨆n, (eapprox f n).lintegral μ) : by congr; ext n; rw [(eapprox f n).lintegral_eq_lintegral]
@@ -1188,7 +1190,7 @@ calc (∫⁻ a, f a + g a ∂μ) =
     { congr,
       funext n, rw [← simple_func.add_lintegral, ← simple_func.lintegral_eq_lintegral],
       refl },
-    { assume n, exact measurable.add (eapprox f n).measurable (eapprox g n).measurable },
+    { measurability, },
     { assume i j h a, exact add_le_add (monotone_eapprox _ h _) (monotone_eapprox _ h _) }
   end
   ... = (⨆n, (eapprox f n).lintegral μ) + (⨆n, (eapprox g n).lintegral μ) :

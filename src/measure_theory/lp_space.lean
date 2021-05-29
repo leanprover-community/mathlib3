@@ -132,6 +132,7 @@ by simp [snorm, hp_ne_zero, hp_ne_top]
 def mem_ℒp (f : α → E) (p : ℝ≥0∞) (μ : measure α) : Prop :=
 ae_measurable f μ ∧ snorm f p μ < ∞
 
+@[measurability]
 lemma mem_ℒp.ae_measurable {f : α → E} {p : ℝ≥0∞} {μ : measure α} (h : mem_ℒp f p μ) :
   ae_measurable f μ := h.1
 
@@ -941,8 +942,10 @@ lemma snorm_lt_top (f : Lp E p μ) : snorm f p μ < ∞ := f.prop
 
 lemma snorm_ne_top (f : Lp E p μ) : snorm f p μ ≠ ∞ := (snorm_lt_top f).ne
 
+@[measurability]
 protected lemma measurable (f : Lp E p μ) : measurable f := f.val.measurable
 
+@[measurability]
 protected lemma ae_measurable (f : Lp E p μ) : ae_measurable f μ := f.val.ae_measurable
 
 protected lemma mem_ℒp (f : Lp E p μ) : mem_ℒp f p μ := ⟨Lp.ae_measurable f, f.prop⟩

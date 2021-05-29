@@ -134,8 +134,14 @@ end
 theorem sqrt_le (n : ℕ) : sqrt n * sqrt n ≤ n :=
 (sqrt_is_sqrt n).left
 
+theorem sqrt_le' (n : ℕ) : (sqrt n) ^ 2 ≤ n :=
+eq.trans_le (sq (sqrt n)) (sqrt_le n)
+
 theorem lt_succ_sqrt (n : ℕ) : n < succ (sqrt n) * succ (sqrt n) :=
 (sqrt_is_sqrt n).right
+
+theorem lt_succ_sqrt' (n : ℕ) : n < (succ (sqrt n)) ^ 2 :=
+trans_rel_left (λ i j, i < j) (lt_succ_sqrt n) (sq (succ (sqrt n))).symm
 
 theorem sqrt_le_add (n : ℕ) : n ≤ sqrt n * sqrt n + sqrt n + sqrt n :=
 by rw ← succ_mul; exact le_of_lt_succ (lt_succ_sqrt n)
@@ -145,8 +151,15 @@ theorem le_sqrt {m n : ℕ} : m ≤ sqrt n ↔ m*m ≤ n :=
  λ h, le_of_lt_succ $ mul_self_lt_mul_self_iff.2 $
    lt_of_le_of_lt h (lt_succ_sqrt n)⟩
 
+theorem le_sqrt' {m n : ℕ} : m ≤ sqrt n ↔ m ^ 2 ≤ n :=
+⟨λ h, eq.trans_le (sq m) (le_sqrt.1 h),
+ λ h, le_sqrt.2 ((eq.symm (sq m)).trans_le h)⟩
+
 theorem sqrt_lt {m n : ℕ} : sqrt m < n ↔ m < n*n :=
 lt_iff_lt_of_le_iff_le le_sqrt
+
+theorem sqrt_lt' {m n : ℕ} : sqrt m < n ↔ m < n ^ 2 :=
+lt_iff_lt_of_le_iff_le le_sqrt'
 
 theorem sqrt_le_self (n : ℕ) : sqrt n ≤ n :=
 le_trans (le_mul_self _) (sqrt_le n)
@@ -166,6 +179,10 @@ theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
 ⟨λ e, e.symm ▸ sqrt_is_sqrt n,
  λ ⟨h₁, h₂⟩, le_antisymm (le_sqrt.2 h₁) (le_of_lt_succ $ sqrt_lt.2 h₂)⟩
 
+theorem eq_sqrt' {n q} : q = sqrt n ↔ q ^ 2 ≤ n ∧ n < (q+1) ^ 2 :=
+⟨λ e, ⟨eq.trans_le (sq q) ((@eq_sqrt n q).1 e).1, trans_rel_left (λ i j, i < j) ((@eq_sqrt n q).1 e).2 (sq _).symm⟩,
+ λ ⟨e1, e2⟩, (@eq_sqrt n q).2 ⟨eq.trans_le (sq _).symm e1, trans_rel_left (λ i j, i < j) e2 (sq _)⟩⟩
+
 theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
 le_of_lt_succ $ (@sqrt_lt n 2).1 $
 by rw [h]; exact dec_trivial
@@ -183,8 +200,14 @@ le_antisymm
     exact lt_succ_of_le (nat.add_le_add_left h _))
   (le_sqrt.2 $ nat.le_add_right _ _)
 
+theorem sqrt_add_eq' (n : ℕ) {a : ℕ} (h : a ≤ n + n) : sqrt (n ^ 2 + a) = n :=
+(congr_arg (λ i, sqrt (i + a)) (sq n)).trans (sqrt_add_eq n h)
+
 theorem sqrt_eq (n : ℕ) : sqrt (n*n) = n :=
 sqrt_add_eq n (zero_le _)
+
+theorem sqrt_eq' (n : ℕ) : sqrt (n ^ 2) = n :=
+sqrt_add_eq' n (zero_le _)
 
 theorem sqrt_succ_le_succ_sqrt (n : ℕ) : sqrt n.succ ≤ n.sqrt.succ :=
 le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $
@@ -196,11 +219,24 @@ theorem exists_mul_self (x : ℕ) :
   (∃ n, n * n = x) ↔ sqrt x * sqrt x = x :=
 ⟨λ ⟨n, hn⟩, by rw [← hn, sqrt_eq], λ h, ⟨sqrt x, h⟩⟩
 
+theorem exists_mul_self' (x : ℕ) :
+  (∃ n, n ^ 2 = x) ↔ (sqrt x) ^ 2 = x :=
+⟨λ ⟨n, h⟩, (sq (sqrt x)).trans ((exists_mul_self x).1 ⟨n, (sq n).symm.trans h⟩),
+ λ h, by
+   rcases (exists_mul_self x).2 ((sq (sqrt x)).symm.trans h) with ⟨n, pr⟩;
+   exact ⟨n, (sq n).trans pr⟩⟩
+
 theorem sqrt_mul_sqrt_lt_succ (n : ℕ) : sqrt n * sqrt n < n + 1 :=
 lt_succ_iff.mpr (sqrt_le _)
 
+theorem sqrt_mul_sqrt_lt_succ' (n : ℕ) : (sqrt n) ^ 2 < n + 1 :=
+lt_succ_iff.mpr (sqrt_le' _)
+
 theorem succ_le_succ_sqrt (n : ℕ) : n + 1 ≤ (sqrt n + 1) * (sqrt n + 1) :=
 le_of_pred_lt (lt_succ_sqrt _)
+
+theorem succ_le_succ_sqrt' (n : ℕ) : n + 1 ≤ (sqrt n + 1) ^ 2 :=
+le_of_pred_lt (lt_succ_sqrt' _)
 
 /-- There are no perfect squares strictly between m² and (m+1)² -/
 theorem not_exists_sq {n m : ℕ} (hl : m * m < n) (hr : n < (m + 1) * (m + 1)) :
@@ -210,6 +246,15 @@ begin
   have h1 : m < t, from nat.mul_self_lt_mul_self_iff.mpr hl,
   have h2 : t < m + 1, from nat.mul_self_lt_mul_self_iff.mpr hr,
   exact (not_lt_of_ge $ le_of_lt_succ h2) h1
+end
+
+theorem not_exists_sq' {n m : ℕ} (hl : m ^ 2 < n) (hr : n < (m + 1) ^ 2) :
+  ¬ ∃ t, t ^ 2 = n :=
+begin
+  rintro ⟨t, pr⟩,
+  have h1 : t * t = n := (sq t).symm.trans pr,
+  have h2 : m * m < n := trans_rel_right (λ i j, i < j) (sq m).symm hl,
+  exact not_exists_sq h2 (trans_rel_left (λ i j, i < j) hr (sq (m + 1))) ⟨t, h1⟩,
 end
 
 end nat

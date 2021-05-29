@@ -19,6 +19,32 @@ variables {α R : Type*}
 
 open filter set
 
+lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [archimedean R]
+  {f : α → ℕ} {l : filter α} :
+  tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
+tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) exists_nat_ge
+
+lemma tendsto_coe_nat_at_top_at_top [ordered_semiring R] [archimedean R] :
+  tendsto (coe : ℕ → R) at_top at_top :=
+nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
+
+lemma tendsto_coe_int_at_top_iff [ordered_ring R] [nontrivial R] [archimedean R]
+  {f : α → ℤ} {l : filter α} :
+  tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
+tendsto_at_top_embedding (assume a₁ a₂, int.cast_le) $
+  assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℤ), hn⟩
+
+lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [archimedean R] :
+  tendsto (coe : ℤ → R) at_top at_top :=
+int.cast_mono.tendsto_at_top_at_top $ λ b,
+  let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, hn⟩
+
+lemma tendsto_coe_rat_at_top_iff [linear_ordered_field R] [archimedean R]
+  {f : α → ℚ} {l : filter α} :
+  tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
+tendsto_at_top_embedding (assume a₁ a₂, rat.cast_le) $
+  assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℚ), by assumption_mod_cast⟩
+
 lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [nontrivial R]
   [archimedean R] :
   (at_top : filter R).has_countable_basis (λ i, i ∈ range (coe : ℕ → R)) Ici :=
@@ -50,31 +76,13 @@ lemma at_bot_countable_basis_of_archimedean [linear_ordered_ring R] [archimedean
       exact ⟨n, hn⟩ }
   end }
 
-lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [archimedean R]
-  {f : α → ℕ} {l : filter α} :
-  tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
-tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) exists_nat_ge
+lemma at_top_countably_generated_of_archimedean [linear_ordered_semiring R] [nontrivial R]
+  [archimedean R] : (at_top : filter R).is_countably_generated :=
+at_top_countable_basis_of_archimedean.is_countably_generated
 
-lemma tendsto_coe_nat_at_top_at_top [ordered_semiring R] [archimedean R] :
-  tendsto (coe : ℕ → R) at_top at_top :=
-nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
-
-lemma tendsto_coe_int_at_top_iff [ordered_ring R] [nontrivial R] [archimedean R]
-  {f : α → ℤ} {l : filter α} :
-  tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
-tendsto_at_top_embedding (assume a₁ a₂, int.cast_le) $
-  assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℤ), hn⟩
-
-lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [archimedean R] :
-  tendsto (coe : ℤ → R) at_top at_top :=
-int.cast_mono.tendsto_at_top_at_top $ λ b,
-  let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, hn⟩
-
-lemma tendsto_coe_rat_at_top_iff [linear_ordered_field R] [archimedean R]
-  {f : α → ℚ} {l : filter α} :
-  tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
-tendsto_at_top_embedding (assume a₁ a₂, rat.cast_le) $
-  assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℚ), by assumption_mod_cast⟩
+lemma at_bot_countably_generated [linear_ordered_ring R] [archimedean R] :
+  (at_bot : filter R).is_countably_generated :=
+at_bot_countable_basis_of_archimedean.is_countably_generated
 
 variables [linear_ordered_semiring R] [archimedean R]
 variables {l : filter α} {f : α → R} {r : R}

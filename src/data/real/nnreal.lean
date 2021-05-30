@@ -194,6 +194,7 @@ to_real_hom.map_nat_cast n
 instance : linear_order ℝ≥0 :=
 linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.coe_injective
 
+
 @[simp, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[simp, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
 @[simp, norm_cast] protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
@@ -232,6 +233,10 @@ instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
   ..nnreal.comm_semiring,
   ..nnreal.order_bot,
   ..nnreal.linear_order }
+
+instance : linear_ordered_add_comm_monoid ℝ≥0 :=
+{ .. nnreal.comm_semiring,
+  .. nnreal.canonically_linear_ordered_add_monoid }
 
 instance : distrib_lattice ℝ≥0 := by apply_instance
 

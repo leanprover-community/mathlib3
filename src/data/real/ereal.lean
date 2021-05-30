@@ -370,6 +370,16 @@ def neg_order_iso : ereal ≃o (order_dual ereal) :=
   right_inv := ereal.neg_neg,
   map_rel_iff' := λ x y, neg_le_neg_iff }
 
+lemma neg_lt_of_neg_lt {a b : ereal} (h : -a < b) : -b < a :=
+begin
+  apply lt_of_le_of_ne (ereal.neg_le_of_neg_le h.le),
+  assume H,
+  rw [← H, ereal.neg_neg] at h,
+  exact lt_irrefl _ h
+end
+
+lemma neg_lt_iff_neg_lt {a b : ereal} : -a < b ↔ -b < a :=
+⟨λ h, ereal.neg_lt_of_neg_lt h, λ h, ereal.neg_lt_of_neg_lt h⟩
 
 /-! ### Subtraction -/
 

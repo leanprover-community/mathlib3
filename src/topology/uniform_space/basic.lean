@@ -140,7 +140,7 @@ localized "infix ` ○ `:55 := comp_rel" in uniformity
 @[simp] theorem swap_id_rel : prod.swap '' id_rel = @id_rel α :=
 set.ext $ assume ⟨a, b⟩, by simp [image_swap_eq_preimage_swap]; exact eq_comm
 
-theorem monotone_comp_rel [preorder β] {f g : β → set (α×α)}
+theorem monotone_comp_rel [has_le β] {f g : β → set (α×α)}
   (hf : monotone f) (hg : monotone g) : monotone (λx, (f x) ○ (g x)) :=
 assume a b h p ⟨z, h₁, h₂⟩, ⟨z, hf h h₁, hg h h₂⟩
 
@@ -1364,7 +1364,7 @@ begin
     rcases comp_mem_uniformity_sets hm with ⟨m', hm', mm'⟩,
     apply (𝓤 α).sets_of_superset hm',
     rintros ⟨x, y⟩ hp rfl,
-    refine ⟨i, m', hm', λ z hz, h (monotone_comp_rel monotone_id monotone_const mm' _)⟩,
+    refine ⟨i, m', hm', λ z hz, h (monotone_comp_rel monotone_id (by exact monotone_const) mm' _)⟩,
     dsimp at hz ⊢, rw comp_rel_assoc,
     exact ⟨y, hp, hz⟩ },
   have hu₂ : s ⊆ ⋃ n ∈ 𝓤 α, u n,

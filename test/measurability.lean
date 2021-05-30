@@ -19,6 +19,14 @@ example : measurable f → measurable f := by measurability
 
 -- Tests on sets
 
+example (hs₁ : measurable_set s₁) (hs₂ : measurable_set s₂) :
+  measurable_set (s₁ ∪ s₁) :=
+by measurability
+
+example {ι} [encodable ι] {S : ι → set α} (hs : ∀ i, measurable_set (S i)) :
+  measurable_set (⋃ i, S i) :=
+by measurability
+
 example (hf : measurable f) (hs₁ : measurable_set s₁) (ht₂ : measurable_set t₂) :
   measurable_set ((f ⁻¹' t₂) ∩ s₁) :=
 by measurability
@@ -42,3 +50,15 @@ example [topological_space α] [topological_space β] [opens_measurable_space α
   (hf : continuous f) :
   measurable f :=
 by measurability
+
+-- Tests that don't work, but maybe should. The issue in both those tests is that the tactic cannot
+-- get (h i) from an hypothesis (h : ∀ i, ...).
+
+--example  {F : ℕ → α → β} (hF : ∀ i, measurable (F i)) :
+--  measurable (F 0) :=
+--by measurability
+
+--example {ι} [encodable ι] {S₁ S₂ : ι → set α} (hS₁ : ∀ i, measurable_set (S₁ i))
+--  (hS₂ : ∀ i, measurable_set (S₂ i)) :
+--  measurable_set (⋃ i, (S₁ i) ∪ (S₂ i)) :=
+--by measurability

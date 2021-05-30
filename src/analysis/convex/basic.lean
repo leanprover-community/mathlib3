@@ -1224,7 +1224,7 @@ closure_operator.closure_mem_mk₃ s
 variable {s}
 
 lemma convex_hull_min (hst : s ⊆ t) (ht : convex t) : convex_hull s ⊆ t :=
-closure_operator.closure_le_mk₃_iff begin exact hst end ht
+closure_operator.closure_le_mk₃_iff (show s ≤ t, from hst) ht
 
 lemma convex_hull_mono (hst : s ⊆ t) : convex_hull s ⊆ convex_hull t :=
 convex_hull.monotone hst

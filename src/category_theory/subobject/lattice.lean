@@ -386,13 +386,8 @@ inf_eq_map_pullback' f₁ f₂
 lemma prod_eq_inf {A : C} {f₁ f₂ : subobject A} [has_binary_product f₁ f₂] :
   (f₁ ⨯ f₂) = f₁ ⊓ f₂ :=
 le_antisymm
-  (_root_.le_inf
-    (le_of_hom limits.prod.fst)
-    (le_of_hom limits.prod.snd))
-  (le_of_hom
-    (prod.lift
-      (hom_of_le _root_.inf_le_left)
-      (hom_of_le _root_.inf_le_right)))
+  (_root_.le_inf (limits.prod.fst).le (limits.prod.snd).le)
+  ((prod.lift (_root_.inf_le_left.hom) (_root_.inf_le_right.hom))).le
 
 lemma inf_def {B : C} (m m' : subobject B) :
   m ⊓ m' = (inf.obj m).obj m' := rfl

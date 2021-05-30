@@ -419,10 +419,7 @@ variables {C₁ C₂ C₃ : homological_complex V c}
 /-- The `i`-th component of an isomorphism of chain complexes. -/
 @[simps]
 def iso_app (f : C₁ ≅ C₂) (i : ι) : C₁.X i ≅ C₂.X i :=
-{ hom := f.hom.f i,
-  inv := f.inv.f i,
-  hom_inv_id' := by { erw [← comp_f, f.hom_inv_id, id_f] },
-  inv_hom_id' := by { erw [← comp_f, f.inv_hom_id, id_f] } }
+(eval V c i).map_iso f
 
 /-- Construct an isomorphism of chain complexes from isomorphism of the objects
 which commute with the differentials. -/

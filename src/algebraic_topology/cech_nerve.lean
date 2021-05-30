@@ -281,8 +281,39 @@ def cech_conerve_equiv (F : arrow C) (X : cosimplicial_object.augmented C) :
   (F.augmented_cech_conerve ⟶ X) ≃ (F ⟶ augmented.to_arrow.obj X) :=
 { to_fun := equivalence_left_to_right _ _,
   inv_fun := equivalence_right_to_left _ _,
-  left_inv := sorry,
-  right_inv := sorry, }
+  left_inv := begin
+    intro A,
+    dsimp,
+    ext,
+    { refl, },
+    { cases j,
+      dsimp,
+      simp only [arrow.cech_conerve_map, wide_pushout.ι_desc, category.assoc,
+        ←nat_trans.naturality, wide_pushout.ι_desc_assoc],
+      refl },
+    { dsimp,
+      erw wide_pushout.head_desc,
+      have := A.w,
+      apply_fun (λ e, e.app x) at this,
+      rw nat_trans.comp_app at this,
+      erw this,
+      refl },
+  end,
+  right_inv := begin
+    intro A,
+    dsimp,
+    ext,
+    { refl, },
+    { dsimp,
+      erw wide_pushout.ι_desc,
+      nth_rewrite 1 ← category.comp_id A.right,
+      congr' 1,
+      convert X.right.map_id _,
+      ext ⟨a,ha⟩,
+      change a < 1 at ha,
+      change 0 = a,
+      linarith },
+  end }
 
 /-- The augmented Čech conerve construction is left adjoint to the `to_arrow` functor. -/
 @[simps]

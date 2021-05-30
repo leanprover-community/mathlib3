@@ -654,7 +654,7 @@ section mono
 variables [has_mul α] {β : Type*} {f g : β → α}
 
 section has_le
-variables [has_le α] [has_le β]
+variables [preorder α] [preorder β]
 
 @[to_additive monotone.const_add]
 lemma monotone.const_mul' [covariant_class α α (*) (≤)] (hf : monotone f) (a : α) :

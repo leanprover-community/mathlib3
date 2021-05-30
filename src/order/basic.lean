@@ -110,7 +110,7 @@ instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Pro
 λ x y, H _ _
 
 section monotone
-variables [has_le α] [has_le β] [has_le γ]
+variables [preorder α] [preorder β] [preorder γ]
 
 /-- A function between preorders is monotone if
   `a ≤ b` implies `f a ≤ f b`. -/

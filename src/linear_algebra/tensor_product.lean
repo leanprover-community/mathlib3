@@ -418,8 +418,8 @@ instance : add_comm_monoid (M ⊗[R] N) :=
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance distrib_mul_action' : distrib_mul_action R'' (M ⊗[R] N) :=
-have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+instance distrib_mul_action' : distrib_mul_action R' (M ⊗[R] N) :=
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x
@@ -1010,6 +1010,11 @@ instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R �
   (by simp)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
   (λ r ih, by simpa [sub_smul, tmul_sub, sub_tmul] using ih)⟩
+
+instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
+  [compatible_smul R S M N] :
+  compatible_smul R (units S) M N :=
+⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
 
 end tensor_product
 

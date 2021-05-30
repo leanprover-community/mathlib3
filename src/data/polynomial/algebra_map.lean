@@ -53,9 +53,24 @@ When we have `[comm_ring R]`, the function `C` is the same as `algebra_map R (po
 (But note that `C` is defined when `R` is not necessarily commutative, in which case
 `algebra_map` is not available.)
 -/
-lemma C_eq_algebra_map {R : Type*} [comm_ring R] (r : R) :
+lemma C_eq_algebra_map {R : Type*} [comm_semiring R] (r : R) :
   C r = algebra_map R (polynomial R) r :=
 rfl
+
+variable (R)
+
+/-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
+implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
+@[simps]
+def to_finsupp_iso_alg : polynomial R ≃ₐ[R] add_monoid_algebra R ℕ :=
+{ commutes' := λ r,
+  begin
+    simp only [add_monoid_algebra.coe_algebra_map, algebra.id.map_eq_self, function.comp_app],
+    rw [←C_eq_algebra_map, ←monomial_zero_left, ring_equiv.to_fun_eq_coe, to_finsupp_iso_monomial],
+  end,
+  ..to_finsupp_iso R }
+
+variable {R}
 
 instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
 ⟨⟨⊥, ⊤, begin

@@ -1205,7 +1205,8 @@ lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α →
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, F x a) x₀) :
   continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
 tendsto_integral_filter_of_dominated_convergence bound
-  (first_countable_topology.nhds_generated_countable x₀) ‹_› (mem_of_nhds hF_meas : _) ‹_› ‹_› ‹_›
+  (first_countable_topology.nhds_generated_countable x₀) ‹_›
+    (mem_of_mem_nhds hF_meas : _) ‹_› ‹_› ‹_›
 
 lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
   (hF_meas : ∀ x, ae_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)

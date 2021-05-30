@@ -189,7 +189,7 @@ instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)�
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
 have Hs : _ := continuous_iff'.1 f.continuous x (ε/2) (half_pos ε0),
-mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
+mem_sets_of_superset (prod_is_open.mem_nhds (ball_mem_nhds _ (half_pos ε0)) Hs) $
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
   ... < ε/2 + ε/2 : add_lt_add (lt_of_le_of_lt (dist_coe_le_dist _) hg) hy
@@ -302,7 +302,7 @@ begin
   have : ∀x:α, ∃U, x ∈ U ∧ is_open U ∧ ∀ (y z ∈ U) {f : α →ᵇ β},
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
-          ⟨V, VU, openV, xV⟩ := mem_nhds_sets_iff.1 nhdsU in
+          ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
       ⟨V, xV, openV, λy z hy hz f hf, hU y z (VU hy) (VU hz) f hf⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A

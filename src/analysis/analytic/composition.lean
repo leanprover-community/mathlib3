@@ -761,7 +761,7 @@ begin
     have B₁ : continuous_at (λ (z : F), g (f x + z)) (f (x + y) - f x),
     { refine continuous_at.comp _ (continuous_const.add continuous_id).continuous_at,
       simp only [add_sub_cancel'_right, id.def],
-      exact Hg.continuous_on.continuous_at (mem_nhds_sets (emetric.is_open_ball) fy_mem) },
+      exact Hg.continuous_on.continuous_at (is_open.mem_nhds (emetric.is_open_ball) fy_mem) },
     have B₂ : f (x + y) - f x ∈ emetric.ball (0 : F) rg,
       by simpa [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] using fy_mem,
     rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,

@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.metric_space.isometry
 import topology.instances.ennreal
+import analysis.specific_limits
 
 /-!
 # Hausdorff distance
@@ -25,7 +26,7 @@ This files introduces:
 `Hausdorff_dist`.
 -/
 noncomputable theory
-open_locale classical nnreal ennreal
+open_locale classical nnreal ennreal topological_space
 universes u v w
 
 open classical set function topological_space filter
@@ -119,6 +120,36 @@ end
 lemma inf_edist_image (hΦ : isometry Φ) :
   inf_edist (Φ x) (Φ '' t) = inf_edist x t :=
 by simp only [inf_edist, infi_image, hΦ.edist_eq]
+
+lemma _root_.is_open.exists_Union_is_closed {U : set α} (hU : is_open U) :
+  ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ (monotone F) :=
+begin
+  obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between (ennreal.zero_lt_one),
+  let F := λ (n : ℕ), (λ x, inf_edist x Uᶜ) ⁻¹' (Ici (a^n)),
+  have F_subset : ∀ n, F n ⊆ U,
+  { assume n x hx,
+    by_contra h,
+    rw [← mem_compl_iff,
+      mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU)] at h,
+    have : 0 < inf_edist x Uᶜ := lt_of_lt_of_le (ennreal.pow_pos a_pos _) hx,
+    rw h at this,
+    exact lt_irrefl _ this },
+  refine ⟨F, λ n, is_closed.preimage continuous_inf_edist is_closed_Ici, F_subset, _, _⟩,
+  show monotone F,
+  { assume m n hmn x hx,
+    simp only [mem_Ici, mem_preimage] at hx ⊢,
+    apply le_trans (ennreal.pow_le_pow_of_le_one a_lt_one.le hmn) hx },
+  show (⋃ n, F n) = U,
+  { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
+    have : ¬(x ∈ Uᶜ), by simpa using hx,
+    rw mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU) at this,
+    have B : 0 < inf_edist x Uᶜ, by simpa [pos_iff_ne_zero] using this,
+    have : filter.tendsto (λ n, a^n) at_top (𝓝 0) :=
+      ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 a_lt_one,
+    rcases ((tendsto_order.1 this).2 _ B).exists with ⟨n, hn⟩,
+    simp only [mem_Union, mem_Ici, mem_preimage],
+    exact ⟨n, hn.le⟩ },
+end
 
 end inf_edist --section
 

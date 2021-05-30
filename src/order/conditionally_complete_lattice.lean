@@ -53,6 +53,14 @@ noncomputable instance {α : Type*} [has_Sup α] : has_Sup (with_bot α) :=
 noncomputable instance {α : Type*} [preorder α] [has_Inf α] : has_Inf (with_bot α) :=
 ⟨(@with_top.has_Sup (order_dual α) _ _).Sup⟩
 
+@[simp]
+theorem with_top.cInf_empty {α : Type*} [has_Inf α] : Inf (∅ : set (with_top α)) = ⊤ :=
+if_pos $ set.empty_subset _
+
+@[simp]
+theorem with_bot.cSup_empty {α : Type*} [has_Sup α] : Sup (∅ : set (with_bot α)) = ⊥ :=
+if_pos $ set.empty_subset _
+
 end -- section
 
 /-- A conditionally complete lattice is a lattice in which
@@ -343,6 +351,9 @@ cSup_le (range_nonempty f) (by rwa forall_range_iff)
 lemma le_csupr {f : ι → α} (H : bdd_above (range f)) (c : ι) : f c ≤ supr f :=
 le_cSup H (mem_range_self _)
 
+lemma le_csupr_of_le {f : ι → α} (H : bdd_above (range f)) (c : ι) (h : a ≤ f c) : a ≤ supr f :=
+le_trans h (le_csupr H c)
+
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
 lemma cinfi_le_cinfi {f g : ι → α} (B : bdd_below (range f)) (H : ∀x, f x ≤ g x) :
   infi f ≤ infi g :=
@@ -355,6 +366,9 @@ lemma le_cinfi [nonempty ι] {f : ι → α} {c : α} (H : ∀x, c ≤ f x) : c 
 /--The indexed infimum of a function is bounded above by the value taken at one point-/
 lemma cinfi_le {f : ι → α} (H : bdd_below (range f)) (c : ι) : infi f ≤ f c :=
 @le_csupr (order_dual α) _ _ _ H c
+
+lemma cinfi_le_of_le {f : ι → α} (H : bdd_below (range f)) (c : ι) (h : f c ≤ a) : infi f ≤ a :=
+@le_csupr_of_le (order_dual α) _ _ _ _ H c h
 
 @[simp] theorem csupr_const [hι : nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 by rw [supr, range_const, cSup_singleton]
@@ -374,6 +388,12 @@ by { convert supr_unique, apply_instance }
 
 @[simp] theorem infi_unit {f : unit → α} : (⨅ x, f x) = f () :=
 @supr_unit (order_dual α) _ _
+
+@[simp] lemma csupr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
+by haveI := unique_prop hp; exact supr_unique
+
+@[simp] lemma cinfi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
+@csupr_pos (order_dual α) _ _ _ hp
 
 /-- Nested intervals lemma: if `f` is a monotonically increasing sequence, `g` is a monotonically
 decreasing sequence, and `f n ≤ g n` for all `n`, then `⨆ n, f n` belongs to all the intervals
@@ -421,6 +441,30 @@ instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
 section conditionally_complete_linear_order
 variables [conditionally_complete_linear_order α] {s t : set α} {a b : α}
 
+lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : finite s) : Sup s ∈ s :=
+begin
+  classical,
+  revert h,
+  apply finite.induction_on hs,
+  { simp },
+  rintros a t hat t_fin ih -,
+  rcases t.eq_empty_or_nonempty with rfl | ht,
+  { simp },
+  { rw cSup_insert t_fin.bdd_above ht,
+    by_cases ha : a ≤ Sup t,
+    { simp [sup_eq_right.mpr ha, ih ht] },
+    { simp only [sup_eq_left, mem_insert_iff, (not_le.mp ha).le, true_or] } }
+end
+
+lemma finset.nonempty.cSup_mem {s : finset α} (h : s.nonempty) : Sup (s : set α) ∈ s :=
+set.nonempty.cSup_mem h s.finite_to_set
+
+lemma set.nonempty.cInf_mem (h : s.nonempty) (hs : finite s) : Inf s ∈ s :=
+@set.nonempty.cSup_mem (order_dual α) _ _ h hs
+
+lemma finset.nonempty.cInf_mem {s : finset α} (h : s.nonempty) : Inf (s : set α) ∈ s :=
+set.nonempty.cInf_mem h s.finite_to_set
+
 /-- When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
 a linear order. -/
 lemma exists_lt_of_lt_cSup (hs : s.nonempty) (hb : b < Sup s) : ∃a∈s, b < a :=
@@ -463,8 +507,16 @@ end conditionally_complete_linear_order
 
 section conditionally_complete_linear_order_bot
 
-lemma cSup_empty [conditionally_complete_linear_order_bot α] : (Sup ∅ : α) = ⊥ :=
+variables [conditionally_complete_linear_order_bot α]
+
+lemma cSup_empty : (Sup ∅ : α) = ⊥ :=
 conditionally_complete_linear_order_bot.cSup_empty
+
+@[simp] lemma csupr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
+begin
+  have : ¬nonempty p := by simp [hp],
+  rw [supr, range_eq_empty.mpr this, cSup_empty],
+end
 
 end conditionally_complete_linear_order_bot
 
@@ -709,7 +761,6 @@ noncomputable instance : complete_linear_order enat :=
 
 end enat
 
-
 namespace monotone
 variables [preorder α] [conditionally_complete_lattice β] {f : α → β} (h_mono : monotone f)
 
@@ -733,6 +784,42 @@ lemma le_cInf_image {s : set α} (hs : s.nonempty) {B : α} (hB: B ∈ lower_bou
 @cSup_image_le (order_dual α) (order_dual β) _ _ _ (λ x y hxy, h_mono hxy) _ hs _ hB
 
 end monotone
+
+/-!
+### Relation between `Sup` / `Inf` and `finset.sup'` / `finset.inf'`
+
+Like the `Sup` of a `conditionally_complete_lattice`, `finset.sup'` also requires the set to be
+non-empty. As a result, we can translate between the two.
+-/
+
+namespace finset
+
+lemma sup'_eq_cSup_image [conditionally_complete_lattice β] (s : finset α) (H) (f : α → β) :
+  s.sup' H f = Sup (f '' s) :=
+begin
+  apply le_antisymm,
+  { refine (finset.sup'_le _ _ $ λ a ha, _),
+    refine le_cSup ⟨s.sup' H f, _⟩ ⟨a, ha, rfl⟩,
+    rintros i ⟨j, hj, rfl⟩,
+    exact finset.le_sup' _ hj },
+  { apply cSup_le ((coe_nonempty.mpr H).image _),
+    rintros _ ⟨a, ha, rfl⟩,
+    exact finset.le_sup' _ ha, }
+end
+
+lemma inf'_eq_cInf_image [conditionally_complete_lattice β] (s : finset α) (H) (f : α → β) :
+  s.inf' H f = Inf (f '' s) :=
+@sup'_eq_cSup_image _ (order_dual β) _ _ _ _
+
+lemma sup'_id_eq_cSup [conditionally_complete_lattice α] (s : finset α) (H) :
+  s.sup' H id = Sup s :=
+by rw [sup'_eq_cSup_image s H, set.image_id]
+
+lemma inf'_id_eq_cInf [conditionally_complete_lattice α] (s : finset α) (H) :
+  s.inf' H id = Inf s :=
+@sup'_id_eq_cSup (order_dual α) _ _ _
+
+end finset
 
 section with_top_bot
 
@@ -784,13 +871,6 @@ noncomputable instance with_top.with_bot.bounded_lattice {α : Type*}
 { ..with_top.order_bot,
   ..with_top.order_top,
   ..conditionally_complete_lattice.to_lattice _ }
-
-theorem with_bot.cSup_empty {α : Type*} [conditionally_complete_lattice α] :
-  Sup (∅ : set (with_bot α)) = ⊥ :=
-begin
-  show ite _ _ _ = ⊥,
-  split_ifs; finish,
-end
 
 noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   [conditionally_complete_lattice α] : complete_lattice (with_top (with_bot α)) :=

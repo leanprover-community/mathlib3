@@ -26,7 +26,7 @@ also `m₂`-measurable (that is, `m₁` is a subset of `m₂`). In particular, a
 collection of subsets of `α` generates a smallest σ-algebra which
 contains all of them.
 
-PLEASE DO NOT add measurability lemmas (which could be tagged with
+Do not add measurability lemmas (which could be tagged with
 @[measurability]) to this file, since the measurability tactic is downstream
 from here. Use `measure_theory.measurable_space` instead.
 

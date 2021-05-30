@@ -6,12 +6,12 @@ Authors: Johannes Hölzl, Mario Carneiro
 import measure_theory.outer_measure
 import order.filter.countable_Inter
 import data.set.accumulate
-import measure_theory.measurable_space_def
 
 /-!
 # Measure spaces
 
-This file defines measure spaces. See `measure_theory.measure_space` for their properties.
+This file defines measure spaces, the almost-everywhere filter and ae_measurable functions.
+See `measure_theory.measure_space` for their properties and for extended documentation.
 
 Given a measurable space `α`, a measure on `α` is a function that sends measurable sets to the
 extended nonnegative reals that satisfies the following conditions:
@@ -28,57 +28,23 @@ extension of the restricted measure.
 
 Measures on `α` form a complete lattice, and are closed under scalar multiplication with `ℝ≥0∞`.
 
-
-We introduce the following typeclasses for measures:
-
-* `probability_measure μ`: `μ univ = 1`;
-* `finite_measure μ`: `μ univ < ∞`;
-* `sigma_finite μ`: there exists a countable collection of measurable sets that cover `univ`
-  where `μ` is finite;
-* `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ∞`;
-* `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
-  `∀ s, 0 < μ s → ∃ t ⊆ s, 0 < μ t ∧ μ t < μ s`.
-
-Given a measure, the null sets are the sets where `μ s = 0`, where `μ` denotes the corresponding
-outer measure (so `s` might not be measurable). We can then define the completion of `μ` as the
-measure on the least `σ`-algebra that also contains all null sets, by defining the measure to be `0`
-on the null sets.
-
-## Main statements
-
-* `completion` is the completion of a measure to all null measurable sets.
-* `measure.of_measurable` and `outer_measure.to_measure` are two important ways to define a measure.
-
 ## Implementation notes
 
 Given `μ : measure α`, `μ s` is the value of the *outer measure* applied to `s`.
 This conveniently allows us to apply the measure to sets without proving that they are measurable.
 We get countable subadditivity for all sets, but only countable additivity for measurable sets.
 
-You often don't want to define a measure via its constructor.
-Two ways that are sometimes more convenient:
-* `measure.of_measurable` is a way to define a measure by only giving its value on measurable sets
-  and proving the properties (1) and (2) mentioned above.
-* `outer_measure.to_measure` is a way of obtaining a measure from an outer measure by showing that
-  all measurable sets in the measurable space are Carathéodory measurable.
-
-To prove that two measures are equal, there are multiple options:
-* `ext`: two measures are equal if they are equal on all measurable sets.
-* `ext_of_generate_from_of_Union`: two measures are equal if they are equal on a π-system generating
-  the measurable sets, if the π-system contains a spanning increasing sequence of sets where the
-  measures take finite value (in particular the measures are σ-finite). This is a special case of
-  the more general `ext_of_generate_from_of_cover`
-* `ext_of_generate_finite`: two finite measures are equal if they are equal on a π-system
-  generating the measurable sets. This is a special case of `ext_of_generate_from_of_Union` using
-  `C ∪ {univ}`, but is easier to work with.
+See the documentation of `measure_theory.measure_space` for ways to construct measures and proving
+that two measure are equal.
 
 A `measure_space` is a class that is a measurable space with a canonical measure.
 The measure is denoted `volume`.
 
+This file does not import `measure_theory.measurable_space`, but only `measurable_space_def`.
+
 ## References
 
 * <https://en.wikipedia.org/wiki/Measure_(mathematics)>
-* <https://en.wikipedia.org/wiki/Complete_measure>
 * <https://en.wikipedia.org/wiki/Almost_everywhere>
 
 ## Tags

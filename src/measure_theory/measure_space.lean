@@ -9,6 +9,11 @@ import measure_theory.measurable_space
 /-!
 # Measure spaces
 
+The definition of a measure and a measure space are in `measure_theory.measure_space_def`, with
+only a few basic properties. This file provides many more properties of these objects.
+This separation allows the measurability tactic to import only the file `measure_space_def`, and to
+be available in `measure_space` (through `measurable_space`).
+
 Given a measurable space `α`, a measure on `α` is a function that sends measurable sets to the
 extended nonnegative reals that satisfies the following conditions:
 1. `μ ∅ = 0`;
@@ -2208,8 +2213,8 @@ end is_complete
 # Almost everywhere measurable functions
 
 A function is almost everywhere measurable if it coincides almost everywhere with a measurable
-function. We define this property, called `ae_measurable f μ`, and discuss several of its properties
-that are analogous to properties of measurable functions.
+function. This property, called `ae_measurable f μ`, is defined in the file `measure_space_def`.
+We discuss several of its properties that are analogous to properties of measurable functions.
 -/
 
 section

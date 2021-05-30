@@ -492,14 +492,28 @@ end
 
 end discrete_equipartition
 
+open encodable
+
 /-- Arbitrary equipartition into `n` parts -/
 @[simps]
-def dummy_equipartition (V : Type*) [decidable_eq V] [fintype V] (n : ℕ) : equipartition V :=
-{ parts := begin
-  sorry
-end,
+noncomputable def dummy_equipartition (V : Type*) [decidable_eq V] [fintype V] (n : ℕ) : equipartition V :=
+{ parts := finset.image (begin--first attempt. Wrong cut.
+  intro k,
+  refine finset.image _ (univ : finset (fin (fintype.card V - k * n))),
+  intro i,
+  haveI : encodable V := fintype.encodable V,
+  apply list.nth_le (sorted_univ V) (k*n + i),
+  rw length_sorted_univ,
+  exact nat.add_lt_of_lt_sub_left i.2,
+end) (finset.range n),
   disjoint :=
   begin
+    simp only [mem_image],
+    rintro a b ⟨k, hk, ha⟩ ⟨l, hl, hb⟩ x hxa hxb,
+    rw [←ha, mem_image] at hxa,
+    rw [←hb, mem_image] at hxb,
+    obtain ⟨i, -, hi⟩ := hxa,
+    obtain ⟨j, -, hj⟩ := hxb,
     sorry
   end,
   covering := λ v, sorry,

@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import algebra.homology.complex_shape
 import category_theory.subobject.limits
+import category_theory.graded_object
 
 /-!
 # Homological complexes.
@@ -200,12 +201,25 @@ instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨0⟩
 lemma congr_hom {C D : homological_complex V c} {f g : C ⟶ D} (w : f = g) (i : ι) : f.f i = g.f i :=
 congr_fun (congr_arg hom.f w) i
 
-/--
-Picking out the `i`-th object, as a functor.
--/
-def eval_at (i : ι) : homological_complex V c ⥤ V :=
+section
+variables (V c)
+
+/-- The functor picking out the `i`-th object of a complex. -/
+@[simps] def eval (i : ι) : homological_complex V c ⥤ V :=
 { obj := λ C, C.X i,
-  map := λ C D f, f.f i }
+  map := λ C D f, f.f i, }
+
+/-- The functor forgetting the differential in a complex, obtaining a graded object. -/
+@[simps] def forget : homological_complex V c ⥤ graded_object ι V :=
+{ obj := λ C, C.X,
+  map := λ _ _ f, f.f }
+
+/-- Forgetting the differentials than picking out the `i`-th object is the same as
+just picking out the `i`-th object. -/
+@[simps] def forget_eval (i : ι) : forget V c ⋙ graded_object.eval i ≅ eval V c i :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
+
+end
 
 open_locale classical
 noncomputable theory

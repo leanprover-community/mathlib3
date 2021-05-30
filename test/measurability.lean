@@ -46,6 +46,10 @@ by measurability
 
 -- Tests on functions
 
+example [has_mul β] [has_measurable_mul₂ β] (hf : measurable f) (c : β) :
+  measurable (λ x, c * f x) :=
+by measurability  -- uses const_mul, not mul
+
 example [has_add β] [has_measurable_add₂ β] (hf : measurable f) (hg : measurable g) :
   measurable (λ x, f x + g x) :=
 by measurability

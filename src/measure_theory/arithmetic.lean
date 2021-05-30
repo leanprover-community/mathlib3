@@ -76,6 +76,28 @@ section mul
 variables {M : Type*} [measurable_space M] [has_mul M]
 
 @[to_additive, measurability]
+lemma measurable.const_mul [has_measurable_mul M] {f : α → M} (hf : measurable f) (c : M) :
+  measurable (λ x, c * f x) :=
+(measurable_const_mul c).comp hf
+
+@[to_additive, measurability]
+lemma ae_measurable.const_mul [has_measurable_mul M] {f : α → M} {μ : measure α}
+  (hf : ae_measurable f μ) (c : M) :
+  ae_measurable (λ x, c * f x) μ :=
+(has_measurable_mul.measurable_const_mul c).comp_ae_measurable hf
+
+@[to_additive, measurability]
+lemma measurable.mul_const [has_measurable_mul M] {f : α → M} (hf : measurable f) (c : M) :
+  measurable (λ x, f x * c) :=
+(measurable_mul_const c).comp hf
+
+@[to_additive, measurability]
+lemma ae_measurable.mul_const [has_measurable_mul M] {f : α → M} {μ : measure α}
+  (hf : ae_measurable f μ) (c : M) :
+  ae_measurable (λ x, f x * c) μ :=
+(measurable_mul_const c).comp_ae_measurable hf
+
+@[to_additive, measurability]
 lemma measurable.mul' [has_measurable_mul₂ M] {f g : α → M} (hf : measurable f)
   (hg : measurable g) :
   measurable (f * g) :=
@@ -102,28 +124,6 @@ measurable_mul.comp_ae_measurable (hf.prod_mk hg)
 instance has_measurable_mul₂.to_has_measurable_mul [has_measurable_mul₂ M] :
   has_measurable_mul M :=
 ⟨λ c, measurable_const.mul measurable_id, λ c, measurable_id.mul measurable_const⟩
-
-@[to_additive, measurability]
-lemma measurable.const_mul [has_measurable_mul M] {f : α → M} (hf : measurable f) (c : M) :
-  measurable (λ x, c * f x) :=
-(measurable_const_mul c).comp hf
-
-@[to_additive, measurability]
-lemma ae_measurable.const_mul [has_measurable_mul M] {f : α → M} {μ : measure α}
-  (hf : ae_measurable f μ) (c : M) :
-  ae_measurable (λ x, c * f x) μ :=
-(has_measurable_mul.measurable_const_mul c).comp_ae_measurable hf
-
-@[to_additive, measurability]
-lemma measurable.mul_const [has_measurable_mul M] {f : α → M} (hf : measurable f) (c : M) :
-  measurable (λ x, f x * c) :=
-(measurable_mul_const c).comp hf
-
-@[to_additive, measurability]
-lemma ae_measurable.mul_const [has_measurable_mul M] {f : α → M} {μ : measure α}
-  (hf : ae_measurable f μ) (c : M) :
-  ae_measurable (λ x, f x * c) μ :=
-(measurable_mul_const c).comp_ae_measurable hf
 
 attribute [measurability] measurable.add' measurable.add ae_measurable.add ae_measurable.add'
   measurable.const_add ae_measurable.const_add measurable.add_const ae_measurable.add_const
@@ -216,6 +216,28 @@ section div
 variables {G : Type*} [measurable_space G] [has_div G]
 
 @[to_additive, measurability]
+lemma measurable.const_div [has_measurable_div G] {f : α → G} (hf : measurable f) (c : G) :
+  measurable (λ x, c / f x) :=
+(has_measurable_div.measurable_const_div c).comp hf
+
+@[to_additive, measurability]
+lemma ae_measurable.const_div [has_measurable_div G] {f : α → G} {μ : measure α}
+  (hf : ae_measurable f μ) (c : G) :
+  ae_measurable (λ x, c / f x) μ :=
+(has_measurable_div.measurable_const_div c).comp_ae_measurable hf
+
+@[to_additive, measurability]
+lemma measurable.div_const [has_measurable_div G] {f : α → G} (hf : measurable f) (c : G) :
+  measurable (λ x, f x / c) :=
+(has_measurable_div.measurable_div_const c).comp hf
+
+@[to_additive, measurability]
+lemma ae_measurable.div_const [has_measurable_div G] {f : α → G} {μ : measure α}
+  (hf : ae_measurable f μ) (c : G) :
+  ae_measurable (λ x, f x / c) μ :=
+(has_measurable_div.measurable_div_const c).comp_ae_measurable hf
+
+@[to_additive, measurability]
 lemma measurable.div' [has_measurable_div₂ G] {f g : α → G} (hf : measurable f)
   (hg : measurable g) :
   measurable (f / g) :=
@@ -242,28 +264,6 @@ measurable_div.comp_ae_measurable (hf.prod_mk hg)
 instance has_measurable_div₂.to_has_measurable_div [has_measurable_div₂ G] :
   has_measurable_div G :=
 ⟨λ c, measurable_const.div measurable_id, λ c, measurable_id.div measurable_const⟩
-
-@[to_additive, measurability]
-lemma measurable.const_div [has_measurable_div G] {f : α → G} (hf : measurable f) (c : G) :
-  measurable (λ x, c / f x) :=
-(has_measurable_div.measurable_const_div c).comp hf
-
-@[to_additive, measurability]
-lemma ae_measurable.const_div [has_measurable_div G] {f : α → G} {μ : measure α}
-  (hf : ae_measurable f μ) (c : G) :
-  ae_measurable (λ x, c / f x) μ :=
-(has_measurable_div.measurable_const_div c).comp_ae_measurable hf
-
-@[to_additive, measurability]
-lemma measurable.div_const [has_measurable_div G] {f : α → G} (hf : measurable f) (c : G) :
-  measurable (λ x, f x / c) :=
-(has_measurable_div.measurable_div_const c).comp hf
-
-@[to_additive, measurability]
-lemma ae_measurable.div_const [has_measurable_div G] {f : α → G} {μ : measure α}
-  (hf : ae_measurable f μ) (c : G) :
-  ae_measurable (λ x, f x / c) μ :=
-(has_measurable_div.measurable_div_const c).comp_ae_measurable hf
 
 attribute [measurability] measurable.sub measurable.sub' ae_measurable.sub ae_measurable.sub'
   measurable.const_sub ae_measurable.const_sub measurable.sub_const ae_measurable.sub_const

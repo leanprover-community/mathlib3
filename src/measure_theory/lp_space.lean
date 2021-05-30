@@ -132,7 +132,6 @@ by simp [snorm, hp_ne_zero, hp_ne_top]
 def mem_ℒp (f : α → E) (p : ℝ≥0∞) (μ : measure α) : Prop :=
 ae_measurable f μ ∧ snorm f p μ < ∞
 
-@[measurability]
 lemma mem_ℒp.ae_measurable {f : α → E} {p : ℝ≥0∞} {μ : measure α} (h : mem_ℒp f p μ) :
   ae_measurable f μ := h.1
 

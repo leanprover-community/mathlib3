@@ -186,7 +186,6 @@ variables [topological_space α] [measurable_space α] [opens_measurable_space �
    [topological_space γ₂] [measurable_space γ₂] [borel_space γ₂]
    [measurable_space δ]
 
-@[measurability]
 lemma is_open.measurable_set (h : is_open s) : measurable_set s :=
 opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
 
@@ -203,11 +202,9 @@ lemma measurable_set_of_continuous_at {β} [emetric_space β] (f : α → β) :
   measurable_set {x | continuous_at f x} :=
 (is_Gδ_set_of_continuous_at f).measurable_set
 
-@[measurability]
 lemma is_closed.measurable_set (h : is_closed s) : measurable_set s :=
 h.is_open_compl.measurable_set.of_compl
 
-@[measurability]
 lemma is_compact.measurable_set [t2_space α] (h : is_compact s) : measurable_set s :=
 h.is_closed.measurable_set
 
@@ -401,7 +398,6 @@ end linear_order
 
 /-- A continuous function from an `opens_measurable_space` to a `borel_space`
 is measurable. -/
-@[measurability]
 lemma continuous.measurable {f : α → γ} (hf : continuous f) :
   measurable f :=
 hf.borel_measurable.mono opens_measurable_space.borel_le
@@ -409,11 +405,9 @@ hf.borel_measurable.mono opens_measurable_space.borel_le
 
 /-- A continuous function from an `opens_measurable_space` to a `borel_space`
 is ae-measurable. -/
-@[measurability]
 lemma continuous.ae_measurable {f : α → γ} (h : continuous f) (μ : measure α) : ae_measurable f μ :=
 h.measurable.ae_measurable
 
-@[measurability]
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :
   measurable f :=
 hf.continuous.measurable
@@ -544,7 +538,6 @@ instance prod.borel_space [second_countable_topology α] [second_countable_topol
   borel_space (α × β) :=
 ⟨le_antisymm prod_le_borel_prod opens_measurable_space.borel_le⟩
 
-@[measurability]
 lemma closed_embedding.measurable_inv_fun [n : nonempty β] {g : β → γ} (hg : closed_embedding g) :
   measurable (function.inv_fun g) :=
 begin

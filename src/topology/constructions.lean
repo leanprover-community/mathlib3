@@ -769,7 +769,7 @@ lemma inducing_infi_to_pi {X : Type*} [∀ i, topological_space (π i)] (fs : Π
   @inducing X (Π i, π i) (⨅ i, induced (fs i) infer_instance) _ (λ x i, fs i x) :=
 begin
   constructor,
-  erw [induced_infi],
+  erw induced_infi,
   congr' 1,
   funext,
   erw induced_compose,

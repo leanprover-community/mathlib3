@@ -216,7 +216,8 @@ section div
 variables {G : Type*} [measurable_space G] [has_div G]
 
 @[to_additive, measurability]
-lemma measurable.div' [has_measurable_div₂ G] {f g : α → G} (hf : measurable f) (hg : measurable g) :
+lemma measurable.div' [has_measurable_div₂ G] {f g : α → G} (hf : measurable f)
+  (hg : measurable g) :
   measurable (f / g) :=
 measurable_div.comp (hf.prod_mk hg)
 

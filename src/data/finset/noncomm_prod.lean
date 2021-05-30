@@ -69,7 +69,8 @@ end
 
 /-- Fold of a `s : multiset α` with `op : α → α → α`, given a proof that `left_commutative op`
 on all elements `x ∈ s`. -/
-def noncomm_fold (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s) b, op x (op y b) = op y (op x b)) (a : α)
+def noncomm_fold (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s) b, op x (op y b) = op y (op x b))
+  (a : α)
   : α :=
 noncomm_foldr op s comm a
 

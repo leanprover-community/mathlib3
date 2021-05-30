@@ -651,8 +651,10 @@ iff.intro
 end partial_order
 
 section mono
-variables [has_mul α] [preorder α]
-  {β : Type*} [preorder β] {f g : β → α}
+variables [has_mul α] {β : Type*} {f g : β → α}
+
+section has_le
+variables [has_le α] [has_le β]
 
 @[to_additive monotone.const_add]
 lemma monotone.const_mul' [covariant_class α α (*) (≤)] (hf : monotone f) (a : α) :
@@ -664,10 +666,52 @@ lemma monotone.mul_const' [covariant_class α α (function.swap (*)) (≤)]
   (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
 λ x y h, mul_le_mul_right' (hf h) a
 
+end has_le
+
+variables [preorder α] [preorder β]
 @[to_additive monotone.add]
-lemma monotone.mul'
-  [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+lemma monotone.mul' [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
   (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
 λ x y h, mul_le_mul' (hf h) (hg h)
 
 end mono
+
+section strict_mono
+variables [has_mul α] {β : Type*} {f g : β → α}
+
+section left
+variables [has_lt α] [covariant_class α α (*) (<)] [has_lt β]
+
+@[to_additive strict_mono.const_add]
+lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
+  strict_mono (λ x, c * f x) :=
+λ a b ab, mul_lt_mul_left' (hf ab) c
+
+end left
+
+section right
+variables [has_lt α] [covariant_class α α (function.swap (*)) (<)] [has_lt β]
+
+@[to_additive strict_mono.add_const]
+lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
+  strict_mono (λ x, f x * c) :=
+λ a b ab, mul_lt_mul_right' (hf ab) c
+
+end right
+
+variables [preorder α]
+
+@[to_additive monotone.add_strict_mono]
+lemma monotone.mul_strict_mono' [covariant_class α α (*) (<)]
+  [covariant_class α α (function.swap (*)) (≤)] {β : Type*} [preorder β]
+  {f g : β → α} (hf : monotone f) (hg : strict_mono g) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul_of_le_of_lt (hf h.le) (hg h)
+variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (<)] [preorder β]
+
+@[to_additive strict_mono.add_monotone]
+lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)
+
+end strict_mono

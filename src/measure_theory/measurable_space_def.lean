@@ -13,8 +13,7 @@ import order.filter.lift
 /-!
 # Measurable spaces and measurable functions
 
-This file defines measurable spaces and the functions and isomorphisms
-between them.
+This file defines measurable spaces and measurable functions.
 
 A measurable space is a set equipped with a σ-algebra, a collection of
 subsets closed under complementation and countable union. A function
@@ -25,25 +24,11 @@ measurable subset is measurable.
 σ-algebras by writing `m₁ ≤ m₂` if every set which is `m₁`-measurable is
 also `m₂`-measurable (that is, `m₁` is a subset of `m₂`). In particular, any
 collection of subsets of `α` generates a smallest σ-algebra which
-contains all of them. A function `f : α → β` induces a Galois connection
-between the lattices of σ-algebras on `α` and `β`.
+contains all of them.
 
-A measurable equivalence between measurable spaces is an equivalence
-which respects the σ-algebras, that is, for which both directions of
-the equivalence are measurable functions.
-
-We say that a filter `f` is measurably generated if every set `s ∈ f` includes a measurable
-set `t ∈ f`. This property is useful, e.g., to extract a measurable witness of `filter.eventually`.
-
-## Notation
-
-* We write `α ≃ᵐ β` for measurable equivalences between the measurable spaces `α` and `β`.
-  This should not be confused with `≃ₘ` which is used for diffeomorphisms between manifolds.
-
-## Implementation notes
-
-Measurability of a function `f : α → β` between measurable spaces is
-defined in terms of the Galois connection induced by f.
+PLEASE DO NOT add measurability lemmas (which could be tagged with
+@[measurability]) to this file, since the measurability tactic is downstream
+from here. Use `measure_theory.measurable_space` instead.
 
 ## References
 
@@ -53,8 +38,7 @@ defined in terms of the Galois connection induced by f.
 
 ## Tags
 
-measurable space, σ-algebra, measurable function, measurable equivalence, dynkin system,
-π-λ theorem, π-system
+measurable space, σ-algebra, measurable function
 -/
 
 open set encodable function equiv

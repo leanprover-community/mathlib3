@@ -3,14 +3,14 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import measure_theory.measurable_space_0
+import measure_theory.measurable_space_def
 import measure_theory.tactic
 
 /-!
 # Measurable spaces and measurable functions
 
-This file defines measurable spaces and the functions and isomorphisms
-between them.
+This file provides properties of measurable spaces and the functions and isomorphisms
+between them. The definition of a measurable space is in `measure_theory.measurable_space_def`.
 
 A measurable space is a set equipped with a σ-algebra, a collection of
 subsets closed under complementation and countable union. A function

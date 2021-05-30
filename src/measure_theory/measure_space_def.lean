@@ -6,10 +6,12 @@ Authors: Johannes Hölzl, Mario Carneiro
 import measure_theory.outer_measure
 import order.filter.countable_Inter
 import data.set.accumulate
-import measure_theory.measurable_space_0
+import measure_theory.measurable_space_def
 
 /-!
 # Measure spaces
+
+This file defines measure spaces. See `measure_theory.measure_space` for their properties.
 
 Given a measurable space `α`, a measure on `α` is a function that sends measurable sets to the
 extended nonnegative reals that satisfies the following conditions:
@@ -25,6 +27,7 @@ measurable sets, with the additional assumption that the outer measure is the ca
 extension of the restricted measure.
 
 Measures on `α` form a complete lattice, and are closed under scalar multiplication with `ℝ≥0∞`.
+
 
 We introduce the following typeclasses for measures:
 
@@ -80,7 +83,7 @@ The measure is denoted `volume`.
 
 ## Tags
 
-measure, almost everywhere, measure space, completion, null set, null measurable set
+measure, almost everywhere, measure space
 -/
 
 noncomputable theory

@@ -11,9 +11,11 @@ import tactic.monotonicity
 
 /-!
 # Closure operators between preorders
+
 We define (bundled) closure operators on a preorder as monotone (increasing), extensive
 (inflationary) and idempotent functions.
 We define closed elements for the operator as elements which are fixed by it.
+
 Lower adjoints to a function between preorders `u : β → α` allow to generalise closure operators to
 situations where the closure operator we are dealing with naturally decomposes as `u ∘ l` where `l`
 is a worthy function to have on its own. Typical examples include
@@ -23,17 +25,24 @@ connections/insertions: every Galois connection induces a lower adjoint which it
 closure operator by composition (see `galois_connection.lower_adjoint` and
 `lower_adjoint.closure_operator`), and every closure operator on a partial order induces a Galois
 insertion from the set of closed elements to the underlying type (see `closure_operator.gi`).
+
 ## Main definitions
+
 * `closure_operator`: A closure operator is a monotone function `f : α → α` such that
   `∀ x, x ≤ f x` and `∀ x, f (f x) = f x`.
 * `lower_adjoint`: A lower adjoint to `u : β → α` is a function `l : α → β` such that `l` and `u`
   form a Galois connection.
+
 ## Implementation details
+
 Although `lower_adjoint` is technically a generalisation of `closure_operator` (by defining
 `to_fun := id`), it is desirable to have both as otherwise `id`s would be carried all over the
 place when using concrete closure operators such as `convex_hull`.
+
 `lower_adjoint` really is a semibundled `structure` version of `galois_connection`.
+
 ## References
+
 * https://en.wikipedia.org/wiki/Closure_operator#Closure_operators_on_partially_ordered_sets
 -/
 

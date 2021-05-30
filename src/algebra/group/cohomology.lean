@@ -5,6 +5,8 @@ Authors: Kevin Buzzard
 -/
 import algebra.group_action_hom
 import data.fin_simplicial_complex
+import group_theory.free_abelian_group
+import algebra.big_operators.finsupp
 
 /-!
 # Group cohomology
@@ -232,7 +234,111 @@ end
 
 end cochain_succ
 
---def H (n : ℕ) (G : Type uG) [group G] (M : Type uM) [add_comm_group M]
---  [distrib_mul_action G M] := sorry
+-- I claim that I just resolved `ℤ` (+ trivial `G`-action) by finite free `ℤ[G]`-modules.
 
 end group_cohomology
+
+namespace finsupp
+
+-- def P_pred (i : ℕ) := free_abelian_group (fin i → G)
+
+#check finsupp.map_domain
+#print finsupp.comap_domain
+#check finsupp.emb_domain
+
+@[simp] lemma emb_domain_refl {α M : Type*} [has_zero M] (f : α →₀ M) :
+  emb_domain (function.embedding.refl α) f = f :=
+begin
+  ext a,
+  exact emb_domain_apply (function.embedding.refl α) f a,
+end
+
+def emb_domain_comp {α β γ M : Type*} [has_zero M] (i : α ↪ β) (j : β ↪ γ) (f : α →₀ M) :
+  emb_domain (i.trans j) f = emb_domain j (emb_domain i f) :=
+begin
+  ext c,
+  by_cases ha : ∃ a : α, j (i a) = c,
+  { rcases ha with ⟨a, rfl⟩,
+    rw emb_domain_apply,
+    rw emb_domain_apply,
+    exact emb_domain_apply (i.trans j) f _ },
+  { convert eq.refl (0 : M),
+    { rw emb_domain_notin_range,
+      exact ha },
+    { by_cases h : ∃ b : β, j b = c, -- really?
+      { rcases h with ⟨b, rfl⟩,
+        rw emb_domain_apply,
+        rw emb_domain_notin_range,
+        rintro ⟨a, rfl⟩,
+        exact ha ⟨a, rfl⟩ },
+      { rw finsupp.emb_domain_notin_range,
+      exact h } } },
+end
+noncomputable def equiv_congr {α β M : Type*} [has_zero M] (e : α ≃ β) : (β →₀ M) ≃ (α →₀ M) :=
+{ to_fun := λ l, finsupp.emb_domain e.symm.to_embedding l,
+  inv_fun := λ l, finsupp.emb_domain e.to_embedding l,
+  left_inv := λ f, by { ext, simp [← finsupp.emb_domain_comp] },
+  right_inv := λ f, by {ext, simp [← finsupp.emb_domain_comp] } }
+
+theorem equiv_congr_apply {α β M : Type*} [has_zero M] (e : α ≃ β) (g : β →₀ M) (a : α) :
+  equiv_congr e g a = g (e a)  :=
+begin
+  unfold equiv_congr,
+  dsimp,
+  convert emb_domain_apply _ _ _,
+  simp,
+end
+
+theorem equiv_congr_apply' {α β M : Type*} [has_zero M] (e : α ≃ β) (g : β →₀ M) (b : β) :
+  equiv_congr e g (e.symm b) = g b :=
+emb_domain_apply _ _ _
+
+def equiv_fun {X Y : Sort*} (A : Sort*) (e : X ≃ Y) : (A → X) ≃ (A → Y) :=
+{ to_fun := λ f a, e (f a),
+  inv_fun := λ g b, e.symm (g b),
+  left_inv := λ h, by simp,
+  right_inv := λ h, by simp }
+
+-- Cassels-Froehlich `P i` is our `P_pred i.succ` but we actually do not bother
+-- introducing the notation at all
+noncomputable instance {G : Type} [group G] (i : ℕ) :
+  distrib_mul_action G ((fin i → G) →₀ ℤ) :=
+{ smul := λ s c, finsupp.equiv_congr (equiv_fun (fin i) (equiv.mul_left s⁻¹ : G ≃ G)) c,
+  -- it could be equiv.mul_right and it could be s⁻¹ not s, I didn't check carefully
+  one_smul := λ b,
+  begin
+    ext p,
+    unfold has_scalar.smul,
+    rw equiv_congr_apply,
+    apply congr_arg,
+    ext t,
+    simp,
+    convert one_mul _,
+  end,
+  mul_smul := λ x y b, begin
+    ext p,
+    unfold has_scalar.smul,
+    rw equiv_congr_apply,
+    rw equiv_congr_apply,
+    rw equiv_congr_apply,
+    unfold equiv_fun,
+    dsimp,
+    apply congr_arg,
+    ext t,
+    simp [mul_assoc],
+  end,
+  smul_add := λ s x y, begin
+    ext p,
+    unfold has_scalar.smul,
+    rw equiv_congr_apply,
+    rw finsupp.add_apply,
+    rw [← equiv_congr_apply, ← equiv_congr_apply],
+    refl,
+  end,
+  smul_zero := λ s, begin
+    ext p,
+    simp [has_scalar.smul],
+    refl,
+  end }
+
+end finsupp

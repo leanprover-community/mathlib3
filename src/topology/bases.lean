@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 
 import topology.continuous_on
+import topology.constructions
 
 /-!
 # Bases of topologies. Countability axioms.
@@ -182,52 +183,20 @@ begin
     exact ⟨s.prod t, mem_image2_of_mem hs ht, ⟨ha, hb⟩, hu⟩ }
 end
 
-protected lemma is_topological_basis.pi {ι : Type*} {Xs : ι → Type*}
-  [∀ i, topological_space (Xs i)] {Ts : Π i, set (set (Xs i))}
-  (cond : ∀ i, is_topological_basis (Ts i)) :
-  is_topological_basis {S : set (Π i, Xs i) | ∃ (Us : Π i, set (Xs i)) (F : finset ι),
-    (∀ i, i ∈ F → (Us i) ∈ Ts i) ∧ S = (F : set ι).pi Us } :=
+protected lemma is_topological_basis.inducing {β} [topological_space β]
+  {f : α → β} {Ts : set (set β)} (hf : inducing f) (h : is_topological_basis Ts) :
+  is_topological_basis {U : set α | ∃ (V : set β), V ∈ Ts ∧ f ⁻¹' V  = U } :=
 begin
-  classical,
   refine is_topological_basis_of_open_of_nhds _ _,
-  { rintro _ ⟨Us, F, h1, rfl⟩,
-    apply is_open_set_pi F.finite_to_set,
-    intros i hi,
-    exact is_topological_basis.is_open (cond i) (h1 i hi) },
+  { rintros _ ⟨V,hV,rfl⟩,
+    rwa hf.is_open_iff,
+    refine ⟨V, h.is_open hV, rfl⟩ },
   { intros a U ha hU,
-    have : U ∈ nhds a := is_open.mem_nhds hU ha,
-    rw nhds_pi at this,
-    rw filter.mem_infi_iff at this,
-    obtain ⟨F, hF, V, hV1, hV2⟩ := this,
-    choose Us' hUs' using hV1,
-    obtain ⟨hUs1, hUs2⟩ := ⟨λ i, (hUs' i).1, λ i, (hUs' i).2⟩,
-    have : ∀ i : F, ∃ (T : set (Xs i)) (hT : T ∈ Ts i), a i ∈ T ∧ T ⊆ Us' i,
-    { intros i,
-      specialize hUs1 i,
-      rwa  (cond i).mem_nhds_iff at hUs1 },
-    choose Us'' hUs'' using this,
-    let Us : Π (i : ι), set (Xs i) := λ i,
-      if hi : i ∈ F then Us'' ⟨i, hi⟩ else set.univ,
-    refine ⟨F.pi Us, ⟨Us, hF.to_finset, λ i hi, _, by simp⟩, _, _⟩,
-    { dsimp [Us],
-      erw dif_pos,
-      swap, { simpa using hi },
-      apply (hUs'' _).1 },
-    { rw set.mem_pi,
-      intros i hi,
-      dsimp [Us],
-      rw dif_pos hi,
-      apply (hUs'' _).2.1 },
-    { intros x hx,
-      apply hV2,
-      rintros - ⟨i, rfl⟩,
-      apply hUs2,
-      apply (hUs'' _).2.2,
-      convert hx i i.2,
-      dsimp [Us],
-      erw dif_pos i.2,
-      cases i,
-      refl } },
+    rw hf.is_open_iff at hU,
+    obtain ⟨V,hV,rfl⟩ := hU,
+    obtain ⟨S,hS,rfl⟩ := h.open_eq_sUnion hV,
+    obtain ⟨W,hW,ha⟩ := ha,
+    refine ⟨f ⁻¹' W, ⟨_,hS hW,rfl⟩, ha, set.preimage_mono $ set.subset_sUnion_of_mem hW⟩ }
 end
 
 lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_open (U i))
@@ -290,6 +259,86 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 end topological_space
 
 open topological_space
+
+protected lemma is_topological_basis.pi {ι : Type*} {Xs : ι → Type*}
+  [∀ i, topological_space (Xs i)] {Ts : Π i, set (set (Xs i))}
+  (cond : ∀ i, is_topological_basis (Ts i)) :
+  is_topological_basis {S : set (Π i, Xs i) | ∃ (Us : Π i, set (Xs i)) (F : finset ι),
+    (∀ i, i ∈ F → (Us i) ∈ Ts i) ∧ S = (F : set ι).pi Us } :=
+begin
+  classical,
+  refine is_topological_basis_of_open_of_nhds _ _,
+  { rintro _ ⟨Us, F, h1, rfl⟩,
+    apply is_open_set_pi F.finite_to_set,
+    intros i hi,
+    exact is_topological_basis.is_open (cond i) (h1 i hi) },
+  { intros a U ha hU,
+    have : U ∈ nhds a := is_open.mem_nhds hU ha,
+    rw [nhds_pi, filter.mem_infi_iff] at this,
+    obtain ⟨F, hF, V, hV1, hV2⟩ := this,
+    choose Us' hUs' using hV1,
+    obtain ⟨hUs1, hUs2⟩ := ⟨λ i, (hUs' i).1, λ i, (hUs' i).2⟩,
+    have : ∀ i : F, ∃ (T : set (Xs i)) (hT : T ∈ Ts i), a i ∈ T ∧ T ⊆ Us' i,
+    { intros i,
+      specialize hUs1 i,
+      rwa (cond i).mem_nhds_iff at hUs1 },
+    choose Us'' hUs'' using this,
+    let Us : Π (i : ι), set (Xs i) := λ i,
+      if hi : i ∈ F then Us'' ⟨i, hi⟩ else set.univ,
+    refine ⟨F.pi Us, ⟨Us, hF.to_finset, λ i hi, _, by simp⟩, _, _⟩,
+    { dsimp only [Us],
+      erw [dif_pos],
+      swap, { simpa using hi },
+      apply (hUs'' _).1 },
+    { rw set.mem_pi,
+      intros i hi,
+      dsimp only [Us],
+      rw dif_pos hi,
+      apply (hUs'' _).2.1 },
+    { intros x hx,
+      apply hV2,
+      rintros - ⟨i, rfl⟩,
+      apply hUs2,
+      apply (hUs'' _).2.2,
+      convert hx i i.2,
+      dsimp only [Us],
+      erw dif_pos i.2,
+      cases i,
+      refl } },
+end
+
+protected lemma is_topological_basis.infi {β : Type*} {ι : Type*} {Xs : ι → Type*}
+  [ts : ∀ i, topological_space (Xs i)] {Ts : Π i, set (set (Xs i))}
+  (cond : ∀ i, is_topological_basis (Ts i)) (fs : Π i, β → Xs i) :
+  @is_topological_basis β (⨅ i, induced (fs i) (ts i))
+  { S | ∃ (Us : Π i, set (Xs i)) (F : finset ι),
+    (∀ i, i ∈ F → Us i ∈ Ts i) ∧ S = ⋂ i (hi : i ∈ F), (fs i) ⁻¹' (Us i) } :=
+begin
+  letI : topological_space β := (⨅ i, induced (fs i) (ts i)),
+  let η : β → Π i, Xs i := λ b i, fs i b,
+  have hη : inducing η, apply inducing_infi_to_pi,
+  convert is_topological_basis.inducing hη (is_topological_basis.pi cond),
+  ext U,
+  split,
+  { rintros ⟨Us,F,h1,h2⟩,
+    have : (F : set ι).pi Us = (⋂ (i : ι) (hi : i ∈ F),
+        (λ (z : Π j, Xs j), z i) ⁻¹' (Us i)), by {ext, simp},
+    refine ⟨(F : set ι).pi Us, ⟨Us,F,h1,rfl⟩, _⟩,
+    rw [this, h2, set.preimage_Inter],
+    congr' 1,
+    ext1,
+    rw set.preimage_Inter,
+    refl },
+  { rintros ⟨Us,⟨Us,F,h1,rfl⟩,h⟩,
+    refine ⟨Us, F, h1, _⟩,
+    have : (F : set ι).pi Us = (⋂ (i : ι) (hi : i ∈ F),
+        (λ (z : Π j, Xs j), z i) ⁻¹' (Us i)), by {ext, simp},
+    rw [← h, this, set.preimage_Inter],
+    congr' 1,
+    ext1,
+    rw set.preimage_Inter,
+    refl }
+end
 
 /-- If `α` is a separable space and `f : α → β` is a continuous map with dense range, then `β` is
 a separable space as well. E.g., the completion of a separable uniform space is separable. -/

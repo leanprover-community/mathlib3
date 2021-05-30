@@ -765,6 +765,16 @@ begin
       simpa [pi_if, hf] } }
 end
 
+lemma inducing_infi_to_pi {X : Type*} [∀ i, topological_space (π i)] (fs : Π i, X → π i) :
+  @inducing X (Π i, π i) (⨅ i, induced (fs i) infer_instance) _ (λ x i, fs i x) :=
+begin
+  constructor,
+  erw [induced_infi],
+  congr' 1,
+  funext,
+  erw induced_compose,
+end
+
 variables [fintype ι] [∀ i, topological_space (π i)] [∀ i, discrete_topology (π i)]
 
 /-- A finite product of discrete spaces is discrete. -/

@@ -13,13 +13,13 @@ import measure_theory.measure_space_0
 
 Currently we have one domain-specific tactic for measure theory: `measurability`.
 
-This tactic is mostly a copy of the `continuity` tactic.
+This tactic is to a large extent a copy of the `continuity` tactic by Reid Barton.
 -/
 
 /-!
 ### `measurability` tactic
 
-Automatically solve goals of the form `measurable f` and `ae_measurable f μ`.
+Automatically solve goals of the form `measurable f`, `ae_measurable f μ` and `measurable_set s`.
 
 Mark lemmas with `@[measurability]` to add them to the set of lemmas
 used by `measurability`. Note: `to_additive` doesn't know yet how to
@@ -77,7 +77,7 @@ extra logic here to try to avoid bad cases.
   constant, and that constant is a function application `f z`, then
   measurable.comp would produce new goals `measurable f`, `measurable
   (λ _, z)`, which is silly. We avoid this by failing if we could
-  apply measurable_const.
+  apply `measurable_const`.
 
 * measurable.comp will always succeed on `measurable (λ x, f x)` and
   produce new goals `measurable (λ x, x)`, `measurable f`. We detect
@@ -97,30 +97,31 @@ extra logic here to try to avoid bad cases.
 
 * If the function we're trying to prove measurable is actually
   constant, and that constant is a function application `f z`, then
-  `measurable.comp_ae_measurable` would produce new goals `measurable f`, `measurable
-  (λ _, z)`, which is silly. We avoid this by failing if we could
-  apply measurable_const.
+  `measurable.comp_ae_measurable` would produce new goals `measurable f`, `ae_measurable
+  (λ _, z) μ`, which is silly. We avoid this by failing if we could
+  apply `measurable_const`.
 
-* `measurable.comp_ae_measurable` will always succeed on `measurable (λ x, f x)` and
-  produce new goals `measurable (λ x, x)`, `measurable f`. We detect
-  this by failing if a new goal can be closed by applying
-  `measurable_id`.
+* `measurable.comp_ae_measurable` will always succeed on `ae_measurable (λ x, f x) μ` and
+  can produce new goals (`measurable (λ x, x)`, `ae_measurable f μ`) or
+  (`measurable f`, `ae_measurable (λ x, x) μ`). We detect those by failing if a new goal can be
+  closed by applying `measurable_id` (possibly preceded by `measurable.ae_measurable`).
 -/
 meta def apply_measurable.comp_ae_measurable : tactic unit :=
 `[fail_if_success { exact ae_measurable_const };
   refine measurable.comp_ae_measurable _ _;
-  fail_if_success { exact measurable_id }]
+  fail_if_success { exact measurable_id };
+  fail_if_success { refine measurable.ae_measurable _, exact measurable_id, }]
 
 /--
-We don't want the intros1 tactic to apply to a goal of the form `measurable f`. This tactic tests
-the target to see if it matches that form.
+We don't want the intros1 tactic to apply to a goal of the form `measurable f`, `ae_measurable f μ`
+or `measurable_set s`. This tactic tests the target to see if it matches that form.
  -/
-meta def intros_if_not_measurable : tactic unit :=
+meta def intro_if_not_measurable : tactic unit :=
 do t ← tactic.target,
   match t with
-  | `(measurable %%l) := done
-  | `(ae_measurable %%l %%r) := done
-  | `(measurable_set %%l) := done
+  | `(measurable %%l) := failed
+  | `(ae_measurable %%l %%r) := failed
+  | `(measurable_set %%l) := failed
   | _ := skip
   end
 
@@ -129,8 +130,8 @@ meta def measurability_tactics (md : transparency := semireducible) : list (tact
 [
   propositional_goal >> assumption
                         >> pure "assumption",
-  intros_if_not_measurable >> intros1
-                        >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
+  intro_if_not_measurable >> intro1
+                        >>= λ ns, pure ("intro " ++ ns.to_string),
   apply_rules [``(measurability)] 50 { md := md }
                         >> pure "apply_rules measurability",
   apply_measurable.comp >> pure "refine measurable.comp _ _",
@@ -144,7 +145,8 @@ namespace interactive
 setup_tactic_parser
 
 /--
-Solve goals of the form `measurable f`. `measurability?` reports back the proof term it found.
+Solve goals of the form `measurable f`, `ae_measurable f μ` or `measurable_set s`.
+`measurability?` reports back the proof term it found.
 -/
 meta def measurability
   (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :
@@ -158,8 +160,8 @@ trace_fn measurability_core
 meta def measurability' : tactic unit := measurability none none {}
 
 /--
-`measurability` solves goals of the form `measurable f` or `ae_measurable f μ` by applying
-lemmas tagged with the `measurability` user attribute.
+`measurability` solves goals of the form `measurable f`, `ae_measurable f μ` or `measurable_set s`
+by applying lemmas tagged with the `measurability` user attribute.
 
 You can also use `measurability!`, which applies lemmas with `{ md := semireducible }`.
 The default behaviour is more conservative, and only unfolds `reducible` definitions

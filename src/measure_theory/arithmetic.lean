@@ -77,7 +77,7 @@ variables {M : Type*} [measurable_space M] [has_mul M]
 
 @[to_additive, measurability]
 lemma measurable.mul' [has_measurable_mul₂ M] {f g : α → M} (hf : measurable f)
-(hg : measurable g) :
+  (hg : measurable g) :
   measurable (f * g) :=
 measurable_mul.comp (hf.prod_mk hg)
 

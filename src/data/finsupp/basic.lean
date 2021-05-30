@@ -1470,6 +1470,43 @@ end
 
 end comap_domain
 
+/-! ### Declarations about `equiv_congr_left` -/
+
+section equiv_congr_left
+
+variable [has_zero M]
+
+/-- Given `f : α ≃ β`, we can map `l : α →₀ M` to  `equiv_map_domain f l : β →₀ M` (computably)
+by mapping the support forwards and the function backwards. -/
+def equiv_map_domain (f : α ≃ β) (l : α →₀ M) : β →₀ M :=
+{ support := l.support.map f.to_embedding,
+  to_fun := λ a, l (f.symm a),
+  mem_support_to_fun := λ a, by simp only [finset.mem_map_equiv, mem_support_to_fun]; refl }
+
+@[simp]
+lemma equiv_map_domain_apply (f : α ≃ β) (l : α →₀ M) (b : β) :
+  equiv_map_domain f l b = l (f.symm b) := rfl
+
+lemma equiv_map_domain_symm_apply (f : α ≃ β) (l : β →₀ M) (a : α) :
+  equiv_map_domain f.symm l a = l (f a) := rfl
+
+/-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
+`(α →₀ M) ≃ (β →₀ M)`. -/
+def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
+by refine ⟨equiv_map_domain f, equiv_map_domain f.symm, λ f, _, λ f, _⟩;
+  ext x; simp only [equiv_map_domain_apply, equiv.symm_symm,
+    equiv.symm_apply_apply, equiv.apply_symm_apply]
+
+@[simp]
+lemma equiv_congr_left_apply (f : α ≃ β) (l : α →₀ M) :
+  equiv_congr_left f l = equiv_map_domain f l := rfl
+
+@[simp]
+lemma equiv_congr_left_symm (f : α ≃ β) :
+  (@equiv_congr_left _ _ M _ f).symm = equiv_congr_left f.symm := rfl
+
+end equiv_congr_left
+
 /-! ### Declarations about `filter` -/
 
 section filter

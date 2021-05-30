@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.tactic
-import measure_theory.borel_space
+import measure_theory.lp_space
+
+open_locale big_operators
 
 variables {α β : Type*} [measurable_space α] [measurable_space β]
   {f g : α → β} {s₁ s₂ : set α} {t₁ t₂ : set β} {μ ν : measure_theory.measure α}
@@ -16,6 +18,17 @@ example (hf : measurable f) : measurable f := by measurability
 -- Test that intro does not unfold `measurable`
 
 example : measurable f → measurable f := by measurability
+
+-- Test the use of apply_assumption to get (h i) from an hypothesis (h : ∀ i, ...).
+
+example  {F : ℕ → α → β} (hF : ∀ i, measurable (F i)) :
+  measurable (F 0) :=
+by measurability
+
+example {ι} [encodable ι] {S₁ S₂ : ι → set α} (hS₁ : ∀ i, measurable_set (S₁ i))
+  (hS₂ : ∀ i, measurable_set (S₂ i)) :
+  measurable_set (⋃ i, (S₁ i) ∪ (S₂ i)) :=
+by measurability
 
 -- Tests on sets
 
@@ -51,14 +64,7 @@ example [topological_space α] [topological_space β] [opens_measurable_space α
   measurable f :=
 by measurability
 
--- Tests that don't work, but maybe should. The issue in both those tests is that the tactic cannot
--- get (h i) from an hypothesis (h : ∀ i, ...).
-
---example  {F : ℕ → α → β} (hF : ∀ i, measurable (F i)) :
---  measurable (F 0) :=
---by measurability
-
---example {ι} [encodable ι] {S₁ S₂ : ι → set α} (hS₁ : ∀ i, measurable_set (S₁ i))
---  (hS₂ : ∀ i, measurable_set (S₂ i)) :
---  measurable_set (⋃ i, (S₁ i) ∪ (S₂ i)) :=
---by measurability
+example [add_comm_monoid β] [has_measurable_add₂ β] {s : finset ℕ} {F : ℕ → α → β}
+  (hF : ∀ i, ae_measurable (F i) μ) :
+  ae_measurable (∑ i in s, (λ x, F (i+1) x + F i x)) μ :=
+by measurability

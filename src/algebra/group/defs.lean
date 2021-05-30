@@ -241,22 +241,6 @@ def nsmul_rec [has_zero M] [has_add M] : ℕ → M → M
 | (n+1) a := a + nsmul_rec n a
 
 attribute [to_additive] npow_rec
-/-
-@[simp, to_additive]
-lemma npow_rec_zero [has_one M] [has_mul M] : (npow_rec 0 : M → M) = (λ _, 1) := rfl
-
-@[simp, to_additive]
-lemma npow_rec_zero_apply [has_mul M] [has_one M] (x : M) : npow_rec 0 x = 1 := rfl
-
-@[simp, to_additive]
-lemma npow_rec_succ_apply [has_mul M] [has_one M] (n : ℕ) (x : M) :
-  npow_rec n.succ x = x * npow_rec n x :=
-rfl
-
-@[simp, to_additive]
-lemma npow_rec_one [mul_one_class M] : (npow_rec 1 : M → M) = id :=
-funext (λ _, mul_one _)
--/
 
 end
 

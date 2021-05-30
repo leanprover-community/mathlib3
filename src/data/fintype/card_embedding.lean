@@ -27,11 +27,11 @@ lemma card_embedding_of_unique
 ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
-  ‖fin n ↪ β‖ = nat.asc_fac (‖β‖ - n) n :=
+  ‖fin n ↪ β‖ = nat.asc_fact (‖β‖ - n) n :=
 begin
   induction n with n hn,
   { nontriviality (fin 0 ↪ β),
-    rw [nat.asc_fac_zero, fintype.card_eq_one_iff],
+    rw [nat.asc_fact_zero, fintype.card_eq_one_iff],
     refine ⟨nonempty.some nontrivial.to_nonempty, λ x, function.embedding.ext fin.elim0⟩ },
 
   rw [nat.succ_eq_add_one, ←card_congr (equiv.embedding_congr fin_sum_fin_equiv (equiv.refl β))],
@@ -52,13 +52,13 @@ begin
   simp only [this, finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
 
   replace h := nat.lt_of_succ_le h,
-  rw [hn h.le, mul_comm, nat.asc_fac_of_sub h]
+  rw [hn h.le, mul_comm, nat.asc_fact_of_sub h]
 end
 
 variables {α β : Type*} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]
 
 /- Establishes the cardinality of the type of all injections, if any exist.  -/
-@[simp] theorem card_embedding (h : ‖α‖ ≤ ‖β‖) : ‖α ↪ β‖ = (nat.asc_fac (‖β‖ - ‖α‖) ‖α‖) :=
+@[simp] theorem card_embedding (h : ‖α‖ ≤ ‖β‖) : ‖α ↪ β‖ = (nat.asc_fact (‖β‖ - ‖α‖) ‖α‖) :=
 begin
   trunc_cases fintype.trunc_equiv_fin α with eq,
   rw fintype.card_congr (equiv.embedding_congr eq (equiv.refl β)),
@@ -70,7 +70,7 @@ This is a formulation of the pigeonhole principle. -/
 @[simp] theorem card_embedding_eq_zero (h : ‖β‖ < ‖α‖) : ‖α ↪ β‖ = 0 :=
 card_eq_zero_iff.mpr $ function.embedding.is_empty_of_card_lt h
 
-theorem card_embedding_eq_if : ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.asc_fac (‖β‖ - ‖α‖) ‖α‖ else 0 :=
+theorem card_embedding_eq_if : ‖α ↪ β‖ = if ‖α‖ ≤ ‖β‖ then nat.asc_fact (‖β‖ - ‖α‖) ‖α‖ else 0 :=
 begin
   split_ifs with h,
   { exact card_embedding h },

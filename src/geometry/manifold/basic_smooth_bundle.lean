@@ -317,7 +317,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { assume x hx,
       have N : I.symm ⁻¹' (i.1.symm.trans j.1).source ∈ nhds x :=
         I.continuous_symm.continuous_at.preimage_mem_nhds
-          (mem_nhds_sets (local_homeomorph.open_source _) hx.1),
+          (is_open.mem_nhds (local_homeomorph.open_source _) hx.1),
       symmetry,
       rw inter_comm,
       exact fderiv_within_inter N (I.unique_diff _ hx.2) },
@@ -339,7 +339,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { rw inter_comm,
       apply inter_mem_nhds_within,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (mem_nhds_sets (local_homeomorph.open_source _) _),
+        (is_open.mem_nhds (local_homeomorph.open_source _) _),
       simp only [hx, i.1.map_target] with mfld_simps },
     have B : ∀ᶠ y in 𝓝[range I] (I x),
       (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
@@ -435,7 +435,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (mem_nhds_sets (local_homeomorph.open_source _) _),
+        (is_open.mem_nhds (local_homeomorph.open_source _) _),
       simpa only [model_with_corners.left_inv] using hx },
     have D : fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
       (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)) =
@@ -443,7 +443,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (mem_nhds_sets (local_homeomorph.open_source _) _),
+        (is_open.mem_nhds (local_homeomorph.open_source _) _),
       rw [local_homeomorph.trans_source] at hx,
       simp only with mfld_simps,
       exact hx.2 },
@@ -454,7 +454,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (mem_nhds_sets (local_homeomorph.open_source _) _),
+        (is_open.mem_nhds (local_homeomorph.open_source _) _),
       simpa only [model_with_corners.left_inv] using hx },
     rw [B, C, D, E] at A,
     simp only [A, continuous_linear_map.coe_comp'] with mfld_simps

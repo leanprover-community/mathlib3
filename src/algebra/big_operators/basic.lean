@@ -1182,6 +1182,17 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive] prod_range_succ'
 
+lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
+  f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
+by { rw finset.sum_range_sub, abel }
+
+lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
+  f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=
+begin
+  conv_lhs { rw [finset.eq_sum_range_sub f] },
+  simp [finset.sum_range_succ', add_comm]
+end
+
 lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
   (∑ x in range (n + m), f x) =
   (∑ x in range n, f x) + (∑ x in range m, f (n + x)) :=

@@ -367,7 +367,7 @@ lemma tsum_geometric_nnreal {r : ℝ≥0} (hr : r < 1) : ∑'n:ℕ, r ^ n = (1 -
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
 and for `1 ≤ r` the RHS equals `∞`. -/
-lemma ennreal.tsum_geometric (r : ℝ≥0∞) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
+@[simp] lemma ennreal.tsum_geometric (r : ℝ≥0∞) : ∑'n:ℕ, r ^ n = (1 - r)⁻¹ :=
 begin
   cases lt_or_le r 1 with hr hr,
   { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
@@ -822,6 +822,11 @@ begin
   rcases nnreal.exists_pos_sum_of_encodable (coe_lt_coe.1 h0r) ι with ⟨ε', hp, c, hc, hcr⟩,
   exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩
 end
+
+theorem exists_pos_sum_of_encodable' {ε : ℝ≥0∞} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → ℝ≥0∞, (∀ i, 0 < ε' i) ∧ (∑' i, ε' i) < ε :=
+let ⟨δ, δpos, hδ⟩ := exists_pos_sum_of_encodable hε ι in
+  ⟨λ i, δ i, λ i, ennreal.coe_pos.2 (δpos i), hδ⟩
 
 end ennreal
 

@@ -19,7 +19,7 @@ characterising these structures.
 
 If you need a lemma which is proved about `α →ᵇ β` but not for `C(α, β)` when `α` is compact,
 you should restate it here. You can also use
-`bounded_continuous_function.equiv_continuous_map_of_compact` to functions back and forth.
+`bounded_continuous_function.equiv_continuous_map_of_compact` to move functions back and forth.
 
 -/
 
@@ -157,6 +157,12 @@ lemma norm_lt_iff_of_nonempty [nonempty α] {M : ℝ} :
   ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _
   ((equiv_bounded_of_compact α β) f) _
+
+lemma apply_le_norm (f : C(α, ℝ)) (x : α) : f x ≤ ∥f∥ :=
+le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
+
+lemma neg_norm_le_apply (f : C(α, ℝ)) (x : α) : -∥f∥ ≤ f x :=
+le_trans (neg_le_neg (f.norm_coe_le_norm x)) (neg_le.mp (neg_le_abs_self (f x)))
 
 end
 

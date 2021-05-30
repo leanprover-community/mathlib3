@@ -128,7 +128,7 @@ nhds_within_restrict'' s $ mem_inf_sets_of_left h
 
 theorem nhds_within_restrict {a : α} (s : set α) {t : set α} (h₀ : a ∈ t) (h₁ : is_open t) :
   𝓝[s] a = 𝓝[s ∩ t] a :=
-nhds_within_restrict' s (mem_nhds_sets h₁ h₀)
+nhds_within_restrict' s (is_open.mem_nhds h₁ h₀)
 
 theorem nhds_within_le_of_mem {a : α} {s t : set α} (h : s ∈ 𝓝[t] a) :
   𝓝[t] a ≤ 𝓝[s] a :=
@@ -139,6 +139,9 @@ begin
   exact nhds_within_mono _ uts
 end
 
+theorem nhds_within_le_nhds {a : α} {s : set α} : 𝓝[s] a ≤ 𝓝 a :=
+by { rw ← nhds_within_univ, apply nhds_within_le_of_mem, exact univ_mem_sets }
+
 theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
     (h₀ : a ∈ s) (h₁ : is_open s) (h₂ : t ∩ s = u ∩ s) :
   𝓝[t] a = 𝓝[u] a :=
@@ -146,7 +149,7 @@ by rw [nhds_within_restrict t h₀ h₁, nhds_within_restrict u h₀ h₁, h₂]
 
 theorem nhds_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is_open s) :
   𝓝[s] a = 𝓝 a :=
-inf_eq_left.2 $ le_principal_iff.2 $ mem_nhds_sets h₁ h₀
+inf_eq_left.2 $ le_principal_iff.2 $ is_open.mem_nhds h₁ h₀
 
 @[simp] theorem nhds_within_empty (a : α) : 𝓝[∅] a = ⊥ :=
 by rw [nhds_within, principal_empty, inf_bot_eq]
@@ -617,7 +620,7 @@ end
 
 lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=
-(h x (mem_of_nhds hx)).continuous_at hx
+(h x (mem_of_mem_nhds hx)).continuous_at hx
 
 lemma continuous_at.continuous_on {f : α → β} {s : set α} (hcont : ∀ x ∈ s, continuous_at f x) :
   continuous_on f s :=
@@ -735,7 +738,7 @@ begin
   { assume h t ht,
     rcases h t ht with ⟨u, u_open, hu⟩,
     rw [inter_comm, hu],
-    apply is_open_inter u_open hs },
+    apply is_open.inter u_open hs },
   { assume h t ht,
     refine ⟨s ∩ f ⁻¹' t, h t ht, _⟩,
     rw [@inter_comm _ s (f ⁻¹' t), inter_assoc, inter_self] }
@@ -750,7 +753,7 @@ lemma continuous_on.preimage_closed_of_closed {f : α → β} {s : set α} {t : 
 begin
   rcases continuous_on_iff_is_closed.1 hf t ht with ⟨u, hu⟩,
   rw [inter_comm, hu.2],
-  apply is_closed_inter hu.1 hs
+  apply is_closed.inter hu.1 hs
 end
 
 lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {s : set α} {t : set β}
@@ -781,7 +784,7 @@ begin
   { have : s ∩ f ⁻¹' (u ∩ v) = (s ∩ f ⁻¹' u) ∩ (s ∩ f ⁻¹' v),
       by { ext x, simp, split, finish, finish },
     rw this,
-    exact is_open_inter hu hv },
+    exact is_open.inter hu hv },
   { rw [preimage_sUnion, inter_bUnion],
     exact is_open_bUnion hU' },
   { exact hs }

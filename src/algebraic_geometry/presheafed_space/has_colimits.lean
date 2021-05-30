@@ -130,7 +130,7 @@ def pushforward_diagram_to_colimit (F : J ⥤ PresheafedSpace C) :
 variables [has_limits C]
 
 /--
-Auxilliary definition for `PresheafedSpace.has_colimits`.
+Auxiliary definition for `PresheafedSpace.has_colimits`.
 -/
 @[simps]
 def colimit (F : J ⥤ PresheafedSpace C) : PresheafedSpace C :=
@@ -138,7 +138,7 @@ def colimit (F : J ⥤ PresheafedSpace C) : PresheafedSpace C :=
   presheaf := limit (pushforward_diagram_to_colimit F).left_op, }
 
 /--
-Auxilliary definition for `PresheafedSpace.has_colimits`.
+Auxiliary definition for `PresheafedSpace.has_colimits`.
 -/
 @[simps]
 def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
@@ -171,7 +171,7 @@ def colimit_cocone (F : J ⥤ PresheafedSpace C) : cocone F :=
 namespace colimit_cocone_is_colimit
 
 /--
-Auxilliary definition for `PresheafedSpace.colimit_cocone_is_colimit`.
+Auxiliary definition for `PresheafedSpace.colimit_cocone_is_colimit`.
 -/
 def desc_c_app (F : J ⥤ PresheafedSpace C) (s : cocone F) (U : (opens ↥(s.X.carrier))ᵒᵖ) :
   s.X.presheaf.obj U ⟶
@@ -225,7 +225,7 @@ end colimit_cocone_is_colimit
 open colimit_cocone_is_colimit
 
 /--
-Auxilliary definition for `PresheafedSpace.has_colimits`.
+Auxiliary definition for `PresheafedSpace.has_colimits`.
 -/
 def colimit_cocone_is_colimit (F : J ⥤ PresheafedSpace C) : is_colimit (colimit_cocone F) :=
 { desc := λ s,

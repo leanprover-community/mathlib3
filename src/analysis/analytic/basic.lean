@@ -588,7 +588,7 @@ begin
   assume u hu x hx,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hx with ⟨r', xr', hr'⟩,
   have : emetric.ball (0 : E) r' ∈ 𝓝 x :=
-    mem_nhds_sets emetric.is_open_ball xr',
+    is_open.mem_nhds emetric.is_open_ball xr',
   refine ⟨emetric.ball (0 : E) r', mem_nhds_within_of_mem_nhds this, _⟩,
   simpa [metric.emetric_ball_nnreal] using hf.tendsto_uniformly_on hr' u hu
 end
@@ -914,7 +914,7 @@ begin
   -- defining `p.change_origin`, by definition
   have J : ∀k, has_sum (λ c, A ⟨k, c⟩) (p.change_origin x k (λ(i : fin k), y)),
   { assume k,
-    have : (nnnorm x : ℝ≥0∞) < radius p := lt_of_le_of_lt (le_add_right (le_refl _)) h,
+    have : (nnnorm x : ℝ≥0∞) < radius p := lt_of_le_of_lt (le_self_add) h,
     convert continuous_multilinear_map.has_sum_eval (p.change_origin_has_sum k this)
       (λ(i : fin k), y),
     ext ⟨_, _, _⟩,

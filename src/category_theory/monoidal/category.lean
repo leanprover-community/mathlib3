@@ -248,7 +248,7 @@ lemma left_unitor_tensor_inv' (X Y : C) :
   ((λ_ (X ⊗ Y)).inv) ≫ ((α_ (𝟙_ C) X Y).inv) = ((λ_ X).inv ⊗ (𝟙 Y)) :=
 eq_of_inv_eq_inv (by simp)
 
-@[simp]
+@[reassoc, simp]
 lemma left_unitor_tensor_inv (X Y : C) :
   (λ_ (X ⊗ Y)).inv = ((λ_ X).inv ⊗ (𝟙 Y)) ≫ (α_ (𝟙_ C) X Y).hom :=
 by { rw [←left_unitor_tensor_inv'], simp }
@@ -291,11 +291,11 @@ lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
 monoidal_category.triangle X Y
 
-@[simp] lemma triangle_assoc_comp_right (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
 by rw [←triangle_assoc_comp_left, iso.inv_hom_id_assoc]
 
-@[simp] lemma triangle_assoc_comp_right_inv (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_right_inv (X Y : C) :
   ((ρ_ X).inv ⊗ 𝟙 Y) ≫ (α_ X (𝟙_ C) Y).hom = ((𝟙 X) ⊗ (λ_ Y).inv) :=
 begin
   apply (cancel_mono (𝟙 X ⊗ (λ_ Y).hom)).1,
@@ -303,7 +303,7 @@ begin
   rw [←comp_tensor_id, iso.inv_hom_id, ←id_tensor_comp, iso.inv_hom_id]
 end
 
-@[simp] lemma triangle_assoc_comp_left_inv (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_left_inv (X Y : C) :
   ((𝟙 X) ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = ((ρ_ X).inv ⊗ 𝟙 Y) :=
 begin
   apply (cancel_mono ((ρ_ X).hom ⊗ 𝟙 Y)).1,
@@ -314,6 +314,9 @@ end
 lemma unitors_equal : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom :=
 by rw [←tensor_left_iff, ←cancel_epi (α_ (𝟙_ C) (𝟙_ _) (𝟙_ _)).hom, ←cancel_mono (ρ_ (𝟙_ C)).hom,
        triangle, ←right_unitor_tensor, right_unitor_naturality]
+
+lemma unitors_inv_equal : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv :=
+by { ext, simp [←unitors_equal], }
 
 @[simp, reassoc]
 lemma hom_inv_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :

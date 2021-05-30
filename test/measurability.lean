@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 import measure_theory.tactic
 import measure_theory.lp_space
 
-open_locale big_operators
+open_locale big_operators ennreal
 
 variables {α β : Type*} [measurable_space α] [measurable_space β]
   {f g : α → β} {s₁ s₂ : set α} {t₁ t₂ : set β} {μ ν : measure_theory.measure α}
@@ -68,3 +68,26 @@ example [add_comm_monoid β] [has_measurable_add₂ β] {s : finset ℕ} {F : �
   (hF : ∀ i, ae_measurable (F i) μ) :
   ae_measurable (∑ i in s, (λ x, F (i+1) x + F i x)) μ :=
 by measurability
+
+example [normed_group β] [has_measurable_sub₂ β] {f : ℕ → α → β}
+  (hf : ∀ i, ae_measurable (f i) μ) (p : ℝ) (i : ℕ) :
+  ae_measurable (λ (a : α), f (i + 1) a - f i a) μ :=
+by measurability?
+
+example [normed_group β] [borel_space β] {f : ℕ → α → β}
+  (hf : ∀ i, ae_measurable (f i) μ) (p : ℝ) (i : ℕ) :
+  ae_measurable (λ (a : α), f (i + 1) a - f i a) μ :=
+by measurability?
+
+example [normed_group β] [borel_space β] {f : ℕ → α → β}
+  (hf : ∀ i, ae_measurable (f i) μ) (p : ℝ) :
+  ∀ n, ae_measurable
+    (λ a, (∑ i in finset.range (n + 1), (nnnorm (f (i + 1) a - f i a) : ℝ≥0∞) ^ p)) μ :=
+begin
+  intro n,
+  refine finset.ae_measurable_sum _ _,
+  intros i hi,
+  refine ae_measurable.pow_const _ _,
+  refine ae_measurable.ennnorm _,
+  refine ae_measurable.sub _ _,
+end

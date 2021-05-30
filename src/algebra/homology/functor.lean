@@ -34,14 +34,12 @@ def as_functor {T : Type*} [category T]
 { obj := λ t,
   { X := λ i, (C.X i).obj t,
     d := λ i j, (C.d i j).app t,
-    d_comp_d' := λ i j k hij hjk,
-    begin
+    d_comp_d' := λ i j k hij hjk, begin
       have := C.d_comp_d i j k,
       rw [nat_trans.ext_iff, function.funext_iff] at this,
       exact this t
     end,
-    shape' := λ i j h,
-    begin
+    shape' := λ i j h, begin
       have := C.shape _ _ h,
       rw [nat_trans.ext_iff, function.funext_iff] at this,
       exact this t

@@ -32,10 +32,11 @@ meta def measurability : user_attribute :=
 { name := `measurability,
   descr := "lemmas usable to prove (ae)-measurability" }
 
-/- Mark some measurability lemmas already defined in `measure_theory.measurable_space_0` and
-`measure_theory.measure_space_0` -/
+/- Mark some measurability lemmas already defined in `measure_theory.measurable_space_def` and
+`measure_theory.measure_space_def` -/
 attribute [measurability]
   measurable_id
+  measurable_id'
   measurable_const
   ae_measurable_const
   ae_measurable.measurable_mk
@@ -59,11 +60,6 @@ attribute [measurability]
   finset.measurable_set
   set.countable.measurable_set
   measurable_space.measurable_set_top
-
--- As we will be using `apply_rules` with `md := semireducible`,
--- we need another version of `measurable_id`.
-@[measurability] lemma measurable_id' {α : Type*} [measurable_space α] : measurable (λ a : α, a) :=
-measurable_id
 
 namespace tactic
 

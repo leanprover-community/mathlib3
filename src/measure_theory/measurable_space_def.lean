@@ -397,6 +397,8 @@ variables [measurable_space α] [measurable_space β] [measurable_space γ]
 
 lemma measurable_id : measurable (@id α) := λ t, id
 
+lemma measurable_id' : measurable (λ a : α, a) := measurable_id
+
 lemma measurable.comp {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)

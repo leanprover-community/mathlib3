@@ -147,13 +147,20 @@ lemma submodule.le_span (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M]
 
 open submodule
 
-/--
-If `R` satisfies the strong rank condition,
-then for any linearly independent finite family `v : ι → M`
-contained in the span of some finite `w : set M`,
-the cardinality of `ι` is bounded by the cardinality of `w`.
--/
-lemma linear_independent_le_span' {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
+/-- If every finset in a type has bounded cardinality, that type is finite. -/
+def fintype_of_finset_card_le {ι : Type*} (n : ℕ)
+  (w : ∀ s : finset ι, s.card ≤ n) : fintype ι :=
+begin
+  apply fintype_of_not_infinite,
+  introI i,
+  obtain ⟨s, c⟩ := infinite.exists_subset_card_eq ι (n+1),
+  specialize w s,
+  linarith,
+end
+
+-- An auxiliary lemma for `linear_independent_le_span'`,
+-- with the additional assumption that the linearly independent family is finite.
+lemma linear_independent_le_span_aux' {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
   (w : set M) [fintype w] (s : range v ≤ span R w) :
   fintype.card ι ≤ fintype.card w :=
 begin
@@ -173,13 +180,34 @@ end
 
 /--
 If `R` satisfies the strong rank condition,
-then for any linearly independent finite family `v : ι → M`
+then for any linearly independent family `v : ι → M`
+contained in the span of some finite `w : set M`,
+the cardinality of `ι` is bounded by the cardinality of `w`.
+-/
+lemma linear_independent_le_span' {ι : Type*} (v : ι → M) (i : linear_independent R v)
+  (w : set M) [fintype w] (s : range v ≤ span R w) :
+  cardinal.mk ι ≤ fintype.card w :=
+begin
+  haveI : fintype ι := fintype_of_finset_card_le (fintype.card w) (λ t, begin
+    let v' := λ x : (t : set ι), v x,
+    let i' : linear_independent R v' := sorry,
+    let s' : range v' ≤ span R w := sorry,
+    simpa using linear_independent_le_span_aux' R M v' i' w s'
+  end),
+  rw cardinal.fintype_card,
+  simp only [cardinal.nat_cast_le],
+  exact linear_independent_le_span_aux' R M v i w s,
+end
+
+/--
+If `R` satisfies the strong rank condition,
+then for any linearly independent family `v : ι → M`
 and any finite spanning set `w : set M`,
 the cardinality of `ι` is bounded by the cardinality of `w`.
 -/
-lemma linear_independent_le_span {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
+lemma linear_independent_le_span {ι : Type*} (v : ι → M) (i : linear_independent R v)
   (w : set M) [fintype w] (s : span R w = ⊤) :
-  fintype.card ι ≤ fintype.card w :=
+  cardinal.mk ι ≤ fintype.card w :=
 begin
   apply linear_independent_le_span' R M v i w,
   rw s,
@@ -261,6 +289,7 @@ end
 
 /-- The dimension theorem: if `v` and `v'` are two bases, their index types
 have the same cardinalities. -/
+-- This could be generalized even further; it only requires invariant basis number.
 theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
 begin
@@ -289,8 +318,7 @@ section division_ring
 variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables {K V}
 
-example : is_noetherian_ring K := by apply_instance
-
+-- TODO: At least for finite bases, this is true for any ring satisfying the strong rank condition.
 theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι K V) :
   cardinal.mk ι = module.rank K V :=
 begin

@@ -97,7 +97,7 @@ extra logic here to try to avoid bad cases.
   constant, and that constant is a function application `f z`, then
   `measurable.comp_ae_measurable` would produce new goals `measurable f`, `ae_measurable
   (λ _, z) μ`, which is silly. We avoid this by failing if we could
-  apply `measurable_const`.
+  apply `ae_measurable_const`.
 
 * `measurable.comp_ae_measurable` will always succeed on `ae_measurable (λ x, f x) μ` and
   can produce new goals (`measurable (λ x, x)`, `ae_measurable f μ`) or
@@ -111,10 +111,10 @@ meta def apply_measurable.comp_ae_measurable : tactic unit :=
   fail_if_success { exact ae_measurable_id }]
 
 /--
-We don't want the intros1 tactic to apply to a goal of the form `measurable f`, `ae_measurable f μ`
+We don't want the intro1 tactic to apply to a goal of the form `measurable f`, `ae_measurable f μ`
 or `measurable_set s`. This tactic tests the target to see if it matches that form.
  -/
-meta def intro_if_not_measurable : tactic unit :=
+meta def goal_is_not_measurable : tactic unit :=
 do t ← tactic.target,
   match t with
   | `(measurable %%l) := failed
@@ -128,7 +128,7 @@ meta def measurability_tactics (md : transparency := semireducible) : list (tact
 [
   propositional_goal >> apply_assumption
                         >> pure "apply_assumption",
-  intro_if_not_measurable >> intro1
+  goal_is_not_measurable >> intro1
                         >>= λ ns, pure ("intro " ++ ns.to_string),
   apply_rules [``(measurability)] 50 { md := md }
                         >> pure "apply_rules measurability",

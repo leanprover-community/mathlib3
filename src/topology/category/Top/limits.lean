@@ -130,11 +130,11 @@ begin
   classical,
   use λ (j' : Jᵒᵖ),
     if h : j'.unop ≤ j.unop then
-      F.map (hom_of_le h).op (classical.arbitrary (F.obj j))
+      F.map h.hom.op (classical.arbitrary (F.obj j))
     else
       classical.arbitrary _,
   intros j' fle,
-  simp only [dif_pos (le_of_hom fle.unop)],
+  simp only [dif_pos fle.unop.le, dif_pos le_rfl],
   dsimp, simp,
 end
 

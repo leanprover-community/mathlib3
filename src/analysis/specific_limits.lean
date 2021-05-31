@@ -823,6 +823,11 @@ begin
   exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩
 end
 
+theorem exists_pos_sum_of_encodable' {ε : ℝ≥0∞} (hε : 0 < ε) (ι) [encodable ι] :
+  ∃ ε' : ι → ℝ≥0∞, (∀ i, 0 < ε' i) ∧ (∑' i, ε' i) < ε :=
+let ⟨δ, δpos, hδ⟩ := exists_pos_sum_of_encodable hε ι in
+  ⟨λ i, δ i, λ i, ennreal.coe_pos.2 (δpos i), hδ⟩
+
 end ennreal
 
 /-!

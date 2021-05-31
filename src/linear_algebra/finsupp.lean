@@ -431,14 +431,6 @@ theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l (default α) • v (default α) :=
 by rw [← total_single, ← unique_single l]
 
-theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
-begin
-  apply range_eq_top.2,
-  intros x,
-  apply exists.elim (h x),
-  exact λ i hi, ⟨single i 1, by simp [hi]⟩
-end
-
 lemma range_total : (finsupp.total α M R v).range = span R (range v) :=
 begin
   ext x,

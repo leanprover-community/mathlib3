@@ -163,8 +163,8 @@ def cech_nerve_equiv (X : simplicial_object.augmented C) (F : arrow C) :
   end }
 
 /-- The augmented Čech nerve construction is right adjoint to the `to_arrow` functor. -/
-@[simps]
-def cech_nerve_adjunction : (augmented.to_arrow : _ ⥤ arrow C) ⊣ augmented_cech_nerve :=
+abbreviation cech_nerve_adjunction :
+  (augmented.to_arrow : _ ⥤ arrow C) ⊣ augmented_cech_nerve :=
 adjunction.mk_of_hom_equiv { hom_equiv := cech_nerve_equiv }
 
 end simplicial_object
@@ -316,8 +316,8 @@ def cech_conerve_equiv (F : arrow C) (X : cosimplicial_object.augmented C) :
   end }
 
 /-- The augmented Čech conerve construction is left adjoint to the `to_arrow` functor. -/
-@[simps]
-def cech_conerve_adjunction : augmented_cech_conerve ⊣ (augmented.to_arrow : _ ⥤ arrow C) :=
+abbreviation cech_conerve_adjunction :
+  augmented_cech_conerve ⊣ (augmented.to_arrow : _ ⥤ arrow C) :=
 adjunction.mk_of_hom_equiv { hom_equiv := cech_conerve_equiv }
 
 end cosimplicial_object

@@ -19,8 +19,9 @@ along with Hausdorff's Maximality Principle.
 
 ## Notes
 
-Ported from Isabelle/HOL. The original file was written by Jacques D. Fleuriot, Tobias Nipkow,
-Christian Sternagel.
+Ported from Isabelle/HOL. The 
+[original file](https://isabelle.in.tum.de/dist/library/HOL/HOL/Zorn.html) was written by Jacques D.
+Fleuriot, Tobias Nipkow, Christian Sternagel.
 -/
 
 noncomputable theory

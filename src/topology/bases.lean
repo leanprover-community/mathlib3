@@ -260,15 +260,15 @@ end topological_space
 
 open topological_space
 
-protected lemma is_topological_basis.pi {ι : Type*} {Xs : ι → Type*}
-  [∀ i, topological_space (Xs i)] {Ts : Π i, set (set (Xs i))}
-  (cond : ∀ i, is_topological_basis (Ts i)) :
-  is_topological_basis {S : set (Π i, Xs i) | ∃ (Us : Π i, set (Xs i)) (F : finset ι),
-    (∀ i, i ∈ F → (Us i) ∈ Ts i) ∧ S = (F : set ι).pi Us } :=
+protected lemma is_topological_basis.pi {ι : Type*} {X : ι → Type*}
+  [∀ i, topological_space (X i)] {T : Π i, set (set (X i))}
+  (cond : ∀ i, is_topological_basis (T i)) :
+  is_topological_basis {S : set (Π i, X i) | ∃ (U : Π i, set (X i)) (F : finset ι),
+    (∀ i, i ∈ F → (U i) ∈ T i) ∧ S = (F : set ι).pi U } :=
 begin
   classical,
   refine is_topological_basis_of_open_of_nhds _ _,
-  { rintro _ ⟨Us, F, h1, rfl⟩,
+  { rintro _ ⟨U, F, h1, rfl⟩,
     apply is_open_set_pi F.finite_to_set,
     intros i hi,
     exact is_topological_basis.is_open (cond i) (h1 i hi) },
@@ -276,32 +276,32 @@ begin
     have : U ∈ nhds a := is_open.mem_nhds hU ha,
     rw [nhds_pi, filter.mem_infi_iff] at this,
     obtain ⟨F, hF, V, hV1, hV2⟩ := this,
-    choose Us' hUs' using hV1,
-    obtain ⟨hUs1, hUs2⟩ := ⟨λ i, (hUs' i).1, λ i, (hUs' i).2⟩,
-    have : ∀ i : F, ∃ (T : set (Xs i)) (hT : T ∈ Ts i), a i ∈ T ∧ T ⊆ Us' i,
+    choose U' hU' using hV1,
+    obtain ⟨hU1, hU2⟩ := ⟨λ i, (hU' i).1, λ i, (hU' i).2⟩,
+    have : ∀ j : F, ∃ (T' : set (X j)) (hT : T' ∈ T j), a j ∈ T' ∧ T' ⊆ U' j,
     { intros i,
-      specialize hUs1 i,
-      rwa (cond i).mem_nhds_iff at hUs1 },
-    choose Us'' hUs'' using this,
-    let Us : Π (i : ι), set (Xs i) := λ i,
-      if hi : i ∈ F then Us'' ⟨i, hi⟩ else set.univ,
-    refine ⟨F.pi Us, ⟨Us, hF.to_finset, λ i hi, _, by simp⟩, _, _⟩,
-    { dsimp only [Us],
+      specialize hU1 i,
+      rwa (cond i).mem_nhds_iff at hU1 },
+    choose U'' hU'' using this,
+    let U : Π (i : ι), set (X i) := λ i,
+      if hi : i ∈ F then U'' ⟨i, hi⟩ else set.univ,
+    refine ⟨F.pi U, ⟨U, hF.to_finset, λ i hi, _, by simp⟩, _, _⟩,
+    { dsimp only [U],
       erw [dif_pos],
       swap, { simpa using hi },
-      apply (hUs'' _).1 },
+      apply (hU'' _).1 },
     { rw set.mem_pi,
       intros i hi,
-      dsimp only [Us],
+      dsimp only [U],
       rw dif_pos hi,
-      apply (hUs'' _).2.1 },
+      apply (hU'' _).2.1 },
     { intros x hx,
       apply hV2,
       rintros - ⟨i, rfl⟩,
-      apply hUs2,
-      apply (hUs'' _).2.2,
+      apply hU2,
+      apply (hU'' _).2.2,
       convert hx i i.2,
-      dsimp only [Us],
+      dsimp only [U],
       erw dif_pos i.2,
       cases i,
       refl } },

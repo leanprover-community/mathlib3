@@ -1715,6 +1715,8 @@ is_fraction_ring.to_field A
   (algebra_map _ _ r / algebra_map A _ s : fraction_ring A) :=
 by rw [localization.mk_eq_mk', is_fraction_ring.mk'_eq_div]
 
+variables (A)
+
 /-- Given an integral domain `A` and a localization map to a field of fractions
 `f : A →+* K`, we get an `A`-isomorphism between the field of fractions of `A` as a quotient
 type and `K`. -/

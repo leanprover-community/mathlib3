@@ -765,8 +765,8 @@ begin
       simpa [pi_if, hf] } }
 end
 
-lemma inducing_infi_to_pi {X : Type*} [∀ i, topological_space (π i)] (fs : Π i, X → π i) :
-  @inducing X (Π i, π i) (⨅ i, induced (fs i) infer_instance) _ (λ x i, fs i x) :=
+lemma inducing_infi_to_pi {X : Type*} [∀ i, topological_space (π i)] (f : Π i, X → π i) :
+  @inducing X (Π i, π i) (⨅ i, induced (f i) infer_instance) _ (λ x i, f i x) :=
 begin
   constructor,
   erw induced_infi,

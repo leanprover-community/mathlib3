@@ -64,25 +64,10 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
   covariant_class α α (*) (≤) :=
 { covc := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
 
-@[to_additive]
-instance ordered_comm_group.to_covariant_class_left_lt (α : Type u) [ordered_comm_group α] :
-  covariant_class α α (*) (<) :=
-{ covc := λ a b c bc, mul_lt_mul_left' bc a }
-
-@[to_additive]
-instance units.covariant_class [ordered_comm_monoid α] :
-  covariant_class (units α) (units α) (*) (≤) :=
-{ covc := λ a b c bc, by { rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
-  { exact rfl.le },
-  { refine le_iff_eq_or_lt.mpr (or.inr _),
-    refine units.coe_lt_coe.mp _,
-    cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
-    exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } } }
-
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
-{ mul_le_mul_left := λ a b h c, by { apply @mul_le_mul_left' _ _ _ units.covariant_class _ _ h},
+{ mul_le_mul_left := λ a b h c, (mul_le_mul_left' (h : (a : α) ≤ (b : α)) _ :  (c : α) * a ≤ c * b),
   .. units.partial_order,
   .. (infer_instance : comm_group (units α)) }
 
@@ -93,6 +78,11 @@ instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
 { mul_left_cancel       := @mul_left_cancel α _,
   le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
+
+/-  DT: Why does `by apply_instance` not work here? -/
+instance units.covariant_class [ordered_comm_monoid α] :
+  covariant_class (units α) (units α) (*) (≤) :=
+ordered_comm_monoid.to_covariant_class_left (units α)
 
 @[priority 100, to_additive]
 instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
@@ -504,30 +494,12 @@ def function.injective.ordered_comm_group [ordered_comm_group α] {β : Type*}
   ..hf.comm_group f one mul inv div }
 
 /-  Most of the lemmas that are primed in this section appear in ordered_field. -/
-section comm_group
-variables [comm_group α] [preorder α] [covariant_class α α (*) (≤)] {a b c d : α}
-
 /-  I (DT) did not try to minimise the assumptions. -/
-@[to_additive sub_le_sub]
-lemma div_le_div'' {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) :
-  a / d ≤ b / c :=
-begin
-  rw [div_eq_mul_inv, div_eq_mul_inv, mul_comm b, mul_inv_le_inv_mul_iff, mul_comm],
-  exact mul_le_mul' hab hcd
-end
+section group
+variables [group α] [has_le α]
 
-@[to_additive sub_le_sub_iff]
-lemma div_le_div_iff' : a / b ≤ c / d ↔ a * d ≤ c * b :=
-by simpa only [div_eq_mul_inv] using mul_inv_le_mul_inv_iff'
-
-@[simp, to_additive]
-lemma div_le_div_iff_left (a : α) {b c : α} : a / b ≤ a / c ↔ c ≤ b :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, ← mul_le_mul_iff_left a⁻¹, inv_mul_cancel_left,
-    inv_mul_cancel_left, inv_le_inv_iff]
-
-@[to_additive sub_le_sub_left]
-lemma div_le_div_left' (h : a ≤ b) (c : α) : c / b ≤ c / a :=
-(div_le_div_iff_left c).2 h
+section right
+variables [covariant_class α α (function.swap (*)) (≤)] {a b c d : α}
 
 @[simp, to_additive]
 lemma div_le_div_iff_right (c : α) : a / c ≤ b / c ↔ a ≤ b :=
@@ -556,18 +528,48 @@ by rw [← mul_le_mul_iff_right b, div_eq_mul_inv, inv_mul_cancel_right]
 alias le_sub_iff_add_le ↔ add_le_of_le_sub_right le_sub_right_of_add_le
 
 @[to_additive]
+lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
+by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
+
+end right
+
+section left
+variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)] {a b c : α}
+
+@[simp, to_additive]
+lemma div_le_div_iff_left (a : α) : a / b ≤ a / c ↔ c ≤ b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, ← mul_le_mul_iff_left a⁻¹, inv_mul_cancel_left,
+    inv_mul_cancel_left, inv_le_inv_iff]
+
+@[to_additive sub_le_sub_left]
+lemma div_le_div_left' (h : a ≤ b) (c : α) : c / b ≤ c / a :=
+(div_le_div_iff_left c).2 h
+
+end left
+
+end group
+
+section comm_group
+variables [comm_group α]
+
+section has_le
+variables [has_le α] [covariant_class α α (*) (≤)] {a b c d : α}
+
+@[to_additive sub_le_sub_iff]
+lemma div_le_div_iff' : a / b ≤ c / d ↔ a * d ≤ c * b :=
+by simpa only [div_eq_mul_inv] using mul_inv_le_mul_inv_iff'
+
+@[to_additive]
 lemma le_div_iff_mul_le' : b ≤ c / a ↔ a * b ≤ c :=
 by rw [le_div_iff_mul_le, mul_comm]
 
-@[to_additive]
-lemma div_le_iff_le_mul : a / c ≤ b ↔ a ≤ b * c :=
-by rw [← mul_le_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
+alias le_sub_iff_add_le' ↔ add_le_of_le_sub_left le_sub_left_of_add_le
 
 @[to_additive]
 lemma div_le_iff_le_mul' : a / b ≤ c ↔ a ≤ b * c :=
 by rw [div_le_iff_le_mul, mul_comm]
 
-alias le_sub_iff_add_le' ↔ add_le_of_le_sub_left le_sub_left_of_add_le
+alias sub_le_iff_le_add' ↔ le_add_of_sub_left_le sub_left_le_of_le_add
 
 @[simp, to_additive]
 lemma inv_le_div_iff_le_mul : b⁻¹ ≤ a / c ↔ c ≤ a * b :=
@@ -585,91 +587,137 @@ div_le_iff_le_mul'.trans div_le_iff_le_mul.symm
 lemma le_inv'' : a ≤ b / c ↔ c ≤ b / a :=
 le_div_iff_mul_le'.trans le_div_iff_mul_le.symm
 
-end comm_group
+end has_le
 
-/-
-TODO: convert these lemmas to `mul + [to_additive]`?  Similar to
-`Section comm_group` above.
--/
+section preorder
+variables [preorder α] [covariant_class α α (*) (≤)] {a b c d : α}
 
-section add_comm_group
-variables [add_comm_group α] [preorder α]
-
-section covariant_add_lt
-variables [covariant_class α α (+) (<)] {a b c d : α}
-
---lemma sub_le_sub (hab : a ≤ b) (hcd : c ≤ d) : a - d ≤ b - c :=
---sub_le_sub hab hcd --simpa only [sub_eq_add_neg] using add_le_add hab (neg_le_neg_iff.mpr hcd)
-
-lemma sub_lt_sub (hab : a < b) (hcd : c < d) : a - d < b - c :=
+@[to_additive sub_le_sub]
+lemma div_le_div'' (hab : a ≤ b) (hcd : c ≤ d) :
+  a / d ≤ b / c :=
 begin
-  rw [sub_eq_add_neg, sub_eq_add_neg],
-  refine add_neg_lt_add_neg_iff.mpr (add_lt_add_of_lt_of_lt hab hcd),
+  rw [div_eq_mul_inv, div_eq_mul_inv, mul_comm b, mul_inv_le_inv_mul_iff, mul_comm],
+  exact mul_le_mul' hab hcd
 end
 
-alias sub_le_self_iff ↔ _ sub_le_self
+end preorder
 
-alias sub_lt_self_iff ↔ _ sub_lt_self
+end comm_group
 
-@[simp]
-lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, add_lt_add_iff_left, neg_lt_neg_iff]
+/-  Most of the lemmas that are primed in this section appear in ordered_field. -/
+/-  I (DT) did not try to minimise the assumptions. -/
+section group
+variables [group α] [has_lt α]
 
-lemma sub_lt_sub_left (h : a < b) (c : α) : c - b < c - a :=
-(sub_lt_sub_iff_left c).2 h
+section right
+variables [covariant_class α α (function.swap (*)) (<)] {a b c d : α}
 
-@[simp]
-lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
-by simpa only [sub_eq_add_neg] using add_lt_add_iff_right _
+@[simp, to_additive]
+lemma div_lt_div_iff_right (c : α) : a / c < b / c ↔ a < b :=
+by simpa only [div_eq_mul_inv] using mul_lt_mul_iff_right _
 
-lemma sub_lt_sub_right (h : a < b) (c : α) : a - c < b - c :=
-(sub_lt_sub_iff_right c).2 h
+@[to_additive sub_lt_sub_right]
+lemma div_lt_div_right' (h : a < b) (c : α) : a / c < b / c :=
+(div_lt_div_iff_right c).2 h
 
-@[simp] lemma sub_pos : 0 < a - b ↔ b < a :=
-by rw [← sub_self a, sub_lt_sub_iff_left]
+@[simp, to_additive sub_pos]
+lemma one_lt_div' : 1 < a / b ↔ b < a :=
+by rw [← mul_lt_mul_iff_right b, one_mul, div_eq_mul_inv, inv_mul_cancel_right]
 
 alias sub_pos ↔ lt_of_sub_pos sub_pos_of_lt
 
-@[simp] lemma sub_lt_zero : a - b < 0 ↔ a < b :=
-by rw [← sub_self b, sub_lt_sub_iff_right]
+@[simp, to_additive sub_neg]
+lemma div_lt_one' : a / b < 1 ↔ a < b :=
+by rw [← mul_lt_mul_iff_right b, one_mul, div_eq_mul_inv, inv_mul_cancel_right]
 
-alias sub_lt_zero ↔ lt_of_sub_neg sub_neg_of_lt
+alias sub_neg ↔ lt_of_sub_neg sub_neg_of_lt
 
-lemma lt_sub_iff_add_lt' : b < c - a ↔ a + b < c :=
-by rw [sub_eq_add_neg, add_comm, lt_neg_add_iff_add_lt]
+alias sub_neg ← sub_lt_zero
 
-alias lt_sub_iff_add_lt' ↔ add_lt_of_lt_sub_left lt_sub_left_of_add_lt
-
-lemma lt_sub_iff_add_lt : a < c - b ↔ a + b < c :=
-by rw [lt_sub_iff_add_lt', add_comm]
+@[to_additive]
+lemma lt_div_iff_mul_lt : a < c / b ↔ a * b < c :=
+by rw [← mul_lt_mul_iff_right b, div_eq_mul_inv, inv_mul_cancel_right]
 
 alias lt_sub_iff_add_lt ↔ add_lt_of_lt_sub_right lt_sub_right_of_add_lt
 
-lemma sub_lt_iff_lt_add' : a - b < c ↔ a < b + c :=
-by rw [sub_eq_add_neg, add_comm, neg_add_lt_iff_lt_add]
-
-alias sub_lt_iff_lt_add' ↔ lt_add_of_sub_left_lt sub_left_lt_of_lt_add
-
-lemma sub_lt_iff_lt_add : a - c < b ↔ a < b + c :=
-by rw [sub_lt_iff_lt_add', add_comm]
+@[to_additive]
+lemma div_lt_iff_lt_mul : a / c < b ↔ a < b * c :=
+by rw [← mul_lt_mul_iff_right c, div_eq_mul_inv, inv_mul_cancel_right]
 
 alias sub_lt_iff_lt_add ↔ lt_add_of_sub_right_lt sub_right_lt_of_lt_add
 
-@[simp] lemma neg_lt_sub_iff_lt_add : -b < a - c ↔ c < a + b :=
-lt_sub_iff_add_lt.trans neg_add_lt_iff_lt_add'
+end right
 
-lemma neg_lt_sub_iff_lt_add' : -a < b - c ↔ c < a + b :=
-by rw [neg_lt_sub_iff_lt_add, add_comm]
+section left
+variables [covariant_class α α (*) (<)] [covariant_class α α (function.swap (*)) (<)] {a b c : α}
 
-lemma sub_lt : a - b < c ↔ a - c < b :=
-sub_lt_iff_lt_add'.trans sub_lt_iff_lt_add.symm
+@[simp, to_additive]
+lemma div_lt_div_iff_left (a : α) : a / b < a / c ↔ c < b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, ← mul_lt_mul_iff_left a⁻¹, inv_mul_cancel_left,
+    inv_mul_cancel_left, inv_lt_inv_iff]
 
-theorem lt_sub : a < b - c ↔ c < b - a :=
-lt_sub_iff_add_lt'.trans lt_sub_iff_add_lt.symm
+@[to_additive sub_lt_sub_left]
+lemma div_lt_div_left' (h : a < b) (c : α) : c / b < c / a :=
+(div_lt_div_iff_left c).2 h
 
-end covariant_add_lt
+end left
 
-end add_comm_group
+end group
+
+section comm_group
+variables [comm_group α]
+
+section has_lt
+variables [has_lt α] [covariant_class α α (*) (<)] {a b c d : α}
+
+@[to_additive sub_lt_sub_iff]
+lemma div_lt_div_iff' : a / b < c / d ↔ a * d < c * b :=
+by simpa only [div_eq_mul_inv] using mul_inv_lt_mul_inv_iff'
+
+@[to_additive]
+lemma lt_div_iff_mul_lt' : b < c / a ↔ a * b < c :=
+by rw [lt_div_iff_mul_lt, mul_comm]
+
+alias lt_sub_iff_add_lt' ↔ add_lt_of_lt_sub_left lt_sub_left_of_add_lt
+
+@[to_additive]
+lemma div_lt_iff_lt_mul' : a / b < c ↔ a < b * c :=
+by rw [div_lt_iff_lt_mul, mul_comm]
+
+alias sub_lt_iff_lt_add' ↔ lt_add_of_sub_left_lt sub_left_lt_of_lt_add
+
+@[simp, to_additive]
+lemma inv_lt_div_iff_lt_mul : b⁻¹ < a / c ↔ c < a * b :=
+lt_div_iff_mul_lt.trans inv_mul_lt_iff_lt_mul'
+
+@[to_additive]
+lemma inv_lt_div_iff_lt_mul' : a⁻¹ < b / c ↔ c < a * b :=
+by rw [inv_lt_div_iff_lt_mul, mul_comm]
+
+@[to_additive sub_lt]
+lemma inv_lt'' : a / b < c ↔ a / c < b :=
+div_lt_iff_lt_mul'.trans div_lt_iff_lt_mul.symm
+
+@[to_additive lt_sub]
+lemma lt_inv'' : a < b / c ↔ c < b / a :=
+lt_div_iff_mul_lt'.trans lt_div_iff_mul_lt.symm
+
+end has_lt
+
+section preorder
+variables [preorder α] [covariant_class α α (*) (<)] {a b c d : α}
+
+@[to_additive sub_lt_sub]
+lemma div_lt_div'' (hab : a < b) (hcd : c < d) :
+  a / d < b / c :=
+begin
+  rw [div_eq_mul_inv, div_eq_mul_inv, mul_comm b, mul_inv_lt_inv_mul_iff, mul_comm],
+  exact mul_lt_mul_of_lt_of_lt hab hcd
+end
+
+end preorder
+
+end comm_group
 
 /-!
 

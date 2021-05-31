@@ -96,24 +96,24 @@ open first_order.language.Structure
   tuples in the second structure where that relation is still true. -/
 protected structure hom :=
 (to_fun : M → N)
-(map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x))
-(map_rel' : ∀{n} (r : L.relations n) x, rel_map r x → rel_map r (to_fun ∘ x))
+(map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
+(map_rel' : ∀{n} (r : L.relations n) x, rel_map r x → rel_map r (to_fun ∘ x) . obviously)
 
 notation A ` →[`:25 L `] ` B := L.hom A B
 
 /-- An embedding of first-order structures is an embedding that commutes with the
   interpretations of functions and relations. -/
 protected structure embedding extends M ↪ N :=
-(map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x))
-(map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x)
+(map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
+(map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
 notation A ` ↪[`:25 L `] ` B := L.embedding A B
 
 /-- An equivalence of first-order structures is an equivalence that commutes with the
   interpretations of functions and relations. -/
 protected structure equiv extends M ≃ N :=
-(map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x))
-(map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x)
+(map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
+(map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
 notation A ` ≃[`:25 L `] ` B := L.equiv A B
 
@@ -144,9 +144,7 @@ lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
 variables (L) (M)
 /-- The identity map from a structure to itself-/
 def id : M →[L] M :=
-{ to_fun := id,
-  map_fun' := λ _ _ _, rfl,
-  map_rel' := λ _ _ _, id }
+{ to_fun := id }
 
 variables {L} {M}
 
@@ -160,7 +158,6 @@ variables {P : Type u} [L.Structure P] {Q : Type u} [L.Structure Q]
 /-- Composition of first-order homomorphisms -/
 def comp (hnp : N →[L] P) (hmn : M →[L] N) : M →[L] P :=
 { to_fun := hnp ∘ hmn,
-  map_fun' := λ n f, by simp,
   map_rel' := λ _ _ _ h, by simp [h] }
 
 @[simp] lemma comp_apply (g : N →[L] P) (f : M →[L] N) (x : M) :
@@ -174,14 +171,18 @@ end hom
 
 namespace embedding
 
+@[simps] instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) :=
+⟨(λ _, M → N), λ f, f.to_fun⟩
+
+@[simp] lemma map_fun (φ : M ↪[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
+  φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
+
+@[simp] lemma map_rel (φ : M ↪[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
+  rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
+
 /-- A first-order embedding is also a first-order homomorphism. -/
 def to_hom (f : M ↪[L] N) : M →[L] N :=
-{ to_fun := f.to_fun,
-  map_fun' := f.map_fun',
-  map_rel' := λ n r x, (f.map_rel' r x).2 }
-
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) :=
-⟨(λ _, M → N), λ f, f.to_hom⟩
+{ to_fun := f }
 
 @[simp]
 lemma coe_to_hom {f : M ↪[L] N} : (f.to_hom : M → N) = f := rfl
@@ -202,20 +203,12 @@ coe_inj (funext h)
 lemma ext_iff {f g : M ↪[L] N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-@[simp] lemma map_fun (φ : M ↪[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
-  φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
-
-@[simp] lemma map_rel (φ : M ↪[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
-  rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
-
 lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.injective
 
 variables (L) (M)
 /-- The identity embedding from a structure to itself-/
 def id : M ↪[L] M :=
-{ to_embedding := function.embedding.refl M,
-  map_fun' := λ _ _ _, rfl,
-  map_rel' := λ _ _ _, iff.refl _ }
+{ to_embedding := function.embedding.refl M }
 
 variables {L} {M}
 
@@ -229,9 +222,7 @@ variables {P : Type u} [L.Structure P] {Q : Type u} [L.Structure Q]
 /-- Composition of first-order embeddings -/
 def comp (hnp : N ↪[L] P) (hmn : M ↪[L] N) : M ↪[L] P :=
 { to_fun := hnp ∘ hmn,
-  inj' := hnp.injective.comp hmn.injective,
-  map_fun' := λ n f, by simp,
-  map_rel' := λ _ _ _, by rw [map_rel, map_rel], }
+  inj' := hnp.injective.comp hmn.injective }
 
 --infixr  ` ∘ `:80      := comp
 
@@ -261,22 +252,25 @@ def symm (f : M ≃[L] N) : N ≃[L] M :=
   end,
   .. f.to_equiv.symm }
 
+@[simps] instance has_coe_to_fun : has_coe_to_fun (M ≃[L] N) :=
+⟨(λ _, M → N), λ f, f.to_fun⟩
+
+@[simp] lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
+  φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
+
+@[simp] lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
+  rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
+
 /-- A first-order equivalence is also a first-order embedding. -/
 def to_embedding (f : M ≃[L] N) : M ↪[L] N :=
-{ to_embedding := f.to_equiv.to_embedding,
-  map_fun' := f.map_fun',
-  map_rel' := f.map_rel' }
+{ to_fun := f,
+  inj' := f.to_equiv.injective }
 
 /-- A first-order equivalence is also a first-order embedding. -/
 def to_hom (f : M ≃[L] N) : M →[L] N :=
-{ to_fun := f.to_equiv,
-  map_fun' := f.map_fun',
-  map_rel' := λ n r x, (f.map_rel' r x).2 }
+{ to_fun := f }
 
 @[simp] lemma to_embedding_to_hom (f : M ≃[L] N) : f.to_embedding.to_hom = f.to_hom := rfl
-
-@[simps] instance has_coe_to_fun : has_coe_to_fun (M ≃[L] N) :=
-⟨(λ _, M → N), λ f, f.to_embedding⟩
 
 @[simp]
 lemma coe_to_hom {f : M ≃[L] N} : (f.to_hom : M → N) = (f : M → N) := rfl
@@ -299,20 +293,12 @@ coe_inj (funext h)
 lemma ext_iff {f g : M ≃[L] N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-@[simp] lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
-  φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
-
-@[simp] lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
-  rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
-
 lemma injective (f : M ≃[L] N) : function.injective f := f.to_embedding.injective
 
 variables (L) (M)
 /-- The identity equivalence from a structure to itself-/
 def id : M ≃[L] M :=
-{ to_equiv := equiv.refl M,
-  map_fun' := λ _ _ _, rfl,
-  map_rel' := λ _ _ _, iff.refl _ }
+{ to_equiv := equiv.refl M }
 
 variables {L} {M}
 
@@ -326,8 +312,6 @@ variables {P : Type u} [L.Structure P] {Q : Type u} [L.Structure Q]
 /-- Composition of first-order equivalences -/
 def comp (hnp : N ≃[L] P) (hmn : M ≃[L] N) : M ≃[L] P :=
 { to_fun := hnp ∘ hmn,
-  map_fun' := λ n f x, by simp,
-  map_rel' := λ n r x, by rw [map_rel, map_rel],
   .. (hmn.to_equiv.trans hnp.to_equiv) }
 
 --infixr  ` ∘ `:80      := comp

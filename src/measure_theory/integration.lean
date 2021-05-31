@@ -508,10 +508,9 @@ approx ennreal_rat_embed
 
 lemma eapprox_lt_top (f : α → ℝ≥0∞) (n : ℕ) (a : α) : eapprox f n a < ∞ :=
 begin
-  rw [eapprox, approx, finset_sup_apply],
-  simp only [finset.sup_lt_iff, with_top.zero_lt_top, finset.mem_range, ennreal.bot_eq_zero],
+  simp only [eapprox, approx, finset_sup_apply, finset.sup_lt_iff, with_top.zero_lt_top,
+    finset.mem_range, ennreal.bot_eq_zero, restrict],
   assume b hb,
-  rw restrict,
   split_ifs,
   { simp only [coe_zero, coe_piecewise, piecewise_eq_indicator, coe_const],
     calc {a : α | ennreal_rat_embed b ≤ f a}.indicator (λ x, ennreal_rat_embed b) a
@@ -565,10 +564,8 @@ end
 
 lemma tsum_eapprox_diff (f : α → ℝ≥0∞) (hf : measurable f) (a : α) :
   (∑' n, (eapprox_diff f n a : ℝ≥0∞)) = f a :=
-begin
-  simp_rw [ennreal.tsum_eq_supr_nat' (tendsto_add_at_top_nat 1), sum_eapprox_diff],
-  exact supr_eapprox_apply f hf a,
-end
+by simp_rw [ennreal.tsum_eq_supr_nat' (tendsto_add_at_top_nat 1), sum_eapprox_diff,
+  supr_eapprox_apply f hf a]
 
 end eapprox
 

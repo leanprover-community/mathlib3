@@ -266,9 +266,9 @@ begin
          simple_func.const_zero, zero_add, zero_le', simple_func.coe_zero,
          set.piecewise_eq_indicator, ennreal.coe_zero, simple_func.coe_piecewise, εpos.le] } },
     have μs_lt_top : μ s < ∞,
-      by simpa only [hs, hc, lt_top_iff_ne_top, true_and, simple_func.coe_const, function.const_apply,
+      by simpa only [hs, hc, lt_top_iff_ne_top, true_and, simple_func.coe_const, or_false,
         lintegral_const, ennreal.coe_indicator, set.univ_inter, ennreal.coe_ne_top, restrict_apply
-        measurable_set.univ, with_top.mul_eq_top_iff, simple_func.const_zero, or_false,
+        measurable_set.univ, with_top.mul_eq_top_iff, simple_func.const_zero, function.const_apply,
         lintegral_indicator, ennreal.coe_eq_zero, ne.def, not_false_iff, simple_func.coe_zero,
         set.piecewise_eq_indicator, simple_func.coe_piecewise, false_and] using int_f,
     have : (0 : ℝ≥0∞) < ε / c := ennreal.div_pos_iff.2 ⟨εpos.ne', ennreal.coe_ne_top⟩,

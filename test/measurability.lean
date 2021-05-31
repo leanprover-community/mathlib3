@@ -67,3 +67,10 @@ example [add_comm_monoid β] [has_measurable_add₂ β] {s : finset ℕ} {F : �
   (hF : ∀ i, ae_measurable (F i) μ) :
   ae_measurable (∑ i in s, (λ x, F (i+1) x + F i x)) μ :=
 by measurability
+
+-- even with many assumptions, the tactic is not trapped by a bad lemma
+example [topological_space α] [borel_space α] [normed_group β] [borel_space β]
+  [has_measurable_add₂ β] [has_measurable_sub₂ β] {s : finset ℕ} {F : ℕ → α → β}
+  (hF : ∀ i, measurable (F i)) :
+  ae_measurable (∑ i in s, (λ x, F (i+1) x - F i x)) μ :=
+by measurability

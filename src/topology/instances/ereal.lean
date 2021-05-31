@@ -13,8 +13,8 @@ We endow `ereal` with the order topology, and prove basic properties of this top
 
 ## Main results
 
-* `coe : ℝ → ennreal` is an open embedding
-* `coe : ℝ≥0∞ → ennreal` is an embedding
+* `coe : ℝ → ereal` is an open embedding
+* `coe : ℝ≥0∞ → ereal` is an embedding
 * The addition on `ereal` is continuous except at `(⊥, ⊤)` and at `(⊤, ⊥)`.
 * Negation is a homeomorphism on `ereal`.
 

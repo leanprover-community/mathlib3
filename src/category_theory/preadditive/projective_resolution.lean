@@ -23,7 +23,7 @@ without even assuming `C` is abelian.
 one will assume `enough_projectives C` and `abelian C`.
 This construction appears in `category_theory.abelian.projectives`.)
 
-We show that give `P : ProjectiveResolution X` and `Q : ProjectiveResolution Y`,
+We show that given `P : ProjectiveResolution X` and `Q : ProjectiveResolution Y`,
 any morphism `X ⟶ Y` admits a lift to a chain map `P.complex ⟶ Q.complex`.
 (It is a lift in the sense that
 the projection maps `P.π` and `Q.π` intertwine the lift and the original morphism.)

@@ -42,10 +42,10 @@ protected lemma tfae (f : X → Y) :
 begin
   tfae_have : 1 → 4, from λ h y, h {y},
   tfae_have : 4 → 3, from λ h x, h (f x),
-  tfae_have : 3 → 2, from λ h x, mem_nhds_sets (h x) rfl,
+  tfae_have : 3 → 2, from λ h x, is_open.mem_nhds (h x) rfl,
   tfae_have : 2 → 5,
   { intros h x,
-    rcases mem_nhds_sets_iff.1 (h x) with ⟨U, eq, hU, hx⟩,
+    rcases mem_nhds_iff.1 (h x) with ⟨U, eq, hU, hx⟩,
     exact ⟨U, hU, hx, eq⟩ },
   tfae_have : 5 → 1,
   { intros h s,

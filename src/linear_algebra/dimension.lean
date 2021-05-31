@@ -72,8 +72,18 @@ cardinal.sup.{v v}
 end
 
 section
-variables (R : Type u) [ring R] [nontrivial R]
+variables (R : Type u) [ring R]
 variables (M : Type v) [add_comm_group M] [module R M]
+
+section
+variables {R M}
+
+def linear_independent.maximal {ι : Type*} {v : ι → M} (i : linear_independent R v) : Prop :=
+  ∀ {κ : Type*} (w : κ → M) (i : linear_independent R w) (h : range v ≤ range w), range v = range w
+
+end
+
+variables [nontrivial R]
 
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.
@@ -108,6 +118,32 @@ begin
   -- giving the desire contradiction.
   refine b.linear_independent.not_mem_span_image _ k',
   exact nm,
+end
+
+/--
+Over any ring `R`, if `b` is a basis for a module `M`,
+and `s` is a maximal linearly independent set,
+then the union of the supports of `x ∈ s` (when written out in the basis `b`) is all of `b`.
+-/
+lemma union_support_maximal_linear_independent_eq_range_basis
+  {ι : Type*} (b : basis ι R M)
+  {κ : Type*} (v : κ → M) (i : linear_independent R v) (maximal : i.maximal) :
+  ⨆ k, ((b.repr (v k)).support : set ι) = ⊤ :=
+begin
+  sorry
+end
+
+/--
+Over any ring `R`, if `b` is an infinite basis for a module `M`,
+and `s` is a maximal linearly independent set,
+then the cardinality of `b` is bounded by the cardinality of `s`.
+-/
+lemma infinite_basis_le_maximal_linear_independent
+  {ι : Type*} (b : basis ι R M) [infinite ι]
+  {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
+  cardinal.mk ι ≤ cardinal.mk κ :=
+begin
+  sorry
 end
 
 end
@@ -212,6 +248,33 @@ begin
   apply linear_independent_le_span' R M v i w,
   rw s,
   exact le_top,
+end
+
+/--
+Over any ring `R` satisfying the strong rank condition,
+if `b` is an infinite basis for a module `M`,
+and `s` is a linearly independent set,
+then the cardinality of `s` is bounded by the cardinality of `b`.
+-/
+lemma linear_independent_le_infinite_basis
+  {ι : Type*} (b : basis ι R M) [infinite ι]
+  {κ : Type*} (v : κ → M) (i : linear_independent R v) :
+  cardinal.mk κ ≤ cardinal.mk ι :=
+begin
+  sorry
+end
+
+/--
+Over any ring `R` satisfying the strong rank condition,
+if `b` is an infinite basis for a module `M`,
+then every maximal linearly independent set has the same cardinality as `b`.
+-/
+lemma maximal_linear_independent_eq_infinite_basis
+  {ι : Type*} (b : basis ι R M) [infinite ι]
+  {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
+  cardinal.mk κ = cardinal.mk ι :=
+begin
+  sorry
 end
 
 end strong_rank_condition

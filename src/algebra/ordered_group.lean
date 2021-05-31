@@ -254,6 +254,8 @@ by rw [← mul_le_mul_iff_left d, ← mul_le_mul_iff_right b, mul_inv_cancel_lef
 @[simp, to_additive] lemma div_le_self_iff (a : α) {b : α} : a / b ≤ a ↔ 1 ≤ b :=
 by simp [div_eq_mul_inv]
 
+alias sub_le_self_iff ↔ _ sub_le_self
+
 end typeclasses_left_right_le
 
 section typeclasses_left_right_lt
@@ -291,6 +293,8 @@ by rw [← mul_lt_mul_iff_left d, ← mul_lt_mul_iff_right b, mul_inv_cancel_lef
 
 @[simp, to_additive] lemma div_lt_self_iff (a : α) {b : α} : a / b < a ↔ 1 < b :=
 by simp [div_eq_mul_inv]
+
+alias sub_lt_self_iff ↔ _ sub_lt_self
 
 end typeclasses_left_right_lt
 

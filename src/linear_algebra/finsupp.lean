@@ -548,7 +548,9 @@ end total
 This is `finsupp.dom_congr` as a `linear_equiv`.-/
 protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
-(finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
+(finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv $
+by simpa only [equiv_map_domain_eq_map_domain, dom_congr_apply]
+  using (lmap_domain M R e).map_smul
 
 @[simp]
 lemma dom_lcongr_apply {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (v : α₁ →₀ M) :

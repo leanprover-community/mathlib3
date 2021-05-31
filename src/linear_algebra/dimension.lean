@@ -190,8 +190,8 @@ lemma linear_independent_le_span' {ι : Type*} (v : ι → M) (i : linear_indepe
 begin
   haveI : fintype ι := fintype_of_finset_card_le (fintype.card w) (λ t, begin
     let v' := λ x : (t : set ι), v x,
-    let i' : linear_independent R v' := sorry,
-    let s' : range v' ≤ span R w := sorry,
+    have i' : linear_independent R v' := i.comp _ subtype.val_injective,
+    have s' : range v' ≤ span R w := (range_comp_subset_range _ _).trans s,
     simpa using linear_independent_le_span_aux' R M v' i' w s'
   end),
   rw cardinal.fintype_card,

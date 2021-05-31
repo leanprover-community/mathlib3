@@ -559,12 +559,12 @@ rfl
 
 @[simp]
 lemma dom_lcongr_refl : finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
-linear_equiv.ext $ λ _, map_domain_id
+linear_equiv.ext $ λ _, equiv_map_domain_refl _
 
 lemma dom_lcongr_trans {α₁ α₂ α₃ : Type*} (f : α₁ ≃ α₂) (f₂ : α₂ ≃ α₃) :
   (finsupp.dom_lcongr f).trans (finsupp.dom_lcongr f₂) =
     (finsupp.dom_lcongr (f.trans f₂) : (_ →₀ M) ≃ₗ[R] _) :=
-linear_equiv.ext $ λ _, map_domain_comp.symm
+linear_equiv.ext $ λ _, (equiv_map_domain_trans _ _ _).symm
 
 @[simp]
 lemma dom_lcongr_symm {α₁ α₂ : Type*} (f : α₁ ≃ α₂) :
@@ -573,7 +573,7 @@ linear_equiv.ext $ λ x, rfl
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
-by simp [finsupp.dom_lcongr, finsupp.dom_congr, map_domain_single]
+by simp [finsupp.dom_lcongr, finsupp.dom_congr, equiv_map_domain_single]
 
 /-- An equivalence of sets induces a linear equivalence of `finsupp`s supported on those sets. -/
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :

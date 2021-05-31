@@ -83,6 +83,10 @@ def ennreal := with_top ℝ≥0
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
+instance : linear_ordered_add_comm_monoid ℝ≥0∞ :=
+{ .. ennreal.canonically_ordered_comm_semiring,
+  .. ennreal.complete_linear_order }
+
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
 

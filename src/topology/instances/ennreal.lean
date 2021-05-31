@@ -77,7 +77,7 @@ lemma open_embedding_coe : open_embedding (coe : ℝ≥0 → ℝ≥0∞) :=
 ⟨embedding_coe, by { convert is_open_ne_top, ext (x|_); simp [none_eq_top, some_eq_coe] }⟩
 
 lemma coe_range_mem_nhds : range (coe : ℝ≥0 → ℝ≥0∞) ∈ 𝓝 (r : ℝ≥0∞) :=
-mem_nhds_sets open_embedding_coe.open_range $ mem_range_self _
+is_open.mem_nhds open_embedding_coe.open_range $ mem_range_self _
 
 @[norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {a : ℝ≥0} :
   tendsto (λa, (m a : ℝ≥0∞)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
@@ -172,7 +172,7 @@ nhds_within_Ioi_coe_ne_bot
 -- • (x - y ≤ ε ↔ x ≤ ε + y) is true, while (x - y < ε ↔ x < ε + y) is not
 lemma Icc_mem_nhds : x ≠ ⊤ → 0 < ε → Icc (x - ε) (x + ε) ∈ 𝓝 x :=
 begin
-  assume xt ε0, rw mem_nhds_sets_iff,
+  assume xt ε0, rw _root_.mem_nhds_iff,
   by_cases x0 : x = 0,
   { use Iio (x + ε),
     have : Iio (x + ε) ⊆ Icc (x - ε) (x + ε), assume a, rw x0, simpa using le_of_lt,
@@ -242,7 +242,7 @@ begin
   refine assume b hb, tendsto_nhds_top_iff_nnreal.2 $ assume n, _,
   rcases lt_iff_exists_nnreal_btwn.1 (pos_iff_ne_zero.2 hb) with ⟨ε, hε, hεb⟩,
   replace hε : 0 < ε, from coe_pos.1 hε,
-  filter_upwards [prod_mem_nhds_sets (lt_mem_nhds $ @coe_lt_top (n / ε)) (lt_mem_nhds hεb)],
+  filter_upwards [prod_is_open.mem_nhds (lt_mem_nhds $ @coe_lt_top (n / ε)) (lt_mem_nhds hεb)],
   rintros ⟨a₁, a₂⟩ ⟨h₁, h₂⟩,
   dsimp at h₁ h₂ ⊢,
   rw [← div_mul_cancel n hε.ne', coe_mul],
@@ -650,6 +650,16 @@ namespace nnreal
 
 open_locale nnreal
 
+lemma tsum_eq_to_nnreal_tsum {f : β → ℝ≥0} :
+  (∑' b, f b) = (∑' b, (f b : ℝ≥0∞)).to_nnreal :=
+begin
+  by_cases h : summable f,
+  { rw [← ennreal.coe_tsum h, ennreal.to_nnreal_coe] },
+  { have A := tsum_eq_zero_of_not_summable h,
+    simp only [← ennreal.tsum_coe_ne_top_iff_summable, not_not] at h,
+    simp only [h, ennreal.top_to_nnreal, A] }
+end
+
 /-- Comparison test of convergence of `ℝ≥0`-valued series. -/
 lemma exists_le_has_sum_of_le {f g : β → ℝ≥0} {r : ℝ≥0}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
@@ -742,6 +752,31 @@ begin
   convert tendsto_sum_nat_add (λ i, (f i : ℝ)),
   norm_cast,
 end
+
+lemma has_sum_lt {f g : α → ℝ≥0} {sf sg : ℝ≥0} {i : α} (h : ∀ (a : α), f a ≤ g a) (hi : f i < g i)
+  (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
+begin
+  have A : ∀ (a : α), (f a : ℝ) ≤ g a := λ a, nnreal.coe_le_coe.2 (h a),
+  have : (sf : ℝ) < sg :=
+    has_sum_lt A (nnreal.coe_lt_coe.2 hi) (has_sum_coe.2 hf) (has_sum_coe.2 hg),
+  exact nnreal.coe_lt_coe.1 this
+end
+
+@[mono] lemma has_sum_strict_mono
+  {f g : α → ℝ≥0} {sf sg : ℝ≥0} (hf : has_sum f sf) (hg : has_sum g sg) (h : f < g) : sf < sg :=
+let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt hle hi hf hg
+
+lemma tsum_lt_tsum {f g : α → ℝ≥0} {i : α} (h : ∀ (a : α), f a ≤ g a) (hi : f i < g i)
+  (hg : summable g) : ∑' n, f n < ∑' n, g n :=
+has_sum_lt h hi (summable_of_le h hg).has_sum hg.has_sum
+
+@[mono] lemma tsum_strict_mono {f g : α → ℝ≥0} (hg : summable g) (h : f < g) :
+  ∑' n, f n < ∑' n, g n :=
+let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hg
+
+lemma tsum_pos {g : α → ℝ≥0} (hg : summable g) (i : α) (hi : 0 < g i) :
+  0 < ∑' b, g b :=
+by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 
 end nnreal
 
@@ -847,7 +882,7 @@ local attribute [instance] metric_space_emetric_ball
 
 lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ℝ≥0∞) (h : x ∈ ball a r) :
   𝓝 x = map (coe : ball a r → β) (𝓝 ⟨x, h⟩) :=
-(map_nhds_subtype_coe_eq _ $ mem_nhds_sets emetric.is_open_ball h).symm
+(map_nhds_subtype_coe_eq _ $ is_open.mem_nhds emetric.is_open_ball h).symm
 end
 
 section

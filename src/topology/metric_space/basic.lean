@@ -612,7 +612,7 @@ theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
-mem_nhds_sets is_open_ball (mem_ball_self ε0)
+is_open.mem_nhds is_open_ball (mem_ball_self ε0)
 
 theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
 mem_sets_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball

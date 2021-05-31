@@ -386,7 +386,7 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
       { apply mem_sets_of_superset this,
         intros P hP,
         exact c2 U P hP hU },
-      exact @c3 U (mem_nhds_sets hU hx) },
+      exact @c3 U (is_open.mem_nhds hU hx) },
     apply Lim_eq,
     rw le_nhds_iff,
     exact c4,

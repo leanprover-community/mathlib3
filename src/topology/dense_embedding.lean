@@ -65,13 +65,13 @@ begin
   rw [di.nhds_eq_comap a, mem_comap_sets],
   intro h,
   rcases h with ⟨t, t_nhd, sub⟩,
-  rw mem_nhds_sets_iff at t_nhd,
+  rw mem_nhds_iff at t_nhd,
   rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩,
   have := calc i ⁻¹' U ⊆ i⁻¹' t : preimage_mono U_sub
                    ... ⊆ s      : sub,
   have := calc U ⊆ closure (i '' (i ⁻¹' U)) : self_sub_closure_image_preimage_of_open di U_op
              ... ⊆ closure (i '' s)         : closure_mono (image_subset i this),
-  have U_nhd : U ∈ 𝓝 (i a) := mem_nhds_sets U_op e_a_in_U,
+  have U_nhd : U ∈ 𝓝 (i a) := is_open.mem_nhds U_op e_a_in_U,
   exact (𝓝 (i a)).sets_of_superset U_nhd this
 end
 
@@ -170,11 +170,11 @@ begin
     rwa di.extend_eq_of_tendsto hc },
   obtain ⟨V₂, V₂_in, V₂_op, hV₂⟩ : ∃ V₂ ∈ 𝓝 b, is_open V₂ ∧ ∀ x ∈ i ⁻¹' V₂, f x ∈ V',
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
-                            (mem_of_nhds V₁_in : b ∈ V₁) V' V'_in },
+                            (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
   { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
   rintros x ⟨x_in₁, x_in₂⟩,
-  have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
+  have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
   use V₂,
   tauto,

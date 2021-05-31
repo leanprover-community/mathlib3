@@ -255,6 +255,14 @@ instance {α : Type*} {β : Type*} [topological_space α]
   ..continuous_map.add_comm_group,
   ..continuous_map.comm_monoid,}
 
+/-- Coercion to a function as a `ring_hom`. -/
+@[simps]
+def coe_fn_ring_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [ring β] [topological_ring β] : C(α, β) →+* (α → β) :=
+{ to_fun := coe_fn,
+  ..(coe_fn_monoid_hom : C(α, β) →* _),
+  ..(coe_fn_add_monoid_hom : C(α, β) →+ _) }
+
 end continuous_map
 
 end ring_structure
@@ -330,6 +338,15 @@ instance module : module R C(α, M) :=
   zero_smul := λ f, by { ext, exact zero_smul _ _ },
   smul_zero := λ r, by { ext, exact smul_zero _ } }
 
+variables (R)
+
+/-- Coercion to a function as a `linear_map`. -/
+@[simps]
+def coe_fn_linear_map : C(α, M) →ₗ[R] (α → M) :=
+{ to_fun := coe_fn,
+  map_smul' := smul_coe,
+  ..(coe_fn_add_monoid_hom : C(α, M) →+ _) }
+
 end continuous_map
 
 end module_structure
@@ -402,6 +419,21 @@ instance continuous_map.algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _, }
+
+variables (R)
+
+/-- Coercion to a function as an `alg_hom`. -/
+@[simps]
+def continuous_map.coe_fn_alg_hom : C(α, A) →ₐ[R] (α → A) :=
+{ to_fun := coe_fn,
+  commutes' := λ r, rfl,
+  -- `..(continuous_map.coe_fn_ring_hom : C(α, A) →+* _)` times out for some reason
+  map_zero' := continuous_map.zero_coe,
+  map_one' := continuous_map.one_coe,
+  map_add' := continuous_map.add_coe,
+  map_mul' := continuous_map.mul_coe }
+
+variables {R}
 
 /--
 A version of `separates_points` for subalgebras of the continuous functions,

@@ -130,7 +130,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 ## Linter for unused arguments
 -/
 
-/-- Auxilliary definition for `check_unused_arguments` -/
+/-- Auxiliary definition for `check_unused_arguments` -/
 private meta def check_unused_arguments_aux : list ℕ → ℕ → ℕ → expr → list ℕ | l n n_max e :=
 if n > n_max then l else
 if ¬ is_lambda e ∧ ¬ is_pi e then l else

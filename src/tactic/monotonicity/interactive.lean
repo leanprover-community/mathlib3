@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity.basic
 import control.traversable
@@ -353,7 +353,8 @@ end
 meta def match_rule (pat : expr) (r : name) : tactic expr :=
 do  r' ← mk_const r,
     t  ← infer_type r',
-    t  ← expr.dsimp t { fail_if_unchanged := ff } tt [] [simp_arg_type.expr ``(monotone)],
+    t  ← expr.dsimp t { fail_if_unchanged := ff } tt [] [
+      simp_arg_type.expr ``(monotone), simp_arg_type.expr ``(strict_mono)],
     match_rule_head pat [] r' t
 
 meta def find_lemma (pat : expr) : list name → tactic (list expr)
@@ -526,7 +527,7 @@ meta def mono (many : parse (tk "*")?)
   tactic unit :=
 do hyps ← hyps.mmap (λ p, to_expr p >>= mk_meta_var),
    hyps.mmap' (λ pr, do h ← get_unused_name `h, note h none pr),
-   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none])),
+   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none]) >> skip),
    if many.is_some
      then repeat $ mono_aux dir
      else mono_aux dir,

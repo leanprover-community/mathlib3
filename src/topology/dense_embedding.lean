@@ -56,7 +56,7 @@ begin
   rw [image_preimage_eq_inter_range, mem_closure_iff],
   intros U U_op b_in,
   rw ←inter_assoc,
-  exact (dense_iff_inter_open.1 di.dense) _ (is_open_inter U_op s_op) ⟨b, b_in, b_in_s⟩
+  exact (dense_iff_inter_open.1 di.dense) _ (is_open.inter U_op s_op) ⟨b, b_in, b_in_s⟩
 end
 
 lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :
@@ -65,13 +65,13 @@ begin
   rw [di.nhds_eq_comap a, mem_comap_sets],
   intro h,
   rcases h with ⟨t, t_nhd, sub⟩,
-  rw mem_nhds_sets_iff at t_nhd,
+  rw mem_nhds_iff at t_nhd,
   rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩,
   have := calc i ⁻¹' U ⊆ i⁻¹' t : preimage_mono U_sub
                    ... ⊆ s      : sub,
   have := calc U ⊆ closure (i '' (i ⁻¹' U)) : self_sub_closure_image_preimage_of_open di U_op
              ... ⊆ closure (i '' s)         : closure_mono (image_subset i this),
-  have U_nhd : U ∈ 𝓝 (i a) := mem_nhds_sets U_op e_a_in_U,
+  have U_nhd : U ∈ 𝓝 (i a) := is_open.mem_nhds U_op e_a_in_U,
   exact (𝓝 (i a)).sets_of_superset U_nhd this
 end
 
@@ -94,8 +94,8 @@ variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 g↓     ↓e
  δ -h→ β
 -/
-lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i) (H : tendsto h (𝓝 d) (𝓝 (i a)))
-  (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
+lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i)
+  (H : tendsto h (𝓝 d) (𝓝 (i a))) (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
 begin
   have lim1 : map g (comap g (𝓝 d)) ≤ 𝓝 d := map_comap_le,
   replace lim1 : map h (map g (comap g (𝓝 d))) ≤ map h (𝓝 d) := map_mono lim1,
@@ -170,11 +170,11 @@ begin
     rwa di.extend_eq_of_tendsto hc },
   obtain ⟨V₂, V₂_in, V₂_op, hV₂⟩ : ∃ V₂ ∈ 𝓝 b, is_open V₂ ∧ ∀ x ∈ i ⁻¹' V₂, f x ∈ V',
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
-                            (mem_of_nhds V₁_in : b ∈ V₁) V' V'_in },
+                            (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
   { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
   rintros x ⟨x_in₁, x_in₂⟩,
-  have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
+  have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
   use V₂,
   tauto,
@@ -227,8 +227,9 @@ lemma to_embedding : embedding e :=
 protected lemma separable_space [separable_space α] : separable_space β :=
 de.to_dense_inducing.separable_space
 
-/-- The product of two dense embeddings is a dense embedding -/
-protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :
+/-- The product of two dense embeddings is a dense embedding. -/
+protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁)
+  (de₂ : dense_embedding e₂) :
   dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
     by simp; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
@@ -273,7 +274,8 @@ have ∀q:β×β, p q.1 q.2,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
 lemma is_closed_property3 [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2})
+  (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
   from is_closed_property (he.prod_map $ he.prod_map he) hp $ λ _, h _ _ _,
@@ -291,7 +293,8 @@ lemma dense_range.induction_on₂ [topological_space β] {e : α → β} {p : β
 
 @[elab_as_eliminator]
 lemma dense_range.induction_on₃ [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2})
+  (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
   (b₁ b₂ b₃ : β) : p b₁ b₂ b₃ := is_closed_property3 he hp h _ _ _
 
 section

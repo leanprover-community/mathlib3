@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
 
-import data.fintype.basic
 import computability.DFA
 
 /-!
@@ -70,6 +69,15 @@ begin
   rw [accepts, DFA.accepts, eval, DFA.eval],
   change list.foldl _ _ _ ∈ {S | _} ↔ _,
   finish
+end
+
+lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
+  (hlen : fintype.card (set σ) + 1 ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) + 1 ∧ b ≠ [] ∧
+  {a} * language.star {b} * {c} ≤ M.accepts :=
+begin
+  rw ←to_DFA_correct at hx ⊢,
+  exact M.to_DFA.pumping_lemma hx hlen
 end
 
 end NFA

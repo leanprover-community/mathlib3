@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Chris Hughes
+Authors: Chris Hughes
 -/
 import data.zsqrtd.basic
 import data.complex.basic
@@ -52,10 +52,7 @@ local attribute [-instance] complex.field -- Avoid making things noncomputable u
 
 /-- The embedding of the Gaussian integers into the complex numbers, as a ring homomorphism. -/
 def to_complex : ℤ[i] →+* ℂ :=
-begin
-  refine_struct { to_fun := λ x : ℤ[i], (x.re + x.im * I : ℂ), .. };
-  intros; apply complex.ext; dsimp; norm_cast; simp; abel
-end
+zsqrtd.lift ⟨I, by simp⟩
 end
 
 instance : has_coe (ℤ[i]) ℂ := ⟨to_complex⟩
@@ -146,7 +143,7 @@ calc ((x / y : ℂ) - ((x / y : ℤ[i]) : ℂ)).norm_sq =
     ((x / y : ℂ).im - ((x / y : ℤ[i]) : ℂ).im) * I : ℂ).norm_sq :
       congr_arg _ $ by apply complex.ext; simp
   ... ≤ (1 / 2 + 1 / 2 * I).norm_sq :
-  have abs' (2 / (2 * 2) : ℝ) = 1 / 2, by rw _root_.abs_of_nonneg; norm_num,
+  have abs' (2⁻¹ : ℝ) = 2⁻¹, from _root_.abs_of_nonneg (by norm_num),
   norm_sq_le_norm_sq_of_re_le_of_im_le
     (by rw [to_complex_div_re]; simp [norm_sq, this];
       simpa using abs_sub_round (x / y : ℂ).re)
@@ -186,7 +183,7 @@ instance : nontrivial ℤ[i] :=
 instance : euclidean_domain ℤ[i] :=
 { quotient := (/),
   remainder := (%),
-  quotient_zero := λ _, by simp [div_def]; refl,
+  quotient_zero := by { simp [div_def], refl },
   quotient_mul_add_remainder_eq := λ _ _, by simp [mod_def],
   r := _,
   r_well_founded := measure_wf (int.nat_abs ∘ norm),
@@ -199,7 +196,7 @@ open principal_ideal_ring
 
 lemma mod_four_eq_three_of_nat_prime_of_prime (p : ℕ) [hp : fact p.prime] (hpi : prime (p : ℤ[i])) :
   p % 4 = 3 :=
-hp.eq_two_or_odd.elim
+hp.1.eq_two_or_odd.elim
   (λ hp2, absurd hpi (mt irreducible_iff_prime.2 $
     λ ⟨hu, h⟩, begin
       have := h ⟨1, 1⟩ ⟨1, -1⟩ (hp2.symm ▸ rfl),
@@ -214,16 +211,16 @@ hp.eq_two_or_odd.elim
         revert this hp3 hp1,
         generalize : p % 4 = m, dec_trivial!,
       end,
-    let ⟨k, hk⟩ := (zmod.exists_pow_two_eq_neg_one_iff_mod_four_ne_three p).2 $
+    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).2 $
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
-      { refine ⟨k.val, k.val_lt, zmod.cast_val k⟩ },
+      { refine ⟨k.val, k.val_lt, zmod.nat_cast_zmod_val k⟩ },
       have hpk : p ∣ k ^ 2 + 1,
         by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
-        by simp [pow_two, zsqrtd.ext],
-      have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
+        by simp [sq, zsqrtd.ext],
+      have hpne1 : p ≠ 1 := ne_of_gt hp.1.one_lt,
       have hkltp : 1 + k * k < p * p,
         from calc 1 + k * k ≤ k + k * k :
           add_le_add_right (nat.pos_of_ne_zero
@@ -246,32 +243,32 @@ hp.eq_two_or_odd.elim
                 by simpa [hx0] using congr_arg zsqrtd.im hx),
       have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2
         (by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
-        exact λ h, (ne_of_lt hp.one_lt).symm h.1),
+        exact λ h, (ne_of_lt hp.1.one_lt).symm h.1),
       obtain ⟨y, hy⟩ := hpk,
       have := hpi.2.2 ⟨k, 1⟩ ⟨k, -1⟩ ⟨y, by rw [← hkmul, ← nat.cast_mul p, ← hy]; simp⟩,
       clear_aux_decl, tauto
     end)
 
-lemma sum_two_squares_of_nat_prime_of_not_irreducible (p : ℕ) [hp : fact p.prime]
+lemma sq_add_sq_of_nat_prime_of_not_irreducible (p : ℕ) [hp : fact p.prime]
   (hpi : ¬irreducible (p : ℤ[i])) : ∃ a b, a^2 + b^2 = p :=
 have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
   by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
-    exact λ h, (ne_of_lt hp.one_lt).symm h.1,
+    exact λ h, (ne_of_lt hp.1.one_lt).symm h.1,
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
-  by simpa [irreducible, hpu, not_forall, not_or_distrib] using hpi,
+  by simpa [irreducible_iff, hpu, not_forall, not_or_distrib] using hpi,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
-have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
+have hnap : (norm a).nat_abs = p, from ((hp.1.mul_eq_prime_sq_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $
-  by rw [← int.coe_nat_inj', int.coe_nat_pow, pow_two,
+  by rw [← int.coe_nat_inj', int.coe_nat_pow, sq,
     ← @norm_nat_cast (-1), hpab];
     simp).1,
-⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, pow_two] using hnap⟩
+⟨a.re.nat_abs, a.im.nat_abs, by simpa [nat_abs_norm_eq, sq] using hnap⟩
 
 lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3 : p % 4 = 3) :
   prime (p : ℤ[i]) :=
 irreducible_iff_prime.1 $ classical.by_contradiction $ λ hpi,
-  let ⟨a, b, hab⟩ := sum_two_squares_of_nat_prime_of_not_irreducible p hpi in
-have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.cast_mod_nat 4 p, hp3]; exact dec_trivial,
+  let ⟨a, b, hab⟩ := sq_add_sq_of_nat_prime_of_not_irreducible p hpi in
+have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod 4 p, hp3]; exact dec_trivial,
 this a b (hab ▸ by simp)
 
 /-- A prime natural number is prime in `ℤ[i]` if and only if it is `3` mod `4` -/

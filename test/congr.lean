@@ -49,15 +49,19 @@ end
 example : () = () := by rcongr
 example : 0 = 0 := by rcongr
 
+example {α} (a : α) : a = a := by congr'
+
+example {α} (a b : α) (h : false) : a = b :=
+by { fail_if_success {congr'}, cases h }
 
 end congr
 
 section convert_to
 example {α} [add_comm_monoid α] {a b c d : α} (H : a = c) (H' : b = d) : a + b = d + c :=
-by {convert_to c + d = _ using 2, from H, from H', rw[add_comm]}
+by {convert_to c + d = _ using 2, rw[add_comm]}
 
 example {α} [add_comm_monoid α] {a b c d : α} (H : a = c) (H' : b = d) : a + b = d + c :=
-by {convert_to c + d = _ using 0, congr' 2, from H, from H', rw[add_comm]}
+by {convert_to c + d = _ using 0, congr' 2, rw[add_comm]}
 
 example {α} [add_comm_monoid α] [partial_order α] {a b c d e f g : α} :
   (a + b) + (c + d) + (e + f) + g ≤ a + d + e + f + c + g + b :=

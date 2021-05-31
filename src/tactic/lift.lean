@@ -15,14 +15,13 @@ under a specified condition.
 lift, tactic
 -/
 
-universe variables u v w
-
 /-- A class specifying that you can lift elements from `α` to `β` assuming `cond` is true.
   Used by the tactic `lift`. -/
-class can_lift (α : Type u) (β : Type v) : Type (max u v) :=
+class can_lift (α β : Sort*) :=
 (coe : β → α)
 (cond : α → Prop)
 (prf : ∀(x : α), cond x → ∃(y : β), coe y = x)
+
 
 open tactic
 
@@ -45,13 +44,30 @@ instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
 
 /-- Enable automatic handling of pi types in `can_lift`. -/
-instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Type w)
+instance pi.can_lift (ι : Type*) (α : Π i : ι, Type*) (β : Π i : ι, Type*)
   [Π i : ι, can_lift (α i) (β i)] :
   can_lift (Π i : ι, α i) (Π i : ι, β i) :=
 { coe := λ f i, can_lift.coe (f i),
   cond := λ f, ∀ i, can_lift.cond (β i) (f i),
   prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
     classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
+
+instance pi_subtype.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
+  (p : ι → Prop) :
+  can_lift (Π i : subtype p, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  cond := λ _, true,
+  prf :=
+    begin
+      classical,
+      refine λ f _, ⟨λ i, if hi : p i then f ⟨i, hi⟩ else classical.choice (ne i), funext _⟩,
+      rintro ⟨i, hi⟩,
+      exact dif_pos hi
+    end }
+
+instance pi_subtype.can_lift' (ι : Type*) (α : Type*) [ne : nonempty α] (p : ι → Prop) :
+  can_lift (subtype p → α) (ι → α) :=
+pi_subtype.can_lift ι (λ _, α) p
 
 namespace tactic
 
@@ -91,7 +107,7 @@ do
     fail "lift tactic failed. Tactic is only applicable when the target is a proposition.",
   e ← i_to_expr p,
   old_tp ← infer_type e,
-  new_tp ← i_to_expr t,
+  new_tp ← i_to_expr ``(%%t : Sort*),
   inst_type ← mk_app ``can_lift [old_tp, new_tp],
   inst ← mk_instance inst_type <|>
     pformat!"Failed to find a lift from {old_tp} to {new_tp}. Provide an instance of\n  {inst_type}"

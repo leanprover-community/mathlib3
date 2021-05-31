@@ -162,7 +162,30 @@ calc map f.to_linear_map (M * N)
       rw f.to_linear_map_apply at fy_eq,
       ext,
       simp [fy_eq] }
-  end
+end
+
+section decidable_eq
+
+open_locale classical
+
+lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A}
+  (hx : x ∈ span R (S * S')) :
+  ∃ (T T' : finset A), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span R (T * T' : set A) :=
+begin
+  obtain ⟨U, h, hU⟩ := mem_span_finite_of_mem_span hx,
+  obtain ⟨T, T', hS, hS', h⟩ := finset.subset_mul h,
+  use [T, T', hS, hS'],
+  have h' : (U : set A) ⊆ T * T', { assumption_mod_cast, },
+  have h'' := span_mono h' hU,
+  assumption,
+end
+
+end decidable_eq
+
+lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
+  ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=
+submodule.mem_span_mul_finite_of_mem_span_mul
+  (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
 
 variables {M N P}
 
@@ -184,7 +207,9 @@ variables (M)
 lemma pow_subset_pow {n : ℕ} : (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
 begin
   induction n with n ih,
-  { erw [pow_zero, pow_zero, set.singleton_subset_iff], rw [mem_coe, ← one_le], exact le_refl _ },
+  { erw [pow_zero, pow_zero, set.singleton_subset_iff],
+    rw [set_like.mem_coe, ← one_le],
+    exact le_refl _ },
   { rw [pow_succ, pow_succ],
     refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
@@ -223,7 +248,7 @@ instance : comm_semiring (submodule R A) :=
 variables (R A)
 
 /-- R-submodules of the R-algebra A are a module over `set A`. -/
-instance semimodule_set : semimodule (set_semiring A) (submodule R A) :=
+instance module_set : module (set_semiring A) (submodule R A) :=
 { smul := λ s P, span R s * P,
   smul_add := λ _ _ _, mul_add _ _ _,
   add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
@@ -252,7 +277,7 @@ begin
   apply le_antisymm,
   { rw span_le,
     rintros _ ⟨b, m, hb, hm, rfl⟩,
-    rw [mem_coe, mem_map, set.mem_singleton_iff.mp hb],
+    rw [set_like.mem_coe, mem_map, set.mem_singleton_iff.mp hb],
     exact ⟨m, hm, rfl⟩ },
   { rintros _ ⟨m, hm, rfl⟩, exact subset_span ⟨a, m, set.mem_singleton a, hm, rfl⟩ }
 end

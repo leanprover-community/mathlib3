@@ -1,11 +1,11 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Mario Carneiro
+Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
 import set_theory.ordinal_arithmetic
-import tactic.omega
+import tactic.linarith
 
 /-!
 # Cardinals and ordinals
@@ -13,21 +13,27 @@ import tactic.omega
 Relationships between cardinals and ordinals, properties of cardinals that are proved
 using ordinals.
 
-## Main definitions and results
+## Main definitions
 
-* The `aleph'` function gives the cardinals listed by their ordinal
-  index, and is the inverse of `aleph_idx`.
-  `aleph' n = n`, `aleph' ω = ω`, `aleph' (ω + 1) = ℵ₁`, etc. It is an order isomorphism
-  between ordinals and cardinals.
-* The `aleph` function gives the infinite cardinals listed by their
-  ordinal index. `aleph 0 = ω`, `aleph 1 = succ ω` is the first
+* The function `cardinal.aleph'` gives the cardinals listed by their ordinal
+  index, and is the inverse of `cardinal.aleph_idx`.
+  `aleph' n = n`, `aleph' ω = cardinal.omega = ℵ₀`, `aleph' (ω + 1) = ℵ₁`, etc.
+  It is an order isomorphism between ordinals and cardinals.
+* The function `cardinal.aleph` gives the infinite cardinals listed by their
+  ordinal index. `aleph 0 = cardinal.omega = ℵ₀`, `aleph 1 = ℵ₁` is the first
   uncountable cardinal, and so on.
 
-* `mul_eq_max` and `add_eq_max` state that the product (resp. sum) of two infinite cardinals
-  is just their maximum. Several variations around this fact are also given.
-* `mk_list_eq_mk` : when `α` is infinite, `α` and `list α` have the same cardinality.
-* simp lemmas for inequalities between `bit0 a` and `bit1 b` are registered, making simp
+## Main Statements
+
+* `cardinal.mul_eq_max` and `cardinal.add_eq_max` state that the product (resp. sum) of two infinite
+  cardinals is just their maximum. Several variations around this fact are also given.
+* `cardinal.mk_list_eq_mk` : when `α` is infinite, `α` and `list α` have the same cardinality.
+* simp lemmas for inequalities between `bit0 a` and `bit1 b` are registered, making `simp`
   able to prove inequalities about numeral cardinals.
+
+## Tags
+
+cardinal arithmetic (for infinite cardinals)
 -/
 
 noncomputable theory
@@ -216,6 +222,12 @@ theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
 aleph'_is_normal.trans $ add_is_normal ordinal.omega
 
+lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
+begin
+  have : aleph 1 = (aleph 0).succ, by simp only [← aleph_succ, ordinal.succ_zero],
+  rw [countable_iff, ← aleph_zero, this, lt_succ],
+end
+
 /-! ### Properties of `mul` -/
 
 /-- If `α` is an infinite type, then `α × α` and `α` have the same cardinality. -/
@@ -251,7 +263,8 @@ begin
   refine lt_of_le_of_lt (_ : _ ≤ card (typein (<) (g p)).succ * card (typein (<) (g p)).succ) _,
   { have : {q|s q p} ⊆ (insert (g p) {x | x < (g p)}).prod (insert (g p) {x | x < (g p)}),
     { intros q h,
-      simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj] at h,
+      simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
+        at h,
       exact max_le_iff.1 (le_iff_lt_or_eq.2 $ h.imp_right and.left) },
     suffices H : (insert (g p) {x | r x (g p)} : set α) ≃ ({x | r x (g p)} ⊕ punit),
     { exact ⟨(set.embedding_of_subset _ _ this).trans
@@ -331,7 +344,7 @@ begin
     rcases ha with rfl|rfl|⟨⟨n, rfl⟩, ⟨m, rfl⟩⟩, contradiction, contradiction,
     rw [← ne] at h2a, rw [← one_le_iff_ne_zero] at h2a hb, norm_cast at h2a hb h ⊢,
     apply le_antisymm _ hb, rw [← not_lt], intro h2b,
-    apply ne_of_gt _ h, rw [gt], conv_lhs { rw [← mul_one n] },
+    apply ne_of_gt _ h, conv_lhs { rw [← mul_one n] },
     rwa [mul_lt_mul_left], apply nat.lt_of_succ_le h2a },
   { rintro (⟨⟨ha, hab⟩, hb⟩|rfl|rfl),
     { rw [mul_eq_max_of_omega_le_left ha hb, max_eq_left hab] },
@@ -432,7 +445,7 @@ H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
 lemma power_self_eq {c : cardinal} (h : omega ≤ c) : c ^ c = 2 ^ c :=
 begin
   apply le_antisymm,
-  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [power_mul, mul_eq_self h] },
+  { apply le_trans (power_le_power_right $ le_of_lt $ cantor c), rw [← power_mul, mul_eq_self h] },
   { convert power_le_power_right (le_trans (le_of_lt $ nat_lt_omega 2) h), apply nat.cast_two.symm }
 end
 
@@ -562,7 +575,7 @@ theorem extend_function {α β : Type*} {s : set α} (f : s ↪ β)
 begin
   intros, have := h, cases this with g,
   let h : α ≃ β := (set.sum_compl (s : set α)).symm.trans
-    ((sum_congr (equiv.set.range f f.2) g).trans
+    ((sum_congr (equiv.of_injective f f.2) g).trans
     (set.sum_compl (range f))),
   refine ⟨h, _⟩, rintro ⟨x, hx⟩, simp [set.sum_compl_symm_apply_of_mem, hx]
 end
@@ -643,7 +656,7 @@ begin
     rcases lt_omega.1 (not_le.1 h) with ⟨n, rfl⟩,
     norm_cast,
     dsimp [bit1, bit0],
-    omega }
+    linarith }
 end
 
 @[simp] theorem bit1_lt_omega {c : cardinal} : bit1 c < omega ↔ c < omega :=

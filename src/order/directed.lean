@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl
+Authors: Johannes Hölzl
 -/
 import order.lattice
 import data.set.basic
@@ -51,6 +51,10 @@ directed_comp.2 $ hf.mono hg
 lemma directed_of_sup [semilattice_sup α] {f : α → β} {r : β → β → Prop}
   (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
 λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
+
+lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
+  monotone f → directed (≤) f :=
+directed_of_sup
 
 /-- An antimonotone function on an inf-semilattice is directed. -/
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import analysis.analytic.basic
 import analysis.special_functions.pow
@@ -17,7 +17,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
-open_locale topological_space classical big_operators nnreal
+open_locale topological_space classical big_operators nnreal ennreal
 open filter asymptotics
 
 namespace formal_multilinear_series
@@ -30,10 +30,10 @@ coercions. -/
 lemma radius_eq_liminf : p.radius = liminf at_top (λ n, 1/((nnnorm (p n)) ^ (1 / (n : ℝ)) : ℝ≥0)) :=
 begin
   have : ∀ (r : ℝ≥0) {n : ℕ}, 0 < n →
-    ((r : ennreal) ≤ 1 / ↑(nnnorm (p n) ^ (1 / (n : ℝ))) ↔ nnnorm (p n) * r ^ n ≤ 1),
+    ((r : ℝ≥0∞) ≤ 1 / ↑(nnnorm (p n) ^ (1 / (n : ℝ))) ↔ nnnorm (p n) * r ^ n ≤ 1),
   { intros r n hn,
     have : 0 < (n : ℝ) := nat.cast_pos.2 hn,
-    conv_lhs {rw [ennreal.div_def, one_mul, ennreal.le_inv_iff_mul_le, ← ennreal.coe_mul,
+    conv_lhs {rw [one_div, ennreal.le_inv_iff_mul_le, ← ennreal.coe_mul,
       ennreal.coe_le_one_iff, one_div, ← nnreal.rpow_one r, ← mul_inv_cancel this.ne',
       nnreal.rpow_mul, ← nnreal.mul_rpow, ← nnreal.one_rpow (n⁻¹),
       nnreal.rpow_le_rpow_iff (inv_pos.2 this), mul_comm, nnreal.rpow_nat_cast] } },

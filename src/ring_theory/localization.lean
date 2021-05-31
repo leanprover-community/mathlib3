@@ -421,10 +421,14 @@ ring_hom.ext $ monoid_hom.ext_iff.1 $ (to_localization_map M S).lift_comp _
   lift (is_unit_comp M j) = j :=
 ring_hom.ext $ monoid_hom.ext_iff.1 $ (to_localization_map M S).lift_of_comp j.to_monoid_hom
 
-lemma epic_of_localization_map {j k : S →+* P}
+variables (M)
+
+lemma epic_of_localization_map (j k : S →+* P)
   (h : ∀ a, j.comp (algebra_map R S) a = k.comp (algebra_map R S) a) : j = k :=
 ring_hom.ext $ monoid_hom.ext_iff.1 $ @submonoid.localization_map.epic_of_localization_map
   _ _ _ _ _ _ _ (to_localization_map M S) j.to_monoid_hom k.to_monoid_hom h
+
+variables {M}
 
 lemma lift_unique {j : S →+* P}
   (hj : ∀ x, j ((algebra_map R S) x) = g x) : lift hg = j :=
@@ -1113,6 +1117,24 @@ protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   (hM : M ≤ non_zero_divisors R) {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R S x ≠ 0 :=
 map_ne_zero_of_mem_non_zero_divisors (is_localization.injective S hM) hx
 
+variables (S Q M)
+
+/-- Injectivity of a map descends to the map induced on localizations. -/
+lemma map_injective_of_injective
+  (hg : function.injective g) [is_localization (M.map g : submonoid P) Q]
+  (hM : (M.map g : submonoid P) ≤ non_zero_divisors P) :
+  function.injective (map Q g M.le_comap_map : S → Q) :=
+begin
+  rintros x y hxy,
+  obtain ⟨a, b, rfl⟩ := mk'_surjective M x,
+  obtain ⟨c, d, rfl⟩ := mk'_surjective M y,
+  rw [map_mk' _ a b, map_mk' _ c d, mk'_eq_iff_eq] at hxy,
+  refine mk'_eq_iff_eq.2 (congr_arg (algebra_map _ _) (hg _)),
+  convert is_localization.injective _ hM hxy; simp,
+end
+
+variables (S) {Q M}
+
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain. -/
 def integral_domain_of_le_non_zero_divisors [algebra A S] {M : submonoid A} [is_localization M S]
@@ -1563,26 +1585,15 @@ lemma algebra_map_mk' (r : R) (m : M) :
     mk' Sₘ (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
 map_mk' _ _ _
 
-/-- Injectivity of a map descends to the map induced on localizations. -/
-lemma map_injective_of_injective {R S : Type*} [comm_ring R] [comm_ring S]
-  (ϕ : R →+* S) (hϕ : function.injective ϕ) (M : submonoid R)
-  [algebra R Rₘ] [is_localization M Rₘ] [algebra S Sₘ] [is_localization (M.map ϕ : submonoid S) Sₘ]
-  (hM : (M.map ϕ : submonoid S) ≤ non_zero_divisors S) :
-  function.injective (map Sₘ ϕ M.le_comap_map : Rₘ → Sₘ) :=
-begin
-  rintros x y hxy,
-  obtain ⟨a, b, rfl⟩ := mk'_surjective M x,
-  obtain ⟨c, d, rfl⟩ := mk'_surjective M y,
-  rw [map_mk' _ a b, map_mk' _ c d, mk'_eq_iff_eq] at hxy,
-  refine mk'_eq_iff_eq.2 (congr_arg (algebra_map R Rₘ) (hϕ _)),
-  convert is_localization.injective _ hM hxy; simp,
-end
+variables (Rₘ Sₘ)
 
 /-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization. -/
 lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
   (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
   function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) :=
-map_injective_of_injective (algebra_map R S) hRS M hM
+is_localization.map_injective_of_injective M Rₘ Sₘ hRS hM
+
+variables {Rₘ Sₘ}
 
 open polynomial
 

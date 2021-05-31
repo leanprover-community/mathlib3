@@ -42,7 +42,21 @@ end
 
 namespace ProjectiveResolution
 
-/- We have to jump through some hoops to get `ProjectiveResolution.of` to typecheck! -/
+/-!
+Our goal is to define `ProjectiveResolution.of Z : ProjectiveResolution Z`.
+The `0`-th object in this resolution will just be `projective.over Z`,
+i.e. an arbitrarily chosen projective object with a map to `Z`.
+After that, we build the `n+1`-st object as `projective.syzygies`
+applied to the previously constructed morphism,
+and the map to the `n`-th object as `projective.d`.
+
+We have to jump through some hoops to get this to typecheck, however!
+Further, for not-strictly-necessarily implementation reasons,
+we work via an intermediate step of building an exact complex
+`Z ← X 1 ← X 2 ← ...` (packaged as a `ProjectiveResolution.aux_struct`)
+and then truncate this to a chain complex equipped with a quasi-isomorphism to `Z`,
+packaged as a `ProjectiveResolution Z`.
+-/
 section
 variables (O : C → C) (π : Π X, O X ⟶ X)
 variables (L : Π {X Y : C} (f : X ⟶ Y), C) (δ : Π {X Y : C} (f : X ⟶ Y), L f ⟶ X)

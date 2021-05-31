@@ -59,18 +59,20 @@ instance : inhabited language := ⟨empty⟩
 variable (L : language.{u})
 
 /-- A language is relational when it has no function symbols. -/
-def is_relational : Prop := ∀ n, L.functions n → false
+class is_relational : Prop :=
+(empty_functions : ∀ n, L.functions n → false)
 
 /-- A language is algebraic when it has no relation symbols. -/
-def is_algebraic : Prop := ∀ n, L.relations n → false
+class is_algebraic : Prop :=
+(empty_relations : ∀ n, L.relations n → false)
 
 variable {L}
 
 lemma is_relational_of_empty {symb : ℕ → Type u}  : is_relational ⟨λ _, pempty, symb⟩ :=
-by { intro n, apply pempty.elim }
+⟨by { intro n, apply pempty.elim }⟩
 
 lemma is_algebraic_of_empty {symb : ℕ → Type u}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
-by { intro n, apply pempty.elim }
+⟨by { intro n, apply pempty.elim }⟩
 
 variables (L) (M : Type u)
 

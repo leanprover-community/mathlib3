@@ -736,9 +736,9 @@ begin
   have ft_prod : fintype (quotient (gpowers x) × (gpowers x)),
     from fintype.of_equiv G group_equiv_quotient_times_subgroup,
   have ft_s : fintype (gpowers x),
-    from @fintype.fintype_prod_right _ _ _ ft_prod _,
+    from @fintype.prod_right _ _ _ ft_prod _,
   have ft_cosets : fintype (quotient (gpowers x)),
-    from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, (gpowers x).one_mem⟩⟩,
+    from @fintype.prod_left _ _ _ ft_prod ⟨⟨1, (gpowers x).one_mem⟩⟩,
   have eq₁ : fintype.card G = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
     from calc fintype.card G = @fintype.card _ ft_prod :
         @fintype.card_congr _ _ _ ft_prod group_equiv_quotient_times_subgroup

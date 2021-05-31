@@ -27,7 +27,7 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
-lemma zero_le_one : 0 ≤ (1:α) :=
+@[simp] lemma zero_le_one : 0 ≤ (1:α) :=
 ordered_semiring.zero_le_one
 
 lemma zero_le_two : 0 ≤ (2:α) :=
@@ -41,7 +41,7 @@ section nontrivial
 
 variables [nontrivial α]
 
-lemma zero_lt_one : 0 < (1 : α) :=
+@[simp] lemma zero_lt_one : 0 < (1 : α) :=
 lt_of_le_of_ne zero_le_one zero_ne_one
 
 lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one

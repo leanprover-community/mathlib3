@@ -7,7 +7,8 @@ import data.nat.basic
 
 /-!
 # Basics on First-Order Structures
-This file defines first-order languages and structures in the style of the Flypitch project.
+This file defines first-order languages and structures in the style of the
+[Flypitch project](https://flypitch.github.io/).
 
 ## Main Definitions
 * A `first_order.language` defines a language as a pair of functions from the natural numbers to
@@ -21,9 +22,16 @@ This file defines first-order languages and structures in the style of the Flypi
 * A `first_order.language.embedding`, denoted `M ↪[L] N`, is an embedding from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
-* A `first_order.language.equiv`, denoted `M ↪[L] N`, is an equivalence from the `L`-structure `M`
+* A `first_order.language.equiv`, denoted `M ≃[L] N`, is an equivalence from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
+
+## References
+For the Flypitch project:
+- [J. Han, F. van Doorn, *A formal proof of the independence of the continuum hypothesis*]
+[flypitch_cpp]
+- [J. Han, F. van Doorn, *A formalization of forcing and the unprovability of
+the continuum hypothesis*][flypitch_itp]
 
 -/
 
@@ -109,6 +117,8 @@ namespace hom
 
 @[simps] instance has_coe_to_fun : has_coe_to_fun (M →[L] N) :=
 ⟨(λ _, M → N), first_order.language.hom.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe {f : M →[L] N} : f.to_fun = (f : M → N) := rfl
 
 lemma coe_inj ⦃f g : M →[L] N⦄ (h : (f : M → N) = g) : f = g :=
 by {cases f, cases g, cases h, refl}
@@ -264,7 +274,7 @@ def to_hom (f : M ≃[L] N) : M →[L] N :=
 ⟨(λ _, M → N), λ f, f.to_embedding⟩
 
 @[simp]
-lemma coe_eq_to_hom {f : M ≃[L] N} : (f : M → N) = f.to_hom := rfl
+lemma coe_to_hom {f : M ≃[L] N} : (f.to_hom : M → N) = (f : M → N) := rfl
 
 lemma coe_inj ⦃f g : M ≃[L] N⦄ (h : (f : M → N) = g) : f = g :=
 begin
@@ -282,10 +292,10 @@ coe_inj (funext h)
 lemma ext_iff {f g : M ≃[L] N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
-  φ (fun_map f x) = fun_map f (φ ∘ x) := by simp
+@[simp] lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
+  φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
-lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
+@[simp] lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
 
 lemma injective (f : M ≃[L] N) : function.injective f := f.to_embedding.injective

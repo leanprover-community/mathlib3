@@ -773,6 +773,19 @@ that `sum.inr` is an injection, but there's no clear inverse if `β` is empty. -
 noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] : fintype β :=
 fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
 
+section finset
+
+/-! ### `fintype (s : finset α)` -/
+
+instance finset.fintype_coe_sort {α : Type u} (s : finset α) : fintype s :=
+⟨s.attach, s.mem_attach⟩
+
+@[simp] lemma finset.univ_eq_attach {α : Type u} (s : finset α) :
+  (univ : finset s) = s.attach :=
+rfl
+
+end finset
+
 namespace fintype
 variables [fintype α] [fintype β]
 

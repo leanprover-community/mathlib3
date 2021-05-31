@@ -67,26 +67,29 @@ begin
   simp
 end
 
-/-- Fold of a `s : multiset α` with `op : α → α → α`, given a proof that `left_commutative op`
-on all elements `x ∈ s`. -/
-def noncomm_fold (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s) b, op x (op y b) = op y (op x b))
-  (a : α)
-  : α :=
-noncomm_foldr op s comm a
+variables [assoc : is_associative α op]
+include assoc
+
+/-- Fold of a `s : multiset α` with an associative `op : α → α → α`, given a proofs that `op`
+is commutative on all elements `x ∈ s`. -/
+def noncomm_fold (s : multiset α)
+  (comm : ∀ (x ∈ s) (y ∈ s), op x y = op y x)
+  (a : α) : α :=
+noncomm_foldr op s (λ x hx y hy b, by rw [←assoc.assoc, comm _ hx _ hy, assoc.assoc]) a
 
 @[simp] lemma noncomm_fold_coe (l : list α)
-  (comm : ∀ (x ∈ (l : multiset α)) (y ∈ (l : multiset α)) b, op x (op y b) = op y (op x b))
+  (comm : ∀ (x ∈ (l : multiset α)) (y ∈ (l : multiset α)), op x y = op y x)
   (a : α) :
   noncomm_fold op (l : multiset α) comm a = l.foldr op a :=
 by simp [noncomm_fold]
 
 @[simp] lemma noncomm_fold_empty
-  (h : ∀ (x ∈ (0 : multiset α)) (y ∈ (0 : multiset α)) b, op x (op y b) = op y (op x b)) (a : α) :
+  (h : ∀ (x ∈ (0 : multiset α)) (y ∈ (0 : multiset α)), op x y = op y x) (a : α) :
   noncomm_fold op (0 : multiset α) h a = a := rfl
 
 lemma noncomm_fold_cons (s : multiset α) (a : α)
-  (h : ∀ (x ∈ a ::ₘ s) (y ∈ a ::ₘ s) b, op x (op y b) = op y (op x b))
-  (h' : ∀ (x ∈ s) (y ∈ s) b, op x (op y b) = op y (op x b))
+  (h : ∀ (x ∈ a ::ₘ s) (y ∈ a ::ₘ s), op x y = op y x)
+  (h' : ∀ (x ∈ s) (y ∈ s), op x y = op y x)
   (x : α) :
   noncomm_fold op (a ::ₘ s) h x = op a (noncomm_fold op s h' x) :=
 begin
@@ -94,14 +97,15 @@ begin
   simp
 end
 
-lemma noncomm_fold_eq_fold (s : multiset α) [hc : is_commutative α op] [ha : is_associative α op]
+lemma noncomm_fold_eq_fold (s : multiset α) [is_commutative α op]
   (a : α) :
-  noncomm_fold op s (λ x _ y _, left_comm op hc.comm ha.assoc x y) a = fold op a s :=
+  noncomm_fold op s (λ x _ y _, is_commutative.comm x y) a = fold op a s :=
 begin
   induction s using quotient.induction_on,
   simp
 end
 
+omit assoc
 variables [monoid α]
 
 /-- Product of a `s : multiset α` with `[monoid α]`, given a proof that `*` commutes
@@ -109,7 +113,7 @@ on all elements `x ∈ s`. -/
 @[to_additive "Sum of a `s : multiset α` with `[add_monoid α]`, given a proof that `+` commutes
 on all elements `x ∈ s`." ]
 def noncomm_prod (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y) : α :=
-s.noncomm_fold (*) (λ x hx y hy b', by simp [←mul_assoc, (comm x hx y hy).eq]) 1
+s.noncomm_fold (*) comm 1
 
 @[simp, to_additive] lemma noncomm_prod_coe (l : list α)
   (comm : ∀ (x ∈ (l : multiset α)) (y ∈ (l : multiset α)), commute x y) :

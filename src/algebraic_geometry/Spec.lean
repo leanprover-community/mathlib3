@@ -24,8 +24,6 @@ namespace algebraic_geometry
 open opposite
 open category_theory
 
-set_option profiler true
-
 def Spec.Top_obj (R : CommRing) : Top := Top.of (prime_spectrum R)
 
 @[simps] def Spec.Top_map {R S : CommRing} (f : R ⟶ S) :
@@ -38,7 +36,7 @@ def Spec.Top_obj (R : CommRing) : Top := Top.of (prime_spectrum R)
 continuous_map.ext $ λ x,
 by erw [Spec.Top_map_to_fun, prime_spectrum.comap_id, id.def, Top.id_app]
 
-@[simp] lemma Spec.Top_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
+lemma Spec.Top_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.Top_map (f ≫ g) = Spec.Top_map g ≫ Spec.Top_map f :=
 continuous_map.ext $ λ x,
 begin
@@ -77,7 +75,7 @@ begin
   refl,
 end
 
-@[simp] lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
+lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.SheafedSpace_map (f ≫ g) = Spec.SheafedSpace_map g ≫ Spec.SheafedSpace_map f :=
 PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ λ U,
 begin
@@ -118,7 +116,7 @@ Spec of a commutative ring, as a `LocallyRingedSpace`.
   .. Spec.SheafedSpace_obj R }
 
 @[elementwise]
-lemma stalk_map_to_stalk (R S : CommRing) (f : R ⟶ S) (p : prime_spectrum S) :
+lemma stalk_map_to_stalk {R S : CommRing} (f : R ⟶ S) (p : prime_spectrum S) :
   to_stalk R (prime_spectrum.comap f p) ≫
   PresheafedSpace.stalk_map (Spec.SheafedSpace_map f) p =
   f ≫ to_stalk S p :=
@@ -126,44 +124,49 @@ begin
   erw [← to_open_germ S ⊤ ⟨p, trivial⟩, ← to_open_germ R ⊤ ⟨prime_spectrum.comap f p, trivial⟩,
     category.assoc, PresheafedSpace.stalk_map_germ (Spec.SheafedSpace_map f) ⊤ ⟨p, trivial⟩,
     Spec.SheafedSpace_map_c_app, to_open_comap_assoc],
-  refl,
+  refl
 end
 
+/--
+Under the isomorphisms `stalk_iso`, the map `stalk_map (Spec.SheafedSpace_map f) p` corresponds
+to the induced local ring homomorphism `localization.local_ring_hom`.
+-/
 @[elementwise]
-lemma stalk_map_comp_stalk_iso_eq_local_ring_hom (R S : CommRing) (f : R ⟶ S) (p : prime_spectrum S) :
-  (stalk_iso R (prime_spectrum.comap f p)).inv ≫
-  PresheafedSpace.stalk_map (Spec.SheafedSpace_map f) p ≫
-  (stalk_iso S p).hom =
-  localization.local_ring_hom (prime_spectrum.comap f p).as_ideal p.as_ideal f (λ r, iff.rfl) :=
-eq.symm $ localization.local_ring_hom_unique _ _ _ _ $ λ x, by
+lemma local_ring_hom_comp_stalk_iso {R S : CommRing} (f : R ⟶ S) (p : prime_spectrum S) :
+  (stalk_iso R (prime_spectrum.comap f p)).hom ≫
+    @category_struct.comp _ _
+      (CommRing.of (localization.at_prime (prime_spectrum.comap f p).as_ideal))
+      (CommRing.of (localization.at_prime p.as_ideal)) _
+      (localization.local_ring_hom (prime_spectrum.comap f p).as_ideal p.as_ideal f (λ r, iff.rfl))
+      (stalk_iso S p).inv =
+  PresheafedSpace.stalk_map (Spec.SheafedSpace_map f) p :=
+(stalk_iso R (prime_spectrum.comap f p)).eq_inv_comp.mp $ (stalk_iso S p).comp_inv_eq.mpr $
+localization.local_ring_hom_unique _ _ _ _ $ λ x, by
 rw [stalk_iso_hom, stalk_iso_inv, comp_apply, comp_apply, localization_to_stalk_of,
   stalk_map_to_stalk_apply, stalk_to_fiber_ring_hom_to_stalk]
 
-@[priority 100]
-instance is_local_ring_hom_iso {R S : CommRing} (f : R ⟶ S) [is_iso f] : is_local_ring_hom f :=
-sorry
-
 @[simps] def Spec.LocallyRingedSpace_map {R S : CommRing} (f : R ⟶ S) :
   Spec.LocallyRingedSpace_obj S ⟶ Spec.LocallyRingedSpace_obj R :=
-subtype.mk (Spec.SheafedSpace_map f) $ λ p,
+subtype.mk (Spec.SheafedSpace_map f) $ λ p, is_local_ring_hom.mk $ λ a ha,
 begin
-  rw show PresheafedSpace.stalk_map (Spec.SheafedSpace_map f) p =
-    (stalk_iso R (prime_spectrum.comap f p)).hom ≫ ((stalk_iso R (prime_spectrum.comap f p)).inv ≫
-    PresheafedSpace.stalk_map (Spec.SheafedSpace_map f) p ≫
-    (stalk_iso S p).hom) ≫ (stalk_iso S p).inv, by
-  { sorry },
-  rw stalk_map_comp_stalk_iso_eq_local_ring_hom,
-  change is_local_ring_hom (ring_hom.comp (ring_hom.comp _ _) _),
-  apply_instance,
+  -- Here, we are showing that the map on prime spectra induced by `f` is really a morphism of
+  -- *locally* ringed spaces, i.e. that the induced map on the stalks is a local ring homomorphism.
+  rw ← local_ring_hom_comp_stalk_iso_apply at ha,
+  replace ha := (stalk_iso S p).hom.is_unit_map ha,
+  rw coe_inv_hom_id at ha,
+  replace ha := is_local_ring_hom.map_nonunit _ ha,
+  convert ring_hom.is_unit_map (stalk_iso R (prime_spectrum.comap f p)).inv ha,
+  rw coe_hom_inv_id,
 end
 
 @[simp] lemma Spec.LocallyRingedSpace_map_id (R : CommRing) :
   Spec.LocallyRingedSpace_map (𝟙 R) = 𝟙 (Spec.LocallyRingedSpace_obj R) :=
-sorry --easy
+subtype.ext $ by { rw [Spec.LocallyRingedSpace_map_coe, Spec.SheafedSpace_map_id], refl }
 
-@[simp] lemma Spec.LocallyRingedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
-  Spec.LocallyRingedSpace_map (f ≫ g) = Spec.LocallyRingedSpace_map g ≫ Spec.LocallyRingedSpace_map f :=
-sorry
+lemma Spec.LocallyRingedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
+  Spec.LocallyRingedSpace_map (f ≫ g) =
+  Spec.LocallyRingedSpace_map g ≫ Spec.LocallyRingedSpace_map f :=
+subtype.ext $ by { rw [Spec.LocallyRingedSpace_map_coe, Spec.SheafedSpace_map_comp], refl }
 
 def Spec.to_LocallyRingedSpace : CommRingᵒᵖ ⥤ LocallyRingedSpace :=
 { obj := λ R, Spec.LocallyRingedSpace_obj (unop R),

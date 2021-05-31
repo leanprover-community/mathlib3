@@ -25,8 +25,6 @@ open opposite
 
 namespace algebraic_geometry
 
-set_option profiler true
-
 /--
 We define `Scheme` as a `X : LocallyRingedSpace`,
 along with a proof that every point has an open neighbourhood `U`
@@ -75,15 +73,26 @@ def Spec_obj (R : CommRing) : Scheme :=
 { local_affine := λ x, ⟨⟨⊤, trivial⟩, R, ⟨(Spec.to_PresheafedSpace.obj (op R)).restrict_top_iso⟩⟩,
   .. Spec.LocallyRingedSpace_obj R }
 
+@[simp] lemma Spec_obj_to_LocallyRingedSpace (R : CommRing) :
+  (Spec_obj R).to_LocallyRingedSpace = Spec.LocallyRingedSpace_obj R := rfl
+
 def Spec_map {R S : CommRing} (f : R ⟶ S) :
   Spec_obj S ⟶ Spec_obj R :=
-Spec.LocallyRingedSpace_map f
+(Spec.LocallyRingedSpace_map f : Spec.LocallyRingedSpace_obj S ⟶ Spec.LocallyRingedSpace_obj R)
+
+@[simp] lemma Spec_map_id (R : CommRing) :
+  Spec_map (𝟙 R) = 𝟙 (Spec_obj R) :=
+Spec.LocallyRingedSpace_map_id R
+
+lemma Spec_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
+  Spec_map (f ≫ g) = Spec_map g ≫ Spec_map f :=
+Spec.LocallyRingedSpace_map_comp f g
 
 def Spec : CommRingᵒᵖ ⥤ Scheme :=
 { obj := λ R, Spec_obj (unop R),
   map := λ R S f, Spec_map f.unop,
-  map_id' := sorry,
-  map_comp' := sorry }
+  map_id' := λ R, by rw [unop_id, Spec_map_id],
+  map_comp' := λ R S T f g, by rw [unop_comp, Spec_map_comp] }
 
 /--
 The empty scheme, as `Spec 0`.

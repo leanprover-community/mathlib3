@@ -56,6 +56,8 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+attribute [simp] le_refl
+
 @[simp] lemma lt_self_iff_false [preorder α] (a : α) : a < a ↔ false :=
 by simp [lt_irrefl a]
 
@@ -177,6 +179,7 @@ instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
 instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
+instance (α : Type*) [has_zero α] : has_zero (order_dual α) := ⟨(0 : α)⟩
 
 -- `dual_le` and `dual_lt` should not be simp lemmas:
 -- they cause a loop since `α` and `order_dual α` are definitionally equal

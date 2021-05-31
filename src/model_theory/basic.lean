@@ -276,6 +276,8 @@ def to_hom (f : M ≃[L] N) : M →[L] N :=
 @[simp]
 lemma coe_to_hom {f : M ≃[L] N} : (f.to_hom : M → N) = (f : M → N) := rfl
 
+@[simp] lemma coe_to_embedding (f : M ≃[L] N) : (f.to_embedding : M → N) = (f : M → N) := rfl
+
 lemma coe_inj ⦃f g : M ≃[L] N⦄ (h : (f : M → N) = g) : f = g :=
 begin
   cases f,

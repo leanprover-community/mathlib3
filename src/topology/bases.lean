@@ -307,30 +307,30 @@ begin
       refl } },
 end
 
-protected lemma is_topological_basis.infi {β : Type*} {ι : Type*} {Xs : ι → Type*}
-  [ts : ∀ i, topological_space (Xs i)] {Ts : Π i, set (set (Xs i))}
-  (cond : ∀ i, is_topological_basis (Ts i)) (fs : Π i, β → Xs i) :
-  @is_topological_basis β (⨅ i, induced (fs i) (ts i))
-  { S | ∃ (Us : Π i, set (Xs i)) (F : finset ι),
-    (∀ i, i ∈ F → Us i ∈ Ts i) ∧ S = ⋂ i (hi : i ∈ F), (fs i) ⁻¹' (Us i) } :=
+protected lemma is_topological_basis.infi {β : Type*} {ι : Type*} {X : ι → Type*}
+  [t : ∀ i, topological_space (X i)] {T : Π i, set (set (X i))}
+  (cond : ∀ i, is_topological_basis (T i)) (f : Π i, β → X i) :
+  @is_topological_basis β (⨅ i, induced (f i) (t i))
+  { S | ∃ (U : Π i, set (X i)) (F : finset ι),
+    (∀ i, i ∈ F → U i ∈ T i) ∧ S = ⋂ i (hi : i ∈ F), (f i) ⁻¹' (U i) } :=
 begin
   convert is_topological_basis.inducing
     (inducing_infi_to_pi _) (is_topological_basis.pi cond),
-  ext U,
+  ext V,
   split,
-  { rintros ⟨Us,F,h1,h2⟩,
-    have : (F : set ι).pi Us = (⋂ (i : ι) (hi : i ∈ F),
-        (λ (z : Π j, Xs j), z i) ⁻¹' (Us i)), by {ext, simp},
-    refine ⟨(F : set ι).pi Us, ⟨Us, F, h1, rfl⟩, _⟩,
+  { rintros ⟨U, F, h1, h2⟩,
+    have : (F : set ι).pi U = (⋂ (i : ι) (hi : i ∈ F),
+        (λ (z : Π j, X j), z i) ⁻¹' (U i)), by { ext, simp },
+    refine ⟨(F : set ι).pi U, ⟨U, F, h1, rfl⟩, _⟩,
     rw [this, h2, set.preimage_Inter],
     congr' 1,
     ext1,
     rw set.preimage_Inter,
     refl },
-  { rintros ⟨Us, ⟨Us, F, h1, rfl⟩, h⟩,
-    refine ⟨Us, F, h1, _⟩,
-    have : (F : set ι).pi Us = (⋂ (i : ι) (hi : i ∈ F),
-        (λ (z : Π j, Xs j), z i) ⁻¹' (Us i)), by {ext, simp},
+  { rintros ⟨U, ⟨U, F, h1, rfl⟩, h⟩,
+    refine ⟨U, F, h1, _⟩,
+    have : (F : set ι).pi U = (⋂ (i : ι) (hi : i ∈ F),
+        (λ (z : Π j, X j), z i) ⁻¹' (U i)), by { ext, simp },
     rw [← h, this, set.preimage_Inter],
     congr' 1,
     ext1,

@@ -167,8 +167,14 @@ le_antisymm
   (finset.sup_le $ assume a ha, le_supr_of_le a $ le_supr _ ha)
   (supr_le $ assume a, supr_le $ assume ha, le_sup ha)
 
-lemma sup_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
+lemma sup_id_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
 by simp [Sup_eq_supr, sup_eq_supr]
+
+lemma sup_eq_Sup_image [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = Sup (f '' s) :=
+begin
+  classical,
+  rw [←finset.coe_image, ←sup_id_eq_Sup, sup_image, function.comp.left_id],
+end
 
 /-! ### inf -/
 section inf
@@ -262,8 +268,11 @@ end inf
 lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
 @sup_eq_supr _ (order_dual β) _ _ _
 
-lemma inf_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s :=
-by simp [Inf_eq_infi, inf_eq_infi]
+lemma inf_id_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s :=
+@sup_id_eq_Sup (order_dual α) _ _
+
+lemma inf_eq_Inf_image [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = Inf (f '' s) :=
+@sup_eq_Sup_image _ (order_dual β) _ _ _
 
 section sup'
 variables [semilattice_sup α]

@@ -864,6 +864,10 @@ has_sum_lt h hi hf.has_sum hg.has_sum
   ∑' n, f n < ∑' n, g n :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hf hg
 
+lemma tsum_pos (hsum : summable g) (hg : ∀ b, 0 ≤ g b) (i : β) (hi : 0 < g i) :
+  0 < ∑' b, g b :=
+by { rw ← tsum_zero, exact tsum_lt_tsum hg hi summable_zero hsum }
+
 end ordered_topological_group
 
 section canonically_ordered

@@ -184,19 +184,19 @@ begin
 end
 
 protected lemma is_topological_basis.inducing {β} [topological_space β]
-  {f : α → β} {Ts : set (set β)} (hf : inducing f) (h : is_topological_basis Ts) :
-  is_topological_basis {U : set α | ∃ (V : set β), V ∈ Ts ∧ f ⁻¹' V  = U } :=
+  {f : α → β} {T : set (set β)} (hf : inducing f) (h : is_topological_basis T) :
+  is_topological_basis {U : set α | ∃ (V : set β), V ∈ T ∧ f ⁻¹' V  = U } :=
 begin
   refine is_topological_basis_of_open_of_nhds _ _,
-  { rintros _ ⟨V,hV,rfl⟩,
+  { rintros _ ⟨V, hV, rfl⟩,
     rwa hf.is_open_iff,
     refine ⟨V, h.is_open hV, rfl⟩ },
   { intros a U ha hU,
     rw hf.is_open_iff at hU,
-    obtain ⟨V,hV,rfl⟩ := hU,
-    obtain ⟨S,hS,rfl⟩ := h.open_eq_sUnion hV,
-    obtain ⟨W,hW,ha⟩ := ha,
-    refine ⟨f ⁻¹' W, ⟨_,hS hW,rfl⟩, ha, set.preimage_mono $ set.subset_sUnion_of_mem hW⟩ }
+    obtain ⟨V, hV, rfl⟩ := hU,
+    obtain ⟨S, hS, rfl⟩ := h.open_eq_sUnion hV,
+    obtain ⟨W, hW, ha⟩ := ha,
+    refine ⟨f ⁻¹' W, ⟨_, hS hW, rfl⟩, ha, set.preimage_mono $ set.subset_sUnion_of_mem hW⟩ }
 end
 
 lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_open (U i))

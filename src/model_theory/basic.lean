@@ -549,26 +549,26 @@ variables {M} {P : Type u} [Structure L P]
 open substructure
 
 /-- The substructure of elements `x : M` such that `f x = g x` -/
-def eq_mlocus (f g : M →[L] N) : substructure L M :=
+def eq_locus (f g : M →[L] N) : substructure L M :=
 { carrier := {x : M | f x = g x},
   fun_mem := λ n fn x hx, by {
     have h : f ∘ x = g ∘ x := by { ext, repeat {rw function.comp_apply}, apply hx, },
     simp [h], } }
 
 /-- If two `L.hom`s are equal on a set, then they are equal on its substructure closure. -/
-lemma eq_on_mclosure {f g : M →[L] N} {s : set M} (h : set.eq_on f g s) :
+lemma eq_on_closure {f g : M →[L] N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure L s) :=
-show closure L s ≤ f.eq_mlocus g, from closure_le.2 h
+show closure L s ≤ f.eq_locus g, from closure_le.2 h
 
-lemma eq_of_eq_on_mtop {f g : M →[L] N} (h : set.eq_on f g (⊤ : substructure L M)) :
+lemma eq_of_eq_on_top {f g : M →[L] N} (h : set.eq_on f g (⊤ : substructure L M)) :
   f = g :=
 ext $ λ x, h trivial
 
 variable {s : set M}
 
-lemma eq_of_eq_on_mdense (hs : closure L s = ⊤) {f g : M →[L] N} (h : s.eq_on f g) :
+lemma eq_of_eq_on_dense (hs : closure L s = ⊤) {f g : M →[L] N} (h : s.eq_on f g) :
   f = g :=
-eq_of_eq_on_mtop $ hs ▸ eq_on_mclosure h
+eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
 end hom
 

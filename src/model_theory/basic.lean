@@ -56,7 +56,7 @@ instance : inhabited language := ⟨empty⟩
 /-- The type of constants in a given language. -/
 @[nolint has_inhabited_instance] def const (L : language.{l}) : Type l := L.functions 0
 
-variable (L : language.{u})
+variable (L : language.{l})
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -68,11 +68,14 @@ class is_algebraic : Prop :=
 
 variable {L}
 
-lemma is_relational_of_empty {symb : ℕ → Type u}  : is_relational ⟨λ _, pempty, symb⟩ :=
+instance is_relational_of_empty_functions {symb : ℕ → Type l} : is_relational ⟨λ _, pempty, symb⟩ :=
 ⟨by { intro n, apply pempty.elim }⟩
 
-lemma is_algebraic_of_empty {symb : ℕ → Type u}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
+instance is_algebraic_of_empty_relations {symb : ℕ → Type l}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
 ⟨by { intro n, apply pempty.elim }⟩
+
+instance is_relational_empty : is_relational (empty) := language.is_relational_of_empty_functions
+instance is_algebraic_empty : is_algebraic (empty) := language.is_algebraic_of_empty_relations
 
 variables (L) (M : Type u)
 

@@ -102,7 +102,7 @@ extra logic here to try to avoid bad cases.
 * `measurable.comp_ae_measurable` will always succeed on `ae_measurable (λ x, f x) μ` and
   can produce new goals (`measurable (λ x, x)`, `ae_measurable f μ`) or
   (`measurable f`, `ae_measurable (λ x, x) μ`). We detect those by failing if a new goal can be
-  closed by applying `measurable_id` (possibly preceded by `measurable.ae_measurable`).
+  closed by applying `measurable_id` or `ae_measurable_id`.
 -/
 meta def apply_measurable.comp_ae_measurable : tactic unit :=
 `[fail_if_success { exact ae_measurable_const };

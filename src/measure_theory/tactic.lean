@@ -37,6 +37,8 @@ meta def measurability : user_attribute :=
 attribute [measurability]
   measurable_id
   measurable_id'
+  ae_measurable_id
+  ae_measurable_id'
   measurable_const
   ae_measurable_const
   ae_measurable.measurable_mk
@@ -106,7 +108,7 @@ meta def apply_measurable.comp_ae_measurable : tactic unit :=
 `[fail_if_success { exact ae_measurable_const };
   refine measurable.comp_ae_measurable _ _;
   fail_if_success { exact measurable_id };
-  fail_if_success { refine measurable.ae_measurable _, exact measurable_id, }]
+  fail_if_success { exact ae_measurable_id }]
 
 /--
 We don't want the intros1 tactic to apply to a goal of the form `measurable f`, `ae_measurable f μ`

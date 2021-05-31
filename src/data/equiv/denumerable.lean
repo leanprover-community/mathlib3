@@ -18,8 +18,8 @@ functions are inverses of each other.
 
 ## Implementation notes
 
-We already have a name for this property, namely `α ≃ ℕ`, but here we are interested in using it as
-a typeclass.
+This property already has a name, namely `α ≃ ℕ`, but here we are interested in using it as a
+typeclass.
 -/
 
 /-- A denumerable type is (constructively) bijective with `ℕ`. Typeclass equivalent of `α ≃ ℕ`. -/
@@ -81,7 +81,6 @@ by apply of_nat_of_decode; show option.map _ _ = _; simp
 /-- All denumerable types are equivalent. -/
 def equiv₂ (α β) [denumerable α] [denumerable β] : α ≃ β := (eqv α).trans (eqv β).symm
 
-/-- `ℕ` is denumerable. -/
 instance nat : denumerable ℕ := ⟨λ n, ⟨_, rfl, rfl⟩⟩
 
 @[simp] theorem of_nat_nat (n) : of_nat ℕ n = n := rfl
@@ -129,10 +128,8 @@ by simp; refl
 @[simp] theorem prod_nat_of_nat : of_nat (ℕ × ℕ) = unpair :=
 by funext; simp
 
-/-- `ℤ` is denumerable. -/
 instance int : denumerable ℤ := denumerable.mk' equiv.int_equiv_nat
 
-/-- `ℕ+` is denumerable. -/
 instance pnat : denumerable ℕ+ := denumerable.mk' equiv.pnat_equiv_nat
 
 /-- The lift of a denumerable set is denumerable. -/

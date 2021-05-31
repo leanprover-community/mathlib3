@@ -10,9 +10,11 @@ import order.directed
 /-!
 # Encodable types
 
-This file defines encodable (constructively countable) types as a typeclass extending `encodable`.
+This file defines encodable (constructively countable) types as a typeclass.
 This is used to provide explicit encode/decode functions from and to `ℕ`, with the information that
 those functions are inverses of each other.
+The difference with `denumerable` is that finite types are encodable. For infinite types,
+`encodable` and `denumerable` agree.
 
 ## Main declarations
 
@@ -32,7 +34,8 @@ to make the range of `encode` decidable even when the finiteness of `α` is not.
 open option list nat function
 
 /-- Constructively countable type. Made from an explicit injection `encode : α → ℕ` and a partial
-inverse `decode : ℕ → option α`. -/
+inverse `decode : ℕ → option α`. Note that finite types *are* countable. See `denumerable` if you
+wish to enforce infiniteness. -/
 class encodable (α : Type*) :=
 (encode : α → ℕ)
 (decode [] : ℕ → option α)
@@ -78,18 +81,15 @@ of_left_inverse e e.symm e.left_inv
 @[simp] theorem decode_of_equiv {α β} [encodable α] (e : β ≃ α) (n : ℕ) :
   @decode _ (of_equiv _ e) n = (decode α n).map e.symm := rfl
 
-/-- `ℕ` is encodable. -/
 instance nat : encodable ℕ :=
 ⟨id, some, λ a, rfl⟩
 
 @[simp] theorem encode_nat (n : ℕ) : encode n = n := rfl
 @[simp] theorem decode_nat (n : ℕ) : decode ℕ n = some n := rfl
 
-/-- `empty` is encodable. -/
 instance empty : encodable empty :=
 ⟨λ a, a.rec _, λ n, none, λ a, a.rec _⟩
 
-/-- `punit` is encodable. -/
 instance unit : encodable punit :=
 ⟨λ_, zero, λ n, nat.cases_on n (some punit.star) (λ _, none), λ _, by simp⟩
 
@@ -113,7 +113,8 @@ instance option {α : Type*} [h : encodable α] : encodable (option α) :=
   decode (option α) (succ n) = (decode α n).map some := rfl
 
 /-- Failsafe variant of `decode`. `decode₂ α n` returns the preimage of `n` under `encode` if it
-exists, and returns `none` if it doesn't. -/
+exists, and returns `none` if it doesn't. This requirement could be imposed directly on `decode` but
+is not to help make the definition easier to use. -/
 def decode₂ (α) [encodable α] (n : ℕ) : option α :=
 (decode α n).bind (option.guard (λ a, encode a = n))
 
@@ -189,7 +190,6 @@ instance sum : encodable (α ⊕ β) :=
 
 end sum
 
-/-- `bool` is encodable. -/
 instance bool : encodable bool :=
 of_equiv (unit ⊕ unit) equiv.bool_equiv_punit_sum_punit
 
@@ -279,15 +279,12 @@ by cases a; refl
 
 end subtype
 
-/-- `fin n` is encodable. -/
 instance fin (n) : encodable (fin n) :=
 of_equiv _ (equiv.fin_equiv_subtype _)
 
-/-- `ℤ` is encodable. -/
 instance int : encodable ℤ :=
 of_equiv _ equiv.int_equiv_nat
 
-/-- `ℕ+` is encodable. -/
 instance pnat : encodable ℕ+ :=
 of_equiv _ equiv.pnat_equiv_nat
 
@@ -318,9 +315,7 @@ end ulower
 namespace ulower
 variables (α : Type*) [encodable α]
 
-/--
-The equivalence between the encodable type `α` and `ulower α : Type 0`.
--/
+/-- The equivalence between the encodable type `α` and `ulower α : Type 0`. -/
 def equiv : α ≃ ulower α :=
 encodable.equiv_range_encode α
 

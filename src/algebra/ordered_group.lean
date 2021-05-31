@@ -957,7 +957,10 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
-lemma sub_le_sub_new [covariant_class α α (function.swap (+)) (≤)] : a - b ≤ - a + b ↔ a ≤ b :=
+/-  I (DT) introduced this lemma to prove `sub_le_sub_flip` below.  Now I wonder what is the
+point of either of these lemmas... -/
+lemma sub_le_sub_neg_add_iff [covariant_class α α (function.swap (+)) (≤)] :
+  a - b ≤ - a + b ↔ a ≤ b :=
 begin
   rw [← add_le_add_iff_left a, ← add_le_add_iff_right b, ← add_assoc, add_neg_self, zero_add,
     add_assoc, sub_add_cancel],
@@ -1007,11 +1010,12 @@ end add_group
 section add_comm_group
 variables [add_comm_group α] [linear_order α] [covariant_class α α (+) (≤)] {a b c d : α}
 
+/-  What is the point of this lemma?  See comment about `sub_le_sub_neg_add_iff` above. -/
 @[simp]
 lemma sub_le_sub_flip : a - b ≤ b - a ↔ a ≤ b :=
 begin
   rw sub_eq_neg_add b,
-  exact sub_le_sub_new,
+  exact sub_le_sub_neg_add_iff,
 end
 
 lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b :=

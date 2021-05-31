@@ -925,7 +925,7 @@ begin
   { erw [pi.one_apply, ← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
   rw [← complex.cpow_add _ _ (w j).ne_zero, show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
       complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero],
-end .
+end
 
 /-- A nondegenerate quadratic form on the complex numbers is equivalent to
 the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/

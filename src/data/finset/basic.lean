@@ -46,6 +46,7 @@ and the empty finset otherwise. See `data.fintype.basic`.
   and `nodup`, a proof that `val` has no duplicates.
 * `finset.has_mem`: Defines membership `a ∈ (s : finset α)`.
 * `finset.has_coe`: Provides a coercion `s : finset α` to `s : set α`.
+* `finset.has_coe_to_sort`: Coerce `s : finset α` to the type of all `x ∈ s`.
 * `finset.induction_on`: Induction on finsets. To prove a proposition about an arbitrary `finset α`,
   it suffices to prove it for the empty finset, and to show that if it holds for some `finset α`,
   then it holds for the finset obtained by inserting a new element.
@@ -197,6 +198,29 @@ set.ext_iff.trans ext_iff.symm
 
 lemma coe_injective {α} : injective (coe : finset α → set α) :=
 λ s t, coe_inj.1
+
+/-! ### type coercion -/
+
+/-- Coercion from a finset to the corresponding subtype. -/
+instance {α : Type*} : has_coe_to_sort (finset α) := ⟨_, λ s, {x // x ∈ s}⟩
+
+instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
+  (s : finset ι) :
+can_lift (Π i : s, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  .. pi_subtype.can_lift ι α (∈ s) }
+
+instance pi_finset_coe.can_lift' (ι α : Type*) [ne : nonempty α] (s : finset ι) :
+  can_lift (s → α) (ι → α) :=
+pi_finset_coe.can_lift ι (λ _, α) s
+
+instance finset_coe.can_lift (s : finset α) : can_lift α s :=
+{ coe := coe,
+  cond := λ a, a ∈ s,
+  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
+
+@[simp, norm_cast] lemma coe_sort_coe (s : finset α) :
+  ((s : set α) : Sort*) = s := rfl
 
 /-! ### subset -/
 
@@ -1753,6 +1777,9 @@ mem_map_of_injective f.2
 
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
+
+lemma apply_coe_mem_map (f : α ↪ β) (s : finset α) (x : s) : f x ∈ s.map f :=
+mem_map_of_mem f x.prop
 
 @[simp, norm_cast] theorem coe_map (f : α ↪ β) (s : finset α) : (s.map f : set β) = f '' s :=
 set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm

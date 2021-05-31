@@ -8,9 +8,20 @@ import algebraic_geometry.structure_sheaf
 import data.equiv.transfer_instance
 
 /-!
-# $Spec R$ as a `LocallyRingedSpace`
+# $Spec$ as a functor to locally ringed spaces.
 
-We bundle the `structure_sheaf R` construction for `R : CommRing` as a `LocallyRingedSpace`.
+We define the functor $Spec$ from commutative rings to locally ringed spaces.
+
+## Implementation notes
+
+We define $Spec$ in three consecutive versions, each step with more structure than the last:
+
+1. `Spec.to_Top`, valued in the category of topological spaces,
+2. `Spec.to_SheafedSpace`, valued in the category of sheafed spaces and
+3. `Spec.to_LocallyRingedSpace`, valued in the category of locally ringed spaces.
+
+Additionally, we provide `Spec.to_PresheafedSpace` as a composition of `Spec.to_SheafedSpace` with
+a forgetful functor.
 
 ## Future work
 
@@ -24,8 +35,14 @@ namespace algebraic_geometry
 open opposite
 open category_theory
 
+/--
+The spectrum of a commutative ring, as a topological space.
+-/
 def Spec.Top_obj (R : CommRing) : Top := Top.of (prime_spectrum R)
 
+/--
+The induced map of a ring homomorphism on the ring spectra, as a morphism of topological spaces.
+-/
 @[simps] def Spec.Top_map {R S : CommRing} (f : R ⟶ S) :
   Spec.Top_obj S ⟶ Spec.Top_obj R :=
 { to_fun := prime_spectrum.comap f,
@@ -44,6 +61,9 @@ begin
   erw prime_spectrum.comap_comp,
 end
 
+/--
+The spectrum, as a contravariant functor from commutative rings to topological spaces.
+-/
 @[simps] def Spec.to_Top : CommRingᵒᵖ ⥤ Top :=
 { obj := λ R, Spec.Top_obj (unop R),
   map := λ R S f, Spec.Top_map f.unop,
@@ -51,11 +71,14 @@ end
   map_comp' := λ R S T f g, by rw [unop_comp, Spec.Top_map_comp] }
 
 /--
-Spec of a commutative ring, as a `SheafedSpace`.
+The spectrum of a commutative ring, as a `SheafedSpace`.
 -/
 @[simps] def Spec.SheafedSpace_obj (R : CommRing) : SheafedSpace CommRing :=
 { carrier := Spec.Top_obj R, ..structure_sheaf R }
 
+/--
+The induced map of a ring homomorphism on the ring spectra, as a morphism of sheafed spaces.
+-/
 @[simps] def Spec.SheafedSpace_map {R S : CommRing} (f : R ⟶ S) :
   Spec.SheafedSpace_obj S ⟶ Spec.SheafedSpace_obj R :=
 { base := Spec.Top_map f,
@@ -85,12 +108,18 @@ begin
   refl,
 end
 
+/--
+Spec, as a contravariant functor from commutative rings to sheafed spaces.
+-/
 @[simps] def Spec.to_SheafedSpace : CommRingᵒᵖ ⥤ SheafedSpace CommRing :=
 { obj := λ R, Spec.SheafedSpace_obj (unop R),
   map := λ R S f, Spec.SheafedSpace_map f.unop,
   map_id' := λ R, by rw [unop_id, Spec.SheafedSpace_map_id],
   map_comp' := λ R S T f g, by rw [unop_comp, Spec.SheafedSpace_map_comp] }
 
+/--
+Spec, as a contravariant functor from commutative rings to presheafed spaces.
+-/
 def Spec.to_PresheafedSpace : CommRingᵒᵖ ⥤ PresheafedSpace CommRing :=
   Spec.to_SheafedSpace ⋙ SheafedSpace.forget_to_PresheafedSpace
 
@@ -107,7 +136,7 @@ lemma Spec.to_PresheafedSpace_map_op (R S : CommRing) (f : R ⟶ S) :
   Spec.to_PresheafedSpace.map f.op = Spec.SheafedSpace_map f := rfl
 
 /--
-Spec of a commutative ring, as a `LocallyRingedSpace`.
+The spectrum of a commutative ring, as a `LocallyRingedSpace`.
 -/
 @[simps] def Spec.LocallyRingedSpace_obj (R : CommRing) : LocallyRingedSpace :=
 { local_ring := λ x, @@ring_equiv.local_ring _
@@ -145,6 +174,9 @@ localization.local_ring_hom_unique _ _ _ _ $ λ x, by
 rw [stalk_iso_hom, stalk_iso_inv, comp_apply, comp_apply, localization_to_stalk_of,
   stalk_map_to_stalk_apply, stalk_to_fiber_ring_hom_to_stalk]
 
+/--
+The induced map of a ring homomorphism on the prime spectra, as a morphism of locally ringed spaces.
+-/
 @[simps] def Spec.LocallyRingedSpace_map {R S : CommRing} (f : R ⟶ S) :
   Spec.LocallyRingedSpace_obj S ⟶ Spec.LocallyRingedSpace_obj R :=
 subtype.mk (Spec.SheafedSpace_map f) $ λ p, is_local_ring_hom.mk $ λ a ha,
@@ -168,6 +200,9 @@ lemma Spec.LocallyRingedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S �
   Spec.LocallyRingedSpace_map g ≫ Spec.LocallyRingedSpace_map f :=
 subtype.ext $ by { rw [Spec.LocallyRingedSpace_map_coe, Spec.SheafedSpace_map_comp], refl }
 
+/--
+Spec, as a contravariant functor from commutative rings to locally ringed spaces.
+-/
 def Spec.to_LocallyRingedSpace : CommRingᵒᵖ ⥤ LocallyRingedSpace :=
 { obj := λ R, Spec.LocallyRingedSpace_obj (unop R),
   map := λ R S f, Spec.LocallyRingedSpace_map f.unop,

@@ -67,7 +67,7 @@ instance : category Scheme :=
 induced_category.category Scheme.to_LocallyRingedSpace
 
 /--
-`Spec R` as a `Scheme`.
+The spectrum of a commutative ring, as a scheme.
 -/
 def Spec_obj (R : CommRing) : Scheme :=
 { local_affine := λ x, ⟨⟨⊤, trivial⟩, R, ⟨(Spec.to_PresheafedSpace.obj (op R)).restrict_top_iso⟩⟩,
@@ -76,6 +76,9 @@ def Spec_obj (R : CommRing) : Scheme :=
 @[simp] lemma Spec_obj_to_LocallyRingedSpace (R : CommRing) :
   (Spec_obj R).to_LocallyRingedSpace = Spec.LocallyRingedSpace_obj R := rfl
 
+/--
+The induced map of a ring homomorphism on the ring spectra, as a morphism of schemes.
+-/
 def Spec_map {R S : CommRing} (f : R ⟶ S) :
   Spec_obj S ⟶ Spec_obj R :=
 (Spec.LocallyRingedSpace_map f : Spec.LocallyRingedSpace_obj S ⟶ Spec.LocallyRingedSpace_obj R)
@@ -88,6 +91,9 @@ lemma Spec_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec_map (f ≫ g) = Spec_map g ≫ Spec_map f :=
 Spec.LocallyRingedSpace_map_comp f g
 
+/--
+The spectrum, as a contravariant functor from commutative rings to schemes.
+-/
 def Spec : CommRingᵒᵖ ⥤ Scheme :=
 { obj := λ R, Spec_obj (unop R),
   map := λ R S f, Spec_map f.unop,

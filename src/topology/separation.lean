@@ -92,14 +92,14 @@ begin
 end
 
 theorem exists_open_singleton_of_open_finset [t0_space α] (s : finset α) (sne : s.nonempty)
-  (hso : is_open (↑s : set α)) :
+  (hso : is_open (s : set α)) :
   ∃ x ∈ s, is_open ({x} : set α):=
 begin
   induction s using finset.strong_induction_on with s ihs,
-  by_cases hs : set.subsingleton (↑s : set α),
+  by_cases hs : set.subsingleton (s : set α),
   { rcases sne with ⟨x, hx⟩,
     refine ⟨x, hx, _⟩,
-    have : (↑s : set α) = {x}, from hs.eq_singleton_of_mem hx,
+    have : (s : set α) = {x}, from hs.eq_singleton_of_mem hx,
     rwa this at hso },
   { dunfold set.subsingleton at hs,
     push_neg at hs,
@@ -117,7 +117,7 @@ theorem exists_open_singleton_of_fintype [t0_space α] [f : fintype α] [ha : no
   ∃ x:α, is_open ({x}:set α) :=
 begin
   refine ha.elim (λ x, _),
-  have : is_open (↑(finset.univ : finset α) : set α), { simp },
+  have : is_open ((finset.univ : finset α) : set α), { simp },
   rcases exists_open_singleton_of_open_finset _ ⟨x, finset.mem_univ x⟩ this with ⟨x, _, hx⟩,
   exact ⟨x, hx⟩
 end
@@ -387,7 +387,7 @@ begin
 end
 
 lemma point_disjoint_finset_opens_of_t2 [t2_space α] {x : α} {s : finset α} (h : x ∉ s) :
-  separated ({x} : set α) ↑s :=
+  separated ({x} : set α) s :=
 by exact_mod_cast finset_disjoint_finset_opens_of_t2 {x} s (singleton_disjoint.mpr h)
 
 end separated
@@ -881,7 +881,7 @@ begin
   -- We do this by showing that any disjoint cover by two closed sets implies
   -- that one of these closed sets must contain our whole thing.
   -- To reduce to the case where the cover is disjoint on all of `α` we need that `s` is closed
-  have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), ↑Z) :=
+  have hs : @is_closed _ _inst_1 (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z) :=
     is_closed_Inter (λ Z, Z.2.1.2),
   rw (is_preconnected_iff_subset_of_fully_disjoint_closed hs),
   intros a b ha hb hab ab_empty,
@@ -1002,7 +1002,7 @@ begin
   cases is_closed_connected_component.is_compact.elim_finite_subfamily_closed _ _ h
     with fin_a ha,
   swap, { exact λ Z, Z.2.1.2 },
-  set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), ↑i) with hU,
+  set U : set α := (⋂ (i : {Z // is_clopen Z ∧ b ∈ Z}) (H : i ∈ fin_a), i) with hU,
   rw ←hU at ha,
   have hu_clopen : is_clopen U := is_clopen_bInter (λ i j, i.2.1),
   -- This clopen and its complement will separate the points corresponding to ⟦a⟧ and ⟦b⟧

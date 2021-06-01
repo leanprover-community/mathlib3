@@ -839,7 +839,7 @@ forall_true_iff' $ λ _, forall_2_true_iff
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
 ⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
 
-@[simp] theorem exists_unique_const (α : Sort*) [i : nonempty α] [s : subsingleton α] :
+@[simp] theorem exists_unique_const (α : Sort*) [i : nonempty α] [subsingleton α] :
   (∃! x : α, b) ↔ b :=
 ⟨λ ⟨x, h, h'⟩, h, i.elim $ λ a b, ⟨a, b, λ _ _, subsingleton.elim _ _⟩⟩
 

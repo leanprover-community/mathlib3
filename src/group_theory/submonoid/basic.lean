@@ -89,32 +89,6 @@ initialize_simps_projections add_submonoid (carrier → coe)
 @[simp, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-@[simp, norm_cast, to_additive]
-lemma mem_coe {S : submonoid M} {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
-
-@[simp, norm_cast, to_additive]
-lemma coe_coe (s : submonoid M) : ↥(s : set M) = s := rfl
-
-@[to_additive]
-protected lemma «exists» {s : submonoid M} {p : s → Prop} :
-  (∃ x : s, p x) ↔ ∃ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.exists
-
-@[to_additive]
-protected lemma «forall» {s : submonoid M} {p : s → Prop} :
-  (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.forall
-
-/-- Two submonoids are equal if the underlying subsets are equal. -/
-@[to_additive "Two `add_submonoid`s are equal if the underlying subsets are equal."]
-theorem ext' ⦃S T : submonoid M⦄ (h : (S : set M) = T) : S = T :=
-by cases S; cases T; congr'
-
-/-- Two submonoids are equal if and only if the underlying subsets are equal. -/
-@[to_additive "Two `add_submonoid`s are equal if and only if the underlying subsets are equal."]
-protected theorem ext'_iff {S T : submonoid M}  : S = T ↔ (S : set M) = T :=
-⟨λ h, h ▸ rfl, λ h, ext' h⟩
-
 /-- Two submonoids are equal if they have the same elements. -/
 @[ext, to_additive "Two `add_submonoid`s are equal if they have the same elements."]
 theorem ext {S T : submonoid M}
@@ -146,27 +120,6 @@ theorem one_mem : (1 : M) ∈ S := S.one_mem'
 /-- A submonoid is closed under multiplication. -/
 @[to_additive "An `add_submonoid` is closed under addition."]
 theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
-
-@[to_additive] lemma coe_injective : function.injective (coe : S → M) := subtype.val_injective
-
-@[simp, norm_cast, to_additive] lemma coe_eq_coe (x y : S) : (x : M) = y ↔ x = y := set_coe.ext_iff
-
-@[to_additive]
-instance : has_le (submonoid M) := ⟨λ S T, ∀ ⦃x⦄, x ∈ S → x ∈ T⟩
-
-@[to_additive]
-lemma le_def {S T : submonoid M} : S ≤ T ↔ ∀ ⦃x : M⦄, x ∈ S → x ∈ T := iff.rfl
-
-@[simp, norm_cast, to_additive]
-lemma coe_subset_coe {S T : submonoid M} : (S : set M) ⊆ T ↔ S ≤ T := iff.rfl
-
-@[to_additive]
-instance : partial_order (submonoid M) :=
-{ le := λ S T, ∀ ⦃x⦄, x ∈ S → x ∈ T,
-  .. partial_order.lift (coe : submonoid M → set M) ext' }
-
-@[simp, norm_cast, to_additive]
-lemma coe_ssubset_coe {S T : submonoid M} : (S : set M) ⊂ T ↔ S < T := iff.rfl
 
 /-- The submonoid `M` of the monoid `M`. -/
 @[to_additive "The additive submonoid `M` of the `add_monoid M`."]

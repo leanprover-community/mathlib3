@@ -242,6 +242,39 @@ begin
     { exact IH x hx y hy hxy } }
 end
 
+lemma pairwise_of_reflexive_on_dupl_of_forall_ne [decidable_eq α] {l : list α} {r : α → α → Prop}
+  (hr : ∀ a, 1 < count a l → r a a)
+  (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
+begin
+  induction l with hd tl IH,
+  { simp },
+  { rw list.pairwise_cons,
+    split,
+    { intros x hx,
+      by_cases H : hd = x,
+      { rw H,
+        refine hr _ _,
+        simpa [count_cons, H, nat.succ_lt_succ_iff, count_pos] using hx },
+      { exact h hd (mem_cons_self _ _) x (mem_cons_of_mem _ hx) H } },
+    { refine IH _ _,
+      { intros x hx,
+        refine hr _ _,
+        rw count_cons,
+        split_ifs,
+        { exact hx.trans (nat.lt_succ_self _) },
+        { exact hx } },
+      { intros x hx y hy,
+        exact h x (mem_cons_of_mem _ hx) y (mem_cons_of_mem _ hy) } } }
+end
+
+lemma pairwise_of_reflexive_of_forall_ne {l : list α} {r : α → α → Prop}
+  (hr : reflexive r) (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
+begin
+  classical,
+  refine pairwise_of_reflexive_on_dupl_of_forall_ne _ h,
+  exact λ _ _, hr _
+end
+
 theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
   pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j),
     R (nth_le l i (lt_trans h₂ h₁)) (nth_le l j h₁)

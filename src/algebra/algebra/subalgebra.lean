@@ -631,7 +631,7 @@ def prod : subalgebra R (A × B) :=
   algebra_map_mem' := λ r, ⟨algebra_map_mem _ _, algebra_map_mem _ _⟩,
   .. S.to_subsemiring.prod S₁.to_subsemiring }
 
-@[simp] lemma prod_coe :
+@[simp] lemma coe_prod :
   (prod S S₁ : set (A × B)) = set.prod S S₁ := rfl
 
 lemma prod_to_submodule :

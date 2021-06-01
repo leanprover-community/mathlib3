@@ -828,6 +828,18 @@ to the fraction `f(a)/f(h)`.
         ring_hom.map_mul], refl },
 }
 
+lemma structure_sheaf.comap_const (f : R →+* S) (U : opens (prime_spectrum.Top R))
+  (V : opens (prime_spectrum.Top S)) (hUV : ∀ p : prime_spectrum S, p ∈ V ↔ comap f p ∈ U)
+  (a b : R) (hb : ∀ x : prime_spectrum R, x ∈ U → b ∈ x.as_ideal.prime_compl) :
+  structure_sheaf.comap f U V hUV (const R a b U hb) =
+  const S (f a) (f b) V (λ p hpV, hb (comap f p) ((hUV p).mp hpV)) :=
+subtype.eq $ funext $ λ p,
+begin
+  rw [subtype.val_eq_coe, structure_sheaf.comap_apply_coe, const_apply, const_apply],
+  erw localization.local_ring_hom_mk',
+  refl,
+end
+
 lemma structure_sheaf.comap_id (U U' : opens (prime_spectrum.Top R)) (hUU' : U = U') :
   structure_sheaf.comap (ring_hom.id R) U U'
     (λ p, by rw [hUU', prime_spectrum.comap_id, id.def]) =

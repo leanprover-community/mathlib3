@@ -839,6 +839,10 @@ forall_true_iff' $ λ _, forall_2_true_iff
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
 ⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
 
+@[simp] theorem exists_unique_const (α : Sort*) [i : nonempty α] [s : subsingleton α] :
+  (∃! x : α, b) ↔ b :=
+⟨λ ⟨x, h, h'⟩, h, i.elim $ λ a b, ⟨a, b, λ _ _, subsingleton.elim _ _⟩⟩
+
 theorem forall_and_distrib : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
 ⟨λ h, ⟨λ x, (h x).left, λ x, (h x).right⟩, λ ⟨h₁, h₂⟩ x, ⟨h₁ x, h₂ x⟩⟩
 
@@ -967,6 +971,9 @@ theorem forall_iff_forall_surj
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
 
+@[simp] theorem exists_unique_prop {p q : Prop} : (∃! h : p, q) ↔ p ∧ q :=
+⟨λ ⟨h₁, h₂, _⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂, λ _ _, rfl⟩⟩
+
 @[simp] theorem exists_false : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
 
 @[simp] lemma exists_unique_false : ¬ (∃! (a : α), false) := assume ⟨a, h, h'⟩, h
@@ -982,6 +989,9 @@ theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q
 
 theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
+
+theorem exists_unique_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃! h' : p, q h') ↔ q h :=
+@exists_unique_const (q h) p ⟨h⟩ _
 
 theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
   (∀ h' : p, q h') ↔ true :=

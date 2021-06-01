@@ -1002,6 +1002,15 @@ by simp [disjoint]
 lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
+lemma disjoint.le_eq_bot {a b : α} (hab : disjoint a b) (h : a ≤ b) : a = ⊥ :=
+eq_bot_iff.2 (by rwa ←inf_eq_left.2 h)
+
+lemma disjoint.disjoint_inf_of_le {a b c : α} (h : disjoint (a ⊓ b) c) (hle : a ≤ c) :
+  disjoint a b := by rw [disjoint_iff, h.le_eq_bot (inf_le_left.trans hle)]
+
+lemma disjoint.disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (hle : b ≤ c) :
+  disjoint a b := by rw [disjoint_iff, h.le_eq_bot (inf_le_right.trans hle)]
+
 end semilattice_inf_bot
 
 section bounded_lattice

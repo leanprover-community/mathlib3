@@ -432,6 +432,8 @@ by rw [sdiff_sdiff_left, sup_comm, sdiff_sdiff_left]
 
 @[simp] lemma sdiff_idem : x \ y \ y = x \ y := by rw [sdiff_sdiff_left, sup_idem]
 
+@[simp] lemma sdiff_sdiff_self : x \ y \ x = ⊥ := by rw [sdiff_sdiff_comm, sdiff_self, bot_sdiff]
+
 lemma sdiff_sdiff_sup_sdiff : z \ (x \ y ⊔ y \ x) = z ⊓ (z \ x ⊔ y) ⊓ (z \ y ⊔ x) :=
 calc z \ (x \ y ⊔ y \ x) = (z \ x ⊔ z ⊓ x ⊓ y) ⊓ (z \ y ⊔ z ⊓ y ⊓ x) :
                                              by rw [sdiff_sup, sdiff_sdiff_right, sdiff_sdiff_right]
@@ -549,6 +551,12 @@ h.left_unique is_compl_compl.symm
 
 theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 (h.right_unique is_compl_compl).symm
+
+theorem eq_compl_iff_is_compl : x = yᶜ ↔ is_compl x y :=
+⟨λ h, by { rw h, exact is_compl_compl.symm }, is_compl.eq_compl⟩
+
+theorem compl_eq_iff_is_compl : xᶜ = y ↔ is_compl x y :=
+⟨λ h, by { rw ←h, exact is_compl_compl }, is_compl.compl_eq⟩
 
 theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
 theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm

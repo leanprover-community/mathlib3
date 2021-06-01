@@ -56,27 +56,24 @@ lemma symm_diff_eq_xor (p q : Prop) : p Δ q = xor p q := rfl
 section generalized_boolean_algebra
 variables {α : Type*} [generalized_boolean_algebra α] (a b c : α)
 
-/-
-if you want, also
-- injectivity in both arguments,
-- symm_diff_le_sup,
-- disjoint_symm_diff_inf
-- symm_diff_eq_left (iff right is bot),
-- symm_diff_eq_right (similar),
-- symm_diff_eq_bot (if left is right),
-- compl_symm_diff_self (equals top),
-- symm_diff_compl_self (equals top)
-- symm_diff_eq_top (iff left and right are complements),
-- symm_diff_eq_sup (iff disjoint).
--/
-
-@[simp] lemma symm_diff_self : a Δ a = ⊥ := by rw [(Δ), sup_idem, sdiff_self]
-@[simp] lemma symm_diff_bot : a Δ ⊥ = a := by rw [(Δ), sdiff_bot, bot_sdiff, sup_bot_eq]
-@[simp] lemma bot_symm_diff : ⊥ Δ a = a := by rw [(Δ), sdiff_bot, bot_sdiff, bot_sup_eq]
-
 lemma symm_diff_comm : a Δ b = b Δ a := by simp only [(Δ), sup_comm]
 
 instance symm_diff_is_comm : is_commutative α (Δ) := ⟨symm_diff_comm⟩
+
+@[simp] lemma symm_diff_self : a Δ a = ⊥ := by rw [(Δ), sup_idem, sdiff_self]
+@[simp] lemma symm_diff_bot : a Δ ⊥ = a := by rw [(Δ), sdiff_bot, bot_sdiff, sup_bot_eq]
+@[simp] lemma bot_symm_diff : ⊥ Δ a = a := by rw [symm_diff_comm, symm_diff_bot]
+
+lemma symm_diff_eq_sup_sdiff_inf : a Δ b = (a ⊔ b) \ (a ⊓ b) :=
+by simp [sup_sdiff, sdiff_inf, sup_comm, (Δ)]
+
+lemma disjoint_symm_diff_inf : disjoint (a Δ b) (a ⊓ b) :=
+begin
+  rw [symm_diff_eq_sup_sdiff_inf],
+  exact disjoint_sdiff.symm,
+end
+
+lemma symm_diff_le_sup : a Δ b ≤ a ⊔ b := by { rw symm_diff_eq_sup_sdiff_inf, exact sdiff_le }
 
 lemma sdiff_symm_diff : c \ (a Δ b) = (c ⊓ a ⊓ b) ⊔ ((c \ a) ⊓ (c \ b)) :=
 by simp only [(Δ), sdiff_sdiff_sup_sdiff']
@@ -86,6 +83,38 @@ by rw [sdiff_symm_diff, sdiff_sup, sup_comm]
 
 lemma symm_diff_sdiff : (a Δ b) \ c = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) :=
 by rw [symm_diff_def, sup_sdiff, sdiff_sdiff_left, sdiff_sdiff_left]
+
+@[simp] lemma symm_diff_sdiff_left : (a Δ b) \ a = b \ a :=
+by rw [symm_diff_def, sup_sdiff, sdiff_idem, sdiff_sdiff_self, bot_sup_eq]
+
+@[simp] lemma symm_diff_sdiff_right : (a Δ b) \ b = a \ b :=
+by rw [symm_diff_comm, symm_diff_sdiff_left]
+
+lemma sdiff_symm_diff_self : a \ (a Δ b) = a ⊓ b := by simp [sdiff_symm_diff]
+
+lemma symm_diff_eq_iff_sdiff_eq {a b c : α} (ha : a ≤ c) :
+  a Δ b = c ↔ c \ a = b :=
+begin
+  split; intro h,
+  { have hba : disjoint (a ⊓ b) c := begin
+      rw [←h, disjoint.comm],
+      exact disjoint_symm_diff_inf _ _,
+    end,
+    have hca : _ := congr_arg (\ a) h,
+    rw [symm_diff_sdiff_left] at hca,
+    rw [←hca, sdiff_eq_self_iff_disjoint],
+    exact hba.disjoint_inf_of_le ha },
+  { have hd : disjoint a b := by { rw ←h, exact disjoint_sdiff },
+    rw [symm_diff_def, hd.sdiff_eq_left, hd.sdiff_eq_right, ←h, sup_sdiff_of_le ha], },
+end
+
+lemma symm_diff_eq_sup : a Δ b = a ⊔ b ↔ disjoint a b :=
+begin
+  split; intro h,
+  { rw [symm_diff_eq_sup_sdiff_inf, sdiff_eq_self_iff_disjoint] at h,
+    exact h.disjoint_inf_of_le le_sup_left, },
+  { rw [(Δ), h.sdiff_eq_left, h.sdiff_eq_right], },
+end
 
 lemma symm_diff_symm_diff_left :
   a Δ b Δ c = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) ⊔ (c \ (a ⊔ b)) ⊔ (a ⊓ b ⊓ c) :=
@@ -108,6 +137,32 @@ by rw [symm_diff_symm_diff_left, symm_diff_symm_diff_right]
 
 instance symm_diff_is_assoc : is_associative α (Δ) := ⟨symm_diff_assoc⟩
 
+@[simp] lemma symm_diff_symm_diff_self : a Δ (a Δ b) = b := by simp [←symm_diff_assoc]
+
+@[simp] lemma symm_diff_symm_diff_self' : a Δ b Δ a = b :=
+by rw [symm_diff_comm, ←symm_diff_assoc, symm_diff_self, bot_symm_diff]
+
+@[simp] lemma symm_diff_right_inj : a Δ b = a Δ c ↔ b = c :=
+begin
+  split; intro h,
+  { have H1 := congr_arg ((Δ) a) h,
+    rwa [symm_diff_symm_diff_self, symm_diff_symm_diff_self] at H1, },
+  { rw h, },
+end
+
+@[simp] lemma symm_diff_left_inj : a Δ b = c Δ b ↔ a = c :=
+by rw [symm_diff_comm a b, symm_diff_comm c b, symm_diff_right_inj]
+
+lemma symm_diff_eq_left : a Δ b = a ↔ b = ⊥ :=
+calc a Δ b = a ↔ a Δ b = a Δ ⊥ : by rw symm_diff_bot
+           ... ↔     b = ⊥     : by rw symm_diff_right_inj
+
+lemma symm_diff_eq_right : a Δ b = b ↔ a = ⊥ := by rw [symm_diff_comm, symm_diff_eq_left]
+
+lemma symm_diff_eq_bot : a Δ b = ⊥ ↔ a = b :=
+calc a Δ b = ⊥ ↔ a Δ b = a Δ a : by rw symm_diff_self
+           ... ↔     a = b     : by rw [symm_diff_right_inj, eq_comm]
+
 end generalized_boolean_algebra
 
 section boolean_algebra
@@ -120,6 +175,17 @@ lemma symm_diff_eq : a Δ b = (a ⊓ bᶜ) ⊔ (b ⊓ aᶜ) := by simp only [(Δ
 
 lemma compl_symm_diff : (a Δ b)ᶜ = (a ⊓ b) ⊔ (aᶜ ⊓ bᶜ) :=
 by simp only [←top_sdiff, sdiff_symm_diff, top_inf_eq]
+
+lemma symm_diff_eq_top_iff : a Δ b = ⊤ ↔ is_compl a b :=
+by rw [symm_diff_eq_iff_sdiff_eq (@le_top _ _ a), top_sdiff, compl_eq_iff_is_compl]
+
+lemma is_compl.symm_diff_eq_top (h : is_compl a b) : a Δ b = ⊤ := (symm_diff_eq_top_iff a b).2 h
+
+lemma compl_symm_diff_self : (a Δ a)ᶜ = ⊤ :=
+by simp only [compl_symm_diff, inf_idem, sup_compl_eq_top]
+
+lemma symm_diff_compl_self : a Δ aᶜ = ⊤ :=
+by simp only [symm_diff_eq, compl_compl, inf_idem, sup_compl_eq_top]
 
 lemma symm_diff_symm_diff_right' :
   a Δ (b Δ c) = (a ⊓ b ⊓ c) ⊔ (a ⊓ bᶜ ⊓ cᶜ) ⊔ (aᶜ ⊓ b ⊓ cᶜ) ⊔ (aᶜ ⊓ bᶜ ⊓ c) :=

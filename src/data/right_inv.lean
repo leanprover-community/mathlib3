@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import tactic
 import data.bundle
 import data.equiv.transfer_instance
 import data.pi
@@ -79,10 +78,10 @@ def right_inv.to_pi : (right_inv (proj E)) ≃ₗ[R] (Π x, E x) :=
   map_smul' := λ r g, rfl,
   ..right_inv.to_pi' }
 
-variable {R}
-
 lemma right_inv.snd_eq_to_pi_fst {g : right_inv (proj E)} {b : B} :
   (g b).snd = (right_inv.to_pi R g) (g b).fst := right_inv.snd_eq_to_pi_fst'
+
+variable {R}
 
 variables [∀ x, add_comm_group (E x)]
 

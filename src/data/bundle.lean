@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import tactic
+import tactic.basic
 
 namespace bundle
 /- We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with

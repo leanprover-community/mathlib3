@@ -29,6 +29,9 @@ by { cases s, cases t, congr' }
 @[ext] theorem ext (H : ∀ a, s a = t a) : s = t :=
 coe_injective $ funext H
 
+lemma ext_right_inv (g h : continuous_section f) (H : (g : right_inv f) = h) :
+  g = h := by { cases g, cases h, injection H, dsimp only at h_1, induction h_1, refl }
+
 @[simp] lemma to_fun_eq_coe (g : continuous_section f) : g.to_fun = ⇑g := rfl
 @[simp] lemma coe_fn_coe (g : continuous_section f) :
   ⇑(g : right_inv f) = g := rfl

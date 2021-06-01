@@ -788,7 +788,7 @@ variables {R} {S : Type u} [comm_ring S] {P : Type u} [comm_ring P]
 
 /--
 For a ring homomorphism `f : R →+* S` and open sets `U` and `V` of the prime spectra of `R` and
-`S` such that `V = (comap f p) ⁻¹ U`, the induced ring homomorphism from the structure sheaf of `R`
+`S` such that `V = (comap f) ⁻¹ U`, the induced ring homomorphism from the structure sheaf of `R`
 at `U` to the structure sheaf of `S` at `V`.
 
 If a section `s` on `U` is locally equal to the fraction `a/h`, its image on `V` is locally equal
@@ -801,9 +801,13 @@ to the fraction `f(a)/f(h)`.
   ⟨λ p, localization.local_ring_hom ((comap f (p : prime_spectrum.Top S)).as_ideal) _ f
     (λ r, iff.rfl) (s.1 ⟨prime_spectrum.comap f p.1, (hUV p.1).mp p.2⟩ : _),
   begin
-    -- Here, we need to show that the newly defined section on `V` is locally fraction
+    -- Here, we need to show that the newly defined section on `V` is locally fraction.
     intro p,
-    rcases s.2 ⟨prime_spectrum.comap f p.1, (hUV p.1).mp p.2⟩ with ⟨W, m, iWU, a, h, h_frac⟩,
+    -- Since `s` is locally fraction, we can find a neighborhood `W` of `comap f p` in `U`, such
+    -- that `s = a / h` on `W`, for some ring elements `a h : R`.
+    rcases s.2 ⟨comap f p.1, (hUV p.1).mp p.2⟩ with ⟨W, m, iWU, a, h, h_frac⟩,
+    -- We claim that we can write our new section as the fraction `f a / f h` on the neighborhood
+    -- `(comap f) ⁻¹ W` of `p`.
     refine ⟨opens.comap (comap_continuous f) W, m,
       hom_of_le (λ z hz, (hUV z).mpr (le_of_hom iWU hz)), f a, f h, _⟩,
     intro q,
@@ -850,13 +854,13 @@ begin
   rw structure_sheaf.comap_apply_coe,
   -- Unfortunately, we cannot use `localization.local_ring_hom_id` here, because
   -- `comap (ring_hom.id R) p` is not *definitionally* equal to `p`. Instead, we use that we can
-  -- write `s` as a fraction `f/g` in a small neighborhood around `p`. Since
+  -- write `s` as a fraction `a/b` in a small neighborhood around `p`. Since
   -- `comap (ring_hom.id R) p` equals `p`, it is also contained in the same neighborhood, hence
-  -- `s` equals `f/g` there too.
+  -- `s` equals `a/b` there too.
   obtain ⟨V, hpV, i, h⟩ := s.2 ⟨p, hUU'.symm ▸ hpU⟩,
-  obtain ⟨f, g, h'⟩ := h.eq_mk',
-  obtain ⟨hg₁, s_eq₁⟩ := h' ⟨p, hpV⟩,
-  obtain ⟨hg₂, s_eq₂⟩ := h' ⟨comap (ring_hom.id _) p, by rwa prime_spectrum.comap_id⟩,
+  obtain ⟨a, b, h'⟩ := h.eq_mk',
+  obtain ⟨hb₁, s_eq₁⟩ := h' ⟨p, hpV⟩,
+  obtain ⟨hb₂, s_eq₂⟩ := h' ⟨comap (ring_hom.id _) p, by rwa prime_spectrum.comap_id⟩,
   dsimp only at s_eq₁ s_eq₂,
   erw [s_eq₂, localization.local_ring_hom_mk', ← s_eq₁, ← res_apply],
   rw ← eq_to_hom_map ((structure_sheaf R).presheaf) (show op U = op U', by rw hUU'),

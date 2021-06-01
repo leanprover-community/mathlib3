@@ -1435,7 +1435,7 @@ not_fintype α
 ⟨λ ⟨x⟩, ⟨x⟩, λ ⟨x⟩, ⟨x⟩⟩
 
 @[simp] lemma not_nonempty_fintype {α : Type*} : ¬ nonempty (fintype α) ↔ infinite α :=
-(not_nonempty_iff α).trans is_empty_fintype
+(not_nonempty_iff (fintype α)).trans is_empty_fintype
 
 /-- A non-infinite type is a fintype. -/
 noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=

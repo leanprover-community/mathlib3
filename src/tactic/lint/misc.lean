@@ -229,10 +229,13 @@ private meta def incorrect_def_lemma (d : declaration) : tactic (option string) 
     is_instance_d ← is_instance d.to_name,
     if is_instance_d then return none else do
       -- the following seems to be a little quicker than `is_prop d.type`.
-      expr.sort n ← infer_type d.type, return $
-      if d.is_theorem ↔ n = level.zero then none
-      else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
-      else "is a lemma/theorem, should be a def"
+      expr.sort n ← infer_type d.type,
+      is_pattern ← has_attribute' `pattern d.to_name,
+      return $
+        if d.is_theorem ↔ n = level.zero then none
+        else if d.is_theorem then "is a lemma/theorem, should be a def"
+        else if is_pattern then none -- declarations with `@[pattern]` are allowed to be a `def`.
+        else "is a def, should be a lemma/theorem"
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/

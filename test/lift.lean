@@ -1,5 +1,8 @@
 import tactic.lift
 import data.set.basic
+import data.int.basic
+
+/-! Some tests of the `lift` tactic. -/
 
 example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u)
   (h : k + n = 2 + x) (f : false) :
@@ -41,8 +44,8 @@ run_cmd do l ← can_lift_attr.get_cache, guard (`can_lift_unit ∈ l)
 /- test error messages -/
 example (n : ℤ) (hn : 0 < n) : true :=
 begin
-  success_if_fail_with_msg {lift n to ℕ using hn} "lift tactic failed. The type of\n  hn\nis
-  0 < n\nbut it is expected to be\n  0 ≤ n",
+  success_if_fail_with_msg {lift n to ℕ using hn} "lift tactic failed.
+invalid type ascription, term has type\n  0 < n\nbut is expected to have type\n  0 ≤ n",
   success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
     "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
   trivial

@@ -70,7 +70,7 @@ by simp [sup_sdiff, sdiff_inf, sup_comm, (Δ)]
 lemma disjoint_symm_diff_inf : disjoint (a Δ b) (a ⊓ b) :=
 begin
   rw [symm_diff_eq_sup_sdiff_inf],
-  exact disjoint_sdiff.symm,
+  exact disjoint_sdiff_self_left,
 end
 
 lemma symm_diff_le_sup : a Δ b ≤ a ⊔ b := by { rw symm_diff_eq_sup_sdiff_inf, exact sdiff_le }
@@ -103,8 +103,8 @@ begin
     have hca : _ := congr_arg (\ a) h,
     rw [symm_diff_sdiff_left] at hca,
     rw [←hca, sdiff_eq_self_iff_disjoint],
-    exact hba.disjoint_inf_of_le ha },
-  { have hd : disjoint a b := by { rw ←h, exact disjoint_sdiff },
+    exact hba.of_disjoint_inf_of_le ha },
+  { have hd : disjoint a b := by { rw ←h, exact disjoint_sdiff_self_right },
     rw [symm_diff_def, hd.sdiff_eq_left, hd.sdiff_eq_right, ←h, sup_sdiff_of_le ha], },
 end
 
@@ -115,7 +115,7 @@ lemma symm_diff_eq_sup : a Δ b = a ⊔ b ↔ disjoint a b :=
 begin
   split; intro h,
   { rw [symm_diff_eq_sup_sdiff_inf, sdiff_eq_self_iff_disjoint] at h,
-    exact h.disjoint_inf_of_le le_sup_left, },
+    exact h.of_disjoint_inf_of_le le_sup_left, },
   { exact h.symm_diff_eq_sup, },
 end
 
@@ -131,11 +131,11 @@ calc a Δ b Δ c = ((a Δ b) \ c) ⊔ (c \ (a Δ b))   : symm_diff_def _ _
 lemma symm_diff_symm_diff_right :
   a Δ (b Δ c) = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) ⊔ (c \ (a ⊔ b)) ⊔ (a ⊓ b ⊓ c) :=
 calc a Δ (b Δ c) = (a \ (b Δ c)) ⊔ ((b Δ c) \ a) : symm_diff_def _ _
-           ... = (a \ (b ⊔ c)) ⊔ (a ⊓ b ⊓ c) ⊔
-                   (b \ (c ⊔ a) ⊔ c \ (b ⊔ a))   :
+             ... = (a \ (b ⊔ c)) ⊔ (a ⊓ b ⊓ c) ⊔
+                     (b \ (c ⊔ a) ⊔ c \ (b ⊔ a))   :
                                 by rw [sdiff_symm_diff', @sup_comm _ _ (a ⊓ b ⊓ c), symm_diff_sdiff]
-           ... = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) ⊔
-                   (c \ (a ⊔ b)) ⊔ (a ⊓ b ⊓ c)   : by ac_refl
+             ... = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) ⊔
+                     (c \ (a ⊔ b)) ⊔ (a ⊓ b ⊓ c)   : by ac_refl
 
 lemma symm_diff_assoc : a Δ b Δ c = a Δ (b Δ c) :=
 by rw [symm_diff_symm_diff_left, symm_diff_symm_diff_right]
@@ -206,5 +206,13 @@ calc a Δ (b Δ c) = (a ⊓ ((b ⊓ c) ⊔ (bᶜ ⊓ cᶜ))) ⊔
                                                          rw [inf_comm, inf_assoc], },
                                                        { apply inf_left_right_swap }
                                                      end
+
+-- TODO: move this to generalized_boolean_algebra when we have a distrib_lattice_with_bot typeclass
+lemma disjoint.disjoint_symm_diff_of_disjoint {a b c : α} (h1 : disjoint a c) (h2 : disjoint b c) :
+  disjoint (a Δ b) c :=
+begin
+  rw [symm_diff_eq_sup_sdiff_inf],
+  exact (h1.sup_left h2).disjoint_sdiff_left,
+end
 
 end boolean_algebra

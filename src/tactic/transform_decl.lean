@@ -8,6 +8,27 @@ import meta.rb_map
 
 namespace tactic
 
+open expr
+/-- `additive_test e ff` tests whether the expression contains no constant that is not applied to
+  arguments.
+  `additive_test e tt` is the same, except that it returns `tt` if the expression itself
+  is a constant.
+  This is used in `@[to_additive]` for deciding which subexpressions to transform: we only transform
+  constants if `additive_test` applied to their first argument returns `tt`.
+  This means we will replace expression applied to e.g. `α` or `α × β`, but not when applied to
+  e.g. `ℕ` or `ℝ × α`. -/
+meta def additive_test : bool → expr → bool
+| b (var n)                := tt
+| b (sort l)               := tt
+| b (const n ls)           := b
+| b (mvar n m t)           := tt
+| b (local_const n m bi t) := tt
+| b (app e f)              := additive_test tt e && additive_test ff f
+| b (lam n bi e t)         := additive_test ff t
+| b (pi n bi e t)          := additive_test ff t
+| b (elet n g e f)         := additive_test ff e && additive_test ff f
+| b (macro d args)         := tt
+
 private meta def transform_decl_with_prefix_fun_aux (f : name → option name) (pre tgt_pre : name)
   (attrs : list name) :
   name → command :=
@@ -20,7 +41,8 @@ do
     (decl.type.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     is_protected ← is_protected_decl src,
-    let decl := decl.update_with_fun (name.map_prefix f) tgt,
+    let decl := decl.update_with_fun (name.map_prefix f) (additive_test ff) tgt,
+    trace decl,
     if is_protected then add_protected_decl decl else add_decl decl,
     attrs.mmap' (λ n, copy_attribute n src tgt)
 

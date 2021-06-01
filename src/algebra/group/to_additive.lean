@@ -34,13 +34,13 @@ section performance_hack -- see Note [user attribute parameters]
 local attribute [semireducible] reflected
 
 local attribute [instance, priority 9000]
-private meta def hacky_name_reflect : has_reflect name :=
+meta def hacky_name_reflect : has_reflect name :=
 λ n, `(id %%(expr.const n []) : name)
 
 /-- An auxiliary attribute used to store the names of the additive versions of declarations
 that have been processed by `to_additive`. -/
 @[user_attribute]
-private meta def aux_attr : user_attribute (name_map name) name :=
+meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
   cache_cfg := ⟨λ ns,

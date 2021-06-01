@@ -77,11 +77,42 @@ lemma mul_assoc : ∀ a b c : G, a * b * c = a * (b * c) :=
 semigroup.mul_assoc
 
 attribute [no_rsimp] add_assoc -- TODO(Mario): find out why this isn't copying
+#print add_semigroup.to_has_add
+#print add_assoc
 
 @[to_additive]
 instance semigroup.to_is_associative : is_associative G (*) :=
 ⟨mul_assoc⟩
 
+open tactic
+set_option pp.implicit true
+set_option pp.proofs true
+
+run_cmd do
+  let src := `semigroup.to_is_associative,
+  d ← get_decl src,
+  env ← get_env,
+  let val : to_additive.value_type := ⟨name.anonymous, none⟩,
+  dict ← to_additive.aux_attr.get_cache,
+  tgt ← to_additive.target_name src val.tgt dict,
+  to_additive.aux_attr.set src tgt tt,
+  let dict := dict.insert src tgt,
+  let d2 := d.update_with_fun (name.map_prefix dict.find) (additive_test ff) tgt,
+  pp d2 >>= trace,
+  add_decl d2,
+  transform_decl_with_prefix_dict dict src tgt [],
+  -- e ← d.value,
+  tactic.skip
+#print semigroup.to_is_associative
+#print add_semigroup.to_is_associative
+/-type mismatch at application
+  @semigroup.to_has_mul G _inst_1
+term
+  _inst_1
+has type
+  add_semigroup G
+but is expected to have type
+  semigroup G-/
 end semigroup
 
 /-- A commutative semigroup is a type with an associative commutative `(*)`. -/

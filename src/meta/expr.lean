@@ -376,11 +376,15 @@ e.replace (λ e n,
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
 
-/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
-protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
-e.replace $ λ e d,
+/-- `e.apply_replacement_fun f test` applies `f` to each constant
+  (inductive type, defined function etc) in an expression, if
+  * The constant is applied to (at least) one argument `arg`;
+  * `test arg` is true. -/
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool) : expr → expr
+| e := e.replace $ λ e _,
   match e with
-  | expr.const n ls := some $ expr.const (f n) ls
+  | expr.app (expr.const n ls) arg :=
+    some $ expr.const (if test arg then f n else n) ls $ apply_replacement_fun arg
   | _ := none
   end
 
@@ -949,15 +953,15 @@ namespace declaration
 open tactic
 
 /--
-`declaration.update_with_fun f tgt decl`
-sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
-of all `expr.const`s which appear in the value or type of `decl`.
+`declaration.update_with_fun f test tgt decl`
+sets the name of the given `decl : declaration` to `tgt`, and applies `apply_replacement_fun f test`
+to the value and type of `decl`.
 -/
-protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
-  declaration :=
+protected meta def update_with_fun (f : name → name) (test : expr → bool) (tgt : name)
+  (decl : declaration) : declaration :=
 let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun f in
-decl.update_value $ decl.value.apply_replacement_fun f
+let decl := decl.update_type $ decl.type.apply_replacement_fun f test in
+decl.update_value $ decl.value.apply_replacement_fun f test
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

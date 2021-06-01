@@ -5,6 +5,7 @@ Authors: Jon Eugster, Eric Wieser
 -/
 import algebra.char_p.basic
 import ring_theory.localization
+import algebra.free_algebra
 
 
 /-!
@@ -21,7 +22,9 @@ In particular we are interested in the characteristic of the fraction field
 - `char_p_of_injective_algebra_map` If `R→+*A` is an injective algebra map
   then `A` has the same characteristic as `R`.
 
-As an example, the `fraction_ring R` of an integral domain `R` has the same characteristic.
+Instances were this can be applied:
+- Any `free_algebra R X` has the same characteristic as `R`.
+- The `fraction_ring R` of an integral domain `R` has the same characteristic as `R`.
 
 -/
 
@@ -50,6 +53,20 @@ lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiri
   end }
 -- `char_p.char_p_to_char_zero A _ (char_p_of_injective_algebra_map h 0)` does not work
 -- here as it would require `ring A`.
+
+namespace free_algebra
+
+variables {R X: Type*} [comm_semiring R] (p : ℕ)
+
+/-- If `R` has characteristic `p`, then so does `free_algebra R X`. -/
+instance char_p [char_p R p] : char_p (free_algebra R X) p :=
+char_p_of_injective_algebra_map (free_algebra.algebra_map_injective R X) p
+
+/-- If `R` has characteristic `0`, then so does `free_algebra R X`. -/
+instance char_zero [char_zero R] : char_zero (free_algebra R X) :=
+char_zero_of_injective_algebra_map (free_algebra.algebra_map_injective R X)
+
+end free_algebra
 
 namespace fraction_ring
 

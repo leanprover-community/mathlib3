@@ -805,6 +805,14 @@ section comap
 
 variables {R} {S : Type u} [comm_ring S] {P : Type u} [comm_ring P]
 
+/--
+For a ring homomorphism `f : R →+* S` and open sets `U` and `V` of the prime spectra of `R` and
+`S` such that `V = (comap f p) ⁻¹ U`, the induced ring homomorphism from the structure sheaf of `R`
+at `U` to the structure sheaf of `S` at `V`.
+
+If a section `s` on `U` is locally equal to the fraction `a/h`, its image on `V` is locally equal
+to the fraction `f(a)/f(h)`.
+-/
 @[simps] def structure_sheaf.comap (f : R →+* S) (U : opens (prime_spectrum.Top R))
   (V : opens (prime_spectrum.Top S)) (hUV : ∀ p : prime_spectrum S, p ∈ V ↔ comap f p ∈ U) :
   (structure_sheaf R).presheaf.obj (op U) →+* (structure_sheaf S).presheaf.obj (op V) :=
@@ -847,6 +855,11 @@ ring_hom.ext $ λ s, subtype.ext $ funext $
 begin
   rintro ⟨p, hpU⟩,
   rw structure_sheaf.comap_apply_coe,
+  -- Unfortunately, we cannot use `localization.local_ring_hom_id` here, because
+  -- `comap (ring_hom.id R) p` is not *definitionally* equal to `p`. Instead, we use that we can
+  -- write `s` as a fraction `f/g` in a small neighborhood around `p`. Since
+  -- `comap (ring_hom.id R) p` equals `p`, it is also contained in the same neighborhood, hence
+  -- `s` equals `f/g` there too.
   obtain ⟨V, hpV, i, h⟩ := s.2 ⟨p, hUU'.symm ▸ hpU⟩,
   obtain ⟨f, g, h'⟩ := h.eq_mk',
   obtain ⟨hg₁, s_eq₁⟩ := h' ⟨p, hpV⟩,
@@ -867,6 +880,7 @@ ring_hom.ext $ λ s, subtype.ext $ funext $ λ p,
 begin
   rw structure_sheaf.comap_apply_coe,
   erw localization.local_ring_hom_comp _ (comap g p.1).as_ideal,
+  -- refl works here, because `comap (g.comp f) p` is defeq to `comap f (comap g p)`
   refl,
 end
 

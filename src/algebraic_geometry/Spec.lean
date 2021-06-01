@@ -14,7 +14,7 @@ We define the functor $Spec$ from commutative rings to locally ringed spaces.
 
 ## Implementation notes
 
-We define $Spec$ in three consecutive versions, each step with more structure than the last:
+We define $Spec$ in three consecutive steps, each step with more structure than the last:
 
 1. `Spec.to_Top`, valued in the category of topological spaces,
 2. `Spec.to_SheafedSpace`, valued in the category of sheafed spaces and

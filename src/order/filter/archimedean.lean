@@ -45,8 +45,7 @@ lemma tendsto_coe_rat_at_top_iff [linear_ordered_field R] [archimedean R]
 tendsto_at_top_embedding (assume a₁ a₂, rat.cast_le) $
   assume r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨(n:ℚ), by assumption_mod_cast⟩
 
-lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [nontrivial R]
-  [archimedean R] :
+lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [archimedean R] :
   (at_top : filter R).has_countable_basis (λ i, i ∈ range (coe : ℕ → R)) Ici :=
 { countable := countable_range coe,
   mem_iff' := λ t,
@@ -76,8 +75,8 @@ lemma at_bot_countable_basis_of_archimedean [linear_ordered_ring R] [archimedean
       exact ⟨n, hn⟩ }
   end }
 
-lemma at_top_countably_generated_of_archimedean [linear_ordered_semiring R] [nontrivial R]
-  [archimedean R] : (at_top : filter R).is_countably_generated :=
+lemma at_top_countably_generated_of_archimedean [linear_ordered_semiring R] [archimedean R] :
+  (at_top : filter R).is_countably_generated :=
 at_top_countable_basis_of_archimedean.is_countably_generated
 
 lemma at_bot_countably_generated [linear_ordered_ring R] [archimedean R] :

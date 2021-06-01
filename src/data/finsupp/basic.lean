@@ -1492,8 +1492,14 @@ lemma equiv_map_domain_symm_apply (f : α ≃ β) (l : β →₀ M) (a : α) :
 @[simp] lemma equiv_map_domain_refl (l : α →₀ M) : equiv_map_domain (equiv.refl _) l = l :=
 by ext x; refl
 
+lemma equiv_map_domain_refl' : equiv_map_domain (equiv.refl _) = @id (α →₀ M) :=
+by ext x; refl
+
 lemma equiv_map_domain_trans (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
   equiv_map_domain (f.trans g) l = equiv_map_domain g (equiv_map_domain f l) := by ext x; refl
+
+lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
+  @equiv_map_domain _ _ M _ (f.trans g) = equiv_map_domain g ∘ equiv_map_domain f := by ext x; refl
 
 @[simp] lemma equiv_map_domain_single (f : α ≃ β) (a : α) (b : M) :
   equiv_map_domain f (single a b) = single (f a) b :=
@@ -2217,6 +2223,12 @@ protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+
     exact equiv_map_domain_refl _
   end,
   map_add' := λ a b, by simp only [equiv_map_domain_eq_map_domain]; exact map_domain_add }
+
+lemma finsupp.dom_congr_apply' [add_comm_monoid M] (e : α ≃ β) (l : α →₀ M) :
+  finsupp.dom_congr e l = equiv_map_domain e l := rfl
+
+@[simp] lemma finsupp.dom_congr_apply [add_comm_monoid M] (e : α ≃ β) (l : α →₀ M) :
+  finsupp.dom_congr e l = map_domain e l := equiv_map_domain_eq_map_domain _ _
 
 @[simp] lemma dom_congr_refl [add_comm_monoid M] :
   finsupp.dom_congr (equiv.refl α) = add_equiv.refl (α →₀ M) :=

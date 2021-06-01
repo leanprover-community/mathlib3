@@ -6,6 +6,11 @@ Authors: Nicolò Cavalleri
 
 import tactic.basic
 
+/-!
+# Bundle
+
+-/
+
 namespace bundle
 /- We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
 a topology which is not the disjoint union topology. In general, the constructions of fiber bundles

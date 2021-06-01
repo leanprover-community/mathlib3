@@ -651,8 +651,7 @@ namespace bundle
 
 variable (E : B → Type*)
 
-/- How do I do this?? -/
---attribute [mfld_simps] proj E
+attribute [mfld_simps] proj
 
 instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
 

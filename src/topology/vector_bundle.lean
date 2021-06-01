@@ -258,13 +258,20 @@ end topological_vector_bundle
 
 section sections
 
+/-- Type synonim to allow to declare instances that depend on implicit parameters containing `R`
+and `F`. -/
+@[reducible, nolint unused_arguments]
+def topological_vector_bundle.bundle_section (R : Type*) {B : Type*} (F : Type*)
+  (E : B → Type*) [topological_space F] [topological_space (total_space E)] [topological_space B] :=
+continuous_section (proj E)
+
 open topological_vector_bundle
 
 variables {R B E F}
 
 lemma right_inv.preimage_source_eq_base_set (f : right_inv (proj E)) (b : B) :
   f ⁻¹' (trivialization_at R F E b).source = (trivialization_at R F E b).base_set :=
-by rw [bundle_trivialization.source_eq, ←preimage_comp, f.right_inv]; refl
+by rw [bundle_trivialization.source_eq, ←preimage_comp, f.right_inv_def]; refl
 
 lemma right_inv.image_mem_trivialization_at_source (f : right_inv (proj E)) (b : B) :
   f b ∈ (trivialization_at R F E b).source :=
@@ -292,7 +299,7 @@ lemma right_inv.trivialization_at_fst (f : right_inv (proj E)) {b : B} :
 begin
   intros x h,
   rw [(trivialization_at R F E b).coe_fst (f.mem_base_set_image_mem_source h)],
-  exact congr_fun f.right_inv x,
+  exact congr_fun f.right_inv_def x,
 end
 
 variables (R F E)
@@ -350,8 +357,7 @@ end
 
 variables {B E} (R F)
 
-instance [has_continuous_add F] [topological_vector_bundle R F E] :
-has_add (continuous_section (proj E)) :=
+instance [has_continuous_add F] : has_add (bundle_section R F E) :=
 ⟨λ g h, { continuous_to_fun := by begin
   refine continuous_iff_continuous_at.2 (λ b, _),
   rw [right_inv.to_fun_eq_coe,
@@ -378,7 +384,7 @@ by { rw [triv_snd_eq_cont_lin_equiv_at_snd hb, right_inv.snd_eq_to_pi_fst R, lin
 
 variables (R F)
 
-instance [topological_vector_bundle R F E] : has_zero (continuous_section (proj E)) :=
+instance : has_zero (bundle_section R F E) :=
 ⟨ { continuous_to_fun := begin
   refine continuous_iff_continuous_at.2 (λ b, _),
   rw [right_inv.to_fun_eq_coe,
@@ -389,7 +395,7 @@ instance [topological_vector_bundle R F E] : has_zero (continuous_section (proj 
 end,
   ..(0 : right_inv (proj E))} ⟩
 
-instance [topological_vector_bundle R F E] : inhabited (continuous_section (proj E)) := ⟨0⟩
+instance : inhabited (bundle_section R F E) := ⟨0⟩
 
 variables {R F}
 
@@ -408,17 +414,18 @@ end
 
 variables (R F)
 
-instance [has_continuous_add F] [topological_vector_bundle R F E] :
-add_comm_monoid (continuous_section (proj E)) :=
+instance [has_continuous_add F] :
+add_comm_monoid (bundle_section R F E) :=
 { add_assoc := λ f g h, by { apply continuous_section.ext_right_inv, exact add_assoc _ _ _ },
   zero_add := λ f, by { apply continuous_section.ext_right_inv, exact zero_add _ },
   add_zero := λ f, by { apply continuous_section.ext_right_inv, exact add_zero _ },
   add_comm := λ f g, by { apply continuous_section.ext_right_inv, exact add_comm _ _ },
-  ..continuous_section.has_zero R F,
-  ..continuous_section.has_add R F, }
+  ..topological_vector_bundle.bundle_section.has_zero R F,
+  -- ↑   ↑   ↑   ↑   ↑   ↑   Why this!?
+  ..topological_vector_bundle.bundle_section.has_add R F, }
 
-instance [topological_space R] [has_continuous_smul R F] [topological_vector_bundle R F E] :
-has_scalar R (continuous_section (proj E)) :=
+instance [topological_space R] [has_continuous_smul R F] :
+has_scalar R (bundle_section R F E) :=
 ⟨λ r g, { continuous_to_fun := by begin
   refine continuous_iff_continuous_at.2 (λ b, _),
   rw [right_inv.to_fun_eq_coe,
@@ -433,8 +440,8 @@ has_scalar R (continuous_section (proj E)) :=
   end,
 ..(r • (g : right_inv (proj E))) } ⟩
 
-instance [has_continuous_add F] [topological_space R] [has_continuous_smul R F]
-  [topological_vector_bundle R F E] : module R (continuous_section (proj E)) :=
+instance [has_continuous_add F] [topological_space R] [has_continuous_smul R F] :
+  module R (bundle_section R F E) :=
 { zero_smul := λ f, by { apply continuous_section.ext_right_inv, exact zero_smul R _ },
   smul_zero := λ r, by { apply continuous_section.ext_right_inv, exact smul_zero r },
   add_smul := λ r s f, by { apply continuous_section.ext_right_inv,
@@ -443,7 +450,7 @@ instance [has_continuous_add F] [topological_space R] [has_continuous_smul R F]
   add_smul := λ r s g, by { apply continuous_section.ext_right_inv, exact add_smul r s _ },
   mul_smul := λ r s g, by { apply continuous_section.ext_right_inv, exact mul_smul r s _ },
   one_smul := λ f, by { apply continuous_section.ext_right_inv, exact one_smul R _ },
-  ..continuous_section.has_scalar R F }
+  ..topological_vector_bundle.bundle_section.has_scalar R F }
 
 end sections
 
@@ -455,10 +462,10 @@ open topological_vector_bundle
 
 variables {E R F}
   [ring R] [∀ x, add_comm_group (E x)] [∀ x, module R (E x)]
-  [add_comm_group F] [module R F] [topological_add_group F]
-  [∀ x, topological_space (E x)]
+  [add_comm_group F] [module R F]
+  [∀ x, topological_space (E x)] [topological_vector_bundle R F E]
 
-lemma trivialization.map_neg [topological_vector_bundle R F E] {g : right_inv (proj E)}
+lemma trivialization.map_neg {g : right_inv (proj E)}
   {e : trivialization R F E} (b : B) (hb : b ∈ e.base_set) :
   (e ((- (g : right_inv (proj E))) b)).snd = - (e ((g : right_inv (proj E)) b)).snd :=
 begin
@@ -473,10 +480,9 @@ begin
   exact sigma.eq rfl rfl,
 end
 
-variables (R F)
+variables (R F) [topological_add_group F]
 
-instance [topological_vector_bundle R F E] :
-has_neg (continuous_section (proj E)) :=
+instance : has_neg (bundle_section R F E) :=
 ⟨λ g, { continuous_to_fun := by begin
   refine continuous_iff_continuous_at.2 (λ b, _),
   rw [right_inv.to_fun_eq_coe,
@@ -491,11 +497,12 @@ has_neg (continuous_section (proj E)) :=
   end,
 ..(-(g : right_inv (proj E))) } ⟩
 
-instance [topological_vector_bundle R F E]:
-add_comm_group (continuous_section (proj E)) :=
+instance : add_comm_group (bundle_section R F E) :=
 { add_left_neg :=  λ f, by { apply continuous_section.ext_right_inv,
                             exact add_left_neg (f : right_inv (proj E)) },
-  ..continuous_section.has_neg R F,
-  ..continuous_section.add_comm_monoid R F, }
+  ..topological_vector_bundle.bundle_section.has_neg R F,
+  ..bundle_section.add_comm_monoid R F, }
 
 end sections
+
+#lint

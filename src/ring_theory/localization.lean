@@ -1232,35 +1232,54 @@ begin
   rw map_comap,
 end
 
-variables (I) (f : P →+* R)
+variables (I)
 
 /-- For a ring hom `f : P →+* R` and a prime ideal `I` in `R`, the induced ring hom from the
 localization of `P` at `ideal.comap f I` to the localization of `R` at `I` -/
-noncomputable def local_ring_hom : at_prime (ideal.comap f I) →+* at_prime I :=
-(localization.of _).map (λ y, show f y ∈ I.prime_compl, from y.2) (localization.of _)
+noncomputable def local_ring_hom (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) : at_prime I →+* at_prime J :=
+(localization.of _).map
+  (λ x, show f x ∈ J.prime_compl, from λ hfxJ, x.2 ((hIJ x).mpr hfxJ))
+  (localization.of _)
 
-lemma local_ring_hom_to_map (x : P) :
-  local_ring_hom I f ((localization.of _).to_map x) = (localization.of _).to_map (f x) :=
+lemma local_ring_hom_to_map (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) (x : R) :
+  local_ring_hom I J f hIJ ((localization.of _).to_map x) = (localization.of _).to_map (f x) :=
 map_eq _ _ _
 
-lemma local_ring_hom_mk' (x : P) (y : (ideal.comap f I).prime_compl) :
-  local_ring_hom I f ((localization.of _).mk' x y) = (localization.of _).mk' (f x) ⟨f y, y.2⟩ :=
+lemma local_ring_hom_mk' (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) (x : R) (y : I.prime_compl) :
+  local_ring_hom I J f hIJ ((localization.of _).mk' x y) =
+  (localization.of _).mk' (f x) ⟨f y, λ hfyJ, y.2 ((hIJ y).mpr hfyJ)⟩ :=
 map_mk' _ _ _ _
 
-instance is_local_ring_hom_local_ring_hom : is_local_ring_hom (local_ring_hom I f) :=
+instance is_local_ring_hom_local_ring_hom (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) :
+  is_local_ring_hom (local_ring_hom I J f hIJ) :=
+is_local_ring_hom.mk $ λ x hx,
 begin
-  constructor,
-  intros x hx,
   rcases (localization.of _).mk'_surjective x with ⟨r, s, rfl⟩,
   rw local_ring_hom_mk' at hx,
   rw at_prime.is_unit_mk'_iff at hx ⊢,
-  exact hx
+  exact λ hr, hx ((hIJ r).mp hr),
 end
 
-lemma local_ring_hom_unique {j : at_prime (ideal.comap f I) →+* at_prime I}
-  (hj : ∀ x : P, j ((localization.of _).to_map x) = (localization.of _).to_map (f x)) :
-  local_ring_hom I f = j :=
+lemma local_ring_hom_unique (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) {j : at_prime I →+* at_prime J}
+  (hj : ∀ x : R, j ((localization.of _).to_map x) = (localization.of _).to_map (f x)) :
+  local_ring_hom I J f hIJ = j :=
 map_unique _ _ hj
+
+@[simp] lemma local_ring_hom_id :
+  local_ring_hom I I (ring_hom.id R) (λ r, iff.rfl) = ring_hom.id (at_prime I) :=
+local_ring_hom_unique _ _ _ _ (λ x, rfl)
+
+@[simp] lemma local_ring_hom_comp (J : ideal S) [hJ : J.is_prime] (K : ideal P) [hK : K.is_prime]
+  (f : R →+* S) (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J)  (g : S →+* P) (hJK : ∀ s : S, s ∈ J ↔ g s ∈ K) :
+  local_ring_hom I K (g.comp f) (λ r, iff.trans (hIJ r) (hJK (f r))) =
+  (local_ring_hom J K g hJK).comp (local_ring_hom I J f hIJ) :=
+local_ring_hom_unique _ _ _ _
+  (λ r, by simp only [function.comp_app, ring_hom.coe_comp, local_ring_hom_to_map])
 
 end localization
 end at_prime

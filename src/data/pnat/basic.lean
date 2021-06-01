@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import data.nat.basic
+import algebra.group_power.basic
 
 /-!
 # The positive natural numbers

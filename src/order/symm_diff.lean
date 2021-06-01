@@ -78,7 +78,7 @@ lemma symm_diff_le_sup : a Δ b ≤ a ⊔ b := by { rw symm_diff_eq_sup_sdiff_in
 lemma sdiff_symm_diff : c \ (a Δ b) = (c ⊓ a ⊓ b) ⊔ ((c \ a) ⊓ (c \ b)) :=
 by simp only [(Δ), sdiff_sdiff_sup_sdiff']
 
-lemma sdiff_symm_diff' : c \ (a Δ b) = (c \ (a ⊔ b)) ⊔ (c ⊓ a ⊓ b) :=
+lemma sdiff_symm_diff' : c \ (a Δ b) = (c ⊓ a ⊓ b) ⊔ (c \ (a ⊔ b)) :=
 by rw [sdiff_symm_diff, sdiff_sup, sup_comm]
 
 lemma symm_diff_sdiff : (a Δ b) \ c = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) :=
@@ -153,13 +153,13 @@ end
 @[simp] lemma symm_diff_left_inj : a Δ b = c Δ b ↔ a = c :=
 by rw [symm_diff_comm a b, symm_diff_comm c b, symm_diff_right_inj]
 
-lemma symm_diff_eq_left : a Δ b = a ↔ b = ⊥ :=
+@[simp] lemma symm_diff_eq_left : a Δ b = a ↔ b = ⊥ :=
 calc a Δ b = a ↔ a Δ b = a Δ ⊥ : by rw symm_diff_bot
            ... ↔     b = ⊥     : by rw symm_diff_right_inj
 
-lemma symm_diff_eq_right : a Δ b = b ↔ a = ⊥ := by rw [symm_diff_comm, symm_diff_eq_left]
+@[simp] lemma symm_diff_eq_right : a Δ b = b ↔ a = ⊥ := by rw [symm_diff_comm, symm_diff_eq_left]
 
-lemma symm_diff_eq_bot : a Δ b = ⊥ ↔ a = b :=
+@[simp] lemma symm_diff_eq_bot : a Δ b = ⊥ ↔ a = b :=
 calc a Δ b = ⊥ ↔ a Δ b = a Δ a : by rw symm_diff_self
            ... ↔     a = b     : by rw [symm_diff_right_inj, eq_comm]
 
@@ -181,8 +181,8 @@ by rw [symm_diff_eq_iff_sdiff_eq (@le_top _ _ a), top_sdiff, compl_eq_iff_is_com
 
 lemma is_compl.symm_diff_eq_top (h : is_compl a b) : a Δ b = ⊤ := (symm_diff_eq_top_iff a b).2 h
 
-lemma compl_symm_diff_self : (a Δ a)ᶜ = ⊤ :=
-by simp only [compl_symm_diff, inf_idem, sup_compl_eq_top]
+lemma compl_symm_diff_self : aᶜ Δ a = ⊤ :=
+by simp only [compl_symm_diff, inf_idem, compl_sup_eq_top]
 
 lemma symm_diff_compl_self : a Δ aᶜ = ⊤ :=
 by simp only [symm_diff_eq, compl_compl, inf_idem, sup_compl_eq_top]

@@ -1,9 +1,10 @@
 /-
-Copyright (c) 2018 Yakov Pechersky. All rights reserved.
+Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky, Chris Hughes
 -/
 import data.list.basic
+import data.fin
 
 /-!
 # List duplicates
@@ -23,7 +24,7 @@ inductive duplicate (x : α) : list α → Prop
 | cons_mem {l : list α} : x ∈ l → duplicate (x :: l)
 | cons_duplicate {y : α} {l : list α} : duplicate l → duplicate (y :: l)
 
-local infix ` ∈+ `:1 := list.duplicate
+local infix ` ∈+ `:50 := list.duplicate
 
 variables {l : list α} {x : α}
 
@@ -45,13 +46,13 @@ begin
   { exact h.mem }
 end
 
-@[simp] lemma duplicate_cons_self_iff : (x ∈+ x :: l) ↔ x ∈ l :=
+@[simp] lemma duplicate_cons_self_iff : x ∈+ x :: l ↔ x ∈ l :=
 ⟨duplicate.mem_cons_self, mem.duplicate_cons_self⟩
 
 lemma duplicate.ne_nil (h : x ∈+ l) : l ≠ [] :=
 λ H, (mem_nil_iff x).mp (H ▸ h.mem)
 
-@[simp] lemma not_duplicate_nil (x : α) : ¬ (x ∈+ []) :=
+@[simp] lemma not_duplicate_nil (x : α) : ¬ x ∈+ [] :=
 λ H, by simpa using H.ne_nil
 
 lemma duplicate.ne_singleton (h : x ∈+ l) (y : α) : l ≠ [y] :=
@@ -61,37 +62,39 @@ begin
   { simp [ne_nil_of_mem h.mem] }
 end
 
-@[simp] lemma not_duplicate_singleton (x y : α) : ¬ (x ∈+ [y]) :=
+@[simp] lemma not_duplicate_singleton (x y : α) : ¬ x ∈+ [y] :=
 λ H, by simpa using H.ne_singleton _
 
-lemma duplicate.eq_and_mem_or_duplicate {y : α} (h : x ∈+ y :: l) : (y = x ∧ x ∈ l) ∨ (x ∈+ l) :=
+lemma duplicate_cons_iff {y : α} : x ∈+ y :: l ↔ (y = x ∧ x ∈ l) ∨ x ∈+ l :=
 begin
-  cases h with _ hm _ _ hm,
-  { exact or.inl ⟨rfl, hm⟩ },
-  { exact or.inr hm }
+  refine ⟨λ h, _, λ h, _⟩,
+  { cases h with _ hm _ _ hm,
+    { exact or.inl ⟨rfl, hm⟩ },
+    { exact or.inr hm } },
+  { rcases h with ⟨rfl|h⟩|h,
+    { simpa },
+    { exact h.duplicate_cons _ } }
 end
 
-lemma duplicate.cons_imp_of_ne {y : α} (h : x ∈+ y :: l) (hx : x ≠ y) : x ∈+ l :=
-begin
-  refine h.eq_and_mem_or_duplicate.resolve_left _,
-  simp [and.comm, hx.symm]
-end
+lemma duplicate.of_duplicate_cons {y : α} (h : x ∈+ y :: l) (hx : x ≠ y) : x ∈+ l :=
+by simpa [duplicate_cons_iff, hx.symm] using h
 
-lemma duplicate_cons_iff_of_ne {y : α} (hne : x ≠ y) : (x ∈+ y :: l) ↔ (x ∈+ l) :=
-⟨λ h, h.cons_imp_of_ne hne, λ h, h.duplicate_cons _⟩
+lemma duplicate_cons_iff_of_ne {y : α} (hne : x ≠ y) : x ∈+ y :: l ↔ x ∈+ l :=
+by simp [duplicate_cons_iff, hne.symm]
 
 lemma duplicate.mono_sublist {l' : list α} (hx : x ∈+ l) (h : l <+ l') : x ∈+ l' :=
 begin
   induction h with l₁ l₂ y h IH l₁ l₂ y h IH,
   { simpa using hx.ne_nil },
   { exact (IH hx).duplicate_cons _ },
-  { rcases hx.eq_and_mem_or_duplicate with ⟨rfl, hm⟩|hm,
-    { exact (h.subset hx.mem_cons_self).duplicate_cons_self },
-    { exact (IH hm).duplicate_cons _ } }
+  { rw duplicate_cons_iff at hx ⊢,
+    rcases hx with ⟨rfl, hx⟩|hx,
+    { simp [h.subset hx] },
+    { simp [IH hx] } }
 end
 
 /-- The contrapositive of `list.nodup_iff_sublist`. -/
-lemma duplicate_iff_sublist : (x ∈+ l) ↔ [x, x] <+ l :=
+lemma duplicate_iff_sublist : x ∈+ l ↔ [x, x] <+ l :=
 begin
   induction l with y l IH,
   { simp },
@@ -106,62 +109,119 @@ end
 
 lemma duplicate_iff_count_le_two [decidable_eq α] : (x ∈+ l) ↔ 2 ≤ count x l :=
 by simp [duplicate_iff_sublist, le_count_iff_repeat_sublist]
-
-lemma duplicate_nth_le_iff_exists_distinct {n : ℕ} {hn : n < l.length} :
-  (l.nth_le n hn ∈+ l) ↔ ∃ (m : ℕ) (hm : m < l.length) (h : n ≠ m), l.nth_le n hn = l.nth_le m hm :=
+lemma sublist_of_order_embedding {l l' : list α} (f : ℕ ↪o ℕ)
+  (hf : ∀ (ix : ℕ), l.nth ix = l'.nth (f ix)) :
+  l <+ l' :=
 begin
-  induction l with y l IH generalizing n,
+  induction l with hd tl IH generalizing l' f,
   { simp },
-  { cases n,
-    { simp only [mem_iff_nth_le, exists_prop, duplicate_cons_self_iff, nat.nat_zero_eq_zero, length,
-                 exists_and_distrib_left, ne.def, nth_le],
-      split,
-      { rintro ⟨m, hm, rfl⟩,
-        use m + 1,
-        simpa [hm, m.zero_lt_succ.ne] },
-      { rintro ⟨_ | m, h, hm, hy⟩,
-        { contradiction },
-        { use m,
-          simp only [length, nat.succ_lt_succ_iff] at hm,
-          rw hy,
-          simpa [hm] } } },
-    { by_cases hy : (y :: l).nth_le n.succ hn = y,
-      { rw hy,
-        simp only [mem_iff_nth_le, exists_prop, duplicate_cons_self_iff, length,
-                   exists_and_distrib_left, ne.def, nth_le],
-        split,
-        { intro,
-          use 0,
-          simp },
-        { intro,
-          simp only [nat.succ_lt_succ_iff, length] at hn,
-          use [n, hn],
-          simpa using hy } },
-      { rw duplicate_cons_iff_of_ne hy,
-        simp only [IH, exists_prop, length, exists_and_distrib_left, ne.def, nth_le],
-        split,
-        { rintro ⟨m, h, hm, hy⟩,
-          use m + 1,
-          simpa [nat.succ_inj', hm, h] using hy },
-        { rintro ⟨_ | m, h, hm, hy⟩,
-          { contradiction },
-          { use m,
-            rw [nat.succ_inj'] at h,
-            simp only [length, nat.succ_lt_succ_iff] at hm,
-            rw hy,
-            simpa [h, hm] } } } } }
+  have : some hd = _ := hf 0,
+  rw [eq_comm, list.nth_eq_some] at this,
+  obtain ⟨w, h⟩ := this,
+  let f' : ℕ ↪o ℕ := order_embedding.of_map_rel_iff (λ i, f (i + 1) - (f 0 + 1))
+    (λ a b, by simp [nat.sub_le_sub_right_iff, nat.succ_le_iff, nat.lt_succ_iff]),
+  have : ∀ ix, tl.nth ix = (l'.drop (f 0 + 1)).nth (f' ix),
+  { intro ix,
+    simp [list.nth_drop, nat.add_sub_of_le, nat.succ_le_iff, ←hf] },
+  rw [←list.take_append_drop (f 0 + 1) l', ←list.singleton_append],
+  apply list.sublist.append _ (IH _ this),
+  rw [list.singleton_sublist, ←h, l'.nth_le_take _ (nat.lt_succ_self _)],
+  apply list.nth_le_mem
+end
+
+lemma sublist_iff_nth_eq {l l' : list α} :
+  l <+ l' ↔ ∃ (f : ℕ ↪o ℕ), ∀ (ix : ℕ), l.nth ix = l'.nth (f ix) :=
+begin
+  split,
+  { intro H,
+    induction H with xs ys y H IH xs ys x H IH,
+    { simp },
+    { obtain ⟨f, hf⟩ := IH,
+      refine ⟨f.trans (order_embedding.of_strict_mono (+ 1) (λ _, by simp)), _⟩,
+      simpa using hf },
+    { obtain ⟨f, hf⟩ := IH,
+      refine ⟨order_embedding.of_map_rel_iff
+        (λ (ix : ℕ), if ix = 0 then 0 else (f ix.pred).succ) _, _⟩,
+      { rintro ⟨_|a⟩ ⟨_|b⟩;
+        simp [nat.succ_le_succ_iff] },
+      { rintro ⟨_|i⟩,
+        { simp },
+        { simpa using hf _ } } } },
+  { rintro ⟨f, hf⟩,
+    exact sublist_of_order_embedding f hf }
+end
+
+lemma sublist_iff_nth_le_eq {l l' : list α} :
+  l <+ l' ↔ ∃ (f : fin l.length ↪o fin l'.length),
+    ∀ (ix : fin l.length), l.nth_le ix ix.is_lt = l'.nth_le (f ix) (f ix).is_lt :=
+begin
+  rw sublist_iff_nth_eq,
+  split,
+  { rintro ⟨f, hf⟩,
+    have h : ∀ {i : ℕ} (h : i < l.length), f i < l'.length,
+    { intros i hi,
+      specialize hf i,
+      rw [nth_le_nth hi, eq_comm, nth_eq_some] at hf,
+      obtain ⟨h, -⟩ := hf,
+      exact h },
+    refine ⟨order_embedding.of_map_rel_iff (λ ix, ⟨f ix, h ix.is_lt⟩) _, _⟩,
+    { simp },
+    { intro i,
+      apply option.some_injective,
+      simpa [←nth_le_nth] using hf _ } },
+  { rintro ⟨f, hf⟩,
+    refine ⟨order_embedding.of_strict_mono
+      (λ i, if hi : i < l.length then f ⟨i, hi⟩ else i + l'.length) _, _⟩,
+    { intros i j h,
+      dsimp only,
+      split_ifs with hi hj hj hi,
+      { simpa using h },
+      { rw add_comm,
+        exact lt_add_of_lt_of_pos (fin.is_lt _) (i.zero_le.trans_lt h) },
+      { exact absurd (h.trans hj) hi },
+      { simpa using h } },
+    { intro i,
+      simp only [order_embedding.coe_of_strict_mono],
+      split_ifs with hi,
+      { rw [nth_le_nth hi, nth_le_nth, ←hf],
+        simp },
+      { rw [nth_len_le, nth_len_le],
+        { simp },
+        { simpa using hi } } } }
+end
+
+lemma duplicate_iff_exists_distinct :
+  x ∈+ l ↔ ∃ (n : ℕ) (hn : n < l.length) (m : ℕ) (hm : m < l.length) (h : n < m),
+    x = l.nth_le n hn ∧ x = l.nth_le m hm :=
+begin
+  classical,
+  rw [duplicate_iff_count_le_two, le_count_iff_repeat_sublist, sublist_iff_nth_le_eq],
+  split,
+  { rintro ⟨f, hf⟩,
+    refine ⟨f ⟨0, by simp⟩, fin.is_lt _, f ⟨1, by simp⟩, fin.is_lt _, by simp, _, _⟩,
+    { simpa using hf ⟨0, by simp⟩ },
+    { simpa using hf ⟨1, by simp⟩ } },
+  { rintro ⟨n, hn, m, hm, hnm, h, h'⟩,
+    refine ⟨order_embedding.of_strict_mono (λ i, if (i : ℕ) = 0 then ⟨n, hn⟩ else ⟨m, hm⟩) _, _⟩,
+    { rintros ⟨⟨_|i⟩, hi⟩ ⟨⟨_|j⟩, hj⟩,
+      { simp  },
+      { simp [hnm] },
+      { simp },
+      { simp only [nat.lt_succ_iff, nat.succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]
+          at hi hj,
+        simp [hi, hj] } },
+    { rintros ⟨⟨_|i⟩, hi⟩,
+      { simpa using h },
+      { simpa using h' } } },
 end
 
 instance decidable_duplicate [decidable_eq α] (x : α) : ∀ (l : list α), decidable (x ∈+ l)
 | []       := is_false (not_duplicate_nil x)
 | (y :: l) := match decidable_duplicate l with
   | is_true  h := is_true (h.duplicate_cons y)
-  | is_false h :=
-    if hx : x ∈ l
-      then if hy : x = y
-        then is_true (hy ▸ hx.duplicate_cons_self)
-        else is_false (λ H, h (H.cons_imp_of_ne hy))
-      else is_false (λ H, hx (or.cases_on H.eq_and_mem_or_duplicate and.elim_right duplicate.mem))
+  | is_false h := if hx : y = x ∧ x ∈ l
+      then is_true (hx.left.symm ▸ hx.right.duplicate_cons_self)
+      else is_false (by simpa [duplicate_cons_iff, h] using hx)
   end
 
 end list

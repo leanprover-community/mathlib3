@@ -6,7 +6,7 @@ Authors: Johan Commelin
 import algebra.linear_ordered_comm_group_with_zero
 import algebra.big_operators.ring
 import data.real.basic
-import data.indicator_function
+import algebra.indicator_function
 import algebra.algebra.basic
 
 /-!

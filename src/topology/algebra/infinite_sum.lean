@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.intervals
 import topology.instances.real
 import topology.algebra.module
-import data.indicator_function
+import algebra.indicator_function
 import data.equiv.encodable.lattice
 import data.nat.parity
 import order.filter.at_top_bot

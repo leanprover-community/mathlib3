@@ -49,6 +49,12 @@ algebra.gc _ _
 theorem adjoin_mono (H : s ⊆ t) : adjoin R s ≤ adjoin R t :=
 algebra.gc.monotone_l H
 
+theorem adjoin_eq_of_le (S : subalgebra R A) (h₁ : s ⊆ S) (h₂ : S ≤ adjoin R s) : adjoin R s = S :=
+le_antisymm (adjoin_le h₁) h₂
+
+theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
+adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
+
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }

@@ -303,7 +303,7 @@ lemma eq_zero_iff_of_associated [monoid_with_zero α] {a b : α} (h : a ~ᵤ b) 
 ⟨λ ha, let ⟨u, hu⟩ := h in by simp [hu.symm, ha],
   λ hb, let ⟨u, hu⟩ := h.symm in by simp [hu.symm, hb]⟩
 
-lemma ne_zero_iff_of_associated [comm_monoid_with_zero α] {a b : α} (h : a ~ᵤ b) : a ≠ 0 ↔ b ≠ 0 :=
+lemma ne_zero_iff_of_associated [monoid_with_zero α] {a b : α} (h : a ~ᵤ b) : a ≠ 0 ↔ b ≠ 0 :=
 not_congr $ eq_zero_iff_of_associated h
 
 lemma prime_of_associated [comm_monoid_with_zero α] {p q : α} (h : p ~ᵤ q) (hp : prime p) :

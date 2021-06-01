@@ -214,7 +214,7 @@ by simpa only [prod_subset_iff] using exists_nhds_square this
 lemma exists_nhds_one_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :
   ∃ V ∈ 𝓝 (1 : M), ∀ (v ∈ V) (w ∈ V), v * w ∈ s :=
 let ⟨V, Vo, V1, hV⟩ := exists_open_nhds_one_split hs
-in ⟨V, mem_nhds_sets Vo V1, hV⟩
+in ⟨V, is_open.mem_nhds Vo V1, hV⟩
 
 @[to_additive exists_nhds_zero_quarter]
 lemma exists_nhds_one_split4 {u : set M} (hu : u ∈ 𝓝 (1 : M)) :
@@ -269,7 +269,10 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 @[continuity]
 lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=
-continuous.comp (continuous_pow n) h
+(continuous_pow n).comp h
+
+lemma continuous_on_pow {s : set M} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
+(continuous_pow n).continuous_on
 
 end has_continuous_mul
 
@@ -332,7 +335,7 @@ variables [topological_space M] [comm_monoid M]
 @[to_additive]
 lemma submonoid.mem_nhds_one (S : submonoid M) (oS : is_open (S : set M)) :
   (S : set M) ∈ 𝓝 (1 : M) :=
-mem_nhds_sets oS S.one_mem
+is_open.mem_nhds oS S.one_mem
 
 variable [has_continuous_mul M]
 

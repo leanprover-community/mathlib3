@@ -39,6 +39,8 @@ ERR_SAV = 4 # ᾰ
 ERR_RNT = 5 # reserved notation
 ERR_OPT = 6 # set_option
 ERR_AUT = 7 # malformed authors list
+ERR_OME = 8 # imported tactic.omega
+ERR_TAC = 9 # imported tactic
 
 exceptions = []
 
@@ -67,6 +69,10 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(ERR_OPT, path)]
         if errno == "ERR_AUT":
             exceptions += [(ERR_AUT, path)]
+        if errno == "ERR_OME":
+            exceptions += [(ERR_OME, path)]
+        if errno == "ERR_TAC":
+            exceptions += [(ERR_TAC, path)]
 
 new_exceptions = False
 
@@ -208,6 +214,18 @@ def regular_check(lines, path):
                 errors += [(ERR_IMP, line_nr, path)]
     return errors
 
+def import_omega_check(lines, path):
+    errors = []
+    for line_nr, line in skip_comments(enumerate(lines, 1)):
+        imports = line.split()
+        if imports[0] != "import":
+            break
+        if imports[1] == "tactic.omega":
+            errors += [(ERR_OME, line_nr, path)]
+        if imports[1] == "tactic":
+            errors += [(ERR_TAC, line_nr, path)]
+    return errors
+
 def output_message(path, line_nr, code, msg):
     if len(exceptions) == 0:
         # we are generating a new exceptions file
@@ -239,6 +257,10 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_OPT", "Forbidden set_option command")
         if errno == ERR_AUT:
             output_message(path, line_nr, "ERR_AUT", "Authors line should look like: 'Authors: Jean Dupont, Иван Иванович Иванов'")
+        if errno == ERR_OME:
+            output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import tactic.omega")
+        if errno == ERR_TAC:
+            output_message(path, line_nr, "ERR_OME", "Files in mathlib cannot import the whole tactic folder")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:
@@ -248,7 +270,7 @@ def lint(path):
         (b, errs) = import_only_check(lines, path)
         if b:
             format_errors(errs)
-            return
+            return # checks below this line are not executed on files that only import other files.
         errs = regular_check(lines, path)
         format_errors(errs)
         errs = small_alpha_vrachy_check(lines, path)
@@ -256,6 +278,8 @@ def lint(path):
         errs = reserved_notation_check(lines, path)
         format_errors(errs)
         errs = set_option_check(lines, path)
+        format_errors(errs)
+        errs = import_omega_check(lines, path)
         format_errors(errs)
 
 for filename in sys.argv[1:]:

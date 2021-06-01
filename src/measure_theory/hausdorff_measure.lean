@@ -129,7 +129,7 @@ begin
   have Union_S : (⋃ n, S n) = s \ t,
   { refine subset.antisymm (Union_subset S_sub) _,
     rintro x ⟨hxs, hxt⟩,
-    rw mem_iff_ind_edist_zero_of_closed ht at hxt,
+    rw mem_iff_inf_edist_zero_of_closed ht at hxt,
     rcases ennreal.exists_inv_nat_lt hxt with ⟨n, hn⟩,
     exact mem_Union.2 ⟨n, hxs, hn.le⟩ },
   /- Now we have `∀ n, μ (s ∩ t) + μ (S n) ≤ μ s` and we need to prove

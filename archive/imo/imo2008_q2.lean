@@ -74,7 +74,7 @@ begin
     ... = ( (c*(m^2+n^2+m*n) - m*(m+n)^2) / (m*n*(m+n)) )^2 :
           by { ring_nf, field_simp, ring }
     ... ≥ 0 :
-          pow_two_nonneg _ },
+          sq_nonneg _ },
 
 
   linarith [key],
@@ -146,7 +146,7 @@ begin
       have h₂ : q < t * (t + 1),
       { calc q < q + 1    : by linarith
            ... ≤ t        : le_max_left (q + 1) 1
-           ... ≤ t+t^2    : by linarith [pow_two_nonneg t]
+           ... ≤ t+t^2    : by linarith [sq_nonneg t]
            ... = t*(t+1)  : by ring },
 
       exact ⟨h₁, h₂⟩ },

@@ -148,16 +148,15 @@ lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → L} (h : ∀ c ∈ t, f c 
   ∑ i in t, f i ∈ S :=
 S.to_subfield.sum_mem h
 
-lemma pow_mem {x : L} (hx : x ∈ S) (n : ℤ) : x^n ∈ S :=
-begin
-  cases n,
-  { exact @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx n, },
-  { have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
-    exact subfield.inv_mem S.to_subfield h, },
-end
+lemma pow_mem {x : L} (hx : x ∈ S) : ∀ (n : ℤ), x^n ∈ S
+| (n : ℕ) := by { rw gpow_coe_nat,
+    exact @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx n, }
+| -[1+ n] := by { rw [gpow_neg_succ_of_nat],
+    have h := @is_submonoid.pow_mem L _ S.to_subfield.to_submonoid x _ hx _,
+    exact subfield.inv_mem S.to_subfield h }
 
 lemma gsmul_mem {x : L} (hx : x ∈ S) (n : ℤ) :
-  n •ℤ x ∈ S := S.to_subfield.gsmul_mem hx n
+  n • x ∈ S := S.to_subfield.gsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : L) ∈ S :=
 by simp only [← gsmul_one, gsmul_mem, one_mem]
@@ -320,37 +319,37 @@ instance finite_dimensional_right [finite_dimensional K L] : finite_dimensional 
 right K F L
 
 @[simp] lemma dim_eq_dim_subalgebra :
-  vector_space.dim K F.to_subalgebra = vector_space.dim K F := rfl
+  module.rank K F.to_subalgebra = module.rank K F := rfl
 
-@[simp] lemma findim_eq_findim_subalgebra :
-  findim K F.to_subalgebra = findim K F := rfl
+@[simp] lemma finrank_eq_finrank_subalgebra :
+  finrank K F.to_subalgebra = finrank K F := rfl
 
 variables {F} {E}
 
 @[simp] lemma to_subalgebra_eq_iff : F.to_subalgebra = E.to_subalgebra ↔ F = E :=
 by { rw [set_like.ext_iff, set_like.ext'_iff, set.ext_iff], refl }
 
-lemma eq_of_le_of_findim_le [finite_dimensional K L] (h_le : F ≤ E)
-  (h_findim : findim K E ≤ findim K F) : F = E :=
-to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_findim_le h_le h_findim
+lemma eq_of_le_of_finrank_le [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank K E ≤ finrank K F) : F = E :=
+to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_finrank_le h_le h_finrank
 
-lemma eq_of_le_of_findim_eq [finite_dimensional K L] (h_le : F ≤ E)
-  (h_findim : findim K F = findim K E) : F = E :=
-eq_of_le_of_findim_le h_le h_findim.ge
+lemma eq_of_le_of_finrank_eq [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank K F = finrank K E) : F = E :=
+eq_of_le_of_finrank_le h_le h_finrank.ge
 
-lemma eq_of_le_of_findim_le' [finite_dimensional K L] (h_le : F ≤ E)
-  (h_findim : findim F L ≤ findim E L) : F = E :=
+lemma eq_of_le_of_finrank_le' [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank F L ≤ finrank E L) : F = E :=
 begin
-  apply eq_of_le_of_findim_le h_le,
-  have h1 := findim_mul_findim K F L,
-  have h2 := findim_mul_findim K E L,
-  have h3 : 0 < findim E L := findim_pos,
+  apply eq_of_le_of_finrank_le h_le,
+  have h1 := finrank_mul_finrank K F L,
+  have h2 := finrank_mul_finrank K E L,
+  have h3 : 0 < finrank E L := finrank_pos,
   nlinarith,
 end
 
-lemma eq_of_le_of_findim_eq' [finite_dimensional K L] (h_le : F ≤ E)
-  (h_findim : findim F L = findim E L) : F = E :=
-eq_of_le_of_findim_le' h_le h_findim.le
+lemma eq_of_le_of_finrank_eq' [finite_dimensional K L] (h_le : F ≤ E)
+  (h_finrank : finrank F L = finrank E L) : F = E :=
+eq_of_le_of_finrank_le' h_le h_finrank.le
 
 end finite_dimensional
 

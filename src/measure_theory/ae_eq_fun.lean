@@ -369,11 +369,11 @@ instance [topological_space γ] [borel_space γ] [comm_group γ] [topological_gr
   [second_countable_topology γ] : comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
 
-section semimodule
+section module
 
 variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
-variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [semimodule 𝕜 γ]
+variables [topological_space γ] [borel_space γ] [add_comm_monoid γ] [module 𝕜 γ]
   [has_continuous_smul 𝕜 γ]
 
 instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
@@ -390,10 +390,10 @@ comp_to_germ _ _ _
 
 variables [second_countable_topology γ] [has_continuous_add γ]
 
-instance : semimodule 𝕜 (α →ₘ[μ] γ) :=
-to_germ_injective.semimodule 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
+instance : module 𝕜 (α →ₘ[μ] γ) :=
+to_germ_injective.module 𝕜 ⟨@to_germ α γ _ μ _, zero_to_germ, add_to_germ⟩ smul_to_germ
 
-end semimodule
+end module
 
 open ennreal
 
@@ -470,7 +470,7 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
 variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜] [measurable_space 𝕜]
   [opens_measurable_space 𝕜]
 variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_comm_group γ]
-  [semimodule 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
+  [module 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ]
   [second_countable_topology γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence

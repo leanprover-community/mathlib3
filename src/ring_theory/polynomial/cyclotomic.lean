@@ -646,7 +646,7 @@ begin
   have hnzero : ↑n ≠ (0 : (zmod p)),
   { intro ha,
     exact hn (int.coe_nat_dvd.1 ((zmod.int_coe_zmod_eq_zero_iff_dvd n p).1 ha)) },
-  rw [pow_two] at habs,
+  rw [sq] at habs,
   replace habs := squarefree_X_pow_sub_C (1 : (zmod p)) hnzero one_ne_zero
     (map (int.cast_ring_hom (zmod p)) (X - a)) habs,
   simp only [map_nat_cast, map_X, map_sub] at habs,

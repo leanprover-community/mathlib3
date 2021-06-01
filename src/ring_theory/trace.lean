@@ -60,7 +60,7 @@ noncomputable def trace : S →ₗ[R] R :=
 variables {S}
 
 lemma trace_eq_zero_of_not_exists_basis
-  (h : ¬ ∃ (s : set S) (b : basis s R S), s.finite) : trace R S = 0 :=
+  (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) : trace R S = 0 :=
 by { ext s, simp [linear_map.trace, h] }
 
 include b
@@ -91,10 +91,9 @@ omit b
 @[simp]
 lemma trace_algebra_map (x : K) : trace K L (algebra_map K L x) = finrank K L • x :=
 begin
-  by_cases H : ∃ (s : set L) (b : basis s K L), s.finite,
-  { haveI : fintype H.some := H.some_spec.some_spec.some,
-    rw [trace_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
-  { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finite H] }
+  by_cases H : ∃ (s : finset L), nonempty (basis s K L),
+  { rw [trace_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
+  { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
 
 section trace_form

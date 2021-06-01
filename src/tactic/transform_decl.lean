@@ -42,7 +42,6 @@ do
     (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     is_protected ← is_protected_decl src,
     let decl := decl.update_with_fun (name.map_prefix f) (additive_test ff) tgt,
-    trace decl,
     if is_protected then add_protected_decl decl else add_decl decl,
     attrs.mmap' (λ n, copy_attribute n src tgt)
 

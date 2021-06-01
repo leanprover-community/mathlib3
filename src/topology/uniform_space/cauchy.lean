@@ -154,9 +154,43 @@ lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → �
   cauchy_seq f :=
 hx.cauchy_map
 
+lemma cauchy_seq_const (x : α) : cauchy_seq (λ n : ℕ, x) :=
+tendsto_const_nhds.cauchy_seq
+
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
 cauchy_map_iff'.trans $ by simp only [prod_at_top_at_top_eq, prod.map_def]
+
+lemma cauchy_seq.subseq_subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
+  {u : ℕ → α} (hu : cauchy_seq u)
+  {f g : ℕ → ℕ} (hf : tendsto f at_top at_top) (hg : tendsto g at_top at_top) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, ((u ∘ f ∘ φ) n, (u ∘ g ∘ φ) n) ∈ V n :=
+begin
+  rw cauchy_seq_iff_tendsto at hu,
+  exact ((hu.comp $ hf.prod_at_top hg).comp tendsto_at_top_diagonal).subseq_mem hV,
+end
+
+lemma cauchy_seq_iff' {u : ℕ → α} :
+  cauchy_seq u ↔ ∀ V ∈ 𝓤 α, ∀ᶠ k in at_top, k ∈ (prod.map u u) ⁻¹' V :=
+by simpa only [cauchy_seq_iff_tendsto]
+
+lemma cauchy_seq_iff {u : ℕ → α} :
+  cauchy_seq u ↔ ∀ V ∈ 𝓤 α, ∃ N, ∀ k ≥ N, ∀ l ≥ N, (u k, u l) ∈ V :=
+by simp [cauchy_seq_iff', filter.eventually_at_top_prod_self', prod_map]
+
+lemma cauchy_seq.subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
+  {u : ℕ → α} (hu : cauchy_seq u) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, (u $ φ (n + 1), u $ φ n) ∈ V n :=
+begin
+  have : ∀ n, ∃ N, ∀ k ≥ N, ∀ l ≥ k, (u l, u k) ∈ V n,
+  { intro n,
+    rw [cauchy_seq_iff] at hu,
+    rcases hu _ (hV n) with ⟨N, H⟩,
+    exact ⟨N, λ k hk l hl, H _ (le_trans hk hl) _ hk ⟩ },
+  obtain ⟨φ : ℕ → ℕ, φ_extr : strict_mono φ, hφ : ∀ n, ∀ l ≥ φ n, (u l, u $ φ n) ∈ V n⟩ :=
+    extraction_forall_of_eventually' this,
+  exact ⟨φ, φ_extr, λ n, hφ _ _ (φ_extr $ lt_add_one n).le⟩,
+end
 
 /-- If a Cauchy sequence has a convergent subsequence, then it converges. -/
 lemma tendsto_nhds_of_cauchy_seq_of_subseq
@@ -276,7 +310,7 @@ h.le_nhds_Lim
 lemma is_closed.is_complete [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
-⟨x, is_closed_iff_cluster_pt.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
+⟨x, is_closed_iff_cluster_pt.mp h x (cf.left.mono (le_inf hx fs)), hx⟩
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
@@ -388,7 +422,7 @@ begin
     set ys := ⋃ y' ∈ ({y} : finset α), {x | (x, y') ∈ d},
     have : m ⊆ ys, by simpa [ys] using λ x hx, hmd (mk_mem_prod hx hym),
     have : c ≤ 𝓟 (s \ ys) := hcf.trans (infi_le_of_le {y} le_rfl),
-    refine hc.1 (empty_in_sets_eq_bot.mp _),
+    refine hc.1.ne (empty_in_sets_eq_bot.mp _),
     filter_upwards [le_principal_iff.1 this, hm],
     refine λ x hx hxm, hx.2 _,
     simpa [ys] using hmd (mk_mem_prod hxm hym) }
@@ -405,12 +439,18 @@ end
 lemma compact_iff_totally_bounded_complete {s : set α} :
   is_compact s ↔ totally_bounded s ∧ is_complete s :=
 ⟨λ hs, ⟨totally_bounded_iff_ultrafilter.2 (λ f hf,
-    let ⟨x, xs, fx⟩ := compact_iff_ultrafilter_le_nhds.1 hs f hf in cauchy_nhds.mono fx),
+    let ⟨x, xs, fx⟩ := is_compact_iff_ultrafilter_le_nhds.1 hs f hf in cauchy_nhds.mono fx),
   λ f fc fs,
     let ⟨a, as, fa⟩ := @hs f fc.1 fs in
     ⟨a, as, le_nhds_of_cauchy_adhp fc fa⟩⟩,
- λ ⟨ht, hc⟩, compact_iff_ultrafilter_le_nhds.2
+ λ ⟨ht, hc⟩, is_compact_iff_ultrafilter_le_nhds.2
    (λf hf, hc _ (totally_bounded_iff_ultrafilter.1 ht f hf) hf)⟩
+
+lemma is_compact.totally_bounded {s : set α} (h : is_compact s) : totally_bounded s :=
+(compact_iff_totally_bounded_complete.1 h).1
+
+lemma is_compact.is_complete {s : set α} (h : is_compact s) : is_complete s :=
+(compact_iff_totally_bounded_complete.1 h).2
 
 @[priority 100] -- see Note [lower instance priority]
 instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α] : complete_space α :=
@@ -451,7 +491,7 @@ a sequence of monotonically decreasing sets `s n ∈ f` such that `(s n).prod (s
 def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
 
 lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
-Inter_mem_sets (finite_le_nat n) (λ m _, (set_seq_aux hf U_mem m).2.fst)
+(bInter_mem_sets (finite_le_nat n)).2 (λ m _, (set_seq_aux hf U_mem m).2.fst)
 
 lemma set_seq_mono ⦃m n : ℕ⦄ (h : m ≤ n) : set_seq hf U_mem n ⊆ set_seq hf U_mem m :=
 bInter_subset_bInter_left (λ k hk, le_trans hk h)
@@ -552,13 +592,13 @@ begin
     h_basis : (𝓤 α).has_antimono_basis (λ _, true) t⟩ :=
     H.exists_antimono_subbasis uniformity_has_basis_open_symmetric,
   refine ⟨⟨⋃ (x ∈ s), range (λ k, ball x (t k)), hsc.bUnion (λ x hx, countable_range _), _⟩⟩,
-  refine (is_topological_basis_of_open_of_nhds _ _).2.2,
+  refine (is_topological_basis_of_open_of_nhds _ _).eq_generate_from,
   { simp only [mem_bUnion_iff, mem_range],
     rintros _ ⟨x, hxs, k, rfl⟩,
     exact is_open_ball x (hto k).2.1 },
   { intros x V hxV hVo,
     simp only [mem_bUnion_iff, mem_range, exists_prop],
-    rcases uniform_space.mem_nhds_iff.1 (mem_nhds_sets hVo hxV) with ⟨U, hU, hUV⟩,
+    rcases uniform_space.mem_nhds_iff.1 (is_open.mem_nhds hVo hxV) with ⟨U, hU, hUV⟩,
     rcases comp_symm_of_uniformity hU with ⟨U', hU', hsymm, hUU'⟩,
     rcases h_basis.to_has_basis.mem_iff.1 hU' with ⟨k, -, hk⟩,
     rcases hsd.inter_open_nonempty (ball x $ t k) (uniform_space.is_open_ball x (hto k).2.1)
@@ -568,4 +608,3 @@ begin
 end
 
 end uniform_space
-

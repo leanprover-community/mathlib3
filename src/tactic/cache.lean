@@ -84,7 +84,8 @@ do h ← match h with
 
 /-- Used to add typeclasses to the context so that they can
 be used in typeclass inference. The syntax is the same as `let`. -/
-meta def letI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) :
+meta def letI
+  (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) :
   tactic unit :=
 do h ← match h with
   | none   := get_unused_name "_inst"

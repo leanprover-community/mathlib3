@@ -72,7 +72,7 @@ creates_limit_of_reflects_iso (λ c' t,
     π :=
     { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ Group Mon.{u}),
       naturality' := (Mon.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } },
-  valid_lift := is_limit.unique_up_to_iso (Mon.has_limits.limit_cone_is_limit _) t,
+  valid_lift := by apply is_limit.unique_up_to_iso (Mon.has_limits.limit_cone_is_limit _) t,
   makes_limit := is_limit.of_faithful (forget₂ Group Mon.{u}) (Mon.has_limits.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })
 
@@ -148,9 +148,9 @@ creates_limit_of_reflects_iso (λ c' t,
     π :=
     { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommGroup Group.{u} ⋙ forget₂ Group Mon),
       naturality' := (Mon.has_limits.limit_cone _).π.naturality, } },
-  valid_lift := is_limit.unique_up_to_iso (Group.limit_cone_is_limit _) t,
+  valid_lift := by apply is_limit.unique_up_to_iso (Group.limit_cone_is_limit _) t,
   makes_limit := is_limit.of_faithful (forget₂ _ Group.{u} ⋙ forget₂ _ Mon.{u})
-    (Mon.has_limits.limit_cone_is_limit _) (λ s, _) (λ s, rfl) })
+    (by apply Mon.has_limits.limit_cone_is_limit _) (λ s, _) (λ s, rfl) })
 
 /--
 A choice of limit cone for a functor into `CommGroup`.
@@ -247,10 +247,7 @@ def kernel_iso_ker {G H : AddCommGroup} (f : G ⟶ H) :
 @[simp]
 lemma kernel_iso_ker_hom_comp_subtype {G H : AddCommGroup} (f : G ⟶ H) :
   (kernel_iso_ker f).hom ≫ add_subgroup.subtype f.ker = kernel.ι f :=
-begin
-  ext,
-  simp [kernel_iso_ker],
-end
+by ext; refl
 
 @[simp]
 lemma kernel_iso_ker_inv_comp_ι {G H : AddCommGroup} (f : G ⟶ H) :
@@ -264,7 +261,7 @@ end
 The categorical kernel inclusion for `f : G ⟶ H`, as an object over `G`,
 agrees with the `subtype` map.
 -/
-@[simps {rhs_md:=semireducible}]
+@[simps]
 def kernel_iso_ker_over {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   over.mk (kernel.ι f) ≅ @over.mk _ _ G (AddCommGroup.of f.ker) (add_subgroup.subtype f.ker) :=
 over.iso_mk (kernel_iso_ker f) (by simp)

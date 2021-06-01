@@ -43,10 +43,10 @@ lemma compact_space_uniformity [compact_space α] [separated_space α] : 𝓤 α
 begin
   symmetry, refine le_antisymm supr_nhds_le_uniformity _,
   by_contra H,
-  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ ne_bot (𝓤 α ⊓ 𝓟 Vᶜ),
+  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 Vᶜ ≠ ⊥,
   { simpa [le_iff_forall_inf_principal_compl] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
-  haveI : ne_bot F := h,
+  haveI : ne_bot F := ⟨h⟩,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
     cluster_point_of_compact F,
   have : cluster_pt (x, y) (𝓤 α) :=
@@ -84,7 +84,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
   refl := begin
     simp_rw [filter.principal_le_iff, mem_supr_sets],
     rintros V V_in ⟨x, _⟩ ⟨⟩,
-    exact mem_of_nhds (V_in x),
+    exact mem_of_mem_nhds (V_in x),
   end,
   symm := begin
     refine le_of_eq _,
@@ -103,7 +103,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     rw le_iff_forall_inf_principal_compl,
     intros V V_in,
     by_contra H,
-    haveI : ne_bot (F ⊓ 𝓟 Vᶜ) := H,
+    haveI : ne_bot (F ⊓ 𝓟 Vᶜ) := ⟨H⟩,
     -- Hence compactness would give us a cluster point (x, y) for F ⊓ 𝓟 Vᶜ
     obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact _,
     -- In particular (x, y) is a cluster point of 𝓟 Vᶜ, hence is not in the interior of V,
@@ -125,20 +125,21 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     haveI : normal_space α := normal_of_compact_t2,
     -- So there are closed neighboords V₁ and V₂ of x and y contained in disjoint open neighborhoods
     -- U₁ and U₂.
-    obtain ⟨U₁, V₁, U₁_in, V₁_in, U₂, V₂, U₂_in₂, V₂_in, V₁_cl, V₂_cl, U₁_op, U₂_op, VU₁, VU₂, hU₁₂⟩ :
-       ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y), is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧
-                                       V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
+    obtain
+      ⟨U₁, V₁, U₁_in, V₁_in, U₂, V₂, U₂_in₂, V₂_in, V₁_cl, V₂_cl, U₁_op, U₂_op, VU₁, VU₂, hU₁₂⟩ :
+        ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y),
+          is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧ V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
        disjoint_nested_nhds x_ne_y,
     -- We set U₃ := (V₁ ∪ V₂)ᶜ so that W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃) is an open
     -- neighborhood of Δ.
     let U₃ := (V₁ ∪ V₂)ᶜ,
     have U₃_op : is_open U₃ :=
-      is_open_compl_iff.mpr (is_closed_union V₁_cl V₂_cl),
+      is_open_compl_iff.mpr (is_closed.union V₁_cl V₂_cl),
     let W := (U₁.prod U₁) ∪ (U₂.prod U₂) ∪ (U₃.prod U₃),
     have W_in : W ∈ 𝓝Δ,
     { rw mem_supr_sets,
       intros x,
-      apply mem_nhds_sets (is_open_union (is_open_union _ _) _),
+      apply is_open.mem_nhds (is_open.union (is_open.union _ _) _),
       { by_cases hx : x ∈ V₁ ∪ V₂,
         { left,
           cases hx with hx hx ; [left, right] ; split ; tauto },
@@ -149,7 +150,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     -- So W ○ W ∈ F by definition of F
     have : W ○ W ∈ F, by simpa only using mem_lift' W_in,
     -- And V₁.prod V₂ ∈ 𝓝 (x, y)
-    have hV₁₂ : V₁.prod V₂ ∈ 𝓝 (x, y) := prod_mem_nhds_sets V₁_in V₂_in,
+    have hV₁₂ : V₁.prod V₂ ∈ 𝓝 (x, y) := prod_is_open.mem_nhds V₁_in V₂_in,
     -- But (x, y) is also a cluster point of F so (V₁.prod V₂) ∩ (W ○ W) ≠ ∅
     have clF : cluster_pt (x, y) F := hxy.of_inf_left,
     obtain ⟨p, p_in⟩ : ∃ p, p ∈ (V₁.prod V₂) ∩ (W ○ W) :=
@@ -185,7 +186,7 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     simp_rw [comap_supr, nhds_prod_eq, comap_prod,
              show prod.fst ∘ prod.mk x = λ y : α, x, by ext ; simp,
              show prod.snd ∘ (prod.mk x) = (id : α → α), by ext ; refl, comap_id],
-    rw [supr_split_single _ x, comap_const_of_mem (λ V, mem_of_nhds)],
+    rw [supr_split_single _ x, comap_const_of_mem (λ V, mem_of_mem_nhds)],
     suffices : ∀ y ≠ x, comap (λ (y : α), x) (𝓝 y) ⊓ 𝓝 y ≤ 𝓝 x,
       by simpa,
     intros y hxy,
@@ -214,7 +215,7 @@ lemma is_compact.uniform_continuous_on_of_continuous' {s : set α} {f : α → �
 begin
   rw uniform_continuous_on_iff_restrict,
   rw is_separated_iff_induced at hs',
-  rw compact_iff_compact_space at hs,
+  rw is_compact_iff_compact_space at hs,
   rw continuous_on_iff_continuous_restrict at hf,
   resetI,
   exact compact_space.uniform_continuous_of_continuous hf,

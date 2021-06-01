@@ -26,6 +26,10 @@ theorem set.pairwise_on.on_injective {s : set α} {r : α → α → Prop} (hs :
   pairwise (r on f) :=
 λ i j hij, hs _ (hfs i) _ (hfs j) (hf.ne hij)
 
+theorem pairwise.mono {p q : α → α → Prop} (h : ∀ ⦃i j⦄, p i j → q i j) (hp : pairwise p) :
+  pairwise q :=
+λ i j hij, h (hp i j hij)
+
 theorem pairwise_on_bool {r} (hr : symmetric r) {a b : α} :
   pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simpa [pairwise, function.on_fun] using @hr a b

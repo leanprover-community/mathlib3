@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
 -/
 
 /-
@@ -74,7 +74,7 @@ lemma val_div {v : nat → int} {i b : int} {as : list int} :
   i ∣ b → (∀ x ∈ as, i ∣ x) → (div i (b,as)).val v = (val v (b,as)) / i :=
 begin
   intros h1 h2, simp only [val, div, list.map],
-  rw [int.add_div_of_dvd h1 (coeffs.dvd_val h2)],
+  rw [int.add_div_of_dvd_left h1],
   apply fun_mono_2 rfl,
   rw ← coeffs.val_map_div h2
 end

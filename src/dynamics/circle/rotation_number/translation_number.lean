@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import analysis.specific_limits
 import order.iterate
@@ -193,7 +193,7 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
       inv_fun := ⇑(f⁻¹),
       left_inv := units_inv_apply_apply f,
       right_inv := units_apply_inv_apply f,
-      map_rel_iff' := λ x y, ⟨mono f, λ h, by simpa using mono ↑(f⁻¹) h⟩ },
+      map_rel_iff' := λ x y, ⟨λ h, by simpa using mono ↑(f⁻¹) h, mono f⟩ },
   map_one' := rfl,
   map_mul' := λ f g, rfl }
 
@@ -206,7 +206,7 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
   ⇑(to_order_iso f)⁻¹ = (f⁻¹ : units circle_deg1_lift) := rfl
 
 lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :=
-⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, is_unit_unit
+⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, units.is_unit
   { val := f,
     inv := { to_fun := (equiv.of_bijective f h).symm,
              monotone' := λ x y hxy, (f.strict_mono_iff_injective.2 h.1).le_iff_le.1
@@ -261,9 +261,10 @@ by rw [← units_coe, ← coe_pow, ← units.coe_pow, translate_pow, units_coe]
 /-!
 ### Commutativity with integer translations
 
-In this section we prove that `f` commutes with translations by an integer number. First we formulate
-these statements (for a natural or an integer number, addition on the left or on the right, addition
-or subtraction) using `function.commute`, then reformulate as `simp` lemmas `map_int_add` etc.
+In this section we prove that `f` commutes with translations by an integer number.
+First we formulate these statements (for a natural or an integer number,
+addition on the left or on the right, addition or subtraction) using `function.commute`,
+then reformulate as `simp` lemmas `map_int_add` etc.
 -/
 
 lemma commute_nat_add (n : ℕ) : function.commute f ((+) n) :=
@@ -432,8 +433,7 @@ tendsto_at_top_mono f.le_map_of_map_zero $ tendsto_at_top_add_const_left _ _ $
     by simpa [sub_eq_add_neg] using tendsto_at_top_add_const_right _ _ tendsto_id
 
 lemma continuous_iff_surjective : continuous f ↔ function.surjective f :=
-⟨λ h, surjective_of_continuous h f.tendsto_at_top f.tendsto_at_bot,
-  f.monotone.continuous_of_surjective⟩
+⟨λ h, h.surjective f.tendsto_at_top f.tendsto_at_bot, f.monotone.continuous_of_surjective⟩
 
 /-!
 ### Estimates on `(f^n) x`
@@ -539,7 +539,7 @@ begin
   simp_rw [transnum_aux_seq, real.dist_eq],
   rw [← abs_div, sub_div, pow_succ', pow_succ, ← two_mul,
     mul_div_mul_left _ _ (@two_ne_zero ℝ _ _),
-    pow_mul, pow_two, mul_apply]
+    pow_mul, sq, mul_apply]
 end
 
 lemma tendsto_translation_number_aux : tendsto f.transnum_aux_seq at_top (𝓝 $ τ f) :=

@@ -37,7 +37,7 @@ def image.ι : image f ⟶ H := f.range.subtype
 instance : mono (image.ι f) := concrete_category.mono_of_injective (image.ι f) subtype.val_injective
 
 /-- the corestriction map to the image -/
-def factor_thru_image : G ⟶ image f := f.to_range
+def factor_thru_image : G ⟶ image f := f.range_restrict
 
 lemma image.fac : factor_thru_image f ≫ image.ι f = f :=
 by { ext, refl, }
@@ -55,7 +55,7 @@ noncomputable def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I :=
     apply injective_of_mono F'.m,
     change (F'.e ≫ F'.m) _ = _,
     rw [F'.fac, add_monoid_hom.map_zero],
-    convert (classical.indefinite_description (λ y, f y = 0) _).2,
+    exact (classical.indefinite_description (λ y, f y = 0) _).2,
   end,
   map_add' :=
   begin

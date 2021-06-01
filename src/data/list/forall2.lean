@@ -90,18 +90,25 @@ lemma forall₂_and_left {r : α → β → Prop} {p : α → Prop} :
 | _ []     := by simp only [map, forall₂_nil_right_iff]
 | _ (b::u) := by simp only [map, forall₂_cons_right_iff, forall₂_map_right_iff]
 
-lemma left_unique_forall₂ (hr : left_unique r) : left_unique (forall₂ r)
+lemma left_unique_forall₂' (hr : left_unique r) :
+  ∀{a b c}, forall₂ r a b → forall₂ r c b → a = c
 | a₀ nil a₁ forall₂.nil forall₂.nil := rfl
 | (a₀::l₀) (b::l) (a₁::l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
-  hr ha₀ ha₁ ▸ left_unique_forall₂ h₀ h₁ ▸ rfl
+  hr.unique ha₀ ha₁ ▸ left_unique_forall₂' h₀ h₁ ▸ rfl
 
-lemma right_unique_forall₂ (hr : right_unique r) : right_unique (forall₂ r)
+lemma left_unique_forall₂ (hr : left_unique r) : left_unique (forall₂ r) :=
+⟨@left_unique_forall₂' _ _ _ hr⟩
+
+lemma right_unique_forall₂' (hr : right_unique r) : ∀{a b c}, forall₂ r a b → forall₂ r a c → b = c
 | nil a₀ a₁ forall₂.nil forall₂.nil := rfl
 | (b::l) (a₀::l₀) (a₁::l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
-  hr ha₀ ha₁ ▸ right_unique_forall₂ h₀ h₁ ▸ rfl
+  hr.unique ha₀ ha₁ ▸ right_unique_forall₂' h₀ h₁ ▸ rfl
+
+lemma right_unique_forall₂ (hr : right_unique r) : right_unique (forall₂ r) :=
+⟨@right_unique_forall₂' _ _ _ hr⟩
 
 lemma bi_unique_forall₂ (hr : bi_unique r) : bi_unique (forall₂ r) :=
-⟨assume a b c, left_unique_forall₂ hr.1, assume a b c, right_unique_forall₂ hr.2⟩
+@@bi_unique.mk _ (left_unique_forall₂ hr.1) (right_unique_forall₂ hr.2)
 
 theorem forall₂_length_eq {R : α → β → Prop} :
   ∀ {l₁ l₂}, forall₂ R l₁ l₂ → length l₁ = length l₂
@@ -160,6 +167,19 @@ lemma rel_append : (forall₂ r ⇒ forall₂ r ⇒ forall₂ r) append append
 | [] [] h l₁ l₂ hl := hl
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) l₁ l₂ hl := forall₂.cons h₁ (rel_append h₂ hl)
 
+lemma rel_reverse : (forall₂ r ⇒ forall₂ r) reverse reverse
+| [] [] forall₂.nil := forall₂.nil
+| (a::as) (b::bs) (forall₂.cons h₁ h₂) := begin
+  simp only [reverse_cons],
+  exact rel_append (rel_reverse h₂) (forall₂.cons h₁ forall₂.nil)
+end
+
+@[simp]
+lemma forall₂_reverse_iff {l₁ l₂} : forall₂ r (reverse l₁) (reverse l₂) ↔ forall₂ r l₁ l₂ :=
+iff.intro
+  (assume h, by { rw [← reverse_reverse l₁, ← reverse_reverse l₂], exact rel_reverse h })
+  (assume h, rel_reverse h)
+
 lemma rel_join : (forall₂ (forall₂ r) ⇒ forall₂ r) join join
 | [] [] forall₂.nil := forall₂.nil
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) := rel_append h₁ (rel_join h₂)
@@ -211,5 +231,65 @@ lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) fi
 lemma rel_prod [monoid α] [monoid β]
   (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
 rel_foldl hf h
+
+/-- Given a relation `r`, `sublist_forall₂ r l₁ l₂` indicates that there is a sublist of `l₂` such
+  that `forall₂ r l₁ l₂`. -/
+inductive sublist_forall₂ (r : α → β → Prop) : list α → list β → Prop
+| nil {l} : sublist_forall₂ [] l
+| cons {a₁ a₂ l₁ l₂} : r a₁ a₂ → sublist_forall₂ l₁ l₂ →
+  sublist_forall₂ (a₁ :: l₁) (a₂ :: l₂)
+| cons_right {a l₁ l₂} : sublist_forall₂ l₁ l₂ → sublist_forall₂ l₁ (a :: l₂)
+
+lemma sublist_forall₂_iff {l₁ : list α} {l₂ : list β} :
+  sublist_forall₂ r l₁ l₂ ↔ ∃ l, forall₂ r l₁ l ∧ l <+ l₂ :=
+begin
+  split; intro h,
+  { induction h with _ a b l1 l2 rab rll ih b l1 l2 hl ih,
+    { exact ⟨nil, forall₂.nil, nil_sublist _⟩ },
+    { obtain ⟨l, hl1, hl2⟩ := ih,
+      refine ⟨b :: l, forall₂.cons rab hl1, cons_sublist_cons b hl2⟩ },
+    { obtain ⟨l, hl1, hl2⟩ := ih,
+      exact ⟨l, hl1, hl2.trans (sublist.cons _ _ _ (sublist.refl _))⟩ } },
+  { obtain ⟨l, hl1, hl2⟩ := h,
+    revert l₁,
+    induction hl2 with _ _ _ _ ih _ _ _ _ ih; intros l₁ hl1,
+    { rw [forall₂_nil_right_iff.1 hl1],
+      exact sublist_forall₂.nil },
+    { exact sublist_forall₂.cons_right (ih hl1) },
+    { cases hl1 with _ _ _ _ hr hl _,
+      exact sublist_forall₂.cons hr (ih hl) } }
+end
+
+variable {ra : α → α → Prop}
+
+instance sublist_forall₂.is_refl [is_refl α ra] :
+  is_refl (list α) (sublist_forall₂ ra) :=
+⟨λ l, sublist_forall₂_iff.2 ⟨l, forall₂_refl l, sublist.refl l⟩⟩
+
+instance sublist_forall₂.is_trans [is_trans α ra] :
+  is_trans (list α) (sublist_forall₂ ra) :=
+⟨λ a b c, begin
+  revert a b,
+  induction c with _ _ ih,
+  { rintros _ _ h1 (_ | _ | _),
+    exact h1 },
+  { rintros a b h1 h2,
+    cases h2 with _ _ _ _ _ hbc tbc _ _ y1 btc,
+    { cases h1,
+      exact sublist_forall₂.nil },
+    { cases h1 with _ _ _ _ _ hab tab _ _ _ atb,
+      { exact sublist_forall₂.nil },
+      { exact sublist_forall₂.cons (trans hab hbc) (ih _ _ tab tbc) },
+      { exact sublist_forall₂.cons_right (ih _ _ atb tbc) } },
+    { exact sublist_forall₂.cons_right (ih _ _ h1 btc), } }
+end⟩
+
+lemma sublist.sublist_forall₂ {l₁ l₂ : list α} (h : l₁ <+ l₂) (r : α → α → Prop) [is_refl α r] :
+  sublist_forall₂ r l₁ l₂ :=
+sublist_forall₂_iff.2 ⟨l₁, forall₂_refl l₁, h⟩
+
+lemma tail_sublist_forall₂_self [is_refl α ra] (l : list α) :
+  sublist_forall₂ ra l.tail l :=
+l.tail_sublist.sublist_forall₂ ra
 
 end list

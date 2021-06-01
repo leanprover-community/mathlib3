@@ -285,6 +285,15 @@ lemma is_greatest.union [linear_order γ] {a b : γ} {s t : set γ}
 ⟨by cases (le_total a b) with h h; simp [h, ha.1, hb.1],
   (ha.is_lub.union hb.is_lub).1⟩
 
+lemma is_lub.inter_Ici_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_lub s a)
+  (hb : b ∈ s) : is_lub (s ∩ Ici b) a :=
+⟨λ x hx, ha.1 hx.1, λ c hc, have hbc : b ≤ c, from hc ⟨hb, le_rfl⟩,
+  ha.2 $ λ x hx, (le_total x b).elim (λ hxb, hxb.trans hbc) $ λ hbx, hc ⟨hx, hbx⟩⟩
+
+lemma is_glb.inter_Iic_of_mem [linear_order γ] {s : set γ} {a b : γ} (ha : is_glb s a)
+  (hb : b ∈ s) : is_glb (s ∩ Iic b) a :=
+@is_lub.inter_Ici_of_mem (order_dual γ) _ _ _ _ ha hb
+
 /-!
 ### Specific sets
 
@@ -404,26 +413,34 @@ lemma lower_bounds_Ico (h : a < b) : lower_bounds (Ico a b) = Iic a :=
 
 section
 
-variables [linear_order γ] [densely_ordered γ]
+variables [semilattice_sup γ] [densely_ordered γ]
 
-lemma is_glb_Ioo {a b : γ} (hab : a < b) : is_glb (Ioo a b) a :=
+lemma is_glb_Ioo {a b : γ} (h : a < b) :
+  is_glb (Ioo a b) a :=
+⟨λ x hx, hx.1.le, λ x hx,
 begin
-  refine ⟨λx hx, le_of_lt hx.1, λy hy, le_of_not_lt $ λ h, _⟩,
-  have : a < min b y, by { rw lt_min_iff, exact ⟨hab, h⟩ },
-  rcases exists_between this with ⟨z, az, zy⟩,
-  rw lt_min_iff at zy,
-  exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, zy.1⟩) zy.2)
-end
+  cases eq_or_lt_of_le (le_sup_right : a ≤ x ⊔ a) with h₁ h₂,
+  { exact h₁.symm ▸ le_sup_left },
+  obtain ⟨y, lty, ylt⟩ := exists_between h₂,
+  apply (not_lt_of_le (sup_le (hx ⟨lty, ylt.trans_le (sup_le _ h.le)⟩) lty.le) ylt).elim,
+  obtain ⟨u, au, ub⟩ := exists_between h,
+  apply (hx ⟨au, ub⟩).trans ub.le,
+end⟩
 
 lemma lower_bounds_Ioo {a b : γ} (hab : a < b) : lower_bounds (Ioo a b) = Iic a :=
 (is_glb_Ioo hab).lower_bounds_eq
 
 lemma is_glb_Ioc {a b : γ} (hab : a < b) : is_glb (Ioc a b) a :=
-(is_glb_Ioo hab).of_subset_of_superset (is_glb_Icc $ le_of_lt hab)
-  Ioo_subset_Ioc_self Ioc_subset_Icc_self
+(is_glb_Ioo hab).of_subset_of_superset (is_glb_Icc hab.le) Ioo_subset_Ioc_self Ioc_subset_Icc_self
 
 lemma lower_bound_Ioc {a b : γ} (hab : a < b) : lower_bounds (Ioc a b) = Iic a :=
 (is_glb_Ioc hab).lower_bounds_eq
+
+end
+
+section
+
+variables [semilattice_inf γ] [densely_ordered γ]
 
 lemma is_lub_Ioo {a b : γ} (hab : a < b) : is_lub (Ioo a b) b :=
 by simpa only [dual_Ioo] using @is_glb_Ioo (order_dual γ) _ _ b a hab
@@ -606,6 +623,12 @@ lemma is_lub_lt_iff (ha : is_lub s a) : a < b ↔ ∃ c ∈ upper_bounds s, c < 
 lemma lt_is_glb_iff (ha : is_glb s a) : b < a ↔ ∃ c ∈ lower_bounds s, b < c :=
 @is_lub_lt_iff (order_dual α) _ s _ _ ha
 
+lemma le_of_is_lub_le_is_glb {x y} (ha : is_glb s a) (hb : is_lub s b) (hab : b ≤ a)
+  (hx : x ∈ s) (hy : y ∈ s) : x ≤ y :=
+calc x ≤ b : hb.1 hx
+   ... ≤ a : hab
+   ... ≤ y : ha.1 hy
+
 end preorder
 
 section partial_order
@@ -628,6 +651,18 @@ Ha.unique Hb
 
 lemma is_glb.unique (Ha : is_glb s a) (Hb : is_glb s b) : a = b :=
 Ha.unique Hb
+
+lemma set.subsingleton_of_is_lub_le_is_glb (Ha : is_glb s a) (Hb : is_lub s b) (hab : b ≤ a) :
+  s.subsingleton :=
+λ x hx y hy, le_antisymm (le_of_is_lub_le_is_glb Ha Hb hab hx hy)
+  (le_of_is_lub_le_is_glb Ha Hb hab hy hx)
+
+lemma is_glb_lt_is_lub_of_ne (Ha : is_glb s a) (Hb : is_lub s b)
+  {x y} (Hx : x ∈ s) (Hy : y ∈ s) (Hxy : x ≠ y) :
+  a < b :=
+lt_iff_le_not_le.2
+  ⟨lower_bounds_le_upper_bounds Ha.1 Hb.1 ⟨x, Hx⟩,
+    λ hab, Hxy $ set.subsingleton_of_is_lub_le_is_glb Ha Hb hab Hx Hy⟩
 
 end partial_order
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Denumerable (countably infinite) types, as a typeclass extending
 encodable. This is used to provide explicit encode/decode functions
@@ -130,7 +130,7 @@ classical.by_contradiction $ λ h,
 have ∀ (a : ℕ) (ha : a ∈ s), a < x.val.succ,
   from λ a ha, lt_of_not_ge (λ hax, h ⟨a - (x.1 + 1),
     by rwa [add_right_comm, nat.add_sub_cancel' hax]⟩),
-infinite.not_fintype
+fintype.false
   ⟨(((multiset.range x.1.succ).filter (∈ s)).pmap
       (λ (y : ℕ) (hy : y ∈ s), subtype.mk y hy)
       (by simp [-multiset.range_succ])).to_finset,
@@ -161,7 +161,7 @@ not_lt_of_le this $
   ... < y.1 + nat.find hx + 1 : nat.lt_succ_self _
 
 lemma lt_succ_self (x : s) : x < succ x :=
-calc x.1 ≤ x.1 + _ : le_add_right (le_refl _)
+calc x.1 ≤ x.1 + _ : le_self_add
 ... < succ x : nat.lt_succ_self (x.1 + _)
 
 lemma lt_succ_iff_le {x y : s} : x < succ y ↔ x ≤ y :=
@@ -247,7 +247,7 @@ def of_encodable_of_infinite (α : Type*) [encodable α] [infinite α] : denumer
 begin
   letI := @decidable_range_encode α _;
   letI : infinite (set.range (@encode α _)) :=
-    infinite.of_injective _ (equiv.set.range _ encode_injective).injective,
+    infinite.of_injective _ (equiv.of_injective _ encode_injective).injective,
   letI := nat.subtype.denumerable (set.range (@encode α _)),
   exact denumerable.of_equiv (set.range (@encode α _))
     (equiv_range_encode α)

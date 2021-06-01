@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 import category_theory.products.basic
 import category_theory.currying
 
@@ -235,16 +235,13 @@ begin
   exact limit_uncurry_iso_limit_comp_lim ((@curry J _ K _ C _).obj G),
 end
 
-@[simp,reassoc]
+@[simp, reassoc]
 lemma limit_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
-begin
-  dsimp [limit_iso_limit_curry_comp_lim, is_limit.cone_point_unique_up_to_iso,
-    is_limit.unique_up_to_iso],
-  simp, dsimp, simp, -- See note [dsimp, simp].
-end
+by simp [limit_iso_limit_curry_comp_lim, is_limit.cone_point_unique_up_to_iso,
+  is_limit.unique_up_to_iso]
 
-@[simp,reassoc]
+@[simp, reassoc]
 lemma limit_iso_limit_curry_comp_lim_inv_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin

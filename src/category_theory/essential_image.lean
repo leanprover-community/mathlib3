@@ -68,7 +68,7 @@ lemma obj_mem_ess_image (F : D ⥤ C) (Y : D) : F.obj Y ∈ ess_image F := ⟨Y,
 instance : category F.ess_image := category_theory.full_subcategory _
 
 /-- The essential image as a subcategory has a fully faithful inclusion into the target category. -/
-@[derive [full, faithful], simps {rhs_md := semireducible}]
+@[derive [full, faithful], simps]
 def ess_image_inclusion (F : C ⥤ D) : F.ess_image ⥤ D :=
 full_subcategory_inclusion _
 
@@ -85,7 +85,7 @@ def to_ess_image (F : C ⥤ D) : C ⥤ F.ess_image :=
 The functor `F` factorises through its essential image, where the first functor is essentially
 surjective and the second is fully faithful.
 -/
-@[simps {rhs_md := semireducible}]
+@[simps]
 def to_ess_image_comp_essential_image_inclusion :
   F.to_ess_image ⋙ F.ess_image_inclusion ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)

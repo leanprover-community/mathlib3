@@ -476,22 +476,14 @@ begin
   apply total_emb_domain R ⟨f, hf⟩ l
 end
 
-theorem span_eq_map_total (s : set M) :
-  span R s = submodule.map (finsupp.total s M R coe) ⊤ :=
-begin
-  apply span_eq_of_le,
-  { intros x hx,
-    fsplit,
-    use finsupp.single ⟨x, hx⟩ (1 : R),
-    simp, },
-  { rw [←range_eq_map, range_total],
-    convert le_refl _,
-    simp, }
-end
+/-- A version of `finsupp.range_total` which is useful for going in the other direction -/
+theorem span_eq_range_total (s : set M) :
+  span R s = (finsupp.total s M R coe).range :=
+by rw [range_total, subtype.range_coe_subtype, set.set_of_mem_eq]
 
 theorem mem_span_iff_total (s : set M) (x : M) :
   x ∈ span R s ↔ ∃ l : s →₀ R, finsupp.total s M R coe l = x :=
-by { rw span_eq_map_total, simp, }
+(set_like.ext_iff.1 $ span_eq_range_total _ _) x
 
 theorem span_image_eq_map_total (s : set α):
   span R (v '' s) = submodule.map (finsupp.total α M R v) (supported R R s) :=

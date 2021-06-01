@@ -1147,47 +1147,40 @@ by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
 section normed_group
 
 variables [normed_group α] [opens_measurable_space α] {mβ : measurable_space β} [measurable_space β]
+  {f : β → α} {μ : measure β}
 
-lemma measurable_norm : measurable (norm : α → ℝ) :=
-continuous_norm.measurable
+lemma measurable_norm : measurable (norm : α → ℝ) := continuous_norm.measurable
 
-lemma measurable.norm {f : β → α} (hf : measurable f) : measurable (λ a, norm (f a)) :=
-measurable_norm.comp hf
+lemma measurable.norm (hf : measurable f) : measurable (λ a, norm (f a)) := measurable_norm.comp hf
 
-lemma ae_measurable'.norm {f : β → α} {μ : measure β} (hf : ae_measurable' mβ f μ) :
-  ae_measurable' mβ (λ a, norm (f a)) μ :=
+lemma ae_measurable'.norm (hf : ae_measurable' mβ f μ) : ae_measurable' mβ (λ a, norm (f a)) μ :=
 measurable_norm.comp_ae_measurable' hf
 
-lemma ae_measurable.norm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, norm (f a)) μ :=
+lemma ae_measurable.norm (hf : ae_measurable f μ) : ae_measurable (λ a, norm (f a)) μ :=
 hf.norm
 
-lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
-continuous_nnnorm.measurable
+lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) := continuous_nnnorm.measurable
 
-lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, nnnorm (f a)) :=
+lemma measurable.nnnorm (hf : measurable f) : measurable (λ a, nnnorm (f a)) :=
 measurable_nnnorm.comp hf
 
-lemma ae_measurable'.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable' mβ f μ) :
+lemma ae_measurable'.nnnorm (hf : ae_measurable' mβ f μ) :
   ae_measurable' mβ (λ a, nnnorm (f a)) μ :=
 measurable_nnnorm.comp_ae_measurable' hf
 
-lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, nnnorm (f a)) μ :=
+lemma ae_measurable.nnnorm (hf : ae_measurable f μ) : ae_measurable (λ a, nnnorm (f a)) μ :=
 hf.nnnorm
 
-lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ℝ≥0∞)) :=
-measurable_nnnorm.ennreal_coe
+lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ℝ≥0∞)) := measurable_nnnorm.ennreal_coe
 
-lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
-  measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
+lemma measurable.ennnorm (hf : measurable f) : measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
 hf.nnnorm.ennreal_coe
 
-lemma ae_measurable'.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable' mβ f μ) :
+lemma ae_measurable'.ennnorm (hf : ae_measurable' mβ f μ) :
   ae_measurable' mβ (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
 measurable_ennnorm.comp_ae_measurable' hf
 
-lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
+lemma ae_measurable.ennnorm (hf : ae_measurable f μ) :
   ae_measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
 hf.ennnorm
 

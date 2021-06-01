@@ -1506,7 +1506,9 @@ lemma equiv_map_domain_eq_map_domain {M} [add_comm_monoid M] (f : α ≃ β) (l 
   equiv_map_domain f l = map_domain f l := by ext x; simp [map_domain_equiv_apply]
 
 /-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
-`(α →₀ M) ≃ (β →₀ M)`. -/
+`(α →₀ M) ≃ (β →₀ M)`.
+
+This is the finitely-supported version of `equiv.Pi_congr_left`. -/
 def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
 by refine ⟨equiv_map_domain f, equiv_map_domain f.symm, λ f, _, λ f, _⟩;
   ext x; simp only [equiv_map_domain_apply, equiv.symm_symm,
@@ -2198,7 +2200,9 @@ begin
 end
 
 /-- Given `add_comm_monoid M` and `e : α ≃ β`, `dom_congr e` is the corresponding `equiv` between
-`α →₀ M` and `β →₀ M`. -/
+`α →₀ M` and `β →₀ M`.
+
+This is `finsupp.equiv_congr_left` as an `add_equiv`. -/
 @[simps apply]
 protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+ (β →₀ M) :=
 { to_fun := equiv_map_domain e,

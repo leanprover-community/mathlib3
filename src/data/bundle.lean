@@ -5,6 +5,7 @@ Authors: Nicolò Cavalleri
 -/
 
 import tactic.basic
+import algebra.module.basic
 
 /-!
 # Bundle
@@ -44,5 +45,16 @@ instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
+
+section
+local attribute [reducible] bundle.trivial
+
+variables {F : Type*} {R : Type*} [semiring R] (b : B)
+
+instance [add_comm_monoid F] : add_comm_monoid (bundle.trivial B F b) := ‹add_comm_monoid F›
+instance [add_comm_group F] : add_comm_group (bundle.trivial B F b) := ‹add_comm_group F›
+instance [add_comm_monoid F] [module R F] : module R (bundle.trivial B F b) := ‹module R F›
+
+end
 
 end bundle

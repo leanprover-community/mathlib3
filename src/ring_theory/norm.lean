@@ -52,30 +52,28 @@ namespace algebra
 
 variables (b : basis ι R S)
 
-variables (R S)
+variables (R)
 
 /-- The norm of an element `s` of an `R`-algebra is the determinant of `(*) s`. -/
 noncomputable def norm : S →* R :=
 linear_map.det.comp (lmul R S).to_ring_hom.to_monoid_hom
 
-@[simp] lemma norm_apply (x : S) : norm R S x = linear_map.det (lmul R S x) := rfl
-
-variables {S}
+@[simp] lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
 
 lemma norm_eq_one_of_not_exists_basis
-  (h : ¬ ∃ (s : set S) (b : basis s R S), s.finite) (x) : norm R S x = 1 :=
+  (h : ¬ ∃ (s : set S) (b : basis s R S), s.finite) (x : S) : norm R x = 1 :=
 by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 
 variables {R}
 
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma norm_eq_matrix_det [decidable_eq ι] (b : basis ι R S) (s : S) :
-  norm R S s = matrix.det (algebra.left_mul_matrix b s) :=
+  norm R s = matrix.det (algebra.left_mul_matrix b s) :=
 by rw [norm_apply, ← linear_map.det_to_matrix b, to_matrix_lmul_eq]
 
 /-- If `x` is in the base field `K`, then the norm is `x ^ [L : K]`. -/
 lemma norm_algebra_map_of_basis (b : basis ι R S) (x : R) :
-  norm R S (algebra_map R S x) = x ^ fintype.card ι :=
+  norm R (algebra_map R S x) = x ^ fintype.card ι :=
 begin
   haveI := classical.dec_eq ι,
   rw [norm_apply, ← det_to_matrix b, lmul_algebra_map],
@@ -89,7 +87,7 @@ end
 (If `L` is not finite-dimensional over `K`, then `norm = 1 = x ^ 0 = x ^ (finrank L K)`.)
 -/
 @[simp]
-lemma norm_algebra_map (x : K) : norm K L (algebra_map K L x) = x ^ finrank K L :=
+lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
 begin
   by_cases H : ∃ (s : set L) (b : basis s K L), s.finite,
   { haveI : fintype H.some := H.some_spec.some_spec.some,

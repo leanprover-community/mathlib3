@@ -89,7 +89,7 @@ begin
 end
 
 /-- The monomials `z ^ n` are an orthonormal set with respect to Haar measure on the circle. -/
-lemma orthonormal_fourier : orthonormal ℂ (λ n, to_Lp ℂ 2 haar_circle ℂ (fourier n)) :=
+lemma orthonormal_fourier : orthonormal ℂ (λ n, to_Lp 2 haar_circle ℂ (fourier n)) :=
 begin
   rw orthonormal_iff_ite,
   intros i j,

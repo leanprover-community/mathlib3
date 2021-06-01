@@ -535,7 +535,7 @@ multiset.nodup_iff_count_le_one.mpr (count_roots_le_one hsep)
 lemma card_root_set_eq_nat_degree [algebra F K] {p : polynomial F} (hsep : p.separable)
   (hsplit : splits (algebra_map F K) p) : fintype.card (p.root_set K) = p.nat_degree :=
 begin
-  simp_rw [root_set_def, fintype.card_coe],
+  simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
   rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots hsplit],
   exact nodup_roots hsep.map,
 end

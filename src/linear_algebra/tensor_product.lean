@@ -457,9 +457,8 @@ instance : module R (M ⊗[R] N) := tensor_product.left_module
 section
 
 -- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`
-variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M] [distrib_mul_action R'₂ N]
-variables [smul_comm_class R R'₂ M] [smul_comm_class R R'₂ N]
-variables [has_scalar R'₂ R'] [compatible_smul R R' M N] [compatible_smul R R'₂ M N]
+variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M]
+variables [smul_comm_class R R'₂ M] [has_scalar R'₂ R']
 
 /-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
 instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
@@ -468,6 +467,9 @@ instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
   (by simp)
   (λ m n, by rw [smul_tmul', smul_tmul', smul_tmul', smul_assoc])
   (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
+
+variables [distrib_mul_action R'₂ N] [distrib_mul_action R' N]
+variables [compatible_smul R R'₂ M N] [compatible_smul R R' M N]
 
 /-- `is_scalar_tower R'₂ R' N` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
 instance is_scalar_tower_right [is_scalar_tower R'₂ R' N] :
@@ -481,7 +483,7 @@ end
 
 /-- A short-cut instance for the common case, where the requirements for the `compatible_smul`
 instances are sufficient. -/
-instance is_scalar_tower [has_scalar R' R] [is_scalar_tower R' R M] [is_scalar_tower R' R N] :
+instance is_scalar_tower [has_scalar R' R] [is_scalar_tower R' R M] :
   is_scalar_tower R' R (M ⊗[R] N) :=
 tensor_product.is_scalar_tower_left  -- or right
 

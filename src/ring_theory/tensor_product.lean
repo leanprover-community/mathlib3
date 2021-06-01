@@ -53,14 +53,6 @@ variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).rtensor N x := rfl
 
-instance is_scalar_tower :
-  is_scalar_tower R A (M ⊗[R] N) :=
-{ smul_assoc :=
-  begin
-    intros r a x,
-    simp only [smul_eq_lsmul_rtensor, alg_hom.map_smul, smul_apply, rtensor_smul],
-  end }
-
 /-- Heterobasic version of `tensor_product.curry`:
 
 Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
@@ -92,18 +84,7 @@ section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [algebra R A]
 variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
 variables [add_comm_monoid N] [module R N]
-variables [add_comm_monoid P] [module A P]
-
-instance : is_scalar_tower R A (M ⊗[A] P) :=
-{ smul_assoc := λ r a x,
-  begin
-    apply x.induction_on,
-    { simp only [smul_zero], },
-    { intros m n, simp only [smul_assoc, smul_tmul'], },
-    { intros x₁ x₂ h₁ h₂, simp only [h₁, h₂, smul_add], },
-  end }
-
-variables [module R P] [is_scalar_tower R A P]
+variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 
 /-- Heterobasic version of `tensor_product.lift`:
 

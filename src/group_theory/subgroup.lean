@@ -1309,15 +1309,17 @@ begin
 end
 
 @[to_additive]
+lemma prod_map_comap_prod {G' : Type*} {N' : Type*} [group G'] [group N']
+  (f : G →* N) (g : G' →* N') (S : subgroup N) (S' : subgroup N') :
+  (S.prod S').comap (prod_map f g) = (S.comap f).prod (S'.comap g) :=
+set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
+
+@[to_additive]
 lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
-  (prod_map f g).ker = prod f.ker g.ker :=
+  (prod_map f g).ker = f.ker.prod g.ker :=
 begin
-  ext x,
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw mem_ker at h,
-    simpa [mem_prod, mem_ker] using h },
-  { rw [mem_prod, mem_ker, mem_ker] at h,
-    simpa [mem_ker] using h }
+  dsimp only [ker],
+  rw [←prod_map_comap_prod, bot_prod_bot],
 end
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/

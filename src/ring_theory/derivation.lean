@@ -131,33 +131,21 @@ variables (f : M →ₗ[A] N)
 
 /-- We can push forward derivations using linear maps, i.e., the composition of a derivation with a
 linear map is a derivation. Furthermore, this operation is linear on the spaces of derivations. -/
-def comp : derivation R A M →ₗ[R] derivation R A N :=
+def _root_.linear_map.comp_der : derivation R A M →ₗ[R] derivation R A N :=
 { to_fun    := λ D,
-  { leibniz'  := λ a b,
-      begin
-        simp only [coe_fn_coe, function.comp_app, linear_map.coe_comp, linear_map.map_add, leibniz,
-          linear_map.coe_coe_is_scalar_tower, linear_map.map_smul, linear_map.to_fun_eq_coe],
-      end,
+  { leibniz'  := λ a b, by simp only [coe_fn_coe, function.comp_app, linear_map.coe_comp,
+                      linear_map.map_add, leibniz, linear_map.coe_coe_is_scalar_tower,
+                      linear_map.map_smul, linear_map.to_fun_eq_coe],
     .. (f : M →ₗ[R] N).comp (D : A →ₗ[R] M), },
-  map_add'  := λ D₁ D₂,
-    begin
-      ext,
-      simp only [mk_coe, add_apply, coe_fn_coe, linear_map.coe_mk, function.comp_app,
-      linear_map.coe_comp, linear_map.to_fun_eq_coe, linear_map.map_add],
-    end,
-  map_smul' := λ r D,
-    begin
-      ext,
-      simp only [coe_fn_coe, Rsmul_apply, linear_map.map_smul_of_tower, mk_coe, linear_map.coe_mk,
-      function.comp_app, linear_map.coe_comp, linear_map.to_fun_eq_coe],
-    end, }
+  map_add'  := λ D₁ D₂, by { ext, exact linear_map.map_add _ _ _, },
+  map_smul' := λ r D, by { ext, exact linear_map.map_smul _ _ _, }, }
 
 @[simp] lemma coe_to_linear_map_comp :
-  (comp f D : A →ₗ[R] N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
+  (f.comp_der D : A →ₗ[R] N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
 rfl
 
 @[simp] lemma coe_comp :
-  (comp f D : A → N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
+  (f.comp_der D : A → N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
 rfl
 
 end push_forward
@@ -226,28 +214,3 @@ end lie_structures
 end
 
 end derivation
-
-section comp_der
-
-namespace linear_map
-
-variables {R : Type*} [comm_semiring R]
-variables {A : Type*} [comm_semiring A] [algebra R A]
-variables {M : Type*} [add_cancel_comm_monoid M] [module A M] [module R M]
-variables {N : Type*} [add_cancel_comm_monoid N] [module A N] [module R N]
-variables [is_scalar_tower R A M] [is_scalar_tower R A N]
-
-/-- The composition of a linear map and a derivation is a derivation. -/
-def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
-{ to_fun := λ a, f (D a),
-  map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
-  map_smul' := λ r a, by rw [derivation.map_smul, map_smul_of_tower],
-  leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add,
-                                   add_comm] }
-
-@[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :
-  f.comp_der D a = f (D a) := rfl
-
-end linear_map
-
-end comp_der

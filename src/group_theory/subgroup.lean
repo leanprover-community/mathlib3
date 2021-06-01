@@ -238,9 +238,17 @@ by simpa only [div_eq_mul_inv] using H.mul_mem' hx (H.inv_mem' hy)
 @[simp, to_additive] theorem inv_mem_iff {x : G} : x⁻¹ ∈ H ↔ x ∈ H :=
 ⟨λ h, inv_inv x ▸ H.inv_mem h, H.inv_mem⟩
 
+@[to_additive] lemma div_mem_comm_iff {a b : G} : a / b ∈ H ↔ b / a ∈ H :=
+by rw [← H.inv_mem_iff, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, inv_inv]
+
 @[simp, to_additive]
 theorem inv_coe_set : (H : set G)⁻¹ = H :=
 by { ext, simp, }
+
+@[simp, to_additive]
+lemma exists_inv_mem_iff_exists_mem  (K : subgroup G) {P : G → Prop} :
+  (∃ (x : G), x ∈ K ∧ P x⁻¹) ↔ ∃ x ∈ K, P x :=
+by split; { rintros ⟨x, x_in, hx⟩, exact ⟨x⁻¹, inv_mem K x_in, by simp [hx]⟩ }
 
 @[to_additive]
 lemma mul_mem_cancel_right {x y : G} (h : x ∈ H) : y * x ∈ H ↔ y ∈ H :=
@@ -780,6 +788,14 @@ lemma mem_map {f : G →* N} {K : subgroup G} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
+lemma mem_map_of_mem (f : G →* N) {K : subgroup G} {x : G} (hx : x ∈ K) : f x ∈ K.map f :=
+mem_image_of_mem f hx
+
+@[to_additive]
+lemma apply_coe_mem_map (f : G →* N) (K : subgroup G) (x : K) : f x ∈ K.map f :=
+mem_map_of_mem f x.prop
+
+@[to_additive]
 lemma map_mono {f : G →* N} {K K' : subgroup G} : K ≤ K' → map f K ≤ map f K' :=
 image_subset _
 
@@ -1203,6 +1219,9 @@ lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjec
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
 
+@[simp, to_additive] lemma _root_.subgroup.subtype_range (H : subgroup G) : H.subtype.range = H :=
+by { rw [range_eq_map, ← set_like.coe_set_eq, coe_map, subgroup.coe_subtype], ext, simp }
+
 /-- Restriction of a group hom to a subgroup of the domain. -/
 @[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the domain."]
 def restrict (f : G →* N) (H : subgroup G) : H →* N :=
@@ -1256,6 +1275,13 @@ def ker (f : G →* N) := (⊥ : subgroup N).comap f
 lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
+lemma coe_ker (f : G →* N) : (f.ker : set G) = (f : G → N) ⁻¹' {1} := rfl
+
+@[to_additive]
+lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
+by rw [f.mem_ker, f.map_mul, f.map_inv, inv_mul_eq_one, eq_comm]
+
+@[to_additive]
 instance decidable_mem_ker [decidable_eq N] (f : G →* N) :
   decidable_pred (∈ f.ker) :=
 λ x, decidable_of_iff (f x = 1) f.mem_ker
@@ -1270,12 +1296,30 @@ begin
   simp only [],
 end
 
+@[simp, to_additive]
+lemma ker_one : (1 : G →* N).ker = ⊤ :=
+by { ext, simp [mem_ker] }
+
 @[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
 begin
   split,
   { intros h x y hxy,
     rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
   { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
+end
+
+@[to_additive]
+lemma prod_map_comap_prod {G' : Type*} {N' : Type*} [group G'] [group N']
+  (f : G →* N) (g : G' →* N') (S : subgroup N) (S' : subgroup N') :
+  (S.prod S').comap (prod_map f g) = (S.comap f).prod (S'.comap g) :=
+set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
+
+@[to_additive]
+lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
+  (prod_map f g).ker = f.ker.prod g.ker :=
+begin
+  dsimp only [ker],
+  rw [←prod_map_comap_prod, bot_prod_bot],
 end
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
@@ -1778,3 +1822,48 @@ set.subset.antisymm
 end subgroup
 
 end pointwise
+
+/-! ### Actions by `subgroup`s
+
+These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
+-/
+section actions
+
+namespace subgroup
+
+variables {α β : Type*}
+
+/-- The action by a subgroup is the action by the underlying group. -/
+@[to_additive /-"The additive action by an add_subgroup is the action by the underlying
+add_group. "-/]
+instance [mul_action G α] (S : subgroup G) : mul_action S α :=
+S.to_submonoid.mul_action
+
+@[to_additive]
+lemma smul_def [mul_action G α] {S : subgroup G} (g : S) (m : α) : g • m = (g : G) • m := rfl
+
+@[to_additive]
+instance smul_comm_class_left
+  [mul_action G β] [has_scalar α β] [smul_comm_class G α β] (S : subgroup G) :
+  smul_comm_class S α β :=
+S.to_submonoid.smul_comm_class_left
+
+@[to_additive]
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action G β] [smul_comm_class α G β] (S : subgroup G) :
+  smul_comm_class α S β :=
+S.to_submonoid.smul_comm_class_right
+
+/-- Note that this provides `is_scalar_tower S G G` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action G α] [mul_action G β] [is_scalar_tower G α β] (S : subgroup G) :
+  is_scalar_tower S α β :=
+S.to_submonoid.is_scalar_tower
+
+/-- The action by a subgroup is the action by the underlying group. -/
+instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=
+S.to_submonoid.distrib_mul_action
+
+end subgroup
+
+end actions

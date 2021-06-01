@@ -311,6 +311,9 @@ variables [linear_ordered_field α] [floor_ring α]
 /-- `round` rounds a number to the nearest integer. `round (1 / 2) = 1` -/
 def round (x : α) : ℤ := ⌊x + 1 / 2⌋
 
+@[simp] lemma round_zero : round (0 : α) = 0 := floor_eq_iff.2 (by norm_num)
+@[simp] lemma round_one : round (1 : α) = 1 := floor_eq_iff.2 (by norm_num)
+
 lemma abs_sub_round (x : α) : abs (x - round x) ≤ 1 / 2 :=
 begin
   rw [round, abs_sub_le_iff],

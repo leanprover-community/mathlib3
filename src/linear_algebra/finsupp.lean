@@ -430,14 +430,6 @@ theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l (default α) • v (default α) :=
 by rw [← total_single, ← unique_single l]
 
-theorem total_range (h : function.surjective v) : (finsupp.total α M R v).range = ⊤ :=
-begin
-  apply range_eq_top.2,
-  intros x,
-  apply exists.elim (h x),
-  exact λ i hi, ⟨single i 1, by simp [hi]⟩
-end
-
 lemma range_total : (finsupp.total α M R v).range = span R (range v) :=
 begin
   ext x,
@@ -549,6 +541,11 @@ This is `finsupp.dom_congr` as a `linear_equiv`.-/
 protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
 (finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
+
+@[simp]
+lemma dom_lcongr_apply {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (v : α₁ →₀ M) :
+  (finsupp.dom_lcongr e : _ ≃ₗ[R] _) v = finsupp.dom_congr e v :=
+rfl
 
 @[simp]
 lemma dom_lcongr_refl : finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
@@ -698,6 +695,58 @@ rfl
 
 end sum
 
+section sigma
+
+variables {η : Type*} [fintype η] {ιs : η → Type*} [has_zero α]
+variables (R)
+
+/-- On a `fintype η`, `finsupp.split` is a linear equivalence between
+`(Σ (j : η), ιs j) →₀ M` and `Π j, (ιs j →₀ M)`.
+
+This is the `linear_equiv` version of `finsupp.sigma_finsupp_add_equiv_pi_finsupp`. -/
+noncomputable def sigma_finsupp_lequiv_pi_finsupp
+  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M] :
+  ((Σ j, ιs j) →₀ M) ≃ₗ[R] Π j, (ιs j →₀ M) :=
+{ map_smul' := λ c f, by { ext, simp },
+  .. sigma_finsupp_add_equiv_pi_finsupp }
+
+@[simp] lemma sigma_finsupp_lequiv_pi_finsupp_apply
+  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M]
+  (f : (Σ j, ιs j) →₀ M) (j i) :
+  sigma_finsupp_lequiv_pi_finsupp R f j i = f ⟨j, i⟩ := rfl
+
+@[simp] lemma sigma_finsupp_lequiv_pi_finsupp_symm_apply
+  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M]
+  (f : Π j, (ιs j →₀ M)) (ji) :
+  (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm f ji = f ji.1 ji.2 := rfl
+
+end sigma
+
+section prod
+
+/-- The linear equivalence between `α × β →₀ M` and `α →₀ β →₀ M`.
+
+This is the `linear_equiv` version of `finsupp.finsupp_prod_equiv`. -/
+noncomputable def finsupp_prod_lequiv {α β : Type*} (R : Type*) {M : Type*}
+  [semiring R] [add_comm_monoid M] [module R M] :
+  (α × β →₀ M) ≃ₗ[R] (α →₀ β →₀ M) :=
+{ map_add' := λ f g, by { ext, simp [finsupp_prod_equiv, curry_apply] },
+  map_smul' := λ c f, by { ext, simp [finsupp_prod_equiv, curry_apply] },
+  .. finsupp_prod_equiv }
+
+@[simp] lemma finsupp_prod_lequiv_apply {α β R M : Type*}
+  [semiring R] [add_comm_monoid M] [module R M] (f : α × β →₀ M) (x y) :
+  finsupp_prod_lequiv R f x y = f (x, y) :=
+by rw [finsupp_prod_lequiv, linear_equiv.coe_mk, finsupp_prod_equiv, finsupp.curry_apply]
+
+@[simp] lemma finsupp_prod_lequiv_symm_apply {α β R M : Type*}
+  [semiring R] [add_comm_monoid M] [module R M] (f : α →₀ β →₀ M) (xy) :
+  (finsupp_prod_lequiv R).symm f xy = f xy.1 xy.2 :=
+by conv_rhs
+  { rw [← (finsupp_prod_lequiv R).apply_symm_apply f, finsupp_prod_lequiv_apply, prod.mk.eta] }
+
+end prod
+
 end finsupp
 
 variables {R : Type*} {M : Type*} {N : Type*}
@@ -752,3 +801,14 @@ begin
   simp_rw ←exists_prop,
   exact finsupp.mem_span_iff_total R,
 end
+
+/-- If `subsingleton R`, then `M ≃ₗ[R] ι →₀ R` for any type `ι`. -/
+@[simps]
+def module.subsingleton_equiv (R M ι: Type*) [semiring R] [subsingleton R] [add_comm_monoid M]
+  [module R M] : M ≃ₗ[R] ι →₀ R :=
+{ to_fun := λ m, 0,
+  inv_fun := λ f, 0,
+  left_inv := λ m, by { letI := module.subsingleton R M, simp only [eq_iff_true_of_subsingleton] },
+  right_inv := λ f, by simp only [eq_iff_true_of_subsingleton],
+  map_add' := λ m n, (add_zero 0).symm,
+  map_smul' := λ r m, (smul_zero r).symm }

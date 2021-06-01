@@ -9,6 +9,7 @@ import topology.connected
 import topology.subset_properties
 import category_theory.adjunction.reflective
 import category_theory.monad.limits
+import category_theory.Fintype
 
 /-!
 # The category of Profinite Types
@@ -38,6 +39,8 @@ profinite
 
 -/
 
+universe variable u
+
 open category_theory
 
 /-- The type of profinite topological spaces. -/
@@ -49,7 +52,14 @@ structure Profinite :=
 
 namespace Profinite
 
-instance : inhabited Profinite := ⟨{to_Top := { α := pempty }}⟩
+/--
+Construct a term of `Profinite` from a type endowed with the structure of a
+compact, Hausdorff and totally disconnected topological space.
+-/
+def of (X : Type*) [topological_space X] [compact_space X] [t2_space X]
+  [totally_disconnected_space X] : Profinite := ⟨⟨X⟩⟩
+
+instance : inhabited Profinite := ⟨Profinite.of pempty⟩
 
 instance category : category Profinite := induced_category.category to_Top
 instance concrete_category : concrete_category Profinite := induced_category.concrete_category _
@@ -89,8 +99,6 @@ rfl
 section Profinite
 local attribute [instance] connected_component_setoid
 
-universes u
-
 /--
 (Implementation) The object part of the connected_components functor from compact Hausdorff spaces
 to Profinite spaces, given by quotienting a space by its connected components.
@@ -129,13 +137,47 @@ adjunction.left_adjoint_of_equiv Profinite.to_CompHaus_equivalence (λ _ _ _ _ _
 lemma CompHaus.to_Profinite_obj' (X : CompHaus) :
   ↥(CompHaus.to_Profinite.obj X) = connected_components X.to_Top.α := rfl
 
+/-- Finite types are given the discrete topology. -/
+def Fintype.discrete_topology (A : Fintype) : topological_space A := ⊥
+
+section discrete_topology
+
+local attribute [instance] Fintype.discrete_topology
+
+/-- The natural functor from `Fintype` to `Profinite`, endowing a finite type with the
+discrete topology. -/
+@[simps] def Fintype.to_Profinite : Fintype ⥤ Profinite :=
+{ obj := λ A, Profinite.of A,
+  map := λ _ _ f, ⟨f⟩ }
+
+end discrete_topology
+
 end Profinite
 
 namespace Profinite
 
-/--
-The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus
--/
+/-- An explicit limit cone for a functor `F : J ⥤ Profinite`, defined in terms of
+`Top.limit_cone`. -/
+def limit_cone {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
+  limits.cone F :=
+{ X :=
+  { to_Top := CompHaus_to_Top.obj (CompHaus.limit_cone (F ⋙ Profinite.to_CompHaus)).X,
+    is_compact := by { dsimp [CompHaus_to_Top], apply_instance },
+    is_t2 := by { dsimp [CompHaus_to_Top], apply_instance },
+    is_totally_disconnected := by {
+      dsimp [CompHaus_to_Top, CompHaus.limit_cone, Profinite.to_CompHaus, Top.limit_cone],
+      apply_instance } },
+  π := { app := λ j, (CompHaus.limit_cone (F ⋙ Profinite.to_CompHaus)).π.app j } }
+
+/-- The limit cone `Profinite.limit_cone F` is indeed a limit cone. -/
+def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ Profinite.{u}) :
+  limits.is_limit (limit_cone F) :=
+{ lift := λ S, (CompHaus.limit_cone_is_limit (F ⋙ Profinite.to_CompHaus)).lift
+    (Profinite.to_CompHaus.map_cone S),
+  uniq' := λ S m h,
+    (CompHaus.limit_cone_is_limit _).uniq (Profinite.to_CompHaus.map_cone S) _ h }
+
+/-- The adjunction between CompHaus.to_Profinite and Profinite.to_CompHaus -/
 def to_Profinite_adj_to_CompHaus : CompHaus.to_Profinite ⊣ Profinite.to_CompHaus :=
 adjunction.adjunction_of_equiv_left _ _
 
@@ -158,24 +200,51 @@ monadic_creates_limits _
 instance has_limits : limits.has_limits Profinite :=
 has_limits_of_has_limits_creates_limits Profinite_to_Top
 
+instance has_colimits : limits.has_colimits Profinite :=
+has_colimits_of_reflective to_CompHaus
+
+variables {X Y : Profinite.{u}} (f : X ⟶ Y)
+
 /-- Any morphism of profinite spaces is a closed map. -/
-lemma is_closed_map {X Y : Profinite} (f : X ⟶ Y) : is_closed_map f :=
+lemma is_closed_map : is_closed_map f :=
 show is_closed_map (Profinite.to_CompHaus.map f), from CompHaus.is_closed_map _
 
 /-- Any continuous bijection of profinite spaces induces an isomorphism. -/
-lemma is_iso_of_bijective {X Y : Profinite} (f : X ⟶ Y)
-  (bij : function.bijective f) : is_iso f :=
+lemma is_iso_of_bijective (bij : function.bijective f) : is_iso f :=
 begin
   haveI := CompHaus.is_iso_of_bijective (Profinite.to_CompHaus.map f) bij,
   exact is_iso_of_fully_faithful Profinite.to_CompHaus _
 end
 
 /-- Any continuous bijection of profinite spaces induces an isomorphism. -/
-noncomputable def iso_of_bijective {X Y : Profinite} (f : X ⟶ Y)
-  (bij : function.bijective f) : X ≅ Y :=
+noncomputable def iso_of_bijective (bij : function.bijective f) : X ≅ Y :=
 by letI := Profinite.is_iso_of_bijective f bij; exact as_iso f
 
 instance forget_reflects_isomorphisms : reflects_isomorphisms (forget Profinite) :=
 ⟨by introsI A B f hf; exact Profinite.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
+
+/-- Construct an isomorphism from a homeomorphism. -/
+@[simps hom inv] def iso_of_homeo (f : X ≃ₜ Y) : X ≅ Y :=
+{ hom := ⟨f, f.continuous⟩,
+  inv := ⟨f.symm, f.symm.continuous⟩,
+  hom_inv_id' := by { ext x, exact f.symm_apply_apply x },
+  inv_hom_id' := by { ext x, exact f.apply_symm_apply x } }
+
+/-- Construct a homeomorphism from an isomorphism. -/
+@[simps] def homeo_of_iso (f : X ≅ Y) : X ≃ₜ Y :=
+{ to_fun := f.hom,
+  inv_fun := f.inv,
+  left_inv := λ x, by { change (f.hom ≫ f.inv) x = x, rw [iso.hom_inv_id, coe_id, id.def] },
+  right_inv := λ x, by { change (f.inv ≫ f.hom) x = x, rw [iso.inv_hom_id, coe_id, id.def] },
+  continuous_to_fun := f.hom.continuous,
+  continuous_inv_fun := f.inv.continuous }
+
+/-- The equivalence between isomorphisms in `Profinite` and homeomorphisms
+of topological spaces. -/
+@[simps] def iso_equiv_homeo : (X ≅ Y) ≃ (X ≃ₜ Y) :=
+{ to_fun := homeo_of_iso,
+  inv_fun := iso_of_homeo,
+  left_inv := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl } }
 
 end Profinite

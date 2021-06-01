@@ -3,10 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.punit_instances
 import topology.instances.nnreal
 import topology.algebra.module
 import topology.algebra.algebra
 import topology.metric_space.antilipschitz
+import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Normed spaces
@@ -84,6 +86,12 @@ noncomputable def semi_normed_group.of_core (α : Type*) [add_comm_group α] [ha
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
              ... = ∥y - x∥ : by { rw [C.norm_neg] } }
+
+instance : normed_group punit :=
+{ norm := function.const _ 0,
+  dist_eq := λ _ _, rfl, }
+
+@[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
 instance : normed_group ℝ :=
 { norm := λ x, abs x,
@@ -210,6 +218,9 @@ by rw [mem_ball, dist_eq_norm]
 lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
+
+@[simp] lemma mem_ball_0_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
+by rw [mem_ball, dist_zero_right]
 
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
@@ -772,6 +783,11 @@ class normed_comm_ring (α : Type*) extends normed_ring α :=
 instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
   semi_normed_comm_ring α := { ..β }
 
+instance : normed_comm_ring punit :=
+{ norm_mul := λ _ _, by simp,
+  ..punit.normed_group,
+  ..punit.comm_ring, }
+
 /-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
 axiom. -/
 class norm_one_class (α : Type*) [has_norm α] [has_one α] : Prop :=
@@ -1152,6 +1168,40 @@ instance : nondiscrete_normed_field ℚ :=
 
 @[norm_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
 by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
+
+-- Now that we've installed the norm on `ℤ`,
+-- we can state some lemmas about `nsmul` and `gsmul`.
+section
+variables [semi_normed_group α]
+
+lemma norm_nsmul_le (n : ℕ) (a : α) : ∥n • a∥ ≤ n * ∥a∥ :=
+begin
+  induction n with n ih,
+  { simp only [norm_zero, nat.cast_zero, zero_mul, zero_smul] },
+  simp only [nat.succ_eq_add_one, add_smul, add_mul, one_mul, nat.cast_add,
+    nat.cast_one, one_nsmul],
+  exact norm_add_le_of_le ih le_rfl
+end
+
+lemma norm_gsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
+begin
+  induction n with n n,
+  { simp only [int.of_nat_eq_coe, gsmul_coe_nat],
+    convert norm_nsmul_le n a,
+    exact nat.abs_cast n },
+  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, gsmul_coe_nat],
+    convert norm_nsmul_le n.succ a,
+    exact nat.abs_cast n.succ, }
+end
+
+lemma nnnorm_nsmul_le (n : ℕ) (a : α) : nnnorm (n • a) ≤ n * nnnorm a :=
+by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
+  using norm_nsmul_le n a
+
+lemma nnnorm_gsmul_le (n : ℤ) (a : α) : nnnorm (n • a) ≤ nnnorm n * nnnorm a :=
+by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_gsmul_le n a
+
+end
 
 section semi_normed_space
 

@@ -621,6 +621,33 @@ by { ext, refl }
   (equiv_of_eq S T hST).trans (equiv_of_eq T U hTU) = equiv_of_eq S U (trans hST hTU) :=
 rfl
 
+section prod
+
+variables (S₁ : subalgebra R B)
+
+/-- The product of two subalgebras is a subalgebra. -/
+def prod : subalgebra R (A × B) :=
+{ carrier := set.prod S S₁,
+  algebra_map_mem' := λ r, ⟨algebra_map_mem _ _, algebra_map_mem _ _⟩,
+  .. S.to_subsemiring.prod S₁.to_subsemiring }
+
+@[simp] lemma prod_coe :
+  (prod S S₁ : set (A × B)) = set.prod S S₁ := rfl
+
+lemma prod_to_submodule :
+  (S.prod S₁).to_submodule = (S.to_submodule.prod S₁.to_submodule ) := rfl
+
+@[simp] lemma mem_prod {S : subalgebra R A} {S₁ : subalgebra R B} {x : A × B} :
+  x ∈ prod S S₁ ↔ x.1 ∈ S ∧ x.2 ∈ S₁ := set.mem_prod
+
+@[simp] lemma prod_top : (prod ⊤ ⊤ : subalgebra R (A × B)) = ⊤ :=
+by ext; simp
+
+lemma prod_mono {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
+  S ≤ T → S₁ ≤ T₁ → prod S S₁ ≤ prod T T₁ := set.prod_mono
+
+end prod
+
 end subalgebra
 
 section nat

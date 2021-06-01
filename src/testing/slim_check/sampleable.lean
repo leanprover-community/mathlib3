@@ -442,7 +442,7 @@ begin
 end
 
 lemma list.one_le_sizeof (xs : list α) : 1 ≤ sizeof xs :=
-by cases xs; unfold_wf; [refl, linarith]
+by cases xs; unfold_wf; linarith
 
 /--
 `list.shrink_removes` shrinks a list by removing chunks of size `k` in

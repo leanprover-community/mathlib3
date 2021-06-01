@@ -67,7 +67,7 @@ Continuity is a "prelocal" predicate on functions to a fixed topological space `
 @[simps]
 def continuous_prelocal (T : Top.{v}) : prelocal_predicate (λ x : X, T) :=
 { pred := λ U f, continuous f,
-  res := λ U V i f h, continuous.comp h (opens.open_embedding_of_le (le_of_hom i)).continuous, }
+  res := λ U V i f h, continuous.comp h (opens.open_embedding_of_le i.le).continuous, }
 
 /-- Satisfying the inhabited linter. -/
 instance inhabited_prelocal_predicate (T : Top.{v}) : inhabited (prelocal_predicate (λ x : X, T)) :=
@@ -105,7 +105,7 @@ def continuous_local (T : Top.{v}) : local_predicate (λ x : X, T) :=
      dsimp at w,
      rw continuous_iff_continuous_at at w,
      specialize w ⟨x, m⟩,
-     simpa using (opens.open_embedding_of_le (le_of_hom i)).continuous_at_iff.1 w,
+     simpa using (opens.open_embedding_of_le i.le).continuous_at_iff.1 w,
    end,
   ..continuous_prelocal X T }
 

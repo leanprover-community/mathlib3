@@ -106,7 +106,7 @@ end
 
 @[mono] lemma monotone {α β : Type*} [preorder α] [preorder β] (F : α ⥤ β) :
   monotone F.obj :=
-λ a b h, le_of_hom (F.map (hom_of_le h))
+λ a b h, (F.map h.hom).le
 
 end functor
 

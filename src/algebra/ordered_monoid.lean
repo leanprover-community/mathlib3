@@ -830,6 +830,9 @@ end linear_ordered_cancel_comm_monoid
 namespace order_dual
 
 @[to_additive]
+instance [h : has_mul α] : has_mul (order_dual α) := h
+
+@[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
 { mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ _ _ _ _ h _,
   lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α _ _ _ a c b h,
@@ -852,6 +855,12 @@ instance [linear_ordered_cancel_comm_monoid α] :
   linear_ordered_cancel_comm_monoid (order_dual α) :=
 { .. order_dual.linear_order α,
   .. order_dual.ordered_cancel_comm_monoid }
+
+@[to_additive]
+instance [linear_ordered_comm_monoid α] :
+  linear_ordered_comm_monoid (order_dual α) :=
+{ .. order_dual.linear_order α,
+  .. order_dual.ordered_comm_monoid }
 
 end order_dual
 

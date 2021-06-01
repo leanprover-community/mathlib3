@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import linear_algebra.basis
 import logic.small
+import linear_algebra.direct_sum.finsupp
 
 /-!
 
@@ -17,7 +18,9 @@ TODO
 
 universes u v w z
 
-variables (R : Type u) (M : Type v)
+variables (R : Type u) (M : Type v) (N : Type z)
+
+open_locale tensor_product
 
 section basic
 
@@ -48,7 +51,7 @@ namespace module.free
 section semiring
 
 variables (R M) [semiring R] [add_comm_monoid M] [module R M] [module.free R M]
-variables (N : Type z) [add_comm_monoid N] [module R N]
+variables [add_comm_monoid N] [module R N]
 
 /-- If `[finite_free R M]` then `choose_basis_index R M` is the `ι` which indexes the basis
   `ι → M`. -/
@@ -70,6 +73,12 @@ variables {R M N}
 lemma of_equiv (e : M ≃ₗ[R] N) : module.free R N :=
 of_basis $ (choose_basis R M).map e
 
+/-- A variation of `of_equiv`: the assumption `module.free R P` here is explicit rather than an
+instance. -/
+lemma of_equiv' {P : Type v} [add_comm_monoid P] [module R P] (h : module.free R P)
+  (e : P ≃ₗ[R] N) : module.free R N :=
+of_basis $ (choose_basis R P).map e
+
 variables (R M N)
 
 instance of_finsupp {ι : Type v} : module.free R (ι →₀ R) :=
@@ -87,6 +96,17 @@ lemma of_zero [subsingleton N] : module.free R N :=
 of_basis $ basis.empty _ not_nonempty_pempty
 
 end semiring
+
+section comm_ring
+
+variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
+variables [add_comm_group N] [module R N]
+
+instance of_tensor [module.free R N] : module.free R (M ⊗[R] N) :=
+of_equiv' (of_equiv' (free.of_finsupp R) (finsupp_tensor_finsupp' R _ _).symm)
+  (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
+
+end comm_ring
 
 section division_ring
 

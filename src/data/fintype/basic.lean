@@ -831,7 +831,7 @@ def card_eq_zero_equiv_equiv_empty : card α = 0 ≃ (α ≃ empty) :=
 (equiv.of_iff card_eq_zero_iff).trans (equiv.equiv_empty_equiv α).symm
 
 lemma card_pos_iff : 0 < card α ↔ nonempty α :=
-pos_iff_ne_zero.trans $ not_iff_comm.mp $ (not_nonempty_iff α).trans card_eq_zero_iff.symm
+pos_iff_ne_zero.trans $ not_iff_comm.mp $ not_nonempty_iff.trans card_eq_zero_iff.symm
 
 lemma card_le_one_iff : card α ≤ 1 ↔ (∀ a b : α, a = b) :=
 let n := card α in
@@ -1435,7 +1435,7 @@ not_fintype α
 ⟨λ ⟨x⟩, ⟨x⟩, λ ⟨x⟩, ⟨x⟩⟩
 
 @[simp] lemma not_nonempty_fintype {α : Type*} : ¬ nonempty (fintype α) ↔ infinite α :=
-(not_nonempty_iff (fintype α)).trans is_empty_fintype
+not_nonempty_iff.trans is_empty_fintype
 
 /-- A non-infinite type is a fintype. -/
 noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=

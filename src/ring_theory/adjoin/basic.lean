@@ -108,7 +108,7 @@ adjoin_le $ set.prod_mono subset_adjoin subset_adjoin
   S.prod S₁ ⊓ T.prod T₁ = (S ⊓ T).prod (S₁ ⊓ T₁) :=
 begin
   refine set_like.coe_injective _,
-  rw [subalgebra.prod_coe, coe_inf, coe_inf, coe_inf, subalgebra.prod_coe, subalgebra.prod_coe,
+  rw [subalgebra.coe_prod, coe_inf, coe_inf, coe_inf, subalgebra.coe_prod, subalgebra.coe_prod,
     set.prod_inter_prod]
 end
 

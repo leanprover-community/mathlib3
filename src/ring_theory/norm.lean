@@ -50,8 +50,6 @@ open_locale matrix
 
 namespace algebra
 
-variables (b : basis ι R S)
-
 variables (R)
 
 /-- The norm of an element `s` of an `R`-algebra is the determinant of `(*) s`. -/

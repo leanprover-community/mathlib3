@@ -782,25 +782,6 @@ def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)
   CommRing.of (localization.away f) :=
 (as_iso (to_basic_open R f)).symm
 
-instance is_iso_to_open_top : is_iso (to_open R ⊤) :=
-begin
-  -- We show that `to_open R ⊤ : R ⟶ OX(⊤)` is equal to the composition of three morphisms:
-  -- 1) The isomorphism between `R` and the localization of `R` at `1`,
-  -- 2) `to_basic_open R 1`, from the localization at `1` to the structure sheaf on  `basic_open 1`,
-  -- 3) The restriction of the structure sheaf, coming from the equality `basic_open 1 = ⊤`,.
-  rw show to_open R ⊤ = (localization.away.ring_equiv_of_quotient (1 : R)
-      (localization_map.away_map_of_unit _ is_unit_one)).to_CommRing_iso.symm.hom ≫
-    to_basic_open R 1 ≫
-    (structure_sheaf R).presheaf.map (eq_to_hom basic_open_one.symm).op,
-    from ring_hom.ext $ λ f, by erw [to_open_eq_const, comp_apply, comp_apply,
-      localization.ring_equiv_of_quotient_symm_of, to_basic_open_to_map, res_const],
-  -- all three morphisms above are known to be isomorphisms by type class inference
-  apply_instance
-end
-
-def structure_sheaf_top_iso : (structure_sheaf R).presheaf.obj (op ⊤) ≅ CommRing.of R :=
-(as_iso (to_open R ⊤)).symm
-
 section comap
 
 variables {R} {S : Type u} [comm_ring S] {P : Type u} [comm_ring P]

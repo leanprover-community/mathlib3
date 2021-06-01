@@ -635,7 +635,7 @@ def prod : subalgebra R (A × B) :=
   (prod S S₁ : set (A × B)) = set.prod S S₁ := rfl
 
 lemma prod_to_submodule :
-  (S.prod S₁).to_submodule = (S.to_submodule.prod S₁.to_submodule ) := rfl
+  (S.prod S₁).to_submodule = S.to_submodule.prod S₁.to_submodule := rfl
 
 @[simp] lemma mem_prod {S : subalgebra R A} {S₁ : subalgebra R B} {x : A × B} :
   x ∈ prod S S₁ ↔ x.1 ∈ S ∧ x.2 ∈ S₁ := set.mem_prod

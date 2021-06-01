@@ -293,7 +293,7 @@ by left multiplication by a fixed element.
 @[to_additive
   "The embedding of a left cancellative additive semigroup into itself
    by left translation by a fixed element.", simps]
-def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G :=
+def mul_left_embedding {G : Type*} [left_cancel_semigroup G] (g : G) : G ↪ G :=
 { to_fun := λ h, g * h, inj' := mul_right_injective g }
 
 /--
@@ -303,7 +303,7 @@ by right multiplication by a fixed element.
 @[to_additive
   "The embedding of a right cancellative additive semigroup into itself
    by right translation by a fixed element.", simps]
-def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ G :=
+def mul_right_embedding {G : Type*} [right_cancel_semigroup G] (g : G) : G ↪ G :=
 { to_fun := λ h, h * g, inj' := mul_left_injective g }
 
 /--  Elements of a left cancel semigroup are left regular. -/

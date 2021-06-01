@@ -91,8 +91,10 @@ begin
     apply small_self, assumption, assumption, },
 end
 
--- We don't define `small_fintype` or `small_encodable` yet,
--- to keep imports to `logic` to a minimum.
+/-!
+We don't define `small_of_fintype` or `small_of_encodable` in this file,
+to keep imports to `logic` to a minimum.
+-/
 
 instance small_Pi {α} (β : α → Type*) [small.{w} α] [∀ a, small.{w} (β a)] :
   small.{w} (Π a, β a) :=

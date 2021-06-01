@@ -328,3 +328,8 @@ end to_additive
 
 /- map operations -/
 attribute [to_additive] has_mul has_one has_inv has_div
+
+-- @[to_additive bar] def foo {α} [has_mul α] [has_one α] : α := 1 * 1
+-- @[to_additive bar2] def foo2 : ℕ := 1 * 1
+-- #print bar
+-- #print bar2

@@ -377,14 +377,15 @@ meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
 
 /-- `e.apply_replacement_fun f test` applies `f` to each constant
-  (inductive type, defined function etc) in an expression, if
-  * The constant is applied to (at least) one argument `arg`;
-  * `test arg` is true. -/
+  (inductive type, defined function etc) in an expression, unless
+  * The constant is applied to (at least) one argument `arg`; and
+  * `test arg` is false. -/
 protected meta def apply_replacement_fun (f : name → name) (test : expr → bool) : expr → expr
 | e := e.replace $ λ e _,
   match e with
   | expr.app (expr.const n ls) arg :=
     some $ expr.const (if test arg then f n else n) ls $ apply_replacement_fun arg
+  | expr.const n ls := some $ expr.const (f n) ls
   | _ := none
   end
 

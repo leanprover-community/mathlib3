@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 -/
+
 import data.equiv.ring
 import group_theory.monoid_localization
 import ring_theory.ideal.operations
@@ -1233,9 +1234,6 @@ end
 
 variables (I)
 
-variables (J : ideal S) [hJ : J.is_prime] (f : R →+* S) (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J)
---include hJ hIJ
-
 /-- For a ring hom `f : P →+* R` and a prime ideal `I` in `R`, the induced ring hom from the
 localization of `P` at `ideal.comap f I` to the localization of `R` at `I` -/
 noncomputable def local_ring_hom (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
@@ -1256,10 +1254,10 @@ lemma local_ring_hom_mk' (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
 map_mk' _ _ _ _
 
 instance is_local_ring_hom_local_ring_hom (J : ideal S) [hJ : J.is_prime] (f : R →+* S)
-  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) : is_local_ring_hom (local_ring_hom I J f hIJ) :=
+  (hIJ : ∀ r : R, r ∈ I ↔ f r ∈ J) :
+  is_local_ring_hom (local_ring_hom I J f hIJ) :=
+is_local_ring_hom.mk $ λ x hx,
 begin
-  constructor,
-  intros x hx,
   rcases (localization.of _).mk'_surjective x with ⟨r, s, rfl⟩,
   rw local_ring_hom_mk' at hx,
   rw at_prime.is_unit_mk'_iff at hx ⊢,

@@ -375,7 +375,7 @@ rfl
   (to_open R U f).1 x = (localization.of _).to_map f :=
 rfl
 
-lemma to_open_eq_const (U : opens (Spec.Top R)) (f : R) : to_open R U f =
+lemma to_open_eq_const (U : opens (prime_spectrum.Top R)) (f : R) : to_open R U f =
   const R f 1 U (λ x _, (ideal.ne_top_iff_one _).1 x.2.1) :=
 subtype.eq $ funext $ λ x, eq.symm $ (localization.of _).mk'_one f
 

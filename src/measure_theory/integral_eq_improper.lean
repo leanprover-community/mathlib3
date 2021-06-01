@@ -224,8 +224,7 @@ begin
 end
 
 lemma ae_cover.lintegral_tendsto_of_at_top_countably_generated {φ : ι → set α} (hφ : ae_cover μ φ)
-  (htop : (at_top : filter ι).is_countably_generated) (hmono : monotone φ) {f : α → ℝ≥0∞}
-  (hfm : measurable f) :
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ≥0∞} (hfm : measurable f) :
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 htop.tendsto_of_seq_tendsto (λ u hu, (hφ.comp_tendsto_at_top hu).lintegral_tendsto_of_nat hfm)
 

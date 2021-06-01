@@ -870,13 +870,13 @@ begin
   rw [zero_smul],
 end
 
+lemma left_inverse_splitting_of_fun_on_fintype_surjective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+  left_inverse f (splitting_of_fun_on_fintype_surjective f s) :=
+λ g, linear_map.congr_fun (splitting_of_fun_on_fintype_surjective_splits f s) g
+
 lemma splitting_of_fun_on_fintype_surjective_injective
   [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   injective (splitting_of_fun_on_fintype_surjective f s) :=
-begin
-  apply injective.of_comp,
-  convert injective_id,
-  exact congr_arg linear_map.to_fun (splitting_of_fun_on_fintype_surjective_splits f s),
-end
+(left_inverse_splitting_of_fun_on_fintype_surjective f s).injective
 
 end linear_map

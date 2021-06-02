@@ -1329,7 +1329,7 @@ compact_of_is_closed_subset (proper_space.compact_ball x r) is_closed_sphere
 /-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
 instance {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
   compact_space (sphere x r) :=
-compact_iff_compact_space.mp (is_compact_sphere _ _)
+is_compact_iff_compact_space.mp (is_compact_sphere _ _)
 
 /-- A proper pseudo metric space is sigma compact, and therefore second countable. -/
 @[priority 100] -- see Note [lower instance priority]

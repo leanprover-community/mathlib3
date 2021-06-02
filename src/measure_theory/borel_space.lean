@@ -1017,13 +1017,16 @@ end real
 
 variable [measurable_space α]
 
+lemma measurable_real_to_nnreal : measurable (real.to_nnreal) :=
+nnreal.continuous_of_real.measurable
+
 lemma measurable.real_to_nnreal {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, real.to_nnreal (f x)) :=
-nnreal.continuous_of_real.measurable.comp hf
+measurable_real_to_nnreal.comp hf
 
 lemma ae_measurable.real_to_nnreal {f : α → ℝ} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, real.to_nnreal (f x)) μ :=
-nnreal.continuous_of_real.measurable.comp_ae_measurable hf
+measurable_real_to_nnreal.comp_ae_measurable hf
 
 lemma measurable_coe_nnreal_real : measurable (coe : ℝ≥0 → ℝ) :=
 nnreal.continuous_coe.measurable
@@ -1042,10 +1045,6 @@ ennreal.continuous_coe.measurable
 lemma measurable.coe_nnreal_ennreal {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ℝ≥0∞)) :=
 ennreal.continuous_coe.measurable.comp hf
-
-lemma ae_measurable.coe_nnreal_ennreal {f : α → ℝ≥0} {μ : measure α} (hf : ae_measurable f μ) :
-  ae_measurable (λ x, (f x : ℝ)) μ :=
-nnreal.measurable_coe.comp_ae_measurable hf
 
 lemma ae_measurable.coe_nnreal_ennreal {f : α → ℝ≥0} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, (f x : ℝ≥0∞)) μ :=

@@ -499,7 +499,7 @@ def ennreal_rat_embed (n : ℕ) : ℝ≥0∞ :=
 ennreal.of_real ((encodable.decode ℚ n).get_or_else (0 : ℚ))
 
 lemma ennreal_rat_embed_encode (q : ℚ) :
-  ennreal_rat_embed (encodable.encode q) = nnreal.of_real q :=
+  ennreal_rat_embed (encodable.encode q) = real.to_nnreal q :=
 by rw [ennreal_rat_embed, encodable.encodek]; refl
 
 /-- Approximate a function `α → ℝ≥0∞` by a sequence of simple functions. -/
@@ -516,7 +516,7 @@ begin
   refine le_antisymm (supr_le $ assume i, supr_le $ assume hi, hi) (le_of_not_gt _),
   assume h,
   rcases ennreal.lt_iff_exists_rat_btwn.1 h with ⟨q, hq, lt_q, q_lt⟩,
-  have : (nnreal.of_real q : ℝ≥0∞) ≤
+  have : (real.to_nnreal q : ℝ≥0∞) ≤
       (⨆ (k : ℕ) (h : ennreal_rat_embed k ≤ f a), ennreal_rat_embed k),
   { refine le_supr_of_le (encodable.encode q) _,
     rw [ennreal_rat_embed_encode q],

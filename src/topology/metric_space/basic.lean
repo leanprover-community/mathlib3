@@ -196,7 +196,7 @@ def nndist (a b : α) : ℝ≥0 := ⟨dist a b, dist_nonneg⟩
 
 /--Express `nndist` in terms of `edist`-/
 lemma nndist_edist (x y : α) : nndist x y = (edist x y).to_nnreal :=
-by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of_real]
+by simp [nndist, edist_dist, real.to_nnreal, max_eq_left dist_nonneg, ennreal.of_real]
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
@@ -239,8 +239,8 @@ iff.rfl
 iff.rfl
 
 /--Express `nndist` in terms of `dist`-/
-lemma nndist_dist (x y : α) : nndist x y = nnreal.of_real (dist x y) :=
-by rw [dist_nndist, nnreal.of_real_coe]
+lemma nndist_dist (x y : α) : nndist x y = real.to_nnreal (dist x y) :=
+by rw [dist_nndist, real.to_nnreal_coe]
 
 theorem nndist_comm (x y : α) : nndist x y = nndist y x :=
 by simpa only [dist_nndist, nnreal.coe_eq] using dist_comm x y

@@ -45,7 +45,8 @@ meta def additive_test (f : name → option name) (replace_all : bool) (ignore :
 if replace_all then tt else additive_test_aux f ignore ff e
 
 private meta def transform_decl_with_prefix_fun_aux (f : name → option name) (replace_all : bool)
-  (ignore : name_map $ list ℕ) (pre tgt_pre : name) (attrs : list name) : name → command :=
+  (ignore reorder : name_map $ list ℕ) (pre tgt_pre : name)
+  (attrs : list name) : name → command :=
 λ src,
 do
   let tgt := src.map_prefix (λ n, if n = pre then some tgt_pre else none),
@@ -55,7 +56,8 @@ do
     (decl.type.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     is_protected ← is_protected_decl src,
-    let decl := decl.update_with_fun (name.map_prefix f) (additive_test f replace_all ignore) tgt,
+    let decl :=
+      decl.update_with_fun (name.map_prefix f) (additive_test f replace_all ignore) reorder tgt,
     pp_decl ← pp decl,
     decorate_error (format!"@[to_additive] failed. Type mismatch in additive declaration.
 If you want to map all identifiers to its additive counterpart, try `@[to_additive!].`
@@ -73,10 +75,10 @@ replacing fragments of the names of identifiers in the type and the body using t
 This is used to implement `@[to_additive]`.
 -/
 meta def transform_decl_with_prefix_fun (f : name → option name) (replace_all : bool)
-  (ignore : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
-do transform_decl_with_prefix_fun_aux f replace_all ignore src tgt attrs src,
+  (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
+do transform_decl_with_prefix_fun_aux f replace_all ignore reorder src tgt attrs src,
    ls ← get_eqn_lemmas_for tt src,
-   ls.mmap' $ transform_decl_with_prefix_fun_aux f replace_all ignore src tgt attrs
+   ls.mmap' $ transform_decl_with_prefix_fun_aux f replace_all ignore reorder src tgt attrs
 
 /--
 Make a new copy of a declaration,
@@ -84,7 +86,7 @@ replacing fragments of the names of identifiers in the type and the body using t
 This is used to implement `@[to_additive]`.
 -/
 meta def transform_decl_with_prefix_dict (dict : name_map name) (replace_all : bool)
-  (ignore : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
-transform_decl_with_prefix_fun dict.find replace_all ignore src tgt attrs
+  (ignore reorder : name_map $ list ℕ) (src tgt : name) (attrs : list name) : command :=
+transform_decl_with_prefix_fun dict.find replace_all ignore reorder src tgt attrs
 
 end tactic

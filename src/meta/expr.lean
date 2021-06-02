@@ -388,12 +388,22 @@ e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
   (inductive type, defined function etc) in an expression, unless
   * The constant is applied to (at least) one argument `arg`; and
   * `test arg` is false. -/
-protected meta def apply_replacement_fun (f : name → name) (test : expr → bool) : expr → expr
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) : expr → expr
 | e := e.replace $ λ e _,
   match e with
-  | expr.app (expr.const n ls) arg :=
-    some $ expr.const (if test arg then f n else n) ls $ apply_replacement_fun arg
-  | expr.const n ls := some $ expr.const (f n) ls
+  | const n ls := some $ expr.const (f n) $
+      -- if the first two arguments are reordered, we also reorder the first two universe parameters
+      if 0 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
+  | app (app g x) y :=
+    match reorder.find g.get_app_fn.const_name with -- this might be inefficient
+    | some l := if g.get_app_num_args ∈ l then
+        apply_replacement_fun (g.app y) (apply_replacement_fun x) else
+        none
+    | none   := none
+    end
+  | app (const n ls) arg :=
+    some $ const (if test arg then f n else n) ls $ apply_replacement_fun arg
   | _ := none
   end
 
@@ -966,11 +976,11 @@ open tactic
 sets the name of the given `decl : declaration` to `tgt`, and applies `apply_replacement_fun f test`
 to the value and type of `decl`.
 -/
-protected meta def update_with_fun (f : name → name) (test : expr → bool) (tgt : name)
-  (decl : declaration) : declaration :=
+protected meta def update_with_fun (f : name → name) (test : expr → bool) (reorder : name_map $ list ℕ)
+  (tgt : name) (decl : declaration) : declaration :=
 let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun f test in
-decl.update_value $ decl.value.apply_replacement_fun f test
+let decl := decl.update_type $ decl.type.apply_replacement_fun f test reorder in
+decl.update_value $ decl.value.apply_replacement_fun f test reorder
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

@@ -21,9 +21,6 @@ Usage information is contained in the doc string of `to_additive.attr`.
 
 * For structures, automatically generate theorems like `group α ↔
   add_group (additive α)`.
-
-* Rewrite rules for the last part of the name that work in more
-  cases. E.g., we can replace `monoid` with `add_monoid` etc.
 -/
 
 namespace to_additive
@@ -75,6 +72,23 @@ meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
     ⟨λ ns, ns.mfoldl
       (λ dict n, do
         param ← ignore_args_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        return $ dict.insert n (param.to_list expr.to_nat).iget)
+      mk_name_map, []⟩,
+  parser    := (lean.parser.small_nat)* }
+
+/-- An attribute that stores all the declarations that needs their arguments reordered when
+  applying `@[to_additive]`. Currently, we only support swapping consecutive arguments.
+  The list of the natural number is the number of arguments before the two arguments that
+  need to be swapped. -/
+@[user_attribute]
+meta def reorder_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
+{ name      := `to_additive_reorder,
+  descr     :=
+    "Auxiliary attribute for `to_additive` that stores arguments that need to be reordered.",
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl
+      (λ dict n, do
+        param ← reorder_attr.get_param_untyped n, -- see Note [user attribute parameters]
         return $ dict.insert n (param.to_list expr.to_nat).iget)
       mk_name_map, []⟩,
   parser    := (lean.parser.small_nat)* }
@@ -352,13 +366,14 @@ protected meta def attr : user_attribute unit value_type :=
     val ← attr.get_param src,
     dict ← aux_attr.get_cache,
     ignore ← ignore_args_attr.get_cache,
+    reorder ← reorder_attr.get_cache,
     tgt ← target_name src val.tgt dict,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict val.replace_all ignore src tgt
+      transform_decl_with_prefix_dict dict val.replace_all ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp],
       mwhen (has_attribute' `simps src)
@@ -384,3 +399,22 @@ attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
 -- attribute [to_additive_ignore_args 21] times_cont_mdiff_map
+
+-- @[to_additive has_vadd]
+-- class has_scalar (M α : Type*) := (smul : M → α → α)
+
+-- attribute [to_additive_reorder 0] has_pow
+-- attribute [to_additive_reorder 0 3] has_pow.pow
+-- attribute [to_additive has_scalar] has_pow
+-- attribute [to_additive has_scalar.smul] has_pow.pow
+
+-- -- set_option pp.universes true
+-- -- #print has_pow
+-- -- #print has_scalar
+-- -- #print has_pow.pow
+-- -- #print has_scalar.smul
+
+-- @[to_additive bar]
+-- def foo {α} [has_pow α ℕ] (x : α) (n : ℕ) : α := @has_pow.pow α ℕ _ x n
+-- #print foo
+-- #print bar

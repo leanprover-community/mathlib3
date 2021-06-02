@@ -18,12 +18,12 @@ open expr
   This means we will replace expression applied to e.g. `α` or `α × β`, but not when applied to
   e.g. `ℕ` or `ℝ × α`.
   We special case `(p)empty` and `(p)unit` since these types can have addition and multiplication
-  that are definitionally equal, so they could be used by `@[to_additive]`.
+  that are definitionally equal, so they could be used by `@[to_additive]`. [todo: fix]
   -/
-meta def additive_test : bool → expr → bool
+meta def additive_test (f : name → option name) : bool → expr → bool
 | b (var n)                := tt
 | b (sort l)               := tt
-| b (const n ls)           := b ∨ n ∈ [`pempty, `empty, `punit, `unit]
+| b (const n ls)           := b ∨ (f n).is_some
 | b (mvar n m t)           := tt
 | b (local_const n m bi t) := tt
 | b (app e f)              := additive_test tt e && additive_test ff f
@@ -44,7 +44,7 @@ do
     (decl.type.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     is_protected ← is_protected_decl src,
-    let decl := decl.update_with_fun (name.map_prefix f) (additive_test ff) tgt,
+    let decl := decl.update_with_fun (name.map_prefix f) (additive_test f ff) tgt,
     if is_protected then add_protected_decl decl else add_decl decl,
     attrs.mmap' (λ n, copy_attribute n src tgt)
 
@@ -53,8 +53,8 @@ Make a new copy of a declaration,
 replacing fragments of the names of identifiers in the type and the body using the function `f`.
 This is used to implement `@[to_additive]`.
 -/
-meta def transform_decl_with_prefix_fun (f : name → option name) (src tgt : name) (attrs : list name) :
-  command :=
+meta def transform_decl_with_prefix_fun (f : name → option name) (src tgt : name)
+  (attrs : list name) : command :=
 do transform_decl_with_prefix_fun_aux f src tgt attrs src,
    ls ← get_eqn_lemmas_for tt src,
    ls.mmap' $ transform_decl_with_prefix_fun_aux f src tgt attrs
@@ -64,8 +64,8 @@ Make a new copy of a declaration,
 replacing fragments of the names of identifiers in the type and the body using the dictionary `dict`.
 This is used to implement `@[to_additive]`.
 -/
-meta def transform_decl_with_prefix_dict (dict : name_map name) (src tgt : name) (attrs : list name) :
-  command :=
+meta def transform_decl_with_prefix_dict (dict : name_map name) (src tgt : name)
+  (attrs : list name) : command :=
 transform_decl_with_prefix_fun dict.find src tgt attrs
 
 end tactic

@@ -5,7 +5,8 @@ Authors: Jannis Limperg
 -/
 import data.list.range
 
-/-! # Lemmas about list.*_with_index functions.
+/-! 
+# Lemmas about list.*_with_index functions.
 
 Some specification lemmas for `list.map_with_index`, `list.mmap_with_index`, `list.foldl_with_index`
 and `list.foldr_with_index`.

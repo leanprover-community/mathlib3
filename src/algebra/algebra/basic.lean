@@ -1404,20 +1404,28 @@ end linear_map
 end is_scalar_tower
 
 section restrict_scalars
-/- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
-`S`-modules are also `R`-modules. -/
 
 section type_synonym
 variables (R A M : Type*)
 
-/--
-Warning: use this type synonym judiciously!
-The preferred way of working with an `A`-module `M` as `R`-module (where `A` is an `R`-algebra),
-is by `[module R M] [module A M] [is_scalar_tower R A M]`.
+/-- A type synonym representing the functor from the category of modules over `A`, regarded as a
+(semi)ring, to the category of modules over `A`, regarded as an `R`-algebra.
 
-When `M` is a module over a ring `A`, and `A` is an algebra over `R`, then `M` inherits a
-module structure over `R`, provided as a type synonym `module.restrict_scalars R A M := M`.
--/
+Warning: use this type synonym judiciously! Often what one wants instead of `restrict_scalars` is
+actually the following setup:
+`[comm_semiring R] [semiring A] [algebra R A] [module R M] [module A M] [is_scalar_tower R A M]` (*)
+which is just the way of saying "let `M` be a module over the `R`-algebra `A`".
+
+Mathematically, when `A` is an `R`-algebra, there are two different functors:
+ 1. The functor from the category of modules over the (semi)ring `A` to the category of modules over
+    the `R`-algebra `A`. This is what is defined here, and is called `restrict_scalars` (though
+    perhaps a better name would be `enrich_scalars`).
+ 2. The functor from the category of modules over the `R`-algebra `A` to the category of modules
+    over the (semi)ring `R`. This is the true restriction of scalars but when one uses the setup (*)
+    above, it is invisible functor available for free through typeclass inference.
+
+A standard example of when one might want to invoke 1 would be if one has a vector space over a
+field of characteristic zero and wishes to make use of the `ℚ`-algebra structure. -/
 @[nolint unused_arguments]
 def restrict_scalars (R A M : Type*) : Type* := M
 
@@ -1433,14 +1441,28 @@ instance restrict_scalars.module_orig [semiring A] [add_comm_monoid M] [I : modu
 variables [comm_semiring R] [semiring A] [algebra R A]
 variables [add_comm_monoid M] [module A M]
 
-/--
-When `M` is a module over a ring `A`, and `A` is an algebra over `R`, then `M` inherits a
-module structure over `R`.
-
-The preferred way of setting this up is `[module R M] [module A M] [is_scalar_tower R A M]`.
--/
+/-- When `M` is a module over a semiring `A`, and `A` is an algebra over `R`, then `M` inherits a
+module structure over `R`. -/
 instance : module R (restrict_scalars R A M) :=
 module.comp_hom M (algebra_map R A)
+
+namespace restrict_scalars
+
+/-- `restrict_scalars` is an equivalence of modules over the semiring `A`. -/
+@[nolint unused_arguments]
+def linear_equiv : restrict_scalars R A M ≃ₗ[A] M :=
+{ to_fun    := id,
+  map_add'  := λ x y, rfl,
+  map_smul' := λ a x, rfl,
+  inv_fun   := id,
+  left_inv  := λ x, rfl,
+  right_inv := λ y, rfl, }
+
+@[simp] lemma linear_equiv_map_smul (t : R) (x : restrict_scalars R A M) :
+  linear_equiv R A M (t • x) = (algebra_map R A t) • linear_equiv R A M x :=
+rfl
+
+end restrict_scalars
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R A M) :
   c • x = ((algebra_map R A c) • x : M) := rfl

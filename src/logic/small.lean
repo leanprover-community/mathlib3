@@ -83,6 +83,7 @@ begin
   apply_instance,
 end
 
+@[priority 100]
 instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
 begin
   rcases is_empty_or_nonempty α; resetI,

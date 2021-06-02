@@ -37,12 +37,14 @@ namespace finset
 /--
 `∏ x in s, f x` is the product of `f x`
 as `x` ranges over the elements of the finite set `s`.
+
+The implicit type arguments are out of order because of the `@[to_additive]` heuristic.
 -/
 @[to_additive "`∑ x in s, f` is the sum of `f x` as `x` ranges over the elements
 of the finite set `s`."]
-protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
+protected def prod {β α} [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
-@[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs) (f : α → β) :
+@[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs : s.nodup) (f : α → β) :
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
 rfl
 

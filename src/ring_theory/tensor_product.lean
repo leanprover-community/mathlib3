@@ -57,26 +57,26 @@ lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).r
 
 Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
 bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
-@[simps] def curry' (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
+@[simps] def curry (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
 { map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
   .. curry (f.restrict_scalars R) }
 
-lemma restrict_scalars_curry' (f : (M ⊗[R] N) →ₗ[A] P) :
-  restrict_scalars R (curry' f) = curry (f.restrict_scalars R) :=
+lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :
+  restrict_scalars R (curry f) = curry (f.restrict_scalars R) :=
 rfl
 
 /-- Just as `tensor_product.mk_compr₂_inj` is marked `ext` instead of `tensor_product.ext`, this is
 a better `ext` lemma than `tensor_product.algebra_tensor_module.ext` below.
 
 See note [partially-applied ext lemmas]. -/
-@[ext] lemma curry'_injective :
-  function.injective (curry' : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
+@[ext] lemma curry_injective :
+  function.injective (curry : (M ⊗ N →ₗ[A] P) → (M →ₗ[A] N →ₗ[R] P)) :=
 λ x y h, linear_map.restrict_scalars_injective R $ curry_injective $
   (congr_arg (linear_map.restrict_scalars R) h : _)
 
 theorem ext {g h : (M ⊗[R] N) →ₗ[A] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
-curry'_injective $ linear_map.ext₂ H
+curry_injective $ linear_map.ext₂ H
 
 end semiring
 
@@ -91,7 +91,7 @@ variables [add_comm_monoid P] [module R P] [module A P] [is_scalar_tower R A P]
 Constructing a linear map `M ⊗[R] N →[A] P` given a bilinear map `M →[A] N →[R] P` with the
 property that its composition with the canonical bilinear map `M →[A] N →[R] M ⊗[R] N` is
 the given bilinear map `M →[A] N →[R] P`. -/
-@[simps] def lift' (f : M →ₗ[A] (N →ₗ[R] P)) : (M ⊗[R] N) →ₗ[A] P :=
+@[simps] def lift (f : M →ₗ[A] (N →ₗ[R] P)) : (M ⊗[R] N) →ₗ[A] P :=
 { map_smul' := λ c, show ∀ x : M ⊗[R] N, (lift (f.restrict_scalars R)).comp (lsmul R _ c) x =
       (lsmul R _ c).comp (lift (f.restrict_scalars R)) x,
     from ext_iff.1 $ tensor_product.ext $ λ x y,
@@ -99,8 +99,8 @@ the given bilinear map `M →[A] N →[R] P`. -/
         f.map_smul, smul_apply],
   .. lift (f.restrict_scalars R) }
 
-@[simp] lemma lift'_tmul (f : M →ₗ[A] (N →ₗ[R] P)) (x : M) (y : N) :
-  lift' f (x ⊗ₜ y) = f x y :=
+@[simp] lemma lift_tmul (f : M →ₗ[A] (N →ₗ[R] P)) (x : M) (y : N) :
+  lift f (x ⊗ₜ y) = f x y :=
 lift.tmul' x y
 
 variables (R A M N P)
@@ -109,17 +109,17 @@ variables (R A M N P)
 Linearly constructing a linear map `M ⊗[R] N →[A] P` given a bilinear map `M →[A] N →[R] P`
 with the property that its composition with the canonical bilinear map `M →[A] N →[R] M ⊗[R] N` is
 the given bilinear map `M →[A] N →[R] P`. -/
-@[simps] def uncurry' : (M →ₗ[A] (N →ₗ[R] P)) →ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
-{ to_fun := lift',
-  map_add' := λ f g, ext $ λ x y, by simp only [lift'_tmul, add_apply],
-  map_smul' := λ c f, ext $ λ x y, by simp only [lift'_tmul, smul_apply] }
+@[simps] def uncurry : (M →ₗ[A] (N →ₗ[R] P)) →ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
+{ to_fun := lift,
+  map_add' := λ f g, ext $ λ x y, by simp only [lift_tmul, add_apply],
+  map_smul' := λ c f, ext $ λ x y, by simp only [lift_tmul, smul_apply] }
 
 /-- Heterobasic version of `tensor_product.lcurry`:
 
 Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
 bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
-@[simps] def lcurry' : ((M ⊗[R] N) →ₗ[A] P) →ₗ[A] (M →ₗ[A] (N →ₗ[R] P)) :=
-{ to_fun := curry',
+@[simps] def lcurry : ((M ⊗[R] N) →ₗ[A] P) →ₗ[A] (M →ₗ[A] (N →ₗ[R] P)) :=
+{ to_fun := curry,
   map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl }
 
@@ -128,16 +128,16 @@ bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N �
 A linear equivalence constructing a linear map `M ⊗[R] N →[A] P` given a
 bilinear map `M →[A] N →[R] P` with the property that its composition with the
 canonical bilinear map `M →[A] N →[R] M ⊗[R] N` is the given bilinear map `M →[A] N →[R] P`. -/
-def lift.equiv' : (M →ₗ[A] (N →ₗ[R] P)) ≃ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
-linear_equiv.of_linear (uncurry' R A M N P) (lcurry' R A M N P)
-  (linear_map.ext $ λ f, ext $ λ x y, lift'_tmul _ x y)
-  (linear_map.ext $ λ f, linear_map.ext $ λ x, linear_map.ext $ λ y, lift'_tmul f x y)
+def lift.equiv : (M →ₗ[A] (N →ₗ[R] P)) ≃ₗ[A] ((M ⊗[R] N) →ₗ[A] P) :=
+linear_equiv.of_linear (uncurry R A M N P) (lcurry R A M N P)
+  (linear_map.ext $ λ f, ext $ λ x y, lift_tmul _ x y)
+  (linear_map.ext $ λ f, linear_map.ext $ λ x, linear_map.ext $ λ y, lift_tmul f x y)
 
 variables (R A M N P)
 /-- Heterobasic version of `tensor_product.mk`:
 
 The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
-@[simps] def mk' : M →ₗ[A] N →ₗ[R] M ⊗[R] N :=
+@[simps] def mk : M →ₗ[A] N →ₗ[R] M ⊗[R] N :=
 { map_smul' := λ c x, rfl,
   .. mk R M N }
 
@@ -146,8 +146,10 @@ The canonical bilinear map `M →[A] N →[R] M ⊗[R] N`. -/
 Linear equivalence between `(M ⊗[A] N) ⊗[R] P` and `M ⊗[A] (N ⊗[R] P)`. -/
 def assoc : ((M ⊗[A] P) ⊗[R] N) ≃ₗ[A] (M ⊗[A] (P ⊗[R] N)) :=
 linear_equiv.of_linear
-  (lift' $ uncurry A _ _ _ $ comp (lcurry' R A _ _ _) $ mk A M (P ⊗[R] N))
-  (uncurry A _ _ _ $ comp (uncurry' R A _ _ _) $ by apply curry; exact (mk' R A _ _))
+  (lift $ tensor_product.uncurry A _ _ _ $ comp (lcurry R A _ _ _) $
+    tensor_product.mk A M (P ⊗[R] N))
+  (tensor_product.uncurry A _ _ _ $ comp (uncurry R A _ _ _) $
+    by apply tensor_product.curry; exact (mk R A _ _))
   (by { ext, refl, })
   (by { ext, refl, })
 

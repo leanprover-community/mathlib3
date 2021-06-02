@@ -8,13 +8,13 @@ import linear_algebra.finsupp_vector_space
 import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
 
-/-! # Free modules
+/-! # Free modules over PID
 
 A free `R`-module `M` is a module with a basis over `R`,
 equivalently it is an `R`-module linearly equivalent to `ι →₀ R` for some `ι`.
 
 This file proves a submodule of a free `R`-module of finite rank is also
-a free `R`-module of finite rank, if `R` is a principal ideal domain.
+a free `R`-module of finite rank, if `R` is a principal ideal domain (PID).
 We express "free `R`-module of finite rank" as a module `M` which has a basis
 `b : ι → R`, where `ι` is a `fintype`.
 We call the cardinality of `ι` the rank of `M` in this file;

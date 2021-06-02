@@ -1411,21 +1411,42 @@ variables (R A M : Type*)
 /-- A type synonym representing the functor from the category of modules over `A`, regarded as a
 (semi)ring, to the category of modules over `A`, regarded as an `R`-algebra.
 
-Warning: use this type synonym judiciously! Often what one wants instead of `restrict_scalars` is
-actually the following setup:
-`[comm_semiring R] [semiring A] [algebra R A] [module R M] [module A M] [is_scalar_tower R A M]` (*)
-which is just the way of saying "let `M` be a module over the `R`-algebra `A`".
+Warning: use this type synonym judiciously! Consider an example where we want to construct an
+`R`-linear map from `M` to `A`, given:
+```lean
+variables (R A M : Type*)
+variables [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid M] [module A M]
+```
+With the assumptions above, we can't directly state this as we have no `module R M` structure but
+`restrict_scalars` permits this to be written as:
+```lean
+-- an `R`-module structure on `M` is provided by `restrict_scalars` which is compatible
+example : restrict_scalars R A M →ₗ[R] A := sorry
+```
+However, it is usually better just to add this extra structure as an argument:
+```lean
+-- an `R`-module structure on `M` and proof of its compatibility is provided by the user
+example [module R M] [is_scalar_tower R A M] : M →ₗ[R] A := sorry
+```
+The advantage of the second approach is that it defers the duty of providing the missing typeclasses
+`[module R M] [is_scalar_tower R A M]`. If some concrete `M` naturally carries these (as is often
+the case) then we have avoided `restrict_scalars` entirely. If not, we can pass
+`restrict_scalars R A M` later on instead of `M`.
+
+Note that this means we almost always want to state definitions and lemmas in the language of
+`is_scalar_tower` rather than `restrict_scalars`.
 
 Mathematically, when `A` is an `R`-algebra, there are two different functors:
  1. The functor from the category of modules over the (semi)ring `A` to the category of modules over
     the `R`-algebra `A`. This is what is defined here, and is called `restrict_scalars` (though
     perhaps a better name would be `enrich_scalars`).
  2. The functor from the category of modules over the `R`-algebra `A` to the category of modules
-    over the (semi)ring `R`. This is the true restriction of scalars but when one uses the setup (*)
-    above, it is invisible functor available for free through typeclass inference.
+    over the (semi)ring `R`. This is the true restriction of scalars but when one uses the setup
+    in the second example above, it is invisible functor available for free through typeclass
+    inference.
 
-A standard example of when one might want to invoke 1 would be if one has a vector space over a
-field of characteristic zero and wishes to make use of the `ℚ`-algebra structure. -/
+A standard example of when one might want to invoke functor 1 would be if one has a vector space
+over a field of characteristic zero and wishes to make use of the `ℚ`-algebra structure. -/
 @[nolint unused_arguments]
 def restrict_scalars (R A M : Type*) : Type* := M
 

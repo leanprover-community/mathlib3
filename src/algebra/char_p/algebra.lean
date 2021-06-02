@@ -13,8 +13,8 @@ import algebra.free_algebra
 
 In this file we describe the characteristic of `R`-algebras.
 
-In particular we are interested in the characteristic of the fraction field
-`fraction_ring R`.
+In particular we are interested in the characteristic of free algebras over `R`
+and the fraction field `fraction_ring R`.
 
 
 ## Main results
@@ -41,7 +41,7 @@ lemma char_p_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring 
     rw ring_hom.map_zero,
   end }
 
-/-- If the algebra map `R →+*A` is injective and `R` has characteristic zero then so does `A`. -/
+/-- If the algebra map `R →+* A` is injective and `R` has characteristic zero then so does `A`. -/
 lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (h : function.injective (algebra_map R A)) [char_zero R] : char_zero A :=
 { cast_injective := λ x y hxy,

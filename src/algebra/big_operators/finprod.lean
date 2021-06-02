@@ -77,7 +77,7 @@ open function set
 -/
 
 section sort
-variables {M N : Type*} {α β ι : Sort*} [comm_monoid M] [comm_monoid N]
+variables {M M₀ N R : Type*} {α β ι : Sort*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
 
@@ -89,7 +89,7 @@ open_locale classical
 
 /-- Sum of `f x` as `x` ranges over the elements of the support of `f`, if it's finite. Zero
 otherwise. -/
-@[irreducible] noncomputable def finsum {M} [add_comm_monoid M] (f : α → M) : M :=
+@[irreducible] noncomputable def finsum {M α} [add_comm_monoid M] (f : α → M) : M :=
 if h : finite (support (f ∘ plift.down)) then ∑ i in h.to_finset, f i.down else 0
 
 /-- Product of `f x` as `x` ranges over the elements of the multiplicative support of `f`, if it's

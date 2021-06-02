@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.list.perm
-import algebra.group_power
+import algebra.ordered_group
 
 /-!
 # Multisets
@@ -833,6 +833,13 @@ prod_eq_foldl _
 
 attribute [norm_cast] coe_prod coe_sum
 
+@[simp, to_additive] theorem prod_to_list [comm_monoid α] (s : multiset α) :
+  s.to_list.prod = s.prod :=
+begin
+  conv_rhs { rw ←coe_to_list s, },
+  rw coe_prod,
+end
+
 @[simp, to_additive]
 theorem prod_zero [comm_monoid α] : @prod α _ 0 = 1 := rfl
 
@@ -1042,7 +1049,7 @@ lemma le_prod_nonempty_of_submultiplicative [comm_monoid α] [ordered_comm_monoi
 le_prod_nonempty_of_submultiplicative_on_pred f (λ i, true) (by simp [h_mul]) (by simp) s
   hs_nonempty (by simp)
 
-lemma abs_sum_le_sum_abs [linear_ordered_field α] {s : multiset α} :
+lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=
 le_sum_of_subadditive _ abs_zero abs_add s
 
@@ -1053,13 +1060,6 @@ multiset.induction_on s (λ _, dvd_zero _)
 
 @[simp] theorem sum_map_singleton (s : multiset α) : (s.map (λ a, a ::ₘ 0)).sum = s :=
 multiset.induction_on s (by simp) (by simp)
-
-@[simp, to_additive] theorem prod_to_list [comm_monoid α] (s : multiset α) :
-  s.to_list.prod = s.prod :=
-begin
-  conv_rhs { rw ←coe_to_list s, },
-  rw coe_prod,
-end
 
 /-! ### Join -/
 

@@ -108,6 +108,9 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : n
   ..subtype.linear_order s,
   ..lattice_of_linear_order }
 
+theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
+rfl
+
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 

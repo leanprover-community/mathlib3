@@ -22,7 +22,7 @@ and the fraction field `fraction_ring R`.
 - `char_p_of_injective_algebra_map` If `R→+*A` is an injective algebra map
   then `A` has the same characteristic as `R`.
 
-Instances were this can be applied:
+Instances constructed from this result:
 - Any `free_algebra R X` has the same characteristic as `R`.
 - The `fraction_ring R` of an integral domain `R` has the same characteristic as `R`.
 

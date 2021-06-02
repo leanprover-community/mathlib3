@@ -1418,6 +1418,14 @@ not_nonempty_iff.trans is_empty_fintype
 noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
 ((not_iff_comm.mp not_nonempty_fintype).mp h).some
 
+section
+open_locale classical
+
+noncomputable def fintype_or_infinite (α : Type*) : psum (fintype α) (infinite α) :=
+if h : infinite α then psum.inr h else psum.inl (fintype_of_not_infinite h)
+
+end
+
 lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
 begin

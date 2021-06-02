@@ -78,8 +78,10 @@ variables (M : Type v) [add_comm_group M] [module R M]
 section
 variables {R M}
 
-def linear_independent.maximal {ι : Type*} {v : ι → M} (i : linear_independent R v) : Prop :=
-  ∀ {κ : Type*} (w : κ → M) (i : linear_independent R w) (h : range v ≤ range w), range v = range w
+def linear_independent.maximal {ι : Type w} {v : ι → M} (i : linear_independent R v) : Prop :=
+  ∀ {κ : Type w} (w : κ → M) (i : linear_independent R w) (h : range v ≤ range w), range v = range w
+
+attribute [irreducible] linear_independent.maximal
 
 end
 
@@ -127,7 +129,7 @@ then the union of the supports of `x ∈ s` (when written out in the basis `b`) 
 -/
 lemma union_support_maximal_linear_independent_eq_range_basis
   {ι : Type*} (b : basis ι R M)
-  {κ : Type*} (v : κ → M) (i : linear_independent R v) (maximal : i.maximal) :
+  {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
   ⨆ k, ((b.repr (v k)).support : set ι) = ⊤ :=
 begin
   sorry
@@ -266,16 +268,47 @@ end
 
 /--
 Over any ring `R` satisfying the strong rank condition,
+if `b` is a basis for a module `M`,
+and `s` is a linearly independent set,
+then the cardinality of `s` is bounded by the cardinality of `b`.
+-/
+lemma linear_independent_le_basis
+  {ι : Type*} (b : basis ι R M)
+  {κ : Type*} (v : κ → M) (i : linear_independent R v) :
+  cardinal.mk κ ≤ cardinal.mk ι :=
+begin
+  -- We split into cases depending on whether `ι` is infinite.
+  cases fintype_or_infinite ι; resetI,
+  -- When `ι` is finite, we have `linear_independent_le_span`,
+  rw cardinal.fintype_card ι,
+  haveI : nontrivial R := nontrivial_of_invariant_basis_number R,
+  rw fintype.card_congr (equiv.of_injective b b.injective),
+  exact linear_independent_le_span R M v i (range b) b.span_eq,
+  -- and otherwise we have `linear_indepedent_le_infinite_basis`.
+  exact linear_independent_le_infinite_basis R M b v i,
+end
+
+/--
+Over any ring `R` satisfying the strong rank condition,
 if `b` is an infinite basis for a module `M`,
 then every maximal linearly independent set has the same cardinality as `b`.
+
+This proof (along with some of the lemmas above) comes from
+Les familles libres maximales d'un module ont-elles le meme cardinal?,
+Michel Lazarus, Pub. Sem. Math. Rennes 4 (1973), 1-12,
+http://www.numdam.org/article/PSMIR_1973___4_A4_0.pdf
 -/
 lemma maximal_linear_independent_eq_infinite_basis
   {ι : Type*} (b : basis ι R M) [infinite ι]
   {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
   cardinal.mk κ = cardinal.mk ι :=
 begin
-  sorry
+  apply le_antisymm,
+  { exact linear_independent_le_basis R M b v i, },
+  { haveI : nontrivial R := nontrivial_of_invariant_basis_number R,
+    exact infinite_basis_le_maximal_linear_independent R M b v i m, }
 end
+-- TODO what about without the `infinite ι` hypothesis?
 
 end strong_rank_condition
 

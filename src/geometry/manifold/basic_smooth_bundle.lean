@@ -106,7 +106,6 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   times_cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)))
 
-
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
 def trivial_basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -481,7 +480,7 @@ tangent bundle gives a second component in the tangent space. -/
 def tangent_bundle := Σ (x : M), tangent_space I x
 
 /-- The projection from the tangent bundle of a smooth manifold to the manifold. As the tangent
-bundle is represented internally as a product type, the notation `p.1` also works for the projection
+bundle is represented internally as a sigma type, the notation `p.1` also works for the projection
 of the point `p`. -/
 def tangent_bundle.proj : tangent_bundle I M → M :=
 λ p, p.1

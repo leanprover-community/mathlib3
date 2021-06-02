@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.local_homeomorph
 import topology.algebra.ordered.basic
+import topology.continuous_function.continuous_section
 import data.bundle
 
 /-!
@@ -645,6 +646,56 @@ end piecewise
 
 end topological_fiber_bundle
 
+/-! ### Sections of topological fiber bundles -/
+
+namespace right_inv
+
+open bundle
+
+variable {E : B → Type*}
+
+variables [topological_space B] [topological_space (total_space E)] [topological_space F]
+
+lemma mem_base_set_right_inv_fst (g : right_inv (proj E)) {b : B}
+  {e : bundle_trivialization F (proj E)} (hb : b ∈ e.base_set) : (g b).fst ∈ e.base_set :=
+by { rw right_inv.fst_eq_id, exact hb }
+
+lemma preimage_source_eq_base_set (f : right_inv (proj E)) {e : bundle_trivialization F (proj E)} :
+  f ⁻¹' e.source = e.base_set :=
+by rw [bundle_trivialization.source_eq, ←preimage_comp, f.right_inv_def]; refl
+
+lemma mem_base_set_image_mem_source (f : right_inv (proj E)) {e : bundle_trivialization F (proj E)}
+  {x : B} (h : x ∈ e.base_set) :
+  f x ∈ e.source :=
+by { rw [mem_preimage.symm, right_inv.preimage_source_eq_base_set], exact h }
+
+lemma trivialization_at_fst {e : bundle_trivialization F (proj E)} (f : right_inv (proj E)) :
+  ∀ x ∈ e.base_set, (e (f x)).fst = x :=
+begin
+  intros x h,
+  rw [e.coe_fst (f.mem_base_set_image_mem_source h)],
+  exact congr_fun f.right_inv_def x,
+end
+
+lemma continuous_at_iff_continuous_within_at (f : right_inv (proj E)) {b : B}
+  (e : bundle_trivialization F (proj E)) (hb : b ∈ e.base_set) :
+  continuous_at f b ↔ continuous_within_at (λ x, (e (f x)).snd) e.base_set b :=
+⟨λ h, begin
+  have h2 := e.to_local_homeomorph.continuous_at (f.mem_base_set_image_mem_source hb),
+  exact (h2.comp h).continuous_within_at.snd,
+end,
+λ h, begin
+  refine continuous_within_at.continuous_at _ (is_open.mem_nhds e.open_base_set hb),
+  rw e.to_local_homeomorph.continuous_within_at_iff_continuous_within_at_comp_left,
+  { rw continuous_within_at_prod_iff,
+    exact ⟨continuous_within_at.congr continuous_within_at_id (f.trivialization_at_fst)
+      (f.trivialization_at_fst b hb), h⟩ },
+  { exact f.mem_base_set_image_mem_source hb },
+  { rw right_inv.preimage_source_eq_base_set, exact self_mem_nhds_within }
+end ⟩
+
+end right_inv
+
 /-! ### Constructing topological fiber bundles -/
 
 namespace bundle
@@ -665,7 +716,7 @@ end bundle
 /-- Core data defining a locally trivial topological bundle with fiber `F` over a topological
 space `B`. Note that "bundle" is used in its mathematical sense. This is the (computer science)
 bundled version, i.e., all the relevant data is contained in the following structure. A family of
-local trivializations is indexed by a type ι, on open subsets `base_set i` for each `i : ι`.
+local trivializations is indexed by a type `ι`, on open subsets `base_set i` for each `i : ι`.
 Trivialization changes from `i` to `j` are given by continuous maps `coord_change i j` from
 `base_set i ∩ base_set j` to the set of homeomorphisms of `F`, but we express them as maps
 `B → F → F` and require continuity on `(base_set i ∩ base_set j) × F` to avoid the topology on the

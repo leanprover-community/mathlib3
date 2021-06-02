@@ -473,18 +473,10 @@ by simp [sub_eq_add_neg, exp_add, exp_neg, div_eq_mul_inv]
 
 lemma exp_int_mul (z : ℂ) (n : ℤ) : complex.exp (n * z) = (complex.exp z) ^ n :=
 begin
-  have : ∀ w : ℂ, ∀ n : ℤ, 0 < n → complex.exp (n * w) = (complex.exp w) ^ n,
-  { intros w n hn,
-    lift n to ℕ using hn.le with k,
-    exact_mod_cast complex.exp_nat_mul w k },
-  rcases lt_trichotomy n 0 with hn | hn | hn,
-  { have hn' : 0 < -n := by rwa neg_pos,
-    convert this (-z) _ hn' using 1,
-    { congr' 1,
-      simp },
-    { simp [complex.exp_neg] } },
-  { simp [hn] },
-  { exact this z n hn }
+  cases n,
+  { rw [fpow_of_nat, int.cast_of_nat, exp_nat_mul], },
+  { rw [fpow_neg_succ_of_nat, int.cast_neg_succ_of_nat, ←nat.cast_succ, neg_mul_eq_neg_mul_symm,
+      exp_neg, exp_nat_mul], },
 end
 
 @[simp] lemma exp_conj : exp (conj x) = conj (exp x) :=

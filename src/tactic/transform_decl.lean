@@ -16,11 +16,14 @@ open expr
   This is used in `@[to_additive]` for deciding which subexpressions to transform: we only transform
   constants if `additive_test` applied to their first argument returns `tt`.
   This means we will replace expression applied to e.g. `α` or `α × β`, but not when applied to
-  e.g. `ℕ` or `ℝ × α`. -/
+  e.g. `ℕ` or `ℝ × α`.
+  We special case `(p)empty` and `(p)unit` since these types can have addition and multiplication
+  that are definitionally equal, so they could be used by `@[to_additive]`.
+  -/
 meta def additive_test : bool → expr → bool
 | b (var n)                := tt
 | b (sort l)               := tt
-| b (const n ls)           := b
+| b (const n ls)           := b ∨ n ∈ [`pempty, `empty, `punit, `unit]
 | b (mvar n m t)           := tt
 | b (local_const n m bi t) := tt
 | b (app e f)              := additive_test tt e && additive_test ff f

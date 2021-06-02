@@ -83,6 +83,10 @@ noncomputable def finset_basis_index [is_noetherian K V] :
   (↑(finset_basis_index K V) : set V) = basis.of_vector_space_index K V :=
 set.finite.coe_to_finset _
 
+@[simp] lemma coe_sort_finset_basis_index [is_noetherian K V] :
+  ((finset_basis_index K V) : Type*) = basis.of_vector_space_index K V :=
+set.finite.coe_sort_to_finset _
+
 /--
 In a noetherian module over a division ring, there exists a finite basis.
 This is indexed by the `finset` `finite_dimensional.finset_basis_index`.
@@ -90,7 +94,7 @@ This is in contrast to the result `finite_basis_index (basis.of_vector_space K V
 which provides a set and a `set.finite`.
 -/
 noncomputable def finset_basis [is_noetherian K V] :
-  basis (↑(finset_basis_index K V) : set V) K V :=
+  basis (finset_basis_index K V) K V :=
 (basis.of_vector_space K V).reindex (by simp)
 
 @[simp] lemma range_finset_basis [is_noetherian K V] :

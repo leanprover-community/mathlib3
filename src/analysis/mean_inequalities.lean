@@ -373,10 +373,10 @@ real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2
 
 /-- Young's inequality, `ℝ≥0` version with real conjugate exponents. -/
 theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
-  a * b ≤ a ^ p / nnreal.of_real p + b ^ q / nnreal.of_real q :=
+  a * b ≤ a ^ p / real.to_nnreal p + b ^ q / real.to_nnreal q :=
 begin
-  nth_rewrite 0 ←coe_of_real p hpq.nonneg,
-  nth_rewrite 0 ←coe_of_real q hpq.symm.nonneg,
+  nth_rewrite 0 ← real.coe_to_nnreal p hpq.nonneg,
+  nth_rewrite 0 ← real.coe_to_nnreal q hpq.symm.nonneg,
   exact young_inequality a b hpq.one_lt_nnreal hpq.inv_add_inv_conj_nnreal,
 end
 
@@ -543,8 +543,8 @@ begin
   push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
   rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
     coe_rpow_of_nonneg _ hpq.nonneg, coe_rpow_of_nonneg _ hpq.symm.nonneg, ennreal.of_real,
-    ennreal.of_real, ←@coe_div (nnreal.of_real p) _ (by simp [hpq.pos]),
-    ←@coe_div (nnreal.of_real q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
+    ennreal.of_real, ←@coe_div (real.to_nnreal p) _ (by simp [hpq.pos]),
+    ←@coe_div (real.to_nnreal q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
   exact nnreal.young_inequality_real a.to_nnreal b.to_nnreal hpq,
 end
 

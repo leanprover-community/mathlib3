@@ -41,7 +41,7 @@ lemma char_p_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring 
     rw ring_hom.map_zero,
   end }
 
-/-- If the algebra map `R →+*A` is injective then `A` has the same characteristic as `R`. -/
+/-- If the algebra map `R →+*A` is injective and `R` has characteristic zero then so does `A`. -/
 lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (h : function.injective (algebra_map R A)) [char_zero R] : char_zero A :=
 { cast_injective := λ x y hxy,

@@ -765,6 +765,11 @@ begin
       simpa [pi_if, hf] } }
 end
 
+/-- Suppose `π i` is a family of topological spaces indexed by `i : ι`, and `X` is a type
+endowed with a family of maps `f i : X → π i` for every `i : ι`, hence inducing a
+map `g : X → Π i, π i`. This lemma shows that infimum of the topologies on `X` induced by
+the `f i` as `i : ι` varies is simply the topology on `X` induced by `g : X → Π i, π i`
+where `Π i, π i` is endowed with the usual product topology. -/
 lemma inducing_infi_to_pi {X : Type*} [∀ i, topological_space (π i)] (f : Π i, X → π i) :
   @inducing X (Π i, π i) (⨅ i, induced (f i) infer_instance) _ (λ x i, f i x) :=
 begin

@@ -10,12 +10,20 @@ import algebra.module.basic
 /-!
 # Bundle
 
+Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
+should contain all possible results that do not involve any topology.
+
+We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
+a topology which is not the disjoint union topology. In general, the constructions of fiber bundles
+we will make will be of this form.
+
+## References
+
+- https://en.wikipedia.org/wiki/Bundle_(mathematics)
+
 -/
 
 namespace bundle
-/- We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
-a topology which is not the disjoint union topology. In general, the constructions of fiber bundles
-we will make will be of this form. -/
 
 variables {B : Type*} (E : B → Type*)
 
@@ -40,8 +48,7 @@ lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ :=
 @[nolint unused_arguments]
 def trivial (B : Type*) (F : Type*) : B → Type* := λ x, F
 
-instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
-⟨(default F : F)⟩
+instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default F : F)⟩
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd

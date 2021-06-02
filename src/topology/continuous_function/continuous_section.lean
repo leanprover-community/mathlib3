@@ -10,6 +10,8 @@ import data.right_inv
 /-!
 # Continuous sections
 
+In this file we define bundle continuous sections of a map.
+
 -/
 
 set_option old_structure_cmd true

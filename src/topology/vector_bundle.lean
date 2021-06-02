@@ -52,6 +52,14 @@ with a topology and a topological vector bundle structure.
 Similar constructions can be done for tensor products of topological vector bundles, exterior
 algebras, and so on, where the topology can be defined using a norm on the fiber model if this
 helps.
+
+## Sections
+
+In this file we also proves that sections of vector bundles inherit the algebraic structures of the
+fibers. The proofs of this are the standard mathematical proofs: continuity is read through
+trivialization on the fibers, where checkinf the continuity of algebrai operations is
+straightforward.
+
 -/
 
 noncomputable theory
@@ -198,45 +206,44 @@ def trivialization.continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   e.continuous_linear_equiv_at (proj E x) (e.mem_source.1 hx) x.2 = (e x).2 :=
 by { cases x, refl }
 
-lemma triv_snd_eq_cont_lin_equiv_at_snd {g : right_inv (proj E)} {b : B} {e : trivialization R F E}
-  (hb : b ∈ e.base_set) :
-  (e (g b)).snd =
-  (e.continuous_linear_equiv_at ((g b).fst) (g.mem_base_set_right_inv_fst hb)) (g b).snd :=
+@[simp] lemma cont_lin_equiv_at_snd_eq_triv_snd {g : right_inv (proj E)} {b : B}
+  {e : trivialization R F E} (hb : b ∈ e.base_set) :
+  (e.continuous_linear_equiv_at (g b).fst (g.mem_base_set_right_inv_fst hb)) (g b).snd =
+  (e (g b)).snd :=
 by simp only [trivialization.continuous_linear_equiv_at_apply, sigma.eta]
 
 lemma trivialization.snd_map_add {g h : right_inv (proj E)} {e : trivialization R F E} (b : B)
   (hb : b ∈ e.base_set) :
   (e ((g + h) b)).snd = (e (g b)).snd + (e (h b)).snd :=
 begin
-  repeat {rw triv_snd_eq_cont_lin_equiv_at_snd hb},
+  repeat {rw (cont_lin_equiv_at_snd_eq_triv_snd hb).symm},
   have H : ∀ f, (e.continuous_linear_equiv_at ((g + h) b).fst
     ((g + h).mem_base_set_right_inv_fst hb)) ((right_inv.to_pi R f) ((g + h) b).fst) =
-    (e.continuous_linear_equiv_at (f b).fst
-    (f.mem_base_set_right_inv_fst hb)) (f b).snd := λ f,
+    (e.continuous_linear_equiv_at (f b).fst (f.mem_base_set_right_inv_fst hb)) (f b).snd := λ f,
   begin
     simp only [trivialization.continuous_linear_equiv_at_apply],
     have : (((g + h) b).fst : B) = (f b).fst := by { simp only [right_inv.fst_eq_id], },
-    rw [this, right_inv.snd_eq_to_pi_fst R], end,
-  rw [right_inv.snd_eq_to_pi_fst R, linear_equiv.map_add, pi.add_apply,
+    rw [this, (right_inv.snd_eq_to_pi_fst R).symm], end,
+  rw [(right_inv.snd_eq_to_pi_fst R).symm, linear_equiv.map_add, pi.add_apply,
    continuous_linear_equiv.map_add, H g, H h],
 end
 
 lemma trivialization.snd_map_zero {e : trivialization R F E} (b : B) (hb : b ∈ e.base_set) :
   (e ((0 : right_inv (proj E)) b)).snd = 0 :=
-by { rw [triv_snd_eq_cont_lin_equiv_at_snd hb, right_inv.snd_eq_to_pi_fst R, linear_equiv.map_zero,
-  pi.zero_apply, continuous_linear_equiv.map_zero], assumption }
---                  What the heck it's going on here!?  ↑
+by { rw [(cont_lin_equiv_at_snd_eq_triv_snd hb).symm, (right_inv.snd_eq_to_pi_fst R).symm,
+  linear_equiv.map_zero, pi.zero_apply, continuous_linear_equiv.map_zero], assumption }
+--                                         What the heck it's going on here!?  ↑
 
 lemma trivialization.snd_map_smul {g : right_inv (proj E)} {e : trivialization R F E} {r : R}
   (b : B) (hb : b ∈ e.base_set) :
   (e ((r • (g : right_inv (proj E))) b)).snd = r • (e ((g : right_inv (proj E)) b)).snd :=
 begin
-  rw [triv_snd_eq_cont_lin_equiv_at_snd hb, right_inv.snd_eq_to_pi_fst R, linear_equiv.map_smul,
-    pi.smul_apply, continuous_linear_equiv.map_smul],
+  rw [(cont_lin_equiv_at_snd_eq_triv_snd hb).symm, (right_inv.snd_eq_to_pi_fst R).symm,
+    linear_equiv.map_smul, pi.smul_apply, continuous_linear_equiv.map_smul],
   simp only [trivialization.continuous_linear_equiv_at_apply],
   congr,
   have h : ((r • g) b).fst = (g b).fst := by simp only [right_inv.fst_eq_id],
-  rw [h, (right_inv.snd_eq_to_pi_fst R).symm],
+  rw [h, ((right_inv.snd_eq_to_pi_fst R).symm).symm],
   exact sigma.eq rfl rfl,
 end
 
@@ -396,14 +403,14 @@ lemma trivialization.map_neg {g : right_inv (proj E)}
   {e : trivialization R F E} (b : B) (hb : b ∈ e.base_set) :
   (e ((- (g : right_inv (proj E))) b)).snd = - (e ((g : right_inv (proj E)) b)).snd :=
 begin
-  rw [triv_snd_eq_cont_lin_equiv_at_snd hb, right_inv.snd_eq_to_pi_fst R],
+  rw [(cont_lin_equiv_at_snd_eq_triv_snd hb).symm, (right_inv.snd_eq_to_pi_fst R).symm],
   rw [((right_inv.to_pi R) : (right_inv (proj E)) ≃ₗ[R] (Π x, E x)).map_neg],
   /- What is going on here!?   ↑   ↑   ↑   ↑   ↑    ↑    ↑  -/
   rw [pi.neg_apply, continuous_linear_equiv.map_neg],
   simp only [trivialization.continuous_linear_equiv_at_apply],
   congr,
   have h : ((-g) b).fst = (g b).fst := by simp only [right_inv.fst_eq_id],
-  rw [h, (right_inv.snd_eq_to_pi_fst R).symm],
+  rw [h, ((right_inv.snd_eq_to_pi_fst R).symm).symm],
   exact sigma.eq rfl rfl,
 end
 

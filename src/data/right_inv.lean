@@ -11,6 +11,29 @@ import data.pi
 /-!
 # Bundled right inverse (section)
 
+In this file we implement the bundled version of a right inverse function. The final purpose of
+this type is to conviniently implement sections of bundles.
+
+## Implementation notes
+
+Let `E : B → Type*` be the collection of fibers of a bundle on `B`.
+In the case of sections of bundle we prove that the type of right inverses of `bundle.proj E` is
+equivalent to the type `Π x : B, E x`. Both implementations of sections have their advantages:
+`right_inv (proj E)` is better to talk about properties such as continuity, whereas `Π x : B, E x`
+works better with algebraic structures, it naturally inherits the algebraic structures present on
+the fibers, thanks to the `Π` instances. It is hence a good idea to implement both and write down
+the equivalence between them, but then we have to choose only one for our final implementation of
+sections. We chose `right_inv (proj E)` because: it is more general (some of the results in the
+theory of sections are true for `right_inv f`, for a generic `f`), and it has a more natural
+coercion to a function `B → bundle.total_space E` which is finally what we want. Note that we could
+also register a coercion to `B → bundle.total_space E` from `Π x : B, E x`, and it is not a bad idea
+to implement things this way, but it is just slightly more clumsy: in the case of continuous
+sections, in the first case one can implement continuous sections as
+`structure continuous_section (f : α → β) extends right_inv f, C(β, α)`
+whereas in the second way one would have to write continuity manually; it is not a big deal but the
+first way is slightly more natural. Also note that to recover the value of the section on the fiber
+in the first way one can use `.2` whereas the second way would make use of coercions.
+
 -/
 
 /-- Bundled right inverse of a function. Note that here the `nolint` has a true mathematical
@@ -39,6 +62,8 @@ lemma right_inv_def {f : α → β} (g : right_inv f) : f ∘ g = id := g.right_
 end right_inv
 
 section bundle_sections
+
+/-! ## Section of bundles -/
 
 open bundle
 
@@ -71,10 +96,9 @@ def right_inv.to_pi' : equiv (right_inv (proj E)) (Π x, E x) :=
   right_inv := λ g, rfl }
 
 lemma right_inv.snd_eq_to_pi_fst' {g : right_inv (proj E)} {b : B} :
-  (g b).snd = (right_inv.to_pi' g) (g b).fst :=
+  (right_inv.to_pi' g) (g b).fst = (g b).snd :=
 begin
   rw [← heq_iff_eq],
-  symmetry,
   apply (cast_heq _ _).trans,
   exact congr_arg_heq sigma.snd (congr_arg g (g.fst_eq_id b)),
 end
@@ -92,8 +116,8 @@ def right_inv.to_pi : (right_inv (proj E)) ≃ₗ[R] (Π x, E x) :=
   map_smul' := λ r g, rfl,
   ..right_inv.to_pi' }
 
-lemma right_inv.snd_eq_to_pi_fst {g : right_inv (proj E)} {b : B} :
-  (g b).snd = (right_inv.to_pi R g) (g b).fst := right_inv.snd_eq_to_pi_fst'
+@[simp] lemma right_inv.snd_eq_to_pi_fst {g : right_inv (proj E)} {b : B} :
+  (right_inv.to_pi R g) (g b).fst = (g b).snd := right_inv.snd_eq_to_pi_fst'
 
 end monoid
 

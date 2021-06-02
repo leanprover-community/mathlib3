@@ -407,7 +407,7 @@ lemma gal_action_hom_bijective_of_prime_degree
   function.bijective (gal_action_hom p ℂ) :=
 begin
   have h1 : fintype.card (p.root_set ℂ) = p.nat_degree,
-  { simp_rw [root_set_def, fintype.card_coe],
+  { simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
     rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots],
     { exact is_alg_closed.splits_codomain p },
     { exact nodup_roots ((separable_map (algebra_map ℚ ℂ)).mpr p_irr.separable) } },

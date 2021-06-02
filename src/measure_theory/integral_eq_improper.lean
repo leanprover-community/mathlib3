@@ -228,6 +228,60 @@ lemma ae_cover.lintegral_tendsto_of_at_top_countably_generated {φ : ι → set 
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 htop.tendsto_of_seq_tendsto (λ u hu, (hφ.comp_tendsto_at_top hu).lintegral_tendsto_of_nat hfm)
 
+-- TODO : supr and "of_tendsto"
+-- TODO : change name to `set_...` ?
+
+lemma ae_cover.lintegral_eq_of_tendsto {φ : ι → set α} (hφ : ae_cover μ φ)
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ≥0∞} (I : ℝ≥0∞)
+  (hfm : measurable f) (htendsto : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 I)) :
+  ∫⁻ x, f x ∂μ = I :=
+tendsto_nhds_unique (hφ.lintegral_tendsto_of_at_top_countably_generated htop hfm) htendsto
+
 end lintegral
+
+section integrable
+
+variables {α ι E : Type*} [semilattice_sup ι] [nonempty ι]
+  [measurable_space α] {μ : measure α} [normed_group E]
+  [measurable_space E] [opens_measurable_space E]
+
+lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto {φ : ι → set α} (hφ : ae_cover μ φ)
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → E} (I : ℝ) (hfm : measurable f)
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) at_top (𝓝 $ ennreal.of_real I)) :
+  integrable f μ :=
+begin
+  refine ⟨hfm.ae_measurable, _⟩,
+  unfold has_finite_integral,
+  rw hφ.lintegral_eq_of_tendsto htop _
+    (measurable_ennreal_coe_iff.mpr (measurable_nnnorm.comp hfm)) htendsto,
+  exact ennreal.of_real_lt_top
+end
+
+lemma ae_cover.integrable_of_lintegral_nnorm_tendsto' {φ : ι → set α} (hφ : ae_cover μ φ)
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → E} (I : ℝ≥0) (hfm : measurable f)
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) at_top (𝓝 $ ennreal.of_real I)) :
+  integrable f μ :=
+hφ.integrable_of_lintegral_nnnorm_tendsto htop (I : ℝ) hfm htendsto
+
+lemma ae_cover.integrable_of_integral_norm_tendsto {φ : ι → set α} (hφ : ae_cover μ φ)
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → E}
+  (I : ℝ) (hfm : measurable f) (hfi : ∀ i, integrable_on f (φ i) μ)
+  (htendsto : tendsto (λ i, ∫ x in φ i, ∥f x∥ ∂μ) at_top (𝓝 I)) :
+  integrable f μ :=
+begin
+  refine hφ.integrable_of_lintegral_nnnorm_tendsto htop I hfm _,
+  conv at htendsto in (integral _ _)
+  { rw integral_eq_lintegral_of_nonneg_ae (ae_of_all _ (λ x, @norm_nonneg E _ (f x)))
+    hfm.norm.ae_measurable },
+  conv at htendsto in (ennreal.of_real _) { dsimp, rw ← coe_nnnorm, rw ennreal.of_real_coe_nnreal },
+  convert ennreal.tendsto_of_real htendsto,
+  ext i : 1,
+  rw ennreal.of_real_to_real _,
+  exact ne_top_of_lt (hfi i).2
+end
+
+-- TODO : of_nonneg
+
+end integrable
 
 end measure_theory

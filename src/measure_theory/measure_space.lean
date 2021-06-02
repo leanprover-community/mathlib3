@@ -2347,9 +2347,9 @@ theorem measurable_set.diff_null (hs : measurable_set s) (hz : μ z = 0) :
 begin
   rw measure_eq_infi at hz,
   choose f hf using show ∀ q : {q : ℚ // q > 0}, ∃ t : set α,
-    z ⊆ t ∧ measurable_set t ∧ μ t < (nnreal.of_real q.1 : ℝ≥0∞),
+    z ⊆ t ∧ measurable_set t ∧ μ t < (real.to_nnreal q.1 : ℝ≥0∞),
   { rintro ⟨ε, ε0⟩,
-    have : 0 < (nnreal.of_real ε : ℝ≥0∞), { simpa using ε0 },
+    have : 0 < (real.to_nnreal ε : ℝ≥0∞), { simpa using ε0 },
     rw ← hz at this, simpa [infi_lt_iff] },
   refine null_measurable_set_iff.2 ⟨s \ Inter f,
     diff_subset_diff_right (subset_Inter (λ i, (hf i).1)),

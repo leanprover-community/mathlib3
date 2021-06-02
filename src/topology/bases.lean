@@ -260,7 +260,7 @@ end topological_space
 
 open topological_space
 
-lemma is_topological_basis.pi {ι : Type*} {X : ι → Type*}
+lemma is_topological_basis_pi {ι : Type*} {X : ι → Type*}
   [∀ i, topological_space (X i)] {T : Π i, set (set (X i))}
   (cond : ∀ i, is_topological_basis (T i)) :
   is_topological_basis {S : set (Π i, X i) | ∃ (U : Π i, set (X i)) (F : finset ι),
@@ -305,15 +305,14 @@ begin
       rw dif_pos p, } },
 end
 
-lemma is_topological_basis.infi {β : Type*} {ι : Type*} {X : ι → Type*}
+lemma is_topological_basis_infi {β : Type*} {ι : Type*} {X : ι → Type*}
   [t : ∀ i, topological_space (X i)] {T : Π i, set (set (X i))}
   (cond : ∀ i, is_topological_basis (T i)) (f : Π i, β → X i) :
   @is_topological_basis β (⨅ i, induced (f i) (t i))
   { S | ∃ (U : Π i, set (X i)) (F : finset ι),
     (∀ i, i ∈ F → U i ∈ T i) ∧ S = ⋂ i (hi : i ∈ F), (f i) ⁻¹' (U i) } :=
 begin
-  convert is_topological_basis.inducing
-    (inducing_infi_to_pi _) (is_topological_basis.pi cond),
+  convert (is_topological_basis_pi cond).inducing (inducing_infi_to_pi _),
   ext V,
   split,
   { rintros ⟨U, F, h1, h2⟩,

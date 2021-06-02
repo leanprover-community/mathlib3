@@ -5,8 +5,8 @@ Authors: Mario Carneiro, Johannes Hölzl
 -/
 import measure_theory.measure_space
 import measure_theory.borel_space
-import data.indicator_function
-import data.support
+import algebra.indicator_function
+import algebra.support
 
 /-!
 # Lebesgue integral for `ℝ≥0∞`-valued functions

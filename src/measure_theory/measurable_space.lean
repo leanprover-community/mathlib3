@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.set.disjointed
 import data.set.countable
-import data.indicator_function
+import algebra.indicator_function
 import data.equiv.encodable.lattice
 import data.tprod
 import order.filter.lift

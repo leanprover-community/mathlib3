@@ -93,7 +93,7 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
 @[to_additive]
 theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
-  (∏ x in s, f x) = s.fold (*) 1 f :=
+  ∏ x in s, f x = s.fold (*) 1 f :=
 rfl
 
 @[simp] lemma sum_multiset_singleton (s : finset α) :
@@ -743,14 +743,6 @@ begin
   exact prod_congr rfl hfg
 end
 
-lemma sum_range_succ_comm {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
-  ∑ x in range (n + 1), f x = f n + ∑ x in range n, f x :=
-by rw [range_succ, sum_insert not_mem_range_self]
-
-lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
-  ∑ x in range (n + 1), f x = ∑ x in range n, f x + f n :=
-by simp only [add_comm, sum_range_succ_comm]
-
 @[to_additive]
 lemma prod_range_succ_comm (f : ℕ → β) (n : ℕ) :
   ∏ x in range (n + 1), f x = f n * ∏ x in range n, f x :=
@@ -761,6 +753,7 @@ lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
   ∏ x in range (n + 1), f x = (∏ x in range n, f x) * f n :=
 by simp only [mul_comm, prod_range_succ_comm]
 
+@[to_additive]
 lemma prod_range_succ' (f : ℕ → β) :
   ∀ n : ℕ, (∏ k in range (n + 1), f k) = (∏ k in range n, f (k+1)) * f 0
 | 0       := prod_range_succ _ _
@@ -780,15 +773,10 @@ lemma prod_range_zero (f : ℕ → β) :
   ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]
 
+@[to_additive]
 lemma prod_range_one (f : ℕ → β) :
   ∏ k in range 1, f k = f 0 :=
 by { rw [range_one], apply @prod_singleton β ℕ 0 f }
-
-lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
-  ∑ k in range 1, f k = f 0 :=
-@prod_range_one (multiplicative δ) _ f
-
-attribute [to_additive finset.sum_range_one] prod_range_one
 
 open multiset
 
@@ -1053,6 +1041,8 @@ by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
 
 /-- If a product of a `finset` of size at most 1 has a given value, so
 do the terms in that product. -/
+@[to_additive eq_of_card_le_one_of_sum_eq "If a sum of a `finset` of size at most 1 has a given
+value, so do the terms in that sum."]
 lemma eq_of_card_le_one_of_prod_eq {s : finset α} (hc : s.card ≤ 1) {f : α → β} {b : β}
     (h : ∏ x in s, f x = b) : ∀ x ∈ s, f x = b :=
 begin
@@ -1068,26 +1058,6 @@ begin
     rw prod_singleton at h,
     exact h }
 end
-
-/-- If a sum of a `finset` of size at most 1 has a given value, so do
-the terms in that sum. -/
-lemma eq_of_card_le_one_of_sum_eq [add_comm_monoid γ] {s : finset α} (hc : s.card ≤ 1)
-    {f : α → γ} {b : γ} (h : ∑ x in s, f x = b) : ∀ x ∈ s, f x = b :=
-begin
-  intros x hx,
-  by_cases hc0 : s.card = 0,
-  { exact false.elim (card_ne_zero_of_mem hx hc0) },
-  { have h1 : s.card = 1 := le_antisymm hc (nat.one_le_of_lt (nat.pos_of_ne_zero hc0)),
-    rw card_eq_one at h1,
-    cases h1 with x2 hx2,
-    rw [hx2, mem_singleton] at hx,
-    simp_rw hx2 at h,
-    rw hx,
-    rw sum_singleton at h,
-    exact h }
-end
-
-attribute [to_additive eq_of_card_le_one_of_sum_eq] eq_of_card_le_one_of_prod_eq
 
 /-- If a function applied at a point is 1, a product is unchanged by
 removing that point, if present, from a `finset`. -/
@@ -1182,11 +1152,6 @@ lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ �
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
 over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
 
-lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
-  ∀ n : ℕ, (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
-@prod_range_succ' (multiplicative β) _ _
-attribute [to_additive] prod_range_succ'
-
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
 by { rw finset.sum_range_sub, abel }
@@ -1198,7 +1163,7 @@ begin
   simp [finset.sum_range_succ', add_comm]
 end
 
-lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
+lemma sum_range_add [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
   (∑ x in range (n + m), f x) =
   (∑ x in range n, f x) + (∑ x in range m, f (n + x)) :=
 @prod_range_add (multiplicative β) _ _ _ _

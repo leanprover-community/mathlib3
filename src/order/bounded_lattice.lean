@@ -20,15 +20,17 @@ instances for `Prop` and `fun`.
 * `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
 * `order_<top/bot> α`: Order with a top/bottom element.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
-* `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element.
+* `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element. Typical
+  examples include `ℕ`.
 * `bounded_lattice α`: Lattice with a top and bottom element.
 * `bounded_distrib_lattice α`: Bounded and distributive lattice. Typical examples include `Prop` and
   `set α`.
 * `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
   non distributive lattice, an element can have several complements.
-* `is_complemented α`: Typeclass stating that any element of `α` has a complement.
-
+* `is_complemented α`: Typeclass stating that any element of a lattice has a complement.
 -/
+
+/-! ### Top, bottom element -/
 
 set_option old_structure_cmd true
 
@@ -235,7 +237,7 @@ inf_of_le_right bot_le
 
 end semilattice_inf_bot
 
-/- Bounded lattices -/
+/-! ### Bounded lattice -/
 
 /-- A bounded lattice is a lattice with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
@@ -341,7 +343,7 @@ instance pi.order_bot {α : Type*} {β : α → Type*} [∀ a, order_bot $ β a]
   bot_le := λ x a, bot_le,
   .. pi.partial_order }
 
-/- Function lattices -/
+/-! ### Function lattices -/
 
 instance pi.has_sup {ι : Type*} {α : ι → Type*} [Π i, has_sup (α i)] : has_sup (Π i, α i) :=
 ⟨λ f g i, f i ⊔ g i⟩
@@ -421,6 +423,8 @@ subsingleton_of_top_le_bot (ge_of_eq hα)
 lemma subsingleton_iff_bot_eq_top {α : Type*} [bounded_lattice α] :
   (⊥ : α) = (⊤ : α) ↔ subsingleton α :=
 ⟨subsingleton_of_bot_eq_top, λ h, by exactI subsingleton.elim ⊥ ⊤⟩
+
+/-! ### `with_bot`, `with_top` -/
 
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
@@ -882,6 +886,8 @@ lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_ord
 
 end with_top
 
+/-! ### Subtype, order dual, product lattices -/
+
 namespace subtype
 
 /-- A subtype forms a `⊔`-`⊥`-semilattice if `⊥` and `⊔` preserve the property. -/
@@ -897,6 +903,13 @@ protected def semilattice_inf_bot [semilattice_inf_bot α] {P : α → Prop}
 { bot := ⟨⊥, Pbot⟩,
   bot_le := λ x, @bot_le α _ x,
   ..subtype.semilattice_inf Pinf }
+
+/-- A subtype forms a `⊔`-`⊤`-semilattice if `⊤` and `⊔` preserve the property. -/
+protected def semilattice_sup_top [semilattice_sup_top α] {P : α → Prop}
+  (Ptop : P ⊤) (Psup : ∀{{x y}}, P x → P y → P (x ⊔ y)) : semilattice_sup_top {x : α // P x} :=
+{ top := ⟨⊤, Ptop⟩,
+  le_top := λ x, @le_top α _ x,
+  ..subtype.semilattice_sup Psup }
 
 /-- A subtype forms a `⊓`-`⊤`-semilattice if `⊤` and `⊓` preserve the property. -/
 protected def semilattice_inf_top [semilattice_inf_top α] {P : α → Prop}
@@ -976,10 +989,10 @@ instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
 
 end prod
 
+/-! ### Disjointness and complements -/
+
 section disjoint
-
 section semilattice_inf_bot
-
 variable [semilattice_inf_bot α]
 
 /-- Two elements of a lattice are disjoint if their inf is the bottom element.
@@ -1056,12 +1069,7 @@ end disjoint
 
 section is_compl
 
-/-!
-### `is_compl` predicate
--/
-
-/-- Two elements `x` and `y` are complements of each other if
-`x ⊔ y = ⊤` and `x ⊓ y = ⊥`. -/
+/-- Two elements `x` and `y` are complements of each other if `x ⊔ y = ⊤` and `x ⊓ y = ⊥`. -/
 structure is_compl [bounded_lattice α] (x y : α) : Prop :=
 (inf_le_bot : x ⊓ y ≤ ⊥)
 (top_le_sup : ⊤ ≤ x ⊔ y)

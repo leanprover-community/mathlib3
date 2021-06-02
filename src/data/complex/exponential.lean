@@ -474,9 +474,9 @@ by simp [sub_eq_add_neg, exp_add, exp_neg, div_eq_mul_inv]
 lemma exp_int_mul (z : ℂ) (n : ℤ) : complex.exp (n * z) = (complex.exp z) ^ n :=
 begin
   cases n,
-  { rw [fpow_of_nat, int.cast_of_nat, exp_nat_mul], },
-  { rw [fpow_neg_succ_of_nat, int.cast_neg_succ_of_nat, ←nat.cast_succ, neg_mul_eq_neg_mul_symm,
-      exp_neg, exp_nat_mul], },
+  { apply complex.exp_nat_mul },
+  { simpa [complex.exp_neg, add_comm, ← neg_mul_eq_neg_mul_symm]
+      using complex.exp_nat_mul (-z) (1 + n) },
 end
 
 @[simp] lemma exp_conj : exp (conj x) = conj (exp x) :=

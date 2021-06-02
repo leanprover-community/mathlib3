@@ -72,7 +72,8 @@ continuous maps from `circle` to `ℂ`. -/
 @[simp] lemma fourier_neg {n : ℤ} {z : circle} : fourier (-n) z = complex.conj (fourier n z) :=
 by simp [← coe_inv_circle_eq_conj z]
 
-@[simp] lemma fourier_add {m n : ℤ} {z : circle} : fourier (m + n) z = (fourier m z) * (fourier n z) :=
+@[simp] lemma fourier_add {m n : ℤ} {z : circle} :
+  fourier (m + n) z = (fourier m z) * (fourier n z) :=
 by simp [fpow_add (nonzero_of_mem_circle z)]
 
 /-- For `n ≠ 0`, a rotation by `n⁻¹ * real.pi` negates the monomial `z ^ n`. -/

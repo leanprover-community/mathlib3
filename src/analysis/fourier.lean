@@ -63,18 +63,16 @@ section fourier
 
 /-- The family of monomials `λ z, z ^ n`, parametrized by `n : ℤ` and considered as bundled
 continuous maps from `circle` to `ℂ`. -/
-def fourier (n : ℤ) : C(circle, ℂ) :=
+@[simps] def fourier (n : ℤ) : C(circle, ℂ) :=
 { to_fun := λ z, z ^ n,
   continuous_to_fun := continuous_subtype_coe.fpow nonzero_of_mem_circle n }
 
-@[simp] lemma fourier_apply {n : ℤ} {z : circle} : fourier n z = z ^ n := rfl
-
 @[simp] lemma fourier_zero {z : circle} : fourier 0 z = 1 := rfl
 
-lemma conj_fourier {n : ℤ} {z : circle} : complex.conj (fourier n z) = fourier (-n) z :=
+@[simp] lemma fourier_neg {n : ℤ} {z : circle} : fourier (-n) z = complex.conj (fourier n z) :=
 by simp [← coe_inv_circle_eq_conj z]
 
-lemma mul_fourier {m n : ℤ} {z : circle} : (fourier m z) * (fourier n z) = fourier (m + n) z :=
+@[simp] lemma fourier_add {m n : ℤ} {z : circle} : fourier (m + n) z = (fourier m z) * (fourier n z) :=
 by simp [fpow_add (nonzero_of_mem_circle z)]
 
 /-- For `n ≠ 0`, a rotation by `n⁻¹ * real.pi` negates the monomial `z ^ n`. -/
@@ -95,8 +93,8 @@ begin
   intros i j,
   rw continuous_map.inner_to_Lp haar_circle (fourier i) (fourier j),
   split_ifs,
-  { simp [h, probability_measure.measure_univ, conj_fourier, mul_fourier, -fourier_apply] },
-  simp only [conj_fourier, mul_fourier, is_R_or_C.conj_to_complex],
+  { simp [h, probability_measure.measure_univ, ← fourier_neg, ← fourier_add, -fourier_to_fun] },
+  simp only [← fourier_add, ← fourier_neg, is_R_or_C.conj_to_complex],
   have hij : -i + j ≠ 0,
   { rw add_comm,
     exact sub_ne_zero.mpr (ne.symm h) },

@@ -13,6 +13,7 @@ This file contains the definitions of the real and complex exponential, sine, co
 hyperbolic sine, hyperbolic cosine, and hyperbolic tangent functions.
 
 -/
+
 local notation `abs'` := _root_.abs
 open is_absolute_value
 open_locale classical big_operators nat

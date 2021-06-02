@@ -167,7 +167,7 @@ begin
   exact ⟨λ h o hb ⟨a, ha⟩, h a o hb ha, λ h a o hb ha, h o hb ⟨a, ha⟩⟩
 end
 
-protected lemma is_topological_basis.univ : is_topological_basis { U : set α | is_open U } :=
+lemma is_topological_basis_opens : is_topological_basis { U : set α | is_open U } :=
 is_topological_basis_of_open_of_nhds (by tauto) (by tauto)
 
 protected lemma is_topological_basis.prod {β} [topological_space β] {B₁ : set (set α)}
@@ -185,7 +185,7 @@ end
 
 protected lemma is_topological_basis.inducing {β} [topological_space β]
   {f : α → β} {T : set (set β)} (hf : inducing f) (h : is_topological_basis T) :
-  is_topological_basis {U : set α | ∃ (V : set β), V ∈ T ∧ f ⁻¹' V  = U } :=
+  is_topological_basis (image (preimage f) T) :=
 begin
   refine is_topological_basis_of_open_of_nhds _ _,
   { rintros _ ⟨V, hV, rfl⟩,
@@ -260,7 +260,7 @@ end topological_space
 
 open topological_space
 
-protected lemma is_topological_basis.pi {ι : Type*} {X : ι → Type*}
+lemma is_topological_basis.pi {ι : Type*} {X : ι → Type*}
   [∀ i, topological_space (X i)] {T : Π i, set (set (X i))}
   (cond : ∀ i, is_topological_basis (T i)) :
   is_topological_basis {S : set (Π i, X i) | ∃ (U : Π i, set (X i)) (F : finset ι),
@@ -305,7 +305,7 @@ begin
       rw dif_pos p, } },
 end
 
-protected lemma is_topological_basis.infi {β : Type*} {ι : Type*} {X : ι → Type*}
+lemma is_topological_basis.infi {β : Type*} {ι : Type*} {X : ι → Type*}
   [t : ∀ i, topological_space (X i)] {T : Π i, set (set (X i))}
   (cond : ∀ i, is_topological_basis (T i)) (f : Π i, β → X i) :
   @is_topological_basis β (⨅ i, induced (f i) (t i))

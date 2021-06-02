@@ -184,9 +184,9 @@ end
 lemma aux_uniformity_eq :
   𝓤 (pi_Lp p hp β) = @uniformity _ (Pi.uniform_space _) :=
 begin
-  have A : uniform_embedding (pi_Lp.equiv p hp β) :=
-    (antilipschitz_with_equiv p hp β).uniform_embedding_of_injective (pi_Lp.equiv p hp β).injective
-      (lipschitz_with_equiv p hp β).uniform_continuous,
+  have A : uniform_inducing (pi_Lp.equiv p hp β) :=
+    (antilipschitz_with_equiv p hp β).uniform_inducing
+    (lipschitz_with_equiv p hp β).uniform_continuous,
   have : (λ (x : pi_Lp p hp β × pi_Lp p hp β),
     ((pi_Lp.equiv p hp β) x.fst, (pi_Lp.equiv p hp β) x.snd)) = id,
     by ext i; refl,
@@ -290,7 +290,7 @@ instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_s
         this, rpow_one],
     exact finset.sum_nonneg (λ i hi, rpow_nonneg_of_nonneg (norm_nonneg _) _)
   end,
-  .. pi.semimodule ι β 𝕜 }
+  .. pi.module ι β 𝕜 }
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [∀i, normed_group (α i)] [∀i, normed_space 𝕜 (α i)] :

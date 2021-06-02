@@ -92,7 +92,7 @@ by simpa using cpow_neg x 1
 
 @[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
-| -[1+ n] := by rw fpow_neg_succ_of_nat;
+| -[1+ n] := by rw gpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
     int.cast_coe_nat, cpow_nat_cast]
 
@@ -518,7 +518,7 @@ by simp only [rpow_def, (complex.of_real_fpow _ _).symm, complex.cpow_int_cast,
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, fpow_one, fpow_neg],
+  simp only [rpow_int_cast, gpow_one, fpow_neg],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
@@ -687,12 +687,12 @@ begin
   cases lt_trichotomy 0 x,
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux1 _ h)
-    (mem_nhds_sets (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
+    (is_open.mem_nhds (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
   cases h,
   { exact absurd h.symm hx },
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux2 _ h)
-    (mem_nhds_sets (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
+    (is_open.mem_nhds (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
 end
 
 lemma continuous_rpow_aux3 : continuous (λ p : {p:ℝ×ℝ // 0 < p.2}, p.val.1 ^ p.val.2) :=
@@ -728,7 +728,7 @@ lemma continuous_at_rpow_of_pos (hy : 0 < y) (x : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
 continuous_within_at.continuous_at
   (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux3 _ hy)
-  (mem_nhds_sets (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
+  (is_open.mem_nhds (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
 
 lemma continuous_at_rpow {x y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
@@ -771,7 +771,7 @@ begin
     field_simp [rpow_def_of_pos h, mul_sub, exp_sub, exp_log h, ne_of_gt h],
     ring },
   apply this.congr_of_eventually_eq,
-  have : set.Ioi (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Ioi h,
+  have : set.Ioi (0 : ℝ) ∈ 𝓝 x := is_open.mem_nhds is_open_Ioi h,
   exact filter.eventually_of_mem this (λ y hy, rpow_def_of_pos hy _)
 end
 
@@ -785,7 +785,7 @@ begin
       ne_of_lt h],
     ring },
   apply this.congr_of_eventually_eq,
-  have : set.Iio (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Iio h,
+  have : set.Iio (0 : ℝ) ∈ 𝓝 x := is_open.mem_nhds is_open_Iio h,
   exact filter.eventually_of_mem this (λ y hy, rpow_def_of_neg hy _)
 end
 
@@ -825,7 +825,7 @@ section sqrt
 lemma sqrt_eq_rpow : sqrt = λx:ℝ, x ^ (1/(2:ℝ)) :=
 begin
   funext, by_cases h : 0 ≤ x,
-  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← pow_two, ← rpow_nat_cast, ← rpow_mul h],
+  { rw [← mul_self_inj_of_nonneg, mul_self_sqrt h, ← sq, ← rpow_nat_cast, ← rpow_mul h],
     norm_num, exact sqrt_nonneg _, exact rpow_nonneg_of_nonneg h _ },
   { replace h : x < 0 := lt_of_not_ge h,
     have : 1 / (2:ℝ) * π = π / (2:ℝ), ring,
@@ -1107,9 +1107,9 @@ by { rw [← nnreal.coe_eq, nnreal.coe_pow, coe_rpow], exact real.rpow_nat_inv_p
 lemma continuous_at_rpow {x : ℝ≥0} {y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ≥0×ℝ, p.1^p.2) (x, y) :=
 begin
-  have : (λp:ℝ≥0×ℝ, p.1^p.2) = nnreal.of_real ∘ (λp:ℝ×ℝ, p.1^p.2) ∘ (λp:ℝ≥0 × ℝ, (p.1.1, p.2)),
+  have : (λp:ℝ≥0×ℝ, p.1^p.2) = real.to_nnreal ∘ (λp:ℝ×ℝ, p.1^p.2) ∘ (λp:ℝ≥0 × ℝ, (p.1.1, p.2)),
   { ext p,
-    rw [coe_rpow, nnreal.coe_of_real _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
+    rw [coe_rpow, real.coe_to_nnreal _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
     refl },
   rw this,
   refine nnreal.continuous_of_real.continuous_at.comp (continuous_at.comp _ _),
@@ -1120,11 +1120,11 @@ begin
   { exact ((continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd).continuous_at }
 end
 
-lemma of_real_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
-  nnreal.of_real (x ^ y) = (nnreal.of_real x) ^ y :=
+lemma _root_.real.to_nnreal_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
+  real.to_nnreal (x ^ y) = (real.to_nnreal x) ^ y :=
 begin
-  nth_rewrite 0 ← nnreal.coe_of_real x hx,
-  rw [←nnreal.coe_rpow, nnreal.of_real_coe],
+  nth_rewrite 0 ← real.coe_to_nnreal x hx,
+  rw [←nnreal.coe_rpow, real.to_nnreal_coe],
 end
 
 instance : has_measurable_pow ℝ≥0 ℝ :=
@@ -1623,7 +1623,7 @@ lemma of_real_rpow_of_pos {x p : ℝ} (hx_pos : 0 < x) :
   ennreal.of_real x ^ p = ennreal.of_real (x ^ p) :=
 begin
   simp_rw ennreal.of_real,
-  rw [coe_rpow_of_ne_zero, coe_eq_coe, nnreal.of_real_rpow_of_nonneg hx_pos.le],
+  rw [coe_rpow_of_ne_zero, coe_eq_coe, real.to_nnreal_rpow_of_nonneg hx_pos.le],
   simp [hx_pos],
 end
 

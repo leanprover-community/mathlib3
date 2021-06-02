@@ -489,7 +489,7 @@ begin
   have H1 := H (u ∩ s) (v ∩ s),
   rw [subset_inter_iff, subset_inter_iff] at H1,
   simp only [subset.refl, and_true] at H1,
-  apply H1 (is_closed_inter hu hs) (is_closed_inter hv hs),
+  apply H1 (is_closed.inter hu hs) (is_closed.inter hv hs),
   { rw ←inter_distrib_right,
     apply subset_inter_iff.2,
     exact ⟨hss, subset.refl s⟩ },
@@ -591,8 +591,8 @@ begin
     { exact h } },
 
   -- Now we show T₁, T₂ are closed, cover connected_component t and are disjoint.
-  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed_inter hT hu))),
-  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed_inter hT hv))),
+  have hT₁ : is_closed T₁ := ((hcl T₁).2 (T₁_u.symm ▸ (is_closed.inter hT hu))),
+  have hT₂ : is_closed T₂ := ((hcl T₂).2 (T₂_v.symm ▸ (is_closed.inter hT hv))),
 
   have T_decomp : connected_component t ⊆ T₁ ∪ T₂,
   { intros t' ht',
@@ -660,6 +660,16 @@ instance pi.totally_disconnected_space {α : Type*} {β : α → Type*}
   have this : ∀ a, is_preconnected ((λ x : Π a, β a, x a) '' t),
     from λ a, h2.image (λ x, x a) (continuous_apply a).continuous_on,
   λ x x_in y y_in, funext $ λ a, (this a).subsingleton ⟨x, x_in, rfl⟩ ⟨y, y_in, rfl⟩⟩
+
+instance prod.totally_disconnected_space [topological_space β]
+  [totally_disconnected_space α] [totally_disconnected_space β] :
+  totally_disconnected_space (α × β) :=
+⟨λ t h1 h2,
+have H1 : is_preconnected (prod.fst '' t), from h2.image prod.fst continuous_fst.continuous_on,
+have H2 : is_preconnected (prod.snd '' t), from h2.image prod.snd continuous_snd.continuous_on,
+λ x hx y hy, prod.ext
+  (H1.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)
+  (H2.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)⟩
 
 /-- A space is totally disconnected iff its connected components are subsingletons. -/
 lemma totally_disconnected_space_iff_connected_component_subsingleton :

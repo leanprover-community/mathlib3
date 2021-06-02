@@ -178,6 +178,10 @@ equiv.symm $ equiv.of_bijective
   ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
 rfl
 
+@[simp] lemma stabilizer_quotient {G} [group G] (H : subgroup G) :
+  mul_action.stabilizer G ((1 : G) : quotient H) = H :=
+by { ext, simp [quotient_group.eq] }
+
 end mul_action
 
 section
@@ -201,3 +205,19 @@ lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
 (const_smul_hom β r).map_sum f s
 
 end
+
+/-- `G` acts pretransitively on `X` if for any `x y` there is `g` such that `g • x = y`.
+  A transitive action should furthermore have `X` nonempty. -/
+class is_pretransitive (G X) [monoid G] [mul_action G X] : Prop :=
+(exists_smul_eq : ∀ x y : X, ∃ g : G, g • x = y)
+
+lemma exists_smul_eq (M) {X} [monoid M] [mul_action M X] [is_pretransitive M X] (x y : X) :
+  ∃ m : M, m • x = y := is_pretransitive.exists_smul_eq x y
+
+instance is_pretransitive_quotient (G) [group G] (H : subgroup G) :
+  is_pretransitive G (quotient_group.quotient H) :=
+{ exists_smul_eq := begin
+    rintros ⟨x⟩ ⟨y⟩,
+    refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
+    simp only [H.one_mem, mul_left_inv, inv_mul_cancel_right],
+  end }

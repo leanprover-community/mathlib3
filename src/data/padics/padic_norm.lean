@@ -423,8 +423,8 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
 
 lemma padic_val_nat_eq_factors_count (p : ℕ) [hp : fact p.prime] :
   ∀ (n : ℕ), padic_val_nat p n = (factors n).count p
-| 0 := rfl
-| 1 := by { rw padic_val_nat_one, refl }
+| 0 := by simp
+| 1 := by simp
 | (m + 2) :=
 let n := m + 2 in
 let q := min_fac n in
@@ -467,7 +467,7 @@ begin
   { intros, assumption },
   { intros p hp hpn,
     rw [multiset.mem_to_finset, multiset.mem_coe] at hp,
-    haveI Hp : fact p.prime := ⟨mem_factors hp⟩,
+    haveI Hp : fact p.prime := ⟨prime_of_mem_factors hp⟩,
     simp only [exists_prop, ne.def, finset.mem_filter, finset.mem_range],
     refine ⟨p, ⟨_, Hp.1⟩, ⟨_, rfl⟩⟩,
     { rw mem_factors_iff_dvd hn Hp.1 at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },

@@ -8,10 +8,10 @@ import data.finsupp.basic
 /-!
 # The pointwise product on `finsupp`.
 
-TODO per issue #1864:
-We intend to remove the convolution product on finsupp, and define
-it only on a type synonym `add_monoid_algebra`. After we've done this,
-it would be good to make this the default product on `finsupp`.
+For the convolution product on `finsupp` when the domain has a binary operation,
+see the type synonyms `add_monoid_algebra`
+(which is in turn used to define `polynomial` and `mv_polynomial`)
+and `monoid_algebra`.
 -/
 
 noncomputable theory
@@ -55,9 +55,10 @@ instance : mul_zero_class (α →₀ β) :=
 
 end
 
-instance [semiring β] : semigroup (α →₀ β) :=
+instance [semigroup_with_zero β] : semigroup_with_zero (α →₀ β) :=
 { mul       := (*),
-  mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], }, }
+  mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], },
+  ..(infer_instance : mul_zero_class (α →₀ β)) }
 
 instance [semiring β] : distrib (α →₀ β) :=
 { left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },

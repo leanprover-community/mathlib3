@@ -209,15 +209,43 @@ namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
 
-theorem ext_int {f g : multiplicative ℤ →* M}
-  (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+@[ext] theorem ext_mint {f g : multiplicative ℤ →* M} (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+monoid_hom.ext $ add_monoid_hom.ext_iff.mp $
+  @add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1
+
+/-- If two `monoid_hom`s agree on `-1` and the naturals then they are equal. -/
+@[ext] theorem ext_int {f g : ℤ →* M}
+  (h_neg_one : f (-1) = g (-1))
+  (h_nat : f.comp int.of_nat_hom.to_monoid_hom = g.comp int.of_nat_hom.to_monoid_hom) :
+  f = g :=
 begin
-  ext,
-  exact add_monoid_hom.ext_iff.1
-    (@add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1) _,
+  ext (x | x),
+  { exact (monoid_hom.congr_fun h_nat x : _), },
+  { rw [int.neg_succ_of_nat_eq, ← neg_one_mul, f.map_mul, g.map_mul],
+    congr' 1,
+    exact_mod_cast (monoid_hom.congr_fun h_nat (x + 1) : _), }
 end
 
 end monoid_hom
+
+namespace monoid_with_zero_hom
+
+variables {M : Type*} [monoid_with_zero M]
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the naturals then they are equal. -/
+@[ext] theorem ext_int {f g : monoid_with_zero_hom ℤ M}
+  (h_neg_one : f (-1) = g (-1))
+  (h_nat : f.comp int.of_nat_hom.to_monoid_with_zero_hom =
+           g.comp int.of_nat_hom.to_monoid_with_zero_hom) :
+  f = g :=
+to_monoid_hom_injective $ monoid_hom.ext_int h_neg_one $ monoid_hom.ext (congr_fun h_nat : _)
+
+/-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
+theorem ext_int' {φ₁ φ₂ : monoid_with_zero_hom ℤ M}
+  (h_neg_one : φ₁ (-1) = φ₂ (-1)) (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+ext_int h_neg_one $ ext_nat h_pos
+
+end monoid_with_zero_hom
 
 namespace ring_hom
 
@@ -242,3 +270,19 @@ end ring_hom
 
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
+
+namespace pi
+
+variables {α β : Type*}
+
+lemma int_apply [has_zero β] [has_one β] [has_add β] [has_neg β] :
+  ∀ (n : ℤ) (a : α), (n : α → β) a = n
+| (n:ℕ)  a := pi.nat_apply n a
+| -[1+n] a :=
+by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, neg_apply, add_apply, one_apply, nat_apply]
+
+@[simp] lemma coe_int [has_zero β] [has_one β] [has_add β] [has_neg β] (n : ℤ) :
+  (n : α → β) = λ _, n :=
+by { ext, rw pi.int_apply }
+
+end pi

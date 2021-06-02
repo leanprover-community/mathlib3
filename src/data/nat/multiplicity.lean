@@ -60,21 +60,21 @@ calc multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 �
 namespace prime
 
 lemma multiplicity_one {p : ℕ} (hp : p.prime) : multiplicity p 1 = 0 :=
-multiplicity.one_right (prime_iff_prime.mp hp).not_unit
+multiplicity.one_right (prime_iff.mp hp).not_unit
 
 lemma multiplicity_mul {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m * n) = multiplicity p m + multiplicity p n :=
-multiplicity.mul $ prime_iff_prime.mp hp
+multiplicity.mul $ prime_iff.mp hp
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
-  multiplicity p (m ^ n) = n •ℕ (multiplicity p m) :=
-multiplicity.pow $ prime_iff_prime.mp hp
+  multiplicity p (m ^ n) = n • (multiplicity p m) :=
+multiplicity.pow $ prime_iff.mp hp
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
-multiplicity_self (prime_iff_prime.mp hp).not_unit hp.ne_zero
+multiplicity_self (prime_iff.mp hp).not_unit hp.ne_zero
 
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
-multiplicity_pow_self hp.ne_zero (prime_iff_prime.mp hp).not_unit n
+multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
 
 /-- The multiplicity of a prime in `n!` is the sum of the quotients `n / p ^ i`.
   This sum is expressed over the set `Ico 1 b` where `b` is any bound greater than `log p n` -/
@@ -97,7 +97,7 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
 lemma multiplicity_factorial_mul_succ {n p : ℕ} (hp : p.prime) :
   multiplicity p (p * (n + 1))! = multiplicity p (p * n)! + multiplicity p (n + 1) + 1 :=
 begin
-  have hp' := prime_iff_prime.mp hp,
+  have hp' := prime_iff.mp hp,
   have h0 : 2 ≤ p := hp.two_le,
   have h1 : 1 ≤ p * n + 1 := le_add_left _ _,
   have h2 : p * n + 1 ≤ p * (n + 1), linarith,
@@ -123,8 +123,10 @@ lemma multiplicity_factorial_mul {n p : ℕ} (hp : p.prime) :
 begin
   induction n with n ih,
   { simp },
-  { simp [succ_eq_add_one, multiplicity.mul, hp, prime_iff_prime.mp hp, ih,
-      multiplicity_factorial_mul_succ, add_assoc, add_left_comm] }
+  { simp only [succ_eq_add_one, multiplicity.mul, hp, prime_iff.mp hp, ih,
+      multiplicity_factorial_mul_succ, ←add_assoc, enat.coe_one, enat.coe_add, factorial_succ],
+    congr' 1,
+    rw [add_comm, add_assoc] }
 end
 
 /-- A prime power divides `n!` iff it is at most the sum of the quotients `n / p ^ i`.
@@ -218,7 +220,7 @@ end prime
 
 lemma multiplicity_two_factorial_lt : ∀ {n : ℕ} (h : n ≠ 0), multiplicity 2 n! < n :=
 begin
-  have h2 := prime_iff_prime.mp prime_two,
+  have h2 := prime_iff.mp prime_two,
   refine binary_rec _ _,
   { contradiction },
   { intros b n ih h,

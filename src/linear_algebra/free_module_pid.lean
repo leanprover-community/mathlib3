@@ -7,7 +7,7 @@ import linear_algebra.basis
 import linear_algebra.finsupp_vector_space
 import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
-import linear_algebra.free_module2
+import linear_algebra.free_module
 
 /-! # Free modules
 

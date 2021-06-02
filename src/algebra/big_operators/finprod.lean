@@ -77,7 +77,7 @@ open function set
 -/
 
 section sort
-variables {α β ι : Sort*} {M N : Type*} [comm_monoid M] [comm_monoid N]
+variables {M N : Type*} {α β ι : Sort*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
 
@@ -143,7 +143,7 @@ begin
 end
 
 @[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
-@finprod_unique true M _ ⟨⟨trivial⟩, λ _, rfl⟩ f
+@finprod_unique M true _ ⟨⟨trivial⟩, λ _, rfl⟩ f
 
 @[to_additive] lemma finprod_eq_dif {p : Prop} [decidable p] (f : p → M) :
   ∏ᶠ i, f i = if h : p then f h else 1 :=

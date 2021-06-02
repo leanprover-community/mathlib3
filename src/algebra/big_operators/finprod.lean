@@ -77,7 +77,7 @@ open function set
 -/
 
 section sort
-variables {M M₀ N R : Type*} {α β ι : Sort*} [comm_monoid M] [comm_monoid N]
+variables {M N : Type*} {α β ι : Sort*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
 

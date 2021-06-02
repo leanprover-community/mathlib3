@@ -134,7 +134,7 @@ begin
 end
 
 lemma lipschitz_of_bound_by (C : ℝ≥0) (h : f.bound_by C) :
-  lipschitz_with (nnreal.of_real C) f :=
+  lipschitz_with (real.to_nnreal C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 theorem antilipschitz_of_bound_by {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :

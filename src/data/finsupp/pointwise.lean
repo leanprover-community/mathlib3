@@ -8,7 +8,10 @@ import data.finsupp.basic
 /-!
 # The pointwise product on `finsupp`.
 
-See also `monoid_algebra.has_mul` for the convolution product.
+For the convolution product on `finsupp` when the domain has a binary operation,
+see the type synonyms `add_monoid_algebra`
+(which is in turn used to define `polynomial` and `mv_polynomial`)
+and `monoid_algebra`.
 -/
 
 noncomputable theory

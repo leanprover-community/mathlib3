@@ -197,7 +197,7 @@ begin
   { apply (h_diff.and h_bound).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
     have bound_nonneg : 0 ≤ bound a := (norm_nonneg (F' x₀ a)).trans (ha_bound x₀ x₀_in),
-    rw show real.nnabs (bound a) = nnreal.of_real (bound a), by simp [bound_nonneg],
+    rw show real.nnabs (bound a) = real.to_nnreal (bound a), by simp [bound_nonneg],
     apply convex.lipschitz_on_with_of_norm_has_fderiv_within_le _ ha_bound (convex_ball _ _),
     intros x x_in,
     exact (ha_deriv x x_in).has_fderiv_within_at, },
@@ -254,7 +254,7 @@ begin
   { apply (h_diff.and h_bound).mono,
     rintros a ⟨ha_deriv, ha_bound⟩,
     have bound_nonneg : 0 ≤ bound a := (norm_nonneg (F' x₀ a)).trans (ha_bound x₀ x₀_in),
-    rw show real.nnabs (bound a) = nnreal.of_real (bound a), by simp [bound_nonneg],
+    rw show real.nnabs (bound a) = real.to_nnreal (bound a), by simp [bound_nonneg],
     apply convex.lipschitz_on_with_of_norm_has_deriv_within_le (convex_ball _ _)
     (λ x x_in, (ha_deriv x x_in).has_deriv_within_at) ha_bound },
   exact has_deriv_at_of_dominated_loc_of_lip ε_pos hF_meas hF_int hF'_meas this

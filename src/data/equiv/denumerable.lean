@@ -132,10 +132,10 @@ instance int : denumerable ℤ := denumerable.mk' equiv.int_equiv_nat
 
 instance pnat : denumerable ℕ+ := denumerable.mk' equiv.pnat_equiv_nat
 
-/-- The lift of a denumerable set is denumerable. -/
+/-- The lift of a denumerable type is denumerable. -/
 instance ulift : denumerable (ulift α) := of_equiv _ equiv.ulift
 
-/-- The lift of a denumerable set is denumerable. -/
+/-- The lift of a denumerable type is denumerable. -/
 instance plift : denumerable (plift α) := of_equiv _ equiv.plift
 
 /-- If `α` is denumerable, then `α × α` and `α` are equivalent. -/

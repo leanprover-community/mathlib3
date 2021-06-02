@@ -288,15 +288,15 @@ of_equiv _ equiv.int_equiv_nat
 instance pnat : encodable ℕ+ :=
 of_equiv _ equiv.pnat_equiv_nat
 
-/-- The lift of an encodable set is encodable. -/
+/-- The lift of an encodable type is encodable. -/
 instance ulift [encodable α] : encodable (ulift α) :=
 of_equiv _ equiv.ulift
 
-/-- The lift of a encodable set is encodable. -/
+/-- The lift of an encodable type is encodable. -/
 instance plift [encodable α] : encodable (plift α) :=
 of_equiv _ equiv.plift
 
-/-- If `α` is encodable and there is an injection `f : α → β`, then `α ` is encodable as well. -/
+/-- If `β` is encodable and there is an injection `f : α → β`, then `α` is encodable as well. -/
 noncomputable def of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
 of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
 
@@ -305,7 +305,7 @@ end encodable
 section ulower
 local attribute [instance, priority 100] encodable.decidable_range_encode
 
-/-- `ulower α : Type 0` is an equivalent type in the lowest universe, given `encodable α`. -/
+/-- `ulower α : Type` is an equivalent type in the lowest universe, given `encodable α`. -/
 @[derive decidable_eq, derive encodable]
 def ulower (α : Type*) [encodable α] : Type :=
 set.range (encodable.encode : α → ℕ)
@@ -315,7 +315,7 @@ end ulower
 namespace ulower
 variables (α : Type*) [encodable α]
 
-/-- The equivalence between the encodable type `α` and `ulower α : Type 0`. -/
+/-- The equivalence between the encodable type `α` and `ulower α : Type`. -/
 def equiv : α ≃ ulower α :=
 encodable.equiv_range_encode α
 

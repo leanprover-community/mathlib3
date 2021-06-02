@@ -56,15 +56,15 @@ lemma char_zero_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiri
 
 namespace free_algebra
 
-variables {R X: Type*} [comm_semiring R] (p : ℕ)
+variables {R X : Type*} [comm_semiring R] (p : ℕ)
 
 /-- If `R` has characteristic `p`, then so does `free_algebra R X`. -/
 instance char_p [char_p R p] : char_p (free_algebra R X) p :=
-char_p_of_injective_algebra_map (free_algebra.algebra_map_injective R X) p
+char_p_of_injective_algebra_map free_algebra.algebra_map_left_inverse.injective p
 
 /-- If `R` has characteristic `0`, then so does `free_algebra R X`. -/
 instance char_zero [char_zero R] : char_zero (free_algebra R X) :=
-char_zero_of_injective_algebra_map (free_algebra.algebra_map_injective R X)
+char_zero_of_injective_algebra_map free_algebra.algebra_map_left_inverse.injective
 
 end free_algebra
 

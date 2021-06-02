@@ -334,19 +334,6 @@ lemma algebra_map_left_inverse :
   function.left_inverse algebra_map_inv (algebra_map R $ free_algebra R X) :=
 λ x, by simp [algebra_map_inv]
 
-variables (R) (X)
-
-/-- The algebra map `R → (free_algebra R X)` is injective. -/
-lemma algebra_map_injective:
-  function.injective (algebra_map R (free_algebra R X)) :=
-begin
-  apply function.has_left_inverse.injective,
-  use algebra_map_inv,
-  exact algebra_map_left_inverse,
-end
-
-variables {R} {X}
-
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
 λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,

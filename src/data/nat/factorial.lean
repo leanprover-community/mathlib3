@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes, Floris van Doorn
 -/
 import data.nat.basic
+import algebra.group_power.basic
+
 /-!
 # The factorial function
 

@@ -1044,6 +1044,10 @@ lemma measurable.coe_nnreal_ennreal {f : α → ℝ≥0} (hf : measurable f) :
 ennreal.continuous_coe.measurable.comp hf
 
 lemma ae_measurable.coe_nnreal_ennreal {f : α → ℝ≥0} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x, (f x : ℝ)) μ :=
+nnreal.measurable_coe.comp_ae_measurable hf
+
+lemma ae_measurable.coe_nnreal_ennreal {f : α → ℝ≥0} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, (f x : ℝ≥0∞)) μ :=
 ennreal.continuous_coe.measurable.comp_ae_measurable hf
 

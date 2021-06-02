@@ -7,6 +7,10 @@ import algebra.ordered_group
 import algebra.invertible
 import data.set.intervals.basic
 
+-- This should probably go into Lean core.
+lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
+by rw [nat.succ_eq_add_one, nat.add_comm]
+
 set_option old_structure_cmd true
 
 universe u
@@ -23,7 +27,7 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
-lemma zero_le_one : 0 ≤ (1:α) :=
+@[simp] lemma zero_le_one : 0 ≤ (1:α) :=
 ordered_semiring.zero_le_one
 
 lemma zero_le_two : 0 ≤ (2:α) :=

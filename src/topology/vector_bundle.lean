@@ -55,9 +55,9 @@ helps.
 
 ## Sections
 
-In this file we also proves that sections of vector bundles inherit the algebraic structures of the
+In this file we also prove that sections of vector bundles inherit the algebraic structures of the
 fibers. The proofs of this are the standard mathematical proofs: continuity is read through
-trivialization on the fibers, where checkinf the continuity of algebrai operations is
+trivializations on the fibers, where checking the continuity of algebraic operations is
 straightforward.
 
 -/

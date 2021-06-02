@@ -10,7 +10,7 @@ import data.right_inv
 /-!
 # Continuous sections
 
-In this file we define bundle continuous sections of a map.
+In this file we define bundled continuous sections of a map.
 
 -/
 

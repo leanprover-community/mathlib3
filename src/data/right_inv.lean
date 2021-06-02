@@ -17,13 +17,13 @@ this type is to conviniently implement sections of bundles.
 ## Implementation notes
 
 Let `E : B → Type*` be the collection of fibers of a bundle on `B`.
-In the case of sections of bundle we prove that the type of right inverses of `bundle.proj E` is
+In the case of sections of bundles we prove that the type of right inverses of `bundle.proj E` is
 equivalent to the type `Π x : B, E x`. Both implementations of sections have their advantages:
 `right_inv (proj E)` is better to talk about properties such as continuity, whereas `Π x : B, E x`
-works better with algebraic structures, it naturally inherits the algebraic structures present on
+works better with algebraic structures: it naturally inherits the algebraic structures present on
 the fibers, thanks to the `Π` instances. It is hence a good idea to implement both and write down
 the equivalence between them, but then we have to choose only one for our final implementation of
-sections. We chose `right_inv (proj E)` because: it is more general (some of the results in the
+sections. We chose `right_inv (proj E)` because it is more general (some of the results in the
 theory of sections are true for `right_inv f`, for a generic `f`), and it has a more natural
 coercion to a function `B → bundle.total_space E` which is finally what we want. Note that we could
 also register a coercion to `B → bundle.total_space E` from `Π x : B, E x`, and it is not a bad idea

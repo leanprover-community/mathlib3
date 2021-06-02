@@ -27,22 +27,25 @@ Let `s` be a `finset α`, and `f : α → β` a function.
 * `∑ x, f x` is notation for `finset.sum finset.univ f`
   (assuming `α` is a `fintype` and `β` is an `add_comm_monoid`)
 
+## Implementation Notes
+
+The implicit type arguments in all definitions and lemmas are out of order because of the
+`@[to_additive]` heuristic. [todo: explain more]
+
 -/
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {β : Type u} {α : Type v} {γ : Type w}
 
 namespace finset
 
 /--
 `∏ x in s, f x` is the product of `f x`
 as `x` ranges over the elements of the finite set `s`.
-
-The implicit type arguments are out of order because of the `@[to_additive]` heuristic.
 -/
 @[to_additive "`∑ x in s, f` is the sum of `f x` as `x` ranges over the elements
 of the finite set `s`."]
-protected def prod {β α} [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
+protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
 @[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs : s.nodup) (f : α → β) :
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
@@ -157,7 +160,7 @@ section comm_monoid
 variables [comm_monoid β]
 
 @[simp, to_additive]
-lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
+lemma prod_empty {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
 
 @[simp, to_additive]
 lemma prod_insert [decidable_eq α] : a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x :=
@@ -197,9 +200,9 @@ by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
 @[simp, priority 1100] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
-@[simp, priority 1100] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] :
+@[simp, priority 1100] lemma sum_const_zero {β α} {s : finset α} [add_comm_monoid β] :
   (∑ x in s, (0 : β)) = 0 :=
-@prod_const_one _ (multiplicative β) _ _
+@prod_const_one (multiplicative β) _ _ _
 attribute [to_additive] prod_const_one
 
 @[simp, to_additive]
@@ -779,7 +782,7 @@ by rw [range_zero, prod_empty]
 
 lemma prod_range_one (f : ℕ → β) :
   ∏ k in range 1, f k = f 0 :=
-by { rw [range_one], apply @prod_singleton ℕ β 0 f }
+by { rw [range_one], apply @prod_singleton β ℕ 0 f }
 
 lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
   ∑ k in range 1, f k = f 0 :=
@@ -1140,12 +1143,12 @@ attribute [to_additive] prod_update_of_mem
 
 lemma sum_nsmul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   (∑ x in s, n • (f x)) = n • ((∑ x in s, f x)) :=
-@prod_pow _ (multiplicative β) _ _ _ _
+@prod_pow (multiplicative β) _ _ _ _ _
 attribute [to_additive sum_nsmul] prod_pow
 
 @[simp] lemma sum_const [add_comm_monoid β] (b : β) :
   (∑ x in s, b) = s.card • b :=
-@prod_const _ (multiplicative β) _ _ _
+@prod_const (multiplicative β) _ _ _ _
 attribute [to_additive] prod_const
 
 lemma card_eq_sum_ones (s : finset α) : s.card = ∑ _ in s, 1 :=
@@ -1175,7 +1178,7 @@ lemma sum_int_cast [add_comm_group β] [has_one β] (s : finset α) (f : α → 
 
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card • (f b) :=
-@prod_comp _ (multiplicative β) _ _ _ _ _ _
+@prod_comp (multiplicative β) _ _ _ _ _ _ _
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
 over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
 

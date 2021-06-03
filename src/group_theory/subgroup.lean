@@ -1878,17 +1878,6 @@ set.subset.antisymm
     by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
   ((sup_eq_closure N H).symm ▸ subset_closure)
 
-@[to_additive] lemma mem_sup_iff
-  {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
-  g ∈ H ⊔ K ↔ ∃ x y, x ∈ H ∧ y ∈ K ∧ x * y = g :=
-set.ext_iff.1 h g
-
-@[to_additive] lemma mem_sup_iff' {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
-  g ∈ H ⊔ K ↔ ∃ (x:H) (y:K), (x * y : G) = g :=
-(mem_sup_iff h).trans
-  ⟨λ ⟨a, b, ha, hb, h⟩, ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩,
-  λ ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩, ⟨a, b, ha, hb, h⟩⟩
-
 @[to_additive] lemma mod_law_left (A' A B : subgroup G) (hA : A' ≤ A) :
   (A' : set G) * (A ⊓ B : subgroup G) = A ⊓ (A' * B) :=
 begin

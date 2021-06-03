@@ -316,9 +316,6 @@ variables {α ι E : Type*}
           [measurable_space E] [normed_group E] [borel_space E]
           (htop : (at_top : filter ι).is_countably_generated)
           {a b : ι → α} {f : α → E} (hfm : measurable f)
-  --[topological_space α] [linear_order α] [order_closed_topology α]
-  --[measurable_space α] [opens_measurable_space α] [linear_ordered_semiring ι]
-  --[archimedean ι] [measurable_space E] [normed_group E] [borel_space E] {μ : measure α}
 
 include htop hfm
 
@@ -375,5 +372,60 @@ begin
 end
 
 end integrable_of_interval_integral
+
+section integral_of_interval_integral
+
+variables {α ι E : Type*}
+          [semilattice_sup ι] [nonempty ι]
+          [topological_space α] [linear_order α] [order_closed_topology α]
+          [measurable_space α] [opens_measurable_space α] {μ : measure α}
+          [measurable_space E] [normed_group E] [normed_space ℝ E] [borel_space E]
+          [complete_space E] [second_countable_topology E]
+          (htop : (at_top : filter ι).is_countably_generated)
+          {a b : ι → α} {f : α → E} (hfm : measurable f)
+
+include htop hfm
+
+lemma interval_integral_tendsto_integral [no_bot_order α] [nonempty α]
+  (hfi : integrable f μ) (ha : tendsto a at_top at_bot) (hb : tendsto b at_top at_top) :
+  tendsto (λ i, ∫ x in a i .. b i, f x ∂μ) at_top (𝓝 $ ∫ x, f x ∂μ) :=
+begin
+  let φ := λ i, Ioc (a i) (b i),
+  let c : α := classical.choice ‹_›,
+  have hφ : ae_cover μ φ := ae_cover_Ioc ha hb,
+  refine (hφ.integral_tendsto_of_at_top_countably_generated htop hfm hfi).congr' _,
+  filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)],
+  intros i hai hbi,
+  exact (interval_integral.integral_of_le (hai.trans hbi)).symm
+end
+
+lemma interval_integral_tendsto_integral_Iic [no_bot_order α] (b : α)
+  (hfi : integrable_on f (Iic b) μ) (ha : tendsto a at_top at_bot) :
+  tendsto (λ i, ∫ x in a i .. b, f x ∂μ) at_top (𝓝 $ ∫ x in Iic b, f x ∂μ) :=
+begin
+  let φ := λ i, Ioi (a i),
+  have hφ : ae_cover (μ.restrict $ Iic b) φ := ae_cover_Ioi ha,
+  refine (hφ.integral_tendsto_of_at_top_countably_generated htop hfm hfi).congr' _,
+  filter_upwards [ha.eventually (eventually_le_at_bot $ b)],
+  intros i hai,
+  rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
+  refl
+end
+
+lemma interval_integral_tendsto_integral_Ioi (a : α)
+  (hfi : integrable_on f (Ioi a) μ) (hb : tendsto b at_top at_top) :
+  tendsto (λ i, ∫ x in a .. b i, f x ∂μ) at_top (𝓝 $ ∫ x in Ioi a, f x ∂μ) :=
+begin
+  let φ := λ i, Iic (b i),
+  have hφ : ae_cover (μ.restrict $ Ioi a) φ := ae_cover_Iic hb,
+  refine (hφ.integral_tendsto_of_at_top_countably_generated htop hfm hfi).congr' _,
+  filter_upwards [hb.eventually (eventually_ge_at_top $ a)],
+  intros i hbi,
+  rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
+      inter_comm],
+  refl
+end
+
+end integral_of_interval_integral
 
 end measure_theory

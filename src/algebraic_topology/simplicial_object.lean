@@ -8,7 +8,7 @@ import category_theory.category.ulift
 import category_theory.limits.functor_category
 import category_theory.opposites
 import category_theory.adjunction.limits
-import category_theory.comma
+import category_theory.arrow
 
 /-!
 # Simplicial objects in a category.
@@ -179,6 +179,23 @@ def drop : augmented C ⥤ simplicial_object C := comma.fst _ _
 /-- The point of the augmentation. -/
 @[simps]
 def point : augmented C ⥤ C := comma.snd _ _
+
+/-- The functor from augmented objects to arrows. -/
+@[simps]
+def to_arrow : augmented C ⥤ arrow C :=
+{ obj := λ X,
+  { left := (drop.obj X) _[0],
+    right := (point.obj X),
+    hom := X.hom.app _ },
+  map := λ X Y η,
+  { left := (drop.map η).app _,
+    right := (point.map η),
+    w' := begin
+      dsimp,
+      rw ← nat_trans.comp_app,
+      erw η.w,
+      refl,
+    end } }
 
 variable (C)
 
@@ -365,6 +382,23 @@ def drop : augmented C ⥤ cosimplicial_object C := comma.snd _ _
 /-- The point of the augmentation. -/
 @[simps]
 def point : augmented C ⥤ C := comma.fst _ _
+
+/-- The functor from augmented objects to arrows. -/
+@[simps]
+def to_arrow : augmented C ⥤ arrow C :=
+{ obj := λ X,
+  { left := (point.obj X),
+    right := (drop.obj X) _[0],
+    hom := X.hom.app _ },
+  map := λ X Y η,
+  { left := (point.map η),
+    right := (drop.map η).app _,
+    w' := begin
+      dsimp,
+      rw ← nat_trans.comp_app,
+      erw ← η.w,
+      refl,
+    end } }
 
 variable (C)
 

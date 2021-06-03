@@ -8,10 +8,10 @@ import data.finsupp.basic
 /-!
 # The pointwise product on `finsupp`.
 
-TODO per issue #1864:
-We intend to remove the convolution product on finsupp, and define
-it only on a type synonym `add_monoid_algebra`. After we've done this,
-it would be good to make this the default product on `finsupp`.
+For the convolution product on `finsupp` when the domain has a binary operation,
+see the type synonyms `add_monoid_algebra`
+(which is in turn used to define `polynomial` and `mv_polynomial`)
+and `monoid_algebra`.
 -/
 
 noncomputable theory

@@ -536,7 +536,7 @@ begin
   fsplit,
   { rintro ⟨⟨x, l, rfl⟩, h⟩,
     by_cases hx : x = 0,
-    { simp [hx] at h, exfalso, exact h (le_refl _), },
+    { simpa [hx] using h },
     { replace l : 0 < x := l.lt_of_ne (ne.symm hx),
       exact ⟨x, l, rfl⟩, } },
   { rintro ⟨x, l, rfl⟩,

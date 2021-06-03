@@ -6,6 +6,18 @@ Authors: Mario Carneiro
 import algebra.associated
 import tactic.ring
 
+/-! # ℤ[√d]
+
+The ring of integers adjoined with a square root of `d : ℤ`.
+
+After defining the norm, we show that it is a linearly ordered commutative ring,
+as well as an integral domain.
+
+We provide the universal property, that ring homomorphisms `ℤ√d →+* R` correspond
+to choices of square roots of `d` in `R`.
+
+-/
+
 /-- The ring of integers adjoined with a square root of `d`.
   These have the form `a + b √d` where `a b : ℤ`. The components
   are called `re` and `im` by analogy to the negative `d` case. -/
@@ -657,8 +669,8 @@ instance : linear_ordered_comm_ring ℤ√d :=
   zero_le_one     := dec_trivial,
   .. zsqrtd.comm_ring, .. zsqrtd.linear_order, .. zsqrtd.nontrivial }
 
-instance : linear_ordered_semiring ℤ√d := by apply_instance
-instance : ordered_semiring ℤ√d        := by apply_instance
+instance : linear_ordered_ring ℤ√d := by apply_instance
+instance : ordered_ring ℤ√d        := by apply_instance
 
 end
 

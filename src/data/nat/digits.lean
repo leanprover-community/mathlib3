@@ -134,6 +134,15 @@ def of_digits {α : Type*} [semiring α] (b : α) : list ℕ → α
 | [] := 0
 | (h :: t) := h + b * of_digits t
 
+@[simp] lemma of_digits_nil {α : Type*} [semiring α] (b : α) : of_digits b list.nil = 0 := rfl
+
+lemma of_digits_cons {α : Type*} [semiring α] (b : α) (d : ℕ) (L : list ℕ) :
+  of_digits b (d :: L) = d + b * of_digits b L := rfl
+
+lemma of_digits_cons' (b d : ℕ) (L : list ℕ) :
+  of_digits b (d :: L) = d + b * of_digits b L :=
+by rw [of_digits_cons, cast_id]
+
 lemma of_digits_eq_foldr {α : Type*} [semiring α] (b : α) (L : list ℕ) :
   of_digits b L = L.foldr (λ x y, x + b * y) 0 :=
 begin
@@ -422,6 +431,9 @@ end
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
 monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
 
+@[mono] lemma digits_len_mono (b : ℕ) : monotone (λ n, (nat.digits b n).length) :=
+@nat.le_digits_len_le b
+
 lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 : l.last hl ≠ 0):
   (b + 2) ^ l.length ≤ (b + 2) * of_digits (b+2) l :=
 begin
@@ -454,6 +466,40 @@ lemma base_pow_length_digits_le (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((di
 begin
   rcases b with _ | _ | b; try { linarith },
   exact base_pow_length_digits_le' b m,
+end
+
+lemma of_digits_zeros {α : Type*} [semiring α] (b : α) {L : list ℕ} (heq : ∀ a ∈ L, a = 0) :
+  of_digits b L = 0 :=
+begin
+  induction L with d L ih,
+  { exact of_digits_nil b, },
+  { rw [of_digits_cons, heq d (list.mem_cons_self d L),cast_zero, zero_add],
+    refine mul_eq_zero_of_right b (ih _),
+    exact λ a' ah, heq a' (list.mem_cons_of_mem d ah), }
+end
+
+lemma digits_of_digits_prefix  {b : ℕ} {L : list ℕ} (hb : 2 ≤ b) (hlt : ∀ a ∈ L, a < b) :
+  digits b (of_digits b L) <+: L :=
+begin
+  induction L with d L ih,
+  { simp only [digits_zero, of_digits_nil], },
+  { by_cases heq : (∀ a ∈ d :: L, a = 0),
+    { rw [of_digits_zeros b heq, digits_zero],
+      exact list.nil_prefix (d :: L), },
+    { simp only [exists_prop, forall_eq_or_imp, list.mem_cons_iff, not_and, not_forall] at heq,
+      have hltL := λ aa ah, hlt aa (set.mem_union_right (eq aa) ah),
+      rw [of_digits_cons', digits_add b hb],
+      { exact (list.prefix_cons_inj d).mpr (ih hltL), },
+      { exact hlt d (list.mem_cons_self d L), },
+      { refine or_iff_not_imp_left.mpr _,
+        intro nlt,
+        have d_eq : d = 0,
+        { simpa only [not_lt, nonpos_iff_eq_zero] using nlt, },
+        obtain ⟨xx, xe, xne⟩ := heq d_eq,
+        by_contradiction con,
+        rw [not_lt, nonpos_iff_eq_zero] at con,
+        have yep := digits_zero_of_eq_zero (le_of_lt hb) con xx xe,
+        exact absurd yep xne, }, } },
 end
 
 /-! ### Modular Arithmetic -/

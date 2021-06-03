@@ -14,7 +14,8 @@ A free `R`-module `M` is a module with a basis over `R`,
 equivalently it is an `R`-module linearly equivalent to `ι →₀ R` for some `ι`.
 
 This file proves a submodule of a free `R`-module of finite rank is also
-a free `R`-module of finite rank, if `R` is a principal ideal domain (PID).
+a free `R`-module of finite rank, if `R` is a principal ideal domain (PID),
+i.e. we have instances `[integral_domain R] [is_principal_ideal_ring R]`.
 We express "free `R`-module of finite rank" as a module `M` which has a basis
 `b : ι → R`, where `ι` is a `fintype`.
 We call the cardinality of `ι` the rank of `M` in this file;

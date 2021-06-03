@@ -78,7 +78,7 @@ do let n := src.mk_string "_to_additive",
 `to_additive.parser` parses the provided arguments into `name` for the target and an
 optional doc string. -/
 @[derive has_reflect, derive inhabited]
-structure value_type : Type := (tgt : name) (doc : option string)
+structure value_type : Type := (ignore_fixed : bool) (tgt : name) (doc : option string)
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
@@ -139,16 +139,18 @@ meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
   then fail ("to_additive: can't transport " ++ src.to_string ++ " to itself")
   else pure res)
 
+setup_tactic_parser
 /-- the parser for the arguments to `to_additive` -/
 meta def parser : lean.parser value_type :=
 do
-  tgt ← optional lean.parser.ident,
-  e ← optional interactive.types.texpr,
+  b ← option.is_some <$> (tk "!")?,
+  tgt ← ident?,
+  e ← texpr?,
   doc ← match e with
       | some pe := some <$> ((to_expr pe >>= eval_expr string) : tactic string)
       | none := pure none
       end,
-  return ⟨tgt.get_or_else name.anonymous, doc⟩
+  return ⟨b, tgt.get_or_else name.anonymous, doc⟩
 
 private meta def proceed_fields_aux (src tgt : name) (prio : ℕ) (f : name → tactic (list string)) :
   command :=

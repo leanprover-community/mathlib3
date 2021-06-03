@@ -774,7 +774,7 @@ lemma prod_range_zero (f : ℕ → β) :
   ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]
 
-@[to_additive sum_range_one]
+@[to_additive! sum_range_one]
 lemma prod_range_one (f : ℕ → β) :
   ∏ k in range 1, f k = f 0 :=
 by { rw [range_one], apply @prod_singleton β ℕ 0 f }
@@ -1042,7 +1042,7 @@ by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
 
 /-- If a product of a `finset` of size at most 1 has a given value, so
 do the terms in that product. -/
-@[to_additive eq_of_card_le_one_of_sum_eq "If a sum of a `finset` of size at most 1 has a given
+@[to_additive! eq_of_card_le_one_of_sum_eq "If a sum of a `finset` of size at most 1 has a given
 value, so do the terms in that sum."]
 lemma eq_of_card_le_one_of_prod_eq {s : finset α} (hc : s.card ≤ 1) {f : α → β} {b : β}
     (h : ∏ x in s, f x = b) : ∀ x ∈ s, f x = b :=

@@ -242,21 +242,72 @@ begin
   rw [simple_func.mem_range] at hx, rw [preimage_eq_empty]; simp [disjoint_singleton_left, hx]
 end
 
-lemma T_Union (T : set α → (F →L[ℝ] G)) (p : set α → Prop)
+lemma set_finset_union_bUnion {ι} (S : ι → set α) (s : finset ι) (a : ι) :
+  (⋃ (i : ι) (H : i ∈ insert a s), S i) = S a ∪ ⋃ (i : ι) (H : i ∈ s), S i :=
+begin
+  ext1 x,
+  simp_rw [set.mem_union, set.mem_Union],
+  split; intro h,
+  { obtain ⟨i, hi, hxi⟩ := h,
+    rw finset.mem_insert at hi,
+    cases hi,
+    { rw ← hi,
+      exact or.inl hxi, },
+    { exact or.inr ⟨i, hi, hxi⟩, }, },
+  { cases h,
+    { use [a, finset.mem_insert_self a s, h], },
+    { obtain ⟨i, hi, hxi⟩ := h,
+      use [i, finset.mem_insert_of_mem hi, hxi], }, },
+end
+
+lemma p_union (p : set α → Prop) (hp_empty : p ∅) (hp_add : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
+  {ι} (S : ι → set α) (sι : finset ι) (hSp : ∀ i ∈ sι, p (S i)) :
+  p (⋃ i ∈ sι, S i) :=
+begin
+  revert hSp,
+  refine finset.induction_on sι _ _,
+  { simp [hp_empty], },
+  intros a s has h hSp,
+  rw set_finset_union_bUnion,
+  exact hp_add (S a) _ (hSp a (finset.mem_insert_self a s))
+    (h (λ i hi, hSp i (finset.mem_insert_of_mem hi))),
+end
+
+lemma T_Union (T : set α → (F →L[ℝ] G)) (T_empty : T ∅ = 0) (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_add : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
   {ι} (S : ι → set α) (sι : finset ι) (hSp : ∀ i ∈ sι, p (S i))
   (h_disj : ∀ i j ∈ sι, i ≠ j → disjoint (S i) (S j)) :
   T (⋃ i ∈ sι, S i) = ∑ i in sι, T (S i) :=
 begin
+  revert hSp h_disj,
   refine finset.induction_on sι _ _,
-  { simp only [finset.not_mem_empty, Union_neg, Union_empty, sum_empty, not_false_iff],
-    sorry, },  -- TODO: T ∅ = 0 ? hypothesis needed or consequence of something else?
-  { intros a s has h,
-    sorry, },
+  { simp only [finset.not_mem_empty, forall_false_left, Union_neg, Union_empty, sum_empty,
+    forall_2_true_iff, implies_true_iff, forall_true_left, not_false_iff, T_empty], },
+  intros a s has h hps h_disj,
+  rw finset.sum_insert has,
+  rw ← h,
+  swap, { exact λ i hi, hps i (finset.mem_insert_of_mem hi), },
+  swap, { exact λ i j hi hj hij,
+    h_disj i j (finset.mem_insert_of_mem hi) (finset.mem_insert_of_mem hj) hij, },
+  rw ← h_add (S a) (⋃ i ∈ s, S i),
+  { congr,
+    rw set_finset_union_bUnion, },
+  { simp_rw set.inter_Union,
+    rw Union_eq_empty,
+    intro i,
+    rw Union_eq_empty,
+    intro hi,
+    rw ← set.disjoint_iff_inter_eq_empty,
+    refine h_disj a i (finset.mem_insert_self a s) (finset.mem_insert_of_mem hi) (λ hai, _),
+    rw ← hai at hi,
+    exact has hi, },
+  { exact hps a (finset.mem_insert_self a s), },
+  { exact p_union p hp_empty hp_add S s (λ i hi, hps i (finset.mem_insert_of_mem hi)), },
 end
 
-lemma map_extend_op (T : set α → (F →L[ℝ] G)) (p : set α → Prop)
+lemma map_extend_op (T : set α → (F →L[ℝ] G)) (T_empty : T ∅ = 0)
+  (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_add : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
   (f : α →ₛ E) (hfp : ∀ x ∈ f.range, x ≠ 0 → p (f ⁻¹' {x})) (g : E → F) (hg : g 0 = 0) :
@@ -270,7 +321,8 @@ begin
     rw [continuous_linear_map.map_zero, finset.sum_eq_zero (λ x hx, _)],
     rw mem_filter at hx,
     rw [hx.2, continuous_linear_map.map_zero], },
-  rw [map_preimage_singleton, ← finset.set_bUnion_preimage_singleton, T_Union T p h_add hp_add],
+  rw [map_preimage_singleton, ← finset.set_bUnion_preimage_singleton,
+    T_Union T T_empty p hp_empty h_add hp_add],
   { simp only [filter_congr_decidable, sum_apply, continuous_linear_map.coe_sum'],
     refine finset.sum_congr rfl (λ x hx, _),
     rw mem_filter at hx,
@@ -281,7 +333,12 @@ begin
     rw [hi0, hg] at hi,
     exact h0 hi.2.symm, },
   { intros i j hi hj hij,
-    sorry, },
+    rw set.disjoint_iff,
+    intros x hx,
+    rw [set.mem_inter_iff, set.mem_preimage, set.mem_preimage, set.mem_singleton_iff,
+      set.mem_singleton_iff] at hx,
+    rw [← hx.1, ← hx.2] at hij,
+    exact absurd rfl hij, },
 end
 
 /-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`
@@ -382,7 +439,8 @@ begin
   { exact or.inl (hf (f y) (mem_range_self f y) hf0), },
 end
 
-lemma extend_op_congr (T : set α → (E →L[ℝ] G)) (p : set α → Prop)
+lemma extend_op_congr (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
+  (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_add : ∀ s t (hs : p s) (ht : p t), p (s ∪ t)) (hp_inter : ∀ s t (h : p s ∨ p t), p (s ∩ t))
   {f g : α →ₛ E}
@@ -393,8 +451,8 @@ show ((pair f g).map prod.fst).extend_op T = ((pair f g).map prod.snd).extend_op
 begin
   have h_pair : ∀ (x : E × E), x ∈ (f.pair g).range → x ≠ 0 → p (⇑(f.pair g) ⁻¹' {x}),
     from p_pair p hp_inter f g hf hg,
-  rw map_extend_op T p h_add hp_add (pair f g) h_pair _ prod.fst_zero,
-  rw map_extend_op T p h_add hp_add (pair f g) h_pair _ prod.snd_zero,
+  rw map_extend_op T T_empty p hp_empty h_add hp_add (pair f g) h_pair _ prod.fst_zero,
+  rw map_extend_op T T_empty p hp_empty h_add hp_add (pair f g) h_pair _ prod.snd_zero,
   refine finset.sum_congr rfl (λ p hp, _),
   rcases mem_range.1 hp with ⟨a, rfl⟩,
   by_cases eq : f a = g a,
@@ -453,7 +511,8 @@ begin
   { assume b, rw ennreal.lt_top_iff_ne_top, exact ennreal.of_real_ne_top }
 end
 
-lemma extend_op_add (T : set α → (E →L[ℝ] G)) (p : set α → Prop)
+lemma extend_op_add (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
+  (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_union : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
   (hp_inter : ∀ s t (h : p s ∨ p t), p (s ∩ t)) {f g : α →ₛ E}
@@ -464,7 +523,7 @@ have hp_pair : ∀ (x : E × E), x ∈ (f.pair g).range → x ≠ 0 → p (⇑(f
 calc extend_op T (f + g) = ∑ x in (pair f g).range,
        T ((pair f g) ⁻¹' {x}) (x.fst + x.snd) :
 begin
-  rw [add_eq_map₂, map_extend_op T p h_add hp_union (pair f g)],
+  rw [add_eq_map₂, map_extend_op T T_empty p hp_empty h_add hp_union (pair f g)],
   { exact hp_pair, },
   { simp, },
 end
@@ -476,7 +535,8 @@ end
   by rw finset.sum_add_distrib
 ... = ((pair f g).map prod.fst).extend_op T + ((pair f g).map prod.snd).extend_op T :
 begin
-  rw [map_extend_op T p h_add hp_union (pair f g), map_extend_op T p h_add hp_union (pair f g)],
+  rw [map_extend_op T T_empty p hp_empty h_add hp_union (pair f g),
+    map_extend_op T T_empty p hp_empty h_add hp_union (pair f g)],
   { exact hp_pair, },
   { refl, },
   { exact hp_pair, },
@@ -510,7 +570,8 @@ begin
 end
 ... = integral μ f + integral μ g : rfl
 
-lemma extend_op_neg (T : set α → (E →L[ℝ] G)) (p : set α → Prop)
+lemma extend_op_neg (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
+  (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_union : ∀ s t (hs : p s) (ht : p t), p (s ∪ t)) {f : α →ₛ E}
   (hf : ∀ x ∈ f.range, x ≠ 0 → p (f ⁻¹' {x})) :
@@ -518,7 +579,8 @@ lemma extend_op_neg (T : set α → (E →L[ℝ] G)) (p : set α → Prop)
 calc extend_op T (-f) = extend_op T (f.map (has_neg.neg)) : rfl
   ... = - extend_op T f :
   begin
-    rw [map_extend_op T p h_add hp_union f hf _ neg_zero, extend_op, ← sum_neg_distrib],
+    rw [map_extend_op T T_empty p hp_empty h_add hp_union f hf _ neg_zero, extend_op,
+      ← sum_neg_distrib],
     refine finset.sum_congr rfl (λx h, continuous_linear_map.map_neg _ _),
   end
 
@@ -548,15 +610,16 @@ begin
   { simpa using hx_ne, },
 end
 
-lemma extend_op_sub (T : set α → (E →L[ℝ] G)) (p : set α → Prop)
+lemma extend_op_sub (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
+  (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_union : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
   (hp_inter : ∀ s t (h : p s ∨ p t), p (s ∩ t)) {f g : α →ₛ E}
   (hf : ∀ x ∈ f.range, x ≠ 0 → p (f ⁻¹' {x})) (hg : ∀ x ∈ g.range, x ≠ 0 → p (g ⁻¹' {x})) :
   extend_op T (f - g) = extend_op T f - extend_op T g :=
 begin
-  rw [sub_eq_add_neg, extend_op_add T p h_add hp_union hp_inter hf,
-    extend_op_neg T p h_add hp_union hg, sub_eq_add_neg],
+  rw [sub_eq_add_neg, extend_op_add T T_empty p hp_empty h_add hp_union hp_inter hf,
+    extend_op_neg T T_empty p hp_empty h_add hp_union hg, sub_eq_add_neg],
   exact p_neg hg,
 end
 
@@ -569,13 +632,14 @@ end
 
 /-- The extension to 𝕜 has to come from something else. -/
 lemma extend_op_smul_ℝ [normed_space 𝕜 G] [smul_comm_class ℝ 𝕜 G]
-  (T : set α → (E →L[ℝ] G)) (p : set α → Prop)
+  (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0) (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_union : ∀ s t (hs : p s) (ht : p t), p (s ∪ t)) (c : ℝ) {f : α →ₛ E}
   (hf : ∀ x ∈ f.range, x ≠ 0 → p (f ⁻¹' {x})) :
   extend_op T (c • f) = c • extend_op T f :=
 calc extend_op T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • x) :
-  by {rw [smul_eq_map c f, map_extend_op T p h_add hp_union f hf _], rw smul_zero, }
+  by { rw [smul_eq_map c f, map_extend_op T T_empty p hp_empty h_add hp_union f hf _],
+    rw smul_zero, }
 ... = ∑ x in f.range, c • (T (f ⁻¹' {x}) x) :
   finset.sum_congr rfl $ λ b hb, by { rw continuous_linear_map.map_smul (T (f ⁻¹' {b})) c b,}
 ... = c • extend_op T f :

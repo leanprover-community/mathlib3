@@ -473,13 +473,47 @@ protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe
 
 /-- Galois insertion between `adjoin` and `coe`. -/
 protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
-{ choice := λ s hs, adjoin R s,
+{ choice := λ s hs, (adjoin R s).copy s $ le_antisymm (algebra.gc.le_u_l s) hs,
   gc := algebra.gc,
   le_l_u := λ S, (algebra.gc (S : set A) (adjoin R S)).1 $ le_refl _,
-  choice_eq := λ _ _, rfl }
+  choice_eq := λ _ _, set_like.coe_injective $ by { generalize_proofs h, exact h } }
 
 instance : complete_lattice (subalgebra R A) :=
 galois_insertion.lift_complete_lattice algebra.gi
+
+@[simp]
+lemma coe_top : (↑(⊤ : subalgebra R A) : set A) = set.univ := rfl
+
+@[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
+set.mem_univ x
+
+@[simp] theorem top_to_submodule : (⊤ : subalgebra R A).to_submodule = ⊤ := rfl
+
+@[simp] theorem top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ := rfl
+
+@[simp, norm_cast]
+lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = S ∩ T := rfl
+
+@[simp]
+lemma mem_inf {S T : subalgebra R A} {x : A} : x ∈ S ⊓ T ↔ x ∈ S ∧ x ∈ T := iff.rfl
+
+@[simp] theorem inf_to_submodule (S T : subalgebra R A) :
+  (S ⊓ T).to_submodule = S.to_submodule ⊓ T.to_submodule := rfl
+
+@[simp] theorem inf_to_subsemiring (S T : subalgebra R A) :
+  (S ⊓ T).to_subsemiring = S.to_subsemiring ⊓ T.to_subsemiring := rfl
+
+@[simp, norm_cast]
+lemma coe_Inf (S : set (subalgebra R A)) : (↑(Inf S) : set A) = ⋂ s ∈ S, ↑s := rfl
+
+lemma mem_Inf {S : set (subalgebra R A)} {x : A} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+
+@[simp, norm_cast]
+lemma coe_infi {ι : Sort*} {S : ι → subalgebra R A} : (↑(⨅ i, S i) : set A) = ⋂ i, S i :=
+set.bInter_range
+
+lemma mem_infi {ι : Sort*} {S : ι → subalgebra R A} {x : A} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
+by simp only [infi, mem_Inf, set.forall_range_iff]
 
 instance : inhabited (subalgebra R A) := ⟨⊥⟩
 
@@ -490,15 +524,6 @@ le_bot_iff.mp (λ x hx, subalgebra.range_le _ ((of_id R A).coe_range ▸ hx))
 
 theorem to_submodule_bot : (⊥ : subalgebra R A).to_submodule = R ∙ 1 :=
 by { ext x, simp [mem_bot, -set.singleton_one, submodule.mem_span_singleton, algebra.smul_def] }
-
-@[simp] theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
-subsemiring.subset_closure $ or.inr trivial
-
-@[simp] theorem top_to_submodule : (⊤ : subalgebra R A).to_submodule = ⊤ :=
-submodule.ext $ λ x, iff_of_true mem_top trivial
-
-@[simp] theorem top_to_subsemiring : (⊤ : subalgebra R A).to_subsemiring = ⊤ :=
-subsemiring.ext $ λ x, iff_of_true mem_top trivial
 
 @[simp] theorem coe_bot : ((⊥ : subalgebra R A) : set A) = set.range (algebra_map R A) :=
 by simp [set.ext_iff, algebra.mem_bot]

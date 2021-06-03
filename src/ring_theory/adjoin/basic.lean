@@ -203,7 +203,7 @@ variables [algebra R A] {s t : set A}
 open subsemiring
 
 variables (R s t)
-theorem adjoin_union : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
+theorem adjoin_union_eq_under : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
 le_antisymm
   (closure_mono $ set.union_subset
     (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)
@@ -290,7 +290,7 @@ begin
       exact adjoin_mono (set.subset_union_left _ _) this },
     have : y ∈ (adjoin (adjoin R s) t).to_submodule,
     { rw ← hq', exact subset_span hy },
-    change y ∈ adjoin R (s ∪ t), rwa adjoin_union },
+    change y ∈ adjoin R (s ∪ t), rwa adjoin_union_eq_under },
   { intros r hr,
     change r ∈ adjoin R (s ∪ t) at hr,
     rw adjoin_union at hr,

@@ -218,6 +218,22 @@ end
 
 /--
 If `R` satisfies the strong rank condition,
+then any linearly independent family `v : ι → M`
+contained in the span of some finite `w : set M`,
+is itself finite.
+-/
+def linear_independent_fintype_of_le_span_fintype
+  {ι : Type*} (v : ι → M) (i : linear_independent R v)
+  (w : set M) [fintype w] (s : range v ≤ span R w) : fintype ι :=
+fintype_of_finset_card_le (fintype.card w) (λ t, begin
+    let v' := λ x : (t : set ι), v x,
+    have i' : linear_independent R v' := i.comp _ subtype.val_injective,
+    have s' : range v' ≤ span R w := (range_comp_subset_range _ _).trans s,
+    simpa using linear_independent_le_span_aux' R M v' i' w s'
+  end)
+
+/--
+If `R` satisfies the strong rank condition,
 then for any linearly independent family `v : ι → M`
 contained in the span of some finite `w : set M`,
 the cardinality of `ι` is bounded by the cardinality of `w`.
@@ -226,12 +242,7 @@ lemma linear_independent_le_span' {ι : Type*} (v : ι → M) (i : linear_indepe
   (w : set M) [fintype w] (s : range v ≤ span R w) :
   cardinal.mk ι ≤ fintype.card w :=
 begin
-  haveI : fintype ι := fintype_of_finset_card_le (fintype.card w) (λ t, begin
-    let v' := λ x : (t : set ι), v x,
-    have i' : linear_independent R v' := i.comp _ subtype.val_injective,
-    have s' : range v' ≤ span R w := (range_comp_subset_range _ _).trans s,
-    simpa using linear_independent_le_span_aux' R M v' i' w s'
-  end),
+  haveI : fintype ι := linear_independent_fintype_of_le_span_fintype R M v i w s,
   rw cardinal.fintype_card,
   simp only [cardinal.nat_cast_le],
   exact linear_independent_le_span_aux' R M v i w s,
@@ -252,6 +263,10 @@ begin
   exact le_top,
 end
 
+example {α β : Type*} (w : cardinal.mk β < cardinal.mk α) (w' : cardinal.omega ≤ cardinal.mk β)
+  (f : α → β) : ∃ b : β, set.infinite (f ⁻¹' {b}) :=
+sorry
+
 /--
 Over any ring `R` satisfying the strong rank condition,
 if `b` is an infinite basis for a module `M`,
@@ -263,7 +278,20 @@ lemma linear_independent_le_infinite_basis
   {κ : Type*} (v : κ → M) (i : linear_independent R v) :
   cardinal.mk κ ≤ cardinal.mk ι :=
 begin
-  sorry
+  by_contradiction,
+  simp only [not_le] at h,
+  rw ←cardinal.mk_finset_eq_mk (cardinal.infinite_iff.mp ‹infinite ι›) at h,
+  let Φ := λ k : κ, (b.repr (v k)).support,
+  have q : ∃ s : finset ι, _root_.infinite (Φ ⁻¹' {s}) := sorry,
+  obtain ⟨s, w⟩ := q,
+  let v' := λ k : Φ ⁻¹' {s}, v k,
+  have i' : linear_independent R v' := sorry,
+  haveI w' : fintype (Φ ⁻¹' {s}) :=
+  begin
+    apply linear_independent_fintype_of_le_span_fintype R M v' i' (s.image b),
+    sorry,
+  end,
+  exact w.false,
 end
 
 /--

@@ -356,9 +356,8 @@ instance [has_continuous_add F] : add_comm_monoid (bundle_section R F E) :=
   zero_add := λ f, by { apply continuous_section.ext_right_inv, exact zero_add _ },
   add_zero := λ f, by { apply continuous_section.ext_right_inv, exact add_zero _ },
   add_comm := λ f g, by { apply continuous_section.ext_right_inv, exact add_comm _ _ },
-  ..topological_vector_bundle.bundle_section.has_zero R F,
-  -- ↑   ↑   ↑   ↑   ↑   ↑   Why this!?
-  ..topological_vector_bundle.bundle_section.has_add R F, }
+  add := (+),
+  zero := 0, }
 
 variables [topological_space R] [has_continuous_smul R F]
 

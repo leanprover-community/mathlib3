@@ -59,6 +59,11 @@ coe_injective $ funext H
 
 lemma right_inv_def {f : α → β} (g : right_inv f) : f ∘ g = id := g.right_inv'
 
+lemma right_inverse {f : α → β} (g : right_inv f) : function.right_inverse g f :=
+congr_fun g.right_inv'
+
+lemma surjective {f : α → β} (g : right_inv f) : function.surjective f := g.right_inverse.surjective
+
 end right_inv
 
 section bundle_sections
@@ -69,11 +74,8 @@ open bundle
 
 variables {B : Type*} {E : B → Type*}
 
-@[simp] lemma right_inv.right_inv_apply (f : right_inv (proj E)) (b : B) : proj E (f b) = b :=
-by { exact congr_fun f.right_inv_def b, }
-
 @[simp] lemma right_inv.fst_eq_id (f : right_inv (proj E)) (b : B) : (f b).fst = b :=
-by { have h : (f b).fst = (proj E) (f b) := rfl, rw [h, f.right_inv_apply] }
+congr_fun f.right_inv_def b
 
 /-- Pi function from a right inverse. -/
 def right_inv.to_pi'' (g : right_inv (proj E)) : Π x : B, E x :=

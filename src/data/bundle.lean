@@ -37,16 +37,14 @@ instance [inhabited B] [inhabited (E (default B))] :
   inhabited (total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
 
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
-@[simp] def proj : total_space E → B :=
-λ (y : total_space E), y.1
+@[simp] def proj : total_space E → B := sigma.fst
 
 instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
 
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
-@[nolint unused_arguments]
-def trivial (B : Type*) (F : Type*) : B → Type* := λ x, F
+def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
 
 instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default F : F)⟩
 

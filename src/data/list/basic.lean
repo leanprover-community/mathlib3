@@ -6,6 +6,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 import control.monad.basic
 import data.nat.basic
 import order.rel_classes
+import algebra.group_power.basic
 
 /-!
 # Basic properties of lists

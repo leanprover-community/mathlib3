@@ -6,7 +6,7 @@ Authors: Anatole Dedecker
 import measure_theory.interval_integral
 import order.filter.at_top_bot
 
-open measure_theory filter set
+open measure_theory filter set topological_space
 open_locale ennreal nnreal topological_space
 
 namespace measure_theory
@@ -228,7 +228,7 @@ lemma ae_cover.lintegral_tendsto_of_at_top_countably_generated {φ : ι → set 
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 htop.tendsto_of_seq_tendsto (λ u hu, (hφ.comp_tendsto_at_top hu).lintegral_tendsto_of_nat hfm)
 
--- TODO : supr and "of_tendsto"
+-- TODO : supr and
 -- TODO : change name to `set_...` ?
 
 lemma ae_cover.lintegral_eq_of_tendsto {φ : ι → set α} (hφ : ae_cover μ φ)
@@ -283,5 +283,30 @@ end
 -- TODO : of_nonneg
 
 end integrable
+
+section integral
+
+variables {α ι E : Type*} [semilattice_sup ι] [nonempty ι]
+  [measurable_space α] {μ : measure α} [normed_group E] [normed_space ℝ E]
+  [measurable_space E] [borel_space E] [complete_space E] [second_countable_topology E]
+
+lemma ae_cover.integral_tendsto_of_at_top_countably_generated {φ : ι → set α} (hφ : ae_cover μ φ)
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → E} (hfm : measurable f)
+  (hfi : integrable f μ) :
+  tendsto (λ i, ∫ x in φ i, f x ∂μ) at_top (𝓝 $ ∫ x, f x ∂μ) :=
+suffices h : tendsto (λ i, ∫ (x : α), (φ i).indicator f x ∂μ) at_top (𝓝 (∫ (x : α), f x ∂μ)),
+by {convert h,
+    ext n,
+    rw integral_indicator (hφ.measurable n)},
+tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥) htop
+  (eventually_of_forall $ λ i, (hfm.indicator $ hφ.measurable i).ae_measurable) hfm.ae_measurable
+  (eventually_of_forall $ λ i, ae_of_all _ $ λ x, norm_indicator_le_norm_self _ _)
+  hfi.norm hφ.ae_tendsto_indicator
+
+-- TODO : of_nonneg
+
+end integral
+
+
 
 end measure_theory

@@ -12,12 +12,11 @@ import analysis.special_functions.pow
 
 In this file, we define edge density, equipartitions, and prove Szemerédi's Regularity Lemma.
 -/
-section
+
+universe u
 
 open_locale big_operators
 open finset fintype
-
-universe u
 
 /-! ### Things that belong to mathlib -/
 
@@ -361,9 +360,6 @@ noncomputable def non_uniform_parts [fintype V] (ε : ℝ) :
   finset (sym2 (finset V)) :=
 P.distinct_unordered_parts_pairs.filter (λ a, ¬G.is_uniform_sym2 ε a)
 
---doesn't work TODO: make a MWE
---#print non_uniform_parts
-
 /-- An equipartition is ε-uniform iff at most a proportion of ε of its pairs of parts are
 not ε-uniform. -/
 def is_uniform [fintype V] (ε : ℝ) : Prop :=
@@ -542,75 +538,147 @@ nat.le_mul_of_pos_right (pow_pos (by norm_num) n)
 -/
 noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
 let t : ℕ := max l (⌈real.log (100 / ε^5) / real.log 4⌉ + 1).nat_abs,
-    N : ℕ := exp_bound^[⌈4 * ε^(-5 : ℝ)⌉.nat_abs] t
+    N : ℕ := exp_bound^[nat_ceil (4/ε^5)] t
  in N * 16^N
 
 open_locale classical
-variables {V : Type u} [fintype V] (G : simple_graph V)
+variables {V : Type u} [fintype V] {G : simple_graph V} {P : equipartition V} {ε : ℝ}
 
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
 index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
 yields a not-too-big uniform equipartition. -/
-theorem increment (P : equipartition V) (ε : ℝ) (h₁ : P.size * 16^P.size ≤ card V)
-  (h₂ : 100 < ε^5 * 4^P.size) (hP : ¬P.is_uniform G ε) :
+theorem increment (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V)
+  (hPG : ¬P.is_uniform G ε) :
   ∃ (Q : equipartition V), Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
 begin
   sorry
 end
 
+noncomputable def blowup_equipartition (hε : 100 < ε^5 * 4^P.size)
+  (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  equipartition V :=
+classical.some (increment hε hPV hPG)
+
+namespace blowup_equipartition
+
+protected lemma size (hε : 100 < ε^5 * 4^P.size)
+  (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  (blowup_equipartition hε hPV hPG).size = exp_bound P.size :=
+(classical.some_spec (increment hε hPV hPG)).1
+
+protected lemma index (hε : 100 < ε^5 * 4^P.size)
+  (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  P.index G + ε^5 / 8 ≤ (blowup_equipartition hε hPV hPG).index G :=
+(classical.some_spec (increment hε hPV hPG)).2
+
+protected lemma size_le_size (hε : 100 < ε^5 * 4^P.size)
+  (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  P.size ≤ (blowup_equipartition hε hPV hPG).size :=
+by { rw blowup_equipartition.size hε hPV hPG, exact le_exp_bound _ }
+
+end blowup_equipartition
+
+
 open discrete_equipartition
 
 --have the problem that I must prove stuff (namely the equivalent of `hl`) while defining data
 /-- The equipartition refinement operation -/
-noncomputable def szemeredi_equipartition (ε : ℝ) (l : ℕ) : ℕ → equipartition V
+noncomputable def szemeredi_equipartition (G : simple_graph V) (ε : ℝ) (l : ℕ) :
+  ℕ → equipartition V
 | 0       := dummy_equipartition V l
-| (n + 1) := dite ((szemeredi_equipartition n).size * 16^(szemeredi_equipartition n).size ≤ card V
-  ∧ 100 < ε ^ 5 * 4^(szemeredi_equipartition n).size ∧ ¬(szemeredi_equipartition n).is_uniform G ε)
-  begin
-    rintro ⟨h₁, h₂, h₃⟩,
-    exact classical.some (increment G (szemeredi_equipartition n) ε h₁ h₂ h₃),
-  end
+| (n + 1) := dite (100 < ε ^ 5 * 4^(szemeredi_equipartition n).size ∧
+  (szemeredi_equipartition n).size * 16^(szemeredi_equipartition n).size ≤ card V
+  ∧ ¬(szemeredi_equipartition n).is_uniform G ε)
+  (λ h, blowup_equipartition h.1 h.2.1 h.2.2)
   (λ _, szemeredi_equipartition n)
 
 namespace szemeredi_equipartition
 
-protected lemma mono {ε : ℝ} {l : ℕ} (hεl : 100 < ε ^ 5 * 4^l) (n : ℕ) :
-  100 < ε ^ 5 * 4^(szemeredi_equipartition G ε l n).size :=
+lemma εl_condition {l : ℕ} (hε : 100 < ε ^ 5 * 4^l) :
+  ∀ n : ℕ, 100 < ε ^ 5 * 4^(szemeredi_equipartition G ε l n).size
+| 0       := begin
+    rw [szemeredi_equipartition, dummy_equipartition.size],
+    exact hε,
+  end
+| (n + 1) := begin
+    rw szemeredi_equipartition,
+    split_ifs, swap,
+    { exact εl_condition n },
+    refine lt_of_lt_of_le (εl_condition n) (mul_le_mul_of_nonneg_left
+      (pow_le_pow (by norm_num) _)
+      (nonneg_of_mul_nonneg_right (le_trans (by norm_num) hε.le) (pow_pos (by norm_num) _))),
+    convert (le_exp_bound _),
+    exact blowup_equipartition.size h.1 h.2.1 h.2.2,
+  end
+
+protected lemma size {ε : ℝ} {l n : ℕ} (hε : 100 < ε^5 * 4^l)
+  (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  (szemeredi_equipartition G ε l n).size * 16^(szemeredi_equipartition G ε l n).size ≤ card V
+  → ¬(szemeredi_equipartition G ε l n).is_uniform G ε
+  → (szemeredi_equipartition G ε l n).size = nat.iterate exp_bound n l :=
 begin
-  sorry
+  induction n with n hn,
+  { rintro _ _,
+    rw [function.iterate_zero, id.def, szemeredi_equipartition],
+    exact dummy_equipartition.size },
+  rw szemeredi_equipartition,
+  split_ifs,
+  { rintro _ _,
+    /-rw function.iterate_succ' exp_bound n,
+    rw blowup_equipartition.size h.1 h.2.1 h.2.2,
+    rw hn h.2.1 h.2.2,-/
+    sorry
+  },
+  rintro h₁ h₂,
+  exfalso,
+  exact h ⟨εl_condition hε n, h₁, h₂⟩,
 end
 
-lemma εl_condition {ε : ℝ} {l : ℕ} (hεl : 100 < ε ^ 5 * 4^l) (n : ℕ) :
-  100 < ε ^ 5 * 4^(szemeredi_equipartition G ε l n).size :=
+protected lemma index {ε : ℝ} {l n : ℕ} (hε : 100 < ε^5 * 4^l)
+  (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  (szemeredi_equipartition G ε l n).size * 16^(szemeredi_equipartition G ε l n).size ≤ card V
+  → ¬(szemeredi_equipartition G ε l n).is_uniform G ε
+  → ε^5 / 8 * n ≤ (szemeredi_equipartition G ε l n).index G :=
 begin
-  sorry
+  induction n with n hn,
+  { rw [nat.cast_zero, mul_zero],
+    exact λ _ _, equipartition.index_nonneg G _ },
+  rw szemeredi_equipartition,
+  split_ifs,
+  { simp only [nat.cast_succ, mul_add, mul_one],
+    rintro _ _,
+    apply (add_le_add_right (hn h.2.1 h.2.2) (ε^5/8)).trans,
+    apply blowup_equipartition.index h.1 h.2.1 h.2.2 },
+  rintro h₁ h₂,
+  exfalso,
+  exact h ⟨εl_condition hε n, h₁, h₂⟩,
 end
 
-/-
-protected lemma size {ε : ℝ} {l : ℕ} (hεl : 100 < ε ^ 5 * 4^l) (n : ℕ) :
-  (card V ≤ (szemeredi_equipartition G ε l n).size * 16^(szemeredi_equipartition G ε l n).size ∧
-  ) ∨
-
-
-protected lemma index (hl : 100 < ε ^ 5 * 4^l)
--/
+lemma le_size (G : simple_graph V) (ε : ℝ) (l : ℕ) :
+  ∀ n : ℕ, l ≤ (szemeredi_equipartition G ε l n).size
+| 0       := by { rw szemeredi_equipartition, exact dummy_equipartition.size.ge }
+| (n + 1) := begin
+  rw szemeredi_equipartition,
+  split_ifs,
+  {
+    sorry,
+  },
+  exact le_size n,
+end
 
 end szemeredi_equipartition
 
-/-- Effective Szemeredi's regularity lemma: For any sufficiently big graph, there is an ε-uniform
+/-- Effective Szemerédi's regularity lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
 theorem szemeredi_regularity {ε : ℝ} (hε₁ : 0 < ε) (hε₂ : ε < 1) (l : ℕ) (hG : l ≤ card V) :
   ∃ (P : equipartition V), l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
   cases le_total (card V) (szemeredi_bound ε l),
   { use discrete_equipartition V,
-    sorry
-    --rw discrete_equipartition.size, --beurk, again the same problem
-    --exact ⟨hG, h, discrete_partition.is_uniform G hε₁⟩
-    },
-  --use szemeredi_equipartition ???,
+    rw discrete_equipartition.size,
+    exact ⟨hG, h, discrete_equipartition.is_uniform G hε₁⟩ },
+  refine ⟨szemeredi_equipartition G ε l (nat_ceil (4/ε^5)), szemeredi_equipartition.le_size G ε l _, _, _⟩,
+  sorry,
   sorry
-end
-
 end

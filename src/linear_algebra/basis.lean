@@ -395,7 +395,7 @@ lemma constr_range [nonempty ι] {f : ι  → M'} :
   (b.constr S f).range = span R (range f) :=
 by rw [b.constr_def S f, linear_map.range_comp, linear_map.range_comp, linear_equiv.range,
        ← finsupp.supported_univ, finsupp.lmap_domain_supported, ←set.image_univ,
-       ← finsupp.span_eq_map_total, set.image_id]
+       ← finsupp.span_image_eq_map_total, set.image_id]
 
 end constr
 

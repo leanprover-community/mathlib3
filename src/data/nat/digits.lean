@@ -478,6 +478,10 @@ begin
     exact λ a' ah, heq a' (list.mem_cons_of_mem d ah), }
 end
 
+/--
+Applying `(digits b ∘ of_digits b)` will create a prefix of the original list if it has proper
+digits; it removes trailing zeros.
+-/
 lemma digits_of_digits_prefix  {b : ℕ} {L : list ℕ} (hb : 2 ≤ b) (hlt : ∀ a ∈ L, a < b) :
   digits b (of_digits b L) <+: L :=
 begin

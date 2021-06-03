@@ -1417,8 +1417,8 @@ Warning: use this type synonym judiciously! Consider an example where we want to
 variables (R A M : Type*)
 variables [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid M] [module A M]
 ```
-With the assumptions above, we can't directly state this as we have no `module R M` structure but
-`restrict_scalars` permits this to be written as:
+With the assumptions above we can't directly state our map as we have no `module R M` structure, but
+`restrict_scalars` permits it to be written as:
 ```lean
 -- an `R`-module structure on `M` is provided by `restrict_scalars` which is compatible
 example : restrict_scalars R A M →ₗ[R] A := sorry

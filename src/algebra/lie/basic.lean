@@ -144,7 +144,7 @@ by rw [leibniz_lie, add_sub_cancel]
 lemma lie_jacobi : ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
 by { rw [← neg_neg ⁅x, y⁆, lie_neg z, lie_skew y x, ← lie_skew, lie_lie], abel, }
 
-instance lie_ring.int_lie_algebra [lie_ring L] : lie_algebra ℤ L :=
+instance lie_ring.int_lie_algebra : lie_algebra ℤ L :=
 { lie_smul := λ n x y, lie_gsmul x y n, }
 
 instance : lie_ring_module L (M →ₗ[R] N) :=

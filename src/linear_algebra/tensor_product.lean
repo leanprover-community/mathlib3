@@ -418,8 +418,8 @@ instance : add_comm_monoid (M ⊗[R] N) :=
 
 -- Most of the time we want the instance below this one, which is easier for typeclass resolution
 -- to find.
-instance distrib_mul_action' : distrib_mul_action R'' (M ⊗[R] N) :=
-have ∀ (r : R'') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
+instance distrib_mul_action' : distrib_mul_action R' (M ⊗[R] N) :=
+have ∀ (r : R') (m : M) (n : N), r • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ n := λ _ _ _, rfl,
 { smul := (•),
   smul_add := λ r x y, tensor_product.smul_add r x y,
   mul_smul := λ r s x, tensor_product.induction_on x
@@ -451,6 +451,37 @@ instance module' : module R'' (M ⊗[R] N) :=
   ..tensor_product.distrib_mul_action' }
 
 instance : module R (M ⊗[R] N) := tensor_product.module'
+
+section
+
+-- Like `R'`, `R'₂` provides a `distrib_mul_action R'₂ (M ⊗[R] N)`
+variables {R'₂ : Type*} [monoid R'₂] [distrib_mul_action R'₂ M] [distrib_mul_action R'₂ N]
+variables [smul_comm_class R R'₂ M] [smul_comm_class R R'₂ N]
+variables [has_scalar R'₂ R'] [compatible_smul R R' M N] [compatible_smul R R'₂ M N]
+
+/-- `is_scalar_tower R'₂ R' M` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
+instance is_scalar_tower_left [is_scalar_tower R'₂ R' M] :
+  is_scalar_tower R'₂ R' (M ⊗[R] N) :=
+⟨λ s r x, tensor_product.induction_on x
+  (by simp)
+  (λ m n, by rw [smul_tmul', smul_tmul', smul_tmul', smul_assoc])
+  (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
+
+/-- `is_scalar_tower R'₂ R' N` implies `is_scalar_tower R'₂ R' (M ⊗[R] N)` -/
+instance is_scalar_tower_right [is_scalar_tower R'₂ R' N] :
+    is_scalar_tower R'₂ R' (M ⊗[R] N) :=
+⟨λ s r x, tensor_product.induction_on x
+  (by simp)
+  (λ m n, by rw [←tmul_smul, ←tmul_smul, ←tmul_smul, smul_assoc])
+  (λ x y ihx ihy, by rw [smul_add, smul_add, smul_add, ihx, ihy])⟩
+
+end
+
+/-- A short-cut instance for the common case, where the requirements for the `compatible_smul`
+instances are sufficient. -/
+instance is_scalar_tower [has_scalar R' R] [is_scalar_tower R' R M] [is_scalar_tower R' R N] :
+  is_scalar_tower R' R (M ⊗[R] N) :=
+tensor_product.is_scalar_tower_left  -- or right
 
 variables (R M N)
 /-- The canonical bilinear map `M → N → M ⊗[R] N`. -/
@@ -1010,6 +1041,11 @@ instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R �
   (by simp)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
   (λ r ih, by simpa [sub_smul, tmul_sub, sub_tmul] using ih)⟩
+
+instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
+  [compatible_smul R S M N] :
+  compatible_smul R (units S) M N :=
+⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
 
 end tensor_product
 

@@ -71,14 +71,14 @@ begin
   rw [← bind₁_bind₁, bind₁_X_in_terms_of_W_witt_polynomial, bind₁_X_right],
 end
 
-/-- An auxilliary definition, to avoid an excessive amount of finiteness proofs
+/-- An auxiliary definition, to avoid an excessive amount of finiteness proofs
 for `multiplicity p n`. -/
 private def pnat_multiplicity (n : ℕ+) : ℕ :=
 (multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.1.one_lt, n.2⟩
 
 local notation `v` := pnat_multiplicity
 
-/-- An auxilliary polynomial over the integers, that satisfies
+/-- An auxiliary polynomial over the integers, that satisfies
 `(frobenius_poly_aux p n - X n ^ p) / p = frobenius_poly p n`.
 This makes it easy to show that `frobenius_poly p n` is congruent to `X n ^ p`
 modulo `p`. -/

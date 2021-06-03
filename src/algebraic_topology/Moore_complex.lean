@@ -41,7 +41,7 @@ namespace algebraic_topology
 variables {C : Type*} [category C] [abelian C]
 local attribute [instance] abelian.has_pullbacks
 
-/-! The definitions in this namespace are all auxilliary definitions for `normalized_Moore_complex`
+/-! The definitions in this namespace are all auxiliary definitions for `normalized_Moore_complex`
 and should usually only be accessed via that. -/
 namespace normalized_Moore_complex
 

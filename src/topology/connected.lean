@@ -661,6 +661,16 @@ instance pi.totally_disconnected_space {α : Type*} {β : α → Type*}
     from λ a, h2.image (λ x, x a) (continuous_apply a).continuous_on,
   λ x x_in y y_in, funext $ λ a, (this a).subsingleton ⟨x, x_in, rfl⟩ ⟨y, y_in, rfl⟩⟩
 
+instance prod.totally_disconnected_space [topological_space β]
+  [totally_disconnected_space α] [totally_disconnected_space β] :
+  totally_disconnected_space (α × β) :=
+⟨λ t h1 h2,
+have H1 : is_preconnected (prod.fst '' t), from h2.image prod.fst continuous_fst.continuous_on,
+have H2 : is_preconnected (prod.snd '' t), from h2.image prod.snd continuous_snd.continuous_on,
+λ x hx y hy, prod.ext
+  (H1.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)
+  (H2.subsingleton ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩)⟩
+
 /-- A space is totally disconnected iff its connected components are subsingletons. -/
 lemma totally_disconnected_space_iff_connected_component_subsingleton :
   totally_disconnected_space α ↔ ∀ x : α, (connected_component x).subsingleton :=

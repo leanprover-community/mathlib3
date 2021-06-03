@@ -35,7 +35,7 @@ Linear algebra:
   Multilinearity:
     multilinear map: 'multilinear_map'
     determinant of vectors: 'basis.det'
-    determinant of endomorphisms: ''
+    determinant of endomorphisms: 'linear_map.det'
     special linear group: ''
     orientation of a $\R$-valued vector space: ''
   Matrices:

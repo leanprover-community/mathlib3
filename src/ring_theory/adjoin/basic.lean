@@ -293,7 +293,7 @@ begin
     change y ∈ adjoin R (s ∪ t), rwa adjoin_union_eq_under },
   { intros r hr,
     change r ∈ adjoin R (s ∪ t) at hr,
-    rw adjoin_union at hr,
+    rw adjoin_union_eq_under at hr,
     change r ∈ (adjoin (adjoin R s) t).to_submodule at hr,
     haveI := classical.dec_eq A,
     haveI := classical.dec_eq R,

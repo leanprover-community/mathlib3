@@ -59,8 +59,9 @@ theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s) (Hs : �
   (Halg : ∀ r, p (algebra_map R A r))
   (Hadd : ∀ x y, p x → p y → p (x + y))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@adjoin_le _ _ _ _ _ _ ⟨p, ring_hom.map_one (algebra_map R A) ▸ Halg 1, Hmul,
-  ring_hom.map_zero (algebra_map R A) ▸ Halg 0, Hadd, Halg⟩) Hs _ h
+let S : subalgebra R A :=
+{ carrier := p, mul_mem' := Hmul, add_mem' := Hadd, algebra_map_mem' := Halg } in
+adjoin_le (show s ≤ S, from Hs) h
 
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = (S : set A) ∩ (T : set A) :=
 begin

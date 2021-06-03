@@ -836,7 +836,7 @@ combined with this definition, yields a bilinear multiplication on `M ⊗ N`:
 the `tensor_product.semiring` instance (currently defined "by hand" using `tensor_product.mul`).
 
 See also `mul_mul_mul_comm`. -/
-def comm_two_in_four : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] (M ⊗[R] P) ⊗[R] (N ⊗[R] Q) :=
+def tensor_tensor_tensor_comm : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] (M ⊗[R] P) ⊗[R] (N ⊗[R] Q) :=
 let e₁ := tensor_product.assoc R M N (P ⊗[R] Q),
     e₂ := congr (1 : M ≃ₗ[R] M) (left_comm R N P Q),
     e₃ := (tensor_product.assoc R M P (N ⊗[R] Q)).symm in
@@ -844,12 +844,12 @@ e₁.trans $ e₂.trans e₃
 
 variables {M N P Q}
 
-@[simp] lemma comm_two_in_four_tmul (m : M) (n : N) (p : P) (q : Q) :
-  comm_two_in_four R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
+@[simp] lemma tensor_tensor_tensor_comm_tmul (m : M) (n : N) (p : P) (q : Q) :
+  tensor_tensor_tensor_comm R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
 rfl
 
-@[simp] lemma comm_two_in_four_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
-  (comm_two_in_four R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+@[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
+  (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
 rfl
 
 end tensor_product

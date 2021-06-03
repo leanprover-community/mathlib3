@@ -27,7 +27,10 @@ but it is sometimes convenient to have.
 the fact that `with_top (with_bot L)` is a complete linear order if `L` is
 a conditionally complete linear order.
 
-Coercions from `ℝ` and from `ℝ≥0∞` are registered, and their basic properties are proved.
+Coercions from `ℝ` and from `ℝ≥0∞` are registered, and their basic properties are proved. The main
+one is the real coercion, and is usually referred to just as `coe` (lemmas such as
+`ereal.coe_add` deal with this coercion). The one from `ennreal` is usually called `coe_ennreal`
+in the `ereal` namespace.
 
 ## Tags
 

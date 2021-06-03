@@ -307,6 +307,73 @@ tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥) htop
 
 end integral
 
+section integrable_of_interval_integral
 
+variables {α ι E : Type*}
+          [semilattice_sup ι] [nonempty ι]
+          [topological_space α] [linear_order α] [order_closed_topology α]
+          [measurable_space α] [opens_measurable_space α] {μ : measure α}
+          [measurable_space E] [normed_group E] [borel_space E]
+          (htop : (at_top : filter ι).is_countably_generated)
+          {a b : ι → α} {f : α → E} (hfm : measurable f)
+  --[topological_space α] [linear_order α] [order_closed_topology α]
+  --[measurable_space α] [opens_measurable_space α] [linear_ordered_semiring ι]
+  --[archimedean ι] [measurable_space E] [normed_group E] [borel_space E] {μ : measure α}
+
+include htop hfm
+
+lemma integrable_of_interval_integral_norm_tendsto [no_bot_order α] [nonempty α]
+  (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
+  (ha : tendsto a at_top at_bot) (hb : tendsto b at_top at_top)
+  (h : tendsto (λ i, ∫ x in a i .. b i, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
+  integrable f μ :=
+begin
+  let φ := λ n, Ioc (a n) (b n),
+  let c : α := classical.choice ‹_›,
+  have hφ : ae_cover μ φ := ae_cover_Ioc ha hb,
+  refine hφ.integrable_of_integral_norm_tendsto htop _ hfm hfi (h.congr' _),
+  filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)],
+  intros i hai hbi,
+  exact interval_integral.integral_of_le (hai.trans hbi)
+end
+
+lemma integrable_on_Iic_of_interval_integral_norm_tendsto [no_bot_order α] (I : ℝ) (b : α)
+  (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a at_top at_bot)
+  (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
+  integrable_on f (Iic b) μ :=
+begin
+  let φ := λ i, Ioi (a i),
+  have hφ : ae_cover (μ.restrict $ Iic b) φ := ae_cover_Ioi ha,
+  have hfi : ∀ i, integrable_on f (φ i) (μ.restrict $ Iic b),
+  { intro i,
+    rw [integrable_on, measure.restrict_restrict (hφ.measurable i)],
+    exact hfi i },
+  refine hφ.integrable_of_integral_norm_tendsto htop _ hfm hfi (h.congr' _),
+  filter_upwards [ha.eventually (eventually_le_at_bot b)],
+  intros i hai,
+  rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
+  refl
+end
+
+lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I : ℝ) (a : α)
+  (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b at_top at_top)
+  (h : tendsto (λ i, ∫ x in a .. b i, ∥f x∥ ∂μ) at_top (𝓝 $ I)) :
+  integrable_on f (Ioi a) μ :=
+begin
+  let φ := λ i, Iic (b i),
+  have hφ : ae_cover (μ.restrict $ Ioi a) φ := ae_cover_Iic hb,
+  have hfi : ∀ i, integrable_on f (φ i) (μ.restrict $ Ioi a),
+  { intro i,
+    rw [integrable_on, measure.restrict_restrict (hφ.measurable i), inter_comm],
+    exact hfi i },
+  refine hφ.integrable_of_integral_norm_tendsto htop _ hfm hfi (h.congr' _),
+  filter_upwards [hb.eventually (eventually_ge_at_top $ a)],
+  intros i hbi,
+  rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
+      inter_comm],
+  refl
+end
+
+end integrable_of_interval_integral
 
 end measure_theory

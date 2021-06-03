@@ -3,13 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.basic
 import data.equiv.denumerable
-import data.set.finite
-import order.rel_iso
 import order.preorder_hom
 import order.conditionally_complete_lattice
-import logic.function.iterate
 
 namespace rel_embedding
 
@@ -90,7 +86,7 @@ begin
     simp },
   { refine ⟨(nat.subtype.order_iso_of_nat s).symm ⟨x, h⟩, _⟩,
     simp only [rel_embedding.coe_trans, rel_embedding.order_embedding_of_lt_embedding_apply,
-      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.coe_subtype],
+      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.subtype_apply],
     rw [← subtype.order_iso_of_nat_apply, order_iso.apply_symm_apply, subtype.coe_mk] }
 end
 

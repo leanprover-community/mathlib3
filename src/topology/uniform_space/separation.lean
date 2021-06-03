@@ -117,6 +117,19 @@ theorem separated_def' {α : Type u} [uniform_space α] :
 separated_def.trans $ forall_congr $ λ x, forall_congr $ λ y,
 by rw ← not_imp_not; simp [not_forall]
 
+lemma eq_of_uniformity {α : Type*} [uniform_space α] [separated_space α] {x y : α}
+  (h : ∀ {V}, V ∈ 𝓤 α → (x, y) ∈ V) : x = y :=
+separated_def.mp ‹separated_space α› x y (λ _, h)
+
+lemma eq_of_uniformity_basis {α : Type*} [uniform_space α] [separated_space α] {ι : Type*}
+  {p : ι → Prop} {s : ι → set (α × α)} (hs : (𝓤 α).has_basis p s) {x y : α}
+  (h : ∀ {i}, p i → (x, y) ∈ s i) : x = y :=
+eq_of_uniformity (λ V V_in, let ⟨i, hi, H⟩ := hs.mem_iff.mp V_in in H (h hi))
+
+lemma eq_of_forall_symmetric {α : Type*} [uniform_space α] [separated_space α] {x y : α}
+  (h : ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (x, y) ∈ V) : x = y :=
+eq_of_uniformity_basis has_basis_symmetric (by simpa [and_imp] using λ _, h)
+
 lemma id_rel_sub_separation_relation (α : Type*) [uniform_space α] : id_rel ⊆ 𝓢 α :=
 begin
   unfold separation_rel,
@@ -165,19 +178,20 @@ begin
       by_contra H,
       exact hxy (h ⟨H⟩) },
     rcases inf_eq_bot_iff.mp this with ⟨U, U_in, V, V_in, H⟩,
-    rcases mem_nhds_iff.mp U_in with ⟨S, S_in, S_sub⟩,
+    rcases uniform_space.mem_nhds_iff.mp U_in with ⟨S, S_in, S_sub⟩,
     use [S, S_in],
     change y ∉ ball x S,
     intro y_in,
-    have : y ∈ U ∩ V := ⟨S_sub y_in, mem_of_nhds V_in⟩,
+    have : y ∈ U ∩ V := ⟨S_sub y_in, mem_of_mem_nhds V_in⟩,
     rwa H at this },
 end
 
 @[priority 100] -- see Note [lower instance priority]
 instance separated_regular [separated_space α] : regular_space α :=
-{ regular := λs a hs ha,
+{ t0 := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space.t0 },
+  regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
-      from mem_nhds_sets hs.is_open_compl ha,
+      from is_open.mem_nhds hs.is_open_compl ha,
     have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
@@ -200,6 +214,24 @@ instance separated_regular [separated_space α] : regular_space α :=
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
     ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
+
+lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
+  {s : set α} (hs : ∀ {x y}, x ∈ s → y ∈ s → (x, y) ∈ V₀ → x = y) : is_closed s :=
+begin
+  rcases comp_symm_mem_uniformity_sets V₀_in with ⟨V₁, V₁_in, V₁_symm, h_comp⟩,
+  apply is_closed_of_closure_subset,
+  intros x hx,
+  rw mem_closure_iff_ball at hx,
+  rcases hx V₁_in with ⟨y, hy, hy'⟩,
+  suffices : x = y, by rwa this,
+  apply eq_of_forall_symmetric,
+  intros V V_in V_symm,
+  rcases hx (inter_mem_sets V₁_in V_in) with ⟨z, hz, hz'⟩,
+  suffices : z = y,
+  { rw ← this,
+    exact ball_inter_right x _ _ hz },
+  exact hs hz' hy' (h_comp $ mem_comp_of_mem_ball V₁_symm (ball_inter_left x _ _ hz) hy)
+end
 
 /-!
 ### Separated sets

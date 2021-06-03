@@ -46,7 +46,7 @@ def types.mono_over_equivalence_set (α : Type u) : mono_over α ≌ set α :=
     end, },
   inverse :=
   { obj := λ s, mono_over.mk' (subtype.val : s → α),
-    map := λ s t b, mono_over.hom_mk (λ w, ⟨w.1, set.mem_of_mem_of_subset w.2 (le_of_hom b)⟩)
+    map := λ s t b, mono_over.hom_mk (λ w, ⟨w.1, set.mem_of_mem_of_subset w.2 b.le⟩)
       (by { ext, simp, }), },
   unit_iso := nat_iso.of_components
     (λ f, mono_over.iso_mk

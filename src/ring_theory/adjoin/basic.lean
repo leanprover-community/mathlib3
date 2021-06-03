@@ -49,6 +49,20 @@ algebra.gc _ _
 theorem adjoin_mono (H : s ⊆ t) : adjoin R s ≤ adjoin R t :=
 algebra.gc.monotone_l H
 
+theorem adjoin_eq_of_le (S : subalgebra R A) (h₁ : s ⊆ S) (h₂ : S ≤ adjoin R s) : adjoin R s = S :=
+le_antisymm (adjoin_le h₁) h₂
+
+theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
+adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
+
+lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = (S : set A) ∩ (T : set A) :=
+begin
+  apply le_antisymm,
+  { simp },
+  { rw ←galois_insertion.l_inf_u (@algebra.gi R A _ _ _),
+    exact algebra.subset_adjoin }
+end
+
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
@@ -92,6 +106,18 @@ le_antisymm
     ⟨subset_adjoin (set.mem_insert _ _), adjoin_mono (set.subset_insert _ _)⟩))
   (algebra.adjoin_mono (set.insert_subset_insert algebra.subset_adjoin))
 
+lemma adjoint_prod_le (s : set A) (t : set B) :
+  adjoin R (set.prod s t) ≤ (adjoin R s).prod (adjoin R t) :=
+adjoin_le $ set.prod_mono subset_adjoin subset_adjoin
+
+@[simp] lemma prod_inf_prod {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
+  S.prod S₁ ⊓ T.prod T₁ = (S ⊓ T).prod (S₁ ⊓ T₁) :=
+begin
+  refine set_like.coe_injective _,
+  rw [subalgebra.coe_prod, coe_inf, coe_inf, coe_inf, subalgebra.coe_prod, subalgebra.coe_prod,
+    set.prod_inter_prod]
+end
+
 end semiring
 
 section comm_semiring
@@ -112,8 +138,8 @@ le_antisymm
 theorem adjoin_eq_range :
   adjoin R s = (mv_polynomial.aeval (coe : s → A)).range :=
 le_antisymm
-  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, set.mem_univ _, mv_polynomial.eval₂_X _ _ _⟩)
-  (λ x ⟨p, _, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
+  (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
+  (λ x ⟨p, (hp : mv_polynomial.aeval coe p = x)⟩, hp ▸ mv_polynomial.induction_on p
     (λ r, by { rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C],
                exact (adjoin R s).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact subalgebra.add_mem _ hp hq)
@@ -122,8 +148,8 @@ le_antisymm
 
 theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
-  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, set.mem_univ _, polynomial.eval₂_X _ _⟩)
-  (λ y ⟨p, _, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
+  (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
+  (λ y ⟨p, (hp : polynomial.aeval x p = y)⟩, hp ▸ polynomial.induction_on p
     (λ r, by { rw [polynomial.aeval_def, polynomial.eval₂_C],
                exact (adjoin R _).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact subalgebra.add_mem _ hp hq)
@@ -194,14 +220,14 @@ begin
     change r ∈ (adjoin (adjoin R s) t).to_submodule at hr,
     haveI := classical.dec_eq A,
     haveI := classical.dec_eq R,
-    rw [← hq', ← set.image_id q, finsupp.mem_span_iff_total (adjoin R s)] at hr,
+    rw [← hq', ← set.image_id q, finsupp.mem_span_image_iff_total (adjoin R s)] at hr,
     rcases hr with ⟨l, hlq, rfl⟩,
     have := @finsupp.total_apply A A (adjoin R s),
     rw [this, finsupp.sum],
     refine sum_mem _ _,
     intros z hz, change (l z).1 * _ ∈ _,
     have : (l z).1 ∈ (adjoin R s).to_submodule := (l z).2,
-    rw [← hp', ← set.image_id p, finsupp.mem_span_iff_total R] at this,
+    rw [← hp', ← set.image_id p, finsupp.mem_span_image_iff_total R] at this,
     rcases this with ⟨l2, hlp, hl⟩,
     have := @finsupp.total_apply A A R,
     rw this at hl,
@@ -248,7 +274,7 @@ fg_of_fg_to_submodule (is_noetherian.noetherian S.to_submodule)
 
 lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
-by { rw [algebra.coe_top, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
+by { rw [algebra.top_to_submodule, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
 
 section
 open_locale classical

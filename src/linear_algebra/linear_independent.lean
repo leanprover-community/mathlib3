@@ -84,11 +84,11 @@ variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 
-section semimodule
+section module
 
 variables {v : ι → M}
 variables [semiring R] [add_comm_monoid M] [add_comm_monoid M'] [add_comm_monoid M'']
-variables [semimodule R M] [semimodule R M'] [semimodule R M'']
+variables [module R M] [module R M'] [module R M'']
 variables {a b : R} {x y : M}
 
 variables (R) (v)
@@ -162,8 +162,8 @@ lemma linear_independent.ne_zero [nontrivial R]
 λ h, @zero_ne_one R _ _ $ eq.symm begin
   suffices : (finsupp.single i 1 : ι →₀ R) i = 0, {simpa},
   rw linear_independent_iff.1 hv (finsupp.single i 1),
-  {simp},
-  {simp [h]}
+  { simp },
+  { simp [h] }
 end
 
 /-- A subfamily of a linearly independent family (i.e., a composition with an injective map) is a
@@ -186,7 +186,7 @@ family of vectors. See also `linear_independent.map'` for a special case assumin
 lemma linear_independent.map (hv : linear_independent R v) {f : M →ₗ[R] M'}
   (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
 begin
-  rw [disjoint, ← set.image_univ, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
+  rw [disjoint, ← set.image_univ, finsupp.span_image_eq_map_total, map_inf_eq_map_inf_comap,
     map_le_iff_le_comap, comap_bot, finsupp.supported_univ, top_inf_eq] at hf_inj,
   unfold linear_independent at hv ⊢,
   rw [hv, le_bot_iff] at hf_inj,
@@ -268,12 +268,12 @@ begin
   simpa only [this, zero_smul, zero_add] using total_eq
 end
 
-/-- A set of linearly independent vectors in a semimodule `M` over a semiring `K` is also linearly
+/-- A set of linearly independent vectors in a module `M` over a semiring `K` is also linearly
 independent over a subring `R` of `K`.
 The implementation uses minimal assumptions about the relationship between `R`, `K` and `M`.
 The version where `K` is an `R`-algebra is `linear_independent.restrict_scalars_algebras`.
  -/
-lemma linear_independent.restrict_scalars [semiring K] [smul_with_zero R K] [semimodule K M]
+lemma linear_independent.restrict_scalars [semiring K] [smul_with_zero R K] [module K M]
   [is_scalar_tower R K M]
   (hinj : function.injective (λ r : R, r • (1 : K))) (li : linear_independent K v) :
   linear_independent R v :=
@@ -391,7 +391,7 @@ linear_independent_Union_of_directed (directed_comp.2 $ hs.directed_coe) (by sim
 
 end subtype
 
-end semimodule
+end module
 
 /-! ### Properties which require `ring R` -/
 
@@ -453,7 +453,7 @@ lemma linear_independent.disjoint_span_image (hv : linear_independent R v) {s t 
   (hs : disjoint s t) :
   disjoint (submodule.span R $ v '' s) (submodule.span R $ v '' t) :=
 begin
-  simp only [disjoint_def, finsupp.mem_span_iff_total],
+  simp only [disjoint_def, finsupp.mem_span_image_iff_total],
   rintros _ ⟨l₁, hl₁, rfl⟩ ⟨l₂, hl₂, H⟩,
   rw [hv.injective_total.eq_iff] at H, subst l₂,
   have : l₁ = 0 := finsupp.disjoint_supported_supported hs (submodule.mem_inf.2 ⟨hl₁, hl₂⟩),
@@ -565,8 +565,8 @@ apply linear_equiv.of_bijective
   (linear_map.cod_restrict (span R (range v)) (finsupp.total ι M R v) _),
 { rw linear_map.ker_cod_restrict,
   apply hv },
-{ rw [linear_map.range, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
-  range_subtype, map_top],
+{ rw [linear_map.range_eq_map, linear_map.map_cod_restrict, ← linear_map.range_le_iff_comap,
+    range_subtype, map_top],
   rw finsupp.range_total,
   apply le_refl (span R (range v)) },
 { intro l,
@@ -621,7 +621,7 @@ end
 lemma linear_independent_iff_not_smul_mem_span :
   linear_independent R v ↔ (∀ (i : ι) (a : R), a • (v i) ∈ span R (v '' (univ \ {i})) → a = 0) :=
 ⟨ λ hv i a ha, begin
-  rw [finsupp.span_eq_map_total, mem_map] at ha,
+  rw [finsupp.span_image_eq_map_total, mem_map] at ha,
   rcases ha with ⟨l, hl, e⟩,
   rw sub_eq_zero.1 (linear_independent_iff.1 hv (l - finsupp.single i a) (by simp [e])) at hl,
   by_contra hn,
@@ -630,7 +630,7 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
   ext i, simp only [finsupp.zero_apply],
   by_contra hn,
   refine hn (H i _ _),
-  refine (finsupp.mem_span_iff_total _).2 ⟨finsupp.single i (l i) - l, _, _⟩,
+  refine (finsupp.mem_span_image_iff_total _).2 ⟨finsupp.single i (l i) - l, _, _⟩,
   { rw finsupp.mem_supported',
     intros j hj,
     have hij : j = i :=
@@ -862,16 +862,40 @@ lemma span_le_span_iff [nontrivial R] {s t u: set M}
 
 end module
 
+section nontrivial
+
+variables [ring R] [nontrivial R] [add_comm_group M] [add_comm_group M']
+variables [module R M] [no_zero_smul_divisors R M] [module R M']
+variables {v : ι → M} {s t : set M} {x y z : M}
+
+lemma linear_independent_unique_iff
+  (v : ι → M) [unique ι] :
+  linear_independent R v ↔ v (default ι) ≠ 0 :=
+begin
+  simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
+  refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
+  have := h (finsupp.single (default ι) 1) (or.inr hv),
+  exact one_ne_zero (finsupp.single_eq_zero.1 this)
+end
+
+alias linear_independent_unique_iff ↔ _ linear_independent_unique
+
+lemma linear_independent_singleton {x : M} (hx : x ≠ 0) :
+  linear_independent R (λ x, x : ({x} : set M) → M) :=
+linear_independent_unique coe hx
+
+end nontrivial
+
 /-!
 ### Properties which require `division_ring K`
 
-These can be considered generalizations of properties of linear independence in `vector_space`s.
+These can be considered generalizations of properties of linear independence in vector spaces.
 -/
 
-section vector_space
+section module
 
 variables [division_ring K] [add_comm_group V] [add_comm_group V']
-variables [semimodule K V] [semimodule K V']
+variables [module K V] [module K V']
 variables {v : ι → V} {s t : set V} {x y z : V}
 
 open submodule
@@ -900,20 +924,14 @@ begin
     exact false.elim (h _ ((smul_mem_iff _ ha').1 ha)) }
 end
 
-lemma linear_independent_unique_iff [unique ι] :
-  linear_independent K v ↔ v (default ι) ≠ 0 :=
+lemma linear_independent.insert (hs : linear_independent K (λ b, b : s → V)) (hx : x ∉ span K s) :
+  linear_independent K (λ b, b : insert x s → V) :=
 begin
-  simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
-  refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
-  have := h (finsupp.single (default ι) 1) (or.inr hv),
-  exact one_ne_zero (finsupp.single_eq_zero.1 this)
+  rw ← union_singleton,
+  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
+  apply hs.union (linear_independent_singleton x0),
+  rwa [disjoint_span_singleton' x0]
 end
-
-alias linear_independent_unique_iff ↔ _ linear_independent_unique
-
-lemma linear_independent_singleton {x : V} (hx : x ≠ 0) :
-  linear_independent K (λ x, x : ({x} : set V) → V) :=
-@linear_independent_unique _ _ _ _ _ _ _ (set.unique_singleton _) ‹_›
 
 lemma linear_independent_option' :
   linear_independent K (λ o, option.cases_on' o x v : option ι → V) ↔
@@ -936,15 +954,6 @@ lemma linear_independent_option {v : option ι → V} :
   linear_independent K v ↔
     linear_independent K (v ∘ coe : ι → V) ∧ v none ∉ submodule.span K (range (v ∘ coe : ι → V)) :=
 by simp only [← linear_independent_option', option.cases_on'_none_coe]
-
-lemma linear_independent.insert (hs : linear_independent K (λ b, b : s → V)) (hx : x ∉ span K s) :
-  linear_independent K (λ b, b : insert x s → V) :=
-begin
-  rw ← union_singleton,
-  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
-  apply hs.union (linear_independent_singleton x0),
-  rwa [disjoint_span_singleton' x0]
-end
 
 theorem linear_independent_insert' {ι} {s : set ι} {a : ι} {f : ι → V} (has : a ∉ s) :
   linear_independent K (λ x : insert a s, f x) ↔
@@ -982,7 +991,7 @@ lemma linear_independent_fin_snoc {n} {v : fin n → V} :
 by rw [fin.snoc_eq_cons_rotate, linear_independent_equiv, linear_independent_fin_cons]
 
 /-- See `linear_independent.fin_cons'` for an uglier version that works if you
-only have a semimodule. -/
+only have a module over a semiring. -/
 lemma linear_independent.fin_cons {n} {v : fin n → V} (hv : linear_independent K v)
   (hx : x ∉ submodule.span K (range v)) :
   linear_independent K (fin.cons x v : fin (n + 1) → V) :=
@@ -1001,12 +1010,13 @@ by rw [← linear_independent_fin_snoc, fin.snoc_init_self]
 lemma linear_independent_fin2 {f : fin 2 → V} :
   linear_independent K f ↔ f 1 ≠ 0 ∧ ∀ a : K, a • f 1 ≠ f 0 :=
 by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
-  mem_span_singleton, not_exists]; refl
+  mem_span_singleton, not_exists,
+  show fin.tail f (default (fin 1)) = f 1, by rw ← fin.succ_zero_eq_one; refl]
 
 lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (λ x, x : b → V) :=
 begin
-  rcases zorn.zorn_subset₀ {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
+  rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (λ x, x : b → V)} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     by_contra hn,
@@ -1018,6 +1028,28 @@ begin
     { exact linear_independent_sUnion_of_directed cc.directed_on (λ x xc, (hc xc).2) },
     { exact subset_sUnion_of_mem } }
 end
+
+/-- `linear_independent.extend` adds vectors to a linear independent set `s ⊆ t` until it spans
+all elements of `t`. -/
+noncomputable def linear_independent.extend (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : set V :=
+classical.some (exists_linear_independent hs hst)
+
+lemma linear_independent.extend_subset (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : hs.extend hst ⊆ t :=
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hbt
+
+lemma linear_independent.subset_extend (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : s ⊆ hs.extend hst :=
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hsb
+
+lemma linear_independent.subset_span_extend (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : t ⊆ span K (hs.extend hst) :=
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in htb
+
+lemma linear_independent.linear_independent_extend (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : linear_independent K (coe : hs.extend hst → V) :=
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hli
 
 variables {K V}
 
@@ -1085,4 +1117,4 @@ let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs thi
 have finite s, from u.finite_to_set.subset hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
-end vector_space
+end module

@@ -25,6 +25,21 @@ In this file we:
 
 - `linear_map.base_change A f` is the `A`-linear map `A ⊗ f`, for an `R`-linear map `f`.
 
+## Implementation notes
+
+The heterobasic definitions below such as:
+ * `tensor_product.algebra_tensor_module.curry`
+ * `tensor_product.algebra_tensor_module.uncurry`
+ * `tensor_product.algebra_tensor_module.lcurry`
+ * `tensor_product.algebra_tensor_module.lift`
+ * `tensor_product.algebra_tensor_module.lift.equiv`
+ * `tensor_product.algebra_tensor_module.mk`
+ * `tensor_product.algebra_tensor_module.assoc`
+
+are just more general versions of the definitions already in `linear_algebra/tensor_product`. We
+could thus consider replacing the less general definitions with these ones. If we do this, we
+probably should still implement the less general ones as abbreviations to the more general ones with
+fewer type arguments.
 -/
 
 universes u v₁ v₂ v₃ v₄
@@ -163,7 +178,7 @@ namespace linear_map
 open tensor_product
 
 /-!
-### The basechange of a linear map of `R`-modules to a linear map of `A`-modules
+### The base-change of a linear map of `R`-modules to a linear map of `A`-modules
 -/
 
 section semiring

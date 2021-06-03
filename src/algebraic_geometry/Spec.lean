@@ -84,7 +84,7 @@ The induced map of a ring homomorphism on the ring spectra, as a morphism of she
 { base := Spec.Top_map f,
   c :=
   { app := λ U, structure_sheaf.comap f (unop U)
-      ((topological_space.opens.map (Spec.Top_map f)).obj (unop U)) (λ p, iff.rfl),
+      ((topological_space.opens.map (Spec.Top_map f)).obj (unop U)) (λ p, id),
     naturality' := λ U V i, ring_hom.ext $ λ s, subtype.eq $ funext $ λ p, rfl } }
 
 @[simp] lemma Spec.SheafedSpace_map_id {R : CommRing} :

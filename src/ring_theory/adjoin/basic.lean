@@ -55,6 +55,13 @@ le_antisymm (adjoin_le h₁) h₂
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
+theorem adjoin_induction {p : A → Prop} {x : A} (h : x ∈ adjoin R s) (Hs : ∀ x ∈ s, p x)
+  (Halg : ∀ r, p (algebra_map R A r))
+  (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
+(@adjoin_le _ _ _ _ _ _ ⟨p, ring_hom.map_one (algebra_map R A) ▸ Halg 1, Hmul,
+  ring_hom.map_zero (algebra_map R A) ▸ Halg 0, Hadd, Halg⟩) Hs _ h
+
 lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = (S : set A) ∩ (T : set A) :=
 begin
   apply le_antisymm,
@@ -109,6 +116,72 @@ le_antisymm
 lemma adjoint_prod_le (s : set A) (t : set B) :
   adjoin R (set.prod s t) ≤ (adjoin R s).prod (adjoin R t) :=
 adjoin_le $ set.prod_mono subset_adjoin subset_adjoin
+
+lemma adjoin_le_prod (s) (t) : adjoin R ((set.insert (1, 0) ((linear_map.inl R A B) '' s)) ∪
+  (set.insert (0, 1) ((linear_map.inr R A B) '' t))) ≤ (adjoin R s).prod (adjoin R t) :=
+begin
+  refine adjoin_le (set.union_subset
+    (set.insert_subset.2 ⟨set.mem_prod.2 ⟨set_like.mem_coe.2 $ one_mem _,
+    set_like.mem_coe.2 $ zero_mem _⟩, λ x, _⟩)
+    (set.insert_subset.2 ⟨set.mem_prod.2 ⟨set_like.mem_coe.2 $ zero_mem _,
+    set_like.mem_coe.2 $ one_mem _⟩, λ x, _⟩)),
+  { simp_intros hx,
+    obtain ⟨X, hXmem, hXx⟩ := hx,
+    exact ⟨subset_adjoin (by rwa ←hXx), by { rwa ←hXx, exact zero_mem _ }⟩ },
+  { simp_intros hx,
+    obtain ⟨X, hXmem, hXx⟩ := hx,
+    exact ⟨by { rwa ←hXx, exact zero_mem _ }, subset_adjoin (by rwa ←hXx)⟩ }
+end
+
+lemma adjoint_prod_fst_mem (B) [semiring B] [algebra R B] {s} {x : A} (h : x ∈ adjoin R s) :
+  ((x, 0) : (A × B)) ∈ (adjoin R (set.insert (1, 0) ((linear_map.inl R A B) '' s))) :=
+begin
+  let S := adjoin R (set.insert (1, 0) ((linear_map.inl R A B) '' s)),
+  refine @adjoin_induction R A _ _ _ _
+    (λ a, ((a, 0) : (A × B)) ∈ (adjoin R (set.insert (1, 0) ((linear_map.inl R A B) '' s)))) x h
+    (λ a ha, subset_adjoin $ set.subset_insert _ _ ⟨a, ⟨ha, rfl⟩⟩)
+    (λ r, _)
+    (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)
+    (λ y z hy hz, by simpa [hy, hz] using subalgebra.mul_mem _ hy hz),
+  have : ((1, 0) : A × B) ∈ S := subset_adjoin (set.mem_insert _ _),
+  replace this := subalgebra.smul_mem S this r,
+  rw [prod.smul_mk, smul_zero] at this,
+  convert this,
+  exact algebra_map_eq_smul_one r,
+end
+
+lemma adjoint_prod_snd_mem (A) [semiring A] [algebra R A] {t} {x : B} (h : x ∈ adjoin R t) :
+  ((0, x) : (A × B)) ∈ (adjoin R (set.insert (0, 1) ((linear_map.inr R A B) '' t))) :=
+begin
+  let T := adjoin R (set.insert (0, 1) ((linear_map.inr R A B) '' t)),
+  refine @adjoin_induction R B _ _ _ _
+    (λ b, ((0, b) : (A × B)) ∈ (adjoin R (set.insert (0, 1) ((linear_map.inr R A B) '' t)))) x h
+    (λ b hb, subset_adjoin $ set.subset_insert _ _ ⟨b, ⟨hb, rfl⟩⟩)
+    (λ r, _)
+    (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)
+    (λ y z hy hz, by simpa [hy, hz] using subalgebra.mul_mem _ hy hz),
+  have : ((0, 1) : A × B) ∈ T := subset_adjoin (set.mem_insert _ _),
+  replace this := subalgebra.smul_mem T this r,
+  rw [prod.smul_mk, smul_zero] at this,
+  convert this,
+  exact algebra_map_eq_smul_one r,
+end
+
+lemma adjoin_eq_prod (s) (t) : adjoin R ((set.insert (1, 0) ((linear_map.inl R A B) '' s)) ∪
+  (set.insert (0, 1) ((linear_map.inr R A B) '' t))) = (adjoin R s).prod (adjoin R t) :=
+begin
+  let T := adjoin R ((set.insert (1, 0) ((linear_map.inl R A B) '' s)) ∪
+    (set.insert (0, 1) ((linear_map.inr R A B) '' t))),
+  refine le_antisymm (adjoin_le_prod R s t) _,
+  rintro ⟨a, b⟩ ⟨ha, hb⟩,
+  have Ha := adjoint_prod_fst_mem R B ha,
+  have Hb := adjoint_prod_snd_mem R A hb,
+  replace Ha : (a, (0 : B)) ∈ T :=
+    adjoin_mono (set.subset_union_of_subset_left (set.subset.refl _) _) Ha,
+  replace Hb : ((0 : A), b) ∈ T :=
+    adjoin_mono (set.subset_union_of_subset_right (set.subset.refl _) _) Hb,
+  simpa using subalgebra.add_mem _ Ha Hb
+end
 
 @[simp] lemma prod_inf_prod {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
   S.prod S₁ ⊓ T.prod T₁ = (S ⊓ T).prod (S₁ ⊓ T₁) :=
@@ -275,6 +348,17 @@ fg_of_fg_to_submodule (is_noetherian.noetherian S.to_submodule)
 lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
 by { rw [algebra.top_to_submodule, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
+
+lemma fg_prod {S : subalgebra R A} {T : subalgebra R B} (hS : S.fg) (hT : T.fg) : (S.prod T).fg :=
+begin
+  obtain ⟨s, hs⟩ := fg_def.1 hS,
+  obtain ⟨t, ht⟩ := fg_def.1 hT,
+  rw [← hs.2, ← ht.2],
+  let s₁ := set.insert (1, 0) ((linear_map.inl R A B) '' s),
+  let t₁ := set.insert (0, 1) ((linear_map.inr R A B) '' t),
+  exact fg_def.2 ⟨s₁ ∪ t₁, set.finite.union (set.finite.insert _ (set.finite.image _ hs.1))
+    (set.finite.insert _ (set.finite.image _ ht.1)), algebra.adjoin_eq_prod R s t⟩
+end
 
 section
 open_locale classical

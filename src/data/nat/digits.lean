@@ -475,28 +475,37 @@ end
 Applying `(digits b ∘ of_digits b)` will create a prefix of the original list if it has proper
 digits; it removes trailing zeros.
 -/
-lemma digits_of_digits_prefix  {b : ℕ} {L : list ℕ} (hb : 2 ≤ b) (hlt : ∀ a ∈ L, a < b) :
+lemma digits_of_digits_prefix  {b : ℕ} {L : list ℕ} (hlt : ∀ a ∈ L, a < b) :
   digits b (of_digits b L) <+: L :=
 begin
-  induction L with d L ih,
-  { simp only [digits_zero, of_digits_nil], },
-  { by_cases heq : (∀ a ∈ d :: L, a = 0),
-    { rw [of_digits_zeros b heq, digits_zero],
-      exact list.nil_prefix (d :: L), },
-    { simp only [exists_prop, forall_eq_or_imp, list.mem_cons_iff, not_and, not_forall] at heq,
-      have hltL := λ aa ah, hlt aa (set.mem_union_right (eq aa) ah),
-      rw [of_digits, cast_id, digits_add b hb],
-      { exact (list.prefix_cons_inj d).mpr (ih hltL), },
-      { exact hlt d (list.mem_cons_self d L), },
-      { refine or_iff_not_imp_left.mpr _,
-        intro nlt,
-        have d_eq : d = 0,
-        { simpa only [not_lt, nonpos_iff_eq_zero] using nlt, },
-        obtain ⟨xx, xe, xne⟩ := heq d_eq,
-        by_contradiction con,
-        rw [not_lt, nonpos_iff_eq_zero] at con,
-        have yep := digits_zero_of_eq_zero (le_of_lt hb) con xx xe,
-        exact absurd yep xne, }, } },
+  cases b,
+  { induction L,
+    { rw [of_digits_nil, digits_zero_zero], },
+    { have t := hlt L_hd (list.mem_cons_self L_hd L_tl),
+      have f := not_lt_zero L_hd,
+      exact absurd t f, } },
+  { cases b,
+    { rw [digits_one, of_digits_zeros 1 (λ a' ah', by linarith [hlt a' ah']), list.repeat],
+      exact list.nil_prefix L, },
+    { induction L with d L ih,
+      { simp only [digits_zero, of_digits_nil], },
+      { by_cases heq : (∀ a ∈ d :: L, a = 0),
+        { rw [of_digits_zeros _ heq, digits_zero],
+          exact list.nil_prefix (d :: L), },
+        { simp only [exists_prop, forall_eq_or_imp, list.mem_cons_iff, not_and, not_forall] at heq,
+          have hltL := λ aa ah, hlt aa (set.mem_union_right (eq aa) ah),
+          rw [of_digits, cast_id, digits_add b.succ.succ le_add_self],
+          { exact (list.prefix_cons_inj d).mpr (ih hltL), },
+          { exact hlt d (list.mem_cons_self d L), },
+          { refine or_iff_not_imp_left.mpr _,
+            intro nlt,
+            have d_eq : d = 0,
+            { simpa only [not_lt, nonpos_iff_eq_zero] using nlt, },
+            obtain ⟨xx, xe, xne⟩ := heq d_eq,
+            by_contradiction con,
+            rw [not_lt, nonpos_iff_eq_zero] at con,
+            have yep := digits_zero_of_eq_zero (le_of_lt (one_lt_succ_succ b)) con xx xe,
+            exact absurd yep xne, } } } } },
 end
 
 /-! ### Modular Arithmetic -/

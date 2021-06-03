@@ -310,7 +310,7 @@ protected meta def attr : user_attribute unit value_type :=
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict src tgt
+      transform_decl_with_prefix_dict dict val.ignore_fixed src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp],
       mwhen (has_attribute' `simps src)

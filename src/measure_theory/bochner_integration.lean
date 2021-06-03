@@ -245,10 +245,15 @@ end
 lemma T_Union (T : set α → (F →L[ℝ] G)) (p : set α → Prop)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_add : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
-  {ι} (S : ι → set α) (sι : finset ι) (hSp : ∀ i ∈ sι, p (S i)) :
+  {ι} (S : ι → set α) (sι : finset ι) (hSp : ∀ i ∈ sι, p (S i))
+  (h_disj : ∀ i j ∈ sι, i ≠ j → disjoint (S i) (S j)) :
   T (⋃ i ∈ sι, S i) = ∑ i in sι, T (S i) :=
 begin
-  sorry,
+  refine finset.induction_on sι _ _,
+  { simp only [finset.not_mem_empty, Union_neg, Union_empty, sum_empty, not_false_iff],
+    sorry, },  -- TODO: T ∅ = 0 ? hypothesis needed or consequence of something else?
+  { intros a s has h,
+    sorry, },
 end
 
 lemma map_extend_op (T : set α → (F →L[ℝ] G)) (p : set α → Prop)
@@ -266,16 +271,17 @@ begin
     rw mem_filter at hx,
     rw [hx.2, continuous_linear_map.map_zero], },
   rw [map_preimage_singleton, ← finset.set_bUnion_preimage_singleton, T_Union T p h_add hp_add],
-  swap,
+  { simp only [filter_congr_decidable, sum_apply, continuous_linear_map.coe_sum'],
+    refine finset.sum_congr rfl (λ x hx, _),
+    rw mem_filter at hx,
+    rw hx.2, },
   { intros i hi,
     rw mem_filter at hi,
     refine hfp i hi.1 (λ hi0, _),
     rw [hi0, hg] at hi,
     exact h0 hi.2.symm, },
-  simp only [filter_congr_decidable, sum_apply, continuous_linear_map.coe_sum'],
-  refine finset.sum_congr rfl (λ x hx, _),
-  rw mem_filter at hx,
-  rw hx.2,
+  { intros i j hi hj hij,
+    sorry, },
 end
 
 /-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`

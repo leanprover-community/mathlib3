@@ -56,8 +56,6 @@ begin
   rw [nat.desc_fact_succ, hn h, mul_comm]
 end
 
-variables
-
 /- Establishes the cardinality of the type of all injections between two finite types.  -/
 @[simp] theorem card_embedding {α β} [fintype α] [fintype β][decidable_eq α] [decidable_eq β] :
 ‖α ↪ β‖ = (nat.desc_fact ‖β‖ ‖α‖) :=

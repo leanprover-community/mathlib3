@@ -19,7 +19,7 @@ and the fraction field `fraction_ring R`.
 
 ## Main results
 
-- `char_p_of_injective_algebra_map` If `R→+*A` is an injective algebra map
+- `char_p_of_injective_algebra_map` If `R →+* A` is an injective algebra map
   then `A` has the same characteristic as `R`.
 
 Instances constructed from this result:

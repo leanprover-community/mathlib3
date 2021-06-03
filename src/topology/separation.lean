@@ -954,7 +954,7 @@ begin
   rintros x - y - hxy,
   obtain ⟨u, v, hu, hv, xu, yv, disj⟩ := t2_separation hxy,
   obtain ⟨w, hw : is_clopen w, xw, wu⟩ := (is_topological_basis.mem_nhds_iff h).1
-    (mem_nhds_sets hu xu),
+    (is_open.mem_nhds hu xu),
   refine ⟨w, wᶜ, hw.1, (is_clopen_compl_iff.2 hw).1, xw, _, _, set.inter_compl_self w⟩,
   { intro h,
     have : y ∈ u ∩ v := ⟨wu h, yv⟩,
@@ -1027,7 +1027,7 @@ end
   is contained in a clopen set contained in the open set.  -/
 lemma compact_exists_clopen_in_open {x : α} {U : set α} (is_open : is_open U) (memU : x ∈ U) :
     ∃ (V : set α) (hV : is_clopen V), x ∈ V ∧ V ⊆ U :=
-  (is_topological_basis.mem_nhds_iff is_topological_basis_clopen).1 (mem_nhds_sets is_open memU)
+  (is_topological_basis.mem_nhds_iff is_topological_basis_clopen).1 (is_open.mem_nhds memU)
 
 end profinite
 

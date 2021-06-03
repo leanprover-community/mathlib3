@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import data.real.sqrt
-import data.zsqrtd.basic
+import number_theory.zsqrtd.basic
 
 /-!
 # Image of `zsqrtd` in `ℝ`

@@ -71,6 +71,9 @@ begin
     exact algebra.subset_adjoin }
 end
 
+lemma adjoin_union (s t : set A) : adjoin R (s ∪ t) = adjoin R s ⊔ adjoin R t :=
+(algebra.gc : galois_connection _ (coe : subalgebra R A → set A)).l_sup
+
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }

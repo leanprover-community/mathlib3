@@ -550,8 +550,6 @@ noncomputable def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
 (alg_equiv.of_bijective to_top ⟨λ _ _, subtype.mk.inj,
   λ x, ⟨x.val, by { ext, refl }⟩⟩ : A ≃ₐ[R] (⊤ : subalgebra R A)).symm
 
-lemma le_iff (S : subalgebra R A) (T : subalgebra R A) : S ≤ T ↔ (S : set A) ⊆ T := iff.rfl
-
 end algebra
 
 namespace subalgebra

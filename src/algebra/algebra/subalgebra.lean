@@ -646,6 +646,14 @@ by ext; simp
 lemma prod_mono {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
   S ≤ T → S₁ ≤ T₁ → prod S S₁ ≤ prod T T₁ := set.prod_mono
 
+/-- First projection as `alg_hom`. -/
+def _root_.alg_hom.fst : A × B →ₐ[R] A :=
+{ commutes' := λ r, rfl, .. ring_hom.fst A B}
+
+/-- Second projection as `alg_hom`. -/
+def _root_.alg_hom.snd : A × B →ₐ[R] B :=
+{ commutes' := λ r, rfl, .. ring_hom.snd A B}
+
 end prod
 
 end subalgebra

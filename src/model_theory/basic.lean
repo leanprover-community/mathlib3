@@ -35,16 +35,12 @@ the continuum hypothesis*][flypitch_itp]
 
 -/
 
-universes l u
-
-variables {α : Type u} {β : Type u}
-
 namespace first_order
 
 /-- A first-order language consists of a type of functions of every natural-number arity and a
   type of relations of every natural-number arity. -/
-structure language : Type (l+1) :=
-(functions : ℕ → Type l) (relations : ℕ → Type l)
+structure language :=
+(functions : ℕ → Type*) (relations : ℕ → Type*)
 
 namespace language
 
@@ -54,9 +50,9 @@ def empty : language := ⟨λ _, pempty, λ _, pempty⟩
 instance : inhabited language := ⟨empty⟩
 
 /-- The type of constants in a given language. -/
-@[nolint has_inhabited_instance] def const (L : language.{l}) : Type l := L.functions 0
+@[nolint has_inhabited_instance] def const (L : language) := L.functions 0
 
-variable (L : language.{l})
+variable (L : language)
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -68,16 +64,16 @@ class is_algebraic : Prop :=
 
 variable {L}
 
-instance is_relational_of_empty_functions {symb : ℕ → Type l} : is_relational ⟨λ _, pempty, symb⟩ :=
+instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, pempty, symb⟩ :=
 ⟨by { intro n, apply pempty.elim }⟩
 
-instance is_algebraic_of_empty_relations {symb : ℕ → Type l}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
+instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
 ⟨by { intro n, apply pempty.elim }⟩
 
 instance is_relational_empty : is_relational (empty) := language.is_relational_of_empty_functions
 instance is_algebraic_empty : is_algebraic (empty) := language.is_algebraic_of_empty_relations
 
-variables (L) (M : Type u)
+variables (L) (M : Type*)
 
 /-- A first-order structure on a type `M` consists of interpretations of all the symbols in a given
   language. Each function of arity `n` is interpreted as a function sending tuples of length `n`
@@ -87,7 +83,7 @@ class Structure :=
 (fun_map : ∀{n}, L.functions n → (fin n → M) → M)
 (rel_map : ∀{n}, L.relations n → (fin n → M) → Prop)
 
-variables (N : Type u) [L.Structure M] [L.Structure N]
+variables (N : Type*) [L.Structure M] [L.Structure N]
 
 open first_order.language.Structure
 
@@ -117,7 +113,7 @@ protected structure equiv extends M ≃ N :=
 
 notation A ` ≃[`:25 L `] ` B := L.equiv A B
 
-variables {L M N}
+variables {L M N} {P : Type*} [L.Structure P] {Q : Type*} [L.Structure Q]
 namespace hom
 
 @[simps] instance has_coe_to_fun : has_coe_to_fun (M →[L] N) :=
@@ -125,12 +121,12 @@ namespace hom
 
 @[simp] lemma to_fun_eq_coe {f : M →[L] N} : f.to_fun = (f : M → N) := rfl
 
-lemma coe_inj ⦃f g : M →[L] N⦄ (h : (f : M → N) = g) : f = g :=
-by {cases f, cases g, cases h, refl}
+lemma coe_injective : @function.injective (M →[L] N) (M → N) coe_fn
+| f g h := by {cases f, cases g, cases h, refl}
 
 @[ext]
 lemma ext ⦃f g : M →[L] N⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj (funext h)
+coe_injective (funext h)
 
 lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -142,7 +138,7 @@ lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
   rel_map r x → rel_map r (φ ∘ x) := φ.map_rel' r x
 
 variables (L) (M)
-/-- The identity map from a structure to itself-/
+/-- The identity map from a structure to itself -/
 def id : M →[L] M :=
 { to_fun := id }
 
@@ -152,8 +148,6 @@ instance : inhabited (M →[L] M) := ⟨id L M⟩
 
 @[simp] lemma id_apply (x : M) :
   id L M x = x := rfl
-
-variables {P : Type u} [L.Structure P] {Q : Type u} [L.Structure Q]
 
 /-- Composition of first-order homomorphisms -/
 def comp (hnp : N →[L] P) (hmn : M →[L] N) : M →[L] P :=
@@ -187,7 +181,8 @@ def to_hom (f : M ↪[L] N) : M →[L] N :=
 @[simp]
 lemma coe_to_hom {f : M ↪[L] N} : (f.to_hom : M → N) = f := rfl
 
-lemma coe_inj ⦃f g : M ↪[L] N⦄ (h : (f : M → N) = g) : f = g :=
+lemma coe_injective : @function.injective (M ↪[L] N) (M → N) coe_fn
+| f g h :=
 begin
   cases f,
   cases g,
@@ -198,7 +193,7 @@ end
 
 @[ext]
 lemma ext ⦃f g : M ↪[L] N⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj (funext h)
+coe_injective (funext h)
 
 lemma ext_iff {f g : M ↪[L] N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -206,7 +201,7 @@ lemma ext_iff {f g : M ↪[L] N} : f = g ↔ ∀ x, f x = g x :=
 lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.injective
 
 variables (L) (M)
-/-- The identity embedding from a structure to itself-/
+/-- The identity embedding from a structure to itself -/
 def id : M ↪[L] M :=
 { to_embedding := function.embedding.refl M }
 
@@ -217,14 +212,10 @@ instance : inhabited (M ↪[L] M) := ⟨id L M⟩
 @[simp] lemma id_apply (x : M) :
   id L M x = x := rfl
 
-variables {P : Type u} [L.Structure P] {Q : Type u} [L.Structure Q]
-
 /-- Composition of first-order embeddings -/
 def comp (hnp : N ↪[L] P) (hmn : M ↪[L] N) : M ↪[L] P :=
 { to_fun := hnp ∘ hmn,
   inj' := hnp.injective.comp hmn.injective }
-
---infixr  ` ∘ `:80      := comp
 
 @[simp] lemma comp_apply (g : N ↪[L] P) (f : M ↪[L] N) (x : M) :
   g.comp f x = g (f x) := rfl
@@ -277,7 +268,8 @@ lemma coe_to_hom {f : M ≃[L] N} : (f.to_hom : M → N) = (f : M → N) := rfl
 
 @[simp] lemma coe_to_embedding (f : M ≃[L] N) : (f.to_embedding : M → N) = (f : M → N) := rfl
 
-lemma coe_inj ⦃f g : M ≃[L] N⦄ (h : (f : M → N) = g) : f = g :=
+lemma coe_injective : @function.injective (M ≃[L] N) (M → N) coe_fn
+| f g h :=
 begin
   cases f,
   cases g,
@@ -288,7 +280,7 @@ end
 
 @[ext]
 lemma ext ⦃f g : M ≃[L] N⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_inj (funext h)
+coe_injective (funext h)
 
 lemma ext_iff {f g : M ≃[L] N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -296,7 +288,7 @@ lemma ext_iff {f g : M ≃[L] N} : f = g ↔ ∀ x, f x = g x :=
 lemma injective (f : M ≃[L] N) : function.injective f := f.to_embedding.injective
 
 variables (L) (M)
-/-- The identity equivalence from a structure to itself-/
+/-- The identity equivalence from a structure to itself -/
 def id : M ≃[L] M :=
 { to_equiv := equiv.refl M }
 
@@ -307,14 +299,10 @@ instance : inhabited (M ≃[L] M) := ⟨id L M⟩
 @[simp] lemma id_apply (x : M) :
   id L M x = x := rfl
 
-variables {P : Type u} [L.Structure P] {Q : Type u} [L.Structure Q]
-
 /-- Composition of first-order equivalences -/
 def comp (hnp : N ≃[L] P) (hmn : M ≃[L] N) : M ≃[L] P :=
 { to_fun := hnp ∘ hmn,
   .. (hmn.to_equiv.trans hnp.to_equiv) }
-
---infixr  ` ∘ `:80      := comp
 
 @[simp] lemma comp_apply (g : N ≃[L] P) (f : M ≃[L] N) (x : M) :
   g.comp f x = g (f x) := rfl

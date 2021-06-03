@@ -625,11 +625,8 @@ begin
   rw szemeredi_equipartition,
   split_ifs,
   { rintro _ _,
-    /-rw function.iterate_succ' exp_bound n,
-    rw blowup_equipartition.size h.1 h.2.1 h.2.2,
-    rw hn h.2.1 h.2.2,-/
-    sorry
-  },
+    simp_rw [function.iterate_succ' exp_bound n, function.comp_app, ←hn h.2.1 h.2.2],
+    exact blowup_equipartition.size h.1 h.2.1 h.2.2 },
   rintro h₁ h₂,
   exfalso,
   exact h ⟨εl_condition hε n, h₁, h₂⟩,

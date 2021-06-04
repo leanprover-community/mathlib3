@@ -15,7 +15,7 @@ defines the limit value of an eventually-constant sequence.
 
 ## Main declarations
 
-* `nat_<lt/gt>`: Make an order embedding `ℕ ↪ α` from an increasing/decreasing function `ℕ → α`.
+* `nat_lt`/`nat_gt`: Make an order embedding `ℕ ↪ α` from an increasing/decreasing function `ℕ → α`.
 * `monotonic_sequence_limit`: The limit of an eventually-constant monotone sequence `ℕ →ₘ α`.
 * `monotonic_sequence_limit_index`: The index of the first occurence of `monotonic_sequence_limit`
   in the sequence.

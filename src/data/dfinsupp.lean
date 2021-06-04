@@ -128,10 +128,6 @@ end
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 quotient.induction_on₂ g₁ g₂ $ λ _ _, rfl
 
-@[simp]
-lemma coe_mk {η : ι → Type*} [∀ i, has_zero (η i)] (f : Π i, η i) (s : multiset ι) (hf) :
-  ⇑(⟦dfinsupp.pre.mk f s hf⟧ : Π₀ i, η i) = f := rfl
-
 end basic
 
 section algebra

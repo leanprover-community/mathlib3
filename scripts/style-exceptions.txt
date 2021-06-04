@@ -122,12 +122,8 @@ src/order/bounded_lattice.lean : line 15 : ERR_MOD : Module docstring missing, o
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/directed.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/lexicographic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/order/omega_complete_partial_order.lean : line 51 : ERR_LIN : Line has more than 100 characters
 src/order/order_iso_nat.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/pilex.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/rel_iso.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/zorn.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/lists.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/schroeder_bernstein.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/zfc.lean : line 10 : ERR_MOD : Module docstring missing, or too late

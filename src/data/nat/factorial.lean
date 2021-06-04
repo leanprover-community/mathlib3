@@ -71,7 +71,7 @@ lemma factorial_lt (h0 : 0 < n) : n! < m! ↔ n < m :=
 begin
   split; intro h,
   { rw [← not_le], intro hmn, apply not_le_of_lt h (factorial_le hmn) },
-  have : ∀(n : ℕ), 0 < n → n! < n.succ!,
+  have : ∀ n, 0 < n → n! < n.succ!,
   { intros k hk, rw [factorial_succ, succ_mul, lt_add_iff_pos_left],
     apply mul_pos hk (factorial_pos k) },
   induction h with k hnk generalizing h0,

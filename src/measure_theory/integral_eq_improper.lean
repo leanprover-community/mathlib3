@@ -16,16 +16,14 @@ section ae_cover
 
 variables {α ι : Type*} [measurable_space α] (μ : measure α) (l : filter ι)
 
-/-- A sequence `φ` of subsets of `α` is a `ae_cover` w.r.t. a measure `μ`
-    if almost every point (w.r.t. `μ`) of `α` eventually belongs to `φ n`, and if
+/-- A sequence `φ` of subsets of `α` is a `ae_cover` w.r.t. a measure `μ` and a filter `l`
+    if almost every point (w.r.t. `μ`) of `α` eventually belongs to `φ n` (w.r.t. `l`), and if
     each `φ n` is measurable.
     This definition is a technical way to avoid duplicating a lot of proofs.
     It should be thought of as a sufficient condition for being able to interpret
-    `∫ x, f x ∂μ` (if it exists) as the limit of `∫ x in φ n, f x ∂μ` as `n` tends to `+∞`.
+    `∫ x, f x ∂μ` (if it exists) as the limit of `∫ x in φ n, f x ∂μ` as `n` tends to `l`.
 
-    See for example `measure_theory.set_lintegral_tendsto_lintegral`,
-    `measure_theory.integrable_of_set_integral_norm_tendsto` and
-    `measure_theory.set_integral_tendsto_integral`. -/
+    See for example [TODO]. -/
 structure ae_cover (φ : ι → set α) : Prop :=
 (ae_eventually_mem : ∀ᵐ x ∂μ, ∀ᶠ i in l, x ∈ φ i)
 (measurable : ∀ i, measurable_set $ φ i)

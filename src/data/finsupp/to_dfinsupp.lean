@@ -234,7 +234,9 @@ local attribute [-instance] finsupp.has_zero
 /-- `finsupp.split` is an additive equivalence between `(Σ (j : η), ιs j) →₀ α`
 and `Π₀ j, (ιs j →₀ α)`. -/
 def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N) ≃+ (Π₀ i, (η i →₀ N)) :=
-{ map_add' := λ f g,
+{ to_fun := sigma_finsupp_equiv_dfinsupp,
+  inv_fun := sigma_finsupp_equiv_dfinsupp.symm,
+  map_add' := λ f g,
   begin
     ext,
     simpa [finsupp.split_apply],

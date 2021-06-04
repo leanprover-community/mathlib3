@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import measure_theory.interval_integral
 import order.filter.at_top_bot
+import analysis.special_functions.integrals
 
 open measure_theory filter set topological_space
 open_locale ennreal nnreal topological_space
@@ -255,7 +256,7 @@ begin
   exact ennreal.of_real_lt_top
 end
 
-lemma ae_cover.integrable_of_lintegral_nnorm_tendsto' {φ : ι → set α} (hφ : ae_cover μ φ)
+lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' {φ : ι → set α} (hφ : ae_cover μ φ)
   (htop : (at_top : filter ι).is_countably_generated) {f : α → E} (I : ℝ≥0) (hfm : measurable f)
   (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) at_top (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
@@ -278,13 +279,20 @@ begin
   exact ne_top_of_lt (hfi i).2
 end
 
--- TODO : of_nonneg
+lemma ae_cover.integrable_of_integral_tendsto_of_nonneg_ae {φ : ι → set α} (hφ : ae_cover μ φ)
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ} (I : ℝ) (hfm : measurable f)
+  (hfi : ∀ i, integrable_on f (φ i) μ) (hnng : ∀ᵐ x ∂μ, f x ≥ 0)
+  (htendsto : tendsto (λ i, ∫ x in φ i, f x ∂μ) at_top (𝓝 I)) :
+  integrable f μ :=
+hφ.integrable_of_integral_norm_tendsto htop I hfm hfi
+  (htendsto.congr $ λ i, integral_congr_ae $ ae_restrict_of_ae $ hnng.mono $
+    λ x hx, (real.norm_of_nonneg hx).symm)
 
 end integrable
 
 section integral
 
-variables {α ι E : Type*} [semilattice_sup ι] [nonempty ι]
+variables {α ι E : Type*} [semilattice_sup ι]
   [measurable_space α] {μ : measure α} [normed_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E] [second_countable_topology E]
 
@@ -428,7 +436,21 @@ end integral_of_interval_integral
 
 section examples -- will be removed later (TODO)
 
-
+example : integrable_on (λ x, real.exp (-x)) (Ioi 0) :=
+begin
+  have key₁ : ∀ x, integrable_on (λ t, real.exp (-t)) (Ioc 0 x) :=
+    λ x, ((real.continuous_exp.comp continuous_id.neg).integrable_on_compact compact_Icc).mono_set
+      Ioc_subset_Icc_self,
+  have key₂ : ∀ x, 1 - real.exp (-x) = ∫ t in 0..x, ∥real.exp (-t)∥,
+  { intro x,
+    conv in (norm _) { rw real.norm_of_nonneg ((-t).exp_pos.le) },
+    simp },
+  refine integrable_on_Ioi_of_interval_integral_norm_tendsto
+    (@at_top_countably_generated_of_archimedean ℝ _ _) (real.measurable_exp.comp measurable_neg)
+    (1 : ℝ) (0 : ℝ) key₁ tendsto_id (tendsto.congr key₂ _),
+  convert tendsto_const_nhds.sub (real.tendsto_exp_at_bot.comp tendsto_neg_at_top_at_bot),
+  ring
+end
 
 end examples
 

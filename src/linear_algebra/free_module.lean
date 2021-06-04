@@ -12,7 +12,7 @@ import linear_algebra.direct_sum.finsupp
 
 # Free modules
 
-We introduce a class `free_module R M`, for `R` a `semiring` and `M` an `R`-module and we provide
+We introduce a class `module.free R M`, for `R` a `semiring` and `M` an `R`-module and we provide
 several basic instances for this class.
 
 ## Main definition

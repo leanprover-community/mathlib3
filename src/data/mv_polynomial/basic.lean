@@ -379,6 +379,10 @@ single_apply
   coeff m (C a : mv_polynomial σ R) = if 0 = m then a else 0 :=
 single_apply
 
+lemma coeff_one [decidable_eq σ] (m) :
+  coeff m (1 : mv_polynomial σ R) = if 0 = m then 1 else 0 :=
+coeff_C m 1
+
 @[simp] lemma coeff_zero_C (a) : coeff 0 (C a : mv_polynomial σ R) = a :=
 single_eq_same
 

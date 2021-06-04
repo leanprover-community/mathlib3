@@ -1977,6 +1977,30 @@ section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
 [add_comm_monoid M₃] [add_comm_monoid M₄]
 
+section subsingleton
+variables [module R M] [module R M₂] [subsingleton M] [subsingleton M₂]
+
+/-- Between two zero modules, the zero map is an equivalence. -/
+instance : has_zero (M ≃ₗ[R] M₂) :=
+⟨{ to_fun := 0,
+   inv_fun := 0,
+   right_inv := λ x, subsingleton.elim _ _,
+   left_inv := λ x, subsingleton.elim _ _,
+   ..(0 : M →ₗ[R] M₂)}⟩
+
+-- Even though these are implied by `subsingleton.elim` via the `unique` instance below, they're
+-- nice to have as `rfl`-lemmas for `dsimp`.
+@[simp] lemma zero_symm : (0 : M ≃ₗ[R] M₂).symm = 0 := rfl
+@[simp] lemma coe_zero : ⇑(0 : M ≃ₗ[R] M₂) = 0 := rfl
+lemma zero_apply (x : M) : (0 : M ≃ₗ[R] M₂) x = 0 := rfl
+
+/-- Between two zero modules, the zero map is the only equivalence. -/
+instance : unique (M ≃ₗ[R] M₂) :=
+{ uniq := λ f, to_linear_map_injective (subsingleton.elim _ _),
+  default := 0 }
+
+end subsingleton
+
 section
 variables {module_M : module R M} {module_M₂ : module R M₂}
 variables (e e' : M ≃ₗ[R] M₂)

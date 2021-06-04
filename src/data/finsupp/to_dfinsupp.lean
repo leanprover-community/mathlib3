@@ -15,13 +15,15 @@ It is in its own file since neither `finsupp` or `dfinsupp` depend on each other
 
 ## Main definitions
 
-* `finsupp.to_dfinsupp : (ι →₀ M) → (Π₀ i : ι, M)`
-* `dfinsupp.to_finsupp : (Π₀ i : ι, M) → (ι →₀ M)`
-* `sigma_finsupp_equiv_dfinsupp : ((Σ i, η i) →₀ N) ≃ (Π₀ i, (η i →₀ N))`
-* Bundled equiv versions of the above:
-  * `finsupp_equiv_dfinsupp : (ι →₀ M) ≃ (Π₀ i : ι, M)`
-  * `finsupp_add_equiv_dfinsupp : (ι →₀ M) ≃+ (Π₀ i : ι, M)`
-  * `finsupp_lequiv_dfinsupp R : (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M)`
+* "identity" maps between `finsupp` and `dfinsupp`:
+  * `finsupp.to_dfinsupp : (ι →₀ M) → (Π₀ i : ι, M)`
+  * `dfinsupp.to_finsupp : (Π₀ i : ι, M) → (ι →₀ M)`
+  * Bundled equiv versions of the above:
+    * `finsupp_equiv_dfinsupp : (ι →₀ M) ≃ (Π₀ i : ι, M)`
+    * `finsupp_add_equiv_dfinsupp : (ι →₀ M) ≃+ (Π₀ i : ι, M)`
+    * `finsupp_lequiv_dfinsupp R : (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M)`
+* stronger versions of `finsupp.split`:
+  * `sigma_finsupp_equiv_dfinsupp : ((Σ i, η i) →₀ N) ≃ (Π₀ i, (η i →₀ N))`
   * `sigma_finsupp_add_equiv_dfinsupp : ((Σ i, η i) →₀ N) ≃+ (Π₀ i, (η i →₀ N))`
   * `sigma_finsupp_lequiv_dfinsupp : ((Σ i, η i) →₀ N) ≃ₗ[R] (Π₀ i, (η i →₀ N))`
 

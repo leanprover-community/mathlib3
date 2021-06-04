@@ -76,7 +76,7 @@ noncomputable def repr : M ≃ₗ[R] (choose_basis_index R M →₀ R) := (choos
 
 @[priority 100]
 instance no_zero_smul_divisors [no_zero_divisors R] : no_zero_smul_divisors R M :=
-basis.no_zero_smul_divisors $ choose_basis R M
+let ⟨⟨_, b⟩⟩ := exists_basis R M in b.no_zero_smul_divisors
 
 variables {R M N}
 

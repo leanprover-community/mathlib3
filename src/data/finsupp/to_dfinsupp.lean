@@ -190,9 +190,8 @@ noncomputable def finsupp_lequiv_dfinsupp
   map_add' := finsupp.to_dfinsupp_add,
   .. finsupp_equiv_dfinsupp}
 
-
-/-- ### Stronger versions of `finsupp.split` -/
 section sigma
+/-- ### Stronger versions of `finsupp.split` -/
 
 noncomputable theory
 open_locale classical

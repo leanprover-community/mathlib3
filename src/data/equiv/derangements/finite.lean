@@ -37,7 +37,7 @@ open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] [fintype α]
 
-instance : decidable_pred (@is_derangement α) := λ _, fintype.decidable_forall_fintype
+instance : decidable_pred (derangements α) := λ _, fintype.decidable_forall_fintype
 
 instance : fintype (derangements α) :=
 begin
@@ -45,18 +45,20 @@ begin
   apply_instance
 end
 
-/-- The number of derangements on an `n`-element set. -/
-def num_derangements (n : ℕ) : ℕ := card (derangements (fin n))
+/-- The number of derangements on an `n`-element set. This definition is bad for
+    computation though, use `num_derangements` instead. -/
+def num_derangements_aux (n : ℕ) : ℕ := card (derangements (fin n))
 
-@[simp] lemma num_derangements_invariant (α : Type*) [fintype α] [decidable_eq α] :
-  card (derangements α) = num_derangements (card α) :=
+lemma num_derangements_aux_invariant (α : Type*) [fintype α] [decidable_eq α] :
+  card (derangements α) = num_derangements_aux (card α) :=
 begin
   apply card_eq.mpr,  -- card_eq because we don't need the specific equivalence
   use derangements_congr (equiv_fin α),
 end
 
-theorem num_derangements_succ (n : ℕ) :
-  num_derangements (n+2) = (n+1) * num_derangements n + (n+1) * num_derangements (n+1) :=
+theorem num_derangements_aux_succ (n : ℕ) :
+  num_derangements_aux (n+2) = (n+1) * num_derangements_aux n +
+  (n+1) * num_derangements_aux (n+1) :=
 begin
   have card_everything_but : ∀ a : fin (n+1), card ({a}ᶜ : set (fin (n+1))) = n,
   { intro a,
@@ -64,54 +66,57 @@ begin
     rw [finset.filter_ne' _ a, finset.card_erase_of_mem (finset.mem_univ a)],
     simp },
   have key := card_congr (@derangements_recursion_equiv (fin (n+1)) _),
-  rw [num_derangements_invariant, fintype.card_option, fintype.card_fin] at key,
-  simp [card_everything_but, mul_add, key]
+  rw [num_derangements_aux_invariant, fintype.card_option, fintype.card_fin] at key,
+  simp [num_derangements_aux_invariant, card_everything_but, mul_add, key],
 end
 
-lemma num_derangements_0 : num_derangements 0 = 1 := rfl
+/-- The number of derangements on an `n`-element set. -/
+def num_derangements : ℕ → ℤ
+| 0 := 1
+| (n + 1) := (n + 1) * num_derangements n - (-1 : ℤ)^n
 
-lemma num_derangements_1 : num_derangements 1 = 0 := rfl
-
-theorem num_derangements_sum (n : ℕ) :
-  (num_derangements n : ℤ) = ∑ k in finset.range (n + 1), (-1 : ℤ)^k * nat.desc_fac k (n - k) :=
+lemma num_derangement_eq_aux (n : ℕ) : (num_derangements_aux n : ℤ) = num_derangements n :=
 begin
-  refine nat.strong_induction_on n _,
+  apply nat.strong_induction_on n,
   clear n, -- to avoid confusion with the n in the hypothesis
   intros n hyp,
-  -- need to knock out cases n = 0, 1
-  cases n, { rw num_derangements_0, simp },
-  cases n, { rw num_derangements_1, simp [finset.sum_range_succ] },
+  -- knock out cases 0 and 1
+  cases n, { refl },
+  cases n, { refl },
   -- now we have n ≥ 2
-  rw num_derangements_succ,
+  rw num_derangements_aux_succ,
   push_cast,
   have n_le : n < n + 2 := nat.lt_succ_of_le (nat.le_succ _),
   have n_succ_le : n + 1 < n + 2 := lt_add_one _,
   rw [hyp n n_le, hyp n.succ n_succ_le],
-  -- push all the constants inside the sums, strip off some trailing terms,
-  -- and compare term-wise
-  simp only [finset.mul_sum],
-  simp only [finset.sum_range_succ _ (n+1), finset.sum_range_succ _ (n+2)],
-  conv_lhs { rw ←add_assoc, rw ←finset.sum_add_distrib },
-  conv_rhs { rw add_assoc },
-  -- now both sides are of the form `sum (x : ℕ) in finset.range(n+1) (...) + (...)`, in such
-  -- a way that we can just check that the LHS and RHS match up in each summand
-  congr' 1,
-  -- show that (n+1) (-1)^k / (n! / k!) + (n+1) (-1)^k ((n+1)! / k!) = (-1)^k ((n+2)! / k!)
-  { refine finset.sum_congr rfl _,
-    -- introduce k and rewrite the constraint to `k ≤ n`
-    intros k h_mem,
-    have h_le : k ≤ n := nat.lt_succ_iff.mp (finset.mem_range.mp h_mem),
-    have h_le' : k ≤ n.succ := nat.le_succ_of_le h_le,
-    -- rw (n.succ-k) to (n-k).succ, and similar
-    rw [nat.succ_sub h_le', nat.succ_sub h_le],
-    -- expand desc_fac recursively
-    repeat {rw nat.desc_fac_succ},
-    rw ← nat.add_one,
-    zify [h_le],
-    ring },
-  -- show that `(n+1) * (-1)^(n+1) ((n+1)! / (n+1)!)` (from the n+1 sum) =
-  -- `(-1)^(n+1) ((n+2)! / (n+1)!) + (-1)^(n+2) ((n+2)! / (n+2)!)` (from the n+2 sum)
-  { -- simplify the arguments to desc_fac, and then evaluate them explicitly
-    norm_num [pow_succ, ←nat.add_one, nat.desc_fac_succ, nat.desc_fac_zero],
-    ring },
+  repeat { rw num_derangements },
+  rw [pow_succ],
+  push_cast,
+  ring,
+end
+
+lemma num_derangements_nonneg (n : ℕ) : num_derangements n ≥ 0 :=
+begin
+  rw ← num_derangement_eq_aux,
+  exact int.coe_zero_le _,
+end
+
+theorem num_derangements_sum (n : ℕ) :
+  num_derangements n = ∑ k in finset.range (n + 1), (-1 : ℤ)^k * nat.desc_fac k (n - k) :=
+begin
+  induction n with n hn,
+  { refl },
+  { rw [finset.sum_range_succ, num_derangements, hn, finset.mul_sum, sub_eq_add_neg],
+    congr' 1,
+    -- show that (n + 1) * (-1)^x * desc_fac x (n - x) = (-1)^x * desc_fac x (n.succ - x)
+    {
+      refine finset.sum_congr (refl _) _,
+      intros x hx,
+      have h_le : x ≤ n := finset.mem_range_succ_iff.mp hx,
+      rw [nat.succ_sub h_le, nat.desc_fac_succ, nat.add_sub_cancel' h_le],
+      push_cast,
+      ring,
+    },
+    -- show that -(-1)^n = (-1)^n.succ * desc_fac n.succ (n.succ - n.succ)
+    { simp [pow_succ] }}
 end

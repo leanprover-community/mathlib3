@@ -1,27 +1,40 @@
+/-
+Copyright (c) 2021 Yaël Dillies. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Eric Rodriguez
+-/
+
 import data.nat.choose.basic
 import data.nat.cast
+import algebra.group_power.lemmas
+
+/-!
+# Inequalities for the choose function
+
+## Main declarations
+* `choose_le_pow`: `nCk ≤ n^r / r!`
+* `pow_le_choose`: `(n + 1 - r)^r / r! ≤ nCr`. Careful with the ℕ-subtraction.
+-/
+
+open_locale nat
 
 variables {α : Type*} [linear_ordered_field α] [nontrivial α]
 
-lemma choose_le_pow (r n : ℕ) : (n.choose r : α) ≤ n^r / r.factorial :=
+lemma choose_le_pow (r n : ℕ) : (n.choose r : α) ≤ n^r / r! :=
 begin
   rw le_div_iff',
   { norm_cast,
     rw ←nat.desc_fact_eq_factorial_mul_choose,
-    sorry
-    --rw nat.cast_le, --fails
-    --exact n.desc_fact_le_pow r
-    },
+    exact n.desc_fact_le_pow r },
   exact_mod_cast r.factorial_pos,
 end
 
-lemma pow_le_choose (r n : ℕ) : ((n + 1 - r)^r : α) / r.factorial ≤ n.choose r :=
+-- horrific casting is due to ℕ-subtraction
+lemma pow_le_choose (r n : ℕ) : (((n + 1 - r) : ℕ)^r : α) / r! ≤ n.choose r :=
 begin
   rw div_le_iff',
   { norm_cast,
     rw [←nat.desc_fact_eq_factorial_mul_choose],
-    sorry
-    --exact n.pow_le_desc_fact r
-    },
+    exact n.pow_le_desc_fact r },
   exact_mod_cast r.factorial_pos,
 end

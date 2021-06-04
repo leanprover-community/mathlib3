@@ -87,7 +87,7 @@ of_basis $ (choose_basis R M).map e
 instance. -/
 lemma of_equiv' {P : Type v} [add_comm_monoid P] [module R P] (h : module.free R P)
   (e : P ≃ₗ[R] N) : module.free R N :=
-of_basis $ (choose_basis R P).map e
+of_equiv e
 
 variables (R M N)
 

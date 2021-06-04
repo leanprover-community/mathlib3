@@ -421,8 +421,7 @@ begin
   rw map_lintegral,
 end
 
-lemma snorm_ess_sup_simple_func_lt_top (f : α →ₛ G) (μ : measure α) :
-  snorm_ess_sup f μ < ∞ :=
+lemma snorm_ess_sup_simple_func_lt_top (f : α →ₛ G) (μ : measure α) : snorm_ess_sup f μ < ∞ :=
 begin
   rw snorm_ess_sup,
   obtain ⟨C, hfC⟩ := f.exists_forall_norm_le,
@@ -432,14 +431,12 @@ begin
   exact ennreal.of_real_le_of_real (hfC x),
 end
 
-lemma mem_ℒp_top (f : α →ₛ E) (μ : measure α) :
-  mem_ℒp f ∞ μ :=
+lemma mem_ℒp_top (f : α →ₛ E) (μ : measure α) : mem_ℒp f ∞ μ :=
 ⟨f.ae_measurable, by { rw snorm_exponent_top, exact snorm_ess_sup_simple_func_lt_top f μ}⟩
 
-lemma finite_measure_of_mem_ℒp {μ : measure α} {p : ℝ≥0∞}
-  (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞)
-  (f : α →ₛ E) (hf : mem_ℒp f p μ) (y : E) (hyf : y ∈ f.range) :
-  y = 0 ∨ μ (f ⁻¹' {y}) < ∞ :=
+lemma measure_preimage_lt_top_of_mem_ℒp {μ : measure α} {p : ℝ≥0∞} (hp_pos : 0 < p)
+  (hp_ne_top : p ≠ ∞) (f : α →ₛ E) (hf : mem_ℒp f p μ) (y : E) (hyf : y ∈ f.range) (hy_ne : y ≠ 0) :
+  μ (f ⁻¹' {y}) < ∞ :=
 begin
   have hp_pos_real : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp_pos, hp_ne_top⟩,
   have hf_snorm := mem_ℒp.snorm_lt_top hf,
@@ -452,24 +449,34 @@ begin
   specialize hf_snorm y hyf,
   rw ennreal.mul_lt_top_iff at hf_snorm,
   cases hf_snorm,
-  { exact or.inr hf_snorm.2, },
+  { exact hf_snorm.2, },
   cases hf_snorm,
   { simp only [hp_pos_real, ennreal.rpow_eq_zero_iff, and_true, ennreal.coe_ne_top, or_false,
       nnnorm_eq_zero, ennreal.coe_eq_zero, false_and] at hf_snorm,
-    exact or.inl hf_snorm, },
+    exact absurd hf_snorm hy_ne, },
   { simp [hf_snorm], },
 end
 
-lemma finite_measure_of_integrable
-  (f : α →ₛ E) (hf : integrable f μ) (y : E) (hyf : y ∈ f.range) :
-  y = 0 ∨ μ (f ⁻¹' {y}) < ∞ :=
+lemma measure_preimage_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) {x : E}
+  (hx : x ≠ 0) :
+  μ (f ⁻¹' {x}) < ∞ :=
 begin
   rw ← mem_ℒp_one_iff_integrable at hf,
-  exact finite_measure_of_mem_ℒp ennreal.zero_lt_one ennreal.coe_ne_top f hf y hyf,
+  by_cases hx_mem : x ∈ f.range,
+  { exact measure_preimage_lt_top_of_mem_ℒp ennreal.zero_lt_one ennreal.coe_ne_top f hf x hx_mem
+      hx, },
+  suffices h_empty : f ⁻¹' {x} = ∅,
+  { rw [h_empty, measure_empty],
+    exact ennreal.coe_lt_top, },
+  ext1 y,
+  rw [set.mem_preimage, set.mem_singleton_iff, mem_empty_eq, iff_false],
+  intro hxy,
+  refine hx_mem _,
+  rw [mem_range, set.mem_range],
+  exact ⟨y, hxy⟩,
 end
 
-lemma mem_ℒp_of_integrable (p : ℝ≥0∞) {f : α →ₛ E} (hf : integrable f μ) :
-  mem_ℒp f p μ :=
+lemma mem_ℒp_of_integrable (p : ℝ≥0∞) (f : α →ₛ E) (hf : integrable f μ) : mem_ℒp f p μ :=
 begin
   refine ⟨f.ae_measurable, _⟩,
   by_cases hp0 : p = 0,
@@ -484,9 +491,9 @@ begin
   refine ennreal.rpow_lt_top_of_nonneg _ _,
   { simp, },
   refine (ennreal.sum_lt_top (λ y hy, _)).ne,
-  have hyμ := finite_measure_of_integrable f hf y hy,
-  cases hyμ,
-  { simp [hyμ, hp_pos], },
+  by_cases hy_zero : y = 0,
+  { simp [hy_zero, hp_pos], },
+  have hyμ := measure_preimage_lt_top_of_integrable f hf hy_zero,
   refine ennreal.mul_lt_top (ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg _) hyμ,
   exact ennreal.coe_ne_top,
 end
@@ -495,8 +502,8 @@ lemma mem_ℒ0_iff_ae_measurable [measurable_space α] {μ : measure α} {f : α
   mem_ℒp f 0 μ ↔ ae_measurable f μ :=
 by { simp_rw mem_ℒp, refine and_iff_left _, simp, }
 
-lemma mem_ℒp_of_finite_measure_range (p : ℝ≥0∞)
-  {f : α →ₛ E} (hf : ∀ y ∈ f.range, y = 0 ∨ μ (f ⁻¹' {y}) < ∞) :
+lemma mem_ℒp_of_finite_measure_range (p : ℝ≥0∞) {f : α →ₛ E}
+  (hf : ∀ y ∈ f.range, y ≠ 0 → μ (f ⁻¹' {y}) < ∞) :
   mem_ℒp f p μ :=
 begin
   by_cases hp0 : p = 0,
@@ -512,32 +519,29 @@ begin
   rw snorm'_simple_func,
   refine ennreal.rpow_lt_top_of_nonneg (by simp) (ne_of_lt _),
   refine ennreal.sum_lt_top_iff.mpr (λ y hy, _),
-  cases hf y hy with h h,
-  { simp [h, hp_pos], },
-  { refine ennreal.mul_lt_top _ h,
-    exact ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg ennreal.coe_ne_top, },
+  by_cases hy0 : y = 0,
+  { simp [hy0, hp_pos], },
+  refine ennreal.mul_lt_top _ (hf y hy hy0),
+  exact ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg ennreal.coe_ne_top,
 end
 
-lemma mem_ℒp_iff_integrable {p : ℝ≥0∞} {f : α →ₛ E}
-  (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+lemma mem_ℒp_iff_integrable {p : ℝ≥0∞} {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ integrable f μ :=
 begin
-  refine ⟨λ h, _, mem_ℒp_of_integrable p⟩,
+  refine ⟨λ h, _, mem_ℒp_of_integrable p f⟩,
   rw ← mem_ℒp_one_iff_integrable,
   refine mem_ℒp_of_finite_measure_range 1 _,
-  exact finite_measure_of_mem_ℒp hp_pos hp_ne_top f h,
+  exact measure_preimage_lt_top_of_mem_ℒp hp_pos hp_ne_top f h,
 end
 
-lemma mem_ℒp_of_finite_measure (p : ℝ≥0∞) (f : α →ₛ E)
-  (μ : measure α) [finite_measure μ] :
+lemma mem_ℒp_of_finite_measure (p : ℝ≥0∞) (f : α →ₛ E) (μ : measure α) [finite_measure μ] :
   mem_ℒp f p μ :=
 begin
   obtain ⟨C, hfC⟩ := f.exists_forall_norm_le,
   exact mem_ℒp.of_bound f.ae_measurable C (eventually_of_forall hfC),
 end
 
-protected lemma integrable [finite_measure μ] (f : α →ₛ E) :
-  integrable f μ :=
+protected lemma integrable [finite_measure μ] (f : α →ₛ E) : integrable f μ :=
 mem_ℒp_one_iff_integrable.mp (mem_ℒp_of_finite_measure 1 f μ)
 
 lemma measure_preimage_ne_zero_lt_top (f : α →ₛ E) (hf : integrable f μ) {s : finset E}
@@ -547,31 +551,17 @@ begin
   rw ← sum_measure_preimage_singleton,
   swap, { exact λ y hy, f.measurable_set_preimage _, },
   refine ennreal.sum_lt_top (λ y hy, _),
-  have hf' := finite_measure_of_integrable f hf y,
-  by_cases hyf : y ∈ f.range,
-  { cases hf' hyf with hy0 hyμ,
-    { rw hy0 at hy,
-      exact absurd hy hs0, },
-    { exact hyμ, }, },
-  rw ← preimage_eq_empty_iff f y at hyf,
-  simp only [hyf, measure_empty, with_top.zero_lt_top],
-end
-
-lemma measure_preimage_lt_top (f : α →ₛ E) (hf : integrable f μ) {x : E} (hx : x ≠ 0) :
-  μ (f ⁻¹' {x}) < ∞ :=
-begin
-  have h := f.finite_measure_of_integrable hf x,
-  by_cases hx_mem : x ∈ f.range,
-  swap, { sorry, },
-  cases h hx_mem with h1 h2,
-  { exact absurd h1 hx, },
-  { exact h2, },
+  have hy0 : y ≠ 0,
+  { intro h0,
+    rw h0 at hy,
+    exact hs0 hy, },
+  exact f.measure_preimage_lt_top_of_integrable hf hy0,
 end
 
 lemma finite_measurable_preimage_of_integrable (f : α →ₛ E) (hf : integrable f μ) (x : E)
   (hx_mem : x ∈ f.range) (hx_ne : x ≠ 0) :
   measurable_set (f ⁻¹' {x}) ∧ μ (f ⁻¹' {x}) < ∞ :=
-⟨f.measurable_set_preimage _, f.measure_preimage_lt_top hf hx_ne⟩
+⟨f.measurable_set_preimage _, f.measure_preimage_lt_top_of_integrable hf hx_ne⟩
 
 /-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`
     and `g` is a function from `E` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/

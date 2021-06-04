@@ -11,19 +11,6 @@ open_locale ennreal nnreal topological_space
 
 namespace measure_theory
 
-section assumed
-
-variables {α : Type*} [measurable_space α] {μ : measure α}
-
-/-- Monotone convergence theorem expressed with limits -/
-theorem lintegral_tendsto_of_tendsto_of_monotone {f : ℕ → α → ℝ≥0∞} {F : α → ℝ≥0∞}
-  (hf : ∀n, ae_measurable (f n) μ) (h_mono : ∀ᵐ x ∂μ, monotone (λ n, f n x))
-  (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 $ F x)) :
-  tendsto (λ n, ∫⁻ x, f n x ∂μ) at_top (𝓝 $ ∫⁻ x, F x ∂μ) :=
-sorry
-
-end assumed
-
 section ae_cover
 
 variables {α ι : Type*} [preorder ι]
@@ -170,7 +157,7 @@ section linear_order_ι
 variables {α ι : Type*} [linear_order ι] [encodable ι]
   [measurable_space α] {μ : measure α}
 
-lemma ae_cover.bInter_Ici_ae_cover [nonempty ι] {φ : ι → set α} (hφ : ae_cover μ φ)
+lemma ae_cover.bInter_Ici_ae_cover {φ : ι → set α} (hφ : ae_cover μ φ)
   [nonempty ι] : ae_cover μ (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
 { ae_eventually_mem := hφ.ae_eventually_mem.mono
     begin
@@ -228,7 +215,6 @@ lemma ae_cover.lintegral_tendsto_of_at_top_countably_generated {φ : ι → set 
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 htop.tendsto_of_seq_tendsto (λ u hu, (hφ.comp_tendsto_at_top hu).lintegral_tendsto_of_nat hfm)
 
--- TODO : supr and
 -- TODO : change name to `set_...` ?
 
 lemma ae_cover.lintegral_eq_of_tendsto {φ : ι → set α} (hφ : ae_cover μ φ)
@@ -236,6 +222,18 @@ lemma ae_cover.lintegral_eq_of_tendsto {φ : ι → set α} (hφ : ae_cover μ �
   (hfm : measurable f) (htendsto : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 I)) :
   ∫⁻ x, f x ∂μ = I :=
 tendsto_nhds_unique (hφ.lintegral_tendsto_of_at_top_countably_generated htop hfm) htendsto
+
+lemma ae_cover.supr_lintegral_eq_of_at_top_countably_generated {φ : ι → set α} (hφ : ae_cover μ φ)
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ≥0∞} (hfm : measurable f) :
+  (⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ) = ∫⁻ x, f x ∂μ :=
+begin
+  have := hφ.lintegral_tendsto_of_at_top_countably_generated htop hfm,
+  refine csupr_eq_of_forall_le_of_forall_lt_exists_gt
+    (λ i, lintegral_mono' measure.restrict_le_self (le_refl _)) (λ w hw, _),
+  rcases exists_between hw with ⟨m, hm₁, hm₂⟩,
+  rcases (eventually_ge_of_tendsto_gt hm₂ this).exists with ⟨i, hi⟩,
+  exact ⟨i, lt_of_lt_of_le hm₁ hi⟩,
+end
 
 end lintegral
 
@@ -427,5 +425,11 @@ begin
 end
 
 end integral_of_interval_integral
+
+section examples -- will be removed later (TODO)
+
+
+
+end examples
 
 end measure_theory

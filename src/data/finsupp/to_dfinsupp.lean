@@ -200,8 +200,7 @@ variables {η : ι → Type*} {N : Type*} [semiring R]
 
 open finsupp
 
-/-- `finsupp.split` is an equivalence between `(Σ (j : η), ιs j) →₀ α`
-and `Π₀ j, (ιs j →₀ α)`. -/
+/-- `finsupp.split` is an equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 def sigma_finsupp_equiv_dfinsupp [has_zero N] : ((Σ i, η i) →₀ N) ≃ (Π₀ i, (η i →₀ N)) :=
 { to_fun := λ f, ⟦⟨split f, (split_support f : finset ι).val, λ i,
     begin
@@ -231,8 +230,7 @@ lemma sigma_finsupp_equiv_dfinsupp_symm_apply [has_zero N] (f : Π₀ i, (η i �
 -- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.
 local attribute [-instance] finsupp.has_zero
 
-/-- `finsupp.split` is an additive equivalence between `(Σ (j : η), ιs j) →₀ α`
-and `Π₀ j, (ιs j →₀ α)`. -/
+/-- `finsupp.split` is an additive equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N) ≃+ (Π₀ i, (η i →₀ N)) :=
 { to_fun := sigma_finsupp_equiv_dfinsupp,
   inv_fun := sigma_finsupp_equiv_dfinsupp.symm,
@@ -245,8 +243,7 @@ def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N
 
 local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid
 
-/-- `finsupp.split` is a linear equivalence between `(Σ (j : η), ιs j) →₀ α`
-and `Π₀ j, (ιs j →₀ α)`. -/
+/-- `finsupp.split` is a linear equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 def sigma_finsupp_lequiv_dfinsupp [add_comm_monoid N] [module R N] :
   ((Σ i, η i) →₀ N) ≃ₗ[R] (Π₀ i, (η i →₀ N)) :=
 { map_smul' := λ r f,

@@ -149,7 +149,7 @@ lemma coeff_one [decidable_eq σ] :
   coeff R n (1 : mv_power_series σ R) = if n = 0 then 1 else 0 :=
 coeff_monomial _ _ _
 
-@[simp] lemma coeff_zero_one : coeff R (0 : σ →₀ ℕ) 1 = 1 :=
+lemma coeff_zero_one : coeff R (0 : σ →₀ ℕ) 1 = 1 :=
 coeff_monomial_same 0 1
 
 lemma monomial_zero_one : monomial R (0 : σ →₀ ℕ) 1 = 1 := rfl
@@ -295,13 +295,8 @@ lemma coeff_C [decidable_eq σ] (n : σ →₀ ℕ) (a : R) :
   coeff R n (C σ R a) = if n = 0 then a else 0 :=
 coeff_monomial _ _ _
 
-@[simp]
 lemma coeff_zero_C (a : R) : coeff R (0 : σ →₀ℕ) (C σ R a) = a :=
 coeff_monomial_same 0 a
-
-@[simp]
-lemma coeff_zero_1 : coeff R (0 : σ →₀ ℕ) (1) = 1 :=
-coeff_zero_C 1
 
 /-- The variables of the multivariate formal power series ring.-/
 def X (s : σ) : mv_power_series σ R := monomial R (single s 1) 1
@@ -944,7 +939,7 @@ by rw [coeff_X_pow, if_pos rfl]
   coeff R n (1 : power_series R) = if n = 0 then 1 else 0 :=
 coeff_C n 1
 
-@[simp] lemma coeff_zero_one : coeff R 0 (1 : power_series R) = 1 :=
+lemma coeff_zero_one : coeff R 0 (1 : power_series R) = 1 :=
 coeff_zero_C 1
 
 lemma coeff_mul (n : ℕ) (φ ψ : power_series R) :

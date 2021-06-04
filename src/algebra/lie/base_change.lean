@@ -41,7 +41,7 @@ definition below. -/
 private def bracket' : (A ⊗[R] L) →ₗ[R] (A ⊗[R] L) →ₗ[R] A ⊗[R] L :=
 tensor_product.curry $
   (tensor_product.map (algebra.lmul' R) (lie_module.to_module_hom R L L : L ⊗[R] L →ₗ[R] L)).comp $
-  tensor_product.comm_two_in_four R A L A L
+  tensor_product.tensor_tensor_tensor_comm R A L A L
 
 @[simp] private lemma bracket'_tmul (s t : A) (x y : L) :
   bracket' R A L (s ⊗ₜ[R] x) (t ⊗ₜ[R] y) = (s*t) ⊗ₜ ⁅x, y⁆ :=
@@ -117,7 +117,7 @@ begin
       simp only [bracket_def, bracket', tensor_product.smul_tmul', mul_left_comm a₁ a a₂,
         tensor_product.curry_apply, algebra.lmul'_apply, algebra.id.smul_eq_mul, function.comp_app,
         linear_equiv.coe_coe, linear_map.coe_comp, tensor_product.map_tmul,
-        tensor_product.comm_two_in_four_tmul], },
+        tensor_product.tensor_tensor_tensor_comm_tmul], },
     { intros z₁ z₂ h₁ h₂,
       simp only [h₁, h₂, smul_add, lie_add], }, },
   { intros z₁ z₂ h₁ h₂,

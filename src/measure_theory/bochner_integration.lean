@@ -219,14 +219,53 @@ lemma integrable_pair [measurable_space F] {f : α →ₛ E} {g : α →ₛ F} :
   integrable f μ → integrable g μ → integrable (pair f g) μ :=
 by simpa only [integrable_iff_fin_meas_supp] using fin_meas_supp.pair
 
-variables [normed_space ℝ F] {G : Type*} [normed_group G] [normed_space ℝ G]
+variables [normed_space ℝ F] {G G' F' : Type*} [normed_group G] [normed_group G']
+  [normed_group F'] [normed_space ℝ F']
 
-def extend_op (T : set α → (F →L[ℝ] G)) (f : α →ₛ F) : G :=
+def extend_op [normed_space ℝ G] (T : set α → (F →L[ℝ] G)) (f : α →ₛ F) : G :=
 ∑ x in f.range, T (f ⁻¹' {x}) x
 
 /-- Bochner integral of simple functions whose codomain is a real `normed_space`. -/
 def integral (μ : measure α) (f : α →ₛ F) : F :=
 ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • x
+
+def weighted_smul (μ : measure α) (s : set α) (x : F) : F := (μ s).to_real • x
+
+lemma weighted_smul_def (μ : measure α) (s : set α) :
+  weighted_smul μ s = λ x : F, (μ s).to_real • x :=
+rfl
+
+lemma weighted_smul_zero (μ : measure α) (s : set α) : weighted_smul μ s (0 : F) = 0 :=
+by simp [weighted_smul]
+
+lemma weighted_smul_add (μ : measure α) (s : set α) (x y : F) :
+  weighted_smul μ s (x + y) = weighted_smul μ s x + weighted_smul μ s y :=
+by simp [weighted_smul]
+
+lemma weighted_smul_smul (μ : measure α) (s : set α) (c : ℝ) (x : F) :
+  weighted_smul μ s (c • x) = c • weighted_smul μ s x :=
+by { simp_rw [weighted_smul], rw smul_comm, }
+
+def weighted_smul_clm (μ : measure α) (s : set α) : F →L[ℝ] F :=
+{ to_fun := weighted_smul μ s,
+  map_add' := weighted_smul_add μ s,
+  map_smul' := weighted_smul_smul μ s,
+  cont := by { simp_rw weighted_smul_def, continuity, } }
+
+lemma weighted_smul_clm_apply (μ : measure α) (s : set α) (x : F) :
+  weighted_smul_clm μ s x = (μ s).to_real • x :=
+rfl
+
+lemma weighted_smul_clm_empty (μ : measure α) : weighted_smul_clm μ ∅ = (0 : F →L[ℝ] F) :=
+begin
+  ext1 x,
+  simp only [weighted_smul_clm_apply, zero_to_real, continuous_linear_map.zero_apply,
+    measure_empty, zero_smul],
+end
+
+lemma integral_eq_extend_op (μ : measure α) (f : α →ₛ F) :
+  f.integral μ = f.extend_op (λ s, weighted_smul_clm μ s) :=
+by simp [integral, extend_op, weighted_smul_clm, weighted_smul_def]
 
 lemma integral_eq_sum_filter (f : α →ₛ F) (μ) :
   f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
@@ -273,7 +312,7 @@ begin
     (h (λ i hi, hSp i (finset.mem_insert_of_mem hi))),
 end
 
-lemma T_Union (T : set α → (F →L[ℝ] G)) (T_empty : T ∅ = 0) (p : set α → Prop) (hp_empty : p ∅)
+lemma T_Union (T : set α → (F →L[ℝ] F')) (T_empty : T ∅ = 0) (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_add : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
   {ι} (S : ι → set α) (sι : finset ι) (hSp : ∀ i ∈ sι, p (S i))
@@ -306,11 +345,11 @@ begin
   { exact p_union p hp_empty hp_add S s (λ i hi, hps i (finset.mem_insert_of_mem hi)), },
 end
 
-lemma map_extend_op (T : set α → (F →L[ℝ] G)) (T_empty : T ∅ = 0)
+lemma map_extend_op {E} [normed_group E] (T : set α → (F →L[ℝ] F')) (T_empty : T ∅ = 0)
   (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_add : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
-  (f : α →ₛ E) (hfp : ∀ x ∈ f.range, x ≠ 0 → p (f ⁻¹' {x})) (g : E → F) (hg : g 0 = 0) :
+  {f : α →ₛ E} (hfp : ∀ x ∈ f.range, x ≠ 0 → p (f ⁻¹' {x})) {g : E → F} (hg : g 0 = 0) :
   (f.map g).extend_op T = ∑ x in f.range, T (f ⁻¹' {x}) (g x) :=
 begin
   simp only [extend_op, range_map],
@@ -343,32 +382,196 @@ end
 
 /-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`
     and `g` is a function from `E` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
-lemma map_integral' (f : α →ₛ E) (g : E → F) (hf : ∀ x ∈ f.range, x ≠ 0 → μ (f ⁻¹' {x}) < ∞)
+lemma map_integral' (f : α →ₛ E) (g : E → F)
+  (hf : ∀ x ∈ f.range, x ≠ 0 → measurable_set (f ⁻¹' {x}) ∧ μ (f ⁻¹' {x}) < ∞)
   (hg : g 0 = 0) :
   (f.map g).integral μ = ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • (g x) :=
 begin
-  -- We start as in the proof of `map_lintegral`
-  simp only [integral, range_map],
-  refine finset.sum_image' _ (assume b hb, _),
-  rcases mem_range.1 hb with ⟨a, rfl⟩,
-  rw [map_preimage_singleton, ← sum_measure_preimage_singleton _
-    (λ _ _, f.measurable_set_preimage _)],
-  -- Now we use `hf : integrable f μ` to show that `ennreal.to_real` is additive.
-  by_cases ha : g (f a) = 0,
-  { simp only [ha, smul_zero],
-    refine (sum_eq_zero $ λ x hx, _).symm,
-    simp only [mem_filter] at hx,
-    simp [hx.2] },
-  { rw [to_real_sum, sum_smul],
-    { refine sum_congr rfl (λ x hx, _),
-      simp only [mem_filter] at hx,
-      rw [hx.2] },
-    { intros x hx,
-      simp only [mem_filter] at hx,
-      refine hf x hx.1 (λ hx0, _),
-      rw [hx0, hg] at hx,
-      exact ha hx.2.symm, }, },
+  rw integral_eq_extend_op,
+  rw map_extend_op (λ s, weighted_smul_clm μ s) _ (λ t, measurable_set t ∧ μ t < ∞) _ _ _ hf hg,
+  { simp_rw weighted_smul_clm_apply, },
+  { exact weighted_smul_clm_empty μ, },
+  { simp, },
+  { simp only,
+    intros s t hst hμs hμt,
+    ext1 x,
+    simp_rw [continuous_linear_map.add_apply, weighted_smul_clm_apply],
+    rw measure_union _ hμs.1 hμt.1,
+    { rw [ennreal.to_real_add hμs.2.ne hμt.2.ne, add_smul], },
+    { rwa set.disjoint_iff_inter_eq_empty, }, },
+  { simp only,
+    intros s t hμs hμt,
+    split,
+    { exact hμs.1.union hμt.1, },
+    { refine (measure_union_le s t).trans_lt _,
+      simp [hμs.2, hμt.2], }, },
 end
+
+lemma exists_forall_norm_le (f : α →ₛ G) : ∃ C, ∀ x, ∥f x∥ ≤ C :=
+exists_forall_le (f.map (λ x, ∥x∥))
+
+lemma snorm'_simple_func  {p : ℝ} (f : α →ₛ G) (μ : measure α) :
+  snorm' f p μ = (∑ y in f.range, (nnnorm y : ℝ≥0∞) ^ p * μ (f ⁻¹' {y})) ^ (1/p) :=
+begin
+  rw snorm',
+  have h_map : (λ a, (nnnorm (f a) : ℝ≥0∞) ^ p) = f.map (λ a : G, (nnnorm a : ℝ≥0∞) ^ p),
+  { simp, },
+  simp_rw h_map,
+  rw lintegral_eq_lintegral,
+  rw map_lintegral,
+end
+
+lemma snorm_ess_sup_simple_func_lt_top (f : α →ₛ G) (μ : measure α) :
+  snorm_ess_sup f μ < ∞ :=
+begin
+  rw snorm_ess_sup,
+  obtain ⟨C, hfC⟩ := f.exists_forall_norm_le,
+  simp_rw ← of_real_norm_eq_coe_nnnorm,
+  refine (ess_sup_le_of_ae_le (ennreal.of_real C) (eventually_of_forall (λ x, _))).trans_lt
+    ennreal.of_real_lt_top,
+  exact ennreal.of_real_le_of_real (hfC x),
+end
+
+lemma mem_ℒp_top (f : α →ₛ E) (μ : measure α) :
+  mem_ℒp f ∞ μ :=
+⟨f.ae_measurable, by { rw snorm_exponent_top, exact snorm_ess_sup_simple_func_lt_top f μ}⟩
+
+lemma finite_measure_of_mem_ℒp {μ : measure α} {p : ℝ≥0∞}
+  (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞)
+  (f : α →ₛ E) (hf : mem_ℒp f p μ) (y : E) (hyf : y ∈ f.range) :
+  y = 0 ∨ μ (f ⁻¹' {y}) < ∞ :=
+begin
+  have hp_pos_real : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp_pos, hp_ne_top⟩,
+  have hf_snorm := mem_ℒp.snorm_lt_top hf,
+  rw [snorm_eq_snorm' hp_pos.ne.symm hp_ne_top, snorm'_simple_func,
+    ← ennreal.lt_rpow_one_div_iff] at hf_snorm,
+  swap, { simp [hp_pos_real], },
+  rw ennreal.top_rpow_of_pos at hf_snorm,
+  swap, { simp [hp_pos_real], },
+  rw ennreal.sum_lt_top_iff at hf_snorm,
+  specialize hf_snorm y hyf,
+  rw ennreal.mul_lt_top_iff at hf_snorm,
+  cases hf_snorm,
+  { exact or.inr hf_snorm.2, },
+  cases hf_snorm,
+  { simp only [hp_pos_real, ennreal.rpow_eq_zero_iff, and_true, ennreal.coe_ne_top, or_false,
+      nnnorm_eq_zero, ennreal.coe_eq_zero, false_and] at hf_snorm,
+    exact or.inl hf_snorm, },
+  { simp [hf_snorm], },
+end
+
+lemma finite_measure_of_integrable
+  (f : α →ₛ E) (hf : integrable f μ) (y : E) (hyf : y ∈ f.range) :
+  y = 0 ∨ μ (f ⁻¹' {y}) < ∞ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable at hf,
+  exact finite_measure_of_mem_ℒp ennreal.zero_lt_one ennreal.coe_ne_top f hf y hyf,
+end
+
+lemma mem_ℒp_of_integrable (p : ℝ≥0∞) {f : α →ₛ E} (hf : integrable f μ) :
+  mem_ℒp f p μ :=
+begin
+  refine ⟨f.ae_measurable, _⟩,
+  by_cases hp0 : p = 0,
+  { simp [hp0], },
+  rw ← ne.def at hp0,
+  by_cases hp_top : p = ∞,
+  { simp only [hp_top, snorm_exponent_top],
+    exact snorm_ess_sup_simple_func_lt_top f μ, },
+  have hp_pos : 0 < p.to_real,
+    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
+  rw [snorm_eq_snorm' hp0 hp_top, snorm'_simple_func],
+  refine ennreal.rpow_lt_top_of_nonneg _ _,
+  { simp, },
+  refine (ennreal.sum_lt_top (λ y hy, _)).ne,
+  have hyμ := finite_measure_of_integrable f hf y hy,
+  cases hyμ,
+  { simp [hyμ, hp_pos], },
+  refine ennreal.mul_lt_top (ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg _) hyμ,
+  exact ennreal.coe_ne_top,
+end
+
+lemma mem_ℒ0_iff_ae_measurable [measurable_space α] {μ : measure α} {f : α → E} :
+  mem_ℒp f 0 μ ↔ ae_measurable f μ :=
+by { simp_rw mem_ℒp, refine and_iff_left _, simp, }
+
+lemma mem_ℒp_of_finite_measure_range (p : ℝ≥0∞)
+  {f : α →ₛ E} (hf : ∀ y ∈ f.range, y = 0 ∨ μ (f ⁻¹' {y}) < ∞) :
+  mem_ℒp f p μ :=
+begin
+  by_cases hp0 : p = 0,
+  { rw [hp0, mem_ℒ0_iff_ae_measurable],
+    exact f.ae_measurable, },
+  rw ← ne.def at hp0,
+  by_cases hp_top : p = ∞,
+  { rw hp_top, exact mem_ℒp_top f μ, },
+  have hp_pos : 0 < p.to_real,
+    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
+  refine ⟨f.ae_measurable, _⟩,
+  rw snorm_eq_snorm' hp0 hp_top,
+  rw snorm'_simple_func,
+  refine ennreal.rpow_lt_top_of_nonneg (by simp) (ne_of_lt _),
+  refine ennreal.sum_lt_top_iff.mpr (λ y hy, _),
+  cases hf y hy with h h,
+  { simp [h, hp_pos], },
+  { refine ennreal.mul_lt_top _ h,
+    exact ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg ennreal.coe_ne_top, },
+end
+
+lemma mem_ℒp_iff_integrable {p : ℝ≥0∞} {f : α →ₛ E}
+  (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+  mem_ℒp f p μ ↔ integrable f μ :=
+begin
+  refine ⟨λ h, _, mem_ℒp_of_integrable p⟩,
+  rw ← mem_ℒp_one_iff_integrable,
+  refine mem_ℒp_of_finite_measure_range 1 _,
+  exact finite_measure_of_mem_ℒp hp_pos hp_ne_top f h,
+end
+
+lemma mem_ℒp_of_finite_measure (p : ℝ≥0∞) (f : α →ₛ E)
+  (μ : measure α) [finite_measure μ] :
+  mem_ℒp f p μ :=
+begin
+  obtain ⟨C, hfC⟩ := f.exists_forall_norm_le,
+  exact mem_ℒp.of_bound f.ae_measurable C (eventually_of_forall hfC),
+end
+
+protected lemma integrable [finite_measure μ] (f : α →ₛ E) :
+  integrable f μ :=
+mem_ℒp_one_iff_integrable.mp (mem_ℒp_of_finite_measure 1 f μ)
+
+lemma measure_preimage_ne_zero_lt_top (f : α →ₛ E) (hf : integrable f μ) {s : finset E}
+  (hs0 : (0 : E) ∉ s) :
+  μ (f ⁻¹' s) < ∞ :=
+begin
+  rw ← sum_measure_preimage_singleton,
+  swap, { exact λ y hy, f.measurable_set_preimage _, },
+  refine ennreal.sum_lt_top (λ y hy, _),
+  have hf' := finite_measure_of_integrable f hf y,
+  by_cases hyf : y ∈ f.range,
+  { cases hf' hyf with hy0 hyμ,
+    { rw hy0 at hy,
+      exact absurd hy hs0, },
+    { exact hyμ, }, },
+  rw ← preimage_eq_empty_iff f y at hyf,
+  simp only [hyf, measure_empty, with_top.zero_lt_top],
+end
+
+lemma measure_preimage_lt_top (f : α →ₛ E) (hf : integrable f μ) {x : E} (hx : x ≠ 0) :
+  μ (f ⁻¹' {x}) < ∞ :=
+begin
+  have h := f.finite_measure_of_integrable hf x,
+  by_cases hx_mem : x ∈ f.range,
+  swap, { sorry, },
+  cases h hx_mem with h1 h2,
+  { exact absurd h1 hx, },
+  { exact h2, },
+end
+
+lemma finite_measurable_preimage_of_integrable (f : α →ₛ E) (hf : integrable f μ) (x : E)
+  (hx_mem : x ∈ f.range) (hx_ne : x ≠ 0) :
+  measurable_set (f ⁻¹' {x}) ∧ μ (f ⁻¹' {x}) < ∞ :=
+⟨f.measurable_set_preimage _, f.measure_preimage_lt_top hf hx_ne⟩
 
 /-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`
     and `g` is a function from `E` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
@@ -439,7 +642,7 @@ begin
   { exact or.inl (hf (f y) (mem_range_self f y) hf0), },
 end
 
-lemma extend_op_congr (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
+lemma extend_op_congr (T : set α → (E →L[ℝ] F)) (T_empty : T ∅ = 0)
   (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_add : ∀ s t (hs : p s) (ht : p t), p (s ∪ t)) (hp_inter : ∀ s t (h : p s ∨ p t), p (s ∩ t))
@@ -451,8 +654,8 @@ show ((pair f g).map prod.fst).extend_op T = ((pair f g).map prod.snd).extend_op
 begin
   have h_pair : ∀ (x : E × E), x ∈ (f.pair g).range → x ≠ 0 → p (⇑(f.pair g) ⁻¹' {x}),
     from p_pair p hp_inter f g hf hg,
-  rw map_extend_op T T_empty p hp_empty h_add hp_add (pair f g) h_pair _ prod.fst_zero,
-  rw map_extend_op T T_empty p hp_empty h_add hp_add (pair f g) h_pair _ prod.snd_zero,
+  rw map_extend_op T T_empty p hp_empty h_add hp_add h_pair prod.fst_zero,
+  rw map_extend_op T T_empty p hp_empty h_add hp_add h_pair prod.snd_zero,
   refine finset.sum_congr rfl (λ p hp, _),
   rcases mem_range.1 hp with ⟨a, rfl⟩,
   by_cases eq : f a = g a,
@@ -463,7 +666,7 @@ begin
     simp only [this, continuous_linear_map.zero_apply, pair_apply], },
 end
 
-lemma congr_hyp_of_le_measure (T : set α → (E →L[ℝ] G)) {C : ℝ} (hC : 0 ≤ C)
+lemma congr_hyp_of_le_measure (T : set α → (E →L[ℝ] F)) {C : ℝ} (hC : 0 ≤ C)
   (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f g : α →ₛ E} (hfg : f =ᵐ[μ] g)
   (x y : E) (hxy : x ≠ y) :
   T ((f ⁻¹' {x}) ∩ (g ⁻¹' {y})) = 0 :=
@@ -511,7 +714,7 @@ begin
   { assume b, rw ennreal.lt_top_iff_ne_top, exact ennreal.of_real_ne_top }
 end
 
-lemma extend_op_add (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
+lemma extend_op_add (T : set α → (E →L[ℝ] F)) (T_empty : T ∅ = 0)
   (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_union : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
@@ -523,7 +726,7 @@ have hp_pair : ∀ (x : E × E), x ∈ (f.pair g).range → x ≠ 0 → p (⇑(f
 calc extend_op T (f + g) = ∑ x in (pair f g).range,
        T ((pair f g) ⁻¹' {x}) (x.fst + x.snd) :
 begin
-  rw [add_eq_map₂, map_extend_op T T_empty p hp_empty h_add hp_union (pair f g)],
+  rw [add_eq_map₂, map_extend_op T T_empty p hp_empty h_add hp_union],
   { exact hp_pair, },
   { simp, },
 end
@@ -535,8 +738,8 @@ end
   by rw finset.sum_add_distrib
 ... = ((pair f g).map prod.fst).extend_op T + ((pair f g).map prod.snd).extend_op T :
 begin
-  rw [map_extend_op T T_empty p hp_empty h_add hp_union (pair f g),
-    map_extend_op T T_empty p hp_empty h_add hp_union (pair f g)],
+  rw [map_extend_op T T_empty p hp_empty h_add hp_union,
+    map_extend_op T T_empty p hp_empty h_add hp_union],
   { exact hp_pair, },
   { refl, },
   { exact hp_pair, },
@@ -570,7 +773,7 @@ begin
 end
 ... = integral μ f + integral μ g : rfl
 
-lemma extend_op_neg (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
+lemma extend_op_neg (T : set α → (E →L[ℝ] F)) (T_empty : T ∅ = 0)
   (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_union : ∀ s t (hs : p s) (ht : p t), p (s ∪ t)) {f : α →ₛ E}
@@ -579,7 +782,7 @@ lemma extend_op_neg (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
 calc extend_op T (-f) = extend_op T (f.map (has_neg.neg)) : rfl
   ... = - extend_op T f :
   begin
-    rw [map_extend_op T T_empty p hp_empty h_add hp_union f hf _ neg_zero, extend_op,
+    rw [map_extend_op T T_empty p hp_empty h_add hp_union hf neg_zero, extend_op,
       ← sum_neg_distrib],
     refine finset.sum_congr rfl (λx h, continuous_linear_map.map_neg _ _),
   end
@@ -610,7 +813,7 @@ begin
   { simpa using hx_ne, },
 end
 
-lemma extend_op_sub (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0)
+lemma extend_op_sub (T : set α → (E →L[ℝ] F)) (T_empty : T ∅ = 0)
   (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_union : ∀ s t (hs : p s) (ht : p t), p (s ∪ t))
@@ -631,14 +834,14 @@ begin
 end
 
 /-- The extension to 𝕜 has to come from something else. -/
-lemma extend_op_smul_ℝ [normed_space 𝕜 G] [smul_comm_class ℝ 𝕜 G]
-  (T : set α → (E →L[ℝ] G)) (T_empty : T ∅ = 0) (p : set α → Prop) (hp_empty : p ∅)
+lemma extend_op_smul_ℝ [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+  (T : set α → (E →L[ℝ] F)) (T_empty : T ∅ = 0) (p : set α → Prop) (hp_empty : p ∅)
   (h_add : ∀ s t (h : s ∩ t = ∅) (hs : p s) (ht : p t), T (s ∪ t) = T s + T t)
   (hp_union : ∀ s t (hs : p s) (ht : p t), p (s ∪ t)) (c : ℝ) {f : α →ₛ E}
   (hf : ∀ x ∈ f.range, x ≠ 0 → p (f ⁻¹' {x})) :
   extend_op T (c • f) = c • extend_op T f :=
 calc extend_op T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • x) :
-  by { rw [smul_eq_map c f, map_extend_op T T_empty p hp_empty h_add hp_union f hf _],
+  by { rw [smul_eq_map c f, map_extend_op T T_empty p hp_empty h_add hp_union hf],
     rw smul_zero, }
 ... = ∑ x in f.range, c • (T (f ⁻¹' {x}) x) :
   finset.sum_congr rfl $ λ b hb, by { rw continuous_linear_map.map_smul (T (f ⁻¹' {b})) c b,}
@@ -654,7 +857,7 @@ calc integral μ (c • f) = ∑ x in f.range, ennreal.to_real (μ (f ⁻¹' {x}
 ... = c • integral μ f :
 by simp only [integral, smul_sum, smul_smul, mul_comm]
 
-lemma norm_extend_op_le_sum_op_norm (T : set α → (E →L[ℝ] G)) (f : α →ₛ E) :
+lemma norm_extend_op_le_sum_op_norm (T : set α → (E →L[ℝ] F)) (f : α →ₛ E) :
   ∥f.extend_op T∥ ≤ ∑ x in f.range, ∥T (f ⁻¹' {x})∥ * ∥x∥ :=
 begin
   rw [extend_op],
@@ -668,7 +871,7 @@ begin
     end
 end
 
-lemma norm_extend_op_le_integral_norm (T : set α → (E →L[ℝ] G)) (C : ℝ) (hC : 0 ≤ C)
+lemma norm_extend_op_le_integral_norm (T : set α → (E →L[ℝ] F)) (C : ℝ) (hC : 0 ≤ C)
   (hT_norm : ∀ s, ∥T s∥ ≤ C * (μ s).to_real) {f : α →ₛ E} (hf : integrable f μ) :
   ∥f.extend_op T∥ ≤ C * (f.map norm).integral μ :=
 begin
@@ -701,7 +904,7 @@ begin
     end
 end
 
-lemma extend_op_add_op (T T' : set α → (E →L[ℝ] G)) (f : α →ₛ E) :
+lemma extend_op_add_op (T T' : set α → (E →L[ℝ] F)) (f : α →ₛ E) :
   f.extend_op (T + T') = f.extend_op T + f.extend_op T' :=
 by simp_rw [extend_op, pi.add_apply, continuous_linear_map.add_apply, finset.sum_add_distrib]
 

@@ -15,6 +15,7 @@ This file defines several small linters:
   - `doc_blame` checks that every definition has a documentation string
   - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default)
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
+  - `check_type` checks that the statement of a declaration is well-typed.
 -/
 
 open tactic expr
@@ -229,10 +230,13 @@ private meta def incorrect_def_lemma (d : declaration) : tactic (option string) 
     is_instance_d ← is_instance d.to_name,
     if is_instance_d then return none else do
       -- the following seems to be a little quicker than `is_prop d.type`.
-      expr.sort n ← infer_type d.type, return $
-      if d.is_theorem ↔ n = level.zero then none
-      else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
-      else "is a lemma/theorem, should be a def"
+      expr.sort n ← infer_type d.type,
+      is_pattern ← has_attribute' `pattern d.to_name,
+      return $
+        if d.is_theorem ↔ n = level.zero then none
+        else if d.is_theorem then "is a lemma/theorem, should be a def"
+        else if is_pattern then none -- declarations with `@[pattern]` are allowed to be a `def`.
+        else "is a def, should be a lemma/theorem"
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/
@@ -243,3 +247,20 @@ has been used. -/
   errors_found := "INCORRECT DEF/LEMMA" }
 
 attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
+
+/-- Checks whether the statement of a declaration is well-typed. -/
+meta def check_type (d : declaration) : tactic (option string) :=
+(type_check d.type >> return none) <|> return "The statement doesn't type-check"
+
+/-- A linter for missing checking whether statements of declarations are well-typed. -/
+@[linter]
+meta def linter.check_type : linter :=
+{ test := check_type,
+  auto_decls := ff,
+  no_errors_found :=
+    "The statements of all declarations type-check with default reducibility settings",
+  errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK.
+Some definitions in the statement are marked @[irreducible], which means that the statement is " ++
+"now ill-formed. It is likely that these definitions were locally marked as @[reducible] or " ++
+"@[semireducible]. This can especially cause problems with type class inference or @[simps]",
+  is_fast := tt }

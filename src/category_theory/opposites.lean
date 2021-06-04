@@ -198,19 +198,17 @@ variables {D : Type u₂} [category.{v₂} D]
 section
 variables {F G : C ⥤ D}
 
-local attribute [semireducible] quiver.opposite
-
 /-- The opposite of a natural transformation. -/
 @[simps] protected def op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
-  naturality' := begin tidy, erw α.naturality, refl, end }
+  naturality' := begin tidy, simp_rw [← op_comp, α.naturality] end }
 
 @[simp] lemma op_id (F : C ⥤ D) : nat_trans.op (𝟙 F) = 𝟙 (F.op) := rfl
 
 /-- The "unopposite" of a natural transformation. -/
 @[simps] protected def unop {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ⟶ G) : G.unop ⟶ F.unop :=
 { app         := λ X, (α.app (op X)).unop,
-  naturality' := begin tidy, erw α.naturality, refl, end }
+  naturality' := begin tidy, simp_rw [← unop_comp, α.naturality] end }
 
 @[simp] lemma unop_id (F : Cᵒᵖ ⥤ Dᵒᵖ) : nat_trans.unop (𝟙 F) = 𝟙 (F.unop) := rfl
 
@@ -223,10 +221,9 @@ we can take the "unopposite" of each component obtaining a natural transformatio
   naturality' :=
   begin
     intros X Y f,
-    have := congr_arg quiver.hom.op (α.naturality f.op),
+    have := congr_arg quiver.hom.unop (α.naturality f.op),
     dsimp at this,
-    erw this,
-    refl,
+    rw this,
   end }
 
 @[simp] lemma remove_op_id (F : C ⥤ D) : nat_trans.remove_op (𝟙 F.op) = 𝟙 F := rfl
@@ -235,8 +232,6 @@ end
 
 section
 variables {F G : C ⥤ Dᵒᵖ}
-
-local attribute [semireducible] quiver.opposite
 
 /--
 Given a natural transformation `α : F ⟶ G`, for `F G : C ⥤ Dᵒᵖ`,
@@ -247,8 +242,7 @@ taking `unop` of each component gives a natural transformation `G.left_op ⟶ F.
   naturality' := begin
     intros X Y f,
     dsimp,
-    erw α.naturality,
-    refl,
+    simp_rw [← unop_comp, α.naturality]
   end }
 
 /--
@@ -270,8 +264,6 @@ end
 section
 variables {F G : Cᵒᵖ ⥤ D}
 
-local attribute [semireducible] quiver.opposite
-
 /--
 Given a natural transformation `α : F ⟶ G`, for `F G : Cᵒᵖ ⥤ D`,
 taking `op` of each component gives a natural transformation `G.right_op ⟶ F.right_op`.
@@ -281,8 +273,7 @@ taking `op` of each component gives a natural transformation `G.right_op ⟶ F.r
   naturality' := begin
     intros X Y f,
     dsimp,
-    erw α.naturality,
-    refl,
+    simp_rw [← op_comp, α.naturality]
   end }
 
 /--

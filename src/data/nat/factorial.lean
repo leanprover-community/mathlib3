@@ -7,12 +7,16 @@ import data.nat.basic
 import data.nat.pow
 
 /-!
-# The factorial function
+# Factorial and variants
+
+This file defines the factorial, along with the ascending and descending variants.
 
 ## Main declarations
-* `factorial`: The factorial
+
+* `factorial`: The factorial.
 * `asc_fact`: The ascending factorial. Note that it runs from `n + 1` to `n + k` and *not* from `n`
   to `n + k - 1`. We might want to change that in the future.
+* `desc_fact`: The descending factorial. It runs from `n - k` to `n`.
 -/
 
 namespace nat
@@ -104,8 +108,8 @@ begin
 end
 
 lemma self_le_factorial : ∀ n : ℕ, n ≤ n!
-| 0 := zero_le_one
-| (k+1) := le_mul_of_one_le_right k.zero_lt_succ.le (nat.one_le_of_lt $ nat.factorial_pos _)
+| 0       := zero_le_one
+| (k + 1) := le_mul_of_one_le_right k.zero_lt_succ.le (nat.one_le_of_lt $ nat.factorial_pos _)
 
 lemma lt_factorial_self {n : ℕ} (hi : 3 ≤ n) : n < n! :=
 begin
@@ -160,8 +164,8 @@ end factorial
 
 section asc_fact
 
-/-- n.asc_fact k = (n + k)! / n! (as seen in `nat.asc_fact_eq_div`), but implemented recursively to
-allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`, but
+/-- `n.asc_fact k = (n + k)! / n!` (as seen in `nat.asc_fact_eq_div`), but implemented recursively
+to allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`, but
 much less general. -/
 def asc_fact (n : ℕ) : ℕ → ℕ
 | 0 := 1
@@ -172,7 +176,7 @@ def asc_fact (n : ℕ) : ℕ → ℕ
 @[simp] lemma zero_asc_fact (k : ℕ) : asc_fact 0 k = k! :=
 begin
   induction k with t ht, refl,
-  unfold asc_fact, rw [ht, zero_add, nat.factorial_succ]
+  unfold asc_fact, rw [ht, zero_add, nat.factorial_succ],
 end
 
 lemma asc_fact_succ {n k : ℕ} : n.asc_fact k.succ = (n + k + 1) * n.asc_fact k := rfl
@@ -187,7 +191,7 @@ theorem factorial_mul_asc_fact (n : ℕ) : ∀ k, n! * n.asc_fact k = (n + k)!
 | 0 := by rw [asc_fact, add_zero, mul_one]
 | (k + 1) := by rw [asc_fact_succ, mul_left_comm, factorial_mul_asc_fact, ← add_assoc, factorial]
 
-/-- Avoid in favour of `nat.factorial_mul_asc_fact` if you can. ℕ-division isn't worth it. -/
+/-- Avoid in favor of `nat.factorial_mul_asc_fact` if you can. ℕ-division isn't worth it. -/
 lemma asc_fact_eq_div (n k : ℕ) : n.asc_fact k = (n + k)! / n! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero n),
@@ -243,7 +247,7 @@ end asc_fact
 
 section desc_fact
 
-/-- n.desc_fact k = n! / (n - k)! (as seen in `nat.desc_fact_eq_div`), but implemented recursively
+/-- `n.desc_fact k = n! / (n - k)!` (as seen in `nat.desc_fact_eq_div`), but implemented recursively
 to allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`, but
 much less general. -/
 def desc_fact (n : ℕ) : ℕ → ℕ
@@ -296,7 +300,7 @@ theorem factorial_mul_desc_fact : ∀ {n k : ℕ}, k ≤ n → (n - k)! * n.desc
 | (succ n) (succ k) := λ h, by rw [succ_desc_fact_succ, succ_sub_succ, ←mul_assoc,
   mul_comm (n - k)!, mul_assoc, factorial_mul_desc_fact (nat.succ_le_succ_iff.1 h), factorial_succ]
 
-/-- Avoid in favour of `nat.factorial_mul_desc_fact` if you can. ℕ-division isn't worth it. -/
+/-- Avoid in favor of `nat.factorial_mul_desc_fact` if you can. ℕ-division isn't worth it. -/
 lemma desc_fact_eq_div {n k : ℕ} (h : k ≤ n) : n.desc_fact k = n! / (n - k)! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero (n - k)),

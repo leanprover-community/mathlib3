@@ -9,11 +9,15 @@ import data.nat.cast
 import algebra.group_power.lemmas
 
 /-!
-# Inequalities for the choose function
+# Inequalities for binomial coefficients
+
+This file proves exponential bounds on binomial coefficients. We might want to add here the
+bounds `n^r/r^r ≤ n.choose r ≤ e^r n^r/r^r` in the future.
 
 ## Main declarations
-* `choose_le_pow`: `nCk ≤ n^r / r!`
-* `pow_le_choose`: `(n + 1 - r)^r / r! ≤ nCr`. Careful with the ℕ-subtraction.
+
+* `choose_le_pow`: `n.choose r ≤ n^r / r!`
+* `pow_le_choose`: `(n + 1 - r)^r / r! ≤ n.choose r`. Beware of the fishy ℕ-subtraction.
 -/
 
 open_locale nat

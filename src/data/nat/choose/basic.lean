@@ -8,16 +8,18 @@ import data.nat.factorial
 /-!
 # Binomial coefficients
 
-This file contains a definition of binomial coefficients and simple lemmas (i.e. those not
+This file defines binomial coefficients and proves simple lemmas (i.e. those not
 requiring more imports).
 
 ## Main definition and results
 
-- `nat.choose`: binomial coefficients, defined inductively
-- `nat.choose_eq_factorial_div_factorial`: a proof that `choose n k = n! / (k! * (n - k)!)`
-- `nat.choose_symm`: symmetry of binomial coefficients
-- `nat.choose_le_succ_of_lt_half_left`: `choose n k` is increasing for small values of `k`
-- `nat.choose_le_middle`: `choose n r` is maximised when `r` is `n/2`
+* `nat.choose`: binomial coefficients, defined inductively
+* `nat.choose_eq_factorial_div_factorial`: a proof that `choose n k = n! / (k! * (n - k)!)`
+* `nat.choose_symm`: symmetry of binomial coefficients
+* `nat.choose_le_succ_of_lt_half_left`: `choose n k` is increasing for small values of `k`
+* `nat.choose_le_middle`: `choose n r` is maximised when `r` is `n/2`
+* `nat.desc_fact_eq_factorial_mul_choose`: Relates binomial coefficients to the descending
+  factorial. This is used to prove `nat.choose_le_pow` and variants.
 
 -/
 

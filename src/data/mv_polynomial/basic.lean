@@ -371,15 +371,15 @@ lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ R) (m : �
 lemma monic_monomial_eq (m) : monomial m (1:R) = (m.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp [monomial_eq]
 
-@[simp] lemma coeff_monomial (m n) (a) :
+@[simp] lemma coeff_monomial [decidable_eq σ] (m n) (a) :
   coeff m (monomial n a : mv_polynomial σ R) = if n = m then a else 0 :=
 single_apply
 
-@[simp] lemma coeff_C (m) (a) :
+@[simp] lemma coeff_C [decidable_eq σ] (m) (a) :
   coeff m (C a : mv_polynomial σ R) = if 0 = m then a else 0 :=
 single_apply
 
-lemma coeff_X_pow (i : σ) (m) (k : ℕ) :
+lemma coeff_X_pow [decidable_eq σ] (i : σ) (m) (k : ℕ) :
   coeff m (X i ^ k : mv_polynomial σ R) = if single i k = m then 1 else 0 :=
 begin
   have := coeff_monomial m (finsupp.single i k) (1:R),
@@ -388,7 +388,7 @@ begin
   exact pow_zero _
 end
 
-lemma coeff_X' (i : σ) (m) :
+lemma coeff_X' [decidable_eq σ] (i : σ) (m) :
   coeff m (X i : mv_polynomial σ R) = if single i 1 = m then 1 else 0 :=
 by rw [← coeff_X_pow, pow_one]
 
@@ -452,7 +452,7 @@ begin
   { rw [coeff_X', if_neg H, mul_zero] },
 end
 
-lemma coeff_mul_X' (m) (s : σ) (p : mv_polynomial σ R) :
+lemma coeff_mul_X' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
   coeff m (p * X s) = if s ∈ m.support then coeff (m - single s 1) p else 0 :=
 begin
   nontriviality R,
@@ -529,7 +529,7 @@ lemma constant_coeff_X (i : σ) :
   constant_coeff (X i : mv_polynomial σ R) = 0 :=
 by simp [constant_coeff_eq]
 
-lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
+lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
 by rw [constant_coeff_eq, coeff_monomial]
 

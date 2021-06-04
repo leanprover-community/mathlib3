@@ -166,7 +166,7 @@ def asc_fact (n : ℕ) : ℕ → ℕ
 | 0 := 1
 | (k + 1) := (n + k + 1) * asc_fact k
 
-@[simp] lemma asc_fact_zero (n : ℕ) : asc_fact n 0 = 1 := rfl
+@[simp] lemma asc_fact_zero (n : ℕ) : n.asc_fact 0 = 1 := rfl
 
 @[simp] lemma zero_asc_fact (k : ℕ) : asc_fact 0 k = k! :=
 begin
@@ -245,9 +245,9 @@ section desc_fact
 /-- n.desc_fact k = n! / (n - k)! (as seen in `nat.desc_fact_eq_div`), but implemented recursively
 to allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`, but
 much less general. -/
-def desc_fact : ℕ → ℕ → ℕ
-| n 0 := 1
-| n (k + 1) := (n - k) * n.desc_fact k
+def desc_fact (n : ℕ) : ℕ → ℕ
+| 0 := 1
+| (k + 1) := (n - k) * desc_fact k
 
 @[simp] lemma desc_fact_zero (n : ℕ) : n.desc_fact 0 = 1 := rfl
 

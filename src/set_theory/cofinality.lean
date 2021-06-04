@@ -495,6 +495,35 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
     apply typein_lt_type }
 end⟩
 
+/--
+A useful special case of the pigeonhole principal with `θ = (mk α).succ`.
+
+A function whose codomain's cardinality is infinite but strictly smaller than its domain's
+has a fiber with cardinality strictly great than the codomain.
+-/
+theorem infinite_pigeonhole' {β α : Type u} (f : β → α)
+  (w : mk α < mk β) (w' : omega ≤ mk α) :
+  ∃ a : α, mk α < mk (f ⁻¹' {a}) :=
+begin
+  simp_rw [← succ_le],
+  exact ordinal.infinite_pigeonhole_card f (mk α).succ (succ_le.mpr w)
+    (w'.trans (lt_succ_self _).le)
+    ((lt_succ_self _).trans_le (succ_is_regular w').2.ge),
+end
+
+/--
+A function whose codomain's cardinality is infinite but strictly smaller than its domain's
+has an infinite fiber.
+-/
+theorem infinite_pigeonhole'' {β α : Type*} (f : β → α)
+  (w : mk α < mk β) (w' : omega ≤ mk α) :
+  ∃ a : α, _root_.infinite (f ⁻¹' {a}) :=
+begin
+  simp_rw [cardinal.infinite_iff],
+  cases infinite_pigeonhole' f w w' with a ha,
+  exact ⟨a, w'.trans ha.le⟩,
+end
+
 theorem sup_lt_ord_of_is_regular {ι} (f : ι → ordinal)
   {c} (hc : is_regular c) (H1 : cardinal.mk ι < c)
   (H2 : ∀ i, f i < c.ord) : ordinal.sup.{u u} f < c.ord :=

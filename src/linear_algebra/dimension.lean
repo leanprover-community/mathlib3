@@ -263,10 +263,6 @@ begin
   exact le_top,
 end
 
-example {α β : Type*} (w : cardinal.mk β < cardinal.mk α) (w' : cardinal.omega ≤ cardinal.mk β)
-  (f : α → β) : ∃ b : β, set.infinite (f ⁻¹' {b}) :=
-sorry
-
 /--
 Over any ring `R` satisfying the strong rank condition,
 if `b` is an infinite basis for a module `M`,
@@ -282,7 +278,8 @@ begin
   simp only [not_le] at h,
   rw ←cardinal.mk_finset_eq_mk (cardinal.infinite_iff.mp ‹infinite ι›) at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
-  have q : ∃ s : finset ι, _root_.infinite (Φ ⁻¹' {s}) := sorry,
+  have q : ∃ s : finset ι, _root_.infinite (Φ ⁻¹' {s}) :=
+    infinite_pigeonhole'' Φ h (cardinal.infinite_iff.mp ‹infinite ι›),
   obtain ⟨s, w⟩ := q,
   let v' := λ k : Φ ⁻¹' {s}, v k,
   have i' : linear_independent R v' := i.comp _ subtype.val_injective,

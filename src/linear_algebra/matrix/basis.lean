@@ -159,10 +159,10 @@ lemma basis.to_matrix_reindex
   (b.reindex e).to_matrix v = (b.to_matrix v).minor e.symm id :=
 by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.minor_apply, id.def] }
 
-/-- See also basis.to_matrix_reindex which gives the `simp` normal form of this result. -/
+/-- See also `basis.to_matrix_reindex` which gives the `simp` normal form of this result. -/
 lemma basis.to_matrix_reindex' [decidable_eq ι] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
-  (b.reindex e).to_matrix v =  matrix.reindex_alg_equiv e (b.to_matrix (v ∘ e)) :=
+  (b.reindex e).to_matrix v = matrix.reindex_alg_equiv e (b.to_matrix (v ∘ e)) :=
 by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.reindex_alg_equiv_apply,
         matrix.reindex_apply, matrix.minor_apply, function.comp_app, e.apply_symm_apply] }
 

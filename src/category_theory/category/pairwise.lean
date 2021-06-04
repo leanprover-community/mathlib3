@@ -143,7 +143,7 @@ def cocone_is_colimit : is_colimit (cocone U) :=
   begin
     apply complete_lattice.Sup_le,
     rintros _ ⟨j, rfl⟩,
-    exact le_of_hom (s.ι.app (single j))
+    exact (s.ι.app (single j)).le
   end }
 
 end

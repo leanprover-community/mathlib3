@@ -140,6 +140,14 @@ def _root_.linear_map.comp_der : derivation R A M →ₗ[R] derivation R A N :=
   map_add'  := λ D₁ D₂, by { ext, exact linear_map.map_add _ _ _, },
   map_smul' := λ r D, by { ext, exact linear_map.map_smul _ _ _, }, }
 
+@[simp] lemma coe_to_linear_map_comp :
+  (f.comp_der D : A →ₗ[R] N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
+rfl
+
+@[simp] lemma coe_comp :
+  (f.comp_der D : A → N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
+rfl
+
 end push_forward
 
 end

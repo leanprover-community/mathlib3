@@ -398,7 +398,8 @@ by rw [b.constr_def S f, linear_map.range_comp, linear_map.range_comp, linear_eq
        ← finsupp.span_eq_map_total, set.image_id]
 
 @[simp]
-lemma constr_comp (f : M →ₗ[R] M) (v : ι → M) : b.constr ℕ (f ∘ v) = f.comp (b.constr ℕ v) :=
+lemma constr_comp [module S M] [smul_comm_class R S M] (f : M →ₗ[R] M) (v : ι → M) :
+  b.constr S (f ∘ v) = f.comp (b.constr S v) :=
 b.ext (λ i, by simp only [basis.constr_basis, linear_map.comp_apply])
 
 end constr

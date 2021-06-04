@@ -35,9 +35,11 @@ variables [semiring R] [add_comm_monoid M] [module R M]
 class module.free : Prop :=
 (exists_basis [] : nonempty (Σ (I : Type v), basis I R M))
 
-/- If `M` fits in universe `w`, then freeness is equivalent to existence of a basis in that universe.
+/- If `M` fits in universe `w`, then freeness is equivalent to existence of a basis in that
+universe.
 
- Note that if `M` does not fit in `w`, the reverse direction of this implication is still true as `module.free.of_basis`. -/
+Note that if `M` does not fit in `w`, the reverse direction of this implication is still true as
+`module.free.of_basis`. -/
 lemma module.free_def [small.{w} M] : module.free R M ↔ ∃ (I : Type w), nonempty (basis I R M) :=
 ⟨ λ h, ⟨shrink (set.range h.exists_basis.some.2),
     ⟨(basis.reindex_range h.exists_basis.some.2).reindex (equiv_shrink _)⟩⟩,

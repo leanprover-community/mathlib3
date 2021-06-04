@@ -535,18 +535,15 @@ lemma le_exp_bound (n : ℕ) :
   n ≤ exp_bound n :=
 nat.le_mul_of_pos_right (pow_pos (by norm_num) n)
 
+lemma exp_bound_mono {a b : ℕ} (h : a ≤ b) :
+  exp_bound a ≤ exp_bound b :=
+nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
+
 private lemma bound_mono_aux {ε : ℝ} {a b : ℕ} (hε : 100 < ε^5 * 4^a) (h : a ≤ b) :
   ε^5 * 4^a ≤ ε^5 * 4^b :=
 begin
   sorry
 end
-
-/-- An explicit bound on the size of the equipartition in the proof of Szemerédi's Regularity Lemma
--/
-noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
-let t : ℕ := max l (⌈real.log (100 / ε^5) / real.log 4⌉ + 1).nat_abs,
-    N : ℕ := exp_bound^[nat_ceil (4/ε^5)] t
- in N * 16^N
 
 open_locale classical
 variables {V : Type u} [fintype V] {G : simple_graph V} {P : equipartition V} {ε : ℝ}
@@ -593,7 +590,7 @@ begin
   exact (classical.some_spec (increment hε hPV hPG)).2,
 end
 
-lemma size_le_size_blowup (G : simple_graph V) (ε : ℝ) (P : equipartition V) :
+lemma size_le_blowup_size (G : simple_graph V) (ε : ℝ) (P : equipartition V) :
   P.size ≤ (P.blowup G ε).size :=
 begin
   by_cases h : 100 < ε^5 * 4^P.size ∧ P.size * 16^P.size ≤ card V ∧ ¬P.is_uniform G ε,
@@ -602,10 +599,19 @@ begin
   rw [blowup, dif_neg h],
 end
 
+lemma blowup_size_le (G : simple_graph V) (ε : ℝ) (P : equipartition V) :
+  (P.blowup G ε).size ≤ exp_bound P.size :=
+begin
+  by_cases h : 100 < ε^5 * 4^P.size ∧ P.size * 16^P.size ≤ card V ∧ ¬P.is_uniform G ε,
+  { rw blowup_size h.1 h.2.1 h.2.2 },
+  rw [blowup, dif_neg h],
+  exact le_exp_bound _,
+end
+
 lemma size_le_of_size_blowup_le :
   (P.blowup G ε).size * 16^(P.blowup G ε).size ≤ card V → P.size * 16^P.size ≤ card V :=
-le_trans (mul_le_mul (size_le_size_blowup G ε _) (pow_le_pow (by norm_num)
-  (size_le_size_blowup G ε _)) (pow_nonneg (by norm_num) _) (nat.zero_le _))
+le_trans (nat.mul_le_mul (P.size_le_blowup_size G ε) (pow_le_pow (by norm_num)
+  (P.size_le_blowup_size G ε)))
 
 lemma blowup_is_uniform (hP : P.is_uniform G ε) : (P.blowup G ε).is_uniform G ε :=
 begin
@@ -633,7 +639,7 @@ by rw [szemeredi_equipartition, szemeredi_equipartition, function.iterate_succ_a
 
 namespace szemeredi_equipartition
 
-lemma εl_condition {l : ℕ} (hε : 100 < ε ^ 5 * 4^l) :
+lemma εl_condition {l : ℕ} (hε : 100 < ε^5 * 4^l) :
   ∀ n : ℕ, 100 < ε ^ 5 * 4^(szemeredi_equipartition G ε l n).size
 | 0       := begin
     rw [szemeredi_equipartition_zero, dummy_equipartition.size],
@@ -642,7 +648,7 @@ lemma εl_condition {l : ℕ} (hε : 100 < ε ^ 5 * 4^l) :
 | (n + 1) := begin
   rw szemeredi_equipartition_succ,
   exact lt_of_lt_of_le (εl_condition n) (bound_mono_aux (εl_condition n)
-    (size_le_size_blowup G ε _)),
+    (size_le_blowup_size G ε _)),
 end
 
 protected lemma size {ε : ℝ} {l n : ℕ} (hε : 100 < ε^5 * 4^l) :
@@ -661,6 +667,15 @@ begin
   have huniform' : ¬(szemeredi_equipartition G ε l n).is_uniform G ε :=
     λ h, huniform (blowup_is_uniform h),
   rw [blowup_size hε' hsize' huniform', hn hsize' huniform', function.iterate_succ_apply'],
+end
+
+lemma size_le (G : simple_graph V) (ε : ℝ) (l : ℕ) :
+  ∀ n : ℕ, (szemeredi_equipartition G ε l n).size ≤ (exp_bound^[n] l)
+| 0 := by { rw [szemeredi_equipartition_zero, dummy_equipartition.size, function.iterate_zero,
+  id.def] }
+| (n + 1) := begin
+  rw [szemeredi_equipartition_succ, function.iterate_succ_apply'],
+  exact (blowup_size_le G ε _).trans (exp_bound_mono (size_le n)),
 end
 
 protected lemma le_index {ε : ℝ} {l n : ℕ} (hε : 100 < ε^5 * 4^l) :
@@ -685,35 +700,59 @@ lemma le_size (G : simple_graph V) (ε : ℝ) (l : ℕ) :
   ∀ n : ℕ, l ≤ (szemeredi_equipartition G ε l n).size
 | 0       := by { rw szemeredi_equipartition, exact dummy_equipartition.size.ge }
 | (n + 1) := by { rw szemeredi_equipartition_succ,
-  exact (le_size n).trans (size_le_size_blowup G ε _) }
+  exact (le_size n).trans (size_le_blowup_size G ε _) }
 
 end szemeredi_equipartition
 
-/-- Effective Szemerédi's regularity lemma: For any sufficiently big graph, there is an ε-uniform
+/-- The maximal number of times we need to blow up an equipartition to make it uniform -/
+noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
+max l (nat_ceil (real.log (100 / ε^5) / real.log 4) + 1) -- change to nat_floor
+
+lemma le_iteration_bound (ε : ℝ) (l : ℕ) : l ≤ iteration_bound ε l := le_max_left l _
+
+lemma le_pow_of_log_le {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
+  (h : (real.log a)/(real.log b) ≤ c) :
+  a ≤ b^c := sorry
+
+lemma le_exp_of_log_le {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (h : real.log a ≤ b) :
+  a ≤ real.exp b := sorry
+
+
+lemma const_lt_mul_pow_iteration_bound {ε : ℝ} (hε : 0 < ε) (l : ℕ) :
+  100 < ε^5 * 4^iteration_bound ε l :=
+begin
+  refine (div_lt_iff' (pow_pos hε 5)).1 _,
+  sorry
+  --apply lt_pow_iff,
+  --refine le_trans _ (le_max_right l _),
+end
+
+/-- An explicit bound on the size of the equipartition in the proof of Szemerédi's Regularity Lemma
+-/
+noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
+(exp_bound^[nat_ceil (4/ε^5) + 1] (iteration_bound ε l)) *
+  16^(exp_bound^[nat_ceil (4/ε^5) + 1] (iteration_bound ε l)) -- change to nat_floor
+
+/-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
-theorem szemeredi_regularity {ε : ℝ} (hε₁ : 0 < ε) (hε₂ : ε < 1) (l : ℕ) (hG : l ≤ card V) :
+theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (l : ℕ) (hG : l ≤ card V) :
   ∃ (P : equipartition V), l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
   obtain hV | hV := le_total (card V) (szemeredi_bound ε l),
   { use discrete_equipartition V,
     rw discrete_equipartition.size,
-    exact ⟨hG, hV, discrete_equipartition.is_uniform G hε₁⟩ },
-  let P := szemeredi_equipartition G ε l (nat_ceil (4/ε^5)),
-  have hsize : P.size * 16^P.size ≤ card V,
-  {
-    sorry
-  },
-  refine ⟨P, szemeredi_equipartition.le_size G ε l _,
-    _, _⟩,
-  {
-    rw [szemeredi_equipartition.size, szemeredi_bound],
-    sorry,
-    sorry,
-    sorry,
-    sorry,
-  },
-  by_contra,
-  --have := szemeredi_equipartition.le_index,
-  --have := index_le_half,
-  sorry
+    exact ⟨hG, hV, discrete_equipartition.is_uniform G hε⟩ },
+  let t := iteration_bound ε l,
+  let P := szemeredi_equipartition G ε t (nat_ceil (4/ε^5) + 1), -- change to nat_floor
+  have hsize : P.size ≤ (exp_bound^[nat_ceil (4/ε^5) + 1] t) := -- change to nat_floor
+    szemeredi_equipartition.size_le G ε t _,
+  have hl : l ≤ P.size := (le_iteration_bound ε l).trans (szemeredi_equipartition.le_size G ε t _),
+  have hPV : P.size * 16^P.size ≤ card V :=
+    le_trans (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)) hV,
+  refine ⟨P, hl, _, _⟩,
+  { exact hsize.trans (le_mul_of_le_of_one_le le_rfl (nat.one_le_pow _ 16 (by norm_num))) },
+  by_contra huniform,
+  have := (szemeredi_equipartition.le_index (const_lt_mul_pow_iteration_bound hε _) hPV
+    huniform).trans (P.index_le_half G),
+  sorry, -- easy now
 end

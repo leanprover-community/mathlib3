@@ -206,8 +206,6 @@ mul_one_class.one_mul
 lemma mul_one : ∀ a : M, a * 1 = a :=
 mul_one_class.mul_one
 
-attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
-
 @[to_additive]
 instance mul_one_class.to_is_left_id : is_left_id M (*) 1 :=
 ⟨ mul_one_class.one_mul ⟩

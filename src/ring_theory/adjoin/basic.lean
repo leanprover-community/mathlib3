@@ -141,8 +141,7 @@ lemma adjoint_prod_fst_mem (B) [semiring B] [algebra R B] {s} {x : A} (h : x ∈
   ((x, 0) : (A × B)) ∈ (adjoin R (set.insert (1, 0) ((linear_map.inl R A B) '' s))) :=
 begin
   let S := adjoin R (set.insert (1, 0) ((linear_map.inl R A B) '' s)),
-  refine @adjoin_induction R A _ _ _ _
-    (λ a, ((a, 0) : (A × B)) ∈ (adjoin R (set.insert (1, 0) ((linear_map.inl R A B) '' s)))) x h
+  refine @adjoin_induction R A _ _ _ _ (λ a, ((a, 0) : (A × B)) ∈ S) x h
     (λ a ha, subset_adjoin $ set.subset_insert _ _ ⟨a, ⟨ha, rfl⟩⟩)
     (λ r, _)
     (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)
@@ -158,8 +157,7 @@ lemma adjoint_prod_snd_mem (A) [semiring A] [algebra R A] {t} {x : B} (h : x ∈
   ((0, x) : (A × B)) ∈ (adjoin R (set.insert (0, 1) ((linear_map.inr R A B) '' t))) :=
 begin
   let T := adjoin R (set.insert (0, 1) ((linear_map.inr R A B) '' t)),
-  refine @adjoin_induction R B _ _ _ _
-    (λ b, ((0, b) : (A × B)) ∈ (adjoin R (set.insert (0, 1) ((linear_map.inr R A B) '' t)))) x h
+  refine @adjoin_induction R B _ _ _ _ (λ b, ((0, b) : (A × B)) ∈ T) x h
     (λ b hb, subset_adjoin $ set.subset_insert _ _ ⟨b, ⟨hb, rfl⟩⟩)
     (λ r, _)
     (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)

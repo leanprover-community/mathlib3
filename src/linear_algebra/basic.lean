@@ -98,6 +98,24 @@ variable (R)
   map_smul' := λ c f, by { ext, refl },
   .. equiv_fun_on_fintype }
 
+@[simp] lemma linear_equiv_fun_on_fintype_single {α} [decidable_eq α] [fintype α]
+  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
+  (@linear_equiv_fun_on_fintype R M α _ _ _ _) (single x m) = pi.single x m :=
+begin
+  ext a,
+  change (equiv_fun_on_fintype (single x m)) a = _,
+  convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
+end
+
+@[simp] lemma linear_equiv_fun_on_fintype_symm_single {α} [decidable_eq α] [fintype α]
+  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
+  (@linear_equiv_fun_on_fintype R M α _ _ _ _).symm (pi.single x m) = single x m :=
+begin
+  ext a,
+  change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
+  convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
+end
+
 end finsupp
 
 section

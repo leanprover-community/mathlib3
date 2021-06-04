@@ -30,7 +30,7 @@ the invariant basis number property.
 
 ## Main results
 
-We show that every nontrivial left-noetherian ring satifies the rank condition,
+We show that every nontrivial left-noetherian ring satisfies the rank condition,
 (and so in particular every division ring or field),
 and then use this to show every nontrivial commutative ring has the invariant basis number property.
 
@@ -88,7 +88,15 @@ lemma le_of_fin_surjective [rank_condition R] {n m : ℕ} (f : (fin n → R) →
   surjective f → m ≤ n :=
 rank_condition.le_of_fin_surjective f
 
--- TODO the strong rank condition implies the rank condition
+/--
+By the universal property for free modules, any surjective map `(fin n → R) →ₗ[R] (fin m → R)`
+has an injective splitting `(fin m → R) →ₗ[R] (fin n → R)`
+from which the strong rank condition gives the necessary inequality for the rank condition.
+-/
+@[priority 100]
+instance rank_condition_of_strong_rank_condition [strong_rank_condition R] : rank_condition R :=
+{ le_of_fin_surjective := λ n m f s,
+    le_of_fin_injective R _ (f.splitting_of_fun_on_fintype_surjective_injective s), }
 
 /-- We say that `R` has the invariant basis number property if `(fin n → R) ≃ₗ[R] (fin m → R)`
     implies `n = m`. This gives rise to a well-defined notion of rank of a finitely generated free

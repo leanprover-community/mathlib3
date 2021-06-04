@@ -11,6 +11,7 @@ import topology.continuous_on
 import topology.opens
 import data.setoid.partition
 import topology.continuous_function.bounded
+import data.padics.ring_homs
 
 def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
@@ -134,7 +135,8 @@ open classical
 
 --open_locale classical
 
-noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R] (U : clopen_sets X) : locally_constant X R :=
+noncomputable def char_fn {R : Type*} [topological_space R] [ring R] [topological_ring R]
+  (U : clopen_sets X) : locally_constant X R :=
 {
   to_fun := λ x, by classical; exact if (x ∈ U.val) then 1 else 0,
   is_locally_constant :=
@@ -722,6 +724,17 @@ begin
   { rintros a b ab ba, apply clopen_coe, apply set.subset.antisymm ab ba, },
 end
 
+instance : lattice (clopen_sets X) :=
+begin
+  refine subtype.lattice _ _,
+  { rintros x y, apply is_clopen_union, },
+  { rintros x y, apply is_clopen_inter, },
+end
+
+instance : boolean_algebra (clopen_sets X) := sorry
+
+instance : add_comm_monoid (clopen_sets X) := sorry
+
 instance has_union' : has_union (clopen_sets X) :=
 begin
 constructor,
@@ -733,8 +746,14 @@ variables {Γ₀   : Type*}  [linear_ordered_comm_group_with_zero Γ₀] (v : va
 structure  distribution {R : Type*} [add_monoid R] :=
 (phi : clopen_sets X → R)
 (count_add ⦃f : ℕ → clopen_sets X⦄ :
+  (∀ (S T : clopen_sets X), S ⊓ T = ⊥ →
+  phi(S ∪ T) = phi S + phi T)) --define has_sup lattice structure via gi
+
+/-structure  distribution {R : Type*} [add_monoid R] :=
+(phi : clopen_sets X → R)
+(count_add ⦃f : ℕ → clopen_sets X⦄ :
   (∀ i j, pairwise (disjoint on f) →
-  phi((f i) ∪ (f j)) = phi (f i) + phi (f j)))
+  phi((f i) ∪ (f j)) = phi (f i) + phi (f j))) -/
 
 instance : has_scalar A (locally_constant X A) :=
 { smul := λ a f,
@@ -983,7 +1002,11 @@ structure system {X : Type*} [set X] :=
 
 --variables {A : Type*} [integral_domain A] [algebra ℚ A]
 
-def dirichlet_char_space (f : ℤ) : monoid { χ : mul_hom ℤ ℂ // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } :=
+variables (p : ℕ) [fact p.prime]
+
+def dirichlet_char_space (f : ℕ) := { χ : mul_hom ℤ_[p] A // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 }
+
+instance (f : ℕ) : monoid (dirichlet_char_space A p f) :=
 {
   mul := begin
         rintros a b, sorry,
@@ -994,9 +1017,7 @@ def dirichlet_char_space (f : ℤ) : monoid { χ : mul_hom ℤ ℂ // ∀ a : �
   mul_assoc := begin sorry end,
 }
 
-instance dir_char (f : ℤ) : group { χ : mul_hom ℤ ℂ // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } := sorry
-
-variables (p : ℕ) [fact p.prime]
+instance dir_char (f : ℤ) : group { χ : mul_hom ℤ A // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } := sorry
 
 instance topo : topological_space (units ℤ_[p]) := sorry
 
@@ -1011,4 +1032,68 @@ instance td : totally_disconnected_space (units ℤ_[p]) := sorry
 instance topo' : topological_space (units A) := sorry
 
 /-- A-valued points of weight space -/ --shouldn't this be a category theory statement?
-def weight_space : group ({ χ : mul_hom (units ℤ_[p]) (units A) // continuous χ }) := sorry
+def weight_space := { χ : mul_hom (units ℤ_[p]) (units A) // continuous χ }
+
+instance : group (weight_space A p) := sorry
+
+instance : has_mod ℤ_[p] := sorry
+
+lemma blahs (a : units ℤ_[p]) : ∃ (b : units ℤ_[p]),
+  b^(p-1) = 1 ∧ ((a : ℤ_[p]) % (p : ℤ_[p]) = b) := sorry
+
+variables [complete_space A] (inj : (units ℤ_[p]) → (units A)) [fact (function.injective inj)]
+
+variables (d : ℕ) (hd : gcd d p = 1) (χ : dirichlet_char_space A p d) (w : weight_space A p)
+
+def teichmuller_character (a : units ℤ_[p]) : units A := inj (classical.some (blahs p a))
+
+instance : normed_ring (units A) := sorry
+
+instance : compact_space ℤ_[p] := sorry
+instance : locally_compact_space ℤ_[p] := sorry
+instance : totally_disconnected_space ℤ_[p] := sorry
+
+def clopen_basis := classical.some (loc_compact_Haus_tot_disc_of_zero_dim ℤ_[p])
+
+lemma clopen_basis_clopen : topological_space.is_topological_basis (clopen_basis p) ∧
+  ∀ x ∈ (clopen_basis p), is_clopen x := sorry
+
+theorem clopen_basis_eq_preimage {x : set ℤ_[p]} (hx : x ∈ (clopen_basis p)) :
+  ∃! (n : ℕ) (a : zmod (p^n)), x = set.preimage (padic_int.to_zmod_pow n) a := sorry
+
+lemma char_fn_basis_of_loc_const : is_basis A (@char_fn ℤ_[p] _ _ _ _ A _ _ _) := sorry
+
+instance : semimodule A (units ℤ_[p]) := sorry
+
+def bernoulli_measure : measures'' (ℤ_[p]) A :=
+begin
+  constructor, swap,
+  constructor,
+  {
+    refine is_basis.constr (char_fn_basis_of_loc_const A p) _,
+    intro U,
+
+    refine add_submonoid.dense_induction (clopen_basis p),
+
+    refine dense_inducing.extend _ _,
+    apply add_monoid_hom.to_fun,
+
+    refine add_monoid_hom.of_mdense _ _ _ _,
+    { exact {x : clopen_sets ℤ_[p] | x.val ∈ (clopen_basis p)}, },
+
+  },
+  sorry,
+end
+ --function on clopen subsets of Z/dZ* x Z_p* or work in Z_p and restrict
+--(i,a + p^nZ_p) (i,d) = 1
+
+instance : nonempty (units ℤ_[p]) := sorry
+
+lemma cont_paLf : continuous (λ (a : units ℤ_[p]),
+  (χ.val (a : ℤ_[p])) * ((teichmuller_character A p inj a) : units A)^(p - 2) * (w.val a : A)) :=
+sorry
+
+def p_adic_L_function [h : function.injective inj] :=
+  integral (units ℤ_[p]) A _ (bernoulli_measure A p)
+⟨(λ (a : units ℤ_[p]), (χ.val (a : ℤ_[p])) * ((teichmuller_character A p inj a))^(p - 2) *
+  (w.val a : A)), cont_paLf _ _ _ _ _ _ ⟩

@@ -285,10 +285,11 @@ begin
   have q : ∃ s : finset ι, _root_.infinite (Φ ⁻¹' {s}) := sorry,
   obtain ⟨s, w⟩ := q,
   let v' := λ k : Φ ⁻¹' {s}, v k,
-  have i' : linear_independent R v' := sorry,
+  have i' : linear_independent R v' := i.comp _ subtype.val_injective,
   haveI w' : fintype (Φ ⁻¹' {s}) :=
   begin
     apply linear_independent_fintype_of_le_span_fintype R M v' i' (s.image b),
+    intro m,
     sorry,
   end,
   exact w.false,

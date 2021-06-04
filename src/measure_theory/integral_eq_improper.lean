@@ -439,8 +439,7 @@ section examples -- will be removed later (TODO)
 example : integrable_on (λ x, real.exp (-x)) (Ioi 0) :=
 begin
   have key₁ : ∀ x, integrable_on (λ t, real.exp (-t)) (Ioc 0 x) :=
-    λ x, ((real.continuous_exp.comp continuous_id.neg).integrable_on_compact compact_Icc).mono_set
-      Ioc_subset_Icc_self,
+    λ x, ((real.continuous_exp.comp continuous_id.neg).interval_integrable _ _).1,
   have key₂ : ∀ x, 1 - real.exp (-x) = ∫ t in 0..x, ∥real.exp (-t)∥,
   { intro x,
     conv in (norm _) { rw real.norm_of_nonneg ((-t).exp_pos.le) },

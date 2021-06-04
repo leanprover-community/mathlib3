@@ -11,9 +11,9 @@ import ring_theory.derivation
 
 # Left invariant derivations
 
-In this file we define the concept of left invariant derivation for a Lie group. The concept is the
-analogous to the more classical concept of left invariant vector fields, and this analogy "commutes"
-with the isomorphism between global derivations and left invariant vector fields.
+In this file we define the concept of left invariant derivation for a Lie group. The concept is
+analogous to the more classical concept of left invariant vector fields, and it holds that the
+derivation associated to a vector field is left invariant iff the the field is.
 
 Moreover we prove that `left_invariant_derivation I G` has the structure of a Lie algebra, hence
 implementing one of the possible definitions of Lie algebra.
@@ -29,7 +29,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (G : Type*) [topological_space G] [charted_space H G] [monoid G] [has_smooth_mul I G] (g h : G)
 
--- Generate trivial has_sizeof instance.
+-- Generate trivial has_sizeof instance. It prevents weird type class inference timeout problems
 local attribute [instance, priority 10000]
 private def disable_has_sizeof {α} : has_sizeof α := ⟨λ _, 0⟩
 
@@ -71,6 +71,7 @@ variables (X Y f)
 @[simp] lemma coe_lift_eq_coe :
   ⇑(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = (X : C^∞⟮I, G; 𝕜⟯ → C^∞⟮I, G; 𝕜⟯) := rfl
 
+/-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
 lemma left_invariant' : (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f =
   derivation.eval_at g ↑X f := by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
 
@@ -80,12 +81,12 @@ instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,
 instance : inhabited (left_invariant_derivation I G) := ⟨0⟩
 
 instance : has_add (left_invariant_derivation I G) :=
-{ add := λ X Y, ⟨X + Y, λ f g, by simp only [linear_map.map_add,
-          derivation.coe_add, left_invariant', pi.add_apply]⟩ }
+{ add := λ X Y, ⟨X + Y, λ f g, by simp only [linear_map.map_add, derivation.coe_add,
+  left_invariant', pi.add_apply]⟩ }
 
 instance : has_neg (left_invariant_derivation I G) :=
-{ neg := λ X, ⟨-X, λ f g, by simp only [linear_map.map_neg, derivation.coe_neg,
-          left_invariant', pi.neg_apply]⟩ }
+{ neg := λ X, ⟨-X, λ f g, by simp only [linear_map.map_neg, derivation.coe_neg, left_invariant',
+  pi.neg_apply]⟩ }
 
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl

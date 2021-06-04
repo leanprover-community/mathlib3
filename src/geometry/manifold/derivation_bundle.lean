@@ -34,7 +34,7 @@ instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by app
 instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
 /-- Evaluation at a point is a ring homomorphism. -/
-def smooth_funtion.eval' (x : M) : C^∞⟮I, M; 𝕜⟯ →+* 𝕜 :=
+def smooth_function.eval' (x : M) : C^∞⟮I, M; 𝕜⟯ →+* 𝕜 :=
 { to_fun    := λ f, f x,
   map_one'  := rfl,
   map_mul'  := λ f g, rfl,
@@ -42,12 +42,12 @@ def smooth_funtion.eval' (x : M) : C^∞⟮I, M; 𝕜⟯ →+* 𝕜 :=
   map_add'  := λ f g, rfl }
 
 /-- The above evaluation gives rise to an algebra structure of `C^∞⟮I, M; 𝕜⟯` on `𝕜`. -/
-def algebra (x : M) : algebra C^∞⟮I, M; 𝕜⟯ 𝕜 := (smooth_funtion.eval' I x).to_algebra
+def algebra (x : M) : algebra C^∞⟮I, M; 𝕜⟯ 𝕜 := (smooth_function.eval' I x).to_algebra
 
 /-- With the above algebra structure evaluation is actually an algebra morphism. -/
 def smooth_function.eval (x : M) :
   @alg_hom C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ 𝕜 _ _ _ _ (point_derivation.algebra I x) :=
-{ commutes' := λ k, rfl, ..smooth_funtion.eval' I x }
+{ commutes' := λ k, rfl, ..smooth_function.eval' I x }
 
 /-- The scalar multiplication defined above gives rise to a module structure. -/
 def module (x : M) : module C^∞⟮I, M; 𝕜⟯ 𝕜 :=
@@ -82,27 +82,6 @@ sigma.mk x v
 
 instance [inhabited M] : inhabited (derivation_bundle I M) :=
 ⟨derivation_inclusion (0 : point_derivation I (default M))⟩
-
-section
-
-/- Why do I need to rewrite extensionality rules for reducible defs? -/
-namespace point_derivation
-
-variables {I} {M} {x y : M} {v w : point_derivation I x} (f g : C^∞⟮I, M; 𝕜⟯) (r : 𝕜)
-
-lemma coe_injective (h : ⇑v = w) : v = w :=
-@derivation.coe_injective 𝕜 _ C^∞⟮I, M; 𝕜⟯ _ _ 𝕜 _ (point_derivation.module I x) _
-  (point_derivation.is_scalar_tower I x) v w h
-
-@[ext] theorem ext (h : ∀ f, v f = w f) : v = w :=
-coe_injective $ funext h
-
-theorem hext {u : point_derivation I y} (h1 : x = y) (h2 : ∀ f, v f = u f) : v == u :=
-by { cases h1, rw heq_iff_eq, ext, exact h2 f }
-
-end point_derivation
-
-end
 
 section
 

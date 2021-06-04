@@ -649,8 +649,8 @@ by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, ma
 rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,
     multiset.to_finset_cons, multiset.to_finset_zero, insert_emptyc_eq, finset.coe_singleton,
     algebra.adjoin_union_eq_under, ← set.image_singleton,
-    algebra.adjoin_algebra_map K
-      (adjoin_root f.factor) (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
+    algebra.adjoin_algebra_map K (adjoin_root f.factor)
+      (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
     is_scalar_tower.range_under_adjoin K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),

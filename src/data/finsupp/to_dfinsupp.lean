@@ -223,7 +223,7 @@ lemma test [h : add_monoid N] :
   @add_zero_class.to_has_zero (ι →₀ N) (@finsupp.add_zero_class ι N _) =
   @finsupp.has_zero ι N (@add_zero_class.to_has_zero N _) := rfl
 
--- this should be fixed
+-- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.
 local attribute [-instance] finsupp.has_zero
 
 /-- `finsupp.split` is an additive equivalence between `(Σ (j : η), ιs j) →₀ α`

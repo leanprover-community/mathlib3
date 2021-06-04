@@ -9,10 +9,14 @@ import ring_theory.algebra_tower
 
 /-!
 # Derivations
+
 This file defines derivation. A derivation `D` from the `R`-algebra `A` to the `A`-module `M` is an
 `R`-linear map that satisfy the Leibniz rule `D (a * b) = a * D b + D a * b`.
+
 ## Notation
+
 The notation `⁅D1, D2⁆` is used for the commutator of two derivations.
+
 TODO: this file is just a stub to go on with some PRs in the geometry section. It only
 implements the definition of derivations in commutative algebra. This will soon change: as soon
 as bimodules will be there in mathlib I will change this file to take into account the

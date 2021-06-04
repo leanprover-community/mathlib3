@@ -119,13 +119,13 @@ variables (I) (g h : G)
 /-- Left multiplication by `g`. It is meant to mimic the usual notation in Lie groups. -/
 def smooth_left_mul : C^∞⟮I, G; I, G⟯ := ⟨(left_mul g), smooth_mul_left⟩
 
-/-- Left multiplication by `g`. It is meant to mimic the usual notation in Lie groups. -/
+/-- Right multiplication by `g`. It is meant to mimic the usual notation in Lie groups. -/
 def smooth_right_mul : C^∞⟮I, G; I, G⟯ := ⟨(right_mul g), smooth_mul_right⟩
 
 /- Left multiplication. The abbreviation is `MIL`. -/
 localized "notation `𝑳` := smooth_left_mul" in lie_group
 
-/- Left multiplication. The abbreviation is `MIL`. -/
+/- Right multiplication. The abbreviation is `MIR`. -/
 localized "notation `𝑹` := smooth_right_mul" in lie_group
 
 open_locale lie_group
@@ -140,12 +140,6 @@ by { ext, simp only [times_cont_mdiff_map.comp_apply, L_apply, mul_assoc] }
 @[simp] lemma R_mul {G : Type*} [semigroup G] [topological_space G] [charted_space H G]
   [has_smooth_mul I G] (g h : G) : 𝑹 I (g * h) = (𝑹 I h).comp (𝑹 I g) :=
 by { ext, simp only [times_cont_mdiff_map.comp_apply, R_apply, mul_assoc] }
-
-lemma L_apply_one {G : Type*} [monoid G] [topological_space G] [charted_space H G]
-  [has_smooth_mul I G] (g : G) : (𝑳 I g) 1 = g := by rw [L_apply, mul_one]
-
-lemma R_apply_one {G : Type*} [monoid G] [topological_space G] [charted_space H G]
-[has_smooth_mul I G] (g : G) : (𝑹 I g) 1 = g := by rw [R_apply, one_mul]
 
 /- Instance of product -/
 @[to_additive]

@@ -33,7 +33,7 @@ structure ae_cover (φ : ι → set α) : Prop :=
 
 variables {μ}
 
-section preorder
+section preorder_α
 
 variables [preorder α] [topological_space α] [order_closed_topology α]
   [opens_measurable_space α] {a b : ι → α}
@@ -61,9 +61,9 @@ lemma ae_cover_Iic :
     λ i hbi, hbi ),
   measurable := λ i, measurable_set_Iic }
 
-end preorder
+end preorder_α
 
-section linear_order
+section linear_order_α
 
 variables [linear_order α] [topological_space α] [order_closed_topology α]
   [opens_measurable_space α] {a b : ι → α}
@@ -105,7 +105,26 @@ lemma ae_cover_Iio [no_top_order α] :
     λ i hbi, hbi ),
   measurable := λ i, measurable_set_Iio }
 
-end linear_order
+end linear_order_α
+
+lemma ae_cover.restrict {φ : ι → set α} (hφ : ae_cover μ φ) {s : set α} :
+  ae_cover (μ.restrict s) φ :=
+{ ae_eventually_mem := ae_restrict_of_ae hφ.ae_eventually_mem,
+  measurable := hφ.measurable }
+
+lemma ae_cover_restrict_of_ae_imp {s : set α} {φ : ι → set α}
+  (hs : measurable_set s) (ae_eventually_mem : ∀ᵐ x ∂μ, x ∈ s → ∀ᶠ n in at_top, x ∈ φ n)
+  (measurable : ∀ n, measurable_set $ φ n) :
+  ae_cover (μ.restrict s) φ :=
+{ ae_eventually_mem := by rwa ae_restrict_iff' hs,
+  measurable := measurable }
+
+lemma ae_cover.inter_restrict {φ : ι → set α} (hφ : ae_cover μ φ)
+  {s : set α} (hs : measurable_set s) :
+  ae_cover (μ.restrict s) (λ i, φ i ∩ s) :=
+ae_cover_restrict_of_ae_imp hs
+  (hφ.ae_eventually_mem.mono (λ x hx hxs, hx.mono $ λ i hi, ⟨hi, hxs⟩))
+  (λ i, (hφ.measurable i).inter hs)
 
 lemma ae_cover.ae_tendsto_indicator {β : Type*} [has_zero β] [topological_space β]
   {f : α → β} {φ : ι → set α} (hφ : ae_cover μ φ) :
@@ -187,7 +206,7 @@ end ae_cover_Union_Inter_encodable
 
 section lintegral
 
-variables {α ι : Type*} [measurable_space α] {μ : measure α} [semilattice_sup ι] [nonempty ι]
+variables {α ι : Type*} [measurable_space α] {μ : measure α} [semilattice_sup ι]
 
 lemma ae_cover.lintegral_tendsto_of_monotone_of_nat {φ : ℕ → set α} (hφ : ae_cover μ φ)
   (hmono : monotone φ) {f : α → ℝ≥0∞} (hfm : measurable f) :
@@ -211,22 +230,22 @@ begin
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le lim₁ lim₂ le₁ le₂
 end
 
-lemma ae_cover.lintegral_tendsto_of_at_top_countably_generated {φ : ι → set α} (hφ : ae_cover μ φ)
-  (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ≥0∞} (hfm : measurable f) :
-  tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
+lemma ae_cover.lintegral_tendsto_of_at_top_countably_generated [nonempty ι] {φ : ι → set α}
+  (hφ : ae_cover μ φ) (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ≥0∞}
+  (hfm : measurable f) : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 htop.tendsto_of_seq_tendsto (λ u hu, (hφ.comp_tendsto_at_top hu).lintegral_tendsto_of_nat hfm)
 
 -- TODO : change name to `set_...` ?
 
-lemma ae_cover.lintegral_eq_of_tendsto {φ : ι → set α} (hφ : ae_cover μ φ)
+lemma ae_cover.lintegral_eq_of_tendsto [nonempty ι] {φ : ι → set α} (hφ : ae_cover μ φ)
   (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ≥0∞} (I : ℝ≥0∞)
   (hfm : measurable f) (htendsto : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 I)) :
   ∫⁻ x, f x ∂μ = I :=
 tendsto_nhds_unique (hφ.lintegral_tendsto_of_at_top_countably_generated htop hfm) htendsto
 
-lemma ae_cover.supr_lintegral_eq_of_at_top_countably_generated {φ : ι → set α} (hφ : ae_cover μ φ)
-  (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ≥0∞} (hfm : measurable f) :
-  (⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ) = ∫⁻ x, f x ∂μ :=
+lemma ae_cover.supr_lintegral_eq_of_at_top_countably_generated [nonempty ι] {φ : ι → set α}
+  (hφ : ae_cover μ φ) (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ≥0∞}
+  (hfm : measurable f) : (⨆ (i : ι), ∫⁻ x in φ i, f x ∂μ) = ∫⁻ x, f x ∂μ :=
 begin
   have := hφ.lintegral_tendsto_of_at_top_countably_generated htop hfm,
   refine csupr_eq_of_forall_le_of_forall_lt_exists_gt
@@ -240,12 +259,13 @@ end lintegral
 
 section integrable
 
-variables {α ι E : Type*} [semilattice_sup ι] [nonempty ι]
+variables {α ι E : Type*} [semilattice_sup ι]
   [measurable_space α] {μ : measure α} [normed_group E]
   [measurable_space E] [opens_measurable_space E]
 
-lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto {φ : ι → set α} (hφ : ae_cover μ φ)
-  (htop : (at_top : filter ι).is_countably_generated) {f : α → E} (I : ℝ) (hfm : measurable f)
+lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto [nonempty ι] {φ : ι → set α}
+  (hφ : ae_cover μ φ) (htop : (at_top : filter ι).is_countably_generated) {f : α → E} (I : ℝ)
+  (hfm : measurable f)
   (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) at_top (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
 begin
@@ -256,13 +276,14 @@ begin
   exact ennreal.of_real_lt_top
 end
 
-lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' {φ : ι → set α} (hφ : ae_cover μ φ)
-  (htop : (at_top : filter ι).is_countably_generated) {f : α → E} (I : ℝ≥0) (hfm : measurable f)
+lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' [nonempty ι] {φ : ι → set α}
+  (hφ : ae_cover μ φ) (htop : (at_top : filter ι).is_countably_generated) {f : α → E} (I : ℝ≥0)
+  (hfm : measurable f)
   (htendsto : tendsto (λ i, ∫⁻ x in φ i, nnnorm (f x) ∂μ) at_top (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
 hφ.integrable_of_lintegral_nnnorm_tendsto htop (I : ℝ) hfm htendsto
 
-lemma ae_cover.integrable_of_integral_norm_tendsto {φ : ι → set α} (hφ : ae_cover μ φ)
+lemma ae_cover.integrable_of_integral_norm_tendsto [nonempty ι] {φ : ι → set α} (hφ : ae_cover μ φ)
   (htop : (at_top : filter ι).is_countably_generated) {f : α → E}
   (I : ℝ) (hfm : measurable f) (hfi : ∀ i, integrable_on f (φ i) μ)
   (htendsto : tendsto (λ i, ∫ x in φ i, ∥f x∥ ∂μ) at_top (𝓝 I)) :
@@ -279,9 +300,9 @@ begin
   exact ne_top_of_lt (hfi i).2
 end
 
-lemma ae_cover.integrable_of_integral_tendsto_of_nonneg_ae {φ : ι → set α} (hφ : ae_cover μ φ)
-  (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ} (I : ℝ) (hfm : measurable f)
-  (hfi : ∀ i, integrable_on f (φ i) μ) (hnng : ∀ᵐ x ∂μ, f x ≥ 0)
+lemma ae_cover.integrable_of_integral_tendsto_of_nonneg_ae [nonempty ι] {φ : ι → set α}
+  (hφ : ae_cover μ φ) (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ} (I : ℝ)
+  (hfm : measurable f) (hfi : ∀ i, integrable_on f (φ i) μ) (hnng : ∀ᵐ x ∂μ, f x ≥ 0)
   (htendsto : tendsto (λ i, ∫ x in φ i, f x ∂μ) at_top (𝓝 I)) :
   integrable f μ :=
 hφ.integrable_of_integral_norm_tendsto htop I hfm hfi
@@ -309,7 +330,23 @@ tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥) htop
   (eventually_of_forall $ λ i, ae_of_all _ $ λ x, norm_indicator_le_norm_self _ _)
   hfi.norm hφ.ae_tendsto_indicator
 
--- TODO : of_nonneg
+/-- Slight reformulation of
+    `measure_theory.ae_cover.integral_tendsto_of_at_top_countably_generated`. -/
+lemma ae_cover.integral_eq_of_tendsto [nonempty ι] {φ : ι → set α} (hφ : ae_cover μ φ)
+  (htop : (at_top : filter ι).is_countably_generated) {f : α → E}
+  (I : E) (hfm : measurable f) (hfi : integrable f μ)
+  (h : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
+  ∫ x, f x ∂μ = I :=
+tendsto_nhds_unique (hφ.integral_tendsto_of_at_top_countably_generated htop hfm hfi) h
+
+lemma ae_cover.integral_eq_of_tendsto_of_nonneg_ae [nonempty ι] {φ : ι → set α}
+  (hφ : ae_cover μ φ) (htop : (at_top : filter ι).is_countably_generated) {f : α → ℝ} (I : ℝ)
+  (hnng : 0 ≤ᵐ[μ] f) (hfm : measurable f) (hfi : ∀ n, integrable_on f (φ n) μ)
+  (htendsto : tendsto (λ n, ∫ x in φ n, f x ∂μ) at_top (𝓝 I)) :
+  ∫ x, f x ∂μ = I :=
+have hfi' : integrable f μ,
+  from hφ.integrable_of_integral_tendsto_of_nonneg_ae htop I hfm hfi hnng htendsto,
+hφ.integral_eq_of_tendsto htop I hfm hfi' htendsto
 
 end integral
 
@@ -445,10 +482,10 @@ begin
     conv in (norm _) { rw real.norm_of_nonneg ((-t).exp_pos.le) },
     simp },
   refine integrable_on_Ioi_of_interval_integral_norm_tendsto
-    (@at_top_countably_generated_of_archimedean ℝ _ _) (real.measurable_exp.comp measurable_neg)
-    (1 : ℝ) (0 : ℝ) key₁ tendsto_id (tendsto.congr key₂ _),
+    (at_top_countably_generated_of_archimedean : (at_top : filter ℝ).is_countably_generated)
+    (real.measurable_exp.comp measurable_neg) 1 0 key₁ tendsto_id (tendsto.congr key₂ _),
   convert tendsto_const_nhds.sub (real.tendsto_exp_at_bot.comp tendsto_neg_at_top_at_bot),
-  ring
+  rw sub_zero
 end
 
 end examples

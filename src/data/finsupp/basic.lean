@@ -3,10 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import algebra.big_operators.order
-import algebra.module.pi
-import group_theory.submonoid.basic
-import algebra.big_operators.ring
 import data.finset.preimage
 import algebra.indicator_function
 
@@ -144,6 +140,9 @@ lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x �
     have hf : f a = 0, from not_mem_support_iff.1 h,
     have hg : g a = 0, by rwa [h₁, not_mem_support_iff] at h,
     by rw [hf, hg]⟩
+
+lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a :=
+congr_fun (congr_arg finsupp.to_fun h) a
 
 @[simp] lemma support_eq_empty {f : α →₀ M} : f.support = ∅ ↔ f = 0 :=
 by exact_mod_cast @function.support_eq_empty_iff _ _ _ f
@@ -341,6 +340,14 @@ by simp only [card_eq_one, support_eq_singleton]
 
 lemma card_support_eq_one' {f : α →₀ M} : card f.support = 1 ↔ ∃ a (b ≠ 0), f = single a b :=
 by simp only [card_eq_one, support_eq_singleton']
+
+@[simp] lemma equiv_fun_on_fintype_single [fintype α] (x : α) (m : M) :
+  (@finsupp.equiv_fun_on_fintype α M _ _) (finsupp.single x m) = pi.single x m :=
+by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
+
+@[simp] lemma equiv_fun_on_fintype_symm_single [fintype α] (x : α) (m : M) :
+  (@finsupp.equiv_fun_on_fintype α M _ _).symm (pi.single x m) = finsupp.single x m :=
+by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
 
 end single
 
@@ -2104,15 +2111,7 @@ instance [semiring R] [add_comm_monoid M] [module R M] {ι : Type*}
   (λ i, (smul_eq_zero.mp (finsupp.ext_iff.mp h i)).resolve_left hc))⟩
 
 section
-variables [semiring R] [semiring S]
-
-lemma sum_mul (b : S) (s : α →₀ R) {f : α → R → S} :
-  (s.sum f) * b = s.sum (λ a c, (f a c) * b) :=
-by simp only [finsupp.sum, finset.sum_mul]
-
-lemma mul_sum (b : S) (s : α →₀ R) {f : α → R → S} :
-  b * (s.sum f) = s.sum (λ a c, b * (f a c)) :=
-by simp only [finsupp.sum, finset.mul_sum]
+variables [has_zero R]
 
 /-- The `finsupp` version of `pi.unique`. -/
 instance unique_of_right [subsingleton R] : unique (α →₀ R) :=

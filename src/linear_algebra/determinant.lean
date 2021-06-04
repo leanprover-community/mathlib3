@@ -282,3 +282,26 @@ end
 
 lemma basis.is_unit_det (e' : basis ι R M) : is_unit (e.det e') :=
 (is_basis_iff_det e).mp ⟨e'.linear_independent, e'.span_eq⟩
+
+variables {A : Type*} [integral_domain A] [module A M]
+
+@[simp] lemma basis.det_comp (e : basis ι A M) (f : M →ₗ[A] M) (v : ι → M) :
+  e.det (f ∘ v) = f.det * e.det v :=
+by { rw [basis.det_apply, basis.det_apply, ← f.det_to_matrix e, ← matrix.det_mul,
+         e.to_matrix_eq_to_matrix_constr (f ∘ v), e.to_matrix_eq_to_matrix_constr v,
+         ← to_matrix_comp, e.constr_comp] }
+
+lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
+  (b.reindex e).det v = b.det (v ∘ e) :=
+by rw [basis.det_apply, basis.to_matrix_reindex', det_reindex_alg_equiv, basis.det_apply]
+
+lemma basis.det_reindex_symm {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  (b : basis ι R M) (v : ι → M) (e : ι' ≃ ι) :
+  (b.reindex e.symm).det (v ∘ e) = b.det v :=
+by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.right_id]
+
+@[simp]
+lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
+  (b.map f).det v = b.det (f.symm ∘ v) :=
+by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }

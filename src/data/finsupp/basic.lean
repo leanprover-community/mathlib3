@@ -157,7 +157,7 @@ by simp [← finsupp.support_eq_empty, finset.eq_empty_iff_forall_not_mem]
 lemma card_support_eq_zero {f : α →₀ M} : card f.support = 0 ↔ f = 0 :=
 by simp
 
-instance finsupp.decidable_eq [decidable_eq α] [decidable_eq M] : decidable_eq (α →₀ M) :=
+instance [decidable_eq α] [decidable_eq M] : decidable_eq (α →₀ M) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a = g a)) ext_iff'.symm
 
 lemma finite_support (f : α →₀ M) : set.finite (function.support f) :=
@@ -2341,6 +2341,10 @@ lemma le_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
+instance decidable_le [canonically_ordered_add_monoid M] [decidable_rel (@has_le.le M _)] :
+  decidable_rel (@has_le.le (α →₀ M) _) :=
+λ f g, decidable_of_iff _ (le_iff f g).symm
+
 @[simp] lemma add_eq_zero_iff [canonically_ordered_add_monoid M] (f g : α →₀ M) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
 by simp [ext_iff, forall_and_distrib]
@@ -2371,9 +2375,6 @@ variable (α)
 /-- The order on `σ →₀ ℕ` is well-founded.-/
 lemma lt_wf : well_founded (@has_lt.lt (α →₀ ℕ) _) :=
 subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
-
-instance decidable_le : decidable_rel (@has_le.le (α →₀ ℕ) _) :=
-λ m n, by rw le_iff; apply_instance
 
 variable {α}
 

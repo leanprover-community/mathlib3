@@ -716,7 +716,7 @@ begin
     exact subset_vanishing_ideal_zero_locus {f} (set.mem_singleton f) },
 
   replace hn := ideal.mul_mem_left _ f hn,
-  erw [←pow_succ, finsupp.mem_span_iff_total] at hn,
+  erw [←pow_succ, finsupp.mem_span_image_iff_total] at hn,
   rcases hn with ⟨b, b_supp, hb⟩,
   rw finsupp.total_apply_of_mem_supported R b_supp at hb,
   dsimp at hb,

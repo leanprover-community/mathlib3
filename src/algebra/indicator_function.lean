@@ -5,7 +5,7 @@ Authors: Zhouhang Zhou
 -/
 import algebra.group.pi
 import group_theory.group_action
-import data.support
+import algebra.support
 import data.finset.lattice
 
 /-!

@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
 import data.sigma.basic
-import algebra.group.defs
 
 /-!
 # Injective functions
@@ -291,26 +290,3 @@ namespace set
 ⟨λ x, ⟨x.1, h x.2⟩, λ ⟨x, hx⟩ ⟨y, hy⟩ h, by { congr, injection h }⟩
 
 end set
-
--- TODO: these two definitions probably belong somewhere else, so that we can remove the
--- `algebra.group.defs` import.
-
-/--
-The embedding of a left cancellative semigroup into itself
-by left multiplication by a fixed element.
- -/
-@[to_additive
-  "The embedding of a left cancellative additive semigroup into itself
-   by left translation by a fixed element.", simps]
-def mul_left_embedding {G : Type u} [left_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, g * h, inj' := mul_right_injective g }
-
-/--
-The embedding of a right cancellative semigroup into itself
-by right multiplication by a fixed element.
- -/
-@[to_additive
-  "The embedding of a right cancellative additive semigroup into itself
-   by right translation by a fixed element.", simps]
-def mul_right_embedding {G : Type u} [right_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, h * g, inj' := mul_left_injective g }

@@ -315,6 +315,21 @@ end
   map_zero' := zero_coeff,
   map_add' := λ x y, add_coeff }
 
+section domain
+variables {Γ' : Type*} [partial_order Γ']
+
+lemma emb_domain_add (f : Γ ↪o Γ') (x y : hahn_series Γ R) :
+  emb_domain f (x + y) = emb_domain f x + emb_domain f y :=
+begin
+  ext g,
+  by_cases hg : g ∈ set.range f,
+  { obtain ⟨a, rfl⟩ := hg,
+    simp },
+  { simp [emb_domain_notin_range, hg] }
+end
+
+end domain
+
 end add_monoid
 
 instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
@@ -404,16 +419,6 @@ instance : module R (hahn_series Γ V) :=
 
 section domain
 variables {Γ' : Type*} [partial_order Γ']
-
-lemma emb_domain_add (f : Γ ↪o Γ') (x y : hahn_series Γ R) :
-  emb_domain f (x + y) = emb_domain f x + emb_domain f y :=
-begin
-  ext g,
-  by_cases hg : g ∈ set.range f,
-  { obtain ⟨a, rfl⟩ := hg,
-    simp },
-  { simp [emb_domain_notin_range, hg] }
-end
 
 lemma emb_domain_smul (f : Γ ↪o Γ') (r : R) (x : hahn_series Γ R) :
   emb_domain f (r • x) = r • emb_domain f x :=
@@ -828,11 +833,11 @@ emb_domain_single.trans $ hf.symm ▸ rfl
 @[simps] def emb_domain_ring_hom (f : Γ →+ Γ') (hfi : function.injective f)
   (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g') :
   hahn_series Γ R →+* hahn_series Γ' R :=
-{ to_fun := emb_domain_linear_map ⟨⟨f, hfi⟩, hf⟩,
+{ to_fun := emb_domain ⟨⟨f, hfi⟩, hf⟩,
   map_one' := emb_domain_one _ f.map_zero,
   map_mul' := emb_domain_mul _ f.map_add,
-  map_zero' := linear_map.map_zero _,
-  map_add' := linear_map.map_add _, }
+  map_zero' := emb_domain_zero,
+  map_add' := emb_domain_add _}
 
 lemma emb_domain_ring_hom_C {f : Γ →+ Γ'} {hfi : function.injective f}
   {hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g'} {r : R} :

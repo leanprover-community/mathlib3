@@ -8,7 +8,7 @@ import algebra.module.pi
 import group_theory.submonoid.basic
 import algebra.big_operators.ring
 import data.finset.preimage
-import data.indicator_function
+import algebra.indicator_function
 
 /-!
 # Type of functions with finite support

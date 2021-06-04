@@ -234,11 +234,7 @@ local attribute [-instance] finsupp.has_zero
 def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N) ≃+ (Π₀ i, (η i →₀ N)) :=
 { to_fun := sigma_finsupp_equiv_dfinsupp,
   inv_fun := sigma_finsupp_equiv_dfinsupp.symm,
-  map_add' := λ f g,
-  begin
-    ext,
-    simpa [finsupp.split_apply],
-  end,
+  map_add' := λ f g, by {ext, refl},
   .. sigma_finsupp_equiv_dfinsupp }
 
 local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid
@@ -246,11 +242,7 @@ local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid
 /-- `finsupp.split` is a linear equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 def sigma_finsupp_lequiv_dfinsupp [add_comm_monoid N] [module R N] :
   ((Σ i, η i) →₀ N) ≃ₗ[R] (Π₀ i, (η i →₀ N)) :=
-{ map_smul' := λ r f,
-  begin
-    ext,
-    simpa [finsupp.split_apply],
-  end,
+{ map_smul' := λ r f, by {ext, refl},
   .. sigma_finsupp_add_equiv_dfinsupp }
 
 end sigma

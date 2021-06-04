@@ -141,10 +141,6 @@ instance : lie_ring (restrict_scalars R A L) := h
 
 variables [comm_ring A] [lie_algebra A L]
 
-@[simp] lemma linear_equiv_map_lie (x y : restrict_scalars R A L) :
-  linear_equiv R A L ⁅x, y⁆ = ⁅linear_equiv R A L x, linear_equiv R A L y⁆ :=
-rfl
-
 @[nolint unused_arguments]
 instance lie_algebra [comm_ring R] [algebra R A] : lie_algebra R (restrict_scalars R A L) :=
 { lie_smul := λ t x y, (lie_smul _ (show L, from x) (show L, from y) : _),

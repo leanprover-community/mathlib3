@@ -893,12 +893,6 @@ begin
   exact basis.empty _
 end
 
-/-- If `V` is zero-dimensional, there is a unique `fin 0`-indexed basis. -/
-noncomputable def basis_of_finrank_zero' [finite_dimensional K V]
-  (hV : finrank K V = 0) :
-  basis (fin 0) K V :=
-basis_of_finrank_zero (finset.univ_eq_empty.mp rfl) hV
-
 namespace linear_map
 
 theorem injective_iff_surjective_of_finrank_eq_finrank [finite_dimensional K V]

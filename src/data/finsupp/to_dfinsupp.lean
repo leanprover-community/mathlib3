@@ -187,4 +187,68 @@ noncomputable def finsupp_lequiv_dfinsupp
   map_add' := finsupp.to_dfinsupp_add,
   .. finsupp_equiv_dfinsupp}
 
+section sigma
+
+noncomputable theory
+open_locale classical
+
+variables {η : ι → Type*} {N : Type*} [semiring R]
+
+open finsupp
+
+/-- `finsupp.split` is an equivalence between `(Σ (j : η), ιs j) →₀ α`
+and `Π₀ j, (ιs j →₀ α)`. -/
+def sigma_finsupp_equiv_dfinsupp [has_zero N] : ((Σ i, η i) →₀ N) ≃ (Π₀ i, (η i →₀ N)) :=
+{ to_fun := λ f, ⟦⟨split f, (split_support f : finset ι).val, λ i,
+    begin
+    rw [← finset.mem_def, mem_split_support_iff_nonzero],
+    exact (decidable.em _).symm
+    end⟩⟧,
+  inv_fun := λ f,
+  begin
+    refine on_finset (finset.sigma f.support (λ j, (f j).support)) (λ ji, f ji.1 ji.2)
+      (λ g hg, finset.mem_sigma.mpr ⟨_, mem_support_iff.mpr hg⟩),
+    simp only [ne.def, dfinsupp.mem_support_to_fun],
+    intro h,
+    rw h at hg,
+    simpa using hg
+  end,
+  left_inv := λ f, by { ext, simp [split] },
+  right_inv := λ f, by { ext, simp [split] } }
+
+lemma sigma_finsupp_equiv_dfinsupp_apply [has_zero N] (f : (Σ i, η i) →₀ N) :
+  (sigma_finsupp_equiv_dfinsupp f : Π i, (η i →₀ N)) = finsupp.split f := rfl
+
+lemma test [h : add_monoid N] :
+  @add_zero_class.to_has_zero (ι →₀ N) (@finsupp.add_zero_class ι N _) =
+  @finsupp.has_zero ι N (@add_zero_class.to_has_zero N _) := rfl
+
+-- this should be fixed
+local attribute [-instance] finsupp.has_zero
+
+/-- `finsupp.split` is an additive equivalence between `(Σ (j : η), ιs j) →₀ α`
+and `Π₀ j, (ιs j →₀ α)`. -/
+def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N) ≃+ (Π₀ i, (η i →₀ N)) :=
+{ map_add' := λ f g,
+  begin
+    ext,
+    simpa [finsupp.split_apply],
+  end,
+  .. sigma_finsupp_equiv_dfinsupp }
+
+local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid
+
+/-- `finsupp.split` is a linear equivalence between `(Σ (j : η), ιs j) →₀ α`
+and `Π₀ j, (ιs j →₀ α)`. -/
+def sigma_finsupp_lequiv_dfinsupp [add_comm_monoid N] [module R N] :
+  ((Σ i, η i) →₀ N) ≃ₗ[R] (Π₀ i, (η i →₀ N)) :=
+{ map_smul' := λ r f,
+  begin
+    ext,
+    simpa [finsupp.split_apply],
+  end,
+  .. sigma_finsupp_add_equiv_dfinsupp }
+
+end sigma
+
 end equivs

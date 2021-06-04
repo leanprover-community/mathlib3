@@ -288,7 +288,7 @@ begin
   -- If `a` is zero, then the submodule is trivial. So let's assume `a ≠ 0`, `N ≠ ⊥`
   by_cases N_bot : N = ⊥,
   { rw N_bot,
-    refine ⟨0, basis.empty _ _⟩,
+    refine ⟨0, basis.empty _⟩,
     rintro ⟨i, ⟨⟩⟩ },
   by_cases a_zero : generator (N.map ϕ) = 0,
   { have := eq_bot_of_generator_maximal_map_eq_zero b ϕ_max a_zero,

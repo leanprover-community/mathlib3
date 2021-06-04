@@ -76,8 +76,6 @@ variables {G : Type u} [semigroup G]
 lemma mul_assoc : ∀ a b c : G, a * b * c = a * (b * c) :=
 semigroup.mul_assoc
 
-attribute [no_rsimp] add_assoc -- TODO(Mario): find out why this isn't copying
-
 @[to_additive]
 instance semigroup.to_is_associative : is_associative G (*) :=
 ⟨mul_assoc⟩
@@ -101,7 +99,6 @@ variables {G : Type u} [comm_semigroup G]
 @[no_rsimp, to_additive]
 lemma mul_comm : ∀ a b : G, a * b = b * a :=
 comm_semigroup.mul_comm
-attribute [no_rsimp] add_comm
 
 @[to_additive]
 instance comm_semigroup.to_is_commutative : is_commutative G (*) :=

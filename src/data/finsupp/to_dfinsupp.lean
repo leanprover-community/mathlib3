@@ -221,7 +221,11 @@ def sigma_finsupp_equiv_dfinsupp [has_zero N] : ((Σ i, η i) →₀ N) ≃ (Π�
   right_inv := λ f, by { ext, simp [split] } }
 
 @[simp]
-lemma sigma_finsupp_equiv_dfinsupp_apply [has_zero N] (f : (Σ i, η i) →₀ N) :
+lemma sigma_finsupp_equiv_dfinsupp_apply [has_zero N] (f : Π₀ i, (η i →₀ N)) (s : Σ i, η i) :
+  (sigma_finsupp_equiv_dfinsupp.symm f : (Σ i, η i) →₀ N) s = f s.1 s.2 := rfl
+
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_symm_apply [has_zero N] (f : (Σ i, η i) →₀ N) :
   (sigma_finsupp_equiv_dfinsupp f : Π i, (η i →₀ N)) = finsupp.split f := rfl
 
 -- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.

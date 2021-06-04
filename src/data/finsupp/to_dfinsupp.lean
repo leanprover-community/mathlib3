@@ -220,6 +220,7 @@ def sigma_finsupp_equiv_dfinsupp [has_zero N] : ((Σ i, η i) →₀ N) ≃ (Π�
   left_inv := λ f, by { ext, simp [split] },
   right_inv := λ f, by { ext, simp [split] } }
 
+@[simp]
 lemma sigma_finsupp_equiv_dfinsupp_apply [has_zero N] (f : (Σ i, η i) →₀ N) :
   (sigma_finsupp_equiv_dfinsupp f : Π i, (η i →₀ N)) = finsupp.split f := rfl
 

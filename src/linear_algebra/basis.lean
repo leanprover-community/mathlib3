@@ -142,6 +142,10 @@ by { rw ← b.coe_repr_symm, exact b.repr.symm_apply_apply x }
 lemma repr_range : (b.repr : M →ₗ[R] (ι →₀ R)).range = finsupp.supported R R univ :=
 by rw [linear_equiv.range, finsupp.supported_univ]
 
+lemma mem_span_repr_support {ι : Type*} (b : basis ι R M) (m : M) :
+  m ∈ span R (b '' (b.repr m).support) :=
+(finsupp.mem_span_image_iff_total _).2 ⟨b.repr m, (by simp [finsupp.mem_supported_support])⟩
+
 end repr
 
 section coord

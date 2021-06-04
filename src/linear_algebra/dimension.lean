@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 -/
 import linear_algebra.basis
 import linear_algebra.std_basis
-import set_theory.cardinal_ordinal
+import set_theory.cofinality
 import linear_algebra.invariant_basis_number
 
 /-!
@@ -127,12 +127,59 @@ Over any ring `R`, if `b` is a basis for a module `M`,
 and `s` is a maximal linearly independent set,
 then the union of the supports of `x ∈ s` (when written out in the basis `b`) is all of `b`.
 -/
+-- From [Les familles libres maximales d'un module ont-elles le meme cardinal?][lazarus1973]
 lemma union_support_maximal_linear_independent_eq_range_basis
   {ι : Type*} (b : basis ι R M)
   {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
-  ⨆ k, ((b.repr (v k)).support : set ι) = ⊤ :=
+  (⋃ k, ((b.repr (v k)).support : set ι)) = ⊤ :=
 begin
   sorry
+end
+
+@[simp] lemma set.not_infinite {α : Type*} (s : set α) : ¬ s.infinite ↔ s.finite :=
+by simp [set.infinite]
+
+-- Surely this is not that hard!
+lemma range_infinite_of_union_finset_infinite
+  {α β : Type*} (f : α → finset β) (w : (⋃ a, (f a : set β)).infinite) : (range f).infinite :=
+begin
+  by_contradiction h,
+  simp at h,
+  have I : finite ((⋃ (a : α), (f a : set β)) : set β),
+  { rw ←sUnion_range,
+    apply finite.sUnion,
+    { rw ←image_univ,
+      change (((λ s : finset β, (s : set β)) ∘ f) '' set.univ).finite,
+      rw set.image_comp,
+      rw image_univ,
+      refine (finite_image_iff _).mpr h,
+      rintros s s' t t' p, dsimp at p,
+      exact finset.coe_inj.mp p, },
+    { rintro - ⟨m,rfl⟩,
+      exact finset.finite_to_set (f m), }, },
+  exact w I,
+end
+
+lemma cardinal.le_range_of_union_finset_eq_top
+  {α β : Type*} [infinite β] (f : α → finset β) (w : (⋃ a, (f a : set β)) = ⊤) :
+  cardinal.mk β ≤ cardinal.mk (range f) :=
+begin
+  have k : cardinal.omega ≤ cardinal.mk (range f),
+  { rw ←cardinal.infinite_iff, rw infinite_coe_iff,
+    apply range_infinite_of_union_finset_infinite,
+    rw w,
+    exact infinite_univ, },
+  by_contradiction h,
+  simp only [not_le] at h,
+  let u : Π b, ∃ a, b ∈ f a := λ b, by simpa using (w.ge : _) (set.mem_univ b),
+  let u' : β → range f := λ b, ⟨f (u b).some, by simp⟩,
+  have v' : ∀ a, u' ⁻¹' {⟨f a, by simp⟩} ≤ f a, begin rintros a p m,
+    simp at m,
+    rw ←m,
+    apply (λ b, (u b).some_spec),
+  end,
+  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := cardinal.infinite_pigeonhole'' u' h k,
+  exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
 end
 
 /--
@@ -145,7 +192,12 @@ lemma infinite_basis_le_maximal_linear_independent
   {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
   cardinal.mk ι ≤ cardinal.mk κ :=
 begin
-  sorry
+  let Φ := λ k : κ, (b.repr (v k)).support,
+  have w₁ : cardinal.mk ι ≤ cardinal.mk (set.range Φ),
+  { apply cardinal.le_range_of_union_finset_eq_top,
+    exact union_support_maximal_linear_independent_eq_range_basis R M b v i m, },
+  have w₂ : cardinal.mk (set.range Φ) ≤ cardinal.mk κ := cardinal.mk_range_le,
+  exact w₁.trans w₂,
 end
 
 end
@@ -154,34 +206,6 @@ section strong_rank_condition
 
 variables (R : Type u) [ring R] [strong_rank_condition R]
 variables (M : Type v) [add_comm_group M] [module R M]
-
-/--
-Pick some representation of `x : span R w` as a linear combination in `w`,
-using the axiom of choice.
--/
-def span.repr (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M] (w : set M) :
-  span R w → (w →₀ R) :=
-λ x, ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
-
-@[simp] lemma span.finsupp_total_repr (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M] (w : set M) (x : span R w) :
-  finsupp.total w M R coe (span.repr R M w x) = x :=
-((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
-
-attribute [irreducible] span.repr
-
-
-lemma submodule.mem_span' (R : Type*) [semiring R] {M : Type*} [add_comm_monoid M] [module R M]
-  (w : set M) (x : M) (h : x ∈ w) :
-  x ∈ span R w :=
-begin
-  apply submodule.mem_span.2,
-  intros p q,
-  exact q h,
-end
-
-lemma submodule.le_span (R : Type*) [semiring R] (M : Type*) [add_comm_monoid M] [module R M]
-  (w : set M) : w ≤ span R w :=
-λ m h, submodule.mem_span' R _ _ h
 
 open submodule
 
@@ -208,7 +232,7 @@ begin
   -- We can do this linearly by constructing the map on a basis.
   fapply card_le_of_injective' R,
   { apply finsupp.total,
-    exact λ i, span.repr R M w ⟨v i, s (mem_range_self i)⟩, },
+    exact λ i, span.repr R w ⟨v i, s (mem_range_self i)⟩, },
   { intros f g h,
     apply_fun finsupp.total w M R coe at h,
     simp only [finsupp.total_total, submodule.coe_mk, span.finsupp_total_repr] at h,
@@ -276,20 +300,20 @@ lemma linear_independent_le_infinite_basis
 begin
   by_contradiction,
   simp only [not_le] at h,
-  rw ←cardinal.mk_finset_eq_mk (cardinal.infinite_iff.mp ‹infinite ι›) at h,
+  have w : cardinal.mk (finset ι) = cardinal.mk ι :=
+    cardinal.mk_finset_eq_mk (cardinal.infinite_iff.mp ‹infinite ι›),
+  rw ←w at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
-  have q : ∃ s : finset ι, _root_.infinite (Φ ⁻¹' {s}) :=
-    infinite_pigeonhole'' Φ h (cardinal.infinite_iff.mp ‹infinite ι›),
-  obtain ⟨s, w⟩ := q,
+  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.infinite_pigeonhole'' Φ h
+    (by { rw w, exact (cardinal.infinite_iff.mp ‹infinite ι›), }),
   let v' := λ k : Φ ⁻¹' {s}, v k,
   have i' : linear_independent R v' := i.comp _ subtype.val_injective,
-  haveI w' : fintype (Φ ⁻¹' {s}) :=
-  begin
-    apply linear_independent_fintype_of_le_span_fintype R M v' i' (s.image b),
-    intro m,
-    sorry,
-  end,
-  exact w.false,
+  have w' : fintype (Φ ⁻¹' {s}),
+  { apply linear_independent_fintype_of_le_span_fintype R M v' i' (s.image b),
+    rintros m ⟨⟨p,⟨rfl⟩⟩,rfl⟩,
+    simp only [set_like.mem_coe, subtype.coe_mk, finset.coe_image],
+    apply basis.mem_span_repr_support, },
+  exactI w.false,
 end
 
 /--
@@ -320,9 +344,7 @@ if `b` is an infinite basis for a module `M`,
 then every maximal linearly independent set has the same cardinality as `b`.
 
 This proof (along with some of the lemmas above) comes from
-Les familles libres maximales d'un module ont-elles le meme cardinal?,
-Michel Lazarus, Pub. Sem. Math. Rennes 4 (1973), 1-12,
-http://www.numdam.org/article/PSMIR_1973___4_A4_0.pdf
+[Les familles libres maximales d'un module ont-elles le meme cardinal?][lazarus1973]
 -/
 lemma maximal_linear_independent_eq_infinite_basis
   {ι : Type*} (b : basis ι R M) [infinite ι]

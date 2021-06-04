@@ -175,6 +175,10 @@ lemma mem_supported' {s : set α}  (p : α →₀ M) :
 by haveI := classical.dec_pred (λ (x : α), x ∈ s);
    simp [mem_supported, set.subset_def, not_imp_comm]
 
+lemma mem_supported_support (p : α →₀ M) :
+  p ∈ finsupp.supported M R (p.support : set α) :=
+by rw finsupp.mem_supported
+
 lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
 set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
@@ -782,6 +786,24 @@ end finsupp
 
 variables {R : Type*} {M : Type*} {N : Type*}
 variables [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+
+section
+variables (R)
+/--
+Pick some representation of `x : span R w` as a linear combination in `w`,
+using the axiom of choice.
+-/
+def span.repr (w : set M) :
+  span R w → (w →₀ R) :=
+λ x, ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
+
+@[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
+  finsupp.total w M R coe (span.repr R w x) = x :=
+((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+
+attribute [irreducible] span.repr
+
+end
 
 lemma linear_map.map_finsupp_total
   (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :

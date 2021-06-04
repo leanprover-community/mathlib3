@@ -58,6 +58,7 @@ $$c:G^{n+1}\to M$$ which are homogeneous in the sense that $$c(s(g_i)_i)=s\bub c
 -/
 @[ext] structure cochain_succ :=
 (to_fun : (fin n → G) → M)
+-- it's G-linear
 (smul_apply' : ∀ (s : G) (g : fin n → G), s • to_fun g = to_fun (λ i, s * g i))
 
 namespace cochain_succ
@@ -66,13 +67,14 @@ instance : has_coe_to_fun (cochain_succ G M n) :=
 { F := _,
   coe := to_fun }
 
-@[simp] lemma seems_useful (c : (fin n → G) → M) (hc : ∀ (s : G) (g : fin n → G), s • c g = c (λ i, s * g i))
-  (g : fin n → G) : (⟨c, hc⟩ : cochain_succ G M n) g = c g := rfl
+@[simp] lemma seems_useful (c : (fin n → G) → M)
+  (hc : ∀ (s : G) (g : fin n → G), s • c g = c (λ i, s * g i)) (g : fin n → G) :
+  (⟨c, hc⟩ : cochain_succ G M n) g = c g := rfl
 
 @[simp] lemma also_seems_useful (c : cochain_succ G M n) (g : fin n → G) : c.to_fun g = c g := rfl
 
 @[ext] theorem ext' (c₁ c₂ : cochain_succ G M n) (h : ∀ g : fin n → G, c₁ g = c₂ g) : c₁ = c₂ :=
-ext c₁ c₂ (funext (λ (x : fin n → G), h x))
+ext c₁ c₂ $ funext h
 
 def zero : cochain_succ G M n :=
 { to_fun := 0,
@@ -140,28 +142,17 @@ int.induction_on n
 @[simp] lemma int_smul_apply (c : cochain_succ G M n) (z : ℤ) (g : fin n → G) :
   (z • c) g = z • (c g) :=
 begin
---  cases c with c hc,
   apply int.induction_on z,
   { simp },
-  { intros i this,
-    simpa [add_gsmul] },
-  { intros i this,
-    rw [pred_smul, pred_smul, sub_apply, this] },
+  { intros i this, simpa [add_gsmul] },
+  { intros i this, rw [pred_smul, pred_smul, sub_apply, this] },
 end
-
 
 def d {i j : ℕ} (hj : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j :=
 { to_fun := λ c,
   { to_fun := λ g, (finset.range j).sum (λ p, (-1 : ℤ)^p • c $ λ t, g (fin.delta hj p t)),
     smul_apply' := λ s g, begin
-      rw [finset.smul_sum],
-      simp,
-      congr,
-      ext,
-      rw ← c.smul_apply,
-      generalize : (c : (fin i → G) → M) _ = C,
-      simp [],
-      rw smul_gsmul,
+      simp only [finset.smul_sum, int_smul_apply, ← c.smul_apply, smul_gsmul],
     end },
   map_zero' := begin ext, simp end,
   map_add' := λ x y, by {ext, simp [finset.sum_add_distrib]} }
@@ -283,8 +274,8 @@ noncomputable def equiv_congr {α β M : Type*} [has_zero M] (e : α ≃ β) : (
 theorem equiv_congr_apply {α β M : Type*} [has_zero M] (e : α ≃ β) (g : β →₀ M) (a : α) :
   equiv_congr e g a = g (e a)  :=
 begin
-  unfold equiv_congr,
-  dsimp,
+  --unfold equiv_congr,
+  --dsimp,
   convert emb_domain_apply _ _ _,
   simp,
 end
@@ -299,12 +290,13 @@ def equiv_fun {X Y : Sort*} (A : Sort*) (e : X ≃ Y) : (A → X) ≃ (A → Y) 
   left_inv := λ h, by simp,
   right_inv := λ h, by simp }
 
--- Cassels-Froehlich `P i` is our `P_pred i.succ` but we actually do not bother
+-- Cassels-Froehlich `P i` is our instance below but with `i.succ`
+-- for some reasin
 -- introducing the notation at all
-noncomputable instance {G : Type} [group G] (i : ℕ) :
+noncomputable instance {G : Type*} [group G] (i : ℕ) :
   distrib_mul_action G ((fin i → G) →₀ ℤ) :=
 { smul := λ s c, finsupp.equiv_congr (equiv_fun (fin i) (equiv.mul_left s⁻¹ : G ≃ G)) c,
-  -- it could be equiv.mul_right and it could be s⁻¹ not s, I didn't check carefully
+  -- it could be equiv.mul_right s, I didn't check carefully
   one_smul := λ b,
   begin
     ext p,

@@ -475,7 +475,7 @@ end
 Applying `(digits b ∘ of_digits b)` will create a prefix of the original list if it has proper
 digits; it removes trailing zeros.
 -/
-lemma digits_of_digits_prefix  {b : ℕ} {L : list ℕ} (hlt : ∀ a ∈ L, a < b) :
+lemma digits_of_digits_prefix {b : ℕ} {L : list ℕ} (hlt : ∀ a ∈ L, a < b) :
   digits b (of_digits b L) <+: L :=
 begin
   cases b,

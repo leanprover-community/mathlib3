@@ -424,8 +424,7 @@ end
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
 monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
 
-@[mono] lemma digits_len_mono (b : ℕ) : monotone (λ n, (digits b n).length) :=
-@le_digits_len_le b
+@[mono] lemma digits_len_mono (b : ℕ) : monotone (λ n, (digits b n).length) := le_digits_len_le b
 
 lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 : l.last hl ≠ 0):
   (b + 2) ^ l.length ≤ (b + 2) * of_digits (b+2) l :=
@@ -502,10 +501,9 @@ begin
             have d_eq : d = 0,
             { simpa only [not_lt, nonpos_iff_eq_zero] using nlt, },
             obtain ⟨xx, xe, xne⟩ := heq d_eq,
-            by_contradiction con,
-            rw [not_lt, nonpos_iff_eq_zero] at con,
-            have yep := digits_zero_of_eq_zero (le_of_lt (one_lt_succ_succ b)) con xx xe,
-            exact absurd yep xne, } } } } },
+            contrapose! xne,
+            have con := eq_zero_of_le_zero xne,
+            exact digits_zero_of_eq_zero (le_of_lt (one_lt_succ_succ b)) con xx xe, } } } } },
 end
 
 /-! ### Modular Arithmetic -/

@@ -2114,8 +2114,14 @@ lemma mul_sum (b : S) (s : α →₀ R) {f : α → R → S} :
   b * (s.sum f) = s.sum (λ a c, b * (f a c)) :=
 by simp only [finsupp.sum, finset.mul_sum]
 
+/-- The `finsupp` version of `pi.unique`. -/
 instance unique_of_right [subsingleton R] : unique (α →₀ R) :=
 { uniq := λ l, ext $ λ i, subsingleton.elim _ _,
+  .. finsupp.inhabited }
+
+/-- The `finsupp` version of `pi.unique_of_is_empty`. -/
+instance unique_of_left [is_empty α] : unique (α →₀ R) :=
+{ uniq := λ l, ext is_empty_elim,
   .. finsupp.inhabited }
 
 end

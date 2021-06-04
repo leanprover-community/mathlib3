@@ -565,7 +565,7 @@ of_repr
   { to_fun := λ x, 0,
     inv_fun := λ f, 0,
     left_inv := λ x, by simp,
-    right_inv := λ f, finsupp.ext is_empty_elim,
+    right_inv := λ f, subsingleton.elim _ _,
     map_add' := λ x y, by simp,
     map_smul' := λ c x, by simp }
 

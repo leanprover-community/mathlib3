@@ -136,25 +136,25 @@ section is_complemented
 variables [is_complemented α]
 
 instance is_complemented_Iic : is_complemented (set.Iic a) :=
-⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
+⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
+  ⟨⟨y ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
     split,
-    { change x ⊓ (classical.some _ ⊓ a) ≤ ⊥, -- improve lattice subtype API
+    { change x ⊓ (y ⊓ a) ≤ ⊥, -- improve lattice subtype API
       rw ← inf_assoc,
-      exact le_trans inf_le_left (classical.some_spec (exists_is_compl x)).1 },
-    { change a ≤ x ⊔ (classical.some _ ⊓ a), -- improve lattice subtype API
-      rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx),
-          top_le_iff.1 (classical.some_spec (exists_is_compl x)).2, top_inf_eq] }
+      exact le_trans inf_le_left hy.1 },
+    { change a ≤ x ⊔ (y ⊓ a), -- improve lattice subtype API
+      rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx), top_le_iff.1 hy.2, top_inf_eq] }
   end⟩⟩
 
 instance is_complemented_Ici : is_complemented (set.Ici a) :=
-⟨λ ⟨x, hx⟩, ⟨⟨(classical.some (exists_is_compl x)) ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
+⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
+  ⟨⟨y ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
     split,
-    { change x ⊓ (classical.some _ ⊔ a) ≤ a, -- improve lattice subtype API
-      rw [← inf_sup_assoc_of_le _ (set.mem_Ici.1 hx),
-          le_bot_iff.1 (classical.some_spec (exists_is_compl x)).1, bot_sup_eq] },
-    { change ⊤ ≤ x ⊔ (classical.some _ ⊔ a), -- improve lattice subtype API
+    { change x ⊓ (y ⊔ a) ≤ a, -- improve lattice subtype API
+      rw [← inf_sup_assoc_of_le _ (set.mem_Ici.1 hx),  le_bot_iff.1 hy.1, bot_sup_eq] },
+    { change ⊤ ≤ x ⊔ (y ⊔ a), -- improve lattice subtype API
       rw ← sup_assoc,
-      exact le_trans (classical.some_spec (exists_is_compl x)).2 le_sup_left }
+      exact le_trans hy.2 le_sup_left }
   end⟩⟩
 
 end is_complemented

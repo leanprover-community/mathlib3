@@ -3,12 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import algebra.big_operators.order
-import algebra.module.pi
-import group_theory.submonoid.basic
-import algebra.big_operators.ring
 import data.finset.preimage
-import data.indicator_function
+import algebra.indicator_function
 
 /-!
 # Type of functions with finite support
@@ -2115,15 +2111,7 @@ instance [semiring R] [add_comm_monoid M] [module R M] {ι : Type*}
   (λ i, (smul_eq_zero.mp (finsupp.ext_iff.mp h i)).resolve_left hc))⟩
 
 section
-variables [semiring R] [semiring S]
-
-lemma sum_mul (b : S) (s : α →₀ R) {f : α → R → S} :
-  (s.sum f) * b = s.sum (λ a c, (f a c) * b) :=
-by simp only [finsupp.sum, finset.sum_mul]
-
-lemma mul_sum (b : S) (s : α →₀ R) {f : α → R → S} :
-  b * (s.sum f) = s.sum (λ a c, b * (f a c)) :=
-by simp only [finsupp.sum, finset.mul_sum]
+variables [has_zero R]
 
 instance unique_of_right [subsingleton R] : unique (α →₀ R) :=
 { uniq := λ l, ext $ λ i, subsingleton.elim _ _,

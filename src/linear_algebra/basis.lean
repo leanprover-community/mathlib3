@@ -395,7 +395,12 @@ lemma constr_range [nonempty ι] {f : ι  → M'} :
   (b.constr S f).range = span R (range f) :=
 by rw [b.constr_def S f, linear_map.range_comp, linear_map.range_comp, linear_equiv.range,
        ← finsupp.supported_univ, finsupp.lmap_domain_supported, ←set.image_univ,
-       ← finsupp.span_eq_map_total, set.image_id]
+       ← finsupp.span_image_eq_map_total, set.image_id]
+
+@[simp]
+lemma constr_comp (f : M' →ₗ[R] M') (v : ι → M') :
+  b.constr S (f ∘ v) = f.comp (b.constr S v) :=
+b.ext (λ i, by simp only [basis.constr_basis, linear_map.comp_apply])
 
 end constr
 
@@ -423,6 +428,11 @@ b'.ext' $ λ i, (b.equiv b' e).injective (by simp)
   (e : ι ≃ ι') (e' : ι' ≃ ι'') :
   (b.equiv b' e).trans (b'.equiv b'' e') = b.equiv b'' (e.trans e') :=
 b.ext' (λ i, by simp)
+
+@[simp]
+lemma map_equiv (b : basis ι R M) (b' : basis ι' R M') (e : ι ≃ ι') :
+  b.map (b.equiv b' e) = b'.reindex e.symm :=
+by { ext i, simp }
 
 end equiv
 

@@ -315,6 +315,21 @@ end
   map_zero' := zero_coeff,
   map_add' := λ x y, add_coeff }
 
+section domain
+variables {Γ' : Type*} [partial_order Γ']
+
+lemma emb_domain_add (f : Γ ↪o Γ') (x y : hahn_series Γ R) :
+  emb_domain f (x + y) = emb_domain f x + emb_domain f y :=
+begin
+  ext g,
+  by_cases hg : g ∈ set.range f,
+  { obtain ⟨a, rfl⟩ := hg,
+    simp },
+  { simp [emb_domain_notin_range, hg] }
+end
+
+end domain
+
 end add_monoid
 
 instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
@@ -404,16 +419,6 @@ instance : module R (hahn_series Γ V) :=
 
 section domain
 variables {Γ' : Type*} [partial_order Γ']
-
-lemma emb_domain_add (f : Γ ↪o Γ') (x y : hahn_series Γ R) :
-  emb_domain f (x + y) = emb_domain f x + emb_domain f y :=
-begin
-  ext g,
-  by_cases hg : g ∈ set.range f,
-  { obtain ⟨a, rfl⟩ := hg,
-    simp },
-  { simp [emb_domain_notin_range, hg] }
-end
 
 lemma emb_domain_smul (f : Γ ↪o Γ') (r : R) (x : hahn_series Γ R) :
   emb_domain f (r • x) = r • emb_domain f x :=
@@ -828,11 +833,11 @@ emb_domain_single.trans $ hf.symm ▸ rfl
 @[simps] def emb_domain_ring_hom (f : Γ →+ Γ') (hfi : function.injective f)
   (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g') :
   hahn_series Γ R →+* hahn_series Γ' R :=
-{ to_fun := emb_domain_linear_map ⟨⟨f, hfi⟩, hf⟩,
+{ to_fun := emb_domain ⟨⟨f, hfi⟩, hf⟩,
   map_one' := emb_domain_one _ f.map_zero,
   map_mul' := emb_domain_mul _ f.map_add,
-  map_zero' := linear_map.map_zero _,
-  map_add' := linear_map.map_add _, }
+  map_zero' := emb_domain_zero,
+  map_add' := emb_domain_add _}
 
 lemma emb_domain_ring_hom_C {f : Γ →+ Γ'} {hfi : function.injective f}
   {hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g'} {r : R} :
@@ -919,12 +924,28 @@ power_series.coeff_mk _ _
 lemma coeff_to_power_series_symm {f : power_series R} {n : ℕ} :
   (hahn_series.to_power_series.symm f).coeff n = power_series.coeff R n f := rfl
 
-variables [ordered_semiring Γ] [nontrivial Γ]
+variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
 /-- Casts a power series as a Hahn series with coefficients from an `ordered_semiring`. -/
-@[simps] def of_power_series : (power_series R) →+* hahn_series Γ R :=
+def of_power_series : (power_series R) →+* hahn_series Γ R :=
 (hahn_series.emb_domain_ring_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
   (λ _ _, nat.cast_le)).comp
   (ring_equiv.to_ring_hom to_power_series.symm)
+
+variables {Γ} {R}
+
+lemma of_power_series_injective : function.injective (of_power_series Γ R) :=
+emb_domain_injective.comp to_power_series.symm.injective
+
+@[simp] lemma of_power_series_apply (x : power_series R) :
+  of_power_series Γ R x = hahn_series.emb_domain
+  ⟨⟨(coe : ℕ → Γ), nat.strict_mono_cast.injective⟩, λ a b, begin
+    simp only [function.embedding.coe_fn_mk],
+    exact nat.cast_le,
+  end⟩ (to_power_series.symm x) := rfl
+
+lemma of_power_series_apply_coeff (x : power_series R) (n : ℕ) :
+  (of_power_series Γ R x).coeff n = power_series.coeff R n x :=
+by simp
 
 end semiring
 
@@ -945,7 +966,7 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
   end,
   .. to_power_series }
 
-variables [ordered_semiring Γ] [nontrivial Γ]
+variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
 /-- Casting a power series as a Hahn series with coefficients from an `ordered_semiring`
   is an algebra homomorphism. -/
 @[simps] def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=

@@ -141,7 +141,7 @@ instance [monoid α] : monoid (set α) :=
 { ..set.semigroup,
   ..set.mul_one_class }
 
-lemma set.pow_mem_pow {α : Type*} {s : set α} {a : α} [monoid α] (ha : a ∈ s) (n : ℕ) :
+lemma set.pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
   a ^ n ∈ s ^ n :=
 begin
   induction n with n ih,

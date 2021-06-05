@@ -1074,22 +1074,18 @@ by rw [restrictₗ_apply, restrict_apply ht, linear_map.comp_apply,
     (measurable_subtype_coe ht), subtype.image_preimage_coe]
 
 /-- Restriction of a measure to a subset is monotone both in set and in measure. -/
-@[mono] lemma restrict_mono ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄ (hμν : μ ≤ ν) :
-  μ.restrict s ≤ ν.restrict s' :=
-assume t ht,
-calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
-... ≤ μ (t ∩ s') : measure_mono $ inter_subset_inter_right _ hs
-... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
-... = ν.restrict s' t : (restrict_apply ht).symm
-
-/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
-@[mono] lemma restrict_mono' ⦃s s' : set α⦄ ⦃μ ν : measure α⦄ (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
+lemma restrict_mono' ⦃s s' : set α⦄ ⦃μ ν : measure α⦄ (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
   μ.restrict s ≤ ν.restrict s' :=
 assume t ht,
 calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
 ... ≤ μ (t ∩ s') : measure_mono_ae $ hs.mono $ λ x hx ⟨hxt, hxs⟩, ⟨hxt, hx hxs⟩
 ... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
 ... = ν.restrict s' t : (restrict_apply ht).symm
+
+/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
+@[mono] lemma restrict_mono ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄ (hμν : μ ≤ ν) :
+  μ.restrict s ≤ ν.restrict s' :=
+restrict_mono' (ae_of_all _ hs) hμν
 
 lemma restrict_le_self : μ.restrict s ≤ μ :=
 assume t ht,

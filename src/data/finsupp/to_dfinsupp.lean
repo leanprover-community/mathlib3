@@ -230,12 +230,18 @@ lemma sigma_finsupp_equiv_dfinsupp_symm_apply [has_zero N] (f : Π₀ i, (η i �
 -- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.
 local attribute [-instance] finsupp.has_zero
 
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_add [add_zero_class N] (f g : (Σ i, η i) →₀ N) :
+  sigma_finsupp_equiv_dfinsupp (f + g) =
+  (sigma_finsupp_equiv_dfinsupp f + (sigma_finsupp_equiv_dfinsupp g) : (Π₀ (i : ι), η i →₀ N)) :=
+by {ext, refl}
+
 /-- `finsupp.split` is an additive equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 @[simps]
 def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N) ≃+ (Π₀ i, (η i →₀ N)) :=
 { to_fun := sigma_finsupp_equiv_dfinsupp,
   inv_fun := sigma_finsupp_equiv_dfinsupp.symm,
-  map_add' := λ f g, by {ext, refl},
+  map_add' := sigma_finsupp_equiv_dfinsupp_add,
   .. sigma_finsupp_equiv_dfinsupp }
 
 local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid

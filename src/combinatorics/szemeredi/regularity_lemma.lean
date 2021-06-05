@@ -382,17 +382,18 @@ begin
   exact λ _ _, sq_nonneg _,
 end
 
--- TODO: generalise
-lemma nat.choose_two_le_half_sq (n : ℕ) : (n.choose 2 : ℝ) ≤ n^2 / 2 :=
+-- TODO: change for `choose_le_pow` once PR has landed
+lemma nat.choose_le_pow (n k : ℕ) : (n.choose k : ℝ) ≤ n^k / (k.factorial) :=
 begin
-  rw le_div_iff (show 0 < (2:ℝ), by norm_num),
+  sorry
+  /-rw le_div_iff (show 0 < (2:ℝ), by norm_num),
   norm_cast,
   induction n with n ih,
   { simp },
   { rw [nat.choose_succ_succ, nat.choose_one_right, add_mul],
     apply le_trans (add_le_add_left ih _) _,
     rw [nat.succ_eq_one_add, add_sq, one_pow, add_assoc, mul_one, mul_comm 2 n],
-    apply nat.le_add_left, }
+    apply nat.le_add_left, }-/
 end
 
 lemma index_le_half [fintype V] (P : equipartition V) :
@@ -403,11 +404,10 @@ begin
   { norm_num },
   suffices h : (∑ (x : sym2 (finset V)) in P.distinct_unordered_parts_pairs, G.density_sym2 x ^ 2) ≤
     P.distinct_unordered_parts_pairs.card,
-  {
-    apply h.trans,
+  { apply h.trans,
     rw [distinct_unordered_parts_pairs_size, div_mul_eq_mul_div, one_mul],
-    sorry
-  },
+    convert nat.choose_le_pow _ 2,
+    norm_num },
   rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
   apply finset.sum_le_sum,
   rintro s _,
@@ -871,7 +871,7 @@ end
 end
 
 /-- Arbitrary equipartition into `t` parts -/
-noncomputable def dummy_equipartition (V : Type*) [decidable_eq V] [fintype V] (n : ℕ) :
+def dummy_equipartition (V : Type*) [decidable_eq V] [fintype V] (n : ℕ) :
   equipartition V :=
 sorry
 -- { parts := finset.image (begin--first attempt. Wrong cut.
@@ -919,11 +919,22 @@ lemma exp_bound_mono {a b : ℕ} (h : a ≤ b) :
   exp_bound a ≤ exp_bound b :=
 nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
+lemma nonneg_of_mul_pos_right {α : Type*} [ordered_semiring α] {a b c : α} (hab : 0 < a * b)
+  (hb : 0 ≤ b) : 0 ≤ a := sorry
+--le_of_not_gt (λ ha : a < 0, begin end)
+
 private lemma bound_mono_aux {ε : ℝ} {a b : ℕ} (hε : 100 < ε^5 * 4^a) (h : a ≤ b) :
-  ε^5 * 4^a ≤ ε^5 * 4^b :=
-begin
+  ε^5 * 4^a ≤ ε^5 * 4^b := sorry
+--mul_le_mul_of_nonneg_left (pow_le_pow (by norm_num) h) (nonneg_of_mul_pos_right (lt_trans (by norm_num) hε) (pow_nonneg (by norm_num) a))
+/-begin
+  replace hε : 0 < ε^5 * 4^a := lt_trans (by norm_num) hε,
+  refine mul_le_mul_of_nonneg_left (pow_le_pow (by norm_num) h) _,
+  refine mul_le_mul_of_nonneg_left (pow_le_pow (by norm_num) h) (nonneg_of_mul_pos_right hε (pow_nonneg (by norm_num) a)),
+  sorry,
+  exact pow_nonneg (by norm_num) a,
+  apply nonneg_of_mul_pos_right (lt_trans (by norm_num) hε : 0 < ε^5 * 4^a),
   sorry
-end
+end-/
 
 open_locale classical
 variables {V : Type u} [fintype V] {G : simple_graph V} {P : equipartition V} {ε : ℝ}
@@ -1084,9 +1095,12 @@ lemma le_size (G : simple_graph V) (ε : ℝ) (l : ℕ) :
 
 end szemeredi_equipartition
 
+def nat_floor (x : ℝ) : ℕ := sorry
+
+lemma lt_nat_floor_add_one (x : ℝ) : x < nat_floor x + 1 := sorry
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/
 noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
-max l (nat_ceil (real.log (100 / ε^5) / real.log 4) + 1) -- change to nat_floor
+max l (nat_floor (real.log (100 / ε^5) / real.log 4) + 1) -- change to nat_floor
 
 lemma le_iteration_bound (ε : ℝ) (l : ℕ) : l ≤ iteration_bound ε l := le_max_left l _
 
@@ -1110,8 +1124,8 @@ end
 /-- An explicit bound on the size of the equipartition in the proof of Szemerédi's Regularity Lemma
 -/
 noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
-(exp_bound^[nat_ceil (4/ε^5) + 1] (iteration_bound ε l)) *
-  16^(exp_bound^[nat_ceil (4/ε^5) + 1] (iteration_bound ε l)) -- change to nat_floor
+(exp_bound^[nat_floor (4/ε^5) + 1] (iteration_bound ε l)) *
+  16^(exp_bound^[nat_floor (4/ε^5) + 1] (iteration_bound ε l)) -- change to floor after PR
 
 /-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
@@ -1123,8 +1137,8 @@ begin
     rw discrete_equipartition.size,
     exact ⟨hG, hV, discrete_equipartition.is_uniform G hε⟩ },
   let t := iteration_bound ε l,
-  let P := szemeredi_equipartition G ε t (nat_ceil (4/ε^5) + 1), -- change to nat_floor
-  have hsize : P.size ≤ (exp_bound^[nat_ceil (4/ε^5) + 1] t) := -- change to nat_floor
+  let P := szemeredi_equipartition G ε t (nat_floor (4/ε^5) + 1), -- change to floor after PR
+  have hsize : P.size ≤ (exp_bound^[nat_floor (4/ε^5) + 1] t) := -- change to floor after PR
     szemeredi_equipartition.size_le G ε t _,
   have hl : l ≤ P.size := (le_iteration_bound ε l).trans (szemeredi_equipartition.le_size G ε t _),
   have hPV : P.size * 16^P.size ≤ card V :=
@@ -1132,7 +1146,16 @@ begin
   refine ⟨P, hl, _, _⟩,
   { exact hsize.trans (le_mul_of_le_of_one_le le_rfl (nat.one_le_pow _ 16 (by norm_num))) },
   by_contra huniform,
+  apply lt_irrefl (1/2 : ℝ),
   have := (szemeredi_equipartition.le_index (const_lt_mul_pow_iteration_bound hε _) hPV
     huniform).trans (P.index_le_half G),
-  sorry, -- easy now
+  calc
+    1/2 = ε ^ 5 / 8 * (4 / ε ^ 5)
+        : by { rw [mul_comm, div_mul_div_cancel 4 ((pow_pos hε 5).ne.symm)], norm_num }
+    ... < ε ^ 5 / 8 * ↑(nat_floor (4 / ε ^ 5) + 1)
+        : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (lt_nat_floor_add_one _)
+    ... ≤ P.index G
+        : szemeredi_equipartition.le_index (const_lt_mul_pow_iteration_bound hε _) hPV huniform
+    ... ≤ 1/2
+        : P.index_le_half G,
 end

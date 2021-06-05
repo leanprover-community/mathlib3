@@ -36,6 +36,68 @@ inserting `lift`s. The types `V`, `V'`, ... all live in different universes,
 and `V₁`, `V₂`, ... all live in the same universe.
 -/
 
+namespace set
+
+lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
+nonempty_compl.symm
+
+-- @[simp] lemma not_infinite {α : Type*} (s : set α) : ¬ s.infinite ↔ s.finite :=
+-- by simp [infinite]
+
+lemma Union_finset_of_range_finite
+  {α β : Type*} [decidable_eq β] (f : α → finset β) (h : (range f).finite) :
+  (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β) :=
+begin
+  ext x,
+  simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
+  use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
+  rintro ⟨s, hs, hx⟩,
+  obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
+  exact ⟨a, hx⟩,
+end
+
+lemma range_infinite_of_union_finset_infinite
+  {α β : Type*} [decidable_eq β] (f : α → finset β) (w : (⋃ a, (f a : set β)).infinite) : (range f).infinite :=
+begin
+  intro h,
+  apply w,
+  rw set.Union_finset_of_range_finite f h,
+  apply set.finite_mem_finset,
+end
+
+lemma exists_mem_of_not_subseteq {α : Type*} {s t : set α} (h : ¬ s ⊆ t) : ∃ x, x ∈ s ∧ x ∉ t :=
+begin
+  by_contradiction w,
+  exact h (by simpa using w),
+end
+
+end set
+
+open set
+open_locale classical
+
+lemma cardinal.le_range_of_union_finset_eq_top
+  {α β : Type*} [infinite β] (f : α → finset β) (w : (⋃ a, (f a : set β)) = ⊤) :
+  cardinal.mk β ≤ cardinal.mk (range f) :=
+begin
+  have k : cardinal.omega ≤ cardinal.mk (range f),
+  { rw ←cardinal.infinite_iff, rw infinite_coe_iff,
+    apply range_infinite_of_union_finset_infinite,
+    rw w,
+    exact infinite_univ, },
+  by_contradiction h,
+  simp only [not_le] at h,
+  let u : Π b, ∃ a, b ∈ f a := λ b, by simpa using (w.ge : _) (set.mem_univ b),
+  let u' : β → range f := λ b, ⟨f (u b).some, by simp⟩,
+  have v' : ∀ a, u' ⁻¹' {⟨f a, by simp⟩} ≤ f a, begin rintros a p m,
+    simp at m,
+    rw ←m,
+    apply (λ b, (u b).some_spec),
+  end,
+  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := cardinal.infinite_pigeonhole'' u' h k,
+  exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
+end
+
 noncomputable theory
 
 universes u v v' v'' u₁' w w'
@@ -78,8 +140,61 @@ variables (M : Type v) [add_comm_group M] [module R M]
 section
 variables {R M}
 
+/--
+A linearly independent family is maximal if there is no strictly larger linearly independent family.
+
+There is a universe subtlety here.
+As we can't quantify over universes,
+it is not enough to quantify over all indexed families in the same universe as the maximal family:
+there could potentially be a strictly larger linearly independent family,
+but only in a larger universe.
+Since every linearly independent family injects into `M`,
+it is sufficient to index by some set in `M`.
+-/
 def linear_independent.maximal {ι : Type w} {v : ι → M} (i : linear_independent R v) : Prop :=
-  ∀ {κ : Type w} (w : κ → M) (i : linear_independent R w) (h : range v ≤ range w), range v = range w
+∀ (w : set M) (i' : linear_independent R (coe : w → M)) (h : range v ≤ w), range v = w
+
+lemma linear_independent.reindex_range {ι : Type w} {v : ι → M} (i : linear_independent R v) :
+  linear_independent R (coe : range v → M) := sorry
+
+lemma linear_independent.maximal_iff {ι : Type w} {v : ι → M} (i : linear_independent R v) :
+  i.maximal ↔ ∀ (κ : Type v) (w : κ → M) (i' : linear_independent R w) (j : ι ↪ κ), surjective j :=
+begin
+  fsplit,
+  { intros p κ w i' j,
+    specialize p (range w) i'.reindex_range,
+    sorry, },
+  { intros p w i' h,
+    specialize p w (coe : w → M) i' ⟨λ i, ⟨v i, range_subset_iff.mp h i⟩, begin sorry, end⟩,
+    have q := congr_arg (λ s, (coe : w → M) '' s) p.range_eq,
+    dsimp at q,
+    rw [←image_univ, image_image] at q,
+    simpa using q, },
+end
+
+lemma finsupp.emb_domain_sum {α β : Type*} (f : α ↪ β) (v : α →₀ M) : sorry := sorry
+
+lemma basis.maximal {ι : Type w} (b : basis ι R M) : b.linear_independent.maximal :=
+λ w i h,
+begin
+  -- If `range w` is strictly bigger than `range b`,
+  apply le_antisymm h,
+  by_contradiction h', simp at h',
+  -- choose some `w k ∈ range w \ range b`,
+  obtain ⟨x, p, q⟩ := exists_mem_of_not_subseteq h',
+  -- and write it in terms of the basis.
+  have e := b.total_repr x,
+  -- This then gives a nontrivial linear combination of the elements of `w`,
+  let u' : Π i, ∃ z : w, b i = z := sorry,
+  let u : ι ↪ w := ⟨λ i, (u' i).some, sorry⟩,
+  have p : ∀ i, b i = u i := λ i, (u' i).some_spec,
+  rw finsupp.total_apply at e,
+  simp_rw p at e,
+  -- have := finsupp.emb_domain,
+  -- contradicting linear independence.
+  rw linear_independent_iff at i,
+  sorry,
+end
 
 attribute [irreducible] linear_independent.maximal
 
@@ -90,10 +205,12 @@ variables [nontrivial R]
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.
 -/
--- This result apparently doesn't hold in general
--- if we replace "basis" with "linearly independent set"!
+-- One might hope that a finite spanning set implies that any linearly independent set is finite.
+-- While this is true over a division ring
+-- (simply because any linearly independent set can be extended to a basis),
+-- I'm not certain what more general statements are possible.
 def basis_fintype_of_finite_spans (w : set M) [fintype w] (s : span R w = ⊤)
-  {ι : Type*} (b : basis ι R M) : fintype ι :=
+  {ι : Type w} (b : basis ι R M) : fintype ι :=
 begin
   -- We'll work by contradiction, assuming `ι` is infinite.
   apply fintype_of_not_infinite _,
@@ -129,57 +246,31 @@ then the union of the supports of `x ∈ s` (when written out in the basis `b`) 
 -/
 -- From [Les familles libres maximales d'un module ont-elles le meme cardinal?][lazarus1973]
 lemma union_support_maximal_linear_independent_eq_range_basis
-  {ι : Type*} (b : basis ι R M)
-  {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
-  (⋃ k, ((b.repr (v k)).support : set ι)) = ⊤ :=
-begin
-  sorry
-end
-
-@[simp] lemma set.not_infinite {α : Type*} (s : set α) : ¬ s.infinite ↔ s.finite :=
-by simp [set.infinite]
-
--- Surely this is not that hard!
-lemma range_infinite_of_union_finset_infinite
-  {α β : Type*} (f : α → finset β) (w : (⋃ a, (f a : set β)).infinite) : (range f).infinite :=
+  {ι : Type w} (b : basis ι R M)
+  {κ : Type w'} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
+  (⋃ k, ((b.repr (v k)).support : set ι)) = univ :=
 begin
   by_contradiction h,
-  simp at h,
-  have I : finite ((⋃ (a : α), (f a : set β)) : set β),
-  { rw ←sUnion_range,
-    apply finite.sUnion,
-    { rw ←image_univ,
-      change (((λ s : finset β, (s : set β)) ∘ f) '' set.univ).finite,
-      rw set.image_comp,
-      rw image_univ,
-      refine (finite_image_iff _).mpr h,
-      rintros s s' t t' p, dsimp at p,
-      exact finset.coe_inj.mp p, },
-    { rintro - ⟨m,rfl⟩,
-      exact finset.finite_to_set (f m), }, },
-  exact w I,
-end
-
-lemma cardinal.le_range_of_union_finset_eq_top
-  {α β : Type*} [infinite β] (f : α → finset β) (w : (⋃ a, (f a : set β)) = ⊤) :
-  cardinal.mk β ≤ cardinal.mk (range f) :=
-begin
-  have k : cardinal.omega ≤ cardinal.mk (range f),
-  { rw ←cardinal.infinite_iff, rw infinite_coe_iff,
-    apply range_infinite_of_union_finset_infinite,
-    rw w,
-    exact infinite_univ, },
-  by_contradiction h,
-  simp only [not_le] at h,
-  let u : Π b, ∃ a, b ∈ f a := λ b, by simpa using (w.ge : _) (set.mem_univ b),
-  let u' : β → range f := λ b, ⟨f (u b).some, by simp⟩,
-  have v' : ∀ a, u' ⁻¹' {⟨f a, by simp⟩} ≤ f a, begin rintros a p m,
-    simp at m,
-    rw ←m,
-    apply (λ b, (u b).some_spec),
-  end,
-  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := cardinal.infinite_pigeonhole'' u' h k,
-  exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
+  simp only [←ne.def, ne_univ_iff_exists_not_mem, mem_Union, not_exists_not,
+    finsupp.mem_support_iff, finset.mem_coe] at h,
+  obtain ⟨b', w⟩ := h,
+  let v' : option κ → M := λ o, o.elim (b b') v,
+  have r : range v ⊆ range v',
+  { rintro - ⟨k, rfl⟩,
+    use some k,
+    refl, },
+  have r' : range v ≠ range v',
+  { intro e,
+    have p : b b' ∈ range v', { use none, refl, },
+    rw ←e at p,
+    rcases p with ⟨k, p⟩,
+    simpa [w] using congr_arg (λ m, (b.repr m) b') p, },
+  have i' : linear_independent R (coe : range v' → M),
+  { rw linear_independent_iff,
+    sorry, },
+  dsimp [linear_independent.maximal] at m,
+  specialize m (range v') i' r,
+  exact r' m,
 end
 
 /--
@@ -187,20 +278,173 @@ Over any ring `R`, if `b` is an infinite basis for a module `M`,
 and `s` is a maximal linearly independent set,
 then the cardinality of `b` is bounded by the cardinality of `s`.
 -/
-lemma infinite_basis_le_maximal_linear_independent
-  {ι : Type*} (b : basis ι R M) [infinite ι]
-  {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
-  cardinal.mk ι ≤ cardinal.mk κ :=
+lemma infinite_basis_le_maximal_linear_independent'
+  {ι : Type w} (b : basis ι R M) [infinite ι]
+  {κ : Type w'} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
+  cardinal.lift.{w w'} (cardinal.mk ι) ≤ cardinal.lift.{w' w} (cardinal.mk κ) :=
 begin
   let Φ := λ k : κ, (b.repr (v k)).support,
   have w₁ : cardinal.mk ι ≤ cardinal.mk (set.range Φ),
   { apply cardinal.le_range_of_union_finset_eq_top,
     exact union_support_maximal_linear_independent_eq_range_basis R M b v i m, },
-  have w₂ : cardinal.mk (set.range Φ) ≤ cardinal.mk κ := cardinal.mk_range_le,
-  exact w₁.trans w₂,
+  have w₂ :
+    cardinal.lift.{w w'} (cardinal.mk (set.range Φ)) ≤ cardinal.lift.{w' w} (cardinal.mk κ) :=
+    cardinal.mk_range_le_lift,
+  exact (cardinal.lift_le.mpr w₁).trans w₂,
 end
 
+/--
+Over any ring `R`, if `b` is an infinite basis for a module `M`,
+and `s` is a maximal linearly independent set,
+then the cardinality of `b` is bounded by the cardinality of `s`.
+-/
+-- (See `infinite_basis_le_maximal_linear_independent'` for the more general version
+-- where the index types can live in different universes.)
+lemma infinite_basis_le_maximal_linear_independent
+  {ι : Type w} (b : basis ι R M) [infinite ι]
+  {κ : Type w} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
+  cardinal.mk ι ≤ cardinal.mk κ :=
+cardinal.lift_le.mp (infinite_basis_le_maximal_linear_independent' R M b v i m)
+
 end
+
+section invariant_basis_number
+
+variables {R : Type u} [ring R] [nontrivial R] [invariant_basis_number R]
+variables {M : Type v} [add_comm_group M] [module R M]
+
+/-- The dimension theorem: if `v` and `v'` are two bases, their index types
+have the same cardinalities. -/
+theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
+  cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
+begin
+  by_cases h : cardinal.mk ι < cardinal.omega,
+  { -- `v` is a finite basis, so by `basis_fintype_of_finite_spans` so is `v'`.
+    haveI : fintype ι := sorry,
+    haveI : fintype (range v) := set.fintype_range ⇑v,
+    haveI := basis_fintype_of_finite_spans R M _ v.span_eq v',
+    -- We clean up a little:
+    rw [cardinal.fintype_card, cardinal.fintype_card],
+    simp only [cardinal.lift_nat_cast, cardinal.nat_cast_inj],
+    -- Now we can use invariant basis number to show they have the same cardinality.
+    apply card_eq_of_lequiv R,
+    exact (((finsupp.linear_equiv_fun_on_fintype R R ι).symm.trans v.repr.symm).trans
+      v'.repr).trans (finsupp.linear_equiv_fun_on_fintype R R ι'), },
+  { -- `v` is an infinite basis,
+    -- so by `infinite_basis_le_maximal_linear_independent`, `v'` is at least as big,
+    -- and then applying `infinite_basis_le_maximal_linear_independent` again
+    -- we see they have the same cardinality.
+    simp only [not_lt] at h,
+    haveI : infinite ι := sorry,
+    have w₁ := infinite_basis_le_maximal_linear_independent' R M v _ v'.linear_independent sorry,
+    haveI : infinite ι' := sorry,
+    have w₂ := infinite_basis_le_maximal_linear_independent' R M v' _ v.linear_independent sorry,
+    exact le_antisymm w₁ w₂, }
+end
+
+theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
+  cardinal.mk ι = cardinal.mk ι' :=
+cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
+
+end invariant_basis_number
+
+section rank_condition
+
+variables {R : Type u} [ring R] [nontrivial R] [rank_condition R]
+variables {M : Type v} [add_comm_group M] [module R M]
+
+/--
+If `R` satisfies the rank condition,
+then for any finite basis `b : basis ι R M`,
+and any finite spanning set `w : set M`,
+the cardinality of `ι` is bounded by the cardinality of `w`.
+-/
+-- Note that if `R` satisfies the strong rank condition,
+-- this already follows from `linear_independent_le_span` above.
+lemma basis.le_span'' {ι : Type*} [fintype ι] (b : basis ι R M)
+  {w : set M} [fintype w] (s : span R w = ⊤) :
+  fintype.card ι ≤ fintype.card w :=
+begin
+   -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
+   -- by expressing a linear combination in `w` as a linear combination in `ι`.
+   fapply card_le_of_surjective' R,
+   { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
+   { apply surjective.comp,
+    apply linear_equiv.surjective,
+    rw [←linear_map.range_eq_top, finsupp.range_total],
+    simpa using s, },
+end
+
+/-- A variant of `basis_le_span''` which does not require assuming the basis is finite. -/
+lemma basis_le_span' {ι : Type*} (b : basis ι R M)
+  {w : set M} [fintype w] (s : span R w = ⊤) :
+  cardinal.mk ι ≤ fintype.card w :=
+begin
+  haveI := basis_fintype_of_finite_spans R M w s b,
+  rw cardinal.fintype_card ι,
+  simp only [cardinal.nat_cast_le],
+  exact basis.le_span'' b s,
+end
+
+theorem basis.le_span {J : set M} (v : basis ι R M)
+   (hJ : span R J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
+begin
+  cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
+  { have := cardinal.mk_range_eq_of_injective v.injective,
+    let S : J → set ι := λ j, ↑(v.repr j).support,
+    let S' : J → set M := λ j, v '' S j,
+    have hs : range v ⊆ ⋃ j, S' j,
+    { intros b hb,
+      rcases mem_range.1 hb with ⟨i, hi⟩,
+      have : span R J ≤ comap v.repr.to_linear_map (finsupp.supported R R (⋃ j, S j)) :=
+        span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
+      rw hJ at this,
+      replace : v.repr (v i) ∈ (finsupp.supported R R (⋃ j, S j)) := this trivial,
+      rw [v.repr_self, finsupp.mem_supported,
+        finsupp.support_single_ne_zero one_ne_zero] at this,
+      { subst b,
+        rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
+        exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },
+      { apply_instance } },
+    refine le_of_not_lt (λ IJ, _),
+    suffices : cardinal.mk (⋃ j, S' j) < cardinal.mk (range v),
+    { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
+    refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
+      (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
+    { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ (finset.finite_to_set _).image _) },
+    { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
+  { haveI : fintype J := (cardinal.lt_omega_iff_fintype.mp oJ).some,
+    rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
+    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
+    simp, },
+end
+
+-- /-- The dimension theorem: if `v` and `v'` are two bases, their index types
+-- have the same cardinalities. -/
+-- -- This could be generalized even further; it only requires invariant basis number.
+-- theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
+--   cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
+-- begin
+--   rw ←cardinal.lift_inj.{(max w w') v},
+--   rw [cardinal.lift_lift, cardinal.lift_lift],
+--   apply le_antisymm,
+--   { convert cardinal.lift_le.{v (max w w')}.2 (v.le_span v'.span_eq),
+--     { rw cardinal.lift_max.{w v w'},
+--       apply (cardinal.mk_range_eq_of_injective v.injective).symm, },
+--     { rw cardinal.lift_max.{w' v w},
+--       apply (cardinal.mk_range_eq_of_injective v'.injective).symm, }, },
+--   { convert cardinal.lift_le.{v (max w w')}.2 (v'.le_span v.span_eq),
+--     { rw cardinal.lift_max.{w' v w},
+--       apply (cardinal.mk_range_eq_of_injective v'.injective).symm, },
+--     { rw cardinal.lift_max.{w v w'},
+--       apply (cardinal.mk_range_eq_of_injective v.injective).symm, }, }
+-- end
+
+-- theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
+--   cardinal.mk ι = cardinal.mk ι' :=
+-- cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
+
+end rank_condition
 
 section strong_rank_condition
 
@@ -250,11 +494,11 @@ def linear_independent_fintype_of_le_span_fintype
   {ι : Type*} (v : ι → M) (i : linear_independent R v)
   (w : set M) [fintype w] (s : range v ≤ span R w) : fintype ι :=
 fintype_of_finset_card_le (fintype.card w) (λ t, begin
-    let v' := λ x : (t : set ι), v x,
-    have i' : linear_independent R v' := i.comp _ subtype.val_injective,
-    have s' : range v' ≤ span R w := (range_comp_subset_range _ _).trans s,
-    simpa using linear_independent_le_span_aux' R M v' i' w s'
-  end)
+  let v' := λ x : (t : set ι), v x,
+  have i' : linear_independent R v' := i.comp _ subtype.val_injective,
+  have s' : range v' ≤ span R w := (range_comp_subset_range _ _).trans s,
+  simpa using linear_independent_le_span_aux' R M v' i' w s'
+end)
 
 /--
 If `R` satisfies the strong rank condition,
@@ -346,6 +590,7 @@ then every maximal linearly independent set has the same cardinality as `b`.
 This proof (along with some of the lemmas above) comes from
 [Les familles libres maximales d'un module ont-elles le meme cardinal?][lazarus1973]
 -/
+-- Without the `infinite ι` hypothesis this is not generally true!
 lemma maximal_linear_independent_eq_infinite_basis
   {ι : Type*} (b : basis ι R M) [infinite ι]
   {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
@@ -356,113 +601,15 @@ begin
   { haveI : nontrivial R := nontrivial_of_invariant_basis_number R,
     exact infinite_basis_le_maximal_linear_independent R M b v i m, }
 end
--- TODO what about without the `infinite ι` hypothesis?
 
 end strong_rank_condition
 
-section rank_condition
-
-variables {R : Type u} [ring R] [nontrivial R] [rank_condition R]
-variables {M : Type v} [add_comm_group M] [module R M]
-
-/--
-If `R` satisfies the rank condition,
-then for any finite basis `b : basis ι R M`,
-and any finite spanning set `w : set M`,
-the cardinality of `ι` is bounded by the cardinality of `w`.
--/
--- Note that if `R` satisfies the strong rank condition,
--- this already follows from `linear_independent_le_span` above.
-lemma basis.le_span'' {ι : Type*} [fintype ι] (b : basis ι R M)
-  {w : set M} [fintype w] (s : span R w = ⊤) :
-  fintype.card ι ≤ fintype.card w :=
-begin
-   -- We construct an surjective linear map `(w → R) →ₗ[R] (ι → R)`,
-   -- by expressing a linear combination in `w` as a linear combination in `ι`.
-   fapply card_le_of_surjective' R,
-   { exact b.repr.to_linear_map.comp (finsupp.total w M R coe), },
-   { apply surjective.comp,
-    apply linear_equiv.surjective,
-    rw [←linear_map.range_eq_top, finsupp.range_total],
-    simpa using s, },
-end
-
-/-- A variant of `basis_le_span''` which does not require assuming the basis is finite. -/
-lemma basis_le_span' {ι : Type*} (b : basis ι R M)
-  {w : set M} [fintype w] (s : span R w = ⊤) :
-  cardinal.mk ι ≤ fintype.card w :=
-begin
-  haveI := basis_fintype_of_finite_spans R M w s b,
-  rw cardinal.fintype_card ι,
-  simp only [cardinal.nat_cast_le],
-  exact basis.le_span'' b s,
-end
-
-theorem basis.le_span {J : set M} (v : basis ι R M)
-   (hJ : span R J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
-begin
-  cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
-  { have := cardinal.mk_range_eq_of_injective v.injective,
-    let S : J → set ι := λ j, ↑(v.repr j).support,
-    let S' : J → set M := λ j, v '' S j,
-    have hs : range v ⊆ ⋃ j, S' j,
-    { intros b hb,
-      rcases mem_range.1 hb with ⟨i, hi⟩,
-      have : span R J ≤ comap v.repr.to_linear_map (finsupp.supported R R (⋃ j, S j)) :=
-        span_le.2 (λ j hj x hx, ⟨_, ⟨⟨j, hj⟩, rfl⟩, hx⟩),
-      rw hJ at this,
-      replace : v.repr (v i) ∈ (finsupp.supported R R (⋃ j, S j)) := this trivial,
-      rw [v.repr_self, finsupp.mem_supported,
-        finsupp.support_single_ne_zero one_ne_zero] at this,
-      { subst b,
-        rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
-        exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },
-      { apply_instance } },
-    refine le_of_not_lt (λ IJ, _),
-    suffices : cardinal.mk (⋃ j, S' j) < cardinal.mk (range v),
-    { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
-    refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
-      (cardinal.sum_le_sum _ (λ _, cardinal.omega) _)) _,
-    { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ (finset.finite_to_set _).image _) },
-    { rwa [cardinal.sum_const, cardinal.mul_eq_max oJ (le_refl _), max_eq_left oJ] } },
-  { haveI : fintype J := (cardinal.lt_omega_iff_fintype.mp oJ).some,
-    rw [←cardinal.lift_le, cardinal.mk_range_eq_of_injective v.injective, cardinal.fintype_card J],
-    convert cardinal.lift_le.{w v}.2 (basis_le_span' v hJ),
-    simp, },
-end
-
-/-- The dimension theorem: if `v` and `v'` are two bases, their index types
-have the same cardinalities. -/
--- This could be generalized even further; it only requires invariant basis number.
-theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
-  cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
-begin
-  rw ←cardinal.lift_inj.{(max w w') v},
-  rw [cardinal.lift_lift, cardinal.lift_lift],
-  apply le_antisymm,
-  { convert cardinal.lift_le.{v (max w w')}.2 (v.le_span v'.span_eq),
-    { rw cardinal.lift_max.{w v w'},
-      apply (cardinal.mk_range_eq_of_injective v.injective).symm, },
-    { rw cardinal.lift_max.{w' v w},
-      apply (cardinal.mk_range_eq_of_injective v'.injective).symm, }, },
-  { convert cardinal.lift_le.{v (max w w')}.2 (v'.le_span v.span_eq),
-    { rw cardinal.lift_max.{w' v w},
-      apply (cardinal.mk_range_eq_of_injective v'.injective).symm, },
-    { rw cardinal.lift_max.{w v w'},
-      apply (cardinal.mk_range_eq_of_injective v.injective).symm, }, }
-end
-
-theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
-  cardinal.mk ι = cardinal.mk ι' :=
-cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
-
-end rank_condition
 
 section division_ring
 variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables {K V}
 
--- TODO: At least for finite bases, this is true for any ring satisfying the strong rank condition.
+-- TODO: This is true for any ring satisfying the strong rank condition.
 theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι K V) :
   cardinal.mk ι = module.rank K V :=
 begin

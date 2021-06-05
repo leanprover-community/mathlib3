@@ -153,7 +153,7 @@ variables (R : Type u) [ring R] [invariant_basis_number R]
 lemma eq_of_fin_equiv {n m : ℕ} : ((fin n → R) ≃ₗ[R] (fin m → R)) → n = m :=
 invariant_basis_number.eq_of_fin_equiv
 
-lemma card_eq_of_lequiv [rank_condition R] {α β : Type*} [fintype α] [fintype β]
+lemma card_eq_of_lequiv {α β : Type*} [fintype α] [fintype β]
   (f : (α → R) ≃ₗ[R] (β → R)) : fintype.card α = fintype.card β :=
 eq_of_fin_equiv R (((linear_map.fun_congr_left R R (fintype.equiv_fin α)).trans f).trans
   ((linear_map.fun_congr_left R R (fintype.equiv_fin β)).symm))

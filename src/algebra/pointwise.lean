@@ -141,6 +141,16 @@ instance [monoid α] : monoid (set α) :=
 { ..set.semigroup,
   ..set.mul_one_class }
 
+lemma set.pow_mem_pow {α : Type*} {s : set α} {a : α} [monoid α] (ha : a ∈ s) (n : ℕ) :
+  a ^ n ∈ s ^ n :=
+begin
+  induction n with n ih,
+  { rw pow_zero,
+    exact set.mem_singleton 1 },
+  { rw pow_succ,
+    exact set.mul_mem_mul ha ih },
+end
+
 @[to_additive]
 protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=
 by simp only [← image2_mul, image2_swap _ s, mul_comm]

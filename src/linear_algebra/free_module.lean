@@ -103,7 +103,7 @@ of_basis $ (choose_basis R M).prod (choose_basis R N)
 instance of_self : module.free R R := of_basis $ basis.singleton unit R
 
 lemma of_zero [subsingleton N] : module.free R N :=
-of_basis $ basis.empty _ not_nonempty_pempty
+of_basis (basis.empty N : basis pempty R N)
 
 end semiring
 

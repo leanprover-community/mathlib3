@@ -703,16 +703,6 @@ begin
   exact { one_mem := one_mem, mul_mem := mul_mem, inv_mem := inv_mem },
 end
 
-lemma set.pow_mem_pow {α : Type*} {s : set α} {a : α} [monoid α] (ha : a ∈ s) (n : ℕ) :
-  a ^ n ∈ s ^ n :=
-begin
-  induction n with n ih,
-  { rw pow_zero,
-    exact set.mem_singleton 1 },
-  { rw pow_succ,
-    exact set.mul_mem_mul ha ih },
-end
-
 theorem card_pow_dynaomics_aux {f : ℕ → ℕ} (h1 : monotone f) {B : ℕ} (h2 : ∀ n, f n ≤ B)
   (h3 : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
 ∃ k : ℕ, k ≤ B ∧ ∀ i, (k ≤ i → f i = f k) ∧ (i < k → ∀ j, i < j → f i < f j) :=
@@ -755,10 +745,6 @@ end
 
 noncomputable instance set_fintype' {α : Type*} [fintype α] (s : set α) : fintype s :=
 by { classical, exact set_fintype s }
-
-lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
-  fintype.card ↥s ≤ fintype.card α :=
-fintype.card_le_of_embedding (function.embedding.subtype s)
 
 lemma card_pow_dynamics {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
   ∃ k : ℕ, k ≤ fintype.card G ∧ ∀ i,

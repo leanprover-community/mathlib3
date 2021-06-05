@@ -950,6 +950,10 @@ fintype.subtype (univ.filter p) (by simp)
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
 subtype.fintype (λ x, x ∈ s)
 
+lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
+  fintype.card ↥s ≤ fintype.card α :=
+fintype.card_le_of_embedding (function.embedding.subtype s)
+
 namespace function.embedding
 
 /-- An embedding from a `fintype` to itself can be promoted to an equivalence. -/

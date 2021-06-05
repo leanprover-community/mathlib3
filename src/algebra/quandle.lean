@@ -310,7 +310,7 @@ def conj (G : Type*) := G
 instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
 { act := (λ x, @mul_aut.conj G _ x),
   self_distrib := λ x y z, begin
-    dsimp only [mul_equiv.to_equiv_apply, mul_aut.conj_apply, conj],
+    dsimp only [mul_equiv.coe_to_equiv, mul_aut.conj_apply, conj],
     group,
   end,
   inv_act := (λ x, (@mul_aut.conj G _ x).symm),

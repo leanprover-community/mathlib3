@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Kyle Miller
+Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
 import algebra.big_operators.basic
@@ -182,7 +182,7 @@ theorem even_card_odd_degree_vertices [fintype V] [decidable_rel G.adj] :
 begin
   classical,
   have h := congr_arg ((λ n, ↑n) : ℕ → zmod 2) G.sum_degrees_eq_twice_card_edges,
-  simp only [zmod.cast_self, zero_mul, nat.cast_mul] at h,
+  simp only [zmod.nat_cast_self, zero_mul, nat.cast_mul] at h,
   rw [sum_nat_cast, ←sum_filter_ne_zero] at h,
   rw @sum_congr _ (zmod 2) _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
   { simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,

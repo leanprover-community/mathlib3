@@ -88,7 +88,8 @@ theorem mem_jacobson_iff {x : R} : x ∈ jacobson I ↔ ∀ y, ∃ z, x * y * z 
   (assume hxy : I ⊔ span {x * y + 1} = ⊤,
     let ⟨p, hpi, q, hq, hpq⟩ := submodule.mem_sup.1 ((eq_top_iff_one _).1 hxy) in
     let ⟨r, hr⟩ := mem_span_singleton.1 hq in
-    ⟨r, by rw [← one_mul r, ← mul_assoc, ← add_mul, mul_one, ← hr, ← hpq, ← neg_sub, add_sub_cancel]; exact I.neg_mem hpi⟩)
+    ⟨r, by rw [← one_mul r, ← mul_assoc, ← add_mul, mul_one, ← hr, ← hpq, ← neg_sub,
+               add_sub_cancel]; exact I.neg_mem hpi⟩)
   (assume hxy : I ⊔ span {x * y + 1} ≠ ⊤,
     let ⟨M, hm1, hm2⟩ := exists_le_maximal _ hxy in
     suffices x ∉ M, from (this $ mem_Inf.1 hx ⟨le_trans le_sup_left hm2, hm1⟩).elim,
@@ -151,7 +152,8 @@ begin
   unfold ideal.jacobson,
   have : ∀ J ∈ {J : ideal R | I ≤ J ∧ J.is_maximal}, f.ker ≤ J := λ J hJ, le_trans h hJ.left,
   refine trans (map_Inf hf this) (le_antisymm _ _),
-  { refine Inf_le_Inf (λ J hJ, ⟨comap f J, ⟨⟨le_comap_of_map_le hJ.1, _⟩, map_comap_of_surjective f hf J⟩⟩),
+  { refine Inf_le_Inf (λ J hJ, ⟨comap f J, ⟨⟨le_comap_of_map_le hJ.1, _⟩,
+    map_comap_of_surjective f hf J⟩⟩),
     haveI : J.is_maximal := hJ.right,
     exact comap_is_maximal_of_surjective f hf },
   { refine Inf_le_Inf_of_subset_insert_top (λ j hj, hj.rec_on (λ J hJ, _)),
@@ -192,7 +194,7 @@ end
 
 lemma mem_jacobson_bot {x : R} : x ∈ jacobson (⊥ : ideal R) ↔ ∀ y, is_unit (x * y + 1) :=
 ⟨λ hx y, let ⟨z, hz⟩ := (mem_jacobson_iff.1 hx) y in
-  is_unit_iff_exists_inv.2 ⟨z, by rwa [add_mul, one_mul, ← sub_eq_zero_iff_eq]⟩,
+  is_unit_iff_exists_inv.2 ⟨z, by rwa [add_mul, one_mul, ← sub_eq_zero]⟩,
 λ h, mem_jacobson_iff.mpr (λ y, (let ⟨b, hb⟩ := is_unit_iff_exists_inv.1 (h y) in
   ⟨b, (submodule.mem_bot R).2 (hb ▸ (by ring))⟩))⟩
 
@@ -256,7 +258,8 @@ begin
   refine trans (jacobson_mono bot_le) (le_of_eq _ : J.jacobson ≤ J),
   suffices : (⊥ : ideal (polynomial j.quotient)).jacobson = ⊥,
   { rw [← hj.2, jacobson_eq_iff_jacobson_quotient_eq_bot],
-    replace this := congr_arg (map (polynomial_quotient_equiv_quotient_polynomial j).to_ring_hom) this,
+    replace this :=
+    congr_arg (map (polynomial_quotient_equiv_quotient_polynomial j).to_ring_hom) this,
     rwa [map_jacobson_of_bijective _, map_bot] at this,
     exact (ring_equiv.bijective (polynomial_quotient_equiv_quotient_polynomial j)) },
   refine eq_bot_iff.2 (λ f hf, _),
@@ -289,7 +292,8 @@ from le_antisymm (le_Inf $ λ M ⟨him, hm⟩, hm.is_prime.radical_le_iff.2 him)
   (Inf_le ⟨le_radical, hi⟩),
 show is_maximal (jacobson I), from this ▸ hi⟩
 
-theorem is_local.le_jacobson {I J : ideal R} (hi : is_local I) (hij : I ≤ J) (hj : J ≠ ⊤) : J ≤ jacobson I :=
+theorem is_local.le_jacobson {I J : ideal R} (hi : is_local I) (hij : I ≤ J) (hj : J ≠ ⊤) :
+  J ≤ jacobson I :=
 let ⟨M, hm, hjm⟩ := exists_le_maximal J hj in
 le_trans hjm $ le_of_eq $ eq.symm $ hi.1.eq_of_le hm.1.1 $ Inf_le ⟨le_trans hij hjm, hm⟩
 
@@ -301,11 +305,13 @@ classical.by_cases
     let ⟨r, hr⟩ := mem_span_singleton.1 hq in
     or.inr ⟨r, by rw [← hpq, mul_comm, ← hr, ← neg_sub, add_sub_cancel]; exact I.neg_mem hpi⟩)
   (assume h : I ⊔ span {x} ≠ ⊤,
-    or.inl $ le_trans le_sup_right (hi.le_jacobson le_sup_left h) $ mem_span_singleton.2 $ dvd_refl x)
+    or.inl $ le_trans le_sup_right (hi.le_jacobson le_sup_left h) $ mem_span_singleton.2 $
+      dvd_refl x)
 
 end is_local
 
-theorem is_primary_of_is_maximal_radical {I : ideal R} (hi : is_maximal (radical I)) : is_primary I :=
+theorem is_primary_of_is_maximal_radical {I : ideal R} (hi : is_maximal (radical I)) :
+  is_primary I :=
 have radical I = jacobson I,
 from le_antisymm (le_Inf $ λ M ⟨him, hm⟩, hm.is_prime.radical_le_iff.2 him)
   (Inf_le ⟨le_radical, hi⟩),

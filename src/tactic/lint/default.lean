@@ -44,6 +44,7 @@ The following linters are run by default:
 17. `decidable_classical` checks for `decidable` hypotheses that are used in the proof of a proposition but not
     in the statement, and could be removed using `classical`. Theorems in the `decidable` namespace are exempt.
 18. `has_coe_to_fun` checks that every type that coerces to a function has a direct `has_coe_to_fun` instance.
+19. `check_type` checks that the statement of a declaration is well-typed.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

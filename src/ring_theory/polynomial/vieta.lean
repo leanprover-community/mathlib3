@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Hanting Zhang
+Authors: Hanting Zhang
 -/
 import ring_theory.polynomial.symmetric
 

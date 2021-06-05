@@ -137,11 +137,14 @@ set.range_eq_empty.2 $ λ ⟨k⟩, k.elim0
 -/
 @[simp] lemma cons_val_one (x : α) (u : fin m.succ → α) :
   vec_cons x u 1 = vec_head u :=
-cons_val_succ x u 0
+by { rw [← fin.succ_zero_eq_one, cons_val_succ], refl }
 
 @[simp] lemma cons_val_fin_one (x : α) (u : fin 0 → α) (i : fin 1) :
   vec_cons x u i = x :=
 by { fin_cases i, refl }
+
+lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
+funext (cons_val_fin_one x u)
 
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any
@@ -205,10 +208,11 @@ begin
   cases n,
   { simp, congr },
   { split_ifs with h; simp_rw [bit1, bit0]; congr,
-    { rw fin.coe_mk at h,
-      simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
+    { simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
+      rw fin.coe_mk at h,
+      rw fin.coe_one,
       rw nat.mod_eq_of_lt (nat.lt_of_succ_lt h),
-      exact (nat.mod_eq_of_lt h).symm },
+      rw nat.mod_eq_of_lt h },
     { rw [fin.coe_mk, not_lt] at h,
       simp only [fin.ext_iff, fin.coe_add, fin.coe_mk, nat.mod_add_mod, fin.coe_one,
                  nat.mod_eq_sub_mod h],
@@ -221,7 +225,8 @@ end
   vec_head (vec_alt0 hm v) = v 0 := rfl
 
 @[simp] lemma vec_head_vec_alt1 (hm : (m + 2) = (n + 1) + (n + 1)) (v : fin (m + 2) → α) :
-  vec_head (vec_alt1 hm v) = v 1 := rfl
+  vec_head (vec_alt1 hm v) = v 1 :=
+by simp [vec_head, vec_alt1]
 
 @[simp] lemma cons_vec_bit0_eq_alt0 (x : α) (u : fin n → α) (i : fin (n + 1)) :
   vec_cons x u (bit0 i) = vec_alt0 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=

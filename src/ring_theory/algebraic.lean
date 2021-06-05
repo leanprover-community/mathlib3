@@ -74,6 +74,12 @@ variables (R : Type u) {A : Type v} [comm_ring R] [nontrivial R] [ring A] [algeb
 lemma is_integral.is_algebraic {x : A} (h : is_integral R x) : is_algebraic R x :=
 by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 
+variables {R}
+
+/-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
+lemma is_algebraic_algebra_map (a : R) : is_algebraic R (algebra_map R A a) :=
+⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
+
 end zero_ne_one
 
 section field
@@ -131,7 +137,7 @@ begin
   have x_integral : is_integral R (z * algebra_map R S a) :=
     ⟨ p.integral_normalization,
       monic_integral_normalization p_ne_zero,
-      integral_normalization_aeval_eq_zero p_ne_zero px inj ⟩,
+      integral_normalization_aeval_eq_zero px inj ⟩,
   refine ⟨⟨_, x_integral⟩, ⟨_, y_integral⟩, _, rfl⟩,
   exact λ h, a_ne_zero (inj _ (subtype.ext_iff_val.mp h))
 end
@@ -165,11 +171,11 @@ lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : polynomial K
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
 begin
   have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
-  { rw [aeval_eq, submodule.coe_zero, zero_sub, div_neg],
+  { rw [aeval_eq, subalgebra.coe_zero, zero_sub, div_neg],
     convert inv_eq_of_root_of_coeff_zero_ne_zero _ coeff_zero_ne,
     { rw subalgebra.aeval_coe },
     { simpa using aeval_eq } },
-  rw [this, div_eq_mul_inv, aeval_eq, submodule.coe_zero, zero_sub, ← ring_hom.map_neg,
+  rw [this, div_eq_mul_inv, aeval_eq, subalgebra.coe_zero, zero_sub, ← ring_hom.map_neg,
       ← ring_hom.map_inv],
   exact A.mul_mem (aeval x p.div_X).2 (A.algebra_map_mem _),
 end
@@ -177,10 +183,7 @@ end
 lemma subalgebra.inv_mem_of_algebraic {x : A} (hx : is_algebraic K (x : L)) : (x⁻¹ : L) ∈ A :=
 begin
   obtain ⟨p, ne_zero, aeval_eq⟩ := hx,
-  replace aeval_eq : aeval x p = 0,
-  { rw ← submodule.coe_eq_zero,
-    convert aeval_eq,
-    exact is_scalar_tower.algebra_map_aeval K A L _ _ },
+  rw [subalgebra.aeval_coe, subalgebra.coe_eq_zero] at aeval_eq,
   revert ne_zero aeval_eq,
   refine p.rec_on_horner _ _ _,
   { intro h,
@@ -192,7 +195,7 @@ begin
     rw [alg_hom.map_mul, aeval_X, mul_eq_zero] at aeval_eq,
     cases aeval_eq with aeval_eq x_eq,
     { exact ih hp aeval_eq },
-    { rw [x_eq, submodule.coe_zero, inv_zero],
+    { rw [x_eq, subalgebra.coe_zero, inv_zero],
       exact A.zero_mem } }
 end
 
@@ -200,7 +203,7 @@ end
 lemma subalgebra.is_field_of_algebraic (hKL : algebra.is_algebraic K L) : is_field A :=
 { mul_inv_cancel := λ a ha, ⟨
         ⟨a⁻¹, A.inv_mem_of_algebraic (hKL a)⟩,
-        subtype.ext (mul_inv_cancel (mt submodule.coe_eq_zero.mp ha))⟩,
+        subtype.ext (mul_inv_cancel (mt (subalgebra.coe_eq_zero _).mp ha))⟩,
   .. subalgebra.integral_domain A }
 
 end field

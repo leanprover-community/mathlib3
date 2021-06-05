@@ -36,13 +36,13 @@ open_locale big_operators
 namespace linear_map
 
 variables (R : Type*) {ι : Type*} [semiring R] (φ : ι → Type*)
-  [Π i, add_comm_monoid (φ i)] [Π i, semimodule R (φ i)] [decidable_eq ι]
+  [Π i, add_comm_monoid (φ i)] [Π i, module R (φ i)] [decidable_eq ι]
 
 /-- The standard basis of the product of `φ`. -/
-def std_basis (i : ι) : φ i →ₗ[R] (Πi, φ i) := pi (diag i)
+def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
-by ext j; rw [std_basis, pi_apply, diag, update_apply]; refl
+rfl
 
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
 funext $ std_basis_apply R φ i
@@ -53,30 +53,12 @@ by rw [std_basis_apply, update_same]
 lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis R φ i b j = 0 :=
 by rw [std_basis_apply, update_noteq h]; refl
 
-section ext
-
-variables {R φ} {M : Type*} [fintype ι] [add_comm_monoid M] [semimodule R M]
-  {f g : (Π i, φ i) →ₗ[R] M}
-
-lemma pi_ext (h : ∀ i x, f (pi.single i x) = g (pi.single i x)) :
-  f = g :=
-to_add_monoid_hom_injective $ add_monoid_hom.functions_ext _ _ _ h
-
-lemma pi_ext_iff : f = g ↔ ∀ i x, f (pi.single i x) = g (pi.single i x) :=
-⟨λ h i x, h ▸ rfl, pi_ext⟩
-
-/-- This is used as the ext lemma instead of `linear_map.pi_ext` for reasons explained in
-note [partially-applied ext lemmas]. -/
-@[ext] lemma pi_ext' (h : ∀ i, f.comp (std_basis R φ i) = g.comp (std_basis R φ i)) : f = g :=
+lemma std_basis_eq_pi_diag (i : ι) : std_basis R φ i = pi (diag i) :=
 begin
-  refine pi_ext (λ i x, _),
-  simpa only [comp_apply, coe_std_basis] using linear_map.congr_fun (h i) x
+  ext x j,
+  convert (update_apply 0 x i j _).symm,
+  refl,
 end
-
-lemma pi_ext'_iff : f = g ↔ ∀ i, f.comp (std_basis R φ i) = g.comp (std_basis R φ i) :=
-⟨λ h i, h ▸ rfl, pi_ext'⟩
-
-end ext
 
 lemma ker_std_basis (i : ι) : ker (std_basis R φ i) = ⊥ :=
 ker_eq_bot_of_injective $ assume f g hfg,
@@ -84,7 +66,7 @@ ker_eq_bot_of_injective $ assume f g hfg,
   by simpa only [std_basis_same]
 
 lemma proj_comp_std_basis (i j : ι) : (proj i).comp (std_basis R φ j) = diag j i :=
-by rw [std_basis, proj_pi]
+by rw [std_basis_eq_pi_diag, proj_pi]
 
 lemma proj_std_basis_same (i : ι) : (proj i).comp (std_basis R φ i) = id :=
 by ext b; simp
@@ -96,7 +78,7 @@ lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
   (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i)) :=
 begin
   refine (supr_le $ assume i, supr_le $ assume hi, range_le_iff_comap.2 _),
-  simp only [(ker_comp _ _).symm, eq_top_iff, le_def', mem_ker, comap_infi, mem_infi],
+  simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
   assume b hb j hj,
   have : i ≠ j := assume eq, h ⟨hi, eq.symm ▸ hj⟩,
   rw [proj_std_basis_ne R φ j i this.symm, zero_apply]
@@ -104,7 +86,7 @@ end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
   (⨅ i∈J, ker (proj i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
-submodule.le_def'.2
+set_like.le_def.2
 begin
   assume b hb,
   simp only [mem_infi, mem_ker, proj_apply] at hb,
@@ -145,7 +127,7 @@ begin
   refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right) _,
-  simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
+  simp only [disjoint, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,
   classical,
@@ -207,58 +189,65 @@ end
 
 variable [fintype η]
 
-lemma is_basis_std_basis [decidable_eq η] (s : Πj, ιs j → (Ms j)) (hs : ∀j, is_basis R (s j)) :
-  is_basis R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (s ji.1 ji.2)) :=
+section
+
+open linear_equiv
+
+/-- `pi.basis (s : ∀ j, basis (ιs j) R (Ms j))` is the `Σ j, ιs j`-indexed basis on `Π j, Ms j`
+given by `s j` on each component. -/
+protected noncomputable def basis (s : ∀ j, basis (ιs j) R (Ms j)) :
+  basis (Σ j, ιs j) R (Π j, Ms j) :=
+-- The `add_comm_monoid (Π j, Ms j)` instance was hard to find.
+-- Defining this in tactic mode seems to shake up instance search enough that it works by itself.
+by { refine basis.of_repr (linear_equiv.trans _ (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm),
+     exact linear_equiv.Pi_congr_right (λ j, (s j).repr) }
+
+@[simp] lemma basis_repr_std_basis [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (j i) :
+  (pi.basis s).repr (std_basis R _ j (s j i)) = finsupp.single ⟨j, i⟩ 1 :=
 begin
-  split,
-  { apply linear_independent_std_basis _ (assume i, (hs i).1) },
-  have h₁ : Union (λ j, set.range (std_basis R Ms j ∘ s j))
-    ⊆ range (λ (ji : Σ (j : η), ιs j), (std_basis R Ms (ji.fst)) (s (ji.fst) (ji.snd))),
-  { apply Union_subset, intro i,
-    apply range_comp_subset_range (λ x : ιs i, (⟨i, x⟩ : Σ (j : η), ιs j))
-        (λ (ji : Σ (j : η), ιs j), std_basis R Ms (ji.fst) (s (ji.fst) (ji.snd))) },
-  have h₂ : ∀ i, span R (range (std_basis R Ms i ∘ s i)) = range (std_basis R Ms i),
-  { intro i,
-    rw [set.range_comp, submodule.span_image, (assume i, (hs i).2), submodule.map_top] },
-  apply eq_top_mono,
-  apply span_mono h₁,
-  rw span_Union,
-  simp only [h₂],
-  apply supr_range_std_basis
+  ext ⟨j', i'⟩,
+  by_cases hj : j = j',
+  { subst hj,
+    simp only [pi.basis, linear_equiv.trans_apply, basis.repr_self, std_basis_same,
+        linear_equiv.Pi_congr_right_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply],
+    symmetry,
+    exact basis.finsupp.single_apply_left
+      (λ i i' (h : (⟨j, i⟩ : Σ j, ιs j) = ⟨j, i'⟩), eq_of_heq (sigma.mk.inj h).2) _ _ _ },
+  simp only [pi.basis, linear_equiv.trans_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply,
+      linear_equiv.Pi_congr_right_apply],
+  dsimp,
+  rw [std_basis_ne _ _ _ _ (ne.symm hj), linear_equiv.map_zero, finsupp.zero_apply,
+      finsupp.single_eq_of_ne],
+  rintros ⟨⟩,
+  contradiction
+end
+
+@[simp] lemma basis_apply [decidable_eq η] (s : ∀ j, basis (ιs j) R (Ms j)) (ji) :
+  pi.basis s ji = std_basis R _ ji.1 (s ji.1 ji.2) :=
+basis.apply_eq_iff.mpr (by simp)
+
+@[simp] lemma basis_repr (s : ∀ j, basis (ιs j) R (Ms j)) (x) (ji) :
+  (pi.basis s).repr x ji = (s ji.1).repr (x ji.1) ji.2 :=
+rfl
+
 end
 
 section
 variables (R η)
 
-lemma is_basis_fun₀ [decidable_eq η] : is_basis R
-    (λ (ji : Σ (j : η), unit),
-       (std_basis R (λ (i : η), R) (ji.fst)) 1) :=
-@is_basis_std_basis R η (λi:η, unit) (λi:η, R) _ _ _ _ _ (λ _ _, (1 : R))
-  (assume i, @is_basis_singleton_one _ _ _ _)
+/-- The basis on `η → R` where the `i`th basis vector is `function.update 0 i 1`. -/
+noncomputable def basis_fun : basis η R (Π (j : η), R) :=
+basis.of_equiv_fun (linear_equiv.refl _ _)
 
-lemma is_basis_fun [decidable_eq η] : is_basis R (λ i, std_basis R (λi:η, R) i 1) :=
-begin
-  apply (is_basis_fun₀ R η).comp (λ i, ⟨i, punit.star⟩),
-  apply bijective_iff_has_inverse.2,
-  use sigma.fst,
-  simp [function.left_inverse, function.right_inverse]
-end
+@[simp] lemma basis_fun_apply [decidable_eq η] (i) :
+  basis_fun R η i = std_basis R (λ (i : η), R) i 1 :=
+by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
+                linear_equiv.refl_apply, std_basis_apply],
+     congr /- Get rid of a `decidable_eq` mismatch. -/ }
 
-@[simp] lemma is_basis_fun_repr [decidable_eq η] (x : η → R) (i : η) :
-  (pi.is_basis_fun R η).repr x i = x i :=
-begin
-  conv_rhs { rw ← (pi.is_basis_fun R η).total_repr x },
-  rw [finsupp.total_apply, finsupp.sum_fintype],
-  show (pi.is_basis_fun R η).repr x i =
-    (∑ j, λ i, (pi.is_basis_fun R η).repr x j • std_basis R (λ _, R) j 1 i) i,
-  rw [finset.sum_apply, finset.sum_eq_single i],
-  { simp only [pi.smul_apply, smul_eq_mul, std_basis_same, mul_one] },
-  { rintros b - hb, simp only [std_basis_ne _ _ _ _ hb.symm, smul_zero] },
-  { intro,
-    have := finset.mem_univ i,
-    contradiction },
-  { intros, apply zero_smul },
-end
+@[simp] lemma basis_fun_repr (x : η → R) (i : η) :
+  (pi.basis_fun R η).repr x i = x i :=
+by simp [basis_fun]
 
 end
 

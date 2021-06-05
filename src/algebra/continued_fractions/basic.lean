@@ -40,12 +40,13 @@ numerics, number theory, approximations, fractions
 
 -- Fix a carrier `α`.
 variable (α : Type*)
+/-!### Definitions-/
 
 /-- We collect a partial numerator `aᵢ` and partial denominator `bᵢ` in a pair `⟨aᵢ,bᵢ⟩`. -/
 @[derive inhabited]
 protected structure generalized_continued_fraction.pair := (a : α) (b : α)
 
-/- Interlude: define some expected coercions and instances. -/
+/-! Interlude: define some expected coercions and instances. -/
 namespace generalized_continued_fraction.pair
 open generalized_continued_fraction as gcf
 
@@ -60,7 +61,6 @@ def map {β : Type*} (f : α → β) (gp : gcf.pair α) : gcf.pair β :=
 ⟨f gp.a, f gp.b⟩
 
 section coe
-/-! Interlude: define some expected coercions. -/
 /- Fix another type `β` which we will convert to. -/
 variables {β : Type*} [has_coe α β]
 
@@ -210,7 +210,7 @@ end simple_continued_fraction
 A simple continued fraction is a *(regular) continued fraction* ((r)cf) if all partial denominators
 `bᵢ` are positive, i.e. `0 < bᵢ`.
 -/
-def simple_continued_fraction.is_regular_continued_fraction [has_one α] [has_zero α] [has_lt α]
+def simple_continued_fraction.is_continued_fraction [has_one α] [has_zero α] [has_lt α]
   (s : simple_continued_fraction α) : Prop :=
 ∀ (n : ℕ) (bₙ : α),
   (↑s : generalized_continued_fraction α).partial_denominators.nth n = some bₙ → 0 < bₙ
@@ -220,14 +220,14 @@ variable (α)
 /--
 A *(regular) continued fraction* ((r)cf) is a simple continued fraction (scf) whose partial
 denominators are all positive. It is the subtype of scfs that satisfy
-`simple_continued_fraction.is_regular_continued_fraction`.
+`simple_continued_fraction.is_continued_fraction`.
  -/
 def continued_fraction [has_one α] [has_zero α] [has_lt α] :=
-{s : simple_continued_fraction α // s.is_regular_continued_fraction}
+{s : simple_continued_fraction α // s.is_continued_fraction}
 
 variable {α}
 
-/- Interlude: define some expected coercions. -/
+/-! Interlude: define some expected coercions. -/
 namespace continued_fraction
 open generalized_continued_fraction as gcf
 open simple_continued_fraction as scf
@@ -253,19 +253,21 @@ lemma coe_to_generalized_continued_fraction {c : cf α} : (↑c : gcf α) = c.va
 
 end continued_fraction
 
-/-
+namespace generalized_continued_fraction
+/-!
+### Computation of Convergents
+
 We now define how to compute the convergents of a gcf. There are two standard ways to do this:
 directly evaluating the (infinite) fraction described by the gcf or using a recurrence relation.
 For (r)cfs, these computations are equivalent as shown in
 `algebra.continued_fractions.convergents_equiv`.
 -/
-namespace generalized_continued_fraction
 open generalized_continued_fraction as gcf
 
 -- Fix a division ring for the computations.
 variables {K : Type*} [division_ring K]
 
-/-
+/-!
 We start with the definition of the recurrence relation. Given a gcf `g`, for all `n ≥ 1`, we define
 - `A₋₁ = 1,  A₀ = h,  Aₙ = bₙ₋₁ * Aₙ₋₁ + aₙ₋₁ * Aₙ₋₂`, and
 - `B₋₁ = 0,  B₀ = 1,  Bₙ = bₙ₋₁ * Bₙ₋₁ + aₙ₋₁ * Bₙ₋₂`.

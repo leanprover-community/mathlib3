@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 import data.lazy_list.basic
 import data.tree
@@ -442,7 +442,7 @@ begin
 end
 
 lemma list.one_le_sizeof (xs : list α) : 1 ≤ sizeof xs :=
-by cases xs; unfold_wf; [refl, linarith]
+by cases xs; unfold_wf; linarith
 
 /--
 `list.shrink_removes` shrinks a list by removing chunks of size `k` in

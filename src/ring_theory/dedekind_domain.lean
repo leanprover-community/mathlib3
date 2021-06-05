@@ -22,7 +22,8 @@ giving three equivalent definitions (TODO: and shows that they are equivalent).
    is not a field, Noetherian, and the localization at every nonzero prime ideal is a DVR.
  - `is_dedekind_domain_inv` alternatively defines a Dedekind domain as an integral domain that
    is not a field, and every nonzero fractional ideal is invertible.
- - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of fractions.
+ - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of
+   fractions.
 
 ## Implementation notes
 
@@ -55,13 +56,10 @@ lemma dimension_le_one.principal_ideal_ring
 
 lemma dimension_le_one.integral_closure [nontrivial R] [algebra R A]
   (h : dimension_le_one R) : dimension_le_one (integral_closure R A) :=
-begin
-  intros p ne_bot prime,
-  haveI := prime,
-  refine integral_closure.is_maximal_of_is_maximal_comap p
-    (h _ (integral_closure.comap_ne_bot ne_bot) _),
-  apply is_prime.comap
-end
+λ p ne_bot prime, by exactI
+  integral_closure.is_maximal_of_is_maximal_comap p
+    (h _ (integral_closure.comap_ne_bot ne_bot) infer_instance)
+
 end ring
 
 /--

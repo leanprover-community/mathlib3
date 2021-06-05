@@ -9,7 +9,7 @@ import category_theory.fully_faithful
 namespace category_theory
 open category
 
-universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v₁ u₁ -- morphism levels before object levels. See note [category_theory universes].
 
 variables (C : Type u₁) [category.{v₁} C]
 
@@ -60,18 +60,18 @@ def comonad.ε : (G : C ⥤ C) ⟶ 𝟭 _  := G.ε'
 def comonad.δ : (G : C ⥤ C) ⟶ (G : C ⥤ C) ⋙ G := G.δ'
 
 /-- A custom simps projection for the functor part of a monad, as a coercion. -/
-def monad.simps.to_functor := (T : C ⥤ C)
+def monad.simps.coe := (T : C ⥤ C)
 /-- A custom simps projection for the unit of a monad, in simp normal form. -/
-def monad.simps.η' : 𝟭 _ ⟶ (T : C ⥤ C) := T.η
+def monad.simps.η : 𝟭 _ ⟶ (T : C ⥤ C) := T.η
 /-- A custom simps projection for the multiplication of a monad, in simp normal form. -/
-def monad.simps.μ' : (T : C ⥤ C) ⋙ (T : C ⥤ C) ⟶ (T : C ⥤ C) := T.μ
+def monad.simps.μ : (T : C ⥤ C) ⋙ (T : C ⥤ C) ⟶ (T : C ⥤ C) := T.μ
 
 /-- A custom simps projection for the functor part of a comonad, as a coercion. -/
-def comonad.simps.to_functor := (G : C ⥤ C)
+def comonad.simps.coe := (G : C ⥤ C)
 /-- A custom simps projection for the counit of a comonad, in simp normal form. -/
-def comonad.simps.ε' : (G : C ⥤ C) ⟶ 𝟭 _ := G.ε
+def comonad.simps.ε : (G : C ⥤ C) ⟶ 𝟭 _ := G.ε
 /-- A custom simps projection for the comultiplication of a comonad, in simp normal form. -/
-def comonad.simps.δ' : (G : C ⥤ C) ⟶ (G : C ⥤ C) ⋙ (G : C ⥤ C) := G.δ
+def comonad.simps.δ : (G : C ⥤ C) ⟶ (G : C ⥤ C) ⋙ (G : C ⥤ C) := G.δ
 
 initialize_simps_projections category_theory.monad (to_functor → coe, η' → η, μ' → μ)
 initialize_simps_projections category_theory.comonad (to_functor → coe, ε' → ε, δ' → δ)

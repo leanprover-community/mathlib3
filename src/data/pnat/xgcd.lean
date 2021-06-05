@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Neil Strickland.  All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Neil Strickland
+Authors: Neil Strickland
 
 This file sets up a version of the Euclidean algorithm that works
 only with natural numbers.  Given a, b > 0, it computes the unique
@@ -324,8 +324,10 @@ begin
   { apply dvd_gcd,
     exact dvd.intro (gcd_a' a b) (h₁.trans (mul_comm _ _)).symm,
     exact dvd.intro (gcd_b' a b) (h₂.trans (mul_comm _ _)).symm},
-  { have h₇ : (gcd a b : ℕ) ∣ (gcd_z a b) * a := dvd_trans (nat.gcd_dvd_left a b) (dvd_mul_left _ _),
-    have h₈ : (gcd a b : ℕ) ∣ (gcd_x a b) * b := dvd_trans (nat.gcd_dvd_right a b) (dvd_mul_left _ _),
+  { have h₇ : (gcd a b : ℕ) ∣ (gcd_z a b) * a :=
+      dvd_trans (nat.gcd_dvd_left a b) (dvd_mul_left _ _),
+    have h₈ : (gcd a b : ℕ) ∣ (gcd_x a b) * b :=
+      dvd_trans (nat.gcd_dvd_right a b) (dvd_mul_left _ _),
     rw[h₅] at h₇, rw dvd_iff,
     exact (nat.dvd_add_iff_right h₈).mpr h₇,}
 end

@@ -202,7 +202,7 @@ instance Ring.forget_reflects_isos : reflects_isomorphisms (forget Ring.{u}) :=
     resetI,
     let i := as_iso ((forget Ring).map f),
     let e : X ≃+* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Ring_iso },
+    exact ⟨(is_iso.of_iso e.to_Ring_iso).1⟩,
   end }
 
 instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.{u}) :=
@@ -211,7 +211,7 @@ instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.
     resetI,
     let i := as_iso ((forget CommRing).map f),
     let e : X ≃+* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_CommRing_iso },
+    exact ⟨(is_iso.of_iso e.to_CommRing_iso).1⟩,
   end }
 
 example : reflects_isomorphisms (forget₂ Ring AddCommGroup) := by apply_instance

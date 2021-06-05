@@ -76,6 +76,32 @@ pairwise_iff_nth_le.trans
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
 
+lemma nodup.ne_singleton_iff {l : list α} (h : nodup l) (x : α) :
+  l ≠ [x] ↔ l = [] ∨ ∃ y ∈ l, y ≠ x :=
+begin
+  induction l with hd tl hl,
+  { simp },
+  { specialize hl (nodup_of_nodup_cons h),
+    by_cases hx : tl = [x],
+    { simpa [hx, and.comm, and_or_distrib_left] using h },
+    { rw [←ne.def, hl] at hx,
+      rcases hx with rfl | ⟨y, hy, hx⟩,
+      { simp },
+      { have : tl ≠ [] := ne_nil_of_mem hy,
+        suffices : ∃ (y : α) (H : y ∈ hd :: tl), y ≠ x,
+          { simpa [ne_nil_of_mem hy] },
+        exact ⟨y, mem_cons_of_mem _ hy, hx⟩ } } }
+end
+
+lemma nth_le_eq_of_ne_imp_not_nodup (xs : list α) (n m : ℕ) (hn : n < xs.length)
+  (hm : m < xs.length) (h : xs.nth_le n hn = xs.nth_le m hm) (hne : n ≠ m) :
+  ¬ nodup xs :=
+begin
+  rw nodup_iff_nth_le_inj,
+  simp only [exists_prop, exists_and_distrib_right, not_forall],
+  exact ⟨n, m, ⟨hn, hm, h⟩, hne⟩
+end
+
 @[simp] theorem nth_le_index_of [decidable_eq α] {l : list α} (H : nodup l) (n h) :
   index_of (nth_le l n h) l = n :=
 nodup_iff_nth_le_inj.1 H _ _ _ h $
@@ -126,6 +152,23 @@ pairwise_of_pairwise_map f $ λ a b, mt $ congr_arg f
 theorem nodup_map_on {f : α → β} {l : list α} (H : ∀x∈l, ∀y∈l, f x = f y → x = y)
   (d : nodup l) : nodup (map f l) :=
 pairwise_map_of_pairwise _ (by exact λ a b ⟨ma, mb, n⟩ e, n (H a ma b mb e)) (pairwise.and_mem.1 d)
+
+theorem inj_on_of_nodup_map {f : α → β} {l : list α} (d : nodup (map f l)) :
+  ∀ ⦃x⦄, x ∈ l → ∀ ⦃y⦄, y ∈ l → f x = f y → x = y :=
+begin
+  induction l with hd tl ih,
+  { simp },
+  { simp only [map, nodup_cons, mem_map, not_exists, not_and, ←ne.def] at d,
+    rintro _ (rfl | h₁) _ (rfl | h₂) h₃,
+    { refl },
+    { apply (d.1 _ h₂ h₃.symm).elim },
+    { apply (d.1 _ h₁ h₃).elim },
+    { apply ih d.2 h₁ h₂ h₃ } }
+end
+
+theorem nodup_map_iff_inj_on {f : α → β} {l : list α} (d : nodup l) :
+  nodup (map f l) ↔ (∀ (x ∈ l) (y ∈ l), f x = f y → x = y) :=
+⟨inj_on_of_nodup_map, λ h, nodup_map_on h d⟩
 
 theorem nodup_map {f : α → β} {l : list α} (hf : injective f) : nodup l → nodup (map f l) :=
 nodup_map_on (assume x _ y _ h, hf h)

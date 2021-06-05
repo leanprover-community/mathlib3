@@ -3,9 +3,10 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
-import topology.category.Top.basic
+import category_theory.category.ulift
 import category_theory.limits.types
 import category_theory.limits.preserves.basic
+import topology.category.Top.basic
 
 /-!
 # The category of topological spaces has all limits and colimits
@@ -196,7 +197,8 @@ end Top
 section fintype_konig
 
 /-- This bootstraps `nonempty_sections_of_fintype_inverse_system`. In this version,
-the `F` functor is between categories of the same universe. -/
+the `F` functor is between categories of the same universe, and it is an easy
+corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
 lemma nonempty_sections_of_fintype_inverse_system.init
   {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type u)
   [hf : Π (j : Jᵒᵖ), fintype (F.obj j)] [hne : Π (j : Jᵒᵖ), nonempty (F.obj j)] :
@@ -206,7 +208,7 @@ begin
   haveI : Π (j : Jᵒᵖ), fintype (F'.obj j) := hf,
   haveI : Π (j : Jᵒᵖ), nonempty (F'.obj j) := hne,
   obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_inverse_system F',
-  exact ⟨u, λ j j' f, hu f⟩,
+  exact ⟨u, λ _ _ f, hu f⟩,
 end
 
 /-- Gives the induced directed order on the `ulift` of a type with a directed order. -/
@@ -219,34 +221,43 @@ def ulift.directed_order {α : Type u} [directed_order α] : directed_order (uli
     exact ⟨ulift.up k, hk⟩,
   end }
 local attribute [instance] ulift.directed_order
+--set_option pp.universes true
 
-/-- The inverse limit of nonempty finite types is nonempty.  This may be regarded
-as a generalization of Kőnig's lemma. -/
+def typeof {α : Type*} (x : α) := α
+
+/-- The inverse limit of nonempty finite types is nonempty.
+
+This may be regarded as a generalization of Kőnig's lemma.
+To specialize: given a locally finite connected graph, take `J` to be `ℕ` and
+`F j` to be length-`j` paths that start from an arbitrary fixed vertex.
+Elements of `F.sections` can be read off as infinite rays in the graph. -/
 theorem nonempty_sections_of_fintype_inverse_system
   {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type v)
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
-  let J' := ulift.{v} J,
-  letI : small_category J' := by apply_instance,
-  let jj : J' ⥤ J :=
-  { obj := λ i, i.down,
-    map := λ i j f, hom_of_le (le_of_hom f : i ≤ j) },
-  let F' : J'ᵒᵖ ⥤ Type (max u v) := (jj.op ⋙ F ⋙ ulift_functor : J'ᵒᵖ ⥤ Type (max v u)),
+  have aa := (ulift.{v} J),
+  have bb := typeof (infer_instance : directed_order (ulift.{v} J)),
+  have cc := typeof (Jᵒᵖ ⥤ Type v),
+  let tu : Type v ⥤ Type (max u v) := ulift_functor.{u v},
+  let F' : (ulift.{v} J)ᵒᵖ ⥤ Type (max u v) :=
+    (ulift.equivalence.inverse.op ⋙ F ⋙ tu),
   haveI : ∀ i, nonempty (F'.obj i) := λ i,
     ⟨ulift.up (classical.arbitrary (F.obj (op i.unop.down)))⟩,
   haveI : ∀ i, fintype (F'.obj i) := λ i,
     fintype.of_equiv (F.obj (op i.unop.down)) equiv.ulift.symm,
-  obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system.init F',
-  refine ⟨λ j, (u (op $ ulift.up j.unop)).down, _⟩,
-  intros j j' f,
-  let f' : op (ulift.up.{v} j.unop) ⟶ op (ulift.up.{v} j'.unop),
-  { refine (hom_of_le _).op, exact (le_of_hom f.unop : unop j' ≤ unop j), },
-  have h := hu f',
-  simp only [functor.comp_map, functor.op_map, ulift_functor_map] at h,
-  simp only [←h], dsimp,
-  rw hom_of_le_le_of_hom,
-  refl,
+  haveI : directed_order (ulift.{v} J) := infer_instance,
+  obtain ⟨u, hu⟩ :=
+    @nonempty_sections_of_fintype_inverse_system.init (ulift.{v} J) _ F' _ _,
+  -- refine ⟨λ j, (u (op $ ulift.up j.unop)).down, _⟩,
+  -- intros j j' f,
+  -- let f' : op (ulift.up.{v} j.unop) ⟶ op (ulift.up.{v} j'.unop),
+  -- { refine (hom_of_le _).op, exact (le_of_hom f.unop : unop j' ≤ unop j), },
+  -- have h := hu f',
+  -- simp only [functor.comp_map, functor.op_map, ulift_functor_map] at h,
+  -- simp only [←h], dsimp,
+  -- rw hom_of_le_le_of_hom,
+  -- refl,
 end
 
 end fintype_konig

@@ -57,7 +57,7 @@ begin
 end
 
 /- Establishes the cardinality of the type of all injections between two finite types.  -/
-@[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β][decidable_eq α] [decidable_eq β] :
+@[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
 ‖α ↪ β‖ = (‖β‖.desc_fact ‖α‖) :=
 begin
   by_cases h : ‖α‖ ≤ ‖β‖,

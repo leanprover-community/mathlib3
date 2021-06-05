@@ -12,11 +12,11 @@ This file proves Theorem 93 from the [100 Theorems List](https://www.cs.ru.nl/~f
 
 As opposed to the standard probabilistic statement, we instead state the birthday problem
 in terms of injective functions. The general result about `fintype.card (α ↪ β)` which this proof
-uses is `fintype.card_embedding`.
+uses is `fintype.card_embedding_eq`.
 -/
 
 local notation `‖` x `‖` := fintype.card x
 
 theorem birthday :
   2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ ∧ 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ :=
-by split; norm_num [nat.asc_fact]
+by split; norm_num [fintype.card_embedding_eq, nat.desc_fact]

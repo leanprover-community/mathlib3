@@ -41,7 +41,7 @@ meaning: the structure is inhabited iff the function is surjective. -/
 @[nolint has_inhabited_instance]
 structure right_inv {α: Type*} {β: Type*} (f : α → β) :=
 (to_fun : β → α)
-(right_inv' : f ∘ to_fun = id)
+(right_inv' : function.right_inverse to_fun f)
 
 namespace right_inv
 
@@ -57,10 +57,9 @@ by { cases g, cases h, congr' }
 @[ext] theorem ext (H : ∀ a, g a = h a) : g = h :=
 coe_injective $ funext H
 
-lemma right_inv_def {f : α → β} (g : right_inv f) : f ∘ g = id := g.right_inv'
+lemma right_inv_def {f : α → β} (g : right_inv f) : f ∘ g = id := g.right_inv'.id
 
-lemma right_inverse {f : α → β} (g : right_inv f) : function.right_inverse g f :=
-congr_fun g.right_inv'
+lemma right_inverse {f : α → β} (g : right_inv f) : function.right_inverse g f := g.right_inv'
 
 lemma surjective {f : α → β} (g : right_inv f) : function.surjective f := g.right_inverse.surjective
 
@@ -79,14 +78,14 @@ congr_fun f.right_inv_def b
 
 /-- Pi function from a right inverse. -/
 def right_inv.to_pi'' (g : right_inv (proj E)) : Π x : B, E x :=
-λ x, cast (congr_arg E (congr_fun g.right_inv' x)) (g x).2
+λ x, cast (congr_arg E (g.right_inverse x)) (g x).2
 
 lemma right_inv.to_pi_apply (g : right_inv (proj E)) (x : B) : g.to_pi'' x == (g x).2 :=
 cast_heq (right_inv.to_pi''._proof_1 g x) (g x).snd
 
 /-- Righ inverse from a Pi function. -/
 def pi.to_right_inv (g : Π x, E x) : right_inv (proj E) :=
-{ to_fun := λ x, ⟨x, g x⟩, right_inv' := rfl }
+{ to_fun := λ x, ⟨x, g x⟩, right_inv' := λ x, rfl }
 
 lemma pi.to_right_inv_apply (g : Π x, E x) (x : B) : (pi.to_right_inv g) x = ⟨x, g x⟩ := rfl
 
@@ -94,7 +93,7 @@ lemma pi.to_right_inv_apply (g : Π x, E x) (x : B) : (pi.to_right_inv g) x = �
 def right_inv.to_pi' : equiv (right_inv (proj E)) (Π x, E x) :=
 { to_fun := right_inv.to_pi'',
   inv_fun := pi.to_right_inv,
-  left_inv := λ g, by { ext, exacts [(congr_fun g.right_inv' a).symm, right_inv.to_pi_apply g a] },
+  left_inv := λ g, by { ext a, exacts [(g.right_inv' a).symm, right_inv.to_pi_apply g a] },
   right_inv := λ g, rfl }
 
 lemma right_inv.snd_eq_to_pi_fst' {g : right_inv (proj E)} {b : B} :

@@ -7,7 +7,6 @@ Authors: Nicolò Cavalleri, Sebastien Gouezel
 import topology.topological_fiber_bundle
 import topology.algebra.module
 import topology.continuous_function.algebra
-import linear_algebra.dual
 
 
 /-!

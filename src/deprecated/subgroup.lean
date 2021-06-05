@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario Carneiro,
   Michael Howes
 -/
-import group_theory.subgroup
+import group_theory.order_of_element
 import deprecated.submonoid
 
 open set function
@@ -679,3 +679,126 @@ instance subgroup.is_subgroup [group G] (K : subgroup G) : is_subgroup (K : set 
 instance subgroup.of_normal [group G] (s : set G) [h : is_subgroup s] [n : normal_subgroup s] :
   subgroup.normal (subgroup.of s) :=
 { conj_mem := n.normal, }
+
+section pow_is_subgroup
+
+lemma is_subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
+  (hS1 : S.nonempty) (hS2 : S * S = S) : is_subgroup S :=
+begin
+  obtain ⟨a, ha⟩ := hS1,
+  have mul_mem : ∀ a b : G, a ∈ S → b ∈ S → a * b ∈ S :=
+  λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb),
+  have pow_mem : ∀ a : G, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
+  λ a ha, nat.rec (by rwa [zero_add, pow_one])
+    (λ n ih, (congr_arg2 (∈) (pow_succ a (n + 1)).symm hS2).mp (set.mul_mem_mul ha ih)),
+  have one_mem : (1 : G) ∈ S,
+  { rw [←pow_order_of_eq_one a, ←nat.sub_add_cancel (order_of_pos a)],
+    exact pow_mem a ha (order_of a - 1) },
+  replace pow_mem : ∀ a : G, a ∈ S → ∀ n : ℕ, a ^ n ∈ S :=
+  λ a ha n, nat.cases_on n (by rwa pow_zero) (pow_mem a ha),
+  have inv_mem : ∀ a : G, a ∈ S → a⁻¹ ∈ S,
+  { intros a ha,
+    rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
+    exact pow_mem a ha (order_of a - 1) },
+  exact { one_mem := one_mem, mul_mem := mul_mem, inv_mem := inv_mem },
+end
+
+lemma set.pow_mem_pow {α : Type*} {s : set α} {a : α} [monoid α] (ha : a ∈ s) (n : ℕ) :
+  a ^ n ∈ s ^ n :=
+begin
+  induction n with n ih,
+  { rw pow_zero,
+    exact set.mem_singleton 1 },
+  { rw pow_succ,
+    exact set.mul_mem_mul ha ih },
+end
+
+theorem card_pow_dynaomics_aux {f : ℕ → ℕ} (h1 : monotone f) {B : ℕ} (h2 : ∀ n, f n ≤ B)
+  (h3 : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
+∃ k : ℕ, k ≤ B ∧ ∀ i, (k ≤ i → f i = f k) ∧ (i < k → ∀ j, i < j → f i < f j) :=
+begin
+  have key : ∃ k, f k = f (k + 1),
+  { contrapose! h2,
+    suffices : ∀ n : ℕ, n ≤ B + 1 → n ≤ f n,
+    { exact ⟨B + 1, (this (B + 1) (le_refl (B + 1)))⟩ },
+    intro n,
+    induction n with n ih,
+    { exact λ _, (f 0).zero_le },
+    { exact λ hn, lt_of_le_of_lt (ih (nat.le_of_succ_le hn))
+        (lt_of_le_of_ne (h1 n.le_succ) (h2 n)) } },
+  refine ⟨nat.find key, _, λ i, ⟨λ hi, _, λ hi j hij, _⟩⟩,
+  { have step1 : ∀ n, n < nat.find key → f n < f (n + 1),
+    { intros n hn,
+      have := nat.find_min key hn,
+      exact lt_of_le_of_ne (h1 n.le_succ) this },
+    have step2 : ∀ n, n ≤ nat.find key → n ≤ f n,
+    { intro n,
+      induction n with n ih,
+      { exact λ _, (f 0).zero_le },
+      { refine λ hn, lt_of_le_of_lt (ih (nat.le_of_succ_le hn)) (step1 n hn) } },
+    exact (step2 (nat.find key) (le_refl (nat.find key))).trans (h2 (nat.find key)) },
+  { have step1 : ∀ j, f (nat.find key + j) = f (nat.find key + j + 1),
+    { intro j,
+      induction j with j ih,
+      { exact nat.find_spec key },
+      { exact h3 (nat.find key + j) ih } },
+    have step2 : ∀ j, f (nat.find key + j) = f (nat.find key),
+    { intro j,
+      induction j with j ih,
+      { refl },
+      { exact (step1 j).symm.trans ih } },
+    obtain ⟨j, rfl⟩ := nat.exists_eq_add_of_le hi,
+    exact step2 j },
+  { have := nat.find_min key hi,
+    exact lt_of_lt_of_le (lt_of_le_of_ne (h1 i.le_succ) this) (h1 hij) },
+end
+
+noncomputable instance set_fintype' {α : Type*} [fintype α] (s : set α) : fintype s :=
+by { classical, exact set_fintype s }
+
+lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
+  fintype.card ↥s ≤ fintype.card α :=
+fintype.card_le_of_embedding (function.embedding.subtype s)
+
+lemma card_pow_dynamics {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
+  ∃ k : ℕ, k ≤ fintype.card G ∧ ∀ i,
+    (k ≤ i → fintype.card ↥(S ^ i) = fintype.card ↥(S ^ k))
+    ∧ (i < k → ∀ j, i < j → fintype.card ↥(S ^ i) < fintype.card ↥(S ^ j)) :=
+begin
+  have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
+  { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
+    rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
+    exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
+  obtain ⟨a, ha⟩ := hS,
+  have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
+  monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
+  refine card_pow_dynaomics_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
+    (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
+  have step1 : {a} * S ^ n = S ^ (n + 1),
+  { refine set.eq_of_subset_of_card_le _
+      (le_trans (ge_of_eq h) (key a _ _ (λ b hb, set.mul_mem_mul (set.mem_singleton a) hb))),
+    rintros _ ⟨b, c, hb, hc, rfl⟩,
+    exact set.mul_mem_mul ((congr_arg (∈ _) (set.mem_singleton_iff.mp hb)).mpr ha) hc },
+  have step2 : S ^ (n + 2) = {a} * S ^ (n + 1),
+  { rw [pow_succ' S n, pow_succ', ←mul_assoc, step1] },
+  rw step2,
+  rintros _ ⟨b, c, hb, hc, rfl⟩,
+  rwa [set.mem_singleton_iff.mp hb, inv_mul_cancel_left],
+end
+
+lemma pow_card_is_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
+  is_subgroup (S ^ fintype.card G) :=
+begin
+  obtain ⟨k, hk1, hk2⟩ := card_pow_dynamics S hS,
+  obtain ⟨a, ha⟩ := hS,
+  have one_mem : (1 : G) ∈ (S ^ fintype.card G),
+  { rw ← pow_card_eq_one,
+    exact set.pow_mem_pow ha (fintype.card G) },
+  refine is_subgroup_of_idempotent (S ^ fintype.card G) ⟨1, one_mem⟩ (set.eq_of_subset_of_card_le
+    (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
+  change _ = fintype.card ↥(_ * _ : set G),
+  rw [←pow_add, ←two_mul, (hk2 (fintype.card G)).1 hk1, (hk2 (2 * fintype.card G)).1],
+  exact hk1.trans (nat.le_mul_of_pos_left zero_lt_two),
+end
+
+end pow_is_subgroup

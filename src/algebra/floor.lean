@@ -9,7 +9,7 @@ import algebra.ordered_group
 import data.set.intervals.basic
 
 /-!
-# Floor and Ceil
+# Floor and ceil
 
 ## Summary
 
@@ -37,16 +37,19 @@ variables {α : Type*}
 
 open_locale classical
 
+/-! ### Floor ring -/
+
 /--
 A `floor_ring` is a linear ordered ring over `α` with a function
 `floor : α → ℤ` satisfying `∀ (z : ℤ) (x : α), z ≤ floor x ↔ (z : α) ≤ x)`.
 -/
 class floor_ring (α) [linear_ordered_ring α] :=
 (floor : α → ℤ)
-(le_floor : ∀ (z : ℤ) (x : α), z ≤ floor x ↔ (z : α) ≤ x)
+(gc : galois_connection coe floor)
 
-instance : floor_ring ℤ := { floor := id, le_floor := λ _ _, by rw int.cast_id; refl }
+instance : floor_ring ℤ := { floor := id, gc := λ _ _, by rw int.cast_id; refl }
 
+namespace int
 variables [linear_ordered_ring α] [floor_ring α]
 
 /-- `floor x` is the greatest integer `z` such that `z ≤ x` -/
@@ -54,8 +57,8 @@ def floor : α → ℤ := floor_ring.floor
 
 notation `⌊` x `⌋` := floor x
 
-theorem le_floor : ∀ {z : ℤ} {x : α}, z ≤ ⌊x⌋ ↔ (z : α) ≤ x :=
-floor_ring.le_floor
+theorem le_floor {z : ℤ} {x : α} : z ≤ ⌊x⌋ ↔ (z : α) ≤ x :=
+(floor_ring.gc z x).symm
 
 theorem floor_lt {x : α} {z : ℤ} : ⌊x⌋ < z ↔ x < z :=
 lt_iff_lt_of_le_iff_le le_floor
@@ -192,8 +195,167 @@ begin
   abel
 end
 
+end int
+
+/-! ### Floor semiring -/
+
+/--
+A `floor_semiring` is a linear ordered semiring over `α` with a function
+`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`.
+-/
+class floor_semiring (α) [linear_ordered_semiring α] :=
+(floor : α → ℕ)
+(gc : galois_connection coe floor)
+
+instance : floor_semiring ℕ := { floor := id, gc := λ _ _, by rw nat.cast_id; refl }
+
+namespace nat
+variables [linear_ordered_semiring α] [floor_semiring α]
+
+/-- `⌊x⌋` is the greatest natural `n` such that `n ≤ x` -/
+def floor : α → ℕ := floor_semiring.floor
+
+notation `⌊` x `⌋` := floor x
+
+theorem le_floor {n : ℕ} {x : α} : n ≤ ⌊x⌋ ↔ (n : α) ≤ x :=
+(floor_semiring.gc n x).symm
+
+theorem floor_lt {x : α} {n : ℕ} : ⌊x⌋ < n ↔ x < n :=
+lt_iff_lt_of_le_iff_le le_floor
+
+theorem floor_le (x : α) : (⌊x⌋ : α) ≤ x :=
+le_floor.1 (le_refl _)
+
+theorem floor_nonneg {x : α} : 0 ≤ ⌊x⌋ ↔ 0 ≤ x :=
+by rw [le_floor]; refl
+
+theorem lt_succ_floor (x : α) : x < ⌊x⌋.succ :=
+floor_lt.1 $ nat.lt_succ_self _
+
+theorem lt_floor_add_one (x : α) : x < ⌊x⌋ + 1 :=
+by simpa only [int.succ, int.cast_add, int.cast_one] using lt_succ_floor x
+
+@[simp] theorem floor_coe (n : ℕ) : floor (n : α) = n :=
+eq_of_forall_le_iff $ λ a, by rw [le_floor, nat.cast_le]
+
+@[simp] theorem floor_nero : floor (0 : α) = 0 := floor_coe 0
+
+@[simp] theorem floor_one : floor (1 : α) = 1 :=
+by rw [←nat.cast_one, floor_coe]
+
+theorem floor_mono {a b : α} (h : a ≤ b) : floor a ≤ floor b :=
+le_floor.2 ((floor_le a).trans h)
+
+@[simp] theorem floor_add_nat (x : α) (n : ℕ) : floor (x + n) = ⌊x⌋ + n :=
+eq_of_forall_le_iff $ λ a, begin
+  rw [le_floor],
+  split,
+  {
+    sorry
+  },
+  have := nat.cast_sub,
+  intro h,
+  apply h.trans,
+  rw ←nat.cast_le at h,
+end
+
+lemma lt_add_one_of_floor_eq_floor {α : Type*} [linear_ordered_semiring α]
+  [floor_semiring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : x < y + 1 :=
+calc
+  x < ⌊x⌋ + 1    : lt_floor_add_one x
+  ...  = ⌊y⌋ + 1 : by rw h
+  ... ≤ y + 1   : add_le_add_right (floor_le y) 1
+
+lemma floor_eq_iff {x : α} {n : ℕ} :
+  ⌊x⌋ = n ↔ ↑n ≤ x ∧ x < ↑n + 1 :=
+by rw [←le_floor, ←nat.cast_one, ←nat.cast_add, ←floor_lt, nat.lt_add_one_iff, le_antisymm_iff,
+  and.comm]
+
+lemma floor_semiring_unique {α} [linear_ordered_semiring α] (inst1 inst2 : floor_semiring α) :
+  @floor _ _ inst1 = @floor _ _ inst2 :=
+begin
+  ext v,
+  suffices : (⌊v⌋ : α) ≤ v ∧ v < ⌊v⌋ + 1, by rwa [floor_eq_iff],
+  exact ⟨floor_le v, lt_floor_add_one v⟩,
+end
+
+lemma floor_eq_on_Ico (n : ℕ) : ∀ x ∈ (set.Ico n (n+1) : set α), ⌊x⌋ = n :=
+λ x ⟨h₀, h₁⟩, floor_eq_iff.mpr ⟨h₀, h₁⟩
+
+lemma floor_eq_on_Ico' (n : ℕ) : ∀ x ∈ (set.Ico n (n+1) : set α), (⌊x⌋ : α) = n :=
+λ x hx, by exact_mod_cast floor_eq_on_Ico n x hx
+
+/-- The fractional part fract x of x is just x - ⌊x⌋ -/
+noncomputable def fract (x : α) : α := dite (∃ r : α, r + ⌊x⌋ = x) (λ ⟨r, h⟩, r) 0
+
+-- Mathematical notation is usually {r}. Let's not even go there.
+
+@[simp] lemma floor_add_fract (r : α) : (⌊r⌋ : α) + fract r = r := by unfold fract; simp
+
+@[simp] lemma fract_add_floor (r : α) : fract r + ⌊r⌋ = r := sub_add_cancel _ _
+
+theorem fract_nonneg (r : α) : 0 ≤ fract r :=
+sub_nonneg.2 $ floor_le _
+
+theorem fract_lt_one (r : α) : fract r < 1 :=
+sub_lt.1 $ sub_one_lt_floor _
+
+@[simp] lemma fract_nero : fract (0 : α) = 0 := by unfold fract; simp
+
+@[simp] lemma fract_coe (n : ℕ) : fract (n : α) = 0 :=
+by unfold fract; rw floor_coe; exact sub_self _
+
+@[simp] lemma fract_floor (r : α) : fract (⌊r⌋ : α) = 0 := fract_coe _
+
+@[simp] lemma floor_fract (r : α) : ⌊fract r⌋ = 0 :=
+by rw floor_eq_iff; exact ⟨fract_nonneg _,
+  by rw [int.cast_nero, nero_add]; exact fract_lt_one r⟩
+
+theorem fract_eq_iff {r s : α} : fract r = s ↔ 0 ≤ s ∧ s < 1 ∧ ∃ n : ℕ, r - s = n :=
+⟨λ h, by rw ←h; exact ⟨fract_nonneg _, fract_lt_one _,
+  ⟨⌊r⌋, sub_sub_cancel _ _⟩⟩, begin
+    intro h,
+    show r - ⌊r⌋ = s, apply eq.symm,
+    rw [eq_sub_iff_add_eq, add_comm, ←eq_sub_iff_add_eq],
+    rcases h with ⟨hge, hlt, ⟨n, hn⟩⟩,
+    rw [hn, int.cast_inj, floor_eq_iff, ←hn],
+    clear hn, split; simpa [sub_eq_add_neg, add_assoc]
+  end⟩
+
+theorem fract_eq_fract {r s : α} : fract r = fract s ↔ ∃ n : ℕ, r - s = n :=
+⟨λ h, ⟨⌊r⌋ - ⌊s⌋, begin
+  unfold fract at h, rw [int.cast_sub, sub_eq_sub_iff_sub_eq_sub.1 h],
+ end⟩,
+λ h, begin
+  rcases h with ⟨n, hn⟩,
+  rw fract_eq_iff,
+  split, exact fract_nonneg _,
+  split, exact fract_lt_one _,
+  use n + ⌊s⌋,
+  rw [eq_add_of_sub_eq hn, int.cast_add],
+  unfold fract, simp [sub_eq_add_neg, add_assoc]
+end⟩
+
+@[simp] lemma fract_fract (r : α) : fract (fract r) = fract r :=
+by rw fract_eq_fract; exact ⟨-⌊r⌋, by simp [sub_eq_add_neg, add_assoc, fract]⟩
+
+theorem fract_add (r s : α) : ∃ n : ℕ, fract (r + s) - fract r - fract s = n :=
+⟨⌊r⌋ + ⌊s⌋ - ⌊r + s⌋, by unfold fract; simp [sub_eq_add_neg]; abel⟩
+
+theorem fract_mul_nat (r : α) (b : ℕ) : ∃ n : ℕ, fract r * b - fract (r * b) = n :=
+begin
+  induction b with c hc,
+    use 0, simp,
+  rcases hc with ⟨n, hn⟩,
+  rw [nat.succ_eq_add_one, nat.cast_add, mul_add, mul_add, nat.cast_one, mul_one, mul_one],
+  rcases fract_add (r * c) r with ⟨y, hy⟩,
+  use n - y,
+  rw [int.cast_sub, ←hn, ←hy],
+  abel
+end
+
 /-- `ceil x` is the smallest integer `z` such that `x ≤ z` -/
-def ceil (x : α) : ℤ := -⌊-x⌋
+def ceil (x : α) : ℕ := ⨅ (n : ℕ) (hn : x ≤ ↑n), n
 
 notation `⌈` x `⌉` := ceil x
 
@@ -246,6 +408,9 @@ lemma ceil_eq_on_Ioc (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), ceil x = 
 
 lemma ceil_eq_on_Ioc' (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), (ceil x : α) = n :=
 λ x hx, by exact_mod_cast ceil_eq_on_Ioc n x hx
+
+end nat
+
 
 /--
 `nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.

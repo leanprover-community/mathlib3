@@ -125,7 +125,7 @@ namespace finsupp
   (f - g).to_dfinsupp = f.to_dfinsupp - g.to_dfinsupp :=
 dfinsupp.coe_fn_injective (sub_eq_add_neg _ _)
 
-@[simp] lemma to_dfinsupp_smul [monoid R] [add_monoid M] [distrib_mul_action R M]
+@[simp] lemma to_dfinsupp_smul [semiring R] [add_comm_monoid M] [module R M]
   (r : R) (f : ι →₀ M) : (r • f).to_dfinsupp = r • f.to_dfinsupp :=
 dfinsupp.coe_fn_injective rfl
 
@@ -149,7 +149,7 @@ finsupp.coe_fn_injective $ dfinsupp.coe_neg _
   (to_finsupp (f - g) : ι →₀ M) = to_finsupp f - to_finsupp g :=
 finsupp.coe_fn_injective $ dfinsupp.coe_sub _ _
 
-@[simp] lemma to_finsupp_smul [monoid R] [add_monoid M] [distrib_mul_action R M]
+@[simp] lemma to_finsupp_smul [semiring R] [add_comm_monoid M] [module R M]
   [Π m : M, decidable (m ≠ 0)]
   (r : R) (f : Π₀ i : ι, M) : (to_finsupp (r • f) : ι →₀ M) = r • to_finsupp f :=
 finsupp.coe_fn_injective $ dfinsupp.coe_smul _ _
@@ -257,7 +257,12 @@ def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N
 
 local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid
 
---local attribute [-instance] dfinsupp.distrib_mul_action dfinsupp.has_scalar
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_smul [add_comm_monoid N] [module R N] (r : R)
+  (f : (Σ i, η i) →₀ N) :
+  sigma_finsupp_equiv_dfinsupp (r • f) =
+  @has_scalar.smul R (Π₀ i, η i →₀ N) mul_action.to_has_scalar r (sigma_finsupp_equiv_dfinsupp f) :=
+by { ext, refl }
 
 /-- `finsupp.split` is a linear equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 @[simps]

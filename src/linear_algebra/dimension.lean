@@ -41,35 +41,38 @@ namespace set
 lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
 nonempty_compl.symm
 
--- @[simp] lemma not_infinite {α : Type*} (s : set α) : ¬ s.infinite ↔ s.finite :=
--- by simp [infinite]
-
-lemma Union_finset_of_range_finite
-  {α β : Type*} [decidable_eq β] (f : α → finset β) (h : (range f).finite) :
-  (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β) :=
-begin
-  ext x,
-  simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
-  use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
-  rintro ⟨s, hs, hx⟩,
-  obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
-  exact ⟨a, hx⟩,
-end
-
-lemma range_infinite_of_union_finset_infinite
-  {α β : Type*} [decidable_eq β] (f : α → finset β) (w : (⋃ a, (f a : set β)).infinite) : (range f).infinite :=
-begin
-  intro h,
-  apply w,
-  rw set.Union_finset_of_range_finite f h,
-  apply set.finite_mem_finset,
-end
-
 lemma exists_mem_of_not_subseteq {α : Type*} {s t : set α} (h : ¬ s ⊆ t) : ∃ x, x ∈ s ∧ x ∉ t :=
 begin
   by_contradiction w,
   exact h (by simpa using w),
 end
+
+@[simp] lemma not_infinite {α : Type*} (s : set α) : ¬ s.infinite ↔ s.finite :=
+by simp [infinite]
+
+lemma union_finset_finite_of_range_finite
+  {α β : Type*} [decidable_eq β] (f : α → finset β) (h : (range f).finite) :
+  (⋃ a, (f a : set β)).finite :=
+begin
+  have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
+  { ext x,
+    simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
+    use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
+    rintro ⟨s, hs, hx⟩,
+    obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
+    exact ⟨a, hx⟩, },
+  rw w,
+  apply set.finite_mem_finset,
+end
+
+-- lemma range_infinite_of_union_finset_infinite
+--   {α β : Type*} [decidable_eq β] (f : α → finset β) (w : (⋃ a, (f a : set β)).infinite) :
+--   (range f).infinite :=
+-- begin
+--   intro h,
+--   apply w,
+--   exact union_finset_finite_of_range_finite f h,
+-- end
 
 end set
 
@@ -82,7 +85,7 @@ lemma cardinal.le_range_of_union_finset_eq_top
 begin
   have k : cardinal.omega ≤ cardinal.mk (range f),
   { rw ←cardinal.infinite_iff, rw infinite_coe_iff,
-    apply range_infinite_of_union_finset_infinite,
+    apply mt (union_finset_finite_of_range_finite f),
     rw w,
     exact infinite_univ, },
   by_contradiction h,
@@ -121,8 +124,11 @@ variables (K V)
 
 We define this as the supremum of the cardinalities of linearly independent subsets.
 
-In a vector space, this is the same as the dimension of the space
-(i.e. the cardinality of any basis).
+For a free module over any ring satisfying the strong rank condition
+(e.g. left-noetherian rings, commutative rings, and in particular division rings and fields),
+this is the same as the dimension of the space (i.e. the cardinality of any basis).
+
+In particular this agrees with the usual notion of the dimension of a vector space.
 
 The definition is marked as protected to avoid conflicts with `_root_.rank`,
 the rank of a linear map.
@@ -133,12 +139,37 @@ cardinal.sup.{v v}
 
 end
 
+noncomputable def range_splitting {α β : Type*} (f : α → β) : range f → α := λ x, x.2.some
+
+@[simp] lemma apply_range_splitting {α β : Type*} (f : α → β) (x : range f) :
+  f (range_splitting f x) = x :=
+x.2.some_spec
+
+@[simp] lemma comp_range_splitting {α β : Type*} (f : α → β) : f ∘ range_splitting f = coe :=
+by { ext, simp only [function.comp_app], apply apply_range_splitting, }
+
+attribute [irreducible] range_splitting
+
+@[simp] lemma range_factorization_coe {α β : Type*} (f : α → β) (a : α) :
+  (range_factorization f a : β) = f a := rfl
+
+lemma left_inverse_range_splitting {α β : Type*} (f : α → β) :
+  left_inverse (range_factorization f) (range_splitting f) :=
+λ x, by { ext, simp only [range_factorization_coe], apply apply_range_splitting, }
+
+lemma range_splitting_injective {α β : Type*} (f : α → β) : injective (range_splitting f) :=
+(left_inverse_range_splitting f).injective
+
 section
 variables (R : Type u) [ring R]
 variables (M : Type v) [add_comm_group M] [module R M]
 
 section
 variables {R M}
+
+lemma linear_independent.reindex_range {ι : Type w} {v : ι → M} (i : linear_independent R v) :
+  linear_independent R (coe : range v → M) :=
+by simpa using i.comp _ (range_splitting_injective v)
 
 /--
 A linearly independent family is maximal if there is no strictly larger linearly independent family.
@@ -154,10 +185,8 @@ it is sufficient to index by some set in `M`.
 def linear_independent.maximal {ι : Type w} {v : ι → M} (i : linear_independent R v) : Prop :=
 ∀ (w : set M) (i' : linear_independent R (coe : w → M)) (h : range v ≤ w), range v = w
 
-lemma linear_independent.reindex_range {ι : Type w} {v : ι → M} (i : linear_independent R v) :
-  linear_independent R (coe : range v → M) := sorry
-
-lemma linear_independent.maximal_iff {ι : Type w} {v : ι → M} (i : linear_independent R v) :
+lemma linear_independent.maximal_iff [nontrivial R]
+  {ι : Type w} {v : ι → M} (i : linear_independent R v) :
   i.maximal ↔ ∀ (κ : Type v) (w : κ → M) (i' : linear_independent R w) (j : ι ↪ κ), surjective j :=
 begin
   fsplit,
@@ -165,7 +194,8 @@ begin
     specialize p (range w) i'.reindex_range,
     sorry, },
   { intros p w i' h,
-    specialize p w (coe : w → M) i' ⟨λ i, ⟨v i, range_subset_iff.mp h i⟩, begin sorry, end⟩,
+    specialize p w (coe : w → M) i'
+      ⟨λ i, ⟨v i, range_subset_iff.mp h i⟩, (λ x y q, i.injective (by simpa using q))⟩,
     have q := congr_arg (λ s, (coe : w → M) '' s) p.range_eq,
     dsimp at q,
     rw [←image_univ, image_image] at q,

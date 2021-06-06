@@ -185,24 +185,85 @@ it is sufficient to index by some set in `M`.
 def linear_independent.maximal {ι : Type w} {v : ι → M} (i : linear_independent R v) : Prop :=
 ∀ (w : set M) (i' : linear_independent R (coe : w → M)) (h : range v ≤ w), range v = w
 
+/--
+An alternative characterization of a maximal linearly independent family,
+quantifying over types (in the same universe as `M`) into which the indexing family injects.
+-/
 lemma linear_independent.maximal_iff [nontrivial R]
   {ι : Type w} {v : ι → M} (i : linear_independent R v) :
-  i.maximal ↔ ∀ (κ : Type v) (w : κ → M) (i' : linear_independent R w) (j : ι ↪ κ), surjective j :=
+  i.maximal ↔ ∀ (κ : Type v) (w : κ → M) (i' : linear_independent R w)
+    (j : ι ↪ κ) (h : w ∘ j = v), surjective j :=
 begin
   fsplit,
-  { intros p κ w i' j,
+  { intros p κ w i' j h,
     specialize p (range w) i'.reindex_range,
-    sorry, },
+    rw ←h at p,
+    specialize p (range_comp_subset_range _ _),
+    rw [range_comp, ←@image_univ _ _ w] at p,
+    exact range_iff_surjective.mp (image_injective.mpr i'.injective p), },
   { intros p w i' h,
     specialize p w (coe : w → M) i'
-      ⟨λ i, ⟨v i, range_subset_iff.mp h i⟩, (λ x y q, i.injective (by simpa using q))⟩,
+      ⟨λ i, ⟨v i, range_subset_iff.mp h i⟩, (λ x y q, i.injective (by simpa using q))⟩
+      (by { ext, simp, }),
     have q := congr_arg (λ s, (coe : w → M) '' s) p.range_eq,
     dsimp at q,
     rw [←image_univ, image_image] at q,
     simpa using q, },
 end
 
-lemma finsupp.emb_domain_sum {α β : Type*} (f : α ↪ β) (v : α →₀ M) : sorry := sorry
+variables {N : Type*} [add_comm_group N] [module R N]
+
+namespace embedding
+
+@[simp] lemma apply_eq_apply_iff {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
+⟨λ h, f.injective h, λ h, congr_arg f h⟩
+
+end embedding
+
+namespace finsupp
+
+@[simp] lemma emb_domain_single {α β : Type*} (f : α ↪ β) (a : α) (m : M) :
+  emb_domain f (single a m) = single (f a) m :=
+begin
+  ext b,
+  by_cases h : b ∈ range f,
+  { rcases h with ⟨a', rfl⟩,
+    simp [single_apply], },
+  { simp only [emb_domain_notin_range, h, single_apply, not_false_iff],
+    rw if_neg,
+    rintro rfl,
+    simpa using h, },
+end
+
+@[simp] lemma emb_domain_add {α β : Type*} (f : α ↪ β) (v w : α →₀ M) :
+  emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
+begin
+  ext b,
+  by_cases h : b ∈ range f,
+  { rcases h with ⟨a, rfl⟩,
+    simp, },
+  { simp [emb_domain_notin_range, h], },
+end
+
+lemma emb_domain_sum {α β : Type*} (f : α ↪ β) (v : α →₀ M) (g : β → M →+ N) :
+  (v.emb_domain f).sum (λ b m, g b m) = v.sum (λ a m, g (f a) m) :=
+begin
+  apply induction_linear v,
+  { simp, },
+  { intros v₁ v₂ h₁ h₂,
+    rw [emb_domain_add, sum_add_index, sum_add_index],
+    simp [h₁, h₂],
+    all_goals { simp, }, },
+  { intros, simp, },
+end
+
+end finsupp
+
+@[simps]
+def smul_const (m : M) : R →+ M :=
+{ to_fun := λ r, r • m,
+  map_zero' := by simp,
+  map_add' := by simp [add_smul], }
 
 lemma basis.maximal {ι : Type w} (b : basis ι R M) : b.linear_independent.maximal :=
 λ w i h,
@@ -220,7 +281,8 @@ begin
   have p : ∀ i, b i = u i := λ i, (u' i).some_spec,
   rw finsupp.total_apply at e,
   simp_rw p at e,
-  -- have := finsupp.emb_domain,
+  erw ←finsupp.emb_domain_sum u (b.repr x) (λ (x : w), smul_const (x : M)) at e,
+  simp only [smul_const_apply] at e,
   -- contradicting linear independence.
   rw linear_independent_iff at i,
   sorry,
@@ -350,7 +412,7 @@ theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
 begin
   by_cases h : cardinal.mk ι < cardinal.omega,
   { -- `v` is a finite basis, so by `basis_fintype_of_finite_spans` so is `v'`.
-    haveI : fintype ι := sorry,
+    haveI : fintype ι := (cardinal.lt_omega_iff_fintype.mp h).some,
     haveI : fintype (range v) := set.fintype_range ⇑v,
     haveI := basis_fintype_of_finite_spans R M _ v.span_eq v',
     -- We clean up a little:
@@ -365,10 +427,17 @@ begin
     -- and then applying `infinite_basis_le_maximal_linear_independent` again
     -- we see they have the same cardinality.
     simp only [not_lt] at h,
-    haveI : infinite ι := sorry,
-    have w₁ := infinite_basis_le_maximal_linear_independent' R M v _ v'.linear_independent sorry,
-    haveI : infinite ι' := sorry,
-    have w₂ := infinite_basis_le_maximal_linear_independent' R M v' _ v.linear_independent sorry,
+    haveI : infinite ι := cardinal.infinite_iff.mpr h,
+    have w₁ :=
+      infinite_basis_le_maximal_linear_independent' R M v _ v'.linear_independent v'.maximal,
+    haveI : infinite ι' := cardinal.infinite_iff.mpr (begin
+      apply cardinal.lift_le.{w' w}.mp,
+      have p := (cardinal.lift_le.mpr h).trans w₁,
+      rw cardinal.lift_omega at ⊢ p,
+      exact p,
+    end),
+    have w₂ :=
+      infinite_basis_le_maximal_linear_independent' R M v' _ v.linear_independent v.maximal,
     exact le_antisymm w₁ w₂, }
 end
 

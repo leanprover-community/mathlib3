@@ -180,7 +180,7 @@ begin
   { rw pow_zero,
     exact subset.rfl },
   { rw [pow_succ, pow_succ],
-    refine mul_subset_mul hst ih },
+    exact mul_subset_mul hst ih },
 end
 
 @[to_additive]

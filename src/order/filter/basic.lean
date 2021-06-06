@@ -533,11 +533,11 @@ nonempty_of_exists $ nonempty_of_mem_sets (univ_mem_sets : univ ∈ f)
 lemma compl_not_mem_sets {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) : sᶜ ∉ f :=
 λ hsc, (nonempty_of_mem_sets (inter_mem_sets h hsc)).ne_empty $ inter_compl_self s
 
-lemma filter_eq_bot_of_is_empty (f : filter α) [is_empty α] : f = ⊥ :=
+lemma filter_eq_bot_of_is_empty [is_empty α] (f : filter α) : f = ⊥ :=
 empty_in_sets_eq_bot.mp $ univ_mem_sets' is_empty_elim
 
 instance [is_empty α] : unique (filter α) :=
-{ default := ⊥, uniq := λ f, filter_eq_bot_of_not_nonempty f }
+{ default := ⊥, uniq := filter_eq_bot_of_is_empty }
 
 lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=

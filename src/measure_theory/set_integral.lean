@@ -181,7 +181,7 @@ h
 
 lemma integrable_on.restrict (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable_on f s (μ.restrict t) :=
-by rw [integrable_on, measure.restrict_restrict hs]; exact h.mono_set (inter_subset_left _ _)
+by { rw [integrable_on, measure.restrict_restrict hs], exact h.mono_set (inter_subset_left _ _) }
 
 lemma integrable_on.left_of_union (h : integrable_on f (s ∪ t) μ) : integrable_on f s μ :=
 h.mono_set $ subset_union_left _ _
@@ -545,8 +545,8 @@ lemma set_integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
   {s t : set α} {f : α → ℝ} (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
   ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
 begin
-  repeat {rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
-            (hfi.1.mono_measure measure.restrict_le_self)},
+  repeat { rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
+            (hfi.1.mono_measure measure.restrict_le_self) },
   rw ennreal.to_real_le_to_real
     (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2)
     (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2),

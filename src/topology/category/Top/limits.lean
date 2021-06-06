@@ -3,7 +3,6 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro
 -/
-import category_theory.category.ulift
 import category_theory.limits.types
 import category_theory.limits.preserves.basic
 import topology.category.Top.basic
@@ -113,6 +112,11 @@ spaces is nonempty.  (Note: this can be generalized further to inverse limits of
 T0 spaces, where all the maps are closed maps; see [Stone1979] --- however there is an erratum
 for Theorem 4 that the element in the inverse limit can have cofinally many components that are
 not closed points.)
+
+TODO: The theorem hold also in the case `{J : Type u} [category J] [is_cofiltered J]`.
+See https://stacks.math.columbia.edu/tag/086J for the Set version and
+See https://stacks.math.columbia.edu/tag/0032 for how to lift this to general cofiltered categories
+rather than thin ones.
 -/
 
 variables {J : Type u} [directed_order J]
@@ -211,8 +215,10 @@ begin
   exact ⟨u, λ _ _ f, hu f⟩,
 end
 
-/-- Gives the induced directed order on the `ulift` of a type with a directed order. -/
-def ulift.directed_order {α : Type u} [directed_order α] : directed_order (ulift.{v} α) :=
+/-- Gives the induced directed order on the `ulift` of a type with a directed order.
+This is not an instance because `preorder.small_category` will conflict with
+`category_theory.ulift_category`. -/
+def ulift.directed_order (α : Type u) [directed_order α] : directed_order (ulift.{v} α) :=
 { le := λ i j, i.down ≤ j.down,
   le_refl := λ i, le_refl i.down,
   le_trans := λ i j k hij hjk, le_trans hij hjk,
@@ -220,10 +226,6 @@ def ulift.directed_order {α : Type u} [directed_order α] : directed_order (uli
     obtain ⟨k, hk⟩ := directed_order.directed i.down j.down,
     exact ⟨ulift.up k, hk⟩,
   end }
-local attribute [instance] ulift.directed_order
---set_option pp.universes true
-
-def typeof {α : Type*} (x : α) := α
 
 /-- The inverse limit of nonempty finite types is nonempty.
 
@@ -236,28 +238,34 @@ theorem nonempty_sections_of_fintype_inverse_system
   [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
-  have aa := (ulift.{v} J),
-  have bb := typeof (infer_instance : directed_order (ulift.{v} J)),
-  have cc := typeof (Jᵒᵖ ⥤ Type v),
+  -- Step 1: lift everything to the `max u v` universe.
+  let J' := ulift.{v} J,
+  letI hd : directed_order J' := ulift.directed_order J,
+  -- We want `J'` to have the category structure from its inherited directed order,
+  -- rather than the `category_theory.ulift_category` structure.
+  letI : small_category J' := @preorder.small_category _ hd.to_preorder,
+  -- The equivalence in `category.ulift` does not apply to the `directed_order`, so we
+  -- quickly implement one of its functors here.
+  let down : J' ⥤ J :=
+  { obj := ulift.down,
+    map := λ i j f, hom_of_le (le_of_hom f : i ≤ j) },
   let tu : Type v ⥤ Type (max u v) := ulift_functor.{u v},
-  let F' : (ulift.{v} J)ᵒᵖ ⥤ Type (max u v) :=
-    (ulift.equivalence.inverse.op ⋙ F ⋙ tu),
+  let F' : (ulift.{v} J)ᵒᵖ ⥤ Type (max u v) := down.op ⋙ F ⋙ tu,
   haveI : ∀ i, nonempty (F'.obj i) := λ i,
     ⟨ulift.up (classical.arbitrary (F.obj (op i.unop.down)))⟩,
   haveI : ∀ i, fintype (F'.obj i) := λ i,
     fintype.of_equiv (F.obj (op i.unop.down)) equiv.ulift.symm,
-  haveI : directed_order (ulift.{v} J) := infer_instance,
-  obtain ⟨u, hu⟩ :=
-    @nonempty_sections_of_fintype_inverse_system.init (ulift.{v} J) _ F' _ _,
-  -- refine ⟨λ j, (u (op $ ulift.up j.unop)).down, _⟩,
-  -- intros j j' f,
-  -- let f' : op (ulift.up.{v} j.unop) ⟶ op (ulift.up.{v} j'.unop),
-  -- { refine (hom_of_le _).op, exact (le_of_hom f.unop : unop j' ≤ unop j), },
-  -- have h := hu f',
-  -- simp only [functor.comp_map, functor.op_map, ulift_functor_map] at h,
-  -- simp only [←h], dsimp,
-  -- rw hom_of_le_le_of_hom,
-  -- refl,
+  -- Step 2: apply the bootstrap theorem
+  obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system.init F',
+  -- Step 3: interpret the results
+  use λ j, (u (op (ulift.up j.unop))).down,
+  intros j j' f,
+  let f' : ulift.up.{v} j'.unop ⟶ ulift.up.{v} j.unop :=
+    hom_of_le (le_of_hom f.unop : unop j' ≤ unop j),
+  have h := hu f'.op,
+  simp only [functor.comp_map, ulift_functor_map, functor.op_map] at h,
+  simp only [←h],
+  congr,
 end
 
 end fintype_konig

@@ -139,7 +139,7 @@ lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
 
 variables (L) (M)
 /-- The identity map from a structure to itself -/
-def id : M →[L] M :=
+@[refl] def id : M →[L] M :=
 { to_fun := id }
 
 variables {L} {M}
@@ -150,7 +150,7 @@ instance : inhabited (M →[L] M) := ⟨id L M⟩
   id L M x = x := rfl
 
 /-- Composition of first-order homomorphisms -/
-def comp (hnp : N →[L] P) (hmn : M →[L] N) : M →[L] P :=
+@[trans] def comp (hnp : N →[L] P) (hmn : M →[L] N) : M →[L] P :=
 { to_fun := hnp ∘ hmn,
   map_rel' := λ _ _ _ h, by simp [h] }
 
@@ -202,7 +202,7 @@ lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.inject
 
 variables (L) (M)
 /-- The identity embedding from a structure to itself -/
-def id : M ↪[L] M :=
+@[refl] def id : M ↪[L] M :=
 { to_embedding := function.embedding.refl M }
 
 variables {L} {M}
@@ -213,7 +213,7 @@ instance : inhabited (M ↪[L] M) := ⟨id L M⟩
   id L M x = x := rfl
 
 /-- Composition of first-order embeddings -/
-def comp (hnp : N ↪[L] P) (hmn : M ↪[L] N) : M ↪[L] P :=
+@[trans] def comp (hnp : N ↪[L] P) (hmn : M ↪[L] N) : M ↪[L] P :=
 { to_fun := hnp ∘ hmn,
   inj' := hnp.injective.comp hmn.injective }
 
@@ -229,7 +229,7 @@ end embedding
 namespace equiv
 
 /-- The inverse of a first-order equivalence is a first-order equivalence. -/
-def symm (f : M ≃[L] N) : N ≃[L] M :=
+@[symm] def symm (f : M ≃[L] N) : N ≃[L] M :=
 { map_fun' := λ n f' x, begin
     simp only [equiv.to_fun_as_coe],
     rw [equiv.symm_apply_eq],
@@ -289,7 +289,7 @@ lemma injective (f : M ≃[L] N) : function.injective f := f.to_embedding.inject
 
 variables (L) (M)
 /-- The identity equivalence from a structure to itself -/
-def id : M ≃[L] M :=
+@[refl] def id : M ≃[L] M :=
 { to_equiv := equiv.refl M }
 
 variables {L} {M}
@@ -300,7 +300,7 @@ instance : inhabited (M ≃[L] M) := ⟨id L M⟩
   id L M x = x := rfl
 
 /-- Composition of first-order equivalences -/
-def comp (hnp : N ≃[L] P) (hmn : M ≃[L] N) : M ≃[L] P :=
+@[trans] def comp (hnp : N ≃[L] P) (hmn : M ≃[L] N) : M ≃[L] P :=
 { to_fun := hnp ∘ hmn,
   .. (hmn.to_equiv.trans hnp.to_equiv) }
 

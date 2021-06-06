@@ -980,6 +980,9 @@ def extend (s : α) : ℝ≥0∞ := ⨅ h : P s, m s h
 lemma extend_eq {s : α} (h : P s) : extend m s = m s h :=
 by simp [extend, h]
 
+lemma extend_eq_infty {s : α} (h : ¬P s) : extend m s = ∞ :=
+by simp [extend, h]
+
 lemma le_extend {s : α} (h : P s) : m s h ≤ extend m s :=
 by { simp only [extend, le_infi_iff], intro, refl' }
 

@@ -1609,6 +1609,8 @@ theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   (hf' : continuous_on f' (interval a b))
   (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
   (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g (𝓝 x)) :
+  -- TODO: prove that the integral of any integrable function is continuous and use here to remove
+  -- assumption `hgm`
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
 let hg' := continuous_at.continuous_on hg in
 have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,

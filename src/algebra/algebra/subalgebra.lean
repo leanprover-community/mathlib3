@@ -695,6 +695,10 @@ by ext; simp
 lemma prod_mono {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
   S ≤ T → S₁ ≤ T₁ → prod S S₁ ≤ prod T T₁ := set.prod_mono
 
+@[simp] lemma prod_inf_prod {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
+  S.prod S₁ ⊓ T.prod T₁ = (S ⊓ T).prod (S₁ ⊓ T₁) :=
+set_like.coe_injective set.prod_inter_prod
+
 end prod
 
 end subalgebra

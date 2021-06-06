@@ -257,6 +257,7 @@ def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N
 
 local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid
 
+--tofix: r • (sigma_finsupp_equiv_dfinsupp f) doesn't work.
 @[simp]
 lemma sigma_finsupp_equiv_dfinsupp_smul {R} [semiring R] [add_comm_monoid N] [module R N]
   (r : R) (f : (Σ i, η i) →₀ N) : sigma_finsupp_equiv_dfinsupp (r • f) =

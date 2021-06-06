@@ -182,9 +182,8 @@ end
 @[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
-  by_cases hn : nonempty n,
-  { haveI := hn,
-    cases char_p.exists K with p hp, letI := hp,
+  casesI is_empty_or_nonempty n,
+  { cases char_p.exists K with p hp, letI := hp,
     rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
     haveI : fact p.prime := ⟨hp⟩,
     dsimp at hk, rw hk at *,
@@ -198,7 +197,7 @@ begin
           mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
     { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
     { exact (C M).commute_X } },
-  { apply congr_arg, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
+  { apply congr_arg, apply subsingleton.elim _ _, },
 end
 
 @[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :

@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis, Mario Carneiro, Johan Commelin
 import data.int.modeq
 import data.zmod.basic
 import linear_algebra.adic_completion
-import data.padics.padic_numbers
+import number_theory.padics.padic_numbers
 import ring_theory.discrete_valuation_ring
 import topology.metric_space.cau_seq_filter
 

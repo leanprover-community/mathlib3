@@ -158,7 +158,7 @@ end, λ e, by simp only [e, card_zero]⟩
 theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
 (not_congr (@card_eq_zero (type r))).symm.trans ne_zero_iff_nonempty
 
-@[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
+@[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
 (not_iff_comm.1 type_ne_zero_iff_nonempty).symm
 
 protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=

@@ -584,7 +584,7 @@ lemma mem_vector_span_iff_eq_weighted_vsub {v : V} {p : ι → P} :
     ∃ (s : finset ι) (w : ι → k) (h : ∑ i in s, w i = 0), v = s.weighted_vsub p w :=
 begin
   split,
-  { by_cases hn : nonempty ι,
+  { cases (empty_or_nonempty ι).symm,
     { cases hn with i0,
       rw [vector_span_range_eq_span_range_vsub_right k p i0, ←set.image_univ,
           finsupp.mem_span_image_iff_total],
@@ -610,7 +610,7 @@ begin
       by_cases h : i = i0,
       { simp [h] },
       { simp [hwdef, h] } },
-    { rw [set.range_eq_empty.2 hn, vector_span_empty, submodule.mem_bot],
+    { rw [set.range_of_empty, vector_span_empty, submodule.mem_bot],
       intro hv,
       use [∅],
       simp [hv] } },

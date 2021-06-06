@@ -339,13 +339,11 @@ lemma csupr_le_csupr {f g : ι → α} (B : bdd_above (range g)) (H : ∀x, f x 
   supr f ≤ supr g :=
 begin
   classical,
-  cases empty_or_nonempty ι,
-  { unfold supr, rw [range_of_empty, range_of_empty] }
-  { have Rf : (range f).nonempty, { exactI range_nonempty _ },
-    apply cSup_le Rf,
+  casesI is_empty_or_nonempty ι,
+  { unfold supr, rw [range_of_empty, range_of_empty] },
+  { refine cSup_le (range_nonempty _) _,
     rintros y ⟨x, rfl⟩,
-    have : g x ∈ range g := ⟨x, rfl⟩,
-    exact le_cSup_of_le B this (H x) },
+    exact le_cSup_of_le B (mem_range_self x) (H x) },
 end
 
 /--The indexed supremum of a function is bounded above by a uniform bound-/

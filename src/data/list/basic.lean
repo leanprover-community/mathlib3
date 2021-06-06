@@ -942,6 +942,9 @@ let ⟨s, t, e⟩ := mem_split h in e.symm ▸
 theorem eq_nil_of_sublist_nil {l : list α} (s : l <+ []) : l = [] :=
 eq_nil_of_subset_nil $ s.subset
 
+@[simp] theorem eq_nil_iff_sublist_nil {l : list α} : l <+ [] ↔ l = [] :=
+⟨eq_nil_of_sublist_nil, λ H, H ▸ sublist.refl _⟩
+
 theorem repeat_sublist_repeat (a : α) {m n} : repeat a m <+ repeat a n ↔ m ≤ n :=
 ⟨λ h, by simpa only [length_repeat] using length_le_of_sublist h,
  λ h, by induction h; [refl, simp only [*, repeat_succ, sublist.cons]] ⟩

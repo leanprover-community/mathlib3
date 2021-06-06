@@ -229,6 +229,15 @@ lemma sigma_finsupp_equiv_dfinsupp_apply [has_zero N] (f : (Σ i, η i) →₀ N
 lemma sigma_finsupp_equiv_dfinsupp_symm_apply [has_zero N] (f : Π₀ i, (η i →₀ N)) (s : Σ i, η i) :
   (sigma_finsupp_equiv_dfinsupp.symm f : (Σ i, η i) →₀ N) s = f s.1 s.2 := rfl
 
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_support [has_zero N] (f : (Σ i, η i) →₀ N) :
+  (sigma_finsupp_equiv_dfinsupp f).support = finsupp.split_support f :=
+begin
+  ext,
+  rw dfinsupp.mem_support_to_fun,
+  exact (finsupp.mem_split_support_iff_nonzero _ _).symm,
+end
+
 -- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.
 local attribute [-instance] finsupp.has_zero
 
@@ -247,6 +256,16 @@ def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N
   .. sigma_finsupp_equiv_dfinsupp }
 
 local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid
+
+--local attribute [-instance] dfinsupp.distrib_mul_action dfinsupp.has_scalar
+
+example [add_comm_monoid N] [module R N] : module R (Π₀ i, (η i →₀ N)) := by apply_instance --ok
+
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_smul [add_comm_monoid N] [module R N] (r : R)
+  (f : (Σ i, η i) →₀ N) : sigma_finsupp_equiv_dfinsupp (r • f) =
+  r • (sigma_finsupp_equiv_dfinsupp f : (Π₀ (i : ι), η i →₀ N)) :=
+by {ext, refl}
 
 /-- `finsupp.split` is a linear equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 @[simps]

@@ -389,9 +389,18 @@ begin
     linarith, },
 end
 
+lemma pow_sub_lt (a b c d : ℕ) (b_ge_d : b ≥ d) : a ^ b < c * a ^ d -> a ^ (b-d) < c :=
+begin
+  intro h,
+  sorry,
+end
+
 lemma false_inequality_is_false {n : ℕ} (n_large : 460 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 begin
-  sorry,
+  intro h,
+  have h1 : 4 ^ (n - (2 * n / 3 + 1)) < (2 * n + 1) * (2 * n) ^ nat.sqrt (2 * n),
+  apply pow_sub_lt,
+    sorry,
 end
 
 lemma blah {a : _} {A : finset a} {B : finset a} (p : A ⊆ B) : A.card ≤ B.card :=

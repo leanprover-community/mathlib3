@@ -687,8 +687,8 @@ instance : has_zero (measure α) :=
 
 @[simp, norm_cast] theorem coe_zero : ⇑(0 : measure α) = 0 := rfl
 
-lemma eq_zero_of_not_nonempty (h : ¬nonempty α) (μ : measure α) : μ = 0 :=
-ext $ λ s hs, by simp only [eq_empty_of_not_nonempty h s, measure_empty]
+lemma eq_zero_of_is_empty [is_empty α] (μ : measure α) : μ = 0 :=
+ext $ λ s hs, by simp only [eq_empty_of_is_empty s, measure_empty]
 
 instance : inhabited (measure α) := ⟨0⟩
 

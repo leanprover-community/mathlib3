@@ -189,8 +189,7 @@ end
 /-- A variant of `nth_le_rotate` useful for rewrites. -/
 lemma nth_le_rotate' (l : list α) (n k : ℕ) (hk : k < l.length) :
   (l.rotate n).nth_le ((l.length - n % l.length + k) % l.length)
-      ((nat.mod_lt _ (k.zero_le.trans_lt hk)).trans_le (length_rotate _ _).ge)
-    = l.nth_le k hk :=
+      ((nat.mod_lt _ (k.zero_le.trans_lt hk)).trans_le (length_rotate _ _).ge) = l.nth_le k hk :=
 begin
   rw nth_le_rotate,
   congr,

@@ -1234,11 +1234,10 @@ begin
 end
 
 lemma powerlt_zero {a : cardinal} : a ^< 0 = 0 :=
-by {
-  haveI : is_empty {s : set (quotient.out (0 : cardinal)) // # ↥s < 0} :=
-    subtype.is_empty_of_false (λ hx, rw [←not_le] at hx, apply hx, apply zero_le),
-  exact sup_eq_zero,
-}
+begin
+  convert sup_eq_zero,
+  exact subtype.is_empty_of_false (λ x, (zero_le _).not_lt),
+end
 
 end cardinal
 

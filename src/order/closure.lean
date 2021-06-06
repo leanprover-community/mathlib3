@@ -20,7 +20,6 @@ Lower adjoints to a function between preorders `u : β → α` allow to generali
 situations where the closure operator we are dealing with naturally decomposes as `u ∘ l` where `l`
 is a worthy function to have on its own. Typical examples include
 `l : set G → subgroup G := subgroup.closure`, `u : subgroup G → set G := coe`, where `G` is a group.
-
 This shows there is a close connection between closure operators, lower adjoints and Galois
 connections/insertions: every Galois connection induces a lower adjoint which itself induces a
 closure operator by composition (see `galois_connection.lower_adjoint` and
@@ -37,7 +36,7 @@ insertion from the set of closed elements to the underlying type (see `closure_o
 ## Implementation details
 
 Although `lower_adjoint` is technically a generalisation of `closure_operator` (by defining
-`to_fun := id`), it is diserable to have both as otherwise `id`s would be carried all over the
+`to_fun := id`), it is desirable to have both as otherwise `id`s would be carried all over the
 place when using concrete closure operators such as `convex_hull`.
 
 `lower_adjoint` really is a semibundled `structure` version of `galois_connection`.

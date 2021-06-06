@@ -833,11 +833,22 @@ forall_true_iff' $ λ _, forall_true_iff
   (∀ a (b : β a), γ a b → true) ↔ true :=
 forall_true_iff' $ λ _, forall_2_true_iff
 
+lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=
+exists.elim h (λ x hx, ⟨x, and.left hx⟩)
+
+@[simp] lemma exists_unique_iff_exists {α : Sort*} [subsingleton α] {p : α → Prop} :
+  (∃! x, p x) ↔ ∃ x, p x :=
+⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
+
 @[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
 ⟨i.elim, λ hb x, hb⟩
 
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
 ⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
+
+theorem exists_unique_const (α : Sort*) [i : nonempty α] [subsingleton α] :
+  (∃! x : α, b) ↔ b :=
+by simp
 
 theorem forall_and_distrib : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
 ⟨λ h, ⟨λ x, (h x).left, λ x, (h x).right⟩, λ ⟨h₁, h₂⟩ x, ⟨h₁ x, h₂ x⟩⟩
@@ -967,6 +978,9 @@ theorem forall_iff_forall_surj
 @[simp] theorem exists_prop {p q : Prop} : (∃ h : p, q) ↔ p ∧ q :=
 ⟨λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩, λ ⟨h₁, h₂⟩, ⟨h₁, h₂⟩⟩
 
+theorem exists_unique_prop {p q : Prop} : (∃! h : p, q) ↔ p ∧ q :=
+by simp
+
 @[simp] theorem exists_false : ¬ (∃a:α, false) := assume ⟨a, h⟩, h
 
 @[simp] lemma exists_unique_false : ¬ (∃! (a : α), false) := assume ⟨a, h, h'⟩, h
@@ -982,6 +996,9 @@ theorem forall_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∀ h' : p, q
 
 theorem exists_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃ h' : p, q h') ↔ q h :=
 @exists_const (q h) p ⟨h⟩
+
+theorem exists_unique_prop_of_true {p : Prop} {q : p → Prop} (h : p) : (∃! h' : p, q h') ↔ q h :=
+@exists_unique_const (q h) p ⟨h⟩ _
 
 theorem forall_prop_of_false {p : Prop} {q : p → Prop} (hn : ¬ p) :
   (∀ h' : p, q h') ↔ true :=
@@ -1004,9 +1021,6 @@ exists_prop_of_true _
 @[simp] lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
 exists_prop_of_false not_false
 
-lemma exists_unique.exists {α : Sort*} {p : α → Prop} (h : ∃! x, p x) : ∃ x, p x :=
-exists.elim h (λ x hx, ⟨x, and.left hx⟩)
-
 lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
   {y₁ y₂ : α} (py₁ : p y₁) (py₂ : p y₂) : y₁ = y₂ :=
 unique_of_exists_unique h py₁ py₂
@@ -1024,10 +1038,6 @@ forall_prop_of_true _
 
 @[simp] lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
 forall_prop_of_false not_false
-
-@[simp] lemma exists_unique_iff_exists {α : Sort*} [subsingleton α] {p : α → Prop} :
-  (∃! x, p x) ↔ ∃ x, p x :=
-⟨λ h, h.exists, Exists.imp $ λ x hx, ⟨hx, λ y _, subsingleton.elim y x⟩⟩
 
 lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
   {q : Π x (h : p x), Prop} {b : Prop} (h₂ : ∃! x (h : p x), q x h)

@@ -639,12 +639,18 @@ theorem {m} basis.mk_eq_dim' (v : basis ι K V) :
 by simpa using v.mk_eq_dim
 
 theorem dim_le {n : ℕ}
-  (H : ∀ s : finset V, linear_independent K (λ i : (↑s : set V), (i : V)) → s.card ≤ n) :
+  (H : ∀ s : finset V, linear_independent K (λ i : s, (i : V)) → s.card ≤ n) :
   module.rank K V ≤ n :=
-(basis.of_vector_space K V).mk_eq_dim'' ▸
-cardinal.card_le_of (λ s, @finset.card_map _ _ ⟨_, subtype.val_injective⟩ s ▸
-H _ (by { refine (of_vector_space_index.linear_independent K V).mono (λ y h, _),
-          rw [finset.mem_coe, finset.mem_map] at h, rcases h with ⟨x, hx, rfl⟩, exact x.2 }))
+begin
+  rw ← (basis.of_vector_space K V).mk_eq_dim'',
+  refine cardinal.card_le_of (λ s, _),
+  rw ← finset.card_map ⟨_, subtype.val_injective⟩,
+  apply H,
+  refine (of_vector_space_index.linear_independent K V).mono (λ y (h : y ∈ (s.map _).1), _),
+  rw [← finset.mem_def, finset.mem_map] at h,
+  rcases h with ⟨x, hx, rfl⟩,
+  exact x.2
+end
 
 /-- If a vector space has a finite dimension, all bases are indexed by a finite type. -/
 lemma basis.nonempty_fintype_index_of_dim_lt_omega {ι : Type*}
@@ -788,7 +794,7 @@ end
 lemma dim_span_of_finset (s : finset V) :
   module.rank K (span K (↑s : set V)) < cardinal.omega :=
 calc module.rank K (span K (↑s : set V)) ≤ cardinal.mk (↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw ←cardinal.finset_card
+                             ... = s.card : by rw [cardinal.finset_card, finset.coe_sort_coe]
                              ... < cardinal.omega : cardinal.nat_lt_omega _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=

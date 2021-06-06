@@ -733,12 +733,12 @@ rfl
 card_product _ _
 
 /-- Given that `α × β` is a fintype, `α` is also a fintype. -/
-def fintype.fintype_prod_left {α β} [decidable_eq α] [fintype (α × β)] [nonempty β] : fintype α :=
+def fintype.prod_left {α β} [decidable_eq α] [fintype (α × β)] [nonempty β] : fintype α :=
 ⟨(fintype.elems (α × β)).image prod.fst,
   assume a, let ⟨b⟩ := ‹nonempty β› in by simp; exact ⟨b, fintype.complete _⟩⟩
 
 /-- Given that `α × β` is a fintype, `β` is also a fintype. -/
-def fintype.fintype_prod_right {α β} [decidable_eq β] [fintype (α × β)] [nonempty α] : fintype β :=
+def fintype.prod_right {α β} [decidable_eq β] [fintype (α × β)] [nonempty α] : fintype β :=
 ⟨(fintype.elems (α × β)).image prod.snd,
   assume b, let ⟨a⟩ := ‹nonempty α› in by simp; exact ⟨a, fintype.complete _⟩⟩
 
@@ -762,6 +762,29 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
     (λ b, by cases b; apply ulift.fintype))
   ((equiv.sum_equiv_sigma_bool _ _).symm.trans
     (equiv.sum_congr equiv.ulift equiv.ulift))
+
+/-- Given that `α ⊕ β` is a fintype, `α` is also a fintype. This is non-computable as it uses
+that `sum.inl` is an injection, but there's no clear inverse if `α` is empty. -/
+noncomputable def fintype.sum_left {α β} [fintype (α ⊕ β)] : fintype α :=
+fintype.of_injective (sum.inl : α → α ⊕ β) sum.inl_injective
+
+/-- Given that `α ⊕ β` is a fintype, `β` is also a fintype. This is non-computable as it uses
+that `sum.inr` is an injection, but there's no clear inverse if `β` is empty. -/
+noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] : fintype β :=
+fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
+
+section finset
+
+/-! ### `fintype (s : finset α)` -/
+
+instance finset.fintype_coe_sort {α : Type u} (s : finset α) : fintype s :=
+⟨s.attach, s.mem_attach⟩
+
+@[simp] lemma finset.univ_eq_attach {α : Type u} (s : finset α) :
+  (univ : finset s) = s.attach :=
+rfl
+
+end finset
 
 namespace fintype
 variables [fintype α] [fintype β]
@@ -909,7 +932,7 @@ instance finset_coe.fintype (s : finset α) : fintype (↑s : set α) :=
 finset.subtype.fintype s
 
 @[simp] lemma fintype.card_coe (s : finset α) :
-  fintype.card (↑s : set α) = s.card := card_attach
+  fintype.card s = s.card := card_attach
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 

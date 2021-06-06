@@ -348,10 +348,18 @@ def add_monoid_hom.to_nat_linear_map [add_comm_monoid M] [add_comm_monoid M₂] 
   M →ₗ[ℕ] M₂ :=
 ⟨f, f.map_add, f.map_nat_module_smul⟩
 
+lemma add_monoid_hom.to_nat_linear_map_injective [add_comm_monoid M] [add_comm_monoid M₂] :
+  function.injective (@add_monoid_hom.to_nat_linear_map M M₂ _ _) :=
+by { intros f g h, ext, exact linear_map.congr_fun h x }
+
 /-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
 def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :
   M →ₗ[ℤ] M₂ :=
 ⟨f, f.map_add, f.map_int_module_smul⟩
+
+lemma add_monoid_hom.to_int_linear_map_injective [add_comm_group M] [add_comm_group M₂] :
+  function.injective (@add_monoid_hom.to_int_linear_map M M₂ _ _) :=
+by { intros f g h, ext, exact linear_map.congr_fun h x }
 
 @[simp] lemma add_monoid_hom.coe_to_int_linear_map [add_comm_group M] [add_comm_group M₂]
   (f : M →+ M₂) :
@@ -362,6 +370,11 @@ def add_monoid_hom.to_rat_linear_map [add_comm_group M] [module ℚ M]
   [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
   M →ₗ[ℚ] M₂ :=
 { map_smul' := f.map_rat_module_smul, ..f }
+
+lemma add_monoid_hom.to_rat_linear_map_injective
+  [add_comm_group M] [module ℚ M] [add_comm_group M₂] [module ℚ M₂] :
+  function.injective (@add_monoid_hom.to_rat_linear_map M M₂ _ _ _ _) :=
+by { intros f g h, ext, exact linear_map.congr_fun h x }
 
 @[simp] lemma add_monoid_hom.coe_to_rat_linear_map [add_comm_group M] [module ℚ M]
   [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :

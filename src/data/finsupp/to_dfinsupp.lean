@@ -259,14 +259,6 @@ local attribute [-instance] finsupp.add_zero_class finsupp.add_monoid
 
 --local attribute [-instance] dfinsupp.distrib_mul_action dfinsupp.has_scalar
 
-example [add_comm_monoid N] [module R N] : module R (Π₀ i, (η i →₀ N)) := by apply_instance --ok
-
-@[simp]
-lemma sigma_finsupp_equiv_dfinsupp_smul [add_comm_monoid N] [module R N] (r : R)
-  (f : (Σ i, η i) →₀ N) : sigma_finsupp_equiv_dfinsupp (r • f) =
-  r • (sigma_finsupp_equiv_dfinsupp f : (Π₀ (i : ι), η i →₀ N)) :=
-by {ext, refl}
-
 /-- `finsupp.split` is a linear equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 @[simps]
 def sigma_finsupp_lequiv_dfinsupp [add_comm_monoid N] [module R N] :

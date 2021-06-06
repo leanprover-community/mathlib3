@@ -259,4 +259,46 @@ def dihedral_group_center (n : ℕ) : subgroup (dihedral_group n) :=
     },
   end, }
 
+/--
+A proof that an element is central iff it is in the above subgroup.
+-/
+theorem dihedral_center_eq (n : ℕ) [fact (n > 2)] : ∀ (x : dihedral_group n), x ∈ dihedral_group_center n ↔ x ∈ subgroup.center (dihedral_group n) :=
+  begin
+    intro x,
+    split,
+    {
+      intro h,
+      rw subgroup.mem_center_iff,
+      intro g,
+      have : ∃ i, 2 * i = 0 ∧ x = r i, by exact h,
+      cases this with i hi,
+      cases hi,
+      rwa [hi_right, eq_comm],
+      exact r_mem_center i hi_left g,
+    },
+    {
+      intro h₁,
+      rw subgroup.mem_center_iff at h₁,
+      have : ∃ i, 2 * i = 0 ∧ x = r i :=
+      begin
+        have not_sr : ∀ i, sr i ∉ subgroup.center (dihedral_group n) :=
+        begin
+          intro i,
+          by_contradiction,
+          have : ∃ g', g' * sr i ≠ sr i * g', by sorry,
+          exact not_forall.mpr this h,
+        end,
+        have not_r_gt_2 : ∀ i, 2 * i ≠ 0 → r i ∉ subgroup.center (dihedral_group n) :=
+        begin
+          intros i hi,
+          by_contradiction,
+          have : ∃ g', g' * r i ≠ r i * g', by sorry,
+          exact not_forall.mpr this h,
+        end,
+        sorry,
+      end,
+      exact this,
+    },
+  end
+
 end dihedral_group

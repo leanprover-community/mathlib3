@@ -263,6 +263,14 @@ lemma sigma_finsupp_equiv_dfinsupp_smul {R} [semiring R] [add_comm_monoid N] [mo
   @has_scalar.smul R (Π₀ i, η i →₀ N) mul_action.to_has_scalar r (sigma_finsupp_equiv_dfinsupp f) :=
 by { ext, refl }
 
+example [add_comm_monoid N] [module R N] : module R (Π₀ i, (η i →₀ N)) := by apply_instance --ok
+
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_smul [add_comm_monoid N] [module R N] (r : R)
+  (f : (Σ i, η i) →₀ N) : sigma_finsupp_equiv_dfinsupp (r • f) =
+  r • (sigma_finsupp_equiv_dfinsupp f : (Π₀ (i : ι), η i →₀ N)) :=
+by {ext, refl}
+
 /-- `finsupp.split` is a linear equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
 @[simps]
 def sigma_finsupp_lequiv_dfinsupp [add_comm_monoid N] [module R N] :

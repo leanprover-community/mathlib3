@@ -733,12 +733,12 @@ rfl
 card_product _ _
 
 /-- Given that `α × β` is a fintype, `α` is also a fintype. -/
-def fintype.fintype_prod_left {α β} [decidable_eq α] [fintype (α × β)] [nonempty β] : fintype α :=
+def fintype.prod_left {α β} [decidable_eq α] [fintype (α × β)] [nonempty β] : fintype α :=
 ⟨(fintype.elems (α × β)).image prod.fst,
   assume a, let ⟨b⟩ := ‹nonempty β› in by simp; exact ⟨b, fintype.complete _⟩⟩
 
 /-- Given that `α × β` is a fintype, `β` is also a fintype. -/
-def fintype.fintype_prod_right {α β} [decidable_eq β] [fintype (α × β)] [nonempty α] : fintype β :=
+def fintype.prod_right {α β} [decidable_eq β] [fintype (α × β)] [nonempty α] : fintype β :=
 ⟨(fintype.elems (α × β)).image prod.snd,
   assume b, let ⟨a⟩ := ‹nonempty α› in by simp; exact ⟨a, fintype.complete _⟩⟩
 
@@ -762,6 +762,29 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
     (λ b, by cases b; apply ulift.fintype))
   ((equiv.sum_equiv_sigma_bool _ _).symm.trans
     (equiv.sum_congr equiv.ulift equiv.ulift))
+
+/-- Given that `α ⊕ β` is a fintype, `α` is also a fintype. This is non-computable as it uses
+that `sum.inl` is an injection, but there's no clear inverse if `α` is empty. -/
+noncomputable def fintype.sum_left {α β} [fintype (α ⊕ β)] : fintype α :=
+fintype.of_injective (sum.inl : α → α ⊕ β) sum.inl_injective
+
+/-- Given that `α ⊕ β` is a fintype, `β` is also a fintype. This is non-computable as it uses
+that `sum.inr` is an injection, but there's no clear inverse if `β` is empty. -/
+noncomputable def fintype.sum_right {α β} [fintype (α ⊕ β)] : fintype β :=
+fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
+
+section finset
+
+/-! ### `fintype (s : finset α)` -/
+
+instance finset.fintype_coe_sort {α : Type u} (s : finset α) : fintype s :=
+⟨s.attach, s.mem_attach⟩
+
+@[simp] lemma finset.univ_eq_attach {α : Type u} (s : finset α) :
+  (univ : finset s) = s.attach :=
+rfl
+
+end finset
 
 namespace fintype
 variables [fintype α] [fintype β]
@@ -799,35 +822,22 @@ by rw [← card_unit, card_eq]; exact
   λ ⟨x, hx⟩, ⟨⟨λ _, (), λ _, x, λ _, (hx _).trans (hx _).symm,
     λ _, subsingleton.elim _ _⟩⟩⟩
 
-lemma card_eq_zero_iff : card α = 0 ↔ (α → false) :=
-⟨λ h a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim,
-  λ h, have e : α ≃ empty := ⟨λ a, (h a).elim, λ a, a.elim, λ a, (h a).elim, λ a, a.elim⟩,
-    by simp [card_congr e]⟩
+lemma card_eq_zero_iff : card α = 0 ↔ is_empty α :=
+⟨λ h, ⟨λ a, have e : α ≃ empty := classical.choice (card_eq.1 (by simp [h])), (e a).elim⟩,
+  λ h, by { have e : α ≃ empty, exactI equiv.equiv_empty α, simp [card_congr e] }⟩
 
-/-- A `fintype` with cardinality zero is (constructively) equivalent to `pempty`. -/
-def card_eq_zero_equiv_equiv_pempty :
-  card α = 0 ≃ (α ≃ pempty.{v+1}) :=
-{ to_fun := λ h,
-  { to_fun := λ a, false.elim (card_eq_zero_iff.1 h a),
-    inv_fun := λ a, pempty.elim a,
-    left_inv := λ a, false.elim (card_eq_zero_iff.1 h a),
-    right_inv := λ a, pempty.elim a, },
-  inv_fun := λ e,
-  by { simp only [←of_equiv_card e], convert card_pempty, },
-  left_inv := λ h, rfl,
-  right_inv := λ e, by { ext x, cases e x, } }
+/-- A `fintype` with cardinality zero is equivalent to `empty`. -/
+def card_eq_zero_equiv_equiv_empty : card α = 0 ≃ (α ≃ empty) :=
+(equiv.of_iff card_eq_zero_iff).trans (equiv.equiv_empty_equiv α).symm
 
 lemma card_pos_iff : 0 < card α ↔ nonempty α :=
-⟨λ h, classical.by_contradiction (λ h₁,
-  have card α = 0 := card_eq_zero_iff.2 (λ a, h₁ ⟨a⟩),
-  lt_irrefl 0 $ by rwa this at h),
-λ ⟨a⟩, nat.pos_of_ne_zero (mt card_eq_zero_iff.1 (λ h, h a))⟩
+pos_iff_ne_zero.trans $ not_iff_comm.mp $ not_nonempty_iff.trans card_eq_zero_iff.symm
 
 lemma card_le_one_iff : card α ≤ 1 ↔ (∀ a b : α, a = b) :=
 let n := card α in
 have hn : n = card α := rfl,
 match n, hn with
-| 0 := λ ha, ⟨λ h, λ a, (card_eq_zero_iff.1 ha.symm a).elim, λ _, ha ▸ nat.le_succ _⟩
+| 0 := λ ha, ⟨λ h, λ a, (card_eq_zero_iff.1 ha.symm).elim a, λ _, ha ▸ nat.le_succ _⟩
 | 1 := λ ha, ⟨λ h, λ a b, let ⟨x, hx⟩ := card_eq_one_iff.1 ha.symm in
   by rw [hx a, hx b],
     λ _, ha ▸ le_refl _⟩
@@ -837,7 +847,7 @@ match n, hn with
 end
 
 lemma card_le_one_iff_subsingleton : card α ≤ 1 ↔ subsingleton α :=
-iff.trans card_le_one_iff subsingleton_iff.symm
+card_le_one_iff.trans subsingleton_iff.symm
 
 lemma one_lt_card_iff_nontrivial : 1 < card α ↔ nontrivial α :=
 begin
@@ -922,7 +932,7 @@ instance finset_coe.fintype (s : finset α) : fintype (↑s : set α) :=
 finset.subtype.fintype s
 
 @[simp] lemma fintype.card_coe (s : finset α) :
-  fintype.card (↑s : set α) = s.card := card_attach
+  fintype.card s = s.card := card_attach
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 
@@ -950,6 +960,14 @@ equiv.of_bijective e (fintype.injective_iff_bijective.1 e.2)
 lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
   e.equiv_of_fintype_self_embedding.to_embedding = e :=
 by { ext, refl, }
+
+/-- If `‖β‖ < ‖α‖` there are no embeddings `α ↪ β`.
+This is a formulation of the pigeonhole principle.
+
+Note this cannot be an instance as it needs `h`. -/
+@[simp] lemma is_empty_of_card_lt {α β} [fintype α] [fintype β]
+  (h : fintype.card β < fintype.card α) : is_empty (α ↪ β) :=
+⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_card_lt f h in ne $ f.injective feq⟩
 
 end function.embedding
 
@@ -1029,6 +1047,10 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
+
+instance function.embedding.fintype {α β} [fintype α] [fintype β]
+  [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
+fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
 
 @[simp] lemma fintype.card_finset [fintype α] :
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
@@ -1227,7 +1249,7 @@ begin
         simp only [mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq],
         split_ifs; cc } },
     { rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)),
-          swap_swap, ← equiv.perm.one_def, one_mul] } }
+          swap_swap, ← perm.one_def, one_mul] } }
 end
 
 lemma mem_of_mem_perms_of_list :
@@ -1395,12 +1417,29 @@ well_founded_of_trans_of_irrefl _
 
 end fintype
 
-/-- A type is said to be infinite if it has no fintype instance. -/
+/-- A type is said to be infinite if it has no fintype instance.
+  Note that `infinite α` is equivalent to `is_empty (fintype α)`. -/
 class infinite (α : Type*) : Prop :=
 (not_fintype : fintype α → false)
 
-@[simp] lemma not_nonempty_fintype {α : Type*} : ¬nonempty (fintype α) ↔ infinite α :=
-⟨λf, ⟨λ x, f ⟨x⟩⟩, λ⟨f⟩ ⟨x⟩, f x⟩
+lemma not_fintype (α : Type*) [h1 : infinite α] [h2 : fintype α] : false :=
+infinite.not_fintype h2
+
+protected lemma fintype.false {α : Type*} [infinite α] (h : fintype α) : false :=
+not_fintype α
+
+protected lemma infinite.false {α : Type*} [fintype α] (h : infinite α) : false :=
+not_fintype α
+
+@[simp] lemma is_empty_fintype {α : Type*} : is_empty (fintype α) ↔ infinite α :=
+⟨λ ⟨x⟩, ⟨x⟩, λ ⟨x⟩, ⟨x⟩⟩
+
+@[simp] lemma not_nonempty_fintype {α : Type*} : ¬ nonempty (fintype α) ↔ infinite α :=
+not_nonempty_iff.trans is_empty_fintype
+
+/-- A non-infinite type is a fintype. -/
+noncomputable def fintype_of_not_infinite {α : Type*} (h : ¬ infinite α) : fintype α :=
+((not_iff_comm.mp not_nonempty_fintype).mp h).some
 
 lemma finset.exists_minimal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
   ∃ m ∈ s, ∀ x ∈ s, ¬ (x < m) :=
@@ -1418,7 +1457,7 @@ lemma finset.exists_maximal {α : Type*} [preorder α] (s : finset α) (h : s.no
 namespace infinite
 
 lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
-not_forall.1 $ λ h, not_fintype ⟨s, h⟩
+not_forall.1 $ λ h, fintype.false ⟨s, h⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance (α : Type*) [H : infinite α] : nontrivial α :=
@@ -1430,10 +1469,10 @@ lemma nonempty (α : Type*) [infinite α] : nonempty α :=
 by apply_instance
 
 lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
-⟨λ I, by exactI not_fintype (fintype.of_injective f hf)⟩
+⟨λ I, by exactI (fintype.of_injective f hf).false⟩
 
 lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
-⟨λ I, by classical; exactI not_fintype (fintype.of_surjective f hf)⟩
+⟨λ I, by { classical, exactI (fintype.of_surjective f hf).false }⟩
 
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α
 | n := by letI := classical.dec_eq α; exact classical.some (exists_not_mem_finset
@@ -1470,7 +1509,7 @@ lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) 
   ¬ injective f :=
 assume (hf : injective f),
 have H : fintype α := fintype.of_injective f hf,
-infinite.not_fintype H
+H.false
 
 /--
 The pigeonhole principle for infinitely many pigeons in finitely many
@@ -1488,6 +1527,18 @@ begin
   intros x y, contrapose, apply hf,
 end
 
+instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_empty (α ↪ β) :=
+⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+
+@[priority 100]
+noncomputable instance function.embedding.fintype'' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
+begin
+  by_cases h : infinite α,
+  { resetI, apply_instance },
+  { have := fintype_of_not_infinite h, classical, apply_instance }
+  -- the `classical` generates `decidable_eq α/β` instances, and resets instance cache
+end
+
 /--
 The strong pigeonhole principle for infinitely many pigeons in
 finitely many pigeonholes.  If there are infinitely many pigeons in
@@ -1499,23 +1550,26 @@ See also: `fintype.exists_ne_map_eq_of_infinite`
 lemma fintype.exists_infinite_fiber [infinite α] [fintype β] (f : α → β) :
   ∃ y : β, infinite (f ⁻¹' {y}) :=
 begin
-  classical, by_contra hf, push_neg at hf,
-  haveI h' : ∀ (y : β), fintype (f ⁻¹' {y}) := begin
-    intro y, specialize hf y,
-    rw [←not_nonempty_fintype, not_not] at hf,
-    exact classical.choice hf,
-  end,
+  classical,
+  by_contra hf,
+  push_neg at hf,
+
+  haveI := λ y, fintype_of_not_infinite $ hf y,
   let key : fintype α :=
   { elems := univ.bUnion (λ (y : β), (f ⁻¹' {y}).to_finset),
     complete := by simp },
-  exact infinite.not_fintype key,
+  exact key.false,
 end
 
 lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β) :
   ¬ surjective f :=
 assume (hf : surjective f),
 have H : infinite α := infinite.of_surjective f hf,
-@infinite.not_fintype _ H infer_instance
+by exactI not_fintype α
+
+-- the instance generated by `is_empty → subsingleton → fintype is non-computable
+instance function.embedding.fintype' {α β} [infinite α] [fintype β] : fintype (α ↪ β) :=
+{ elems := finset.empty, complete := is_empty_elim }
 
 instance nat.infinite : infinite ℕ :=
 ⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩

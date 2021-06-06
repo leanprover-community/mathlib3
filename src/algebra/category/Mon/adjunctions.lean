@@ -23,10 +23,6 @@ universe u
 
 open category_theory
 
--- typeclass inference cannot equate `with_one.monoid.to_mul_one_class` with
--- `with_one.mul_one_class` without this.
-local attribute [semireducible] with_one with_zero
-
 /-- The functor of adjoining a neutral element `one` to a semigroup.
  -/
 @[to_additive "The functor of adjoining a neutral element `zero` to a semigroup", simps]

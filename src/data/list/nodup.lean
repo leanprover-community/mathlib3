@@ -325,18 +325,16 @@ end
 lemma nodup.pairwise_of_forall_ne {l : list α} {r : α → α → Prop}
   (hl : l.nodup) (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
 begin
-  induction l with hd tl IH,
-  { simp },
-  { rw list.pairwise_cons,
-    split,
-    { intros x hx,
-      rw [list.nodup_cons] at hl,
-      refine h _ (list.mem_cons_self _ _) _ (list.mem_cons_of_mem _ hx) _,
-      exact λ H, hl.left (H.symm ▸ hx) },
-    { refine IH (list.nodup_of_nodup_cons hl) _,
-      intros x hx y hy,
-      exact h x (list.mem_cons_of_mem _ hx) y (list.mem_cons_of_mem _ hy) } }
+  classical,
+  refine pairwise_of_reflexive_on_dupl_of_forall_ne _ h,
+  intros x hx,
+  rw nodup_iff_count_le_one at hl,
+  exact absurd (hl x) hx.not_le
 end
+
+lemma nodup.pairwise_of_set_pairwise_on {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : {x | x ∈ l}.pairwise_on r) : l.pairwise r :=
+hl.pairwise_of_forall_ne h
 
 end list
 

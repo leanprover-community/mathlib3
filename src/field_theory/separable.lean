@@ -532,6 +532,14 @@ lemma nodup_roots {p : polynomial F} (hsep : separable p) :
   p.roots.nodup :=
 multiset.nodup_iff_count_le_one.mpr (count_roots_le_one hsep)
 
+lemma card_root_set_eq_nat_degree [algebra F K] {p : polynomial F} (hsep : p.separable)
+  (hsplit : splits (algebra_map F K) p) : fintype.card (p.root_set K) = p.nat_degree :=
+begin
+  simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
+  rw [multiset.to_finset_card_of_nodup, ←nat_degree_eq_card_roots hsplit],
+  exact nodup_roots hsep.map,
+end
+
 lemma eq_X_sub_C_of_separable_of_root_eq {x : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
   (h_sep : h.separable) (h_root : h.eval x = 0) (h_splits : splits i h)
   (h_roots : ∀ y ∈ (h.map i).roots, y = i x) : h = (C (leading_coeff h)) * (X - C x) :=

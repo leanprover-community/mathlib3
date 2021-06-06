@@ -35,7 +35,7 @@ Linear algebra:
   Multilinearity:
     multilinear map: 'multilinear_map'
     determinant of vectors: 'basis.det'
-    determinant of endomorphisms: ''
+    determinant of endomorphisms: 'linear_map.det'
     special linear group: ''
     orientation of a $\R$-valued vector space: ''
   Matrices:
@@ -401,7 +401,7 @@ Topology:
     cluster points: 'cluster_pt'
     continuous functions: 'continuous'
     homeomorphisms: 'homeomorph'
-    compactness in terms of open covers (Borel-Lebesgue): 'compact_iff_finite_subcover'
+    compactness in terms of open covers (Borel-Lebesgue): 'is_compact_iff_finite_subcover'
     sequential compactness is equivalent to compactness (Bolzano-Weierstrass): 'metric.compact_iff_seq_compact'
     connectedness: 'connected_space'
     connected components: 'connected_component'

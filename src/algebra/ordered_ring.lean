@@ -7,6 +7,10 @@ import algebra.ordered_group
 import algebra.invertible
 import data.set.intervals.basic
 
+-- This should probably go into Lean core.
+lemma nat.succ_eq_one_add (n : ℕ) : n.succ = 1 + n :=
+by rw [nat.succ_eq_add_one, nat.add_comm]
+
 set_option old_structure_cmd true
 
 universe u
@@ -23,7 +27,7 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
-lemma zero_le_one : 0 ≤ (1:α) :=
+@[simp] lemma zero_le_one : 0 ≤ (1:α) :=
 ordered_semiring.zero_le_one
 
 lemma zero_le_two : 0 ≤ (2:α) :=
@@ -37,7 +41,7 @@ section nontrivial
 
 variables [nontrivial α]
 
-lemma zero_lt_one : 0 < (1 : α) :=
+@[simp] lemma zero_lt_one : 0 < (1 : α) :=
 lt_of_le_of_ne zero_le_one zero_ne_one
 
 lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
@@ -798,7 +802,7 @@ instance ordered_ring.to_ordered_semiring : ordered_semiring α :=
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
   add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _,
+  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
   mul_lt_mul_of_pos_left     := @ordered_ring.mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @ordered_ring.mul_lt_mul_of_pos_right α _,
   ..‹ordered_ring α› }
@@ -901,7 +905,7 @@ instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semirin
 { mul_zero                   := mul_zero,
   zero_mul                   := zero_mul,
   add_left_cancel            := @add_left_cancel α _,
-  le_of_add_le_add_left      := @le_of_add_le_add_left α _,
+  le_of_add_le_add_left      := @le_of_add_le_add_left α _ _ _,
   mul_lt_mul_of_pos_left     := @mul_lt_mul_of_pos_left α _,
   mul_lt_mul_of_pos_right    := @mul_lt_mul_of_pos_right α _,
   le_total                   := linear_ordered_ring.le_total,
@@ -1160,6 +1164,24 @@ begin
   simp only [mul_add, add_comm, add_left_comm, mul_comm, sub_eq_add_neg,
     mul_one, mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg],
 end
+
+@[simp] lemma abs_dvd (a b : α) : abs a ∣ b ↔ a ∣ b :=
+by { cases abs_choice a with h h; simp only [h, neg_dvd] }
+
+lemma abs_dvd_self (a : α) : abs a ∣ a :=
+(abs_dvd a a).mpr (dvd_refl a)
+
+@[simp] lemma dvd_abs (a b : α) : a ∣ abs b ↔ a ∣ b :=
+by { cases abs_choice b with h h; simp only [h, dvd_neg] }
+
+lemma self_dvd_abs (a : α) : a ∣ abs a :=
+(dvd_abs a a).mpr (dvd_refl a)
+
+lemma abs_dvd_abs (a b : α) : abs a ∣ abs b ↔ a ∣ b :=
+(abs_dvd _ _).trans (dvd_abs _ _)
+
+lemma even_abs {a : α} : even (abs a) ↔ even a :=
+dvd_abs _ _
 
 /-- Pullback a `linear_ordered_comm_ring` under an injective map. -/
 def function.injective.linear_ordered_comm_ring {β : Type*}

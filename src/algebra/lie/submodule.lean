@@ -112,6 +112,18 @@ instance : lie_module R L N :=
 { lie_smul := by { intros t x y, apply set_coe.ext, apply lie_smul, },
   smul_lie := by { intros t x y, apply set_coe.ext, apply smul_lie, }, }
 
+@[simp, norm_cast] lemma coe_zero : ((0 : N) : M) = (0 : M) := rfl
+
+@[simp, norm_cast] lemma coe_add (m m' : N) : (↑(m + m') : M) = (m : M) + (m' : M) := rfl
+
+@[simp, norm_cast] lemma coe_neg (m : N) : (↑(-m) : M) = -(m : M) := rfl
+
+@[simp, norm_cast] lemma coe_sub (m m' : N) : (↑(m - m') : M) = (m : M) - (m' : M) := rfl
+
+@[simp, norm_cast] lemma coe_smul (t : R) (m : N) : (↑(t • m) : M) = t • (m : M) := rfl
+
+@[simp, norm_cast] lemma coe_bracket (x : L) (m : N) : (↑⁅x, m⁆ : M) = ⁅x, ↑m⁆ := rfl
+
 end lie_submodule
 
 section lie_ideal
@@ -155,7 +167,21 @@ namespace lie_subalgebra
 
 variables {L}
 
-lemma exists_lie_ideal_coe_eq_iff (K : lie_subalgebra R L):
+/-- Given a Lie subalgebra `K ⊆ L`, if we view `L` as a `K`-module by restriction, it contains
+a distinguished Lie submodule for the action of `K`, namely `K` itself. -/
+def to_lie_submodule (K : lie_subalgebra R L) : lie_submodule R K L :=
+{ lie_mem := λ x y hy, K.lie_mem x.property hy,
+  .. (K : submodule R L) }
+
+@[simp] lemma coe_to_lie_submodule (K : lie_subalgebra R L) :
+  (K.to_lie_submodule : submodule R L) = K :=
+rfl
+
+@[simp] lemma mem_to_lie_submodule {K : lie_subalgebra R L} (x : L) :
+  x ∈ K.to_lie_submodule ↔ x ∈ K :=
+iff.rfl
+
+lemma exists_lie_ideal_coe_eq_iff (K : lie_subalgebra R L) :
   (∃ (I : lie_ideal R L), ↑I = K) ↔ ∀ (x y : L), y ∈ K → ⁅x, y⁆ ∈ K :=
 begin
   simp only [← coe_to_submodule_eq_iff, lie_ideal.coe_to_lie_subalgebra_to_submodule,
@@ -454,6 +480,8 @@ variables {f}
 
 lemma mem_map (m' : M') : m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
 submodule.mem_map
+
+@[simp] lemma mem_comap {m : M} : m ∈ comap f N' ↔ f m ∈ N' := iff.rfl
 
 end lie_submodule
 

@@ -1205,7 +1205,8 @@ lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α →
   (bound_integrable : integrable bound μ) (h_cont : ∀ᵐ a ∂μ, continuous_at (λ x, F x a) x₀) :
   continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
 tendsto_integral_filter_of_dominated_convergence bound
-  (first_countable_topology.nhds_generated_countable x₀) ‹_› (mem_of_nhds hF_meas : _) ‹_› ‹_› ‹_›
+  (first_countable_topology.nhds_generated_countable x₀) ‹_›
+    (mem_of_mem_nhds hF_meas : _) ‹_› ‹_› ‹_›
 
 lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
   (hF_meas : ∀ x, ae_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ∥F x a∥ ≤ bound a)
@@ -1216,13 +1217,13 @@ continuous_iff_continuous_at.mpr (λ x₀, continuous_at_of_dominated (eventuall
 
 /-- The Bochner integral of a real-valued function `f : α → ℝ` is the difference between the
   integral of the positive part of `f` and the integral of the negative part of `f`.  -/
-lemma integral_eq_lintegral_max_sub_lintegral_min {f : α → ℝ} (hf : integrable f μ) :
+lemma integral_eq_lintegral_pos_part_sub_lintegral_neg_part {f : α → ℝ} (hf : integrable f μ) :
   ∫ a, f a ∂μ =
-  ennreal.to_real (∫⁻ a, (ennreal.of_real $ max (f a) 0) ∂μ) -
-  ennreal.to_real (∫⁻ a, (ennreal.of_real $ - min (f a) 0) ∂μ) :=
+  ennreal.to_real (∫⁻ a, (ennreal.of_real $ f a) ∂μ) -
+  ennreal.to_real (∫⁻ a, (ennreal.of_real $ - f a) ∂μ) :=
 let f₁ := hf.to_L1 f in
 -- Go to the `L¹` space
-have eq₁ : ennreal.to_real (∫⁻ a, (ennreal.of_real $ max (f a) 0) ∂μ) = ∥Lp.pos_part f₁∥ :=
+have eq₁ : ennreal.to_real (∫⁻ a, (ennreal.of_real $ f a) ∂μ) = ∥Lp.pos_part f₁∥ :=
 begin
   rw L1.norm_def,
   congr' 1,
@@ -1232,10 +1233,10 @@ begin
   rw [h₁, h₂, ennreal.of_real, nnnorm],
   congr' 1,
   apply nnreal.eq,
-  simp [real.norm_of_nonneg, le_max_right, nnreal.coe_of_real]
+  simp [real.norm_of_nonneg, le_max_right, real.coe_to_nnreal]
 end,
 -- Go to the `L¹` space
-have eq₂ : ennreal.to_real (∫⁻ a, (ennreal.of_real $ -min (f a) 0) ∂μ)  = ∥Lp.neg_part f₁∥ :=
+have eq₂ : ennreal.to_real (∫⁻ a, (ennreal.of_real $ - f a) ∂μ)  = ∥Lp.neg_part f₁∥ :=
 begin
   rw L1.norm_def,
   congr' 1,
@@ -1245,7 +1246,9 @@ begin
   rw [h₁, h₂, ennreal.of_real, nnnorm],
   congr' 1,
   apply nnreal.eq,
-  simp [real.norm_of_nonneg, min_le_right, nnreal.coe_of_real, neg_nonneg],
+  simp only [real.norm_of_nonneg, min_le_right, neg_nonneg, real.coe_to_nnreal', subtype.coe_mk],
+  rw ← max_neg_neg,
+  simp,
 end,
 begin
   rw [eq₁, eq₂, integral, dif_pos],
@@ -1256,20 +1259,15 @@ lemma integral_eq_lintegral_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) 
   ∫ a, f a ∂μ = ennreal.to_real (∫⁻ a, (ennreal.of_real $ f a) ∂μ) :=
 begin
   by_cases hfi : integrable f μ,
-  { rw integral_eq_lintegral_max_sub_lintegral_min hfi,
-    have h_min : ∫⁻ a, ennreal.of_real (-min (f a) 0) ∂μ = 0,
+  { rw integral_eq_lintegral_pos_part_sub_lintegral_neg_part hfi,
+    have h_min : ∫⁻ a, ennreal.of_real (-f a) ∂μ = 0,
     { rw lintegral_eq_zero_iff',
       { refine hf.mono _,
         simp only [pi.zero_apply],
         assume a h,
-        simp only [min_eq_right h, neg_zero, ennreal.of_real_zero] },
-      { exact measurable_of_real.comp_ae_measurable (measurable_id.neg.comp_ae_measurable
-          $ hfm.min ae_measurable_const) } },
-    have h_max : ∫⁻ a, ennreal.of_real (max (f a) 0) ∂μ = ∫⁻ a, ennreal.of_real (f a) ∂μ,
-    { refine lintegral_congr_ae (hf.mono (λ a h, _)),
-      rw [pi.zero_apply] at h,
-      rw max_eq_left h },
-    rw [h_min, h_max, zero_to_real, _root_.sub_zero] },
+        simp only [h, neg_nonpos, of_real_eq_zero], },
+      { exact measurable_of_real.comp_ae_measurable hfm.neg } },
+    rw [h_min, zero_to_real, _root_.sub_zero] },
   { rw integral_undef hfi,
     simp_rw [integrable, hfm, has_finite_integral_iff_norm, lt_top_iff_ne_top, ne.def, true_and,
       not_not] at hfi,
@@ -1286,7 +1284,7 @@ begin
   { rw integral_non_ae_measurable hfm }
 end
 
-lemma lintegral_coe_eq_integral (f : α → ℝ≥0) (hfi : integrable (λ x, (f x : real)) μ) :
+lemma lintegral_coe_eq_integral (f : α → ℝ≥0) (hfi : integrable (λ x, (f x : ℝ)) μ) :
   ∫⁻ a, f a ∂μ = ennreal.of_real ∫ a, f a ∂μ :=
 begin
   simp_rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, (f x).coe_nonneg))

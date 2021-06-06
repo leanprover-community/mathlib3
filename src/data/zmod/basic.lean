@@ -361,8 +361,9 @@ begin
   haveI : fact (0 < n) :=
   ⟨begin
     rw [pos_iff_ne_zero],
-    unfreezingI { rintro rfl },
-    exact fintype.card_eq_zero_iff.mp h 0
+    intro hn,
+    rw hn at h,
+    exact (fintype.card_eq_zero_iff.mp h).elim' 0
   end⟩,
   rw [fintype.bijective_iff_injective_and_card, zmod.card, h, eq_self_iff_true, and_true],
   apply zmod.cast_hom_injective

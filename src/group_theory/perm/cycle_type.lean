@@ -5,7 +5,7 @@ Authors: Thomas Browning
 -/
 
 import combinatorics.partition
-import data.multiset.gcd
+import algebra.gcd_monoid.multiset
 import tactic.linarith
 import group_theory.perm.cycles
 import group_theory.sylow

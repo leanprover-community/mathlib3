@@ -134,7 +134,7 @@ begin
 end
 
 lemma lipschitz_of_bound_by (C : ℝ≥0) (h : f.bound_by C) :
-  lipschitz_with (nnreal.of_real C) f :=
+  lipschitz_with (real.to_nnreal C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 theorem antilipschitz_of_bound_by {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
@@ -411,6 +411,9 @@ variables [semi_normed_group V] [semi_normed_group W] [semi_normed_group V₁] [
   map_add' := λ v w, add_subgroup.coe_add _ _ _,
   bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
 
+lemma norm_incl {V' : add_subgroup V} (x : V') : ∥incl _ x∥ = ∥x∥ :=
+rfl
+
 /-!### Kernel -/
 section kernels
 variables (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃)
@@ -458,6 +461,16 @@ def range : add_subgroup V₂ := f.to_add_monoid_hom.range
 lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=
 by { rw [range, add_monoid_hom.mem_range], refl }
 
+lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.range :=
+by { erw add_monoid_hom.map_range, refl }
+
+lemma incl_range (s : add_subgroup V₁) : (incl s).range = s :=
+by { ext x, exact ⟨λ ⟨y, hy⟩, by { rw ← hy; simp }, λ hx, ⟨⟨x, hx⟩, by simp⟩⟩ }
+
+@[simp]
+lemma range_comp_incl_top : (f.comp (incl (⊤ : add_subgroup V₁))).range = f.range :=
+by simpa [comp_range, incl_range, ← add_monoid_hom.range_eq_map]
+
 end range
 
 variables {f : normed_group_hom V W}
@@ -470,6 +483,9 @@ namespace norm_noninc
 
 lemma bound_by_one (hf : f.norm_noninc) : f.bound_by 1 :=
 λ v, by simpa only [one_mul, nnreal.coe_one] using hf v
+
+lemma zero : (0 : normed_group_hom V₁ V₂).norm_noninc :=
+λ v, by simp
 
 lemma id : (id : normed_group_hom V V).norm_noninc :=
 λ v, le_rfl

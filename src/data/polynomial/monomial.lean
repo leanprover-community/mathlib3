@@ -60,9 +60,13 @@ begin
     { simp [h₁, ring_equiv.to_ring_hom_eq_coe] },
     { simpa [ring_equiv.to_ring_hom_eq_coe] using h₂, } },
   have B : f = f'.comp (to_finsupp_iso R),
-    by { rw [hf', ring_hom.comp_assoc], ext x, simp [ring_equiv.to_ring_hom_eq_coe] },
+    by { rw [hf', ring_hom.comp_assoc], ext x, simp only [ring_equiv.to_ring_hom_eq_coe,
+      ring_equiv.symm_apply_apply, function.comp_app, ring_hom.coe_comp,
+      ring_equiv.coe_to_ring_hom] },
   have C : g = g'.comp (to_finsupp_iso R),
-    by { rw [hg', ring_hom.comp_assoc], ext x, simp [ring_equiv.to_ring_hom_eq_coe] },
+    by { rw [hg', ring_hom.comp_assoc], ext x, simp only [ring_equiv.to_ring_hom_eq_coe,
+      ring_equiv.symm_apply_apply, function.comp_app, ring_hom.coe_comp,
+      ring_equiv.coe_to_ring_hom] },
   rw [B, C, A]
 end
 

@@ -573,6 +573,9 @@ apply_nolint fixed_points.prev_fixed doc_blame
 -- set_theory/cofinality.lean
 apply_nolint strict_order.cof doc_blame
 
+-- set_theory/game.lean
+apply_nolint pgame.inv_ty has_inhabited_instance
+
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 apply_nolint lists doc_blame
@@ -596,7 +599,6 @@ apply_nolint pgame.right_moves has_inhabited_instance
 
 -- set_theory/surreal.lean
 apply_nolint pgame.add_lt_add unused_arguments
-apply_nolint pgame.inv_ty has_inhabited_instance
 apply_nolint pgame.numeric.lt_move_right unused_arguments
 apply_nolint pgame.numeric.move_left_lt unused_arguments
 

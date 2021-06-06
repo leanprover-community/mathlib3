@@ -9,7 +9,7 @@ import measure_theory.interval_integral
 # Integration of specific interval integrals
 
 This file contains proofs of the integrals of various specific functions. This includes:
-* Integrals of simple functions, such as `id`, `pow`, `exp`, `inv`
+* Integrals of simple functions, such as `id`, `pow`, `inv`, `exp`, `log`
 * Integrals of some trigonometric functions, such as `sin`, `cos`, `1 / (1 + x^2)`
 * The integral of `cos x ^ 2 - sin x ^ 2`
 * Reduction formulae for the integrals of `sin x ^ n` and `cos x ^ n` for `n ≥ 2`
@@ -79,6 +79,17 @@ by simpa only [one_div] using interval_integrable_one_div h hf
 @[simp]
 lemma interval_integrable_exp : interval_integrable exp μ a b :=
 continuous_exp.interval_integrable a b
+
+@[simp]
+lemma interval_integrable.log
+  (hf : continuous_on f (interval a b)) (h : ∀ x : ℝ, x ∈ interval a b → f x ≠ 0) :
+  interval_integrable (λ x, log (f x)) μ a b :=
+(continuous_on.log hf h).interval_integrable
+
+@[simp]
+lemma interval_integrable_log (h : (0:ℝ) ∉ interval a b) :
+  interval_integrable log μ a b :=
+interval_integrable.log continuous_on_id $ λ x hx, ne_of_mem_of_not_mem hx h
 
 @[simp]
 lemma interval_integrable_sin : interval_integrable sin μ a b :=
@@ -185,10 +196,6 @@ lemma integral_one : ∫ x in a..b, (1 : ℝ) = b - a :=
 by simp only [mul_one, smul_eq_mul, integral_const]
 
 @[simp]
-lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
-by rw integral_deriv_eq_sub'; norm_num [continuous_on_exp]
-
-@[simp]
 lemma integral_inv (h : (0:ℝ) ∉ interval a b) : ∫ x in a..b, x⁻¹ = log (b / a) :=
 begin
   have h' := λ x hx, ne_of_mem_of_not_mem hx h,
@@ -213,6 +220,30 @@ by simp only [one_div, integral_inv_of_pos ha hb]
 
 lemma integral_one_div_of_neg (ha : a < 0) (hb : b < 0) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
 by simp only [one_div, integral_inv_of_neg ha hb]
+
+@[simp]
+lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
+by rw integral_deriv_eq_sub'; norm_num [continuous_on_exp]
+
+@[simp]
+lemma integral_log (h : (0:ℝ) ∉ interval a b) :
+  ∫ x in a..b, log x = b * log b - a * log a - b + a :=
+begin
+  obtain ⟨h', heq⟩ := ⟨λ x hx, ne_of_mem_of_not_mem hx h, λ x hx, mul_inv_cancel (h' x hx)⟩,
+  convert integral_mul_deriv_eq_deriv_mul (λ x hx, has_deriv_at_log (h' x hx))
+    (λ x hx, has_deriv_at_id x) (continuous_on_inv'.mono $ subset_compl_singleton_iff.mpr h)
+      continuous_on_const using 1; simp [integral_congr heq, mul_comm, ← sub_add],
+end
+
+@[simp]
+lemma integral_log_of_pos (ha : 0 < a) (hb : 0 < b) :
+  ∫ x in a..b, log x = b * log b - a * log a - b + a :=
+integral_log $ not_mem_interval_of_lt ha hb
+
+@[simp]
+lemma integral_log_of_neg (ha : a < 0) (hb : b < 0) :
+  ∫ x in a..b, log x = b * log b - a * log a - b + a :=
+integral_log $ not_mem_interval_of_gt ha hb
 
 @[simp]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=

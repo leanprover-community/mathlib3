@@ -81,11 +81,11 @@ begin
   { ext n,
     simp_rw [set.mem_range, set.mem_image, finset.mem_coe, finset.mem_range],
     exact ⟨λ ⟨⟨i, hi⟩, hy⟩, ⟨i, hi, hy⟩, λ ⟨i, hi, hy⟩, ⟨⟨i, hi⟩, hy⟩⟩ },
-  simp only [this, finsupp.mem_span_iff_total, degree_lt_iff_coeff_zero, exists_iff_exists_finsupp,
-    coeff, aeval, eval₂_ring_hom', eval₂_eq_sum, polynomial.sum, support, finsupp.mem_supported',
-    finsupp.total, finsupp.sum, algebra.smul_def, eval₂_zero, exists_prop, linear_map.id_coe,
-    eval₂_one, id.def, not_lt, finsupp.coe_lsum, linear_map.coe_smul_right, finset.mem_range,
-    alg_hom.coe_mk, finset.mem_coe],
+  simp only [this, finsupp.mem_span_image_iff_total, degree_lt_iff_coeff_zero,
+    exists_iff_exists_finsupp, coeff, aeval, eval₂_ring_hom', eval₂_eq_sum, polynomial.sum, support,
+    finsupp.mem_supported', finsupp.total, finsupp.sum, algebra.smul_def, eval₂_zero, exists_prop,
+    linear_map.id_coe, eval₂_one, id.def, not_lt, finsupp.coe_lsum, linear_map.coe_smul_right,
+    finset.mem_range, alg_hom.coe_mk, finset.mem_coe],
   simp_rw [@eq_comm _ y],
   exact iff.rfl
 end
@@ -113,6 +113,9 @@ by { rw [← pb.basis.total_repr 1, finsupp.total_apply, finsupp.sum_fintype],
        rw h at x_lt,
        cases x_lt },
      { simp } }
+
+lemma dim_pos [nontrivial S] (pb : power_basis R S) : 0 < pb.dim :=
+nat.pos_of_ne_zero pb.dim_ne_zero
 
 lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
   ∃ f : polynomial R, f.nat_degree < pb.dim ∧ y = aeval pb.gen f :=

@@ -534,10 +534,10 @@ lemma compl_not_mem_sets {f : filter α} {s : set α} [ne_bot f] (h : s ∈ f) :
 λ hsc, (nonempty_of_mem_sets (inter_mem_sets h hsc)).ne_empty $ inter_compl_self s
 
 lemma filter_eq_bot_of_not_nonempty (f : filter α) [is_empty α] : f = ⊥ :=
-empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
+empty_in_sets_eq_bot.mp $ univ_mem_sets' is_empty_elim
 
 instance [is_empty α] : unique (filter α) :=
-{ default := ⊥, uniq = filter_eq_bot_of_not_nonempty }
+{ default := ⊥, uniq := λ f, filter_eq_bot_of_not_nonempty f }
 
 lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
@@ -545,7 +545,7 @@ lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
 
 lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
 ⟨λ ⟨⟨f, g, hfg⟩⟩, by_contra $
-  λ h, hfg $ (filter_eq_bot_of_not_nonempty f h).trans (filter_eq_bot_of_not_nonempty g h).symm,
+  λ h, hfg $ by haveI : is_empty α := not_nonempty_iff.1 h; exact subsingleton.elim _ _,
   λ ⟨x⟩, ⟨⟨⊤, ⊥, ne_bot.ne $ forall_sets_nonempty_iff_ne_bot.1 $ λ s hs,
     by rwa [mem_top_sets.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
 

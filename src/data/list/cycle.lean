@@ -24,8 +24,15 @@ variables {α : Type*} [decidable_eq α]
 Given an element `x : α` of `l : list α` such that `x ∈ l`, get the next
 element of `l`. This works from head to tail, (including a check for last element)
 so it will match on first hit, ignoring later duplicates.
+
+For example:
+ * `next [1, 2, 3] 2 _ = 3`
+ * `next [1, 2, 3] 3 _ = 1`
+ * `next [1, 2, 3, 2, 4] 2 _ = 3`
+ * `next [1, 2, 3, 2] 2 _ = 1`
+ * `next [1, 1, 2, 3, 2] 1 _ = 1`
 -/
-def next: Π (l : list α) (x : α) (h : x ∈ l), α
+def next : Π (l : list α) (x : α) (h : x ∈ l), α
 | []             _ h := by simpa using h
 | [y]            _ _ := y
 | (y :: z :: xs) x h := if hx : x = y then z else
@@ -36,6 +43,12 @@ def next: Π (l : list α) (x : α) (h : x ∈ l), α
 Given an element `x : α` of `l : list α` such that `x ∈ l`, get the previous
 element of `l`. This works from head to tail, (including a check for last element)
 so it will match on first hit, ignoring later duplicates.
+
+ * `prev [1, 2, 3] 2 _ = 1`
+ * `prev [1, 2, 3] 1 _ = 3`
+ * `prev [1, 2, 3, 2, 4] 2 _ = 1`
+ * `prev [1, 2, 3, 4, 2] 2 _ = 1`
+ * `prev [1, 1, 2] 1 _ = 2`
 -/
 def prev : Π (l : list α) (x : α) (h : x ∈ l), α
 | []             _ h := by simpa using h

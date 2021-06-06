@@ -254,6 +254,9 @@ lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :
 @[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
 by { rw [← inv_subset_inv, set.inv_inv] }
 
+@[to_additive] lemma finite.inv [group α] {s : set α} (hs : finite s) : finite s⁻¹ :=
+hs.preimage $ inv_injective.inj_on _
+
 /-! ### Properties about scalar multiplication -/
 
 /-- Scaling a set: multiplying every element by a scalar. -/
@@ -336,6 +339,9 @@ instance set_semiring.distrib [has_mul α] : distrib (set_semiring α) :=
 instance set_semiring.mul_zero_one_class [mul_one_class α] : mul_zero_one_class (set_semiring α) :=
 { ..set_semiring.mul_zero_class, ..set.mul_one_class }
 
+instance set_semiring.semigroup_with_zero [semigroup α] : semigroup_with_zero (set_semiring α) :=
+{ ..set_semiring.mul_zero_class, ..set.semigroup }
+
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
 { ..set_semiring.add_comm_monoid,
   ..set_semiring.distrib,
@@ -386,9 +392,9 @@ section
 
 variables {α : Type*} {β : Type*}
 
-/-- A nonempty set in a semimodule is scaled by zero to the singleton
-containing 0 in the semimodule. -/
-lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β] {s : set β} (h : s.nonempty) :
+/-- A nonempty set in a module is scaled by zero to the singleton
+containing 0 in the module. -/
+lemma zero_smul_set [semiring α] [add_comm_monoid β] [module α β] {s : set β} (h : s.nonempty) :
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]
 

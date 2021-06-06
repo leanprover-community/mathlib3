@@ -83,10 +83,10 @@ instance [add_comm_monoid R] : add_comm_monoid (mv_power_series σ R) := pi.add_
 instance [add_comm_group R]  : add_comm_group  (mv_power_series σ R) := pi.add_comm_group
 instance [nontrivial R]      : nontrivial      (mv_power_series σ R) := function.nontrivial
 
-instance {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
-  semimodule R (mv_power_series σ A) := pi.semimodule _ _ _
+instance {A} [semiring R] [add_comm_monoid A] [module R A] :
+  module R (mv_power_series σ A) := pi.module _ _ _
 
-instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [semimodule S A]
+instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
   [has_scalar R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (mv_power_series σ A) :=
 pi.is_scalar_tower
@@ -151,10 +151,10 @@ coeff_monomial_same 0 1
 lemma monomial_zero_one : monomial R (0 : σ →₀ ℕ) 1 = 1 := rfl
 
 instance : has_mul (mv_power_series σ R) :=
-⟨λ φ ψ n, ∑ p in (finsupp.antidiagonal n).support, coeff R p.1 φ * coeff R p.2 ψ⟩
+⟨λ φ ψ n, ∑ p in finsupp.antidiagonal n, coeff R p.1 φ * coeff R p.2 ψ⟩
 
 lemma coeff_mul : coeff R n (φ * ψ) =
-  ∑ p in (finsupp.antidiagonal n).support, coeff R p.1 φ * coeff R p.2 ψ := rfl
+  ∑ p in finsupp.antidiagonal n, coeff R p.1 φ * coeff R p.2 ψ := rfl
 
 protected lemma zero_mul : (0 : mv_power_series σ R) * φ = 0 :=
 ext $ λ n, by simp [coeff_mul]
@@ -165,10 +165,10 @@ ext $ λ n, by simp [coeff_mul]
 lemma coeff_monomial_mul (a : R) :
   coeff R m (monomial R n a * φ) = if n ≤ m then a * coeff R (m - n) φ else 0 :=
 begin
-  have : ∀ p ∈ (antidiagonal m).support,
+  have : ∀ p ∈ antidiagonal m,
     coeff R (p : (σ →₀ ℕ) × (σ →₀ ℕ)).1 (monomial R n a) * coeff R p.2 φ ≠ 0 → p.1 = n :=
     λ p _ hp, eq_of_coeff_monomial_ne_zero (left_ne_zero_of_mul hp),
-  rw [coeff_mul, ← finset.sum_filter_of_ne this, antidiagonal_support_filter_fst_eq,
+  rw [coeff_mul, ← finset.sum_filter_of_ne this, antidiagonal_filter_fst_eq,
     finset.sum_ite_index],
   simp only [finset.sum_singleton, coeff_monomial_same, finset.sum_empty]
 end
@@ -176,10 +176,10 @@ end
 lemma coeff_mul_monomial (a : R) :
   coeff R m (φ * monomial R n a) = if n ≤ m then coeff R (m - n) φ * a else 0 :=
 begin
-  have : ∀ p ∈ (antidiagonal m).support,
+  have : ∀ p ∈ antidiagonal m,
     coeff R (p : (σ →₀ ℕ) × (σ →₀ ℕ)).1 φ * coeff R p.2 (monomial R n a) ≠ 0 → p.2 = n :=
     λ p _ hp, eq_of_coeff_monomial_ne_zero (right_ne_zero_of_mul hp),
-  rw [coeff_mul, ← finset.sum_filter_of_ne this, antidiagonal_support_filter_snd_eq,
+  rw [coeff_mul, ← finset.sum_filter_of_ne this, antidiagonal_filter_snd_eq,
     finset.sum_ite_index],
   simp only [finset.sum_singleton, coeff_monomial_same, finset.sum_empty]
 end
@@ -218,7 +218,7 @@ begin
   ext1 n,
   simp only [coeff_mul, finset.sum_mul, finset.mul_sum, finset.sum_sigma'],
   refine finset.sum_bij (λ p _, ⟨(p.2.1, p.2.2 + p.1.2), (p.2.2, p.1.2)⟩) _ _ _ _;
-    simp only [mem_antidiagonal_support, finset.mem_sigma, heq_iff_eq, prod.mk.inj_iff, and_imp,
+    simp only [mem_antidiagonal, finset.mem_sigma, heq_iff_eq, prod.mk.inj_iff, and_imp,
       exists_prop],
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩, dsimp only, rintro rfl rfl,
     simp [add_assoc] },
@@ -246,7 +246,7 @@ end semiring
 
 instance [comm_semiring R] : comm_semiring (mv_power_series σ R) :=
 { mul_comm := λ φ ψ, ext $ λ n, by simpa only [coeff_mul, mul_comm]
-    using sum_antidiagonal_support_swap n (λ a b, coeff R a φ * coeff R b ψ),
+    using sum_antidiagonal_swap n (λ a b, coeff R a φ * coeff R b ψ),
   .. mv_power_series.semiring }
 
 instance [ring R] : ring (mv_power_series σ R) :=
@@ -446,7 +446,7 @@ instance : algebra R (mv_power_series σ A) :=
 { commutes' := λ a φ, by { ext n, simp [algebra.commutes] },
   smul_def' := λ a σ, by { ext n, simp [(coeff A n).map_smul_of_tower a, algebra.smul_def] },
   to_ring_hom := (mv_power_series.map σ (algebra_map R A)).comp (C σ R),
-  .. mv_power_series.semimodule }
+  .. mv_power_series.module }
 
 theorem C_eq_algebra_map : C σ R = (algebra_map R (mv_power_series σ R)) := rfl
 
@@ -527,21 +527,21 @@ begin
   { rintros ⟨φ, rfl⟩ m h,
     rw [coeff_mul, finset.sum_eq_zero],
     rintros ⟨i,j⟩ hij, rw [coeff_X_pow, if_neg, zero_mul],
-    contrapose! h, subst i, rw finsupp.mem_antidiagonal_support at hij,
+    contrapose! h, subst i, rw finsupp.mem_antidiagonal at hij,
     rw [← hij, finsupp.add_apply, finsupp.single_eq_same], exact nat.le_add_right n _ },
   { intro h, refine ⟨λ m, coeff R (m + (single s n)) φ, _⟩,
     ext m, by_cases H : m - single s n + single s n = m,
     { rw [coeff_mul, finset.sum_eq_single (single s n, m - single s n)],
       { rw [coeff_X_pow, if_pos rfl, one_mul],
         simpa using congr_arg (λ (m : σ →₀ ℕ), coeff R m φ) H.symm },
-      { rintros ⟨i,j⟩ hij hne, rw finsupp.mem_antidiagonal_support at hij,
+      { rintros ⟨i,j⟩ hij hne, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply hne, rw [← hij, ← hi, prod.mk.inj_iff], refine ⟨rfl, _⟩,
           ext t, simp only [nat.add_sub_cancel_left, finsupp.add_apply, finsupp.nat_sub_apply] },
         { exact zero_mul _ } },
-        { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal_support, add_comm] } },
+        { intro hni, exfalso, apply hni, rwa [finsupp.mem_antidiagonal, add_comm] } },
     { rw [h, coeff_mul, finset.sum_eq_zero],
-      { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal_support at hij,
+      { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply H, rw [← hij, hi], ext,
           rw [coe_add, coe_add, pi.add_apply, pi.add_apply, nat_add_sub_cancel_left, add_comm], },
@@ -576,7 +576,7 @@ well-founded recursion on the coeffients of the inverse.
  an inverse of the constant coefficient `inv_of_unit`.-/
 protected noncomputable def inv.aux (a : R) (φ : mv_power_series σ R) : mv_power_series σ R
 | n := if n = 0 then a else
-- a * ∑ x in n.antidiagonal.support,
+- a * ∑ x in n.antidiagonal,
     if h : x.2 < n then coeff R x.1 φ * inv.aux x.2 else 0
 using_well_founded
 { rel_tac := λ _ _, `[exact ⟨_, finsupp.lt_wf σ⟩],
@@ -584,7 +584,7 @@ using_well_founded
 
 lemma coeff_inv_aux (n : σ →₀ ℕ) (a : R) (φ : mv_power_series σ R) :
   coeff R n (inv.aux a φ) = if n = 0 then a else
-  - a * ∑ x in n.antidiagonal.support,
+  - a * ∑ x in n.antidiagonal,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv.aux a φ) else 0 :=
 show inv.aux a φ n = _, by { rw inv.aux, refl }
 
@@ -594,7 +594,7 @@ inv.aux (↑u⁻¹) φ
 
 lemma coeff_inv_of_unit (n : σ →₀ ℕ) (φ : mv_power_series σ R) (u : units R) :
   coeff R n (inv_of_unit φ u) = if n = 0 then ↑u⁻¹ else
-  - ↑u⁻¹ * ∑ x in n.antidiagonal.support,
+  - ↑u⁻¹ * ∑ x in n.antidiagonal,
     if x.2 < n then coeff R x.1 φ * coeff R x.2 (inv_of_unit φ u) else 0 :=
 coeff_inv_aux n (↑u⁻¹) φ
 
@@ -607,8 +607,8 @@ lemma mul_inv_of_unit (φ : mv_power_series σ R) (u : units R) (h : constant_co
 ext $ λ n, if H : n = 0 then by { rw H, simp [coeff_mul, support_single_ne_zero, h], }
 else
 begin
-  have : ((0 : σ →₀ ℕ), n) ∈ n.antidiagonal.support,
-  { rw [finsupp.mem_antidiagonal_support, zero_add] },
+  have : ((0 : σ →₀ ℕ), n) ∈ n.antidiagonal,
+  { rw [finsupp.mem_antidiagonal, zero_add] },
   rw [coeff_one, if_neg H, coeff_mul,
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
     coeff_zero_eq_constant_coeff_apply, h, coeff_inv_of_unit, if_neg H,
@@ -616,7 +616,7 @@ begin
     ← finset.insert_erase this, finset.sum_insert (finset.not_mem_erase _ _),
     finset.insert_erase this, if_neg (not_lt_of_ge $ le_refl _), zero_add, add_comm,
     ← sub_eq_add_neg, sub_eq_zero, finset.sum_congr rfl],
-  rintros ⟨i,j⟩ hij, rw [finset.mem_erase, finsupp.mem_antidiagonal_support] at hij,
+  rintros ⟨i,j⟩ hij, rw [finset.mem_erase, finsupp.mem_antidiagonal] at hij,
   cases hij with h₁ h₂,
   subst n, rw if_pos,
   suffices : (0 : _) + j < i + j, {simpa},
@@ -681,7 +681,7 @@ instance : has_inv (mv_power_series σ k) := ⟨mv_power_series.inv⟩
 
 lemma coeff_inv (n : σ →₀ ℕ) (φ : mv_power_series σ k) :
   coeff k n (φ⁻¹) = if n = 0 then (constant_coeff σ k φ)⁻¹ else
-  - (constant_coeff σ k φ)⁻¹ * ∑ x in n.antidiagonal.support,
+  - (constant_coeff σ k φ)⁻¹ * ∑ x in n.antidiagonal,
     if x.2 < n then coeff k x.1 φ * coeff k x.2 (φ⁻¹) else 0 :=
 coeff_inv_aux n _ φ
 
@@ -808,10 +808,10 @@ instance [ring R]            : ring            (power_series R) := by apply_inst
 instance [comm_ring R]       : comm_ring       (power_series R) := by apply_instance
 instance [nontrivial R]      : nontrivial      (power_series R) := by apply_instance
 
-instance {A} [semiring R] [add_comm_monoid A] [semimodule R A] :
-  semimodule R (power_series A) := by apply_instance
+instance {A} [semiring R] [add_comm_monoid A] [module R A] :
+  module R (power_series A) := by apply_instance
 
-instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [semimodule R A] [semimodule S A]
+instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
   [has_scalar R S] [is_scalar_tower R S A] :
   is_scalar_tower R S (power_series A) :=
 pi.is_scalar_tower
@@ -942,13 +942,13 @@ begin
   symmetry,
   apply finset.sum_bij (λ (p : ℕ × ℕ) h, (single () p.1, single () p.2)),
   { rintros ⟨i,j⟩ hij, rw finset.nat.mem_antidiagonal at hij,
-    rw [finsupp.mem_antidiagonal_support, ← finsupp.single_add, hij], },
+    rw [finsupp.mem_antidiagonal, ← finsupp.single_add, hij], },
   { rintros ⟨i,j⟩ hij, refl },
   { rintros ⟨i,j⟩ ⟨k,l⟩ hij hkl,
     simpa only [prod.mk.inj_iff, finsupp.unique_single_eq_iff] using id },
   { rintros ⟨f,g⟩ hfg,
     refine ⟨(f (), g ()), _, _⟩,
-    { rw finsupp.mem_antidiagonal_support at hfg,
+    { rw finsupp.mem_antidiagonal at hfg,
       rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
     { rw prod.mk.inj_iff, dsimp,
       exact ⟨finsupp.unique_single f, finsupp.unique_single g⟩ } }
@@ -1166,7 +1166,7 @@ begin
   symmetry,
   apply finset.sum_bij (λ (p : ℕ × ℕ) h, (single () p.1, single () p.2)),
   { rintros ⟨i,j⟩ hij, rw finset.nat.mem_antidiagonal at hij,
-    rw [finsupp.mem_antidiagonal_support, ← finsupp.single_add, hij], },
+    rw [finsupp.mem_antidiagonal, ← finsupp.single_add, hij], },
   { rintros ⟨i,j⟩ hij,
     by_cases H : j < n,
     { rw [if_pos H, if_pos], {refl},
@@ -1180,7 +1180,7 @@ begin
     simpa only [prod.mk.inj_iff, finsupp.unique_single_eq_iff] using id },
   { rintros ⟨f,g⟩ hfg,
     refine ⟨(f (), g ()), _, _⟩,
-    { rw finsupp.mem_antidiagonal_support at hfg,
+    { rw finsupp.mem_antidiagonal at hfg,
       rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
     { rw prod.mk.inj_iff, dsimp,
       exact ⟨finsupp.unique_single f, finsupp.unique_single g⟩ } }
@@ -1658,7 +1658,8 @@ begin
 end
 
 @[simp, norm_cast] lemma coe_add (φ ψ : polynomial R) :
-  ((φ + ψ : polynomial R) : power_series R) = φ + ψ := rfl
+  ((φ + ψ : polynomial R) : power_series R) = φ + ψ :=
+by { ext, simp }
 
 @[simp, norm_cast] lemma coe_mul (φ ψ : polynomial R) :
   ((φ * ψ : polynomial R) : power_series R) = φ * ψ :=

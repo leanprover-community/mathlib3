@@ -58,7 +58,7 @@ iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
 @[simp] lemma pushforward_eq_hom_app
   {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
   (pushforward_eq h ℱ).hom.app U =
-    ℱ.map (begin dsimp [functor.op], apply has_hom.hom.op, apply eq_to_hom, rw h, end) :=
+    ℱ.map (begin dsimp [functor.op], apply quiver.hom.op, apply eq_to_hom, rw h, end) :=
 by simp [pushforward_eq]
 
 @[simp]

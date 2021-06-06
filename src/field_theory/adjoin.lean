@@ -344,32 +344,32 @@ adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 adjoin_simple_eq_bot_iff.mpr (coe_int_mem ⊥ n)
 
 section adjoin_dim
-open finite_dimensional vector_space
+open finite_dimensional module
 
 variables {K L : intermediate_field F E}
 
-@[simp] lemma dim_eq_one_iff : dim F K = 1 ↔ K = ⊥ :=
+@[simp] lemma dim_eq_one_iff : module.rank F K = 1 ↔ K = ⊥ :=
 by rw [← to_subalgebra_eq_iff, ← dim_eq_dim_subalgebra,
   subalgebra.dim_eq_one_iff, bot_to_subalgebra]
 
-@[simp] lemma findim_eq_one_iff : findim F K = 1 ↔ K = ⊥ :=
-by rw [← to_subalgebra_eq_iff, ← findim_eq_findim_subalgebra,
-  subalgebra.findim_eq_one_iff, bot_to_subalgebra]
+@[simp] lemma finrank_eq_one_iff : finrank F K = 1 ↔ K = ⊥ :=
+by rw [← to_subalgebra_eq_iff, ← finrank_eq_finrank_subalgebra,
+  subalgebra.finrank_eq_one_iff, bot_to_subalgebra]
 
-lemma dim_adjoin_eq_one_iff : dim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
+lemma dim_adjoin_eq_one_iff : module.rank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
 iff.trans dim_eq_one_iff adjoin_eq_bot_iff
 
-lemma dim_adjoin_simple_eq_one_iff : dim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
+lemma dim_adjoin_simple_eq_one_iff : module.rank F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
 by { rw dim_adjoin_eq_one_iff, exact set.singleton_subset_iff }
 
-lemma findim_adjoin_eq_one_iff : findim F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
-iff.trans findim_eq_one_iff adjoin_eq_bot_iff
+lemma finrank_adjoin_eq_one_iff : finrank F (adjoin F S) = 1 ↔ S ⊆ (⊥ : intermediate_field F E) :=
+iff.trans finrank_eq_one_iff adjoin_eq_bot_iff
 
-lemma findim_adjoin_simple_eq_one_iff : findim F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
-by { rw [findim_adjoin_eq_one_iff], exact set.singleton_subset_iff }
+lemma finrank_adjoin_simple_eq_one_iff : finrank F F⟮α⟯ = 1 ↔ α ∈ (⊥ : intermediate_field F E) :=
+by { rw [finrank_adjoin_eq_one_iff], exact set.singleton_subset_iff }
 
 /-- If `F⟮x⟯` has dimension `1` over `F` for every `x ∈ E` then `F = E`. -/
-lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
+lemma bot_eq_top_of_dim_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
   (⊥ : intermediate_field F E) = ⊤ :=
 begin
   ext,
@@ -377,33 +377,33 @@ begin
   exact dim_adjoin_simple_eq_one_iff.mp (h x),
 end
 
-lemma bot_eq_top_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
+lemma bot_eq_top_of_finrank_adjoin_eq_one (h : ∀ x : E, finrank F F⟮x⟯ = 1) :
   (⊥ : intermediate_field F E) = ⊤ :=
 begin
   ext,
   rw iff_true_right intermediate_field.mem_top,
-  exact findim_adjoin_simple_eq_one_iff.mp (h x),
+  exact finrank_adjoin_simple_eq_one_iff.mp (h x),
 end
 
-lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, dim F F⟮x⟯ = 1) :
+lemma subsingleton_of_dim_adjoin_eq_one (h : ∀ x : E, module.rank F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
 subsingleton_of_bot_eq_top (bot_eq_top_of_dim_adjoin_eq_one h)
 
-lemma subsingleton_of_findim_adjoin_eq_one (h : ∀ x : E, findim F F⟮x⟯ = 1) :
+lemma subsingleton_of_finrank_adjoin_eq_one (h : ∀ x : E, finrank F F⟮x⟯ = 1) :
   subsingleton (intermediate_field F E) :=
-subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_eq_one h)
+subsingleton_of_bot_eq_top (bot_eq_top_of_finrank_adjoin_eq_one h)
 
 /-- If `F⟮x⟯` has dimension `≤1` over `F` for every `x ∈ E` then `F = E`. -/
-lemma bot_eq_top_of_findim_adjoin_le_one [finite_dimensional F E]
-  (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊥ : intermediate_field F E) = ⊤ :=
+lemma bot_eq_top_of_finrank_adjoin_le_one [finite_dimensional F E]
+  (h : ∀ x : E, finrank F F⟮x⟯ ≤ 1) : (⊥ : intermediate_field F E) = ⊤ :=
 begin
-  apply bot_eq_top_of_findim_adjoin_eq_one,
-  exact λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
+  apply bot_eq_top_of_finrank_adjoin_eq_one,
+  exact λ x, by linarith [h x, show 0 < finrank F F⟮x⟯, from finrank_pos],
 end
 
-lemma subsingleton_of_findim_adjoin_le_one [finite_dimensional F E]
-  (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : subsingleton (intermediate_field F E) :=
-subsingleton_of_bot_eq_top (bot_eq_top_of_findim_adjoin_le_one h)
+lemma subsingleton_of_finrank_adjoin_le_one [finite_dimensional F E]
+  (h : ∀ x : E, finrank F F⟮x⟯ ≤ 1) : subsingleton (intermediate_field F E) :=
+subsingleton_of_bot_eq_top (bot_eq_top_of_finrank_adjoin_le_one h)
 
 end adjoin_dim
 end adjoin_intermediate_field_lattice
@@ -434,12 +434,11 @@ alg_equiv.of_bijective (alg_hom.mk (adjoin_root.lift (algebra_map F F⟮α⟯)
     split,
     { exact ring_hom.injective f },
     { suffices : F⟮α⟯.to_subfield ≤ ring_hom.field_range ((F⟮α⟯.to_subfield.subtype).comp f),
-      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy.2⟩) },
-      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy, ⟨y,
-        ⟨subfield.mem_top y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩⟩))
+      { exact λ x, Exists.cases_on (this (subtype.mem x)) (λ y hy, ⟨y, subtype.ext hy⟩) },
+      exact subfield.closure_le.mpr (set.union_subset (λ x hx, Exists.cases_on hx (λ y hy,
+        ⟨y, by { rw [ring_hom.comp_apply, adjoin_root.lift_of], exact hy }⟩))
         (set.singleton_subset_iff.mpr ⟨adjoin_root.root (minpoly F α),
-        ⟨subfield.mem_top (adjoin_root.root (minpoly F α)),
-        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩⟩)) } end)
+        by { rw [ring_hom.comp_apply, adjoin_root.lift_root], refl }⟩)) } end)
 
 lemma adjoin_root_equiv_adjoin_apply_root (h : is_integral F α) :
   adjoin_root_equiv_adjoin F h (adjoin_root.root (minpoly F α)) =
@@ -459,7 +458,7 @@ let ϕ := adjoin_root_equiv_adjoin F h,
   { to_fun := λ f, f.comp ϕ.to_alg_hom,
     inv_fun := λ f, f.comp ϕ.symm.to_alg_hom,
     left_inv := λ _, by { ext, simp only [alg_equiv.coe_alg_hom,
-      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply]},
+      alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply, alg_equiv.apply_symm_apply] },
     right_inv := λ _, by { ext, simp only [alg_equiv.symm_apply_apply,
       alg_equiv.coe_alg_hom, alg_equiv.to_alg_hom_eq_coe, alg_hom.comp_apply] } },
   swap2 := adjoin_root.equiv F K (minpoly F α) (minpoly.ne_zero h) in
@@ -712,22 +711,12 @@ variables {K L : Type*} [field K] [field L] [algebra K L]
 
 namespace intermediate_field
 
-lemma power_basis_is_basis {x : L} (hx : is_integral K x) :
-  is_basis K (λ (i : fin (minpoly K x).nat_degree), (adjoin_simple.gen K x ^ (i : ℕ))) :=
-begin
-  let ϕ := (adjoin_root_equiv_adjoin K hx).to_linear_equiv,
-  have key : ϕ (adjoin_root.root (minpoly K x)) = adjoin_simple.gen K x,
-  { exact intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx },
-  suffices : ϕ ∘ (λ (i : fin (minpoly K x).nat_degree),
-    adjoin_root.root (minpoly K x) ^ (i.val)) =
-      (λ (i : fin (minpoly K x).nat_degree),
-        (adjoin_simple.gen K x) ^ ↑i),
-  { rw ← this, exact linear_equiv.is_basis
-    (adjoin_root.power_basis_is_basis (minpoly.ne_zero hx)) ϕ },
-  ext y,
-  rw [function.comp_app, fin.val_eq_coe, alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow],
-  rw intermediate_field.adjoin_root_equiv_adjoin_apply_root K hx,
-end
+/-- The elements `1, x, ..., x ^ (d - 1)` form a basis for `K⟮x⟯`,
+where `d` is the degree of the minimal polynomial of `x`. -/
+noncomputable def power_basis_aux {x : L} (hx : is_integral K x) :
+  basis (fin (minpoly K x).nat_degree) K K⟮x⟯ :=
+(adjoin_root.power_basis (minpoly.ne_zero hx)).basis.map
+  (adjoin_root_equiv_adjoin K hx).to_linear_equiv
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K⟮x⟯`,
 where `d` is the degree of the minimal polynomial of `x`. -/
@@ -735,7 +724,11 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
   power_basis K K⟮x⟯ :=
 { gen := adjoin_simple.gen K x,
   dim := (minpoly K x).nat_degree,
-  is_basis := power_basis_is_basis hx }
+  basis := power_basis_aux hx,
+  basis_eq_pow := λ i,
+    by rw [power_basis_aux, basis.map_apply, power_basis.basis_eq_pow,
+           alg_equiv.to_linear_equiv_apply, alg_equiv.map_pow, adjoin_root.power_basis_gen,
+           adjoin_root_equiv_adjoin_apply_root] }
 
 @[simp] lemma adjoin.power_basis.gen_eq {x : L} (hx : is_integral K x) :
   (adjoin.power_basis hx).gen = adjoin_simple.gen K x := rfl
@@ -743,10 +736,10 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
 lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
 power_basis.finite_dimensional (adjoin.power_basis hx)
 
-lemma adjoin.findim {x : L} (hx : is_integral K x) :
-  finite_dimensional.findim K K⟮x⟯ = (minpoly K x).nat_degree :=
+lemma adjoin.finrank {x : L} (hx : is_integral K x) :
+  finite_dimensional.finrank K K⟮x⟯ = (minpoly K x).nat_degree :=
 begin
-  rw power_basis.findim (adjoin.power_basis hx : _),
+  rw power_basis.finrank (adjoin.power_basis hx : _),
   refl
 end
 

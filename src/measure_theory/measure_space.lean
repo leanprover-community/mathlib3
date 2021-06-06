@@ -417,6 +417,10 @@ begin
   exacts [pairwise_disjoint_on_bool.2 hd, λ b, bool.cases_on b h₂ h₁]
 end
 
+lemma measure_add_measure_compl (h : measurable_set s) :
+  μ s + μ sᶜ = μ univ :=
+by { rw [← union_compl_self s, measure_union _ h h.compl], exact disjoint_compl_right }
+
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
   (hd : pairwise_on s (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
@@ -515,16 +519,16 @@ begin
   { simp only [supr_of_empty hι, Union], exact measure_empty },
   resetI,
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
-  have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode2 ι n, s b) n) :=
-    measurable_set.disjointed (measurable_set.bUnion_decode2 h),
-  rw [← encodable.Union_decode2, ← Union_disjointed, measure_Union disjoint_disjointed this,
+  have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
+    measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
+  rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union disjoint_disjointed this,
     ennreal.tsum_eq_supr_nat],
   simp only [← measure_bUnion_finset (disjoint_disjointed.pairwise_on _) (λ n _, this n)],
   refine supr_le (λ n, _),
-  refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode2 ι k), s i)) _,
+  refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
   exact measure_mono (bUnion_subset_bUnion_right (λ k hk, disjointed_subset)),
   simp only [← finset.set_bUnion_option_to_finset, ← finset.set_bUnion_bUnion],
-  generalize : (finset.range n).bUnion (λ k, (encodable.decode2 ι k).to_finset) = t,
+  generalize : (finset.range n).bUnion (λ k, (encodable.decode₂ ι k).to_finset) = t,
   rcases hd.finset_le t with ⟨i, hi⟩,
   exact le_supr_of_le i (measure_mono $ bUnion_subset hi)
 end
@@ -723,8 +727,8 @@ rfl
 theorem smul_apply (c : ℝ≥0∞) (μ : measure α) (s : set α) : (c • μ) s = c * μ s :=
 rfl
 
-instance : semimodule ℝ≥0∞ (measure α) :=
-injective.semimodule ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
+instance : module ℝ≥0∞ (measure α) :=
+injective.module ℝ≥0∞ ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
 
 /-! ### The complete lattice of measures -/
@@ -1731,18 +1735,27 @@ section no_atoms
 
 variables [has_no_atoms μ]
 
-lemma measure_countable (h : countable s) : μ s = 0 :=
+instance (s : set α) : has_no_atoms (μ.restrict s) :=
+begin
+  refine ⟨λ x, _⟩,
+  obtain ⟨t, hxt, ht1, ht2⟩ := exists_measurable_superset_of_null (measure_singleton x : μ {x} = 0),
+  apply measure_mono_null hxt,
+  rw measure.restrict_apply ht1,
+  apply measure_mono_null (inter_subset_left t s) ht2
+end
+
+lemma _root_.set.countable.measure_zero (h : countable s) : μ s = 0 :=
 begin
   rw [← bUnion_of_singleton s, ← nonpos_iff_eq_zero],
   refine le_trans (measure_bUnion_le h _) _,
   simp
 end
 
-lemma measure_finite (h : s.finite) : μ s = 0 :=
-measure_countable h.countable
+lemma _root_.set.finite.measure_zero (h : s.finite) : μ s = 0 :=
+h.countable.measure_zero
 
-lemma measure_finset (s : finset α) : μ ↑s = 0 :=
-measure_finite s.finite_to_set
+lemma _root_.finset.measure_zero (s : finset α) : μ ↑s = 0 :=
+s.finite_to_set.measure_zero
 
 lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=
@@ -2155,7 +2168,7 @@ begin
   repeat {rw sub_def},
   have h_nonempty : {d | μ ≤ d + ν}.nonempty,
   { apply @set.nonempty_of_mem _ _ μ, rw mem_set_of_eq, intros t h_meas,
-    apply le_add_right (le_refl (μ t)) },
+    exact le_self_add },
   rw restrict_Inf_eq_Inf_restrict h_nonempty h_meas_s,
   apply le_antisymm,
   { apply @Inf_le_Inf_of_forall_exists_le (measure α) _,
@@ -2171,15 +2184,17 @@ begin
         have h_meas_t_inter_s : measurable_set (t ∩ s) :=
            h_meas_t.inter h_meas_s,
         repeat {rw measure_eq_inter_diff h_meas_t h_meas_s, rw set.diff_eq},
-        apply add_le_add _ _; rw add_apply,
-        { apply le_add_right _,
+        refine add_le_add _ _,
+        { rw add_apply,
+          apply le_add_right _,
           rw add_apply,
           rw ← @restrict_eq_self _ _ μ s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           rw ← @restrict_eq_self _ _ ν s _ h_meas_t_inter_s (set.inter_subset_right _ _),
           apply h_ν'_in _ h_meas_t_inter_s },
         cases (@set.eq_empty_or_nonempty _ (t ∩ sᶜ)) with h_inter_empty h_inter_nonempty,
         { simp [h_inter_empty] },
-        { have h_meas_inter_compl :=
+        { rw add_apply,
+          have h_meas_inter_compl :=
             h_meas_t.inter (measurable_set.compl h_meas_s),
           rw [restrict_apply h_meas_inter_compl, h_inter_inter_eq_inter sᶜ],
           have h_mu_le_add_top : μ ≤ ν' + ν + ⊤,
@@ -2332,9 +2347,9 @@ theorem measurable_set.diff_null (hs : measurable_set s) (hz : μ z = 0) :
 begin
   rw measure_eq_infi at hz,
   choose f hf using show ∀ q : {q : ℚ // q > 0}, ∃ t : set α,
-    z ⊆ t ∧ measurable_set t ∧ μ t < (nnreal.of_real q.1 : ℝ≥0∞),
+    z ⊆ t ∧ measurable_set t ∧ μ t < (real.to_nnreal q.1 : ℝ≥0∞),
   { rintro ⟨ε, ε0⟩,
-    have : 0 < (nnreal.of_real ε : ℝ≥0∞), { simpa using ε0 },
+    have : 0 < (real.to_nnreal ε : ℝ≥0∞), { simpa using ε0 },
     rw ← hz at this, simpa [infi_lt_iff] },
   refine null_measurable_set_iff.2 ⟨s \ Inter f,
     diff_subset_diff_right (subset_Inter (λ i, (hf i).1)),

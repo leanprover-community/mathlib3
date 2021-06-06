@@ -886,18 +886,12 @@ finrank_zero_iff.trans (subsingleton_iff_forall_eq 0)
 
 /-- If `ι` is an empty type and `V` is zero-dimensional, there is a unique `ι`-indexed basis. -/
 noncomputable def basis_of_finrank_zero [finite_dimensional K V]
-  {ι : Type*} (h : ¬ nonempty ι) (hV : finrank K V = 0) :
+  {ι : Type*} [is_empty ι] (hV : finrank K V = 0) :
   basis ι K V :=
 begin
   haveI : subsingleton V := finrank_zero_iff.1 hV,
-  exact basis.empty _ h
+  exact basis.empty _
 end
-
-/-- If `V` is zero-dimensional, there is a unique `fin 0`-indexed basis. -/
-noncomputable def basis_of_finrank_zero' [finite_dimensional K V]
-  (hV : finrank K V = 0) :
-  basis (fin 0) K V :=
-basis_of_finrank_zero (finset.univ_eq_empty.mp rfl) hV
 
 namespace linear_map
 

@@ -574,18 +574,11 @@ section empty
 variables (M)
 
 /-- If `M` is a subsingleton and `ι` is empty, this is the unique `ι`-indexed basis for `M`. -/
-protected def empty [subsingleton M] (h_empty : ¬ nonempty ι) : basis ι R M :=
-of_repr
-  { to_fun := λ x, 0,
-    inv_fun := λ f, 0,
-    left_inv := λ x, by simp,
-    right_inv := λ f, by { ext i, cases h_empty ⟨i⟩ },
-    map_add' := λ x y, by simp,
-    map_smul' := λ c x, by simp }
+protected def empty [subsingleton M] [is_empty ι] : basis ι R M :=
+of_repr 0
 
-lemma empty_unique [subsingleton M] (h_empty : ¬ nonempty ι)
-  (b : basis ι R M) : b = basis.empty M h_empty :=
-by { ext i, cases h_empty ⟨i⟩ }
+instance empty_unique [subsingleton M] [is_empty ι] : unique (basis ι R M) :=
+{ default := basis.empty M, uniq := λ ⟨x⟩, congr_arg of_repr $ subsingleton.elim _ _ }
 
 end empty
 

@@ -21,7 +21,7 @@ convex cones and ordered modules.
 
 We also define `convex.to_cone` to be the minimal cone that includes a given convex set.
 
-We define `set.to_dual_cone` to be the cone consisting of all points `y` such that for
+We define `set.inner_dual_cone` to be the cone consisting of all points `y` such that for
 all points `x` in a given set `0 ≤ ⟪ x, y ⟫`.
 
 ## Main statements
@@ -544,7 +544,7 @@ open_locale real_inner_product_space
 
 /-- The dual cone is the cone consisting of all points `y` such that for
 all points `x` in a given set `0 ≤ ⟪ x, y ⟫`. -/
-noncomputable def set.to_dual_cone (s : set H) : convex_cone H :=
+noncomputable def set.inner_dual_cone (s : set H) : convex_cone H :=
 { carrier := { y | ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ },
   smul_mem' := λ c hc y hy x hx,
   begin
@@ -557,15 +557,15 @@ noncomputable def set.to_dual_cone (s : set H) : convex_cone H :=
     exact add_nonneg (hu x hx) (hv x hx)
   end }
 
-lemma to_dual_cone_empty : (∅ : set H).to_dual_cone = ⊤ :=
+lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
 convex_cone.ext' (eq_univ_of_forall
   (λ x y hy, false.elim (set.not_mem_empty _ hy)))
 
-lemma to_dual_cone_le_to_dual_cone (h : t ⊆ s) :
-  s.to_dual_cone ≤ t.to_dual_cone :=
+lemma inner_dual_cone_le_inner_dual_cone (h : t ⊆ s) :
+  s.inner_dual_cone ≤ t.inner_dual_cone :=
 λ y hy x hx, hy x (h hx)
 
-lemma pointed_to_dual_cone : s.to_dual_cone.pointed :=
+lemma pointed_inner_dual_cone : s.inner_dual_cone.pointed :=
 λ x hx, by rw inner_zero_right
 
 end dual

@@ -532,3 +532,62 @@ le_antisymm
   (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
 
 end submonoid
+
+section dynamics
+
+lemma card_pow_dynamics_aux {f : ℕ → ℕ} (h1 : monotone f) {B : ℕ} (h2 : ∀ n, f n ≤ B)
+  (h3 : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
+∃ k : ℕ, k ≤ B ∧ ∀ i, (k ≤ i → f i = f k) ∧ (i < k → ∀ j, i < j → f i < f j) :=
+begin
+  have key : ∃ k, f k = f (k + 1),
+  { contrapose! h2,
+    suffices : ∀ n : ℕ, n ≤ B + 1 → n ≤ f n,
+    { exact ⟨B + 1, (this (B + 1) (le_refl (B + 1)))⟩ },
+    exact λ k, nat.rec (λ _, (f 0).zero_le) (λ n ih hn, lt_of_le_of_lt
+      (ih (nat.le_of_succ_le hn)) (lt_of_le_of_ne (h1 n.le_succ) (h2 n))) k },
+  refine ⟨nat.find key, _, λ i, ⟨λ hi, _, λ hi j hij, _⟩⟩,
+  { have step1 : ∀ n, n < nat.find key → f n < f (n + 1) :=
+    λ n hn, lt_of_le_of_ne (h1 n.le_succ) (show _, from nat.find_min key hn),
+    have step2 : ∀ n, n ≤ nat.find key → n ≤ f n := λ k, nat.rec (λ _, (f 0).zero_le)
+      (λ n ih hn, lt_of_le_of_lt (ih (nat.le_of_succ_le hn)) (step1 n hn)) k,
+    exact (step2 (nat.find key) (le_refl (nat.find key))).trans (h2 (nat.find key)) },
+  { obtain ⟨j, rfl⟩ := nat.exists_eq_add_of_le hi,
+    have step1 : ∀ j, f (nat.find key + j) = f (nat.find key + j + 1) :=
+    λ k, nat.rec (nat.find_spec key) (λ j ih, h3 (nat.find key + j) ih) k,
+    exact nat.rec rfl (λ k ih, (step1 k).symm.trans ih) j },
+  { have := nat.find_min key hi,
+    exact lt_of_lt_of_le (lt_of_le_of_ne (h1 i.le_succ) this) (h1 hij) },
+end
+
+noncomputable def set_fintype' {α : Type*} [fintype α] (s : set α) : fintype s :=
+by { classical, exact set_fintype s }
+
+local attribute [instance] set_fintype
+
+lemma card_pow_dynamics {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
+  ∃ k : ℕ, k ≤ fintype.card G ∧ ∀ i,
+    (k ≤ i → fintype.card ↥(S ^ i) = fintype.card ↥(S ^ k))
+    ∧ (i < k → ∀ j, i < j → fintype.card ↥(S ^ i) < fintype.card ↥(S ^ j)) :=
+begin
+  have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
+  { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
+    rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
+    exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
+  obtain ⟨a, ha⟩ := hS,
+  have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
+  monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
+  refine card_pow_dynamics_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
+    (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
+  have step1 : {a} * S ^ n = S ^ (n + 1),
+  { refine set.eq_of_subset_of_card_le _
+      (le_trans (ge_of_eq h) (key a _ _ (λ b hb, set.mul_mem_mul (set.mem_singleton a) hb))),
+    rintros _ ⟨b, c, hb, hc, rfl⟩,
+    exact set.mul_mem_mul ((congr_arg (∈ _) (set.mem_singleton_iff.mp hb)).mpr ha) hc },
+  have step2 : S ^ (n + 2) = {a} * S ^ (n + 1),
+  { rw [pow_succ' S n, pow_succ', ←mul_assoc, step1] },
+  rw step2,
+  rintros _ ⟨b, c, hb, hc, rfl⟩,
+  rwa [set.mem_singleton_iff.mp hb, inv_mul_cancel_left],
+end
+
+end dynamics

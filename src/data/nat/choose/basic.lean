@@ -169,6 +169,24 @@ begin
   exact mul_le_mul_left _ hk,
 end
 
+lemma desc_fac_eq_factorial_mul_choose (n k : ℕ) : desc_fac n k = k! * (n + k).choose k :=
+begin
+  rw mul_comm,
+  apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
+  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←factorial_mul_desc_fac, mul_comm],
+  exact le_add_left k n
+end
+
+lemma factorial_dvd_desc_fac (n k : ℕ) : k! ∣ desc_fac n k :=
+⟨(n+k).choose k, desc_fac_eq_factorial_mul_choose _ _⟩
+
+lemma choose_eq_desc_fac_div_factorial (n k : ℕ) : (n + k).choose k = desc_fac n k / k! :=
+begin
+  apply mul_left_cancel' (factorial_ne_zero k),
+  rw ←desc_fac_eq_factorial_mul_choose,
+  exact (nat.mul_div_cancel' $ factorial_dvd_desc_fac _ _).symm
+end
+
 /-! ### Inequalities -/
 
 /-- Show that `nat.choose` is increasing for small values of the right argument. -/

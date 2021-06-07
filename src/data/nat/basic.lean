@@ -187,6 +187,12 @@ iff.intro
   (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (assume h, h.symm ▸ ⟨1, rfl⟩)
 
+instance unique_units : unique (units ℕ) :=
+{ default := 1, uniq := nat.units_eq_one }
+
+instance unique_add_units : unique (add_units ℕ) :=
+{ default := 0, uniq := nat.add_units_eq_zero }
+
 /-! ### Equalities and inequalities involving zero and one -/
 
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
@@ -580,6 +586,16 @@ lemma lt_pred_iff {n m : ℕ} : n < pred m ↔ succ n < m :=
 
 lemma lt_of_lt_pred {a b : ℕ} (h : a < b - 1) : a < b :=
 lt_of_succ_lt (lt_pred_iff.1 h)
+
+lemma le_or_le_of_add_eq_add_pred {a b c d : ℕ} (h : c + d = a + b - 1) : a ≤ c ∨ b ≤ d :=
+begin
+  cases le_or_lt a c with h' h'; [left, right],
+  { exact h', },
+  { replace h' := add_lt_add_right h' d, rw h at h',
+    cases b.eq_zero_or_pos with hb hb, { rw hb, exact zero_le d, },
+    rw [a.add_sub_assoc hb, add_lt_add_iff_left] at h',
+    exact nat.le_of_pred_lt h', },
+end
 
 /-! ### `mul` -/
 

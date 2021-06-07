@@ -687,12 +687,12 @@ begin
   cases lt_trichotomy 0 x,
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux1 _ h)
-    (mem_nhds_sets (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
+    (is_open.mem_nhds (by { convert (is_open_lt' (0:ℝ)).prod is_open_univ, ext, finish }) h),
   cases h,
   { exact absurd h.symm hx },
   exact continuous_within_at.continuous_at
     (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux2 _ h)
-    (mem_nhds_sets (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
+    (is_open.mem_nhds (by { convert (is_open_gt' (0:ℝ)).prod is_open_univ, ext, finish }) h)
 end
 
 lemma continuous_rpow_aux3 : continuous (λ p : {p:ℝ×ℝ // 0 < p.2}, p.val.1 ^ p.val.2) :=
@@ -728,7 +728,7 @@ lemma continuous_at_rpow_of_pos (hy : 0 < y) (x : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
 continuous_within_at.continuous_at
   (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux3 _ hy)
-  (mem_nhds_sets (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
+  (is_open.mem_nhds (by { convert is_open_univ.prod (is_open_lt' (0:ℝ)), ext, finish }) hy)
 
 lemma continuous_at_rpow {x y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
@@ -771,7 +771,7 @@ begin
     field_simp [rpow_def_of_pos h, mul_sub, exp_sub, exp_log h, ne_of_gt h],
     ring },
   apply this.congr_of_eventually_eq,
-  have : set.Ioi (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Ioi h,
+  have : set.Ioi (0 : ℝ) ∈ 𝓝 x := is_open.mem_nhds is_open_Ioi h,
   exact filter.eventually_of_mem this (λ y hy, rpow_def_of_pos hy _)
 end
 
@@ -785,7 +785,7 @@ begin
       ne_of_lt h],
     ring },
   apply this.congr_of_eventually_eq,
-  have : set.Iio (0 : ℝ) ∈ 𝓝 x := mem_nhds_sets is_open_Iio h,
+  have : set.Iio (0 : ℝ) ∈ 𝓝 x := is_open.mem_nhds is_open_Iio h,
   exact filter.eventually_of_mem this (λ y hy, rpow_def_of_neg hy _)
 end
 

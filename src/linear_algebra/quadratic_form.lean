@@ -6,7 +6,7 @@ Authors: Anne Baanen
 
 import algebra.invertible
 import linear_algebra.bilinear_form
-import linear_algebra.determinant
+import linear_algebra.matrix.determinant
 import linear_algebra.special_linear_group
 import analysis.special_functions.pow
 
@@ -272,7 +272,7 @@ def coe_fn_add_monoid_hom : quadratic_form R M →+ (M → R) :=
 /-- Evaluation on a particular element of the module `M` is an additive map over quadratic forms. -/
 @[simps apply]
 def eval_add_monoid_hom (m : M) : quadratic_form R M →+ R :=
-(add_monoid_hom.apply _ m).comp coe_fn_add_monoid_hom
+(pi.eval_add_monoid_hom _ m).comp coe_fn_add_monoid_hom
 
 section sum
 
@@ -752,74 +752,58 @@ variable [finite_dimensional K V]
 
 lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : fin (finrank K V) → V,
-    B.is_Ortho v ∧ is_basis K v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
+  ∃ (v : basis (fin (finrank K V)) K V),
+    B.is_Ortho v ∧ ∀ i, B (v i) (v i) ≠ 0 :=
 begin
   tactic.unfreeze_local_instances,
   induction hd : finrank K V with d ih generalizing V,
-  { exact ⟨λ _, 0, λ _ _ _, zero_left _, is_basis_of_finrank_zero' hd, fin.elim0⟩ },
-  { haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
-    cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
-    { have hd' := hd,
-      rw [← submodule.finrank_add_eq_of_is_compl
-            (is_compl_span_singleton_orthogonal hx).symm,
-          finrank_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
-      rcases @ih (B.orthogonal $ K ∙ x) _ _ _
-        (B.restrict _) (B.restrict_orthogonal_span_singleton_nondegenerate hB₁ hB₂ hx)
-        (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₂, hv₃⟩,
-      refine ⟨λ i, if h : i ≠ 0 then coe (v' (i.pred h)) else x, λ i j hij, _, _, _⟩,
-      { by_cases hi : i = 0,
-        { subst i,
-          simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
-            not_false_iff, dite_not],
-          rw [dif_neg hij.symm, is_ortho, hB₂],
-          exact (v' (j.pred hij.symm)).2 _ (submodule.mem_span_singleton_self x) },
-        by_cases hj : j = 0,
-        { subst j,
-          simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
-            not_false_iff, dite_not],
-          rw dif_neg hi,
-          exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
-        { simp_rw [dif_pos hi, dif_pos hj],
-          rw [is_ortho, hB₂],
-          exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
-      { refine is_basis_of_linear_independent_of_card_eq_finrank
-          (@linear_independent_of_is_Ortho _ _ _ _ _ _ B _ _ _)
-          (by rw [hd', fintype.card_fin]),
-        { intros i j hij,
-          by_cases hi : i = 0,
-          { subst hi,
-            simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
-              not_false_iff, dite_not],
-            rw [dif_neg hij.symm, is_ortho, hB₂],
-            exact (v' (j.pred hij.symm)).2 _ (submodule.mem_span_singleton_self x) },
-          by_cases hj : j = 0,
-          { subst j,
-            simp only [eq_self_iff_true, not_true, ne.def, dif_neg,
-              not_false_iff, dite_not],
-            rw dif_neg hi,
-            exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
-          { simp_rw [dif_pos hi, dif_pos hj],
-            rw [is_ortho, hB₂],
-            exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
-        { intro i,
-          by_cases hi : i ≠ 0,
-          { rw dif_pos hi,
-            exact hv₃ (i.pred hi) },
-          { rw dif_neg hi, exact hx } } },
-      { intro i,
-          by_cases hi : i ≠ 0,
-          { rw dif_pos hi,
-            exact hv₃ (i.pred hi) },
-          { rw dif_neg hi, exact hx } } } }
+  { exact ⟨basis_of_finrank_zero' hd, λ _ _ _, zero_left _, fin.elim0⟩ },
+  haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
+  cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
+  have hd' := hd,
+  rw [← submodule.finrank_add_eq_of_is_compl
+        (is_compl_span_singleton_orthogonal hx).symm,
+      finrank_span_singleton (ne_zero_of_not_is_ortho_self x hx)] at hd,
+  rcases @ih (B.orthogonal $ K ∙ x) _ _ _
+    (B.restrict _) (B.restrict_orthogonal_span_singleton_nondegenerate hB₁ hB₂ hx)
+    (B.restrict_sym hB₂ _) (nat.succ.inj hd) with ⟨v', hv₁, hv₃⟩,
+
+  set v := (λ (i : fin _), if h : i = 0 then x else coe (v' (i.pred h))) with v_def,
+  have : ∀ i j (hij : i ≠ j), B.is_ortho (v i) (v j),
+  { intros i j hij,
+    simp only [v_def],
+    split_ifs with hi hj hj,
+    { have : i = j := hi.trans hj.symm, contradiction },
+    { exact (v' (j.pred hj)).2 _ (submodule.mem_span_singleton_self x) },
+    { rw [is_ortho, hB₂],
+      exact (v' (i.pred hi)).2 _ (submodule.mem_span_singleton_self x) },
+    { exact hv₁ (j.pred hj) (i.pred hi) (by simpa using hij.symm) } },
+
+  refine ⟨@basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _ _ _
+      v
+      (@linear_independent_of_is_Ortho _ _ _ _ _ _ B v (λ i j hij, this j i hij.symm) _)
+      (by rw [hd', fintype.card_fin]), _, _⟩,
+  { intro i,
+    simp only [v_def],
+    split_ifs with hi,
+    { exact hx },
+    { exact hv₃ (i.pred hi) } },
+  { intros i j hij,
+    simp only [v_def, basis_of_linear_independent_of_card_eq_finrank, basis.mk_apply],
+    exact this j i hij.symm },
+  { intro i,
+    simp only [v_def, basis_of_linear_independent_of_card_eq_finrank, basis.mk_apply],
+    split_ifs with hi,
+    { exact hx },
+    { exact hv₃ (i.pred hi) } }
 end .
 
 /-- Given a nondegenerate symmetric bilinear form `B` on some vector space `V` over the
   field `K` with invertible `2`, there exists an orthogonal basis with respect to `B`. -/
 theorem exists_orthogonal_basis [hK : invertible (2 : K)]
   {B : bilin_form K V} (hB₁ : B.nondegenerate) (hB₂ : sym_bilin_form.is_sym B) :
-  ∃ v : fin (finrank K V) → V, B.is_Ortho v ∧ is_basis K v :=
-let ⟨v, hv₁, hv₂, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁, hv₂⟩
+  ∃ v : basis (fin (finrank K V)) K V, B.is_Ortho v :=
+let ⟨v, hv₁, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁⟩
 
 end bilin_form
 
@@ -830,17 +814,7 @@ open_locale big_operators
 open finset bilin_form
 
 variables {M₁ : Type*} [add_comm_group M₁] [module R M₁]
-variables {ι : Type*} [fintype ι] {v : ι → M}
-
-instance units.distrib_mul_action : distrib_mul_action (units R) R :=
-{ smul := λ r s, (r : R) * s,
-  one_smul := one_mul,
-  mul_smul := λ _ _, mul_assoc _ _,
-  smul_add := λ _ _, mul_add _ _,
-  smul_zero := λ _, mul_zero _ }
-
-instance : smul_comm_class (units R₁) R₁ R₁ :=
-{ smul_comm := λ _, mul_left_comm _ }
+variables {ι : Type*} [fintype ι] {v : basis ι R M}
 
 /-- A quadratic form composed with a `linear_equiv` is isometric to itself. -/
 def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M) :
@@ -854,24 +828,24 @@ def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M
   .. f.symm }
 
 /-- Given a quadratic form `Q` and a basis, `basis_repr` is the basis representation of `Q`. -/
-noncomputable def basis_repr (Q : quadratic_form R M)
-  (hv₁ : is_basis R v) : quadratic_form R (ι → R) :=
-Q.comp hv₁.equiv_fun.symm
+noncomputable def basis_repr (Q : quadratic_form R M) (v : basis ι R M) :
+  quadratic_form R (ι → R) :=
+Q.comp v.equiv_fun.symm
 
 @[simp]
-lemma basis_repr_apply (Q : quadratic_form R M) (hv₁ : is_basis R v)
-  (w : ι → R) : Q.basis_repr hv₁ w = Q (∑ i : ι, w i • v i) :=
-by { rw ← hv₁.equiv_fun_symm_apply, refl }
+lemma basis_repr_apply (Q : quadratic_form R M) (w : ι → R) :
+  Q.basis_repr v w = Q (∑ i : ι, w i • v i) :=
+by { rw ← v.equiv_fun_symm_apply, refl }
 
 /-- A quadratic form is isometric to its bases representations. -/
-noncomputable def isometry_basis_repr (Q : quadratic_form R M) (hv₁ : is_basis R v) :
-  isometry Q (Q.basis_repr hv₁) :=
-isometry_of_comp_linear_equiv Q hv₁.equiv_fun.symm
+noncomputable def isometry_basis_repr (Q : quadratic_form R M) (v : basis ι R M):
+  isometry Q (Q.basis_repr v) :=
+isometry_of_comp_linear_equiv Q v.equiv_fun.symm
 
 lemma isometry_of_is_Ortho_apply [invertible (2 : R₁)]
-  (Q : quadratic_form R₁ M) (hv₁ : is_basis R₁ v)
+  (Q : quadratic_form R₁ M) (v : basis ι R₁ M)
   (hv₂ : (associated Q).is_Ortho v) (w : ι → R₁) :
-  Q.basis_repr hv₁ w = ∑ i : ι, associated Q (v i) (v i) * w i * w i :=
+  Q.basis_repr v w = ∑ i : ι, associated Q (v i) (v i) * (w i * w i) :=
 begin
   rw [basis_repr_apply, ← @associated_eq_self_apply R₁, sum_left],
   refine sum_congr rfl (λ j hj, _),
@@ -912,17 +886,12 @@ lemma equivalent_weighted_sum_squares_of_nondegenerate'
   ∃ w : fin (finite_dimensional.finrank K V) → units K,
     equivalent Q (weighted_sum_squares K w) :=
 begin
-  obtain ⟨v, hv₁, hv₂, hv₃⟩ := exists_orthogonal_basis' hQ associated_is_sym,
-  refine ⟨λ i, units.mk_of_mul_eq_one (associated Q (v i) (v i))
-    (associated Q (v i) (v i))⁻¹ (mul_inv_cancel (hv₃ i)), _⟩,
-  refine nonempty.intro _,
-  convert Q.isometry_basis_repr hv₂,
+  obtain ⟨v, hv₁, hv₂⟩ := exists_orthogonal_basis' hQ associated_is_sym,
+  refine ⟨λ i, units.mk0 _ (hv₂ i), nonempty.intro _⟩,
+  convert Q.isometry_basis_repr v,
   ext w,
-  rw [isometry_of_is_Ortho_apply Q hv₂ hv₁, weighted_sum_squares_apply],
-  refine finset.sum_congr rfl _,
-  intros,
-  change (associated Q) (v x) (v x) • _ = _,
-  rw [smul_eq_mul, ← mul_assoc],
+  rw [isometry_of_is_Ortho_apply Q v hv₁, weighted_sum_squares_apply],
+  refl
 end
 
 section complex
@@ -936,33 +905,35 @@ begin
   { intros i hi,
     exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
   convert (weighted_sum_squares ℂ w).isometry_basis_repr
-    (is_basis.smul_of_is_unit (pi.is_basis_fun ℂ ι) (λ i, is_unit_iff_ne_zero.2 (hw' i))),
+    ((pi.basis_fun ℂ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hw' i).unit)),
   ext1 v,
   erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
-  have hsum : (∑ (i : ι), v i • (w i : ℂ) ^ - (1 / 2 : ℂ) •
-    (linear_map.std_basis ℂ (λ (i : ι), ℂ) i) 1) j =
-    v j • w j ^ - (1 / 2 : ℂ),
-  { rw [finset.sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply,
-        pi.smul_apply, function.update_same, smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
+  have hsum : (∑ (i : ι), v i • ((is_unit_iff_ne_zero.2 $ hw' i).unit : ℂ) •
+    (pi.basis_fun ℂ ι) i) j = v j • w j ^ - (1 / 2 : ℂ),
+  { rw [finset.sum_apply, sum_eq_single j, pi.basis_fun_apply, is_unit.unit_spec,
+        linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_same,
+        smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
     intros i _ hij,
-    rw [linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_noteq hij.symm,
-        pi.zero_apply, smul_eq_mul, smul_eq_mul, mul_zero, mul_zero],
+    rw [pi.basis_fun_apply, linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply,
+        function.update_noteq hij.symm, pi.zero_apply, smul_eq_mul, smul_eq_mul,
+        mul_zero, mul_zero],
     intro hj', exact false.elim (hj' hj) },
+  simp_rw basis.units_smul_apply,
   erw [hsum, smul_eq_mul],
   suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
   { erw [pi.one_apply, ← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
   rw [← complex.cpow_add _ _ (w j).ne_zero, show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
       complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero],
-end .
+end
 
 /-- A nondegenerate quadratic form on the complex numbers is equivalent to
 the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
 theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
   [finite_dimensional ℂ M] (Q : quadratic_form ℂ M) (hQ : (associated Q).nondegenerate) :
   equivalent Q (weighted_sum_squares ℂ (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
-let ⟨w, hw₁⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
-  nonempty.intro $ (classical.choice hw₁).trans (isometry_sum_squares w)
+let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
+  ⟨hw₁.trans (isometry_sum_squares w)⟩
 
 end complex
 

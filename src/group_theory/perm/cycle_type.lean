@@ -269,6 +269,18 @@ theorem is_conj_iff_cycle_type_eq {σ τ : perm α} :
   rw cycle_type_conj,
 end, is_conj_of_cycle_type_eq⟩
 
+@[simp] lemma cycle_type_extend_domain {β : Type*} [fintype β] [decidable_eq β]
+  {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) {g : perm α} :
+  cycle_type (g.extend_domain f) = cycle_type g :=
+begin
+  apply cycle_induction_on _ g,
+  { rw [extend_domain_one, cycle_type_one, cycle_type_one] },
+  { intros σ hσ,
+    rw [(hσ.extend_domain f).cycle_type, hσ.cycle_type, card_support_extend_domain] },
+  { intros σ τ hd hc hσ hτ,
+    rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
+end
+
 end cycle_type
 
 lemma is_cycle_of_prime_order' {σ : perm α} (h1 : (order_of σ).prime)

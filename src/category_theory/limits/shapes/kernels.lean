@@ -257,7 +257,7 @@ end
 section has_zero_object
 variables [has_zero_object C]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- The morphism from the zero object determines a cone on a kernel diagram -/
 def kernel.zero_cone : cone (parallel_pair f 0) :=
@@ -515,7 +515,7 @@ end
 section has_zero_object
 variables [has_zero_object C]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- The morphism to the zero object determines a cocone on a cokernel diagram -/
 def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
@@ -583,7 +583,7 @@ end
 section has_zero_object
 variables [has_zero_object C]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
 instance kernel.of_cokernel_of_epi [has_cokernel f]

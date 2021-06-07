@@ -76,6 +76,10 @@ F.map_add_hom.map_neg _
 lemma map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
 F.map_add_hom.map_sub _ _
 
+-- You can alternatively just use `functor.map_smul` here, with an explicit `(r : ℤ)` argument.
+lemma map_gsmul {X Y : C} {f : X ⟶ Y} {r : ℤ} : F.map (r • f) = r • F.map f :=
+F.map_add_hom.map_gsmul _ _
+
 open_locale big_operators
 
 @[simp]
@@ -84,7 +88,7 @@ lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
 (F.map_add_hom : (X ⟶ Y) →+ _).map_sum f s
 
 open category_theory.limits
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- An additive functor takes the zero object to the zero object (up to isomorphism). -/
 @[simps]

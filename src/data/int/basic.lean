@@ -166,7 +166,7 @@ sub_lt_self _ zero_lt_one
 theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
-@add_le_add_iff_right _ _ a b 1
+@add_le_add_iff_right _ a b _ _ _ _ 1
 
 @[simp] lemma succ_coe_nat_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
 lt_add_one_iff.mpr (by simp)
@@ -817,6 +817,12 @@ theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i
 | (n+1:ℕ) := mul_one _
 | 0       := mul_zero _
 | -[1+ n] := mul_neg_one _
+
+@[simp]
+theorem sign_pow_bit1 (k : ℕ) : ∀ n : ℤ, n.sign ^ (bit1 k) = n.sign
+| (n+1:ℕ) := one_pow (bit1 k)
+| 0       := zero_pow (nat.zero_lt_bit1 k)
+| -[1+ n] := (neg_pow_bit1 1 k).trans (congr_arg (λ x, -x) (one_pow (bit1 k)))
 
 theorem le_of_dvd {a b : ℤ} (bpos : 0 < b) (H : a ∣ b) : a ≤ b :=
 match a, b, eq_succ_of_zero_lt bpos, H with

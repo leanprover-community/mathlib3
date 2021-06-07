@@ -133,6 +133,9 @@ variables (f g)
 @[simp] lemma map_zero : f 0 = 0 :=
 f.to_distrib_mul_action_hom.map_zero
 
+@[simp] lemma map_eq_zero_iff (h : function.injective f) {x : M} : f x = 0 ↔ x = 0 :=
+⟨λ w, by { apply h, simp [w], }, λ w, by { subst w, simp, }⟩
+
 variables (M M₂)
 /--
 A typeclass for `has_scalar` structures which can be moved through a `linear_map`.
@@ -258,6 +261,12 @@ instance compatible_smul.int_module
   case hn : n ih { simp [sub_smul, ih] }
 end⟩
 
+instance compatible_smul.units {R S : Type*}
+  [monoid R] [mul_action R M] [mul_action R M₂] [semiring S] [module S M] [module S M₂]
+  [compatible_smul M M₂ R S] :
+  compatible_smul M M₂ (units R) S :=
+⟨λ f c x, (compatible_smul.map_smul f (c : R) x : _)⟩
+
 end add_comm_group
 
 end linear_map
@@ -320,6 +329,11 @@ end is_linear_map
 `linear_map.endomorphism_semiring` and algebra structure `module.endomorphism_algebra`. -/
 abbreviation module.End (R : Type u) (M : Type v)
   [semiring R] [add_comm_monoid M] [module R M] := M →ₗ[R] M
+
+/-- Reinterpret an additive homomorphism as a `ℕ`-linear map. -/
+def add_monoid_hom.to_nat_linear_map [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂) :
+  M →ₗ[ℕ] M₂ :=
+⟨f, f.map_add, f.map_nat_module_smul⟩
 
 /-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
 def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :

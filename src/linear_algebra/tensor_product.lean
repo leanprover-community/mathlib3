@@ -202,7 +202,7 @@ variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
 
 lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
-smul_injective hx
+smul_left_injective _ hx
 
 lemma ker_lsmul [no_zero_smul_divisors R M] {a : R} (ha : a ≠ 0) :
   (linear_map.lsmul R M a).ker = ⊥ :=
@@ -1005,11 +1005,16 @@ When `R` is a `ring` we get the required `tensor_product.compatible_smul` instan
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int : compatible_smul R ℤ M N :=
+instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
   (λ r ih, by simpa [sub_smul, tmul_sub, sub_tmul] using ih)⟩
+
+instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
+  [compatible_smul R S M N] :
+  compatible_smul R (units S) M N :=
+⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
 
 end tensor_product
 

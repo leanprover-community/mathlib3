@@ -446,6 +446,38 @@ theorem linear_independent.image {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
 by convert linear_independent.image_of_comp s f id hs
 
+lemma linear_independent.group_smul
+  {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : ι → M} (hv : linear_independent R v)
+  (w : ι → G) : linear_independent R (w • v) :=
+begin
+  rw linear_independent_iff'' at hv ⊢,
+  intros s g hgs hsum i,
+  refine (smul_eq_zero_iff_eq (w i)).1 _,
+  refine hv s (λ i, w i • g i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ smul_zero _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros, erw [pi.smul_apply, smul_assoc, smul_comm] },
+end
+
+-- This lemma cannot be proved with `linear_independent.group_smul` since the action of
+-- `units R` on `R` is not commutative.
+lemma linear_independent.units_smul {v : ι → M} (hv : linear_independent R v)
+  (w : ι → units R) : linear_independent R (w • v) :=
+begin
+  rw linear_independent_iff'' at hv ⊢,
+  intros s g hgs hsum i,
+  rw ← (w i).mul_left_eq_zero,
+  refine hv s (λ i, g i • w i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ zero_smul _ _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros,
+    erw [pi.smul_apply, smul_assoc],
+    refl }
+end
+
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 
@@ -862,6 +894,30 @@ lemma span_le_span_iff [nontrivial R] {s t u: set M}
 
 end module
 
+section nontrivial
+
+variables [ring R] [nontrivial R] [add_comm_group M] [add_comm_group M']
+variables [module R M] [no_zero_smul_divisors R M] [module R M']
+variables {v : ι → M} {s t : set M} {x y z : M}
+
+lemma linear_independent_unique_iff
+  (v : ι → M) [unique ι] :
+  linear_independent R v ↔ v (default ι) ≠ 0 :=
+begin
+  simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
+  refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
+  have := h (finsupp.single (default ι) 1) (or.inr hv),
+  exact one_ne_zero (finsupp.single_eq_zero.1 this)
+end
+
+alias linear_independent_unique_iff ↔ _ linear_independent_unique
+
+lemma linear_independent_singleton {x : M} (hx : x ≠ 0) :
+  linear_independent R (λ x, x : ({x} : set M) → M) :=
+linear_independent_unique coe hx
+
+end nontrivial
+
 /-!
 ### Properties which require `division_ring K`
 
@@ -900,22 +956,14 @@ begin
     exact false.elim (h _ ((smul_mem_iff _ ha').1 ha)) }
 end
 
-lemma linear_independent_unique_iff [ring R] [nontrivial R] [add_comm_monoid M] [module R M]
-  [no_zero_smul_divisors R M]
-  (v : ι → M) [unique ι] :
-  linear_independent R v ↔ v (default ι) ≠ 0 :=
+lemma linear_independent.insert (hs : linear_independent K (λ b, b : s → V)) (hx : x ∉ span K s) :
+  linear_independent K (λ b, b : insert x s → V) :=
 begin
-  simp only [linear_independent_iff, finsupp.total_unique, smul_eq_zero],
-  refine ⟨λ h hv, _, λ hv l hl, finsupp.unique_ext $ hl.resolve_right hv⟩,
-  have := h (finsupp.single (default ι) 1) (or.inr hv),
-  exact one_ne_zero (finsupp.single_eq_zero.1 this)
+  rw ← union_singleton,
+  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
+  apply hs.union (linear_independent_singleton x0),
+  rwa [disjoint_span_singleton' x0]
 end
-
-alias linear_independent_unique_iff ↔ _ linear_independent_unique
-
-lemma linear_independent_singleton {x : V} (hx : x ≠ 0) :
-  linear_independent K (λ x, x : ({x} : set V) → V) :=
-linear_independent_unique coe hx
 
 lemma linear_independent_option' :
   linear_independent K (λ o, option.cases_on' o x v : option ι → V) ↔
@@ -938,15 +986,6 @@ lemma linear_independent_option {v : option ι → V} :
   linear_independent K v ↔
     linear_independent K (v ∘ coe : ι → V) ∧ v none ∉ submodule.span K (range (v ∘ coe : ι → V)) :=
 by simp only [← linear_independent_option', option.cases_on'_none_coe]
-
-lemma linear_independent.insert (hs : linear_independent K (λ b, b : s → V)) (hx : x ∉ span K s) :
-  linear_independent K (λ b, b : insert x s → V) :=
-begin
-  rw ← union_singleton,
-  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
-  apply hs.union (linear_independent_singleton x0),
-  rwa [disjoint_span_singleton' x0]
-end
 
 theorem linear_independent_insert' {ι} {s : set ι} {a : ι} {f : ι → V} (has : a ∉ s) :
   linear_independent K (λ x : insert a s, f x) ↔
@@ -1021,6 +1060,28 @@ begin
     { exact linear_independent_sUnion_of_directed cc.directed_on (λ x xc, (hc xc).2) },
     { exact subset_sUnion_of_mem } }
 end
+
+/-- `linear_independent.extend` adds vectors to a linear independent set `s ⊆ t` until it spans
+all elements of `t`. -/
+noncomputable def linear_independent.extend (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : set V :=
+classical.some (exists_linear_independent hs hst)
+
+lemma linear_independent.extend_subset (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : hs.extend hst ⊆ t :=
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hbt
+
+lemma linear_independent.subset_extend (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : s ⊆ hs.extend hst :=
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hsb
+
+lemma linear_independent.subset_span_extend (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : t ⊆ span K (hs.extend hst) :=
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in htb
+
+lemma linear_independent.linear_independent_extend (hs : linear_independent K (λ x, x : s → V))
+  (hst : s ⊆ t) : linear_independent K (coe : hs.extend hst → V) :=
+let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hli
 
 variables {K V}
 

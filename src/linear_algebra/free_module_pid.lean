@@ -8,13 +8,14 @@ import linear_algebra.finsupp_vector_space
 import ring_theory.principal_ideal_domain
 import ring_theory.finiteness
 
-/-! # Free modules
+/-! # Free modules over PID
 
 A free `R`-module `M` is a module with a basis over `R`,
 equivalently it is an `R`-module linearly equivalent to `ι →₀ R` for some `ι`.
 
 This file proves a submodule of a free `R`-module of finite rank is also
-a free `R`-module of finite rank, if `R` is a principal ideal domain.
+a free `R`-module of finite rank, if `R` is a principal ideal domain (PID),
+i.e. we have instances `[integral_domain R] [is_principal_ideal_ring R]`.
 We express "free `R`-module of finite rank" as a module `M` which has a basis
 `b : ι → R`, where `ι` is a `fintype`.
 We call the cardinality of `ι` the rank of `M` in this file;
@@ -285,13 +286,9 @@ begin
   have a_mem : generator (N.map ϕ) ∈ N.map ϕ := generator_mem _,
 
   -- If `a` is zero, then the submodule is trivial. So let's assume `a ≠ 0`, `N ≠ ⊥`
-  by_cases N_bot : N = ⊥,
-  { rw N_bot,
-    refine ⟨0, basis.empty _ _⟩,
-    rintro ⟨i, ⟨⟩⟩ },
   by_cases a_zero : generator (N.map ϕ) = 0,
-  { have := eq_bot_of_generator_maximal_map_eq_zero b ϕ_max a_zero,
-    contradiction },
+  { rw eq_bot_of_generator_maximal_map_eq_zero b ϕ_max a_zero,
+    exact ⟨0, basis.empty _⟩ },
 
   -- We claim that `ϕ⁻¹ a = y` can be taken as basis element of `N`.
   let y := a_mem.some,

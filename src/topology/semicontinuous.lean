@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.continuous_on
-import data.indicator_function
+import algebra.indicator_function
 import topology.algebra.group
 import topology.algebra.ordered.liminf_limsup
 import topology.instances.ennreal

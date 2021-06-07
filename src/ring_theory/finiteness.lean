@@ -169,7 +169,7 @@ begin
     intro x,
     have hrw : (↑s : set A) = (λ (x : A), x ∈ s.val) := rfl,
     rw [← set.mem_range, ← alg_hom.coe_range, ← adjoin_eq_range, ← hrw, hs],
-    exact mem_top },
+    exact set.mem_univ x },
   { rintro ⟨s, ⟨f, hsur⟩⟩,
     exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
 end

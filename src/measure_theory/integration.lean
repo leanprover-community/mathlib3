@@ -5,8 +5,8 @@ Authors: Mario Carneiro, Johannes Hölzl
 -/
 import measure_theory.measure_space
 import measure_theory.borel_space
-import data.indicator_function
-import data.support
+import algebra.indicator_function
+import algebra.support
 
 /-!
 # Lebesgue integral for `ℝ≥0∞`-valued functions
@@ -903,6 +903,16 @@ begin
   exact h a,
 end
 
+lemma lintegral_mono_set ⦃μ : measure α⦄
+  {s t : set α} {f : α → ℝ≥0∞} (hst : s ⊆ t) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
+lintegral_mono' (measure.restrict_mono hst (le_refl μ)) (le_refl f)
+
+lemma lintegral_mono_set' ⦃μ : measure α⦄
+  {s t : set α} {f : α → ℝ≥0∞} (hst : s ≤ᵐ[μ] t) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
+lintegral_mono' (measure.restrict_mono' hst (le_refl μ)) (le_refl f)
+
 lemma monotone_lintegral (μ : measure α) : monotone (lintegral μ) :=
 lintegral_mono
 
@@ -1110,6 +1120,23 @@ begin
   rw @lintegral_supr _ _ μ _ (ae_seq.measurable hf p) h_ae_seq_mono,
   congr,
   exact funext (λ n, lintegral_congr_ae (ae_seq.ae_seq_n_eq_fun_n_ae hf hp n)),
+end
+
+/-- Monotone convergence theorem expressed with limits -/
+theorem lintegral_tendsto_of_tendsto_of_monotone {f : ℕ → α → ℝ≥0∞} {F : α → ℝ≥0∞}
+  (hf : ∀n, ae_measurable (f n) μ) (h_mono : ∀ᵐ x ∂μ, monotone (λ n, f n x))
+  (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 $ F x)) :
+  tendsto (λ n, ∫⁻ x, f n x ∂μ) at_top (𝓝 $ ∫⁻ x, F x ∂μ) :=
+begin
+  have : monotone (λ n, ∫⁻ x, f n x ∂μ) :=
+    λ i j hij, lintegral_mono_ae (h_mono.mono $ λ x hx, hx hij),
+  suffices key : ∫⁻ x, F x ∂μ = ⨆n, ∫⁻ x, f n x ∂μ,
+  { rw key,
+    exact tendsto_at_top_supr this },
+  rw ← lintegral_supr' hf h_mono,
+  refine lintegral_congr_ae _,
+  filter_upwards [h_mono, h_tendsto],
+  exact λ x hx_mono hx_tendsto, tendsto_nhds_unique hx_tendsto (tendsto_at_top_supr hx_mono),
 end
 
 lemma lintegral_eq_supr_eapprox_lintegral {f : α → ℝ≥0∞} (hf : measurable f) :

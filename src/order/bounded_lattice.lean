@@ -1156,8 +1156,7 @@ namespace is_complemented
 variables [bounded_lattice α] [is_complemented α]
 
 instance : is_complemented (order_dual α) :=
-⟨λ a, ⟨classical.some (@exists_is_compl α _ _ a),
-  (classical.some_spec (@exists_is_compl α _ _ a)).to_order_dual⟩⟩
+⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.to_order_dual⟩⟩
 
 end is_complemented
 

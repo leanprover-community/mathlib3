@@ -121,12 +121,10 @@ begin
   refine adjoin_le (λ x hx, subalgebra.mem_prod.2 _),
   rcases hx with (⟨x₁, ⟨hx₁, rfl⟩⟩ | ⟨x₂, ⟨hx₂, rfl⟩⟩) | (⟨x₃, ⟨hx₃, rfl⟩⟩ | ⟨x₄, ⟨hx₄, rfl⟩⟩),
   { exact ⟨subset_adjoin hx₁, subalgebra.zero_mem _⟩ },
-  { simp only [set.mem_singleton_iff, linear_map.inl_apply] at hx₂,
-    rw hx₂,
+  { rw set.mem_singleton_iff.1 hx₂,
     exact ⟨subalgebra.one_mem _, subalgebra.zero_mem _⟩ },
   { exact ⟨subalgebra.zero_mem _, subset_adjoin hx₃⟩ },
-  { simp only [set.mem_singleton_iff, linear_map.inl_apply] at hx₄,
-    rw hx₄,
+  { rw set.mem_singleton_iff.1 hx₄,
     exact ⟨subalgebra.zero_mem _, subalgebra.one_mem _⟩ }
 end
 

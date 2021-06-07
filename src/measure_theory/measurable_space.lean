@@ -550,11 +550,10 @@ hf.piecewise hs measurable_const
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
-lemma measurable_of_not_nonempty [is_empty α] (f : α → β) : measurable f :=
+lemma measurable_of_is_empty [is_empty α] (f : α → β) : measurable f :=
 begin
   assume s hs,
   convert measurable_set.empty,
-  exact eq_empty_of_is_empty _,
 end
 
 @[to_additive] lemma measurable_set_mul_support [has_one β]

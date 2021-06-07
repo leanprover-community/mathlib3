@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic
+import data.nat.pow
 import algebra.order_functions
 
 open nat

@@ -63,14 +63,6 @@ let S : subalgebra R A :=
 { carrier := p, mul_mem' := Hmul, add_mem' := Hadd, algebra_map_mem' := Halg } in
 adjoin_le (show s ≤ S, from Hs) h
 
-lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = (S : set A) ∩ (T : set A) :=
-begin
-  apply le_antisymm,
-  { simp },
-  { rw ←galois_insertion.l_inf_u (@algebra.gi R A _ _ _),
-    exact algebra.subset_adjoin }
-end
-
 lemma adjoin_union (s t : set A) : adjoin R (s ∪ t) = adjoin R s ⊔ adjoin R t :=
 (algebra.gc : galois_connection _ (coe : subalgebra R A → set A)).l_sup
 

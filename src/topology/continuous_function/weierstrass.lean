@@ -57,15 +57,15 @@ begin
   by_cases h : a < b, -- (Otherwise it's easy; we'll deal with that later.)
   { -- We can pullback continuous functions on `[a,b]` to continuous functions on `[0,1]`,
     -- by precomposing with an affine map.
-    let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) :=
+    let W : C⟮set.Icc a b, ℝ⟯ →ₐ[ℝ] C⟮I, ℝ⟯ :=
       comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map,
     -- This operation is itself a homeomorphism
     -- (with respect to the norm topologies on continuous functions).
-    let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := comp_right_homeomorph ℝ (Icc_homeo_I a b h).symm,
-    have w : (W : C(set.Icc a b, ℝ) → C(I, ℝ)) = W' := rfl,
+    let W' : C⟮set.Icc a b, ℝ⟯ ≃ₜ C⟮I, ℝ⟯ := comp_right_homeomorph ℝ (Icc_homeo_I a b h).symm,
+    have w : (W : C⟮set.Icc a b, ℝ⟯ → C⟮I, ℝ⟯) = W' := rfl,
     -- Thus we take the statement of the Weierstrass approximation theorem for `[0,1]`,
     have p := polynomial_functions_closure_eq_top',
-    -- and pullback both sides, obtaining an equation between subalgebras of `C([a,b], ℝ)`.
+    -- and pullback both sides, obtaining an equation between subalgebras of `C⟮[a,b], ℝ⟯`.
     apply_fun (λ s, s.comap' W) at p,
     simp only [algebra.comap_top] at p,
     -- Since the pullback operation is continuous, it commutes with taking `topological_closure`,
@@ -87,7 +87,7 @@ An alternative statement of Weierstrass' theorem.
 
 Every real-valued continuous function on `[a,b]` is a uniform limit of polynomials.
 -/
-theorem continuous_map_mem_polynomial_functions_closure (a b : ℝ) (f : C(set.Icc a b, ℝ)) :
+theorem continuous_map_mem_polynomial_functions_closure (a b : ℝ) (f : C⟮set.Icc a b, ℝ⟯) :
   f ∈ (polynomial_functions (set.Icc a b)).topological_closure :=
 begin
   rw polynomial_functions_closure_eq_top _ _,
@@ -100,7 +100,7 @@ for those who like their epsilons.
 
 Every real-valued continuous function on `[a,b]` is within any `ε > 0` of some polynomial.
 -/
-theorem exists_polynomial_near_continuous_map (a b : ℝ) (f : C(set.Icc a b, ℝ))
+theorem exists_polynomial_near_continuous_map (a b : ℝ) (f : C⟮set.Icc a b, ℝ⟯)
   (ε : ℝ) (pos : 0 < ε) :
   ∃ (p : polynomial ℝ), ∥p.to_continuous_map_on _ - f∥ < ε :=
 begin
@@ -122,7 +122,7 @@ theorem exists_polynomial_near_of_continuous_on
   (a b : ℝ) (f : ℝ → ℝ) (c : continuous_on f (set.Icc a b)) (ε : ℝ) (pos : 0 < ε) :
   ∃ (p : polynomial ℝ), ∀ x ∈ set.Icc a b, abs (p.eval x - f x) < ε :=
 begin
-  let f' : C(set.Icc a b, ℝ) := ⟨λ x, f x, continuous_on_iff_continuous_restrict.mp c⟩,
+  let f' : C⟮set.Icc a b, ℝ⟯ := ⟨λ x, f x, continuous_on_iff_continuous_restrict.mp c⟩,
   obtain ⟨p, b⟩ := exists_polynomial_near_continuous_map a b f' ε pos,
   use p,
   rw norm_lt_iff _ pos at b,

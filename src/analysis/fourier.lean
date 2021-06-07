@@ -27,7 +27,7 @@ The theorem `orthonormal_fourier` states that the functions `fourier n`, when se
 
 ## TODO
 
-* Show that `submodule.span fourier` is dense in `C(circle, ℂ)`, i.e. that its
+* Show that `submodule.span fourier` is dense in `C⟮circle, ℂ⟯`, i.e. that its
   `submodule.topological_closure` is `⊤`.  This follows from the Stone-Weierstrass theorem after
   checking that it is a subalgebra, closed under conjugation, and separates points.
 * Show that the image of `submodule.span fourier` under `continuous_map.to_Lp` is dense in the
@@ -63,7 +63,7 @@ section fourier
 
 /-- The family of monomials `λ z, z ^ n`, parametrized by `n : ℤ` and considered as bundled
 continuous maps from `circle` to `ℂ`. -/
-@[simps] def fourier (n : ℤ) : C(circle, ℂ) :=
+@[simps] def fourier (n : ℤ) : C⟮circle, ℂ⟯ :=
 { to_fun := λ z, z ^ n,
   continuous_to_fun := continuous_subtype_coe.fpow nonzero_of_mem_circle n }
 

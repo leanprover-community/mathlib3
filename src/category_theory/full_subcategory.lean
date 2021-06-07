@@ -16,7 +16,7 @@ section induced
   Given a category D and a function F : C → D from a type C to the
   objects of D, there is an essentially unique way to give C a
   category structure such that F becomes a fully faithful functor,
-  namely by taking Hom_C(X, Y) = Hom_D(FX, FY). We call this the
+  namely by taking Hom_C⟮X, Y⟯ = Hom_D(FX, FY). We call this the
   category induced from D along F.
 
   As a special case, if C is a subtype of D, this produces the full

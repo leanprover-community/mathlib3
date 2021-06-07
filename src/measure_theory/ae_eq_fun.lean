@@ -449,10 +449,10 @@ variables [topological_space β] [measurable_space β] [borel_space β]
 
 /-- The equivalence class of `μ`-almost-everywhere measurable functions associated to a continuous
 map. -/
-def to_ae_eq_fun (f : C(α, β)) : α →ₘ[μ] β :=
+def to_ae_eq_fun (f : C⟮α, β⟯) : α →ₘ[μ] β :=
 ae_eq_fun.mk f f.continuous.measurable.ae_measurable
 
-lemma coe_fn_to_ae_eq_fun (f : C(α, β)) : f.to_ae_eq_fun μ =ᵐ[μ] f :=
+lemma coe_fn_to_ae_eq_fun (f : C⟮α, β⟯) : f.to_ae_eq_fun μ =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk f _
 
 variables [group β] [topological_group β] [second_countable_topology β]
@@ -461,7 +461,7 @@ variables [group β] [topological_group β] [second_countable_topology β]
 classes of `μ`-almost-everywhere measurable functions. -/
 @[to_additive "The `add_hom` from the group of continuous maps from `α` to `β` to the group of
 equivalence classes of `μ`-almost-everywhere measurable functions."]
-def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
+def to_ae_eq_fun_mul_hom : C⟮α, β⟯ →* α →ₘ[μ] β :=
 { to_fun := continuous_map.to_ae_eq_fun μ,
   map_one' := rfl,
   map_mul' := λ f g, ae_eq_fun.mk_mul_mk f g f.continuous.measurable.ae_measurable
@@ -475,7 +475,7 @@ variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_com
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence
 classes of `μ`-almost-everywhere measurable functions. -/
-def to_ae_eq_fun_linear_map : C(α, γ) →ₗ[𝕜] α →ₘ[μ] γ :=
+def to_ae_eq_fun_linear_map : C⟮α, γ⟯ →ₗ[𝕜] α →ₘ[μ] γ :=
 { map_smul' := λ c f, ae_eq_fun.smul_mk c f f.continuous.measurable.ae_measurable,
   .. to_ae_eq_fun_add_hom μ }
 

@@ -14,9 +14,9 @@ import topology.unit_interval
 ## Main definitions
 
 * `polynomial.to_continuous_map_on p X`: for `X : set R`, interprets a polynomial `p`
-  as a bundled continuous function in `C(X, R)`.
+  as a bundled continuous function in `C⟮X, R⟯`.
 * `polynomial.to_continuous_map_on_alg_hom`: the same, as an `R`-algebra homomorphism.
-* `polynomial_functions (X : set R) : subalgebra R C(X, R)`: polynomial functions as a subalgebra.
+* `polynomial_functions (X : set R) : subalgebra R C⟮X, R⟯`: polynomial functions as a subalgebra.
 * `polynomial_functions_separates_points (X : set R) : (polynomial_functions X).separates_points`:
   the polynomial functions separate points.
 
@@ -33,7 +33,7 @@ variables [semiring R] [topological_space R] [topological_semiring R]
 Every polynomial with coefficients in a topological semiring gives a (bundled) continuous function.
 -/
 @[simps]
-def to_continuous_map (p : polynomial R) : C(R, R) :=
+def to_continuous_map (p : polynomial R) : C⟮R, R⟯ :=
 ⟨λ x : R, p.eval x, by continuity⟩
 
 /--
@@ -43,7 +43,7 @@ with domain restricted to some subset of the semiring of coefficients.
 (This is particularly useful when restricting to compact sets, e.g. `[0,1]`.)
 -/
 @[simps]
-def to_continuous_map_on (p : polynomial R) (X : set R) : C(X, R) :=
+def to_continuous_map_on (p : polynomial R) (X : set R) : C⟮X, R⟯ :=
 ⟨λ x : X, p.to_continuous_map x, by continuity⟩
 
 -- TODO some lemmas about when `to_continuous_map_on` is injective?
@@ -54,7 +54,7 @@ section
 variables {α : Type*} [topological_space α]
   [comm_semiring R] [topological_space R] [topological_semiring R]
 
-@[simp] lemma aeval_continuous_map_apply (g : polynomial R) (f : C(α, R)) (x : α) :
+@[simp] lemma aeval_continuous_map_apply (g : polynomial R) (f : C⟮α, R⟯) (x : α) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
 begin
   apply polynomial.induction_on' g,
@@ -72,10 +72,10 @@ noncomputable theory
 variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The algebra map from `polynomial R` to continuous functions `C(R, R)`.
+The algebra map from `polynomial R` to continuous functions `C⟮R, R⟯`.
 -/
 @[simps]
-def to_continuous_map_alg_hom : polynomial R →ₐ[R] C(R, R) :=
+def to_continuous_map_alg_hom : polynomial R →ₐ[R] C⟮R, R⟯ :=
 { to_fun := λ p, p.to_continuous_map,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, },
@@ -84,10 +84,10 @@ def to_continuous_map_alg_hom : polynomial R →ₐ[R] C(R, R) :=
   commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
 
 /--
-The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any subset `X` of `R`.
+The algebra map from `polynomial R` to continuous functions `C⟮X, R⟯`, for any subset `X` of `R`.
 -/
 @[simps]
-def to_continuous_map_on_alg_hom (X : set R) : polynomial R →ₐ[R] C(X, R)  :=
+def to_continuous_map_on_alg_hom (X : set R) : polynomial R →ₐ[R] C⟮X, R⟯  :=
 { to_fun := λ p, p.to_continuous_map_on X,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, },
@@ -103,20 +103,20 @@ section
 variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological ring `R`.
+The subalgebra of polynomial functions in `C⟮X, R⟯`, for `X` a subset of some topological ring `R`.
 -/
-def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
+def polynomial_functions (X : set R) : subalgebra R C⟮X, R⟯ :=
 (⊤ : subalgebra R (polynomial R)).map (polynomial.to_continuous_map_on_alg_hom X)
 
 @[simp]
 lemma polynomial_functions_coe (X : set R) :
-  (polynomial_functions X : set C(X, R)) = set.range (polynomial.to_continuous_map_on_alg_hom X) :=
+  (polynomial_functions X : set C⟮X, R⟯) = set.range (polynomial.to_continuous_map_on_alg_hom X) :=
 by { ext, simp [polynomial_functions], }
 
 -- TODO:
 -- if `f : R → R` is an affine equivalence, then pulling back along `f`
 -- induces a normed algebra isomorphism between `polynomial_functions X` and
--- `polynomial_functions (f ⁻¹' X)`, intertwining the pullback along `f` of `C(R, R)` to itself.
+-- `polynomial_functions (f ⁻¹' X)`, intertwining the pullback along `f` of `C⟮R, R⟯` to itself.
 
 lemma polynomial_functions_separates_points (X : set R) :
   (polynomial_functions X).separates_points :=

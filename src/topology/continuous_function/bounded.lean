@@ -51,17 +51,17 @@ lemma bounded_range : bounded (range f) :=
 bounded_range_iff.2 f.bounded
 
 /-- A continuous function with an explicit bound is a bounded continuous function. -/
-def mk_of_bound (f : C(α, β)) (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
+def mk_of_bound (f : C⟮α, β⟯) (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
 ⟨f, ⟨C, h⟩⟩
 
 @[simp] lemma mk_of_bound_coe {f} {C} {h} : (mk_of_bound f C h : α → β) = (f : α → β) :=
 rfl
 
 /-- A continuous function on a compact space is automatically a bounded continuous function. -/
-def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
+def mk_of_compact [compact_space α] (f : C⟮α, β⟯) : α →ᵇ β :=
 ⟨f, bounded_range_iff.1 $ bounded_of_compact $ is_compact_range f.continuous⟩
 
-@[simp] lemma mk_of_compact_apply [compact_space α] (f : C(α, β)) (a : α) :
+@[simp] lemma mk_of_compact_apply [compact_space α] (f : C⟮α, β⟯) (a : α) :
   mk_of_compact f a = f a :=
 rfl
 
@@ -81,7 +81,7 @@ variables (α β)
 /--
 The map forgetting that a bounded continuous function is bounded.
 -/
-def forget_boundedness : (α →ᵇ β) → C(α, β) :=
+def forget_boundedness : (α →ᵇ β) → C⟮α, β⟯ :=
 λ f, f.1
 
 @[simp] lemma forget_boundedness_coe (f : α →ᵇ β) : (forget_boundedness α β f : α → β) = f :=
@@ -590,7 +590,7 @@ variables (α β)
 The additive map forgetting that a bounded continuous function is bounded.
 -/
 @[simps]
-def forget_boundedness_add_hom : (α →ᵇ β) →+ C(α, β) :=
+def forget_boundedness_add_hom : (α →ᵇ β) →+ C⟮α, β⟯ :=
 { to_fun := forget_boundedness α β,
   map_zero' := by { ext, simp, },
   map_add' := by { intros, ext, simp, }, }
@@ -642,7 +642,7 @@ variables (α β)
 
 /-- The linear map forgetting that a bounded continuous function is bounded. -/
 @[simps]
-def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
+def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C⟮α, β⟯ :=
 { to_fun := forget_boundedness α β,
   map_smul' := by { intros, ext, simp, },
   map_add' := by { intros, ext, simp, }, }

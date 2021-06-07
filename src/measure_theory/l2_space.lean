@@ -167,7 +167,7 @@ variables [compact_space α]
 
 /-- For continuous functions `f`, `g` on a compact, finite-measure topological space `α`, the L^2
 inner product is the integral of their pointwise inner product. -/
-lemma continuous_map.inner_to_Lp (f g : C(α, 𝕜)) :
+lemma continuous_map.inner_to_Lp (f g : C⟮α, 𝕜⟯) :
   ⟪continuous_map.to_Lp 2 μ 𝕜 f, continuous_map.to_Lp 2 μ 𝕜 g⟫
   = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
 begin

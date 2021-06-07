@@ -18,16 +18,16 @@ topological spaces.
 
 ## Main definitions
 
-* `compact_open` is the compact-open topology on `C(α, β)`. It is declared as an instance.
-* `ev` is the evaluation map `C(α, β) × α → β`. It is continuous as long as `α` is locally compact.
-* `coev` is the coevaluation map `β → C(α, β × α)`. It is always continuous.
-* `continuous_map.curry` is the currying map `C(α × β, γ) → C(α, C(β, γ))`. This map always exists
+* `compact_open` is the compact-open topology on `C⟮α, β⟯`. It is declared as an instance.
+* `ev` is the evaluation map `C⟮α, β⟯ × α → β`. It is continuous as long as `α` is locally compact.
+* `coev` is the coevaluation map `β → C⟮α, β × α⟯`. It is always continuous.
+* `continuous_map.curry` is the currying map `C⟮α × β, γ⟯ → C⟮α, C⟮β, γ⟯⟯`. This map always exists
   and it is continuous as long as `α × β` is locally compact.
-* `continuous_map.uncurry` is the uncurrying map `C(α, C(β, γ)) → C(α × β, γ)`. For this map to
+* `continuous_map.uncurry` is the uncurrying map `C⟮α, C⟮β, γ⟯⟯ → C⟮α × β, γ⟯`. For this map to
   exist, we need `β` to be locally compact. If `α` is also locally compact, then this map is
   continuous.
 * `homeomorph.curry` combines the currying and uncurrying operations into a homeomorphism
-  `C(α × β, γ) ≃ₜ C(α, C(β, γ))`. This homeomorphism exists if `α` and `β` are locally compact.
+  `C⟮α × β, γ⟯ ≃ₜ C⟮α, C⟮β, γ⟯⟯`. This homeomorphism exists if `α` and `β` are locally compact.
 
 
 ## Tags
@@ -44,10 +44,10 @@ section compact_open
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆ u}
+def compact_open.gen (s : set α) (u : set β) : set C⟮α,β⟯ := {f | f '' s ⊆ u}
 
 -- The compact-open topology on the space of continuous maps α → β.
-instance compact_open : topological_space C(α, β) :=
+instance compact_open : topological_space C⟮α, β⟯ :=
 topological_space.generate_from
   {m | ∃ (s : set α) (hs : is_compact s) (u : set β) (hu : is_open u), m = compact_open.gen s u}
 
@@ -59,7 +59,7 @@ section functorial
 
 variables {g : β → γ} (hg : continuous g)
 
-def induced (f : C(α, β)) : C(α, γ) := ⟨g ∘ f, hg.comp f.continuous⟩
+def induced (f : C⟮α, β⟯) : C⟮α, γ⟯ := ⟨g ∘ f, hg.comp f.continuous⟩
 
 private lemma preimage_gen {s : set α} (hs : is_compact s) {u : set γ} (hu : is_open u) :
   continuous_map.induced hg ⁻¹' (compact_open.gen s u) = compact_open.gen s (g ⁻¹' u) :=
@@ -69,8 +69,8 @@ begin
   rw [image_comp, image_subset_iff]
 end
 
-/-- C(α, -) is a functor. -/
-lemma continuous_induced : continuous (continuous_map.induced hg : C(α, β) → C(α, γ)) :=
+/-- C⟮α, -⟯ is a functor. -/
+lemma continuous_induced : continuous (continuous_map.induced hg : C⟮α, β⟯ → C⟮α, γ⟯) :=
 continuous_generated_from $ assume m ⟨s, hs, u, hu, hm⟩,
   by rw [hm, preimage_gen hg hs hu]; exact is_open_gen hs (hu.preimage hg)
 
@@ -79,10 +79,10 @@ end functorial
 section ev
 
 variables (α β)
-def ev (p : C(α, β) × α) : β := p.1 p.2
+def ev (p : C⟮α, β⟯ × α) : β := p.1 p.2
 
 variables {α β}
--- The evaluation map C(α, β) × α → β is continuous if α is locally compact.
+-- The evaluation map C⟮α, β⟯ × α → β is continuous if α is locally compact.
 lemma continuous_ev [locally_compact_space α] : continuous (ev α β) :=
 continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
   let ⟨v, vn, vo, fxv⟩ := mem_nhds_iff.mp hn in
@@ -106,12 +106,12 @@ end ev
 section coev
 
 variables (α β)
-def coev (b : β) : C(α, β × α) := ⟨λ a, (b, a), continuous.prod_mk continuous_const continuous_id⟩
+def coev (b : β) : C⟮α, β × α⟯ := ⟨λ a, (b, a), continuous.prod_mk continuous_const continuous_id⟩
 
 variables {α β}
 lemma image_coev {y : β} (s : set α) : (coev α β y) '' s = set.prod {y} s := by tidy
 
--- The coevaluation map β → C(α, β × α) is continuous (always).
+-- The coevaluation map β → C⟮α, β × α⟯ is continuous (always).
 lemma continuous_coev : continuous (coev α β) :=
 continuous_generated_from $ begin
   rintros _ ⟨s, sc, u, uo, rfl⟩,
@@ -133,28 +133,28 @@ end coev
 section curry
 
 /-- Auxiliary definition, see `continuous_map.curry` and `homeomorph.curry`. -/
-def curry' (f : C(α × β, γ)) (a : α) : C(β, γ) := ⟨function.curry f a⟩
+def curry' (f : C⟮α × β, γ⟯) (a : α) : C⟮β, γ⟯ := ⟨function.curry f a⟩
 
-/-- If a map `α × β → γ` is continuous, then its curried form `α → C(β, γ)` is continuous. -/
-lemma continuous_curry' (f : C(α × β, γ)) : continuous (curry' f) :=
+/-- If a map `α × β → γ` is continuous, then its curried form `α → C⟮β, γ⟯` is continuous. -/
+lemma continuous_curry' (f : C⟮α × β, γ⟯) : continuous (curry' f) :=
 have hf : curry' f = continuous_map.induced f.continuous_to_fun ∘ coev _ _, by { ext, refl },
 hf ▸ continuous.comp (continuous_induced f.continuous_to_fun) continuous_coev
 
-/-- To show continuity of a map `α → C(β, γ)`, it suffices to show that its uncurried form
+/-- To show continuity of a map `α → C⟮β, γ⟯`, it suffices to show that its uncurried form
     `α × β → γ` is continuous. -/
-lemma continuous_of_continuous_uncurry (f : α → C(β, γ))
+lemma continuous_of_continuous_uncurry (f : α → C⟮β, γ⟯)
   (h : continuous (function.uncurry (λ x y, f x y))) : continuous f :=
 by { convert continuous_curry' ⟨_, h⟩, ext, refl }
 
-/-- The curried form of a continuous map `α × β → γ` as a continuous map `α → C(β, γ)`.
+/-- The curried form of a continuous map `α × β → γ` as a continuous map `α → C⟮β, γ⟯`.
     If `a × β` is locally compact, this is continuous. If `α` and `β` are both locally
     compact, then this is a homeomorphism, see `homeomorph.curry`. -/
-def curry (f : C(α × β, γ)) : C(α, C(β, γ)) :=
+def curry (f : C⟮α × β, γ⟯) : C⟮α, C⟮β, γ⟯⟯ :=
 ⟨_, continuous_curry' f⟩
 
 /-- The currying process is a continuous map between function spaces. -/
 lemma continuous_curry [locally_compact_space (α × β)] :
-  continuous (curry : C(α × β, γ) → C(α, C(β, γ))) :=
+  continuous (curry : C⟮α × β, γ⟯ → C⟮α, C⟮β, γ⟯⟯) :=
 begin
   apply continuous_of_continuous_uncurry,
   apply continuous_of_continuous_uncurry,
@@ -163,21 +163,21 @@ begin
   tidy
 end
 
-/-- The uncurried form of a continuous map `α → C(β, γ)` is a continuous map `α × β → γ`. -/
-lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C(α, C(β, γ))) :
+/-- The uncurried form of a continuous map `α → C⟮β, γ⟯` is a continuous map `α × β → γ`. -/
+lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C⟮α, C⟮β, γ⟯⟯) :
   continuous (function.uncurry (λ x y, f x y)) :=
 have hf : function.uncurry (λ x y, f x y) = ev β γ ∘ prod.map f id, by { ext, refl },
 hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 id.2
 
-/-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
+/-- The uncurried form of a continuous map `α → C⟮β, γ⟯` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
     function spaces, see `homeomorph.curry`. -/
-def uncurry [locally_compact_space β] (f : C(α, C(β, γ))) : C(α × β, γ) :=
+def uncurry [locally_compact_space β] (f : C⟮α, C⟮β, γ⟯⟯) : C⟮α × β, γ⟯ :=
 ⟨_, continuous_uncurry_of_continuous f⟩
 
 /-- The uncurrying process is a continuous map between function spaces. -/
 lemma continuous_uncurry [locally_compact_space α] [locally_compact_space β] :
-  continuous (uncurry : C(α, C(β, γ)) → C(α × β, γ)) :=
+  continuous (uncurry : C⟮α, C⟮β, γ⟯⟯ → C⟮α × β, γ⟯) :=
 begin
   apply continuous_of_continuous_uncurry,
   rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _),
@@ -197,12 +197,12 @@ namespace homeomorph
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-/-- Currying as a homeomorphism between the function spaces `C(α × β, γ)` and `C(α, C(β, γ))`. -/
-def curry [locally_compact_space α] [locally_compact_space β] : C(α × β, γ) ≃ₜ C(α, C(β, γ)) :=
+/-- Currying as a homeomorphism between the function spaces `C⟮α × β, γ⟯` and `C⟮α, C⟮β, γ⟯⟯`. -/
+def curry [locally_compact_space α] [locally_compact_space β] : C⟮α × β, γ⟯ ≃ₜ C⟮α, C⟮β, γ⟯⟯ :=
 ⟨⟨curry, uncurry, by tidy, by tidy⟩, continuous_curry, continuous_uncurry⟩
 
-/-- If `α` has a single element, then `β` is homeomorphic to `C(α, β)`. -/
-def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
+/-- If `α` has a single element, then `β` is homeomorphic to `C⟮α, β⟯`. -/
+def continuous_map_of_unique [unique α] : β ≃ₜ C⟮α, β⟯ :=
 { to_fun := continuous_map.induced continuous_fst ∘ coev α β,
   inv_fun := ev α β ∘ (λ f, (f, default α)),
   left_inv := λ a, rfl,
@@ -215,7 +215,7 @@ def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
   continuous_map_of_unique b a = b :=
 rfl
 
-@[simp] lemma continuous_map_of_unique_symm_apply [unique α] (f : C(α, β)) :
+@[simp] lemma continuous_map_of_unique_symm_apply [unique α] (f : C⟮α, β⟯) :
   continuous_map_of_unique.symm f = f (default α) :=
 rfl
 

@@ -15,7 +15,7 @@ We prove that the Bernstein approximations
 ```
 ∑ k : fin (n+1), f (k/n : ℝ) * n.choose k * x^k * (1-x)^(n-k)
 ```
-for a continuous function `f : C([0,1], ℝ)` converge uniformly to `f` as `n` tends to infinity.
+for a continuous function `f : C⟮[0,1], ℝ⟯` converge uniformly to `f` as `n` tends to infinity.
 
 Our proof follows [Richard Beals' *Analysis, an introduction*][beals-analysis], §7D.
 The original proof, due to [Bernstein](bernstein1912) in 1912, is probabilistic,
@@ -39,7 +39,7 @@ but can also be given a probabilistic account.
 
 (You don't need to think in these terms to follow the proof below: it's a giant `calc` block!)
 
-This result proves Weierstrass' theorem that polynomials are dense in `C([0,1], ℝ)`,
+This result proves Weierstrass' theorem that polynomials are dense in `C⟮[0,1], ℝ⟯`,
 although we defer an abstract statement of this until later.
 -/
 
@@ -53,7 +53,7 @@ open_locale unit_interval
 /--
 The Bernstein polynomials, as continuous functions on `[0,1]`.
 -/
-def bernstein (n ν : ℕ) : C(I, ℝ) :=
+def bernstein (n ν : ℕ) : C⟮I, ℝ⟯ :=
 (bernstein_polynomial ℝ n ν).to_continuous_map_on I
 
 @[simp] lemma bernstein_apply (n ν : ℕ) (x : I) :
@@ -137,7 +137,7 @@ local notation `|`x`|` := abs x
 The `n`-th approximation of a continuous function on `[0,1]` by Bernstein polynomials,
 given by `∑ k, f (k/n) * bernstein n k x`.
 -/
-def bernstein_approximation (n : ℕ) (f : C(I, ℝ)) : C(I, ℝ) :=
+def bernstein_approximation (n : ℕ) (f : C⟮I, ℝ⟯) : C⟮I, ℝ⟯ :=
 ∑ k : fin (n+1), f k/ₙ • bernstein n k
 
 /-!
@@ -145,7 +145,7 @@ We now set up some of the basic machinery of the proof that the Bernstein approx
 converge uniformly.
 
 A key player is the set `S f ε h n x`,
-for some function `f : C(I, ℝ)`, `h : 0 < ε`, `n : ℕ` and `x : I`.
+for some function `f : C⟮I, ℝ⟯`, `h : 0 < ε`, `n : ℕ` and `x : I`.
 
 This is the set of points `k` in `fin (n+1)` such that
 `k/n` is within `δ` of `x`, where `δ` is the modulus of uniform continuity for `f`,
@@ -156,26 +156,26 @@ We show that if `k ∉ S`, then `1 ≤ δ^-2 * (x - k/n)^2`.
 
 namespace bernstein_approximation
 
-@[simp] lemma apply (n : ℕ) (f : C(I, ℝ)) (x : I) :
+@[simp] lemma apply (n : ℕ) (f : C⟮I, ℝ⟯) (x : I) :
   bernstein_approximation n f x = ∑ k : fin (n+1), f k/ₙ * bernstein n k x :=
 by simp [bernstein_approximation]
 
 /--
 The modulus of (uniform) continuity for `f`, chosen so `|f x - f y| < ε/2` when `|x - y| < δ`.
 -/
-def δ (f : C(I, ℝ)) (ε : ℝ) (h : 0 < ε) : ℝ := f.modulus (ε/2) (half_pos h)
+def δ (f : C⟮I, ℝ⟯) (ε : ℝ) (h : 0 < ε) : ℝ := f.modulus (ε/2) (half_pos h)
 
 /--
 The set of points `k` so `k/n` is within `δ` of `x`.
 -/
-def S (f : C(I, ℝ)) (ε : ℝ) (h : 0 < ε) (n : ℕ) (x : I) : finset (fin (n+1)) :=
+def S (f : C⟮I, ℝ⟯) (ε : ℝ) (h : 0 < ε) (n : ℕ) (x : I) : finset (fin (n+1)) :=
 { k : fin (n+1) | dist k/ₙ x < δ f ε h }.to_finset
 
 /--
 If `k ∈ S`, then `f(k/n)` is close to `f x`.
 -/
 lemma lt_of_mem_S
-  {f : C(I, ℝ)} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ S f ε h n x) :
+  {f : C⟮I, ℝ⟯} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ S f ε h n x) :
   |f k/ₙ - f x| < ε/2 :=
 begin
   apply f.dist_lt_of_dist_lt_modulus (ε/2) (half_pos h),
@@ -187,7 +187,7 @@ If `k ∉ S`, then as `δ ≤ |x - k/n|`, we have the inequality `1 ≤ δ^-2 * 
 This particular formulation will be helpful later.
 -/
 lemma le_of_mem_S_compl
-  {f : C(I, ℝ)} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ (S f ε h n x)ᶜ) :
+  {f : C⟮I, ℝ⟯} {ε : ℝ} {h : 0 < ε} {n : ℕ} {x : I} {k : fin (n+1)} (m : k ∈ (S f ε h n x)ᶜ) :
   (1 : ℝ) ≤ (δ f ε h)^(-2 : ℤ) * (x - k/ₙ) ^ 2 :=
 begin
   simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
@@ -212,12 +212,12 @@ The Bernstein approximations
 ```
 ∑ k : fin (n+1), f (k/n : ℝ) * n.choose k * x^k * (1-x)^(n-k)
 ```
-for a continuous function `f : C([0,1], ℝ)` converge uniformly to `f` as `n` tends to infinity.
+for a continuous function `f : C⟮[0,1], ℝ⟯` converge uniformly to `f` as `n` tends to infinity.
 
 This is the proof given in [Richard Beals' *Analysis, an introduction*][beals-analysis], §7D,
 and reproduced on wikipedia.
 -/
-theorem bernstein_approximation_uniform (f : C(I, ℝ)) :
+theorem bernstein_approximation_uniform (f : C⟮I, ℝ⟯) :
   tendsto (λ n : ℕ, bernstein_approximation n f) at_top (𝓝 f) :=
 begin
   simp only [metric.nhds_basis_ball.tendsto_right_iff, metric.mem_ball, dist_eq_norm],

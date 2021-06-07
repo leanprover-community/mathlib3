@@ -163,7 +163,7 @@ begin
   rw hps,
   apply is_closed_Inter,
   rintros ⟨j', f⟩,
-  let proj : Π (j' : Jᵒᵖ), C((Π (j : Jᵒᵖ), F.obj j), F.obj j') :=
+  let proj : Π (j' : Jᵒᵖ), C⟮(Π (j : Jᵒᵖ), F.obj j⟯, F.obj j') :=
     λ j', ⟨λ u, u j', continuous_apply j'⟩,
   exact is_closed_eq
     (((F.map f).continuous.comp (proj j).continuous).comp continuous_id)

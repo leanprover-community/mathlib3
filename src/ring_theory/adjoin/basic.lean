@@ -117,9 +117,9 @@ lemma adjoin_le_prod (s) (t) :
   adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪
   linear_map.inr R A B '' (t ∪ {1})) ≤ (adjoin R s).prod (adjoin R t) :=
 begin
+  rw [set.image_union, set.image_union],
   refine adjoin_le (set.union_subset _ _),
-  { rw set.image_union,
-    refine set.union_subset (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _)
+  { refine set.union_subset (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _)
       (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _),
     { obtain ⟨y, hy⟩ := hx,
       rw [←hy.2, set_like.mem_coe, set_like.mem_coe, linear_map.inl_apply],
@@ -127,8 +127,7 @@ begin
     { simp only [set.mem_image, set.mem_singleton_iff, linear_map.inl_apply, exists_eq_left] at hx,
       rw [←hx, set_like.mem_coe, set_like.mem_coe],
       exact ⟨subalgebra.one_mem _, subalgebra.zero_mem _⟩ } },
-  { rw set.image_union,
-    refine set.union_subset (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _)
+  { refine set.union_subset (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _)
       (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _),
     { obtain ⟨y, hy⟩ := hx,
       rw [←hy.2, set_like.mem_coe, set_like.mem_coe, linear_map.inr_apply],

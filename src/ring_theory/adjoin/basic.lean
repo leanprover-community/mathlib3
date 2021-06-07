@@ -119,16 +119,14 @@ lemma adjoin_le_prod (s) (t) :
 begin
   rw [set.image_union, set.image_union],
   refine adjoin_le (λ x hx, subalgebra.mem_prod.2 _),
-  rcases hx with (⟨x₁, hx₁⟩ | ⟨x₂, hx₂⟩) | (⟨x₃, hx₃⟩ | ⟨x₄, hx₄⟩),
-  { rw ←hx₁.2,
-    exact ⟨subset_adjoin hx₁.1, subalgebra.zero_mem _⟩ },
+  rcases hx with (⟨x₁, ⟨hx₁, rfl⟩⟩ | ⟨x₂, ⟨hx₂, rfl⟩⟩) | (⟨x₃, ⟨hx₃, rfl⟩⟩ | ⟨x₄, ⟨hx₄, rfl⟩⟩),
+  { exact ⟨subset_adjoin hx₁, subalgebra.zero_mem _⟩ },
   { simp only [set.mem_singleton_iff, linear_map.inl_apply] at hx₂,
-    rw [←hx₂.2, hx₂.1],
+    rw hx₂,
     exact ⟨subalgebra.one_mem _, subalgebra.zero_mem _⟩ },
-  { rw ←hx₃.2,
-    exact ⟨subalgebra.zero_mem _, subset_adjoin hx₃.1⟩ },
+  { exact ⟨subalgebra.zero_mem _, subset_adjoin hx₃⟩ },
   { simp only [set.mem_singleton_iff, linear_map.inl_apply] at hx₄,
-    rw [←hx₄.2, hx₄.1],
+    rw hx₄,
     exact ⟨subalgebra.zero_mem _, subalgebra.one_mem _⟩ }
 end
 

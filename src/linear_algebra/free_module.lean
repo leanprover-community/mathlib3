@@ -121,10 +121,10 @@ end semiring
 
 section comm_ring
 
-variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
+variables [comm_ring R] [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
-instance of_tensor [module.free R N] : module.free R (M ⊗[R] N) :=
+instance of_tensor [module.free R M] [module.free R N] : module.free R (M ⊗[R] N) :=
 of_equiv' (of_equiv' (free.of_finsupp R) (finsupp_tensor_finsupp' R _ _).symm)
   (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
 

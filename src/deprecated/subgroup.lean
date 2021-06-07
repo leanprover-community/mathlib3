@@ -727,8 +727,10 @@ begin
     exact lt_of_lt_of_le (lt_of_le_of_ne (h1 i.le_succ) this) (h1 hij) },
 end
 
-noncomputable instance set_fintype' {α : Type*} [fintype α] (s : set α) : fintype s :=
+noncomputable def set_fintype' {α : Type*} [fintype α] (s : set α) : fintype s :=
 by { classical, exact set_fintype s }
+
+local attribute [instance] set_fintype
 
 lemma card_pow_dynamics {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
   ∃ k : ℕ, k ≤ fintype.card G ∧ ∀ i,

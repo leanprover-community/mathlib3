@@ -118,23 +118,18 @@ lemma adjoin_le_prod (s) (t) :
   linear_map.inr R A B '' (t ∪ {1})) ≤ (adjoin R s).prod (adjoin R t) :=
 begin
   rw [set.image_union, set.image_union],
-  refine adjoin_le (set.union_subset _ _),
-  { refine set.union_subset (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _)
-      (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _),
-    { obtain ⟨y, hy⟩ := hx,
-      rw [←hy.2, set_like.mem_coe, set_like.mem_coe, linear_map.inl_apply],
-      exact ⟨subset_adjoin hy.1, subalgebra.zero_mem _⟩ },
-    { simp only [set.mem_image, set.mem_singleton_iff, linear_map.inl_apply, exists_eq_left] at hx,
-      rw [←hx, set_like.mem_coe, set_like.mem_coe],
-      exact ⟨subalgebra.one_mem _, subalgebra.zero_mem _⟩ } },
-  { refine set.union_subset (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _)
-      (λ x hx, set_like.mem_coe.2 $ set.mem_prod.2 _),
-    { obtain ⟨y, hy⟩ := hx,
-      rw [←hy.2, set_like.mem_coe, set_like.mem_coe, linear_map.inr_apply],
-      exact ⟨subalgebra.zero_mem _, subset_adjoin hy.1⟩ },
-    { simp only [set.mem_image, set.mem_singleton_iff, exists_eq_left, linear_map.inr_apply] at hx,
-      rw [←hx, set_like.mem_coe, set_like.mem_coe],
-      exact ⟨subalgebra.zero_mem _, subalgebra.one_mem _⟩ } }
+  refine adjoin_le (λ x hx, subalgebra.mem_prod.2 _),
+  rcases hx with (⟨x₁, hx₁⟩ | ⟨x₂, hx₂⟩) | (⟨x₃, hx₃⟩ | ⟨x₄, hx₄⟩),
+  { rw ←hx₁.2,
+    exact ⟨subset_adjoin hx₁.1, subalgebra.zero_mem _⟩ },
+  { simp only [set.mem_singleton_iff, linear_map.inl_apply] at hx₂,
+    rw [←hx₂.2, hx₂.1],
+    exact ⟨subalgebra.one_mem _, subalgebra.zero_mem _⟩ },
+  { rw ←hx₃.2,
+    exact ⟨subalgebra.zero_mem _, subset_adjoin hx₃.1⟩ },
+  { simp only [set.mem_singleton_iff, linear_map.inl_apply] at hx₄,
+    rw [←hx₄.2, hx₄.1],
+    exact ⟨subalgebra.zero_mem _, subalgebra.one_mem _⟩ }
 end
 
 lemma mem_adjoin_of_map_mul {s} {x : A} {f : A →ₗ[R] B} (hf : ∀ a₁ a₂, f(a₁ * a₂) = f a₁ * f a₂)

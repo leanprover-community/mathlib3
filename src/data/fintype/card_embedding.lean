@@ -18,6 +18,8 @@ local notation `‖` x `‖` := fintype.card x
 
 open_locale nat
 
+local attribute [-irreducible] function.embedding.fintype
+
 namespace fintype
 
 -- We need the separate `fintype α` instance as it contains data,

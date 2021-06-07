@@ -19,4 +19,7 @@ local notation `‖` x `‖` := fintype.card x
 
 theorem birthday :
   2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ ∧ 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ :=
-by split; norm_num [fintype.card_embedding_eq, nat.desc_fact]
+begin
+  simp only [nat.desc_fact, fintype.card_fin, fintype.card_embedding_eq, fintype.card_fun],
+  norm_num
+end

@@ -19,13 +19,13 @@ do
   (p', prio) ← has_attribute attr_name src,
   let p := p.get_or_else p',
   get_decl tgt <|> fail!"unknown declaration {tgt}",
-  set_basic_attribute attr_name tgt p prio <|>
-  (do get_user_attribute_name attr_name >>= (λ user_attr_nm : name, do
+  set_basic_attribute attr_name tgt p prio <|> (do
+    user_attr_nm ← get_user_attribute_name attr_name,
     user_attr_const ← mk_const user_attr_nm,
     tac ← eval_pexpr (tactic unit)
-    ``(user_attribute.get_param %%user_attr_const %%src >>=
-        λ x, user_attribute.set %%user_attr_const %%tgt x %%p %%prio),
-    tac))
+    ``(user_attribute.get_param_untyped %%user_attr_const %%src >>=
+      λ x, user_attribute.set_untyped %%user_attr_const %%tgt x %%p %%prio),
+    tac)
 
 private meta def transform_decl_with_prefix_fun_aux (f : name → option name) (pre tgt_pre : name)
   (attrs : list name) :

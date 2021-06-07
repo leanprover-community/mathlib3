@@ -85,12 +85,12 @@ def counit_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
 { hom := { app := λ _, { hom := 𝟙 _ } },
   inv := { app := λ _, { hom := 𝟙 _ } } }
 
-/-- Auxilliary definition for `Monad_Mon_equiv` -/
+/-- Auxiliary definition for `Monad_Mon_equiv` -/
 @[simps]
 def unit_iso_hom : 𝟭 _ ⟶ Monad_to_Mon C ⋙ Mon_to_Monad C :=
 { app := λ _, { app := λ _, 𝟙 _ } }
 
-/-- Auxilliary definition for `Monad_Mon_equiv` -/
+/-- Auxiliary definition for `Monad_Mon_equiv` -/
 @[simps]
 def unit_iso_inv : Monad_to_Mon C ⋙ Mon_to_Monad C ⟶ 𝟭 _ :=
 { app := λ _, { app := λ _, 𝟙 _ } }

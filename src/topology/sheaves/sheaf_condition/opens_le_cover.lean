@@ -67,7 +67,7 @@ def index (V : opens_le_cover U) : ι := V.property.some
 The morphism from `V` to `U i` for some `i`.
 -/
 def hom_to_index (V : opens_le_cover U) : V.val ⟶ U (index V) :=
-hom_of_le (V.property.some_spec)
+(V.property.some_spec).hom
 
 end opens_le_cover
 
@@ -150,36 +150,35 @@ instance : cofinal (pairwise_to_opens_le_cover U) :=
   dsimp at *,
   { refine ⟨[
     { left := punit.star, right := pair i i',
-      hom := hom_of_le (le_inf (le_of_hom a) (le_of_hom b)), }, _], _, rfl⟩,
+      hom := (le_inf a.le b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil) },
   { refine ⟨[
     { left := punit.star, right := pair i' i,
-      hom := hom_of_le (le_inf ((le_of_hom b).trans inf_le_left) (le_of_hom a)), },
+      hom := (le_inf (b.le.trans inf_le_left) a.le).hom, },
     { left := punit.star, right := single i',
-      hom := hom_of_le ((le_of_hom b).trans inf_le_left), }, _], _, rfl⟩,
+      hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := right i' i, }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i' i, }⟩)
           (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil)) },
   { refine ⟨[
     { left := punit.star, right := single i,
-      hom := hom_of_le ((le_of_hom a).trans inf_le_left), },
+      hom := (a.le.trans inf_le_left).hom, },
     { left := punit.star, right := pair i i', hom :=
-      hom_of_le (le_inf ((le_of_hom a).trans inf_le_left) (le_of_hom b)), }, _], _, rfl⟩,
+      (le_inf (a.le.trans inf_le_left) b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
         (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
           (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil)) },
   { refine ⟨[
     { left := punit.star, right := single i,
-      hom := hom_of_le ((le_of_hom a).trans inf_le_left), },
+      hom := (a.le.trans inf_le_left).hom, },
     { left := punit.star, right := pair i i',
-      hom :=
-        hom_of_le (le_inf ((le_of_hom a).trans inf_le_left) ((le_of_hom b).trans inf_le_left)), },
+      hom := (le_inf (a.le.trans inf_le_left) (b.le.trans inf_le_left)).hom, },
     { left := punit.star, right := single i',
-      hom := hom_of_le ((le_of_hom b).trans inf_le_left), }, _], _, rfl⟩,
+      hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
       (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)

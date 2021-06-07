@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
+import algebra.big_operators.finsupp
 import data.fintype.card
 import linear_algebra.finsupp
 import linear_algebra.linear_independent
@@ -394,7 +395,12 @@ lemma constr_range [nonempty ι] {f : ι  → M'} :
   (b.constr S f).range = span R (range f) :=
 by rw [b.constr_def S f, linear_map.range_comp, linear_map.range_comp, linear_equiv.range,
        ← finsupp.supported_univ, finsupp.lmap_domain_supported, ←set.image_univ,
-       ← finsupp.span_eq_map_total, set.image_id]
+       ← finsupp.span_image_eq_map_total, set.image_id]
+
+@[simp]
+lemma constr_comp (f : M' →ₗ[R] M') (v : ι → M') :
+  b.constr S (f ∘ v) = f.comp (b.constr S v) :=
+b.ext (λ i, by simp only [basis.constr_basis, linear_map.comp_apply])
 
 end constr
 
@@ -422,6 +428,11 @@ b'.ext' $ λ i, (b.equiv b' e).injective (by simp)
   (e : ι ≃ ι') (e' : ι' ≃ ι'') :
   (b.equiv b' e).trans (b'.equiv b'' e') = b.equiv b'' (e.trans e') :=
 b.ext' (λ i, by simp)
+
+@[simp]
+lemma map_equiv (b : basis ι R M) (b' : basis ι' R M') (e : ι ≃ ι') :
+  b.map (b.equiv b' e) = b'.reindex e.symm :=
+by { ext i, simp }
 
 end equiv
 
@@ -559,18 +570,11 @@ section empty
 variables (M)
 
 /-- If `M` is a subsingleton and `ι` is empty, this is the unique `ι`-indexed basis for `M`. -/
-protected def empty [subsingleton M] (h_empty : ¬ nonempty ι) : basis ι R M :=
-of_repr
-  { to_fun := λ x, 0,
-    inv_fun := λ f, 0,
-    left_inv := λ x, by simp,
-    right_inv := λ f, by { ext i, cases h_empty ⟨i⟩ },
-    map_add' := λ x y, by simp,
-    map_smul' := λ c x, by simp }
+protected def empty [subsingleton M] [is_empty ι] : basis ι R M :=
+of_repr 0
 
-lemma empty_unique [subsingleton M] (h_empty : ¬ nonempty ι)
-  (b : basis ι R M) : b = basis.empty M h_empty :=
-by { ext i, cases h_empty ⟨i⟩ }
+instance empty_unique [subsingleton M] [is_empty ι] : unique (basis ι R M) :=
+{ default := basis.empty M, uniq := λ ⟨x⟩, congr_arg of_repr $ subsingleton.elim _ _ }
 
 end empty
 
@@ -634,7 +638,8 @@ basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_fintyp
 
 @[simp] lemma basis.coe_of_equiv_fun (e : M ≃ₗ[R] (ι → R)) :
   (basis.of_equiv_fun e : ι → M) = λ i, e.symm (function.update 0 i 1) :=
-funext $ λ i, e.injective $ funext $ λ j, by simp [basis.of_equiv_fun, finsupp.single_eq_update]
+funext $ λ i, e.injective $ funext $ λ j,
+  by simp [basis.of_equiv_fun, ←finsupp.single_eq_pi_single, finsupp.single_eq_update]
 
 variables (S : Type*) [semiring S] [module S M']
 variables [smul_comm_class R S M']
@@ -685,6 +690,15 @@ b.constr_basis R _ _
 @[simp] lemma equiv'_symm_apply (f : M → M') (g : M' → M) (hf hg hgf hfg) (i : ι') :
   (b.equiv' b' f g hf hg hgf hfg).symm (b' i) = g (b' i) :=
 b'.constr_basis R _ _
+
+lemma sum_repr_mul_repr {ι'} [fintype ι'] (b' : basis ι' R M) (x : M) (i : ι) :
+  ∑ (j : ι'), b.repr (b' j) i * b'.repr x j = b.repr x i :=
+begin
+  conv_rhs { rw [← b'.sum_repr x] },
+  simp_rw [linear_equiv.map_sum, linear_equiv.map_smul, finset.sum_apply'],
+  refine finset.sum_congr rfl (λ j _, _),
+  rw [finsupp.smul_apply, smul_eq_mul, mul_comm]
+end
 
 end basis
 

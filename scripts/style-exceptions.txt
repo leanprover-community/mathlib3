@@ -13,7 +13,7 @@ src/category_theory/functor.lean : line 18 : ERR_MOD : Module docstring missing,
 src/category_theory/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/groupoid.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/cones.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/creates.lean : line 329 : ERR_LIN : Line has more than 100 characters
+src/category_theory/limits/creates.lean : line 338 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/creates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/lattice.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -46,10 +46,7 @@ src/data/buffer/basic.lean : line 12 : ERR_MOD : Module docstring missing, or to
 src/data/char.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/dlist/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/dlist/instances.lean : line 12 : ERR_MOD : Module docstring missing, or too late
-src/data/equiv/denumerable.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/data/equiv/encodable/basic.lean : line 13 : ERR_MOD : Module docstring missing, or too late
-src/data/equiv/list.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/data/equiv/nat.lean : line 12 : ERR_MOD : Module docstring missing, or too late
+src/data/equiv/denumerable.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/fin2.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/basic.lean : line 16 : ERR_MOD : Module docstring missing, or too late
 src/data/fintype/sort.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -63,7 +60,6 @@ src/data/list/chain.lean : line 9 : ERR_MOD : Module docstring missing, or too l
 src/data/list/erase_dup.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/forall2.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/func.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/list/indexes.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/data/list/intervals.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/list/nat_antidiagonal.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/of_fn.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -75,7 +71,6 @@ src/data/list/sigma.lean : line 12 : ERR_MOD : Module docstring missing, or too 
 src/data/list/tfae.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/zip.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/mllist.lean : line 14 : ERR_MOD : Module docstring missing, or too late
-src/data/multiset/range.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/cast.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/dist.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/pairing.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -110,7 +105,6 @@ src/data/string/basic.lean : line 11 : ERR_MOD : Module docstring missing, or to
 src/data/string/defs.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/subtype.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/ulift.lean : line 9 : ERR_MOD : Module docstring missing, or too late
-src/data/zsqrtd/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subfield.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subgroup.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/deprecated/subring.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -120,14 +114,9 @@ src/measure_theory/decomposition.lean : line 14 : ERR_MOD : Module docstring mis
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/order/bounded_lattice.lean : line 15 : ERR_MOD : Module docstring missing, or too late
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/directed.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/lexicographic.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/order/omega_complete_partial_order.lean : line 51 : ERR_LIN : Line has more than 100 characters
 src/order/order_iso_nat.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/pilex.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/rel_iso.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/zorn.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/lists.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/schroeder_bernstein.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/zfc.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -175,7 +164,6 @@ src/tactic/interval_cases.lean : line 246 : ERR_LIN : Line has more than 100 cha
 src/tactic/interval_cases.lean : line 32 : ERR_MOD : Module docstring missing, or too late
 src/tactic/lean_core_docs.lean : line 733 : ERR_LIN : Line has more than 100 characters
 src/tactic/lean_core_docs.lean : line 766 : ERR_LIN : Line has more than 100 characters
-src/tactic/lift.lean : line 94 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/elimination.lean : line 121 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/parsing.lean : line 19 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/preprocessing.lean : line 223 : ERR_LIN : Line has more than 100 characters
@@ -190,7 +178,7 @@ src/tactic/lint/default.lean : line 44 : ERR_LIN : Line has more than 100 charac
 src/tactic/lint/default.lean : line 45 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/default.lean : line 46 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/frontend.lean : line 153 : ERR_LIN : Line has more than 100 characters
-src/tactic/lint/misc.lean : line 78 : ERR_LIN : Line has more than 100 characters
+src/tactic/lint/misc.lean : line 79 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/simp.lean : line 116 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/simp.lean : line 123 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/type_classes.lean : line 149 : ERR_LIN : Line has more than 100 characters

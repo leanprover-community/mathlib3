@@ -757,7 +757,7 @@ lemma exists_orthogonal_basis' [hK : invertible (2 : K)]
 begin
   tactic.unfreeze_local_instances,
   induction hd : finrank K V with d ih generalizing V,
-  { exact ⟨basis_of_finrank_zero' hd, λ _ _ _, zero_left _, fin.elim0⟩ },
+  { exact ⟨basis_of_finrank_zero hd, λ _ _ _, zero_left _, fin.elim0⟩ },
   haveI := finrank_pos_iff.1 (hd.symm ▸ nat.succ_pos d : 0 < finrank K V),
   cases exists_bilin_form_self_neq_zero hB₁ hB₂ with x hx,
   have hd' := hd,

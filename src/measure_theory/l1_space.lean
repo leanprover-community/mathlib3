@@ -46,7 +46,7 @@ integrable, function space, l1
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators ennreal measure_theory
+open_locale classical topological_space big_operators ennreal measure_theory nnreal
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -111,6 +111,10 @@ begin
   rwa [real.norm_eq_abs, abs_of_nonneg]
 end,
 by rw [has_finite_integral_iff_norm, lintegral_eq]
+
+lemma has_finite_integral_iff_of_nnreal {f : α → ℝ≥0} :
+  has_finite_integral (λ x, (f x : ℝ)) μ ↔ ∫⁻ a, f a ∂μ < ∞ :=
+by simp [has_finite_integral_iff_norm]
 
 lemma has_finite_integral.mono {f : α → β} {g : α → γ} (hg : has_finite_integral g μ)
   (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) : has_finite_integral f μ :=
@@ -371,7 +375,7 @@ variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 /-- `integrable f μ` means that `f` is measurable and that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
   `integrable f` means `integrable f volume`. -/
 def integrable (f : α → β) (μ : measure α . volume_tac) : Prop :=
-ae_measurable f μ  ∧ has_finite_integral f μ
+ae_measurable f μ ∧ has_finite_integral f μ
 
 lemma integrable.ae_measurable {f : α → β} (hf : integrable f μ) : ae_measurable f μ := hf.1
 lemma integrable.has_finite_integral {f : α → β} (hf : integrable f μ) : has_finite_integral f μ :=

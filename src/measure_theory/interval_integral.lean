@@ -454,9 +454,13 @@ calc  ∫ x in a..b, f (x + d)
                            : by simp [interval_integral, set_integral_map_of_closed_embedding _ A]
 ... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
 
+@[simp] lemma integral_comp_add_left (d) :
+  ∫ x in a..b, f (d + x) = ∫ x in d+a..d+b, f x :=
+by simpa only [add_comm] using integral_comp_add_right f d
+
 @[simp] lemma integral_comp_mul_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (c * x + d) = c⁻¹ • ∫ x in c*a+d..c*b+d, f x :=
-by rw [← integral_comp_add_right f d, ← integral_comp_mul_left _ hc]
+by rw [← integral_comp_add_right, ← integral_comp_mul_left _ hc]
 
 @[simp] lemma smul_integral_comp_mul_add (c d) :
   c • ∫ x in a..b, f (c * x + d) = ∫ x in c*a+d..c*b+d, f x :=
@@ -464,7 +468,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_add_mul (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + c * x) = c⁻¹ • ∫ x in d+c*a..d+c*b, f x :=
-by simpa only [add_comm] using integral_comp_mul_add f hc d
+by rw [← integral_comp_add_left, ← integral_comp_mul_left _ hc]
 
 @[simp] lemma smul_integral_comp_add_mul (c d) :
   c • ∫ x in a..b, f (d + c * x) = ∫ x in d+c*a..d+c*b, f x :=

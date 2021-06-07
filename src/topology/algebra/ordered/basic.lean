@@ -2279,8 +2279,9 @@ lemma map_coe_at_top_of_Ioo_subset (hb : s ⊆ Iio b)
   map (coe : s → α) at_top = 𝓝[Iio b] b :=
 begin
   rcases eq_empty_or_nonempty (Iio b) with (hb'|⟨a, ha⟩),
-  { rw [filter_eq_bot_of_not_nonempty at_top, map_bot, hb', nhds_within_empty],
-    exact λ ⟨⟨x, hx⟩⟩, not_nonempty_iff_eq_empty.2 hb' ⟨x, hb hx⟩ },
+  { rw [filter_eq_bot_of_is_empty at_top, map_bot, hb', nhds_within_empty],
+    apply subtype.is_empty_of_false,
+    exact λ x hx, (eq_empty_iff_forall_not_mem.1 hb' x) (hb hx) },
   { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap_of_mem],
     rw subtype.range_coe,
     exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' ha).2 (hs a ha) },

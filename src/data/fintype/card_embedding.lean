@@ -18,7 +18,7 @@ local notation `‖` x `‖` := fintype.card x
 
 open_locale nat
 
-local attribute [-irreducible] function.embedding.fintype
+local attribute [semireducible] function.embedding.fintype
 
 namespace fintype
 

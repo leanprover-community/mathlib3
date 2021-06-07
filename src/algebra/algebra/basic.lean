@@ -584,11 +584,11 @@ lemma map_list_prod (s : list A) :
 section prod
 
 /-- First projection as `alg_hom`. -/
-def _root_.alg_hom.fst : A × B →ₐ[R] A :=
+def fst : A × B →ₐ[R] A :=
 { commutes' := λ r, rfl, .. ring_hom.fst A B}
 
 /-- Second projection as `alg_hom`. -/
-def _root_.alg_hom.snd : A × B →ₐ[R] B :=
+def snd : A × B →ₐ[R] B :=
 { commutes' := λ r, rfl, .. ring_hom.snd A B}
 
 end prod

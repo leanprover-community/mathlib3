@@ -1095,11 +1095,23 @@ lemma le_size (G : simple_graph V) (ε : ℝ) (l : ℕ) :
 
 end szemeredi_equipartition
 
-def nat_floor (x : ℝ) : ℕ := sorry
+/-- The natural floor. Equal to ⌊x⌋ for positive numbers and to 0 for negative ones. -/
+noncomputable def nat_floor (x : ℝ) : ℕ := ⌊x⌋.to_nat
 
-lemma lt_nat_floor_add_one (x : ℝ) : x < nat_floor x + 1 := sorry
+lemma lt_nat_floor_add_one (x : ℝ) : x < nat_floor x + 1 :=
+begin
+  refine (lt_floor_add_one x).trans_le (add_le_add_right _ 1),
+  norm_cast,
+  exact int.le_to_nat _,
+end
 
-lemma le_nat_floor (n : ℕ) (x : ℝ) : n ≤ nat_floor x ↔ ↑n ≤ x := sorry
+lemma le_nat_floor_of_le {n : ℕ} {x : ℝ} (h : ↑n ≤ x): n ≤ nat_floor x :=
+begin
+  have := int.le_to_nat n,
+  norm_cast at this,
+  refine this.trans (int.to_nat_le_to_nat _),
+  rwa le_floor,
+end
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/
 noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
@@ -1242,7 +1254,7 @@ begin
   begin
     apply hP₂.trans,
     apply monotone.iterate_le_of_extensive monotone_exp_bound le_exp_bound,
-    rwa le_nat_floor,
+    exact le_nat_floor_of_le hi,
   end,
   have hPV : P.size * 16^P.size ≤ card V :=
     le_trans (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)) hV,

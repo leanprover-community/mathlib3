@@ -544,8 +544,8 @@ open_locale real_inner_product_space
 
 /-- The dual cone is the cone consisting of all points `y` such that for
 all points `x` in a given set `0 ≤ ⟪ x, y ⟫`. -/
-noncomputable def set.to_dual_cone (s : set H) : convex_cone H := {
-  carrier := { y | ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ },
+noncomputable def set.to_dual_cone (s : set H) : convex_cone H :=
+{ carrier := { y | ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ },
   smul_mem' := λ c hc y hy x hx,
   begin
     rw real_inner_smul_right,
@@ -555,8 +555,7 @@ noncomputable def set.to_dual_cone (s : set H) : convex_cone H := {
   begin
     rw inner_add_right,
     exact add_nonneg (hu x hx) (hv x hx)
-  end
-}
+  end }
 
 lemma to_dual_cone_empty : (∅ : set H).to_dual_cone = ⊤ :=
 convex_cone.ext' (eq_univ_of_forall

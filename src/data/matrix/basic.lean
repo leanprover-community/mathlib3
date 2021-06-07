@@ -110,11 +110,11 @@ lemma map_sub [add_group α] [add_group β] (f : α →+ β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 by { ext, simp }
 
-lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, contrapose! hm, use i }⟩
+instance subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim i }⟩
 
-lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (matrix m n α) :=
-⟨λ M N, by { ext, contrapose! hn, use j }⟩
+instance subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
 end matrix
 

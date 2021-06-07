@@ -592,14 +592,6 @@ def fst : A × B →ₐ[R] A :=
 def snd : A × B →ₐ[R] B :=
 { commutes' := λ r, rfl, .. ring_hom.snd A B}
 
-lemma _root_.linear_map.inl_map_mul (a₁ a₂ : A) : linear_map.inl R A B (a₁ * a₂) =
-  linear_map.inl R A B a₁ * linear_map.inl R A B a₂ :=
-prod.ext rfl (by simp)
-
-lemma _root_.linear_map.inr_map_mul (b₁ b₂ : B) : linear_map.inr R A B (b₁ * b₂) =
-  linear_map.inr R A B b₁ * linear_map.inr R A B b₂ :=
-prod.ext (by simp) rfl
-
 end prod
 
 end semiring

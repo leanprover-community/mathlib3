@@ -1497,7 +1497,7 @@ begin
     mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt _ _ _ _ a, set_of_and],
   refine ⟨_, _, _⟩,
   { intros ε ε0,
-     exact inter_mem_inf_sets
+    exact inter_mem_inf_sets
       (mem_infi_sets (a - ε) $ mem_infi_sets (sub_lt_self a ε0) (mem_principal_self _))
       (mem_infi_sets (ε + a) $ mem_infi_sets (by simpa) (mem_principal_self _)) },
   { intros b hb,

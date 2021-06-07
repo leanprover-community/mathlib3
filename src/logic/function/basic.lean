@@ -53,9 +53,6 @@ end
 lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀a, f₁ a = f₂ a) :=
 iff.intro (assume h a, h ▸ rfl) funext
 
-lemma is_symm_op.flip_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
-funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm
-
 protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
 protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
 
@@ -657,3 +654,6 @@ lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y �
 if for each pair of distinct points there is a function taking different values on them. -/
 def set.separates_points {α β : Type*} (A : set (α → β)) : Prop :=
 ∀ ⦃x y : α⦄, x ≠ y → ∃ f ∈ A, (f x : β) ≠ f y
+
+lemma is_symm_op.flip_eq {α β} (op) [is_symm_op α β op] : flip op = op :=
+funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm

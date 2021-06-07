@@ -173,7 +173,7 @@ instance has_scalar
 ⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
 
 @[simp]
-lemma scoe_mul {V : Type*} [normed_group V] [normed_space 𝕜 V]
+lemma coe_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
   (r : 𝕜) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
   ⇑(r • f) = r • f := rfl
 

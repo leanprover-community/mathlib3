@@ -74,6 +74,17 @@ noncomputable def choose_basis : basis (choose_basis_index R M) R M := (exists_b
 /-- The isomorphism `M ≃ₗ[R] (choose_basis_index R M →₀ R)`. -/
 noncomputable def repr : M ≃ₗ[R] (choose_basis_index R M →₀ R) := (choose_basis R M).repr
 
+/-- The universal property of free modules: giving a functon `(choose_basis_index R M) → N`, for `N`
+an `R`-module, is the same as giving an `R`-linear map `M →ₗ[R] N`.
+
+This definition is parameterized over an extra `semiring S`,
+such that `smul_comm_class R S M'` holds.
+If `R` is commutative, you can set `S := R`; if `R` is not commutative,
+you can recover an `add_equiv` by setting `S := ℕ`.
+See library note [bundled maps over different rings]. -/
+noncomputable def constr {S : Type z} [semiring S] [module S N] [smul_comm_class R S N] :
+  ((choose_basis_index R M) → N) ≃ₗ[S] M →ₗ[R] N := basis.constr (choose_basis R M) S
+
 @[priority 100]
 instance no_zero_smul_divisors [no_zero_divisors R] : no_zero_smul_divisors R M :=
 let ⟨⟨_, b⟩⟩ := exists_basis R M in b.no_zero_smul_divisors

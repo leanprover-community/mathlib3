@@ -36,14 +36,14 @@ instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
 @[simp, norm_cast, to_additive]
-lemma mul_coe [has_mul β] [has_continuous_mul β] (f g : C(α, β)) :
+lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) :
   ((f * g : C(α, β)) : α → β) = (f : α → β) * (g : α → β) := rfl
 
 @[to_additive]
 instance [has_one β] : has_one C(α, β) := ⟨const (1 : β)⟩
 
 @[simp, norm_cast, to_additive]
-lemma one_coe [has_one β]  :
+lemma coe_one [has_one β]  :
   ((1 : C(α, β)) : α → β) = (1 : α → β) := rfl
 
 @[simp, to_additive] lemma mul_comp {α : Type*} {β : Type*} {γ : Type*}
@@ -68,7 +68,7 @@ In this section we show that continuous functions valued in a topological group 
 the structure of a group.
 -/
 
-section subtype
+section subtype -- deprecated
 
 @[to_additive]
 instance continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
@@ -121,7 +121,7 @@ instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   simps]
 def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
-{ to_fun := coe_fn, map_one' := one_coe, map_mul' := mul_coe }
+{ to_fun := coe_fn, map_one' := coe_one, map_mul' := coe_mul }
 
 /-- Composition on the right as an `monoid_hom`. Similar to `monoid_hom.comp_hom'`. -/
 @[to_additive "Composition on the right as an `add_monoid_hom`. Similar to
@@ -132,7 +132,7 @@ def comp_monoid_hom' {α : Type*} {β : Type*} {γ : Type*}
 { to_fun := λ f, f.comp g, map_one' := one_comp g, map_mul' := λ f₁ f₂, mul_comp f₁ f₂ g }
 
 @[simp, norm_cast]
-lemma pow_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+lemma coe_pow {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ((f^n : C(α, β)) : α → β) = (f : α → β)^n :=
 (coe_fn_monoid_hom : C(α, β) →* _).map_pow f n
@@ -174,13 +174,13 @@ instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   ..continuous_map.monoid }
 
 @[simp, norm_cast, to_additive]
-lemma inv_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+lemma coe_inv {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] (f : C(α, β)) :
   ((f⁻¹ : C(α, β)) : α → β) = (f⁻¹ : α → β) :=
 rfl
 
 @[simp, norm_cast, to_additive]
-lemma div_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+lemma coe_div {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] (f g : C(α, β)) :
   ((f / g : C(α, β)) : α → β) = (f : α → β) / (g : α → β) :=
 by { simp only [div_eq_mul_inv], refl, }
@@ -216,7 +216,7 @@ In this section we show that continuous functions valued in a topological ring `
 the structure of a ring.
 -/
 
-section subtype
+section subtype -- deprecated
 
 instance continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
   [ring R] [topological_ring R] : is_subring { f : α → R | continuous f } :=
@@ -278,7 +278,7 @@ In this section we show that continuous functions valued in a topological module
 topological semiring `R` inherit the structure of a module.
 -/
 
-section subtype
+section subtype -- deprecated
 
 variables {α : Type*} [topological_space α]
 variables {R : Type*} [semiring R] [topological_space R]
@@ -289,7 +289,7 @@ instance continuous_has_scalar : has_scalar R { f : α → M | continuous f } :=
 ⟨λ r f, ⟨r • f, f.property.const_smul r⟩⟩
 
 @[simp, norm_cast]
-lemma continuous_functions.smul_coe (f : { f : α → M | continuous f }) (r : R) :
+lemma continuous_functions.coe_smul (f : { f : α → M | continuous f }) (r : R) :
   ⇑(r • f) = r • f := rfl
 
 instance continuous_module [topological_add_group M] :
@@ -314,7 +314,7 @@ instance
 ⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
 
 @[simp, norm_cast]
-lemma smul_coe [module R M] [has_continuous_smul R M]
+lemma coe_smul [module R M] [has_continuous_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
 
 lemma smul_apply [module R M] [has_continuous_smul R M]
@@ -344,7 +344,7 @@ variables (R)
 @[simps]
 def coe_fn_linear_map : C(α, M) →ₗ[R] (α → M) :=
 { to_fun := coe_fn,
-  map_smul' := smul_coe,
+  map_smul' := coe_smul,
   ..(coe_fn_add_monoid_hom : C(α, M) →+ _) }
 
 end continuous_map
@@ -361,7 +361,7 @@ In this section we show that continuous functions valued in a topological algebr
 is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_semiring`
 (by now we require `topological_ring`: see TODO below).-/
 
-section subtype
+section subtype -- deprecated
 
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
@@ -428,10 +428,10 @@ def continuous_map.coe_fn_alg_hom : C(α, A) →ₐ[R] (α → A) :=
 { to_fun := coe_fn,
   commutes' := λ r, rfl,
   -- `..(continuous_map.coe_fn_ring_hom : C(α, A) →+* _)` times out for some reason
-  map_zero' := continuous_map.zero_coe,
-  map_one' := continuous_map.one_coe,
-  map_add' := continuous_map.add_coe,
-  map_mul' := continuous_map.mul_coe }
+  map_zero' := continuous_map.coe_zero,
+  map_one' := continuous_map.coe_one,
+  map_add' := continuous_map.coe_add,
+  map_mul' := continuous_map.coe_mul }
 
 variables {R}
 

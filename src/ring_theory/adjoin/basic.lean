@@ -138,38 +138,20 @@ begin
       exact ⟨subalgebra.zero_mem _, subalgebra.one_mem _⟩ } }
 end
 
-lemma adjoint_prod_fst_mem (B) [semiring B] [algebra R B] {s} {x : A} (h : x ∈ adjoin R s) :
-  ((x, 0) : (A × B)) ∈ (adjoin R ((linear_map.inl R A B) '' (s ∪ {1}))) :=
+lemma mem_adjoin_of_map_mul {s} {x : A} {f : A →ₗ[R] B} (hf : ∀ a₁ a₂, f(a₁ * a₂) = f a₁ * f a₂)
+  (h : x ∈ adjoin R s) : f x ∈ adjoin R (f '' (s ∪ {1})) :=
 begin
-  let S := adjoin R ((linear_map.inl R A B) '' (s ∪ {1})),
-  refine @adjoin_induction R A _ _ _ _ (λ a, ((a, 0) : (A × B)) ∈ S) x h
-    (λ a ha, subset_adjoin ⟨a, ⟨set.subset_union_left _ _ ha, rfl⟩⟩)
-    (λ r, _)
-    (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)
-    (λ y z hy hz, by simpa [hy, hz] using subalgebra.mul_mem _ hy hz),
-  have : ((1, 0) : A × B) ∈ S :=
-    subset_adjoin ⟨1, ⟨set.subset_union_right _ _ $ set.mem_singleton 1, rfl⟩⟩,
-  replace this := subalgebra.smul_mem S this r,
-  rw [prod.smul_mk, smul_zero] at this,
+  refine @adjoin_induction R A _ _ _ _ (λ a, f a ∈ adjoin R (f '' (s ∪ {1}))) x h
+  (λ a ha, subset_adjoin ⟨a, ⟨set.subset_union_left _ _ ha, rfl⟩⟩)
+  (λ r, _)
+  (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)
+  (λ y z hy hz, by simpa [hy, hz, hf y z] using subalgebra.mul_mem _ hy hz),
+  have : f 1 ∈ adjoin R (f '' (s ∪ {1})) :=
+  subset_adjoin ⟨1, ⟨set.subset_union_right _ _ $ set.mem_singleton 1, rfl⟩⟩,
+  replace this := subalgebra.smul_mem (adjoin R (f '' (s ∪ {1}))) this r,
   convert this,
-  exact algebra_map_eq_smul_one r,
-end
-
-lemma adjoint_prod_snd_mem (A) [semiring A] [algebra R A] {t} {x : B} (h : x ∈ adjoin R t) :
-  ((0, x) : (A × B)) ∈ (adjoin R ((linear_map.inr R A B) '' (t ∪ {1}))) :=
-begin
-  let T := adjoin R ((linear_map.inr R A B) '' (t ∪ {1})),
-  refine @adjoin_induction R B _ _ _ _ (λ b, ((0, b) : (A × B)) ∈ T) x h
-    (λ b hb, subset_adjoin ⟨b, ⟨set.subset_union_left _ _ hb, rfl⟩⟩)
-    (λ r, _)
-    (λ y z hy hz, by simpa [hy, hz] using subalgebra.add_mem _ hy hz)
-    (λ y z hy hz, by simpa [hy, hz] using subalgebra.mul_mem _ hy hz),
-  have : ((0, 1) : A × B) ∈ T :=
-    subset_adjoin ⟨1, ⟨set.subset_union_right _ _ $ set.mem_singleton 1, rfl⟩⟩,
-  replace this := subalgebra.smul_mem T this r,
-  rw [prod.smul_mk, smul_zero] at this,
-  convert this,
-  exact algebra_map_eq_smul_one r,
+  rw algebra_map_eq_smul_one,
+  exact f.map_smul _ _
 end
 
 lemma adjoin_eq_prod (s) (t) :
@@ -179,8 +161,10 @@ begin
   let P := adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪ linear_map.inr R A B '' (t ∪ {1})),
   refine le_antisymm (adjoin_le_prod R s t) _,
   rintro ⟨a, b⟩ ⟨ha, hb⟩,
-  have Ha := adjoint_prod_fst_mem R B ha,
-  have Hb := adjoint_prod_snd_mem R A hb,
+  have Ha : (a, (0 : B)) ∈ adjoin R ((linear_map.inl R A B) '' (s ∪ {1})) :=
+    mem_adjoin_of_map_mul R (linear_map.inl_map_mul) ha,
+  have Hb : ((0 : A), b) ∈ adjoin R ((linear_map.inr R A B) '' (t ∪ {1})) :=
+    mem_adjoin_of_map_mul R (linear_map.inr_map_mul) hb,
   replace Ha : (a, (0 : B)) ∈ P :=
     adjoin_mono (set.subset_union_of_subset_left (set.subset.refl _) _) Ha,
   replace Hb : ((0 : A), b) ∈ P :=

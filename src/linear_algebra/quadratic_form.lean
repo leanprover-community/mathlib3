@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anne Baanen
+Authors: Anne Baanen, Kexing Ying
 -/
 
 import algebra.invertible
@@ -937,73 +937,89 @@ let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' 
 
 end complex
 
-section real
+end quadratic_form
+
+namespace units
 
 /-- The sign function that maps negative real numbers to -1 and nonnegative numbers to 1. -/
-noncomputable def sign (r : ℝ) : ℝ := if r < 0 then -1 else 1
+noncomputable def sign (r : units ℝ) : ℝ := if (r : ℝ) < 0 then -1 else 1
 
-lemma sign_apply_eq (r : ℝ) : sign r = -1 ∨ sign r = 1 :=
+lemma sign_apply_eq (r : units ℝ) : sign r = -1 ∨ sign r = 1 :=
 begin
-  by_cases r < 0,
+  by_cases (r : ℝ) < 0,
   { exact or.intro_left _ (if_pos h) },
   { exact or.intro_right _ (if_neg h) }
 end
 
-lemma sign_mul_nonneg (r : ℝ) : 0 ≤ sign r * r :=
+lemma sign_mul_nonneg (r : units ℝ) : 0 ≤ sign r * r :=
 begin
-  by_cases r < 0,
+  by_cases (r : ℝ) < 0,
   { rw [sign, if_pos h],
     exact mul_nonneg_of_nonpos_of_nonpos (by norm_num) (le_of_lt h) },
   { rw [sign, if_neg h, one_mul],
     exact not_lt.1 h }
 end
 
-lemma sign_mul_ne_zero_pos (r : ℝ) (hr : r ≠ 0) : 0 < sign r * r :=
+lemma sign_mul_pos (r : units ℝ) : 0 < sign r * r :=
 begin
   refine lt_of_le_of_ne (sign_mul_nonneg r) (λ h, _),
   rw zero_eq_mul at h,
   cases sign_apply_eq r with hneg hpos;
-  cases h; { linarith <|> exact hr h }
+  cases h; { linarith <|> exact units.ne_zero _ h }
 end
 
-lemma sign_inv_eq_self (r : ℝ) : (sign r)⁻¹ = sign r :=
+lemma sign_inv_eq_self (r : units ℝ) : (sign r)⁻¹ = sign r :=
 begin
   cases sign_apply_eq r with h h,
   { rw h, norm_num },
   { rw h, exact inv_one }
 end
 
+end units
+
+namespace quadratic_form
+
+section real
+
+variables {ι : Type*} {v : basis ι R M} [fintype ι] [invertible 2]
+
+open finset units
+
+open_locale big_operators
+
 /-- The isometry between a weighted sum of squares with weights `u` on the complex numbers
 and the weighted sum of squares with weights `sign ∘ u`. -/
-noncomputable def isometry_sign_weighted_sum_squares'
-  [decidable_eq ι] (u : ι → ℝ) (hu : ∀ i : ι, is_unit (u i)) :
-  isometry (weighted_sum_squares u) (weighted_sum_squares (sign ∘ u)) :=
+noncomputable def isometry_sign_weighted_sum_squares
+  [decidable_eq ι] (u : ι → units ℝ) :
+  isometry (weighted_sum_squares ℝ u) (weighted_sum_squares ℝ (sign ∘ u)) :=
 begin
-  have hu' : ∀ i : ι, 0 ≠ (sign (u i) * u i) ^ - (1 / 2 : ℝ),
-  { intro i, exact ne_of_lt (real.rpow_pos_of_pos (sign_mul_ne_zero_pos _
-      (is_unit_iff_ne_zero.1 (hu i))) _) },
-  convert ((weighted_sum_squares u).isometry_basis_repr
-    (is_basis.smul_of_is_unit (pi.is_basis_fun ℝ ι) (λ i, is_unit_iff_ne_zero.2 (hu' i).symm))),
+  have hu' : ∀ i : ι, (sign (u i) * u i) ^ - (1 / 2 : ℝ) ≠ 0,
+  { intro i, refine (ne_of_lt (real.rpow_pos_of_pos ((sign_mul_pos _)) _)).symm },
+  convert ((weighted_sum_squares ℝ u).isometry_basis_repr
+    ((pi.basis_fun ℝ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hu' i).unit))),
   ext1 v,
   rw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
   refine sum_congr rfl (λ j hj, _),
-  have hsum : (∑ (i : ι), v i • (sign (u i) * u i) ^ - (1 / 2 : ℝ) •
-    (linear_map.std_basis ℝ (λ (i : ι), ℝ) i) 1) j =
-    v j • (sign (u j) * u j) ^ - (1 / 2 : ℝ),
-  { rw [finset.sum_apply, sum_eq_single j, linear_map.std_basis_apply, pi.smul_apply,
-        pi.smul_apply, function.update_same, smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
+  have hsum : (∑ (i : ι), v i • ((is_unit_iff_ne_zero.2 $ hu' i).unit : ℝ) •
+    (pi.basis_fun ℝ ι) i) j = v j • (sign (u j) * u j) ^ - (1 / 2 : ℝ),
+  { rw [finset.sum_apply, sum_eq_single j, pi.basis_fun_apply, is_unit.unit_spec,
+        linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_same,
+        smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
     intros i _ hij,
-    rw [linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_noteq hij.symm,
-        pi.zero_apply, smul_eq_mul, smul_eq_mul, mul_zero, mul_zero],
+    rw [pi.basis_fun_apply, linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply,
+        function.update_noteq hij.symm, pi.zero_apply, smul_eq_mul, smul_eq_mul,
+        mul_zero, mul_zero],
     intro hj', exact false.elim (hj' hj) },
-  rw [hsum, smul_eq_mul],
+  simp_rw basis.units_smul_apply,
+  erw [hsum, smul_eq_mul],
   suffices : (sign ∘ u) j * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
     (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
-  { rw [← mul_assoc, this], ring },
-  rw [← real.rpow_add (sign_mul_ne_zero_pos _ (is_unit_iff_ne_zero.1 (hu j))),
-      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv',
+  { erw [← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
+  rw [← real.rpow_add (sign_mul_pos _),
+      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, _root_.mul_inv',
       sign_inv_eq_self, mul_assoc (sign (u j)) (u j)⁻¹,
-      inv_mul_cancel (is_unit_iff_ne_zero.1 (hu j)), mul_one],
+      inv_mul_cancel (units.ne_zero _), mul_one],
+  apply_instance
 end
 
 /-- Sylvester's law of inertia: A nondegenerate real quadratic form is equivalent to a weighted
@@ -1012,11 +1028,9 @@ theorem equivalent_one_neg_one_weighted_sum_squared
   {M : Type*} [add_comm_group M] [module ℝ M] [finite_dimensional ℝ M]
   (Q : quadratic_form ℝ M) (hQ : (associated Q).nondegenerate) :
   ∃ w : fin (finite_dimensional.finrank ℝ M) → ℝ,
-  (∀ i, w i = -1 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares w) :=
-let ⟨w, hw₁, hw₂⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
-  ⟨sign ∘ w, λ i, sign_apply_eq (w i),
-    hw₂.trans (nonempty.intro $ isometry_sign_weighted_sum_squares' w
-    (λ i, is_unit_iff_ne_zero.2 (hw₁ i)))⟩
+  (∀ i, w i = -1 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares ℝ w) :=
+let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
+  ⟨sign ∘ w, λ i, sign_apply_eq (w i), ⟨hw₁.trans (isometry_sign_weighted_sum_squares w)⟩⟩
 
 end real
 

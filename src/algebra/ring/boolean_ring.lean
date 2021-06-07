@@ -189,8 +189,8 @@ def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
   neg := λ a, a,
   add_left_neg := λ b,
     begin
-      simp only [has_neg.neg, (+), add_semigroup.add, add_monoid.add, symm_diff_eq, sup_bot_eq,
-        inf_compl_eq_bot],
+      simp only [has_neg.neg, (+), add_semigroup.add, add_monoid.add, add_zero_class.add,
+        symm_diff_eq, sup_bot_eq, inf_compl_eq_bot],
       refl,
     end,
   add_comm := symm_diff_comm,
@@ -212,7 +212,7 @@ def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
       rw [@inf_comm _ _ c, @inf_comm _ _ c aᶜ, inf_compl_eq_bot, inf_bot_eq, inf_bot_eq,
         sup_bot_eq, sup_bot_eq],
     end,
-  mul_idem := λ b, inf_idem }
+  mul_self := λ b, inf_idem }
 
 localized "attribute [instance, priority 100] boolean_algebra.to_boolean_ring" in
   boolean_ring_of_boolean_algebra
@@ -267,7 +267,6 @@ begin
   ext a b,
   change a ⊓ (⊤ Δ b) = a \ b,
   rw [top_symm_diff, sdiff_eq],
-  refl,
 end
 
 end boolean_algebra
@@ -284,7 +283,7 @@ lemma to_boolean_algebra.add_eq_aux [boolean_ring α] (a b : α) :
   (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) = a + b :=
 calc (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) =
     a + b + (a * b + a * b) + (a * b + (a * a)*b) + (a * (b * b) + (a*a)*(b*b)) : by ring
-  ... = a+b : by simp only [mul_idem, add_self, add_zero]
+  ... = a+b : by simp only [mul_self, add_self, add_zero]
 
 lemma to_boolean_algebra.add_eq :
   (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).add = BR.add :=

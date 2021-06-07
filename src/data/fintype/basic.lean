@@ -947,8 +947,12 @@ instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fin
 fintype.subtype (univ.filter p) (by simp)
 
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
-def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
+def set_fintype {α} [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
 subtype.fintype (λ x, x ∈ s)
+
+lemma set_fintype_card_le_univ {α : Type*} [fintype α] (s : set α) [fintype ↥s] :
+  fintype.card ↥s ≤ fintype.card α :=
+fintype.card_le_of_embedding (function.embedding.subtype s)
 
 namespace function.embedding
 

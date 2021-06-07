@@ -202,15 +202,15 @@ lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.inject
 
 variables (L) (M)
 /-- The identity embedding from a structure to itself -/
-@[refl] def id : M ↪[L] M :=
+@[refl] def refl : M ↪[L] M :=
 { to_embedding := function.embedding.refl M }
 
 variables {L} {M}
 
-instance : inhabited (M ↪[L] M) := ⟨id L M⟩
+instance : inhabited (M ↪[L] M) := ⟨refl L M⟩
 
-@[simp] lemma id_apply (x : M) :
-  id L M x = x := rfl
+@[simp] lemma refl_apply (x : M) :
+  refl L M x = x := rfl
 
 /-- Composition of first-order embeddings -/
 @[trans] def comp (hnp : N ↪[L] P) (hmn : M ↪[L] N) : M ↪[L] P :=
@@ -289,15 +289,15 @@ lemma injective (f : M ≃[L] N) : function.injective f := f.to_embedding.inject
 
 variables (L) (M)
 /-- The identity equivalence from a structure to itself -/
-@[refl] def id : M ≃[L] M :=
+@[refl] def refl : M ≃[L] M :=
 { to_equiv := equiv.refl M }
 
 variables {L} {M}
 
-instance : inhabited (M ≃[L] M) := ⟨id L M⟩
+instance : inhabited (M ≃[L] M) := ⟨refl L M⟩
 
-@[simp] lemma id_apply (x : M) :
-  id L M x = x := rfl
+@[simp] lemma refl_apply (x : M) :
+  refl L M x = x := rfl
 
 /-- Composition of first-order equivalences -/
 @[trans] def comp (hnp : N ≃[L] P) (hmn : M ≃[L] N) : M ≃[L] P :=

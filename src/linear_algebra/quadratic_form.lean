@@ -981,7 +981,7 @@ namespace quadratic_form
 
 section real
 
-variables {ι : Type*} {v : basis ι R M} [fintype ι] [invertible 2]
+variables {ι : Type*} {v : basis ι R M} [fintype ι]
 
 open finset units
 

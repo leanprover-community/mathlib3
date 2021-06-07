@@ -223,12 +223,12 @@ lemma covariant_lt_iff_contravariant_le [linear_order N] :
 @[to_additive]
 lemma covariant_iff_covariant_mul [comm_semigroup N] :
   covariant N N (*) (r) ↔ covariant N N (flip (*)) (r) :=
-by rw function.is_symm_op.flip_eq
+by rw is_symm_op.flip_eq
 
 @[to_additive]
 lemma contravariant_mul_iff_flip [comm_semigroup N] :
   contravariant N N (*) (r) ↔ contravariant N N (flip (*)) (r) :=
-by rw function.is_symm_op.flip_eq
+by rw is_symm_op.flip_eq
 
 @[to_additive]
 instance covariant_mul_le.to_contravariant_lt_mul [has_mul N] [linear_order N]

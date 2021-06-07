@@ -28,7 +28,7 @@ noncomputable def preimage (s : finset β) (f : α → β)
 
 @[simp] lemma mem_preimage {f : α → β} {s : finset β} {hf : set.inj_on f (f ⁻¹' ↑s)} {x : α} :
   x ∈ preimage s f hf ↔ f x ∈ s :=
-set.finite.mem_to_finset
+set.finite.mem_to_finset _
 
 @[simp, norm_cast] lemma coe_preimage {f : α → β} (s : finset β)
   (hf : set.inj_on f (f ⁻¹' ↑s)) : (↑(preimage s f hf) : set α) = f ⁻¹' ↑s :=

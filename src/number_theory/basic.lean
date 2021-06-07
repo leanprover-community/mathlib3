@@ -37,8 +37,8 @@ begin
   have hp : (p : ideal.quotient I) = 0,
   { rw [← f.map_nat_cast, eq_zero_iff_mem, mem_span_singleton] },
   rw [← mem_span_singleton, ← ideal.quotient.eq] at h,
-  rw [← mem_span_singleton, ← eq_zero_iff_mem, ring_hom.map_geom_series₂,
-      ring_hom.map_pow, ring_hom.map_pow, h, geom_series₂_self, hp, zero_mul],
+  rw [← mem_span_singleton, ← eq_zero_iff_mem, ring_hom.map_geom_sum₂,
+      ring_hom.map_pow, ring_hom.map_pow, h, geom_sum₂_self, hp, zero_mul],
 end
 
 end

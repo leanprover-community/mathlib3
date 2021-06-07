@@ -28,6 +28,24 @@ lemma ext : ∀ {b₁ b₂ : buffer α}, to_list b₁ = to_list b₂ → b₁ = 
   rw eq_of_heq (h.trans a₂.to_list_to_array)
 end
 
+lemma ext_iff {b₁ b₂ : buffer α} : b₁ = b₂ ↔ to_list b₁ = to_list b₂ :=
+⟨λ h, h ▸ rfl, ext⟩
+
+lemma size_eq_zero_iff {b : buffer α} : b.size = 0 ↔ b = nil :=
+begin
+  rcases b with ⟨_|n, ⟨a⟩⟩,
+  { simp only [size, nil, mk_buffer, true_and, true_iff, eq_self_iff_true, heq_iff_eq,
+               sigma.mk.inj_iff],
+    ext i,
+    exact fin.elim0 i },
+  { simp [size, nil, mk_buffer, nat.succ_ne_zero] }
+end
+
+@[simp] lemma size_nil : (@nil α).size = 0 :=
+by rw size_eq_zero_iff
+
+@[simp] lemma to_list_nil : to_list (@nil α) = [] := rfl
+
 instance (α) [decidable_eq α] : decidable_eq (buffer α) :=
 by tactic.mk_dec_eq_instance
 
@@ -58,6 +76,9 @@ begin
   { rw [list.to_buffer, to_list_append_list],
     refl }
 end
+
+@[simp] lemma to_list_to_array (b : buffer α) : b.to_array.to_list = b.to_list :=
+by { cases b, simp [to_list] }
 
 @[simp] lemma append_list_nil (b : buffer α) : b.append_list [] = b := rfl
 
@@ -154,6 +175,22 @@ end
 @[simp] lemma read_to_buffer (l : list α) (i) :
   l.to_buffer.read i = l.nth_le i (by { convert i.property, simp }) :=
 by { convert read_to_buffer' _ _ _, { simp }, { simpa using i.property } }
+
+lemma nth_le_to_list' (b : buffer α) {i : ℕ} (h h') :
+  b.to_list.nth_le i h = b.read ⟨i, h'⟩ :=
+begin
+  have : b.to_list.to_buffer.read ⟨i, (by simpa using h')⟩ = b.read ⟨i, h'⟩,
+  { congr' 1; simp [fin.heq_ext_iff] },
+  simp [←this]
+end
+
+lemma nth_le_to_list (b : buffer α) {i : ℕ} (h) :
+  b.to_list.nth_le i h = b.read ⟨i, by simpa using h⟩ :=
+nth_le_to_list' _ _ _
+
+lemma read_eq_nth_le_to_list (b : buffer α) (i) :
+  b.read i = b.to_list.nth_le i (by simpa using i.is_lt) :=
+by simp [nth_le_to_list]
 
 lemma read_singleton (c : α) : [c].to_buffer.read ⟨0, by simp⟩ = c :=
 by simp

@@ -29,11 +29,11 @@ instance [uniform_space V] [has_norm V] :
   has_norm (completion V) :=
 { norm := completion.extension has_norm.norm }
 
-@[simp] lemma norm_coe {V} [normed_group V] (v : V) :
+@[simp] lemma norm_coe {V} [semi_normed_group V] (v : V) :
   ∥(v : completion V)∥ = ∥v∥ :=
 completion.extension_coe uniform_continuous_norm v
 
-instance [normed_group V] : normed_group (completion V) :=
+instance [semi_normed_group V] : normed_group (completion V) :=
 { dist_eq :=
   begin
     intros x y,

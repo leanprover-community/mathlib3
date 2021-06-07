@@ -27,8 +27,8 @@ We conclude that all intervals with distinct endpoints have cardinality continuu
 ## Main statements
 
 * `cardinal.mk_real : #ℝ = 2 ^ omega`: the reals have cardinality continuum.
-* `cardinal.not_countable_real`: the universal set of real numbers is not countable. We can use this same
-  proof to show that all the other sets in this file are not countable.
+* `cardinal.not_countable_real`: the universal set of real numbers is not countable.
+  We can use this same proof to show that all the other sets in this file are not countable.
 * 8 lemmas of the form `mk_Ixy_real` for `x,y ∈ {i,o,c}` state that intervals on the reals
   have cardinality continuum.
 
@@ -89,7 +89,8 @@ lemma cantor_function_succ (f : ℕ → bool) (h1 : 0 ≤ c) (h2 : c < 1) :
   cantor_function c f = cond (f 0) 1 0 + c * cantor_function c (λ n, f (n+1)) :=
 begin
   rw [cantor_function, tsum_eq_zero_add (summable_cantor_function f h1 h2)],
-  rw [cantor_function_aux_succ, tsum_mul_left], refl
+  rw [cantor_function_aux_succ, tsum_mul_left, cantor_function_aux, pow_zero],
+  refl
 end
 
 /-- `cantor_function c` is strictly increasing with if `0 < c < 1/2`, if we endow `ℕ → bool` with a
@@ -117,7 +118,9 @@ begin
     { rw [cantor_function_succ _ (le_of_lt h1) h3, div_eq_mul_inv,
           ←tsum_geometric_of_lt_1 (le_of_lt h1) h3],
       apply zero_add },
-    { apply tsum_eq_single 0, intros n hn, cases n, contradiction, refl, apply_instance }},
+    { convert tsum_eq_single 0 _,
+      { apply_instance },
+      { intros n hn, cases n, contradiction, refl } } },
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],
   rw [hn 0 $ zero_lt_succ n],
   apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn

@@ -58,7 +58,7 @@ product measure, Fubini's theorem, Tonelli's theorem, Fubini-Tonelli theorem
 -/
 
 noncomputable theory
-open_locale classical topological_space ennreal
+open_locale classical topological_space ennreal measure_theory
 open set function real ennreal
 open measure_theory measurable_space measure_theory.measure
 open topological_space (hiding generate_from)
@@ -113,7 +113,7 @@ begin
       intro n, apply measurable_set_generate_from,
       exact ⟨s, t n, hs, h1t n, rfl⟩ },
     { rcases hC with ⟨t, h1t, h2t⟩,
-      rw [← univ_prod, ← h2t, Union_prod],
+      rw [← univ_prod, ← h2t, Union_prod_const],
       apply measurable_set.Union,
       rintro n, apply measurable_set_generate_from,
       exact mem_image2_of_mem (h1t n) hs } },
@@ -154,7 +154,7 @@ begin
     exact measurable_const.indicator hs },
   { intros t ht h2t,
     simp_rw [preimage_compl, measure_compl (measurable_prod_mk_left ht) (measure_lt_top ν _)],
-    exact measurable_const.ennreal_sub h2t },
+    exact h2t.const_sub _ },
   { intros f h1f h2f h3f, simp_rw [preimage_Union],
     have : ∀ b, ν (⋃ i, prod.mk b ⁻¹' f i) = ∑' i, ν (prod.mk b ⁻¹' f i) :=
       λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f i j hij))
@@ -170,7 +170,7 @@ begin
   have : ∀ x, measurable_set (prod.mk x ⁻¹' s) := λ x, measurable_prod_mk_left hs,
   simp only [← @supr_restrict_spanning_sets _ _ ν, this],
   apply measurable_supr, intro i,
-  haveI : fact _ := measure_spanning_sets_lt_top ν i,
+  haveI := fact.mk (measure_spanning_sets_lt_top ν i),
   exact measurable_measure_prod_mk_left_finite hs
 end
 
@@ -205,7 +205,7 @@ begin
   { intros c s hs, simp only [← indicator_comp_right],
     suffices : measurable (λ x, c * ν (prod.mk x ⁻¹' s)),
     { simpa [lintegral_indicator _ (m hs)] },
-    exact measurable_const.ennreal_mul (measurable_measure_prod_mk_left hs) },
+    exact (measurable_measure_prod_mk_left hs).const_mul _ },
   { rintro f g - hf hg h2f h2g, simp_rw [pi.add_apply, lintegral_add (hf.comp m) (hg.comp m)],
     exact h2f.add h2g },
   { intros f hf h2f h3f,
@@ -261,8 +261,8 @@ begin
     { intros x, refine finset.subset.trans (finset.filter_subset _ _) _, intro y,
       simp_rw [simple_func.mem_range], rintro ⟨z, rfl⟩, exact ⟨(x, z), rfl⟩ },
     simp only [simple_func.integral_eq_sum_of_subset (this _)],
-    refine finset.measurable_sum _ _, intro x,
-    refine (measurable.to_real _).smul measurable_const,
+    refine finset.measurable_sum _ (λ x _, _),
+    refine (measurable.to_real _).smul_const _,
     simp only [simple_func.coe_comp, preimage_comp] {single_pass := tt},
     apply measurable_measure_prod_mk_left,
     exact (s n).measurable_set_fiber x },
@@ -434,7 +434,7 @@ instance prod.sigma_finite : sigma_finite (μ.prod ν) :=
 ⟨⟨(μ.to_finite_spanning_sets_in.prod ν.to_finite_spanning_sets_in (λ _, id) (λ _, id)).mono $
  by { rintro _ ⟨s, t, hs, ht, rfl⟩, exact hs.prod ht }⟩⟩
 
-/-- Measures on a product space are equal the product measure if they are equal on rectangles
+/-- A measure on a product space equals the product measure if they are equal on rectangles
   with as sides sets that generate the corresponding σ-algebras. -/
 lemma prod_eq_generate_from {μ : measure α} {ν : measure β} {C : set (set α)}
   {D : set (set β)} (hC : generate_from C = ‹_›)
@@ -454,7 +454,7 @@ begin
     simp_rw [h₁ s hs t ht, prod_prod (h4C s hs) (h4D t ht)] }
 end
 
-/-- Measures on a product space are equal to the product measure if they are equal on rectangles. -/
+/-- A measure on a product space equals the product measure if they are equal on rectangles. -/
 lemma prod_eq {μν : measure (α × β)}
   (h : ∀ s t, measurable_set s → measurable_set t → μν (s.prod t) = μ s * ν t) : μ.prod ν = μν :=
 prod_eq_generate_from generate_from_measurable_set generate_from_measurable_set
@@ -539,6 +539,23 @@ by { refine prod_eq (λ s t hs ht, _), simp_rw [add_apply, prod_prod hs ht, left
 
 lemma add_prod (μ' : measure α) [sigma_finite μ'] : (μ + μ').prod ν = μ.prod ν + μ'.prod ν :=
 by { refine prod_eq (λ s t hs ht, _), simp_rw [add_apply, prod_prod hs ht, right_distrib] }
+
+@[simp] lemma zero_prod (ν : measure β) : (0 : measure α).prod ν = 0 :=
+by { rw measure.prod, exact bind_zero_left _ }
+
+@[simp] lemma prod_zero (μ : measure α) : μ.prod (0 : measure β) = 0 :=
+by simp [measure.prod]
+
+lemma map_prod_map {δ} [measurable_space δ] {f : α → β} {g : γ → δ}
+  {μa : measure α} {μc : measure γ} (hfa : sigma_finite (map f μa))
+  (hgc : sigma_finite (map g μc)) (hf : measurable f) (hg : measurable g) :
+  (map f μa).prod (map g μc) = map (prod.map f g) (μa.prod μc) :=
+begin
+  haveI := hgc.of_map μc hg,
+  refine prod_eq (λ s t hs ht, _),
+  rw [map_apply (hf.prod_map hg) (hs.prod ht), map_apply hf hs, map_apply hg ht],
+  exact prod_prod (hf hs) (hg ht)
+end
 
 end measure
 end measure_theory
@@ -662,7 +679,7 @@ lemma lintegral_lintegral_swap [sigma_finite μ] ⦃f : α → β → ℝ≥0∞
 lemma lintegral_prod_mul {f : α → ℝ≥0∞} {g : β → ℝ≥0∞}
   (hf : ae_measurable f μ) (hg : ae_measurable g ν) :
   ∫⁻ z, f z.1 * g z.2 ∂(μ.prod ν) = ∫⁻ x, f x ∂μ * ∫⁻ y, g y ∂ν :=
-by simp [lintegral_prod _ (hf.fst.ennreal_mul hg.snd), lintegral_lintegral_mul hf hg]
+by simp [lintegral_prod _ (hf.fst.mul hg.snd), lintegral_lintegral_mul hf hg]
 
 /-! ### Integrability on a product -/
 section
@@ -755,7 +772,8 @@ lemma integrable.integral_prod_left ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (λ x, ∫ y, f (x, y) ∂ν) μ :=
 integrable.mono hf.integral_norm_prod_left hf.ae_measurable.integral_prod_right' $
   eventually_of_forall $ λ x, (norm_integral_le_integral_norm _).trans_eq $
-  (norm_of_nonneg $ integral_nonneg_of_ae $ eventually_of_forall $ λ y, (norm_nonneg _ : _)).symm
+  (norm_of_nonneg $ integral_nonneg_of_ae $ eventually_of_forall $
+  λ y, (norm_nonneg (f (x, y)) : _)).symm
 
 lemma integrable.integral_prod_right [sigma_finite μ] ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (λ y, ∫ x, f (x, y) ∂μ) ν :=

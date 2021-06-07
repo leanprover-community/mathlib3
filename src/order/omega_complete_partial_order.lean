@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import data.pfun
 import order.preorder_hom
@@ -46,9 +46,9 @@ supremum helps define the meaning of recursive procedures.
 
 ## References
 
- * [G. Markowsky, *Chain-complete posets and directed sets with applications*, https://doi.org/10.1007/BF02485815][markowsky]
- * [J. M. Cadiou and Zohar Manna, *Recursive definitions of partial functions and their computations.*, https://doi.org/10.1145/942580.807072][cadiou]
- * [Carl A. Gunter, *Semantics of Programming Languages: Structures and Techniques*, ISBN: 0262570955][gunter]
+ * [Chain-complete posets and directed sets with applications][markowsky1976]
+ * [Recursive definitions of partial functions and their computations][cadiou1972]
+ * [Semantics of Programming Languages: Structures and Techniques][gunter1992]
 -/
 
 universes u v
@@ -119,7 +119,7 @@ namespace omega_complete_partial_order
 
 /-- A chain is a monotonically increasing sequence.
 
-See the definition on page 114 of [gunter]. -/
+See the definition on page 114 of [gunter1992]. -/
 def chain (α : Type u) [preorder α] :=
 ℕ →ₘ α
 
@@ -188,7 +188,7 @@ operation on increasing sequences indexed by natural numbers (which we
 call `ωSup`). In this sense, it is strictly weaker than join complete
 semi-lattices as only ω-sized totally ordered sets have a supremum.
 
-See the definition on page 114 of [gunter]. -/
+See the definition on page 114 of [gunter1992]. -/
 class omega_complete_partial_order (α : Type*) extends partial_order α :=
 (ωSup     : chain α → α)
 (le_ωSup  : ∀(c:chain α), ∀ i, c i ≤ ωSup c)

@@ -278,8 +278,8 @@ theorem m_of_fn_pure {m} [monad m] [is_lawful_monad m] {α} :
 
 def mmap {m} [monad m] {α} {β : Type u} (f : α → m β) :
   ∀ {n}, vector α n → m (vector β n)
-| _ ⟨[], rfl⟩   := pure nil
-| _ ⟨a::l, rfl⟩ := do h' ← f a, t' ← mmap ⟨l, rfl⟩, pure (h' ::ᵥ t')
+| 0 xs := pure nil
+| (n+1) xs := do h' ← f xs.head, t' ← @mmap n xs.tail, pure (h' ::ᵥ t')
 
 @[simp] theorem mmap_nil {m} [monad m] {α β} (f : α → m β) :
   mmap f nil = pure nil := rfl
@@ -331,7 +331,8 @@ rfl
   ∀{v : vector α n}, (remove_nth i v).val = v.val.remove_nth i
 | ⟨l, hl⟩ := rfl
 
-lemma remove_nth_insert_nth {v : vector α n} {i : fin (n+1)} : remove_nth i (insert_nth a i v) = v :=
+lemma remove_nth_insert_nth {v : vector α n} {i : fin (n+1)} :
+  remove_nth i (insert_nth a i v) = v :=
 subtype.eq $ list.remove_nth_insert_nth i.1 v.1
 
 lemma remove_nth_insert_nth' {v : vector α (n+1)} :
@@ -354,7 +355,8 @@ lemma remove_nth_insert_nth' {v : vector α (n+1)} :
   end
 
 lemma insert_nth_comm (a b : α) (i j : fin (n+1)) (h : i ≤ j) :
-  ∀(v : vector α n), (v.insert_nth a i).insert_nth b j.succ = (v.insert_nth b j).insert_nth a i.cast_succ
+  ∀(v : vector α n),
+    (v.insert_nth a i).insert_nth b j.succ = (v.insert_nth b j).insert_nth a i.cast_succ
 | ⟨l, hl⟩ :=
   begin
     refine subtype.eq _,

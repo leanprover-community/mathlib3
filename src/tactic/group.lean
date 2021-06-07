@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Patrick Massot
+Authors: Patrick Massot
 -/
 import tactic.ring
 import tactic.doc_commands
@@ -33,12 +33,13 @@ by rw [mul_assoc, mul_self_gpow]
 lemma tactic.group.gpow_trick_one' {G : Type*} [group G] (a b : G) (n : ℤ) : a*b^n*b = a*b^(n+1) :=
 by rw [mul_assoc, mul_gpow_self]
 
-lemma tactic.group.gpow_trick_sub {G : Type*} [group G] (a b : G) (n m : ℤ) : a*b^n*b^(-m) = a*b^(n-m) :=
+lemma tactic.group.gpow_trick_sub {G : Type*} [group G] (a b : G) (n m : ℤ) :
+  a*b^n*b^(-m) = a*b^(n-m) :=
 by rw [mul_assoc, ← gpow_add] ; refl
 
 namespace tactic
 open tactic.simp_arg_type tactic.interactive interactive tactic.group.
-/-- Auxilliary tactic for the `group` tactic. Calls the simplifier only. -/
+/-- Auxiliary tactic for the `group` tactic. Calls the simplifier only. -/
 meta def aux_group₁ (locat : loc) : tactic unit :=
   simp_core {} skip tt [
   expr ``(mul_one),
@@ -75,9 +76,9 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   expr ``(tactic.ring.horner)]
   [] locat >> skip
 
-/-- Auxilliary tactic for the `group` tactic. Calls `ring` to normalize exponents. -/
+/-- Auxiliary tactic for the `group` tactic. Calls `ring_nf` to normalize exponents. -/
 meta def aux_group₂ (locat : loc) : tactic unit :=
-ring none tactic.ring.normalize_mode.raw locat
+ring_nf none tactic.ring.normalize_mode.raw locat
 end tactic
 
 namespace tactic.interactive

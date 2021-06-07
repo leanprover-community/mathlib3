@@ -1,6 +1,13 @@
-# To normalize:
-# bibtool --preserve.key.case=on --preserve.keys=on --print.use.tab=off -s -i docs/references.bib -o docs/references.bib
 
+# To normalize:
+# bibtool --preserve.key.case=on --preserve.keys=on --pass.comments=on --print.use.tab=off -s -i docs/references.bib -o docs/references.bib
+
+# https://www.zbmath.org/ and https://mathscinet.ams.org/mathscinet
+# (or the free tool https://mathscinet.ams.org/mrlookup)
+# are good sources of complete bibtex entries for mathematics
+
+# To link to an entry in `references.bib`, use the following formats:
+#   [Author, *Title* (optional location)][bibkey]
 @Article{         ahrens2017,
   author        = {Benedikt Ahrens and Peter LeFanu Lumsdaine},
   year          = {2019},
@@ -73,6 +80,62 @@
   publisher     = {Springer}
 }
 
+@Book{            beals2004,
+  author        = {Richard Beals},
+  title         = {Analysis. An introduction},
+  publisher     = {Cambridge University Press},
+  isbn          = {0521600472},
+  year          = {2004}
+}
+
+@Article{         bernstein1912,
+  author        = {Bernstein, S.},
+  year          = {1912},
+  title         = {Démonstration du théorème de Weierstrass fondée sur le
+                  calcul des probabilités},
+  journal       = {Comm. Kharkov Math. Soc.},
+  volume        = {13},
+  number        = {1–2}
+}
+
+@InProceedings{   beylin1996,
+  author        = "Beylin, Ilya and Dybjer, Peter",
+  editor        = "Berardi, Stefano and Coppo, Mario",
+  title         = "Extracting a proof of coherence for monoidal categories
+                  from a proof of normalization for monoids",
+  booktitle     = "Types for Proofs and Programs",
+  year          = "1996",
+  publisher     = "Springer Berlin Heidelberg",
+  address       = "Berlin, Heidelberg",
+  pages         = "47--61",
+  abstract      = "This paper studies the problem of coherence in category
+                  theory from a type-theoretic viewpoint. We first show how a
+                  Curry-Howard interpretation of a formal proof of
+                  normalization for monoids almost directly yields a
+                  coherence proof for monoidal categories. Then we formalize
+                  this coherence proof in intensional intuitionistic type
+                  theory and show how it relies on explicit reasoning about
+                  proof objects for intensional equality. This formalization
+                  has been checked in the proof assistant ALF.",
+  isbn          = "978-3-540-70722-6"
+}
+
+@Book {           billingsley1999,
+  author        = {Billingsley, Patrick},
+  title         = {Convergence of probability measures},
+  series        = {Wiley Series in Probability and Statistics: Probability and Statistics},
+  edition       = {Second},
+  note          = {A Wiley-Interscience Publication},
+  publisher     = {John Wiley \& Sons, Inc., New York},
+  year          = {1999},
+  pages         = {x+277},
+  isbn          = {0-471-19745-9},
+  mrclass       = {60B10 (28A33 60F17)},
+  mrnumber      = {1700749},
+  doi           = {10.1002/9780470316962},
+  url           = {https://doi.org/10.1002/9780470316962},
+}
+
 @Book{            borceux-vol1,
   title         = {Handbook of Categorical Algebra: Volume 1, Basic Category
                   Theory},
@@ -117,6 +180,32 @@
   mrclass       = {17Bxx (00A05 22Exx)},
   mrnumber      = {1728312}
 }
+
+@Book{            bourbaki1975b,
+  author        = {Bourbaki, Nicolas},
+  title         = {Lie groups and {L}ie algebras. {C}hapters 7--9},
+  series        = {Elements of Mathematics (Berlin)},
+  note          = {Translated from the 1975 and 1982 French originals by Andrew
+                  Pressley},
+  publisher     = {Springer-Verlag, Berlin},
+  year          = {2005},
+  pages         = {xii+434},
+  isbn          = {3-540-43405-4},
+  mrclass       = {17-01 (01A75 22-01)},
+  mrnumber      = {2109105}
+}
+
+@Article{         cadiou1972,
+  title         = {Recursive definitions of partial functions and their computations},
+  doi           = {10.1145/942580.807072},
+  number        = {14},
+  journal       = {ACM SIGACT News},
+  author        = {Cadiou, Jean Marie Cadiou and Manna, Zohar},
+  year          = {1972},
+  month         = {Jan},
+  pages         = {58–65}
+}
+
 
 @Book{            calugareanu,
   author        = {C\v{a}lug\v{a}reanu, Grigore},
@@ -215,6 +304,19 @@
   mrnumber      = {1803095}
 }
 
+@Article{         dyckhoff_1992,
+  author        = {Dyckhoff, Roy},
+  title         = {Contraction-free sequent calculi for intuitionistic
+                  logic},
+  journal       = {Journal of Symbolic Logic},
+  number        = {3},
+  year          = {1992},
+  pages         = {795–807},
+  volume        = {57},
+  publisher     = {Cambridge University Press},
+  doi           = {10.2307/2275431}
+}
+
 @Book{            EinsiedlerWard2017,
   author        = {Einsiedler, Manfred and Ward, Thomas},
   title         = {Functional Analysis, Spectral Theory, and Applications},
@@ -238,6 +340,17 @@
   year          = {1966},
   pages         = {215--235},
   url           = {https://www.renyi.hu/~p_erdos/1966-06.pdf}
+}
+
+@Book{            Federer1996,
+  author        = {Herbert Federer},
+  title         = {Geometric Measure Theory},
+  series        = {Classics in Mathematics},
+  year          = {1996},
+  publisher     = {Springer-Verlag Berlin Heidelberg},
+  issn          = {1431-0821},
+  doi           = {10.1007/978-3-642-62010-2},
+  numpages      = {677}
 }
 
 @Article{         FennRourke1992,
@@ -274,10 +387,16 @@
   bibsource     = {dblp computer science bibliography, https://dblp.org}
 }
 
+@InProceedings{   Gallier2011Notes,
+  title         = {Notes on Differential Geometry and Lie Groups},
+  author        = {J. Gallier and J. Quaintance},
+  year          = {2011},
+  url           = {https://www.cis.upenn.edu/~cis610/diffgeom-n.pdf}
+}
+
 @Article{         ghys87:groupes,
   author        = {Étienne Ghys},
-  title         = {Groupes d'homeomorphismes du cercle et cohomologie
-                  bornee},
+  title         = {Groupes d'homéomorphismes du cercle et cohomologie bornée},
   journal       = {Contemporary Mathematics},
   year          = 1987,
   volume        = 58,
@@ -302,6 +421,26 @@
   doi           = {10.1007/978-3-642-59058-0},
   url           = {https://doi.org/10.1007/978-3-642-59058-0}
 }
+
+@Book{            Gratzer2011,
+  author        = {Gr{\"a}tzer, George},
+  title         = {Lattice Theory: Foundation},
+  year          = {2011},
+  publisher     = {Springer, Basel},
+  pages         = {xxx+614},
+  isbn          = {978-3-0348-0018-1},
+  doi           = {10.1007/978-3-0348-0018-1},
+  mrnumber      = {2768581}
+}
+
+@Book{            gunter1992,
+  title         = {Semantics of Programming Languages: Structures and Techniques},
+  isbn          = {0262570955},
+  publisher     = {MIT Press},
+  author        = {Gunter, Carl A.},
+  year          = {1992}
+}
+
 
 @Article{         Gusakov2021,
   author        = {Alena Gusakov and Bhavik Mehta and Kyle A. Miller},
@@ -343,6 +482,19 @@
   isbn          = {0-387-90088-8}
 }
 
+@Book {           har77,
+  author        = {Hartshorne, Robin},
+  title         = {Algebraic geometry},
+  note          = {Graduate Texts in Mathematics, No. 52},
+  publisher     = {Springer-Verlag, New York-Heidelberg},
+  year          = {1977},
+  pages         = {xvi+496},
+  isbn          = {0-387-90244-9},
+  mrclass       = {14-01},
+  mrnumber      = {0463157},
+  mrreviewer    = {Robert Speiser},
+}
+
 @Book{            hardy2008introduction,
   title         = {An Introduction to the Theory of Numbers},
   author        = {Hardy, GH and Wright, EM and Heath-Brown, Roger and
@@ -362,6 +514,17 @@
   author        = {Hazewinkel, Michiel},
   year          = {2009},
   pages         = {319–472}
+}
+
+@Article{         Higman52,
+  author        = {Higman, Graham},
+  title         = {Ordering by Divisibility in Abstract Algebras},
+  journal       = {Proceedings of the London Mathematical Society},
+  volume        = {s3-2},
+  number        = {1},
+  pages         = {326-336},
+  doi           = {https://doi.org/10.1112/plms/s3-2.1.326},
+  year          = {1952}
 }
 
 @Book{            Hofstadter-1979,
@@ -477,6 +640,19 @@
   publisher     = {Springer}
 }
 
+@article{         markowsky1976,
+  title         = {Chain-complete posets and directed sets with applications},
+  volume        = {6},
+  DOI           = {10.1007/bf02485815},
+  number        = {1},
+  journal       = {Algebra Universalis},
+  author        = {Markowsky, George},
+  year          = {1976},
+  month         = {Dec},
+  pages         = {53–68}
+}
+
+
 @InProceedings{   mcbride1996,
   title         = {Inverting inductively defined relations in {LEGO}},
   author        = {McBride, Conor},
@@ -492,6 +668,17 @@
   author        = {MacLane, Saunders and Moerdijk, Ieke},
   year          = {1992},
   publisher     = {Springer Science \& Business Media}
+}
+
+@Article{         MR0236876,
+  title         = {A new proof that metric spaces are paracompact},
+  author        = {Mary Ellen Rudin},
+  year          = 1969,
+  journal       = {Proc. Amer. Math. Soc.},
+  volume        = {20},
+  pages         = {603},
+  mrnumber      = {0236876},
+  doi           = {10.1090/S0002-9939-1969-0236876-3}
 }
 
 @Article{         MR1167694,
@@ -559,6 +746,22 @@
   url           = {https://doi.org/10.1090/S0002-9904-1949-09344-8}
 }
 
+@Article{         MR3790629,
+  author        = {Bell, J. S.},
+  title         = {On the {E}instein {P}odolsky {R}osen paradox},
+  journal       = {Phys. Phys. Fiz.},
+  fjournal      = {Physics Physique Fizika},
+  volume        = {1},
+  year          = {1964},
+  number        = {3},
+  pages         = {195--200},
+  issn          = {0554-128X},
+  mrclass       = {DML},
+  mrnumber      = {3790629},
+  doi           = {10.1103/PhysicsPhysiqueFizika.1.195},
+  url           = {https://doi.org/10.1103/PhysicsPhysiqueFizika.1.195}
+}
+
 @Article{         MR399081,
   author        = {Hiblot, Jean-Jacques},
   title         = {Des anneaux euclidiens dont le plus petit algorithme n'est
@@ -588,6 +791,67 @@
   mrclass       = {13F07},
   mrnumber      = {541021},
   mrreviewer    = {Daniel Lazard}
+}
+
+@Article{         MR577178,
+  author        = {Cirel\cprime son, B. S.},
+  title         = {Quantum generalizations of {B}ell's inequality},
+  journal       = {Lett. Math. Phys.},
+  fjournal      = {Letters in Mathematical Physics. A Journal for the Rapid
+                  Dissemination of Short Contributions in the Field of
+                  Mathematical Physics},
+  volume        = {4},
+  year          = {1980},
+  number        = {2},
+  pages         = {93--100},
+  issn          = {0377-9017},
+  mrclass       = {81B05},
+  mrnumber      = {577178},
+  doi           = {10.1007/BF00417500},
+  url           = {https://doi.org/10.1007/BF00417500}
+}
+
+@Article{         Nash-Williams63,
+  title         = {On well-quasi-ordering finite trees},
+  volume        = {59},
+  DOI           = {10.1017/S0305004100003844},
+  number        = {4},
+  journal       = {Mathematical Proceedings of the Cambridge Philosophical Society},
+  publisher     = {Cambridge University Press},
+  author        = {Nash-Williams, C. St. J. A.},
+  year          = {1963},
+  pages         = {833–835}
+}
+
+@Article{         orosi2018faulhaber,
+  author        = {Greg {Orosi}},
+  title         = {{A simple derivation of Faulhaber's formula}},
+  fjournal      = {{Applied Mathematics E-Notes}},
+  journal       = {{Appl. Math. E-Notes}},
+  issn          = {1607-2510/e},
+  volume        = {18},
+  pages         = {124--126},
+  year          = {2018},
+  publisher     = {Tsing Hua University, Department of Mathematics, Hsinchu},
+  language      = {English},
+  msc2010       = {41A58 30K05},
+  zbl           = {1411.41023}
+}
+
+@article{phillips1940,
+    AUTHOR = {Phillips, Ralph S.},
+     TITLE = {Integration in a convex linear topological space},
+   JOURNAL = {Trans. Amer. Math. Soc.},
+  FJOURNAL = {Transactions of the American Mathematical Society},
+    VOLUME = {47},
+      YEAR = {1940},
+     PAGES = {114--145},
+      ISSN = {0002-9947},
+   MRCLASS = {46.3X},
+  MRNUMBER = {2707},
+MRREVIEWER = {B. J. Pettis},
+       DOI = {10.2307/1990004},
+       URL = {https://doi.org/10.2307/1990004},
 }
 
 @Misc{            ponton2020chebyshev,
@@ -668,6 +932,17 @@
   mrreviewer    = {R. E. Block}
 }
 
+@Book{            simon2011,
+  author        = {Simon, Barry},
+  title         = {Convexity: An Analytic Viewpoint},
+  year          = {2011},
+  series        = {Cambridge Tracts in Mathematics},
+  publisher     = {Cambridge University Press},
+  place         = {Cambridge},
+  doi           = {10.1017/CBO9780511910135},
+  collection    = {Cambridge Tracts in Mathematics}
+}
+
 @Book{            soare1987,
   author        = {Soare, Robert I.},
   title         = {Recursively enumerable sets and degrees},
@@ -682,6 +957,17 @@
   mrnumber      = {882921},
   mrreviewer    = {Peter G. Hinman},
   doi           = {10.1007/978-3-662-02460-7}
+}
+
+@Article{         Stone1935,
+  author        = {Stone, M. H.},
+  year          = {1935},
+  title         = {Postulates for Boolean Algebras and Generalized Boolean
+                  Algebras},
+  journal       = {American Journal of Mathematics},
+  volume        = {57},
+  issue         = {4},
+  doi           = {10.2307/2371008}
 }
 
 @Article{         Stone1979,
@@ -745,4 +1031,23 @@
   title         = {Adic Spaces},
   year          = {2019},
   eprint        = {arXiv:1910.05934}
+}
+
+@Article{         zbMATH06785026,
+  author        = {John F. {Clauser} and Michael A. {Horne} and Abner
+                  {Shimony} and Richard A. {Holt}},
+  title         = {{Proposed experiment to test local hidden-variable
+                  theories}},
+  fjournal      = {{Physical Review Letters}},
+  journal       = {{Phys. Rev. Lett.}},
+  issn          = {0031-9007; 1079-7114/e},
+  volume        = {23},
+  pages         = {880--883},
+  year          = {1969},
+  publisher     = {American Physical Society (APS), New York, NY},
+  language      = {English},
+  msc2010       = {81-05},
+  zbl           = {1371.81014},
+  doi           = {10.1103/PhysRevLett.23.880},
+  url           = {https://doi.org/10.1103/PhysRevLett.23.880}
 }

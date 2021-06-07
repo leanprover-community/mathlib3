@@ -537,7 +537,7 @@ section dynamics
 
 lemma card_pow_dynamics_aux {f : ℕ → ℕ} (h1 : monotone f) {B : ℕ} (h2 : ∀ n, f n ≤ B)
   (h3 : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
-∃ k : ℕ, k ≤ B ∧ ∀ i, (k ≤ i → f i = f k) ∧ (i < k → ∀ j, i < j → f i < f j) :=
+  ∃ k : ℕ, k ≤ B ∧ ∀ i, (k ≤ i → f i = f k) ∧ (i < k → ∀ j, i < j → f i < f j) :=
 begin
   have key : ∃ k, f k = f (k + 1),
   { contrapose! h2,
@@ -562,11 +562,10 @@ end
 noncomputable def set_fintype' {α : Type*} [fintype α] (s : set α) : fintype s :=
 by { classical, exact set_fintype s }
 
-local attribute [instance] set_fintype
+local attribute [instance] set_fintype'
 
 lemma card_pow_dynamics {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
-  ∃ k : ℕ, k ≤ fintype.card G ∧ ∀ i,
-    (k ≤ i → fintype.card ↥(S ^ i) = fintype.card ↥(S ^ k))
+  ∃ k : ℕ, k ≤ fintype.card G ∧ ∀ i, (k ≤ i → fintype.card ↥(S ^ i) = fintype.card ↥(S ^ k))
     ∧ (i < k → ∀ j, i < j → fintype.card ↥(S ^ i) < fintype.card ↥(S ^ j)) :=
 begin
   have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,

@@ -911,13 +911,13 @@ end
 Szemerédi's Regularity Lemma -/
 def exp_bound (n : ℕ) : ℕ := n * 4^n
 
-lemma le_exp_bound (n : ℕ) :
-  n ≤ exp_bound n :=
-nat.le_mul_of_pos_right (pow_pos (by norm_num) n)
+lemma le_exp_bound :
+ id ≤ exp_bound :=
+λ n, nat.le_mul_of_pos_right (pow_pos (by norm_num) n)
 
-lemma exp_bound_mono {a b : ℕ} (h : a ≤ b) :
-  exp_bound a ≤ exp_bound b :=
-nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
+lemma monotone_exp_bound :
+  monotone exp_bound :=
+λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
 lemma nonneg_of_mul_pos_right {α : Type*} [ordered_semiring α] {a b c : α} (hab : 0 < a * b)
   (hb : 0 ≤ b) : 0 ≤ a := sorry
@@ -1066,7 +1066,7 @@ lemma size_le (G : simple_graph V) (ε : ℝ) (l : ℕ) :
   id.def] }
 | (n + 1) := begin
   rw [szemeredi_equipartition_succ, function.iterate_succ_apply'],
-  exact (blowup_size_le G ε _).trans (exp_bound_mono (size_le n)),
+  exact (blowup_size_le G ε _).trans (monotone_exp_bound (size_le n)),
 end
 
 protected lemma le_index {ε : ℝ} {l n : ℕ} (hε : 100 < ε^5 * 4^l) :
@@ -1098,38 +1098,98 @@ end szemeredi_equipartition
 def nat_floor (x : ℝ) : ℕ := sorry
 
 lemma lt_nat_floor_add_one (x : ℝ) : x < nat_floor x + 1 := sorry
+
+lemma le_nat_floor (n : ℕ) (x : ℝ) : n ≤ nat_floor x ↔ ↑n ≤ x := sorry
+
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/
 noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
-max l (nat_floor (real.log (100 / ε^5) / real.log 4) + 1) -- change to nat_floor
+max l (nat_floor (real.log (100/ε^5) / real.log 4) + 1) -- change to nat_floor
 
 lemma le_iteration_bound (ε : ℝ) (l : ℕ) : l ≤ iteration_bound ε l := le_max_left l _
 
-lemma le_pow_of_log_le {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c)
-  (h : (real.log a)/(real.log b) ≤ c) :
-  a ≤ b^c := sorry
+lemma iteration_bound_mono (ε : ℝ) {a b : ℕ} (h : a ≤ b) :
+  iteration_bound ε a ≤ iteration_bound ε b :=
+begin
+  sorry
+end
 
-lemma le_exp_of_log_le {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (h : real.log a ≤ b) :
-  a ≤ real.exp b := sorry
+namespace real
 
+lemma lt_pow_iff_log_lt {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) :
+  a < b^c ↔ (log a) < c * (log b) :=
+by rw [←log_lt_log_iff ha (rpow_pos_of_pos hb c), log_rpow hb]
+
+lemma lt_pow_of_log_lt {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 < b) (h : log a < c * (log b)) :
+  a < b^c :=
+begin
+  obtain ha | rfl := ha.lt_or_eq,
+  { exact (lt_pow_iff_log_lt ha hb).2 h },
+  exact rpow_pos_of_pos hb c,
+end
+
+lemma le_pow_iff_log_le {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) :
+  a ≤ b^c ↔ log a ≤ c * (log b) :=
+by rw [←log_le_log ha (rpow_pos_of_pos hb c), log_rpow hb]
+
+lemma le_pow_of_log_le {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 < b) (h : log a ≤ c * (log b)) :
+  a ≤ b^c :=
+begin
+  obtain ha | rfl := ha.lt_or_eq,
+  { exact (le_pow_iff_log_le ha hb).2 h },
+  exact (rpow_pos_of_pos hb c).le,
+end
+
+lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) :
+  log a ≤ b ↔ a ≤ exp b :=
+by rw [←exp_le_exp, exp_log ha]
+
+end real
+
+lemma lt_max_of_lt_right {α : Type*} [linear_order α] {a b c : α} (h : a < c) :
+  a < max b c :=
+lt_of_lt_of_le h (le_max_right b c)
+
+lemma lt_max_of_lt_left {α : Type*} [linear_order α] {a b c : α} (h : a < b) :
+  a < max b c :=
+lt_of_lt_of_le h (le_max_left b c)
+
+lemma monotone.iterate_extensive_of_extensive {α : Type} [preorder α] {f : α → α} (hf : monotone f)
+  (h : id ≤ f) :
+  ∀ n, id ≤ (f^[n])
+| 0 := by { rw function.iterate_zero, exact le_rfl }
+| (n + 1) := by { rw function.iterate_succ',
+    exact h.trans (comp_le_comp_left_of_monotone hf (monotone.iterate_extensive_of_extensive n)) }
+
+lemma monotone.iterate_le_of_extensive {α : Type} [preorder α] {f : α → α} (hf : monotone f)
+  (h : id ≤ f) {m n : ℕ} (hmn : m ≤ n) :
+  f^[m] ≤ (f^[n]) :=
+begin
+  rw [←nat.add_sub_cancel' hmn, function.iterate_add],
+  exact (comp_le_comp_left_of_monotone (hf.iterate m)
+    (monotone.iterate_extensive_of_extensive hf h _)),
+end
 
 lemma const_lt_mul_pow_iteration_bound {ε : ℝ} (hε : 0 < ε) (l : ℕ) :
   100 < ε^5 * 4^iteration_bound ε l :=
 begin
-  refine (div_lt_iff' (pow_pos hε 5)).1 _,
-  sorry
-  --apply lt_pow_iff,
-  --refine le_trans _ (le_max_right l _),
+  rw [←real.rpow_nat_cast 4, ←div_lt_iff' (pow_pos hε 5), real.lt_pow_iff_log_lt, ←div_lt_iff,
+    iteration_bound, nat.cast_max],
+  { exact lt_max_of_lt_right (lt_nat_floor_add_one _) },
+  { apply real.log_pos,
+    norm_num },
+  { exact div_pos (by norm_num) (pow_pos hε 5) },
+  norm_num,
 end
 
 /-- An explicit bound on the size of the equipartition in the proof of Szemerédi's Regularity Lemma
 -/
 noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
-(exp_bound^[nat_floor (4/ε^5) + 1] (iteration_bound ε l)) *
-  16^(exp_bound^[nat_floor (4/ε^5) + 1] (iteration_bound ε l)) -- change to floor after PR
+(exp_bound^[nat_floor (4/ε^5)] (iteration_bound ε l)) *
+  16^(exp_bound^[nat_floor (4/ε^5)] (iteration_bound ε l)) -- change to floor after PR
 
 /-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
-theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (l : ℕ) (hG : l ≤ card V) :
+theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ) (hG : l ≤ card V) :
   ∃ (P : equipartition V), l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
   obtain hV | hV := le_total (card V) (szemeredi_bound ε l),
@@ -1137,25 +1197,61 @@ begin
     rw discrete_equipartition.size,
     exact ⟨hG, hV, discrete_equipartition.is_uniform G hε⟩ },
   let t := iteration_bound ε l,
-  let P := szemeredi_equipartition G ε t (nat_floor (4/ε^5) + 1), -- change to floor after PR
-  have hsize : P.size ≤ (exp_bound^[nat_floor (4/ε^5) + 1] t) := -- change to floor after PR
-    szemeredi_equipartition.size_le G ε t _,
-  have hl : l ≤ P.size := (le_iteration_bound ε l).trans (szemeredi_equipartition.le_size G ε t _),
-  have hPV : P.size * 16^P.size ≤ card V :=
-    le_trans (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)) hV,
-  refine ⟨P, hl, _, _⟩,
-  { exact hsize.trans (le_mul_of_le_of_one_le le_rfl (nat.one_le_pow _ 16 (by norm_num))) },
-  by_contra huniform,
-  apply lt_irrefl (1/2 : ℝ),
-  have := (szemeredi_equipartition.le_index (const_lt_mul_pow_iteration_bound hε _) hPV
-    huniform).trans (P.index_le_half G),
+  have hεl : (100 : ℝ) < ε^5 * 4^t := const_lt_mul_pow_iteration_bound hε l,
+  suffices h : ∀ i, ∃ (P : equipartition V),
+    t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 8 * i ≤ P.index G),
+  { obtain ⟨P, hP₁, hP₂, hP₃⟩ := h (nat_floor (4/ε^5) + 1),
+    refine ⟨P, le_trans (le_iteration_bound _ _) hP₁, le_trans hP₂ _, _⟩,
+    { rw function.iterate_succ_apply',
+      exact mul_le_mul_left' (pow_le_pow_of_le_left (by norm_num) (by norm_num) _) _ },
+    apply hP₃.resolve_right,
+    rintro hPindex,
+    apply lt_irrefl (1/2 : ℝ),
   calc
     1/2 = ε ^ 5 / 8 * (4 / ε ^ 5)
         : by { rw [mul_comm, div_mul_div_cancel 4 ((pow_pos hε 5).ne.symm)], norm_num }
     ... < ε ^ 5 / 8 * ↑(nat_floor (4 / ε ^ 5) + 1)
         : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (lt_nat_floor_add_one _)
     ... ≤ P.index G
-        : szemeredi_equipartition.le_index (const_lt_mul_pow_iteration_bound hε _) hPV huniform
+        : hPindex
     ... ≤ 1/2
-        : P.index_le_half G,
+        : P.index_le_half G },
+  intro i,
+  induction i with i ih,
+  { refine ⟨dummy_equipartition V t, dummy_equipartition.size.ge, dummy_equipartition.size.le,
+    or.inr _⟩,
+    rw [nat.cast_zero, mul_zero],
+    exact index_nonneg _ _ },
+  obtain ⟨P, hP₁, hP₂, hP₃⟩ := ih,
+  by_cases huniform : P.is_uniform G ε,
+  { refine ⟨P, hP₁, _, or.inl huniform⟩,
+    rw function.iterate_succ_apply',
+    exact hP₂.trans (le_exp_bound _) },
+  replace hP₃ := hP₃.resolve_left huniform,
+  have hεl' : 100 < ε ^ 5 * 4 ^ P.size,
+  { apply lt_of_lt_of_le hεl,
+    rw mul_le_mul_left (pow_pos hε 5),
+    apply pow_le_pow _ hP₁,
+    norm_num },
+  have hi : (i : ℝ) ≤ 4 / ε^5,
+  { have hi := hP₃.trans (index_le_half G P),
+    rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 8, by norm_num)] at hi,
+    norm_num at hi,
+    rwa le_div_iff' (pow_pos hε _) },
+  have hsize : P.size ≤ (exp_bound^[nat_floor (4/ε^5)] t) :=
+  begin
+    apply hP₂.trans,
+    apply monotone.iterate_le_of_extensive monotone_exp_bound le_exp_bound,
+    rwa le_nat_floor,
+  end,
+  have hPV : P.size * 16^P.size ≤ card V :=
+    le_trans (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)) hV,
+  obtain ⟨Q, hQ₁, hQ₂⟩ := increment hεl' hPV huniform,
+  refine ⟨Q, _, _, or.inr (le_trans _ hQ₂)⟩,
+  { rw hQ₁,
+    exact hP₁.trans (le_exp_bound _) },
+  { rw [hQ₁, function.iterate_succ_apply'],
+    exact monotone_exp_bound hP₂ },
+  rw [nat.cast_succ, mul_add, mul_one],
+  exact add_le_add_right hP₃ _,
 end

@@ -153,11 +153,23 @@ instance [mul_zero_class α] : mul_zero_class (opposite α) :=
 instance [mul_zero_one_class α] : mul_zero_one_class (opposite α) :=
 { .. opposite.mul_zero_class α, .. opposite.mul_one_class α }
 
+instance [semigroup_with_zero α] : semigroup_with_zero (opposite α) :=
+{ .. opposite.semigroup α, .. opposite.mul_zero_class α }
+
 instance [monoid_with_zero α] : monoid_with_zero (opposite α) :=
 { .. opposite.monoid α, .. opposite.mul_zero_one_class α }
 
+instance [non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring (opposite α) :=
+{ .. opposite.add_comm_monoid α, .. opposite.mul_zero_class α, .. opposite.distrib α }
+
+instance [non_unital_semiring α] : non_unital_semiring (opposite α) :=
+{ .. opposite.semigroup_with_zero α, .. opposite.non_unital_non_assoc_semiring α }
+
+instance [non_assoc_semiring α] : non_assoc_semiring (opposite α) :=
+{ .. opposite.mul_zero_one_class α, .. opposite.non_unital_non_assoc_semiring α }
+
 instance [semiring α] : semiring (opposite α) :=
-{ .. opposite.add_comm_monoid α, .. opposite.monoid_with_zero α, .. opposite.distrib α }
+{ .. opposite.non_unital_semiring α, .. opposite.non_assoc_semiring α }
 
 instance [ring α] : ring (opposite α) :=
 { .. opposite.add_comm_group α, .. opposite.monoid α, .. opposite.semiring α }

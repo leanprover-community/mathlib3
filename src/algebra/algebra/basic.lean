@@ -10,7 +10,6 @@ import linear_algebra.tensor_product
 import ring_theory.subring
 import deprecated.subring
 import algebra.opposites
-import linear_algebra.prod
 
 /-!
 # Algebra over Commutative Semiring

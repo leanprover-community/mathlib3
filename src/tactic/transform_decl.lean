@@ -3,8 +3,7 @@ Copyright (c) 2017 Mario Carneiro All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import meta.expr
-import meta.rb_map
+import tactic.core
 
 namespace tactic
 
@@ -45,7 +44,11 @@ do
     is_protected ← is_protected_decl src,
     let decl := decl.update_with_fun (name.map_prefix f)
       (if ignore_fixed then additive_test f ff else λ _, tt) tgt,
-    if is_protected then add_protected_decl decl else add_decl decl,
+    pp_decl ← pp decl,
+    decorate_error (format!"@[to_additive] failed. Failed to add declaration\n{pp_decl}
+If the type mismatch is related to a fixed type like ℕ or ℝ, try @[to_additive!]
+Nested error message:\n").to_string $ -- empty line is intentional
+      if is_protected then add_protected_decl decl else add_decl decl,
     attrs.mmap' (λ n, copy_attribute n src tgt)
 
 /--

@@ -335,11 +335,3 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
-
--- @[to_additive bar]
--- def foo : empty → empty := id
--- #print bar
--- @[to_additive bar] def foo {α} [has_mul α] [has_one α] : α := 1 * 1
--- @[to_additive bar2] def foo2 : ℕ := 1 * 1
--- #print bar
--- #print bar2

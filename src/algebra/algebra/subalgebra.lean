@@ -695,14 +695,6 @@ by ext; simp
 lemma prod_mono {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
   S ≤ T → S₁ ≤ T₁ → prod S S₁ ≤ prod T T₁ := set.prod_mono
 
-/-- First projection as `alg_hom`. -/
-def _root_.alg_hom.fst : A × B →ₐ[R] A :=
-{ commutes' := λ r, rfl, .. ring_hom.fst A B}
-
-/-- Second projection as `alg_hom`. -/
-def _root_.alg_hom.snd : A × B →ₐ[R] B :=
-{ commutes' := λ r, rfl, .. ring_hom.snd A B}
-
 @[simp] lemma prod_inf_prod {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
   S.prod S₁ ⊓ T.prod T₁ = (S ⊓ T).prod (S₁ ⊓ T₁) :=
 set_like.coe_injective set.prod_inter_prod

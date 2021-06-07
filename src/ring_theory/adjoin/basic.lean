@@ -177,14 +177,6 @@ begin
   simpa using subalgebra.add_mem _ Ha Hb
 end
 
-@[simp] lemma prod_inf_prod {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
-  S.prod S₁ ⊓ T.prod T₁ = (S ⊓ T).prod (S₁ ⊓ T₁) :=
-begin
-  refine set_like.coe_injective _,
-  rw [subalgebra.coe_prod, coe_inf, coe_inf, coe_inf, subalgebra.coe_prod, subalgebra.coe_prod,
-    set.prod_inter_prod]
-end
-
 end semiring
 
 section comm_semiring

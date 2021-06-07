@@ -198,6 +198,158 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 theorem numeric_omega : numeric omega :=
 ⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
+/-- The pre-game `half` is defined as `{0 | 1}`. -/
+def half : pgame := ⟨punit, punit, 0, 1⟩
+
+@[simp] lemma half_move_left : half.move_left punit.star = 0 := rfl
+
+@[simp] lemma half_move_right : half.move_right punit.star = 1 := rfl
+
+/-- The pre-game `half` is numeric. -/
+theorem numeric_half : numeric half :=
+begin
+  split,
+  { rintros ⟨ ⟩ ⟨ ⟩,
+    dsimp,
+    rw zero_lt,
+    use punit.star,
+    rintro ⟨ ⟩ },
+  split; rintro ⟨ ⟩,
+  { exact numeric_zero },
+  { exact numeric_one }
+end
+
+theorem zero_lt_half : 0 < half :=
+begin
+  rw lt_def,
+  left,
+  use punit.star,
+  split; rintro ⟨ ⟩,
+end
+
+theorem half_lt_one : half < 1 :=
+begin
+  rw lt_def,
+  right,
+  use punit.star,
+  split; rintro ⟨ ⟩,
+  dsimp,
+  rw zero_lt,
+  use punit.star,
+  rintro ⟨ ⟩,
+end
+
+theorem add_half_self_equiv_one : half + half ≈ 1 :=
+begin
+  split; rw le_def,
+  { split,
+    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+      { right,
+        use (sum.inr punit.star),
+        calc ((half + half).move_left (sum.inl punit.star)).move_right (sum.inr punit.star)
+            = (half.move_left punit.star + half).move_right (sum.inr punit.star) : by fsplit
+        ... = (0 + half).move_right (sum.inr punit.star) : by fsplit
+        ... ≈ 1 : zero_add_equiv 1
+        ... ≤ 1 : le_refl 1 },
+      { right,
+        use (sum.inl punit.star),
+        calc ((half + half).move_left (sum.inr punit.star)).move_right (sum.inl punit.star)
+            = (half + half.move_left punit.star).move_right (sum.inl punit.star) : by fsplit
+        ... = (half + 0).move_right (sum.inl punit.star) : by fsplit
+        ... ≈ 1 : add_zero_equiv 1
+        ... ≤ 1 : le_refl 1 } },
+    { rintro ⟨ ⟩ } },
+  { split,
+    { rintro ⟨ ⟩,
+      left,
+      use (sum.inl punit.star),
+      calc 0 ≤ half : le_of_lt numeric_zero numeric_half zero_lt_half
+      ... ≈ 0 + half : (zero_add_equiv half).symm
+      ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
+    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+      { left,
+        use (sum.inr punit.star),
+        calc 1 ≤ 1 : le_refl 1
+           ... ≈ 1 + 0 : (add_zero_equiv 1).symm },
+      { use (sum.inl punit.star),
+        calc 1 ≤ 1 : le_refl 1
+           ... ≈ 0 + 1 : (zero_add_equiv 1).symm } } }
+end
+
+/-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as `{ 0 | pow_half n }`. -/
+def pow_half : ℕ → pgame
+| 0       := mk punit pempty 0 pempty.elim
+| (n + 1) := mk punit punit 0 (λ _, pow_half n)
+
+@[simp] lemma pow_half_left_moves {n} : (pow_half n).left_moves = punit :=
+by { cases n; refl }
+
+@[simp] lemma pow_half_right_moves {n} : (pow_half (n + 1)).right_moves = punit :=
+by { cases n; refl }
+
+@[simp] lemma pow_half_move_left {n i} : (pow_half n).move_left i = 0 :=
+by { cases n; cases i; refl }
+
+lemma exists_pow_half_move_left (n) : ∃ i, (pow_half n).move_left i = 0 :=
+by { cases n; use punit.star; refl }
+
+lemma exists_pow_half_move_right (n) : ∃ i, (pow_half (n + 1)).move_right i = pow_half n :=
+by { cases n; use punit.star; refl }
+
+/-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
+theorem numeric_pow_half {n} : (pow_half n).numeric :=
+begin
+  induction n with n hn,
+  { exact numeric_one },
+  { split,
+    { rintro ⟨ ⟩ ⟨ ⟩,
+      obtain ⟨i, hi⟩ := exists_pow_half_move_left n,
+      dsimp,
+      rw [← hi],
+      exact hn.move_left_lt i },
+    { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
+end
+
+theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n :=
+begin
+  obtain ⟨i, hi⟩ := exists_pow_half_move_right n,
+  have := (@numeric_pow_half (n + 1)).lt_move_right i,
+  rwa hi at this,
+end
+
+theorem zero_lt_pow_half {n : ℕ} : 0 < pow_half n :=
+by { cases n; rw lt_def_le; use ⟨punit.star, le_refl 0⟩ }
+
+theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
+begin
+  induction n with n hn,
+  { exact add_half_self_equiv_one },
+  split; rw le_def_lt,
+  { split,
+    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+      { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
+                                   ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
+      { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
+                                   ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
+    { rintro ⟨ ⟩,
+      change pow_half (n.succ + 1) + pow_half (n.succ + 1) < (pow_half n),
+      rw lt_def_le,
+      right,
+      use sum.inl punit.star,
+      calc pow_half (n.succ) + pow_half (n.succ + 1) ≤ pow_half (n.succ) + pow_half (n.succ) : add_le_add_left $ le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
+      ... ≈ pow_half n : hn } },
+  split,
+  { rintro ⟨ ⟩,
+    calc 0 ≈ 0 + 0 : (add_zero_equiv _).symm
+    ... ≤ pow_half (n.succ + 1) + 0 : by {refine add_le_add_right _, apply le_of_lt numeric_zero, apply numeric_pow_half, apply zero_lt_pow_half, }
+    ... < pow_half (n.succ + 1) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half },
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+    { calc pow_half n.succ ≈ pow_half n.succ + 0 : (add_zero_equiv _).symm
+                       ... < pow_half (n.succ) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half },
+    { calc pow_half n.succ ≈ 0 + pow_half n.succ : (zero_add_equiv _).symm
+                       ... < pow_half (n.succ + 1) + pow_half (n.succ) : add_lt_add_right zero_lt_pow_half } }
+end
+
 end pgame
 
 /-- The equivalence on numeric pre-games. -/
@@ -291,6 +443,19 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
+
+def half : surreal := ⟦⟨pgame.half, pgame.numeric_half⟩⟧
+
+def pow_half (n : ℕ) : surreal := ⟦⟨pgame.pow_half n, pgame.numeric_pow_half⟩⟧
+
+@[simp]
+lemma pow_half_zero : pow_half 0 = 1 := rfl
+
+@[simp]
+lemma pow_half_one : pow_half 1 = half := rfl
+
+lemma pow_half_succ (n : ℕ) : pow_half n = 2 • pow_half n.succ :=
+sorry
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

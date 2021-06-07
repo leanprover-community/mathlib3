@@ -1436,16 +1436,7 @@ the case) then we have avoided `restrict_scalars` entirely. If not, we can pass
 Note that this means we almost always want to state definitions and lemmas in the language of
 `is_scalar_tower` rather than `restrict_scalars`.
 
-Mathematically, when `A` is an `R`-algebra, there are two different functors:
- 1. The functor from the category of modules over the (semi)ring `A` to the category of modules over
-    the `R`-algebra `A`. This is what is defined here, and is called `restrict_scalars` (though
-    perhaps a better name would be `enrich_scalars`).
- 2. The functor from the category of modules over the `R`-algebra `A` to the category of modules
-    over the (semi)ring `R`. This is the true restriction of scalars but when one uses the setup
-    in the second example above, it is an invisible functor available for free through typeclass
-    inference.
-
-A standard example of when one might want to invoke functor 1 would be if one has a vector space
+An example of when one might want to use `restrict_scalars` would be if one has a vector space
 over a field of characteristic zero and wishes to make use of the `ℚ`-algebra structure. -/
 @[nolint unused_arguments]
 def restrict_scalars (R A M : Type*) : Type* := M

@@ -141,7 +141,7 @@ instance [monoid α] : monoid (set α) :=
 { ..set.semigroup,
   ..set.mul_one_class }
 
-lemma set.pow_mem_pow {α : Type*} {s : set α} {a : α} [monoid α] (ha : a ∈ s) (n : ℕ) :
+lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
   a ^ n ∈ s ^ n :=
 begin
   induction n with n ih,
@@ -172,6 +172,16 @@ lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 @[to_additive]
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂
+
+lemma pow_subset_pow [monoid α] (hst : s ⊆ t) (n : ℕ) :
+  s ^ n ⊆ t ^ n :=
+begin
+  induction n with n ih,
+  { rw pow_zero,
+    exact subset.rfl },
+  { rw [pow_succ, pow_succ],
+    exact mul_subset_mul hst ih },
+end
 
 @[to_additive]
 lemma union_mul [has_mul α] : (s ∪ t) * u = (s * u) ∪ (t * u) := image2_union_left

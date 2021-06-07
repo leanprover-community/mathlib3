@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
 import set_theory.game
+import ring_theory.localization
 
 /-!
 # Surreal numbers
@@ -276,7 +277,8 @@ begin
            ... ≈ 0 + 1 : (zero_add_equiv 1).symm } } }
 end
 
-/-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as `{ 0 | pow_half n }`. -/
+/-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as 
+`{ 0 | pow_half n }`. -/
 def pow_half : ℕ → pgame
 | 0       := mk punit pempty 0 pempty.elim
 | (n + 1) := mk punit punit 0 (λ _, pow_half n)
@@ -336,18 +338,28 @@ begin
       rw lt_def_le,
       right,
       use sum.inl punit.star,
-      calc pow_half (n.succ) + pow_half (n.succ + 1) ≤ pow_half (n.succ) + pow_half (n.succ) : add_le_add_left $ le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
+      calc pow_half (n.succ) + pow_half (n.succ + 1) ≤ pow_half (n.succ) + pow_half (n.succ)
+          : add_le_add_left $ le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
       ... ≈ pow_half n : hn } },
   split,
   { rintro ⟨ ⟩,
     calc 0 ≈ 0 + 0 : (add_zero_equiv _).symm
-    ... ≤ pow_half (n.succ + 1) + 0 : by {refine add_le_add_right _, apply le_of_lt numeric_zero, apply numeric_pow_half, apply zero_lt_pow_half, }
-    ... < pow_half (n.succ + 1) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half },
+       ... ≤ pow_half (n.succ + 1) + 0
+           : by { refine add_le_add_right _,
+               apply le_of_lt numeric_zero,
+               { apply numeric_pow_half },
+               { apply zero_lt_pow_half } }
+       ... < pow_half (n.succ + 1) + pow_half (n.succ + 1)
+           : add_lt_add_left zero_lt_pow_half },
   { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { calc pow_half n.succ ≈ pow_half n.succ + 0 : (add_zero_equiv _).symm
-                       ... < pow_half (n.succ) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half },
-    { calc pow_half n.succ ≈ 0 + pow_half n.succ : (zero_add_equiv _).symm
-                       ... < pow_half (n.succ + 1) + pow_half (n.succ) : add_lt_add_right zero_lt_pow_half } }
+    { calc pow_half n.succ ≈ pow_half n.succ + 0
+                           : (add_zero_equiv _).symm
+                       ... < pow_half (n.succ) + pow_half (n.succ + 1)
+                           : add_lt_add_left zero_lt_pow_half },
+    { calc pow_half n.succ ≈ 0 + pow_half n.succ
+                           : (zero_add_equiv _).symm
+                       ... < pow_half (n.succ + 1) + pow_half (n.succ)
+                           : add_lt_add_right zero_lt_pow_half } }
 end
 
 end pgame
@@ -438,14 +450,18 @@ instance : ordered_add_comm_group surreal :=
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
 
+instance : add_comm_group surreal := by apply_instance
+
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+/-- The surreal number `half`. -/
 def half : surreal := ⟦⟨pgame.half, pgame.numeric_half⟩⟧
 
+/-- Powers of the surreal number `half`. -/
 def pow_half (n : ℕ) : surreal := ⟦⟨pgame.pow_half n, pgame.numeric_pow_half⟩⟧
 
 @[simp]
@@ -454,8 +470,11 @@ lemma pow_half_zero : pow_half 0 = 1 := rfl
 @[simp]
 lemma pow_half_one : pow_half 1 = half := rfl
 
-lemma pow_half_succ (n : ℕ) : pow_half n = 2 • pow_half n.succ :=
-sorry
+@[simp]
+theorem add_half_self_eq_one : half + half = 1 :=
+quotient.sound pgame.add_half_self_equiv_one
+
+#check submonoid.powers
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

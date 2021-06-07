@@ -1231,11 +1231,11 @@ lemma add_mem_Ioo_iff_right : a + b ∈ set.Ioo c d ↔ b ∈ set.Ioo (c - a) (d
 lemma sub_mem_Icc_iff_left : a - b ∈ set.Icc c d ↔ a ∈ set.Icc (c + b) (d + b) :=
 (and_congr le_sub_iff_add_le sub_le_iff_le_add)
 lemma sub_mem_Ico_iff_left : a - b ∈ set.Ico c d ↔ a ∈ set.Ico (c + b) (d + b) :=
-and_congr le_sub_iff_add_le sub_lt_iff_lt_add
+(and_congr le_sub_iff_add_le sub_lt_iff_lt_add)
 lemma sub_mem_Ioc_iff_left : a - b ∈ set.Ioc c d ↔ a ∈ set.Ioc (c + b) (d + b) :=
 (and_congr lt_sub_iff_add_lt sub_le_iff_le_add)
 lemma sub_mem_Ioo_iff_left : a - b ∈ set.Ioo c d ↔ a ∈ set.Ioo (c + b) (d + b) :=
-and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add
+(and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add)
 
 /-! `sub_mem_Ixx_iff_right` -/
 lemma sub_mem_Icc_iff_right : a - b ∈ set.Icc c d ↔ b ∈ set.Icc (a - d) (a - c) :=

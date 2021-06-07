@@ -1408,8 +1408,9 @@ section restrict_scalars
 section type_synonym
 variables (R A M : Type*)
 
-/-- A type synonym representing the functor from the category of modules over `A`, regarded as a
-(semi)ring, to the category of modules over `A`, regarded as an `R`-algebra.
+/-- If we put an `R`-algebra structure on a semiring `A`, we get a natural equivalence from the
+category of `A`-modules to the category of representations of the algebra `A` (over `R`). The type
+synonym `restrict_scalars` is essentially this equivalence.
 
 Warning: use this type synonym judiciously! Consider an example where we want to construct an
 `R`-linear map from `M` to `A`, given:

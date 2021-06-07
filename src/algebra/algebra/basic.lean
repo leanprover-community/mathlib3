@@ -1442,7 +1442,7 @@ Mathematically, when `A` is an `R`-algebra, there are two different functors:
     perhaps a better name would be `enrich_scalars`).
  2. The functor from the category of modules over the `R`-algebra `A` to the category of modules
     over the (semi)ring `R`. This is the true restriction of scalars but when one uses the setup
-    in the second example above, it is invisible functor available for free through typeclass
+    in the second example above, it is an invisible functor available for free through typeclass
     inference.
 
 A standard example of when one might want to invoke functor 1 would be if one has a vector space

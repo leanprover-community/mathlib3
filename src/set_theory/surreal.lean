@@ -277,7 +277,7 @@ begin
            ... ≈ 0 + 1 : (zero_add_equiv 1).symm } } }
 end
 
-/-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as 
+/-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as
 `{ 0 | pow_half n }`. -/
 def pow_half : ℕ → pgame
 | 0       := mk punit pempty 0 pempty.elim
@@ -322,7 +322,7 @@ end
 theorem zero_lt_pow_half {n : ℕ} : 0 < pow_half n :=
 by { cases n; rw lt_def_le; use ⟨punit.star, le_refl 0⟩ }
 
-theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
+theorem add_pow_half_succ_self_eq_pow_half (n) : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
 begin
   induction n with n hn,
   { exact add_half_self_equiv_one },
@@ -458,23 +458,211 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+lemma nonneg_of_pos_nsmul (m : ℕ) {x : surreal} (hx : 0 < x) : 0 ≤ m • x :=
+begin
+  induction m with m hm,
+  { simp }, -- squeeze_simp fails?
+  { rw [succ_nsmul x m],
+    apply add_nonneg (le_of_lt hx) hm }
+end
+
+lemma pos_of_pos_nsmul {m : ℕ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
+begin
+    induction m with m hm,
+    { exfalso, exact nat.lt_asymm hm hm },
+    { rw [succ_nsmul x m],
+      apply lt_add_of_pos_of_le hx (nonneg_of_pos_nsmul _ hx), }
+end
+
+lemma lt_of_nsmul_pos_lt {m : ℕ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
+begin
+  rw ← sub_pos at *,
+  have : m • y - m • x = m • (y - x),
+    by { have := (nsmul_add y (-x) m).symm, rwa [neg_nsmul x m] at this },
+  rw this,
+  apply pos_of_pos_nsmul hm hxy,
+end
+
+lemma nonneg_of_nonneg_gsmul {m : ℤ} {x : surreal} (hm : 0 ≤ m) (hx : 0 < x) : 0 ≤ m • x :=
+begin
+  cases m with m m,
+  { have := nonneg_of_pos_nsmul m hx,
+    simpa only [int.of_nat_eq_coe, gsmul_coe_nat] },
+  { exfalso,
+    rwa [← int.neg_succ_not_nonneg m] }
+end
+
+lemma pos_of_pos_gsmul {m : ℤ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
+begin
+  cases m with m m,
+  { simp at *,
+    apply pos_of_pos_nsmul hm hx },
+  { exfalso,
+    rwa [← int.neg_succ_not_pos m] }
+end
+
+lemma lt_of_gsmul_pos_lt {m : ℤ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
+begin
+  cases m with m m,
+  { simp at *,
+    exact lt_of_nsmul_pos_lt hm hxy },
+  { exfalso,
+    rwa [← int.neg_succ_not_pos m] }
+end
+
+lemma gmul_cancel_of_pos (m : ℤ) (x y : surreal) (hm : 0 < m) (hmxy : m • x  = m • y) : x = y :=
+begin
+    contrapose hmxy,
+    cases (@ne_iff_lt_or_gt _ _ x y).1 hmxy with hmxy' hmxy',
+    { apply _root_.ne_of_lt,
+      exact lt_of_gsmul_pos_lt hm hmxy' },
+    { apply ne_of_gt,
+      change y < x at hmxy',
+      exact lt_of_gsmul_pos_lt hm hmxy' }
+end
+
+lemma int.exists_nat_eq_of_nonneg {x : ℤ} (h : 0 ≤ x) : ∃ (y : ℕ), (y : ℤ) = x :=
+begin
+  cases x,
+  { simp only [int.of_nat_eq_coe, exists_apply_eq_apply] },
+  { refine absurd h _,
+    simp only [int.neg_succ_not_nonneg, not_false_iff] }
+end
+
+lemma mem_powers_iff {α : Type*} [monoid α] (z x : α) :
+  x ∈ submonoid.powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
+
+lemma int.pow_right_injective {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
+begin
+  intros n m hnm,
+  obtain ⟨y, rfl⟩ : ∃ (y : ℕ), (y : ℤ) = x := int.exists_nat_eq_of_nonneg ((zero_le_two).trans h),
+  have : 2 ≤ y,
+  { rw ←int.coe_nat_le,
+    simpa using h },
+  apply nat.pow_right_injective this,
+  simpa [←int.coe_nat_pow, int.coe_nat_inj'] using hnm
+end
+
+
 /-- The surreal number `half`. -/
 def half : surreal := ⟦⟨pgame.half, pgame.numeric_half⟩⟧
 
 /-- Powers of the surreal number `half`. -/
 def pow_half (n : ℕ) : surreal := ⟦⟨pgame.pow_half n, pgame.numeric_pow_half⟩⟧
 
-@[simp]
-lemma pow_half_zero : pow_half 0 = 1 := rfl
+@[simp] lemma pow_half_zero : pow_half 0 = 1 := rfl
 
-@[simp]
-lemma pow_half_one : pow_half 1 = half := rfl
+@[simp] lemma pow_half_one : pow_half 1 = half := rfl
 
-@[simp]
-theorem add_half_self_eq_one : half + half = 1 :=
+@[simp] theorem add_half_self_eq_one : half + half = 1 :=
 quotient.sound pgame.add_half_self_equiv_one
 
-#check submonoid.powers
+lemma double_pow_half_succ_eq_pow_half (n : ℕ) : 2 • pow_half n.succ = pow_half n :=
+begin
+  have : 2 • pow_half n.succ = pow_half n.succ + pow_half n.succ, by abel,
+  rw this,
+  apply quotient.sound,
+  exact pgame.add_pow_half_succ_self_eq_pow_half n,
+end
+
+/-- Map from natural numbers to powers of integers. -/
+def pow (a : ℤ) (n : ℕ) : @submonoid.powers ℤ _ a := ⟨a ^ n, n, rfl⟩
+
+/-- Logarithms from powers of integers to natural numbers. -/
+noncomputable def log {a : ℤ} (p : @submonoid.powers ℤ _ a) : ℕ :=
+classical.some $ (mem_powers_iff a p.val).1 p.prop
+
+@[simp] theorem log_pow_eq_self (a : ℤ) (ha : 2 ≤ a) (n : ℕ) : log (pow a n) = n :=
+begin
+  unfold log,
+  generalize_proofs h,
+  exact @int.pow_right_injective a ha (classical.some h) n (classical.some_spec h),
+end
+
+@[simp] theorem pow_log_eq_self {a : ℤ} (n : @submonoid.powers ℤ _ a) : pow a (log n) = n :=
+begin
+  unfold pow,
+  unfold log,
+  rcases n with ⟨_, hn⟩,
+  congr,
+  exact classical.some_spec hn,
+end
+
+lemma nsmul_pow_two_pow_half (n : ℕ) : 2 ^ n • pow_half n = 1 :=
+begin
+  induction n with n hn,
+  { simp only [nsmul_one, pow_half_zero, nat.cast_one, pow_zero] },
+  { rw [← hn, ← double_pow_half_succ_eq_pow_half n, smul_smul (2^n) 2 (pow_half n.succ),
+        mul_comm, pow_succ] }
+end
+
+lemma nsmul_pow_two_pow_half' (n k : ℕ) : 2 ^ n • pow_half (n + k) = pow_half k :=
+begin
+  induction k with k hk,
+  { simp [nsmul_pow_two_pow_half] },
+  { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k] at hk,
+    have : 2 ^ n • 2 • pow_half (n + k).succ = 2 • 2 ^ n • pow_half (n + k).succ,
+      by { apply smul_algebra_smul_comm },
+    rw this at hk,
+    exact (gmul_cancel_of_pos 2 (2^n • pow_half (n + k).succ) (pow_half k.succ) (by norm_num)) hk }
+end
+
+lemma nsmul_int_pow_two_pow_half (m : ℤ) (n k : ℕ) :
+  (m * 2 ^ n) • pow_half (n + k) = m • pow_half k :=
+begin
+  rw mul_gsmul,
+  congr,
+  norm_cast,
+  exact nsmul_pow_two_pow_half' n k,
+end
+
+lemma dyadic_aux
+  {m₁ m₂ : ℤ} {y₁ y₂ : ℕ}
+  (h₂ : m₁ * (2 ^ y₁) = m₂ * (2 ^ y₂)) :
+  m₁ • pow_half y₂ = m₂ • pow_half y₁ :=
+begin
+  by_cases y₁ ≤ y₂,
+  { obtain ⟨c, hc⟩ := le_iff_exists_add.1 h,
+    rw [hc, add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
+    cases h₂,
+    { rw [h₂, hc, add_comm, nsmul_int_pow_two_pow_half m₂ c y₁] },
+    { have := nat.one_le_pow y₁ 2 nat.succ_pos',
+      linarith } },
+  { push_neg at h,
+    obtain ⟨c, hc⟩ := le_iff_exists_add.1 (le_of_lt h),
+    rw [hc, add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
+    cases h₂,
+    { rw [← h₂, hc, add_comm, nsmul_int_pow_two_pow_half m₁ c y₂] },
+    { have := nat.one_le_pow y₂ 2 nat.succ_pos',
+      linarith } }
+end
+
+/-- The map `dyadic_mk` sends [m, 2^n] to m • half ^ n. -/
+noncomputable def dyadic_mk : localization (@submonoid.powers ℤ _ 2) → surreal :=
+begin
+  apply quotient.lift,
+  swap,
+  { rintro ⟨m, n⟩,
+    exact m • pow_half (log n) },
+  {
+    rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
+    obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.1 h₁,
+    simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
+    cases h₂,
+    { simp,
+      obtain ⟨a₁, ha₁⟩ := classical.indefinite_description _ n₁.prop,
+      obtain ⟨a₂, ha₂⟩ := classical.indefinite_description _ n₂.prop,
+      have hn₁ : n₁ = pow 2 a₁, by { ext1, solve_by_elim },
+      have hn₂ : n₂ = pow 2 a₂, by { ext1, solve_by_elim },
+      rw [hn₁, hn₂, log_pow_eq_self 2 rfl.ge, log_pow_eq_self 2 rfl.ge],
+      apply dyadic_aux,
+      rwa [ha₁, ha₂] },
+    { have := nat.one_le_pow y₃ 2 nat.succ_pos',
+      linarith } }
+end
+
+/-- We define dyadic surreals as the image of `dyadic_mk`. -/
+def dyadic := set.image dyadic_mk
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

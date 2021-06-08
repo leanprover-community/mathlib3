@@ -817,6 +817,10 @@ abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),
   add_le_add (le_abs_self _) (le_abs_self _)⟩
 
+theorem abs_sub_le_abs_add_abs (a b : α) :
+  abs (a - b) ≤ abs a + abs b :=
+by { rw [sub_eq_add_neg, ←abs_neg b], exact abs_add a _ }
+
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
 

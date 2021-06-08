@@ -102,10 +102,10 @@ of_equiv e
 
 variables (R M N)
 
-instance of_finsupp {ι : Type v} : module.free R (ι →₀ R) :=
+instance {ι : Type v} : module.free R (ι →₀ R) :=
 of_basis (basis.of_repr (linear_equiv.refl _ _))
 
-instance of_fun {ι : Type v} [fintype ι] : module.free R (ι → R) :=
+instance {ι : Type v} [fintype ι] : module.free R (ι → R) :=
 of_equiv (basis.of_repr $ linear_equiv.refl _ _).equiv_fun
 
 instance of_prod [module.free R N] : module.free R (M × N) :=
@@ -125,7 +125,7 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
 instance of_tensor [module.free R M] [module.free R N] : module.free R (M ⊗[R] N) :=
-of_equiv' (of_equiv' (free.of_finsupp R) (finsupp_tensor_finsupp' R _ _).symm)
+of_equiv' (of_equiv' (finsupp.free R) (finsupp_tensor_finsupp' R _ _).symm)
   (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
 
 end comm_ring

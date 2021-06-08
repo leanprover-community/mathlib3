@@ -36,7 +36,9 @@ via dyadic Dedekind cuts the homomorphic inclusion of the reals into the surreal
 One can also map all the ordinals into the surreals!
 
 ## Dyadic surreals
-We construct dyadic surreal numbers using a map from `ℤ[2 ^ {-1}]` to surreals. As we currently do not have a ring structure on `surreal` we construct this map explicitly. Once we have a ring structure on `surreal`, this map can be constructed immediately by sending `2 ^ {-1}` to `half`.
+We construct dyadic surreal numbers using a map from `ℤ[2 ^ {-1}]` to surreals. As we currently do
+not have a ring structure on `surreal` we construct this map explicitly. Once we have a ring
+structure on `surreal`, this map can be constructed immediately by sending `2 ^ {-1}` to `half`.
 
 ## References
 * [Conway, *On numbers and games*][conway2001]

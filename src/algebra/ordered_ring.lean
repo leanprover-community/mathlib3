@@ -1524,8 +1524,8 @@ with_top.mul_eq_top_iff
 
 lemma bot_lt_mul [partial_order α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
 begin
-  lift a to α using ne_bot_of_lt ha,
-  lift b to α using ne_bot_of_lt hb,
+  lift a to α using ne_bot_of_gt ha,
+  lift b to α using ne_bot_of_gt hb,
   simp only [← coe_mul, coe_lt_top]
 end
 

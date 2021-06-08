@@ -261,6 +261,7 @@ def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
 
 section
 
+-- this speeds up typeclass search in the lemma below
 local attribute [instance, priority 2000] is_scalar_tower.right
 
 /--

@@ -512,11 +512,11 @@ meta inductive with_pattern
 
 namespace with_pattern
 
-open lean
+open lean (parser)
 open lean.parser
 
 /-- Parser for a `with_pattern`. -/
-meta protected def parser : parser with_pattern :=
+protected meta def parser : parser with_pattern :=
 (tk "-" *> pure with_pattern.clear) <|>
 (tk "_" *> pure with_pattern.auto) <|>
 (with_pattern.exact <$> ident)
@@ -545,8 +545,8 @@ meta def to_name_spec (auto_candidates : tactic (list name)) :
 end with_pattern
 
 /--
-If `h` refers to a hypothesis, `clear_dependent_if_exists h` clears `h` clears
-`h` and any hypotheses which depend on it. Otherwise, the tactic does nothing.
+If `h` refers to a hypothesis, `clear_dependent_if_exists h` clears `h` and any
+hypotheses which depend on it. Otherwise, the tactic does nothing.
 -/
 meta def clear_dependent_if_exists (h : name) : tactic unit := do
   (some h) ← try_core $ get_local h | pure (),

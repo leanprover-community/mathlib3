@@ -258,7 +258,9 @@ protected lemma decidable.one_le_mul_of_one_le_of_one_le [@decidable_rel α (≤
 lemma one_le_mul_of_one_le_of_one_le {a b : α} : 1 ≤ a → 1 ≤ b → (1 : α) ≤ a * b :=
 by classical; exact decidable.one_le_mul_of_one_le_of_one_le
 
-/-- Pullback an `ordered_semiring` under an injective map. -/
+/-- Pullback an `ordered_semiring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.ordered_semiring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -388,7 +390,9 @@ multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
 
-/-- Pullback an `ordered_comm_semiring` under an injective map. -/
+/-- Pullback an `ordered_comm_semiring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -654,7 +658,9 @@ instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_se
   no_top_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
 
-/-- Pullback a `linear_ordered_semiring` under an injective map. -/
+/-- Pullback a `linear_ordered_semiring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.linear_ordered_semiring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [nontrivial β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -854,7 +860,9 @@ lemma mul_pos_of_neg_of_neg {a b : α} (ha : a < 0) (hb : b < 0) : 0 < a * b :=
 have 0 * b < a * b, from mul_lt_mul_of_neg_right ha hb,
 by rwa zero_mul at this
 
-/-- Pullback an `ordered_ring` under an injective map. -/
+/-- Pullback an `ordered_ring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.ordered_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -874,7 +882,9 @@ multiplication with a positive number and addition are monotone. -/
 @[protect_proj]
 class ordered_comm_ring (α : Type u) extends ordered_ring α, ordered_comm_semiring α, comm_ring α
 
-/-- Pullback an `ordered_comm_ring` under an injective map. -/
+/-- Pullback an `ordered_comm_ring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.ordered_comm_ring [ordered_comm_ring α] {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -1089,7 +1099,9 @@ end
 lemma abs_le_one_iff_mul_self_le_one : abs a ≤ 1 ↔ a * a ≤ 1 :=
 by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 
-/-- Pullback a `linear_ordered_ring` under an injective map. -/
+/-- Pullback a `linear_ordered_ring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.linear_ordered_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -1183,7 +1195,9 @@ lemma abs_dvd_abs (a b : α) : abs a ∣ abs b ↔ a ∣ b :=
 lemma even_abs {a : α} : even (abs a) ↔ even a :=
 dvd_abs _ _
 
-/-- Pullback a `linear_ordered_comm_ring` under an injective map. -/
+/-- Pullback a `linear_ordered_comm_ring` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.linear_ordered_comm_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [nontrivial β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)

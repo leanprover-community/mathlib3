@@ -557,7 +557,7 @@ noncomputable def set.inner_dual_cone (s : set H) : convex_cone H :=
     exact add_nonneg (hu x hx) (hv x hx)
   end }
 
-lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
+@[simp] lemma inner_dual_cone_empty : (∅ : set H).inner_dual_cone = ⊤ :=
 convex_cone.ext' (eq_univ_of_forall
   (λ x y hy, false.elim (set.not_mem_empty _ hy)))
 

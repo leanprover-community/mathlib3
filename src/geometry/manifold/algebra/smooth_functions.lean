@@ -191,7 +191,7 @@ module.of_core $
 def coe_fn_linear_map {V : Type*} [normed_group V] [normed_space 𝕜 V] :
 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ →ₗ[𝕜] (N → V) :=
 { to_fun := coe_fn,
-  map_smul' := scoe_mul,
+  map_smul' := coe_smul,
   ..(coe_fn_add_monoid_hom : C^∞⟮I, N; 𝓘(𝕜, V), V⟯ →+ _) }
 
 end module_structure

@@ -1,4 +1,4 @@
-import m4r.tpow_to_talg linear_algebra.exterior_algebra m4r.sq_zero
+import m4r.tensor_algebra linear_algebra.pi linear_algebra.exterior_algebra m4r.sq_zero
 
 universes u v
 variables (R : Type u) [comm_ring R] (M : Type u) [add_comm_group M] [module R M]
@@ -9,15 +9,15 @@ open_locale classical
 def exists_same (n : ℕ) : set (fin n → M) :=
 { v | ∃ (i j : fin n) (h : v i = v j), i ≠ j }
 
-def epow_ker (n : ℕ) : submodule R (tpow R M n) :=
-submodule.span R (tpow.mk' R M n '' exists_same M n)
+def exterior_power_ker (n : ℕ) : submodule R (tensor_power R M n) :=
+submodule.span R (tensor_power.mk' R M n '' exists_same M n)
 
-@[reducible] def epow (n : ℕ) := (epow_ker R M n).quotient
+@[reducible] def exterior_power (n : ℕ) := (exterior_power_ker R M n).quotient
 
-def epow.mk (n : ℕ) : alternating_map R M (epow R M n) (fin n) :=
+def exterior_power.mk (n : ℕ) : alternating_map R M (exterior_power R M n) (fin n) :=
 { map_eq_zero_of_eq' := λ v i j h hij, (submodule.quotient.mk_eq_zero _).2 $
   submodule.subset_span $ set.mem_image_of_mem _ ⟨i, j, h, hij⟩,
-  ..(epow_ker R M n).mkq.comp_multilinear_map (tpow.mk' R M n) }
+  ..(exterior_power_ker R M n).mkq.comp_multilinear_map (tensor_power.mk' R M n) }
 
 variables {M} {N : Type u} [add_comm_group N] [module R N] {n : ℕ}
   {p : submodule R M} {q : submodule R N}
@@ -63,7 +63,7 @@ linear_equiv.of_linear (quot_prod_to_quot R)
   (quot_to_quot_prod R) (linear_map.ext $ quot_prod_to_quot_left_inv R)
   (linear_map.ext $ quot_prod_to_quot_right_inv R)
 
-def submodule.pi {ι : Type v} (M : ι → Type u) [Π i, add_comm_group (M i)]
+def direct_sum.submodule {ι : Type v} (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
   submodule R (direct_sum ι M) :=
 { carrier := { f | ∀ i, f i ∈ p i},
@@ -73,9 +73,9 @@ def submodule.pi {ι : Type v} (M : ι → Type u) [Π i, add_comm_group (M i)]
   smul_mem' := λ c x hx i, by rw dfinsupp.smul_apply;
     exact (p i).smul_mem c (hx i) }
 
-lemma lof_mem_pi {ι : Type v} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)]
+lemma lof_mem_iff {ι : Type v} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] {p : Π i, submodule R (M i)} {i : ι} {x : M i} :
-  direct_sum.lof R ι M i x ∈ submodule.pi R M p ↔ x ∈ p i :=
+  direct_sum.lof R ι M i x ∈ direct_sum.submodule R M p ↔ x ∈ p i :=
 begin
   split,
   { intro h,
@@ -101,9 +101,9 @@ begin
   exact H i,
 end
 
-lemma pi_eq_span {ι : Type v} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)]
+lemma submodule_eq_span {ι : Type v} [decidable_eq ι] {M : ι → Type u} [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] {p : Π i, submodule R (M i)} :
-  submodule.pi R M p = submodule.span R (set.Union (λ i, (p i).map (direct_sum.lof R ι M i))) :=
+  direct_sum.submodule R M p = submodule.span R (set.Union (λ i, (p i).map (direct_sum.lof R ι M i))) :=
 begin
   refine le_antisymm _ _,
   { rw submodule.span_Union,
@@ -145,7 +145,7 @@ dfinsupp.map_range_apply (λ i, f i) (λ i, linear_map.map_zero _) _ _
 lemma quot_pi_to_quot_aux {ι : Type v} [decidable_eq ι]
   (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) (i : ι) :
-  p i ≤ ((submodule.pi R M p).mkq.comp (direct_sum.lof R ι M i)).ker :=
+  p i ≤ ((direct_sum.submodule R M p).mkq.comp (direct_sum.lof R ι M i)).ker :=
 begin
   rw [linear_map.ker_comp, submodule.ker_mkq],
   intros x hx j,
@@ -158,16 +158,16 @@ end
 
 def quot_pi_to_quot {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
-  direct_sum ι (λ i, (p i).quotient) →ₗ[R] (submodule.pi R M p).quotient :=
-(direct_sum.to_module R ι (submodule.pi R M p).quotient
+  direct_sum ι (λ i, (p i).quotient) →ₗ[R] (direct_sum.submodule R M p).quotient :=
+(direct_sum.to_module R ι (direct_sum.submodule R M p).quotient
   (λ i, (p i).liftq
-  ((submodule.pi R M p).mkq.comp (direct_sum.lof R ι M i)) $
+  ((direct_sum.submodule R M p).mkq.comp (direct_sum.lof R ι M i)) $
   quot_pi_to_quot_aux R M p i))
 
 lemma quot_to_quot_pi_aux {ι : Type v} [decidable_eq ι]
   (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
-  submodule.pi R M p ≤ (direct_sum.map_range R (λ (i : ι), (p i).mkq)).ker :=
+  direct_sum.submodule R M p ≤ (direct_sum.map_range R (λ (i : ι), (p i).mkq)).ker :=
 λ x hx,
 begin
   rw linear_map.mem_ker,
@@ -178,8 +178,8 @@ end
 
 def quot_to_quot_pi {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
-  (submodule.pi R M p).quotient →ₗ[R] direct_sum ι (λ i, (p i).quotient) :=
-(submodule.pi R M p).liftq (direct_sum.map_range R $ λ i, (p i).mkq) $
+  (direct_sum.submodule R M p).quotient →ₗ[R] direct_sum ι (λ i, (p i).quotient) :=
+(direct_sum.submodule R M p).liftq (direct_sum.map_range R $ λ i, (p i).mkq) $
 quot_to_quot_pi_aux R M p
 
 lemma quot_pi_to_quot_right_inv {ι : Type v} [decidable_eq ι]
@@ -211,7 +211,7 @@ end
 
 lemma quot_pi_to_quot_left_inv {ι : Type v} [decidable_eq ι]
   (M : ι → Type u) [Π i, add_comm_group (M i)]
-  [Π i, module R (M i)] (p : Π i, submodule R (M i)) (x : (submodule.pi R M p).quotient) :
+  [Π i, module R (M i)] (p : Π i, submodule R (M i)) (x : (direct_sum.submodule R M p).quotient) :
   quot_pi_to_quot R M p (quot_to_quot_pi R M p x) = x :=
 begin
   refine quotient.induction_on' x (λ y, _),
@@ -229,7 +229,7 @@ end
 
 def quot_pi_equiv {ι : Type v} [decidable_eq ι] (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) :
-  direct_sum ι (λ i, (p i).quotient) ≃ₗ[R] (submodule.pi R M p).quotient :=
+  direct_sum ι (λ i, (p i).quotient) ≃ₗ[R] (direct_sum.submodule R M p).quotient :=
 linear_equiv.of_linear (quot_pi_to_quot R M p) (quot_to_quot_pi R M p)
 (linear_map.ext $ quot_pi_to_quot_left_inv R M p)
 (linear_map.ext $ quot_pi_to_quot_right_inv R M p)
@@ -238,7 +238,7 @@ lemma quot_pi_equiv_apply {ι : Type v} [decidable_eq ι]
   (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) (i : ι) (x : M i) :
   quot_pi_equiv R M p (direct_sum.lof R ι _ i ((p i).mkq x)) =
-    (submodule.pi R M p).mkq (direct_sum.lof R ι _ i x) :=
+    (direct_sum.submodule R M p).mkq (direct_sum.lof R ι _ i x) :=
 begin
   erw [linear_equiv.of_linear_apply, direct_sum.to_module_lof, (p i).liftq_apply],
 end
@@ -246,7 +246,7 @@ end
 lemma quot_pi_equiv_symm_apply {ι : Type v} [decidable_eq ι]
   (M : ι → Type u) [Π i, add_comm_group (M i)]
   [Π i, module R (M i)] (p : Π i, submodule R (M i)) (i : ι) (x : M i) :
-  (quot_pi_equiv R M p).symm ((submodule.pi R M p).mkq (direct_sum.lof R ι _ i x)) =
+  (quot_pi_equiv R M p).symm ((direct_sum.submodule R M p).mkq (direct_sum.lof R ι _ i x)) =
     (direct_sum.lof R ι _ i ((p i).mkq x)) :=
 begin
   erw linear_equiv.of_linear_symm_apply,
@@ -266,31 +266,32 @@ begin
     rw linear_map.map_zero },
 end
 
-def epow_lift (f : alternating_map R M N (fin n)) :
-  epow R M n →ₗ[R] N :=
-(epow_ker R M n).liftq (tpow.lift R n N f) $ submodule.span_le.2
+def exterior_power_lift (f : alternating_map R M N (fin n)) :
+  exterior_power R M n →ₗ[R] N :=
+(exterior_power_ker R M n).liftq (tensor_power.lift R n N f)
+(submodule.span_le.2 -- apply the fact `s ⊆ N' implies `<s> ⊆ N' for any set `s' and submodule `N'
 begin
-  rintro x ⟨v, ⟨i, j, hv, hij⟩, rfl⟩,
-  erw linear_map.mem_ker,
-  rw tpow.lift_mk_apply,
-  exact f.map_eq_zero_of_eq v hv hij,
-end
+  rintro x ⟨v, ⟨i, j, hv, hij⟩, rfl⟩, -- let `v ∈ Mⁿ' be such that `v_i = v_j, i ≠ j.'
+  erw linear_map.mem_ker, -- suffices showing the lift sends `v_1 ⊗ ... ⊗ v_n' to 0
+  rw tensor_power.lift_mk_apply, -- but the lift is `f(v_1, ..., v_n)' on such elements
+  exact f.map_eq_zero_of_eq v hv hij, -- which is 0, since `f' is alternating.
+end)
 
-@[simp] lemma epow_lift_mk (f : alternating_map R M N (fin n)) {v : fin n → M} :
-  epow_lift R f (epow.mk R M n v) = f v :=
-tpow.lift_mk_apply n f.to_multilinear_map v
+@[simp] lemma exterior_power_lift_mk (f : alternating_map R M N (fin n)) {v : fin n → M} :
+  exterior_power_lift R f (exterior_power.mk R M n v) = f v :=
+tensor_power.lift_mk_apply n f.to_multilinear_map v
 
 variables (M)
 
-def ealg_ker : submodule R (talg R M) :=
-@submodule.pi R _ ℕ (tpow R M) _ _ (epow_ker R M)
+def exterior_algebra2_ker : submodule R (tensor_algebra2 R M) :=
+@direct_sum.submodule R _ ℕ (tensor_power R M) _ _ (exterior_power_ker R M)
 
-lemma ealg_ker_eq : ealg_ker R M =
-  submodule.span R (set.Union (λ n, talg_mk R M '' exists_same M n)) :=
+lemma exterior_algebra2_ker_eq : exterior_algebra2_ker R M =
+  submodule.span R (set.Union (λ n, tensor_algebra2_mk R M '' exists_same M n)) :=
 begin
-  unfold ealg_ker,
-  rw pi_eq_span,
-  unfold epow_ker,
+  unfold exterior_algebra2_ker,
+  rw submodule_eq_span,
+  unfold exterior_power_ker,
   rw submodule.span_Union,
   ext,
   simp only [submodule.span_image, submodule.map_coe, submodule.span_eq],
@@ -302,9 +303,9 @@ begin
     rw set.mem_Union at *,
     rcases hi with ⟨j, ⟨z, hzm, hz⟩⟩,
     rw ←hz,
-    suffices : (submodule.span R (⇑(tpow.mk' R M j) '' exists_same M j)).map
-      (direct_sum.lof R ℕ (tpow R M) j) ≤
-        (submodule.span R (⋃ (n : ℕ), talg_mk R M '' exists_same M n)),
+    suffices : (submodule.span R (⇑(tensor_power.mk' R M j) '' exists_same M j)).map
+      (direct_sum.lof R ℕ (tensor_power R M) j) ≤
+        (submodule.span R (⋃ (n : ℕ), tensor_algebra2_mk R M '' exists_same M n)),
     from this (submodule.mem_map_of_mem hzm),
     rw submodule.map_span,
     refine submodule.span_mono _,
@@ -615,14 +616,14 @@ lemma submodule.sum_smul_mem' {ι : Type v} {t : multiset ι} {f : ι → M} (r 
     (hyp : ∀ c ∈ t, f c ∈ p) : (multiset.map (λ i, r i • f i) t).sum ∈ p :=
 submodule.sum_mem' (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
-lemma talg_mk_mul_mem (x : talg R M) {n : ℕ} {i : fin n → M} (h : i ∈ exists_same M n) :
-  talg_mk R M i * x ∈ ealg_ker R M :=
+lemma tensor_algebra2_mk_mul_mem (x : tensor_algebra2 R M) {n : ℕ} {i : fin n → M} (h : i ∈ exists_same M n) :
+  tensor_algebra2_mk R M i * x ∈ exterior_algebra2_ker R M :=
 begin
   rcases h with ⟨a, b, hi, hab⟩,
   refine direct_sum.linduction_on R x _ _ _,
   { rw mul_zero, exact submodule.zero_mem _ },
   { intros j y,
-    rcases exists_sum_of_tpow R M y with ⟨s, rfl⟩,
+    rcases exists_sum_of_tensor_power R M y with ⟨s, rfl⟩,
     rw [map_sum, multiset.mul_sum, multiset.map_map],
     refine submodule.sum_mem' _,
     intros c hc,
@@ -655,14 +656,14 @@ begin
     exact submodule.add_mem _ HX HY },
 end
 
-lemma mul_talg_mk_mem (x : talg R M) {n : ℕ} {i : fin n → M} (h : i ∈ exists_same M n) :
-  x * talg_mk R M i ∈ ealg_ker R M :=
+lemma mul_tensor_algebra2_mk_mem (x : tensor_algebra2 R M) {n : ℕ} {i : fin n → M} (h : i ∈ exists_same M n) :
+  x * tensor_algebra2_mk R M i ∈ exterior_algebra2_ker R M :=
 begin
   rcases h with ⟨a, b, hi, hab⟩,
   refine direct_sum.linduction_on R x _ _ _,
   { rw zero_mul, exact submodule.zero_mem _ },
   { intros j y,
-    rcases exists_sum_of_tpow R M y with ⟨s, rfl⟩,
+    rcases exists_sum_of_tensor_power R M y with ⟨s, rfl⟩,
     rw [map_sum, multiset.sum_mul, multiset.map_map],
     refine submodule.sum_mem' _,
     intros c hc,
@@ -693,40 +694,40 @@ begin
     exact submodule.add_mem _ HX HY },
 end
 
-lemma mul_right_mem (x : talg R M) : (ealg_ker R M).map (mul R M x) ≤ ealg_ker R M :=
+lemma mul_right_mem (x : tensor_algebra2 R M) : (exterior_algebra2_ker R M).map (mul R M x) ≤ exterior_algebra2_ker R M :=
 begin
-  rw [ealg_ker_eq, submodule.map_span, submodule.span_le],
+  rw [exterior_algebra2_ker_eq, submodule.map_span, submodule.span_le],
   rintros y ⟨Y, hYm, hY⟩,
   rw set.mem_Union at hYm,
   rcases hYm with ⟨i, z, hzm, hz⟩,
-  rw [←hY, ←hz, ←ealg_ker_eq],
-  exact mul_talg_mk_mem _ hzm,
+  rw [←hY, ←hz, ←exterior_algebra2_ker_eq],
+  exact mul_tensor_algebra2_mk_mem _ hzm,
 end
 
-lemma mul_right_mem_apply {x y : talg R M} (hy : y ∈ ealg_ker R M) : x * y ∈ ealg_ker R M :=
+lemma mul_right_mem_apply {x y : tensor_algebra2 R M} (hy : y ∈ exterior_algebra2_ker R M) : x * y ∈ exterior_algebra2_ker R M :=
 mul_right_mem x ⟨y, hy, rfl⟩
 
-lemma mul_left_mem (x : talg R M) : (ealg_ker R M).map ((mul R M).flip x) ≤ ealg_ker R M :=
+lemma mul_left_mem (x : tensor_algebra2 R M) : (exterior_algebra2_ker R M).map ((mul R M).flip x) ≤ exterior_algebra2_ker R M :=
 begin
-  rw [ealg_ker_eq, submodule.map_span, submodule.span_le],
+  rw [exterior_algebra2_ker_eq, submodule.map_span, submodule.span_le],
   rintros y ⟨Y, hYm, hY⟩,
   rw set.mem_Union at hYm,
   rcases hYm with ⟨i, z, hzm, hz⟩,
-  rw [←hY, ←hz, ←ealg_ker_eq],
-  exact talg_mk_mul_mem _ hzm,
+  rw [←hY, ←hz, ←exterior_algebra2_ker_eq],
+  exact tensor_algebra2_mk_mul_mem _ hzm,
 end
 
-lemma mul_left_mem_apply {x y : talg R M} (hy : y ∈ ealg_ker R M) : y * x ∈ ealg_ker R M :=
+lemma mul_left_mem_apply {x y : tensor_algebra2 R M} (hy : y ∈ exterior_algebra2_ker R M) : y * x ∈ exterior_algebra2_ker R M :=
 mul_left_mem x ⟨y, hy, rfl⟩
 
 variables (R M)
 
-def ealg_mul_aux (x : talg R M) : talg R M →ₗ[R] (ealg_ker R M).quotient :=
-(ealg_ker R M).mkq.comp $ mul R M x
+def exterior_algebra2_mul_aux (x : tensor_algebra2 R M) : tensor_algebra2 R M →ₗ[R] (exterior_algebra2_ker R M).quotient :=
+(exterior_algebra2_ker R M).mkq.comp $ mul R M x
 
 variables {R M}
 
-lemma ealg_mul_aux_cond (x : talg R M) : ealg_ker R M ≤ (ealg_mul_aux R M x).ker :=
+lemma exterior_algebra2_mul_aux_cond (x : tensor_algebra2 R M) : exterior_algebra2_ker R M ≤ (exterior_algebra2_mul_aux R M x).ker :=
 begin
   intros y hy,
   erw linear_map.ker_comp,
@@ -735,18 +736,18 @@ begin
 end
 
 variables (R M)
-@[reducible] def ealg := (ealg_ker R M).quotient
+@[reducible] def exterior_algebra2 := (exterior_algebra2_ker R M).quotient
 
-def ealg_mul : ealg R M →ₗ[R] ealg R M →ₗ[R] ealg R M :=
-(ealg_ker R M).liftq
-({ to_fun := λ x, (ealg_ker R M).liftq (ealg_mul_aux R M x) $
-     ealg_mul_aux_cond x,
+def exterior_algebra2_mul : exterior_algebra2 R M →ₗ[R] exterior_algebra2 R M →ₗ[R] exterior_algebra2 R M :=
+(exterior_algebra2_ker R M).liftq
+({ to_fun := λ x, (exterior_algebra2_ker R M).liftq (exterior_algebra2_mul_aux R M x) $
+     exterior_algebra2_mul_aux_cond x,
   map_add' := λ x y,
     begin
       ext z,
       refine quotient.induction_on' z _,
       intro w,
-      unfold ealg_mul_aux,
+      unfold exterior_algebra2_mul_aux,
       simp only [linear_map.add_apply, linear_map.map_add, linear_map.comp_add],
       refl,
     end,
@@ -755,7 +756,7 @@ def ealg_mul : ealg R M →ₗ[R] ealg R M →ₗ[R] ealg R M :=
       ext z,
       refine quotient.induction_on' z _,
       intro w,
-      unfold ealg_mul_aux,
+      unfold exterior_algebra2_mul_aux,
       simp only [linear_map.smul_apply, linear_map.map_smul, linear_map.comp_add],
       refl,
     end }) $
@@ -767,179 +768,175 @@ def ealg_mul : ealg R M →ₗ[R] ealg R M →ₗ[R] ealg R M :=
     refine quotient.induction_on' y _,
     intro z,
     simp only [submodule.quotient.mk'_eq_mk, submodule.liftq_apply, linear_map.coe_mk],
-    unfold ealg_mul_aux,
+    unfold exterior_algebra2_mul_aux,
     rw linear_map.comp_apply,
     erw submodule.quotient.mk_eq_zero,
     exact mul_left_mem_apply hx,
   end
 
-instance ealg.has_mul : has_mul (ealg R M) :=
-⟨λ x, ealg_mul R M x⟩
+instance exterior_algebra2.has_mul : has_mul (exterior_algebra2 R M) :=
+⟨λ x, exterior_algebra2_mul R M x⟩
 
-lemma ealg.mul_def {x y : ealg R M} : ealg_mul R M x y = x * y := rfl
+lemma exterior_algebra2.mul_def {x y : exterior_algebra2 R M} : exterior_algebra2_mul R M x y = x * y := rfl
 
-def ealg_mk {n : ℕ} (f : fin n → M) : ealg R M :=
-(ealg_ker R M).mkq $ talg_mk R M f
+def exterior_algebra2_mk {n : ℕ} (f : fin n → M) : exterior_algebra2 R M :=
+(exterior_algebra2_ker R M).mkq $ tensor_algebra2_mk R M f
 
-lemma ealg_mk_def {n : ℕ} (f : fin n → M) :
-  ealg_mk R M f = (ealg_ker R M).mkq (direct_sum.lof R ℕ (tpow R M) n (tpow.mk' _ _ n f)) :=
+lemma exterior_algebra2_mk_def {n : ℕ} (f : fin n → M) :
+  exterior_algebra2_mk R M f = (exterior_algebra2_ker R M).mkq (direct_sum.lof R ℕ (tensor_power R M) n (tensor_power.mk' _ _ n f)) :=
 rfl
 
-instance : has_one (ealg R M) :=
-⟨(ealg_ker R M).mkq 1⟩
+instance : has_one (exterior_algebra2 R M) :=
+⟨(exterior_algebra2_ker R M).mkq 1⟩
 
-lemma ealg_mul_apply {m n : ℕ} (f : fin m → M) (g : fin n → M) :
-  ealg_mk R M f * ealg_mk R M g = ealg_mk R M (fin.append rfl f g) :=
+lemma exterior_algebra2_mul_apply {m n : ℕ} (f : fin m → M) (g : fin n → M) :
+  exterior_algebra2_mk R M f * exterior_algebra2_mk R M g = exterior_algebra2_mk R M (fin.append rfl f g) :=
 begin
-  rw ←ealg.mul_def,
+  rw ←exterior_algebra2.mul_def,
   erw [submodule.liftq_apply, linear_map.comp_apply],
   -- Amelia -- congr was taking forever here (making CI fail on your branch);
   -- I did some `show_term` stuff to find out what it was actually doing
-  refine congr (congr_arg coe_fn (eq.refl (ealg_ker R M).mkq)) _,
+  refine congr (congr_arg coe_fn (eq.refl (exterior_algebra2_ker R M).mkq)) _,
   rw [mul_def, mul_apply]
 end
 
-@[simp] lemma zero_eq_ealg_mk : ealg_mk R M (λ i : fin 1, 0) = 0 :=
+@[simp] lemma zero_eq_exterior_algebra2_mk : exterior_algebra2_mk R M (λ i : fin 1, 0) = 0 :=
 begin
-  unfold ealg_mk,
+  unfold exterior_algebra2_mk,
   rw [zero_eq_mk, linear_map.map_zero],
 end
 
-@[simp] lemma one_eq_ealg_mk : ealg_mk R M (default (fin 0 → M)) = 1 :=
+@[simp] lemma one_eq_exterior_algebra2_mk : exterior_algebra2_mk R M (default (fin 0 → M)) = 1 :=
 rfl
 
-lemma ealg.mul_zero (x : ealg R M) : x * 0 = 0 :=
+lemma exterior_algebra2.mul_zero (x : exterior_algebra2 R M) : x * 0 = 0 :=
 linear_map.map_zero _
 
-lemma ealg.zero_mul (x : ealg R M) : 0 * x = 0 :=
+lemma exterior_algebra2.zero_mul (x : exterior_algebra2 R M) : 0 * x = 0 :=
 linear_map.map_zero₂ _ _
 
-lemma ealg.mul_add (x y z : ealg R M) : x * (y + z) = x * y + x * z :=
+lemma exterior_algebra2.mul_add (x y z : exterior_algebra2 R M) : x * (y + z) = x * y + x * z :=
 linear_map.map_add _ _ _
 
-lemma ealg.add_mul (x y z : ealg R M) : (x + y) * z = x * z + y * z :=
+lemma exterior_algebra2.add_mul (x y z : exterior_algebra2 R M) : (x + y) * z = x * z + y * z :=
 linear_map.map_add₂ _ _ _ _
 
-lemma ealg.mul_sum (s : multiset (ealg R M)) (x : ealg R M) :
-  x * s.sum = (s.map (ealg_mul _ _ x)).sum :=
+lemma exterior_algebra2.mul_sum (s : multiset (exterior_algebra2 R M)) (x : exterior_algebra2 R M) :
+  x * s.sum = (s.map (exterior_algebra2_mul _ _ x)).sum :=
 map_sum' _ _ _
 
-lemma ealg.smul_assoc (r : R) (x y : ealg R M) :
+lemma exterior_algebra2.smul_assoc (r : R) (x y : exterior_algebra2 R M) :
   (r • x) * y = r • (x * y) :=
 linear_map.map_smul₂ _ _ _ _
 
-lemma ealg.mul_assoc (x y z : ealg R M) :
+lemma exterior_algebra2.mul_assoc (x y z : exterior_algebra2 R M) :
   x * y * z = x * (y * z) :=
 begin
   refine quotient.induction_on' x _,
   refine quotient.induction_on' y _,
   refine quotient.induction_on' z _,
   intros a b c,
-  rw [←ealg.mul_def, ←ealg.mul_def],
-  erw [submodule.liftq_apply (ealg_ker R M) (ealg_ker R M).mkq,
-    submodule.liftq_apply (ealg_ker R M) (ealg_ker R M).mkq],
-  rw [mul_def, mul_def, talg.mul_assoc],
+  rw [←exterior_algebra2.mul_def, ←exterior_algebra2.mul_def],
+  erw [submodule.liftq_apply, @submodule.liftq_apply _ _ _ _ _ _ _ _
+       (exterior_algebra2_ker R M) (exterior_algebra2_ker R M).mkq (by {rw submodule.ker_mkq, exact le_refl _ }) _],
+  rw [mul_def, mul_def, tensor_algebra2.mul_assoc],
   refl,
-  { rw submodule.ker_mkq,
-    exact le_refl _ },
-  { rw submodule.ker_mkq,
-    exact le_refl _ },
 end
 
-lemma ealg.mul_one (x : ealg R M) : x * 1 = x :=
+lemma exterior_algebra2.mul_one (x : exterior_algebra2 R M) : x * 1 = x :=
 begin
   refine quotient.induction_on' x _,
   intro y,
-  rw [←one_eq_ealg_mk, ←ealg.mul_def],
+  rw [←one_eq_exterior_algebra2_mk, ←exterior_algebra2.mul_def],
   erw submodule.liftq_apply,
-  unfold ealg_mul_aux,
-  rw [one_eq_mk, linear_map.comp_apply, mul_def, talg.mul_one],
+  unfold exterior_algebra2_mul_aux,
+  rw [one_eq_mk, linear_map.comp_apply, mul_def, tensor_algebra2.mul_one],
   refl,
 end
 
-lemma ealg.one_mul (x : ealg R M) : 1 * x = x :=
+lemma exterior_algebra2.one_mul (x : exterior_algebra2 R M) : 1 * x = x :=
 begin
   refine quotient.induction_on' x _,
   intro y,
-  rw [←one_eq_ealg_mk, ←ealg.mul_def],
+  rw [←one_eq_exterior_algebra2_mk, ←exterior_algebra2.mul_def],
   erw submodule.liftq_apply,
-  unfold ealg_mul_aux,
-  rw [one_eq_mk, linear_map.comp_apply, mul_def, talg.one_mul],
+  unfold exterior_algebra2_mul_aux,
+  rw [one_eq_mk, linear_map.comp_apply, mul_def, tensor_algebra2.one_mul],
   refl,
 end
 
-instance ealg.monoid : monoid (ealg R M) :=
-{ mul_assoc := ealg.mul_assoc _ _,
+instance exterior_algebra2.monoid : monoid (exterior_algebra2 R M) :=
+{ mul_assoc := exterior_algebra2.mul_assoc _ _,
   one := 1,
-  one_mul := ealg.one_mul _ _,
-  mul_one := ealg.mul_one _ _, ..ealg.has_mul _ _ }
+  one_mul := exterior_algebra2.one_mul _ _,
+  mul_one := exterior_algebra2.mul_one _ _, ..exterior_algebra2.has_mul _ _ }
 
-instance : ring (ealg R M) :=
-{ left_distrib := by exact ealg.mul_add R M,
-  right_distrib := by exact ealg.add_mul R M,
-  ..submodule.quotient.add_comm_group _, ..ealg.monoid _ _ }
+instance : ring (exterior_algebra2 R M) :=
+{ left_distrib := by exact exterior_algebra2.mul_add R M,
+  right_distrib := by exact exterior_algebra2.add_mul R M,
+  ..submodule.quotient.add_comm_group _, ..exterior_algebra2.monoid _ _ }
 
-def talg.to_ealg_ring_hom : talg R M →+* ealg R M :=
-{ to_fun := (ealg_ker R M).mkq,
+def tensor_algebra2.to_exterior_algebra2_ring_hom : tensor_algebra2 R M →+* exterior_algebra2 R M :=
+{ to_fun := (exterior_algebra2_ker R M).mkq,
   map_one' := rfl,
-  map_mul' := λ x y, by rw ←ealg.mul_def; erw submodule.liftq_apply; refl,
+  map_mul' := λ x y, by rw ←exterior_algebra2.mul_def; erw submodule.liftq_apply; refl,
   map_zero' := rfl,
   map_add' := linear_map.map_add _ }
 
-def ealg.of_scalar : R →+* (ealg R M) :=
+def exterior_algebra2.of_scalar : R →+* (exterior_algebra2 R M) :=
 { map_one' := rfl,
   map_mul' := λ x y,
     begin
-      rw ←ealg.mul_def,
+      rw ←exterior_algebra2.mul_def,
       erw submodule.liftq_apply,
-      unfold ealg_mul_aux,
+      unfold exterior_algebra2_mul_aux,
       show quotient.mk' _ = quotient.mk' _,
       congr,
-      exact (talg.of_scalar R M).map_mul x y
+      exact (tensor_algebra2.of_scalar R M).map_mul x y
     end,
   map_zero' := by convert linear_map.map_zero _,
   map_add' := λ x y, by convert linear_map.map_add _ x y,
-  ..(ealg_ker R M).mkq.comp (direct_sum.lof R ℕ (tpow R M) 0) }
+  ..(exterior_algebra2_ker R M).mkq.comp (direct_sum.lof R ℕ (tensor_power R M) 0) }
 
-lemma ealg.of_scalar_apply {x : R} :
-  ealg.of_scalar R M x = (ealg_ker R M).mkq (talg.of_scalar R M x) := rfl
+lemma exterior_algebra2.of_scalar_apply {x : R} :
+  exterior_algebra2.of_scalar R M x = (exterior_algebra2_ker R M).mkq (tensor_algebra2.of_scalar R M x) := rfl
 
-lemma ealg.smul_one (r : R) : r • (1 : ealg R M) = ealg.of_scalar R M r :=
+lemma exterior_algebra2.smul_one (r : R) : r • (1 : exterior_algebra2 R M) = exterior_algebra2.of_scalar R M r :=
 begin
-  rw [ealg.of_scalar_apply, ←talg.smul_one, linear_map.map_smul],
+  rw [exterior_algebra2.of_scalar_apply, ←tensor_algebra2.smul_one, linear_map.map_smul],
   refl,
 end
 
-lemma ealg_commutes (r : R) (x : ealg R M) :
-  ealg.of_scalar R M r * x = x * ealg.of_scalar R M r :=
+lemma exterior_algebra2_commutes (r : R) (x : exterior_algebra2 R M) :
+  exterior_algebra2.of_scalar R M r * x = x * exterior_algebra2.of_scalar R M r :=
 begin
-  rw ealg.of_scalar_apply,
+  rw exterior_algebra2.of_scalar_apply,
   refine quotient.induction_on' x _,
   intro y,
-  erw [←(talg.to_ealg_ring_hom R M).map_mul, algebra.commutes r y],
+  erw [←(tensor_algebra2.to_exterior_algebra2_ring_hom R M).map_mul, algebra.commutes r y],
   rw ring_hom.map_mul,
   refl,
 end
 
-instance : algebra R (ealg R M) :=
+instance : algebra R (exterior_algebra2 R M) :=
 { smul := (•),
-  to_fun := ealg.of_scalar R M,
+  to_fun := exterior_algebra2.of_scalar R M,
   map_one' := ring_hom.map_one _,
   map_mul' := ring_hom.map_mul _,
   map_zero' := ring_hom.map_zero _,
   map_add' := ring_hom.map_add _,
-  commutes' := ealg_commutes R M,
+  commutes' := exterior_algebra2_commutes R M,
   smul_def' := λ r x,
     begin
       simp only,
-      rw [←ealg.smul_one R M r, ←ealg.mul_def, linear_map.map_smul₂, ealg.mul_def, one_mul],
+      rw [←exterior_algebra2.smul_one R M r, ←exterior_algebra2.mul_def, linear_map.map_smul₂, exterior_algebra2.mul_def, one_mul],
     end }
 
-def talg.to_ealg : talg R M →ₐ[R] ealg R M :=
-{ commutes' := λ r, rfl, ..talg.to_ealg_ring_hom R M }
+def tensor_algebra2.to_exterior_algebra2 : tensor_algebra2 R M →ₐ[R] exterior_algebra2 R M :=
+{ commutes' := λ r, rfl, ..tensor_algebra2.to_exterior_algebra2_ring_hom R M }
 
-@[simp] lemma talg.to_ealg_apply (x) :
-  talg.to_ealg R M x = quotient.mk' x := rfl
+@[simp] lemma tensor_algebra2.to_exterior_algebra2_apply (x) :
+  tensor_algebra2.to_exterior_algebra2 R M x = quotient.mk' x := rfl
 
 lemma multiset.sum_eq_zero {ι : Type v} [add_comm_monoid ι] (s : multiset ι) :
   (∀ (x : ι), x ∈ s → x = 0) → s.sum = 0 :=
@@ -971,15 +968,15 @@ begin
     { exact ht (λ x hx, hat x $ multiset.mem_cons_of_mem hx) }},
 end
 
-lemma talg.induction_on {C : talg R M → Prop}
-  (H0 : C 0) (H : ∀ {n} (i : fin n → M), C (talg_mk R M i))
+lemma tensor_algebra2.induction_on {C : tensor_algebra2 R M → Prop}
+  (H0 : C 0) (H : ∀ {n} (i : fin n → M), C (tensor_algebra2_mk R M i))
   (Hadd : ∀ x y, C x → C y → C (x + y))
-  (Hsmul : ∀ (r : R) x, C x → C (r • x)) (x : talg R M) :
+  (Hsmul : ∀ (r : R) x, C x → C (r • x)) (x : tensor_algebra2 R M) :
   C x :=
 begin
   refine direct_sum.linduction_on R x H0 _ Hadd,
   intros i x,
-  rcases exists_sum_of_tpow R M x with ⟨s, rfl⟩,
+  rcases exists_sum_of_tensor_power R M x with ⟨s, rfl⟩,
   rw map_sum,
   refine pred_sum _ H0 Hadd _,
   intros y hy,
@@ -991,39 +988,35 @@ begin
   exact H _,
 end
 
-lemma talg.lift_comp_ι {A : Type u} [ring A] [algebra R A]
-  (f : M →ₗ[R] A) : (talg.lift R M f).to_linear_map.comp (ι R M) = f :=
-by ext; exact talg.lift_ι_apply _ _ _
+lemma tensor_algebra2.lift_comp_ι {A : Type u} [ring A] [algebra R A]
+  (f : M →ₗ[R] A) : (tensor_algebra2.lift R M f).to_linear_map.comp (ι R M) = f :=
+by ext; exact tensor_algebra2.lift_ι_apply _ _ _
 
-lemma wtf {α β γ δ: Type u} (f : α → β) (g : β → γ) (h : γ → δ) :
-  (h ∘ g) ∘ f = h ∘ (g ∘ f) :=
-rfl
-
-lemma ealg.lift_cond {A : Type u} [ring A] [algebra R A]
+lemma exterior_algebra2.lift_cond {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) (h : ∀ m, f m * f m = 0) :
-  ealg_ker R M ≤ (talg.lift R M f).to_linear_map.ker :=
+  exterior_algebra2_ker R M ≤ (tensor_algebra2.lift R M f).to_linear_map.ker :=
 begin
-  rw [ealg_ker_eq, submodule.span_le],
+  rw [exterior_algebra2_ker_eq, submodule.span_le],
   intros x hx,
   rw set.mem_Union at hx,
   rcases hx with ⟨i, y, ⟨j, k, hf, hjk⟩, hy⟩,
   erw linear_map.mem_ker,
-  rw [←hy, talg_mk_prod, alg_prod_apply],
+  rw [←hy, tensor_algebra2_mk_prod, alg_prod_apply],
   erw alg_hom.map_prod',
   rw [list.of_fn_eq_map, list.map_map, ←list.of_fn_eq_map],
-  have : talg.lift R M f ∘ ι R M = (talg.lift R M f).to_linear_map.comp (ι R M) :=
+  have : tensor_algebra2.lift R M f ∘ ι R M = (tensor_algebra2.lift R M f).to_linear_map.comp (ι R M) :=
     by ext; refl,
-  show (list.of_fn (((talg.lift R M f) ∘ ι R M) ∘ y)).prod = 0,
-  rw [this, talg.lift_comp_ι],
+  show (list.of_fn (((tensor_algebra2.lift R M f) ∘ ι R M) ∘ y)).prod = 0,
+  rw [this, tensor_algebra2.lift_comp_ι],
   exact prod_eq_zero_map f.to_add_monoid_hom h _ _ _ hjk hf,
 end
 
-def ealg.lift {A : Type u} [ring A] [algebra R A]
+def exterior_algebra2.lift {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) (h : ∀ m, f m * f m = 0) :
-  ealg R M →ₐ[R] A :=
-{ to_fun := (ealg_ker R M).liftq (talg.lift R M f).to_linear_map $
-    ealg.lift_cond R M f h,
-  map_one' := by erw [←one_eq_ealg_mk, submodule.liftq_apply, one_eq_mk, alg_hom.map_one],
+  exterior_algebra2 R M →ₐ[R] A :=
+{ to_fun := (exterior_algebra2_ker R M).liftq (tensor_algebra2.lift R M f).to_linear_map $
+    exterior_algebra2.lift_cond R M f h,
+  map_one' := by erw [←one_eq_exterior_algebra2_mk, submodule.liftq_apply, one_eq_mk, alg_hom.map_one],
   map_mul' := λ x y,
     begin
       refine quotient.induction_on' x _,
@@ -1034,24 +1027,24 @@ def ealg.lift {A : Type u} [ring A] [algebra R A]
     end,
   map_zero' := linear_map.map_zero _,
   map_add' := linear_map.map_add _,
-  commutes' := λ r, by erw [submodule.liftq_apply, (talg.lift R M f).commutes] }
+  commutes' := λ r, by erw [submodule.liftq_apply, (tensor_algebra2.lift R M f).commutes] }
 
-@[simp] lemma ealg.lift_ι_apply {A : Type u} [ring A] [algebra R A]
+@[simp] lemma exterior_algebra2.lift_ι_apply {A : Type u} [ring A] [algebra R A]
   (f : M →ₗ[R] A) (h : ∀ m, f m * f m = 0) (x : M) :
-  ealg.lift R M f h ((ealg_ker R M).mkq (ι R M x)) = f x :=
-talg.lift_ι_apply R M f
+  exterior_algebra2.lift R M f h ((exterior_algebra2_ker R M).mkq (ι R M x)) = f x :=
+tensor_algebra2.lift_ι_apply R M f
 
-def to_ext_alg : ealg R M →ₐ[R] exterior_algebra R M :=
-ealg.lift R M (exterior_algebra.ι R) exterior_algebra.ι_square_zero
+def to_exterior_algebra : exterior_algebra2 R M →ₐ[R] exterior_algebra R M :=
+exterior_algebra2.lift R M (exterior_algebra.ι R) exterior_algebra.ι_square_zero
 
-lemma ealg_ι_square_zero (m : M) :
-  (ealg_ker R M).mkq (ι R M m) * (ealg_ker R M).mkq (ι R M m) = 0 :=
+lemma exterior_algebra2_ι_square_zero (m : M) :
+  (exterior_algebra2_ker R M).mkq (ι R M m) * (exterior_algebra2_ker R M).mkq (ι R M m) = 0 :=
 begin
   rw ι_eq_mk,
-  erw ←ealg_mk_def,
-  rw ealg_mul_apply,
+  erw ←exterior_algebra2_mk_def,
+  rw exterior_algebra2_mul_apply,
   erw submodule.quotient.mk_eq_zero,
-  rw ealg_ker_eq,
+  rw exterior_algebra2_ker_eq,
   refine submodule.subset_span _,
   rw set.mem_Union,
   use 2,
@@ -1063,74 +1056,57 @@ begin
   all_goals {norm_num},
 end
 
-def to_ealg : exterior_algebra R M →ₐ[R] ealg R M :=
-exterior_algebra.lift R ⟨(ealg_ker R M).mkq.comp (ι R M), ealg_ι_square_zero R M⟩
+def to_exterior_algebra2 : exterior_algebra R M →ₐ[R] exterior_algebra2 R M :=
+exterior_algebra.lift R ⟨(exterior_algebra2_ker R M).mkq.comp (ι R M), exterior_algebra2_ι_square_zero R M⟩
 
 local attribute [semireducible] ring_quot ring_quot.mk_alg_hom
-  ring_quot.mk_ring_hom tensor_algebra.mk tensor_algebra.mk_aux exterior_algebra.ι
+  ring_quot.mk_ring_hom tensor_algebra.mk tensor_algebra.mk_aux
 
 lemma tensor_algebra.mk_apply {n : ℕ} (v : fin n → M) :
   tensor_algebra.mk R M v = ((list.fin_range n).map (λ i, tensor_algebra.ι R (v i))).prod :=
 rfl
 
-lemma ealg_left_inverse (x : exterior_algebra R M) :
-  to_ext_alg R M (to_ealg R M x) = x :=
+lemma exterior_algebra2_left_inverse (x : exterior_algebra R M) :
+  to_exterior_algebra R M (to_exterior_algebra2 R M x) = x :=
 begin
-  refine quot.induction_on x _,
-  intro y,
-  show _ = ring_quot.mk_alg_hom R (exterior_algebra.rel R M) y,
-  unfold to_ealg exterior_algebra.lift ring_quot.lift_alg_hom,
-  simp only [equiv.coe_fn_mk, subtype.coe_mk, alg_hom.coe_mk],
-  refine tensor_algebra.induction_on _ _ _ _ y,
-  { intros n i,
-    show to_ext_alg R M (tensor_algebra.lift R _ (list.prod _)) = _,
-    rw [alg_hom.map_prod', alg_hom.map_prod', list.map_map, list.map_map],
-    unfold to_ext_alg,
-    rw [tensor_algebra.mk_apply, alg_hom.map_prod' R (ring_quot.mk_alg_hom R
-      (exterior_algebra.rel R M)) (list.map (λ (i_1 : fin n), (tensor_algebra.ι R) (i i_1))
-      (list.fin_range n)), list.map_map],
-    congr' 2,
-    ext j,
-    simp only [function.comp_app, submodule.mkq_apply,
-      linear_map.comp_apply, tensor_algebra.lift_ι_apply],
-    erw [(ealg_ker R M).liftq_apply, submodule.liftq_apply, talg.lift_ι_apply],
-    { refl },
-    { exact ealg.lift_cond R M _ (ι_square_zero) },
-    { exact ealg.lift_cond R M _ (ι_square_zero) }},
+  refine exterior_algebra.induction _ _ _ _ x,
+  { intro r,
+    simp only [alg_hom.commutes] },
+  { intro x,
+    erw [exterior_algebra.lift_ι_apply, exterior_algebra2.lift_ι_apply], },
   { intros x y hx hy,
-    simp only [hx, hy, alg_hom.map_add] },
-  { intros x c hx,
-    simp only [hx, alg_hom.map_smul] },
+    simp only [alg_hom.map_mul, hx, hy] },
   { intros x y hx hy,
-    simp only [hx, hy, alg_hom.map_mul] },
+    simp only [alg_hom.map_add, hx, hy] },
 end
 
-lemma ealg_right_inverse (x : ealg R M) :
-  to_ealg R M (to_ext_alg R M x) = x :=
+lemma exterior_algebra2_right_inverse (x : exterior_algebra2 R M) :
+  to_exterior_algebra2 R M (to_exterior_algebra R M x) = x :=
 begin
   refine quotient.induction_on' x _,
   intro y,
-  refine talg.induction_on R M _ _ _ _ y,
+  refine tensor_algebra2.induction_on R M _ _ _ _ y,
   { simp only [submodule.quotient.mk'_eq_mk, alg_hom.map_zero, submodule.quotient.mk_zero] },
   { intros n i,
-    unfold to_ext_alg,
-    rw [talg_mk_prod, alg_prod_apply, ←talg.to_ealg_apply],
+    unfold to_exterior_algebra,
+    rw [tensor_algebra2_mk_prod, alg_prod_apply, ←tensor_algebra2.to_exterior_algebra2_apply],
     simp only [alg_hom.map_prod', list.map_map, list.of_fn_eq_map],
     congr' 2,
     ext j,
     simp only [function.comp_app],
-    erw [ealg.lift_ι_apply, exterior_algebra.lift_ι_apply],
+    erw [exterior_algebra2.lift_ι_apply, exterior_algebra.lift_ι_apply],
     refl },
   { intros X Y HX HY,
-    show to_ealg R M (to_ext_alg R M (quotient.mk' X + quotient.mk' Y)) = _,
+    show to_exterior_algebra2 R M (to_exterior_algebra R M (quotient.mk' X + quotient.mk' Y)) = _,
     simp only [HX, HY, alg_hom.map_add],
     refl },
   { intros r X hX,
-    show to_ealg R M (to_ext_alg R M (r • quotient.mk' X)) = _,
+    show to_exterior_algebra2 R M (to_exterior_algebra R M (r • quotient.mk' X)) = _,
     simp only [hX, alg_hom.map_smul],
     refl, }
 end
 
-def ealg_equiv : ealg R M ≃ₐ[R] exterior_algebra R M :=
-alg_equiv.of_alg_hom (ealg.lift R M (exterior_algebra.ι R) exterior_algebra.ι_square_zero)
-  (to_ealg R M) (alg_hom.ext $ ealg_left_inverse R M) (alg_hom.ext $ ealg_right_inverse R M)
+def exterior_algebra2_equiv : exterior_algebra2 R M ≃ₐ[R] exterior_algebra R M :=
+alg_equiv.of_alg_hom (to_exterior_algebra R M) (to_exterior_algebra2 R M)
+  (alg_hom.ext $ exterior_algebra2_left_inverse R M)
+  (alg_hom.ext $ exterior_algebra2_right_inverse R M)

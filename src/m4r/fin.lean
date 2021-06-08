@@ -170,31 +170,6 @@ end
 lemma append_apply_snd (ho : o = m + n) (k : fin o) (h : ¬(k : ℕ) < m) :
   append ho f g k = g ⟨(k : ℕ) - m, (nat.sub_lt_left_iff_lt_add $ le_of_not_lt h).2 (ho ▸ k.2)⟩ :=
 dif_neg h
-/-begin
-  induction n with n hn,
-  exfalso, cases k, linarith,
-  unfold append,
-  cases classical.em ((k : ℕ) < m + n) with hk hk,
-  have := snoc_mk_apply' (append f (λ x : fin n, g x)) (g n) ⟨k, hk⟩,
-  rw hn (λ i, g i) ⟨k, hk⟩ h at this,
-  convert this,
-  ext,
-  rw coe_eq_cast_succ,
-  refl,
-  ext, simp only [coe_cast_succ, coe_mk, coe_eq_cast_succ],
-    ext, simp only [coe_cast_succ, coe_mk, coe_eq_cast_succ],
-  have hnk : (k : ℕ) = m + n, from
-    le_antisymm (nat.le_of_lt_succ k.2) (not_lt.1 hk),
-  convert snoc_mk_apply _ _,
-  ext, rw hnk,
-  rw fin.coe_of_nat_eq_mod,
-  rw nat.mod_eq_of_lt (nat.lt_succ_self _), refl,
-  ext,
-  rw coe_of_nat_eq_mod,
-  rw nat.mod_eq_of_lt (nat.lt_succ_self _),
-  rw coe_mk, rw hnk,
-  rw nat.add_sub_cancel_left,
-end-/
 
 lemma append_apply_snd' (ho : o = m + n) (k : fin n) :
   append ho f g (cast ho.symm (nat_add m k)) = g k :=

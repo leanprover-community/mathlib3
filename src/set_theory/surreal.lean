@@ -26,9 +26,7 @@ Surreal numbers inherit the relations `≤` and `<` from games, and these relati
 of a partial order (recall that `x < y ↔ x ≤ y ∧ ¬ y ≤ x` did not hold for games).
 
 ## Algebraic operations
-At this point, we have defined addition and negation (from pregames), and shown that surreals form
-an additive semigroup. It would be very little work to finish showing that the surreals form an
-ordered commutative group.
+We show that the surreals form a linear ordered commutative group.
 
 ## Embeddings
 It would be nice projects to define the group homomorphism `surreal → game`, and also `ℤ → surreal`,
@@ -36,6 +34,9 @@ and then the homomorphic inclusion of the dyadic rationals into surreals, and fi
 via dyadic Dedekind cuts the homomorphic inclusion of the reals into the surreals.
 
 One can also map all the ordinals into the surreals!
+
+## Dyadic surreals
+We construct dyadic surreal numbers using a map from `ℤ[2 ^ {-1}]` to surreals.
 
 ## References
 * [Conway, *On numbers and games*][conway2001]
@@ -322,7 +323,7 @@ end
 theorem zero_lt_pow_half {n : ℕ} : 0 < pow_half n :=
 by { cases n; rw lt_def_le; use ⟨punit.star, le_refl 0⟩ }
 
-theorem add_pow_half_succ_self_eq_pow_half (n) : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
+theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
 begin
   induction n with n hn,
   { exact add_half_self_equiv_one },
@@ -510,7 +511,7 @@ begin
     rwa [← int.neg_succ_not_pos m] }
 end
 
-lemma gmul_cancel_of_pos (m : ℤ) (x y : surreal) (hm : 0 < m) (hmxy : m • x  = m • y) : x = y :=
+lemma gmul_cancel_of_pos {m : ℤ} {x y : surreal} (hm : 0 < m) (hmxy : m • x  = m • y) : x = y :=
 begin
     contrapose hmxy,
     cases (@ne_iff_lt_or_gt _ _ x y).1 hmxy with hmxy' hmxy',
@@ -521,6 +522,7 @@ begin
       exact lt_of_gsmul_pos_lt hm hmxy' }
 end
 
+-- TODO: move this to data.int.basic
 lemma int.exists_nat_eq_of_nonneg {x : ℤ} (h : 0 ≤ x) : ∃ (y : ℕ), (y : ℤ) = x :=
 begin
   cases x,
@@ -529,9 +531,11 @@ begin
     simp only [int.neg_succ_not_nonneg, not_false_iff] }
 end
 
+-- TODO: move this to group_theory.submonoid.membership
 lemma mem_powers_iff {α : Type*} [monoid α] (z x : α) :
   x ∈ submonoid.powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
 
+-- TODO: move this to data.int
 lemma int.pow_right_injective {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
 begin
   intros n m hnm,
@@ -542,7 +546,6 @@ begin
   apply nat.pow_right_injective this,
   simpa [←int.coe_nat_pow, int.coe_nat_inj'] using hnm
 end
-
 
 /-- The surreal number `half`. -/
 def half : surreal := ⟦⟨pgame.half, pgame.numeric_half⟩⟧
@@ -562,10 +565,10 @@ begin
   have : 2 • pow_half n.succ = pow_half n.succ + pow_half n.succ, by abel,
   rw this,
   apply quotient.sound,
-  exact pgame.add_pow_half_succ_self_eq_pow_half n,
+  apply pgame.add_pow_half_succ_self_eq_pow_half,
 end
 
-/-- Map from natural numbers to powers of integers. -/
+/-- Exponentiation map from natural numbers to powers of integers. -/
 def pow (a : ℤ) (n : ℕ) : @submonoid.powers ℤ _ a := ⟨a ^ n, n, rfl⟩
 
 /-- Logarithms from powers of integers to natural numbers. -/
@@ -604,7 +607,7 @@ begin
     have : 2 ^ n • 2 • pow_half (n + k).succ = 2 • 2 ^ n • pow_half (n + k).succ,
       by { apply smul_algebra_smul_comm },
     rw this at hk,
-    exact (gmul_cancel_of_pos 2 (2^n • pow_half (n + k).succ) (pow_half k.succ) (by norm_num)) hk }
+    exact (@gmul_cancel_of_pos 2 (2^n • pow_half (n + k).succ) (pow_half k.succ) (by norm_num)) hk }
 end
 
 lemma nsmul_int_pow_two_pow_half (m : ℤ) (n k : ℕ) :
@@ -616,9 +619,7 @@ begin
   exact nsmul_pow_two_pow_half' n k,
 end
 
-lemma dyadic_aux
-  {m₁ m₂ : ℤ} {y₁ y₂ : ℕ}
-  (h₂ : m₁ * (2 ^ y₁) = m₂ * (2 ^ y₂)) :
+lemma dyadic_aux {m₁ m₂ : ℤ} {y₁ y₂ : ℕ} (h₂ : m₁ * (2 ^ y₁) = m₂ * (2 ^ y₂)) :
   m₁ • pow_half y₂ = m₂ • pow_half y₁ :=
 begin
   by_cases y₁ ≤ y₂,
@@ -637,8 +638,8 @@ begin
       linarith } }
 end
 
-/-- The map `dyadic_mk` sends [m, 2^n] to m • half ^ n. -/
-noncomputable def dyadic_mk : localization (@submonoid.powers ℤ _ 2) → surreal :=
+/-- The map `dyadic_map` sends [m, 2^n] to m • half ^ n. -/
+noncomputable def dyadic_map : localization (@submonoid.powers ℤ _ 2) → surreal :=
 begin
   apply quotient.lift,
   swap,
@@ -661,8 +662,8 @@ begin
       linarith } }
 end
 
-/-- We define dyadic surreals as the image of `dyadic_mk`. -/
-def dyadic := set.image dyadic_mk
+/-- We define dyadic surreals as the image of the map `dyadic_map`. -/
+def dyadic := set.image dyadic_map
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

@@ -2721,10 +2721,10 @@ lemma tan_pi_sub (x : ℂ) : tan (π - x) = -tan x :=
 by simpa only [sub_eq_neg_add, tan_neg] using tan_periodic (-x)
 
 lemma tan_nat_mul_pi (n : ℕ) : tan (n * π) = 0 :=
-by simpa only [tan_zero] using tan_periodic.nat_mul_eq n
+tan_zero ▸ tan_periodic.nat_mul_eq n
 
 lemma tan_int_mul_pi (n : ℤ) : tan (n * π) = 0 :=
-by simpa only [tan_zero] using tan_periodic.int_mul_eq n
+tan_zero ▸ tan_periodic.int_mul_eq n
 
 lemma tan_add_nat_mul_pi (x : ℂ) (n : ℕ) : tan (x + n * π) = tan x :=
 tan_periodic.nat_mul n x
@@ -2744,8 +2744,29 @@ by simpa only [sub_eq_neg_add, tan_neg] using tan_periodic.nat_mul n (-x)
 lemma tan_int_mul_pi_sub (x : ℂ) (n : ℤ) : tan (n * π - x) = -tan x :=
 by simpa only [sub_eq_neg_add, tan_neg] using tan_periodic.int_mul n (-x)
 
+lemma exp_antiperiodic : function.antiperiodic exp (π * I) :=
+by simp [exp_add, exp_mul_I]
+
+lemma exp_periodic : function.periodic exp (2 * π * I) :=
+by simpa only [mul_assoc] using exp_antiperiodic.periodic
+
+lemma exp_mul_I_antiperiodic : function.antiperiodic (λ x, exp (x * I)) π :=
+by simpa only [mul_inv_cancel_right' I_ne_zero] using exp_antiperiodic.mul_const I_ne_zero
+
+lemma exp_mul_I_periodic : function.periodic (λ x, exp (x * I)) (2 * π) :=
+exp_mul_I_antiperiodic.periodic
+
 lemma exp_pi_mul_I : exp (π * I) = -1 :=
-by rw exp_mul_I; simp
+exp_zero ▸ exp_antiperiodic.eq
+
+lemma exp_two_pi_mul_I : exp (2 * π * I) = 1 :=
+by simpa only [exp_zero] using exp_periodic.eq
+
+lemma exp_nat_mul_two_pi_mul_I (n : ℕ) : exp (n * (2 * π * I)) = 1 :=
+by simpa only [exp_zero] using exp_periodic.nat_mul_eq n
+
+lemma exp_int_mul_two_pi_mul_I (n : ℤ) : exp (n * (2 * π * I)) = 1 :=
+by simpa only [exp_zero] using exp_periodic.int_mul_eq n
 
 theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
@@ -3117,10 +3138,10 @@ lemma tan_pi_sub (x : ℝ) : tan (π - x) = -tan x :=
 by simpa only [sub_eq_neg_add, tan_neg] using tan_periodic (-x)
 
 lemma tan_nat_mul_pi (n : ℕ) : tan (n * π) = 0 :=
-by simpa only [tan_zero] using tan_periodic.nat_mul_eq n
+tan_zero ▸ tan_periodic.nat_mul_eq n
 
 lemma tan_int_mul_pi (n : ℤ) : tan (n * π) = 0 :=
-by simpa only [tan_zero] using tan_periodic.int_mul_eq n
+tan_zero ▸ tan_periodic.int_mul_eq n
 
 lemma tan_add_nat_mul_pi (x : ℝ) (n : ℕ) : tan (x + n * π) = tan x :=
 tan_periodic.nat_mul n x

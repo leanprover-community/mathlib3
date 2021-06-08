@@ -12,6 +12,7 @@ import topology.opens
 import data.setoid.partition
 import topology.continuous_function.bounded
 import data.padics.ring_homs
+import number_theory.bernoulli_polynomials
 
 def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}
 
@@ -1041,11 +1042,14 @@ instance : has_mod ℤ_[p] := sorry
 lemma blahs (a : units ℤ_[p]) : ∃ (b : units ℤ_[p]),
   b^(p-1) = 1 ∧ ((a : ℤ_[p]) % (p : ℤ_[p]) = b) := sorry
 
-variables [complete_space A] (inj : (units ℤ_[p]) → (units A)) [fact (function.injective inj)]
+/-lemma inj' {B : Type*} [monoid B] (inj : B → A) [hinj : (function.injective inj)] :
+  ∃ inj' : (units B) → (units A), ∀ (x : (units B)), inj' x = inj (x : B) -/
+
+variables [complete_space A] (inj : units ℤ_[p] → A) [fact (function.injective inj)]
 
 variables (d : ℕ) (hd : gcd d p = 1) (χ : dirichlet_char_space A p d) (w : weight_space A p)
 
-def teichmuller_character (a : units ℤ_[p]) : units A := inj (classical.some (blahs p a))
+def teichmuller_character (a : units ℤ_[p]) : A := inj (classical.some (blahs p a))
 
 instance : normed_ring (units A) := sorry
 
@@ -1053,47 +1057,71 @@ instance : compact_space ℤ_[p] := sorry
 instance : locally_compact_space ℤ_[p] := sorry
 instance : totally_disconnected_space ℤ_[p] := sorry
 
-def clopen_basis := classical.some (loc_compact_Haus_tot_disc_of_zero_dim ℤ_[p])
+def clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ) (a : zmod (p^n)),
+  x = set.preimage (padic_int.to_zmod_pow n) a }
+
+lemma proj_lim_preimage_clopen (n : ℕ) (a : zmod (p^n)) :
+  is_clopen (set.preimage (padic_int.to_zmod_pow n) a : set ℤ_[p]) := sorry
+
+def clopen_basis' : set (clopen_sets ℤ_[p]) := {x : clopen_sets ℤ_[p] | ∃ (n : ℕ) (a : zmod (p^n)),
+  x = ⟨set.preimage (padic_int.to_zmod_pow n) a, proj_lim_preimage_clopen p n a⟩ }
 
 lemma clopen_basis_clopen : topological_space.is_topological_basis (clopen_basis p) ∧
   ∀ x ∈ (clopen_basis p), is_clopen x := sorry
 
-theorem clopen_basis_eq_preimage {x : set ℤ_[p]} (hx : x ∈ (clopen_basis p)) :
-  ∃! (n : ℕ) (a : zmod (p^n)), x = set.preimage (padic_int.to_zmod_pow n) a := sorry
+--lemma char_fn_basis_of_loc_const : is_basis A (@char_fn ℤ_[p] _ _ _ _ A _ _ _) := sorry
 
-lemma char_fn_basis_of_loc_const : is_basis A (@char_fn ℤ_[p] _ _ _ _ A _ _ _) := sorry
+--instance : semimodule A (units ℤ_[p]) := sorry
+-- a + pZ_p a from0 to (p - 2) [for linear independence]
+-- set up a bijection between disj union
+-- construct distri prove eval at canonical basis gives (a,n)
 
-instance : semimodule A (units ℤ_[p]) := sorry
+variables {c : ℤ}
 
-def bernoulli_measure : measures'' (ℤ_[p]) A :=
+def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : zmod (p^n)), fract ((a : ℤ) / (p^(n + 1)))
+    - c * fract ((a : ℤ) / (c * (p^(n + 1)))) + (c - 1)/2
+
+def bernoulli_measure (hc : gcd c p = 1) := {x : locally_constant ℤ_[p] A →ₗ[A] A |
+  ∀ U : (clopen_basis' p), x (char_fn (ℤ_[p]) U.val) =
+    E_c p hc (classical.some U.prop) (classical.some (classical.some_spec U.prop)) }
+
+lemma bernoulli_measure_nonempty (hc : gcd c p = 1) : nonempty (bernoulli_measure A p hc) :=
+  sorry
+
+/-instance (c : ℤ) (hc : gcd c p = 1) : distribution' (ℤ_[p]) :=
+{
+  phi := (classical.choice (bernoulli_measure_nonempty p c hc)).val
+} -/
+
+/-lemma subspace_induces_locally_constant (U : set X) [hU : semimodule A (locally_constant ↥U A)]
+  (f : locally_constant U A) :
+  ∃ (g : locally_constant X A), f.to_fun = (set.restrict g.to_fun U) := sorry -/
+
+lemma subspace_induces_locally_constant (f : locally_constant (units ℤ_[p]) A) :
+  ∃ (g : locally_constant ℤ_[p] A), f.to_fun = g.to_fun ∘ (coe : units ℤ_[p] → ℤ_[p]) := sorry
+--generalize to units X
+
+lemma bernoulli_measure_of_measure (hc : gcd c p = 1) : measures'' (units ℤ_[p]) A :=
 begin
   constructor, swap,
   constructor,
-  {
-    refine is_basis.constr (char_fn_basis_of_loc_const A p) _,
-    intro U,
-
-    refine add_submonoid.dense_induction (clopen_basis p),
-
-    refine dense_inducing.extend _ _,
-    apply add_monoid_hom.to_fun,
-
-    refine add_monoid_hom.of_mdense _ _ _ _,
-    { exact {x : clopen_sets ℤ_[p] | x.val ∈ (clopen_basis p)}, },
-
-  },
-  sorry,
+  constructor, swap 3, rintros f,
+  choose g hg using subspace_induces_locally_constant A p f, --cases does not work as no prop
+  exact (classical.choice (bernoulli_measure_nonempty A p hc)).val g,
+  { sorry, },
+  { sorry, },
+  { sorry, },
 end
- --function on clopen subsets of Z/dZ* x Z_p* or work in Z_p and restrict
+--function on clopen subsets of Z/dZ* x Z_p* or work in Z_p and restrict
 --(i,a + p^nZ_p) (i,d) = 1
 
 instance : nonempty (units ℤ_[p]) := sorry
 
 lemma cont_paLf : continuous (λ (a : units ℤ_[p]),
-  (χ.val (a : ℤ_[p])) * ((teichmuller_character A p inj a) : units A)^(p - 2) * (w.val a : A)) :=
+  (χ.val (a : ℤ_[p])) * ((teichmuller_character A p inj a) : A)^(p - 2) * (w.val a : A)) :=
 sorry
 
-def p_adic_L_function [h : function.injective inj] :=
-  integral (units ℤ_[p]) A _ (bernoulli_measure A p)
+def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) :=
+  integral (units ℤ_[p]) A _ (bernoulli_measure_of_measure A p hc)
 ⟨(λ (a : units ℤ_[p]), (χ.val (a : ℤ_[p])) * ((teichmuller_character A p inj a))^(p - 2) *
   (w.val a : A)), cont_paLf _ _ _ _ _ _ ⟩

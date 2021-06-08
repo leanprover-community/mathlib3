@@ -38,7 +38,7 @@ variables (R : Type u₁) (A : Type u₂) (B : Type u₃) (C : Type u₄)
 /-- A not-necessarily-unital, not-necessarily-associative algebra. -/
 @[protect_proj]
 class non_unital_non_assoc_algebra [semiring R] [non_unital_non_assoc_semiring A]
-  extends semimodule R A :=
+  extends module R A :=
 (smul_mul_assoc' : ∀ (t : R) (a b : A), (t • a) * b = t • (a * b))
 (mul_smul_comm' : ∀ (t : R) (a b : A), a * (t • b) = t • (a * b))
 
@@ -175,14 +175,14 @@ variables [comm_semiring R] [semiring A]
 instance algebra.to_non_unital_non_assoc_algebra [algebra R A] : non_unital_non_assoc_algebra R A :=
 { smul_mul_assoc' := algebra.smul_mul_assoc,
   mul_smul_comm'  := algebra.mul_smul_comm,
-  ..algebra.to_semimodule }
+  ..algebra.to_module }
 
 open non_unital_non_assoc_algebra
 
 /-- If the `non_unital_non_assoc_semiring` underlying a `non_unital_non_assoc_algebra` is actually
 a `semiring`, we have an `algebra`. -/
 def non_unital_non_assoc_algebra.to_algebra [non_unital_non_assoc_algebra R A] : algebra R A :=
-algebra.of_semimodule smul_mul_assoc mul_smul_comm
+algebra.of_module smul_mul_assoc mul_smul_comm
 
 instance [semiring B] [algebra R A] [algebra R B] :
   has_coe (A →ₐ[R] B) (non_unital_non_assoc_algebra_hom R A B) :=

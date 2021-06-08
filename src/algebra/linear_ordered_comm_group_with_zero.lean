@@ -56,13 +56,30 @@ section monoid
 
 variables [monoid α] [preorder α]
 
-lemma left.pow_le_one_of_le [covariant_class α α (*) (≤)] {n : ℕ} {x : α} (H : x ≤ 1) :
-  x^n ≤ 1 :=
+lemma left.pow_le_one_of_le [covariant_class α α (*) (≤)] {x : α} (H : x ≤ 1) :
+  ∀  {n : ℕ}, x^n ≤ 1
+| 0       := (pow_zero x).le.trans rfl.le
+| (n + 1) := calc x ^ n.succ = x * x ^ n : pow_succ x n
+                         ... ≤ x * 1     : mul_le_mul_left' left.pow_le_one_of_le x
+                         ... = x : mul_one x
+                         ... ≤ 1 : H
+
+lemma left.one_le_pow_of_le [covariant_class α α (*) (≤)] {x : α} (H : 1 ≤ x) :
+  ∀ {n : ℕ}, 1 ≤ x^n
+| 0 := rfl.le.trans (pow_zero x).symm.le
+| (n + 1) := calc 1 ≤ x : H
+                ... = x * 1 : (mul_one x).symm
+                ... ≤ x * x ^ n : mul_le_mul_left' left.one_le_pow_of_le x
+                ... = x ^ n.succ : (pow_succ x n).symm
+
+lemma right.one_le_pow_of_le [covariant_class α α (function.swap (*)) (≤)]
+  {n : ℕ} {x : α} (H : 1 ≤ x) :
+  1 ≤ x^n :=
 begin
   induction n with n hn,
-  { rw pow_zero},
+  { rw pow_zero },
   { rw pow_succ,
-    exact mul_le_one' H hn }
+    exact right.one_le_mul H hn }
 end
 
 lemma right.pow_le_one_of_le [covariant_class α α (function.swap (*)) (≤)]
@@ -70,22 +87,19 @@ lemma right.pow_le_one_of_le [covariant_class α α (function.swap (*)) (≤)]
   x^n ≤ 1 :=
 begin
   induction n with n hn,
-  { rw pow_zero},
+  { rw pow_zero },
   { rw pow_succ,
     exact mul_le_of_le_one_of_le H hn }
 end
 
 lemma pow_le_pow_of_le [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
-  {n : ℕ} {x y : α} (H : x ≤ y) :
-  x^n ≤ y^n :=
-begin
-  induction n with n hn,
-  { rw [pow_zero, pow_zero] },
-  { calc  x ^ n.succ = x * x ^ n  : pow_succ x n
+  {x y : α} (H : x ≤ y) :
+  ∀ {n : ℕ} , x^n ≤ y^n
+| 0 := (pow_zero _).le.trans (rfl.le.trans (pow_zero _).symm.le)
+| (n + 1) := calc  x ^ n.succ = x * x ^ n  : pow_succ x n
                  ... ≤ y * x ^ n  : mul_le_mul_right' H (x ^ n)
-                 ... ≤ y * y ^ n  : mul_le_mul_left' hn y
-                 ... = y ^ n.succ : (pow_succ y n).symm }
-end
+                 ... ≤ y * y ^ n  : mul_le_mul_left' pow_le_pow_of_le y
+                 ... = y ^ n.succ : (pow_succ y n).symm
 
 @[elab_as_eliminator]
 lemma induction_from_zero_lt {p : ℕ → Prop} {n : ℕ} (n0 : 0 < n)
@@ -142,18 +156,10 @@ def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   ..hf.comm_monoid_with_zero f zero one mul }
 
 lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
-begin
-  induction n with n ih,
-  { rw pow_zero },
-  { rw pow_succ, exact one_le_mul H ih }
-end
+left.one_le_pow_of_le H
 
 lemma pow_le_one_of_le_one {n : ℕ} (H : x ≤ 1) : x^n ≤ 1 :=
-begin
-  induction n with n ih,
-  { rw pow_zero },
-  { rw pow_succ, exact mul_le_one' H ih }
-end
+left.pow_le_one_of_le H
 
 lemma eq_one_of_pow_eq_one {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
 begin
@@ -288,10 +294,12 @@ namespace monoid_hom
 variables {R : Type*} [ring R] (f : R →* α)
 
 theorem map_neg_one : f (-1) = 1 :=
-begin
-  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [sq, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
-end
+eq_one_of_pow_eq_one (nat.succ_ne_zero 1) $
+  calc f (-1) ^ 2 = f (-1) * f(-1) : sq _
+              ... = f ((-1) * - 1) : (f.map_mul _ _).symm
+              ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)
+              ... = f 1            : congr_arg _ (neg_neg _)
+              ... = 1              : map_one f
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=
 calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
@@ -299,7 +307,7 @@ calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
         ... = f x          : by rw [f.map_neg_one, one_mul]
 
 lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
-calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
-           ... = _ : map_neg _ _
+calc f (x - y) = f (-(y - x)) : by rw neg_sub _ _
+           ... = _            : map_neg _ _
 
 end monoid_hom

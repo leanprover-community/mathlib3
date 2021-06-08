@@ -1260,7 +1260,8 @@ one_le_inv'.mpr
 
 end norm_num_lemmas
 
-section linarith_emmas
+/-
+section linarith_lemmas
 
 theorem add_pos' [ordered_add_comm_monoid α] {a b : α} : 0 < a → 0 < b → 0 < a + b :=
 add_pos
@@ -1276,14 +1277,14 @@ theorem add_neg_of_neg_of_nonpos [ordered_cancel_add_comm_monoid α] {a b : α} 
 add_lt_of_neg_of_le
 
 /-  Re-introducing a `linarith` lemma. -/
-theorem add_neg [ordered_cancel_add_comm_monoid α] {a b : α} :
-  a < 0 → b < 0 → a + b < 0 :=
-left.add_neg
-
-/-  Re-introducing a `linarith` lemma. -/
 theorem add_neg_of_nonpos_of_neg [ordered_cancel_add_comm_monoid α] {a b : α} :
   a ≤ 0 → b < 0 → a + b < 0 :=
 add_lt_of_le_of_neg
+
+/-  Re-introducing a `linarith` lemma. -/
+theorem add_neg [ordered_cancel_add_comm_monoid α] {a b : α} :
+  a < 0 → b < 0 → a + b < 0 :=
+left.add_neg
 
 /- This lemma is for `linarith`. -/
 @[to_additive neg_nonneg_of_nonpos]
@@ -1291,4 +1292,5 @@ theorem one_le_inv_of_le_one' [ordered_comm_group α] {a : α} :
   a ≤ 1 → 1 ≤ a⁻¹ :=
 one_le_inv'.mpr
 
-end linarith_emmas
+end linarith_lemmas
+-/

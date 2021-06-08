@@ -494,8 +494,9 @@ alias lt_of_mul_lt_mul_left' ← ordered_comm_group.lt_of_mul_lt_mul_left
 attribute [to_additive ordered_add_comm_group.lt_of_add_lt_add_left]
   ordered_comm_group.lt_of_mul_lt_mul_left
 
-/-- Pullback an `ordered_comm_group` under an injective map. -/
-@[to_additive function.injective.ordered_add_comm_group
+/-- Pullback an `ordered_comm_group` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.ordered_add_comm_group
 "Pullback an `ordered_add_comm_group` under an injective map."]
 def function.injective.ordered_comm_group [ordered_comm_group α] {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β]
@@ -776,8 +777,9 @@ instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   mul_left_cancel := λ x y z, mul_left_cancel,
   ..‹linear_ordered_comm_group α› }
 
-/-- Pullback a `linear_ordered_comm_group` under an injective map. -/
-@[to_additive function.injective.linear_ordered_add_comm_group
+/-- Pullback a `linear_ordered_comm_group` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.linear_ordered_add_comm_group
 "Pullback a `linear_ordered_add_comm_group` under an injective map."]
 def function.injective.linear_ordered_comm_group {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β]

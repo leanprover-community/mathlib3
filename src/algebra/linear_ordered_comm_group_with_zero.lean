@@ -127,7 +127,9 @@ variables [linear_ordered_comm_monoid_with_zero α]
 The following facts are true more generally in a (linearly) ordered commutative monoid.
 -/
 
-/-- Pullback a `linear_ordered_comm_monoid_with_zero` under an injective map. -/
+/-- Pullback a `linear_ordered_comm_monoid_with_zero` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   [has_zero β] [has_one β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)

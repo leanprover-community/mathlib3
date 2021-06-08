@@ -577,14 +577,14 @@ end
 def pow (a : ℤ) (n : ℕ) : submonoid.powers a := ⟨a ^ n, n, rfl⟩
 
 /-- Logarithms from powers of integers to natural numbers. -/
-noncomputable def log {a : ℤ} (p : submonoid.powers a) : ℕ :=
-classical.some $ (mem_powers_iff a p.val).1 p.prop
+def log {a : ℤ} (p : submonoid.powers a) : ℕ :=
+nat.find $ (mem_powers_iff a p.val).1 p.prop
 
 @[simp] theorem log_pow_eq_self (a : ℤ) (ha : 2 ≤ a) (n : ℕ) : log (pow a n) = n :=
 begin
   unfold log,
   generalize_proofs h,
-  exact @int.pow_right_injective a ha (classical.some h) n (classical.some_spec h),
+  exact @int.pow_right_injective a ha (nat.find h) n (nat.find_spec h),
 end
 
 @[simp] theorem pow_log_eq_self {a : ℤ} (n : submonoid.powers a) : pow a (log n) = n :=
@@ -593,7 +593,7 @@ begin
   unfold log,
   rcases n with ⟨_ , hn⟩,
   congr,
-  exact classical.some_spec hn,
+  exact nat.find_spec hn,
 end
 
 lemma nsmul_pow_two_pow_half (n : ℕ) : 2 ^ n • pow_half n = 1 :=
@@ -644,7 +644,7 @@ begin
 end
 
 /-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
-noncomputable def dyadic_map : localization (@submonoid.powers ℤ _ 2) → surreal :=
+def dyadic_map : localization (@submonoid.powers ℤ _ 2) → surreal :=
 begin
   apply quotient.lift,
   swap,

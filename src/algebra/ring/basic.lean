@@ -141,18 +141,6 @@ protected def function.injective.non_assoc_semiring
   non_assoc_semiring β :=
 { .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.mul_one_class f one mul }
 
-@[priority 100] -- see Note [lower instance priority]
-instance semiring.to_non_unital_non_assoc_semiring : non_unital_non_assoc_semiring α :=
-{ ..‹semiring α› }
-
-@[priority 100] -- see Note [lower instance priority]
-instance semiring.non_unital_semiring : non_unital_semiring α :=
-{ ..‹semiring α› }
-
-@[priority 100] -- see Note [lower instance priority]
-instance semiring.non_assoc_semiring : non_assoc_semiring α :=
-{ ..‹semiring α› }
-
 /-- Pullback a `semiring` instance along an injective function. -/
 protected def function.injective.semiring
   {α : Type u} [semiring α] [has_one β]

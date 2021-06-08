@@ -527,29 +527,16 @@ begin
       exact lt_of_gsmul_pos_lt hm hmxy' }
 end
 
--- TODO: move this to data.int.basic
-lemma int.exists_nat_eq_of_nonneg {x : ℤ} (h : 0 ≤ x) : ∃ (y : ℕ), (y : ℤ) = x :=
-begin
-  cases x,
-  { simp only [int.of_nat_eq_coe, exists_apply_eq_apply] },
-  { refine absurd h _,
-    simp only [int.neg_succ_not_nonneg, not_false_iff] }
-end
-
 -- TODO: move this to group_theory.submonoid.membership
 lemma mem_powers_iff {α : Type*} [monoid α] (z x : α) :
   x ∈ submonoid.powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
 
 -- TODO: move this to data.int
 lemma int.pow_right_injective {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
-begin
-  intros n m hnm,
-  obtain ⟨y, rfl⟩ : ∃ (y : ℕ), (y : ℤ) = x := int.exists_nat_eq_of_nonneg ((zero_le_two).trans h),
-  have : 2 ≤ y,
-  { rw ←int.coe_nat_le,
-    simpa using h },
-  apply nat.pow_right_injective this,
-  simpa [←int.coe_nat_pow, int.coe_nat_inj'] using hnm
+λ n m hnm, begin
+  lift x to ℕ using (zero_le_two).trans h,
+  norm_cast at h hnm,
+  exact nat.pow_right_injective h hnm
 end
 
 /-- The surreal number `half`. -/
@@ -567,8 +554,7 @@ quotient.sound pgame.add_half_self_equiv_one
 
 lemma double_pow_half_succ_eq_pow_half (n : ℕ) : 2 • pow_half n.succ = pow_half n :=
 begin
-  have : 2 • pow_half n.succ = pow_half n.succ + pow_half n.succ, by abel,
-  rw this,
+  rw two_nsmul,
   apply quotient.sound,
   apply pgame.add_pow_half_succ_self_eq_pow_half,
 end

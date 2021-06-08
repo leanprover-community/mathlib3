@@ -1474,10 +1474,10 @@ lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (le_of_eq abs_one)
 
 lemma cos_two_neg : cos 2 < 0 :=
 calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
- ... = _ : real.cos_two_mul 1
+  ... = _ : real.cos_two_mul 1
   ... ≤ 2 * (2 / 3) ^ 2 - 1 : sub_le_sub_right (mul_le_mul_of_nonneg_left
-        (by { rw [sq, sq], exact mul_self_le_mul_self (le_of_lt cos_one_pos) cos_one_le })
-      zero_le_two) _
+          (by { rw [sq, sq], exact mul_self_le_mul_self (le_of_lt cos_one_pos) cos_one_le })
+          zero_le_two) _
   ... < 0 : by norm_num
 
 end real

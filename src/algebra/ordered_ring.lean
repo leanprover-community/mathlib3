@@ -1390,24 +1390,57 @@ end
 
 end mul_zero_class
 
-section no_zero_divisors
+/-- `nontrivial α` is needed here as otherwise we have `1 * ⊤ = ⊤` but also `= 0 * ⊤ = 0`. -/
+instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top α) :=
+{ mul := (*),
+  one := 1,
+  zero := 0,
+  one_mul := λ a, match a with
+  | none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
+  | (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
+  end,
+  mul_one := λ a, match a with
+  | none     := show ⊤ * ((1:α) : with_top α) = ⊤, by simp [-with_top.coe_one]
+  | (some a) := show ↑a * ((1:α) : with_top α) = a, by simp [coe_mul.symm, -with_top.coe_one]
+  end,
+  .. with_top.mul_zero_class }
 
-variables [mul_zero_class α] [no_zero_divisors α]
-
-instance : no_zero_divisors (with_top α) :=
+instance [mul_zero_class α] [no_zero_divisors α] : no_zero_divisors (with_top α) :=
 ⟨λ a b, by cases a; cases b; dsimp [mul_def]; split_ifs;
   simp [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
 
-end no_zero_divisors
+instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (with_top α) :=
+{ mul := (*),
+  zero := 0,
+  mul_assoc := λ a b c, begin
+    cases a,
+    { by_cases hb : b = 0; by_cases hc : c = 0;
+        simp [*, none_eq_top] },
+    cases b,
+    { by_cases ha : a = 0; by_cases hc : c = 0;
+        simp [*, none_eq_top, some_eq_coe] },
+    cases c,
+    { by_cases ha : a = 0; by_cases hb : b = 0;
+        simp [*, none_eq_top, some_eq_coe] },
+    simp [some_eq_coe, coe_mul.symm, mul_assoc]
+  end,
+  ..with_top.mul_zero_class }
+
+instance [monoid_with_zero α] [no_zero_divisors α] [nontrivial α] : monoid_with_zero (with_top α) :=
+{ .. with_top.mul_zero_one_class, .. with_top.semigroup_with_zero }
+
+instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
+  comm_monoid_with_zero (with_top α) :=
+{ mul := (*),
+  zero := 0,
+  mul_comm := λ a b, begin
+    by_cases ha : a = 0, { simp [ha] },
+    by_cases hb : b = 0, { simp [hb] },
+    simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
+  end,
+  .. with_top.monoid_with_zero }
 
 variables [canonically_ordered_comm_semiring α]
-
-private lemma comm (a b : with_top α) : a * b = b * a :=
-begin
-  by_cases ha : a = 0, { simp [ha] },
-  by_cases hb : b = 0, { simp [hb] },
-  simp [ha, hb, mul_def, option.bind_comm a b, mul_comm]
-end
 
 private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
 begin
@@ -1420,35 +1453,10 @@ begin
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
 
-private lemma assoc (a b c : with_top α) : (a * b) * c = a * (b * c) :=
-begin
-  cases a,
-  { by_cases hb : b = 0; by_cases hc : c = 0;
-      simp [*, none_eq_top] },
-  cases b,
-  { by_cases ha : a = 0; by_cases hc : c = 0;
-      simp [*, none_eq_top, some_eq_coe] },
-  cases c,
-  { by_cases ha : a = 0; by_cases hb : b = 0;
-      simp [*, none_eq_top, some_eq_coe] },
-  simp [some_eq_coe, coe_mul.symm, mul_assoc]
-end
-
--- `nontrivial α` is needed here as otherwise
--- we have `1 * ⊤ = ⊤` but also `= 0 * ⊤ = 0`.
-private lemma one_mul' [nontrivial α] : ∀a : with_top α, 1 * a = a
-| none     := show ((1:α) : with_top α) * ⊤ = ⊤, by simp [-with_top.coe_one]
-| (some a) := show ((1:α) : with_top α) * a = a, by simp [coe_mul.symm, -with_top.coe_one]
-
 instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
-{ one             := (1 : α),
-  right_distrib   := distrib',
-  left_distrib    := assume a b c, by rw [comm, distrib', comm b, comm c]; refl,
-  mul_assoc       := assoc,
-  mul_comm        := comm,
-  one_mul         := one_mul',
-  mul_one         := assume a, by rw [comm, one_mul'],
-  .. with_top.add_comm_monoid, .. with_top.mul_zero_class,
+{ right_distrib   := distrib',
+  left_distrib    := assume a b c, by rw [mul_comm, distrib', mul_comm b, mul_comm c]; refl,
+  .. with_top.add_comm_monoid, .. with_top.comm_monoid_with_zero,
   .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, .. with_top.nontrivial }
 

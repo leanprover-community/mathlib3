@@ -192,12 +192,11 @@ begin
     rw ← finite_field.expand_card,
     unfold char_poly, rw [alg_hom.map_det, ← is_monoid_hom.map_pow],
     apply congr_arg det,
-    apply mat_poly_equiv.injective, swap, { apply_instance },
-    rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
-          mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
+    refine mat_poly_equiv.injective _,
+    rw [alg_equiv.map_pow, mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
     { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
     { exact (C M).commute_X } },
-  { apply congr_arg, apply subsingleton.elim _ _, },
+  { apply congr_arg, exact subsingleton.elim _ _, },
 end
 
 @[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :

@@ -5,7 +5,7 @@ universe u
 open is_projective
 open_locale classical
 set_option old_structure_cmd true
-/-- source: https://leanprover-community.github.io/archive/stream/116395-maths/topic
+/-- source for Zulip bits: https://leanprover-community.github.io/archive/stream/116395-maths/topic
   /Error.20when.20applying.20supr_le.html-/
 
 structure subcomplex {R : Type u} [ring R] (C : chain_complex ℤ (Module R)) :=
@@ -35,6 +35,7 @@ noncomputable def projective_dimension (R : Type u) [ring R] (M : Module R) :=
 noncomputable def global_dimension (R : Type u) [ring R] : enat :=
   supr (projective_dimension R)
 
+/-- copied from Zulip -/
 def is_prime_ideal_chain {R : Type u} [comm_ring R]
   ( c : list (prime_spectrum R) ) : Prop :=
     c ≠ list.nil ∧ c.chain' (λ x y, x.as_ideal < y.as_ideal)
@@ -48,6 +49,7 @@ enat.coe_hom (C.val.length - 1)
 noncomputable def krull_dim (R : Type u) [comm_ring R] : enat :=
   supr (prime_ideal_chain_len R)
 
+/-- not copied from Zulip -/
 noncomputable def prime_codim {R : Type u} [comm_ring R] (P : ideal R) [P.is_prime] : enat :=
   krull_dim (localization.at_prime P)
 
@@ -62,6 +64,7 @@ lemma fg_of_top (R : Type u) [comm_ring R] :
 theorem depth_le_codim {R : Type u} [comm_ring R] [is_noetherian_ring R] (I : ideal R) :
   (depth I (⊤ : submodule R R) (fg_of_top R) : enat) ≤ codim I := sorry
 
+/-- copied from Zulip -/
 def KD_le_n' (R : Type u) [comm_ring R] (n : ℕ) : Prop :=
   krull_dim R ≤ n
 
@@ -72,7 +75,7 @@ theorem le_equiv {R : Type u} [comm_ring R] {n : ℕ} :
   KD_le_n R n ↔ KD_le_n' R n :=
 by rw [KD_le_n, KD_le_n', krull_dim, supr_le_iff]
 
-/-- stolen shit ends -/
+/-- the rest is not copied from Zulip -/
 theorem finite_krull_dim_of_noetherian_local (R : Type u) [comm_ring R]
   [is_noetherian_ring R] [local_ring R] : ∃ n : ℕ, krull_dim R = n := sorry
 

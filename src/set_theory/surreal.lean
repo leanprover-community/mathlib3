@@ -36,7 +36,7 @@ via dyadic Dedekind cuts the homomorphic inclusion of the reals into the surreal
 One can also map all the ordinals into the surreals!
 
 ## Dyadic surreals
-We construct dyadic surreal numbers using a map from `ℤ[2 ^ {-1}]` to surreals.
+We construct dyadic surreal numbers using a map from `ℤ[2 ^ {-1}]` to surreals. As we currently do not have a ring structure on `surreal` we construct this map explicitly. Once we have a ring structure on `surreal`, this map can be constructed immediately by sending `2 ^ {-1}` to `half`.
 
 ## References
 * [Conway, *On numbers and games*][conway2001]
@@ -572,10 +572,10 @@ begin
 end
 
 /-- Exponentiation map from natural numbers to powers of integers. -/
-def pow (a : ℤ) (n : ℕ) : @submonoid.powers ℤ _ a := ⟨a ^ n, n, rfl⟩
+def pow (a : ℤ) (n : ℕ) : submonoid.powers a := ⟨a ^ n, n, rfl⟩
 
 /-- Logarithms from powers of integers to natural numbers. -/
-noncomputable def log {a : ℤ} (p : @submonoid.powers ℤ _ a) : ℕ :=
+noncomputable def log {a : ℤ} (p : submonoid.powers a) : ℕ :=
 classical.some $ (mem_powers_iff a p.val).1 p.prop
 
 @[simp] theorem log_pow_eq_self (a : ℤ) (ha : 2 ≤ a) (n : ℕ) : log (pow a n) = n :=
@@ -585,7 +585,7 @@ begin
   exact @int.pow_right_injective a ha (classical.some h) n (classical.some_spec h),
 end
 
-@[simp] theorem pow_log_eq_self {a : ℤ} (n : @submonoid.powers ℤ _ a) : pow a (log n) = n :=
+@[simp] theorem pow_log_eq_self {a : ℤ} (n : submonoid.powers a) : pow a (log n) = n :=
 begin
   unfold pow,
   unfold log,
@@ -641,7 +641,7 @@ begin
       linarith } }
 end
 
-/-- The map `dyadic_map` sends [m, 2^n] to m • half ^ n. -/
+/-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
 noncomputable def dyadic_map : localization (@submonoid.powers ℤ _ 2) → surreal :=
 begin
   apply quotient.lift,

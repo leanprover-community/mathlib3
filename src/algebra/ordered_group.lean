@@ -413,7 +413,7 @@ alias left.inv_le_one_iff ↔ one_le_of_inv_le_one _
 attribute [to_additive] one_le_of_inv_le_one
 
 alias left.one_le_inv_iff ↔ le_one_of_one_le_inv _
-attribute [to_additive nonpos_of_neg_nonneg] le_one_of_one_le_inv
+attribute [to_additive] le_one_of_one_le_inv
 
 alias inv_lt_inv_iff ↔ lt_of_inv_lt_inv _
 attribute [to_additive] lt_of_inv_lt_inv
@@ -1253,5 +1253,9 @@ inv_lt_one_iff_one_lt.mpr
 @[to_additive]
 theorem inv_le_one_of_one_le : 1 ≤ a → a⁻¹ ≤ 1 :=
 inv_le_one'.mpr
+
+@[to_additive neg_nonneg_of_nonpos]
+theorem one_le_inv_of_le_one :  a ≤ 1 → 1 ≤ a⁻¹ :=
+one_le_inv'.mpr
 
 end norm_num_lemmas

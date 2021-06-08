@@ -265,7 +265,7 @@ def smul_const (m : M) : R →+ M :=
   map_zero' := by simp,
   map_add' := by simp [add_smul], }
 
-lemma basis.maximal {ι : Type w} (b : basis ι R M) : b.linear_independent.maximal :=
+lemma basis.maximal [nontrivial R] {ι : Type w} (b : basis ι R M) : b.linear_independent.maximal :=
 λ w i h,
 begin
   -- If `range w` is strictly bigger than `range b`,
@@ -278,14 +278,21 @@ begin
   -- This then gives a nontrivial linear combination of the elements of `w`,
   let u' : Π i, ∃ z : w, b i = z := sorry,
   let u : ι ↪ w := ⟨λ i, (u' i).some, sorry⟩,
-  have p : ∀ i, b i = u i := λ i, (u' i).some_spec,
+  have r : ∀ i, b i = u i := λ i, (u' i).some_spec,
   rw finsupp.total_apply at e,
-  simp_rw p at e,
+  simp_rw r at e,
   erw ←finsupp.emb_domain_sum u (b.repr x) (λ (x : w), smul_const (x : M)) at e,
   simp only [smul_const_apply] at e,
+  rw ←finsupp.total_apply at e,
   -- contradicting linear independence.
-  rw linear_independent_iff at i,
-  sorry,
+  change _ = ((⟨x, p⟩ : w) : M) at e,
+  refine i.total_ne_of_not_mem_support _ _ e,
+  simp only [finset.mem_map, finsupp.support_emb_domain],
+  rintro ⟨j, H, W⟩,
+  replace H : (u j : M) = x := sorry,
+  rw ←r at H,
+  apply q,
+  exact ⟨j, H⟩,
 end
 
 attribute [irreducible] linear_independent.maximal

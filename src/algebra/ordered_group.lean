@@ -784,9 +784,6 @@ lemma neg_le_abs_self (a : α) : -a ≤ abs a := le_max_right _ _
 lemma neg_abs_le_self (a : α) : -abs a ≤ a :=
 neg_le.mpr $ neg_le_abs_self a
 
-lemma neg_abs_le_self_le_abs (a : α) : -abs a ≤ a ∧ a ≤ abs a :=
-⟨neg_abs_le_self a, le_abs_self a⟩
-
 lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 

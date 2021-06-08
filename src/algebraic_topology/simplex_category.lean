@@ -114,6 +114,14 @@ instance small_category : small_category.{u} simplex_category :=
   id := λ m, simplex_category.hom.id _,
   comp := λ _ _ _ f g, simplex_category.hom.comp g f, }
 
+/-- The constant morphism from [0]. -/
+def const (x : simplex_category.{u}) (i : fin (x.len+1)) : [0] ⟶ x :=
+  hom.mk $ ⟨λ _, i, by tauto⟩
+
+@[simp]
+lemma const_comp (x y : simplex_category.{u}) (i : fin (x.len + 1)) (f : x ⟶ y) :
+  const x i ≫ f = const y (f.to_preorder_hom i) := rfl
+
 /--
 Make a morphism `[n] ⟶ [m]` from a monotone map between fin's.
 This is useful for constructing morphisms beetween `[n]` directly

@@ -34,15 +34,15 @@ instance : order_topology ℝ≥0∞ := ⟨rfl⟩
 instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class inference
 
 instance : second_countable_topology ℝ≥0∞ :=
-⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < nnreal.of_real q}, {a : ℝ≥0∞ | ↑(nnreal.of_real q) < a}},
+⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < real.to_nnreal q}, {a : ℝ≥0∞ | ↑(real.to_nnreal q) < a}},
   (countable_encodable _).bUnion $ assume a ha, (countable_singleton _).insert _,
   le_antisymm
     (le_generate_from $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})
     (le_generate_from $ λ s h, begin
       rcases h with ⟨a, hs | hs⟩;
-      [ rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ a < nnreal.of_real q}, {b | ↑(nnreal.of_real q) < b},
+      [ rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ a < real.to_nnreal q}, {b | ↑(real.to_nnreal q) < b},
            from set.ext (assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn a b, and_assoc]),
-        rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ ↑(nnreal.of_real q) < a}, {b | b < ↑(nnreal.of_real q)},
+        rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ ↑(real.to_nnreal q) < a}, {b | b < ↑(real.to_nnreal q)},
            from set.ext (assume b,
              by simp [hs, @ennreal.lt_iff_exists_rat_btwn b a, and_comm, and_assoc])];
       { apply is_open_Union, intro q,

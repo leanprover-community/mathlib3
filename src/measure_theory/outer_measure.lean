@@ -1038,10 +1038,10 @@ lemma extend_Union {β} [encodable β] {f : β → set α}
   (hd : pairwise (disjoint on f)) (hm : ∀i, P (f i)) :
   extend m (⋃i, f i) = ∑'i, extend m (f i) :=
 begin
-  rw [← encodable.Union_decode2, ← tsum_Union_decode2],
+  rw [← encodable.Union_decode₂, ← tsum_Union_decode₂],
   { exact extend_Union_nat PU
-      (λ n, encodable.Union_decode2_cases P0 hm)
-      (mU _ (encodable.Union_decode2_disjoint_on hd)) },
+      (λ n, encodable.Union_decode₂_cases P0 hm)
+      (mU _ (encodable.Union_decode₂_disjoint_on hd)) },
   { exact extend_empty P0 m0 }
 end
 

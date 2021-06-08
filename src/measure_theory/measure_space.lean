@@ -223,16 +223,16 @@ begin
   { simp only [supr_of_empty hι, Union], exact measure_empty },
   resetI,
   refine le_antisymm _ (supr_le $ λ i, measure_mono $ subset_Union _ _),
-  have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode2 ι n, s b) n) :=
-    measurable_set.disjointed (measurable_set.bUnion_decode2 h),
-  rw [← encodable.Union_decode2, ← Union_disjointed, measure_Union disjoint_disjointed this,
+  have : ∀ n, measurable_set (disjointed (λ n, ⋃ b ∈ encodable.decode₂ ι n, s b) n) :=
+    measurable_set.disjointed (measurable_set.bUnion_decode₂ h),
+  rw [← encodable.Union_decode₂, ← Union_disjointed, measure_Union disjoint_disjointed this,
     ennreal.tsum_eq_supr_nat],
   simp only [← measure_bUnion_finset (disjoint_disjointed.pairwise_on _) (λ n _, this n)],
   refine supr_le (λ n, _),
-  refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode2 ι k), s i)) _,
+  refine le_trans (_ : _ ≤ μ (⋃ (k ∈ finset.range n) (i ∈ encodable.decode₂ ι k), s i)) _,
   exact measure_mono (bUnion_subset_bUnion_right (λ k hk, disjointed_subset)),
   simp only [← finset.set_bUnion_option_to_finset, ← finset.set_bUnion_bUnion],
-  generalize : (finset.range n).bUnion (λ k, (encodable.decode2 ι k).to_finset) = t,
+  generalize : (finset.range n).bUnion (λ k, (encodable.decode₂ ι k).to_finset) = t,
   rcases hd.finset_le t with ⟨i, hi⟩,
   exact le_supr_of_le i (measure_mono $ bUnion_subset hi)
 end
@@ -678,6 +678,10 @@ by { rw [restrict, restrictₗ], convert le_lift_linear_apply _ t, simp }
   (μ.restrict t).restrict s = μ.restrict (s ∩ t) :=
 ext $ λ u hu, by simp [*, set.inter_assoc]
 
+lemma restrict_comm (hs : measurable_set s) (ht : measurable_set t) :
+  (μ.restrict t).restrict s = (μ.restrict s).restrict t :=
+by rw [restrict_restrict hs, restrict_restrict ht, inter_comm]
+
 lemma restrict_apply_eq_zero (ht : measurable_set t) : μ.restrict s t = 0 ↔ μ (t ∩ s) = 0 :=
 by rw [restrict_apply ht]
 
@@ -774,13 +778,18 @@ by rw [restrictₗ_apply, restrict_apply ht, linear_map.comp_apply,
     (measurable_subtype_coe ht), subtype.image_preimage_coe]
 
 /-- Restriction of a measure to a subset is monotone both in set and in measure. -/
-@[mono] lemma restrict_mono ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄ (hμν : μ ≤ ν) :
+lemma restrict_mono' ⦃s s' : set α⦄ ⦃μ ν : measure α⦄ (hs : s ≤ᵐ[μ] s') (hμν : μ ≤ ν) :
   μ.restrict s ≤ ν.restrict s' :=
 assume t ht,
 calc μ.restrict s t = μ (t ∩ s) : restrict_apply ht
-... ≤ μ (t ∩ s') : measure_mono $ inter_subset_inter_right _ hs
+... ≤ μ (t ∩ s') : measure_mono_ae $ hs.mono $ λ x hx ⟨hxt, hxs⟩, ⟨hxt, hx hxs⟩
 ... ≤ ν (t ∩ s') : le_iff'.1 hμν (t ∩ s')
 ... = ν.restrict s' t : (restrict_apply ht).symm
+
+/-- Restriction of a measure to a subset is monotone both in set and in measure. -/
+@[mono] lemma restrict_mono ⦃s s' : set α⦄ (hs : s ⊆ s') ⦃μ ν : measure α⦄ (hμν : μ ≤ ν) :
+  μ.restrict s ≤ ν.restrict s' :=
+restrict_mono' (ae_of_all _ hs) hμν
 
 lemma restrict_le_self : μ.restrict s ≤ μ :=
 assume t ht,
@@ -2051,9 +2060,9 @@ theorem measurable_set.diff_null (hs : measurable_set s) (hz : μ z = 0) :
 begin
   rw measure_eq_infi at hz,
   choose f hf using show ∀ q : {q : ℚ // q > 0}, ∃ t : set α,
-    z ⊆ t ∧ measurable_set t ∧ μ t < (nnreal.of_real q.1 : ℝ≥0∞),
+    z ⊆ t ∧ measurable_set t ∧ μ t < (real.to_nnreal q.1 : ℝ≥0∞),
   { rintro ⟨ε, ε0⟩,
-    have : 0 < (nnreal.of_real ε : ℝ≥0∞), { simpa using ε0 },
+    have : 0 < (real.to_nnreal ε : ℝ≥0∞), { simpa using ε0 },
     rw ← hz at this, simpa [infi_lt_iff] },
   refine null_measurable_set_iff.2 ⟨s \ Inter f,
     diff_subset_diff_right (subset_Inter (λ i, (hf i).1)),

@@ -927,6 +927,3 @@ instance [div_inv_monoid α] : div_inv_monoid (order_dual α) :=
 { ..show div_inv_monoid α, by apply_instance }
 
 end type_tags
---for linarith?
-theorem add_pos [ordered_add_comm_monoid α] {a b : α} : 0 < a → 0 < b → 0 < a + b :=
-add_pos'

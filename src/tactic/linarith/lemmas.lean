@@ -88,4 +88,7 @@ lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a 
   a * b = 0 :=
 by simp [h]
 
+lemma add_pos {α} [ordered_add_comm_monoid α] {a b : α} : 0 < a → 0 < b → 0 < a + b :=
+add_pos'
+
 end linarith

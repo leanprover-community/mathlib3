@@ -18,7 +18,7 @@ make this definition.
 ## Main definitions
 
   * `non_unital_alg_hom`
-  * `alg_hom.non_unital_alg_hom.has_coe`
+  * `alg_hom.to_non_unital_alg_hom`
 
 ## Tags
 
@@ -159,10 +159,17 @@ end non_unital_alg_hom
 
 namespace alg_hom
 
-variables [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+variables {R A B} [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+
+/-- A unital morphism of algebras is a `non_unital_alg_hom`. -/
+def to_non_unital_alg_hom (f : A →ₐ[R] B) : non_unital_alg_hom R A B :=
+{ map_smul' := f.map_smul, .. f, }
 
 instance non_unital_alg_hom.has_coe : has_coe (A →ₐ[R] B) (non_unital_alg_hom R A B) :=
-⟨λ f, { map_smul' := f.map_smul, .. f, }⟩
+⟨to_non_unital_alg_hom⟩
+
+@[simp] lemma to_non_unital_alg_hom_eq_coe (f : A →ₐ[R] B) : f.to_non_unital_alg_hom = f :=
+rfl
 
 @[simp, norm_cast] lemma coe_to_non_unital_alg_hom (f : A →ₐ[R] B) :
   ((f : non_unital_alg_hom R A B) : A → B) = f :=

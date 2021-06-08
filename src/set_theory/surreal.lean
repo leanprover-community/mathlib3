@@ -665,7 +665,7 @@ begin
 end
 
 /-- We define dyadic surreals as the image of the map `dyadic_map`. -/
-def dyadic := set.image dyadic_map
+def dyadic : set surreal := set.image dyadic_map $ localization $ @submonoid.powers ℤ _ 2
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

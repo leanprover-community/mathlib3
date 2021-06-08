@@ -744,6 +744,26 @@ le_of_not_lt (λ h₁, lt_irrefl a (by simpa using (h _ (lt_inv_iff_lt.mpr h₁)
 lemma le_iff_forall_one_lt_lt_mul : a ≤ b ↔ ∀ ε, 1 < ε → a < b * ε :=
 ⟨λ h ε, lt_mul_of_le_of_one_lt h, le_of_forall_one_lt_lt_mul⟩
 
+/-  I (DT) introduced this lemma to prove (the additive version `sub_le_sub_flip` of)
+`div_le_div_flip` below.  Now I wonder what is the point of either of these lemmas... -/
+@[to_additive]
+lemma div_le_inv_mul_iff [covariant_class α α (function.swap (*)) (≤)] :
+  a / b ≤ a⁻¹ * b ↔ a ≤ b :=
+begin
+  rw [div_eq_mul_inv, mul_inv_le_inv_mul_iff],
+  exact ⟨λ h, not_lt.mp (λ k, not_lt.mpr h (mul_lt_mul''' k k)), λ h, mul_le_mul' h h⟩,
+end
+
+/-  What is the point of this lemma?  See comment about `div_le_inv_mul_iff` above. -/
+@[simp, to_additive]
+lemma div_le_div_flip {α : Type*} [comm_group α] [linear_order α] [covariant_class α α (*) (≤)]
+  {a b : α}:
+  a / b ≤ b / a ↔ a ≤ b :=
+begin
+  rw [div_eq_mul_inv b, mul_comm],
+  exact div_le_inv_mul_iff,
+end
+
 end variable_names
 
 section densely_ordered
@@ -972,16 +992,6 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
-/-  I (DT) introduced this lemma to prove `sub_le_sub_flip` below.  Now I wonder what is the
-point of either of these lemmas... -/
-lemma sub_le_sub_neg_add_iff [covariant_class α α (function.swap (+)) (≤)] :
-  a - b ≤ - a + b ↔ a ≤ b :=
-begin
-  rw [← add_le_add_iff_left a, ← add_le_add_iff_right b, ← add_assoc, add_neg_self, zero_add,
-    add_assoc, sub_add_cancel],
-  exact ⟨λ h, not_lt.mp (λ k, not_lt.mpr h (add_lt_add k k)), λ h, add_le_add h h⟩,
-end
-
 lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 
@@ -1024,14 +1034,6 @@ end add_group
 
 section add_comm_group
 variables [add_comm_group α] [linear_order α] [covariant_class α α (+) (≤)] {a b c d : α}
-
-/-  What is the point of this lemma?  See comment about `sub_le_sub_neg_add_iff` above. -/
-@[simp]
-lemma sub_le_sub_flip : a - b ≤ b - a ↔ a ≤ b :=
-begin
-  rw sub_eq_neg_add b,
-  exact sub_le_sub_neg_add_iff,
-end
 
 lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b :=
 abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸

@@ -88,7 +88,38 @@ lemma zero_mul_eq {α} {R : α → α → Prop} [semiring α] {a b : α} (h : a 
   a * b = 0 :=
 by simp [h]
 
-lemma add_pos {α} [ordered_add_comm_monoid α] {a b : α} : 0 < a → 0 < b → 0 < a + b :=
+section lemmas_that_now_exist_with_weaker_hypotheses
+variable {α : Type*}
+
+theorem add_pos [ordered_add_comm_monoid α] {a b : α} : 0 < a → 0 < b → 0 < a + b :=
 add_pos'
+
+/-  Re-introducing a `linarith` lemma. -/
+theorem add_nonpos [ordered_add_comm_monoid α] {a b : α} :
+  a ≤ 0 → b ≤ 0 → a + b ≤ 0 :=
+add_le_of_nonpos_of_le
+
+/-  Re-introducing a `linarith` lemma. -/
+theorem add_neg_of_neg_of_nonpos [ordered_cancel_add_comm_monoid α] {a b : α} :
+  a < 0 → b ≤ 0 → a + b < 0 :=
+add_lt_of_neg_of_le
+
+/-  Re-introducing a `linarith` lemma. -/
+theorem add_neg [ordered_cancel_add_comm_monoid α] {a b : α} :
+  a < 0 → b < 0 → a + b < 0 :=
+left.add_neg
+
+/-  Re-introducing a `linarith` lemma. -/
+theorem add_neg_of_nonpos_of_neg [ordered_cancel_add_comm_monoid α] {a b : α} :
+  a ≤ 0 → b < 0 → a + b < 0 :=
+add_lt_of_le_of_neg
+
+/- This lemma is for `linarith`. -/
+@[to_additive neg_nonneg_of_nonpos]
+theorem one_le_inv_of_le_one [ordered_comm_group α] {a : α} :
+  a ≤ 1 → 1 ≤ a⁻¹ :=
+one_le_inv'.mpr
+
+end lemmas_that_now_exist_with_weaker_hypotheses
 
 end linarith

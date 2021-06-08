@@ -304,7 +304,7 @@ end measure_theory
 
 open measure_theory asymptotics metric
 
-variables {ι : Type*} [measurable_space E] [normed_group E]
+variables [measurable_space E] [normed_group E]
 
 /-- If a function is integrable at `𝓝[s] x` for each point `x` of a compact set `s`, then it is
 integrable on `s`. -/
@@ -373,9 +373,6 @@ section
 
 variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
-  {p : ennreal}
-
-local attribute [instance] fact_one_le_one_ennreal
 
 namespace continuous_linear_map
 

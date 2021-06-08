@@ -165,6 +165,13 @@ lemma lt_max_of_lt_left {α : Type*} [linear_order α] {a b c : α} (h : a < b) 
   a < max b c :=
 lt_of_lt_of_le h (le_max_left b c)
 
+theorem abs_sub_le_abs_add_abs {α : Type*} [linear_ordered_add_comm_group α] (a b : α) :
+  abs (a - b) ≤ abs a + abs b :=
+begin
+  rw [sub_eq_add_neg, ←abs_neg b],
+  exact abs_add a _,
+end
+
 lemma monotone.iterate_extensive_of_extensive {α : Type} [preorder α] {f : α → α} (hf : monotone f)
   (h : id ≤ f) :
   ∀ n, id ≤ (f^[n])
@@ -351,6 +358,84 @@ quotient.induction_on s (λ xy, density_pair_nonneg _ _ _)
 lemma density_sym2_le_one (s : sym2 (finset V)) :
   G.density_sym2 s ≤ 1 :=
 quotient.induction_on s (λ xy, density_pair_le_one _ _ _)
+
+private lemma mul_abs_density_sub_le_aux {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
+  (A.card : ℝ) * B.card * abs (G.density_pair A B - G.density_pair A' B') ≤
+  A.card * B.card - A'.card * B'.card :=
+begin
+  obtain rfl | hA'nemp := A'.eq_empty_or_nonempty,
+  {
+    sorry
+  },
+  obtain rfl | hB'nemp := B'.eq_empty_or_nonempty,
+  {
+    sorry
+  },
+  have hABpos' : (0 : ℝ) < A'.card * B'.card := sorry,
+  have hABpos : (0 : ℝ) < A.card * B.card := sorry,
+  rw [density_pair, density_pair],
+  rw div_sub_div _ _ hABpos.ne.symm hABpos'.ne.symm,
+  rw abs_div,
+  rw abs_mul,
+  rw abs_of_nonneg hABpos.le,
+  have := mul_div_mul_left _ (abs (A'.card * B'.card : ℝ)) hABpos.ne.symm, -- rw fails @Bhavik
+  have : (A.card : ℝ) * B.card * (abs (G.edges_count_pair A B * (A'.card * B'.card) - A.card *
+    B.card * G.edges_count_pair A' B')) / (A.card * B.card * abs (A'.card * B'.card)) =
+    abs (G.edges_count_pair A B * (A'.card * B'.card) - A.card * B.card * G.edges_count_pair A' B')
+    / (abs (A'.card * B'.card)) := sorry,
+  sorry,
+  sorry
+  /-
+  rw this,
+  apply div_le_of_nonneg_of_le_mul,-/
+end
+
+lemma abs_density_sub_le {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
+  abs (G.density_pair A B - G.density_pair A' B') ≤ 1 - A'.card/A.card * (B'.card/B.card) :=
+begin
+  obtain rfl | hAnemp := A.eq_empty_or_nonempty,
+  {
+    sorry
+  },
+  obtain rfl | hBnemp := B.eq_empty_or_nonempty,
+  {
+    sorry
+  },
+  rw [density_pair, density_pair],
+  rw div_sub_div,
+  rw abs_div,
+  apply div_le_of_nonneg_of_le_mul,
+  sorry,
+  sorry,
+  sorry,
+  sorry,
+  sorry
+end
+
+lemma LemmaB {A B A' B' : finset V} (hAnemp : A.nonempty) (hBnemp : B.nonempty) (hA : A' ⊆ A)
+  (hB : B' ⊆ B) {δ : ℝ} (hA' : (1 - δ) * A.card ≤ A'.card) (hB' : (1 - δ) * B.card ≤ B'.card) :
+  abs (G.density_pair A B - G.density_pair A' B') ≤ 2 * δ :=
+begin
+  cases le_total 1 δ,
+  { apply (abs_sub_le_abs_add_abs _ _).trans,
+    rw [abs_of_nonneg (G.density_pair_nonneg A B), abs_of_nonneg (G.density_pair_nonneg _ _),
+      two_mul],
+    exact add_le_add ((G.density_pair_le_one A B).trans h) ((G.density_pair_le_one _ _).trans h) },
+  rw ←le_div_iff at hA' hB',
+  { apply (G.abs_density_sub_le hA hB).trans,
+    calc
+    (1 : ℝ) - A'.card/A.card * (B'.card/B.card)
+        ≤ 1 - (1 - δ) * (1 - δ)
+        : sub_le_sub_left (mul_le_mul hA' hB' (sub_nonneg_of_le h) (div_nonneg (nat.cast_nonneg _)
+          (nat.cast_nonneg _))) 1
+    ... = 2 * δ - δ^2
+        : by ring
+    ... ≤ 2 * δ - 0
+        : sub_le_sub_left (sq_nonneg δ) _
+    ... = 2 * δ
+        : by rw sub_zero },
+  all_goals { rwa [nat.cast_pos, card_pos] },
+end
 
 /-- A pair of finsets of vertices is ε-uniform iff their edge density is close to the density of any
 big enough pair of subsets. Intuitively, the edges between them are random-like. -/
@@ -993,10 +1078,6 @@ lemma exp_bound_mono :
   monotone exp_bound :=
 λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
-lemma nonneg_of_mul_pos_right {α : Type*} [ordered_semiring α] {a b c : α} (hab : 0 < a * b)
-  (hb : 0 ≤ b) : 0 ≤ a := sorry
---le_of_not_gt (λ ha : a < 0, begin end)
-
 private lemma bound_mono_aux {ε : ℝ} {a b : ℕ} (hε : 100 < ε^5 * 4^a) (h : a ≤ b) :
   ε^5 * 4^a ≤ ε^5 * 4^b := sorry
 --mul_le_mul_of_nonneg_left (pow_le_pow (by norm_num) h) (nonneg_of_mul_pos_right (lt_trans (by norm_num) hε) (pow_nonneg (by norm_num) a))
@@ -1062,21 +1143,21 @@ begin
   suffices h : ∀ i, ∃ (P : equipartition V),
     t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 8 * i ≤ P.index G),
   { obtain ⟨P, hP₁, hP₂, hP₃⟩ := h (nat_floor (4/ε^5) + 1),
-    refine ⟨P, le_trans (le_iteration_bound _ _) hP₁, le_trans hP₂ _, _⟩,
+    refine ⟨P, (le_iteration_bound _ _).trans hP₁, hP₂.trans _, _⟩,
     { rw function.iterate_succ_apply',
       exact mul_le_mul_left' (pow_le_pow_of_le_left (by norm_num) (by norm_num) _) _ },
     apply hP₃.resolve_right,
     rintro hPindex,
     apply lt_irrefl (1/2 : ℝ),
-  calc
-    1/2 = ε ^ 5 / 8 * (4 / ε ^ 5)
-        : by { rw [mul_comm, div_mul_div_cancel 4 ((pow_pos hε 5).ne.symm)], norm_num }
-    ... < ε ^ 5 / 8 * ↑(nat_floor (4 / ε ^ 5) + 1)
-        : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (lt_nat_floor_add_one _)
-    ... ≤ P.index G
-        : hPindex
-    ... ≤ 1/2
-        : P.index_le_half G },
+    calc
+      1/2 = ε ^ 5 / 8 * (4 / ε ^ 5)
+          : by { rw [mul_comm, div_mul_div_cancel 4 ((pow_pos hε 5).ne.symm)], norm_num }
+      ... < ε ^ 5 / 8 * ↑(nat_floor (4 / ε ^ 5) + 1)
+          : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (lt_nat_floor_add_one _)
+      ... ≤ P.index G
+          : hPindex
+      ... ≤ 1/2
+          : P.index_le_half G },
   intro i,
   induction i with i ih,
   { refine ⟨dummy_equipartition V t, dummy_equipartition.size.ge, dummy_equipartition.size.le,

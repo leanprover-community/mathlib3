@@ -204,7 +204,7 @@ calc  b * a ≤ b * 1 : mul_le_mul_left' ha b
         ... ≤ c     : hbc
 
 alias mul_le_of_le_of_le_one ← mul_le_one'
-attribute [to_additive] mul_le_one'
+attribute [to_additive add_nonpos] mul_le_one'
 
 @[to_additive]
 lemma lt_mul_of_lt_of_one_le [covariant_class α α (*) (≤)]
@@ -427,7 +427,6 @@ lemma mul_lt_of_mul_lt_left (h : a * b < c) (hle : d ≤ b) :
 @[to_additive]
 lemma mul_le_of_mul_le_left (h : a * b ≤ c) (hle : d ≤ b) :
   a * d ≤ c :=
---(mul_le_mul_left' hle a).trans h
 @act_rel_of_rel_of_act_rel _ _ _ (≤) _ ⟨λ _ _ _, le_trans⟩ a _ _ _ hle h
 
 @[to_additive]
@@ -438,7 +437,6 @@ h.trans_le (mul_le_mul_left' hle b)
 @[to_additive]
 lemma le_mul_of_le_mul_left (h : a ≤ b * c) (hle : c ≤ d) :
   a ≤ b * d :=
---h.trans (mul_le_mul_left' hle b)
 @rel_act_of_rel_of_rel_act _ _ _ (≤) _ ⟨λ _ _ _, le_trans⟩ b _ _ _ hle h
 
 @[to_additive]
@@ -448,7 +446,7 @@ lemma mul_lt_mul_of_lt_of_le [covariant_class α α (function.swap (*)) (<)]
 
 end has_mul
 
--- here we start using properties of one.
+/-!  Here we start using properties of one, on the left. -/
 section mul_one_class
 variables [mul_one_class α] [covariant_class α α (*) (≤)]
 
@@ -480,7 +478,7 @@ variables [preorder α]
 section has_mul
 variables [has_mul α]
 
-variable  [covariant_class α α (function.swap (*)) (≤)]
+variable [covariant_class α α (function.swap (*)) (≤)]
 
 @[to_additive]
 lemma mul_lt_of_mul_lt_right (h : a * b < c) (hle : d ≤ a) :
@@ -502,9 +500,20 @@ lemma le_mul_of_le_mul_right (h : a ≤ b * c) (hle : b ≤ d) :
   a ≤ d * c :=
 h.trans (mul_le_mul_right' hle c)
 
+variable [covariant_class α α (*) (≤)]
+
+@[to_additive add_le_add]
+lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
+(mul_le_mul_left' h₂ _).trans (mul_le_mul_right' h₁ d)
+
+@[to_additive]
+lemma mul_le_mul_three {e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) :
+  a * b * c ≤ d * e * f :=
+mul_le_mul' (mul_le_mul' h₁ h₂) h₃
+
 end has_mul
 
--- here we start using properties of one.
+/-!  Here we start using properties of one, on the right. -/
 section mul_one_class
 variables [mul_one_class α]
 
@@ -558,23 +567,7 @@ end right
 section preorder
 variables [preorder α]
 
-section has_mul_left_right
-variables [has_mul α]
-  [covariant_class α α ((*)) (≤)] [covariant_class α α (function.swap (*)) (≤)]
-
-@[to_additive add_le_add]
-lemma mul_le_mul' (h₁ : a ≤ b) (h₂ : c ≤ d) : a * c ≤ b * d :=
-(mul_le_mul_left' h₂ _).trans (mul_le_mul_right' h₁ d)
-
-@[to_additive]
-lemma mul_le_mul_three {e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h₃ : c ≤ f) :
-  a * b * c ≤ d * e * f :=
-mul_le_mul' (mul_le_mul' h₁ h₂) h₃
-
-end has_mul_left_right
-
--- here we start using properties of one.
-section mul_one_class_left_right
+section mul_one_class
 variables [mul_one_class α]
 
 section covariant_left
@@ -584,7 +577,7 @@ variable [covariant_class α α (*) (≤)]
 lemma one_lt_mul_of_lt_of_le' (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
 lt_of_lt_of_le ha $ le_mul_of_one_le_right' hb
 
-@[to_additive add_pos']
+@[to_additive add_pos]
 lemma one_lt_mul' (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
 one_lt_mul_of_lt_of_le' ha hb.le
 
@@ -597,6 +590,18 @@ hbc.trans_le $ le_mul_of_one_le_right' ha
 lemma lt_mul_of_lt_of_one_lt' (hbc : b < c) (ha : 1 < a) :
   b < c * a :=
 lt_mul_of_lt_of_one_le' hbc ha.le
+
+@[to_additive]
+lemma le_mul_of_le_of_one_le (hbc : b ≤ c) (ha : 1 ≤ a) : b ≤ c * a :=
+calc  b ≤ c : hbc
+    ... = c * 1 : (mul_one c).symm
+    ... ≤ c * a : mul_le_mul_left' ha c
+
+@[to_additive add_nonneg]
+lemma one_le_mul_right (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
+calc  1 ≤ a     : ha
+    ... = a * 1 : (mul_one a).symm
+    ... ≤ a * b : mul_le_mul_left' hb a
 
 end covariant_left
 
@@ -617,26 +622,13 @@ lt_mul_of_one_le_of_lt ha.le hbc
 
 end covariant_right
 
--- up to here
-variable [covariant_class α α (*) (≤)]
-
-@[to_additive]
-lemma le_mul_of_le_of_one_le (hbc : b ≤ c) (ha : 1 ≤ a) : b ≤ c * a :=
-calc  b ≤ c : hbc
-    ... = c * 1 : (mul_one c).symm
-    ... ≤ c * a : mul_le_mul_left' ha c
-
-@[to_additive add_nonneg]
-lemma one_le_mul_right (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
-calc  1 ≤ a     : ha
-    ... = a * 1 : (mul_one a).symm
-    ... ≤ a * b : mul_le_mul_left' hb a
-
-end mul_one_class_left_right
+end mul_one_class
 
 end preorder
 
 section partial_order
+
+/-!  Properties assuming `partial_order`. -/
 variables [mul_one_class α] [partial_order α]
   [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
 

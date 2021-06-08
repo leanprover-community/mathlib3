@@ -768,6 +768,63 @@ end
 
 end span
 
+lemma group_smul_span_eq_top
+  {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] {v : ι → M} (hv : submodule.span R (set.range v) = ⊤) {w : ι → G} :
+  submodule.span R (set.range (w • v)) = ⊤ :=
+begin
+  rw eq_top_iff,
+  intros j hj,
+  rw ← hv at hj,
+  rw submodule.mem_span at hj ⊢,
+  refine λ p hp, hj p (λ u hu, _),
+  obtain ⟨i, rfl⟩ := hu,
+  have : ((w i)⁻¹ • 1 : R) • w i • v i ∈ p := p.smul_mem ((w i)⁻¹ • 1 : R) (hp ⟨i, rfl⟩),
+  rwa [smul_one_smul, inv_smul_smul] at this,
+end
+
+/-- Given a basis `v` and a map `w` such that for all `i`, `w i` are elements of a group,
+`group_smul` provides the basis corresponding to `w • v`. -/
+def group_smul {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
+  basis ι R M :=
+@basis.mk ι R M (w • v) _ _ _
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq)
+
+lemma group_smul_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
+  v.group_smul w i = (w • v : ι → M) i :=
+mk_apply
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq) i
+
+lemma units_smul_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
+  {w : ι → units R} : submodule.span R (set.range (w • v)) = ⊤ :=
+group_smul_span_eq_top hv
+
+/-- Given a basis `v` and a map `w` such that for all `i`, `w i` is a unit, `smul_of_is_unit`
+provides the basis corresponding to `w • v`. -/
+def units_smul (v : basis ι R M) (w : ι → units R) :
+  basis ι R M :=
+@basis.mk ι R M (w • v) _ _ _
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq)
+
+lemma units_smul_apply {v : basis ι R M} {w : ι → units R} (i : ι) :
+  v.units_smul w i = w i • v i :=
+mk_apply
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq) i
+
+/-- A version of `smul_of_units` that uses `is_unit`. -/
+def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):
+  basis ι R M :=
+units_smul v (λ i, (hw i).unit)
+
+lemma is_unit_smul_apply {v : basis ι R M} {w : ι → R} (hw : ∀ i, is_unit (w i)) (i : ι) :
+  v.is_unit_smul hw i = w i • v i :=
+begin
+  convert units_smul_apply i,
+  exact (is_unit.unit_spec (hw i)).symm,
+end
+
 end basis
 
 end module

@@ -730,6 +730,39 @@ end preorder
 
 end comm_group
 
+section linear_order
+variables [group α] [linear_order α] [covariant_class α α (*) (≤)]
+
+section variable_names
+variables {a b c : α}
+
+@[to_additive]
+lemma le_of_forall_one_lt_lt_mul (h : ∀ ε : α, 1 < ε → a < b * ε) : a ≤ b :=
+le_of_not_lt (λ h₁, lt_irrefl a (by simpa using (h _ (lt_inv_iff_lt.mpr h₁))))
+
+@[to_additive]
+lemma le_iff_forall_one_lt_lt_mul : a ≤ b ↔ ∀ ε, 1 < ε → a < b * ε :=
+⟨λ h ε, lt_mul_of_le_of_one_lt h, le_of_forall_one_lt_lt_mul⟩
+
+end variable_names
+
+section densely_ordered
+variables [densely_ordered α] {a b c : α}
+
+@[to_additive]
+lemma le_of_forall_one_lt_le_mul (h : ∀ ε : α, 1 < ε → a ≤ b * ε) : a ≤ b :=
+le_of_forall_le_of_dense $ λ c hc,
+calc a ≤ b * (b⁻¹ * c) : h _ (lt_inv_iff_lt.mpr hc)
+   ... = c            : mul_inv_cancel_left b c
+
+@[to_additive]
+lemma le_iff_forall_one_lt_le_mul : a ≤ b ↔ ∀ ε, 1 < ε → a ≤ b * ε :=
+⟨λ h ε ε_pos, le_mul_of_le_of_one_le h ε_pos.le, le_of_forall_one_lt_le_mul⟩
+
+end densely_ordered
+
+end linear_order
+
 /-!
 
 ### Linearly ordered commutative groups
@@ -911,21 +944,6 @@ begin
 end
 
 variables [covariant_class α α (+) (≤)] {a b c : α}
-
-lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
-le_of_forall_le_of_dense $ λ c hc,
-calc a ≤ b + (-b + c) : h _ (lt_neg_iff_lt.mpr hc)
-   ... = c            : add_neg_cancel_left b c
-
-lemma le_of_forall_pos_lt_add (h : ∀ ε : α, 0 < ε → a < b + ε) : a ≤ b :=
-le_of_not_lt (λ h₁, lt_irrefl a (by simpa using (h _ (lt_neg_iff_lt.mpr h₁))))
-
-lemma le_iff_forall_pos_le_add [densely_ordered α] : a ≤ b ↔ ∀ ε, 0 < ε → a ≤ b + ε :=
-⟨λ h ε ε_pos, le_add_of_le_of_nonneg h ε_pos.le, le_of_forall_pos_le_add⟩
-
-
-lemma le_iff_forall_pos_lt_add : a ≤ b ↔ ∀ ε, 0 < ε → a < b + ε :=
-⟨λ h ε, lt_add_of_le_of_pos h, le_of_forall_pos_lt_add⟩
 
 lemma abs_of_nonneg (h : 0 ≤ a) : abs a = a :=
 max_eq_left $ (neg_nonpos.2 h).trans h

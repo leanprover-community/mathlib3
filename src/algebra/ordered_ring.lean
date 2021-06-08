@@ -1332,6 +1332,12 @@ by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 end canonically_ordered_semiring
 
+/-! ### Structures involving `*` and `0` on `with_top` and `with_bot`
+
+The main results of this section are `with_top.canonically_ordered_comm_semiring` an
+`with_bot.comm_monoid_with_zero`.
+-/
+
 namespace with_top
 
 instance [nonempty α] : nontrivial (with_top α) :=
@@ -1386,6 +1392,13 @@ begin
   { suffices : (a : with_top α) * ⊤ = ⊤ ↔ a ≠ 0, by simpa,
     by_cases ha : a = 0; simp [ha] },
   { simp [← coe_mul] }
+end
+
+lemma mul_lt_top [partial_order α] {a b : with_top α} (ha : a < ⊤) (hb : b < ⊤) : a * b < ⊤ :=
+begin
+  lift a to α using ne_top_of_lt ha,
+  lift b to α using ne_top_of_lt hb,
+  simp only [← coe_mul, coe_lt_top]
 end
 
 end mul_zero_class
@@ -1453,18 +1466,89 @@ begin
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
 
-instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
+instance [nontrivial α] : comm_semiring (with_top α) :=
 { right_distrib   := distrib',
   left_distrib    := assume a b c, by rw [mul_comm, distrib', mul_comm b, mul_comm c]; refl,
-  .. with_top.add_comm_monoid, .. with_top.comm_monoid_with_zero,
+  .. with_top.add_comm_monoid, .. with_top.comm_monoid_with_zero,}
+
+instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
+{ .. with_top.comm_semiring,
   .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, .. with_top.nontrivial }
 
-lemma mul_lt_top [nontrivial α] {a b : with_top α} (ha : a < ⊤) (hb : b < ⊤) : a * b < ⊤ :=
+
+end with_top
+
+namespace with_bot
+
+instance [nonempty α] : nontrivial (with_bot α) :=
+option.nontrivial
+
+variable [decidable_eq α]
+
+section has_mul
+
+variables [has_zero α] [has_mul α]
+
+instance : mul_zero_class (with_bot α) :=
+with_top.mul_zero_class
+
+lemma mul_def {a b : with_bot α} :
+  a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
+
+@[simp] lemma mul_bot {a : with_bot α} (h : a ≠ 0) : a * ⊥ = ⊥ :=
+with_top.mul_top h
+
+@[simp] lemma bot_mul {a : with_bot α} (h : a ≠ 0) : ⊥ * a = ⊥ :=
+with_top.top_mul h
+
+@[simp] lemma bot_mul_bot : (⊥ * ⊥ : with_bot α) = ⊥ :=
+with_top.top_mul_top
+
+end has_mul
+
+section mul_zero_class
+
+variables [mul_zero_class α]
+
+@[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_bot α) = a * b :=
+decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
+decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
+by { simp [*, mul_def], refl }
+
+lemma mul_coe {b : α} (hb : b ≠ 0) {a : with_bot α} : a * b = a.bind (λa:α, ↑(a * b)) :=
+with_top.mul_coe hb
+
+@[simp] lemma mul_eq_bot_iff {a b : with_bot α} : a * b = ⊥ ↔ (a ≠ 0 ∧ b = ⊥) ∨ (a = ⊥ ∧ b ≠ 0) :=
+with_top.mul_eq_top_iff
+
+lemma bot_lt_mul [partial_order α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
 begin
-  lift a to α using ne_top_of_lt ha,
-  lift b to α using ne_top_of_lt hb,
+  lift a to α using ne_bot_of_lt ha,
+  lift b to α using ne_bot_of_lt hb,
   simp only [← coe_mul, coe_lt_top]
 end
 
-end with_top
+end mul_zero_class
+
+/-- `nontrivial α` is needed here as otherwise we have `1 * ⊥ = ⊥` but also `= 0 * ⊥ = 0`. -/
+instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_bot α) :=
+with_top.mul_zero_one_class
+
+instance [mul_zero_class α] [no_zero_divisors α] : no_zero_divisors (with_bot α) :=
+with_top.no_zero_divisors
+
+instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (with_bot α) :=
+with_top.semigroup_with_zero
+
+instance [monoid_with_zero α] [no_zero_divisors α] [nontrivial α] : monoid_with_zero (with_bot α) :=
+with_top.monoid_with_zero
+
+instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
+  comm_monoid_with_zero (with_bot α) :=
+with_top.comm_monoid_with_zero
+
+instance [canonically_ordered_comm_semiring α] : comm_semiring (with_bot α) :=
+with_top.comm_semiring
+
+end with_bot

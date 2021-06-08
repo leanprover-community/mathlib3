@@ -293,6 +293,9 @@ by { cases n; refl }
 @[simp] lemma pow_half_move_left {n i} : (pow_half n).move_left i = 0 :=
 by { cases n; cases i; refl }
 
+@[simp] lemma pow_half_move_right {n i} : (pow_half (n + 1)).move_right i = pow_half n :=
+by { cases n; cases i; refl }
+
 lemma exists_pow_half_move_left (n) : ∃ i, (pow_half n).move_left i = 0 :=
 by { cases n; use punit.star; refl }
 
@@ -347,9 +350,9 @@ begin
     calc 0 ≈ 0 + 0 : (add_zero_equiv _).symm
        ... ≤ pow_half (n.succ + 1) + 0
            : by { refine add_le_add_right _,
-               apply le_of_lt numeric_zero,
-               { apply numeric_pow_half },
-               { apply zero_lt_pow_half } }
+                  apply le_of_lt numeric_zero,
+                  { apply numeric_pow_half },
+                  { apply zero_lt_pow_half } }
        ... < pow_half (n.succ + 1) + pow_half (n.succ + 1)
            : add_lt_add_left zero_lt_pow_half },
   { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
@@ -472,7 +475,7 @@ begin
     induction m with m hm,
     { exfalso, exact nat.lt_asymm hm hm },
     { rw [succ_nsmul x m],
-      apply lt_add_of_pos_of_le hx (nonneg_of_pos_nsmul _ hx), }
+      apply lt_add_of_pos_of_le hx (nonneg_of_pos_nsmul _ hx) }
 end
 
 lemma lt_of_nsmul_pos_lt {m : ℕ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
@@ -586,7 +589,7 @@ end
 begin
   unfold pow,
   unfold log,
-  rcases n with ⟨_, hn⟩,
+  rcases n with ⟨_ , hn⟩,
   congr,
   exact classical.some_spec hn,
 end
@@ -645,12 +648,11 @@ begin
   swap,
   { rintro ⟨m, n⟩,
     exact m • pow_half (log n) },
-  {
-    rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
+  { rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
     obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.1 h₁,
     simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
     cases h₂,
-    { simp,
+    { simp only,
       obtain ⟨a₁, ha₁⟩ := classical.indefinite_description _ n₁.prop,
       obtain ⟨a₂, ha₂⟩ := classical.indefinite_description _ n₂.prop,
       have hn₁ : n₁ = pow 2 a₁, by { ext1, solve_by_elim },

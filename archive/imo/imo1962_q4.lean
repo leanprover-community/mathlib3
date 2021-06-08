@@ -63,7 +63,7 @@ Now we can solve for `x` using basic-ish trigonometry.
 
 lemma solve_cos2_half {x : ℝ} : cos x ^ 2 = 1/2 ↔ ∃ k : ℤ, x = (2 * ↑k + 1) * π / 4 :=
 begin
-  rw cos_square,
+  rw cos_sq,
   simp only [add_right_eq_self, div_eq_zero_iff],
   norm_num,
   rw cos_eq_zero_iff,

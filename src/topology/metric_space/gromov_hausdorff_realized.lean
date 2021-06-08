@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Sébastien Gouëzel
+Authors: Sébastien Gouëzel
 
 Construction of a good coupling between nonempty compact metric spaces, minimizing
 their Hausdorff distance. This construction is instrumental to study the Gromov-Hausdorff
 distance between nonempty compact metric spaces -/
 import topology.metric_space.gluing
 import topology.metric_space.hausdorff_distance
+import topology.continuous_function.bounded
 
 noncomputable theory
 open_locale classical topological_space nnreal
@@ -225,7 +226,7 @@ begin
                ∩ (⋂x y, {f : Cb α β | f (x, y) ≤ max_var α β}) :=
     begin ext, unfold candidates_b, unfold candidates, simp [-sum.forall], refl end,
   rw this,
-  repeat { apply is_closed_inter _ _
+  repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _
        <|> apply I1 _ _
        <|> apply I2 _ _
@@ -308,7 +309,9 @@ begin
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
-        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _)
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
+        exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
       end,
     exact le_trans A B },
   { have A : (⨅ x, candidates_b_dist α β (inl x, inr y)) ≤
@@ -320,6 +323,8 @@ begin
       begin
         apply add_le_add (add_le_add _ (le_refl _)),
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _),
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
+        any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
         exact dist_le_diam_of_mem (bounded_of_compact (compact_univ)) (mem_univ _) (mem_univ _)
       end,
     exact le_trans A B },
@@ -417,17 +422,17 @@ let ⟨Z1, Z2⟩ := classical.some_spec (exists_minimizer α β) in Z2 g hg
 /-- With the optimal candidate, construct a premetric space structure on α ⊕ β, on which the
 predistance is given by the candidate. Then, we will identify points at 0 predistance
 to obtain a genuine metric space -/
-def premetric_optimal_GH_dist : premetric_space (α ⊕ β) :=
+def premetric_optimal_GH_dist : pseudo_metric_space (α ⊕ β) :=
 { dist := λp q, optimal_GH_dist α β (p, q),
   dist_self := λx, candidates_refl (optimal_GH_dist_mem_candidates_b α β),
   dist_comm := λx y, candidates_symm (optimal_GH_dist_mem_candidates_b α β),
   dist_triangle := λx y z, candidates_triangle (optimal_GH_dist_mem_candidates_b α β) }
 
-local attribute [instance] premetric_optimal_GH_dist premetric.dist_setoid
+local attribute [instance] premetric_optimal_GH_dist pseudo_metric.dist_setoid
 
 /-- A metric space which realizes the optimal coupling between α and β -/
 @[derive [metric_space]] definition optimal_GH_coupling : Type* :=
-premetric.metric_quot (α ⊕ β)
+pseudo_metric_quot (α ⊕ β)
 
 /-- Injection of α in the optimal coupling between α and β -/
 def optimal_GH_injl (x : α) : optimal_GH_coupling α β := ⟦inl x⟧

@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.metric_space.basic
 import topology.algebra.uniform_group
 import topology.algebra.ring
-import topology.algebra.continuous_functions
 import ring_theory.subring
 import group_theory.archimedean
 /-!
@@ -69,7 +68,7 @@ uniform_embedding_comap rat.cast_injective
 theorem dense_embedding_of_rat : dense_embedding (coe : ℚ → ℝ) :=
 uniform_embedding_of_rat.dense_embedding $
 λ x, mem_closure_iff_nhds.2 $ λ t ht,
-let ⟨ε,ε0, hε⟩ := mem_nhds_iff.1 ht in
+let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨q, h⟩ := exists_rat_near x ε0 in
 ⟨_, hε (mem_ball'.2 h), q, rfl⟩
 
@@ -109,22 +108,22 @@ instance : topological_add_group ℚ := by apply_instance
 instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
+instance : proper_space ℝ :=
+{ compact_ball := λx r, by { rw closed_ball_Icc, apply compact_Icc } }
+
+instance : second_countable_topology ℝ := second_countable_of_proper
+
 lemma real.is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 is_topological_basis_of_open_of_nhds
   (by simp [is_open_Ioo] {contextual:=tt})
   (assume a v hav hv,
-    let ⟨l, u, ⟨hl, hu⟩, h⟩ := mem_nhds_iff_exists_Ioo_subset.mp (mem_nhds_sets hv hav),
+    let ⟨l, u, ⟨hl, hu⟩, h⟩ := mem_nhds_iff_exists_Ioo_subset.mp (is_open.mem_nhds hv hav),
         ⟨q, hlq, hqa⟩ := exists_rat_btwn hl,
         ⟨p, hap, hpu⟩ := exists_rat_btwn hu in
     ⟨Ioo q p,
       by { simp only [mem_Union], exact ⟨q, p, rat.cast_lt.1 $ hqa.trans hap, rfl⟩ },
       ⟨hqa, hap⟩, assume a' ⟨hqa', ha'p⟩, h ⟨hlq.trans hqa', ha'p.trans hpu⟩⟩)
-
-instance : second_countable_topology ℝ :=
-⟨⟨(⋃(a b : ℚ) (h : a < b), {Ioo a b}),
-  by simp [countable_Union, countable_Union_Prop],
-  real.is_topological_basis_Ioo_rat.2.2⟩⟩
 
 /- TODO(Mario): Prove that these are uniform isomorphisms instead of uniform embeddings
 lemma uniform_embedding_add_rat {r : ℚ} : uniform_embedding (λp:ℚ, p + r) :=
@@ -133,7 +132,8 @@ _
 lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding ((*) q) :=
 _ -/
 
-lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} : x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
+lemma real.mem_closure_iff {s : set ℝ} {x : ℝ} :
+  x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, abs (y - x) < ε :=
 by simp [mem_closure_iff_nhds_basis nhds_basis_ball, real.dist_eq]
 
 lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
@@ -155,7 +155,7 @@ lemma real.tendsto_inv {r : ℝ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r)
 by rw ← abs_pos at r0; exact
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
-  (mem_nhds_sets ((is_open_lt' (abs r / 2)).preimage continuous_abs) (half_lt_self r0))
+  (is_open.mem_nhds ((is_open_lt' (abs r / 2)).preimage continuous_abs) (half_lt_self r0))
 
 lemma real.continuous_inv : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
@@ -189,7 +189,7 @@ tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
     (λ x, id))
-  (mem_nhds_sets
+  (is_open.mem_nhds
     (((is_open_gt' (abs a₁ + 1)).preimage continuous_abs).prod
       ((is_open_gt' (abs a₂ + 1)).preimage continuous_abs ))
     ⟨lt_add_one (abs a₁), lt_add_one (abs a₂)⟩)
@@ -220,7 +220,7 @@ instance : complete_space ℝ :=
 begin
   apply complete_of_cauchy_seq_tendsto,
   intros u hu,
-  let c : cau_seq ℝ abs := ⟨u, cauchy_seq_iff'.1 hu⟩,
+  let c : cau_seq ℝ abs := ⟨u, metric.cauchy_seq_iff'.1 hu⟩,
   refine ⟨c.lim, λ s h, _⟩,
   rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
   have := c.equiv_lim ε ε0,
@@ -258,9 +258,6 @@ lemma closure_of_rat_image_le_le_eq {a b : ℚ} (hab : a ≤ b) :
   closure (of_rat '' {q:ℚ | a ≤ q ∧ q ≤ b}) = {r:ℝ | of_rat a ≤ r ∧ r ≤ of_rat b} :=
 _-/
 
-instance : proper_space ℝ :=
-{ compact_ball := λx r, by rw closed_ball_Icc; apply compact_Icc }
-
 lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_below s ∧ bdd_above s :=
 ⟨begin
   assume bdd,
@@ -283,11 +280,6 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
   (compact_Icc.image_of_continuous_on h)
 
 end
-
-instance reals_semimodule : topological_semimodule ℝ ℝ := ⟨continuous_mul⟩
-
-instance real_maps_algebra {α : Type*} [topological_space α] :
-  algebra ℝ C(α, ℝ) := continuous_map_algebra
 
 section subgroups
 

@@ -20,6 +20,7 @@ Then we prove that the topology defined is the canonical topology.
 universe u
 
 namespace category_theory
+open_locale category_theory.Type
 
 /-- A Grothendieck topology associated to the category of all types.
 A sieve is a covering iff it is jointly surjective. -/

@@ -245,7 +245,8 @@ protected lemma left_ord_continuous : left_ord_continuous e :=
   λ y hy, e.rel_symm_apply.1 $ (is_lub_le_iff hx).2 $ λ x' hx', e.rel_symm_apply.2 $ hy $
     mem_image_of_mem _ hx'⟩
 
-protected lemma right_ord_continuous : right_ord_continuous e := order_iso.left_ord_continuous e.dual
+protected lemma right_ord_continuous : right_ord_continuous e :=
+order_iso.left_ord_continuous e.dual
 
 end preorder
 

@@ -82,7 +82,7 @@ begin
 end
 
 protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
-mem_nhds_sets units.is_open (is_unit_unit x)
+is_open.mem_nhds units.is_open x.is_unit
 
 end units
 
@@ -98,7 +98,7 @@ lemma inverse_add (x : units R) :
   ∀ᶠ t in (𝓝 0), inverse ((x : R) + t) = inverse (1 + ↑x⁻¹ * t) * ↑x⁻¹ :=
 begin
   nontriviality R,
-  rw [eventually_iff, mem_nhds_iff],
+  rw [eventually_iff, metric.mem_nhds_iff],
   have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹, by cancel_denoms,
   use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
   intros t ht,
@@ -118,21 +118,21 @@ end
 lemma inverse_one_sub_nth_order (n : ℕ) :
   ∀ᶠ t in (𝓝 0), inverse ((1:R) - t) = (∑ i in range n, t ^ i) + (t ^ n) * inverse (1 - t) :=
 begin
-  simp only [eventually_iff, mem_nhds_iff],
+  simp only [eventually_iff, metric.mem_nhds_iff],
   use [1, by norm_num],
   intros t ht,
   simp only [mem_ball, dist_zero_right] at ht,
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
   { simp only [units.one_sub_coe],
-    rw [← geom_series, geom_sum_mul_neg],
+    rw [← geom_sum, geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
   { simp only [units.one_sub_coe],
-    rw [← add_mul, ← geom_series, geom_sum_mul_neg],
+    rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
     simp }
 end
 
@@ -159,7 +159,7 @@ end
 
 lemma inverse_one_sub_norm : is_O (λ t, inverse ((1:R) - t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
 begin
-  simp only [is_O, is_O_with, eventually_iff, mem_nhds_iff],
+  simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
   refine ⟨∥(1:R)∥ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
   intros t ht,
   simp only [ball, dist_zero_right, set.mem_set_of_eq] at ht,
@@ -267,3 +267,34 @@ begin
 end
 
 end normed_ring
+
+namespace units
+open opposite filter normed_ring
+
+/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+embedding in `R × R`) to `R` is an open map. -/
+lemma is_open_map_coe : is_open_map (coe : units R → R) :=
+begin
+  rw is_open_map_iff_nhds_le,
+  intros x s,
+  rw [mem_map, mem_nhds_induced],
+  rintros ⟨t, ht, hts⟩,
+  obtain ⟨u, hu, v, hv, huvt⟩ :
+    ∃ (u : set R), u ∈ 𝓝 ↑x ∧ ∃ (v : set Rᵒᵖ), v ∈ 𝓝 (opposite.op ↑x⁻¹) ∧ u.prod v ⊆ t,
+  { simpa [embed_product, mem_nhds_prod_iff] using ht },
+  have : u ∩ (op ∘ ring.inverse) ⁻¹' v ∩ (set.range (coe : units R → R)) ∈ 𝓝 ↑x,
+  { refine inter_mem_sets (inter_mem_sets hu _) (units.nhds x),
+    refine (continuous_op.continuous_at.comp (inverse_continuous_at x)).preimage_mem_nhds _,
+    simpa using hv },
+  refine mem_sets_of_superset this _,
+  rintros _ ⟨⟨huy, hvy⟩, ⟨y, rfl⟩⟩,
+  have : embed_product R y ∈ u.prod v := ⟨huy, by simpa using hvy⟩,
+  simpa using hts (huvt this)
+end
+
+/-- In a normed ring, the coercion from `units R` (equipped with the induced topology from the
+embedding in `R × R`) to `R` is an open embedding. -/
+lemma open_embedding_coe : open_embedding (coe : units R → R) :=
+open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
+
+end units

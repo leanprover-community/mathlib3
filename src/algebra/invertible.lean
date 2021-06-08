@@ -1,18 +1,16 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Anne Baanen
-
-A typeclass for the two-sided multiplicative inverse.
+Authors: Anne Baanen
 -/
 
-import algebra.char_zero
-import algebra.char_p.basic
+import algebra.group.units
+import algebra.ring.basic
 
 /-!
 # Invertible elements
 
-This file defines a typeclass `invertible a` for elements `a` with a
+This file defines a typeclass `invertible a` for elements `a` with a two-sided
 multiplicative inverse.
 
 The intent of the typeclass is to provide a way to write e.g. `⅟2` in a ring
@@ -20,10 +18,8 @@ like `ℤ[1/2]` where some inverses exist but there is no general `⁻¹` operat
 or to specify that a field has characteristic `≠ 2`.
 It is the `Type`-valued analogue to the `Prop`-valued `is_unit`.
 
-This file also includes some instances of `invertible` for specific numbers in
-characteristic zero. Some more cases are given as a `def`, to be included only
-when needed. To construct instances for concrete numbers,
-`invertible_of_nonzero` is a useful definition.
+For constructions of the invertible element given a characteristic, see
+`algebra/char_p/invertible` and other lemmas in that file.
 
 ## Notation
 
@@ -155,17 +151,22 @@ def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = 
   inv_of_mul_self := by rw [hs, inv_of_mul_self],
   mul_inv_of_self := by rw [hs, mul_inv_of_self] }
 
+theorem commute.inv_of_right [monoid α] {a b : α} [invertible b] (h : commute a b) :
+  commute a (⅟b) :=
+calc a * (⅟b) = (⅟b) * (b * a * (⅟b)) : by simp [mul_assoc]
+... = (⅟b) * (a * b * ((⅟b))) : by rw h.eq
+... = (⅟b) * a : by simp [mul_assoc]
+
+theorem commute.inv_of_left [monoid α] {a b : α} [invertible b] (h : commute b a) :
+  commute (⅟b) a :=
+calc (⅟b) * a = (⅟b) * (a * b * (⅟b)) : by simp [mul_assoc]
+... = (⅟b) * (b * a * (⅟b)) : by rw h.eq
+... = a * (⅟b) : by simp [mul_assoc]
 
 lemma commute_inv_of {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
   commute m (⅟m) :=
 calc m * ⅟m = 1       : mul_inv_of_self m
         ... = ⅟ m * m : (inv_of_mul_self m).symm
-
-instance invertible_pow {M : Type*} [monoid M] (m : M) [invertible m] (n : ℕ) :
-  invertible (m ^ n) :=
-{ inv_of := ⅟ m ^ n,
-  inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
-  mul_inv_of_self := by rw [← (commute_inv_of m).mul_pow, mul_inv_of_self, one_pow] }
 
 section group_with_zero
 
@@ -220,47 +221,3 @@ def invertible.map {R : Type*} {S : Type*} [monoid R] [monoid S] (f : R →* S)
 { inv_of := f (⅟r),
   inv_of_mul_self := by rw [← f.map_mul, inv_of_mul_self, f.map_one],
   mul_inv_of_self := by rw [← f.map_mul, mul_inv_of_self, f.map_one] }
-
-section ring_char
-
-/-- A natural number `t` is invertible in a field `K` if the charactistic of `K` does not divide
-`t`. -/
-def invertible_of_ring_char_not_dvd {K : Type*} [field K]
-  {t : ℕ} (not_dvd : ¬(ring_char K ∣ t)) : invertible (t : K) :=
-invertible_of_nonzero (λ h, not_dvd ((ring_char.spec K t).mp h))
-
-end ring_char
-
-section char_p
-
-/-- A natural number `t` is invertible in a field `K` of charactistic `p` if `p` does not divide
-`t`. -/
-def invertible_of_char_p_not_dvd {K : Type*} [field K] {p : ℕ} [char_p K p]
-  {t : ℕ} (not_dvd : ¬(p ∣ t)) : invertible (t : K) :=
-invertible_of_nonzero (λ h, not_dvd ((char_p.cast_eq_zero_iff K p t).mp h))
-
-instance invertible_of_pos {K : Type*} [field K] [char_zero K] (n : ℕ) [h : fact (0 < n)] :
-  invertible (n : K) :=
-invertible_of_nonzero $ by simpa [pos_iff_ne_zero] using h
-
-end char_p
-
-section division_ring
-
-variable [division_ring α]
-
-instance invertible_succ [char_zero α] (n : ℕ) : invertible (n.succ : α) :=
-invertible_of_nonzero (nat.cast_ne_zero.mpr (nat.succ_ne_zero _))
-
-/-!
-A few `invertible n` instances for small numerals `n`. Feel free to add your own
-number when you need its inverse.
--/
-
-instance invertible_two [char_zero α] : invertible (2 : α) :=
-invertible_of_nonzero (by exact_mod_cast (dec_trivial : 2 ≠ 0))
-
-instance invertible_three [char_zero α] : invertible (3 : α) :=
-invertible_of_nonzero (by exact_mod_cast (dec_trivial : 3 ≠ 0))
-
-end division_ring

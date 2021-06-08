@@ -84,7 +84,7 @@ begin
   induction n with n ih,
   { exfalso, exact nat.lt_asymm h h },
   { by_cases H : n = 0,
-    { rw [iterated_deriv_succ, H], simp only [iterated_deriv_C_zero, derivative_C]},
+    { rw [iterated_deriv_succ, H], simp only [iterated_deriv_C_zero, derivative_C] },
     { replace h : 0 < n := nat.pos_of_ne_zero H,
       rw [iterated_deriv_succ, ih h], simp only [derivative_zero] } }
 end
@@ -144,19 +144,18 @@ begin
 end
 
 lemma coeff_iterated_deriv_as_prod_range :
-  ∀ m : ℕ, (iterated_deriv f k).coeff m = f.coeff (m + k) * (∏ i in finset.range k, ↑(m + k - i)) :=
+  ∀ m : ℕ, (iterated_deriv f k).coeff m = f.coeff (m + k) * (∏ i in range k, ↑(m + k - i)) :=
 begin
   induction k with k ih,
   { simp },
-
   intro m,
   calc (f.iterated_deriv k.succ).coeff m
-      = f.coeff (m + k.succ) * (∏ i in finset.range k, ↑(m + k.succ - i)) * (m + 1) :
+      = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * (m + 1) :
     by rw [iterated_deriv_succ, coeff_derivative, ih m.succ, succ_add, add_succ]
-  ... = f.coeff (m + k.succ) * (↑(m + 1) * (∏ (i : ℕ) in range k, ↑(m + k.succ - i))) :
-    by { push_cast, ring }
-  ... = f.coeff (m + k.succ) * (∏ (i : ℕ) in range k.succ, ↑(m + k.succ - i)) :
-    by { rw [prod_range_succ, nat.add_sub_assoc (le_succ k), nat.succ_sub le_rfl, nat.sub_self] }
+  ... = f.coeff (m + k.succ) * (∏ i in range k, ↑(m + k.succ - i)) * ↑(m + 1) :
+    by push_cast
+  ... = f.coeff (m + k.succ) * (∏ i in range k.succ, ↑(m + k.succ - i)) :
+    by rw [prod_range_succ, nat.add_sub_assoc k.le_succ, succ_sub le_rfl, nat.sub_self, mul_assoc]
 end
 
 lemma iterated_deriv_eq_zero_of_nat_degree_lt (h : f.nat_degree < n) : iterated_deriv f n = 0 :=
@@ -196,7 +195,7 @@ begin
         C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
     by ring
   ... = ∑ (i : ℕ) in range n.succ,
-          C ↑(n.succ.choose (i + 1)) * p.iterated_deriv (n + 1 - (i + 1)) * q.iterated_deriv (i + 1) +
+          C ↑((n+1).choose (i+1)) * p.iterated_deriv (n + 1 - (i+1)) * q.iterated_deriv (i+1) +
         C ↑1 * p.iterated_deriv n.succ * q.iterated_deriv 0 :
     by simp_rw [choose_succ_succ, succ_sub_succ, cast_add, C.map_add, add_mul, sum_add_distrib]
   ... = ∑ (k : ℕ) in range n.succ.succ,
@@ -205,7 +204,7 @@ begin
 
   congr,
   refine (sum_range_succ' _ _).trans (congr_arg2 (+) _ _),
-  { rw [sum_range_succ, nat.choose_succ_self, cast_zero, C.map_zero, zero_mul, zero_mul, zero_add],
+  { rw [sum_range_succ, nat.choose_succ_self, cast_zero, C.map_zero, zero_mul, zero_mul, add_zero],
     refine sum_congr rfl (λ k hk, _),
     rw mem_range at hk,
     congr,

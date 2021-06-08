@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.set.disjointed
 import data.set.countable
-import data.indicator_function
+import algebra.indicator_function
 import data.equiv.encodable.lattice
 import data.tprod
 import order.filter.lift
@@ -103,15 +103,15 @@ lemma measurable_set.congr {s t : set α} (hs : measurable_set s) (h : s = t) :
   measurable_set t :=
 by rwa ← h
 
-lemma measurable_set.bUnion_decode2 [encodable β] ⦃f : β → set α⦄ (h : ∀ b, measurable_set (f b))
-  (n : ℕ) : measurable_set (⋃ b ∈ decode2 β n, f b) :=
-encodable.Union_decode2_cases measurable_set.empty h
+lemma measurable_set.bUnion_decode₂ [encodable β] ⦃f : β → set α⦄ (h : ∀ b, measurable_set (f b))
+  (n : ℕ) : measurable_set (⋃ b ∈ decode₂ β n, f b) :=
+encodable.Union_decode₂_cases measurable_set.empty h
 
 lemma measurable_set.Union [encodable β] ⦃f : β → set α⦄ (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋃ b, f b) :=
 begin
-  rw ← encodable.Union_decode2,
-  exact ‹measurable_space α›.measurable_set_Union _ (measurable_set.bUnion_decode2 h)
+  rw ← encodable.Union_decode₂,
+  exact ‹measurable_space α›.measurable_set_Union _ (measurable_set.bUnion_decode₂ h)
 end
 
 lemma measurable_set.bUnion {f : β → set α} {s : set β} (hs : countable s)
@@ -204,6 +204,11 @@ by { rw inter_eq_compl_compl_union_compl, exact (h₁.compl.union h₂.compl).co
   measurable_set (s₁ \ s₂) :=
 h₁.inter h₂.compl
 
+@[simp] lemma measurable_set.ite {t s₁ s₂ : set α} (ht : measurable_set t) (h₁ : measurable_set s₁)
+  (h₂ : measurable_set s₂) :
+  measurable_set (t.ite s₁ s₂) :=
+(h₁.inter ht).union (h₂.diff ht)
+
 @[simp] lemma measurable_set.disjointed {f : ℕ → set α} (h : ∀ i, measurable_set (f i)) (n) :
   measurable_set (disjointed f n) :=
 disjointed_induct (h n) (assume t i ht, measurable_set.diff ht $ h _)
@@ -257,6 +262,12 @@ finite.induction_on hs measurable_set.empty $ λ a s ha hsf hsm, hsm.insert _
 
 protected lemma finset.measurable_set (s : finset α) : measurable_set (↑s : set α) :=
 s.finite_to_set.measurable_set
+
+lemma set.countable.measurable_set {s : set α} (hs : countable s) : measurable_set s :=
+begin
+  rw [← bUnion_of_singleton s],
+  exact measurable_set.bUnion hs (λ b hb, measurable_set_singleton b)
+end
 
 end measurable_singleton_class
 
@@ -504,6 +515,10 @@ lemma measurable.comp {g : β → γ} {f : α → β} (hg : measurable g) (hf : 
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)
 
+lemma measurable.iterate {f : α → α} (hf : measurable f) : ∀ n, measurable (f^[n])
+| 0 := measurable_id
+| (n+1) := (measurable.iterate n).comp hf
+
 @[nontriviality] lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :=
 λ s hs, @subsingleton.measurable_set α _ _ _
 
@@ -512,8 +527,8 @@ lemma measurable.piecewise {s : set α} {_ : decidable_pred s} {f g : α → β}
   measurable (piecewise s f g) :=
 begin
   intros t ht,
-  simp only [piecewise_preimage],
-  exact (hs.inter $ hf ht).union (hs.compl.inter $ hg ht)
+  rw piecewise_preimage,
+  exact hs.ite (hf ht) (hg ht)
 end
 
 /-- this is slightly different from `measurable.piecewise`. It can be used to show
@@ -540,6 +555,27 @@ begin
   assume s hs,
   convert measurable_set.empty,
   exact eq_empty_of_not_nonempty h _,
+end
+
+@[to_additive] lemma measurable_set_mul_support [has_one β]
+  [measurable_singleton_class β] {f : α → β} (hf : measurable f) :
+  measurable_set (mul_support f) :=
+hf (measurable_set_singleton 1).compl
+
+/-- If a function coincides with a measurable function outside of a countable set, it is
+measurable. -/
+lemma measurable.measurable_of_countable_ne [measurable_singleton_class α]
+  {f g : α → β} (hf : measurable f) (h : countable {x | f x ≠ g x}) : measurable g :=
+begin
+  assume t ht,
+  have : g ⁻¹' t = (g ⁻¹' t ∩ {x | f x = g x}ᶜ) ∪ (g ⁻¹' t ∩ {x | f x = g x}),
+    by simp [← inter_union_distrib_left],
+  rw this,
+  apply measurable_set.union (h.mono (inter_subset_right _ _)).measurable_set,
+  have : g ⁻¹' t ∩ {x : α | f x = g x} = f ⁻¹' t ∩ {x : α | f x = g x},
+    by { ext x, simp {contextual := tt} },
+  rw this,
+  exact (hf ht).inter h.measurable_set.of_compl,
 end
 
 end measurable_functions
@@ -687,6 +723,10 @@ measurable_const.prod_mk measurable_id
 lemma measurable_prod_mk_right {y : β} : measurable (λ x : α, (x, y)) :=
 measurable_id.prod_mk measurable_const
 
+lemma measurable.prod_map [measurable_space δ] {f : α → β} {g : γ → δ} (hf : measurable f)
+  (hg : measurable g) : measurable (prod.map f g) :=
+(hf.comp measurable_fst).prod_mk (hg.comp measurable_snd)
+
 lemma measurable.of_uncurry_left {f : α → β → γ} (hf : measurable (uncurry f)) {x : α} :
   measurable (f x) :=
 hf.comp measurable_prod_mk_left
@@ -726,6 +766,18 @@ end
 lemma measurable_set_swap_iff {s : set (α × β)} :
   measurable_set (prod.swap ⁻¹' s) ↔ measurable_set s :=
 ⟨λ hs, by { convert measurable_swap hs, ext ⟨x, y⟩, refl }, λ hs, measurable_swap hs⟩
+
+lemma measurable_from_prod_encodable [encodable β] [measurable_singleton_class β]
+  {f : α × β → γ} (hf : ∀ y, measurable (λ x, f (x, y))) :
+  measurable f :=
+begin
+  intros s hs,
+  have : f ⁻¹' s = ⋃ y, ((λ x, f (x, y)) ⁻¹' s).prod {y},
+  { ext1 ⟨x, y⟩,
+    simp [and_assoc, and.left_comm] },
+  rw this,
+  exact measurable_set.Union (λ y, (hf y hs).prod (measurable_set_singleton y))
+end
 
 end prod
 
@@ -1204,3 +1256,93 @@ def is_countably_spanning (C : set (set α)) : Prop :=
 lemma is_countably_spanning_measurable_set [measurable_space α] :
   is_countably_spanning {s : set α | measurable_set s} :=
 ⟨λ _, univ, λ _, measurable_set.univ, Union_const _⟩
+
+namespace measurable_set
+
+/-!
+### Typeclasses on `subtype measurable_set`
+-/
+
+variables [measurable_space α]
+
+instance : has_mem α (subtype (measurable_set : set α → Prop)) :=
+⟨λ a s, a ∈ (s : set α)⟩
+
+@[simp] lemma mem_coe (a : α) (s : subtype (measurable_set : set α → Prop)) :
+  a ∈ (s : set α) ↔ a ∈ s := iff.rfl
+
+instance : has_emptyc (subtype (measurable_set : set α → Prop)) :=
+⟨⟨∅, measurable_set.empty⟩⟩
+
+@[simp] lemma coe_empty : ↑(∅ : subtype (measurable_set : set α → Prop)) = (∅ : set α) := rfl
+
+instance [measurable_singleton_class α] : has_insert α (subtype (measurable_set : set α → Prop)) :=
+⟨λ a s, ⟨has_insert.insert a s, s.prop.insert a⟩⟩
+
+@[simp] lemma coe_insert [measurable_singleton_class α] (a : α)
+  (s : subtype (measurable_set : set α → Prop)) :
+  ↑(has_insert.insert a s) = (has_insert.insert a s : set α) := rfl
+
+instance : has_compl (subtype (measurable_set : set α → Prop)) :=
+⟨λ x, ⟨xᶜ, x.prop.compl⟩⟩
+
+@[simp] lemma coe_compl (s : subtype (measurable_set : set α → Prop)) : ↑(sᶜ) = (sᶜ : set α) := rfl
+
+instance : has_union (subtype (measurable_set : set α → Prop)) :=
+⟨λ x y, ⟨x ∪ y, x.prop.union y.prop⟩⟩
+
+@[simp] lemma coe_union (s t : subtype (measurable_set : set α → Prop)) :
+  ↑(s ∪ t) = (s ∪ t : set α) := rfl
+
+instance : has_inter (subtype (measurable_set : set α → Prop)) :=
+⟨λ x y, ⟨x ∩ y, x.prop.inter y.prop⟩⟩
+
+@[simp] lemma coe_inter (s t : subtype (measurable_set : set α → Prop)) :
+  ↑(s ∩ t) = (s ∩ t : set α) := rfl
+
+instance : has_sdiff (subtype (measurable_set : set α → Prop)) :=
+⟨λ x y, ⟨x \ y, x.prop.diff y.prop⟩⟩
+
+@[simp] lemma coe_sdiff (s t : subtype (measurable_set : set α → Prop)) :
+  ↑(s \ t) = (s \ t : set α) := rfl
+
+instance : has_bot (subtype (measurable_set : set α → Prop)) :=
+⟨⟨⊥, measurable_set.empty⟩⟩
+
+@[simp] lemma coe_bot : ↑(⊥ : subtype (measurable_set : set α → Prop)) = (⊥ : set α) := rfl
+
+instance : has_top (subtype (measurable_set : set α → Prop)) :=
+⟨⟨⊤, measurable_set.univ⟩⟩
+
+@[simp] lemma coe_top : ↑(⊤ : subtype (measurable_set : set α → Prop)) = (⊤ : set α) := rfl
+
+instance : partial_order (subtype (measurable_set : set α → Prop)) :=
+partial_order.lift _ subtype.coe_injective
+
+instance : bounded_distrib_lattice (subtype (measurable_set : set α → Prop)) :=
+{ sup := (∪),
+  le_sup_left := λ a b, show (a : set α) ≤ a ⊔ b, from le_sup_left,
+  le_sup_right := λ a b, show (b : set α) ≤ a ⊔ b, from le_sup_right,
+  sup_le := λ a b c ha hb, show (a ⊔ b : set α) ≤ c, from sup_le ha hb,
+  inf := (∩),
+  inf_le_left := λ a b, show (a ⊓ b : set α) ≤ a, from inf_le_left,
+  inf_le_right := λ a b, show (a ⊓ b : set α) ≤ b, from inf_le_right,
+  le_inf := λ a b c ha hb, show (a : set α) ≤ b ⊓ c, from le_inf ha hb,
+  top := ⊤,
+  le_top := λ a, show (a : set α) ≤ ⊤, from le_top,
+  bot := ⊥,
+  bot_le := λ a, show (⊥ : set α) ≤ a, from bot_le,
+  le_sup_inf := λ x y z, show ((x ⊔ y) ⊓ (x ⊔ z) : set α) ≤ x ⊔ y ⊓ z, from le_sup_inf,
+  .. measurable_set.subtype.partial_order }
+
+instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
+{ sdiff := (\),
+  sup_inf_sdiff := λ a b, subtype.eq $ sup_inf_sdiff a b,
+  inf_inf_sdiff := λ a b, subtype.eq $ inf_inf_sdiff a b,
+  compl := has_compl.compl,
+  inf_compl_le_bot := λ a, boolean_algebra.inf_compl_le_bot (a : set α),
+  top_le_sup_compl := λ a, boolean_algebra.top_le_sup_compl (a : set α),
+  sdiff_eq := λ a b, subtype.eq $ sdiff_eq,
+  .. measurable_set.subtype.bounded_distrib_lattice }
+
+end measurable_set

@@ -140,10 +140,10 @@ begin
     ∃ (o : set M), is_open o ∧ x ∈ o ∧ o ⊆ e.source ∧ o ⊆ e'.source ∧
       o ∩ s ⊆ g ⁻¹' f.source ∧ o ∩ s ⊆  g⁻¹' f'.to_local_equiv.source,
   { have : f.source ∩ f'.source ∈ 𝓝 (g x) :=
-      mem_nhds_sets (is_open_inter f.open_source f'.open_source) ⟨xf, xf'⟩,
+      is_open.mem_nhds (is_open.inter f.open_source f'.open_source) ⟨xf, xf'⟩,
     rcases mem_nhds_within.1 (hgs.preimage_mem_nhds_within this) with ⟨u, u_open, xu, hu⟩,
     refine ⟨u ∩ e.source ∩ e'.source, _, ⟨⟨xu, xe⟩, xe'⟩, _, _, _, _⟩,
-    { exact is_open_inter (is_open_inter u_open e.open_source) e'.open_source },
+    { exact is_open.inter (is_open.inter u_open e.open_source) e'.open_source },
     { assume x hx, exact hx.1.2 },
     { assume x hx, exact hx.2 },
     { assume x hx, exact (hu ⟨hx.1.1.1, hx.2⟩).1 },
@@ -199,7 +199,7 @@ begin
       simp only [this, hy] with mfld_simps } },
   rw this at E,
   apply (hG.is_local _ _).2 E,
-  { exact is_open_inter w.open_target
+  { exact is_open.inter w.open_target
       (e'.continuous_on_symm.preimage_open_of_open e'.open_target o_open) },
   { simp only [xe', xe, xo] with mfld_simps },
 end
@@ -208,13 +208,14 @@ lemma lift_prop_within_at_indep_chart [has_groupoid M G] [has_groupoid M' G']
   (he : e ∈ G.maximal_atlas M) (xe : x ∈ e.source)
   (hf : f ∈ G'.maximal_atlas M') (xf : g x ∈ f.source) :
   lift_prop_within_at P g s x ↔
-  continuous_within_at g s x ∧ P (f ∘ g ∘ e.symm) (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source)) (e x) :=
+    continuous_within_at g s x ∧ P (f ∘ g ∘ e.symm)
+      (e.target ∩ e.symm ⁻¹' (s ∩ g⁻¹' f.source)) (e x) :=
 ⟨λ H, ⟨H.1,
   hG.lift_prop_within_at_indep_chart_aux (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) he xe
   (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) hf xf H.1 H.2⟩,
 λ H, ⟨H.1,
-  hG.lift_prop_within_at_indep_chart_aux he xe (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) hf xf
-  (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) H.1 H.2⟩⟩
+  hG.lift_prop_within_at_indep_chart_aux he xe (chart_mem_maximal_atlas _ _) (mem_chart_source _ _)
+    hf xf (chart_mem_maximal_atlas _ _) (mem_chart_source _ _) H.1 H.2⟩⟩
 
 lemma lift_prop_on_indep_chart [has_groupoid M G] [has_groupoid M' G']
   (he : e ∈ G.maximal_atlas M) (hf : f ∈ G'.maximal_atlas M') (h : lift_prop_on P g s) :
@@ -241,10 +242,10 @@ begin
       o ∩ s ⊆ g ⁻¹' (chart_at H' (g x)).source ∧ o ∩ s ⊆ t,
   { rcases mem_nhds_within.1 ht with ⟨u, u_open, xu, ust⟩,
     have : (chart_at H' (g x)).source ∈ 𝓝 (g x) :=
-      mem_nhds_sets ((chart_at H' (g x))).open_source (mem_chart_source H' (g x)),
+      is_open.mem_nhds ((chart_at H' (g x))).open_source (mem_chart_source H' (g x)),
     rcases mem_nhds_within.1 (hcont.preimage_mem_nhds_within this) with ⟨v, v_open, xv, hv⟩,
     refine ⟨u ∩ v ∩ (chart_at H x).source, _, ⟨⟨xu, xv⟩, mem_chart_source _ _⟩, _, _, _⟩,
-    { exact is_open_inter (is_open_inter u_open v_open) (chart_at H x).open_source },
+    { exact is_open.inter (is_open.inter u_open v_open) (chart_at H x).open_source },
     { assume y hy, exact hy.2 },
     { assume y hy, exact hv ⟨hy.1.1.2, hy.2⟩ },
     { assume y hy, exact ust ⟨hy.1.1.1, hy.2⟩ } },
@@ -286,7 +287,7 @@ begin
   rcases h x hx with ⟨u, u_open, xu, hu⟩,
   have := hu x ⟨hx, xu⟩,
   rwa hG.lift_prop_within_at_inter at this,
-  exact mem_nhds_sets u_open xu,
+  exact is_open.mem_nhds u_open xu,
 end
 
 lemma lift_prop_of_locally_lift_prop_on
@@ -384,8 +385,8 @@ begin
   exact lift_prop_within_at_mono mono h (subset_univ _),
 end
 
-lemma lift_prop_on_mono
-  (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x) (h : lift_prop_on P g t) (hst : s ⊆ t) :
+lemma lift_prop_on_mono (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x)
+  (h : lift_prop_on P g t) (hst : s ⊆ t) :
   lift_prop_on P g s :=
 λ x hx, lift_prop_within_at_mono mono (h x (hst hx)) hst
 
@@ -419,7 +420,7 @@ begin
   assume x hx,
   apply hG.lift_prop_within_at_of_lift_prop_at_of_mem_nhds
     (hG.lift_prop_at_of_mem_maximal_atlas hQ he hx),
-  apply mem_nhds_sets e.open_source hx,
+  apply is_open.mem_nhds e.open_source hx,
 end
 
 lemma lift_prop_at_symm_of_mem_maximal_atlas [has_groupoid M G] {x : H}
@@ -430,7 +431,8 @@ begin
   { have A : e.symm ⁻¹' e.source ∩ e.target = e.target,
       by mfld_set_tac,
     have : e.symm x ∈ e.source, by simp only [hx] with mfld_simps,
-    rw [lift_prop_at, hG.lift_prop_within_at_indep_chart G.id_mem_maximal_atlas (mem_univ _) he this],
+    rw [lift_prop_at,
+      hG.lift_prop_within_at_indep_chart G.id_mem_maximal_atlas (mem_univ _) he this],
     refine ⟨(e.symm.continuous_at hx).continuous_within_at, _⟩,
     simp only with mfld_simps,
     rwa [hG.is_local e.open_target hx, A] },
@@ -447,7 +449,7 @@ begin
   assume x hx,
   apply hG.lift_prop_within_at_of_lift_prop_at_of_mem_nhds
     (hG.lift_prop_at_symm_of_mem_maximal_atlas hQ he hx),
-  apply mem_nhds_sets e.open_target hx,
+  apply is_open.mem_nhds e.open_target hx,
 end
 
 lemma lift_prop_at_chart [has_groupoid M G]

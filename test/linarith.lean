@@ -57,7 +57,7 @@ example (ε : ℚ) (h1 : ε > 0) : ε / 3 + ε / 3 + ε / 3 = ε :=
 by linarith
 
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
-by linarith {discharger := `[ring SOP]}
+by linarith {discharger := `[ring]}
 
 example (a b c : ℚ)  (h2 : b + 2 > 3 + b) : false :=
 by linarith
@@ -343,7 +343,7 @@ variable [fact false] -- we work in an inconsistent context below
 def leα : α → α → Prop := λ a b, ∀ c : α, true
 
 noncomputable instance : linear_ordered_field α :=
-by refine_struct { le := leα }; exact false.elim _inst_2
+by refine_struct { le := leα }; exact (fact.out false).elim
 
 example (a : α) (ha : a < 2) : a ≤ a :=
 by linarith
@@ -352,11 +352,11 @@ example (p q r s t u v w : ℕ) (h1 : p + u = q + t) (h2 : r + w = s + v) :
   p * r + q * s + (t * w + u * v) = p * s + q * r + (t * v + u * w) :=
 by nlinarith
 
--- Tests involving a norm, including that squares in a type where `pow_two_nonneg` does not apply
+-- Tests involving a norm, including that squares in a type where `sq_nonneg` does not apply
 -- do not cause an exception
 variables {R : Type*} [ring R] (abs : R → ℚ)
 
-lemma abs_nonneg' : ∀ r, 0 ≤ abs r := false.elim _inst_2
+lemma abs_nonneg' : ∀ r, 0 ≤ abs r := (fact.out false).elim
 
 example (t : R) (a b : ℚ) (h : a ≤ b) : abs (t^2) * a ≤ abs (t^2) * b :=
 by nlinarith [abs_nonneg' abs (t^2)]
@@ -374,7 +374,7 @@ constant T_zero : ordered_ring T
 
 namespace T
 
-lemma zero_lt_one : (0 : T) < 1 := false.elim _inst_2
+lemma zero_lt_one : (0 : T) < 1 := (fact.out false).elim
 
 lemma works {a b : ℕ} (hab : a ≤ b) (h : b < a) : false :=
 begin

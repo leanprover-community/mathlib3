@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.intervals
 import topology.instances.real
 import topology.algebra.module
-import data.indicator_function
+import algebra.indicator_function
 import data.equiv.encodable.lattice
 import data.nat.parity
 import order.filter.at_top_bot
@@ -153,7 +153,7 @@ e.injective.has_sum_iff $ by simp
 
 lemma function.injective.has_sum_range_iff {g : γ → β} (hg : injective g) :
   has_sum (λ x : set.range g, f x) a ↔ has_sum (f ∘ g) a :=
-(equiv.set.range g hg).has_sum_iff.symm
+(equiv.of_injective g hg).has_sum_iff.symm
 
 lemma equiv.summable_iff (e : γ ≃ β) :
   summable (f ∘ e) ↔ summable f :=
@@ -441,32 +441,32 @@ variable [encodable γ]
 
 /-- You can compute a sum over an encodably type by summing over the natural numbers and
   taking a supremum. This is useful for outer measures. -/
-theorem tsum_supr_decode2 [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
-  (s : γ → β) : ∑' i : ℕ, m (⨆ b ∈ decode2 γ i, s b) = ∑' b : γ, m (s b) :=
+theorem tsum_supr_decode₂ [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
+  (s : γ → β) : ∑' i : ℕ, m (⨆ b ∈ decode₂ γ i, s b) = ∑' b : γ, m (s b) :=
 begin
-  have H : ∀ n, m (⨆ b ∈ decode2 γ n, s b) ≠ 0 → (decode2 γ n).is_some,
+  have H : ∀ n, m (⨆ b ∈ decode₂ γ n, s b) ≠ 0 → (decode₂ γ n).is_some,
   { intros n h,
-    cases decode2 γ n with b,
+    cases decode₂ γ n with b,
     { refine (h $ by simp [m0]).elim },
     { exact rfl } },
   symmetry, refine tsum_eq_tsum_of_ne_zero_bij (λ a, option.get (H a.1 a.2)) _ _ _,
   { rintros ⟨m, hm⟩ ⟨n, hn⟩ e,
-    have := mem_decode2.1 (option.get_mem (H n hn)),
-    rwa [← e, mem_decode2.1 (option.get_mem (H m hm))] at this },
+    have := mem_decode₂.1 (option.get_mem (H n hn)),
+    rwa [← e, mem_decode₂.1 (option.get_mem (H m hm))] at this },
   { intros b h,
     refine ⟨⟨encode b, _⟩, _⟩,
-    { simp only [mem_support, encodek2] at h ⊢, convert h, simp [set.ext_iff, encodek2] },
-    { exact option.get_of_mem _ (encodek2 _) } },
+    { simp only [mem_support, encodek₂] at h ⊢, convert h, simp [set.ext_iff, encodek₂] },
+    { exact option.get_of_mem _ (encodek₂ _) } },
   { rintros ⟨n, h⟩, dsimp only [subtype.coe_mk],
     transitivity, swap,
-    rw [show decode2 γ n = _, from option.get_mem (H n h)],
+    rw [show decode₂ γ n = _, from option.get_mem (H n h)],
     congr, simp [ext_iff, -option.some_get] }
 end
 
-/-- `tsum_supr_decode2` specialized to the complete lattice of sets. -/
-theorem tsum_Union_decode2 (m : set β → α) (m0 : m ∅ = 0)
-  (s : γ → set β) : ∑' i, m (⋃ b ∈ decode2 γ i, s b) = ∑' b, m (s b) :=
-tsum_supr_decode2 m m0 s
+/-- `tsum_supr_decode₂` specialized to the complete lattice of sets. -/
+theorem tsum_Union_decode₂ (m : set β → α) (m0 : m ∅ = 0)
+  (s : γ → set β) : ∑' i, m (⋃ b ∈ decode₂ γ i, s b) = ∑' b, m (s b) :=
+tsum_supr_decode₂ m m0 s
 
 /-! Some properties about measure-like functions.
   These could also be functions defined on complete sublattices of sets, with the property
@@ -478,7 +478,7 @@ tsum_supr_decode2 m m0 s
 theorem rel_supr_tsum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
   (R : α → α → Prop) (m_supr : ∀(s : ℕ → β), R (m (⨆ i, s i)) ∑' i, m (s i))
   (s : γ → β) : R (m (⨆ b : γ, s b)) ∑' b : γ, m (s b) :=
-by { rw [← supr_decode2, ← tsum_supr_decode2 _ m0 s], exact m_supr _ }
+by { rw [← supr_decode₂, ← tsum_supr_decode₂ _ m0 s], exact m_supr _ }
 
 /-- If a function is countably sub-additive then it is sub-additive on finite sets -/
 theorem rel_supr_sum [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
@@ -524,10 +524,10 @@ variables {ι : Type*} {π : α → Type*} [∀ x, add_comm_monoid (π x)] [∀ 
 
 lemma pi.has_sum {f : ι → ∀ x, π x} {g : ∀ x, π x} :
   has_sum f g ↔ ∀ x, has_sum (λ i, f i x) (g x) :=
-by simp [has_sum, tendsto_pi]
+by simp only [has_sum, tendsto_pi, sum_apply]
 
 lemma pi.summable {f : ι → ∀ x, π x} : summable f ↔ ∀ x, summable (λ i, f i x) :=
-by simp [summable, pi.has_sum, classical.skolem]
+by simp only [summable, pi.has_sum, skolem]
 
 lemma tsum_apply [∀ x, t2_space (π x)] {f : ι → ∀ x, π x}{x : α} (hf : summable f) :
   (∑' i, f i) x = ∑' i, f i x :=
@@ -553,7 +553,7 @@ lemma summable_neg_iff : summable (λ b, - f b) ↔ summable f :=
 ⟨summable.of_neg, summable.neg⟩
 
 lemma has_sum.sub (hf : has_sum f a₁) (hg : has_sum g a₂) : has_sum (λb, f b - g b) (a₁ - a₂) :=
-by { simp [sub_eq_add_neg], exact hf.add hg.neg }
+by { simp only [sub_eq_add_neg], exact hf.add hg.neg }
 
 lemma summable.sub (hf : summable f) (hg : summable g) : summable (λb, f b - g b) :=
 (hf.has_sum.sub hg.has_sum).summable
@@ -564,8 +564,9 @@ begin
   convert ((has_sum_ite_eq b _).add hf),
   ext b',
   by_cases h : b' = b,
-  { rw h, simp, },
-  { simp [h] },
+  { rw [h, update_same],
+    simp only [eq_self_iff_true, if_true, sub_add_cancel] },
+  simp only [h, update_noteq, if_false, ne.def, zero_add, not_false_iff],
 end
 
 lemma summable.update (hf : summable f) (b : β) [decidable_eq β] (a : α) :
@@ -648,7 +649,7 @@ by simp [has_sum_nat_add_iff]
 
 lemma sum_add_tsum_nat_add [t2_space α] {f : ℕ → α} (k : ℕ) (h : summable f) :
   (∑ i in range k, f i) + (∑' i, f (i + k)) = ∑' i, f i :=
-by simpa [add_comm] using
+by simpa only [add_comm] using
   ((has_sum_nat_add_iff k).1 ((summable_nat_add_iff k).2 h).has_sum).unique h.has_sum
 
 lemma tsum_eq_zero_add [t2_space α] {f : ℕ → α} (hf : summable f) :
@@ -704,11 +705,11 @@ end tsum
 
 end topological_semiring
 
-section topological_semimodule
+section has_continuous_smul
 variables {R : Type*}
 [semiring R] [topological_space R]
 [topological_space α] [add_comm_monoid α]
-[semimodule R α] [topological_semimodule R α]
+[module R α] [has_continuous_smul R α]
 {f : β → α}
 
 lemma has_sum.smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
@@ -720,7 +721,7 @@ hf.has_sum.smul.summable
 lemma tsum_smul [t2_space α] {r : R} (hf : summable f) : ∑' z, r • f z = r • ∑' z, f z :=
 hf.has_sum.smul.tsum_eq
 
-end topological_semimodule
+end has_continuous_smul
 
 section division_ring
 
@@ -863,6 +864,10 @@ has_sum_lt h hi hf.has_sum hg.has_sum
 @[mono] lemma tsum_strict_mono (hf : summable f) (hg : summable g) (h : f < g) :
   ∑' n, f n < ∑' n, g n :=
 let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hf hg
+
+lemma tsum_pos (hsum : summable g) (hg : ∀ b, 0 ≤ g b) (i : β) (hi : 0 < g i) :
+  0 < ∑' b, g b :=
+by { rw ← tsum_zero, exact tsum_lt_tsum hg hi summable_zero hsum }
 
 end ordered_topological_group
 
@@ -1060,9 +1065,9 @@ alias summable_abs_iff ↔ summable.of_abs summable.abs
 section cauchy_seq
 open finset.Ico filter
 
-/-- If the extended distance between consequent points of a sequence is estimated
+/-- If the extended distance between consecutive points of a sequence is estimated
 by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
+lemma cauchy_seq_of_edist_le_of_summable [pseudo_emetric_space α] {f : ℕ → α} (d : ℕ → ℝ≥0)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
@@ -1083,9 +1088,9 @@ begin
   assumption_mod_cast
 end
 
-/-- If the distance between consequent points of a sequence is estimated by a summable series,
+/-- If the distance between consecutive points of a sequence is estimated by a summable series,
 then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma cauchy_seq_of_dist_le_of_summable [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine metric.cauchy_seq_iff'.2 (λε εpos, _),
@@ -1100,11 +1105,11 @@ begin
   ... < ε : hsum
 end
 
-lemma cauchy_seq_of_summable_dist [metric_space α] {f : ℕ → α}
+lemma cauchy_seq_of_summable_dist [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
 cauchy_seq_of_dist_le_of_summable _ (λ _, le_refl _) h
 
-lemma dist_le_tsum_of_dist_le_of_tendsto [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma dist_le_tsum_of_dist_le_of_tendsto [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a))
   (n : ℕ) :
   dist (f n) a ≤ ∑' m, d (n + m) :=
@@ -1117,18 +1122,18 @@ begin
   exact hd.comp_injective (add_right_injective n)
 end
 
-lemma dist_le_tsum_of_dist_le_of_tendsto₀ [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+lemma dist_le_tsum_of_dist_le_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a)) :
   dist (f 0) a ≤ tsum d :=
 by simpa only [zero_add] using dist_le_tsum_of_dist_le_of_tendsto d hf hd ha 0
 
-lemma dist_le_tsum_dist_of_tendsto [metric_space α] {f : ℕ → α}
+lemma dist_le_tsum_dist_of_tendsto [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
   dist (f n) a ≤ ∑' m, dist (f (n+m)) (f (n+m).succ) :=
 show dist (f n) a ≤ ∑' m, (λx, dist (f x) (f x.succ)) (n + m), from
 dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
 
-lemma dist_le_tsum_dist_of_tendsto₀ [metric_space α] {f : ℕ → α}
+lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) :
   dist (f 0) a ≤ ∑' n, dist (f n) (f n.succ) :=
 by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0

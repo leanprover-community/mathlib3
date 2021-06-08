@@ -258,6 +258,11 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
 def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 ⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
 
+/-- The extended non-negative reals are an algebra over the non-negative reals. -/
+instance : algebra ℝ≥0 ℝ≥0∞ := of_nnreal_hom.to_algebra
+
+lemma smul_def (c : ℝ≥0) (x : ℝ≥0∞) : c • x = ↑c * x := rfl
+
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :

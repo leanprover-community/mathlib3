@@ -128,6 +128,8 @@ def to_real_hom : ℝ≥0 →+* ℝ :=
 /-- The real numbers are an algebra over the non-negative reals. -/
 instance : algebra ℝ≥0 ℝ := to_real_hom.to_algebra
 
+lemma smul_def (c : ℝ≥0) (x : ℝ) : c • x = ↑c * x := rfl
+
 @[simp] lemma coe_to_real_hom : ⇑to_real_hom = coe := rfl
 
 instance : comm_group_with_zero ℝ≥0 :=

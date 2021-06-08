@@ -505,6 +505,11 @@ theorem mem_span_image_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
 by { rw span_image_eq_map_total, simp, }
 
+lemma total_option (v : option α → M) (f : option α →₀ R) :
+  finsupp.total (option α) M R v f =
+    f none • v none + finsupp.total α M R (v ∘ option.some) f.some :=
+by rw [total_apply, sum_option, total_apply]
+
 lemma total_total {α β : Type*} (A : α → M) (B : β → (α →₀ R)) (f : β →₀ R) :
   finsupp.total α M R A ((finsupp.total β (α →₀ R) R B) f) =
     finsupp.total β M R (λ b, finsupp.total α M R A (B b)) f :=

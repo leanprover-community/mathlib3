@@ -1481,6 +1481,22 @@ end
 
 end comap_domain
 
+section option
+
+/-- Restrict a finitely supported function on `option α` to a finitely support function on `α`. -/
+def some [has_zero M] (f : option α →₀ M) : α →₀ M :=
+f.comap_domain option.some (by tidy)
+
+@[simp] lemma some_apply [has_zero M] (f : option α →₀ M) (a : α) :
+  f.some a = f (option.some a) := rfl
+
+@[to_additive]
+lemma prod_option [has_zero M] [comm_monoid N] (f : option α →₀ M) (b : option α → M → N) :
+  f.prod b = b none (f none) * f.some.prod (b ∘ option.some) :=
+sorry
+
+end option
+
 /-! ### Declarations about `filter` -/
 
 section filter

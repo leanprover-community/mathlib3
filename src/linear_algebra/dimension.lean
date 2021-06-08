@@ -275,9 +275,15 @@ begin
   obtain ⟨x, p, q⟩ := exists_mem_of_not_subseteq h',
   -- and write it in terms of the basis.
   have e := b.total_repr x,
-  -- This then gives a nontrivial linear combination of the elements of `w`,
-  let u' : Π i, ∃ z : w, b i = z := sorry,
-  let u : ι ↪ w := ⟨λ i, (u' i).some, sorry⟩,
+  -- This then expresses `x` as a linear combination
+  -- of elements of `w` which are in the range of `b`,
+  let u' : Π i, ∃ z : w, b i = z := λ i, ⟨inclusion h ⟨(b i), ⟨i, rfl⟩⟩, rfl⟩,
+  let u : ι ↪ w := ⟨λ i, (u' i).some, λ i i' r, begin
+    dsimp at r,
+    apply_fun (coe : w → M) at r,
+    rw [←(u' i).some_spec, ←(u' i').some_spec] at r,
+    exact b.injective r,
+  end⟩,
   have r : ∀ i, b i = u i := λ i, (u' i).some_spec,
   rw finsupp.total_apply at e,
   simp_rw r at e,
@@ -288,11 +294,11 @@ begin
   change _ = ((⟨x, p⟩ : w) : M) at e,
   refine i.total_ne_of_not_mem_support _ _ e,
   simp only [finset.mem_map, finsupp.support_emb_domain],
-  rintro ⟨j, H, W⟩,
-  replace H : (u j : M) = x := sorry,
-  rw ←r at H,
+  rintro ⟨j, -, W⟩,
+  replace W : (u j : M) = x := congr_arg coe W,
+  rw ←r at W,
   apply q,
-  exact ⟨j, H⟩,
+  exact ⟨j, W⟩,
 end
 
 attribute [irreducible] linear_independent.maximal
@@ -349,27 +355,51 @@ lemma union_support_maximal_linear_independent_eq_range_basis
   {κ : Type w'} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :
   (⋃ k, ((b.repr (v k)).support : set ι)) = univ :=
 begin
+  -- If that's not the case,
   by_contradiction h,
   simp only [←ne.def, ne_univ_iff_exists_not_mem, mem_Union, not_exists_not,
     finsupp.mem_support_iff, finset.mem_coe] at h,
+  -- We have some basis element `b b'` which is not in the support of any of the `v i`.
   obtain ⟨b', w⟩ := h,
+  -- Using this, we'll construct a linearly independent family strictly larger than `v`,
+  -- by also using this `b b'`.
   let v' : option κ → M := λ o, o.elim (b b') v,
   have r : range v ⊆ range v',
   { rintro - ⟨k, rfl⟩,
     use some k,
     refl, },
-  have r' : range v ≠ range v',
+  have r' : b b' ∉ range v,
+  { rintro ⟨k, p⟩,
+    simpa [w] using congr_arg (λ m, (b.repr m) b') p, },
+  have r'' : range v ≠ range v',
   { intro e,
     have p : b b' ∈ range v', { use none, refl, },
     rw ←e at p,
-    rcases p with ⟨k, p⟩,
-    simpa [w] using congr_arg (λ m, (b.repr m) b') p, },
+    exact r' p, },
+  have inj' : injective v', sorry,
+  -- The key step in the proof is checking that this strictly larger family is linearly independent.
   have i' : linear_independent R (coe : range v' → M),
-  { rw linear_independent_iff,
-    sorry, },
+  { rw [linear_independent_subtype_range inj', linear_independent_iff],
+    intros l z,
+    -- We have some linear combination of `b b'` and the `v i`, which we want to show is trivial.
+    -- We'll first show the coefficient of `b b'` is zero,
+    -- by expressing the `v i` in the basis `b`, and using that the `v i` have no `b b'` term.
+    have l₀ : l none = 0,
+    { sorry, },
+    -- Then all the other coefficients are zero, because `v` is linear independent.
+    have l₁ : l.some = 0,
+    { rw [finsupp.total_option, l₀, zero_smul, zero_add] at z,
+      simp [v'] at z,
+      change finsupp.total κ M R v l.some = 0 at z,
+      exact linear_independent_iff.mp i _ z, },
+    -- Finally we put those facts together to show the linear combination is trivial.
+    ext (_|a),
+    { simp only [l₀, finsupp.coe_zero, pi.zero_apply], },
+    { erw finsupp.congr_fun l₁ a,
+      simp only [finsupp.coe_zero, pi.zero_apply], }, },
   dsimp [linear_independent.maximal] at m,
   specialize m (range v') i' r,
-  exact r' m,
+  exact r'' m,
 end
 
 /--

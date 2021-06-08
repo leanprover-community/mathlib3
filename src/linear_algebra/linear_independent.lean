@@ -56,8 +56,8 @@ vectors.
 In many cases we additionally provide dot-style operations (e.g., `linear_independent.union`) to
 make the linear independence tests usable as `hv.insert ha` etc.
 
-We also prove that any family of vectors includes a linear independent subfamily spanning the same
-submodule.
+We also prove that, when working over a field,
+any family of vectors includes a linear independent subfamily spanning the same subspace.
 
 ## Implementation notes
 

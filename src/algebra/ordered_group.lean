@@ -79,11 +79,6 @@ instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
 
-/-  DT: Why does `by apply_instance` not work here? -/
-instance units.covariant_class [ordered_comm_monoid α] :
-  covariant_class (units α) (units α) (*) (≤) :=
-ordered_comm_monoid.to_covariant_class_left (units α)
-
 @[priority 100, to_additive]
 instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   [ordered_comm_group α] :

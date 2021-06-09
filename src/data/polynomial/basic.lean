@@ -253,6 +253,10 @@ lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
 
+@[simp] lemma smul_C {S} [monoid S] [distrib_mul_action S R] (s : S) (r : R) :
+  s • C r = C (s • r) :=
+smul_monomial _ _ r
+
 @[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
 
 @[simp] lemma C_bit1 : C (bit1 a) = bit1 (C a) := by simp [bit1, C_bit0]

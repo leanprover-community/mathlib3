@@ -59,7 +59,7 @@ linear_map.det.comp (lmul R S).to_ring_hom.to_monoid_hom
 @[simp] lemma norm_apply (x : S) : norm R x = linear_map.det (lmul R S x) := rfl
 
 lemma norm_eq_one_of_not_exists_basis
-  (h : ¬ ∃ (s : set S) (b : basis s R S), s.finite) (x : S) : norm R x = 1 :=
+  (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) (x : S) : norm R x = 1 :=
 by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 
 variables {R}
@@ -87,12 +87,11 @@ end
 @[simp]
 lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
 begin
-  by_cases H : ∃ (s : set L) (b : basis s K L), s.finite,
-  { haveI : fintype H.some := H.some_spec.some_spec.some,
-    rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
+  by_cases H : ∃ (s : finset L), nonempty (basis s K L),
+  { rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
   { rw [norm_eq_one_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis, pow_zero],
     rintros ⟨s, ⟨b⟩⟩,
-    exact H ⟨↑s, b, s.finite_to_set⟩ },
+    exact H ⟨s, ⟨b⟩⟩ },
 end
 
 end algebra

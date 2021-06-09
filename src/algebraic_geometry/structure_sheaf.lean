@@ -795,20 +795,20 @@ If a section `s` on `U` is locally equal to the fraction `a/b`, its image on `V`
 to the fraction `f(a)/f(b)`.
 -/
 @[simps] def structure_sheaf.comap (f : R →+* S) (U : opens (prime_spectrum.Top R))
-  (V : opens (prime_spectrum.Top S)) (hUV : ∀ p ∈ V, comap f p ∈ U) :
+  (V : opens (prime_spectrum.Top S)) (hUV : V.1 ⊆ (comap f) ⁻¹' U.1) :
   (structure_sheaf R).presheaf.obj (op U) →+* (structure_sheaf S).presheaf.obj (op V) :=
 { to_fun := λ s,
-  ⟨λ p, localization.local_ring_hom ((comap f (p : prime_spectrum.Top S)).as_ideal) _ f
-    (λ r, iff.rfl) (s.1 ⟨prime_spectrum.comap f p.1, hUV p.1 p.2⟩ : _),
+  ⟨λ p, localization.local_ring_hom ((comap f (p : prime_spectrum.Top S)).as_ideal) _ f rfl
+    (s.1 ⟨prime_spectrum.comap f p.1, hUV p.2⟩ : _),
   begin
     -- Here, we need to show that the newly defined section on `V` is locally fraction.
     intro p,
     -- Since `s` is locally fraction, we can find a neighborhood `W` of `comap f p` in `U`, such
-    -- that `s = a / h` on `W`, for some ring elements `a h : R`.
-    rcases s.2 ⟨comap f p.1, hUV p.1 p.2⟩ with ⟨W, m, iWU, a, h, h_frac⟩,
-    -- We claim that we can write our new section as the fraction `f a / f h` on the neighborhood
+    -- that `s = a / b` on `W`, for some ring elements `a, b : R`.
+    rcases s.2 ⟨comap f p.1, hUV p.2⟩ with ⟨W, m, iWU, a, b, h_frac⟩,
+    -- We claim that we can write our new section as the fraction `f a / f b` on the neighborhood
     -- `(comap f) ⁻¹ W ⊓ V` of `p`.
-    refine ⟨opens.comap (comap_continuous f) W ⊓ V, ⟨m, p.2⟩, opens.inf_le_right _ _, f a, f h, _⟩,
+    refine ⟨opens.comap (comap_continuous f) W ⊓ V, ⟨m, p.2⟩, opens.inf_le_right _ _, f a, f b, _⟩,
     intro q,
     specialize h_frac ⟨prime_spectrum.comap f q.1, q.2.1⟩,
     refine ⟨h_frac.1, _⟩,
@@ -832,10 +832,10 @@ to the fraction `f(a)/f(b)`.
 }
 
 lemma structure_sheaf.comap_const (f : R →+* S) (U : opens (prime_spectrum.Top R))
-  (V : opens (prime_spectrum.Top S)) (hUV : ∀ p ∈ V, comap f p ∈ U)
+  (V : opens (prime_spectrum.Top S)) (hUV : V.1 ⊆ (comap f) ⁻¹' U.1)
   (a b : R) (hb : ∀ x : prime_spectrum R, x ∈ U → b ∈ x.as_ideal.prime_compl) :
   structure_sheaf.comap f U V hUV (const R a b U hb) =
-  const S (f a) (f b) V (λ p hpV, hb (comap f p) (hUV p hpV)) :=
+  const S (f a) (f b) V (λ p hpV, hb (comap f p) (hUV hpV)) :=
 subtype.eq $ funext $ λ p,
 begin
   rw [subtype.val_eq_coe, structure_sheaf.comap_apply_coe, const_apply, const_apply],
@@ -874,8 +874,8 @@ end
 
 /--
 The comap of the identity is the identity. In this variant of the lemma, two open subsets `U` and
-`V` are given as arguments, together with the fact `U = V`. This is be useful when `U` and `V` are
-not definitionally equal.
+`V` are given as arguments, together with a proof that `U = V`. This is be useful when `U` and `V`
+are not definitionally equal.
 -/
 lemma structure_sheaf.comap_id (U V : opens (prime_spectrum.Top R)) (hUV : U = V) :
   structure_sheaf.comap (ring_hom.id R) U V (λ p hpV, by rwa [hUV, prime_spectrum.comap_id]) =

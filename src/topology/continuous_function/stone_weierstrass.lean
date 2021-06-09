@@ -49,7 +49,7 @@ variables {X : Type*} [topological_space X] [compact_space X]
 Turn a function `f : C⟮X, ℝ⟯` into a continuous map into `set.Icc (-∥f∥) (∥f∥)`,
 thereby explicitly attaching bounds.
 -/
-def attach_bound (f : C⟮X, ℝ⟯) : C⟮X, set.Icc (-∥f∥⟯ (∥f∥)) :=
+def attach_bound (f : C⟮X, ℝ⟯) : C⟮X, set.Icc (-∥f∥) (∥f∥)⟯ :=
 { to_fun := λ x, ⟨f x, ⟨neg_norm_le_apply f x, apply_le_norm f x⟩⟩ }
 
 @[simp] lemma attach_bound_apply_coe (f : C⟮X, ℝ⟯) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl

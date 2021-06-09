@@ -390,7 +390,7 @@ begin
   { replace this := congr_arg (comap (polynomial.map_ring_hom i)) this,
     rw [← map_jacobson_of_surjective _ hi',
       comap_map_of_surjective _ _, comap_map_of_surjective _ _] at this,
-    refine le_antisymm (le_trans (le_sup_left_of_le le_rfl)
+    refine le_antisymm (le_trans (le_sup_of_le_left le_rfl)
       (le_trans (le_of_eq this) (sup_le le_rfl hi'))) le_jacobson,
     all_goals {exact polynomial.map_surjective i hi} },
   exact @is_jacobson_polynomial_of_domain R' _ (is_jacobson_of_surjective ⟨i, hi⟩)
@@ -493,7 +493,7 @@ begin
   have hf : function.surjective f := map_surjective (quotient.mk P') quotient.mk_surjective,
   have hPJ : P = (P.map f).comap f,
   { rw comap_map_of_surjective _ hf,
-    refine le_antisymm (le_sup_left_of_le le_rfl) (sup_le le_rfl _),
+    refine le_antisymm (le_sup_of_le_left le_rfl) (sup_le le_rfl _),
     refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
     simpa only [coeff_map, coe_map_ring_hom] using (polynomial.ext_iff.mp hp) n },
   refine ring_hom.is_integral_tower_bot_of_is_integral _ _ (injective_quotient_le_comap_map P) _,

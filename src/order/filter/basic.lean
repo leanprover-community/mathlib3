@@ -656,7 +656,7 @@ begin
   rcases h₂ with ⟨s, hs⟩,
   suffices : (⨅i, f ⊔ g i) ≤ f ⊔ s.inf (λi, g i.down), { exact this ⟨h₁, hs⟩ },
   refine finset.induction_on s _ _,
-  { exact le_sup_right_of_le le_top },
+  { exact le_sup_of_le_right le_top },
   { rintros ⟨i⟩ s his ih,
     rw [finset.inf_insert, sup_inf_left],
     exact le_inf (infi_le _ _) ih }

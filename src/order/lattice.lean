@@ -134,10 +134,10 @@ semilattice_sup.le_sup_right a b
 @[ematch] theorem le_sup_right' : b ≤ (: a ⊔ b :) :=
 le_sup_right
 
-theorem le_sup_left_of_le (h : c ≤ a) : c ≤ a ⊔ b :=
+theorem le_sup_of_le_left (h : c ≤ a) : c ≤ a ⊔ b :=
 le_trans h le_sup_left
 
-theorem le_sup_right_of_le (h : c ≤ b) : c ≤ a ⊔ b :=
+theorem le_sup_of_le_right (h : c ≤ b) : c ≤ a ⊔ b :=
 le_trans h le_sup_right
 
 theorem sup_le : a ≤ c → b ≤ c → a ⊔ b ≤ c :=
@@ -166,7 +166,7 @@ sup_eq_right.2 h
 eq_comm.trans sup_eq_right
 
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
-sup_le (le_sup_left_of_le h₁) (le_sup_right_of_le h₂)
+sup_le (le_sup_of_le_left h₁) (le_sup_of_le_right h₂)
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
 sup_le_sup (le_refl _) h₁
@@ -187,7 +187,7 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, (total_of (≤) c b).imp
   (λ bc, by rwa sup_eq_left.2 bc at h)
   (λ bc, by rwa sup_eq_right.2 bc at h),
- λ h, h.elim le_sup_left_of_le le_sup_right_of_le⟩
+ λ h, h.elim le_sup_of_le_left le_sup_of_le_right⟩
 
 @[simp] lemma lt_sup_iff [is_total α (≤)] {a b c : α} : a < b ⊔ c ↔ a < b ∨ a < c :=
 ⟨λ h, (total_of (≤) c b).imp
@@ -208,11 +208,11 @@ instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
 le_antisymm
   (sup_le
-    (sup_le le_sup_left (le_sup_right_of_le le_sup_left))
-    (le_sup_right_of_le le_sup_right))
+    (sup_le le_sup_left (le_sup_of_le_right le_sup_left))
+    (le_sup_of_le_right le_sup_right))
   (sup_le
-    (le_sup_left_of_le le_sup_left)
-    (sup_le (le_sup_left_of_le le_sup_right) le_sup_right))
+    (le_sup_of_le_left le_sup_left)
+    (sup_le (le_sup_of_le_left le_sup_right) le_sup_right))
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 

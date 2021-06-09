@@ -9,6 +9,7 @@ import algebra.group_with_zero.power
 import tactic.ring
 import tactic.ring_exp
 import tactic.field_simp
+import data.zmod.basic
 
 /-!
 # Pythagorean Triples
@@ -23,6 +24,19 @@ that these are coprime. This is easy except for the prime 2. In order to deal wi
 analyze the parity of `x`, `y`, `m` and `n` and eliminate all the impossible cases. This takes up
 the bulk of the proof below.
 -/
+
+lemma sq_ne_two_fin_zmod_four (z : zmod 4) : z * z ≠ 2 :=
+begin
+  change fin 4 at z,
+  fin_cases z; norm_num [fin.ext_iff, fin.coe_bit0, fin.coe_bit1]
+end
+
+lemma int.sq_ne_two_mod_four (z : ℤ) : (z * z) % 4 ≠ 2 :=
+suffices ¬ (z * z) % (4 : ℕ) = 2 % (4 : ℕ), by norm_num at this,
+begin
+  rw ← zmod.int_coe_eq_int_coe_iff',
+  simpa using sq_ne_two_fin_zmod_four _
+end
 
 noncomputable theory
 open_locale classical
@@ -126,13 +140,9 @@ begin
     { cases exists_eq_mul_left_of_dvd (int.dvd_sub_of_mod_eq hx) with x0 hx2,
       cases exists_eq_mul_left_of_dvd (int.dvd_sub_of_mod_eq hy) with y0 hy2,
       rw sub_eq_iff_eq_add at hx2 hy2, exact ⟨x0, y0, hx2, hy2⟩ },
-    have hz : (z * z) % 4 = 2,
-    { rw show z * z = 4 * (x0 * x0 + x0 + y0 * y0 + y0) + 2, by { rw ← h.eq, ring },
-      simp only [int.add_mod, int.mul_mod_right, int.mod_mod, zero_add], refl },
-    have : ∀ (k : ℤ), 0 ≤ k → k < 4 → k * k % 4 ≠ 2 := dec_trivial,
-    have h4 : (4 : ℤ) ≠ 0 := dec_trivial,
-    apply this (z % 4) (int.mod_nonneg z h4) (int.mod_lt z h4),
-    rwa [← int.mul_mod] },
+    apply int.sq_ne_two_mod_four z,
+    rw show z * z = 4 * (x0 * x0 + x0 + y0 * y0 + y0) + 2, by { rw ← h.eq, ring },
+    norm_num [int.add_mod] }
 end
 
 lemma gcd_dvd : (int.gcd x y : ℤ) ∣ z :=
@@ -435,17 +445,19 @@ begin
   let m := (q.denom : ℤ),
   let n := q.num,
   have hm0 : m ≠ 0, { norm_cast, apply rat.denom_ne_zero q },
-  have hq2 : q = n / m, { rw [int.cast_coe_nat], exact (rat.cast_id q).symm },
+  have hq2 : q = n / m := (rat.num_div_denom q).symm,
   have hm2n2 : 0 < m ^ 2 + n ^ 2,
   { apply lt_add_of_pos_of_le _ (sq_nonneg n),
     exact lt_of_le_of_ne (sq_nonneg m) (ne.symm (pow_ne_zero 2 hm0)) },
   have hw2 : w = (m ^ 2 - n ^ 2) / (m ^ 2 + n ^ 2),
-  { rw [ht4.2, hq2], field_simp [hm2n2, (rat.denom_ne_zero q)] },
+  { rw [ht4.2, hq2], field_simp [hm2n2, rat.denom_ne_zero q, -rat.num_div_denom] },
   have hm2n20 : (m : ℚ) ^ 2 + (n : ℚ) ^ 2 ≠ 0,
   { norm_cast, simpa only [int.coe_nat_pow] using ne_of_gt hm2n2 },
   have hv2 : v = 2 * m * n / (m ^ 2 + n ^ 2),
   { apply eq.symm, apply (div_eq_iff hm2n20).mpr, rw [ht4.1], field_simp [hQ q],
-    rw [hq2] {occs := occurrences.pos [2, 3]}, field_simp [rat.denom_ne_zero q], ring },
+    rw [hq2] {occs := occurrences.pos [2, 3]},
+    field_simp [rat.denom_ne_zero q, -rat.num_div_denom],
+    ring },
   have hnmcp : int.gcd n m = 1 := q.cop,
   have hmncp : int.gcd m n = 1, { rw int.gcd_comm, exact hnmcp },
   cases int.mod_two_eq_zero_or_one m with hm2 hm2;

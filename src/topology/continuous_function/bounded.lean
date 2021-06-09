@@ -59,7 +59,7 @@ rfl
 
 /-- A continuous function on a compact space is automatically a bounded continuous function. -/
 def mk_of_compact [compact_space α] (f : C(α, β)) : α →ᵇ β :=
-⟨f, bounded_range_iff.1 $ bounded_of_compact $ compact_range f.continuous⟩
+⟨f, bounded_range_iff.1 $ bounded_of_compact $ is_compact_range f.continuous⟩
 
 @[simp] lemma mk_of_compact_apply [compact_space α] (f : C(α, β)) (a : α) :
   mk_of_compact f a = f a :=
@@ -68,7 +68,7 @@ rfl
 /-- If a function is bounded on a discrete space, it is automatically continuous,
 and therefore gives rise to an element of the type of bounded continuous functions -/
 def mk_of_discrete [discrete_topology α] (f : α → β)
-  (C : ℝ) (h :  ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
+  (C : ℝ) (h : ∀ x y : α, dist (f x) (f y) ≤ C) : α →ᵇ β :=
 ⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
 
 @[simp] lemma mk_of_discrete_apply
@@ -185,18 +185,18 @@ lemma const_apply (a : α) (b : β) : (const α b : α → β) a = b := rfl
 instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const α (default β)⟩
 
 /-- The evaluation map is continuous, as a joint function of `u` and `x` -/
-theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
+@[continuity] theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
 have Hs : _ := continuous_iff'.1 f.continuous x (ε/2) (half_pos ε0),
-mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
+mem_sets_of_superset (prod_is_open.mem_nhds (ball_mem_nhds _ (half_pos ε0)) Hs) $
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
   ... < ε/2 + ε/2 : add_lt_add (lt_of_le_of_lt (dist_coe_le_dist _) hg) hy
   ... = ε : add_halves _
 
 /-- In particular, when `x` is fixed, `f → f x` is continuous -/
-theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
+@[continuity] theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
 continuous_eval.comp (continuous_id.prod_mk continuous_const)
 
 /-- Bounded continuous functions taking values in a complete space form a complete space. -/
@@ -302,7 +302,7 @@ begin
   have : ∀x:α, ∃U, x ∈ U ∧ is_open U ∧ ∀ (y z ∈ U) {f : α →ᵇ β},
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
-          ⟨V, VU, openV, xV⟩ := mem_nhds_sets_iff.1 nhdsU in
+          ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
       ⟨V, xV, openV, λy z hy hz f hf, hU y z (VU hy) (VU hz) f hf⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A
@@ -357,7 +357,7 @@ begin
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
   refine compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
-  { haveI : compact_space s := compact_iff_compact_space.1 hs,
+  { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
       (λ x ε ε0, bex.imp_right (λ U U_nhds hU y z hy hz f hf, _) (H x ε ε0)),
     calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
@@ -497,8 +497,13 @@ le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 /-- Constructing a bounded continuous function from a uniformly bounded continuous
 function taking values in a normed group. -/
 def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
-  (f : α  → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
+  (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
 ⟨⟨λn, f n, Hf⟩, ⟨_, dist_le_two_norm' H⟩⟩
+
+@[simp] lemma coe_of_normed_group
+  {α : Type u} {β : Type v} [topological_space α] [normed_group β]
+  (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
+  (of_normed_group f Hf C H : α → β) = f := rfl
 
 lemma norm_of_normed_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC : 0 ≤ C)
   (hfC : ∀ x, ∥f x∥ ≤ C) : ∥of_normed_group f hfc C hfC∥ ≤ C :=
@@ -510,6 +515,11 @@ def of_normed_group_discrete {α : Type u} {β : Type v}
   [topological_space α] [discrete_topology α] [normed_group β]
   (f : α  → β) (C : ℝ) (H : ∀x, norm (f x) ≤ C) : α →ᵇ β :=
 of_normed_group f continuous_of_discrete_topology C H
+
+@[simp] lemma coe_of_normed_group_discrete
+  {α : Type u} {β : Type v} [topological_space α] [discrete_topology α] [normed_group β]
+  (f : α → β) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
+  (of_normed_group_discrete f C H : α → β) = f := rfl
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
@@ -618,6 +628,16 @@ module.of_core $
 instance : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, norm_of_normed_group_le _
   (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _⟩
 
+variables (𝕜)
+/-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/
+def eval_clm (x : α) : (α →ᵇ β) →L[𝕜] β :=
+{ to_fun := λ f, f x,
+  map_add' := λ f g, by simp only [pi.add_apply, coe_add],
+  map_smul' := λ c f, by simp only [coe_smul] }
+
+@[simp] lemma eval_clm_apply (x : α) (f : α →ᵇ β) :
+  eval_clm 𝕜 x f = f x := rfl
+
 variables (α β)
 
 /-- The linear map forgetting that a bounded continuous function is bounded. -/
@@ -706,6 +726,10 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
   smul_def' := λ c f, ext $ λ x, algebra.smul_def' _ _,
   ..bounded_continuous_function.module,
   ..bounded_continuous_function.ring }
+
+@[simp] lemma algebra_map_apply (k : 𝕜) (a : α) :
+  algebra_map 𝕜 (α →ᵇ γ) k a = k • 1 :=
+by { rw algebra.algebra_map_eq_smul_one, refl, }
 
 instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
 { norm_algebra_map_eq := λ c, begin

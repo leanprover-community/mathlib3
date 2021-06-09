@@ -52,7 +52,7 @@ begin
   rw [zero_smul, add_zero] at this,
   rcases nonempty_of_mem_sets (inter_mem_sets (mem_map.1 (this hy)) self_mem_nhds_within)
     with ⟨_, hu, u, rfl⟩,
-  have hy' : y ∈ ↑s := mem_of_nhds hy,
+  have hy' : y ∈ ↑s := mem_of_mem_nhds hy,
   exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
 end
 
@@ -94,6 +94,10 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
 { carrier := closure (s : set M),
   smul_mem' := λ c x hx, s.closure_smul_self_subset ⟨⟨c, x⟩, ⟨set.mem_univ _, hx⟩, rfl⟩,
   ..s.to_add_submonoid.topological_closure }
+
+@[simp] lemma submodule.topological_closure_coe (s : submodule R M) :
+  (s.topological_closure : set M) = closure (s : set M) :=
+rfl
 
 instance submodule.topological_closure_has_continuous_smul (s : submodule R M) :
   has_continuous_smul R (s.topological_closure) :=

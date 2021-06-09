@@ -41,6 +41,9 @@ example : ∫ x in 0..π, sin x ^ 2 * cos x ^ 2 = π / 8 := by simpa using sin_n
 /- the exponential function -/
 example : ∫ x in 0..2, -exp x = 1 - exp 2 := by simp
 
+/- the logarithmic function -/
+example : ∫ x in 1..2, log x = 2 * log 2 - 1 := by { norm_num, ring }
+
 /- linear combinations (e.g. polynomials) -/
 example : ∫ x : ℝ in 0..2, 6*x^5 + 3*x^4 + x^3 - 2*x^2 + x - 7 = 1048 / 15 := by norm_num
 example : ∫ x : ℝ in 0..1, exp x + 9 * x^8 + x^3 - x/2 + (1 + x^2)⁻¹ = exp 1 + π / 4 := by norm_num

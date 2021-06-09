@@ -124,7 +124,7 @@ begin
 end
 
 lemma is_open_B {K : set (E →L[𝕜] F)} {r s ε : ℝ} : is_open (B f K r s ε) :=
-by simp [B, is_open_Union, is_open_inter, is_open_A]
+by simp [B, is_open_Union, is_open.inter, is_open_A]
 
 lemma A_mono (L : E →L[𝕜] F) (r : ℝ) {ε δ : ℝ} (h : ε ≤ δ) :
   A f L r ε ⊆ A f L r δ :=
@@ -274,7 +274,7 @@ begin
   is a Cauchy sequence. -/
   let L0 : ℕ → (E →L[𝕜] F) := λ e, L e (n e) (n e),
   have : cauchy_seq L0,
-  { rw cauchy_seq_iff',
+  { rw metric.cauchy_seq_iff',
     assume ε εpos,
     obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥) :=
       exists_pow_lt_of_lt_one (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),

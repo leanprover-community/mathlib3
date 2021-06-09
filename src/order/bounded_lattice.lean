@@ -56,12 +56,7 @@ assume h, lt_irrefl a (lt_of_le_of_lt le_top h)
 theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
 top_le_iff.1 $ h₂ ▸ h
 
-lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ :=
-begin
-  haveI := classical.dec_eq α,
-  haveI : decidable (⊤ ≤ a) := decidable_of_iff' _ top_le_iff,
-  by simp [-top_le_iff, lt_iff_le_not_le, not_iff_not.2 (@top_le_iff _ _ a)]
-end
+lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
 
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
@@ -276,7 +271,7 @@ lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c 
     calc a ⊓ b ≤ b ⊓ c : by { rw [inf_comm], exact inf_le_inf_left _ this }
       ... = ⊥ : h₂⟩
 
-/- Prop instance -/
+/-- Propositions form a bounded distributive lattice. -/
 instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
 { le           := λa b, a → b,
   le_refl      := assume _, id,
@@ -306,8 +301,9 @@ noncomputable instance Prop.linear_order : linear_order Prop :=
   decidable_le := classical.dec_rel _,
   .. (_ : partial_order Prop) }
 
-@[simp]
-lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := iff.rfl
+@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
+@[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
+@[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 
 section logic
 variable [preorder α]
@@ -1002,6 +998,15 @@ by simp [disjoint]
 lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
+lemma disjoint.eq_bot_of_le {a b : α} (hab : disjoint a b) (h : a ≤ b) : a = ⊥ :=
+eq_bot_iff.2 (by rwa ←inf_eq_left.2 h)
+
+lemma disjoint.of_disjoint_inf_of_le {a b c : α} (h : disjoint (a ⊓ b) c) (hle : a ≤ c) :
+  disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_left.trans hle)]
+
+lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (hle : b ≤ c) :
+  disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_right.trans hle)]
+
 end semilattice_inf_bot
 
 section bounded_lattice
@@ -1011,10 +1016,21 @@ variables [bounded_lattice α] {a : α}
 @[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
 @[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
 
+lemma eq_bot_of_disjoint_absorbs
+  {a b : α} (w : disjoint a b) (h : a ⊔ b = a) : b = ⊥ :=
+begin
+  rw disjoint_iff at w,
+  rw [←w, right_eq_inf],
+  rwa sup_eq_left at h,
+end
+
 end bounded_lattice
 
 section bounded_distrib_lattice
-
+/-
+TODO: these lemmas don't require the existence of `⊤` and should be generalized to
+distrib_lattice_with_bot (which doesn't exist yet).
+-/
 variables [bounded_distrib_lattice α] {a b c : α}
 
 @[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=
@@ -1160,8 +1176,7 @@ namespace is_complemented
 variables [bounded_lattice α] [is_complemented α]
 
 instance : is_complemented (order_dual α) :=
-⟨λ a, ⟨classical.some (@exists_is_compl α _ _ a),
-  (classical.some_spec (@exists_is_compl α _ _ a)).to_order_dual⟩⟩
+⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.to_order_dual⟩⟩
 
 end is_complemented
 

@@ -179,6 +179,10 @@ h.mono_measure $ measure.restrict_le_self
 lemma integrable.integrable_on' (h : integrable f (μ.restrict s)) : integrable_on f s μ :=
 h
 
+lemma integrable_on.restrict (h : integrable_on f s μ) (hs : measurable_set s) :
+  integrable_on f s (μ.restrict t) :=
+by { rw [integrable_on, measure.restrict_restrict hs], exact h.mono_set (inter_subset_left _ _) }
+
 lemma integrable_on.left_of_union (h : integrable_on f (s ∪ t) μ) : integrable_on f s μ :=
 h.mono_set $ subset_union_left _ _
 
@@ -537,6 +541,18 @@ set_integral_nonneg_of_ae_restrict ((ae_restrict_iff' hs).mpr (ae_of_all μ hf))
 
 end nonneg
 
+lemma set_integral_mono_set {α : Type*} [measurable_space α] {μ : measure α}
+  {s t : set α} {f : α → ℝ} (hfi : integrable f μ) (hf : 0 ≤ᵐ[μ] f) (hst : s ≤ᵐ[μ] t) :
+  ∫ x in s, f x ∂μ ≤ ∫ x in t, f x ∂μ :=
+begin
+  repeat { rw integral_eq_lintegral_of_nonneg_ae (ae_restrict_of_ae hf)
+            (hfi.1.mono_measure measure.restrict_le_self) },
+  rw ennreal.to_real_le_to_real
+    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2)
+    (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2),
+  exact (lintegral_mono_set' hst),
+end
+
 end measure_theory
 
 open measure_theory asymptotics metric
@@ -642,6 +658,20 @@ begin
   rw [indicator_preimage, set.ite, hu],
   exact (u_open.measurable_set.inter hs).union ((measurable_zero ht.measurable_set).diff hs)
 end
+
+/-- If a function is continuous on an open set `s`, then it is measurable at the filter `𝓝 x` for
+  all `x ∈ s`. -/
+lemma continuous_on.measurable_at_filter
+  [topological_space α] [opens_measurable_space α] [borel_space E]
+  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : continuous_on f s) :
+  ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
+λ x hx, ⟨s, is_open.mem_nhds hs hx, hf.ae_measurable hs.measurable_set⟩
+
+lemma continuous_at.measurable_at_filter
+  [topological_space α] [opens_measurable_space α] [borel_space E]
+  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : ∀ x ∈ s, continuous_at f x) :
+  ∀ x ∈ s, measurable_at_filter f (𝓝 x) μ :=
+continuous_on.measurable_at_filter hs $ continuous_at.continuous_on hf
 
 lemma continuous_on.integrable_at_nhds_within
   [topological_space α] [opens_measurable_space α] [borel_space E]

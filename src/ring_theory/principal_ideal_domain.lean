@@ -14,7 +14,7 @@ principal ideal domain (PID) is an integral domain which is a principal ideal ri
 # Main definitions
 
 Note that for principal ideal domains, one should use
-`[integral domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
+`[integral_domain R] [is_principal_ideal_ring R]`. There is no explicit definition of a PID.
 Theorems about PID's are in the `principal_ideal_ring` namespace.
 
 - `is_principal_ideal_ring`: a predicate on commutative rings, saying that every

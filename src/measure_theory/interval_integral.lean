@@ -73,6 +73,23 @@ an `FTC_filter` pair of filters around `b`. If `f` has finite limits `ca` and `c
   o(∥∫ x in ua..va, (1:ℝ) ∂μ∥ + ∥∫ x in ub..vb, (1:ℝ) ∂μ∥)` as `ua` and `va` tend to `la` while
 `ub` and `vb` tend to `lb`.
 
+### FTC-2 and corollaries
+
+We use FTC-1 to prove several versions of FTC-2 for the Lebesgue measure, using a similar naming
+scheme as for the versions of FTC-1. They include:
+* `interval_integral.integral_eq_sub_of_has_deriv_right_of_le` - most general version, for functions
+  with a right derivative
+* `interval_integral.integral_eq_sub_of_has_deriv_at'` - version for functions with a derivative on
+  an open set
+* `interval_integral.integral_deriv_eq_sub'` - version that is easiest to use when computing the
+  integral of a specific function
+
+We then derive additional integration techniques from FTC-2:
+* `interval_integral.integral_mul_deriv_eq_deriv_mul` - integration by parts
+* `interval_integral.integral_comp_mul_deriv'` - integration by substitution
+
+Many applications of these theorems can be found in the file `analysis.special_functions.integrals`.
+
 ## Implementation notes
 
 ### Avoiding `if`, `min`, and `max`
@@ -144,8 +161,24 @@ intervals is always empty, so this property is equivalent to `f` being integrabl
 def interval_integrable (f : α → E) (μ : measure α) (a b : α) :=
 integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ
 
-lemma measure_theory.integrable.interval_integrable {f : α → E} {μ : measure α}
-  (hf : integrable f μ) {a b : α} :
+/-- A function is interval integrable with respect to a given measure `μ` on `interval a b` if and
+  only if it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. This is an equivalent
+  defintion of `interval_integrable`. -/
+lemma interval_integrable_iff {f : α → E} {a b : α} {μ : measure α} :
+  interval_integrable f μ a b ↔ integrable_on f (Ioc (min a b) (max a b)) μ :=
+by cases le_total a b; simp [h, interval_integrable]
+
+/-- If a function is interval integrable with respect to a given measure `μ` on `interval a b` then
+  it is integrable on `Ioc (min a b) (max a b)` with respect to `μ`. -/
+lemma interval_integrable.def {f : α → E} {a b : α} {μ : measure α}
+  (h : interval_integrable f μ a b) :
+  integrable_on f (Ioc (min a b) (max a b)) μ :=
+interval_integrable_iff.mp h
+
+/-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
+  with respect to `μ` on `interval a b`. -/
+lemma measure_theory.integrable.interval_integrable {f : α → E} {a b : α} {μ : measure α}
+  (hf : integrable f μ) :
   interval_integrable f μ a b :=
 ⟨hf.integrable_on, hf.integrable_on⟩
 
@@ -153,7 +186,7 @@ namespace interval_integrable
 
 section
 
-variables {f : α → E} {a b c : α} {μ : measure α}
+variables {f : α → E} {a b c d : α} {μ ν : measure α}
 
 @[symm] lemma symm (h : interval_integrable f μ a b) : interval_integrable f μ b a :=
 h.symm
@@ -161,13 +194,34 @@ h.symm
 @[refl] lemma refl : interval_integrable f μ a a :=
 by split; simp
 
-@[trans] lemma trans  (hab : interval_integrable f μ a b) (hbc : interval_integrable f μ b c) :
+@[trans] lemma trans (hab : interval_integrable f μ a b) (hbc : interval_integrable f μ b c) :
   interval_integrable f μ a c :=
 ⟨(hab.1.union hbc.1).mono_set Ioc_subset_Ioc_union_Ioc,
   (hbc.2.union hab.2).mono_set Ioc_subset_Ioc_union_Ioc⟩
 
 lemma neg [borel_space E] (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
+
+lemma mono
+  (hf : interval_integrable f ν a b) (h1 : interval c d ⊆ interval a b) (h2 : μ ≤ ν) :
+  interval_integrable f μ c d :=
+let ⟨h1₁, h1₂⟩ := interval_subset_interval_iff_le.mp h1 in
+interval_integrable_iff.mpr $ hf.def.mono (Ioc_subset_Ioc h1₁ h1₂) h2
+
+lemma mono_set
+  (hf : interval_integrable f μ a b) (h : interval c d ⊆ interval a b) :
+  interval_integrable f μ c d :=
+hf.mono h rfl.le
+
+lemma mono_measure
+  (hf : interval_integrable f ν a b) (h : μ ≤ ν) :
+  interval_integrable f μ a b :=
+hf.mono rfl.subset h
+
+lemma mono_set_ae
+  (hf : interval_integrable f μ a b) (h : Ioc (min c d) (max c d) ≤ᵐ[μ] Ioc (min a b) (max a b)) :
+  interval_integrable f μ c d :=
+interval_integrable_iff.mpr $ hf.def.mono_set_ae h
 
 protected lemma ae_measurable (h : interval_integrable f μ a b) :
   ae_measurable f (μ.restrict (Ioc a b)):=
@@ -417,9 +471,13 @@ calc  ∫ x in a..b, f (x + d)
                            : by simp [interval_integral, set_integral_map_of_closed_embedding _ A]
 ... = ∫ x in a+d..b+d, f x : by rw [real.map_volume_add_right]
 
+@[simp] lemma integral_comp_add_left (d) :
+  ∫ x in a..b, f (d + x) = ∫ x in d+a..d+b, f x :=
+by simpa only [add_comm] using integral_comp_add_right f d
+
 @[simp] lemma integral_comp_mul_add (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (c * x + d) = c⁻¹ • ∫ x in c*a+d..c*b+d, f x :=
-by rw [← integral_comp_add_right f d, ← integral_comp_mul_left _ hc]
+by rw [← integral_comp_add_right, ← integral_comp_mul_left _ hc]
 
 @[simp] lemma smul_integral_comp_mul_add (c d) :
   c • ∫ x in a..b, f (c * x + d) = ∫ x in c*a+d..c*b+d, f x :=
@@ -427,7 +485,7 @@ by by_cases hc : c = 0; simp [hc]
 
 @[simp] lemma integral_comp_add_mul (hc : c ≠ 0) (d) :
   ∫ x in a..b, f (d + c * x) = c⁻¹ • ∫ x in d+c*a..d+c*b, f x :=
-by simpa only [add_comm] using integral_comp_mul_add f hc d
+by rw [← integral_comp_add_left, ← integral_comp_mul_left _ hc]
 
 @[simp] lemma smul_integral_comp_add_mul (c d) :
   c • ∫ x in a..b, f (d + c * x) = ∫ x in d+c*a..d+c*b, f x :=
@@ -1592,6 +1650,8 @@ theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   (hf' : continuous_on f' (interval a b))
   (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
   (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g (𝓝 x)) :
+  -- TODO: prove that the integral of any integrable function is continuous and use here to remove
+  -- assumption `hgm`
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
 let hg' := continuous_at.continuous_on hg in
 have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,

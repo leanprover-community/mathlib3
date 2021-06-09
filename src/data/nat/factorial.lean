@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes, Floris van Doorn
 -/
 import data.nat.basic
+import algebra.group_power.basic
+
 /-!
 # The factorial function
 
@@ -22,7 +24,7 @@ section factorial
 
 variables {m n : ℕ}
 
-@[simp] theorem factorial_zero : 0! = 1! := rfl
+@[simp] theorem factorial_zero : 0! = 1 := rfl
 
 @[simp] theorem factorial_succ (n : ℕ) : n.succ! = succ n * n! := rfl
 
@@ -182,6 +184,14 @@ begin
   apply mul_left_cancel' (factorial_ne_zero n),
   rw factorial_mul_desc_fac,
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
+end
+
+lemma desc_fac_of_sub {n k : ℕ} (h : n < k) :
+  (k - n) * (k - n).desc_fac n = (k - (n + 1)).desc_fac (n + 1) :=
+begin
+  set t := k - n.succ with ht,
+  suffices h' : k - n = t.succ, by rw [←ht, h', succ_desc_fac, desc_fac_succ],
+  rw [ht, succ_eq_add_one, ←sub_sub_assoc h (succ_pos _), succ_sub_one],
 end
 
 end desc_fac

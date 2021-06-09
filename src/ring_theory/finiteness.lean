@@ -36,7 +36,7 @@ variables [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
 /-- A module over a commutative ring is `finite` if it is finitely generated as a module. -/
-class module.finite (R : Type*) (M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M] :
+class module.finite (R : Type*) (M : Type*) [semiring R] [add_comm_monoid M] [module R M] :
   Prop := (out : (⊤ : submodule R M).fg)
 
 /-- An algebra over a commutative ring is of `finite_type` if it is finitely generated
@@ -51,7 +51,7 @@ def algebra.finite_presentation : Prop :=
 
 namespace module
 
-lemma finite_def {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+lemma finite_def {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [module R M] :
   finite R M ↔ (⊤ : submodule R M).fg := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
@@ -169,7 +169,7 @@ begin
     intro x,
     have hrw : (↑s : set A) = (λ (x : A), x ∈ s.val) := rfl,
     rw [← set.mem_range, ← alg_hom.coe_range, ← adjoin_eq_range, ← hrw, hs],
-    exact mem_top },
+    exact set.mem_univ x },
   { rintro ⟨s, ⟨f, hsur⟩⟩,
     exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
 end

@@ -199,7 +199,7 @@ begin
   let U : X → X → set X := λ x y, {z | f z - ε < g x y z},
   have U_nhd_y : ∀ x y, U x y ∈ 𝓝 y,
   { intros x y,
-    refine mem_nhds_sets _ _,
+    refine is_open.mem_nhds _ _,
     { apply is_open_lt; continuity, },
     { rw [set.mem_set_of_eq, w₂],
       exact sub_lt_self _ pos, }, },
@@ -238,7 +238,7 @@ begin
   -- This is still a neighbourhood of `x`.
   have W_nhd : ∀ x, W x ∈ 𝓝 x,
   { intros x,
-    refine mem_nhds_sets _ _,
+    refine is_open.mem_nhds _ _,
     { apply is_open_lt; continuity, },
     { dsimp only [W, set.mem_set_of_eq],
       rw h_eq,
@@ -301,7 +301,6 @@ begin
     (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },
-  { ext, simp, },
 end
 
 /--

@@ -2739,7 +2739,7 @@ begin
       have hxv' : (⟨x, hxu⟩ : u) ∉ (coe ⁻¹' v : set u) := by simp [huv, hxv],
       obtain ⟨l, hl, rfl⟩ :
         ∃ l ∈ finsupp.supported 𝕜 𝕜 (coe ⁻¹' v : set u), (finsupp.total ↥u E 𝕜 coe) l = y,
-      { rw ← finsupp.mem_span_iff_total,
+      { rw ← finsupp.mem_span_image_iff_total,
         simp [huv, inter_eq_self_of_subset_left, hy] },
       exact hu.inner_finsupp_eq_zero hxv' hl }
 end
@@ -2817,7 +2817,7 @@ lemma orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] :
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
 instance [finite_dimensional 𝕜 E] : fintype (orthonormal_basis_index 𝕜 E) :=
-finite_dimensional.fintype_basis_index (orthonormal_basis 𝕜 E)
+is_noetherian.fintype_basis_index (orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}
 

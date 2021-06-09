@@ -92,7 +92,7 @@ lemma topological_space.is_topological_basis.borel_eq_generate_from [topological
 borel_eq_generate_from_of_subbasis hs.eq_generate_from
 
 lemma is_pi_system_is_open [topological_space α] : is_pi_system (is_open : set α → Prop) :=
-λ s t hs ht hst, is_open_inter hs ht
+λ s t hs ht hst, is_open.inter hs ht
 
 lemma borel_eq_generate_from_is_closed [topological_space α] :
   borel α = generate_from {s | is_closed s} :=
@@ -1004,9 +1004,13 @@ end real
 
 variable [measurable_space α]
 
-lemma measurable.nnreal_of_real {f : α → ℝ} (hf : measurable f) :
-  measurable (λ x, nnreal.of_real (f x)) :=
+lemma measurable.real_to_nnreal {f : α → ℝ} (hf : measurable f) :
+  measurable (λ x, real.to_nnreal (f x)) :=
 nnreal.continuous_of_real.measurable.comp hf
+
+lemma ae_measurable.real_to_nnreal {f : α → ℝ} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x, real.to_nnreal (f x)) μ :=
+nnreal.continuous_of_real.measurable.comp_ae_measurable hf
 
 lemma nnreal.measurable_coe : measurable (coe : ℝ≥0 → ℝ) :=
 nnreal.continuous_coe.measurable
@@ -1014,6 +1018,10 @@ nnreal.continuous_coe.measurable
 lemma measurable.nnreal_coe {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ℝ)) :=
 nnreal.measurable_coe.comp hf
+
+lemma ae_measurable.nnreal_coe {f : α → ℝ≥0} {μ : measure α} (hf : ae_measurable f μ) :
+  ae_measurable (λ x, (f x : ℝ)) μ :=
+nnreal.measurable_coe.comp_ae_measurable hf
 
 lemma measurable.ennreal_coe {f : α → ℝ≥0} (hf : measurable f) :
   measurable (λ x, (f x : ℝ≥0∞)) :=
@@ -1114,6 +1122,13 @@ lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞}
   measurable (λ x, ∑' i, f i x) :=
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply measurable_supr,
   exact λ s, s.measurable_sum (λ i _, h i) }
+
+lemma measurable.nnreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0} (h : ∀ i, measurable (f i)) :
+  measurable (λ x, ∑' i, f i x) :=
+begin
+  simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
+  exact (measurable.ennreal_tsum (λ i, (h i).ennreal_coe)).to_nnreal,
+end
 
 lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} {μ : measure α}
   (h : ∀ i, ae_measurable (f i) μ) :

@@ -394,23 +394,31 @@ section mul_action
 variables {M β : Type*} [measurable_space M] [measurable_space β] [monoid M] [mul_action M β]
   [has_measurable_smul M β] {f : α → β} {μ : measure α}
 
-@[simp] lemma units.measurable_const_smul_iff (u : units M) :
-  measurable (λ x, (u : M) • f x) ↔ measurable f :=
-⟨λ h, by simpa only [u.inv_smul_smul] using h.const_smul' ((u⁻¹ : units M) : M),
-  λ h, h.const_smul ↑u⟩
+variables {G : Type*} [group G] [measurable_space G] [mul_action G β]
+  [has_measurable_smul G β]
 
-@[simp] lemma units.ae_measurable_const_smul_iff (u : units M) :
-  ae_measurable (λ x, (u : M) • f x) μ ↔ ae_measurable f μ :=
-⟨λ h, by simpa only [u.inv_smul_smul] using h.const_smul' ((u⁻¹ : units M) : M),
-  λ h, h.const_smul ↑u⟩
+lemma measurable_const_smul_iff (c : G) :
+  measurable (λ x, c • f x) ↔ measurable f :=
+⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
+
+lemma ae_measurable_const_smul_iff (c : G) :
+  ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
+⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
+
+instance : measurable_space (units M) := measurable_space.comap (coe : units M → M) ‹_›
+
+instance units.has_measurable_smul : has_measurable_smul (units M) β :=
+{ measurable_const_smul := λ c, (measurable_const_smul (c : M) : _),
+  measurable_smul_const := λ x,
+    (measurable_smul_const x : measurable (λ c : M, c • x)).comp measurable_space.le_map_comap, }
 
 lemma is_unit.measurable_const_smul_iff {c : M} (hc : is_unit c) :
   measurable (λ x, c • f x) ↔ measurable f :=
-let ⟨u, hu⟩ := hc in hu ▸ u.measurable_const_smul_iff
+let ⟨u, hu⟩ := hc in hu ▸ measurable_const_smul_iff u
 
 lemma is_unit.ae_measurable_const_smul_iff {c : M} (hc : is_unit c) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
-let ⟨u, hu⟩ := hc in hu ▸ u.ae_measurable_const_smul_iff
+let ⟨u, hu⟩ := hc in hu ▸ ae_measurable_const_smul_iff u
 
 variables {G₀ : Type*} [group_with_zero G₀] [measurable_space G₀] [mul_action G₀ β]
   [has_measurable_smul G₀ β]
@@ -422,17 +430,6 @@ lemma measurable_const_smul_iff' {c : G₀} (hc : c ≠ 0) :
 lemma ae_measurable_const_smul_iff' {c : G₀} (hc : c ≠ 0) :
   ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
 (is_unit.mk0 c hc).ae_measurable_const_smul_iff
-
-variables {G : Type*} [group G] [measurable_space G] [mul_action G β]
-  [has_measurable_smul G β]
-
-lemma measurable_const_smul_iff (c : G) :
-  measurable (λ x, c • f x) ↔ measurable f :=
-(group.is_unit c).measurable_const_smul_iff
-
-lemma ae_measurable_const_smul_iff (c : G) :
-  ae_measurable (λ x, c • f x) μ ↔ ae_measurable f μ :=
-(group.is_unit c).ae_measurable_const_smul_iff
 
 end mul_action
 

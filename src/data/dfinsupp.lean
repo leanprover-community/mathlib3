@@ -60,6 +60,10 @@ instance : has_coe_to_fun (Π₀ i, β i) :=
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨0, ∅, λ i, or.inr rfl⟩⟧⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
+@[simp]
+lemma coe_pre_mk (f : Π i, β i) (s : multiset ι) (hf) :
+  ⇑(⟦⟨f, s, hf⟩⟧ : Π₀ i, β i) = f := rfl
+
 @[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 

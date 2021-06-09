@@ -775,14 +775,9 @@ end
 lemma eventually_constant_sum {β} [add_comm_monoid β] {u : ℕ → β} {N : ℕ}
   (hu : ∀ n ≥ N, u n = 0) {n : ℕ} (hn : n ≥ N) :
   ∑ k in range (n + 1), u k = ∑ k in range (N + 1), u k :=
-begin
-  obtain ⟨m, rfl : n = N + m⟩ := le_iff_exists_add.mp hn,
-  clear hn,
-  induction m with m hm,
-  { simp },
-  erw [sum_range_succ, hm],
-  simp [hu]
-end
+@eventually_constant_prod (multiplicative β) _ _ _ hu _ hn
+
+attribute [to_additive] eventually_constant_prod
 
 lemma prod_range_add (f : ℕ → β) (n m : ℕ) :
   ∏ x in range (n + m), f x =

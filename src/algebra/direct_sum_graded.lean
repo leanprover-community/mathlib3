@@ -23,14 +23,14 @@ additively-graded ring. The typeclasses are:
 Respectively, these imbue the direct sum `⨁ i, A i` with:
 
 * `direct_sum.has_one`
-* `direct_sum.mul_zero_class`, `direct_sum.distrib`
+* `direct_sum.non_unital_non_assoc_semiring`
 * `direct_sum.semiring`, `direct_sum.ring`
 * `direct_sum.comm_semiring`, `direct_sum.comm_ring`
 
 the base ring `A 0` with:
 
 * `direct_sum.grade_zero.has_one`
-* `direct_sum.grade_zero.mul_zero_class`, `direct_sum.grade_zero.distrib`
+* `direct_sum.grade_zero.non_unital_non_assoc_semiring`
 * `direct_sum.grade_zero.semiring`, `direct_sum.grade_zero.ring`
 * `direct_sum.grade_zero.comm_semiring`, `direct_sum.grade_zero.comm_ring`
 
@@ -86,7 +86,7 @@ variables (A : ι → Type*)
 class ghas_one [has_zero ι] :=
 (one : A 0)
 
-/-- A graded version of `has_mul` that also subsumes `distrib` and `mul_zero_class` by requiring
+/-- A graded version of `has_mul` that also subsumes `non_unital_non_assoc_semiring` by requiring
 the multiplication be an `add_monoid_hom`. Multiplication combines grades additively, like
 `add_monoid_algebra`. -/
 class ghas_mul [has_add ι] [Π i, add_comm_monoid (A i)] :=
@@ -302,20 +302,15 @@ direct_sum.to_add_monoid $ λ i,
   add_monoid_hom.flip $ direct_sum.to_add_monoid $ λ j, add_monoid_hom.flip $
     (direct_sum.of A _).comp_hom.comp ghas_mul.mul
 
-instance : has_mul (⨁ i, A i) :=
-{ mul := λ a b, mul_hom A a b }
-
-instance : mul_zero_class (⨁ i, A i) :=
-{ mul := (*),
+instance : non_unital_non_assoc_semiring (⨁ i, A i) :=
+{ mul := λ a b, mul_hom A a b,
   zero := 0,
-  zero_mul := λ a, by { unfold has_mul.mul, simp only [map_zero, add_monoid_hom.zero_apply]},
-  mul_zero := λ a, by { unfold has_mul.mul, simp only [map_zero] } }
-
-instance : distrib (⨁ i, A i) :=
-{ mul := (*),
   add := (+),
-  left_distrib := λ a b c, by { unfold has_mul.mul, simp only [map_add]},
-  right_distrib := λ a b c, by { unfold has_mul.mul, simp only [map_add, add_monoid_hom.add_apply]}}
+  zero_mul := λ a, by simp only [map_zero, add_monoid_hom.zero_apply],
+  mul_zero := λ a, by simp only [map_zero],
+  left_distrib := λ a b c, by simp only [map_add],
+  right_distrib := λ a b c, by simp only [map_add, add_monoid_hom.add_apply],
+  .. direct_sum.add_comm_monoid _ _}
 
 variables {A}
 
@@ -379,9 +374,7 @@ instance semiring : semiring (⨁ i, A i) := {
   one_mul := one_mul A,
   mul_one := mul_one A,
   mul_assoc := mul_assoc A,
-  ..direct_sum.mul_zero_class A,
-  ..direct_sum.distrib A,
-  ..direct_sum.add_comm_monoid _ _, }
+  ..direct_sum.non_unital_non_assoc_semiring _, }
 
 end semiring
 
@@ -490,13 +483,9 @@ end
 @[simp] lemma of_zero_mul (a b : A 0) : of _ 0 (a * b) = of _ 0 a * of _ 0 b:=
 of_zero_smul A a b
 
-instance grade_zero.mul_zero_class : mul_zero_class (A 0) :=
-function.injective.mul_zero_class (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of_zero_mul A)
-
-instance grade_zero.distrib : distrib (A 0) :=
-function.injective.distrib (of A 0) dfinsupp.single_injective
-  (of A 0).map_add (of_zero_mul A)
+instance grade_zero.non_unital_non_assoc_semiring : non_unital_non_assoc_semiring (A 0) :=
+function.injective.non_unital_non_assoc_semiring (of A 0) dfinsupp.single_injective
+  (of A 0).map_zero (of A 0).map_add (of_zero_mul A)
 
 instance grade_zero.smul_with_zero (i : ι) : smul_with_zero (A 0) (A i) :=
 begin

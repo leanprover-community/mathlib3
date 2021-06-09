@@ -404,7 +404,7 @@ lemma three_pos : 0 < 3 := by dec_trivial
 
 lemma ge_of_le (a b : ℕ) : a ≤ b → b ≥ a := ge.le
 
--- lemma false_inequality_is_false_alternate {n : ℕ} (n_large : 460 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+-- lemma false_inequality_is_false_alternate {n : ℕ} (n_large : 999 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 -- begin
 --   intro h,
 --   have h1 : 4 ^ (n - (2 * n / 3 + 1)) < (2 * n + 1) * (2 * n) ^ nat.sqrt (2 * n),
@@ -427,7 +427,7 @@ lemma ge_of_le (a b : ℕ) : a ≤ b → b ≥ a := ge.le
 --   sorry,
 -- end
 
-lemma power_conversion_1 (n : ℕ) (n_large : 460 < n) : 2 * n + 1 ≤ 4 ^ (n / 15) :=
+lemma power_conversion_1 (n : ℕ) (n_large : 999 < n) : 2 * n + 1 ≤ 4 ^ (n / 15) :=
 begin
   suffices h : (2 * n + 1) ^ 15 ≤ (4 ^ (n / 15)) ^ 15,
     apply le_of_pow_le_pow 15,
@@ -437,7 +437,7 @@ begin
 
   induction n,
   simp,
-  by_cases h : 460 < n_n,
+  by_cases h : 999 < n_n,
   have odafij := n_ih h,
   rw nat.mul_succ,
   sorry,
@@ -446,13 +446,13 @@ begin
 end
 
 
-lemma power_conversion_2 (n : ℕ) (n_large : 460 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
+lemma power_conversion_2 (n : ℕ) (n_large : 999 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
 begin
   sorry,
 end
 
 
-lemma false_inequality_is_false {n : ℕ} (n_large : 460 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+lemma false_inequality_is_false {n : ℕ} (n_large : 999 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 begin
   rw imp_false,
   rw not_lt,
@@ -589,7 +589,7 @@ begin
 
 end
 
-lemma bertrand_eventually (n : nat) (n_big : 750 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_eventually (n : nat) (n_big : 1000 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   by_contradiction no_prime,
 
@@ -789,8 +789,13 @@ end
 
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
-cases le_or_lt 750 n,
+cases le_or_lt 1000 n,
 {exact bertrand_eventually n h},
+
+cases le_or_lt 505 n,
+{ use 1009, norm_num, split, linarith, linarith, },
+clear h,
+
 cases le_or_lt 376 n,
 { use 751, norm_num, split, linarith, linarith, },
 clear h,

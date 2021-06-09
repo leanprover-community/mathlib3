@@ -13,8 +13,8 @@ We endow `ereal` with the order topology, and prove basic properties of this top
 
 ## Main results
 
-* `coe : ℝ → ennreal` is an open embedding
-* `coe : ℝ≥0∞ → ennreal` is an embedding
+* `coe : ℝ → ereal` is an open embedding
+* `coe : ℝ≥0∞ → ereal` is an embedding
 * The addition on `ereal` is continuous except at `(⊥, ⊤)` and at `(⊤, ⊥)`.
 * Negation is a homeomorphism on `ereal`.
 
@@ -99,7 +99,7 @@ end⟩
   tendsto (λ a, (m a : ereal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 
-lemma continuous_coe : continuous (coe : ℝ → ereal) :=
+lemma _root_.continuous_coe_real_ereal : continuous (coe : ℝ → ereal) :=
 embedding_coe.continuous
 
 lemma continuous_coe_iff {f : α → ℝ} :
@@ -128,7 +128,7 @@ lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤} : set erea
 /-- The set of finite `ereal` numbers is homeomorphic to `ℝ`. -/
 def ne_bot_top_homeomorph_real : ({⊥, ⊤} : set ereal).compl ≃ₜ ℝ :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_real,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_coe,
+  continuous_inv_fun := continuous_subtype_mk _ continuous_coe_real_ereal,
   .. ne_top_bot_equiv_real }
 
 
@@ -331,7 +331,7 @@ lemma continuous_at_add {p : ereal × ereal} (h : p.1 ≠ ⊤ ∨ p.2 ≠ ⊥) (
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) p :=
 begin
   rcases p with ⟨x, y⟩,
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨x, rfl⟩|rfl,
+  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨y, rfl⟩|rfl,
   { exact continuous_at_add_bot_bot },
   { exact continuous_at_add_bot_coe _ },
   { simpa using h' },

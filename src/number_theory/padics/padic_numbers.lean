@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 
 -/
-import data.padics.padic_norm
+import number_theory.padics.padic_norm
 import analysis.normed_space.basic
 
 /-!

@@ -27,7 +27,10 @@ but it is sometimes convenient to have.
 the fact that `with_top (with_bot L)` is a complete linear order if `L` is
 a conditionally complete linear order.
 
-Coercions from `ℝ` and from `ℝ≥0∞` are registered, and their basic properties are proved.
+Coercions from `ℝ` and from `ℝ≥0∞` are registered, and their basic properties are proved. The main
+one is the real coercion, and is usually referred to just as `coe` (lemmas such as
+`ereal.coe_add` deal with this coercion). The one from `ennreal` is usually called `coe_ennreal`
+in the `ereal` namespace.
 
 ## Tags
 
@@ -50,7 +53,7 @@ open_locale ennreal nnreal
   has_Sup, has_Inf, complete_linear_order, linear_ordered_add_comm_monoid_with_top]]
 def ereal := with_top (with_bot ℝ)
 
-/-- The canonical inclusion froms reals to ereals. Do not use directly : as this is registered as
+/-- The canonical inclusion froms reals to ereals. Do not use directly: as this is registered as
 a coercion, use the coercion instead. -/
 def real.to_ereal : ℝ → ereal := some ∘ some
 
@@ -221,7 +224,7 @@ lemma lt_iff_exists_rat_btwn {a b : ereal} :
   a < b ↔ ∃ (x : ℚ), a < (x : ℝ) ∧ ((x : ℝ) : ereal) < b :=
 ⟨λ hab, exists_rat_btwn_of_lt hab, λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
-/-- The set of numbers in `ℝ≥0∞` that are not equal to `∞` is equivalent to `ℝ≥0`. -/
+/-- The set of numbers in `ereal` that are not equal to `±∞` is equivalent to `ℝ`. -/
 def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=
 { to_fun := λ x, ereal.to_real x,
   inv_fun := λ x, ⟨x, by simp⟩,
@@ -296,7 +299,7 @@ by simp [lt_top_iff_ne_top, not_or_distrib]
 
 /-! ### Negation -/
 
-/-- negation on ereal -/
+/-- negation on `ereal` -/
 protected def neg : ereal → ereal
 | ⊥       := ⊤
 | ⊤       := ⊥
@@ -310,7 +313,7 @@ instance : has_neg ereal := ⟨ereal.neg⟩
 @[simp] lemma neg_bot : - (⊥ : ereal) = ⊤ := rfl
 @[simp] lemma neg_zero : - (0 : ereal) = 0 := by { change ((-0 : ℝ) : ereal) = 0, simp }
 
-/-- - -a = a on ereal -/
+/-- `- -a = a` on `ereal`. -/
 @[simp] protected theorem neg_neg : ∀ (a : ereal), - (- a) = a
 | ⊥ := rfl
 | ⊤ := rfl
@@ -326,7 +329,7 @@ theorem neg_inj {a b : ereal} (h : -a = -b) : a = b := by rw [←ereal.neg_neg a
 | ⊥ := by simp
 | (x : ℝ) := rfl
 
-/-- Even though ereal is not an additive group, -a = b ↔ -b = a still holds -/
+/-- Even though `ereal` is not an additive group, `-a = b ↔ -b = a` still holds -/
 theorem neg_eq_iff_neg_eq {a b : ereal} : -a = b ↔ -b = a :=
 ⟨by {intro h, rw ←h, exact ereal.neg_neg a},
  by {intro h, rw ←h, exact ereal.neg_neg b}⟩
@@ -340,7 +343,7 @@ by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
 @[simp] lemma neg_eg_zero_iff {x : ereal} : - x = 0 ↔ x = 0 :=
 by { rw neg_eq_iff_neg_eq, simp [eq_comm] }
 
-/-- if -a ≤ b then -b ≤ a on ereal -/
+/-- if `-a ≤ b` then `-b ≤ a` on `ereal`. -/
 protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | ⊥ ⊥ h := h
 | ⊥ (some b) h := by cases (top_le_iff.1 h)
@@ -349,11 +352,11 @@ protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | l ⊤ h := bot_le
 | (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact _root_.neg_le_of_neg_le h }
 
-/-- -a ≤ b ↔ -b ≤ a on ereal-/
+/-- `-a ≤ b ↔ -b ≤ a` on `ereal`. -/
 protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=
 ⟨ereal.neg_le_of_neg_le, ereal.neg_le_of_neg_le⟩
 
-/-- a ≤ -b → b ≤ -a on ereal -/
+/-- `a ≤ -b → b ≤ -a` on ereal -/
 theorem le_neg_of_le_neg {a b : ereal} (h : a ≤ -b) : b ≤ -a :=
 by rwa [←ereal.neg_neg b, ereal.neg_le, ereal.neg_neg]
 

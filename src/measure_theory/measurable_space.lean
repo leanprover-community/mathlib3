@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.set.disjointed
 import data.set.countable
-import data.indicator_function
+import algebra.indicator_function
 import data.equiv.encodable.lattice
 import data.tprod
 import order.filter.lift
@@ -103,15 +103,15 @@ lemma measurable_set.congr {s t : set α} (hs : measurable_set s) (h : s = t) :
   measurable_set t :=
 by rwa ← h
 
-lemma measurable_set.bUnion_decode2 [encodable β] ⦃f : β → set α⦄ (h : ∀ b, measurable_set (f b))
-  (n : ℕ) : measurable_set (⋃ b ∈ decode2 β n, f b) :=
-encodable.Union_decode2_cases measurable_set.empty h
+lemma measurable_set.bUnion_decode₂ [encodable β] ⦃f : β → set α⦄ (h : ∀ b, measurable_set (f b))
+  (n : ℕ) : measurable_set (⋃ b ∈ decode₂ β n, f b) :=
+encodable.Union_decode₂_cases measurable_set.empty h
 
 lemma measurable_set.Union [encodable β] ⦃f : β → set α⦄ (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋃ b, f b) :=
 begin
-  rw ← encodable.Union_decode2,
-  exact ‹measurable_space α›.measurable_set_Union _ (measurable_set.bUnion_decode2 h)
+  rw ← encodable.Union_decode₂,
+  exact ‹measurable_space α›.measurable_set_Union _ (measurable_set.bUnion_decode₂ h)
 end
 
 lemma measurable_set.bUnion {f : β → set α} {s : set β} (hs : countable s)

@@ -1158,7 +1158,7 @@ by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
   exact λ s, finset.ae_measurable_sum s (λ i _, h i) }
 
 lemma measurable_coe_real_ereal : measurable (coe : ℝ → ereal) :=
-ereal.continuous_coe.measurable
+continuous_coe_real_ereal.measurable
 
 lemma measurable.coe_real_ereal {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, (f x : ereal)) :=

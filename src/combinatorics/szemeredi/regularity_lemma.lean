@@ -1214,7 +1214,6 @@ begin
     rw [discrete_finpartition.size, card_univ],
     exact ⟨hG, hV, discrete_finpartition.is_uniform _ G hε⟩ },
   let t := iteration_bound ε l,
-  have hεl : (100 : ℝ) < ε^5 * 4^t := const_lt_mul_pow_iteration_bound hε l,
   have ht : 0 < t := iteration_bound_pos _ _,
   suffices h : ∀ i, ∃ (P : finpartition' V), P.is_equipartition ∧
     t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 8 * i ≤ P.index G),
@@ -1230,10 +1229,8 @@ begin
           : by { rw [mul_comm, div_mul_div_cancel 4 (pow_pos hε 5).ne'], norm_num }
       ... < ε ^ 5 / 8 * (nat_floor (4 / ε ^ 5) + 1)
           : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (lt_nat_floor_add_one _)
-      ... ≤ P.index G
-          : hPindex
-      ... ≤ 1/2
-          : P.index_le_half G },
+      ... ≤ P.index G : hPindex
+      ... ≤ 1/2 : P.index_le_half G },
   intro i,
   induction i with i ih,
   { have : t ≤ (univ : finset V).card :=
@@ -1249,21 +1246,18 @@ begin
     exact hP₃.trans (le_exp_bound _) },
   replace hP₄ := hP₄.resolve_left huniform,
   have hεl' : 100 < ε ^ 5 * 4 ^ P.size,
-  { apply lt_of_lt_of_le hεl,
+  { apply lt_of_lt_of_le (const_lt_mul_pow_iteration_bound hε l),
     rw mul_le_mul_left (pow_pos hε 5),
-    apply pow_le_pow _ hP₂,
-    norm_num },
+    refine pow_le_pow (by norm_num) hP₂ },
   have hi : (i : ℝ) ≤ 4 / ε^5,
   { have hi := hP₄.trans (index_le_half G P),
     rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 8, by norm_num)] at hi,
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },
-  have hsize : P.size ≤ (exp_bound^[nat_floor (4/ε^5)] t),
-  { apply hP₃.trans,
-    apply iterate_le_of_extensive le_exp_bound,
-    exact le_nat_floor_of_le hi },
+  have hsize : P.size ≤ (exp_bound^[nat_floor (4/ε^5)] t) :=
+    hP₃.trans (iterate_le_of_extensive le_exp_bound (le_nat_floor_of_le hi) _),
   have hPV : P.size * 16^P.size ≤ card V :=
-    le_trans (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)) hV,
+    (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hV,
   obtain ⟨Q, hQ₁, hQ₂, hQ₃⟩ := increment hP₁ hεl' hPV huniform,
   refine ⟨Q, hQ₁, _, _, or.inr (le_trans _ hQ₃)⟩,
   { rw hQ₂,

@@ -1437,7 +1437,7 @@ instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (w
         simp [*, none_eq_top, some_eq_coe] },
     simp [some_eq_coe, coe_mul.symm, mul_assoc]
   end,
-  ..with_top.mul_zero_class }
+  .. with_top.mul_zero_class }
 
 instance [monoid_with_zero α] [no_zero_divisors α] [nontrivial α] : monoid_with_zero (with_top α) :=
 { .. with_top.mul_zero_one_class, .. with_top.semigroup_with_zero }
@@ -1466,6 +1466,9 @@ begin
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
 
+/-- This instance requires `canonically_ordered_comm_semiring` as it is the smallest class
+that derives from both `non_assoc_non_unital_semiring` and `canonically_ordered_add_monoid`, both
+of which are required for distributivity. -/
 instance [nontrivial α] : comm_semiring (with_top α) :=
 { right_distrib   := distrib',
   left_distrib    := assume a b c, by rw [mul_comm, distrib', mul_comm b, mul_comm c]; refl,
@@ -1474,8 +1477,7 @@ instance [nontrivial α] : comm_semiring (with_top α) :=
 instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
 { .. with_top.comm_semiring,
   .. with_top.canonically_ordered_add_monoid,
-  .. with_top.no_zero_divisors, .. with_top.nontrivial }
-
+  .. with_top.no_zero_divisors, }
 
 end with_top
 
@@ -1526,7 +1528,7 @@ lemma bot_lt_mul [partial_order α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥
 begin
   lift a to α using ne_bot_of_gt ha,
   lift b to α using ne_bot_of_gt hb,
-  simp only [← coe_mul, coe_lt_top]
+  simp only [← coe_mul, bot_lt_coe],
 end
 
 end mul_zero_class
@@ -1548,7 +1550,7 @@ instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
   comm_monoid_with_zero (with_bot α) :=
 with_top.comm_monoid_with_zero
 
-instance [canonically_ordered_comm_semiring α] : comm_semiring (with_bot α) :=
+instance [canonically_ordered_comm_semiring α] [nontrivial α] : comm_semiring (with_bot α) :=
 with_top.comm_semiring
 
 end with_bot

@@ -389,9 +389,8 @@ begin
     linarith, },
 end
 
-lemma pow_sub_lt (a b c d : ℕ) (b_ge_d : b ≥ d) : a ^ b < c * a ^ d -> a ^ (b-d) < c :=
+lemma pow_sub_lt (a b c d : ℕ) (d_le_b : d ≤ b) (h : a ^ b < c * a ^ d) : a ^ (b-d) < c :=
 begin
-  intro h,
   sorry,
 end
 
@@ -427,28 +426,64 @@ lemma ge_of_le (a b : ℕ) : a ≤ b → b ≥ a := ge.le
 --   sorry,
 -- end
 
-lemma power_conversion_1 (n : ℕ) (n_large : 999 < n) : 2 * n + 1 ≤ 4 ^ (n / 15) :=
+lemma pow_beats_mul (n : ℕ) (big : 3 < n) : 32 * n ≤ 4 ^ n :=
 begin
-  suffices h : (2 * n + 1) ^ 15 ≤ (4 ^ (n / 15)) ^ 15,
-    apply le_of_pow_le_pow 15,
-    apply zero_le,
-    linarith,
-    exact h,
+  induction n with n hyp,
+  { linarith, },
+  { cases le_or_gt n 3,
+    { have r : 2 < n := nat.succ_lt_succ_iff.mp big,
+      have s : n = 3 := by linarith,
+      rw s,
+      norm_num, },
+    { specialize hyp h,
+      have s : 0 < 4 ^ n := pow_pos (by norm_num) _,
+      have r : 32 ≤ 4 ^ n := by linarith,
+      calc 32 * (n + 1) = 32 * n + 32 : by ring
+      ... ≤ 4 ^ n + 32 : by linarith
+      ... ≤ 4 ^ n + 4 ^ n : by linarith
+      ... = (4 ^ n) * 2 : by ring
+      ... ≤ (4 ^ n) * 4 : by linarith
+      ... ≤ 4 ^ (n + 1) : by ring_exp, }, },
+end
 
-  induction n,
-  simp,
-  by_cases h : 999 < n_n,
-  have odafij := n_ih h,
-  rw nat.mul_succ,
-  sorry,
-  sorry,
+lemma division_alg (n : ℕ) : ∃ (m : ℕ), ∃ (k : ℕ), n = 15 * m + k ∧ k < 15 :=
+by sorry
 
+lemma power_conversion_1 (n : ℕ) (n_large : 480 < n) : 2 * n + 1 ≤ 4 ^ (n / 15) :=
+begin
+  rcases division_alg n with ⟨quot, ⟨rem, ⟨pr, rem_small⟩⟩⟩,
+  { rw pr,
+    have s : (15 * quot + rem) / 15 = quot := sorry,
+    have tt : 31 ≤ quot,
+      { cases le_or_gt 31 quot,
+        { exact h, },
+        { have r : n < n :=
+            calc n = 15 * quot + rem : pr
+              ... < 15 * 31 + rem : by linarith
+              ... < 15 * 31 + 15 : by linarith
+              ... = 480 : by norm_num
+              ... < n : by linarith,
+          linarith, }, },
+    have t : 3 < quot := by linarith,
+    rw s,
+    calc 2 * (15 * quot + rem) + 1 = 30 * quot + 2 * rem + 1 : by ring
+    ... ≤ 30 * quot + 2 * 15 + 1 : by linarith
+    ... = 30 * quot + 31 : by norm_num
+    ... ≤ 31 * quot + 31 : by linarith
+    ... ≤ 31 * quot + quot : by linarith
+    ... = 32 * quot : by ring
+    ... ≤ 4 ^ quot : pow_beats_mul quot t, }
 end
 
 
 lemma power_conversion_2 (n : ℕ) (n_large : 999 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
 begin
   sorry,
+end
+
+lemma fooo (n : ℕ) (n_pos : 1 ≤ n) : n / 15 + n / 4 + (2 * n / 3 + 1) ≤ n :=
+begin
+  sorry
 end
 
 
@@ -462,7 +497,7 @@ begin
             apply (nat.mul_le_mul_right (4 ^ (2 * n / 3 + 1))),
             apply (nat.mul_le_mul_right ((2 * n) ^ nat.sqrt (2 * n))),
             apply power_conversion_1,
-            finish
+            linarith,
           end
   ...  ≤ (4 ^ (n / 15)) * (4 ^ (n / 4)) * 4 ^ (2 * n / 3 + 1) :
           begin
@@ -477,7 +512,7 @@ begin
             rw tactic.ring.pow_add_rev,
             apply nat.pow_le_pow_of_le_right,
             dec_trivial,
-            sorry,
+            exact fooo n (by linarith),
           end
 end
 

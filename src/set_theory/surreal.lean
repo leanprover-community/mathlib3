@@ -464,7 +464,7 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
-lemma nonneg_of_pos_nsmul (m : ℕ) {x : surreal} (hx : 0 < x) : 0 ≤ m • x :=
+lemma nonneg_of_nsmul_pos (m : ℕ) {x : surreal} (hx : 0 < x) : 0 ≤ m • x :=
 begin
   induction m with m hm,
   { simp }, -- squeeze_simp fails?
@@ -472,12 +472,12 @@ begin
     apply add_nonneg (le_of_lt hx) hm }
 end
 
-lemma pos_of_pos_nsmul {m : ℕ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
+lemma pos_of_nsmul_pos {m : ℕ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
 begin
     induction m with m hm,
     { exfalso, exact nat.lt_asymm hm hm },
     { rw [succ_nsmul x m],
-      apply lt_add_of_pos_of_le hx (nonneg_of_pos_nsmul _ hx) }
+      apply lt_add_of_pos_of_le hx (nonneg_of_nsmul_pos _ hx) }
 end
 
 lemma lt_of_nsmul_pos_lt {m : ℕ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
@@ -486,25 +486,7 @@ begin
   have : m • y - m • x = m • (y - x),
     by { have := (nsmul_add y (-x) m).symm, rwa [neg_nsmul x m] at this },
   rw this,
-  apply pos_of_pos_nsmul hm hxy,
-end
-
-lemma nonneg_of_nonneg_gsmul {m : ℤ} {x : surreal} (hm : 0 ≤ m) (hx : 0 < x) : 0 ≤ m • x :=
-begin
-  cases m with m m,
-  { have := nonneg_of_pos_nsmul m hx,
-    simpa only [int.of_nat_eq_coe, gsmul_coe_nat] },
-  { exfalso,
-    rwa [← int.neg_succ_not_nonneg m] }
-end
-
-lemma pos_of_pos_gsmul {m : ℤ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
-begin
-  cases m with m m,
-  { simp at *,
-    apply pos_of_pos_nsmul hm hx },
-  { exfalso,
-    rwa [← int.neg_succ_not_pos m] }
+  apply pos_of_nsmul_pos hm hxy,
 end
 
 lemma lt_of_gsmul_pos_lt {m : ℤ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
@@ -577,7 +559,7 @@ end
 begin
   unfold pow,
   unfold log,
-  rcases n with ⟨_ , hn⟩,
+  rcases n with ⟨_, hn⟩,
   congr,
   exact nat.find_spec hn,
 end

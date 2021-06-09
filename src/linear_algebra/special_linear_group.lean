@@ -222,43 +222,31 @@ section has_neg
 
 /-- Formal operation of negation on special linear group on even cardinality `n` given by negating
 each element. -/
-def has_neg_SL {R : Type*} [comm_ring R] (h : even (fintype.card n)) :
+instance {R : Type*} [comm_ring R] [_i : fact (even (fintype.card n))] :
   has_neg (special_linear_group n R) :=
 ⟨λ g, ⟨- g.1, begin
   convert @det_smul _ _ _ _ _ g (-1),
   { simp,
     refl },
   { convert (det_coe_fun g).symm,
-    simp [nat.neg_one_pow_of_even h] }
+    simp [nat.neg_one_pow_of_even _i.elim] }
 end⟩⟩
 
-/-- Formal operation of negation on special linear group on `fin 2` given by negating each element.
--/
-instance : has_neg (special_linear_group (fin 2) R) := has_neg_SL (by simp)
-
 @[simp] lemma special_linear_group.has_neg_coe_mat {R : Type*} [comm_ring R]
-  (g : (special_linear_group n R)) (h : even (fintype.card n)) :
-  @coe _ (matrix n n R) _ (@has_neg.neg _ (has_neg_SL h) g) = - (@coe _ (matrix n n R) _ g) :=
+  (g : (special_linear_group n R)) [_i : fact (even (fintype.card n))] :
+  @coe _ (matrix n n R) _ (- g) = - (@coe _ (matrix n n R) _ g) :=
 rfl
 
-@[simp] lemma special_linear_group.has_neg_coe_mat_fin_two {R : Type*} [comm_ring R]
-  (g : (special_linear_group (fin 2) R)) :
-  @coe _ (matrix (fin 2) (fin 2) R) _ (-g) = - (@coe _ (matrix (fin 2) (fin 2) R) _ g) :=
+@[simp] lemma special_linear_group.has_neg_coe_fn {R : Type*} [comm_ring R]
+  (g : (special_linear_group n R)) [_i : fact (even (fintype.card n))] :
+  @coe_fn _ _ (- g) = - (@coe_fn _ _ g) :=
 rfl
 
 @[simp]
 lemma special_linear_group.has_neg_cast {R : Type*} [comm_ring R] (g : (special_linear_group n ℤ))
-  (h : even (fintype.card n)) :
-  @coe _ (special_linear_group n R) _ (@has_neg.neg _ (has_neg_SL h) g)
-  = (@has_neg.neg _ (has_neg_SL h) (@coe _ (special_linear_group n R) _ g)) :=
+  (h : even (fintype.card n)) [_i : fact (even (fintype.card n))] :
+  @coe _ (special_linear_group n R) _ (- g) = - (@coe _ (special_linear_group n R) _ g) :=
 subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg g
-
-@[simp]
-lemma special_linear_group.has_neg_cast_fin_two {R : Type*} [comm_ring R]
-  (g : (special_linear_group (fin 2) ℤ)) :
-  @coe _ (special_linear_group (fin 2) R) _ (-g)
-  = - (@coe _ (special_linear_group (fin 2) R) _ g) :=
-subtype.ext $ (@ring_hom.map_matrix (fin 2) _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg g
 
 end has_neg
 

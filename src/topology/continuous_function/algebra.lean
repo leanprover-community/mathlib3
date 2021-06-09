@@ -68,7 +68,7 @@ In this section we show that continuous functions valued in a topological group 
 the structure of a group.
 -/
 
-section subtype -- deprecated
+section subtype
 
 @[to_additive]
 instance continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
@@ -216,7 +216,7 @@ In this section we show that continuous functions valued in a topological ring `
 the structure of a ring.
 -/
 
-section subtype -- deprecated
+section subtype
 
 instance continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
   [ring R] [topological_ring R] : is_subring { f : α → R | continuous f } :=
@@ -278,7 +278,7 @@ In this section we show that continuous functions valued in a topological module
 topological semiring `R` inherit the structure of a module.
 -/
 
-section subtype -- deprecated
+section subtype
 
 variables {α : Type*} [topological_space α]
 variables {R : Type*} [semiring R] [topological_space R]
@@ -361,7 +361,7 @@ In this section we show that continuous functions valued in a topological algebr
 is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_semiring`
 (by now we require `topological_ring`: see TODO below).-/
 
-section subtype -- deprecated
+section subtype
 
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]

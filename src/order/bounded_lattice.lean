@@ -20,8 +20,8 @@ instances for `Prop` and `fun`.
 * `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
 * `order_<top/bot> α`: Order with a top/bottom element.
 * `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
-* `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element. Typical
-  examples include `ℕ`.
+* `semilattice_<sup/inf>_<top/bot>`: Semilattice with a join/meet and a top/bottom element (all four
+  combinations). Typical examples include `ℕ`.
 * `bounded_lattice α`: Lattice with a top and bottom element.
 * `bounded_distrib_lattice α`: Bounded and distributive lattice. Typical examples include `Prop` and
   `set α`.

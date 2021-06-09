@@ -486,7 +486,7 @@ variables {V : Type u} {s : finset V} [decidable_eq V] (P : finpartition s)
 /-- The size of a finpartition is its number of parts. -/
 protected def size : ℕ := P.parts.card
 
-lemma bUnion_subset_of {α β : Type*} [decidable_eq β]
+lemma bUnion_subset_of_forall_subset {α β : Type*} [decidable_eq β]
   {s : finset α} (t : finset β) (f : α → finset β) (h : ∀ x ∈ s, f x ⊆ t) : s.bUnion f ⊆ t :=
 begin
   intros i hi,
@@ -495,11 +495,10 @@ begin
   apply h _ ha₁ ha₂
 end
 
-lemma union : P.parts.bUnion id = s :=
+lemma union_eq : P.parts.bUnion id = s :=
 begin
   apply subset.antisymm,
-  { apply bUnion_subset_of,
-    apply P.subset },
+  { refine bUnion_subset_of_forall_subset _ _ (λ i, P.subset _) },
   { intros x hx,
     rw mem_bUnion,
     apply P.covering _ hx }
@@ -559,13 +558,7 @@ noncomputable def index (P : finpartition s) : ℝ :=
 
 lemma index_nonneg (P : finpartition s) :
   0 ≤ P.index G :=
-begin
-  rw finpartition.index,
-  refine div_nonneg _ (sq_nonneg _),
-  rw ←finset.sum_const_zero,
-  apply finset.sum_le_sum, -- this may be `apply` abuse
-  exact λ _ _, sq_nonneg _,
-end
+div_nonneg (finset.sum_nonneg (λ _ _, sq_nonneg _)) (sq_nonneg _)
 
 -- TODO: change for `choose_le_pow` once PR has landed
 lemma nat.choose_le_pow (n k : ℕ) : (n.choose k : ℝ) ≤ n^k / (k.factorial) :=
@@ -943,7 +936,7 @@ begin
   let P' : finpartition s := ⟨P, hP₄, hP₃, hP₅⟩,
   have h₁ : ∑ i in P'.parts, i.card = s.card,
   { rw [←card_bUnion],
-    { apply congr_arg finset.card P'.union },
+    { apply congr_arg finset.card P'.union_eq },
     intros x hx y hy t,
     rw disjoint_left,
     intros i hix hiy,

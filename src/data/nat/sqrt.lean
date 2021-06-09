@@ -245,6 +245,7 @@ end
 
 theorem not_exists_sq' {n m : ℕ} (hl : m ^ 2 < n) (hr : n < (m + 1) ^ 2) :
   ¬ ∃ t, t ^ 2 = n :=
-  by simpa only [pow_two] using (@not_exists_sq n m (by simpa only [pow_two] using hl) (by simpa only [pow_two] using hr))
+  by simpa only [pow_two]
+  using not_exists_sq (by simpa only [pow_two] using hl) (by simpa only [pow_two] using hr)
 
 end nat

@@ -116,6 +116,13 @@ protected structure equiv extends M ≃ N :=
 localized "notation A ` ≃[`:25 L `] ` B := L.equiv A B" in first_order
 
 variables {L M N} {P : Type*} [L.Structure P] {Q : Type*} [L.Structure Q]
+
+instance : has_coe_t L.const M :=
+⟨λ c, fun_map c fin.elim0⟩
+
+lemma fun_map_eq_coe_const {c : L.const} {x : fin 0 → M} :
+  fun_map c x = c := congr rfl (funext fin.elim0)
+
 namespace hom
 
 @[simps] instance has_coe_to_fun : has_coe_to_fun (M →[L] N) :=
@@ -135,6 +142,9 @@ lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
 
 @[simp] lemma map_fun (φ : M →[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
+
+lemma map_const (φ : M →[L] N) {n : ℕ} (c : L.const) : φ c = c :=
+(φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
 
 @[simp] lemma map_rel (φ : M →[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r x → rel_map r (φ ∘ x) := φ.map_rel' r x
@@ -525,8 +535,6 @@ lemma closure_Union {ι} (s : ι → set M) : closure L (⋃ i, s i) = ⨆ i, cl
 end substructure
 
 namespace hom
-
-variables {M} {P : Type u} [Structure L P]
 
 open substructure
 

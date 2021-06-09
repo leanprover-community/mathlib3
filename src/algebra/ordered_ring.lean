@@ -1334,7 +1334,7 @@ end canonically_ordered_semiring
 
 /-! ### Structures involving `*` and `0` on `with_top` and `with_bot`
 
-The main results of this section are `with_top.canonically_ordered_comm_semiring` an
+The main results of this section are `with_top.canonically_ordered_comm_semiring` and
 `with_bot.comm_monoid_with_zero`.
 -/
 

@@ -1159,6 +1159,16 @@ by rw [inter_comm, Ioc_inter_Ioo_of_right_le h, max_comm]
 lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioc (max a₁ a₂) b₂ :=
 by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
+lemma Iic_inter_Ioc_of_le (h : a₂ ≤ a) : Iic a₂ ∩ Ioc a₁ a = Ioc a₁ a₂ :=
+begin
+  ext x,
+  split,
+  { rintros ⟨H, H', H''⟩,
+    exact ⟨H', H⟩ },
+  { rintros ⟨H, H'⟩,
+    exact ⟨H', H, H'.trans h⟩ }
+end
+
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
 ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 

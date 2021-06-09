@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury G. Kudryashov
+Authors: Yury G. Kudryashov, Patrick Massot
 -/
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
@@ -150,6 +150,36 @@ open_locale classical topological_space filter ennreal
 variables {α β 𝕜 E F : Type*} [linear_order α] [measurable_space α]
   [measurable_space E] [normed_group E]
 
+open_locale interval
+
+/-!
+### Almost everywhere on an interval
+-/
+
+section
+variables {μ : measure α} {a b : α} {P : α → Prop}
+
+lemma ae_interval_oc_iff :
+  (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔ (∀ᵐ x ∂μ, x ∈ Ioc a b → P x) ∧ (∀ᵐ x ∂μ, x ∈ Ioc b a → P x) :=
+by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
+
+lemma ae_measurable_interval_oc_iff {μ : measure α} {β : Type*} [measurable_space β] {f : α → β} :
+  (ae_measurable f $ μ.restrict $ Ι a b) ↔
+  (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
+by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
+
+variables  [topological_space α] [opens_measurable_space α] [order_closed_topology α]
+
+lemma ae_interval_oc_iff' : (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔
+  (∀ᵐ x ∂ (μ.restrict $ Ioc a b), P x) ∧ (∀ᵐ x ∂ (μ.restrict $ Ioc b a), P x) :=
+begin
+  simp_rw ae_interval_oc_iff,
+  rw [ae_restrict_eq, eventually_inf_principal, ae_restrict_eq, eventually_inf_principal] ;
+  exact measurable_set_Ioc
+end
+
+end
+
 /-!
 ### Integrability at an interval
 -/
@@ -181,6 +211,10 @@ lemma measure_theory.integrable.interval_integrable {f : α → E} {a b : α} {�
   (hf : integrable f μ) :
   interval_integrable f μ a b :=
 ⟨hf.integrable_on, hf.integrable_on⟩
+
+lemma interval_integrable.norm [opens_measurable_space E] {f : α → E} {a b : α} {μ : measure α}
+  (h : interval_integrable f μ a b) : interval_integrable (λ x, ∥f x∥) μ a b  :=
+⟨h.1.norm, h.2.norm⟩
 
 namespace interval_integrable
 
@@ -647,7 +681,140 @@ begin
     simp [h] }
 end
 
+lemma congr_ae' {f g : α → E} (h : ∀ᵐ x ∂μ, x ∈ Ioc a b → f x = g x)
+  (h' : ∀ᵐ x ∂μ, x ∈ Ioc b a → f x = g x) :
+  ∫ (x : α) in a..b, f x ∂μ = ∫ (x : α) in a..b, g x ∂μ :=
+by simp only [interval_integral, set_integral_congr_ae (measurable_set_Ioc) h,
+              set_integral_congr_ae (measurable_set_Ioc) h']
+
+lemma congr_ae {f g : α → E} (h : ∀ᵐ x ∂μ, x ∈ Ι a b → f x = g x) :
+  ∫ (x : α) in a..b, f x ∂μ = ∫ (x : α) in a..b, g x ∂μ :=
+interval_integral.congr_ae' (ae_interval_oc_iff.mp h).1 (ae_interval_oc_iff.mp h).2
+
+lemma integral_zero_ae  {f : α → E} (h : ∀ᵐ x ∂μ, x ∈ Ι a b → f x = 0) :
+  ∫ (x : α) in a..b, f x ∂μ = 0 :=
+calc ∫ x in a..b, f x ∂μ = ∫ x in a..b, 0 ∂μ : interval_integral.congr_ae h
+                     ... = 0                 : interval_integral.integral_zero
+
+lemma integral_indicator {a₁ a₂ a₃ : α} (h : a₂ ∈ Ioc a₁ a₃) {f : α → E} :
+  ∫ x in a₁..a₃, indicator {x | x ≤ a₂} f x ∂ μ = ∫ x in a₁..a₂, f x ∂ μ :=
+begin
+  have : {x | x ≤ a₂} ∩ Ioc a₁ a₃ = Ioc a₁ a₂, from Iic_inter_Ioc_of_le h.2,
+  rw [interval_integral.integral_of_le h.1.le, interval_integral.integral_of_le (h.1.le.trans h.2),
+      integral_indicator, measure.restrict_restrict, this],
+  exact measurable_set_Iic,
+  all_goals { apply measurable_set_Iic},
+end
+
 end order_closed_topology
+
+section continuity_wrt_parameter
+open topological_space
+
+variables {X : Type*} [topological_space X] [first_countable_topology X]
+variables {μ : measure α}
+
+lemma continuous_at_of_dominated_interval
+  {F : X → α → E} {x₀ : X} {bound : α → ℝ} {a b : α}
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict $ Ι a b))
+  (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ t ∂(μ.restrict $ Ι a b), ∥F x t∥ ≤ bound t)
+  (bound_integrable : interval_integrable bound μ a b)
+  (h_cont : ∀ᵐ t ∂(μ.restrict $ Ι a b), continuous_at (λ x, F x t) x₀) :
+  continuous_at (λn, ∫ t in a..b, F n t ∂μ) x₀ :=
+begin
+  have gc := first_countable_topology.nhds_generated_countable x₀,
+  cases bound_integrable,
+  cases le_or_gt a b with hab hab;
+  [{ rw interval_oc_of_le hab at *,
+     simp_rw interval_integral.integral_of_le hab },
+   { rw interval_oc_of_lt hab at *,
+     simp_rw interval_integral.integral_of_ge (le_of_lt hab),
+     refine tendsto.neg _ }];
+  apply tendsto_integral_filter_of_dominated_convergence bound gc hF_meas
+        (mem_of_mem_nhds hF_meas : _) h_bound,
+  exacts [bound_integrable_left, h_cont, bound_integrable_right, h_cont]
+end
+
+lemma continuous_of_dominated_interval {F : X → α → E} {bound : α → ℝ} {a b : α}
+  (hF_meas : ∀ x, ae_measurable (F x) $ μ.restrict $ Ι a b)
+  (h_bound : ∀ x, ∀ᵐ t ∂(μ.restrict $ Ι a b), ∥F x t∥ ≤ bound t)
+  (bound_integrable : interval_integrable bound μ a b)
+  (h_cont : ∀ᵐ t ∂(μ.restrict $ Ι a b), continuous (λ x, F x t)) :
+  continuous (λn, ∫ t in a..b, F n t ∂μ) :=
+continuous_iff_continuous_at.mpr (λ x₀, continuous_at_of_dominated_interval
+  (eventually_of_forall hF_meas) (eventually_of_forall h_bound) ‹_› $ h_cont.mono $
+  λ _, continuous.continuous_at)
+
+end continuity_wrt_parameter
+
+section continuous_primitive
+open topological_space
+
+variables [topological_space α] [order_topology α] [opens_measurable_space α]
+          [first_countable_topology α] {a b : α} {μ : measure α}
+
+lemma continuous_at_primitive {f : α → E}
+  (h_int : ∀ a b : α, interval_integrable f μ a b) (a : α)
+  {b₀ b₁ b₂ : α} (hb₁ : b₁ < b₀) (hb₂ : b₀ < b₂) (hb₀ : μ {b₀} = 0) :
+  continuous_at (λ b, ∫ x in a .. b, f x ∂ μ) b₀ :=
+begin
+  have : (λ b, ∫ x in a..b, f x ∂μ) = (λ b, ∫ x in a..b₁, f x ∂μ) + (λ b, ∫ x in b₁..b, f x ∂μ),
+  { ext b,
+    exact (interval_integral.integral_add_adjacent_intervals (h_int _ _) (h_int _ _)).symm },
+  rw this, clear this,
+  refine continuous_const.continuous_at.add _,
+  have : (λ b, ∫ x in b₁..b, f x ∂μ) =ᶠ[𝓝 b₀] λ b, ∫ x in b₁..b₂, indicator {x | x ≤ b} f x ∂ μ,
+  from eventually_eq_of_mem (Ioo_mem_nhds hb₁ hb₂)
+                          (λ b b_in, (integral_indicator (Ioo_subset_Ioc_self b_in)).symm),
+  rw  continuous_at_congr this, clear this,
+  refine continuous_at_of_dominated_interval _ _ (h_int b₁ b₂).norm _,
+  { apply eventually.mono (Ioo_mem_nhds hb₁ hb₂),
+    intros x hx,
+    erw [← ae_measurable_indicator_iff, measure.restrict_restrict, Iic_inter_Ioc],
+    { exact (h_int _ _).2.ae_measurable },
+    { simp [hb₁, hb₂, hx.1, hx.2.le] },
+    exacts [measurable_set_Iic, measurable_set_Iic] },
+  { refine eventually_of_forall (λ (x : α), eventually_of_forall (λ (t : α), _)),
+    dsimp [indicator],
+    split_ifs ; simp },
+  { have : ∀ᵐ t ∂μ.restrict (Ι b₁ b₂), t < b₀ ∨ t > b₀,
+    { apply ae_restrict_of_ae,
+      apply eventually.mono (compl_mem_ae_iff.mpr hb₀),
+      intros x hx,
+      exact ne.lt_or_lt hx },
+    apply this.mono,
+    rintros x₀ (hx₀ | hx₀),
+    { have : ∀ᶠ x in 𝓝 b₀, {t : α | t ≤ x}.indicator f x₀ = f x₀,
+      { apply eventually.mono (Ioi_mem_nhds hx₀),
+        intros x hx,
+        simp [hx.le] },
+      rw continuous_at_congr this,
+      apply continuous_at_const },
+    { have : ∀ᶠ x in 𝓝 b₀, {t : α | t ≤ x}.indicator f x₀ = 0,
+      { apply eventually.mono (Iio_mem_nhds hx₀),
+        intros x hx,
+        simp [hx] },
+      rw continuous_at_congr this,
+      apply continuous_at_const } },
+end
+
+variables [no_bot_order α] [no_top_order α] [has_no_atoms μ]
+
+lemma continuous_primitive {f : α → E} (h_int : ∀ a b : α, interval_integrable f μ a b) (a : α) :
+  continuous (λ b, ∫ x in a .. b, f x ∂ μ) :=
+begin
+  rw continuous_iff_continuous_at,
+  intro b₀,
+  cases no_bot b₀ with b₁ hb₁,
+  cases no_top b₀ with b₂ hb₂,
+  exact continuous_at_primitive h_int a hb₁ hb₂ (measure_singleton b₀)
+end
+
+lemma measure_theory.integrable.continuous_primitive {f : α → E} (h_int : integrable f μ) (a : α) :
+  continuous (λ b, ∫ x in a .. b, f x ∂ μ) :=
+continuous_primitive (λ _ _, h_int.interval_integrable) a
+
+end continuous_primitive
 
 lemma integral_eq_zero_iff_of_le_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
   (hf : 0 ≤ᵐ[volume.restrict (Ioc a b)] f) (hfi : interval_integrable f volume a b) :

@@ -506,6 +506,19 @@ by rw [ennreal_rat_embed, encodable.encodek]; refl
 def eapprox : (α → ℝ≥0∞) → ℕ → α →ₛ ℝ≥0∞ :=
 approx ennreal_rat_embed
 
+lemma eapprox_lt_top (f : α → ℝ≥0∞) (n : ℕ) (a : α) : eapprox f n a < ∞ :=
+begin
+  simp only [eapprox, approx, finset_sup_apply, finset.sup_lt_iff, with_top.zero_lt_top,
+    finset.mem_range, ennreal.bot_eq_zero, restrict],
+  assume b hb,
+  split_ifs,
+  { simp only [coe_zero, coe_piecewise, piecewise_eq_indicator, coe_const],
+    calc {a : α | ennreal_rat_embed b ≤ f a}.indicator (λ x, ennreal_rat_embed b) a
+        ≤ ennreal_rat_embed b : indicator_le_self _ _ a
+    ... < ⊤ : ennreal.coe_lt_top },
+  { exact with_top.zero_lt_top },
+end
+
 @[mono] lemma monotone_eapprox (f : α → ℝ≥0∞) : monotone (eapprox f) :=
 monotone_approx _ f
 
@@ -529,6 +542,30 @@ lemma eapprox_comp [measurable_space γ] {f : γ → ℝ≥0∞} {g : α → γ}
   (hf : measurable f) (hg : measurable g) :
   (eapprox (f ∘ g) n : α → ℝ≥0∞) = (eapprox f n : γ →ₛ ℝ≥0∞) ∘ g :=
 funext $ assume a, approx_comp a hf hg
+
+/-- Approximate a function `α → ℝ≥0∞` by a series of simple functions taking their values
+in `ℝ≥0`. -/
+def eapprox_diff (f : α → ℝ≥0∞) : ∀ (n : ℕ), α →ₛ ℝ≥0
+| 0 := (eapprox f 0).map ennreal.to_nnreal
+| (n+1) := (eapprox f (n+1) - eapprox f n).map ennreal.to_nnreal
+
+lemma sum_eapprox_diff (f : α → ℝ≥0∞) (n : ℕ) (a : α) :
+  (∑ k in finset.range (n+1), (eapprox_diff f k a : ℝ≥0∞)) = eapprox f n a :=
+begin
+  induction n with n IH,
+  { simp only [nat.nat_zero_eq_zero, finset.sum_singleton, finset.range_one], refl },
+  { rw [finset.sum_range_succ, nat.succ_eq_add_one, IH, eapprox_diff, coe_map, function.comp_app,
+        coe_sub, pi.sub_apply, ennreal.coe_to_nnreal,
+        ennreal.add_sub_cancel_of_le (monotone_eapprox f (nat.le_succ _) _)],
+    apply (lt_of_le_of_lt _ (eapprox_lt_top f (n+1) a)).ne,
+    rw ennreal.sub_le_iff_le_add,
+    exact le_self_add },
+end
+
+lemma tsum_eapprox_diff (f : α → ℝ≥0∞) (hf : measurable f) (a : α) :
+  (∑' n, (eapprox_diff f n a : ℝ≥0∞)) = f a :=
+by simp_rw [ennreal.tsum_eq_supr_nat' (tendsto_add_at_top_nat 1), sum_eapprox_diff,
+  supr_eapprox_apply f hf a]
 
 end eapprox
 
@@ -902,6 +939,16 @@ begin
   rw ennreal.coe_le_coe,
   exact h a,
 end
+
+lemma lintegral_mono_set ⦃μ : measure α⦄
+  {s t : set α} {f : α → ℝ≥0∞} (hst : s ⊆ t) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
+lintegral_mono' (measure.restrict_mono hst (le_refl μ)) (le_refl f)
+
+lemma lintegral_mono_set' ⦃μ : measure α⦄
+  {s t : set α} {f : α → ℝ≥0∞} (hst : s ≤ᵐ[μ] t) :
+  ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
+lintegral_mono' (measure.restrict_mono' hst (le_refl μ)) (le_refl f)
 
 lemma monotone_lintegral (μ : measure α) : monotone (lintegral μ) :=
 lintegral_mono

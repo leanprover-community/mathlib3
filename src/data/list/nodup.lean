@@ -322,6 +322,20 @@ begin
   { simp [ne.symm H, H, update_nth, ← apply_ite (cons (f hd))] }
 end
 
+lemma nodup.pairwise_of_forall_ne {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
+begin
+  classical,
+  refine pairwise_of_reflexive_on_dupl_of_forall_ne _ h,
+  intros x hx,
+  rw nodup_iff_count_le_one at hl,
+  exact absurd (hl x) hx.not_le
+end
+
+lemma nodup.pairwise_of_set_pairwise_on {l : list α} {r : α → α → Prop}
+  (hl : l.nodup) (h : {x | x ∈ l}.pairwise_on r) : l.pairwise r :=
+hl.pairwise_of_forall_ne h
+
 end list
 
 theorem option.to_list_nodup {α} : ∀ o : option α, o.to_list.nodup

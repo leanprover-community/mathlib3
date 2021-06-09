@@ -395,12 +395,90 @@ begin
   sorry,
 end
 
+lemma le_iff_mul_le_mul (a b c : ℕ) (c_pos : 0 < c) : a ≤ b ↔ a * c ≤ b * c :=
+begin
+  exact (mul_le_mul_right c_pos).symm
+end
+
+lemma three_pos : 0 < 3 := by dec_trivial
+
+lemma ge_of_le (a b : ℕ) : a ≤ b → b ≥ a := ge.le
+
+-- lemma false_inequality_is_false_alternate {n : ℕ} (n_large : 460 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+-- begin
+--   intro h,
+--   have h1 : 4 ^ (n - (2 * n / 3 + 1)) < (2 * n + 1) * (2 * n) ^ nat.sqrt (2 * n),
+--     apply pow_sub_lt,
+--   -- apply ge_of_le,
+
+--   apply (mul_le_mul_right three_pos).1,
+--   -- rw add_mul,
+--   -- simp only [one_mul],
+--   -- linarith,
+--   linarith [nat.div_mul_le_self (2 * n) 3],
+--   exact h,
+
+
+-- end
+
+-- lemma le_of_pow_le_pow (a b c : nat) (c_pos : 0 < c) : a ^ c ≤ b ^ c → a ≤ b :=
+-- begin
+--   -- library_search,
+--   sorry,
+-- end
+
+lemma power_conversion_1 (n : ℕ) (n_large : 460 < n) : 2 * n + 1 ≤ 4 ^ (n / 15) :=
+begin
+  suffices h : (2 * n + 1) ^ 15 ≤ (4 ^ (n / 15)) ^ 15,
+    apply le_of_pow_le_pow 15,
+    apply zero_le,
+    linarith,
+    exact h,
+
+  induction n,
+  simp,
+  by_cases h : 460 < n_n,
+  have odafij := n_ih h,
+  rw nat.mul_succ,
+  sorry,
+  sorry,
+
+end
+
+
+lemma power_conversion_2 (n : ℕ) (n_large : 460 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
+begin
+  sorry,
+end
+
+
 lemma false_inequality_is_false {n : ℕ} (n_large : 460 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 begin
-  intro h,
-  have h1 : 4 ^ (n - (2 * n / 3 + 1)) < (2 * n + 1) * (2 * n) ^ nat.sqrt (2 * n),
-  apply pow_sub_lt,
-    sorry,
+  rw imp_false,
+  rw not_lt,
+  calc (2 * n + 1) * (2 * n) ^ nat.sqrt (2 * n) * 4 ^ (2 * n / 3 + 1)
+       ≤ (4 ^ (n / 15)) * (2 * n) ^ nat.sqrt (2 * n) * 4 ^ (2 * n / 3 + 1) :
+          begin
+            apply (nat.mul_le_mul_right (4 ^ (2 * n / 3 + 1))),
+            apply (nat.mul_le_mul_right ((2 * n) ^ nat.sqrt (2 * n))),
+            apply power_conversion_1,
+            finish
+          end
+  ...  ≤ (4 ^ (n / 15)) * (4 ^ (n / 4)) * 4 ^ (2 * n / 3 + 1) :
+          begin
+            apply (nat.mul_le_mul_right (4 ^ (2 * n / 3 + 1))),
+            apply (nat.mul_le_mul_left (4 ^ (n / 15))),
+            apply power_conversion_2,
+            finish
+          end
+  ...  ≤ 4 ^ n :
+          begin
+            rw tactic.ring.pow_add_rev,
+            rw tactic.ring.pow_add_rev,
+            apply nat.pow_le_pow_of_le_right,
+            dec_trivial,
+            sorry,
+          end
 end
 
 lemma blah {a : _} {A : finset a} {B : finset a} (p : A ⊆ B) : A.card ≤ B.card :=

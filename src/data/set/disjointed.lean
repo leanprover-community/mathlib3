@@ -38,6 +38,14 @@ theorem pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
 pairwise_on_bool disjoint.symm
 
+theorem pairwise_on_nat {r} (hr : symmetric r) (f : ℕ → α) :
+  pairwise (r on f) ↔ (∀ (m n) (h : m < n), r (f m) (f n)) :=
+⟨λ p m n w, p m n w.ne, λ p m n w, by { wlog w' : m ≤ n, exact p m n ((ne.le_iff_lt w).mp w'), }⟩
+
+theorem pairwise_disjoint_on_nat [semilattice_inf_bot α] (f : ℕ → α) :
+  pairwise (disjoint on f) ↔ (∀ (m n) (h : m < n), disjoint (f m) (f n)) :=
+pairwise_on_nat disjoint.symm f
+
 theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
 λ x hx y hy, h x y
 

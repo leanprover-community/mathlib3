@@ -196,7 +196,7 @@ def nndist (a b : α) : ℝ≥0 := ⟨dist a b, dist_nonneg⟩
 
 /--Express `nndist` in terms of `edist`-/
 lemma nndist_edist (x y : α) : nndist x y = (edist x y).to_nnreal :=
-by simp [nndist, edist_dist, nnreal.of_real, max_eq_left dist_nonneg, ennreal.of_real]
+by simp [nndist, edist_dist, real.to_nnreal, max_eq_left dist_nonneg, ennreal.of_real]
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
@@ -239,8 +239,8 @@ iff.rfl
 iff.rfl
 
 /--Express `nndist` in terms of `dist`-/
-lemma nndist_dist (x y : α) : nndist x y = nnreal.of_real (dist x y) :=
-by rw [dist_nndist, nnreal.of_real_coe]
+lemma nndist_dist (x y : α) : nndist x y = real.to_nnreal (dist x y) :=
+by rw [dist_nndist, real.to_nnreal_coe]
 
 theorem nndist_comm (x y : α) : nndist x y = nndist y x :=
 by simpa only [dist_nndist, nnreal.coe_eq] using dist_comm x y
@@ -1319,6 +1319,17 @@ open metric
 /-- A pseudometric space is proper if all closed balls are compact. -/
 class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
+
+/-- In a proper pseudometric space, all spheres are compact. -/
+lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
+  is_compact (sphere x r) :=
+compact_of_is_closed_subset (proper_space.compact_ball x r) is_closed_sphere
+  sphere_subset_closed_ball
+
+/-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
+instance {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
+  compact_space (sphere x r) :=
+is_compact_iff_compact_space.mp (is_compact_sphere _ _)
 
 /-- A proper pseudo metric space is sigma compact, and therefore second countable. -/
 @[priority 100] -- see Note [lower instance priority]

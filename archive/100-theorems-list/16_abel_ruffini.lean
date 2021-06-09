@@ -126,9 +126,9 @@ begin
   obtain ⟨x, y, hxy, hx, hy⟩ := real_roots_Phi_ge_aux a b hab,
   have key : ↑({x, y} : finset ℝ) ⊆ (Φ ℚ a b).root_set ℝ,
   { simp [set.insert_subset, mem_root_set q_ne_zero, hx, hy] },
-  replace key := fintype.card_le_of_embedding (set.embedding_of_subset _ _ key),
-  rwa [fintype.card_coe, finset.card_insert_of_not_mem, finset.card_singleton] at key,
-  rwa finset.mem_singleton,
+  convert fintype.card_le_of_embedding (set.embedding_of_subset _ _ key),
+  simp only [finset.coe_sort_coe, fintype.card_coe, finset.card_singleton,
+             finset.card_insert_of_not_mem (mt finset.mem_singleton.mp hxy)]
 end
 
 lemma complex_roots_Phi (h : (Φ ℚ a b).separable) : fintype.card ((Φ ℚ a b).root_set ℂ) = 5 :=

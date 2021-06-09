@@ -109,8 +109,14 @@ def lift :
       rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
     linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
-  left_inv := λ f, by { ext, simp [ι] },
-  right_inv := λ F, by { ext, simp [ι] } }
+  left_inv := λ f, by { ext,
+    simp only [ι, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
+               subtype.coe_mk, ring_quot.lift_alg_hom_mk_alg_hom_apply,
+               tensor_algebra.lift_ι_apply] },
+  right_inv := λ F, by { ext,
+    simp only [ι, alg_hom.comp_to_linear_map, alg_hom.to_linear_map_apply, function.comp_app,
+               linear_map.coe_comp, subtype.coe_mk, ring_quot.lift_alg_hom_mk_alg_hom_apply,
+               tensor_algebra.lift_ι_apply] } }
 
 variables {Q}
 

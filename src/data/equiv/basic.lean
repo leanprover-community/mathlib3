@@ -1149,6 +1149,15 @@ def sum_arrow_equiv_prod_arrow (α β γ : Type*) : ((α ⊕ β) → γ) ≃ (α
  λ f, by { ext ⟨⟩; refl },
  λ p, by { cases p, refl }⟩
 
+@[simp] lemma sum_arrow_equiv_prod_arrow_apply_fst {α β γ} (f : (α ⊕ β) → γ) (a : α) :
+  (sum_arrow_equiv_prod_arrow α β γ f).1 a = f (inl a) := rfl
+@[simp] lemma sum_arrow_equiv_prod_arrow_apply_snd {α β γ} (f : (α ⊕ β) → γ) (b : β) :
+  (sum_arrow_equiv_prod_arrow α β γ f).2 b = f (inr b) := rfl
+@[simp] lemma sum_arrow_equiv_prod_arrow_symm_apply_inl {α β γ} (f : α → γ) (g : β → γ) (a : α) :
+  ((sum_arrow_equiv_prod_arrow α β γ).symm (f, g)) (inl a) = f a := rfl
+@[simp] lemma sum_arrow_equiv_prod_arrow_symm_apply_inr {α β γ} (f : α → γ) (g : β → γ) (b : β) :
+  ((sum_arrow_equiv_prod_arrow α β γ).symm (f, g)) (inr b) = g b := rfl
+
 /-- Type product is right distributive with respect to type sum up to an equivalence. -/
 def sum_prod_distrib (α β γ : Sort*) : (α ⊕ β) × γ ≃ (α × γ) ⊕ (β × γ) :=
 ⟨λ p, match p with (inl a, c) := inl (a, c) | (inr b, c) := inr (b, c) end,

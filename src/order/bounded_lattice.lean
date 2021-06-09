@@ -998,6 +998,15 @@ by simp [disjoint]
 lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 
+lemma disjoint.eq_bot_of_le {a b : α} (hab : disjoint a b) (h : a ≤ b) : a = ⊥ :=
+eq_bot_iff.2 (by rwa ←inf_eq_left.2 h)
+
+lemma disjoint.of_disjoint_inf_of_le {a b c : α} (h : disjoint (a ⊓ b) c) (hle : a ≤ c) :
+  disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_left.trans hle)]
+
+lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (hle : b ≤ c) :
+  disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_right.trans hle)]
+
 end semilattice_inf_bot
 
 section bounded_lattice
@@ -1007,10 +1016,21 @@ variables [bounded_lattice α] {a : α}
 @[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
 @[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
 
+lemma eq_bot_of_disjoint_absorbs
+  {a b : α} (w : disjoint a b) (h : a ⊔ b = a) : b = ⊥ :=
+begin
+  rw disjoint_iff at w,
+  rw [←w, right_eq_inf],
+  rwa sup_eq_left at h,
+end
+
 end bounded_lattice
 
 section bounded_distrib_lattice
-
+/-
+TODO: these lemmas don't require the existence of `⊤` and should be generalized to
+distrib_lattice_with_bot (which doesn't exist yet).
+-/
 variables [bounded_distrib_lattice α] {a b c : α}
 
 @[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=

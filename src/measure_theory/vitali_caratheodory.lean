@@ -451,7 +451,6 @@ begin
       exact ereal.continuous_at_add (by simp) (by simp) } }
 end
 
-
 /-- Vitali-Carathéodory theorem: given an integrable real function `f`, there exists an integrable
 function `g < f` which is upper semicontinuous, with integral arbitrarily close to that of `f`.
 This function has to be `ereal`-valued in general. -/

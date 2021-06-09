@@ -714,7 +714,6 @@ begin
     exact add_le_add h h, }
 end
 
-
 @[simp] lemma max_zero_sub_max_neg_zero_eq_self (a : α) :
   max a 0 - max (-a) 0 = a :=
 by { rcases le_total a 0 with h|h; simp [h] }

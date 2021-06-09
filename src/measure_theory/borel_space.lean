@@ -1157,7 +1157,6 @@ lemma ae_measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0�
 by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
   exact λ s, finset.ae_measurable_sum s (λ i _, h i) }
 
-
 lemma measurable_coe_real_ereal : measurable (coe : ℝ → ereal) :=
 ereal.continuous_coe.measurable
 

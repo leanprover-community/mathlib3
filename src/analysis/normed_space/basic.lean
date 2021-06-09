@@ -298,7 +298,7 @@ lemma normed_group.tendsto_nhds_nhds {f : α → β} {x : α} {y : β} :
 by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 
 lemma normed_group.cauchy_seq_iff {u : ℕ → α} :
-  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, m ≥ N → n ≥ N → ∥u m - u n∥ < ε :=
+  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, N ≤ m → N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
 
 lemma cauchy_seq.add {u v : ℕ → α} (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (u + v) :=

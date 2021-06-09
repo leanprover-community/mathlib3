@@ -761,7 +761,7 @@ lemma prod_range_succ' (f : ℕ → β) :
 | 0       := prod_range_succ _ _
 | (n + 1) := by rw [prod_range_succ _ n, mul_right_comm, ← prod_range_succ', prod_range_succ]
 
-lemma eventually_constant_prod {u : ℕ → β} {N : ℕ} (hu : ∀ n ≥ N, u n = 1) {n : ℕ} (hn : n ≥ N) :
+lemma eventually_constant_prod {u : ℕ → β} {N : ℕ} (hu : ∀ n ≥ N, u n = 1) {n : ℕ} (hn : N ≤ n) :
   ∏ k in range (n + 1), u k = ∏ k in range (N + 1), u k :=
 begin
   obtain ⟨m, rfl : n = N + m⟩ := le_iff_exists_add.mp hn,
@@ -773,7 +773,7 @@ begin
 end
 
 lemma eventually_constant_sum {β} [add_comm_monoid β] {u : ℕ → β} {N : ℕ}
-  (hu : ∀ n ≥ N, u n = 0) {n : ℕ} (hn : n ≥ N) :
+  (hu : ∀ n ≥ N, u n = 0) {n : ℕ} (hn : N ≤ n) :
   ∑ k in range (n + 1), u k = ∑ k in range (N + 1), u k :=
 @eventually_constant_prod (multiplicative β) _ _ _ hu _ hn
 

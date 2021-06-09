@@ -850,7 +850,7 @@ identity from OO_X(U) to OO_X(V) equals as the restriction map of the structure 
 This is a generalization of the fact that, for fixed `U`, the comap of the identity from OO_X(U)
 to OO_X(U) is the identity.
 -/
-lemma structure_sheaf.comap_id_eq_res (U V : opens (prime_spectrum.Top R)) (iVU : V ⟶ U) :
+lemma structure_sheaf.comap_id_eq_map (U V : opens (prime_spectrum.Top R)) (iVU : V ⟶ U) :
   structure_sheaf.comap (ring_hom.id R) U V
     (λ p hpV, le_of_hom iVU $ by rwa prime_spectrum.comap_id) =
   (structure_sheaf R).presheaf.map iVU.op :=
@@ -882,7 +882,7 @@ lemma structure_sheaf.comap_id (U V : opens (prime_spectrum.Top R)) (hUV : U = V
   eq_to_hom (show (structure_sheaf R).presheaf.obj (op U) = _, by rw hUV) :=
 by erw [structure_sheaf.comap_id_eq_res U V (eq_to_hom hUV.symm), eq_to_hom_op, eq_to_hom_map]
 
-lemma structure_sheaf.comap_id' (U : opens (prime_spectrum.Top R)) :
+@[simp] lemma structure_sheaf.comap_id' (U : opens (prime_spectrum.Top R)) :
   structure_sheaf.comap (ring_hom.id R) U U (λ p hpU, by rwa prime_spectrum.comap_id) =
   ring_hom.id _ :=
 by { rw structure_sheaf.comap_id U U rfl, refl }

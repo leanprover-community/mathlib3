@@ -115,21 +115,6 @@ def to_quotient : G →[G] quotient_group.quotient H :=
 
 end mul_action_hom
 
--- TODO Is this _really_ missing!!? Where should it go?
-/-- The inverse of a bijective `monoid_hom` is a `monoid_hom`. -/
-@[to_additive "The inverse of a bijective `add_monoid_hom` is an `add_monoid_hom`."]
-def monoid_hom.inverse {A B : Type*} [monoid A] [monoid B] (f : A →* B) (g : B → A)
-  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
-  B →* A :=
-{ to_fun   := g,
-  map_one' :=
-    calc g 1 = g (f 1) : by rw f.map_one
-         ... = 1 : by rw h₁,
-  map_mul' := λ x y,
-    calc g (x * y) = g ((f (g x)) * (f (g y))) : by rw [h₂, h₂]
-               ... = g (f ((g x) * (g y))) : by rw f.map_mul
-               ... = (g x) * (g y) : by rw h₁, }
-
 /-- Equivariant additive monoid homomorphisms. -/
 structure distrib_mul_action_hom extends A →[M] B, A →+ B.
 

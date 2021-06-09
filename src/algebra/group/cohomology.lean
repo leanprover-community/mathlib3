@@ -7,6 +7,7 @@ import algebra.group_action_hom
 import data.fin_simplicial_complex
 import group_theory.free_abelian_group
 import algebra.big_operators.finsupp
+import algebra.monoid_algebra
 
 /-!
 # Group cohomology
@@ -17,7 +18,10 @@ as certain homogeneous cocycles over coboundaries.
 ## TODO
 
 Write down map from usual n-cocycles to group cohomology and prove
-that it's surjective with kernel precisely the classical n-coboundaries
+that it's surjective with kernel precisely the classical n-coboundaries.
+
+Prove that the projective resolution is indeed a projective resolution
+(define h and prove hd+dh=1; prove something is free)
 -/
 
 namespace add_comm_group
@@ -35,7 +39,7 @@ class add_comm_group_aux  : Prop :=
 
 open add_comm_group_aux
 
-instance foo [add_comm_group_aux A] : add_comm_group A :=
+instance add_comm_group_aux.to_add_comm_group [add_comm_group_aux A] : add_comm_group A :=
 { add := (+),
   zero := 0,
   neg := has_neg.neg,
@@ -52,13 +56,13 @@ variables (G : Type uG) [group G] (M : Type uM) [add_comm_group M]
   [distrib_mul_action G M] (n : ℕ)
 
 -- need the homogeneous cochains, cocycles and coboundaries
-/-- `cochain G M n.succ` is homogeneous `n`-cochains, namely functions
+/-- `cochain-succ G M n.succ` is homogeneous `n`-cochains, namely functions
 $$c:G^{n+1}\to M$$ which are homogeneous in the sense that $$c(s(g_i)_i)=s\bub c((g_i)_i)$$.
 
 -/
 @[ext] structure cochain_succ :=
 (to_fun : (fin n → G) → M)
--- it's G-linear
+-- to_fin is G-linear
 (smul_apply' : ∀ (s : G) (g : fin n → G), s • to_fun g = to_fun (λ i, s * g i))
 
 namespace cochain_succ
@@ -67,11 +71,11 @@ instance : has_coe_to_fun (cochain_succ G M n) :=
 { F := _,
   coe := to_fun }
 
-@[simp] lemma seems_useful (c : (fin n → G) → M)
+@[simp] lemma coe_eval (c : (fin n → G) → M)
   (hc : ∀ (s : G) (g : fin n → G), s • c g = c (λ i, s * g i)) (g : fin n → G) :
   (⟨c, hc⟩ : cochain_succ G M n) g = c g := rfl
 
-@[simp] lemma also_seems_useful (c : cochain_succ G M n) (g : fin n → G) : c.to_fun g = c g := rfl
+@[simp] lemma to_fun_eval (c : cochain_succ G M n) (g : fin n → G) : c.to_fun g = c g := rfl
 
 @[ext] theorem ext' (c₁ c₂ : cochain_succ G M n) (h : ∀ g : fin n → G, c₁ g = c₂ g) : c₁ = c₂ :=
 ext c₁ c₂ $ funext h
@@ -105,11 +109,6 @@ instance : has_add (cochain_succ G M n) := ⟨add⟩
 
 @[simp] lemma add_apply (c₁ c₂ : cochain_succ G M n) (g : fin n → G) : (c₁ + c₂) g = c₁ g + c₂ g :=
 rfl
-
-
---lemma gsmul_univ {A : Type uA} [add_group A] (F : ℤ → A → A) (F_zero : ∀ a, F 0 a = 0)
---  (F_succ : ∀ (n : ℕ) (a : A), F (n.succ : ℕ) a = a + F n a)
---  (F_neg : ∀ (n : ℕ) (a : A), F -[1+ n] a = -F (n.succ : ℕ) a) : F = gsmul := sorry
 
 instance : add_comm_group.add_comm_group_aux (cochain_succ G M n) :=
 { add_assoc := by { intros, ext, simp [add_assoc] },
@@ -160,7 +159,7 @@ def d {i j : ℕ} (hj : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j 
 lemma d_eval {i j : ℕ} (hj : j = i + 1) (c : cochain_succ G M i) (g : fin j → G) :
   d hj c g = (finset.range j).sum (λ p, (-1 : ℤ)^p • c $ λ t, g $ fin.delta hj p t) := rfl
 
-theorem d_squared {i j k : ℕ} (hj : j = i + 1) (hk : k = j + 1) (c : cochain_succ G M i) :
+theorem d_squared_eq_zero {i j k : ℕ} (hj : j = i + 1) (hk : k = j + 1) (c : cochain_succ G M i) :
   (d hk (d hj c)) = 0 :=
 begin
   ext g, change _ = (0 : M),
@@ -231,12 +230,6 @@ end group_cohomology
 
 namespace finsupp
 
--- def P_pred (i : ℕ) := free_abelian_group (fin i → G)
-
-#check finsupp.map_domain
-#print finsupp.comap_domain
-#check finsupp.emb_domain
-
 @[simp] lemma emb_domain_refl {α M : Type*} [has_zero M] (f : α →₀ M) :
   emb_domain (function.embedding.refl α) f = f :=
 begin
@@ -291,10 +284,11 @@ def equiv_fun {X Y : Sort*} (A : Sort*) (e : X ≃ Y) : (A → X) ≃ (A → Y) 
   right_inv := λ h, by simp }
 
 -- Cassels-Froehlich `P i` is our instance below but with `i.succ`
--- for some reasin
--- introducing the notation at all
-noncomputable instance {G : Type*} [group G] (i : ℕ) :
-  distrib_mul_action G ((fin i → G) →₀ ℤ) :=
+-- I'm not even going to introduce the notation
+
+variables {G : Type*} [group G] (i : ℕ)
+
+noncomputable instance : distrib_mul_action G ((fin i → G) →₀ ℤ) :=
 { smul := λ s c, finsupp.equiv_congr (equiv_fun (fin i) (equiv.mul_left s⁻¹ : G ≃ G)) c,
   -- it could be equiv.mul_right s, I didn't check carefully
   one_smul := λ b,
@@ -332,5 +326,33 @@ noncomputable instance {G : Type*} [group G] (i : ℕ) :
     simp [has_scalar.smul],
     refl,
   end }
+
+instance add_comm_group.End_semiring {A : Type*} [add_comm_monoid A] :
+  semiring (A →+ A) :=
+{ mul := add_monoid_hom.comp,
+  mul_assoc := λ _ _ _, (add_monoid_hom.comp_assoc _ _ _).symm, -- oops
+  one := add_monoid_hom.id _,
+  one_mul := add_monoid_hom.id_comp,
+  mul_one := add_monoid_hom.comp_id,
+  zero_mul := add_monoid_hom.zero_comp,
+  mul_zero := add_monoid_hom.comp_zero,
+  left_distrib := add_monoid_hom.comp_add,
+  right_distrib := add_monoid_hom.add_comp,
+  ..add_monoid_hom.add_comm_monoid }
+
+#exit
+def group_ring_action : (monoid_algebra ℤ G) →ₐ[ℤ] (((fin i → G) →₀ ℤ) →+ ((fin i → G) →₀ ℤ)) :=
+sorry
+
+noncomputable instance group_ring_module : module (monoid_algebra ℤ G) ((fin i → G) →₀ ℤ) :=
+{ smul := λ f m, _,
+  one_smul := _,
+  mul_smul := _,
+  smul_add := _,
+  smul_zero := _,
+  add_smul := _,
+  zero_smul := _ }
+
+--{ι : Type*} (b : basis ι R P)
 
 end finsupp

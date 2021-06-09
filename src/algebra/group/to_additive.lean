@@ -33,6 +33,7 @@ section performance_hack -- see Note [user attribute parameters]
 
 local attribute [semireducible] reflected
 
+/-- Temporarily change the `has_reflect` instance for `name`. -/
 local attribute [instance, priority 9000]
 meta def hacky_name_reflect : has_reflect name :=
 λ n, `(id %%(expr.const n []) : name)

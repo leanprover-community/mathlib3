@@ -423,8 +423,9 @@ by simp [div_eq_mul_inv]
 @[simp, to_additive] lemma div_lt_self_iff (a : α) {b : α} : a / b < a ↔ 1 < b :=
 by simp [div_eq_mul_inv]
 
-/-- Pullback an `ordered_comm_group` under an injective map. -/
-@[to_additive function.injective.ordered_add_comm_group
+/-- Pullback an `ordered_comm_group` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.ordered_add_comm_group
 "Pullback an `ordered_add_comm_group` under an injective map."]
 def function.injective.ordered_comm_group {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β]
@@ -607,8 +608,9 @@ instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   mul_left_cancel := λ x y z, mul_left_cancel,
   ..‹linear_ordered_comm_group α› }
 
-/-- Pullback a `linear_ordered_comm_group` under an injective map. -/
-@[to_additive function.injective.linear_ordered_add_comm_group
+/-- Pullback a `linear_ordered_comm_group` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.linear_ordered_add_comm_group
 "Pullback a `linear_ordered_add_comm_group` under an injective map."]
 def function.injective.linear_ordered_comm_group {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β]

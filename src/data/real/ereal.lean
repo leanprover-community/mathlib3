@@ -442,6 +442,8 @@ end
 
 /-! ### Multiplication -/
 
+@[simp] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
+
 @[simp, norm_cast] lemma coe_mul (x y : ℝ) : ((x * y : ℝ) : ereal) = (x : ereal) * (y : ereal) :=
 eq.trans (with_bot.coe_eq_coe.mpr with_bot.coe_mul) with_top.coe_mul
 
@@ -456,12 +458,14 @@ with_top.coe_mul.symm.trans $
 with_top.coe_mul.symm.trans $
   with_bot.coe_eq_coe.mpr $ with_bot.mul_bot $ function.injective.ne (@option.some.inj _) h
 
-lemma to_real_mul : ∀ {x y : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) (hy : y ≠ ⊤) (h'y : y ≠ ⊥),
-  to_real (x * y) = to_real x * to_real y
-| ⊥ y hx h'x hy h'y := (h'x rfl).elim
-| ⊤ y hx h'x hy h'y := (hx rfl).elim
-| x ⊤ hx h'x hy h'y := (hy rfl).elim
-| x ⊥ hx h'x hy h'y := (h'y rfl).elim
-| (x : ℝ) (y : ℝ) hx h'x hy h'y := by simp [← ereal.coe_mul]
+@[simp] lemma to_real_one : to_real 1 = 1 := rfl
+
+lemma to_real_mul : ∀ {x y : ereal}, to_real (x * y) = to_real x * to_real y
+| ⊤ y := by by_cases hy : y = 0; simp [hy]
+| x ⊤ := by by_cases hx : x = 0; simp [hx]
+| (x : ℝ) (y : ℝ) := by simp [← ereal.coe_mul]
+| ⊥ (y : ℝ) := by by_cases hy : y = 0; simp [hy]
+| (x : ℝ) ⊥ := by by_cases hx : x = 0; simp [hx]
+| ⊥ ⊥ := by simp
 
 end ereal

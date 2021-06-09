@@ -125,27 +125,5 @@ begin
   apply _root_.add_div,
 end
 
-@[simp] theorem l_series_mul {f g : arithmetic_function ℂ} {z : ℂ}
-  (hf : f.l_series_summable z) (hg : g.l_series_summable z) :
-  (f * g).l_series z = f.l_series z * g.l_series z :=
-begin
-  simp_rw [l_series, mul_apply],
-  rw [← hf.tsum_mul_right _],
-  simp_rw [← hg.tsum_mul_left _],
-  transitivity ∑' (n : ℕ), (∑' (x : {x : ℕ × ℕ // x ∈ n.divisors_antidiagonal}),
-    f (prod.fst (↑x)) * g (prod.snd (↑x)) / ↑(prod.fst ↑x * prod.snd ↑x) ^ z),
-  { apply congr rfl (funext (λ n, _)),
-    rw [← finset.tsum_subtype, div_eq_mul_inv,  ← tsum_mul_right],
-    apply congr rfl (funext (λ x, _)),
-    rw [(mem_divisors_antidiagonal.1 x.prop).1, div_eq_mul_inv], },
-  { transitivity ∑' (x : ℕ × ℕ), f x.fst / ↑x.fst ^ z * (g x.snd / ↑x.snd ^ z),
-    sorry,
-    { apply tsum_prod,
-      -- rw tsum_prod,
-
-
-    } }
-end
-
 end arithmetic_function
 end nat

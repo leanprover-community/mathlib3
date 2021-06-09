@@ -152,8 +152,7 @@ theorem le_sqrt {m n : ℕ} : m ≤ sqrt n ↔ m*m ≤ n :=
    lt_of_le_of_lt h (lt_succ_sqrt n)⟩
 
 theorem le_sqrt' {m n : ℕ} : m ≤ sqrt n ↔ m ^ 2 ≤ n :=
-⟨λ h, eq.trans_le (sq m) (le_sqrt.1 h),
- λ h, le_sqrt.2 ((eq.symm (sq m)).trans_le h)⟩
+by simpa only [pow_two] using le_sqrt
 
 theorem sqrt_lt {m n : ℕ} : sqrt m < n ↔ m < n*n :=
 lt_iff_lt_of_le_iff_le le_sqrt
@@ -180,11 +179,7 @@ theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
  λ ⟨h₁, h₂⟩, le_antisymm (le_sqrt.2 h₁) (le_of_lt_succ $ sqrt_lt.2 h₂)⟩
 
 theorem eq_sqrt' {n q} : q = sqrt n ↔ q ^ 2 ≤ n ∧ n < (q+1) ^ 2 :=
-⟨λ e,
-  ⟨eq.trans_le (sq q) ((@eq_sqrt n q).1 e).1,
-   trans_rel_left (λ i j, i < j) ((@eq_sqrt n q).1 e).2 (sq _).symm⟩,
- λ ⟨e1, e2⟩,
-  (@eq_sqrt n q).2 ⟨eq.trans_le (sq _).symm e1, trans_rel_left (λ i j, i < j) e2 (sq _)⟩⟩
+by simpa only [pow_two] using eq_sqrt
 
 theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
 le_of_lt_succ $ (@sqrt_lt n 2).1 $
@@ -224,10 +219,7 @@ theorem exists_mul_self (x : ℕ) :
 
 theorem exists_mul_self' (x : ℕ) :
   (∃ n, n ^ 2 = x) ↔ (sqrt x) ^ 2 = x :=
-⟨λ ⟨n, h⟩, (sq (sqrt x)).trans ((exists_mul_self x).1 ⟨n, (sq n).symm.trans h⟩),
- λ h, by
-   rcases (exists_mul_self x).2 ((sq (sqrt x)).symm.trans h) with ⟨n, pr⟩;
-   exact ⟨n, (sq n).trans pr⟩⟩
+by simpa only [pow_two] using exists_mul_self x
 
 theorem sqrt_mul_sqrt_lt_succ (n : ℕ) : sqrt n * sqrt n < n + 1 :=
 lt_succ_iff.mpr (sqrt_le _)
@@ -253,11 +245,6 @@ end
 
 theorem not_exists_sq' {n m : ℕ} (hl : m ^ 2 < n) (hr : n < (m + 1) ^ 2) :
   ¬ ∃ t, t ^ 2 = n :=
-begin
-  rintro ⟨t, pr⟩,
-  have h1 : t * t = n := (sq t).symm.trans pr,
-  have h2 : m * m < n := trans_rel_right (λ i j, i < j) (sq m).symm hl,
-  exact not_exists_sq h2 (trans_rel_left (λ i j, i < j) hr (sq (m + 1))) ⟨t, h1⟩,
-end
+  by simpa only [pow_two] using (@not_exists_sq n m (by simpa only [pow_two] using hl) (by simpa only [pow_two] using hr))
 
 end nat

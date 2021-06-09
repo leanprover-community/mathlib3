@@ -317,12 +317,11 @@ begin
   rw [floor_add_int, int.to_nat_add_nat (le_floor.2 ha)],
 end
 
-theorem nat_floor_lt_add_one (ha : 0 ≤ a) :
-  (nat_floor a : α) < a + 1 :=
+lemma lt_nat_floor_add_one (a : α) : a < nat_floor a + 1 :=
 begin
-  apply lt_of_lt_nat_floor,
-  rw [←nat.cast_one, nat_floor_add_nat ha 1],
-  exact nat.lt_succ_self _,
+  refine (lt_floor_add_one a).trans_le (add_le_add_right _ 1),
+  norm_cast,
+  exact int.le_to_nat _,
 end
 
 lemma nat_floor_eq_zero_iff : nat_floor a = 0 ↔ a < 1 :=

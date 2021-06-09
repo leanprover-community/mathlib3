@@ -2169,6 +2169,14 @@ end rel
 
 section sum_inequalities
 
+lemma le_sum_of_mem [canonically_ordered_add_monoid α] {m : multiset α} {a : α}
+  (h : a ∈ m) : a ≤ m.sum :=
+begin
+  obtain ⟨m', rfl⟩ := exists_cons_of_mem h,
+  rw [sum_cons],
+  exact _root_.le_add_right (le_refl a),
+end
+
 variables [ordered_add_comm_monoid α]
 
 lemma sum_map_le_sum

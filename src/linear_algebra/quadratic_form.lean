@@ -8,6 +8,7 @@ import algebra.invertible
 import linear_algebra.bilinear_form
 import linear_algebra.matrix.determinant
 import linear_algebra.special_linear_group
+import analysis.special_functions.pow
 
 /-!
 # Quadratic forms
@@ -805,3 +806,135 @@ theorem exists_orthogonal_basis [hK : invertible (2 : K)]
 let ⟨v, hv₁, _⟩ := exists_orthogonal_basis' hB₁ hB₂ in ⟨v, hv₁⟩
 
 end bilin_form
+
+namespace quadratic_form
+
+open_locale big_operators
+
+open finset bilin_form
+
+variables {M₁ : Type*} [add_comm_group M₁] [module R M₁]
+variables {ι : Type*} [fintype ι] {v : basis ι R M}
+
+/-- A quadratic form composed with a `linear_equiv` is isometric to itself. -/
+def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M) :
+  Q.isometry (Q.comp (f : M₁ →ₗ[R] M)) :=
+{ map_app' :=
+  begin
+    intro,
+    simp only [comp_apply, linear_equiv.coe_coe, linear_equiv.to_fun_eq_coe,
+               linear_equiv.apply_symm_apply, f.apply_symm_apply],
+  end,
+  .. f.symm }
+
+/-- Given a quadratic form `Q` and a basis, `basis_repr` is the basis representation of `Q`. -/
+noncomputable def basis_repr (Q : quadratic_form R M) (v : basis ι R M) :
+  quadratic_form R (ι → R) :=
+Q.comp v.equiv_fun.symm
+
+@[simp]
+lemma basis_repr_apply (Q : quadratic_form R M) (w : ι → R) :
+  Q.basis_repr v w = Q (∑ i : ι, w i • v i) :=
+by { rw ← v.equiv_fun_symm_apply, refl }
+
+/-- A quadratic form is isometric to its bases representations. -/
+noncomputable def isometry_basis_repr (Q : quadratic_form R M) (v : basis ι R M):
+  isometry Q (Q.basis_repr v) :=
+isometry_of_comp_linear_equiv Q v.equiv_fun.symm
+
+lemma isometry_of_is_Ortho_apply [invertible (2 : R₁)]
+  (Q : quadratic_form R₁ M) (v : basis ι R₁ M)
+  (hv₂ : (associated Q).is_Ortho v) (w : ι → R₁) :
+  Q.basis_repr v w = ∑ i : ι, associated Q (v i) (v i) * (w i * w i) :=
+begin
+  rw [basis_repr_apply, ← @associated_eq_self_apply R₁, sum_left],
+  refine sum_congr rfl (λ j hj, _),
+  rw [sum_right, sum_eq_single j],
+  { rw [smul_left, smul_right], ring },
+  { intros i _ hij,
+    rw [smul_left, smul_right,
+        show (associated_hom R₁) Q (v j) (v i) = 0, by exact hv₂ i j hij,
+        mul_zero, mul_zero] },
+  { contradiction }
+end
+
+section
+
+variable (R₁)
+
+/-- The weighted sum of squares with respect to some weight as a quadratic form.
+
+The weights are applied using `•`; typically this definition is used either with `S = R₁` or
+`[algebra S R₁]`, although this is stated more generally. -/
+def weighted_sum_squares [monoid S] [distrib_mul_action S R₁] [smul_comm_class S R₁ R₁]
+  (w : ι → S) : quadratic_form R₁ (ι → R₁) :=
+∑ i : ι, w i • proj i i
+
+end
+
+@[simp]
+lemma weighted_sum_squares_apply [monoid S] [distrib_mul_action S R₁] [smul_comm_class S R₁ R₁]
+  (w : ι → S) (v : ι → R₁) :
+  weighted_sum_squares R₁ w v = ∑ i : ι, w i • (v i * v i) :=
+quadratic_form.sum_apply _ _ _
+
+variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
+variables [add_comm_group V] [module K V] [finite_dimensional K V]
+
+lemma equivalent_weighted_sum_squares_of_nondegenerate'
+  (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
+  ∃ w : fin (finite_dimensional.finrank K V) → units K,
+    equivalent Q (weighted_sum_squares K w) :=
+begin
+  obtain ⟨v, hv₁, hv₂⟩ := exists_orthogonal_basis' hQ associated_is_sym,
+  refine ⟨λ i, units.mk0 _ (hv₂ i), nonempty.intro _⟩,
+  convert Q.isometry_basis_repr v,
+  ext w,
+  rw [isometry_of_is_Ortho_apply Q v hv₁, weighted_sum_squares_apply],
+  refl
+end
+
+section complex
+
+/-- The isometry between a weighted sum of squares on the complex numbers and the
+sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
+noncomputable def isometry_sum_squares [decidable_eq ι] (w : ι → units ℂ) :
+  isometry (weighted_sum_squares ℂ w) (weighted_sum_squares ℂ (1 : ι → ℂ)) :=
+begin
+  have hw' : ∀ i : ι, (w i : ℂ) ^ - (1 / 2 : ℂ) ≠ 0,
+  { intros i hi,
+    exact (w i).ne_zero ((complex.cpow_eq_zero_iff _ _).1 hi).1 },
+  convert (weighted_sum_squares ℂ w).isometry_basis_repr
+    ((pi.basis_fun ℂ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hw' i).unit)),
+  ext1 v,
+  erw [basis_repr_apply, weighted_sum_squares_apply, weighted_sum_squares_apply],
+  refine sum_congr rfl (λ j hj, _),
+  have hsum : (∑ (i : ι), v i • ((is_unit_iff_ne_zero.2 $ hw' i).unit : ℂ) •
+    (pi.basis_fun ℂ ι) i) j = v j • w j ^ - (1 / 2 : ℂ),
+  { rw [finset.sum_apply, sum_eq_single j, pi.basis_fun_apply, is_unit.unit_spec,
+        linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply, function.update_same,
+        smul_eq_mul, smul_eq_mul, smul_eq_mul, mul_one],
+    intros i _ hij,
+    rw [pi.basis_fun_apply, linear_map.std_basis_apply, pi.smul_apply, pi.smul_apply,
+        function.update_noteq hij.symm, pi.zero_apply, smul_eq_mul, smul_eq_mul,
+        mul_zero, mul_zero],
+    intro hj', exact false.elim (hj' hj) },
+  simp_rw basis.units_smul_apply,
+  erw [hsum, smul_eq_mul],
+  suffices : 1 * v j * v j =  w j ^ - (1 / 2 : ℂ) * w j ^ - (1 / 2 : ℂ) * w j * v j * v j,
+  { erw [pi.one_apply, ← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
+  rw [← complex.cpow_add _ _ (w j).ne_zero, show - (1 / 2 : ℂ) + - (1 / 2) = -1, by ring,
+      complex.cpow_neg_one, inv_mul_cancel (w j).ne_zero],
+end
+
+/-- A nondegenerate quadratic form on the complex numbers is equivalent to
+the sum of squares, i.e. `weighted_sum_squares` with weight `λ i : ι, 1`. -/
+theorem equivalent_sum_squares {M : Type*} [add_comm_group M] [module ℂ M]
+  [finite_dimensional ℂ M] (Q : quadratic_form ℂ M) (hQ : (associated Q).nondegenerate) :
+  equivalent Q (weighted_sum_squares ℂ (1 : fin (finite_dimensional.finrank ℂ M) → ℂ)) :=
+let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
+  ⟨hw₁.trans (isometry_sum_squares w)⟩
+
+end complex
+
+end quadratic_form

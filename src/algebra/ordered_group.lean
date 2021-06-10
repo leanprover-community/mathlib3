@@ -992,26 +992,15 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
-lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
-by rw [← neg_sub, abs_neg]
-
-lemma abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
-
-lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
-by rw [abs_le', and.comm, neg_le]
-
-lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
-
-lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
-
-lemma le_abs : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b := le_max_iff
-
-lemma le_abs_self (a : α) : a ≤ abs a := le_max_left _ _
-
-lemma neg_le_abs_self (a : α) : -a ≤ abs a := le_max_right _ _
-
 lemma neg_abs_le_self (a : α) : -abs a ≤ a :=
-neg_le.mpr $ neg_le_abs_self a
+begin
+  cases le_total 0 a with h h,
+  { calc -abs a = - a   : congr_arg (has_neg.neg) (abs_of_nonneg h)
+            ... ≤ 0     : neg_nonpos.mpr h
+            ... ≤ a     : h },
+  { calc -abs a = - - a : congr_arg (has_neg.neg) (abs_of_nonpos h)
+            ... ≤ a     : (neg_neg a).le }
+end
 
 lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
@@ -1026,13 +1015,6 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
 variable [covariant_class α α (function.swap (+)) (≤)]
-
-lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
-by rw [abs_le', and.comm, neg_le]
-
-lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
-
-lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
 
 lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
@@ -1055,6 +1037,13 @@ end add_group
 
 section add_comm_group
 variables [add_comm_group α] [linear_order α] [covariant_class α α (+) (≤)] {a b c d : α}
+
+lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
+by rw [abs_le', and.comm, neg_le]
+
+lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
+
+lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
 
 lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b :=
 abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸

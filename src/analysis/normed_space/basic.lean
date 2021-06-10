@@ -320,7 +320,7 @@ end
 
 open finset
 
-lemma cauchy_seq_of_eventually_eq {u v : ℕ → α} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
+lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → α} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
   (hv : cauchy_seq (λ n, ∑ k in range (n+1), v k)) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
 begin
   let d : ℕ → α := λ n, ∑ k in range (n + 1), (u k - v k),
@@ -664,6 +664,31 @@ lemma semi_normed_group.mem_closure_iff {s : set α} {x : α} :
   x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, ∥x - y∥ < ε :=
 by simp [metric.mem_closure_iff, dist_eq_norm]
 
+lemma norm_le_zero_iff' [separated_space α] {g : α} :
+  ∥g∥ ≤ 0 ↔ g = 0 :=
+begin
+  have : g = 0 ↔ g ∈ closure ({0} : set α),
+  by simpa only [separated_space.out, mem_id_rel, sub_zero] using group_separation_rel g (0 : α),
+  rw [this, semi_normed_group.mem_closure_iff],
+  simp [forall_lt_iff_le']
+end
+
+lemma norm_eq_zero_iff' [separated_space α] {g : α} : ∥g∥ = 0 ↔ g = 0 :=
+begin
+  conv_rhs { rw ← norm_le_zero_iff' },
+  split ; intro h,
+  { rw h },
+  { exact le_antisymm h (norm_nonneg g) }
+end
+
+lemma norm_pos_iff' [separated_space α] {g : α} : 0 < ∥g∥ ↔ g ≠ 0 :=
+begin
+  rw lt_iff_le_and_ne,
+  simp only [norm_nonneg, true_and],
+  rw [ne_comm],
+  exact not_iff_not_of_iff (norm_eq_zero_iff'),
+end
+
 end semi_normed_group
 
 section normed_group
@@ -713,34 +738,6 @@ dist_zero_right g ▸ dist_pos
 
 @[simp] lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
 by { rw [← dist_zero_right], exact dist_le_zero }
-
-lemma norm_le_zero_iff' {G : Type*} [semi_normed_group G] [separated_space G] {g : G} :
-  ∥g∥ ≤ 0 ↔ g = 0 :=
-begin
-  have : g = 0 ↔ g ∈ closure ({0} : set G),
-  by simpa only [separated_space.out, mem_id_rel, sub_zero] using group_separation_rel g (0 : G),
-  rw [this, semi_normed_group.mem_closure_iff],
-  simp [forall_lt_iff_le']
-end
-
-lemma norm_eq_zero_iff' {G : Type*} [semi_normed_group G] [separated_space G] {g : G} :
-  ∥g∥ = 0 ↔ g = 0 :=
-begin
-  conv_rhs { rw ← norm_le_zero_iff' },
-  split ; intro h,
-  { rw h },
-  { exact le_antisymm h (norm_nonneg g) }
-end
-
-lemma norm_pos_iff' {G : Type*} [semi_normed_group G] [separated_space G] {g : G} :
-  0 < ∥g∥ ↔ g ≠ 0 :=
-begin
-  rw lt_iff_le_and_ne,
-  simp only [norm_nonneg, true_and],
-  rw [ne_comm],
-  exact not_iff_not_of_iff (norm_eq_zero_iff'),
-end
-
 
 lemma eq_of_norm_sub_le_zero {g h : α} (a : ∥g - h∥ ≤ 0) : g = h :=
 by rwa [← sub_eq_zero, ← norm_le_zero_iff]

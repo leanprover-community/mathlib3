@@ -698,7 +698,7 @@ begin
   have : ∀ n ≥ N, u n = v n,
   { intros n hn,
     simp [v, hn, if_neg (not_lt.mpr hn)] },
-  refine cauchy_seq_of_eventually_eq this (normed_group.cauchy_series_of_le_geometric' hr₁ _),
+  refine cauchy_seq_sum_of_eventually_eq this (normed_group.cauchy_series_of_le_geometric' hr₁ _),
   { exact C },
   intro n,
   dsimp [v],

@@ -79,7 +79,7 @@ noncomputable theory
 open function set submodule
 open_locale classical big_operators
 
-universe u
+universes u
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
@@ -180,6 +180,10 @@ begin
   convert h_map_domain x,
   rw [finsupp.map_domain_apply hf]
 end
+
+lemma linear_independent.reindex_range (i : linear_independent R v) :
+  linear_independent R (coe : range v → M) :=
+by simpa using i.comp _ (range_splitting_injective v)
 
 /-- If `v` is a linearly independent family of vectors and the kernel of a linear map `f` is
 disjoint with the submodule spanned by the vectors of `v`, then `f ∘ v` is a linearly independent
@@ -478,6 +482,53 @@ begin
     erw [pi.smul_apply, smul_assoc],
     refl }
 end
+
+
+section maximal
+universes v w
+
+/--
+A linearly independent family is maximal if there is no strictly larger linearly independent family.
+
+There is a universe subtlety here.
+We can't quantify over universes, and it is not enough to quantify over
+all indexed families in the same universe as the maximal family:
+there could potentially be a strictly larger linearly independent family,
+but only in a larger universe.
+Since every linearly independent family injects into `M`,
+it is sufficient to index by some set in `M`.
+-/
+def linear_independent.maximal {ι : Type w} {R : Type u} [semiring R]
+  {M : Type v} [add_comm_monoid M] [module R M] {v : ι → M} (i : linear_independent R v) : Prop :=
+∀ (w : set M) (i' : linear_independent R (coe : w → M)) (h : range v ≤ w), range v = w
+
+/--
+An alternative characterization of a maximal linearly independent family,
+quantifying over types (in the same universe as `M`) into which the indexing family injects.
+-/
+lemma linear_independent.maximal_iff {ι : Type w} {R : Type u} [ring R] [nontrivial R]
+  {M : Type v} [add_comm_group M] [module R M] {v : ι → M} (i : linear_independent R v) :
+  i.maximal ↔ ∀ (κ : Type v) (w : κ → M) (i' : linear_independent R w)
+    (j : ι ↪ κ) (h : w ∘ j = v), surjective j :=
+begin
+  fsplit,
+  { intros p κ w i' j h,
+    specialize p (range w) i'.reindex_range,
+    rw ←h at p,
+    specialize p (range_comp_subset_range _ _),
+    rw [range_comp, ←@image_univ _ _ w] at p,
+    exact range_iff_surjective.mp (image_injective.mpr i'.injective p), },
+  { intros p w i' h,
+    specialize p w (coe : w → M) i'
+      ⟨λ i, ⟨v i, range_subset_iff.mp h i⟩, (λ x y q, i.injective (by simpa using q))⟩
+      (by { ext, simp, }),
+    have q := congr_arg (λ s, (coe : w → M) '' s) p.range_eq,
+    dsimp at q,
+    rw [←image_univ, image_image] at q,
+    simpa using q, },
+end
+
+end maximal
 
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/

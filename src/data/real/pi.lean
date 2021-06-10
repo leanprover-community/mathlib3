@@ -196,7 +196,7 @@ begin
       simp only [nnreal.coe_nat_cast, function.comp_app, nnreal.coe_rpow],
       rw [← rpow_mul (nat.cast_nonneg k) ((-1)/(2*(k:ℝ)+1)) (2*(k:ℝ)+1),
          @div_mul_cancel _ _ _ (2*(k:ℝ)+1)
-            (by { norm_cast, simp only [nat.succ_ne_zero, not_false_iff]}), rpow_neg_one k,
+            (by { norm_cast, simp only [nat.succ_ne_zero, not_false_iff] }), rpow_neg_one k,
           sub_eq_add_neg] },
     { simp only [add_zero, add_right_neg] } },
   -- (2) We convert the limit in our goal to an inequality

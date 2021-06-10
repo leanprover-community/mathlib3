@@ -55,7 +55,6 @@ begin
   -- Using this, since `U` is open, we can write `U` as a union of clopen sets all of which
   -- are preimages of clopens from the factors in the limit.
   obtain ⟨S,hS,h⟩ := hB.open_eq_sUnion hU.1,
-  dsimp at hS,
   clear hB,
   let j : S → J := λ s, (hS s.2).some,
   let V : Π (s : S), set (F.obj (j s)) := λ s, (hS s.2).some_spec.some,
@@ -77,7 +76,6 @@ begin
   -- We thus obtain a finite set `G : finset J` and a clopen set of `F.obj j` for each
   -- `j ∈ G` such that `U` is the union of the preimages of these clopen sets.
   obtain ⟨G,hG⟩ := this,
-  dsimp at hG,
   -- Since `J` is cofiltered, we can find a single `j0` dominating all the `j ∈ G`.
   -- Pulling back all of the sets from the previous step to `F.obj j0` and taking a union,
   -- we obtain a clopen set in `F.obj j0` which works.

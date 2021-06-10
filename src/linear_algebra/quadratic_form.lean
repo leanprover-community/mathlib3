@@ -9,6 +9,7 @@ import linear_algebra.bilinear_form
 import linear_algebra.matrix.determinant
 import linear_algebra.special_linear_group
 import analysis.special_functions.pow
+import data.real.sign
 
 /-!
 # Quadratic forms
@@ -937,64 +938,19 @@ let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' 
 
 end complex
 
-end quadratic_form
-
-namespace units
-
-/-- The sign function that maps negative real numbers to -1 and nonnegative numbers to 1. -/
-noncomputable def sign (r : units ℝ) : ℝ := if (r : ℝ) < 0 then -1 else 1
-
-lemma sign_apply_eq (r : units ℝ) : sign r = -1 ∨ sign r = 1 :=
-begin
-  by_cases (r : ℝ) < 0,
-  { exact or.intro_left _ (if_pos h) },
-  { exact or.intro_right _ (if_neg h) }
-end
-
-lemma sign_mul_nonneg (r : units ℝ) : 0 ≤ sign r * r :=
-begin
-  by_cases (r : ℝ) < 0,
-  { rw [sign, if_pos h],
-    exact mul_nonneg_of_nonpos_of_nonpos (by norm_num) (le_of_lt h) },
-  { rw [sign, if_neg h, one_mul],
-    exact not_lt.1 h }
-end
-
-lemma sign_mul_pos (r : units ℝ) : 0 < sign r * r :=
-begin
-  refine lt_of_le_of_ne (sign_mul_nonneg r) (λ h, _),
-  rw zero_eq_mul at h,
-  cases sign_apply_eq r with hneg hpos;
-  cases h; { linarith <|> exact units.ne_zero _ h }
-end
-
-lemma sign_inv_eq_self (r : units ℝ) : (sign r)⁻¹ = sign r :=
-begin
-  cases sign_apply_eq r with h h,
-  { rw h, norm_num },
-  { rw h, exact inv_one }
-end
-
-end units
-
-namespace quadratic_form
-
 section real
 
-variables {ι : Type*} {v : basis ι R M} [fintype ι]
-
-open finset units
-
-open_locale big_operators
+open real
 
 /-- The isometry between a weighted sum of squares with weights `u` on the complex numbers
 and the weighted sum of squares with weights `sign ∘ u`. -/
 noncomputable def isometry_sign_weighted_sum_squares
   [decidable_eq ι] (u : ι → units ℝ) :
-  isometry (weighted_sum_squares ℝ u) (weighted_sum_squares ℝ (sign ∘ u)) :=
+  isometry (weighted_sum_squares ℝ u) (weighted_sum_squares ℝ (sign ∘ coe ∘ u)) :=
 begin
   have hu' : ∀ i : ι, (sign (u i) * u i) ^ - (1 / 2 : ℝ) ≠ 0,
-  { intro i, refine (ne_of_lt (real.rpow_pos_of_pos ((sign_mul_pos _)) _)).symm },
+  { intro i, refine (ne_of_lt (real.rpow_pos_of_pos
+      (sign_mul_ne_zero_pos _ $ units.ne_zero _) _)).symm},
   convert ((weighted_sum_squares ℝ u).isometry_basis_repr
     ((pi.basis_fun ℝ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hu' i).unit))),
   ext1 v,
@@ -1012,10 +968,10 @@ begin
     intro hj', exact false.elim (hj' hj) },
   simp_rw basis.units_smul_apply,
   erw [hsum, smul_eq_mul],
-  suffices : (sign ∘ u) j * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
+  suffices : (sign ∘ coe ∘ u) j * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
     (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
   { erw [← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
-  rw [← real.rpow_add (sign_mul_pos _),
+  rw [← real.rpow_add (sign_mul_ne_zero_pos _ $ units.ne_zero _),
       show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, _root_.mul_inv',
       sign_inv_eq_self, mul_assoc (sign (u j)) (u j)⁻¹,
       inv_mul_cancel (units.ne_zero _), mul_one],
@@ -1030,7 +986,7 @@ theorem equivalent_one_neg_one_weighted_sum_squared
   ∃ w : fin (finite_dimensional.finrank ℝ M) → ℝ,
   (∀ i, w i = -1 ∨ w i = 1) ∧ equivalent Q (weighted_sum_squares ℝ w) :=
 let ⟨w, ⟨hw₁⟩⟩ := Q.equivalent_weighted_sum_squares_of_nondegenerate' hQ in
-  ⟨sign ∘ w, λ i, sign_apply_eq (w i), ⟨hw₁.trans (isometry_sign_weighted_sum_squares w)⟩⟩
+  ⟨sign ∘ coe ∘ w, λ i, sign_apply_eq (w i), ⟨hw₁.trans (isometry_sign_weighted_sum_squares w)⟩⟩
 
 end real
 

@@ -84,7 +84,7 @@ tendsto_order.2 $ and.intro
 
 theorem Limsup_nhds (a : α) : Limsup (𝓝 a) = a :=
 cInf_intro (is_bounded_le_nhds a)
-  (assume a' (h : {n : α | n ≤ a'} ∈ 𝓝 a), show a ≤ a', from @mem_of_nhds α _ a _ h)
+  (assume a' (h : {n : α | n ≤ a'} ∈ 𝓝 a), show a ≤ a', from @mem_of_mem_nhds α _ a _ h)
   (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ 𝓝 a), c < b, from
     match dense_or_discrete a b with
     | or.inl ⟨c, hac, hcb⟩ := ⟨c, ge_mem_nhds hac, hcb⟩

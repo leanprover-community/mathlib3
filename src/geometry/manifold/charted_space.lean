@@ -510,7 +510,7 @@ begin
   { intro x,
     rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
     exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
-      (mem_nhds_sets (chart_at H x).open_target (mem_chart_target H x))).map _ },
+      (is_open.mem_nhds (chart_at H x).open_target (mem_chart_target H x))).map _ },
   refine locally_compact_space_of_has_basis this _,
   rintro x s ⟨h₁, h₂, h₃⟩,
   exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
@@ -536,7 +536,7 @@ lemma charted_space.second_countable_of_sigma_compact [second_countable_topology
 begin
   obtain ⟨s, hsc, hsU⟩ : ∃ s, countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
     countable_cover_nhds_of_sigma_compact
-      (λ x : M, mem_nhds_sets (chart_at H x).open_source (mem_chart_source H x)),
+      (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
   exact charted_space.second_countable_of_countable_cover H hsU hsc
 end
 

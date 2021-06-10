@@ -149,7 +149,7 @@ lemma is_basis_iff_nbhd {B : set (opens α)} :
 begin
   split; intro h,
   { rintros ⟨sU, hU⟩ x hx,
-    rcases h.mem_nhds_iff.mp (mem_nhds_sets hU hx)
+    rcases h.mem_nhds_iff.mp (is_open.mem_nhds hU hx)
       with ⟨sV, ⟨⟨V, H₁, H₂⟩, hsV⟩⟩,
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },

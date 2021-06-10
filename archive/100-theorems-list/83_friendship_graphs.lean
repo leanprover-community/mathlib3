@@ -8,7 +8,6 @@ import linear_algebra.char_poly.coeff
 import data.int.modeq
 import data.zmod.basic
 import tactic.interval_cases
-import tactic.omega
 
 /-!
 # The Friendship Theorem
@@ -224,8 +223,7 @@ begin
   iterate 2 {cases k with k, { exfalso, linarith, }, },
   induction k with k hind,
   { exact adj_matrix_sq_mod_p_of_regular hG dmod hd, },
-  have h2 : 2 ≤ k.succ.succ := by omega,
-  rw [pow_succ, hind h2],
+  rw [pow_succ, hind (nat.le_add_left 2 k)],
   exact adj_matrix_mul_const_one_mod_p_of_regular dmod hd,
 end
 
@@ -334,8 +332,7 @@ theorem friendship_theorem [nonempty V] : exists_politician G :=
 begin
   by_contradiction npG,
   rcases hG.is_regular_of_not_exists_politician npG with ⟨d, dreg⟩,
-  have h : d ≤ 2 ∨ 3 ≤ d := by omega,
-  cases h with dle2 dge3,
-  { exact npG (hG.exists_politician_of_degree_le_two dreg dle2) },
+  cases lt_or_le d 3 with dle2 dge3,
+  { exact npG (hG.exists_politician_of_degree_le_two dreg (nat.lt_succ_iff.mp dle2)) },
   { exact hG.false_of_three_le_degree dreg dge3 },
 end

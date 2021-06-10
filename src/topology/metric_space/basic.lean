@@ -612,7 +612,7 @@ theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
-mem_nhds_sets is_open_ball (mem_ball_self ε0)
+is_open.mem_nhds is_open_ball (mem_ball_self ε0)
 
 theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x ε ∈ 𝓝 x :=
 mem_sets_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
@@ -1331,7 +1331,7 @@ begin
   rcases em (nonempty α) with ⟨⟨x⟩⟩|hn,
   { exact ⟨⟨λ n, closed_ball x n, λ n, proper_space.compact_ball _ _,
       Union_eq_univ_iff.2 $ λ y, exists_nat_ge (dist y x)⟩⟩ },
-  { exact ⟨⟨λ n, ∅, λ n, compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
+  { exact ⟨⟨λ n, ∅, λ n, is_compact_empty, Union_eq_univ_iff.2 $ λ x, (hn ⟨x⟩).elim⟩⟩ }
 end
 
 lemma tendsto_dist_right_cocompact_at_top [proper_space α] (x : α) :
@@ -1363,7 +1363,7 @@ end⟩
 /- A compact pseudometric space is proper -/
 @[priority 100] -- see Note [lower instance priority]
 instance proper_of_compact [compact_space α] : proper_space α :=
-⟨assume x r, is_closed_ball.compact⟩
+⟨assume x r, is_closed_ball.is_compact⟩
 
 /-- A proper space is locally compact -/
 @[priority 100] -- see Note [lower instance priority]
@@ -1394,7 +1394,7 @@ instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_s
 begin
   refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
   rw closed_ball_pi _ hr,
-  apply compact_pi_infinite (λb, _),
+  apply is_compact_pi_infinite (λb, _),
   apply (h b).compact_ball
 end
 
@@ -1578,7 +1578,7 @@ lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨h.is_closed, h.bounded⟩, begin
   rintro ⟨hc, hb⟩,
-  cases s.eq_empty_or_nonempty with h h, {simp [h, compact_empty]},
+  cases s.eq_empty_or_nonempty with h h, {simp [h, is_compact_empty]},
   rcases h with ⟨x, hx⟩,
   rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
   exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
@@ -2046,7 +2046,7 @@ lemma second_countable_of_countable_discretization {α : Type u} [metric_space �
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,
-  { haveI : compact_space α := ⟨by rw hs; exact compact_empty⟩, by apply_instance },
+  { haveI : compact_space α := ⟨by rw hs; exact is_compact_empty⟩, by apply_instance },
   rcases hs with ⟨x0, hx0⟩,
   letI : inhabited α := ⟨x0⟩,
   refine second_countable_of_almost_dense_set (λε ε0, _),

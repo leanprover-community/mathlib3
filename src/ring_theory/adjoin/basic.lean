@@ -55,14 +55,6 @@ le_antisymm (adjoin_le h₁) h₂
 theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
 adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
 
-lemma coe_inf (S T : subalgebra R A) : (↑(S ⊓ T) : set A) = (S : set A) ∩ (T : set A) :=
-begin
-  apply le_antisymm,
-  { simp },
-  { rw ←galois_insertion.l_inf_u (@algebra.gi R A _ _ _),
-    exact algebra.subset_adjoin }
-end
-
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
@@ -109,14 +101,6 @@ le_antisymm
 lemma adjoint_prod_le (s : set A) (t : set B) :
   adjoin R (set.prod s t) ≤ (adjoin R s).prod (adjoin R t) :=
 adjoin_le $ set.prod_mono subset_adjoin subset_adjoin
-
-@[simp] lemma prod_inf_prod {S T : subalgebra R A} {S₁ T₁ : subalgebra R B} :
-  S.prod S₁ ⊓ T.prod T₁ = (S ⊓ T).prod (S₁ ⊓ T₁) :=
-begin
-  refine set_like.coe_injective _,
-  rw [subalgebra.coe_prod, coe_inf, coe_inf, coe_inf, subalgebra.coe_prod, subalgebra.coe_prod,
-    set.prod_inter_prod]
-end
 
 end semiring
 

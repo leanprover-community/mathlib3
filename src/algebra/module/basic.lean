@@ -77,7 +77,9 @@ theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
 
 theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
 
-/-- Pullback a `module` structure along an injective additive monoid homomorphism. -/
+/-- Pullback a `module` structure along an injective additive monoid homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.module [add_comm_monoid M₂] [has_scalar R M₂] (f : M₂ →+ M)
   (hf : injective f) (smul : ∀ (c : R) x, f (c • x) = c • f x) :
   module R M₂ :=

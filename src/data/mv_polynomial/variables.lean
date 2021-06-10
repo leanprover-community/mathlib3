@@ -103,7 +103,7 @@ lemma degrees_X' (n : σ) : degrees (X n : mv_polynomial σ R) ≤ {n} :=
 le_trans (degrees_monomial _ _) $ le_of_eq $ to_multiset_single _ _
 
 @[simp] lemma degrees_X [nontrivial R] (n : σ) : degrees (X n : mv_polynomial σ R) = {n} :=
-(degrees_monomial_eq _ _ one_ne_zero).trans (to_multiset_single _ _)
+(degrees_monomial_eq _ (1 : R) one_ne_zero).trans (to_multiset_single _ _)
 
 @[simp] lemma degrees_zero : degrees (0 : mv_polynomial σ R) = 0 :=
 by { rw ← C_0, exact degrees_C 0 }

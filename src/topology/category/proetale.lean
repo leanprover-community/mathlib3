@@ -129,8 +129,7 @@ def preserves_terminal_of_is_proetale_sheaf (hP : presieve.is_sheaf proetale_top
   preserves_terminal P :=
 begin
   rw [proetale_topology, presieve.is_sheaf_pretopology] at hP,
-  apply preserves_terminal_of_is_terminal_obj,
-  apply terminal_op_of_initial Profinite.initial_pempty,
+  apply preserves_terminal_of_is_terminal_obj _ _ (terminal_op_of_initial Profinite.initial_pempty),
   let R : presieve (Profinite.of pempty) := λ _, ∅,
   have hR : R ∈ proetale_pretopology (Profinite.of pempty),
   { refine ⟨pempty, infer_instance, pempty.elim, λ i, i.elim, λ i, i.elim, _⟩,
@@ -152,7 +151,7 @@ end
 def my_cone (X Y : Profinite.{u}) : cone (pair (op X) (op Y)) :=
 binary_fan.mk
   (quiver.hom.op ({ to_fun := sum.inl } : _ ⟶ Profinite.of (X ⊕ Y)))
-  (quiver.hom.op ({ to_fun := sum.inr }))
+  (quiver.hom.op ({ to_fun := sum.inr } : Y ⟶ Profinite.of (X ⊕ Y)))
 
 def my_cone_is_limit (X Y : Profinite.{u}) : is_limit (my_cone X Y) :=
 { lift := λ (s : binary_fan _ _),
@@ -181,6 +180,50 @@ def my_cone_is_limit (X Y : Profinite.{u}) : is_limit (my_cone X Y) :=
       refl },
   end }
 
+lemma exists_index {X Z : C} {ι : Type*} {Y : ι → C} (f : Π i, Y i ⟶ X)
+  {g : Z ⟶ X} (hg : presieve.of_arrows Y f g) :
+  ∃ i (i' : Y i ≅ Z), i'.hom ≫ g = f i :=
+by { cases hg with i, exact ⟨i, iso.refl _, category.id_comp _⟩ }
+
+def of_arrows_index {X Z : C} {ι : Type*} {Y : ι → C} (f : Π i, Y i ⟶ X)
+  {g : Z ⟶ X} (hg : presieve.of_arrows Y f g) : ι :=
+(exists_index f hg).some
+
+def of_arrows_iso {X Z : C} {ι : Type*} {Y : ι → C} (f : Π i, Y i ⟶ X)
+  {g : Z ⟶ X} (hg : presieve.of_arrows Y f g) :
+    Y (of_arrows_index f hg) ≅ Z :=
+(exists_index f hg).some_spec.some
+
+@[reassoc]
+lemma of_arrows_iso_hom_comp {X Z : C} {ι : Type*} {Y : ι → C} (f : Π i, Y i ⟶ X)
+  {g : Z ⟶ X} (hg : presieve.of_arrows Y f g) :
+    (of_arrows_iso f hg).hom ≫ g = f _ :=
+(exists_index f hg).some_spec.some_spec
+
+@[reassoc]
+lemma of_arrows_iso_inv_comp {X Z : C} {ι : Type*} {Y : ι → C} (f : Π i, Y i ⟶ X)
+  {g : Z ⟶ X} (hg : presieve.of_arrows Y f g) :
+    (of_arrows_iso f hg).inv ≫ f _ = g :=
+(of_arrows_iso f hg).inv_comp_eq.2 (of_arrows_iso_hom_comp _ _).symm
+
+def thing {X : C} {ι : Type*} {Y : ι → C} (f : Π i, Y i ⟶ X)
+   {P : Cᵒᵖ ⥤ Type*} (k : Π i, P.obj (op (Y i))) :
+  (presieve.of_arrows Y f).family_of_elements P :=
+λ Z g hg, P.map (of_arrows_iso f hg).inv.op (k _)
+
+lemma thing' {X : C} {ι : Type*} {Y : ι → C} {f : Π i, Y i ⟶ X}
+  {P : Cᵒᵖ ⥤ Type*} (k : Π i, P.obj (op (Y i)))
+  (hk : ∀ ⦃i₁ i₂ Z⦄ (g₁ : Z ⟶ Y i₁) (g₂ : Z ⟶ Y i₂),
+    g₁ ≫ f i₁ = g₂ ≫ f i₂ → P.map g₁.op (k i₁) = P.map g₂.op (k i₂)) :
+  (thing f k).compatible :=
+begin
+  intros Y₁ Y₂ Z g₁ g₂ f₁ f₂ h₁ h₂ t,
+  change P.map _ (P.map _ _) = P.map _ (P.map _ _),
+  rw [←functor_to_types.map_comp_apply, ←functor_to_types.map_comp_apply, ←op_comp, ←op_comp],
+  apply hk _ _ _,
+  rwa [category.assoc, category.assoc, of_arrows_iso_inv_comp, of_arrows_iso_inv_comp],
+end
+
 def preserves_binary_products_of_is_proetale_sheaf (hP : presieve.is_sheaf proetale_topology P) :
   P.preserves_binary_products :=
 begin
@@ -191,15 +234,39 @@ begin
   op_induction Y,
   apply preserves_limit_of_preserves_limit_cone (my_cone_is_limit _ _) _,
   apply (is_limit_map_cone_binary_fan_equiv _ _ _).symm _,
-  let R : presieve (Profinite.of (X ⊕ Y)),
-  { refine presieve.of_arrows
+  let R : presieve (Profinite.of (X ⊕ Y)) :=
+    presieve.of_arrows
       (λ j, walking_pair.cases_on j X Y : walking_pair → Profinite)
-      (λ j, walking_pair.cases_on j { to_fun := sum.inl } { to_fun := sum.inr }) },
+      (λ j, walking_pair.cases_on j { to_fun := sum.inl } { to_fun := sum.inr }),
   have hR : R ∈ proetale_pretopology (Profinite.of (X ⊕ Y)),
   { refine ⟨_, infer_instance, _, _, _, rfl⟩,
     rintro (x | y),
     { exact ⟨limits.walking_pair.left, x, rfl⟩ },
     { exact ⟨limits.walking_pair.right, y, rfl⟩ } },
+  apply types.type_binary_product_of _ _,
+  intros x y,
+  let t : R.family_of_elements P,
+  { refine thing _ (walking_pair.rec _ _),
+    { exact x },
+    { exact y } },
+  have ht : t.compatible,
+  { apply thing',
+    rintro ⟨⟩ ⟨⟩ _ _ _ q,
+    { dsimp at q,
+      rw @@cancel_mono _ _ _ at q,
+      rw q,
+
+
+       },
+    { dsimp at g₁ g₂ q,
+      dsimp,
+
+    }
+
+  },
+
+
+  have := hP _ hR t _,
   -- apply preserves_terminal_of_is_terminal_obj,
   -- apply terminal_op_of_initial Profinite.initial_pempty,
   -- let R : presieve (Profinite.of pempty) := λ _, ∅,

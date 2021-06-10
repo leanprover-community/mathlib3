@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Yury Kudryashov
+Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 -/
 import tactic.transform_decl
 import tactic.algebra
@@ -58,6 +58,29 @@ meta def aux_attr : user_attribute (name_map name) name :=
 
 end performance_hack
 
+section extra_attributes
+
+setup_tactic_parser
+
+/-- An attribute that tells `@[to_additive]` that certain arguments of this definition are not
+  involved when using `@[to_additive]`.
+  This helps the heuristic of `@[to_additive]` by also transforming definitions if `ℕ` or another
+  fixed type occurs as one of these arguments. -/
+@[user_attribute]
+meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
+{ name      := `to_additive_ignore_args,
+  descr     :=
+    "Auxiliary attribute for `to_additive` stating that certain arguments are not additivized.",
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl
+      (λ dict n, do
+        param ← ignore_args_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        return $ dict.insert n (param.to_list expr.to_nat).iget)
+      mk_name_map, []⟩,
+  parser    := (lean.parser.small_nat)* }
+
+end extra_attributes
+
 /-- A command that can be used to have future uses of `to_additive` change the `src` namespace
 to the `tgt` namespace.
 
@@ -79,7 +102,7 @@ do let n := src.mk_string "_to_additive",
 `to_additive.parser` parses the provided arguments into `name` for the target and an
 optional doc string. -/
 @[derive has_reflect, derive inhabited]
-structure value_type : Type := (ignore_fixed : bool) (tgt : name) (doc : option string)
+structure value_type : Type := (replace_all : bool) (tgt : name) (doc : option string)
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
@@ -233,7 +256,30 @@ In the `mul_comm'` example above, `to_additive` maps:
 * `x * y` to `x + y` and `y * x` to `y + x`, and
 * `comm_semigroup.mul_comm'` to `add_comm_semigroup.add_comm'`.
 
-Even when `to_additive` is unable to automatically generate the additive
+### Heuristics
+
+`to_additive` uses heuristics to determine whether a particular identifier has to be
+mapped to its additive version. The basic heuristic is
+
+* Only replace a map a identifier to its additive version if its first argument doesn't
+  contain any unapplied identifiers.
+
+Usually the first argument is the type which is "additivized".
+This means that multiplicative operations on e.g. `ℕ`, it will not be transformed.
+(because replacing multiplication on `ℕ` by addition on `ℕ` usually turns the lemma into something
+nonsensical).
+
+There are two exceptions in this heuristic:
+
+* Identifiers that have the `@[to_additive]` attribute are ignored.
+  For example, multiplication in `Semigroup` is replaced by addition in `AddSemigroup`.
+* If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
+  positions `n1`, `n2`, ... will not be checked for unapplied identifiers.
+
+If you want to disable this heuristic and replace all multiplicative
+identifiers with their additive counterpart, use `@[to_additive!]`.
+
+If `to_additive` is unable to automatically generate the additive
 version of a declaration, it can be useful to apply the attribute manually:
 
 ```
@@ -291,7 +337,7 @@ between the multiplicative and additive versions of the structure.
   `new_namespace.new_name` /with a dot/, then `to_additive` uses this
   new name as is.
 
-As a safety check, in the first two cases `to_additive` double checks
+As a safety check, in the first case `to_additive` double checks
 that the new name differs from the original one.
 
 -/
@@ -305,13 +351,14 @@ protected meta def attr : user_attribute unit value_type :=
     env ← get_env,
     val ← attr.get_param src,
     dict ← aux_attr.get_cache,
+    ignore ← ignore_args_attr.get_cache,
     tgt ← target_name src val.tgt dict,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict val.ignore_fixed src tgt
+      transform_decl_with_prefix_dict dict val.replace_all ignore src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp],
       mwhen (has_attribute' `simps src)
@@ -336,3 +383,4 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
+-- attribute [to_additive_ignore_args 21] times_cont_mdiff_map

@@ -42,6 +42,8 @@ localized "notation `C^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
 localized "notation `C^` n `⟮` I `, ` M `; ` k `⟯` :=
   times_cont_mdiff_map I (model_with_corners_self k k) M k n" in manifold
 
+attribute [to_additive_ignore_args 21] times_cont_mdiff_map
+
 open_locale manifold
 
 namespace times_cont_mdiff_map

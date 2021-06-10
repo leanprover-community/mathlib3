@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
 import data.option.defs
@@ -337,6 +337,14 @@ Turns an expression into a integer, assuming it is only built up from
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
+
+/--
+Turns an expression into a list, assuming it is only built up from `list.nil` and `list.cons`.
+-/
+protected meta def to_list {α} (f : expr → option α) : expr → option (list α)
+| `(list.nil)          := some []
+| `(list.cons %%x %%l) := list.cons <$> f x <*> l.to_list
+| _                    := none
 
 /--
 `is_num_eq n1 n2` returns true if `n1` and `n2` are both numerals with the same numeral structure,

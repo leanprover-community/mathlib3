@@ -18,11 +18,11 @@ then `g b` is `option.some a`.
 ## Main results
 
 - `pequiv.of_set`: creates a `pequiv` from a set `s`,
-which sends an element to itself if it is in `s`.
+  which sends an element to itself if it is in `s`.
 - `pequiv.single`: given two elements `a : α` and `b : β`, create a `pequiv` that sends them to
-each other, and ignores all other elements.
+  each other, and ignores all other elements.
 - `pequiv.injective_of_forall_ne_is_some`/`injective_of_forall_is_some`: If the domain of a `pequiv`
-is all of `α` (except possibly one point), its `to_fun` is injective.
+  is all of `α` (except possibly one point), its `to_fun` is injective.
 
 ## Canonical order
 

@@ -474,6 +474,10 @@ begin
     exact ⟨_, rfl, add_le_add_left h _⟩, }
 end
 
+instance [linear_ordered_add_comm_monoid α] : linear_ordered_add_comm_monoid (with_bot α) :=
+{ ..with_bot.linear_order,
+  ..with_bot.ordered_add_comm_monoid }
+
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 lemma coe_zero [has_zero α] : ((0 : α) : with_bot α) = 0 := rfl
 

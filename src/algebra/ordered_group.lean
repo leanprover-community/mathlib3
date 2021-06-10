@@ -992,6 +992,27 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
+lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
+by rw [← neg_sub, abs_neg]
+
+lemma abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
+
+lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
+by rw [abs_le', and.comm, neg_le]
+
+lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
+
+lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
+
+lemma le_abs : a ≤ abs b ↔ a ≤ b ∨ a ≤ -b := le_max_iff
+
+lemma le_abs_self (a : α) : a ≤ abs a := le_max_left _ _
+
+lemma neg_le_abs_self (a : α) : -a ≤ abs a := le_max_right _ _
+
+lemma neg_abs_le_self (a : α) : -abs a ≤ a :=
+neg_le.mpr $ neg_le_abs_self a
+
 lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 

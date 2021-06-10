@@ -115,7 +115,6 @@ src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missi
 src/order/bounded_lattice.lean : line 15 : ERR_MOD : Module docstring missing, or too late
 src/order/complete_boolean_algebra.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/filter/partial.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/order/order_iso_nat.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/order/rel_iso.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/lists.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/set_theory/schroeder_bernstein.lean : line 11 : ERR_MOD : Module docstring missing, or too late

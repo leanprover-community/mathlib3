@@ -743,23 +743,23 @@ begin
   exact prod_congr rfl hfg
 end
 
-@[to_additive!]
+@[to_additive]
 lemma prod_range_succ_comm (f : ℕ → β) (n : ℕ) :
   ∏ x in range (n + 1), f x = f n * ∏ x in range n, f x :=
 by rw [range_succ, prod_insert not_mem_range_self]
 
-@[to_additive!]
+@[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
   ∏ x in range (n + 1), f x = (∏ x in range n, f x) * f n :=
 by simp only [mul_comm, prod_range_succ_comm]
 
-@[to_additive!]
+@[to_additive]
 lemma prod_range_succ' (f : ℕ → β) :
   ∀ n : ℕ, (∏ k in range (n + 1), f k) = (∏ k in range n, f (k+1)) * f 0
 | 0       := prod_range_succ _ _
 | (n + 1) := by rw [prod_range_succ _ n, mul_right_comm, ← prod_range_succ', prod_range_succ]
 
-@[to_additive!]
+@[to_additive]
 lemma prod_range_add (f : ℕ → β) (n m : ℕ) :
   ∏ x in range (n + m), f x =
   (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
@@ -774,7 +774,7 @@ lemma prod_range_zero (f : ℕ → β) :
   ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]
 
-@[to_additive! sum_range_one]
+@[to_additive sum_range_one]
 lemma prod_range_one (f : ℕ → β) :
   ∏ k in range 1, f k = f 0 :=
 by { rw [range_one], apply @prod_singleton β ℕ 0 f }
@@ -912,7 +912,7 @@ lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
 by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
 
-@[to_additive!]
+@[to_additive]
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
   ∏ r in range (n + 1), f (n - r) = ∏ k in range (n + 1), f k :=
 begin
@@ -1042,7 +1042,7 @@ by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
 
 /-- If a product of a `finset` of size at most 1 has a given value, so
 do the terms in that product. -/
-@[to_additive! eq_of_card_le_one_of_sum_eq "If a sum of a `finset` of size at most 1 has a given
+@[to_additive eq_of_card_le_one_of_sum_eq "If a sum of a `finset` of size at most 1 has a given
 value, so do the terms in that sum."]
 lemma eq_of_card_le_one_of_prod_eq {s : finset α} (hc : s.card ≤ 1) {f : α → β} {b : β}
     (h : ∏ x in s, f x = b) : ∀ x ∈ s, f x = b :=

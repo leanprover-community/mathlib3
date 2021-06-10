@@ -133,7 +133,7 @@ section actions
 instance {M : Type*} [mul_action ℝ M] : mul_action ℝ≥0 M :=
 mul_action.comp_hom M to_real_hom.to_monoid_hom
 
-lemma smul_def {M : Type*} [add_monoid M] [distrib_mul_action ℝ M] (c : ℝ≥0) (x : M) :
+lemma smul_def {M : Type*} [mul_action ℝ M] (c : ℝ≥0) (x : M) :
   c • x = (c : ℝ) • x := rfl
 
 instance {M N : Type*} [mul_action ℝ M] [mul_action ℝ N] [has_scalar M N]

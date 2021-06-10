@@ -61,7 +61,7 @@ meta def ineq_const_nm : ineq → ineq → (name × ineq)
 | lt eq := (``lt_of_lt_of_eq, lt)
 | lt le := (`add_lt_of_neg_of_le, lt)
 | lt lt := (`left.add_neg, lt)
-#check add_lt_of_neg_of_le
+
 /--
 `mk_lt_zero_pf_aux c pf npf coeff` assumes that `pf` is a proof of `t1 R1 0` and `npf` is a proof
 of `t2 R2 0`. It uses `mk_single_comp_zero_pf` to prove `t1 + coeff*t2 R 0`, and returns `R`

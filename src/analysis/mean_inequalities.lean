@@ -197,15 +197,15 @@ by exact_mod_cast real.geom_mean_le_arith_mean_weighted _ _ _ (λ i _, (w i).coe
 for two `nnreal` numbers. -/
 theorem geom_mean_le_arith_mean2_weighted (w₁ w₂ p₁ p₂ : ℝ≥0) :
   w₁ + w₂ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) ≤ w₁ * p₁ + w₂ * p₂ :=
-by simpa only [fin.prod_univ_succ, fin.sum_univ_succ, fin.prod_univ_zero, fin.sum_univ_zero,
-  fin.cons_succ, fin.cons_zero, add_zero, mul_one]
+by simpa only [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
+  fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one]
 using geom_mean_le_arith_mean_weighted (univ : finset (fin 2))
   (fin.cons w₁ $ fin.cons w₂ fin_zero_elim) (fin.cons p₁ $ fin.cons p₂ $ fin_zero_elim)
 
 theorem geom_mean_le_arith_mean3_weighted (w₁ w₂ w₃ p₁ p₂ p₃ : ℝ≥0) :
   w₁ + w₂ + w₃ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) * p₃ ^ (w₃:ℝ) ≤ w₁ * p₁ + w₂ * p₂ + w₃ * p₃ :=
-by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, fin.prod_univ_zero, fin.sum_univ_zero,
-  fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
+by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
+  fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
 using geom_mean_le_arith_mean_weighted (univ : finset (fin 3))
   (fin.cons w₁ $ fin.cons w₂ $ fin.cons w₃ fin_zero_elim)
   (fin.cons p₁ $ fin.cons p₂ $ fin.cons p₃ fin_zero_elim)
@@ -213,8 +213,8 @@ using geom_mean_le_arith_mean_weighted (univ : finset (fin 3))
 theorem geom_mean_le_arith_mean4_weighted (w₁ w₂ w₃ w₄ p₁ p₂ p₃ p₄ : ℝ≥0) :
   w₁ + w₂ + w₃ + w₄ = 1 → p₁ ^ (w₁:ℝ) * p₂ ^ (w₂:ℝ) * p₃ ^ (w₃:ℝ)* p₄ ^ (w₄:ℝ) ≤
     w₁ * p₁ + w₂ * p₂ + w₃ * p₃ + w₄ * p₄ :=
-by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, fin.prod_univ_zero, fin.sum_univ_zero,
-  fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
+by simpa only  [fin.prod_univ_succ, fin.sum_univ_succ, finset.prod_empty, finset.sum_empty,
+  fintype.univ_of_is_empty, fin.cons_succ, fin.cons_zero, add_zero, mul_one, ← add_assoc, mul_assoc]
 using geom_mean_le_arith_mean_weighted (univ : finset (fin 4))
   (fin.cons w₁ $ fin.cons w₂ $ fin.cons w₃ $ fin.cons w₄ fin_zero_elim)
   (fin.cons p₁ $ fin.cons p₂ $ fin.cons p₃ $ fin.cons p₄ fin_zero_elim)
@@ -373,10 +373,10 @@ real.young_inequality_of_nonneg a.coe_nonneg b.coe_nonneg ⟨hp, nnreal.coe_eq.2
 
 /-- Young's inequality, `ℝ≥0` version with real conjugate exponents. -/
 theorem young_inequality_real (a b : ℝ≥0) {p q : ℝ} (hpq : p.is_conjugate_exponent q) :
-  a * b ≤ a ^ p / nnreal.of_real p + b ^ q / nnreal.of_real q :=
+  a * b ≤ a ^ p / real.to_nnreal p + b ^ q / real.to_nnreal q :=
 begin
-  nth_rewrite 0 ←coe_of_real p hpq.nonneg,
-  nth_rewrite 0 ←coe_of_real q hpq.symm.nonneg,
+  nth_rewrite 0 ← real.coe_to_nnreal p hpq.nonneg,
+  nth_rewrite 0 ← real.coe_to_nnreal q hpq.symm.nonneg,
   exact young_inequality a b hpq.one_lt_nnreal hpq.inv_add_inv_conj_nnreal,
 end
 
@@ -543,8 +543,8 @@ begin
   push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
   rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
     coe_rpow_of_nonneg _ hpq.nonneg, coe_rpow_of_nonneg _ hpq.symm.nonneg, ennreal.of_real,
-    ennreal.of_real, ←@coe_div (nnreal.of_real p) _ (by simp [hpq.pos]),
-    ←@coe_div (nnreal.of_real q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
+    ennreal.of_real, ←@coe_div (real.to_nnreal p) _ (by simp [hpq.pos]),
+    ←@coe_div (real.to_nnreal q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
   exact nnreal.young_inequality_real a.to_nnreal b.to_nnreal hpq,
 end
 
@@ -701,8 +701,7 @@ begin
     rw lintegral_add',
     { rw [lintegral_mul_const'' _ (hf.pow_const p), lintegral_mul_const'' _ (hg.pow_const q),
         hf_norm, hg_norm, ← div_eq_mul_inv, ← div_eq_mul_inv, hpq.inv_add_inv_conj_ennreal], },
-    { exact (hf.pow_const _).mul_const _, },
-    { exact (hg.pow_const _).mul_const _, },
+    measurability,
   end
 end
 
@@ -862,8 +861,7 @@ begin
       from ennreal.rpow_lt_top_of_nonneg (by simp [hp1]) ennreal.coe_ne_top,
       repeat {rw ennreal.mul_lt_top_iff},
       simp [hf_top, hg_top, h_two], },
-    { exact (hf.pow_const _).const_mul _ },
-    { exact (hg.pow_const _).const_mul _ },
+    measurability,
   end
 end
 
@@ -918,9 +916,7 @@ begin
   { rw [hf_zero_rpow, zero_mul],
     exact zero_le _, },
   have hf_top_rpow : (∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) ≠ ⊤,
-  { by_contra h,
-    push_neg at h,
-    refine hf_top _,
+  { refine λ h, hf_top _,
     have hp_not_neg : ¬ p < 0, by simp [hpq.nonneg],
     simpa [hpq.pos, hp_not_neg] using h, },
   refine (ennreal.mul_le_mul_left hf_zero_rpow hf_top_rpow).mpr (le_of_eq _),

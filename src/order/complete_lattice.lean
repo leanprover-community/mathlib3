@@ -343,6 +343,29 @@ lemma eq_singleton_bot_of_Sup_eq_bot_of_nonempty {s : set α}
   (h_sup : Sup s = ⊥) (hne : s.nonempty) : s = {⊥} :=
 by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact ⟨hne, h_sup⟩, }
 
+/--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
+is larger than all elements of `s`, and that this is not the case of any `w<b`.
+See `cSup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally complete
+lattices. -/
+theorem Sup_eq_of_forall_le_of_forall_lt_exists_gt (_ : ∀a∈s, a ≤ b)
+  (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
+have bdd_above s := ⟨b, by assumption⟩,
+have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (Sup_le ‹∀a∈s, a ≤ b›),
+have ¬(Sup s < b) :=
+  assume: Sup s < b,
+  let ⟨a, _, _⟩ := (H (Sup s) ‹Sup s < b›) in  /- a ∈ s, Sup s < a-/
+  have Sup s < Sup s := lt_of_lt_of_le ‹Sup s < a› (le_Sup ‹a ∈ s›),
+  show false, by finish [lt_irrefl (Sup s)],
+show Sup s = b, by finish
+
+/--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
+is smaller than all elements of `s`, and that this is not the case of any `w>b`.
+See `cInf_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in conditionally complete
+lattices. -/
+theorem Inf_eq_of_forall_ge_of_forall_gt_exists_lt (_ : ∀a∈s, b ≤ a)
+  (H : ∀w, b < w → (∃a∈s, a < w)) : Inf s = b :=
+@Sup_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ ‹_› ‹_› ‹_›
+
 end
 
 section complete_linear_order
@@ -625,6 +648,23 @@ le_antisymm (supr_le $ assume h, le_refl _) (le_supr _ _)
 
 @[simp] lemma supr_neg {p : Prop} {f : p → α} (hp : ¬ p) : (⨆ h : p, f h) = ⊥ :=
 le_antisymm (supr_le $ assume h, (hp h).elim) bot_le
+
+/--Introduction rule to prove that `b` is the supremum of `f`: it suffices to check that `b`
+is larger than `f i` for all `i`, and that this is not the case of any `w<b`.
+See `csupr_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally complete
+lattices. -/
+theorem supr_eq_of_forall_le_of_forall_lt_exists_gt {f : ι → α} (h₁ : ∀ i, f i ≤ b)
+  (h₂ : ∀ w, w < b → (∃ i, w < f i)) : (⨆ (i : ι), f i) = b :=
+Sup_eq_of_forall_le_of_forall_lt_exists_gt (forall_range_iff.mpr h₁)
+  (λ w hw, exists_range_iff.mpr $ h₂ w hw)
+
+/--Introduction rule to prove that `b` is the infimum of `f`: it suffices to check that `b`
+is smaller than `f i` for all `i`, and that this is not the case of any `w>b`.
+See `cinfi_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in conditionally complete
+lattices. -/
+theorem infi_eq_of_forall_ge_of_forall_gt_exists_lt {f : ι → α} (h₁ : ∀ i, b ≤ f i)
+(h₂ : ∀ w, b < w → (∃ i, f i < w)) : (⨅ (i : ι), f i) = b :=
+@supr_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ _ ‹_› ‹_› ‹_›
 
 lemma supr_eq_dif {p : Prop} [decidable p] (a : p → α) :
   (⨆h:p, a h) = (if h : p then a h else ⊥) :=

@@ -50,7 +50,7 @@ and prove basic properties of these operations, order, and conversions to/from `
 
   - `ennreal.to_real := coe ∘ ennreal.to_nnreal` sends `↑p`, `p : ℝ≥0` to `(↑p : ℝ)` and `∞` to `0`;
 
-  - `ennreal.of_real := coe ∘ nnreal.of_real` sends `x : ℝ` to `↑⟨max x 0, _⟩`
+  - `ennreal.of_real := coe ∘ real.to_nnreal` sends `x : ℝ` to `↑⟨max x 0, _⟩`
 
   - `ennreal.ne_top_equiv_nnreal` is an equivalence between `{a : ℝ≥0∞ // a ≠ 0}` and `ℝ≥0`.
 
@@ -111,7 +111,7 @@ protected def to_nnreal : ℝ≥0∞ → ℝ≥0
 protected def to_real (a : ℝ≥0∞) : real := coe (a.to_nnreal)
 
 /-- `of_real x` returns `x` if it is nonnegative, `0` otherwise. -/
-protected def of_real (r : real) : ℝ≥0∞ := coe (nnreal.of_real r)
+protected def of_real (r : real) : ℝ≥0∞ := coe (real.to_nnreal r)
 
 @[simp, norm_cast] lemma to_nnreal_coe : (r : ℝ≥0∞).to_nnreal = r := rfl
 
@@ -123,7 +123,7 @@ protected def of_real (r : real) : ℝ≥0∞ := coe (nnreal.of_real r)
 by simp [ennreal.to_real, ennreal.of_real, h]
 
 @[simp] lemma to_real_of_real {r : ℝ} (h : 0 ≤ r) : ennreal.to_real (ennreal.of_real r) = r :=
-by simp [ennreal.to_real, ennreal.of_real, nnreal.coe_of_real _ h]
+by simp [ennreal.to_real, ennreal.of_real, real.coe_to_nnreal _ h]
 
 lemma to_real_of_real' {r : ℝ} : ennreal.to_real (ennreal.of_real r) = max r 0 := rfl
 
@@ -132,7 +132,7 @@ lemma coe_to_nnreal_le_self : ∀{a:ℝ≥0∞}, ↑(a.to_nnreal) ≤ a
 | none     := le_top
 
 lemma coe_nnreal_eq (r : ℝ≥0) : (r : ℝ≥0∞) = ennreal.of_real r :=
-by { rw [ennreal.of_real, nnreal.of_real], cases r with r h, congr, dsimp, rw max_eq_left h }
+by { rw [ennreal.of_real, real.to_nnreal], cases r with r h, congr, dsimp, rw max_eq_left h }
 
 lemma of_real_eq_coe_nnreal {x : ℝ} (h : 0 ≤ x) :
   ennreal.of_real x = @coe ℝ≥0 ℝ≥0∞ _ (⟨x, h⟩ : ℝ≥0) :=
@@ -439,7 +439,7 @@ lemma le_of_forall_pos_le_add : ∀{a b : ℝ≥0∞}, (∀ε:ℝ≥0, 0 < ε �
       at *; exact nnreal.le_of_forall_pos_le_add h
 
 lemma lt_iff_exists_rat_btwn :
-  a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < nnreal.of_real q ∧ (nnreal.of_real q:ℝ≥0∞) < b) :=
+  a < b ↔ (∃q:ℚ, 0 ≤ q ∧ a < real.to_nnreal q ∧ (real.to_nnreal q:ℝ≥0∞) < b) :=
 ⟨λ h,
   begin
     rcases lt_iff_exists_coe.1 h with ⟨p, rfl, _⟩,
@@ -472,8 +472,8 @@ begin
   refine ⟨d-a, nnreal.sub_pos.2 ad, _⟩,
   rw [some_eq_coe, ← coe_add],
   convert cb,
-  have : nnreal.of_real c = d,
-    by { rw [← nnreal.coe_eq, nnreal.coe_of_real _ c_nonneg], refl },
+  have : real.to_nnreal c = d,
+    by { rw [← nnreal.coe_eq, real.coe_to_nnreal _ c_nonneg], refl },
   rw [add_comm, this],
   exact nnreal.sub_add_cancel_of_le (le_of_lt ad)
 end
@@ -804,7 +804,7 @@ lemma of_real_sum_of_nonneg {s : finset α} {f : α → ℝ} (hf : ∀ i, i ∈ 
   ennreal.of_real (∑ i in s, f i) = ∑ i in s, ennreal.of_real (f i) :=
 begin
   simp_rw [ennreal.of_real, ←coe_finset_sum, coe_eq_coe],
-  exact nnreal.of_real_sum_of_nonneg hf,
+  exact real.to_nnreal_sum_of_nonneg hf,
 end
 
 end sum
@@ -1206,10 +1206,10 @@ else le_of_eq (to_real_add ha hb)
 lemma of_real_add {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
   ennreal.of_real (p + q) = ennreal.of_real p + ennreal.of_real q :=
 by rw [ennreal.of_real, ennreal.of_real, ennreal.of_real, ← coe_add,
-       coe_eq_coe, nnreal.of_real_add hp hq]
+       coe_eq_coe, real.to_nnreal_add hp hq]
 
 lemma of_real_add_le {p q : ℝ} : ennreal.of_real (p + q) ≤ ennreal.of_real p + ennreal.of_real q :=
-coe_le_coe.2 nnreal.of_real_add_le
+coe_le_coe.2 real.to_nnreal_add_le
 
 @[simp] lemma to_real_le_to_real (ha : a ≠ ∞) (hb : b ≠ ∞) : a.to_real ≤ b.to_real ↔ a ≤ b :=
 begin
@@ -1218,12 +1218,18 @@ begin
   norm_cast
 end
 
+lemma to_real_mono (hb : b ≠ ∞) (h : a ≤ b) : a.to_real ≤ b.to_real :=
+(to_real_le_to_real (h.trans_lt (lt_top_iff_ne_top.2 hb)).ne hb).2 h
+
 @[simp] lemma to_real_lt_to_real (ha : a ≠ ∞) (hb : b ≠ ∞) : a.to_real < b.to_real ↔ a < b :=
 begin
   lift a to ℝ≥0 using ha,
   lift b to ℝ≥0 using hb,
   norm_cast
 end
+
+lemma to_real_strict_mono (hb : b ≠ ∞) (h : a < b) : a.to_real < b.to_real :=
+(to_real_lt_to_real (h.trans (lt_top_iff_ne_top.2 hb)).ne hb).2 h
 
 lemma to_real_max (hr : a ≠ ∞) (hp : b ≠ ∞) :
   ennreal.to_real (max a b) = max (ennreal.to_real a) (ennreal.to_real b) :=
@@ -1242,7 +1248,7 @@ lemma to_real_pos_iff : 0 < a.to_real ↔ (0 < a ∧ a ≠ ∞):=
 (nnreal.coe_pos).trans to_nnreal_pos_iff
 
 lemma of_real_le_of_real {p q : ℝ} (h : p ≤ q) : ennreal.of_real p ≤ ennreal.of_real q :=
-by simp [ennreal.of_real, nnreal.of_real_le_of_real h]
+by simp [ennreal.of_real, real.to_nnreal_le_to_nnreal h]
 
 lemma of_real_le_of_le_to_real {a : ℝ} {b : ℝ≥0∞} (h : a ≤ ennreal.to_real b) :
   ennreal.of_real a ≤ b :=
@@ -1250,15 +1256,15 @@ lemma of_real_le_of_le_to_real {a : ℝ} {b : ℝ≥0∞} (h : a ≤ ennreal.to_
 
 @[simp] lemma of_real_le_of_real_iff {p q : ℝ} (h : 0 ≤ q) :
   ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=
-by rw [ennreal.of_real, ennreal.of_real, coe_le_coe, nnreal.of_real_le_of_real_iff h]
+by rw [ennreal.of_real, ennreal.of_real, coe_le_coe, real.to_nnreal_le_to_nnreal_iff h]
 
 @[simp] lemma of_real_lt_of_real_iff {p q : ℝ} (h : 0 < q) :
   ennreal.of_real p < ennreal.of_real q ↔ p < q :=
-by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, nnreal.of_real_lt_of_real_iff h]
+by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, real.to_nnreal_lt_to_nnreal_iff h]
 
 lemma of_real_lt_of_real_iff_of_nonneg {p q : ℝ} (hp : 0 ≤ p) :
   ennreal.of_real p < ennreal.of_real q ↔ p < q :=
-by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, nnreal.of_real_lt_of_real_iff_of_nonneg hp]
+by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, real.to_nnreal_lt_to_nnreal_iff_of_nonneg hp]
 
 @[simp] lemma of_real_pos {p : ℝ} : 0 < ennreal.of_real p ↔ 0 < p :=
 by simp [ennreal.of_real]
@@ -1270,21 +1276,21 @@ lemma of_real_le_iff_le_to_real {a : ℝ} {b : ℝ≥0∞} (hb : b ≠ ∞) :
   ennreal.of_real a ≤ b ↔ a ≤ ennreal.to_real b :=
 begin
   lift b to ℝ≥0 using hb,
-  simpa [ennreal.of_real, ennreal.to_real] using nnreal.of_real_le_iff_le_coe
+  simpa [ennreal.of_real, ennreal.to_real] using real.to_nnreal_le_iff_le_coe
 end
 
 lemma of_real_lt_iff_lt_to_real {a : ℝ} {b : ℝ≥0∞} (ha : 0 ≤ a) (hb : b ≠ ∞) :
   ennreal.of_real a < b ↔ a < ennreal.to_real b :=
 begin
   lift b to ℝ≥0 using hb,
-  simpa [ennreal.of_real, ennreal.to_real] using nnreal.of_real_lt_iff_lt_coe ha
+  simpa [ennreal.of_real, ennreal.to_real] using real.to_nnreal_lt_iff_lt_coe ha
 end
 
 lemma le_of_real_iff_to_real_le {a : ℝ≥0∞} {b : ℝ} (ha : a ≠ ∞) (hb : 0 ≤ b) :
   a ≤ ennreal.of_real b ↔ ennreal.to_real a ≤ b :=
 begin
   lift a to ℝ≥0 using ha,
-  simpa [ennreal.of_real, ennreal.to_real] using nnreal.le_of_real_iff_coe_le hb
+  simpa [ennreal.of_real, ennreal.to_real] using real.le_to_nnreal_iff_coe_le hb
 end
 
 lemma to_real_le_of_le_of_real {a : ℝ≥0∞} {b : ℝ} (hb : 0 ≤ b) (h : a ≤ ennreal.of_real b) :
@@ -1296,17 +1302,17 @@ lemma lt_of_real_iff_to_real_lt {a : ℝ≥0∞} {b : ℝ} (ha : a ≠ ∞) :
   a < ennreal.of_real b ↔ ennreal.to_real a < b :=
 begin
   lift a to ℝ≥0 using ha,
-  simpa [ennreal.of_real, ennreal.to_real] using nnreal.lt_of_real_iff_coe_lt
+  simpa [ennreal.of_real, ennreal.to_real] using real.lt_to_nnreal_iff_coe_lt
 end
 
 lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
   ennreal.of_real (p * q) = (ennreal.of_real p) * (ennreal.of_real q) :=
-by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact nnreal.of_real_mul hp }
+by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact real.to_nnreal_mul hp }
 
 lemma of_real_inv_of_pos {x : ℝ} (hx : 0 < x) :
   (ennreal.of_real x)⁻¹ = ennreal.of_real x⁻¹ :=
-by rw [ennreal.of_real, ennreal.of_real, ←@coe_inv (nnreal.of_real x) (by simp [hx]), coe_eq_coe,
-  nnreal.of_real_inv.symm]
+by rw [ennreal.of_real, ennreal.of_real, ←@coe_inv (real.to_nnreal x) (by simp [hx]), coe_eq_coe,
+  real.to_nnreal_inv.symm]
 
 lemma of_real_div_of_pos {x y : ℝ} (hy : 0 < y) :
   ennreal.of_real (x / y) = ennreal.of_real x / ennreal.of_real y :=
@@ -1323,7 +1329,7 @@ begin
     { rw [if_neg], refl, rw [of_real_eq_zero], assumption } },
   { simp only [ennreal.to_real, ennreal.to_nnreal],
     simp only [some_eq_coe, ennreal.of_real, coe_mul.symm, to_nnreal_coe, nnreal.coe_mul],
-    congr, apply nnreal.coe_of_real, exact h }
+    congr, apply real.coe_to_nnreal, exact h }
 end
 
 @[simp] lemma to_nnreal_mul_top (a : ℝ≥0∞) : ennreal.to_nnreal (a * ∞) = 0 :=
@@ -1385,7 +1391,7 @@ lemma of_real_prod_of_nonneg {s : finset α} {f : α → ℝ} (hf : ∀ i, i ∈
   ennreal.of_real (∏ i in s, f i) = ∏ i in s, ennreal.of_real (f i) :=
 begin
   simp_rw [ennreal.of_real, ←coe_finset_prod, coe_eq_coe],
-  exact nnreal.of_real_prod_of_nonneg hf,
+  exact real.to_nnreal_prod_of_nonneg hf,
 end
 
 @[simp] lemma to_nnreal_bit0 {x : ℝ≥0∞} : (bit0 x).to_nnreal = bit0 (x.to_nnreal) :=
@@ -1413,7 +1419,7 @@ of_real_add hr hr
 
 @[simp] lemma of_real_bit1 {r : ℝ} (hr : 0 ≤ r) :
   ennreal.of_real (bit1 r) = bit1 (ennreal.of_real r) :=
-(of_real_add (by simp [hr]) zero_le_one).trans (by simp [nnreal.of_real_one, bit1, hr])
+(of_real_add (by simp [hr]) zero_le_one).trans (by simp [real.to_nnreal_one, bit1, hr])
 
 end real
 

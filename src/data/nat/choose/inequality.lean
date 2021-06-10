@@ -34,11 +34,11 @@ begin
 end
 
 -- horrific casting is due to ℕ-subtraction
-lemma pow_le_choose (r n : ℕ) : (((n + 1 - r) : ℕ)^r : α) / r! ≤ n.choose r :=
+lemma pow_le_choose (r n : ℕ) : ((n + 1 - r : ℕ)^r : α) / r! ≤ n.choose r :=
 begin
   rw div_le_iff',
   { norm_cast,
     rw [←nat.desc_fact_eq_factorial_mul_choose],
-    exact n.pow_le_desc_fact r },
+    exact n.pow_sub_le_desc_fact r },
   exact_mod_cast r.factorial_pos,
 end

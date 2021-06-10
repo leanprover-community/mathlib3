@@ -102,8 +102,9 @@ begin
     { exfalso, rw [← factorial_lt, h] at hnm, exact lt_irrefl _ hnm,
       rw [one_lt_factorial] at h0, exact lt_trans one_pos h0 },
     { exact hnm },
-    exfalso, rw [← factorial_lt, h] at hnm, exact lt_irrefl _ hnm,
-      rw [h, one_lt_factorial] at h0, exact lt_trans one_pos h0 },
+    exfalso,
+    rw [←factorial_lt, h] at hnm, exact lt_irrefl _ hnm,
+    rw [h, one_lt_factorial] at h0, exact lt_trans one_pos h0 },
   rw h,
 end
 
@@ -207,41 +208,44 @@ begin
   rw [ht, succ_eq_add_one, ←sub_sub_assoc h (succ_pos _), succ_sub_one],
 end
 
-lemma pow_le_asc_fact (n : ℕ) : ∀ (k : ℕ), (n + 1)^k ≤ n.asc_fact k
+lemma pow_succ_le_asc_fact (n : ℕ) : ∀ (k : ℕ), (n + 1)^k ≤ n.asc_fact k
 | 0 := by rw [asc_fact_zero, pow_zero]
 | (k + 1) := begin
-  rw [asc_fact_succ, pow_succ],
-  exact nat.mul_le_mul (nat.add_le_add_right le_self_add _) (pow_le_asc_fact k),
+  rw pow_succ,
+  exact nat.mul_le_mul (nat.add_le_add_right le_self_add _) (pow_succ_le_asc_fact k),
+end
+
+lemma pow_lt_asc_fact' (n k : ℕ) : (n + 1)^(k + 2) < n.asc_fact (k + 2) :=
+begin
+  rw pow_succ,
+  exact nat.mul_lt_mul (nat.add_lt_add_right (nat.lt_add_of_pos_right succ_pos') 1)
+    (pow_succ_le_asc_fact n _) (pow_pos succ_pos' _),
 end
 
 lemma pow_lt_asc_fact (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → (n + 1)^k < n.asc_fact k
 | 0 := by rintro ⟨⟩
 | 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
-| (k + 2) := λ _, begin
-  rw [asc_fact_succ, pow_succ],
-  exact nat.mul_lt_mul (nat.add_lt_add_right (nat.lt_add_of_pos_right (succ_pos k)) 1)
-    (pow_le_asc_fact n _) (pow_pos (succ_pos n) _),
-end
+| (k + 2) := λ _, pow_lt_asc_fact' n k
 
-lemma asc_fact_le_pow (n : ℕ) : ∀ (k : ℕ), n.asc_fact k ≤ (n + k)^k
+lemma asc_fact_le_pow_add (n : ℕ) : ∀ (k : ℕ), n.asc_fact k ≤ (n + k)^k
 | 0 := by rw [asc_fact_zero, pow_zero]
 | (k + 1) := begin
   rw [asc_fact_succ, pow_succ],
-  exact nat.mul_le_mul_of_nonneg_left ((asc_fact_le_pow k).trans (nat.pow_le_pow_of_le_left
+  exact nat.mul_le_mul_of_nonneg_left ((asc_fact_le_pow_add k).trans (nat.pow_le_pow_of_le_left
   (le_succ _) _)),
 end
 
-lemma asc_fact_lt_pow (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → n.asc_fact k < (n + k)^k
+lemma asc_fact_lt_pow_add (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → n.asc_fact k < (n + k)^k
 | 0 := by rintro ⟨⟩
 | 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
 | (k + 2) := λ _, begin
   rw [asc_fact_succ, pow_succ],
-  refine nat.mul_lt_mul' (le_refl _) (lt_of_le_of_lt (asc_fact_le_pow n _)
+  refine nat.mul_lt_mul' (le_refl _) ((asc_fact_le_pow_add n _).trans_lt
     (pow_lt_pow_of_lt_left (lt_add_one _) (succ_pos _))) (succ_pos _),
 end
 
 lemma asc_fact_pos (n k : ℕ) : 0 < n.asc_fact k :=
-lt_of_lt_of_le (pow_pos (succ_pos n) k) (pow_le_asc_fact n k)
+(pow_pos (succ_pos n) k).trans_le (pow_succ_le_asc_fact n k)
 
 end asc_fact
 
@@ -308,27 +312,33 @@ begin
   exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ sub_le n k).symm,
 end
 
-lemma pow_le_desc_fact (n : ℕ) : ∀ (k : ℕ), (n + 1 - k)^k ≤ n.desc_fact k
+lemma pow_sub_le_desc_fact (n : ℕ) : ∀ (k : ℕ), (n + 1 - k)^k ≤ n.desc_fact k
 | 0 := by rw [desc_fact_zero, pow_zero]
 | (k + 1) := begin
   rw [desc_fact_succ, pow_succ, succ_sub_succ],
   exact nat.mul_le_mul_of_nonneg_left (le_trans (nat.pow_le_pow_of_le_left
-    (nat.sub_le_sub_right (le_succ _) _) k) (pow_le_desc_fact k)),
+    (nat.sub_le_sub_right (le_succ _) _) k) (pow_sub_le_desc_fact k)),
 end
 
-lemma pow_lt_desc_fact {n : ℕ} : ∀ {k : ℕ}, 2 ≤ k → k ≤ n → (n + 1 - k)^k < n.desc_fact k
-| 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
-| 2 := λ _ h, begin
-  rw [desc_fact_succ, pow_succ, succ_sub_succ, pow_one, desc_fact_one],
+lemma pow_sub_lt_desc_fact' {n : ℕ} :
+  ∀ {k : ℕ}, k + 2 ≤ n → (n - (k + 1))^(k + 2) < n.desc_fact (k + 2)
+| 0 := λ h, begin
+  rw [desc_fact_succ, pow_succ, pow_one, desc_fact_one],
   exact nat.mul_lt_mul_of_pos_left (nat.sub_lt_self (lt_of_lt_of_le zero_lt_two h) zero_lt_one)
     (nat.sub_pos_of_lt h),
 end
-| (k + 3) := λ _ h, begin
-  rw [desc_fact_succ, pow_succ, succ_sub_succ],
-  exact nat.mul_lt_mul_of_pos_left (lt_of_le_of_lt (nat.pow_le_pow_of_le_left (nat.sub_le_sub_right
-    (le_succ n) _) _) (pow_lt_desc_fact le_add_self ((le_succ _).trans h))) (nat.sub_pos_of_lt h),
+| (k + 1) := λ h, begin
+  rw [desc_fact_succ, pow_succ],
+  refine nat.mul_lt_mul_of_pos_left ((nat.pow_le_pow_of_le_left (nat.sub_le_sub_right
+    (le_succ n) _) _).trans_lt _) (nat.sub_pos_of_lt h),
+  rw succ_sub_succ,
+  exact (pow_sub_lt_desc_fact' ((le_succ _).trans h)),
 end
+
+lemma pow_sub_lt_desc_fact {n : ℕ} : ∀ {k : ℕ}, 2 ≤ k → k ≤ n → (n + 1 - k)^k < n.desc_fact k
+| 0 := by rintro ⟨⟩
+| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| (k + 2) := λ _ h, by { rw succ_sub_succ, exact pow_sub_lt_desc_fact' h }
 
 lemma desc_fact_le_pow (n : ℕ) : ∀ (k : ℕ), n.desc_fact k ≤ n^k
 | 0 := by rw [desc_fact_zero, pow_zero]

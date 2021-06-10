@@ -510,6 +510,14 @@ begin
       exact lt_of_gsmul_pos_lt hm hmxy' }
 end
 
+-- TODO: move this to a better location
+lemma int.pow_right_injective {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
+λ n m hnm, begin
+  lift x to ℕ using (zero_le_two).trans h,
+  norm_cast at h hnm,
+  exact nat.pow_right_injective h hnm
+end
+
 /-- The surreal number `half`. -/
 def half : surreal := ⟦⟨pgame.half, pgame.numeric_half⟩⟧
 

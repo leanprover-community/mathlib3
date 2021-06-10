@@ -228,7 +228,7 @@ instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
     iff.intro
       (assume h : a ≤ b,
-        ⟨⟨b - a, le_sub_iff_add_le.2 $ by simp [h]⟩,
+        ⟨⟨b - a, le_sub_iff_add_le.2 $ (zero_add _).le.trans h⟩,
           nnreal.eq $ show b = a + (b - a), from (add_sub_cancel'_right _ _).symm⟩)
       (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
   ..nnreal.comm_semiring,

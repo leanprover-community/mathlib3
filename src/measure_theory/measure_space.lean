@@ -997,7 +997,8 @@ end
 @[simp] lemma restrict_eq_zero : μ.restrict s = 0 ↔ μ s = 0 :=
 by rw [← measure_univ_eq_zero, restrict_apply_univ]
 
-@[simp] lemma measure_theory.measure.restrict_singleton {a : α} (ha : μ {a} = 0) : μ.restrict {a} = 0 :=
+@[simp] lemma measure_theory.measure.restrict_singleton {a : α} (ha : μ {a} = 0) :
+  μ.restrict {a} = 0 :=
 by simp only [measure.restrict_eq_zero, ha]
 
 @[simp] lemma restrict_empty : μ.restrict ∅ = 0 := ext $ λ s hs, by simp [hs]

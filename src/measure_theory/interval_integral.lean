@@ -823,11 +823,12 @@ begin
               le_max_right_of_le (h₁.trans $ h₂.trans (le_max_right a b₂))⟩ },
     apply continuous_within_at.congr _ this (this _ h₀), clear this,
     refine continuous_within_at_const.add _,
-    have : (λ b, ∫ x in b₁..b, f x ∂μ) =ᶠ[𝓝[Icc b₁ b₂] b₀] λ b, ∫ x in b₁..b₂, indicator {x | x ≤ b} f x ∂ μ,
+    have : (λ b, ∫ x in b₁..b, f x ∂μ) =ᶠ[𝓝[Icc b₁ b₂] b₀]
+            λ b, ∫ x in b₁..b₂, indicator {x | x ≤ b} f x ∂ μ,
     { apply eventually_eq_of_mem self_mem_nhds_within,
       exact λ b b_in, (integral_indicator b_in).symm },
 
-    apply continuous_within_at.congr_of_eventually_eq _ this (integral_indicator h₀).symm, clear this,
+    apply continuous_within_at.congr_of_eventually_eq _ this (integral_indicator h₀).symm,
     have : interval_integrable (λ x, ∥f x∥) μ b₁ b₂,
       from interval_integrable.norm (h_int' $ right_mem_Icc.mpr h₁₂),
     refine continuous_within_at_of_dominated_interval _ _ _ this _ ; clear this,

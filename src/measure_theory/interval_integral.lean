@@ -691,7 +691,7 @@ lemma congr_ae {f g : α → E} (h : ∀ᵐ x ∂μ, x ∈ Ι a b → f x = g x)
   ∫ (x : α) in a..b, f x ∂μ = ∫ (x : α) in a..b, g x ∂μ :=
 interval_integral.congr_ae' (ae_interval_oc_iff.mp h).1 (ae_interval_oc_iff.mp h).2
 
-lemma integral_zero_ae  {f : α → E} (h : ∀ᵐ x ∂μ, x ∈ Ι a b → f x = 0) :
+lemma integral_zero_ae {f : α → E} (h : ∀ᵐ x ∂μ, x ∈ Ι a b → f x = 0) :
   ∫ (x : α) in a..b, f x ∂μ = 0 :=
 calc ∫ x in a..b, f x ∂μ = ∫ x in a..b, 0 ∂μ : interval_integral.congr_ae h
                      ... = 0                 : interval_integral.integral_zero

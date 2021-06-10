@@ -252,16 +252,20 @@ begin
   have ht : t.compatible,
   { apply thing',
     rintro ⟨⟩ ⟨⟩ _ _ _ q,
-    { dsimp at q,
-      rw @@cancel_mono _ _ _ at q,
+    { rw @@cancel_mono _ _ _ at q,
       rw q,
-
-
-       },
+      apply concrete_category.mono_of_injective,
+      apply sum.inl_injective },
     { dsimp at g₁ g₂ q,
       dsimp,
-
-    }
+      sorry },
+    { dsimp at g₁ g₂ q,
+      dsimp,
+      sorry },
+    { rw @@cancel_mono _ _ _ at q,
+      rw q,
+      apply concrete_category.mono_of_injective,
+      apply sum.inr_injective },
 
   },
 

@@ -5,6 +5,32 @@ Authors: Chris Hughes
 -/
 import data.set.lattice
 
+/-!
+
+# Partial Equivalences
+
+In this file, we define partial equivalences `pequiv`, which are a bijection between a subset of `α`
+and a subset of `β`. Notationally, a `pequiv` is denoted by "`≃.`" (note that the full stop is part
+of the notation). The way we store these internally is with two functions `f: α → option β` and the
+reverse function `g: β → option α`, with the condition that if `f a` is `option.some b`,
+then `g b` is `option.some a`.
+
+## Main results
+
+- `pequiv.of_set`: creates a `pequiv` from a set `s`,
+which sends an element to itself if it is in `s`.
+- `pequiv.single`: given two elements `a : α` and `b : β`, create a `pequiv` that sends them to
+each other, and ignores all other elements.
+
+## Canonical order
+
+`pequiv` is canonically ordered by inclusion; that is, if a function `f` defined on a subset `s`
+is equal to `g` on that subset, but `g` is also defined on a larger set, then `f ≤ g`. We also have
+a definition of `⊥`, which is the empty `pequiv` (sends all to `none`), which in the end gives us a
+`semilattice_inf_bot` instance.
+
+-/
+
 universes u v w x
 
 /-- A `pequiv` is a partial equivalence, a representation of a bijection between a subset

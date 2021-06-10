@@ -855,8 +855,10 @@ instance [h : has_mul α] : has_mul (order_dual α) := h
 
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
-{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ _ _ _ _ h _,
-  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
+{ mul_le_mul_left := λ a b h c, show (id c : α) * b ≤ c * a, from mul_le_mul_left' h _,
+  lt_of_mul_lt_mul_left := λ a b c h, begin
+    apply lt_of_mul_lt_mul_left' (by convert h : (id a : α) * c < a * b),
+  end,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
 

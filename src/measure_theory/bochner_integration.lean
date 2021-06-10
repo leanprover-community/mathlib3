@@ -1668,57 +1668,20 @@ attribute [irreducible] integral L1.integral
 
 section integral_trim
 
-variables {H G' β γ : Type*} [normed_group H] [measurable_space H]
-  --[normed_group G'] [measurable_space G'] [borel_space G'] [second_countable_topology G']
-  --[normed_space ℝ G'] [complete_space G']
-  [measurable_space β]
+variables {H β γ : Type*} [normed_group H] [measurable_space H]
 
-variables {m m0 : measurable_space α} {μ : measure α}
+variables {m m0 : measurable_space β} {μ : measure β}
 
-lemma integrable_trim_of_measurable (hm : m ≤ m0) [opens_measurable_space H] {f : α → H}
-  (hf : @measurable _ _ m _ f) (hf_int : integrable f μ) :
-  @integrable _ _ m _ _ f (μ.trim hm) :=
-begin
-  refine ⟨@measurable.ae_measurable α _ m _ f (μ.trim hm) hf, _⟩,
-  rw [has_finite_integral, lintegral_trim hm _],
-  { exact hf_int.2, },
-  { exact @measurable.ennreal_coe α m _ (@measurable.nnnorm _ α _ _ _ m _ hf), },
-end
+/-- Simple function seen as simple function of a larger `measurable_space`. -/
+def simple_func.to_larger_space (hm : m ≤ m0) (f : @simple_func β m γ) : simple_func β γ :=
+⟨@simple_func.to_fun β m γ f, λ x, hm _ (@simple_func.measurable_set_fiber β γ m f x),
+  @simple_func.finite_range β γ m f⟩
 
-lemma ae_measurable_of_ae_measurable_trim (hm : m ≤ m0) {f : α → β}
-  (hf : @ae_measurable _ _ m _ f (μ.trim hm)) :
-  ae_measurable f μ :=
-begin
-  let f' := @ae_measurable.mk _ _ m _ _ _ hf,
-  have hf'_meas : @measurable _ _ m _ f', from @ae_measurable.measurable_mk _ _ m _ _ _ hf,
-  have hff'_m : f' =ᶠ[@measure.ae  _ m (μ.trim hm)] f,
-    from (@ae_measurable.ae_eq_mk _ _ m _ _ _ hf).symm,
-  have hff' : f' =ᵐ[μ] f, from ae_eq_of_ae_eq_trim hff'_m,
-  exact ⟨f', measurable.mono hf'_meas hm le_rfl, hff'.symm⟩,
-end
-
-lemma integrable_of_integrable_trim (hm : m ≤ m0) [opens_measurable_space H]
-  {f : α → H} (hf_int : @integrable α H m _ _ f (μ.trim hm)) :
-  integrable f μ :=
-begin
-  obtain ⟨hf_meas_ae, hf⟩ := hf_int,
-  refine ⟨ae_measurable_of_ae_measurable_trim hm hf_meas_ae, _⟩,
-  rw has_finite_integral at hf ⊢,
-  rwa lintegral_trim_ae hm _ at hf,
-  exact @ae_measurable.ennreal_coe α m _ _ (@ae_measurable.nnnorm H α _ _ _ m _ _ hf_meas_ae),
-end
-
-/-- Simple function seen as simple function of a larger measurable_space. -/
-def simple_func_larger_space (hm : m ≤ m0) (f : @simple_func α m γ) : simple_func α γ :=
-⟨@simple_func.to_fun α m γ f, λ x, hm _ (@simple_func.measurable_set_fiber α γ m f x),
-  @simple_func.finite_range α γ m f⟩
-
-lemma simple_func_larger_space_eq (hm : m ≤ m0) (f : @simple_func α m γ) :
-  ⇑(simple_func_larger_space hm f) = f :=
+lemma simple_func_larger_space_eq (hm : m ≤ m0) (f : @simple_func β m γ) :
+  ⇑(f.to_larger_space hm) = f :=
 rfl
 
-lemma integral_simple_func' [measurable_space α] {μ : measure α} (f : simple_func α F)
-  (hf_int : integrable f μ) :
+lemma integral_simple_func' {μ : measure α} (f : simple_func α F) (hf_int : integrable f μ) :
   ∫ x, f x ∂μ = ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
 begin
   rw [← simple_func.integral, integral_eq f hf_int, ← L1.simple_func.to_L1_eq_to_L1,
@@ -1727,71 +1690,70 @@ begin
   exact L1.simple_func.integrable _,
 end
 
-lemma integral_simple_func (hm : m ≤ m0) (f : @simple_func α m F) (hf_int : integrable f μ) :
-  ∫ x, f x ∂μ = ∑ x in (@simple_func.range α F m f), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
+lemma integral_simple_func (hm : m ≤ m0) (f : @simple_func β m F) (hf_int : integrable f μ) :
+  ∫ x, f x ∂μ = ∑ x in (@simple_func.range β F m f), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
 begin
-  let f0 := simple_func_larger_space hm f,
+  let f0 := f.to_larger_space hm,
   simp_rw ← simple_func_larger_space_eq hm f,
   have hf0_int : integrable f0 μ, by rwa simple_func_larger_space_eq,
   rw integral_simple_func' _ hf0_int,
   congr,
 end
 
-lemma integral_trim_simple_func (hm : m ≤ m0) (f : @simple_func α m F) (hf_int : integrable f μ) :
-  ∫ x, f x ∂μ = @integral α F m _ _ _ _ _ _ (μ.trim hm) f :=
+lemma integral_trim_simple_func (hm : m ≤ m0) (f : @simple_func β m F) (hf_int : integrable f μ) :
+  ∫ x, f x ∂μ = @integral β F m _ _ _ _ _ _ (μ.trim hm) f :=
 begin
-  have hf : @measurable _ _ m _ f, from @simple_func.measurable α F m _ f,
+  have hf : @measurable _ _ m _ f, from @simple_func.measurable β F m _ f,
   have hf_int_m := integrable_trim_of_measurable hm hf hf_int,
   rw [integral_simple_func le_rfl f hf_int_m, integral_simple_func hm f hf_int],
   congr,
   ext1 x,
   congr,
-  exact (trim_measurable_set_eq hm (@simple_func.measurable_set_fiber α F m f x)).symm,
+  exact (trim_measurable_set_eq hm (@simple_func.measurable_set_fiber β F m f x)).symm,
 end
 
-lemma integral_trim (hm : m ≤ m0) (f : α → F) (hf : @measurable α F m _ f)
+/-- There is no `ae_measurable` version of this. -/
+lemma integral_trim (hm : m ≤ m0) {f : β → F} (hf : @measurable β F m _ f)
   (hf_int : integrable f μ) :
-  ∫ x, f x ∂μ = @integral α F m _ _ _ _ _ _ (μ.trim hm) f :=
+  ∫ x, f x ∂μ = @integral β F m _ _ _ _ _ _ (μ.trim hm) f :=
 begin
-  let f_seq := @simple_func.approx_on F α _ _ _ m _ hf set.univ 0 (set.mem_univ 0) _,
+  let f_seq := @simple_func.approx_on F β _ _ _ m _ hf set.univ 0 (set.mem_univ 0) _,
   have hf_seq_meas : ∀ n, @measurable _ _ m _ (f_seq n),
-    from λ n, @simple_func.measurable α F m _ (f_seq n),
+    from λ n, @simple_func.measurable β F m _ (f_seq n),
   have hf_seq_int : ∀ n, integrable (f_seq n) μ,
     from simple_func.integrable_approx_on_univ (hf.mono hm le_rfl) hf_int,
-  have hf_seq_int_m : ∀ n, @integrable α F m _ _ (f_seq n) (μ.trim hm),
+  have hf_seq_int_m : ∀ n, @integrable β F m _ _ (f_seq n) (μ.trim hm),
     from λ n, integrable_trim_of_measurable hm (hf_seq_meas n) (hf_seq_int n),
-  have hf_seq_eq : ∀ n, ∫ x, f_seq n x ∂μ = @integral α F m _ _ _ _ _ _ (μ.trim hm) (f_seq n),
+  have hf_seq_eq : ∀ n, ∫ x, f_seq n x ∂μ = @integral β F m _ _ _ _ _ _ (μ.trim hm) (f_seq n),
     from λ n, integral_trim_simple_func hm (f_seq n) (hf_seq_int n),
   have h_lim_1 : at_top.tendsto (λ n, ∫ x, f_seq n x ∂μ) (𝓝 (∫ x, f x ∂μ)),
   { refine tendsto_integral_of_L1 f hf_int (eventually_of_forall hf_seq_int) _,
     exact simple_func.tendsto_approx_on_univ_L1_edist (hf.mono hm le_rfl) hf_int, },
   have h_lim_2 :  at_top.tendsto (λ n, ∫ x, f_seq n x ∂μ)
-    (𝓝 (@integral α F m _ _ _ _ _ _ (μ.trim hm) f)),
+    (𝓝 (@integral β F m _ _ _ _ _ _ (μ.trim hm) f)),
   { simp_rw hf_seq_eq,
-    refine @tendsto_integral_of_L1 α F m _ _ _ _ _ _ (μ.trim hm) _ f
+    refine @tendsto_integral_of_L1 β F m _ _ _ _ _ _ (μ.trim hm) _ f
       (integrable_trim_of_measurable hm hf hf_int) _ _ (eventually_of_forall hf_seq_int_m) _,
-    exact @simple_func.tendsto_approx_on_univ_L1_edist α F m _ _ _ _ f _ hf
+    exact @simple_func.tendsto_approx_on_univ_L1_edist β F m _ _ _ _ f _ hf
       (integrable_trim_of_measurable hm hf hf_int), },
   exact tendsto_nhds_unique h_lim_1 h_lim_2,
 end
 
-lemma ae_eq_trim_of_measurable [add_group β] [measurable_singleton_class β] [has_measurable_sub₂ β]
-  (hm : m ≤ m0) {f g : α → β} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
+lemma ae_eq_trim_of_measurable [measurable_space γ] [add_group γ] [measurable_singleton_class γ]
+  [has_measurable_sub₂ γ]
+  (hm : m ≤ m0) {f g : β → γ} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
   (hfg : f =ᵐ[μ] g) :
-  f =ᶠ[@measure.ae α m (μ.trim hm)] g :=
+  f =ᶠ[@measure.ae β m (μ.trim hm)] g :=
 begin
   rwa [eventually_eq, ae_iff, trim_measurable_set_eq hm _],
-  exact (@measurable_set.compl α _ m (@measurable_set_eq_fun α m β _ _ _ _ _ _ hf hg)),
+  exact (@measurable_set.compl β _ m (@measurable_set_eq_fun β m γ _ _ _ _ _ _ hf hg)),
 end
 
-lemma ae_eq_trim_iff [add_group β] [measurable_singleton_class β] [has_measurable_sub₂ β]
-  (hm : m ≤ m0) {f g : α → β} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g) :
-  f =ᶠ[@measure.ae α m (μ.trim hm)] g ↔ f =ᵐ[μ] g :=
+lemma ae_eq_trim_iff [measurable_space γ][add_group γ] [measurable_singleton_class γ]
+  [has_measurable_sub₂ γ]
+  (hm : m ≤ m0) {f g : β → γ} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g) :
+  f =ᶠ[@measure.ae β m (μ.trim hm)] g ↔ f =ᵐ[μ] g :=
 ⟨ae_eq_of_ae_eq_trim, ae_eq_trim_of_measurable hm hf hg⟩
-
-instance finite_measure_trim (hm : m ≤ m0) [finite_measure μ] : @finite_measure α m (μ.trim hm) :=
-{ measure_univ_lt_top :=
-    by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
 
 end integral_trim
 

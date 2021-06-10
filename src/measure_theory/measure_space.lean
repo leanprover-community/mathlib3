@@ -2269,6 +2269,10 @@ begin
     trim_measurable_set_eq hm (@measurable_set.inter α m t s ht hs)],
 end
 
+instance finite_measure_trim (hm : m ≤ m0) [finite_measure μ] : @finite_measure α m (μ.trim hm) :=
+{ measure_univ_lt_top :=
+    by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
+
 end trim
 
 end measure_theory
@@ -2400,6 +2404,18 @@ measurable_one.ae_measurable
   ae_measurable f (c • μ) ↔ ae_measurable f μ :=
 ⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
   λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).2 h.ae_eq_mk⟩⟩
+
+lemma ae_measurable_of_ae_measurable_trim {α} {m m0 : measurable_space α}
+  {μ : measure α} (hm : m ≤ m0) {f : α → β} (hf : @ae_measurable _ _ m _ f (μ.trim hm)) :
+  ae_measurable f μ :=
+begin
+  let f' := @ae_measurable.mk _ _ m _ _ _ hf,
+  have hf'_meas : @measurable _ _ m _ f', from @ae_measurable.measurable_mk _ _ m _ _ _ hf,
+  have hff'_m : f' =ᶠ[@measure.ae  _ m (μ.trim hm)] f,
+    from (@ae_measurable.ae_eq_mk _ _ m _ _ _ hf).symm,
+  have hff' : f' =ᵐ[μ] f, from ae_eq_of_ae_eq_trim hff'_m,
+  exact ⟨f', measurable.mono hf'_meas hm le_rfl, hff'.symm⟩,
+end
 
 end
 

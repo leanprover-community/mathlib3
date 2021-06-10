@@ -21,6 +21,8 @@ then `g b` is `option.some a`.
 which sends an element to itself if it is in `s`.
 - `pequiv.single`: given two elements `a : α` and `b : β`, create a `pequiv` that sends them to
 each other, and ignores all other elements.
+- `pequiv.injective_of_forall_ne_is_some`/`injective_of_forall_is_some`: If the domain of a `pequiv`
+is all of `α` (except possibly one point), its `to_fun` is injective.
 
 ## Canonical order
 
@@ -125,6 +127,7 @@ by ext; dsimp [pequiv.trans]; simp
 protected lemma inj (f : α ≃. β) {a₁ a₂ : α} {b : β} (h₁ : b ∈ f a₁) (h₂ : b ∈ f a₂) : a₁ = a₂ :=
 by rw ← mem_iff_mem at *; cases h : f.symm b; simp * at *
 
+/-- If the domain of a `pequiv` is `α` except a point, its forward direction is injective. -/
 lemma injective_of_forall_ne_is_some (f : α ≃. β) (a₂ : α)
   (h : ∀ (a₁ : α), a₁ ≠ a₂ → is_some (f a₁)) : injective f :=
 has_left_inverse.injective
@@ -136,6 +139,7 @@ has_left_inverse.injective
       { simp only [hfx], rw [(eq_some_iff f).2 hfx], refl }
     end⟩
 
+/-- If the domain of a `pequiv` is all of `α`, its forward direction is injective. -/
 lemma injective_of_forall_is_some {f : α ≃. β}
   (h : ∀ (a : α), is_some (f a)) : injective f :=
 (classical.em (nonempty α)).elim
@@ -146,6 +150,7 @@ lemma injective_of_forall_is_some {f : α ≃. β}
 section of_set
 variables (s : set α) [decidable_pred s]
 
+/-- Creates a `pequiv` that is the identity on `s`, and `none` outside of it. -/
 def of_set (s : set α) [decidable_pred s] : α ≃. α :=
 { to_fun := λ a, if a ∈ s then some a else none,
   inv_fun := λ a, if a ∈ s then some a else none,
@@ -221,6 +226,7 @@ is_some_iff_exists.2 ⟨a, by rw [f.eq_some_iff, some_get]⟩
 section single
 variables [decidable_eq α] [decidable_eq β] [decidable_eq γ]
 
+/-- Create a `pequiv` which sends `a` to `b` and `b` to `a`, but is otherwise `none`. -/
 def single (a : α) (b : β) : α ≃. β :=
 { to_fun := λ x, if x = a then some b else none,
   inv_fun := λ x, if x = b then some a else none,
@@ -329,6 +335,7 @@ end pequiv
 namespace equiv
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+/-- Turns an `equiv` into a `pequiv` in the canonical way. -/
 def to_pequiv (f : α ≃ β) : α ≃. β :=
 { to_fun := some ∘ f,
   inv_fun := some ∘ f.symm,

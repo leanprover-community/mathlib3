@@ -1759,7 +1759,7 @@ begin
   have hf_seq_int : ∀ n, integrable (f_seq n) μ,
     from simple_func.integrable_approx_on_univ (hf.mono hm le_rfl) hf_int,
   have hf_seq_int_m : ∀ n, @integrable α F m _ _ (f_seq n) (μ.trim hm),
-    from λ n, integrable_trim_of_measurable hm (hf_seq_meas n) (hF_int n),
+    from λ n, integrable_trim_of_measurable hm (hf_seq_meas n) (hf_seq_int n),
   have hf_seq_eq : ∀ n, ∫ x, f_seq n x ∂μ = @integral α F m _ _ _ _ _ _ (μ.trim hm) (f_seq n),
     from λ n, integral_trim_simple_func hm (f_seq n) (hf_seq_int n),
   have h_lim_1 : at_top.tendsto (λ n, ∫ x, f_seq n x ∂μ) (𝓝 (∫ x, f x ∂μ)),

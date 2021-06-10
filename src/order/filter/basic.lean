@@ -1348,7 +1348,7 @@ iff.rfl
   (∃ᶠ b in map m f, P b) ↔ ∃ᶠ a in f, P (m a) :=
 iff.rfl
 
-@[simp] lemma mem_map : t ∈ map m f ↔ {x | m x ∈ t} ∈ f := iff.rfl
+@[simp] lemma mem_map : t ∈ map m f ↔ m ⁻¹' t ∈ f := iff.rfl
 
 lemma image_mem_map (hs : s ∈ f) : m '' s ∈ map m f :=
 f.sets_of_superset hs $ subset_preimage_image m s

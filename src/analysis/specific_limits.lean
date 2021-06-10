@@ -622,8 +622,8 @@ section summable_le_geometric
 
 variables [semi_normed_group α] {r C : ℝ} {f : ℕ → α}
 
-lemma normed_group.cauchy_seq_of_le_geometric {C : ℝ} {r : ℝ} (hr : r < 1)
-    {u : ℕ → α} (h : ∀ n, ∥u n - u (n + 1)∥ ≤ C*r^n) : cauchy_seq u :=
+lemma semi_normed_group.cauchy_seq_of_le_geometric {C : ℝ} {r : ℝ} (hr : r < 1)
+  {u : ℕ → α} (h : ∀ n, ∥u n - u (n + 1)∥ ≤ C*r^n) : cauchy_seq u :=
 cauchy_seq_of_le_geometric r C hr (by simpa [dist_eq_norm] using h)
 
 lemma dist_partial_sum_le_of_le_geometric (hf : ∀n, ∥f n∥ ≤ C * r^n) (n : ℕ) :
@@ -652,15 +652,15 @@ begin
   exact ha.tendsto_sum_nat
 end
 
-@[simp] lemma normed_group.dist_partial_sum (u : ℕ → α) (n : ℕ) :
+@[simp] lemma dist_partial_sum (u : ℕ → α) (n : ℕ) :
  dist (∑ k in range (n + 1), u k) (∑ k in range n, u k) = ∥u n∥ :=
 by simp [dist_eq_norm, sum_range_succ]
 
-@[simp] lemma normed_group.dist_partial_sum' (u : ℕ → α) (n : ℕ) :
+@[simp] lemma dist_partial_sum' (u : ℕ → α) (n : ℕ) :
  dist (∑ k in range n, u k) (∑ k in range (n+1), u k) = ∥u n∥ :=
 by simp [dist_eq_norm', sum_range_succ]
 
-lemma normed_group.cauchy_series_of_le_geometric {C : ℝ} {u : ℕ → α}
+lemma cauchy_series_of_le_geometric {C : ℝ} {u : ℕ → α}
   {r : ℝ} (hr : r < 1) (h : ∀ n, ∥u n∥ ≤ C*r^n) : cauchy_seq (λ n, ∑ k in range n, u k) :=
 cauchy_seq_of_le_geometric r C hr (by simp [h])
 
@@ -685,7 +685,7 @@ begin
     apply squeeze_zero_norm h,
     rw show 0 = C*0, by simp,
     exact tendsto_const_nhds.mul (tendsto_pow_at_top_nhds_0_of_lt_1 this hr) },
-  exact this.add (normed_group.cauchy_series_of_le_geometric hr h),
+  exact this.add (cauchy_series_of_le_geometric hr h),
 end
 
 lemma normed_group.cauchy_series_of_le_geometric'' {C : ℝ} {u : ℕ → α} {N : ℕ} {r : ℝ}

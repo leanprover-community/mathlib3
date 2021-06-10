@@ -206,6 +206,8 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
 
+lemma mem_powers_iff (z x : M) : x ∈ submonoid.powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
+
 lemma powers_eq_closure (n : M) : powers n = closure {n} :=
 by { ext, exact mem_closure_singleton.symm }
 

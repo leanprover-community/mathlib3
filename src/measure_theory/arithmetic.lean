@@ -268,6 +268,16 @@ instance has_measurable_div₂.to_has_measurable_div [has_measurable_div₂ G] :
 attribute [measurability] measurable.sub measurable.sub' ae_measurable.sub ae_measurable.sub'
   measurable.const_sub ae_measurable.const_sub measurable.sub_const ae_measurable.sub_const
 
+lemma measurable_set_eq_fun {E} [measurable_space E] [add_group E] [measurable_singleton_class E]
+  [has_measurable_sub₂ E] {f g : α → E} (hf : measurable f) (hg : measurable g) :
+  measurable_set {x | f x = g x} :=
+begin
+  have hs : measurable_set {x | (f-g) x = (0 : E)}, from (hf.sub hg) measurable_set_eq,
+  suffices h_set_eq : {x : α | f x = g x} = {x | (f-g) x = (0 : E)}, by rwa h_set_eq,
+  ext,
+  simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
+end
+
 end div
 
 /-- We say that a type `has_measurable_neg` if `x ↦ -x` is a measurable function. -/

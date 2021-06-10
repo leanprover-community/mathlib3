@@ -2227,7 +2227,10 @@ by rw [← measure.measure_univ_eq_zero, to_measure_apply _ _ measurable_set.uni
 
 section trim
 
-/-- Restriction of a measure to a sub-sigma algebra. -/
+/-- Restriction of a measure to a sub-sigma algebra.
+It is common to see a measure `μ` on a measurable space structure `m0` as being also a measure on
+any `m ≤ m0`. Since measures in mathlib have to be trimmed to the measurable space, `μ` itself
+cannot be a measure on `m`, hence the definition of `μ.trim hm`. -/
 def measure.trim {m m0 : measurable_space α} (μ : @measure α m0) (hm : m ≤ m0) : @measure α m :=
 @outer_measure.to_measure α m μ.to_outer_measure (hm.trans (le_to_outer_measure_caratheodory μ))
 
@@ -2245,19 +2248,19 @@ by simp [measure.trim, hs]
 lemma le_trim (hm : m ≤ m0) : μ s ≤ μ.trim hm s :=
 by {simp_rw [measure.trim], exact (@le_to_measure_apply _ m _ _ _), }
 
-lemma ae_eq_null_of_trim (hm : m ≤ m0) (h : μ.trim hm s = 0) : μ s = 0 :=
+lemma measure_eq_zero_of_trim_eq_zero (hm : m ≤ m0) (h : μ.trim hm s = 0) : μ s = 0 :=
 le_antisymm ((le_trim hm).trans (le_of_eq h)) (zero_le _)
 
 lemma measure_trim_to_measurable_null {hm : m ≤ m0} (hs : μ.trim hm s = 0) :
   μ (@to_measurable α m (μ.trim hm) s) = 0 :=
-ae_eq_null_of_trim hm (by rwa measure_to_measurable)
+measure_eq_zero_of_trim_eq_zero hm (by rwa measure_to_measurable)
 
-lemma ae_eq_of_ae_eq_trim {E} (hm : m ≤ m0) {f₁ f₂ : α → E}
-  (h12 : eventually_eq (@measure.ae α m (μ.trim hm)) f₁ f₂) :
+lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
+  (h12 : f₁ =ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
   f₁ =ᵐ[μ] f₂ :=
-ae_eq_null_of_trim hm h12
+measure_eq_zero_of_trim_eq_zero hm h12
 
-lemma trim_restrict (hm : m ≤ m0) (μ : measure α) (hs : @measurable_set α m s) :
+lemma restrict_trim (hm : m ≤ m0) (μ : measure α) (hs : @measurable_set α m s) :
   @measure.restrict α m (μ.trim hm) s = (μ.restrict s).trim hm :=
 begin
   ext1 t ht,

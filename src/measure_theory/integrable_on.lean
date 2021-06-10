@@ -108,6 +108,7 @@ variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} 
 def integrable_on (f : α → E) (s : set α) (μ : measure α . volume_tac) : Prop :=
 integrable f (μ.restrict s)
 
+
 lemma integrable_on.integrable (h : integrable_on f s μ) :
   integrable f (μ.restrict s) :=
 h

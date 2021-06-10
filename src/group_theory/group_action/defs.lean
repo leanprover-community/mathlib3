@@ -207,6 +207,11 @@ lemma smul_mul_smul [monoid α] (r s : M) (x y : α) [is_scalar_tower M α α] [
   (r • x) * (s • y) = (r * s) • (x * y) :=
 by rw [smul_mul_assoc, mul_smul_comm, smul_smul]
 
+lemma smul_smul_smul_comm {X Y : Type*} [has_scalar X X] [has_scalar X Y] [has_scalar Y Y]
+ [is_scalar_tower X X Y] [is_scalar_tower X Y Y] [smul_comm_class X Y Y]
+ (r s : X) (x y : Y) : (r • x) • (s • y) = (r • s) • (x • y) :=
+by rw [smul_assoc, ← smul_comm s x y, smul_assoc]
+
 end
 
 namespace mul_action

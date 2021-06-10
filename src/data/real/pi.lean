@@ -31,7 +31,7 @@ lemma pi_lt_sqrt_two_add_series (n : ℕ) :
 begin
   have : π < (sqrt (2 - sqrt_two_add_series 0 n) / 2 + 1 / (2 ^ n) ^ 3 / 4) * 2 ^ (n+2),
   { rw [← div_lt_iff, ← sin_pi_over_two_pow_succ],
-    refine lt_of_lt_of_le (sub_lt_iff_lt_add.mp (sin_gt_sub_cube _ _)) _,
+    refine lt_of_lt_of_le (lt_add_of_sub_right_lt (sin_gt_sub_cube _ _)) _,
     { apply div_pos pi_pos, apply pow_pos, norm_num },
     { rw div_le_iff',
       { refine le_trans pi_le_four _,

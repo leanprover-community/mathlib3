@@ -456,7 +456,7 @@ begin
       nonnegg_pos_neg.2 (sq_le_add (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb)) },
   { exact nonneg_add_lem ha hb },
   { refine nonnegg_cases_left (λi h, sq_le_of_le _ _ (nonnegg_neg_pos.1 ha)),
-    { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ z (by simp *))) },
+    { exact int.coe_nat_le.1 (le_of_neg_le_neg (int.le.intro h)) },
     { apply nat.le_add_right } },
   { rw [add_comm, add_comm ↑y], exact nonneg_add_lem hb ha },
   { simpa [add_comm] using

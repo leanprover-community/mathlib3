@@ -265,7 +265,7 @@ if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero hb hd 
 if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero hb hd } else
 have hab0 : (units.mk0 a ha) < (units.mk0 b hb) := hab,
 have hcd0 : (units.mk0 c hc) < (units.mk0 d hd) := hcd,
-mul_lt_mul''' hab0 hcd0
+by apply mul_lt_mul''' hab0 hcd0
 
 lemma mul_inv_lt_of_lt_mul' (h : x < y * z) : x * z⁻¹ < y :=
 have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,

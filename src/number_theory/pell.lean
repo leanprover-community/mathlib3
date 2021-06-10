@@ -485,7 +485,7 @@ section
       apply int.lt_of_coe_nat_lt_coe_nat,
       rw [lem2 (n+1) (nat.lt_succ_self _) j2n,
           show 2 * n - (n + 1) = n - 1, by rw[two_mul, ← nat.sub_sub, nat.add_sub_cancel]],
-      refine lt_sub_iff_add_lt'.mpr (int.coe_nat_lt_coe_nat_of_lt _),
+      refine lt_sub_left_of_add_lt (int.coe_nat_lt_coe_nat_of_lt _),
       cases (lt_or_eq_of_le $ nat.le_of_succ_le_succ ij) with lin ein,
       { rw nat.mod_eq_of_lt (x_increasing _ lin),
         have ll : xn a1 (n-1) + xn a1 (n-1) ≤ xn a1 n,

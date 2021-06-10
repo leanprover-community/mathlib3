@@ -431,6 +431,10 @@ finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_
   finsupp.total α M R v (single a c) = c • (v a) :=
 by simp [total_apply, sum_single_index]
 
+theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :
+  f (finsupp.total α M R v l) = finsupp.total α M' R (f ∘ v) l :=
+by apply finsupp.induction_linear l; simp { contextual := tt, }
+
 theorem total_unique [unique α] (l : α →₀ R) (v) :
   finsupp.total α M R v l = l (default α) • v (default α) :=
 by rw [← total_single, ← unique_single l]
@@ -508,7 +512,7 @@ by { rw span_image_eq_map_total, simp, }
 lemma total_option (v : option α → M) (f : option α →₀ R) :
   finsupp.total (option α) M R v f =
     f none • v none + finsupp.total α M R (v ∘ option.some) f.some :=
-by rw [total_apply, sum_option, total_apply]
+by rw [total_apply, sum_option', total_apply]
 
 lemma total_total {α β : Type*} (A : α → M) (B : β → (α →₀ R)) (f : β →₀ R) :
   finsupp.total α M R A ((finsupp.total β (α →₀ R) R B) f) =

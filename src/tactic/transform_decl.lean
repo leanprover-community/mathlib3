@@ -8,17 +8,7 @@ import tactic.core
 namespace tactic
 
 open expr
-/-- `additive_test e ff` tests whether the expression contains no constant `nm` that is not applied
-  to any arguments, and such that `f nm = none`.
-  `additive_test e tt` is the same, except that it returns `tt` if the expression itself
-  is a constant.
-  This is used in `@[to_additive]` for deciding which subexpressions to transform: we only transform
-  constants if `additive_test` applied to their first argument returns `tt`.
-  This means we will replace expression applied to e.g. `α` or `α × β`, but not when applied to
-  e.g. `ℕ` or `ℝ × α`.
-  `f` is the dictionary of declarations that are in the `to_additive` dictionary.
-  We ignore all arguments specified in the `name_map` `ignore`.
-  -/
+/-- Auxilliary function for `additive_test`. -/
 meta def additive_test_aux (f : name → option name) (ignore : name_map $ list ℕ) :
   bool → expr → bool
 | b (var n)                := tt
@@ -38,6 +28,18 @@ meta def additive_test_aux (f : name → option name) (ignore : name_map $ list 
 | b (elet n g e f)         := additive_test_aux ff e && additive_test_aux ff f
 | b (macro d args)         := tt
 
+/-- `additive_test f replace_all ignore e` tests whether the expression `e` contains no constant
+  `nm` that is not applied to any arguments, and such that `f nm = none`.
+  `additive_test e tt` is the same, except that it returns `tt` if the expression itself
+  is a constant.
+  This is used in `@[to_additive]` for deciding which subexpressions to transform: we only transform
+  constants if `additive_test` applied to their first argument returns `tt`.
+  This means we will replace expression applied to e.g. `α` or `α × β`, but not when applied to
+  e.g. `ℕ` or `ℝ × α`.
+  `f` is the dictionary of declarations that are in the `to_additive` dictionary.
+  We ignore all arguments specified in the `name_map` `ignore`.
+  If `replace_all` is `tt` the test always return `tt`.
+  -/
 meta def additive_test (f : name → option name) (replace_all : bool) (ignore : name_map $ list ℕ)
   (e : expr) : bool :=
 if replace_all then tt else additive_test_aux f ignore ff e
@@ -55,8 +57,12 @@ do
     is_protected ← is_protected_decl src,
     let decl := decl.update_with_fun (name.map_prefix f) (additive_test f replace_all ignore) tgt,
     pp_decl ← pp decl,
-    decorate_error (format!"@[to_additive] failed. Failed to add declaration\n{pp_decl}
-If you want to map all identifiers to its additive counterpart, try @[to_additive!].
+    decorate_error (format!"@[to_additive] failed. Type mismatch in additive declaration.
+If you want to map all identifiers to its additive counterpart, try `@[to_additive!].`
+If you want to ignore arguments of a certain function, give it the attribute " ++
+"`@[to_additive_ignore_args]`
+Failed to add declaration\n{pp_decl}
+
 Nested error message:\n").to_string $ -- empty line is intentional
       if is_protected then add_protected_decl decl else add_decl decl,
     attrs.mmap' (λ n, copy_attribute n src tgt)

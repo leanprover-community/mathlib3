@@ -398,7 +398,8 @@ calc  ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1)
                                                               (λ x hx, has_deriv_at_sin x)
                                                                 continuous_on_cos hc
 
-/-- The integral of `sin x * cos x`, given in terms of sin². -/
+/-- The integral of `sin x * cos x`, given in terms of sin².
+  See `integral_sin_mul_cos₂` below for the integral given in terms of cos². -/
 @[simp]
 lemma integral_sin_mul_cos₁ :
   ∫ x in a..b, sin x * cos x = (sin b ^ 2 - sin a ^ 2) / 2 :=
@@ -426,7 +427,8 @@ calc   ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n
                                                                 (λ x hx, has_deriv_at_cos x)
                                                                   continuous_on_sin.neg hc
 
-/-- The integral of `sin x * cos x`, given in terms of cos². -/
+/-- The integral of `sin x * cos x`, given in terms of cos².
+See `integral_sin_mul_cos₁` above for the integral given in terms of sin². -/
 lemma integral_sin_mul_cos₂  :
   ∫ x in a..b, sin x * cos x = (cos a ^ 2 - cos b ^ 2) / 2 :=
 by simpa using integral_sin_pow_odd_mul_cos_pow 0 1

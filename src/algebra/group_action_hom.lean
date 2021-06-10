@@ -96,7 +96,7 @@ ext $ λ x, by rw [comp_apply, id_apply]
 variables {A B}
 
 /-- The inverse of a bijective equivariant map is equivariant. -/
-def inverse (f : A →[M] B) (g : B → A)
+@[simps] def inverse (f : A →[M] B) (g : B → A)
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
   B →[M] A :=
 { to_fun    := g,
@@ -205,10 +205,11 @@ ext $ λ x, by rw [comp_apply, id_apply]
 ext $ λ x, by rw [comp_apply, id_apply]
 
 /-- The inverse of a bijective `distrib_mul_action_hom` is a `distrib_mul_action_hom`. -/
-def inverse (f : A →+[M] B) (g : B → A)
+@[simps] def inverse (f : A →+[M] B) (g : B → A)
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
   B →+[M] A :=
-{ .. (f : A →+ B).inverse g h₁ h₂,
+{ to_fun := g,
+  .. (f : A →+ B).inverse g h₁ h₂,
   .. (f : A →[M] B).inverse g h₁ h₂ }
 
 end distrib_mul_action_hom

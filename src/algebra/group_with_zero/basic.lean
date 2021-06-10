@@ -591,6 +591,11 @@ eq_inv_of_mul_left_eq_one u.inv_mul
 @[simp] lemma exists_iff_ne_zero {x : G₀} : (∃ u : units G₀, ↑u = x) ↔ x ≠ 0 :=
 ⟨λ ⟨u, hu⟩, hu ▸ u.ne_zero, assume hx, ⟨mk0 x hx, rfl⟩⟩
 
+instance : can_lift G₀ (units G₀) :=
+{ coe := coe,
+  cond := (≠ 0),
+  prf := λ x, exists_iff_ne_zero.mpr }
+
 end units
 
 section group_with_zero

@@ -964,24 +964,24 @@ but for now we just contruct the ring isomorphisms using `ring_equiv.refl _`.
 `multiplicative` -/
 protected def add_monoid_algebra.to_multiplicative [semiring k] [has_add G] :
   add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
-{ to_fun := equiv_map_domain additive.of_mul,
-  map_mul' := λ x y, begin
-    repeat {rw equiv_map_domain_eq_map_domain},
-    dsimp [additive.of_mul],
-    convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)),
-  end,
-  ..finsupp.dom_congr additive.of_mul }
-
-/-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/
-protected def monoid_algebra.to_additive [semiring k] [has_mul G] :
-  monoid_algebra k G ≃+* add_monoid_algebra k (additive G) :=
 { to_fun := equiv_map_domain multiplicative.of_add,
   map_mul' := λ x y, begin
     repeat {rw equiv_map_domain_eq_map_domain},
     dsimp [multiplicative.of_add],
-    convert monoid_algebra.map_domain_mul (mul_hom.id G),
+    convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)),
   end,
   ..finsupp.dom_congr multiplicative.of_add }
+
+/-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/
+protected def monoid_algebra.to_additive [semiring k] [has_mul G] :
+  monoid_algebra k G ≃+* add_monoid_algebra k (additive G) :=
+{ to_fun := equiv_map_domain additive.of_mul,
+  map_mul' := λ x y, begin
+    repeat {rw equiv_map_domain_eq_map_domain},
+    dsimp [additive.of_mul],
+    convert monoid_algebra.map_domain_mul (mul_hom.id G),
+  end,
+  ..finsupp.dom_congr additive.of_mul }
 
 namespace add_monoid_algebra
 

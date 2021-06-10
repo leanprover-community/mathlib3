@@ -281,6 +281,8 @@ variables {f g}
 
 /-! ### The identity normed group hom -/
 
+variable (V)
+
 /-- The identity as a continuous normed group hom. -/
 @[simps]
 def id : normed_group_hom V V :=
@@ -289,24 +291,28 @@ def id : normed_group_hom V V :=
 /-- The norm of the identity is at most `1`. It is in fact `1`, except when the norm of every
 element vanishes, where it is `0`. (Since we are working with seminorms this can happen even if the
 space is non-trivial.) It means that one can not do better than an inequality in general. -/
-lemma norm_id_le : ∥(id : normed_group_hom V V)∥ ≤ 1 :=
+lemma norm_id_le : ∥(id V : normed_group_hom V V)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 
 /-- If there is an element with norm different from `0`, then the norm of the identity equals `1`.
 (Since we are working with seminorms supposing that the space is non-trivial is not enough.) -/
 lemma norm_id_of_nontrivial_seminorm (h : ∃ (x : V), ∥x∥ ≠ 0 ) :
-  ∥(id : normed_group_hom V V)∥ = 1 :=
-le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
-have _ := (id : normed_group_hom V V).ratio_le_op_norm x,
+  ∥(id V)∥ = 1 :=
+le_antisymm (norm_id_le V) $ let ⟨x, hx⟩ := h in
+have _ := (id V).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
 
 /-- If a normed space is non-trivial, then the norm of the identity equals `1`. -/
-lemma norm_id {V : Type*} [normed_group V] [nontrivial V] : ∥(id : normed_group_hom V V)∥ = 1 :=
+lemma norm_id {V : Type*} [normed_group V] [nontrivial V] : ∥(id V)∥ = 1 :=
 begin
-  refine norm_id_of_nontrivial_seminorm _,
+  refine norm_id_of_nontrivial_seminorm V _,
   obtain ⟨x, hx⟩ := exists_ne (0 : V),
   exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
 end
+
+@[simp]
+lemma coe_id : ((normed_group_hom.id V) : V → V) =
+  (_root_.id : V → V) := rfl
 
 /-! ### The negation of a normed group hom -/
 
@@ -369,6 +375,36 @@ lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V
   (∑ i in s, f i) v = ∑ i in s, (f i v) :=
 by simp only [coe_sum, finset.sum_apply]
 
+lemma sum.norm_le {ι : Type*} (s : finset ι)
+  (f : ι → normed_group_hom V₁ V₂) (C : ι → ℝ) (h : ∀ i ∈ s, ∥f i∥ ≤ (C i)) :
+  ∥(∑ i in s, f i)∥ ≤ (∑ i in s, C i) :=
+begin
+  classical,
+  revert h, apply finset.induction_on s; clear s,
+  { intros, simp only [norm_zero, finset.sum_empty] },
+  { intros i s his IH h,
+    simp only [finset.sum_insert his],
+    refine le_trans (norm_add_le (f i) (finset.sum s f)) _,
+    exact add_le_add (h i $ s.mem_insert_self _) (IH $ λ i hi, h i $ finset.mem_insert_of_mem hi) }
+end
+
+@[simp] lemma norm_nsmul_le {C : ℝ} (hf : ∥f∥ ≤ C) (n : ℕ) : ∥n • f∥ ≤ n * C :=
+begin
+  induction n with i hi,
+  { simp only [norm_zero, nat.cast_zero, zero_mul, zero_smul] },
+  simp only [nat.succ_eq_add_one, add_smul, add_mul, nat.cast_add, nat.cast_one, one_mul, one_smul],
+  exact le_trans (norm_add_le _ _) (add_le_add hi hf),
+end
+
+@[simp] lemma norm_gsmul_le {C : ℝ} (hf : ∥f∥ ≤ C) (n : ℤ) : ∥n • f∥ ≤ (n.nat_abs * C) :=
+begin
+  induction n,
+  { simp only [int.nat_abs_of_nat, int.of_nat_eq_coe, gsmul_coe_nat, nsmul_eq_smul],
+    exact norm_nsmul_le hf n },
+  { simp only [gsmul_neg_succ_of_nat, nat.cast_succ, int.nat_abs, norm_neg],
+    exact norm_nsmul_le hf n.succ }
+end
+
 /-! ### Composition of normed group homs -/
 
 /-- The composition of continuous normed group homs. -/
@@ -384,6 +420,14 @@ lemma norm_comp_le (g : normed_group_hom V₂ V₃) (f : normed_group_hom V₁ V
   ∥g.comp f∥ ≤ ∥g∥ * ∥f∥ :=
 mk_normed_group_hom_norm_le _ (mul_nonneg (op_norm_nonneg _) (op_norm_nonneg _)) _
 
+lemma norm_comp_le_of_le {g : normed_group_hom V₂ V₃} {C₁ C₂ : ℝ} (hg : ∥g∥ ≤ C₂) (hf : ∥f∥ ≤ C₁) :
+  ∥g.comp f∥ ≤ C₂ * C₁ :=
+le_trans (norm_comp_le g f) $ mul_le_mul hg hf (norm_nonneg _) (le_trans (norm_nonneg _) hg)
+
+lemma norm_comp_le_of_le' {g : normed_group_hom V₂ V₃} (C₁ C₂ C₃ : ℝ) (h : C₃ = C₂ * C₁)
+  (hg : ∥g∥ ≤ C₂) (hf : ∥f∥ ≤ C₁) : ∥g.comp f∥ ≤ C₃ :=
+by { rw h, exact norm_comp_le_of_le hg hf }
+
 /-- Composition of normed groups hom as an additive group morphism. -/
 def comp_hom : (normed_group_hom V₂ V₃) →+ (normed_group_hom V₁ V₂) →+ (normed_group_hom V₁ V₃) :=
 add_monoid_hom.mk' (λ g, add_monoid_hom.mk' (λ f, g.comp f)
@@ -396,6 +440,14 @@ by { ext, exact f.map_zero }
 
 @[simp] lemma zero_comp (f : normed_group_hom V₁ V₂) : (0 : normed_group_hom V₂ V₃).comp f = 0 :=
 by { ext, refl }
+
+lemma comp_assoc {V₄: Type* } [semi_normed_group V₄] (h : normed_group_hom V₃ V₄)
+  (g : normed_group_hom V₂ V₃) (f : normed_group_hom V₁ V₂) :
+  (h.comp g).comp f = h.comp (g.comp f) :=
+by { ext, refl }
+
+lemma normed_group_hom.coe_comp (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃) :
+  (g.comp f : V₁ → V₃) = (g : V₂ → V₃) ∘ (f : V₁ → V₂) := rfl
 
 end normed_group_hom
 
@@ -487,7 +539,7 @@ lemma bound_by_one (hf : f.norm_noninc) : f.bound_by 1 :=
 lemma zero : (0 : normed_group_hom V₁ V₂).norm_noninc :=
 λ v, by simp
 
-lemma id : (id : normed_group_hom V V).norm_noninc :=
+lemma id : (id V).norm_noninc :=
 λ v, le_rfl
 
 lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
@@ -511,7 +563,7 @@ lemma norm_eq_of_isometry {f : normed_group_hom V W} (hf : isometry f) (v : V) :
   ∥f v∥ = ∥v∥ :=
 f.isometry_iff_norm.mp hf v
 
-lemma isometry_id : @isometry V V _ _ (id : normed_group_hom V V) :=
+lemma isometry_id : @isometry V V _ _ (id V) :=
 isometry_id
 
 lemma isometry_comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}

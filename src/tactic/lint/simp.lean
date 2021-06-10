@@ -112,15 +112,17 @@ else if ¬ lhs_in_nf then do
       ++ "to" ++ lhs'.group.indent 2 ++ format.line
       ++ "using " ++ (to_fmt prf1_lems).group.indent 2 ++ format.line
       ++ "Try to change the left-hand side to the simplified term!\n"
-else if ¬ is_cond ∧ lhs = lhs' then do
-  pure "Left-hand side does not simplify.\nYou need to debug this yourself using `set_option trace.simplify.rewrite true`"
+else if ¬ is_cond ∧ lhs = lhs' then
+  pure $ some $ "Left-hand side does not simplify.\nYou need to debug this yourself using " ++
+"`set_option trace.simplify.rewrite true`"
 else
   pure none
 
 /--
 This note gives you some tips to debug any errors that the simp-normal form linter raises.
 
-The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal form.
+The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal
+form.
 These lemmas are hence never used by the simplifier.
 
 This linter gives you a list of other simp lemmas: look at them!

@@ -76,7 +76,8 @@ return $ if d.type.contains_constant (λ n, n ∈ illegal_ge_gt) &&
 -- return $ if d.type.contains_constant (λ n, (n.get_prefix = `classical ∧
 --   n.last ∈ ["prop_decidable", "dec", "dec_rel", "dec_eq"]) ∨ n ∈ [`gt, `ge])
 -- then
---   let illegal1 := [`classical.prop_decidable, `classical.dec, `classical.dec_rel, `classical.dec_eq],
+--   let illegal1 := [`classical.prop_decidable, `classical.dec, `classical.dec_rel,
+--     `classical.dec_eq],
 --       illegal2 := [`gt, `ge],
 --       occur1 := illegal1.filter (λ n, d.type.contains_constant (eq n)),
 --       occur2 := illegal2.filter (λ n, d.type.contains_constant (eq n)) in

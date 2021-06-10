@@ -146,7 +146,9 @@ private meta def impossible_instance (d : declaration) : tactic (option string) 
   auto_decls := tt,
   no_errors_found := "All instances are applicable.",
   errors_found := "IMPOSSIBLE INSTANCES FOUND.
-These instances have an argument that cannot be found during type-class resolution, and therefore can never succeed. Either mark the arguments with square brackets (if it is a class), or don't make it an instance." }
+These instances have an argument that cannot be found during type-class resolution, and " ++
+"therefore can never succeed. Either mark the arguments with square brackets (if it is a " ++
+"class), or don't make it an instance." }
 
 /-- Checks whether an instance can never be applied. -/
 private meta def incorrect_type_class_argument (d : declaration) : tactic (option string) := do
@@ -184,16 +186,19 @@ private meta def dangerous_instance (d : declaration) : tactic (option string) :
       instance_arguments.any (λ nb, nb.2.local_type.has_local_constant x),
   let bad_arguments : list (ℕ × binder) := bad_arguments.map $ λ ⟨n, e⟩, ⟨n, e.to_binder⟩,
   _ :: _ ← return bad_arguments | return none,
-  (λ s, some $ "The following arguments become metavariables. " ++ s) <$> print_arguments bad_arguments
+  (λ s, some $ "The following arguments become metavariables. " ++ s) <$>
+    print_arguments bad_arguments
 
 /-- A linter object for `dangerous_instance`. -/
 @[linter] meta def linter.dangerous_instance : linter :=
 { test := dangerous_instance,
   no_errors_found := "No dangerous instances.",
-  errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new type-class problem which will have metavariables.
-  Possible solution: remove the instance attribute or make it a local instance instead.
+  errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new " ++
+"type-class problem which will have metavariables.
+Possible solution: remove the instance attribute or make it a local instance instead.
 
-  Currently this linter does not check whether the metavariables only occur in arguments marked with `out_param`, in which case this linter gives a false positive.",
+Currently this linter does not check whether the metavariables only occur in arguments marked " ++
+"with `out_param`, in which case this linter gives a false positive.",
   auto_decls := tt }
 
 /-- Applies expression `e` to local constants, but lifts all the arguments that are `Sort`-valued to
@@ -292,8 +297,9 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`.",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
-/-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _` hypothesis that is unused
-elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof.
+/-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _`
+hypothesis that is unused lsewhere in the type.
+In this case, that hypothesis can be replaced with `classical` in the proof.
 Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,

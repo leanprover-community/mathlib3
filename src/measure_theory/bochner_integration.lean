@@ -1746,7 +1746,7 @@ begin
   congr,
   ext1 x,
   congr,
-  exact (trim_measurable hm (@simple_func.measurable_set_fiber α F m f x)).symm,
+  exact (trim_measurable_set_eq hm (@simple_func.measurable_set_fiber α F m f x)).symm,
 end
 
 lemma integral_trim (hm : m ≤ m0) (f : α → F) (hf : @measurable α F m _ f)
@@ -1780,7 +1780,7 @@ lemma ae_eq_trim_of_measurable [add_group β] [measurable_singleton_class β] [h
   (hfg : f =ᵐ[μ] g) :
   f =ᶠ[@measure.ae α m (μ.trim hm)] g :=
 begin
-  rwa [eventually_eq, ae_iff, trim_measurable hm _],
+  rwa [eventually_eq, ae_iff, trim_measurable_set_eq hm _],
   exact (@measurable_set.compl α _ m (@measurable_set_eq_fun α m β _ _ _ _ _ _ hf hg)),
 end
 
@@ -1791,7 +1791,7 @@ lemma ae_eq_trim_iff [add_group β] [measurable_singleton_class β] [has_measura
 
 instance finite_measure_trim (hm : m ≤ m0) [finite_measure μ] : @finite_measure α m (μ.trim hm) :=
 { measure_univ_lt_top :=
-    by { rw trim_measurable hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
+    by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
 
 end integral_trim
 

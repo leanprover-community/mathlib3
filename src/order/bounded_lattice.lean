@@ -469,6 +469,11 @@ lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
 
 lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
 
+instance : can_lift (with_bot α) α :=
+{ coe := coe,
+  cond := λ r, r ≠ ⊥,
+  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
+
 instance [preorder α] : preorder (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,
   lt          := (<),

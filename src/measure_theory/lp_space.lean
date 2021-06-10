@@ -442,7 +442,7 @@ begin
   simp_rw set.mem_set_of_eq,
   suffices h_meas_eq : μ {x | ¬ f x ≤ a} = μ.trim hm {x | ¬ f x ≤ a},
     by simp_rw [ae_iff, h_meas_eq],
-  refine (trim_measurable hm _).symm,
+  refine (trim_measurable_set_eq hm _).symm,
   refine @measurable_set.compl α _ m (@measurable_set_le ℝ≥0∞ α _ _ _ m _ _ _ _ _ hf _),
   exact @measurable_const _ α _ m _,
 end

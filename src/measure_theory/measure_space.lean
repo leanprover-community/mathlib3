@@ -2239,10 +2239,10 @@ by simp [measure.trim]
 
 variables {m m0 : measurable_space α} {μ : measure α} {s : set α}
 
-@[simp] lemma trim_zero (hm : m ≤ m0) : (0 : measure α).trim hm = (0 : @measure α m) :=
+@[simp] lemma zero_trim (hm : m ≤ m0) : (0 : measure α).trim hm = (0 : @measure α m) :=
 by simp [measure.trim, outer_measure.to_measure_zero]
 
-lemma trim_measurable (hm : m ≤ m0) (hs : @measurable_set α m s) : μ.trim hm s = μ s :=
+lemma trim_measurable_set_eq (hm : m ≤ m0) (hs : @measurable_set α m s) : μ.trim hm s = μ s :=
 by simp [measure.trim, hs]
 
 lemma le_trim (hm : m ≤ m0) : μ s ≤ μ.trim hm s :=
@@ -2264,8 +2264,9 @@ lemma restrict_trim (hm : m ≤ m0) (μ : measure α) (hs : @measurable_set α m
   @measure.restrict α m (μ.trim hm) s = (μ.restrict s).trim hm :=
 begin
   ext1 t ht,
-  rw [@measure.restrict_apply α m _ _ _ ht, trim_measurable hm ht,
-    measure.restrict_apply (hm t ht), trim_measurable hm (@measurable_set.inter α m t s ht hs)],
+  rw [@measure.restrict_apply α m _ _ _ ht, trim_measurable_set_eq hm ht,
+    measure.restrict_apply (hm t ht),
+    trim_measurable_set_eq hm (@measurable_set.inter α m t s ht hs)],
 end
 
 end trim

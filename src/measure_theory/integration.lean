@@ -1937,7 +1937,7 @@ begin
     rw [@lintegral_indicator α m _ _ _ hs, @lintegral_indicator α _ _ _ _ (hm s hs),
       @set_lintegral_const α m, set_lintegral_const],
     suffices h_trim_s : μ.trim hm s = μ s, by rw h_trim_s,
-    exact trim_measurable hm hs, },
+    exact trim_measurable_set_eq hm hs, },
   { intros f g hfg hf hg hf_prop hg_prop,
     have h_m := @lintegral_add _ m (μ.trim hm) f g hf hg,
     have h_m0 := @lintegral_add _ m0 μ f g (measurable.mono hf hm le_rfl)

@@ -527,7 +527,7 @@ lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm 
   (hf : @measurable _ _ m _ f)
   (hf_int : integrable f μ) {s : set α} (hs : @measurable_set α m s) :
   ∫ x in s, f x ∂μ = @integral α E m _ _ _ _ _ _ (@measure.restrict _ m (μ.trim hm) s) f :=
-by rwa [integral_trim hm f hf (hf_int.integrable_on), restrict_trim hm μ]
+by rwa [integral_trim hm hf (hf_int.integrable_on), restrict_trim hm μ]
 
 end
 

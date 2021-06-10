@@ -98,6 +98,24 @@ variable (R)
   map_smul' := λ c f, by { ext, refl },
   .. equiv_fun_on_fintype }
 
+@[simp] lemma linear_equiv_fun_on_fintype_single {α} [decidable_eq α] [fintype α]
+  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
+  (@linear_equiv_fun_on_fintype R M α _ _ _ _) (single x m) = pi.single x m :=
+begin
+  ext a,
+  change (equiv_fun_on_fintype (single x m)) a = _,
+  convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
+end
+
+@[simp] lemma linear_equiv_fun_on_fintype_symm_single {α} [decidable_eq α] [fintype α]
+  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
+  (@linear_equiv_fun_on_fintype R M α _ _ _ _).symm (pi.single x m) = single x m :=
+begin
+  ext a,
+  change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
+  convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
+end
+
 end finsupp
 
 section
@@ -714,6 +732,15 @@ lemma range_map_nonempty (N : submodule R M) :
   (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
 ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
 
+/-- The pushforward of a submodule by an injective linear map is
+linearly equivalent to the original submodule. -/
+@[simps]
+noncomputable def equiv_map_of_injective (f : M →ₗ[R] M₂) (i : injective f) (p : submodule R M) :
+  p ≃ₗ[R] p.map f :=
+{ map_add' := by { intros, simp, refl, },
+  map_smul' := by { intros, simp, refl, },
+  ..(equiv.set.image f p i) }
+
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
 { carrier   := f ⁻¹' p,
@@ -767,6 +794,44 @@ lemma map_comap_le (f : M →ₗ[R] M₂) (q : submodule R M₂) : map f (comap 
 
 lemma le_comap_map (f : M →ₗ[R] M₂) (p : submodule R M) : p ≤ comap f (map f p) :=
 (gc_map_comap f).le_u_l _
+
+section galois_coinsertion
+variables {f : M →ₗ[R] M₂} (hf : injective f)
+include hf
+
+/-- `map f` and `comap f` form a `galois_coinsertion` when `f` is injective. -/
+def gci_map_comap : galois_coinsertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_coinsertion
+  (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
+
+lemma comap_map_eq_of_injective (p : submodule R M) : (p.map f).comap f = p :=
+(gci_map_comap hf).u_l_eq _
+
+lemma comap_surjective_of_injective : function.surjective (comap f) :=
+(gci_map_comap hf).u_surjective
+
+lemma map_injective_of_injective : function.injective (map f) :=
+(gci_map_comap hf).l_injective
+
+lemma comap_inf_map_of_injective (p q : submodule R M) : (p.map f ⊓ q.map f).comap f = p ⊓ q :=
+(gci_map_comap hf).u_inf_l _ _
+
+lemma comap_infi_map_of_injective (S : ι → submodule R M) : (⨅ i, (S i).map f).comap f = infi S :=
+(gci_map_comap hf).u_infi_l _
+
+lemma comap_sup_map_of_injective (p q : submodule R M) : (p.map f ⊔ q.map f).comap f = p ⊔ q :=
+(gci_map_comap hf).u_sup_l _ _
+
+lemma comap_supr_map_of_injective (S : ι → submodule R M) : (⨆ i, (S i).map f).comap f = supr S :=
+(gci_map_comap hf).u_supr_l _
+
+lemma map_le_map_iff_of_injective (p q : submodule R M) : p.map f ≤ q.map f ↔ p ≤ q :=
+(gci_map_comap hf).l_le_l_iff
+
+lemma map_strict_mono_of_injective : strict_mono (map f) :=
+(gci_map_comap hf).strict_mono_l
+
+end galois_coinsertion
 
 --TODO(Mario): is there a way to prove this from order properties?
 lemma map_inf_eq_map_inf_comap {f : M →ₗ[R] M₂}
@@ -1976,6 +2041,30 @@ namespace linear_equiv
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
 [add_comm_monoid M₃] [add_comm_monoid M₄]
+
+section subsingleton
+variables [module R M] [module R M₂] [subsingleton M] [subsingleton M₂]
+
+/-- Between two zero modules, the zero map is an equivalence. -/
+instance : has_zero (M ≃ₗ[R] M₂) :=
+⟨{ to_fun := 0,
+   inv_fun := 0,
+   right_inv := λ x, subsingleton.elim _ _,
+   left_inv := λ x, subsingleton.elim _ _,
+   ..(0 : M →ₗ[R] M₂)}⟩
+
+-- Even though these are implied by `subsingleton.elim` via the `unique` instance below, they're
+-- nice to have as `rfl`-lemmas for `dsimp`.
+@[simp] lemma zero_symm : (0 : M ≃ₗ[R] M₂).symm = 0 := rfl
+@[simp] lemma coe_zero : ⇑(0 : M ≃ₗ[R] M₂) = 0 := rfl
+lemma zero_apply (x : M) : (0 : M ≃ₗ[R] M₂) x = 0 := rfl
+
+/-- Between two zero modules, the zero map is the only equivalence. -/
+instance : unique (M ≃ₗ[R] M₂) :=
+{ uniq := λ f, to_linear_map_injective (subsingleton.elim _ _),
+  default := 0 }
+
+end subsingleton
 
 section
 variables {module_M : module R M} {module_M₂ : module R M₂}

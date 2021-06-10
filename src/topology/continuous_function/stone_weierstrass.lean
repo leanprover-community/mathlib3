@@ -301,7 +301,6 @@ begin
     (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },
-  { ext, simp, },
 end
 
 /--

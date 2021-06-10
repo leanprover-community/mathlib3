@@ -1348,6 +1348,8 @@ iff.rfl
   (∃ᶠ b in map m f, P b) ↔ ∃ᶠ a in f, P (m a) :=
 iff.rfl
 
+@[simp] lemma mem_map' : t ∈ map m f ↔ {x | m x ∈ t} ∈ f := iff.rfl
+
 @[simp] lemma mem_map : t ∈ map m f ↔ m ⁻¹' t ∈ f := iff.rfl
 
 lemma image_mem_map (hs : s ∈ f) : m '' s ∈ map m f :=
@@ -1482,7 +1484,7 @@ protected lemma is_lawful_monad : is_lawful_monad filter :=
   pure_bind  := assume α β, pure_bind,
   bind_assoc := assume α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := assume α β f x, filter.ext $ λ s,
-    by simp only [has_bind.bind, bind, functor.map, mem_map, mem_join_sets, mem_set_of_eq,
+    by simp only [has_bind.bind, bind, functor.map, mem_map', mem_join_sets, mem_set_of_eq,
       function.comp, mem_pure_sets] }
 end
 

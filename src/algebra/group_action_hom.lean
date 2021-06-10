@@ -150,24 +150,6 @@ variables {M A B}
 theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
 
-instance : has_zero (A →+[M] B) :=
-⟨{ map_smul' := by simp,
-   .. (0 : A →+ B) }⟩
-
-instance : has_one (A →+[M] A) :=
-⟨{ map_smul' := by simp,
-   .. add_monoid_hom.id A }⟩
-
-@[simp] lemma coe_zero : ((0 : A →+[M] B) : A → B) = 0 := rfl
-
-@[simp] lemma coe_one : ((1 : A →+[M] A) : A → A) = id := rfl
-
-lemma zero_apply (a : A) : (0 : A →+[M] B) a = 0 := rfl
-
-lemma one_apply (a : A) : (1 : A →+[M] A) a = a := rfl
-
-instance : inhabited (A →+[M] B) := ⟨0⟩
-
 @[simp] lemma map_zero (f : A →+[M] B) : f 0 = 0 :=
 f.map_zero'
 
@@ -192,6 +174,22 @@ protected def id : A →+[M] A :=
 @[simp] lemma id_apply (x : A) : distrib_mul_action_hom.id M x = x := rfl
 
 variables {M A B C}
+
+instance : has_zero (A →+[M] B) :=
+⟨{ map_smul' := by simp,
+   .. (0 : A →+ B) }⟩
+
+instance : has_one (A →+[M] A) := ⟨distrib_mul_action_hom.id M⟩
+
+@[simp] lemma coe_zero : ((0 : A →+[M] B) : A → B) = 0 := rfl
+
+@[simp] lemma coe_one : ((1 : A →+[M] A) : A → A) = id := rfl
+
+lemma zero_apply (a : A) : (0 : A →+[M] B) a = 0 := rfl
+
+lemma one_apply (a : A) : (1 : A →+[M] A) a = a := rfl
+
+instance : inhabited (A →+[M] B) := ⟨0⟩
 
 /-- Composition of two equivariant additive monoid homomorphisms. -/
 def comp (g : B →+[M] C) (f : A →+[M] B) : A →+[M] C :=

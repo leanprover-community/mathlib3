@@ -310,9 +310,7 @@ begin
   exact ⟨x, ne_of_gt (norm_pos_iff.2 hx)⟩,
 end
 
-@[simp]
-lemma coe_id : ((normed_group_hom.id V) : V → V) =
-  (_root_.id : V → V) := rfl
+lemma coe_id : ((normed_group_hom.id V) : V → V) = (_root_.id : V → V) := rfl
 
 /-! ### The negation of a normed group hom -/
 
@@ -446,7 +444,7 @@ lemma comp_assoc {V₄: Type* } [semi_normed_group V₄] (h : normed_group_hom V
   (h.comp g).comp f = h.comp (g.comp f) :=
 by { ext, refl }
 
-lemma normed_group_hom.coe_comp (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃) :
+lemma coe_comp (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃) :
   (g.comp f : V₁ → V₃) = (g : V₂ → V₃) ∘ (f : V₁ → V₂) := rfl
 
 end normed_group_hom

@@ -339,7 +339,7 @@ end pequiv
 namespace equiv
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-/-- Turns an `equiv` into a `pequiv` in the canonical way. -/
+/-- Turns an `equiv` into a `pequiv` of the whole type. -/
 def to_pequiv (f : α ≃ β) : α ≃. β :=
 { to_fun := some ∘ f,
   inv_fun := some ∘ f.symm,

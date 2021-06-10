@@ -36,71 +36,6 @@ inserting `lift`s. The types `V`, `V'`, ... all live in different universes,
 and `V₁`, `V₂`, ... all live in the same universe.
 -/
 
-namespace set
-
-lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
-nonempty_compl.symm
-
-lemma exists_mem_of_not_subseteq {α : Type*} {s t : set α} (h : ¬ s ⊆ t) : ∃ x, x ∈ s ∧ x ∉ t :=
-begin
-  by_contradiction w,
-  exact h (by simpa using w),
-end
-
-@[simp] lemma not_infinite {α : Type*} (s : set α) : ¬ s.infinite ↔ s.finite :=
-by simp [infinite]
-
-lemma union_finset_finite_of_range_finite
-  {α β : Type*} [decidable_eq β] (f : α → finset β) (h : (range f).finite) :
-  (⋃ a, (f a : set β)).finite :=
-begin
-  have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
-  { ext x,
-    simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
-    use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
-    rintro ⟨s, hs, hx⟩,
-    obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
-    exact ⟨a, hx⟩, },
-  rw w,
-  apply set.finite_mem_finset,
-end
-
--- lemma range_infinite_of_union_finset_infinite
---   {α β : Type*} [decidable_eq β] (f : α → finset β) (w : (⋃ a, (f a : set β)).infinite) :
---   (range f).infinite :=
--- begin
---   intro h,
---   apply w,
---   exact union_finset_finite_of_range_finite f h,
--- end
-
-end set
-
-open set
-open_locale classical
-
-lemma cardinal.le_range_of_union_finset_eq_top
-  {α β : Type*} [infinite β] (f : α → finset β) (w : (⋃ a, (f a : set β)) = ⊤) :
-  cardinal.mk β ≤ cardinal.mk (range f) :=
-begin
-  have k : cardinal.omega ≤ cardinal.mk (range f),
-  { rw ←cardinal.infinite_iff, rw infinite_coe_iff,
-    apply mt (union_finset_finite_of_range_finite f),
-    rw w,
-    exact infinite_univ, },
-  by_contradiction h,
-  simp only [not_le] at h,
-  let u : Π b, ∃ a, b ∈ f a := λ b, by simpa using (w.ge : _) (set.mem_univ b),
-  let u' : β → range f := λ b, ⟨f (u b).some, by simp⟩,
-  have v' : ∀ a, u' ⁻¹' {⟨f a, by simp⟩} ≤ f a, begin rintros a p m,
-    simp at m,
-    rw ←m,
-    apply (λ b, (u b).some_spec),
-  end,
-  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := cardinal.infinite_pigeonhole'' u' h k,
-  exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
-end
-
 noncomputable theory
 
 universes u v v' v'' u₁' w w'
@@ -138,27 +73,6 @@ cardinal.sup.{v v}
   (λ ι : {s : set V // linear_independent K (coe : s → V)}, cardinal.mk ι.1)
 
 end
-
-noncomputable def range_splitting {α β : Type*} (f : α → β) : range f → α := λ x, x.2.some
-
-@[simp] lemma apply_range_splitting {α β : Type*} (f : α → β) (x : range f) :
-  f (range_splitting f x) = x :=
-x.2.some_spec
-
-@[simp] lemma comp_range_splitting {α β : Type*} (f : α → β) : f ∘ range_splitting f = coe :=
-by { ext, simp only [function.comp_app], apply apply_range_splitting, }
-
-attribute [irreducible] range_splitting
-
-@[simp] lemma range_factorization_coe {α β : Type*} (f : α → β) (a : α) :
-  (range_factorization f a : β) = f a := rfl
-
-lemma left_inverse_range_splitting {α β : Type*} (f : α → β) :
-  left_inverse (range_factorization f) (range_splitting f) :=
-λ x, by { ext, simp only [range_factorization_coe], apply apply_range_splitting, }
-
-lemma range_splitting_injective {α β : Type*} (f : α → β) : injective (range_splitting f) :=
-(left_inverse_range_splitting f).injective
 
 section
 variables (R : Type u) [ring R]
@@ -213,58 +127,9 @@ end
 
 variables {N : Type*} [add_comm_group N] [module R N]
 
-namespace embedding
-
-@[simp] lemma apply_eq_apply_iff {α β : Type*} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
-⟨λ h, f.injective h, λ h, congr_arg f h⟩
-
-end embedding
-
-namespace finsupp
-
-@[simp] lemma emb_domain_single {α β : Type*} (f : α ↪ β) (a : α) (m : M) :
-  emb_domain f (single a m) = single (f a) m :=
-begin
-  ext b,
-  by_cases h : b ∈ range f,
-  { rcases h with ⟨a', rfl⟩,
-    simp [single_apply], },
-  { simp only [emb_domain_notin_range, h, single_apply, not_false_iff],
-    rw if_neg,
-    rintro rfl,
-    simpa using h, },
-end
-
-@[simp] lemma emb_domain_add {α β : Type*} (f : α ↪ β) (v w : α →₀ M) :
-  emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
-begin
-  ext b,
-  by_cases h : b ∈ range f,
-  { rcases h with ⟨a, rfl⟩,
-    simp, },
-  { simp [emb_domain_notin_range, h], },
-end
-
-lemma emb_domain_sum {α β : Type*} (f : α ↪ β) (v : α →₀ M) (g : β → M →+ N) :
-  (v.emb_domain f).sum (λ b m, g b m) = v.sum (λ a m, g (f a) m) :=
-begin
-  apply induction_linear v,
-  { simp, },
-  { intros v₁ v₂ h₁ h₂,
-    rw [emb_domain_add, sum_add_index, sum_add_index],
-    simp [h₁, h₂],
-    all_goals { simp, }, },
-  { intros, simp, },
-end
-
-end finsupp
-
-@[simps]
-def smul_const (m : M) : R →+ M :=
-{ to_fun := λ r, r • m,
-  map_zero' := by simp,
-  map_add' := by simp [add_smul], }
-
+/--
+Any basis is a maximal linear independent set.
+-/
 lemma basis.maximal [nontrivial R] {ι : Type w} (b : basis ι R M) : b.linear_independent.maximal :=
 λ w i h,
 begin
@@ -272,7 +137,7 @@ begin
   apply le_antisymm h,
   by_contradiction h', simp at h',
   -- choose some `w k ∈ range w \ range b`,
-  obtain ⟨x, p, q⟩ := exists_mem_of_not_subseteq h',
+  obtain ⟨x, p, q⟩ := not_subseteq_iff_exists_mem_not_mem.mp h',
   -- and write it in terms of the basis.
   have e := b.total_repr x,
   -- This then expresses `x` as a linear combination
@@ -287,8 +152,8 @@ begin
   have r : ∀ i, b i = u i := λ i, (u' i).some_spec,
   rw finsupp.total_apply at e,
   simp_rw r at e,
-  erw ←finsupp.emb_domain_sum u (b.repr x) (λ (x : w), smul_const (x : M)) at e,
-  simp only [smul_const_apply] at e,
+  erw ←finsupp.emb_domain_sum u (b.repr x) (λ (x : w), (smul_add_hom R M).flip (x : M)) at e,
+  simp only [add_monoid_hom.flip_apply, smul_add_hom_apply] at e,
   rw ←finsupp.total_apply at e,
   -- contradicting linear independence.
   change _ = ((⟨x, p⟩ : w) : M) at e,
@@ -502,13 +367,13 @@ variables {R : Type u} [ring R] [nontrivial R] [rank_condition R]
 variables {M : Type v} [add_comm_group M] [module R M]
 
 /--
+An auxiliary lemma for `basis.le_span`.
+
 If `R` satisfies the rank condition,
 then for any finite basis `b : basis ι R M`,
 and any finite spanning set `w : set M`,
 the cardinality of `ι` is bounded by the cardinality of `w`.
 -/
--- Note that if `R` satisfies the strong rank condition,
--- this already follows from `linear_independent_le_span` above.
 lemma basis.le_span'' {ι : Type*} [fintype ι] (b : basis ι R M)
   {w : set M} [fintype w] (s : span R w = ⊤) :
   fintype.card ι ≤ fintype.card w :=
@@ -523,7 +388,10 @@ begin
     simpa using s, },
 end
 
-/-- A variant of `basis_le_span''` which does not require assuming the basis is finite. -/
+/--
+Another auxiliary lemma for `basis.le_span`, which does not require assuming the basis is finite,
+but still assumes we have a finite spanning set.
+-/
 lemma basis_le_span' {ι : Type*} (b : basis ι R M)
   {w : set M} [fintype w] (s : span R w = ⊤) :
   cardinal.mk ι ≤ fintype.card w :=
@@ -534,6 +402,12 @@ begin
   exact basis.le_span'' b s,
 end
 
+/--
+If `R` satisfies the strong rank condition,
+then the cardinality of any basis is bounded by the cardinality of any spanning set.
+-/
+-- Note that if `R` satisfies the strong rank condition,
+-- this also follows from `linear_independent_le_span` below.
 theorem basis.le_span {J : set M} (v : basis ι R M)
    (hJ : span R J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
@@ -567,31 +441,6 @@ begin
     simp, },
 end
 
--- /-- The dimension theorem: if `v` and `v'` are two bases, their index types
--- have the same cardinalities. -/
--- -- This could be generalized even further; it only requires invariant basis number.
--- theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
---   cardinal.lift.{w w'} (cardinal.mk ι) = cardinal.lift.{w' w} (cardinal.mk ι') :=
--- begin
---   rw ←cardinal.lift_inj.{(max w w') v},
---   rw [cardinal.lift_lift, cardinal.lift_lift],
---   apply le_antisymm,
---   { convert cardinal.lift_le.{v (max w w')}.2 (v.le_span v'.span_eq),
---     { rw cardinal.lift_max.{w v w'},
---       apply (cardinal.mk_range_eq_of_injective v.injective).symm, },
---     { rw cardinal.lift_max.{w' v w},
---       apply (cardinal.mk_range_eq_of_injective v'.injective).symm, }, },
---   { convert cardinal.lift_le.{v (max w w')}.2 (v'.le_span v.span_eq),
---     { rw cardinal.lift_max.{w' v w},
---       apply (cardinal.mk_range_eq_of_injective v'.injective).symm, },
---     { rw cardinal.lift_max.{w v w'},
---       apply (cardinal.mk_range_eq_of_injective v.injective).symm, }, }
--- end
-
--- theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
---   cardinal.mk ι = cardinal.mk ι' :=
--- cardinal.lift_inj.1 $ mk_eq_mk_of_basis v v'
-
 end rank_condition
 
 section strong_rank_condition
@@ -614,7 +463,8 @@ end
 
 -- An auxiliary lemma for `linear_independent_le_span'`,
 -- with the additional assumption that the linearly independent family is finite.
-lemma linear_independent_le_span_aux' {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
+lemma linear_independent_le_span_aux'
+  {ι : Type*} [fintype ι] (v : ι → M) (i : linear_independent R v)
   (w : set M) [fintype w] (s : range v ≤ span R w) :
   fintype.card ι ≤ fintype.card w :=
 begin
@@ -680,10 +530,8 @@ begin
 end
 
 /--
-Over any ring `R` satisfying the strong rank condition,
-if `b` is an infinite basis for a module `M`,
-and `s` is a linearly independent set,
-then the cardinality of `s` is bounded by the cardinality of `b`.
+An auxiliary lemma for `linear_independent_le_basis`:
+we handle the case where the basis `b` is infinite.
 -/
 lemma linear_independent_le_infinite_basis
   {ι : Type*} (b : basis ι R M) [infinite ι]
@@ -738,7 +586,7 @@ then every maximal linearly independent set has the same cardinality as `b`.
 This proof (along with some of the lemmas above) comes from
 [Les familles libres maximales d'un module ont-elles le meme cardinal?][lazarus1973]
 -/
--- Without the `infinite ι` hypothesis this is not generally true!
+-- When the basis is not infinite this need not be true!
 lemma maximal_linear_independent_eq_infinite_basis
   {ι : Type*} (b : basis ι R M) [infinite ι]
   {κ : Type*} (v : κ → M) (i : linear_independent R v) (m : i.maximal) :

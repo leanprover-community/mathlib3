@@ -36,6 +36,9 @@ classical.choice h
 noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 @set.to_finset _ _ h.fintype
 
+@[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite :=
+by simp [infinite]
+
 @[simp] theorem finite.mem_to_finset {s : set α} (h : finite s) {a : α} : a ∈ h.to_finset ↔ a ∈ s :=
 @mem_to_finset _ _ h.fintype _
 
@@ -561,6 +564,21 @@ begin
   convert (fintype.pi_finset (λ d, (ht d).to_finset)).finite_to_set,
   ext,
   simp,
+end
+
+/-- A finite union of finsets is finite. -/
+lemma union_finset_finite_of_range_finite
+  [decidable_eq β] (f : α → finset β) (h : (range f).finite) : (⋃ a, (f a : set β)).finite :=
+begin
+  have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
+  { ext x,
+    simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
+    use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
+    rintro ⟨s, hs, hx⟩,
+    obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
+    exact ⟨a, hx⟩, },
+  rw w,
+  apply set.finite_mem_finset,
 end
 
 lemma finite_subset_Union {s : set α} (hs : finite s)

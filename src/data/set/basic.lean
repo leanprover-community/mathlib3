@@ -434,6 +434,21 @@ lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : se
 instance univ_decidable : decidable_pred (@set.univ α) :=
 λ x, is_true trivial
 
+lemma ne_univ_iff_exists_not_mem {α : Type*} (s : set α) : s ≠ univ ↔ ∃ a, a ∉ s :=
+⟨λ h, by { by_contradiction w, exact h (eq_univ_iff_forall.mpr (not_exists_not.mp w)), },
+  λ h w, by simpa [w] using h⟩
+
+lemma not_subseteq_iff_exists_mem_not_mem {α : Type*} {s t : set α} :
+  ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
+⟨λ h, begin
+  by_contradiction w,
+  exact h (by simpa using w),
+end, λ h, begin
+  obtain ⟨x, xs, xt⟩ := h,
+  by_contradiction w,
+  exact xt (w xs),
+end⟩
+
 /-- `diagonal α` is the subset of `α × α` consisting of all pairs of the form `(a, a)`. -/
 def diagonal (α : Type*) : set (α × α) := {p | p.1 = p.2}
 
@@ -1758,6 +1773,9 @@ lemma range_factorization_eq {f : ι → β} :
   subtype.val ∘ range_factorization f = f :=
 funext $ λ i, rfl
 
+@[simp] lemma range_factorization_coe (f : ι → β) (a : ι) :
+  (range_factorization f a : β) = f a := rfl
+
 lemma surjective_onto_range : surjective (range_factorization f) :=
 λ ⟨_, ⟨i, rfl⟩⟩, ⟨i, rfl⟩
 
@@ -1807,6 +1825,27 @@ lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
   range f \ f '' s = f '' sᶜ :=
 subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
   ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
+
+/--
+We can use the axiom of choice to pick a preimage for every element of `range f`.
+-/
+noncomputable def range_splitting (f : α → β) : range f → α := λ x, x.2.some
+
+@[simp] lemma apply_range_splitting (f : α → β) (x : range f) :
+  f (range_splitting f x) = x :=
+x.2.some_spec
+
+attribute [irreducible] range_splitting
+
+@[simp] lemma comp_range_splitting (f : α → β) : f ∘ range_splitting f = coe :=
+by { ext, simp only [function.comp_app], apply apply_range_splitting, }
+
+lemma left_inverse_range_splitting (f : α → β) :
+  left_inverse (range_factorization f) (range_splitting f) :=
+λ x, by { ext, simp only [range_factorization_coe], apply apply_range_splitting, }
+
+lemma range_splitting_injective (f : α → β) : injective (range_splitting f) :=
+(left_inverse_range_splitting f).injective
 
 end range
 

@@ -524,6 +524,33 @@ begin
   exact ⟨a, w'.trans ha.le⟩,
 end
 
+/--
+If an infinite type `β` can be expressed as a union of finite sets,
+then the cardinality of the collection of those finite sets
+must be at least the cardinality of `β`.
+-/
+lemma le_range_of_union_finset_eq_top
+  {α β : Type*} [infinite β] (f : α → finset β) (w : (⋃ a, (f a : set β)) = ⊤) :
+  mk β ≤ mk (range f) :=
+begin
+  have k : omega ≤ mk (range f),
+  { rw ←infinite_iff, rw infinite_coe_iff,
+    apply mt (union_finset_finite_of_range_finite f),
+    rw w,
+    exact infinite_univ, },
+  by_contradiction h,
+  simp only [not_le] at h,
+  let u : Π b, ∃ a, b ∈ f a := λ b, by simpa using (w.ge : _) (set.mem_univ b),
+  let u' : β → range f := λ b, ⟨f (u b).some, by simp⟩,
+  have v' : ∀ a, u' ⁻¹' {⟨f a, by simp⟩} ≤ f a, begin rintros a p m,
+    simp at m,
+    rw ←m,
+    apply (λ b, (u b).some_spec),
+  end,
+  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := infinite_pigeonhole'' u' h k,
+  exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
+end
+
 theorem sup_lt_ord_of_is_regular {ι} (f : ι → ordinal)
   {c} (hc : is_regular c) (H1 : cardinal.mk ι < c)
   (H2 : ∀ i, f i < c.ord) : ordinal.sup.{u u} f < c.ord :=

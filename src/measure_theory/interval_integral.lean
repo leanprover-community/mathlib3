@@ -770,7 +770,7 @@ begin
   refine continuous_at_of_dominated_interval _ _ (h_int b₁ b₂).norm _,
   { apply eventually.mono (Ioo_mem_nhds hb₁ hb₂),
     intros x hx,
-    erw [← ae_measurable_indicator_iff, measure.restrict_restrict, Iic_inter_Ioc],
+    erw [← ae_measurable_indicator_iff, measure.restrict_restrict, Iic_inter_Ioc_of_le],
     { exact (h_int _ _).2.ae_measurable },
     { simp [hb₁, hb₂, hx.1, hx.2.le] },
     exacts [measurable_set_Iic, measurable_set_Iic] },

@@ -99,7 +99,7 @@ end
 
 section eq_prod_roots
 
-lemma norm_gen_eq_sum_roots [algebra K S] (pb : power_basis K S)
+lemma norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (norm K pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=

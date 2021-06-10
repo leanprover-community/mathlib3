@@ -42,7 +42,7 @@ In the remainder of the file, it will be non-discrete. -/
 variables [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  lipschitz_with (nnreal.of_real C) f :=
+  lipschitz_with (real.to_nnreal C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 theorem linear_map.antilipschitz_of_bound {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :

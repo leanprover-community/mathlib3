@@ -329,4 +329,11 @@ e.isometry.comp_continuous_on_iff
   continuous (e ∘ f) ↔ continuous f :=
 e.isometry.comp_continuous_iff
 
+@[simp]
+lemma linear_isometry.id_apply (x : E) : (linear_isometry.id : E →ₗᵢ[R] E) x = x := rfl
+
+@[simp]
+lemma linear_isometry.id_to_linear_map :
+  (linear_isometry.id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
+
 end linear_isometry_equiv

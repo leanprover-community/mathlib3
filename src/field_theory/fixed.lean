@@ -9,7 +9,6 @@ import deprecated.subfield
 import field_theory.normal
 import field_theory.separable
 import field_theory.tower
-import linear_algebra.matrix
 import ring_theory.polynomial
 
 /-!
@@ -43,7 +42,7 @@ instance fixed_by.is_subfield : is_subfield (fixed_by G F g) :=
   neg_mem := λ x hx, (smul_neg g x).trans $ congr_arg _ hx,
   one_mem := smul_one g,
   mul_mem := λ x y hx hy, (smul_mul' g x y).trans $ congr_arg2 _ hx hy,
-  inv_mem := λ x hx, (smul_inv F g x).trans $ congr_arg _ hx }
+  inv_mem := λ x hx, (smul_inv' F g x).trans $ congr_arg _ hx }
 
 namespace fixed_points
 
@@ -79,7 +78,7 @@ begin
   rw coe_insert at hs ⊢,
   rw linear_independent_insert (mt mem_coe.1 has) at hs,
   rw linear_independent_insert' (mt mem_coe.1 has), refine ⟨ih hs.1, λ ha, _⟩,
-  rw finsupp.mem_span_iff_total at ha, rcases ha with ⟨l, hl, hla⟩,
+  rw finsupp.mem_span_image_iff_total at ha, rcases ha with ⟨l, hl, hla⟩,
   rw [finsupp.total_apply_of_mem_supported F hl] at hla,
   suffices : ∀ i ∈ s, l i ∈ fixed_points G F,
   { replace hla := (sum_apply _ _ (λ i, l i • to_fun G F i)).symm.trans (congr_fun hla 1),
@@ -108,12 +107,12 @@ variables [fintype G] (x : F)
 /-- `minpoly G F x` is the minimal polynomial of `(x : F)` over `fixed_points G F`. -/
 def minpoly : polynomial (fixed_points G F) :=
 (prod_X_sub_smul G F x).to_subring _ $ λ c hc g,
-let ⟨hc0, n, hn⟩ := finsupp.mem_frange.1 hc in hn ▸ prod_X_sub_smul.coeff G F x g n
+let ⟨n, hc0, hn⟩ := polynomial.mem_frange_iff.1 hc in hn.symm ▸ prod_X_sub_smul.coeff G F x g n
 
 namespace minpoly
 
 theorem monic : (minpoly G F x).monic :=
-subtype.eq $ prod_X_sub_smul.monic G F x
+by { simp only [minpoly, polynomial.monic_to_subring], exact prod_X_sub_smul.monic G F x }
 
 theorem eval₂ :
   polynomial.eval₂ (is_subring.subtype $ fixed_points G F) x (minpoly G F x) = 0 :=
@@ -205,7 +204,7 @@ begin
 end
 
 instance : finite_dimensional (fixed_points G F) F :=
-finite_dimensional.finite_dimensional_iff_dim_lt_omega.2 $
+is_noetherian.iff_dim_lt_omega.2 $
 lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
 
 lemma finrank_le_card : finrank (fixed_points G F) F ≤ fintype.card G :=

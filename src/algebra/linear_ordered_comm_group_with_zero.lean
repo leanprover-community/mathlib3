@@ -44,6 +44,14 @@ instance [linear_ordered_add_comm_monoid_with_top α] :
   ..multiplicative.ordered_comm_monoid,
   ..multiplicative.linear_order }
 
+instance [linear_ordered_add_comm_group_with_top α] :
+  linear_ordered_comm_group_with_zero (multiplicative (order_dual α)) :=
+{ inv_zero := linear_ordered_add_comm_group_with_top.neg_top,
+  mul_inv_cancel := linear_ordered_add_comm_group_with_top.add_neg_cancel,
+  ..multiplicative.div_inv_monoid,
+  ..multiplicative.linear_ordered_comm_monoid_with_zero,
+  ..multiplicative.nontrivial }
+
 section linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_monoid_with_zero α]
@@ -51,7 +59,9 @@ variables [linear_ordered_comm_monoid_with_zero α]
 The following facts are true more generally in a (linearly) ordered commutative monoid.
 -/
 
-/-- Pullback a `linear_ordered_comm_monoid_with_zero` under an injective map. -/
+/-- Pullback a `linear_ordered_comm_monoid_with_zero` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   [has_zero β] [has_one β] [has_mul β]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -174,7 +184,8 @@ have hb : b ≠ 0 := ne_zero_of_lt hab,
 have hd : d ≠ 0 := ne_zero_of_lt hcd,
 if ha : a = 0 then by { rw [ha, zero_mul, zero_lt_iff], exact mul_ne_zero hb hd } else
 if hc : c = 0 then by { rw [hc, mul_zero, zero_lt_iff], exact mul_ne_zero hb hd } else
-@mul_lt_mul''' _ _ (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) hab hcd
+@mul_lt_mul''' _
+  (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd) _ _ _ _ _ _ hab hcd
 
 lemma mul_inv_lt_of_lt_mul' (h : x < y * z) : x * z⁻¹ < y :=
 have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,
@@ -196,23 +207,33 @@ lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 @inv_le_inv_iff _ _ (units.mk0 a ha) (units.mk0 b hb)
 
+instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
+{ neg_top := inv_zero,
+  add_neg_cancel := λ a ha, mul_inv_cancel ha,
+  ..additive.sub_neg_monoid,
+  ..additive.linear_ordered_add_comm_monoid_with_top,
+  ..additive.nontrivial }
+
 namespace monoid_hom
 
 variables {R : Type*} [ring R] (f : R →* α)
 
 theorem map_neg_one : f (-1) = 1 :=
-begin
-  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [sq, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
-end
+eq_one_of_pow_eq_one (nat.succ_ne_zero 1) $
+  calc f (-1) ^ 2 = f (-1) * f(-1) : sq _
+              ... = f ((-1) * - 1) : (f.map_mul _ _).symm
+              ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)
+              ... = f 1            : congr_arg _ (neg_neg _)
+              ... = 1              : map_one f
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=
-calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
+calc f (-x) = f (-1 * x)   : congr_arg _ (neg_one_mul _).symm
         ... = f (-1) * f x : map_mul _ _ _
-        ... = f x          : by rw [f.map_neg_one, one_mul]
+        ... = 1 * f x      : _root_.congr_arg (λ g, g * (f x)) (map_neg_one f)
+        ... = f x          : one_mul _
 
 lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
-calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
-           ... = _ : map_neg _ _
+calc f (x - y) = f (-(y - x)) : congr_arg _ (neg_sub _ _).symm
+           ... = _            : map_neg _ _
 
 end monoid_hom

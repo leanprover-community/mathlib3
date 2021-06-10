@@ -3,10 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.punit_instances
 import topology.instances.nnreal
 import topology.algebra.module
 import topology.algebra.algebra
 import topology.metric_space.antilipschitz
+import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Normed spaces
@@ -84,6 +86,12 @@ noncomputable def semi_normed_group.of_core (α : Type*) [add_comm_group α] [ha
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
              ... = ∥y - x∥ : by { rw [C.norm_neg] } }
+
+instance : normed_group punit :=
+{ norm := function.const _ 0,
+  dist_eq := λ _ _, rfl, }
+
+@[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
 instance : normed_group ℝ :=
 { norm := λ x, abs x,
@@ -211,6 +219,9 @@ lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
 
+@[simp] lemma mem_ball_0_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
+by rw [mem_ball, dist_zero_right]
+
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
@@ -287,7 +298,7 @@ by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
 (semi)normed spaces is in `normed_space.operator_norm`. -/
 lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  lipschitz_with (nnreal.of_real C) f :=
+  lipschitz_with (real.to_nnreal C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 lemma lipschitz_on_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} :
@@ -772,6 +783,11 @@ class normed_comm_ring (α : Type*) extends normed_ring α :=
 instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
   semi_normed_comm_ring α := { ..β }
 
+instance : normed_comm_ring punit :=
+{ norm_mul := λ _ _, by simp,
+  ..punit.normed_group,
+  ..punit.comm_ring, }
+
 /-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
 axiom. -/
 class norm_one_class (α : Type*) [has_norm α] [has_one α] : Prop :=
@@ -803,6 +819,21 @@ variables [semi_normed_ring α]
 
 lemma norm_mul_le (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 semi_normed_ring.norm_mul _ _
+
+/-- A subalgebra of a seminormed ring is also a seminormed ring, with the restriction of the norm.
+
+See note [implicit instance arguments]. -/
+instance subalgebra.semi_normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
+  {E : Type*} [semi_normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : semi_normed_ring s :=
+{ norm_mul := λ a b, norm_mul_le a.1 b.1,
+  ..s.to_submodule.semi_normed_group }
+
+/-- A subalgebra of a normed ring is also a normed ring, with the restriction of the norm.
+
+See note [implicit instance arguments]. -/
+instance subalgebra.normed_ring {𝕜 : Type*} {_ : comm_ring 𝕜}
+  {E : Type*} [normed_ring E] {_ : algebra 𝕜 E} (s : subalgebra 𝕜 E) : normed_ring s :=
+{ ..s.semi_normed_ring }
 
 lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.map norm).prod
 | [] h := (h rfl).elim
@@ -1137,6 +1168,40 @@ instance : nondiscrete_normed_field ℚ :=
 
 @[norm_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
 by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
+
+-- Now that we've installed the norm on `ℤ`,
+-- we can state some lemmas about `nsmul` and `gsmul`.
+section
+variables [semi_normed_group α]
+
+lemma norm_nsmul_le (n : ℕ) (a : α) : ∥n • a∥ ≤ n * ∥a∥ :=
+begin
+  induction n with n ih,
+  { simp only [norm_zero, nat.cast_zero, zero_mul, zero_smul] },
+  simp only [nat.succ_eq_add_one, add_smul, add_mul, one_mul, nat.cast_add,
+    nat.cast_one, one_nsmul],
+  exact norm_add_le_of_le ih le_rfl
+end
+
+lemma norm_gsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
+begin
+  induction n with n n,
+  { simp only [int.of_nat_eq_coe, gsmul_coe_nat],
+    convert norm_nsmul_le n a,
+    exact nat.abs_cast n },
+  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, gsmul_coe_nat],
+    convert norm_nsmul_le n.succ a,
+    exact nat.abs_cast n.succ, }
+end
+
+lemma nnnorm_nsmul_le (n : ℕ) (a : α) : nnnorm (n • a) ≤ n * nnnorm a :=
+by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
+  using norm_nsmul_le n a
+
+lemma nnnorm_gsmul_le (n : ℤ) (a : α) : nnnorm (n • a) ≤ nnnorm n * nnnorm a :=
+by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_gsmul_le n a
+
+end
 
 section semi_normed_space
 

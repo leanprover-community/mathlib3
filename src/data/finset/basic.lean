@@ -46,6 +46,7 @@ and the empty finset otherwise. See `data.fintype.basic`.
   and `nodup`, a proof that `val` has no duplicates.
 * `finset.has_mem`: Defines membership `a ∈ (s : finset α)`.
 * `finset.has_coe`: Provides a coercion `s : finset α` to `s : set α`.
+* `finset.has_coe_to_sort`: Coerce `s : finset α` to the type of all `x ∈ s`.
 * `finset.induction_on`: Induction on finsets. To prove a proposition about an arbitrary `finset α`,
   it suffices to prove it for the empty finset, and to show that if it holds for some `finset α`,
   then it holds for the finset obtained by inserting a new element.
@@ -198,6 +199,29 @@ set.ext_iff.trans ext_iff.symm
 lemma coe_injective {α} : injective (coe : finset α → set α) :=
 λ s t, coe_inj.1
 
+/-! ### type coercion -/
+
+/-- Coercion from a finset to the corresponding subtype. -/
+instance {α : Type*} : has_coe_to_sort (finset α) := ⟨_, λ s, {x // x ∈ s}⟩
+
+instance pi_finset_coe.can_lift (ι : Type*) (α : Π i : ι, Type*) [ne : Π i, nonempty (α i)]
+  (s : finset ι) :
+can_lift (Π i : s, α i) (Π i, α i) :=
+{ coe := λ f i, f i,
+  .. pi_subtype.can_lift ι α (∈ s) }
+
+instance pi_finset_coe.can_lift' (ι α : Type*) [ne : nonempty α] (s : finset ι) :
+  can_lift (s → α) (ι → α) :=
+pi_finset_coe.can_lift ι (λ _, α) s
+
+instance finset_coe.can_lift (s : finset α) : can_lift α s :=
+{ coe := coe,
+  cond := λ a, a ∈ s,
+  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
+
+@[simp, norm_cast] lemma coe_sort_coe (s : finset α) :
+  ((s : set α) : Sort*) = s := rfl
+
 /-! ### subset -/
 
 instance : has_subset (finset α) := ⟨λ s₁ s₂, ∀ ⦃a⦄, a ∈ s₁ → a ∈ s₂⟩
@@ -252,6 +276,9 @@ show (s₁ : set α) ⊂ s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
 
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
 and_congr val_le_iff $ not_congr val_le_iff
+
+lemma ssubset_iff_subset_ne {s t : finset α} : s ⊂ t ↔ s ⊆ t ∧ s ≠ t :=
+@lt_iff_le_and_ne _ _ s t
 
 theorem ssubset_iff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ⊂ s₂ ↔ ∃ x ∈ s₂, x ∉ s₁ :=
 set.ssubset_iff_of_subset h
@@ -1602,6 +1629,10 @@ def to_finset (s : multiset α) : finset α := ⟨_, nodup_erase_dup s⟩
 theorem to_finset_eq {s : multiset α} (n : nodup s) : finset.mk s n = s.to_finset :=
 finset.val_inj.1 (erase_dup_eq_self.2 n).symm
 
+lemma nodup.to_finset_inj {l l' : multiset α} (hl : nodup l) (hl' : nodup l')
+  (h : l.to_finset = l'.to_finset) : l = l' :=
+by simpa [←to_finset_eq hl, ←to_finset_eq hl'] using h
+
 @[simp] theorem mem_to_finset {a : α} {s : multiset α} : a ∈ s.to_finset ↔ a ∈ s :=
 mem_erase_dup
 
@@ -1689,6 +1720,13 @@ lemma to_finset_eq_of_perm (l l' : list α) (h : l ~ l') :
   l.to_finset = l'.to_finset :=
 to_finset_eq_iff_perm_erase_dup.mpr h.erase_dup
 
+lemma perm_of_nodup_nodup_to_finset_eq {l l' : list α} (hl : nodup l) (hl' : nodup l')
+  (h : l.to_finset = l'.to_finset) : l ~ l' :=
+begin
+  rw ←multiset.coe_eq_coe,
+  exact multiset.nodup.to_finset_inj hl hl' h
+end
+
 @[simp] lemma to_finset_append {l l' : list α} :
   to_finset (l ++ l') = l.to_finset ∪ l'.to_finset :=
 begin
@@ -1704,6 +1742,13 @@ to_finset_eq_of_perm _ _ (reverse_perm l)
 end list
 
 namespace finset
+
+lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
+  ∃ (l : list α), l.nodup ∧ l.to_finset = s :=
+begin
+  obtain ⟨⟨l⟩, hs⟩ := s,
+  exact ⟨l, hs, (list.to_finset_eq _).symm⟩,
+end
 
 /-! ### map -/
 section map
@@ -1732,6 +1777,9 @@ mem_map_of_injective f.2
 
 theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
+
+lemma apply_coe_mem_map (f : α ↪ β) (s : finset α) (x : s) : f x ∈ s.map f :=
+mem_map_of_mem f x.prop
 
 @[simp, norm_cast] theorem coe_map (f : α ↪ β) (s : finset α) : (s.map f : set β) = f '' s :=
 set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
@@ -2066,6 +2114,9 @@ theorem card_def (s : finset α) : s.card = s.1.card := rfl
 
 @[simp] theorem card_empty : card (∅ : finset α) = 0 := rfl
 
+theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
+multiset.card_le_of_le ∘ val_le_iff.mpr
+
 @[simp] theorem card_eq_zero {s : finset α} : card s = 0 ↔ s = ∅ :=
 card_eq_zero.trans val_eq_zero
 
@@ -2086,8 +2137,36 @@ begin
   { exact λ h, ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy, h _ hy _ hx⟩⟩ }
 end
 
+theorem card_le_one_iff {s : finset α} : s.card ≤ 1 ↔ ∀ {a b}, a ∈ s → b ∈ s → a = b :=
+by { rw card_le_one, tauto }
+
+lemma card_le_one_iff_subset_singleton [nonempty α] {s : finset α} :
+  s.card ≤ 1 ↔ ∃ (x : α), s ⊆ {x} :=
+begin
+  split,
+  { assume H,
+    by_cases h : ∃ x, x ∈ s,
+    { rcases h with ⟨x, hx⟩,
+      refine ⟨x, λ y hy, _⟩,
+      rw [card_le_one.1 H y hy x hx, mem_singleton] },
+    { push_neg at h,
+      inhabit α,
+      exact ⟨default α, λ y hy, (h y hy).elim⟩ } },
+  { rintros ⟨x, hx⟩,
+    rw ← card_singleton x,
+    exact card_le_of_subset hx }
+end
+
+/-- A `finset` of a subsingleton type has cardinality at most one. -/
+lemma card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
+finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
+
 theorem one_lt_card {s : finset α} : 1 < s.card ↔ ∃ (a ∈ s) (b ∈ s), a ≠ b :=
 by { rw ← not_iff_not, push_neg, exact card_le_one }
+
+lemma one_lt_card_iff {s : finset α} :
+  1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
+by { rw one_lt_card, simp only [exists_prop, exists_and_distrib_left] }
 
 @[simp] theorem card_insert_of_not_mem [decidable_eq α]
   {a : α} {s : finset α} (h : a ∉ s) : card (insert a s) = card s + 1 :=
@@ -2217,9 +2296,6 @@ iff.intro
       by simp only [eq, card_erase_of_mem has, pred_succ]⟩)
   (assume ⟨a, t, hat, s_eq, n_eq⟩, s_eq ▸ n_eq ▸ card_insert_of_not_mem hat)
 
-theorem card_le_of_subset {s t : finset α} : s ⊆ t → card s ≤ card t :=
-multiset.card_le_of_le ∘ val_le_iff.mpr
-
 theorem card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
   card (s.filter p) ≤ card s :=
 card_le_of_subset $ filter_subset _ _
@@ -2283,6 +2359,34 @@ by { dunfold strong_induction_on, rw strong_induction }
 finset.strong_induction_on s $ λ s,
 finset.induction_on s (λ _, h₀) $ λ a s n _ ih, h₁ a s n $
 λ t ss, ih _ (lt_of_le_of_lt ss (ssubset_insert n) : t < _)
+
+/-- Suppose that, given that `p t` can be defined on all supersets of `s` of cardinality less than
+`n`, one knows how to define `p s`. Then one can inductively define `p s` for all finsets `s` of
+cardinality less than `n`, starting from finsets of card `n` and iterating. This
+can be used either to define data, or to prove properties. -/
+def strong_downward_induction {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
+  t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
+  ∀ (s : finset α), s.card ≤ n → p s
+| s := H s (λ t ht h, have n - card t < n - card s,
+     from (nat.sub_lt_sub_left_iff ht).2 (finset.card_lt_card h),
+  strong_downward_induction t ht)
+using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : finset α), n - t.card)⟩]}
+
+lemma strong_downward_induction_eq {p : finset α → Sort*} {n : ℕ} (H : ∀ t₁, (∀ {t₂ : finset α},
+  t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) (s : finset α) :
+  strong_downward_induction H s = H s (λ t ht hst, strong_downward_induction H t ht) :=
+by rw strong_downward_induction
+
+/-- Analogue of `strong_downward_induction` with order of arguments swapped. -/
+@[elab_as_eliminator] def strong_downward_induction_on {p : finset α → Sort*} {n : ℕ} :
+  ∀ (s : finset α), (∀ t₁, (∀ {t₂ : finset α}, t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁)
+  → s.card ≤ n → p s :=
+λ s H, strong_downward_induction H s
+
+lemma strong_downward_induction_on_eq {p : finset α → Sort*} (s : finset α) {n : ℕ} (H : ∀ t₁,
+  (∀ {t₂ : finset α}, t₂.card ≤ n → t₁ ⊂ t₂ → p t₂) → t₁.card ≤ n → p t₁) :
+  s.strong_downward_induction_on H = H s (λ t ht h, t.strong_downward_induction_on H ht) :=
+by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
 lemma card_congr {s : finset α} {t : finset β} (f : Π a ∈ s, β)
   (h₁ : ∀ a ha, f a ha ∈ t) (h₂ : ∀ a b ha hb, f a ha = f b hb → a = b)

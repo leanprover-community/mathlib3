@@ -237,13 +237,28 @@ eq_mk_of_comm _ ((underlying_iso f).trans i) $ by simp [w]
 -- it is possible to see its source and target
 -- (`h` will just display as `_`, because it is in `Prop`).
 def of_le {B : C} (X Y : subobject B) (h : X ≤ Y) : (X : C) ⟶ (Y : C) :=
-underlying.map $ hom_of_le h
+underlying.map $ h.hom
 
 @[simp, reassoc] lemma of_le_arrow {B : C} {X Y : subobject B} (h : X ≤ Y) :
   of_le X Y h ≫ Y.arrow = X.arrow :=
 underlying_arrow _
 
+instance {B : C} (X Y : subobject B) (h : X ≤ Y) : mono (of_le X Y h) :=
+begin
+  fsplit,
+  intros Z f g w,
+  replace w := w =≫ Y.arrow,
+  ext,
+  simpa using w,
+end
+
+lemma of_le_mk_le_mk_of_comm
+  {B A₁ A₂ : C} {f₁ : A₁ ⟶ B} {f₂ : A₂ ⟶ B} [mono f₁] [mono f₂] (g : A₁ ⟶ A₂) (w : g ≫ f₂ = f₁) :
+  of_le _ _ (mk_le_mk_of_comm g w) = (underlying_iso _).hom ≫ g ≫ (underlying_iso _).inv :=
+by { ext, simp [w], }
+
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
+@[derive mono]
 def of_le_mk {B A : C} (X : subobject B) (f : A ⟶ B) [mono f] (h : X ≤ mk f) : (X : C) ⟶ A :=
 of_le X (mk f) h ≫ (underlying_iso f).hom
 
@@ -252,6 +267,7 @@ of_le X (mk f) h ≫ (underlying_iso f).hom
 by simp [of_le_mk]
 
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
+@[derive mono]
 def of_mk_le {B A : C} (f : A ⟶ B) [mono f] (X : subobject B) (h : mk f ≤ X) : A ⟶ (X : C) :=
 (underlying_iso f).inv ≫ of_le (mk f) X h
 
@@ -260,6 +276,7 @@ def of_mk_le {B A : C} (f : A ⟶ B) [mono f] (X : subobject B) (h : mk f ≤ X)
 by simp [of_mk_le]
 
 /-- An inequality of subobjects is witnessed by some morphism between the corresponding objects. -/
+@[derive mono]
 def of_mk_le_mk {B A₁ A₂ : C} (f : A₁ ⟶ B) (g : A₂ ⟶ B) [mono f] [mono g] (h : mk f ≤ mk g) :
   A₁ ⟶ A₂ :=
 (underlying_iso f).inv ≫ of_le (mk f) (mk g) h ≫ (underlying_iso g).hom

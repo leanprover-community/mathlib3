@@ -3,7 +3,6 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
-import data.equiv.basic
 import algebra.group.defs
 import algebra.group.hom
 import logic.embedding
@@ -132,8 +131,9 @@ variable (M)
 
 variables {M}
 
-/-- Pullback a multiplicative action along an injective map respecting `•`. -/
-@[to_additive "Pullback an additive action along an injective map respecting `+ᵥ`."]
+/-- Pullback a multiplicative action along an injective map respecting `•`.
+See note [reducible non-instances]. -/
+@[reducible, to_additive "Pullback an additive action along an injective map respecting `+ᵥ`."]
 protected def function.injective.mul_action [has_scalar M β] (f : β → α)
   (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   mul_action M β :=
@@ -141,8 +141,9 @@ protected def function.injective.mul_action [has_scalar M β] (f : β → α)
   one_smul := λ x, hf $ (smul _ _).trans $ one_smul _ (f x),
   mul_smul := λ c₁ c₂ x, hf $ by simp only [smul, mul_smul] }
 
-/-- Pushforward a multiplicative action along a surjective map respecting `•`. -/
-@[to_additive "Pushforward an additive action along a surjective map respecting `+ᵥ`."]
+/-- Pushforward a multiplicative action along a surjective map respecting `•`.
+See note [reducible non-instances]. -/
+@[reducible, to_additive "Pushforward an additive action along a surjective map respecting `+ᵥ`."]
 protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (hf : surjective f)
   (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   mul_action M β :=
@@ -184,6 +185,27 @@ add_decl_doc add_monoid.to_add_action
 
 instance is_scalar_tower.left : is_scalar_tower M M α :=
 ⟨λ x y z, mul_smul x y z⟩
+
+variables {M}
+
+/-- Note that the `smul_comm_class M α α` typeclass argument is usually satisfied by `algebra M α`.
+-/
+@[to_additive]
+lemma mul_smul_comm [monoid α] (s : M) (x y : α) [smul_comm_class M α α] :
+  x * (s • y) = s • (x * y) :=
+(smul_comm s x y).symm
+
+/-- Note that the `is_scalar_tower M α α` typeclass argument is usually satisfied by `algebra M α`.
+-/
+lemma smul_mul_assoc [monoid α] (r : M) (x y : α) [is_scalar_tower M α α] :
+  (r • x) * y = r • (x * y) :=
+smul_assoc r x y
+
+/-- Note that the `is_scalar_tower M α α` and `smul_comm_class M α α` typeclass arguments are
+usually satisfied by `algebra M α`. -/
+lemma smul_mul_smul [monoid α] (r s : M) (x y : α) [is_scalar_tower M α α] [smul_comm_class M α α] :
+  (r • x) * (s • y) = (r * s) • (x * y) :=
+by rw [smul_mul_assoc, mul_smul_comm, smul_smul]
 
 end
 
@@ -246,7 +268,9 @@ distrib_mul_action.smul_add _ _ _
 distrib_mul_action.smul_zero _
 
 /-- Pullback a distributive multiplicative action along an injective additive monoid
-homomorphism. -/
+homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.distrib_mul_action [add_monoid B] [has_scalar M B] (f : B →+ A)
   (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   distrib_mul_action M B :=
@@ -256,7 +280,9 @@ protected def function.injective.distrib_mul_action [add_monoid B] [has_scalar M
   .. hf.mul_action f smul }
 
 /-- Pushforward a distributive multiplicative action along a surjective additive monoid
-homomorphism.-/
+homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar M B] (f : A →+ B)
   (hf : surjective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   distrib_mul_action M B :=
@@ -286,6 +312,10 @@ variable {A}
 
 @[simp] lemma const_smul_hom_apply (r : M) (x : A) :
   const_smul_hom A r x = r • x := rfl
+
+@[simp] lemma const_smul_hom_one :
+  const_smul_hom A (1:M) = add_monoid_hom.id _ :=
+by { ext, rw [const_smul_hom_apply, one_smul, add_monoid_hom.id_apply] }
 
 end
 

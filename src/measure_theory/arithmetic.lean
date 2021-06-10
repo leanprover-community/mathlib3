@@ -528,7 +528,6 @@ subtype.coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_s
 
 end measurable.subtype
 
-#exit
 
 /-!
 ### Big operators: `∏` and `∑`

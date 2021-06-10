@@ -287,8 +287,8 @@ begin
     λ x hx, by simpa only [neg_neg] using (has_deriv_at_cos x).neg,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, sin x ^ (n + 2)
-      = ∫ x in a..b, sin x ^ (n + 1) * sin x : by simp only [pow_succ']
-  ... = C + (n + 1) * ∫ x in a..b, cos x ^ 2 * sin x ^ n : by simp [H, h, sq]
+      = ∫ x in a..b, sin x ^ (n + 1) * sin x                   : by simp only [pow_succ']
+  ... = C + (n + 1) * ∫ x in a..b, cos x ^ 2 * sin x ^ n       : by simp [H, h, sq]
   ... = C + (n + 1) * ∫ x in a..b, sin x ^ n - sin x ^ (n + 2) : by simp [cos_sq', sub_mul,
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, sin x ^ n) - (n + 1) * ∫ x in a..b, sin x ^ (n + 2) :
@@ -361,8 +361,8 @@ begin
   have hv : ∀ x ∈ interval a b, has_deriv_at sin (cos x) x := λ x hx, has_deriv_at_sin x,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,
   calc  ∫ x in a..b, cos x ^ (n + 2)
-      = ∫ x in a..b, cos x ^ (n + 1) * cos x : by simp only [pow_succ']
-  ... = C + (n + 1) * ∫ x in a..b, sin x ^ 2 * cos x ^ n : by simp [H, h, sq, -neg_add_rev]
+      = ∫ x in a..b, cos x ^ (n + 1) * cos x                   : by simp only [pow_succ']
+  ... = C + (n + 1) * ∫ x in a..b, sin x ^ 2 * cos x ^ n       : by simp [H, h, sq, -neg_add_rev]
   ... = C + (n + 1) * ∫ x in a..b, cos x ^ n - cos x ^ (n + 2) : by simp [sin_sq, sub_mul,
                                                                           ← pow_add, add_comm]
   ... = C + (n + 1) * (∫ x in a..b, cos x ^ n) - (n + 1) * ∫ x in a..b, cos x ^ (n + 2) :
@@ -390,14 +390,13 @@ by field_simp [integral_cos_pow, add_sub_assoc]
 /-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `n` is odd. -/
 lemma integral_sin_pow_mul_cos_pow_odd (m n : ℕ) :
   ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1) = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n :=
-begin
-  have hc : continuous (λ u : ℝ, u ^ m * (1 - u ^ 2) ^ n) := by continuity,
-  have H := integral_comp_mul_deriv (λ x hx, has_deriv_at_sin x) continuous_on_cos hc,
-  calc  ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1)
-      = ∫ x in a..b, sin x ^ m * (1 - sin x ^ 2) ^ n * cos x : by simp only [pow_succ', ← mul_assoc,
-                                                                             pow_mul, cos_sq']
-  ... = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n : H,
-end
+have hc : continuous (λ u : ℝ, u ^ m * (1 - u ^ 2) ^ n), by continuity,
+calc  ∫ x in a..b, sin x ^ m * cos x ^ (2 * n + 1)
+    = ∫ x in a..b, sin x ^ m * (1 - sin x ^ 2) ^ n * cos x : by simp only [pow_succ', ← mul_assoc,
+                                                                           pow_mul, cos_sq']
+... = ∫ u in sin a..sin b, u ^ m * (1 - u ^ 2) ^ n         : integral_comp_mul_deriv
+                                                              (λ x hx, has_deriv_at_sin x)
+                                                                continuous_on_cos hc
 
 /-- The integral of `sin x * cos x`, given in terms of sin². -/
 @[simp]
@@ -418,15 +417,14 @@ by simpa using integral_sin_pow_mul_cos_pow_odd 0 1
 /-- Simplification of the integral of `sin x ^ m * cos x ^ n`, case `m` is odd. -/
 lemma integral_sin_pow_odd_mul_cos_pow (m n : ℕ) :
   ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n = ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m :=
-begin
-  have hc : continuous (λ u : ℝ, u ^ n * (1 - u ^ 2) ^ m) := by continuity,
-  have H := integral_comp_mul_deriv (λ x hx, has_deriv_at_cos x) continuous_on_sin.neg hc,
-  calc  ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n
-      = -∫ x in b..a, sin x ^ (2 * m + 1) * cos x ^ n : by rw integral_symm
-  ... = ∫ x in b..a, (1 - cos x ^ 2) ^ m * -sin x * cos x ^ n : by simp [pow_succ', pow_mul, sin_sq]
-  ... = ∫ x in b..a, cos x ^ n * (1 - cos x ^ 2) ^ m * -sin x : by { congr, ext, ring }
-  ... = ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m : H,
-end
+have hc : continuous (λ u : ℝ, u ^ n * (1 - u ^ 2) ^ m), by continuity,
+calc   ∫ x in a..b, sin x ^ (2 * m + 1) * cos x ^ n
+    = -∫ x in b..a, sin x ^ (2 * m + 1) * cos x ^ n          : by rw integral_symm
+... =  ∫ x in b..a, (1 - cos x ^ 2) ^ m * -sin x * cos x ^ n : by simp [pow_succ', pow_mul, sin_sq]
+... =  ∫ x in b..a, cos x ^ n * (1 - cos x ^ 2) ^ m * -sin x : by { congr, ext, ring }
+... =  ∫ u in cos b..cos a, u ^ n * (1 - u ^ 2) ^ m          : integral_comp_mul_deriv
+                                                                (λ x hx, has_deriv_at_cos x)
+                                                                  continuous_on_sin.neg hc
 
 /-- The integral of `sin x * cos x`, given in terms of cos². -/
 lemma integral_sin_mul_cos₂  :

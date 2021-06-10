@@ -309,10 +309,10 @@ semilattice_inf.inf_le_right a b
 theorem le_inf : a ≤ b → a ≤ c → a ≤ b ⊓ c :=
 semilattice_inf.le_inf a b c
 
-theorem inf_le_left_of_le (h : a ≤ c) : a ⊓ b ≤ c :=
+theorem inf_le_of_le_left (h : a ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_left h
 
-theorem inf_le_right_of_le (h : b ≤ c) : a ⊓ b ≤ c :=
+theorem inf_le_of_le_right (h : b ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_right h
 
 @[simp] theorem le_inf_iff : a ≤ b ⊓ c ↔ a ≤ b ∧ a ≤ c :=
@@ -337,7 +337,7 @@ inf_eq_right.2 h
 eq_comm.trans inf_eq_right
 
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
-le_inf (inf_le_left_of_le h₁) (inf_le_right_of_le h₂)
+le_inf (inf_le_of_le_left h₁) (inf_le_of_le_right h₂)
 
 lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a :=
 inf_le_inf h (le_refl _)
@@ -613,8 +613,8 @@ instance distrib_lattice_of_linear_order {α : Type u} [o : linear_order α] :
   distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with
-    | or.inl h := inf_le_left_of_le $ sup_le_sup_left (le_inf (le_refl b) h) _
-    | or.inr h := inf_le_right_of_le $ sup_le_sup_left (le_inf h (le_refl c)) _
+    | or.inl h := inf_le_of_le_left $ sup_le_sup_left (le_inf (le_refl b) h) _
+    | or.inr h := inf_le_of_le_right $ sup_le_sup_left (le_inf h (le_refl c)) _
     end,
   ..lattice_of_linear_order }
 

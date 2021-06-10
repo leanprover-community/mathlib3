@@ -739,8 +739,8 @@ from le_antisymm
     (le_binfi $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
   (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
     match s, ha, hs with
-    | _, h, (or.inl rfl) := inf_le_left_of_le $ infi_le_of_le b $ infi_le _ h
-    | _, h, (or.inr rfl) := inf_le_right_of_le $ infi_le_of_le b $ infi_le _ h
+    | _, h, (or.inl rfl) := inf_le_of_le_left $ infi_le_of_le b $ infi_le _ h
+    | _, h, (or.inr rfl) := inf_le_of_le_right $ infi_le_of_le b $ infi_le _ h
     end)
 
 lemma tendsto_order {f : β → α} {a : α} {x : filter β} :

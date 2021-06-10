@@ -151,7 +151,7 @@ def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
 { mul_le_mul_left := λ a b ab c,
     show f (c * a) ≤ f (c * b), by simp [mul, @mul_le_mul_left' α _ _ _ _ _ ab _],
   lt_of_mul_lt_mul_left :=
-    λ a b c bc, @lt_of_mul_lt_mul_left' α (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
+    λ a b c bc, @lt_of_mul_lt_mul_left' α _ _ _ (f a) _ _ (by rwa [← mul, ← mul]),
   ..partial_order.lift f hf,
   ..hf.comm_monoid f one mul }
 
@@ -709,32 +709,6 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
   ..hf.left_cancel_semigroup f mul,
   ..hf.ordered_comm_monoid f one mul }
 
-section mono
-
-variables {β : Type*} [preorder β] {f g : β → α}
-
-@[to_additive monotone.add_strict_mono]
-lemma monotone.mul_strict_mono' (hf : monotone f) (hg : strict_mono g) :
-  strict_mono (λ x, f x * g x) :=
-λ x y h, mul_lt_mul_of_le_of_lt (hf $ le_of_lt h) (hg h)
-
-@[to_additive strict_mono.add_monotone]
-lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
-  strict_mono (λ x, f x * g x) :=
-λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg $ le_of_lt h)
-
-@[to_additive strict_mono.add_const]
-lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
-  strict_mono (λ x, f x * c) :=
-hf.mul_monotone' monotone_const
-
-@[to_additive strict_mono.const_add]
-lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
-  strict_mono (λ x, c * f x) :=
-monotone_const.mul_strict_mono' hf
-
-end mono
-
 end ordered_cancel_comm_monoid
 
 section ordered_cancel_add_comm_monoid
@@ -856,9 +830,14 @@ instance [h : has_mul α] : has_mul (order_dual α) := h
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
 { mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ _ _ _ _ h _,
-  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
+  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α _ _ _ a c b h,
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
+
+@[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
+instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
+  contravariant_class (order_dual α) (order_dual α) has_mul.mul has_le.le :=
+{ covtc := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=

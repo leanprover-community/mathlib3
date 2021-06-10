@@ -35,6 +35,9 @@ lemma lt_max_of_lt_left (h : a < b) : a < max b c := h.trans_le (le_max_left b c
 lemma lt_max_of_lt_right (h : a < c) : a < max b c := h.trans_le (le_max_right b c)
 lemma min_le_left_of_le : a ≤ c → min a b ≤ c := inf_le_left_of_le
 lemma min_le_right_of_le : b ≤ c → min a b ≤ c := inf_le_right_of_le
+lemma min_lt_of_left_lt (h : a < c) : min a b < c := (min_le_left a b).trans_lt h
+lemma min_lt_of_right_lt (h : b < c) : min a b < c := (min_le_right a b).trans_lt h
+lemma lt_max_of_right_lt_right (h : a < c) : a < max b c := h.trans_le (le_max_right b c)
 lemma max_min_distrib_left : max a (min b c) = min (max a b) (max a c) := sup_inf_left
 lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) := sup_inf_right
 lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_sup_left

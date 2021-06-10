@@ -2200,7 +2200,7 @@ lemma tendsto.sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
 
 @[simp] lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
   tendsto f l (𝓟 s) ↔ ∀ᶠ a in l, f a ∈ s :=
-by simp only [tendsto, le_principal_iff, mem_map, filter.eventually]
+by simp only [tendsto, le_principal_iff, mem_map', filter.eventually]
 
 @[simp] lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β} :
   tendsto f (𝓟 s) (𝓟 t) ↔ ∀a∈s, f a ∈ t :=

@@ -2208,7 +2208,7 @@ by simp only [tendsto_principal, eventually_principal]
 
 @[simp] lemma tendsto_pure {f : α → β} {a : filter α} {b : β} :
   tendsto f a (pure b) ↔ ∀ᶠ x in a, f x = b :=
-by simp only [tendsto, le_pure_iff, mem_map, mem_singleton_iff, filter.eventually]
+by simp only [tendsto, le_pure_iff, mem_map', mem_singleton_iff, filter.eventually]
 
 lemma tendsto_pure_pure (f : α → β) (a : α) :
   tendsto f (pure a) (pure (f a)) :=

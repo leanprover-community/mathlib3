@@ -219,18 +219,21 @@ namespace monoid_hom
 variables {R : Type*} [ring R] (f : R →* α)
 
 theorem map_neg_one : f (-1) = 1 :=
-begin
-  apply eq_one_of_pow_eq_one (nat.succ_ne_zero 1) (_ : _ ^ 2 = _),
-  rw [sq, ← f.map_mul, neg_one_mul, neg_neg, f.map_one],
-end
+eq_one_of_pow_eq_one (nat.succ_ne_zero 1) $
+  calc f (-1) ^ 2 = f (-1) * f(-1) : sq _
+              ... = f ((-1) * - 1) : (f.map_mul _ _).symm
+              ... = f ( - - 1)     : congr_arg _ (neg_one_mul _)
+              ... = f 1            : congr_arg _ (neg_neg _)
+              ... = 1              : map_one f
 
 @[simp] lemma map_neg (x : R) : f (-x) = f x :=
-calc f (-x) = f (-1 * x)   : by rw [neg_one_mul]
+calc f (-x) = f (-1 * x)   : congr_arg _ (neg_one_mul _).symm
         ... = f (-1) * f x : map_mul _ _ _
-        ... = f x          : by rw [f.map_neg_one, one_mul]
+        ... = 1 * f x      : _root_.congr_arg (λ g, g * (f x)) (map_neg_one f)
+        ... = f x          : one_mul _
 
 lemma map_sub_swap (x y : R) : f (x - y) = f (y - x) :=
-calc f (x - y) = f (-(y - x)) : by rw show x - y = -(y-x), by abel
-           ... = _ : map_neg _ _
+calc f (x - y) = f (-(y - x)) : congr_arg _ (neg_sub _ _).symm
+           ... = _            : map_neg _ _
 
 end monoid_hom

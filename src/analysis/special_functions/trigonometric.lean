@@ -2213,7 +2213,7 @@ then by rw [arg, if_pos hx₁];
 else
   have hx : x ≠ 0, from λ h, by simpa [h, lt_irrefl] using hx₁,
   if hx₂ : 0 ≤ x.im
-    then by { rw [arg, if_neg hx₁, if_pos hx₂, ← sub_lt_iff_lt_add'],
+  then by { rw [arg, if_neg hx₁, if_pos hx₂, ← sub_lt_iff_lt_add'],
     refine lt_of_lt_of_le _ real.pi_pos.le,
     rw [neg_im, sub_lt_iff_lt_add', add_zero, neg_lt, neg_div, real.arcsin_neg, neg_neg],
     exact (real.arcsin_le_pi_div_two _).trans_lt (half_lt_self real.pi_pos) }

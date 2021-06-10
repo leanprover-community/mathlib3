@@ -543,7 +543,7 @@ def pow (a : ℤ) (n : ℕ) : submonoid.powers a := ⟨a ^ n, n, rfl⟩
 
 /-- Logarithms from powers of integers to natural numbers. -/
 def log {a : ℤ} (p : submonoid.powers a) : ℕ :=
-nat.find $ (mem_powers_iff a p.val).1 p.prop
+nat.find $ (submonoid.mem_powers_iff a p.val).1 p.prop
 
 @[simp] theorem log_pow_eq_self (a : ℤ) (ha : 2 ≤ a) (n : ℕ) : log (pow a n) = n :=
 begin

@@ -168,7 +168,7 @@ lemma ae_measurable_interval_oc_iff {μ : measure α} {β : Type*} [measurable_s
   (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
 by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
 
-variables  [topological_space α] [opens_measurable_space α] [order_closed_topology α]
+variables [topological_space α] [opens_measurable_space α] [order_closed_topology α]
 
 lemma ae_interval_oc_iff' : (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔
   (∀ᵐ x ∂ (μ.restrict $ Ioc a b), P x) ∧ (∀ᵐ x ∂ (μ.restrict $ Ioc b a), P x) :=
@@ -606,15 +606,14 @@ variables [topological_space α] [order_closed_topology α] [opens_measurable_sp
 lemma integral_Icc_eq_integral_Ioc {f : α → E} {a b : α} (ha : μ {a} = 0) :
   ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
 begin
-  by_cases hab : a ≤ b,
+  cases le_or_lt a b with hab hab,
   { have : μ.restrict (Icc a b) = μ.restrict (Ioc a b),
     { rw [← Ioc_union_left hab,
           measure_theory.measure.restrict_union _ measurable_set_Ioc (measurable_set_singleton a)],
       { simp [ha] },
       { simp } },
     rw this },
-  { push_neg at hab,
-    simp [hab, hab.le] }
+  { simp [hab, hab.le] }
 end
 
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
@@ -745,11 +744,11 @@ lemma continuous_within_at_of_dominated_interval
 begin
   have gcs := is_countably_generated_nhds_within x₀ s,
   cases bound_integrable,
-  cases le_or_gt a b with hab hab;
+  cases le_or_lt a b with hab hab;
   [{ rw interval_oc_of_le hab at *,
      simp_rw interval_integral.integral_of_le hab },
    { rw interval_oc_of_lt hab at *,
-     simp_rw interval_integral.integral_of_ge (le_of_lt hab),
+     simp_rw interval_integral.integral_of_ge hab.le,
      refine tendsto.neg _ }];
   apply tendsto_integral_filter_of_dominated_convergence bound gcs hF_meas hF_meas₀ h_bound,
   exacts [bound_integrable_left, h_cont, bound_integrable_right, h_cont]
@@ -787,7 +786,7 @@ lemma continuous_of_dominated_interval {F : X → α → E} {bound : α → ℝ}
   (h_cont : ∀ᵐ t ∂(μ.restrict $ Ι a b), continuous (λ x, F x t)) :
   continuous (λ x, ∫ t in a..b, F x t ∂μ) :=
 continuous_iff_continuous_at.mpr (λ x₀, continuous_at_of_dominated_interval
-  (eventually_of_forall hF_meas) (eventually_of_forall h_bound) ‹_› $ h_cont.mono $
+  (eventually_of_forall hF_meas) (eventually_of_forall h_bound) bound_integrable $ h_cont.mono $
   λ _, continuous.continuous_at)
 
 end continuity_wrt_parameter
@@ -809,18 +808,18 @@ begin
     { rintros x ⟨h₁, h₂⟩,
       apply h_int.mono_set,
       apply interval_subset_interval,
-      exact ⟨min_le_left_of_le (min_le_right a b₁),
-              h₁.trans (h₂.trans $ le_max_right_of_le $ le_max_right _ _)⟩,
-      exact ⟨min_le_left_of_le $ (min_le_right _ _).trans h₁,
-              le_max_right_of_le $ h₂.trans $ le_max_right _ _⟩ },
+      { exact ⟨min_le_left_of_le (min_le_right a b₁),
+                h₁.trans (h₂.trans $ le_max_right_of_le $ le_max_right _ _)⟩ },
+      { exact ⟨min_le_left_of_le $ (min_le_right _ _).trans h₁,
+                le_max_right_of_le $ h₂.trans $ le_max_right _ _⟩ } },
     have : ∀ b ∈ Icc b₁ b₂, ∫ x in a..b, f x ∂μ = ∫ x in a..b₁, f x ∂μ + ∫ x in b₁..b, f x ∂μ,
     { rintros b ⟨h₁, h₂⟩,
       rw ← interval_integral.integral_add_adjacent_intervals _ (h_int' ⟨h₁, h₂⟩),
       apply h_int.mono_set,
       apply interval_subset_interval,
-      exact ⟨min_le_left_of_le (min_le_left a b₁), le_max_right_of_le (le_max_left _ _)⟩,
-      exact ⟨min_le_left_of_le (min_le_right _ _),
-              le_max_right_of_le (h₁.trans $ h₂.trans (le_max_right a b₂))⟩ },
+      { exact ⟨min_le_left_of_le (min_le_left a b₁), le_max_right_of_le (le_max_left _ _)⟩ },
+      { exact ⟨min_le_left_of_le (min_le_right _ _),
+                le_max_right_of_le (h₁.trans $ h₂.trans (le_max_right a b₂))⟩ } },
     apply continuous_within_at.congr _ this (this _ h₀), clear this,
     refine continuous_within_at_const.add _,
     have : (λ b, ∫ x in b₁..b, f x ∂μ) =ᶠ[𝓝[Icc b₁ b₂] b₀]
@@ -848,7 +847,7 @@ begin
     { refine eventually_of_forall (λ (x : α), eventually_of_forall (λ (t : α), _)),
       dsimp [indicator],
       split_ifs ; simp },
-    { have : ∀ᵐ t ∂μ.restrict (Ι b₁ b₂), t < b₀ ∨ t > b₀,
+    { have : ∀ᵐ t ∂μ.restrict (Ι b₁ b₂), t < b₀ ∨ b₀ < t,
       { apply ae_restrict_of_ae,
         apply eventually.mono (compl_mem_ae_iff.mpr hb₀),
         intros x hx,
@@ -868,7 +867,6 @@ begin
           intros x hx,
           simp [hx] },
         apply continuous_within_at_const.congr_of_eventually_eq this,
-        change _ < _ at hx₀,
         simp [hx₀] } } },
   { apply continuous_within_at_of_not_mem_closure,
     rwa [closure_Icc] }
@@ -878,7 +876,7 @@ lemma continuous_on_primitive {f : α → E} {a b : α} [has_no_atoms μ]
   (h_int : integrable_on f (Icc a b) μ) :
   continuous_on (λ x, ∫ t in Ioc a x, f t ∂ μ) (Icc a b) :=
 begin
-  by_cases H : a ≤ b,
+  cases le_or_lt a b with H H,
   { have : ∀ x ∈ Icc a b, ∫ (t : α) in Ioc a x, f t ∂μ = ∫ (t : α) in a..x, f t ∂μ,
     { intros x x_in,
       simp_rw [← interval_oc_of_le H, integral_of_le x_in.1] },
@@ -888,8 +886,7 @@ begin
     rw interval_integrable_iff,
     simp only [H, max_eq_right, min_eq_left],
     exact h_int.mono Ioc_subset_Icc_self le_rfl },
-  { push_neg at H,
-    rw Icc_eq_empty H,
+  { rw Icc_eq_empty H,
     apply continuous_on_empty },
 end
 

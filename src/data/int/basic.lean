@@ -879,7 +879,7 @@ end
 lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
 by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
-lemma int.pow_right_injective {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
+lemma pow_right_injective {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
 λ n m hnm, begin
   lift x to ℕ using (zero_le_two).trans h,
   norm_cast at h hnm,

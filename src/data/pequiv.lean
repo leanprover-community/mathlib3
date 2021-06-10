@@ -31,6 +31,10 @@ is equal to `g` on that subset, but `g` is also defined on a larger set, then `f
 a definition of `⊥`, which is the empty `pequiv` (sends all to `none`), which in the end gives us a
 `semilattice_inf_bot` instance.
 
+## Tags
+
+pequiv, partial equivalence
+
 -/
 
 universes u v w x

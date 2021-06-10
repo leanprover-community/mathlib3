@@ -3078,6 +3078,24 @@ lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] 
   tendsto f at_top (𝓝 a) → infi f = a :=
 tendsto_nhds_unique (tendsto_at_top_infi hf)
 
+lemma supr_eq_supr_subseq_of_monotone {ι₁ ι₂ α : Type*} [preorder ι₂] [complete_lattice α]
+  {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : monotone f)
+  (hφ : tendsto φ l at_top) :
+  (⨆ i, f i) = (⨆ i, f (φ i)) :=
+le_antisymm
+  (supr_le_supr2 $ λ i, exists_imp_exists (λ j (hj : i ≤ φ j), hf hj)
+    (hφ.eventually $ eventually_ge_at_top i).exists)
+  (supr_le_supr2 $ λ i, ⟨φ i, le_refl _⟩)
+
+lemma infi_eq_infi_subseq_of_monotone {ι₁ ι₂ α : Type*} [preorder ι₂] [complete_lattice α]
+  {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : monotone f)
+  (hφ : tendsto φ l at_bot) :
+  (⨅ i, f i) = (⨅ i, f (φ i)) :=
+le_antisymm
+  (infi_le_infi2 $ λ i, ⟨φ i, le_refl _⟩)
+  (infi_le_infi2 $ λ i, exists_imp_exists (λ j (hj : φ j ≤ i), hf hj)
+    (hφ.eventually $ eventually_le_at_bot i).exists)
+
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :
   tendsto has_inv.inv (𝓝[Ioi a] a) (𝓝[Iio (a⁻¹)] (a⁻¹)) :=

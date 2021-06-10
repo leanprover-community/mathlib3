@@ -1548,7 +1548,7 @@ def semi_normed_space.restrict_scalars : semi_normed_space 𝕜 F :=
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..restrict_scalars.module 𝕜 𝕜 𝕜' F }
+  ..restrict_scalars.module 𝕜 𝕜' F }
 
 /-- Warning: This declaration should be used judiciously.
 Please consider using `is_scalar_tower` instead.
@@ -1563,7 +1563,7 @@ def normed_space.restrict_scalars : normed_space 𝕜 E :=
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..restrict_scalars.module 𝕜 𝕜 𝕜' E }
+  ..restrict_scalars.module 𝕜 𝕜' E }
 
 instance {𝕜 : Type*} {𝕜' : Type*} {F : Type*} [I : semi_normed_group F] :
   semi_normed_group (restrict_scalars 𝕜 𝕜' F) := I

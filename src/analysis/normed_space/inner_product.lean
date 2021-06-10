@@ -2076,7 +2076,7 @@ theorem exists_norm_eq_infi_of_complete_subspace
   (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (K : set E), ∥u - w∥ :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : module ℝ E := restrict_scalars.module ℝ ℝ 𝕜 E,
+  letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : submodule ℝ E := submodule.restrict_scalars ℝ K,
   exact exists_norm_eq_infi_of_complete_convex ⟨0, K'.zero_mem⟩ h K'.convex
@@ -2135,7 +2135,7 @@ theorem norm_eq_infi_iff_inner_eq_zero {u : E} {v : E}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set E), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
-  letI : module ℝ E := restrict_scalars.module ℝ ℝ 𝕜 E,
+  letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
   letI : is_scalar_tower ℝ 𝕜 E := restrict_scalars.is_scalar_tower _ _ _,
   let K' : submodule ℝ E := K.restrict_scalars ℝ,
   split,

@@ -1406,7 +1406,7 @@ end is_scalar_tower
 section restrict_scalars
 
 section type_synonym
-variables (S R A M : Type*)
+variables (R A M : Type*)
 
 /-- If we put an `R`-algebra structure on a semiring `A`, we get a natural equivalence from the
 category of `A`-modules to the category of representations of the algebra `A` (over `R`). The type
@@ -1455,10 +1455,8 @@ variables [semiring A] [add_comm_monoid M] [module A M]
 
 /-- When `M` is a module over a semiring `A`, and `A` is an algebra over `R`, then `M` inherits a
 module structure over `R`. -/
-instance [comm_semiring R] [comm_semiring S]
-  [algebra S R] [algebra R A] [algebra S A] [is_scalar_tower S R A] :
-  module S (restrict_scalars R A M) :=
-module.comp_hom M (algebra_map S A)
+instance [comm_semiring R] [algebra R A] : module R (restrict_scalars R A M) :=
+module.comp_hom M (algebra_map R A)
 
 namespace restrict_scalars
 
@@ -1482,7 +1480,7 @@ instance : is_scalar_tower R A (restrict_scalars R A M) :=
 
 instance submodule.restricted_module (V : submodule A M) :
   module R V :=
-restrict_scalars.module R R A V
+restrict_scalars.module R A V
 
 instance submodule.restricted_module_is_scalar_tower (V : submodule A M) :
   is_scalar_tower R A V :=

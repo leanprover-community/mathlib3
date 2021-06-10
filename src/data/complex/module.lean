@@ -42,7 +42,7 @@ section
 variables [has_scalar R ℝ]
 
 /- The useless `0` multiplication in `smul` is to make sure that
-`restrict_scalars.module ℝ ℝ ℂ ℂ  = complex.module` definitionally. -/
+`restrict_scalars.module ℝ ℂ ℂ  = complex.module` definitionally. -/
 instance : has_scalar R ℂ :=
 { smul := λ r x, ⟨r • x.re - 0 * x.im, r • x.im + 0 * x.re⟩ }
 
@@ -164,7 +164,7 @@ end complex
 vector space. -/
 @[priority 900]
 instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : module ℝ E :=
-restrict_scalars.module ℝ ℝ ℂ E
+restrict_scalars.module ℝ ℂ E
 
 instance module.real_complex_tower (E : Type*) [add_comm_group E] [module ℂ E] :
   is_scalar_tower ℝ ℂ E :=

@@ -108,13 +108,13 @@ of_basis (basis.of_repr (linear_equiv.refl _ _))
 instance {ι : Type v} [fintype ι] : module.free R (ι → R) :=
 of_equiv (basis.of_repr $ linear_equiv.refl _ _).equiv_fun
 
-instance of_prod [module.free R N] : module.free R (M × N) :=
+instance prod [module.free R N] : module.free R (M × N) :=
 of_basis $ (choose_basis R M).prod (choose_basis R N)
 
-instance of_self : module.free R R := of_basis $ basis.singleton unit R
+instance self : module.free R R := of_basis $ basis.singleton unit R
 
 @[priority 100]
-instance of_zero [subsingleton N] : module.free R N :=
+instance of_subsingleton [subsingleton N] : module.free R N :=
 of_basis (basis.empty N : basis pempty R N)
 
 end semiring
@@ -124,7 +124,7 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M]
 variables [add_comm_group N] [module R N]
 
-instance of_tensor [module.free R M] [module.free R N] : module.free R (M ⊗[R] N) :=
+instance tensor [module.free R M] [module.free R N] : module.free R (M ⊗[R] N) :=
 of_equiv' (of_equiv' (finsupp.free R) (finsupp_tensor_finsupp' R _ _).symm)
   (tensor_product.congr (choose_basis R M).repr (choose_basis R N).repr).symm
 
@@ -135,7 +135,7 @@ section division_ring
 variables [division_ring R] [add_comm_group M] [module R M]
 
 @[priority 100]
-instance of_vector_space : module.free R M :=
+instance of_division_ring : module.free R M :=
 of_basis (basis.of_vector_space R M)
 
 end division_ring

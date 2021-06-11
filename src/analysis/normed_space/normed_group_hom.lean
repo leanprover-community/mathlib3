@@ -373,14 +373,6 @@ lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V
   (∑ i in s, f i) v = ∑ i in s, (f i v) :=
 by simp only [coe_sum, finset.sum_apply]
 
-@[simp] lemma norm_nsmul_le {C : ℝ} (hf : ∥f∥ ≤ C) (n : ℕ) : ∥n • f∥ ≤ n * C :=
-begin
-  induction n with i hi,
-  { simp only [norm_zero, nat.cast_zero, zero_mul, zero_smul] },
-  simp only [nat.succ_eq_add_one, add_smul, add_mul, nat.cast_add, nat.cast_one, one_mul, one_smul],
-  exact le_trans (norm_add_le _ _) (add_le_add hi hf),
-end
-
 /-! ### Composition of normed group homs -/
 
 /-- The composition of continuous normed group homs. -/

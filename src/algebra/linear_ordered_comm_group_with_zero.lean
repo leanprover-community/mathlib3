@@ -248,12 +248,11 @@ le_of_le_mul_right h (by simpa [h] using hab)
 
 lemma div_le_div' (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
-begin
-  by_cases ha : a = 0, { simp [ha] },
-  by_cases hc : c = 0, { simp [inv_ne_zero hb, hc, hd], },
-  exact @mul_inv_le_mul_inv_iff' _ _ _ _
-    (units.mk0 a ha) (units.mk0 b hb) (units.mk0 c hc) (units.mk0 d hd)
-end
+if ha : a = 0 then by simp [ha] else
+if hc : c = 0 then by simp [inv_ne_zero hb, hc, hd] else
+show (units.mk0 a ha) * (units.mk0 b hb)⁻¹ ≤ (units.mk0 c hc) * (units.mk0 d hd)⁻¹ ↔
+  (units.mk0 a ha) * (units.mk0 d hd) ≤ (units.mk0 c hc) * (units.mk0 b hb),
+from mul_inv_le_mul_inv_iff'
 
 @[simp] lemma units.zero_lt (u : units α) : (0 : α) < u :=
 zero_lt_iff.2 $ u.ne_zero
@@ -282,10 +281,12 @@ lemma pow_lt_pow' {x : α} {m n : ℕ} (hx : 1 < x) (hmn : m < n) : x ^ m < x ^ 
 by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ hx, lt_trans ih (pow_lt_pow_succ hx)] }
 
 lemma inv_lt_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ < b⁻¹ ↔ b < a :=
-@inv_lt_inv_iff _ _ _ _ _ (units.mk0 a ha) (units.mk0 b hb)
+show (units.mk0 a ha)⁻¹ < (units.mk0 b hb)⁻¹ ↔ (units.mk0 b hb) < (units.mk0 a ha),
+from inv_lt_inv_iff
 
 lemma inv_le_inv'' (ha : a ≠ 0) (hb : b ≠ 0) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
-@inv_le_inv_iff _ _ _ _ _ (units.mk0 a ha) (units.mk0 b hb)
+show (units.mk0 a ha)⁻¹ ≤ (units.mk0 b hb)⁻¹ ↔ (units.mk0 b hb) ≤ (units.mk0 a ha),
+from inv_le_inv_iff
 
 instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
 { neg_top := inv_zero,

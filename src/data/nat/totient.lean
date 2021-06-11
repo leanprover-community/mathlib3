@@ -5,6 +5,13 @@ Authors: Chris Hughes
 -/
 import algebra.big_operators.basic
 
+/-!
+# Euler's totient function
+
+This file defines [Euler's totient function][https://en.wikipedia.org/wiki/Euler's_totient_function]
+which counts the number of naturals less than `n` and coprime with `n`.
+-/
+
 open finset
 open_locale big_operators
 

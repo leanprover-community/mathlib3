@@ -2603,11 +2603,11 @@ begin
   { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter, finish, },
 end
 
-lemma finset.empty_product (t : finset β) :
+lemma empty_product (t : finset β) :
   (∅ : finset α).product t = ∅ :=
 rfl
 
-lemma finset.product_empty (s : finset α) :
+lemma product_empty (s : finset α) :
   s.product (∅ : finset β) = ∅ :=
 eq_empty_of_forall_not_mem (λ x h, (finset.mem_product.1 h).2)
 

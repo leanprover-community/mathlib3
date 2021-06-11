@@ -59,6 +59,10 @@ Another application is the construction of a partition of unity from a collectio
 function. In this case the finite set depends on the point and it's convenient to have a definition
 that does not mention the set explicitly.
 
+The first arguments in all definitions and lemmas is the codomain of the function of the big
+operator. This is to for the heuristic of whe to apply `@[to_additive]`.
+See the documentation of `to_additive.attr` for more information.
+
 ## Todo
 
 We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fintype X)`.

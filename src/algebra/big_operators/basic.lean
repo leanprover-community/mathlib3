@@ -29,8 +29,9 @@ Let `s` be a `finset α`, and `f : α → β` a function.
 
 ## Implementation Notes
 
-The implicit type arguments in all definitions and lemmas are out of order because of the
-`@[to_additive]` heuristic. [todo: explain more]
+The first arguments in all definitions and lemmas is the codomain of the function of the big
+operator. This is to for the heuristic of whe to apply `@[to_additive]`.
+See the documentation of `to_additive.attr` for more information.
 
 -/
 

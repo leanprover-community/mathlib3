@@ -19,13 +19,14 @@ local notation `|` x `|` := _root_.abs x
 local notation `SL(` n `,` R `)`:= special_linear_group (fin n) R
 
 -- special linear group over ℤ
+open_locale upper_half_plane
 
 /-- The action of `SL(2, ℤ)` on the upper half-plane, as a restriction of the `SL(2, ℝ)`-action. -/
-instance SL2Z_action : mul_action SL(2, ℤ) H :=
-mul_action.comp_hom H (SL_n_insertion (int.cast_ring_hom ℝ))
+instance SL2Z_action : mul_action SL(2, ℤ) ℍ :=
+mul_action.comp_hom ℍ (SL_n_insertion (int.cast_ring_hom ℝ))
 
 @[simp]
-lemma smul_def_int (g : SL(2,ℤ)) (z : H) : ↑(g • z) = smul_aux g z :=
+lemma smul_def_int (g : SL(2,ℤ)) (z : ℍ) : g • z = smul_aux g z :=
 begin
   refl,
 end
@@ -46,14 +47,12 @@ lemma bottom_def {g : SL(2,ℤ)} {z : ℂ} : bottom g z = g.1 1 0 * z + g.1 1 1 
 lemma top_def {g : SL(2,ℤ)} {z : ℂ} : top g z = g.1 0 0 * z + g.1 0 1 := by simp
 
 
-
-lemma im_smul_SL' (g : SL(2, ℤ)) (z : H) :
-(g • z).val.im = z.val.im / (complex.norm_sq (g.1 1 0 * z + g.1 1 1)) :=
-by simpa using im_smul_SL g z
-
-lemma im_smul_SL'' (g : SL(2, ℤ)) (z : H) :
-(g • z).val.im = z.val.im / (complex.norm_sq (bottom g z)) :=
-im_smul_mat_complex
+lemma matrix.special_linear_group.im_smul_int (g : SL(2, ℤ)) (z : ℍ) :
+(g • z).im = z.im / (complex.norm_sq (bottom g z)) :=
+  by simpa using matrix.special_linear_group.im_smul g z
+--lemma im_smul_SL'' (g : SL(2, ℤ)) (z : H) :
+--(g • z).val.im = z.val.im / (complex.norm_sq (bottom g z)) :=
+--im_smul_mat_complex
 
 
 @[simp]
@@ -316,7 +315,7 @@ begin
   simp [A],
 end
 
-lemma exists_g_with_min_bottom (z : H) :
+lemma exists_g_with_min_bottom (z : ℍ) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
 begin
   haveI : nonempty coprime_ints := sorry,
@@ -326,7 +325,9 @@ begin
   intros g',
   convert hcd (bottom_row g'),
   { simp [bottom_row] at hg,
-    simp [bottom, ← hg], },
+    simp [bottom, ← hg],
+
+  },
   simp [bottom_row],
 end
 
@@ -467,36 +468,14 @@ homeomorph.add_right a g = g + a := rfl
 [topological_space β] [topological_space γ] (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) (a : α) :
 h₁.trans h₂ a = h₂ (h₁ a) := rfl
 
-lemma sumNonZ (x y : ℝ) (x1 : 0 ≤ x) (y2 : 0 ≤ y) (h : x+y=0) : x = 0 :=
-begin
-  by_contra h1,
-  have : 0 <x := (ne.symm h1).le_iff_lt.mp x1,
-  have : 0 < x + y := lt_add_of_pos_of_le this y2,
-  linarith,
-end
-
 lemma coprime_nonzero (cd : coprime_ints) : (cd.1.1:ℝ)^2+cd.1.2^2≠0 :=
 begin
-  by_contra,
-  simp only [not_not, subtype.val_eq_coe] at h,
-  have c2nonZ : 0 ≤ (cd.1.1:ℝ)^2 := sq_nonneg _,
-  have d2nonZ : 0 ≤ (cd.1.2:ℝ)^2 := sq_nonneg _,
-  have c0d0 : (cd.1.1:ℝ)^2 = 0 := sumNonZ ((cd.1.1:ℝ)^2) ((cd.1.2:ℝ)^2) c2nonZ d2nonZ h,
-  have c0 : (cd.1.1:ℝ) = 0 := pow_eq_zero c0d0,
-  have d20 : (cd.1.2:ℝ)^2 = 0,
-  {
-    refine sumNonZ ((cd.1.2:ℝ)^2) ((cd.1.1:ℝ)^2) d2nonZ c2nonZ _,
-    rw add_comm,
-    exact h,
-  },
-  have d0 : (cd.1.2:ℝ) = 0 := pow_eq_zero d20,
-  norm_cast at c0,
-  norm_cast at d0,
-  have coprime := cd.2,
-  have := int.gcd_eq_gcd_ab cd.1.1 cd.1.2,
-  rw [coprime, c0, d0] at this,
-  simp at this,
-  exact this,
+  intros h,
+  have c_eq_zero : (cd.val.1 : ℝ) =0 := by nlinarith,
+  have d_eq_zero : (cd.val.2 : ℝ) =0 := by nlinarith,
+  norm_cast at c_eq_zero d_eq_zero,
+  have : int.gcd 0 0 = 1 := by rw [← cd.2, c_eq_zero, d_eq_zero],
+  simpa only using this,
 end
 
 

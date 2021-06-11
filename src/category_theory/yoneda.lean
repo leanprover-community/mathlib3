@@ -33,9 +33,7 @@ See https://stacks.math.columbia.edu/tag/001O.
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
-    map := λ Y Y' f g, f.unop ≫ g,
-    map_comp' := λ _ _ _ f g, begin ext, dsimp, erw [category.assoc] end,
-    map_id' := λ Y, begin ext, dsimp, erw [category.id_comp] end },
+    map := λ Y Y' f g, f.unop ≫ g },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
 /--
@@ -44,12 +42,8 @@ The co-Yoneda embedding, as a functor from `Cᵒᵖ` into co-presheaves on `C`.
 @[simps] def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop X ⟶ Y,
-    map := λ Y Y' f g, g ≫ f,
-    map_comp' := λ _ _ _ f g, begin ext1, dsimp, erw [category.assoc] end,
-    map_id' := λ Y, begin ext1, dsimp, erw [category.comp_id] end },
-  map := λ X X' f, { app := λ Y g, f.unop ≫ g },
-  map_comp' := λ _ _ _ f g, begin ext, dsimp, erw [category.assoc] end,
-  map_id' := λ X, begin ext, dsimp, erw [category.id_comp] end }
+    map := λ Y Y' f g, g ≫ f },
+  map := λ X X' f, { app := λ Y g, f.unop ≫ g } }
 
 namespace yoneda
 
@@ -132,6 +126,15 @@ end coyoneda
 
 namespace functor
 
+
+/--
+A functor `F : Cᵒᵖ ⥤ Type v₁` is representable if there is object `X` so `F ≅ yoneda.obj X`.
+
+See https://stacks.math.columbia.edu/tag/001Q.
+-/
+class representable (F : Cᵒᵖ ⥤ Type v₁) : Prop :=
+(has_representation : ∃ X (f : yoneda.obj X ⟶ F), is_iso f)
+
 /--
 A functor `F : C ⥤ Type v₁` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
 
@@ -140,39 +143,74 @@ See https://stacks.math.columbia.edu/tag/001Q.
 class corepresentable (F : C ⥤ Type v₁) : Prop :=
 (has_corepresentation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
 
-section
+section representable
+variables (F : Cᵒᵖ ⥤ Type v₁)
+variable [F.representable]
 
-variables (F : C ⥤ Type v₁)
-variable [F.corepresentable]
+noncomputable def repr_X : C :=
+(representable.has_representation : ∃ X (f : _ ⟶ F), _).some
 
-noncomputable def X : C :=
-(corepresentable.has_corepresentation : ∃ X (f : _ ⟶ F), _).some.unop
+noncomputable def repr_f : yoneda.obj F.repr_X ⟶ F :=
+representable.has_representation.some_spec.some
 
-noncomputable def f : coyoneda.obj (op F.X) ⟶ F :=
-corepresentable.has_corepresentation.some_spec.some
+noncomputable def repr_x : F.obj (op F.repr_X) :=
+F.repr_f.app (op F.repr_X) (𝟙 F.repr_X)
 
-noncomputable def x : F.obj F.X :=
-F.f.app F.X (𝟙 F.X)
+instance : is_iso F.repr_f :=
+representable.has_representation.some_spec.some_spec
 
-instance : is_iso F.f :=
-corepresentable.has_corepresentation.some_spec.some_spec
+def nats := Type → bool
 
-noncomputable def w : coyoneda.obj (op F.X) ≅ F :=
-as_iso F.f
+/--
+Note the components `F_repr.w.app X` definitionally have type `F.repr_X ⟶ X ≅ F.obj X`.
+-/
+noncomputable def repr_w : yoneda.obj F.repr_X ≅ F := as_iso F.repr_f
 
-noncomputable def w_app (X : C) : (F.X ⟶ X) ≅ F.obj X :=
-F.w.app X
+@[simp] lemma repr_w_hom : F.repr_w.hom = F.repr_f := rfl
 
-lemma w_app_hom (X : C) (f : F.X ⟶ X) :
-  (F.w_app X).hom f = F.map f F.x :=
+lemma repr_w_app_hom (X : Cᵒᵖ) (f : unop X ⟶ F.repr_X) :
+  (F.repr_w.app X).hom f = F.map f.op F.repr_x :=
 begin
-  change F.f.app X f = (F.f.app F.X ≫ F.map f) (𝟙 F.X),
-  rw ←F.f.naturality,
+  change F.repr_f.app X f = (F.repr_f.app (op F.repr_X) ≫ F.map f.op) (𝟙 F.repr_X),
+  rw ←F.repr_f.naturality,
   dsimp,
   simp
 end
 
+end representable
+
+section corepresentable
+
+variables (F : C ⥤ Type v₁)
+variable [F.corepresentable]
+
+noncomputable def corepr_X : C :=
+(corepresentable.has_corepresentation : ∃ X (f : _ ⟶ F), _).some.unop
+
+noncomputable def corepr_f : coyoneda.obj (op F.corepr_X) ⟶ F :=
+corepresentable.has_corepresentation.some_spec.some
+
+noncomputable def corepr_x : F.obj F.corepr_X :=
+F.corepr_f.app F.corepr_X (𝟙 F.corepr_X)
+
+instance : is_iso F.corepr_f :=
+corepresentable.has_corepresentation.some_spec.some_spec
+
+/--
+Note the components `F.w.app X` definitionally have type `F.X ⟶ X ≅ F.obj X`.
+-/
+noncomputable def corepr_w : coyoneda.obj (op F.corepr_X) ≅ F := as_iso F.corepr_f
+
+lemma corepr_w_app_hom (X : C) (f : F.corepr_X ⟶ X) :
+  (F.corepr_w.app X).hom f = F.map f F.corepr_x :=
+begin
+  change F.corepr_f.app X f = (F.corepr_f.app F.corepr_X ≫ F.map f) (𝟙 F.corepr_X),
+  rw ←F.corepr_f.naturality,
+  dsimp,
+  simp
 end
+
+end corepresentable
 
 end functor
 

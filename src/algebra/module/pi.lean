@@ -64,13 +64,13 @@ instance smul_comm_class'' {g : I → Type*} {h : I → Type*}
 ⟨λ x y z, funext $ λ i, smul_comm (x i) (y i) (z i)⟩
 
 instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
-  @mul_action α (Π i : I, f i) m :=
+  mul_action α (Π i : I, f i) :=
 { smul := (•),
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul α _ }
 
 instance mul_action' {g : I → Type*} {m : Π i, monoid (f i)} [Π i, mul_action (f i) (g i)] :
-  @mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) :=
+  mul_action (Π i, f i) (Π i : I, g i) :=
 { smul := (•),
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul _ _ }

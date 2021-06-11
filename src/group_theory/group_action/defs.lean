@@ -52,17 +52,20 @@ class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
 @[to_additive has_vadd]
 class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
 
+@[to_additive]
+instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := ⟨(*)⟩
+
 infix ` +ᵥ `:65 := has_vadd.vadd
 infixr ` • `:73 := has_scalar.smul
 
 /-- Type class for additive monoid actions. -/
-@[protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
+@[protect_proj] class add_action (G : Type*) (P : Type*) [add_zero_class G] extends has_vadd G P :=
 (zero_vadd : ∀ p : P, (0 : G) +ᵥ p = p)
 (add_vadd : ∀ (g₁ g₂ : G) (p : P), (g₁ + g₂) +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p))
 
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 @[protect_proj, to_additive]
-class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β :=
+class mul_action (α : Type*) (β : Type*) [mul_one_class α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
@@ -121,7 +124,7 @@ class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_s
 is_scalar_tower.smul_assoc x y z
 
 section
-variables [monoid M] [mul_action M α]
+variables [mul_one_class M] [mul_action M α]
 
 @[to_additive] lemma smul_smul (a₁ a₂ : M) (b : α) : a₁ • a₂ • b = (a₁ * a₂) • b :=
 (mul_smul _ _ _).symm
@@ -171,7 +174,7 @@ variables (M)
 
 This is promoted to a module by `semiring.to_module`. -/
 @[priority 910, to_additive] -- see Note [lower instance priority]
-instance monoid.to_mul_action : mul_action M M :=
+instance monoid.to_mul_action (M : Type*) [monoid M] : mul_action M M :=
 { smul := (*),
   one_smul := one_mul,
   mul_smul := mul_assoc }
@@ -191,26 +194,22 @@ variables {M}
 /-- Note that the `smul_comm_class M α α` typeclass argument is usually satisfied by `algebra M α`.
 -/
 @[to_additive]
-lemma mul_smul_comm [monoid α] (s : M) (x y : α) [smul_comm_class M α α] :
+lemma mul_smul_comm [has_mul α] (s : M) (x y : α) [smul_comm_class M α α] :
   x * (s • y) = s • (x * y) :=
 (smul_comm s x y).symm
 
 /-- Note that the `is_scalar_tower M α α` typeclass argument is usually satisfied by `algebra M α`.
 -/
-lemma smul_mul_assoc [monoid α] (r : M) (x y : α) [is_scalar_tower M α α] :
+lemma smul_mul_assoc [has_mul α] (r : M) (x y : α) [is_scalar_tower M α α] :
   (r • x) * y = r • (x * y) :=
 smul_assoc r x y
 
 /-- Note that the `is_scalar_tower M α α` and `smul_comm_class M α α` typeclass arguments are
 usually satisfied by `algebra M α`. -/
-lemma smul_mul_smul [monoid α] (r s : M) (x y : α) [is_scalar_tower M α α] [smul_comm_class M α α] :
+lemma smul_mul_smul [has_mul α] (r s : M) (x y : α)
+  [is_scalar_tower M α α] [smul_comm_class M α α] :
   (r • x) * (s • y) = (r * s) • (x * y) :=
-by rw [smul_mul_assoc, mul_smul_comm, smul_smul]
-
-lemma smul_smul_smul_comm {X Y : Type*} [has_scalar X X] [has_scalar X Y] [has_scalar Y Y]
- [is_scalar_tower X X Y] [is_scalar_tower X Y Y] [smul_comm_class X Y Y]
- (r s : X) (x y : Y) : (r • x) • (s • y) = (r • s) • (x • y) :=
-by rw [smul_assoc, ← smul_comm s x y, smul_assoc]
+by rw [smul_mul_assoc, mul_smul_comm, ← smul_assoc, smul_eq_mul]
 
 end
 

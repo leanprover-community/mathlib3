@@ -1538,15 +1538,3 @@ begin
 end
 
 end submodule
-
-section non_associative
-
-variables {R A : Type*}
-variables [semiring R] [non_unital_non_assoc_semiring A] [module R A]
-variables [is_scalar_tower R A A] [smul_comm_class R A A]
-
-lemma algebra.smul_mul_smul
-  (r s : R) (x y : A) : (r • x) * (s • y) = (r * s) • (x * y) :=
-smul_smul_smul_comm r s x y
-
-end non_associative

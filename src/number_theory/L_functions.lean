@@ -434,7 +434,7 @@ def h {A : Type*} [normed_ring A] (ε : ℝ) : A → set A := λ (x : A), metric
 
 def S {A : Type*} [normed_ring A] (ε : ℝ) : set (set A) := set.range (h ε)
 
-variables {A : Type*} [normed_ring A] (f : C(X, A)) (ε : ℝ) [hε : 0 < ε]
+variables {A : Type*} [normed_comm_ring A] (f : C(X, A)) (ε : ℝ) [hε : 0 < ε]
 
 def B : set(set X) := { j : set X | ∃ (U ∈ ((S ε) : set(set A))), j = f ⁻¹' U }
 
@@ -732,9 +732,7 @@ begin
   { rintros x y, apply is_clopen_inter, },
 end
 
-instance : boolean_algebra (clopen_sets X) := sorry
-
-instance : add_comm_monoid (clopen_sets X) := sorry
+--instance : boolean_algebra (clopen_sets X) := sorry
 
 instance has_union' : has_union (clopen_sets X) :=
 begin
@@ -1005,37 +1003,78 @@ structure system {X : Type*} [set X] :=
 
 variables (p : ℕ) [fact p.prime]
 
-def dirichlet_char_space (f : ℕ) := { χ : mul_hom ℤ_[p] A // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 }
+/-def dirichlet_char_space (f : ℕ) := { χ : mul_hom ℤ_[p] A // ∀ a : ℤ, gcd a f ≠ 1 → χ a = 0 }
+--iff requires A to be an int dom
+
+lemma dir_char_zero_iff (f : ℕ) (χ : dirichlet_char_space A p f) (a : ℤ) :
+  gcd a f ≠ 1 → χ.val a = 0 := χ.prop a
+
+example {a b c : Prop} (f1 : a ↔ c) (f2 : b ↔ c) : a ∧ b ↔ c :=
+begin
+  split,
+  repeat { simp [f1, f2], },
+end
+
+example {α β : Type*} [has_mul β] (x y : α) (f g : α → β) : (f * g) x = f x * g x :=
+begin
+  refine pi.mul_apply f g x,
+end
+
+/-lemma int_cast_inducing : inducing (@int.cast A _ _ _ _) :=
+begin
+  suggest,
+end-/
 
 instance (f : ℕ) : monoid (dirichlet_char_space A p f) :=
 {
   mul := begin
-        rintros a b, sorry,
+        rintros a b, constructor, swap, constructor, swap, exact a.val * b.val,
+        { rintros x y, rw pi.mul_apply (a.val) (b.val), rw pi.mul_apply (a.val) (b.val),
+          rw pi.mul_apply (a.val) (b.val), --how to do it once
+          rw mul_hom.map_mul (a.val) x y, rw mul_hom.map_mul (b.val) x y, ring, },
+        rintros n, simp only [mul_hom.coe_mk, pi.mul_apply, subtype.val_eq_coe],
+        intro h,
+        have f1 := a.prop n h, rw f1, rw zero_mul,
         end,
-  one := begin sorry end,
+  one := begin constructor, swap, constructor, swap,
+  set one : ℤ → A := λ n, if gcd n f = 1 then 1 else 0 with h,
+  rw padic_int.
+  apply dense_inducing.extend _ one,
+  apply_instance,
+  exact int.cast,
+  split,
+  swap, apply padic_int.dense_range_int_cast,
+
+
+  swap,
+  end,
   one_mul := begin sorry end,
   mul_one := begin sorry end,
   mul_assoc := begin sorry end,
-}
+} -/
 
-instance dir_char (f : ℤ) : group { χ : mul_hom ℤ A // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } := sorry
+--instance (f : ℤ) : group { χ : mul_hom ℤ A // ∀ a : ℤ, gcd a f ≠ 1 ↔ χ a = 0 } := sorry
 
 instance topo : topological_space (units ℤ_[p]) := sorry
 
-instance compact : compact_space (units ℤ_[p]) := sorry
+instance : compact_space (units ℤ_[p]) := sorry
 
-instance t2 : t2_space (units ℤ_[p]) := sorry
+instance : t2_space (units ℤ_[p]) := sorry
 
-instance td : totally_disconnected_space (units ℤ_[p]) := sorry
+instance : totally_disconnected_space (units ℤ_[p]) := sorry
 
 --instance cat : (units ℤ_[p]) ∈ category_theory.Cat.objects Profinite :=
 
 instance topo' : topological_space (units A) := sorry
 
-/-- A-valued points of weight space -/ --shouldn't this be a category theory statement?
-def weight_space := { χ : mul_hom (units ℤ_[p]) (units A) // continuous χ }
+variables (d : ℕ) (hd : gcd d p = 1)
 
-instance : group (weight_space A p) := sorry
+instance is_this_needed : topological_space (units (zmod d) × units ℤ_[p]) := sorry
+
+/-- A-valued points of weight space -/ --shouldn't this be a category theory statement?
+def weight_space := { χ : mul_hom ((units (zmod d)) × (units ℤ_[p])) (units A) // continuous χ }
+
+instance : group (weight_space A p d) := sorry
 
 instance : has_mod ℤ_[p] := sorry
 
@@ -1047,11 +1086,17 @@ lemma blahs (a : units ℤ_[p]) : ∃ (b : units ℤ_[p]),
 
 variables [complete_space A] (inj : units ℤ_[p] → A) [fact (function.injective inj)]
 
-variables (d : ℕ) (hd : gcd d p = 1) (χ : dirichlet_char_space A p d) (w : weight_space A p)
+variables (m : ℕ) (χ : mul_hom (units (zmod (d*(p^m)))) A) (w : weight_space A p d)
+--variables (d : ℕ) (hd : gcd d p = 1) (χ : dirichlet_char_space A p d) (w : weight_space A p)
 
+/-- Extending the primitive dirichlet character χ with conductor (d* p^m) -/
+def pri_dir_char_extend : mul_hom ((units (zmod d)) × (units ℤ_[p])) A := sorry
+--should this be def or lemma?
+
+--variables (ψ : pri_dir_char_extend A p d)
+
+/-- The Teichmuller character defined on `p`-adic units -/
 def teichmuller_character (a : units ℤ_[p]) : A := inj (classical.some (blahs p a))
-
-instance : normed_ring (units A) := sorry
 
 instance : compact_space ℤ_[p] := sorry
 instance : locally_compact_space ℤ_[p] := sorry
@@ -1078,12 +1123,12 @@ lemma clopen_basis_clopen : topological_space.is_topological_basis (clopen_basis
 
 variables {c : ℤ}
 
-def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : zmod (p^n)), fract ((a : ℤ) / (p^(n + 1)))
+def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a : ℤ) / (p^(n + 1)))
     - c * fract ((a : ℤ) / (c * (p^(n + 1)))) + (c - 1)/2
 
 def bernoulli_measure (hc : gcd c p = 1) := {x : locally_constant ℤ_[p] A →ₗ[A] A |
   ∀ U : (clopen_basis' p), x (char_fn (ℤ_[p]) U.val) =
-    E_c p hc (classical.some U.prop) (classical.some (classical.some_spec U.prop)) }
+    E_c p d hc (classical.some U.prop) (classical.some (classical.some_spec U.prop)) }
 
 lemma bernoulli_measure_nonempty (hc : gcd c p = 1) : nonempty (bernoulli_measure A p hc) :=
   sorry
@@ -1101,7 +1146,12 @@ lemma subspace_induces_locally_constant (f : locally_constant (units ℤ_[p]) A)
   ∃ (g : locally_constant ℤ_[p] A), f.to_fun = g.to_fun ∘ (coe : units ℤ_[p] → ℤ_[p]) := sorry
 --generalize to units X
 
-lemma bernoulli_measure_of_measure (hc : gcd c p = 1) : measures'' (units ℤ_[p]) A :=
+instance is_this_even_true : compact_space (units (zmod d) × units ℤ_[p]) := sorry
+instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) := sorry
+instance : totally_disconnected_space (units (zmod d) × units ℤ_[p]) := sorry
+
+lemma bernoulli_measure_of_measure (hc : gcd c p = 1) :
+  measures'' (units (zmod d) × units ℤ_[p]) A :=
 begin
   constructor, swap,
   constructor,
@@ -1117,11 +1167,14 @@ end
 
 instance : nonempty (units ℤ_[p]) := sorry
 
-lemma cont_paLf : continuous (λ (a : units ℤ_[p]),
-  (χ.val (a : ℤ_[p])) * ((teichmuller_character A p inj a) : A)^(p - 2) * (w.val a : A)) :=
+lemma cont_paLf : continuous (λ (a : (units (zmod d) × units ℤ_[p])),
+  ((pri_dir_char_extend A p d) a) * ((teichmuller_character A p inj (a.snd)) : A)^(p - 2)
+  * (w.val a : A)) :=
 sorry
 
+instance is_an_import_missing : nonempty (units (zmod d) × units ℤ_[p]) := sorry
+
 def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) :=
-  integral (units ℤ_[p]) A _ (bernoulli_measure_of_measure A p hc)
-⟨(λ (a : units ℤ_[p]), (χ.val (a : ℤ_[p])) * ((teichmuller_character A p inj a))^(p - 2) *
-  (w.val a : A)), cont_paLf _ _ _ _ _ _ ⟩
+  integral (units (zmod d) × units ℤ_[p]) A _ (bernoulli_measure_of_measure A p d hc)
+⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend A p d) a) * ((teichmuller_character A p inj a.snd))^(p - 2) *
+  (w.val a : A)), cont_paLf A p d inj w ⟩

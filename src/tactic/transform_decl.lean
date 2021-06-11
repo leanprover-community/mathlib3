@@ -56,7 +56,7 @@ do
     (decl.type.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     is_protected ← is_protected_decl src,
-    let decl :=
+    decl ←
       decl.update_with_fun (name.map_prefix f) (additive_test f replace_all ignore) reorder tgt,
     pp_decl ← pp decl,
     when trace $ trace!"[to_additive] > generating\n{pp_decl}",

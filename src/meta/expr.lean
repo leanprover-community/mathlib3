@@ -390,7 +390,7 @@ e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
   * `test arg` is false.
   * Reorder contains the information about what arguments to reorder. -/
 protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) : expr → expr
+  (reorder : name_map $ list ℕ) : expr → tactic expr
 | e := e.replace $ λ e _,
   match e with
   | const n ls := some $ expr.const (f n) $
@@ -403,7 +403,8 @@ protected meta def apply_replacement_fun (f : name → name) (test : expr → bo
         apply_replacement_fun g (apply_replacement_fun y) (apply_replacement_fun x) else
         -- the following only happens with non-fully applied terms
         if g.get_app_num_args + 1 ∈ l ∧ test (g.app x).get_app_args.head then
-        _ else
+        some $ lam `x binder_info.default _
+          (apply_replacement_fun g (apply_replacement_fun x) (var 0) $ apply_replacement_fun y) else
         none
     | none   := none
     end
@@ -982,10 +983,12 @@ sets the name of the given `decl : declaration` to `tgt`, and applies `apply_rep
 to the value and type of `decl`.
 -/
 protected meta def update_with_fun (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
-let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun f test reorder in
-decl.update_value $ decl.value.apply_replacement_fun f test reorder
+  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : tactic declaration := do
+  let decl := decl.update_name $ tgt,
+  new_tp ← decl.type.apply_replacement_fun f test reorder,
+  let decl := decl.update_type new_tp,
+  new_val ← decl.value.apply_replacement_fun f test reorder,
+  return $ decl.update_value new_val
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

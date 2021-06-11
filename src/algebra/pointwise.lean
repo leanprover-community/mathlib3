@@ -172,6 +172,20 @@ lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [←nat.sub_add_cancel (nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
+instance decidable_mem_mul [monoid α] [fintype α] [decidable_eq α]
+  [decidable_pred (∈ s)] [decidable_pred (∈ t)] (a : α) :
+  decidable (a ∈ s * t) :=
+decidable_of_iff _ mem_mul.symm
+
+instance decidable_mem_pow [monoid α] [fintype α] [decidable_eq α]
+  [decidable_pred (∈ s)] (n : ℕ) (a : α) :
+  decidable (a ∈ (s ^ n)) :=
+begin
+  induction n with n ih generalizing a,
+  { rw [pow_zero, mem_one], apply_instance },
+  { letI := ih, rw pow_succ, apply_instance }
+end
+
 @[to_additive]
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂

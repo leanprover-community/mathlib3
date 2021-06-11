@@ -26,6 +26,23 @@ namespace real
 noncomputable
 def sign (r : ℝ) : ℝ := if r < 0 then -1 else 1
 
+lemma sign_neg {r : ℝ} (hr : r < 0) : sign r = -1 :=
+by rw [sign, if_pos hr]
+
+lemma sign_nonneg {r : ℝ} (hr : ¬ r < 0) : sign r = 1 :=
+by rw [sign, if_neg hr]
+
+lemma sign_zero_le {r : ℝ} (hr : 0 ≤ r) : sign r = 1 :=
+sign_nonneg (not_lt.2 hr)
+
+@[simp]
+lemma sign_zero : sign 0 = 1 :=
+sign_nonneg $ irrefl 0
+
+@[simp]
+lemma sign_one : sign 1 = 1 :=
+sign_nonneg $ by norm_num
+
 lemma sign_apply_eq (r : ℝ) : sign r = -1 ∨ sign r = 1 :=
 begin
   by_cases r < 0,
@@ -36,9 +53,9 @@ end
 lemma sign_mul_nonneg (r : ℝ) : 0 ≤ sign r * r :=
 begin
   by_cases r < 0,
-  { rw [sign, if_pos h],
+  { rw sign_neg h,
     exact mul_nonneg_of_nonpos_of_nonpos (by norm_num) (le_of_lt h) },
-  { rw [sign, if_neg h, one_mul],
+  { rw [sign_nonneg h, one_mul],
     exact not_lt.1 h }
 end
 
@@ -51,11 +68,19 @@ begin
 end
 
 @[simp]
-lemma sign_inv_eq_self (r : ℝ) : (sign r)⁻¹ = sign r :=
+lemma inv_sign (r : ℝ) : (sign r)⁻¹ = sign r :=
 begin
   cases sign_apply_eq r with h h,
   { rw h, norm_num },
   { rw h, exact inv_one }
+end
+
+@[simp]
+lemma sign_inv (r : ℝ) : sign r⁻¹ = sign r :=
+begin
+  by_cases r < 0,
+  { rw [sign_neg h, sign_neg (inv_lt_zero.2 h)] },
+  { rw [sign_nonneg h, sign_zero_le (inv_nonneg.2 $ not_lt.1 h)] }
 end
 
 end real

@@ -973,7 +973,7 @@ begin
   { erw [← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
   rw [← real.rpow_add (sign_mul_ne_zero_pos _ $ units.ne_zero _),
       show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, _root_.mul_inv',
-      sign_inv_eq_self, mul_assoc (sign (u j)) (u j)⁻¹,
+      inv_sign, mul_assoc (sign (u j)) (u j)⁻¹,
       inv_mul_cancel (units.ne_zero _), mul_one],
   apply_instance
 end

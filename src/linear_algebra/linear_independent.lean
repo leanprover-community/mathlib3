@@ -3,6 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
+import algebra.big_operators.finsupp
 import linear_algebra.finsupp
 import linear_algebra.prod
 import linear_algebra.pi
@@ -186,7 +187,7 @@ family of vectors. See also `linear_independent.map'` for a special case assumin
 lemma linear_independent.map (hv : linear_independent R v) {f : M →ₗ[R] M'}
   (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
 begin
-  rw [disjoint, ← set.image_univ, finsupp.span_eq_map_total, map_inf_eq_map_inf_comap,
+  rw [disjoint, ← set.image_univ, finsupp.span_image_eq_map_total, map_inf_eq_map_inf_comap,
     map_le_iff_le_comap, comap_bot, finsupp.supported_univ, top_inf_eq] at hf_inj,
   unfold linear_independent at hv ⊢,
   rw [hv, le_bot_iff] at hf_inj,
@@ -446,6 +447,38 @@ theorem linear_independent.image {ι} {s : set ι} {f : ι → M}
   (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
 by convert linear_independent.image_of_comp s f id hs
 
+lemma linear_independent.group_smul
+  {G : Type*} [hG : group G] [distrib_mul_action G R] [distrib_mul_action G M]
+  [is_scalar_tower G R M] [smul_comm_class G R M] {v : ι → M} (hv : linear_independent R v)
+  (w : ι → G) : linear_independent R (w • v) :=
+begin
+  rw linear_independent_iff'' at hv ⊢,
+  intros s g hgs hsum i,
+  refine (smul_eq_zero_iff_eq (w i)).1 _,
+  refine hv s (λ i, w i • g i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ smul_zero _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros, erw [pi.smul_apply, smul_assoc, smul_comm] },
+end
+
+-- This lemma cannot be proved with `linear_independent.group_smul` since the action of
+-- `units R` on `R` is not commutative.
+lemma linear_independent.units_smul {v : ι → M} (hv : linear_independent R v)
+  (w : ι → units R) : linear_independent R (w • v) :=
+begin
+  rw linear_independent_iff'' at hv ⊢,
+  intros s g hgs hsum i,
+  rw ← (w i).mul_left_eq_zero,
+  refine hv s (λ i, g i • w i) (λ i hi, _) _ i,
+  { dsimp only,
+    exact (hgs i hi).symm ▸ zero_smul _ _ },
+  { rw [← hsum, finset.sum_congr rfl _],
+    intros,
+    erw [pi.smul_apply, smul_assoc],
+    refl }
+end
+
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
 
@@ -453,7 +486,7 @@ lemma linear_independent.disjoint_span_image (hv : linear_independent R v) {s t 
   (hs : disjoint s t) :
   disjoint (submodule.span R $ v '' s) (submodule.span R $ v '' t) :=
 begin
-  simp only [disjoint_def, finsupp.mem_span_iff_total],
+  simp only [disjoint_def, finsupp.mem_span_image_iff_total],
   rintros _ ⟨l₁, hl₁, rfl⟩ ⟨l₂, hl₂, H⟩,
   rw [hv.injective_total.eq_iff] at H, subst l₂,
   have : l₁ = 0 := finsupp.disjoint_supported_supported hs (submodule.mem_inf.2 ⟨hl₁, hl₂⟩),
@@ -621,7 +654,7 @@ end
 lemma linear_independent_iff_not_smul_mem_span :
   linear_independent R v ↔ (∀ (i : ι) (a : R), a • (v i) ∈ span R (v '' (univ \ {i})) → a = 0) :=
 ⟨ λ hv i a ha, begin
-  rw [finsupp.span_eq_map_total, mem_map] at ha,
+  rw [finsupp.span_image_eq_map_total, mem_map] at ha,
   rcases ha with ⟨l, hl, e⟩,
   rw sub_eq_zero.1 (linear_independent_iff.1 hv (l - finsupp.single i a) (by simp [e])) at hl,
   by_contra hn,
@@ -630,7 +663,7 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
   ext i, simp only [finsupp.zero_apply],
   by_contra hn,
   refine hn (H i _ _),
-  refine (finsupp.mem_span_iff_total _).2 ⟨finsupp.single i (l i) - l, _, _⟩,
+  refine (finsupp.mem_span_image_iff_total _).2 ⟨finsupp.single i (l i) - l, _, _⟩,
   { rw finsupp.mem_supported',
     intros j hj,
     have hij : j = i :=

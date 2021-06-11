@@ -472,6 +472,14 @@ by rw [← mul_right_inj' (exp_ne_zero x), ← exp_add];
 lemma exp_sub : exp (x - y) = exp x / exp y :=
 by simp [sub_eq_add_neg, exp_add, exp_neg, div_eq_mul_inv]
 
+lemma exp_int_mul (z : ℂ) (n : ℤ) : complex.exp (n * z) = (complex.exp z) ^ n :=
+begin
+  cases n,
+  { apply complex.exp_nat_mul },
+  { simpa [complex.exp_neg, add_comm, ← neg_mul_eq_neg_mul_symm]
+      using complex.exp_nat_mul (-z) (1 + n) },
+end
+
 @[simp] lemma exp_conj : exp (conj x) = conj (exp x) :=
 begin
   dsimp [exp],
@@ -1463,18 +1471,15 @@ calc cos 1 ≤ abs' (1 : ℝ) ^ 4 * (5 / 96) + (1 - 1 ^ 2 / 2) :
   sub_le_iff_le_add.1 (abs_sub_le_iff.1 (cos_bound (by simp))).1
 ... ≤ 2 / 3 : by norm_num
 
-lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (by simp)
+lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (le_of_eq abs_one)
 
 lemma cos_two_neg : cos 2 < 0 :=
 calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
-... = _ : real.cos_two_mul 1
-... ≤ 2 * (2 / 3) ^ 2 - 1 :
-  sub_le_sub_right (mul_le_mul_of_nonneg_left
-    (by rw [sq, sq]; exact
-      mul_self_le_mul_self (le_of_lt cos_one_pos)
-        cos_one_le)
-    (by norm_num)) _
-... < 0 : by norm_num
+  ... = _ : real.cos_two_mul 1
+  ... ≤ 2 * (2 / 3) ^ 2 - 1 : sub_le_sub_right (mul_le_mul_of_nonneg_left
+          (by { rw [sq, sq], exact mul_self_le_mul_self (le_of_lt cos_one_pos) cos_one_le })
+          zero_le_two) _
+  ... < 0 : by norm_num
 
 end real
 

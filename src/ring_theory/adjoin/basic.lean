@@ -49,6 +49,12 @@ algebra.gc _ _
 theorem adjoin_mono (H : s ⊆ t) : adjoin R s ≤ adjoin R t :=
 algebra.gc.monotone_l H
 
+theorem adjoin_eq_of_le (S : subalgebra R A) (h₁ : s ⊆ S) (h₂ : S ≤ adjoin R s) : adjoin R s = S :=
+le_antisymm (adjoin_le h₁) h₂
+
+theorem adjoin_eq (S : subalgebra R A) : adjoin R ↑S = S :=
+adjoin_eq_of_le _ (set.subset.refl _) subset_adjoin
+
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 show adjoin R ⊥ = ⊥, by { apply galois_connection.l_bot, exact algebra.gc }
@@ -91,6 +97,10 @@ le_antisymm
   (adjoin_le (set.insert_subset.mpr
     ⟨subset_adjoin (set.mem_insert _ _), adjoin_mono (set.subset_insert _ _)⟩))
   (algebra.adjoin_mono (set.insert_subset_insert algebra.subset_adjoin))
+
+lemma adjoint_prod_le (s : set A) (t : set B) :
+  adjoin R (set.prod s t) ≤ (adjoin R s).prod (adjoin R t) :=
+adjoin_le $ set.prod_mono subset_adjoin subset_adjoin
 
 end semiring
 
@@ -194,14 +204,14 @@ begin
     change r ∈ (adjoin (adjoin R s) t).to_submodule at hr,
     haveI := classical.dec_eq A,
     haveI := classical.dec_eq R,
-    rw [← hq', ← set.image_id q, finsupp.mem_span_iff_total (adjoin R s)] at hr,
+    rw [← hq', ← set.image_id q, finsupp.mem_span_image_iff_total (adjoin R s)] at hr,
     rcases hr with ⟨l, hlq, rfl⟩,
     have := @finsupp.total_apply A A (adjoin R s),
     rw [this, finsupp.sum],
     refine sum_mem _ _,
     intros z hz, change (l z).1 * _ ∈ _,
     have : (l z).1 ∈ (adjoin R s).to_submodule := (l z).2,
-    rw [← hp', ← set.image_id p, finsupp.mem_span_iff_total R] at this,
+    rw [← hp', ← set.image_id p, finsupp.mem_span_image_iff_total R] at this,
     rcases this with ⟨l2, hlp, hl⟩,
     have := @finsupp.total_apply A A R,
     rw this at hl,

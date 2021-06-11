@@ -7,7 +7,7 @@ Authors: Kexing Ying, Kevin Buzzard, Yury Kudryashov
 import data.set.finite
 import data.set.disjointed
 import algebra.big_operators
-import data.indicator_function
+import algebra.indicator_function
 
 /-!
 # Finite products and sums over types and sets

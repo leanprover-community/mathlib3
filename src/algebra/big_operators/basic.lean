@@ -1337,6 +1337,11 @@ namespace list
 end list
 
 namespace multiset
+
+lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
+  abs s.sum ≤ (s.map abs).sum :=
+le_sum_of_subadditive _ abs_zero abs_add s
+
 variables [decidable_eq α]
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :

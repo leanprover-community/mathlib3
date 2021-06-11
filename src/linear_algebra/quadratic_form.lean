@@ -950,7 +950,7 @@ noncomputable def isometry_sign_weighted_sum_squares
 begin
   have hu' : ∀ i : ι, (sign (u i) * u i) ^ - (1 / 2 : ℝ) ≠ 0,
   { intro i, refine (ne_of_lt (real.rpow_pos_of_pos
-      (sign_mul_ne_zero_pos _ $ units.ne_zero _) _)).symm},
+      (sign_mul_pos_of_ne_zero _ $ units.ne_zero _) _)).symm},
   convert ((weighted_sum_squares ℝ u).isometry_basis_repr
     ((pi.basis_fun ℝ ι).units_smul (λ i, (is_unit_iff_ne_zero.2 $ hu' i).unit))),
   ext1 v,
@@ -971,7 +971,7 @@ begin
   suffices : (sign ∘ coe ∘ u) j * v j * v j = (sign (u j) * u j) ^ - (1 / 2 : ℝ) *
     (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
   { erw [← mul_assoc, this, smul_eq_mul, smul_eq_mul], ring },
-  rw [← real.rpow_add (sign_mul_ne_zero_pos _ $ units.ne_zero _),
+  rw [← real.rpow_add (sign_mul_pos_of_ne_zero _ $ units.ne_zero _),
       show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, _root_.mul_inv',
       inv_sign, mul_assoc (sign (u j)) (u j)⁻¹,
       inv_mul_cancel (units.ne_zero _), mul_one],

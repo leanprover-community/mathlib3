@@ -26,22 +26,22 @@ namespace real
 noncomputable
 def sign (r : ℝ) : ℝ := if r < 0 then -1 else 1
 
-lemma sign_neg {r : ℝ} (hr : r < 0) : sign r = -1 :=
+lemma sign_of_neg {r : ℝ} (hr : r < 0) : sign r = -1 :=
 by rw [sign, if_pos hr]
 
-lemma sign_nonneg {r : ℝ} (hr : ¬ r < 0) : sign r = 1 :=
+lemma sign_of_not_neg {r : ℝ} (hr : ¬ r < 0) : sign r = 1 :=
 by rw [sign, if_neg hr]
 
-lemma sign_zero_le {r : ℝ} (hr : 0 ≤ r) : sign r = 1 :=
-sign_nonneg (not_lt.2 hr)
+lemma sign_of_zero_le {r : ℝ} (hr : 0 ≤ r) : sign r = 1 :=
+sign_of_not_neg (not_lt.2 hr)
 
 @[simp]
 lemma sign_zero : sign 0 = 1 :=
-sign_nonneg $ irrefl 0
+sign_of_not_neg $ irrefl 0
 
 @[simp]
 lemma sign_one : sign 1 = 1 :=
-sign_nonneg $ by norm_num
+sign_of_not_neg $ by norm_num
 
 lemma sign_apply_eq (r : ℝ) : sign r = -1 ∨ sign r = 1 :=
 begin
@@ -50,16 +50,27 @@ begin
   { exact or.intro_right _ (if_neg h) }
 end
 
+lemma sign_neg {r : ℝ} (hr : r ≠ 0) : sign (-r) = - sign r :=
+begin
+  by_cases r < 0,
+  { rw [sign_of_neg h, sign_of_zero_le, neg_neg],
+    rw [le_neg, neg_zero],
+    exact le_of_lt h },
+  { rw [sign_of_not_neg h, sign_of_neg],
+    rw [neg_lt, neg_zero],
+    exact lt_of_le_of_ne (le_of_not_lt h) hr.symm }
+end
+
 lemma sign_mul_nonneg (r : ℝ) : 0 ≤ sign r * r :=
 begin
   by_cases r < 0,
-  { rw sign_neg h,
+  { rw sign_of_neg h,
     exact mul_nonneg_of_nonpos_of_nonpos (by norm_num) (le_of_lt h) },
-  { rw [sign_nonneg h, one_mul],
+  { rw [sign_of_not_neg h, one_mul],
     exact not_lt.1 h }
 end
 
-lemma sign_mul_ne_zero_pos (r : ℝ) (hr : r ≠ 0) : 0 < sign r * r :=
+lemma sign_mul_pos_of_ne_zero (r : ℝ) (hr : r ≠ 0) : 0 < sign r * r :=
 begin
   refine lt_of_le_of_ne (sign_mul_nonneg r) (λ h, _),
   rw zero_eq_mul at h,
@@ -79,8 +90,8 @@ end
 lemma sign_inv (r : ℝ) : sign r⁻¹ = sign r :=
 begin
   by_cases r < 0,
-  { rw [sign_neg h, sign_neg (inv_lt_zero.2 h)] },
-  { rw [sign_nonneg h, sign_zero_le (inv_nonneg.2 $ not_lt.1 h)] }
+  { rw [sign_of_neg h, sign_of_neg (inv_lt_zero.2 h)] },
+  { rw [sign_of_not_neg h, sign_of_zero_le (inv_nonneg.2 $ not_lt.1 h)] }
 end
 
 end real

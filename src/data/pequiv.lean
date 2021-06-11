@@ -11,8 +11,8 @@ import data.set.lattice
 
 In this file, we define partial equivalences `pequiv`, which are a bijection between a subset of `α`
 and a subset of `β`. Notationally, a `pequiv` is denoted by "`≃.`" (note that the full stop is part
-of the notation). The way we store these internally is with two functions `f: α → option β` and the
-reverse function `g: β → option α`, with the condition that if `f a` is `option.some b`,
+of the notation). The way we store these internally is with two functions `f : α → option β` and
+the reverse function `g : β → option α`, with the condition that if `f a` is `option.some b`,
 then `g b` is `option.some a`.
 
 ## Main results

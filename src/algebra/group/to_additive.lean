@@ -261,7 +261,7 @@ In the `mul_comm'` example above, `to_additive` maps:
 `to_additive` uses heuristics to determine whether a particular identifier has to be
 mapped to its additive version. The basic heuristic is
 
-* Only replace a map a identifier to its additive version if its first argument doesn't
+* Only map an identifier to its additive version if its first argument doesn't
   contain any unapplied identifiers.
 
 Usually the first argument is the type which is "additivized".

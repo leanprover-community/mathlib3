@@ -141,8 +141,8 @@ begin
   by_cases his : i ∈ s,
   { by_cases hit : i ∈ t,
     { exact (hs ⟨his, hit⟩).elim },
-    exact inf_le_of_le_right (infi_le_of_le i $ infi_le _ hit) },
-  exact inf_le_of_le_left (infi_le_of_le i $ infi_le _ his)
+    exact inf_le_of_right_le (infi_le_of_le i $ infi_le _ hit) },
+  exact inf_le_of_left_le (infi_le_of_le i $ infi_le _ his)
 end
 
 lemma span_single_image (s : set M) (a : α) :

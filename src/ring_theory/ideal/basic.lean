@@ -431,6 +431,7 @@ variables [comm_ring α] (I : ideal α) {a b : α}
 -- Note that at present `ideal` means a left-ideal,
 -- so this quotient is only useful in a commutative ring.
 -- We should develop quotients by two-sided ideals as well.
+@[reducible]
 def quotient (I : ideal α) := I.quotient
 
 namespace quotient

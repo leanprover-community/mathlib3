@@ -250,13 +250,19 @@ theorem em' (p : Prop) : ¬p ∨ p := (em p).swap
 
 theorem or_not {p : Prop} : p ∨ ¬p := em _
 
-theorem decidable.eq_or_ne [decidable (a = b)] : a = b ∨ a ≠ b := dec_em $ a = b
+section eq_or_ne
 
-theorem decidable.ne_or_eq [decidable (a = b)] : a ≠ b ∨ a = b := dec_em' $ a = b
+variables {α : Sort*} {x y : α}
 
-theorem eq_or_ne : a = b ∨ a ≠ b := em $ a = b
+theorem decidable.eq_or_ne [decidable (x = y)] : x = y ∨ x ≠ y := dec_em $ x = y
 
-theorem ne_or_eq : a ≠ b ∨ a = b := em' $ a = b
+theorem decidable.ne_or_eq [decidable (x = y)] : x ≠ y ∨ x = y := dec_em' $ x = y
+
+theorem eq_or_ne : x = y ∨ x ≠ y := em $ x = y
+
+theorem ne_or_eq : x ≠ y ∨ x = y := em' $ x = y
+
+end eq_or_ne
 
 theorem by_contradiction {p} : (¬p → false) → p := decidable.by_contradiction
 

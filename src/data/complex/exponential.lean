@@ -100,7 +100,7 @@ begin
   have sub_le := abs_sub_le (∑ k in range j, g k) (∑ k in range i, g k)
     (∑ k in range (max n i), g k),
   have := add_lt_add hi₁ hi₂,
-  rw [abs_sub (∑ k in range (max n i), g k), add_halves ε] at this,
+  rw [abs_sub_comm (∑ k in range (max n i), g k), add_halves ε] at this,
   refine lt_of_le_of_lt (le_trans (le_trans _ (le_abs_self _)) sub_le) this,
   generalize hk : j - max n i = k,
   clear this hi₂ hi₁ hi ε0 ε hg sub_le,

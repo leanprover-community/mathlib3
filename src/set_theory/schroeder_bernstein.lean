@@ -2,11 +2,16 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-The Schröder-Bernstein theorem, and well ordering of cardinals.
 -/
 import order.fixed_points
 import order.zorn
+
+/-!
+# Schröder-Bernstein theorem, well-ordering of cardinals
+
+This file proves (nonconstructively) the Schröder-Bernstein theorem (see `schroeder_bernstein`), the
+well-ordering of cardinals (see `min_injective`) and the totality of their order (see `total`).
+-/
 
 open set classical
 open_locale classical
@@ -50,7 +55,7 @@ have surjective h,
   let ⟨a, _, eq⟩ := this in
   ⟨a, eq⟩,
 
-have split : ∀x ∈ s, ∀y ∉ s, h x = h y → false,
+have split : ∀ x ∈ s, ∀ y ∉ s, h x = h y → false,
   from λ x hx y hy eq,
   have y ∈ g '' (f '' s)ᶜ, by rwa [←hns],
   let ⟨y', hy', eq_y'⟩ := this in
@@ -95,8 +100,9 @@ parameters {ι : Type u} {β : ι → Type v}
 @[reducible] private def sets := {s : set (∀ i, β i) |
   ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
 
+/-- The cardinals are well-ordered. -/
 theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
-let ⟨s, hs, ms⟩ := show ∃ s ∈ sets, ∀a ∈ sets, s ⊆ a → a = s, from
+let ⟨s, hs, ms⟩ := show ∃ s ∈ sets, ∀ a ∈ sets, s ⊆ a → a = s, from
   zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
     λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi, (hcc.total hpc hqc).elim
       (λ h, hc hqc x (h hxp) y hyq i hi) (λ h, hc hpc x hxp y (h hyq) i hi),
@@ -121,6 +127,7 @@ let ⟨f, hf⟩ := axiom_of_choice e in
 
 end wo
 
+/-- The cardinals are totally ordered. -/
 theorem total {α : Type u} {β : Type v} : nonempty (α ↪ β) ∨ nonempty (β ↪ α) :=
 match @min_injective bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
 | ⟨tt, ⟨h⟩⟩ := let ⟨f, hf⟩ := h ff in or.inl ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩

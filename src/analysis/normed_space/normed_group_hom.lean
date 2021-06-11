@@ -381,15 +381,6 @@ begin
   exact le_trans (norm_add_le _ _) (add_le_add hi hf),
 end
 
-@[simp] lemma norm_gsmul_le {C : ℝ} (hf : ∥f∥ ≤ C) (n : ℤ) : ∥n • f∥ ≤ (n.nat_abs * C) :=
-begin
-  induction n,
-  { simp only [int.nat_abs_of_nat, int.of_nat_eq_coe, gsmul_coe_nat, nsmul_eq_smul],
-    exact norm_nsmul_le hf n },
-  { simp only [gsmul_neg_succ_of_nat, nat.cast_succ, int.nat_abs, norm_neg],
-    exact norm_nsmul_le hf n.succ }
-end
-
 /-! ### Composition of normed group homs -/
 
 /-- The composition of continuous normed group homs. -/

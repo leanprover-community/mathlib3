@@ -52,11 +52,13 @@ class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
 @[to_additive has_vadd]
 class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
 
+infix ` +ᵥ `:65 := has_vadd.vadd
+infixr ` • `:73 := has_scalar.smul
+
 @[to_additive]
 instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := ⟨(*)⟩
 
-infix ` +ᵥ `:65 := has_vadd.vadd
-infixr ` • `:73 := has_scalar.smul
+@[simp, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
 
 /-- Type class for additive monoid actions. -/
 @[protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
@@ -183,8 +185,6 @@ instance monoid.to_mul_action : mul_action M M :=
 
 This is promoted to an `add_torsor` by `add_group_is_add_torsor`. -/
 add_decl_doc add_monoid.to_add_action
-
-@[simp, to_additive] lemma smul_eq_mul {a a' : M} : a • a' = a * a' := rfl
 
 instance is_scalar_tower.left : is_scalar_tower M M α :=
 ⟨λ x y z, mul_smul x y z⟩

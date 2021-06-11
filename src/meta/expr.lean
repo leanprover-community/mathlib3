@@ -401,6 +401,9 @@ protected meta def apply_replacement_fun (f : name → name) (test : expr → bo
     match reorder.find g.get_app_fn.const_name with -- this might be inefficient
     | some l := if g.get_app_num_args ∈ l ∧ test (g.app x).get_app_args.head then
         apply_replacement_fun g (apply_replacement_fun y) (apply_replacement_fun x) else
+        -- the following only happens with non-fully applied terms
+        if g.get_app_num_args + 1 ∈ l ∧ test (g.app x).get_app_args.head then
+        _ else
         none
     | none   := none
     end

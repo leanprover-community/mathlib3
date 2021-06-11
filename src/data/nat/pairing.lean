@@ -2,11 +2,19 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
-
-Elegant pairing function.
 -/
 import data.nat.sqrt
 import data.set.lattice
+
+/-!
+#  Naturals pairing function
+
+This file defines a pairing function for the naturals as follows:If `n = a^2 + b`  with
+Elegant pairing function.
+
+
+-/
+
 open prod decidable function
 
 namespace nat
@@ -65,21 +73,21 @@ end
 @[simp] lemma unpair_zero : unpair 0 = 0 :=
 by { rw unpair, simp }
 
-theorem unpair_le_left : ∀ (n : ℕ), (unpair n).1 ≤ n
+theorem unpair_left_le : ∀ (n : ℕ), (unpair n).1 ≤ n
 | 0     := by simp
 | (n+1) := le_of_lt (unpair_lt (nat.succ_pos _))
 
-theorem le_mkpair_left (a b : ℕ) : a ≤ mkpair a b :=
-by simpa using unpair_le_left (mkpair a b)
+theorem left_le_mkpair (a b : ℕ) : a ≤ mkpair a b :=
+by simpa using unpair_left_le (mkpair a b)
 
-theorem le_mkpair_right (a b : ℕ) : b ≤ mkpair a b :=
+theorem right_le_mkpair (a b : ℕ) : b ≤ mkpair a b :=
 begin
   by_cases h : a < b; simp [mkpair, h],
   exact le_trans (le_mul_self _) (le_add_right _ _)
 end
 
-theorem unpair_le_right (n : ℕ) : (unpair n).2 ≤ n :=
-by simpa using le_mkpair_right n.unpair.1 n.unpair.2
+theorem unpair_right_le (n : ℕ) : (unpair n).2 ≤ n :=
+by simpa using right_le_mkpair n.unpair.1 n.unpair.2
 
 theorem mkpair_lt_mkpair_left {a₁ a₂} (b) (h : a₁ < a₂) : mkpair a₁ b < mkpair a₂ b :=
 begin

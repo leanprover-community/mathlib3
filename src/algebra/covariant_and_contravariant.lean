@@ -158,18 +158,6 @@ trans (rel_of_act_rel_act m ab) rr
 
 end is_trans
 
-/-  Lemmas with 4 elements.
-section M_eq_N
-variables {M N μ r} {mu : N → N → N} [is_trans N r]
-  [contravariant_class N N mu r] [contravariant_class N N (function.swap mu) r] {a b c d : N}
-lemma act_rel_act_of_rel_of_rel (cd : r (mu a c) (mu a d)) (rr : r (mu a c) (mu b d)) :
-  r a b :=
-begin
-end
---trans (act_rel_act_of_rel c ab : _) (act_rel_act_of_rel b cd)
-end M_eq_N
- -/
-
 end contravariant
 
 lemma covariant_le_of_covariant_lt [partial_order N] :

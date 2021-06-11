@@ -208,12 +208,13 @@ set_option pp.all true
 #print monoid.has_pow
 #check @has_scalar
 #print add_monoid.has_scalar_nat
-run_cmd do tactic.failed
-attribute [to_additive add_monoid.has_scalar_nata] monoid.has_pow
+-- run_cmd do tactic.failed
+attribute [to_additive add_monoid.has_scalar_nat] monoid.has_pow
 
 
-@[simp, priority 1100] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
+@[simp, priority 1100, to_additive] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
+#print prod_const_one
 @[simp, priority 1100] lemma sum_const_zero {β α} {s : finset α} [add_comm_monoid β] :
   (∑ x in s, (0 : β)) = 0 :=
 @prod_const_one (multiplicative β) _ _ _

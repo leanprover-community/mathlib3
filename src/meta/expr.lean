@@ -384,21 +384,23 @@ e.replace (λ e n,
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
 
-/-- `e.apply_replacement_fun f test` applies `f` to each constant
+/-- `e.apply_replacement_fun f test reorder` applies `f` to each constant
   (inductive type, defined function etc) in an expression, unless
   * The constant is applied to (at least) one argument `arg`; and
-  * `test arg` is false. -/
+  * `test arg` is false.
+  * Reorder contains the information about what arguments to reorder. -/
 protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
   (reorder : name_map $ list ℕ) : expr → expr
 | e := e.replace $ λ e _,
   match e with
   | const n ls := some $ expr.const (f n) $
+      -- hack:
       -- if the first two arguments are reordered, we also reorder the first two universe parameters
       if 0 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
   | app (app g x) y :=
     match reorder.find g.get_app_fn.const_name with -- this might be inefficient
-    | some l := if g.get_app_num_args ∈ l then
-        apply_replacement_fun (g.app y) (apply_replacement_fun x) else
+    | some l := if g.get_app_num_args ∈ l ∧ test (g.app x).get_app_args.head then
+        apply_replacement_fun g (apply_replacement_fun y) (apply_replacement_fun x) else
         none
     | none   := none
     end

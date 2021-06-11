@@ -384,35 +384,6 @@ e.replace (λ e n,
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
 
-/-- `e.apply_replacement_fun f test reorder` applies `f` to each constant
-  (inductive type, defined function etc) in an expression, unless
-  * The constant is applied to (at least) one argument `arg`; and
-  * `test arg` is false.
-  * Reorder contains the information about what arguments to reorder. -/
-protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) : expr → tactic expr
-| e := e.replace $ λ e _,
-  match e with
-  | const n ls := some $ expr.const (f n) $
-      -- hack:
-      -- if the first two arguments are reordered, we also reorder the first two universe parameters
-      if 0 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
-  | app (app g x) y :=
-    match reorder.find g.get_app_fn.const_name with -- this might be inefficient
-    | some l := if g.get_app_num_args ∈ l ∧ test (g.app x).get_app_args.head then
-        apply_replacement_fun g (apply_replacement_fun y) (apply_replacement_fun x) else
-        -- the following only happens with non-fully applied terms
-        if g.get_app_num_args + 1 ∈ l ∧ test (g.app x).get_app_args.head then
-        some $ lam `x binder_info.default _
-          (apply_replacement_fun g (apply_replacement_fun x) (var 0) $ apply_replacement_fun y) else
-        none
-    | none   := none
-    end
-  | app (const n ls) arg :=
-    some $ const (if test arg then f n else n) ls $ apply_replacement_fun arg
-  | _ := none
-  end
-
 /-- Implementation of `expr.mreplace`. -/
 meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) :
   expr → ℕ → m expr
@@ -733,6 +704,12 @@ meta def drop_pis : list expr → expr → tactic expr
 | [] e := return e
 | _  _ := failed
 
+/-- `instantiate_pis es e` instantiates the pis in `e` with the expressions from `es`.
+  Does not check whether the result remains type-correct. -/
+meta def instantiate_pis : list expr → expr → expr
+| (list.cons v vs) (pi n bi d b) := instantiate_pis vs (b.instantiate_var v)
+| _ e := e
+
 /-- `mk_op_lst op empty [x1, x2, ...]` is defined as `op x1 (op x2 ...)`.
   Returns `empty` if the list is empty. -/
 meta def mk_op_lst (op : expr) (empty : expr) : list expr → expr
@@ -837,6 +814,50 @@ private meta def all_implicitly_included_variables_aux
     In particular, those elements of `vs` are included automatically. -/
 meta def all_implicitly_included_variables (es vs : list expr) : list expr :=
 all_implicitly_included_variables_aux es vs [] ff
+
+/-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
+This also works if `x1, ... xn` contain free variables. -/
+protected meta def dirty_infer_type (e : expr) : tactic expr := do
+(const n ls, es) ← return e.get_app_fn_args |
+  fail "expression is not a constant applied to arguments",
+d ← get_decl n,
+return $ d.type.instantiate_pis es
+
+/-- `e.apply_replacement_fun f test reorder` applies `f` to each constant
+  (inductive type, defined function etc) in an expression, unless
+  * The constant is applied to (at least) one argument `arg`; and
+  * `test arg` is false.
+  * Reorder contains the information about what arguments to reorder. -/
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) : expr → tactic expr
+| e := e.mreplace $ λ e _,
+  match e with
+  | const n ls := return $ some $ expr.const (f n) $
+      -- hack:
+      -- if the first two arguments are reordered, we also reorder the first two universe parameters
+      if 0 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
+  | app (app g x) y :=
+    match reorder.find g.get_app_fn.const_name with -- this might be inefficient
+    | some l := if g.get_app_num_args ∈ l ∧ test (g.app x).get_app_args.head then do
+        g' ← apply_replacement_fun g,
+        y' ← apply_replacement_fun y,
+        x' ← apply_replacement_fun x,
+        return $ some $ g' y' x' else
+        -- the following only happens with non-fully applied terms
+        if g.get_app_num_args + 1 ∈ l ∧ test (g.app x).get_app_args.head then do
+        trace "help!",
+        f' ← apply_replacement_fun (g x),
+        y' ← apply_replacement_fun y,
+        x_type ← f'.dirty_infer_type,
+        return $ some $ lam `x binder_info.default x_type.binding_domain $
+          f'.lift_vars 0 1 (var 0) $ y'.lift_vars 0 1 else
+        return none
+    | none   := return none
+    end
+  | app (const n ls) arg := -- use heuristic `test` to decide whether to replace `n` by `f n`.
+    some <$> const (if test arg then f n else n) ls <$> apply_replacement_fun arg
+  | _ := return none
+  end
 
 end expr
 

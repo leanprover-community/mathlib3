@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Damiano Testa
 -/
 import algebra.group.defs
-import order.basic
+import order.rel_classes
 /-!
 This file begins the splitting of the ordering assumptions from the algebraic assumptions on the
 operations in the `ordered_[...]` hierarchy.

@@ -26,13 +26,18 @@ variables {s s₁ s₂ : finset α} {a : α} {b : β}  {f g : α → β}
 
 
 section semiring
-variables [semiring β]
+variables [non_unital_non_assoc_semiring β]
 
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
 (s.sum_hom (λ x, x * b)).symm
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
 (s.sum_hom _).symm
+
+end semiring
+
+section semiring
+variables [non_assoc_semiring β]
 
 lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   (∑ x in s, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=

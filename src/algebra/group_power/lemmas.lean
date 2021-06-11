@@ -35,14 +35,6 @@ add_monoid_hom.eq_nat_cast
   ⟨λ n, n • (1 : A), zero_nsmul _, λ _ _, add_nsmul _ _ _⟩
   (one_nsmul _)
 
-@[simp, priority 500, to_additive]
-theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
-begin
-  induction n with n ih,
-  { rw pow_zero, refl },
-  { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
-end
-
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
@@ -80,10 +72,6 @@ begin
 end
 
 end monoid
-
-theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
-by induction m with m ih; [rw [zero_nsmul, zero_mul],
-  rw [succ_nsmul', ih, nat.succ_mul]]
 
 section group
 variables [group G] [group H] [add_group A] [add_group B]

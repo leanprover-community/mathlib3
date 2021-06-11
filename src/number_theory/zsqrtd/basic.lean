@@ -6,6 +6,18 @@ Authors: Mario Carneiro
 import algebra.associated
 import tactic.ring
 
+/-! # ℤ[√d]
+
+The ring of integers adjoined with a square root of `d : ℤ`.
+
+After defining the norm, we show that it is a linearly ordered commutative ring,
+as well as an integral domain.
+
+We provide the universal property, that ring homomorphisms `ℤ√d →+* R` correspond
+to choices of square roots of `d` in `R`.
+
+-/
+
 /-- The ring of integers adjoined with a square root of `d`.
   These have the form `a + b √d` where `a b : ℤ`. The components
   are called `re` and `im` by analogy to the negative `d` case. -/
@@ -444,7 +456,7 @@ begin
       nonnegg_pos_neg.2 (sq_le_add (nonnegg_pos_neg.1 ha) (nonnegg_pos_neg.1 hb)) },
   { exact nonneg_add_lem ha hb },
   { refine nonnegg_cases_left (λi h, sq_le_of_le _ _ (nonnegg_neg_pos.1 ha)),
-    { exact int.coe_nat_le.1 (le_of_neg_le_neg (@int.le.intro _ _ z (by simp *))) },
+    { exact int.coe_nat_le.1 (le_of_neg_le_neg (int.le.intro h)) },
     { apply nat.le_add_right } },
   { rw [add_comm, add_comm ↑y], exact nonneg_add_lem hb ha },
   { simpa [add_comm] using
@@ -657,8 +669,8 @@ instance : linear_ordered_comm_ring ℤ√d :=
   zero_le_one     := dec_trivial,
   .. zsqrtd.comm_ring, .. zsqrtd.linear_order, .. zsqrtd.nontrivial }
 
-instance : linear_ordered_semiring ℤ√d := by apply_instance
-instance : ordered_semiring ℤ√d        := by apply_instance
+instance : linear_ordered_ring ℤ√d := by apply_instance
+instance : ordered_ring ℤ√d        := by apply_instance
 
 end
 

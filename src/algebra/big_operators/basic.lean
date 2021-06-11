@@ -29,8 +29,9 @@ Let `s` be a `finset α`, and `f : α → β` a function.
 
 ## Implementation Notes
 
-The implicit type arguments in all definitions and lemmas are out of order because of the
-`@[to_additive]` heuristic. [todo: explain more]
+The first arguments in all definitions and lemmas is the codomain of the function of the big
+operator. This is to for the heuristic of whe to apply `@[to_additive]`.
+See the documentation of `to_additive.attr` for more information.
 
 -/
 
@@ -1352,6 +1353,11 @@ namespace list
 end list
 
 namespace multiset
+
+lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
+  abs s.sum ≤ (s.map abs).sum :=
+le_sum_of_subadditive _ abs_zero abs_add s
+
 variables [decidable_eq α]
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :

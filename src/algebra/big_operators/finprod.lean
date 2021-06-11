@@ -7,7 +7,7 @@ Authors: Kexing Ying, Kevin Buzzard, Yury Kudryashov
 import data.set.finite
 import data.set.disjointed
 import algebra.big_operators
-import data.indicator_function
+import algebra.indicator_function
 
 /-!
 # Finite products and sums over types and sets
@@ -58,6 +58,10 @@ other solutions but for beginner mathematicians this approach is easier in pract
 Another application is the construction of a partition of unity from a collection of “bump”
 function. In this case the finite set depends on the point and it's convenient to have a definition
 that does not mention the set explicitly.
+
+The first arguments in all definitions and lemmas is the codomain of the function of the big
+operator. This is to for the heuristic of whe to apply `@[to_additive]`.
+See the documentation of `to_additive.attr` for more information.
 
 ## Todo
 

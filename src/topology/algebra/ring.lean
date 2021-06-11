@@ -10,6 +10,24 @@ import ring_theory.ideal.basic
 import ring_theory.subring
 import algebra.ring.prod
 
+/-!
+
+# Topological (semi)rings
+
+In this class we define topological (semi)rings, which just guarantee that the ring operations are
+continuous (as we'd expect). We also state some basic properties of these rings; for example,
+closures are very well-behaved with respect to sub(semi)rings.
+
+## Main Results:
+
+- `subring.topological_closure`/`subsemiring.topological_closure`: the topological closure of a
+  `subring`/`subsemiring` is itself a `sub(semi)ring`.
+- `prod_ring`/`prod_semiring`: The product topology induces a topology on the product ring.
+- `ideal.closure`: The closure of an ideal is an ideal.
+- `topological_ring_quotient`: The quotient of a topological ring by an ideal is a topological ring.
+
+-/
+
 open classical set filter topological_space
 open_locale classical
 
@@ -51,14 +69,6 @@ lemma subsemiring.topological_closure_minimal
   (s : subsemiring α) {t : subsemiring α} (h : s ≤ t) (ht : is_closed (t : set α)) :
   s.topological_closure ≤ t :=
 closure_minimal h ht
-
-instance (S : submonoid α) : has_continuous_mul (S.topological_closure) :=
-{ continuous_mul :=
-  begin
-    apply continuous_induced_rng,
-    change continuous (λ p : S.topological_closure × S.topological_closure, (p.1 : α) * (p.2 : α)),
-    continuity,
-  end }
 
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
@@ -150,17 +160,23 @@ open ideal.quotient
 instance topological_ring_quotient_topology : topological_space N.quotient :=
 by dunfold ideal.quotient submodule.quotient; apply_instance
 
+-- note for the reader: in the following, `mk` is `ideal.quotient.mk`, which
+-- is the canonical homomorphism `R → R/I`.
+
+/--
+The preimage of the image of a set under the quotient map is the union of the cosets covered by `s`.
+-/
 lemma quotient_ring_saturate {α : Type*} [comm_ring α] (N : ideal α) (s : set α) :
   mk N ⁻¹' (mk N '' s) = (⋃ x : N, (λ y, x.1 + y) '' s) :=
 begin
   ext x,
   simp only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
-  split,
-  { exact assume ⟨a, a_in, h⟩, ⟨⟨_, N.neg_mem h⟩, a, a_in, by simp⟩ },
-  { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩, ⟨a, ha,
-      by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub];
-      exact N.neg_mem hi⟩ }
+  exact ⟨λ ⟨a, a_in, h⟩, ⟨⟨_, N.neg_mem h⟩, a, a_in, by simp⟩,
+         λ ⟨⟨i, hi⟩, a, ha, eq⟩,
+           ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact N.neg_mem hi⟩⟩
 end
+-- TODO: Move this result to a more appropriate place; this doesn't require `α` to be topological.
+-- Also, any ideas for a name?
 
 variable [topological_ring α]
 

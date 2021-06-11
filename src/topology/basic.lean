@@ -675,6 +675,14 @@ all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
 lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (𝓝 a) :=
 tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
 
+lemma tendsto_at_top_of_eventually_const {ι : Type*} [semilattice_sup ι] [nonempty ι]
+  {x : α} {u : ι → α} {i₀ : ι} (h : ∀ i ≥ i₀, u i = x) : tendsto u at_top (𝓝 x) :=
+tendsto.congr' (eventually_eq.symm (eventually_at_top.mpr ⟨i₀, h⟩)) tendsto_const_nhds
+
+lemma tendsto_at_bot_of_eventually_const {ι : Type*} [semilattice_inf ι] [nonempty ι]
+  {x : α} {u : ι → α} {i₀ : ι} (h : ∀ i ≤ i₀, u i = x) : tendsto u at_bot (𝓝 x) :=
+tendsto.congr' (eventually_eq.symm (eventually_at_bot.mpr ⟨i₀, h⟩)) tendsto_const_nhds
+
 lemma pure_le_nhds : pure ≤ (𝓝 : α → filter α) :=
 assume a s hs, mem_pure_sets.2 $ mem_of_mem_nhds hs
 

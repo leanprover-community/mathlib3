@@ -816,8 +816,6 @@ begin
   let span_s := affine_span ℝ (set.range s.points),
   have h₁' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₁,
   have h₂' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₂,
-  have hn : (span_s : set P).nonempty := (affine_span_nonempty ℝ _).2 (set.range_nonempty _),
-  have hc : is_complete (span_s.direction : set V) := submodule.complete_of_finite_dimensional _,
   rw [←affine_span_insert_affine_span,
       mem_affine_span_insert_iff (orthogonal_projection_mem p)] at hp₁ hp₂,
   obtain ⟨r₁, p₁o, hp₁o, hp₁⟩ := hp₁,

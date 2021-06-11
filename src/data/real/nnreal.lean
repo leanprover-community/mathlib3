@@ -221,13 +221,15 @@ instance : order_bot ℝ≥0 :=
 { bot := ⊥, bot_le := assume ⟨a, h⟩, h, .. nnreal.linear_order }
 
 instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
-{ add_le_add_left       := assume a b h c, @add_le_add_left ℝ a b _ _ _ h c,
-  lt_of_add_lt_add_left := assume a b c, @lt_of_add_lt_add_left ℝ a b c _ _ _,
+{ add_le_add_left       := assume a b h c,
+    nnreal.coe_le_coe.mp $ (add_le_add_left (nnreal.coe_le_coe.mpr h) c),
+  lt_of_add_lt_add_left := assume a b c bc,
+    nnreal.coe_lt_coe.mp $ lt_of_add_lt_add_left (nnreal.coe_lt_coe.mpr bc),
   le_iff_exists_add     := assume ⟨a, ha⟩ ⟨b, hb⟩,
     iff.intro
       (assume h : a ≤ b,
-        ⟨⟨b - a, le_sub_iff_add_le.2 $ by simp [h]⟩,
-          nnreal.eq $ show b = a + (b - a), by rw [add_sub_cancel'_right]⟩)
+        ⟨⟨b - a, le_sub_iff_add_le.2 $ (zero_add _).le.trans h⟩,
+          nnreal.eq $ show b = a + (b - a), from (add_sub_cancel'_right _ _).symm⟩)
       (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
   ..nnreal.comm_semiring,
   ..nnreal.order_bot,

@@ -547,9 +547,11 @@ section to_simple_func
 def to_simple_func (f : α →₁ₛ[μ] E) : α →ₛ E := classical.some f.2
 
 /-- `(to_simple_func f)` is measurable. -/
+@[measurability]
 protected lemma measurable (f : α →₁ₛ[μ] E) : measurable (to_simple_func f) :=
 (to_simple_func f).measurable
 
+@[measurability]
 protected lemma ae_measurable (f : α →₁ₛ[μ] E) : ae_measurable (to_simple_func f) μ :=
 (simple_func.measurable f).ae_measurable
 

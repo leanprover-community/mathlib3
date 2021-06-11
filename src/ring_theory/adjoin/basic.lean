@@ -144,7 +144,7 @@ begin
   exact f.map_smul _ _
 end
 
-lemma adjoin_eq_prod (s) (t) :
+lemma adjoin_inl_union_inr_eq_prod (s) (t) :
   adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪
   linear_map.inr R A B '' (t ∪ {1})) = (adjoin R s).prod (adjoin R t) :=
 begin

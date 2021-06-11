@@ -414,7 +414,7 @@ lemma comp_assoc {V₄: Type* } [semi_normed_group V₄] (h : normed_group_hom V
   (h.comp g).comp f = h.comp (g.comp f) :=
 by { ext, refl }
 
-@[simp] lemma coe_comp (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃) :
+lemma coe_comp (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃) :
   (g.comp f : V₁ → V₃) = (g : V₂ → V₃) ∘ (f : V₁ → V₂) := rfl
 
 end normed_group_hom

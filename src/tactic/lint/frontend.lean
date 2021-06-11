@@ -150,8 +150,8 @@ let formatted_results := results.map $ λ ⟨linter_name, linter, results⟩,
   else format.nil,
 let s := format.intercalate "\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
 let s := if verbose = lint_verbosity.low then s else
-  format!"/- Checking {non_auto_decls.length} declarations (plus " ++
-  "{decls.length - non_auto_decls.length} automatically generated ones) {where_desc} -/\n\n" ++ s,
+  format!("/- Checking {non_auto_decls.length} declarations (plus " ++
+  "{decls.length - non_auto_decls.length} automatically generated ones) {where_desc} -/\n\n") ++ s,
 let s := if slow then s else s ++ "/- (slow tests skipped) -/\n",
 s
 

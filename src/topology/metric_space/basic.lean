@@ -858,7 +858,7 @@ section real
 instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
 { dist               := λx y, abs (x - y),
   dist_self          := by simp [abs_zero],
-  dist_comm          := assume x y, abs_sub _ _,
+  dist_comm          := assume x y, abs_sub_comm _ _,
   dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 
 theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
@@ -888,7 +888,7 @@ by simpa [real.dist_eq] using real.dist_le_of_mem_Icc hx hy
 
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,
-  by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub]
+  by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub_comm]
 
 lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,

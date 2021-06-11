@@ -558,24 +558,25 @@ end
 
 variables {G : Type*} [group G] [fintype G] (S : set G)
 
-open_locale classical
-
-lemma card_pow_eq_card_pow_card_univ :
+lemma card_pow_eq_card_pow_card_univ [∀ (k : ℕ), decidable_pred (∈ (S ^ k))] :
   ∀ k, fintype.card G ≤ k → fintype.card ↥(S ^ k) = fintype.card ↥(S ^ (fintype.card G)) :=
 begin
   have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr ⟨1⟩,
   by_cases hS : S = ∅,
   { intros k hk,
+    congr' 2,
     rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
   obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
+  classical,
   have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
   { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
     rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
     exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
   have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
   monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
-  refine card_pow_eq_card_pow_card_univ_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
+  convert card_pow_eq_card_pow_card_univ_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
     (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
+  { simp only [finset.filter_congr_decidable, fintype.card_of_finset] },
   replace h : {a} * S ^ n = S ^ (n + 1),
   { refine set.eq_of_subset_of_card_le _ (le_trans (ge_of_eq h) _),
     { exact mul_subset_mul (set.singleton_subset_iff.mpr ha) set.subset.rfl },

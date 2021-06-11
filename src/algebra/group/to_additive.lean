@@ -116,7 +116,11 @@ do let n := src.mk_string "_to_additive",
 `to_additive.parser` parses the provided arguments into `name` for the target and an
 optional doc string. -/
 @[derive has_reflect, derive inhabited]
-structure value_type : Type := (replace_all : bool) (tgt : name) (doc : option string)
+structure value_type : Type :=
+(replace_all : bool)
+(trace : bool)
+(tgt : name)
+(doc : option string)
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
@@ -181,14 +185,15 @@ setup_tactic_parser
 /-- the parser for the arguments to `to_additive` -/
 meta def parser : lean.parser value_type :=
 do
-  b ← option.is_some <$> (tk "!")?,
+  bang ← option.is_some <$> (tk "!")?,
+  ques ← option.is_some <$> (tk "?")?,
   tgt ← ident?,
   e ← texpr?,
   doc ← match e with
       | some pe := some <$> ((to_expr pe >>= eval_expr string) : tactic string)
       | none := pure none
       end,
-  return ⟨b, tgt.get_or_else name.anonymous, doc⟩
+  return ⟨bang, ques, tgt.get_or_else name.anonymous, doc⟩
 
 private meta def proceed_fields_aux (src tgt : name) (prio : ℕ) (f : name → tactic (list string)) :
   command :=
@@ -373,7 +378,7 @@ protected meta def attr : user_attribute unit value_type :=
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict val.replace_all ignore reorder src tgt
+      transform_decl_with_prefix_dict dict val.replace_all val.trace ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp],
       mwhen (has_attribute' `simps src)

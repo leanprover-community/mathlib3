@@ -46,18 +46,19 @@ instance monoid.has_pow [monoid M] : has_pow M ℕ := ⟨λ x n, npow n x⟩
 
 instance add_monoid.has_scalar_nat [add_monoid M] : has_scalar ℕ M := ⟨nsmul⟩
 
+attribute [to_additive add_monoid.has_scalar_nat] monoid.has_pow
+
 instance div_inv_monoid.has_pow [div_inv_monoid M] : has_pow M ℤ := ⟨λ x n, gpow n x⟩
 
 instance sub_neg_monoid.has_scalar_int [sub_neg_monoid M] : has_scalar ℤ M := ⟨gsmul⟩
 
-@[simp] lemma npow_eq_pow {M : Type*} [monoid M] (n : ℕ) (x : M) : npow n x = x^n := rfl
+attribute [to_additive sub_neg_monoid.has_scalar_int] div_inv_monoid.has_pow
 
-@[simp] lemma nsmul_eq_smul {M : Type*} [add_monoid M] (n : ℕ) (x : M) : nsmul n x = n • x := rfl
+@[simp, to_additive nsmul_eq_smul]
+lemma npow_eq_pow {M : Type*} [monoid M] (n : ℕ) (x : M) : npow n x = x^n := rfl
 
-@[simp] lemma gpow_eq_pow {M : Type*} [div_inv_monoid M] (n : ℤ) (x : M) : gpow n x = x^n := rfl
-
-@[simp] lemma gsmul_eq_smul {M : Type*} [sub_neg_monoid M] (n : ℤ) (x : M) : gsmul n x = n • x :=
-rfl
+@[simp, to_additive gsmul_eq_smul]
+lemma gpow_eq_pow {M : Type*} [div_inv_monoid M] (n : ℤ) (x : M) : gpow n x = x^n := rfl
 
 /-!
 ### Commutativity
@@ -69,12 +70,14 @@ First we prove some facts about `semiconj_by` and `commute`. They do not require
 namespace semiconj_by
 
 variables [monoid M]
+attribute [to_additive add_monoid.nsmul_zero'] monoid.npow_zero'
 
-@[simp] lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
+@[simp, to_additive]
+lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
 begin
   induction n with n ih,
-  { simp [← npow_eq_pow, monoid.npow_zero'], },
-  { simp only [← npow_eq_pow, nat.succ_eq_add_one, npow_one, npow_add] at ⊢ ih,
+  { simp_rw [← npow_eq_pow, monoid.npow_zero', one_right] },
+  { simp_rw [← npow_eq_pow, nat.succ_eq_add_one, npow_add, npow_one] at ⊢ ih,
     exact ih.mul_right h }
 end
 
@@ -84,38 +87,40 @@ namespace commute
 
 variables [monoid M] {a b : M}
 
-@[simp] theorem pow_right (h : commute a b) (n : ℕ) : commute a (b ^ n) := h.pow_right n
-@[simp] theorem pow_left (h : commute a b) (n : ℕ) : commute (a ^ n) b := (h.symm.pow_right n).symm
-@[simp] theorem pow_pow (h : commute a b) (m n : ℕ) : commute (a ^ m) (b ^ n) :=
+@[simp, to_additive]
+theorem pow_right (h : commute a b) (n : ℕ) : commute a (b ^ n) := h.pow_right n
+@[simp, to_additive]
+theorem pow_left (h : commute a b) (n : ℕ) : commute (a ^ n) b := (h.symm.pow_right n).symm
+@[simp, to_additive]
+theorem pow_pow (h : commute a b) (m n : ℕ) : commute (a ^ m) (b ^ n) :=
 (h.pow_left m).pow_right n
 
-@[simp] theorem self_pow (a : M) (n : ℕ) : commute a (a ^ n) := (commute.refl a).pow_right n
-@[simp] theorem pow_self (a : M) (n : ℕ) : commute (a ^ n) a := (commute.refl a).pow_left n
-@[simp] theorem pow_pow_self (a : M) (m n : ℕ) : commute (a ^ m) (a ^ n) :=
+@[simp, to_additive]
+theorem self_pow (a : M) (n : ℕ) : commute a (a ^ n) := (commute.refl a).pow_right n
+@[simp, to_additive]
+theorem pow_self (a : M) (n : ℕ) : commute (a ^ n) a := (commute.refl a).pow_left n
+@[simp, to_additive]
+theorem pow_pow_self (a : M) (m n : ℕ) : commute (a ^ m) (a ^ n) :=
 (commute.refl a).pow_pow m n
 
+xaz
 end commute
 
 section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
-@[simp] theorem pow_zero (a : M) : a^0 = 1 := monoid.npow_zero' _
-theorem zero_nsmul (a : A) : 0 • a = 0 := add_monoid.nsmul_zero' _
+@[simp, to_additive zero_nsmul] theorem pow_zero (a : M) : a^0 = 1 := monoid.npow_zero' _
 
+@[to_additive succ_nsmul]
 theorem pow_succ (a : M) (n : ℕ) : a^(n+1) = a * a^n :=
 by rw [← npow_eq_pow, nat.add_comm, npow_add, npow_one, npow_eq_pow]
 
-theorem succ_nsmul (a : A) (n : ℕ) : (n+1) • a = a + n • a :=
-by rw [← nsmul_eq_smul, nat.add_comm, nsmul_add', nsmul_one', nsmul_eq_smul]
-
 /-- Note that most of the lemmas about powers of two refer to it as `sq`. -/
+@[to_additive two_nsmul]
 theorem pow_two (a : M) : a^2 = a * a :=
 by rw [← npow_eq_pow, show 2 = 1 + 1, by refl, npow_add, npow_one]
 
 alias pow_two ← sq
-
-theorem two_nsmul (a : A) : 2 • a = a + a :=
-@sq (multiplicative A) _ a
 
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n := commute.pow_self a n
 theorem nsmul_add_comm' : ∀ (a : A) (n : ℕ), n • a + a = a + n • a :=

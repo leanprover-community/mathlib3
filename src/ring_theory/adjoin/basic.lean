@@ -113,7 +113,7 @@ lemma adjoint_prod_le (s : set A) (t : set B) :
   adjoin R (set.prod s t) ≤ (adjoin R s).prod (adjoin R t) :=
 adjoin_le $ set.prod_mono subset_adjoin subset_adjoin
 
-lemma adjoin_le_prod (s) (t) :
+lemma adjoin_inl_union_inr_le_prod (s) (t) :
   adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪
   linear_map.inr R A B '' (t ∪ {1})) ≤ (adjoin R s).prod (adjoin R t) :=
 begin

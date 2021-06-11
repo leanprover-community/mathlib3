@@ -167,7 +167,16 @@ To avoid adding the same nonnegativity facts many times, it is a global preproce
 meta def nat_to_int : global_preprocessor :=
 { name := "move nats to ints",
   transform := λ l,
-do l ← l.mmap (λ h, infer_type h >>= guardb ∘ is_nat_prop >> zify_proof [] h <|> return h),
+let zify_proof_or_return (h : expr) : tactic expr := do {
+  infer_type h >>= guardb ∘ is_nat_prop,
+  σ ← tactic.read,
+  match (zify_proof [] h) σ with
+  | (interaction_monad.result.success res _) := pure res
+  | (interaction_monad.result.exception th _ _) :=
+    tactic.fail $ (th.get_or_else (λ _, format! "failed"))()
+  end
+} <|> return h in
+do l ← l.mmap zify_proof_or_return,
    nonnegs ← l.mfoldl (λ (es : expr_set) h, do
      (a, b) ← infer_type h >>= get_rel_sides,
      return $ (es.insert_list (get_nat_comps a)).insert_list (get_nat_comps b)) mk_rb_set,

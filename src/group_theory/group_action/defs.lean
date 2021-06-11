@@ -3,7 +3,6 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
-import data.equiv.basic
 import algebra.group.defs
 import algebra.group.hom
 import logic.embedding
@@ -132,8 +131,9 @@ variable (M)
 
 variables {M}
 
-/-- Pullback a multiplicative action along an injective map respecting `•`. -/
-@[to_additive "Pullback an additive action along an injective map respecting `+ᵥ`."]
+/-- Pullback a multiplicative action along an injective map respecting `•`.
+See note [reducible non-instances]. -/
+@[reducible, to_additive "Pullback an additive action along an injective map respecting `+ᵥ`."]
 protected def function.injective.mul_action [has_scalar M β] (f : β → α)
   (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   mul_action M β :=
@@ -141,8 +141,9 @@ protected def function.injective.mul_action [has_scalar M β] (f : β → α)
   one_smul := λ x, hf $ (smul _ _).trans $ one_smul _ (f x),
   mul_smul := λ c₁ c₂ x, hf $ by simp only [smul, mul_smul] }
 
-/-- Pushforward a multiplicative action along a surjective map respecting `•`. -/
-@[to_additive "Pushforward an additive action along a surjective map respecting `+ᵥ`."]
+/-- Pushforward a multiplicative action along a surjective map respecting `•`.
+See note [reducible non-instances]. -/
+@[reducible, to_additive "Pushforward an additive action along a surjective map respecting `+ᵥ`."]
 protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (hf : surjective f)
   (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   mul_action M β :=
@@ -267,7 +268,9 @@ distrib_mul_action.smul_add _ _ _
 distrib_mul_action.smul_zero _
 
 /-- Pullback a distributive multiplicative action along an injective additive monoid
-homomorphism. -/
+homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.distrib_mul_action [add_monoid B] [has_scalar M B] (f : B →+ A)
   (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   distrib_mul_action M B :=
@@ -277,7 +280,9 @@ protected def function.injective.distrib_mul_action [add_monoid B] [has_scalar M
   .. hf.mul_action f smul }
 
 /-- Pushforward a distributive multiplicative action along a surjective additive monoid
-homomorphism.-/
+homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar M B] (f : A →+ B)
   (hf : surjective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   distrib_mul_action M B :=

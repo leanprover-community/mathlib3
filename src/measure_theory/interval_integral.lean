@@ -73,6 +73,23 @@ an `FTC_filter` pair of filters around `b`. If `f` has finite limits `ca` and `c
   o(∥∫ x in ua..va, (1:ℝ) ∂μ∥ + ∥∫ x in ub..vb, (1:ℝ) ∂μ∥)` as `ua` and `va` tend to `la` while
 `ub` and `vb` tend to `lb`.
 
+### FTC-2 and corollaries
+
+We use FTC-1 to prove several versions of FTC-2 for the Lebesgue measure, using a similar naming
+scheme as for the versions of FTC-1. They include:
+* `interval_integral.integral_eq_sub_of_has_deriv_right_of_le` - most general version, for functions
+  with a right derivative
+* `interval_integral.integral_eq_sub_of_has_deriv_at'` - version for functions with a derivative on
+  an open set
+* `interval_integral.integral_deriv_eq_sub'` - version that is easiest to use when computing the
+  integral of a specific function
+
+We then derive additional integration techniques from FTC-2:
+* `interval_integral.integral_mul_deriv_eq_deriv_mul` - integration by parts
+* `interval_integral.integral_comp_mul_deriv'` - integration by substitution
+
+Many applications of these theorems can be found in the file `analysis.special_functions.integrals`.
+
 ## Implementation notes
 
 ### Avoiding `if`, `min`, and `max`
@@ -1479,7 +1496,8 @@ lemma deriv_within_integral_left
 /-!
 ### Fundamental theorem of calculus, part 2
 
-This section contains theorems pertaining to FTC-2 for interval integrals. -/
+This section contains theorems pertaining to FTC-2 for interval integrals.
+-/
 
 variable {f' : ℝ → E}
 
@@ -1622,5 +1640,33 @@ begin
   { exact ((hcu'.mul hcv).add ((has_deriv_at.continuous_on hu).mul hcv')).interval_integrable },
   { exact (hcv.mul hcu').interval_integrable },
 end
+
+/-!
+### Integration by substitution / Change of variables
+-/
+
+theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
+  (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (hf' : continuous_on f' (interval a b))
+  (hg : ∀ x ∈ f '' (interval a b), continuous_at g x)
+  (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g (𝓝 x)) :
+  -- TODO: prove that the integral of any integrable function is continuous and use here to remove
+  -- assumption `hgm`
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+let hg' := continuous_at.continuous_on hg in
+have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,
+{ intros x hx,
+  have hs := interval_subset_interval_left hx,
+  exact (integral_has_deriv_at_right (hg'.mono $ trans (intermediate_value_interval $
+    has_deriv_at.continuous_on $ λ y hy, hf y $ hs hy) $ image_subset f hs).interval_integrable
+      (hgm (f x) ⟨x, hx, rfl⟩) $ hg (f x) ⟨x, hx, rfl⟩).comp _ (hf x hx) },
+by simp_rw [integral_eq_sub_of_has_deriv_at h $ (hg'.comp (has_deriv_at.continuous_on hf) $
+  subset_preimage_image f _).mul hf', integral_same, sub_zero]
+
+theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
+  (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
+  (h' : continuous_on f' (interval a b)) (hg : continuous g) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
+integral_comp_mul_deriv' h h' (λ x h, hg.continuous_at) (λ x h, hg.measurable.measurable_at_filter)
 
 end interval_integral

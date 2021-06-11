@@ -315,6 +315,21 @@ end
   map_zero' := zero_coeff,
   map_add' := λ x y, add_coeff }
 
+section domain
+variables {Γ' : Type*} [partial_order Γ']
+
+lemma emb_domain_add (f : Γ ↪o Γ') (x y : hahn_series Γ R) :
+  emb_domain f (x + y) = emb_domain f x + emb_domain f y :=
+begin
+  ext g,
+  by_cases hg : g ∈ set.range f,
+  { obtain ⟨a, rfl⟩ := hg,
+    simp },
+  { simp [emb_domain_notin_range, hg] }
+end
+
+end domain
+
 end add_monoid
 
 instance [add_comm_monoid R] : add_comm_monoid (hahn_series Γ R) :=
@@ -405,16 +420,6 @@ instance : module R (hahn_series Γ V) :=
 section domain
 variables {Γ' : Type*} [partial_order Γ']
 
-lemma emb_domain_add (f : Γ ↪o Γ') (x y : hahn_series Γ R) :
-  emb_domain f (x + y) = emb_domain f x + emb_domain f y :=
-begin
-  ext g,
-  by_cases hg : g ∈ set.range f,
-  { obtain ⟨a, rfl⟩ := hg,
-    simp },
-  { simp [emb_domain_notin_range, hg] }
-end
-
 lemma emb_domain_smul (f : Γ ↪o Γ') (r : R) (x : hahn_series Γ R) :
   emb_domain f (r • x) = r • emb_domain f x :=
 begin
@@ -448,12 +453,12 @@ lemma one_coeff [has_zero R] [has_one R] {a : Γ} :
 lemma single_zero_one [has_zero R] [has_one R] : (single 0 (1 : R)) = 1 := rfl
 
 @[simp]
-lemma support_one [semiring R] [nontrivial R] :
+lemma support_one [mul_zero_one_class R] [nontrivial R] :
   support (1 : hahn_series Γ R) = {0} :=
 support_single_of_ne one_ne_zero
 
 @[simp]
-lemma order_one [semiring R] :
+lemma order_one [mul_zero_one_class R] :
   order (1 : hahn_series Γ R) = 0 :=
 begin
   cases subsingleton_or_nontrivial R with h h; haveI := h,
@@ -461,7 +466,7 @@ begin
   { exact order_single one_ne_zero }
 end
 
-instance [semiring R] : has_mul (hahn_series Γ R) :=
+instance [non_unital_non_assoc_semiring R] : has_mul (hahn_series Γ R) :=
 { mul := λ x y, { coeff := λ a,
     ∑ ij in (add_antidiagonal x.is_pwo_support y.is_pwo_support a),
     x.coeff ij.fst * y.coeff ij.snd,
@@ -476,12 +481,12 @@ instance [semiring R] : has_mul (hahn_series Γ R) :=
     end, }, }
 
 @[simp]
-lemma mul_coeff [semiring R] {x y : hahn_series Γ R} {a : Γ} :
+lemma mul_coeff [non_unital_non_assoc_semiring R] {x y : hahn_series Γ R} {a : Γ} :
   (x * y).coeff a = ∑ ij in (add_antidiagonal x.is_pwo_support y.is_pwo_support a),
     x.coeff ij.fst * y.coeff ij.snd := rfl
 
-lemma mul_coeff_right' [semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ} (hs : s.is_pwo)
-  (hys : y.support ⊆ s) :
+lemma mul_coeff_right' [non_unital_non_assoc_semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ}
+  (hs : s.is_pwo) (hys : y.support ⊆ s) :
   (x * y).coeff a = ∑ ij in (add_antidiagonal x.is_pwo_support hs a),
     x.coeff ij.fst * y.coeff ij.snd :=
 begin
@@ -493,8 +498,8 @@ begin
   rw [(hb.2 hb.1.1 hb.1.2.1), mul_zero]
 end
 
-lemma mul_coeff_left' [semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ} (hs : s.is_pwo)
-  (hxs : x.support ⊆ s) :
+lemma mul_coeff_left' [non_unital_non_assoc_semiring R] {x y : hahn_series Γ R} {a : Γ} {s : set Γ}
+  (hs : s.is_pwo) (hxs : x.support ⊆ s) :
   (x * y).coeff a = ∑ ij in (add_antidiagonal hs y.is_pwo_support a),
     x.coeff ij.fst * y.coeff ij.snd :=
 begin
@@ -506,7 +511,7 @@ begin
   rw [not_not.1 (λ con, hb.1.2.2 (hb.2 hb.1.1 con)), zero_mul],
 end
 
-instance [semiring R] : distrib (hahn_series Γ R) :=
+instance [non_unital_non_assoc_semiring R] : distrib (hahn_series Γ R) :=
 { left_distrib := λ x y z, begin
     ext a,
     have hwf := (y.is_pwo_support.union z.is_pwo_support),
@@ -534,7 +539,8 @@ instance [semiring R] : distrib (hahn_series Γ R) :=
   .. hahn_series.has_mul,
   .. hahn_series.has_add }
 
-lemma single_mul_coeff_add [semiring R] {r : R} {x : hahn_series Γ R} {a : Γ} {b : Γ} :
+lemma single_mul_coeff_add [non_unital_non_assoc_semiring R] {r : R} {x : hahn_series Γ R} {a : Γ}
+  {b : Γ} :
   ((single b r) * x).coeff (a + b) = r * x.coeff a :=
 begin
   by_cases hr : r = 0,
@@ -565,7 +571,8 @@ begin
   { simp }
 end
 
-lemma mul_single_coeff_add [semiring R] {r : R} {x : hahn_series Γ R} {a : Γ} {b : Γ} :
+lemma mul_single_coeff_add [non_unital_non_assoc_semiring R] {r : R} {x : hahn_series Γ R} {a : Γ}
+  {b : Γ} :
   (x * (single b r)).coeff (a + b) = x.coeff a * r :=
 begin
   by_cases hr : r = 0,
@@ -594,11 +601,13 @@ begin
 end
 
 @[simp]
-lemma mul_single_zero_coeff [semiring R] {r : R} {x : hahn_series Γ R} {a : Γ} :
+lemma mul_single_zero_coeff [non_unital_non_assoc_semiring R] {r : R} {x : hahn_series Γ R}
+  {a : Γ} :
   (x * (single 0 r)).coeff a = x.coeff a * r  :=
 by rw [← add_zero a, mul_single_coeff_add, add_zero]
 
-lemma single_zero_mul_coeff [semiring R] {r : R} {x : hahn_series Γ R} {a : Γ} :
+lemma single_zero_mul_coeff [non_unital_non_assoc_semiring R] {r : R} {x : hahn_series Γ R}
+  {a : Γ} :
   ((single 0 r) * x).coeff a = r * x.coeff a :=
 by rw [← add_zero a, single_mul_coeff_add, add_zero]
 
@@ -607,7 +616,7 @@ lemma single_zero_mul_eq_smul [semiring R] {r : R} {x : hahn_series Γ R} :
   (single 0 r) * x = r • x :=
 by { ext, exact single_zero_mul_coeff }
 
-theorem support_mul_subset_add_support [semiring R] {x y : hahn_series Γ R} :
+theorem support_mul_subset_add_support [non_unital_non_assoc_semiring R] {x y : hahn_series Γ R} :
   support (x * y) ⊆ support x + support y :=
 begin
   apply set.subset.trans (λ x hx, _) support_add_antidiagonal_subset_add,
@@ -618,13 +627,14 @@ begin
   simp [hx],
 end
 
-lemma mul_coeff_order_add_order {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [semiring R]
+lemma mul_coeff_order_add_order {Γ} [linear_ordered_cancel_add_comm_monoid Γ]
+  [non_unital_non_assoc_semiring R]
   {x y : hahn_series Γ R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (x * y).coeff (x.order + y.order) = x.coeff x.order * y.coeff y.order :=
 by rw [order_of_ne hx, order_of_ne hy, mul_coeff, finset.add_antidiagonal_min_add_min,
   finset.sum_singleton]
 
-private lemma mul_assoc' [semiring R] (x y z : hahn_series Γ R) :
+private lemma mul_assoc' [non_unital_semiring R] (x y z : hahn_series Γ R) :
   x * y * z = x * (y * z) :=
 begin
   ext b,
@@ -654,18 +664,38 @@ begin
     simp [mul_assoc], }
 end
 
+instance [non_unital_non_assoc_semiring R] : non_unital_non_assoc_semiring (hahn_series Γ R) :=
+{ zero := 0,
+  add := (+),
+  mul := (*),
+  zero_mul := λ _, by { ext, simp },
+  mul_zero := λ _, by { ext, simp },
+  .. hahn_series.add_comm_monoid,
+  .. hahn_series.distrib }
+
+instance [non_unital_semiring R] : non_unital_semiring (hahn_series Γ R) :=
+{ zero := 0,
+  add := (+),
+  mul := (*),
+  mul_assoc := mul_assoc',
+  .. hahn_series.non_unital_non_assoc_semiring }
+
+instance [non_assoc_semiring R] : non_assoc_semiring (hahn_series Γ R) :=
+{ zero := 0,
+  one := 1,
+  add := (+),
+  mul := (*),
+  one_mul := λ x, by { ext, exact single_zero_mul_coeff.trans (one_mul _) },
+  mul_one := λ x, by { ext, exact mul_single_zero_coeff.trans (mul_one _) },
+  .. hahn_series.non_unital_non_assoc_semiring }
+
 instance [semiring R] : semiring (hahn_series Γ R) :=
 { zero := 0,
   one := 1,
   add := (+),
   mul := (*),
-  zero_mul := λ _, by { ext, simp },
-  mul_zero := λ _, by { ext, simp },
-  one_mul := λ x, single_zero_mul_eq_smul.trans (one_smul _ _),
-  mul_one := λ x, by { ext, exact mul_single_zero_coeff.trans (mul_one _) },
-  mul_assoc := mul_assoc',
-  .. hahn_series.add_comm_monoid,
-  .. hahn_series.distrib }
+  .. hahn_series.non_assoc_semiring,
+  .. hahn_series.non_unital_semiring }
 
 instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
 { mul_comm := λ x y, begin
@@ -724,8 +754,8 @@ begin
     exact set.is_wf.min_le_min_of_subset (support_mul_subset_add_support) },
 end
 
-section semiring
-variables [semiring R]
+section non_unital_non_assoc_semiring
+variables [non_unital_non_assoc_semiring R]
 
 @[simp]
 lemma single_mul_single {a b : Γ} {r s : R} :
@@ -742,6 +772,11 @@ begin
     exact (h rfl).elim }
 end
 
+end non_unital_non_assoc_semiring
+
+section non_assoc_semiring
+variables [non_assoc_semiring R]
+
 /-- `C a` is the constant Hahn Series `a`. `C` is provided as a ring homomorphism. -/
 @[simps] def C : R →+* (hahn_series Γ R) :=
 { to_fun := single 0,
@@ -755,9 +790,6 @@ lemma C_zero : C (0 : R) = (0 : hahn_series Γ R) := C.map_zero
 
 @[simp]
 lemma C_one : C (1 : R) = (1 : hahn_series Γ R) := C.map_one
-
-lemma C_mul_eq_smul {r : R} {x : hahn_series Γ R} : C r * x = r • x :=
-single_zero_mul_eq_smul
 
 lemma C_injective : function.injective (C : R → hahn_series Γ R) :=
 begin
@@ -781,10 +813,21 @@ begin
   { exact order_single h }
 end
 
+end non_assoc_semiring
+
+section semiring
+variables [semiring R]
+
+lemma C_mul_eq_smul {r : R} {x : hahn_series Γ R} : C r * x = r • x :=
+single_zero_mul_eq_smul
+
+end semiring
+
 section domain
 variables {Γ' : Type*} [ordered_cancel_add_comm_monoid Γ']
 
-lemma emb_domain_mul (f : Γ ↪o Γ') (hf : ∀ x y, f (x + y) = f x + f y) (x y : hahn_series Γ R) :
+lemma emb_domain_mul [non_unital_non_assoc_semiring R]
+  (f : Γ ↪o Γ') (hf : ∀ x y, f (x + y) = f x + f y) (x y : hahn_series Γ R) :
   emb_domain f (x * y) = emb_domain f x * emb_domain f y :=
 begin
   ext g,
@@ -820,28 +863,26 @@ begin
     refine ⟨i + j, hf i j⟩, }
 end
 
-lemma emb_domain_one (f : Γ ↪o Γ') (hf : f 0 = 0):
+lemma emb_domain_one [non_assoc_semiring R] (f : Γ ↪o Γ') (hf : f 0 = 0):
   emb_domain f (1 : hahn_series Γ R) = (1 : hahn_series Γ' R) :=
 emb_domain_single.trans $ hf.symm ▸ rfl
 
 /-- Extending the domain of Hahn series is a ring homomorphism. -/
-@[simps] def emb_domain_ring_hom (f : Γ →+ Γ') (hfi : function.injective f)
+@[simps] def emb_domain_ring_hom [non_assoc_semiring R] (f : Γ →+ Γ') (hfi : function.injective f)
   (hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g') :
   hahn_series Γ R →+* hahn_series Γ' R :=
-{ to_fun := emb_domain_linear_map ⟨⟨f, hfi⟩, hf⟩,
+{ to_fun := emb_domain ⟨⟨f, hfi⟩, hf⟩,
   map_one' := emb_domain_one _ f.map_zero,
   map_mul' := emb_domain_mul _ f.map_add,
-  map_zero' := linear_map.map_zero _,
-  map_add' := linear_map.map_add _, }
+  map_zero' := emb_domain_zero,
+  map_add' := emb_domain_add _}
 
-lemma emb_domain_ring_hom_C {f : Γ →+ Γ'} {hfi : function.injective f}
+lemma emb_domain_ring_hom_C [non_assoc_semiring R] {f : Γ →+ Γ'} {hfi : function.injective f}
   {hf : ∀ g g' : Γ, f g ≤ f g' ↔ g ≤ g'} {r : R} :
   emb_domain_ring_hom f hfi hf (C r) = C r :=
 emb_domain_single.trans (by simp)
 
 end domain
-
-end semiring
 
 section algebra
 variables [comm_semiring R] {A : Type*} [semiring A] [algebra R A]

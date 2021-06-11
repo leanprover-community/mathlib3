@@ -1275,6 +1275,11 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
+@[simp, to_additive]
+lemma cod_restrict_apply {G : Type*} [group G] {N : Type*} [group N] (f : G →* N)
+  (S : subgroup N) (h : ∀ (x : G), f x ∈ S) {x : G} :
+    f.cod_restrict S h x = ⟨f x, h x⟩ := rfl
+
 /-- Computable alternative to `monoid_hom.of_injective`. -/
 def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
 { to_fun := f.range_restrict,

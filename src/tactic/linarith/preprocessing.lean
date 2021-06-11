@@ -170,6 +170,8 @@ meta def nat_to_int : global_preprocessor :=
 let zify_proof_or_return (h : expr) : tactic expr := do {
   infer_type h >>= guardb ∘ is_nat_prop,
   σ ← tactic.read,
+  -- capture result of zify_proof if it succeeds,
+  -- while backtracking the state
   match (zify_proof [] h) σ with
   | (interaction_monad.result.success res _) := pure res
   | (interaction_monad.result.exception th _ _) :=

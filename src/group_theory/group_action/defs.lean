@@ -59,13 +59,13 @@ infix ` +ᵥ `:65 := has_vadd.vadd
 infixr ` • `:73 := has_scalar.smul
 
 /-- Type class for additive monoid actions. -/
-@[protect_proj] class add_action (G : Type*) (P : Type*) [add_zero_class G] extends has_vadd G P :=
+@[protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
 (zero_vadd : ∀ p : P, (0 : G) +ᵥ p = p)
 (add_vadd : ∀ (g₁ g₂ : G) (p : P), (g₁ + g₂) +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p))
 
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 @[protect_proj, to_additive]
-class mul_action (α : Type*) (β : Type*) [mul_one_class α] extends has_scalar α β :=
+class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
@@ -124,7 +124,7 @@ class is_scalar_tower (M N α : Type*) [has_scalar M N] [has_scalar N α] [has_s
 is_scalar_tower.smul_assoc x y z
 
 section
-variables [mul_one_class M] [mul_action M α]
+variables [monoid M] [mul_action M α]
 
 @[to_additive] lemma smul_smul (a₁ a₂ : M) (b : α) : a₁ • a₂ • b = (a₁ * a₂) • b :=
 (mul_smul _ _ _).symm
@@ -174,7 +174,7 @@ variables (M)
 
 This is promoted to a module by `semiring.to_module`. -/
 @[priority 910, to_additive] -- see Note [lower instance priority]
-instance monoid.to_mul_action (M : Type*) [monoid M] : mul_action M M :=
+instance monoid.to_mul_action : mul_action M M :=
 { smul := (*),
   one_smul := one_mul,
   mul_smul := mul_assoc }

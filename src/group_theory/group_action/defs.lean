@@ -55,6 +55,7 @@ class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
 infix ` +ᵥ `:65 := has_vadd.vadd
 infixr ` • `:73 := has_scalar.smul
 
+/-- See also `monoid.to_mul_action` and `mul_zero_class.to_smul_with_zero`. -/
 @[priority 910, to_additive] -- see Note [lower instance priority]
 instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := ⟨(*)⟩
 

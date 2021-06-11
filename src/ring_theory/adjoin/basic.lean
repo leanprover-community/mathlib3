@@ -149,7 +149,7 @@ lemma adjoin_inl_union_inr_eq_prod (s) (t) :
   linear_map.inr R A B '' (t ∪ {1})) = (adjoin R s).prod (adjoin R t) :=
 begin
   let P := adjoin R (linear_map.inl R A B '' (s ∪ {1}) ∪ linear_map.inr R A B '' (t ∪ {1})),
-  refine le_antisymm (adjoin_le_prod R s t) _,
+  refine le_antisymm (adjoin_inl_union_inr_le_prod R s t) _,
   rintro ⟨a, b⟩ ⟨ha, hb⟩,
   have Ha : (a, (0 : B)) ∈ adjoin R ((linear_map.inl R A B) '' (s ∪ {1})) :=
     mem_adjoin_of_map_mul R (linear_map.inl_map_mul) ha,
@@ -328,7 +328,7 @@ begin
   exact fg_def.2 ⟨(linear_map.inl R A B '' (s ∪ {1})) ∪ (linear_map.inr R A B '' (t ∪ {1})),
     set.finite.union (set.finite.image _ (set.finite.union hs.1 (set.finite_singleton _)))
     (set.finite.image _ (set.finite.union ht.1 (set.finite_singleton _))),
-    algebra.adjoin_eq_prod R s t⟩
+    algebra.adjoin_inl_union_inr_eq_prod R s t⟩
 end
 
 section

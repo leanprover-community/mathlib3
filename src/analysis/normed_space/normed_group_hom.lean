@@ -373,19 +373,6 @@ lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V
   (∑ i in s, f i) v = ∑ i in s, (f i v) :=
 by simp only [coe_sum, finset.sum_apply]
 
-lemma sum.norm_le {ι : Type*} (s : finset ι)
-  (f : ι → normed_group_hom V₁ V₂) (C : ι → ℝ) (h : ∀ i ∈ s, ∥f i∥ ≤ (C i)) :
-  ∥(∑ i in s, f i)∥ ≤ (∑ i in s, C i) :=
-begin
-  classical,
-  revert h, apply finset.induction_on s; clear s,
-  { intros, simp only [norm_zero, finset.sum_empty] },
-  { intros i s his IH h,
-    simp only [finset.sum_insert his],
-    refine le_trans (norm_add_le (f i) (finset.sum s f)) _,
-    exact add_le_add (h i $ s.mem_insert_self _) (IH $ λ i hi, h i $ finset.mem_insert_of_mem hi) }
-end
-
 @[simp] lemma norm_nsmul_le {C : ℝ} (hf : ∥f∥ ≤ C) (n : ℕ) : ∥n • f∥ ≤ n * C :=
 begin
   induction n with i hi,

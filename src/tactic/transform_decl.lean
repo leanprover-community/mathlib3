@@ -28,18 +28,19 @@ meta def additive_test_aux (f : name → option name) (ignore : name_map $ list 
 | b (elet n g e f)         := additive_test_aux ff e && additive_test_aux ff f
 | b (macro d args)         := tt
 
-/-- `additive_test f replace_all ignore e` tests whether the expression `e` contains no constant
-  `nm` that is not applied to any arguments, and such that `f nm = none`.
-  `additive_test e tt` is the same, except that it returns `tt` if the expression itself
-  is a constant.
-  This is used in `@[to_additive]` for deciding which subexpressions to transform: we only transform
-  constants if `additive_test` applied to their first argument returns `tt`.
-  This means we will replace expression applied to e.g. `α` or `α × β`, but not when applied to
-  e.g. `ℕ` or `ℝ × α`.
-  `f` is the dictionary of declarations that are in the `to_additive` dictionary.
-  We ignore all arguments specified in the `name_map` `ignore`.
-  If `replace_all` is `tt` the test always return `tt`.
-  -/
+/--
+`additive_test f replace_all ignore e` tests whether the expression `e` contains no constant
+`nm` that is not applied to any arguments, and such that `f nm = none`.
+`additive_test e tt` is the same, except that it returns `tt` if the expression itself
+is a constant.
+This is used in `@[to_additive]` for deciding which subexpressions to transform: we only transform
+constants if `additive_test` applied to their first argument returns `tt`.
+This means we will replace expression applied to e.g. `α` or `α × β`, but not when applied to
+e.g. `ℕ` or `ℝ × α`.
+`f` is the dictionary of declarations that are in the `to_additive` dictionary.
+We ignore all arguments specified in the `name_map` `ignore`.
+If `replace_all` is `tt` the test always return `tt`.
+-/
 meta def additive_test (f : name → option name) (replace_all : bool) (ignore : name_map $ list ℕ)
   (e : expr) : bool :=
 if replace_all then tt else additive_test_aux f ignore ff e

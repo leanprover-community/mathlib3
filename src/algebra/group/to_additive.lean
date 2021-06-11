@@ -62,10 +62,12 @@ section extra_attributes
 
 setup_tactic_parser
 
-/-- An attribute that tells `@[to_additive]` that certain arguments of this definition are not
-  involved when using `@[to_additive]`.
-  This helps the heuristic of `@[to_additive]` by also transforming definitions if `ℕ` or another
-  fixed type occurs as one of these arguments. -/
+/--
+n attribute that tells `@[to_additive]` that certain arguments of this definition are not
+involved when using `@[to_additive]`.
+This helps the heuristic of `@[to_additive]` by also transforming definitions if `ℕ` or another
+fixed type occurs as one of these arguments.
+-/
 @[user_attribute]
 meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
 { name      := `to_additive_ignore_args,
@@ -264,17 +266,27 @@ mapped to its additive version. The basic heuristic is
 * Only map an identifier to its additive version if its first argument doesn't
   contain any unapplied identifiers.
 
-Usually the first argument is the type which is "additivized".
-This means that multiplicative operations on e.g. `ℕ`, it will not be transformed.
-(because replacing multiplication on `ℕ` by addition on `ℕ` usually turns the lemma into something
-nonsensical).
+Examples:
+* `@has_mul.mul ℕ n m` (i.e. `(n + m : ℕ)`) will not change to `+`, since its
+  first argument is `ℕ`, an identifier not applied to any arguments.
+* `@has_mul.mul (α × β) x y` will change to `+`, since the only identifier `prod`
+  is applied to `α` and `β`.
+* `@has_mul.mul (α × ℕ) x y` will not change to `+`.
+
+The reasoning behind the heuristic is that the first argument is the type which is "additivized",
+and this usually doesn't make sense if this is on a fixed type.
 
 There are two exceptions in this heuristic:
 
 * Identifiers that have the `@[to_additive]` attribute are ignored.
   For example, multiplication in `Semigroup` is replaced by addition in `AddSemigroup`.
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
-  positions `n1`, `n2`, ... will not be checked for unapplied identifiers.
+  positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
+  For example, `times_cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
+  that its 21st argument `(n : with_top ℕ)` can contain `ℕ`
+  (usually in the form `has_top.top ℕ ...`) and still be additivized.
+  So `@has_mul.mul (C^∞⟮I, N; I', G⟯) _ f g` will be additivized.
+
 
 If you want to disable this heuristic and replace all multiplicative
 identifiers with their additive counterpart, use `@[to_additive!]`.
@@ -383,4 +395,3 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
--- attribute [to_additive_ignore_args 21] times_cont_mdiff_map

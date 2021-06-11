@@ -976,8 +976,8 @@ open tactic
 sets the name of the given `decl : declaration` to `tgt`, and applies `apply_replacement_fun f test`
 to the value and type of `decl`.
 -/
-protected meta def update_with_fun (f : name → name) (test : expr → bool) (reorder : name_map $ list ℕ)
-  (tgt : name) (decl : declaration) : declaration :=
+protected meta def update_with_fun (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
 let decl := decl.update_name $ tgt in
 let decl := decl.update_type $ decl.type.apply_replacement_fun f test reorder in
 decl.update_value $ decl.value.apply_replacement_fun f test reorder

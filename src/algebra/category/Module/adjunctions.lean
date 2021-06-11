@@ -8,6 +8,7 @@ import category_theory.monoidal.functorial
 import category_theory.monoidal.types
 import linear_algebra.direct_sum.finsupp
 import category_theory.linear.linear_functor
+import category_theory.concrete_category.representable
 
 /-!
 The functor of forming finitely supported functions on a type with values in a `[ring R]`
@@ -50,6 +51,11 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' := λ _ _ M f g,
   finsupp.lhom_ext' (λ x, linear_map.ext_ring
     (finsupp.sum_map_domain_index_add_monoid_hom (λ y, ((smul_add_hom R ↥M).flip) (g y))).symm) }
+
+instance : is_right_adjoint (forget (Module.{u} R)) := ⟨_, adj R⟩
+
+instance : representably_concrete (Module.{u} R) :=
+{ out := corepresentable_of_right_adjoint _ _ }
 
 end
 

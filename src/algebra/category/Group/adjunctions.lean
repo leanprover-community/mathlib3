@@ -97,7 +97,7 @@ adjunction.mk_of_hom_equiv
 instance : is_right_adjoint (forget Group.{u}) := ⟨_, adj⟩
 
 instance : representably_concrete Group.{u} :=
-{ out := representably_concrete_of_left_adjoint _ (forget Group.{u}) }
+{ out := corepresentable_of_right_adjoint _ _ }
 
 end Group
 

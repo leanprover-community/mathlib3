@@ -35,17 +35,13 @@ add_monoid_hom.eq_nat_cast
   ⟨λ n, n • (1 : A), zero_nsmul _, λ _ _, add_nsmul _ _ _⟩
   (one_nsmul _)
 
-@[simp, priority 500]
+@[simp, priority 500, to_additive]
 theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
 begin
   induction n with n ih,
   { rw pow_zero, refl },
   { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
 end
-
-@[simp, priority 500]
-theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n • a :=
-@list.prod_repeat (multiplicative A) _
 
 @[simp, norm_cast] lemma units.coe_pow (u : units M) (n : ℕ) : ((u ^ n : units M) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n

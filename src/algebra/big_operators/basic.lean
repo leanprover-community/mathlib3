@@ -30,7 +30,7 @@ Let `s` be a `finset α`, and `f : α → β` a function.
 ## Implementation Notes
 
 The first arguments in all definitions and lemmas is the codomain of the function of the big
-operator. This is to for the heuristic of whe to apply `@[to_additive]`.
+operator. This is necessary for the heuristic in `@[to_additive]`.
 See the documentation of `to_additive.attr` for more information.
 
 -/

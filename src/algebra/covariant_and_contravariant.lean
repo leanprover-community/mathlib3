@@ -7,7 +7,6 @@ Authors: Damiano Testa
 import algebra.group.defs
 
 /-!
-
 # Covariants and contravariants
 
 This file contains general lemmas and instances to work with the interactions between a relation and
@@ -39,7 +38,6 @@ on top of order/algebraic assumptions.
 A formal remark is that normally covariant_class uses the `(≤)`-relation, while contravariant_class
 uses the `(<)`-relation. This need not be the case in general, but seems to be the most common
 usage. In the opposite direction, the implication
-
 ```lean
 [semigroup α] [partial_order α] [contravariant_class α α (*) (≤)] => left_cancel_semigroup α
 ```
@@ -57,8 +55,8 @@ as it is easier to use. -/
 -- include equivalence of `left_cancel_semigroup` with
 -- `semigroup partial_order contravariant_class α α (*) (≤)`?
 -- use ⇒, as per Eric's suggestion?
-section variants
 
+section variants
 variables {M N : Type*} (μ : M → N → N) (r : N → N → Prop)
 
 variables (M N)
@@ -175,21 +173,6 @@ lemma rel_act_of_act_rel_act_of_rel_act (ab : r (μ m a) (μ m b)) (rr : r b (μ
 trans (rel_of_act_rel_act m ab) rr
 
 end is_trans
-
-/-  Lemmas with 4 elements.
-section M_eq_N
-variables {M N μ r} {mu : N → N → N} [is_trans N r]
-  [contravariant_class N N mu r] [contravariant_class N N (function.swap mu) r] {a b c d : N}
-
-lemma act_rel_act_of_rel_of_rel (cd : r (mu a c) (mu a d)) (rr : r (mu a c) (mu b d)) :
-  r a b :=
-begin
-
-end
---trans (act_rel_act_of_rel c ab : _) (act_rel_act_of_rel b cd)
-
-end M_eq_N
- -/
 
 end contravariant
 

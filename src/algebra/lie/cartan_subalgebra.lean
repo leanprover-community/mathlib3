@@ -65,9 +65,11 @@ end lie_subalgebra
 @[simp] lemma lie_ideal.normalizer_eq_top {R : Type u} {L : Type v}
   [comm_ring R] [lie_ring L] [lie_algebra R L] (I : lie_ideal R L) :
   (I : lie_subalgebra R L).normalizer = ⊤ :=
-by { ext x,
+begin
+  ext x,
   simpa only [lie_subalgebra.mem_normalizer_iff, lie_subalgebra.mem_top, iff_true]
-    using λ y hy, I.lie_mem hy }
+    using λ y hy, I.lie_mem hy
+end
 
 open lie_ideal
 

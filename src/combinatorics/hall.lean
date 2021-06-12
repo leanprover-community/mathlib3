@@ -54,7 +54,7 @@ theorem hall_hard_inductive_zero (t : ι → finset α) (hn : fintype.card ι = 
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
   rw fintype.card_eq_zero_iff at hn,
-  exact ⟨λ x, (hn x).elim, by tauto⟩,
+  exactI ⟨is_empty_elim, is_empty_elim, is_empty_elim⟩,
 end
 
 variables {t : ι → finset α} [decidable_eq α]
@@ -196,24 +196,23 @@ lemma hall_hard_inductive_step_B {n : ℕ} (hn : fintype.card ι = n + 1)
 begin
   haveI := classical.dec_eq ι,
   /- Restrict to `s` -/
-  let ι' := (s : set ι),
-  let t' : ι' → finset α := λ x', t x',
+  let t' : s → finset α := λ x', t x',
   rw nat.add_one at hn,
-  have card_ι'_le : fintype.card ι' ≤ n,
+  have card_ι'_le : fintype.card s ≤ n,
   { apply nat.le_of_lt_succ,
     rw ←hn,
     convert (card_lt_iff_ne_univ _).mpr hns,
     convert fintype.card_coe _ },
   rcases ih t' card_ι'_le (hall_cond_of_restrict ht) with ⟨f', hf', hsf'⟩,
   /- Restrict to `sᶜ` in the domain and `(s.bUnion t)ᶜ` in the codomain. -/
-  let ι'' := (s : set ι)ᶜ,
+  set ι'' := (s : set ι)ᶜ with ι''_def,
   let t'' : ι'' → finset α := λ a'', t a'' \ s.bUnion t,
   have card_ι''_le : fintype.card ι'' ≤ n,
   { apply nat.le_of_lt_succ,
     rw ←hn,
     convert (card_compl_lt_iff_nonempty _).mpr hs,
-    convert fintype.card_coe _,
-    rw coe_compl, },
+    convert fintype.card_coe (sᶜ),
+    exact (finset.coe_compl s).symm },
   rcases ih t'' card_ι''_le (hall_cond_of_compl hus ht) with ⟨f'', hf'', hsf''⟩,
   /- Put them together -/
   have f'_mem_bUnion : ∀ {x'} (hx' : x' ∈ s), f' ⟨x', hx'⟩ ∈ s.bUnion t,

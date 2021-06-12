@@ -98,6 +98,24 @@ variable (R)
   map_smul' := λ c f, by { ext, refl },
   .. equiv_fun_on_fintype }
 
+@[simp] lemma linear_equiv_fun_on_fintype_single {α} [decidable_eq α] [fintype α]
+  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
+  (@linear_equiv_fun_on_fintype R M α _ _ _ _) (single x m) = pi.single x m :=
+begin
+  ext a,
+  change (equiv_fun_on_fintype (single x m)) a = _,
+  convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
+end
+
+@[simp] lemma linear_equiv_fun_on_fintype_symm_single {α} [decidable_eq α] [fintype α]
+  [add_comm_monoid M] [semiring R] [module R M] (x : α) (m : M) :
+  (@linear_equiv_fun_on_fintype R M α _ _ _ _).symm (pi.single x m) = single x m :=
+begin
+  ext a,
+  change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
+  convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
+end
+
 end finsupp
 
 section
@@ -290,7 +308,6 @@ begin
       ← linear_map.comp_assoc, h, linear_map.comp_assoc, linear_map.mul_eq_comp], },
 end
 
-
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 
@@ -320,6 +337,7 @@ begin
   rw [← nat.succ_pred_eq_of_pos (pos_iff_ne_zero.mpr hn), iterate_succ, coe_comp] at h,
   exact injective.of_comp h,
 end
+
 end
 
 section
@@ -460,7 +478,6 @@ def applyₗ' : M →+ (M →ₗ[R] M₂) →ₗ[S] M₂ :=
   map_zero' := linear_map.ext $ λ f, f.map_zero,
   map_add' := λ x y, linear_map.ext $ λ f, f.map_add _ _ }
 
-
 section
 variables (R M)
 
@@ -570,6 +587,32 @@ def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
 end comm_ring
 
 end linear_map
+
+/--
+The `ℕ`-linear equivalence between additive morphisms `A →+ B` and `ℕ`-linear morphisms `A →ₗ[ℕ] B`.
+-/
+@[simps]
+def add_monoid_hom_lequiv_nat {A B : Type*} [add_comm_monoid A] [add_comm_monoid B] :
+  (A →+ B) ≃ₗ[ℕ] (A →ₗ[ℕ] B) :=
+{ to_fun := add_monoid_hom.to_nat_linear_map,
+  inv_fun := linear_map.to_add_monoid_hom,
+  map_add' := by { intros, ext, refl },
+  map_smul' := by { intros, ext, refl },
+  left_inv := by { intros f, ext, refl },
+  right_inv := by { intros f, ext, refl } }
+
+/--
+The `ℤ`-linear equivalence between additive morphisms `A →+ B` and `ℤ`-linear morphisms `A →ₗ[ℤ] B`.
+-/
+@[simps]
+def add_monoid_hom_lequiv_int {A B : Type*} [add_comm_group A] [add_comm_group B] :
+  (A →+ B) ≃ₗ[ℤ] (A →ₗ[ℤ] B) :=
+{ to_fun := add_monoid_hom.to_int_linear_map,
+  inv_fun := linear_map.to_add_monoid_hom,
+  map_add' := by { intros, ext, refl },
+  map_smul' := by { intros, ext, refl },
+  left_inv := by { intros f, ext, refl },
+  right_inv := by { intros f, ext, refl } }
 
 /-! ### Properties of submodules -/
 
@@ -689,6 +732,15 @@ lemma range_map_nonempty (N : submodule R M) :
   (set.range (λ ϕ, submodule.map ϕ N : (M →ₗ[R] M₂) → submodule R M₂)).nonempty :=
 ⟨_, set.mem_range.mpr ⟨0, rfl⟩⟩
 
+/-- The pushforward of a submodule by an injective linear map is
+linearly equivalent to the original submodule. -/
+@[simps]
+noncomputable def equiv_map_of_injective (f : M →ₗ[R] M₂) (i : injective f) (p : submodule R M) :
+  p ≃ₗ[R] p.map f :=
+{ map_add' := by { intros, simp, refl, },
+  map_smul' := by { intros, simp, refl, },
+  ..(equiv.set.image f p i) }
+
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
 { carrier   := f ⁻¹' p,
@@ -742,6 +794,44 @@ lemma map_comap_le (f : M →ₗ[R] M₂) (q : submodule R M₂) : map f (comap 
 
 lemma le_comap_map (f : M →ₗ[R] M₂) (p : submodule R M) : p ≤ comap f (map f p) :=
 (gc_map_comap f).le_u_l _
+
+section galois_coinsertion
+variables {f : M →ₗ[R] M₂} (hf : injective f)
+include hf
+
+/-- `map f` and `comap f` form a `galois_coinsertion` when `f` is injective. -/
+def gci_map_comap : galois_coinsertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_coinsertion
+  (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
+
+lemma comap_map_eq_of_injective (p : submodule R M) : (p.map f).comap f = p :=
+(gci_map_comap hf).u_l_eq _
+
+lemma comap_surjective_of_injective : function.surjective (comap f) :=
+(gci_map_comap hf).u_surjective
+
+lemma map_injective_of_injective : function.injective (map f) :=
+(gci_map_comap hf).l_injective
+
+lemma comap_inf_map_of_injective (p q : submodule R M) : (p.map f ⊓ q.map f).comap f = p ⊓ q :=
+(gci_map_comap hf).u_inf_l _ _
+
+lemma comap_infi_map_of_injective (S : ι → submodule R M) : (⨅ i, (S i).map f).comap f = infi S :=
+(gci_map_comap hf).u_infi_l _
+
+lemma comap_sup_map_of_injective (p q : submodule R M) : (p.map f ⊔ q.map f).comap f = p ⊔ q :=
+(gci_map_comap hf).u_sup_l _ _
+
+lemma comap_supr_map_of_injective (S : ι → submodule R M) : (⨆ i, (S i).map f).comap f = supr S :=
+(gci_map_comap hf).u_supr_l _
+
+lemma map_le_map_iff_of_injective (p q : submodule R M) : p.map f ≤ q.map f ↔ p ≤ q :=
+(gci_map_comap hf).l_le_l_iff
+
+lemma map_strict_mono_of_injective : strict_mono (map f) :=
+(gci_map_comap hf).strict_mono_l
+
+end galois_coinsertion
 
 --TODO(Mario): is there a way to prove this from order properties?
 lemma map_inf_eq_map_inf_comap {f : M →ₗ[R] M₂}
@@ -1442,6 +1532,21 @@ by rw [range_eq_map, map_le_iff_le_comap, eq_top_iff]
 lemma map_le_range {f : M →ₗ[R] M₂} {p : submodule R M} : map f p ≤ range f :=
 set_like.coe_mono (set.image_subset_range f p)
 
+/--
+The decreasing sequence of submodules consisting of the ranges of the iterates of a linear map.
+-/
+@[simps]
+def iterate_range {R M} [ring R] [add_comm_group M] [module R M] (f : M →ₗ[R] M) :
+  ℕ →ₘ order_dual (submodule R M) :=
+⟨λ n, (f ^ n).range, λ n m w x h, begin
+  obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
+  rw linear_map.mem_range at h,
+  obtain ⟨m, rfl⟩ := h,
+  rw linear_map.mem_range,
+  use (f ^ c) m,
+  rw [pow_add, linear_map.mul_apply],
+end⟩
+
 /-- Restrict the codomain of a linear map `f` to `f.range`.
 
 This is the bundled version of `set.range_factorization`. -/
@@ -1484,7 +1589,6 @@ by rw ker_comp; exact comap_mono bot_le
 theorem disjoint_ker {f : M →ₗ[R] M₂} {p : submodule R M} :
   disjoint p (ker f) ↔ ∀ x ∈ p, f x = 0 → x = 0 :=
 by simp [disjoint_def]
-
 
 theorem ker_eq_bot' {f : M →ₗ[R] M₂} :
   ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
@@ -1550,6 +1654,18 @@ begin
   have : disjoint ⊤ f.ker, by { rw [disjoint_ker, ← map_zero f], exact λ x hx H, hf H },
   simpa [disjoint]
 end
+
+/--
+The increasing sequence of submodules consisting of the kernels of the iterates of a linear map.
+-/
+@[simps]
+def iterate_ker {R M} [ring R] [add_comm_group M] [module R M] (f : M →ₗ[R] M) :
+  ℕ →ₘ submodule R M :=
+⟨λ n, (f ^ n).ker, λ n m w x h, begin
+  obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
+  rw linear_map.mem_ker at h,
+  rw [linear_map.mem_ker, add_comm, pow_add, linear_map.mul_apply, h, linear_map.map_zero],
+end⟩
 
 end add_comm_monoid
 
@@ -1925,6 +2041,30 @@ namespace linear_equiv
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
 [add_comm_monoid M₃] [add_comm_monoid M₄]
+
+section subsingleton
+variables [module R M] [module R M₂] [subsingleton M] [subsingleton M₂]
+
+/-- Between two zero modules, the zero map is an equivalence. -/
+instance : has_zero (M ≃ₗ[R] M₂) :=
+⟨{ to_fun := 0,
+   inv_fun := 0,
+   right_inv := λ x, subsingleton.elim _ _,
+   left_inv := λ x, subsingleton.elim _ _,
+   ..(0 : M →ₗ[R] M₂)}⟩
+
+-- Even though these are implied by `subsingleton.elim` via the `unique` instance below, they're
+-- nice to have as `rfl`-lemmas for `dsimp`.
+@[simp] lemma zero_symm : (0 : M ≃ₗ[R] M₂).symm = 0 := rfl
+@[simp] lemma coe_zero : ⇑(0 : M ≃ₗ[R] M₂) = 0 := rfl
+lemma zero_apply (x : M) : (0 : M ≃ₗ[R] M₂) x = 0 := rfl
+
+/-- Between two zero modules, the zero map is the only equivalence. -/
+instance : unique (M ≃ₗ[R] M₂) :=
+{ uniq := λ f, to_linear_map_injective (subsingleton.elim _ _),
+  default := 0 }
+
+end subsingleton
 
 section
 variables {module_M : module R M} {module_M₂ : module R M₂}
@@ -2583,6 +2723,30 @@ rfl
 theorem fun_left_comp (f₁ : n → p) (f₂ : m → n) :
   fun_left R M (f₁ ∘ f₂) = (fun_left R M f₂).comp (fun_left R M f₁) :=
 rfl
+
+theorem fun_left_surjective_of_injective (f : m → n) (hf : injective f) :
+  surjective (fun_left R M f) :=
+begin
+  classical,
+  intro g,
+  refine ⟨λ x, if h : ∃ y, f y = x then g h.some else 0, _⟩,
+  { ext,
+    dsimp only [fun_left_apply],
+    split_ifs with w,
+    { congr,
+      exact hf w.some_spec, },
+    { simpa only [not_true, exists_apply_eq_apply] using w } },
+end
+
+theorem fun_left_injective_of_surjective (f : m → n) (hf : surjective f) :
+  injective (fun_left R M f) :=
+begin
+  obtain ⟨g, hg⟩ := hf.has_right_inverse,
+  suffices : left_inverse (fun_left R M g) (fun_left R M f),
+  { exact this.injective },
+  intro x,
+  simp only [← linear_map.comp_apply, ← fun_left_comp, hg.id, fun_left_id]
+end
 
 /-- Given an `R`-module `M` and an equivalence `m ≃ n` between arbitrary types,
 construct a linear equivalence `(n → M) ≃ₗ[R] (m → M)` -/

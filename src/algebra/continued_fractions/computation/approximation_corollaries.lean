@@ -5,7 +5,7 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.convergents_equiv
-import topology.algebra.ordered
+import topology.algebra.ordered.basic
 /-!
 # Corollaries From Approximation Lemmas (`algebra.continued_fractions.computation.approximations`)
 
@@ -138,7 +138,7 @@ local attribute [instance] preorder.topology
 
 theorem of_convergence [order_topology K] :
   filter.tendsto ((gcf.of v).convergents) filter.at_top $ nhds v :=
-by simpa [linear_ordered_add_comm_group.tendsto_nhds, abs_sub] using (of_convergence_epsilon v)
+by simpa [linear_ordered_add_comm_group.tendsto_nhds, abs_sub_comm] using (of_convergence_epsilon v)
 
 end convergence
 

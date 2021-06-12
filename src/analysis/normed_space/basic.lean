@@ -3,10 +3,12 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.punit_instances
 import topology.instances.nnreal
 import topology.algebra.module
 import topology.algebra.algebra
 import topology.metric_space.antilipschitz
+import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Normed spaces
@@ -84,6 +86,12 @@ noncomputable def semi_normed_group.of_core (α : Type*) [add_comm_group α] [ha
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
              ... = ∥y - x∥ : by { rw [C.norm_neg] } }
+
+instance : normed_group punit :=
+{ norm := function.const _ 0,
+  dist_eq := λ _ _, rfl, }
+
+@[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
 instance : normed_group ℝ :=
 { norm := λ x, abs x,
@@ -200,6 +208,9 @@ lemma norm_le_insert (u v : α) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
 calc ∥v∥ = ∥u - (u - v)∥ : by abel
 ... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _
 
+lemma norm_le_insert' (u v : α) : ∥u∥ ≤ ∥v∥ + ∥u - v∥ :=
+by { rw norm_sub_rev, exact norm_le_insert v u }
+
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
@@ -210,6 +221,9 @@ by rw [mem_ball, dist_eq_norm]
 lemma mem_ball_iff_norm' {g h : α} {r : ℝ} :
   h ∈ ball g r ↔ ∥g - h∥ < r :=
 by rw [mem_ball', dist_eq_norm]
+
+@[simp] lemma mem_ball_0_iff {ε : ℝ} {x : α} : x ∈ ball (0 : α) ε ↔ ∥x∥ < ε :=
+by rw [mem_ball, dist_zero_right]
 
 lemma mem_closed_ball_iff_norm {g h : α} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
@@ -283,11 +297,49 @@ lemma normed_group.tendsto_nhds_nhds {f : α → β} {x : α} {y : β} :
   tendsto f (𝓝 x) (𝓝 y) ↔ ∀ ε > 0, ∃ δ > 0, ∀ x', ∥x' - x∥ < δ → ∥f x' - y∥ < ε :=
 by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 
+lemma normed_group.cauchy_seq_iff {u : ℕ → α} :
+  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, N ≤ m → N ≤ n → ∥u m - u n∥ < ε :=
+by simp [metric.cauchy_seq_iff, dist_eq_norm]
+
+lemma cauchy_seq.add {u v : ℕ → α} (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (u + v) :=
+begin
+  rw normed_group.cauchy_seq_iff at *,
+  intros ε ε_pos,
+  rcases hu (ε/2) (half_pos ε_pos) with ⟨Nu, hNu⟩,
+  rcases hv (ε/2) (half_pos ε_pos) with ⟨Nv, hNv⟩,
+  use max Nu Nv,
+  intros m n hm hn,
+  replace hm := max_le_iff.mp hm,
+  replace hn := max_le_iff.mp hn,
+
+  calc ∥(u + v) m - (u + v) n∥ = ∥u m + v m - (u n + v n)∥ : rfl
+  ... = ∥(u m - u n) + (v m - v n)∥ : by abel
+  ... ≤ ∥u m - u n∥ + ∥v m - v n∥ : norm_add_le _ _
+  ... < ε : by linarith only [hNu m n hm.1 hn.1, hNv m n hm.2 hn.2]
+end
+
+open finset
+
+lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → α} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
+  (hv : cauchy_seq (λ n, ∑ k in range (n+1), v k)) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
+begin
+  let d : ℕ → α := λ n, ∑ k in range (n + 1), (u k - v k),
+  rw show (λ n, ∑ k in range (n + 1), u k) = d + (λ n, ∑ k in range (n + 1), v k),
+    by { ext n, simp [d] },
+  have : ∀ n ≥ N, d n = d N,
+  { intros n hn,
+    dsimp [d],
+    rw eventually_constant_sum _ hn,
+    intros m hm,
+    simp [huv m hm] },
+  exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
+end
+
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
 (semi)normed spaces is in `normed_space.operator_norm`. -/
 lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  lipschitz_with (nnreal.of_real C) f :=
+  lipschitz_with (real.to_nnreal C) f :=
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 lemma lipschitz_on_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} :
@@ -608,6 +660,35 @@ lemma nat.norm_cast_le [has_one α] : ∀ n : ℕ, ∥(n : α)∥ ≤ n * ∥(1 
 | (n + 1) := by { rw [n.cast_succ, n.cast_succ, add_mul, one_mul],
                   exact norm_add_le_of_le (nat.norm_cast_le n) le_rfl }
 
+lemma semi_normed_group.mem_closure_iff {s : set α} {x : α} :
+  x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, ∥x - y∥ < ε :=
+by simp [metric.mem_closure_iff, dist_eq_norm]
+
+lemma norm_le_zero_iff' [separated_space α] {g : α} :
+  ∥g∥ ≤ 0 ↔ g = 0 :=
+begin
+  have : g = 0 ↔ g ∈ closure ({0} : set α),
+  by simpa only [separated_space.out, mem_id_rel, sub_zero] using group_separation_rel g (0 : α),
+  rw [this, semi_normed_group.mem_closure_iff],
+  simp [forall_lt_iff_le']
+end
+
+lemma norm_eq_zero_iff' [separated_space α] {g : α} : ∥g∥ = 0 ↔ g = 0 :=
+begin
+  conv_rhs { rw ← norm_le_zero_iff' },
+  split ; intro h,
+  { rw h },
+  { exact le_antisymm h (norm_nonneg g) }
+end
+
+lemma norm_pos_iff' [separated_space α] {g : α} : 0 < ∥g∥ ↔ g ≠ 0 :=
+begin
+  rw lt_iff_le_and_ne,
+  simp only [norm_nonneg, true_and],
+  rw [ne_comm],
+  exact not_iff_not_of_iff (norm_eq_zero_iff'),
+end
+
 end semi_normed_group
 
 section normed_group
@@ -656,7 +737,7 @@ dist_zero_right g ▸ dist_eq_zero
 dist_zero_right g ▸ dist_pos
 
 @[simp] lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
-by { rw[←dist_zero_right], exact dist_le_zero }
+by { rw [← dist_zero_right], exact dist_le_zero }
 
 lemma eq_of_norm_sub_le_zero {g h : α} (a : ∥g - h∥ ≤ 0) : g = h :=
 by rwa [← sub_eq_zero, ← norm_le_zero_iff]
@@ -771,6 +852,11 @@ class normed_comm_ring (α : Type*) extends normed_ring α :=
 @[priority 100] -- see Note [lower instance priority]
 instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
   semi_normed_comm_ring α := { ..β }
+
+instance : normed_comm_ring punit :=
+{ norm_mul := λ _ _, by simp,
+  ..punit.normed_group,
+  ..punit.comm_ring, }
 
 /-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
 axiom. -/
@@ -1152,6 +1238,40 @@ instance : nondiscrete_normed_field ℚ :=
 
 @[norm_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
 by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
+
+-- Now that we've installed the norm on `ℤ`,
+-- we can state some lemmas about `nsmul` and `gsmul`.
+section
+variables [semi_normed_group α]
+
+lemma norm_nsmul_le (n : ℕ) (a : α) : ∥n • a∥ ≤ n * ∥a∥ :=
+begin
+  induction n with n ih,
+  { simp only [norm_zero, nat.cast_zero, zero_mul, zero_smul] },
+  simp only [nat.succ_eq_add_one, add_smul, add_mul, one_mul, nat.cast_add,
+    nat.cast_one, one_nsmul],
+  exact norm_add_le_of_le ih le_rfl
+end
+
+lemma norm_gsmul_le (n : ℤ) (a : α) : ∥n • a∥ ≤ ∥n∥ * ∥a∥ :=
+begin
+  induction n with n n,
+  { simp only [int.of_nat_eq_coe, gsmul_coe_nat],
+    convert norm_nsmul_le n a,
+    exact nat.abs_cast n },
+  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, gsmul_coe_nat],
+    convert norm_nsmul_le n.succ a,
+    exact nat.abs_cast n.succ, }
+end
+
+lemma nnnorm_nsmul_le (n : ℕ) (a : α) : nnnorm (n • a) ≤ n * nnnorm a :=
+by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
+  using norm_nsmul_le n a
+
+lemma nnnorm_gsmul_le (n : ℤ) (a : α) : nnnorm (n • a) ≤ nnnorm n * nnnorm a :=
+by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_gsmul_le n a
+
+end
 
 section semi_normed_space
 

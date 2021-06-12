@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic
+import data.nat.pow
 import algebra.order_functions
 
 open nat
@@ -166,7 +166,7 @@ sub_lt_self _ zero_lt_one
 theorem add_one_le_iff {a b : ℤ} : a + 1 ≤ b ↔ a < b := iff.rfl
 
 theorem lt_add_one_iff {a b : ℤ} : a < b + 1 ↔ a ≤ b :=
-@add_le_add_iff_right _ _ a b 1
+@add_le_add_iff_right _ a b _ _ _ _ 1
 
 @[simp] lemma succ_coe_nat_pos (n : ℕ) : 0 < (n : ℤ) + 1 :=
 lt_add_one_iff.mpr (by simp)
@@ -818,6 +818,12 @@ theorem mul_sign : ∀ (i : ℤ), i * sign i = nat_abs i
 | 0       := mul_zero _
 | -[1+ n] := mul_neg_one _
 
+@[simp]
+theorem sign_pow_bit1 (k : ℕ) : ∀ n : ℤ, n.sign ^ (bit1 k) = n.sign
+| (n+1:ℕ) := one_pow (bit1 k)
+| 0       := zero_pow (nat.zero_lt_bit1 k)
+| -[1+ n] := (neg_pow_bit1 1 k).trans (congr_arg (λ x, -x) (one_pow (bit1 k)))
+
 theorem le_of_dvd {a b : ℤ} (bpos : 0 < b) (H : a ∣ b) : a ≤ b :=
 match a, b, eq_succ_of_zero_lt bpos, H with
 | (m : ℕ), ._, ⟨n, rfl⟩, H := coe_nat_le_coe_nat_of_le $
@@ -1042,8 +1048,11 @@ begin
   norm_cast,
 end
 
-lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
-to_nat_add h (zero_le_one)
+lemma to_nat_add_nat {a : ℤ} (ha : 0 ≤ a) (n : ℕ) : (a + n).to_nat = a.to_nat + n :=
+begin
+  lift a to ℕ using ha,
+  norm_cast,
+end
 
 @[simp]
 lemma pred_to_nat : ∀ (i : ℤ), (i - 1).to_nat = i.to_nat - 1
@@ -1065,9 +1074,10 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | (m : ℕ) n := option.some_inj.trans coe_nat_inj'.symm
 | -[1+ m] n := by split; intro h; cases h
 
-lemma to_nat_zero_of_neg : ∀ {z : ℤ}, z < 0 → z.to_nat = 0
-| (-[1+n]) _ := rfl
-| (int.of_nat n) h := (not_le_of_gt h $ int.of_nat_nonneg n).elim
+lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
+| (0 : ℕ)     := λ _, rfl
+| (n + 1 : ℕ) := λ h, (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
+| (-[1+ n])  := λ _, rfl
 
 /-! ### units -/
 

@@ -9,6 +9,7 @@ TODO: Generalize GCD monoid to not require normalization in all cases
 -/
 import algebra.associated
 import data.nat.gcd
+import algebra.group_power.lemmas
 
 /-!
 

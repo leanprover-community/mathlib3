@@ -343,7 +343,7 @@ begin
     refine (I.map C : ideal (polynomial R)).sum_mem (λ n hn, _),
     simp [monomial_eq_C_mul_X],
     rw mul_comm,
-    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem (hf n)) }
+    exact (I.map C : ideal (polynomial R)).mul_mem_left _ (mem_map_of_mem _ (hf n)) }
 end
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
@@ -351,7 +351,7 @@ lemma quotient_map_C_eq_zero {I : ideal R} :
 begin
   intros a ha,
   rw [ring_hom.comp_apply, quotient.eq_zero_iff_mem],
-  exact mem_map_of_mem ha,
+  exact mem_map_of_mem _ ha,
 end
 
 lemma eval₂_C_mk_eq_zero {I : ideal R} :
@@ -779,7 +779,7 @@ lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_d
 ring_equiv.is_integral_domain R hR
   ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans (mv_polynomial.pempty_ring_equiv R))
 
-/-- Auxilliary lemma:
+/-- Auxiliary lemma:
 Multivariate polynomials over an integral domain
 with variables indexed by `fin n` form an integral domain.
 This fact is proven inductively,
@@ -800,7 +800,7 @@ lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [finty
   (mv_polynomial.is_integral_domain_fin _ hR _)
   (rename_equiv R (fintype.equiv_fin σ)).to_ring_equiv
 
-/-- Auxilliary definition:
+/-- Auxiliary definition:
 Multivariate polynomials in finitely many variables over an integral domain form an integral domain.
 This fact is proven by transport of structure from the `mv_polynomial.integral_domain_fin`,
 and then used to prove the general case without finiteness hypotheses.
@@ -853,7 +853,7 @@ lemma quotient_map_C_eq_zero {I : ideal R} {i : R} (hi : i ∈ I) :
   (ideal.quotient.mk (ideal.map C I : ideal (mv_polynomial σ R))).comp C i = 0 :=
 begin
   simp only [function.comp_app, ring_hom.coe_comp, ideal.quotient.eq_zero_iff_mem],
-  exact ideal.mem_map_of_mem hi
+  exact ideal.mem_map_of_mem _ hi
 end
 
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself,
@@ -867,7 +867,7 @@ begin
   intros m hm,
   rw [← mul_one (coeff m p), ← C_mul_monomial],
   suffices : C (coeff m p) ∈ I,
-  { exact ideal.mul_mem_right I (monomial m 1) this },
+  { exact I.mul_mem_right (monomial m 1) this },
   simpa [ideal.mem_comap] using hcoe m
 end
 

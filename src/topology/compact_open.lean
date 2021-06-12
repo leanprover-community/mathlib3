@@ -85,12 +85,12 @@ variables {α β}
 -- The evaluation map C(α, β) × α → β is continuous if α is locally compact.
 lemma continuous_ev [locally_compact_space α] : continuous (ev α β) :=
 continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
-  let ⟨v, vn, vo, fxv⟩ := mem_nhds_sets_iff.mp hn in
-  have v ∈ 𝓝 (f x), from mem_nhds_sets vo fxv,
+  let ⟨v, vn, vo, fxv⟩ := mem_nhds_iff.mp hn in
+  have v ∈ 𝓝 (f x), from is_open.mem_nhds vo fxv,
   let ⟨s, hs, sv, sc⟩ :=
     locally_compact_space.local_compact_nhds x (f ⁻¹' v)
       (f.continuous.tendsto x this) in
-  let ⟨u, us, uo, xu⟩ := mem_nhds_sets_iff.mp hs in
+  let ⟨u, us, uo, xu⟩ := mem_nhds_iff.mp hs in
   show (ev α β) ⁻¹' n ∈ 𝓝 (f, x), from
   let w := set.prod (compact_open.gen s v) u in
   have w ⊆ ev α β ⁻¹' n, from assume ⟨f', x'⟩ ⟨hf', hx'⟩, calc
@@ -99,7 +99,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
     ...       ⊆ n            : vn,
   have is_open w, from (is_open_gen sc vo).prod uo,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
-  mem_nhds_sets_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
+  mem_nhds_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 
 end ev
 
@@ -119,7 +119,7 @@ continuous_generated_from $ begin
   intros y hy,
   change (coev α β y) '' s ⊆ u at hy,
   rw image_coev s at hy,
-  rcases generalized_tube_lemma compact_singleton sc uo hy
+  rcases generalized_tube_lemma is_compact_singleton sc uo hy
     with ⟨v, w, vo, wo, yv, sw, vwu⟩,
   refine ⟨v, _, vo, singleton_subset_iff.mp yv⟩,
   intros y' hy',

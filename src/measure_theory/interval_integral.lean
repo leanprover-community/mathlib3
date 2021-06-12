@@ -702,21 +702,21 @@ by simp only [interval_integral, set_integral_congr_ae (measurable_set_Ioc) h,
 
 lemma congr_ae {f g : α → E} (h : ∀ᵐ x ∂μ, x ∈ Ι a b → f x = g x) :
   ∫ (x : α) in a..b, f x ∂μ = ∫ (x : α) in a..b, g x ∂μ :=
-interval_integral.congr_ae' (ae_interval_oc_iff.mp h).1 (ae_interval_oc_iff.mp h).2
+congr_ae' (ae_interval_oc_iff.mp h).1 (ae_interval_oc_iff.mp h).2
 
 lemma integral_zero_ae {f : α → E} (h : ∀ᵐ x ∂μ, x ∈ Ι a b → f x = 0) :
   ∫ (x : α) in a..b, f x ∂μ = 0 :=
-calc ∫ x in a..b, f x ∂μ = ∫ x in a..b, 0 ∂μ : interval_integral.congr_ae h
-                     ... = 0                 : interval_integral.integral_zero
+calc ∫ x in a..b, f x ∂μ = ∫ x in a..b, 0 ∂μ : congr_ae h
+                     ... = 0                 : integral_zero
 
 lemma integral_indicator {a₁ a₂ a₃ : α} (h : a₂ ∈ Icc a₁ a₃) {f : α → E} :
   ∫ x in a₁..a₃, indicator {x | x ≤ a₂} f x ∂ μ = ∫ x in a₁..a₂, f x ∂ μ :=
 begin
   have : {x | x ≤ a₂} ∩ Ioc a₁ a₃ = Ioc a₁ a₂, from Iic_inter_Ioc_of_le h.2,
-  rw [interval_integral.integral_of_le h.1, interval_integral.integral_of_le (h.1.trans h.2),
+  rw [integral_of_le h.1, integral_of_le (h.1.trans h.2),
       integral_indicator, measure.restrict_restrict, this],
   exact measurable_set_Iic,
-  all_goals { apply measurable_set_Iic},
+  all_goals { apply measurable_set_Iic },
 end
 
 end order_closed_topology
@@ -814,7 +814,7 @@ begin
                 le_max_right_of_le $ h₂.trans $ le_max_right _ _⟩ } },
     have : ∀ b ∈ Icc b₁ b₂, ∫ x in a..b, f x ∂μ = ∫ x in a..b₁, f x ∂μ + ∫ x in b₁..b, f x ∂μ,
     { rintros b ⟨h₁, h₂⟩,
-      rw ← interval_integral.integral_add_adjacent_intervals _ (h_int' ⟨h₁, h₂⟩),
+      rw ← integral_add_adjacent_intervals _ (h_int' ⟨h₁, h₂⟩),
       apply h_int.mono_set,
       apply interval_subset_interval,
       { exact ⟨min_le_left_of_le (min_le_left a b₁), le_max_right_of_le (le_max_left _ _)⟩ },
@@ -907,7 +907,7 @@ lemma continuous_on_primitive'' {f : α → E} {a b : α} [has_no_atoms μ]
 variables [no_bot_order α] [no_top_order α] [has_no_atoms μ]
 
 lemma continuous_primitive {f : α → E} (h_int : ∀ a b : α, interval_integrable f μ a b) (a : α) :
-  continuous (λ b, ∫ x in a .. b, f x ∂ μ) :=
+  continuous (λ b, ∫ x in a..b, f x ∂ μ) :=
 begin
   rw continuous_iff_continuous_at,
   intro b₀,
@@ -918,7 +918,7 @@ begin
 end
 
 lemma measure_theory.integrable.continuous_primitive {f : α → E} (h_int : integrable f μ) (a : α) :
-  continuous (λ b, ∫ x in a .. b, f x ∂ μ) :=
+  continuous (λ b, ∫ x in a..b, f x ∂ μ) :=
 continuous_primitive (λ _ _, h_int.interval_integrable) a
 
 end continuous_primitive

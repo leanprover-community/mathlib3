@@ -72,9 +72,9 @@ variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
 @[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
--- TODO: if we use matrix.mul here, we get a timeout
-show matrix.trace n R R (X * Y - Y * X) = 0, by
-erw [linear_map.map_sub, matrix.trace_mul_comm, sub_self]
+calc _ = Tr (X ⬝ Y) - Tr (Y ⬝ X) : linear_map.map_sub _ _ _
+   ... = Tr (X ⬝ Y) - Tr (X ⬝ Y) : congr_arg (λ x, _ - x) (matrix.trace_mul_comm X Y)
+   ... = 0 : sub_self _
 
 namespace special_linear
 

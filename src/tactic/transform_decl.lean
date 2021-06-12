@@ -8,7 +8,8 @@ import tactic.core
 namespace tactic
 
 open expr
-/-- Auxilliary function for `additive_test`. -/
+/-- Auxilliary function for `additive_test`. The bool argument *only* matters when applied
+to exactly a constant. -/
 meta def additive_test_aux (f : name → option name) (ignore : name_map $ list ℕ) :
   bool → expr → bool
 | b (var n)                := tt
@@ -31,8 +32,6 @@ meta def additive_test_aux (f : name → option name) (ignore : name_map $ list 
 /--
 `additive_test f replace_all ignore e` tests whether the expression `e` contains no constant
 `nm` that is not applied to any arguments, and such that `f nm = none`.
-`additive_test e tt` is the same, except that it returns `tt` if the expression itself
-is a constant.
 This is used in `@[to_additive]` for deciding which subexpressions to transform: we only transform
 constants if `additive_test` applied to their first argument returns `tt`.
 This means we will replace expression applied to e.g. `α` or `α × β`, but not when applied to

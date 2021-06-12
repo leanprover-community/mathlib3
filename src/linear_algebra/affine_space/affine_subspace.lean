@@ -894,6 +894,13 @@ begin
   simp [submodule.span_insert_eq_span]
 end
 
+/-- The `vector_span` is the span of the pairwise subtractions with a
+given point on the right, excluding the subtraction of that point from
+itself. -/
+lemma vector_span_eq_span_vsub_finset_right_ne {s : finset P} {p : P} (hp : p ∈ s) :
+  vector_span k (s : set P) = submodule.span k ((s.erase p).image (-ᵥ p)) :=
+by simp [vector_span_eq_span_vsub_set_right_ne _ (finset.mem_coe.mpr hp)]
+
 /-- The `vector_span` of the image of a function is the span of the
 pairwise subtractions with a given point on the left, excluding the
 subtraction of that point from itself. -/

@@ -108,6 +108,10 @@ class order_closed_topology (α : Type*) [topological_space α] [preorder α] : 
 
 instance : Π [topological_space α], topological_space (order_dual α) := id
 
+@[to_additive]
+instance [topological_space α] [has_mul α] [h : has_continuous_mul α] :
+  has_continuous_mul (order_dual α) := h
+
 section order_closed_topology
 
 section preorder
@@ -1071,11 +1075,11 @@ lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
 mem_nhds_iff_exists_Ioo_subset' (no_bot a) (no_top a)
 
-lemma nhds_basis_Ioo' {a : α} (hl : ∃l, l < a) (hu : ∃u, a < u) :
+lemma nhds_basis_Ioo' {a : α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :
   (𝓝 a).has_basis (λ b : α × α, b.1 < a ∧ a < b.2) (λ b, Ioo b.1 b.2) :=
 ⟨λ s, (mem_nhds_iff_exists_Ioo_subset' hl hu).trans $ by simp⟩
 
-lemma nhds_basis_Ioo [no_top_order α] [no_bot_order α] {a : α} :
+lemma nhds_basis_Ioo [no_top_order α] [no_bot_order α] (a : α) :
   (𝓝 a).has_basis (λ b : α × α, b.1 < a ∧ a < b.2) (λ b, Ioo b.1 b.2) :=
 nhds_basis_Ioo' (no_bot a) (no_top a)
 
@@ -1513,11 +1517,11 @@ end
 
 lemma linear_ordered_add_comm_group.tendsto_nhds {x : filter β} {a : α} :
   tendsto f x (𝓝 a) ↔ ∀ ε > (0 : α), ∀ᶠ b in x, |f b - a| < ε :=
-by simp [nhds_eq_infi_abs_sub, abs_sub a]
+by simp [nhds_eq_infi_abs_sub, abs_sub_comm a]
 
 lemma eventually_abs_sub_lt (a : α) {ε : α} (hε : 0 < ε) : ∀ᶠ x in 𝓝 a, |x - a| < ε :=
 (nhds_eq_infi_abs_sub a).symm ▸ mem_infi_sets ε
-  (mem_infi_sets hε $ by simp only [abs_sub, mem_principal_self])
+  (mem_infi_sets hε $ by simp only [abs_sub_comm, mem_principal_self])
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_add_comm_group.topological_add_group : topological_add_group α :=
@@ -1546,7 +1550,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
     end,
   continuous_neg := continuous_iff_continuous_at.2 $ λ a,
     linear_ordered_add_comm_group.tendsto_nhds.2 $ λ ε ε0,
-      (eventually_abs_sub_lt a ε0).mono $ λ x hx, by rwa [neg_sub_neg, abs_sub] }
+      (eventually_abs_sub_lt a ε0).mono $ λ x hx, by rwa [neg_sub_neg, abs_sub_comm] }
 
 @[continuity]
 lemma continuous_abs : continuous (abs : α → α) := continuous_id.max continuous_neg
@@ -1554,6 +1558,48 @@ lemma continuous_abs : continuous (abs : α → α) := continuous_id.max continu
 lemma filter.tendsto.abs {f : β → α} {a : α} {l : filter β} (h : tendsto f l (𝓝 a)) :
   tendsto (λ x, |f x|) l (𝓝 (|a|)) :=
 (continuous_abs.tendsto _).comp h
+
+lemma nhds_basis_Ioo_pos [no_bot_order α] [no_top_order α] (a : α) :
+  (𝓝 a).has_basis (λ ε : α, (0 : α) < ε) (λ ε, Ioo (a-ε) (a+ε)) :=
+⟨begin
+  refine λ t, (nhds_basis_Ioo a).mem_iff.trans ⟨_, _⟩,
+  { rintros ⟨⟨l, u⟩, ⟨hl : l < a, hu : a < u⟩, h' : Ioo l u ⊆ t⟩,
+    refine ⟨min (a-l) (u-a), by apply lt_min; rwa sub_pos, _⟩,
+    rintros x ⟨hx, hx'⟩,
+    apply h',
+    rw [sub_lt, lt_min_iff, sub_lt_sub_iff_left] at hx,
+    rw [← sub_lt_iff_lt_add', lt_min_iff, sub_lt_sub_iff_right] at hx',
+    exact ⟨hx.1, hx'.2⟩ },
+  { rintros ⟨ε, ε_pos, h⟩,
+    exact ⟨(a-ε, a+ε), by simp [ε_pos], h⟩ },
+end⟩
+
+lemma nhds_basis_abs_sub_lt [no_bot_order α] [no_top_order α] (a : α) :
+  (𝓝 a).has_basis (λ ε : α, (0 : α) < ε) (λ ε, {b | abs (b - a) < ε}) :=
+begin
+  convert nhds_basis_Ioo_pos a,
+  { ext ε,
+    change abs (x - a) < ε ↔ a - ε < x ∧ x < a + ε,
+    simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a] },
+end
+
+variable (α)
+
+lemma nhds_basis_zero_abs_sub_lt [no_bot_order α] [no_top_order α] :
+  (𝓝 (0 : α)).has_basis (λ ε : α, (0 : α) < ε) (λ ε, {b | abs b < ε}) :=
+by simpa using nhds_basis_abs_sub_lt (0 : α)
+
+variable {α}
+
+/-- If `a` is positive we can form a basis from only nonnegative `Ioo` intervals -/
+lemma nhds_basis_Ioo_pos_of_pos [no_bot_order α] [no_top_order α]
+  {a : α} (ha : 0 < a) :
+  (𝓝 a).has_basis (λ ε : α, (0 : α) < ε ∧ ε ≤ a) (λ ε, Ioo (a-ε) (a+ε)) :=
+⟨ λ t, (nhds_basis_Ioo_pos a).mem_iff.trans
+  ⟨λ h, let ⟨i, hi, hit⟩ := h in
+    ⟨min i a, ⟨lt_min hi ha, min_le_right i a⟩, trans (Ioo_subset_Ioo
+    (sub_le_sub_left (min_le_left i a) a) (add_le_add_left (min_le_left i a) a)) hit⟩,
+  λ h, let ⟨i, hi, hit⟩ := h in ⟨i, hi.1, hit⟩ ⟩ ⟩
 
 section
 
@@ -1608,6 +1654,125 @@ end linear_ordered_add_comm_group
 section linear_ordered_field
 variables [linear_ordered_field α] [topological_space α] [order_topology α]
 variables {l : filter β} {f g : β → α}
+
+section continuous_mul
+
+lemma mul_tendsto_nhds_zero_right (x : α) :
+  tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 x) $ 𝓝 0 :=
+begin
+  have hx : 0 < 2 * (1 + abs x) := (mul_pos (zero_lt_two) $
+    lt_of_lt_of_le zero_lt_one $ le_add_of_le_of_nonneg le_rfl (abs_nonneg x)),
+  rw ((nhds_basis_zero_abs_sub_lt α).prod $ nhds_basis_abs_sub_lt x).tendsto_iff
+     (nhds_basis_zero_abs_sub_lt α),
+  refine λ ε ε_pos, ⟨(ε/(2 * (1 + abs x)), 1), ⟨div_pos ε_pos hx, zero_lt_one⟩, _⟩,
+  suffices : ∀ (a b : α), abs a < ε / (2 * (1 + abs x)) → abs (b - x) < 1 → (abs a) * (abs b) < ε,
+  by simpa only [and_imp, prod.forall, mem_prod, ← abs_mul],
+  intros a b h h',
+  refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left _ (abs_nonneg a)) ((lt_div_iff hx).1 h),
+  calc abs b = abs ((b - x) + x) : by rw sub_add_cancel b x
+    ... ≤ abs (b - x) + abs x : abs_add (b - x) x
+    ... ≤ 1 + abs x : add_le_add_right (le_of_lt h') (abs x)
+    ... ≤ 2 * (1 + abs x) : by linarith,
+end
+
+lemma mul_tendsto_nhds_zero_left (x : α) :
+  tendsto (uncurry ((*) : α → α → α)) (𝓝 x ×ᶠ 𝓝 0) $ 𝓝 0 :=
+begin
+  intros s hs,
+  have := mul_tendsto_nhds_zero_right x hs,
+  rw [filter.mem_map, mem_prod_iff] at this ⊢,
+  obtain ⟨U, hU, V, hV, h⟩ := this,
+  exact ⟨V, hV, U, hU, λ y hy, ((mul_comm y.2 y.1) ▸
+    h (⟨hy.2, hy.1⟩ : (prod.mk y.2 y.1) ∈ (U.prod V)) : y.1 * y.2 ∈ s)⟩,
+end
+
+lemma nhds_eq_map_mul_left_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
+  𝓝 x₀ = map (λ x, x₀*x) (𝓝 1) :=
+begin
+  have hx₀' : 0 < abs x₀ := abs_pos.2 hx₀,
+  refine filter.ext (λ t, _),
+  simp only [exists_prop, set_of_subset_set_of, (nhds_basis_abs_sub_lt x₀).mem_iff,
+    (nhds_basis_abs_sub_lt (1 : α)).mem_iff, filter.mem_map],
+  refine ⟨λ h, _, λ h, _⟩,
+  { obtain ⟨i, hi, hit⟩ := h,
+    refine ⟨i / (abs x₀), div_pos hi (abs_pos.2 hx₀), λ x hx, hit _⟩,
+    calc abs (x₀ * x - x₀) = abs (x₀ * (x - 1)) : congr_arg abs (by ring_nf)
+      ... = abs x₀ * abs (x - 1) : abs_mul x₀ (x - 1)
+      ... < abs x₀ * (i / abs x₀) : mul_lt_mul' le_rfl hx (abs_nonneg (x - 1)) (abs_pos.2 hx₀)
+      ... = abs x₀ * i / abs x₀ : by ring
+      ... = i : mul_div_cancel_left i (λ h, hx₀ (abs_eq_zero.1 h)) },
+  { obtain ⟨i, hi, hit⟩ := h,
+    refine ⟨i * (abs x₀), mul_pos hi (abs_pos.2 hx₀), λ x hx, _⟩,
+    have : abs (x / x₀ - 1) < i,
+    calc abs (x / x₀ - 1) = abs (x / x₀ - x₀ / x₀) : (by rw div_self hx₀)
+    ... = abs ((x - x₀) / x₀) : congr_arg abs (sub_div x x₀ x₀).symm
+    ... = abs (x - x₀) / abs x₀ : abs_div (x - x₀) x₀
+    ... < i * abs x₀ / abs x₀ : div_lt_div hx le_rfl
+      (mul_nonneg (le_of_lt hi) (abs_nonneg x₀)) (abs_pos.2 hx₀)
+    ... = i : by rw [← mul_div_assoc', div_self (ne_of_lt $ abs_pos.2 hx₀).symm, mul_one],
+    specialize hit (x / x₀) this,
+    rwa [mul_div_assoc', mul_div_cancel_left x hx₀] at hit }
+end
+
+lemma nhds_eq_map_mul_right_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
+  𝓝 x₀ = map (λ x, x*x₀) (𝓝 1) :=
+by simp_rw [mul_comm _ x₀, nhds_eq_map_mul_left_nhds_one hx₀]
+
+lemma mul_tendsto_nhds_one_nhds_one :
+  tendsto (uncurry ((*) : α → α → α)) (𝓝 1 ×ᶠ 𝓝 1) $ 𝓝 1 :=
+begin
+  rw ((nhds_basis_Ioo_pos (1 : α)).prod $ nhds_basis_Ioo_pos (1 : α)).tendsto_iff
+     (nhds_basis_Ioo_pos_of_pos (zero_lt_one : (0 : α) < 1)),
+  intros ε hε,
+  have hε' : 0 ≤ 1 - ε / 4 := by linarith,
+  have ε_pos : 0 < ε / 4 := by linarith,
+  have ε_pos' : 0 < ε / 2 := by linarith,
+  simp only [and_imp, prod.forall, mem_Ioo, function.uncurry_apply_pair, mem_prod, prod.exists],
+  refine ⟨ε/4, ε/4, ⟨ε_pos, ε_pos⟩, λ a b ha ha' hb hb', _⟩,
+  have ha0 : 0 ≤ a := le_trans hε' (le_of_lt ha),
+  have hb0 : 0 ≤ b := le_trans hε' (le_of_lt hb),
+  refine ⟨lt_of_le_of_lt _ (mul_lt_mul'' ha hb hε' hε'),
+    lt_of_lt_of_le (mul_lt_mul'' ha' hb' ha0 hb0) _⟩,
+  { calc 1 - ε = 1 - ε / 2 - ε/2 : by ring_nf
+    ... ≤ 1 - ε/2 - ε/2 + (ε/2)*(ε/2) : le_add_of_nonneg_right (le_of_lt (mul_pos ε_pos' ε_pos'))
+    ... = (1 - ε/2) * (1 - ε/2) : by ring_nf
+    ... ≤ (1 - ε/4) * (1 - ε/4) : mul_le_mul (by linarith) (by linarith) (by linarith) hε' },
+  { calc (1 + ε/4) * (1 + ε/4) = 1 + ε/2 + (ε/4)*(ε/4) : by ring_nf
+    ... = 1 + ε/2 + (ε * ε) / 16 : by ring_nf
+    ... ≤ 1 + ε/2 + ε/2 : add_le_add_left (div_le_div (le_of_lt hε.1) (le_trans
+      ((mul_le_mul_left hε.1).2 hε.2) (le_of_eq $ mul_one ε)) zero_lt_two (by linarith)) (1 + ε/2)
+    ... ≤ 1 + ε : by ring_nf }
+end
+
+@[priority 100]
+instance linear_ordered_field.has_continuous_mul : has_continuous_mul α :=
+⟨begin
+  rw continuous_iff_continuous_at,
+  rintro ⟨x₀, y₀⟩,
+  by_cases hx₀ : x₀ = 0,
+  { rw [hx₀, continuous_at, zero_mul, nhds_prod_eq],
+    exact mul_tendsto_nhds_zero_right y₀ },
+  by_cases hy₀ : y₀ = 0,
+  { rw [hy₀, continuous_at, mul_zero, nhds_prod_eq],
+    exact mul_tendsto_nhds_zero_left x₀ },
+  have hxy : x₀ * y₀ ≠ 0 := mul_ne_zero hx₀ hy₀,
+  have key : (λ p : α × α, x₀ * p.1 * (p.2 * y₀)) = ((λ x, x₀*x) ∘ (λ x, x*y₀)) ∘ (uncurry (*)),
+  { ext p, simp [uncurry, mul_assoc] },
+  have key₂ : (λ x, x₀*x) ∘ (λ x, y₀*x) = λ x, (x₀ *y₀)*x,
+  { ext x, simp },
+  calc map (uncurry (*)) (𝓝 (x₀, y₀))
+      = map (uncurry (*)) (𝓝 x₀ ×ᶠ 𝓝 y₀) : by rw nhds_prod_eq
+  ... = map (λ (p : α × α), x₀ * p.1 * (p.2 * y₀)) ((𝓝 1) ×ᶠ (𝓝 1))
+          : by rw [uncurry, nhds_eq_map_mul_left_nhds_one hx₀, nhds_eq_map_mul_right_nhds_one hy₀,
+                    prod_map_map_eq, filter.map_map]
+  ... = map ((λ x, x₀ * x) ∘ λ x, x * y₀) (map (uncurry (*)) (𝓝 1 ×ᶠ 𝓝 1))
+          : by rw [key, ← filter.map_map]
+  ... ≤ map ((λ (x : α), x₀ * x) ∘ λ x, x * y₀) (𝓝 1) : map_mono (mul_tendsto_nhds_one_nhds_one)
+  ... = 𝓝 (x₀*y₀) : by rw [← filter.map_map, ← nhds_eq_map_mul_right_nhds_one hy₀,
+    nhds_eq_map_mul_left_nhds_one hy₀, filter.map_map, key₂, ← nhds_eq_map_mul_left_nhds_one hxy],
+end⟩
+
+end continuous_mul
 
 /-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
 a positive constant `C` then `f * g` tends to `at_top`. -/
@@ -1718,6 +1883,47 @@ begin
   apply tendsto.congr (show ∀ x : α, x^-(-n) = x^n, by simp),
   lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
   exact tendsto_pow_neg_at_top (by exact_mod_cast this)
+end
+
+lemma tendsto_const_mul_fpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :
+  tendsto (λ x, c * x ^ n) at_top (𝓝 0) :=
+(mul_zero c) ▸ (filter.tendsto.const_mul c (tendsto_fpow_at_top_zero hn))
+
+lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { have hn : n = 0,
+    { by_contradiction hn,
+      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne (zero_le _) (ne.symm hn)),
+      by_cases hc' : 0 < c,
+      { have := (tendsto_const_mul_pow_at_top_iff c n).2 ⟨hn, hc'⟩,
+        exact not_tendsto_nhds_of_tendsto_at_top this d h },
+      { have := (tendsto_neg_const_mul_pow_at_top_iff c n).2 ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
+        exact not_tendsto_nhds_of_tendsto_at_bot this d h } },
+    have : (λ x : α, c * x ^ n) = (λ x : α, c), by simp [hn],
+    rw [this, tendsto_const_nhds_iff] at h,
+    exact ⟨hn, h⟩ },
+  { obtain ⟨hn, hcd⟩ := h,
+    simpa [hn, hcd] using tendsto_const_nhds }
+end
+
+lemma tendsto_const_mul_fpow_at_top_zero_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
+  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔
+    (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { by_cases hn : 0 ≤ n,
+    { lift n to ℕ using hn,
+      simp only [gpow_coe_nat] at h,
+      rw [tendsto_const_mul_pow_nhds_iff hc, ← int.coe_nat_eq_zero] at h,
+      exact or.inl h },
+    { rw not_le at hn,
+      refine or.inr ⟨hn, tendsto_nhds_unique h (tendsto_const_mul_fpow_at_top_zero hn)⟩ } },
+  { cases h,
+    { simp only [h.left, h.right, gpow_zero, mul_one],
+      exact tendsto_const_nhds },
+    { exact h.2.symm ▸ tendsto_const_mul_fpow_at_top_zero h.1} }
 end
 
 end linear_ordered_field
@@ -2849,6 +3055,19 @@ lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
 if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 
+lemma tendsto_iff_tendsto_subseq_of_monotone {ι₁ ι₂ α : Type*} [semilattice_sup ι₁] [preorder ι₂]
+  [nonempty ι₁] [topological_space α] [conditionally_complete_linear_order α] [order_topology α]
+  [no_top_order α] {f : ι₂ → α} {φ : ι₁ → ι₂} {l : α} (hf : monotone f)
+  (hg : tendsto φ at_top at_top) :
+  tendsto f at_top (𝓝 l) ↔ tendsto (f ∘ φ) at_top (𝓝 l) :=
+begin
+  split; intro h,
+  { exact h.comp hg },
+  { rcases tendsto_of_monotone hf with h' | ⟨l', hl'⟩,
+    { exact (not_tendsto_at_top_of_tendsto_nhds h (h'.comp hg)).elim },
+    { rwa tendsto_nhds_unique h (hl'.comp hg) } }
+end
+
 lemma supr_eq_of_tendsto {α β} [topological_space α] [complete_linear_order α] [order_topology α]
   [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f) :
   tendsto f at_top (𝓝 a) → supr f = a :=
@@ -2858,6 +3077,24 @@ lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] 
   [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) :
   tendsto f at_top (𝓝 a) → infi f = a :=
 tendsto_nhds_unique (tendsto_at_top_infi hf)
+
+lemma supr_eq_supr_subseq_of_monotone {ι₁ ι₂ α : Type*} [preorder ι₂] [complete_lattice α]
+  {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : monotone f)
+  (hφ : tendsto φ l at_top) :
+  (⨆ i, f i) = (⨆ i, f (φ i)) :=
+le_antisymm
+  (supr_le_supr2 $ λ i, exists_imp_exists (λ j (hj : i ≤ φ j), hf hj)
+    (hφ.eventually $ eventually_ge_at_top i).exists)
+  (supr_le_supr2 $ λ i, ⟨φ i, le_refl _⟩)
+
+lemma infi_eq_infi_subseq_of_monotone {ι₁ ι₂ α : Type*} [preorder ι₂] [complete_lattice α]
+  {l : filter ι₁} [l.ne_bot] {f : ι₂ → α} {φ : ι₁ → ι₂} (hf : monotone f)
+  (hφ : tendsto φ l at_bot) :
+  (⨅ i, f i) = (⨅ i, f (φ i)) :=
+le_antisymm
+  (infi_le_infi2 $ λ i, ⟨φ i, le_refl _⟩)
+  (infi_le_infi2 $ λ i, exists_imp_exists (λ j (hj : φ j ≤ i), hf hj)
+    (hφ.eventually $ eventually_le_at_bot i).exists)
 
 @[to_additive] lemma tendsto_inv_nhds_within_Ioi [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :

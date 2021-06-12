@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic
+import data.nat.pow
 import algebra.order_functions
 
 open nat
@@ -1048,8 +1048,11 @@ begin
   norm_cast,
 end
 
-lemma to_nat_add_one {a : ℤ} (h : 0 ≤ a) : (a + 1).to_nat = a.to_nat + 1 :=
-to_nat_add h (zero_le_one)
+lemma to_nat_add_nat {a : ℤ} (ha : 0 ≤ a) (n : ℕ) : (a + n).to_nat = a.to_nat + n :=
+begin
+  lift a to ℕ using ha,
+  norm_cast,
+end
 
 @[simp]
 lemma pred_to_nat : ∀ (i : ℤ), (i - 1).to_nat = i.to_nat - 1
@@ -1071,9 +1074,10 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | (m : ℕ) n := option.some_inj.trans coe_nat_inj'.symm
 | -[1+ m] n := by split; intro h; cases h
 
-lemma to_nat_zero_of_neg : ∀ {z : ℤ}, z < 0 → z.to_nat = 0
-| (-[1+n]) _ := rfl
-| (int.of_nat n) h := (not_le_of_gt h $ int.of_nat_nonneg n).elim
+lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
+| (0 : ℕ)     := λ _, rfl
+| (n + 1 : ℕ) := λ h, (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
+| (-[1+ n])  := λ _, rfl
 
 /-! ### units -/
 

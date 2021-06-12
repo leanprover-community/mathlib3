@@ -36,10 +36,10 @@ begin
   exact zero_le_one,
 end
 
-example {R : Type} [ordered_ring R] : 0 ≤ (1 : R) :=
+example {R : Type} [ordered_ring R] : 0 ≤ (2 : R) :=
 begin
   success_if_fail { nontriviality punit },
-  exact zero_le_one,
+  exact zero_le_two,
 end
 
 example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 2 ∣ 4 :=

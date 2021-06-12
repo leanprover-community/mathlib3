@@ -84,6 +84,12 @@ instance is_filtered_of_semilattice_sup_top
 { nonempty := ⟨⊤⟩,
   ..category_theory.is_filtered_or_empty_of_semilattice_sup α }
 
+@[priority 100]
+instance is_filtered_of_semilattice_sup_bot
+  (α : Type u) [semilattice_sup_bot α] : is_filtered α :=
+{ nonempty := ⟨⊥⟩,
+  ..category_theory.is_filtered_or_empty_of_semilattice_sup α }
+
 namespace is_filtered
 
 variables {C} [is_filtered C]
@@ -294,6 +300,12 @@ instance is_cofiltered_or_empty_of_semilattice_inf
 instance is_cofiltered_of_semilattice_inf_bot
   (α : Type u) [semilattice_inf_bot α] : is_cofiltered α :=
 { nonempty := ⟨⊥⟩,
+  ..category_theory.is_cofiltered_or_empty_of_semilattice_inf α }
+
+@[priority 100]
+instance is_cofiltered_of_semilattice_inf_top
+  (α : Type u) [semilattice_inf_top α] : is_cofiltered α :=
+{ nonempty := ⟨⊤⟩,
   ..category_theory.is_cofiltered_or_empty_of_semilattice_inf α }
 
 namespace is_cofiltered

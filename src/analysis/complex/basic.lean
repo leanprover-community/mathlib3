@@ -119,7 +119,7 @@ lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_li.isometry
 
 @[simp] lemma conj_clm_apply (z : ℂ) : (conj_clm : ℂ → ℂ) z = z.conj := rfl
 
-@[simp] lemma conj_clm_norm : ∥conj_clm.to_continuous_linear_map∥ = 1 :=
+@[simp] lemma conj_clm_norm : ∥(conj_clm : ℂ →L[ℝ] ℂ)∥ = 1 :=
 conj_li.to_linear_isometry.norm_to_continuous_linear_map
 
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/

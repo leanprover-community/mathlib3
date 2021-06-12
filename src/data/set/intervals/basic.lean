@@ -1160,14 +1160,7 @@ lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b
 by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
 lemma Iic_inter_Ioc_of_le (h : a₂ ≤ a) : Iic a₂ ∩ Ioc a₁ a = Ioc a₁ a₂ :=
-begin
-  ext x,
-  split,
-  { rintros ⟨H, H', H''⟩,
-    exact ⟨H', H⟩ },
-  { rintros ⟨H, H'⟩,
-    exact ⟨H', H, H'.trans h⟩ }
-end
+ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
 
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
 ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}

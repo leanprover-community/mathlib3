@@ -67,7 +67,9 @@ distrib.right_distrib a b c
 
 alias right_distrib ← add_mul
 
-/-- Pullback a `distrib` instance along an injective function. -/
+/-- Pullback a `distrib` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.distrib {S} [has_mul R] [has_add R] [distrib S]
   (f : R → S) (hf : injective f) (add : ∀ x y, f (x + y) = f x + f y)
   (mul : ∀ x y, f (x * y) = f x * f y) :
@@ -77,7 +79,9 @@ protected def function.injective.distrib {S} [has_mul R] [has_add R] [distrib S]
   left_distrib := λ x y z, hf $ by simp only [*, left_distrib],
   right_distrib := λ x y z, hf $ by simp only [*, right_distrib] }
 
-/-- Pushforward a `distrib` instance along a surjective function. -/
+/-- Pushforward a `distrib` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.distrib {S} [distrib R] [has_add S] [has_mul S]
   (f : R → S) (hf : surjective f) (add : ∀ x y, f (x + y) = f x + f y)
   (mul : ∀ x y, f (x * y) = f x * f y) :
@@ -117,7 +121,9 @@ section injective_surjective_maps
 
 variables [has_zero β] [has_add β] [has_mul β]
 
-/-- Pullback a `non_unital_non_assoc_semiring` instance along an injective function. -/
+/-- Pullback a `non_unital_non_assoc_semiring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.non_unital_non_assoc_semiring
   {α : Type u} [non_unital_non_assoc_semiring α]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
@@ -125,7 +131,9 @@ protected def function.injective.non_unital_non_assoc_semiring
   non_unital_non_assoc_semiring β :=
 { .. hf.mul_zero_class f zero mul, .. hf.add_comm_monoid f zero add, .. hf.distrib f add mul }
 
-/-- Pullback a `non_unital_semiring` instance along an injective function. -/
+/-- Pullback a `non_unital_semiring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.non_unital_semiring
   {α : Type u} [non_unital_semiring α]
   (f : β → α) (hf : injective f) (zero : f 0 = 0)
@@ -133,7 +141,9 @@ protected def function.injective.non_unital_semiring
   non_unital_semiring β :=
 { .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.semigroup_with_zero f zero mul }
 
-/-- Pullback a `non_assoc_semiring` instance along an injective function. -/
+/-- Pullback a `non_assoc_semiring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α] [has_one β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -141,7 +151,9 @@ protected def function.injective.non_assoc_semiring
   non_assoc_semiring β :=
 { .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.mul_one_class f one mul }
 
-/-- Pullback a `semiring` instance along an injective function. -/
+/-- Pullback a `semiring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.semiring
   {α : Type u} [semiring α] [has_one β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -150,7 +162,9 @@ protected def function.injective.semiring
 { .. hf.monoid_with_zero f zero one mul, .. hf.add_comm_monoid f zero add,
   .. hf.distrib f add mul }
 
-/-- Pushforward a `non_unital_non_assoc_semiring` instance along a surjective function. -/
+/-- Pushforward a `non_unital_non_assoc_semiring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.non_unital_non_assoc_semiring
   {α : Type u} [non_unital_non_assoc_semiring α]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
@@ -158,7 +172,9 @@ protected def function.surjective.non_unital_non_assoc_semiring
   non_unital_non_assoc_semiring β :=
 { .. hf.mul_zero_class f zero mul, .. hf.add_comm_monoid f zero add, .. hf.distrib f add mul }
 
-/-- Pushforward a `non_unital_semiring` instance along a surjective function. -/
+/-- Pushforward a `non_unital_semiring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.non_unital_semiring
   {α : Type u} [non_unital_semiring α]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0)
@@ -166,7 +182,9 @@ protected def function.surjective.non_unital_semiring
   non_unital_semiring β :=
 { .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.semigroup_with_zero f zero mul }
 
-/-- Pushforward a `non_assoc_semiring` instance along a surjective function. -/
+/-- Pushforward a `non_assoc_semiring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α] [has_one β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -174,7 +192,9 @@ protected def function.surjective.non_assoc_semiring
   non_assoc_semiring β :=
 { .. hf.non_unital_non_assoc_semiring f zero add mul, .. hf.mul_one_class f one mul }
 
-/-- Pushforward a `semiring` instance along a surjective function. -/
+/-- Pushforward a `semiring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.semiring
   {α : Type u} [semiring α] [has_one β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -514,14 +534,18 @@ instance comm_semiring.to_comm_monoid_with_zero [comm_semiring α] : comm_monoid
 section comm_semiring
 variables [comm_semiring α] [comm_semiring β] {a b c : α}
 
-/-- Pullback a `semiring` instance along an injective function. -/
+/-- Pullback a `semiring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
   (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
   comm_semiring γ :=
 { .. hf.semiring f zero one add mul, .. hf.comm_semigroup f mul }
 
-/-- Pullback a `semiring` instance along an injective function. -/
+/-- Pullback a `semiring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_add γ] [has_mul γ]
   (f : α → γ) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
@@ -563,7 +587,9 @@ instance ring.to_semiring : semiring α :=
     by rw [← mul_add, add_zero, add_zero],
   ..‹ring α› }
 
-/-- Pullback a `ring` instance along an injective function. -/
+/-- Pullback a `ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -572,7 +598,9 @@ protected def function.injective.ring
   ring β :=
 { .. hf.add_comm_group f zero add neg sub, .. hf.monoid f one mul, .. hf.distrib f add mul }
 
-/-- Pullback a `ring` instance along an injective function. -/
+/-- Pullback a `ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -719,7 +747,9 @@ instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 section comm_ring
 variables [comm_ring α] {a b c : α}
 
-/-- Pullback a `comm_ring` instance along an injective function. -/
+/-- Pullback a `comm_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.comm_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -728,7 +758,9 @@ protected def function.injective.comm_ring
   comm_ring β :=
 { .. hf.ring f zero one add mul neg sub, .. hf.comm_semigroup f mul }
 
-/-- Pullback a `comm_ring` instance along an injective function. -/
+/-- Pullback a `comm_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.surjective.comm_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -868,7 +900,9 @@ instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
     by { rw [← sub_eq_zero, ← sub_mul], simp [hb, sub_eq_zero] },
   .. (infer_instance : semiring α) }
 
-/-- Pullback a `domain` instance along an injective function. -/
+/-- Pullback a `domain` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.domain [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β]
   [has_sub β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
@@ -896,7 +930,9 @@ variables [integral_domain α] {a b c d e : α}
 instance integral_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero α :=
 { ..comm_semiring.to_comm_monoid_with_zero, ..domain.to_cancel_monoid_with_zero }
 
-/-- Pullback an `integral_domain` instance along an injective function. -/
+/-- Pullback an `integral_domain` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def function.injective.integral_domain [has_zero β] [has_one β] [has_add β] [has_mul β]
   [has_neg β] [has_sub β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)

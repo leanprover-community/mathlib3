@@ -108,6 +108,7 @@ def Eb (h : j ≠ i) : sl n R :=
 
 @[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
 
+
 end elementary_basis
 
 lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬is_lie_abelian ↥(sl n R) :=

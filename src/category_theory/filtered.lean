@@ -79,16 +79,12 @@ instance is_filtered_or_empty_of_semilattice_sup
   cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, (by ext)⟩, }
 
 @[priority 100]
-instance is_filtered_of_semilattice_sup_top
-  (α : Type u) [semilattice_sup_top α] : is_filtered α :=
-{ nonempty := ⟨⊤⟩,
-  ..category_theory.is_filtered_or_empty_of_semilattice_sup α }
+instance is_filtered_of_semilattice_sup_anonempty
+  (α : Type u) [semilattice_sup α] [nonempty α] : is_filtered α := {}
 
-@[priority 100]
-instance is_filtered_of_semilattice_sup_bot
-  (α : Type u) [semilattice_sup_bot α] : is_filtered α :=
-{ nonempty := ⟨⊥⟩,
-  ..category_theory.is_filtered_or_empty_of_semilattice_sup α }
+-- Sanity checks
+example (α : Type u) [semilattice_sup_bot α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup_top α] : is_filtered α := by apply_instance
 
 namespace is_filtered
 
@@ -297,16 +293,12 @@ instance is_cofiltered_or_empty_of_semilattice_inf
   cocone_maps := λ X Y f g, ⟨X, 𝟙 _, (by ext)⟩, }
 
 @[priority 100]
-instance is_cofiltered_of_semilattice_inf_bot
-  (α : Type u) [semilattice_inf_bot α] : is_cofiltered α :=
-{ nonempty := ⟨⊥⟩,
-  ..category_theory.is_cofiltered_or_empty_of_semilattice_inf α }
+instance is_cofiltered_of_semilattice_inf_nonempty
+  (α : Type u) [semilattice_inf α] [nonempty α] : is_cofiltered α := {}
 
-@[priority 100]
-instance is_cofiltered_of_semilattice_inf_top
-  (α : Type u) [semilattice_inf_top α] : is_cofiltered α :=
-{ nonempty := ⟨⊤⟩,
-  ..category_theory.is_cofiltered_or_empty_of_semilattice_inf α }
+-- Sanity checks
+example (α : Type u) [semilattice_inf_bot α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf_top α] : is_cofiltered α := by apply_instance
 
 namespace is_cofiltered
 

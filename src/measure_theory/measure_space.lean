@@ -2251,7 +2251,7 @@ by {simp_rw [measure.trim], exact (@le_to_measure_apply _ m _ _ _), }
 lemma measure_eq_zero_of_trim_eq_zero (hm : m ≤ m0) (h : μ.trim hm s = 0) : μ s = 0 :=
 le_antisymm ((le_trim hm).trans (le_of_eq h)) (zero_le _)
 
-lemma measure_trim_to_measurable_null {hm : m ≤ m0} (hs : μ.trim hm s = 0) :
+lemma measure_trim_to_measurable_eq_zero {hm : m ≤ m0} (hs : μ.trim hm s = 0) :
   μ (@to_measurable α m (μ.trim hm) s) = 0 :=
 measure_eq_zero_of_trim_eq_zero hm (by rwa measure_to_measurable)
 

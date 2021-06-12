@@ -107,24 +107,6 @@ begin
   exact or.inr (le_antisymm h₂ (nat.succ_le_of_lt h)),
 end
 
-/-- The natural floor. Equal to ⌊x⌋ for positive numbers and to 0 for negative ones. -/
-noncomputable def nat_floor (x : ℝ) : ℕ := ⌊x⌋.to_nat
-
-lemma lt_nat_floor_add_one (x : ℝ) : x < nat_floor x + 1 :=
-begin
-  refine (lt_floor_add_one x).trans_le (add_le_add_right _ 1),
-  norm_cast,
-  exact int.le_to_nat _,
-end
-
-lemma le_nat_floor_of_le {n : ℕ} {x : ℝ} (h : ↑n ≤ x): n ≤ nat_floor x :=
-begin
-  have := int.le_to_nat n,
-  norm_cast at this,
-  refine this.trans (int.to_nat_le_to_nat _),
-  rwa le_floor,
-end
-
 namespace real
 
 lemma lt_pow_iff_log_lt {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) :
@@ -156,14 +138,6 @@ lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) :
 by rw [←exp_le_exp, exp_log ha]
 
 end real
-
-lemma lt_max_of_lt_right {α : Type*} [linear_order α] {a b c : α} (h : a < c) :
-  a < max b c :=
-lt_of_lt_of_le h (le_max_right b c)
-
-lemma lt_max_of_lt_left {α : Type*} [linear_order α] {a b c : α} (h : a < b) :
-  a < max b c :=
-lt_of_lt_of_le h (le_max_left b c)
 
 theorem abs_sub_le_abs_add_abs {α : Type*} [linear_ordered_add_comm_group α] (a b : α) :
   abs (a - b) ≤ abs a + abs b :=
@@ -291,180 +265,163 @@ begin
   simp_rw [between_nat_iff],
 end
 
-namespace simple_graph
-variables {V : Type u} [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
+namespace relation
+variables {V : Type u} [decidable_eq V] (r : V → V → Prop) [∀ v, decidable_pred (r v)]
 
 /-- Finset of edges between two finsets of vertices -/
-def edges_pair_finset (U W : finset V) : finset (V × V) :=
-(U.product W).filter (λ e, G.adj e.1 e.2)
+def pairs_finset (U W : finset V) : finset (V × V) :=
+(U.product W).filter (λ e, r e.1 e.2)
 
-lemma mem_edges_pair_finset (U W : finset V) (x : V × V) :
-  x ∈ G.edges_pair_finset U W ↔ x.1 ∈ U ∧ x.2 ∈ W ∧ G.adj x.1 x.2 :=
-by simp [edges_pair_finset, and_assoc]
+lemma mem_pairs_finset (U W : finset V) (x : V × V) :
+  x ∈ pairs_finset r U W ↔ x.1 ∈ U ∧ x.2 ∈ W ∧ r x.1 x.2 :=
+by simp only [pairs_finset, and_assoc, mem_filter, finset.mem_product]
 
-lemma mem_edges_pair_finset' (U W : finset V) (x y : V) :
-  (x, y) ∈ G.edges_pair_finset U W ↔ x ∈ U ∧ y ∈ W ∧ G.adj x y :=
-mem_edges_pair_finset _ _ _ _
+lemma mem_pairs_finset' (U W : finset V) (x y : V) :
+  (x, y) ∈ pairs_finset r U W ↔ x ∈ U ∧ y ∈ W ∧ r x y :=
+mem_pairs_finset _ _ _ _
 
-lemma edges_pair_finset_empty_left (W : finset V) :
-  G.edges_pair_finset ∅ W = ∅ :=
-by rw [edges_pair_finset, finset.product_empty_left, filter_empty]
+lemma pairs_finset_empty_left (W : finset V) :
+  pairs_finset r ∅ W = ∅ :=
+by rw [pairs_finset, finset.product_empty_left, filter_empty]
 
-/-- Number of edges between two finsets of vertices -/
-def edges_count_pair (U W : finset V) : ℕ :=
-(G.edges_pair_finset U W).card
-
-lemma edges_count_pair_symm (U W : finset V) :
-  G.edges_count_pair U W = G.edges_count_pair W U :=
+lemma pairs_finset_mono {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
+  pairs_finset r A' B' ⊆ pairs_finset r A B :=
 begin
-  apply finset.card_congr (λ (i : V × V) hi, (i.2, i.1)) _ _ _,
-  { rintro ⟨i, j⟩ h,
-    simp only [mem_edges_pair_finset'] at h ⊢,
-    rwa [G.edge_symm, and.left_comm] },
-  { rintro ⟨i₁, j₁⟩ ⟨i₂, j₂⟩ h₁ h₂ h,
-    rcases h,
-    refl },
-  rintro ⟨i₁, j₁⟩ h,
-  refine ⟨⟨j₁, i₁⟩, _, rfl⟩,
-  simp only [mem_edges_pair_finset'] at h ⊢,
-  rwa [G.edge_symm, and.left_comm],
-end
-
-lemma edges_count_empty_left (W : finset V) :
-  G.edges_count_pair ∅ W = 0 :=
-by rw [edges_count_pair, edges_pair_finset_empty_left, finset.card_empty]
-
-lemma edges_count_mono {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
-  G.edges_count_pair A' B' ≤ G.edges_count_pair A B :=
-begin
-  refine finset.card_le_of_subset (λ x, _),
-  rw [mem_edges_pair_finset, mem_edges_pair_finset],
+  intro x,
+  rw [mem_pairs_finset, mem_pairs_finset],
   exact λ h, ⟨hA h.1, hB h.2.1, h.2.2⟩,
 end
 
-lemma edges_count_pair_compl (U W : finset V) :
-  G.edges_count_pair U W + Gᶜ.edges_count_pair U W = U.card * W.card :=
+lemma card_pairs_finset_compl (U W : finset V) :
+  (pairs_finset r U W).card + (pairs_finset (λ x y, ¬r x y) U W).card = U.card * W.card :=
 begin
-  rw ←finset.card_product,
-  rw edges_count_pair,
-  rw edges_count_pair,
-  rw edges_pair_finset,
-  rw edges_pair_finset,
-  simp_rw simple_graph.compl_adj,
-  rw ←finset.card_union_eq,
-  sorry,
-  sorry
-  --rw finset.filter_union_filter_neg_eq,
-  --have := finset.filter
-  --rw eq_sub_iff_add_eq',
+  rw [←finset.card_product, pairs_finset, pairs_finset, ←finset.card_union_eq,
+    finset.filter_union_filter_neg_eq],
+  rw finset.disjoint_filter,
+  exact λ x _, not_not.2,
 end
-
-/-- Number of edges between a pair of finsets of vertices. `sym2` variant of `edges_count_pair`. -/
-def edges_count_sym2 : sym2 (finset V) → ℕ :=
-quotient.lift (function.uncurry (edges_count_pair G))
-  (by { rintros _ _ ⟨_, _⟩, { refl }, apply edges_count_pair_symm })
 
 /-- Edge density between two finsets of vertices -/
-noncomputable def density_pair (U W : finset V) : ℝ :=
-G.edges_count_pair U W / (U.card * W.card)
+noncomputable def pairs_density (U W : finset V) : ℝ :=
+(pairs_finset r U W).card / (U.card * W.card)
 
-lemma density_pair_symm (U W : finset V) : G.density_pair U W = G.density_pair W U :=
-begin
-  rw [density_pair, mul_comm, edges_count_pair_symm],
-  refl
-end
-
-lemma density_pair_nonneg (U W : finset V) :
-  0 ≤ G.density_pair U W :=
+lemma pairs_density_nonneg (U W : finset V) :
+  0 ≤ pairs_density r U W :=
 begin
   apply div_nonneg;
   exact_mod_cast nat.zero_le _,
 end
 
-lemma density_pair_le_one (U W : finset V) :
-  G.density_pair U W ≤ 1 :=
+lemma pairs_density_le_one (U W : finset V) :
+  pairs_density r U W ≤ 1 :=
 begin
   refine div_le_one_of_le _ (mul_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _)),
   norm_cast,
-  rw [edges_count_pair, edges_pair_finset, ←finset.card_product],
+  rw [pairs_finset, ←finset.card_product],
   exact finset.card_filter_le _ _,
 end
 
-lemma density_pair_compl (U W : finset V) :
-  G.density_pair U W = 1 - Gᶜ.density_pair U W :=
+lemma pairs_density_compl {U W : finset V} (hU : U.nonempty) (hW : W.nonempty) :
+  pairs_density r U W + pairs_density (λ x y, ¬r x y) U W = 1 :=
 begin
-  rw eq_sub_iff_add_eq',
-  sorry
+  rw [pairs_density, pairs_density],
+  rw div_add_div_same,
+  rw ←nat.cast_mul,
+  rw div_eq_iff,
+  rw one_mul,
+  exact_mod_cast card_pairs_finset_compl r U W,
+  apply ne_of_gt,
+  rw nat.cast_pos,
+  exact mul_pos (finset.card_pos.2 hU) (finset.card_pos.2 hW),
 end
 
-lemma density_pair_empty_left (W : finset V) :
-  G.density_pair ∅ W = 0 :=
-by rw [density_pair, finset.card_empty, nat.cast_zero, zero_mul, div_zero]
+lemma pairs_density_empty_left (W : finset V) :
+  pairs_density r ∅ W = 0 :=
+by rw [pairs_density, finset.card_empty, nat.cast_zero, zero_mul, div_zero]
 
-lemma density_pair_empty_right (U : finset V) :
-  G.density_pair U ∅ = 0 :=
-by rw [density_pair, finset.card_empty, nat.cast_zero, mul_zero, div_zero]
+lemma pairs_density_empty_right (U : finset V) :
+  pairs_density r U ∅ = 0 :=
+by rw [pairs_density, finset.card_empty, nat.cast_zero, mul_zero, div_zero]
 
-/-- Edge density between a pair of finsets of vertices. `sym2` variant of `density_pair`. -/
-noncomputable def density_sym2 : sym2 (finset V) → ℝ :=
-quotient.lift (function.uncurry (density_pair G))
-  (by { rintros _ _ ⟨_, _⟩, { refl }, apply density_pair_symm })
+section symmetric
+variables {r} (hr : symmetric r)
+include hr
 
-lemma density_sym2_nonneg (s : sym2 (finset V)) :
-  0 ≤ G.density_sym2 s :=
-quotient.induction_on s (λ xy, density_pair_nonneg _ _ _)
+lemma mem_pairs_finset_comm (U W : finset V) (x y : V) :
+  (x, y) ∈ pairs_finset r U W ↔ (y, x) ∈ pairs_finset r W U :=
+begin
+  rw [mem_pairs_finset', mem_pairs_finset'],
+  split; exact λ h, ⟨h.2.1, h.1, hr h.2.2⟩,
+end
 
-lemma density_sym2_le_one (s : sym2 (finset V)) :
-  G.density_sym2 s ≤ 1 :=
-quotient.induction_on s (λ xy, density_pair_le_one _ _ _)
+lemma pairs_count_comm (U W : finset V) :
+  (pairs_finset r U W).card = (pairs_finset r W U).card :=
+begin
+  apply finset.card_congr (λ (i : V × V) hi, (i.2, i.1)) _ _ _,
+  { rintro ⟨i, j⟩ h,
+    rw mem_pairs_finset_comm hr,
+    exact h },
+  { rintro ⟨i₁, j₁⟩ ⟨i₂, j₂⟩ h₁ h₂ h,
+    rcases h,
+    refl },
+  rintro ⟨i, j⟩ h,
+  refine ⟨⟨j, i⟩, _, rfl⟩,
+  rw mem_pairs_finset_comm hr,
+  exact h,
+end
+
+lemma pairs_density_comm (U W : finset V) : pairs_density r U W = pairs_density r W U :=
+by rw [pairs_density, mul_comm, pairs_count_comm hr, pairs_density]
+
+end symmetric
 
 lemma aux {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
- (A'.card : ℝ)/A.card * (B'.card/B.card) * G.density_pair A' B' ≤ G.density_pair A B :=
+ (A'.card : ℝ)/A.card * (B'.card/B.card) * pairs_density r A' B' ≤ pairs_density r A B :=
 begin
   obtain hA' | hA' := nat.eq_zero_or_pos A'.card,
   { rw [hA', nat.cast_zero, zero_div, zero_mul, zero_mul],
-    exact G.density_pair_nonneg A B },
+    exact pairs_density_nonneg r A B },
   obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
   { rw [hB', nat.cast_zero, zero_div, mul_zero, zero_mul],
-    exact G.density_pair_nonneg A B },
+    exact pairs_density_nonneg r A B },
   have hAB' : (0 : ℝ) < A'.card * B'.card := by exact_mod_cast mul_pos hA' hB',
   have hAB : (0 : ℝ) < A.card * B.card := by exact_mod_cast mul_pos (hA'.trans_le
     (finset.card_le_of_subset hA)) (hB'.trans_le (finset.card_le_of_subset hB)),
-  rw [density_pair, density_pair, div_mul_div, mul_comm, div_mul_div_cancel _ hAB'.ne.symm,
+  rw [pairs_density, pairs_density, div_mul_div, mul_comm, div_mul_div_cancel _ hAB'.ne.symm,
     div_le_div_right hAB, nat.cast_le],
-  exact G.edges_count_mono hA hB,
+  exact finset.card_le_of_subset (pairs_finset_mono r hA hB),
 end
 
 lemma aux2 {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
-  G.density_pair A' B' - G.density_pair A B ≤ 1 - (A'.card : ℝ)/A.card * (B'.card/B.card) :=
+  pairs_density r A' B' - pairs_density r A B ≤ 1 - (A'.card : ℝ)/A.card * (B'.card/B.card) :=
 calc
-  G.density_pair A' B' - G.density_pair A B
-      ≤ G.density_pair A' B' - A'.card/A.card * (B'.card/B.card) * G.density_pair A' B'
-      : sub_le_sub_left (G.aux hA hB) _
-  ... = (1 - A'.card/A.card * (B'.card/B.card)) * G.density_pair A' B'
+  pairs_density r A' B' - pairs_density r A B
+      ≤ pairs_density r A' B' - A'.card/A.card * (B'.card/B.card) * pairs_density r A' B'
+      : sub_le_sub_left (aux r hA hB) _
+  ... = (1 - A'.card/A.card * (B'.card/B.card)) * pairs_density r A' B'
       : by rw [sub_mul, one_mul]
   ... ≤ 1 - A'.card/A.card * (B'.card/B.card)
       : begin
-        convert mul_le_mul_of_nonneg_left (G.density_pair_le_one _ _) _,
-        { rw mul_one },
-        apply sub_nonneg_of_le,
-        apply mul_le_one, swap,
-        apply div_nonneg,
-        exact nat.cast_nonneg _,
-        exact nat.cast_nonneg _,
-        apply div_le_one_of_le,
-        rw nat.cast_le,
-        exact finset.card_le_of_subset hA,
-        exact nat.cast_nonneg _,
-        apply div_le_one_of_le,
-        rw nat.cast_le,
-        exact finset.card_le_of_subset hB,
-        exact nat.cast_nonneg _,
-      end
+          convert mul_le_mul_of_nonneg_left (pairs_density_le_one r _ _) _,
+          { rw mul_one },
+          apply sub_nonneg_of_le,
+          apply mul_le_one, swap,
+          apply div_nonneg,
+          exact nat.cast_nonneg _,
+          exact nat.cast_nonneg _,
+          apply div_le_one_of_le,
+          rw nat.cast_le,
+          exact finset.card_le_of_subset hA,
+          exact nat.cast_nonneg _,
+          apply div_le_one_of_le,
+          rw nat.cast_le,
+          exact finset.card_le_of_subset hB,
+          exact nat.cast_nonneg _,
+        end
 
 lemma aux3 {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ₀ : 0 ≤ δ) (hδ₁ : δ < 1)
   (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
-  G.density_pair A' B' - G.density_pair A B ≤ 2*δ - δ^2 :=
+  pairs_density r A' B' - pairs_density r A B ≤ 2*δ - δ^2 :=
 begin
   have hδ' : 0 ≤ 2 * δ - δ ^ 2,
   { rw [sub_nonneg, sq],
@@ -476,7 +433,7 @@ begin
     { rw [hA', nat.cast_zero] at hAcard,
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hAcard hδ₁ },
-    rw [density_pair, density_pair, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero, div_zero,
+    rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero, div_zero,
       sub_zero],
     exact hδ' },
   obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
@@ -484,15 +441,15 @@ begin
     { rw [hB', nat.cast_zero] at hBcard,
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hBcard hδ₁ },
-    rw [density_pair, density_pair, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero, div_zero,
+    rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero, div_zero,
       sub_zero],
     exact hδ' },
   have hApos : 0 < A.card := hA'.trans_le (finset.card_le_of_subset hA),
   have hBpos : 0 < B.card := hB'.trans_le (finset.card_le_of_subset hB),
   calc
-    G.density_pair A' B' - G.density_pair A B
+    pairs_density r A' B' - pairs_density r A B
         ≤ 1 - A'.card/A.card * (B'.card/B.card)
-        : G.aux2 hA hB
+        : aux2 r hA hB
     ... ≤ 1 - (1 - δ) * (1 - δ)
         : begin
             refine sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hAcard) ((le_div_iff _).2 hBcard)
@@ -505,7 +462,7 @@ end
 
 lemma aux4 {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ₀ : 0 ≤ δ) (hδ₁ : δ < 1)
   (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
-  abs (G.density_pair A B - G.density_pair A' B') ≤ 2*δ - δ^2 :=
+  abs (pairs_density r A B - pairs_density r A' B') ≤ 2*δ - δ^2 :=
 begin
   have hδ' : 0 ≤ 2 * δ - δ ^ 2,
   { rw [sub_nonneg, sq],
@@ -516,7 +473,7 @@ begin
     { rw [hA', nat.cast_zero] at hAcard,
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hAcard (sub_pos.2 hδ₁) },
-    rw [density_pair, density_pair, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero, div_zero,
+    rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero, div_zero,
       sub_zero, abs_zero],
     exact hδ' },
   obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
@@ -524,25 +481,70 @@ begin
     { rw [hB', nat.cast_zero] at hBcard,
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hBcard (sub_pos.2 hδ₁) },
-    rw [density_pair, density_pair, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero, div_zero,
+    rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero, div_zero,
       sub_zero, abs_zero],
     exact hδ' },
-  refine abs_sub_le_iff.2 ⟨_, G.aux3 hA hB hδ₀ hδ₁ hAcard hBcard⟩,
-  rw [density_pair_compl, G.density_pair_compl A', sub_sub_sub_cancel_left],
-  exact Gᶜ.aux3 hA hB hδ₀ hδ₁ hAcard hBcard,
+  refine abs_sub_le_iff.2 ⟨_, aux3 r hA hB hδ₀ hδ₁ hAcard hBcard⟩,
+  have hAnemp' := finset.card_pos.1 hA',
+  have hBnemp' := finset.card_pos.1 hB',
+  have hAnemp := hAnemp'.mono hA,
+  have hBnemp := hBnemp'.mono hB,
+  rw [←add_sub_cancel (pairs_density r A B) (pairs_density (λ x y, ¬r x y) A B),
+    ←add_sub_cancel (pairs_density r A' B') (pairs_density (λ x y, ¬r x y) A' B'),
+    pairs_density_compl _ hAnemp hBnemp, pairs_density_compl _ hAnemp' hBnemp',
+    sub_sub_sub_cancel_left],
+  exact aux3 _ hA hB hδ₀ hδ₁ hAcard hBcard,
 end
 
 lemma LemmaA {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ : 0 ≤ δ)
   (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
-  abs (G.density_pair A B - G.density_pair A' B') ≤ 2 * δ :=
+  abs (pairs_density r A B - pairs_density r A' B') ≤ 2 * δ :=
 begin
   cases le_or_lt 1 δ,
   { apply (abs_sub_le_abs_add_abs _ _).trans,
-    rw [abs_of_nonneg (G.density_pair_nonneg A B), abs_of_nonneg (G.density_pair_nonneg _ _),
+    rw [abs_of_nonneg (pairs_density_nonneg r A B), abs_of_nonneg (pairs_density_nonneg r _ _),
       two_mul],
-    exact add_le_add ((G.density_pair_le_one A B).trans h) ((G.density_pair_le_one _ _).trans h) },
-  exact (G.aux4 hA hB hδ h hAcard hBcard).trans ((sub_le_self_iff _).2 (sq_nonneg δ)),
+    exact add_le_add ((pairs_density_le_one r A B).trans h)
+      ((pairs_density_le_one r _ _).trans h)},
+  exact (aux4 r hA hB hδ h hAcard hBcard).trans ((sub_le_self_iff _).2 (sq_nonneg δ)),
 end
+
+end relation
+
+open relation
+
+namespace simple_graph
+variables {V : Type u} [decidable_eq V] (G : simple_graph V) [decidable_rel G.adj]
+
+/- Remnants of what's now under `relation`. The only point for keeping it is to sometimes avoid
+writing `G.adj` and `G.sym` sometimes. -/
+/-- Edge density between two finsets of vertices -/
+noncomputable def density_pair : finset V → finset V → ℝ :=
+pairs_density G.adj
+
+lemma density_pair_comm (U W : finset V) : G.density_pair U W = G.density_pair W U :=
+pairs_density_comm G.sym U W
+
+lemma density_pair_nonneg (U W : finset V) :
+  0 ≤ G.density_pair U W :=
+pairs_density_nonneg _ U W
+
+lemma density_pair_le_one (U W : finset V) :
+  G.density_pair U W ≤ 1 :=
+pairs_density_le_one _ U W
+
+/-- Edge density between a pair of finsets of vertices. `sym2` variant of `density_pair`. -/
+noncomputable def density_sym2 : sym2 (finset V) → ℝ :=
+quotient.lift (function.uncurry (density_pair G))
+  (by { rintros _ _ ⟨_, _⟩, { refl }, apply density_pair_comm })
+
+lemma density_sym2_nonneg (s : sym2 (finset V)) :
+  0 ≤ G.density_sym2 s :=
+quotient.induction_on s (λ xy, density_pair_nonneg _ _ _)
+
+lemma density_sym2_le_one (s : sym2 (finset V)) :
+  G.density_sym2 s ≤ 1 :=
+quotient.induction_on s (λ xy, density_pair_le_one _ _ _)
 
 /-- A pair of finsets of vertices is ε-uniform iff their edge density is close to the density of any
 big enough pair of subsets. Intuitively, the edges between them are random-like. -/
@@ -562,8 +564,8 @@ end
 lemma is_uniform_symmetric (ε : ℝ) : symmetric (is_uniform G ε) :=
 begin
   intros U W h W' hW' U' hU' hW hU,
-  rw density_pair_symm _ W',
-  rw density_pair_symm _ W,
+  rw density_pair_comm _ W',
+  rw density_pair_comm _ W,
   apply h _ hU' _ hW' hU hW,
 end
 

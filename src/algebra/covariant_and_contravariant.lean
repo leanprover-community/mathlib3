@@ -7,28 +7,34 @@ Authors: Damiano Testa
 import algebra.group.defs
 
 /-!
-
 # Covariants and contravariants
 
 This file contains general lemmas and instances to work with the interactions between a relation and
 an action on a Type.
+
 The intended application is the splitting of the ordering from the algebraic assumptions on the
 operations in the `ordered_[...]` hierarchy.
+
 The strategy is to introduce two more flexible typeclasses, `covariant_class` and
 `contravariant_class`.
+
 * `covariant_class` models the implication `a ≤ b → c * a ≤ c * b` (multiplication is monotone),
 * `contravariant_class` models the implication `a * b < a * c → b < c`.
+
 Since `co(ntra)variant_class` takes as input the operation (typically `(+)` or `(*)`) and the order
 relation (typically `(≤)` or `(<)`), these are the only two typeclasses that I have used.
+
 The general approach is to formulate the lemma that you are interested and prove it, with the
 `ordered_[...]` typeclass of your liking.  After that, you convert the single typeclass,
 say `[ordered_cancel_monoid M]`, with three typeclasses, e.g.
 `[partial_order M] [left_cancel_semigroup M] [covariant_class M M (function.swap (*)) (≤)]`
 and have a go at seeing if the proof still works!
+
 Note that it is possible to combine several co(ntra)variant_class assumptions together.
 Indeed, the usual ordered typeclasses arise from assuming the pair
 `[covariant_class M M (*) (≤)] [contravariant_class M M (*) (<)]`
 on top of order/algebraic assumptions.
+
 A formal remark is that normally covariant_class uses the `(≤)`-relation, while contravariant_class
 uses the `(<)`-relation. This need not be the case in general, but seems to be the most common
 usage. In the opposite direction, the implication

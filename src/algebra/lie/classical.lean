@@ -348,7 +348,13 @@ begin
   ext i j,
   rcases i with ⟨⟨i₁ | i₂⟩ | i₃⟩;
   rcases j with ⟨⟨j₁ | j₂⟩ | j₃⟩;
-  simp [indefinite_diagonal, matrix.diagonal],
+  simp only [indefinite_diagonal, matrix.diagonal, equiv.sum_assoc_apply_in1,
+    matrix.reindex_lie_equiv_apply, matrix.minor_apply, equiv.symm_symm, matrix.reindex_apply,
+    sum.elim_inl, if_true, eq_self_iff_true, matrix.one_apply_eq, matrix.from_blocks_apply₁₁,
+    dmatrix.zero_apply, equiv.sum_assoc_apply_in2, if_false, matrix.from_blocks_apply₁₂,
+    matrix.from_blocks_apply₂₁, matrix.from_blocks_apply₂₂, equiv.sum_assoc_apply_in3,
+    sum.elim_inr];
+  congr,
 end
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type B. -/

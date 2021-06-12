@@ -56,8 +56,9 @@ do
     (decl.type.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     (decl.value.list_names_with_prefix pre).mfold () (λ n _, transform_decl_with_prefix_fun_aux n),
     is_protected ← is_protected_decl src,
+    env ← get_env,
     let decl :=
-      decl.update_with_fun (name.map_prefix f) (additive_test f replace_all ignore) reorder tgt,
+      decl.update_with_fun env (name.map_prefix f) (additive_test f replace_all ignore) reorder tgt,
     pp_decl ← pp decl,
     when trace $ trace!"[to_additive] > generating\n{pp_decl}",
     decorate_error (format!"@[to_additive] failed. Type mismatch in additive declaration.

@@ -841,14 +841,14 @@ protected meta def apply_replacement_fun (env : environment) (f : name → name)
       if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
   | app g x :=
     let l := (reorder.find g.get_app_fn.const_name).iget, -- this might be inefficient
-        -- check whether we want to replace g at all
-        new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
         new_x := apply_replacement_fun x in
     if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
     -- reorder the last argument of g with x
     some $ apply_replacement_fun g.app_fn new_x $ apply_replacement_fun g.app_arg else
     -- the following only happens with non-fully applied terms
     if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
+    -- check whether we want to replace g at all
+    let new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
     -- make a lambda term that is the reordering of the non-fully applied term
     -- y_type ← (new_g.simple_infer_type env).to_option,
     some $ lam `x binder_info.default g.binding_domain $

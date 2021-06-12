@@ -118,7 +118,7 @@ variables {α : Type*} [decidable_eq α]
 def remove_none.fiber (a : option α) : set (perm α) :=
   {f : perm α | (a, f) ∈ equiv.perm.decompose_option '' derangements (option α)}
 
-lemma remove_none.fiber_mem (a : option α) (f : perm α) :
+lemma remove_none.mem_fiber (a : option α) (f : perm α) :
   f ∈ remove_none.fiber a ↔
   ∃ F : perm (option α), F ∈ derangements (option α) ∧ F none = a ∧ remove_none F = f :=
   by simp [remove_none.fiber, derangements]
@@ -127,7 +127,7 @@ lemma remove_none.fiber_none_eq_empty : remove_none.fiber (@none α) = ∅ :=
 begin
   rw set.eq_empty_iff_forall_not_mem,
   intros f hyp,
-  rw remove_none.fiber_mem at hyp,
+  rw remove_none.mem_fiber at hyp,
   rcases hyp with ⟨F, F_derangement, F_none, _⟩,
   exact F_derangement none F_none
 end
@@ -139,7 +139,7 @@ lemma remove_none.fiber_eq_opfp (a : α) :
 begin
   ext f,
   split,
-  { rw remove_none.fiber_mem,
+  { rw remove_none.mem_fiber,
     rintro ⟨F, F_derangement, F_none, rfl⟩ x x_fixed,
     apply_fun some at x_fixed,
     cases Fx : F (some x) with y,

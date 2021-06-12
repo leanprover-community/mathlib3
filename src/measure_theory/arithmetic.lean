@@ -272,8 +272,9 @@ lemma measurable_set_eq_fun {E} [measurable_space E] [add_group E] [measurable_s
   [has_measurable_sub₂ E] {f g : α → E} (hf : measurable f) (hg : measurable g) :
   measurable_set {x | f x = g x} :=
 begin
-  have hs : measurable_set {x | (f-g) x = (0 : E)}, from (hf.sub hg) measurable_set_eq,
-  suffices h_set_eq : {x : α | f x = g x} = {x | (f-g) x = (0 : E)}, by rwa h_set_eq,
+  suffices h_set_eq : {x : α | f x = g x} = {x | (f-g) x = (0 : E)},
+  { rw h_set_eq,
+    exact (hf.sub hg) measurable_set_eq, },
   ext,
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
 end

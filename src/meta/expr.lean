@@ -398,6 +398,8 @@ meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (o
     Ra ← mreplace_aux a n,
     Rb ← mreplace_aux b n,
     return $ elet nm Rty Ra Rb)
+| (macro c es) n := option.mget_or_else (R (macro c es) n) $
+    macro c <$> es.mmap (λ e, mreplace_aux e n)
 | e n := option.mget_or_else (R e n) (return e)
 
 /--
@@ -839,13 +841,13 @@ protected meta def apply_replacement_fun (f : name → name) (test : expr → bo
   | app g x := do
     let l := (reorder.find g.get_app_fn.const_name).iget, -- this might be inefficient
     -- check whether we want to replace g at all
-    new_g ← if g.is_constant ∧ ¬ test x then return g else apply_replacement_fun g,
     new_x ← apply_replacement_fun x,
     if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then do
     f' ← apply_replacement_fun g.app_fn,
     y' ← apply_replacement_fun g.app_arg,
     -- reorder the last argument of g with x
-    return $ some $ f' new_x y' else
+    return $ some $ f' new_x y' else do
+    new_g ← /-if g.is_constant ∧ ¬ test x then return g else-/ apply_replacement_fun g,
     -- the following only happens with non-fully applied terms
     if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
     -- make a lambda term that is the reordering of the non-fully applied term
@@ -1002,12 +1004,11 @@ to the value and type of `decl`.
 -/
 protected meta def update_with_fun (f : name → name) (test : expr → bool)
   (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : tactic declaration := do
-  let decl := decl.update_name $ tgt,
-  new_tp ← decl.type.apply_replacement_fun f test reorder,
-  let decl := decl.update_type new_tp,
-  new_val ← decl.value.apply_replacement_fun f test reorder,
-  return $ decl.update_value new_val
-
+let decl := decl.update_name $ tgt,
+new_tp ← decl.type.apply_replacement_fun f test reorder,
+let decl := decl.update_type new_tp,
+new_val ← decl.value.apply_replacement_fun f test reorder,
+return $ decl.update_value new_val
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

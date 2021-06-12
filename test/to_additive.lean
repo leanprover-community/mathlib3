@@ -23,10 +23,11 @@ local infix ` ^ `:80 := my_has_pow.pow
 @[to_additive? bar1]
 def foo1 {α} [my_has_pow α ℕ] (x : α) (n : ℕ) : α := @my_has_pow.pow α ℕ _ x n
 
-instance dummy : my_has_pow ℕ ℤ := ⟨λ _ _, 0⟩
+instance dummy : my_has_pow ℕ $ plift ℤ := ⟨λ _ _, 0⟩
 
+set_option pp.universes true
 @[to_additive bar2]
-def foo2 {α} [my_has_pow α ℕ] (x : α) (n : ℕ) (m : ℤ) : α := x ^ (n ^ m)
+def foo2 {α} [my_has_pow α ℕ] (x : α) (n : ℕ) (m : plift ℤ) : α := x ^ (n ^ m)
 
 @[to_additive? bar3]
 def foo3 {α} [my_has_pow α ℕ] (x : α) : ℕ → α := @my_has_pow.pow α ℕ _ x

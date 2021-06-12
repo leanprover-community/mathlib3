@@ -874,7 +874,7 @@ def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
 iff.rfl
 
 @[to_additive] lemma subgroup_of_map_subtype (H K : subgroup G) :
-  (H.subgroup_of K).map (K.subtype) = H ⊓ K := set_like.ext'
+  (H.subgroup_of K).map K.subtype = H ⊓ K := set_like.ext'
 begin
   convert set.image_preimage_eq_inter_range,
   simp only [subtype.range_coe_subtype, coe_subtype, coe_inf],

@@ -36,8 +36,8 @@ def rotation_aux (a : circle) : ℂ ≃ₗᵢ[ℝ] ℂ :=
   map_add' := mul_add ↑a,
   map_smul' := λ t z, by { simp only [smul_coe], ring },
   inv_fun := λ z, a⁻¹ * z,
-  left_inv := λ z, by { have := nonzero_of_mem_circle a, field_simp, ring },
-  right_inv := λ z, by { have := nonzero_of_mem_circle a, field_simp, ring },
+  left_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
+  right_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
   norm_map' := by simp }
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
@@ -90,7 +90,7 @@ end
 lemma linear_isometry_complex_aux {f : ℂ ≃ₗᵢ[ℝ] ℂ} (h : f 1 = 1) :
   f = linear_isometry_equiv.refl ℝ ℂ ∨ f = conj_li :=
 begin
-  have h0 : f I = I ∨ f I = - I,
+  have h0 : f I = I ∨ f I = -I,
   { have : |f I| = 1 := by simpa using f.norm_map complex.I,
     simp only [ext_iff, ←and_or_distrib_left, neg_re, I_re, neg_im, neg_zero],
     split,

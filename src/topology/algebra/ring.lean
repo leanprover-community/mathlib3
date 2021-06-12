@@ -123,17 +123,14 @@ instance subring.topological_closure_topological_ring (s : subring α) :
   ..s.to_submonoid.topological_closure_has_continuous_mul }
 
 lemma subring.subring_topological_closure (s : subring α) :
-  s ≤ s.topological_closure :=
-subset_closure
+  s ≤ s.topological_closure := subset_closure
 
 lemma subring.is_closed_topological_closure (s : subring α) :
-  is_closed (s.topological_closure : set α) :=
-by convert is_closed_closure
+  is_closed (s.topological_closure : set α) := by convert is_closed_closure
 
 lemma subring.topological_closure_minimal
   (s : subring α) {t : subring α} (h : s ≤ t) (ht : is_closed (t : set α)) :
-  s.topological_closure ≤ t :=
-closure_minimal h ht
+  s.topological_closure ≤ t := closure_minimal h ht
 
 end topological_ring
 
@@ -142,14 +139,11 @@ variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring �
 
 /-- The closure of an ideal in a topological ring as an ideal. -/
 def ideal.closure (S : ideal α) : ideal α :=
-{ carrier := closure S,
-  smul_mem' := assume c x hx,
-    have continuous (λx:α, c * x) := continuous_const.mul continuous_id,
-    map_mem_closure this hx $ assume a, S.mul_mem_left _,
+{ carrier   := closure S,
+  smul_mem' := λ c x hx, map_mem_closure (mul_left_continuous _) hx $ λ a, S.mul_mem_left c,
   ..(add_submonoid.topological_closure S.to_add_submonoid) }
 
-@[simp] lemma ideal.coe_closure (S : ideal α) :
-  (S.closure : set α) = closure S := rfl
+@[simp] lemma ideal.coe_closure (S : ideal α) : (S.closure : set α) = closure S := rfl
 
 end topological_comm_ring
 
@@ -160,8 +154,7 @@ open ideal.quotient
 instance topological_ring_quotient_topology : topological_space N.quotient :=
 by dunfold ideal.quotient submodule.quotient; apply_instance
 
--- note for the reader: in the following, `mk` is `ideal.quotient.mk`, which
--- is the canonical homomorphism `R → R/I`.
+-- note for the reader: in the following, `mk` is `ideal.quotient.mk`, the canonical map `R → R/I`.
 
 /--
 The preimage of the image of a set under the quotient map is the union of the cosets covered by `s`.
@@ -182,35 +175,29 @@ variable [topological_ring α]
 
 lemma quotient_ring.is_open_map_coe : is_open_map (mk N) :=
 begin
-  assume s s_op,
-  show is_open (mk N ⁻¹' (mk N '' s)),
-  rw quotient_ring_saturate N s,
-  exact is_open_Union (assume ⟨n, _⟩, is_open_map_add_left n s s_op)
+  intros s s_op,
+  change is_open (mk N ⁻¹' (mk N '' s)),
+  rw quotient_ring_saturate,
+  exact is_open_Union (λ ⟨n, _⟩, is_open_map_add_left n s s_op)
 end
 
 lemma quotient_ring.quotient_map_coe_coe : quotient_map (λ p : α × α, (mk N p.1, mk N p.2)) :=
-begin
-  apply is_open_map.to_quotient_map,
-  { exact (quotient_ring.is_open_map_coe N).prod (quotient_ring.is_open_map_coe N) },
-  { exact (continuous_quot_mk.comp continuous_fst).prod_mk
-          (continuous_quot_mk.comp continuous_snd) },
-  { rintro ⟨⟨x⟩, ⟨y⟩⟩,
-    exact ⟨(x, y), rfl⟩ }
-end
+is_open_map.to_quotient_map
+((quotient_ring.is_open_map_coe N).prod (quotient_ring.is_open_map_coe N))
+((continuous_quot_mk.comp continuous_fst).prod_mk (continuous_quot_mk.comp continuous_snd))
+(by rintro ⟨⟨x⟩, ⟨y⟩⟩; exact ⟨(x, y), rfl⟩)
+-- `rintro` seems to be able to deal with `quotient` whilst `λ` can't :(
 
 instance topological_ring_quotient : topological_ring N.quotient :=
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
       continuous_quot_mk.comp continuous_add,
-    (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont,
+    (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).mpr cont,
   continuous_neg :=
-  begin
-    convert continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg),
-    apply_instance,
-  end,
+    by convert continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg); apply_instance,
   continuous_mul :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,
-    (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont }
+    (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).mpr cont }
 
 end topological_ring

@@ -191,14 +191,14 @@ begin
     exact zmod.nat_cast_self _ }
 end
 
-@[simp] lemma xa_pow_two (i : zmod (2 * n)) : xa i ^ 2 = a n :=
+@[simp] lemma xa_sq (i : zmod (2 * n)) : xa i ^ 2 = a n :=
 begin
-  simp [pow_two]
+  simp [sq]
 end
 
 @[simp] lemma xa_pow_four (i : zmod (2 * n)) : xa i ^ 4 = 1 :=
 begin
-  simp only [pow_succ, pow_two, xa_mul_xa, xa_mul_a, add_sub_cancel, add_sub_assoc, add_sub_cancel',
+  simp only [pow_succ, sq, xa_mul_xa, xa_mul_a, add_sub_cancel, add_sub_assoc, add_sub_cancel',
              sub_self, add_zero],
   norm_cast,
   rw ← two_mul,
@@ -211,9 +211,10 @@ If `0 < n`, then `xa i` has order 4.
 @[simp] lemma order_of_xa [hpos : fact (0 < n)] (i : zmod (2 * n)) : order_of (xa i) = 4 :=
 begin
   change _ = 2^2,
-  apply order_of_eq_prime_pow nat.prime_two,
+  haveI : fact(nat.prime 2) := fact.mk (nat.prime_two),
+  apply order_of_eq_prime_pow,
   { intro h,
-    simp only [pow_one, xa_pow_two] at h,
+    simp only [pow_one, xa_sq] at h,
     injection h with h',
     apply_fun zmod.val at h',
     apply_fun ( / n) at h',

@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import algebra.invertible
 import algebra.lie.skew_adjoint
 import algebra.lie.abelian
+import linear_algebra.matrix.trace
 
 /-!
 # Classical Lie algebras
@@ -280,7 +281,7 @@ begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
   apply lie_equiv.of_eq,
   ext A,
-  rw [JD_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
+  rw [JD_transform, ← unit_of_invertible_val (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
       mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   refl,
 end
@@ -347,7 +348,13 @@ begin
   ext i j,
   rcases i with ⟨⟨i₁ | i₂⟩ | i₃⟩;
   rcases j with ⟨⟨j₁ | j₂⟩ | j₃⟩;
-  simp [indefinite_diagonal, matrix.diagonal],
+  simp only [indefinite_diagonal, matrix.diagonal, equiv.sum_assoc_apply_in1,
+    matrix.reindex_lie_equiv_apply, matrix.minor_apply, equiv.symm_symm, matrix.reindex_apply,
+    sum.elim_inl, if_true, eq_self_iff_true, matrix.one_apply_eq, matrix.from_blocks_apply₁₁,
+    dmatrix.zero_apply, equiv.sum_assoc_apply_in2, if_false, matrix.from_blocks_apply₁₂,
+    matrix.from_blocks_apply₂₁, matrix.from_blocks_apply₂₂, equiv.sum_assoc_apply_in3,
+    sum.elim_inr];
+  congr,
 end
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type B. -/
@@ -361,7 +368,7 @@ begin
     (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.transpose_reindex _ _)).trans,
   apply lie_equiv.of_eq,
   ext A,
-  rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
+  rw [JB_transform, ← unit_of_invertible_val (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
       lie_subalgebra.mem_coe, mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   simpa [indefinite_diagonal_assoc],
 end

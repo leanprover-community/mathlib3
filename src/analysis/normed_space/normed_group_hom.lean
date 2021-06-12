@@ -120,35 +120,17 @@ f.to_add_monoid_hom.map_sum _ _
 
 @[simp] lemma map_neg (x) : f (-x) = -(f x) := f.to_add_monoid_hom.map_neg _
 
-/-- Predicate asserting a norm bound on a normed group hom. -/
-def bound_by (f : normed_group_hom V₁ V₂) (C : ℝ≥0) : Prop := ∀ x, ∥f x∥ ≤ C * ∥x∥
-
-lemma mk_normed_group_hom'_bound_by (f : V₁ →+ V₂) (C) (hC) :
-  (f.mk_normed_group_hom' C hC).bound_by C := hC
-
-lemma bound : ∃ C, 0 < C ∧ f.bound_by C :=
+lemma bound : ∃ C, 0 < C ∧ ∀ x, ∥f x∥ ≤ C * ∥x∥ :=
 begin
   obtain ⟨C, hC⟩ := f.bound',
   rcases exists_pos_bound_of_bound _ hC with ⟨C', C'pos, hC'⟩,
-  exact ⟨⟨C', C'pos.le⟩, C'pos, hC'⟩,
+  exact ⟨C', C'pos, hC'⟩,
 end
 
-lemma lipschitz_of_bound_by (C : ℝ≥0) (h : f.bound_by C) :
-  lipschitz_with (nnreal.of_real C) f :=
-lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
-
-theorem antilipschitz_of_bound_by {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+theorem antilipschitz_of_norm_ge {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=
 antilipschitz_with.of_le_mul_dist $
 λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
-
-protected lemma uniform_continuous (f : normed_group_hom V₁ V₂) :
-  uniform_continuous f :=
-let ⟨C, C_pos, hC⟩ := f.bound in (lipschitz_of_bound_by f C hC).uniform_continuous
-
-@[continuity]
-protected lemma continuous (f : normed_group_hom V₁ V₂) : continuous f :=
-f.uniform_continuous.continuous
 
 /-! ### The operator norm -/
 
@@ -193,6 +175,13 @@ theorem le_of_op_norm_le {c : ℝ} (h : ∥f∥ ≤ c) (x : V₁) : ∥f x∥ �
 theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
 lipschitz_with.of_dist_le_mul $ λ x y,
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
+
+protected lemma uniform_continuous (f : normed_group_hom V₁ V₂) :
+  uniform_continuous f := f.lipschitz.uniform_continuous
+
+@[continuity]
+protected lemma continuous (f : normed_group_hom V₁ V₂) : continuous f :=
+f.uniform_continuous.continuous
 
 lemma ratio_le_op_norm (x : V₁) : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 div_le_of_nonneg_of_le_mul (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
@@ -411,6 +400,9 @@ variables [semi_normed_group V] [semi_normed_group W] [semi_normed_group V₁] [
   map_add' := λ v w, add_subgroup.coe_add _ _ _,
   bound' := ⟨1, λ v, by { rw [one_mul], refl }⟩ }
 
+lemma norm_incl {V' : add_subgroup V} (x : V') : ∥incl _ x∥ = ∥x∥ :=
+rfl
+
 /-!### Kernel -/
 section kernels
 variables (f : normed_group_hom V₁ V₂) (g : normed_group_hom V₂ V₃)
@@ -434,6 +426,16 @@ by { erw f.to_add_monoid_hom.mem_ker, refl }
   (incl g.ker).comp (ker.lift f g h) = f :=
 by { ext, refl }
 
+@[simp]
+lemma ker_zero : (0 : normed_group_hom V₁ V₂).ker = ⊤ :=
+by { ext, simp [mem_ker] }
+
+lemma coe_ker : (f.ker : set V₁) = (f : V₁ → V₂) ⁻¹' {0} := rfl
+
+lemma is_closed_ker {V₂ : Type*} [normed_group V₂] (f : normed_group_hom V₁ V₂) :
+  is_closed (f.ker : set V₁) :=
+f.coe_ker ▸ is_closed.preimage f.continuous (t1_space.t1 0)
+
 end kernels
 
 /-! ### Range -/
@@ -448,6 +450,16 @@ def range : add_subgroup V₂ := f.to_add_monoid_hom.range
 lemma mem_range (v : V₂) : v ∈ f.range ↔ ∃ w, f w = v :=
 by { rw [range, add_monoid_hom.mem_range], refl }
 
+lemma comp_range : (g.comp f).range = add_subgroup.map g.to_add_monoid_hom f.range :=
+by { erw add_monoid_hom.map_range, refl }
+
+lemma incl_range (s : add_subgroup V₁) : (incl s).range = s :=
+by { ext x, exact ⟨λ ⟨y, hy⟩, by { rw ← hy; simp }, λ hx, ⟨⟨x, hx⟩, by simp⟩⟩ }
+
+@[simp]
+lemma range_comp_incl_top : (f.comp (incl (⊤ : add_subgroup V₁))).range = f.range :=
+by simpa [comp_range, incl_range, ← add_monoid_hom.range_eq_map]
+
 end range
 
 variables {f : normed_group_hom V W}
@@ -458,8 +470,16 @@ def norm_noninc (f : normed_group_hom V W) : Prop :=
 
 namespace norm_noninc
 
-lemma bound_by_one (hf : f.norm_noninc) : f.bound_by 1 :=
-λ v, by simpa only [one_mul, nnreal.coe_one] using hf v
+lemma norm_noninc_iff_norm_le_one : f.norm_noninc ↔ ∥f∥ ≤ 1 :=
+begin
+  refine ⟨λ h, _, λ h, λ v, _⟩,
+  { refine op_norm_le_bound _ (zero_le_one) (λ v, _),
+    simpa [one_mul] using h v },
+  { simpa using le_of_op_norm_le f h v }
+end
+
+lemma zero : (0 : normed_group_hom V₁ V₂).norm_noninc :=
+λ v, by simp
 
 lemma id : (id : normed_group_hom V V).norm_noninc :=
 λ v, le_rfl
@@ -495,9 +515,6 @@ hg.comp hf
 
 lemma norm_noninc_of_isometry (hf : isometry f) : f.norm_noninc :=
 λ v, le_of_eq $ norm_eq_of_isometry hf v
-
-lemma bound_by_one_of_isometry (hf : isometry f) : f.bound_by 1 :=
-(norm_noninc_of_isometry hf).bound_by_one
 
 end isometry
 

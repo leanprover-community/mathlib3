@@ -198,9 +198,9 @@ begin
   let Ψ' : β → subtype s := λy, ⟨Ψ y, mem_union_right _ (mem_range_self _)⟩,
   have IΦ' : isometry Φ' := λx y, ha x y,
   have IΨ' : isometry Ψ' := λx y, hb x y,
-  have : is_compact s, from (compact_range ha.continuous).union (compact_range hb.continuous),
+  have : is_compact s, from (is_compact_range ha.continuous).union (is_compact_range hb.continuous),
   letI : metric_space (subtype s) := by apply_instance,
-  haveI : compact_space (subtype s) := ⟨compact_iff_compact_univ.1 ‹is_compact s›⟩,
+  haveI : compact_space (subtype s) := ⟨is_compact_iff_is_compact_univ.1 ‹is_compact s›⟩,
   haveI : nonempty (subtype s) := ⟨Φ' xα⟩,
   have ΦΦ' : Φ = subtype.val ∘ Φ', by { funext, refl },
   have ΨΨ' : Ψ = subtype.val ∘ Ψ', by { funext, refl },
@@ -216,9 +216,9 @@ begin
   -- Let `A` and `B` be the images of `α` and `β` under this embedding. They are in `ℓ^∞(ℝ)`, and
   -- their Hausdorff distance is the same as in the original space.
   let A : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Φ'), ⟨(range_nonempty _).image _,
-      (compact_range IΦ'.continuous).image (Kuratowski_embedding.isometry _).continuous⟩⟩,
+      (is_compact_range IΦ'.continuous).image (Kuratowski_embedding.isometry _).continuous⟩⟩,
   let B : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Ψ'), ⟨(range_nonempty _).image _,
-      (compact_range IΨ'.continuous).image (Kuratowski_embedding.isometry _).continuous⟩⟩,
+      (is_compact_range IΨ'.continuous).image (Kuratowski_embedding.isometry _).continuous⟩⟩,
   have Aα : ⟦A⟧ = to_GH_space α,
   { rw eq_to_GH_space_iff,
     exact ⟨λx, F (Φ' x), ⟨(Kuratowski_embedding.isometry _).comp IΦ', by rw range_comp⟩⟩ },
@@ -406,8 +406,8 @@ instance GH_space_metric_space : metric_space GH_space :=
     rcases GH_dist_eq_Hausdorff_dist x.rep y.rep with ⟨Φ, Ψ, Φisom, Ψisom, DΦΨ⟩,
     rw [← dist_GH_dist, hxy] at DΦΨ,
     have : range Φ = range Ψ,
-    { have hΦ : is_compact (range Φ) := compact_range Φisom.continuous,
-      have hΨ : is_compact (range Ψ) := compact_range Ψisom.continuous,
+    { have hΦ : is_compact (range Φ) := is_compact_range Φisom.continuous,
+      have hΨ : is_compact (range Ψ) := is_compact_range Ψisom.continuous,
       apply (Hausdorff_dist_zero_iff_eq_of_closed _ _ _).1 (DΦΨ.symm),
       { exact hΦ.is_closed },
       { exact hΨ.is_closed },
@@ -452,9 +452,9 @@ instance GH_space_metric_space : metric_space GH_space :=
         begin
           refine Hausdorff_dist_triangle (Hausdorff_edist_ne_top_of_nonempty_of_bounded
             (range_nonempty _) (range_nonempty _) _ _),
-          { exact (compact_range (isometry.continuous ((to_glue_l_isometry hΦ hΨ).comp
+          { exact (is_compact_range (isometry.continuous ((to_glue_l_isometry hΦ hΨ).comp
               (isometry_optimal_GH_injl X Y)))).bounded },
-          { exact (compact_range (isometry.continuous ((to_glue_l_isometry hΦ hΨ).comp
+          { exact (is_compact_range (isometry.continuous ((to_glue_l_isometry hΦ hΨ).comp
               (isometry_optimal_GH_injr X Y)))).bounded }
         end
       ... = Hausdorff_dist ((to_glue_l hΦ hΨ) '' (range (optimal_GH_injl X Y)))
@@ -562,12 +562,12 @@ begin
     GH_dist_le_Hausdorff_dist Il Ir,
   have : Hausdorff_dist (range Fl) (range Fr) ≤ Hausdorff_dist (range Fl) (Fl '' s)
                                               + Hausdorff_dist (Fl '' s) (range Fr),
-  { have B : bounded (range Fl) := (compact_range Il.continuous).bounded,
+  { have B : bounded (range Fl) := (is_compact_range Il.continuous).bounded,
     exact Hausdorff_dist_triangle (Hausdorff_edist_ne_top_of_nonempty_of_bounded
       (range_nonempty _) (sne.image _) B (B.subset (image_subset_range _ _))) },
   have : Hausdorff_dist (Fl '' s) (range Fr) ≤ Hausdorff_dist (Fl '' s) (Fr '' (range Φ))
                                              + Hausdorff_dist (Fr '' (range Φ)) (range Fr),
-  { have B : bounded (range Fr) := (compact_range Ir.continuous).bounded,
+  { have B : bounded (range Fr) := (is_compact_range Ir.continuous).bounded,
     exact Hausdorff_dist_triangle' (Hausdorff_edist_ne_top_of_nonempty_of_bounded
       ((range_nonempty _).image _) (range_nonempty _)
       (bounded.subset (image_subset_range _ _) B) B) },
@@ -615,9 +615,7 @@ begin
   have : ∀p:GH_space, ∀t:set (p.rep), finite t → ∃n:ℕ, ∃e:equiv t (fin n), true,
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
-    rcases fintype.exists_equiv_fin t with ⟨n, hn⟩,
-    rcases hn with ⟨e⟩,
-    exact ⟨n, e, trivial⟩ },
+    exact ⟨fintype.card t, fintype.equiv_fin t, trivial⟩ },
   choose N e hne using this,
   -- cardinality of the nice finite subset `s p` of `p.rep`, called `N p`
   let N := λp:GH_space, N p (s p) (hs p).1,
@@ -1001,7 +999,7 @@ begin
   -- consider `X2 n` as a member `X3 n` of the type of nonempty compact subsets of `Z`, which
   -- is a metric space
   let X3 : ℕ → nonempty_compacts Z := λn, ⟨X2 n,
-    ⟨range_nonempty _, compact_range (isom n).continuous ⟩⟩,
+    ⟨range_nonempty _, is_compact_range (isom n).continuous ⟩⟩,
   -- `X3 n` is a Cauchy sequence by construction, as the successive distances are
   -- bounded by `(1/2)^n`
   have : cauchy_seq X3,

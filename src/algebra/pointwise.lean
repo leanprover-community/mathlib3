@@ -141,6 +141,16 @@ instance [monoid α] : monoid (set α) :=
 { ..set.semigroup,
   ..set.mul_one_class }
 
+lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
+  a ^ n ∈ s ^ n :=
+begin
+  induction n with n ih,
+  { rw pow_zero,
+    exact set.mem_singleton 1 },
+  { rw pow_succ,
+    exact set.mul_mem_mul ha ih },
+end
+
 @[to_additive]
 protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=
 by simp only [← image2_mul, image2_swap _ s, mul_comm]
@@ -162,6 +172,16 @@ lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 @[to_additive]
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂
+
+lemma pow_subset_pow [monoid α] (hst : s ⊆ t) (n : ℕ) :
+  s ^ n ⊆ t ^ n :=
+begin
+  induction n with n ih,
+  { rw pow_zero,
+    exact subset.rfl },
+  { rw [pow_succ, pow_succ],
+    exact mul_subset_mul hst ih },
+end
 
 @[to_additive]
 lemma union_mul [has_mul α] : (s ∪ t) * u = (s * u) ∪ (t * u) := image2_union_left
@@ -254,6 +274,9 @@ lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :
 @[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
 by { rw [← inv_subset_inv, set.inv_inv] }
 
+@[to_additive] lemma finite.inv [group α] {s : set α} (hs : finite s) : finite s⁻¹ :=
+hs.preimage $ inv_injective.inj_on _
+
 /-! ### Properties about scalar multiplication -/
 
 /-- Scaling a set: multiplying every element by a scalar. -/
@@ -323,24 +346,22 @@ instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
   add_zero := union_empty,
   add_comm := union_comm, }
 
-instance set_semiring.mul_zero_class [has_mul α] : mul_zero_class (set_semiring α) :=
+instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
+  non_unital_non_assoc_semiring (set_semiring α) :=
 { zero_mul := λ s, empty_mul,
   mul_zero := λ s, mul_empty,
-  ..set.has_mul, ..set_semiring.add_comm_monoid }
-
-instance set_semiring.distrib [has_mul α] : distrib (set_semiring α) :=
-{ left_distrib := λ _ _ _, mul_union,
+  left_distrib := λ _ _ _, mul_union,
   right_distrib := λ _ _ _, union_mul,
   ..set.has_mul, ..set_semiring.add_comm_monoid }
 
-instance set_semiring.mul_zero_one_class [mul_one_class α] : mul_zero_one_class (set_semiring α) :=
-{ ..set_semiring.mul_zero_class, ..set.mul_one_class }
+instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
+
+instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
 
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
-{ ..set_semiring.add_comm_monoid,
-  ..set_semiring.distrib,
-  ..set_semiring.mul_zero_class,
-  ..set.monoid }
+{ ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
 
 instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
 { ..set.comm_monoid, ..set_semiring.semiring }
@@ -386,9 +407,9 @@ section
 
 variables {α : Type*} {β : Type*}
 
-/-- A nonempty set in a semimodule is scaled by zero to the singleton
-containing 0 in the semimodule. -/
-lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β] {s : set β} (h : s.nonempty) :
+/-- A nonempty set in a module is scaled by zero to the singleton
+containing 0 in the module. -/
+lemma zero_smul_set [semiring α] [add_comm_monoid β] [module α β] {s : set β} (h : s.nonempty) :
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]
 

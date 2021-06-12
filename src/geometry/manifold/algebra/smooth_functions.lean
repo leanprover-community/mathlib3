@@ -5,7 +5,6 @@ Authors: Nicolò Cavalleri
 -/
 
 import geometry.manifold.algebra.structures
-import geometry.manifold.times_cont_mdiff_map
 
 /-!
 # Algebraic structures over smooth functions
@@ -23,6 +22,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {N : Type*} [topological_space N] [charted_space H N]
+{E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+{H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
+{N' : Type*} [topological_space N'] [charted_space H'' N']
 
 namespace smooth_map
 
@@ -36,6 +38,11 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H'
 lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
   [has_smooth_mul I' G] (f g : C^∞⟮I, N; I', G⟯) :
   ⇑(f * g) = f * g := rfl
+
+@[simp, to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
+  [charted_space H' G] [has_smooth_mul I' G] (f g : C^∞⟮I'', N'; I', G⟯) (h : C^∞⟮I, N; I'', N'⟯) :
+(f * g).comp h = (f.comp h) * (g.comp h) :=
+by ext; simp only [times_cont_mdiff_map.comp_apply, coe_mul, pi.mul_apply]
 
 @[to_additive]
 instance has_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
@@ -145,7 +152,7 @@ instance smooth_map_comm_ring {R : Type*} [comm_ring R] [topological_space R]
 
 end ring_structure
 
-section semimodule_structure
+section module_structure
 
 /-!
 ### Semiodule stucture
@@ -164,17 +171,21 @@ lemma smooth_map.coe_smul
   {V : Type*} [normed_group V] [normed_space 𝕜 V] (r : 𝕜) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
   ⇑(r • f) = r • f := rfl
 
-instance smooth_map_semimodule
+@[simp] lemma smooth_map.smul_comp {V : Type*} [normed_group V] [normed_space 𝕜 V]
+  (r : 𝕜) (g : C^∞⟮I'', N'; 𝓘(𝕜, V), V⟯) (h : C^∞⟮I, N; I'', N'⟯) :
+(r • g).comp h = r • (g.comp h) := rfl
+
+instance smooth_map_module
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  vector_space 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
-semimodule.of_core $
+  module 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+module.of_core $
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
   one_smul := λ f, by ext x; exact one_smul 𝕜 (f x), }
 
-end semimodule_structure
+end module_structure
 
 section algebra_structure
 
@@ -215,12 +226,16 @@ is naturally a vector space over the ring of smooth functions from `N` to `𝕜`
 
 instance smooth_map_has_scalar'
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  has_scalar C^∞⟮I, N; 𝓘(𝕜), 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+  has_scalar C^∞⟮I, N; 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (smooth.smul f.2 g.2)⟩⟩
+
+@[simp] lemma smooth_map.smul_comp' {V : Type*} [normed_group V] [normed_space 𝕜 V]
+  (f : C^∞⟮I'', N'; 𝕜⟯) (g : C^∞⟮I'', N'; 𝓘(𝕜, V), V⟯) (h : C^∞⟮I, N; I'', N'⟯) :
+(f • g).comp h = (f.comp h) • (g.comp h) := rfl
 
 instance smooth_map_module'
   {V : Type*} [normed_group V] [normed_space 𝕜 V] :
-  semimodule C^∞⟮I, N; 𝓘(𝕜), 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
+  module C^∞⟮I, N; 𝓘(𝕜), 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),

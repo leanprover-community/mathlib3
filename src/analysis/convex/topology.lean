@@ -60,7 +60,7 @@ lemma bounded_std_simplex : metric.bounded (std_simplex ι) :=
 
 /-- `std_simplex ι` is closed. -/
 lemma is_closed_std_simplex : is_closed (std_simplex ι) :=
-(std_simplex_eq_inter ι).symm ▸ is_closed_inter
+(std_simplex_eq_inter ι).symm ▸ is_closed.inter
   (is_closed_Inter $ λ i, is_closed_le continuous_const (continuous_apply i))
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
@@ -74,7 +74,7 @@ end std_simplex
 
 section has_continuous_smul
 
-variables [add_comm_group E] [vector_space ℝ E] [topological_space E]
+variables [add_comm_group E] [module ℝ E] [topological_space E]
   [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- In a topological vector space, the interior of a convex set is convex. -/

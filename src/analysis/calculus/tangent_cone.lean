@@ -37,7 +37,7 @@ open_locale topological_space
 
 section tangent_cone
 
-variables {E : Type*} [add_comm_monoid E] [semimodule 𝕜 E] [topological_space E]
+variables {E : Type*} [add_comm_monoid E] [module 𝕜 E] [topological_space E]
 
 /-- The set of all tangent directions to the set `s` at the point `x`. -/
 def tangent_cone_at (s : set E) (x : E) : set E :=
@@ -296,10 +296,10 @@ lemma unique_diff_within_at_of_mem_nhds (h : s ∈ 𝓝 x) : unique_diff_within_
 by simpa only [univ_inter] using unique_diff_within_at_univ.inter h
 
 lemma is_open.unique_diff_within_at (hs : is_open s) (xs : x ∈ s) : unique_diff_within_at 𝕜 s x :=
-unique_diff_within_at_of_mem_nhds (mem_nhds_sets hs xs)
+unique_diff_within_at_of_mem_nhds (is_open.mem_nhds hs xs)
 
 lemma unique_diff_on.inter (hs : unique_diff_on 𝕜 s) (ht : is_open t) : unique_diff_on 𝕜 (s ∩ t) :=
-λx hx, (hs x hx.1).inter (mem_nhds_sets ht hx.2)
+λx hx, (hs x hx.1).inter (is_open.mem_nhds ht hx.2)
 
 lemma is_open.unique_diff_on (hs : is_open s) : unique_diff_on 𝕜 s :=
 λx hx, is_open.unique_diff_within_at hs hx
@@ -329,7 +329,7 @@ begin
   simp only [unique_diff_within_at_iff, closure_pi_set] at h ⊢,
   refine ⟨(dense_pi univ (λ i _, (h i).1)).mono _, λ i _, (h i).2⟩,
   norm_cast,
-  simp only [← submodule.supr_map_single, supr_le_iff, submodule.map_span, submodule.span_le,
+  simp only [← submodule.supr_map_single, supr_le_iff, linear_map.map_span, submodule.span_le,
     ← maps_to'],
   exact λ i, (maps_to_tangent_cone_pi $ λ j hj, (h j).2).mono subset.rfl submodule.subset_span
 end

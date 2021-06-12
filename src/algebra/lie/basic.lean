@@ -58,7 +58,7 @@ Jacobi identity. -/
 /-- A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring. -/
 @[protect_proj] class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L]
-  extends semimodule R L :=
+  extends module R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 
 /-- A Lie ring module is an additive group, together with an additive action of a
@@ -143,6 +143,9 @@ by rw [leibniz_lie, add_sub_cancel]
 
 lemma lie_jacobi : ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
 by { rw [← neg_neg ⁅x, y⁆, lie_neg z, lie_skew y x, ← lie_skew, lie_lie], abel, }
+
+instance lie_ring.int_lie_algebra : lie_algebra ℤ L :=
+{ lie_smul := λ n x y, lie_gsmul x y n, }
 
 instance : lie_ring_module L (M →ₗ[R] N) :=
 { bracket     := λ x f,
@@ -253,12 +256,18 @@ def comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) : L₁ →�
 { map_lie' := λ x y, by { change f (g ⁅x, y⁆) = ⁅f (g x), f (g y)⁆, rw [map_lie, map_lie], },
   ..linear_map.comp f.to_linear_map g.to_linear_map }
 
-@[simp] lemma comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
+lemma comp_apply (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) (x : L₁) :
   f.comp g x = f (g x) := rfl
 
-@[norm_cast]
-lemma comp_coe (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
-  (f : L₂ → L₃) ∘ (g : L₁ → L₂) = f.comp g := rfl
+@[norm_cast, simp]
+lemma coe_comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
+  (f.comp g : L₁ → L₃) = f ∘ g :=
+rfl
+
+@[norm_cast, simp]
+lemma coe_linear_map_comp (f : L₂ →ₗ⁅R⁆ L₃) (g : L₁ →ₗ⁅R⁆ L₂) :
+  (f.comp g : L₁ →ₗ[R] L₃) = (f : L₂ →ₗ[R] L₃).comp (g : L₁ →ₗ[R] L₂) :=
+rfl
 
 /-- The inverse of a bijective morphism is a morphism. -/
 def inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
@@ -445,11 +454,16 @@ def comp (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) : M →ₗ⁅R,L⁆
 { map_lie' := λ x m, by { change f (g ⁅x, m⁆) = ⁅x, f (g m)⁆, rw [map_lie, map_lie], },
   ..linear_map.comp f.to_linear_map g.to_linear_map }
 
-@[simp] lemma comp_apply (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) (m : M) :
+lemma comp_apply (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) (m : M) :
   f.comp g m = f (g m) := rfl
 
-@[norm_cast] lemma comp_coe (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) :
-  (f : N → P) ∘ (g : M → N) = f.comp g := rfl
+@[norm_cast, simp] lemma coe_comp (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) :
+  (f.comp g : M → P) = f ∘ g :=
+rfl
+
+@[norm_cast, simp] lemma coe_linear_map_comp (f : N →ₗ⁅R,L⁆ P) (g : M →ₗ⁅R,L⁆ N) :
+  (f.comp g : M →ₗ[R] P) = (f : N →ₗ[R] P).comp (g : M →ₗ[R] N) :=
+rfl
 
 /-- The inverse of a bijective morphism of Lie modules is a morphism of Lie modules. -/
 def inverse (f : M →ₗ⁅R,L⁆ N) (g : N → M)
@@ -500,7 +514,7 @@ instance : has_scalar R (M →ₗ⁅R,L⁆ N) :=
 lemma smul_apply (t : R) (f : M →ₗ⁅R,L⁆ N) (m : M) : (t • f) m = t • (f m) := rfl
 
 instance : module R (M →ₗ⁅R,L⁆ N) :=
-function.injective.semimodule R ⟨to_fun, rfl, coe_add⟩ coe_injective coe_smul
+function.injective.module R ⟨to_fun, rfl, coe_add⟩ coe_injective coe_smul
 
 end lie_module_hom
 

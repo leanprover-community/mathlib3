@@ -817,46 +817,41 @@ all_implicitly_included_variables_aux es vs [] ff
 
 /-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
 This also works if `x1, ... xn` contain free variables. -/
-protected meta def dirty_infer_type (e : expr) : tactic expr := do
-(const n ls, es) ← return e.get_app_fn_args |
-  fail "expression is not a constant applied to arguments",
-d ← get_decl n,
-return $ d.type.instantiate_pis es
+protected meta def simple_infer_type (env : environment) (e : expr) : exceptional expr := do
+(@const tt n ls, es) ← return e.get_app_fn_args |
+  exceptional.fail "expression is not a constant applied to arguments",
+d ← env.get n,
+return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip ls
 
 /-- `e.apply_replacement_fun f test reorder` applies `f` to each constant
   (inductive type, defined function etc) in an expression, unless
   * The constant is applied to (at least) one argument `arg`; and
   * `test arg` is false.
   * Reorder contains the information about what arguments to reorder. -/
-protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) : expr → tactic expr
-| e := e.mreplace $ λ e _,
+protected meta def apply_replacement_fun (env : environment) (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) : expr → expr
+| e := e.replace $ λ e _,
   match e with
-  | const n ls := return $ some $ expr.const (f n) $
+  | const n ls := some $ const (f n) $
       -- hack:
       -- if the first two arguments are reordered, we also reorder the first two universe parameters
-      if 0 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
-  | app (app g x) y :=
-    match reorder.find g.get_app_fn.const_name with -- this might be inefficient
-    | some l := if g.get_app_num_args ∈ l ∧ test (g.app x).get_app_args.head then do
-        g' ← apply_replacement_fun g,
-        y' ← apply_replacement_fun y,
-        x' ← apply_replacement_fun x,
-        return $ some $ g' y' x' else
-        -- the following only happens with non-fully applied terms
-        if g.get_app_num_args + 1 ∈ l ∧ test (g.app x).get_app_args.head then do
-        trace "help!",
-        f' ← apply_replacement_fun (g x),
-        y' ← apply_replacement_fun y,
-        x_type ← f'.dirty_infer_type,
-        return $ some $ lam `x binder_info.default x_type.binding_domain $
-          f'.lift_vars 0 1 (var 0) $ y'.lift_vars 0 1 else
-        return none
-    | none   := return none
-    end
-  | app (const n ls) arg := -- use heuristic `test` to decide whether to replace `n` by `f n`.
-    some <$> const (if test arg then f n else n) ls <$> apply_replacement_fun arg
-  | _ := return none
+      if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
+  | app g x :=
+    let l := (reorder.find g.get_app_fn.const_name).iget, -- this might be inefficient
+        -- check whether we want to replace g at all
+        new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
+        new_x := apply_replacement_fun x in
+    if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
+    -- reorder the last argument of g with x
+    some $ apply_replacement_fun g.app_fn new_x $ apply_replacement_fun g.app_arg else
+    -- the following only happens with non-fully applied terms
+    if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
+    -- make a lambda term that is the reordering of the non-fully applied term
+    y_type ← (new_g.simple_infer_type env).to_option,
+    some $ lam `x binder_info.default y_type.binding_domain $
+      new_g.lift_vars 0 1 (var 0) $ new_x.lift_vars 0 1 else
+    some $ new_g new_x
+  | _ := none
   end
 
 end expr
@@ -1003,13 +998,11 @@ open tactic
 sets the name of the given `decl : declaration` to `tgt`, and applies `apply_replacement_fun f test`
 to the value and type of `decl`.
 -/
-protected meta def update_with_fun (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : tactic declaration := do
-  let decl := decl.update_name $ tgt,
-  new_tp ← decl.type.apply_replacement_fun f test reorder,
-  let decl := decl.update_type new_tp,
-  new_val ← decl.value.apply_replacement_fun f test reorder,
-  return $ decl.update_value new_val
+protected meta def update_with_fun (env : environment) (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
+let decl := decl.update_name $ tgt in
+let decl := decl.update_type $ decl.type.apply_replacement_fun env f test reorder in
+decl.update_value $ decl.value.apply_replacement_fun env f test reorder
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

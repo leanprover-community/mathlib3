@@ -403,35 +403,3 @@ attribute [to_additive empty] empty
 attribute [to_additive pempty] pempty
 attribute [to_additive punit] punit
 attribute [to_additive unit] unit
-
-@[to_additive has_vadd]
-class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
-
-attribute [to_additive_reorder 0] has_pow
-attribute [to_additive_reorder 0 3] has_pow.pow
-attribute [to_additive has_scalar] has_pow
-attribute [to_additive has_scalar.smul] has_pow.pow
-
--- set_option pp.universes true
--- set_option pp.implicit true
--- set_option pp.notation false
--- -- #print has_pow
--- -- #print has_scalar
--- -- #print has_pow.pow
--- -- #print has_scalar.smul
-
-@[to_additive bar]
-def foo {α} [has_pow α ℕ] (x : α) (n : ℕ) : α := @has_pow.pow α ℕ _ x n
-#print foo
-#print bar
-
-instance ffodsjof : has_pow ℕ ℤ := ⟨λ _ _, 0⟩
-
-@[to_additive bar2]
-def foo2 {α} [has_pow α ℕ] (x : α) (n : ℕ) (m : ℤ) : α := x ^ (n ^ m)
-
-#print foo2
-#print bar2
-
-@[to_additive? bar3]
-def foo3 {α} [has_pow α ℕ] (x : α) : ℕ → α := @has_pow.pow α ℕ _ x

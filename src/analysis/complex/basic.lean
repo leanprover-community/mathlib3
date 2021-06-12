@@ -104,9 +104,7 @@ calc 1 = ∥im_clm I∥ : by simp
    ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
 
 /-- The complex-conjugation function from `ℂ` to itself is an isometric linear equivalence. -/
-def conj_li : ℂ ≃ₗᵢ[ℝ] ℂ :=
-{ norm_map' := by simp,
-  .. conj_lm }
+def conj_li : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_lm, λ x, by simp⟩
 
 @[simp] lemma conj_li_apply (z : ℂ) : conj_li z = conj_lm z := rfl
 

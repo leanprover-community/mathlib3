@@ -162,7 +162,8 @@ meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
       end) >>=
 (λ res,
   if res = src ∧ tgt ≠ src
-  then fail ("to_additive: can't transport " ++ src.to_string ++ " to itself")
+  then fail ("to_additive: can't transport " ++ src.to_string ++ " to itself.
+Give the desired additive name explicitly using `@[to_additive additive_name]`. ")
   else pure res)
 
 setup_tactic_parser
@@ -267,11 +268,11 @@ mapped to its additive version. The basic heuristic is
   contain any unapplied identifiers.
 
 Examples:
-* `@has_mul.mul ℕ n m` (i.e. `(n + m : ℕ)`) will not change to `+`, since its
+* `@has_mul.mul ℕ n m` (i.e. `(n * m : ℕ)`) will not change to `+`, since its
   first argument is `ℕ`, an identifier not applied to any arguments.
-* `@has_mul.mul (α × β) x y` will change to `+`, since the only identifier `prod`
-  is applied to `α` and `β`.
-* `@has_mul.mul (α × ℕ) x y` will not change to `+`.
+* `@has_mul.mul (α × β) x y` will change to `+`. It's first argument contains only the identifier
+  `prod`, but this is applied to arguments, `α` and `β`.
+* `@has_mul.mul (α × ℤ) x y` will not change to `+`, since its first argument contains `ℤ`.
 
 The reasoning behind the heuristic is that the first argument is the type which is "additivized",
 and this usually doesn't make sense if this is on a fixed type.
@@ -279,7 +280,7 @@ and this usually doesn't make sense if this is on a fixed type.
 There are two exceptions in this heuristic:
 
 * Identifiers that have the `@[to_additive]` attribute are ignored.
-  For example, multiplication in `Semigroup` is replaced by addition in `AddSemigroup`.
+  For example, multiplication in `↥Semigroup` is replaced by addition in `↥AddSemigroup`.
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
   positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
   For example, `times_cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means

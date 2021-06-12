@@ -1419,6 +1419,10 @@ begin
   exact simple_func.integral_congr hfi (L1.simple_func.to_simple_func_to_L1 _ _).symm
 end
 
+lemma simple_func.integral_eq_sum (f : α →ₛ E) (hfi : integrable f μ) :
+  ∫ x, f x ∂μ = ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
+by rw [← f.integral_eq_integral hfi, simple_func.integral]
+
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
   by_cases hμ : μ univ < ∞,
@@ -1669,17 +1673,7 @@ attribute [irreducible] integral L1.integral
 section integral_trim
 
 variables {H β γ : Type*} [normed_group H] [measurable_space H]
-
-variables {m m0 : measurable_space β} {μ : measure β}
-
-lemma integral_simple_func' {μ : measure α} (f : simple_func α F) (hf_int : integrable f μ) :
-  ∫ x, f x ∂μ = ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
-begin
-  rw [← simple_func.integral, integral_eq f hf_int, ← L1.simple_func.to_L1_eq_to_L1,
-    L1.simple_func.integral_L1_eq_integral, L1.simple_func.integral_eq_integral],
-  refine simple_func.integral_congr _ (L1.simple_func.to_simple_func_to_L1 _ _),
-  exact L1.simple_func.integrable _,
-end
+  {m m0 : measurable_space β} {μ : measure β}
 
 /-- Simple function seen as simple function of a larger `measurable_space`. -/
 def simple_func.to_larger_space (hm : m ≤ m0) (f : @simple_func β m γ) : simple_func β γ :=
@@ -1690,12 +1684,13 @@ lemma simple_func.coe_to_larger_space_eq (hm : m ≤ m0) (f : @simple_func β m 
   ⇑(f.to_larger_space hm) = f :=
 rfl
 
-lemma integral_simple_func (hm : m ≤ m0) (f : @simple_func β m F) (hf_int : integrable f μ) :
+lemma integral_simple_func_larger_space (hm : m ≤ m0) (f : @simple_func β m F)
+  (hf_int : integrable f μ) :
   ∫ x, f x ∂μ = ∑ x in (@simple_func.range β F m f), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
 begin
   simp_rw ← f.coe_to_larger_space_eq hm,
   have hf_int : integrable (f.to_larger_space hm) μ, by rwa simple_func.coe_to_larger_space_eq,
-  rw integral_simple_func' _ hf_int,
+  rw simple_func.integral_eq_sum _ hf_int,
   congr,
 end
 
@@ -1704,7 +1699,8 @@ lemma integral_trim_simple_func (hm : m ≤ m0) (f : @simple_func β m F) (hf_in
 begin
   have hf : @measurable _ _ m _ f, from @simple_func.measurable β F m _ f,
   have hf_int_m := hf_int.trim hm hf,
-  rw [integral_simple_func le_rfl f hf_int_m, integral_simple_func hm f hf_int],
+  rw [integral_simple_func_larger_space le_rfl f hf_int_m,
+    integral_simple_func_larger_space hm f hf_int],
   congr,
   ext1 x,
   congr,

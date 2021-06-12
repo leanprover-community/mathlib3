@@ -960,6 +960,10 @@ begin
   { cases h; simp only [h, abs_neg] },
 end
 
+lemma abs_sub_comm (a b : α) : abs (a - b) = abs (b - a) :=
+calc  abs (a - b) = abs (- (b - a)) : congr_arg _ (neg_sub b a).symm
+              ... = abs (b - a)     : abs_neg (b - a)
+
 variables [covariant_class α α (+) (≤)] {a b c : α}
 
 lemma abs_of_nonneg (h : 0 ≤ a) : abs a = a :=
@@ -988,9 +992,6 @@ end
 lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
-
-lemma abs_sub_comm (a b : α) : abs (a - b) = abs (b - a) :=
-by rw [← neg_sub, abs_neg]
 
 lemma neg_abs_le_self (a : α) : -abs a ≤ a :=
 begin

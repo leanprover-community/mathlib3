@@ -72,11 +72,9 @@ variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
 @[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
-begin
-  -- TODO: if we use matrix.mul here, we get a timeout
-  change matrix.trace n R R (X * Y - Y * X) = 0,
-  erw [linear_map.map_sub, matrix.trace_mul_comm, sub_self]
-end
+-- TODO: if we use matrix.mul here, we get a timeout
+show matrix.trace n R R (X * Y - Y * X) = 0, by
+erw [linear_map.map_sub, matrix.trace_mul_comm, sub_self]
 
 namespace special_linear
 
@@ -99,18 +97,15 @@ abbreviation E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
 @[simp] lemma E_apply_zero (i' j' : n) (h : ¬(i = i' ∧ j = j')) : E R i j i' j' = 0 := if_neg h
 
 @[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
-begin
-  ext k, rw matrix.diag_apply,
-  suffices : ¬(i = k ∧ j = k), by exact if_neg this,
-  rintros ⟨e₁, e₂⟩, apply h, subst e₁, exact e₂,
-end
+funext $ λ (k : n), by { suffices : ¬(i = k ∧ j = k), from if_neg this,
+  exact λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm) }
 
 lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
 
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
-⟨E R i j, by { change E R i j ∈ linear_map.ker (matrix.trace n R R), simp [E_trace_zero R i j h], }⟩
+⟨E R i j, show E R i j ∈ linear_map.ker (matrix.trace n R R), from E_trace_zero R i j h⟩
 
 @[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
 

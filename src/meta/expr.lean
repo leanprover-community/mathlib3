@@ -832,13 +832,7 @@ return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip
   * Reorder contains the information about what arguments to reorder. -/
 protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
   (reorder : name_map $ list ℕ) : expr → tactic expr
-| e := e.mreplace $ λ e _,
-  match e with
-  | const n ls := return $ some $ const (f n) $
-      -- hack:
-      -- if the first two arguments are reordered, we also reorder the first two universe parameters
-      if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
-  | app g x := do
+| (app g x) := do
     let l := (reorder.find g.get_app_fn.const_name).iget, -- this might be inefficient
     -- check whether we want to replace g at all
     new_x ← apply_replacement_fun x,
@@ -846,17 +840,27 @@ protected meta def apply_replacement_fun (f : name → name) (test : expr → bo
     f' ← apply_replacement_fun g.app_fn,
     y' ← apply_replacement_fun g.app_arg,
     -- reorder the last argument of g with x
-    return $ some $ f' new_x y' else do
+    return $ f' new_x y' else do
     new_g ← /-if g.is_constant ∧ ¬ test x then return g else-/ apply_replacement_fun g,
     -- the following only happens with non-fully applied terms
     if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
     -- make a lambda term that is the reordering of the non-fully applied term
     y_type ← new_g.simple_infer_type,
-    return $ some $ lam `x binder_info.default y_type.binding_domain $
+    return $ lam `x binder_info.default y_type.binding_domain $
       new_g.lift_vars 0 1 (var 0) $ new_x.lift_vars 0 1 else
-    return $ some $ new_g new_x
-  | _ := return $ none
-  end
+    return $ new_g new_x
+| (lam nm bi ty bd) :=
+  (do Rty ← apply_replacement_fun ty, Rbd ← apply_replacement_fun bd, return $ lam nm bi Rty Rbd)
+| (pi nm bi ty bd) :=
+  (do Rty ← apply_replacement_fun ty, Rbd ← apply_replacement_fun bd, return $ pi nm bi Rty Rbd)
+| (elet nm ty a b) := do Rty ← apply_replacement_fun ty,
+  Ra ← apply_replacement_fun a,
+  Rb ← apply_replacement_fun b,
+  return $ elet nm Rty Ra Rb
+| (macro c es) := macro c <$> es.mmap apply_replacement_fun
+| (const n ls) := return $ const (f n) $
+  if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
+| e := return e
 
 end expr
 

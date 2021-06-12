@@ -15,9 +15,10 @@ import category_theory.limits.shapes.pullbacks
 namespace category_theory
 noncomputable theory
 
-universes w v u
+universes w v u₁ u₂
 
-variables (C : Type u) [category.{v} C]
+variables (C : Type u₁) [category.{v} C]
+variables {D : Type u₂} [category.{v} D]
 
 @[simps]
 def point_bijection {X : Type v} : (punit ⟶ X) ≃ X :=
@@ -30,7 +31,7 @@ lemma corepresentable_of_right_adjoint (F : C ⥤ Type v) [is_right_adjoint F] :
   F.corepresentable :=
 { has_corepresentation :=
   ⟨ opposite.op ((left_adjoint F).obj punit),
-    { app := λ X, equiv.trans ((adjunction.of_right_adjoint F).hom_equiv _ _) point_bijection },
+    { app := λ X, ((adjunction.of_right_adjoint F).hom_equiv _ _).trans point_bijection },
     begin
       apply nat_iso.is_iso_of_is_iso_app _,
       intro X,
@@ -43,16 +44,14 @@ variables [concrete_category.{v} C]
 class representably_concrete : Prop :=
 (out : (forget C).corepresentable)
 
-instance : representably_concrete (Type u) := { out := corepresentable_of_right_adjoint _ _ }
+instance : representably_concrete (Type u₁) := { out := corepresentable_of_right_adjoint _ _ }
 
 attribute [instance] representably_concrete.out
 
-variables [representably_concrete C]
+variables {C} [representably_concrete C]
 
 local attribute [instance] concrete_category.has_coe_to_sort
 local attribute [instance] concrete_category.has_coe_to_fun
-
-variables {C}
 
 /--
 Elements of `X` are in natural bijection with morphisms from the corepresenting object to `X`. This

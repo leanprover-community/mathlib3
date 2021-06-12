@@ -75,6 +75,11 @@ the monomorphisms in `AddCommGroup` are just the injective functions.
 example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :=
 (mono_iff_injective f).1 (right_adjoint_preserves_mono adj (by apply_instance : mono f))
 
+instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
+
+instance : representably_concrete AddCommGroup.{u} :=
+{ out := corepresentable_of_right_adjoint _ _ }
+
 end AddCommGroup
 
 namespace Group

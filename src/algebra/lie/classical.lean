@@ -97,8 +97,7 @@ abbreviation E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
 @[simp] lemma E_apply_zero (i' j' : n) (h : ¬(i = i' ∧ j = j')) : E R i j i' j' = 0 := if_neg h
 
 @[simp] lemma E_diag_zero (h : j ≠ i) : matrix.diag n R R (E R i j) = 0 :=
-funext $ λ (k : n), by { suffices : ¬(i = k ∧ j = k), from if_neg this,
-  exact λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm) }
+funext $ λ (k : n),  if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm) 
 
 lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
 

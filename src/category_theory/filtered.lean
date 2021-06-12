@@ -79,7 +79,7 @@ instance is_filtered_or_empty_of_semilattice_sup
   cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, (by ext)⟩, }
 
 @[priority 100]
-instance is_filtered_of_semilattice_sup_anonempty
+instance is_filtered_of_semilattice_sup_nonempty
   (α : Type u) [semilattice_sup α] [nonempty α] : is_filtered α := {}
 
 -- Sanity checks

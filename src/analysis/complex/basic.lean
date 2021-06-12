@@ -103,13 +103,15 @@ le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥im_clm I∥ : by simp
    ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
 
-/-- The complex-conjugation function from `ℂ` to itself is an isometric linear map. -/
-def conj_li : ℂ →ₗᵢ[ℝ] ℂ := ⟨conj_lm, λ x, by simp⟩
+/-- The complex-conjugation function from `ℂ` to itself is an isometric linear equivalence. -/
+def conj_li : ℂ ≃ₗᵢ[ℝ] ℂ :=
+{ norm_map' := by simp,
+  .. conj_lm }
 
 @[simp] lemma conj_li_apply (z : ℂ) : conj_li z = conj_lm z := rfl
 
-/-- Continuous linear map version of the conj function, from `ℂ` to `ℂ`. -/
-def conj_clm : ℂ →L[ℝ] ℂ := conj_li.to_continuous_linear_map
+/-- Continuous linear equiv version of the conj function, from `ℂ` to `ℂ`. -/
+def conj_clm : ℂ ≃L[ℝ] ℂ := conj_li.to_continuous_linear_equiv
 
 lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_li.isometry
 
@@ -119,7 +121,8 @@ lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_li.isometry
 
 @[simp] lemma conj_clm_apply (z : ℂ) : (conj_clm : ℂ → ℂ) z = z.conj := rfl
 
-@[simp] lemma conj_clm_norm : ∥conj_clm∥ = 1 := conj_li.norm_to_continuous_linear_map
+@[simp] lemma conj_clm_norm : ∥conj_clm.to_continuous_linear_map∥ = 1 :=
+conj_li.to_linear_isometry.norm_to_continuous_linear_map
 
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_lm, λ x, by simp⟩

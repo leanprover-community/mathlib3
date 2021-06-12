@@ -210,9 +210,12 @@ def of_real_lm : ℝ →ₗ[ℝ] ℂ :=
 
 @[simp] lemma of_real_lm_coe : ⇑of_real_lm = coe := rfl
 
-/-- `ℝ`-linear map version of the complex conjugation function from `ℂ` to `ℂ`. -/
-def conj_lm : ℂ →ₗ[ℝ] ℂ :=
-{ map_smul' := by simp [restrict_scalars_smul_def],
+/-- `ℝ`-linear equiv version of the complex conjugation function from `ℂ` to `ℂ`. -/
+def conj_lm : ℂ ≃ₗ[ℝ] ℂ :=
+{ inv_fun := conj,
+  left_inv := λ x, by simp,
+  right_inv := λ x, by simp,
+  map_smul' := by simp [restrict_scalars_smul_def],
   ..conj }
 
 @[simp] lemma conj_lm_coe : ⇑conj_lm = conj := rfl

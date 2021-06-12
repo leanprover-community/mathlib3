@@ -592,8 +592,8 @@ section trim
 variables {H α' : Type*} [normed_group H] [measurable_space H]
   {m m0 : measurable_space α'} {μ' : measure α'}
 
-lemma integrable_trim_of_measurable (hm : m ≤ m0) [opens_measurable_space H] {f : α' → H}
-  (hf : @measurable _ _ m _ f) (hf_int : integrable f μ') :
+lemma integrable.trim (hm : m ≤ m0) [opens_measurable_space H] {f : α' → H}
+  (hf_int : integrable f μ') (hf : @measurable _ _ m _ f) :
   @integrable _ _ m _ _ f (μ'.trim hm) :=
 begin
   refine ⟨@measurable.ae_measurable α' _ m _ f (μ'.trim hm) hf, _⟩,

@@ -1703,7 +1703,7 @@ lemma integral_trim_simple_func (hm : m ≤ m0) (f : @simple_func β m F) (hf_in
   ∫ x, f x ∂μ = @integral β F m _ _ _ _ _ _ (μ.trim hm) f :=
 begin
   have hf : @measurable _ _ m _ f, from @simple_func.measurable β F m _ f,
-  have hf_int_m := integrable_trim_of_measurable hm hf hf_int,
+  have hf_int_m := hf_int.trim hm hf,
   rw [integral_simple_func le_rfl f hf_int_m, integral_simple_func hm f hf_int],
   congr,
   ext1 x,
@@ -1722,7 +1722,7 @@ begin
   have hf_seq_int : ∀ n, integrable (f_seq n) μ,
     from simple_func.integrable_approx_on_univ (hf.mono hm le_rfl) hf_int,
   have hf_seq_int_m : ∀ n, @integrable β F m _ _ (f_seq n) (μ.trim hm),
-    from λ n, integrable_trim_of_measurable hm (hf_seq_meas n) (hf_seq_int n),
+    from λ n, (hf_seq_int n).trim hm (hf_seq_meas n) ,
   have hf_seq_eq : ∀ n, ∫ x, f_seq n x ∂μ = @integral β F m _ _ _ _ _ _ (μ.trim hm) (f_seq n),
     from λ n, integral_trim_simple_func hm (f_seq n) (hf_seq_int n),
   have h_lim_1 : at_top.tendsto (λ n, ∫ x, f_seq n x ∂μ) (𝓝 (∫ x, f x ∂μ)),
@@ -1732,9 +1732,8 @@ begin
     (𝓝 (@integral β F m _ _ _ _ _ _ (μ.trim hm) f)),
   { simp_rw hf_seq_eq,
     refine @tendsto_integral_of_L1 β F m _ _ _ _ _ _ (μ.trim hm) _ f
-      (integrable_trim_of_measurable hm hf hf_int) _ _ (eventually_of_forall hf_seq_int_m) _,
-    exact @simple_func.tendsto_approx_on_univ_L1_edist β F m _ _ _ _ f _ hf
-      (integrable_trim_of_measurable hm hf hf_int), },
+      (hf_int.trim hm hf) _ _ (eventually_of_forall hf_seq_int_m) _,
+    exact @simple_func.tendsto_approx_on_univ_L1_edist β F m _ _ _ _ f _ hf (hf_int.trim hm hf), },
   exact tendsto_nhds_unique h_lim_1 h_lim_2,
 end
 

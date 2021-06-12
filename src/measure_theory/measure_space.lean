@@ -2230,7 +2230,10 @@ section trim
 /-- Restriction of a measure to a sub-sigma algebra.
 It is common to see a measure `μ` on a measurable space structure `m0` as being also a measure on
 any `m ≤ m0`. Since measures in mathlib have to be trimmed to the measurable space, `μ` itself
-cannot be a measure on `m`, hence the definition of `μ.trim hm`. -/
+cannot be a measure on `m`, hence the definition of `μ.trim hm`.
+
+This notion is related to `outer_measure.trim`, see the lemma
+`to_outer_measure_trim_eq_trim_to_outer_measure`. -/
 def measure.trim {m m0 : measurable_space α} (μ : @measure α m0) (hm : m ≤ m0) : @measure α m :=
 @outer_measure.to_measure α m μ.to_outer_measure (hm.trans (le_to_outer_measure_caratheodory μ))
 
@@ -2238,6 +2241,10 @@ def measure.trim {m m0 : measurable_space α} (μ : @measure α m0) (hm : m ≤ 
 by simp [measure.trim]
 
 variables {m m0 : measurable_space α} {μ : measure α} {s : set α}
+
+lemma to_outer_measure_trim_eq_trim_to_outer_measure (μ : measure α) (hm : m ≤ m0) :
+  @measure.to_outer_measure _ m (μ.trim hm) = @outer_measure.trim _ m μ.to_outer_measure :=
+by rw [measure.trim, to_measure_to_outer_measure]
 
 @[simp] lemma zero_trim (hm : m ≤ m0) : (0 : measure α).trim hm = (0 : @measure α m) :=
 by simp [measure.trim, outer_measure.to_measure_zero]

@@ -1677,7 +1677,7 @@ def simple_func.to_larger_space (hm : m ≤ m0) (f : @simple_func β m γ) : sim
 ⟨@simple_func.to_fun β m γ f, λ x, hm _ (@simple_func.measurable_set_fiber β γ m f x),
   @simple_func.finite_range β γ m f⟩
 
-lemma simple_func_larger_space_eq (hm : m ≤ m0) (f : @simple_func β m γ) :
+lemma simple_func.coe_to_larger_space_eq (hm : m ≤ m0) (f : @simple_func β m γ) :
   ⇑(f.to_larger_space hm) = f :=
 rfl
 
@@ -1693,10 +1693,9 @@ end
 lemma integral_simple_func (hm : m ≤ m0) (f : @simple_func β m F) (hf_int : integrable f μ) :
   ∫ x, f x ∂μ = ∑ x in (@simple_func.range β F m f), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
 begin
-  let f0 := f.to_larger_space hm,
-  simp_rw ← simple_func_larger_space_eq hm f,
-  have hf0_int : integrable f0 μ, by rwa simple_func_larger_space_eq,
-  rw integral_simple_func' _ hf0_int,
+  simp_rw ← f.coe_to_larger_space_eq hm,
+  have hf_int : integrable (f.to_larger_space hm) μ, by rwa simple_func.coe_to_larger_space_eq,
+  rw integral_simple_func' _ hf_int,
   congr,
 end
 
@@ -1749,7 +1748,7 @@ begin
   exact (@measurable_set.compl β _ m (@measurable_set_eq_fun β m γ _ _ _ _ _ _ hf hg)),
 end
 
-lemma ae_eq_trim_iff [measurable_space γ][add_group γ] [measurable_singleton_class γ]
+lemma ae_eq_trim_iff [measurable_space γ] [add_group γ] [measurable_singleton_class γ]
   [has_measurable_sub₂ γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g) :
   f =ᶠ[@measure.ae β m (μ.trim hm)] g ↔ f =ᵐ[μ] g :=

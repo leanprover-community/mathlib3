@@ -501,6 +501,10 @@ theorem mem_span_image_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
 by { rw span_image_eq_map_total, simp, }
 
+@[simp] lemma total_fin_zero (f : fin 0 → M) :
+  finsupp.total (fin 0) M R f = 0 :=
+by { ext i, apply fin_zero_elim i }
+
 variables (α) (M) (v)
 
 /-- `finsupp.total_on M v s` interprets `p : α →₀ R` as a linear combination of a

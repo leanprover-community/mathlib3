@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
-import measure_theory.measurable_space
 import measure_theory.pi_system
 import data.matrix.notation
 import topology.algebra.infinite_sum
@@ -978,6 +977,9 @@ variables (m : Π (s : α), P s → ℝ≥0∞)
 def extend (s : α) : ℝ≥0∞ := ⨅ h : P s, m s h
 
 lemma extend_eq {s : α} (h : P s) : extend m s = m s h :=
+by simp [extend, h]
+
+lemma extend_eq_top {s : α} (h : ¬P s) : extend m s = ∞ :=
 by simp [extend, h]
 
 lemma le_extend {s : α} (h : P s) : m s h ≤ extend m s :=

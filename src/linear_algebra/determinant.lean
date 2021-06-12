@@ -158,13 +158,13 @@ open_locale classical
 If there is no finite basis on `M`, the result is `1` instead.
 -/
 protected def det : (M →ₗ[A] M) →* A :=
-if H : ∃ (s : set M) (b : basis s A M), s.finite
-then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ (trunc.mk H.some_spec.some)
+if H : ∃ (s : finset M), nonempty (basis s A M)
+then linear_map.det_aux (trunc.mk H.some_spec.some)
 else 1
 
 lemma coe_det [decidable_eq M] : ⇑(linear_map.det : (M →ₗ[A] M) →* A) =
-  if H : ∃ (s : set M) (b : basis s A M), s.finite
-  then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ (trunc.mk H.some_spec.some)
+  if H : ∃ (s : finset M), nonempty (basis s A M)
+  then linear_map.det_aux (trunc.mk H.some_spec.some)
   else 1 :=
 by { ext, unfold linear_map.det,
      split_ifs,
@@ -178,18 +178,18 @@ attribute [irreducible] linear_map.det
 
 -- Auxiliary lemma, the `simp` normal form goes in the other direction
 -- (using `linear_map.det_to_matrix`)
-lemma det_eq_det_to_matrix_of_finite_set [decidable_eq M]
-  {s : set M} (b : basis s A M) [hs : fintype s] (f : M →ₗ[A] M) :
+lemma det_eq_det_to_matrix_of_finset [decidable_eq M]
+  {s : finset M} (b : basis s A M) (f : M →ₗ[A] M) :
   f.det = matrix.det (linear_map.to_matrix b b f) :=
-have ∃ (s : set M) (b : basis s A M), s.finite,
-from ⟨s, b, ⟨hs⟩⟩,
+have ∃ (s : finset M), nonempty (basis s A M),
+from ⟨s, ⟨b⟩⟩,
 by rw [linear_map.coe_det, dif_pos, det_aux_def' _ b]; assumption
 
 @[simp] lemma det_to_matrix
   (b : basis ι A M) (f : M →ₗ[A] M) :
   matrix.det (to_matrix b b f) = f.det :=
 by { haveI := classical.dec_eq M,
-     rw [det_eq_det_to_matrix_of_finite_set b.reindex_range, det_to_matrix_eq_det_to_matrix b] }
+     rw [det_eq_det_to_matrix_of_finset b.reindex_finset_range, det_to_matrix_eq_det_to_matrix b] }
 
 @[simp]
 lemma det_comp (f g : M →ₗ[A] M) : (f.comp g).det = f.det * g.det :=

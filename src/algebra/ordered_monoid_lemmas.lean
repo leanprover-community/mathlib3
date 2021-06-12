@@ -10,10 +10,12 @@ import order.basic
 /-!
 # Ordered monoids
 This file develops the basics of ordered monoids.
+
 ## Implementation details
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
+
 ## Remark
 No monoid is actually present in this file: all assumptions have been generalized to `has_mul` or
 `mul_one_class`.

@@ -411,6 +411,10 @@ If `R s n` fails, the whole replacement fails.
 If `R s n` returns `some t`, `s` is replaced with `t` (and `mreplace` does not visit
 its subexpressions).
 If `R s n` return `none`, then `mreplace` continues visiting subexpressions of `s`.
+
+WARNING: This function performs exponentially worse on large terms than `expr.replace`,
+if a subexpression occurs more than once in an expression, `expr.replace` visits them only once,
+but this function will visit every occurence of it. Do not use this on large expressions.
 -/
 meta def mreplace {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) (e : expr) :
   m expr :=

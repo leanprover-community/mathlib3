@@ -817,10 +817,10 @@ all_implicitly_included_variables_aux es vs [] ff
 
 /-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
 This also works if `x1, ... xn` contain free variables. -/
-protected meta def simple_infer_type (env : environment) (e : expr) : exceptional expr := do
+protected meta def simple_infer_type (e : expr) : tactic expr := do
 (@const tt n ls, es) ← return e.get_app_fn_args |
   exceptional.fail "expression is not a constant applied to arguments",
-d ← env.get n,
+d ← get_decl n,
 return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip ls
 
 /-- `e.apply_replacement_fun f test reorder` applies `f` to each constant
@@ -828,30 +828,32 @@ return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip
   * The constant is applied to (at least) one argument `arg`; and
   * `test arg` is false.
   * Reorder contains the information about what arguments to reorder. -/
-protected meta def apply_replacement_fun (env : environment) (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) : expr → expr
-| e := e.replace $ λ e _,
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) : expr → tactic expr
+| e := e.mreplace $ λ e _,
   match e with
-  | const n ls := some $ const (f n) $
+  | const n ls := return $ some $ const (f n) $
       -- hack:
       -- if the first two arguments are reordered, we also reorder the first two universe parameters
       if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
-  | app g x :=
+  | app g x := do
     let l := (reorder.find g.get_app_fn.const_name).iget, -- this might be inefficient
-        -- check whether we want to replace g at all
-        new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
-        new_x := apply_replacement_fun x in
-    if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
+    -- check whether we want to replace g at all
+    new_g ← if g.is_constant ∧ ¬ test x then return g else apply_replacement_fun g,
+    new_x ← apply_replacement_fun x,
+    if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then do
+    f' ← apply_replacement_fun g.app_fn,
+    y' ← apply_replacement_fun g.app_arg,
     -- reorder the last argument of g with x
-    some $ apply_replacement_fun g.app_fn new_x $ apply_replacement_fun g.app_arg else
+    return $ some $ f' new_x y' else
     -- the following only happens with non-fully applied terms
     if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
     -- make a lambda term that is the reordering of the non-fully applied term
-    y_type ← (new_g.simple_infer_type env).to_option,
-    some $ lam `x binder_info.default y_type.binding_domain $
+    y_type ← new_g.simple_infer_type,
+    return $ some $ lam `x binder_info.default y_type.binding_domain $
       new_g.lift_vars 0 1 (var 0) $ new_x.lift_vars 0 1 else
-    some $ new_g new_x
-  | _ := none
+    return $ some $ new_g new_x
+  | _ := return $ none
   end
 
 end expr
@@ -998,11 +1000,14 @@ open tactic
 sets the name of the given `decl : declaration` to `tgt`, and applies `apply_replacement_fun f test`
 to the value and type of `decl`.
 -/
-protected meta def update_with_fun (env : environment) (f : name → name) (test : expr → bool)
-  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
-let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun env f test reorder in
-decl.update_value $ decl.value.apply_replacement_fun env f test reorder
+protected meta def update_with_fun (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : tactic declaration := do
+  let decl := decl.update_name $ tgt,
+  new_tp ← decl.type.apply_replacement_fun f test reorder,
+  let decl := decl.update_type new_tp,
+  new_val ← decl.value.apply_replacement_fun f test reorder,
+  return $ decl.update_value new_val
+
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

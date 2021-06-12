@@ -24,7 +24,8 @@ Usage information is contained in the doc string of `to_additive.attr`.
 -/
 
 namespace to_additive
-open tactic exceptional
+open tactic
+setup_tactic_parser
 
 section performance_hack -- see Note [user attribute parameters]
 
@@ -57,8 +58,6 @@ end performance_hack
 
 section extra_attributes
 
-setup_tactic_parser
-
 /-- An attribute that tells `@[to_additive]` that certain arguments of this definition are not
   involved when using `@[to_additive]`.
   This helps the heuristic of `@[to_additive]` by also transforming definitions if `ℕ` or another
@@ -78,8 +77,10 @@ meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
 
 /-- An attribute that stores all the declarations that needs their arguments reordered when
   applying `@[to_additive]`. Currently, we only support swapping consecutive arguments.
-  The list of the natural number is the number of arguments before the two arguments that
-  need to be swapped. -/
+  The list of the natural numbers contains the positions of the first of the two arguments
+  to be swapped.
+  Example: `@[to_additive_reorder 1 4]` swaps the first two arguments and the arguments in
+  positions 4 and 5. -/
 @[user_attribute]
 meta def reorder_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
 { name      := `to_additive_reorder,
@@ -91,7 +92,10 @@ meta def reorder_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
         param ← reorder_attr.get_param_untyped n, -- see Note [user attribute parameters]
         return $ dict.insert n (param.to_list expr.to_nat).iget)
       mk_name_map, []⟩,
-  parser    := (lean.parser.small_nat)* }
+  parser    := do
+    l ← (lean.parser.small_nat)*,
+    guard (l.all (≠ 0)) <|> exceptional.fail "The reorder positions must be positive",
+    return l }
 
 end extra_attributes
 
@@ -181,7 +185,6 @@ meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
   then fail ("to_additive: can't transport " ++ src.to_string ++ " to itself")
   else pure res)
 
-setup_tactic_parser
 /-- the parser for the arguments to `to_additive` -/
 meta def parser : lean.parser value_type :=
 do

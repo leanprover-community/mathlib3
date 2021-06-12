@@ -398,6 +398,8 @@ meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (o
     Ra ← mreplace_aux a n,
     Rb ← mreplace_aux b n,
     return $ elet nm Rty Ra Rb)
+| (macro c es) n := option.mget_or_else (R (macro c es) n) $
+    macro c <$> es.mmap (λ e, mreplace_aux e n)
 | e n := option.mget_or_else (R e n) (return e)
 
 /--

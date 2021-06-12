@@ -71,17 +71,19 @@ variables [fintype n] [fintype l] [fintype p] [fintype q]
 variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
-@[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
--- TODO: if we use matrix.mul here, we get a timeout
-show matrix.trace n R R (X * Y - Y * X) = 0, by
-erw [linear_map.map_sub, matrix.trace_mul_comm, sub_self]
+local notation `Tr` := matrix.trace n R R
+
+@[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : Tr ⁅X, Y⁆ = 0 :=
+calc _ = Tr (X ⬝ Y) - Tr (Y ⬝ X) : linear_map.map_sub _ _ _
+   ... = Tr (X ⬝ Y) - Tr (X ⬝ Y) : congr_arg (λ x, _ - x) (matrix.trace_mul_comm X Y)
+   ... = 0 : sub_self _
 
 namespace special_linear
 
 /-- The special linear Lie algebra: square matrices of trace zero. -/
 def sl : lie_subalgebra R (matrix n n R) :=
 { lie_mem' := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
-  ..linear_map.ker (matrix.trace n R R) }
+  ..linear_map.ker Tr }
 
 lemma sl_bracket (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
 
@@ -100,12 +102,20 @@ abbreviation E : matrix n n R := λ i' j', if i = i' ∧ j = j' then 1 else 0
 funext $ λ (k : n), by { suffices : ¬(i = k ∧ j = k), from if_neg this,
   exact λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm) }
 
-lemma E_trace_zero (h : j ≠ i) : matrix.trace n R R (E R i j) = 0 := by simp [h]
+lemma E_trace_zero (h : j ≠ i) : Tr (E R i j) = 0 := by simp [h]
+
+lemma fexample [nontrivial R] (j i : n) (hij : j ≠ i) :
+  E R i j ⬝ E R j i ≠ E R j i ⬝ E R i j :=
+begin
+  rw [ne.def, ← sub_eq_zero, sl_bracket, c.trivial],
+  admit,
+end
+
 
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
-⟨E R i j, show E R i j ∈ linear_map.ker (matrix.trace n R R), from E_trace_zero R i j h⟩
+⟨E R i j, show E R i j ∈ linear_map.ker Tr, from E_trace_zero R i j h⟩
 
 @[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = E R i j := rfl
 
@@ -113,6 +123,16 @@ end elementary_basis
 
 lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬is_lie_abelian ↥(sl n R) :=
 begin
+
+  rcases fintype.exists_pair_of_one_lt_card h with ⟨j, i, hij⟩,
+  let A := Eb R i j hij,
+  let B := Eb R j i hij.symm,
+  simp,
+  use [A, B],
+  intros c,
+  have c' : A.val ⬝ B.val = B.val ⬝ A.val, by {extract_goal, rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
+  have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
+  exact one_ne_zero this,
   rcases fintype.exists_pair_of_one_lt_card h with ⟨j, i, hij⟩,
   let A := Eb R i j hij,
   let B := Eb R j i hij.symm,

@@ -240,79 +240,102 @@ See https://stacks.math.columbia.edu/tag/0032 for how to lift this to general co
 rather than thin ones.
 -/
 
-variables {J : Type u} [directed_order J]
-variables (F : Jᵒᵖ ⥤ Top.{u})
+variables {J : Type u} [small_category J] [is_cofiltered J]
+variables (F : J ⥤ Top.{u})
 
 /--
 The partial sections of an inverse system of topological spaces from an index `j` are sections
 when restricted to all objects less than or equal to `j`.
 -/
-def partial_sections (j : Jᵒᵖ) : set (Π j, F.obj j) :=
-{ u | ∀ {j'} (f : j ⟶ j'), F.map f (u j) = u j'}
+def partial_sections {G : finset J} (H : finset (Σ' (X Y : J) (mX : X ∈ G) (mY : Y ∈ G), X ⟶ Y)) :
+  set (Π j, F.obj j) :=
+{ u | ∀ {f : (Σ' (X Y : J) (mX : X ∈ G) (mY : Y ∈ G), X ⟶ Y)} (hf : f ∈ H),
+  F.map f.2.2.2.2 (u f.1) = u f.2.1 }
 
-lemma partial_sections.nonempty [Π (j : Jᵒᵖ), nonempty (F.obj j)] (j : Jᵒᵖ) :
-  (partial_sections F j).nonempty :=
+lemma partial_sections.nonempty [h : Π (j : J), nonempty (F.obj j)]
+  {G : finset J} (H : finset (Σ' (X Y : J) (mX : X ∈ G) (mY : Y ∈ G), X ⟶ Y)) :
+  (partial_sections F H).nonempty :=
 begin
   classical,
-  use λ (j' : Jᵒᵖ),
-    if h : j'.unop ≤ j.unop then
-      F.map h.hom.op (classical.arbitrary (F.obj j))
-    else
-      classical.arbitrary _,
-  intros j' fle,
-  simp only [dif_pos fle.unop.le, dif_pos le_rfl],
-  dsimp, simp,
+  let j0 := is_cofiltered.inf G H,
+  let fs : ∀ {X : J}, X ∈ G → (j0 ⟶ X) := λ X hX, is_cofiltered.inf_to G H hX,
+  have hfs := @is_cofiltered.inf_to_commutes _ _ _ G H,
+  let x0 := (h j0).some,
+  let u : Π j, F.obj j := λ j, if hj : j ∈ G then F.map (fs hj) x0 else (h _).some,
+  use u,
+  rintros ⟨X,Y,hX,hY,f⟩ hf,
+  dsimp only [u],
+  rw dif_pos hX,
+  rw dif_pos hY,
+  rw [← comp_app, ← F.map_comp],
+  rwa hfs,
 end
 
-lemma partial_sections.directed : directed (⊇) (partial_sections F) :=
+lemma partial_sections.closed [Π (j : J), t2_space (F.obj j)]
+  {G : finset J} (H : finset (Σ' (X Y : J) (mX : X ∈ G) (mY : Y ∈ G), X ⟶ Y)) :
+  is_closed (partial_sections F H) :=
 begin
-  intros j j',
-  obtain ⟨j'', hj''⟩ := directed_order.directed j.unop j'.unop,
-  use op j'',
-  split,
-  { intros u hu j''' f''',
-    rw [←hu ((hom_of_le hj''.1).op ≫ f'''), ←hu],
-    simp only [Top.comp_app, functor.map_comp] },
-  { intros u hu j''' f''',
-    rw [←hu ((hom_of_le hj''.2).op ≫ f'''), ←hu],
-    simp only [Top.comp_app, functor.map_comp] },
-end
-
-lemma partial_sections.closed [Π (j : Jᵒᵖ), t2_space (F.obj j)] (j : Jᵒᵖ) :
-  is_closed (partial_sections F j) :=
-begin
-  have hps : partial_sections F j =
-    ⋂ (f : Σ j', j ⟶ j'), {u : Π (j : Jᵒᵖ), F.obj j | F.map f.2 (u j) = u f.1},
-  { ext u,
-    simp only [set.mem_Inter, sigma.forall, set.mem_set_of_eq],
-    exact ⟨λ hu j' f, hu f, λ hu j' f, hu j' f⟩ },
-  rw hps,
-  apply is_closed_Inter,
-  rintros ⟨j', f⟩,
-  let proj : Π (j' : Jᵒᵖ), C((Π (j : Jᵒᵖ), F.obj j), F.obj j') :=
-    λ j', ⟨λ u, u j', continuous_apply j'⟩,
-  exact is_closed_eq
-    (((F.map f).continuous.comp (proj j).continuous).comp continuous_id)
-    ((proj j').continuous.comp continuous_id),
+  have : partial_sections F H = ⋂ {f : (Σ' (X Y : J) (mX : X ∈ G) (mY : Y ∈ G), X ⟶ Y)} (hf : f ∈ H),
+    { u | F.map f.2.2.2.2 (u f.1) = u f.2.1 } := by tidy,
+  rw this,
+  apply is_closed_bInter,
+  intros f hf,
+  apply is_closed_eq,
+  continuity,
 end
 
 lemma nonempty_limit_cone_of_compact_t2_inverse_system
-  [Π (j : Jᵒᵖ), nonempty (F.obj j)]
-  [Π (j : Jᵒᵖ), compact_space (F.obj j)]
-  [Π (j : Jᵒᵖ), t2_space (F.obj j)] :
+  [Π (j : J), nonempty (F.obj j)]
+  [Π (j : J), compact_space (F.obj j)]
+  [Π (j : J), t2_space (F.obj j)] :
   nonempty (Top.limit_cone F).X :=
 begin
-  by_cases h : nonempty Jᵒᵖ,
-  { haveI := h,
-    obtain ⟨u, hu⟩ := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
-      (partial_sections F) (partial_sections.directed F) (partial_sections.nonempty F)
-      (λ j, is_closed.is_compact (partial_sections.closed F j)) (partial_sections.closed F),
+  classical,
+  let PP := Σ (G : finset J),  finset (Σ' (X Y : J) (mX : X ∈ G) (mY : Y ∈ G), X ⟶ Y),
+  have := is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
+    (λ G : PP, partial_sections F G.2) _ _ _ _,
+  { obtain ⟨u,hu⟩ := this,
     use u,
-    intros j j' f,
-    specialize hu (partial_sections F j),
-    simp only [forall_prop_of_true, set.mem_range_self] at hu,
-    exact hu f, },
-  { exact ⟨⟨λ j, (h ⟨j⟩).elim, λ j, (h ⟨j⟩).elim⟩⟩, },
+    intros X Y f,
+    let G : PP := ⟨{X,Y},{⟨X,Y,by simp, by simp, f⟩}⟩,
+    exact hu _ ⟨G,rfl⟩ (finset.mem_singleton_self _) },
+  { intros A B,
+    let ιA : (Σ' (X Y : J) (mX : X ∈ A.1) (mY : Y ∈ A.1), X ⟶ Y) →
+      (Σ' (X Y : J) (mX : X ∈ A.1 ⊔ B.1) (mY : Y ∈ A.1 ⊔ B.1), X ⟶ Y) :=
+      λ f, ⟨f.1, f.2.1, _, _, f.2.2.2.2⟩,
+    rotate,
+    { apply finset.mem_union_left,
+      exact f.2.2.1 },
+    { apply finset.mem_union_left,
+      exact f.2.2.2.1 },
+    let ιB : (Σ' (X Y : J) (mX : X ∈ B.1) (mY : Y ∈ B.1), X ⟶ Y) →
+      (Σ' (X Y : J) (mX : X ∈ A.1 ⊔ B.1) (mY : Y ∈ A.1 ⊔ B.1), X ⟶ Y) :=
+      λ f, ⟨f.1, f.2.1, _, _, f.2.2.2.2⟩,
+    rotate,
+    { apply finset.mem_union_right,
+      exact f.2.2.1 },
+    { apply finset.mem_union_right,
+      exact f.2.2.2.1 },
+    refine ⟨⟨A.1 ⊔ B.1, A.2.image ιA ⊔ B.2.image ιB⟩,_,_⟩,
+    { rintro u hu f hf,
+      have : ιA f ∈ A.2.image ιA ⊔ B.2.image ιB,
+      { apply finset.mem_union_left,
+        rw finset.mem_image,
+        refine ⟨f, hf, rfl⟩ },
+      exact hu this },
+    { rintro u hu f hf,
+      have : ιB f ∈ A.2.image ιA ⊔ B.2.image ιB,
+      { apply finset.mem_union_right,
+        rw finset.mem_image,
+        refine ⟨f, hf, rfl⟩ },
+      exact hu this } },
+  { intros G,
+    apply partial_sections.nonempty },
+  { intros G,
+    apply is_closed.is_compact,
+    apply partial_sections.closed },
+  { intros G,
+    apply partial_sections.closed },
 end
 
 end topological_konig
@@ -325,28 +348,32 @@ section fintype_konig
 the `F` functor is between categories of the same universe, and it is an easy
 corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
 lemma nonempty_sections_of_fintype_inverse_system.init
-  {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type u)
-  [hf : Π (j : Jᵒᵖ), fintype (F.obj j)] [hne : Π (j : Jᵒᵖ), nonempty (F.obj j)] :
+  {J : Type u} [small_category J] [is_cofiltered J] (F : J ⥤ Type u)
+  [hf : Π (j : J), fintype (F.obj j)] [hne : Π (j : J), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
-  let F' : Jᵒᵖ ⥤ Top := F ⋙ Top.discrete,
-  haveI : Π (j : Jᵒᵖ), fintype (F'.obj j) := hf,
-  haveI : Π (j : Jᵒᵖ), nonempty (F'.obj j) := hne,
+  let F' : J ⥤ Top := F ⋙ Top.discrete,
+  haveI : Π (j : J), fintype (F'.obj j) := hf,
+  haveI : Π (j : J), nonempty (F'.obj j) := hne,
   obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_inverse_system F',
   exact ⟨u, λ _ _ f, hu f⟩,
 end
 
-/-- Gives the induced directed order on the `ulift` of a type with a directed order.
-This is not an instance because `preorder.small_category` will conflict with
-`category_theory.ulift_category`. -/
-def ulift.directed_order (α : Type u) [directed_order α] : directed_order (ulift.{v} α) :=
-{ le := λ i j, i.down ≤ j.down,
-  le_refl := λ i, le_refl i.down,
-  le_trans := λ i j k hij hjk, le_trans hij hjk,
-  directed := λ i j, begin
-    obtain ⟨k, hk⟩ := directed_order.directed i.down j.down,
-    exact ⟨ulift.up k, hk⟩,
-  end }
+-- I'm fairly sure we have something like this somewhere...
+instance ulift.small_category (α : Type u) [small_category α] [is_cofiltered α] :
+  small_category (ulift.{v} α) :=
+{ hom := λ X Y, ulift (X.down ⟶ Y.down),
+  id := λ X, ⟨𝟙 _⟩,
+  comp := λ X Y Z f g, ⟨f.down ≫ g.down⟩ }
+
+-- This should move.
+instance ulift.is_cofiltered (α : Type u) [small_category α] [is_cofiltered α] :
+  is_cofiltered (ulift.{v} α) :=
+{ cocone_objs := λ X Y, ⟨⟨is_cofiltered.min X.down Y.down⟩, ⟨is_cofiltered.min_to_left _ _⟩,
+    ⟨is_cofiltered.min_to_right _ _⟩, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨is_cofiltered.eq f.down g.down⟩,
+    ⟨is_cofiltered.eq_hom _ _⟩, by { ext, apply is_cofiltered.eq_condition }⟩,
+  nonempty := ⟨⟨is_cofiltered.nonempty.some⟩⟩ }
 
 /-- The inverse limit of nonempty finite types is nonempty.
 
@@ -355,38 +382,30 @@ To specialize: given a locally finite connected graph, take `J` to be `ℕ` and
 `F j` to be length-`j` paths that start from an arbitrary fixed vertex.
 Elements of `F.sections` can be read off as infinite rays in the graph. -/
 theorem nonempty_sections_of_fintype_inverse_system
-  {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type v)
-  [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
+  {J : Type u} [small_category J] [is_cofiltered J] (F : J ⥤ Type v)
+  [Π (j : J), fintype (F.obj j)] [Π (j : J), nonempty (F.obj j)] :
   F.sections.nonempty :=
 begin
   -- Step 1: lift everything to the `max u v` universe.
   let J' := ulift.{v} J,
-  letI hd : directed_order J' := ulift.directed_order J,
-  -- We want `J'` to have the category structure from its inherited directed order,
-  -- rather than the `category_theory.ulift_category` structure.
-  letI : small_category J' := @preorder.small_category _ hd.to_preorder,
-  -- The equivalence in `category.ulift` does not apply to the `directed_order`, so we
-  -- quickly implement one of its functors here.
   let down : J' ⥤ J :=
   { obj := ulift.down,
-    map := λ i j f, hom_of_le (le_of_hom f : i ≤ j) },
+    map := λ i j f, f.down },
   let tu : Type v ⥤ Type (max u v) := ulift_functor.{u v},
-  let F' : (ulift.{v} J)ᵒᵖ ⥤ Type (max u v) := down.op ⋙ F ⋙ tu,
+  let F' : (ulift.{v} J) ⥤ Type (max u v) := down ⋙ F ⋙ tu,
   haveI : ∀ i, nonempty (F'.obj i) := λ i,
-    ⟨ulift.up (classical.arbitrary (F.obj (op i.unop.down)))⟩,
+    ⟨ulift.up (classical.arbitrary (F.obj i.down))⟩,
   haveI : ∀ i, fintype (F'.obj i) := λ i,
-    fintype.of_equiv (F.obj (op i.unop.down)) equiv.ulift.symm,
+    fintype.of_equiv (F.obj i.down) equiv.ulift.symm,
   -- Step 2: apply the bootstrap theorem
   obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system.init F',
   -- Step 3: interpret the results
-  use λ j, (u (op (ulift.up j.unop))).down,
+  use λ j, (u (ulift.up j)).down,
   intros j j' f,
-  let f' : ulift.up.{v} j'.unop ⟶ ulift.up.{v} j.unop :=
-    hom_of_le (le_of_hom f.unop : unop j' ≤ unop j),
-  have h := hu f'.op,
+  let f' : ulift.up.{v} j ⟶ ulift.up.{v} j' := ⟨f⟩,
+  have h := hu f',
   simp only [functor.comp_map, ulift_functor_map, functor.op_map] at h,
   simp only [←h],
-  congr,
 end
 
 end fintype_konig

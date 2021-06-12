@@ -218,6 +218,19 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
 
+lemma quotient.mk_eq_iff_out [s : setoid α] {x : α} {y : quotient s} :
+  ⟦x⟧ = y ↔ x ≈ quotient.out y :=
+begin
+  split,
+  { intros h,
+    symmetry,
+    have := quotient.mk_out x,
+    rwa h at this },
+  { intro h,
+    rw ← quotient.out_eq y,
+    exact quotient.sound h }
+end
+
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,
   iseqv := ⟨

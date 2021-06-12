@@ -98,19 +98,15 @@ begin
       exact @linear_isometry.re_apply_eq_re f.to_linear_isometry h I, },
     { apply @linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re f.to_linear_isometry,
       intro z, rw @linear_isometry.re_apply_eq_re f.to_linear_isometry h } },
-  refine h0.imp (λ h₁ : f I = I, _) (λ h₂ : f I = -I, _),
+  refine h0.imp (λ h' : f I = I, _) (λ h' : f I = -I, _);
   { apply linear_isometry_equiv.to_linear_equiv_injective,
     apply complex.basis_one_I.ext',
     intros i,
-    fin_cases i; simp [h, h₁] },
-  { apply linear_isometry_equiv.to_linear_equiv_injective,
-    apply complex.basis_one_I.ext',
-    intros i,
-    fin_cases i; simp [h, h₂] },
+    fin_cases i; simp [h, h'] }
 end
 
 lemma linear_isometry_complex (f : ℂ ≃ₗᵢ[ℝ] ℂ) :
-  ∃ (a : circle), f = rotation a ∨ f = conj_li.trans (rotation a) :=
+  ∃ a : circle, f = rotation a ∨ f = conj_li.trans (rotation a) :=
 begin
   let a : circle := ⟨f 1, by simpa using f.norm_map 1⟩,
   use a,

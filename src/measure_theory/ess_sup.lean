@@ -111,7 +111,7 @@ begin
   all_goals {is_bounded_default, },
 end
 
-lemma ess_inf_mono_measure {f : α → β} {μ ν : measure α} (hμν : μ ≪ ν) :
+lemma ess_inf_antimono_measure {f : α → β} {μ ν : measure α} (hμν : μ ≪ ν) :
   ess_inf f ν ≤ ess_inf f μ :=
 begin
   refine liminf_le_liminf_of_le (measure.ae_le_iff_absolutely_continuous.mpr hμν) _ _,

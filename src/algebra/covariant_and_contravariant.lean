@@ -121,7 +121,7 @@ begin
     exact h a⁻¹ bc }
 end
 
-lemma elimonv [group N] [cov : covariant_class N N (*) r] : contravariant_class N N (*) r :=
+lemma covconv [group N] [cov : covariant_class N N (*) r] : contravariant_class N N (*) r :=
 { elim := λ a b c bc, group.covariant_iff_contravariant.mp cov.elim _ bc }
 
 

@@ -101,8 +101,8 @@ lemma eqv_class_mem {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) {y} :
   {x | (mk_classes c H).rel x y} ∈ c :=
 (H y).elim2 $ λ b hc hy hb, eq_eqv_class_of_mem H hc hy ▸ hc
 
-lemma eqv_class_mem' {α : Type*} {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) {x} :
-  {y : α | (setoid.mk_classes c H).rel x y} ∈ c :=
+lemma eqv_class_mem' {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) {x} :
+  {y : α | (mk_classes c H).rel x y} ∈ c :=
 by { convert setoid.eqv_class_mem H, ext, rw setoid.comm }
 
 /-- Distinct elements of a set of sets partitioning α are disjoint. -/
@@ -213,7 +213,7 @@ end partition
 
 end setoid
 
-/-- A partition of a type index by another type. -/
+/-- A partition of a type indexed by another type. -/
 @[nolint has_inhabited_instance]
 structure indexed_partition {ι α : Type*} (s : ι → set α) :=
 (eq_of_mem : ∀ {x i j}, x ∈ s i → x ∈ s j → i = j)

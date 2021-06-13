@@ -1,16 +1,17 @@
 /-
 Copyright (c) 2021. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Martin Zinkevich (modified for mathlib by Hunter Monroe)
+Authors: Martin Zinkevich (modified for mathlib by Hunter Monroe)
  -/
 
 import measure_theory.measurable_space
 import measure_theory.measure_space
 
-/-! This file defines the basic concepts in probability theory.
-      probability_space: a measure_space where the measure has a value of 1.
-      event: a set that is measurable (defined based upon the measurable space),
-      Pr[E]: the probability of an event.
+/-!
+This file defines the basic concepts in probability theory.
+probability_space: a measure_space where the measure has a value of 1.
+event: a set that is measurable (defined based upon the measurable space),
+Pr[E]: the probability of an event.
 -/
 
 open measure_theory measurable_space

@@ -874,7 +874,7 @@ def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
 iff.rfl
 
 @[to_additive] lemma subgroup_of_map_subtype (H K : subgroup G) :
-  (H.subgroup_of K).map (K.subtype) = H ⊓ K := set_like.ext'
+  (H.subgroup_of K).map K.subtype = H ⊓ K := set_like.ext'
 begin
   convert set.image_preimage_eq_inter_range,
   simp only [subtype.range_coe_subtype, coe_subtype, coe_inf],
@@ -1883,34 +1883,34 @@ set.subset.antisymm
     by { rw sup_eq_closure, apply Inf_le _, dsimp, refl })
   ((sup_eq_closure N H).symm ▸ subset_closure)
 
-@[to_additive] lemma mod_law_left (A' A B : subgroup G) (hA : A' ≤ A) :
-  (A' : set G) * (A ⊓ B : subgroup G) = A ⊓ (A' * B) :=
+@[to_additive] lemma mul_inf_assoc (A B C : subgroup G) (h : A ≤ C) :
+  (A : set G) * ↑(B ⊓ C) = (A * B) ⊓ C :=
 begin
   ext,
   simp only [coe_inf, set.inf_eq_inter, set.mem_mul, set.mem_inter_iff],
   split,
-  { rintros ⟨y, z, hy, ⟨hzA, hzB⟩, rfl⟩,
-    refine ⟨mul_mem A (hA hy) hzA, _⟩,
+  { rintros ⟨y, z, hy, ⟨hzB, hzC⟩, rfl⟩,
+    refine ⟨_, mul_mem C (h hy) hzC⟩,
     exact ⟨y, z, hy, hzB, rfl⟩ },
-  rintros ⟨hyz, y, z, hy, hz, rfl⟩,
-  refine ⟨y, z, hy, ⟨_, hz⟩, rfl⟩,
-  suffices : y⁻¹ * (y * z) ∈ A, { simpa },
-  exact mul_mem A (inv_mem A (hA hy)) hyz
+  rintros ⟨⟨y, z, hy, hz, rfl⟩, hyz⟩,
+  refine ⟨y, z, hy, ⟨hz, _⟩, rfl⟩,
+  suffices : y⁻¹ * (y * z) ∈ C, { simpa },
+  exact mul_mem C (inv_mem C (h hy)) hyz
 end
 
-@[to_additive] lemma mod_law_right (A' A B : subgroup G) (hA : A' ≤ A) :
-  ((A ⊓ B : subgroup G) : set G) * A' = A ⊓ (B * A') :=
+@[to_additive] lemma inf_mul_assoc (A B C : subgroup G) (h : C ≤ A) :
+  ((A ⊓ B : subgroup G) : set G) * C = A ⊓ (B * C) :=
 begin
   ext,
   simp only [coe_inf, set.inf_eq_inter, set.mem_mul, set.mem_inter_iff],
   split,
   { rintros ⟨y, z, ⟨hyA, hyB⟩, hz, rfl⟩,
-    refine ⟨mul_mem A hyA (hA hz), _⟩,
+    refine ⟨mul_mem A hyA (h hz), _⟩,
     exact ⟨y, z, hyB, hz, rfl⟩ },
   rintros ⟨hyz, y, z, hy, hz, rfl⟩,
   refine ⟨y, z, ⟨_, hy⟩, hz, rfl⟩,
   suffices : (y * z) * z⁻¹ ∈ A, { simpa },
-  exact mul_mem A hyz (inv_mem A (hA hz))
+  exact mul_mem A hyz (inv_mem A (h hz))
 end
 
 end pointwise
@@ -1969,7 +1969,7 @@ instance sup_normal (H K : subgroup G) [hH : H.normal] [hK : K.normal] : (H ⊔ 
 { conj_mem := λ n hmem g,
   by { rw mem_inf at *, exact ⟨hH.conj_mem n hmem.1 g, hK.conj_mem n hmem.2 g⟩ } }
 
-@[to_additive] lemma sup_of (A A' B : subgroup G) (hA : A ≤ B) (hA' : A' ≤ B) :
+@[to_additive] lemma subgroup_of_sup (A A' B : subgroup G) (hA : A ≤ B) (hA' : A' ≤ B) :
   (A ⊔ A').subgroup_of B = A.subgroup_of B ⊔ A'.subgroup_of B :=
 begin
   refine map_injective_of_le_ker B.subtype
@@ -1989,3 +1989,79 @@ end
 end subgroup_normal
 
 end subgroup
+
+namespace is_conj
+open subgroup
+
+lemma normal_closure_eq_top_of {N : subgroup G} [hn : N.normal]
+  {g g' : G} {hg : g ∈ N} {hg' : g' ∈ N} (hc : is_conj g g')
+  (ht : normal_closure ({⟨g, hg⟩} : set N) = ⊤) :
+  normal_closure ({⟨g', hg'⟩} : set N) = ⊤ :=
+begin
+  obtain ⟨c, rfl⟩ := is_conj_iff.1 hc,
+  have h : ∀ x : N, (mul_aut.conj c) x ∈ N,
+  { rintro ⟨x, hx⟩,
+    exact hn.conj_mem _ hx c },
+  have hs : function.surjective (((mul_aut.conj c).to_monoid_hom.restrict N).cod_restrict _ h),
+  { rintro ⟨x, hx⟩,
+    refine ⟨⟨c⁻¹ * x * c, _⟩, _⟩,
+    { have h := hn.conj_mem _ hx c⁻¹,
+      rwa [inv_inv] at h },
+    simp only [monoid_hom.cod_restrict_apply, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply,
+      coe_mk, monoid_hom.restrict_apply, subtype.mk_eq_mk, ← mul_assoc, mul_inv_self, one_mul],
+    rw [mul_assoc, mul_inv_self, mul_one] },
+  have ht' := map_mono (eq_top_iff.1 ht),
+  rw [← monoid_hom.range_eq_map, monoid_hom.range_top_of_surjective _ hs] at ht',
+  refine eq_top_iff.2 (le_trans ht' (map_le_iff_le_comap.2 (normal_closure_le_normal _))),
+  rw [set.singleton_subset_iff, set_like.mem_coe],
+  simp only [monoid_hom.cod_restrict_apply, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, coe_mk,
+    monoid_hom.restrict_apply, mem_comap],
+  exact subset_normal_closure (set.mem_singleton _),
+end
+
+end is_conj
+
+/-! ### Actions by `subgroup`s
+
+These are just copies of the definitions about `submonoid` starting from `submonoid.mul_action`.
+-/
+section actions
+
+namespace subgroup
+
+variables {α β : Type*}
+
+/-- The action by a subgroup is the action by the underlying group. -/
+@[to_additive /-"The additive action by an add_subgroup is the action by the underlying
+add_group. "-/]
+instance [mul_action G α] (S : subgroup G) : mul_action S α :=
+S.to_submonoid.mul_action
+
+@[to_additive]
+lemma smul_def [mul_action G α] {S : subgroup G} (g : S) (m : α) : g • m = (g : G) • m := rfl
+
+@[to_additive]
+instance smul_comm_class_left
+  [mul_action G β] [has_scalar α β] [smul_comm_class G α β] (S : subgroup G) :
+  smul_comm_class S α β :=
+S.to_submonoid.smul_comm_class_left
+
+@[to_additive]
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action G β] [smul_comm_class α G β] (S : subgroup G) :
+  smul_comm_class α S β :=
+S.to_submonoid.smul_comm_class_right
+
+/-- Note that this provides `is_scalar_tower S G G` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action G α] [mul_action G β] [is_scalar_tower G α β] (S : subgroup G) :
+  is_scalar_tower S α β :=
+S.to_submonoid.is_scalar_tower
+
+/-- The action by a subgroup is the action by the underlying group. -/
+instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=
+S.to_submonoid.distrib_mul_action
+
+end subgroup
+
+end actions

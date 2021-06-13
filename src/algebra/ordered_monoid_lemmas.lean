@@ -35,7 +35,7 @@ variables [has_mul α]
 @[to_additive lt_of_add_lt_add_left]
 lemma lt_of_mul_lt_mul_left' [contravariant_class α α (*) (<)] :
   a * b < a * c → b < c :=
-contravariant_class.covtc a
+contravariant_class.elim a
 
 variable [covariant_class α α (*) (≤)]
 
@@ -110,7 +110,7 @@ variables [has_mul α]
 lemma lt_of_mul_lt_mul_right' [contravariant_class α α (function.swap (*)) (<)]
   (h : a * b < c * b) :
   a < c :=
-contravariant_class.covtc b h
+contravariant_class.elim b h
 
 variable  [covariant_class α α (function.swap (*)) (≤)]
 

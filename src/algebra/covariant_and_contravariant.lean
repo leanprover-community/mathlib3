@@ -203,8 +203,8 @@ lemma covariant_lt_iff_contravariant_le [linear_order N] :
   λ h a b c bc, not_le.mp (λ k, not_le.mpr bc (h _ k))⟩
 
 @[to_additive]
-lemma covariant_iff_covariant_mul [comm_semigroup N] :
-  covariant N N (*) (r) ↔ covariant N N (flip (*)) (r) :=
+lemma covariant_flip_mul_iff [comm_semigroup N] :
+  covariant N N (flip (*)) (r) ↔ covariant N N (*) (r)  :=
 by rw is_symm_op.flip_eq
 
 @[to_additive]
@@ -220,12 +220,12 @@ instance covariant_mul_le.to_contravariant_lt_mul [has_mul N] [linear_order N]
 @[to_additive]
 instance covariant_mul_le_left.to_covariant_mul_le_right [comm_semigroup N] [has_le N]
   [covariant_class N N (*) (≤)] : covariant_class N N (function.swap (*)) (≤) :=
-{ covc := (covariant_iff_covariant_mul N (≤)).mp covariant_class.covc }
+{ covc := (covariant_flip_mul_iff N (≤)).mpr covariant_class.covc }
 
 @[to_additive]
 instance covariant_mul_lt_left.to_covariant_mul_lt_right [comm_semigroup N] [has_lt N]
   [covariant_class N N (*) (<)] : covariant_class N N (function.swap (*)) (<) :=
-{ covc := (covariant_iff_covariant_mul N (<)).mp covariant_class.covc }
+{ covc := (covariant_flip_mul_iff N (<)).mpr covariant_class.covc }
 
 @[to_additive]
 instance left_cancel_semigroup.to_covariant_mul_le_left [left_cancel_semigroup N] [partial_order N]

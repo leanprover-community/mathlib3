@@ -148,10 +148,10 @@ def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_comm_monoid β :=
-{ mul_le_mul_left := λ a b ab c,
-    show f (c * a) ≤ f (c * b), by simp [mul, @mul_le_mul_left' α _ _ _ _ _ ab _],
+{ mul_le_mul_left := λ a b ab c, show f (c * a) ≤ f (c * b), by
+  { rw [mul, mul], apply mul_le_mul_left', exact ab },
   lt_of_mul_lt_mul_left :=
-    λ a b c bc, @lt_of_mul_lt_mul_left' α (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
+    λ a b c bc, show f b < f c, from lt_of_mul_lt_mul_left' (by rwa [← mul, ← mul] : (f a) * _ < _),
   ..partial_order.lift f hf,
   ..hf.comm_monoid f one mul }
 
@@ -855,8 +855,9 @@ instance [h : has_mul α] : has_mul (order_dual α) := h
 
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
-{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ _ _ _ _ h _,
-  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
+{ mul_le_mul_left := λ a b h c, show (id c : α) * b ≤ c * a, from mul_le_mul_left' h _,
+  lt_of_mul_lt_mul_left := λ a b c h, by
+    apply lt_of_mul_lt_mul_left' (by convert h : (id a : α) * c < a * b),
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
 

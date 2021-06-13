@@ -30,7 +30,7 @@ Let `s` be a `finset α`, and `f : α → β` a function.
 ## Implementation Notes
 
 The first arguments in all definitions and lemmas is the codomain of the function of the big
-operator. This is to for the heuristic of whe to apply `@[to_additive]`.
+operator. This is necessary for the heuristic in `@[to_additive]`.
 See the documentation of `to_additive.attr` for more information.
 
 -/
@@ -756,6 +756,18 @@ lemma prod_range_succ' (f : ℕ → β) :
   ∀ n : ℕ, (∏ k in range (n + 1), f k) = (∏ k in range n, f (k+1)) * f 0
 | 0       := prod_range_succ _ _
 | (n + 1) := by rw [prod_range_succ _ n, mul_right_comm, ← prod_range_succ', prod_range_succ]
+
+@[to_additive]
+lemma eventually_constant_prod {u : ℕ → β} {N : ℕ} (hu : ∀ n ≥ N, u n = 1) {n : ℕ} (hn : N ≤ n) :
+  ∏ k in range (n + 1), u k = ∏ k in range (N + 1), u k :=
+begin
+  obtain ⟨m, rfl : n = N + m⟩ := le_iff_exists_add.mp hn,
+  clear hn,
+  induction m with m hm,
+  { simp },
+  erw [prod_range_succ, hm],
+  simp [hu]
+end
 
 @[to_additive]
 lemma prod_range_add (f : ℕ → β) (n m : ℕ) :

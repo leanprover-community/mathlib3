@@ -825,12 +825,14 @@ protected meta def simple_infer_type (env : environment) (e : expr) : exceptiona
 d ← env.get n,
 return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip ls
 
-/-- `e.apply_replacement_fun f test reorder` applies `f` to each constant
-  (inductive type, defined function etc) in an expression, unless
-  * The constant is applied to (at least) one argument `arg`; and
-  * `test arg` is false.
-  * Reorder contains the information about what arguments to reorder.
-  * The penultimate argument is a "cache" -/
+/--
+`e.apply_replacement_fun f test` applies `f` to each identifier
+(inductive type, defined function etc) in an expression, unless
+* The identifier occurs in an application with first argument `arg`; and
+* `test arg` is false.
+* Reorder contains the information about what arguments to reorder.
+* The penultimate argument is a "cache"
+-/
 protected meta def apply_replacement_fun (env : environment) (f : name → name) (test : expr → bool)
   (reorder : name_map $ list ℕ) : expr → expr
 | e := e.replace $ λ e _,

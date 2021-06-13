@@ -60,7 +60,7 @@ function. In this case the finite set depends on the point and it's convenient t
 that does not mention the set explicitly.
 
 The first arguments in all definitions and lemmas is the codomain of the function of the big
-operator. This is to for the heuristic of whe to apply `@[to_additive]`.
+operator. This is necessary for the heuristic in `@[to_additive]`.
 See the documentation of `to_additive.attr` for more information.
 
 ## Todo

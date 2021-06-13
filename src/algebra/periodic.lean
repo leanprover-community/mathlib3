@@ -122,6 +122,11 @@ lemma periodic.sub_eq [add_group α]
   f (x - c) = f x :=
 by simpa only [sub_add_cancel] using (h (x - c)).symm
 
+lemma periodic.sub_eq' [add_comm_group α]
+  (h : periodic f c) :
+  f (c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h (-x)
+
 lemma periodic.neg [add_group α]
   (h : periodic f c) :
   periodic f (-c) :=
@@ -162,6 +167,16 @@ lemma periodic.sub_nat_mul_eq [ring α]
   f (x - n * c) = f x :=
 by simpa only [nsmul_eq_mul] using h.sub_nsmul_eq n
 
+lemma periodic.nsmul_sub_eq [add_comm_group α]
+  (h : periodic f c) (n : ℕ) :
+  f (n • c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h.nsmul n (-x)
+
+lemma periodic.nat_mul_sub_eq [ring α]
+  (h : periodic f c) (n : ℕ) :
+  f (n * c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h.nat_mul n (-x)
+
 lemma periodic.gsmul [add_group α]
   (h : periodic f c) (n : ℤ) :
   periodic f (n • c) :=
@@ -184,6 +199,16 @@ lemma periodic.sub_int_mul_eq [ring α]
   (h : periodic f c) (n : ℤ) :
   f (x - n * c) = f x :=
 (h.int_mul n).sub_eq x
+
+lemma periodic.gsmul_sub_eq [add_comm_group α]
+  (h : periodic f c) (n : ℤ) :
+  f (n • c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h.gsmul n (-x)
+
+lemma periodic.int_mul_sub_eq [ring α]
+  (h : periodic f c) (n : ℤ) :
+  f (n * c - x) = f (-x) :=
+by simpa only [sub_eq_neg_add] using h.int_mul n (-x)
 
 lemma periodic.eq [add_zero_class α]
   (h : periodic f c) :
@@ -282,6 +307,11 @@ lemma antiperiodic.sub_eq [add_group α] [add_group β]
   (h : antiperiodic f c) (x : α) :
   f (x - c) = -f x :=
 by simp only [eq_neg_iff_eq_neg.mp (h (x - c)), sub_add_cancel]
+
+lemma antiperiodic.sub_eq' [add_comm_group α] [add_group β]
+  (h : antiperiodic f c) :
+  f (c - x) = -f (-x) :=
+by simpa only [sub_eq_neg_add] using h (-x)
 
 lemma antiperiodic.neg [add_group α] [add_group β]
   (h : antiperiodic f c) :

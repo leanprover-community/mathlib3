@@ -1,7 +1,7 @@
 import measure_theory.integration
 import algebra.group.hom
 import ring_theory.int.basic
-import data.padics.padic_integers
+import number_theory.padics.padic_integers
 import set_theory.zfc
 import topology.category.Profinite
 import topology.locally_constant.algebra
@@ -11,7 +11,7 @@ import topology.continuous_on
 import topology.opens
 import data.setoid.partition
 import topology.continuous_function.bounded
-import data.padics.ring_homs
+import number_theory.padics.ring_homs
 import number_theory.bernoulli_polynomials
 
 def clopen_sets (H : Type*) [topological_space H] := {s : set H // is_clopen s}

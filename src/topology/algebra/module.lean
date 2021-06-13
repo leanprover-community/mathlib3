@@ -832,7 +832,8 @@ variables
 variables [topological_add_group M₂] [has_continuous_smul R M₂]
 
 instance : algebra R (M₂ →L[R] M₂) :=
-algebra.of_module smul_comp (λ _ _ _, comp_smul _ _ _)
+(ring_hom.of $ λ c, c • (1 : M₂ →L[R] M₂)).to_algebra' $
+  λ _ _, ext $ λ _, (map_smul _ _ _).symm
 
 end comm_ring
 

@@ -50,6 +50,7 @@ interpreted as a submodule of `α →₀ M`. We also define `linear_map` version
 
 function with finite support, module, linear algebra
 -/
+import data.finsupp linear_algebra.basic
 
 noncomputable theory
 

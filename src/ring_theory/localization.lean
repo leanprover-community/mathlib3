@@ -1038,7 +1038,7 @@ namespace localization_map
 
 section integer_normalization
 
-variables {f : localization_map M S}
+instance : algebra α (localization α S) := (ring_hom.of coe).to_algebra' $ λ _, mul_comm _
 
 open polynomial
 open_locale classical

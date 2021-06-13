@@ -951,7 +951,12 @@ variables (K V)
 
 theorem vector_space.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=
-⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
+begin
+  apply exists.elim (exists_is_basis K V),
+  intros b hb,
+  haveI := classical.dec_pred (λ x, x ∈ b),
+  exact ⟨_, module.card_fintype hb⟩,
+end
 
 end division_ring
 

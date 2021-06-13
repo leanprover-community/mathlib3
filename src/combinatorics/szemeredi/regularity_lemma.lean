@@ -170,8 +170,9 @@ begin
   obtain htcard | htcard := (t.card.cast_nonneg : (0 : ℝ) ≤ t.card).eq_or_lt,
   { rw [←ht, ←htcard, div_zero, div_zero, div_zero, zero_mul, add_zero, pow_succ, zero_mul] },
   obtain hscard | hscard := (s.card.cast_nonneg : (0 : ℝ) ≤ s.card).eq_or_lt,
-  {  rw [←hscard, zero_div, zero_mul, add_zero, ←ht],
-    sorry },
+  { rw [←hscard, zero_div, zero_mul, add_zero, ←ht, le_div_iff htcard, div_pow, sq (t.card : ℝ),
+      div_mul_eq_mul_div_comm, div_self_mul_self', mul_inv_le_iff htcard],
+    simpa using sum_mul_sq_le_sq_mul_sq t (λ _, 1) f },
   have htzero : (t.card : ℝ) ≠ 0 := htcard.ne.symm,
   have hszero : (s.card : ℝ) ≠ 0 := hscard.ne.symm,
   rw div_eq_iff htzero at ht,
@@ -187,9 +188,13 @@ begin
     mul_pow] at h,
     convert h,
     ring },
-  rw sq,
-  sorry
+  have cs := sum_mul_sq_le_sq_mul_sq s (λ _, 1) (λ x, f x - a),
+  simp only [one_pow, one_mul, nsmul_eq_mul, sum_const, nat.smul_one_eq_coe] at cs,
+  apply cs.trans _,
+  rw mul_le_mul_left hscard,
+  refine sum_le_sum_of_subset_of_nonneg hst (λ i _ _, sq_nonneg _),
 end
+
 /-- A set is equitable if no element value is more than one bigger than another. -/
 def equitable_on {α : Type*} (s : set α) (f : α → ℕ) : Prop :=
   ∀ ⦃a₁ a₂⦄, a₁ ∈ s → a₂ ∈ s → f a₁ ≤ f a₂ → f a₂ - f a₁ ≤ 1

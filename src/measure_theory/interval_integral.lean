@@ -610,7 +610,7 @@ begin
   { have : μ.restrict (Icc a b) = μ.restrict (Ioc a b),
     { rw [← Ioc_union_left hab,
           measure_theory.measure.restrict_union _ measurable_set_Ioc (measurable_set_singleton a)],
-      { simp [ha] },
+      { simp [measure_theory.measure.restrict_zero_set ha] },
       { simp } },
     rw this },
   { simp [hab, hab.le] }

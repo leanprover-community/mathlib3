@@ -997,7 +997,7 @@ end
 @[simp] lemma restrict_eq_zero : μ.restrict s = 0 ↔ μ s = 0 :=
 by rw [← measure_univ_eq_zero, restrict_apply_univ]
 
-@[simp] lemma measure.restrict_zero_set {s : set α} (h : μ s = 0) :
+lemma restrict_zero_set {s : set α} (h : μ s = 0) :
   μ.restrict s = 0 :=
 by simp only [measure.restrict_eq_zero, h]
 
@@ -1701,7 +1701,7 @@ export probability_measure (measure_univ) has_no_atoms (measure_singleton)
 
 attribute [simp] measure_singleton
 
-@[simp] lemma measure_theory.measure.restrict_singleton' [has_no_atoms μ] {a : α} :
+@[simp] lemma measure.restrict_singleton' [has_no_atoms μ] {a : α} :
   μ.restrict {a} = 0 :=
 by simp only [measure_singleton, measure.restrict_eq_zero]
 

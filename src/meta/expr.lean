@@ -819,10 +819,10 @@ all_implicitly_included_variables_aux es vs [] ff
 
 /-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
 This also works if `x1, ... xn` contain free variables. -/
-protected meta def simple_infer_type (e : expr) : tactic expr := do
+protected meta def simple_infer_type (env : environment) (e : expr) : exceptional expr := do
 (@const tt n ls, es) ← return e.get_app_fn_args |
   exceptional.fail "expression is not a constant applied to arguments",
-d ← get_decl n,
+d ← env.get n,
 return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip ls
 
 /-- `e.apply_replacement_fun f test reorder` applies `f` to each constant
@@ -849,7 +849,7 @@ protected meta def apply_replacement_fun (env : environment) (f : name → name)
     -- check whether we want to replace g at all
     let new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
     -- make a lambda term that is the reordering of the non-fully applied term
-    -- y_type ← (new_g.simple_infer_type env).to_option,
+    y_type ← (new_g.simple_infer_type env).to_option,
     some $ lam `x binder_info.default g.binding_domain $
       new_g.lift_vars 0 1 (var 0) $ (apply_replacement_fun x).lift_vars 0 1 else
     if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none

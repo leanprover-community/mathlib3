@@ -136,6 +136,31 @@ end
 
 /-! ### Prerequisites for SRL -/.
 
+lemma sum_mul_sq_le_sq_mul_sq {α : Type*} (s : finset α) (f g : α → ℝ) :
+  (∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * (∑ i in s, (g i)^2) :=
+begin
+  have : 0 ≤ ∑ i in s, (g i)^2 := sum_nonneg (λ i hi, sq_nonneg _),
+  cases eq_or_lt_of_le this with h h,
+  { rw [eq_comm, sum_eq_zero_iff_of_nonneg] at h,
+    { simp only [nat.succ_pos', pow_eq_zero_iff] at h,
+      rw [finset.sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h i hi]),
+          finset.sum_congr rfl (show ∀ i ∈ s, g i ^ 2 = 0, from λ i hi, by simp [h i hi])],
+      simp },
+    { intros i hi,
+      apply sq_nonneg } },
+  let lambda := (∑ i in s, f i * g i) / (∑ i in s, (g i)^2),
+  have : 0 ≤ ∑ i in s, (f i - lambda * g i)^2,
+  { apply sum_nonneg,
+    intros i hi,
+    apply sq_nonneg },
+  simp_rw [sub_sq, sum_add_distrib, sum_sub_distrib, mul_pow, mul_assoc, ←mul_sum,
+    mul_left_comm _ lambda, ←mul_sum, div_pow, div_mul_eq_mul_div, ←sq, ←div_mul_eq_mul_div,
+    div_mul_eq_mul_div_comm, sq (∑ i in s, g i ^ 2), div_self_mul_self', ←div_eq_mul_inv, two_mul,
+    ←sub_sub, sub_add_cancel, sub_nonneg] at this,
+  rw div_le_iff h at this,
+  assumption
+end
+
 lemma lemmaB {α : Type*} {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {a b : ℝ}
   (hs : (∑ x in s, f x)/s.card = a + b) (ht : (∑ x in t, f x) / t.card = a) :
   a^2 + s.card/t.card * b^2 ≤ (∑ x in t, f x^2)/t.card :=
@@ -1260,6 +1285,8 @@ lemma exp_bound_mono :
   monotone exp_bound :=
 λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
+
+
 private lemma bound_mono_aux {ε : ℝ} {a b : ℕ} (hε : 100 < ε^5 * 4^a) (h : a ≤ b) :
   ε^5 * 4^a ≤ ε^5 * 4^b := sorry
 --mul_le_mul_of_nonneg_left (pow_le_pow (by norm_num) h) (nonneg_of_mul_pos_right (lt_trans (by norm_num) hε) (pow_nonneg (by norm_num) a))
@@ -1285,7 +1312,7 @@ theorem increment (hP : P.is_equipartition)
   ∃ (Q : finpartition' V),
     Q.is_equipartition ∧ Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
 begin
-  sorry
+
 end
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/

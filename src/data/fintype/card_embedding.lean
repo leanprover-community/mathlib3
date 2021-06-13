@@ -8,7 +8,7 @@ import data.equiv.fin
 import data.equiv.embedding
 
 /-!
-# Birthday Problem
+# Number of embeddings
 
 This file establishes the cardinality of `α ↪ β` in full generality.
 -/
@@ -29,11 +29,11 @@ lemma card_embedding_eq_of_unique
 ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
-  ‖fin n ↪ β‖ = ‖β‖.desc_fact n :=
+  ‖fin n ↪ β‖ = ‖β‖.desc_factorial n :=
 begin
   induction n with n hn,
   { nontriviality (fin 0 ↪ β),
-    rw [nat.desc_fact_zero, fintype.card_eq_one_iff],
+    rw [nat.desc_factorial_zero, fintype.card_eq_one_iff],
     refine ⟨nonempty.some nontrivial.to_nonempty, λ x, function.embedding.ext fin.elim0⟩ },
 
   rw [nat.succ_eq_add_one, ←card_congr (equiv.embedding_congr fin_sum_fin_equiv (equiv.refl β)),
@@ -55,12 +55,12 @@ begin
   simp only [this, finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
 
   replace h := (nat.lt_of_succ_le h).le,
-  rw [nat.desc_fact_succ, hn h, mul_comm]
+  rw [nat.desc_factorial_succ, hn h, mul_comm]
 end
 
 /- Establishes the cardinality of the type of all injections between two finite types.  -/
 @[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
-‖α ↪ β‖ = (‖β‖.desc_fact ‖α‖) :=
+‖α ↪ β‖ = (‖β‖.desc_factorial ‖α‖) :=
 begin
   by_cases h : ‖α‖ ≤ ‖β‖,
   { trunc_cases fintype.trunc_equiv_fin α with eq,
@@ -68,7 +68,7 @@ begin
     exact card_embedding_aux _ _ h },
   rw ←lt_iff_not_ge at h,
   rw [card_eq_zero_iff.mpr (function.embedding.is_empty_of_card_lt h),
-    nat.desc_fact_eq_zero_iff_lt.mpr h],
+    nat.desc_factorial_eq_zero_iff_lt.mpr h],
 end
 
 /- The cardinality of embeddings from an infinite type to a finite type is zero.

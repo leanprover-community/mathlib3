@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
-import linear_algebra.free_module
+import linear_algebra.free_module_pid
 import linear_algebra.matrix.basis
 import linear_algebra.matrix.diagonal
 import linear_algebra.matrix.to_linear_equiv
@@ -158,13 +158,13 @@ open_locale classical
 If there is no finite basis on `M`, the result is `1` instead.
 -/
 protected def det : (M →ₗ[A] M) →* A :=
-if H : ∃ (s : set M) (b : basis s A M), s.finite
-then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ (trunc.mk H.some_spec.some)
+if H : ∃ (s : finset M), nonempty (basis s A M)
+then linear_map.det_aux (trunc.mk H.some_spec.some)
 else 1
 
 lemma coe_det [decidable_eq M] : ⇑(linear_map.det : (M →ₗ[A] M) →* A) =
-  if H : ∃ (s : set M) (b : basis s A M), s.finite
-  then @linear_map.det_aux _ _ _ _ H.some_spec.some_spec.some _ _ _ (trunc.mk H.some_spec.some)
+  if H : ∃ (s : finset M), nonempty (basis s A M)
+  then linear_map.det_aux (trunc.mk H.some_spec.some)
   else 1 :=
 by { ext, unfold linear_map.det,
      split_ifs,
@@ -178,18 +178,18 @@ attribute [irreducible] linear_map.det
 
 -- Auxiliary lemma, the `simp` normal form goes in the other direction
 -- (using `linear_map.det_to_matrix`)
-lemma det_eq_det_to_matrix_of_finite_set [decidable_eq M]
-  {s : set M} (b : basis s A M) [hs : fintype s] (f : M →ₗ[A] M) :
+lemma det_eq_det_to_matrix_of_finset [decidable_eq M]
+  {s : finset M} (b : basis s A M) (f : M →ₗ[A] M) :
   f.det = matrix.det (linear_map.to_matrix b b f) :=
-have ∃ (s : set M) (b : basis s A M), s.finite,
-from ⟨s, b, ⟨hs⟩⟩,
+have ∃ (s : finset M), nonempty (basis s A M),
+from ⟨s, ⟨b⟩⟩,
 by rw [linear_map.coe_det, dif_pos, det_aux_def' _ b]; assumption
 
 @[simp] lemma det_to_matrix
   (b : basis ι A M) (f : M →ₗ[A] M) :
   matrix.det (to_matrix b b f) = f.det :=
 by { haveI := classical.dec_eq M,
-     rw [det_eq_det_to_matrix_of_finite_set b.reindex_range, det_to_matrix_eq_det_to_matrix b] }
+     rw [det_eq_det_to_matrix_of_finset b.reindex_finset_range, det_to_matrix_eq_det_to_matrix b] }
 
 @[simp]
 lemma det_comp (f g : M →ₗ[A] M) : (f.comp g).det = f.det * g.det :=
@@ -282,3 +282,26 @@ end
 
 lemma basis.is_unit_det (e' : basis ι R M) : is_unit (e.det e') :=
 (is_basis_iff_det e).mp ⟨e'.linear_independent, e'.span_eq⟩
+
+variables {A : Type*} [integral_domain A] [module A M]
+
+@[simp] lemma basis.det_comp (e : basis ι A M) (f : M →ₗ[A] M) (v : ι → M) :
+  e.det (f ∘ v) = f.det * e.det v :=
+by { rw [basis.det_apply, basis.det_apply, ← f.det_to_matrix e, ← matrix.det_mul,
+         e.to_matrix_eq_to_matrix_constr (f ∘ v), e.to_matrix_eq_to_matrix_constr v,
+         ← to_matrix_comp, e.constr_comp] }
+
+lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
+  (b.reindex e).det v = b.det (v ∘ e) :=
+by rw [basis.det_apply, basis.to_matrix_reindex', det_reindex_alg_equiv, basis.det_apply]
+
+lemma basis.det_reindex_symm {ι' : Type*} [fintype ι'] [decidable_eq ι']
+  (b : basis ι R M) (v : ι → M) (e : ι' ≃ ι) :
+  (b.reindex e.symm).det (v ∘ e) = b.det v :=
+by rw [basis.det_reindex, function.comp.assoc, e.self_comp_symm, function.comp.right_id]
+
+@[simp]
+lemma basis.det_map (b : basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
+  (b.map f).det v = b.det (f.symm ∘ v) :=
+by { rw [basis.det_apply, basis.to_matrix_map, basis.det_apply] }

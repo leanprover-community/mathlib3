@@ -858,7 +858,7 @@ section real
 instance real.pseudo_metric_space : pseudo_metric_space ℝ :=
 { dist               := λx y, abs (x - y),
   dist_self          := by simp [abs_zero],
-  dist_comm          := assume x y, abs_sub _ _,
+  dist_comm          := assume x y, abs_sub_comm _ _,
   dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 
 theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
@@ -888,7 +888,7 @@ by simpa [real.dist_eq] using real.dist_le_of_mem_Icc hx hy
 
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,
-  by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub]
+  by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub_comm]
 
 lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
@@ -1319,6 +1319,17 @@ open metric
 /-- A pseudometric space is proper if all closed balls are compact. -/
 class proper_space (α : Type u) [pseudo_metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, is_compact (closed_ball x r))
+
+/-- In a proper pseudometric space, all spheres are compact. -/
+lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
+  is_compact (sphere x r) :=
+compact_of_is_closed_subset (proper_space.compact_ball x r) is_closed_sphere
+  sphere_subset_closed_ball
+
+/-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
+instance {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
+  compact_space (sphere x r) :=
+is_compact_iff_compact_space.mp (is_compact_sphere _ _)
 
 /-- A proper pseudo metric space is sigma compact, and therefore second countable. -/
 @[priority 100] -- see Note [lower instance priority]

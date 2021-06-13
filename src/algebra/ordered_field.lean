@@ -561,7 +561,9 @@ end
 ### Miscellaneous lemmas
 -/
 
-/-- Pullback a `linear_ordered_field` under an injective map. -/
+/-- Pullback a `linear_ordered_field` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible]
 def function.injective.linear_ordered_field {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_inv β] [has_div β]
   [nontrivial β]

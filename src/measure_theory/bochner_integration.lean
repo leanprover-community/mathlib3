@@ -199,18 +199,99 @@ and prove basic property of this integral.
 open finset
 
 variables [normed_group E] [measurable_space E] [normed_group F]
-variables {μ : measure α}
+variables {μ : measure α} {p : ℝ≥0∞}
 
-/-- For simple functions with a `normed_group` as codomain, being integrable is the same as having
-    finite volume support. -/
-lemma integrable_iff_fin_meas_supp {f : α →ₛ E} {μ : measure α} :
-  integrable f μ ↔ f.fin_meas_supp μ :=
-calc integrable f μ ↔ ∫⁻ x, f.map (coe ∘ nnnorm : E → ℝ≥0∞) x ∂μ < ∞ :
-  and_iff_right f.ae_measurable
-... ↔ (f.map (coe ∘ nnnorm : E → ℝ≥0∞)).lintegral μ < ∞ : by rw lintegral_eq_lintegral
-... ↔ (f.map (coe ∘ nnnorm : E → ℝ≥0∞)).fin_meas_supp μ : iff.symm $
-  fin_meas_supp.iff_lintegral_lt_top $ eventually_of_forall $ λ x, coe_lt_top
-... ↔ _ : fin_meas_supp.map_iff $ λ b, coe_eq_zero.trans nnnorm_eq_zero
+/-!
+#### Properties of simple functions
+
+A simple function `f : α →ₛ E` into a normed group `E` verifies, for a measure `μ`:
+- `mem_ℒp f 0 μ` and `mem_ℒp f ∞ μ`, since `f` is a.e.-measurable and bounded,
+- for `0 < p < ∞`, `mem_ℒp f p μ ↔ integrable f μ ↔ f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞`.
+-/
+
+lemma exists_forall_norm_le (f : α →ₛ F) : ∃ C, ∀ x, ∥f x∥ ≤ C :=
+exists_forall_le (f.map (λ x, ∥x∥))
+
+lemma mem_ℒp_zero (f : α →ₛ E) (μ : measure α) : mem_ℒp f 0 μ :=
+mem_ℒp_zero_iff_ae_measurable.mpr f.ae_measurable
+
+lemma mem_ℒp_top (f : α →ₛ E) (μ : measure α) : mem_ℒp f ∞ μ :=
+begin
+  obtain ⟨C, hfC⟩ := f.exists_forall_norm_le,
+  exact mem_ℒp_top_of_bound f.ae_measurable C (eventually_of_forall hfC),
+end
+
+protected lemma snorm'_eq {p : ℝ} (f : α →ₛ F) (μ : measure α) :
+  snorm' f p μ = (∑ y in f.range, (nnnorm y : ℝ≥0∞) ^ p * μ (f ⁻¹' {y})) ^ (1/p) :=
+begin
+  have h_map : (λ a, (nnnorm (f a) : ℝ≥0∞) ^ p) = f.map (λ a : F, (nnnorm a : ℝ≥0∞) ^ p), by simp,
+  simp_rw [snorm', h_map],
+  rw [lintegral_eq_lintegral, map_lintegral],
+end
+
+lemma measure_preimage_lt_top_of_mem_ℒp  (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) (f : α →ₛ E)
+  (hf : mem_ℒp f p μ) (y : E) (hy_ne : y ≠ 0) :
+  μ (f ⁻¹' {y}) < ∞ :=
+begin
+  have hp_pos_real : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp_pos, hp_ne_top⟩,
+  have hf_snorm := mem_ℒp.snorm_lt_top hf,
+  rw [snorm_eq_snorm' hp_pos.ne.symm hp_ne_top, f.snorm'_eq,
+    ← @ennreal.lt_rpow_one_div_iff _ _ (1 / p.to_real) (by simp [hp_pos_real]),
+    @ennreal.top_rpow_of_pos (1 / (1 / p.to_real)) (by simp [hp_pos_real]),
+    ennreal.sum_lt_top_iff] at hf_snorm,
+  by_cases hyf : y ∈ f.range,
+  swap,
+  { suffices h_empty : f ⁻¹' {y} = ∅,
+      by { rw [h_empty, measure_empty], exact ennreal.coe_lt_top, },
+    ext1 x,
+    rw [set.mem_preimage, set.mem_singleton_iff, mem_empty_eq, iff_false],
+    refine λ hxy, hyf _,
+    rw [mem_range, set.mem_range],
+    exact ⟨x, hxy⟩, },
+  specialize hf_snorm y hyf,
+  rw ennreal.mul_lt_top_iff at hf_snorm,
+  cases hf_snorm,
+  { exact hf_snorm.2, },
+  cases hf_snorm,
+  { refine absurd _ hy_ne,
+    simpa [hp_pos_real] using hf_snorm, },
+  { simp [hf_snorm], },
+end
+
+lemma mem_ℒp_of_finite_measure_preimage (p : ℝ≥0∞) {f : α →ₛ E} (hf : ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞) :
+  mem_ℒp f p μ :=
+begin
+  by_cases hp0 : p = 0,
+  { rw [hp0, mem_ℒp_zero_iff_ae_measurable], exact f.ae_measurable, },
+  by_cases hp_top : p = ∞,
+  { rw hp_top, exact mem_ℒp_top f μ, },
+  refine ⟨f.ae_measurable, _⟩,
+  rw [snorm_eq_snorm' hp0 hp_top, f.snorm'_eq],
+  refine ennreal.rpow_lt_top_of_nonneg (by simp) (ennreal.sum_lt_top_iff.mpr (λ y hy, _)).ne,
+  by_cases hy0 : y = 0,
+  { simp [hy0, ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) (ne.symm hp0), hp_top⟩], },
+  { refine ennreal.mul_lt_top _ (hf y hy0),
+    exact ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg ennreal.coe_ne_top, },
+end
+
+lemma mem_ℒp_iff {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+  mem_ℒp f p μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
+⟨λ h, measure_preimage_lt_top_of_mem_ℒp hp_pos hp_ne_top f h,
+  λ h, mem_ℒp_of_finite_measure_preimage p h⟩
+
+lemma integrable_iff {f : α →ₛ E} : integrable f μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞ :=
+by { rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_iff ennreal.zero_lt_one ennreal.coe_ne_top, }
+
+lemma mem_ℒp_iff_integrable {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+  mem_ℒp f p μ ↔ integrable f μ :=
+by rw [mem_ℒp_iff hp_pos hp_ne_top, integrable_iff]
+
+lemma mem_ℒp_iff_fin_meas_supp {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
+  mem_ℒp f p μ ↔ f.fin_meas_supp μ :=
+by rw [mem_ℒp_iff hp_pos hp_ne_top, fin_meas_supp_iff]
+
+lemma integrable_iff_fin_meas_supp {f : α →ₛ E} : integrable f μ ↔ f.fin_meas_supp μ :=
+by rw [integrable_iff, fin_meas_supp_iff]
 
 lemma fin_meas_supp.integrable {f : α →ₛ E} (h : f.fin_meas_supp μ) : integrable f μ :=
 integrable_iff_fin_meas_supp.2 h
@@ -218,6 +299,21 @@ integrable_iff_fin_meas_supp.2 h
 lemma integrable_pair [measurable_space F] {f : α →ₛ E} {g : α →ₛ F} :
   integrable f μ → integrable g μ → integrable (pair f g) μ :=
 by simpa only [integrable_iff_fin_meas_supp] using fin_meas_supp.pair
+
+lemma mem_ℒp_of_finite_measure (f : α →ₛ E) (p : ℝ≥0∞) (μ : measure α) [finite_measure μ] :
+  mem_ℒp f p μ :=
+begin
+  obtain ⟨C, hfC⟩ := f.exists_forall_norm_le,
+  exact mem_ℒp.of_bound f.ae_measurable C (eventually_of_forall hfC),
+end
+
+lemma integrable_of_finite_measure [finite_measure μ] (f : α →ₛ E) : integrable f μ :=
+mem_ℒp_one_iff_integrable.mp (f.mem_ℒp_of_finite_measure 1 μ)
+
+lemma measure_preimage_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f μ) {x : E}
+  (hx : x ≠ 0) :
+  μ (f ⁻¹' {x}) < ∞ :=
+integrable_iff.mp hf x hx
 
 variables [normed_space ℝ F] {G G' F' : Type*} [normed_group G] [normed_group G']
   [normed_group F'] [normed_space ℝ F']
@@ -1050,9 +1146,11 @@ section to_simple_func
 def to_simple_func (f : α →₁ₛ[μ] E) : α →ₛ E := classical.some f.2
 
 /-- `(to_simple_func f)` is measurable. -/
+@[measurability]
 protected lemma measurable (f : α →₁ₛ[μ] E) : measurable (to_simple_func f) :=
 (to_simple_func f).measurable
 
+@[measurability]
 protected lemma ae_measurable (f : α →₁ₛ[μ] E) : ae_measurable (to_simple_func f) μ :=
 (simple_func.measurable f).ae_measurable
 

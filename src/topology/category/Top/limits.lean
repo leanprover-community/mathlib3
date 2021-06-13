@@ -19,7 +19,7 @@ open category_theory
 open category_theory.limits
 open opposite
 
-universe u
+universes u v
 
 noncomputable theory
 
@@ -43,6 +43,21 @@ def limit_cone (F : J ⥤ Top.{u}) : cone F :=
         by continuity } } }
 
 /--
+A choice of limit cone for a functor `F : J ⥤ Top` whose topology is defined as an
+infimum of topologies infimum.
+Generally you should just use `limit.cone F`, unless you need the actual definition
+(which is in terms of `types.limit_cone`).
+-/
+def limit_cone_infi (F : J ⥤ Top.{u}) : cone F :=
+{ X := ⟨(types.limit_cone (F ⋙ forget)).X, ⨅j,
+        (F.obj j).str.induced ((types.limit_cone (F ⋙ forget)).π.app j)⟩,
+  π :=
+  { app := λ j, ⟨(types.limit_cone (F ⋙ forget)).π.app j,
+                 continuous_iff_le_induced.mpr (infi_le _ _)⟩,
+    naturality' := λ j j' f,
+                   continuous_map.coe_inj ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
+
+/--
 The chosen cone `Top.limit_cone F` for a functor `F : J ⥤ Top` is a limit cone.
 Generally you should just use `limit.is_limit F`, unless you need the actual definition
 (which is in terms of `types.limit_cone_is_limit`).
@@ -50,6 +65,17 @@ Generally you should just use `limit.is_limit F`, unless you need the actual def
 def limit_cone_is_limit (F : J ⥤ Top.{u}) : is_limit (limit_cone F) :=
 { lift := λ S, { to_fun := λ x, ⟨λ j, S.π.app _ x, λ i j f, by { dsimp, erw ← S.w f, refl }⟩ },
   uniq' := λ S m h, by { ext : 3, simpa [← h] } }
+
+/--
+The chosen cone `Top.limit_cone_infi F` for a functor `F : J ⥤ Top` is a limit cone.
+Generally you should just use `limit.is_limit F`, unless you need the actual definition
+(which is in terms of `types.limit_cone_is_limit`).
+-/
+def limit_cone_infi_is_limit (F : J ⥤ Top.{u}) : is_limit (limit_cone_infi F) :=
+by { refine is_limit.of_faithful forget (types.limit_cone_is_limit _) (λ s, ⟨_, _⟩) (λ s, rfl),
+     exact continuous_iff_coinduced_le.mpr (le_infi $ λ j,
+       coinduced_le_iff_le_induced.mp $ (continuous_iff_coinduced_le.mp (s.π.app j).continuous :
+         _) ) }
 
 instance Top_has_limits : has_limits.{u} Top.{u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI
@@ -102,6 +128,101 @@ end Top
 
 namespace Top
 
+section cofiltered_limit
+
+variables {J : Type u} [small_category J] [is_cofiltered J] (F : J ⥤ Top.{u})
+  (C : cone F) (hC : is_limit C)
+
+include hC
+
+/--
+Given a *compatible* collection of topological bases for the factors in a cofiltered limit
+which contain `set.univ` and are closed under intersections, the induced *naive* collection
+of sets in the limit is, in fact, a topological basis.
+-/
+theorem is_topological_basis_cofiltered_limit
+  (T : Π j, set (set (F.obj j))) (hT : ∀ j, is_topological_basis (T j))
+  (univ : ∀ (i : J), set.univ ∈ T i)
+  (inter : ∀ i (U1 U2 : set (F.obj i)), U1 ∈ T i → U2 ∈ T i → U1 ∩ U2 ∈ T i)
+  (compat : ∀ (i j : J) (f : i ⟶ j) (V : set (F.obj j)) (hV : V ∈ T j), (F.map f) ⁻¹' V ∈ T i) :
+  is_topological_basis { U : set C.X | ∃ j (V : set (F.obj j)), V ∈ T j ∧ U = C.π.app j ⁻¹' V } :=
+begin
+  classical,
+  -- The limit cone for `F` whose topology is defined as an infimum.
+  let D := limit_cone_infi F,
+  -- The isomorphism between the cone point of `C` and the cone point of `D`.
+  let E : C.X ≅ D.X := hC.cone_point_unique_up_to_iso (limit_cone_infi_is_limit _),
+  have hE : inducing E.hom := (Top.homeo_of_iso E).inducing,
+  -- Reduce to the assertion of the theorem with `D` instead of `C`.
+  suffices : is_topological_basis
+    { U : set D.X | ∃ j (V : set (F.obj j)), V ∈ T j ∧ U = D.π.app j ⁻¹' V },
+  { convert this.inducing hE,
+    ext U0,
+    split,
+    { rintro ⟨j, V, hV, rfl⟩,
+      refine ⟨D.π.app j ⁻¹' V, ⟨j, V, hV, rfl⟩, rfl⟩ },
+    { rintro ⟨W, ⟨j, V, hV, rfl⟩, rfl⟩,
+      refine ⟨j, V, hV, rfl⟩ } },
+  -- Using `D`, we can apply the characterization of the topological basis of a
+  -- topology defined as an infimum...
+  convert is_topological_basis_infi hT (λ j (x : D.X), D.π.app j x),
+  ext U0,
+  split,
+  { rintros  ⟨j, V, hV, rfl⟩,
+    let U : Π i, set (F.obj i) := λ i, if h : i = j then (by {rw h, exact V}) else set.univ,
+    refine ⟨U,{j},_,_⟩,
+    { rintro i h,
+      rw finset.mem_singleton at h,
+      dsimp [U],
+      rw dif_pos h,
+      subst h,
+      exact hV },
+    { dsimp [U],
+      simp } },
+  { rintros ⟨U, G, h1, h2⟩,
+    obtain ⟨j, hj⟩ := is_cofiltered.inf_objs_exists G,
+    let g : ∀ e (he : e ∈ G), j ⟶ e := λ _ he, (hj he).some,
+    let Vs : J → set (F.obj j) := λ e, if h : e ∈ G then F.map (g e h) ⁻¹' (U e) else set.univ,
+    let V : set (F.obj j) := ⋂ (e : J) (he : e ∈ G), Vs e,
+    refine ⟨j, V, _, _⟩,
+    { -- An intermediate claim used to apply induction along `G : finset J` later on.
+      have : ∀ (S : set (set (F.obj j))) (E : finset J) (P : J → set (F.obj j))
+        (univ : set.univ ∈ S)
+        (inter : ∀ A B : set (F.obj j), A ∈ S → B ∈ S → A ∩ B ∈ S)
+        (cond : ∀ (e : J) (he : e ∈ E), P e ∈ S), (⋂ e (he : e ∈ E), P e) ∈ S,
+      { intros S E,
+        apply E.induction_on,
+        { intros P he hh,
+          simpa },
+        { intros a E ha hh1 hh2 hh3 hh4 hh5,
+          rw finset.set_bInter_insert,
+          refine hh4 _ _ (hh5 _ (finset.mem_insert_self _ _)) (hh1 _ hh3 hh4 _),
+          intros e he,
+          exact hh5 e (finset.mem_insert_of_mem he) } },
+      -- use the intermediate claim to finish off the goal using `univ` and `inter`.
+      refine this _ _ _ (univ _) (inter _) _,
+      intros e he,
+      dsimp [Vs],
+      rw dif_pos he,
+      exact compat j e (g e he) (U e) (h1 e he), },
+    { -- conclude...
+      rw h2,
+      dsimp [V],
+      rw set.preimage_Inter,
+      congr' 1,
+      ext1 e,
+      rw set.preimage_Inter,
+      congr' 1,
+      ext1 he,
+      dsimp [Vs],
+      rw [dif_pos he, ← set.preimage_comp],
+      congr' 1,
+      change _ = ⇑(D.π.app j ≫ F.map (g e he)),
+      rw D.w } }
+end
+
+end cofiltered_limit
+
 section topological_konig
 
 /-!
@@ -112,6 +233,11 @@ spaces is nonempty.  (Note: this can be generalized further to inverse limits of
 T0 spaces, where all the maps are closed maps; see [Stone1979] --- however there is an erratum
 for Theorem 4 that the element in the inverse limit can have cofinally many components that are
 not closed points.)
+
+TODO: The theorem hold also in the case `{J : Type u} [category J] [is_cofiltered J]`.
+See https://stacks.math.columbia.edu/tag/086J for the Set version and
+See https://stacks.math.columbia.edu/tag/0032 for how to lift this to general cofiltered categories
+rather than thin ones.
 -/
 
 variables {J : Type u} [directed_order J]
@@ -192,3 +318,75 @@ end
 end topological_konig
 
 end Top
+
+section fintype_konig
+
+/-- This bootstraps `nonempty_sections_of_fintype_inverse_system`. In this version,
+the `F` functor is between categories of the same universe, and it is an easy
+corollary to `Top.nonempty_limit_cone_of_compact_t2_inverse_system`. -/
+lemma nonempty_sections_of_fintype_inverse_system.init
+  {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type u)
+  [hf : Π (j : Jᵒᵖ), fintype (F.obj j)] [hne : Π (j : Jᵒᵖ), nonempty (F.obj j)] :
+  F.sections.nonempty :=
+begin
+  let F' : Jᵒᵖ ⥤ Top := F ⋙ Top.discrete,
+  haveI : Π (j : Jᵒᵖ), fintype (F'.obj j) := hf,
+  haveI : Π (j : Jᵒᵖ), nonempty (F'.obj j) := hne,
+  obtain ⟨⟨u, hu⟩⟩ := Top.nonempty_limit_cone_of_compact_t2_inverse_system F',
+  exact ⟨u, λ _ _ f, hu f⟩,
+end
+
+/-- Gives the induced directed order on the `ulift` of a type with a directed order.
+This is not an instance because `preorder.small_category` will conflict with
+`category_theory.ulift_category`. -/
+def ulift.directed_order (α : Type u) [directed_order α] : directed_order (ulift.{v} α) :=
+{ le := λ i j, i.down ≤ j.down,
+  le_refl := λ i, le_refl i.down,
+  le_trans := λ i j k hij hjk, le_trans hij hjk,
+  directed := λ i j, begin
+    obtain ⟨k, hk⟩ := directed_order.directed i.down j.down,
+    exact ⟨ulift.up k, hk⟩,
+  end }
+
+/-- The inverse limit of nonempty finite types is nonempty.
+
+This may be regarded as a generalization of Kőnig's lemma.
+To specialize: given a locally finite connected graph, take `J` to be `ℕ` and
+`F j` to be length-`j` paths that start from an arbitrary fixed vertex.
+Elements of `F.sections` can be read off as infinite rays in the graph. -/
+theorem nonempty_sections_of_fintype_inverse_system
+  {J : Type u} [directed_order J] (F : Jᵒᵖ ⥤ Type v)
+  [Π (j : Jᵒᵖ), fintype (F.obj j)] [Π (j : Jᵒᵖ), nonempty (F.obj j)] :
+  F.sections.nonempty :=
+begin
+  -- Step 1: lift everything to the `max u v` universe.
+  let J' := ulift.{v} J,
+  letI hd : directed_order J' := ulift.directed_order J,
+  -- We want `J'` to have the category structure from its inherited directed order,
+  -- rather than the `category_theory.ulift_category` structure.
+  letI : small_category J' := @preorder.small_category _ hd.to_preorder,
+  -- The equivalence in `category.ulift` does not apply to the `directed_order`, so we
+  -- quickly implement one of its functors here.
+  let down : J' ⥤ J :=
+  { obj := ulift.down,
+    map := λ i j f, hom_of_le (le_of_hom f : i ≤ j) },
+  let tu : Type v ⥤ Type (max u v) := ulift_functor.{u v},
+  let F' : (ulift.{v} J)ᵒᵖ ⥤ Type (max u v) := down.op ⋙ F ⋙ tu,
+  haveI : ∀ i, nonempty (F'.obj i) := λ i,
+    ⟨ulift.up (classical.arbitrary (F.obj (op i.unop.down)))⟩,
+  haveI : ∀ i, fintype (F'.obj i) := λ i,
+    fintype.of_equiv (F.obj (op i.unop.down)) equiv.ulift.symm,
+  -- Step 2: apply the bootstrap theorem
+  obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system.init F',
+  -- Step 3: interpret the results
+  use λ j, (u (op (ulift.up j.unop))).down,
+  intros j j' f,
+  let f' : ulift.up.{v} j'.unop ⟶ ulift.up.{v} j.unop :=
+    hom_of_le (le_of_hom f.unop : unop j' ≤ unop j),
+  have h := hu f'.op,
+  simp only [functor.comp_map, ulift_functor_map, functor.op_map] at h,
+  simp only [←h],
+  congr,
+end
+
+end fintype_konig

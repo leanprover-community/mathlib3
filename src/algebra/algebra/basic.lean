@@ -581,6 +581,18 @@ lemma map_list_prod (s : list A) :
   φ s.prod = (s.map φ).prod :=
 φ.to_ring_hom.map_list_prod s
 
+section prod
+
+/-- First projection as `alg_hom`. -/
+def fst : A × B →ₐ[R] A :=
+{ commutes' := λ r, rfl, .. ring_hom.fst A B}
+
+/-- Second projection as `alg_hom`. -/
+def snd : A × B →ₐ[R] B :=
+{ commutes' := λ r, rfl, .. ring_hom.snd A B}
+
+end prod
+
 end semiring
 
 section comm_semiring
@@ -1330,7 +1342,7 @@ instance algebra {r : comm_semiring R}
   algebra R (Π i : I, f i) :=
 { commutes' := λ a f, begin ext, simp [algebra.commutes], end,
   smul_def' := λ a f, begin ext, simp [algebra.smul_def''], end,
-  ..pi.ring_hom (λ i, algebra_map R (f i)) }
+  ..(pi.ring_hom (λ i, algebra_map R (f i)) : R →+* Π i : I, f i) }
 
 @[simp] lemma algebra_map_apply {r : comm_semiring R}
   [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) (i : I) :

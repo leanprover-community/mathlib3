@@ -646,6 +646,30 @@ begin
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
+lemma le_rpow_iff_log_le (hx : 0 < x) (hy : 0 < y) :
+  x ≤ y^z ↔ real.log x ≤ z * real.log y :=
+by rw [←real.log_le_log hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
+
+lemma le_rpow_of_log_le (hx : 0 ≤ x) (hy : 0 < y) (h : real.log x ≤ z * real.log y) :
+  x ≤ y^z :=
+begin
+  obtain hx | rfl := hx.lt_or_eq,
+  { exact (le_rpow_iff_log_le hx hy).2 h },
+  exact (real.rpow_pos_of_pos hy z).le,
+end
+
+lemma lt_rpow_iff_log_lt (hx : 0 < x) (hy : 0 < y) :
+  x < y^z ↔ real.log x < z * real.log y :=
+by rw [←real.log_lt_log_iff hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
+
+lemma lt_rpow_of_log_lt (hx : 0 ≤ x) (hy : 0 < y) (h : real.log x < z * real.log y) :
+  x < y^z :=
+begin
+  obtain hx | rfl := hx.lt_or_eq,
+  { exact (lt_rpow_iff_log_lt hx hy).2 h },
+  exact real.rpow_pos_of_pos hy z,
+end
+
 lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
 by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
 

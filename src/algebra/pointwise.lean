@@ -169,6 +169,23 @@ lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
 @[simp, to_additive]
 lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 
+lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
+by rw [←nat.sub_add_cancel (nat.pos_of_ne_zero hn), pow_succ, empty_mul]
+
+instance decidable_mem_mul [monoid α] [fintype α] [decidable_eq α]
+  [decidable_pred (∈ s)] [decidable_pred (∈ t)] :
+  decidable_pred (∈ s * t) :=
+λ _, decidable_of_iff _ mem_mul.symm
+
+instance decidable_mem_pow [monoid α] [fintype α] [decidable_eq α]
+  [decidable_pred (∈ s)] (n : ℕ) :
+  decidable_pred (∈ (s ^ n)) :=
+begin
+  induction n with n ih,
+  { simp_rw [pow_zero, mem_one], apply_instance },
+  { letI := ih, rw pow_succ, apply_instance }
+end
+
 @[to_additive]
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂
@@ -346,27 +363,22 @@ instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
   add_zero := union_empty,
   add_comm := union_comm, }
 
-instance set_semiring.mul_zero_class [has_mul α] : mul_zero_class (set_semiring α) :=
+instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
+  non_unital_non_assoc_semiring (set_semiring α) :=
 { zero_mul := λ s, empty_mul,
   mul_zero := λ s, mul_empty,
-  ..set.has_mul, ..set_semiring.add_comm_monoid }
-
-instance set_semiring.distrib [has_mul α] : distrib (set_semiring α) :=
-{ left_distrib := λ _ _ _, mul_union,
+  left_distrib := λ _ _ _, mul_union,
   right_distrib := λ _ _ _, union_mul,
   ..set.has_mul, ..set_semiring.add_comm_monoid }
 
-instance set_semiring.mul_zero_one_class [mul_one_class α] : mul_zero_one_class (set_semiring α) :=
-{ ..set_semiring.mul_zero_class, ..set.mul_one_class }
+instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
 
-instance set_semiring.semigroup_with_zero [semigroup α] : semigroup_with_zero (set_semiring α) :=
-{ ..set_semiring.mul_zero_class, ..set.semigroup }
+instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
 
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
-{ ..set_semiring.add_comm_monoid,
-  ..set_semiring.distrib,
-  ..set_semiring.mul_zero_class,
-  ..set.monoid }
+{ ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
 
 instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
 { ..set.comm_monoid, ..set_semiring.semiring }
@@ -533,60 +545,54 @@ le_antisymm
 
 end submonoid
 
-section dynamics
+namespace group
 
-lemma card_pow_dynamics_aux {f : ℕ → ℕ} (h1 : monotone f) {B : ℕ} (h2 : ∀ n, f n ≤ B)
-  (h3 : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
-  ∃ k : ℕ, k ≤ B ∧ ∀ i, (k ≤ i → f i = f k) ∧ (i < k → ∀ j, i < j → f i < f j) :=
+lemma card_pow_eq_card_pow_card_univ_aux {f : ℕ → ℕ} (h1 : monotone f)
+  {B : ℕ} (h2 : ∀ n, f n ≤ B) (h3 : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
+  ∀ k, B ≤ k → f k = f B :=
 begin
-  have key : ∃ k, f k = f (k + 1),
+  have key : ∃ n : ℕ, n ≤ B ∧ f n = f (n + 1),
   { contrapose! h2,
     suffices : ∀ n : ℕ, n ≤ B + 1 → n ≤ f n,
-    { exact ⟨B + 1, (this (B + 1) (le_refl (B + 1)))⟩ },
-    exact λ k, nat.rec (λ _, (f 0).zero_le) (λ n ih hn, lt_of_le_of_lt
-      (ih (nat.le_of_succ_le hn)) (lt_of_le_of_ne (h1 n.le_succ) (h2 n))) k },
-  refine ⟨nat.find key, _, λ i, ⟨λ hi, _, λ hi j hij, _⟩⟩,
-  { have step1 : ∀ n, n < nat.find key → f n < f (n + 1) :=
-    λ n hn, lt_of_le_of_ne (h1 n.le_succ) (show _, from nat.find_min key hn),
-    have step2 : ∀ n, n ≤ nat.find key → n ≤ f n := λ k, nat.rec (λ _, (f 0).zero_le)
-      (λ n ih hn, lt_of_le_of_lt (ih (nat.le_of_succ_le hn)) (step1 n hn)) k,
-    exact (step2 (nat.find key) (le_refl (nat.find key))).trans (h2 (nat.find key)) },
-  { obtain ⟨j, rfl⟩ := nat.exists_eq_add_of_le hi,
-    have step1 : ∀ j, f (nat.find key + j) = f (nat.find key + j + 1) :=
-    λ k, nat.rec (nat.find_spec key) (λ j ih, h3 (nat.find key + j) ih) k,
-    exact nat.rec rfl (λ k ih, (step1 k).symm.trans ih) j },
-  { have := nat.find_min key hi,
-    exact lt_of_lt_of_le (lt_of_le_of_ne (h1 i.le_succ) this) (h1 hij) },
+    { exact ⟨B + 1, this (B + 1) (le_refl (B + 1))⟩ },
+    exact λ n, nat.rec (λ h, nat.zero_le (f 0)) (λ n ih h, lt_of_le_of_lt (ih (n.le_succ.trans h))
+      (lt_of_le_of_ne (h1 n.le_succ) (h2 n (nat.succ_le_succ_iff.mp h)))) n },
+  { obtain ⟨n, hn1, hn2⟩ := key,
+    replace key : ∀ k : ℕ, f (n + k) = f (n + k + 1) ∧ f (n + k) = f n :=
+    λ k, nat.rec ⟨hn2, rfl⟩ (λ k ih, ⟨h3 _ ih.1, ih.1.symm.trans ih.2⟩) k,
+    replace key : ∀ k : ℕ, n ≤ k → f k = f n :=
+    λ k hk, (congr_arg f (nat.add_sub_cancel' hk)).symm.trans (key (k - n)).2,
+    exact λ k hk, (key k (hn1.trans hk)).trans (key B hn1).symm },
 end
 
-noncomputable def set_fintype' {α : Type*} [fintype α] (s : set α) : fintype s :=
-by { classical, exact set_fintype s }
+variables {G : Type*} [group G] [fintype G] (S : set G)
 
-local attribute [instance] set_fintype'
-
-lemma card_pow_dynamics {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
-  ∃ k : ℕ, k ≤ fintype.card G ∧ ∀ i, (k ≤ i → fintype.card ↥(S ^ i) = fintype.card ↥(S ^ k))
-    ∧ (i < k → ∀ j, i < j → fintype.card ↥(S ^ i) < fintype.card ↥(S ^ j)) :=
+lemma card_pow_eq_card_pow_card_univ [∀ (k : ℕ), decidable_pred (∈ (S ^ k))] :
+  ∀ k, fintype.card G ≤ k → fintype.card ↥(S ^ k) = fintype.card ↥(S ^ (fintype.card G)) :=
 begin
+  have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr ⟨1⟩,
+  by_cases hS : S = ∅,
+  { intros k hk,
+    congr' 2,
+    rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
+  obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
+  classical,
   have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
   { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
     rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
     exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
-  obtain ⟨a, ha⟩ := hS,
   have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
   monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
-  refine card_pow_dynamics_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
+  convert card_pow_eq_card_pow_card_univ_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
     (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
-  have step1 : {a} * S ^ n = S ^ (n + 1),
-  { refine set.eq_of_subset_of_card_le _
-      (le_trans (ge_of_eq h) (key a _ _ (λ b hb, set.mul_mem_mul (set.mem_singleton a) hb))),
-    rintros _ ⟨b, c, hb, hc, rfl⟩,
-    exact set.mul_mem_mul ((congr_arg (∈ _) (set.mem_singleton_iff.mp hb)).mpr ha) hc },
-  have step2 : S ^ (n + 2) = {a} * S ^ (n + 1),
-  { rw [pow_succ' S n, pow_succ', ←mul_assoc, step1] },
-  rw step2,
+  { simp only [finset.filter_congr_decidable, fintype.card_of_finset] },
+  replace h : {a} * S ^ n = S ^ (n + 1),
+  { refine set.eq_of_subset_of_card_le _ (le_trans (ge_of_eq h) _),
+    { exact mul_subset_mul (set.singleton_subset_iff.mpr ha) set.subset.rfl },
+    { convert key a (S ^ n) ({a} * S ^ n) (λ b hb, set.mul_mem_mul (set.mem_singleton a) hb) } },
+  rw [pow_succ', ←h, mul_assoc, ←pow_succ', h],
   rintros _ ⟨b, c, hb, hc, rfl⟩,
   rwa [set.mem_singleton_iff.mp hb, inv_mul_cancel_left],
 end
 
-end dynamics
+end group

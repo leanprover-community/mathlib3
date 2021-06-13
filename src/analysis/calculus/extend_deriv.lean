@@ -89,7 +89,7 @@ begin
     rw this,
     convert tendsto.comp continuous_norm.continuous_at
       ((tendsto.comp (f_cont' v v_in) tendsto_snd).sub $ tendsto.comp (f_cont' u u_in) tendsto_fst),
-    intros, simp, abel },
+    simp, ext, abel },
   { apply tendsto_nhds_within_of_tendsto_nhds,
     rw nhds_prod_eq,
     exact tendsto_const_nhds.mul

@@ -57,7 +57,3 @@ let t := d.type.eta_expand env reorder,
 let decl := declaration.defn `barr6 d.univ_params t e d.reducibility_hints d.is_trusted,
 add_decl decl,
 skip
-
-
-#print barr6
-#print foo6

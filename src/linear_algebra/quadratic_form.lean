@@ -942,8 +942,8 @@ section real
 
 open real
 
-/-- The isometry between a weighted sum of squares with weights `u` on the complex numbers
-and the weighted sum of squares with weights `sign ∘ u`. -/
+/-- The isometry between a weighted sum of squares with weights `u` on the
+(non-zero) real numbers and the weighted sum of squares with weights `sign ∘ u`. -/
 noncomputable def isometry_sign_weighted_sum_squares
   [decidable_eq ι] (u : ι → units ℝ) :
   isometry (weighted_sum_squares ℝ u) (weighted_sum_squares ℝ (sign ∘ coe ∘ u)) :=

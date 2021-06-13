@@ -57,8 +57,8 @@ return $ if d.to_name.last = "foo" then some "gotcha!" else none
 meta def linter.dummy_linter : linter :=
 { test := dummy_check,
   auto_decls := ff,
-  no_errors_found := "found nothing",
-  errors_found := "found something" }
+  no_errors_found := "found nothing.",
+  errors_found := "found something:" }
 
 @[nolint dummy_linter]
 def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)

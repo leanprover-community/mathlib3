@@ -39,7 +39,7 @@ attribute [to_additive] ordered_comm_group
 @[to_additive]
 instance units.covariant_class [ordered_comm_monoid α] :
   covariant_class (units α) (units α) (*) (≤) :=
-{ covc := λ a b c bc, by {
+{ elim := λ a b c bc, by {
   rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
   { exact rfl.le },
   refine le_iff_eq_or_lt.mpr (or.inr _),

@@ -2224,12 +2224,6 @@ protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+
   end,
   map_add' := λ a b, by simp only [equiv_map_domain_eq_map_domain]; exact map_domain_add }
 
-lemma finsupp.dom_congr_apply' [add_comm_monoid M] (e : α ≃ β) (l : α →₀ M) :
-  finsupp.dom_congr e l = equiv_map_domain e l := rfl
-
-@[simp] lemma finsupp.dom_congr_apply [add_comm_monoid M] (e : α ≃ β) (l : α →₀ M) :
-  finsupp.dom_congr e l = map_domain e l := equiv_map_domain_eq_map_domain _ _
-
 @[simp] lemma dom_congr_refl [add_comm_monoid M] :
   finsupp.dom_congr (equiv.refl α) = add_equiv.refl (α →₀ M) :=
 add_equiv.ext $ λ _, equiv_map_domain_refl _

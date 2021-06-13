@@ -109,42 +109,11 @@ end
 
 namespace real
 
-lemma lt_pow_iff_log_lt {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) :
-  a < b^c ↔ (log a) < c * (log b) :=
-by rw [←log_lt_log_iff ha (rpow_pos_of_pos hb c), log_rpow hb]
-
-lemma lt_pow_of_log_lt {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 < b) (h : log a < c * (log b)) :
-  a < b^c :=
-begin
-  obtain ha | rfl := ha.lt_or_eq,
-  { exact (lt_pow_iff_log_lt ha hb).2 h },
-  exact rpow_pos_of_pos hb c,
-end
-
-lemma le_pow_iff_log_le {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) :
-  a ≤ b^c ↔ log a ≤ c * (log b) :=
-by rw [←log_le_log ha (rpow_pos_of_pos hb c), log_rpow hb]
-
-lemma le_pow_of_log_le {a b c : ℝ} (ha : 0 ≤ a) (hb : 0 < b) (h : log a ≤ c * (log b)) :
-  a ≤ b^c :=
-begin
-  obtain ha | rfl := ha.lt_or_eq,
-  { exact (le_pow_iff_log_le ha hb).2 h },
-  exact (rpow_pos_of_pos hb c).le,
-end
-
 lemma le_exp_iff_log_le {a b : ℝ} (ha : 0 < a) :
   log a ≤ b ↔ a ≤ exp b :=
 by rw [←exp_le_exp, exp_log ha]
 
 end real
-
-theorem abs_sub_le_abs_add_abs {α : Type*} [linear_ordered_add_comm_group α] (a b : α) :
-  abs (a - b) ≤ abs a + abs b :=
-begin
-  rw [sub_eq_add_neg, ←abs_neg b],
-  exact abs_add a _,
-end
 
 lemma iterate_extensive_of_extensive {α : Type} [preorder α] {f : α → α}
   (h : id ≤ f) :
@@ -165,15 +134,45 @@ begin
   apply iterate_extensive_of_extensive h (n-m) _,
 end
 
-lemma finset.product_empty_left {α : Type*} {β : Type*} (t : finset β) :
-  (∅ : finset α).product t = ∅ :=
-rfl
-
-lemma finset.product_empty_right {α : Type*} {β : Type*} (s : finset α) :
-  s.product (∅ : finset β) = ∅ :=
-eq_empty_of_forall_not_mem (λ x h, (finset.mem_product.1 h).2)
-
 /-! ### Prerequisites for SRL -/
+
+lemma lemmaB {α : Type*} {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {a b : ℝ}
+  (hs : s.sum f / s.card = a + b) (ht : t.sum f / t.card = a) :
+  a^2 + s.card/t.card * b^2 ≤ t.sum (f^2)/t.card :=
+begin
+  obtain htcard | htcard := t.card.eq_zero_or_pos,
+  {
+    rw [htcard, nat.cast_zero, div_zero] at ⊢ ht,
+    rw [←ht, div_zero, zero_mul, add_zero, pow_succ, zero_mul],
+  },
+  obtain hscard | hscard := s.card.eq_zero_or_pos,
+  {
+    --rw [hscard, nat.cast_zero, div_zero, zero_mul, add_zero, ←ht],
+    sorry
+  },
+  --have := (nat.cast_pos.2 hscard).ne.symm,
+  rw div_eq_iff at hs,
+  rw div_eq_iff at ht,
+  suffices : (s.card : ℝ) * t.card * a ^ 2 + s.card^2 * b ^ 2 ≤ s.card * t.sum (f^2),
+  {
+    sorry
+  },
+  -- the well-known `suffices` of desperation
+  suffices h : (∑ x in s, (f x + -a))^2 ≤ s.card * (t.sum ((f - λ x, a)^2)),
+  {
+    have hssum := @finset.sum_add_distrib α ℝ s f (λ x, -a) _,
+    dsimp at hssum,
+    rw [finset.sum_const, hs, nsmul_eq_mul, mul_comm _ (-a), ←add_mul, ←sub_eq_add_neg,
+      add_sub_cancel'] at hssum,
+    --rw smul_eq_mul at this,
+    --rw sub_eq_add_neg at this,
+    rw hssum at h,
+    sorry
+  },
+  sorry,
+  sorry,
+  sorry
+end
 
 /-- A set is equitable if no element value is more than one bigger than another. -/
 def equitable_on {α : Type*} (s : set α) (f : α → ℕ) : Prop :=
@@ -282,7 +281,7 @@ mem_pairs_finset _ _ _ _
 
 lemma pairs_finset_empty_left (W : finset V) :
   pairs_finset r ∅ W = ∅ :=
-by rw [pairs_finset, finset.product_empty_left, filter_empty]
+by rw [pairs_finset, finset.empty_product, filter_empty]
 
 lemma pairs_finset_mono {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
   pairs_finset r A' B' ⊆ pairs_finset r A B :=
@@ -501,7 +500,7 @@ lemma LemmaA {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (
   abs (pairs_density r A B - pairs_density r A' B') ≤ 2 * δ :=
 begin
   cases le_or_lt 1 δ,
-  { apply (abs_sub_le_abs_add_abs _ _).trans,
+  { apply (abs_sub _ _).trans,
     rw [abs_of_nonneg (pairs_density_nonneg r A B), abs_of_nonneg (pairs_density_nonneg r _ _),
       two_mul],
     exact add_le_add ((pairs_density_le_one r A B).trans h)
@@ -609,6 +608,40 @@ begin
     rw mem_bUnion,
     apply P.covering _ hx }
 end
+
+def bind (P : finpartition s) (Q : Π i ∈ P.parts, finpartition i) : finpartition s :=
+{ parts := P.parts.bUnion (λ i, dite (i ∈ P.parts) (λ h, (Q i h).parts) (λ _, ∅)),
+  disjoint := begin
+    rintro a b ha hb x hxa hxb,
+    rw finset.mem_bUnion at ha hb,
+    obtain ⟨A, hA, ha⟩ := ha,
+    obtain ⟨B, hB, hb⟩ := hb,
+    rw dif_pos hA at ha,
+    rw dif_pos hB at hb,
+    have hxA := (Q A hA).subset a ha hxa,
+    have hxB := (Q B hB).subset b hb hxb,
+    have := P.disjoint A B hA hB x hxA hxB,
+    refine (Q A hA).disjoint a b ha _ x hxa hxb,
+    subst this,
+    exact hb,
+  end,
+  covering := begin
+    rintro x hx,
+    obtain ⟨A, hA, hxA⟩ := P.covering x hx,
+    obtain ⟨a, ha, hxa⟩ := (Q A hA).covering x hxA,
+    refine ⟨a, _, hxa⟩,
+    rw finset.mem_bUnion,
+    refine ⟨A, hA, _⟩,
+    rw dif_pos hA,
+    exact ha,
+  end,
+  subset := begin
+    rintro a ha,
+    rw finset.mem_bUnion at ha,
+    obtain ⟨A, hA, ha⟩ := ha,
+    rw dif_pos hA at ha,
+    exact ((Q A hA).subset a ha).trans (P.subset A hA),
+  end }
 
 def is_equipartition : Prop :=
 equitable_on (P.parts : set (finset V)) card
@@ -1193,22 +1226,22 @@ lemma partial_atomise {s : finset α} {Q : finset (finset α)} (A : finset α)
   (hA : A ∈ Q) (hs : A ⊆ s) :
   ((atomise s Q).filter (λ B, B ⊆ A ∧ B.nonempty)).card ≤ 2^(Q.card - 1) :=
 begin
-  have :
+  suffices h :
     (atomise s Q).filter (λ B, B ⊆ A ∧ B.nonempty) ⊆
       (Q.erase A).powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ insert A P ↔ i ∈ x)),
-  { rw subset_iff,
-    simp only [mem_erase, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
-      finset.nonempty, exists_imp_distrib, and_imp, mem_atomise, forall_apply_eq_imp_iff₂],
-    intros P PQ hA y hy₁ hy₂,
-    refine ⟨P.erase A, erase_subset_erase _ PQ, _⟩,
-    have : A ∈ P,
-    { rw hy₂ _ ‹A ∈ Q›,
-      apply hA,
-      apply mem_filter.2 ⟨hy₁, hy₂⟩ },
-    simp only [insert_erase this, filter_congr_decidable] },
-  apply le_trans (card_le_of_subset this) (le_trans card_image_le _),
-  rw [card_powerset, card_erase_of_mem hA],
-  refl
+  { apply le_trans (card_le_of_subset h) (card_image_le.trans _),
+    rw [card_powerset, card_erase_of_mem hA],
+    refl },
+  rw subset_iff,
+  simp only [mem_erase, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
+    finset.nonempty, exists_imp_distrib, and_imp, mem_atomise, forall_apply_eq_imp_iff₂],
+  intros P PQ hA y hy₁ hy₂,
+  refine ⟨P.erase A, erase_subset_erase _ PQ, _⟩,
+  have : A ∈ P,
+  { rw hy₂ _ ‹A ∈ Q›,
+    apply hA,
+    exact mem_filter.2 ⟨hy₁, hy₂⟩ },
+  simp only [insert_erase this, filter_congr_decidable],
 end
 
 end
@@ -1282,7 +1315,7 @@ nat.succ_pos'.trans_le (le_max_right _ _)
 lemma const_lt_mul_pow_iteration_bound {ε : ℝ} (hε : 0 < ε) (l : ℕ) :
   100 < ε^5 * 4^iteration_bound ε l :=
 begin
-  rw [←real.rpow_nat_cast 4, ←div_lt_iff' (pow_pos hε 5), real.lt_pow_iff_log_lt, ←div_lt_iff,
+  rw [←real.rpow_nat_cast 4, ←div_lt_iff' (pow_pos hε 5), real.lt_rpow_iff_log_lt, ←div_lt_iff,
     iteration_bound, nat.cast_max],
   { exact lt_max_of_lt_right (lt_nat_floor_add_one _) },
   { apply real.log_pos,

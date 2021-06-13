@@ -221,14 +221,8 @@ quotient.exact (quotient.out_eq _)
 lemma quotient.mk_eq_iff_out [s : setoid α] {x : α} {y : quotient s} :
   ⟦x⟧ = y ↔ x ≈ quotient.out y :=
 begin
-  split,
-  { intros h,
-    symmetry,
-    have := quotient.mk_out x,
-    rwa h at this },
-  { intro h,
-    rw ← quotient.out_eq y,
-    exact quotient.sound h }
+  refine iff.trans _ quotient.eq,
+  rw quotient.out_eq y,
 end
 
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=

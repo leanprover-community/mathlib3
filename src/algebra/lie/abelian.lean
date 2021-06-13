@@ -83,11 +83,15 @@ lemma lie_algebra.is_lie_abelian_bot (R : Type u) (L : Type v)
   [comm_ring R] [lie_ring L] [lie_algebra R L] : is_lie_abelian (⊥ : lie_ideal R L) :=
 ⟨λ ⟨x, hx⟩ _, by convert zero_lie _⟩
 
---does it seem like a good idea to have this lemma and to make it a `simp` lemma?
-@[simp]
 lemma is_lie_abelian_iff {L : Type*} [lie_ring L] :
   is_lie_abelian L ↔ ∀ a b : L, ⁅a,b⁆ = 0 :=
 ⟨λ h, lie_module.is_trivial.dcases_on h (λ h, h), λ h, { trivial := h }⟩
+
+--does it seem like a good idea to have this lemma and to make it a `simp` lemma?
+@[simp]
+lemma not_is_lie_abelian_iff {L : Type*} [lie_ring L] :
+  ¬ is_lie_abelian L ↔ ∃ a b : L, ¬ ⁅a,b⁆ = 0 :=
+by simp [is_lie_abelian_iff]
 
 section center
 

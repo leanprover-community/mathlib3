@@ -76,7 +76,7 @@ local notation `Tr` := matrix.trace n R R
 @[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : Tr ⁅X, Y⁆ = 0 :=
 calc _ = Tr (X ⬝ Y) - Tr (Y ⬝ X) : linear_map.map_sub _ _ _
    ... = Tr (X ⬝ Y) - Tr (X ⬝ Y) : congr_arg (λ x, _ - x) (matrix.trace_mul_comm X Y)
-   ... = 0 : sub_self _
+   ... = 0                       : sub_self _
 
 namespace special_linear
 
@@ -103,12 +103,9 @@ funext $ λ k, if_neg $ λ ⟨e₁, e₂⟩, h (e₂.trans e₁.symm)
 
 lemma E_trace_zero (h : j ≠ i) : Tr (E R i j) = 0 := by simp [h]
 
-lemma fexample [nontrivial R] (j i : n) (hij : j ≠ i) :
+lemma Eij_Eji_ne [nontrivial R] (j i : n) (hij : j ≠ i) :
   E R i j ⬝ E R j i ≠ E R j i ⬝ E R i j :=
-begin
-  rw [ne.def, ← sub_eq_zero, sl_bracket, c.trivial],
-  admit,
-end
+λ c, by simpa [matrix.mul_apply, hij] using congr_fun (congr_fun c i) i
 
 /-- When j ≠ i, the elementary matrices are elements of sl n R, in fact they are part of a natural
 basis of sl n R. -/
@@ -119,25 +116,19 @@ def Eb (h : j ≠ i) : sl n R :=
 
 end elementary_basis
 
+variables {n R}
+def repr (m : sl n R) : matrix n n R := m.val
+
+@[simp] lemma repr_conj (A B : sl n R) : repr ⁅A,B⁆ = ⁅repr A, repr B⁆ := rfl
+
+@[simp] lemma repr_zero : repr (0 : sl n R) = 0 := rfl
+
+variables (n R)
 lemma sl_non_abelian [nontrivial R] (h : 1 < fintype.card n) : ¬is_lie_abelian ↥(sl n R) :=
 begin
-
   rcases fintype.exists_pair_of_one_lt_card h with ⟨j, i, hij⟩,
-  let A := Eb R i j hij,
-  let B := Eb R j i hij.symm,
-  simp,
-  use [A, B],
-  intros c,
-  have c' : A.val ⬝ B.val = B.val ⬝ A.val, by {extract_goal, rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
-  have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
-  exact one_ne_zero this,
-  rcases fintype.exists_pair_of_one_lt_card h with ⟨j, i, hij⟩,
-  let A := Eb R i j hij,
-  let B := Eb R j i hij.symm,
-  intros c,
-  have c' : A.val ⬝ B.val = B.val ⬝ A.val, by { rw [← sub_eq_zero, ← sl_bracket, c.trivial], refl },
-  have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
-  exact one_ne_zero this,
+  refine not_is_lie_abelian_iff.mpr ⟨Eb R i j hij, Eb R j i hij.symm, _⟩,
+  exact λ c, Eij_Eji_ne R j i hij $ by simpa [← sub_eq_zero] using congr_arg repr c,
 end
 
 end special_linear
@@ -162,10 +153,9 @@ def so : lie_subalgebra R (matrix n n R) :=
   skew_adjoint_matrices_lie_subalgebra (1 : matrix n n R)
 
 @[simp] lemma mem_so (A : matrix n n R) : A ∈ so n R ↔ Aᵀ = -A :=
-begin
-  erw mem_skew_adjoint_matrices_submodule,
-  simp only [matrix.is_skew_adjoint, matrix.is_adjoint_pair, matrix.mul_one, matrix.one_mul],
-end
+calc  A ∈ so n R ↔ matrix.is_skew_adjoint 1 A : mem_skew_adjoint_matrices_submodule _ _
+             ... ↔ Aᵀ ⬝ 1 = 1 ⬝ -A : by refl
+             ... ↔ Aᵀ = -A : by { rw [matrix.mul_one, matrix.one_mul] }
 
 /-- The indefinite diagonal matrix with `p` 1s and `q` -1s. -/
 def indefinite_diagonal : matrix (p ⊕ q) (p ⊕ q) R :=

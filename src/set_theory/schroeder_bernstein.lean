@@ -11,8 +11,17 @@ import order.zorn
 
 This file proves the Schröder-Bernstein theorem (see `schroeder_bernstein`), the well-ordering of
 cardinals (see `min_injective`) and the totality of their order (see `total`).
-The Schröder-Bernstein theorem states that, given injections `α → β` and `β → α`, one can get a
-bijection `α → β`.
+
+## Notes
+
+Cardinals are naturally ordered by `α ≤ β ↔ ∃ f : a → β, injective f`:
+* `schroeder_bernstein` states that, given injections `α → β` and `β → α`, one can get a
+  bijection `α → β`. This corresponds to the antisymmetry of the order.
+* The order is also well-founded: any nonempty set of cardinals has a minimal element.
+  `min_injective` states that by saying that there exists an element of the set that injects into
+  all others.
+
+Cardinals are defined and further developed in the file `set_theory.cardinal`.
 -/
 
 open set classical
@@ -104,7 +113,8 @@ parameters {ι : Type u} {β : ι → Type v}
 @[reducible] private def sets := {s : set (∀ i, β i) |
   ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
 
-/-- The cardinals are well-ordered. -/
+/-- The cardinals are well-ordered. We express it here by the fact that any  See `cardinal.linear_order` for (one of) the lattice
+instance. -/
 theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
 let ⟨s, hs, ms⟩ := show ∃ s ∈ sets, ∀ a ∈ sets, s ⊆ a → a = s, from
   zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
@@ -131,7 +141,8 @@ let ⟨f, hf⟩ := axiom_of_choice e in
 
 end wo
 
-/-- The cardinals are totally ordered. -/
+/-- The cardinals are totally ordered. See `cardinal.linear_order` for (one of) the lattice
+instance. -/
 theorem total {α : Type u} {β : Type v} : nonempty (α ↪ β) ∨ nonempty (β ↪ α) :=
 match @min_injective bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
 | ⟨tt, ⟨h⟩⟩ := let ⟨f, hf⟩ := h ff in or.inl ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩

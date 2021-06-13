@@ -113,8 +113,9 @@ parameters {ι : Type u} {β : ι → Type v}
 @[reducible] private def sets := {s : set (∀ i, β i) |
   ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
 
-/-- The cardinals are well-ordered. We express it here by the fact that any  See `cardinal.linear_order` for (one of) the lattice
-instance. -/
+/-- The cardinals are well-ordered. We express it here by the fact that in any set of cardinals
+there is an element that injects into the others. See `cardinal.linear_order` for (one of) the
+lattice instance. -/
 theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
 let ⟨s, hs, ms⟩ := show ∃ s ∈ sets, ∀ a ∈ sets, s ⊆ a → a = s, from
   zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,

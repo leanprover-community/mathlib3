@@ -19,7 +19,8 @@ requiring more imports).
 * `nat.choose_le_succ_of_lt_half_left`: `choose n k` is increasing for small values of `k`
 * `nat.choose_le_middle`: `choose n r` is maximised when `r` is `n/2`
 * `nat.desc_factorial_eq_factorial_mul_choose`: Relates binomial coefficients to the descending
-  factorial. This is used to prove `nat.choose_le_pow` and variants.
+  factorial. This is used to prove `nat.choose_le_pow` and variants. We provide similar statements
+  for the ascending factorial.
 
 -/
 
@@ -190,7 +191,7 @@ begin
   exact (nat.mul_div_cancel' $ factorial_dvd_asc_factorial _ _).symm,
 end
 
-lemma desc_factorial_eq_factorial_mul_choose (n k : ℕ) : n.desc_factorial k = k! * n.choose k :=
+lemma desc_factorial_eq_factorial_mul_choose (n k : ℕ) : n !- k = k! * n.choose k :=
 begin
   obtain h | h := nat.lt_or_ge n k,
   { rw [desc_factorial_eq_zero_iff_lt.2 h, choose_eq_zero_of_lt h, mul_zero] },
@@ -202,7 +203,7 @@ end
 lemma factorial_dvd_desc_factorial (n k : ℕ) : k! ∣ n.desc_factorial k :=
 ⟨n.choose k, desc_factorial_eq_factorial_mul_choose _ _⟩
 
-lemma choose_eq_desc_factorial_div_factorial (n k : ℕ) : n.choose k = n.desc_factorial k / k! :=
+lemma choose_eq_desc_factorial_div_factorial (n k : ℕ) : n.choose k = n !- k / k! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero k),
   rw ←desc_factorial_eq_factorial_mul_choose,

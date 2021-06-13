@@ -29,7 +29,7 @@ lemma card_embedding_eq_of_unique
 ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
 private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
-  ‖fin n ↪ β‖ = ‖β‖.desc_factorial n :=
+  ‖fin n ↪ β‖ = ‖β‖ !- n :=
 begin
   induction n with n hn,
   { nontriviality (fin 0 ↪ β),
@@ -60,7 +60,7 @@ end
 
 /- Establishes the cardinality of the type of all injections between two finite types.  -/
 @[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
-‖α ↪ β‖ = (‖β‖.desc_factorial ‖α‖) :=
+‖α ↪ β‖ = (‖β‖ !- ‖α‖) :=
 begin
   by_cases h : ‖α‖ ≤ ‖β‖,
   { trunc_cases fintype.trunc_equiv_fin α with eq,

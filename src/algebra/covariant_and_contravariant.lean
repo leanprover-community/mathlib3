@@ -228,31 +228,31 @@ instance covariant_swap_mul_lt_of_covariant_mul_lt [comm_semigroup N] [has_lt N]
 { covc := (covariant_flip_mul_iff N (<)).mpr covariant_class.covc }
 
 @[to_additive]
-instance left_cancel_semigroup.to_covariant_mul_le_left [left_cancel_semigroup N] [partial_order N]
-  [covariant_class N N (*) (≤)] :
+instance left_cancel_semigroup.covariant_mul_lt_of_covariant_mul_le
+  [left_cancel_semigroup N] [partial_order N] [covariant_class N N (*) (≤)] :
   covariant_class N N (*) (<) :=
 { covc := λ a b c bc, by { cases lt_iff_le_and_ne.mp bc with bc cb,
     exact lt_iff_le_and_ne.mpr ⟨covariant_class.covc a bc, (mul_ne_mul_right a).mpr cb⟩ } }
 
 @[to_additive]
-instance right_cancel_semigroup.to_covariant_mul_le_right [right_cancel_semigroup N]
-  [partial_order N] [covariant_class N N (function.swap (*)) (≤)] :
+instance right_cancel_semigroup.covariant_swap_mul_lt_of_covariant_swap_mul_le
+  [right_cancel_semigroup N] [partial_order N] [covariant_class N N (function.swap (*)) (≤)] :
   covariant_class N N (function.swap (*)) (<) :=
 { covc := λ a b c bc, by { cases lt_iff_le_and_ne.mp bc with bc cb,
     exact lt_iff_le_and_ne.mpr ⟨covariant_class.covc a bc, (mul_ne_mul_left a).mpr cb⟩ } }
 
 @[to_additive]
-instance left_cancel_semigroup.to_contravariant_mul_lt [left_cancel_semigroup N] [partial_order N]
-  [contravariant_class N N (*) (<)] :
+instance left_cancel_semigroup.contravariant_mul_le_of_contravariant_mul_lt
+  [left_cancel_semigroup N] [partial_order N] [contravariant_class N N (*) (<)] :
   contravariant_class N N (*) (≤) :=
 { covtc :=  λ  a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
       { exact ((mul_right_inj a).mp h).le },
       { exact (contravariant_class.covtc _ h).le } } }
 
 @[to_additive]
-instance right_cancel_semigroup.to_contravariant_mul_lt {α : Type*} [right_cancel_semigroup α]
-  [partial_order α] [contravariant_class α α (function.swap (*)) (<)] :
-  contravariant_class α α (function.swap (*)) (≤) :=
+instance right_cancel_semigroup.contravariant_swap_mul_le_of_contravariant_swap_mul_lt
+  [right_cancel_semigroup N] [partial_order N] [contravariant_class N N (function.swap (*)) (<)] :
+  contravariant_class N N (function.swap (*)) (≤) :=
 { covtc :=  λ a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
       { exact ((mul_left_inj a).mp h).le },
       { exact (contravariant_class.covtc _ h).le } } }

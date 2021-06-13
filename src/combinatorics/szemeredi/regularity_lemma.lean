@@ -134,46 +134,37 @@ begin
   apply iterate_extensive_of_extensive h (n-m) _,
 end
 
-/-! ### Prerequisites for SRL -/
+/-! ### Prerequisites for SRL -/.
 
 lemma lemmaB {α : Type*} {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {a b : ℝ}
-  (hs : s.sum f / s.card = a + b) (ht : t.sum f / t.card = a) :
-  a^2 + s.card/t.card * b^2 ≤ t.sum (f^2)/t.card :=
+  (hs : (∑ x in s, f x)/s.card = a + b) (ht : (∑ x in t, f x) / t.card = a) :
+  a^2 + s.card/t.card * b^2 ≤ (∑ x in t, f x^2)/t.card :=
 begin
-  obtain htcard | htcard := t.card.eq_zero_or_pos,
-  {
-    rw [htcard, nat.cast_zero, div_zero] at ⊢ ht,
-    rw [←ht, div_zero, zero_mul, add_zero, pow_succ, zero_mul],
-  },
-  obtain hscard | hscard := s.card.eq_zero_or_pos,
-  {
-    --rw [hscard, nat.cast_zero, div_zero, zero_mul, add_zero, ←ht],
-    sorry
-  },
-  --have := (nat.cast_pos.2 hscard).ne.symm,
-  rw div_eq_iff at hs,
-  rw div_eq_iff at ht,
-  suffices : (s.card : ℝ) * t.card * a ^ 2 + s.card^2 * b ^ 2 ≤ s.card * t.sum (f^2),
-  {
-    sorry
-  },
-  -- the well-known `suffices` of desperation
-  suffices h : (∑ x in s, (f x + -a))^2 ≤ s.card * (t.sum ((f - λ x, a)^2)),
-  {
-    have hssum := @finset.sum_add_distrib α ℝ s f (λ x, -a) _,
-    dsimp at hssum,
-    rw [finset.sum_const, hs, nsmul_eq_mul, mul_comm _ (-a), ←add_mul, ←sub_eq_add_neg,
-      add_sub_cancel'] at hssum,
-    --rw smul_eq_mul at this,
-    --rw sub_eq_add_neg at this,
-    rw hssum at h,
-    sorry
-  },
-  sorry,
-  sorry,
+  have : (0 : ℝ) ≤ t.card := t.card.cast_nonneg,
+  have := (t.card.cast_nonneg : (0 : ℝ) ≤ t.card).eq_or_lt,
+  obtain htcard | htcard := (t.card.cast_nonneg : (0 : ℝ) ≤ t.card).eq_or_lt,
+  { rw [←ht, ←htcard, div_zero, div_zero, div_zero, zero_mul, add_zero, pow_succ, zero_mul] },
+  obtain hscard | hscard := (s.card.cast_nonneg : (0 : ℝ) ≤ s.card).eq_or_lt,
+  {  rw [←hscard, zero_div, zero_mul, add_zero, ←ht],
+    sorry },
+  have htzero : (t.card : ℝ) ≠ 0 := htcard.ne.symm,
+  have hszero : (s.card : ℝ) ≠ 0 := hscard.ne.symm,
+  rw div_eq_iff htzero at ht,
+  rw div_eq_iff hszero at hs,
+  suffices h : (∑ x in s, (f x - a))^2 ≤ s.card * (∑ x in t, (f x - a)^2),
+  { apply le_of_mul_le_mul_left _ htcard,
+    rw [mul_add, ←mul_assoc, mul_div_cancel' _ htzero, mul_div_cancel' _ htzero,
+      ←le_sub_iff_add_le'],
+    apply le_of_mul_le_mul_left _ hscard,
+    rw [←mul_assoc, ←sq],
+    simp_rw sub_sq at h,
+    rw [sum_add_distrib, sum_sub_distrib, sum_sub_distrib, ←sum_mul, ←mul_sum, sum_const, sum_const, ht, hs, nsmul_eq_mul, nsmul_eq_mul, mul_comm (a + b), ←mul_sub, add_sub_cancel',
+    mul_pow] at h,
+    convert h,
+    ring },
+  rw sq,
   sorry
 end
-
 /-- A set is equitable if no element value is more than one bigger than another. -/
 def equitable_on {α : Type*} (s : set α) (f : α → ℕ) : Prop :=
   ∀ ⦃a₁ a₂⦄, a₁ ∈ s → a₂ ∈ s → f a₁ ≤ f a₂ → f a₂ - f a₁ ≤ 1
@@ -610,18 +601,14 @@ begin
 end
 
 def bind (P : finpartition s) (Q : Π i ∈ P.parts, finpartition i) : finpartition s :=
-{ parts := P.parts.bUnion (λ i, dite (i ∈ P.parts) (λ h, (Q i h).parts) (λ _, ∅)),
+{ parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
   disjoint := begin
     rintro a b ha hb x hxa hxb,
     rw finset.mem_bUnion at ha hb,
-    obtain ⟨A, hA, ha⟩ := ha,
-    obtain ⟨B, hB, hb⟩ := hb,
-    rw dif_pos hA at ha,
-    rw dif_pos hB at hb,
-    have hxA := (Q A hA).subset a ha hxa,
-    have hxB := (Q B hB).subset b hb hxb,
-    have := P.disjoint A B hA hB x hxA hxB,
+    obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
+    obtain ⟨⟨B, hB⟩, -, hb⟩ := hb,
     refine (Q A hA).disjoint a b ha _ x hxa hxb,
+    have := P.disjoint A B hA hB x ((Q A hA).subset a ha hxa) ((Q B hB).subset b hb hxb),
     subst this,
     exact hb,
   end,
@@ -631,15 +618,12 @@ def bind (P : finpartition s) (Q : Π i ∈ P.parts, finpartition i) : finpartit
     obtain ⟨a, ha, hxa⟩ := (Q A hA).covering x hxA,
     refine ⟨a, _, hxa⟩,
     rw finset.mem_bUnion,
-    refine ⟨A, hA, _⟩,
-    rw dif_pos hA,
-    exact ha,
+    exact ⟨⟨A, hA⟩, P.parts.mem_attach _, ha⟩,
   end,
   subset := begin
     rintro a ha,
     rw finset.mem_bUnion at ha,
-    obtain ⟨A, hA, ha⟩ := ha,
-    rw dif_pos hA at ha,
+    obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
     exact ((Q A hA).subset a ha).trans (P.subset A hA),
   end }
 

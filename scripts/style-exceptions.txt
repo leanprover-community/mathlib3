@@ -70,7 +70,6 @@ src/data/list/sections.lean : line 8 : ERR_MOD : Module docstring missing, or to
 src/data/list/sigma.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/data/list/tfae.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/data/list/zip.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/mllist.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/cast.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/dist.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/nat/pairing.lean : line 10 : ERR_MOD : Module docstring missing, or too late
@@ -92,7 +91,6 @@ src/data/rat/denumerable.lean : line 9 : ERR_MOD : Module docstring missing, or 
 src/data/real/basic.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/real/cau_seq_completion.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/rel.lean : line 10 : ERR_MOD : Module docstring missing, or too late
-src/data/semiquot.lean : line 15 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late

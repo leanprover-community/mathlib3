@@ -245,8 +245,6 @@ lemma ae_cover.lintegral_tendsto_of_countably_generated {φ : ι → set α}
   (hfm : measurable f) : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) l (𝓝 $ ∫⁻ x, f x ∂μ) :=
 hcg.tendsto_of_seq_tendsto (λ u hu, (hφ.comp_tendsto hu).lintegral_tendsto_of_nat hfm)
 
--- TODO : change name to `set_...` ?
-
 lemma ae_cover.lintegral_eq_of_tendsto [l.ne_bot] {φ : ι → set α} (hφ : ae_cover μ l φ)
   (hcg : l.is_countably_generated) {f : α → ℝ≥0∞} (I : ℝ≥0∞)
   (hfm : measurable f) (htendsto : tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) l (𝓝 I)) :

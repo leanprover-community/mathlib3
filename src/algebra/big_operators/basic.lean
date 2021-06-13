@@ -199,27 +199,9 @@ lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   (∏ x in ({a, b} : finset α), f x) = f a * f b :=
 by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
--- attribute [to_additive add_monoid.nsmul] monoid.npow
--- attribute [to_additive nsmul_one'] npow_one
--- #print has_scalar
--- #print add_monoid.has_scalar_nat
--- -- #print add_monoid.has_scalar
-
--- -- set_option pp.all true
--- -- #print monoid.has_pow
--- -- #check @has_scalar
--- -- #print add_monoid.has_scalar_nat
--- -- run_cmd do tactic.failed
--- attribute [to_additive add_monoid.has_scalar_nat] monoid.has_pow
-
-
-@[simp, priority 1100, to_additive] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
+@[simp, priority 1100, to_additive]
+lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
-#print prod_const_one
-@[simp, priority 1100] lemma sum_const_zero {β α} {s : finset α} [add_comm_monoid β] :
-  (∑ x in s, (0 : β)) = 0 :=
-@prod_const_one (multiplicative β) _ _ _
-attribute [to_additive] prod_const_one
 
 @[simp, to_additive]
 lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
@@ -821,14 +803,10 @@ lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
 @prod_multiset_map_count _ _ _ (multiplicative M) _ f
 attribute [to_additive] prod_multiset_map_count
 
+@[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
-
-lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
-  s.sum = ∑ m in s.to_finset, s.count m • m :=
-@prod_multiset_count (multiplicative α) _ _ s
-attribute [to_additive] prod_multiset_count
 
 /--
 To prove a property of a product, it suffices to prove that
@@ -1116,6 +1094,7 @@ end comm_monoid
 
 /-- If `f = g = h` everywhere but at `i`, where `f i = g i + h i`, then the product of `f` over `s`
   is the sum of the products of `g` and `h`. -/
+
 lemma prod_add_prod_eq [comm_semiring β] {s : finset α} {i : α} {f g h : α → β}
   (hi : i ∈ s) (h1 : g i + h i = f i) (h2 : ∀ j ∈ s, j ≠ i → g j = f j)
   (h3 : ∀ j ∈ s, j ≠ i → h j = f j) : ∏ i in s, g i + ∏ i in s, h i = ∏ i in s, f i :=

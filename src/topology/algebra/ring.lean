@@ -155,21 +155,6 @@ by dunfold ideal.quotient submodule.quotient; apply_instance
 
 -- note for the reader: in the following, `mk` is `ideal.quotient.mk`, the canonical map `R → R/I`.
 
-/--
-The preimage of the image of a set under the quotient map is the union of the cosets covered by `s`.
--/
-lemma quotient_ring_saturate {α : Type*} [comm_ring α] (N : ideal α) (s : set α) :
-  mk N ⁻¹' (mk N '' s) = (⋃ x : N, (λ y, x.1 + y) '' s) :=
-begin
-  ext x,
-  simp only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
-  exact ⟨λ ⟨a, a_in, h⟩, ⟨⟨_, N.neg_mem h⟩, a, a_in, by simp⟩,
-         λ ⟨⟨i, hi⟩, a, ha, eq⟩,
-           ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact N.neg_mem hi⟩⟩
-end
--- TODO: Move this result to a more appropriate place; this doesn't require `α` to be topological.
--- Also, any ideas for a name?
-
 variable [topological_ring α]
 
 lemma quotient_ring.is_open_map_coe : is_open_map (mk N) :=

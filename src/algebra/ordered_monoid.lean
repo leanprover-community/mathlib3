@@ -61,24 +61,24 @@ instance covariant_class_comm_semigroup.to_covariant_class_right (M : Type*) [co
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (*) (≤) :=
-{ covc := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
+{ elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (function.swap (*) : M → M → M) (≤) :=
-{ covc := λ a b c bc, by { show (b * a ≤ c * a),
+{ elim := λ a b c bc, by { show (b * a ≤ c * a),
         rw [mul_comm _ a, mul_comm _ a],
         exact ordered_comm_monoid.mul_le_mul_left _ _ bc a } }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (*) (<) :=
-{ covtc := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
+{ elim := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (function.swap (*)) (<) :=
-{ covtc := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
+{ elim := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
     exact ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc } }
 
 end ordered_instances
@@ -255,7 +255,7 @@ begin
   { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
   { simp_rw [some_eq_coe] at h ⊢,
     norm_cast at h ⊢,
-    exact covariant_class.covc _ h }
+    exact covariant_class.elim _ h }
 end
 
 lemma lt_of_mul_lt_mul_left  {α : Type u} [has_mul α] [partial_order α]

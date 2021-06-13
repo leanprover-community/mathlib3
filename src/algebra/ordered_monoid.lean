@@ -55,7 +55,7 @@ section ordered_instances
 instance covariant_class_comm_semigroup.to_covariant_class_right (M : Type*) [comm_semigroup M]
   [has_le M] [covariant_class M M (*) (≤)] :
   covariant_class M M (function.swap (*)) (≤) :=
-{ covc := λ a b c bc, by { show b * a ≤ c * a,
+{ elim := λ a b c bc, by { show b * a ≤ c * a,
     simp [mul_comm _ a, mul_le_mul_left' bc a] } }
 
 @[to_additive]
@@ -851,7 +851,7 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
 @[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
 instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
   contravariant_class (order_dual α) (order_dual α) has_mul.mul has_le.le :=
-{ covtc := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
+{ elim := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=

@@ -62,24 +62,23 @@ lemma is_semisimple_iff_no_solvable_ideals :
 lemma is_semisimple_iff_no_abelian_ideals :
   is_semisimple R L ↔ ∀ (I : lie_ideal R L), is_lie_abelian I → I = ⊥ :=
 begin
-  rw is_semisimple_iff_no_solvable_ideals,
-  split; intros h₁ I h₂,
-  { haveI : is_lie_abelian I := h₂, apply h₁, exact lie_algebra.of_abelian_is_solvable R I, },
-  { haveI : is_solvable R I := h₂, rw ← abelian_of_solvable_ideal_eq_bot_iff, apply h₁,
-    exact abelian_derived_abelian_of_ideal I, },
+  refine (is_semisimple_iff_no_solvable_ideals _ _).trans ⟨λ h₁ I h₂, _, λ h₁ I h₂, _⟩,
+  { haveI : is_lie_abelian I := h₂,
+    exact h₁ _ (lie_algebra.of_abelian_is_solvable R I) },
+  { haveI : is_solvable R I := h₂,
+    exact (abelian_of_solvable_ideal_eq_bot_iff _).mp (h₁ _ (abelian_derived_abelian_of_ideal I)) }
 end
 
 @[simp] lemma center_eq_bot_of_semisimple [h : is_semisimple R L] : center R L = ⊥ :=
-by { rw is_semisimple_iff_no_abelian_ideals at h, apply h, apply_instance, }
+(is_semisimple_iff_no_abelian_ideals R L).mp h _ $ center.is_lie_abelian R L
 
 /-- A simple Lie algebra is semisimple. -/
 @[priority 100]
 instance is_semisimple_of_is_simple [h : is_simple R L] : is_semisimple R L :=
 begin
-  rw is_semisimple_iff_no_abelian_ideals,
-  intros I hI,
-  tactic.unfreeze_local_instances, obtain ⟨h₁, h₂⟩ := h,
+  refine (is_semisimple_iff_no_abelian_ideals _ _).mpr (λ I hI, _),
   by_contradiction contra,
+  tactic.unfreeze_local_instances, obtain ⟨h₁, h₂⟩ := h,
   rw [h₁ I contra, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv_self] at hI,
   exact h₂ hI,
 end
@@ -87,13 +86,11 @@ end
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_semisimple_lie_abelian [is_semisimple R L] [h : is_lie_abelian L] :
   subsingleton (lie_ideal R L) :=
-begin
-  apply subsingleton_of_bot_eq_top,
-  rwa [is_lie_abelian_iff_center_eq_top R L, center_eq_bot_of_semisimple] at h,
-end
+subsingleton_of_bot_eq_top $ (center_eq_bot_of_semisimple _ _).symm.trans $
+  (is_lie_abelian_iff_center_eq_top _ _).mp h
 
 lemma abelian_radical_of_semisimple [is_semisimple R L] : is_lie_abelian (radical R L) :=
-by { rw is_semisimple.semisimple, exact is_lie_abelian_bot R L, }
+by { rw is_semisimple.semisimple, exact is_lie_abelian_bot R L }
 
 /-- The two properties shown to be equivalent here are possible definitions for a Lie algebra
 to be reductive.
@@ -102,12 +99,8 @@ Note that there is absolutely [no agreement](https://mathoverflow.net/questions/
 the label 'reductive' should mean when the coefficients are not a field of characteristic zero. -/
 lemma abelian_radical_iff_solvable_is_abelian [is_noetherian R L] :
   is_lie_abelian (radical R L) ↔ ∀ (I : lie_ideal R L), is_solvable R I → is_lie_abelian I :=
-begin
-  split,
-  { rintros h₁ I h₂,
-    rw lie_ideal.solvable_iff_le_radical at h₂,
-    exact (lie_ideal.hom_of_le_injective h₂).is_lie_abelian h₁, },
-  { intros h, apply h, apply_instance, },
-end
+⟨ λ h₁ I h₂, (lie_ideal.hom_of_le_injective
+  ((lie_ideal.solvable_iff_le_radical R L I).mp h₂)).is_lie_abelian h₁,
+  λ h, h _ (lie_algebra.radical_is_solvable R L)⟩
 
 end lie_algebra

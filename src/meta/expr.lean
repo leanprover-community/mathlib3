@@ -825,6 +825,43 @@ protected meta def simple_infer_type (env : environment) (e : expr) : exceptiona
 d ← env.get n,
 return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip ls
 
+-- /-- `e.eta_expand env dict` eta-expands all expressions that have as head a constant `n` in
+-- `dict` -/
+-- protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) : expr → expr
+-- | e := e.replace $ λ e _,
+--   let (e0, es) := e.get_app_fn_args in
+--   let ns := (dict.find e0.const_name).iget in
+--   if ns = [] then none else
+--   let e' := e0.mk_app $ es.map eta_expand in
+--   let needed_n := ns.foldr max 0 + 1 in
+--   if needed_n ≤ es.length then
+--   some e' else do
+--   e_type ← (e'.simple_infer_type env).to_option,
+--   _
+
+-- match e with
+--   | const n ls := some $ const (f n) $
+--       -- hack:
+--       -- if the first two arguments are reordered, we also reorder the first two universe parameters
+--       if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
+--   | app g x :=
+--     let l := (reorder.find g.get_app_fn.const_name).iget in -- this might be inefficient
+--     if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
+--     -- interchange `x` and the last argument of `g`
+--     some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
+--       apply_replacement_fun g.app_arg else
+--     -- the following only happens with non-fully applied terms
+--     if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
+--     -- check whether we want to replace g at all
+--     let new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
+--     -- make a lambda term that is the reordering of the non-fully applied term
+--     y_type ← (new_g.simple_infer_type env).to_option,
+--     some $ lam `x binder_info.default y_type.binding_domain $
+--       new_g.lift_vars 0 1 (var 0) $ (apply_replacement_fun x).lift_vars 0 1 else
+--     if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
+--   | _ := none
+--   end
+
 /--
 `e.apply_replacement_fun f test` applies `f` to each identifier
 (inductive type, defined function etc) in an expression, unless
@@ -853,44 +890,11 @@ protected meta def apply_replacement_fun (env : environment) (f : name → name)
     let new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
     -- make a lambda term that is the reordering of the non-fully applied term
     y_type ← (new_g.simple_infer_type env).to_option,
-    some $ lam `x binder_info.default g.binding_domain $
+    some $ lam `x binder_info.default y_type.binding_domain $
       new_g.lift_vars 0 1 (var 0) $ (apply_replacement_fun x).lift_vars 0 1 else
     if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
   | _ := none
   end
--- protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
---   (reorder : name_map $ list ℕ) : option (list ℕ) → expr → tactic expr
--- | ns (app g x) := do
---     let l := ns.get_or_else $
---       let l := (reorder.find g.get_app_fn.const_name).iget in
---       if l = [] ∨ test (app g x).get_app_args.head then [] else l,
---     -- check whether we want to replace g at all
---     new_x ← apply_replacement_fun none x,
---     if g.get_app_num_args ∈ l then do
---     f' ← apply_replacement_fun (some l) g.app_fn,
---     y' ← apply_replacement_fun none g.app_arg,
---     -- reorder the last argument of g with x
---     return $ f' new_x y' else do
---     new_g ← if g.is_constant ∧ ¬ test x then return g else apply_replacement_fun (some l) g,
---     -- the following only happens with non-fully applied terms
---     if g.get_app_num_args + 1 ∈ l then do
---     -- make a lambda term that is the reordering of the non-fully applied term
---     y_type ← new_g.simple_infer_type,
---     return $ lam `x binder_info.default y_type.binding_domain $
---       new_g.lift_vars 0 1 (var 0) $ new_x.lift_vars 0 1 else
---     return $ new_g new_x
--- | ns (lam nm bi ty bd) := (do Rty ← apply_replacement_fun none ty,
---     Rbd ← apply_replacement_fun none bd, return $ lam nm bi Rty Rbd)
--- | ns (pi nm bi ty bd) := (do Rty ← apply_replacement_fun none ty,
---     Rbd ← apply_replacement_fun none bd, return $ pi nm bi Rty Rbd)
--- | ns (elet nm ty a b) := do Rty ← apply_replacement_fun none ty,
---     Ra ← apply_replacement_fun none a,
---     Rb ← apply_replacement_fun none b,
---     return $ elet nm Rty Ra Rb
--- | ns (macro c es) := macro c <$> es.mmap (apply_replacement_fun none)
--- | ns (const n ls) := return $ const (f n) $
---     if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
--- | ns e := return e
 
 end expr
 

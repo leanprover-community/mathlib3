@@ -76,8 +76,8 @@ attribute [to_additive add_monoid.nsmul_zero'] monoid.npow_zero'
 lemma pow_right {a x y : M} (h : semiconj_by a x y) (n : ℕ) : semiconj_by a (x^n) (y^n) :=
 begin
   induction n with n ih,
-  { simp_rw [← npow_eq_pow, monoid.npow_zero', one_right] },
-  { simp_rw [← npow_eq_pow, nat.succ_eq_add_one, npow_add, npow_one] at ⊢ ih,
+  { simp [← npow_eq_pow, monoid.npow_zero'], },
+  { simp only [← npow_eq_pow, nat.succ_eq_add_one, npow_one, npow_add] at ⊢ ih,
     exact ih.mul_right h }
 end
 

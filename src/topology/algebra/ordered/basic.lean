@@ -1517,11 +1517,11 @@ end
 
 lemma linear_ordered_add_comm_group.tendsto_nhds {x : filter β} {a : α} :
   tendsto f x (𝓝 a) ↔ ∀ ε > (0 : α), ∀ᶠ b in x, |f b - a| < ε :=
-by simp [nhds_eq_infi_abs_sub, abs_sub a]
+by simp [nhds_eq_infi_abs_sub, abs_sub_comm a]
 
 lemma eventually_abs_sub_lt (a : α) {ε : α} (hε : 0 < ε) : ∀ᶠ x in 𝓝 a, |x - a| < ε :=
 (nhds_eq_infi_abs_sub a).symm ▸ mem_infi_sets ε
-  (mem_infi_sets hε $ by simp only [abs_sub, mem_principal_self])
+  (mem_infi_sets hε $ by simp only [abs_sub_comm, mem_principal_self])
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_add_comm_group.topological_add_group : topological_add_group α :=
@@ -1550,7 +1550,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
     end,
   continuous_neg := continuous_iff_continuous_at.2 $ λ a,
     linear_ordered_add_comm_group.tendsto_nhds.2 $ λ ε ε0,
-      (eventually_abs_sub_lt a ε0).mono $ λ x hx, by rwa [neg_sub_neg, abs_sub] }
+      (eventually_abs_sub_lt a ε0).mono $ λ x hx, by rwa [neg_sub_neg, abs_sub_comm] }
 
 @[continuity]
 lemma continuous_abs : continuous (abs : α → α) := continuous_id.max continuous_neg

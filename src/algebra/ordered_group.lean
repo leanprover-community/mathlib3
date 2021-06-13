@@ -39,7 +39,7 @@ attribute [to_additive] ordered_comm_group
 @[to_additive]
 instance units.covariant_class [ordered_comm_monoid α] :
   covariant_class (units α) (units α) (*) (≤) :=
-{ covc := λ a b c bc, by {
+{ elim := λ a b c bc, by {
   rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
   { exact rfl.le },
   refine le_iff_eq_or_lt.mpr (or.inr _),
@@ -406,7 +406,7 @@ lemma inv_mul_lt_iff_lt_mul_right : c⁻¹ * a < b ↔ a < b * c :=
 by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 
 @[to_additive add_neg_le_add_neg_iff]
-lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
+lemma mul_inv_le_mul_inv_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
   have := mul_le_mul_right' (mul_le_mul_right' h b) d,
@@ -765,7 +765,7 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
-lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
+lemma abs_sub_comm (a b : α) : abs (a - b) = abs (b - a) :=
 by rw [← neg_sub, abs_neg]
 
 lemma abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
@@ -815,12 +815,16 @@ begin
 end
 
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
-by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
+by { rw abs_sub_comm, exact max_sub_min_eq_abs' _ _ }
 
 lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b :=
 abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),
   add_le_add (le_abs_self _) (le_abs_self _)⟩
+
+theorem abs_sub (a b : α) :
+  abs (a - b) ≤ abs a + abs b :=
+by { rw [sub_eq_add_neg, ←abs_neg b], exact abs_add a _ }
 
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
@@ -832,13 +836,13 @@ lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
 sub_le.1 $ (abs_sub_le_iff.1 h).2
 
 lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
-sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
+sub_le_of_abs_sub_le_left (abs_sub_comm a b ▸ h)
 
 lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
 sub_lt.1 $ (abs_sub_lt_iff.1 h).2
 
 lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
-sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
+sub_lt_of_abs_sub_lt_left (abs_sub_comm a b ▸ h)
 
 lemma abs_sub_abs_le_abs_sub (a b : α) : abs a - abs b ≤ abs (a - b) :=
 sub_le_iff_le_add.2 $
@@ -846,7 +850,7 @@ calc abs a = abs (a - b + b)     : by rw [sub_add_cancel]
        ... ≤ abs (a - b) + abs b : abs_add _ _
 
 lemma abs_abs_sub_abs_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
-abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub; apply abs_sub_abs_le_abs_sub⟩
+abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub_comm; apply abs_sub_abs_le_abs_sub⟩
 
 lemma eq_or_eq_neg_of_abs_eq (h : abs a = b) : a = b ∨ a = -b :=
 by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a

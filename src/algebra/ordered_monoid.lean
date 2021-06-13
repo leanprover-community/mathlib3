@@ -54,23 +54,23 @@ section ordered_instances
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (*) (≤) :=
-{ covc := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
+{ elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (function.swap (*)) (≤) :=
-{ covc := λ a b c bc,
+{ elim := λ a b c bc,
     by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (*) (<) :=
-{ covtc := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
+{ elim := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (function.swap (*)) (<) :=
-{ covtc := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
+{ elim := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
     exact ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc } }
 
 end ordered_instances
@@ -148,10 +148,10 @@ def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) :
   ordered_comm_monoid β :=
-{ mul_le_mul_left := λ a b ab c,
-    show f (c * a) ≤ f (c * b), by simp [mul, @mul_le_mul_left' α _ _ _ _ _ ab _],
+{ mul_le_mul_left := λ a b ab c, show f (c * a) ≤ f (c * b), by
+  { rw [mul, mul], apply mul_le_mul_left', exact ab },
   lt_of_mul_lt_mul_left :=
-    λ a b c bc, @lt_of_mul_lt_mul_left' α (f a) _ _ _ _ _ (by rwa [← mul, ← mul]),
+    λ a b c bc, show f b < f c, from lt_of_mul_lt_mul_left' (by rwa [← mul, ← mul] : (f a) * _ < _),
   ..partial_order.lift f hf,
   ..hf.comm_monoid f one mul }
 
@@ -247,7 +247,7 @@ begin
   { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
   { simp_rw [some_eq_coe] at h ⊢,
     norm_cast at h ⊢,
-    exact covariant_class.covc _ h }
+    exact covariant_class.elim _ h }
 end
 
 lemma lt_of_mul_lt_mul_left  {α : Type u} [has_mul α] [partial_order α]
@@ -855,8 +855,9 @@ instance [h : has_mul α] : has_mul (order_dual α) := h
 
 @[to_additive]
 instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
-{ mul_le_mul_left := λ a b h c, @mul_le_mul_left' α _ _ _ _ _ h _,
-  lt_of_mul_lt_mul_left := λ a b c h, @lt_of_mul_lt_mul_left' α a c b _ _ _ h,
+{ mul_le_mul_left := λ a b h c, show (id c : α) * b ≤ c * a, from mul_le_mul_left' h _,
+  lt_of_mul_lt_mul_left := λ a b c h, by
+    apply lt_of_mul_lt_mul_left' (by convert h : (id a : α) * c < a * b),
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
 

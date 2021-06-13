@@ -46,6 +46,9 @@ class has_bot (α : Type u) := (bot : α)
 notation `⊤` := has_top.top
 notation `⊥` := has_bot.bot
 
+@[priority 100] instance has_top_nonempty (α : Type u) [has_top α] : nonempty α := ⟨⊤⟩
+@[priority 100] instance has_bot_nonempty (α : Type u) [has_bot α] : nonempty α := ⟨⊥⟩
+
 attribute [pattern] has_bot.bot has_top.top
 
 /-- An `order_top` is a partial order with a greatest element.
@@ -468,6 +471,11 @@ lemma bot_lt_some [has_lt α] (a : α) : (⊥ : with_bot α) < some a :=
 ⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
 
 lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := bot_lt_some a
+
+instance : can_lift (with_bot α) α :=
+{ coe := coe,
+  cond := λ r, r ≠ ⊥,
+  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
 
 instance [preorder α] : preorder (with_bot α) :=
 { le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b,

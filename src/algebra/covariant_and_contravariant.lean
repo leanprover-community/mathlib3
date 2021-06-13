@@ -213,17 +213,17 @@ lemma contravariant_flip_mul_iff [comm_semigroup N] :
 by rw is_symm_op.flip_eq
 
 @[to_additive]
-instance covariant_mul_le.to_contravariant_lt_mul [has_mul N] [linear_order N]
+instance contravariant_mul_lt_of_covariant_mul_le [has_mul N] [linear_order N]
   [covariant_class N N (*) (≤)] : contravariant_class N N (*) (<) :=
 { covtc := (covariant_le_iff_contravariant_lt N N (*)).mp covariant_class.covc }
 
 @[to_additive]
-instance covariant_mul_le_left.to_covariant_mul_le_right [comm_semigroup N] [has_le N]
+instance covariant_swap_mul_le_of_covariant_mul_le [comm_semigroup N] [has_le N]
   [covariant_class N N (*) (≤)] : covariant_class N N (function.swap (*)) (≤) :=
 { covc := (covariant_flip_mul_iff N (≤)).mpr covariant_class.covc }
 
 @[to_additive]
-instance covariant_mul_lt_left.to_covariant_mul_lt_right [comm_semigroup N] [has_lt N]
+instance covariant_swap_mul_lt_of_covariant_mul_lt [comm_semigroup N] [has_lt N]
   [covariant_class N N (*) (<)] : covariant_class N N (function.swap (*)) (<) :=
 { covc := (covariant_flip_mul_iff N (<)).mpr covariant_class.covc }
 

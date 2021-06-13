@@ -7,8 +7,74 @@ import measure_theory.interval_integral
 import order.filter.at_top_bot
 import analysis.special_functions.integrals
 
+/-!
+# Links between an integral and its "improper" version
+
+In its current state, mathlib only knows how to talk about definite ("proper") integrals,
+in the sense that it treats integrals over `[x, +∞)` the same as it treats integrals over
+`[y, z]`. For example, the integral over `[1, +∞)` is **not** defined to be the limit of
+the integral over `[1, x]` as `x` tends to `+∞`, which is known as an **improper integral**.
+
+Indeed, the "proper" definition is stronger than the "improper" one. The usual counterexample
+is `x ↦ sin(x)/x`, which has an improper integral over `[1, +∞)` but no definite integral.
+
+Although definite integrals have better properties, they are hardly usable when it comes to
+computing integrals on unbounded sets, which is much easier using limits. Thus, in this file,
+we prove various ways of studying the proper integral by studying the improper one.
+
+## Definitions
+
+The main definition of this file is `measure_theory.ae_cover`. It is a rather technical
+definition whose sole purpose is generalizing and factoring proofs. Given an index type `ι`, a
+countably generated filter `l` over `ι`, and an `ι`-indexed family `φ` of subsets of a measurable
+space `α` equipped with a measure `μ`, one should think of a hypothesis `hφ : ae_cover μ l φ` as
+a sufficient condition for being able to interpret `∫ x, f x ∂μ` (if it exists) as the limit
+of `∫ x in φ i, f x ∂μ` as `i` tends to `l`.
+
+When using this definition with a measure restricted to a set `s`, which happens fairly often,
+one should not try too hard to use a `ae_cover` of subsets of `s`, as it often makes proofs
+more complicated than necessary. See for example the proof of
+`measure_theory.integrable_on_Iic_of_interval_integral_norm_tendsto` where we use `(λ x, Ioi x)`
+as an `ae_cover` w.r.t. `μ.restrict (Iic b)`, instead of using `(λ x, Ioc x b)`.
+
+## Main statements
+
+- `measure_theory.ae_cover.lintegral_tendsto_of_countably_generated` : if `φ` is a `ae_cover μ l`,
+  where `l` is a countably generated filter, and if `f` is a measurable `ennreal`-valued function,
+  then `∫⁻ x in φ n, f x ∂μ` tends to `∫⁻ x, f x ∂μ` as `n` tends to `l`
+- `measure_theory.ae_cover.integrable_of_integral_norm_tendsto` : if `φ` is a `ae_cover μ l`,
+  where `l` is a countably generated filter, if `f` is measurable and integrable on each `φ n`,
+  and if `∫ x in φ n, ∥f x∥ ∂μ` tends to some `I : ℝ` as n tends to `l`, then `f` is integrable
+- `measure_theory.set_integral_tendsto_integral` : if `φ` is a `ae_cover μ l`, where `l` is a
+  countably generated filter, and if `f` is measurable and integrable (globally), then
+  `∫ x in φ n, f x ∂μ` tends to `∫ x, f x ∂μ` as `n` tends to `+∞`.
+
+We then specialize these lemmas to various use cases involving intervals, which are frequent
+in analysis.
+-/
+
 open measure_theory filter set topological_space
 open_locale ennreal nnreal topological_space
+
+section move_me
+
+lemma bUnion_Iic_mono {ι α : Type*} [preorder ι] (φ : ι → set α) :
+  monotone (λ (n : ι), ⋃ k (h : k ∈ Iic n), φ k) :=
+λ i j hij, bUnion_subset_bUnion_left (λ k hk, le_trans hk hij)
+
+lemma subset_bUnion_Iic {ι α : Type*} [preorder ι] (φ : ι → set α) (n : ι) :
+  φ n ⊆ ⋃ k (h : k ∈ Iic n), φ k :=
+subset_bUnion_of_mem right_mem_Iic
+
+lemma bInter_Ici_mono {ι α : Type*} [preorder ι] (φ : ι → set α) :
+  monotone (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
+λ i j hij, bInter_subset_bInter_left (λ k hk, le_trans hij hk)
+
+lemma bInter_Ici_subset {ι α : Type*} [preorder ι] (φ : ι → set α) (n : ι) :
+  (⋂ k (h : k ∈ Ici n), φ k) ⊆ φ n :=
+bInter_subset_of_mem left_mem_Ici
+
+end move_me
 
 namespace measure_theory
 
@@ -23,7 +89,9 @@ variables {α ι : Type*} [measurable_space α] (μ : measure α) (l : filter ι
     It should be thought of as a sufficient condition for being able to interpret
     `∫ x, f x ∂μ` (if it exists) as the limit of `∫ x in φ n, f x ∂μ` as `n` tends to `l`.
 
-    See for example [TODO]. -/
+    See for example `measure_theory.ae_cover.lintegral_tendsto_of_countably_generated`,
+    `measure_theory.ae_cover.integrable_of_integral_norm_tendsto` and
+    `measure_theory.set_integral_tendsto_integral`. -/
 structure ae_cover (φ : ι → set α) : Prop :=
 (ae_eventually_mem : ∀ᵐ x ∂μ, ∀ᶠ i in l, x ∈ φ i)
 (measurable : ∀ i, measurable_set $ φ i)
@@ -140,36 +208,17 @@ lemma ae_cover.comp_tendsto {α ι ι' : Type*} [measurable_space α] {μ : meas
 
 section ae_cover_Union_Inter_encodable
 
-section preorder_ι
-
-variables {α ι : Type*} [preorder ι] [encodable ι]
+variables {α ι : Type*} [encodable ι]
   [measurable_space α] {μ : measure α}
 
-lemma ae_cover.bUnion_Iic_ae_cover {φ : ι → set α} (hφ : ae_cover μ at_top φ) :
+lemma ae_cover.bUnion_Iic_ae_cover [preorder ι] {φ : ι → set α} (hφ : ae_cover μ at_top φ) :
   ae_cover μ at_top (λ (n : ι), ⋃ k (h : k ∈ Iic n), φ k) :=
 { ae_eventually_mem := hφ.ae_eventually_mem.mono
     (λ x h, h.mono (λ i hi, mem_bUnion right_mem_Iic hi)),
   measurable := λ i, measurable_set.bUnion (countable_encodable _) (λ n _, hφ.measurable n) }
 
---move me
-lemma bUnion_Iic_mono (φ : ι → set α) :
-  monotone (λ (n : ι), ⋃ k (h : k ∈ Iic n), φ k) :=
-λ i j hij, bUnion_subset_bUnion_left (λ k hk, le_trans hk hij)
-
---move me
-lemma subset_bUnion_Iic (φ : ι → set α) (n : ι) :
-  φ n ⊆ ⋃ k (h : k ∈ Iic n), φ k :=
-subset_bUnion_of_mem right_mem_Iic
-
-end preorder_ι
-
-section linear_order_ι
-
-variables {α ι : Type*} [linear_order ι] [encodable ι]
-  [measurable_space α] {μ : measure α}
-
-lemma ae_cover.bInter_Ici_ae_cover {φ : ι → set α} (hφ : ae_cover μ at_top φ)
-  [nonempty ι] : ae_cover μ at_top (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
+lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι → set α}
+  (hφ : ae_cover μ at_top φ) : ae_cover μ at_top (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
 { ae_eventually_mem := hφ.ae_eventually_mem.mono
     begin
       intros x h,
@@ -180,18 +229,6 @@ lemma ae_cover.bInter_Ici_ae_cover {φ : ι → set α} (hφ : ae_cover μ at_to
       exact mem_bInter (λ k hk, hi k (le_trans hj hk)),
     end,
   measurable := λ i, measurable_set.bInter (countable_encodable _) (λ n _, hφ.measurable n) }
-
---move me
-lemma bInter_Ici_mono (φ : ι → set α) :
-  monotone (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
-λ i j hij, bInter_subset_bInter_left (λ k hk, le_trans hij hk)
-
---move me
-lemma bInter_Ici_subset (φ : ι → set α) (n : ι) :
-  (⋂ k (h : k ∈ Ici n), φ k) ⊆ φ n :=
-bInter_subset_of_mem left_mem_Ici
-
-end linear_order_ι
 
 end ae_cover_Union_Inter_encodable
 
@@ -292,7 +329,7 @@ end
 
 lemma ae_cover.integrable_of_integral_tendsto_of_nonneg_ae [l.ne_bot] {φ : ι → set α}
   (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → ℝ} (I : ℝ)
-  (hfm : measurable f) (hfi : ∀ i, integrable_on f (φ i) μ) (hnng : ∀ᵐ x ∂μ, f x ≥ 0)
+  (hfm : measurable f) (hfi : ∀ i, integrable_on f (φ i) μ) (hnng : ∀ᵐ x ∂μ, 0 ≤ f x)
   (htendsto : tendsto (λ i, ∫ x in φ i, f x ∂μ) l (𝓝 I)) :
   integrable f μ :=
 hφ.integrable_of_integral_norm_tendsto hcg I hfm hfi
@@ -408,10 +445,9 @@ end integrable_of_interval_integral
 section integral_of_interval_integral
 
 variables {α ι E : Type*}
-
           [topological_space α] [linear_order α] [order_closed_topology α]
           [measurable_space α] [opens_measurable_space α] {μ : measure α}
-          {l : filter ι} [filter.ne_bot l] (hcg : l.is_countably_generated)
+          {l : filter ι} (hcg : l.is_countably_generated)
           [measurable_space E] [normed_group E] [normed_space ℝ E] [borel_space E]
           [complete_space E] [second_countable_topology E]
           {a b : ι → α} {f : α → E} (hfm : measurable f)

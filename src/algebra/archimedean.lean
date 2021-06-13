@@ -347,9 +347,3 @@ instance : archimedean ℚ :=
 archimedean_iff_rat_le.2 $ λ q, ⟨q, by rw rat.cast_id⟩
 
 end
-
-lemma supr_eq_supr_coe_nat_of_monotone {α β : Type*} [complete_lattice β] [ordered_semiring α]
-  [archimedean α] {f : α → β} (hf : monotone f) : (⨆ (n : α), f n) = ⨆ (n : ℕ), f n :=
-le_antisymm
-  (supr_le_supr2 $ λ i, exists_imp_exists (λ a (ha : i ≤ a), hf ha) (exists_nat_ge i))
-  (supr_le_supr2 $ λ i, ⟨i, le_refl _⟩)

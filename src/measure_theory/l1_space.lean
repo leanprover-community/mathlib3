@@ -807,7 +807,7 @@ variables {E : Type*} [normed_group E] [measurable_space E]
 lemma exists_forall_norm_le (f : α →ₛ β) : ∃ C, ∀ x, ∥f x∥ ≤ C :=
 exists_forall_le (f.map (λ x, ∥x∥))
 
-lemma snorm'_simple_func  {p : ℝ} (f : α →ₛ β) (μ : measure α) :
+protected lemma snorm'_eq {p : ℝ} (f : α →ₛ β) (μ : measure α) :
   snorm' f p μ = (∑ y in f.range, (nnnorm y : ℝ≥0∞) ^ p * μ (f ⁻¹' {y})) ^ (1/p) :=
 begin
   have h_map : (λ a, (nnnorm (f a) : ℝ≥0∞) ^ p) = f.map (λ a : β, (nnnorm a : ℝ≥0∞) ^ p), by simp,
@@ -815,7 +815,7 @@ begin
   rw [lintegral_eq_lintegral, map_lintegral],
 end
 
-lemma snorm_ess_sup_simple_func_lt_top (f : α →ₛ β) (μ : measure α) : snorm_ess_sup f μ < ∞ :=
+lemma snorm_ess_sup_lt_top (f : α →ₛ β) (μ : measure α) : snorm_ess_sup f μ < ∞ :=
 begin
   obtain ⟨C, hfC⟩ := f.exists_forall_norm_le,
   simp_rw [snorm_ess_sup, ← of_real_norm_eq_coe_nnnorm],
@@ -825,7 +825,7 @@ begin
 end
 
 lemma mem_ℒp_top (f : α →ₛ E) (μ : measure α) : mem_ℒp f ∞ μ :=
-⟨f.ae_measurable, by { rw snorm_exponent_top, exact snorm_ess_sup_simple_func_lt_top f μ}⟩
+⟨f.ae_measurable, by { rw snorm_exponent_top, exact snorm_ess_sup_lt_top f μ}⟩
 
 lemma measure_preimage_lt_top_of_mem_ℒp {μ : measure α} {p : ℝ≥0∞}
   (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) (f : α →ₛ E) (hf : mem_ℒp f p μ) (y : E) (hy_ne : y ≠ 0) :
@@ -833,7 +833,7 @@ lemma measure_preimage_lt_top_of_mem_ℒp {μ : measure α} {p : ℝ≥0∞}
 begin
   have hp_pos_real : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp_pos, hp_ne_top⟩,
   have hf_snorm := mem_ℒp.snorm_lt_top hf,
-  rw [snorm_eq_snorm' hp_pos.ne.symm hp_ne_top, snorm'_simple_func,
+  rw [snorm_eq_snorm' hp_pos.ne.symm hp_ne_top, f.snorm'_eq,
     ← ennreal.lt_rpow_one_div_iff] at hf_snorm,
   swap, { simp [hp_pos_real], },
   rw ennreal.top_rpow_of_pos at hf_snorm,
@@ -879,7 +879,7 @@ begin
   have hp_pos : 0 < p.to_real,
     from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) (ne.symm hp0), hp_top⟩,
   refine ⟨f.ae_measurable, _⟩,
-  rw [snorm_eq_snorm' hp0 hp_top, snorm'_simple_func],
+  rw [snorm_eq_snorm' hp0 hp_top, f.snorm'_eq],
   refine ennreal.rpow_lt_top_of_nonneg (by simp) (ne_of_lt _),
   refine ennreal.sum_lt_top_iff.mpr (λ y hy, _),
   by_cases hy0 : y = 0,

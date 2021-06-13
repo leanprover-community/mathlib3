@@ -14,15 +14,14 @@ import algebra.ring.prod
 
 # Topological (semi)rings
 
-In this class we define topological (semi)rings, which just guarantee that the ring operations are
-continuous (as we'd expect). We also state some basic properties of these rings; for example,
-closures are very well-behaved with respect to sub(semi)rings.
+A topological (semi)ring is a (semi)ring equipped with a topology such that all operations are continuous.
+Besides this definition, this file proves that the topological closure of a subring (resp. an ideal) is a subring (resp. an ideal) and defines products and quotients of topological (semi)rings.
 
 ## Main Results:
 
 - `subring.topological_closure`/`subsemiring.topological_closure`: the topological closure of a
   `subring`/`subsemiring` is itself a `sub(semi)ring`.
-- `prod_ring`/`prod_semiring`: The product topology induces a topology on the product ring.
+- `prod_ring`/`prod_semiring`: The product of two topological (semi)rings.
 - `ideal.closure`: The closure of an ideal is an ideal.
 - `topological_ring_quotient`: The quotient of a topological ring by an ideal is a topological ring.
 
@@ -186,7 +185,6 @@ is_open_map.to_quotient_map
 ((quotient_ring.is_open_map_coe N).prod (quotient_ring.is_open_map_coe N))
 ((continuous_quot_mk.comp continuous_fst).prod_mk (continuous_quot_mk.comp continuous_snd))
 (by rintro ⟨⟨x⟩, ⟨y⟩⟩; exact ⟨(x, y), rfl⟩)
--- `rintro` seems to be able to deal with `quotient` whilst `λ` can't :(
 
 instance topological_ring_quotient : topological_ring N.quotient :=
 { continuous_add :=

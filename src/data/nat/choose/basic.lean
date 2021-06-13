@@ -177,8 +177,9 @@ lemma asc_factorial_eq_factorial_mul_choose (n k : ℕ) : n.asc_factorial k = k!
 begin
   rw mul_comm,
   apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
-  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←factorial_mul_asc_factorial, mul_comm],
-  exact le_add_left k n
+  rw [choose_mul_factorial_mul_factorial, nat.add_sub_cancel, ←factorial_mul_asc_factorial,
+    mul_comm],
+  exact le_add_left k n,
 end
 
 lemma factorial_dvd_asc_factorial (n k : ℕ) : k! ∣ n.asc_factorial k :=

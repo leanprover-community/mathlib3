@@ -104,11 +104,11 @@ begin
       nat.succ_eq_add_one, ←add_assoc, pochhammer_succ_right, nat.cast_add, add_assoc], }
 end
 
-lemma pochhammer_nat_eq_asc_factorial (n : ℕ) : ∀ k, (pochhammer ℕ k).eval (n + 1) = nat.asc_factorial n k
+lemma pochhammer_nat_eq_asc_factorial (n : ℕ) :z∀ k, (pochhammer ℕ k).eval (n + 1) = n !+ k
 | 0 := by erw [eval_one]; refl
 | (t + 1) := begin
   rw [pochhammer_succ_right, eval_mul, pochhammer_nat_eq_asc_factorial t],
-  suffices : n.asc_factorial t * (n + 1 + t) = n.asc_factorial (t + 1), by simpa,
+  suffices : n !+ t * (n + 1 + t) = n !+ (t + 1), by simpa,
   rw [nat.asc_factorial_succ, add_right_comm, mul_comm]
 end
 

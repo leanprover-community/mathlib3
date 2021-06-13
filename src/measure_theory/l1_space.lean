@@ -840,8 +840,8 @@ begin
   swap, { simp [hp_pos_real], },
   rw ennreal.sum_lt_top_iff at hf_snorm,
   by_cases hyf : y ∈ f.range,
-  swap, {
-    suffices h_empty : f ⁻¹' {y} = ∅,
+  swap,
+  { suffices h_empty : f ⁻¹' {y} = ∅,
       by { rw [h_empty, measure_empty], exact ennreal.coe_lt_top, },
     ext1 x,
     rw [set.mem_preimage, set.mem_singleton_iff, mem_empty_eq, iff_false],
@@ -926,11 +926,6 @@ begin
   refine λ h0, hs0 _,
   rwa h0 at hy,
 end
-
-lemma finite_measurable_preimage_of_integrable (f : α →ₛ E) (hf : integrable f μ) (x : E)
-  (hx_mem : x ∈ f.range) (hx_ne : x ≠ 0) :
-  measurable_set (f ⁻¹' {x}) ∧ μ (f ⁻¹' {x}) < ∞ :=
-⟨f.measurable_set_preimage _, f.measure_preimage_lt_top_of_integrable hf hx_ne⟩
 
 end simple_func
 

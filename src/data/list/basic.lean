@@ -2251,7 +2251,7 @@ calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, on
   ... = _ : foldl_assoc
 
 @[simp, priority 500, to_additive]
-theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
+theorem prod_repeat (a : α) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
 begin
   induction n with n ih,
   { rw pow_zero, refl },

@@ -587,9 +587,9 @@ inv_eq_of_mul_eq_one (mul_left_inv a)
 lemma mul_right_inv (a : G) : a * a⁻¹ = 1 :=
 have a⁻¹⁻¹ * a⁻¹ = 1 := mul_left_inv a⁻¹,
 by rwa [inv_inv] at this
-set_option pp.implicit true
-set_option pp.notation false
-#print mul_right_inv
+-- set_option pp.implicit true
+-- set_option pp.notation false
+-- #print mul_right_inv
 
 @[to_additive] lemma mul_inv_self (a : G) : a * a⁻¹ = 1 := mul_right_inv a
 

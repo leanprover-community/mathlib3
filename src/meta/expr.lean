@@ -843,7 +843,8 @@ protected meta def apply_replacement_fun (env : environment) (f : name → name)
     let l := (reorder.find g.get_app_fn.const_name).iget in -- this might be inefficient
     if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
     -- interchange `x` and the last argument of `g`
-    some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $ apply_replacement_fun g.app_arg else
+    some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
+      apply_replacement_fun g.app_arg else
     -- the following only happens with non-fully applied terms
     if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
     -- check whether we want to replace g at all

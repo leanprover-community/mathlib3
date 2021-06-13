@@ -199,18 +199,18 @@ lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   (∏ x in ({a, b} : finset α), f x) = f a * f b :=
 by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
-attribute [to_additive add_monoid.nsmul] monoid.npow
-attribute [to_additive nsmul_one'] npow_one
-#print has_scalar
-#print add_monoid.has_scalar_nat
--- #print add_monoid.has_scalar
+-- attribute [to_additive add_monoid.nsmul] monoid.npow
+-- attribute [to_additive nsmul_one'] npow_one
+-- #print has_scalar
+-- #print add_monoid.has_scalar_nat
+-- -- #print add_monoid.has_scalar
 
-set_option pp.all true
-#print monoid.has_pow
-#check @has_scalar
-#print add_monoid.has_scalar_nat
--- run_cmd do tactic.failed
-attribute [to_additive add_monoid.has_scalar_nat] monoid.has_pow
+-- -- set_option pp.all true
+-- -- #print monoid.has_pow
+-- -- #check @has_scalar
+-- -- #print add_monoid.has_scalar_nat
+-- -- run_cmd do tactic.failed
+-- attribute [to_additive add_monoid.has_scalar_nat] monoid.has_pow
 
 
 @[simp, priority 1100, to_additive] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=

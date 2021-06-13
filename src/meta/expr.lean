@@ -840,11 +840,10 @@ protected meta def apply_replacement_fun (env : environment) (f : name → name)
       -- if the first two arguments are reordered, we also reorder the first two universe parameters
       if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
   | app g x :=
-    let l := (reorder.find g.get_app_fn.const_name).iget, -- this might be inefficient
-        new_x := apply_replacement_fun x in
+    let l := (reorder.find g.get_app_fn.const_name).iget in -- this might be inefficient
     if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
-    -- reorder the last argument of g with x
-    some $ apply_replacement_fun g.app_fn new_x $ apply_replacement_fun g.app_arg else
+    -- interchange `x` and the last argument of `g`
+    some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $ apply_replacement_fun g.app_arg else
     -- the following only happens with non-fully applied terms
     if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
     -- check whether we want to replace g at all
@@ -852,8 +851,8 @@ protected meta def apply_replacement_fun (env : environment) (f : name → name)
     -- make a lambda term that is the reordering of the non-fully applied term
     -- y_type ← (new_g.simple_infer_type env).to_option,
     some $ lam `x binder_info.default g.binding_domain $
-      new_g.lift_vars 0 1 (var 0) $ new_x.lift_vars 0 1 else
-    if g.is_constant ∧ ¬ test x then some $ g new_x else none
+      new_g.lift_vars 0 1 (var 0) $ (apply_replacement_fun x).lift_vars 0 1 else
+    if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
   | _ := none
   end
 -- protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)

@@ -825,42 +825,30 @@ protected meta def simple_infer_type (env : environment) (e : expr) : exceptiona
 d ← env.get n,
 return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip ls
 
--- /-- `e.eta_expand env dict` eta-expands all expressions that have as head a constant `n` in
--- `dict` -/
--- protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) : expr → expr
--- | e := e.replace $ λ e _,
---   let (e0, es) := e.get_app_fn_args in
---   let ns := (dict.find e0.const_name).iget in
---   if ns = [] then none else
---   let e' := e0.mk_app $ es.map eta_expand in
---   let needed_n := ns.foldr max 0 + 1 in
---   if needed_n ≤ es.length then
---   some e' else do
---   e_type ← (e'.simple_infer_type env).to_option,
---   _
+/-- Auxilliary function for `head_eta_expand`. -/
+meta def head_eta_expand_aux : ℕ → expr → expr → expr
+| (n+1) e (pi x bi d b) :=
+lam x bi d $ head_eta_expand_aux n e b
+| _ e _ := e
 
--- match e with
---   | const n ls := some $ const (f n) $
---       -- hack:
---       -- if the first two arguments are reordered, we also reorder the first two universe parameters
---       if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
---   | app g x :=
---     let l := (reorder.find g.get_app_fn.const_name).iget in -- this might be inefficient
---     if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
---     -- interchange `x` and the last argument of `g`
---     some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
---       apply_replacement_fun g.app_arg else
---     -- the following only happens with non-fully applied terms
---     if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
---     -- check whether we want to replace g at all
---     let new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
---     -- make a lambda term that is the reordering of the non-fully applied term
---     y_type ← (new_g.simple_infer_type env).to_option,
---     some $ lam `x binder_info.default y_type.binding_domain $
---       new_g.lift_vars 0 1 (var 0) $ (apply_replacement_fun x).lift_vars 0 1 else
---     if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
---   | _ := none
---   end
+/-- `head_eta_expand n e t` eta-expands `e` `n` times, with the binders info and domains obtained
+  by its type `t`. -/
+meta def head_eta_expand (n : ℕ) (e t : expr) : expr :=
+((e.lift_vars 0 n).mk_app $ (list.range n).reverse.map var).head_eta_expand_aux n t
+
+/-- `e.eta_expand env dict` eta-expands all expressions that have as head a constant `n` in
+`dict` -/
+protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) : expr → expr
+| e := e.replace $ λ e _,
+  let (e0, es) := e.get_app_fn_args in
+  let ns := (dict.find e0.const_name).iget in
+  if ns = [] then none else
+  let e' := e0.mk_app $ es.map eta_expand in
+  let needed_n := ns.foldr max 0 + 1 in
+  if needed_n ≤ es.length then
+  some e' else do
+  e'_type ← (e'.simple_infer_type env).to_option,
+  some $ head_eta_expand (needed_n - es.length) e' e'_type
 
 /--
 `e.apply_replacement_fun f test` applies `f` to each identifier
@@ -885,13 +873,13 @@ protected meta def apply_replacement_fun (env : environment) (f : name → name)
     some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
       apply_replacement_fun g.app_arg else
     -- the following only happens with non-fully applied terms
-    if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
-    -- check whether we want to replace g at all
-    let new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
-    -- make a lambda term that is the reordering of the non-fully applied term
-    y_type ← (new_g.simple_infer_type env).to_option,
-    some $ lam `x binder_info.default y_type.binding_domain $
-      new_g.lift_vars 0 1 (var 0) $ (apply_replacement_fun x).lift_vars 0 1 else
+    -- if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
+    -- -- check whether we want to replace g at all
+    -- let new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
+    -- -- make a lambda term that is the reordering of the non-fully applied term
+    -- y_type ← (new_g.simple_infer_type env).to_option,
+    -- some $ lam `x binder_info.default y_type.binding_domain $
+    --   new_g.lift_vars 0 1 (var 0) $ (apply_replacement_fun x).lift_vars 0 1 else
     if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
   | _ := none
   end
@@ -1043,8 +1031,9 @@ to the value and type of `decl`.
 protected meta def update_with_fun (env : environment) (f : name → name) (test : expr → bool)
   (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
 let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun env f test reorder in
-decl.update_value $ decl.value.apply_replacement_fun env f test reorder
+let decl := decl.update_type $
+  (decl.type.eta_expand env reorder).apply_replacement_fun env f test reorder in
+decl.update_value $ (decl.value.eta_expand env reorder).apply_replacement_fun env f test reorder
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

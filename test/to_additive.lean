@@ -40,3 +40,24 @@ lemma foo4_test {α β : Type*} : @foo4 α β = @my_has_pow α β := rfl
 
 @[to_additive bar5]
 def foo5 {α} [my_has_pow α ℕ] [my_has_pow ℕ ℤ] : true := trivial
+
+@[to_additive? bar6]
+def foo6 {α} [my_has_pow α ℕ] : α → ℕ → α := @my_has_pow.pow α ℕ _
+
+@[to_additive? bar7]
+def foo7 := @my_has_pow.pow
+
+open tactic
+run_cmd do
+env ← get_env,
+reorder ← to_additive.reorder_attr.get_cache,
+d ← get_decl `foo6,
+let e := d.value.eta_expand env reorder,
+let t := d.type.eta_expand env reorder,
+let decl := declaration.defn `barr6 d.univ_params t e d.reducibility_hints d.is_trusted,
+add_decl decl,
+skip
+
+
+#print barr6
+#print foo6

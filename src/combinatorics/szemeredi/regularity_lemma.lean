@@ -1290,21 +1290,6 @@ lemma exp_bound_mono :
   monotone exp_bound :=
 λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
-
-
-private lemma bound_mono_aux {ε : ℝ} {a b : ℕ} (hε : 100 < ε^5 * 4^a) (h : a ≤ b) :
-  ε^5 * 4^a ≤ ε^5 * 4^b := sorry
---mul_le_mul_of_nonneg_left (pow_le_pow (by norm_num) h) (nonneg_of_mul_pos_right (lt_trans (by norm_num) hε) (pow_nonneg (by norm_num) a))
-/-begin
-  replace hε : 0 < ε^5 * 4^a := lt_trans (by norm_num) hε,
-  refine mul_le_mul_of_nonneg_left (pow_le_pow (by norm_num) h) _,
-  refine mul_le_mul_of_nonneg_left (pow_le_pow (by norm_num) h) (nonneg_of_mul_pos_right hε (pow_nonneg (by norm_num) a)),
-  sorry,
-  exact pow_nonneg (by norm_num) a,
-  apply nonneg_of_mul_pos_right (lt_trans (by norm_num) hε : 0 < ε^5 * 4^a),
-  sorry
-end-/
-
 open_locale classical
 variables {V : Type u} [fintype V] {G : simple_graph V} {P : finpartition' V} {ε : ℝ}
 
@@ -1317,7 +1302,7 @@ theorem increment (hP : P.is_equipartition)
   ∃ (Q : finpartition' V),
     Q.is_equipartition ∧ Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
 begin
-
+  sorry
 end
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/

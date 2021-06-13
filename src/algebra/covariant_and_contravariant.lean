@@ -208,8 +208,8 @@ lemma covariant_flip_mul_iff [comm_semigroup N] :
 by rw is_symm_op.flip_eq
 
 @[to_additive]
-lemma contravariant_mul_iff_flip [comm_semigroup N] :
-  contravariant N N (*) (r) ↔ contravariant N N (flip (*)) (r) :=
+lemma contravariant_flip_mul_iff [comm_semigroup N] :
+  contravariant N N (flip (*)) (r) ↔ contravariant N N (*) (r) :=
 by rw is_symm_op.flip_eq
 
 @[to_additive]

@@ -315,16 +315,6 @@ lemma measure_preimage_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f
   μ (f ⁻¹' {x}) < ∞ :=
 integrable_iff.mp hf x hx
 
-lemma measure_preimage_ne_zero_lt_top (f : α →ₛ E) (hf : integrable f μ) {s : finset E}
-  (hs0 : (0 : E) ∉ s) :
-  μ (f ⁻¹' s) < ∞ :=
-begin
-  rw ← sum_measure_preimage_singleton _ (λ y hy, f.measurable_set_preimage _),
-  refine ennreal.sum_lt_top (λ y hy, f.measure_preimage_lt_top_of_integrable hf _),
-  refine λ h0, hs0 _,
-  rwa h0 at hy,
-end
-
 variables [normed_space ℝ F]
 
 /-- Bochner integral of simple functions whose codomain is a real `normed_space`. -/

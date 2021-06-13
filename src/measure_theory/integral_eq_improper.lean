@@ -478,23 +478,4 @@ end
 
 end integral_of_interval_integral
 
-section examples -- will be removed later (TODO)
-
-example : integrable_on (λ x, real.exp (-x)) (Ioi 0) :=
-begin
-  have key₁ : ∀ x, integrable_on (λ t, real.exp (-t)) (Ioc 0 x) :=
-    λ x, ((real.continuous_exp.comp continuous_id.neg).interval_integrable _ _).1,
-  have key₂ : ∀ x, 1 - real.exp (-x) = ∫ t in 0..x, ∥real.exp (-t)∥,
-  { intro x,
-    conv in (norm _) { rw real.norm_of_nonneg ((-t).exp_pos.le) },
-    simp },
-  refine integrable_on_Ioi_of_interval_integral_norm_tendsto
-    (at_top_countably_generated_of_archimedean : (at_top : filter ℝ).is_countably_generated)
-    (real.measurable_exp.comp measurable_neg) 1 0 key₁ tendsto_id (tendsto.congr key₂ _),
-  convert tendsto_const_nhds.sub (real.tendsto_exp_at_bot.comp tendsto_neg_at_top_at_bot),
-  rw sub_zero
-end
-
-end examples
-
 end measure_theory

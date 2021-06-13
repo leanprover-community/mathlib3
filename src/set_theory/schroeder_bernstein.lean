@@ -9,8 +9,10 @@ import order.zorn
 /-!
 # Schröder-Bernstein theorem, well-ordering of cardinals
 
-This file proves (nonconstructively) the Schröder-Bernstein theorem (see `schroeder_bernstein`), the
-well-ordering of cardinals (see `min_injective`) and the totality of their order (see `total`).
+This file proves the Schröder-Bernstein theorem (see `schroeder_bernstein`), the well-ordering of
+cardinals (see `min_injective`) and the totality of their order (see `total`).
+The Schröder-Bernstein theorem states that, given injections `α → β` and `β → α`, one can get a
+bijection `α → β`.
 -/
 
 open set classical
@@ -24,6 +26,8 @@ namespace embedding
 section antisymm
 variables {α : Type u} {β : Type v}
 
+/-- The Schröder-Bernstein Theorem
+Given injections `α → β` and `β → α`, we can get a bijection `α → β`. -/
 theorem schroeder_bernstein {f : α → β} {g : β → α}
   (hf : function.injective f) (hg : function.injective g) : ∃ h : α → β, bijective h :=
 let s : set α := lfp $ λ s, (g '' (f '' s)ᶜ)ᶜ in

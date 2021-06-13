@@ -232,9 +232,9 @@ lemma ae_cover.lintegral_tendsto_of_nat {φ : ℕ → set α} (hφ : ae_cover μ
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 begin
   have lim₁ := hφ.bInter_Ici_ae_cover.lintegral_tendsto_of_monotone_of_nat
-    (λ i j hij, bInter_subset_bInter_left (λ k hk, le_trans hij hk)) hfm,
+    (λ i j hij, bInter_subset_bInter_left (Ici_subset_Ici.mpr hij)) hfm,
   have lim₂ := hφ.bUnion_Iic_ae_cover.lintegral_tendsto_of_monotone_of_nat
-    (λ i j hij, bUnion_subset_bUnion_left (λ k hk, le_trans hk hij)) hfm,
+    (λ i j hij, bUnion_subset_bUnion_left (Iic_subset_Iic.mpr hij)) hfm,
   have le₁ := λ n, lintegral_mono_set (bInter_subset_of_mem left_mem_Ici),
   have le₂ := λ n, lintegral_mono_set (subset_bUnion_of_mem right_mem_Iic),
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le lim₁ lim₂ le₁ le₂

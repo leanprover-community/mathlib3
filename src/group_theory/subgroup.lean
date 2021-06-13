@@ -870,7 +870,7 @@ def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
   (H.subgroup_of K : set K) = K.subtype ⁻¹' H := rfl
 
 @[to_additive] lemma mem_subgroup_of {H K : subgroup G} {h : K} :
-  h ∈ H.subgroup_of K ↔ K.subtype h ∈ H :=
+  h ∈ H.subgroup_of K ↔ (h : G) ∈ H :=
 iff.rfl
 
 @[to_additive] lemma subgroup_of_map_subtype (H K : subgroup G) :

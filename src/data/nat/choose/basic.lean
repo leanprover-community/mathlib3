@@ -173,7 +173,7 @@ begin
   exact mul_le_mul_left _ hk,
 end
 
-lemma asc_factorial_eq_factorial_mul_choose (n k : ℕ) : n.asc_factorial k = k! * (n + k).choose k :=
+lemma asc_factorial_eq_factorial_mul_choose (n k : ℕ) : n !+ k = k! * (n + k).choose k :=
 begin
   rw mul_comm,
   apply mul_right_cancel' (factorial_ne_zero (n + k - k)),
@@ -182,10 +182,10 @@ begin
   exact le_add_left k n,
 end
 
-lemma factorial_dvd_asc_factorial (n k : ℕ) : k! ∣ n.asc_factorial k :=
+lemma factorial_dvd_asc_factorial (n k : ℕ) : k! ∣ n !+ k :=
 ⟨(n+k).choose k, asc_factorial_eq_factorial_mul_choose _ _⟩
 
-lemma choose_eq_asc_factorial_div_factorial (n k : ℕ) : (n + k).choose k = n.asc_factorial k / k! :=
+lemma choose_eq_asc_factorial_div_factorial (n k : ℕ) : (n + k).choose k = n !+ k / k! :=
 begin
   apply mul_left_cancel' (factorial_ne_zero k),
   rw ←asc_factorial_eq_factorial_mul_choose,
@@ -201,7 +201,7 @@ begin
   rw [choose_mul_factorial_mul_factorial h, ←factorial_mul_desc_factorial h, mul_comm],
 end
 
-lemma factorial_dvd_desc_factorial (n k : ℕ) : k! ∣ n.desc_factorial k :=
+lemma factorial_dvd_desc_factorial (n k : ℕ) : k! ∣ n !- k :=
 ⟨n.choose k, desc_factorial_eq_factorial_mul_choose _ _⟩
 
 lemma choose_eq_desc_factorial_div_factorial (n k : ℕ) : n.choose k = n !- k / k! :=

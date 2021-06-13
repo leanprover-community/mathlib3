@@ -178,7 +178,7 @@ infix ` !+ `:74 := asc_factorial
 
 @[simp] lemma asc_factorial_zero (n : ℕ) : n !+ 0 = 1 := rfl
 
-@[simp] lemma zero_asc_factorial (k : ℕ) : asc_factorial 0 k = k! :=
+@[simp] lemma zero_asc_factorial (k : ℕ) : 0 !+ k = k! :=
 begin
   induction k with t ht, refl,
   unfold asc_factorial, rw [ht, zero_add, nat.factorial_succ],
@@ -186,7 +186,7 @@ end
 
 lemma asc_factorial_succ {n k : ℕ} : n !+ k.succ = (n + k + 1) * n !+ k := rfl
 
-lemma succ_asc_factorial (n : ℕ) : ∀ k, (n + 1) * asc_factorial n.succ k = (n + k + 1) * n !+ k
+lemma succ_asc_factorial (n : ℕ) : ∀ k, (n + 1) * n.succ !+ k = (n + k + 1) * n !+ k
 | 0 := by rw [add_zero, asc_factorial_zero, asc_factorial_zero]
 | (k + 1) := by rw [asc_factorial, mul_left_comm, succ_asc_factorial, asc_factorial, succ_add,
   ←add_assoc]
@@ -272,7 +272,7 @@ infix ` !- `:74 := desc_factorial
 @[simp] lemma desc_factorial_succ (n k : ℕ) : n !- k.succ = (n - k) * n !- k := rfl
 
 lemma zero_desc_factorial_succ (k : ℕ) :
-  desc_factorial 0 k.succ = 0 :=
+  0 !- k.succ = 0 :=
 by rw [desc_factorial_succ, nat.zero_sub, zero_mul]
 
 @[simp] lemma desc_factorial_one (n : ℕ) :

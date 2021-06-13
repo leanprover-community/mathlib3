@@ -143,7 +143,7 @@ lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
 @[simp] lemma map_fun (φ : M →[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
 
-lemma map_const (φ : M →[L] N) {n : ℕ} (c : L.const) : φ c = c :=
+@[simp] lemma map_const (φ : M →[L] N) (c : L.const) : φ c = c :=
 (φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
 
 @[simp] lemma map_rel (φ : M →[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
@@ -182,6 +182,9 @@ namespace embedding
 
 @[simp] lemma map_fun (φ : M ↪[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
+
+@[simp] lemma map_const (φ : M ↪[L] N) (c : L.const) : φ c = c :=
+(φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
 
 @[simp] lemma map_rel (φ : M ↪[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
@@ -260,6 +263,9 @@ namespace equiv
 
 @[simp] lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
+
+@[simp] lemma map_const (φ : M ≃[L] N) (c : L.const) : φ c = c :=
+(φ.map_fun c fin.elim0).trans (congr rfl (funext fin.elim0))
 
 @[simp] lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
   rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x

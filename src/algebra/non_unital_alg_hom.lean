@@ -92,7 +92,7 @@ rfl
   ((f : mul_hom A B) : A → B) = f :=
 rfl
 
-@[norm_cast] lemma coe_linear_map_mk (f : non_unital_alg_hom R A B) (h₁ h₂ h₃ h₄) :
+@[norm_cast] lemma coe_distrib_mul_action_hom_mk (f : non_unital_alg_hom R A B) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : non_unital_alg_hom R A B) : A →+[R] B) =
   ⟨f, h₁, h₂, h₃⟩ :=
 by { ext, refl, }

@@ -14,7 +14,8 @@ This file defines the factorial, along with the ascending and descending variant
 ## Main declarations
 
 * `factorial`: The factorial.
-* `asc_factorial`: The ascending factorial. Note that it runs from `n + 1` to `n + k` and *not* from `n`
+* `asc_factorial`: The ascending factorial. Note that it runs from `n + 1` to `n + k` and *not*
+  from`n`
   to `n + k - 1`. We might want to change that in the future.
 * `desc_factorial`: The descending factorial. It runs from `n - k` to `n`.
 -/
@@ -166,8 +167,8 @@ end factorial
 section asc_factorial
 
 /-- `n !+ k = (n + k)! / n!` (as seen in `nat !+_eq_div`), but implemented recursively
-to allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`, but
-much less general. -/
+to allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`,
+but much less general. -/
 def asc_factorial (n : ℕ) : ℕ → ℕ
 | 0 := 1
 | (k + 1) := (n + k + 1) * asc_factorial k
@@ -187,13 +188,15 @@ lemma asc_factorial_succ {n k : ℕ} : n !+ k.succ = (n + k + 1) * n !+ k := rfl
 
 lemma succ_asc_factorial (n : ℕ) : ∀ k, (n + 1) * asc_factorial n.succ k = (n + k + 1) * n !+ k
 | 0 := by rw [add_zero, asc_factorial_zero, asc_factorial_zero]
-| (k + 1) := by rw [asc_factorial, mul_left_comm, succ_asc_factorial, asc_factorial, succ_add, ← add_assoc]
+| (k + 1) := by rw [asc_factorial, mul_left_comm, succ_asc_factorial, asc_factorial, succ_add,
+  ←add_assoc]
 
 /-- `n !+ k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
 See `nat !+_eq_div` if you really need the version that uses ℕ-division. -/
 theorem factorial_mul_asc_factorial (n : ℕ) : ∀ k, n! * n !+ k = (n + k)!
 | 0 := by rw [asc_factorial, add_zero, mul_one]
-| (k + 1) := by rw [asc_factorial_succ, mul_left_comm, factorial_mul_asc_factorial, ← add_assoc, factorial]
+| (k + 1) := by rw [asc_factorial_succ, mul_left_comm, factorial_mul_asc_factorial, ← add_assoc,
+  factorial]
 
 /-- Avoid in favor of `nat.factorial_mul_asc_factorial` if you can. ℕ-division isn't worth it. -/
 lemma asc_factorial_eq_div (n k : ℕ) : n !+ k = (n + k)! / n! :=
@@ -255,8 +258,8 @@ end asc_factorial
 section desc_factorial
 
 /-- `n !- k = n! / (n - k)!` (as seen in `nat.desc_factorial_eq_div`), but implemented recursively
-to allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`, but
-much less general. -/
+to allow for "quick" computation when using `norm_num`. This is closely related to `pochhammer`,
+but much less general. -/
 def desc_factorial (n : ℕ) : ℕ → ℕ
 | 0 := 1
 | (k + 1) := (n - k) * desc_factorial k
@@ -294,14 +297,15 @@ lemma desc_factorial_self : ∀ n : ℕ, n !- n = n!
 @[simp] lemma desc_factorial_eq_zero_iff_lt {n : ℕ} : ∀ {k : ℕ}, n !- k = 0 ↔ n < k
 | 0        := by simp only [desc_factorial_zero, nat.one_ne_zero, not_lt_zero]
 | (succ k) := begin
-  rw [desc_factorial_succ, mul_eq_zero, desc_factorial_eq_zero_iff_lt, lt_succ_iff, nat.sub_eq_zero_iff_le,
-  lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
+  rw [desc_factorial_succ, mul_eq_zero, desc_factorial_eq_zero_iff_lt, lt_succ_iff,
+    nat.sub_eq_zero_iff_le, lt_iff_le_and_ne, or_iff_left_iff_imp, and_imp],
   exact λ h _, h,
 end
 
 lemma add_desc_factorial_eq_asc_factorial (n : ℕ) : ∀ k : ℕ, (n + k) !- k = n !+ k
 | 0        := by rw [asc_factorial_zero, desc_factorial_zero]
-| (succ k) := by rw [nat.add_succ, succ_desc_factorial_succ, asc_factorial_succ, add_desc_factorial_eq_asc_factorial]
+| (succ k) := by rw [nat.add_succ, succ_desc_factorial_succ, asc_factorial_succ,
+  add_desc_factorial_eq_asc_factorial]
 
 /-- `n !- k = n! / (n - k)!`. However, this lemma states a reformulation to avoid ℕ-division.
 See `nat.desc_factorial_eq_div` if you really need the version that uses ℕ-division. -/
@@ -309,7 +313,8 @@ theorem factorial_mul_desc_factorial : ∀ {n k : ℕ}, k ≤ n → (n - k)! * n
 | n        0        := λ _, by rw [desc_factorial_zero, mul_one, nat.sub_zero]
 | 0        (succ k) := λ h, by { exfalso, exact not_succ_le_zero k h }
 | (succ n) (succ k) := λ h, by rw [succ_desc_factorial_succ, succ_sub_succ, ←mul_assoc,
-  mul_comm (n - k)!, mul_assoc, factorial_mul_desc_factorial (nat.succ_le_succ_iff.1 h), factorial_succ]
+  mul_comm (n - k)!, mul_assoc, factorial_mul_desc_factorial (nat.succ_le_succ_iff.1 h),
+    factorial_succ]
 
 /-- Avoid in favor of `nat.factorial_mul_desc_factorial` if you can. ℕ-division isn't worth it. -/
 lemma desc_factorial_eq_div {n k : ℕ} (h : k ≤ n) : n !- k = n! / (n - k)! :=
@@ -359,7 +364,8 @@ lemma desc_factorial_lt_pow {n : ℕ} (hn : 1 ≤ n) : ∀ {k : ℕ}, 2 ≤ k �
 | 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
 | (k + 2) := λ _, begin
   rw [desc_factorial_succ, pow_succ', mul_comm],
-  exact nat.mul_lt_mul' (desc_factorial_le_pow _ _) (nat.sub_lt_self hn k.zero_lt_succ) (pow_pos hn _),
+  exact nat.mul_lt_mul' (desc_factorial_le_pow _ _) (nat.sub_lt_self hn k.zero_lt_succ)
+    (pow_pos hn _),
 end
 
 end desc_factorial

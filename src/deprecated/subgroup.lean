@@ -706,7 +706,8 @@ end
 lemma pow_card_is_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
   is_subgroup (S ^ fintype.card G) :=
 begin
-  obtain ⟨k, hk1, hk2⟩ := card_pow_dynamics S hS,
+  classical,
+  have hk := group.card_pow_eq_card_pow_card_univ S,
   obtain ⟨a, ha⟩ := hS,
   have one_mem : (1 : G) ∈ (S ^ fintype.card G),
   { rw ← pow_card_eq_one,
@@ -714,8 +715,7 @@ begin
   refine is_subgroup_of_idempotent (S ^ fintype.card G) ⟨1, one_mem⟩ (set.eq_of_subset_of_card_le
     (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
   change _ = fintype.card ↥(_ * _ : set G),
-  rw [←pow_add, ←two_mul, (hk2 (fintype.card G)).1 hk1, (hk2 (2 * fintype.card G)).1],
-  exact hk1.trans (nat.le_mul_of_pos_left zero_lt_two),
+  rw [←pow_add, hk (fintype.card G) le_rfl, hk (fintype.card G + fintype.card G) le_add_self],
 end
 
 end pow_is_subgroup

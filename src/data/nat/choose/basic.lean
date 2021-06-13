@@ -160,17 +160,10 @@ lemma choose_mul_succ_eq (n k : ℕ) :
   (n.choose k) * (n + 1) = ((n+1).choose k) * (n + 1 - k) :=
 begin
   induction k with k ih, { simp },
-  by_cases hk : n < k + 1,
-  { rw [choose_eq_zero_of_lt hk, sub_eq_zero_of_le hk, zero_mul, mul_zero] },
-  push_neg at hk,
-  replace hk : k + 1 ≤ n + 1 := _root_.le_add_right hk,
-  rw [choose_succ_succ],
-  rw [add_mul, succ_sub_succ],
-  rw [← choose_succ_right_eq],
-  rw [← succ_sub_succ, nat.mul_sub_left_distrib],
-  symmetry,
-  apply nat.add_sub_cancel',
-  exact mul_le_mul_left _ hk,
+  obtain hk | hk := le_or_lt (k + 1) (n + 1),
+  { rw [choose_succ_succ, add_mul, succ_sub_succ, ←choose_succ_right_eq, ←succ_sub_succ,
+      nat.mul_sub_left_distrib, nat.add_sub_cancel' (mul_le_mul_left _ hk)] },
+  rw [choose_eq_zero_of_lt hk, choose_eq_zero_of_lt (n.lt_succ_self.trans hk), zero_mul, zero_mul],
 end
 
 lemma asc_factorial_eq_factorial_mul_choose (n k : ℕ) : n !+ k = k! * (n + k).choose k :=

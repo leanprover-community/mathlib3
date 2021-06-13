@@ -822,11 +822,11 @@ lemma map_supr {ι : Sort*} (f : G →* N) (s : ι → subgroup G) :
 
 @[to_additive] lemma comap_sup_comap_le
   (H K : subgroup N) (f : G →* N) : comap f H ⊔ comap f K ≤ comap f (H ⊔ K) :=
-sup_le (comap_mono le_sup_left) (comap_mono le_sup_right)
+monotone.le_map_sup (λ _ _, comap_mono) H K
 
 @[to_additive] lemma supr_comap_le {ι : Sort*} (f : G →* N) (s : ι → subgroup N) :
   (⨆ i, (s i).comap f) ≤ (supr s).comap f :=
-supr_le (λ i, comap_mono (le_supr _ _))
+monotone.le_map_supr (λ _ _, comap_mono)
 
 @[to_additive]
 lemma comap_inf (H K : subgroup N) (f : G →* N) : (H ⊓ K).comap f = H.comap f ⊓ K.comap f :=

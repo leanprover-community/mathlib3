@@ -54,12 +54,12 @@ section ordered_instances
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (*) (≤) :=
-{ covc := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
+{ elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (function.swap (*)) (≤) :=
-{ covc := λ a b c bc,
+{ elim := λ a b c bc,
     by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
 
 @[to_additive]
@@ -247,7 +247,7 @@ begin
   { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
   { simp_rw [some_eq_coe] at h ⊢,
     norm_cast at h ⊢,
-    exact covariant_class.covc _ h }
+    exact covariant_class.elim _ h }
 end
 
 lemma lt_of_mul_lt_mul_left  {α : Type u} [has_mul α] [partial_order α]

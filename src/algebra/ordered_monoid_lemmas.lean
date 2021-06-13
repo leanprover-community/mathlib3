@@ -42,7 +42,7 @@ variable [covariant_class α α (*) (≤)]
 @[to_additive add_le_add_left]
 lemma mul_le_mul_left' (h : a ≤ b) (c) :
   c * a ≤ c * b :=
-covariant_class.covc c h
+covariant_class.elim c h
 
 @[to_additive]
 lemma mul_lt_of_mul_lt_left (h : a * b < c) (hle : d ≤ b) :
@@ -117,7 +117,7 @@ variable  [covariant_class α α (function.swap (*)) (≤)]
 @[to_additive add_le_add_right]
 lemma mul_le_mul_right' (h : a ≤ b) (c) :
   a * c ≤ b * c :=
-covariant_class.covc c h
+covariant_class.elim c h
 
 @[to_additive]
 lemma mul_lt_of_mul_lt_right (h : a * b < c) (hle : d ≤ a) :
@@ -447,7 +447,7 @@ variables [right_cancel_monoid α]
 
 @[to_additive]
 lemma mul_lt_mul_of_lt_of_le (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
-lt_of_lt_of_le ((covariant_class.covc c h₁.le).lt_of_ne (λ h, h₁.ne ((mul_left_inj c).mp h)))
+lt_of_lt_of_le ((covariant_class.elim c h₁.le).lt_of_ne (λ h, h₁.ne ((mul_left_inj c).mp h)))
   (mul_le_mul_left' h₂ b)
 
 @[to_additive]

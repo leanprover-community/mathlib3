@@ -75,15 +75,15 @@ def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r
 /--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
 `covariant_class` says that "the action `μ` preserves the relation `r`.
 More precisely, the `covariant_class` is a class taking two Types `M N`, together with an "action"
-`μ : M → N → N` and a relation `r : N → N`.  Its unique field `covc` is the assertion that
+`μ : M → N → N` and a relation `r : N → N`.  Its unique field `elim` is the assertion that
 for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair
 `(n₁, n₂)`, then, the relation `r` also holds for the pair `(μ m n₁, μ m n₂)`,
 obtained from `(n₁, n₂)` by "acting upon it by `m`".
 
-If `m : M` and `h : r n₁ n₂`, then `covariant_class.covc m h : r (μ m n₁) (μ m n₂)`.
+If `m : M` and `h : r n₁ n₂`, then `covariant_class.elim m h : r (μ m n₁) (μ m n₂)`.
 -/
-class covariant_class : Prop :=
-(covc :  covariant M N μ r)
+@[protect_proj] class covariant_class : Prop :=
+(elim :  covariant M N μ r)
 
 /--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
 `contravariant_class` says that "if the result of the action `μ` on a pair satisfies the
@@ -102,14 +102,14 @@ If `m : M` and `h : r (μ m n₁) (μ m n₂)`, then `contravariant_class.elim m
 
 lemma rel_iff_cov [covariant_class M N μ r] [contravariant_class M N μ r] (m : M) {a b : N} :
   r (μ m a) (μ m b) ↔ r a b :=
-⟨contravariant_class.elim _, covariant_class.covc _⟩
+⟨contravariant_class.elim _, covariant_class.elim _⟩
 
 section covariant
 variables {M N μ r} [covariant_class M N μ r]
 
 lemma act_rel_act_of_rel (m : M) {a b : N} (ab : r a b) :
   r (μ m a) (μ m b) :=
-covariant_class.covc _ ab
+covariant_class.elim _ ab
 
 lemma group.covariant_iff_contravariant [group N] :
   covariant N N (*) r ↔ contravariant N N (*) r :=
@@ -121,8 +121,8 @@ begin
     exact h a⁻¹ bc }
 end
 
-lemma covconv [group N] [cov : covariant_class N N (*) r] : contravariant_class N N (*) r :=
-{ elim := λ a b c bc, group.covariant_iff_contravariant.mp cov.covc _ bc }
+lemma elimonv [group N] [cov : covariant_class N N (*) r] : contravariant_class N N (*) r :=
+{ elim := λ a b c bc, group.covariant_iff_contravariant.mp cov.elim _ bc }
 
 
 section is_trans
@@ -215,31 +215,31 @@ by rw is_symm_op.flip_eq
 @[to_additive]
 instance contravariant_mul_lt_of_covariant_mul_le [has_mul N] [linear_order N]
   [covariant_class N N (*) (≤)] : contravariant_class N N (*) (<) :=
-{ elim := (covariant_le_iff_contravariant_lt N N (*)).mp covariant_class.covc }
+{ elim := (covariant_le_iff_contravariant_lt N N (*)).mp covariant_class.elim }
 
 @[to_additive]
 instance covariant_swap_mul_le_of_covariant_mul_le [comm_semigroup N] [has_le N]
   [covariant_class N N (*) (≤)] : covariant_class N N (function.swap (*)) (≤) :=
-{ covc := (covariant_flip_mul_iff N (≤)).mpr covariant_class.covc }
+{ elim := (covariant_flip_mul_iff N (≤)).mpr covariant_class.elim }
 
 @[to_additive]
 instance covariant_swap_mul_lt_of_covariant_mul_lt [comm_semigroup N] [has_lt N]
   [covariant_class N N (*) (<)] : covariant_class N N (function.swap (*)) (<) :=
-{ covc := (covariant_flip_mul_iff N (<)).mpr covariant_class.covc }
+{ elim := (covariant_flip_mul_iff N (<)).mpr covariant_class.elim }
 
 @[to_additive]
 instance left_cancel_semigroup.covariant_mul_lt_of_covariant_mul_le
   [left_cancel_semigroup N] [partial_order N] [covariant_class N N (*) (≤)] :
   covariant_class N N (*) (<) :=
-{ covc := λ a b c bc, by { cases lt_iff_le_and_ne.mp bc with bc cb,
-    exact lt_iff_le_and_ne.mpr ⟨covariant_class.covc a bc, (mul_ne_mul_right a).mpr cb⟩ } }
+{ elim := λ a b c bc, by { cases lt_iff_le_and_ne.mp bc with bc cb,
+    exact lt_iff_le_and_ne.mpr ⟨covariant_class.elim a bc, (mul_ne_mul_right a).mpr cb⟩ } }
 
 @[to_additive]
 instance right_cancel_semigroup.covariant_swap_mul_lt_of_covariant_swap_mul_le
   [right_cancel_semigroup N] [partial_order N] [covariant_class N N (function.swap (*)) (≤)] :
   covariant_class N N (function.swap (*)) (<) :=
-{ covc := λ a b c bc, by { cases lt_iff_le_and_ne.mp bc with bc cb,
-    exact lt_iff_le_and_ne.mpr ⟨covariant_class.covc a bc, (mul_ne_mul_left a).mpr cb⟩ } }
+{ elim := λ a b c bc, by { cases lt_iff_le_and_ne.mp bc with bc cb,
+    exact lt_iff_le_and_ne.mpr ⟨covariant_class.elim a bc, (mul_ne_mul_left a).mpr cb⟩ } }
 
 @[to_additive]
 instance left_cancel_semigroup.contravariant_mul_le_of_contravariant_mul_lt

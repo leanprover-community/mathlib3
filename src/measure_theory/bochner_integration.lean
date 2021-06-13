@@ -204,7 +204,7 @@ variables {μ : measure α} {p : ℝ≥0∞}
 /-!
 #### Properties of simple functions
 
-A simple function `f : α → E` into a normed group `E` verifies, for a measure `μ`:
+A simple function `f : α →ₛ E` into a normed group `E` verifies, for a measure `μ`:
 - `mem_ℒp f 0 μ` and `mem_ℒp f ∞ μ`, since `f` is a.e.-measurable and bounded,
 - for `0 < p < ∞`, `mem_ℒp f p μ ↔ integrable f μ ↔ f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞`.
 -/

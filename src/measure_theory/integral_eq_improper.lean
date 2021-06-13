@@ -56,26 +56,6 @@ in analysis.
 open measure_theory filter set topological_space
 open_locale ennreal nnreal topological_space
 
-section move_me
-
-lemma bUnion_Iic_mono {ι α : Type*} [preorder ι] (φ : ι → set α) :
-  monotone (λ (n : ι), ⋃ k (h : k ∈ Iic n), φ k) :=
-λ i j hij, bUnion_subset_bUnion_left (λ k hk, le_trans hk hij)
-
-lemma subset_bUnion_Iic {ι α : Type*} [preorder ι] (φ : ι → set α) (n : ι) :
-  φ n ⊆ ⋃ k (h : k ∈ Iic n), φ k :=
-subset_bUnion_of_mem right_mem_Iic
-
-lemma bInter_Ici_mono {ι α : Type*} [preorder ι] (φ : ι → set α) :
-  monotone (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
-λ i j hij, bInter_subset_bInter_left (λ k hk, le_trans hij hk)
-
-lemma bInter_Ici_subset {ι α : Type*} [preorder ι] (φ : ι → set α) (n : ι) :
-  (⋂ k (h : k ∈ Ici n), φ k) ⊆ φ n :=
-bInter_subset_of_mem left_mem_Ici
-
-end move_me
-
 namespace measure_theory
 
 section ae_cover
@@ -251,10 +231,12 @@ lemma ae_cover.lintegral_tendsto_of_nat {φ : ℕ → set α} (hφ : ae_cover μ
   {f : α → ℝ≥0∞} (hfm : measurable f) :
   tendsto (λ i, ∫⁻ x in φ i, f x ∂μ) at_top (𝓝 $ ∫⁻ x, f x ∂μ) :=
 begin
-  have lim₁ := hφ.bInter_Ici_ae_cover.lintegral_tendsto_of_monotone_of_nat (bInter_Ici_mono φ) hfm,
-  have lim₂ := hφ.bUnion_Iic_ae_cover.lintegral_tendsto_of_monotone_of_nat (bUnion_Iic_mono φ) hfm,
-  have le₁ := λ n, lintegral_mono_set (bInter_Ici_subset φ n),
-  have le₂ := λ n, lintegral_mono_set (subset_bUnion_Iic φ n),
+  have lim₁ := hφ.bInter_Ici_ae_cover.lintegral_tendsto_of_monotone_of_nat
+    (λ i j hij, bInter_subset_bInter_left (λ k hk, le_trans hij hk)) hfm,
+  have lim₂ := hφ.bUnion_Iic_ae_cover.lintegral_tendsto_of_monotone_of_nat
+    (λ i j hij, bUnion_subset_bUnion_left (λ k hk, le_trans hk hij)) hfm,
+  have le₁ := λ n, lintegral_mono_set (bInter_subset_of_mem left_mem_Ici),
+  have le₂ := λ n, lintegral_mono_set (subset_bUnion_of_mem right_mem_Iic),
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le lim₁ lim₂ le₁ le₂
 end
 

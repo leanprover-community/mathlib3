@@ -42,7 +42,7 @@ lemma quotient.eq_rel {r : setoid α} {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y :=
 namespace setoid
 
 lemma comm (s : setoid α) {x y} : s.rel x y ↔ s.rel y x :=
-⟨λ h, setoid.symm h, λ h, setoid.symm h⟩
+⟨setoid.symm, setoid.symm⟩
 
 @[ext] lemma ext' {r s : setoid α} (H : ∀ a b, r.rel a b ↔ s.rel a b) :
   r = s := ext H

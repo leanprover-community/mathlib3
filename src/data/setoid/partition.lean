@@ -266,6 +266,9 @@ protected def setoid (hs : indexed_partition s) : setoid α :=
 lemma some_index (x : α) : hs.setoid.rel (hs.some (hs.index x)) x :=
 ⟨hs.index x, hs.some_mem (hs.index x), hs.mem_index x⟩
 
+@[simp] lemma index_some (i : ι) : hs.index (hs.some i) = i :=
+(eq_index_of_mem _ $ hs.some_mem i).symm
+
 /-- The quotient associated to an indexed partition. -/
 @[nolint has_inhabited_instance]
 protected def quotient := quotient hs.setoid

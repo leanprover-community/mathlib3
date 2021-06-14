@@ -262,4 +262,23 @@ rfl
   (pi_ring R M ι S).symm f g = ∑ i, g i • f i :=
 by simp [pi_ring, linear_map.lsum]
 
+/--
+`equiv.sum_arrow_equiv_prod_arrow` as a linear equivalence.
+-/
+-- TODO additive version?
+def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoid M] [module R M] :
+  ((α ⊕ β) → M) ≃ₗ[R] (α → M) × (β → M) :=
+{ map_add' := by { intros f g, ext; refl },
+  map_smul' := by { intros r f, ext; refl, },
+  .. equiv.sum_arrow_equiv_prod_arrow α β M, }
+
+@[simp] lemma sum_arrow_lequiv_prod_arrow_apply_fst {α β} (f : (α ⊕ β) → M) (a : α) :
+  (sum_arrow_lequiv_prod_arrow α β R M f).1 a = f (sum.inl a) := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_apply_snd {α β} (f : (α ⊕ β) → M) (b : β) :
+  (sum_arrow_lequiv_prod_arrow α β R M f).2 b = f (sum.inr b) := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inl {α β} (f : α → M) (g : β → M) (a : α) :
+  ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inl a) = f a := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inr {α β} (f : α → M) (g : β → M) (b : β) :
+  ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
+
 end linear_equiv

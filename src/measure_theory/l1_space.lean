@@ -46,7 +46,7 @@ integrable, function space, l1
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators ennreal measure_theory
+open_locale classical topological_space big_operators ennreal measure_theory nnreal
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -111,6 +111,10 @@ begin
   rwa [real.norm_eq_abs, abs_of_nonneg]
 end,
 by rw [has_finite_integral_iff_norm, lintegral_eq]
+
+lemma has_finite_integral_iff_of_nnreal {f : α → ℝ≥0} :
+  has_finite_integral (λ x, (f x : ℝ)) μ ↔ ∫⁻ a, f a ∂μ < ∞ :=
+by simp [has_finite_integral_iff_norm]
 
 lemma has_finite_integral.mono {f : α → β} {g : α → γ} (hg : has_finite_integral g μ)
   (h : ∀ᵐ a ∂μ, ∥f a∥ ≤ ∥g a∥) : has_finite_integral f μ :=
@@ -371,7 +375,7 @@ variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 /-- `integrable f μ` means that `f` is measurable and that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
   `integrable f` means `integrable f volume`. -/
 def integrable (f : α → β) (μ : measure α . volume_tac) : Prop :=
-ae_measurable f μ  ∧ has_finite_integral f μ
+ae_measurable f μ ∧ has_finite_integral f μ
 
 lemma integrable.ae_measurable {f : α → β} (hf : integrable f μ) : ae_measurable f μ := hf.1
 lemma integrable.has_finite_integral {f : α → β} (hf : integrable f μ) : has_finite_integral f μ :=
@@ -535,6 +539,17 @@ lemma lipschitz_with.integrable_comp_iff_of_antilipschitz [complete_space β] [b
   (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
   integrable (g ∘ f) μ ↔ integrable f μ :=
 by simp [← mem_ℒp_one_iff_integrable, hg.mem_ℒp_comp_iff_of_antilipschitz hg' g0]
+
+lemma integrable.real_to_nnreal {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λ x, ((f x).to_nnreal : ℝ)) μ :=
+begin
+  refine ⟨hf.ae_measurable.real_to_nnreal.coe_nnreal_real, _⟩,
+  rw has_finite_integral_iff_norm,
+  refine lt_of_le_of_lt _ ((has_finite_integral_iff_norm _).1 hf.has_finite_integral),
+  apply lintegral_mono,
+  assume x,
+  simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
+end
 
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/

@@ -281,6 +281,18 @@ lemma liminf_le_liminf {α : Type*} [conditionally_complete_lattice β] {f : fil
   f.liminf u ≤ f.liminf v :=
 @limsup_le_limsup (order_dual β) α _ _ _ _ h hv hu
 
+lemma limsup_le_limsup_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : f ≤ g)
+  {u : α → β} (hf : f.is_cobounded_under (≤) u . is_bounded_default)
+  (hg : g.is_bounded_under (≤) u . is_bounded_default) :
+  f.limsup u ≤ g.limsup u :=
+Limsup_le_Limsup_of_le (map_mono h) hf hg
+
+lemma liminf_le_liminf_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : g ≤ f)
+  {u : α → β} (hf : f.is_bounded_under (≥) u . is_bounded_default)
+  (hg : g.is_cobounded_under (≥) u . is_bounded_default) :
+  f.liminf u ≤ g.liminf u :=
+Liminf_le_Liminf_of_le (map_mono h) hf hg
+
 theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s.nonempty) :
   (𝓟 s).Limsup = Sup s :=
 by simp [Limsup]; exact cInf_upper_bounds_eq_cSup h hs

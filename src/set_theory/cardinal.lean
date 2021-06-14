@@ -641,7 +641,7 @@ by rw [← lift_mk_fin.{u}, ← lift_id (mk α), lift_mk_eq.{u 0 u}];
 theorem card_le_of_finset {α} (s : finset α) :
   (s.card : cardinal) ≤ cardinal.mk α :=
 begin
-  rw (_ : (s.card : cardinal) = cardinal.mk (↑s : set α)),
+  rw (_ : (s.card : cardinal) = cardinal.mk s),
   { exact ⟨function.embedding.subtype _⟩ },
   rw [cardinal.fintype_card, fintype.card_coe]
 end
@@ -1031,6 +1031,10 @@ lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_image⟩
 theorem mk_range_le {α β : Type u} {f : α → β} : mk (range f) ≤ mk α :=
 mk_le_of_surjective surjective_onto_range
 
+theorem mk_range_le_lift {α : Type u} {β : Type v} {f : α → β} :
+  lift.{v u} (mk (range f)) ≤ lift.{u v} (mk α) :=
+lift_mk_le.{v u 0}.mpr ⟨embedding.of_surjective _ surjective_onto_range⟩
+
 lemma mk_range_eq (f : α → β) (h : injective f) : mk (range f) = mk α :=
 quotient.sound ⟨(equiv.of_injective f h).symm⟩
 
@@ -1071,7 +1075,7 @@ lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
   mk (⋃(x ∈ s), A x) ≤ mk s * cardinal.sup.{u u} (λ x : s, mk (A x.1)) :=
 by { rw [bUnion_eq_Union], apply mk_Union_le }
 
-@[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk (↑s : set α) :=
+@[simp] lemma finset_card {α : Type u} {s : finset α} : ↑(finset.card s) = mk s :=
 by rw [fintype_card, nat_cast_inj, fintype.card_coe]
 
 lemma finset_card_lt_omega (s : finset α) : mk (↑s : set α) < omega :=
@@ -1084,7 +1088,7 @@ begin
   { intro h,
     have : # s < omega, by { rw h, exact nat_lt_omega n },
     refine ⟨(lt_omega_iff_finite.1 this).to_finset, finite.coe_to_finset _, nat_cast_inj.1 _⟩,
-    rwa [finset_card, finite.coe_to_finset] },
+    rwa [finset_card, finite.coe_sort_to_finset] },
   { rintro ⟨t, rfl, rfl⟩,
     exact finset_card.symm }
 end

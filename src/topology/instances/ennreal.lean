@@ -34,15 +34,15 @@ instance : order_topology ℝ≥0∞ := ⟨rfl⟩
 instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class inference
 
 instance : second_countable_topology ℝ≥0∞ :=
-⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < nnreal.of_real q}, {a : ℝ≥0∞ | ↑(nnreal.of_real q) < a}},
+⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < real.to_nnreal q}, {a : ℝ≥0∞ | ↑(real.to_nnreal q) < a}},
   (countable_encodable _).bUnion $ assume a ha, (countable_singleton _).insert _,
   le_antisymm
     (le_generate_from $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})
     (le_generate_from $ λ s h, begin
       rcases h with ⟨a, hs | hs⟩;
-      [ rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ a < nnreal.of_real q}, {b | ↑(nnreal.of_real q) < b},
+      [ rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ a < real.to_nnreal q}, {b | ↑(real.to_nnreal q) < b},
            from set.ext (assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn a b, and_assoc]),
-        rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ ↑(nnreal.of_real q) < a}, {b | b < ↑(nnreal.of_real q)},
+        rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ ↑(real.to_nnreal q) < a}, {b | b < ↑(real.to_nnreal q)},
            from set.ext (assume b,
              by simp [hs, @ennreal.lt_iff_exists_rat_btwn b a, and_comm, and_assoc])];
       { apply is_open_Union, intro q,
@@ -650,6 +650,16 @@ namespace nnreal
 
 open_locale nnreal
 
+lemma tsum_eq_to_nnreal_tsum {f : β → ℝ≥0} :
+  (∑' b, f b) = (∑' b, (f b : ℝ≥0∞)).to_nnreal :=
+begin
+  by_cases h : summable f,
+  { rw [← ennreal.coe_tsum h, ennreal.to_nnreal_coe] },
+  { have A := tsum_eq_zero_of_not_summable h,
+    simp only [← ennreal.tsum_coe_ne_top_iff_summable, not_not] at h,
+    simp only [h, ennreal.top_to_nnreal, A] }
+end
+
 /-- Comparison test of convergence of `ℝ≥0`-valued series. -/
 lemma exists_le_has_sum_of_le {f g : β → ℝ≥0} {r : ℝ≥0}
   (hgf : ∀b, g b ≤ f b) (hfr : has_sum f r) : ∃p≤r, has_sum g p :=
@@ -742,6 +752,31 @@ begin
   convert tendsto_sum_nat_add (λ i, (f i : ℝ)),
   norm_cast,
 end
+
+lemma has_sum_lt {f g : α → ℝ≥0} {sf sg : ℝ≥0} {i : α} (h : ∀ (a : α), f a ≤ g a) (hi : f i < g i)
+  (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
+begin
+  have A : ∀ (a : α), (f a : ℝ) ≤ g a := λ a, nnreal.coe_le_coe.2 (h a),
+  have : (sf : ℝ) < sg :=
+    has_sum_lt A (nnreal.coe_lt_coe.2 hi) (has_sum_coe.2 hf) (has_sum_coe.2 hg),
+  exact nnreal.coe_lt_coe.1 this
+end
+
+@[mono] lemma has_sum_strict_mono
+  {f g : α → ℝ≥0} {sf sg : ℝ≥0} (hf : has_sum f sf) (hg : has_sum g sg) (h : f < g) : sf < sg :=
+let ⟨hle, i, hi⟩ := pi.lt_def.mp h in has_sum_lt hle hi hf hg
+
+lemma tsum_lt_tsum {f g : α → ℝ≥0} {i : α} (h : ∀ (a : α), f a ≤ g a) (hi : f i < g i)
+  (hg : summable g) : ∑' n, f n < ∑' n, g n :=
+has_sum_lt h hi (summable_of_le h hg).has_sum hg.has_sum
+
+@[mono] lemma tsum_strict_mono {f g : α → ℝ≥0} (hg : summable g) (h : f < g) :
+  ∑' n, f n < ∑' n, g n :=
+let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hg
+
+lemma tsum_pos {g : α → ℝ≥0} (hg : summable g) (i : α) (hi : 0 < g i) :
+  0 < ∑' b, g b :=
+by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
 
 end nnreal
 

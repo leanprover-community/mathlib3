@@ -802,25 +802,27 @@ end fintype
 
 section pow_is_subgroup
 
+/-- A nonempty idempotent subset of a finite cancellative monoid is a submonoid -/
+def submonoid_of_idempotent {M : Type*} [left_cancel_monoid M] [fintype M] (S : set M)
+  (hS1 : S.nonempty) (hS2 : S * S = S) : submonoid M :=
+have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
+λ a ha, nat.rec (by rwa [zero_add, pow_one])
+  (λ n ih, (congr_arg2 (∈) (pow_succ a (n + 1)).symm hS2).mp (set.mul_mem_mul ha ih)),
+{ carrier := S,
+  one_mem' := by {
+    obtain ⟨a, ha⟩ := hS1,
+    rw [←pow_order_of_eq_one a, ←nat.sub_add_cancel (order_of_pos a)],
+    exact pow_mem a ha (order_of a - 1) },
+  mul_mem' := λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb) }
+
 /-- A nonempty idempotent subset of a finite group is a subgroup -/
 def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
   (hS1 : S.nonempty) (hS2 : S * S = S) : subgroup G :=
-let a := classical.some hS1,
-ha := classical.some_spec hS1,
-mul_mem : ∀ a b : G, a ∈ S → b ∈ S → a * b ∈ S :=
-λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb),
-pow_mem : ∀ a : G, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
-λ a ha, nat.rec (by rwa [zero_add, pow_one])
-  (λ n ih, (congr_arg2 (∈) (pow_succ a (n + 1)).symm hS2).mp (set.mul_mem_mul ha ih)),
-one_mem : (1 : G) ∈ S:= by
-{ rw [←pow_order_of_eq_one a, ←nat.sub_add_cancel (order_of_pos a)],
-  exact pow_mem a ha (order_of a - 1) },
-pow_mem : ∀ a : G, a ∈ S → ∀ n : ℕ, a ^ n ∈ S :=
-  λ a ha n, nat.cases_on n (by rwa pow_zero) (pow_mem a ha),
-inv_mem : ∀ a : G, a ∈ S → a⁻¹ ∈ S := λ a ha, by
-{ rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
-  exact pow_mem a ha (order_of a - 1) } in
-{ carrier := S, one_mem' := one_mem, inv_mem' := inv_mem, mul_mem' := mul_mem }
+{ carrier := S,
+  inv_mem' := λ a ha, by {
+    rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
+    exact (submonoid_of_idempotent S hS1 hS2).pow_mem ha (order_of a - 1) },
+  .. submonoid_of_idempotent S hS1 hS2 }
 
 /-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/
 def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :

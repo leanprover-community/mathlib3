@@ -5,10 +5,8 @@ Authors: Scott Morrison
 -/
 import algebra.category.Mon.limits
 import algebra.category.Group.preadditive
-import algebra.category.Group.adjunctions
 import category_theory.over
 import category_theory.limits.concrete_category
-import category_theory.concrete_category.representable
 import category_theory.limits.shapes.concrete_category
 import group_theory.subgroup
 

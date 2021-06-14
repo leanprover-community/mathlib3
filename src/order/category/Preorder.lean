@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import order.preorder_hom
 import category_theory.concrete_category
 import algebra.punit_instances
+import category_theory.concrete_category.representable
 
 /-! # Category of preorders -/
 
@@ -30,5 +31,8 @@ def of (α : Type*) [preorder α] : Preorder := bundled.of α
 instance : inhabited Preorder := ⟨of punit⟩
 
 instance (α : Preorder) : preorder α := α.str
+
+instance : representably_concrete Preorder :=
+
 
 end Preorder

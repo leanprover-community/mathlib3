@@ -2253,7 +2253,7 @@ lemma trim_measurable_set_eq (hm : m ≤ m0) (hs : @measurable_set α m s) : μ.
 by simp [measure.trim, hs]
 
 lemma le_trim (hm : m ≤ m0) : μ s ≤ μ.trim hm s :=
-by {simp_rw [measure.trim], exact (@le_to_measure_apply _ m _ _ _), }
+by { simp_rw [measure.trim], exact (@le_to_measure_apply _ m _ _ _), }
 
 lemma measure_eq_zero_of_trim_eq_zero (hm : m ≤ m0) (h : μ.trim hm s = 0) : μ s = 0 :=
 le_antisymm ((le_trim hm).trans (le_of_eq h)) (zero_le _)

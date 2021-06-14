@@ -407,11 +407,73 @@ begin
   ... ≤ 4 ^ (n / 15) : pow_beats_mul (n / 15) (by linarith),
 end
 
+lemma pow_beats_pow_2 (n : ℕ) (n_large : 249 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
+begin
+  sorry
+end
+
+-- lemma sdhfal (n : ℕ) (n_large : 999 < n) : nat.sqrt (n / 8) * nat.sqrt (2 * n) ≤ n / 4 :=
+-- begin
+--   sorry
+-- end
 
 lemma power_conversion_2 (n : ℕ) (n_large : 999 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
 begin
-  sorry,
+  have : 249 ≤ n / 4,
+    { cases le_or_gt 249 (n / 4),
+      { exact h, },
+      { have r : n < n :=
+          calc n = 4 * (n / 4) + (n % 4) : (nat.div_add_mod n 4).symm
+            ... < 4 * 249 + (n % 4) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 3)).2 h) _
+            ... < 4 * 249 + 4 : add_lt_add_left (nat.mod_lt n (by linarith)) (4 * 249)
+            ... = 1000 : by norm_num
+            ... ≤ n : n_large,
+        exfalso,
+        exact lt_irrefl _ r, }, },
+  have rem_small : (n % 4) < 4 := nat.mod_lt n (nat.succ_pos 3),
+  calc (2 * n) ^ nat.sqrt (2 * n) = (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (2 * (4 * (n / 4) + (n % 4))) : by rw nat.div_add_mod n 4
+  ... ≤ (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (8 * (n / 4) + 8) :
+              begin
+                apply pow_le_pow,
+                -- squeeze_simp,
+                rw mul_add,
+                rw ←mul_assoc,
+                norm_num,
+                suffices : 1 ≤ 8 * (n / 4),
+                  exact le_add_right this,
+                linarith,
+                apply nat.sqrt_le_sqrt,
+                rw mul_add,
+                rw ←mul_assoc,
+                norm_num,
+                -- squeeze_simp,
+                linarith,
+              end
+  ... ≤ (8 * (n / 4) + 8) ^ nat.sqrt (8 * (n / 4) + 8) :
+              begin
+                apply (nat.pow_le_iff_le_left _).2,
+                rw mul_add,
+                rw ←mul_assoc,
+                norm_num,
+                linarith,
+                -- rw mul_add,
+                -- rw ←mul_assoc,
+                -- norm_num,
+                -- suffices : 1 ≤ 8 * (n / 4),
+                --   exact le_add_right this,
+                -- linarith,
+                -- apply nat.sqrt_le_sqrt,
+                -- simp only [nat.succ_pos', mul_le_mul_left, add_le_add_iff_left],
+                -- linarith,
+                apply nat.le_sqrt.2,
+                -- rw mul_add,
+                suffices : 1 * 1 ≤ 8,
+                  exact le_add_left this,
+                norm_num,
+              end
+  ... ≤ 4 ^ (n / 4) : pow_beats_pow_2 (n / 4) (by linarith),
 end
+
 
 lemma fooo (n : ℕ) (n_pos : 1 ≤ n) : n / 15 + n / 4 + (2 * n / 3 + 1) ≤ n :=
 begin

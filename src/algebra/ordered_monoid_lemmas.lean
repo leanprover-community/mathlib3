@@ -309,23 +309,6 @@ iff.intro
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
 
-section mono
-variables {β : Type*} [preorder β] {f g : β → α}
-
-@[to_additive monotone.add]
-lemma monotone.mul' (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
-λ x y h, mul_le_mul' (hf h) (hg h)
-
-@[to_additive monotone.add_const]
-lemma monotone.mul_const' (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
-hf.mul' monotone_const
-
-@[to_additive monotone.const_add]
-lemma monotone.const_mul' (hf : monotone f) (a : α) : monotone (λ x, a * f x) :=
-monotone_const.mul' hf
-
-end mono
-
 end partial_order
 
 @[to_additive le_of_add_le_add_left]
@@ -350,6 +333,7 @@ begin
   { exact (lt_of_mul_lt_mul_right' h).le }
 end
 
+section partial_order
 variable [partial_order α]
 
 section left_co_co
@@ -546,3 +530,64 @@ one_mul c ▸ mul_lt_mul''' ha hbc
 @[to_additive]
 lemma mul_lt_of_lt_of_lt_one (hbc : b < c) (ha : a < 1) : b * a < c :=
 mul_one c ▸ mul_lt_mul''' hbc ha
+
+end partial_order
+
+-- the two sections `mono` and `strict_mono` moved here to shorten the diff of a later
+-- PR.  The layout will be better in the next PR!
+section mono
+variables {β : Type*} [preorder β] {f g : β → α}
+variables [mul_one_class α] [partial_order α] [covariant_class α α has_mul.mul has_le.le] [covariant_class α α (function.swap has_mul.mul) has_le.le]
+@[to_additive monotone.add]
+lemma monotone.mul' (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
+λ x y h, mul_le_mul' (hf h) (hg h)
+
+@[to_additive monotone.add_const]
+lemma monotone.mul_const' (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
+hf.mul' monotone_const
+
+@[to_additive monotone.const_add]
+lemma monotone.const_mul' (hf : monotone f) (a : α) : monotone (λ x, a * f x) :=
+monotone_const.mul' hf
+
+end mono
+
+section strict_mono
+variables [cancel_monoid α] {β : Type*} {f g : β → α} [partial_order α]
+
+section left
+variables [covariant_class α α (*) (≤)] [contravariant_class α α (*) (<)] [partial_order β]
+
+@[to_additive strict_mono.const_add]
+lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
+  strict_mono (λ x, c * f x) :=
+λ a b ab, mul_lt_mul_left' (hf ab) c
+
+end left
+
+section right
+variables [covariant_class α α (function.swap (*)) (≤)]
+  [contravariant_class α α (function.swap (*)) (<)] [partial_order β]
+
+@[to_additive strict_mono.add_const]
+lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
+  strict_mono (λ x, f x * c) :=
+λ a b ab, mul_lt_mul_right' (hf ab) c
+
+end right
+
+@[to_additive monotone.add_strict_mono]
+lemma monotone.mul_strict_mono'
+  [covariant_class α α (function.swap (*)) (≤)] {β : Type*} [preorder β]
+  [covariant_class α α (*) (≤)] [contravariant_class α α (*) (<)]
+  {f g : β → α} (hf : monotone f) (hg : strict_mono g) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul_of_le_of_lt (hf h.le) (hg h)
+variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)] [preorder β]
+
+@[to_additive strict_mono.add_monotone]
+lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)
+
+end strict_mono

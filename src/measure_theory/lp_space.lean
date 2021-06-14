@@ -569,36 +569,7 @@ le_trans (snorm'_le_snorm_ess_sup_mul_rpow_measure_univ hq_pos) (le_of_eq (by si
 lemma snorm_le_snorm_of_exponent_le {p q : ℝ≥0∞} (hpq : p ≤ q) [probability_measure μ]
   {f : α → E} (hf : ae_measurable f μ) :
   snorm f p μ ≤ snorm f q μ :=
-begin
-  by_cases hp0 : p = 0,
-  { simp [hp0], },
-  rw ←ne.def at hp0,
-  by_cases hq_top : q = ∞,
-  { by_cases hp_top : p = ∞,
-    { rw [hq_top, hp_top],
-      exact le_refl _, },
-    { have hp_pos : 0 < p.to_real,
-      from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
-      rw [snorm_eq_snorm' hp0 hp_top, hq_top, snorm_exponent_top],
-      refine le_trans (snorm'_le_snorm_ess_sup_mul_rpow_measure_univ hp_pos) (le_of_eq _),
-      simp [measure_univ], }, },
-  { have hp_top : p ≠ ∞,
-    { by_contra hp_eq_top,
-      push_neg at hp_eq_top,
-      refine hq_top _,
-      rwa [hp_eq_top, top_le_iff] at hpq, },
-    have hp_pos : 0 < p.to_real,
-    from ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) hp0.symm, hp_top⟩,
-    have hq0 : q ≠ 0,
-    { by_contra hq_eq_zero,
-      push_neg at hq_eq_zero,
-      have hp_eq_zero : p = 0, from le_antisymm (by rwa hq_eq_zero at hpq) (zero_le _),
-      rw [hp_eq_zero, ennreal.zero_to_real] at hp_pos,
-      exact (lt_irrefl _) hp_pos, },
-    have hpq_real : p.to_real ≤ q.to_real, by rwa ennreal.to_real_le_to_real hp_top hq_top,
-    rw [snorm_eq_snorm' hp0 hp_top, snorm_eq_snorm' hq0 hq_top],
-    exact snorm'_le_snorm'_of_exponent_le hp_pos hpq_real _ hf, },
-end
+(snorm_le_snorm_mul_rpow_measure_univ hpq hf).trans (le_of_eq (by simp [measure_univ]))
 
 lemma snorm'_lt_top_of_snorm'_lt_top_of_exponent_le {p q : ℝ} [finite_measure μ] {f : α → E}
   (hf : ae_measurable f μ) (hfq_lt_top : snorm' f q μ < ∞) (hp_nonneg : 0 ≤ p) (hpq : p ≤ q) :

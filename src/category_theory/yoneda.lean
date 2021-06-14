@@ -159,8 +159,6 @@ F.repr_f.app (op F.repr_X) (𝟙 F.repr_X)
 instance : is_iso F.repr_f :=
 representable.has_representation.some_spec.some_spec
 
-def nats := Type → bool
-
 /--
 Note the components `F_repr.w.app X` definitionally have type `F.repr_X ⟶ X ≅ F.obj X`.
 -/

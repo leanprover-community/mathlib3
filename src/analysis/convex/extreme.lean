@@ -17,8 +17,9 @@ This file defines extreme sets and extreme points for sets in a real vector spac
 See chapter 8 of [Convexity][simon2011]
 
 TODO:
-- add exposed sets to this file.
 - define convex independence and prove lemmas related to extreme points.
+- generalise to Locally Convex Topological Vector Spaces
+More not-yet-PRed stuff is available on the branch `sperner_again`.
 -/
 
 open_locale classical affine

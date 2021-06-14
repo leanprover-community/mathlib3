@@ -594,7 +594,20 @@ end
 def is_uniform_sym2 (ε : ℝ) : sym2 (finset V) → Prop :=
 sym2.from_rel (is_uniform_symmetric G ε)
 
+lemma not_is_uniform_sym2_iff (ε : ℝ) (U W : finset V) :
+  ¬is_uniform_sym2 G ε ⟦(U, W)⟧ ↔ ∃ U' W', U' ⊆ U ∧ W' ⊆ W ∧ ε * U.card ≤ U'.card ∧
+  ε * W.card ≤ W'.card ∧ ε ≤ abs (density_pair G U' W' - density_pair G U W) :=
+begin
+  rw [is_uniform_sym2, sym2.from_rel],
+  simp,
+  rw is_uniform,
+  push_neg,
+  refl,
+end
+
 end simple_graph
+
+open simple_graph
 
 /-- An partition of a finite set `S` is a collection of disjoint subsets of `S` which cover it. -/
 @[ext]
@@ -663,14 +676,14 @@ equitable_on (P.parts : set (finset V)) card
 
 /-- `sym2` variant of `equipartition.parts`. We exclude the diagonal, as these do not make sense nor
 behave well in the context of Szemerédi's Regularity Lemma. -/
-def distinct_unordered_parts_pairs :
+def distinct_unordered_parts_sym2 :
   finset (sym2 (finset V)) :=
 ((P.parts.product P.parts).image quotient.mk).filter (λ (a : sym2 _), ¬a.is_diag)
 
-lemma mem_distinct_unordered_parts_pairs (U W : finset V) :
-  ⟦(U, W)⟧ ∈ P.distinct_unordered_parts_pairs ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W :=
+lemma mem_distinct_unordered_parts_sym2 (U W : finset V) :
+  ⟦(U, W)⟧ ∈ P.distinct_unordered_parts_sym2 ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W :=
 begin
-  rw [finpartition.distinct_unordered_parts_pairs, finset.mem_filter],
+  rw [finpartition.distinct_unordered_parts_sym2, finset.mem_filter],
   simp only [mem_image, exists_prop, sym2.is_diag_iff_proj_eq, sym2.eq_iff, prod.exists,
     mem_product],
   split,
@@ -680,23 +693,33 @@ begin
   exact ⟨⟨_, _, ⟨h₁, h₂⟩, or.inl ⟨rfl, rfl⟩⟩, h₃⟩,
 end
 
-lemma distinct_unordered_parts_pairs_size :
-  P.distinct_unordered_parts_pairs.card = P.size.choose 2 :=
-by rw [distinct_unordered_parts_pairs, finpartition.size, prod_quotient_sym2_not_diag]
+lemma distinct_unordered_parts_sym2_size :
+  P.distinct_unordered_parts_sym2.card = P.size.choose 2 :=
+by rw [distinct_unordered_parts_sym2, finpartition.size, prod_quotient_sym2_not_diag]
 
 variables (G : simple_graph V)
 open_locale classical
 
 noncomputable def non_uniform_parts (ε : ℝ) :
   finset (sym2 (finset V)) :=
-P.distinct_unordered_parts_pairs.filter (λ a, ¬G.is_uniform_sym2 ε a)
+P.distinct_unordered_parts_sym2.filter (λ a, ¬G.is_uniform_sym2 ε a)
 
 lemma mem_non_uniform_parts (U W : finset V) (ε : ℝ) :
-  ⟦(U, W)⟧ ∈ P.non_uniform_parts G ε ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W ∧ ¬G.is_uniform ε U W :=
-begin
-  rw [non_uniform_parts, mem_filter, mem_distinct_unordered_parts_pairs, and_assoc, and_assoc],
-  refl
-end
+  ⟦(U, W)⟧ ∈ P.non_uniform_parts G ε ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W ∧
+  ¬G.is_uniform_sym2 ε ⟦(U, W)⟧ :=
+by rw [non_uniform_parts, mem_filter, mem_distinct_unordered_parts_sym2, and_assoc, and_assoc]
+
+noncomputable def witness_pairs (ε : ℝ) (U W : finset V) : sym2 (finset V) :=
+dite (⟦(U, W)⟧ ∈ P.non_uniform_parts G ε) (λ h, begin
+    rw [mem_non_uniform_parts, not_is_uniform_sym2_iff] at h,
+    let U' := classical.some h.2.2.2,
+    let W' := classical.some (classical.some_spec h.2.2.2),
+    exact ⟦(U', W')⟧,
+  end) (λ _, ⟦(U, W)⟧)
+
+def witness (UW : sym2 (finset V)) : sym2 (finset V) :=
+quotient.lift (function.uncurry (witness_pairs))
+  (begin rintro a b hab, sorry end)
 
 /-- An equipartition is ε-uniform iff at most a proportion of ε of its pairs of parts are
 not ε-uniform. -/
@@ -708,7 +731,7 @@ Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a sui
 we will find a new one that has an index greater than the previous one plus some fixed constant.
 Then `index_le_half` ensures this process only happens finitely many times. -/
 noncomputable def index (P : finpartition s) : ℝ :=
-(∑ x in P.distinct_unordered_parts_pairs, G.density_sym2 x^2)/P.size^2
+(∑ x in P.distinct_unordered_parts_sym2, G.density_sym2 x^2)/P.size^2
 
 lemma index_nonneg (P : finpartition s) :
   0 ≤ P.index G :=
@@ -734,10 +757,10 @@ begin
   rw finpartition.index,
   apply div_le_of_nonneg_of_le_mul (sq_nonneg _),
   { norm_num },
-  suffices h : (∑ (x : sym2 (finset V)) in P.distinct_unordered_parts_pairs, G.density_sym2 x ^ 2) ≤
-    P.distinct_unordered_parts_pairs.card,
+  suffices h : (∑ (x : sym2 (finset V)) in P.distinct_unordered_parts_sym2, G.density_sym2 x ^ 2) ≤
+    P.distinct_unordered_parts_sym2.card,
   { apply h.trans,
-    rw [distinct_unordered_parts_pairs_size, div_mul_eq_mul_div, one_mul],
+    rw [distinct_unordered_parts_sym2_size, div_mul_eq_mul_div, one_mul],
     convert nat.choose_le_pow _ 2,
     norm_num },
   rw [finset.card_eq_sum_ones, sum_nat_cast, nat.cast_one],
@@ -1329,7 +1352,18 @@ theorem increment (hP : P.is_equipartition)
   ∃ (Q : finpartition' V),
     Q.is_equipartition ∧ Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
 begin
-  let witnesses : finset V → finset V → sym2 (finset V) := λ U W, dite (⟦(U, W)⟧ ∈ P.non_uniform_parts G ε)
+  have : finpartition' V,
+  {
+    apply P.bind,
+    rintro U hU,
+    apply atomise,
+    apply finset.image _ (P.parts.filter (λ W, ⟦(U, W)⟧ ∈ P.non_uniform_parts G ε)),
+    apply_instance,
+    intro W,
+    obtain ⟨U', W'⟩ := quotient.out (P.witness_pairs G ε U W),
+    exact ite (U = U') W' U',
+  },
+  /-let witnesses : finset V → finset V → sym2 (finset V) := λ U W, dite (⟦(U, W)⟧ ∈ P.non_uniform_parts G ε)
     (λ h, begin
       rw [mem_non_uniform_parts, simple_graph.is_uniform] at h,
       push_neg at h,
@@ -1337,7 +1371,7 @@ begin
       let W' := classical.some (classical.some_spec h.2.2.2).2,
       exact ⟦(U', W')⟧,
     end)
-    (λ h, ⟦(U, W)⟧)
+    (λ h, ⟦(U, W)⟧)-/
 end
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/

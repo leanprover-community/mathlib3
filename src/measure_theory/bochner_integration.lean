@@ -1463,7 +1463,7 @@ variables {E' : Type*} [normed_group E'] [second_countable_topology E'] [measura
   [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
 variables (α E' μ 𝕜)
-def extend_op_clm [normed_space 𝕜 F']
+def extend_op_clm' [normed_space 𝕜 F']
   (T : Π s : set α, measurable_set s → (E' →L[ℝ] F'))
   (h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s hs = 0)
   (h_add : ∀ (s t : set α) (hs : measurable_set s) (ht : measurable_set t) (h : s ∩ t = ∅)
@@ -1473,6 +1473,16 @@ def extend_op_clm [normed_space 𝕜 F']
   (α →₁ₛ[μ] E') →L[𝕜] F' :=
 linear_map.mk_continuous
   ⟨extend_op T, extend_op_add T h_zero h_add, extend_op_smul T h_zero h_add h_smul⟩
+  C (λ f, norm_extend_op_le T hC hT_norm f)
+
+def extend_op_clm (T : Π s : set α, measurable_set s → (E' →L[ℝ] F'))
+  (h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s hs = 0)
+  (h_add : ∀ (s t : set α) (hs : measurable_set s) (ht : measurable_set t) (h : s ∩ t = ∅)
+    (hps : μ s < ∞) (hpt : μ t < ∞), T (s ∪ t) (hs.union ht) = T s hs + T t ht)
+  {C : ℝ} {hC : 0 ≤ C} (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
+  (α →₁ₛ[μ] E') →L[ℝ] F' :=
+linear_map.mk_continuous
+  ⟨extend_op T, extend_op_add T h_zero h_add, extend_op_smul_ℝ T h_zero h_add⟩
   C (λ f, norm_extend_op_le T hC hT_norm f)
 variables {α E' μ 𝕜}
 

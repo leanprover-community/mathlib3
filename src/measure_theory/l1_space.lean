@@ -610,7 +610,7 @@ begin
   refine ⟨@measurable.ae_measurable α' _ m _ f (μ'.trim hm) hf, _⟩,
   rw [has_finite_integral, lintegral_trim hm _],
   { exact hf_int.2, },
-  { exact @measurable.ennreal_coe α' m _ (@measurable.nnnorm _ α' _ _ _ m _ hf), },
+  { exact @measurable.coe_nnreal_ennreal α' m _ (@measurable.nnnorm _ α' _ _ _ m _ hf), },
 end
 
 lemma integrable_of_integrable_trim (hm : m ≤ m0) [opens_measurable_space H]
@@ -621,7 +621,8 @@ begin
   refine ⟨ae_measurable_of_ae_measurable_trim hm hf_meas_ae, _⟩,
   rw has_finite_integral at hf ⊢,
   rwa lintegral_trim_ae hm _ at hf,
-  exact @ae_measurable.ennreal_coe α' m _ _ (@ae_measurable.nnnorm H α' _ _ _ m _ _ hf_meas_ae),
+  exact @ae_measurable.coe_nnreal_ennreal α' m _ _
+    (@ae_measurable.nnnorm H α' _ _ _ m _ _ hf_meas_ae),
 end
 
 end trim

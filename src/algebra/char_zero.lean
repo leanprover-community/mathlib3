@@ -122,10 +122,10 @@ end
 section
 variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
 
-lemma neg_eq_iff_eq_zero {a : R} : -a = a ↔ a = 0 :=
+lemma neg_eq_self_iff {a : R} : -a = a ↔ a = 0 :=
 neg_eq_iff_add_eq_zero.trans add_self_eq_zero
 
-lemma eq_neg_iff_eq_zero {a : R} : a = -a ↔ a = 0 :=
+lemma eq_neg_self_iff {a : R} : a = -a ↔ a = 0 :=
 eq_neg_iff_add_eq_zero.trans add_self_eq_zero
 
 lemma nat_mul_inj {n : ℕ} {a b : R} (h : (n : R) * a = (n : R) * b) : n = 0 ∨ a = b :=

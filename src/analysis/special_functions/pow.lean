@@ -646,6 +646,30 @@ begin
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
+lemma le_rpow_iff_log_le (hx : 0 < x) (hy : 0 < y) :
+  x ≤ y^z ↔ real.log x ≤ z * real.log y :=
+by rw [←real.log_le_log hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
+
+lemma le_rpow_of_log_le (hx : 0 ≤ x) (hy : 0 < y) (h : real.log x ≤ z * real.log y) :
+  x ≤ y^z :=
+begin
+  obtain hx | rfl := hx.lt_or_eq,
+  { exact (le_rpow_iff_log_le hx hy).2 h },
+  exact (real.rpow_pos_of_pos hy z).le,
+end
+
+lemma lt_rpow_iff_log_lt (hx : 0 < x) (hy : 0 < y) :
+  x < y^z ↔ real.log x < z * real.log y :=
+by rw [←real.log_lt_log_iff hx (real.rpow_pos_of_pos hy z), real.log_rpow hy]
+
+lemma lt_rpow_of_log_lt (hx : 0 ≤ x) (hy : 0 < y) (h : real.log x < z * real.log y) :
+  x < y^z :=
+begin
+  obtain hx | rfl := hx.lt_or_eq,
+  { exact (lt_rpow_iff_log_lt hx hy).2 h },
+  exact real.rpow_pos_of_pos hy z,
+end
+
 lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
 by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
 
@@ -1107,9 +1131,9 @@ by { rw [← nnreal.coe_eq, nnreal.coe_pow, coe_rpow], exact real.rpow_nat_inv_p
 lemma continuous_at_rpow {x : ℝ≥0} {y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ≥0×ℝ, p.1^p.2) (x, y) :=
 begin
-  have : (λp:ℝ≥0×ℝ, p.1^p.2) = nnreal.of_real ∘ (λp:ℝ×ℝ, p.1^p.2) ∘ (λp:ℝ≥0 × ℝ, (p.1.1, p.2)),
+  have : (λp:ℝ≥0×ℝ, p.1^p.2) = real.to_nnreal ∘ (λp:ℝ×ℝ, p.1^p.2) ∘ (λp:ℝ≥0 × ℝ, (p.1.1, p.2)),
   { ext p,
-    rw [coe_rpow, nnreal.coe_of_real _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
+    rw [coe_rpow, real.coe_to_nnreal _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
     refl },
   rw this,
   refine nnreal.continuous_of_real.continuous_at.comp (continuous_at.comp _ _),
@@ -1120,15 +1144,15 @@ begin
   { exact ((continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd).continuous_at }
 end
 
-lemma of_real_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
-  nnreal.of_real (x ^ y) = (nnreal.of_real x) ^ y :=
+lemma _root_.real.to_nnreal_rpow_of_nonneg {x y : ℝ} (hx : 0 ≤ x) :
+  real.to_nnreal (x ^ y) = (real.to_nnreal x) ^ y :=
 begin
-  nth_rewrite 0 ← nnreal.coe_of_real x hx,
-  rw [←nnreal.coe_rpow, nnreal.of_real_coe],
+  nth_rewrite 0 ← real.coe_to_nnreal x hx,
+  rw [←nnreal.coe_rpow, real.to_nnreal_coe],
 end
 
 instance : has_measurable_pow ℝ≥0 ℝ :=
-⟨(measurable_fst.nnreal_coe.pow measurable_snd).subtype_mk⟩
+⟨(measurable_fst.coe_nnreal_real.pow measurable_snd).subtype_mk⟩
 
 end nnreal
 
@@ -1623,7 +1647,7 @@ lemma of_real_rpow_of_pos {x p : ℝ} (hx_pos : 0 < x) :
   ennreal.of_real x ^ p = ennreal.of_real (x ^ p) :=
 begin
   simp_rw ennreal.of_real,
-  rw [coe_rpow_of_ne_zero, coe_eq_coe, nnreal.of_real_rpow_of_nonneg hx_pos.le],
+  rw [coe_rpow_of_ne_zero, coe_eq_coe, real.to_nnreal_rpow_of_nonneg hx_pos.le],
   simp [hx_pos],
 end
 
@@ -1667,7 +1691,7 @@ begin
   refine ⟨ennreal.measurable_of_measurable_nnreal_prod _ _⟩,
   { simp_rw ennreal.coe_rpow_def,
     refine measurable.ite _ measurable_const
-      (measurable_fst.pow measurable_snd).ennreal_coe,
+      (measurable_fst.pow measurable_snd).coe_nnreal_ennreal,
     exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
       (measurable_snd measurable_set_Iio), },
   { simp_rw ennreal.top_rpow_def,

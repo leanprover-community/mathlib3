@@ -35,7 +35,7 @@ Linear algebra:
   Multilinearity:
     multilinear map: 'multilinear_map'
     determinant of vectors: 'basis.det'
-    determinant of endomorphisms: ''
+    determinant of endomorphisms: 'linear_map.det'
     special linear group: ''
     orientation of a $\R$-valued vector space: ''
   Matrices:
@@ -206,7 +206,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
   Orthogonality:
     orthogonal elements: 'bilin_form.is_ortho'
     adjoint endomorphism: 'bilin_form.left_adjoint_of_nondegenerate'
-    Sylvester's law of inertia:
+    Sylvester's law of inertia: 'quadratic_form.equivalent_one_neg_one_weighted_sum_squared'
     real classification:
     complex classification:
     Gram-Schmidt orthogonalisation:

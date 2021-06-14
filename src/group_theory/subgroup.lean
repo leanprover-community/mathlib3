@@ -1238,6 +1238,11 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
+@[simp, to_additive]
+lemma cod_restrict_apply {G : Type*} [group G] {N : Type*} [group N] (f : G →* N)
+  (S : subgroup N) (h : ∀ (x : G), f x ∈ S) {x : G} :
+    f.cod_restrict S h x = ⟨f x, h x⟩ := rfl
+
 /-- Computable alternative to `monoid_hom.of_injective`. -/
 def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
 { to_fun := f.range_restrict,
@@ -1306,6 +1311,20 @@ begin
   { intros h x y hxy,
     rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
   { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
+end
+
+@[to_additive]
+lemma prod_map_comap_prod {G' : Type*} {N' : Type*} [group G'] [group N']
+  (f : G →* N) (g : G' →* N') (S : subgroup N) (S' : subgroup N') :
+  (S.prod S').comap (prod_map f g) = (S.comap f).prod (S'.comap g) :=
+set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
+
+@[to_additive]
+lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N) (g : G' →* N') :
+  (prod_map f g).ker = f.ker.prod g.ker :=
+begin
+  dsimp only [ker],
+  rw [←prod_map_comap_prod, bot_prod_bot],
 end
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
@@ -1808,6 +1827,37 @@ set.subset.antisymm
 end subgroup
 
 end pointwise
+
+namespace is_conj
+open subgroup
+
+lemma normal_closure_eq_top_of {N : subgroup G} [hn : N.normal]
+  {g g' : G} {hg : g ∈ N} {hg' : g' ∈ N} (hc : is_conj g g')
+  (ht : normal_closure ({⟨g, hg⟩} : set N) = ⊤) :
+  normal_closure ({⟨g', hg'⟩} : set N) = ⊤ :=
+begin
+  obtain ⟨c, rfl⟩ := is_conj_iff.1 hc,
+  have h : ∀ x : N, (mul_aut.conj c) x ∈ N,
+  { rintro ⟨x, hx⟩,
+    exact hn.conj_mem _ hx c },
+  have hs : function.surjective (((mul_aut.conj c).to_monoid_hom.restrict N).cod_restrict _ h),
+  { rintro ⟨x, hx⟩,
+    refine ⟨⟨c⁻¹ * x * c, _⟩, _⟩,
+    { have h := hn.conj_mem _ hx c⁻¹,
+      rwa [inv_inv] at h },
+    simp only [monoid_hom.cod_restrict_apply, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply,
+      coe_mk, monoid_hom.restrict_apply, subtype.mk_eq_mk, ← mul_assoc, mul_inv_self, one_mul],
+    rw [mul_assoc, mul_inv_self, mul_one] },
+  have ht' := map_mono (eq_top_iff.1 ht),
+  rw [← monoid_hom.range_eq_map, monoid_hom.range_top_of_surjective _ hs] at ht',
+  refine eq_top_iff.2 (le_trans ht' (map_le_iff_le_comap.2 (normal_closure_le_normal _))),
+  rw [set.singleton_subset_iff, set_like.mem_coe],
+  simp only [monoid_hom.cod_restrict_apply, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, coe_mk,
+    monoid_hom.restrict_apply, mem_comap],
+  exact subset_normal_closure (set.mem_singleton _),
+end
+
+end is_conj
 
 /-! ### Actions by `subgroup`s
 

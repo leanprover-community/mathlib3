@@ -415,6 +415,47 @@ begin
   }
 end
 
+namespace with_tests
+
+inductive test
+| intro (n) (f : fin n) (m) (g : fin m)
+
+-- A hyphen in a "with" clause means "clear this hypothesis and its reverse
+-- dependencies".
+example (h : test) : unit :=
+begin
+  cases' h with - F M G,
+  guard_hyp M : ℕ,
+  guard_hyp G : fin M,
+  success_if_fail { guard_hyp n },
+  success_if_fail { guard_hyp F },
+  exact ()
+end
+
+-- Names given in a "with" clause are used verbatim, even if this results in
+-- shadowing.
+example (x : ℕ) (h : test) : unit :=
+begin
+  cases' h with x y y -,
+  /-
+  Expected goal:
+
+  x x : ℕ,
+  y : fin x,
+  y : ℕ
+  ⊢ unit
+
+  It's hard to give a good test case here because we would need a variant of
+  `guard_hyp` that is sensitive to shadowing. But we can at least check that the
+  hyps don't have the names they would get if we avoided shadowing.
+  -/
+  success_if_fail { guard_hyp x_1 },
+  success_if_fail { guard_hyp y_1 },
+  exact ()
+end
+
+end with_tests
+
 -- induction' and cases' can be used to perform induction/case analysis on
 -- arbitrary expressions (not just hypotheses). A very synthetic example:
 example {α} : α ∨ ¬ α :=

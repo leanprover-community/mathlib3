@@ -290,12 +290,11 @@ section continuous_set_integral
 
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
-variables [measurable_space α] {μ : measure α}
-  [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
+variables [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
   {𝕂 : Type*} [is_R_or_C 𝕂] [measurable_space 𝕂]
   [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]
   [normed_space 𝕂 F]
-  {p : ℝ≥0∞}
+  {p : ℝ≥0∞} {μ : measure α}
 
 lemma Lp_to_Lp_restrict_add (f g : Lp E p μ) (s : set α) :
   ((Lp.mem_ℒp (f + g)).restrict s).to_Lp ⇑(f + g)

@@ -1498,7 +1498,7 @@ by ext x; refl
 lemma equiv_map_domain_trans (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
   equiv_map_domain (f.trans g) l = equiv_map_domain g (equiv_map_domain f l) := by ext x; refl
 
-lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
+lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
   @equiv_map_domain _ _ M _ (f.trans g) = equiv_map_domain g ∘ equiv_map_domain f := by ext x; refl
 
 @[simp] lemma equiv_map_domain_single (f : α ≃ β) (a : α) (b : M) :

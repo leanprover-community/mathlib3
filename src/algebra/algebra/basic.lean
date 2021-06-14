@@ -1064,79 +1064,6 @@ end semiring
 
 end matrix
 
-namespace algebra
-
-variables (R : Type u) (S : Type v) (A : Type w)
-include R S A
-
-/-- `comap R S A` is a type alias for `A`, and has an R-algebra structure defined on it
-  when `algebra R S` and `algebra S A`. If `S` is an `R`-algebra and `A` is an `S`-algebra then
-  `algebra.comap.algebra R S A` can be used to provide `A` with a structure of an `R`-algebra.
-  Other than that, `algebra.comap` is now deprecated and replaced with `is_scalar_tower`. -/
-/- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and
-    `algebra ?m_1 A -/
-/- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are
-  necessary for synthesizing the appropriate type classes -/
-@[nolint unused_arguments]
-def comap : Type w := A
-
-instance comap.inhabited [h : inhabited A] : inhabited (comap R S A) := h
-instance comap.semiring [h : semiring A] : semiring (comap R S A) := h
-instance comap.ring [h : ring A] : ring (comap R S A) := h
-instance comap.comm_semiring [h : comm_semiring A] : comm_semiring (comap R S A) := h
-instance comap.comm_ring [h : comm_ring A] : comm_ring (comap R S A) := h
-
-instance comap.algebra' [comm_semiring S] [semiring A] [h : algebra S A] :
-  algebra S (comap R S A) := h
-
-/-- Identity homomorphism `A →ₐ[S] comap R S A`. -/
-def comap.to_comap [comm_semiring S] [semiring A] [algebra S A] :
-  A →ₐ[S] comap R S A := alg_hom.id S A
-/-- Identity homomorphism `comap R S A →ₐ[S] A`. -/
-def comap.of_comap [comm_semiring S] [semiring A] [algebra S A] :
-  comap R S A →ₐ[S] A := alg_hom.id S A
-
-variables [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
-
-/-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
-instance comap.algebra : algebra R (comap R S A) :=
-{ smul := λ r x, (algebra_map R S r • x : A),
-  commutes' := λ r x, algebra.commutes _ _,
-  smul_def' := λ _ _, algebra.smul_def _ _,
-  .. (algebra_map S A).comp (algebra_map R S) }
-
-/-- Embedding of `S` into `comap R S A`. -/
-def to_comap : S →ₐ[R] comap R S A :=
-{ commutes' := λ r, rfl,
-  .. algebra_map S A }
-
-theorem to_comap_apply (x) : to_comap R S A x = algebra_map S A x := rfl
-
-end algebra
-
-section
-
-variables {R : Type u} {S : Type v} {A : Type w} {B : Type u₁}
-variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
-variables [algebra R S] [algebra S A] [algebra S B]
-include R
-
-/-- R ⟶ S induces S-Alg ⥤ R-Alg.
-
-See `alg_hom.restrict_scalars` for the version that uses `is_scalar_tower` instead of `comap`. -/
-def alg_hom.comap (φ : A →ₐ[S] B) : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
-{ commutes' := λ r, φ.commutes (algebra_map R S r)
-  ..φ }
-
-/-- `alg_hom.comap` for `alg_equiv`.
-
-See `alg_equiv.restrict_scalars` for the version that uses `is_scalar_tower` instead of `comap`. -/
-def alg_equiv.comap (φ : A ≃ₐ[S] B) : algebra.comap R S A ≃ₐ[R] algebra.comap R S B :=
-{ commutes' := λ r, φ.commutes (algebra_map R S r)
-  ..φ }
-
-end
-
 section nat
 
 variables {R : Type*} [semiring R]
@@ -1420,53 +1347,120 @@ section restrict_scalars
 `S`-modules are also `R`-modules. -/
 
 section type_synonym
-variables (R A M : Type*)
+variables (R S M A : Type*)
 
 /--
 Warning: use this type synonym judiciously!
-The preferred way of working with an `A`-module `M` as `R`-module (where `A` is an `R`-algebra),
-is by `[module R M] [module A M] [is_scalar_tower R A M]`.
+The preferred way of working with an `S`-module `M` as `R`-module (where `S` is an `R`-algebra),
+is by `[module R M] [module S M] [is_scalar_tower R S M]`.
 
-When `M` is a module over a ring `A`, and `A` is an algebra over `R`, then `M` inherits a
-module structure over `R`, provided as a type synonym `module.restrict_scalars R A M := M`.
+When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
+module structure over `R`, provided as a type synonym `module.restrict_scalars R S M := M`.
+
+When `A` is an algebra over a ring `S`, and `S` is an algebra over `R`, then `A` inherits an
+algebra structure over `R`, provided as a type synonym `algebra.restrict_scalars R S M := M`.
 -/
 @[nolint unused_arguments]
-def restrict_scalars (R A M : Type*) : Type* := M
+def restrict_scalars (R S M : Type*) : Type* := M
 
-instance [I : inhabited M] : inhabited (restrict_scalars R A M) := I
+instance [I : inhabited M] : inhabited (restrict_scalars R S M) := I
 
-instance [I : add_comm_monoid M] : add_comm_monoid (restrict_scalars R A M) := I
+instance [I : add_comm_monoid M] : add_comm_monoid (restrict_scalars R S M) := I
 
-instance [I : add_comm_group M] : add_comm_group (restrict_scalars R A M) := I
+instance [I : add_comm_group M] : add_comm_group (restrict_scalars R S M) := I
 
-instance restrict_scalars.module_orig [semiring A] [add_comm_monoid M] [I : module A M] :
-  module A (restrict_scalars R A M) := I
+instance restrict_scalars.module_orig [semiring S] [add_comm_monoid M] [I : module S M] :
+  module S (restrict_scalars R S M) := I
 
-variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [module A M]
+variables [comm_semiring R]
+
+section module
+variables [semiring S] [algebra R S] [add_comm_monoid M] [module S M]
 
 /--
-When `M` is a module over a ring `A`, and `A` is an algebra over `R`, then `M` inherits a
+When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
 module structure over `R`.
 
-The preferred way of setting this up is `[module R M] [module A M] [is_scalar_tower R A M]`.
+The preferred way of setting this up is `[module R M] [module S M] [is_scalar_tower R S M]`.
 -/
-instance : module R (restrict_scalars R A M) :=
-module.comp_hom M (algebra_map R A)
+instance : module R (restrict_scalars R S M) :=
+module.comp_hom M (algebra_map R S)
 
-lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R A M) :
-  c • x = ((algebra_map R A c) • x : M) := rfl
+lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
+  c • x = ((algebra_map R S c) • x : M) := rfl
 
-instance : is_scalar_tower R A (restrict_scalars R A M) :=
-⟨λ r A M, by { rw [algebra.smul_def, mul_smul], refl }⟩
+instance : is_scalar_tower R S (restrict_scalars R S M) :=
+⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
-instance submodule.restricted_module (V : submodule A M) :
+instance submodule.restricted_module (V : submodule S M) :
   module R V :=
-restrict_scalars.module R A V
+restrict_scalars.module R S V
 
-instance submodule.restricted_module_is_scalar_tower (V : submodule A M) :
-  is_scalar_tower R A V :=
-restrict_scalars.is_scalar_tower R A V
+instance submodule.restricted_module_is_scalar_tower (V : submodule S M) :
+  is_scalar_tower R S V :=
+restrict_scalars.is_scalar_tower R S V
+end module
+
+section algebra
+
+instance [h : semiring A] : semiring (restrict_scalars R S A) := h
+instance [h : ring A] : ring (restrict_scalars R S A) := h
+instance [h : comm_semiring A] : comm_semiring (restrict_scalars R S A) := h
+instance [h : comm_ring A] : comm_ring (restrict_scalars R S A) := h
+
+instance restrict_scalars.algebra_orig [comm_semiring S] [semiring A] [h : algebra S A] :
+  algebra S (restrict_scalars R S A) :=
+h
+
+/-- Identity homomorphism `A →ₐ[S] restrict_scalars R S A`. -/
+def restrict_scalars.to_restrict_scalars [comm_semiring S] [semiring A] [algebra S A] :
+  A →ₐ[S] restrict_scalars R S A := alg_hom.id S A
+/-- Identity homomorphism `restrict_scalars R S A →ₐ[S] A`. -/
+def restrict_scalars.of_restrict_scalars [comm_semiring S] [semiring A] [algebra S A] :
+  restrict_scalars R S A →ₐ[S] A := alg_hom.id S A
+
+variables [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
+
+/-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
+instance : algebra R (restrict_scalars R S A) :=
+{ smul := λ r x, (algebra_map R S r • x : A),
+  commutes' := λ r x, algebra.commutes _ _,
+  smul_def' := λ _ _, algebra.smul_def _ _,
+  .. (algebra_map S A).comp (algebra_map R S) }
+
+/-- Embedding of `S` into `restrict_scalars R S A`. -/
+def to_restrict_scalars : S →ₐ[R] restrict_scalars R S A :=
+{ commutes' := λ r, rfl,
+  .. algebra_map S A }
+
+theorem to_restrict_scalars_apply (x) : to_restrict_scalars R S A x = algebra_map S A x := rfl
+
+variables {B : Type*} [semiring B] [algebra S B]
+include R
+
+/-- R ⟶ S induces S-Alg ⥤ R-Alg.
+
+For historical reasons, the name below (`alg_hom.comap`) is used for the version of this idea which
+is expressed using `restrict_scalars`, while the name `alg_hom.restrict_scalars` is used for the
+version of this idea which is expressed using `is_scalar_tower`.
+
+TODO fix this! -/
+def alg_hom.comap (φ : A →ₐ[S] B) : restrict_scalars R S A →ₐ[R] restrict_scalars R S B :=
+{ commutes' := λ r, φ.commutes (algebra_map R S r)
+  ..φ }
+
+/-- `alg_hom.comap` for `alg_equiv`.
+
+For historical reasons, the name below (`alg_equiv.comap`) is used for the version of this idea
+which is expressed using `restrict_scalars`, while the name `alg_equiv.restrict_scalars` is used
+for the  version of this idea which is expressed using `is_scalar_tower`.
+
+TODO fix this! -/
+def alg_equiv.comap (φ : A ≃ₐ[S] B) : restrict_scalars R S A ≃ₐ[R] restrict_scalars R S B :=
+{ commutes' := λ r, φ.commutes (algebra_map R S r)
+  ..φ }
+
+end algebra
 
 end type_synonym
 

@@ -8,7 +8,7 @@ import algebra.algebra.operations
 /-!
 # Subalgebras over Commutative Semiring
 
-In this file we define `subalgebra`s and the usual operations on them (`map`, `comap`).
+In this file we define `subalgebra`s and the usual operations on them (`map`, `restrict_scalars`).
 
 More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 -/
@@ -295,10 +295,10 @@ we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
-/-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `comap R S A`. -/
-def comap {R : Type u} {S : Type v} {A : Type w}
+/-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `restrict_scalars R S A`. -/
+def restrict_scalars {R : Type u} {S : Type v} {A : Type w}
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
-  (iSB : subalgebra S A) : subalgebra R (algebra.comap R S A) :=
+  (iSB : subalgebra S A) : subalgebra R (restrict_scalars R S A) :=
 { algebra_map_mem' := λ r, iSB.algebra_map_mem (algebra_map R S r),
   .. iSB }
 

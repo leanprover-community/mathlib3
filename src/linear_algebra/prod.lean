@@ -192,6 +192,21 @@ begin
   rw [←prod_map_comap_prod, submodule.prod_bot],
 end
 
+section map_mul
+
+variables {A : Type*} [non_unital_non_assoc_semiring A] [module R A]
+variables {B : Type*} [non_unital_non_assoc_semiring B] [module R B]
+
+lemma inl_map_mul (a₁ a₂ : A) : linear_map.inl R A B (a₁ * a₂) =
+  linear_map.inl R A B a₁ * linear_map.inl R A B a₂ :=
+prod.ext rfl (by simp)
+
+lemma inr_map_mul (b₁ b₂ : B) : linear_map.inr R A B (b₁ * b₂) =
+  linear_map.inr R A B b₁ * linear_map.inr R A B b₂ :=
+prod.ext (by simp) rfl
+
+end map_mul
+
 end linear_map
 
 end prod

@@ -184,7 +184,8 @@ begin
     apply le_of_mul_le_mul_left _ hscard,
     rw [←mul_assoc, ←sq],
     simp_rw sub_sq at h,
-    rw [sum_add_distrib, sum_sub_distrib, sum_sub_distrib, ←sum_mul, ←mul_sum, sum_const, sum_const, ht, hs, nsmul_eq_mul, nsmul_eq_mul, mul_comm (a + b), ←mul_sub, add_sub_cancel',
+    rw [sum_add_distrib, sum_sub_distrib, sum_sub_distrib, ←sum_mul, ←mul_sum, sum_const,
+      sum_const, ht, hs, nsmul_eq_mul, nsmul_eq_mul, mul_comm (a + b), ←mul_sub, add_sub_cancel',
     mul_pow] at h,
     convert h,
     ring },
@@ -453,16 +454,16 @@ begin
     { rw [hA', nat.cast_zero] at hAcard,
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hAcard hδ₁ },
-    rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero, div_zero,
-      sub_zero],
+    rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero,
+      div_zero, sub_zero],
     exact hδ' },
   obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
   { have hB : B.card = 0,
     { rw [hB', nat.cast_zero] at hBcard,
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hBcard hδ₁ },
-    rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero, div_zero,
-      sub_zero],
+    rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero,
+      div_zero, sub_zero],
     exact hδ' },
   have hApos : 0 < A.card := hA'.trans_le (finset.card_le_of_subset hA),
   have hBpos : 0 < B.card := hB'.trans_le (finset.card_le_of_subset hB),
@@ -493,16 +494,16 @@ begin
     { rw [hA', nat.cast_zero] at hAcard,
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hAcard (sub_pos.2 hδ₁) },
-    rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero, div_zero,
-      sub_zero, abs_zero],
+    rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero,
+      div_zero, sub_zero, abs_zero],
     exact hδ' },
   obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
   { have hB : B.card = 0,
     { rw [hB', nat.cast_zero] at hBcard,
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hBcard (sub_pos.2 hδ₁) },
-    rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero, div_zero,
-      sub_zero, abs_zero],
+    rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero,
+      div_zero, sub_zero, abs_zero],
     exact hδ' },
   refine abs_sub_le_iff.2 ⟨_, aux3 r hA hB hδ₀ hδ₁ hAcard hBcard⟩,
   have hAnemp' := finset.card_pos.1 hA',
@@ -1125,25 +1126,51 @@ end
 
 end
 
-section
+section atomise
 variables {α : Type*} [decidable_eq α] {s : finset α}
 
 def atomise (s : finset α) (Q : finset (finset α)) :
-  finset (finset α) :=
-Q.powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x))
+  finpartition s :=
+{ parts := Q.powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x)),
+  disjoint := begin
+    rintro x y hx hy i hi₁ hi₂,
+    simp only [mem_powerset, mem_image, exists_prop] at hx hy,
+    obtain ⟨P, hP, rfl⟩ := hx,
+    obtain ⟨P', hP', rfl⟩ := hy,
+    suffices h : P = P',
+    { subst h },
+    rw mem_filter at hi₁ hi₂,
+    ext j,
+    refine ⟨λ hj, _, λ hj, _⟩,
+    { rwa [hi₂.2 _ (hP hj), ←hi₁.2 _ (hP hj)] },
+    rwa [hi₁.2 _ (hP' hj), ←hi₂.2 _ (hP' hj)],
+  end,
+  covering := begin
+    rintro x hx,
+    simp only [mem_powerset, mem_image, exists_prop, mem_filter, exists_exists_and_eq_and],
+    refine ⟨Q.filter (λ t, x ∈ t), filter_subset _ _, hx, λ y hy, _⟩,
+    simp only [mem_filter, and_iff_right_iff_imp],
+    exact λ _, hy,
+  end,
+  subset := begin
+    rintro x hx,
+    simp only [mem_powerset, mem_image, exists_prop] at hx,
+    obtain ⟨P, hP, rfl⟩ := hx,
+    exact filter_subset _ s,
+  end }
 
 lemma mem_atomise {s : finset α} {Q : finset (finset α)} (A : finset α) :
-  A ∈ atomise s Q ↔ ∃ (P ⊆ Q), s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x) = A :=
+  A ∈ (atomise s Q).parts ↔ ∃ (P ⊆ Q), s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x) = A :=
 by simp only [atomise, mem_powerset, mem_image, exists_prop]
 
-lemma atomise_empty : atomise s ∅ = {s} :=
+lemma atomise_empty : (atomise s ∅).parts = {s} :=
 begin
   rw [atomise],
   simp,
 end
 
 lemma atomise_disjoint {s : finset α} {Q : finset (finset α)} {x y : finset α}
-  (hx : x ∈ atomise s Q) (hy : y ∈ atomise s Q) : disjoint x y ∨ x = y :=
+  (hx : x ∈ (atomise s Q).parts) (hy : y ∈ (atomise s Q).parts) : disjoint x y ∨ x = y :=
 begin
   rw or_iff_not_imp_left,
   simp only [disjoint_left, not_forall, and_imp, exists_prop, not_not, exists_imp_distrib],
@@ -1161,7 +1188,7 @@ begin
 end
 
 lemma atomise_covers {s : finset α} (Q : finset (finset α)) {x : α} (hx : x ∈ s) :
-  ∃ Y ∈ atomise s Q, x ∈ Y :=
+  ∃ Y ∈ (atomise s Q).parts, x ∈ Y :=
 begin
   simp only [mem_atomise, exists_prop, mem_filter, exists_exists_and_eq_and],
   refine ⟨Q.filter (λ t, x ∈ t), filter_subset _ _, hx, λ y hy, _⟩,
@@ -1171,7 +1198,7 @@ begin
 end
 
 lemma atomise_unique_covers {s : finset α} {Q : finset (finset α)} {x : α} (hx : x ∈ s) :
-  ∃! Y ∈ atomise s Q, x ∈ Y :=
+  ∃! Y ∈ (atomise s Q).parts, x ∈ Y :=
 begin
   obtain ⟨Y, hY₁, hY₂⟩ := atomise_covers Q hx,
   apply exists_unique.intro2 Y hY₁ hY₂,
@@ -1182,7 +1209,7 @@ begin
 end
 
 lemma card_atomise {s : finset α} {Q : finset (finset α)} :
-  (atomise s Q).card ≤ 2^Q.card :=
+  ((atomise s Q).parts).card ≤ 2^Q.card :=
 begin
   apply le_trans finset.card_image_le,
   simp,
@@ -1190,7 +1217,7 @@ end
 
 lemma union_of_atoms_aux {s : finset α} {Q : finset (finset α)} {A : finset α}
   (hA : A ∈ Q) (hs : A ⊆ s) (i : α) :
-  (∃ (B ∈ atomise s Q), B ⊆ A ∧ i ∈ B) ↔ i ∈ A :=
+  (∃ (B ∈ (atomise s Q).parts), B ⊆ A ∧ i ∈ B) ↔ i ∈ A :=
 begin
   split,
   { rintro ⟨B, hB₁, hB₂, hB₃⟩,
@@ -1210,7 +1237,7 @@ end
 
 lemma union_of_atoms {s : finset α} {Q : finset (finset α)} {A : finset α}
   (hA : A ∈ Q) (hs : A ⊆ s) :
-  s.filter (λ i, ∃ B ∈ atomise s Q, B ⊆ A ∧ i ∈ B) = A :=
+  s.filter (λ i, ∃ B ∈ (atomise s Q).parts, B ⊆ A ∧ i ∈ B) = A :=
 begin
   ext i,
   simp only [mem_filter, union_of_atoms_aux hA hs],
@@ -1223,7 +1250,7 @@ decidable_of_iff' _ finset.nonempty_iff_ne_empty
 
 lemma union_of_atoms' {s : finset α} {Q : finset (finset α)} (A : finset α)
   (hx : A ∈ Q) (hs : A ⊆ s) :
-  ((atomise s Q).filter (λ B, B ⊆ A ∧ B.nonempty)).bUnion id = A :=
+  ((atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty)).bUnion id = A :=
 begin
   ext x,
   rw mem_bUnion,
@@ -1238,10 +1265,10 @@ end
 
 lemma partial_atomise {s : finset α} {Q : finset (finset α)} (A : finset α)
   (hA : A ∈ Q) (hs : A ⊆ s) :
-  ((atomise s Q).filter (λ B, B ⊆ A ∧ B.nonempty)).card ≤ 2^(Q.card - 1) :=
+  ((atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty)).card ≤ 2^(Q.card - 1) :=
 begin
   suffices h :
-    (atomise s Q).filter (λ B, B ⊆ A ∧ B.nonempty) ⊆
+    (atomise s Q).parts.filter (λ B, B ⊆ A ∧ B.nonempty) ⊆
       (Q.erase A).powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ insert A P ↔ i ∈ x)),
   { apply le_trans (card_le_of_subset h) (card_image_le.trans _),
     rw [card_powerset, card_erase_of_mem hA],
@@ -1258,7 +1285,7 @@ begin
   simp only [insert_erase this, filter_congr_decidable],
 end
 
-end
+end atomise
 
 /-- Arbitrary equipartition into `t` parts -/
 lemma dummy_equipartition {V : Type*} [decidable_eq V] (s : finset V) {t : ℕ}
@@ -1302,12 +1329,20 @@ theorem increment (hP : P.is_equipartition)
   ∃ (Q : finpartition' V),
     Q.is_equipartition ∧ Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
 begin
-  sorry
+  let witnesses : finset V → finset V → sym2 (finset V) := λ U W, dite (⟦(U, W)⟧ ∈ P.non_uniform_parts G ε)
+    (λ h, begin
+      rw [mem_non_uniform_parts, simple_graph.is_uniform] at h,
+      push_neg at h,
+      let U' := classical.some h.2.2.2,
+      let W' := classical.some (classical.some_spec h.2.2.2).2,
+      exact ⟦(U', W')⟧,
+    end)
+    (λ h, ⟦(U, W)⟧)
 end
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/
 noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
-max l (nat_floor (real.log (100/ε^5) / real.log 4) + 1) -- change to nat_floor
+max l (nat_floor (real.log (100/ε^5) / real.log 4) + 1)
 
 lemma le_iteration_bound (ε : ℝ) (l : ℕ) : l ≤ iteration_bound ε l := le_max_left l _
 lemma iteration_bound_pos (ε : ℝ) (l : ℕ) : 0 < iteration_bound ε l :=
@@ -1329,7 +1364,7 @@ end
 -/
 noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
 (exp_bound^[nat_floor (4/ε^5)] (iteration_bound ε l)) *
-  16^(exp_bound^[nat_floor (4/ε^5)] (iteration_bound ε l)) -- change to floor after PR
+  16^(exp_bound^[nat_floor (4/ε^5)] (iteration_bound ε l))
 
 lemma iteration_bound_le_szemeredi_bound (ε l) :
   iteration_bound ε l ≤ szemeredi_bound ε l :=

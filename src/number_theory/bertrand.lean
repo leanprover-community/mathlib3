@@ -8,7 +8,7 @@ import data.nat.prime
 import data.finset.intervals
 import data.nat.multiplicity
 import data.nat.choose.sum
-import data.padics.padic_norm
+import number_theory.padics.padic_norm
 import tactic
 import ring_theory.multiplicity
 import algebra.module
@@ -51,9 +51,6 @@ begin
   apply trans (pow_le_pow (trans one_le_two hp.out.two_le) bar) baz,
 end
 
-lemma add_two_not_le_one (x : nat) (pr : x.succ.succ ≤ 1) : false :=
-  nat.not_succ_le_zero x (nat.lt_succ_iff.mp pr)
-
 lemma claim_2
   (p : nat)
   [hp : fact p.prime]
@@ -67,73 +64,13 @@ begin
     calc p ^ α n p ≤ 2 * n : claim_1 p n n_big
     ...            < p ^ 2 : smallish,
 
-  let h2 := (pow_lt_pow_iff hp.out.one_lt).1 h1,
-  omega,
-  -- -- pow_lt_pow_iff
-  -- unfold α,
-  -- rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n),
-  -- simp only [@nat.prime.multiplicity_choose p (2 * n) n _ hp.out (by linarith) (le_refl (2 * n))],
-  -- have r : 2 * n - n = n, by
-  --   calc 2 * n - n = n + n - n: by rw two_mul n
-  --   ... = n: nat.add_sub_cancel n n,
-  -- simp only [r, finset.filter_congr_decidable],
-  -- have s : ∀ i, p ^ i ≤ n % p ^ i + n % p ^ i → i ≤ 1, by
-  --   { intros i pr,
-  --     cases le_or_lt i 1, {exact h,},
-  --     { exfalso,
-  --       have u : 2 * n < 2 * (n % p ^ i), by
-  --         calc 2 * n < p ^ 2 : smallish
-  --         ... ≤ p ^ i : nat.pow_le_pow_of_le_right (nat.prime.pos is_prime) h
-  --         ... ≤ n % p ^ i + n % p ^ i : pr
-  --         ... = 2 * (n % p ^ i) : (two_mul _).symm,
-  --       have v : n < n % p ^ i, by linarith,
-  --       have w : n % p ^ i ≤ n, exact (nat.mod_le _ _),
-  --       linarith, }, },
-  -- have t : ∀ x ∈ finset.Ico 1 (2 * n), p ^ x ≤ n % p ^ x + n % p ^ x ↔ (x ≤ 1 ∧ p ^ x ≤ n % p ^ x + n % p ^ x), by
-  --   {
-  --     intros x size,
-  --     split,
-  --     { intros bound, split, exact s x bound, exact bound, },
-  --     { intros size2,
-  --       cases x,
-  --       { simp at size, trivial, },
-  --       { cases x,
-  --         { exact size2.right, },
-  --         { exfalso, exact nat.not_succ_le_zero _ (nat.lt_succ_iff.mp (size2.left)), }, }, },
-  --   },
-  -- simp only [finset.filter_congr t],
-  -- simp only [finset.filter_and],
-  -- simp only [@finset.Ico.filter_Ico_bot 1 (2 * n) (by linarith)],
-  -- exact finset.card_singleton_inter,
-end
-
-lemma move_mul (m p i : nat) (b : m < i * p) : m / p < i :=
-begin
-  cases lt_or_le (m / p) i,
-  { exact h },
-  exfalso,
-  let u : i * p ≤ m := le_trans (nat.mul_le_mul_right p h) (nat.div_mul_le_self m p),
+  let h2 : α n p < 2 := (pow_lt_pow_iff hp.out.one_lt).1 h1,
   linarith,
-end
-
-private lemma collapse_enat (n : enat) (s : 2 = n + 1 + 1) : n = 0 :=
-begin
-  have u : 0 + 1 = n + 1, by simpa using (enat.add_right_cancel_iff (enat.coe_ne_top 1)).1 s,
-  have v : 0 = n, by exact (enat.add_right_cancel_iff (enat.coe_ne_top 1)).1 u,
-  exact v.symm
 end
 
 lemma twice_nat_small : ∀ (n : nat) (h : 2 * n < 2), n = 0
 | 0 := λ _, rfl
 | (n + 1) := λ pr, by linarith
-
-lemma pow_big : ∀ (i p : nat) (p_pos : 0 < p) (i_big : 1 < i), p * p ≤ p ^ i
-| 0 := λ _ _ pr, by linarith
-| 1 := λ _ _ pr, by linarith
-| (i + 2) := λ p p_pos i_big, by {
-  calc p * p = p ^ 2 : by ring_exp
-  ... ≤ p ^ (i + 2) : nat.pow_le_pow_of_le_right p_pos i_big,
-}
 
 lemma claim_3
   (p : nat)
@@ -446,33 +383,28 @@ begin
       ... ≤ 4 ^ (n + 1) : by ring_exp, }, },
 end
 
-lemma division_alg (n : ℕ) : ∃ (m : ℕ), ∃ (k : ℕ), n = 15 * m + k ∧ k < 15 :=
-by sorry
-
 lemma power_conversion_1 (n : ℕ) (n_large : 480 < n) : 2 * n + 1 ≤ 4 ^ (n / 15) :=
 begin
-  rcases division_alg n with ⟨quot, ⟨rem, ⟨pr, rem_small⟩⟩⟩,
-  { rw pr,
-    have s : (15 * quot + rem) / 15 = quot := sorry,
-    have tt : 31 ≤ quot,
-      { cases le_or_gt 31 quot,
-        { exact h, },
-        { have r : n < n :=
-            calc n = 15 * quot + rem : pr
-              ... < 15 * 31 + rem : by linarith
-              ... < 15 * 31 + 15 : by linarith
-              ... = 480 : by norm_num
-              ... < n : by linarith,
-          linarith, }, },
-    have t : 3 < quot := by linarith,
-    rw s,
-    calc 2 * (15 * quot + rem) + 1 = 30 * quot + 2 * rem + 1 : by ring
-    ... ≤ 30 * quot + 2 * 15 + 1 : by linarith
-    ... = 30 * quot + 31 : by norm_num
-    ... ≤ 31 * quot + 31 : by linarith
-    ... ≤ 31 * quot + quot : by linarith
-    ... = 32 * quot : by ring
-    ... ≤ 4 ^ quot : pow_beats_mul quot t, }
+  have : 31 ≤ n / 15,
+    { cases le_or_gt 31 (n / 15),
+      { exact h, },
+      { have r : n < n :=
+          calc n = 15 * (n / 15) + (n % 15) : (nat.div_add_mod n 15).symm
+            ... < 15 * 31 + (n % 15) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 14)).2 h) _
+            ... < 15 * 31 + 15 : add_lt_add_left (nat.mod_lt n (by linarith)) (15 * 31)
+            ... = 480 : by norm_num
+            ... < n : n_large,
+        exfalso,
+        exact lt_irrefl _ r, }, },
+  have rem_small : (n % 15) < 15 := nat.mod_lt n (nat.succ_pos 14),
+  calc 2 * n + 1 = 2 * (15 * (n / 15) + (n % 15)) + 1 : by rw nat.div_add_mod n 15
+  ... = 30 * (n / 15) + 2 * (n % 15) + 1 : by ring
+  ... ≤ 30 * (n / 15) + 2 * 15 + 1 : by linarith
+  ... = 30 * (n / 15) + 31 : by norm_num
+  ... ≤ 31 * (n / 15) + 31 : by linarith
+  ... ≤ 31 * (n / 15) + (n / 15) : by linarith
+  ... = 32 * (n / 15) : by ring
+  ... ≤ 4 ^ (n / 15) : pow_beats_mul (n / 15) (by linarith),
 end
 
 
@@ -483,7 +415,10 @@ end
 
 lemma fooo (n : ℕ) (n_pos : 1 ≤ n) : n / 15 + n / 4 + (2 * n / 3 + 1) ≤ n :=
 begin
-  sorry
+  suffices: n / 15 + n / 4 + 2 * n / 3 < n, by linarith,
+  have s : (n / 15) * 15 ≤ n := nat.div_mul_le_self n 15,
+  have t : (n / 4) * 4 ≤ n := nat.div_mul_le_self n 4,
+  sorry,
 end
 
 
@@ -516,11 +451,6 @@ begin
           end
 end
 
-lemma blah {a : _} {A : finset a} {B : finset a} (p : A ⊆ B) : A.card ≤ B.card :=
-begin
-  exact finset.card_le_of_subset p
-end
-
 lemma more_restrictive_filter_means_smaller_subset {a : _} {S : finset a} {f : _} {g : _} [decidable_pred f] [decidable_pred g] (p : ∀ i, f i → g i): finset.filter f S ⊆ finset.filter g S :=
 begin
   intros h prop,
@@ -542,9 +472,7 @@ lemma foo {n : ℕ} : (finset.filter (λ (p : ℕ), p ^ 2 < 2 * n) (finset.filte
 begin
   have t : ∀ p, p ^ 2 ≤ 2 * n ↔ p ≤ nat.sqrt (2 * n),
   { intro p,
-    have r : p ^ 2 = p * p, by ring,
-    rw r,
-    exact nat.le_sqrt.symm, },
+    exact nat.le_sqrt'.symm, },
 
   have u : ∀ p, (p ^ 2 < 2 * n) → p ^ 2 ≤ 2 * n, by
   { intros p hyp,
@@ -605,10 +533,7 @@ begin
           { cases i,
             { linarith, },
             { exact dec_trivial, }, } }, },
-      { have s : i * i ≤ 2 * n,
-          calc i * i = i ^ 2 : by ring
-          ... ≤ 2 * n : hyp.2,
-        have r : i ≤ nat.sqrt (2 * n) := nat.le_sqrt.mpr s,
+      { have : i ≤ nat.sqrt (2 * n) := nat.le_sqrt'.mpr hyp.2,
         linarith, },
     },
 

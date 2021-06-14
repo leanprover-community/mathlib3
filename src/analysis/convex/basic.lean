@@ -905,13 +905,8 @@ lemma convex_on.le_right_of_left_le' (hf : convex_on s f) {x y : E} {a b : ℝ}
   (hxy : f x ≤ f (a • x + b • y)) :
   f (a • x + b • y) ≤ f y :=
 begin
-  apply le_of_not_lt (λ h, lt_irrefl (f (a • x + b • y)) _),
-  calc
-    f (a • x + b • y)
-        ≤ a • f x + b • f y : hf.2 hx hy ha hb.le hab
-    ... < a • f (a • x + b • y) + b • f (a • x + b • y)
-        : add_lt_add_of_le_of_lt (smul_le_smul_of_nonneg hxy ha) (smul_lt_smul_of_pos h hb)
-    ... = f (a • x + b • y) : by rw [←add_smul, hab, one_smul],
+  rw add_comm at ⊢ hab hxy,
+  exact hf.le_left_of_right_le' hy hx hb ha hab hxy,
 end
 
 lemma concave_on.le_right_of_left_le' (hf : concave_on s f) {x y : E} {a b : ℝ}

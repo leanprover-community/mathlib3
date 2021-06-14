@@ -701,6 +701,10 @@ end
 @[simp] lemma restrict_eq_zero : μ.restrict s = 0 ↔ μ s = 0 :=
 by rw [← measure_univ_eq_zero, restrict_apply_univ]
 
+lemma restrict_zero_set {s : set α} (h : μ s = 0) :
+  μ.restrict s = 0 :=
+by simp only [measure.restrict_eq_zero, h]
+
 @[simp] lemma restrict_empty : μ.restrict ∅ = 0 := ext $ λ s hs, by simp [hs]
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
@@ -1400,6 +1404,10 @@ class has_no_atoms (μ : measure α) : Prop :=
 export probability_measure (measure_univ) has_no_atoms (measure_singleton)
 
 attribute [simp] measure_singleton
+
+@[simp] lemma measure.restrict_singleton' [has_no_atoms μ] {a : α} :
+  μ.restrict {a} = 0 :=
+by simp only [measure_singleton, measure.restrict_eq_zero]
 
 lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s < ∞ :=
 (measure_mono (subset_univ s)).trans_lt finite_measure.measure_univ_lt_top

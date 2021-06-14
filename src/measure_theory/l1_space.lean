@@ -540,6 +540,17 @@ lemma lipschitz_with.integrable_comp_iff_of_antilipschitz [complete_space β] [b
   integrable (g ∘ f) μ ↔ integrable f μ :=
 by simp [← mem_ℒp_one_iff_integrable, hg.mem_ℒp_comp_iff_of_antilipschitz hg' g0]
 
+lemma integrable.real_to_nnreal {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λ x, ((f x).to_nnreal : ℝ)) μ :=
+begin
+  refine ⟨hf.ae_measurable.real_to_nnreal.coe_nnreal_real, _⟩,
+  rw has_finite_integral_iff_norm,
+  refine lt_of_le_of_lt _ ((has_finite_integral_iff_norm _).1 hf.has_finite_integral),
+  apply lintegral_mono,
+  assume x,
+  simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
+end
+
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/
 

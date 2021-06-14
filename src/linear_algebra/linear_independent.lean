@@ -1153,7 +1153,7 @@ begin
 end
 
 /-- `linear_independent.extend s t` adds vectors to `s` until it spans all elements of `t`.
-In particular, if `s ⊆ t` and `s` is linear independent, then `extend` is also linear independent. -/
+In particular, `s` is linear independent, then `extend` is also linear independent. -/
 noncomputable def linear_independent.extend (s t : set V)  : set V :=
 (exists_extend K s t).some
 

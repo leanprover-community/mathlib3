@@ -132,9 +132,9 @@ rfl
 
 variables (R) {S A B}
 
-instance {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
-  [algebra R S] [algebra S A] : is_scalar_tower R S (restrict_scalars R S A) :=
-of_algebra_map_eq $ λ x, rfl
+-- instance {R S A : Type*} [comm_semiring R] [comm_semiring S] [semiring A]
+--   [algebra R S] [algebra S A] : is_scalar_tower R S (restrict_scalars R S A) :=
+-- of_algebra_map_eq $ λ x, rfl
 
 -- conflicts with is_scalar_tower.subalgebra
 @[priority 999] instance subsemiring (U : subsemiring S) : is_scalar_tower U S A :=

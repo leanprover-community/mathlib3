@@ -1912,7 +1912,7 @@ begin
         = ∫⁻ x, ∑' n, (((s n).indicator (λ x, ρ n) x : ℝ≥0) : ℝ≥0∞) ∂μ :
       by { apply lintegral_congr (λ x, _), simp_rw [g, ennreal.coe_tsum (B x)] }
     ... = ∑' n, ∫⁻ x, (((s n).indicator (λ x, ρ n) x : ℝ≥0) : ℝ≥0∞) ∂μ :
-      lintegral_tsum (λ n, (M n).ennreal_coe)
+      lintegral_tsum (λ n, (M n).coe_nnreal_ennreal)
     ... = ∑' n, μ (s n) * ρ n :
       by simp only [measurable_spanning_sets μ, lintegral_const, measurable_set.univ, mul_comm,
                     lintegral_indicator, univ_inter, coe_indicator, measure.restrict_apply]

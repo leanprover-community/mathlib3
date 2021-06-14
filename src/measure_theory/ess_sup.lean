@@ -96,7 +96,7 @@ lemma order_iso.ess_sup_apply {γ} [complete_lattice γ] (f : α → β) (μ : m
   g (ess_sup f μ) = ess_sup (λ x, g (f x)) μ :=
 begin
   refine order_iso.limsup_apply g _ _ _ _,
-  all_goals { by is_bounded_default},
+  all_goals { is_bounded_default, },
 end
 
 lemma order_iso.ess_inf_apply {γ} [complete_lattice γ] (f : α → β) (μ : measure α)
@@ -108,14 +108,14 @@ lemma ess_sup_mono_measure {f : α → β} {μ ν : measure α} (hμν : ν ≪ 
   ess_sup f ν ≤ ess_sup f μ :=
 begin
   refine limsup_le_limsup_of_le (measure.ae_le_iff_absolutely_continuous.mpr hμν) _ _,
-  all_goals {is_bounded_default, },
+  all_goals { is_bounded_default, },
 end
 
 lemma ess_inf_antimono_measure {f : α → β} {μ ν : measure α} (hμν : μ ≪ ν) :
   ess_inf f ν ≤ ess_inf f μ :=
 begin
   refine liminf_le_liminf_of_le (measure.ae_le_iff_absolutely_continuous.mpr hμν) _ _,
-  all_goals {is_bounded_default, },
+  all_goals { is_bounded_default, },
 end
 
 end complete_lattice
@@ -141,8 +141,7 @@ eventually_le_limsup f
 @[simp] lemma ess_sup_eq_zero_iff : ess_sup f μ = 0 ↔ f =ᵐ[μ] 0 :=
 limsup_eq_zero_iff
 
-lemma ess_sup_const_mul {a : ℝ≥0∞} :
-  ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
+lemma ess_sup_const_mul {a : ℝ≥0∞} : ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
 limsup_const_mul
 
 lemma ess_sup_add_le (f g : α → ℝ≥0∞) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=

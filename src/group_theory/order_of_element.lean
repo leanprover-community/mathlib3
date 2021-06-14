@@ -774,6 +774,20 @@ end
 
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 
+/-- If `gcd(|G|,k)=1` then the `k`th power map is a bijection -/
+def pow_coprime {G : Type*} [group G] [fintype G] {k : ℕ}
+  (h : nat.coprime (fintype.card G) k) : G ≃ G :=
+{ to_fun := λ g, g ^ k,
+  inv_fun := λ g, g ^ (nat.gcd_b (fintype.card G) k),
+  left_inv := λ g, by
+  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) k),
+    rwa [gpow_add, gpow_mul, gpow_mul, gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key },
+  right_inv := λ g, by
+  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) k),
+    rwa [gpow_add, gpow_mul, gpow_mul', gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key } }
+
 variable (a)
 
 lemma image_range_add_order_of [decidable_eq A] :

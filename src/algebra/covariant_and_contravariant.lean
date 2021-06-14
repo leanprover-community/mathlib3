@@ -245,16 +245,16 @@ instance right_cancel_semigroup.covariant_swap_mul_lt_of_covariant_swap_mul_le
 instance left_cancel_semigroup.contravariant_mul_le_of_contravariant_mul_lt
   [left_cancel_semigroup N] [partial_order N] [contravariant_class N N (*) (<)] :
   contravariant_class N N (*) (≤) :=
-{ elim :=  λ  a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
-      { exact ((mul_right_inj a).mp h).le },
-      { exact (contravariant_class.elim _ h).le } } }
+{ elim := λ a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
+    { exact ((mul_right_inj a).mp h).le },
+    { exact (contravariant_class.elim _ h).le } } }
 
 @[to_additive]
 instance right_cancel_semigroup.contravariant_swap_mul_le_of_contravariant_swap_mul_lt
   [right_cancel_semigroup N] [partial_order N] [contravariant_class N N (function.swap (*)) (<)] :
   contravariant_class N N (function.swap (*)) (≤) :=
-{ elim :=  λ a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
-      { exact ((mul_left_inj a).mp h).le },
-      { exact (contravariant_class.elim _ h).le } } }
+{ elim := λ a b c bc, by { cases le_iff_eq_or_lt.mp bc with h h,
+    { exact ((mul_left_inj a).mp h).le },
+    { exact (contravariant_class.elim _ h).le } } }
 
 end variants

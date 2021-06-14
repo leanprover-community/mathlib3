@@ -253,7 +253,7 @@ Affine and Euclidean Geometry:
   Convexity:
     convex subsets: `convex`
     convex hull of a subset of an affine real space: `convex_hull`
-    extreme point: `is_extreme`
+    extreme point: `set.extreme_points`
   Euclidean affine spaces:
     isometries of a Euclidean affine space:
     group of isometries of a Euclidean affine space:

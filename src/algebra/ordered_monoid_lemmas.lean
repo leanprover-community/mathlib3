@@ -537,7 +537,8 @@ end partial_order
 -- PR.  The layout will be better in the next PR!
 section mono
 variables {β : Type*} [preorder β] {f g : β → α}
-variables [mul_one_class α] [partial_order α] [covariant_class α α has_mul.mul has_le.le] [covariant_class α α (function.swap has_mul.mul) has_le.le]
+variables [mul_one_class α] [partial_order α] [covariant_class α α has_mul.mul has_le.le]
+  [covariant_class α α (function.swap has_mul.mul) has_le.le]
 @[to_additive monotone.add]
 lemma monotone.mul' (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
 λ x y h, mul_le_mul' (hf h) (hg h)

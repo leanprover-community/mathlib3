@@ -10,6 +10,13 @@ import category_theory.limits.shapes.pullbacks
 /-!
 # Representably concrete categories
 
+A concrete category `C` is said to be representably concrete if the forgetful functor to Type is
+(co)representable. In other words, for an object `X` of `C`, there is a bijection between elements
+of `X` and morphisms from a fixed object to `X`.
+
+This allows convenient description of elements of limits in concrete categories, for instance given
+two elements `x : X` and `y : Y` and morphisms `f : X ⟶ Z` and `g : Y ⟶ Z` such that `f x = g y`,
+`mk_pullback` constructs an element of the object `pullback f g`.
 -/
 
 namespace category_theory
@@ -67,6 +74,20 @@ congr_fun ((forget C).corepr_f.naturality g) f
 @[simp] lemma rep_equiv_symm_apply {X Y : C} (x : X) (f : X ⟶ Y) :
   rep_equiv.symm x ≫ f = rep_equiv.symm (f x) :=
 by rw [equiv.eq_symm_apply, rep_equiv_apply, equiv.apply_symm_apply]
+
+lemma injective_of_mono {X Y : C} (f : X ⟶ Y) [mono f] : function.injective f :=
+begin
+  intros x y h,
+  refine rep_equiv.symm.injective _,
+  rw ←cancel_mono f,
+  simp [h, cancel_mono f]
+end
+
+lemma injective_iff_mono {X Y : C} (f : X ⟶ Y) : function.injective f ↔ mono f :=
+⟨λ hf, begin
+  rw ←mono_iff_injective at hf,
+  apply faithful_reflects_mono (forget C) hf,
+end, @@injective_of_mono _ _ _ _⟩
 
 open limits
 

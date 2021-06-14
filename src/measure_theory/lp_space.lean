@@ -450,7 +450,7 @@ variable [opens_measurable_space E]
 
 lemma mem_ℒp.norm {f : α → E} (h : mem_ℒp f p μ) : mem_ℒp (λ x, ∥f x∥) p μ :=
 h.of_le h.ae_measurable.norm (eventually_of_forall (λ x, by simp))
-
+d
 lemma snorm'_eq_zero_of_ae_zero {f : α → F} (hq0_lt : 0 < q) (hf_zero : f =ᵐ[μ] 0) :
   snorm' f q μ = 0 :=
 by rw [snorm'_congr_ae hf_zero, snorm'_zero hq0_lt]

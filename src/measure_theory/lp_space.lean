@@ -474,7 +474,7 @@ begin
   simp_rw snorm',
   congr' 1,
   refine lintegral_trim hm _,
-  refine @measurable.pow_const α m _ _ _ _ _ _ _ (@measurable.ennreal_coe α m _ _) _,
+  refine @measurable.pow_const α m _ _ _ _ _ _ _ (@measurable.coe_nnreal_ennreal α m _ _) _,
   exact @measurable.nnnorm E α _ _ _ m _ hf,
 end
 
@@ -502,10 +502,7 @@ by { simp_rw ess_sup, exact limsup_trim hm hf, }
 lemma snorm_ess_sup_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
   {f : α → E} (hf : @measurable _ _ m _ f) :
   @snorm_ess_sup α E m _ f (μ.trim hm) = snorm_ess_sup f μ :=
-begin
-  simp_rw snorm_ess_sup,
-  exact ess_sup_trim hm (@measurable.ennreal_coe α m _ (@measurable.nnnorm E α _ _ _ m _ hf)),
-end
+ess_sup_trim hm (@measurable.coe_nnreal_ennreal α m _ (@measurable.nnnorm E α _ _ _ m _ hf))
 
 lemma snorm_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
   (hf : @measurable _ _ m _ f) :

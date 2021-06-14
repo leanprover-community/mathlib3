@@ -326,10 +326,10 @@ begin
     linarith, },
 end
 
-lemma pow_sub_lt (a b c d : ℕ) (d_le_b : d ≤ b) (h : a ^ b < c * a ^ d) : a ^ (b-d) < c :=
-begin
-  sorry,
-end
+-- lemma pow_sub_lt (a b c d : ℕ) (d_le_b : d ≤ b) (h : a ^ b < c * a ^ d) : a ^ (b-d) < c :=
+-- begin
+--   sorry,
+-- end
 
 lemma le_iff_mul_le_mul (a b c : ℕ) (c_pos : 0 < c) : a ≤ b ↔ a * c ≤ b * c :=
 begin

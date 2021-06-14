@@ -920,20 +920,44 @@ lemma concave_on.le_right_of_left_le' (hf : concave_on s f) {x y : E} {a b : ℝ
   f y ≤ f (a • x + b • y) :=
 @convex_on.le_right_of_left_le' _ _ _ _ (order_dual γ) _ _ _ f hf x y a b hx hy ha hb hab hxy
 
+lemma convex_on.le_left_of_right_le (hf : convex_on s f) {x y z : E} (hx : x ∈ s)
+  (hy : y ∈ s) (hz : z ∈ open_segment x y) (hyz : f y ≤ f z) :
+  f z ≤ f x :=
+begin
+  obtain ⟨a, b, ha, hb, hab, rfl⟩ := hz,
+  exact hf.le_left_of_right_le' hx hy ha hb.le hab hyz,
+end
+
+lemma concave_on.left_le_of_le_right (hf : concave_on s f) {x y z : E} (hx : x ∈ s)
+  (hy : y ∈ s) (hz : z ∈ open_segment x y) (hyz : f z ≤ f y) :
+  f x ≤ f z :=
+@convex_on.le_left_of_right_le _ _ _ _ (order_dual γ) _ _ _ f hf x y z hx hy hz hyz
+
+lemma convex_on.le_right_of_left_le (hf : convex_on s f) {x y z : E} (hx : x ∈ s)
+  (hy : y ∈ s) (hz : z ∈ open_segment x y) (hxz : f x ≤ f z) :
+  f z ≤ f y :=
+begin
+  obtain ⟨a, b, ha, hb, hab, rfl⟩ := hz,
+  exact hf.le_right_of_left_le' hx hy ha.le hb hab hxz,
+end
+
+lemma concave_on.le_right_of_left_le (hf : concave_on s f) {x y z : E} (hx : x ∈ s)
+  (hy : y ∈ s) (hz : z ∈ open_segment x y) (hxz : f z ≤ f x) :
+  f y ≤ f z :=
+@convex_on.le_right_of_left_le _ _ _ _ (order_dual γ) _ _ _ f hf x y z hx hy hz hxz
+
 end linear_order
 
 lemma convex_on.convex_le [ordered_module ℝ β] {f : E → β} (hf : convex_on s f) (r : β) :
   convex {x ∈ s | f x ≤ r} :=
-convex_iff_segment_subset.2 $ λ x y hx hy z hz,
+λ x y hx hy a b ha hb hab,
 begin
-  refine ⟨hf.1.segment_subset hx.1 hy.1 hz,_⟩,
-  rcases hz with ⟨za,zb,hza,hzb,hzazb,H⟩,
-  rw ←H,
+  refine ⟨hf.1 hx.1 hy.1 ha hb hab, _⟩,
   calc
-    f (za • x + zb • y) ≤ za • (f x) + zb • (f y) : hf.2 hx.1 hy.1 hza hzb hzazb
-                    ... ≤ za • r + zb • r         : add_le_add (smul_le_smul_of_nonneg hx.2 hza)
-                                                      (smul_le_smul_of_nonneg hy.2 hzb)
-                    ... ≤ r                       : by simp [←add_smul, hzazb]
+    f (a • x + b • y) ≤ a • (f x) + b • (f y) : hf.2 hx.1 hy.1 ha hb hab
+                  ... ≤ a • r + b • r         : add_le_add (smul_le_smul_of_nonneg hx.2 ha)
+                                                  (smul_le_smul_of_nonneg hy.2 hb)
+                  ... ≤ r                     : by simp [←add_smul, hab]
 end
 
 lemma concave_on.concave_le [ordered_module ℝ β] {f : E → β} (hf : concave_on s f) (r : β) :

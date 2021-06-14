@@ -827,11 +827,10 @@ def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
 /-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/
 def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
   subgroup G :=
-let a := classical.some hS,
-ha := classical.some_spec hS,
-one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
-{ rw ← pow_card_eq_one,
-  exact set.pow_mem_pow ha (fintype.card G) } in
+have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
+{ obtain ⟨a, ha⟩ := hS,
+  rw ← pow_card_eq_one,
+  exact set.pow_mem_pow ha (fintype.card G) },
 subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
   classical,
   refine (set.eq_of_subset_of_card_le

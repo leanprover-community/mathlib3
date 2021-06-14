@@ -793,7 +793,7 @@ rfl
 @[simp] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) : pow_coprime h 1 = 1 :=
 one_pow n
 
-@[simp] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) {g : G} : pow_coprime h 1 = 1 :=
+@[simp] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) : pow_coprime h 1 = 1 :=
 one_pow n
 
 variable (a)

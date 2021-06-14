@@ -23,7 +23,6 @@ we define the polynomial with coefficients in any `[semiring S]`.
 
 There is lots more in this direction:
 * q-factorials, q-binomials, q-Pochhammer.
-* Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
 
 universes u v
@@ -104,7 +103,7 @@ begin
       nat.succ_eq_add_one, ←add_assoc, pochhammer_succ_right, nat.cast_add, add_assoc], }
 end
 
-lemma pochhammer_nat_eq_asc_factorial (n : ℕ) :z∀ k, (pochhammer ℕ k).eval (n + 1) = n !+ k
+lemma pochhammer_nat_eq_asc_factorial (n : ℕ) : ∀ k, (pochhammer ℕ k).eval (n + 1) = n !+ k
 | 0 := by erw [eval_one]; refl
 | (t + 1) := begin
   rw [pochhammer_succ_right, eval_mul, pochhammer_nat_eq_asc_factorial t],

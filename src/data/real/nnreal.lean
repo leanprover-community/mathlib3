@@ -235,6 +235,10 @@ instance : canonically_linear_ordered_add_monoid ℝ≥0 :=
   ..nnreal.order_bot,
   ..nnreal.linear_order }
 
+instance : linear_ordered_add_comm_monoid ℝ≥0 :=
+{ .. nnreal.comm_semiring,
+  .. nnreal.canonically_linear_ordered_add_monoid }
+
 instance : distrib_lattice ℝ≥0 := by apply_instance
 
 instance : semilattice_inf_bot ℝ≥0 :=

@@ -1152,7 +1152,7 @@ begin
 end
 
 instance : has_measurable_pow ℝ≥0 ℝ :=
-⟨(measurable_fst.nnreal_coe.pow measurable_snd).subtype_mk⟩
+⟨(measurable_fst.coe_nnreal_real.pow measurable_snd).subtype_mk⟩
 
 end nnreal
 
@@ -1691,7 +1691,7 @@ begin
   refine ⟨ennreal.measurable_of_measurable_nnreal_prod _ _⟩,
   { simp_rw ennreal.coe_rpow_def,
     refine measurable.ite _ measurable_const
-      (measurable_fst.pow measurable_snd).ennreal_coe,
+      (measurable_fst.pow measurable_snd).coe_nnreal_ennreal,
     exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
       (measurable_snd measurable_set_Iio), },
   { simp_rw ennreal.top_rpow_def,

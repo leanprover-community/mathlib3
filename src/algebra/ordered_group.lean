@@ -1015,6 +1015,10 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
+@[simp] lemma max_zero_sub_max_neg_zero_eq_self (a : α) :
+  max a 0 - max (-a) 0 = a :=
+by { rcases le_total a 0 with h|h; simp [h] }
+
 variable [covariant_class α α (function.swap (+)) (≤)]
 
 lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=

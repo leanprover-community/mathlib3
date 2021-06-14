@@ -26,49 +26,42 @@ open set
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
   {X : finset E} {l : E →L[ℝ] ℝ}
 
-def is_exposed (A B : set E) :
-  Prop :=
+def is_exposed (A B : set E) : Prop :=
 B.nonempty → ∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
-def continuous_linear_map.to_exposed (l : E →L[ℝ] ℝ) (A : set E) :
-  set E :=
+def continuous_linear_map.to_exposed (l : E →L[ℝ] ℝ) (A : set E) : set E :=
 {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
-lemma continuous_linear_map.to_exposed.is_exposed :
-  is_exposed A (l.to_exposed A) :=
-λ h, ⟨l, rfl⟩
+lemma continuous_linear_map.to_exposed.is_exposed : is_exposed A (l.to_exposed A) := λ h, ⟨l, rfl⟩
+
+lemma is_exposed_empty : is_exposed A ∅ :=
+λ ⟨x, hx⟩, by { exfalso, exact hx }
 
 namespace is_exposed
 
-protected lemma subset (hAB : is_exposed A B) :
-  B ⊆ A :=
+protected lemma subset (hAB : is_exposed A B) : B ⊆ A :=
 begin
   rintro x hx,
   obtain ⟨_, rfl⟩ := hAB ⟨x, hx⟩,
-  exact λ x hx, hx.1,
+  exact hx.1,
 end
 
-@[refl] lemma refl (A : set E) :
-  is_exposed A A :=
+@[refl] lemma refl (A : set E) : is_exposed A A :=
 λ ⟨w, hw⟩, ⟨0, subset.antisymm (λ x hx, ⟨hx, λ y hy, by exact le_refl 0⟩) (λ x hx, hx.1)⟩
 
 lemma antisymm (hB : is_exposed A B) (hA : is_exposed B A) :
   A = B :=
-subset.antisymm hA.subset hB.subset
+hA.subset.antisymm hB.subset
 
-protected lemma empty : is_exposed A ∅ :=
-λ ⟨x, hx⟩, by { exfalso, exact hx }
+-- `is_exposed` is *not* transitive
 
 protected lemma mono (hC : is_exposed A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
   is_exposed B C :=
 begin
   rintro ⟨w, hw⟩,
   obtain ⟨l, rfl⟩ := hC ⟨w, hw⟩,
-  refine ⟨l, subset.antisymm _ _⟩,
-  rintro x hx,
-  exact ⟨hCB hx, λ y hy, hx.2 y (hBA hy)⟩,
-  rintro x hx,
-  exact ⟨hBA hx.1, λ y hy, (hw.2 y hy).trans (hx.2 w (hCB hw))⟩,
+  exact ⟨l, subset.antisymm (λ x hx, ⟨hCB hx, λ y hy, hx.2 y (hBA hy)⟩)
+    (λ x hx, ⟨hBA hx.1, λ y hy, (hw.2 y hy).trans (hx.2 w (hCB hw))⟩)⟩,
 end
 
 lemma inter (hB : is_exposed A B) (hC : is_exposed A C) :
@@ -111,11 +104,8 @@ lemma inter_left (hC : is_exposed A C) (hCB : C ⊆ B) :
 begin
   rintro ⟨w, hw⟩,
   obtain ⟨l, rfl⟩ := hC ⟨w, hw⟩,
-  refine ⟨l, subset.antisymm _ _⟩,
-  rintro x hx,
-  exact ⟨⟨hx.1, hCB hx⟩, λ y hy, hx.2 y hy.1⟩,
-  rintro x ⟨⟨hxC, _⟩, hx⟩,
-  exact ⟨hxC, λ y hy, (hw.2 y hy).trans (hx w ⟨hC.subset hw, hCB hw⟩)⟩,
+  exact ⟨l, subset.antisymm (λ x hx, ⟨⟨hx.1, hCB hx⟩, λ y hy, hx.2 y hy.1⟩)
+    (λ x ⟨⟨hxC, _⟩, hx⟩, ⟨hxC, λ y hy, (hw.2 y hy).trans (hx w ⟨hC.subset hw, hCB hw⟩)⟩)⟩,
 end
 
 lemma inter_right (hC : is_exposed B C) (hCA : C ⊆ A) :
@@ -131,22 +121,23 @@ begin
   use hAB.subset,
   rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩,
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
+  have hl : convex_on univ l := sorry,
   have hlx₁ : l x₁ = l x,
-  { apply le_antisymm (hxB.2 x₁ hx₁A),
+  { apply (hxB.2 x₁ hx₁A).antisymm,
     rw [←@smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ ha, ←add_le_add_iff_right (b • l x), ←add_smul,
       hab, one_smul],
     nth_rewrite 0 ←hx,
     rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_left,
       @smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ hb],
-    exact hxB.2 x₂ hx₂A, },
+    exact hxB.2 x₂ hx₂A },
   have hlx₂ : l x₂ = l x,
-  { apply le_antisymm (hxB.2 x₂ hx₂A),
+  { apply (hxB.2 x₂ hx₂A).antisymm,
     rw [←@smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ hb, ←add_le_add_iff_left (a • l x), ←add_smul,
       hab, one_smul],
     nth_rewrite 0 ←hx,
     rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_right,
     @smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ ha],
-    exact hxB.2 x₁ hx₁A, },
+    exact hxB.2 x₁ hx₁A },
   refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
   { rw hlx₁,
     exact hxB.2 y hy },

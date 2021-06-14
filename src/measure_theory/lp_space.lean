@@ -1475,7 +1475,7 @@ begin
       = snorm ⇑(f n.fst - f n.snd) p μ,
     from λ n, snorm_congr_ae (Lp.coe_fn_sub _ _).symm,
   simp_rw h_snorm_eq,
-  exact tendsto_at_top_zero_to_real (λ n : ι × ι, snorm ⇑(f n.fst - f n.snd) p μ)
+  exact ennreal.tendsto_at_top_zero_to_real (λ n : ι × ι, snorm ⇑(f n.fst - f n.snd) p μ)
     (λ n, Lp.snorm_ne_top _),
 end
 

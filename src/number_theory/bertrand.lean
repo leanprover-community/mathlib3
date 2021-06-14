@@ -416,9 +416,14 @@ end
 lemma fooo (n : ℕ) (n_pos : 1 ≤ n) : n / 15 + n / 4 + (2 * n / 3 + 1) ≤ n :=
 begin
   suffices: n / 15 + n / 4 + 2 * n / 3 < n, by linarith,
-  have s : (n / 15) * 15 ≤ n := nat.div_mul_le_self n 15,
-  have t : (n / 4) * 4 ≤ n := nat.div_mul_le_self n 4,
-  sorry,
+  have s1 : (n / 15) * 15 ≤ n := nat.div_mul_le_self n 15,
+  have s2 : (n / 4) * 4 ≤ n := nat.div_mul_le_self n 4,
+  have s3 : (2 * n / 3) * 3 ≤ 2 * n := nat.div_mul_le_self (2 * n) 3,
+  suffices: (n / 15 + n / 4 + 2 * n / 3) * 60 < n * 60, by linarith,
+  calc (n / 15 + n / 4 + 2 * n / 3) * 60
+      = n / 15 * 15 * 4 + n / 4 * 4 * 15 + 2 * n / 3 * 3 * 20 : by ring
+  ... ≤ n * 4 + n * 15 + 2 * n * 20 : by linarith [s1, s2, s3]
+  ... < n * 60 : by linarith,
 end
 
 

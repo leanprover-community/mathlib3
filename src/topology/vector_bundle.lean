@@ -82,6 +82,14 @@ variables {R F E}
 lemma trivialization.mem_source (e : trivialization R F E)
   {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set := bundle_trivialization.mem_source e
 
+@[simp, mfld_simps] lemma trivialization.coe_coe (e : trivialization R F E) :
+  ⇑e.to_local_homeomorph = e := rfl
+
+@[simp, mfld_simps] lemma trivialization.coe_fst
+  (e : trivialization R F E) {x : total_space E} (ex : x ∈ e.source) :
+  (e x).1 = (proj E) x :=
+e.proj_to_fun x ex
+
 end topological_vector_bundle
 
 end
@@ -242,3 +250,211 @@ lemma is_topological_vector_bundle_is_topological_fiber_bundle :
 λ x, ⟨(trivialization_at R F E x).to_bundle_trivialization, mem_base_set_trivialization_at R F E x⟩
 
 end topological_vector_bundle
+
+section continuous
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+variables [topological_space α] [topological_space β] [topological_space γ]
+
+lemma continuous_on.open_preimage {f : α → β} {s : set α} {t : set β} (h : continuous_on f s)
+  (hs : is_open s) (hp : f ⁻¹' t ⊆ s) (ht : is_open t) : is_open (f ⁻¹' t) :=
+begin
+  convert (continuous_on_open_iff hs).mp h t ht,
+  rw [inter_comm, inter_eq_self_of_subset_left hp],
+end
+
+lemma is_open_induced_iff' [t : topological_space β] {s : set α} {f : α → β} :
+  (t.induced f).is_open s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
+iff.rfl
+
+@[continuity] lemma continuous.prod.mk {α : Type*} {β : Type*} [topological_space α]
+  [topological_space β] (a : α) : continuous (prod.mk a : β → α × β) :=
+continuous_const.prod_mk continuous_id'
+
+end continuous
+
+variables (B)
+
+@[nolint has_inhabited_instance]
+structure topological_vector_bundle_core (ι : Type*) :=
+(base_set          : ι → set B)
+(is_open_base_set  : ∀i, is_open (base_set i))
+(index_at          : B → ι)
+(mem_base_set_at   : ∀x, x ∈ base_set (index_at x))
+(coord_change  : ι → ι → B → (F →ₗ[R] F))
+(coord_change_self : ∀i, ∀ x ∈ base_set i, ∀v, coord_change i i x v = v)
+(coord_change_continuous : ∀i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
+                                               (set.prod ((base_set i) ∩ (base_set j)) univ))
+(coord_change_comp : ∀i j k, ∀x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀v,
+  (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
+
+attribute [simp, mfld_simps] topological_vector_bundle_core.mem_base_set_at
+
+namespace topological_vector_bundle_core
+
+variables {R B F} {ι : Type*} [topological_space B] [topological_space F]
+(Z : topological_vector_bundle_core R B F ι)
+
+def to_topological_vector_bundle_core : topological_fiber_bundle_core ι B F :=
+{ coord_change := λ i j b, Z.coord_change i j b,
+  ..Z }
+
+instance to_topological_vector_bundle_core_coe : has_coe (topological_vector_bundle_core R B F ι)
+  (topological_fiber_bundle_core ι B F) := ⟨to_topological_vector_bundle_core⟩
+
+include Z
+
+lemma coord_changeear_comp (i j k : ι): ∀ x ∈ (Z.base_set i) ∩ (Z.base_set j) ∩ (Z.base_set k),
+  (Z.coord_change j k x).comp (Z.coord_change i j x) = Z.coord_change i k x :=
+λ x hx, by { ext v, exact Z.coord_change_comp i j k x hx v }
+
+/-- The index set of a topological vector bundle core, as a convenience function for dot notation -/
+@[nolint unused_arguments has_inhabited_instance]
+def index := ι
+
+/-- The base space of a topological vector bundle core, as a convenience function for dot notation-/
+@[nolint unused_arguments, reducible]
+def base := B
+
+/-- The fiber of a topological vector bundle core, as a convenience function for dot notation and
+typeclass inference -/
+@[nolint unused_arguments has_inhabited_instance]
+def fiber (x : B) := F
+
+instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
+by { dsimp [fiber], apply_instance }
+
+instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) :=
+λ x, by { dsimp [fiber], apply_instance }
+
+instance module_fiber : ∀ (x : B), module R (Z.fiber x) :=
+λ x, by { dsimp [fiber], apply_instance }
+
+/-- The projection from the total space of a topological fiber bundle core, on its base. -/
+@[reducible, simp, mfld_simps] def proj : total_space Z.fiber → B := bundle.proj Z.fiber
+
+/-- Local homeomorphism version of the trivialization change. -/
+def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
+topological_fiber_bundle_core.triv_change ↑Z i j
+
+@[simp, mfld_simps] lemma mem_triv_change_source (i j : ι) (p : B × F) :
+  p ∈ (Z.triv_change i j).source ↔ p.1 ∈ Z.base_set i ∩ Z.base_set j :=
+topological_fiber_bundle_core.mem_triv_change_source ↑Z i j p
+
+variable (ι)
+
+/-- Topological structure on the total space of a topological bundle created from core, designed so
+that all the local trivialization are continuous. -/
+instance to_topological_space : topological_space (total_space Z.fiber) :=
+topological_fiber_bundle_core.to_topological_space ι ↑Z
+
+variables {ι}
+
+@[simp] lemma coe_cord_change (i j : ι) (x : B) :
+  topological_fiber_bundle_core.coord_change ↑Z i j x = Z.coord_change i j x := rfl
+
+/-- Extended version of the local trivialization of a fiber bundle constructed from core,
+registering additionally in its type that it is a local bundle trivialization. -/
+def local_triv (i : ι) : topological_vector_bundle.trivialization R F Z.fiber :=
+{ linear := λ x hx, { map_add := λ v w, by simp only [topological_fiber_bundle_core.local_triv_ext,
+      local_homeomorph.to_fun_eq_coe, coe_fst, coe_snd_map_apply,
+      topological_fiber_bundle_core.local_triv_apply, linear_map.map_add, coe_cord_change],
+  map_smul := λ r v, by simp only [topological_fiber_bundle_core.local_triv_ext, coe_fst,
+    local_homeomorph.to_fun_eq_coe, topological_fiber_bundle_core.local_triv_apply, coe_cord_change,
+    coe_snd_map_smul, linear_map.map_smul] },
+  ..topological_fiber_bundle_core.local_triv_ext ↑Z i }
+
+lemma bbb (i : ι) (b : B) (a : F): ((Z.local_triv i) ⟨b, a⟩) = ⟨b, Z.coord_change (Z.index_at b) i b a⟩ := rfl --generalize
+
+lemma aaa (b : B) (a : F): ((Z.local_triv (Z.index_at b)) ⟨b, a⟩) = ⟨b, a⟩ := --generalize
+begin
+  rw bbb,
+  rw coord_change_self,
+  exact Z.mem_base_set_at b,
+end
+
+@[simp, mfld_simps] lemma mem_local_triv_source (i : ι) (p : total_space Z.fiber) :
+  p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i :=
+iff.rfl
+
+lemma mem_source_at (b : B) (a : F) :
+  (⟨b, a⟩ : total_space Z.fiber) ∈ (Z.local_triv (Z.index_at b)).source :=
+begin
+  rw mem_local_triv_source,
+  exact Z.mem_base_set_at b,
+end
+
+
+
+instance : topological_vector_bundle R F Z.fiber :=
+{
+  inducing := λ b, ⟨by { apply le_antisymm,
+    {
+      unfold topological_vector_bundle_core.to_topological_space,
+      unfold topological_fiber_bundle_core.to_topological_space,
+      rw induced_generate_from_eq,
+      apply le_generate_from,
+      simp only [mem_image, exists_prop, mem_Union, mem_singleton_iff], --lemma
+      intros s hs,
+      rcases hs with ⟨_, ⟨i, t, ht, rfl⟩, rfl⟩,
+      simp only [preimage_inter],
+      refine is_open.inter _ _,
+      {
+        simp only [id.def],
+      sorry,
+      },
+      {
+        rw ←preimage_comp,
+        simp only [function.comp, topological_fiber_bundle_core.local_triv'_apply, id.def, coe_cord_change],
+        rw preimage_comp,
+        have : continuous (λ (x : Z.fiber b), (Z.coord_change (Z.index_at b) i b) x) :=
+        by {
+          rw continuous_iff_continuous_on_univ,
+          refine ((Z.coord_change_continuous (Z.index_at b) i).comp ((continuous_const).prod_mk
+          continuous_id).continuous_on) (by {
+            convert (subset_univ univ),
+            simp only [id.def],
+            sorry,
+            })},
+        exact (this).is_open_preimage _ ((continuous.prod.mk b).is_open_preimage t ht),
+      },
+    },
+    {
+      intro s,
+      intro h,
+      let i := Z.index_at b,
+      refine is_open_induced_iff.mpr ⟨(Z.local_triv i).source ∩ (Z.local_triv i) ⁻¹' (Z.base_set i).prod s, _, _⟩,
+      {
+          exact (continuous_on_open_iff (Z.local_triv i).open_source).mp (Z.local_triv i).continuous_to_fun _ (is_open.prod (Z.is_open_base_set i) h),
+      },
+      {
+        simp only [preimage_inter],
+        rw ←preimage_comp,
+        simp only [function.comp, id.def],
+        ext a,
+        split,
+        {
+          intro ha,
+          simp only [mem_prod, mem_preimage, mem_inter_eq] at ha,
+          rw aaa at ha,
+          exact ha.2.2,
+        },
+        {
+          intro ha,
+          simp only [mem_prod, mem_preimage, mem_inter_eq],
+          split,
+          {
+            exact Z.mem_base_set_at b,
+          },
+          {
+            rw (Z.local_triv i).coe_fst (Z.mem_source_at b a),
+            rw aaa,
+            exact ⟨Z.mem_base_set_at b, ha⟩,
+          }
+        }
+      }
+    }
+  }⟩,
+  locally_trivial := sorry,
+}
+
+end topological_vector_bundle_core

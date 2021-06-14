@@ -668,6 +668,8 @@ instance [inhabited B] [inhabited (E (default B))] :
 
 instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
 
+@[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
+
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
@@ -686,6 +688,16 @@ instance [t₁ : topological_space B] [t₂ : topological_space F] :
   topological_space (total_space (trivial B F)) :=
 topological_space.induced (proj (trivial B F)) t₁ ⊓
   topological_space.induced (trivial.proj_snd B F) t₂
+
+variable [∀ x, add_comm_monoid (E x)]
+
+@[simp] lemma coe_snd_map_apply (x : B) (v w : E x) :
+  (↑(v + w) : total_space E).snd = (v : total_space E).snd + (w : total_space E).snd := rfl
+
+variables (R : Type*) [semiring R] [∀ x, module R (E x)]
+
+@[simp] lemma coe_snd_map_smul (x : B) (r : R) (v : E x) :
+  (↑(r • v) : total_space E).snd = r • (v : total_space E).snd := rfl
 
 end bundle
 
@@ -839,11 +851,15 @@ begin
     simp [Z.coord_change_comp, hx], }
 end
 
+variable (ι)
+
 /-- Topological structure on the total space of a topological bundle created from core, designed so
 that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space (bundle.total_space Z.fiber) :=
 topological_space.generate_from $ ⋃ (i : ι) (s : set (B × F)) (s_open : is_open s),
   {(Z.local_triv' i).source ∩ (Z.local_triv' i) ⁻¹' s}
+
+variable {ι}
 
 lemma open_source' (i : ι) : is_open (Z.local_triv' i).source :=
 begin
@@ -976,6 +992,46 @@ begin
     assume y hy,
     simp only [h, hy] with mfld_simps },
   { exact A }
+end
+
+section
+
+@[continuity] lemma _root_.continuous.prod.mk {α : Type*} {β : Type*} [topological_space α]
+  [topological_space β] (a : α) : continuous (prod.mk a : β → α × β) :=
+continuous_const.prod_mk continuous_id'
+
+end
+
+lemma continuous_sigma_mk (b : B) : @continuous _ _ _ (Z.to_topological_space ι) -- why does it found the sigma topology instead?
+  (λ a, (⟨b, a⟩ : (bundle.total_space Z.fiber))) :=
+begin
+  rw continuous_iff_le_induced,
+  unfold topological_fiber_bundle_core.to_topological_space,
+  rw induced_generate_from_eq,
+  apply le_generate_from,
+  simp only [mem_image, exists_prop, mem_Union, mem_singleton_iff], --lemma
+  intros s hs,
+  rcases hs with ⟨_, ⟨i, t, ht, rfl⟩, rfl⟩,
+  simp only [preimage_inter],
+  refine is_open.inter _ _,
+  {
+  sorry,
+  },
+  {
+    rw ←preimage_comp,
+    simp only [function.comp, local_triv'_apply],
+    rw preimage_comp,
+    have : continuous (λ (x : Z.fiber b), (Z.coord_change (Z.index_at b) i b) x) :=
+    by {
+      rw continuous_iff_continuous_on_univ,
+      refine ((Z.coord_change_continuous (Z.index_at b) i).comp ((continuous_const).prod_mk
+      continuous_id).continuous_on) (by {
+        convert (subset_univ univ),
+        simp only [id.def],
+        sorry,
+        })},
+    exact (this).is_open_preimage _ ((continuous.prod.mk b).is_open_preimage t ht),
+  },
 end
 
 end topological_fiber_bundle_core

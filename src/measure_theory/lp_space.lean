@@ -526,6 +526,34 @@ begin
   rwa lintegral_const at h_le,
 end
 
+lemma snorm_le_snorm_mul_rpow_measure_univ {p q : ℝ≥0∞} (hpq : p ≤ q) {f : α → E}
+  (hf : ae_measurable f μ) :
+  snorm f p μ ≤ snorm f q μ * (μ set.univ) ^ (1/p.to_real - 1/q.to_real) :=
+begin
+  by_cases hp0 : p = 0,
+  { simp [hp0, zero_le], },
+  rw ← ne.def at hp0,
+  have hp0_lt : 0 < p, from lt_of_le_of_ne (zero_le _) hp0.symm,
+  have hq0_lt : 0 < q, from lt_of_lt_of_le hp0_lt hpq,
+  by_cases hq_top : q = ∞,
+  { simp only [hq_top, div_zero, one_div, ennreal.top_to_real, sub_zero, snorm_exponent_top,
+      inv_zero],
+    by_cases hp_top : p = ∞,
+    { simp only [hp_top, ennreal.rpow_zero, mul_one, ennreal.top_to_real, sub_zero, inv_zero,
+        snorm_exponent_top],
+      exact le_rfl, },
+    rw snorm_eq_snorm' hp0 hp_top,
+    have hp_pos : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp0_lt, hp_top⟩,
+    refine (snorm'_le_snorm_ess_sup_mul_rpow_measure_univ hp_pos).trans (le_of_eq _),
+    congr,
+    exact one_div _, },
+  have hp_lt_top : p < ∞, from hpq.trans_lt (lt_top_iff_ne_top.mpr hq_top),
+  have hp_pos : 0 < p.to_real, from ennreal.to_real_pos_iff.mpr ⟨hp0_lt, hp_lt_top.ne⟩,
+  rw [snorm_eq_snorm' hp0_lt.ne.symm hp_lt_top.ne, snorm_eq_snorm' hq0_lt.ne.symm hq_top],
+  have hpq_real : p.to_real ≤ q.to_real, by rwa ennreal.to_real_le_to_real hp_lt_top.ne hq_top,
+  exact snorm'_le_snorm'_mul_rpow_measure_univ hp_pos hpq_real hf,
+end
+
 lemma snorm'_le_snorm'_of_exponent_le {p q : ℝ} (hp0_lt : 0 < p) (hpq : p ≤ q) (μ : measure α)
   [probability_measure μ] {f : α → E} (hf : ae_measurable f μ) :
   snorm' f p μ ≤ snorm' f q μ :=

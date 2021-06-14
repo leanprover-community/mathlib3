@@ -45,9 +45,9 @@ initialize_simps_projections non_unital_alg_hom (to_fun → apply)
 namespace non_unital_alg_hom
 
 variables {R A B C} [semiring R]
-variables [non_unital_non_assoc_semiring A] [module R A]
-variables [non_unital_non_assoc_semiring B] [module R B]
-variables [non_unital_non_assoc_semiring C] [module R C]
+variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
+variables [non_unital_non_assoc_semiring C] [distrib_mul_action R C]
 
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (non_unital_alg_hom R A B) := ⟨_, to_fun⟩

@@ -118,6 +118,34 @@ linear_independent_iff.trans
 λ hf l hl, finsupp.ext $ λ i, classical.by_contradiction $ λ hni, hni $ hf _ _ hl _ $
   finsupp.mem_support_iff.2 hni⟩
 
+/-- A set is linear independent iff there are no finite subsets with nontrivial relations.
+
+Compare `linear_independent_iff'`.
+-/
+theorem set.linear_independent_iff' {s : set M} : linear_independent R (coe : s → M) ↔
+  ∀ t : finset M, ↑t ⊆ s → ∀ g : M → R, ∑ x in t, g x • x = 0 → ∀ x ∈ t, g x = 0 :=
+begin
+  rw linear_independent_iff',
+  split,
+  { intros h t ts g hg x xt,
+    refine h (t.preimage (coe : s → M) (subtype.coe_injective.inj_on _)) (g ∘ coe)
+             ((finset.sum_preimage _ t _ (λ x, g x • x) _).trans hg)
+             ⟨x, ts xt⟩
+             (finset.mem_preimage.mpr xt),
+    intros x xt hx,
+    rw subtype.range_coe at hx,
+    simpa using ts xt },
+  { rintros h t g hg ⟨x, xs⟩ xt,
+    convert h (t.image coe) _ (λ x, if hx : x ∈ s then g ⟨x, hx⟩ else 0) _ x _,
+    { exact (dif_pos xs).symm },
+    { simp only [finset.coe_image, ← @subtype.range_coe _ s],
+      exact image_subset_range _ _ },
+    { rw [finset.sum_image, ← hg, finset.sum_congr rfl],
+      { rintros ⟨x, xs⟩ xt, simp },
+      { rintros ⟨x, xs⟩ xt ⟨y, ys⟩ yt h, exact subtype.coe_injective h } },
+    { exact finset.mem_image.mpr ⟨⟨x, xs⟩, xt, rfl⟩ } },
+end
+
 theorem linear_independent_iff'' :
   linear_independent R v ↔ ∀ (s : finset ι) (g : ι → R) (hg : ∀ i ∉ s, g i = 0),
     ∑ i in s, g i • v i = 0 → ∀ i, g i = 0 :=
@@ -1062,27 +1090,112 @@ begin
     { exact subset_sUnion_of_mem } }
 end
 
-/-- `linear_independent.extend` adds vectors to a linear independent set `s ⊆ t` until it spans
-all elements of `t`. -/
-noncomputable def linear_independent.extend (hs : linear_independent K (λ x, x : s → V))
-  (hst : s ⊆ t) : set V :=
-classical.some (exists_linear_independent hs hst)
+variables K
 
-lemma linear_independent.extend_subset (hs : linear_independent K (λ x, x : s → V))
-  (hst : s ⊆ t) : hs.extend hst ⊆ t :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hbt
+/-- Given sets `s` and `t`, we can extend `s` to find a minimal `b` that spans `t`.
 
-lemma linear_independent.subset_extend (hs : linear_independent K (λ x, x : s → V))
-  (hst : s ⊆ t) : s ⊆ hs.extend hst :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hsb
+Minimality is expressed as "`b` is linear independent, except for relations completely within `s`".
+-/
+lemma exists_extend (s t : set V) :
+  ∃ b ⊆ s ∪ t, s ⊆ b ∧ t ⊆ span K b ∧
+    ∀ (u : finset V), ↑u ⊆ b → ∀ (f : V → K), ∑ x in u, f x • x = 0 →
+      ∀ x ∈ u, x ∉ s → f x = 0 :=
+begin
+  obtain ⟨b, ⟨bt, bi⟩, sb, h⟩ := zorn.zorn_subset_nonempty {b | b ⊆ s ∪ t ∧
+    ∀ (u : finset V), ↑u ⊆ b → ∀ (f : V → K), ∑ x in u, f x • x = 0 →
+      ∀ x ∈ u, x ∉ s → f x = 0} _ _
+    ⟨subset_union_left s t, λ u us f hf x xs xns, absurd (us xs) xns⟩,
+  { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
+    -- If `x` is not in the span, then `b` can't be (almost) linear independent.
+    by_contra hn,
+    apply hn,
+    have xb : x ∉ b := λ xb, hn (subset_span xb),
+    rw ← h (insert x b) ⟨insert_subset.mpr ⟨or.inr xt, bt⟩, _⟩ (subset_insert x b),
+    { exact subset_span (mem_insert _ _) },
+    rintros u ub f hf y yu ys,
+    -- TODO: golf me!
+    let u' : finset V := u.erase x,
+    have u'b : ↑u' ⊆ b := λ y yu, or.resolve_left
+      (eq_or_mem_of_mem_insert (ub (finset.erase_subset _ _ yu)))
+      (finset.ne_of_mem_erase yu),
+    by_cases xu : x ∈ u, swap,
+    { refine bi u (λ y yu, _) f hf y yu ys,
+      exact (eq_or_mem_of_mem_insert (ub yu)).resolve_left (mt (λ h, (h ▸ yu : x ∈ u)) xu) },
+    have u_eq : u = insert x u' := (finset.insert_erase xu).symm,
+    rw u_eq at yu,
+    have : ∑ x in u, f x • x = f x • x + ∑ x in u', f x • x,
+    { rw [u_eq, finset.sum_insert (u.not_mem_erase x)] },
+    have fx_x : f x • x = - ∑ x in u', f x • x,
+    { apply eq_neg_of_add_eq_zero,
+      rw [← this, hf] },
+    -- If `f x ≠ 0`, then `x` is in the span, contradiction.
+    by_cases fx : f x = 0, swap,
+    { refine absurd (((span K b).smul_mem_iff fx).mp _) hn,
+      rw [fx_x, submodule.neg_mem_iff],
+      exact submodule.sum_mem _ (λ y hy, submodule.smul_mem _ _ (subset_span (u'b hy))) },
+    -- Therefore, we can use the (almost) linear independence of `b` to show `f` is zero.
+    rw [this, fx, zero_smul, zero_add] at hf,
+    cases finset.mem_insert.mp yu with yx yu,
+    { subst yx, rw fx },
+    { exact bi u' u'b f hf y yu ys } },
+  { refine λ c hc cc c0, ⟨⋃₀ c, ⟨_, _⟩, λ x, _⟩,
+    { exact sUnion_subset (λ x xc, (hc xc).1) },
+    { rintros u uc f hf x xu xs,
+      rcases eq_empty_or_nonempty c with rfl | ⟨a, hac⟩,
+      { simpa using uc xu },
+      obtain ⟨I, I_mem, hI⟩ : ∃ I ∈ c, ↑u ⊆ I :=
+        finset.exists_mem_subset_of_subset_bUnion_of_directed_on hac cc.directed_on _,
+      { obtain ⟨_, li⟩ := hc I_mem,
+        exact li u hI f hf x xu xs },
+      { intros y yu,
+        simpa only [set.mem_Union] using uc yu } },
+    { exact subset_sUnion_of_mem } },
+end
 
-lemma linear_independent.subset_span_extend (hs : linear_independent K (λ x, x : s → V))
-  (hst : s ⊆ t) : t ⊆ span K (hs.extend hst) :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in htb
+/-- `linear_independent.extend s t` adds vectors to `s` until it spans all elements of `t`.
+In particular, if `s ⊆ t` and `s` is linear independent, then `extend` is also linear independent. -/
+noncomputable def linear_independent.extend (s t : set V)  : set V :=
+(exists_extend K s t).some
 
-lemma linear_independent.linear_independent_extend (hs : linear_independent K (λ x, x : s → V))
-  (hst : s ⊆ t) : linear_independent K (coe : hs.extend hst → V) :=
-let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent hs hst) in hli
+lemma linear_independent.extend_subset_union (s t : set V) :
+   linear_independent.extend K s t ⊆ s ∪ t :=
+(exists_extend K s t).some_spec.some
+
+lemma linear_independent.extend_subset {s t : set V} (hst : s ⊆ t) :
+  linear_independent.extend K s t ⊆ t :=
+by simpa only [union_eq_self_of_subset_left hst]
+   using linear_independent.extend_subset_union K s t
+
+lemma linear_independent.subset_extend (s t : set V) :
+  s ⊆ linear_independent.extend K s t :=
+(exists_extend K s t).some_spec.some_spec.1
+
+lemma linear_independent.subset_span_extend (s t : set V) :
+  t ⊆ span K (linear_independent.extend K s t) :=
+(exists_extend K s t).some_spec.some_spec.2.1
+
+variables {K}
+
+lemma linear_independent.linear_independent_extend
+  (hs : linear_independent K (λ x, x : s → V)) :
+  linear_independent K (coe : linear_independent.extend K s t → V) :=
+begin
+  rw set.linear_independent_iff' at hs ⊢,
+  intros u u_sub f hf x xu,
+  -- `f` is zero outside `s`, so split it into an "∈ s" part and an "∉ s" part
+  have hns : ∀ x ∈ u, x ∉ s → f x = 0 := (exists_extend K s t).some_spec.some_spec.2.2 u u_sub f hf,
+  have hf' : ∑ x in u.filter (∈ s), f x • x = 0,
+  { refine trans _ hf,
+    rw [finset.sum_filter, finset.sum_congr rfl],
+    intros x xu,
+    split_ifs with xs,
+    { refl },
+    { rw [hns x xu xs, zero_smul] } },
+  by_cases xs : x ∈ s,
+  { exact hs (u.filter (∈ s)) (λ x hx, (finset.mem_filter.mp hx).2) f hf'
+             x (finset.mem_filter.mpr ⟨xu, xs⟩) },
+  { exact hns x xu xs }
+end
 
 variables {K V}
 

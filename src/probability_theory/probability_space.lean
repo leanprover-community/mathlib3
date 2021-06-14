@@ -159,24 +159,9 @@ begin
   apply A1,
 end
 
-/- The empty event has weight zero. -/
-def event_empty (Ω : Type*) [measurable_space Ω] : event Ω :=
-  { val := ∅,
-  property := measurable_set.empty,}
-
-/- Every probability space has the empty event, corresponding to the empty set. -/
-@[simp]
-lemma event_empty_val_def {Ω : Type*} [probability_space Ω] :
-  (event_empty Ω).val = ∅ := rfl
-
-/- Every probability space has the empty event, corresponding to the empty set. -/
-@[simp]
-lemma event_empty_val_def2 {Ω : Type*} [probability_space Ω] :
-  (@has_emptyc.emptyc (event Ω) _).val = ∅ := rfl
-
 /- The probability of an empty event is zero. -/
 @[simp]
-lemma Pr_event_empty {Ω : Type*} [probability_space Ω] : Pr[event_empty Ω] = 0 :=
+lemma Pr_event_empty {Ω : Type*} [probability_space Ω] : Pr[(∅ : event Ω)] = 0 :=
 begin
   have A1 : ↑(Pr[event_empty Ω]) = (0 : ennreal),
   rw event_prob_def,

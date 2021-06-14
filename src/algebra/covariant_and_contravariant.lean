@@ -52,9 +52,11 @@ as it is easier to use. -/
 
 -- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
 -- TODO: relationship with `con/add_con`
--- include equivalence of `left_cancel_semigroup` with
+-- TODO: include equivalence of `left_cancel_semigroup` with
 -- `semigroup partial_order contravariant_class α α (*) (≤)`?
--- use ⇒, as per Eric's suggestion?
+-- TODO : use ⇒, as per Eric's suggestion?  See
+-- https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/ordered.20stuff/near/236148738
+-- for a discussion.
 
 section variants
 variables {M N : Type*} (μ : M → N → N) (r : N → N → Prop)

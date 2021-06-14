@@ -41,7 +41,7 @@ the most common usage. In the opposite direction, the implication
 ```lean
 [semigroup α] [partial_order α] [contravariant_class α α (*) (≤)] => left_cancel_semigroup α
 ```
-holds -- note the `co*ntra*` assumption and the `(≤)`-relation.
+holds -- note the `co*ntra*` assumption on the `(≤)`-relation.
 
 # Formalization notes
 

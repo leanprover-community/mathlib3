@@ -100,10 +100,10 @@ begin
   apply prob_nnreal,
 end
 
-lemma to_nnreal_almost_monotonic (a b : ennreal) : (a ≠ ⊤) → (b ≠ ⊤) → (a ≤ b)  →
-  (a.to_nnreal ≤ b.to_nnreal) :=
+lemma to_nnreal_almost_monotonic (a b : ennreal) (ha : a ≠ ⊤) (hb : b ≠ ⊤) :
+  a ≤ b →a.to_nnreal ≤ b.to_nnreal :=
 begin
-  exact λ (ha : a ≠ ⊤) (hb : b ≠ ⊤), (ennreal.to_real_le_to_real ha hb).mpr
+  exact (ennreal.to_real_le_to_real ha hb).mpr
 end
 
 lemma event_prob_mono1 {Ω : Type*} [probability_space Ω] (E F : event Ω) :

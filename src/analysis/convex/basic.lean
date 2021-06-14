@@ -844,31 +844,29 @@ lemma concave_on.smul [ordered_module ℝ β] {f : E → β} {c : ℝ} (hc : 0 �
   (hf : concave_on s f) : concave_on s (λx, c • f x) :=
 @convex_on.smul _ _ _ _ (order_dual β) _ _ _ f c hc hf
 
+section linear_order
+variables {γ : Type*} [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
+  {f : E → γ}
+
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
-lemma convex_on.le_on_segment' {γ : Type*}
-  [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
-  {f : E → γ} {x y : E} {a b : ℝ}
-  (hf : convex_on s f) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
+lemma convex_on.le_on_segment' (hf : convex_on s f) {x y : E} {a b : ℝ}
+  (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   f (a • x + b • y) ≤ max (f x) (f y) :=
 calc
   f (a • x + b • y) ≤ a • f x + b • f y : hf.2 hx hy ha hb hab
   ... ≤ a • max (f x) (f y) + b • max (f x) (f y) :
     add_le_add (smul_le_smul_of_nonneg (le_max_left _ _) ha)
       (smul_le_smul_of_nonneg (le_max_right _ _) hb)
-  ... ≤ max (f x) (f y) : by rw [←add_smul, hab, one_smul]
+  ... = max (f x) (f y) : by rw [←add_smul, hab, one_smul]
 
 /-- A concave function on a segment is lower-bounded by the min of its endpoints. -/
-lemma concave_on.le_on_segment' {γ : Type*}
-  [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
-  {f : E → γ} {x y : E} {a b : ℝ}
-  (hf : concave_on s f) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
+lemma concave_on.le_on_segment' (hf : concave_on s f) {x y : E} {a b : ℝ}
+  (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   min (f x) (f y) ≤ f (a • x + b • y) :=
-@convex_on.le_on_segment' _ _ _ _ (order_dual γ) _ _ _ f x y a b hf hx hy ha hb hab
+@convex_on.le_on_segment' _ _ _ _ (order_dual γ) _ _ _ f hf x y a b hx hy ha hb hab
 
 /-- A convex function on a segment is upper-bounded by the max of its endpoints. -/
-lemma convex_on.le_on_segment {γ : Type*}
-  [linear_ordered_add_comm_group γ] [module ℝ γ] [ordered_module ℝ γ]
-  {f : E → γ} (hf : convex_on s f) {x y z : E}
+lemma convex_on.le_on_segment (hf : convex_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
   f z ≤ max (f x) (f y) :=
 let ⟨a, b, ha, hb, hab, hz⟩ := hz in hz ▸ hf.le_on_segment' hx hy ha hb hab
@@ -880,6 +878,49 @@ lemma concave_on.le_on_segment {γ : Type*}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
     min (f x) (f y) ≤ f z :=
 @convex_on.le_on_segment _ _ _ _ (order_dual γ) _ _ _ f hf x y z hx hy hz
+
+-- could be shown without contradiction but yeah
+lemma convex_on.le_left_of_right_le' (hf : convex_on s f) {x y : E} {a b : ℝ}
+  (hx : x ∈ s) (hy : y ∈ s) (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1)
+  (hxy : f y ≤ f (a • x + b • y)) :
+  f (a • x + b • y) ≤ f x :=
+begin
+  apply le_of_not_lt (λ h, lt_irrefl (f (a • x + b • y)) _),
+  calc
+    f (a • x + b • y)
+        ≤ a • f x + b • f y : hf.2 hx hy ha.le hb hab
+    ... < a • f (a • x + b • y) + b • f (a • x + b • y)
+        : add_lt_add_of_lt_of_le (smul_lt_smul_of_pos h ha) (smul_le_smul_of_nonneg hxy hb)
+    ... = f (a • x + b • y) : by rw [←add_smul, hab, one_smul],
+end
+
+lemma concave_on.left_le_of_le_right' (hf : concave_on s f) {x y : E} {a b : ℝ}
+  (hx : x ∈ s) (hy : y ∈ s) (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1)
+  (hxy : f (a • x + b • y) ≤ f y) :
+  f x ≤ f (a • x + b • y) :=
+@convex_on.le_left_of_right_le' _ _ _ _ (order_dual γ) _ _ _ f hf x y a b hx hy ha hb hab hxy
+
+lemma convex_on.le_right_of_left_le' (hf : convex_on s f) {x y : E} {a b : ℝ}
+  (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1)
+  (hxy : f x ≤ f (a • x + b • y)) :
+  f (a • x + b • y) ≤ f y :=
+begin
+  apply le_of_not_lt (λ h, lt_irrefl (f (a • x + b • y)) _),
+  calc
+    f (a • x + b • y)
+        ≤ a • f x + b • f y : hf.2 hx hy ha hb.le hab
+    ... < a • f (a • x + b • y) + b • f (a • x + b • y)
+        : add_lt_add_of_le_of_lt (smul_le_smul_of_nonneg hxy ha) (smul_lt_smul_of_pos h hb)
+    ... = f (a • x + b • y) : by rw [←add_smul, hab, one_smul],
+end
+
+lemma concave_on.le_right_of_left_le' (hf : concave_on s f) {x y : E} {a b : ℝ}
+  (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1)
+  (hxy : f (a • x + b • y) ≤ f x) :
+  f y ≤ f (a • x + b • y) :=
+@convex_on.le_right_of_left_le' _ _ _ _ (order_dual γ) _ _ _ f hf x y a b hx hy ha hb hab hxy
+
+end linear_order
 
 lemma convex_on.convex_le [ordered_module ℝ β] {f : E → β} (hf : convex_on s f) (r : β) :
   convex {x ∈ s | f x ≤ r} :=
@@ -905,7 +946,6 @@ lemma convex_on.convex_lt {γ : Type*} [ordered_cancel_add_comm_monoid γ]
 begin
   intros a b as bs xa xb hxa hxb hxaxb,
   refine ⟨hf.1 as.1 bs.1 hxa hxb hxaxb, _⟩,
-  dsimp,
   by_cases H : xa = 0,
   { have H' : xb = 1 := by rwa [H, zero_add] at hxaxb,
     rw [H, H', zero_smul, one_smul, zero_add],

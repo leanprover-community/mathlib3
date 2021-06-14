@@ -250,7 +250,7 @@ lemma Union : (⋃ i, s i) = univ :=
 by { ext x, simp [hs.exists_mem x] }
 
 lemma disjoint : ∀ {i j}, i ≠ j → disjoint (s i) (s j) :=
-λ i j h x ⟨hxi, hxj⟩,h (hs.eq_of_mem hxi hxj)
+λ i j h x ⟨hxi, hxj⟩, h (hs.eq_of_mem hxi hxj)
 
 lemma eq_index_of_mem {x i} (hxi : x ∈ s i) : i = hs.index x :=
 hs.eq_of_mem hxi (hs.mem_index x)

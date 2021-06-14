@@ -286,14 +286,19 @@ end
 
 
 section continuous_set_integral
+/-! ### Continuity of the set integral
+
+We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
 variables [measurable_space α] {μ : measure α}
-  {G : Type*} [normed_group G] [measurable_space G] [second_countable_topology G] [borel_space G]
+  [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
   {𝕂 : Type*} [is_R_or_C 𝕂] [measurable_space 𝕂]
+  [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]
+  [normed_space 𝕂 F]
   {p : ℝ≥0∞}
 
-lemma Lp_to_Lp_restrict_add (f g : Lp G p μ) (s : set α) :
-  ((Lp.mem_ℒp (f+g)).restrict s).to_Lp ⇑(f + g)
+lemma Lp_to_Lp_restrict_add (f g : Lp E p μ) (s : set α) :
+  ((Lp.mem_ℒp (f + g)).restrict s).to_Lp ⇑(f + g)
     = ((Lp.mem_ℒp f).restrict s).to_Lp f + ((Lp.mem_ℒp g).restrict s).to_Lp g :=
 begin
   ext1,
@@ -318,19 +323,10 @@ begin
   rw [hx2, hx1, pi.smul_apply, hx3, hx4, pi.smul_apply],
 end
 
-variables (α F 𝕂)
-/-- Linear map sending a function of `Lp F p μ` to the same function in `Lp F p (μ.restrict s)`. -/
-def Lp_to_Lp_restrict_lm [borel_space 𝕂] (p : ℝ≥0∞) (s : set α) :
-  @linear_map 𝕂 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _ :=
-{ to_fun := λ f, mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s),
-  map_add' := λ f g, Lp_to_Lp_restrict_add f g s,
-  map_smul' := λ c f, Lp_to_Lp_restrict_smul c f s, }
-variables {α F 𝕂}
-
-lemma norm_Lp_to_Lp_restrict_le (s : set α) (f : Lp G p μ) :
+lemma norm_Lp_to_Lp_restrict_le (s : set α) (f : Lp E p μ) :
   ∥mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s)∥ ≤ ∥f∥ :=
 begin
-  rw [norm_def, norm_def, ennreal.to_real_le_to_real (snorm_ne_top _) (snorm_ne_top _)],
+  rw [Lp.norm_def, Lp.norm_def, ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _)],
   refine (le_of_eq _).trans (snorm_mono_measure measure.restrict_le_self),
   { exact s, },
   exact snorm_congr_ae (mem_ℒp.coe_fn_to_Lp _),
@@ -341,10 +337,11 @@ variables (α F 𝕂)
 `Lp F p (μ.restrict s)`. -/
 def Lp_to_Lp_restrict_clm [borel_space 𝕂] (μ : measure α) (p : ℝ≥0∞) [hp : fact(1 ≤ p)]
   (s : set α) :
-  @continuous_linear_map 𝕂 _ (Lp F p μ) _ _ (Lp F p (μ.restrict s)) _ _ _ _ :=
+  Lp F p μ →L[𝕂] Lp F p (μ.restrict s) :=
 @linear_map.mk_continuous 𝕂 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _
-  (Lp_to_Lp_restrict_lm α F 𝕂 p s) 1
-  (by { intro f, rw one_mul, exact norm_Lp_to_Lp_restrict_le s f, })
+  ⟨λ f, mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s), λ f g, Lp_to_Lp_restrict_add f g s,
+    λ c f, Lp_to_Lp_restrict_smul c f s⟩
+  1 (by { intro f, rw one_mul, exact norm_Lp_to_Lp_restrict_le s f, })
 
 @[continuity]
 lemma continuous_Lp_to_Lp_restrict [borel_space 𝕂] (p : ℝ≥0∞) [hp : fact(1 ≤ p)] (s : set α) :
@@ -359,15 +356,16 @@ mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).restrict s)
 variables {𝕂}
 
 @[continuity]
-lemma continuous_set_integral (s : set α) : continuous (λ f : α →₁[μ] G', ∫ x in s, f x ∂μ) :=
+lemma continuous_set_integral [normed_space ℝ E] [complete_space E] (s : set α) :
+  continuous (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ) :=
 begin
   haveI : fact((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩,
-  have h_comp : (λ f : α →₁[μ] G', ∫ x in s, f x ∂μ)
-    = (integral (μ.restrict s)) ∘ (λ f, Lp_to_Lp_restrict_clm α G' ℝ μ 1 s f),
+  have h_comp : (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ)
+    = (integral (μ.restrict s)) ∘ (λ f, Lp_to_Lp_restrict_clm α E ℝ μ 1 s f),
   { ext1 f,
     rw [function.comp_apply, integral_congr_ae (Lp_to_Lp_restrict_clm_coe_fn ℝ s f)], },
   rw h_comp,
-  exact continuous_integral.comp (continuous_Lp_to_Lp_restrict α G' ℝ 1 s),
+  exact continuous_integral.comp (continuous_Lp_to_Lp_restrict α E ℝ 1 s),
 end
 
 end continuous_set_integral

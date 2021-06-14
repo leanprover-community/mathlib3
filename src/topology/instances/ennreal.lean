@@ -235,19 +235,6 @@ begin
   { exact hβ, },
 end
 
-lemma tendsto_at_top_zero_to_real [preorder β] (f : β → ℝ≥0∞) (hf : ∀ i, f i ≠ ∞) :
-  tendsto (λ n, (f n).to_real) at_top (𝓝 0) ↔ tendsto f at_top (𝓝 0) :=
-begin
-  split; intro h,
-  { have h_real : f = λ n, ennreal.of_real (f n).to_real,
-      by { ext1 n, rw ennreal.of_real_to_real, exact hf n, },
-    rw [h_real, ← ennreal.of_real_to_real ennreal.zero_ne_top],
-    refine ennreal.tendsto_of_real _,
-    rwa ennreal.zero_to_real, },
-  { rw ← ennreal.zero_to_real,
-    exact tendsto.comp (ennreal.tendsto_to_real ennreal.coe_ne_top) h, },
-end
-
 protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=
 have ht : ∀b:ℝ≥0∞, b ≠ 0 → tendsto (λp:ℝ≥0∞×ℝ≥0∞, p.1 * p.2) (𝓝 ((⊤:ℝ≥0∞), b)) (𝓝 ⊤),

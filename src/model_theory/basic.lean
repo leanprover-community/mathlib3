@@ -646,7 +646,8 @@ lemma map_comap_map {f : M →[L] N} : ((S.map f).comap f).map f = S.map f :=
 congr_fun ((gc_map_comap f).l_u_l_eq_l) _
 
 @[simp]
-lemma comap_map_comap {S : L.substructure N} {f : M →[L] N} : ((S.comap f).map f).comap f = S.comap f :=
+lemma comap_map_comap {S : L.substructure N} {f : M →[L] N} :
+  ((S.comap f).map f).comap f = S.comap f :=
 congr_fun ((gc_map_comap f).u_l_u_eq_u) _
 
 
@@ -699,13 +700,15 @@ lemma map_injective_of_injective : function.injective (map f) :=
 lemma comap_inf_map_of_injective (S T : L.substructure M) : (S.map f ⊓ T.map f).comap f = S ⊓ T :=
 (gci_map_comap hf).u_inf_l _ _
 
-lemma comap_infi_map_of_injective (S : ι → L.substructure M) : (⨅ i, (S i).map f).comap f = infi S :=
+lemma comap_infi_map_of_injective (S : ι → L.substructure M) :
+  (⨅ i, (S i).map f).comap f = infi S :=
 (gci_map_comap hf).u_infi_l _
 
 lemma comap_sup_map_of_injective (S T : L.substructure M) : (S.map f ⊔ T.map f).comap f = S ⊔ T :=
 (gci_map_comap hf).u_sup_l _ _
 
-lemma comap_supr_map_of_injective (S : ι → L.substructure M) : (⨆ i, (S i).map f).comap f = supr S :=
+lemma comap_supr_map_of_injective (S : ι → L.substructure M) :
+  (⨆ i, (S i).map f).comap f = supr S :=
 (gci_map_comap hf).u_supr_l _
 
 lemma map_le_map_iff_of_injective {S T : L.substructure M} : S.map f ≤ T.map f ↔ S ≤ T :=
@@ -736,19 +739,24 @@ lemma map_surjective_of_surjective : function.surjective (map f) :=
 lemma comap_injective_of_surjective : function.injective (comap f) :=
 (gi_map_comap hf).u_injective
 
-lemma map_inf_comap_of_surjective (S T : L.substructure N) : (S.comap f ⊓ T.comap f).map f = S ⊓ T :=
+lemma map_inf_comap_of_surjective (S T : L.substructure N) :
+  (S.comap f ⊓ T.comap f).map f = S ⊓ T :=
 (gi_map_comap hf).l_inf_u _ _
 
-lemma map_infi_comap_of_surjective (S : ι → L.substructure N) : (⨅ i, (S i).comap f).map f = infi S :=
+lemma map_infi_comap_of_surjective (S : ι → L.substructure N) :
+  (⨅ i, (S i).comap f).map f = infi S :=
 (gi_map_comap hf).l_infi_u _
 
-lemma map_sup_comap_of_surjective (S T : L.substructure N) : (S.comap f ⊔ T.comap f).map f = S ⊔ T :=
+lemma map_sup_comap_of_surjective (S T : L.substructure N) :
+  (S.comap f ⊔ T.comap f).map f = S ⊔ T :=
 (gi_map_comap hf).l_sup_u _ _
 
-lemma map_supr_comap_of_surjective (S : ι → L.substructure N) : (⨆ i, (S i).comap f).map f = supr S :=
+lemma map_supr_comap_of_surjective (S : ι → L.substructure N) :
+  (⨆ i, (S i).comap f).map f = supr S :=
 (gi_map_comap hf).l_supr_u _
 
-lemma comap_le_comap_iff_of_surjective {S T : L.substructure N} : S.comap f ≤ T.comap f ↔ S ≤ T :=
+lemma comap_le_comap_iff_of_surjective {S T : L.substructure N} :
+  S.comap f ≤ T.comap f ↔ S ≤ T :=
 (gi_map_comap hf).u_le_u_iff
 
 lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=

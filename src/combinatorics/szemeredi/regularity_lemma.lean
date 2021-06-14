@@ -286,7 +286,7 @@ begin
 end
 
 namespace relation
-variables {V : Type u} [decidable_eq V] (r : V → V → Prop) [∀ v, decidable_pred (r v)]
+variables {V : Type u} [decidable_eq V] (r : V → V → Prop) [decidable_rel r]
 
 /-- Finset of edges between two finsets of vertices -/
 def pairs_finset (U W : finset V) : finset (V × V) :=

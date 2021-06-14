@@ -1707,10 +1707,14 @@ begin
   exact (trim_measurable_set_eq hm (@simple_func.measurable_set_fiber β F m f x)).symm,
 end
 
-lemma integral_trim (hm : m ≤ m0) {f : β → F} (hf : @measurable β F m _ f)
-  (hf_int : integrable f μ) :
+lemma integral_trim (hm : m ≤ m0) {f : β → F} (hf : @measurable β F m _ f) :
   ∫ x, f x ∂μ = @integral β F m _ _ _ _ _ _ (μ.trim hm) f :=
 begin
+  by_cases hf_int : integrable f μ,
+  swap,
+  { have hf_int_m : ¬ @integrable β F m _ _ f (μ.trim hm),
+      from λ hf_int_m, hf_int (integrable_of_integrable_trim hm hf_int_m),
+    rw [integral_undef hf_int, @integral_undef _ _ m _ _ _ _ _ _ _ _ hf_int_m], },
   let f_seq := @simple_func.approx_on F β _ _ _ m _ hf set.univ 0 (set.mem_univ 0) _,
   have hf_seq_meas : ∀ n, @measurable _ _ m _ (f_seq n),
     from λ n, @simple_func.measurable β F m _ (f_seq n),
@@ -1732,18 +1736,15 @@ begin
   exact tendsto_nhds_unique h_lim_1 h_lim_2,
 end
 
-lemma integral_trim' (hm : m ≤ m0) {f : β → F} (hf : @integrable β F m _ _ f (μ.trim hm)) :
+lemma integral_trim_ae (hm : m ≤ m0) {f : β → F} (hf : @ae_measurable β F m _ f (μ.trim hm)) :
   ∫ x, f x ∂μ = @integral β F m _ _ _ _ _ _ (μ.trim hm) f :=
 begin
-  let f' := @ae_measurable.mk _ _ m _ _ f hf.1,
+  let f' := @ae_measurable.mk _ _ m _ _ f hf,
   have hf'_eq_trim : f =ᶠ[@measure.ae _ m (μ.trim hm)] f',
-    from @ae_measurable.ae_eq_mk _ _ m _ f _ hf.1,
+    from @ae_measurable.ae_eq_mk _ _ m _ f _ hf,
   have hf'_eq : f =ᵐ[μ] f' := ae_eq_of_ae_eq_trim hf'_eq_trim,
   rw [integral_congr_ae hf'_eq, @integral_congr_ae _ _ m _ _ _ _ _ _ _ _ _ hf'_eq_trim],
-  refine integral_trim hm _ _,
-  { exact @ae_measurable.measurable_mk _ _ m _ f _ hf.1, },
-  { refine integrable_of_integrable_trim hm _,
-    rwa ← @integrable_congr _ _ m _ _ _ _ _ hf'_eq_trim, },
+  exact integral_trim hm (@ae_measurable.measurable_mk _ _ m _ f _ hf),
 end
 
 lemma ae_eq_trim_of_measurable [measurable_space γ] [add_group γ] [measurable_singleton_class γ]

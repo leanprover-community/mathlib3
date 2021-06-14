@@ -143,6 +143,10 @@ See https://stacks.math.columbia.edu/tag/001Q.
 class corepresentable (F : C ⥤ Type v₁) : Prop :=
 (has_corepresentation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
 
+def corepresentable_of_nat_iso (F : C ⥤ Type v₁) (X : Cᵒᵖ) (i : coyoneda.obj X ≅ F) :
+  corepresentable F :=
+{ has_corepresentation := ⟨X, i.hom, infer_instance⟩ }
+
 section representable
 variables (F : Cᵒᵖ ⥤ Type v₁)
 variable [F.representable]

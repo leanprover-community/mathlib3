@@ -21,7 +21,7 @@ variables (C : Type u₁) [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 
 @[simps]
-def point_bijection {X : Type v} : (punit ⟶ X) ≃ X :=
+def point_bijection (X : Type v) : (punit ⟶ X) ≃ X :=
 { to_fun := λ f, f ⟨⟩,
   inv_fun := λ x _, x,
   left_inv := λ x, by { ext ⟨⟩, refl },
@@ -31,7 +31,7 @@ lemma corepresentable_of_right_adjoint (F : C ⥤ Type v) [is_right_adjoint F] :
   F.corepresentable :=
 { has_corepresentation :=
   ⟨ opposite.op ((left_adjoint F).obj punit),
-    { app := λ X, ((adjunction.of_right_adjoint F).hom_equiv _ _).trans point_bijection },
+    { app := λ X, ((adjunction.of_right_adjoint F).hom_equiv _ _).trans (point_bijection _) },
     begin
       apply nat_iso.is_iso_of_is_iso_app _,
       intro X,

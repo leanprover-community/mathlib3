@@ -6,6 +6,8 @@ Authors: Johan Commelin
 
 import order.category.PartialOrder
 
+universe u
+
 /-! # Category of linearly ordered types -/
 
 open category_theory
@@ -25,5 +27,12 @@ def of (α : Type*) [linear_order α] : LinearOrder := bundled.of α
 instance : inhabited LinearOrder := ⟨of punit⟩
 
 instance (α : LinearOrder) : linear_order α := α.str
+
+instance : representably_concrete LinearOrder.{u} :=
+{ out := functor.corepresentable_of_nat_iso _ (opposite.op (of punit))
+          (nat_iso.of_components
+            (λ X, { hom := λ (f : _ ⟶ _), f ⟨⟩,
+                    inv := λ x, ⟨λ _, x, monotone_const⟩})
+            (λ X Y f, rfl)) }
 
 end LinearOrder

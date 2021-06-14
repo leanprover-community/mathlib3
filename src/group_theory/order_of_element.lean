@@ -3,12 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
-import algebra.big_operators.order
 import algebra.pointwise
 import group_theory.coset
-import data.nat.totient
-import data.int.gcd
-import data.set.finite
 import dynamics.periodic_pts
 import algebra.iterate_hom
 
@@ -806,6 +802,7 @@ end fintype
 
 section pow_is_subgroup
 
+/-- A nonempty idempotent subset of a finite group is a subgroup -/
 def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
   (hS1 : S.nonempty) (hS2 : S * S = S) : subgroup G :=
 let a := classical.some hS1,
@@ -825,6 +822,7 @@ inv_mem : ∀ a : G, a ∈ S → a⁻¹ ∈ S := λ a ha, by
   exact pow_mem a ha (order_of a - 1) } in
 { carrier := S, one_mem' := one_mem, inv_mem' := inv_mem, mul_mem' := mul_mem }
 
+/-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/
 def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
   subgroup G :=
 let a := classical.some hS,
@@ -836,7 +834,7 @@ subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
   classical,
   refine (set.eq_of_subset_of_card_le
     (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
-  change _ = fintype.card ↥(_ * _ : set G),
+  change _ = fintype.card (_ * _ : set G),
   rw [←pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
       group.card_pow_eq_card_pow_card_univ S (fintype.card G + fintype.card G) le_add_self],
 end

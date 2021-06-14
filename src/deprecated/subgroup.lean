@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario Carneiro,
   Michael Howes
 -/
-import group_theory.order_of_element
+import group_theory.subgroup
 import deprecated.submonoid
 
 open set function
@@ -679,43 +679,3 @@ instance subgroup.is_subgroup [group G] (K : subgroup G) : is_subgroup (K : set 
 instance subgroup.of_normal [group G] (s : set G) [h : is_subgroup s] [n : normal_subgroup s] :
   subgroup.normal (subgroup.of s) :=
 { conj_mem := n.normal, }
-
-section pow_is_subgroup
-
-lemma is_subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
-  (hS1 : S.nonempty) (hS2 : S * S = S) : is_subgroup S :=
-begin
-  obtain ⟨a, ha⟩ := hS1,
-  have mul_mem : ∀ a b : G, a ∈ S → b ∈ S → a * b ∈ S :=
-  λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb),
-  have pow_mem : ∀ a : G, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
-  λ a ha, nat.rec (by rwa [zero_add, pow_one])
-    (λ n ih, (congr_arg2 (∈) (pow_succ a (n + 1)).symm hS2).mp (set.mul_mem_mul ha ih)),
-  have one_mem : (1 : G) ∈ S,
-  { rw [←pow_order_of_eq_one a, ←nat.sub_add_cancel (order_of_pos a)],
-    exact pow_mem a ha (order_of a - 1) },
-  replace pow_mem : ∀ a : G, a ∈ S → ∀ n : ℕ, a ^ n ∈ S :=
-  λ a ha n, nat.cases_on n (by rwa pow_zero) (pow_mem a ha),
-  have inv_mem : ∀ a : G, a ∈ S → a⁻¹ ∈ S,
-  { intros a ha,
-    rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
-    exact pow_mem a ha (order_of a - 1) },
-  exact { one_mem := one_mem, mul_mem := mul_mem, inv_mem := inv_mem },
-end
-
-lemma pow_card_is_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
-  is_subgroup (S ^ fintype.card G) :=
-begin
-  classical,
-  have hk := group.card_pow_eq_card_pow_card_univ S,
-  obtain ⟨a, ha⟩ := hS,
-  have one_mem : (1 : G) ∈ (S ^ fintype.card G),
-  { rw ← pow_card_eq_one,
-    exact set.pow_mem_pow ha (fintype.card G) },
-  refine is_subgroup_of_idempotent (S ^ fintype.card G) ⟨1, one_mem⟩ (set.eq_of_subset_of_card_le
-    (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
-  change _ = fintype.card ↥(_ * _ : set G),
-  rw [←pow_add, hk (fintype.card G) le_rfl, hk (fintype.card G + fintype.card G) le_add_self],
-end
-
-end pow_is_subgroup

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.big_operators.order
+import algebra.pointwise
 import group_theory.coset
 import data.nat.totient
 import data.int.gcd
@@ -802,3 +803,42 @@ lemma pow_gcd_card_eq_one_iff : x ^ n = 1 ↔ x ^ (gcd n (fintype.card G)) = 1 :
 end finite_group
 
 end fintype
+
+section pow_is_subgroup
+
+def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
+  (hS1 : S.nonempty) (hS2 : S * S = S) : subgroup G :=
+let a := classical.some hS1,
+ha := classical.some_spec hS1,
+mul_mem : ∀ a b : G, a ∈ S → b ∈ S → a * b ∈ S :=
+λ a b ha hb, (congr_arg2 (∈) rfl hS2).mp (set.mul_mem_mul ha hb),
+pow_mem : ∀ a : G, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
+λ a ha, nat.rec (by rwa [zero_add, pow_one])
+  (λ n ih, (congr_arg2 (∈) (pow_succ a (n + 1)).symm hS2).mp (set.mul_mem_mul ha ih)),
+one_mem : (1 : G) ∈ S:= by
+{ rw [←pow_order_of_eq_one a, ←nat.sub_add_cancel (order_of_pos a)],
+  exact pow_mem a ha (order_of a - 1) },
+pow_mem : ∀ a : G, a ∈ S → ∀ n : ℕ, a ^ n ∈ S :=
+  λ a ha n, nat.cases_on n (by rwa pow_zero) (pow_mem a ha),
+inv_mem : ∀ a : G, a ∈ S → a⁻¹ ∈ S := λ a ha, by
+{ rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
+  exact pow_mem a ha (order_of a - 1) } in
+{ carrier := S, one_mem' := one_mem, inv_mem' := inv_mem, mul_mem' := mul_mem }
+
+def pow_card_subgroup {G : Type*} [group G] [fintype G] (S : set G) (hS : S.nonempty) :
+  subgroup G :=
+let a := classical.some hS,
+ha := classical.some_spec hS,
+one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
+{ rw ← pow_card_eq_one,
+  exact set.pow_mem_pow ha (fintype.card G) } in
+subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
+  classical,
+  refine (set.eq_of_subset_of_card_le
+    (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
+  change _ = fintype.card ↥(_ * _ : set G),
+  rw [←pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
+      group.card_pow_eq_card_pow_card_univ S (fintype.card G + fintype.card G) le_add_self],
+end
+
+end pow_is_subgroup

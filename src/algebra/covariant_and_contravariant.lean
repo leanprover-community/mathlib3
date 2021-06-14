@@ -16,7 +16,7 @@ The intended application is the splitting of the ordering from the algebraic ass
 operations in the `ordered_[...]` hierarchy.
 
 The strategy is to introduce two more flexible typeclasses, `covariant_class` and
-`contravariant_class`.
+`contravariant_class`:
 
 * `covariant_class` models the implication `a ≤ b → c * a ≤ c * b` (multiplication is monotone),
 * `contravariant_class` models the implication `a * b < a * c → b < c`.
@@ -24,10 +24,10 @@ The strategy is to introduce two more flexible typeclasses, `covariant_class` an
 Since `co(ntra)variant_class` takes as input the operation (typically `(+)` or `(*)`) and the order
 relation (typically `(≤)` or `(<)`), these are the only two typeclasses that I have used.
 
-The general approach is to formulate the lemma that you are interested and prove it, with the
+The general approach is to formulate the lemma that you are interested in and prove it, with the
 `ordered_[...]` typeclass of your liking.  After that, you convert the single typeclass,
-say `[ordered_cancel_monoid M]`, with three typeclasses, e.g.
-`[partial_order M] [left_cancel_semigroup M] [covariant_class M M (function.swap (*)) (≤)]`
+say `[ordered_cancel_monoid M]`, into three typeclasses, e.g.
+`[left_cancel_semigroup M] [partial_order M] [covariant_class M M (function.swap (*)) (≤)]`
 and have a go at seeing if the proof still works!
 
 Note that it is possible to combine several co(ntra)variant_class assumptions together.
@@ -35,13 +35,13 @@ Indeed, the usual ordered typeclasses arise from assuming the pair
 `[covariant_class M M (*) (≤)] [contravariant_class M M (*) (<)]`
 on top of order/algebraic assumptions.
 
-A formal remark is that normally covariant_class uses the `(≤)`-relation, while contravariant_class
-uses the `(<)`-relation. This need not be the case in general, but seems to be the most common
-usage. In the opposite direction, the implication
+A formal remark is that normally `covariant_class` uses the `(≤)`-relation, while
+`contravariant_class` uses the `(<)`-relation. This need not be the case in general, but seems to be
+the most common usage. In the opposite direction, the implication
 ```lean
 [semigroup α] [partial_order α] [contravariant_class α α (*) (≤)] => left_cancel_semigroup α
 ```
-holds (note the `co*ntra*` assumption and the `(≤)`-relation).
+holds -- note the `co*ntra*` assumption and the `(≤)`-relation.
 
 # Formalization notes
 
@@ -51,7 +51,7 @@ However, sometimes as a **non-typeclass** assumption, we prefer `flip (*)` (or `
 as it is easier to use. -/
 
 -- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
--- TODO: relationship with `add_con`
+-- TODO: relationship with `con/add_con`
 -- include equivalence of `left_cancel_semigroup` with
 -- `semigroup partial_order contravariant_class α α (*) (≤)`?
 -- use ⇒, as per Eric's suggestion?
@@ -204,7 +204,7 @@ lemma covariant_lt_iff_contravariant_le [linear_order N] :
 
 @[to_additive]
 lemma covariant_flip_mul_iff [comm_semigroup N] :
-  covariant N N (flip (*)) (r) ↔ covariant N N (*) (r)  :=
+  covariant N N (flip (*)) (r) ↔ covariant N N (*) (r) :=
 by rw is_symm_op.flip_eq
 
 @[to_additive]

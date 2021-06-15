@@ -1343,23 +1343,41 @@ end linear_map
 end is_scalar_tower
 
 section restrict_scalars
-/- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
-`S`-modules are also `R`-modules. -/
 
 section type_synonym
 variables (R S M A : Type*)
 
-/--
-Warning: use this type synonym judiciously!
-The preferred way of working with an `S`-module `M` as `R`-module (where `S` is an `R`-algebra),
-is by `[module R M] [module S M] [is_scalar_tower R S M]`.
+/-- If we put an `R`-algebra structure on a semiring `S`, we get a natural equivalence from the
+category of `S`-modules to the category of representations of the algebra `S` (over `R`). The type
+synonym `restrict_scalars` is essentially this equivalence.
 
-When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
-module structure over `R`, provided as a type synonym `module.restrict_scalars R S M := M`.
+Warning: use this type synonym judiciously! Consider an example where we want to construct an
+`R`-linear map from `M` to `S`, given:
+```lean
+variables (R S M : Type*)
+variables [comm_semiring R] [semiring S] [algebra R S] [add_comm_monoid M] [module S M]
+```
+With the assumptions above we can't directly state our map as we have no `module R M` structure, but
+`restrict_scalars` permits it to be written as:
+```lean
+-- an `R`-module structure on `M` is provided by `restrict_scalars` which is compatible
+example : restrict_scalars R S M →ₗ[R] S := sorry
+```
+However, it is usually better just to add this extra structure as an argument:
+```lean
+-- an `R`-module structure on `M` and proof of its compatibility is provided by the user
+example [module R M] [is_scalar_tower R S M] : M →ₗ[R] S := sorry
+```
+The advantage of the second approach is that it defers the duty of providing the missing typeclasses
+`[module R M] [is_scalar_tower R S M]`. If some concrete `M` naturally carries these (as is often
+the case) then we have avoided `restrict_scalars` entirely. If not, we can pass
+`restrict_scalars R S M` later on instead of `M`.
 
-When `A` is an algebra over a ring `S`, and `S` is an algebra over `R`, then `A` inherits an
-algebra structure over `R`, provided as a type synonym `algebra.restrict_scalars R S M := M`.
--/
+Note that this means we almost always want to state definitions and lemmas in the language of
+`is_scalar_tower` rather than `restrict_scalars`.
+
+An example of when one might want to use `restrict_scalars` would be if one has a vector space
+over a field of characteristic zero and wishes to make use of the `ℚ`-algebra structure. -/
 @[nolint unused_arguments]
 def restrict_scalars (R S M : Type*) : Type* := M
 
@@ -1371,6 +1389,9 @@ instance [I : add_comm_group M] : add_comm_group (restrict_scalars R S M) := I
 
 instance restrict_scalars.module_orig [semiring S] [add_comm_monoid M] [I : module S M] :
   module S (restrict_scalars R S M) := I
+
+/-- `restrict_scalars.linear_equiv` is an equivalence of modules over the semiring `S`. -/
+def restrict_scalars.linear_equiv : restrict_scalars R S M ≃ₗ[A] M := linear_equiv.refl S M
 
 section module
 variables [comm_semiring R] [semiring S] [algebra R S] [add_comm_monoid M] [module S M]
@@ -1386,6 +1407,13 @@ module.comp_hom M (algebra_map R S)
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
   c • x = ((algebra_map R S c) • x : M) := rfl
+
+@[simp] lemma linear_equiv_map_smul (t : R) (x : restrict_scalars R A M)
+  [comm_semiring R] [algebra R A] :
+  linear_equiv R A M (t • x) = (algebra_map R A t) • linear_equiv R A M x :=
+rfl
+
+variables [comm_semiring R] [algebra R A]
 
 instance : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
@@ -1413,7 +1441,7 @@ instance restrict_scalars.algebra_orig [I : algebra S A] : algebra S (restrict_s
 variables [algebra S A]
 
 /-- Tautological `S`-algebra isomorphism `A ≃ₐ[S] restrict_scalars R S A`. -/
-def alg_equiv.self_to_restrict_scalars : A ≃ₐ[S] restrict_scalars R S A := alg_equiv.refl
+def restrict_scalars.alg_equiv : restrict_scalars R S A ≃ₐ[S] A:= alg_equiv.refl
 
 variables [comm_semiring R] [algebra R S]
 

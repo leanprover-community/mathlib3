@@ -245,7 +245,7 @@ lemma infi_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨅ n, f n) = (⨅ n : ℝ≥0, f n) ⊓ f ∞ :=
 le_antisymm
   (le_inf (le_infi $ assume i, infi_le _ _) (infi_le _ _))
-  (le_infi $ forall_ennreal.2 ⟨assume r, inf_le_left_of_le $ infi_le _ _, inf_le_right⟩)
+  (le_infi $ forall_ennreal.2 ⟨λ r, inf_le_of_left_le $ infi_le _ _, inf_le_right⟩)
 
 lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨆ n, f n) = (⨆ n : ℝ≥0, f n) ⊔ f ∞ :=

@@ -3,7 +3,7 @@ Copyright (c) 2021 François Sunatori. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François Sunatori
 -/
-import geometry.manifold.instances.circle
+import analysis.complex.circle
 
 /-!
 # Isometries of the Complex Plane

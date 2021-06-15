@@ -8,9 +8,9 @@ import category_theory.concrete_category
 import algebra.punit_instances
 import category_theory.concrete_category.representable
 
-universe u
-
 /-! # Category of preorders -/
+
+universe u
 
 open category_theory
 

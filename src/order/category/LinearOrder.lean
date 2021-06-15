@@ -6,9 +6,9 @@ Authors: Johan Commelin
 
 import order.category.PartialOrder
 
-universe u
-
 /-! # Category of linearly ordered types -/
+
+universe u
 
 open category_theory
 

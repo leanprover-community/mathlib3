@@ -183,7 +183,7 @@ lemma coe_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
   (r : 𝕜) (f : C^∞⟮I, N; 𝓘(𝕜, V), V⟯) :
   ⇑(r • f) = r • f := rfl
 
-@[simp] lemma smooth_map.smul_comp {V : Type*} [normed_group V] [normed_space 𝕜 V]
+@[simp] lemma smul_comp {V : Type*} [normed_group V] [normed_space 𝕜 V]
   (r : 𝕜) (g : C^∞⟮I'', N'; 𝓘(𝕜, V), V⟯) (h : C^∞⟮I, N; I'', N'⟯) :
 (r • g).comp h = r • (g.comp h) := rfl
 
@@ -258,7 +258,7 @@ instance has_scalar' {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   has_scalar C^∞⟮I, N; 𝕜⟯ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (smooth.smul f.2 g.2)⟩⟩
 
-@[simp] lemma smooth_map.smul_comp' {V : Type*} [normed_group V] [normed_space 𝕜 V]
+@[simp] lemma smul_comp' {V : Type*} [normed_group V] [normed_space 𝕜 V]
   (f : C^∞⟮I'', N'; 𝕜⟯) (g : C^∞⟮I'', N'; 𝓘(𝕜, V), V⟯) (h : C^∞⟮I, N; I'', N'⟯) :
 (f • g).comp h = (f.comp h) • (g.comp h) := rfl
 

@@ -7,10 +7,7 @@ Authors: Damiano Testa
 import algebra.group.defs
 
 /-!
-<<<<<<< HEAD
 
-=======
->>>>>>> 39c4dd9e66335e2b79f8920fccaef4f2fd7cd4d6
 # Covariants and contravariants
 
 This file contains general lemmas and instances to work with the interactions between a relation and

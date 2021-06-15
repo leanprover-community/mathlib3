@@ -1372,10 +1372,8 @@ instance [I : add_comm_group M] : add_comm_group (restrict_scalars R S M) := I
 instance restrict_scalars.module_orig [semiring S] [add_comm_monoid M] [I : module S M] :
   module S (restrict_scalars R S M) := I
 
-variables [comm_semiring R]
-
 section module
-variables [semiring S] [algebra R S] [add_comm_monoid M] [module S M]
+variables [comm_semiring R] [semiring S] [algebra R S] [add_comm_monoid M] [module S M]
 
 /--
 When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
@@ -1408,18 +1406,18 @@ instance [I : ring A] : ring (restrict_scalars R S A) := I
 instance [I : comm_semiring A] : comm_semiring (restrict_scalars R S A) := I
 instance [I : comm_ring A] : comm_ring (restrict_scalars R S A) := I
 
-instance restrict_scalars.algebra_orig [comm_semiring S] [semiring A] [I : algebra S A] :
-  algebra S (restrict_scalars R S A) :=
-I
+variables [comm_semiring R] [comm_semiring S] [semiring A]
+
+instance restrict_scalars.algebra_orig [I : algebra S A] : algebra S (restrict_scalars R S A) := I
+
+variables [algebra S A]
 
 /-- Identity homomorphism `A →ₐ[S] restrict_scalars R S A`. -/
-def restrict_scalars.to_restrict_scalars [comm_semiring S] [semiring A] [algebra S A] :
-  A →ₐ[S] restrict_scalars R S A := alg_hom.id S A
+def restrict_scalars.to_restrict_scalars : A →ₐ[S] restrict_scalars R S A := alg_hom.id S A
 /-- Identity homomorphism `restrict_scalars R S A →ₐ[S] A`. -/
-def restrict_scalars.of_restrict_scalars [comm_semiring S] [semiring A] [algebra S A] :
-  restrict_scalars R S A →ₐ[S] A := alg_hom.id S A
+def restrict_scalars.of_restrict_scalars : restrict_scalars R S A →ₐ[S] A := alg_hom.id S A
 
-variables [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
+variables [algebra R S]
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance : algebra R (restrict_scalars R S A) :=

@@ -81,7 +81,7 @@ when applicable:
   injective or surjective functions that agree on the data fields,
   like `function.injective.monoid` and `function.surjective.monoid`.
   We make these definitions `@[reducible]`, see note [reducible non-instances].
-  See ``algebra.group.inj_surj` for more examples.
+  See `algebra.group.inj_surj` for more examples.
   ```
   @[reducible]
   def function.injective.Z [Z M₂] (f : M₁ → M₂) (hf : injective f)

@@ -25,25 +25,25 @@ variable {α : Type u}
 @[to_additive]
 instance group.covariant_class_le.to_contravariant_class_le
   [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
-{ covtc := λ a b c bc, by { convert covariant_class.covc (a⁻¹) bc;
+{ elim := λ a b c bc, by { convert covariant_class.elim (a⁻¹) bc;
     exact eq_inv_mul_of_mul_eq rfl <|> assumption } }
 
 @[to_additive]
 instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
   [covariant_class α α (function.swap (*)) (≤)] : contravariant_class α α (function.swap (*)) (≤) :=
-{ covtc := λ a b c bc, by { convert @covariant_class.covc α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
+{ elim := λ a b c bc, by { convert @covariant_class.elim α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
     exact eq_mul_inv_of_mul_eq rfl } }
 
 @[to_additive]
 instance group.covariant_class_lt.to_contravariant_class_lt
   [group α] [has_lt α] [covariant_class α α (*) (<)] : contravariant_class α α (*) (<) :=
-{ covtc := λ a b c bc, by { convert covariant_class.covc (a⁻¹) bc;
+{ elim := λ a b c bc, by { convert covariant_class.elim (a⁻¹) bc;
     exact eq_inv_mul_of_mul_eq rfl <|> assumption } }
 
 @[to_additive]
 instance group.swap.covariant_class_lt.to_contravariant_class_lt [group α] [has_lt α]
   [covariant_class α α (function.swap (*)) (<)] : contravariant_class α α (function.swap (*)) (<) :=
-{ covtc := λ a b c bc, by { convert @covariant_class.covc α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
+{ elim := λ a b c bc, by { convert @covariant_class.elim α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
     exact eq_mul_inv_of_mul_eq rfl } }
 
 /-- An ordered additive commutative group is an additive commutative group
@@ -62,7 +62,17 @@ attribute [to_additive] ordered_comm_group
 @[to_additive]
 instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_comm_group α] :
   covariant_class α α (*) (≤) :=
-{ covc := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
+{ elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
+
+instance units.covariant_class [ordered_comm_monoid α] :
+  covariant_class (units α) (units α) (*) (≤) :=
+{ elim := λ a b c bc, by {
+  rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
+  { exact rfl.le },
+  refine le_iff_eq_or_lt.mpr (or.inr _),
+  refine units.coe_lt_coe.mp _,
+  cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
+  exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
@@ -868,7 +878,7 @@ by simp only [div_eq_mul_inv, min_mul_mul_left, min_inv_inv']
 lemma max_div_div_left' (a b c : α) : max (a / b) (a / c) = a / min b c :=
 by simp only [div_eq_mul_inv, max_mul_mul_left, max_inv_inv']
 
-@[to_additive max_zero_sub_eq_self]
+@[simp, to_additive max_zero_sub_eq_self]
 lemma max_one_div_eq_self' (a : α) : max a 1 / max (a⁻¹) 1 = a :=
 begin
   rcases le_total a 1,
@@ -949,9 +959,6 @@ variables [add_group α] [linear_order α]
 @[simp] lemma abs_neg (a : α) : abs (-a) = abs a :=
 begin unfold abs, rw [max_comm, neg_neg] end
 
-lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
-by rw [← neg_sub, abs_neg]
-
 lemma eq_or_eq_neg_of_abs_eq {a b : α} (h : abs a = b) : a = b ∨ a = -b :=
 by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a
 
@@ -992,6 +999,19 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
+lemma abs_sub_comm (a b : α) : abs (a - b) = abs (b - a) :=
+by rw [← neg_sub, abs_neg]
+
+lemma neg_abs_le_self (a : α) : -abs a ≤ a :=
+begin
+  cases le_total 0 a with h h,
+  { calc -abs a = - a   : congr_arg (has_neg.neg) (abs_of_nonneg h)
+            ... ≤ 0     : neg_nonpos.mpr h
+            ... ≤ a     : h },
+  { calc -abs a = - - a : congr_arg (has_neg.neg) (abs_of_nonpos h)
+            ... ≤ a     : (neg_neg a).le }
+end
+
 lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 
@@ -1028,7 +1048,7 @@ begin
 end
 
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
-by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
+by { rw abs_sub_comm, exact max_sub_min_eq_abs' _ _ }
 
 end add_group
 
@@ -1040,6 +1060,10 @@ abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),
   add_le_add (le_abs_self _) (le_abs_self _)⟩
 
+theorem abs_sub (a b : α) :
+  abs (a - b) ≤ abs a + abs b :=
+by { rw [sub_eq_add_neg, ←abs_neg b], exact abs_add a _ }
+
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ _ _ _ b, and_comm, sub_le_iff_le_add']
 
@@ -1050,13 +1074,13 @@ lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
 sub_le.1 $ (abs_sub_le_iff.1 h).2
 
 lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
-sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
+sub_le_of_abs_sub_le_left (abs_sub_comm a b ▸ h)
 
 lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
 sub_lt.1 $ (abs_sub_lt_iff.1 h).2
 
 lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
-sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
+sub_lt_of_abs_sub_lt_left (abs_sub_comm a b ▸ h)
 
 lemma abs_sub_abs_le_abs_sub (a b : α) : abs a - abs b ≤ abs (a - b) :=
 sub_le_iff_le_add.2 $
@@ -1064,7 +1088,7 @@ calc abs a = abs (a - b + b)     : by rw [sub_add_cancel]
        ... ≤ abs (a - b) + abs b : abs_add _ _
 
 lemma abs_abs_sub_abs_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
-abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub; apply abs_sub_abs_le_abs_sub⟩
+abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub_comm; apply abs_sub_abs_le_abs_sub⟩
 
 lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
 begin

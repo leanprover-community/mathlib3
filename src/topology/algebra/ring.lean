@@ -19,7 +19,7 @@ continuous. Besides this definition, this file proves that the topological closu
 (resp. an ideal) is a subring (resp. an ideal) and defines products and quotients
 of topological (semi)rings.
 
-## Main Results:
+## Main Results
 
 - `subring.topological_closure`/`subsemiring.topological_closure`: the topological closure of a
   `subring`/`subsemiring` is itself a `sub(semi)ring`.

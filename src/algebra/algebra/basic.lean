@@ -1440,7 +1440,7 @@ instance restrict_scalars.algebra_orig [I : algebra S A] : algebra S (restrict_s
 
 variables [algebra S A]
 
-/-- Tautological `S`-algebra isomorphism `A ≃ₐ[S] restrict_scalars R S A`. -/
+/-- Tautological `S`-algebra isomorphism `restrict_scalars R S A ≃ₐ[S] A`. -/
 def restrict_scalars.alg_equiv : restrict_scalars R S A ≃ₐ[S] A := alg_equiv.refl
 
 variables [comm_semiring R] [algebra R S]

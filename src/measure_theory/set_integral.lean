@@ -326,7 +326,7 @@ lemma norm_Lp_to_Lp_restrict_le (s : set α) (f : Lp E p μ) :
   ∥mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s)∥ ≤ ∥f∥ :=
 begin
   rw [Lp.norm_def, Lp.norm_def, ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _)],
-  refine (le_of_eq _).trans (snorm_mono_measure measure.restrict_le_self),
+  refine (le_of_eq _).trans (snorm_mono_measure _ measure.restrict_le_self),
   { exact s, },
   exact snorm_congr_ae (mem_ℒp.coe_fn_to_Lp _),
 end

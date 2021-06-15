@@ -654,6 +654,13 @@ variable (E : B → Type*)
 
 attribute [mfld_simps] proj
 
+instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
+
+instance [t₁ : topological_space B] [t₂ : topological_space F] :
+  topological_space (total_space (trivial B F)) :=
+topological_space.induced (proj (trivial B F)) t₁ ⊓
+  topological_space.induced (trivial.proj_snd B F) t₂
+
 end bundle
 
 /-- Core data defining a locally trivial topological bundle with fiber `F` over a topological

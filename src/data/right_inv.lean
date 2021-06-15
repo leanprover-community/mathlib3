@@ -15,13 +15,13 @@ this type is to conviniently implement sections of bundles.
 /-- Bundled right inverse of a function. Note that here the `nolint` has a true mathematical
 meaning: the structure is inhabited iff the function is surjective. -/
 @[nolint has_inhabited_instance]
-structure right_inv {α: Type*} {β: Type*} (f : α → β) :=
+structure right_inv {α : Type*} {β : Type*} (f : α → β) :=
 (to_fun : β → α)
 (right_inv' : function.right_inverse to_fun f)
 
 namespace right_inv
 
-variables {α: Type*} {β: Type*} {f : α → β} {g h : right_inv f}
+variables {α : Type*} {β : Type*} {f : α → β} {g h : right_inv f}
 
 instance : has_coe_to_fun (right_inv f) := ⟨_, right_inv.to_fun⟩
 

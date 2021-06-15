@@ -12,8 +12,8 @@ import algebra.module.basic
 Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
 should contain all possible results that do not involve any topology.
 We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
-a topology which is not the disjoint union topology. In general, the constructions of fiber bundles
-we will make will be of this form.
+a topology which is not the disjoint union topology `sigma.topological_space`. In general, the
+constructions of fiber bundles we will make will be of this form.
 ## References
 - https://en.wikipedia.org/wiki/Bundle_(mathematics)
 -/

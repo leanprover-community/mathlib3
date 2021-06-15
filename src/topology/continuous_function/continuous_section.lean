@@ -24,9 +24,7 @@ cover of a circle is a map that does not admit continuous sections. -/
 structure continuous_section (f : α → β) extends right_inv f, C(β, α)
 
 instance : has_coe_to_fun (continuous_section f) := ⟨λ f, β → α, continuous_section.to_fun⟩
-
-instance : has_coe (continuous_section f) (right_inv f) :=
-⟨continuous_section.to_right_inv⟩
+instance : has_coe (continuous_section f) (right_inv f) := ⟨continuous_section.to_right_inv⟩
 
 namespace continuous_section
 
@@ -45,7 +43,7 @@ lemma ext_right_inv (g h : continuous_section f) (H : (g : right_inv f) = h) :
   g = h := by { cases g, cases h, injection H, dsimp only at h_1, induction h_1, refl }
 
 @[simp] lemma to_fun_eq_coe (g : continuous_section f) : g.to_fun = ⇑g := rfl
-@[simp] lemma coe_fn_coe (g : continuous_section f) :
-  ⇑(g : right_inv f) = g := rfl
+@[simp] lemma to_right_inv_eq_lift (g : continuous_section f) : g.to_right_inv = ↑g := rfl
+@[simp] lemma coe_fn_coe (g : continuous_section f) : ⇑(g : right_inv f) = g := rfl
 
 end continuous_section

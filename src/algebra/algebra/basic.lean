@@ -1412,10 +1412,8 @@ instance restrict_scalars.algebra_orig [I : algebra S A] : algebra S (restrict_s
 
 variables [algebra S A]
 
-/-- Identity homomorphism `A →ₐ[S] restrict_scalars R S A`. -/
-def restrict_scalars.to_restrict_scalars : A →ₐ[S] restrict_scalars R S A := alg_hom.id S A
-/-- Identity homomorphism `restrict_scalars R S A →ₐ[S] A`. -/
-def restrict_scalars.of_restrict_scalars : restrict_scalars R S A →ₐ[S] A := alg_hom.id S A
+/-- Tautological `S`-algebra isomorphism `A ≃ₐ[S] restrict_scalars R S A`. -/
+def alg_equiv.self_to_restrict_scalars : A ≃ₐ[S] restrict_scalars R S A := alg_equiv.refl
 
 variables [algebra R S]
 

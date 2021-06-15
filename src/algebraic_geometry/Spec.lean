@@ -203,7 +203,7 @@ subtype.ext $ by { rw [Spec.LocallyRingedSpace_map_coe, Spec.SheafedSpace_map_co
 /--
 Spec, as a contravariant functor from commutative rings to locally ringed spaces.
 -/
-def Spec.to_LocallyRingedSpace : CommRingᵒᵖ ⥤ LocallyRingedSpace :=
+@[simps] def Spec.to_LocallyRingedSpace : CommRingᵒᵖ ⥤ LocallyRingedSpace :=
 { obj := λ R, Spec.LocallyRingedSpace_obj (unop R),
   map := λ R S f, Spec.LocallyRingedSpace_map f.unop,
   map_id' := λ R, by rw [unop_id, Spec.LocallyRingedSpace_map_id],

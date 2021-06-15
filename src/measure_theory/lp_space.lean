@@ -1487,33 +1487,55 @@ end
 
 /-! ### `Lp` is complete iff Cauchy sequences of `ℒp` have limits in `ℒp` -/
 
-lemma tendsto_Lp_of_tendsto_ℒp {ι} [linear_order ι] [hp : fact (1 ≤ p)]
+-- TODO move (and generalize?) this
+lemma tendsto_at_top_zero_to_real_iff {ι} [preorder ι] (f : ι → ℝ≥0∞) (hf : ∀ i, f i ≠ ∞) :
+  at_top.tendsto (λ n, (f n).to_real) (𝓝 0) ↔ at_top.tendsto f (𝓝 0) :=
+begin
+  rw ← ennreal.zero_to_real,
+  refine ⟨λ h, _, λ h, tendsto.comp (ennreal.tendsto_to_real ennreal.coe_ne_top) h⟩,
+  have h_eq : f = (λ n, ennreal.of_real (f n).to_real),
+    by { ext1 n, rw ennreal.of_real_to_real (hf n), },
+  rw [h_eq, ← @ennreal.of_real_to_real 0 ennreal.coe_ne_top],
+  exact ennreal.tendsto_of_real h,
+end
+
+lemma tendsto_Lp_iff_tendsto_ℒp' {ι} [preorder ι] [hp : fact (1 ≤ p)]
+  (f : ι → Lp E p μ) (f_lim : Lp E p μ) :
+  at_top.tendsto f (𝓝 f_lim) ↔ at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
+begin
+  rw tendsto_iff_dist_tendsto_zero,
+  simp_rw dist_def,
+  rw tendsto_at_top_zero_to_real_iff _ (λ n, _),
+  rw snorm_congr_ae (Lp.coe_fn_sub _ _).symm,
+  exact Lp.snorm_ne_top _,
+end
+
+lemma tendsto_Lp_iff_tendsto_ℒp {ι} [preorder ι] [hp : fact (1 ≤ p)]
+  (f : ι → Lp E p μ) (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ) :
+  at_top.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim))
+    ↔ at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
+begin
+  rw tendsto_Lp_iff_tendsto_ℒp',
+  suffices h_eq : (λ n, snorm (f n - mem_ℒp.to_Lp f_lim f_lim_ℒp) p μ)
+      = (λ n, snorm (f n - f_lim) p μ),
+    by rw h_eq,
+  exact funext (λ n, snorm_congr_ae (eventually_eq.rfl.sub (mem_ℒp.coe_fn_to_Lp f_lim_ℒp))),
+end
+
+lemma tendsto_Lp_of_tendsto_ℒp {ι} [preorder ι] [hp : fact (1 ≤ p)]
   {f : ι → Lp E p μ} (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ)
   (h_tendsto : at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
   at_top.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) :=
+(tendsto_Lp_iff_tendsto_ℒp f f_lim f_lim_ℒp).mpr h_tendsto
+
+lemma cauchy_seq_Lp_iff_cauchy_seq_ℒp {ι} [nonempty ι] [semilattice_sup ι] [hp : fact (1 ≤ p)]
+  (f : ι → Lp E p μ) :
+  cauchy_seq f ↔ tendsto (λ (n : ι × ι), snorm (f n.fst - f n.snd) p μ) at_top (𝓝 0) :=
 begin
-  by_cases hι : nonempty ι,
-  swap, { exact tendsto_of_not_nonempty hι, },
-  haveI : nonempty ι := hι,
-  rw ennreal.tendsto_at_top_zero at h_tendsto,
-  simp_rw metric.tendsto_at_top,
-  intros ε hε,
-  have hε_pos : 0 < ennreal.of_real ε, from ennreal.of_real_pos.mpr hε,
-  have hε2_pos : 0 < ennreal.of_real ε / 2,
-    by { rw ennreal.div_pos_iff, exact ⟨hε_pos.ne.symm, ennreal.two_ne_top⟩, },
-  cases (h_tendsto (ennreal.of_real ε / 2) hε2_pos) with N h_tendsto,
-  refine ⟨N, λ n hn, _⟩,
-  specialize h_tendsto n hn,
-  have hp_pos : 0 < p, from ennreal.zero_lt_one.trans_le hp.elim,
-  rw [dist_def, ←@ennreal.to_real_of_real ε (le_of_lt hε),
-    ennreal.to_real_lt_to_real _ ennreal.of_real_ne_top],
-  swap, { rw snorm_congr_ae (coe_fn_sub _ _).symm, exact snorm_ne_top _, },
-  have h_coe : ⇑(f n) - f_lim =ᵐ[μ] ⇑(f n) - ⇑(mem_ℒp.to_Lp f_lim f_lim_ℒp),
-  { have h_coe' : f_lim =ᵐ[μ] ⇑(mem_ℒp.to_Lp f_lim f_lim_ℒp), from (mem_ℒp.coe_fn_to_Lp _).symm,
-    refine h_coe'.mono (λ x hx, _),
-    rw [pi.sub_apply, pi.sub_apply, hx], },
-  rw snorm_congr_ae h_coe.symm,
-  exact lt_of_le_of_lt h_tendsto (ennreal.half_lt_self hε_pos.ne.symm ennreal.of_real_ne_top),
+  simp_rw [cauchy_seq_iff_tendsto_dist_at_top_0, dist_def],
+  rw tendsto_at_top_zero_to_real_iff _ (λ n, _),
+  rw snorm_congr_ae (Lp.coe_fn_sub _ _).symm,
+  exact snorm_ne_top _,
 end
 
 lemma complete_space_Lp_of_cauchy_complete_ℒp [hp : fact (1 ≤ p)]

@@ -216,10 +216,8 @@ lemma mem_ℒp_zero (f : α →ₛ E) (μ : measure α) : mem_ℒp f 0 μ :=
 mem_ℒp_zero_iff_ae_measurable.mpr f.ae_measurable
 
 lemma mem_ℒp_top (f : α →ₛ E) (μ : measure α) : mem_ℒp f ∞ μ :=
-begin
-  obtain ⟨C, hfC⟩ := f.exists_forall_norm_le,
-  exact mem_ℒp_top_of_bound f.ae_measurable C (eventually_of_forall hfC),
-end
+let ⟨C, hfC⟩ := f.exists_forall_norm_le in
+mem_ℒp_top_of_bound f.ae_measurable C $ eventually_of_forall hfC
 
 protected lemma snorm'_eq {p : ℝ} (f : α →ₛ F) (μ : measure α) :
   snorm' f p μ = (∑ y in f.range, (nnnorm y : ℝ≥0∞) ^ p * μ (f ⁻¹' {y})) ^ (1/p) :=

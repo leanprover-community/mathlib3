@@ -8,15 +8,23 @@ import measure_theory.lp_space
 
 /-! # Conditional expectation
 
+The conditional expectation will be defined for functions in `L²` by an orthogonal projection into
+a complete subspace of `L²`. It will then be extended to `L¹`.
+
+For now, this file contains only the definition of the subspace of `Lᵖ` containing functions which
+are measurable with respect to a sub-σ-algebra, as well as a proof that it is complete.
 
 -/
 
 noncomputable theory
-open topological_space measure_theory measure_theory.Lp filter
+open topological_space measure_theory.Lp filter
 open_locale nnreal ennreal topological_space big_operators measure_theory
 
-/-- Like `ae_measurable`, but the `measurable_space` structures used for the measurability
-statement and for the measure are different. -/
+namespace measure_theory
+
+/-- A function `f` verifies `ae_measurable' m f μ` if it is `μ`-a.e. equal to an `m`-measurable
+function. This is similar to `ae_measurable`, but the `measurable_space` structures used for the
+measurability statement and for the measure are different. -/
 def ae_measurable' {α β} [measurable_space β] (m : measurable_space α) {m0 : measurable_space α}
   (f : α → β) (μ : measure α) :
   Prop :=
@@ -24,15 +32,15 @@ def ae_measurable' {α β} [measurable_space β] (m : measurable_space α) {m0 :
 
 namespace ae_measurable'
 
-variables {α β : Type*} [measurable_space β] {f : α → β}
+variables {α β 𝕜 : Type*} {m m0 : measurable_space α} {μ : measure α}
+  [measurable_space β] [measurable_space 𝕜] {f g : α → β}
 
-lemma congr {m m0 : measurable_space α} {μ : measure α}
-  {f g : α → β} (hf : ae_measurable' m f μ) (hfg : f =ᵐ[μ] g) :
+lemma congr (hf : ae_measurable' m f μ) (hfg : f =ᵐ[μ] g) :
   ae_measurable' m g μ :=
 by { obtain ⟨f', hf'_meas, hff'⟩ := hf, exact ⟨f', hf'_meas, hfg.symm.trans hff'⟩, }
 
-lemma add [has_add β] [has_measurable_add₂ β] {m m0 : measurable_space α}
-  {μ : measure α} {f g : α → β} (hf : ae_measurable' m f μ) (hg : ae_measurable' m g μ) :
+lemma add [has_add β] [has_measurable_add₂ β] (hf : ae_measurable' m f μ)
+  (hg : ae_measurable' m g μ) :
   ae_measurable' m (f+g) μ :=
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
@@ -41,8 +49,7 @@ begin
   exact hff'.add hgg',
 end
 
-lemma const_smul {δ} [has_scalar δ β] [measurable_space δ] [has_measurable_smul δ β]
-  {m m0 : measurable_space α} {μ : measure α} (c : δ) {f : α → β} (hf : ae_measurable' m f μ) :
+lemma const_smul [has_scalar 𝕜 β] [has_measurable_smul 𝕜 β] (c : 𝕜) (hf : ae_measurable' m f μ) :
   ae_measurable' m (c • f) μ :=
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
@@ -52,19 +59,18 @@ end
 
 end ae_measurable'
 
-namespace measure_theory
-
 variables {α β γ E E' F F' G G' H 𝕜 𝕂 : Type*} {p : ℝ≥0∞}
   [is_R_or_C 𝕜] -- 𝕜 for ℝ or ℂ
   [is_R_or_C 𝕂] [measurable_space 𝕂] -- 𝕂 for ℝ or ℂ, together with a measurable_space
   [measurable_space β] -- β for a generic measurable space
-  -- F for Lp submodule
+  -- E and E' will be used for inner product spaces, when they are needed.
+  -- F for an Lp submodule
   [normed_group F] [normed_space 𝕂 F] [measurable_space F] [borel_space F]
   [second_countable_topology F]
   -- F' for integrals on F
   [normed_group F'] [normed_space 𝕂 F'] [measurable_space F'] [borel_space F']
   [second_countable_topology F'] [normed_space ℝ F'] [complete_space F']
-  -- G for Lp add_subgroup
+  -- G for an Lp add_subgroup
   [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
   -- G' for integrals on G
   [normed_group G'] [measurable_space G'] [borel_space G'] [second_countable_topology G']
@@ -75,8 +81,9 @@ variables {α β γ E E' F F' G G' H 𝕜 𝕂 : Type*} {p : ℝ≥0∞}
 section Lp_sub
 
 variables (𝕂 F)
-/-- Lp subspace of functions `f` verifying `ae_measurable' m f μ`. -/
-def Lp_sub [opens_measurable_space 𝕂] (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞)
+/-- Lp subspace of functions `f` verifying `ae_measurable' m f μ`, i.e. functions which are
+`μ`-a.e. equal to an `m`-measurable function. -/
+def Lp_meas [opens_measurable_space 𝕂] (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞)
   (μ : measure α) :
   submodule 𝕂 (Lp F p μ) :=
 { carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
@@ -87,19 +94,19 @@ variables {𝕂 F}
 
 variables [opens_measurable_space 𝕂]
 
-lemma mem_Lp_sub_iff_ae_measurable' {m m0 : measurable_space α} {μ : measure α} {f : Lp F p μ} :
-  f ∈ Lp_sub F 𝕂 m p μ ↔ ae_measurable' m f μ :=
-by simp_rw [← set_like.mem_coe, ← submodule.mem_carrier, Lp_sub, set.mem_set_of_eq]
+lemma mem_Lp_meas_iff_ae_measurable' {m m0 : measurable_space α} {μ : measure α} {f : Lp F p μ} :
+  f ∈ Lp_meas F 𝕂 m p μ ↔ ae_measurable' m f μ :=
+by simp_rw [← set_like.mem_coe, ← submodule.mem_carrier, Lp_meas, set.mem_set_of_eq]
 
-lemma Lp_sub.ae_measurable' {m m0 : measurable_space α} {μ : measure α} (f : Lp_sub F 𝕂 m p μ) :
+lemma Lp_meas.ae_measurable' {m m0 : measurable_space α} {μ : measure α} (f : Lp_meas F 𝕂 m p μ) :
   ae_measurable' m f μ :=
-mem_Lp_sub_iff_ae_measurable'.mp f.mem
+mem_Lp_meas_iff_ae_measurable'.mp f.mem
 
-lemma mem_Lp_sub_self {m0 : measurable_space α} (μ : measure α) (f : Lp F p μ) :
-  f ∈ Lp_sub F 𝕂 m0 p μ :=
-mem_Lp_sub_iff_ae_measurable'.mpr (Lp.ae_measurable f)
+lemma mem_Lp_meas_self {m0 : measurable_space α} (μ : measure α) (f : Lp F p μ) :
+  f ∈ Lp_meas F 𝕂 m0 p μ :=
+mem_Lp_meas_iff_ae_measurable'.mpr (Lp.ae_measurable f)
 
-lemma Lp_sub_coe {m m0 : measurable_space α} {p : ℝ≥0∞} {μ : measure α} {f : Lp_sub F 𝕂 m p μ} :
+lemma Lp_meas_coe {m m0 : measurable_space α} {p : ℝ≥0∞} {μ : measure α} {f : Lp_meas F 𝕂 m p μ} :
   ⇑f = (f : Lp F p μ) :=
 coe_fn_coe_base f
 
@@ -229,7 +236,7 @@ lemma is_closed_ae_measurable' [complete_space G] (hm : m ≤ m0) [hp : fact (1 
 is_seq_closed_iff_is_closed.mp (is_seq_closed_ae_measurable' hm)
 
 instance [hm : fact (m ≤ m0)] [complete_space F] [hp : fact (1 ≤ p)] :
-  complete_space (Lp_sub F 𝕂 m p μ) :=
+  complete_space (Lp_meas F 𝕂 m p μ) :=
 is_closed.complete_space_coe (is_closed_ae_measurable' hm.elim)
 
 end complete_subspace

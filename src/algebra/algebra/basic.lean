@@ -1391,10 +1391,12 @@ instance restrict_scalars.module_orig [semiring S] [add_comm_monoid M] [I : modu
   module S (restrict_scalars R S M) := I
 
 /-- `restrict_scalars.linear_equiv` is an equivalence of modules over the semiring `S`. -/
-def restrict_scalars.linear_equiv : restrict_scalars R S M ≃ₗ[A] M := linear_equiv.refl S M
+def restrict_scalars.linear_equiv [semiring S] [add_comm_monoid M] [module S M] :
+  restrict_scalars R S M ≃ₗ[S] M :=
+linear_equiv.refl S M
 
 section module
-variables [comm_semiring R] [semiring S] [algebra R S] [add_comm_monoid M] [module S M]
+variables [semiring S] [add_comm_monoid M] [comm_semiring R] [algebra R S] [module S M]
 
 /--
 When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
@@ -1408,12 +1410,10 @@ module.comp_hom M (algebra_map R S)
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
   c • x = ((algebra_map R S c) • x : M) := rfl
 
-@[simp] lemma linear_equiv_map_smul (t : R) (x : restrict_scalars R A M)
-  [comm_semiring R] [algebra R A] :
-  linear_equiv R A M (t • x) = (algebra_map R A t) • linear_equiv R A M x :=
+@[simp] lemma restrict_scalars.linear_equiv_map_smul (t : R) (x : restrict_scalars R S M) :
+  restrict_scalars.linear_equiv R S M (t • x)
+  = (algebra_map R S t) • restrict_scalars.linear_equiv R S M x :=
 rfl
-
-variables [comm_semiring R] [algebra R A]
 
 instance : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
@@ -1425,6 +1425,7 @@ restrict_scalars.module R S V
 instance submodule.restricted_module_is_scalar_tower (V : submodule S M) :
   is_scalar_tower R S V :=
 restrict_scalars.is_scalar_tower R S V
+
 end module
 
 section algebra

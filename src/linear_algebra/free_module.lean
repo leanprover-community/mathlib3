@@ -31,7 +31,7 @@ section basic
 
 variables [semiring R] [add_comm_monoid M] [module R M]
 
-/-- `module.free R M` is the statement that the `R`-module `R` is free.-/
+/-- `module.free R M` is the statement that the `R`-module `M` is free.-/
 class module.free : Prop :=
 (exists_basis [] : nonempty (Σ (I : Type v), basis I R M))
 

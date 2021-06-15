@@ -11,8 +11,11 @@ import order.bounded_lattice
 import algebra.ordered_monoid_lemmas
 /-!
 # Ordered monoids
+
 This file develops the basics of ordered monoids.
+
 ## Implementation details
+
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.

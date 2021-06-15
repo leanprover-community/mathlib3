@@ -1442,7 +1442,7 @@ lemma tendsto_Lp_iff_tendsto_ℒp' {ι} [preorder ι] [hp : fact (1 ≤ p)]
 begin
   rw tendsto_iff_dist_tendsto_zero,
   simp_rw dist_def,
-  rw [← ennreal.zero_to_real, ennreal.tendsto_at_to_to_real_iff (λ n, _) ennreal.zero_ne_top],
+  rw [← ennreal.zero_to_real, ennreal.tendsto_at_top_to_real_iff (λ n, _) ennreal.zero_ne_top],
   rw snorm_congr_ae (Lp.coe_fn_sub _ _).symm,
   exact Lp.snorm_ne_top _,
 end

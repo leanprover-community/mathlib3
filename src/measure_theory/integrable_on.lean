@@ -89,6 +89,31 @@ protected lemma measurable.measurable_at_filter (h : measurable f) :
   measurable_at_filter f l μ :=
 h.ae_measurable.measurable_at_filter
 
+lemma ae_measurable_indicator_iff [has_zero β] {s} (hs : measurable_set s) :
+  ae_measurable f (μ.restrict s) ↔ ae_measurable (indicator s f) μ :=
+begin
+  split,
+  { assume h,
+    refine ⟨indicator s (h.mk f), h.measurable_mk.indicator hs, _⟩,
+    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
+      (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
+    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
+      (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
+    have : s.indicator f =ᵐ[μ.restrict s + μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
+      ae_add_measure_iff.2 ⟨A, B⟩,
+    simpa only [hs, measure.restrict_add_restrict_compl] using this },
+  { assume h,
+    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) }
+end
+
+lemma ae_measurable.restrict (hfm : ae_measurable f μ) {s} :
+  ae_measurable f (μ.restrict s) :=
+⟨ae_measurable.mk f hfm, hfm.measurable_mk, ae_restrict_of_ae hfm.ae_eq_mk⟩
+
+lemma ae_measurable.indicator [has_zero β] (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
+  ae_measurable (s.indicator f) μ :=
+(ae_measurable_indicator_iff hs).mp hfm.restrict
+
 end
 
 namespace measure_theory
@@ -184,23 +209,6 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
 ⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
   h.mono_measure (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_measure h.2⟩
-
-lemma ae_measurable_indicator_iff (hs : measurable_set s) :
-  ae_measurable f (μ.restrict s) ↔ ae_measurable (indicator s f) μ :=
-begin
-  split,
-  { assume h,
-    refine ⟨indicator s (h.mk f), h.measurable_mk.indicator hs, _⟩,
-    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
-      (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
-    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
-      (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
-    have : s.indicator f =ᵐ[μ.restrict s + μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
-      ae_add_measure_iff.2 ⟨A, B⟩,
-    simpa only [hs, measure.restrict_add_restrict_compl] using this },
-  { assume h,
-    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) }
-end
 
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=

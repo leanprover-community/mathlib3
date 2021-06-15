@@ -410,25 +410,26 @@ begin
   ... ≤ 4 ^ (n / 15) : pow_beats_mul (n / 15) (by linarith),
 end
 
-lemma pow_coe (a b : ℕ) : (↑(a ^ b) : ℝ) = (↑a) ^ (↑b : ℝ) :=
-begin
-  --library_search,
-  sorry,
-end
-
 open real
 open_locale nnreal
 
+lemma pow_coe (a b : ℕ) : (↑(a ^ b) : ℝ) = (↑a) ^ (↑b : ℝ) :=
+begin
+  rw real.rpow_nat_cast,
+  simp only [nat.cast_pow],
+end
+
 lemma nat_sqrt_le_real_sqrt (a : ℕ) : (nat.sqrt a : ℝ) ≤ real.sqrt a :=
 begin
+  have r : (0 : ℝ) ≤ ((nat.sqrt a) : ℝ) := (@nat.cast_le ℝ _ _ 0 (nat.sqrt a)).2 (zero_le (nat.sqrt a)),
   apply (le_sqrt (nat.sqrt a).cast_nonneg (nat.cast_nonneg a)).2,
-  suffices: ↑(nat.sqrt a ^ 2) ≤ (a : ℝ≥0),
-  {
-    sorry,
-  },
-  apply nnreal.coe_le_coe.2,
-  apply nat.cast_le.mpr (nat.sqrt_le' a),
-  -- library_search,
+  calc ↑(nat.sqrt a) ^ 2 = (nat.sqrt a : ℝ) ^ (1 + 1) : rfl
+  ... = (nat.sqrt a : ℝ) ^ ↑(1 + 1) : (rpow_nat_cast (nat.sqrt a : ℝ) (1 + 1)).symm
+  ... = (nat.sqrt a : ℝ) ^ ((1 : ℝ) + 1) : by simp only [nat.cast_add, nat.cast_one]
+  ... = ((nat.sqrt a) : ℝ) ^ (1 : ℝ) * ((nat.sqrt a) : ℝ) ^ (1 : ℝ) : by rw rpow_add' r two_ne_zero
+  ... = ↑(nat.sqrt a) * ↑(nat.sqrt a) : by rw rpow_one
+  ... = ↑(nat.sqrt a * nat.sqrt a) : by norm_num
+  ... ≤ ↑a : nat.cast_le.mpr (nat.sqrt_le a),
 end
 
 lemma pow_beats_pow_2 (n : ℕ) (n_large : 249 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=

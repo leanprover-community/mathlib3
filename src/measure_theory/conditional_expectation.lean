@@ -64,13 +64,13 @@ variables {α β γ E E' F F' G G' H 𝕜 𝕂 : Type*} {p : ℝ≥0∞}
   [is_R_or_C 𝕂] [measurable_space 𝕂] -- 𝕂 for ℝ or ℂ, together with a measurable_space
   [measurable_space β] -- β for a generic measurable space
   -- E and E' will be used for inner product spaces, when they are needed.
-  -- F for an Lp submodule
+  -- F for a Lp submodule
   [normed_group F] [normed_space 𝕂 F] [measurable_space F] [borel_space F]
   [second_countable_topology F]
   -- F' for integrals on a Lp submodule
   [normed_group F'] [normed_space 𝕂 F'] [measurable_space F'] [borel_space F']
   [second_countable_topology F'] [normed_space ℝ F'] [complete_space F']
-  -- G for an Lp add_subgroup
+  -- G for a Lp add_subgroup
   [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
   -- G' for integrals on a Lp add_subgroup
   [normed_group G'] [measurable_space G'] [borel_space G'] [second_countable_topology G']
@@ -80,7 +80,7 @@ variables {α β γ E E' F F' G G' H 𝕜 𝕂 : Type*} {p : ℝ≥0∞}
 
 section Lp_sub
 
-variables (𝕂 F)
+variables (F 𝕂)
 /-- `Lp_meas F 𝕂 m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
 `ae_measurable' m f μ`, i.e. functions which are `μ`-a.e. equal to an `m`-measurable function. -/
 def Lp_meas [opens_measurable_space 𝕂] (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞)
@@ -90,7 +90,7 @@ def Lp_meas [opens_measurable_space 𝕂] (m : measurable_space α) [measurable_
   zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
   add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
   smul_mem' := λ c f hf, (hf.const_smul c).congr (Lp.coe_fn_smul c f).symm, }
-variables {𝕂 F}
+variables {F 𝕂}
 
 variables [opens_measurable_space 𝕂]
 

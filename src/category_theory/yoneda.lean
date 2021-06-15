@@ -33,7 +33,9 @@ See https://stacks.math.columbia.edu/tag/001O.
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
-    map := λ Y Y' f g, f.unop ≫ g },
+    map := λ Y Y' f g, f.unop ≫ g,
+    map_comp' := λ _ _ _ f g, begin ext, dsimp, erw [category.assoc] end,
+    map_id' := λ Y, begin ext, dsimp, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
 /--

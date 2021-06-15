@@ -14,6 +14,8 @@ import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial
 import analysis.special_functions.pow
+import data.real.sqrt
+import data.real.nnreal
 
 open_locale big_operators
 
@@ -410,13 +412,22 @@ end
 
 lemma pow_coe (a b : ℕ) : (↑(a ^ b) : ℝ) = (↑a) ^ (↑b : ℝ) :=
 begin
-  sorry
-  -- library_search,
+  --library_search,
+  sorry,
 end
+
+open real
+open_locale nnreal
 
 lemma nat_sqrt_le_real_sqrt (a : ℕ) : (nat.sqrt a : ℝ) ≤ real.sqrt a :=
 begin
-  sorry
+  apply (le_sqrt (nat.sqrt a).cast_nonneg (nat.cast_nonneg a)).2,
+  suffices: ↑(nat.sqrt a ^ 2) ≤ (a : ℝ≥0),
+  {
+    sorry,
+  },
+  apply nnreal.coe_le_coe.2,
+  apply nat.cast_le.mpr (nat.sqrt_le' a),
   -- library_search,
 end
 

@@ -923,101 +923,89 @@ continuous_primitive (λ _ _, h_int.interval_integrable) a
 
 end continuous_primitive
 
-lemma integral_eq_zero_iff_of_le_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
-  (hf : 0 ≤ᵐ[volume.restrict (Ioc a b)] f) (hfi : interval_integrable f volume a b) :
-  ∫ x in a..b, f x = 0 ↔ f =ᵐ[volume.restrict (Ioc a b)] 0 :=
+section
+
+variables {f g : α → ℝ} {a b : α} {μ : measure α}
+
+lemma integral_eq_zero_iff_of_le_of_nonneg_ae (hab : a ≤ b)
+  (hf : 0 ≤ᵐ[μ.restrict (Ioc a b)] f) (hfi : interval_integrable f μ a b) :
+  ∫ x in a..b, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict (Ioc a b)] 0 :=
 by rw [integral_of_le hab, integral_eq_zero_iff_of_nonneg_ae hf hfi.1]
 
-lemma integral_eq_zero_iff_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
-  (hf : 0 ≤ᵐ[volume.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f volume a b) :
-  ∫ x in a..b, f x = 0 ↔ f =ᵐ[volume.restrict (Ioc a b ∪ Ioc b a)] 0 :=
+lemma integral_eq_zero_iff_of_nonneg_ae
+  (hf : 0 ≤ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f μ a b) :
+  ∫ x in a..b, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] 0 :=
 begin
   cases le_total a b with hab hab;
-    simp only [Ioc_eq_empty hab, empty_union, union_empty] at *,
+    simp only [Ioc_eq_empty hab, empty_union, union_empty] at hf ⊢,
   { exact integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi },
-  { rw [integral_symm, neg_eq_zero],
-    exact integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm }
+  { rw [integral_symm, neg_eq_zero, integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm] }
 end
 
-lemma integral_pos_iff_support_of_nonneg_ae' {f : ℝ → ℝ} {a b : ℝ}
-  (hf : 0 ≤ᵐ[volume.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f volume a b) :
-  0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
+lemma integral_pos_iff_support_of_nonneg_ae'
+  (hf : 0 ≤ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f μ a b) :
+  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (function.support f ∩ Ioc a b) :=
 begin
-  cases le_total a b with hab hab,
-  { simp only [integral_of_le hab, Ioc_eq_empty hab, union_empty] at hf ⊢,
-    symmetry,
-    rw [set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, and_iff_right_iff_imp],
+  cases le_total a b with hab hab;
+    simp only [integral_of_le, integral_of_ge, Ioc_eq_empty, hab, union_empty, empty_union] at hf ⊢,
+  { rw [set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, iff.comm, and_iff_right_iff_imp],
     contrapose!,
     intro h,
-    simp [Ioc_eq_empty h] },
-  { rw [Ioc_eq_empty hab, empty_union] at hf,
-    simp [integral_of_ge hab, Ioc_eq_empty hab, integral_nonneg_of_ae hf] }
+    rw [Ioc_eq_empty h, inter_empty, measure_empty, nonpos_iff_eq_zero] },
+  { simp [integral_nonneg_of_ae hf] }
 end
 
-lemma integral_pos_iff_support_of_nonneg_ae {f : ℝ → ℝ} {a b : ℝ}
-  (hf : 0 ≤ᵐ[volume] f) (hfi : interval_integrable f volume a b) :
-  0 < ∫ x in a..b, f x ↔ a < b ∧ 0 < volume (function.support f ∩ Ioc a b) :=
+lemma integral_pos_iff_support_of_nonneg_ae
+  (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
+  0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (function.support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
+
+variable (hab : a ≤ b)
+
+include hab
+
+lemma integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict (Icc a b)] f) :
+  0 ≤ (∫ u in a..b, f u ∂μ) :=
+let H := ae_restrict_of_ae_restrict_of_subset Ioc_subset_Icc_self hf in
+by simpa only [integral_of_le hab] using set_integral_nonneg_of_ae_restrict H
+
+lemma integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) :
+  0 ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae_restrict hab $ ae_restrict_of_ae hf
+
+lemma integral_nonneg [topological_space α] [opens_measurable_space α] [order_closed_topology α]
+  (hf : ∀ u, u ∈ Icc a b → 0 ≤ f u) :
+  0 ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae_restrict hab $ (ae_restrict_iff' measurable_set_Icc).mpr $ ae_of_all μ hf
 
 section mono
 
-variables {μ : measure ℝ} {f g : ℝ → ℝ} {a b : ℝ}
-  (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
-  (hab : a ≤ b)
+variables (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b)
 
-include hf hg hab
+include hf hg
 
-lemma integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict (interval a b)] g) :
+lemma integral_mono_ae_restrict (h : f ≤ᵐ[μ.restrict (Icc a b)] g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-begin
-  rw [integral_of_le hab, integral_of_le hab],
-  rw interval_of_le hab at h,
-  exact set_integral_mono_ae_restrict hf.1 hg.1
-    (h.filter_mono (ae_mono $ measure.restrict_mono Ioc_subset_Icc_self (le_refl μ)))
-end
+let H := h.filter_mono $ ae_mono $ measure.restrict_mono Ioc_subset_Icc_self $ le_refl μ in
+by simpa only [integral_of_le hab] using set_integral_mono_ae_restrict hf.1 hg.1 H
 
 lemma integral_mono_ae (h : f ≤ᵐ[μ] g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
 by simpa only [integral_of_le hab] using set_integral_mono_ae hf.1 hg.1 h
 
-lemma integral_mono_on (h : ∀ x ∈ interval a b, f x ≤ g x) :
+lemma integral_mono_on [topological_space α] [opens_measurable_space α] [order_closed_topology α]
+  (h : ∀ x ∈ Icc a b, f x ≤ g x) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-begin
-  rw [integral_of_le hab, integral_of_le hab],
-  rw interval_of_le hab at h,
-  exact set_integral_mono_on hf.1 hg.1 measurable_set_Ioc (λ x hx, h x (Ioc_subset_Icc_self hx)),
-end
+let H := λ x hx, h x $ Ioc_subset_Icc_self hx in
+by simpa only [integral_of_le hab] using set_integral_mono_on hf.1 hg.1 measurable_set_Ioc H
 
 lemma integral_mono (h : f ≤ g) :
   ∫ u in a..b, f u ∂μ ≤ ∫ u in a..b, g u ∂μ :=
-integral_mono_ae hf hg hab (ae_of_all _ h)
+integral_mono_ae hab hf hg $ ae_of_all _ h
 
 end mono
 
-section nonneg
-
-variables {μ : measure ℝ} {f : ℝ → ℝ} {a b : ℝ} (hab : a ≤ b)
-
-include hab
-
-lemma integral_nonneg_of_ae_restrict (hf : 0 ≤ᵐ[μ.restrict (interval a b)] f) :
-  (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
-begin
-  rw integral_of_le hab,
-  rw interval_of_le hab at hf,
-  exact set_integral_nonneg_of_ae_restrict
-    (ae_restrict_of_ae_restrict_of_subset (Ioc_subset_Icc_self) hf)
 end
-
-lemma integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) : (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
-integral_nonneg_of_ae_restrict hab (ae_restrict_of_ae hf)
-
-lemma integral_nonneg (hf : ∀ u, u ∈ interval a b → 0 ≤ f u) :
-  (0:ℝ) ≤ (∫ u in a..b, f u ∂μ) :=
-integral_nonneg_of_ae_restrict hab
-  ((ae_restrict_iff' measurable_set_interval).mpr (ae_of_all μ hf))
-
-end nonneg
 
 /-!
 ### Fundamental theorem of calculus, part 1, for any measure

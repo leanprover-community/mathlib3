@@ -20,6 +20,82 @@ namespace list
 
 variables {α : Type*} [decidable_eq α]
 
+/-- Return the `z` such that `x :: z :: _` appears in `xs`, or `default` if there is no such `z`. -/
+def next_or : Π (xs : list α) (x default : α), α
+| [] x default := default
+| [y] x default := default -- Handles the not-found and the wraparound case
+| (y :: z :: xs) x default := if x = y then z else next_or (z :: xs) x default
+
+@[simp] lemma next_or_nil (x d : α) : next_or [] x d = d := rfl
+
+@[simp] lemma next_or_singleton (x y d : α) : next_or [y] x d = d := rfl
+
+@[simp] lemma next_or_self_cons_cons (xs : list α) (x y d : α) :
+  next_or (x :: y :: xs) x d = y :=
+if_pos rfl
+
+lemma next_or_cons_of_ne (xs : list α) (y x d : α) (h : x ≠ y) :
+  next_or (y :: xs) x d = next_or xs x d :=
+begin
+  cases xs with z zs,
+  { refl },
+  { exact if_neg h }
+end
+
+/-- `next_or` does not depend on the default value, if the next value appears. -/
+lemma next_or_eq_next_or_of_mem_of_ne (xs : list α) (x d d' : α)
+  (x_mem : x ∈ xs) (x_ne : x ≠ xs.last (ne_nil_of_mem x_mem)) :
+  next_or xs x d = next_or xs x d' :=
+begin
+  induction xs with y ys IH,
+  { cases x_mem },
+  cases ys with z zs,
+  { simp at x_mem x_ne, contradiction },
+  by_cases h : x = y,
+  { rw [h, next_or_self_cons_cons, next_or_self_cons_cons] },
+  { rw [next_or, next_or, IH];
+      simpa [h] using x_mem }
+end
+
+lemma mem_of_next_or_ne {xs : list α} {x d : α} (h : next_or xs x d ≠ d) :
+  x ∈ xs :=
+begin
+  induction xs with y ys IH,
+  { simpa using h },
+  cases ys with z zs,
+  { simpa using h },
+  { by_cases hx : x = y,
+    { simp [hx] },
+    { rw [next_or_cons_of_ne _ _ _ _ hx] at h,
+      simpa [hx] using IH h } }
+end
+
+lemma next_or_concat {xs : list α} {x : α} (d : α) (h : x ∉ xs) :
+  next_or (xs ++ [x]) x d = d :=
+begin
+  induction xs with z zs IH,
+  { simp },
+  { obtain ⟨hz, hzs⟩ := not_or_distrib.mp (mt (mem_cons_iff _ _ _).mp h),
+    rw [cons_append, next_or_cons_of_ne _ _ _ _ hz, IH hzs] }
+end
+
+lemma next_or_mem {xs : list α} {x d : α} (hd : d ∈ xs) :
+  next_or xs x d ∈ xs :=
+begin
+  revert hd,
+  suffices : ∀ (xs' : list α) (h : ∀ x ∈ xs, x ∈ xs') (hd : d ∈ xs'), next_or xs x d ∈ xs',
+  { exact this xs (λ _, id) },
+  intros xs' hxs' hd,
+  induction xs with y ys ih,
+  { exact hd },
+  cases ys with z zs,
+  { exact hd },
+  rw next_or,
+  split_ifs with h,
+  { exact hxs' _ (mem_cons_of_mem _ (mem_cons_self _ _)) },
+  { exact ih (λ _ h, hxs' _ (mem_cons_of_mem _ h)) },
+end
+
 /--
 Given an element `x : α` of `l : list α` such that `x ∈ l`, get the next
 element of `l`. This works from head to tail, (including a check for last element)
@@ -29,15 +105,11 @@ For example:
  * `next [1, 2, 3] 2 _ = 3`
  * `next [1, 2, 3] 3 _ = 1`
  * `next [1, 2, 3, 2, 4] 2 _ = 3`
- * `next [1, 2, 3, 2] 2 _ = 1`
+ * `next [1, 2, 3, 2] 2 _ = 3`
  * `next [1, 1, 2, 3, 2] 1 _ = 1`
 -/
-def next : Π (l : list α) (x : α) (h : x ∈ l), α
-| []             _ h := by simpa using h
-| [y]            _ _ := y
-| (y :: z :: xs) x h := if hx : x = y then z else
-  if x = (y :: z :: xs).last (cons_ne_nil _ _) then y
-    else next (z :: xs) x (by simpa [hx] using h)
+def next (l : list α) (x : α) (h : x ∈ l) : α :=
+next_or l x (l.nth_le 0 (length_pos_of_mem h))
 
 /--
 Given an element `x : α` of `l : list α` such that `x ∈ l`, get the previous
@@ -66,28 +138,47 @@ variables (l : list α) (x : α) (h : x ∈ l)
 
 lemma next_cons_cons_eq' (y z : α) (h : x ∈ (y :: z :: l)) (hx : x = y) :
   next (y :: z :: l) x h = z :=
-by rw [next, dif_pos hx]
+by rw [next, next_or, if_pos hx]
 
 @[simp] lemma next_cons_cons_eq (z : α) (h : x ∈ (x :: z :: l)) :
   next (x :: z :: l) x h = z :=
 next_cons_cons_eq' l x x z h rfl
 
-lemma next_last_cons (y : α) (h : x ∈ (y :: l)) (hy : x ≠ y)
-  (hx : x = last (y :: l) (cons_ne_nil _ _)) :
-  next (y :: l) x h = y :=
-begin
-  cases l,
-  { simp },
-  { rw [next, dif_neg hy, if_pos hx] }
-end
-
 lemma next_ne_head_ne_last (y : α) (h : x ∈ (y :: l)) (hy : x ≠ y)
   (hx : x ≠ last (y :: l) (cons_ne_nil _ _)) :
   next (y :: l) x h = next l x (by simpa [hy] using h) :=
 begin
-  cases l,
-  { simpa [hy] using h },
-  { rw [next, dif_neg hy, if_neg hx] }
+  rw [next, next, next_or_cons_of_ne _ _ _ _ hy, next_or_eq_next_or_of_mem_of_ne],
+  { rwa last_cons at hx },
+  { simpa [hy] using h }
+end
+
+lemma next_cons_concat (y : α) (hy : x ≠ y) (hx : x ∉ l)
+  (h : x ∈ y :: l ++ [x] := mem_append_right _ (mem_singleton_self x)) :
+  next (y :: l ++ [x]) x h = y :=
+begin
+  rw [next, next_or_concat],
+  { refl },
+  { simp [hy, hx] }
+end
+
+lemma next_last_cons (y : α) (h : x ∈ (y :: l)) (hy : x ≠ y)
+  (hx : x = last (y :: l) (cons_ne_nil _ _)) (hl : nodup l) :
+  next (y :: l) x h = y :=
+begin
+  rw [next, nth_le, ←init_append_last (cons_ne_nil y l), hx, next_or_concat],
+  subst hx,
+  intro H,
+  obtain ⟨_ | k, hk, hk'⟩ := nth_le_of_mem H,
+  { simpa [init_eq_take, nth_le_take', hy.symm] using hk' },
+  suffices : k.succ = l.length,
+  { simpa [this] using hk },
+  cases l with hd tl,
+  { simpa using hk },
+  { rw nodup_iff_nth_le_inj at hl,
+    rw [length, nat.succ_inj'],
+    apply hl,
+    simpa [init_eq_take, nth_le_take', last_eq_nth_le] using hk' }
 end
 
 lemma prev_last_cons' (y : α) (h : x ∈ (y :: l)) (hx : x = y) :
@@ -132,18 +223,7 @@ end
 include h
 
 lemma next_mem : l.next x h ∈ l :=
-begin
-  cases l with hd tl,
-  { simpa using h },
-  induction tl with hd' tl hl generalizing hd,
-  { simp },
-  { by_cases hx : x = hd,
-    { simp [hx] },
-    { rw [next, dif_neg hx],
-      split_ifs with hm,
-      { exact mem_cons_self _ _ },
-      { exact mem_cons_of_mem _ (hl _ _) } } }
-end
+next_or_mem (nth_le_mem _ _ _)
 
 lemma prev_mem : l.prev x h ∈ l :=
 begin
@@ -184,7 +264,8 @@ begin
       { rw [next_last_cons],
         { simp [hn''] },
         { exact hx' },
-        { simp [last_eq_nth_le, hn''] } },
+        { simp [last_eq_nth_le, hn''] },
+        { exact nodup_of_nodup_cons h } },
       { have : n < l.length := by simpa [nat.succ_lt_succ_iff] using hn'' ,
         rw [next_ne_head_ne_last _ _ _ _ hx'],
         { simp [nat.mod_eq_of_lt (nat.succ_lt_succ (nat.succ_lt_succ this)),

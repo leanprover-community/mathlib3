@@ -444,20 +444,31 @@ begin
             -- unfold_coes,
             rw pow_coe,
             apply real.rpow_le_rpow_of_exponent_le,
-              {sorry},
-              {apply nat_sqrt_le_real_sqrt,}
+              {
+                sorry,
+              },
+              {apply nat_sqrt_le_real_sqrt,},
           end
   ... ≤ ↑(4 ^ n) :
           begin
-            apply (real.log_le_log _ _).1,
-            rw real.log_rpow,
-            rw pow_coe,
-            rw real.log_rpow,
-            sorry,
-            sorry,
-            sorry,
-            sorry,
-            sorry,
+            apply (@real.log_le_log _ (↑(4 ^ n)) _ (by norm_num)).1,
+            { rw real.log_rpow _,
+              { rw pow_coe,
+                rw real.log_rpow,
+                { sorry, },
+                { norm_num, },
+              },
+              { sorry, },
+              --rw pow_coe,
+              --rw real.log_rpow,
+              --{ sorry, },
+              --{ norm_num, },
+              --{ norm_num, sorry, },
+            },
+            { norm_num,
+              refine rpow_pos_of_pos _ _,
+              { sorry, },
+            },
           end,
 end
 

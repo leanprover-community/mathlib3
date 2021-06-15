@@ -1446,15 +1446,12 @@ end
 
 lemma prob_le_one [probability_measure μ] (h : measurable_set s) : μ s ≤ 1 :=
 begin
-    have h₁ : μ s ≤ μ set.univ := measure_mono (set.subset_univ _),
+  have h₁ : μ s ≤ μ set.univ := measure_mono (set.subset_univ _),
     rw measure_univ at h₁,
   exact h₁,
 end
 
-
-
 end finite_measure
-
 
 section no_atoms
 

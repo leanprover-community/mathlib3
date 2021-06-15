@@ -81,8 +81,8 @@ variables {α β γ E E' F F' G G' H 𝕜 𝕂 : Type*} {p : ℝ≥0∞}
 section Lp_sub
 
 variables (𝕂 F)
-/-- Lp subspace of functions `f` verifying `ae_measurable' m f μ`, i.e. functions which are
-`μ`-a.e. equal to an `m`-measurable function. -/
+/-- `Lp_meas F 𝕂 m p μ` is the subspace of `Lp F p μ` containing functions `f` verifying
+`ae_measurable' m f μ`, i.e. functions which are `μ`-a.e. equal to an `m`-measurable function. -/
 def Lp_meas [opens_measurable_space 𝕂] (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞)
   (μ : measure α) :
   submodule 𝕂 (Lp F p μ) :=
@@ -106,7 +106,7 @@ lemma mem_Lp_meas_self {m0 : measurable_space α} (μ : measure α) (f : Lp F p 
   f ∈ Lp_meas F 𝕂 m0 p μ :=
 mem_Lp_meas_iff_ae_measurable'.mpr (Lp.ae_measurable f)
 
-lemma Lp_meas_coe {m m0 : measurable_space α} {p : ℝ≥0∞} {μ : measure α} {f : Lp_meas F 𝕂 m p μ} :
+lemma Lp_meas_coe {m m0 : measurable_space α} {μ : measure α} {f : Lp_meas F 𝕂 m p μ} :
   ⇑f = (f : Lp F p μ) :=
 coe_fn_coe_base f
 

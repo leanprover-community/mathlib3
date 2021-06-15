@@ -155,8 +155,89 @@ open_locale topological_space classical
 
 section topological_fiber_bundle
 
-variables (F) {Z : Type*} [topological_space B] [topological_space Z]
-  [topological_space F] {proj : Z → B}
+variables (F) {Z : Type*} [topological_space B] [topological_space F] {proj : Z → B}
+
+/-- This structure contains the information left for a local trivialization if the total
+space has not been given a topology, but we have a topology on both the fiber and the base space.
+Through the construction `topological_fiber_prebundle F proj` it will be possible to promote a
+`prebundle_trivialization F proj` to a `bundle_trivialization F proj`. -/
+@[nolint has_inhabited_instance]
+structure prebundle_trivialization (proj : Z → B) extends local_equiv Z (B × F) :=
+(open_target   : is_open target)
+(base_set      : set B)
+(open_base_set : is_open base_set)
+(source_eq     : source = proj ⁻¹' base_set)
+(target_eq     : target = set.prod base_set univ)
+(proj_to_fun   : ∀ p ∈ source, (to_fun p).1 = proj p)
+
+namespace prebundle_trivialization
+
+instance : has_coe_to_fun (prebundle_trivialization F proj) := ⟨_, λ e, e.to_fun⟩
+
+variables {F} (e : prebundle_trivialization F proj) {x : Z}
+
+@[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_equiv = e := rfl
+@[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
+lemma mem_source : x ∈ e.source ↔ proj x ∈ e.base_set := by rw [e.source_eq, mem_preimage]
+lemma coe_fst' (ex : proj x ∈ e.base_set) : (e x).1 = proj x := e.coe_fst (e.mem_source.2 ex)
+protected lemma eq_on : eq_on (prod.fst ∘ e) proj e.source := λ x hx, e.coe_fst hx
+lemma mk_proj_snd (ex : x ∈ e.source) : (proj x, (e x).2) = e x := prod.ext (e.coe_fst ex).symm rfl
+lemma mk_proj_snd' (ex : proj x ∈ e.base_set) : (proj x, (e x).2) = e x :=
+prod.ext (e.coe_fst' ex).symm rfl
+
+/-- Composition of inverse and coercion from the subtype of the target. -/
+def set_symm : e.target → Z := set.restrict e.to_local_equiv.symm e.target
+
+lemma mem_target {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
+by rw [e.target_eq, prod_univ, mem_preimage]
+
+lemma proj_symm_apply {x : B × F} (hx : x ∈ e.target) : proj (e.to_local_equiv.symm x) = x.1 :=
+begin
+  have := (e.coe_fst (e.to_local_equiv.map_target hx)).symm,
+  rwa [← e.coe_coe, e.to_local_equiv.right_inv hx] at this
+end
+
+lemma proj_symm_apply' {b : B} {x : F} (hx : b ∈ e.base_set) :
+  proj (e.to_local_equiv.symm (b, x)) = b :=
+e.proj_symm_apply (e.mem_target.2 hx)
+
+lemma apply_symm_apply {x : B × F} (hx : x ∈ e.target) : e (e.to_local_equiv.symm x) = x :=
+e.to_local_equiv.right_inv hx
+
+lemma apply_symm_apply' {b : B} {x : F} (hx : b ∈ e.base_set) :
+  e (e.to_local_equiv.symm (b, x)) = (b, x) :=
+e.apply_symm_apply (e.mem_target.2 hx)
+
+@[simp, mfld_simps] lemma symm_apply_mk_proj {x : Z} (ex : x ∈ e.source) :
+  e.to_local_equiv.symm (proj x, (e x).2) = x :=
+by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_equiv.left_inv ex]
+
+@[simp, mfld_simps] lemma preimage_symm_proj_base_set :
+  (e.to_local_equiv.symm ⁻¹' (proj ⁻¹' e.base_set)) ∩ e.target  = e.target :=
+begin
+  refine inter_eq_right_iff_subset.mpr (λ x hx, _),
+  simp only [mem_preimage, local_equiv.inv_fun_as_coe, e.proj_symm_apply hx],
+  exact e.mem_target.mp hx,
+end
+
+@[simp, mfld_simps] lemma preimage_symm_proj_inter (s : set B) :
+  (e.to_local_equiv.symm ⁻¹' (proj ⁻¹' s)) ∩ e.base_set.prod univ = (s ∩ e.base_set).prod univ :=
+begin
+  refine subset.antisymm_iff.mpr ⟨(λ x hx, _), (λ x hx, mem_inter _ _)⟩,
+  { rw [←e.target_eq] at hx,
+    simp only [mem_inter_iff, mem_preimage, e.proj_symm_apply hx.2] at hx,
+    simp only [mem_inter_eq, and_true, mem_univ, mem_prod],
+    exact ⟨hx.1, e.mem_target.mp hx.2⟩, },
+  { simp only [mem_inter_eq, and_true, mem_univ, mem_prod, e.mem_target.symm] at hx,
+    simp only [mem_preimage, e.proj_symm_apply hx.2],
+    exact hx.1, },
+  { rw [←inter_univ univ, ←prod_inter_prod, mem_inter_eq] at hx,
+    exact hx.2, }
+end
+
+end prebundle_trivialization
+
+variable [topological_space Z]
 
 /--
 A structure extending local homeomorphisms, defining a local trivialization of a projection
@@ -171,18 +252,82 @@ structure bundle_trivialization (proj : Z → B) extends local_homeomorph Z (B �
 (target_eq     : target = set.prod base_set univ)
 (proj_to_fun   : ∀ p ∈ source, (to_local_homeomorph p).1 = proj p)
 
+namespace bundle_trivialization
+
+variables {F} (e : bundle_trivialization F proj) {x : Z}
+
+def to_prebundle_trivialization : prebundle_trivialization F proj := { ..e }
+
 instance : has_coe_to_fun (bundle_trivialization F proj) := ⟨_, λ e, e.to_fun⟩
+instance : has_coe (bundle_trivialization F proj) (prebundle_trivialization F proj) :=
+⟨to_prebundle_trivialization⟩
 
-variable {F}
+@[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
+@[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
+protected lemma eq_on : eq_on (prod.fst ∘ e) proj e.source := λ x hx, e.coe_fst hx
+lemma mem_source : x ∈ e.source ↔ proj x ∈ e.base_set := by rw [e.source_eq, mem_preimage]
+lemma coe_fst' (ex : proj x ∈ e.base_set) : (e x).1 = proj x := e.coe_fst (e.mem_source.2 ex)
+lemma mk_proj_snd (ex : x ∈ e.source) : (proj x, (e x).2) = e x := prod.ext (e.coe_fst ex).symm rfl
+lemma mk_proj_snd' (ex : proj x ∈ e.base_set) : (proj x, (e x).2) = e x :=
+prod.ext (e.coe_fst' ex).symm rfl
 
-@[simp, mfld_simps] lemma bundle_trivialization.coe_coe (e : bundle_trivialization F proj) :
-  ⇑e.to_local_homeomorph = e := rfl
-
-@[simp, mfld_simps] lemma bundle_trivialization.coe_mk
-  (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
+@[simp, mfld_simps] lemma coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
   (bundle_trivialization.mk e i j k l m : bundle_trivialization F proj) x = e x := rfl
 
-variable (F)
+lemma mem_target {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
+by rw [e.target_eq, prod_univ, mem_preimage]
+
+lemma map_target {x : B × F} (hx : x ∈ e.target) : e.to_local_homeomorph.symm x ∈ e.source :=
+e.to_local_homeomorph.map_target hx
+
+lemma proj_symm_apply {x : B × F} (hx : x ∈ e.target) : proj (e.to_local_homeomorph.symm x) = x.1 :=
+begin
+  have := (e.coe_fst (e.map_target hx)).symm,
+  rwa [← e.coe_coe, e.to_local_homeomorph.right_inv hx] at this
+end
+
+lemma proj_symm_apply' {b : B} {x : F}
+  (hx : b ∈ e.base_set) : proj (e.to_local_homeomorph.symm (b, x)) = b :=
+e.proj_symm_apply (e.mem_target.2 hx)
+
+lemma apply_symm_apply {x : B × F} (hx : x ∈ e.target) : e (e.to_local_homeomorph.symm x) = x :=
+e.to_local_homeomorph.right_inv hx
+
+lemma apply_symm_apply'
+  {b : B} {x : F} (hx : b ∈ e.base_set) : e (e.to_local_homeomorph.symm (b, x)) = (b, x) :=
+e.apply_symm_apply (e.mem_target.2 hx)
+
+@[simp, mfld_simps] lemma symm_apply_mk_proj (ex : x ∈ e.source) :
+  e.to_local_homeomorph.symm (proj x, (e x).2) = x :=
+by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_homeomorph.left_inv ex]
+
+lemma coe_fst_eventually_eq_proj (ex : x ∈ e.source) : prod.fst ∘ e =ᶠ[𝓝 x] proj  :=
+mem_nhds_iff.2 ⟨e.source, λ y hy, e.coe_fst hy, e.open_source, ex⟩
+
+lemma coe_fst_eventually_eq_proj' (ex : proj x ∈ e.base_set) : prod.fst ∘ e =ᶠ[𝓝 x] proj :=
+e.coe_fst_eventually_eq_proj (e.mem_source.2 ex)
+
+lemma map_proj_nhds (ex : x ∈ e.source) : map proj (𝓝 x) = 𝓝 (proj x) :=
+by rw [← e.coe_fst ex, ← map_congr (e.coe_fst_eventually_eq_proj ex), ← map_map, ← e.coe_coe,
+  e.to_local_homeomorph.map_nhds_eq ex, map_fst_nhds]
+
+/-- In the domain of a bundle trivialization, the projection is continuous-/
+lemma continuous_at_proj (ex : x ∈ e.source) : continuous_at proj x :=
+(e.map_proj_nhds ex).le
+
+/-- Composition of a `bundle_trivialization` and a `homeomorph`. -/
+def comp_homeomorph {Z' : Type*} [topological_space Z'] (h : Z' ≃ₜ Z) :
+  bundle_trivialization F (proj ∘ h) :=
+{ to_local_homeomorph := h.to_local_homeomorph.trans e.to_local_homeomorph,
+  base_set := e.base_set,
+  open_base_set := e.open_base_set,
+  source_eq := by simp [e.source_eq, preimage_preimage],
+  target_eq := by simp [e.target_eq],
+  proj_to_fun := λ p hp,
+    have hp : h p ∈ e.source, by simpa using hp,
+    by simp [hp] }
+
+end bundle_trivialization
 
 /-- A topological fiber bundle with fiber `F` over a base `B` is a space projecting on `B`
 for which the fibers are all homeomorphic to `F`, such that the local situation around each point
@@ -198,81 +343,11 @@ def is_trivial_topological_fiber_bundle (proj : Z → B) : Prop :=
 
 variables {F}
 
-lemma bundle_trivialization.mem_source (e : bundle_trivialization F proj)
-  {x : Z} : x ∈ e.source ↔ proj x ∈ e.base_set :=
-by rw [e.source_eq, mem_preimage]
-
-lemma bundle_trivialization.mem_target (e : bundle_trivialization F proj)
-  {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
-by rw [e.target_eq, prod_univ, mem_preimage]
-
-@[simp, mfld_simps] lemma bundle_trivialization.coe_fst (e : bundle_trivialization F proj) {x : Z}
-  (ex : x ∈ e.source) : (e x).1 = proj x :=
-e.proj_to_fun x ex
-
-lemma bundle_trivialization.coe_fst' (e : bundle_trivialization F proj) {x : Z}
-  (ex : proj x ∈ e.base_set) : (e x).1 = proj x :=
-e.coe_fst (e.mem_source.2 ex)
-
-lemma bundle_trivialization.mk_proj_snd (e : bundle_trivialization F proj) {x : Z}
-  (ex : x ∈ e.source) : (proj x, (e x).2) = e x :=
-prod.ext (e.coe_fst ex).symm rfl
-
-lemma bundle_trivialization.mk_proj_snd' (e : bundle_trivialization F proj) {x : Z}
-  (ex : proj x ∈ e.base_set) : (proj x, (e x).2) = e x :=
-prod.ext (e.coe_fst' ex).symm rfl
-
-protected lemma bundle_trivialization.eq_on (e : bundle_trivialization F proj) :
-  eq_on (prod.fst ∘ e) proj e.source :=
-λ x hx, e.coe_fst hx
-
-lemma bundle_trivialization.proj_symm_apply (e : bundle_trivialization F proj) {x : B × F}
-  (hx : x ∈ e.target) : proj (e.to_local_homeomorph.symm x) = x.1 :=
-begin
-  have := (e.coe_fst (e.to_local_homeomorph.map_target hx)).symm,
-  rwa [← e.coe_coe, e.to_local_homeomorph.right_inv hx] at this
-end
-
-lemma bundle_trivialization.proj_symm_apply' (e : bundle_trivialization F proj) {b : B} {x : F}
-  (hx : b ∈ e.base_set) : proj (e.to_local_homeomorph.symm (b, x)) = b :=
-e.proj_symm_apply (e.mem_target.2 hx)
-
-lemma bundle_trivialization.apply_symm_apply (e : bundle_trivialization F proj)
-  {x : B × F} (hx : x ∈ e.target) : e (e.to_local_homeomorph.symm x) = x :=
-e.to_local_homeomorph.right_inv hx
-
-lemma bundle_trivialization.apply_symm_apply' (e : bundle_trivialization F proj)
-  {b : B} {x : F} (hx : b ∈ e.base_set) : e (e.to_local_homeomorph.symm (b, x)) = (b, x) :=
-e.apply_symm_apply (e.mem_target.2 hx)
-
-@[simp, mfld_simps] lemma bundle_trivialization.symm_apply_mk_proj
-  (e : bundle_trivialization F proj) {x : Z} (ex : x ∈ e.source) :
-  e.to_local_homeomorph.symm (proj x, (e x).2) = x :=
-by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_homeomorph.left_inv ex]
-
-lemma bundle_trivialization.coe_fst_eventually_eq_proj (e : bundle_trivialization F proj)
-  {x : Z} (ex : x ∈ e.source) : prod.fst ∘ e =ᶠ[𝓝 x] proj  :=
-mem_nhds_iff.2 ⟨e.source, λ y hy, e.coe_fst hy, e.open_source, ex⟩
-
-lemma bundle_trivialization.coe_fst_eventually_eq_proj' (e : bundle_trivialization F proj)
-  {x : Z} (ex : proj x ∈ e.base_set) : prod.fst ∘ e =ᶠ[𝓝 x] proj  :=
-e.coe_fst_eventually_eq_proj (e.mem_source.2 ex)
-
 lemma is_trivial_topological_fiber_bundle.is_topological_fiber_bundle
   (h : is_trivial_topological_fiber_bundle F proj) :
   is_topological_fiber_bundle F proj :=
 let ⟨e, he⟩ := h in λ x,
 ⟨⟨e.to_local_homeomorph, univ, is_open_univ, rfl, univ_prod_univ.symm, λ x _, he x⟩, mem_univ x⟩
-
-lemma bundle_trivialization.map_proj_nhds (e : bundle_trivialization F proj) {x : Z}
-  (ex : x ∈ e.source) : map proj (𝓝 x) = 𝓝 (proj x) :=
-by rw [← e.coe_fst ex, ← map_congr (e.coe_fst_eventually_eq_proj ex), ← map_map, ← e.coe_coe,
-  e.to_local_homeomorph.map_nhds_eq ex, map_fst_nhds]
-
-/-- In the domain of a bundle trivialization, the projection is continuous-/
-lemma bundle_trivialization.continuous_at_proj (e : bundle_trivialization F proj) {x : Z}
-  (ex : x ∈ e.source) : continuous_at proj x :=
-(e.map_proj_nhds ex).le
 
 /-- The projection from a topological fiber bundle to its base is continuous. -/
 lemma is_topological_fiber_bundle.continuous_proj (h : is_topological_fiber_bundle F proj) :
@@ -312,19 +387,6 @@ lemma is_trivial_topological_fiber_bundle_snd :
 /-- The second projection in a product is a topological fiber bundle. -/
 lemma is_topological_fiber_bundle_snd : is_topological_fiber_bundle F (prod.snd : F × B → B) :=
 is_trivial_topological_fiber_bundle_snd.is_topological_fiber_bundle
-
-/-- Composition of a `bundle_trivialization` and a `homeomorph`. -/
-def bundle_trivialization.comp_homeomorph {Z' : Type*} [topological_space Z']
-  (e : bundle_trivialization F proj) (h : Z' ≃ₜ Z) :
-  bundle_trivialization F (proj ∘ h) :=
-{ to_local_homeomorph := h.to_local_homeomorph.trans e.to_local_homeomorph,
-  base_set := e.base_set,
-  open_base_set := e.open_base_set,
-  source_eq := by simp [e.source_eq, preimage_preimage],
-  target_eq := by simp [e.target_eq],
-  proj_to_fun := λ p hp,
-    have hp : h p ∈ e.source, by simpa using hp,
-    by simp [hp] }
 
 lemma is_topological_fiber_bundle.comp_homeomorph {Z' : Type*} [topological_space Z']
   (e : is_topological_fiber_bundle F proj) (h : Z' ≃ₜ Z) :
@@ -993,109 +1055,6 @@ section topological_fiber_prebundle
 
 variables (F) {Z : Type*} [topological_space B] [topological_space F] {proj : Z → B}
 
-/-- This structure contains the information left for a local trivialization if the total
-space has not been given a topology, but we have a topology on both the fiber and the base space.
-Through the construction `topological_fiber_prebundle F proj` it will be possible to promote a
-`prebundle_trivialization F proj` to a `bundle_trivialization F proj`. -/
-@[nolint has_inhabited_instance]
-structure prebundle_trivialization (proj : Z → B) extends local_equiv Z (B × F) :=
-(open_target   : is_open target)
-(base_set      : set B)
-(open_base_set : is_open base_set)
-(source_eq     : source = proj ⁻¹' base_set)
-(target_eq     : target = set.prod base_set univ)
-(proj_to_fun   : ∀ p ∈ source, (to_local_equiv p).1 = proj p)
-
-instance : has_coe_to_fun (prebundle_trivialization F proj) := ⟨_, λ e, e.to_fun⟩
-
-variable {F}
-
-@[simp, mfld_simps] lemma prebundle_trivialization.coe_coe (e : prebundle_trivialization F proj) :
-  ⇑e.to_local_equiv = e := rfl
-
-/-- Composition of inverse and coercion from the subtype of the target. -/
-def prebundle_trivialization.set_symm (e : prebundle_trivialization F proj) : e.target → Z :=
-set.restrict e.to_local_equiv.symm e.target
-
-lemma prebundle_trivialization.mem_source (e : prebundle_trivialization F proj)
-  {x : Z} : x ∈ e.source ↔ proj x ∈ e.base_set :=
-by rw [e.source_eq, mem_preimage]
-
-lemma prebundle_trivialization.mem_target (e : prebundle_trivialization F proj)
-  {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
-by rw [e.target_eq, prod_univ, mem_preimage]
-
-@[simp, mfld_simps] lemma prebundle_trivialization.coe_fst (e : prebundle_trivialization F proj)
-  {x : Z} (ex : x ∈ e.source) : (e x).1 = proj x :=
-e.proj_to_fun x ex
-
-lemma prebundle_trivialization.coe_fst' (e : prebundle_trivialization F proj) {x : Z}
-  (ex : proj x ∈ e.base_set) : (e x).1 = proj x :=
-e.coe_fst (e.mem_source.2 ex)
-
-lemma prebundle_trivialization.mk_proj_snd (e : prebundle_trivialization F proj) {x : Z}
-  (ex : x ∈ e.source) : (proj x, (e x).2) = e x :=
-prod.ext (e.coe_fst ex).symm rfl
-
-lemma prebundle_trivialization.mk_proj_snd' (e : prebundle_trivialization F proj) {x : Z}
-  (ex : proj x ∈ e.base_set) : (proj x, (e x).2) = e x :=
-prod.ext (e.coe_fst' ex).symm rfl
-
-protected lemma prebundle_trivialization.eq_on (e : prebundle_trivialization F proj) :
-  eq_on (prod.fst ∘ e) proj e.source :=
-λ x hx, e.coe_fst hx
-
-lemma prebundle_trivialization.proj_symm_apply (e : prebundle_trivialization F proj) {x : B × F}
-  (hx : x ∈ e.target) : proj (e.to_local_equiv.symm x) = x.1 :=
-begin
-  have := (e.coe_fst (e.to_local_equiv.map_target hx)).symm,
-  rwa [← e.coe_coe, e.to_local_equiv.right_inv hx] at this
-end
-
-lemma prebundle_trivialization.proj_symm_apply' (e : prebundle_trivialization F proj) {b : B}
-  {x : F} (hx : b ∈ e.base_set) : proj (e.to_local_equiv.symm (b, x)) = b :=
-e.proj_symm_apply (e.mem_target.2 hx)
-
-lemma prebundle_trivialization.apply_symm_apply (e : prebundle_trivialization F proj)
-  {x : B × F} (hx : x ∈ e.target) : e (e.to_local_equiv.symm x) = x :=
-e.to_local_equiv.right_inv hx
-
-lemma prebundle_trivialization.apply_symm_apply' (e : prebundle_trivialization F proj)
-  {b : B} {x : F} (hx : b ∈ e.base_set) : e (e.to_local_equiv.symm (b, x)) = (b, x) :=
-e.apply_symm_apply (e.mem_target.2 hx)
-
-@[simp, mfld_simps] lemma prebundle_trivialization.symm_apply_mk_proj
-  (e : prebundle_trivialization F proj) {x : Z} (ex : x ∈ e.source) :
-  e.to_local_equiv.symm (proj x, (e x).2) = x :=
-by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_equiv.left_inv ex]
-
-@[simp, mfld_simps] lemma prebundle_trivialization.preimage_symm_proj_base_set
-  (e : prebundle_trivialization F proj) :
-  (e.to_local_equiv.symm ⁻¹' (proj ⁻¹' e.base_set)) ∩ e.target  = e.target :=
-begin
-  refine inter_eq_right_iff_subset.mpr (λ x hx, _),
-  simp only [mem_preimage, local_equiv.inv_fun_as_coe, e.proj_symm_apply hx],
-  exact e.mem_target.mp hx,
-end
-
-@[simp, mfld_simps] lemma prebundle_trivialization.preimage_symm_proj_inter
-  (e : prebundle_trivialization F proj) (s : set B) :
-  (e.to_local_equiv.symm ⁻¹' (proj ⁻¹' s)) ∩ e.base_set.prod univ = (s ∩ e.base_set).prod univ :=
-begin
-  refine subset.antisymm_iff.mpr ⟨(λ x hx, _), (λ x hx, mem_inter _ _)⟩,
-  { rw [←e.target_eq] at hx,
-    simp only [mem_inter_iff, mem_preimage, e.proj_symm_apply hx.2] at hx,
-    simp only [mem_inter_eq, and_true, mem_univ, mem_prod],
-    exact ⟨hx.1, e.mem_target.mp hx.2⟩, },
-  { simp only [mem_inter_eq, and_true, mem_univ, mem_prod, e.mem_target.symm] at hx,
-    simp only [mem_preimage, e.proj_symm_apply hx.2],
-    exact hx.1, },
-  { rw [←inter_univ univ, ←prod_inter_prod, mem_inter_eq] at hx,
-    exact hx.2, }
-end
-
-variable (F)
-
 /-- This structure permits to define a fiber bundle when trivializations are given as local
 equivalences but there is not yet a topology on the total space. The total space is hence given a
 topology in such a way that there is a fiber bundle structure for which the local equivalences
@@ -1169,7 +1128,7 @@ end
 
 /-- Promotion from a `prebundle_trivialization` to a `bundle_trivialization`. -/
 def topological_fiber_prebundle.bundle_trivialization_at (a : topological_fiber_prebundle F proj)
-  (x : B) : @bundle_trivialization B F Z _ a.total_space_topology _ proj :=
+  (x : B) : @bundle_trivialization B F Z _ _ a.total_space_topology proj :=
 { open_source := a.triv_at_open_source x,
   continuous_to_fun := begin
     letI := a.total_space_topology,
@@ -1191,7 +1150,7 @@ def topological_fiber_prebundle.bundle_trivialization_at (a : topological_fiber_
 
 lemma topological_fiber_prebundle.is_topological_fiber_bundle
   (a : topological_fiber_prebundle F proj) :
-  @is_topological_fiber_bundle B F Z _ a.total_space_topology _ proj :=
+  @is_topological_fiber_bundle B F Z _ _ a.total_space_topology proj :=
 λ x, ⟨a.bundle_trivialization_at x, a.trivialization_at_mem x ⟩
 
 lemma topological_fiber_prebundle.continuous_proj (a : topological_fiber_prebundle F proj) :

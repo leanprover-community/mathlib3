@@ -191,6 +191,9 @@ to_real_hom.to_add_monoid_hom.map_nsmul _ _
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 to_real_hom.map_nat_cast n
 
+instance : nontrivial ℝ≥0 :=
+nontrivial.mk ⟨0, ⟨1, zero_ne_one⟩⟩
+
 instance : linear_order ℝ≥0 :=
 linear_order.lift (coe : ℝ≥0 → ℝ) nnreal.coe_injective
 

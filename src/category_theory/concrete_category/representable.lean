@@ -17,6 +17,10 @@ of `X` and morphisms from a fixed object to `X`.
 This allows convenient description of elements of limits in concrete categories, for instance given
 two elements `x : X` and `y : Y` and morphisms `f : X ⟶ Z` and `g : Y ⟶ Z` such that `f x = g y`,
 `mk_pullback` constructs an element of the object `pullback f g`.
+We provide such constructions for pullbacks, binary products and the terminal object, others are
+TODO, including general limits.
+
+We do not formalise the dual as this seems to appear in practice much less frequently.
 -/
 
 namespace category_theory
@@ -27,6 +31,7 @@ universes w v u₁ u₂
 variables (C : Type u₁) [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
 
+/-- The bijection between morphisms `punit ⟶ X` and elements `X`. -/
 @[simps]
 def point_bijection (X : Type v) : (punit ⟶ X) ≃ X :=
 { to_fun := λ f, f ⟨⟩,
@@ -34,6 +39,8 @@ def point_bijection (X : Type v) : (punit ⟶ X) ≃ X :=
   left_inv := λ x, by { ext ⟨⟩, refl },
   right_inv := λ f, rfl }
 
+/-- If `F : C ⥤ Type v` is a right adjoint, it is corepresentable. -/
+-- TODO: show the converse provided `C` has appropriate copowers.
 lemma corepresentable_of_right_adjoint (F : C ⥤ Type v) [is_right_adjoint F] :
   F.corepresentable :=
 { has_corepresentation :=
@@ -48,12 +55,15 @@ lemma corepresentable_of_right_adjoint (F : C ⥤ Type v) [is_right_adjoint F] :
 
 variables [concrete_category.{v} C]
 
+/--
+The category `C` is said to be representably concrete if the forgetful functor is (co)representable.
+-/
 class representably_concrete : Prop :=
 (out : (forget C).corepresentable)
 
-instance : representably_concrete (Type u₁) := { out := corepresentable_of_right_adjoint _ _ }
-
 attribute [instance] representably_concrete.out
+
+instance : representably_concrete (Type u₁) := { out := corepresentable_of_right_adjoint _ _ }
 
 variables {C} [representably_concrete C]
 
@@ -95,6 +105,11 @@ section pullback
 
 variables {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g] {x : X} {y : Y}
 
+/--
+For elements `x : X` and `y : Y` such that `f x = g y`, we have an element of `pullback f g`.
+`fst_mk_pullback` and `snd_mk_pullback` describe how `f` and `g` respectively act on this element
+and `mk_pullback_uniq` shows the given element is unique with these properties.
+-/
 noncomputable def mk_pullback (h : f x = g y) :
   (pullback f g : C) :=
 rep_equiv (pullback.lift (rep_equiv.symm x) (rep_equiv.symm y) (by simp [h]))
@@ -113,12 +128,30 @@ lemma mk_pullback_uniq (h : f x = g y) (q : pullback f g)
   q = mk_pullback h :=
 by { rw [mk_pullback, ←equiv.symm_apply_eq], ext1; simpa }
 
+/--
+There is an equivalence (of types) between elements of the pullback and the appropriate subtype
+of the pair.
+-/
+@[simps] noncomputable def pullback.equiv :
+  (pullback f g : C) ≃ {p : X × Y // f p.1 = g p.2} :=
+{ to_fun := λ z, ⟨((pullback.fst : pullback f g ⟶ X) z, (pullback.snd : pullback f g ⟶ Y) z),
+    by simpa [comp_apply] using congr_hom pullback.condition z⟩,
+  inv_fun := λ z, mk_pullback z.2,
+  left_inv := λ z, (mk_pullback_uniq _ _ rfl rfl).symm,
+  right_inv := λ ⟨x, y⟩, subtype.ext (prod.ext (fst_mk_pullback _) (snd_mk_pullback _)) }
+
 end pullback
 
 section binary_product
 
 variables {X Y : C} [has_binary_product X Y] (x : X) (y : Y)
 
+/--
+For elements `x : X` and `y : Y`, we have an element of the categorical product `X ⨯ Y`.
+`fst_mk_binary_product` and `snd_mk_binary_product` describe how `prod.fst` and `prod.snd`
+respectively act on this element and `mk_pullback_uniq` shows the given element is unique with
+these properties.
+-/
 noncomputable def mk_binary_product : (X ⨯ Y : C) :=
 rep_equiv (limits.prod.lift (rep_equiv.symm x) (rep_equiv.symm y))
 
@@ -131,6 +164,10 @@ lemma mk_binary_product_uniq (z : X ⨯ Y)
   z = mk_binary_product x y :=
 by { rw [mk_binary_product, ←equiv.symm_apply_eq], ext1; simpa }
 
+/--
+There is an equivalence (of types) between the categorical product viewed as a type and the
+type-theoretic product.
+-/
 @[simps] noncomputable def binary_product.equiv : (X ⨯ Y : C) ≃ X × Y :=
 { to_fun := λ z, ⟨(limits.prod.fst : X ⨯ Y ⟶ X) z, (limits.prod.snd : X ⨯ Y ⟶ Y) z⟩,
   inv_fun := λ z, mk_binary_product z.1 z.2,
@@ -143,6 +180,7 @@ section terminal
 
 variables [has_terminal C]
 
+/-- The unique element of the terminal object. -/
 noncomputable def mk_terminal : (⊤_ C : C) :=
 rep_equiv (terminal.from _)
 

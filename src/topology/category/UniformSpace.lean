@@ -63,7 +63,7 @@ instance : representably_concrete UniformSpace.{u} :=
 { out := functor.corepresentable_of_nat_iso _ (opposite.op (of punit))
           (nat_iso.of_components
             (λ X, { hom := λ (f : _ ⟶ _), f ⟨⟩,
-                    inv := λ x, ⟨λ _, x, uniform_continuous_const})
+                    inv := λ x, ⟨λ _, x, uniform_continuous_const⟩})
             (λ X Y f, rfl)) }
 
 end UniformSpace

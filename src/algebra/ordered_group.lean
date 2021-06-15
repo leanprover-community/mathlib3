@@ -716,6 +716,10 @@ begin
     exact add_le_add h h, }
 end
 
+@[simp] lemma max_zero_sub_max_neg_zero_eq_self (a : α) :
+  max a 0 - max (-a) 0 = a :=
+by { rcases le_total a 0 with h|h; simp [h] }
+
 lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,
 calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)

@@ -121,11 +121,7 @@ f.to_add_monoid_hom.map_sum _ _
 @[simp] lemma map_neg (x) : f (-x) = -(f x) := f.to_add_monoid_hom.map_neg _
 
 lemma bound : ∃ C, 0 < C ∧ ∀ x, ∥f x∥ ≤ C * ∥x∥ :=
-begin
-  obtain ⟨C, hC⟩ := f.bound',
-  rcases exists_pos_bound_of_bound _ hC with ⟨C', C'pos, hC'⟩,
-  exact ⟨C', C'pos, hC'⟩,
-end
+let ⟨C, hC⟩ := f.bound' in exists_pos_bound_of_bound _ hC
 
 theorem antilipschitz_of_norm_ge {K : ℝ≥0} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
   antilipschitz_with K f :=

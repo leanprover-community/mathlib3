@@ -7,6 +7,7 @@ Authors: Damiano Testa
 import algebra.group.defs
 
 /-!
+
 # Covariants and contravariants
 
 This file contains general lemmas and instances to work with the interactions between a relation and
@@ -76,6 +77,7 @@ def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r
 
 /--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
 `covariant_class` says that "the action `μ` preserves the relation `r`.
+
 More precisely, the `covariant_class` is a class taking two Types `M N`, together with an "action"
 `μ : M → N → N` and a relation `r : N → N`.  Its unique field `elim` is the assertion that
 for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair

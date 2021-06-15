@@ -126,7 +126,7 @@ theorem fin.prod_of_fn [comm_monoid β] {n : ℕ} (f : fin n → β) :
 by rw [list.of_fn_eq_map, fin.prod_univ_def]
 
 /-- A product of a function `f : fin 0 → β` is `1` because `fin 0` is empty -/
-@[simp, to_additive "A sum of a function `f : fin 0 → β` is `0` because `fin 0` is empty"]
+@[to_additive "A sum of a function `f : fin 0 → β` is `0` because `fin 0` is empty"]
 theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 := rfl
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`

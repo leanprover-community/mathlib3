@@ -169,7 +169,7 @@ begin
     intro x,
     have hrw : (↑s : set A) = (λ (x : A), x ∈ s.val) := rfl,
     rw [← set.mem_range, ← alg_hom.coe_range, ← adjoin_eq_range, ← hrw, hs],
-    exact mem_top },
+    exact set.mem_univ x },
   { rintro ⟨s, ⟨f, hsur⟩⟩,
     exact finite_type.of_surjective (finite_type.mv_polynomial R {x // x ∈ s}) f hsur }
 end
@@ -212,6 +212,12 @@ begin
   apply (finite_type.iff_quotient_mv_polynomial'').2,
   exact ⟨n, f, hf.1⟩
 end
+
+instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A × B) :=
+⟨begin
+  rw ← subalgebra.prod_top,
+  exact subalgebra.fg_prod hA.1 hB.1
+end⟩
 
 end finite_type
 

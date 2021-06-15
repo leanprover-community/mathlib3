@@ -60,6 +60,20 @@ instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_co
   contravariant_class M M (*) (<) :=
 { elim := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
 
+-- without this instance, `with_bot ℕ` does not seem to pick up a
+-- `covariant_class M M (function.swap (*)) (≤)` instance.
+@[to_additive]
+instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
+  covariant_class M M (function.swap (*)) (≤) :=
+by apply_instance
+
+-- while I am not sure, I imagine that without this instance, some Type would not have a
+-- `contravariant_class M M (function.swap (*)) (≤)` instance.
+@[to_additive]
+instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
+  contravariant_class M M (function.swap (*)) (<) :=
+by apply_instance
+
 end ordered_instances
 
 /-- An `ordered_comm_monoid` with one-sided 'division' in the sense that

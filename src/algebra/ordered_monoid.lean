@@ -135,7 +135,7 @@ lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_to
 
 @[simp]
 lemma add_top (a : α) : a + ⊤ = ⊤ :=
-by rw [add_comm, top_add]
+trans (add_comm _ _) (top_add _)
 
 end linear_ordered_add_comm_monoid_with_top
 

@@ -1469,7 +1469,7 @@ def extend_op_clm' [normed_space 𝕜 F']
   (h_add : ∀ (s t : set α) (hs : measurable_set s) (ht : measurable_set t) (h : s ∩ t = ∅)
     (hps : μ s < ∞) (hpt : μ t < ∞), T (s ∪ t) (hs.union ht) = T s hs + T t ht)
   (h_smul : ∀ c : 𝕜, ∀ s hs x, T s hs (c • x) = c • T s hs x)
-  {C : ℝ} {hC : 0 ≤ C} (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
+  {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
   (α →₁ₛ[μ] E') →L[𝕜] F' :=
 linear_map.mk_continuous
   ⟨extend_op T, extend_op_add T h_zero h_add, extend_op_smul T h_zero h_add h_smul⟩
@@ -1479,7 +1479,7 @@ def extend_op_clm (T : Π s : set α, measurable_set s → (E' →L[ℝ] F'))
   (h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s hs = 0)
   (h_add : ∀ (s t : set α) (hs : measurable_set s) (ht : measurable_set t) (h : s ∩ t = ∅)
     (hps : μ s < ∞) (hpt : μ t < ∞), T (s ∪ t) (hs.union ht) = T s hs + T t ht)
-  {C : ℝ} {hC : 0 ≤ C} (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
+  {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
   (α →₁ₛ[μ] E') →L[ℝ] F' :=
 linear_map.mk_continuous
   ⟨extend_op T, extend_op_add T h_zero h_add, extend_op_smul_ℝ T h_zero h_add⟩
@@ -1587,6 +1587,20 @@ local attribute [instance] simple_func.normed_group simple_func.normed_space
 open continuous_linear_map
 
 variables (𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  {E' F' : Type*} [measurable_space E'] [normed_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
+  [second_countable_topology E'] [borel_space E']
+  [normed_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
+
+def extend_op_clm' (T : Π s : set α, measurable_set s → (E' →L[ℝ] F'))
+  (h_zero : ∀ s (hs : measurable_set s) (hs_zero : μ s = 0), T s hs = 0)
+  (h_add : ∀ (s t : set α) (hs : measurable_set s) (ht : measurable_set t) (h : s ∩ t = ∅)
+    (hps : μ s < ∞) (hpt : μ t < ∞), T (s ∪ t) (hs.union ht) = T s hs + T t ht)
+  (h_smul : ∀ c : 𝕜, ∀ s hs x, T s hs (c • x) = c • T s hs x)
+  {C : ℝ} (hC : 0 ≤ C) (hT_norm : ∀ s hs, ∥T s hs∥ ≤ C * (μ s).to_real) :
+  (α →₁[μ] E') →L[𝕜] F' :=
+(extend_op_clm' α 𝕜 μ E' T h_zero h_add h_smul hC hT_norm).extend
+  (coe_to_L1 α E' 𝕜) simple_func.dense_range simple_func.uniform_inducing
+
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
 (integral_clm' α E 𝕜 μ).extend

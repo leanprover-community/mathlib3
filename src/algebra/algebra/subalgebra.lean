@@ -8,7 +8,7 @@ import algebra.algebra.operations
 /-!
 # Subalgebras over Commutative Semiring
 
-In this file we define `subalgebra`s and the usual operations on them (`map`, `restrict_scalars`).
+In this file we define `subalgebra`s and the usual operations on them (`map`, `comap'`).
 
 More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 -/

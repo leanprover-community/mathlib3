@@ -73,7 +73,7 @@ begin
   refine quotient_map_injective' (le_of_eq _),
   rw comap_map_of_surjective
     (map_ring_hom (quotient.mk (P.comap C))) (map_surjective _ quotient.mk_surjective),
-  refine le_antisymm (sup_le le_rfl _) (le_sup_left_of_le le_rfl),
+  refine le_antisymm (sup_le le_rfl _) (le_sup_of_le_left le_rfl),
   refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
   simpa only [coeff_map, coe_map_ring_hom] using ext_iff.mp (ideal.mem_bot.mp (mem_comap.mp hp)) n,
 end

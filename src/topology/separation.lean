@@ -944,7 +944,47 @@ section profinite
 
 open topological_space
 
-variables [compact_space α] [t2_space α] [totally_disconnected_space α]
+variables [t2_space α]
+
+/-- A Hausdorff space with a clopen basis is totally separated. -/
+lemma tot_sep_of_zero_dim (h : is_topological_basis {s : set α | is_clopen s}) :
+    totally_separated_space α :=
+begin
+  constructor,
+  rintros x - y - hxy,
+  obtain ⟨u, v, hu, hv, xu, yv, disj⟩ := t2_separation hxy,
+  obtain ⟨w, hw : is_clopen w, xw, wu⟩ := (is_topological_basis.mem_nhds_iff h).1
+    (is_open.mem_nhds hu xu),
+  refine ⟨w, wᶜ, hw.1, (is_clopen_compl_iff.2 hw).1, xw, _, _, set.inter_compl_self w⟩,
+  { intro h,
+    have : y ∈ u ∩ v := ⟨wu h, yv⟩,
+    rwa disj at this },
+  rw set.union_compl_self,
+end
+
+variables [compact_space α]
+
+/-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
+  is also true for locally compact spaces. -/
+theorem compact_t2_tot_disc_iff_tot_sep (H : Type*) [topological_space H] [compact_space H]
+  [t2_space H] : totally_disconnected_space H ↔ totally_separated_space H :=
+begin
+  split,
+  { intro h, constructor,
+    rintros x - y -,
+    contrapose!,
+    intros hyp,
+    suffices : x ∈ connected_component y,
+      by simpa [totally_disconnected_space_iff_connected_component_singleton.1 h y,
+                mem_singleton_iff],
+    rw [connected_component_eq_Inter_clopen, mem_Inter],
+    rintro ⟨w : set H, hw : is_clopen w, hy : y ∈ w⟩,
+    by_contra hx,
+    simpa using hyp wᶜ w (is_open_compl_iff.mpr hw.2) hw.1 hx hy },
+  apply totally_separated_space.totally_disconnected_space,
+end
+
+variables [totally_disconnected_space α]
 
 lemma nhds_basis_clopen (x : α) : (𝓝 x).has_basis (λ s : set α, x ∈ s ∧ is_clopen s) id :=
 ⟨λ U, begin
@@ -982,7 +1022,72 @@ begin
   use V,
   tauto
 end
+
+/-- Every member of an open set in a compact Hausdorff totally disconnected space
+  is contained in a clopen set contained in the open set.  -/
+lemma compact_exists_clopen_in_open {x : α} {U : set α} (is_open : is_open U) (memU : x ∈ U) :
+    ∃ (V : set α) (hV : is_clopen V), x ∈ V ∧ V ⊆ U :=
+  (is_topological_basis.mem_nhds_iff is_topological_basis_clopen).1 (is_open.mem_nhds memU)
+
 end profinite
+
+section locally_compact
+
+open topological_space
+
+variables {H : Type*} [topological_space H] [locally_compact_space H] [t2_space H]
+
+/-- A locally compact Hausdorff totally disconnected space has a basis with clopen elements. -/
+lemma loc_compact_Haus_tot_disc_of_zero_dim [totally_disconnected_space H] :
+  is_topological_basis {s : set H | is_clopen s} :=
+begin
+  refine is_topological_basis_of_open_of_nhds (λ u hu, hu.1) _,
+  rintros x U memU hU,
+  obtain ⟨s, comp, xs, sU⟩ := exists_compact_subset hU memU,
+  obtain ⟨t, h, ht, xt⟩ := mem_interior.1 xs,
+  let u : set s := (coe : s → H)⁻¹' (interior s),
+  have u_open_in_s : is_open u := is_open_interior.preimage continuous_subtype_coe,
+  let X : s := ⟨x, h xt⟩,
+  have Xu : X ∈ u := xs,
+  haveI : compact_space s := is_compact_iff_compact_space.1 comp,
+  obtain ⟨V : set s, clopen_in_s, Vx, V_sub⟩ := compact_exists_clopen_in_open u_open_in_s Xu,
+  have V_clopen : is_clopen ((coe : s → H) '' V),
+  { refine ⟨_, (comp.is_closed.closed_embedding_subtype_coe.closed_iff_image_closed).1
+               clopen_in_s.2⟩,
+    let v : set u := (coe : u → s)⁻¹' V,
+    have : (coe : u → H) = (coe : s → H) ∘ (coe : u → s) := rfl,
+    have f0 : embedding (coe : u → H) := embedding_subtype_coe.comp embedding_subtype_coe,
+    have f1 : open_embedding (coe : u → H),
+    { refine ⟨f0, _⟩,
+      { have : set.range (coe : u → H) = interior s,
+        { rw [this, set.range_comp, subtype.range_coe, subtype.image_preimage_coe],
+          apply set.inter_eq_self_of_subset_left interior_subset, },
+        rw this,
+        apply is_open_interior } },
+    have f2 : is_open v := clopen_in_s.1.preimage continuous_subtype_coe,
+    have f3 : (coe : s → H) '' V = (coe : u → H) '' v,
+    { rw [this, image_comp coe coe, subtype.image_preimage_coe,
+          inter_eq_self_of_subset_left V_sub] },
+    rw f3,
+    apply f1.is_open_map v f2 },
+  refine ⟨coe '' V, V_clopen, by simp [Vx, h xt], _⟩,
+  transitivity s,
+  { simp },
+  assumption
+end
+
+/-- A locally compact Hausdorff space is totally disconnected
+  if and only if it is totally separated. -/
+theorem loc_compact_t2_tot_disc_iff_tot_sep :
+  totally_disconnected_space H ↔ totally_separated_space H :=
+begin
+  split,
+  { introI h,
+    exact tot_sep_of_zero_dim loc_compact_Haus_tot_disc_of_zero_dim, },
+  apply totally_separated_space.totally_disconnected_space,
+end
+
+end locally_compact
 
 section connected_component_setoid
 local attribute [instance] connected_component_setoid

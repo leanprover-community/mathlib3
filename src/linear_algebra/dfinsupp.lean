@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
 import data.dfinsupp
-import linear_algebra.basic
+import linear_algebra.basis
+import data.finsupp.to_dfinsupp
 
 /-!
 # Properties of the module `Π₀ i, M i`
@@ -188,5 +189,14 @@ lemma map_range.linear_equiv_symm (e : Π i, β₁ i ≃ₗ[R] β₂ i) :
   (map_range.linear_equiv e).symm = map_range.linear_equiv (λ i, (e i).symm) := rfl
 
 end map_range
+
+section basis
+
+noncomputable def basis {η : ι → Type*} (b : Π i, basis (η i) R (M i)) :
+  basis (Σ i, η i) R (Π₀ i, M i) :=
+basis.of_repr ((map_range.linear_equiv (λ i, (b i).repr)).trans
+  (sigma_finsupp_lequiv_dfinsupp R).symm)
+
+end basis
 
 end dfinsupp

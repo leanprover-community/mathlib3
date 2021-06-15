@@ -261,9 +261,12 @@ theorem linear_equiv.nonempty_equiv_iff_dim_eq :
 ⟨λ ⟨h⟩, linear_equiv.dim_eq h, λ h, nonempty_linear_equiv_of_dim_eq h⟩
 
 @[simp] lemma dim_bot : module.rank K (⊥ : submodule K V) = 0 :=
-by letI := classical.dec_eq V;
-  rw [← cardinal.lift_inj, ← (basis.empty (⊥ : submodule K V) not_nonempty_pempty).mk_eq_dim,
-    cardinal.mk_pempty]
+begin
+  letI := classical.dec_eq V,
+  rw [← cardinal.lift_inj, ← (basis.empty (⊥ : submodule K V)).mk_eq_dim,
+    cardinal.mk_pempty],
+  apply_instance,
+end
 
 @[simp] lemma dim_top : module.rank K (⊤ : submodule K V) = module.rank K V :=
 linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
@@ -580,31 +583,20 @@ dim_zero_iff_forall_zero.trans (subsingleton_iff_forall_eq 0).symm
 
 /-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
 
-See also `basis.of_dim_eq_zero'` and `finite_dimensional.fin_basis`.
+See also `finite_dimensional.fin_basis`.
 -/
-def basis.of_dim_eq_zero {ι : Type*} (h : ¬ nonempty ι) (hV : module.rank K V = 0) :
+def basis.of_dim_eq_zero {ι : Type*} [is_empty ι] (hV : module.rank K V = 0) :
   basis ι K V :=
 begin
   haveI : subsingleton V := dim_zero_iff.1 hV,
-  exact basis.empty _ h
+  exact basis.empty _
 end
 
-@[simp] lemma basis.of_dim_eq_zero_apply {ι : Type*} (h : ¬ nonempty ι)
-  (hV : module.rank K V = 0) (i) :
-  basis.of_dim_eq_zero h hV i = 0 :=
+@[simp] lemma basis.of_dim_eq_zero_apply {ι : Type*} [is_empty ι]
+  (hV : module.rank K V = 0) (i : ι) :
+  basis.of_dim_eq_zero hV i = 0 :=
 rfl
 
-/-- The `fin 0` indexed basis on `V`, where `V` is zero-dimensional.
-
-See also `basis.of_dim_eq_zero` and `finite_dimensional.fin_basis`.
--/
-def basis.of_dim_eq_zero' (hV : module.rank K V = 0) :
-  basis (fin 0) K V :=
-basis.of_dim_eq_zero (finset.univ_eq_empty.mp rfl) hV
-
-@[simp] lemma basis.of_dim_eq_zero'_apply (hV : module.rank K V = 0) (i) :
-  basis.of_dim_eq_zero' hV i = 0 :=
-rfl
 
 lemma dim_pos_iff_exists_ne_zero : 0 < module.rank K V ↔ ∃ x : V, x ≠ 0 :=
 begin

@@ -110,7 +110,7 @@ lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 
   ((n - m : ℕ) : α) = n - m :=
 eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 
-@[simp, norm_cast] theorem cast_mul [semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
+@[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
@@ -125,18 +125,18 @@ begin
 end
 
 /-- `coe : ℕ → α` as a `ring_hom` -/
-def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
+def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
 { to_fun := coe,
   map_one' := cast_one,
   map_mul' := cast_mul,
   .. cast_add_monoid_hom α }
 
-@[simp] lemma coe_cast_ring_hom [semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
+@[simp] lemma coe_cast_ring_hom [non_assoc_semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
 
-lemma cast_commute [semiring α] (n : ℕ) (x : α) : commute ↑n x :=
+lemma cast_commute [non_assoc_semiring α] (n : ℕ) (x : α) : commute ↑n x :=
 nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
 
-lemma cast_comm [semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
+lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
 (cast_commute n x).eq
 
 lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
@@ -259,7 +259,7 @@ end monoid_with_zero_hom
 
 namespace ring_hom
 
-variables {R : Type*} {S : Type*} [semiring R] [semiring S]
+variables {R : Type*} {S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
 
 @[simp] lemma eq_nat_cast (f : ℕ →+* R) (n : ℕ) : f n = n :=
 f.to_add_monoid_hom.eq_nat_cast f.map_one n
@@ -281,7 +281,7 @@ end ring_hom
 | 0     := rfl
 | (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl
 
-instance nat.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℕ →+* R) :=
+instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
 ⟨ring_hom.ext_nat⟩
 
 namespace with_top

@@ -721,7 +721,7 @@ begin
     exact subset_vanishing_ideal_zero_locus {f} (set.mem_singleton f) },
 
   replace hn := ideal.mul_mem_left _ f hn,
-  erw [←pow_succ, finsupp.mem_span_iff_total] at hn,
+  erw [←pow_succ, finsupp.mem_span_image_iff_total] at hn,
   rcases hn with ⟨b, b_supp, hb⟩,
   rw finsupp.total_apply_of_mem_supported R b_supp at hb,
   dsimp at hb,
@@ -787,58 +787,86 @@ section comap
 variables {R} {S : Type u} [comm_ring S] {P : Type u} [comm_ring P]
 
 /--
+Given a ring homomorphism `f : R →+* S`, an open set `U` of the prime spectrum of `R` and an open
+set `V` of the prime spectrum of `S`, such that `V ⊆ (comap f) ⁻¹' U`, we can push a section `s`
+on `U` to a section on `V`, by composing with `localization.local_ring_hom _ _ f` from the left and
+`comap f` from the right. Explicitly, if `s` evaluates on `comap f p` to `a / b`, its image on `V`
+evaluates on `p` to `f(a) / f(b)`.
+
+At the moment, we work with arbitrary dependent functions `s : Π x : U, localizations R x`. Below,
+we prove the predicate `is_locally_fraction` is preserved by this map, hence it can be extended to
+a morphism between the structure sheaves of `R` and `S`.
+-/
+def structure_sheaf.comap_fun (f : R →+* S) (U : opens (prime_spectrum.Top R))
+  (V : opens (prime_spectrum.Top S)) (hUV : V.1 ⊆ (comap f) ⁻¹' U.1)
+  (s : Π x : U, localizations R x) (y : V) : localizations S y :=
+localization.local_ring_hom (comap f y.1).as_ideal _ f rfl (s ⟨(comap f y.1), hUV y.2⟩ : _)
+
+lemma structure_sheaf.comap_fun_is_locally_fraction (f : R →+* S)
+  (U : opens (prime_spectrum.Top R)) (V : opens (prime_spectrum.Top S))
+  (hUV : V.1 ⊆ (comap f) ⁻¹' U.1) (s : Π x : U, localizations R x)
+  (hs : (is_locally_fraction R).to_prelocal_predicate.pred s) :
+  (is_locally_fraction S).to_prelocal_predicate.pred (structure_sheaf.comap_fun f U V hUV s) :=
+begin
+  rintro ⟨p, hpV⟩,
+  -- Since `s` is locally fraction, we can find a neighborhood `W` of `comap f p` in `U`, such
+  -- that `s = a / b` on `W`, for some ring elements `a, b : R`.
+  rcases hs ⟨comap f p, hUV hpV⟩ with ⟨W, m, iWU, a, b, h_frac⟩,
+  -- We claim that we can write our new section as the fraction `f a / f b` on the neighborhood
+  -- `(comap f) ⁻¹ W ⊓ V` of `p`.
+  refine ⟨opens.comap (comap_continuous f) W ⊓ V, ⟨m, hpV⟩, opens.inf_le_right _ _, f a, f b, _⟩,
+  rintro ⟨q, ⟨hqW, hqV⟩⟩,
+  specialize h_frac ⟨prime_spectrum.comap f q, hqW⟩,
+  refine ⟨h_frac.1, _⟩,
+  dsimp only [structure_sheaf.comap_fun],
+  erw [← localization.local_ring_hom_to_map ((comap f q).as_ideal), ← ring_hom.map_mul,
+    h_frac.2, localization.local_ring_hom_to_map],
+  refl,
+end
+
+/--
 For a ring homomorphism `f : R →+* S` and open sets `U` and `V` of the prime spectra of `R` and
 `S` such that `V ⊆ (comap f) ⁻¹ U`, the induced ring homomorphism from the structure sheaf of `R`
 at `U` to the structure sheaf of `S` at `V`.
 
-If a section `s` on `U` is locally equal to the fraction `a/b`, its image on `V` is locally equal
-to the fraction `f(a)/f(b)`.
+Explicitly, this map is given as follows: For a point `p : V`, if the section `s` evaluates on `p`
+to the fraction `a / b`, its image on `V` evaluates on `p` to the fraction `f(a) / f(b)`.
 -/
-@[simps] def structure_sheaf.comap (f : R →+* S) (U : opens (prime_spectrum.Top R))
-  (V : opens (prime_spectrum.Top S)) (hUV : ∀ p ∈ V, comap f p ∈ U) :
+def structure_sheaf.comap (f : R →+* S) (U : opens (prime_spectrum.Top R))
+  (V : opens (prime_spectrum.Top S)) (hUV : V.1 ⊆ (comap f) ⁻¹' U.1) :
   (structure_sheaf R).presheaf.obj (op U) →+* (structure_sheaf S).presheaf.obj (op V) :=
-{ to_fun := λ s,
-  ⟨λ p, localization.local_ring_hom ((comap f (p : prime_spectrum.Top S)).as_ideal) _ f
-    (λ r, iff.rfl) (s.1 ⟨prime_spectrum.comap f p.1, hUV p.1 p.2⟩ : _),
-  begin
-    -- Here, we need to show that the newly defined section on `V` is locally fraction.
-    intro p,
-    -- Since `s` is locally fraction, we can find a neighborhood `W` of `comap f p` in `U`, such
-    -- that `s = a / h` on `W`, for some ring elements `a h : R`.
-    rcases s.2 ⟨comap f p.1, hUV p.1 p.2⟩ with ⟨W, m, iWU, a, h, h_frac⟩,
-    -- We claim that we can write our new section as the fraction `f a / f h` on the neighborhood
-    -- `(comap f) ⁻¹ W ⊓ V` of `p`.
-    refine ⟨opens.comap (comap_continuous f) W ⊓ V, ⟨m, p.2⟩, opens.inf_le_right _ _, f a, f h, _⟩,
-    intro q,
-    specialize h_frac ⟨prime_spectrum.comap f q.1, q.2.1⟩,
-    refine ⟨h_frac.1, _⟩,
-    dsimp only,
-    erw [← localization.local_ring_hom_to_map ((comap f q.1).as_ideal), ← ring_hom.map_mul,
-      h_frac.2, localization.local_ring_hom_to_map],
-    refl,
-  end⟩,
+{ to_fun := λ s, ⟨structure_sheaf.comap_fun f U V hUV s.1,
+    structure_sheaf.comap_fun_is_locally_fraction f U V hUV s.1 s.2⟩,
   map_one' := subtype.ext $ funext $ λ p, by
-    { rw [subtype.coe_mk, subtype.val_eq_coe, (sections_subring R (op U)).coe_one, pi.one_apply,
-        ring_hom.map_one], refl },
+    { rw [subtype.coe_mk, subtype.val_eq_coe, structure_sheaf.comap_fun,
+      (sections_subring R (op U)).coe_one, pi.one_apply, ring_hom.map_one], refl },
   map_zero' := subtype.ext $ funext $ λ p, by
-    { rw [subtype.coe_mk, subtype.val_eq_coe, (sections_subring R (op U)).coe_zero, pi.zero_apply,
-        ring_hom.map_zero], refl },
+    { rw [subtype.coe_mk, subtype.val_eq_coe, structure_sheaf.comap_fun,
+      (sections_subring R (op U)).coe_zero, pi.zero_apply, ring_hom.map_zero], refl },
   map_add' := λ s t, subtype.ext $ funext $ λ p, by
-    { rw [subtype.coe_mk, subtype.val_eq_coe, (sections_subring R (op U)).coe_add, pi.add_apply,
-        ring_hom.map_add], refl },
+    { rw [subtype.coe_mk, subtype.val_eq_coe, structure_sheaf.comap_fun,
+      (sections_subring R (op U)).coe_add, pi.add_apply, ring_hom.map_add], refl },
   map_mul' := λ s t, subtype.ext $ funext $ λ p, by
-    { rw [subtype.coe_mk, subtype.val_eq_coe, (sections_subring R (op U)).coe_mul, pi.mul_apply,
-        ring_hom.map_mul], refl },
+    { rw [subtype.coe_mk, subtype.val_eq_coe, structure_sheaf.comap_fun,
+      (sections_subring R (op U)).coe_mul, pi.mul_apply, ring_hom.map_mul], refl }
 }
 
+@[simp]
+lemma structure_sheaf.comap_apply (f : R →+* S) (U : opens (prime_spectrum.Top R))
+  (V : opens (prime_spectrum.Top S)) (hUV : V.1 ⊆ (comap f) ⁻¹' U.1)
+  (s : (structure_sheaf R).presheaf.obj (op U)) (p : V) :
+  (structure_sheaf.comap f U V hUV s).1 p =
+  localization.local_ring_hom (comap f p.1).as_ideal _ f rfl (s.1 ⟨(comap f p.1), hUV p.2⟩ : _) :=
+rfl
+
 lemma structure_sheaf.comap_const (f : R →+* S) (U : opens (prime_spectrum.Top R))
-  (V : opens (prime_spectrum.Top S)) (hUV : ∀ p ∈ V, comap f p ∈ U)
+  (V : opens (prime_spectrum.Top S)) (hUV : V.1 ⊆ (comap f) ⁻¹' U.1)
   (a b : R) (hb : ∀ x : prime_spectrum R, x ∈ U → b ∈ x.as_ideal.prime_compl) :
   structure_sheaf.comap f U V hUV (const R a b U hb) =
-  const S (f a) (f b) V (λ p hpV, hb (comap f p) (hUV p hpV)) :=
+  const S (f a) (f b) V (λ p hpV, hb (comap f p) (hUV hpV)) :=
 subtype.eq $ funext $ λ p,
 begin
-  rw [subtype.val_eq_coe, structure_sheaf.comap_apply_coe, const_apply, const_apply],
+  rw [structure_sheaf.comap_apply, const_apply, const_apply],
   erw localization.local_ring_hom_mk',
   refl,
 end
@@ -850,14 +878,13 @@ identity from OO_X(U) to OO_X(V) equals as the restriction map of the structure 
 This is a generalization of the fact that, for fixed `U`, the comap of the identity from OO_X(U)
 to OO_X(U) is the identity.
 -/
-lemma structure_sheaf.comap_id_eq_res (U V : opens (prime_spectrum.Top R)) (iVU : V ⟶ U) :
+lemma structure_sheaf.comap_id_eq_map (U V : opens (prime_spectrum.Top R)) (iVU : V ⟶ U) :
   structure_sheaf.comap (ring_hom.id R) U V
     (λ p hpV, le_of_hom iVU $ by rwa prime_spectrum.comap_id) =
   (structure_sheaf R).presheaf.map iVU.op :=
-ring_hom.ext $ λ s, subtype.ext $ funext $
+ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
 begin
-  intro p,
-  rw structure_sheaf.comap_apply_coe,
+  rw structure_sheaf.comap_apply,
   -- Unfortunately, we cannot use `localization.local_ring_hom_id` here, because
   -- `comap (ring_hom.id R) p` is not *definitionally* equal to `p`. Instead, we use that we can
   -- write `s` as a fraction `a/b` in a small neighborhood around `p`. Since
@@ -869,20 +896,20 @@ begin
   obtain ⟨hb₂, s_eq₂⟩ := h' ⟨comap (ring_hom.id _) p.1, by rwa prime_spectrum.comap_id⟩,
   dsimp only at s_eq₁ s_eq₂,
   erw [s_eq₂, localization.local_ring_hom_mk', ← s_eq₁, ← res_apply],
-  refl,
 end
 
 /--
 The comap of the identity is the identity. In this variant of the lemma, two open subsets `U` and
-`V` are given as arguments, together with the fact `U = V`. This is be useful when `U` and `V` are
-not definitionally equal.
+`V` are given as arguments, together with a proof that `U = V`. This is be useful when `U` and `V`
+are not definitionally equal.
 -/
 lemma structure_sheaf.comap_id (U V : opens (prime_spectrum.Top R)) (hUV : U = V) :
-  structure_sheaf.comap (ring_hom.id R) U V (λ p hpV, by rwa [hUV, prime_spectrum.comap_id]) =
+  structure_sheaf.comap (ring_hom.id R) U V
+    (λ p hpV, by rwa [hUV, prime_spectrum.comap_id]) =
   eq_to_hom (show (structure_sheaf R).presheaf.obj (op U) = _, by rw hUV) :=
-by erw [structure_sheaf.comap_id_eq_res U V (eq_to_hom hUV.symm), eq_to_hom_op, eq_to_hom_map]
+by erw [structure_sheaf.comap_id_eq_map U V (eq_to_hom hUV.symm), eq_to_hom_op, eq_to_hom_map]
 
-lemma structure_sheaf.comap_id' (U : opens (prime_spectrum.Top R)) :
+@[simp] lemma structure_sheaf.comap_id' (U : opens (prime_spectrum.Top R)) :
   structure_sheaf.comap (ring_hom.id R) U U (λ p hpU, by rwa prime_spectrum.comap_id) =
   ring_hom.id _ :=
 by { rw structure_sheaf.comap_id U U rfl, refl }
@@ -892,21 +919,22 @@ lemma structure_sheaf.comap_comp (f : R →+* S) (g : S →+* P) (U : opens (pri
   (hUV : ∀ p ∈ V, comap f p ∈ U) (hVW : ∀ p ∈ W, comap g p ∈ V) :
   structure_sheaf.comap (g.comp f) U W (λ p hpW, hUV (comap g p) (hVW p hpW)) =
     (structure_sheaf.comap g V W hVW).comp (structure_sheaf.comap f U V hUV) :=
-ring_hom.ext $ λ s, subtype.ext $ funext $ λ p,
+ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
 begin
-  rw structure_sheaf.comap_apply_coe,
+  rw structure_sheaf.comap_apply,
   erw localization.local_ring_hom_comp _ (comap g p.1).as_ideal,
   -- refl works here, because `comap (g.comp f) p` is defeq to `comap f (comap g p)`
   refl,
 end
 
-@[elementwise, reassoc] lemma to_open_comap (f : R →+* S) :
+@[elementwise, reassoc] lemma to_open_comp_comap (f : R →+* S) :
   to_open R ⊤ ≫ structure_sheaf.comap f ⊤ ⊤ (λ p hpV, trivial) =
   @category_theory.category_struct.comp _ _ (CommRing.of R) (CommRing.of S) _ f (to_open S ⊤) :=
-ring_hom.ext $ λ s, subtype.ext $ funext $ λ p,
+ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
 begin
-  simp only [comp_apply, structure_sheaf.comap_apply_coe, subtype.val_eq_coe, to_open_apply_coe],
+  simp_rw [comp_apply, structure_sheaf.comap_apply, subtype.val_eq_coe, to_open_apply_coe],
   erw localization.local_ring_hom_to_map,
+  refl,
 end
 
 end comap

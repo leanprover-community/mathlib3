@@ -220,6 +220,7 @@ def const (X : Type*) {Y : Type*} [topological_space X] (y : Y) :
   locally_constant X Y :=
 ⟨function.const X y, is_locally_constant.const _⟩
 
+/-- The locally constant function to `fin 2` associated to a clopen set. -/
 def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x ∈ U)]
   (hU : is_clopen U) : locally_constant X (fin 2) :=
 { to_fun := λ x, if x ∈ U then 0 else 1,

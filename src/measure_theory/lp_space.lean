@@ -430,6 +430,38 @@ lemma mem_ℒp.of_bound [finite_measure μ] {f : α → E} (hf : ae_measurable f
   mem_ℒp f p μ :=
 (mem_ℒp_const C).of_le hf (hfC.mono (λ x hx, le_trans hx (le_abs_self _)))
 
+@[mono] lemma snorm'_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≤ μ) (hq : 0 ≤ q) :
+  snorm' f q ν ≤ snorm' f q μ :=
+begin
+  simp_rw snorm',
+  suffices h_integral_mono : (∫⁻ a, (nnnorm (f a) : ℝ≥0∞) ^ q ∂ν) ≤ ∫⁻ a, (nnnorm (f a)) ^ q ∂μ,
+    from ennreal.rpow_le_rpow h_integral_mono (by simp [hq]),
+  exact lintegral_mono' hμν le_rfl,
+end
+
+@[mono] lemma snorm_ess_sup_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≪ μ) :
+  snorm_ess_sup f ν ≤ snorm_ess_sup f μ :=
+by { simp_rw snorm_ess_sup, exact ess_sup_mono_measure hμν, }
+
+@[mono] lemma snorm_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≤ μ) :
+  snorm f p ν ≤ snorm f p μ :=
+begin
+  by_cases hp0 : p = 0,
+  { simp [hp0], },
+  by_cases hp_top : p = ∞,
+  { simp [hp_top, snorm_ess_sup_mono_measure f (measure.absolutely_continuous_of_le hμν)], },
+  simp_rw snorm_eq_snorm' hp0 hp_top,
+  exact snorm'_mono_measure f hμν ennreal.to_real_nonneg,
+end
+
+lemma mem_ℒp.mono_measure {μ ν : measure α} {f : α → E} (hμν : ν ≤ μ) (hf : mem_ℒp f p μ) :
+  mem_ℒp f p ν :=
+⟨hf.1.mono_measure hμν, (snorm_mono_measure f hμν).trans_lt hf.2⟩
+
+lemma mem_ℒp.restrict (s : set α) {f : α → E} (hf : mem_ℒp f p μ) :
+  mem_ℒp f p (μ.restrict s) :=
+hf.mono_measure measure.restrict_le_self
+
 section opens_measurable_space
 variable [opens_measurable_space E]
 

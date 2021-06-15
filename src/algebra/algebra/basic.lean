@@ -1428,38 +1428,6 @@ instance : algebra R (restrict_scalars R S A) :=
   smul_def' := λ _ _, algebra.smul_def _ _,
   .. (algebra_map S A).comp (algebra_map R S) }
 
-/-- Embedding of `S` into `restrict_scalars R S A`. -/
-def to_restrict_scalars : S →ₐ[R] restrict_scalars R S A :=
-{ commutes' := λ r, rfl,
-  .. algebra_map S A }
-
-theorem to_restrict_scalars_apply (x) : to_restrict_scalars R S A x = algebra_map S A x := rfl
-
-variables {B : Type*} [semiring B] [algebra S B]
-include R
-
-/-- R ⟶ S induces S-Alg ⥤ R-Alg.
-
-For historical reasons, the name below (`alg_hom.comap`) is used for the version of this idea which
-is expressed using `restrict_scalars`, while the name `alg_hom.restrict_scalars` is used for the
-version of this idea which is expressed using `is_scalar_tower`.
-
-TODO fix this! -/
-def alg_hom.comap (φ : A →ₐ[S] B) : restrict_scalars R S A →ₐ[R] restrict_scalars R S B :=
-{ commutes' := λ r, φ.commutes (algebra_map R S r)
-  ..φ }
-
-/-- `alg_hom.comap` for `alg_equiv`.
-
-For historical reasons, the name below (`alg_equiv.comap`) is used for the version of this idea
-which is expressed using `restrict_scalars`, while the name `alg_equiv.restrict_scalars` is used
-for the  version of this idea which is expressed using `is_scalar_tower`.
-
-TODO fix this! -/
-def alg_equiv.comap (φ : A ≃ₐ[S] B) : restrict_scalars R S A ≃ₐ[R] restrict_scalars R S B :=
-{ commutes' := λ r, φ.commutes (algebra_map R S r)
-  ..φ }
-
 end algebra
 
 end type_synonym

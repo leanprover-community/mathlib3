@@ -13,6 +13,7 @@ import tactic
 import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial
+import analysis.special_functions.pow
 
 open_locale big_operators
 
@@ -407,9 +408,45 @@ begin
   ... ≤ 4 ^ (n / 15) : pow_beats_mul (n / 15) (by linarith),
 end
 
-lemma pow_beats_pow_2 (n : ℕ) (n_large : 249 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
+lemma pow_coe (a b : ℕ) : (↑(a ^ b) : ℝ) = (↑a) ^ (↑b : ℝ) :=
 begin
   sorry
+  -- library_search,
+end
+
+lemma nat_sqrt_le_real_sqrt (a : ℕ) : (nat.sqrt a : ℝ) ≤ real.sqrt a :=
+begin
+  sorry
+  -- library_search,
+end
+
+lemma pow_beats_pow_2 (n : ℕ) (n_large : 249 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
+begin
+  -- suffices : ((8 * n + 8) ^ nat.sqrt (8 * n + 8) : ℝ) ≤ 4 ^ n,
+  apply (@nat.cast_le ℝ _ _ _ _).1,
+  -- rw pow_coe 4 n,
+  -- rw pow_coe (8 * n + 8) (nat.sqrt (8 * n + 8)),
+  calc ↑((8 * n + 8) ^ nat.sqrt (8 * n + 8))
+      ≤ (↑(8 * n + 8) ^ real.sqrt (↑(8 * n + 8))) :
+          begin
+            -- unfold_coes,
+            rw pow_coe,
+            apply real.rpow_le_rpow_of_exponent_le,
+              {sorry},
+              {apply nat_sqrt_le_real_sqrt,}
+          end
+  ... ≤ ↑(4 ^ n) :
+          begin
+            apply (real.log_le_log _ _).1,
+            rw real.log_rpow,
+            rw pow_coe,
+            rw real.log_rpow,
+            sorry,
+            sorry,
+            sorry,
+            sorry,
+            sorry,
+          end,
 end
 
 -- lemma sdhfal (n : ℕ) (n_large : 999 < n) : nat.sqrt (n / 8) * nat.sqrt (2 * n) ≤ n / 4 :=

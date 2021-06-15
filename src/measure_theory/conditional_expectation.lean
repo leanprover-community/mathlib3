@@ -158,7 +158,7 @@ end
 lemma ae_measurable'_of_tendsto' (hm : m ≤ m0) [nonempty ι] [semilattice_sup ι] [hp : fact (1 ≤ p)]
   [complete_space G] (f : ι → Lp G p μ) (g : ι → α → G) (f_lim : Lp G p μ)
   (hfg : ∀ n, f n =ᵐ[μ] g n) (hg : ∀ n, @measurable α _ m _ (g n))
-  (h_tendsto : filter.at_top.tendsto f (𝓝 f_lim)) :
+  (h_tendsto : at_top.tendsto f (𝓝 f_lim)) :
   ae_measurable' m f_lim μ :=
 begin
   -- as sequence of functions of Lp, g is cauchy since f is.
@@ -222,7 +222,7 @@ end
 
 lemma ae_measurable'_of_tendsto (hm : m ≤ m0) [nonempty ι] [semilattice_sup ι] [hp : fact (1 ≤ p)]
   [complete_space G] (f : ι → Lp G p μ) (hf : ∀ n, ae_measurable' m (f n) μ) (f_lim : Lp G p μ)
-  (h_tendsto : filter.at_top.tendsto f (𝓝 f_lim)) :
+  (h_tendsto : at_top.tendsto f (𝓝 f_lim)) :
   ae_measurable' m f_lim μ :=
 ae_measurable'_of_tendsto' hm f (λ n, (hf n).some) f_lim (λ n, (hf n).some_spec.2)
   (λ n, (hf n).some_spec.1) h_tendsto

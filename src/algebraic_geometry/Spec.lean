@@ -152,7 +152,7 @@ lemma stalk_map_to_stalk {R S : CommRing} (f : R ⟶ S) (p : prime_spectrum S) :
 begin
   erw [← to_open_germ S ⊤ ⟨p, trivial⟩, ← to_open_germ R ⊤ ⟨prime_spectrum.comap f p, trivial⟩,
     category.assoc, PresheafedSpace.stalk_map_germ (Spec.SheafedSpace_map f) ⊤ ⟨p, trivial⟩,
-    Spec.SheafedSpace_map_c_app, to_open_comap_assoc],
+    Spec.SheafedSpace_map_c_app, to_open_comp_comap_assoc],
   refl
 end
 
@@ -166,7 +166,7 @@ lemma local_ring_hom_comp_stalk_iso {R S : CommRing} (f : R ⟶ S) (p : prime_sp
     @category_struct.comp _ _
       (CommRing.of (localization.at_prime (prime_spectrum.comap f p).as_ideal))
       (CommRing.of (localization.at_prime p.as_ideal)) _
-      (localization.local_ring_hom (prime_spectrum.comap f p).as_ideal p.as_ideal f (λ r, iff.rfl))
+      (localization.local_ring_hom (prime_spectrum.comap f p).as_ideal p.as_ideal f rfl)
       (stalk_iso S p).inv =
   PresheafedSpace.stalk_map (Spec.SheafedSpace_map f) p :=
 (stalk_iso R (prime_spectrum.comap f p)).eq_inv_comp.mp $ (stalk_iso S p).comp_inv_eq.mpr $

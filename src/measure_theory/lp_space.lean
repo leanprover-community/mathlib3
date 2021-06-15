@@ -413,7 +413,7 @@ lemma mem_ℒp.of_bound [finite_measure μ] {f : α → E} (hf : ae_measurable f
   mem_ℒp f p μ :=
 (mem_ℒp_const C).of_le hf (hfC.mono (λ x hx, le_trans hx (le_abs_self _)))
 
-lemma snorm'_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≤ μ) (hq : 0 ≤ q) :
+@[mono] lemma snorm'_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≤ μ) (hq : 0 ≤ q) :
   snorm' f q ν ≤ snorm' f q μ :=
 begin
   simp_rw snorm',
@@ -422,11 +422,11 @@ begin
   exact lintegral_mono' hμν le_rfl,
 end
 
-lemma snorm_ess_sup_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≪ μ) :
+@[mono] lemma snorm_ess_sup_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≪ μ) :
   snorm_ess_sup f ν ≤ snorm_ess_sup f μ :=
 by { simp_rw snorm_ess_sup, exact ess_sup_mono_measure hμν, }
 
-lemma snorm_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≤ μ) :
+@[mono] lemma snorm_mono_measure {μ ν : measure α} (f : α → F) (hμν : ν ≤ μ) :
   snorm f p ν ≤ snorm f p μ :=
 begin
   by_cases hp0 : p = 0,

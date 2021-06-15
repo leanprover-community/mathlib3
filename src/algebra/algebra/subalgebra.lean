@@ -295,13 +295,6 @@ we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
 linear_equiv.of_eq _ _ rfl
 
-/-- Reinterpret an `S`-subalgebra as an `R`-subalgebra in `restrict_scalars R S A`. -/
-def restrict_scalars {R : Type u} {S : Type v} {A : Type w}
-  [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
-  (iSB : subalgebra S A) : subalgebra R (restrict_scalars R S A) :=
-{ algebra_map_mem' := λ r, iSB.algebra_map_mem (algebra_map R S r),
-  .. iSB }
-
 /-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
 then `T` is an `R`-subalgebra of `A`. -/
 def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]

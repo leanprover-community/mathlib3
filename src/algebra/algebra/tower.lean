@@ -165,6 +165,18 @@ variables (R) {A S B}
 
 open is_scalar_tower
 
+/-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
+`R`-subalgebra. -/
+def subalgebra.restrict_scalars (iSB : subalgebra S A) :
+  subalgebra R A :=
+{ one_mem' := iSB.one_mem,
+  mul_mem' := λ _ _, iSB.mul_mem,
+  algebra_map_mem' := λ r, begin
+    rw is_scalar_tower.algebra_map_eq R S,
+    exact iSB.algebra_map_mem' _,
+  end,
+  .. iSB.to_submodule.restrict_scalars R  }
+
 namespace alg_hom
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/

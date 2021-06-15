@@ -1403,14 +1403,14 @@ end module
 
 section algebra
 
-instance [h : semiring A] : semiring (restrict_scalars R S A) := h
-instance [h : ring A] : ring (restrict_scalars R S A) := h
-instance [h : comm_semiring A] : comm_semiring (restrict_scalars R S A) := h
-instance [h : comm_ring A] : comm_ring (restrict_scalars R S A) := h
+instance [I : semiring A] : semiring (restrict_scalars R S A) := I
+instance [I : ring A] : ring (restrict_scalars R S A) := I
+instance [I : comm_semiring A] : comm_semiring (restrict_scalars R S A) := I
+instance [I : comm_ring A] : comm_ring (restrict_scalars R S A) := I
 
-instance restrict_scalars.algebra_orig [comm_semiring S] [semiring A] [h : algebra S A] :
+instance restrict_scalars.algebra_orig [comm_semiring S] [semiring A] [I : algebra S A] :
   algebra S (restrict_scalars R S A) :=
-h
+I
 
 /-- Identity homomorphism `A →ₐ[S] restrict_scalars R S A`. -/
 def restrict_scalars.to_restrict_scalars [comm_semiring S] [semiring A] [algebra S A] :

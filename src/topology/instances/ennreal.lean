@@ -644,9 +644,9 @@ end
 
 end tsum
 
-lemma tendsto_at_top_to_real_iff {ι} [preorder ι] {f : ι → ℝ≥0∞} (hf : ∀ i, f i ≠ ∞) {x : ℝ≥0∞}
+lemma tendsto_to_real_iff {ι} {fi : filter ι} {f : ι → ℝ≥0∞} (hf : ∀ i, f i ≠ ∞) {x : ℝ≥0∞}
   (hx : x ≠ ∞) :
-  at_top.tendsto (λ n, (f n).to_real) (𝓝 x.to_real) ↔ at_top.tendsto f (𝓝 x) :=
+  fi.tendsto (λ n, (f n).to_real) (𝓝 x.to_real) ↔ fi.tendsto f (𝓝 x) :=
 begin
   refine ⟨λ h, _, λ h, tendsto.comp (ennreal.tendsto_to_real hx) h⟩,
   have h_eq : f = (λ n, ennreal.of_real (f n).to_real),

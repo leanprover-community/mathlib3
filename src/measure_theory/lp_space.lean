@@ -1436,9 +1436,9 @@ end
 
 /-! ### `Lp` is complete iff Cauchy sequences of `ℒp` have limits in `ℒp` -/
 
-lemma tendsto_Lp_iff_tendsto_ℒp' {ι} [preorder ι] [hp : fact (1 ≤ p)]
+lemma tendsto_Lp_iff_tendsto_ℒp' {ι} {fi : filter ι} [hp : fact (1 ≤ p)]
   (f : ι → Lp E p μ) (f_lim : Lp E p μ) :
-  at_top.tendsto f (𝓝 f_lim) ↔ at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
+  fi.tendsto f (𝓝 f_lim) ↔ fi.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
   rw tendsto_iff_dist_tendsto_zero,
   simp_rw dist_def,
@@ -1447,10 +1447,9 @@ begin
   exact Lp.snorm_ne_top _,
 end
 
-lemma tendsto_Lp_iff_tendsto_ℒp {ι} [preorder ι] [hp : fact (1 ≤ p)]
+lemma tendsto_Lp_iff_tendsto_ℒp {ι} {fi : filter ι} [hp : fact (1 ≤ p)]
   (f : ι → Lp E p μ) (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ) :
-  at_top.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim))
-    ↔ at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
+  fi.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) ↔ fi.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
   rw tendsto_Lp_iff_tendsto_ℒp',
   suffices h_eq : (λ n, snorm (f n - mem_ℒp.to_Lp f_lim f_lim_ℒp) p μ)
@@ -1459,10 +1458,10 @@ begin
   exact funext (λ n, snorm_congr_ae (eventually_eq.rfl.sub (mem_ℒp.coe_fn_to_Lp f_lim_ℒp))),
 end
 
-lemma tendsto_Lp_of_tendsto_ℒp {ι} [preorder ι] [hp : fact (1 ≤ p)]
+lemma tendsto_Lp_of_tendsto_ℒp {ι} {fi : filter ι} [hp : fact (1 ≤ p)]
   {f : ι → Lp E p μ} (f_lim : α → E) (f_lim_ℒp : mem_ℒp f_lim p μ)
-  (h_tendsto : at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
-  at_top.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) :=
+  (h_tendsto : fi.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0)) :
+  fi.tendsto f (𝓝 (f_lim_ℒp.to_Lp f_lim)) :=
 (tendsto_Lp_iff_tendsto_ℒp f f_lim f_lim_ℒp).mpr h_tendsto
 
 lemma cauchy_seq_Lp_iff_cauchy_seq_ℒp {ι} [nonempty ι] [semilattice_sup ι] [hp : fact (1 ≤ p)]

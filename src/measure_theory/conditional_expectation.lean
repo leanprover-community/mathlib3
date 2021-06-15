@@ -67,12 +67,12 @@ variables {α β γ E E' F F' G G' H 𝕜 𝕂 : Type*} {p : ℝ≥0∞}
   -- F for an Lp submodule
   [normed_group F] [normed_space 𝕂 F] [measurable_space F] [borel_space F]
   [second_countable_topology F]
-  -- F' for integrals on F
+  -- F' for integrals on a Lp submodule
   [normed_group F'] [normed_space 𝕂 F'] [measurable_space F'] [borel_space F']
   [second_countable_topology F'] [normed_space ℝ F'] [complete_space F']
   -- G for an Lp add_subgroup
   [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
-  -- G' for integrals on G
+  -- G' for integrals on a Lp add_subgroup
   [normed_group G'] [measurable_space G'] [borel_space G'] [second_countable_topology G']
   [normed_space ℝ G'] [complete_space G']
   -- H for measurable space and normed group (hypotheses of mem_ℒp)

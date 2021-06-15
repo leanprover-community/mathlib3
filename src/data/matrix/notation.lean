@@ -89,7 +89,7 @@ instance [has_repr α] : has_repr (fin n → α) :=
 ```
 -/
 instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) :=
-(infer_instance : has_repr (fin m → fin n → α))
+(by apply_instance : has_repr (fin m → fin n → α))
 
 end matrix_notation
 

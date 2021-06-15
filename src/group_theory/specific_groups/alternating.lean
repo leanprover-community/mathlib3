@@ -178,7 +178,7 @@ lemma is_three_cycle_sq_of_three_mem_cycle_type_five {g : perm (fin 5)} (h : 3 �
 begin
   obtain ⟨c, g', rfl, hd, hc, h3⟩ := mem_cycle_type_iff.1 h,
   simp only [mul_assoc],
-  rw [hd.mul_comm, ← mul_assoc g'],
+  rw [hd.commute.eq, ← mul_assoc g'],
   suffices hg' : order_of g' ∣ 2,
   { rw [← pow_two, order_of_dvd_iff_pow_eq_one.1 hg', one_mul],
     exact (card_support_eq_three_iff.1 h3).is_three_cycle_sq },

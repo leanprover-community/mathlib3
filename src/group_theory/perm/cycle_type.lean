@@ -250,7 +250,7 @@ begin
     swap, { exact hd.symm },
     refine ⟨c, (l.erase c).prod, _, _, hlc _ cl, rfl⟩,
     { rw [← list.prod_cons,
-        (list.perm_cons_erase cl).symm.prod_eq' (hld.imp (λ a b ab, ab.mul_comm))] },
+        (list.perm_cons_erase cl).symm.prod_eq' (hld.imp (λ _ _, disjoint.commute))] },
     { exact disjoint_prod_right _ (λ g, list.rel_of_pairwise_cons hld) } },
   { rintros ⟨c, t, rfl, hd, hc, rfl⟩,
     simp [hd.cycle_type, hc.cycle_type] }

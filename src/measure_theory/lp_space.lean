@@ -465,6 +465,58 @@ begin
     (ennreal.to_real_pos_iff.mpr ⟨lt_of_le_of_ne (zero_le _) h0.symm, h_top⟩) hf,
 end
 
+section trim
+
+lemma snorm'_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
+  (hf : @measurable _ _ m _ f) :
+  @snorm' α E m _ f q (μ.trim hm) = snorm' f q μ :=
+begin
+  simp_rw snorm',
+  congr' 1,
+  refine lintegral_trim hm _,
+  refine @measurable.pow_const α m _ _ _ _ _ _ _ (@measurable.coe_nnreal_ennreal α m _ _) _,
+  exact @measurable.nnnorm E α _ _ _ m _ hf,
+end
+
+lemma limsup_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
+  (@measure.ae α m (μ.trim hm)).limsup f = μ.ae.limsup f :=
+begin
+  simp_rw limsup_eq,
+  suffices h_set_eq : {a : ℝ≥0∞ | filter.eventually (λ n, f n ≤ a) (@measure.ae α m (μ.trim hm))}
+      = {a : ℝ≥0∞ | ∀ᵐ (n : α) ∂μ, f n ≤ a},
+    by rw h_set_eq,
+  ext1 a,
+  suffices h_meas_eq : μ {x | ¬ f x ≤ a} = μ.trim hm {x | ¬ f x ≤ a},
+    by simp_rw [set.mem_set_of_eq, ae_iff, h_meas_eq],
+  refine (trim_measurable_set_eq hm _).symm,
+  refine @measurable_set.compl α _ m (@measurable_set_le ℝ≥0∞ α _ _ _ m _ _ _ _ _ hf _),
+  exact @measurable_const _ α _ m _,
+end
+
+lemma ess_sup_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
+  @ess_sup α _ m _ f (μ.trim hm) = ess_sup f μ :=
+by { simp_rw ess_sup, exact limsup_trim hm hf, }
+
+lemma snorm_ess_sup_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0)
+  {f : α → E} (hf : @measurable _ _ m _ f) :
+  @snorm_ess_sup α E m _ f (μ.trim hm) = snorm_ess_sup f μ :=
+ess_sup_trim hm (@measurable.coe_nnreal_ennreal α m _ (@measurable.nnnorm E α _ _ _ m _ hf))
+
+lemma snorm_trim {α : Type*} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
+  (hf : @measurable _ _ m _ f) :
+  @snorm α E m _ f p (μ.trim hm) = snorm f p μ :=
+begin
+  by_cases h0 : p = 0,
+  { simp [h0], },
+  by_cases h_top : p = ∞,
+  { simpa only [h_top, snorm_exponent_top] using snorm_ess_sup_trim hm hf, },
+  simpa only [snorm_eq_snorm' h0 h_top] using snorm'_trim hm hf,
+end
+
+end trim
+
 end opens_measurable_space
 
 @[simp] lemma snorm'_neg {f : α → F} : snorm' (-f) q μ = snorm' f q μ := by simp [snorm']

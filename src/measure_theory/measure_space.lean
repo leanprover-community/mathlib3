@@ -2226,6 +2226,72 @@ end
 
 end is_complete
 
+namespace measure_theory
+
+lemma outer_measure.to_measure_zero [measurable_space α] : (0 : outer_measure α).to_measure
+  ((le_top).trans outer_measure.zero_caratheodory.symm.le) = 0 :=
+by rw [← measure.measure_univ_eq_zero, to_measure_apply _ _ measurable_set.univ,
+  outer_measure.coe_zero, pi.zero_apply]
+
+section trim
+
+/-- Restriction of a measure to a sub-sigma algebra.
+It is common to see a measure `μ` on a measurable space structure `m0` as being also a measure on
+any `m ≤ m0`. Since measures in mathlib have to be trimmed to the measurable space, `μ` itself
+cannot be a measure on `m`, hence the definition of `μ.trim hm`.
+
+This notion is related to `outer_measure.trim`, see the lemma
+`to_outer_measure_trim_eq_trim_to_outer_measure`. -/
+def measure.trim {m m0 : measurable_space α} (μ : @measure α m0) (hm : m ≤ m0) : @measure α m :=
+@outer_measure.to_measure α m μ.to_outer_measure (hm.trans (le_to_outer_measure_caratheodory μ))
+
+@[simp] lemma trim_eq_self [measurable_space α] {μ : measure α} : μ.trim le_rfl = μ :=
+by simp [measure.trim]
+
+variables {m m0 : measurable_space α} {μ : measure α} {s : set α}
+
+lemma to_outer_measure_trim_eq_trim_to_outer_measure (μ : measure α) (hm : m ≤ m0) :
+  @measure.to_outer_measure _ m (μ.trim hm) = @outer_measure.trim _ m μ.to_outer_measure :=
+by rw [measure.trim, to_measure_to_outer_measure]
+
+@[simp] lemma zero_trim (hm : m ≤ m0) : (0 : measure α).trim hm = (0 : @measure α m) :=
+by simp [measure.trim, outer_measure.to_measure_zero]
+
+lemma trim_measurable_set_eq (hm : m ≤ m0) (hs : @measurable_set α m s) : μ.trim hm s = μ s :=
+by simp [measure.trim, hs]
+
+lemma le_trim (hm : m ≤ m0) : μ s ≤ μ.trim hm s :=
+by { simp_rw [measure.trim], exact (@le_to_measure_apply _ m _ _ _), }
+
+lemma measure_eq_zero_of_trim_eq_zero (hm : m ≤ m0) (h : μ.trim hm s = 0) : μ s = 0 :=
+le_antisymm ((le_trim hm).trans (le_of_eq h)) (zero_le _)
+
+lemma measure_trim_to_measurable_eq_zero {hm : m ≤ m0} (hs : μ.trim hm s = 0) :
+  μ (@to_measurable α m (μ.trim hm) s) = 0 :=
+measure_eq_zero_of_trim_eq_zero hm (by rwa measure_to_measurable)
+
+lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
+  (h12 : f₁ =ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
+  f₁ =ᵐ[μ] f₂ :=
+measure_eq_zero_of_trim_eq_zero hm h12
+
+lemma restrict_trim (hm : m ≤ m0) (μ : measure α) (hs : @measurable_set α m s) :
+  @measure.restrict α m (μ.trim hm) s = (μ.restrict s).trim hm :=
+begin
+  ext1 t ht,
+  rw [@measure.restrict_apply α m _ _ _ ht, trim_measurable_set_eq hm ht,
+    measure.restrict_apply (hm t ht),
+    trim_measurable_set_eq hm (@measurable_set.inter α m t s ht hs)],
+end
+
+instance finite_measure_trim (hm : m ≤ m0) [finite_measure μ] : @finite_measure α m (μ.trim hm) :=
+{ measure_univ_lt_top :=
+    by { rw trim_measurable_set_eq hm (@measurable_set.univ _ m), exact measure_lt_top _ _, } }
+
+end trim
+
+end measure_theory
+
 /-!
 # Almost everywhere measurable functions
 
@@ -2353,6 +2419,18 @@ measurable_one.ae_measurable
   ae_measurable f (c • μ) ↔ ae_measurable f μ :=
 ⟨λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).1 h.ae_eq_mk⟩,
   λ h, ⟨h.mk f, h.measurable_mk, (ae_smul_measure_iff hc).2 h.ae_eq_mk⟩⟩
+
+lemma ae_measurable_of_ae_measurable_trim {α} {m m0 : measurable_space α}
+  {μ : measure α} (hm : m ≤ m0) {f : α → β} (hf : @ae_measurable _ _ m _ f (μ.trim hm)) :
+  ae_measurable f μ :=
+begin
+  let f' := @ae_measurable.mk _ _ m _ _ _ hf,
+  have hf'_meas : @measurable _ _ m _ f', from @ae_measurable.measurable_mk _ _ m _ _ _ hf,
+  have hff'_m : f' =ᶠ[@measure.ae  _ m (μ.trim hm)] f,
+    from (@ae_measurable.ae_eq_mk _ _ m _ _ _ hf).symm,
+  have hff' : f' =ᵐ[μ] f, from ae_eq_of_ae_eq_trim hff'_m,
+  exact ⟨f', measurable.mono hf'_meas hm le_rfl, hff'.symm⟩,
+end
 
 end
 

@@ -16,39 +16,17 @@ open topological_space measure_theory measure_theory.Lp filter
 open_locale nnreal ennreal topological_space big_operators measure_theory
 
 /-- Like `ae_measurable`, but the `measurable_space` structures used for the measurability
-statement and for the measure are different.
-
-TODO: change the definition of ae_measurable to use ae_measurable' ? -/
+statement and for the measure are different. -/
 def ae_measurable' {α β} [measurable_space β] (m : measurable_space α) {m0 : measurable_space α}
   (f : α → β) (μ : measure α) :
   Prop :=
 ∃ g : α → β, @measurable α β m _ g ∧ f =ᵐ[μ] g
 
-lemma measurable.ae_measurable' {α β} [measurable_space β] {m m0 : measurable_space α} {f : α → β}
-  {μ : measure α} (hf : @measurable α β m _ f) :
-  ae_measurable' m f μ :=
-⟨f, hf, eventually_eq.rfl⟩
-
 namespace ae_measurable'
 
 variables {α β : Type*} [measurable_space β] {f : α → β}
 
-lemma mono {m2 m m0 : measurable_space α} (hm : m2 ≤ m)
-  {μ : measure α} (hf : ae_measurable' m2 f μ) :
-  ae_measurable' m f μ :=
-by { obtain ⟨g, hg_meas, hfg⟩ := hf, exact ⟨g, measurable.mono hg_meas hm le_rfl, hfg⟩, }
-
-lemma ae_measurable {m m0 : measurable_space α} (hm : m ≤ m0)
-  {μ : measure α} (hf : ae_measurable' m f μ) :
-  ae_measurable f μ :=
-ae_measurable'.mono hm hf
-
-lemma ae_measurable'_of_ae_measurable'_trim {m m0 m0' : measurable_space α} (hm0 : m0 ≤ m0')
-  {μ : measure α} (hf : ae_measurable' m f (μ.trim hm0)) :
-  ae_measurable' m f μ :=
-by { obtain ⟨g, hg_meas, hfg⟩ := hf, exact ⟨g, hg_meas, ae_eq_of_ae_eq_trim hfg⟩, }
-
-lemma congr_ae {m m0 : measurable_space α} {μ : measure α}
+lemma congr {m m0 : measurable_space α} {μ : measure α}
   {f g : α → β} (hf : ae_measurable' m f μ) (hfg : f =ᵐ[μ] g) :
   ae_measurable' m g μ :=
 by { obtain ⟨f', hf'_meas, hff'⟩ := hf, exact ⟨f', hf'_meas, hfg.symm.trans hff'⟩, }
@@ -63,35 +41,6 @@ begin
   exact hff'.add hgg',
 end
 
-lemma sub [add_group β] [has_measurable_sub₂ β] {m m0 : measurable_space α}
-  {μ : measure α} {f g : α → β} (hf : ae_measurable' m f μ) (hg : ae_measurable' m g μ) :
-  ae_measurable' m (f - g) μ :=
-begin
-  rcases hf with ⟨f', h_f'_meas, hff'⟩,
-  rcases hg with ⟨g', h_g'_meas, hgg'⟩,
-  refine ⟨f' - g', @measurable.sub α m _ _ _ _ f' g' h_f'_meas h_g'_meas, _⟩,
-  exact hff'.sub hgg',
-end
-
-lemma neg [has_neg β] [has_measurable_neg β] {m m0 : measurable_space α}
-  {μ : measure α} {f : α → β} (hf : ae_measurable' m f μ) :
-  ae_measurable' m (-f) μ :=
-begin
-  rcases hf with ⟨f', h_f'_meas, hff'⟩,
-  exact ⟨-f', @measurable.neg α m _ _ _ _ f' h_f'_meas, hff'.neg⟩,
-end
-
-lemma smul₂ {δ} [has_scalar δ β] [measurable_space δ] [has_measurable_smul₂ δ β]
-  {m m0 : measurable_space α} {μ : measure α}
-  {f : α → δ} (hf : ae_measurable' m f μ) {g : α → β} (hg : ae_measurable' m g μ) :
-  ae_measurable' m (λ x, f x • (g x)) μ :=
-begin
-  obtain ⟨f', hf_meas, hff'⟩ := hf,
-  obtain ⟨g', hg_meas, hgg'⟩ := hg,
-  refine ⟨λ x, (f' x) • (g' x), _, eventually_eq.comp₂ hff' (λ x y, x • y) hgg'⟩,
-  exact @measurable.smul _ m _ _ _ _ _ _ _ _ hf_meas hg_meas,
-end
-
 lemma const_smul {δ} [has_scalar δ β] [measurable_space δ] [has_measurable_smul δ β]
   {m m0 : measurable_space α} {μ : measure α} (c : δ) {f : α → β} (hf : ae_measurable' m f μ) :
   ae_measurable' m (c • f) μ :=
@@ -100,28 +49,6 @@ begin
   refine ⟨c • f', @measurable.const_smul α m _ _ _ _ _ _ f' h_f'_meas c, _⟩,
   exact eventually_eq.fun_comp hff' (λ x, c • x),
 end
-
-lemma restrict {m m0 : measurable_space α} {μ : measure α} (hf : ae_measurable' m f μ) (s : set α) :
-  ae_measurable' m f (μ.restrict s) :=
-by { obtain ⟨g, hg_meas, hfg⟩ := hf, exact ⟨g, hg_meas, ae_restrict_of_ae hfg⟩, }
-
-lemma indicator [has_zero β] {m m0 : measurable_space α} {μ : measure α} (hf : ae_measurable' m f μ)
-  {s : set α} (hs : @measurable_set α m s) :
-  ae_measurable' m (s.indicator f) μ :=
-begin
-  rcases hf with ⟨f', h_f'_meas, hff'⟩,
-  refine ⟨s.indicator f', @measurable.indicator α _ m _ _ s _ h_f'_meas hs, _⟩,
-  refine hff'.mono (λ x hx, _),
-  rw [set.indicator_apply, set.indicator_apply, hx],
-end
-
-lemma const {m m0 : measurable_space α} {μ : measure α} (c : β) : ae_measurable' m (λ x : α, c) μ :=
-(@measurable_const _ _ _ m c).ae_measurable'
-
-lemma smul_const {δ} [has_scalar δ β] [measurable_space δ] [has_measurable_smul₂ δ β]
-  {m m0 : measurable_space α} {μ : measure α} {f : α → δ} (hf : ae_measurable' m f μ) (c : β) :
-  ae_measurable' m (λ x, f x • c) μ :=
-ae_measurable'.smul₂ hf (const c)
 
 end ae_measurable'
 
@@ -154,8 +81,8 @@ def Lp_sub [opens_measurable_space 𝕂] (m : measurable_space α) [measurable_s
   submodule 𝕂 (Lp F p μ) :=
 { carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
   zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
-  add_mem'  := λ f g hf hg, (hf.add hg).congr_ae (Lp.coe_fn_add f g).symm,
-  smul_mem' := λ c f hf, (hf.const_smul c).congr_ae (Lp.coe_fn_smul c f).symm, }
+  add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
+  smul_mem' := λ c f hf, (hf.const_smul c).congr (Lp.coe_fn_smul c f).symm, }
 variables {𝕂 F}
 
 variables [opens_measurable_space 𝕂]

@@ -710,32 +710,6 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
   ..hf.left_cancel_semigroup f mul,
   ..hf.ordered_comm_monoid f one mul }
 
-section mono
-
-variables {β : Type*} [preorder β] {f g : β → α}
-
-@[to_additive monotone.add_strict_mono]
-lemma monotone.mul_strict_mono' (hf : monotone f) (hg : strict_mono g) :
-  strict_mono (λ x, f x * g x) :=
-λ x y h, mul_lt_mul_of_le_of_lt (hf $ le_of_lt h) (hg h)
-
-@[to_additive strict_mono.add_monotone]
-lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
-  strict_mono (λ x, f x * g x) :=
-λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg $ le_of_lt h)
-
-@[to_additive strict_mono.add_const]
-lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
-  strict_mono (λ x, f x * c) :=
-hf.mul_monotone' monotone_const
-
-@[to_additive strict_mono.const_add]
-lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
-  strict_mono (λ x, c * f x) :=
-monotone_const.mul_strict_mono' hf
-
-end mono
-
 end ordered_cancel_comm_monoid
 
 section ordered_cancel_add_comm_monoid

@@ -1406,7 +1406,7 @@ instance [I : ring A] : ring (restrict_scalars R S A) := I
 instance [I : comm_semiring A] : comm_semiring (restrict_scalars R S A) := I
 instance [I : comm_ring A] : comm_ring (restrict_scalars R S A) := I
 
-variables [comm_semiring R] [comm_semiring S] [semiring A]
+variables [comm_semiring S] [semiring A]
 
 instance restrict_scalars.algebra_orig [I : algebra S A] : algebra S (restrict_scalars R S A) := I
 
@@ -1415,7 +1415,7 @@ variables [algebra S A]
 /-- Tautological `S`-algebra isomorphism `A ≃ₐ[S] restrict_scalars R S A`. -/
 def alg_equiv.self_to_restrict_scalars : A ≃ₐ[S] restrict_scalars R S A := alg_equiv.refl
 
-variables [algebra R S]
+variables [comm_semiring R] [algebra R S]
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance : algebra R (restrict_scalars R S A) :=

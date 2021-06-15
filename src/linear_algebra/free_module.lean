@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import linear_algebra.basis
+import linear_algebra.std_basis
 import logic.small
 import linear_algebra.direct_sum.finsupp
-import linear_algebra.dfinsupp
+--import linear_algebra.dfinsupp
 
 /-!
 
@@ -121,6 +121,10 @@ of_basis (basis.empty N : basis pempty R N)
 instance direct_sum {ι : Type*} {M : ι → Type*} [Π (i : ι), add_comm_monoid (M i)]
   [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (⨁ i, M i) :=
 of_basis $ dfinsupp.basis $ λ i, choose_basis R (M i)
+
+instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_group (M i)]
+[Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
+of_basis $ pi.basis $ λ i, choose_basis R (M i)
 
 end semiring
 

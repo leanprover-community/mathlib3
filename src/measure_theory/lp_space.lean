@@ -1442,7 +1442,7 @@ lemma tendsto_Lp_iff_tendsto_ℒp' {ι} {fi : filter ι} [hp : fact (1 ≤ p)]
 begin
   rw tendsto_iff_dist_tendsto_zero,
   simp_rw dist_def,
-  rw [← ennreal.zero_to_real, ennreal.tendsto_at_top_to_real_iff (λ n, _) ennreal.zero_ne_top],
+  rw [← ennreal.zero_to_real, ennreal.tendsto_to_real_iff (λ n, _) ennreal.zero_ne_top],
   rw snorm_congr_ae (Lp.coe_fn_sub _ _).symm,
   exact Lp.snorm_ne_top _,
 end
@@ -1469,7 +1469,7 @@ lemma cauchy_seq_Lp_iff_cauchy_seq_ℒp {ι} [nonempty ι] [semilattice_sup ι] 
   cauchy_seq f ↔ tendsto (λ (n : ι × ι), snorm (f n.fst - f n.snd) p μ) at_top (𝓝 0) :=
 begin
   simp_rw [cauchy_seq_iff_tendsto_dist_at_top_0, dist_def],
-  rw [← ennreal.zero_to_real, ennreal.tendsto_at_top_to_real_iff (λ n, _) ennreal.zero_ne_top],
+  rw [← ennreal.zero_to_real, ennreal.tendsto_to_real_iff (λ n, _) ennreal.zero_ne_top],
   rw snorm_congr_ae (Lp.coe_fn_sub _ _).symm,
   exact snorm_ne_top _,
 end

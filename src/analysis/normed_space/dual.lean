@@ -93,10 +93,9 @@ end general
 
 section bidual_isometry
 
-variables {𝕜 : Type v} [is_R_or_C 𝕜]
-{E : Type u} [normed_group E] [normed_space 𝕜 E]
+variables (𝕜 : Type v) [is_R_or_C 𝕜]
+  {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
-variables (𝕜)
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.
     Compare `continuous_linear_map.op_norm_le_bound`. -/
 lemma norm_le_dual_bound (x : E) {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ (f : dual 𝕜 E), ∥f x∥ ≤ M * ∥f∥) :
@@ -114,8 +113,6 @@ end
 
 lemma eq_zero_of_forall_dual_eq_zero {x : E} (h : ∀ f : dual 𝕜 E, f x = (0 : 𝕜)) : x = 0 :=
 norm_eq_zero.mp (le_antisymm (norm_le_dual_bound 𝕜 x le_rfl (λ f, by simp [h f])) (norm_nonneg _))
-
-variables {𝕜}
 
 /-- The inclusion of a normed space in its double dual is an isometry onto its image.-/
 lemma inclusion_in_double_dual_isometry (x : E) : ∥inclusion_in_double_dual 𝕜 E x∥ = ∥x∥ :=

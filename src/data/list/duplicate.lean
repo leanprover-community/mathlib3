@@ -3,7 +3,7 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky, Chris Hughes
 -/
-import data.list.basic
+import data.list.nodup
 import data.fin
 
 /-!
@@ -107,8 +107,15 @@ begin
       { contradiction } } }
 end
 
+lemma nodup_iff_forall_not_duplicate : nodup l ↔ ∀ (x : α), ¬ x ∈+ l :=
+by simp_rw [nodup_iff_sublist, duplicate_iff_sublist]
+
+lemma duplicate.not_nodup (h : x ∈+ l) : ¬ nodup l :=
+λ H, nodup_iff_forall_not_duplicate.mp H _ h
+
 lemma duplicate_iff_count_le_two [decidable_eq α] : (x ∈+ l) ↔ 2 ≤ count x l :=
 by simp [duplicate_iff_sublist, le_count_iff_repeat_sublist]
+
 lemma sublist_of_order_embedding {l l' : list α} (f : ℕ ↪o ℕ)
   (hf : ∀ (ix : ℕ), l.nth ix = l'.nth (f ix)) :
   l <+ l' :=
@@ -212,7 +219,7 @@ begin
         simp [hi, hj] } },
     { rintros ⟨⟨_|i⟩, hi⟩,
       { simpa using h },
-      { simpa using h' } } },
+      { simpa using h' } } }
 end
 
 instance decidable_duplicate [decidable_eq α] (x : α) : ∀ (l : list α), decidable (x ∈+ l)

@@ -316,17 +316,20 @@ begin
   { simp [add_mul] }
 end
 
-variables (k G) [mul_one_class G]
+variables (k G)
 
-/-- Embedding of a monoid into its monoid algebra. -/
-def of : G →* monoid_algebra k G :=
+/-- The embedding of a magma into its magma algebra. -/
+@[simps] def of_magma [has_mul G] : mul_hom G (monoid_algebra k G) :=
+{ to_fun   := λ a, single a 1,
+  map_mul' := λ a b, by simp only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
+
+/-- The embedding of a unital magma into its magma algebra. -/
+@[simps] def of [mul_one_class G] : G →* monoid_algebra k G :=
 { to_fun := λ a, single a 1,
   map_one' := rfl,
-  map_mul' := λ a b, by rw [single_mul_single, one_mul] }
+  .. of_magma k G }
 
 end
-
-@[simp] lemma of_apply [mul_one_class G] (a : G) : of k G a = single a 1 := rfl
 
 lemma of_injective [mul_one_class G] [nontrivial k] : function.injective (of k G) :=
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
@@ -398,10 +401,9 @@ begin
     eq_self_iff_true, smul_eq_mul, mul_ite, mul_zero, mul_left_comm, ite_eq_right_iff],
 end⟩
 
-/-- The inclusion of a magma into its magma algebra, as a morphism of magmas. -/
-@[simps] def of_magma : mul_hom G (monoid_algebra k G) :=
-{ to_fun   := λ a, finsupp.single a 1,
-  map_mul' := λ a b, by simp only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
+instance smul_comm_class_symm_self {k : Type u₁} [comm_semiring k] :
+  smul_comm_class (monoid_algebra k G) k (monoid_algebra k G) :=
+smul_comm_class.symm k (monoid_algebra k G) (monoid_algebra k G)
 
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/
@@ -431,7 +433,7 @@ non-associative algebras over `k` is adjoint to the forgetful functor in the oth
           simp_rw [finsupp.mul_sum, finsupp.sum_mul, smul_mul_smul, ← f.map_mul, mul_def,
             sum_comm a₂ a₁, sum_sum_index h₁ h₂, sum_single_index (h₁ _)],
         end, },
-  inv_fun   := λ F, F.to_mul_hom.comp (of_magma k),
+  inv_fun   := λ F, F.to_mul_hom.comp (of_magma k G),
   left_inv  := λ f, by { ext m, simp only [non_unital_alg_hom.coe_mk, of_magma_apply,
     non_unital_alg_hom.to_mul_hom_eq_coe, sum_single_index, function.comp_app, one_smul, zero_smul,
     mul_hom.coe_comp, non_unital_alg_hom.coe_to_mul_hom], },

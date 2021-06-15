@@ -11,11 +11,8 @@ import order.bounded_lattice
 import algebra.ordered_monoid_lemmas
 /-!
 # Ordered monoids
-
 This file develops the basics of ordered monoids.
-
 ## Implementation details
-
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
@@ -57,21 +54,9 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
 { elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
 @[to_additive]
-instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  covariant_class M M (function.swap (*)) (≤) :=
-{ elim := λ a b c bc,
-    by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
-
-@[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (*) (<) :=
 { elim := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
-
-@[to_additive]
-instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  contravariant_class M M (function.swap (*)) (<) :=
-{ elim := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
-    exact ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc } }
 
 end ordered_instances
 

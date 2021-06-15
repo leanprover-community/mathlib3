@@ -264,7 +264,7 @@ begin
       by { simp_rw h_eq, exact g_tendsto, },
     intro n,
     have h_eq_g : snorm (g n - ⇑g_Lp_lim) p μ = snorm (⇑(g_Lp n) - ⇑g_Lp_lim) p μ,
-      from snorm_congr_ae ((ae_eq_of_ae_eq_trim hm (h_g_ae_m n).symm).sub eventually_eq.rfl),
+      from snorm_congr_ae ((ae_eq_of_ae_eq_trim (h_g_ae_m n).symm).sub eventually_eq.rfl),
     rw h_eq_g,
     refine (snorm_trim hm _).symm,
     refine @measurable.sub α m _ _ _ _ (g_Lp n) g_Lp_lim _ h_g_lim_meas_m,

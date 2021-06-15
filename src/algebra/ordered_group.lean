@@ -39,7 +39,7 @@ attribute [to_additive] ordered_comm_group
 @[to_additive]
 instance units.covariant_class [ordered_comm_monoid α] :
   covariant_class (units α) (units α) (*) (≤) :=
-{ covc := λ a b c bc, by {
+{ elim := λ a b c bc, by {
   rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
   { exact rfl.le },
   refine le_iff_eq_or_lt.mpr (or.inr _),
@@ -406,7 +406,7 @@ lemma inv_mul_lt_iff_lt_mul_right : c⁻¹ * a < b ↔ a < b * c :=
 by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 
 @[to_additive add_neg_le_add_neg_iff]
-lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
+lemma mul_inv_le_mul_inv_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
   have := mul_le_mul_right' (mul_le_mul_right' h b) d,
@@ -715,6 +715,10 @@ begin
   { intro h,
     exact add_le_add h h, }
 end
+
+@[simp] lemma max_zero_sub_max_neg_zero_eq_self (a : α) :
+  max a 0 - max (-a) 0 = a :=
+by { rcases le_total a 0 with h|h; simp [h] }
 
 lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,

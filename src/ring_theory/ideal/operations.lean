@@ -317,7 +317,7 @@ by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton], }
 lemma span_singleton_pow (s : R) (n : ℕ):
   span {s} ^ n = (span {s ^ n} : ideal R) :=
 begin
-  induction n with n ih, { simp [set.singleton_one] },
+  induction n with n ih, { simp [set.singleton_one], },
   simp only [pow_succ, ih, span_singleton_mul_span_singleton],
 end
 
@@ -1267,7 +1267,7 @@ end
   (⊥ : ideal I.quotient).is_maximal ↔ I.is_maximal :=
 ⟨λ hI, (@mk_ker _ _ I) ▸
   @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) ⊥ quotient.mk_surjective hI,
- λ hI, @bot_is_maximal _ (@quotient.field _ _ I hI) ⟩
+ λ hI, @bot_is_maximal _ (@field.to_division_ring _ (@quotient.field _ _ I hI)) ⟩
 
 section quotient_algebra
 

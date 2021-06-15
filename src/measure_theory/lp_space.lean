@@ -1436,25 +1436,13 @@ end
 
 /-! ### `Lp` is complete iff Cauchy sequences of `ℒp` have limits in `ℒp` -/
 
--- TODO move (and generalize?) this
-lemma tendsto_at_top_zero_to_real_iff {ι} [preorder ι] (f : ι → ℝ≥0∞) (hf : ∀ i, f i ≠ ∞) :
-  at_top.tendsto (λ n, (f n).to_real) (𝓝 0) ↔ at_top.tendsto f (𝓝 0) :=
-begin
-  rw ← ennreal.zero_to_real,
-  refine ⟨λ h, _, λ h, tendsto.comp (ennreal.tendsto_to_real ennreal.coe_ne_top) h⟩,
-  have h_eq : f = (λ n, ennreal.of_real (f n).to_real),
-    by { ext1 n, rw ennreal.of_real_to_real (hf n), },
-  rw [h_eq, ← @ennreal.of_real_to_real 0 ennreal.coe_ne_top],
-  exact ennreal.tendsto_of_real h,
-end
-
 lemma tendsto_Lp_iff_tendsto_ℒp' {ι} [preorder ι] [hp : fact (1 ≤ p)]
   (f : ι → Lp E p μ) (f_lim : Lp E p μ) :
   at_top.tendsto f (𝓝 f_lim) ↔ at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0) :=
 begin
   rw tendsto_iff_dist_tendsto_zero,
   simp_rw dist_def,
-  rw tendsto_at_top_zero_to_real_iff _ (λ n, _),
+  rw [← ennreal.zero_to_real, ennreal.tendsto_at_to_to_real_iff (λ n, _) ennreal.zero_ne_top],
   rw snorm_congr_ae (Lp.coe_fn_sub _ _).symm,
   exact Lp.snorm_ne_top _,
 end
@@ -1482,7 +1470,7 @@ lemma cauchy_seq_Lp_iff_cauchy_seq_ℒp {ι} [nonempty ι] [semilattice_sup ι] 
   cauchy_seq f ↔ tendsto (λ (n : ι × ι), snorm (f n.fst - f n.snd) p μ) at_top (𝓝 0) :=
 begin
   simp_rw [cauchy_seq_iff_tendsto_dist_at_top_0, dist_def],
-  rw tendsto_at_top_zero_to_real_iff _ (λ n, _),
+  rw [← ennreal.zero_to_real, ennreal.tendsto_at_top_to_real_iff (λ n, _) ennreal.zero_ne_top],
   rw snorm_congr_ae (Lp.coe_fn_sub _ _).symm,
   exact snorm_ne_top _,
 end

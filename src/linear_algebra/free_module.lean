@@ -7,7 +7,6 @@ Authors: Riccardo Brasca
 import linear_algebra.std_basis
 import logic.small
 import linear_algebra.direct_sum.finsupp
---import linear_algebra.dfinsupp
 
 /-!
 

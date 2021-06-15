@@ -284,7 +284,7 @@ by { rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_iff ennreal.zero_lt_one 
 
 lemma mem_ℒp_iff_integrable {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ integrable f μ :=
-by rw [mem_ℒp_iff hp_pos hp_ne_top, integrable_iff]
+(mem_ℒp_iff hp_pos hp_ne_top).trans integrable_iff.symm
 
 lemma mem_ℒp_iff_fin_meas_supp {f : α →ₛ E} (hp_pos : 0 < p) (hp_ne_top : p ≠ ∞) :
   mem_ℒp f p μ ↔ f.fin_meas_supp μ :=

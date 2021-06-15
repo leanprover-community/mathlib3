@@ -162,6 +162,27 @@ begin
   cases' h
 end
 
+-- This example checks whether we can deal with infinitely branching inductive
+-- types.
+inductive inf_tree (α : Type) : Type
+| tip : inf_tree
+| node (a : α) (f : ∀ (n : ℕ), inf_tree) : inf_tree
+
+namespace inf_tree
+
+inductive all {α} (P : α → Prop) : inf_tree α → Prop
+| tip : all tip
+| node {a} {f : ℕ → inf_tree α} : P a → (∀ n, all (f n)) → all (node a f)
+
+example {α} (t : inf_tree α) : all (λ _, true) t :=
+begin
+  induction' t,
+  { exact all.tip },
+  { exact all.node trivial ih }
+end
+
+end inf_tree
+
 -- This example tests type-based naming.
 example (k : ℕ') (i : ℕ') : ℕ :=
 begin
@@ -415,6 +436,47 @@ begin
   }
 end
 
+namespace with_tests
+
+inductive test
+| intro (n) (f : fin n) (m) (g : fin m)
+
+-- A hyphen in a "with" clause means "clear this hypothesis and its reverse
+-- dependencies".
+example (h : test) : unit :=
+begin
+  cases' h with - F M G,
+  guard_hyp M : ℕ,
+  guard_hyp G : fin M,
+  success_if_fail { guard_hyp n },
+  success_if_fail { guard_hyp F },
+  exact ()
+end
+
+-- Names given in a "with" clause are used verbatim, even if this results in
+-- shadowing.
+example (x : ℕ) (h : test) : unit :=
+begin
+  cases' h with x y y -,
+  /-
+  Expected goal:
+
+  x x : ℕ,
+  y : fin x,
+  y : ℕ
+  ⊢ unit
+
+  It's hard to give a good test case here because we would need a variant of
+  `guard_hyp` that is sensitive to shadowing. But we can at least check that the
+  hyps don't have the names they would get if we avoided shadowing.
+  -/
+  success_if_fail { guard_hyp x_1 },
+  success_if_fail { guard_hyp y_1 },
+  exact ()
+end
+
+end with_tests
+
 -- induction' and cases' can be used to perform induction/case analysis on
 -- arbitrary expressions (not just hypotheses). A very synthetic example:
 example {α} : α ∨ ¬ α :=
@@ -528,13 +590,109 @@ end
 
 end rose
 
+-- The following test cases, provided by Patrick Massot, test interactions with
+-- several 'advanced' Lean features.
+namespace topological_space_tests
+
+class topological_space (X : Type) :=
+  (is_open  : set X → Prop)
+  (univ_mem : is_open set.univ)
+  (union    : ∀ (B : set (set X)) (h : ∀ b ∈ B, is_open b), is_open (⋃₀ B))
+  (inter    : ∀ (A B : set X) (hA : is_open A) (hB : is_open B), is_open (A ∩ B))
+
+open topological_space (is_open)
+
+inductive generated_open (X : Type) (g : set (set X)) : set X → Prop
+| generator : ∀ A ∈ g, generated_open A
+| inter     : ∀ A B, generated_open A → generated_open B → generated_open (A ∩ B)
+| union     : ∀ (B : set (set X)), (∀ b ∈ B, generated_open b) → generated_open (⋃₀ B)
+| univ      : generated_open set.univ
+
+def generate_from (X : Type) (g : set (set X)) : topological_space X :=
+{ is_open   := generated_open X g,
+  univ_mem  := generated_open.univ,
+  inter     := generated_open.inter,
+  union     := generated_open.union }
+
+inductive generated_filter {X : Type*} (g : set (set X)) : set X → Prop
+| generator {A} : A ∈ g → generated_filter A
+| inter   {A B} : generated_filter A → generated_filter B → generated_filter (A ∩ B)
+| subset  {A B} : generated_filter A → A ⊆ B → generated_filter B
+| univ          : generated_filter set.univ
+
+def neighbourhood {X : Type} [topological_space X] (x : X) (V : set X) : Prop :=
+∃ (U : set X), is_open U ∧ x ∈ U ∧ U ⊆ V
+
+axiom nhd_inter {X : Type*} [topological_space X] {x : X} {U V : set X}
+  (hU : neighbourhood x U) (hV : neighbourhood x V) : neighbourhood x (U ∩ V)
+
+axiom nhd_superset {X : Type*} [topological_space X] {x : X} {U V : set X}
+  (hU : neighbourhood x U) (hUV : U ⊆ V) : neighbourhood x V
+
+axiom nhd_univ {X : Type*} [topological_space X] {x : X} : neighbourhood x set.univ
+
+-- This example fails if auto-generalisation refuses to revert before
+-- frozen local instances.
+example {X : Type} [T : topological_space X] {s : set (set X)}
+  (h : T = generate_from X s) {U x} :
+  generated_filter {V | V ∈ s ∧ x ∈ V} U → neighbourhood x U :=
+begin
+  rw h,
+  intro U_in,
+  induction' U_in fixing T h with U hU U V U_gen V_gen hU hV U V U_gen hUV hU,
+  { exact ⟨U, generated_open.generator U hU.1, hU.2, set.subset.refl U⟩ },
+  { exact @nhd_inter _ (generate_from X s) _ _ _ hU hV },
+  { exact @nhd_superset _ (generate_from X s) _  _ _ hU hUV },
+  { apply nhd_univ }
+end
+
+-- This example fails if auto-generalisation tries to generalise `let`
+-- hypotheses.
+example {X : Type} [T : topological_space X] {s : set (set X)}
+  (h : T = generate_from X s) {U x} :
+  generated_filter {V | V ∈ s ∧ x ∈ V} U → neighbourhood x U :=
+begin
+  rw h,
+  letI := generate_from X s,
+  intro U_in,
+  induction' U_in fixing T h with U hU U V U_gen V_gen hU hV U V U_gen hUV hU,
+  { exact ⟨U, generated_open.generator U hU.1, hU.2, set.subset.refl U⟩ },
+  { exact nhd_inter hU hV },
+  { exact nhd_superset hU hUV },
+  { apply nhd_univ }
+end
+
+-- This example fails if infinitely branching inductive types like
+-- `generated_open` are not handled properly. In particular, it tests the
+-- interaction of infinitely branching types with complex indices.
+example {X : Type*} [T : topological_space X] {s : set (set X)}
+  (h : T = generate_from X s) {U : set X} {x : X} :
+  neighbourhood x U → generated_filter {V | V ∈ s ∧ x ∈ V} U :=
+begin
+  rw h, letI := generate_from X s,
+  clear h,
+  rintros ⟨V, V_op, x_in, hUV⟩,
+  apply generated_filter.subset _ hUV,
+  clear hUV,
+  induction' V_op fixing _inst T s U,
+  { apply generated_filter.generator,
+    split ; assumption },
+  { cases x_in,
+    apply generated_filter.inter ; tauto },
+  { rw set.mem_sUnion at x_in,
+    rcases x_in with ⟨W, hW, hxW⟩,
+    exact generated_filter.subset (ih W hW hxW) (set.subset_sUnion_of_mem hW)},
+  { apply generated_filter.univ }
+end
+
+end topological_space_tests
 
 --------------------------------------------------------------------------------
 -- Logical Verification Use Cases
 --------------------------------------------------------------------------------
 
--- The following examples were graciously provided by Jasmin Blanchette. They
--- are taken from his course 'Logical Verification'.
+-- The following examples were provided by Jasmin Blanchette. They are taken
+-- from his course 'Logical Verification'.
 
 
 /- Head induction for transitive closure -/

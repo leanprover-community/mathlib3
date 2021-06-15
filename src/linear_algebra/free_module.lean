@@ -7,6 +7,7 @@ Authors: Riccardo Brasca
 import linear_algebra.basis
 import logic.small
 import linear_algebra.direct_sum.finsupp
+import linear_algebra.dfinsupp
 
 /-!
 
@@ -25,7 +26,7 @@ universes u v w z
 
 variables (R : Type u) (M : Type v) (N : Type z)
 
-open_locale tensor_product
+open_locale tensor_product direct_sum
 
 section basic
 
@@ -116,6 +117,10 @@ instance self : module.free R R := of_basis $ basis.singleton unit R
 @[priority 100]
 instance of_subsingleton [subsingleton N] : module.free R N :=
 of_basis (basis.empty N : basis pempty R N)
+
+instance direct_sum {ι : Type*} {M : ι → Type*} [Π (i : ι), add_comm_monoid (M i)]
+  [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (⨁ i, M i) :=
+of_basis $ dfinsupp.basis $ λ i, choose_basis R (M i)
 
 end semiring
 

@@ -1423,8 +1423,7 @@ variables [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance : algebra R (restrict_scalars R S A) :=
-{ smul := λ r x, (algebra_map R S r • x : A),
-  commutes' := λ r x, algebra.commutes _ _,
+{ commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _,
   .. (algebra_map S A).comp (algebra_map R S) }
 

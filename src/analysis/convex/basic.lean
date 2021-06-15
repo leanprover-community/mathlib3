@@ -1,4 +1,4 @@
-/-
+  /-
 Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
@@ -320,7 +320,7 @@ lemma convex_sInter {S : set (set E)} (h : ∀ s ∈ S, convex s) : convex (⋂�
 assume x y hx hy a b ha hb hab s hs,
 h s hs (hx s hs) (hy s hs) ha hb hab
 
-lemma convex_Inter {ι : Sort*} {s: ι → set E} (h: ∀ i : ι, convex (s i)) : convex (⋂ i, s i) :=
+lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex (s i)) : convex (⋂ i, s i) :=
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex s) (ht : convex t) :
@@ -330,6 +330,30 @@ begin
   apply mem_prod.2,
   exact ⟨hs (mem_prod.1 hx).1 (mem_prod.1 hy).1 ha hb hab,
         ht (mem_prod.1 hx).2 (mem_prod.1 hy).2 ha hb hab⟩
+end
+
+lemma directed.convex_Union {ι : Sort*} {s : ι → set E} (hdir : directed has_subset.subset s)
+  (hc : ∀ ⦃i : ι⦄, convex (s i)) :
+  convex (⋃ i, s i) :=
+begin
+  rintro x y hx hy a b ha hb hab,
+  rw mem_Union at ⊢ hx hy,
+  obtain ⟨i, hx⟩ := hx,
+  obtain ⟨j, hy⟩ := hy,
+  obtain ⟨k, hik, hjk⟩ := hdir i j,
+  exact ⟨k, hc (hik hx) (hjk hy) ha hb hab⟩,
+end
+
+lemma directed_on.convex_sUnion {c : set (set E)} (hdir : directed_on has_subset.subset c)
+  (hc : ∀ ⦃A : set E⦄, A ∈ c → convex A) :
+  convex (⋃₀c) :=
+begin
+  rintro x y hx hy a b ha hb hab,
+  rw mem_sUnion at ⊢ hx hy,
+  obtain ⟨X, hX, hx⟩ := hx,
+  obtain ⟨Y, hY, hy⟩ := hy,
+  obtain ⟨Z, hZ, hXZ, hYZ⟩ := hdir X hX Y hY,
+  exact ⟨Z, hZ, hc hZ (hXZ hx) (hYZ hy) ha hb hab⟩,
 end
 
 lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
@@ -437,10 +461,18 @@ lemma convex_interval (r : ℝ) (s : ℝ) : convex (interval r s) := ord_connect
 
 lemma convex_segment (a b : E) : convex [a, b] :=
 begin
-  have : (λ (t : ℝ), a + t • (b - a)) = (λz : E, a + z) ∘ (λt:ℝ, t • (b - a)) := rfl,
+  have : (λ (t : ℝ), a + t • (b - a)) = (λ z : E, a + z) ∘ (λ t : ℝ, t • (b - a)) := rfl,
   rw [segment_eq_image', this, image_comp],
   refine ((convex_Icc _ _).is_linear_image _).translate _,
   exact is_linear_map.is_linear_map_smul' _
+end
+
+lemma convex_open_segment (a b : E) : convex (open_segment a b) :=
+begin
+  have : (λ (t : ℝ), a + t • (b - a)) = (λ z : E, a + z) ∘ (λ t : ℝ, t • (b - a)) := rfl,
+  rw [open_segment_eq_image', this, image_comp],
+  refine ((convex_Ioo _ _).is_linear_image _).translate _,
+  exact is_linear_map.is_linear_map_smul' _,
 end
 
 lemma convex_halfspace_lt {f : E → ℝ} (h : is_linear_map ℝ f) (r : ℝ) :
@@ -1247,6 +1279,13 @@ begin
     exact subset_convex_hull _ },
   { rintro rfl,
     exact convex_hull_empty }
+end
+
+@[simp] lemma convex_hull_nonempty_iff :
+  (convex_hull s).nonempty ↔ s.nonempty :=
+begin
+  rw [←ne_empty_iff_nonempty, ←ne_empty_iff_nonempty, ne.def, ne.def],
+  exact not_congr convex_hull_empty_iff,
 end
 
 @[simp]

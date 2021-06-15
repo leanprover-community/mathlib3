@@ -540,6 +540,17 @@ lemma lipschitz_with.integrable_comp_iff_of_antilipschitz [complete_space β] [b
   integrable (g ∘ f) μ ↔ integrable f μ :=
 by simp [← mem_ℒp_one_iff_integrable, hg.mem_ℒp_comp_iff_of_antilipschitz hg' g0]
 
+lemma integrable.real_to_nnreal {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λ x, ((f x).to_nnreal : ℝ)) μ :=
+begin
+  refine ⟨hf.ae_measurable.real_to_nnreal.coe_nnreal_real, _⟩,
+  rw has_finite_integral_iff_norm,
+  refine lt_of_le_of_lt _ ((has_finite_integral_iff_norm _).1 hf.has_finite_integral),
+  apply lintegral_mono,
+  assume x,
+  simp [real.norm_eq_abs, ennreal.of_real_le_of_real, abs_le, abs_nonneg, le_abs_self],
+end
+
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/
 
@@ -587,7 +598,34 @@ begin
 end
 end normed_space_over_complete_field
 
+section trim
 
+variables {H α' : Type*} [normed_group H] [measurable_space H]
+  {m m0 : measurable_space α'} {μ' : measure α'}
+
+lemma integrable.trim (hm : m ≤ m0) [opens_measurable_space H] {f : α' → H}
+  (hf_int : integrable f μ') (hf : @measurable _ _ m _ f) :
+  @integrable _ _ m _ _ f (μ'.trim hm) :=
+begin
+  refine ⟨@measurable.ae_measurable α' _ m _ f (μ'.trim hm) hf, _⟩,
+  rw [has_finite_integral, lintegral_trim hm _],
+  { exact hf_int.2, },
+  { exact @measurable.coe_nnreal_ennreal α' m _ (@measurable.nnnorm _ α' _ _ _ m _ hf), },
+end
+
+lemma integrable_of_integrable_trim (hm : m ≤ m0) [opens_measurable_space H]
+  {f : α' → H} (hf_int : @integrable α' H m _ _ f (μ'.trim hm)) :
+  integrable f μ' :=
+begin
+  obtain ⟨hf_meas_ae, hf⟩ := hf_int,
+  refine ⟨ae_measurable_of_ae_measurable_trim hm hf_meas_ae, _⟩,
+  rw has_finite_integral at hf ⊢,
+  rwa lintegral_trim_ae hm _ at hf,
+  exact @ae_measurable.coe_nnreal_ennreal α' m _ _
+    (@ae_measurable.nnnorm H α' _ _ _ m _ _ hf_meas_ae),
+end
+
+end trim
 
 /-! ### The predicate `integrable` on measurable functions modulo a.e.-equality -/
 

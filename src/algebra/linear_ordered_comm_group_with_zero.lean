@@ -56,46 +56,73 @@ section monoid
 
 variables [monoid α] [preorder α]
 
-lemma left.pow_le_one_of_le [covariant_class α α (*) (≤)] {x : α} (H : x ≤ 1) :
+section left
+variable [covariant_class α α (*) (≤)]
+lemma left.pow_le_one_of_le {x : α} (H : x ≤ 1) :
   ∀  {n : ℕ}, x^n ≤ 1
 | 0       := (pow_zero x).le.trans rfl.le
 | (n + 1) := calc x ^ n.succ = x * x ^ n : pow_succ x n
                          ... ≤ x * 1     : mul_le_mul_left' left.pow_le_one_of_le x
-                         ... = x : mul_one x
-                         ... ≤ 1 : H
+                         ... = x         : mul_one x
+                         ... ≤ 1         : H
 
-lemma left.one_le_pow_of_le [covariant_class α α (*) (≤)] {x : α} (H : 1 ≤ x) :
+alias left.pow_le_one_of_le ← pow_le_one_of_le_one
+
+lemma left.one_le_pow_of_le {x : α} (H : 1 ≤ x) :
   ∀ {n : ℕ}, 1 ≤ x^n
-| 0 := rfl.le.trans (pow_zero x).symm.le
-| (n + 1) := calc 1 ≤ x : H
-                ... = x * 1 : (mul_one x).symm
-                ... ≤ x * x ^ n : mul_le_mul_left' left.one_le_pow_of_le x
+| 0       := rfl.le.trans (pow_zero x).symm.le
+| (n + 1) := calc 1 ≤ x          : H
+                ... = x * 1      : (mul_one x).symm
+                ... ≤ x * x ^ n  : mul_le_mul_left' left.one_le_pow_of_le x
                 ... = x ^ n.succ : (pow_succ x n).symm
 
-lemma right.one_le_pow_of_le [covariant_class α α (function.swap (*)) (≤)]
-  {n : ℕ} {x : α} (H : 1 ≤ x) :
-  1 ≤ x^n :=
+alias left.one_le_pow_of_le ← one_le_pow_of_one_le'
+
+lemma eq_one_of_pow_eq_one {α : Type*} [monoid α] [linear_order α]
+  [covariant_class α α (*) (≤)]
+  [covariant_class α α (function.swap (*)) (≤)]
+  {x : α} {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
 begin
-  induction n with n hn,
-  { rw pow_zero },
-  { rw pow_succ,
-    exact right.one_le_mul H hn }
+  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨n, rfl⟩, clear hn,
+  induction n with n ih,
+  { exact (pow_one _).symm.trans H },
+  { cases le_total x 1 with h,
+    all_goals
+    { have h1 := mul_le_mul_right' h (x ^ (n + 1)),
+      rw pow_succ at H,
+      rw [H, one_mul] at h1 },
+    { have h2 := pow_le_one_of_le_one h,
+      exact ih (le_antisymm h2 h1) },
+    { have h2 := one_le_pow_of_one_le' h,
+      exact ih (le_antisymm h1 h2) } }
 end
 
-lemma right.pow_le_one_of_le [covariant_class α α (function.swap (*)) (≤)]
-  {n : ℕ} {x : α} (H : x ≤ 1) :
-  x^n ≤ 1 :=
-begin
-  induction n with n hn,
-  { rw pow_zero },
-  { rw pow_succ,
-    exact mul_le_of_le_one_of_le H hn }
-end
+end left
+
+section right
+variable [covariant_class α α (function.swap (*)) (≤)]
+lemma right.one_le_pow_of_le {x : α} (H : 1 ≤ x) :
+  ∀ {n : ℕ}, 1 ≤ x^n
+| 0       := (pow_zero _).symm.le
+| (n + 1) := calc 1 ≤ x          : H
+                ... = 1 * x      : (one_mul x).symm
+                ... ≤ x ^ n * x  : mul_le_mul_right' right.one_le_pow_of_le x
+                ... = x ^ n.succ : (pow_succ' x n).symm
+
+lemma right.pow_le_one_of_le {x : α} (H : x ≤ 1) :
+  ∀ {n : ℕ}, x^n ≤ 1
+| 0       := (pow_zero _).le
+| (n + 1) := calc x ^ n.succ = x ^ n * x : pow_succ' x n
+                         ... ≤ 1 * x     : mul_le_mul_right' right.pow_le_one_of_le x
+                         ... = x         : one_mul x
+                         ... ≤ 1         : H
+
+end right
 
 lemma pow_le_pow_of_le [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
   {x y : α} (H : x ≤ y) :
   ∀ {n : ℕ} , x^n ≤ y^n
-| 0 := (pow_zero _).le.trans (rfl.le.trans (pow_zero _).symm.le)
+| 0       := (pow_zero _).le.trans (rfl.le.trans (pow_zero _).symm.le)
 | (n + 1) := calc  x ^ n.succ = x * x ^ n  : pow_succ x n
                  ... ≤ y * x ^ n  : mul_le_mul_right' H (x ^ n)
                  ... ≤ y * y ^ n  : mul_le_mul_left' pow_le_pow_of_le y
@@ -106,17 +133,16 @@ lemma induction_from_zero_lt {p : ℕ → Prop} {n : ℕ} (n0 : 0 < n)
   (p1 : p 1) (pind : ∀ {n}, 0 < n → p n → p n.succ) :
   p n :=
 begin
-  cases n,
-  { exact (lt_irrefl _ n0).elim },
-  { induction n with n ih,
-    { exact p1 },
-    { exact pind n.succ_pos (ih n.succ_pos) } }
+  rcases nat.exists_eq_succ_of_ne_zero n0.ne' with ⟨n, rfl⟩,
+  induction n with n hn,
+  { exact p1 },
+  { exact pind n.succ_pos (hn n.succ_pos) }
 end
 
 lemma left.pow_lt_one_of_lt [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) (H : x < 1) :
   x^n < 1 :=
 begin
-  refine induction_from_zero_lt n0 (by simp [H]) (λ n n0 hn, lt_trans _ H),
+  refine induction_from_zero_lt n0 ((pow_one _).le.trans_lt H) (λ n n0 hn, lt_trans _ H),
   convert mul_lt_mul_left' hn x,
   { exact pow_succ x n },
   { exact (mul_one _).symm }
@@ -126,7 +152,7 @@ lemma right.pow_lt_one_of_lt [covariant_class α α (function.swap (*)) (<)] {n 
   (n0 : 0 < n) (H : x < 1) :
   x^n < 1 :=
 begin
-  refine induction_from_zero_lt n0 (by simp [H]) (λ n n0 hn, lt_trans _ H),
+  refine induction_from_zero_lt n0 ((pow_one _).le.trans_lt H) (λ n n0 hn, lt_trans _ H),
   convert mul_lt_mul_right' hn x,
   { exact pow_succ' x n },
   { exact (one_mul _).symm }
@@ -155,34 +181,12 @@ def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   ..hf.ordered_comm_monoid f one mul,
   ..hf.comm_monoid_with_zero f zero one mul }
 
-lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
-left.one_le_pow_of_le H
-
-lemma pow_le_one_of_le_one {n : ℕ} (H : x ≤ 1) : x^n ≤ 1 :=
-left.pow_le_one_of_le H
-
-lemma eq_one_of_pow_eq_one {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
-begin
-  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨n, rfl⟩, clear hn,
-  induction n with n ih,
-  { simpa using H },
-  { cases le_total x 1 with h,
-    all_goals
-    { have h1 := mul_le_mul_right' h (x ^ (n + 1)),
-      rw pow_succ at H,
-      rw [H, one_mul] at h1 },
-    { have h2 := pow_le_one_of_le_one h,
-      exact ih (le_antisymm h2 h1) },
-    { have h2 := one_le_pow_of_one_le' h,
-      exact ih (le_antisymm h1 h2) } }
-end
-
 lemma pow_eq_one_iff {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
 ⟨eq_one_of_pow_eq_one hn, by { rintro rfl, exact one_pow _ }⟩
 
 lemma one_le_pow_iff {n : ℕ} (hn : n ≠ 0) : 1 ≤ x^n ↔ 1 ≤ x :=
 begin
-  refine ⟨_, one_le_pow_of_one_le'⟩,
+  refine ⟨_, λ h, one_le_pow_of_one_le' h⟩,
   contrapose!,
   intro h, apply lt_of_le_of_ne (pow_le_one_of_le_one (le_of_lt h)),
   rw [ne.def, pow_eq_one_iff hn],
@@ -191,7 +195,7 @@ end
 
 lemma pow_le_one_iff {n : ℕ} (hn : n ≠ 0) : x^n ≤ 1 ↔ x ≤ 1 :=
 begin
-  refine ⟨_, pow_le_one_of_le_one⟩,
+  refine ⟨_, λ h, pow_le_one_of_le_one h⟩,
   contrapose!,
   intro h, apply lt_of_le_of_ne (one_le_pow_of_one_le' (le_of_lt h)),
   rw [ne.def, eq_comm, pow_eq_one_iff hn],

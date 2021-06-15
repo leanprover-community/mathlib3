@@ -66,8 +66,9 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (function.swap (*)) (≤) :=
-{ elim := λ a b c bc,
-    by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
+{ elim := λ a b c bc, show (b * a ≤ c * a), by {
+        rw [mul_comm _ a, mul_comm _ a],
+        exact ordered_comm_monoid.mul_le_mul_left _ _ bc a } }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :

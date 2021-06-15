@@ -64,22 +64,17 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
   covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
 
-instance units.covariant_class [ordered_comm_monoid α] :
-  covariant_class (units α) (units α) (*) (≤) :=
-{ elim := λ a b c bc, by {
-  rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
-  { exact rfl.le },
-  refine le_iff_eq_or_lt.mpr (or.inr _),
-  refine units.coe_lt_coe.mp _,
-  cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
-  exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
-
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
 { mul_le_mul_left := λ a b h c, (mul_le_mul_left' (h : (a : α) ≤ (b : α)) _ :  (c : α) * a ≤ c * b),
   .. units.partial_order,
   .. (infer_instance : comm_group (units α)) }
+
+-- is this instance needed?
+instance units.covariant_class [ordered_comm_monoid α] :
+  covariant_class (units α) (units α) (*) (≤) :=
+by apply_instance
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
@@ -970,6 +965,10 @@ begin
   { cases h; simp only [h, abs_neg] },
 end
 
+lemma abs_sub_comm (a b : α) : abs (a - b) = abs (b - a) :=
+calc  abs (a - b) = abs (- (b - a)) : congr_arg _ (neg_sub b a).symm
+              ... = abs (b - a)     : abs_neg (b - a)
+
 variables [covariant_class α α (+) (≤)] {a b c : α}
 
 lemma abs_of_nonneg (h : 0 ≤ a) : abs a = a :=
@@ -999,10 +998,6 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
-lemma abs_sub_comm (a b : α) : abs (a - b) = abs (b - a) :=
-calc  abs (a - b) = abs (- (a - b)) : (abs_neg _).symm
-              ... = abs (b - a)     : congr_arg _ (neg_sub a b)
-
 lemma neg_abs_le_self (a : α) : -abs a ≤ a :=
 begin
   cases le_total 0 a with h h,
@@ -1025,14 +1020,11 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
+@[simp] lemma max_zero_sub_max_neg_zero_eq_self (a : α) :
+  max a 0 - max (-a) 0 = a :=
+by { rcases le_total a 0 with h|h; simp [h] }
+
 variable [covariant_class α α (function.swap (+)) (≤)]
-
-lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
-by rw [abs_le', and.comm, neg_le]
-
-lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
-
-lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
 
 lemma abs_lt : abs a < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
@@ -1055,6 +1047,13 @@ end add_group
 
 section add_comm_group
 variables [add_comm_group α] [linear_order α] [covariant_class α α (+) (≤)] {a b c d : α}
+
+lemma abs_le : abs a ≤ b ↔ - b ≤ a ∧ a ≤ b :=
+by rw [abs_le', and.comm, neg_le]
+
+lemma neg_le_of_abs_le (h : abs a ≤ b) : -b ≤ a := (abs_le.mp h).1
+
+lemma le_of_abs_le (h : abs a ≤ b) : a ≤ b := (abs_le.mp h).2
 
 lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b :=
 abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸

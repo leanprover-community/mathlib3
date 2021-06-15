@@ -1000,7 +1000,8 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
 lemma abs_sub_comm (a b : α) : abs (a - b) = abs (b - a) :=
-by rw [← neg_sub, abs_neg]
+calc  abs (a - b) = abs (- (a - b)) : (abs_neg _).symm
+              ... = abs (b - a)     : congr_arg _ (neg_sub a b)
 
 lemma neg_abs_le_self (a : α) : -abs a ≤ a :=
 begin

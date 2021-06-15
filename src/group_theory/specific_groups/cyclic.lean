@@ -376,7 +376,8 @@ variables {G : Type*} {H : Type*} [group G] [group H]
   Also see `comm_group_of_cycle_center_quotient` for the `comm_group` instance -/
 lemma commutative_of_cyclic_center_quotient [is_cyclic H] (f : G →* H)
   (hf : f.ker ≤ center G) (a b : G) : a * b = b * a :=
-let ⟨⟨x, y, hxy⟩, hx⟩ := is_cyclic.exists_generator f.range in
+let ⟨⟨x, y, (hxy : f y = x)⟩, (hx : ∀ a : f.range, a ∈ gpowers _)⟩ :=
+  is_cyclic.exists_generator f.range in
 let ⟨m, hm⟩ := hx ⟨f a, a, rfl⟩ in
 let ⟨n, hn⟩ := hx ⟨f b, b, rfl⟩ in
 have hm : x ^ m = f a, by simpa [subtype.ext_iff] using hm,

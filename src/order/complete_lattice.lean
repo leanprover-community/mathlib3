@@ -745,8 +745,8 @@ le_antisymm
     (le_infi $ assume i, infi_le_of_le i inf_le_left)
     (le_infi $ assume i, infi_le_of_le i inf_le_right))
   (le_infi $ assume i, le_inf
-    (inf_le_left_of_le $ infi_le _ _)
-    (inf_le_right_of_le $ infi_le _ _))
+    (inf_le_of_left_le $ infi_le _ _)
+    (inf_le_of_right_le $ infi_le _ _))
 
 /- TODO: here is another example where more flexible pattern matching
    might help.
@@ -830,8 +830,8 @@ le_antisymm
     (infi_le_infi2 $ assume j, ⟨_, le_refl _⟩)
     (infi_le_infi2 $ assume j, ⟨_, le_refl _⟩))
   (le_infi $ assume i, match i with
-  | or.inl i := inf_le_left_of_le $ infi_le _ _
-  | or.inr j := inf_le_right_of_le $ infi_le _ _
+  | or.inl i := inf_le_of_left_le $ infi_le _ _
+  | or.inr j := inf_le_of_right_le $ infi_le _ _
   end)
 
 theorem supr_or {p q : Prop} {s : p ∨ q → α} :
@@ -1003,8 +1003,8 @@ le_antisymm
     (infi_le_infi2 $ assume i, ⟨_, le_refl _⟩)
     (infi_le_infi2 $ assume j, ⟨_, le_refl _⟩))
   (le_infi $ assume s, match s with
-  | sum.inl i := inf_le_left_of_le $ infi_le _ _
-  | sum.inr j := inf_le_right_of_le $ infi_le _ _
+  | sum.inl i := inf_le_of_left_le $ infi_le _ _
+  | sum.inr j := inf_le_of_right_le $ infi_le _ _
   end)
 
 theorem supr_sum {γ : Type*} {f : β ⊕ γ → α} :

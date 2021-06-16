@@ -29,12 +29,12 @@ variables [linear_order α] [linear_order β] {f : α → β} {a b c d : α}
 @[simp] lemma max_le_iff : max a b ≤ c ↔ a ≤ c ∧ b ≤ c := sup_le_iff
 lemma max_le_max : a ≤ c → b ≤ d → max a b ≤ max c d := sup_le_sup
 lemma min_le_min : a ≤ c → b ≤ d → min a b ≤ min c d := inf_le_inf
-lemma le_max_left_of_le : a ≤ b → a ≤ max b c := le_sup_left_of_le
-lemma le_max_right_of_le : a ≤ c → a ≤ max b c := le_sup_right_of_le
+lemma le_max_of_le_left : a ≤ b → a ≤ max b c := le_sup_of_le_left
+lemma le_max_of_le_right : a ≤ c → a ≤ max b c := le_sup_of_le_right
 lemma lt_max_of_lt_left (h : a < b) : a < max b c := h.trans_le (le_max_left b c)
 lemma lt_max_of_lt_right (h : a < c) : a < max b c := h.trans_le (le_max_right b c)
-lemma min_le_left_of_le : a ≤ c → min a b ≤ c := inf_le_left_of_le
-lemma min_le_right_of_le : b ≤ c → min a b ≤ c := inf_le_right_of_le
+lemma min_le_of_left_le : a ≤ c → min a b ≤ c := inf_le_of_left_le
+lemma min_le_of_right_le : b ≤ c → min a b ≤ c := inf_le_of_right_le
 lemma min_lt_of_left_lt (h : a < c) : min a b < c := (min_le_left a b).trans_lt h
 lemma min_lt_of_right_lt (h : b < c) : min a b < c := (min_le_right a b).trans_lt h
 lemma max_min_distrib_left : max a (min b c) = min (max a b) (max a c) := sup_inf_left

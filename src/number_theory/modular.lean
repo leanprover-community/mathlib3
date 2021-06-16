@@ -1,11 +1,11 @@
 import analysis.complex.automorphisms_half_plane
--- import analysis.complex.basic
+import analysis.complex.basic
 import data.matrix.notation
-import data.int.basic
+--import data.int.basic
 import data.int.parity
-import data.nat.gcd
+--import data.nat.gcd
 import algebra.ordered_ring
-import ring_theory.int.basic
+--import ring_theory.int.basic
 import data.real.sqrt
 import linear_algebra.affine_space.affine_subspace
 
@@ -70,26 +70,23 @@ bottom_ne_zero g z
 
 
 /-! It is useful to develop basic theory for an object `coprime_ints`, consisting of two integers
-and a proof that their `int.gcd` is `1`. -/
-
--- def coprime_ints := {cd : ℤ × ℤ // cd.1.gcd cd.2 = 1}
--- instance : has_coe coprime_ints (ℤ × ℤ) := ⟨λ x, x.val⟩
+and a proof that they satisfy `is_coprime`. -/
 
 class coprime_ints :=
 (c' : ℤ)
 (d' : ℤ)
-(gcd_one' : c'.gcd d' = 1)
+(is_coprime' : is_coprime c' d')
 
 namespace coprime_ints
 
 def c (p : coprime_ints) : ℤ := p.c'
 def d (p : coprime_ints) : ℤ := p.d'
 
-lemma gcd_one (p : coprime_ints) : int.gcd p.c p.d = 1 := p.gcd_one'
+lemma is_coprime (p : coprime_ints) : is_coprime p.c p.d  := p.is_coprime'
 
 instance : has_coe coprime_ints (ℤ × ℤ) := ⟨λ p, (p.c, p.d)⟩
 
-instance : nonempty coprime_ints := ⟨⟨1, 1, int.gcd_one_left 1⟩⟩
+instance : nonempty coprime_ints := ⟨⟨1, 1, is_coprime_one_left⟩⟩
 
 @[simp] lemma fst_coe (p : coprime_ints) : (p : ℤ × ℤ).1 = p.c := rfl
 @[simp] lemma snd_coe (p : coprime_ints) : (p : ℤ × ℤ).2 = p.d := rfl
@@ -106,13 +103,11 @@ end
 lemma coe_injective : function.injective (coe : coprime_ints → (ℤ × ℤ)) :=
 λ p q, ext
 
-example (P Q : Prop) : (¬ P ∨ ¬ Q) ↔ ¬ (P ∧ Q) := not_and_distrib.symm
-
 lemma ne_zero (p : coprime_ints) : p.c ≠ 0 ∨ p.d ≠ 0 :=
 begin
   rw ← not_and_distrib,
   rintros ⟨c_eq_zero, d_eq_zero⟩,
-  simpa [c_eq_zero, d_eq_zero] using p.gcd_one
+  simpa [c_eq_zero, d_eq_zero] using p.is_coprime
 end
 
 lemma sum_sq_ne_zero (p : coprime_ints) : p.c ^ 2 + p.d ^ 2 ≠ 0 :=
@@ -125,143 +120,39 @@ end
 
 end coprime_ints
 
--- T and S
 
--- def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property := by simp [det2] }
-
--- def S : SL(2,ℤ) := { val := ![![0, -1], ![1, 0]], property := by simp [det2] }
-
--- example : T⁻¹ * T = 1 := inv_mul_self T
-
--- example { R : SL(2,ℤ) } : R * T = 1 → R = T⁻¹ := eq_inv_of_mul_eq_one
-
--- example { R : SL(2,ℤ) } : T * R = 1 → T⁻¹ = R := inv_eq_of_mul_eq_one
-
--- example { x y : SL(2,ℤ)} (ℍ : x.1 = y.1) : x = y := subtype.eq h
-
--- @[simp]
--- lemma mat_congr_SL { x y : SL(2,ℤ) } : x = y ↔ x.val = y.val := subtype.ext_iff_val
-
--- @[simp]
--- lemma mat_ext_iff  {F : Type*} [comm_ring F] (x y : matrix (fin 2) (fin 2) F) :
---   x = y ↔ x 0 0 = y 0 0 ∧ x 0 1 = y 0 1 ∧ x 1 0 = y 1 0 ∧ x 1 1 = y 1 1 :=
--- begin
---   rw ←matrix.ext_iff,
---   split,
---   {
---     intro h,
---     rw h,
---     tauto },
---   {
---     rintros ⟨h1, h2, h3, h4⟩ i j,
---     fin_cases i; fin_cases j; assumption,
---   }
--- end
-
--- @[simp]
--- lemma mat_one {F : Type*} [comm_ring F] : (![![1,0], ![0,1]] : matrix (fin 2) (fin 2) F)
---   = (1 : matrix (fin 2) (fin 2) F) := by {simp}
-
-
--- lemma T_inv : T⁻¹ = { val := ![![1, -1], ![0, 1]], property := by simp [det2] } :=
--- begin
---   suffices : T * { val := ![![1, -1], ![0, 1]], property := by simp [det2] } = 1,
---   { exact inv_eq_of_mul_eq_one this},
---   simp [T],
--- end
-
--- lemma T_n_def {n : ℤ} :  T^(-n) = (T⁻¹)^n := by {simp [inv_gpow, gpow_neg]}
-
--- lemma T_pow_ℕ {n : ℕ} : T ^ n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
--- begin
---   induction n with n hn,
---   { simp },
---   { rw [pow_succ', hn, T],
---     simp [add_comm] }
--- end
-
--- lemma T_inv_pow_ℕ {n : ℕ} : (T⁻¹)^n = { val := ![![1, -n], ![0, 1]], property := by simp [det2] } :=
--- begin
---   induction n with n hn,
---   simp,
---   have : (T⁻¹) ^ n.succ = ((T⁻¹)^n)* (T⁻¹),
---   {
---     exact pow_succ' (T⁻¹) n,
---   },
---   rw this,
---   rw hn,
---   rw T_inv,
---   simp,
--- end
-
-
--- lemma T_pow {n : ℤ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
--- begin
---   by_cases n_ge_0 : 0 ≤ n,
---   lift n to ℕ with n_ge_0,
---   refine T_pow_ℕ,
---   exact n_ge_0,
---   have : T ^ n = T ^ (- (-n)) := by simp,
---   rw this,
---   rw T_n_def,
---   generalize' hk : -n=k,
---   have k_ge_0 : 0 ≤ k,
---   {
---     rw ← hk,
---     linarith,
---   },
---   have : n = -k,
---   {
---     rw ← hk,
---     ring,
---   },
---   rw this,
---   lift k to ℕ using k_ge_0,
---   rw gpow_coe_nat,
---   norm_cast,
---   rw T_inv_pow_ℕ,
--- end
-
--- lemma T_action {z : ℍ} : (T • z).1 = z + 1 :=
--- begin
---   convert @smul_sound T z,
---   simp only [smul_aux_def, top, bottom, T, has_coe_SL_apply, subtype.coe_mk, map_cons],
---   simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
--- end
-
-
--- lemma Tn_action {z : ℍ} {n : ℤ} : (T^n • z).1 = z + n :=
--- begin
---   have := @smul_sound (T^n) z,
---   convert this,
---   rw smul_aux,
---   rw T_pow,
---   rw top,
---   rw bottom,
---   simp,
--- end
-
--- lemma S_action (z : ℍ) : (S • z).1 = -z⁻¹ :=
--- begin
---   convert @smul_sound S z,
---   simp only [smul_aux_def, top, bottom, S, has_coe_SL_apply, subtype.coe_mk, map_cons],
---   simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
---   ring,
--- end
-
-def fundamental_domain : set ℍ :=
-{ z | 1 < (complex.norm_sq z) ∧ |(complex.re z)| < (1 :ℝ)/ 2 }
-
-notation `𝒟` := fundamental_domain
-
-notation `𝒟c` := closure 𝒟
-
-
-lemma whatever : 𝒟c = { z | 1 ≤ (complex.norm_sq z) ∧ |(complex.re z)| ≤ (1 :ℝ)/ 2 } :=
+lemma bottom_row_coprime (g : SL(2, ℤ)) : is_coprime (g 1 0) (g 1 1) :=
 begin
-
-  sorry,
+  rw is_coprime,
+  use [( - g 0 1), (g 0 0)],
+  calc _ = matrix.det g : _
+  ... = 1 : by rw g.det_coe_fun,
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring,
 end
+
+def bottom_row : SL(2, ℤ) → coprime_ints := λ g, ⟨g 1 0, g 1 1, bottom_row_coprime g⟩
+
+lemma bottom_row_surj : function.surjective bottom_row :=
+begin
+  intros cd,
+  obtain ⟨b₀, a, gcd_eqn⟩ := cd.is_coprime,
+  let A := ![![a ,-b₀ ], ![cd.c, cd.d]],
+  have det_A_1 : det A = 1,
+  {
+
+    sorry,
+  },
+  use ⟨ A, det_A_1⟩ ,
+  rw bottom_row,
+  simp [A],
+  ext,
+  simp, -- classic explicit-matrix-in-SL casting problem
+  repeat {sorry},
+  -- ext,
+end
+
+
 
 
 section finite_pairs
@@ -306,99 +197,7 @@ end
 
 end finite_pairs
 
----- delete later
-lemma gcd_cast (a b : ℤ) : gcd a b = a.gcd b := (int.coe_gcd a b).symm
 
-lemma gcd_eq_one_iff_coprime' (a b : ℤ) : gcd a b = 1 ↔ is_coprime a b :=
-begin
-  rw [←int.coe_gcd, ←int.coe_nat_one, int.coe_nat_inj', int.gcd_eq_one_iff_coprime],
-end
-
-lemma gcd_eq_one_iff_coprime'' (a b : ℤ) : (∃ c d , a*d-b*c=1) ↔ is_coprime a b :=
-begin
-  split,
-  { rintros ⟨c, d, h⟩,
-    rw is_coprime,
-    use d,
-    use (-c),
-    convert h using 1,
-    ring },
-  { rintros ⟨c, d, h⟩,
-    use (-d),
-    use c,
-    convert h using 1,
-    ring },
-end
-
-lemma gcd_eq_one_iff_coprime''' (a b : ℤ) : (∃ c d , a*d-b*c=1) ↔ gcd a b = 1 :=
- iff.trans (gcd_eq_one_iff_coprime'' a b) (iff.symm (gcd_eq_one_iff_coprime' a b))
-
-
-lemma bottom_row_coprime (g : SL(2, ℤ)) : int.gcd (g 1 0) (g 1 1) = 1 :=
-begin
-  suffices : gcd (g 1 0) (g 1 1) = 1,
-  { rw ← int.coe_gcd (g 1 0) (g 1 1) at this,
-    exact_mod_cast this },
-  rw ← gcd_eq_one_iff_coprime''',
-  refine ⟨- g 0 0, - g 0 1, _⟩,
-  calc _ = matrix.det g : by { simp [matrix.det_succ_row_zero, fin.sum_univ_succ], ring }
-  ... = 1 : by rw g.det_coe_fun,
-end
-
-def bottom_row : SL(2, ℤ) → coprime_ints := λ g, ⟨g 1 0, g 1 1, bottom_row_coprime g⟩
-
-lemma bottom_row_surj : function.surjective bottom_row :=
-begin
-  intros cd,
-  -- have cop : int.gcd (cd:ℤ×ℤ).1 (cd:ℤ×ℤ).2  = 1 := cd.gcd_one,
-  let a := int.gcd_b cd.c cd.d,
-  let b := - int.gcd_a cd.c cd.d,
-  let A := ![![a ,b ], ![cd.c, cd.d]],
-  have det_A_1 : det A = 1 := sorry,
-  -- { rw det2,
-  --   simp [a, b, A],
-  --   have := int.gcd_eq_gcd_ab (cd:ℤ×ℤ).1 (cd:ℤ×ℤ).2,
-  --   rw cop at this,
-  --   symmetry,
-  --   convert this using 1,
-  --   ring },
-  use ⟨A, det_A_1⟩,
-  rw bottom_row,
-  -- ext,
-  simp [A],
-  ext,
-  simp, -- classic explicit-matrix-in-SL casting problem
-end
-
-lemma exists_g_with_min_bottom (z : ℍ) :
-  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
-begin
-  obtain ⟨p, hp⟩ := (finite_pairs z).exists_forall_le,
-  obtain ⟨g, hg⟩ := bottom_row_surj p,
-  use g,
-  intros g',
-  convert hp (bottom_row g'),
-  { simp [bottom_row] at hg,
-    simp [bottom, ← hg],
-    sorry,
-  },
-  simp [bottom_row, bottom],
-  sorry,-- classic explicit-matrix-in-SL casting problem
-end
-
-lemma exists_g_with_max_Im (z : ℍ) :
-  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (g' • z).im ≤ (g • z).im :=
-begin
-  obtain ⟨g, hg⟩ := exists_g_with_min_bottom z,
-  use g,
-  intros g',
-  rw [matrix.special_linear_group.im_smul_int, matrix.special_linear_group.im_smul_int,
-    div_le_div_left],
-  { exact hg g' },
-  { exact z.im_pos },
-  { exact norm_sq_pos.mpr (bottom_ne_zero_int g' z) },
-  { exact norm_sq_pos.mpr (bottom_ne_zero_int g z) },
-end
 
 section
 /-! This is an attempt to do the maximin argument using more abstract existence theory. -/
@@ -438,19 +237,19 @@ def matrix.coord (i j : fin 2) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 def acbd (p : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :=
 p.c • matrix.coord 0 0 + p.d • matrix.coord 0 1
 
-def useful_matrix (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) := ![![(cd.1.1:ℝ), cd.1.2],![cd.1.2,-cd.1.1]]
+def useful_matrix (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) := ![![(cd.c:ℝ), cd.d],![cd.d,-cd.c]]
 
 /-- map sending the matrix [a b; c d] to `(ac₀+bd₀ , ad₀ - bc₀, c, d)`, for some fixed `(c₀, d₀)` -/
 def line_map (cd : coprime_ints) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ((fin 2 → ℝ) × (fin 2 → ℝ)) :=
 ((useful_matrix cd).mul_vec_lin.comp (linear_map.proj 0 : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] _)).prod (linear_map.proj 1)
-  --((acbd cd).prod ((cd.1.2 : ℝ) • matrix.coord 0 0 - (cd.1.1 : ℝ) • matrix.coord 0 1)).prod (linear_map.proj 1)
+  --((acbd cd).prod ((cd.d : ℝ) • matrix.coord 0 0 - (cd.c : ℝ) • matrix.coord 0 1)).prod (linear_map.proj 1)
 
 lemma lin_indep_acbd (cd : coprime_ints) : (line_map cd).ker = ⊥ :=
 begin
   rw linear_map.ker_eq_bot,
 --  apply function.left_inverse.injective,
   -- let g : (ℝ × ℝ) → ℝ := λ
-  let g : matrix (fin 2) (fin 2) ℝ := ((cd.1.1)^2+(cd.1.2)^2:ℝ)⁻¹ • ![![-cd.1.1, -cd.1.2],![-cd.1.2,cd.1.1]],
+  let g : matrix (fin 2) (fin 2) ℝ := ((cd.c)^2+(cd.d)^2:ℝ)⁻¹ • ![![-cd.c, -cd.d],![-cd.d,cd.c]],
 
   let f₁ : (fin 2 → ℝ) → (fin 2 → ℝ) := g.mul_vec_lin,
   --(ℝ × ℝ) → (fin 2 → ℝ) := sorry,
@@ -583,76 +382,145 @@ begin
     exact hg ⟨g1, this⟩ },
 end
 
-variables {g : SL(2,ℤ)} {z : ℍ}
 
-lemma im_S_z {z : ℍ} : (S • z).val.im = z.val.im / z.val.norm_sq :=
+
+
+
+
+
+lemma exists_g_with_min_bottom (z : ℍ) :
+  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
 begin
-  rw im_smul_SL'',
-  rw bottom,
-  simp,
-  rw S,
-  simp,
+  obtain ⟨p, hp⟩ := (finite_pairs z).exists_forall_le,
+  obtain ⟨g, hg⟩ := bottom_row_surj p,
+  use g,
+  intros g',
+  convert hp (bottom_row g'),
+  { simp [bottom_row] at hg,
+    simp [bottom, ← hg],
+    sorry,
+  },
+  simp [bottom_row, bottom],
+  sorry,-- classic explicit-matrix-in-SL casting problem
 end
 
-lemma im_lt_im_S {z : ℍ} (h: norm_sq z.val < 1) : z.val.im < (S • z).val.im :=
+lemma exists_g_with_max_Im (z : ℍ) :
+  ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (g' • z).im ≤ (g • z).im :=
 begin
-  rw im_S_z,
-  have imz : 0 < z.val.im := im_pos_of_in_H',
-  have hnz : 0 < norm_sq z.val,
+  obtain ⟨g, hg⟩ := exists_g_with_min_bottom z,
+  use g,
+  intros g',
+  rw [matrix.special_linear_group.im_smul_int, matrix.special_linear_group.im_smul_int,
+    div_le_div_left],
+  { exact hg g' },
+  { exact z.im_pos },
+  { exact norm_sq_pos.mpr (bottom_ne_zero_int g' z) },
+  { exact norm_sq_pos.mpr (bottom_ne_zero_int g z) },
+end
+
+
+
+-- T and S
+
+def T : SL(2,ℤ) := { val := ![![1, 1], ![0, 1]], property :=
+by simp [matrix.det_succ_row_zero, fin.sum_univ_succ] }
+
+def T' : SL(2,ℤ) := { val := ![![1, -1], ![0, 1]], property :=
+by simp [matrix.det_succ_row_zero, fin.sum_univ_succ] }
+
+def S : SL(2,ℤ) := { val := ![![0, -1], ![1, 0]], property :=
+by simp [matrix.det_succ_row_zero, fin.sum_univ_succ] }
+
+
+def fundamental_domain : set ℍ :=
+{ z | 1 ≤ (complex.norm_sq z) ∧ |(complex.re z)| ≤ (1 :ℝ)/ 2 }
+
+def fundamental_domain_open : set ℍ :=
+{ z | 1 < (complex.norm_sq z) ∧ |(complex.re z)| < (1 :ℝ)/ 2 }
+
+notation `𝒟` := fundamental_domain
+
+notation `𝒟ᵒ` := fundamental_domain_open
+
+
+lemma whatever : 𝒟 = closure 𝒟ᵒ :=
+begin
+
+  sorry,
+end
+
+
+
+
+variables {g : SL(2,ℤ)} {z : ℍ}
+
+lemma im_lt_im_S {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
+begin
+  have : z.im < z.im / norm_sq (z:ℂ),
   {
-    rw norm_sq_pos,
-    intro h,
-    rw h at imz,
-    rw zero_im at imz,
-    linarith,
+    have imz : 0 < z.im := im_pos z,
+    apply (lt_div_iff z.norm_sq_pos).mpr,
+    nlinarith,
   },
-  set N := norm_sq z.val with hN,
-  set zim := z.val.im with hzim,
-  have : zim * N < zim, by nlinarith,
-  exact (lt_div_iff hnz).mpr this,
+  convert this,
+  rw [matrix.special_linear_group.im_smul_int, bottom, S],
+  congr,
+  simp,
+  sorry,
 end
 
 /- TODO : prove directly instead of by contradiction
 -/
-lemma norm_sq_ge_one_of_act_S {z : ℍ} (h : (S • z).val.im ≤ z.val.im) : 1 ≤ norm_sq z.val :=
+
+lemma half_ge_x_T_inv (z : ℍ) (h : 1/2 < z.re) : |(T' • z).re| < |z.re| :=
 begin
-  by_contradiction hcontra,
-  push_neg at hcontra,
-  have := im_lt_im_S hcontra,
-  linarith,
+  have : |z.re - 1| < |z.re|,
+  { rw [(abs_eq_self.mpr (by linarith : 0 ≤ z.re)), abs_lt],
+    split; linarith, },
+  convert this,
+
+  sorry,
+
 end
 
-lemma T_inv_action {z : ℍ} : (T⁻¹ • z).1 = z - 1 :=
+lemma half_le_neg_x_T (z : ℍ) (h : 1/2 < - z.re) : |(T • z).re| < |z.re| :=
 begin
-  convert @smul_sound (T⁻¹) z,
-  rw smul_aux,
-  rw T_inv,
-  simp,
-  ring,
+  have : |z.re + 1| < |z.re|,
+  { rw [(abs_eq_neg_self.mpr (by linarith : z.re ≤ 0)), abs_lt],
+    split; linarith, },
+  convert this,
+
+  sorry,
+
 end
 
-lemma half_ge_x_T_inv (x : ℝ) (h : 1/2 < x) : |x - 1| < x :=
+lemma fun_dom_lemma₁ (z:ℍ) : ∃ (g: SL(2,ℤ)), (g • z) ∈ 𝒟 :=
 begin
-  have : -(x) < x-1 ∧ x-1 < x := by split; linarith,
-  exact abs_lt.mpr this,
+
+  sorry,
 end
 
-lemma half_le_neg_x_T (x : ℝ) (h : 1/2 < -x) : |x + 1| < |x| :=
+lemma fun_dom_lemma₂ {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
 begin
-  have : -|x| < x+1 ∧ x+1 < |x|,
-  { have : |x| = -x,
-    { refine _root_.abs_of_neg _,
-      linarith },
-    rw this,
-    split; linarith },
-  exact abs_lt.mpr this,
+
+  sorry,
 end
 
+----- THE REST is superfluous ??
+/-
+lemma fun_dom_lemma (z:ℍ) (h: z∉𝒟) : ∃ (g: SL(2,ℤ)),
+(|(g • z).re| < |z.re|) ∨ (complex.abs ↑(g • z) > complex.abs z) :=
+begin
+  have : 1/2 < |z.re| ∨
+end
+
+
+-- keep contents but not lemma
 lemma re_ge_half_of_act_T {z : ℍ}
-(h: 1/2 < _root_.abs (z:ℂ).re)
+(h: 1/2 < |(z:ℂ).re|
 :
-((_root_.abs (T • z).val.re) < _root_.abs z.val.re) ∨
-((_root_.abs (T⁻¹ • z).val.re) < _root_.abs z.val.re)
+(|(T • z).re| < |z.re|) ∨
+(|(T' • z).re| < |z.re|)
 :=
 begin
   rw T_action,
@@ -667,24 +535,13 @@ begin
   { left,
     exact half_le_neg_x_T (z:ℂ).re h },
 end
-
-lemma bot_row_eq_diff_by_unipotent (g g' : SL(2,ℝ)) (h : bottom_row g = bottom_row g') :
-∃ (x:ℝ), g = (![![1,x],![0,1]],_) * g' :=
-begin
-  -- human proof: g= a,b,c,d, g' = a' b' c d (same c d!)
-  -- then g*g⁻¹ = (a b c d)(d -b' -c a') = (1 * 0 1)
-
---  let ![![a,b],![c,d]] := g.1,
-  let Tn := g * g'⁻¹,
-  sorry,
-
-end
+------------------------------------
 
 lemma find_g_with_min_re (z:ℍ) (cd : coprime_ints) :
 ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ),  bottom_row g = bottom_row g' →
 _root_.abs ((g • z).val.re) ≤ _root_.abs ((g' • z).val.re)) :=
 begin
-/-  -- Argh this is all wrong;
+-  -- Argh this is all wrong;
 -- Need to look somehow at the set of all preimages of cd
 -- among those, choose g with minimal real part
 -- the rest is tautological
@@ -697,7 +554,7 @@ begin
   push_neg at hcontra,
   obtain ⟨n, hn⟩ := bot_row_eq_diff_by_T_n g g' hg',
   rw hn at hcontra,
-  -/
+  -
   sorry,
 end
 
@@ -742,7 +599,7 @@ lemma fundom_aux_2 {z : ℍ} (hz : z ∈ 𝒟) (h' : T⁻¹ • z ∈ 𝒟) : z.
 @[simp]
 lemma fundom_aux_3 {z : ℍ} (hz : z ∈ 𝒟) (h' : S • z ∈ 𝒟) : z.val.abs = 1 := sorry
 
-/- Why is this not doable by linarith directly? -/
+- Why is this not doable by linarith directly? -
 example {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (h : a ≤ a / b) : b ≤ 1 :=
 begin
   suffices: a * b ≤ a, nlinarith,
@@ -761,7 +618,7 @@ begin
   exact h_1,
 end
 
-/-
+-
 lemma namedIsZ (c :ℤ  ) (h: c≤ 1) (h2: 0≤ c) :  c=0 ∨ c=1 :=
 begin
   --lift n to ℕ using hn
@@ -889,7 +746,7 @@ end
 
 -- E(z,k):= sum _{(c,d)∈ Z^2\ {0,0}} 1/(cz+d)^k
 
-/-
+-
   human:
   d/ dz E(z,k):= sum _{(c,d)∈ Z^2\ {0,0}}  d/ dz 1/(cz+d)^k
 
@@ -902,11 +759,11 @@ end
 (z-w)   *
   sum _{(c,d)∈ Z^2\ {0,0}}  ( 1/(cz+d)^k -  1/(cw+d)^k)
 
--/
+-
 
-/- define Ramanujan delta
+- define Ramanujan delta
 
--/
+-
 
 
 -- @[simp]
@@ -1131,23 +988,23 @@ end
 -- by simp [fin.sum_univ_succ]
 
 
--- /-- method 1 -/
+-- -- method 1 -
 -- def line (cd : coprime_ints) : set (matrix (fin 2) (fin 2) ℝ) :=
 --   {g | g 1 0 = (cd : ℤ × ℤ).1 ∧ g 1 1 = (cd : ℤ × ℤ).2 ∧ det g = 1}
 
-/- Do we need this? Maybe delete
+- Do we need this? Maybe delete
 lemma line_proper (cd : coprime_ints) :
   map coe (cocompact (line cd)) = cocompact (matrix (fin 2) (fin 2) ℝ) :=
 begin
 
   sorry
 end
--/
+-
 
 
 -- -- make `line` an affine subspace of 2x2 matrices, using the following lemma
 -- lemma line_det (cd : coprime_ints) {g : matrix _ _ ℝ} (hg : g ∈ line cd) :
---   g 0 0 * cd.1.2 - g 0 1 * cd.1.1 = 1 :=
+--   g 0 0 * cd.d - g 0 1 * cd.c = 1 :=
 -- begin
 --   convert hg.2.2,
 --   rw [det2, hg.1, hg.2.1],
@@ -1181,7 +1038,7 @@ end
 --     cofinite at_top :=
 -- (tendsto_at_top_abs.comp (tendsto_action cd z)).comp (tendsto_lattice_intersect_fun (line cd))
 
--- /-- method 2 -/
+-- -- method 2 -
 -- def line' (cd : coprime_ints) : set (ℝ × ℝ) :=
 --   {ab | ab.1 * (cd : ℤ × ℤ).2 - ab.2 * (cd : ℤ × ℤ).1 = 1}
 
@@ -1206,8 +1063,8 @@ end
 -- lemma tendsto_acbd (cd : coprime_ints):
 --   tendsto (λ g, acbd (↑g)) (cocompact (line cd)) (cocompact ℝ) :=
 -- begin
---   let cabs := _root_.abs cd.1.1,
---   let dabs := _root_.abs cd.1.2,
+--   let cabs := _root_.abs cd.c,
+--   let dabs := _root_.abs cd.d,
 --   let maxCD := max cabs dabs,
 --   intros K hK ,
 --   rw mem_cocompact at hK,
@@ -1243,7 +1100,7 @@ end
 --   sorry
 -- end
 
--- /- Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -/
+-- - Is this non-crap? (More elegant phrasing?...) We know that $ℤ$ matrices are discrete in $ℝ$; so intersection of $Z$ matrices is discrete in line -
 -- lemma tendsto_inverse_image_fun' {α β : Type*} [topological_space β] (A : set α) (B : set β)
 --   {f : α → β} (hf₁ : ∀ x ∈ A, f x ∈ B ) (hf₂ : tendsto f cofinite (cocompact _)) :
 --   tendsto (subtype.map f (λ x h, set.mem_def.mp (hf₁ x h))) cofinite (cocompact _) :=
@@ -1254,11 +1111,11 @@ end
 -- end
 
 
--- /-- Big filter theorem -/
+-- -- Big filter theorem -
 -- theorem big_thm' (cd : coprime_ints) (w : ℝ) :
 --   tendsto (λ A : bottom_row ⁻¹' {cd}, acbd cd ↑A + w) cofinite (cocompact ℝ) :=
 -- begin
---   let cd' : fin 2 → ℤ :=  λ i, if i = 0 then cd.1.1 else cd.1.2,
+--   let cd' : fin 2 → ℤ :=  λ i, if i = 0 then cd.c else cd.d,
 --   let l := bottom_row ⁻¹' {cd},
 --   let f : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ := λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
 --   have hf : tendsto f cofinite (cocompact _) :=
@@ -1277,7 +1134,7 @@ end
 --     simpa [hl] using hf.comp subtype.coe_injective.tendsto_cofinite },
 --   have h₂ : tendsto (λ A, acbd cd ↑A + w) (cocompact (new_line_def cd)) (cocompact ℝ),
 --   { let hf := linear_equiv.closed_embedding_of_injective (lin_indep_acbd cd),
---     let p : ℝ × (fin 2 → ℝ) := (1, λ i, if i = 0 then cd.1.1 else cd.1.2),
+--     let p : ℝ × (fin 2 → ℝ) := (1, λ i, if i = 0 then cd.c else cd.d),
 --     let hs : is_closed (prod.snd ⁻¹' {p} : set (ℝ × (ℝ × (fin 2 → ℝ)))) :=
 --       is_closed_singleton.preimage continuous_snd,
 --     have := (hf.comp (closed_embedding_subtype_coe (hs.preimage hf.continuous))).cod_restrict hs (by simp),
@@ -1286,4 +1143,157 @@ end
 --   have := h₂.comp h₁,
 --   convert this,
 -- end
+
+
+
+
+-- example : T⁻¹ * T = 1 := inv_mul_self T
+
+-- example { R : SL(2,ℤ) } : R * T = 1 → R = T⁻¹ := eq_inv_of_mul_eq_one
+
+-- example { R : SL(2,ℤ) } : T * R = 1 → T⁻¹ = R := inv_eq_of_mul_eq_one
+
+-- example { x y : SL(2,ℤ)} (ℍ : x.1 = y.1) : x = y := subtype.eq h
+
+-- @[simp]
+-- lemma mat_congr_SL { x y : SL(2,ℤ) } : x = y ↔ x.val = y.val := subtype.ext_iff_val
+
+-- @[simp]
+-- lemma mat_ext_iff  {F : Type*} [comm_ring F] (x y : matrix (fin 2) (fin 2) F) :
+--   x = y ↔ x 0 0 = y 0 0 ∧ x 0 1 = y 0 1 ∧ x 1 0 = y 1 0 ∧ x 1 1 = y 1 1 :=
+-- begin
+--   rw ←matrix.ext_iff,
+--   split,
+--   {
+--     intro h,
+--     rw h,
+--     tauto },
+--   {
+--     rintros ⟨h1, h2, h3, h4⟩ i j,
+--     fin_cases i; fin_cases j; assumption,
+--   }
+-- end
+
+-- @[simp]
+-- lemma mat_one {F : Type*} [comm_ring F] : (![![1,0], ![0,1]] : matrix (fin 2) (fin 2) F)
+--   = (1 : matrix (fin 2) (fin 2) F) := by {simp}
+
+
+-- lemma T_inv : T⁻¹ = { val := ![![1, -1], ![0, 1]], property := by simp [det2] } :=
+-- begin
+--   suffices : T * { val := ![![1, -1], ![0, 1]], property := by simp [det2] } = 1,
+--   { exact inv_eq_of_mul_eq_one this},
+--   simp [T],
+-- end
+
+-- lemma T_n_def {n : ℤ} :  T^(-n) = (T⁻¹)^n := by {simp [inv_gpow, gpow_neg]}
+
+-- lemma T_pow_ℕ {n : ℕ} : T ^ n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
+-- begin
+--   induction n with n hn,
+--   { simp },
+--   { rw [pow_succ', hn, T],
+--     simp [add_comm] }
+-- end
+
+-- lemma T_inv_pow_ℕ {n : ℕ} : (T⁻¹)^n = { val := ![![1, -n], ![0, 1]], property := by simp [det2] } :=
+-- begin
+--   induction n with n hn,
+--   simp,
+--   have : (T⁻¹) ^ n.succ = ((T⁻¹)^n)* (T⁻¹),
+--   {
+--     exact pow_succ' (T⁻¹) n,
+--   },
+--   rw this,
+--   rw hn,
+--   rw T_inv,
+--   simp,
+-- end
+
+
+-- lemma T_pow {n : ℤ} : T^n = { val := ![![1, n], ![0, 1]], property := by simp [det2] } :=
+-- begin
+--   by_cases n_ge_0 : 0 ≤ n,
+--   lift n to ℕ with n_ge_0,
+--   refine T_pow_ℕ,
+--   exact n_ge_0,
+--   have : T ^ n = T ^ (- (-n)) := by simp,
+--   rw this,
+--   rw T_n_def,
+--   generalize' hk : -n=k,
+--   have k_ge_0 : 0 ≤ k,
+--   {
+--     rw ← hk,
+--     linarith,
+--   },
+--   have : n = -k,
+--   {
+--     rw ← hk,
+--     ring,
+--   },
+--   rw this,
+--   lift k to ℕ using k_ge_0,
+--   rw gpow_coe_nat,
+--   norm_cast,
+--   rw T_inv_pow_ℕ,
+-- end
+
+-- lemma T_action {z : ℍ} : (T • z).1 = z + 1 :=
+-- begin
+--   convert @smul_sound T z,
+--   simp only [smul_aux_def, top, bottom, T, has_coe_SL_apply, subtype.coe_mk, map_cons],
+--   simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
+-- end
+
+
+-- lemma Tn_action {z : ℍ} {n : ℤ} : (T^n • z).1 = z + n :=
+-- begin
+--   have := @smul_sound (T^n) z,
+--   convert this,
+--   rw smul_aux,
+--   rw T_pow,
+--   rw top,
+--   rw bottom,
+--   simp,
+-- end
+
+-- lemma S_action (z : ℍ) : (S • z).1 = -z⁻¹ :=
+-- begin
+--   convert @smul_sound S z,
+--   simp only [smul_aux_def, top, bottom, S, has_coe_SL_apply, subtype.coe_mk, map_cons],
+--   simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
+--   ring,
+-- end
+
+lemma norm_sq_ge_one_of_act_S {z : ℍ} (h : (S • z).im ≤ z.im) : 1 ≤ norm_sq z :=
+begin
+  by_contradiction hcontra,
+  push_neg at hcontra,
+  have := im_lt_im_S hcontra,
+  linarith,
+end
+
+
+
+lemma T_inv_action {z : ℍ} : (T⁻¹ • z).1 = z - 1 :=
+begin
+  convert @smul_sound (T⁻¹) z,
+  rw smul_aux,
+  rw T_inv,
+  simp,
+  ring,
+end
+
+
+lemma bot_row_eq_diff_by_unipotent (g g' : SL(2,ℝ)) (h : bottom_row g = bottom_row g') :
+∃ (x:ℝ), g = (![![1,x],![0,1]],_) * g' :=
+begin
+  -- human proof: g= a,b,c,d, g' = a' b' c d (same c d!)
+  -- then g*g⁻¹ = (a b c d)(d -b' -c a') = (1 * 0 1)
+
+--  let ![![a,b],![c,d]] := g.1,
+  let Tn := g * g'⁻¹,
+  sorry,
+
+end
 -/

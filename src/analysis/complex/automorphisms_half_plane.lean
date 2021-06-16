@@ -49,6 +49,20 @@ lemma im_pos (z : ℍ) : 0 < z.im := z.im_pos'
 
 lemma im_nonzero (z : ℍ) : z.im ≠ 0 := z.im_pos.ne'
 
+lemma nonzero (z : ℍ) : (z:ℂ) ≠ 0 :=
+begin
+  intros h,
+  apply z.im_nonzero,
+  simp [← complex.zero_im, ← h],
+end
+
+lemma norm_sq_pos (z: ℍ) : 0 < complex.norm_sq (z:ℂ) :=
+begin
+  rw complex.norm_sq_pos,
+  exact nonzero z,
+end
+
+
 end upper_half_plane
 
 local notation `SL(` n `,` R `)`:= special_linear_group (fin n) R

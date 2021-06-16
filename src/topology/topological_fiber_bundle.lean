@@ -256,7 +256,7 @@ namespace bundle_trivialization
 
 variables {F} (e : bundle_trivialization F proj) {x : Z}
 
-\-- Natural identification as `prebundle_trivialization` -\
+/-- Natural identification as `prebundle_trivialization`. -/
 def to_prebundle_trivialization : prebundle_trivialization F proj := { ..e }
 
 instance : has_coe_to_fun (bundle_trivialization F proj) := ⟨_, λ e, e.to_fun⟩

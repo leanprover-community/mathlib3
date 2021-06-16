@@ -321,6 +321,13 @@ by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 lemma div_right_injective : function.injective (λ a, b / a) :=
 by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
+-- I removed `sub_zero` below, as it is the `to_additive` version of this lemma.
+@[simp, to_additive sub_zero] lemma div_one' (a : G) :
+  a / 1 = a :=
+calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
+          ... = a * 1   : congr_arg _ one_inv
+          ... = a       : mul_one a
+
 end group
 
 section add_group
@@ -341,9 +348,6 @@ by rw [sub_eq_add_neg, add_assoc, ←sub_eq_add_neg]
 lemma eq_of_sub_eq_zero (h : a - b = 0) : a = b :=
 calc a = a - b + b : (sub_add_cancel a b).symm
    ... = b         : by rw [h, zero_add]
-
-@[simp] lemma sub_zero (a : G) : a - 0 = a :=
-by rw [sub_eq_add_neg, neg_zero, add_zero]
 
 lemma sub_ne_zero_of_ne (h : a ≠ b) : a - b ≠ 0 :=
 mt eq_of_sub_eq_zero h

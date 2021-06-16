@@ -769,6 +769,10 @@ begin
   exact div_le_inv_mul_iff,
 end
 
+@[simp, to_additive] lemma max_one_div_max_inv_one_eq_self (a : α) :
+  max a 1 / max a⁻¹ 1 = a :=
+by { rcases le_total a 1 with h|h; simp [h] }
+
 end variable_names
 
 section densely_ordered
@@ -872,15 +876,6 @@ by simp only [div_eq_mul_inv, min_mul_mul_left, min_inv_inv']
 @[to_additive max_sub_sub_left]
 lemma max_div_div_left' (a b c : α) : max (a / b) (a / c) = a / min b c :=
 by simp only [div_eq_mul_inv, max_mul_mul_left, max_inv_inv']
-
-@[simp, to_additive max_zero_sub_eq_self]
-lemma max_one_div_eq_self' (a : α) : max a 1 / max (a⁻¹) 1 = a :=
-begin
-  rcases le_total a 1,
-  { rw [max_eq_right h, max_eq_left, one_div, inv_inv], { rwa [le_inv', one_inv] } },
-  { rw [max_eq_left, max_eq_right, div_eq_mul_inv, one_inv, mul_one],
-    { rwa [inv_le', one_inv] }, exact h }
-end
 
 @[to_additive eq_zero_of_neg_eq]
 lemma eq_one_of_inv_eq' (h : a⁻¹ = a) : a = 1 :=
@@ -1019,10 +1014,6 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
-
-@[simp] lemma max_zero_sub_max_neg_zero_eq_self (a : α) :
-  max a 0 - max (-a) 0 = a :=
-by { rcases le_total a 0 with h|h; simp [h] }
 
 variable [covariant_class α α (function.swap (+)) (≤)]
 

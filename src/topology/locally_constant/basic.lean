@@ -168,7 +168,7 @@ begin
   intros a,
   have : f ⁻¹' {a} = (g ∘ f) ⁻¹' { g a },
   { ext x,
-    simp only [←cond, mem_singleton_iff, function.comp_app, mem_preimage],
+    simp only [mem_singleton_iff, function.comp_app, mem_preimage],
     exact ⟨λ h, by rw h, λ h, inj h⟩ },
   rw this,
   apply h,

@@ -8,6 +8,7 @@ import topology.metric_space.emetric_space
 import topology.shrinking_lemma
 import topology.algebra.ordered.basic
 import data.fintype.intervals
+import algebra.periodic
 
 /-!
 # Metric spaces
@@ -1594,6 +1595,27 @@ lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
   exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
 end⟩
+
+lemma _root_.function.periodic.bounded_of_continuous' {f : ℝ → α} {c : ℝ}
+  (hp : function.periodic f c) (hc : 0 < c) (hf : continuous f) :
+  bounded (range f) :=
+begin
+  convert (compact_Icc.image hf).bounded,
+  ext x,
+  refine ⟨_, mem_range_of_mem_image f (Icc 0 c)⟩,
+  rintros ⟨y, h1⟩,
+  obtain ⟨z, hz, h2⟩ := hp.exists_mem_Ico hc y,
+  exact ⟨z, mem_Icc_of_Ico hz, h2.symm.trans h1⟩,
+end
+
+/-- A continuous, periodic function is bounded. -/
+lemma _root_.function.periodic.bounded_of_continuous {f : ℝ → α} {c : ℝ}
+  (hp : function.periodic f c) (hc : c ≠ 0) (hf : continuous f) :
+  bounded (range f) :=
+begin
+  cases lt_or_gt_of_ne hc with hneg hpos,
+  exacts [hp.neg.bounded_of_continuous' (neg_pos.mpr hneg) hf, hp.bounded_of_continuous' hpos hf],
+end
 
 end bounded
 

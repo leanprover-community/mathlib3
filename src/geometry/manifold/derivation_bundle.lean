@@ -115,10 +115,10 @@ variables {I} {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 /-- The differential of a function interpreted in the context of derivations. -/
 def fdifferential_map (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I x) :
   (point_derivation I' (f x)) :=
-{ to_fun := λ g, v (g.comp f),
+{ to_fun := λ g : C^∞⟮I', M'; 𝕜⟯, v (g.comp f),
   map_add' := λ g h, by rw [smooth_map.add_comp, derivation.map_add],
   map_smul' := λ k g, by rw [smooth_map.smul_comp, derivation.map_smul],
-  leibniz' := λ g h, by {simp only [derivation.leibniz, smooth_map.mul_comp], refl} }
+  leibniz' := λ g h, by { simp only [derivation.leibniz, smooth_map.mul_comp], refl} }
 
 /-- The differential is a linear map. -/
 def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) : (point_derivation I x) →ₗ[𝕜]

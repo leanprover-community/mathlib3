@@ -291,11 +291,8 @@ apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
 
 -- data/pequiv.lean
-apply_nolint equiv.to_pequiv doc_blame
 apply_nolint pequiv has_inhabited_instance
-apply_nolint pequiv.of_set doc_blame
 apply_nolint pequiv.refl doc_blame
-apply_nolint pequiv.single doc_blame
 apply_nolint pequiv.symm doc_blame
 apply_nolint pequiv.trans doc_blame
 

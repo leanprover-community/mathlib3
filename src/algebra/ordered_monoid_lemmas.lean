@@ -3,93 +3,26 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Damiano Testa
 -/
-import algebra.group.defs
+
+import algebra.covariant_and_contravariant
 import order.basic
+
 /-!
-This file begins the splitting of the ordering assumptions from the algebraic assumptions on the
-operations in the `ordered_[...]` hierarchy.
+# Ordered monoids
+This file develops the basics of ordered monoids.
 
-The strategy is to introduce two more flexible typeclasses, covariant_class and contravariant_class.
+## Implementation details
+Unfortunately, the number of `'` appended to lemmas in this file
+may differ between the multiplicative and the additive version of a lemma.
+The reason is that we did not want to change existing names in the library.
 
-* covariant_class models the implication a ≤ b → c * a ≤ c * b (multiplication is monotone),
-* contravariant_class models the implication a * b < a * c → b < c.
-
-Since `co(ntra)variant_class` takes as input the operation (typically `(+)` or `(*)`) and the order
-relation (typically `(≤)` or `(<)`), these are the only two typeclasses that I have used.
-
-The general approach is to formulate the lemma that you are interested and prove it, with the
-`ordered_[...]` typeclass of your liking.  After that, you convert the single typeclass,
-say `[ordered_cancel_monoid M]`, with three typeclasses, e.g.
-`[partial_order M] [left_cancel_semigroup M] [covariant_class M M (function.swap (*)) (≤)]`
-and have a go at seeing if the proof still works!
-
-Note that it is possible to combine several co(ntra)variant_class assumptions together.
-Indeed, the usual ordered typeclasses arise from assuming the pair
-`[covariant_class M M (*) (≤)] [contravariant_class M M (*) (<)]`
-on top of order/algebraic assumptions.
-
-A formal remark is that normally covariant_class uses the `(≤)`-relation, while contravariant_class
-uses the `(<)`-relation. This need not be the case in general, but seems to be the most common
-usage. In the opposite direction, the implication
-
-```lean
-[semigroup α] [partial_order α] [contravariant_class α α (*) (≤)] => left_cancel_semigroup α
-```
-holds (note the `co*ntra*` assumption and the `(≤)`-relation).
+## Remark
+No monoid is actually present in this file: all assumptions have been generalized to `has_mul` or
+`mul_one_class`.
 -/
--- TODO: convert `has_exists_mul_of_le`, `has_exists_add_of_le`?
--- TODO: relationship with add_con
--- include equivalence of `left_cancel_semigroup` with
--- `semigroup partial_order contravariant_class α α (*) (≤)`?
--- use ⇒, as per Eric's suggestion?
-section variants
 
-variables {M N : Type*} (μ : M → N → N) (r s : N → N → Prop) (m : M) {a b c : N}
-
-
-variables (M N)
-/-- `covariant` is useful to formulate succintly statements about the interactions between an
-action of a Type on another one and a relation on the acted-upon Type.
-
-See the `covariant_class` doc-string for its meaning. -/
-def covariant     : Prop := ∀ (m) {n₁ n₂}, r n₁ n₂ → r (μ m n₁) (μ m n₂)
-
-/-- `contravariant` is useful to formulate succintly statements about the interactions between an
-action of a Type on another one and a relation on the acted-upon Type.
-
-See the `contravariant_class` doc-string for its meaning. -/
-def contravariant : Prop := ∀ (m) {n₁ n₂}, s (μ m n₁) (μ m n₂) → s n₁ n₂
-
-/--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
-`covariant_class` says that "the action `μ` preserves the relation `r`.
-
-More precisely, the `covariant_class` is a class taking two Types `M N`, together with an "action"
-`μ : M → N → N` and a relation `r : N → N`.  Its unique field `covc` is the assertion that
-for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair
-`(n₁, n₂)`, then, the relation `r` also holds for the pair `(μ m n₁, μ m n₂)`,
-obtained from `(n₁, n₂)` by "acting upon it by `m`".
-
-If `m : M` and `h : r n₁ n₂`, then `covariant_class.covc m h : r (μ m n₁) (μ m n₂)`.
--/
-class covariant_class :=
-(covc :  covariant M N μ r)
-
-/--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
-`contravariant_class` says that "if the result of the action `μ` on a pair satisfies the
-relation `r`, then the initial pair satisfied the relation `r`.
-
-More precisely, the `contravariant_class` is a class taking two Types `M N`, together with an
-"action" `μ : M → N → N` and a relation `r : N → N`.  Its unique field `covtc` is the assertion that
-for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair
-`(μ m n₁, μ m n₂)` obtained from `(n₁, n₂)` by "acting upon it by `m`"", then, the relation `r`
-also holds for the pair `(n₁, n₂)`.
-
-If `m : M` and `h : r (μ m n₁) (μ m n₂)`, then `covariant_class.covc m h : r n₁ n₂`.
--/
-class contravariant_class :=
-(covtc : contravariant M N μ s)
-
-end variants
+-- TODO: If possible, uniformize lemma names, taking special care of `'`,
+-- after the `ordered`-refactor is done
 
 variables {α : Type*} {a b c d : α}
 
@@ -102,14 +35,14 @@ variables [has_mul α]
 @[to_additive lt_of_add_lt_add_left]
 lemma lt_of_mul_lt_mul_left' [contravariant_class α α (*) (<)] :
   a * b < a * c → b < c :=
-contravariant_class.covtc a
+contravariant_class.elim a
 
 variable [covariant_class α α (*) (≤)]
 
 @[to_additive add_le_add_left]
 lemma mul_le_mul_left' (h : a ≤ b) (c) :
   c * a ≤ c * b :=
-covariant_class.covc c h
+covariant_class.elim c h
 
 @[to_additive]
 lemma mul_lt_of_mul_lt_left (h : a * b < c) (hle : d ≤ b) :
@@ -177,14 +110,14 @@ variables [has_mul α]
 lemma lt_of_mul_lt_mul_right' [contravariant_class α α (function.swap (*)) (<)]
   (h : a * b < c * b) :
   a < c :=
-contravariant_class.covtc b h
+contravariant_class.elim b h
 
 variable  [covariant_class α α (function.swap (*)) (≤)]
 
 @[to_additive add_le_add_right]
 lemma mul_le_mul_right' (h : a ≤ b) (c) :
   a * c ≤ b * c :=
-covariant_class.covc c h
+covariant_class.elim c h
 
 @[to_additive]
 lemma mul_lt_of_mul_lt_right (h : a * b < c) (hle : d ≤ a) :
@@ -376,23 +309,6 @@ iff.intro
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
 
-section mono
-variables {β : Type*} [preorder β] {f g : β → α}
-
-@[to_additive monotone.add]
-lemma monotone.mul' (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
-λ x y h, mul_le_mul' (hf h) (hg h)
-
-@[to_additive monotone.add_const]
-lemma monotone.mul_const' (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
-hf.mul' monotone_const
-
-@[to_additive monotone.const_add]
-lemma monotone.const_mul' (hf : monotone f) (a : α) : monotone (λ x, a * f x) :=
-monotone_const.mul' hf
-
-end mono
-
 end partial_order
 
 @[to_additive le_of_add_le_add_left]
@@ -417,6 +333,7 @@ begin
   { exact (lt_of_mul_lt_mul_right' h).le }
 end
 
+section partial_order
 variable [partial_order α]
 
 section left_co_co
@@ -514,7 +431,7 @@ variables [right_cancel_monoid α]
 
 @[to_additive]
 lemma mul_lt_mul_of_lt_of_le (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
-lt_of_lt_of_le ((covariant_class.covc c h₁.le).lt_of_ne (λ h, h₁.ne ((mul_left_inj c).mp h)))
+lt_of_lt_of_le ((covariant_class.elim c h₁.le).lt_of_ne (λ h, h₁.ne ((mul_left_inj c).mp h)))
   (mul_le_mul_left' h₂ b)
 
 @[to_additive]
@@ -613,3 +530,65 @@ one_mul c ▸ mul_lt_mul''' ha hbc
 @[to_additive]
 lemma mul_lt_of_lt_of_lt_one (hbc : b < c) (ha : a < 1) : b * a < c :=
 mul_one c ▸ mul_lt_mul''' hbc ha
+
+end partial_order
+
+-- the two sections `mono` and `strict_mono` moved here to shorten the diff of a later
+-- PR.  The layout will be better in the next PR!
+section mono
+variables {β : Type*} [preorder β] {f g : β → α}
+variables [mul_one_class α] [partial_order α] [covariant_class α α has_mul.mul has_le.le]
+  [covariant_class α α (function.swap has_mul.mul) has_le.le]
+@[to_additive monotone.add]
+lemma monotone.mul' (hf : monotone f) (hg : monotone g) : monotone (λ x, f x * g x) :=
+λ x y h, mul_le_mul' (hf h) (hg h)
+
+@[to_additive monotone.add_const]
+lemma monotone.mul_const' (hf : monotone f) (a : α) : monotone (λ x, f x * a) :=
+hf.mul' monotone_const
+
+@[to_additive monotone.const_add]
+lemma monotone.const_mul' (hf : monotone f) (a : α) : monotone (λ x, a * f x) :=
+monotone_const.mul' hf
+
+end mono
+
+section strict_mono
+variables [cancel_monoid α] {β : Type*} {f g : β → α} [partial_order α]
+
+section left
+variables [covariant_class α α (*) (≤)] [contravariant_class α α (*) (<)] [partial_order β]
+
+@[to_additive strict_mono.const_add]
+lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
+  strict_mono (λ x, c * f x) :=
+λ a b ab, mul_lt_mul_left' (hf ab) c
+
+end left
+
+section right
+variables [covariant_class α α (function.swap (*)) (≤)]
+  [contravariant_class α α (function.swap (*)) (<)] [partial_order β]
+
+@[to_additive strict_mono.add_const]
+lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
+  strict_mono (λ x, f x * c) :=
+λ a b ab, mul_lt_mul_right' (hf ab) c
+
+end right
+
+@[to_additive monotone.add_strict_mono]
+lemma monotone.mul_strict_mono'
+  [covariant_class α α (function.swap (*)) (≤)] {β : Type*} [preorder β]
+  [covariant_class α α (*) (≤)] [contravariant_class α α (*) (<)]
+  {f g : β → α} (hf : monotone f) (hg : strict_mono g) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul_of_le_of_lt (hf h.le) (hg h)
+variables [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)] [preorder β]
+
+@[to_additive strict_mono.add_monotone]
+lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
+  strict_mono (λ x, f x * g x) :=
+λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)
+
+end strict_mono

@@ -1477,6 +1477,64 @@ end
 
 end comap_domain
 
+/-! ### Declarations about `equiv_congr_left` -/
+
+section equiv_congr_left
+
+variable [has_zero M]
+
+/-- Given `f : α ≃ β`, we can map `l : α →₀ M` to  `equiv_map_domain f l : β →₀ M` (computably)
+by mapping the support forwards and the function backwards. -/
+def equiv_map_domain (f : α ≃ β) (l : α →₀ M) : β →₀ M :=
+{ support := l.support.map f.to_embedding,
+  to_fun := λ a, l (f.symm a),
+  mem_support_to_fun := λ a, by simp only [finset.mem_map_equiv, mem_support_to_fun]; refl }
+
+@[simp] lemma equiv_map_domain_apply (f : α ≃ β) (l : α →₀ M) (b : β) :
+  equiv_map_domain f l b = l (f.symm b) := rfl
+
+lemma equiv_map_domain_symm_apply (f : α ≃ β) (l : β →₀ M) (a : α) :
+  equiv_map_domain f.symm l a = l (f a) := rfl
+
+@[simp] lemma equiv_map_domain_refl (l : α →₀ M) : equiv_map_domain (equiv.refl _) l = l :=
+by ext x; refl
+
+lemma equiv_map_domain_refl' : equiv_map_domain (equiv.refl _) = @id (α →₀ M) :=
+by ext x; refl
+
+lemma equiv_map_domain_trans (f : α ≃ β) (g : β ≃ γ) (l : α →₀ M) :
+  equiv_map_domain (f.trans g) l = equiv_map_domain g (equiv_map_domain f l) := by ext x; refl
+
+lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
+  @equiv_map_domain _ _ M _ (f.trans g) = equiv_map_domain g ∘ equiv_map_domain f := by ext x; refl
+
+@[simp] lemma equiv_map_domain_single (f : α ≃ β) (a : α) (b : M) :
+  equiv_map_domain f (single a b) = single (f a) b :=
+by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_domain_apply]; congr
+
+@[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
+by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
+
+lemma equiv_map_domain_eq_map_domain {M} [add_comm_monoid M] (f : α ≃ β) (l : α →₀ M) :
+  equiv_map_domain f l = map_domain f l := by ext x; simp [map_domain_equiv_apply]
+
+/-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
+`(α →₀ M) ≃ (β →₀ M)`.
+
+This is the finitely-supported version of `equiv.Pi_congr_left`. -/
+def equiv_congr_left (f : α ≃ β) : (α →₀ M) ≃ (β →₀ M) :=
+by refine ⟨equiv_map_domain f, equiv_map_domain f.symm, λ f, _, λ f, _⟩;
+  ext x; simp only [equiv_map_domain_apply, equiv.symm_symm,
+    equiv.symm_apply_apply, equiv.apply_symm_apply]
+
+@[simp] lemma equiv_congr_left_apply (f : α ≃ β) (l : α →₀ M) :
+  equiv_congr_left f l = equiv_map_domain f l := rfl
+
+@[simp] lemma equiv_congr_left_symm (f : α ≃ β) :
+  (@equiv_congr_left _ _ M _ f).symm = equiv_congr_left f.symm := rfl
+
+end equiv_congr_left
+
 /-! ### Declarations about `filter` -/
 
 section filter
@@ -2157,26 +2215,27 @@ begin
 end
 
 /-- Given `add_comm_monoid M` and `e : α ≃ β`, `dom_congr e` is the corresponding `equiv` between
-`α →₀ M` and `β →₀ M`. -/
+`α →₀ M` and `β →₀ M`.
+
+This is `finsupp.equiv_congr_left` as an `add_equiv`. -/
 @[simps apply]
 protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+ (β →₀ M) :=
-{ to_fun := map_domain e,
-  inv_fun := map_domain e.symm,
-  left_inv := begin
-    assume v,
-    simp only [map_domain_comp.symm, (∘), equiv.symm_apply_apply],
-    exact map_domain_id
+{ to_fun := equiv_map_domain e,
+  inv_fun := equiv_map_domain e.symm,
+  left_inv := λ v, begin
+    simp only [← equiv_map_domain_trans, equiv.trans_symm],
+    exact equiv_map_domain_refl _
   end,
   right_inv := begin
     assume v,
-    simp only [map_domain_comp.symm, (∘), equiv.apply_symm_apply],
-    exact map_domain_id
+    simp only [← equiv_map_domain_trans, equiv.symm_trans],
+    exact equiv_map_domain_refl _
   end,
-  map_add' := λ a b, map_domain_add, }
+  map_add' := λ a b, by simp only [equiv_map_domain_eq_map_domain]; exact map_domain_add }
 
 @[simp] lemma dom_congr_refl [add_comm_monoid M] :
   finsupp.dom_congr (equiv.refl α) = add_equiv.refl (α →₀ M) :=
-add_equiv.ext $ λ _, map_domain_id
+add_equiv.ext $ λ _, equiv_map_domain_refl _
 
 @[simp] lemma dom_congr_symm [add_comm_monoid M] (e : α ≃ β) :
   (finsupp.dom_congr e).symm = (finsupp.dom_congr e.symm : (β →₀ M) ≃+ (α →₀ M)):=
@@ -2185,7 +2244,7 @@ add_equiv.ext $ λ _, rfl
 @[simp] lemma dom_congr_trans [add_comm_monoid M] (e : α ≃ β) (f : β ≃ γ) :
   (finsupp.dom_congr e).trans (finsupp.dom_congr f) =
     (finsupp.dom_congr (e.trans f) : (α →₀ M) ≃+ _) :=
-add_equiv.ext $ λ _, map_domain_comp.symm
+add_equiv.ext $ λ _, (equiv_map_domain_trans _ _ _).symm
 
 end finsupp
 

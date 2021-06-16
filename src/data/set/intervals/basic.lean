@@ -1182,8 +1182,8 @@ by { rw max_comm, apply Ioc_union_Ioc; rw max_comm; exact min_le_max }
 begin
   rw [Ioc_union_Ioc, Ioc_union_Ioc],
   ac_refl,
-  all_goals { solve_by_elim [min_le_left_of_le, min_le_right_of_le, le_max_left_of_le,
-    le_max_right_of_le, le_refl] { max_depth := 5 }}
+  all_goals { solve_by_elim [min_le_of_left_le, min_le_of_right_le, le_max_of_le_left,
+    le_max_of_le_right, le_refl] { max_depth := 5 }}
 end
 
 end linear_order

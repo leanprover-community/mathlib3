@@ -212,10 +212,6 @@ lemma measure_theory.integrable.interval_integrable {f : α → E} {a b : α} {�
   interval_integrable f μ a b :=
 ⟨hf.integrable_on, hf.integrable_on⟩
 
-lemma interval_integrable.norm [opens_measurable_space E] {f : α → E} {a b : α} {μ : measure α}
-  (h : interval_integrable f μ a b) : interval_integrable (λ x, ∥f x∥) μ a b  :=
-⟨h.1.norm, h.2.norm⟩
-
 namespace interval_integrable
 
 section
@@ -235,6 +231,14 @@ by split; simp
 
 lemma neg [borel_space E] (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
+
+lemma norm [opens_measurable_space E] (h : interval_integrable f μ a b) :
+  interval_integrable (λ x, ∥f x∥) μ a b  :=
+⟨h.1.norm, h.2.norm⟩
+
+lemma abs {f : α → ℝ} (h : interval_integrable f μ a b) :
+  interval_integrable (λ x, abs (f x)) μ a b  :=
+by simpa only [real.norm_eq_abs] using h.norm
 
 lemma mono
   (hf : interval_integrable f ν a b) (h1 : interval c d ⊆ interval a b) (h2 : μ ≤ ν) :
@@ -1004,6 +1008,14 @@ lemma integral_mono (h : f ≤ g) :
 integral_mono_ae hab hf hg $ ae_of_all _ h
 
 end mono
+
+lemma abs_integral_le_integral_abs (h : interval_integrable f μ a b) :
+  abs (∫ x in a..b, f x ∂μ) ≤ ∫ x in a..b, abs (f x) ∂μ :=
+begin
+  rw [abs_le, ← integral_neg],
+  exact ⟨integral_mono hab h.abs.neg h (λ x, neg_abs_le_self _),
+         integral_mono hab h h.abs (λ x, le_abs_self _)⟩,
+end
 
 end
 

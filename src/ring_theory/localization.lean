@@ -1349,8 +1349,12 @@ lemma to_map_eq_zero_iff {x : R} :
   algebra_map R K x = 0 ↔ x = 0 :=
 to_map_eq_zero_iff _ (le_of_eq rfl)
 
+variables (R K)
+
 protected theorem injective : function.injective (algebra_map R K) :=
 is_localization.injective _ (le_of_eq rfl)
+
+variables {R K}
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R K x ≠ 0 :=

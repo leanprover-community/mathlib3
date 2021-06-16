@@ -176,7 +176,7 @@ variable [F.representable]
 noncomputable def repr_X : C :=
 (representable.has_representation : ∃ X (f : _ ⟶ F), _).some
 
-/-- The (forward ddirection)   -/
+/-- The (forward direction)   -/
 noncomputable def repr_f : yoneda.obj F.repr_X ⟶ F :=
 representable.has_representation.some_spec.some
 

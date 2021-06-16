@@ -115,27 +115,6 @@ by rw [←exp_le_exp, exp_log ha]
 
 end real
 
-lemma iterate_extensive_of_extensive {α : Type} [preorder α] {f : α → α}
-  (h : id ≤ f) :
-  ∀ n, id ≤ (f^[n])
-| 0 := by { rw function.iterate_zero, exact le_rfl }
-| (n + 1) := λ x,
-  begin
-    rw function.iterate_succ_apply',
-    apply le_trans (iterate_extensive_of_extensive n x) (h _),
-  end
-
-lemma iterate_le_of_extensive {α : Type} [preorder α] {f : α → α}
-  (h : id ≤ f) {m n : ℕ} (hmn : m ≤ n) :
-  f^[m] ≤ (f^[n]) :=
-begin
-  rw [←nat.add_sub_cancel' hmn, add_comm, function.iterate_add],
-  intro x,
-  apply iterate_extensive_of_extensive h (n-m) _,
-end
-
-/-! ### Prerequisites for SRL -/.
-
 lemma sum_mul_sq_le_sq_mul_sq {α : Type*} (s : finset α) (f g : α → ℝ) :
   (∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * (∑ i in s, (g i)^2) :=
 begin
@@ -160,6 +139,17 @@ begin
   rw div_le_iff h at this,
   assumption
 end
+
+lemma bUnion_subset_of_forall_subset {α β : Type*} [decidable_eq β]
+  {s : finset α} (t : finset β) (f : α → finset β) (h : ∀ x ∈ s, f x ⊆ t) : s.bUnion f ⊆ t :=
+begin
+  intros i hi,
+  simp only [mem_bUnion, exists_prop] at hi,
+  obtain ⟨a, ha₁, ha₂⟩ := hi,
+  exact h _ ha₁ ha₂,
+end
+
+/-! ### Prerequisites for SRL -/.
 
 lemma lemmaB {α : Type*} {s t : finset α} (hst : s ⊆ t) (f : α → ℝ) {a b : ℝ}
   (hs : (∑ x in s, f x)/s.card = a + b) (ht : (∑ x in t, f x) / t.card = a) :
@@ -440,6 +430,7 @@ calc
           exact nat.cast_nonneg _,
         end
 
+--@Yaël: bust those aux
 lemma aux3 {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ₀ : 0 ≤ δ) (hδ₁ : δ < 1)
   (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
   pairs_density r A' B' - pairs_density r A B ≤ 2*δ - δ^2 :=
@@ -573,7 +564,7 @@ def is_uniform (ε : ℝ) (U W : finset V) : Prop :=
 ∀ U', U' ⊆ U → ∀ W', W' ⊆ W → ε * U.card ≤ U'.card → ε * W.card ≤ W'.card →
 abs (density_pair G U' W' - density_pair G U W) < ε
 
-/-- If the pair `(U,W)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
+/-- If the pair `(U, W)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
 lemma is_uniform_mono {ε ε' : ℝ} {U W : finset V} (h : ε ≤ ε') (hε : is_uniform G ε U W) :
   is_uniform G ε' U W :=
 begin
@@ -657,15 +648,6 @@ variables {V : Type u} {s : finset V} [decidable_eq V] (P : finpartition s)
 
 /-- The size of a finpartition is its number of parts. -/
 protected def size : ℕ := P.parts.card
-
-lemma bUnion_subset_of_forall_subset {α β : Type*} [decidable_eq β]
-  {s : finset α} (t : finset β) (f : α → finset β) (h : ∀ x ∈ s, f x ⊆ t) : s.bUnion f ⊆ t :=
-begin
-  intros i hi,
-  simp only [mem_bUnion, exists_prop] at hi,
-  obtain ⟨a, ha₁, ha₂⟩ := hi,
-  exact h _ ha₁ ha₂,
-end
 
 lemma union_eq : P.parts.bUnion id = s :=
 begin
@@ -1440,7 +1422,7 @@ noncomputable def szemeredi_bound (ε : ℝ) (l : ℕ) : ℕ :=
 
 lemma iteration_bound_le_szemeredi_bound (ε l) :
   iteration_bound ε l ≤ szemeredi_bound ε l :=
-(iterate_extensive_of_extensive le_exp_bound _ _).trans
+(id_le_iterate_of_id_le le_exp_bound _ _).trans
   (nat.le_mul_of_pos_right (pow_pos (by norm_num) _))
 
 /-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
@@ -1495,7 +1477,7 @@ begin
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },
   have hsize : P.size ≤ (exp_bound^[nat_floor (4/ε^5)] t) :=
-    hP₃.trans (iterate_le_of_extensive le_exp_bound (le_nat_floor_of_le hi) _),
+    hP₃.trans (iterate_le_iterate_of_id_le le_exp_bound (le_nat_floor_of_le hi) _),
   have hPV : P.size * 16^P.size ≤ card V :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hV,
   obtain ⟨Q, hQ₁, hQ₂, hQ₃⟩ := increment hP₁ hεl' hPV huniform,

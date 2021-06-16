@@ -118,6 +118,12 @@ If `coyoneda.map f` is an isomorphism, so was `f`.
 lemma is_iso {X Y : Cᵒᵖ} (f : X ⟶ Y) [is_iso (coyoneda.map f)] : is_iso f :=
 is_iso_of_fully_faithful coyoneda f
 
+/-- The identity functor on `Type` is isomorphic to the coyoneda functor coming from `punit`. -/
+def punit_iso : coyoneda.obj (opposite.op punit) ≅ 𝟭 (Type v₁) :=
+nat_iso.of_components
+  (λ X, { hom := λ f, f ⟨⟩, inv := λ x _, x })
+  (by tidy)
+
 /-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
   coyoneda functor coming from `punit`. -/
 @[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
@@ -137,6 +143,14 @@ See https://stacks.math.columbia.edu/tag/001Q.
 class representable (F : Cᵒᵖ ⥤ Type v₁) : Prop :=
 (has_representation : ∃ X (f : yoneda.obj X ⟶ F), is_iso f)
 
+/-- Given an object `X` and an isomorphism `yoneda.obj X ≅ F`, `F` is representable. -/
+def representable_of_nat_iso {F : Cᵒᵖ ⥤ Type v₁} (X : C) (i : yoneda.obj X ≅ F) :
+  F.representable :=
+{ has_representation := ⟨X, i.hom, infer_instance⟩ }
+
+instance {X : C} : representable (yoneda.obj X) :=
+representable_of_nat_iso _ (iso.refl _)
+
 /--
 A functor `F : C ⥤ Type v₁` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
 
@@ -145,9 +159,15 @@ See https://stacks.math.columbia.edu/tag/001Q.
 class corepresentable (F : C ⥤ Type v₁) : Prop :=
 (has_corepresentation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
 
-def corepresentable_of_nat_iso (F : C ⥤ Type v₁) (X : Cᵒᵖ) (i : coyoneda.obj X ≅ F) :
-  corepresentable F :=
+def corepresentable_of_nat_iso {F : C ⥤ Type v₁} (X : Cᵒᵖ) (i : coyoneda.obj X ≅ F) :
+  F.corepresentable :=
 { has_corepresentation := ⟨X, i.hom, infer_instance⟩ }
+
+instance {X : Cᵒᵖ} : corepresentable (coyoneda.obj X) :=
+corepresentable_of_nat_iso X (iso.refl _)
+
+instance : corepresentable (𝟭 (Type v₁)) :=
+corepresentable_of_nat_iso (op punit) coyoneda.punit_iso
 
 section representable
 variables (F : Cᵒᵖ ⥤ Type v₁)
@@ -217,6 +237,14 @@ end
 end corepresentable
 
 end functor
+
+lemma representable_of_nat_iso {F G : Cᵒᵖ ⥤ Type v₁} (i : F ≅ G) [F.representable] :
+  G.representable :=
+functor.representable_of_nat_iso _ (F.repr_w ≪≫ i)
+
+lemma corepresentable_of_nat_iso {F G : C ⥤ Type v₁} (i : F ≅ G) [F.corepresentable] :
+  G.corepresentable :=
+functor.corepresentable_of_nat_iso _ (F.corepr_w ≪≫ i)
 
 open opposite
 

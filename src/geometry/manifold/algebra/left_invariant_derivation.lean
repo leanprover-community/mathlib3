@@ -56,8 +56,8 @@ variables
 {M : Type*} [topological_space M] [charted_space H M] {x : M}
 {X Y : left_invariant_derivation I G} {f f' : C^∞⟮I, G; 𝕜⟯} {r : 𝕜}
 
-lemma to_fun_eq_coe : X.to_fun = ⇑X := rfl
-lemma coe_fn_coe : ⇑(X : C^∞⟮I, G; 𝕜⟯ →ₗ[𝕜] C^∞⟮I, G; 𝕜⟯) = X := rfl
+@[simp] lemma to_fun_eq_coe : X.to_fun = ⇑X := rfl
+@[simp] lemma coe_fn_coe : ⇑(X : C^∞⟮I, G; 𝕜⟯ →ₗ[𝕜] C^∞⟮I, G; 𝕜⟯) = X := rfl
 @[simp] lemma to_derivation_eq_coe : X.to_derivation = X := rfl
 
 lemma coe_injective (h : ⇑X = Y) : X = Y :=
@@ -68,7 +68,7 @@ coe_injective $ funext h
 
 variables (X Y f)
 
-@[simp] lemma coe_lift_eq_coe :
+@[simp] lemma coe_derivation :
   ⇑(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = (X : C^∞⟮I, G; 𝕜⟯ → C^∞⟮I, G; 𝕜⟯) := rfl
 
 /-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
@@ -88,9 +88,14 @@ instance : has_neg (left_invariant_derivation I G) :=
 { neg := λ X, ⟨-X, λ f g, by simp only [linear_map.map_neg, derivation.coe_neg, left_invariant',
   pi.neg_apply]⟩ }
 
+instance : has_sub (left_invariant_derivation I G) :=
+{ sub := λ X Y, ⟨X - Y, λ f g, by simp only [linear_map.map_sub, derivation.coe_sub,
+  left_invariant', pi.sub_apply]⟩ }
+
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
 @[simp] lemma coe_neg : ⇑(-X) = -X := rfl
+@[simp] lemma coe_sub : ⇑(X - Y) = X - Y := rfl
 @[simp, norm_cast] lemma lift_add :
   (↑(X + Y) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = X + Y := rfl
 @[simp, norm_cast] lemma lift_zero :
@@ -110,8 +115,6 @@ instance : add_comm_group (left_invariant_derivation I G) :=
   ..left_invariant_derivation.has_add,
   ..left_invariant_derivation.has_neg }
 
-@[simp] lemma coe_sub : ⇑(X - Y) = X - Y := by simp only [sub_eq_add_neg, coe_add, coe_neg]
-
 instance : module 𝕜 (left_invariant_derivation I G) :=
 module.of_core $
 { smul := λ r X, ⟨r • X, λ f g, by { simp only [derivation.Rsmul_apply, algebra.id.smul_eq_mul,
@@ -121,13 +124,13 @@ module.of_core $
   smul_add := λ r X Y, ext $ λ b, smul_add _ _ _,
   add_smul := λ r s X, ext $ λ b, add_smul _ _ _ }
 
+@[simp] lemma coe_smul : ⇑(r • X) = r • X := rfl
 @[simp] lemma map_smul : X (r • f) = r • X f := linear_map.map_smul X r f
-@[simp] lemma smul_map : (r • X) f = r • (X f) := rfl
 @[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 @[simp] lemma lift_smul (k : 𝕜) : (↑(k • X) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = k • X := rfl
 
 /-- Evaluation at a point for left invariant derivation. Same thing as for generic global
-derivations.-/
+derivations (`derivation.eval_at`). -/
 def eval_at : (left_invariant_derivation I G) →ₗ[𝕜] (point_derivation I g) :=
 { to_fun := λ X, derivation.eval_at g ↑X,
   map_add' := λ X Y, rfl,
@@ -152,8 +155,8 @@ instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivatio
 { bracket := λ X Y, ⟨⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆, λ f g, begin
     have hX := left_invariant' g X (Y f), have hY := left_invariant' g Y (X f),
     rw [apply_fdifferential, derivation.eval_apply] at hX hY ⊢, rw [comp_L] at hX hY,
-    rw [derivation.commutator_apply, smooth_map.coe_sub, pi.sub_apply, coe_lift_eq_coe],
-    rw [coe_lift_eq_coe] at hX hY ⊢, rw [hX, hY], refl end⟩ }
+    rw [derivation.commutator_apply, smooth_map.coe_sub, pi.sub_apply, coe_derivation],
+    rw [coe_derivation] at hX hY ⊢, rw [hX, hY], refl end⟩ }
 
 @[simp] lemma commutator_coe_derivation :
   ⇑⁅X, Y⁆ = (⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆ :
@@ -171,6 +174,7 @@ instance : lie_ring (left_invariant_derivation I G) :=
               pi.add_apply], ring, } }
 
 instance : lie_algebra 𝕜 (left_invariant_derivation I G) :=
-{ lie_smul := λ r Y Z, by { ext1, simp only [commutator_apply, map_smul, smul_sub, smul_map] } }
+{ lie_smul := λ r Y Z, by { ext1, simp only [commutator_apply, map_smul, smul_sub, coe_smul,
+              pi.smul_apply] } }
 
 end left_invariant_derivation

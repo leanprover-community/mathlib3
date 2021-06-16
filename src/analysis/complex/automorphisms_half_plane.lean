@@ -1,5 +1,5 @@
 import linear_algebra.special_linear_group
-import data.complex.basic
+import analysis.complex.basic
 import group_theory.group_action.defs
 
 noncomputable theory
@@ -16,12 +16,14 @@ class upper_half_plane :=
 (point : ℂ)
 (im_pos' : 0 < point.im)
 
-local notation `ℍ` := upper_half_plane
+localized "notation `ℍ` := upper_half_plane" in upper_half_plane
 
 namespace upper_half_plane
 
 instance : has_coe ℍ ℂ :=
 { coe := λ z, z.point }
+
+instance : topological_space ℍ := uniform_space.to_topological_space.induced (coe : ℍ → ℂ)
 
 def im (z : ℍ) := z.point.im
 

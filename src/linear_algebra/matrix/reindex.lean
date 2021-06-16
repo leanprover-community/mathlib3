@@ -62,14 +62,30 @@ lemma reindex_linear_equiv_trans [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n'
    @reindex_linear_equiv _ _ _ _ _ _ _ _ R _ (e₁.trans e₁') (e₂.trans e₂') :=
 by { ext, refl }
 
-lemma reindex_linear_equiv_comp_apply [semiring R]
-  (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'') (e₂' : n' ≃ n'') (M : matrix m n R) :
-  (reindex_linear_equiv e₁' e₂') (reindex_linear_equiv e₁ e₂ M) =
-    reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') M :=
+lemma reindex_linear_equiv_comp [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')
+  (e₂' : n' ≃ n'') : (@reindex_linear_equiv _ _ _ _ _ _ _ _ R _ e₁' e₂') ∘
+   (@reindex_linear_equiv _ _ _ _ _ _ _ _ R _ e₁ e₂)
+  = (reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂')) :=
 by { rw [← reindex_linear_equiv_trans], refl }
 
-@[simp] lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m'] (e : m ≃ m') :
-  (reindex_linear_equiv e e (1 : matrix m m R)) = 1 :=
+lemma reindex_linear_equiv_comp_apply [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')
+  (e₂' : n' ≃ n'') (M : matrix m n R) :
+  (reindex_linear_equiv e₁' e₂') (reindex_linear_equiv e₁ e₂ M) =
+    reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') M :=
+by rw [← reindex_linear_equiv_comp e₁ e₂ e₁' e₂']
+
+-- lemma reindex_linear_equiv_sum_empty_symm [semiring R] [is_empty m'] [is_empty n']
+--   (M : matrix m n R) : (reindex_linear_equiv (sum_empty m m') (sum_empty n n')).symm M =
+--     from_blocks M 0 0 0 :=
+-- begin
+--   ext (i|i) (j|j),
+--   { simp only [reindex_linear_equiv_symm, from_blocks_apply₁₁], refl },
+--   { exact is_empty_elim j },
+--   { exact is_empty_elim i }
+-- end
+
+@[simp] lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m']
+  (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 :=
 begin
   ext i j,
   dsimp only [reindex_linear_equiv_apply, reindex_apply, minor_apply, one_apply],
@@ -77,11 +93,26 @@ begin
   convert rfl
 end
 
-lemma reindex_linear_equiv_mul {o o' : Type*} [fintype o] [fintype o'] [semiring R]
+variables {o o' : Type*} [fintype o] [fintype o']
+
+lemma reindex_linear_equiv_mul [semiring R]
   (eₘ : m ≃ m') (eₙ : n ≃ n') (eₒ : o ≃ o') (M : matrix m n R) (N : matrix n o R) :
   reindex_linear_equiv eₘ eₒ (M ⬝ N) =
     reindex_linear_equiv eₘ eₙ M ⬝ reindex_linear_equiv eₙ eₒ N :=
 minor_mul_equiv M N _ _ _
+
+lemma mul_reindex_linear_equiv_mul_one [semiring R] [decidable_eq o] (e₁ : o ≃ n) (e₂ : o ≃ n')
+  (M : matrix m n R) : M.mul (reindex_linear_equiv e₁ e₂ 1) =
+    reindex_linear_equiv (equiv.refl m) (e₁.symm.trans e₂) M :=
+begin
+  have : M = reindex_linear_equiv (equiv.refl m) e₁ (reindex_linear_equiv (equiv.refl m) e₁.symm M),
+  { rw [reindex_linear_equiv_comp_apply, equiv.symm_trans, equiv.refl_trans,
+      reindex_linear_equiv_refl_refl],
+    refl },
+  conv_lhs { rw this },
+  rw [← reindex_linear_equiv_mul, matrix.mul_one, reindex_linear_equiv_comp_apply,
+    equiv.refl_trans]
+end
 
 /-- For square matrices with coefficients in commutative semirings, the natural map that reindexes a matrix's
   rows and columns with equivalent types, `matrix.reindex`, is an equivalence of algebras. -/

@@ -10,13 +10,28 @@ import analysis.convex.extreme
 
 This file defines exposed sets and exposed points for sets in a real vector space.
 
+An exposed set of `A` is a subset of `A` that maximizes a functional (a continuous linear map
+`E → ℝ`) over `A`. By convention, `∅` is exposed to all sets.
+This is an analytic notion of "being on the side of". It is stronger than being extreme (see
+`is_exposed.is_extreme`), but weaker (for exposed points) than being a vertex.
+
+An exposed set of `A` is sometimes called a "face of `A`", but we decided to reserve this
+terminology to the more specific notion of a face of a polytope (sometimes hopefully soon out
+on mathlib!).
+
+## Main declarations
+
+* `is_exposed A B`: States that `B` is exposed with respect to `A`.
+* `is_exposed.is_extreme`: An exposed set is also extreme.
+
 ## References
 
-See chapter 8 of [Convexity][simon2011]
+See chapter 8 of [*Barry Simon*, Convexity][simon2011]
 
 TODO:
-- define convex independence and prove lemmas related to extreme points.
-- generalise to Locally Convex Topological Vector Spaces
+- define convex independence, intrinsic frontier and prove lemmas related to exposed sets and
+  points.
+- generalise to Locally Convex Topological Vector Spaces.
 More not-yet-PRed stuff is available on the branch `sperner_again`.
 -/
 
@@ -26,9 +41,12 @@ open set
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
   {X : finset E} {l : E →L[ℝ] ℝ}
 
+/-- A set is exposed with respect to `A` iff it maximizes some functional over `A`. -/
 def is_exposed (A B : set E) : Prop :=
 B.nonempty → ∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
+
+/-- A useful way to build exposed sets from intersecting `A` with halfspaces. -/
 def continuous_linear_map.to_exposed (l : E →L[ℝ] ℝ) (A : set E) : set E :=
 {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
@@ -115,6 +133,21 @@ begin
   exact hC.inter_left hCA,
 end
 
+lemma eq_inter_halfspace (hAB : is_exposed A B) :
+  ∃ l : E →L[ℝ] ℝ, ∃ a, B = {x ∈ A | a ≤ l x} :=
+begin
+  obtain hB | hB := B.eq_empty_or_nonempty,
+  { refine ⟨0, 1, _⟩,
+    rw [hB, eq_comm, eq_empty_iff_forall_not_mem],
+    rintro x ⟨-, h⟩,
+    rw continuous_linear_map.zero_apply at h,
+    linarith },
+  obtain ⟨l, rfl⟩ := hAB hB,
+  obtain ⟨w, hw⟩ := hB,
+  exact ⟨l, l w, subset.antisymm (λ x hx, ⟨hx.1, hx.2 w hw.1⟩)
+    (λ x hx, ⟨hx.1, λ y hy, (hw.2 y hy).trans hx.2⟩)⟩,
+end
+
 protected lemma is_extreme (hAB : is_exposed A B) :
   is_extreme A B :=
 begin
@@ -165,8 +198,21 @@ begin
     ... = l x : by rw [←hx, l.map_add, l.map_smul, l.map_smul],
 end
 
+lemma is_closed (hAB : is_exposed A B) (hA : is_closed A) :
+  is_closed B :=
+begin
+  obtain ⟨l, a, rfl⟩ := hAB.eq_inter_halfspace,
+  exact hA.is_closed_le continuous_on_const l.continuous.continuous_on,
+end
+
+lemma is_compact (hAB : is_exposed A B) (hA : is_compact A) :
+  is_compact B :=
+compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
+
 end is_exposed
 
+/-- A point is exposed with respect to `A` iff there exists an hyperplane whose intersection with
+`A` is exactly that point. -/
 def set.exposed_points (A : set E) :
   set E :=
 {x ∈ A | ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y ≤ l x ∧ (l x ≤ l y → y = x)}
@@ -175,6 +221,7 @@ lemma exposed_point_def :
   x ∈ A.exposed_points ↔ x ∈ A ∧ ∃ l : E →L[ℝ] ℝ, ∀ y ∈ A, l y ≤ l x ∧ (l x ≤ l y → y = x) :=
 iff.rfl
 
+/-- Exposed points exactly correspond to exposed singletons. -/
 lemma mem_exposed_points_iff_exposed_singleton :
   x ∈ A.exposed_points ↔ is_exposed A {x} :=
 begin

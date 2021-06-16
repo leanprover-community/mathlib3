@@ -18,11 +18,9 @@ This is useful in multiple ways:
   `none` as an element smaller than all others.
 * It can be used to define failsafe partial functions, which return `some the_result_we_expect`
   if we can find `the_result_we_expect`, and `none` if there is no meaningful result. This forces
-  any subsequent use of the partial function to epxlicitly deal with the exceptions that make it
+  any subsequent use of the partial function to explicitly deal with the exceptions that make it
   return `none`.
-* In a dual fashion, the error message of a tactic is `option expr`, so that the tactic returns
-  `none` when everything goes well, and `some the_error_message` otherwise.
-* In category theory speak, `option` is a monad.
+* `option` is a monad. We love monads.
 
 `roption` is an alternative to `option` that can be seen as the type of `true`/`false` values
 along with a term `a : α` if the value is `true`.

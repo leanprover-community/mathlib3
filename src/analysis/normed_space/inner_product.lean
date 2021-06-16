@@ -72,7 +72,7 @@ noncomputable theory
 open is_R_or_C real filter
 open_locale big_operators classical topological_space
 
-variables {𝕜 : Type} {E F : Type*} [is_R_or_C 𝕜]
+variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
 
 /-- Syntactic typeclass for types endowed with an inner product -/
 class has_inner (𝕜 E : Type*) := (inner : E → E → 𝕜)
@@ -97,7 +97,7 @@ spaces.
 
 To construct a norm from an inner product, see `inner_product_space.of_core`.
 -/
-class inner_product_space (𝕜 :  𝕜]
+class inner_product_space (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜]
   extends normed_group E, normed_space 𝕜 E, has_inner 𝕜 E :=
 (norm_sq_eq_inner : ∀ (x : E), ∥x∥^2 = re (inner x x))
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
@@ -1439,7 +1439,7 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
 space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
-def euclidean_space (𝕜 : Type) [is_R_or_C 𝕜]
+def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]

@@ -103,14 +103,13 @@ by haveI : finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_u
 
 variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} {μ ν : measure α}
 
-/-- A function is `integrable_on` a set `s` if it is a measurable function and if the integral of
-  its pointwise norm over `s` is less than infinity. -/
+/-- A function is `integrable_on` a set `s` if it is almost everywhere measurable on `s` and if the
+integral of its pointwise norm over `s` is less than infinity. -/
 def integrable_on (f : α → E) (s : set α) (μ : measure α . volume_tac) : Prop :=
 integrable f (μ.restrict s)
 
 lemma integrable_on.integrable (h : integrable_on f s μ) :
-  integrable f (μ.restrict s) :=
-h
+  integrable f (μ.restrict s) := h
 
 @[simp] lemma integrable_on_empty : integrable_on f ∅ μ :=
 by simp [integrable_on, integrable_zero_measure]
@@ -162,6 +161,17 @@ lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ
 @[simp] lemma integrable_on_union :
   integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ :=
 ⟨λ h, ⟨h.left_of_union, h.right_of_union⟩, λ h, h.1.union h.2⟩
+
+@[simp] lemma integrable_on_singleton_iff {x : α} [measurable_singleton_class α]:
+  integrable_on f {x} μ ↔ f x = 0 ∨ μ {x} < ∞ :=
+begin
+  have : f =ᵐ[μ.restrict {x}] (λ y, f x),
+  { filter_upwards [ae_restrict_mem (measurable_set_singleton x)],
+    assume a ha,
+    simp only [mem_singleton_iff.1 ha] },
+  rw [integrable_on, integrable_congr this, integrable_const_iff],
+  simp,
+end
 
 @[simp] lemma integrable_on_finite_union {s : set β} (hs : finite s)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
@@ -369,9 +379,19 @@ begin
   { apply_instance }
 end
 
+lemma integrable_on.mul_continuous_on [topological_space α] [opens_measurable_space α]
+  [t2_space α] {μ : measure α} [locally_finite_measure μ] {s : set α} {f g : α → ℝ}
+  (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
+  integrable_on (λ x, f x * g x) s μ :=
+begin
+
+end
+
+
+
 section
 
-variables {μ : measure α} {𝕜 : Type} [is_R_or_C 𝕜] [normed_space 𝕜 E]
+variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
 
 namespace continuous_linear_map

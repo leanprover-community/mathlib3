@@ -132,7 +132,7 @@ end
 end is_R_or_C
 
 section dual_vector
-variables (𝕜 : Type*) [is_R_or_C 𝕜]
+variables (𝕜 : Type v) [is_R_or_C 𝕜]
 variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 open continuous_linear_equiv submodule

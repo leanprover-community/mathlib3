@@ -161,6 +161,8 @@ lemma div [has_div Y] ⦃f g : X → Y⦄ (hf : is_locally_constant f) (hg : is_
   is_locally_constant (f / g) :=
 hf.comp₂ hg (/)
 
+/-- If a composition of a function `f` followed by an injection `g` is locally 
+constant, then the locally constant property descends to `f`. -/
 lemma desc {α β : Type*} (f : X → α) (g : α → β)
   (h : is_locally_constant (g ∘ f)) (inj : function.injective g) : is_locally_constant f :=
 begin

@@ -34,7 +34,7 @@ instance [inhabited B] [inhabited (E (default B))] :
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
 @[simp] def proj : total_space E → B := sigma.fst
 
-instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
+instance {x : B} : has_coe_t (E x) (total_space E) := ⟨sigma.mk x⟩
 
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 

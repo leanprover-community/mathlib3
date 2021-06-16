@@ -496,12 +496,15 @@ mem_Inf
 @[simp]
 lemma subset_closure : s ⊆ closure L s := (closure L).le_closure s
 
-variable {S}
+@[simp]
+lemma closed (S : L.substructure M) : (closure L).closed (S : set M) :=
+congr rfl ((closure L).eq_of_le set.subset.rfl (λ x xS, mem_closure.2 (λ T hT, hT xS)))
+
 open set
 
 /-- A substructure `S` includes `closure L s` if and only if it includes `s`. -/
 @[simp]
-lemma closure_le : closure L s ≤ S ↔ s ⊆ S := (closure L).closure_le_closed_iff_le _ _
+lemma closure_le : closure L s ≤ S ↔ s ⊆ S := (closure L).closure_le_closed_iff_le s S.closed
 
 /-- Substructure closure of a set is monotone in its argument: if `s ⊆ t`,
 then `closure L s ≤ closure L t`. -/

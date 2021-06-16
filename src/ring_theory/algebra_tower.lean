@@ -67,7 +67,8 @@ namespace algebra
 
 theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] (s : set S) :
-  adjoin R (algebra_map S (comap R S A) '' s) = subalgebra.map (adjoin R s) (to_comap R S A) :=
+  adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
+  ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
 le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 

@@ -192,6 +192,7 @@ end map_range
 
 section basis
 
+/-- The direct sum of free modules is free. -/
 noncomputable def basis {η : ι → Type*} (b : Π i, basis (η i) R (M i)) :
   basis (Σ i, η i) R (Π₀ i, M i) :=
 basis.of_repr ((map_range.linear_equiv (λ i, (b i).repr)).trans

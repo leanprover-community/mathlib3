@@ -269,11 +269,6 @@ section integrable
 variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter ι}
   [normed_group E] [measurable_space E] [opens_measurable_space E]
 
-lemma _root_.ae_measurable.coe_nnreal_ennreal {f : α → ℝ≥0} {μ : measure α}
-  (hf : ae_measurable f μ) :
-  ae_measurable (λ x, (f x : ℝ≥0∞)) μ :=
-ennreal.continuous_coe.measurable.comp_ae_measurable hf
-
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto [l.ne_bot] {φ : ι → set α}
   (hφ : ae_cover μ l φ) (hcg : l.is_countably_generated) {f : α → E} (I : ℝ)
   (hfm : ae_measurable f μ)

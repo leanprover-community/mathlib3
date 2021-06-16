@@ -74,16 +74,6 @@ lemma reindex_linear_equiv_comp_apply [semiring R] (e₁ : m ≃ m') (e₂ : n �
     reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') M :=
 by rw [← reindex_linear_equiv_comp e₁ e₂ e₁' e₂']
 
--- lemma reindex_linear_equiv_sum_empty_symm [semiring R] [is_empty m'] [is_empty n']
---   (M : matrix m n R) : (reindex_linear_equiv (sum_empty m m') (sum_empty n n')).symm M =
---     from_blocks M 0 0 0 :=
--- begin
---   ext (i|i) (j|j),
---   { simp only [reindex_linear_equiv_symm, from_blocks_apply₁₁], refl },
---   { exact is_empty_elim j },
---   { exact is_empty_elim i }
--- end
-
 @[simp] lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m']
   (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 :=
 begin

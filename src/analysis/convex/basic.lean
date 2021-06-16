@@ -347,12 +347,8 @@ lemma directed_on.convex_sUnion {c : set (set E)} (hdir : directed_on has_subset
   (hc : ∀ ⦃A : set E⦄, A ∈ c → convex A) :
   convex (⋃₀c) :=
 begin
-  rintro x y hx hy a b ha hb hab,
-  rw mem_sUnion at ⊢ hx hy,
-  obtain ⟨X, hX, hx⟩ := hx,
-  obtain ⟨Y, hY, hy⟩ := hy,
-  obtain ⟨Z, hZ, hXZ, hYZ⟩ := hdir X hX Y hY,
-  exact ⟨Z, hZ, hc hZ (hXZ hx) (hYZ hy) ha hb hab⟩,
+  rw sUnion_eq_Union,
+  exact (directed_on_iff_directed.1 hdir).convex_Union (λ A, hc A.2),
 end
 
 lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :

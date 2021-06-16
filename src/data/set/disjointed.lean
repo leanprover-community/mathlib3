@@ -19,7 +19,7 @@ disjoint sets.
   sequence has the same union as `f 0`, `f 1`, `f 2` but with disjoint sets.
 
 -/
-open set classical
+open set
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
@@ -112,7 +112,7 @@ have (⋂ i (h : i < n + 1), (f i)ᶜ) = (f n)ᶜ,
     (le_infi $ λ i, le_infi $ λ hi, compl_le_compl $ hf $ nat.le_of_succ_le_succ hi),
 by simp [disjointed, this, diff_eq]
 
-variable [∀ i, decidable_pred (f i)]
+open_locale classical
 
 lemma subset_Union_disjointed : f n ⊆ ⋃ i < n.succ, disjointed f i :=
 λ x hx,

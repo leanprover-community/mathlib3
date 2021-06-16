@@ -176,10 +176,14 @@ variable [F.representable]
 noncomputable def repr_X : C :=
 (representable.has_representation : ∃ X (f : _ ⟶ F), _).some
 
-/-- The (forward direction)   -/
+/-- The (forward direction) of the isomorphism witnessing `F` is representable. -/
 noncomputable def repr_f : yoneda.obj F.repr_X ⟶ F :=
 representable.has_representation.some_spec.some
 
+/--
+The representing element for the representable functor `F`, sometimes called the universal
+element of the functor.
+-/
 noncomputable def repr_x : F.obj (op F.repr_X) :=
 F.repr_f.app (op F.repr_X) (𝟙 F.repr_X)
 
@@ -187,7 +191,8 @@ instance : is_iso F.repr_f :=
 representable.has_representation.some_spec.some_spec
 
 /--
-Note the components `F_repr.w.app X` definitionally have type `F.repr_X ⟶ X ≅ F.obj X`.
+An isomorphism between `F` and a functor of the form `C(-, F.repr X)`.  Note the components
+`F_repr.w.app X` definitionally have type `(X.unop ⟶ F.repr_X) ≅ F.obj X`.
 -/
 noncomputable def repr_w : yoneda.obj F.repr_X ≅ F := as_iso F.repr_f
 
@@ -209,12 +214,18 @@ section corepresentable
 variables (F : C ⥤ Type v₁)
 variable [F.corepresentable]
 
+/-- The representing object for the corepresentable functor `F`. -/
 noncomputable def corepr_X : C :=
 (corepresentable.has_corepresentation : ∃ X (f : _ ⟶ F), _).some.unop
 
+/-- The (forward direction) of the isomorphism witnessing `F` is corepresentable. -/
 noncomputable def corepr_f : coyoneda.obj (op F.corepr_X) ⟶ F :=
 corepresentable.has_corepresentation.some_spec.some
 
+/--
+The representing element for the corepresentable functor `F`, sometimes called the universal
+element of the functor.
+-/
 noncomputable def corepr_x : F.obj F.corepr_X :=
 F.corepr_f.app F.corepr_X (𝟙 F.corepr_X)
 
@@ -222,7 +233,8 @@ instance : is_iso F.corepr_f :=
 corepresentable.has_corepresentation.some_spec.some_spec
 
 /--
-Note the components `F.w.app X` definitionally have type `F.X ⟶ X ≅ F.obj X`.
+An isomorphism between `F` and a functor of the form `C(F.repr X, -)`. Note the components
+`F.w.app X` definitionally have type `F.repr_X ⟶ X ≅ F.obj X`.
 -/
 noncomputable def corepr_w : coyoneda.obj (op F.corepr_X) ≅ F := as_iso F.corepr_f
 

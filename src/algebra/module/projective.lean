@@ -178,6 +178,7 @@ begin
   exact b.total_repr m,
 end
 
+@[priority 100]
 instance projective_of_free [module.free R P] : module.projective R P :=
 projective_of_basis $ module.free.choose_basis R P
 

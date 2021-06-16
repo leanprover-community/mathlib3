@@ -124,11 +124,10 @@ nat_iso.of_components
   (λ X, { hom := λ f, f ⟨⟩, inv := λ x _, x })
   (by tidy)
 
-/-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
-  coyoneda functor coming from `punit`. -/
-@[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
-{ hom := { app := λ X f, f punit.star},
-  inv := { app := λ X a _, a } }
+-- /-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
+--   coyoneda functor coming from `punit`. -/
+-- @[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
+-- iso_whisker_left P punit_iso ≪≫ P.right_unitor
 
 end coyoneda
 

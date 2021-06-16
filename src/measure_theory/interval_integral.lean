@@ -1,12 +1,15 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury G. Kudryashov, Patrick Massot
+Authors: Yury G. Kudryashov, Patrick Massot, Sébastien Gouëzel
 -/
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
 import analysis.calculus.fderiv_measurable
 import analysis.calculus.extend_deriv
+import measure_theory.vitali_caratheodory
+import analysis.normed_space.dual
+
 
 /-!
 # Integral over an interval
@@ -204,6 +207,10 @@ lemma interval_integrable.def {f : α → E} {a b : α} {μ : measure α}
   (h : interval_integrable f μ a b) :
   integrable_on f (Ioc (min a b) (max a b)) μ :=
 interval_integrable_iff.mp h
+
+lemma interval_integrable_iff_of_le {f : α → E} {a b : α} (hab : a ≤ b) {μ : measure α} :
+  interval_integrable f μ a b ↔ integrable_on f (Ioc a b) μ :=
+by simp [interval_integrable_iff, hab]
 
 /-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
   with respect to `μ` on `interval a b`. -/
@@ -615,6 +622,10 @@ begin
     rw this },
   { simp [hab, hab.le] }
 end
+
+lemma integral_Icc_eq_integral_Ioc' {f : α → E} {a b : α} [has_no_atoms μ] :
+  ∫ t in Icc a b, f t ∂μ = ∫ t in Ioc a b, f t ∂μ :=
+integral_Icc_eq_integral_Ioc $ measure_singleton a
 
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
 lemma integral_congr {a b : α} (h : eq_on f g (interval a b)) :
@@ -1783,42 +1794,134 @@ theorem differentiable_on_integral_of_continuous {s : set ℝ}
   hcont.measurable.ae_measurable.measurable_at_filter
     hcont.continuous_at) .differentiable_at.differentiable_within_at
 
-/-- The integral of a continuous function is continuous on a real set `s`. This is true even
-  without the assumption of continuity, but a proof of that fact does not yet exist in mathlib. -/
-theorem continuous_on_integral_of_continuous {s : set ℝ}
-  (hintg : ∀ x ∈ s, interval_integrable f volume a x) (hcont : continuous f) :
-  continuous_on (λ u, ∫ x in a..u, f x) s :=
-(differentiable_on_integral_of_continuous hintg hcont).continuous_on
+variables {g' g : ℝ → ℝ}
+
+private lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b)
+  (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
+  (g'int : integrable_on g' (Icc a b)) :
+  g b - g a ≤ (∫ y in a..b, g' y) :=
+begin
+  refine le_of_forall_pos_le_add (λ ε εpos, _),
+  rcases exists_lt_lower_semicontinuous_integral_lt g' g'int εpos with
+    ⟨G', g'_lt_G', G'cont, G'int, G'lt_top, hG'⟩,
+  set s := {t | g t - g a ≤ (∫ u in a..t, (G' u).to_real)} ∩ Icc a b,
+  have s_closed : is_closed s,
+  { have : continuous_on (λ t, (g t - g a, ∫ u in a..t, (G' u).to_real)) (Icc a b) :=
+      (hcont.sub continuous_on_const).prod (continuous_on_primitive'' G'int),
+    simp only [s, inter_comm],
+    exact this.preimage_closed_of_closed is_closed_Icc order_closed_topology.is_closed_le' },
+  have main : Icc a b ⊆ {t | g t - g a ≤ (∫ u in a..t, (G' u).to_real) },
+  { apply s_closed.Icc_subset_of_forall_exists_gt (by simp) (λ t ht v t_lt_v, _),
+    obtain ⟨y, g'_lt_y', y_lt_G'⟩ : ∃ (y : ℝ), (g' t : ereal) < y ∧ (y : ereal) < G' t :=
+      ereal.lt_iff_exists_real_btwn.1 (g'_lt_G' t),
+    have I1 : ∀ᶠ u in 𝓝[Ioi t] t, (u - t) * y ≤ (∫ u in t..u, (G' u).to_real),
+    { have B : ∀ᶠ u in 𝓝 t, (y : ereal) < G' u :=
+        G'cont.lower_semicontinuous_at _ _ y_lt_G',
+      rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
+      have : Ioo t (min M b) ∈ 𝓝[Ioi t] t :=
+        mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨min M b, by simp [hM, ht.2.2], subset.refl _⟩,
+      filter_upwards [this],
+      assume u hu,
+      have I : Icc t u ⊆ Icc a b := (Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _))),
+      calc (u - t) * y = (∫ u in Icc t u, y) :
+        by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
+                      measurable_set.univ, real.volume_Icc, measure.restrict_apply, univ_inter,
+                      ennreal.to_real_of_real]
+      ... ≤ (∫ u in t..u, (G' u).to_real) :
+      begin
+        rw [interval_integral.integral_of_le hu.1.le, ← integral_Icc_eq_integral_Ioc'],
+        apply set_integral_mono_ae_restrict,
+        { simp [integrable_on_const] },
+        { exact integrable_on.mono_set G'int I },
+        { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ⊤,
+          { apply ae_mono _ G'lt_top,
+            apply measure.restrict_mono I (le_refl _) },
+          have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
+            ae_restrict_mem measurable_set_Icc,
+          filter_upwards [C1, C2],
+          assume x G'x hx,
+          apply ereal.coe_le_coe_iff.1,
+          have : x ∈ Ioo m M,
+            by simp [hm.trans_le hx.1, (hx.2.trans_lt hu.2).trans_le (min_le_left _ _)],
+          convert le_of_lt (H this),
+          exact ereal.coe_to_real G'x.ne (ne_bot_of_gt (g'_lt_G' x)) }
+      end },
+    have I2 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ (u - t) * y,
+    { have g'_lt_y : g' t < y := ereal.coe_lt_coe_iff.1 g'_lt_y',
+      filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
+        (not_mem_Ioi.2 (le_refl _)) g'_lt_y, self_mem_nhds_within],
+      assume u hu t_lt_u,
+      have := hu.le,
+      rwa [← div_eq_inv_mul, div_le_iff'] at this,
+      exact sub_pos.2 t_lt_u },
+    have I3 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ (∫ u in t..u, (G' u).to_real),
+    { filter_upwards [I1, I2],
+      assume u hu1 hu2,
+      exact hu2.trans hu1 },
+    have I4 : ∀ᶠ u in 𝓝[Ioi t] t, u ∈ Ioc t (min v b),
+    { refine mem_nhds_within_Ioi_iff_exists_Ioc_subset.2 ⟨min v b, _, subset.refl _⟩,
+      simp only [lt_min_iff, mem_Ioi],
+      exact ⟨t_lt_v, ht.2.2⟩ },
+    rcases (I3.and I4).exists with ⟨x, hx, h'x⟩,
+    refine ⟨x, _, Ioc_subset_Ioc (le_refl _) (min_le_left _ _) h'x⟩,
+    calc g x - g a = (g t - g a) + (g x - g t) : by abel
+    ... ≤ (∫ u in a..t, (G' u).to_real) + ∫ u in t..x, (G' u).to_real :
+      add_le_add ht.1 hx
+    ... = ∫ u in a..x, (G' u).to_real :
+    begin
+      apply integral_add_adjacent_intervals,
+      { rw interval_integrable_iff_of_le ht.2.1,
+        exact integrable_on.mono_set G'int
+          (Ioc_subset_Icc_self.trans (Icc_subset_Icc (le_refl _) ht.2.2.le)) },
+      { rw interval_integrable_iff_of_le h'x.1.le,
+        apply integrable_on.mono_set G'int,
+        refine Ioc_subset_Icc_self.trans (Icc_subset_Icc ht.2.1 (h'x.2.trans (min_le_right _ _))) }
+    end },
+  calc g b - g a ≤ (∫ y in a..b, (G' y).to_real) : main (right_mem_Icc.2 hab)
+  ... ≤ (∫ y in a..b, g' y) + ε :
+    begin
+      convert hG'.le;
+      { rw interval_integral.integral_of_le hab,
+        simp [integral_Icc_eq_integral_Ioc'] },
+    end
+end
+
+private lemma integral_le_sub_of_has_deriv_right_of_le (hab : a ≤ b)
+  (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
+  (g'int : integrable_on g' (Icc a b)) :
+  (∫ y in a..b, g' y) ≤ g b - g a :=
+begin
+  rw ← neg_le_neg_iff,
+  convert sub_le_integral_of_has_deriv_right_of_le hab hcont.neg (λ x hx, (hderiv x hx).neg)
+    g'int.neg,
+  { abel },
+  { simp only [integral_neg] }
+end
+
+private lemma integral_eq_sub_of_has_deriv_right_of_le_real (hab : a ≤ b)
+  (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
+  (g'int : integrable_on g' (Icc a b)) :
+  (∫ y in a..b, g' y) = g b - g a :=
+le_antisymm
+  (integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv g'int)
+  (sub_le_integral_of_has_deriv_right_of_le hab hcont hderiv g'int)
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
-  has a right derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]`, then
+  has a right derivative at `f' x` for all `x` in `[a, b)`, and `f'` is integrable on `[a, b]`, then
   `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on f (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
-  (hcont' : continuous_on f' (Icc a b)) :
+  (hcont' : integrable_on f' (Icc a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 begin
-  have hmeas' : ae_measurable f' (volume.restrict (Icc a b)),
-    from hcont'.ae_measurable measurable_set_Icc,
-  refine eq_sub_of_add_eq (eq_of_has_deriv_right_eq (λ y hy, _) hderiv
-    (λ y hy, _) hcont (by simp) _ (right_mem_Icc.2 hab)),
-  { refine (integral_has_deriv_within_at_right _ _ _).add_const _,
-    { refine (hcont'.mono _).interval_integrable,
-      simp only [hy.left, Icc_subset_Icc_right hy.right.le, interval_of_le] },
-    { exact ⟨_, Icc_mem_nhds_within_Ioi hy, hmeas'⟩,  },
-    { exact (hcont' _ (mem_Icc_of_Ico hy)).mono_of_mem (Icc_mem_nhds_within_Ioi hy) } },
-{ -- TODO: prove that integral of any integrable function is continuous, and use here
-    letI : tendsto_Ixx_class Ioc (𝓟 (Icc a b)) (𝓟 (Ioc a b)) :=
-      tendsto_Ixx_class_principal.2 (λ x hx y hy, Ioc_subset_Ioc hx.1 hy.2),
-    haveI : is_measurably_generated (𝓝[Ioc a b] y) :=
-      measurable_set_Ioc.nhds_within_is_measurably_generated y,
-    letI : FTC_filter y (𝓝[Icc a b] y) (𝓝[Ioc a b] y) := ⟨pure_le_nhds_within hy, inf_le_left⟩,
-    refine (integral_has_deriv_within_at_right _ _ _).continuous_within_at.add
-      continuous_within_at_const,
-    { exact (hcont'.mono $ Icc_subset_Icc_right hy.2).interval_integrable_of_Icc hy.1 },
-    { exact ⟨_, mem_sets_of_superset self_mem_nhds_within Ioc_subset_Icc_self, hmeas'⟩ },
-    { exact (hcont' y hy).mono Ioc_subset_Icc_self } }
+  by_contra,
+
 end
+
+#exit
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` and
   has a right derivative at `f' x` for all `x` in `[a, b)`, and `f'` is continuous on `[a, b]` then

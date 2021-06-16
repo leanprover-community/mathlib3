@@ -1282,12 +1282,16 @@ begin
   simpa [set_of_and, inter_comm] using measure_inter_eq_zero_of_restrict h
 end
 
-lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hp : measurable_set s) :
+lemma ae_restrict_iff' {s : set α} {p : α → Prop} (hs : measurable_set s) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
-  simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hp],
+  simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hs],
   congr' with x, simp [and_comm]
 end
+
+lemma ae_restrict_mem {s : set α} (hs : measurable_set s) :
+  ∀ᵐ x ∂(μ.restrict s), x ∈ s :=
+(ae_restrict_iff' hs).2 (filter.eventually_of_forall (λ x, id))
 
 lemma ae_restrict_of_ae {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) :
   (∀ᵐ x ∂(μ.restrict s), p x) :=

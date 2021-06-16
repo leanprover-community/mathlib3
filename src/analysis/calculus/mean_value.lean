@@ -1101,7 +1101,7 @@ make sense and are enough. Many formulations of the mean value inequality could 
 balls over `ℝ` or `ℂ`. For now, we only include the ones that we need.
 -/
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 : Type} [is_R_or_C 𝕜] {G : Type*} [normed_group G] [normed_space 𝕜 G]
   {H : Type*} [normed_group H] [normed_space 𝕜 H] {f : G → H} {f' : G → G →L[𝕜] H} {x : G}
 
 /-- Over the reals or the complexes, a continuously differentiable function is strictly

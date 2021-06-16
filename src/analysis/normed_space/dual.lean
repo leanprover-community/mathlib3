@@ -93,7 +93,7 @@ end general
 
 section bidual_isometry
 
-variables {𝕜 : Type v} [is_R_or_C 𝕜]
+variables {𝕜 : Type } [is_R_or_C 𝕜]
 {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.
@@ -131,7 +131,7 @@ open is_R_or_C continuous_linear_map
 
 section is_R_or_C
 
-variables (𝕜 : Type*)
+variables (𝕜 : Type)
 variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _

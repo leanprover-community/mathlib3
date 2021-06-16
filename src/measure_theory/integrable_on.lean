@@ -371,7 +371,7 @@ end
 
 section
 
-variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
+variables {μ : measure α} {𝕜 : Type} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
 
 namespace continuous_linear_map

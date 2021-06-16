@@ -45,6 +45,21 @@ lemma norm_norm'
   (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
 by rw [norm'_def, norm_algebra_map_eq, norm_norm]
 
+@[simp] lemma norm'_eq_zero_iff
+  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
+  (A : Type*) [normed_group A]
+  (x : A) : norm' 𝕜 x = 0 ↔ x = 0 :=
+begin
+  split,
+  { assume hx,
+    have : ∥x∥ = 0, by rw [← norm_norm' 𝕜, hx, norm_zero],
+    simpa using this },
+  { assume hx,
+    rw hx,
+    simp [norm'] }
+end
+
+
 namespace real
 variables {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E]
 
@@ -117,7 +132,7 @@ end
 end is_R_or_C
 
 section dual_vector
-variables {𝕜 : Type v} [is_R_or_C 𝕜]
+variables (𝕜 : Type*) [is_R_or_C 𝕜]
 variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 open continuous_linear_equiv submodule
@@ -147,10 +162,31 @@ theorem exists_dual_vector' [nontrivial E] (x : E) :
 begin
   by_cases hx : x = 0,
   { obtain ⟨y, hy⟩ := exists_ne (0 : E),
-    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = norm' 𝕜 y := exists_dual_vector y hy,
+    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = norm' 𝕜 y := exists_dual_vector 𝕜 y hy,
     refine ⟨g, hg.left, _⟩,
     rw [norm'_def, hx, norm_zero, ring_hom.map_zero, continuous_linear_map.map_zero] },
-  { exact exists_dual_vector x hx }
+  { exact exists_dual_vector 𝕜 x hx }
+end
+
+lemma eq_zero_iff_forall_dual_eq_zero (x : E) :
+  x = 0 ↔ ∀ g : E →L[𝕜] 𝕜, g x = 0 :=
+begin
+  split,
+  { assume hx,
+    simp [hx] },
+  { contrapose!,
+    assume hx,
+    rcases exists_dual_vector 𝕜 x hx with ⟨g, -, hg⟩,
+    refine ⟨g, _⟩,
+    rw hg,
+    simpa using hx }
+end
+
+lemma eq_iff_forall_dual_eq {x y : E} :
+  x = y ↔ ∀ g : E →L[𝕜] 𝕜, g x = g y :=
+begin
+  rw [← sub_eq_zero, eq_zero_iff_forall_dual_eq_zero 𝕜 (x - y)],
+  simp [sub_eq_zero],
 end
 
 end dual_vector

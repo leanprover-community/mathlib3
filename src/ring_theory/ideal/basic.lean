@@ -459,9 +459,8 @@ protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quot
 lemma mk_surjective : function.surjective (mk I) :=
 λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
 
-/--
-If `I` is an ideal of a commutative ring `R`, if `q : R → R/I` is the quotient map, and if `s ⊆R` is a subset, then `q⁻¹(q(s))=⋃ᵢ(i + s)`, the union running over all `i ∈ I`.
--/
+/-- If `I` is an ideal of a commutative ring `R`, if `q : R → R/I` is the quotient map, and if
+`s ⊆ R` is a subset, then `q⁻¹(q(s)) = ⋃ᵢ(i + s)`, the union running over all `i ∈ I`. -/
 lemma quotient_ring_saturate (I : ideal α) (s : set α) :
   mk I ⁻¹' (mk I '' s) = (⋃ x : I, (λ y, x.1 + y) '' s) :=
 begin

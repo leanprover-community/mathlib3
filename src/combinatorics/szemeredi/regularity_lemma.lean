@@ -605,6 +605,38 @@ begin
   refl,
 end
 
+open_locale classical
+
+/- Extracts a witness of the non-uniformity of `(U, W)`. It uses -/
+noncomputable def witness_aux (ε : ℝ) (U W : finset V) : finset V × finset V :=
+dite (U = W ∨ G.is_uniform ε U W) (λ _, (U, W)) (λ h, begin
+    unfold is_uniform at h,
+    push_neg at h,
+    let U' := classical.some h.2,
+    let W' := classical.some (classical.some_spec h.2).2,
+    exact (U', W'),
+  end)
+
+/- Extracts a witness of the non-uniformity of `(U, W)`. It uses an arbitrary ordering of
+`finset V` (`well_ordering_rel`) to ensure that the witnesses of `(U, W)` and `(W, U)` are related
+(the existentials don't ensure we would take the same from `¬G.is_uniform ε U W` and
+`¬G.is_uniform ε W U`). -/
+noncomputable def witness (ε : ℝ) (U W : finset V) : finset V × finset V :=
+ite (well_ordering_rel U W) (G.witness_aux ε U W) (G.witness_aux ε W U).swap
+
+lemma witness_comm (ε : ℝ) (U W : finset V) :
+  G.witness ε U W = (G.witness ε W U).swap :=
+begin
+  unfold witness,
+  obtain h | rfl | h := trichotomous_of well_ordering_rel U W,
+  { rw [if_pos h, if_neg, prod.swap_swap],
+    exact asymm h },
+  { rw [witness_aux, if_neg, dif_pos (or.intro_left _ rfl), prod.swap],
+    exact _root_.irrefl _ },
+  rw [if_pos h, if_neg],
+  exact asymm h,
+end
+
 end simple_graph
 
 open simple_graph
@@ -631,17 +663,17 @@ lemma bUnion_subset_of_forall_subset {α β : Type*} [decidable_eq β]
 begin
   intros i hi,
   simp only [mem_bUnion, exists_prop] at hi,
-  rcases hi with ⟨a, ha₁, ha₂⟩,
-  apply h _ ha₁ ha₂
+  obtain ⟨a, ha₁, ha₂⟩ := hi,
+  exact h _ ha₁ ha₂,
 end
 
 lemma union_eq : P.parts.bUnion id = s :=
 begin
   apply subset.antisymm,
   { refine bUnion_subset_of_forall_subset _ _ (λ i, P.subset _) },
-  { intros x hx,
-    rw mem_bUnion,
-    apply P.covering _ hx }
+  intros x hx,
+  rw mem_bUnion,
+  exact P.covering _ hx,
 end
 
 def bind (P : finpartition s) (Q : Π i ∈ P.parts, finpartition i) : finpartition s :=
@@ -708,18 +740,6 @@ lemma mem_non_uniform_parts (U W : finset V) (ε : ℝ) :
   ⟦(U, W)⟧ ∈ P.non_uniform_parts G ε ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W ∧
   ¬G.is_uniform_sym2 ε ⟦(U, W)⟧ :=
 by rw [non_uniform_parts, mem_filter, mem_distinct_unordered_parts_sym2, and_assoc, and_assoc]
-
-noncomputable def witness_pairs (ε : ℝ) (U W : finset V) : sym2 (finset V) :=
-dite (⟦(U, W)⟧ ∈ P.non_uniform_parts G ε) (λ h, begin
-    rw [mem_non_uniform_parts, not_is_uniform_sym2_iff] at h,
-    let U' := classical.some h.2.2.2,
-    let W' := classical.some (classical.some_spec h.2.2.2),
-    exact ⟦(U', W')⟧,
-  end) (λ _, ⟦(U, W)⟧)
-
-def witness (UW : sym2 (finset V)) : sym2 (finset V) :=
-quotient.lift (function.uncurry (witness_pairs))
-  (begin rintro a b hab, sorry end)
 
 /-- An equipartition is ε-uniform iff at most a proportion of ε of its pairs of parts are
 not ε-uniform. -/
@@ -1352,17 +1372,35 @@ theorem increment (hP : P.is_equipartition)
   ∃ (Q : finpartition' V),
     Q.is_equipartition ∧ Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
 begin
-  have : finpartition' V,
-  {
-    apply P.bind,
-    rintro U hU,
-    apply atomise,
-    apply finset.image _ (P.parts.filter (λ W, ⟦(U, W)⟧ ∈ P.non_uniform_parts G ε)),
-    apply_instance,
-    intro W,
-    obtain ⟨U', W'⟩ := quotient.out (P.witness_pairs G ε U W),
-    exact ite (U = U') W' U',
-  },
+  let m := card V/exp_bound P.size,
+  let a := card V/P.size - m * 4^P.size,
+  let b := card V - m * exp_bound P.size - a * P.size,
+  rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
+  let R : ∀ U, U ∈ P.parts → finpartition U := λ U hU, atomise U (finset.image
+    (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
+  let Q : finpartition' V,
+  { refine P.bind (λ U hU, _),
+    apply dite (U.card = m * 4^P.size + a),
+    { intro hUcard,
+      have : (4^P.size - a) * m + a * (m + 1) = U.card,
+      { rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel],
+        sorry
+      },
+      exact classical.some (mk_equitable this (R U hU)) },
+    intro hUcard,
+    have aux1 :
+      (∑ (i : finset V) in P.parts, i.card) / P.parts.card = m * 4 ^ finpartition.size P + a,
+    { sorry },
+    have aux2 := hP U hU,
+    rw aux1 at aux2,
+    replace hUcard := aux2.resolve_left hUcard,
+    have : (4^P.size - (a + 1)) * m + (a + 1) * (m + 1) = U.card,
+    {  rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel,
+        add_assoc],
+      sorry
+    },
+    exact classical.some (mk_equitable this (R U hU)) },
+  sorry
   /-let witnesses : finset V → finset V → sym2 (finset V) := λ U W, dite (⟦(U, W)⟧ ∈ P.non_uniform_parts G ε)
     (λ h, begin
       rw [mem_non_uniform_parts, simple_graph.is_uniform] at h,

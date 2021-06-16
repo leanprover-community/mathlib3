@@ -291,11 +291,8 @@ apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
 
 -- data/pequiv.lean
-apply_nolint equiv.to_pequiv doc_blame
 apply_nolint pequiv has_inhabited_instance
-apply_nolint pequiv.of_set doc_blame
 apply_nolint pequiv.refl doc_blame
-apply_nolint pequiv.single doc_blame
 apply_nolint pequiv.symm doc_blame
 apply_nolint pequiv.trans doc_blame
 
@@ -1074,21 +1071,6 @@ apply_nolint continuous_map.induced doc_blame
 
 -- topology/maps.lean
 apply_nolint inducing doc_blame
-
--- topology/metric_space/gluing.lean
-apply_nolint metric.glue_premetric doc_blame
-apply_nolint metric.glue_space doc_blame
-apply_nolint metric.sum.dist doc_blame
-apply_nolint metric.to_glue_l doc_blame
-apply_nolint metric.to_glue_r doc_blame
-
--- topology/metric_space/gromov_hausdorff.lean
-apply_nolint Gromov_Hausdorff.GH_space.rep has_inhabited_instance
-apply_nolint Gromov_Hausdorff.aux_gluing_struct has_inhabited_instance
-
--- topology/metric_space/gromov_hausdorff_realized.lean
-apply_nolint Gromov_Hausdorff.candidates_b_dist doc_blame
-apply_nolint Gromov_Hausdorff.optimal_GH_coupling has_inhabited_instance
 
 -- topology/opens.lean
 apply_nolint topological_space.opens.is_basis doc_blame

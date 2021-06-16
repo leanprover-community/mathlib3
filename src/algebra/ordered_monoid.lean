@@ -54,23 +54,23 @@ section ordered_instances
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (*) (≤) :=
-{ covc := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
+{ elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (function.swap (*)) (≤) :=
-{ covc := λ a b c bc,
+{ elim := λ a b c bc,
     by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (*) (<) :=
-{ covtc := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
+{ elim := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
 
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (function.swap (*)) (<) :=
-{ covtc := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
+{ elim := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
     exact ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc } }
 
 end ordered_instances
@@ -247,7 +247,7 @@ begin
   { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
   { simp_rw [some_eq_coe] at h ⊢,
     norm_cast at h ⊢,
-    exact covariant_class.covc _ h }
+    exact covariant_class.elim _ h }
 end
 
 lemma lt_of_mul_lt_mul_left  {α : Type u} [has_mul α] [partial_order α]
@@ -708,32 +708,6 @@ def function.injective.ordered_cancel_comm_monoid {β : Type*}
     (mul_le_mul_iff_left (f a)).mp (by rwa [← mul, ← mul]),
   ..hf.left_cancel_semigroup f mul,
   ..hf.ordered_comm_monoid f one mul }
-
-section mono
-
-variables {β : Type*} [preorder β] {f g : β → α}
-
-@[to_additive monotone.add_strict_mono]
-lemma monotone.mul_strict_mono' (hf : monotone f) (hg : strict_mono g) :
-  strict_mono (λ x, f x * g x) :=
-λ x y h, mul_lt_mul_of_le_of_lt (hf $ le_of_lt h) (hg h)
-
-@[to_additive strict_mono.add_monotone]
-lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
-  strict_mono (λ x, f x * g x) :=
-λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg $ le_of_lt h)
-
-@[to_additive strict_mono.add_const]
-lemma strict_mono.mul_const' (hf : strict_mono f) (c : α) :
-  strict_mono (λ x, f x * c) :=
-hf.mul_monotone' monotone_const
-
-@[to_additive strict_mono.const_add]
-lemma strict_mono.const_mul' (hf : strict_mono f) (c : α) :
-  strict_mono (λ x, c * f x) :=
-monotone_const.mul_strict_mono' hf
-
-end mono
 
 end ordered_cancel_comm_monoid
 

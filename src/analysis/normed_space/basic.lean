@@ -255,6 +255,12 @@ lemma norm_lt_norm_add_const_of_dist_lt {a b : α} {c : ℝ} (h : dist a b < c) 
   ∥a∥ < ∥b∥ + c :=
 norm_lt_of_mem_ball h
 
+lemma bounded_iff_forall_norm_le {s : set α} : bounded s ↔ ∃ C, ∀ x ∈ s, ∥x∥ ≤ C :=
+begin
+  rw bounded_iff_subset_ball (0 : α),
+  exact exists_congr (λ r, by simp [(⊆), set.subset]),
+end
+
 @[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
 by simp [dist_eq_norm]
 
@@ -356,6 +362,15 @@ The analogous condition for a linear map of normed spaces is in `normed_space.op
 lemma add_monoid_hom.continuous_of_bound (f : α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
 (f.lipschitz_of_bound C h).continuous
+
+lemma is_compact.exists_bound_of_continuous_on {γ : Type*} [topological_space γ]
+  {s : set γ} (hs : is_compact s) {f : γ → α} (hf : continuous_on f s) :
+  ∃ C, ∀ x ∈ s, ∥f x∥ ≤ C :=
+begin
+  have : bounded (f '' s):= (hs.image_of_continuous_on hf).bounded,
+  rcases bounded_iff_forall_norm_le.1 this with ⟨C, hC⟩,
+  exact ⟨C, λ x hx, hC _ (set.mem_image_of_mem _ hx)⟩,
+end
 
 section nnnorm
 

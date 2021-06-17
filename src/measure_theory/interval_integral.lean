@@ -303,7 +303,7 @@ variables {μ : measure ℝ} [locally_finite_measure μ]
 
 lemma continuous_on.interval_integrable [borel_space E] {u : ℝ → E} {a b : ℝ}
   (hu : continuous_on u (interval a b)) : interval_integrable u μ a b :=
-(continuous_on.integrable_on_compact compact_Icc hu).interval_integrable
+(continuous_on.integrable_on_Icc hu).interval_integrable
 
 lemma continuous_on.interval_integrable_of_Icc [borel_space E] {u : ℝ → E} {a b : ℝ} (h : a ≤ b)
   (hu : continuous_on u (Icc a b)) : interval_integrable u μ a b :=
@@ -2051,24 +2051,24 @@ lemma integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
 begin
   refine integral_eq_sub_of_has_deriv_at (λ x hx, (hu x hx).mul (hv x hx)) _,
   apply integrable.add,
+  { exact hcu'.mul_continuous_on ((has_deriv_at.continuous_on hv)) is_compact_interval },
+  { exact hcv'.continuous_on_mul ((has_deriv_at.continuous_on hu)) is_compact_interval }
 end
-
-#exit
-
-integral_eq_sub_of_has_deriv_at (λ x hx, (hu x hx).mul (hv x hx)) $
-  (hcu'.mul (has_deriv_at.continuous_on hv)).add ((has_deriv_at.continuous_on hu).mul hcv')
 
 theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
-  (hcu' : continuous_on u' (interval a b)) (hcv' : continuous_on v' (interval a b)) :
+  (hcu' : integrable_on u' (interval a b)) (hcv' : integrable_on v' (interval a b)) :
   ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
 begin
   have hcv := has_deriv_at.continuous_on hv,
   rw [← integral_deriv_mul_eq_sub hu hv hcu' hcv', ← integral_sub],
   { exact integral_congr (λ x hx, by simp only [mul_comm, add_sub_cancel']) },
-  { exact ((hcu'.mul hcv).add ((has_deriv_at.continuous_on hu).mul hcv')).interval_integrable },
-  { exact (hcv.mul hcu').interval_integrable },
+  { apply measure_theory.integrable_on.interval_integrable,
+    exact ((hcu'.mul_continuous_on (has_deriv_at.continuous_on hv) is_compact_Icc).add
+      (hcv'.continuous_on_mul (has_deriv_at.continuous_on hu) is_compact_Icc)) },
+  { apply measure_theory.integrable_on.interval_integrable,
+    exact hcu'.continuous_on_mul (has_deriv_at.continuous_on hv) is_compact_Icc },
 end
 
 /-!
@@ -2083,15 +2083,17 @@ theorem integral_comp_mul_deriv' {f f' g : ℝ → ℝ}
   -- TODO: prove that the integral of any integrable function is continuous and use here to remove
   -- assumption `hgm`
   ∫ x in a..b, (g ∘ f) x * f' x = ∫ x in f a..f b, g x :=
-let hg' := continuous_at.continuous_on hg in
-have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,
-{ intros x hx,
-  have hs := interval_subset_interval_left hx,
-  exact (integral_has_deriv_at_right (hg'.mono $ trans (intermediate_value_interval $
-    has_deriv_at.continuous_on $ λ y hy, hf y $ hs hy) $ image_subset f hs).interval_integrable
-      (hgm (f x) ⟨x, hx, rfl⟩) $ hg (f x) ⟨x, hx, rfl⟩).comp _ (hf x hx) },
-by simp_rw [integral_eq_sub_of_has_deriv_at h $ (hg'.comp (has_deriv_at.continuous_on hf) $
-  subset_preimage_image f _).mul hf', integral_same, sub_zero]
+begin
+  have hg' := continuous_at.continuous_on hg,
+  have h : ∀ x ∈ interval a b, has_deriv_at (λ u, ∫ t in f a..f u, g t) ((g ∘ f) x * f' x) x,
+  { intros x hx,
+    have hs := interval_subset_interval_left hx,
+    exact (integral_has_deriv_at_right (hg'.mono $ trans (intermediate_value_interval $
+      has_deriv_at.continuous_on $ λ y hy, hf y $ hs hy) $ image_subset f hs).interval_integrable
+        (hgm (f x) ⟨x, hx, rfl⟩) $ hg (f x) ⟨x, hx, rfl⟩).comp _ (hf x hx) },
+  simp_rw [integral_eq_sub_of_has_deriv_at h $ ((hg'.comp (has_deriv_at.continuous_on hf) $
+    subset_preimage_image f _).mul hf').integrable_on_interval, integral_same, sub_zero]
+end
 
 theorem integral_comp_mul_deriv {f f' g : ℝ → ℝ}
   (h : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)

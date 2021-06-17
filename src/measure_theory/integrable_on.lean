@@ -357,6 +357,20 @@ lemma continuous_on.integrable_on_compact
   integrable_on f s μ :=
 hs.integrable_on_of_nhds_within $ λ x hx, hf.integrable_at_nhds_within hs.measurable_set hx
 
+lemma continuous_on.integrable_on_Icc [borel_space E]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous_on f (Icc a b)) :
+  integrable_on f (Icc a b) μ :=
+hf.integrable_on_compact is_compact_Icc
+
+lemma continuous_on.integrable_on_interval [borel_space E]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous_on f (interval a b)) :
+  integrable_on f (interval a b) μ :=
+hf.integrable_on_compact is_compact_interval
+
 /-- A continuous function `f` is integrable on any compact set with respect to any locally finite
 measure. -/
 lemma continuous.integrable_on_compact
@@ -365,6 +379,20 @@ lemma continuous.integrable_on_compact
   (hs : is_compact s) {f : α → E} (hf : continuous f) :
   integrable_on f s μ :=
 hf.continuous_on.integrable_on_compact hs
+
+lemma continuous.integrable_on_Icc [borel_space E]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous f) :
+  integrable_on f (Icc a b) μ :=
+hf.integrable_on_compact is_compact_Icc
+
+lemma continuous.integrable_on_interval [borel_space E]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
+  [measurable_space β] [opens_measurable_space β] {μ : measure β} [locally_finite_measure μ]
+  {a b : β} {f : β → E} (hf : continuous f) :
+  integrable_on f (interval a b) μ :=
+hf.integrable_on_compact is_compact_interval
 
 /-- A continuous function with compact closure of the support is integrable on the whole space. -/
 lemma continuous.integrable_of_compact_closure_support
@@ -379,28 +407,25 @@ begin
   { apply_instance }
 end
 
-lemma integrable_on.mul_continuous_on [topological_space α] [opens_measurable_space α]
-  [t2_space α] {μ : measure α} [locally_finite_measure μ] {s : set α} {f g : α → ℝ}
+lemma measure_theory.integrable_on.mul_continuous_on
+  [topological_space α] [opens_measurable_space α] [t2_space α]
+  {μ : measure α} [locally_finite_measure μ] {s : set α} {f g : α → ℝ}
   (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
   integrable_on (λ x, f x * g x) s μ :=
 begin
-
+  rcases is_compact.exists_bound_of_continuous_on hs hg with ⟨C, hC⟩,
+  rw [integrable_on, ← mem_ℒp_one_iff_integrable] at hf ⊢,
+  have : ∀ᵐ x ∂(μ.restrict s), ∥f x * g x∥ ≤ C * ∥f x∥,
+  { filter_upwards [ae_restrict_mem hs.measurable_set],
+    assume x hx,
+    rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
+    apply mul_le_mul_of_nonneg_right (hC x hx) (abs_nonneg _) },
+  exact mem_ℒp.of_le_mul hf (hf.ae_measurable.mul (hg.ae_measurable hs.measurable_set)) this
 end
 
-
-
-section
-
-variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
-  [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
-
-namespace continuous_linear_map
-
-lemma integrable_comp [opens_measurable_space E] {φ : α → E} (L : E →L[𝕜] F)
-  (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
-((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp_ae_measurable φ_int.ae_measurable)
-  (eventually_of_forall $ λ a, L.le_op_norm (φ a))
-
-end continuous_linear_map
-
-end
+lemma measure_theory.integrable_on.continuous_on_mul
+  [topological_space α] [opens_measurable_space α] [t2_space α]
+  {μ : measure α} [locally_finite_measure μ] {s : set α} {f g : α → ℝ}
+  (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
+  integrable_on (λ x, g x * f x) s μ :=
+by simpa [mul_comm] using hf.mul_continuous_on hg hs

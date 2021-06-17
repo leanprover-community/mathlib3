@@ -2824,7 +2824,7 @@ lemma continuous_on.surj_on_of_tendsto' {f : α → β} {s : set α} [ord_connec
 end densely_ordered
 
 /-- A closed interval in a conditionally complete linear order is compact. -/
-lemma compact_Icc {a b : α} : is_compact (Icc a b) :=
+lemma is_compact_Icc {a b : α} : is_compact (Icc a b) :=
 begin
   cases le_or_lt a b with hab hab, swap, { simp [hab] },
   refine is_compact_iff_ultrafilter_le_nhds.2 (λ f hf, _),
@@ -2868,26 +2868,26 @@ begin
 end
 
 /-- An unordered closed interval in a conditionally complete linear order is compact. -/
-lemma compact_interval {a b : α} : is_compact (interval a b) := compact_Icc
+lemma is_compact_interval {a b : α} : is_compact (interval a b) := is_compact_Icc
 
-lemma compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
+lemma is_compact_pi_Icc {ι : Type*} {α : ι → Type*} [Π i, conditionally_complete_linear_order (α i)]
   [Π i, topological_space (α i)] [Π i, order_topology (α i)] (a b : Π i, α i) :
   is_compact (Icc a b) :=
-pi_univ_Icc a b ▸ is_compact_univ_pi $ λ i, compact_Icc
+pi_univ_Icc a b ▸ is_compact_univ_pi $ λ i, is_compact_Icc
 
 instance compact_space_Icc (a b : α) : compact_space (Icc a b) :=
-is_compact_iff_compact_space.mp compact_Icc
+is_compact_iff_compact_space.mp is_compact_Icc
 
 instance compact_space_pi_Icc {ι : Type*} {α : ι → Type*}
   [Π i, conditionally_complete_linear_order (α i)] [Π i, topological_space (α i)]
   [Π i, order_topology (α i)] (a b : Π i, α i) : compact_space (Icc a b) :=
-is_compact_iff_compact_space.mp (compact_pi_Icc a b)
+is_compact_iff_compact_space.mp (is_compact_pi_Icc a b)
 
 @[priority 100] -- See note [lower instance priority]
 instance compact_space_of_complete_linear_order {α : Type*} [complete_linear_order α]
   [topological_space α] [order_topology α] :
   compact_space α :=
-⟨by simp only [← Icc_bot_top, compact_Icc]⟩
+⟨by simp only [← Icc_bot_top, is_compact_Icc]⟩
 
 lemma is_compact.Inf_mem {s : set α} (hs : is_compact s) (ne_s : s.nonempty) :
   Inf s ∈ s :=

@@ -5,7 +5,7 @@ Authors: Heather Macbeth
 -/
 import measure_theory.l2_space
 import measure_theory.haar_measure
-import geometry.manifold.instances.circle
+import analysis.complex.circle
 
 /-!
 

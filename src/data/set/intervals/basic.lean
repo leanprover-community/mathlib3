@@ -1159,6 +1159,9 @@ by rw [inter_comm, Ioc_inter_Ioo_of_right_le h, max_comm]
 lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioc (max a₁ a₂) b₂ :=
 by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
+lemma Iic_inter_Ioc_of_le (h : a₂ ≤ a) : Iic a₂ ∩ Ioc a₁ a = Ioc a₁ a₂ :=
+ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
+
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
 ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 
@@ -1179,8 +1182,8 @@ by { rw max_comm, apply Ioc_union_Ioc; rw max_comm; exact min_le_max }
 begin
   rw [Ioc_union_Ioc, Ioc_union_Ioc],
   ac_refl,
-  all_goals { solve_by_elim [min_le_left_of_le, min_le_right_of_le, le_max_left_of_le,
-    le_max_right_of_le, le_refl] { max_depth := 5 }}
+  all_goals { solve_by_elim [min_le_of_left_le, min_le_of_right_le, le_max_of_le_left,
+    le_max_of_le_right, le_refl] { max_depth := 5 }}
 end
 
 end linear_order

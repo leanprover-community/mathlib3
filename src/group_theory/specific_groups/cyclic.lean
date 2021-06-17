@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.big_operators.order
+import data.nat.totient
 import group_theory.order_of_element
 
 /-!

@@ -26,12 +26,14 @@ on mathlib!).
 
 ## References
 
-See chapter 8 of [*Barry Simon*, Convexity][simon2011]
+See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
-TODO:
-- define convex independence, intrinsic frontier and prove lemmas related to exposed sets and
-  points.
-- generalise to Locally Convex Topological Vector Spaces.
+## TODO
+
+* define convex independence, intrinsic frontier/interior and prove the lemmas related to exposed
+  sets and points.
+* generalise to Locally Convex Topological Vector Spaces™
+
 More not-yet-PRed stuff is available on the branch `sperner_again`.
 -/
 
@@ -82,21 +84,39 @@ begin
     (λ x hx, ⟨hBA hx.1, λ y hy, (hw.2 y hy).trans (hx.2 w (hCB hw))⟩)⟩,
 end
 
+/-- If `B` is exposed to `A`, then `B` is the intersection of `A` with some closed halfspace. The
+converse is *not* true. It would require that the corresponding open halfspace doesn't intersect
+`A`. -/
+lemma eq_inter_halfspace (hAB : is_exposed A B) :
+  ∃ l : E →L[ℝ] ℝ, ∃ a, B = {x ∈ A | a ≤ l x} :=
+begin
+  obtain hB | hB := B.eq_empty_or_nonempty,
+  { refine ⟨0, 1, _⟩,
+    rw [hB, eq_comm, eq_empty_iff_forall_not_mem],
+    rintro x ⟨-, h⟩,
+    rw continuous_linear_map.zero_apply at h,
+    linarith },
+  obtain ⟨l, rfl⟩ := hAB hB,
+  obtain ⟨w, hw⟩ := hB,
+  exact ⟨l, l w, subset.antisymm (λ x hx, ⟨hx.1, hx.2 w hw.1⟩)
+    (λ x hx, ⟨hx.1, λ y hy, (hw.2 y hy).trans hx.2⟩)⟩,
+end
+
 lemma inter (hB : is_exposed A B) (hC : is_exposed A C) :
   is_exposed A (B ∩ C) :=
 begin
-  rintro ⟨x, hxB, hxC⟩,
-  obtain ⟨l₁, rfl⟩ := hB ⟨x, hxB⟩,
-  obtain ⟨l₂, rfl⟩ := hC ⟨x, hxC⟩,
+  rintro ⟨w, hwB, hwC⟩,
+  obtain ⟨l₁, rfl⟩ := hB ⟨w, hwB⟩,
+  obtain ⟨l₂, rfl⟩ := hC ⟨w, hwC⟩,
   refine ⟨l₁ + l₂, subset.antisymm _ _⟩,
-  { rintro y ⟨⟨hyA, hyB⟩, ⟨_, hyC⟩⟩,
-    exact ⟨hyA, λ z hz, add_le_add (hyB z hz) (hyC z hz)⟩ },
-  rintro y ⟨hyA, hy⟩,
-  refine ⟨⟨hyA, λ z hz, _⟩, hyA, λ z hz, _⟩,
-  { exact (add_le_add_iff_right (l₂ y)).1 (le_trans (add_le_add (hxB.2 z hz) (hxC.2 y hyA))
-      (hy x hxB.1)) },
-  exact (add_le_add_iff_left (l₁ y)).1 (le_trans (add_le_add (hxB.2 y hyA) (hxC.2 z hz))
-    (hy x hxB.1)),
+  { rintro x ⟨⟨hxA, hxB⟩, ⟨-, hxC⟩⟩,
+    exact ⟨hxA, λ z hz, add_le_add (hxB z hz) (hxC z hz)⟩ },
+  rintro x ⟨hxA, hx⟩,
+  refine ⟨⟨hxA, λ y hy, _⟩, hxA, λ y hy, _⟩,
+  { exact (add_le_add_iff_right (l₂ x)).1 ((add_le_add (hwB.2 y hy) (hwC.2 x hxA)).trans
+      (hx w hwB.1)) },
+  exact (add_le_add_iff_left (l₁ x)).1 (le_trans (add_le_add (hwB.2 x hxA) (hwC.2 y hy))
+    (hx w hwB.1)),
 end
 
 lemma sInter {F : finset (set E)} (hF : F.nonempty)
@@ -133,69 +153,30 @@ begin
   exact hC.inter_left hCA,
 end
 
-lemma eq_inter_halfspace (hAB : is_exposed A B) :
-  ∃ l : E →L[ℝ] ℝ, ∃ a, B = {x ∈ A | a ≤ l x} :=
-begin
-  obtain hB | hB := B.eq_empty_or_nonempty,
-  { refine ⟨0, 1, _⟩,
-    rw [hB, eq_comm, eq_empty_iff_forall_not_mem],
-    rintro x ⟨-, h⟩,
-    rw continuous_linear_map.zero_apply at h,
-    linarith },
-  obtain ⟨l, rfl⟩ := hAB hB,
-  obtain ⟨w, hw⟩ := hB,
-  exact ⟨l, l w, subset.antisymm (λ x hx, ⟨hx.1, hx.2 w hw.1⟩)
-    (λ x hx, ⟨hx.1, λ y hy, (hw.2 y hy).trans hx.2⟩)⟩,
-end
-
 protected lemma is_extreme (hAB : is_exposed A B) :
   is_extreme A B :=
 begin
-  use hAB.subset,
-  rintro x₁ x₂ hx₁A hx₂A x hxB ⟨a, b, ha, hb, hab, hx⟩,
+  refine ⟨hAB.subset, λ x₁ x₂ hx₁A hx₂A x hxB hx, _⟩,
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
-  have hl : convex_on univ l := sorry,
-  have hlx₁ : l x₁ = l x,
-  { apply (hxB.2 x₁ hx₁A).antisymm,
-    rw [←@smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ ha, ←add_le_add_iff_right (b • l x), ←add_smul,
-      hab, one_smul],
-    nth_rewrite 0 ←hx,
-    rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_left,
-      @smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ hb],
-    exact hxB.2 x₂ hx₂A },
-  have hlx₂ : l x₂ = l x,
-  { apply (hxB.2 x₂ hx₂A).antisymm,
-    rw [←@smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ hb, ←add_le_add_iff_left (a • l x), ←add_smul,
-      hab, one_smul],
-    nth_rewrite 0 ←hx,
-    rw [l.map_add, l.map_smul, l.map_smul, add_le_add_iff_right,
-    @smul_le_smul_iff_of_pos ℝ ℝ _ _ _ _ _ _ _ ha],
-    exact hxB.2 x₁ hx₁A },
+  have hl : convex_on univ l := l.to_linear_map.convex_on convex_univ,
+  have hlx₁ := hxB.2 x₁ hx₁A,
+  have hlx₂ := hxB.2 x₂ hx₂A,
   refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
-  { rw hlx₁,
+  { rw hlx₁.antisymm (hl.le_left_of_right_le (mem_univ _) (mem_univ _) hx hlx₂),
     exact hxB.2 y hy },
-  rw hlx₂,
+  rw hlx₂.antisymm (hl.le_right_of_left_le (mem_univ _) (mem_univ _) hx hlx₁),
   exact hxB.2 y hy,
 end
 
 protected lemma is_convex (hAB : is_exposed A B) (hA : convex A) :
   convex B :=
 begin
-  cases B.eq_empty_or_nonempty,
-  { rw h,
-    exact convex_empty },
-  have hBA := hAB.subset,
-  obtain ⟨l, rfl⟩ := hAB h,
-  rw convex_iff_segment_subset at ⊢ hA,
-  rintro x₁ x₂ ⟨hx₁A, hx₁⟩ ⟨hx₂A, hx₂⟩ x hx,
-  use hA hx₁A hx₂A hx,
-  obtain ⟨a, b, ha, hb, hab, hx⟩ := hx,
-  rintro y hyA,
-  calc
-    l y = a • l y + b • l y : by rw [←add_smul, hab, one_smul]
-    ... ≤ a • l x₁ + b • l x₂ : add_le_add (mul_le_mul_of_nonneg_left (hx₁ y hyA) ha)
-                                           (mul_le_mul_of_nonneg_left (hx₂ y hyA) hb)
-    ... = l x : by rw [←hx, l.map_add, l.map_smul, l.map_smul],
+  obtain rfl | hB := B.eq_empty_or_nonempty,
+  { exact convex_empty },
+  obtain ⟨l, rfl⟩ := hAB hB,
+  exact λ x₁ x₂ hx₁ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
+    ((l.to_linear_map.concave_on convex_univ).concave_le _
+    ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
 end
 
 lemma is_closed (hAB : is_exposed A B) (hA : is_closed A) :
@@ -242,7 +223,6 @@ lemma exposed_points_subset_extreme_points :
 λ x hx, mem_extreme_points_iff_extreme_singleton.2
   (mem_exposed_points_iff_exposed_singleton.1 hx).is_extreme
 
-@[simp]
-lemma exposed_points_empty :
+@[simp] lemma exposed_points_empty :
   (∅ : set E).exposed_points = ∅ :=
 subset_empty_iff.1 exposed_points_subset

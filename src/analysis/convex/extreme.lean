@@ -31,12 +31,14 @@ unconditional. In practice, `A` is often assumed to be a convex set.
 
 ## References
 
-See chapter 8 of [*Barry Simon*, Convexity][simon2011]
+See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
-TODO:
-- define convex independence, intrinsic frontier and prove lemmas related to extreme sets and
+## TODO
+
+* define convex independence, intrinsic frontier and prove lemmas related to extreme sets and
   points.
-- generalise to Locally Convex Topological Vector Spaces
+* generalise to Locally Convex Topological Vector Spaces™
+
 More not-yet-PRed stuff is available on the branch `sperner_again`.
 -/
 

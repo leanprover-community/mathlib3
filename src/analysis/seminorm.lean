@@ -22,6 +22,10 @@ over a normed field:
 
 We prove related properties.
 
+This file defines the `gauge` (also known as the Minkowski functional) of a subset of a real vector
+space, and shows the algebraic properties of this functional dependent on the geometric properties
+of the given subset.
+
 ## TODO
 
 Define and show equivalence of two notions of local convexity for a
@@ -111,7 +115,7 @@ lemma absorbent_iff_forall_absorbs_singleton :
 by simp [absorbs, absorbent]
 
 /-!
-Properties of balanced and absorbing sets in a topological vector space:
+Properties of balanced and absorbent sets in a topological vector space:
 -/
 variables [topological_space E] [has_continuous_smul 𝕜 E]
 
@@ -255,6 +259,7 @@ Inf {y ∈ set.Ioi 0 | x ∈ y • K}
 variables {K : set E} {x : E}
 
 lemma gauge_def : gauge K x = Inf {y ∈ set.Ioi 0 | x ∈ y • K} := rfl
+/-- An alternate definition of the gauge which can be useful in certain situations. -/
 lemma gauge_def' : gauge K x = Inf {y ∈ set.Ioi 0 | y⁻¹ • x ∈ K} :=
 begin
   rw gauge_def,
@@ -265,9 +270,11 @@ begin
   apply mem_smul_set_iff_inv_smul_mem (ne_of_gt hy),
 end
 
-lemma gauge_set_nonempty_of_absorbing (absorbing : absorbent ℝ K) :
+/-- If the given subset is `absorbent` then the set we take an infimum over in `gauge` is nonempty,
+which is useful for proving many properties about the gauge.  -/
+lemma gauge_set_nonempty_of_absorbent (absorbent : absorbent ℝ K) :
   {y ∈ set.Ioi (0:ℝ) | x ∈ y • K}.nonempty :=
-let ⟨θ, hθ₁, hθ₂⟩ := absorbing x in ⟨θ, hθ₁,
+let ⟨θ, hθ₁, hθ₂⟩ := absorbent x in ⟨θ, hθ₁,
 begin
   apply hθ₂ θ,
   rw real.norm_of_nonneg (le_of_lt hθ₁),
@@ -277,9 +284,10 @@ lemma gauge_set_bdd_below :
   bdd_below {y ∈ set.Ioi (0:ℝ) | x ∈ y • K} :=
 ⟨0, λ y hy, le_of_lt hy.1⟩
 
-@[simp]
-lemma gauge_zero :
-  gauge K 0 = 0 :=
+/-- The gauge evaluated at `0` is always zero (mathematically this requires that `0` is in the
+subset `K`, but as the real infimum of the empty set in Lean is defined to be `0`, it holds
+unconditionally). -/
+@[simp] lemma gauge_zero : gauge K 0 = 0 :=
 begin
   rw gauge_def',
   by_cases (0:E) ∈ K,
@@ -287,6 +295,7 @@ begin
   { simp [h, real.Inf_empty] },
 end
 
+-- TODO: move this lemma to convex?
 lemma smul_mem_of_convex (hK : convex K) (zero_mem : (0:E) ∈ K)
   {θ : ℝ} (hθ₁ : 0 ≤ θ) (hθ₂ : θ ≤ 1)
   (hx : x ∈ K) : θ • x ∈ K :=
@@ -296,12 +305,13 @@ begin
   apply this ⟨_, ⟨‹0 ≤ θ›, ‹_›⟩, by simp⟩,
 end
 
+/-- The gauge is always nonnegative. -/
 lemma gauge_nonneg (x : E) :
   0 ≤ gauge K x :=
 real.Inf_nonneg _ (λ x hx, le_of_lt hx.1)
 
 lemma gauge_le_one_eq (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbing : absorbent ℝ K) :
+  (absorbent : absorbent ℝ K) :
   {x | gauge K x ≤ 1} = ⋂ (θ ∈ set.Ioi (1:ℝ)), θ • K :=
 begin
   ext,
@@ -317,7 +327,7 @@ begin
       { refine mul_nonneg (inv_nonneg.2 (by linarith)) (le_of_lt hδ₁), },
       { rw [inv_mul_le_iff (lt_trans ‹0 < δ› ‹δ < θ›), mul_one],
         apply ‹δ < θ›.le } },
-    apply gauge_set_nonempty_of_absorbing absorbing },
+    apply gauge_set_nonempty_of_absorbent absorbent },
   { intro h,
     apply le_of_forall_pos_lt_add,
     intros ε hε,
@@ -326,24 +336,24 @@ begin
 end
 
 lemma gauge_lt_one_eq (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbing : absorbent ℝ K) :
+  (absorbent : absorbent ℝ K) :
   {x | gauge K x < 1} = ⋃ (θ ∈ set.Ioo 0 (1:ℝ)), θ • K :=
 begin
   ext,
   simp only [exists_prop, set.mem_Union, set.mem_Ioi, set.mem_set_of_eq, gauge_def],
   split,
   { intro h,
-    obtain ⟨θ, ⟨h₁, h₂⟩, h₃⟩ := exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbing absorbing) h,
+    obtain ⟨θ, ⟨h₁, h₂⟩, h₃⟩ := exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbent absorbent) h,
     exact ⟨θ, ⟨h₁, h₃⟩, h₂⟩ },
   { rintro ⟨θ, ⟨_, _⟩, _⟩,
     apply cInf_lt_of_lt gauge_set_bdd_below ⟨‹0 < θ›, ‹_›⟩ ‹θ < 1› }
 end
 
 lemma gauge_lt_one_subset_self (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbing : absorbent ℝ K) :
+  (absorbent : absorbent ℝ K) :
   {x | gauge K x < 1} ⊆ K :=
 begin
-  rw gauge_lt_one_eq hK zero_mem absorbing,
+  rw gauge_lt_one_eq hK zero_mem absorbent,
   apply set.bUnion_subset,
   intros θ hθ,
   rintro _ ⟨y, hy, rfl⟩,
@@ -354,10 +364,10 @@ begin
 end
 
 lemma gauge_le_one_convex (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbing : absorbent ℝ K) :
+  (absorbent : absorbent ℝ K) :
   convex {x | gauge K x ≤ 1} :=
 begin
-  rw gauge_le_one_eq hK zero_mem absorbing,
+  rw gauge_le_one_eq hK zero_mem absorbent,
   refine convex_Inter (λ i, convex_Inter (λ (hi : _ < _), convex.smul _ hK)),
 end
 
@@ -368,7 +378,7 @@ lemma gauge_le_of_mem (x : E) {θ : ℝ} (hθ : 0 < θ) (hx : x ∈ θ • K) :
   gauge K x ≤ θ :=
 cInf_le gauge_set_bdd_below ⟨hθ, hx⟩
 
--- lemma convex_open_zero_mem_is_absorbing (zero_mem : (0:E) ∈ K)
+-- lemma convex_open_zero_mem_is_absorbent (zero_mem : (0:E) ∈ K)
 --   (hC₂ : is_open K) :
 --   absorbent ℝ K :=
 -- absorbent_nhds_zero (mem_nhds_sets hC₂ zero_mem)
@@ -494,16 +504,16 @@ begin
 end
 
 lemma gauge_subadditive (hK : convex K)
-  (absorbing : absorbent ℝ K) (x y : E) :
+  (absorbent : absorbent ℝ K) (x y : E) :
   gauge K (x + y) ≤ gauge K x + gauge K y :=
 begin
   apply le_of_forall_pos_lt_add,
   intros ε hε,
   obtain ⟨a, ⟨ha₁ : _ < _, ha₂⟩, ha₃ : _ < gauge _ _ + _⟩ :=
-    exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbing absorbing)
+    exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbent absorbent)
       (lt_add_of_pos_right (gauge K x) (half_pos hε)),
   obtain ⟨b, ⟨hb₁ : _ < _, hb₂⟩, hb₃ : _ < gauge _ _ + _⟩ :=
-    exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbing absorbing)
+    exists_lt_of_cInf_lt (gauge_set_nonempty_of_absorbent absorbent)
       (lt_add_of_pos_right (gauge K y) (half_pos hε)),
   suffices : gauge K (x + y) ≤ a + b,
   { linarith },

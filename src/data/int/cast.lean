@@ -6,11 +6,26 @@ Authors: Mario Carneiro
 import data.int.basic
 import data.nat.cast
 
+/-!
+# Cast of integers
+
+This file defines the *canonical* homomorphism from the integers into a type `α` with `0`,
+`1`, `+` and `-` (typically an `add_group`).
+
+## Main declarations
+
+* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`
+* `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
+* `cast_ring_hom`: `cast` bundled as a `ring_hom`.
+
+## Implementation notes
+
+Setting up the coercions priorities is tricky. See Note [coercion into rings].
+-/
+
 open nat
 
 namespace int
-
-/- cast (injection into groups with one) -/
 
 @[simp, push_cast] theorem nat_cast_eq_coe_nat : ∀ n,
   @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =

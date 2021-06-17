@@ -2795,6 +2795,9 @@ instance automorphism_group.to_linear_map_is_monoid_hom :
 { map_one := rfl,
   map_mul := λ f g, rfl }
 
+@[simp] lemma linear_equiv.coe_one : ⇑(1 : M ≃ₗ[R] M) = _root_.id := rfl
+@[simp] lemma linear_equiv.coe_mul (e e' : M ≃ₗ[R] M) : ⇑(e * e') = e ∘ e' := rfl
+
 /-- The group of invertible linear maps from `M` to itself -/
 @[reducible] def general_linear_group := units (M →ₗ[R] M)
 

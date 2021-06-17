@@ -178,8 +178,9 @@ instance : add_comm_group (P1 →ᵃ[k] V2) :=
 @[simp, norm_cast] lemma coe_zero : ⇑(0 : P1 →ᵃ[k] V2) = 0 := rfl
 @[simp] lemma zero_linear : (0 : P1 →ᵃ[k] V2).linear = 0 := rfl
 @[simp, norm_cast] lemma coe_add (f g : P1 →ᵃ[k] V2) : ⇑(f + g) = f + g := rfl
-@[simp]
-lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
+@[simp] lemma add_linear (f g : P1 →ᵃ[k] V2) : (f + g).linear = f.linear + g.linear := rfl
+@[simp, norm_cast] lemma coe_neg (f : P1 →ᵃ[k] V2) : ⇑(- f) = -f := rfl
+@[simp] lemma neg_linear (f : P1 →ᵃ[k] V2) : (- f).linear = - f.linear := rfl
 
 /-- The space of affine maps from `P1` to `P2` is an affine space over the space of affine maps
 from `P1` to the vector space `V2` corresponding to `P2`. -/
@@ -262,6 +263,10 @@ def comp (f : P2 →ᵃ[k] P3) (g : P1 →ᵃ[k] P2) : P1 →ᵃ[k] P3 :=
 lemma comp_apply (f : P2 →ᵃ[k] P3) (g : P1 →ᵃ[k] P2) (p : P1) :
   f.comp g p = f (g p) := rfl
 
+@[simp] lemma comp_linear (f : P2 →ᵃ[k] P3) (g : P1 →ᵃ[k] P2) :
+  (f.comp g).linear = f.linear.comp g.linear :=
+rfl
+
 omit V3
 
 @[simp] lemma comp_id (f : P1 →ᵃ[k] P2) : f.comp (id k P1) = f := ext $ λ p, rfl
@@ -285,6 +290,18 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 
 @[simp] lemma coe_mul (f g : P1 →ᵃ[k] P1) : ⇑(f * g) = f ∘ g := rfl
 @[simp] lemma coe_one : ⇑(1 : P1 →ᵃ[k] P1) = _root_.id := rfl
+
+/-- The operation of taking the linear component of an affine map `P1 →ᵃ[k] P1` is a monoid
+homomorphism from `P1 →ᵃ[k] P1` to `V1 →ᵃ[k] V1`. -/
+def linear_hom : (P1 →ᵃ[k] P1) →* (V1 →ₗ[k] V1) :=
+{ to_fun := λ f, f.linear,
+  map_one' := rfl,
+  map_mul' := λ f g, rfl }
+
+@[simp] lemma linear_hom_apply (f : P1 →ᵃ[k] P1) : f.linear_hom = f.linear := rfl
+
+-- for the surjectivity result for `affine_map.linear_hom`, see the file
+-- `linear_algebra.affine_space.affine_equiv`
 
 /-! ### Definition of `affine_map.line_map` and lemmas about it -/
 

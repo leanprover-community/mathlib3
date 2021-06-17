@@ -68,6 +68,8 @@ def to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : V₁ ≃ᵃ[k] V₂ :=
 
 @[simp] lemma coe_to_affine_equiv (e : V₁ ≃ₗ[k] V₂) : ⇑e.to_affine_equiv = e := rfl
 
+@[simp] lemma to_affine_equiv_linear (e : V₁ ≃ₗ[k] V₂) : e.to_affine_equiv.linear = e := rfl
+
 end linear_equiv
 
 namespace affine_equiv
@@ -201,6 +203,10 @@ include V₂ V₃
 
 lemma trans_apply (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) (p : P₁) : e.trans e' p = e' (e p) := rfl
 
+@[simp] lemma trans_linear (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) :
+  (e.trans e').linear = e.linear.trans e'.linear :=
+rfl
+
 include V₄
 
 lemma trans_assoc (e₁ : P₁ ≃ᵃ[k] P₂) (e₂ : P₂ ≃ᵃ[k] P₃) (e₃ : P₃ ≃ᵃ[k] P₄) :
@@ -246,6 +252,15 @@ lemma mul_def (e e' : P₁ ≃ᵃ[k] P₁) : e * e' = e'.trans e := rfl
 
 lemma inv_def (e : P₁ ≃ᵃ[k] P₁) : e⁻¹ = e.symm := rfl
 
+/-- The operation of taking the linear component of an affine map `P₁ ≃ᵃ[k] P₁` is a monoid
+homomorphism from `P₁ ≃ᵃ[k] P₁` to `V₁ ≃ᵃ[k] V₁`. -/
+def linear_hom : (P₁ ≃ᵃ[k] P₁) →* (V₁ ≃ₗ[k] V₁) :=
+{ to_fun := λ f, f.linear,
+  map_one' := rfl,
+  map_mul' := λ f g, rfl }
+
+@[simp] lemma linear_hom_apply (f : P₁ ≃ᵃ[k] P₁) : f.linear_hom = f.linear := rfl
+
 variable (k)
 
 /-- The map `v ↦ v +ᵥ b` as an affine equivalence between a module `V` and an affine space `P` with
@@ -271,6 +286,8 @@ def const_vsub (p : P₁) : P₁ ≃ᵃ[k] V₁ :=
 
 @[simp] lemma coe_const_vsub_symm (p : P₁) : ⇑(const_vsub k p).symm = λ v, -v +ᵥ p := rfl
 
+@[simp] lemma linear_const_vsub (b : P₁) : (const_vsub k b).linear = linear_equiv.neg k := rfl
+
 variable (P₁)
 
 /-- The map `p ↦ v +ᵥ p` as an affine automorphism of an affine space. -/
@@ -285,10 +302,38 @@ def const_vadd (v : V₁) : P₁ ≃ᵃ[k] P₁ :=
 
 @[simp] lemma const_vadd_symm_apply (v : V₁) (p : P₁) : (const_vadd k P₁ v).symm p = -v +ᵥ p := rfl
 
+/-- Given an affine space `P₁` modelled on a vector space `V₁`, there is a group homomorphism from
+`V₁` into the affine automorphisms of `P₁`, sending `v` to the operation of translation by `v`. -/
+def const_vadd_hom : (multiplicative V₁) →* P₁ ≃ᵃ[k] P₁ :=
+{ to_fun := const_vadd k P₁,
+  map_one' := show const_vadd k P₁ 0 = affine_equiv.refl k P₁, by { ext, simp },
+  map_mul' := λ v w, show const_vadd k P₁ (v + w) = (const_vadd k P₁ w).trans (const_vadd k P₁ v),
+              by { ext, simp [add_vadd] } }
+
+@[simp] lemma const_vadd_hom_apply (v : multiplicative V₁) :
+  const_vadd_hom k P₁ v = const_vadd k P₁ v :=
+rfl
+
+/-- An automorphism of an affine space has trivial linear part, if an only if it is a translation.
+-/
+lemma linear_hom_ker : linear_hom.ker = (const_vadd_hom k P₁).range :=
+begin
+  apply le_antisymm,
+  { intros f hf,
+    inhabit P₁,
+    use f (arbitrary P₁) -ᵥ (arbitrary P₁),
+    ext w,
+    symmetry,
+    have hf' : f.linear = linear_equiv.refl k V₁ := hf,
+    simpa [hf', vsub_vadd_comm] using f.map_vadd (arbitrary P₁) (w -ᵥ arbitrary P₁) },
+  { rintros _ ⟨v, rfl⟩,
+    exact linear_const_vadd k P₁ v }
+end
+
 variable {P₁}
 open function
 
-/-- Point reflection in `x` as a permutation. -/
+/-- Point reflection in `x` as an affine automorphism of an affine space. -/
 def point_reflection (x : P₁) : P₁ ≃ᵃ[k] P₁ := (const_vsub k x).trans (vadd_const k x)
 
 lemma point_reflection_apply (x y : P₁) : point_reflection k x y = x -ᵥ y +ᵥ x := rfl
@@ -355,4 +400,88 @@ lemma homothety_neg_one_apply (c p : P₁) :
   homothety c (-1:R') p = point_reflection R' c p :=
 by simp [homothety_apply, point_reflection_apply]
 
+variables {k P₁}
+
+/-- Linear transformation at a fixed point `x`, as an affine endomorphism of an affine space. -/
+def point_linear_map_aux (x : P₁) (f : V₁ →ₗ[k] V₁) : P₁ →ᵃ[k] P₁ :=
+((vadd_const k x).to_affine_map.comp f.to_affine_map).comp (- (const_vsub k x).to_affine_map)
+
+/-- Given a point `x` of an affine space `P₁` modelled on a vector space `V₁`, there is a monoid
+homomorphism from the monoid of linear endomorphisms of `V₁` to the monoid of affine endomorphisms
+of `P₁`, given by "basing" the linear endomorphism of `V₁` in question at the point `x`. -/
+def point_linear_map (x : P₁) : (V₁ →ₗ[k] V₁) →* (P₁ →ᵃ[k] P₁) :=
+{ to_fun := point_linear_map_aux x,
+  map_one' := by { ext, simp [point_linear_map_aux] },
+  map_mul' := λ _ _, by { ext, simp [point_linear_map_aux] }, }
+
+@[simp] lemma point_linear_map_apply (x : P₁) (f : V₁ →ₗ[k] V₁) (y : P₁) :
+  point_linear_map x f y = f (y -ᵥ x) +ᵥ x :=
+by simp [point_linear_map, point_linear_map_aux]
+
+@[simp] lemma point_linear_map_apply_centre (x : P₁) (f : V₁ →ₗ[k] V₁) :
+  point_linear_map x f x = x :=
+by simp
+
+@[simp] lemma point_linear_map_linear (x : P₁) (f : V₁ →ₗ[k] V₁) :
+  (point_linear_map x f).linear = f :=
+by { ext, simp [point_linear_map, point_linear_map_aux] }
+
+@[simp] lemma linear_hom_comp_point_linear_map (x : P₁) :
+  linear_hom.comp (point_linear_map x) = monoid_hom.id (V₁ →ₗ[k] V₁) :=
+by { ext f f, simp }
+
+lemma linear_hom_surjective : function.surjective ⇑(linear_hom : (P₁ →ᵃ[k] P₁) →* (V₁ →ₗ[k] V₁)) :=
+begin
+  inhabit P₁,
+  have : function.left_inverse _ (point_linear_map _) := point_linear_map_linear (arbitrary P₁),
+  exact this.surjective,
+end
+
 end affine_map
+
+namespace affine_equiv
+
+include V₁
+
+variables {k P₁}
+
+/-- Linear transformation at a fixed point `x`, as an affine endomorphism of an affine space. -/
+def point_linear_equiv_aux (x : P₁) (f : V₁ ≃ₗ[k] V₁) : P₁ ≃ᵃ[k] P₁ :=
+(((const_vsub k x)).trans ((linear_equiv.neg k).trans f).to_affine_equiv).trans (vadd_const k x)
+
+/-- Given a point `x` of an affine space `P₁` modelled on a vector space `V₁`, there is a group
+homomorphism from the group of linear automorphisms of `V₁` to the group of affine automorphisms of
+`P₁`, given by "basing" the linear automorphism of `V₁` in question at the point `x`. -/
+def point_linear_equiv (x : P₁) : (V₁ ≃ₗ[k] V₁) →* (P₁ ≃ᵃ[k] P₁) :=
+{ to_fun := point_linear_equiv_aux x,
+  map_one' := by { ext y, simp [point_linear_equiv_aux] },
+  map_mul' := λ _ _, by { ext, simp [point_linear_equiv_aux] }, }
+
+@[simp] lemma point_linear_equiv_apply (x : P₁) (f : V₁ ≃ₗ[k] V₁) (y : P₁) :
+  point_linear_equiv x f y = f (y -ᵥ x) +ᵥ x :=
+by simp [point_linear_equiv, point_linear_equiv_aux]
+
+@[simp] lemma point_linear_equiv_apply_centre (x : P₁) (f : V₁ ≃ₗ[k] V₁) :
+  point_linear_equiv x f x = x :=
+by simp
+
+@[simp] lemma point_linear_equiv_linear (x : P₁) (f : V₁ ≃ₗ[k] V₁) :
+  (point_linear_equiv x f).linear = f :=
+by { ext, simp [point_linear_equiv, point_linear_equiv_aux] }
+
+@[simp] lemma linear_hom_comp_point_linear_equiv (x : P₁) :
+  linear_hom.comp (point_linear_equiv x) = monoid_hom.id (V₁ ≃ₗ[k] V₁) :=
+by { ext f f, simp }
+
+@[simp] lemma coe_point_linear_equiv (x : P₁) (f : V₁ ≃ₗ[k] V₁) :
+  (point_linear_equiv x f).to_affine_map = affine_map.point_linear_map x f.to_linear_map :=
+rfl
+
+lemma to_linear_range : function.surjective ⇑(linear_hom : (P₁ ≃ᵃ[k] P₁) →* (V₁ ≃ₗ[k] V₁)) :=
+begin
+  inhabit P₁,
+  have : function.left_inverse _ (point_linear_equiv _) := point_linear_equiv_linear (arbitrary P₁),
+  exact this.surjective
+end
+
+end affine_equiv

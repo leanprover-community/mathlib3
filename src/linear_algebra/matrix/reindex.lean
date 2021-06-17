@@ -74,8 +74,9 @@ lemma reindex_linear_equiv_comp_apply [semiring R] (e₁ : m ≃ m') (e₂ : n �
     reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') M :=
 by rw [← reindex_linear_equiv_comp e₁ e₂ e₁' e₂']
 
-@[simp] lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m']
-  (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 := by simp
+lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m']
+  (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 :=
+minor_one_equiv e
 
 variables {o o' : Type*} [fintype o] [fintype o']
 

@@ -26,7 +26,7 @@ This file relates `zmod n` to the quotient group
 
 ## Tags
 
-parity, zmod, even, odd
+zmod, quotient group, quotient ring, ideal quotient
 -/
 
 section lift

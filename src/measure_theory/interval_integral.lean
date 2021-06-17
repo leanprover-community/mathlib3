@@ -627,7 +627,9 @@ section order_closed_topology
 variables [topological_space α] [order_closed_topology α] [opens_measurable_space α]
   {a b c d : α} {f g : α → E} {μ : measure α}
 
-lemma integrable_on_Icc_iff_integrable_on_Ioc {f : α → E} {a b : α} (ha : μ {a} ≠ ⊤) :
+lemma integrable_on_Icc_iff_integrable_on_Ioc
+  {E : Type*} [measurable_space E] [normed_group E]
+  {f : α → E} {a b : α} (ha : μ {a} ≠ ⊤) :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
 begin
   cases le_or_lt a b with hab hab,
@@ -637,7 +639,8 @@ begin
   { simp [hab, hab.le] },
 end
 
-lemma integrable_on_Icc_iff_integrable_on_Ioc' [has_no_atoms μ] {f : α → E} {a b : α} :
+lemma integrable_on_Icc_iff_integrable_on_Ioc'
+  {E : Type*} [measurable_space E] [normed_group E] [has_no_atoms μ] {f : α → E} {a b : α} :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
 integrable_on_Icc_iff_integrable_on_Ioc (by simp)
 

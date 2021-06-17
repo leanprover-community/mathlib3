@@ -409,7 +409,7 @@ end
 
 lemma measure_theory.integrable_on.mul_continuous_on
   [topological_space α] [opens_measurable_space α] [t2_space α]
-  {μ : measure α} [locally_finite_measure μ] {s : set α} {f g : α → ℝ}
+  {μ : measure α} {s : set α} {f g : α → ℝ}
   (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
   integrable_on (λ x, f x * g x) s μ :=
 begin
@@ -425,7 +425,7 @@ end
 
 lemma measure_theory.integrable_on.continuous_on_mul
   [topological_space α] [opens_measurable_space α] [t2_space α]
-  {μ : measure α} [locally_finite_measure μ] {s : set α} {f g : α → ℝ}
+  {μ : measure α} {s : set α} {f g : α → ℝ}
   (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
   integrable_on (λ x, g x * f x) s μ :=
 by simpa [mul_comm] using hf.mul_continuous_on hg hs

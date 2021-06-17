@@ -75,13 +75,7 @@ lemma reindex_linear_equiv_comp_apply [semiring R] (e₁ : m ≃ m') (e₂ : n �
 by rw [← reindex_linear_equiv_comp e₁ e₂ e₁' e₂']
 
 @[simp] lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m']
-  (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 :=
-begin
-  ext i j,
-  dsimp only [reindex_linear_equiv_apply, reindex_apply, minor_apply, one_apply],
-  simp only [eq_self_iff_true, apply_eq_iff_eq],
-  convert rfl
-end
+  (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 := by simp
 
 variables {o o' : Type*} [fintype o] [fintype o']
 
@@ -104,8 +98,8 @@ begin
     equiv.refl_trans]
 end
 
-/-- For square matrices with coefficients in commutative semirings, the natural map that reindexes a matrix's
-  rows and columns with equivalent types, `matrix.reindex`, is an equivalence of algebras. -/
+/-- For square matrices with coefficients in commutative semirings, the natural map that reindexes
+ a matrix's rows and columns with equivalent types, `matrix.reindex`, is an equivalence of algebras. -/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,

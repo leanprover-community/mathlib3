@@ -17,7 +17,7 @@ In this file, we define edge density, equipartitions, and prove Szemerédi's Reg
 universe u
 
 open_locale big_operators
-open finset fintype function
+open finset fintype function.commute
 
 /-! ### Things that belong to mathlib -/
 
@@ -336,15 +336,10 @@ end
 lemma pairs_density_compl {U W : finset V} (hU : U.nonempty) (hW : W.nonempty) :
   pairs_density r U W + pairs_density (λ x y, ¬r x y) U W = 1 :=
 begin
-  rw [pairs_density, pairs_density],
-  rw div_add_div_same,
-  rw ←nat.cast_mul,
-  rw div_eq_iff,
-  rw one_mul,
+  have h : ((U.card * W.card : ℕ) : ℝ) ≠ 0 := nat.cast_ne_zero.2 (mul_pos (finset.card_pos.2 hU)
+    (finset.card_pos.2 hW)).ne.symm,
+  rw [pairs_density, pairs_density, div_add_div_same, ←nat.cast_mul, div_eq_iff h, one_mul],
   exact_mod_cast card_pairs_finset_compl r U W,
-  apply ne_of_gt,
-  rw nat.cast_pos,
-  exact mul_pos (finset.card_pos.2 hU) (finset.card_pos.2 hW),
 end
 
 lemma pairs_density_empty_left (W : finset V) :
@@ -431,7 +426,6 @@ calc
           exact nat.cast_nonneg _,
         end
 
---@Yaël: bust those aux
 lemma aux₂ {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
   abs (pairs_density r A' B' - pairs_density r A B) ≤ 1 - (A'.card : ℝ)/A.card * (B'.card/B.card) :=
 begin
@@ -620,19 +614,19 @@ open simple_graph
 
 /-- An partition of a finite set `S` is a collection of disjoint subsets of `S` which cover it. -/
 @[ext]
-structure finpartition {V : Type u} (s : finset V) :=
+structure finpartition_on {V : Type u} (s : finset V) :=
 (parts : finset (finset V))
 (disjoint : ∀ (a₁ a₂ ∈ parts) x, x ∈ a₁ → x ∈ a₂ → a₁ = a₂)
 (covering : ∀ u ∈ s, ∃ (a ∈ parts), u ∈ a)
 (subset : ∀ u ∈ parts, u ⊆ s)
 
-/-- A `finpartition' V` is a partition of the entire finite type `V` -/
-abbreviation finpartition' (V : Type u) [fintype V] := finpartition (univ : finset V)
+/-- A `finpartition V` is a partition of the entire finite type `V` -/
+abbreviation finpartition (V : Type u) [fintype V] := finpartition_on (univ : finset V)
 
-namespace finpartition
-variables {V : Type u} {s : finset V} [decidable_eq V] (P : finpartition s)
+namespace finpartition_on
+variables {V : Type u} {s : finset V} [decidable_eq V] (P : finpartition_on s)
 
-/-- The size of a finpartition is its number of parts. -/
+/-- The size of a finpartition_on is its number of parts. -/
 protected def size : ℕ := P.parts.card
 
 lemma union_eq : P.parts.bUnion id = s :=
@@ -644,7 +638,7 @@ begin
   exact P.covering _ hx,
 end
 
-def bind (P : finpartition s) (Q : Π i ∈ P.parts, finpartition i) : finpartition s :=
+def bind (P : finpartition_on s) (Q : Π i ∈ P.parts, finpartition_on i) : finpartition_on s :=
 { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
   disjoint := begin
     rintro a b ha hb x hxa hxb,
@@ -683,7 +677,7 @@ def distinct_unordered_parts_sym2 :
 lemma mem_distinct_unordered_parts_sym2 (U W : finset V) :
   ⟦(U, W)⟧ ∈ P.distinct_unordered_parts_sym2 ↔ U ∈ P.parts ∧ W ∈ P.parts ∧ U ≠ W :=
 begin
-  rw [finpartition.distinct_unordered_parts_sym2, finset.mem_filter],
+  rw [finpartition_on.distinct_unordered_parts_sym2, finset.mem_filter],
   simp only [mem_image, exists_prop, sym2.is_diag_iff_proj_eq, sym2.eq_iff, prod.exists,
     mem_product],
   split,
@@ -695,7 +689,7 @@ end
 
 lemma distinct_unordered_parts_sym2_size :
   P.distinct_unordered_parts_sym2.card = P.size.choose 2 :=
-by rw [distinct_unordered_parts_sym2, finpartition.size, prod_quotient_sym2_not_diag]
+by rw [distinct_unordered_parts_sym2, finpartition_on.size, prod_quotient_sym2_not_diag]
 
 variables (G : simple_graph V)
 open_locale classical
@@ -718,10 +712,10 @@ def is_uniform (ε : ℝ) : Prop :=
 Szemerédi's Regularity Lemma (see `increment`). As long as we do not have a suitable equipartition,
 we will find a new one that has an index greater than the previous one plus some fixed constant.
 Then `index_le_half` ensures this process only happens finitely many times. -/
-noncomputable def index (P : finpartition s) : ℝ :=
+noncomputable def index (P : finpartition_on s) : ℝ :=
 (∑ x in P.distinct_unordered_parts_sym2, G.density_sym2 x^2)/P.size^2
 
-lemma index_nonneg (P : finpartition s) :
+lemma index_nonneg (P : finpartition_on s) :
   0 ≤ P.index G :=
 div_nonneg (finset.sum_nonneg (λ _ _, sq_nonneg _)) (sq_nonneg _)
 
@@ -739,10 +733,10 @@ begin
     apply nat.le_add_left, }-/
 end
 
-lemma index_le_half (P : finpartition s) :
+lemma index_le_half (P : finpartition_on s) :
   P.index G ≤ 1/2 :=
 begin
-  rw finpartition.index,
+  rw finpartition_on.index,
   apply div_le_of_nonneg_of_le_mul (sq_nonneg _),
   { norm_num },
   suffices h : (∑ (x : sym2 (finset V)) in P.distinct_unordered_parts_sym2, G.density_sym2 x ^ 2) ≤
@@ -758,15 +752,15 @@ begin
   exact G.density_sym2_le_one _,
 end
 
-end finpartition
+end finpartition_on
 
-open finpartition
+open finpartition_on
 
 /-! ### Simple equipartitions -/
 
 /-- The discrete equipartition of a fintype is the partition in singletons. -/
 @[simps]
-def discrete_finpartition {V : Type*} [decidable_eq V] (s : finset V) : finpartition s :=
+def discrete_finpartition_on {V : Type*} [decidable_eq V] (s : finset V) : finpartition_on s :=
 { parts := s.image singleton,
   disjoint :=
   begin
@@ -780,7 +774,7 @@ def discrete_finpartition {V : Type*} [decidable_eq V] (s : finset V) : finparti
   subset := by simp }
 
 @[simps]
-def trivial_finpartition {V : Type*} [decidable_eq V] (s : finset V) : finpartition s :=
+def trivial_finpartition_on {V : Type*} [decidable_eq V] (s : finset V) : finpartition_on s :=
 { parts := {s},
   disjoint :=
   begin
@@ -791,13 +785,13 @@ def trivial_finpartition {V : Type*} [decidable_eq V] (s : finset V) : finpartit
   covering := λ u hu, ⟨s, mem_singleton_self _, hu⟩,
   subset := by simp }
 
-namespace discrete_finpartition
+namespace discrete_finpartition_on
 variables {V : Type u} [decidable_eq V] (s : finset V) (G : simple_graph V)
 
-lemma is_equipartition : (discrete_finpartition s).is_equipartition :=
+lemma is_equipartition : (discrete_finpartition_on s).is_equipartition :=
 (equitable_iff_almost_eq_constant _ _).2 ⟨1, by simp⟩
 
-protected lemma size : (discrete_finpartition s).size = s.card :=
+protected lemma size : (discrete_finpartition_on s).size = s.card :=
 begin
   change finset.card (s.image _) = _,
   rw [finset.card_image_of_injective],
@@ -806,13 +800,13 @@ begin
 end
 
 lemma non_uniform_parts {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition s).non_uniform_parts G ε = ∅ :=
+  (discrete_finpartition_on s).non_uniform_parts G ε = ∅ :=
 begin
   rw eq_empty_iff_forall_not_mem,
   intro z,
   apply quotient.induction_on z,
   rintro ⟨U, W⟩,
-  simp only [finpartition.mem_non_uniform_parts, discrete_finpartition_parts, mem_image, and_imp,
+  simp only [finpartition_on.mem_non_uniform_parts, discrete_finpartition_on_parts, mem_image, and_imp,
     exists_prop, not_and, not_not, ne.def, exists_imp_distrib],
   rintro x hx rfl y hy rfl h U' hU' W' hW' hU hW,
   rw [card_singleton, nat.cast_one, mul_one] at hU hW,
@@ -826,14 +820,14 @@ begin
 end
 
 lemma is_uniform {ε : ℝ} (hε : 0 < ε) :
-  (discrete_finpartition s).is_uniform G ε :=
+  (discrete_finpartition_on s).is_uniform G ε :=
 begin
-  rw [finpartition.is_uniform, discrete_finpartition.size, non_uniform_parts _ _ hε,
+  rw [finpartition_on.is_uniform, discrete_finpartition_on.size, non_uniform_parts _ _ hε,
     finset.card_empty, nat.cast_zero],
   exact mul_nonneg hε.le (nat.cast_nonneg _),
 end
 
-end discrete_finpartition
+end discrete_finpartition_on
 
 section
 variables {α : Type*} [decidable_eq α] {s : finset α}
@@ -1088,8 +1082,8 @@ parts of `P` plus at most `m` extra elements, there are `b` parts of size `m+1` 
 The `m > 0` condition is required since there may be zero or one parts of size `0`, while `a` could
 be arbitrary.
 -/
-lemma mk_equitable {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (Q : finpartition s) :
-  ∃ (P : finpartition s),
+lemma mk_equitable {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (Q : finpartition_on s) :
+  ∃ (P : finpartition_on s),
     (∀ (x : finset α), x ∈ P.parts → x.card = m ∨ x.card = m+1) ∧
     P.is_equipartition ∧
     (∀ x ∈ Q.parts, (x \ finset.bUnion (P.parts.filter (λ y, y ⊆ x)) id).card ≤ m) ∧
@@ -1098,7 +1092,7 @@ lemma mk_equitable {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (Q : finpartition
 begin
   obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅, hP₆⟩ :=
     mk_equitable_aux m a b hs Q.parts Q.covering Q.disjoint Q.subset,
-  let P' : finpartition s := ⟨P, hP₄, hP₃, hP₅⟩,
+  let P' : finpartition_on s := ⟨P, hP₄, hP₃, hP₅⟩,
   have h₁ : ∑ i in P'.parts, i.card = s.card,
   { rw [←card_bUnion],
     { apply congr_arg finset.card P'.union_eq },
@@ -1141,7 +1135,7 @@ section atomise
 variables {α : Type*} [decidable_eq α] {s : finset α}
 
 def atomise (s : finset α) (Q : finset (finset α)) :
-  finpartition s :=
+  finpartition_on s :=
 { parts := Q.powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x)),
   disjoint := begin
     rintro x y hx hy i hi₁ hi₂,
@@ -1301,14 +1295,14 @@ end atomise
 /-- Arbitrary equipartition into `t` parts -/
 lemma dummy_equipartition {V : Type*} [decidable_eq V] (s : finset V) {t : ℕ}
   (ht : 0 < t) (hs : t ≤ s.card) :
-  ∃ (P : finpartition s), P.is_equipartition ∧ P.size = t :=
+  ∃ (P : finpartition_on s), P.is_equipartition ∧ P.size = t :=
 begin
   have : (t - s.card % t) * (s.card / t) + (s.card % t) * (s.card / t + 1) = s.card,
   { rw [nat.mul_sub_right_distrib, mul_add, ←add_assoc, nat.sub_add_cancel, mul_one, add_comm,
       nat.mod_add_div],
     apply nat.mul_le_mul_right,
     apply (nat.mod_lt _ ht).le },
-  obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅⟩ := mk_equitable this (trivial_finpartition s),
+  obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅⟩ := mk_equitable this (trivial_finpartition_on s),
   have : 0 < s.card / t := nat.div_pos hs ht,
   refine ⟨P, hP₂, _⟩,
   rw [(hP₅ this).2, nat.sub_add_cancel (nat.mod_lt _ ht).le],
@@ -1329,7 +1323,7 @@ lemma exp_bound_mono :
 λ a b h, nat.mul_le_mul h (nat.pow_le_pow_of_le_right (by norm_num) h)
 
 open_locale classical
-variables {V : Type u} [fintype V] {G : simple_graph V} {P : finpartition' V} {ε : ℝ}
+variables {V : Type u} [fintype V] {G : simple_graph V} {P : finpartition V} {ε : ℝ}
 
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
@@ -1337,16 +1331,16 @@ index is bounded by a constant (see `index_le_half`), so this process eventually
 yields a not-too-big uniform equipartition. -/
 theorem increment (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
-  ∃ (Q : finpartition' V),
+  ∃ (Q : finpartition V),
     Q.is_equipartition ∧ Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
 begin
   let m := card V/exp_bound P.size,
   let a := card V/P.size - m * 4^P.size,
   let b := card V - m * exp_bound P.size - a * P.size,
   rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
-  let R : ∀ U, U ∈ P.parts → finpartition U := λ U hU, atomise U (finset.image
+  let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
-  let Q : finpartition' V,
+  let Q : finpartition V,
   { refine P.bind (λ U hU, _),
     apply dite (U.card = m * 4^P.size + a),
     { intro hUcard,
@@ -1357,7 +1351,7 @@ begin
       exact classical.some (mk_equitable this (R U hU)) },
     intro hUcard,
     have aux1 :
-      (∑ (i : finset V) in P.parts, i.card) / P.parts.card = m * 4 ^ finpartition.size P + a,
+      (∑ (i : finset V) in P.parts, i.card) / P.parts.card = m * 4 ^ finpartition_on.size P + a,
     { sorry },
     have aux2 := hP U hU,
     rw aux1 at aux2,
@@ -1414,16 +1408,16 @@ lemma iteration_bound_le_szemeredi_bound (ε l) :
 /-- Effective Szemerédi's Regularity Lemma: For any sufficiently big graph, there is an ε-uniform
 equipartition of bounded size (where the bound does not depend on the graph). -/
 theorem szemeredi_regularity {ε : ℝ} (hε : 0 < ε) (hε' : ε < 1) (l : ℕ) (hG : l ≤ card V) :
-  ∃ (P : finpartition' V),
+  ∃ (P : finpartition V),
     P.is_equipartition ∧ l ≤ P.size ∧ P.size ≤ szemeredi_bound ε l ∧ P.is_uniform G ε :=
 begin
   obtain hV | hV := le_total (card V) (szemeredi_bound ε l),
-  { refine ⟨discrete_finpartition _, discrete_finpartition.is_equipartition _, _⟩,
-    rw [discrete_finpartition.size, card_univ],
-    exact ⟨hG, hV, discrete_finpartition.is_uniform _ G hε⟩ },
+  { refine ⟨discrete_finpartition_on _, discrete_finpartition_on.is_equipartition _, _⟩,
+    rw [discrete_finpartition_on.size, card_univ],
+    exact ⟨hG, hV, discrete_finpartition_on.is_uniform _ G hε⟩ },
   let t := iteration_bound ε l,
   have ht : 0 < t := iteration_bound_pos _ _,
-  suffices h : ∀ i, ∃ (P : finpartition' V), P.is_equipartition ∧
+  suffices h : ∀ i, ∃ (P : finpartition V), P.is_equipartition ∧
     t ≤ P.size ∧ P.size ≤ (exp_bound^[i]) t ∧ (P.is_uniform G ε ∨ ε^5 / 8 * i ≤ P.index G),
   { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (nat_floor (4/ε^5) + 1),
     refine ⟨P, hP₁, (le_iteration_bound _ _).trans hP₂, hP₃.trans _, _⟩,

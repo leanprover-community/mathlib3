@@ -14,7 +14,8 @@ This file defines wide (co)equalizers as special cases of (co)limits.
 
 A wide equalizer for the family of morphisms `X ⟶ Y` indexed by `J` is the categorical
 generalization of the subobject `{a ∈ A | ∀ j₁ j₂, f(j₁, a) = f(j₂, a)}`. Note that if `J` has
-fewer than two morphisms this condition is trivial, so some lemmas and definitions assume this.
+fewer than two morphisms this condition is trivial, so some lemmas and definitions assume `J` is
+nonempty.
 
 ## Main definitions
 

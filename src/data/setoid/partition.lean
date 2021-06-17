@@ -103,7 +103,7 @@ lemma eqv_class_mem {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) {y} :
 
 lemma eqv_class_mem' {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) {x} :
   {y : α | (mk_classes c H).rel x y} ∈ c :=
-by { convert setoid.eqv_class_mem H, ext, rw setoid.comm }
+by { convert setoid.eqv_class_mem H, ext, rw setoid.comm' }
 
 /-- Distinct elements of a set of sets partitioning α are disjoint. -/
 lemma eqv_classes_disjoint {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) :
@@ -338,7 +338,7 @@ begin
   rw ← hs.class_of,
   ext y,
   change ⟦y⟧ = x ↔ hs.setoid.rel (hs.out x) y,
-  rw [hs.setoid.comm, quotient.mk_eq_iff_out],
+  rw [hs.setoid.comm', quotient.mk_eq_iff_out],
   refl
 end
 

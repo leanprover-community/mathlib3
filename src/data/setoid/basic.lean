@@ -41,9 +41,6 @@ lemma quotient.eq_rel {r : setoid α} {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y :=
 
 namespace setoid
 
-lemma comm (s : setoid α) {x y} : s.rel x y ↔ s.rel y x :=
-⟨setoid.symm, setoid.symm⟩
-
 @[ext] lemma ext' {r s : setoid α} (H : ∀ a b, r.rel a b ↔ s.rel a b) :
   r = s := ext H
 
@@ -63,6 +60,9 @@ theorem le_def {r s : setoid α} : r ≤ s ↔ ∀ {x y}, r.rel x y → s.rel x 
 @[symm] lemma symm' (r : setoid α) : ∀ {x y}, r.rel x y → r.rel y x := λ _ _ h, r.2.2.1 h
 @[trans] lemma trans' (r : setoid α) : ∀ {x y z}, r.rel x y → r.rel y z → r.rel x z :=
 λ _ _ _ hx, r.2.2.2 hx
+
+lemma comm' (s : setoid α) {x y} : s.rel x y ↔ s.rel y x :=
+⟨s.symm', s.symm'⟩
 
 /-- The kernel of a function is an equivalence relation. -/
 def ker (f : α → β) : setoid α :=

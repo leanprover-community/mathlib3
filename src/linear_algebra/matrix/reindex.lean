@@ -86,7 +86,7 @@ lemma reindex_linear_equiv_mul [semiring R]
     reindex_linear_equiv eₘ eₙ M ⬝ reindex_linear_equiv eₙ eₒ N :=
 minor_mul_equiv M N _ _ _
 
-lemma mul_reindex_linear_equiv_mul_one [semiring R] [decidable_eq o] (e₁ : o ≃ n) (e₂ : o ≃ n')
+lemma mul_reindex_linear_equiv_one [semiring R] [decidable_eq o] (e₁ : o ≃ n) (e₂ : o ≃ n')
   (M : matrix m n R) : M.mul (reindex_linear_equiv e₁ e₂ 1) =
     reindex_linear_equiv (equiv.refl m) (e₁.symm.trans e₂) M :=
 begin

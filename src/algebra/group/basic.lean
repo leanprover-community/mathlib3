@@ -321,12 +321,13 @@ by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 lemma div_right_injective : function.injective (λ a, b / a) :=
 by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
--- I removed `sub_zero` below, as it is the `to_additive` version of this lemma.
-@[simp, to_additive sub_zero] lemma div_one' (a : G) :
-  a / 1 = a :=
+-- The unprimed version is used by `group_with_zero`.  This is the preferred choice.
+-- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60div_one'.60
+@[simp, to_additive sub_zero]
+lemma div_one' (a : G) : a / 1 = a :=
 calc  a / 1 = a * 1⁻¹ : div_eq_mul_inv a 1
-          ... = a * 1   : congr_arg _ one_inv
-          ... = a       : mul_one a
+          ... = a * 1 : congr_arg _ one_inv
+          ... = a     : mul_one a
 
 end group
 

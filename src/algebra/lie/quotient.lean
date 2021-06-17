@@ -137,10 +137,14 @@ variables {R : Type u} {L : Type v}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 variables (K : lie_subalgebra R L)
 
+/-- Given a Lie algebra `L`, together with a Lie subalgebra `K ⊆ L`, this is the quotient `L/K`.
+As shown below, `L/K` is naturally a Lie module of `K`. -/
 abbreviation quotient := (K : submodule R L).quotient
 
 namespace quotient
 
+/-- Given a Lie algebra `L`, together with a Lie subalgebra `K ⊆ L`, this is natural map `L → L/K`.
+-/
 abbreviation mk : L → K.quotient := submodule.quotient.mk
 
 @[simp] lemma mk_eq_mk (x : L) : quot.mk _ x = mk K x := rfl

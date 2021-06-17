@@ -237,7 +237,8 @@ lemma lt_iff_exists_rat_btwn {a b : ereal} :
 
 lemma lt_iff_exists_real_btwn {a b : ereal} :
   a < b ↔ ∃ (x : ℝ), a < x ∧ (x : ereal) < b :=
-⟨λ hab, let ⟨x, ax, xb⟩ := exists_rat_btwn_of_lt hab in ⟨(x : ℝ), ax, xb⟩, λ ⟨x, ax, xb⟩, ax.trans xb⟩
+⟨λ hab, let ⟨x, ax, xb⟩ := exists_rat_btwn_of_lt hab in ⟨(x : ℝ), ax, xb⟩,
+ λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
 /-- The set of numbers in `ereal` that are not equal to `±∞` is equivalent to `ℝ`. -/
 def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=

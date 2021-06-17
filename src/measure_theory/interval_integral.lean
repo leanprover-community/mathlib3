@@ -1997,7 +1997,8 @@ begin
     assume t ht,
     refine ⟨_, ⟨ht.1.le, ht.2⟩⟩,
     exact integral_eq_sub_of_has_deriv_right_of_le_real ht.2
-      (hcont.mono (Icc_subset_Icc ht.1.le (le_refl _))) (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
+      (hcont.mono (Icc_subset_Icc ht.1.le (le_refl _)))
+      (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
       (g'int.mono_set (Icc_subset_Icc ht.1.le (le_refl _))) },
   rw closure_Ioc a_lt_b at A,
   have a_mem : a ∈ Icc a b := ⟨le_refl _, hab⟩,

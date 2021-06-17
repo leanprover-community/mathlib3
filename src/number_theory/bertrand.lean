@@ -445,7 +445,9 @@ begin
             rw pow_coe,
             apply real.rpow_le_rpow_of_exponent_le,
               {
-                sorry,
+                apply nat.one_le_cast.2,
+                linarith,
+                exact real.nontrivial,
               },
               {apply nat_sqrt_le_real_sqrt,},
           end
@@ -458,7 +460,8 @@ begin
                 { sorry, },
                 { norm_num, },
               },
-              { sorry, },
+              { norm_cast,
+                linarith,},
               --rw pow_coe,
               --rw real.log_rpow,
               --{ sorry, },
@@ -467,7 +470,8 @@ begin
             },
             { norm_num,
               refine rpow_pos_of_pos _ _,
-              { sorry, },
+              { norm_cast,
+                linarith,},
             },
           end,
 end

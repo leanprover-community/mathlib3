@@ -288,7 +288,7 @@ lemma out_proj (x : α) : hs.setoid.rel (hs.out (hs.proj x)) x :=
 quotient.mk_out' x
 
 @[simp] lemma index_out_proj (x : α) : hs.index (hs.out (hs.proj x)) = hs.index x :=
-hs.out_proj x
+setoid.ker_apply_mk_out' x
 
 @[simp] lemma proj_some_index (x : α) : hs.proj (hs.some (hs.index x)) = hs.proj x :=
 quotient.eq'.2 (hs.some_index x)
@@ -297,7 +297,7 @@ quotient.eq'.2 (hs.some_index x)
 hs.mem_iff_index_eq.2 $ by simp
 
 @[simp] lemma index_out_proj_some (i : ι) : hs.index (hs.out $ hs.proj $ hs.some i) = i :=
-hs.eq_of_mem (hs.mem_index $ hs.out $ hs.proj (hs.some i)) (hs.out_proj_some i)
+by simp
 
 lemma class_of {x : α} : set_of (hs.setoid.rel x) = s (hs.index x) :=
 set.ext $ λ y, (hs.mem_iff_index_eq.trans eq_comm).symm

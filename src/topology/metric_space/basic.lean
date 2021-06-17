@@ -1596,11 +1596,11 @@ lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
   exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
 end⟩
 
-lemma _root_.function.periodic.bounded_of_continuous' {f : ℝ → α} {c : ℝ}
+lemma _root_.function.periodic.compact_of_continuous' {f : ℝ → α} {c : ℝ}
   (hp : function.periodic f c) (hc : 0 < c) (hf : continuous f) :
-  bounded (range f) :=
+  is_compact (range f) :=
 begin
-  convert (compact_Icc.image hf).bounded,
+  convert compact_Icc.image hf,
   ext x,
   refine ⟨_, mem_range_of_mem_image f (Icc 0 c)⟩,
   rintros ⟨y, h1⟩,
@@ -1608,14 +1608,20 @@ begin
   exact ⟨z, mem_Icc_of_Ico hz, h2.symm.trans h1⟩,
 end
 
+/-- A continuous, periodic function is compact. -/
+lemma _root_.function.periodic.compact_of_continuous {f : ℝ → α} {c : ℝ}
+  (hp : function.periodic f c) (hc : c ≠ 0) (hf : continuous f) :
+  is_compact (range f) :=
+begin
+  cases lt_or_gt_of_ne hc with hneg hpos,
+  exacts [hp.neg.compact_of_continuous' (neg_pos.mpr hneg) hf, hp.compact_of_continuous' hpos hf],
+end
+
 /-- A continuous, periodic function is bounded. -/
 lemma _root_.function.periodic.bounded_of_continuous {f : ℝ → α} {c : ℝ}
   (hp : function.periodic f c) (hc : c ≠ 0) (hf : continuous f) :
   bounded (range f) :=
-begin
-  cases lt_or_gt_of_ne hc with hneg hpos,
-  exacts [hp.neg.bounded_of_continuous' (neg_pos.mpr hneg) hf, hp.bounded_of_continuous' hpos hf],
-end
+(hp.compact_of_continuous hc hf).bounded
 
 end bounded
 

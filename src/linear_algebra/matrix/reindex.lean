@@ -121,7 +121,6 @@ rfl
   reindex_alg_equiv (equiv.refl m) = (alg_equiv.refl : _ ≃ₐ[R] _) :=
 alg_equiv.ext $ λ _, rfl
 
-
 lemma reindex_alg_equiv_mul [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) (M : matrix m m R) (N : matrix m m R) :
   reindex_alg_equiv e (M ⬝ N) = reindex_alg_equiv e M ⬝ reindex_alg_equiv e N :=

@@ -701,7 +701,7 @@ finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
 
 @[to_additive] lemma prod_eq_prod_fintype {N β : Type*} [comm_monoid N] [fintype α]
   [has_zero β] (g : α → β → N) (h : ∀ a, g a 0 = 1) (f : α →₀ β) :
-  f.prod g = ∏ a:α, g a (f a) :=
+  f.prod g = ∏ a : α, g a (f a) :=
 finset.prod_subset (finset.subset_univ _) $ λ a _ ha,
   calc g a (f a) = g a 0 : congr_arg _ $ not_mem_support_iff.mp ha
   ... = 1 : h a

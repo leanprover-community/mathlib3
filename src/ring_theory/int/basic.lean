@@ -355,3 +355,23 @@ begin
   rw int.associated_iff_nat_abs,
   exact int.nat_abs_eq_nat_abs_iff,
 end
+
+namespace int
+
+@[simp] lemma mem_gmultiples_iff_dvd {a b : ℤ} : a ∈ add_subgroup.gmultiples b ↔ b ∣ a :=
+begin
+  split,
+  { rintro ⟨c, rfl⟩, exact dvd_mul_left _ _ },
+  { rintro ⟨c, rfl⟩, rw mul_comm, exact add_subgroup.gsmul_mem _ mem_gmultiples _ },
+end
+
+lemma gmultiples_nat_abs (a : ℤ) :
+  add_subgroup.gmultiples (a.nat_abs : ℤ) = add_subgroup.gmultiples a :=
+le_antisymm
+  (add_subgroup.gmultiples_subset (mem_gmultiples_iff_dvd.mpr (dvd_nat_abs.mpr (dvd_refl a))))
+  (add_subgroup.gmultiples_subset (mem_gmultiples_iff_dvd.mpr (nat_abs_dvd.mpr (dvd_refl a))))
+
+lemma span_nat_abs (a : ℤ) : ideal.span ({a.nat_abs} : set ℤ) = ideal.span {a} :=
+by { rw ideal.span_singleton_eq_span_singleton, exact (associated_nat_abs _).symm }
+
+end int

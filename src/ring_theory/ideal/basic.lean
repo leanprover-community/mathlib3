@@ -577,6 +577,15 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
 
 end quotient
 
+/-- Quotienting by equal ideals gives equivalent rings.
+
+See also `submodule.quot_equiv_of_eq`.
+-/
+def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
+  I.quotient ≃+* J.quotient :=
+{ map_mul' := by { rintro ⟨x⟩ ⟨y⟩, refl },
+  .. submodule.quot_equiv_of_eq I J h }
+
 section pi
 variables (ι : Type v)
 

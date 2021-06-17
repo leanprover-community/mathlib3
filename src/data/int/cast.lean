@@ -10,7 +10,7 @@ import data.nat.cast
 # Cast of integers
 
 This file defines the *canonical* homomorphism from the integers into a type `α` with `0`,
-`1`, `+` and `-` (typically an `add_group`).
+`1`, `+` and `-` (typically a `ring`).
 
 ## Main declarations
 

@@ -598,13 +598,13 @@ by simp [commute, semiconj_by]
 
 end comm_semiring
 
-section semiring
-variables [semiring α]
-
 /-- For two vectors `w` and `v`, `vec_mul_vec w v i j` is defined to be `w i * v j`.
     Put another way, `vec_mul_vec w v` is exactly `col w ⬝ row v`. -/
-def vec_mul_vec (w : m → α) (v : n → α) : matrix m n α
+def vec_mul_vec [has_mul α] (w : m → α) (v : n → α) : matrix m n α
 | x y := w x * v y
+
+section non_unital_non_assoc_semiring
+variables [non_unital_non_assoc_semiring α]
 
 /-- `mul_vec M v` is the matrix-vector product of `M` and `v`, where `v` is seen as a column matrix.
     Put another way, `mul_vec M v` is the vector whose entries
@@ -636,33 +636,20 @@ lemma vec_mul_diagonal [decidable_eq m] (v w : m → α) (x : m) :
   vec_mul v (diagonal w) x = v x * w x :=
 dot_product_diagonal' v w x
 
-@[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
-by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
-
-@[simp] lemma vec_mul_one [decidable_eq m] (v : m → α) : vec_mul v 1 = v :=
-by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
-
 @[simp] lemma mul_vec_zero (A : matrix m n α) : mul_vec A 0 = 0 :=
 by { ext, simp [mul_vec] }
 
 @[simp] lemma vec_mul_zero (A : matrix m n α) : vec_mul 0 A = 0 :=
 by { ext, simp [vec_mul] }
 
-@[simp] lemma vec_mul_vec_mul (v : m → α) (M : matrix m n α) (N : matrix n o α) :
-  vec_mul (vec_mul v M) N = vec_mul v (M ⬝ N) :=
-by { ext, apply dot_product_assoc }
-
-@[simp] lemma mul_vec_mul_vec (v : o → α) (M : matrix m n α) (N : matrix n o α) :
-  mul_vec M (mul_vec N v) = mul_vec (M ⬝ N) v :=
-by { ext, symmetry, apply dot_product_assoc }
-
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=
 by { ext i j, simp [vec_mul_vec, mul_apply], refl }
 
-lemma smul_mul_vec_assoc (A : matrix m n α) (b : n → α) (a : α) :
+lemma smul_mul_vec_assoc [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
+  (a : R) (A : matrix m n α) (b : n → α) :
   (a • A).mul_vec b = a • (A.mul_vec b) :=
-by { ext, apply smul_dot_product }
+by { ext, apply smul_dot_product, }
 
 lemma mul_vec_add (A : matrix m n α) (x y : n → α) :
   A.mul_vec (x + y) = A.mul_vec x + A.mul_vec y :=
@@ -679,6 +666,35 @@ by { ext, apply dot_product_add }
 lemma add_vec_mul (A : matrix m n α) (x y : m → α) :
   vec_mul (x + y) A = vec_mul x A + vec_mul y A :=
 by { ext, apply add_dot_product }
+
+end non_unital_non_assoc_semiring
+
+section non_unital_semiring
+variables [non_unital_semiring α]
+
+@[simp] lemma vec_mul_vec_mul (v : m → α) (M : matrix m n α) (N : matrix n o α) :
+  vec_mul (vec_mul v M) N = vec_mul v (M ⬝ N) :=
+by { ext, apply dot_product_assoc }
+
+@[simp] lemma mul_vec_mul_vec (v : o → α) (M : matrix m n α) (N : matrix n o α) :
+  mul_vec M (mul_vec N v) = mul_vec (M ⬝ N) v :=
+by { ext, symmetry, apply dot_product_assoc }
+
+end non_unital_semiring
+
+section non_assoc_semiring
+variables [non_assoc_semiring α]
+
+@[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
+by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
+
+@[simp] lemma vec_mul_one [decidable_eq m] (v : m → α) : vec_mul v 1 = v :=
+by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
+
+end non_assoc_semiring
+
+section semiring
+variables [semiring α]
 
 variables [decidable_eq m] [decidable_eq n]
 
@@ -1036,11 +1052,11 @@ Simplification lemmas for `matrix.row` and `matrix.col`.
 -/
 open_locale matrix
 
-@[simp] lemma col_add [semiring α] (v w : m → α) : col (v + w) = col v + col w := by { ext, refl }
-@[simp] lemma col_smul [semiring α] (x : α) (v : m → α) : col (x • v) = x • col v :=
+@[simp] lemma col_add [has_add α] (v w : m → α) : col (v + w) = col v + col w := by { ext, refl }
+@[simp] lemma col_smul [has_scalar R α] (x : R) (v : m → α) : col (x • v) = x • col v :=
 by { ext, refl }
-@[simp] lemma row_add [semiring α] (v w : m → α) : row (v + w) = row v + row w := by { ext, refl }
-@[simp] lemma row_smul [semiring α] (x : α) (v : m → α) : row (x • v) = x • row v :=
+@[simp] lemma row_add [has_add α] (v w : m → α) : row (v + w) = row v + row w := by { ext, refl }
+@[simp] lemma row_smul [has_scalar R α] (x : R) (v : m → α) : row (x • v) = x • row v :=
 by { ext, refl }
 
 @[simp] lemma col_apply (v : m → α) (i j) : matrix.col v i j = v i := rfl
@@ -1061,7 +1077,8 @@ lemma row_mul_vec [semiring α] (M : matrix m n α) (v : n → α) :
   matrix.row (matrix.mul_vec M v) = (M ⬝ matrix.col v)ᵀ := by {ext, refl}
 
 @[simp]
-lemma row_mul_col_apply (v w : m → α) (i j) : (row v ⬝ col w) i j = dot_product v w :=
+lemma row_mul_col_apply [has_mul α] [add_comm_monoid α] (v w : m → α) (i j) :
+  (row v ⬝ col w) i j = dot_product v w :=
 rfl
 
 end row_col

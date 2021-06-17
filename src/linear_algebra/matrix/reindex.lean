@@ -76,7 +76,7 @@ by rw [← reindex_linear_equiv_comp e₁ e₂ e₁' e₂']
 
 lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m']
   (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 :=
-minor_one_equiv e
+minor_one_equiv e.symm
 
 variables {o o' : Type*} [fintype o] [fintype o']
 

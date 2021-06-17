@@ -56,7 +56,10 @@ by ext; refl
 lemma pi_comp (f : Πi, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).comp g = pi (λi, (f i).comp g) :=
 rfl
 
-/-- The projections from a family of modules are linear maps. -/
+/-- The projections from a family of modules are linear maps.
+
+Note:  known here as `linear_map.proj`, this construction is in other categories called `eval`, for
+example `pi.eval_monoid_hom`, `pi.eval_ring_hom`. -/
 def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
 ⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
@@ -73,6 +76,12 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
+
+/-- Linear map between the function spaces `I → M₂` and `I → M₃`, induced by a linear map `f`
+between `M₂` and `M₃`. -/
+def comp_left (f : M₂ →ₗ[R] M₃) (I : Type*) : (I → M₂) →ₗ[R] (I → M₃) :=
+{ map_smul' := λ c h, by { ext x, exact f.map_smul' c (h x) },
+  .. f.to_add_monoid_hom.comp_left I }
 
 lemma apply_single [add_comm_monoid M] [module R M] [decidable_eq ι]
   (f : Π i, φ i →ₗ[R] M) (i j : ι) (x : φ i) :

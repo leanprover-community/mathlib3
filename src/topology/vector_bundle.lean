@@ -6,7 +6,6 @@ Authors: Nicolò Cavalleri, Sebastien Gouezel
 
 import topology.topological_fiber_bundle
 import topology.algebra.module
-import linear_algebra.dual
 
 /-!
 # Topological vector bundles
@@ -266,10 +265,6 @@ lemma is_open_induced_iff' [t : topological_space β] {s : set α} {f : α → �
   (t.induced f).is_open s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
 iff.rfl
 
-@[continuity] lemma continuous.prod.mk {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] (a : α) : continuous (prod.mk a : β → α × β) :=
-continuous_const.prod_mk continuous_id'
-
 end continuous
 
 variables (B)
@@ -389,34 +384,8 @@ instance : topological_vector_bundle R F Z.fiber :=
 {
   inducing := λ b, ⟨by { apply le_antisymm,
     {
-      unfold topological_vector_bundle_core.to_topological_space,
-      unfold topological_fiber_bundle_core.to_topological_space,
-      rw induced_generate_from_eq,
-      apply le_generate_from,
-      simp only [mem_image, exists_prop, mem_Union, mem_singleton_iff], --lemma
-      intros s hs,
-      rcases hs with ⟨_, ⟨i, t, ht, rfl⟩, rfl⟩,
-      simp only [preimage_inter],
-      refine is_open.inter _ _,
-      {
-        simp only [id.def],
-      sorry,
-      },
-      {
-        rw ←preimage_comp,
-        simp only [function.comp, topological_fiber_bundle_core.local_triv'_apply, id.def, coe_cord_change],
-        rw preimage_comp,
-        have : continuous (λ (x : Z.fiber b), (Z.coord_change (Z.index_at b) i b) x) :=
-        by {
-          rw continuous_iff_continuous_on_univ,
-          refine ((Z.coord_change_continuous (Z.index_at b) i).comp ((continuous_const).prod_mk
-          continuous_id).continuous_on) (by {
-            convert (subset_univ univ),
-            simp only [id.def],
-            sorry,
-            })},
-        exact (this).is_open_preimage _ ((continuous.prod.mk b).is_open_preimage t ht),
-      },
+      rw ←continuous_iff_le_induced,
+      exact topological_fiber_bundle_core.continuous_sigma_mk ↑Z b,
     },
     {
       intro s,

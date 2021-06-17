@@ -137,6 +137,14 @@ for the initial bundle.
 Fiber bundle, topological bundle, vector bundle, local trivialization, structure group
 -/
 
+section
+
+@[continuity] lemma _root_.continuous.prod.mk {α : Type*} {β : Type*} [topological_space α]
+  [topological_space β] (a : α) : continuous (prod.mk a : β → α × β) :=
+continuous_const.prod_mk continuous_id'
+
+end
+
 variables {ι : Type*} {B : Type*} {F : Type*}
 
 open topological_space filter set
@@ -994,44 +1002,57 @@ begin
   { exact A }
 end
 
-section
+--lemma la_svaggia (e : local_homeomorph Z (B × F)) {t : set (B × F)} : e ⁻¹' (e.target ∩ t) = e.source ∩ (e ⁻¹' t) := sorry
 
-@[continuity] lemma _root_.continuous.prod.mk {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] (a : α) : continuous (prod.mk a : β → α × β) :=
-continuous_const.prod_mk continuous_id'
+@[simp] lemma local_triv'_coe (i : ι) : ⇑(Z.local_triv' i) = Z.local_triv i := rfl
+@[simp] lemma local_triv'_source (i : ι) : (Z.local_triv' i).source = (Z.local_triv i).source := rfl
+@[simp] lemma local_triv'_target (i : ι) : (Z.local_triv' i).target = (Z.local_triv i).target := rfl
+@[simp] lemma local_triv_coe (i : ι) : ⇑(Z.local_triv i) = Z.local_triv_ext i := rfl
+@[simp] lemma local_triv_source (i : ι) : (Z.local_triv i).source = (Z.local_triv_ext i).source := rfl
+@[simp] lemma local_triv_target (i : ι) : (Z.local_triv i).target = (Z.local_triv_ext i).target := rfl
 
+lemma source_target {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  (e : local_homeomorph α β) (s : set β) : e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
+begin
+  refine ext_iff.mpr (λ x, ⟨λ hx, _, λ hx, _⟩),
+  simp only [mem_inter_eq, mem_preimage] at *;
+  exact ⟨hx.1, hx.2.2⟩,
+  exact ⟨hx.1, e.to_local_equiv.map_source hx.1, hx.2⟩, --exacts?
 end
+
+@[simp] lemma base_set_at (i : ι) : Z.base_set i = (Z.local_triv_ext i).base_set := rfl
 
 lemma continuous_sigma_mk (b : B) : @continuous _ _ _ (Z.to_topological_space ι) -- why does it found the sigma topology instead?
   (λ a, (⟨b, a⟩ : (bundle.total_space Z.fiber))) :=
 begin
-  rw continuous_iff_le_induced,
-  unfold topological_fiber_bundle_core.to_topological_space,
-  rw induced_generate_from_eq,
+  rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],
+  rw induced_generate_from_eq, --lemma
   apply le_generate_from,
-  simp only [mem_image, exists_prop, mem_Union, mem_singleton_iff], --lemma
+  simp only [mem_image, exists_prop, mem_Union, mem_singleton_iff],
   intros s hs,
-  rcases hs with ⟨_, ⟨i, t, ht, rfl⟩, rfl⟩,
-  simp only [preimage_inter],
-  refine is_open.inter _ _,
-  {
-  sorry,
-  },
-  {
-    rw ←preimage_comp,
-    simp only [function.comp, local_triv'_apply],
-    rw preimage_comp,
-    have : continuous (λ (x : Z.fiber b), (Z.coord_change (Z.index_at b) i b) x) :=
-    by {
-      rw continuous_iff_continuous_on_univ,
-      refine ((Z.coord_change_continuous (Z.index_at b) i).comp ((continuous_const).prod_mk
-      continuous_id).continuous_on) (by {
-        convert (subset_univ univ),
-        simp only [id.def],
-        sorry,
-        })},
-    exact (this).is_open_preimage _ ((continuous.prod.mk b).is_open_preimage t ht),
-  },
+  rcases hs with ⟨_, ⟨i, t, ht, rfl⟩, rfl⟩, --lemma
+  rw [local_triv'_source, local_triv'_coe, ←(source_target Z (Z.local_triv i) t), preimage_inter,
+    ←preimage_comp, local_triv_source, bundle_trivialization.source_eq],
+  apply is_open.inter,
+  { simp only [bundle.proj, proj, ←preimage_comp],
+    by_cases (b ∈ (Z.local_triv_ext i).base_set),
+    { rw preimage_const_of_mem h, --simp
+      exact is_open_univ, },
+    { rw preimage_const_of_not_mem h, --simp
+      exact is_open_empty, }},
+  { simp only [function.comp, local_triv_apply],
+    rw [preimage_comp, local_triv_target],
+    by_cases (b ∈ Z.base_set i),
+    { have hc : continuous (λ (x : Z.fiber b), (Z.coord_change (Z.index_at b) i b) x) := by {
+        rw continuous_iff_continuous_on_univ,
+        refine ((Z.coord_change_continuous (Z.index_at b) i).comp ((continuous_const).prod_mk
+        continuous_id).continuous_on) (by { convert (subset_univ univ),
+          exact mk_preimage_prod_right (mem_inter (Z.mem_base_set_at b) h), })},
+      exact hc.is_open_preimage _ ((continuous.prod.mk b).is_open_preimage _
+        ((Z.local_triv i).open_target.inter ht)), },
+    { rw [(Z.local_triv_ext i).target_eq, preimage_inter, ←base_set_at,
+        mk_preimage_prod_right_eq_empty h, empty_inter, preimage_empty],
+      exact is_open_empty, }}
 end
 
 end topological_fiber_bundle_core

@@ -145,7 +145,7 @@ variables [exponential_ideal i]
 If `i` witnesses that `D` is a reflective subcategory and an exponential ideal, then `D` is
 itself cartesian closed.
 -/
-def reflective_cc : cartesian_closed D :=
+def cartesian_closed_of_reflective : cartesian_closed D :=
 { closed := λ B,
   { is_adj :=
     { right := i ⋙ exp (i.obj B) ⋙ left_adjoint i,

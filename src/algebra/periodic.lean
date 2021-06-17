@@ -5,6 +5,7 @@ Authors: Benjamin Davidson
 -/
 import data.int.parity
 import algebra.module.opposites
+import algebra.archimedean
 
 /-!
 # Periodicity

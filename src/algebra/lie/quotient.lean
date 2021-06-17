@@ -130,3 +130,47 @@ instance lie_quotient_lie_algebra : lie_algebra R (quotient I) :=
 end quotient
 
 end lie_submodule
+
+namespace lie_subalgebra
+
+variables {R : Type u} {L : Type v}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L]
+variables (K : lie_subalgebra R L)
+
+abbreviation quotient := (K : submodule R L).quotient
+
+namespace quotient
+
+abbreviation mk : L → K.quotient := submodule.quotient.mk
+
+@[simp] lemma mk_eq_mk (x : L) : quot.mk _ x = mk K x := rfl
+
+instance : has_bracket K K.quotient :=
+⟨λ x y, quotient.lift_on' y (λ y', mk K ⁅(x : L), y'⁆) $ λ y₁ y₂ h,
+by { rw [submodule.quotient.eq (K : submodule R L), ← lie_sub], exact K.lie_mem x.property h, }⟩
+
+@[simp] lemma mk_zero : mk K 0 = 0 := rfl
+
+@[simp] lemma mk_add (x y : L) : mk K (x + y) = mk K x + mk K y := rfl
+
+@[simp] lemma mk_neg (x : L) : mk K (-x) = - mk K x := rfl
+
+@[simp] lemma mk_sub (x y : L) : mk K (x - y) = mk K x - mk K y := rfl
+
+@[simp] lemma mk_smul (t : R) (x : L) : mk K (t • x) = t • mk K x := rfl
+
+@[simp] lemma mk_lie (x : K) (y : L) : mk K ⁅x, y⁆ = ⁅x, mk K y⁆ := rfl
+
+instance : lie_ring_module K K.quotient :=
+{ add_lie     := λ x y, by { rintros ⟨z⟩, simp only [mk_eq_mk, ← mk_lie, add_lie, ← mk_add], },
+  lie_add     := λ x, by { rintros ⟨y⟩ ⟨z⟩, simp only [mk_eq_mk, ← mk_lie, lie_add, ← mk_add], },
+  leibniz_lie :=
+    λ x y, by { rintros ⟨z⟩, simp only [mk_eq_mk, ← mk_lie, lie_lie, sub_add_cancel, ← mk_add], }, }
+
+instance : lie_module R K K.quotient :=
+{ smul_lie := λ t x, by { rintros ⟨y⟩, simp only [mk_eq_mk, ← mk_lie, smul_lie, ← mk_smul], },
+  lie_smul := λ t x, by { rintros ⟨y⟩, simp only [mk_eq_mk, ← mk_lie, lie_smul, ← mk_smul], }, }
+
+end quotient
+
+end lie_subalgebra

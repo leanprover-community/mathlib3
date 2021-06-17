@@ -3,9 +3,10 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import combinatorics.simple_graph.basic
 import analysis.special_functions.exp_log
 import analysis.special_functions.pow
+import combinatorics.simple_graph.basic
+import order.iterate
 
 /-!
 # Szemerédi's Regularity Lemma
@@ -16,7 +17,7 @@ In this file, we define edge density, equipartitions, and prove Szemerédi's Reg
 universe u
 
 open_locale big_operators
-open finset fintype
+open finset fintype function
 
 /-! ### Things that belong to mathlib -/
 
@@ -386,7 +387,7 @@ by rw [pairs_density, mul_comm, pairs_count_comm hr, pairs_density]
 
 end symmetric
 
-lemma aux {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
+lemma aux₀ {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
  (A'.card : ℝ)/A.card * (B'.card/B.card) * pairs_density r A' B' ≤ pairs_density r A B :=
 begin
   obtain hA' | hA' := nat.eq_zero_or_pos A'.card,
@@ -403,12 +404,12 @@ begin
   exact finset.card_le_of_subset (pairs_finset_mono r hA hB),
 end
 
-lemma aux2 {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
+lemma aux₁ {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
   pairs_density r A' B' - pairs_density r A B ≤ 1 - (A'.card : ℝ)/A.card * (B'.card/B.card) :=
 calc
   pairs_density r A' B' - pairs_density r A B
       ≤ pairs_density r A' B' - A'.card/A.card * (B'.card/B.card) * pairs_density r A' B'
-      : sub_le_sub_left (aux r hA hB) _
+      : sub_le_sub_left (aux₀ r hA hB) _
   ... = (1 - A'.card/A.card * (B'.card/B.card)) * pairs_density r A' B'
       : by rw [sub_mul, one_mul]
   ... ≤ 1 - A'.card/A.card * (B'.card/B.card)
@@ -431,9 +432,30 @@ calc
         end
 
 --@Yaël: bust those aux
-lemma aux3 {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ₀ : 0 ≤ δ) (hδ₁ : δ < 1)
+lemma aux₂ {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) :
+  abs (pairs_density r A' B' - pairs_density r A B) ≤ 1 - (A'.card : ℝ)/A.card * (B'.card/B.card) :=
+begin
+  have habs : abs (pairs_density r A' B' - pairs_density r A B) ≤ 1,
+  { rw [abs_sub_le_iff, ←sub_zero (1 : ℝ)],
+    split; exact sub_le_sub (pairs_density_le_one r _ _) (pairs_density_nonneg r _ _) },
+  obtain hA' | hA' := nat.eq_zero_or_pos A'.card,
+  { rw [hA', nat.cast_zero, zero_div, zero_mul, sub_zero],
+    exact habs },
+  obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
+  { rw [hB', nat.cast_zero, zero_div, mul_zero, sub_zero],
+    exact habs },
+  rw finset.card_pos at hA' hB',
+  refine abs_sub_le_iff.2 ⟨aux₁ r hA hB, _⟩,
+  rw [←add_sub_cancel (pairs_density r A B) (pairs_density (λ x y, ¬r x y) A B),
+    ←add_sub_cancel (pairs_density r A' B') (pairs_density (λ x y, ¬r x y) A' B'),
+    pairs_density_compl _ (hA'.mono hA) (hB'.mono hB), pairs_density_compl _ hA' hB',
+    sub_sub_sub_cancel_left],
+  exact aux₁ _ hA hB,
+end
+
+lemma aux₃ {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ₀ : 0 ≤ δ) (hδ₁ : δ < 1)
   (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
-  pairs_density r A' B' - pairs_density r A B ≤ 2*δ - δ^2 :=
+  abs (pairs_density r A' B' - pairs_density r A B) ≤ 2*δ - δ^2 :=
 begin
   have hδ' : 0 ≤ 2 * δ - δ ^ 2,
   { rw [sub_nonneg, sq],
@@ -446,7 +468,7 @@ begin
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hAcard hδ₁ },
     rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero,
-      div_zero, sub_zero],
+      div_zero, sub_zero, abs_zero],
     exact hδ' },
   obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
   { have hB : B.card = 0,
@@ -454,14 +476,14 @@ begin
       apply nat.eq_zero_of_le_zero,
       exact_mod_cast nonpos_of_mul_nonpos_left hBcard hδ₁ },
     rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero,
-      div_zero, sub_zero],
+      div_zero, sub_zero, abs_zero],
     exact hδ' },
   have hApos : 0 < A.card := hA'.trans_le (finset.card_le_of_subset hA),
   have hBpos : 0 < B.card := hB'.trans_le (finset.card_le_of_subset hB),
   calc
-    pairs_density r A' B' - pairs_density r A B
+    abs (pairs_density r A' B' - pairs_density r A B)
         ≤ 1 - A'.card/A.card * (B'.card/B.card)
-        : aux2 r hA hB
+        : aux₂ r hA hB
     ... ≤ 1 - (1 - δ) * (1 - δ)
         : begin
             refine sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hAcard) ((le_div_iff _).2 hBcard)
@@ -472,53 +494,17 @@ begin
         : by ring,
 end
 
-lemma aux4 {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ₀ : 0 ≤ δ) (hδ₁ : δ < 1)
-  (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
-  abs (pairs_density r A B - pairs_density r A' B') ≤ 2*δ - δ^2 :=
-begin
-  have hδ' : 0 ≤ 2 * δ - δ ^ 2,
-  { rw [sub_nonneg, sq],
-    refine mul_le_mul_of_nonneg_right (hδ₁.le.trans _) hδ₀,
-    norm_num },
-  obtain hA' | hA' := nat.eq_zero_or_pos A'.card,
-  { have hA : A.card = 0,
-    { rw [hA', nat.cast_zero] at hAcard,
-      apply nat.eq_zero_of_le_zero,
-      exact_mod_cast nonpos_of_mul_nonpos_left hAcard (sub_pos.2 hδ₁) },
-    rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero,
-      div_zero, sub_zero, abs_zero],
-    exact hδ' },
-  obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
-  { have hB : B.card = 0,
-    { rw [hB', nat.cast_zero] at hBcard,
-      apply nat.eq_zero_of_le_zero,
-      exact_mod_cast nonpos_of_mul_nonpos_left hBcard (sub_pos.2 hδ₁) },
-    rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero,
-      div_zero, sub_zero, abs_zero],
-    exact hδ' },
-  refine abs_sub_le_iff.2 ⟨_, aux3 r hA hB hδ₀ hδ₁ hAcard hBcard⟩,
-  have hAnemp' := finset.card_pos.1 hA',
-  have hBnemp' := finset.card_pos.1 hB',
-  have hAnemp := hAnemp'.mono hA,
-  have hBnemp := hBnemp'.mono hB,
-  rw [←add_sub_cancel (pairs_density r A B) (pairs_density (λ x y, ¬r x y) A B),
-    ←add_sub_cancel (pairs_density r A' B') (pairs_density (λ x y, ¬r x y) A' B'),
-    pairs_density_compl _ hAnemp hBnemp, pairs_density_compl _ hAnemp' hBnemp',
-    sub_sub_sub_cancel_left],
-  exact aux3 _ hA hB hδ₀ hδ₁ hAcard hBcard,
-end
-
 lemma LemmaA {A B A' B' : finset V} (hA : A' ⊆ A) (hB : B' ⊆ B) {δ : ℝ} (hδ : 0 ≤ δ)
   (hAcard : (1 - δ) * A.card ≤ A'.card) (hBcard : (1 - δ) * B.card ≤ B'.card) :
-  abs (pairs_density r A B - pairs_density r A' B') ≤ 2 * δ :=
+  abs (pairs_density r A' B' - pairs_density r A B) ≤ 2 * δ :=
 begin
   cases le_or_lt 1 δ,
   { apply (abs_sub _ _).trans,
-    rw [abs_of_nonneg (pairs_density_nonneg r A B), abs_of_nonneg (pairs_density_nonneg r _ _),
+    rw [abs_of_nonneg (pairs_density_nonneg r _ _), abs_of_nonneg (pairs_density_nonneg r A B),
       two_mul],
-    exact add_le_add ((pairs_density_le_one r A B).trans h)
-      ((pairs_density_le_one r _ _).trans h)},
-  exact (aux4 r hA hB hδ h hAcard hBcard).trans ((sub_le_self_iff _).2 (sq_nonneg δ)),
+    exact add_le_add ((pairs_density_le_one r _ _).trans h)
+      ((pairs_density_le_one r A B).trans h)},
+  exact (aux₃ r hA hB hδ h hAcard hBcard).trans ((sub_le_self_iff _).2 (sq_nonneg δ)),
 end
 
 end relation

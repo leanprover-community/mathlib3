@@ -3,7 +3,6 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
-import data.complex.exponential
 import data.equiv.basic
 import data.equiv.derangements.basic
 import data.fintype.basic
@@ -33,7 +32,7 @@ This file contains lemmas that describe the cardinality of `derangements α` whe
     factorials.
 -/
 
-open equiv filter fintype perm
+open equiv fintype perm
 open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] [fintype α]
@@ -120,38 +119,4 @@ begin
     },
     -- show that -(-1)^n = (-1)^n.succ * desc_fac n.succ (n.succ - n.succ)
     { simp [pow_succ] }}
-end
-
-open_locale topological_space
-theorem num_derangements_tendsto_e :
-  tendsto (λ n, (num_derangements n : ℝ) / n.factorial) at_top
-  (𝓝 (real.exp (-1))) :=
-begin
-  have : ∀ n : ℕ, (num_derangements n : ℝ) / n.factorial =
-    ∑ k in finset.range (n + 1), (-1 : ℝ)^k / k.factorial,
-  { intro n,
-    rw num_derangements_sum,
-    push_cast,
-    rw finset.sum_div,
-    refine finset.sum_congr (refl _) _,
-    intros k hk,
-    have h_le : k ≤ n := finset.mem_range_succ_iff.mp hk,
-    rw [nat.desc_fac_eq_div, nat.add_sub_cancel' h_le],
-    push_cast [nat.factorial_dvd_factorial h_le],
-    field_simp [nat.factorial_ne_zero],
-    ring,
-  },
-  simp_rw this,
-  -- now it's just definition-juggling from here
-  unfold real.exp,
-  unfold complex.exp,
-  unfold complex.exp',
-  have exp_cauchy := (complex.exp' (-1)),
-  sorry,
-  -- I wasn't able to figure out how to get tendsto and cau_seq to play nice with each other
-  -- The state is:
-  -- tendsto
-  --   (λ (n : ℕ), ∑ (k : ℕ) in finset.range (n + 1), (-1) ^ k / ↑(k.factorial))
-  --   at_top
-  --   (𝓝 (cau_seq.lim ⟨λ (n : ℕ), ∑ (m : ℕ) in finset.range n, ↑-1 ^ m / ↑(m.factorial), _⟩).re)
 end

@@ -631,7 +631,7 @@ theorem option_orelse :
 (option_cases fst snd (fst.comp fst).to₂).of_eq $
 λ ⟨o₁, o₂⟩, by cases o₁; cases o₂; refl
 
-protected theorem decode2 : primrec (decode2 α) :=
+protected theorem decode₂ : primrec (decode₂ α) :=
 option_bind primrec.decode $
 option_guard ((@primrec.eq _ _ nat.decidable_eq).comp
   (encode_iff.2 snd) (fst.comp fst)) snd
@@ -824,14 +824,14 @@ list_foldl' H
   (primrec.comp₂ (bind_decode_iff.2 $ primrec₂.swap this) primrec₂.right),
 nat_iff.1 $ (encode_iff.2 this).of_eq $ λ n, begin
   rw list.foldl_reverse,
-  apply nat.case_strong_induction_on n, {refl},
+  apply nat.case_strong_induction_on n, { simp },
   intros n IH, simp,
   cases decode α n.unpair.1 with a, {refl},
   simp,
   suffices : ∀ (o : option (list ℕ)) p (_ : encode o = encode p),
     encode (option.map (list.cons (encode a)) o) =
     encode (option.map (list.cons a) p),
-  from this _ _ (IH _ (nat.unpair_le_right n)),
+  from this _ _ (IH _ (nat.unpair_right_le n)),
   intros o p IH,
   cases o; cases p; injection IH with h,
   exact congr_arg (λ k, (nat.mkpair (encode a) k).succ.succ) h
@@ -1041,13 +1041,12 @@ local attribute [instance, priority 100]
   encodable.decidable_range_encode encodable.decidable_eq_of_encodable
 
 instance ulower : primcodable (ulower α) :=
-have primrec_pred (λ n, encodable.decode2 α n ≠ none),
+have primrec_pred (λ n, encodable.decode₂ α n ≠ none),
 from primrec.not (primrec.eq.comp (primrec.option_bind primrec.decode
   (primrec.ite (primrec.eq.comp (primrec.encode.comp primrec.snd) primrec.fst)
     (primrec.option_some.comp primrec.snd) (primrec.const _))) (primrec.const _)),
 primcodable.subtype $
-  primrec_pred.of_eq this $
-  by simp [set.range, option.eq_none_iff_forall_not_mem, encodable.mem_decode2]
+  primrec_pred.of_eq this (λ n, decode₂_ne_none_iff)
 
 end ulower
 
@@ -1100,7 +1099,7 @@ subtype_mk primrec.encode
 
 theorem ulower_up : primrec (ulower.up : ulower α → α) :=
 by letI : ∀ a, decidable (a ∈ set.range (encode : α → ℕ)) := decidable_range_encode _; exact
-option_get (primrec.decode2.comp subtype_val)
+option_get (primrec.decode₂.comp subtype_val)
 
 theorem fin_val_iff {n} {f : α → fin n} :
   primrec (λ a, (f a).1) ↔ primrec f :=
@@ -1312,7 +1311,7 @@ begin
     have y1 := succ.comp₁ _ (tail head),
     exact if_lt x1 (mul.comp₂ _ y1 y1) (tail head) y1 },
   intro, symmetry,
-  induction n with n IH, {refl},
+  induction n with n IH, {simp},
   dsimp, rw IH, split_ifs,
   { exact le_antisymm (nat.sqrt_le_sqrt (nat.le_succ _))
       (nat.lt_succ_iff.1 $ nat.sqrt_lt.2 h) },

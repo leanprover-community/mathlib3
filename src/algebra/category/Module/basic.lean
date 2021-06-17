@@ -6,7 +6,7 @@ Authors: Robert A. Spencer, Markus Himmel
 import algebra.category.Group.basic
 import category_theory.concrete_category
 import category_theory.limits.shapes.kernels
-import category_theory.preadditive
+import category_theory.linear
 import linear_algebra.basic
 
 /-!
@@ -55,7 +55,12 @@ universes v u
 
 variables (R : Type u) [ring R]
 
-/-- The category of R-modules and their morphisms. -/
+/-- The category of R-modules and their morphisms.
+
+ Note that in the case of `R = ℤ`, we can not
+impose here that the `ℤ`-multiplication field from the module structure is defeq to the one coming
+from the `is_add_comm_group` structure (contrary to what we do for all module structures in
+mathlib), which creates some difficulties down the road. -/
 structure Module :=
 (carrier : Type v)
 [is_add_comm_group : add_comm_group carrier]
@@ -219,38 +224,21 @@ def linear_equiv_iso_Module_iso {X Y : Type u} [add_comm_group X] [add_comm_grou
 
 namespace Module
 
-section preadditive
-
 instance : preadditive (Module.{v} R) :=
 { add_comp' := λ P Q R f f' g,
     show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
   comp_add' := λ P Q R f g g',
     show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
 
-end preadditive
+section
+variables {S : Type u} [comm_ring S]
 
-section epi_mono
-variables {M N : Module.{v} R} (f : M ⟶ N)
+instance : linear S (Module.{v} S) :=
+{ hom_module := λ X Y, linear_map.module,
+  smul_comp' := by { intros, ext, simp },
+  comp_smul' := by { intros, ext, simp }, }
 
-lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
-linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ ↟u ↟v).1
-
-lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
-linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ ↟u ↟v).1
-
-lemma mono_of_ker_eq_bot (hf : f.ker = ⊥) : mono f :=
-concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf
-
-lemma epi_of_range_eq_top (hf : f.range = ⊤) : epi f :=
-concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf
-
-instance mono_as_hom'_subtype (U : submodule R M) : mono ↾U.subtype :=
-mono_of_ker_eq_bot _ (submodule.ker_subtype U)
-
-instance epi_as_hom''_mkq (U : submodule R M) : epi ↿U.mkq :=
-epi_of_range_eq_top _ $ submodule.range_mkq _
-
-end epi_mono
+end
 
 end Module
 

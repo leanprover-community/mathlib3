@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.pgame
+import set_theory.game
 
 /-!
 # Surreal numbers
@@ -29,9 +29,6 @@ At this point, we have defined addition and negation (from pregames), and shown 
 an additive semigroup. It would be very little work to finish showing that the surreals form an
 ordered commutative group.
 
-We define the operations of multiplication and inverse on surreals, but do not yet establish any of
-the necessary properties to show the surreals form an ordered field.
-
 ## Embeddings
 It would be nice projects to define the group homomorphism `surreal → game`, and also `ℤ → surreal`,
 and then the homomorphic inclusion of the dyadic rationals into surreals, and finally
@@ -45,70 +42,9 @@ One can also map all the ordinals into the surreals!
 
 universes u
 
+local infix ` ≈ ` := pgame.equiv
+
 namespace pgame
-
-/-! Multiplicative operations can be defined at the level of pre-games, but as
-they are only useful on surreal numbers, we define them here. -/
-
-/-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
-def mul (x y : pgame) : pgame :=
-begin
-  induction x with xl xr xL xR IHxl IHxr generalizing y,
-  induction y with yl yr yL yR IHyl IHyr,
-  have y := mk yl yr yL yR,
-  refine ⟨xl × yl ⊕ xr × yr, xl × yr ⊕ xr × yl, _, _⟩; rintro (⟨i, j⟩ | ⟨i, j⟩),
-  { exact IHxl i y + IHyl j - IHxl i (yL j) },
-  { exact IHxr i y + IHyr j - IHxr i (yR j) },
-  { exact IHxl i y + IHyr j - IHxl i (yR j) },
-  { exact IHxr i y + IHyl j - IHxr i (yL j) }
-end
-
-instance : has_mul pgame := ⟨mul⟩
-
-/-- Because the two halves of the definition of `inv` produce more elements
-of each side, we have to define the two families inductively.
-This is the indexing set for the function, and `inv_val` is the function part. -/
-inductive inv_ty (l r : Type u) : bool → Type u
-| zero : inv_ty ff
-| left₁ : r → inv_ty ff → inv_ty ff
-| left₂ : l → inv_ty tt → inv_ty ff
-| right₁ : l → inv_ty ff → inv_ty tt
-| right₂ : r → inv_ty tt → inv_ty tt
-
-/-- Because the two halves of the definition of `inv` produce more elements
-of each side, we have to define the two families inductively.
-This is the function part, defined by recursion on `inv_ty`. -/
-def inv_val {l r} (L : l → pgame) (R : r → pgame)
-  (IHl : l → pgame) (IHr : r → pgame) : ∀ {b}, inv_ty l r b → pgame
-| _ inv_ty.zero := 0
-| _ (inv_ty.left₁ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
-| _ (inv_ty.left₂ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
-| _ (inv_ty.right₁ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
-| _ (inv_ty.right₂ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
-
-/-- The inverse of a positive surreal number `x = {L | R}` is
-given by `x⁻¹ = {0,
-  (1 + (R - x) * x⁻¹L) * R, (1 + (L - x) * x⁻¹R) * L |
-  (1 + (L - x) * x⁻¹L) * L, (1 + (R - x) * x⁻¹R) * R}`.
-Because the two halves `x⁻¹L, x⁻¹R` of `x⁻¹` are used in their own
-definition, the sets and elements are inductively generated. -/
-def inv' : pgame → pgame
-| ⟨l, r, L, R⟩ :=
-  let l' := {i // 0 < L i},
-      L' : l' → pgame := λ i, L i.1,
-      IHl' : l' → pgame := λ i, inv' (L i.1),
-      IHr := λ i, inv' (R i) in
-  ⟨inv_ty l' r ff, inv_ty l' r tt,
-    inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
-
-/-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
-noncomputable def inv (x : pgame) : pgame :=
-by classical; exact
-if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
-
-noncomputable instance : has_inv pgame := ⟨inv⟩
-noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
 /-- A pre-game is numeric if everything in the L set is less than everything in the R set,
 and all the elements of L and R are also numeric. -/
@@ -266,7 +202,6 @@ end pgame
 
 /-- The equivalence on numeric pre-games. -/
 def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
-local infix ` ≈ ` := surreal.equiv
 
 instance surreal.setoid : setoid {x // pgame.numeric x} :=
 ⟨λ x y, x.1.equiv y.1,
@@ -339,9 +274,9 @@ instance : ordered_add_comm_group surreal :=
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
-  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) }, 
-  neg               := has_neg.neg, 
-  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv }, 
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) },
+  neg               := has_neg.neg,
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv },
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := (≤),
   lt                := (<),
@@ -350,7 +285,7 @@ instance : ordered_add_comm_group surreal :=
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
-  
+
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),

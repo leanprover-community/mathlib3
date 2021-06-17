@@ -7,6 +7,7 @@ import topology.category.Top.open_nhds
 import topology.sheaves.presheaf
 import topology.sheaves.sheaf_condition.unique_gluing
 import category_theory.limits.types
+import tactic.elementwise
 
 /-!
 # Stalks
@@ -124,7 +125,7 @@ lemma germ_ext {D : Type u} [category.{v} D] [concrete_category D] [has_colimits
   (ih : F.map iWU.op sU = F.map iWV.op sV) :
   F.germ ⟨x, hxU⟩ sU = F.germ ⟨x, hxV⟩ sV :=
 by erw [← F.germ_res iWU ⟨x, hxW⟩,
-    ← F.germ_res iWV ⟨x, hxW⟩, coe_comp, coe_comp, ih]
+    ← F.germ_res iWV ⟨x, hxW⟩, comp_apply, comp_apply, ih]
 
 end
 
@@ -308,6 +309,16 @@ begin
   swap,
   exact colimit.pre _ (open_nhds.map f x).op,
   exact colim.map (whisker_right (nat_trans.op (open_nhds.inclusion_map_iso f x).inv) ℱ),
+end
+
+@[simp, elementwise, reassoc]
+lemma stalk_pushforward_germ (f : X ⟶ Y) (F : X.presheaf C) (U : opens Y)
+  (x : (opens.map f).obj U) :
+  (f _* F).germ ⟨f x, x.2⟩ ≫ F.stalk_pushforward C f x = F.germ x :=
+begin
+  rw [stalk_pushforward, germ, colimit.ι_map_assoc, colimit.ι_pre, whisker_right_app],
+  erw [category_theory.functor.map_id, category.id_comp],
+  refl,
 end
 
 -- Here are two other potential solutions, suggested by @fpvandoorn at

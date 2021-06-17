@@ -60,6 +60,10 @@ instance : has_coe_to_fun (Π₀ i, β i) :=
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨0, ∅, λ i, or.inr rfl⟩⟧⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
+@[simp]
+lemma coe_pre_mk (f : Π i, β i) (s : multiset ι) (hf) :
+  ⇑(⟦⟨f, s, hf⟩⟧ : Π₀ i, β i) = f := rfl
+
 @[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 
@@ -152,9 +156,18 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   add_assoc := λ f g h, ext $ λ i, by simp only [add_apply, add_assoc],
   .. dfinsupp.add_zero_class }
 
+/-- Coercion from a `dfinsupp` to a pi type is an `add_monoid_hom`. -/
+def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (Π i, β i) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
+
+/-- Evaluation at a point is an `add_monoid_hom`. This is the finitely-supported version of
+`pi.eval_add_monoid_hom`. -/
+def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
+(pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
+
 instance is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
   is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-{ map_add := λ f g, add_apply f g i, map_zero := zero_apply i }
+(eval_add_monoid_hom i).is_add_monoid_hom
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -162,6 +175,15 @@ instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
   .. dfinsupp.add_monoid }
+
+@[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
+  ⇑(∑ a in s, g a) = ∑ a in s, g a :=
+(coe_fn_add_monoid_hom : _ →+ (Π i, β i)).map_sum g s
+
+@[simp] lemma finset_sum_apply {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i)
+  (i : ι) :
+  (∑ a in s, g a) i = ∑ a in s, g a i :=
+(eval_add_monoid_hom i : _ →+ β i).map_sum g s
 
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 map_range_apply _ _ g i
@@ -224,10 +246,10 @@ instance {γ : Type w} [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_
   mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
   ..dfinsupp.has_scalar }
 
-/-- Dependent functions with finite support inherit a semimodule structure from such a structure on
+/-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/
-instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)] :
-  semimodule γ (Π₀ i, β i) :=
+instance {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)] :
+  module γ (Π₀ i, β i) :=
 { zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
   ..dfinsupp.distrib_mul_action }
@@ -560,7 +582,7 @@ instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β 
 { map_add := λ _ _, mk_add }
 
 section
-variables (γ : Type w) [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
+variables (γ : Type w) [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)]
 include γ
 
 @[simp] lemma mk_smul {s : finset ι} {c : γ} (x : Π i : (↑s : set ι), β i.1) :
@@ -722,7 +744,7 @@ support_zip_with
   support (-f) = support f :=
 by ext i; simp
 
-lemma support_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, semimodule γ (β i)]
+lemma support_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)]
   [Π ( i : ι) (x : β i), decidable (x ≠ 0)]
   (b : γ) (v : Π₀ i, β i) : (b • v).support ⊆ v.support :=
 support_map_range

@@ -656,7 +656,7 @@ begin
   rcases h₂ with ⟨s, hs⟩,
   suffices : (⨅i, f ⊔ g i) ≤ f ⊔ s.inf (λi, g i.down), { exact this ⟨h₁, hs⟩ },
   refine finset.induction_on s _ _,
-  { exact le_sup_right_of_le le_top },
+  { exact le_sup_of_le_right le_top },
   { rintros ⟨i⟩ s his ih,
     rw [finset.inf_insert, sup_inf_left],
     exact le_inf (infi_le _ _) ih }
@@ -2057,6 +2057,11 @@ lemma tendsto.frequently {f : α → β} {l₁ : filter α} {l₂ : filter β} {
   (hf : tendsto f l₁ l₂) (h : ∃ᶠ x in l₁, p (f x)) :
   ∃ᶠ y in l₂, p y :=
 mt hf.eventually h
+
+lemma tendsto.frequently_map {l₁ : filter α} {l₂ : filter β} {p : α → Prop} {q : β → Prop}
+  (f : α → β) (c : filter.tendsto f l₁ l₂) (w : ∀ x, p x → q (f x)) (h : ∃ᶠ x in l₁, p x) :
+  ∃ᶠ y in l₂, q y :=
+c.frequently (h.mono w)
 
 @[simp] lemma tendsto_bot {f : α → β} {l : filter β} : tendsto f ⊥ l := by simp [tendsto]
 @[simp] lemma tendsto_top {f : α → β} {l : filter α} : tendsto f l ⊤ := le_top

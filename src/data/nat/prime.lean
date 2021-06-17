@@ -50,8 +50,7 @@ ne.symm $ ne_of_lt hp.one_lt
 theorem prime_def_lt {p : ℕ} : prime p ↔ 2 ≤ p ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,
 ⟨λ h l d, (h d).resolve_right (ne_of_lt l),
- λ h d, (decidable.lt_or_eq_of_le $
-   le_of_dvd (le_of_succ_le p2) d).imp_left (λ l, h l d)⟩
+ λ h d, (le_of_dvd (le_of_succ_le p2) d).lt_or_eq_dec.imp_left (λ l, h l d)⟩
 
 theorem prime_def_lt' {p : ℕ} : prime p ↔ 2 ≤ p ∧ ∀ m, 2 ≤ m → m < p → ¬ m ∣ p :=
 prime_def_lt.trans $ and_congr_right $ λ p2, forall_congr $ λ m,
@@ -78,17 +77,19 @@ prime_def_lt'.trans $ and_congr_right $ λ p2,
       rwa [one_mul, ← e] }
   end⟩
 
+section
+
 /--
   This instance is slower than the instance `decidable_prime` defined below,
-  but has the advantage that it works in the kernel.
+  but has the advantage that it works in the kernel for small values.
 
   If you need to prove that a particular number is prime, in any case
   you should not use `dec_trivial`, but rather `by norm_num`, which is
   much faster.
   -/
+local attribute [instance]
 def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_lt'
-local attribute [instance] decidable_prime_1
 
 lemma prime.ne_zero {n : ℕ} (h : prime n) : n ≠ 0 :=
 by { rintro rfl, revert h, dec_trivial }
@@ -96,13 +97,13 @@ by { rintro rfl, revert h, dec_trivial }
 theorem prime.pos {p : ℕ} (pp : prime p) : 0 < p :=
 lt_of_succ_lt pp.one_lt
 
-theorem not_prime_zero : ¬ prime 0 := dec_trivial
+theorem not_prime_zero : ¬ prime 0 := by simp [prime]
 
-theorem not_prime_one : ¬ prime 1 := dec_trivial
+theorem not_prime_one : ¬ prime 1 := by simp [prime]
 
 theorem prime_two : prime 2 := dec_trivial
 
-theorem prime_three : prime 3 := dec_trivial
+end
 
 theorem prime.pred_pos {p : ℕ} (pp : prime p) : 0 < pred p :=
 lt_pred_iff.2 pp.one_lt
@@ -156,7 +157,7 @@ section min_fac
   @[simp] theorem min_fac_one : min_fac 1 = 1 := rfl
 
   theorem min_fac_eq : ∀ n, min_fac n = if 2 ∣ n then 2 else min_fac_aux n 3
-  | 0     := rfl
+  | 0     := by simp
   | 1     := by simp [show 2≠1, from dec_trivial]; rw min_fac_aux; refl
   | (n+2) :=
     have 2 ∣ n + 2 ↔ 2 ∣ n, from
@@ -205,8 +206,7 @@ section min_fac
   end
 
   theorem min_fac_dvd (n : ℕ) : min_fac n ∣ n :=
-  by by_cases n1 : n = 1;
-     [exact n1.symm ▸ dec_trivial, exact (min_fac_has_prop n1).2.1]
+  if n1 : n = 1 then by simp [n1] else (min_fac_has_prop n1).2.1
 
   theorem min_fac_prime {n : ℕ} (n1 : n ≠ 1) : prime (min_fac n) :=
   let ⟨f2, fd, a⟩ := min_fac_has_prop n1 in
@@ -269,7 +269,7 @@ section min_fac
   lemma min_fac_sq_le_self {n : ℕ} (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
   have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
   calc
-  (min_fac n)^2 = (min_fac n) * (min_fac n)   : pow_two (min_fac n)
+  (min_fac n)^2 = (min_fac n) * (min_fac n)   : sq (min_fac n)
             ... ≤ (n/min_fac n) * (min_fac n) : mul_le_mul_right (min_fac n) t
             ... ≤ n                           : div_mul_le_self n (min_fac n)
 
@@ -370,27 +370,30 @@ def factors : ℕ → list ℕ
   let m := min_fac n in have n / m < n := factors_lemma,
   m :: factors (n / m)
 
+@[simp] lemma factors_zero : factors 0 = [] := by rw factors
+@[simp] lemma factors_one : factors 1 = [] := by rw factors
+
 lemma prime_of_mem_factors : ∀ {n p}, p ∈ factors n → prime p
-| 0       := λ p, false.elim
-| 1       := λ p, false.elim
+| 0       := by simp
+| 1       := by simp
 | n@(k+2) := λ p h,
   let m := min_fac n in have n / m < n := factors_lemma,
   have h₁ : p = m ∨ p ∈ (factors (n / m)) :=
-    (list.mem_cons_iff _ _ _).1 h,
+    (list.mem_cons_iff _ _ _).1 (by rwa [factors] at h),
   or.cases_on h₁ (λ h₂, h₂.symm ▸ min_fac_prime dec_trivial)
     prime_of_mem_factors
 
 lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
-| 0       := (lt_irrefl _).elim
-| 1       := λ h, rfl
+| 0       := by simp
+| 1       := by simp
 | n@(k+2) := λ h,
   let m := min_fac n in have n / m < n := factors_lemma,
-  show list.prod (m :: factors (n / m)) = n, from
+  show (factors n).prod = n, from
   have h₁ : 0 < n / m :=
     nat.pos_of_ne_zero $ λ h,
     have n = 0 * m := (nat.div_eq_iff_eq_mul_left (min_fac_pos _) (min_fac_dvd _)).1 h,
     by rw zero_mul at this; exact (show k + 2 ≠ 0, from dec_trivial) this,
-  by rw [list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
+  by rw [factors, list.prod_cons, prod_factors h₁, nat.mul_div_cancel' (min_fac_dvd _)]
 
 lemma factors_prime {p : ℕ} (hp : nat.prime p) : p.factors = [p] :=
 begin
@@ -403,13 +406,10 @@ begin
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
-@[simp] lemma factors_zero : (0 : ℕ).factors = [] := rfl
-
-@[simp] lemma factors_one : (1 : ℕ).factors = [] := rfl
-
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
-  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) := rfl
+  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) :=
+by rw factors
 
 @[simp]
 lemma factors_eq_nil (n : ℕ) : n.factors = [] ↔ n = 0 ∨ n = 1 :=
@@ -418,7 +418,7 @@ begin
   { rcases n with (_ | _ | n),
     { exact or.inl rfl },
     { exact or.inr rfl },
-    { injection h }, },
+    { rw factors at h, injection h }, },
   { rcases h with (rfl | rfl),
     { exact factors_zero },
     { exact factors_one }, }
@@ -459,28 +459,28 @@ by induction n with n IH;
     by { rw pow_succ at h, exact (pp.dvd_mul.1 h).elim id IH } ]
 
 lemma prime.pow_not_prime {x n : ℕ} (hn : 2 ≤ n) : ¬ (x ^ n).prime :=
-λ hp, (hp.2 x $ dvd_trans ⟨x, pow_two _⟩ (pow_dvd_pow _ hn)).elim
+λ hp, (hp.2 x $ dvd_trans ⟨x, sq _⟩ (pow_dvd_pow _ hn)).elim
   (λ hx1, hp.ne_one $ hx1.symm ▸ one_pow _)
   (λ hxn, lt_irrefl x $ calc x = x ^ 1 : (pow_one _).symm
      ... < x ^ n : nat.pow_right_strict_mono (hxn.symm ▸ hp.two_le) hn
      ... = x : hxn.symm)
 
-lemma prime.mul_eq_prime_pow_two_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
+lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy : y ≠ 1) :
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
-⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [pow_two],
+⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [sq],
 begin
   wlog := hp.dvd_mul.1 pdvdxy using x y,
   cases case with a ha,
-  have hap : a ∣ p, from ⟨y, by rwa [ha, pow_two,
+  have hap : a ∣ p, from ⟨y, by rwa [ha, sq,
         mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, pow_two, nat.mul_right_inj hp.pos] at *
+    (λ _, by clear_aux_decl; simp [*, sq, nat.mul_right_inj hp.pos] at *
       {contextual := tt})
-    (λ _, by clear_aux_decl; simp [*, pow_two, mul_comm, mul_assoc,
+    (λ _, by clear_aux_decl; simp [*, sq, mul_comm, mul_assoc,
       nat.mul_right_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
       {contextual := tt})
 end,
-λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (pow_two _).symm⟩
+λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (sq _).symm⟩
 
 lemma prime.dvd_factorial : ∀ {n p : ℕ} (hp : prime p), p ∣ n! ↔ p ≤ n
 | 0 p hp := iff_of_false hp.not_dvd_one (not_le_of_lt hp.pos)
@@ -652,7 +652,7 @@ lemma min_fac_ne_bit0 {n k : ℕ} : nat.min_fac (bit1 n) ≠ bit0 k :=
 by rw bit0_eq_two_mul; exact λ e, absurd
   ((nat.dvd_add_iff_right (by simp [bit0_eq_two_mul n])).2
     (dvd_trans ⟨_, e⟩ (nat.min_fac_dvd _)))
-  dec_trivial
+  (by norm_num)
 
 lemma min_fac_helper_0 (n : ℕ) (h : 0 < n) : min_fac_helper n 1 :=
 begin
@@ -789,3 +789,9 @@ end
 
 end norm_num
 end tactic
+
+namespace nat
+
+theorem prime_three : prime 3 := by norm_num
+
+end nat

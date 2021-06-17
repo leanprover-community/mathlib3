@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import data.fin
 import data.equiv.basic
+import tactic.norm_num
 
 /-!
 # Equivalences for `fin n`
@@ -16,26 +17,30 @@ variables {m n : ℕ}
 
 /-- Equivalence between `fin 0` and `empty`. -/
 def fin_zero_equiv : fin 0 ≃ empty :=
-⟨fin_zero_elim, empty.elim, assume a, fin_zero_elim a, assume a, empty.elim a⟩
+equiv.equiv_empty _
 
 /-- Equivalence between `fin 0` and `pempty`. -/
 def fin_zero_equiv' : fin 0 ≃ pempty.{u} :=
-equiv.equiv_pempty fin.elim0
+equiv.equiv_pempty _
 
-/-- Equivalence between `fin 1` and `punit`. -/
-def fin_one_equiv : fin 1 ≃ punit :=
-⟨λ_, (), λ_, 0, fin.cases rfl (λa, fin_zero_elim a), assume ⟨⟩, rfl⟩
+/-- Equivalence between `fin 1` and `unit`. -/
+def fin_one_equiv : fin 1 ≃ unit :=
+equiv_punit_of_unique
 
 /-- Equivalence between `fin 2` and `bool`. -/
 def fin_two_equiv : fin 2 ≃ bool :=
 ⟨@fin.cases 1 (λ_, bool) ff (λ_, tt),
   λb, cond b 1 0,
   begin
-    refine fin.cases _ _, refl,
-    refine fin.cases _ _, refl,
+    refine fin.cases _ _, by norm_num,
+    refine fin.cases _ _, by norm_num,
     exact λi, fin_zero_elim i
   end,
-  assume b, match b with tt := rfl | ff := rfl end⟩
+  begin
+    rintro ⟨_|_⟩,
+    { refl },
+    { rw ← fin.succ_zero_eq_one, refl }
+  end⟩
 
 /-- The 'identity' equivalence between `fin n` and `fin m` when `n = m`. -/
 def fin_congr {n m : ℕ} (h : n = m) : fin n ≃ fin m :=

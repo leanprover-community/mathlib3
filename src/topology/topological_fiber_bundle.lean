@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.local_homeomorph
-import topology.algebra.ordered
+import topology.algebra.ordered.basic
 
 /-!
 # Fiber bundles
@@ -243,7 +243,7 @@ by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_homeomorph.left_
 
 lemma bundle_trivialization.coe_fst_eventually_eq_proj (e : bundle_trivialization F proj)
   {x : Z} (ex : x ∈ e.source) : prod.fst ∘ e =ᶠ[𝓝 x] proj  :=
-mem_nhds_sets_iff.2 ⟨e.source, λ y hy, e.coe_fst hy, e.open_source, ex⟩
+mem_nhds_iff.2 ⟨e.source, λ y hy, e.coe_fst hy, e.open_source, ex⟩
 
 lemma bundle_trivialization.coe_fst_eventually_eq_proj' (e : bundle_trivialization F proj)
   {x : Z} (ex : proj x ∈ e.base_set) : prod.fst ∘ e =ᶠ[𝓝 x] proj  :=
@@ -489,9 +489,9 @@ def bundle_trivialization.restr_open (e : bundle_trivialization F proj) (s : set
   (hs : is_open s) :
   bundle_trivialization F proj :=
 { to_local_homeomorph := ((e.is_image_preimage_prod s).symm.restr
-    (is_open_inter e.open_target (hs.prod is_open_univ))).symm,
+    (is_open.inter e.open_target (hs.prod is_open_univ))).symm,
   base_set := e.base_set ∩ s,
-  open_base_set := is_open_inter e.open_base_set hs,
+  open_base_set := is_open.inter e.open_base_set hs,
   source_eq := by simp [e.source_eq],
   target_eq := by simp [e.target_eq, prod_univ],
   proj_to_fun := λ p hp, e.proj_to_fun p hp.1 }
@@ -561,7 +561,7 @@ noncomputable def bundle_trivialization.disjoint_union (e e' : bundle_trivializa
     (λ x hx, by { rw [e.source_eq, e'.source_eq] at hx, exact H hx })
     (λ x hx, by { rw [e.target_eq, e'.target_eq] at hx, exact H ⟨hx.1.1, hx.2.1⟩ }),
   base_set := e.base_set ∪ e'.base_set,
-  open_base_set := is_open_union e.open_base_set e'.open_base_set,
+  open_base_set := is_open.union e.open_base_set e'.open_base_set,
   source_eq := congr_arg2 (∪) e.source_eq e'.source_eq,
   target_eq := (congr_arg2 (∪) e.target_eq e'.target_eq).trans union_prod.symm,
   proj_to_fun :=
@@ -604,7 +604,7 @@ begin
     rcases h c with ⟨ec, hc⟩,
     obtain ⟨c', hc', hc'e⟩ : ∃ c' ∈ Ico a c, Ioc c' c ⊆ ec.base_set :=
       (mem_nhds_within_Iic_iff_exists_mem_Ico_Ioc_subset hlt).1
-        (mem_nhds_within_of_mem_nhds $ mem_nhds_sets ec.open_base_set hc),
+        (mem_nhds_within_of_mem_nhds $ is_open.mem_nhds ec.open_base_set hc),
     /- Since `c' < c = Sup s`, there exists `d ∈ s ∩ (c', c]`. Let `ead` be a trivialization of
     `proj` over `[a, d]`. Then we can glue `ead` and `ec` into a trivialization over `[a, c]`. -/
     obtain ⟨d, ⟨hdab, ead, had⟩, hd⟩ : ∃ d ∈ s, d ∈ Ioc c' c := hsc.exists_between hc'.2,
@@ -621,7 +621,7 @@ begin
   `d ∈ (c, b]`. -/
   obtain ⟨d, hdcb, hd⟩ : ∃ d ∈ Ioc c b, Ico c d ⊆ ec.base_set :=
     (mem_nhds_within_Ici_iff_exists_mem_Ioc_Ico_subset hlt).1
-      (mem_nhds_within_of_mem_nhds $ mem_nhds_sets ec.open_base_set (hec ⟨hc.1, le_rfl⟩)),
+      (mem_nhds_within_of_mem_nhds $ is_open.mem_nhds ec.open_base_set (hec ⟨hc.1, le_rfl⟩)),
   have had : Ico a d ⊆ ec.base_set,
     from subset.trans Ico_subset_Icc_union_Ico (union_subset hec hd),
   by_cases he : disjoint (Iio d) (Ioi c),
@@ -767,9 +767,9 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
     { simp [hx] },
   end,
   open_source :=
-    (is_open_inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
+    (is_open.inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
   open_target :=
-    (is_open_inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
+    (is_open.inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
   continuous_to_fun  :=
     continuous_on.prod continuous_fst.continuous_on (Z.coord_change_continuous i j),
   continuous_inv_fun := by simpa [inter_comm]
@@ -967,7 +967,7 @@ lemma continuous_const_section (v : F)
 begin
   apply continuous_iff_continuous_at.2 (λ x, _),
   have A : Z.base_set (Z.index_at x) ∈ 𝓝 x :=
-    mem_nhds_sets (Z.is_open_base_set (Z.index_at x)) (Z.mem_base_set_at x),
+    is_open.mem_nhds (Z.is_open_base_set (Z.index_at x)) (Z.mem_base_set_at x),
   apply ((Z.local_triv (Z.index_at x)).continuous_at_iff_continuous_at_comp_left _).2,
   { simp only [(∘)] with mfld_simps,
     apply continuous_at_id.prod,

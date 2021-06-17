@@ -73,7 +73,9 @@ lemma antisymm (hB : is_exposed A B) (hA : is_exposed B A) :
   A = B :=
 hA.subset.antisymm hB.subset
 
--- `is_exposed` is *not* transitive
+/- `is_exposed` is *not* transitive: Consider a (topologically) open cube with vertices
+`A₀₀₀, ..., A₁₁₁` and add to it the triangle `A₀₀₀A₀₀₁A₀₁₀`. Then `A₀₀₁A₀₁₀` is exposed to
+`A₀₀₀A₀₀₁A₀₁₀` which is exposed to the cube, but `A₀₀₁A₀₁₀` is not itself exposed to the cube. -/
 
 protected lemma mono (hC : is_exposed A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
   is_exposed B C :=

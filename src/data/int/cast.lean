@@ -18,7 +18,7 @@ This file defines the *canonical* homomorphism from the integers into a type `α
 * `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
 * `cast_ring_hom`: `cast` bundled as a `ring_hom`.
 
-## Implementation notes
+## Implementation note
 
 Setting up the coercions priorities is tricky. See Note [coercion into rings].
 -/

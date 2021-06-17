@@ -98,8 +98,10 @@ begin
     equiv.refl_trans]
 end
 
-/-- For square matrices with coefficients in commutative semirings, the natural map that reindexes
- a matrix's rows and columns with equivalent types, `matrix.reindex`, is an equivalence of algebras. -/
+/--
+For square matrices with coefficients in commutative semirings, the natural map that reindexes
+a matrix's rows and columns with equivalent types, `matrix.reindex`, is an equivalence of algebras.
+-/
 def reindex_alg_equiv [comm_semiring R] [decidable_eq m] [decidable_eq n]
   (e : m ≃ n) : matrix m m R ≃ₐ[R] matrix n n R :=
 { to_fun    := reindex e e,

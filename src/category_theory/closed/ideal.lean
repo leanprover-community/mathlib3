@@ -57,6 +57,10 @@ begin
   exact functor.ess_image.of_iso ((exp A).map_iso iB') (h B' A),
 end⟩
 
+/-- The entire category viewed as a subcategory is an exponential ideal. -/
+instance : exponential_ideal (𝟭 C) :=
+exponential_ideal.mk' _ (λ B A, ⟨_, ⟨iso.refl _⟩⟩)
+
 /-- The subcategory of subterminal objects is an exponential ideal. -/
 instance : exponential_ideal (subterminal_inclusion C) :=
 begin

@@ -18,6 +18,10 @@ This file defines the *canonical* homomorphism from the natural numbers into a t
 * `bin_cast`: Binary representation version of `cast`.
 * `cast_add_monoid_hom`: `cast` bundled as an `add_monoid_hom`.
 * `cast_ring_hom`: `cast` bundled as a `ring_hom`.
+
+## Implementation note
+
+Setting up the coercions priorities is tricky. See Note [coercion into rings].
 -/
 
 namespace nat

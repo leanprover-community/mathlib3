@@ -357,11 +357,11 @@ lemma cotrident.is_colimit.hom_iso_natural [nonempty J] {t : cotrident f} {Z Z' 
 (category.assoc _ _ _).symm
 
 /-- This is a helper construction that can be useful when verifying that a category has certain wide
-    equalizers. Given `F : walking_parallel_pair ⥤ C`, which is really the same as
-    `parallel_pair (F.map left) (F.map right)`, and a trident on `F.map left` and `F.map right`,
+    equalizers. Given `F : walking_parallel_family ⥤ C`, which is really the same as
+    `parallel_family (F.map left) (F.map right)`, and a trident on `F.map left` and `F.map right`,
     we get a cone on `F`.
 
-    If you're thinking about using this, have a look at `has_equalizers_of_has_limit_parallel_pair`,
+    If you're thinking about using this, have a look at `has_equalizers_of_has_limit_parallel_family`,
     which you may find to be an easier way of achieving your goal. -/
 def cone.of_trident
   {F : walking_parallel_family J ⥤ C} (t : trident (λ j, F.map (line j))) : cone F :=
@@ -371,12 +371,12 @@ def cone.of_trident
     naturality' := λ j j' g, by { cases g; { dsimp, simp } } } }
 
 /-- This is a helper construction that can be useful when verifying that a category has all
-    coequalizers. Given `F : walking_parallel_pair ⥤ C`, which is really the same as
-    `parallel_pair (F.map left) (F.map right)`, and a cotrident on `F.map left` and `F.map right`,
+    coequalizers. Given `F : walking_parallel_family ⥤ C`, which is really the same as
+    `parallel_family (F.map left) (F.map right)`, and a cotrident on `F.map left` and `F.map right`,
     we get a cocone on `F`.
 
     If you're thinking about using this, have a look at
-    `has_coequalizers_of_has_colimit_parallel_pair`, which you may find to be an easier way of
+    `has_coequalizers_of_has_colimit_parallel_family`, which you may find to be an easier way of
     achieving your goal. -/
 def cocone.of_cotrident
   {F : walking_parallel_family J ⥤ C} (t : cotrident (λ j, F.map (line j))) : cocone F :=
@@ -393,16 +393,16 @@ def cocone.of_cotrident
   {F : walking_parallel_family J ⥤ C} (t : cotrident (λ j, F.map (line j))) (j) :
   (cocone.of_cotrident t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
-/-- Given `F : walking_parallel_pair ⥤ C`, which is really the same as
-    `parallel_pair (F.map left) (F.map right)` and a cone on `F`, we get a trident on
+/-- Given `F : walking_parallel_family ⥤ C`, which is really the same as
+    `parallel_family (F.map left) (F.map right)` and a cone on `F`, we get a trident on
     `F.map left` and `F.map right`. -/
 def trident.of_cone
   {F : walking_parallel_family J ⥤ C} (t : cone F) : trident (λ j, F.map (line j)) :=
 { X := t.X,
   π := { app := λ X, t.π.app X ≫ eq_to_hom (by tidy) } }
 
-/-- Given `F : walking_parallel_pair ⥤ C`, which is really the same as
-    `parallel_pair (F.map left) (F.map right)` and a cocone on `F`, we get a cotrident on
+/-- Given `F : walking_parallel_family ⥤ C`, which is really the same as
+    `parallel_family (F.map left) (F.map right)` and a cocone on `F`, we get a cotrident on
     `F.map left` and `F.map right`. -/
 def cotrident.of_cocone
   {F : walking_parallel_family J ⥤ C} (t : cocone F) : cotrident (λ j, F.map (line j)) :=

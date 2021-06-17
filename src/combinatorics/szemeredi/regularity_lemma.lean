@@ -1184,12 +1184,12 @@ begin
   obtain ⟨P, hP, rfl⟩ := hx,
   obtain ⟨P', hP', rfl⟩ := hy,
   simp only [mem_filter] at hi₁ hi₂,
-  have : P = P',
-  { ext j,
-    refine ⟨λ hj, _, λ hj, _⟩,
-    { rwa [hi₂.2 _ (hP hj), ←hi₁.2 _ (hP hj)] },
-    { rwa [hi₁.2 _ (hP' hj), ←hi₂.2 _ (hP' hj)] } },
-  subst this
+  suffices h : P = P',
+  { subst h },
+  ext j,
+  refine ⟨λ hj, _, λ hj, _⟩,
+  { rwa [hi₂.2 _ (hP hj), ←hi₁.2 _ (hP hj)] },
+  { rwa [hi₁.2 _ (hP' hj), ←hi₂.2 _ (hP' hj)] },
 end
 
 lemma atomise_covers {s : finset α} (Q : finset (finset α)) {x : α} (hx : x ∈ s) :
@@ -1329,10 +1329,9 @@ variables {V : Type u} [fintype V] {G : simple_graph V} {P : finpartition V} {ε
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
 index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
 yields a not-too-big uniform equipartition. -/
-theorem increment (hP : P.is_equipartition)
+noncomputable def increment (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
-  ∃ (Q : finpartition V),
-    Q.is_equipartition ∧ Q.size = exp_bound P.size ∧ P.index G + ε^5 / 8 ≤ Q.index G :=
+  finpartition V :=
 begin
   let m := card V/exp_bound P.size,
   let a := card V/P.size - m * 4^P.size,
@@ -1340,39 +1339,71 @@ begin
   rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
-  let Q : finpartition V,
-  { refine P.bind (λ U hU, _),
-    apply dite (U.card = m * 4^P.size + a),
-    { intro hUcard,
-      have : (4^P.size - a) * m + a * (m + 1) = U.card,
-      { rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel],
-        sorry
-      },
-      exact classical.some (mk_equitable this (R U hU)) },
-    intro hUcard,
-    have aux1 :
-      (∑ (i : finset V) in P.parts, i.card) / P.parts.card = m * 4 ^ finpartition_on.size P + a,
-    { sorry },
-    have aux2 := hP U hU,
-    rw aux1 at aux2,
-    replace hUcard := aux2.resolve_left hUcard,
-    have : (4^P.size - (a + 1)) * m + (a + 1) * (m + 1) = U.card,
-    {  rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel,
-        add_assoc],
+  refine P.bind (λ U hU, _),
+  apply dite (U.card = m * 4^P.size + a),
+  { intro hUcard,
+    have : (4^P.size - a) * m + a * (m + 1) = U.card,
+    { rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel],
       sorry
     },
     exact classical.some (mk_equitable this (R U hU)) },
-  sorry
-  /-let witnesses : finset V → finset V → sym2 (finset V) := λ U W, dite (⟦(U, W)⟧ ∈ P.non_uniform_parts G ε)
-    (λ h, begin
-      rw [mem_non_uniform_parts, simple_graph.is_uniform] at h,
-      push_neg at h,
-      let U' := classical.some h.2.2.2,
-      let W' := classical.some (classical.some_spec h.2.2.2).2,
-      exact ⟦(U', W')⟧,
-    end)
-    (λ h, ⟦(U, W)⟧)-/
+  intro hUcard,
+  have aux1 :
+    (∑ (i : finset V) in P.parts, i.card) / P.parts.card = m * 4 ^ finpartition_on.size P + a,
+  { sorry },
+  have aux2 := hP U hU,
+  rw aux1 at aux2,
+  replace hUcard := aux2.resolve_left hUcard,
+  have : (4^P.size - (a + 1)) * m + (a + 1) * (m + 1) = U.card,
+  {  rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel,
+      add_assoc],
+    sorry
+  },
+  exact classical.some (mk_equitable this (R U hU)),
 end
+
+namespace increment
+
+protected lemma is_equipartition (hP : P.is_equipartition)
+  (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  (increment hP hε hPV hPG).is_equipartition :=
+begin
+  let m := card V/exp_bound P.size,
+  let a := card V/P.size - m * 4^P.size,
+  let b := card V - m * exp_bound P.size - a * P.size,
+  rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
+  let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
+    (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
+  sorry
+end
+
+protected lemma size (hP : P.is_equipartition)
+  (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  (increment hP hε hPV hPG).size = exp_bound P.size :=
+begin
+  let m := card V/exp_bound P.size,
+  let a := card V/P.size - m * 4^P.size,
+  let b := card V - m * exp_bound P.size - a * P.size,
+  rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
+  let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
+    (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
+  sorry
+end
+
+protected lemma index (hP : P.is_equipartition)
+  (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
+  P.index G + ε^5 / 8 ≤ (increment hP hε hPV hPG).index G :=
+begin
+  let m := card V/exp_bound P.size,
+  let a := card V/P.size - m * 4^P.size,
+  let b := card V - m * exp_bound P.size - a * P.size,
+  rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
+  let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
+    (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
+  sorry
+end
+
+end increment
 
 /-- The maximal number of times we need to blow up an equipartition to make it uniform -/
 noncomputable def iteration_bound (ε : ℝ) (l : ℕ) : ℕ :=
@@ -1460,11 +1491,11 @@ begin
     hP₃.trans (iterate_le_iterate_of_id_le le_exp_bound (le_nat_floor_of_le hi) _),
   have hPV : P.size * 16^P.size ≤ card V :=
     (nat.mul_le_mul hsize (nat.pow_le_pow_of_le_right (by norm_num) hsize)).trans hV,
-  obtain ⟨Q, hQ₁, hQ₂, hQ₃⟩ := increment hP₁ hεl' hPV huniform,
-  refine ⟨Q, hQ₁, _, _, or.inr (le_trans _ hQ₃)⟩,
-  { rw hQ₂,
+  refine ⟨increment hP₁ hεl' hPV huniform, increment.is_equipartition hP₁ hεl' hPV huniform, _, _,
+    or.inr (le_trans _ (increment.index hP₁ hεl' hPV huniform))⟩,
+  { rw increment.size hP₁ hεl' hPV huniform,
     exact hP₂.trans (le_exp_bound _) },
-  { rw [hQ₂, function.iterate_succ_apply'],
+  { rw [increment.size hP₁ hεl' hPV huniform, function.iterate_succ_apply'],
     exact exp_bound_mono hP₃ },
   rw [nat.cast_succ, mul_add, mul_one],
   exact add_le_add_right hP₄ _,

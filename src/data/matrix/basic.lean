@@ -842,11 +842,12 @@ lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := sta
 
 end star_ring
 
-/-- `M.minor row col` is the matrix obtained by reindexing the rows and the lines of
-    `M`, such that `M.minor row col i j = M (row i) (col j)`. Note that the total number
-    of row/colums doesn't have to be preserved. -/
-def minor (A : matrix m n α) (row : l → m) (col : o → n) : matrix l o α :=
-λ i j, A (row i) (col j)
+/-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of
+  a matrix `M : matrix m n α`, the matrix `M.minor r_reindex c_reindex : matrix l o α` is defined
+  by `(M.minor r_reindex c_reindex) i j = M (r_reindex i) (c_reindex j)` for `(i,j) : l × o`.
+  Note that the total number of row and columns does not have to be preserved. -/
+def minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) : matrix l o α :=
+λ i j, A (r_reindex i) (c_reindex j)
 
 @[simp] lemma minor_apply (A : matrix m n α) (row : l → m) (col : o → n) (i j) :
   A.minor row col i j = A (row i) (col j) := rfl
@@ -881,8 +882,8 @@ lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α] (r 
   (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
 
-/-- If the minor doesn't repeat elements, then when applied to a diagonal matrix the result is
-diagonal. -/
+/-- Given a `(m × m)` diagonal matrix defined by a map `d : m → α`, if the reindexing arrow `e` is
+  injective, then the resulting matrix is again diagonal. -/
 lemma minor_diagonal [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α) (e : l → m)
   (he : function.injective e) :
   (diagonal d).minor e e = diagonal (d ∘ e) :=
@@ -903,6 +904,7 @@ lemma minor_mul [semiring α] {p q : Type*} [fintype p] [fintype q]
   (e₁ : l → m) (e₂ : o → n) (e₃ : q → p) (he₂ : function.bijective e₂) :
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
 ext $ λ _ _, (he₂.sum_comp _).symm
+
 
 /-! `simp` lemmas for `matrix.minor`s interaction with `matrix.diagonal`, `1`, and `matrix.mul` for
 when the mappings are bundled. -/
@@ -933,6 +935,12 @@ lemma minor_mul_equiv [semiring α] {p q : Type*} [fintype p] [fintype q]
   (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
 minor_mul M N e₁ e₂ e₃ e₂.bijective
+
+lemma mul_minor_one {n' o' : Type*} [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l ≃ o)
+  (M : matrix m n α) : M.mul ((1 : matrix o o α).minor e₁ e₂) = minor M id (e₁.symm ∘ e₂) :=
+begin
+  sorry,
+end
 
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
 equivalence. -/

@@ -274,7 +274,7 @@ lemma some_index (x : α) : hs.setoid.rel (hs.some (hs.index x)) x :=
 protected def quotient := quotient hs.setoid
 
 /-- The projection onto the quotient associated to an indexed partition. -/
-def proj : α → hs.quotient := @quotient.mk α hs.setoid
+def proj : α → hs.quotient := quotient.mk'
 
 lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.setoid.rel x y :=
 quotient.eq_rel
@@ -282,10 +282,10 @@ quotient.eq_rel
 /-- A map choosing a representative for each element of the quotient associated to an indexed
 partition. -/
 noncomputable
-def out : hs.quotient → α := @quotient.out α hs.setoid
+def out : hs.quotient → α := quotient.out'
 
 @[simp] lemma proj_out (x : hs.quotient) : hs.proj (hs.out x) = x :=
-quot.out_eq _
+quotient.out_eq' _
 
 lemma out_proj (x : α) : hs.setoid.rel (hs.out (hs.proj x)) x :=
 quotient.mk_out' x

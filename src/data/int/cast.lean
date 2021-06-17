@@ -14,7 +14,7 @@ This file defines the *canonical* homomorphism from the integers into a type `α
 
 ## Main declarations
 
-* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`
+* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`.
 * `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
 * `cast_ring_hom`: `cast` bundled as a `ring_hom`.
 

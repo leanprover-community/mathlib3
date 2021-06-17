@@ -269,6 +269,7 @@ instance {α : Type*} {β : Type*} [topological_space α]
 
 /-- Composition on the left by a (continuous) homomorphism of topological rings, as a `ring_hom`.
 Similar to `ring_hom.comp_left`. -/
+@[simps]
 def _root_.ring_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
   [topological_space α] [topological_space β] [semiring β] [topological_semiring β]
   [topological_space γ] [semiring γ] [topological_semiring γ] (g : β →+* γ) (hg : continuous g) :
@@ -365,6 +366,7 @@ variables (R)
 
 /-- Composition on the left by a continuous linear map, as a `linear_map`.
 Similar to `linear_map.comp_left`. -/
+@[simps]
 def _root_.continuous_linear_map.comp_left (α : Type*) [topological_space α] (g : M →L[R] M₂) :
   C(α, M) →ₗ[R] C(α, M₂) :=
 { map_smul' := λ c f, ext $ λ x, g.map_smul' c _,
@@ -455,11 +457,12 @@ instance continuous_map.algebra : algebra R C(α, A) :=
 variables (R)
 
 /-- Composition on the left by a (continuous) homomorphism of topological `R`-algebras, as an
-`algebra_hom`. Similar to `algebra_hom.comp_left`. -/
-def _root_.algebra_hom.comp_left_continuous {α : Type*} [topological_space α] (g : A →ₐ[R] A₂)
+`alg_hom`. Similar to `alg_hom.comp_left`. -/
+@[simps]
+def alg_hom.comp_left_continuous {α : Type*} [topological_space α] (g : A →ₐ[R] A₂)
   (hg : continuous g) :
   C(α, A) →ₐ[R] C(α, A₂) :=
-{ commutes' := λ c, continuous_map.ext $ λ _, g.commutes' _ ,
+{ commutes' := λ c, continuous_map.ext $ λ _, g.commutes' _,
   .. g.to_ring_hom.comp_left_continuous α hg }
 
 /-- Coercion to a function as an `alg_hom`. -/

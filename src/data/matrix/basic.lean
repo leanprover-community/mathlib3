@@ -964,9 +964,6 @@ lemma transpose_reindex (eₘ : m ≃ l) (eₙ : n ≃ o) (M : matrix m n α) :
   (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
 rfl
 
-@[simp] lemma reindex_one [semiring α] [decidable_eq m] [decidable_eq l] (eₘ : m ≃ l) :
-  (reindex eₘ eₘ (1 : matrix m m α)) = 1 := by simp
-
 /-- The left `n × l` part of a `n × (l+r)` matrix. -/
 @[reducible]
 def sub_left {m l r : nat} (A : matrix (fin m) (fin (l + r)) α) : matrix (fin m) (fin l) α :=

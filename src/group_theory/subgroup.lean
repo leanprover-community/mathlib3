@@ -1617,6 +1617,10 @@ by { ext, exact mem_closure_singleton.symm }
 lemma gpowers_subset {a : G} {K : subgroup G} (h : a ∈ K) : gpowers a ≤ K :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := K.gpow_mem h i end
 
+lemma mem_gpowers_iff {g h : G} :
+  h ∈ gpowers g ↔ ∃ (k : ℤ), g ^ k = h :=
+iff.refl _
+
 end subgroup
 
 namespace add_subgroup
@@ -1635,13 +1639,22 @@ by { ext, exact mem_closure_singleton.symm }
 lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples a ≤ B :=
 @subgroup.gpowers_subset (multiplicative A) _ _ (B.to_subgroup) h
 
+lemma mem_gmultiples_iff {a b : A} :
+  b ∈ add_subgroup.gmultiples a ↔ ∃ (k : ℤ), k • a = b :=
+iff.refl _
+
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers
 attribute [to_additive add_subgroup.gmultiples_eq_closure] subgroup.gpowers_eq_closure
 attribute [to_additive add_subgroup.range_gmultiples_hom] subgroup.range_gpowers_hom
 attribute [to_additive add_subgroup.gmultiples_subset] subgroup.gpowers_subset
+attribute [to_additive add_subgroup.mem_gmultiples_iff] subgroup.mem_gpowers_iff
 
 end add_subgroup
+
+lemma int.mem_gmultiples_iff {a b : ℤ} :
+  b ∈ add_subgroup.gmultiples a ↔ a ∣ b :=
+exists_congr (λ k, by rw [mul_comm, eq_comm, ← smul_eq_mul])
 
 lemma of_mul_image_gpowers_eq_gmultiples_of_mul { x : G } :
   additive.of_mul '' ((subgroup.gpowers x) : set G) = add_subgroup.gmultiples (additive.of_mul x) :=

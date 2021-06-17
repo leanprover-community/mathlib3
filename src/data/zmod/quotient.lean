@@ -43,10 +43,10 @@ def quotient_gmultiples_nat_equiv_zmod :
   quotient (add_subgroup.gmultiples (n : ℤ)) ≃+ zmod n :=
 { to_fun := quotient_add_group.lift _ (cast_add_hom _)
     (λ x hx, show cast_add_hom (zmod n) x = 0,
-      from (int_coe_zmod_eq_zero_iff_dvd _ _).mpr (mem_gmultiples_iff_dvd.mp hx)),
+      from (int_coe_zmod_eq_zero_iff_dvd _ _).mpr (mem_gmultiples_iff.mp hx)),
   inv_fun := mk' (add_subgroup.gmultiples (n : ℤ)) ∘ coe,
   left_inv := λ x, quot.induction_on x (λ x, eq_iff_sub_mem.mpr $
-    by rw [lift_quot_mk, coe_cast_add_hom, mem_gmultiples_iff_dvd,
+    by rw [lift_quot_mk, coe_cast_add_hom, mem_gmultiples_iff,
            ← int_coe_zmod_eq_zero_iff_dvd, cast_sub, int_cast_zmod_cast, sub_self]),
   right_inv := λ x,
     by rw [function.comp_app, quotient_add_group.mk'_apply, lift_mk, coe_cast_add_hom,

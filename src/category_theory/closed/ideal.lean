@@ -14,10 +14,10 @@ import category_theory.subterminal
 /-!
 # Exponential ideals
 
-An exponential ideal of a cartesian closed category `C` is a subcategory `D ⊆ C` such that for any `B : D`
-and `A : C`, the exponential `B^^A` is in `D` - resembling ring theoretic ideals. We define the
-notion here for inclusion functors `i : D ⥤ C` rather than explicit subcategories to preserve the
-principle of equivalence.
+An exponential ideal of a cartesian closed category `C` is a subcategory `D ⊆ C` such that for any
+`B : D` and `A : C`, the exponential `A ⟹ B` is in `D`: resembling ring theoretic ideals. We
+define the notion here for inclusion functors `i : D ⥤ C` rather than explicit subcategories to
+preserve the principle of equivalence.
 
 We additionally show that if `C` is cartesian closed and `i : D ⥤ C` is a reflective functor, the
 following are equivalent.
@@ -46,8 +46,8 @@ class exponential_ideal : Prop :=
 (exp_closed : ∀ {B}, B ∈ i.ess_image → ∀ A, (A ⟹ B) ∈ i.ess_image)
 
 /--
-To show `i` is an exponential ideal it suffices to show that `(iB)^A` is "in" `D` for any `A` in `C`
-and `B` in `D`.
+To show `i` is an exponential ideal it suffices to show that `A ⟹ iB` is "in" `D` for any `A` in
+`C` and `B` in `D`.
 -/
 lemma exponential_ideal.mk' (h : ∀ (B : D) (A : C), (A ⟹ i.obj B) ∈ i.ess_image) :
   exponential_ideal i :=
@@ -62,14 +62,14 @@ instance : exponential_ideal (subterminal_inclusion C) :=
 begin
   apply exponential_ideal.mk',
   intros B A,
-  refine ⟨⟨B.1 ^^ A, λ Z g h, _⟩, ⟨iso.refl _⟩⟩,
+  refine ⟨⟨A ⟹ B.1, λ Z g h, _⟩, ⟨iso.refl _⟩⟩,
   exact uncurry_injective (B.2 (cartesian_closed.uncurry g) (cartesian_closed.uncurry h))
 end
 
 /--
 If `D` is a reflective subcategory, the property of being an exponential ideal is equivalent to
 the presence of a natural isomorphism `i ⋙ exp A ⋙ left_adjoint i ⋙ i ≅ i ⋙ exp A`, that is:
-`(iB)^A ≅ i L (iB)^A`, naturally in `B`.
+`(A ⟹ iB) ≅ i L (A ⟹ iB)`, naturally in `B`.
 The converse is given in `exponential_ideal.mk_of_iso`.
 -/
 def exponential_ideal_reflective (A : C) [reflective i] [exponential_ideal i] :
@@ -79,7 +79,7 @@ begin
   apply nat_iso.of_components _ _,
   { intro X,
     haveI := (exponential_ideal.exp_closed (i.obj_mem_ess_image X) A).unit_is_iso,
-    apply as_iso ((adjunction.of_right_adjoint i).unit.app (i.obj X ^^ A)) },
+    apply as_iso ((adjunction.of_right_adjoint i).unit.app (A ⟹ i.obj X)) },
   { simp }
 end
 
@@ -125,17 +125,17 @@ begin
   let ε : i ⋙ L ⟶ 𝟭 D := ir.counit,
   apply exponential_ideal.mk',
   intros B A,
-  let q : i.obj (L.obj (i.obj B ^^ A)) ⟶ i.obj B ^^ A,
+  let q : i.obj (L.obj (A ⟹ i.obj B)) ⟶ A ⟹ i.obj B,
     apply cartesian_closed.curry (ir.hom_equiv _ _ _),
     apply _ ≫ (ir.hom_equiv _ _).symm ((ev A).app (i.obj B)),
     refine prod_comparison L A _ ≫ limits.prod.map (𝟙 _) (ε.app _) ≫ inv (prod_comparison _ _ _),
-  have : η.app (i.obj B ^^ A) ≫ q = 𝟙 (i.obj B ^^ A),
+  have : η.app (A ⟹ i.obj B) ≫ q = 𝟙 (A ⟹ i.obj B),
   { dsimp,
     rw [← curry_natural_left, curry_eq_iff, uncurry_id_eq_ev, ← ir.hom_equiv_naturality_left,
         ir.hom_equiv_apply_eq, assoc, assoc, prod_comparison_natural_assoc, L.map_id,
         ← prod.map_id_comp_assoc, ir.left_triangle_components, prod.map_id_id, id_comp],
     apply is_iso.hom_inv_id_assoc },
-  haveI : split_mono (η.app (i.obj B ^^ A)) := ⟨_, this⟩,
+  haveI : split_mono (η.app (A ⟹ i.obj B)) := ⟨_, this⟩,
   apply mem_ess_image_of_unit_split_mono,
 end
 

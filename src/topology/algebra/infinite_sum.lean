@@ -920,7 +920,7 @@ begin
     rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,
     use [s₁ ∪ s₂],
     assume t ht,
-    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_left_of_le le_sup_right⟩,
+    specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_of_le_left le_sup_right⟩,
     simpa only [finset.sum_union ht.symm, add_sub_cancel'] using h },
   { assume h e he,
     rcases exists_nhds_half_neg he with ⟨d, hd, hde⟩,

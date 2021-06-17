@@ -490,6 +490,18 @@ protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quot
 lemma mk_surjective : function.surjective (mk I) :=
 λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
 
+/-- If `I` is an ideal of a commutative ring `R`, if `q : R → R/I` is the quotient map, and if
+`s ⊆ R` is a subset, then `q⁻¹(q(s)) = ⋃ᵢ(i + s)`, the union running over all `i ∈ I`. -/
+lemma quotient_ring_saturate (I : ideal α) (s : set α) :
+  mk I ⁻¹' (mk I '' s) = (⋃ x : I, (λ y, x.1 + y) '' s) :=
+begin
+  ext x,
+  simp only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
+  exact ⟨λ ⟨a, a_in, h⟩, ⟨⟨_, I.neg_mem h⟩, a, a_in, by simp⟩,
+         λ ⟨⟨i, hi⟩, a, ha, eq⟩,
+           ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact I.neg_mem hi⟩⟩
+end
+
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
     quotient.induction_on₂' a b $ λ a b hab,

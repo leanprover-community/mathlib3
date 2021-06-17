@@ -87,6 +87,30 @@ lemma iterate_pos_lt_of_map_lt' (h : commute f g) (hf : strict_mono f) (hg : mon
   f^[n] x < (g^[n]) x :=
 @iterate_pos_lt_of_map_lt (order_dual α) _ g f h.symm hg.order_dual hf.order_dual x hx n hn
 
+lemma id_le_iterate_of_id_le (h : id ≤ f) :
+  ∀ n, id ≤ (f^[n])
+| 0 := by { rw function.iterate_zero, exact le_rfl }
+| (n + 1) := λ x,
+  begin
+    rw function.iterate_succ_apply',
+    exact (id_le_iterate_of_id_le n x).trans (h _),
+  end
+
+lemma iterate_le_id_of_le_id (h : f ≤ id) :
+  ∀ n, (f^[n]) ≤ id :=
+@id_le_iterate_of_id_le (order_dual α) _ f h
+
+lemma iterate_le_iterate_of_id_le (h : id ≤ f) {m n : ℕ} (hmn : m ≤ n) :
+  f^[m] ≤ (f^[n]) :=
+begin
+  rw [←nat.add_sub_cancel' hmn, add_comm, function.iterate_add],
+  exact λ x, id_le_iterate_of_id_le h _ _,
+end
+
+lemma iterate_le_iterate_of_le_id (h : f ≤ id) {m n : ℕ} (hmn : m ≤ n) :
+  f^[n] ≤ (f^[m]) :=
+@iterate_le_iterate_of_id_le (order_dual α) _ f h m n hmn
+
 end preorder
 
 variables [linear_order α] {f g : α → α}

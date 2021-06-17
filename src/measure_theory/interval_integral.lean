@@ -14,12 +14,14 @@ import analysis.normed_space.dual
 /-!
 # Integral over an interval
 
-In this file we define `∫ x in a..b, f x ∂μ` to be `∫ x in Ioc a b, f x ∂μ` if `a ≤ b`
-and `-∫ x in Ioc b a, f x ∂μ` if `b ≤ a`. We prove a few simple properties and many versions
-of the first part of the
+In this file we define `∫ x in a..b, f x ∂μ` to be `∫ x in Ioc a b, f x ∂μ` if `a ≤ b` and
+`-∫ x in Ioc b a, f x ∂μ` if `b ≤ a`. We prove a few simple properties and several versions of the
 [fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus).
-Recall that it states that the function `(u, v) ↦ ∫ x in u..v, f x` has derivative
-`(δu, δv) ↦ δv • f b - δu • f a` at `(a, b)` provided that `f` is continuous at `a` and `b`.
+
+Recall that its first version states that the function `(u, v) ↦ ∫ x in u..v, f x` has derivative
+`(δu, δv) ↦ δv • f b - δu • f a` at `(a, b)` provided that `f` is continuous at `a` and `b`,
+and its second version states that, if `f` has an integrable derivative on `[a, b]`, then
+`∫ x in a..b, f' x = f b - f a`.
 
 ## Main statements
 
@@ -92,6 +94,10 @@ We then derive additional integration techniques from FTC-2:
 * `interval_integral.integral_comp_mul_deriv'` - integration by substitution
 
 Many applications of these theorems can be found in the file `analysis.special_functions.integrals`.
+
+Note that the assumptions of FTC-2 are formulated in the form that `f'` is integrable. To use it in
+a context with the stronger assumption that `f'` is continuous, one can use
+`continuous_on.integrable_on_Icc` or `continuous_on.integrable_on_interval`
 
 ## Implementation notes
 
@@ -1804,14 +1810,6 @@ lemma deriv_within_integral_left
   deriv_within (λ u, ∫ x in u..b, f x) s a = -f a :=
 (integral_has_deriv_within_at_left hf hmeas ha).deriv_within hs
 
-/-!
-### Fundamental theorem of calculus, part 2
-
-This section contains theorems pertaining to FTC-2 for interval integrals.
--/
-
-variable {f' : ℝ → E}
-
 /-- The integral of a continuous function is differentiable on a real set `s`. -/
 theorem differentiable_on_integral_of_continuous {s : set ℝ}
   (hintg : ∀ x ∈ s, interval_integrable f volume a x) (hcont : continuous f) :
@@ -1820,8 +1818,32 @@ theorem differentiable_on_integral_of_continuous {s : set ℝ}
   hcont.measurable.ae_measurable.measurable_at_filter
     hcont.continuous_at) .differentiable_at.differentiable_within_at
 
+/-!
+### Fundamental theorem of calculus, part 2
+
+This section contains theorems pertaining to FTC-2 for interval integrals, i.e., the assertion
+that `∫ x in a..b, f' x = f b - f a` under suitable assumptions.
+
+The most classical version of this theorem assumes that `f'` is continuous. However, this is
+unnecessarily strong: the result holds if `f'` is just integrable. We prove the strong version,
+following [Rudin, *Real and Complex Analysis* (Theorem 7.21)][rudin2006real]. The proof is first
+given for real-valued functions, and then deduced for functions with a general target space. For
+a real-valued function `g`, it suffices to show that `g b - g a ≤ (∫ x in a..b, g' x) + ε` for all
+positive `ε`. To prove this, choose a lower-semicontinuous function `G'` with `g' < G'` and with
+integral close to that of `g'` (its existence is guaranteed by the Vitali-Caratheodory theorem).
+It satisfies `g t - g a ≤ ∫ x in a..t, G' x` for all `t ∈ [a, b]`: this inequality holds at `a`,
+and if it holds at `t` then it holds for `u` close to `t` on its right, as the left hand side
+increases by `g u - g t ∼ (u -t) g' t`, while the right hand side increases by
+`∫ x in t..u, G' x` which is roughly at least `∫ x in t..u, G' t = (u - t) G' t`, by lower
+semicontinuity. As  `g' t < G' t`, this gives the conclusion. One can therefore push progressively
+this inequality to the right until the point `b`, where it gives the desired conclusion.
+-/
+
 variables {g' g : ℝ → ℝ}
 
+/-- Hard part of FTC-2 for integrable derivatives, real-valued functions: one has
+`g b - g a ≤ (∫ y in a..b, g' y)`.
+Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`. -/
 private lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
@@ -1829,9 +1851,12 @@ private lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b)
   g b - g a ≤ (∫ y in a..b, g' y) :=
 begin
   refine le_of_forall_pos_le_add (λ ε εpos, _),
+  -- Bound from above `g'` by a lower-semicontinuous function `G'`.
   rcases exists_lt_lower_semicontinuous_integral_lt g' g'int εpos with
     ⟨G', g'_lt_G', G'cont, G'int, G'lt_top, hG'⟩,
+  -- we will show by "induction" that `g t - g a ≤ ∫ u in a..t, G' u` for all `t ∈ [a, b]`.
   set s := {t | g t - g a ≤ (∫ u in a..t, (G' u).to_real)} ∩ Icc a b,
+  -- the set `s` of points where this property holds is closed.
   have s_closed : is_closed s,
   { have : continuous_on (λ t, (g t - g a, ∫ u in a..t, (G' u).to_real)) (Icc a b),
     { rw ← interval_of_le hab at G'int ⊢ hcont,
@@ -1839,10 +1864,15 @@ begin
     simp only [s, inter_comm],
     exact this.preimage_closed_of_closed is_closed_Icc order_closed_topology.is_closed_le' },
   have main : Icc a b ⊆ {t | g t - g a ≤ (∫ u in a..t, (G' u).to_real) },
-  { apply s_closed.Icc_subset_of_forall_exists_gt (by simp) (λ t ht v t_lt_v, _),
+  { -- to show that the set `s` is all `[a, b]`, it suffices to show that any point `t` in `s`
+    -- with `t < b` admits another point in `s` slightly to its right
+    -- (this is a sort of real induction).
+    apply s_closed.Icc_subset_of_forall_exists_gt (by simp) (λ t ht v t_lt_v, _),
     obtain ⟨y, g'_lt_y', y_lt_G'⟩ : ∃ (y : ℝ), (g' t : ereal) < y ∧ (y : ereal) < G' t :=
       ereal.lt_iff_exists_real_btwn.1 (g'_lt_G' t),
-    have I1 : ∀ᶠ u in 𝓝[Ioi t] t, (u - t) * y ≤ (∫ u in t..u, (G' u).to_real),
+    -- bound from below the increase of `∫ x in a..u, G' x` on the right of `t`, using the lower
+    -- semicontinuity of `G'`.
+    have I1 : ∀ᶠ u in 𝓝[Ioi t] t, (u - t) * y ≤ (∫ w in t..u, (G' w).to_real),
     { have B : ∀ᶠ u in 𝓝 t, (y : ereal) < G' u :=
         G'cont.lower_semicontinuous_at _ _ y_lt_G',
       rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
@@ -1851,11 +1881,11 @@ begin
       filter_upwards [this],
       assume u hu,
       have I : Icc t u ⊆ Icc a b := (Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _))),
-      calc (u - t) * y = (∫ u in Icc t u, y) :
+      calc (u - t) * y = (∫ v in Icc t u, y) :
         by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
                       measurable_set.univ, real.volume_Icc, measure.restrict_apply, univ_inter,
                       ennreal.to_real_of_real]
-      ... ≤ (∫ u in t..u, (G' u).to_real) :
+      ... ≤ (∫ w in t..u, (G' w).to_real) :
       begin
         rw [interval_integral.integral_of_le hu.1.le, ← integral_Icc_eq_integral_Ioc'],
         apply set_integral_mono_ae_restrict,
@@ -1874,6 +1904,7 @@ begin
           convert le_of_lt (H this),
           exact ereal.coe_to_real G'x.ne (ne_bot_of_gt (g'_lt_G' x)) }
       end },
+    -- bound from above the increase of `g u - g a` on the right of `t`, using the derivative at `t`
     have I2 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ (u - t) * y,
     { have g'_lt_y : g' t < y := ereal.coe_lt_coe_iff.1 g'_lt_y',
       filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
@@ -1882,7 +1913,9 @@ begin
       have := hu.le,
       rwa [← div_eq_inv_mul, div_le_iff'] at this,
       exact sub_pos.2 t_lt_u },
-    have I3 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ (∫ u in t..u, (G' u).to_real),
+    -- combine the previous two bounds to show that `g u - g a` increases less quickly than
+    -- `∫ x in a..u, G' x`.
+    have I3 : ∀ᶠ u in 𝓝[Ioi t] t, g u - g t ≤ (∫ w in t..u, (G' w).to_real),
     { filter_upwards [I1, I2],
       assume u hu1 hu2,
       exact hu2.trans hu1 },
@@ -1890,12 +1923,14 @@ begin
     { refine mem_nhds_within_Ioi_iff_exists_Ioc_subset.2 ⟨min v b, _, subset.refl _⟩,
       simp only [lt_min_iff, mem_Ioi],
       exact ⟨t_lt_v, ht.2.2⟩ },
+    -- choose a point `x` slightly to the right of `t` which satisfies the above bound
     rcases (I3.and I4).exists with ⟨x, hx, h'x⟩,
+    -- we check that it belongs to `s`, essentially by construction
     refine ⟨x, _, Ioc_subset_Ioc (le_refl _) (min_le_left _ _) h'x⟩,
     calc g x - g a = (g t - g a) + (g x - g t) : by abel
-    ... ≤ (∫ u in a..t, (G' u).to_real) + ∫ u in t..x, (G' u).to_real :
+    ... ≤ (∫ w in a..t, (G' w).to_real) + ∫ w in t..x, (G' w).to_real :
       add_le_add ht.1 hx
-    ... = ∫ u in a..x, (G' u).to_real :
+    ... = ∫ w in a..x, (G' w).to_real :
     begin
       apply integral_add_adjacent_intervals,
       { rw interval_integrable_iff_of_le ht.2.1,
@@ -1905,6 +1940,7 @@ begin
         apply integrable_on.mono_set G'int,
         refine Ioc_subset_Icc_self.trans (Icc_subset_Icc ht.2.1 (h'x.2.trans (min_le_right _ _))) }
     end },
+  -- now that we know that `s` contains `[a, b]`, we get the desired result by applying this to `b`.
   calc g b - g a ≤ (∫ y in a..b, (G' y).to_real) : main (right_mem_Icc.2 hab)
   ... ≤ (∫ y in a..b, g' y) + ε :
     begin
@@ -1914,6 +1950,7 @@ begin
     end
 end
 
+/-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`. -/
 private lemma integral_le_sub_of_has_deriv_right_of_le (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
@@ -1927,6 +1964,7 @@ begin
   { simp only [integral_neg] }
 end
 
+/-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`: real version -/
 private lemma integral_eq_sub_of_has_deriv_right_of_le_real (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
@@ -1936,6 +1974,9 @@ le_antisymm
   (integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv g'int)
   (sub_le_integral_of_has_deriv_right_of_le hab hcont hderiv g'int)
 
+/-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`: real version, not
+requiring differentiability as the left endpoint of the interval. Follows from
+`integral_eq_sub_of_has_deriv_right_of_le` together with a continuity argument. -/
 private lemma integral_eq_sub_of_has_deriv_right_of_le_real' (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
@@ -1962,6 +2003,8 @@ begin
   have a_mem : a ∈ Icc a b := ⟨le_refl _, hab⟩,
   exact (A a_mem).1,
 end
+
+variable {f' : ℝ → E}
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
   has a right derivative at `f' x` for all `x` in `(a, b)`, and `f'` is integrable on `[a, b]`, then
@@ -2020,11 +2063,12 @@ integral_eq_sub_of_has_deriv_at (λ x hx, (hderiv x hx).has_deriv_at) hint
 
 theorem integral_deriv_eq_sub' (f) (hderiv : deriv f = f')
   (hdiff : ∀ x ∈ interval a b, differentiable_at ℝ f x)
-  (hint : integrable_on f' (interval a b)) :
+  (hcont : continuous_on f' (interval a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 begin
   rw [← hderiv, integral_deriv_eq_sub hdiff],
-  rwa hderiv
+  rw hderiv,
+  exact hcont.integrable_on_interval
 end
 
 /-!
@@ -2097,7 +2141,8 @@ theorem integral_deriv_comp_mul_deriv' {f f' g g' : ℝ → ℝ}
   (hg2 : ∀ x ∈ f '' (interval a b), continuous_at g' x)
   (hgm : ∀ x ∈ f '' (interval a b), measurable_at_filter g' (𝓝 x)) :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
-by rw [integral_comp_mul_deriv' hf hf' hg2 hgm, integral_eq_sub_of_has_deriv_at hg hg1]
+by rw [integral_comp_mul_deriv' hf hf' hg2 hgm,
+  integral_eq_sub_of_has_deriv_at hg hg1.integrable_on_interval]
 
 theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
   (hf : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
@@ -2105,6 +2150,6 @@ theorem integral_deriv_comp_mul_deriv {f f' g g' : ℝ → ℝ}
   (hf' : continuous_on f' (interval a b)) (hg' : continuous g') :
   ∫ x in a..b, (g' ∘ f) x * f' x = (g ∘ f) b - (g ∘ f) a :=
 integral_eq_sub_of_has_deriv_at (λ x hx, (hg x hx).comp x $ hf x hx) $
-  (hg'.comp_continuous_on $ has_deriv_at.continuous_on hf).mul hf'
+  ((hg'.comp_continuous_on $ has_deriv_at.continuous_on hf).mul hf').integrable_on_interval
 
 end interval_integral

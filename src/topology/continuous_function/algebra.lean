@@ -123,7 +123,19 @@ def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topologi
   [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
 { to_fun := coe_fn, map_one' := coe_one, map_mul' := coe_mul }
 
-/-- Composition on the right as an `monoid_hom`. Similar to `monoid_hom.comp_hom'`. -/
+/-- Composition on the left by a (continuous) homomorphism of topological monoids, as a
+`monoid_hom`. Similar to `monoid_hom.comp_left`. -/
+@[to_additive "Composition on the left by a (continuous) homomorphism of topological `add_monoid`s,
+as an `add_monoid_hom`. Similar to `add_monoid_hom.comp_left`.", simps]
+def _root_.monoid_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [monoid β] [has_continuous_mul β]
+  [topological_space γ] [monoid γ] [has_continuous_mul γ] (g : β →* γ) (hg : continuous g)  :
+  C(α, β) →* C(α, γ) :=
+{ to_fun := λ f, (⟨g, hg⟩ : C(β, γ)).comp f,
+  map_one' := ext $ λ x, g.map_one,
+  map_mul' := λ f₁ f₂, ext $ λ x, g.map_mul _ _ }
+
+/-- Composition on the right as a `monoid_hom`. Similar to `monoid_hom.comp_hom'`. -/
 @[to_additive "Composition on the right as an `add_monoid_hom`. Similar to
 `add_monoid_hom.comp_hom'`.", simps]
 def comp_monoid_hom' {α : Type*} {β : Type*} {γ : Type*}
@@ -255,6 +267,15 @@ instance {α : Type*} {β : Type*} [topological_space α]
   ..continuous_map.add_comm_group,
   ..continuous_map.comm_monoid,}
 
+/-- Composition on the left by a (continuous) homomorphism of topological rings, as a `ring_hom`.
+Similar to `ring_hom.comp_left`. -/
+def _root_.ring_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
+  [topological_space α] [topological_space β] [semiring β] [topological_semiring β]
+  [topological_space γ] [semiring γ] [topological_semiring γ] (g : β →+* γ) (hg : continuous g) :
+  C(α, β) →+* C(α, γ) :=
+{ .. g.to_monoid_hom.comp_left_continuous α hg,
+  .. g.to_add_monoid_hom.comp_left_continuous α hg }
+
 /-- Coercion to a function as a `ring_hom`. -/
 @[simps]
 def coe_fn_ring_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
@@ -307,6 +328,7 @@ namespace continuous_map
 variables {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
   {M : Type*} [topological_space M] [add_comm_monoid M]
+  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
 
 instance
   [module R M] [has_continuous_smul R M] :
@@ -328,6 +350,7 @@ by simp
 by { ext, simp, }
 
 variables [has_continuous_add M] [module R M] [has_continuous_smul R M]
+variables [has_continuous_add M₂] [module R M₂] [has_continuous_smul R M₂]
 
 instance module : module R C(α, M) :=
 { smul     := (•),
@@ -339,6 +362,13 @@ instance module : module R C(α, M) :=
   smul_zero := λ r, by { ext, exact smul_zero _ } }
 
 variables (R)
+
+/-- Composition on the left by a continuous linear map, as a `linear_map`.
+Similar to `linear_map.comp_left`. -/
+def _root_.continuous_linear_map.comp_left (α : Type*) [topological_space α] (g : M →L[R] M₂) :
+  C(α, M) →ₗ[R] C(α, M₂) :=
+{ map_smul' := λ c f, ext $ λ x, g.map_smul' c _,
+  .. g.to_linear_map.to_add_monoid_hom.comp_left_continuous α g.continuous }
 
 /-- Coercion to a function as a `linear_map`. -/
 @[simps]
@@ -401,6 +431,8 @@ variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
 {A : Type*} [topological_space A] [semiring A]
 [algebra R A] [topological_semiring A]
+{A₂ : Type*} [topological_space A₂] [semiring A₂]
+[algebra R A₂] [topological_semiring A₂]
 
 /-- Continuous constant functions as a `ring_hom`. -/
 def continuous_map.C : R →+* C(α, A) :=
@@ -413,7 +445,7 @@ def continuous_map.C : R →+* C(α, A) :=
 @[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
 rfl
 
-variables [topological_space R] [has_continuous_smul R A]
+variables [topological_space R] [has_continuous_smul R A] [has_continuous_smul R A₂]
 
 instance continuous_map.algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
@@ -421,6 +453,14 @@ instance continuous_map.algebra : algebra R C(α, A) :=
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _, }
 
 variables (R)
+
+/-- Composition on the left by a (continuous) homomorphism of topological `R`-algebras, as an
+`algebra_hom`. Similar to `algebra_hom.comp_left`. -/
+def _root_.algebra_hom.comp_left_continuous {α : Type*} [topological_space α] (g : A →ₐ[R] A₂)
+  (hg : continuous g) :
+  C(α, A) →ₐ[R] C(α, A₂) :=
+{ commutes' := λ c, continuous_map.ext $ λ _, g.commutes' _ ,
+  .. g.to_ring_hom.comp_left_continuous α hg }
 
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]

@@ -163,16 +163,18 @@ by { rw [submodule.quotient.eq (K : submodule R L), ← lie_sub], exact K.lie_me
 
 @[simp] lemma mk_smul (t : R) (x : L) : mk K (t • x) = t • mk K x := rfl
 
-@[simp] lemma mk_lie (x : K) (y : L) : mk K ⁅x, y⁆ = ⁅x, mk K y⁆ := rfl
+@[simp] lemma mk_lie (x : K) (y : L) : mk K ⁅(x : L), y⁆ = ⁅x, mk K y⁆ := rfl
 
 instance : lie_ring_module K K.quotient :=
-{ add_lie     := λ x y, by { rintros ⟨z⟩, simp only [mk_eq_mk, ← mk_lie, add_lie, ← mk_add], },
+{ add_lie     := λ x y, by { rintros ⟨z⟩,
+    simp only [mk_eq_mk, ← mk_lie, ← coe_bracket_of_module, add_lie, ← mk_add], },
   lie_add     := λ x, by { rintros ⟨y⟩ ⟨z⟩, simp only [mk_eq_mk, ← mk_lie, lie_add, ← mk_add], },
-  leibniz_lie :=
-    λ x y, by { rintros ⟨z⟩, simp only [mk_eq_mk, ← mk_lie, lie_lie, sub_add_cancel, ← mk_add], }, }
+  leibniz_lie := λ x y, by { rintros ⟨z⟩,
+    simp only [mk_eq_mk, ← mk_lie, ← coe_bracket_of_module, lie_lie, sub_add_cancel, ← mk_add], }, }
 
 instance : lie_module R K K.quotient :=
-{ smul_lie := λ t x, by { rintros ⟨y⟩, simp only [mk_eq_mk, ← mk_lie, smul_lie, ← mk_smul], },
+{ smul_lie := λ t x, by { rintros ⟨y⟩,
+    simp only [mk_eq_mk, ← mk_lie, ← coe_bracket_of_module, smul_lie, ← mk_smul], },
   lie_smul := λ t x, by { rintros ⟨y⟩, simp only [mk_eq_mk, ← mk_lie, lie_smul, ← mk_smul], }, }
 
 end quotient

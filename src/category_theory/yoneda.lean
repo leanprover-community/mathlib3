@@ -171,7 +171,7 @@ variable [F.representable]
 noncomputable def repr_X : C :=
 (representable.has_representation : ∃ X (f : _ ⟶ F), _).some
 
-/-- The (forward direction) of the isomorphism witnessing `F` is representable. -/
+/-- The (forward direction of the) isomorphism witnessing `F` is representable. -/
 noncomputable def repr_f : yoneda.obj F.repr_X ⟶ F :=
 representable.has_representation.some_spec.some
 
@@ -213,7 +213,7 @@ variable [F.corepresentable]
 noncomputable def corepr_X : C :=
 (corepresentable.has_corepresentation : ∃ X (f : _ ⟶ F), _).some.unop
 
-/-- The (forward direction) of the isomorphism witnessing `F` is corepresentable. -/
+/-- The (forward direction of the) isomorphism witnessing `F` is corepresentable. -/
 noncomputable def corepr_f : coyoneda.obj (op F.corepr_X) ⟶ F :=
 corepresentable.has_corepresentation.some_spec.some
 
@@ -229,7 +229,7 @@ corepresentable.has_corepresentation.some_spec.some_spec
 
 /--
 An isomorphism between `F` and a functor of the form `C(F.repr X, -)`. Note the components
-`F.w.app X` definitionally have type `F.repr_X ⟶ X ≅ F.obj X`.
+`F.corepr_w.app X` definitionally have type `F.repr_X ⟶ X ≅ F.obj X`.
 -/
 noncomputable def corepr_w : coyoneda.obj (op F.corepr_X) ≅ F := as_iso F.corepr_f
 

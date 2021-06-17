@@ -176,7 +176,7 @@ begin
   simp only [linear_map.map_zero] at hε₂,
   simp only [filter.mem_map],
   obtain ⟨V, hV₁, hV₂, hV₃⟩ := hf ε hε₁,
-  rw mem_nhds_sets_iff,
+  rw mem_nhds_iff,
   refine ⟨V, λ x hx, hε₂ _, hV₂, hV₁⟩,
   simp only [metric.mem_ball, dist_zero_right],
   apply hV₃ _ hx,
@@ -207,8 +207,7 @@ begin
         refine ⟨0, zero_mem, by simp⟩ },
       { rw mem_smul_set,
         refine ⟨0, zero_mem, by simp⟩ },
-      { apply is_open_inter,
-        { exact is_open_map_smul' hε.ne' _ hC₂ },
+      { apply is_open.inter (is_open_map_smul' hε.ne' _ hC₂),
         { exact is_open_map_smul' (by linarith) _ hC₂ } },
       { rintro x ⟨hx₁, hx₂⟩,
         rw [real.norm_eq_abs, abs_lt],
@@ -233,7 +232,7 @@ begin
   { intros c hc x,
     apply gauge_mul_nonneg (le_of_lt hc) },
   { intros x y,
-    apply gauge_subadditive hC (absorbent_nhds_zero (mem_nhds_sets hC₂ zero_mem)) },
+    apply gauge_subadditive hC (absorbent_nhds_zero (hC₂.mem_nhds zero_mem)) },
   { rintro ⟨x, hx⟩,
     obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,
     rw linear_pmap.mk_span_singleton_apply,
@@ -246,7 +245,7 @@ end
 
 /-- A nonzero continuous linear functional is open. -/
 lemma nonzero_linear_map_is_open_map {E : Type*} [add_comm_group E] [topological_space E]
-  [topological_add_group E] [vector_space ℝ E] [has_continuous_smul ℝ E]
+  [topological_add_group E] [module ℝ E] [has_continuous_smul ℝ E]
   (f : E →L[ℝ] ℝ) (hf : f ≠ 0) :
   is_open_map f :=
 begin
@@ -270,9 +269,7 @@ A version of the Hahn-Banach theorem: given disjoint convex subsets `A,B` where 
 is a continuous linear functional which separates them.
 -/
 theorem geometric_hahn_banach_open {A B : set E}
-  (hA₁ : convex A) (hA₂ : is_open A)
-  (hB : convex B)
-  (disj : disjoint A B) :
+  (hA₁ : convex A) (hA₂ : is_open A) (hB : convex B) (disj : disjoint A B) :
   ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ (∀ b ∈ B, s ≤ f b) :=
 begin
   rcases A.eq_empty_or_nonempty with (rfl | ⟨a₀, ha₀⟩),
@@ -281,10 +278,7 @@ begin
   { refine ⟨0, 1, λ a ha, by norm_num, by simp⟩ },
   let x₀ := b₀ - a₀,
   let C := {x₀} + A + -B,
-  have : (0:E) ∈ C,
-  { refine ⟨_ + a₀, -b₀, add_mem_add rfl ‹_›, neg_mem_neg.2 ‹_›, _⟩,
-    simp },
-  have : is_open C := hA₂.add_left.add_right,
+  have : (0:E) ∈ C := ⟨_ + a₀, -b₀, add_mem_add rfl ‹_›, neg_mem_neg.2 ‹_›, by simp⟩,
   have : convex C := ((convex_singleton _).add hA₁).add ‹convex B›.neg_preimage,
   have : x₀ ∉ C,
   { intro hx₀,
@@ -294,7 +288,7 @@ begin
     apply disj ⟨ha, _⟩,
     convert hb,
     rwa ←add_eq_zero_iff_eq_neg },
-  obtain ⟨f, hf₁, hf₂⟩ := separate_convex_open_set ‹0 ∈ C› ‹_› ‹_› _ ‹x₀ ∉ C›,
+  obtain ⟨f, hf₁, hf₂⟩ := separate_convex_open_set ‹0 ∈ C› ‹_› hA₂.add_left.add_right _ ‹x₀ ∉ C›,
   have : f b₀ = f a₀ + 1,
   { simp [←hf₁] },
   have forall_lt : ∀ (a ∈ A) (b ∈ B), f a < f b,
@@ -302,12 +296,6 @@ begin
     have := hf₂ (x₀ + a + -b) (add_mem_add (add_mem_add rfl ha) (neg_mem_neg.2 hb)),
     simp [‹f b₀ = _›] at this,
     linarith },
-  have A_le_Inf : ∀ a ∈ A, f a ≤ Inf (f '' B),
-  { intros a ha,
-    apply le_cInf ⟨f b₀, _⟩,
-    { rintro _ ⟨b', _, rfl⟩,
-      apply (forall_lt _ ‹a ∈ _› _ ‹b' ∈ _›).le },
-    { apply mem_image_of_mem _ ‹b₀ ∈ B› } },
   refine ⟨f, Inf (f '' B), _, _⟩,
   { suffices : f '' A ⊆ Iio (Inf (f '' B)),
     { intros a ha,
@@ -315,7 +303,10 @@ begin
     rw ←interior_Iic,
     apply interior_maximal,
     { rintro _ ⟨a, ha, rfl⟩,
-      apply A_le_Inf a ha },
+      apply le_cInf ⟨f b₀, _⟩,
+      { rintro _ ⟨b', _, rfl⟩,
+        apply (forall_lt _ ‹a ∈ _› _ ‹b' ∈ _›).le },
+      { apply mem_image_of_mem _ ‹b₀ ∈ B› } },
     apply nonzero_linear_map_is_open_map _ _ _ hA₂,
     rintro rfl,
     simpa using hf₁ },
@@ -454,14 +445,9 @@ begin
   obtain ⟨f, s, hf₁, hf₂⟩ := geometric_hahn_banach_open_open hU₁ hU hV₁ hV disj',
   obtain ⟨x, hx₁, hx₂⟩ := hA₂.exists_forall_ge hA f.continuous.continuous_on,
   have : Sup (f '' A) = f x,
-  { apply le_antisymm,
-    { apply cSup_le (hA.image f) (by simpa) },
-    refine le_cSup ⟨f x, _⟩ ⟨_, hx₁, rfl⟩,
-    simpa [upper_bounds] },
-  have : f x < s,
-  { apply hf₁,
-    apply AU,
-    apply hx₁ },
+  { apply le_antisymm (cSup_le (hA.image f) (by simpa)),
+    refine le_cSup ⟨f x, by simpa [upper_bounds]⟩ ⟨_, hx₁, rfl⟩ },
+  have : f x < s := hf₁ x (AU hx₁),
   exact ⟨f, (f x + s)/2, s, λ a ha, by linarith [hx₂ a ha], by linarith, λ b hb, hf₂ b (BV hb)⟩,
 end
 
@@ -482,7 +468,7 @@ theorem geometric_hahn_banach_point_closed {x : E} {B : set E}
   (disj : x ∉ B) :
   ∃ (f : E →L[ℝ] ℝ) (s : ℝ), f x < s ∧ (∀ b ∈ B, s < f b) :=
 let ⟨f, s, t, ha, hst, hb⟩ := geometric_hahn_banach_compact_closed (convex_singleton x)
-  compact_singleton hB₁ hB₂ (disjoint_singleton_left.2 disj)
+  is_compact_singleton hB₁ hB₂ (disjoint_singleton_left.2 disj)
   in ⟨f, t, lt_trans (ha x (mem_singleton _)) hst, hb⟩
 
 theorem geometric_hahn_banach_closed_point {A : set E} {x : E}
@@ -490,7 +476,7 @@ theorem geometric_hahn_banach_closed_point {A : set E} {x : E}
   (disj : x ∉ A) :
   ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ s < f x :=
 let ⟨f, s, t, ha, hst, hb⟩ := geometric_hahn_banach_closed_compact hA₁ hA₂ (convex_singleton x)
-  compact_singleton (disjoint_singleton_right.2 disj)
+  is_compact_singleton (disjoint_singleton_right.2 disj)
   in ⟨f, s, ha, lt_trans hst (hb x (mem_singleton _))⟩
 
 theorem geometric_hahn_banach_point_point {x y : E} (hxy : x ≠ y) :
@@ -499,9 +485,9 @@ begin
   have : disjoint ({x} : set E) {y},
   { simp [hxy.symm] },
   obtain ⟨f, s, t, hs, st, ht⟩ :=
-    geometric_hahn_banach_compact_closed (convex_singleton x) compact_singleton (convex_singleton y)
-      is_closed_singleton this,
-  refine ⟨f, by linarith [hs x rfl, ht y rfl]⟩,
+    geometric_hahn_banach_compact_closed (convex_singleton x) is_compact_singleton
+      (convex_singleton y) is_closed_singleton this,
+  exact ⟨f, by linarith [hs x rfl, ht y rfl]⟩,
 end
 
 end separating

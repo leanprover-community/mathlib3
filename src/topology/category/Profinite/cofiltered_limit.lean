@@ -161,4 +161,33 @@ begin
   all_goals { continuity },
 end
 
+theorem exists_locally_constant_fintype {α : Type*} [fintype α] [nonempty α]
+  (f : locally_constant C.X α) :
+  ∃ (j : J) (g : locally_constant (F.obj j) α), f = g.comap (C.π.app _) :=
+begin
+  inhabit α,
+  obtain ⟨j,gg,h⟩ := exists_locally_constant_fintype_aux _ hC f,
+  let ι : α → α → fin 2 := λ a b, if a = b then 0 else 1,
+  let σ : (α → fin 2) → α := λ f, if h : ∃ (a : α), ι a = f then h.some else arbitrary _,
+  refine ⟨j, gg.map σ, _⟩,
+  ext,
+  rw locally_constant.coe_comap _ _ (C.π.app j).continuous,
+  dsimp [σ],
+  have h1 : ι (f x) = gg (C.π.app j x),
+  { change f.map (λ a b, if a = b then (0 : fin 2) else 1) x = _,
+    rw [h, locally_constant.coe_comap _ _ (C.π.app j).continuous] },
+  have h2 : ∃ a : α, ι a = gg (C.π.app j x) := ⟨f x, h1⟩,
+  rw dif_pos h2,
+  apply_fun ι,
+  { rw h2.some_spec,
+    exact h1 },
+  { intros a b hh,
+    apply_fun (λ e, e a) at hh,
+    dsimp [ι] at hh,
+    rw if_pos rfl at hh,
+    split_ifs at hh with hh1 hh1,
+    { exact hh1.symm },
+    { exact false.elim (bot_ne_top hh) } }
+end
+
 end Profinite

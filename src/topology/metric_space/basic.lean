@@ -1608,7 +1608,7 @@ begin
   exact ⟨z, mem_Icc_of_Ico hz, h2.symm.trans h1⟩,
 end
 
-/-- A continuous, periodic function is compact. -/
+/-- A continuous, periodic function has compact range. -/
 lemma _root_.function.periodic.compact_of_continuous [topological_space β]
   {f : ℝ → β} {c : ℝ} (hp : function.periodic f c) (hc : c ≠ 0) (hf : continuous f) :
   is_compact (range f) :=
@@ -1617,7 +1617,7 @@ begin
   exacts [hp.neg.compact_of_continuous' (neg_pos.mpr hneg) hf, hp.compact_of_continuous' hpos hf],
 end
 
-/-- A continuous, periodic function has bounded range. -/
+/-- A continuous, periodic function is bounded. -/
 lemma _root_.function.periodic.bounded_of_continuous {f : ℝ → α} {c : ℝ}
   (hp : function.periodic f c) (hc : c ≠ 0) (hf : continuous f) :
   bounded (range f) :=

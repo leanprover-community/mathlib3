@@ -161,7 +161,7 @@ begin
   all_goals { continuity },
 end
 
-theorem exists_locally_constant_fintype {α : Type*} [fintype α] [nonempty α]
+theorem exists_locally_constant_fintype_nonempty {α : Type*} [fintype α] [nonempty α]
   (f : locally_constant C.X α) :
   ∃ (j : J) (g : locally_constant (F.obj j) α), f = g.comap (C.π.app _) :=
 begin

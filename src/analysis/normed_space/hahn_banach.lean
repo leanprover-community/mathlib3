@@ -47,18 +47,9 @@ by rw [norm'_def, norm_algebra_map_eq, norm_norm]
 
 @[simp] lemma norm'_eq_zero_iff
   (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
-  (A : Type*) [normed_group A]
-  (x : A) : norm' 𝕜 x = 0 ↔ x = 0 :=
-begin
-  split,
-  { assume hx,
-    have : ∥x∥ = 0, by rw [← norm_norm' 𝕜, hx, norm_zero],
-    simpa using this },
-  { assume hx,
-    rw hx,
-    simp [norm'] }
-end
-
+  (A : Type*) [normed_group A] (x : A) :
+  norm' 𝕜 x = 0 ↔ x = 0 :=
+by simp [norm', ← norm_eq_zero, norm_algebra_map_eq]
 
 namespace real
 variables {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E]

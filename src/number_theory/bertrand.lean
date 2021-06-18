@@ -436,39 +436,41 @@ end
 open set
 
 -- Should probably go in rolles theorem file
-lemma le_of_deriv (a b : ℝ) (f f' : ℝ → ℝ) (hab : a < b) (hfc : continuous_on f (Icc a b)) (h'' : ∀ c ∈ Ioo a b, deriv f c ≥ 0) : (f a ≤ f b)
+lemma le_of_deriv (a b : ℝ) (f f' : ℝ → ℝ) (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfd : differentiable_on ℝ f (Ioo a b)) (h'' : ∀ c ∈ Ioo a b, deriv f c ≥ 0) : (f a ≤ f b)
    :=
 begin
   let g := (λ x : ℝ, f x - (x - a) * (f b - f a) / (b - a)),
   have hga : g a = f a,
-    simp only [sub_eq_self, zero_div, zero_mul, sub_self],
+    by simp only [sub_eq_self, zero_div, zero_mul, sub_self],
   have hgb : g b = f a,
-    have hab' : b - a ≠ 0,
-      apply ne_of_gt,
-      exact sub_pos.mpr hab,
-    simp only [g],
-    rw mul_div_cancel_left (f b - f a) hab',
-    simp,
+    { have hab' : b - a ≠ 0,
+      { apply ne_of_gt,
+        exact sub_pos.mpr hab, },
+      simp only [g],
+      rw mul_div_cancel_left (f b - f a) hab',
+      simp, },
   -- Apply rolle's to g
   rw ←hgb at hga, clear hgb,
   have hgc : continuous_on g (Icc a b),
-    apply continuous_on.sub,
-    exact hfc,
-    apply continuous_on.mul,
-    apply continuous_on.mul,
-    apply continuous_on.sub,
-    apply continuous_on_id,
-    apply continuous_on_const,
-    apply continuous_on_const,
-    apply continuous_on_const,
+    { apply continuous_on.sub,
+      exact hfc,
+      apply continuous_on.mul,
+      apply continuous_on.mul,
+      apply continuous_on.sub,
+      apply continuous_on_id,
+      apply continuous_on_const,
+      apply continuous_on_const,
+      apply continuous_on_const, },
   have inter := exists_deriv_eq_zero g hab hgc hga,
   cases inter with c hc,
   cases hc with cmem hcd,
   have hcd' : deriv g c = (deriv f c) - (f b - f a) / (b - a),
+  {
     rw deriv_sub,
     simp,
     sorry,
     sorry,
+  },
   sorry,
 
 

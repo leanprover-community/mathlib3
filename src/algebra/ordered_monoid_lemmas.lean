@@ -463,6 +463,13 @@ h.trans_le (mul_le_of_le_one_right' hle)
 lemma le_of_le_mul_of_le_one_left (h : a ≤ b * c) (hle : c ≤ 1) : a ≤ b :=
 h.trans (mul_le_of_le_one_right' hle)
 
+@[to_additive]
+theorem mul_lt_of_lt_of_lt_one (bc : b < c) (a1 : a < 1) :
+  b * a < c :=
+calc  b * a ≤ b * 1 : mul_le_mul_left' a1.le _
+        ... = b     : mul_one b
+        ... < c     : bc
+
 end mul_one_class
 
 end left
@@ -542,6 +549,12 @@ h.trans_le (mul_le_of_le_one_left' hle)
 @[to_additive]
 lemma le_of_le_mul_of_le_one_right (h : a ≤ b * c) (hle : b ≤ 1) : a ≤ c :=
 h.trans (mul_le_of_le_one_left' hle)
+
+theorem mul_lt_of_lt_one_of_lt (a1 : a < 1) (bc : b < c) :
+  a * b < c :=
+calc  a * b ≤ 1 * b : mul_le_mul_right' a1.le _
+        ... = b : one_mul b
+        ... < c : bc
 
 end le_right
 

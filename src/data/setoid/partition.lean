@@ -213,7 +213,7 @@ end partition
 
 end setoid
 
-/-- A partition of a type indexed by another type. -/
+/-- A partition of a type `α` indexed by another type `ι`. -/
 @[nolint has_inhabited_instance]
 structure indexed_partition {ι α : Type*} (s : ι → set α) :=
 (eq_of_mem : ∀ {x i j}, x ∈ s i → x ∈ s j → i = j)
@@ -255,9 +255,12 @@ lemma disjoint : ∀ {i j}, i ≠ j → disjoint (s i) (s j) :=
 lemma mem_iff_index_eq {x i} : x ∈ s i ↔ hs.index x = i :=
 ⟨λ hxi, (hs.eq_of_mem hxi (hs.mem_index x)).symm, λ h, h ▸ hs.mem_index _⟩
 
+lemma eq (i) : s i = {x | hs.index x = i} :=
+set.ext $ λ _, hs.mem_iff_index_eq
+
 /-- The equivalence relation associated to an indexed partition. Two
 elements are equivalent if they belong to the same set of the partition. -/
-protected def setoid (hs : indexed_partition s) : setoid α :=
+protected abbreviation setoid (hs : indexed_partition s) : setoid α :=
 setoid.ker hs.index
 
 @[simp] lemma index_some (i : ι) : hs.index (hs.some i) = i :=
@@ -273,34 +276,11 @@ protected def quotient := quotient hs.setoid
 /-- The projection onto the quotient associated to an indexed partition. -/
 def proj : α → hs.quotient := quotient.mk'
 
-lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.setoid.rel x y :=
-quotient.eq_rel
-
-/-- A map choosing a representative for each element of the quotient associated to an indexed
-partition. -/
-noncomputable
-def out : hs.quotient → α := quotient.out'
-
-@[simp] lemma proj_out (x : hs.quotient) : hs.proj (hs.out x) = x :=
-quotient.out_eq' _
-
-lemma out_proj (x : α) : hs.setoid.rel (hs.out (hs.proj x)) x :=
-quotient.mk_out' x
-
-@[simp] lemma index_out_proj (x : α) : hs.index (hs.out (hs.proj x)) = hs.index x :=
-setoid.ker_apply_mk_out' x
+lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.index x = hs.index y :=
+quotient.eq_rel'
 
 @[simp] lemma proj_some_index (x : α) : hs.proj (hs.some (hs.index x)) = hs.proj x :=
 quotient.eq'.2 (hs.some_index x)
-
-@[simp] lemma out_proj_some (i : ι) : hs.out (hs.proj (hs.some i)) ∈ s i :=
-hs.mem_iff_index_eq.2 $ by simp
-
-@[simp] lemma index_out_proj_some (i : ι) : hs.index (hs.out $ hs.proj $ hs.some i) = i :=
-by simp
-
-lemma class_of {x : α} : set_of (hs.setoid.rel x) = s (hs.index x) :=
-set.ext $ λ y, (hs.mem_iff_index_eq.trans eq_comm).symm
 
 /-- The obvious equivalence between the quotient associated to an indexed partition and
 the indexing type. -/
@@ -310,13 +290,43 @@ def equiv_quotient : ι ≃ hs.quotient :=
 @[simp] lemma equiv_quotient_index_apply (x : α) : hs.equiv_quotient (hs.index x) = hs.proj x :=
 hs.proj_eq_iff.mpr (some_index hs x)
 
+@[simp] lemma equiv_quotient_symm_proj_apply (x : α) :
+  hs.equiv_quotient.symm (hs.proj x) = hs.index x :=
+rfl
+
 lemma equiv_quotient_index : hs.equiv_quotient ∘ hs.index = hs.proj :=
 funext hs.equiv_quotient_index_apply
 
+/-- A map choosing a representative for each element of the quotient associated to an indexed
+partition. This is a computable version of `quotient.out'` using `indexed_partition.some`. -/
+def out : hs.quotient ↪ α :=
+hs.equiv_quotient.symm.to_embedding.trans ⟨hs.some, function.left_inverse.injective hs.index_some⟩
+
+/-- This lemma is analogous to `quotient.mk_out'`. -/
+@[simp]
+lemma out_proj (x : α) : hs.out (hs.proj x) = hs.some (hs.index x) :=
+rfl
+
+@[simp] lemma index_out_proj (x : α) : hs.index (hs.out (hs.proj x)) = hs.index x :=
+hs.some_index x
+
+/-- The indices of `quotient.out'` and `indexed_partition.out` are equal. -/
+lemma index_out' (x : hs.quotient) : hs.index (x.out') = hs.index (hs.out x) :=
+quotient.induction_on' x $ λ x, (setoid.ker_apply_mk_out' x).trans (hs.index_some _).symm
+
+/-- This lemma is analogous to `quotient.out_eq'`. -/
+@[simp] lemma proj_out (x : hs.quotient) : hs.proj (hs.out x) = x :=
+quotient.induction_on' x $ λ x, quotient.sound' $ hs.some_index x
+
+@[simp] lemma out_proj_some (i : ι) : hs.out (hs.proj (hs.some i)) ∈ s i :=
+hs.mem_iff_index_eq.2 $ by rw [index_out_proj, index_some]
+
+lemma class_of {x : α} : set_of (hs.setoid.rel x) = s (hs.index x) :=
+set.ext $ λ y, eq_comm.trans hs.mem_iff_index_eq.symm
+
 lemma proj_fiber (x : hs.quotient) : hs.proj ⁻¹' {x} = s (hs.equiv_quotient.symm x) :=
-begin
+quotient.induction_on' x $ λ x, begin
   ext y,
-  rcases x,
   simp only [set.mem_preimage, set.mem_singleton_iff, hs.mem_iff_index_eq],
   exact quotient.eq',
 end

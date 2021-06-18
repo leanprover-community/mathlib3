@@ -36,8 +36,12 @@ variables {α : Type*} {β : Type*}
 /-- A version of `setoid.r` that takes the equivalence relation as an explicit argument. -/
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
 
+/-- A version of `quotient.eq` compatible with `setoid.rel`, to make rewriting possible. -/
+lemma quotient.eq_rel {r : setoid α} {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y := quotient.eq
+
 /-- A version of `quotient.eq'` compatible with `setoid.rel`, to make rewriting possible. -/
-lemma quotient.eq_rel {r : setoid α} {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y := quotient.eq'
+lemma quotient.eq_rel' {r : setoid α} {x y} :
+  (quotient.mk' x : quotient r) = quotient.mk' y ↔ r.rel x y := quotient.eq
 
 namespace setoid
 
@@ -71,6 +75,10 @@ def ker (f : α → β) : setoid α :=
 /-- The kernel of the quotient map induced by an equivalence relation r equals r. -/
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
 ext' $ λ x y, quotient.eq
+
+@[simp] lemma ker_apply_mk_out {f : α → β} (a : α) :
+  f (by haveI := setoid.ker f; exact ⟦a⟧.out) = f a :=
+@quotient.mk_out _ (setoid.ker f) a
 
 @[simp] lemma ker_apply_mk_out' {f : α → β} (a : α) :
   f ((quotient.mk' a : quotient $ setoid.ker f).out') = f a :=

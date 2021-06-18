@@ -71,7 +71,8 @@ instance [is_cofiltered C] : is_cofiltered (ulift.{u2} C) :=
   nonempty := ⟨⟨is_cofiltered.nonempty.some⟩⟩ }
 
 variable (C)
-@[nolint unused_argument]
+/-- `as_small C` is a small category equivalent to `C`.-/
+@[nolint unused_arguments]
 def as_small := ulift.{max v u1} C
 variable {C}
 

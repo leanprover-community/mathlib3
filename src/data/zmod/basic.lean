@@ -415,6 +415,16 @@ begin
   apply int.modeq.mod_modeq,
 end
 
+lemma ker_int_cast_add_hom (n : ℕ) :
+  (int.cast_add_hom (zmod n)).ker = add_subgroup.gmultiples n :=
+by { ext, rw [int.mem_gmultiples_iff, add_monoid_hom.mem_ker,
+              int.coe_cast_add_hom, int_coe_zmod_eq_zero_iff_dvd] }
+
+lemma ker_int_cast_ring_hom (n : ℕ) :
+  (int.cast_ring_hom (zmod n)).ker = ideal.span ({n} : set ℤ) :=
+by { ext, rw [ideal.mem_span_singleton, ring_hom.mem_ker,
+              int.coe_cast_ring_hom, int_coe_zmod_eq_zero_iff_dvd] }
+
 local attribute [semireducible] int.nonneg
 
 @[simp] lemma nat_cast_to_nat (p : ℕ) :

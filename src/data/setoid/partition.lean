@@ -307,7 +307,7 @@ hs.equiv_quotient.symm.to_embedding.trans ⟨hs.some, function.left_inverse.inje
 lemma out_proj (x : α) : hs.out (hs.proj x) = hs.some (hs.index x) :=
 rfl
 
-@[simp] lemma index_out_proj (x : α) : hs.index (hs.out (hs.proj x)) = hs.index x :=
+lemma index_out_proj (x : α) : hs.index (hs.out (hs.proj x)) = hs.index x :=
 hs.some_index x
 
 /-- The indices of `quotient.out'` and `indexed_partition.out` are equal. -/

@@ -16,6 +16,8 @@ This file contains some theorems about cofiltered limits of profinite sets.
 
 - `exists_clopen_of_cofiltered` shows that any clopen set in a cofiltered limit of profinite
   sets is the pullback of a clopen set from one of the factors in the limit.
+- `exists_locally_constant` shows that any locally constant function from a cofiltered limit
+  of profinite sets factors through one of the components.
 -/
 
 
@@ -191,7 +193,9 @@ begin
     { exact false.elim (bot_ne_top hh) } }
 end
 
-theorem exists_loccally_constant {α : Type*} (f : locally_constant C.X α) :
+/-- Any locally constant function from a cofiltered limit of profinite sets factors through
+one of the components. -/
+theorem exists_locally_constant {α : Type*} (f : locally_constant C.X α) :
   ∃ (j : J) (g : locally_constant (F.obj j) α), f = g.comap (C.π.app _) :=
 begin
   let S := f.discrete_quotient,

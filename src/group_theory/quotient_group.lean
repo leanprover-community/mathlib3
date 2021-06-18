@@ -243,12 +243,12 @@ def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inv
 
 /-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`.
 
-For a `computable` version, see `quotient_ker_equiv_of_right_inverse`.
+For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inverse`.
 -/
 @[to_additive quotient_add_group.quotient_ker_equiv_of_surjective "The canonical isomorphism
 `G/(ker φ) ≃+ H` induced by a surjection `φ : G →+ H`.
 
-For a `computable` version, see `quotient_ker_equiv_of_right_inverse`."]
+For a `computable` version, see `quotient_add_group.quotient_ker_equiv_of_right_inverse`."]
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
   (quotient (ker φ)) ≃* H :=
 quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec

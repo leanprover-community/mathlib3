@@ -37,7 +37,7 @@ variables {α : Type*} {β : Type*}
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
 
 /-- A version of `quotient.eq` compatible with `setoid.rel`, to make rewriting possible. -/
-lemma quotient.eq_rel [setoid α] {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y := quotient.eq
+lemma quotient.eq_rel [r : setoid α] {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y := quotient.eq
 
 /-- A version of `quotient.eq'` compatible with `setoid.rel`, to make rewriting possible. -/
 lemma quotient.eq_rel' {r : setoid α} {x y} :

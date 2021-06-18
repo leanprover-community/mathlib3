@@ -168,25 +168,4 @@ begin
   { exact exists_dual_vector 𝕜 x hx }
 end
 
-lemma eq_zero_iff_forall_dual_eq_zero (x : E) :
-  x = 0 ↔ ∀ g : E →L[𝕜] 𝕜, g x = 0 :=
-begin
-  split,
-  { assume hx,
-    simp [hx] },
-  { contrapose!,
-    assume hx,
-    rcases exists_dual_vector 𝕜 x hx with ⟨g, -, hg⟩,
-    refine ⟨g, _⟩,
-    rw hg,
-    simpa using hx }
-end
-
-lemma eq_iff_forall_dual_eq {x y : E} :
-  x = y ↔ ∀ g : E →L[𝕜] 𝕜, g x = g y :=
-begin
-  rw [← sub_eq_zero, eq_zero_iff_forall_dual_eq_zero 𝕜 (x - y)],
-  simp [sub_eq_zero],
-end
-
 end dual_vector

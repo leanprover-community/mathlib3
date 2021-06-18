@@ -367,7 +367,7 @@ lemma is_compact.exists_bound_of_continuous_on {γ : Type*} [topological_space �
   {s : set γ} (hs : is_compact s) {f : γ → α} (hf : continuous_on f s) :
   ∃ C, ∀ x ∈ s, ∥f x∥ ≤ C :=
 begin
-  have : bounded (f '' s):= (hs.image_of_continuous_on hf).bounded,
+  have : bounded (f '' s) := (hs.image_of_continuous_on hf).bounded,
   rcases bounded_iff_forall_norm_le.1 this with ⟨C, hC⟩,
   exact ⟨C, λ x hx, hC _ (set.mem_image_of_mem _ hx)⟩,
 end

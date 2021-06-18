@@ -66,11 +66,28 @@ def quotient_span_equiv_zmod (a : ℤ) :
 
 end int
 
+namespace zmod
+
 /-- The map from `zmod n` induced by `f : ℤ →+ A` that maps `n` to `0`. -/
-@[simps] def zmod.lift (f : ℤ →+ A) (hf : f n = 0) : zmod n →+ A :=
-add_monoid_hom.comp
-  (quotient_add_group.lift (add_subgroup.gmultiples (n : ℤ)) f $
-    by { rintro _ ⟨x, rfl⟩, simp only [f.map_gsmul, hf, gsmul_zero] })
-  (int.quotient_gmultiples_nat_equiv_zmod n).symm.to_add_monoid_hom
+@[simps]
+def lift (f : ℤ →+ A) (hf : f n = 0) : zmod n →+ A :=
+(int.cast_add_hom (zmod n)).lift_of_right_inverse coe int_cast_zmod_cast ⟨f,
+  by { rw ker_int_cast_add_hom,
+       rintro _ ⟨x, rfl⟩,
+       simp only [f.map_gsmul, hf, gsmul_zero, f.mem_ker] }⟩
+
+@[simp] lemma lift_coe (f : ℤ →+ A) (hf : f n = 0) (x : ℤ) :
+  lift n f hf (x : zmod n) = f x :=
+add_monoid_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
+
+@[simp] lemma lift_cast_add_hom (f : ℤ →+ A) (hf : f n = 0) (x : ℤ) :
+  lift n f hf (int.cast_add_hom (zmod n) x) = f x :=
+add_monoid_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
+
+@[simp] lemma lift_comp_cast_add_hom (f : ℤ →+ A) (hf : f n = 0) :
+  zmod.lift n f hf ∘ int.cast_add_hom (zmod n) = f :=
+funext $ lift_cast_add_hom _ _ _
+
+end zmod
 
 end lift

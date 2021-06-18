@@ -71,6 +71,10 @@ variables (X Y f)
 @[simp] lemma coe_derivation :
   ⇑(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = (X : C^∞⟮I, G; 𝕜⟯ → C^∞⟮I, G; 𝕜⟯) := rfl
 
+lemma coe_derivation_injective : function.injective
+  (coe : left_invariant_derivation I G → derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) :=
+λ X Y h, by { cases X, cases Y, congr, exact h }
+
 /-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
 lemma left_invariant' : (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f =
   derivation.eval_at g ↑X f := by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g

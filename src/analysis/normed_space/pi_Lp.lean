@@ -284,7 +284,6 @@ lemma norm_eq_of_nat {p : ℝ} {hp : 1 ≤ p} {β : ι → Type*}
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
 by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
 
-section
 variables (𝕜 : Type*) [normed_field 𝕜]
 
 /-- The product of finitely many seminormed spaces is a seminormed space, with the `L^p` norm. -/
@@ -315,8 +314,6 @@ variables {𝕜 p hp α}
 @[simp] lemma sub_apply : (x - y) i = x i - y i := rfl
 @[simp] lemma smul_apply : (c • x) i = c • x i := rfl
 @[simp] lemma neg_apply : (-x) i = - (x i) := rfl
-
-end
 
 end pi_Lp
 

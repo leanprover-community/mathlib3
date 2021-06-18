@@ -1547,8 +1547,7 @@ variables [algebra R A] [algebra R B]
 
 /-- `R`-algebra homomorphism between the function spaces `I → A` and `I → B`, induced by an
 `R`-algebra homomorphism `f` between `A` and `B`. -/
-@[simps]
-def comp_left (f : A →ₐ[R] B) (I : Type*) : (I → A) →ₐ[R] (I → B) :=
+@[simps] protected def comp_left (f : A →ₐ[R] B) (I : Type*) : (I → A) →ₐ[R] (I → B) :=
 { to_fun := λ h, f ∘ h,
   commutes' := λ c, by { ext, exact f.commutes' c },
   .. f.to_ring_hom.comp_left I }

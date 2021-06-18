@@ -92,9 +92,8 @@ def pi.eval_ring_hom (f : I → Type v) [Π i, non_assoc_semiring (f i)] (i : I)
 
 /-- Ring homomorphism between the function spaces `I → α` and `I → β`, induced by a ring
 homomorphism `f` between `α` and `β`. -/
-@[simps]
-def ring_hom.comp_left {α β : Type*} [non_assoc_semiring α] [non_assoc_semiring β] (f : α →+* β)
-  (I : Type*) :
+@[simps] protected def ring_hom.comp_left {α β : Type*} [non_assoc_semiring α]
+  [non_assoc_semiring β] (f : α →+* β) (I : Type*) :
   (I → α) →+* (I → β) :=
 { .. f.to_monoid_hom.comp_left I,
   .. f.to_add_monoid_hom.comp_left I }

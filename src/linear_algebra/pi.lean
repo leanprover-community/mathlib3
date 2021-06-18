@@ -79,8 +79,7 @@ end
 
 /-- Linear map between the function spaces `I → M₂` and `I → M₃`, induced by a linear map `f`
 between `M₂` and `M₃`. -/
-@[simps]
-def comp_left (f : M₂ →ₗ[R] M₃) (I : Type*) : (I → M₂) →ₗ[R] (I → M₃) :=
+@[simps] protected def comp_left (f : M₂ →ₗ[R] M₃) (I : Type*) : (I → M₂) →ₗ[R] (I → M₃) :=
 { map_smul' := λ c h, by { ext x, exact f.map_smul' c (h x) },
   .. f.to_add_monoid_hom.comp_left I }
 

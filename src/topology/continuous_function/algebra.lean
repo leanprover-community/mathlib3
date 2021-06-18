@@ -127,7 +127,7 @@ def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topologi
 `monoid_hom`. Similar to `monoid_hom.comp_left`. -/
 @[to_additive "Composition on the left by a (continuous) homomorphism of topological `add_monoid`s,
 as an `add_monoid_hom`. Similar to `add_monoid_hom.comp_left`.", simps]
-def _root_.monoid_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
+protected def _root_.monoid_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
   [topological_space α] [topological_space β] [monoid β] [has_continuous_mul β]
   [topological_space γ] [monoid γ] [has_continuous_mul γ] (g : β →* γ) (hg : continuous g)  :
   C(α, β) →* C(α, γ) :=
@@ -269,8 +269,7 @@ instance {α : Type*} {β : Type*} [topological_space α]
 
 /-- Composition on the left by a (continuous) homomorphism of topological rings, as a `ring_hom`.
 Similar to `ring_hom.comp_left`. -/
-@[simps]
-def _root_.ring_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
+@[simps] protected def _root_.ring_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
   [topological_space α] [topological_space β] [semiring β] [topological_semiring β]
   [topological_space γ] [semiring γ] [topological_semiring γ] (g : β →+* γ) (hg : continuous g) :
   C(α, β) →+* C(α, γ) :=
@@ -366,8 +365,8 @@ variables (R)
 
 /-- Composition on the left by a continuous linear map, as a `linear_map`.
 Similar to `linear_map.comp_left`. -/
-@[simps]
-def _root_.continuous_linear_map.comp_left_continuous (α : Type*) [topological_space α] (g : M →L[R] M₂) :
+@[simps] protected def _root_.continuous_linear_map.comp_left_continuous (α : Type*)
+  [topological_space α] (g : M →L[R] M₂) :
   C(α, M) →ₗ[R] C(α, M₂) :=
 { map_smul' := λ c f, ext $ λ x, g.map_smul' c _,
   .. g.to_linear_map.to_add_monoid_hom.comp_left_continuous α g.continuous }
@@ -458,9 +457,8 @@ variables (R)
 
 /-- Composition on the left by a (continuous) homomorphism of topological `R`-algebras, as an
 `alg_hom`. Similar to `alg_hom.comp_left`. -/
-@[simps]
-def alg_hom.comp_left_continuous {α : Type*} [topological_space α] (g : A →ₐ[R] A₂)
-  (hg : continuous g) :
+@[simps] protected def alg_hom.comp_left_continuous {α : Type*} [topological_space α]
+  (g : A →ₐ[R] A₂) (hg : continuous g) :
   C(α, A) →ₐ[R] C(α, A₂) :=
 { commutes' := λ c, continuous_map.ext $ λ _, g.commutes' _,
   .. g.to_ring_hom.comp_left_continuous α hg }

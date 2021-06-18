@@ -198,7 +198,7 @@ export has_nndist (nndist)
 
 
 /-- Distance as a nonnegative real number. -/
-instance nndist_of_pseudo_metric_space : has_nndist α := ⟨λ a b, ⟨dist a b, dist_nonneg⟩⟩
+instance pseudo_metric_space.to_has_nndist : has_nndist α := ⟨λ a b, ⟨dist a b, dist_nonneg⟩⟩
 
 /--Express `nndist` in terms of `edist`-/
 lemma nndist_edist (x y : α) : nndist x y = (edist x y).to_nnreal :=

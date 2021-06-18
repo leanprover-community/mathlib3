@@ -6,7 +6,6 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis, Heather Macbeth
 
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
-import topology.metric_space.pi_Lp
 import data.complex.is_R_or_C
 import analysis.special_functions.sqrt
 
@@ -20,14 +19,15 @@ dot product in `ℝ^n` and provides the means of defining the length of a vector
 two vectors. In particular vectors `x` and `y` are orthogonal if their inner product equals zero.
 We define both the real and complex cases at the same time using the `is_R_or_C` typeclass.
 
+This file proves general results on inner product spaces. For the specific construction of an inner
+product structure on `n → 𝕜` for `𝕜 = ℝ` or `ℂ`, see `euclidean_space` in `analysis.pi_Lp`.
+
 ## Main results
 
 - We define the class `inner_product_space 𝕜 E` extending `normed_space 𝕜 E` with a number of basic
   properties, most notably the Cauchy-Schwarz inequality. Here `𝕜` is understood to be either `ℝ`
   or `ℂ`, through the `is_R_or_C` typeclass.
 - We show that if `f i` is an inner product space for each `i`, then so is `Π i, f i`
-- We define `euclidean_space 𝕜 n` to be `n → 𝕜` for any `fintype n`, and show that
-  this an inner product space.
 - Existence of orthogonal projection onto nonempty complete subspace:
   Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
   Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
@@ -50,11 +50,6 @@ The orthogonal complement of a submodule `K` is denoted by `Kᗮ`.
 
 We choose the convention that inner products are conjugate linear in the first argument and linear
 in the second.
-
-## TODO
-
-- Fix the section on the existence of minimizers and orthogonal projections to make sure that it
-  also applies in the complex case.
 
 ## Tags
 
@@ -1372,59 +1367,6 @@ linear_map.mk_continuous
 
 end norm
 
-/-! ### Inner product space structure on product spaces -/
-
-/-
- If `ι` is a finite type and each space `f i`, `i : ι`, is an inner product space,
-then `Π i, f i` is an inner product space as well. Since `Π i, f i` is endowed with the sup norm,
-we use instead `pi_Lp 2 one_le_two f` for the product space, which is endowed with the `L^2` norm.
--/
-instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
-  [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 one_le_two f) :=
-{ inner := λ x y, ∑ i, inner (x i) (y i),
-  norm_sq_eq_inner :=
-  begin
-    intro x,
-    have h₁ : ∑ (i : ι), ∥x i∥ ^ (2 : ℕ) = ∑ (i : ι), ∥x i∥ ^ (2 : ℝ),
-    { apply finset.sum_congr rfl,
-      intros j hj,
-      simp [←rpow_nat_cast] },
-    have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ),
-    { rw [←h₁],
-      exact finset.sum_nonneg (λ j (hj : j ∈ finset.univ), pow_nonneg (norm_nonneg (x j)) 2) },
-    simp [norm, add_monoid_hom.map_sum, ←norm_sq_eq_inner],
-    rw [←rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2],
-    rw [←rpow_mul h₂],
-    norm_num [h₁],
-  end,
-  conj_sym :=
-  begin
-    intros x y,
-    unfold inner,
-    rw [←finset.sum_hom finset.univ conj],
-    apply finset.sum_congr rfl,
-    rintros z -,
-    apply inner_conj_sym,
-    apply_instance
-  end,
-  add_left := λ x y z,
-    show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
-    by simp only [inner_add_left, finset.sum_add_distrib],
-  smul_left := λ x y r,
-    show ∑ (i : ι), inner (r • x i) (y i) = (conj r) * ∑ i, inner (x i) (y i),
-    by simp only [finset.mul_sum, inner_smul_left]
-}
-
-@[simp] lemma pi_Lp.inner_apply {ι : Type*} [fintype ι] {f : ι → Type*}
-  [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 one_le_two f) :
-  ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
-rfl
-
-lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
-  [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 one_le_two f) :
-  ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
-by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
-
 /-- A field `𝕜` satisfying `is_R_or_C` is itself a `𝕜`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
@@ -1435,16 +1377,6 @@ instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
   smul_left := λ x y z, by simp [inner, mul_assoc] }
 
 @[simp] lemma is_R_or_C.inner_apply (x y : 𝕜) : ⟪x, y⟫ = (conj x) * y := rfl
-
-/-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
-space use `euclidean_space 𝕜 (fin n)`. -/
-@[reducible, nolint unused_arguments]
-def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
-  (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
-
-lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
-pi_Lp.norm_eq_of_L2 x
 
 /-! ### Inner product space structure on subspaces -/
 
@@ -1790,70 +1722,6 @@ lemma continuous.inner (hf : continuous f) (hg : continuous g) : continuous (λ 
 continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.inner hg.continuous_at
 
 end continuous
-
-section pi_Lp
-local attribute [reducible] pi_Lp
-variables {ι : Type*} [fintype ι]
-
-instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
-instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
-
-@[simp] lemma finrank_euclidean_space :
-  finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp
-
-lemma finrank_euclidean_space_fin {n : ℕ} :
-  finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
-
-/-- An orthonormal basis on a fintype `ι` for an inner product space induces an isometry with
-`euclidean_space 𝕜 ι`. -/
-def basis.isometry_euclidean_of_orthonormal
-  (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
-  E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 ι) :=
-v.equiv_fun.isometry_of_inner
-begin
-  intros x y,
-  let p : euclidean_space 𝕜 ι := v.equiv_fun x,
-  let q : euclidean_space 𝕜 ι := v.equiv_fun y,
-  have key : ⟪p, q⟫ = ⟪∑ i, p i • v i, ∑ i, q i • v i⟫,
-  { simp [sum_inner, inner_smul_left, hv.inner_right_fintype] },
-  convert key,
-  { rw [← v.equiv_fun.symm_apply_apply x, v.equiv_fun_symm_apply] },
-  { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
-end
-
-/-- `ℂ` is isometric to ℝ² with the Euclidean inner product. -/
-def complex.isometry_euclidean : ℂ ≃ₗᵢ[ℝ] (euclidean_space ℝ (fin 2)) :=
-complex.basis_one_I.isometry_euclidean_of_orthonormal
-begin
-  rw orthonormal_iff_ite,
-  intros i, fin_cases i;
-  intros j; fin_cases j;
-  simp [real_inner_eq_re_inner]
-end
-
-@[simp] lemma complex.isometry_euclidean_symm_apply (x : euclidean_space ℝ (fin 2)) :
-  complex.isometry_euclidean.symm x = (x 0) + (x 1) * I :=
-begin
-  convert complex.basis_one_I.equiv_fun_symm_apply x,
-  { simpa },
-  { simp },
-end
-
-lemma complex.isometry_euclidean_proj_eq_self (z : ℂ) :
-  ↑(complex.isometry_euclidean z 0) + ↑(complex.isometry_euclidean z 1) * (I : ℂ) = z :=
-by rw [← complex.isometry_euclidean_symm_apply (complex.isometry_euclidean z),
-  complex.isometry_euclidean.symm_apply_apply z]
-
-@[simp] lemma complex.isometry_euclidean_apply_zero (z : ℂ) :
-  complex.isometry_euclidean z 0 = z.re :=
-by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
-
-@[simp] lemma complex.isometry_euclidean_apply_one (z : ℂ) :
-  complex.isometry_euclidean z 1 = z.im :=
-by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
-
-end pi_Lp
-
 
 /-! ### Orthogonal projection in inner product spaces -/
 
@@ -2827,22 +2695,5 @@ lemma fin_orthonormal_basis_orthonormal [finite_dimensional 𝕜 E] {n : ℕ} (h
 suffices orthonormal 𝕜 (orthonormal_basis _ _ ∘ equiv.symm _),
 by { simp only [fin_orthonormal_basis, basis.coe_reindex], assumption }, -- why doesn't simpa work?
 (orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
-
-/-- Given a natural number `n` equal to the `finrank` of a finite-dimensional inner product space,
-there exists an isometry from the space to `euclidean_space 𝕜 (fin n)`. -/
-def linear_isometry_equiv.of_inner_product_space
-  [finite_dimensional 𝕜 E] {n : ℕ} (hn : finrank 𝕜 E = n) :
-  E ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-(fin_orthonormal_basis hn).isometry_euclidean_of_orthonormal (fin_orthonormal_basis_orthonormal hn)
-
-local attribute [instance] finite_dimensional_of_finrank_eq_succ
-
-/-- Given a natural number `n` one less than the `finrank` of a finite-dimensional inner product
-space, there exists an isometry from the orthogonal complement of a nonzero singleton to
-`euclidean_space 𝕜 (fin n)`. -/
-def linear_isometry_equiv.from_orthogonal_span_singleton
-  (n : ℕ) [fact (finrank 𝕜 E = n + 1)] {v : E} (hv : v ≠ 0) :
-  (𝕜 ∙ v)ᗮ ≃ₗᵢ[𝕜] (euclidean_space 𝕜 (fin n)) :=
-linear_isometry_equiv.of_inner_product_space (finrank_orthogonal_span_singleton hv)
 
 end orthonormal_basis

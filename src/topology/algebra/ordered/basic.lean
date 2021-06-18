@@ -3110,16 +3110,19 @@ Related theorems above (`is_lub.is_lub_of_tendsto`, `is_glb.is_glb_of_tendsto` e
 when `f x` tends to `a` as `x` tends to some point `b` in the domain. -/
 
 lemma monotone.ge_of_tendsto {α β : Type*} [topological_space α] [preorder α]
-  [order_closed_topology α] [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
+  [order_closed_topology α] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
   (ha : tendsto f at_top (𝓝 a)) (b : β) :
   f b ≤ a :=
-ge_of_tendsto ha ((eventually_ge_at_top b).mono (λ _ hxy, hf hxy))
+begin
+  haveI : nonempty β := nonempty.intro b,
+  exact ge_of_tendsto ha ((eventually_ge_at_top b).mono (λ _ hxy, hf hxy))
+end
 
 lemma monotone.le_of_tendsto {α β : Type*} [topological_space α] [preorder α]
-  [order_closed_topology α] [nonempty β] [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
+  [order_closed_topology α] [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
   (ha : tendsto f at_bot (𝓝 a)) (b : β) :
   a ≤ f b :=
-le_of_tendsto ha ((eventually_le_at_bot b).mono (λ _ hxy, hf hxy))
+@monotone.ge_of_tendsto (order_dual α) (order_dual β) _ _ _ _ f _ hf.order_dual ha b
 
 lemma is_lub_of_tendsto {α β : Type*} [topological_space α] [preorder α] [order_closed_topology α]
   [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
@@ -3128,9 +3131,8 @@ lemma is_lub_of_tendsto {α β : Type*} [topological_space α] [preorder α] [or
 begin
   split,
   { rintros _ ⟨b, rfl⟩,
-    refine ge_of_tendsto ha ((eventually_ge_at_top b).mono (λ _ hxy, hf hxy)) },
-  { intros b hb,
-    exact le_of_tendsto' ha (λ x, hb (set.mem_range_self x)) }
+    exact hf.ge_of_tendsto ha b },
+  { exact λ _ hb, le_of_tendsto' ha (λ x, hb (set.mem_range_self x)) }
 end
 
 lemma is_glb_of_tendsto {α β : Type*} [topological_space α] [preorder α] [order_closed_topology α]

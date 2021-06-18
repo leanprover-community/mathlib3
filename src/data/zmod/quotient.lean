@@ -80,13 +80,17 @@ def lift (f : ℤ →+ A) (hf : f n = 0) : zmod n →+ A :=
   lift n f hf (x : zmod n) = f x :=
 add_monoid_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
 
-@[simp] lemma lift_cast_add_hom (f : ℤ →+ A) (hf : f n = 0) (x : ℤ) :
+lemma lift_cast_add_hom (f : ℤ →+ A) (hf : f n = 0) (x : ℤ) :
   lift n f hf (int.cast_add_hom (zmod n) x) = f x :=
 add_monoid_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
 
+@[simp] lemma lift_comp_coe (f : ℤ →+ A) (hf : f n = 0) :
+  zmod.lift n f hf ∘ coe = f :=
+funext $ lift_coe _ _ _
+
 @[simp] lemma lift_comp_cast_add_hom (f : ℤ →+ A) (hf : f n = 0) :
-  zmod.lift n f hf ∘ int.cast_add_hom (zmod n) = f :=
-funext $ lift_cast_add_hom _ _ _
+  (zmod.lift n f hf).comp (int.cast_add_hom (zmod n)) = f :=
+add_monoid_hom.ext $ lift_cast_add_hom _ _ _
 
 end zmod
 

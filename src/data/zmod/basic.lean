@@ -176,7 +176,18 @@ def cast : Π {n : ℕ}, zmod n → R
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by { cases n; refl }
 
+variables (R)
+
+/-- The coercions are respectively `nat.cast` and `zmod.cast`. -/
+@[simp] lemma nat_cast_comp_val [fact (0 < n)] :
+  (coe : ℕ → R) ∘ (val : zmod n → ℕ) = coe :=
+begin
+  casesI n,
+  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
+  refl
 end
+
+variables {R}
 
 /-- So-named because the coercion is `nat.cast` into `zmod`. For `nat.cast` into an arbitrary ring,
 see `zmod.nat_cast_val`. -/
@@ -193,21 +204,6 @@ nat_cast_zmod_val
 lemma nat_cast_zmod_surjective [fact (0 < n)] : function.surjective (coe : ℕ → zmod n) :=
 nat_cast_right_inverse.surjective
 
-/-- So-named because the outer coercion is `int.cast` into `zmod`. For `int.cast` into an arbitrary
-ring, see `zmod.int_cast_cast`. -/
-lemma int_cast_zmod_cast (a : zmod n) : ((a : ℤ) : zmod n) = a :=
-begin
-  cases n,
-  { rw [int.cast_id a, int.cast_id a], },
-  { rw [coe_coe, int.nat_cast_eq_coe_nat, int.cast_coe_nat, fin.coe_coe_eq_self] }
-end
-
-lemma int_cast_right_inverse : function.right_inverse (coe : zmod n → ℤ) (coe : ℤ → zmod n) :=
-int_cast_zmod_cast
-
-lemma int_cast_surjective : function.surjective (coe : ℤ → zmod n) :=
-int_cast_right_inverse.surjective
-
 @[norm_cast]
 lemma cast_id : ∀ n (i : zmod n), ↑i = i
 | 0     i := int.cast_id i
@@ -216,16 +212,7 @@ lemma cast_id : ∀ n (i : zmod n), ↑i = i
 @[simp]
 lemma cast_id' : (coe : zmod n → zmod n) = id := funext (cast_id n)
 
-variables (R) [ring R]
-
-/-- The coercions are respectively `nat.cast` and `zmod.cast`. -/
-@[simp] lemma nat_cast_comp_val [fact (0 < n)] :
-  (coe : ℕ → R) ∘ (val : zmod n → ℕ) = coe :=
-begin
-  casesI n,
-  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
-  refl
-end
+variables (R)
 
 /-- The coercions are respectively `int.cast`, `zmod.cast`, and `zmod.cast`. -/
 @[simp] lemma int_cast_comp_cast : (coe : ℤ → R) ∘ (coe : zmod n → ℤ) = coe :=
@@ -243,23 +230,34 @@ congr_fun (nat_cast_comp_val R) i
 @[simp] lemma int_cast_cast (i : zmod n) : ((i : ℤ) : R) = i :=
 congr_fun (int_cast_comp_cast R) i
 
+end
+
+/-- So-named because the outer coercion is `int.cast` into `zmod`. For `int.cast` into an arbitrary
+ring, see `zmod.int_cast_cast`. -/
+lemma int_cast_zmod_cast (a : zmod n) : ((a : ℤ) : zmod n) = a :=
+begin
+  cases n,
+  { rw [int.cast_id a, int.cast_id a], },
+  { rw [coe_coe, int.nat_cast_eq_coe_nat, int.cast_coe_nat, fin.coe_coe_eq_self] }
+end
+
+lemma int_cast_right_inverse : function.right_inverse (coe : zmod n → ℤ) (coe : ℤ → zmod n) :=
+int_cast_zmod_cast
+
+lemma int_cast_surjective : function.surjective (coe : ℤ → zmod n) :=
+int_cast_right_inverse.surjective
+
+variables {R}
+
 section char_dvd
 /-! If the characteristic of `R` divides `n`, then `cast` is a homomorphism. -/
 
-variables {n} {m : ℕ} [char_p R m]
+section add_group
 
-@[simp] lemma cast_one (h : m ∣ n) : ((1 : zmod n) : R) = 1 :=
-begin
-  casesI n,
-  { exact int.cast_one },
-  show ((1 % (n+1) : ℕ) : R) = 1,
-  cases n, { rw [nat.dvd_one] at h, substI m, apply subsingleton.elim },
-  rw nat.mod_eq_of_lt,
-  { exact nat.cast_one },
-  exact nat.lt_of_sub_eq_succ rfl
-end
+variables [add_group R] [has_one R] {m : ℕ} [char_p R m]
 
-lemma cast_add (h : m ∣ n) (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
+lemma cast_add (h : m ∣ n) (a b : zmod n) :
+  ((a + b : zmod n) : R) = a + b :=
 begin
   casesI n,
   { apply int.cast_add },
@@ -268,6 +266,37 @@ begin
   erw [fin.coe_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
       @char_p.cast_eq_zero_iff R _ _ m],
   exact dvd_trans h (nat.dvd_sub_mod _),
+end
+
+/-- The canonical add_monoid homomorphism from `zmod n` to a add_group of characteristic `n`. -/
+@[simps]
+def cast_add_monoid_hom {m} (h : m ∣ n) (R : Type*) [add_group R] [has_one R] [char_p R m] :
+  zmod n →+ R :=
+{ to_fun := coe,
+  map_zero' := cast_zero,
+  map_add' := cast_add h}
+
+@[simp, norm_cast]
+lemma cast_sub (h : m ∣ n) (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
+(cast_add_monoid_hom h R).map_sub a b
+
+@[simp, norm_cast]
+lemma cast_neg (h : m ∣ n) (a : zmod n) : ((-a : zmod n) : R) = -a :=
+(cast_add_monoid_hom h R).map_neg a
+
+end add_group
+
+variables [ring R] {n} {m : ℕ} [char_p R m]
+
+@[simp] lemma cast_one [ring R] [char_p R m] (h : m ∣ n) : ((1 : zmod n) : R) = 1 :=
+begin
+  casesI n,
+  { exact int.cast_one },
+  show ((1 % (n+1) : ℕ) : R) = 1,
+  cases n, { rw [nat.dvd_one] at h, substI m, apply subsingleton.elim },
+  rw nat.mod_eq_of_lt,
+  { exact nat.cast_one },
+  exact nat.lt_of_sub_eq_succ rfl
 end
 
 lemma cast_mul (h : m ∣ n) (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
@@ -284,20 +313,11 @@ end
 /-- The canonical ring homomorphism from `zmod n` to a ring of characteristic `n`. -/
 def cast_hom (h : m ∣ n) (R : Type*) [ring R] [char_p R m] : zmod n →+* R :=
 { to_fun := coe,
-  map_zero' := cast_zero,
   map_one' := cast_one h,
-  map_add' := cast_add h,
-  map_mul' := cast_mul h }
+  map_mul' := cast_mul h,
+  .. cast_add_monoid_hom h R }
 
 @[simp] lemma cast_hom_apply {h : m ∣ n} (i : zmod n) : cast_hom h R i = i := rfl
-
-@[simp, norm_cast]
-lemma cast_sub (h : m ∣ n) (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
-(cast_hom h R).map_sub a b
-
-@[simp, norm_cast]
-lemma cast_neg (h : m ∣ n) (a : zmod n) : ((-a : zmod n) : R) = -a :=
-(cast_hom h R).map_neg a
 
 @[simp, norm_cast]
 lemma cast_pow (h : m ∣ n) (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
@@ -315,19 +335,25 @@ end char_dvd
 
 section char_eq
 /-! Some specialised simp lemmas which apply when `R` has characteristic `n`. -/
-variable [char_p R n]
 
-@[simp] lemma cast_one' : ((1 : zmod n) : R) = 1 :=
-cast_one (dvd_refl _)
+section add_group
+variables [add_group R] [has_one R] [char_p R n]
 
 @[simp] lemma cast_add' (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
 cast_add (dvd_refl _) a b
 
-@[simp] lemma cast_mul' (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
-cast_mul (dvd_refl _) a b
-
 @[simp] lemma cast_sub' (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
 cast_sub (dvd_refl _) a b
+
+end add_group
+
+variables [ring R] [char_p R n]
+
+@[simp] lemma cast_one' : ((1 : zmod n) : R) = 1 :=
+cast_one (dvd_refl _)
+
+@[simp] lemma cast_mul' (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
+cast_mul (dvd_refl _) a b
 
 @[simp] lemma cast_pow' (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
 cast_pow (dvd_refl _) a k

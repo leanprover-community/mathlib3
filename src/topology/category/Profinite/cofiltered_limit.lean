@@ -5,6 +5,8 @@ Authors: Adam Topaz
 -/
 import topology.category.Profinite
 import topology.locally_constant.basic
+import category_theory.limits.is_limit
+import topology.discrete_quotient
 
 /-!
 # Cofiltered limits of profinite sets.
@@ -188,6 +190,50 @@ begin
     split_ifs at hh with hh1 hh1,
     { exact hh1.symm },
     { exact false.elim (bot_ne_top hh) } }
+end
+
+theorem exists_loccally_constant {α : Type*} (f : locally_constant C.X α) :
+  ∃ (j : J) (g : locally_constant (F.obj j) α), f = g.comap (C.π.app _) :=
+begin
+  let S := f.discrete_quotient,
+  let ff : S → α := f.lift,
+  by_cases hα : nonempty S,
+  { resetI,
+    let f' : locally_constant C.X S := ⟨S.proj, S.proj_is_locally_constant⟩,
+    obtain ⟨j,g',h⟩ := exists_locally_constant_fintype_nonempty _ hC f',
+    use j,
+    refine ⟨⟨ff ∘ g', g'.is_locally_constant.comp _⟩,_⟩,
+    ext1 t,
+    apply_fun (λ e, e t) at h,
+    rw locally_constant.coe_comap _ _ (C.π.app j).continuous at h ⊢,
+    dsimp at h ⊢,
+    rw ← h,
+    refl },
+  { suffices : ∃ j : J, ¬ nonempty (F.obj j),
+    { obtain ⟨j,hj⟩ := this,
+      use j,
+      refine ⟨⟨λ x, false.elim (hj ⟨x⟩), λ A, _⟩, _⟩,
+      { convert is_open_empty,
+        rw set.eq_empty_iff_forall_not_mem,
+        intros x,
+        exact false.elim (hj ⟨x⟩) },
+      { ext x,
+        exact false.elim (hj ⟨C.π.app j x⟩) } },
+    rw ← not_forall,
+    intros h,
+    apply hα,
+    haveI : ∀ j : J, nonempty ((F ⋙ Profinite_to_Top).obj j) := h,
+    haveI : ∀ j : J, t2_space ((F ⋙ Profinite_to_Top).obj j) := λ j,
+      (infer_instance : t2_space (Profinite_to_Top.obj _)),
+    haveI : ∀ j : J, compact_space ((F ⋙ Profinite_to_Top).obj j) := λ j,
+      (infer_instance : compact_space (Profinite_to_Top.obj _)),
+    have cond := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system
+      (F ⋙ Profinite_to_Top),
+    suffices : nonempty C.X, by exact nonempty.map S.proj this,
+    let D := Profinite_to_Top.map_cone C,
+    have hD : is_limit D := is_limit_of_preserves Profinite_to_Top hC,
+    have CD := (hD.cone_point_unique_up_to_iso (Top.limit_cone_is_limit _)).inv,
+    exact cond.map CD }
 end
 
 end Profinite

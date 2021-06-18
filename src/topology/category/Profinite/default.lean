@@ -84,6 +84,15 @@ end Profinite
 @[simps, derive [full, faithful]]
 def Profinite_to_Top : Profinite ⥤ Top := forget₂ _ _
 
+instance (X : Profinite) : t2_space (Profinite_to_Top.obj X) :=
+show t2_space X, by apply_instance
+
+instance (X : Profinite) : compact_space (Profinite_to_Top.obj X) :=
+show compact_space X, by apply_instance
+
+instance (X : Profinite) : totally_disconnected_space (Profinite_to_Top.obj X) :=
+show totally_disconnected_space X, by apply_instance
+
 /-- The fully faithful embedding of `Profinite` in `CompHaus`. -/
 @[simps] def Profinite.to_CompHaus : Profinite ⥤ CompHaus :=
 { obj := λ X, { to_Top := X.to_Top },

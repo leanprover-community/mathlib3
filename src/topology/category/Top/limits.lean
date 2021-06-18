@@ -394,15 +394,6 @@ begin
   refl,
 end
 
--- TODO move somewhere better
-instance {J : Type u} [h : nonempty J] [directed_order J] : is_cofiltered Jᵒᵖ :=
-{ cocone_objs := λ X Y, begin
-    obtain ⟨W, hX, hY⟩ := directed_order.directed X.unop Y.unop,
-    exact ⟨opposite.op W, (hom_of_le hX).op, (hom_of_le hY).op, trivial⟩,
-  end,
-  cocone_maps := λ X Y f g, ⟨X, 𝟙 _, by simp only [eq_iff_true_of_subsingleton]⟩,
-  nonempty := ⟨opposite.op h.some⟩ }
-
 /-- The inverse limit of nonempty finite types is nonempty.
 
 See `nonempty_sections_of_fintype_cofiltered_system` for a generalization to cofiltered limits.

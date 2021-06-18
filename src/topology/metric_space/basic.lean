@@ -206,7 +206,7 @@ by simp [nndist, edist_dist, real.to_nnreal, max_eq_left dist_nonneg, ennreal.of
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
-by { rw [edist_dist, ennreal.of_real_eq_coe_nnreal dist_nonneg], refl }
+by { simpa only [edist_dist, ennreal.of_real_eq_coe_nnreal dist_nonneg] }
 
 @[simp, norm_cast] lemma coe_nnreal_ennreal_nndist (x y : α) : ↑(nndist x y) = edist x y :=
 (edist_nndist x y).symm

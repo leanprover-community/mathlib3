@@ -90,9 +90,11 @@ protected lemma measurable.measurable_at_filter (h : measurable f) :
 h.ae_measurable.measurable_at_filter
 
 lemma ae_measurable_indicator_iff [has_zero β] {s} (hs : measurable_set s) :
-  ae_measurable f (μ.restrict s) ↔ ae_measurable (indicator s f) μ :=
+  ae_measurable (indicator s f) μ ↔ ae_measurable f (μ.restrict s)  :=
 begin
   split,
+  { assume h,
+    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) },
   { assume h,
     refine ⟨indicator s (h.mk f), h.measurable_mk.indicator hs, _⟩,
     have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
@@ -102,8 +104,6 @@ begin
     have : s.indicator f =ᵐ[μ.restrict s + μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
       ae_add_measure_iff.2 ⟨A, B⟩,
     simpa only [hs, measure.restrict_add_restrict_compl] using this },
-  { assume h,
-    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) }
 end
 
 lemma ae_measurable.restrict (hfm : ae_measurable f μ) {s} :
@@ -112,7 +112,7 @@ lemma ae_measurable.restrict (hfm : ae_measurable f μ) {s} :
 
 lemma ae_measurable.indicator [has_zero β] (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
   ae_measurable (s.indicator f) μ :=
-(ae_measurable_indicator_iff hs).mp hfm.restrict
+(ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end
 

@@ -328,9 +328,7 @@ lemma ae_cover.integral_tendsto_of_countably_generated {φ : ι → set α} (hφ
   (hfi : integrable f μ) :
   tendsto (λ i, ∫ x in φ i, f x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
 suffices h : tendsto (λ i, ∫ (x : α), (φ i).indicator f x ∂μ) l (𝓝 (∫ (x : α), f x ∂μ)),
-by {convert h,
-    ext n,
-    rw integral_indicator (hφ.measurable n)},
+by { convert h, ext n, rw integral_indicator (hφ.measurable n) },
 tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥) hcg
   (eventually_of_forall $ λ i, hfm.indicator $ hφ.measurable i) hfm
   (eventually_of_forall $ λ i, ae_of_all _ $ λ x, norm_indicator_le_norm_self _ _)

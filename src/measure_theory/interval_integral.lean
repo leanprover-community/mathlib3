@@ -294,7 +294,7 @@ begin
   split,
   all_goals
   { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
-    refine continuous_on.integrable_on_compact compact_Icc (hu.mono _) },
+    refine continuous_on.integrable_on_compact is_compact_Icc (hu.mono _) },
   exacts [Icc_subset_interval, Icc_subset_interval']
 end
 

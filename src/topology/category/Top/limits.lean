@@ -369,45 +369,6 @@ begin
   exact ⟨u, λ _ _ f, hu f⟩,
 end
 
--- I'm fairly sure we have something like this somewhere...
--- TODO find a way to integrate with `category_theory.category.ulift`? The issue is that the module uses `category_theory.ulift_category`.
--- instance ulift.small_category (α : Type u) [small_category α] :
---   small_category (ulift.{v} α) :=
--- { hom := λ X Y, ulift (X.down ⟶ Y.down),
---   id := λ X, ⟨𝟙 _⟩,
---   comp := λ X Y Z f g, ⟨f.down ≫ g.down⟩ }
-
--- This should move.
-instance ulift.is_cofiltered (α : Type u) [category.{w} α] [is_cofiltered α] :
-  is_cofiltered (ulift.{v} α) :=
-{ cocone_objs := λ X Y, ⟨⟨is_cofiltered.min X.down Y.down⟩,
-    is_cofiltered.min_to_left _ _, is_cofiltered.min_to_right _ _, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨⟨is_cofiltered.eq f g⟩, is_cofiltered.eq_hom _ _, is_cofiltered.eq_condition _ _⟩,
-  nonempty := ⟨⟨is_cofiltered.nonempty.some⟩⟩ }
-
-/-- Take a category and lift it to another universe as a `small_category`. -/
--- TODO deal with linter complaint. The category typeclass is there to add a universe constraint.
-def as_small (α : Type u) [category.{v} α] := ulift.{max u v} α
-
-instance (α : Type u) [category α] [inhabited α] : inhabited (as_small α) := ⟨⟨arbitrary α⟩⟩
-
-instance (α : Type u) [category.{v} α] : small_category (as_small α) :=
-{ hom := λ X Y, ulift.{max u v} (X.down ⟶ Y.down),
-  id := λ X, ⟨𝟙 _⟩,
-  comp := λ X Y Z f g, ⟨f.down ≫ g.down⟩ }
-
-instance (α : Type u) [category.{v} α] [is_cofiltered α] : is_cofiltered (as_small α) :=
-{ cocone_objs := λ X Y, ⟨⟨is_cofiltered.min X.down Y.down⟩, ⟨is_cofiltered.min_to_left _ _⟩,
-    ⟨is_cofiltered.min_to_right _ _⟩, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨⟨is_cofiltered.eq f.down g.down⟩,
-    ⟨is_cofiltered.eq_hom _ _⟩, by { ext, apply is_cofiltered.eq_condition }⟩,
-  nonempty := ⟨⟨is_cofiltered.nonempty.some⟩⟩ }
-
-/-- One half of the equivalence between a category and the category as a `small_category`. -/
-def as_small.down {α : Type u} [category.{v} α] : as_small α ⥤ α :=
-{ obj := ulift.down,
-  map := λ X Y f, f.down }
-
 /-- The cofiltered limit of nonempty finite types is nonempty.
 
 See `nonempty_sections_of_fintype_inverse_system` for a specialization to inverse limits. -/

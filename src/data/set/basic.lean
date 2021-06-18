@@ -1206,11 +1206,11 @@ rfl
 
 @[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
 
-theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
+@[simp] theorem preimage_const_of_mem {b : β} {s : set β} (h : b ∈ s) :
   (λ (x : α), b) ⁻¹' s = univ :=
 eq_univ_of_forall $ λ x, h
 
-theorem preimage_const_of_not_mem {b : β} {s : set β} (h : b ∉ s) :
+@[simp] theorem preimage_const_of_not_mem {b : β} {s : set β} (h : b ∉ s) :
   (λ (x : α), b) ⁻¹' s = ∅ :=
 eq_empty_of_subset_empty $ λ x hx, h hx
 

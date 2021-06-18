@@ -250,25 +250,11 @@ lemma is_topological_vector_bundle_is_topological_fiber_bundle :
 
 end topological_vector_bundle
 
-section continuous
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-variables [topological_space α] [topological_space β] [topological_space γ]
-
-lemma continuous_on.open_preimage {f : α → β} {s : set α} {t : set β} (h : continuous_on f s)
-  (hs : is_open s) (hp : f ⁻¹' t ⊆ s) (ht : is_open t) : is_open (f ⁻¹' t) :=
-begin
-  convert (continuous_on_open_iff hs).mp h t ht,
-  rw [inter_comm, inter_eq_self_of_subset_left hp],
-end
-
-lemma is_open_induced_iff' [t : topological_space β] {s : set α} {f : α → β} :
-  (t.induced f).is_open s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
-iff.rfl
-
-end continuous
+/-! ### Constructing topological vector bundles -/
 
 variables (B)
 
+/-- Analogous construction of `topological_fiber_bundle_core` for vector bundles. -/
 @[nolint has_inhabited_instance]
 structure topological_vector_bundle_core (ι : Type*) :=
 (base_set          : ι → set B)
@@ -289,9 +275,9 @@ namespace topological_vector_bundle_core
 variables {R B F} {ι : Type*} [topological_space B] [topological_space F]
 (Z : topological_vector_bundle_core R B F ι)
 
+/-- Natural identification to a `topological_fiber_bundle_core`. -/
 def to_topological_vector_bundle_core : topological_fiber_bundle_core ι B F :=
-{ coord_change := λ i j b, Z.coord_change i j b,
-  ..Z }
+{ coord_change := λ i j b, Z.coord_change i j b, ..Z }
 
 instance to_topological_vector_bundle_core_coe : has_coe (topological_vector_bundle_core R B F ι)
   (topological_fiber_bundle_core ι B F) := ⟨to_topological_vector_bundle_core⟩
@@ -358,72 +344,46 @@ def local_triv (i : ι) : topological_vector_bundle.trivialization R F Z.fiber :
     coe_snd_map_smul, linear_map.map_smul] },
   ..topological_fiber_bundle_core.local_triv_ext ↑Z i }
 
-lemma bbb (i : ι) (b : B) (a : F): ((Z.local_triv i) ⟨b, a⟩) = ⟨b, Z.coord_change (Z.index_at b) i b a⟩ := rfl --generalize
-
-lemma aaa (b : B) (a : F): ((Z.local_triv (Z.index_at b)) ⟨b, a⟩) = ⟨b, a⟩ := --generalize
-begin
-  rw bbb,
-  rw coord_change_self,
-  exact Z.mem_base_set_at b,
-end
-
 @[simp, mfld_simps] lemma mem_local_triv_source (i : ι) (p : total_space Z.fiber) :
   p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i :=
 iff.rfl
 
+/-- Preferred local trivialization of a vector bundle constructed from core, at a given point, as
+a bundle trivialization -/
+def local_triv_at (b : B) : topological_vector_bundle.trivialization R F Z.fiber :=
+Z.local_triv (Z.index_at b)
+
 lemma mem_source_at (b : B) (a : F) :
-  (⟨b, a⟩ : total_space Z.fiber) ∈ (Z.local_triv (Z.index_at b)).source :=
-begin
-  rw mem_local_triv_source,
-  exact Z.mem_base_set_at b,
-end
+  (⟨b, a⟩ : total_space Z.fiber) ∈ (Z.local_triv_at b).source :=
+by { rw [local_triv_at, mem_local_triv_source], exact Z.mem_base_set_at b }
 
-
+@[simp] lemma local_triv_at_apply (b : B) (a : F): ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
+topological_fiber_bundle_core.local_triv_at_apply Z b a
 
 instance : topological_vector_bundle R F Z.fiber :=
-{
-  inducing := λ b, ⟨by { apply le_antisymm,
-    {
-      rw ←continuous_iff_le_induced,
-      exact topological_fiber_bundle_core.continuous_sigma_mk ↑Z b,
-    },
-    {
-      intro s,
-      intro h,
-      let i := Z.index_at b,
-      refine is_open_induced_iff.mpr ⟨(Z.local_triv i).source ∩ (Z.local_triv i) ⁻¹' (Z.base_set i).prod s, _, _⟩,
-      {
-          exact (continuous_on_open_iff (Z.local_triv i).open_source).mp (Z.local_triv i).continuous_to_fun _ (is_open.prod (Z.is_open_base_set i) h),
-      },
-      {
-        simp only [preimage_inter],
-        rw ←preimage_comp,
-        simp only [function.comp, id.def],
-        ext a,
-        split,
-        {
-          intro ha,
-          simp only [mem_prod, mem_preimage, mem_inter_eq] at ha,
-          rw aaa at ha,
-          exact ha.2.2,
-        },
-        {
-          intro ha,
-          simp only [mem_prod, mem_preimage, mem_inter_eq],
-          split,
-          {
-            exact Z.mem_base_set_at b,
-          },
-          {
-            rw (Z.local_triv i).coe_fst (Z.mem_source_at b a),
-            rw aaa,
-            exact ⟨Z.mem_base_set_at b, ha⟩,
-          }
-        }
-      }
-    }
-  }⟩,
-  locally_trivial := sorry,
-}
+{ inducing := λ b, ⟨ begin refine le_antisymm _ (λ s h, _),
+  { rw ←continuous_iff_le_induced,
+    exact topological_fiber_bundle_core.continuous_sigma_mk ↑Z b, },
+  { refine is_open_induced_iff.mpr ⟨(Z.local_triv_at b).source ∩ (Z.local_triv_at b) ⁻¹'
+      (Z.local_triv_at b).base_set.prod s, (continuous_on_open_iff
+      (Z.local_triv_at b).open_source).mp (Z.local_triv_at b).continuous_to_fun _
+      (is_open.prod (Z.local_triv_at b).open_base_set h), _⟩,
+    rw [preimage_inter, ←preimage_comp],
+    simp only [function.comp, id.def],
+    refine ext_iff.mpr (λ a, ⟨λ ha, _, λ ha, ⟨Z.mem_base_set_at b, _⟩⟩),
+    { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply] at ha,
+      exact ha.2.2, },
+    { simp only [mem_prod, mem_preimage, mem_inter_eq,
+        (Z.local_triv_at b).coe_fst (Z.mem_source_at b a), local_triv_at_apply],
+        exact ⟨Z.mem_base_set_at b, ha⟩, }} end⟩,
+  locally_trivial := λ b, ⟨Z.local_triv_at b, Z.mem_base_set_at b⟩, }
+
+/-- The projection on the base of a topological vector bundle created from core is continuous -/
+lemma continuous_proj : continuous Z.proj :=
+topological_fiber_bundle_core.continuous_proj Z
+
+/-- The projection on the base of a topological vector bundle created from core is an open map -/
+lemma is_open_map_proj : is_open_map Z.proj :=
+topological_fiber_bundle_core.is_open_map_proj Z
 
 end topological_vector_bundle_core

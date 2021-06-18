@@ -473,6 +473,13 @@ have ∀ t, is_open (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ 
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_def]; simp only [this]
 
+lemma continuous_on.open_preimage {f : α → β} {s : set α} {t : set β} (h : continuous_on f s)
+  (hs : is_open s) (hp : f ⁻¹' t ⊆ s) (ht : is_open t) : is_open (f ⁻¹' t) :=
+begin
+  convert (continuous_on_open_iff hs).mp h t ht,
+  rw [inter_comm, inter_eq_self_of_subset_left hp],
+end
+
 theorem continuous_on_iff_is_closed {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=
 have ∀ t, is_closed (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,

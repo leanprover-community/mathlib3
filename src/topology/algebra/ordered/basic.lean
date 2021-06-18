@@ -2006,6 +2006,9 @@ begin
   exact mem_sets_of_superset self_mem_nhds_within (λ y hy, hf _ hx _ hy.1 hy.2)
 end
 
+-- For a version of this theorem in which the convergence considered on the domain `α` is as
+-- `x : α` tends to infinity, rather than tending to a point `x` in `α`, see `is_lub_of_tendsto`,
+-- below
 lemma is_lub.is_lub_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) (ha : is_lub s a) (hs : s.nonempty)
@@ -2023,6 +2026,9 @@ lemma is_glb.mem_lower_bounds_of_tendsto [preorder γ] [topological_space γ]
 @is_lub.mem_upper_bounds_of_tendsto (order_dual α) (order_dual γ) _ _ _ _ _ _ _ _ _ _
   (λ x hx y hy, hf y hy x hx) ha hb
 
+-- For a version of this theorem in which the convergence considered on the domain `α` is as
+-- `x : α` tends to negative infinity, rather than tending to a point `x` in `α`, see
+-- `is_glb_of_tendsto`, below
 lemma is_glb.is_glb_of_tendsto [preorder γ] [topological_space γ]
   [order_closed_topology γ] {f : α → γ} {s : set α} {a : α} {b : γ}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) : is_glb s a → s.nonempty →
@@ -2989,10 +2995,43 @@ end conditionally_complete_linear_order
 end order_topology
 
 /-!
-Here is a counter-example to a version of the following with `conditionally_complete_lattice α`.
-Take `α = [0, 1) → ℝ` with the natural lattice structure, `ι = ℕ`. Put `f n x = -x^n`. Then
-`⨆ n, f n = 0` while none of `f n` is strictly greater than the constant function `-0.5`.
+### Bounded monotone sequences converge
+
+The first result in this section is that in a linear order `α`, if the range of a monotone function
+`f : α → ι` admits a least upper bound `a`, then `f` converges to `a`.
+
+Later results specialize this to the case of (conditionally) complete linear orders, where the
+existence of a least upper bound `α` is automatic.  In these settings the result is that `f`
+converges to its supremum, `⨆ i, f i`.
+
+Here is a counter-example to show that the order must be a linear (i.e., total) order. Take
+`α = [0, 1) → ℝ` with the natural lattice structure; this is a `conditionally_complete_lattice`.
+Take `ι = ℕ` and `f n x = -x^n`. Then `⨆ n, f n = 0` while none of `f n` is strictly greater than
+the constant function `-0.5`.
 -/
+
+lemma tendsto_at_top_is_lub {ι α : Type*} [preorder ι] [topological_space α] [linear_order α]
+  [order_topology α] {f : ι → α} (h_mono : monotone f) {a : α} (ha : is_lub (set.range f) a) :
+  tendsto f at_top (𝓝 a) :=
+begin
+  by_cases hi : nonempty ι,
+  { resetI,
+    rw tendsto_order,
+    split,
+    { intros a' ha',
+      obtain ⟨_, ⟨N, rfl⟩, hN⟩ : ∃ x ∈ set.range f, a' < x := (lt_is_lub_iff ha).mp ha',
+      have := ha.2,
+      apply eventually.mono (mem_at_top N),
+      exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
+    { intros a' ha',
+      exact eventually_of_forall (λ i, lt_of_le_of_lt (ha.1 (set.mem_range_self i)) ha') } },
+  { exact tendsto_of_not_nonempty hi }
+end
+
+lemma tendsto_at_bot_is_glb {ι α : Type*} [preorder ι] [topological_space α] [linear_order α]
+  [order_topology α] {f : ι → α} (h_mono : monotone f) {a : α} (ha : is_glb (set.range f) a) :
+  tendsto f at_bot (𝓝 a) :=
+@tendsto_at_top_is_lub (order_dual ι) (order_dual α) _ _ _ _ _ h_mono.order_dual _ ha
 
 lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
   [conditionally_complete_linear_order α] [order_topology α]
@@ -3001,13 +3040,7 @@ lemma tendsto_at_top_csupr {ι α : Type*} [preorder ι] [topological_space α]
 begin
   by_cases hi : nonempty ι,
   { resetI,
-    rw tendsto_order,
-    split,
-    { intros a h,
-      cases exists_lt_of_lt_csupr h with N hN,
-      apply eventually.mono (mem_at_top N),
-      exact λ i hi, lt_of_lt_of_le hN (h_mono hi) },
-    { exact λ a h, eventually_of_forall (λ n, lt_of_le_of_lt (le_csupr hbdd n) h) } },
+    exact tendsto_at_top_is_lub h_mono (is_lub_cSup (range_nonempty f) hbdd) },
   { exact tendsto_of_not_nonempty hi }
 end
 
@@ -3067,6 +3100,44 @@ begin
     { exact (not_tendsto_at_top_of_tendsto_nhds h (h'.comp hg)).elim },
     { rwa tendsto_nhds_unique h (hl'.comp hg) } }
 end
+
+/-! The next family of results, such as `is_lub_of_tendsto` and `supr_eq_of_tendsto`, are converses
+to the standard fact that bounded monotone functions converge. They state, that if a monotone
+function `f` tends to `a` along `at_top`, then that value `a` is a least upper bound for the range
+of `f`.
+
+Related theorems above (`is_lub.is_lub_of_tendsto`, `is_glb.is_glb_of_tendsto` etc) cover the case
+when `f x` tends to `a` as `x` tends to some point `b` in the domain. -/
+
+lemma monotone.ge_of_tendsto {α β : Type*} [topological_space α] [preorder α]
+  [order_closed_topology α] [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
+  (ha : tendsto f at_top (𝓝 a)) (b : β) :
+  f b ≤ a :=
+ge_of_tendsto ha ((eventually_ge_at_top b).mono (λ _ hxy, hf hxy))
+
+lemma monotone.le_of_tendsto {α β : Type*} [topological_space α] [preorder α]
+  [order_closed_topology α] [nonempty β] [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
+  (ha : tendsto f at_bot (𝓝 a)) (b : β) :
+  a ≤ f b :=
+le_of_tendsto ha ((eventually_le_at_bot b).mono (λ _ hxy, hf hxy))
+
+lemma is_lub_of_tendsto {α β : Type*} [topological_space α] [preorder α] [order_closed_topology α]
+  [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f)
+  (ha : tendsto f at_top (𝓝 a)) :
+  is_lub (set.range f) a :=
+begin
+  split,
+  { rintros _ ⟨b, rfl⟩,
+    refine ge_of_tendsto ha ((eventually_ge_at_top b).mono (λ _ hxy, hf hxy)) },
+  { intros b hb,
+    exact le_of_tendsto' ha (λ x, hb (set.mem_range_self x)) }
+end
+
+lemma is_glb_of_tendsto {α β : Type*} [topological_space α] [preorder α] [order_closed_topology α]
+  [nonempty β] [semilattice_inf β] {f : β → α} {a : α} (hf : monotone f)
+  (ha : tendsto f at_bot (𝓝 a)) :
+  is_glb (set.range f) a :=
+@is_lub_of_tendsto (order_dual α) (order_dual β) _ _ _ _ _ _ _ hf.order_dual ha
 
 lemma supr_eq_of_tendsto {α β} [topological_space α] [complete_linear_order α] [order_topology α]
   [nonempty β] [semilattice_sup β] {f : β → α} {a : α} (hf : monotone f) :

@@ -508,8 +508,7 @@ by { ext, simp }
 by { ext, apply smul_dot_product }
 
 /-- This instance enables use with `smul_mul_assoc`. -/
-instance semiring.is_scalar_tower [decidable_eq n] [monoid R] [distrib_mul_action R α]
-  [is_scalar_tower R α α] :
+instance semiring.is_scalar_tower [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α] :
   is_scalar_tower R (matrix n n α) (matrix n n α) :=
 ⟨λ r m n, matrix.smul_mul r m n⟩
 
@@ -518,8 +517,7 @@ instance semiring.is_scalar_tower [decidable_eq n] [monoid R] [distrib_mul_actio
 by { ext, apply dot_product_smul }
 
 /-- This instance enables use with `mul_smul_comm`. -/
-instance semiring.smul_comm_class [decidable_eq n] [monoid R] [distrib_mul_action R α]
-  [smul_comm_class R α α] :
+instance semiring.smul_comm_class [monoid R] [distrib_mul_action R α] [smul_comm_class R α α] :
   smul_comm_class R (matrix n n α) (matrix n n α) :=
 ⟨λ r m n, (matrix.mul_smul m r n).symm⟩
 

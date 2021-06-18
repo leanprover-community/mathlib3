@@ -5,12 +5,21 @@ Authors: Chris Hughes
 -/
 import algebra.big_operators.basic
 
+/-!
+# Euler's totient function
+
+This file defines [Euler's totient function][https://en.wikipedia.org/wiki/Euler's_totient_function]
+`nat.totient n` which counts the number of naturals less than `n` that are coprime with `n`.
+We prove the divisor sum formula, namely that `n` equals `φ` summed over the divisors of `n`. See
+`sum_totient`.
+-/
+
 open finset
 open_locale big_operators
 
 namespace nat
 
-/-- Euler's totient function. This counts the number of positive integers less than `n` which are
+/-- Euler's totient function. This counts the number of naturals strictly less than `n` which are
 coprime with `n`. -/
 def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 

@@ -230,9 +230,9 @@ noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃* range φ :
 mul_equiv.of_bijective (range_ker_lift φ) ⟨range_ker_lift_injective φ, range_ker_lift_surjective φ⟩
 
 /-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a homomorphism `φ : G →* H`
-with a right inverse `ψ : H →* G`. -/
+with a right inverse `ψ : H → G`. -/
 @[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse "The canonical isomorphism
-`G/(ker φ) ≃+ H` induced by a homomorphism `φ : G →+ H` with a right inverse `ψ : H →+ G`.",
+`G/(ker φ) ≃+ H` induced by a homomorphism `φ : G →+ H` with a right inverse `ψ : H → G`.",
   simps]
 def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inverse ψ φ) :
   (quotient (ker φ)) ≃* H :=

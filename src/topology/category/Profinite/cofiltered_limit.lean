@@ -124,4 +124,41 @@ begin
   rw [locally_constant.of_clopen_fiber_zero hV, ← h],
 end
 
+theorem exists_locally_constant_fintype_aux {α : Type*} [fintype α] (f : locally_constant C.X α) :
+  ∃ (j : J) (g : locally_constant (F.obj j) (α → fin 2)),
+    f.map (λ a b, if a = b then (0 : fin 2) else 1) = g.comap (C.π.app _) :=
+begin
+  let ι : α → α → fin 2 := λ x y, if x = y then 0 else 1,
+  let ff := (f.map ι).flip,
+  have hff := λ (a : α), exists_locally_constant_fin_two _ hC (ff a),
+  choose j g h using hff,
+  let G : finset J := finset.univ.image j,
+  obtain ⟨j0,hj0⟩ := is_cofiltered.inf_objs_exists G,
+  have hj : ∀ a, j a ∈ G,
+  { intros a,
+    simp [G] },
+  let fs : Π (a : α), j0 ⟶ j a := λ a, (hj0 (hj a)).some,
+  let gg : α → locally_constant (F.obj j0) (fin 2) := λ a, (g a).comap (F.map (fs _)),
+  let ggg := locally_constant.unflip gg,
+  refine ⟨j0, ggg, _⟩,
+  have : f.map ι = locally_constant.unflip (f.map ι).flip, by simp,
+  rw this, clear this,
+  have : locally_constant.comap (C.π.app j0) ggg =
+    locally_constant.unflip (locally_constant.comap (C.π.app j0) ggg).flip, by simp,
+  rw this, clear this,
+  congr' 1,
+  ext1 a,
+  change ff a = _,
+  rw h,
+  dsimp [ggg, gg],
+  ext1,
+  repeat {
+    rw locally_constant.coe_comap,
+    dsimp [locally_constant.flip, locally_constant.unflip] },
+  { congr' 1,
+    change _ = ((C.π.app j0) ≫ (F.map (fs a))) x,
+    rw C.w },
+  all_goals { continuity },
+end
+
 end Profinite

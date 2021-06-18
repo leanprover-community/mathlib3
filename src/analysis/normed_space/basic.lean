@@ -366,6 +366,7 @@ export has_nnnorm (nnnorm)
 
 notation `∥₊`:1024 e:1 `∥`:1 := nnnorm e
 
+@[priority 100] -- see Note [lower instance priority]
 instance semi_normed_group.to_has_nnnorm : has_nnnorm α := ⟨λ a, ⟨norm a, norm_nonneg a⟩⟩
 
 @[simp, norm_cast] lemma coe_nnnorm (a : α) : (∥₊a∥ : ℝ) = norm a := rfl

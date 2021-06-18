@@ -811,7 +811,7 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
 
 /-- The first isomorphism theorem for monoids in the case of a homomorphism with right inverse. -/
 @[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a homomorphism
-with right inverse."]
+with right inverse.", simps]
 def quotient_ker_equiv_of_right_inverse (f : M →* P) (g : P → M)
   (hf : function.right_inverse g f) :
   (ker f).quotient ≃* P :=

@@ -232,7 +232,8 @@ mul_equiv.of_bijective (range_ker_lift φ) ⟨range_ker_lift_injective φ, range
 /-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a homomorphism `φ : G →* H`
 with a right inverse `ψ : H →* G`. -/
 @[to_additive quotient_add_group.quotient_ker_equiv_of_right_inverse "The canonical isomorphism
-`G/(ker φ) ≃+ H` induced by a homomorphism `φ : G →+ H` with a right inverse `ψ : H →+ G`."]
+`G/(ker φ) ≃+ H` induced by a homomorphism `φ : G →+ H` with a right inverse `ψ : H →+ G`.",
+  simps]
 def quotient_ker_equiv_of_right_inverse (ψ : H → G) (hφ : function.right_inverse ψ φ) :
   (quotient (ker φ)) ≃* H :=
 { to_fun := ker_lift φ,

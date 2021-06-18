@@ -5,7 +5,6 @@ Authors: Adam Topaz
 -/
 import topology.category.Profinite
 import topology.locally_constant.basic
-import category_theory.limits.is_limit
 import topology.discrete_quotient
 
 /-!

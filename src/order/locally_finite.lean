@@ -17,8 +17,8 @@ This file defines locally finite orders.
 
 A locally finite order is an order for which all bounded intervals are finite. This allows to make
 sense of `Icc`/`Ico`/`Ioc`/`Ioo` as lists, multisets, or finsets.
-Further, if the order is bounded above (resp. below), then we can also make sense of `Ici`/`Ioi`
-(resp. `Iic`/`Iio`).
+Further, if the order is bounded above (resp. below), then we can also make sense of the
+"unbounded" intervals `Ici`/`Ioi` (resp. `Iic`/`Iio`).
 
 ## Main declarations
 
@@ -180,26 +180,50 @@ end partial_order
 section order_top
 variables [decidable_eq α] [order_top α] [locally_finite_order α]
 
-/-- `set.Ici a b` as a finset -/
+/-- `set.Ici a` as a finset -/
 def Ici (a : α) : finset α :=
 Icc a ⊤
 
-/-- `set.Ioi a b` as a finset -/
+/-- `set.Ioi a` as a finset -/
 def Ioi (a : α) : finset α :=
 Ioc a ⊤
+
+@[simp] lemma coe_Ici (a : α) : (Ici a : set α) = set.Ici a :=
+by rw [Ici, coe_Icc, Icc_top]
+
+@[simp] lemma coe_Ioi (a : α) : (Ioi a : set α) = set.Ioi a :=
+by rw [Ioi, coe_Ioc, Ioc_top]
+
+@[simp] lemma mem_Ici_iff {a x : α} : x ∈ Ici a ↔ a ≤ x :=
+by rw [←set.mem_Ici, ←coe_Ici, mem_coe]
+
+@[simp] lemma mem_Ioi_iff {a x : α} : x ∈ Ioi a ↔ a < x :=
+by rw [←set.mem_Ioi, ←coe_Ioi, mem_coe]
 
 end order_top
 
 section order_bot
 variables [decidable_eq α] [order_bot α] [locally_finite_order α]
 
-/-- `set.Iic a b` as a finset -/
-def Iic (a : α) : finset α :=
-Icc ⊥ a
+/-- `set.Iic b` as a finset -/
+def Iic (b : α) : finset α :=
+Icc ⊥ b
 
-/-- `set.Iio a b` as a finset -/
-def Iio (a : α) : finset α :=
-Ico ⊥ a
+/-- `set.Iio b` as a finset -/
+def Iio (b : α) : finset α :=
+Ico ⊥ b
+
+@[simp] lemma coe_Iic (b : α) : (Iic b : set α) = set.Iic b :=
+by rw [Iic, coe_Icc, Icc_bot]
+
+@[simp] lemma coe_Iio (b : α) : (Iio b : set α) = set.Iio b :=
+by rw [Iio, coe_Ico, Ico_bot]
+
+@[simp] lemma mem_Iic_iff {b x : α} : x ∈ Iic b ↔ x ≤ b :=
+by rw [←set.mem_Iic, ←coe_Iic, mem_coe]
+
+@[simp] lemma mem_Iio_iff {b x : α} : x ∈ Iio b ↔ x < b :=
+by rw [←set.mem_Iio, ←coe_Iio, mem_coe]
 
 end order_bot
 
@@ -243,41 +267,47 @@ private lemma mem_range₂_ℤ (x : ℤ) : ∀ a n, x ∈ range₂ a n ↔ a ≤
   refl,
 end
 
-private lemma mem_range₂_ℕ (x : ℕ) : ∀ a n, x ∈ range₂ a n ↔ a ≤ x ∧ x < a + n
-| a 0     := by simp only [range₂, finset.not_mem_empty, add_zero, imp_self, false_iff,
-      int.coe_nat_zero, not_and, not_lt]
-| a (n + 1) := begin
-    have h : x = a ∨ x < a + (n + 1) ↔ x < a + (n + 1),
-    { rw or_iff_right_iff_imp,
-      rintro rfl,
-      exact (lt_add_iff_pos_right _).2 nat.succ_pos' },
-    rw [range₂, finset.mem_insert, le_iff_eq_or_lt, mem_range₂_ℕ _ n, add_assoc,
-      add_comm 1, @eq_comm _ a, or_and_distrib_left, h],
-    refl,
-  end
-
-instance int.locally_finite_order : locally_finite_order ℤ :=
-{ finset_Icc := λ a b, range₂ a (b + 1 - a).to_nat,
+instance nat.locally_finite_order : locally_finite_order ℕ :=
+{ finset_Icc := λ a b, (list.range' a (b + 1 - a)).to_finset,
   coe_finset_Icc := λ a b, begin
     ext,
-    rw [finset.mem_coe, mem_range₂_ℤ, set.mem_Icc],
+    rw [finset.mem_coe, list.mem_to_finset, list.mem_range', set.mem_Icc],
+    cases le_or_lt a b,
+    { rw [nat.add_sub_cancel' (nat.lt_succ_of_le h).le, nat.lt_succ_iff] },
+    rw [nat.sub_eq_zero_iff_le.2 h, add_zero],
+    exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)),
+end }
+
+instance int.locally_finite_order : locally_finite_order ℤ :=
+{ finset_Icc := λ a b, (finset.Iio (b + 1 - a).to_nat).map ⟨λ n, n + a, λ _, by simp only
+  [imp_self, forall_const, add_left_inj, int.coe_nat_inj']⟩,
+  coe_finset_Icc := λ a b, begin
+    ext,
+    rw [finset.mem_coe, finset.mem_map, set.mem_Icc, function.embedding.coe_fn_mk],
+    split,
+    {
+      rintro ⟨n, hn, hx⟩,
+      rw finset.mem_Iio_iff at hn,
+      rw ←hx,
+      sorry
+    },
+    rintro h,
+    refine ⟨(x - a).to_nat, _, _⟩,
+    { rw [finset.mem_Iio_iff, ←int.coe_nat_lt, int.to_nat_sub_of_le _ _ h.1],
+      exact int.to_nat_lt_to_nat (sub_le_sub_right h.2 _) },
+    rw sub_eq_add_neg,
+    rw int.to_nat_sub_of_le _ _ h.1,
+    simp,
+    cases le_or_lt a b,
+    {
+      rw int.to_nat_sub_of_le _ _ h,
+    },
     cases le_or_lt a b,
     { rw [int.to_nat_of_nonneg (sub_nonneg.2 (h.trans (lt_add_one _).le)), ←add_sub_assoc,
         add_sub_cancel', int.lt_add_one_iff] },
     rw [int.to_nat_of_nonpos (sub_nonpos.2 h), int.coe_nat_zero, add_zero],
     exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)),
   end }
-
-instance nat.locally_finite_order : locally_finite_order ℕ :=
-{ finset_Icc := λ a b, range₂ a (b + 1 - a),
-  coe_finset_Icc := λ a b, begin
-    ext,
-    rw [finset.mem_coe, mem_range₂_ℕ, set.mem_Icc],
-    cases le_or_lt a b,
-    { rw [nat.add_sub_cancel' (nat.lt_succ_of_le h).le, nat.lt_succ_iff] },
-    rw [nat.sub_eq_zero_iff_le.2 h, add_zero],
-    exact iff_of_false (λ hx, hx.2.not_le hx.1) (λ hx, h.not_le (hx.1.trans hx.2)),
-end }
 
 @[priority 900]
 noncomputable instance fintype.locally_finite_order [preorder α] [fintype α] :

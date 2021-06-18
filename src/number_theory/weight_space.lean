@@ -77,7 +77,11 @@ noncomputable instance (A : Type*) [topological_space A] [comm_group A] [topolog
 --instance : has_mod ℤ_[p] := sorry
 
 lemma padic_units_modp_units (b : units ℤ_[p]) :
-  is_unit ((padic_int.appr (b : ℤ_[p]) 1) : (zmod p)) := sorry
+  is_unit ((padic_int.appr (b : ℤ_[p]) 1) : (zmod p)) :=
+begin
+  rw padic_int.appr,
+  sorry
+end
 
 example {α β : Type*} (f : α → β) (h : function.surjective f) (b : β) : ∃ a, f a = b :=
 begin
@@ -130,23 +134,12 @@ def clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ) (a : zm
 lemma proj_lim_preimage_clopen (n : ℕ) (a : zmod (d*(p^n))) :
   is_clopen (set.preimage (padic_int.to_zmod_pow n) a : set ℤ_[p]) := sorry
 
---example {α β : Type*} {s : set α} {t : set β} : (s.prod t)ᶜ = ((set.univ : α).prod tᶜ) ∪
-
-lemma is_closed_prod {α β : Type*} [topological_space α] [topological_space β] {s : set α}
-  {t : set β} (h : is_closed s ∧ is_closed t) : is_closed (s.prod t) :=
-begin
-  fconstructor,
-  rw is_open_iff_forall_mem_open, rintros x hx, cases h with h1 h2,
-  rw ←is_open_compl_iff at *, rw is_open_iff_forall_mem_open at *,
-  sorry
-end
-
 lemma is_clopen_prod {α β : Type*} [topological_space α] [topological_space β] {s : set α}
   {t : set β} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s.prod t) :=
 begin
   split,
   { rw is_open_prod_iff', fconstructor, refine ⟨(hs).1, (ht).1⟩, },
-  { apply is_closed_prod, refine ⟨(hs).2, (ht).2⟩, },
+  { apply is_closed.prod (hs).2 (ht).2, },
 end
 
 lemma is_clopen_discrete {α : Type*} [topological_space α] [discrete_topology α] (b : α) :

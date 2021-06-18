@@ -256,15 +256,18 @@ begin
       intro H,
       apply hy',
       rw ext_iff,
-      exact ⟨by simp [H],by simp [inner_self_nonneg_im]⟩ },
+      exact ⟨by simp only [H, zero_re'],
+             by simp only [inner_self_nonneg_im, add_monoid_hom.map_zero]⟩ },
     have h₆ : re ⟪y, y⟫ ≠ 0 := ne_of_gt h₅,
     have hmain := calc
       0   ≤ re ⟪x - T • y, x - T • y⟫
                   : inner_self_nonneg
       ... = re ⟪x, x⟫ - re ⟪T • y, x⟫ - re ⟪x, T • y⟫ + re ⟪T • y, T • y⟫
-                  : by simp [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂]
+                  : by simp only [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂,
+                      neg_mul_eq_neg_mul_symm, add_monoid_hom.map_add, mul_re,
+                      conj_im, add_monoid_hom.map_sub, mul_neg_eq_neg_mul_symm, conj_re, neg_neg]
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
-                  : by simp [inner_smul_left, inner_smul_right, mul_assoc]
+                  : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
                   : by field_simp [-mul_re, inner_conj_sym, hT, conj_div, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)

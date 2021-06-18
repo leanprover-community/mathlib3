@@ -10,6 +10,9 @@ import tactic.wlog
 # Set enumeration
 
 This file allows enumeration of sets given a choice function.
+
+The definition does not assume `sel` actually is a choice function, i.e. `sel s ∈ s` and
+`sel s = none ↔ s = ∅`. These assumptions are added to the lemmas needing them.
 -/
 
 noncomputable theory
@@ -21,7 +24,9 @@ namespace set
 section enumerate
 parameters {α : Type*} (sel : set α → option α)
 
-/-- Given a choice function `sel`, enumerates the elements of a set. -/
+/-- Given a choice function `sel`, enumerates the elements of a set in the order
+`a 0 = sel s`, `a 1 = sel (s \ {a 0})`, `a 2 = sel (s \ {a 0, a 1})`, ... and stops when
+`sel (s \ {a 0, ..., a n}) = none`. Note that we don't require `sel` to be a choice function. -/
 def enumerate : set α → ℕ → option α
 | s 0       := sel s
 | s (n + 1) := do a ← sel s, enumerate (s \ {a}) n

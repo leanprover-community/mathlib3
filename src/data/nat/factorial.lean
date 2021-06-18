@@ -345,7 +345,8 @@ end
   exact (pow_sub_lt_desc_factorial' ((le_succ _).trans h)),
 end
 
-lemma pow_sub_lt_desc_factorial {n : ℕ} : ∀ {k : ℕ}, 2 ≤ k → k ≤ n → (n + 1 - k)^k < n.desc_factorial k
+lemma pow_sub_lt_desc_factorial {n : ℕ} :
+  ∀ {k : ℕ}, 2 ≤ k → k ≤ n → (n + 1 - k)^k < n.desc_factorial k
 | 0 := by rintro ⟨⟩
 | 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
 | (k + 2) := λ _ h, by { rw succ_sub_succ, exact pow_sub_lt_desc_factorial' h }

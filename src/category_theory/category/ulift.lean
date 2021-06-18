@@ -57,27 +57,19 @@ def ulift.equivalence : C ≌ (ulift.{u2} C) :=
   functor_unit_iso_comp' := λ X, by {change (𝟙 X) ≫ (𝟙 X) = 𝟙 X, simp} }
 
 instance [is_filtered C] : is_filtered (ulift.{u2} C) :=
-{ cocone_objs := λ X Y, ⟨⟨is_filtered.max X.down Y.down⟩,
-    is_filtered.left_to_max _ _, is_filtered.right_to_max _ _, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨⟨is_filtered.coeq f g⟩,
-    is_filtered.coeq_hom _ _, is_filtered.coeq_condition _ _⟩,
-  nonempty := ⟨⟨is_filtered.nonempty.some⟩⟩ }
+is_filtered.of_equivalence ulift.equivalence
 
 instance [is_cofiltered C] : is_cofiltered (ulift.{u2} C) :=
-{ cocone_objs := λ X Y, ⟨⟨is_cofiltered.min X.down Y.down⟩,
-    is_cofiltered.min_to_left _ _ , is_cofiltered.min_to_right _ _, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨⟨is_cofiltered.eq f g⟩,
-    is_cofiltered.eq_hom _ _, is_cofiltered.eq_condition _ _⟩,
-  nonempty := ⟨⟨is_cofiltered.nonempty.some⟩⟩ }
+is_cofiltered.of_equivalence ulift.equivalence
 
 variable (C)
 /-- `as_small C` is a small category equivalent to `C`.-/
 @[nolint unused_arguments]
-def as_small := ulift.{max v u1} C
+def as_small := ulift.{v} C
 variable {C}
 
 instance : small_category (as_small C) :=
-{ hom := λ X Y, ulift $ X.down ⟶ Y.down,
+{ hom := λ X Y, ulift.{u1} $ X.down ⟶ Y.down,
   id := λ X, ⟨𝟙 _⟩,
   comp := λ X Y Z f g, ⟨f.down ≫ g.down⟩ }
 

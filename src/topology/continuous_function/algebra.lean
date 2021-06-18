@@ -367,7 +367,7 @@ variables (R)
 /-- Composition on the left by a continuous linear map, as a `linear_map`.
 Similar to `linear_map.comp_left`. -/
 @[simps]
-def _root_.continuous_linear_map.comp_left (α : Type*) [topological_space α] (g : M →L[R] M₂) :
+def _root_.continuous_linear_map.comp_left_continuous (α : Type*) [topological_space α] (g : M →L[R] M₂) :
   C(α, M) →ₗ[R] C(α, M₂) :=
 { map_smul' := λ c f, ext $ λ x, g.map_smul' c _,
   .. g.to_linear_map.to_add_monoid_hom.comp_left_continuous α g.continuous }

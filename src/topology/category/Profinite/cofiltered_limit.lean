@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import topology.category.Profinite
+import topology.locally_constant.basic
 
 /-!
 # Cofiltered limits of profinite sets.
@@ -108,6 +109,19 @@ begin
       rw (hV s).2,
       dsimp only [W] at hx,
       rwa [dif_pos hs, ← set.preimage_comp, ← Profinite.coe_comp, C.w] at hx } }
+end
+
+lemma exists_locally_constant_fin_two (f : locally_constant C.X (fin 2)) :
+  ∃ (j : J) (g : locally_constant (F.obj j) (fin 2)), f = g.comap (C.π.app _) :=
+begin
+  let U := f ⁻¹' {0},
+  have hU : is_clopen U := f.is_locally_constant.is_clopen_fiber _,
+  obtain ⟨j,V,hV,h⟩ := exists_clopen_of_cofiltered C hC hU,
+  use [j, locally_constant.of_clopen hV],
+  apply locally_constant.locally_constant_eq_of_fiber_zero_eq,
+  rw locally_constant.coe_comap _ _ (C.π.app j).continuous,
+  conv_rhs { rw set.preimage_comp },
+  rw [locally_constant.of_clopen_fiber_zero hV, ← h],
 end
 
 end Profinite

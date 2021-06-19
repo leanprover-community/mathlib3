@@ -6,6 +6,7 @@ Authors: Bhavik Mehta
 import category_theory.concrete_category.basic
 import category_theory.yoneda
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.yoneda
 
 /-!
 # Representably concrete categories
@@ -52,6 +53,10 @@ lemma corepresentable_of_right_adjoint (F : C ⥤ Type v) [is_right_adjoint F] :
       rw is_iso_iff_bijective,
       apply equiv.bijective,
     end⟩ }
+
+def corep_preserves_limits
+  (F : C ⥤ Type v) [F.corepresentable] : limits.preserves_limits F :=
+limits.preserves_limits_of_nat_iso F.corepr_w
 
 variables [concrete_category.{v} C]
 

@@ -332,7 +332,7 @@ variables [has_one α]
 coe_eq_coe
 
 @[simp, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
-by rw [eq_comm, coe_eq_one]
+trans eq_comm coe_eq_one
 
 attribute [norm_cast] coe_one coe_eq_one coe_zero coe_eq_zero one_eq_coe zero_eq_coe
 
@@ -348,7 +348,7 @@ local attribute [semireducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
-  ..(by apply_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
+  ..(infer_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
 
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
@@ -364,7 +364,7 @@ lemma coe_bit1 [has_add α] [has_one α] {a : α} : ((bit1 a : α) : with_top α
 @[simp] lemma top_add [has_add α] {a : with_top α} : ⊤ + a = ⊤ := rfl
 
 lemma add_eq_top [has_add α] {a b : with_top α} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-by {cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add, ←with_zero.coe_add]}
+by cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add, ←with_zero.coe_add]
 
 lemma add_lt_top [has_add α] [partial_order α] {a b : with_top α} : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
 by simp [lt_top_iff_ne_top, add_eq_top, not_or_distrib]
@@ -512,7 +512,7 @@ class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoi
 /-- A canonically ordered monoid is an ordered commutative monoid
   in which the ordering coincides with the divisibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a * c`.
-  Example seem rare; it seems more likely that the `order_dual`
+  Examples seem rare; it seems more likely that the `order_dual`
   of a naturally-occurring lattice satisfies this than the lattice
   itself (for example, dual of the lattice of ideals of a PID or
   Dedekind domain satisfy this; collections of all things ≤ 1 seem to

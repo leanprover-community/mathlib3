@@ -71,32 +71,33 @@ the structure of a group.
 section subtype
 
 @[to_additive]
-instance continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
-  [monoid β] [has_continuous_mul β] : is_submonoid { f : α → β | continuous f } :=
-{ one_mem := @continuous_const _ _ _ _ 1,
-  mul_mem := λ f g fc gc, continuous.comp
-  has_continuous_mul.continuous_mul (continuous.prod_mk fc gc : _) }
+def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
+  [monoid β] [has_continuous_mul β] : submonoid (α → β) :=
+{ carrier := { f : α → β | continuous f },
+  one_mem' := @continuous_const _ _ _ _ 1,
+  mul_mem' := λ f g fc gc, continuous.comp
+    has_continuous_mul.continuous_mul (continuous.prod_mk fc gc : _) }
 
 @[to_additive]
-instance continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
-  [group β] [topological_group β] : is_subgroup { f : α → β | continuous f } :=
-{ inv_mem := λ f fc, continuous.comp (@topological_group.continuous_inv β _ _ _) fc,
+def continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
+  [group β] [topological_group β] : subgroup (α → β) :=
+{ inv_mem' := λ f fc, continuous.comp (@topological_group.continuous_inv β _ _ _) fc,
   ..continuous_submonoid α β, }.
 
 @[to_additive]
 instance continuous_monoid {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid { f : α → β | continuous f } :=
-subtype.monoid
+(continuous_submonoid α β).to_monoid
 
 @[to_additive]
 instance continuous_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group { f : α → β | continuous f } :=
-subtype.group
+(continuous_subgroup α β).to_group
 
 @[to_additive]
 instance continuous_comm_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [comm_group β] [topological_group β] : comm_group { f : α → β | continuous f } :=
-@subtype.comm_group _ _ _ (continuous_subgroup α β) -- infer_instance doesn't work?!
+(continuous_subgroup α β).to_comm_group
 
 end subtype
 
@@ -218,18 +219,31 @@ the structure of a ring.
 
 section subtype
 
-instance continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
-  [ring R] [topological_ring R] : is_subring { f : α → R | continuous f } :=
-{ ..continuous_add_subgroup α R,
+def continuous_subsemiring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
+  [semiring R] [topological_semiring R] : subsemiring (α → R) :=
+{ ..continuous_add_submonoid α R,
   ..continuous_submonoid α R }.
+
+instance continuous_semiring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
+  [semiring R] [topological_semiring R] : semiring { f : α → R | continuous f } :=
+(continuous_subsemiring α R).to_semiring
+
+instance continuous_comm_semiring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
+  [comm_semiring R] [topological_semiring R] : comm_semiring { f : α → R | continuous f } :=
+(continuous_subsemiring α R).to_comm_semiring
+
+def continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
+  [ring R] [topological_ring R] : subring (α → R) :=
+{ ..continuous_subsemiring α R,
+  ..continuous_add_subgroup α R }.
 
 instance continuous_ring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
   [ring R] [topological_ring R] : ring { f : α → R | continuous f } :=
-@subtype.ring _ _ _ (continuous_subring α R) -- infer_instance doesn't work?!
+(continuous_subring α R).to_ring
 
 instance continuous_comm_ring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
   [comm_ring R] [topological_ring R] : comm_ring { f : α → R | continuous f } :=
-@subtype.comm_ring _ _ _ (continuous_subring α R) -- infer_instance doesn't work?!
+(continuous_subring α R).to_comm_ring
 
 end subtype
 
@@ -280,9 +294,11 @@ topological semiring `R` inherit the structure of a module.
 
 section subtype
 
+section add_comm_monoid
+
 variables {α : Type*} [topological_space α]
 variables {R : Type*} [semiring R] [topological_space R]
-variables {M : Type*} [topological_space M] [add_comm_group M]
+variables {M : Type*} [topological_space M] [add_comm_monoid M]
 variables [module R M] [has_continuous_smul R M]
 
 instance continuous_has_scalar : has_scalar R { f : α → M | continuous f } :=
@@ -292,6 +308,15 @@ instance continuous_has_scalar : has_scalar R { f : α → M | continuous f } :=
 lemma continuous_functions.coe_smul (f : { f : α → M | continuous f }) (r : R) :
   ⇑(r • f) = r • f := rfl
 
+end add_comm_monoid
+
+section add_comm_group
+
+variables {α : Type*} [topological_space α]
+variables {R : Type*} [semiring R] [topological_space R]
+variables {M : Type*} [topological_space M] [add_comm_group M]
+variables [module R M] [has_continuous_smul R M]
+
 instance continuous_module [topological_add_group M] :
   module R { f : α → M | continuous f } :=
   module.of_core $
@@ -300,6 +325,8 @@ instance continuous_module [topological_add_group M] :
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
   one_smul := λ f, by ext x; exact one_smul R (f x) }
+
+end add_comm_group
 
 end subtype
 
@@ -365,8 +392,8 @@ section subtype
 
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
-{A : Type*} [topological_space A] [ring A]
-[algebra R A] [topological_ring A]
+{A : Type*} [topological_space A] [semiring A]
+[algebra R A] [topological_semiring A]
 
 /-- Continuous constant functions as a `ring_hom`. -/
 def continuous.C : R →+* { f : α → A | continuous f } :=
@@ -381,17 +408,7 @@ variables [topological_space R] [has_continuous_smul R A]
 instance : algebra R { f : α → A | continuous f } :=
 { to_ring_hom := continuous.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
-  smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
-  ..continuous_module,
-  ..continuous_ring }
-
-/- TODO: We are assuming `A` to be a ring and not a semiring just because there is not yet an
-instance of semiring. In turn, we do not want to define yet an instance of semiring because there is
-no `is_subsemiring` but only `subsemiring`, and it will make sense to change this when the whole
-file will have no more `is_subobject`s but only `subobject`s. It does not make sense to change
-it yet in this direction as `subring` does not exist yet, so everything is being blocked by
-`subring`: afterwards everything will need to be updated to the new conventions of Mathlib.
-Then the instance of `topological_ring` can also be removed, as it is below for `continuous_map`. -/
+  smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _, }
 
 end subtype
 

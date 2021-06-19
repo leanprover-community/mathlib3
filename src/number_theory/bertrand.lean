@@ -501,6 +501,8 @@ begin
   rw eight_simp,
   rw g,
   rw @foobar (x + 1) (by linarith),
+
+  -- Multiply through by sqrt (x + 1)
   sorry,
 
   -- Clear denominators, simplify the log and the sqrts, you get:
@@ -510,8 +512,35 @@ end
 
 lemma fff_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ fff (interior (Ici i)) :=
 begin
-  -- Should be easy: we already know its derivative, from derivative_fff
-  sorry
+  have d : differentiable_on ℝ (λ (x : ℝ), 8 * x + 8) (interior (Ici i)),
+    { refine differentiable_on.add_const _ _,
+      refine differentiable_on.const_mul _ _,
+      refine differentiable_on_id, },
+  refine differentiable_on.sub _ _,
+  { refine differentiable_on.mul_const _ _,
+    refine differentiable_on_id, },
+  { refine differentiable_on.mul _ _,
+    { refine differentiable_on.comp _ _ _,
+      { exact Ici i, },
+      { refine differentiable_on.sqrt _ _,
+        { refine differentiable_on_id, },
+        { intros x,
+          simp only [mem_Ici, ne.def],
+          intros x_in,
+          linarith, }, },
+      { exact d, },
+      { intro x,
+        simp only [interior_Ici, mem_Ici, mem_Ioi, mem_preimage],
+        intros x_big,
+        calc i ≤ x : le_of_lt x_big
+        ... ≤ 8 * x + 8 : by linarith,
+      }, },
+    { refine differentiable_on.log _ _,
+      { exact d, },
+      { intros x,
+        simp only [interior_Ici, mem_Ioi, ne.def],
+        intros x_big,
+        linarith, }, }, },
 end
 
 lemma fff_continuous {i : ℝ} (pr : 0 < i) : continuous_on fff (Ici (i : ℝ)) :=
@@ -545,15 +574,90 @@ begin
   ... = 2 : sqrt_mul_self (by linarith)
 end
 
+lemma log_pos_eq_zero {x : ℝ} (h : 0 < x) (hyp : log x = 0) : x = 1 :=
+begin
+  let e := log_inj_on_pos,
+  have r : log 1 = 0 := log_one,
+  have t : log x = log 1,
+    { rw log_one,
+      exact hyp, },
+  have x_one := log_inj_on_pos,
+  unfold inj_on at x_one,
+  have x_pos : x ∈ Ioi (0 : ℝ) := by simpa using h,
+  have one_pos : (1 : ℝ) ∈ Ioi (0 : ℝ) := by simp,
+  specialize x_one x_pos one_pos t,
+  exact x_one,
+end
+
+lemma log_eq_zero {x : ℝ} (hyp : log x = 0) : x = 0 ∨ x = 1 ∨ x = -1 :=
+begin
+  cases lt_trichotomy x 0,
+  { let e := log_abs x,
+    rw (abs_of_neg h) at e,
+    have t : 0 < -x := neg_pos.mpr h,
+    have minus_x_is_one : -x = 1 := log_pos_eq_zero t (by linarith),
+    exact or.inr (or.inr (eq_neg_of_eq_neg (eq.symm minus_x_is_one)))
+  },
+  { cases h,
+    { exact or.inl h, },
+    { exact or.inr (or.inl (log_pos_eq_zero h hyp)), }, },
+end
+
+lemma log_pow {x y : ℝ} : (x = 0 → y = 0) ↔ log (x ^ y) = y * log x :=
+begin
+  split,
+  { intros hyp,
+    have r : x ^ y = exp (log x * y),
+    { unfold pow, unfold rpow, unfold pow, unfold complex.cpow,
+      by_cases x = 0,
+      { subst h,
+        simp at hyp,
+        subst hyp,
+        simp, },
+      { unfold exp, unfold log,
+        have r : ¬ ((x : ℂ) = 0) := sorry,
+        rw if_neg r,
+        rw dif_neg h,
+        unfold complex.log,
+        sorry,
+      },
+    },
+    rw [r, log_exp],
+    exact mul_comm _ _,
+  },
+  { intros hyp x_zero,
+    subst x_zero,
+    simp at hyp,
+    cases log_eq_zero hyp,
+    { sorry, },
+    { cases h,
+      { sorry, },
+      { sorry, }, }
+  },
+end
+
 lemma fff_250 : fff 250 > 0 :=
 begin
   unfold fff,
   norm_num,
   have r : 11 * sqrt 502 < 250,
-    { sorry, },
+    { have s : (11 * sqrt 502) ^ 2 < 250 ^ 2,
+      { calc (11 * sqrt 502) ^ 2 = 11 ^ 2 * (sqrt 502) ^ 2 : by rw mul_pow
+        ... = 121 * (sqrt 502) ^ 2 : by norm_num
+        ... = 121 * ((sqrt 502) * (sqrt 502)) : by sorry
+        ... = 121 * 502 : by rw @mul_self_sqrt 502 (by norm_num)
+        ... = 60742 : by norm_num
+        ... < 250 ^ 2 : by norm_num, },
+      have e := abs_lt_of_sq_lt_sq s (by norm_num),
+      have u : 0 < 11 * sqrt 502, by norm_num,
+      have v : abs (11 * sqrt 502) = 11 * sqrt 502 := abs_of_pos u,
+      rw abs_of_pos u at e,
+      exact e, },
 
   have eight_pow : (8 : ℝ) = 2 ^ 3 := by norm_num,
   have two_fifty_six_pow : (256 : ℝ) = 2 ^ 8 := by norm_num,
+
+  have r : log 251 ≤ log 256 := (@log_le_log 251 256 (by norm_num) (by norm_num)).2 (by norm_num),
 
   calc sqrt 2008 * log 2008 = sqrt (4 * 502) * log 2008 : by norm_num
   ... = (sqrt 4 * sqrt 502) * log 2008 : by rw @sqrt_mul 4 (by linarith) 502

@@ -1883,8 +1883,8 @@ begin
         mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨min M b, by simp [hM, ht.2.2], subset.refl _⟩,
       filter_upwards [this],
       assume u hu,
-      have I : Icc t u ⊆ Icc a b := (Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _))),
-      calc (u - t) * y = (∫ v in Icc t u, y) :
+      have I : Icc t u ⊆ Icc a b := Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _)),
+      calc (u - t) * y = ∫ v in Icc t u, y :
         by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
                       measurable_set.univ, real.volume_Icc, measure.restrict_apply, univ_inter,
                       ennreal.to_real_of_real]
@@ -1894,9 +1894,8 @@ begin
         apply set_integral_mono_ae_restrict,
         { simp [integrable_on_const] },
         { exact integrable_on.mono_set G'int I },
-        { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ⊤,
-          { apply ae_mono _ G'lt_top,
-            apply measure.restrict_mono I (le_refl _) },
+        { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ⊤ :=
+            ae_mono (measure.restrict_mono I (le_refl _)) G'lt_top,
           have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
             ae_restrict_mem measurable_set_Icc,
           filter_upwards [C1, C2],
@@ -2004,8 +2003,7 @@ begin
       (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
       (g'int.mono_set (Icc_subset_Icc ht.1.le (le_refl _))) },
   rw closure_Ioc a_lt_b at A,
-  have a_mem : a ∈ Icc a b := ⟨le_refl _, hab⟩,
-  exact (A a_mem).1,
+  exact (A (left_mem_Icc.2 hab)).1,
 end
 
 variable {f' : ℝ → E}
@@ -2041,7 +2039,7 @@ begin
 end
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`) and
-  has a derivative at `f' x` for all `x` in `(a, b)`, and `f'` is continuous on `[a, b]`, then
+  has a derivative at `f' x` for all `x` in `(a, b)`, and `f'` is integrable on `[a, b]`, then
   `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at_of_le (hab : a ≤ b)
   (hcont : continuous_on f (Icc a b))
@@ -2050,7 +2048,7 @@ theorem integral_eq_sub_of_has_deriv_at_of_le (hab : a ≤ b)
 integral_eq_sub_of_has_deriv_right_of_le hab hcont (λ x hx, (hderiv x hx).has_deriv_within_at) hint
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` has a derivative at `f' x` for all `x` in
-  `[a, b]` and `f'` is continuous on `[a, b]`, then `∫ y in a..b, f' y` equals `f b - f a`. -/
+  `[a, b]` and `f'` is integrable on `[a, b]`, then `∫ y in a..b, f' y` equals `f b - f a`. -/
 theorem integral_eq_sub_of_has_deriv_at
   (hderiv : ∀ x ∈ interval a b, has_deriv_at f (f' x) x)
   (hint : integrable_on f' (interval a b)) :
@@ -2059,7 +2057,7 @@ integral_eq_sub_of_has_deriv_right (has_deriv_at.continuous_on hderiv)
   (λ x hx, (hderiv _ (mem_Icc_of_Ioo hx)).has_deriv_within_at) hint
 
 /-- Fundamental theorem of calculus-2: If `f : ℝ → E` is differentiable at every `x` in `[a, b]` and
-  its derivative is continuous on `[a, b]`, then `∫ y in a..b, deriv f y` equals `f b - f a`. -/
+  its derivative is integrable on `[a, b]`, then `∫ y in a..b, deriv f y` equals `f b - f a`. -/
 theorem integral_deriv_eq_sub (hderiv : ∀ x ∈ interval a b, differentiable_at ℝ f x)
   (hint : integrable_on (deriv f) (interval a b)) :
   ∫ y in a..b, deriv f y = f b - f a :=

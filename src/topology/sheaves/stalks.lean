@@ -133,8 +133,6 @@ lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
   (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
 colimit.hom_ext $ λ U, by { op_induction U, cases U with U hxU, exact ih U hxU }
 
-set_option profiler true
-
 /-- If two sections agree on all stalks, they must be equal -/
 lemma section_ext (F : sheaf (Type v) X) (U : opens X) (s t : F.presheaf.obj (op U))
   (h : ∀ x : U, F.presheaf.germ x s = F.presheaf.germ x t) :

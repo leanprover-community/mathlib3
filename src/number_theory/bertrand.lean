@@ -460,9 +460,7 @@ begin
 end
 
 lemma fff'_is_deriv {x : ℝ} (h : 0 < x) : deriv fff x = fff' x :=
-begin
-  sorry
-end
+by refine has_deriv_at.deriv (derivative_fff h)
 
 lemma foobar {x : ℝ} (h : 0 < x) : sqrt x * (1 / x) = 1 / sqrt x :=
 begin
@@ -519,7 +517,12 @@ end
 lemma fff_continuous {i : ℝ} (pr : 0 < i) : continuous_on fff (Ici (i : ℝ)) :=
 begin
   have e := differentiable_on.continuous_on (@fff_differentiable (i / 2) (by linarith)),
-  have s : Ici i ⊆ interior (Ici (i / 2)), by sorry,
+  have s : Ici i ⊆ interior (Ici (i / 2)),
+    { simp only [interior_Ici],
+      intro a,
+      simp,
+      intro a_in,
+      linarith, },
   exact continuous_on.mono e s,
 end
 

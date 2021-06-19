@@ -60,15 +60,16 @@ variables
 @[simp] lemma coe_fn_coe : ⇑(X : C^∞⟮I, G; 𝕜⟯ →ₗ[𝕜] C^∞⟮I, G; 𝕜⟯) = X := rfl
 @[simp] lemma to_derivation_eq_coe : X.to_derivation = X := rfl
 
-lemma coe_injective (h : ⇑X = Y) : X = Y :=
-by { cases X, cases Y, congr', exact derivation.coe_injective h }
+lemma coe_injective :
+  @function.injective (left_invariant_derivation I G) (_ → C^⊤⟮I, G; 𝕜⟯) coe_fn :=
+λ X Y h, by { cases X, cases Y, congr', exact derivation.coe_injective h }
 
 @[ext] theorem ext (h : ∀ f, X f = Y f) : X = Y :=
 coe_injective $ funext h
 
 variables (X Y f)
 
-@[simp] lemma coe_derivation :
+lemma coe_derivation :
   ⇑(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = (X : C^∞⟮I, G; 𝕜⟯ → C^∞⟮I, G; 𝕜⟯) := rfl
 
 lemma coe_derivation_injective : function.injective
@@ -110,14 +111,7 @@ instance : has_sub (left_invariant_derivation I G) :=
 @[simp] lemma map_sub : X (f - f') = X f - X f' := linear_map.map_sub X f f'
 
 instance : add_comm_group (left_invariant_derivation I G) :=
-{ add_assoc := λ X Y Z, ext $ λ a, add_assoc _ _ _,
-  zero_add := λ X, ext $ λ a, zero_add _,
-  add_zero := λ X, ext $ λ a, add_zero _,
-  add_comm := λ X Y, ext $ λ a, add_comm _ _,
-  add_left_neg := λ X, ext $ λ a, add_left_neg _,
-  ..left_invariant_derivation.has_zero,
-  ..left_invariant_derivation.has_add,
-  ..left_invariant_derivation.has_neg }
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
 instance : module 𝕜 (left_invariant_derivation I G) :=
 module.of_core $

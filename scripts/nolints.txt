@@ -382,9 +382,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/set/enumerate.lean
-apply_nolint set.enumerate doc_blame
-
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
 

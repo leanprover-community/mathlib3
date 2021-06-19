@@ -2018,7 +2018,7 @@ theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : contin
   (f'int : integrable_on f' (Icc a b)) :
   ∫ y in a..b, f' y = f b - f a :=
 begin
-  refine (eq_iff_forall_dual_eq ℝ).2 (λ g, _),
+  refine (normed_space.eq_iff_forall_dual_eq ℝ).2 (λ g, _),
   rw [← g.interval_integral_comp_comm, g.map_sub],
   { exact integral_eq_sub_of_has_deriv_right_of_le_real' hab (g.continuous.comp_continuous_on hcont)
     (λ x hx, g.has_fderiv_at.comp_has_deriv_within_at x (hderiv x hx)) (g.integrable_comp f'int) },

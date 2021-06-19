@@ -5,7 +5,7 @@ Authors: Rémy Degenne, Sébastien Gouëzel
 -/
 import measure_theory.ess_sup
 import measure_theory.ae_eq_fun
-import analysis.mean_inequalities
+import measure_theory.mean_inequalities
 import topology.continuous_function.compact
 
 /-!

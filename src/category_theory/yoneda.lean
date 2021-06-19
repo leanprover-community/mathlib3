@@ -124,12 +124,6 @@ nat_iso.of_components
   (λ X, { hom := λ f, f ⟨⟩, inv := λ x _, x })
   (by tidy)
 
-/-- A Type-valued presheaf `P` is isomorphic to the composition of `P` with the
-  coyoneda functor coming from `punit`. -/
-@[simps] def iso_comp_punit (P : C ⥤ Type v₁) : (P ⋙ coyoneda.obj (op punit.{v₁+1})) ≅ P :=
-{ hom := { app := λ X f, f punit.star},
-  inv := { app := λ X a _, a } }
-
 end coyoneda
 
 namespace functor
@@ -143,13 +137,8 @@ See https://stacks.math.columbia.edu/tag/001Q.
 class representable (F : Cᵒᵖ ⥤ Type v₁) : Prop :=
 (has_representation : ∃ X (f : yoneda.obj X ⟶ F), is_iso f)
 
-/-- Given an object `X` and an isomorphism `yoneda.obj X ≅ F`, `F` is representable. -/
-def representable_of_nat_iso {F : Cᵒᵖ ⥤ Type v₁} (X : C) (i : yoneda.obj X ≅ F) :
-  F.representable :=
-{ has_representation := ⟨X, i.hom, infer_instance⟩ }
-
 instance {X : C} : representable (yoneda.obj X) :=
-representable_of_nat_iso _ (iso.refl _)
+{ has_representation := ⟨X, 𝟙 _, infer_instance⟩ }
 
 /--
 A functor `F : C ⥤ Type v₁` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
@@ -159,26 +148,28 @@ See https://stacks.math.columbia.edu/tag/001Q.
 class corepresentable (F : C ⥤ Type v₁) : Prop :=
 (has_corepresentation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
 
-def corepresentable_of_nat_iso {F : C ⥤ Type v₁} (X : Cᵒᵖ) (i : coyoneda.obj X ≅ F) :
-  F.corepresentable :=
-{ has_corepresentation := ⟨X, i.hom, infer_instance⟩ }
-
 instance {X : Cᵒᵖ} : corepresentable (coyoneda.obj X) :=
-corepresentable_of_nat_iso X (iso.refl _)
+{ has_corepresentation := ⟨X, 𝟙 _, infer_instance⟩ }
 
-instance : corepresentable (𝟭 (Type v₁)) :=
-corepresentable_of_nat_iso (op punit) coyoneda.punit_iso
+-- instance : corepresentable (𝟭 (Type v₁)) :=
+-- corepresentable_of_nat_iso (op punit) coyoneda.punit_iso
 
 section representable
 variables (F : Cᵒᵖ ⥤ Type v₁)
 variable [F.representable]
 
+/-- The representing object for the representable functor `F`. -/
 noncomputable def repr_X : C :=
 (representable.has_representation : ∃ X (f : _ ⟶ F), _).some
 
+/-- The (forward direction of the) isomorphism witnessing `F` is representable. -/
 noncomputable def repr_f : yoneda.obj F.repr_X ⟶ F :=
 representable.has_representation.some_spec.some
 
+/--
+The representing element for the representable functor `F`, sometimes called the universal
+element of the functor.
+-/
 noncomputable def repr_x : F.obj (op F.repr_X) :=
 F.repr_f.app (op F.repr_X) (𝟙 F.repr_X)
 
@@ -186,7 +177,8 @@ instance : is_iso F.repr_f :=
 representable.has_representation.some_spec.some_spec
 
 /--
-Note the components `F_repr.w.app X` definitionally have type `F.repr_X ⟶ X ≅ F.obj X`.
+An isomorphism between `F` and a functor of the form `C(-, F.repr_X)`.  Note the components
+`F.repr_w.app X` definitionally have type `(X.unop ⟶ F.repr_X) ≅ F.obj X`.
 -/
 noncomputable def repr_w : yoneda.obj F.repr_X ≅ F := as_iso F.repr_f
 
@@ -208,12 +200,18 @@ section corepresentable
 variables (F : C ⥤ Type v₁)
 variable [F.corepresentable]
 
+/-- The representing object for the corepresentable functor `F`. -/
 noncomputable def corepr_X : C :=
 (corepresentable.has_corepresentation : ∃ X (f : _ ⟶ F), _).some.unop
 
+/-- The (forward direction of the) isomorphism witnessing `F` is corepresentable. -/
 noncomputable def corepr_f : coyoneda.obj (op F.corepr_X) ⟶ F :=
 corepresentable.has_corepresentation.some_spec.some
 
+/--
+The representing element for the corepresentable functor `F`, sometimes called the universal
+element of the functor.
+-/
 noncomputable def corepr_x : F.obj F.corepr_X :=
 F.corepr_f.app F.corepr_X (𝟙 F.corepr_X)
 
@@ -221,7 +219,8 @@ instance : is_iso F.corepr_f :=
 corepresentable.has_corepresentation.some_spec.some_spec
 
 /--
-Note the components `F.w.app X` definitionally have type `F.X ⟶ X ≅ F.obj X`.
+An isomorphism between `F` and a functor of the form `C(F.corepr X, -)`. Note the components
+`F.corepr_w.app X` definitionally have type `F.corepr_X ⟶ X ≅ F.obj X`.
 -/
 noncomputable def corepr_w : coyoneda.obj (op F.corepr_X) ≅ F := as_iso F.corepr_f
 
@@ -238,13 +237,16 @@ end corepresentable
 
 end functor
 
-lemma representable_of_nat_iso {F G : Cᵒᵖ ⥤ Type v₁} (i : F ≅ G) [F.representable] :
+lemma representable_of_nat_iso (F : Cᵒᵖ ⥤ Type v₁) {G} (i : F ≅ G) [F.representable] :
   G.representable :=
-functor.representable_of_nat_iso _ (F.repr_w ≪≫ i)
+{ has_representation := ⟨F.repr_X, F.repr_f ≫ i.hom, infer_instance⟩ }
 
-lemma corepresentable_of_nat_iso {F G : C ⥤ Type v₁} (i : F ≅ G) [F.corepresentable] :
+lemma corepresentable_of_nat_iso (F : C ⥤ Type v₁) {G} (i : F ≅ G) [F.corepresentable] :
   G.corepresentable :=
-functor.corepresentable_of_nat_iso _ (F.corepr_w ≪≫ i)
+{ has_corepresentation := ⟨op F.corepr_X, F.corepr_f ≫ i.hom, infer_instance⟩ }
+
+instance : functor.corepresentable (𝟭 (Type v₁)) :=
+corepresentable_of_nat_iso (coyoneda.obj (op punit)) coyoneda.punit_iso
 
 open opposite
 

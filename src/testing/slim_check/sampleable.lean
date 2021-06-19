@@ -227,7 +227,7 @@ if h : n ≤ 1
     let m := n / 2 in
     have h₀ : m ≤ k, from le_trans (le_of_lt this) hn,
     have h₃ : 0 < m,
-      by simp only [m, lt_iff_add_one_le, zero_add]; rw [le_div_iff_mul_le]; linarith,
+      by simp only [m, lt_iff_add_one_le, zero_add]; rw [nat.le_div_iff_mul_le]; linarith,
     have h₁ : k - m < k,
       from nat.sub_lt (lt_of_lt_of_le h₂ hn) h₃,
     nat.shrink' m h₀ (⟨k - m, h₁⟩ :: ls)

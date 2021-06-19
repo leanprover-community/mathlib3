@@ -41,7 +41,6 @@ class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α 
   * `a ≤ b → c + a ≤ c + b` (addition is monotone)
   * `a + b < a + c → b < c`.
 -/
-
 @[protect_proj, ancestor add_comm_monoid partial_order]
 class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
@@ -57,21 +56,25 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
 { elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
 @[to_additive]
-instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  covariant_class M M (function.swap (*)) (≤) :=
-{ elim := λ a b c bc,
-    by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
-
-@[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (*) (<) :=
 { elim := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
 
+-- This instance can be proven with `by apply_instance`.  However, `with_bot ℕ` does not
+-- pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it.
+@[to_additive]
+instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
+  covariant_class M M (function.swap (*)) (≤) :=
+covariant_swap_mul_le_of_covariant_mul_le M
+
+-- This instance can be proven with `by apply_instance`.  However, by analogy with the
+-- instance `ordered_comm_monoid.to_covariant_class_right` above, I imagine that without
+-- this instance, some Type would not have a `contravariant_class M M (function.swap (*)) (≤)`
+-- instance.
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (function.swap (*)) (<) :=
-{ elim := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
-    exact ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc } }
+contravariant_swap_mul_lt_of_contravariant_mul_lt M
 
 end ordered_instances
 

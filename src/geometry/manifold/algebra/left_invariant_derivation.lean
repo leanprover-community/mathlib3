@@ -77,8 +77,8 @@ lemma coe_derivation_injective : function.injective
 λ X Y h, by { cases X, cases Y, congr, exact h }
 
 /-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
-lemma left_invariant' : (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X)
-  (f : C^∞⟮I, G; 𝕜⟯[(𝑳 I g) 1]) = derivation.eval_at g ↑X (f : C^∞⟮I, G; 𝕜⟯[g]) :=
+lemma left_invariant' :
+  (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f = derivation.eval_at g ↑X f :=
 by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
 
 instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,

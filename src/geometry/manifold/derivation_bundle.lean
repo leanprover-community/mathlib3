@@ -36,10 +36,20 @@ instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^�
 variables (𝕜 M) (n : with_top ℕ)
 
 /-- Type synonim to avoid metavariables. -/
-@[reducible, nolint unused_arguments] def pointed_smooth_map (x : M) := C^n⟮I, M; 𝕜⟯
+@[nolint unused_arguments] def pointed_smooth_map (x : M) := C^n⟮I, M; 𝕜⟯
 
 localized "notation `C^` n`⟮` I`,` M`;` 𝕜`⟯[` x`]` :=
   point_derivation.pointed_smooth_map 𝕜 I M n x" in derivation
+
+instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯[x] := by { rw pointed_smooth_map, apply_instance }
+instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯[x] := by { rw pointed_smooth_map, apply_instance }
+instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯[x] := by { dunfold pointed_smooth_map, apply_instance }
+
+instance {x : M} : algebra C^∞⟮I, M; 𝕜⟯[x] C^∞⟮I, M; 𝕜⟯ :=
+by { dunfold pointed_smooth_map, apply_instance }
+
+instance {x : M} : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯[x] C^∞⟮I, M; 𝕜⟯ :=
+by { dunfold pointed_smooth_map, apply_instance }
 
 variables {𝕜 M}
 

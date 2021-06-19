@@ -3,7 +3,8 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.normed_space.pi_Lp
+import analysis.normed_space.inner_product
+import analysis.special_functions.trigonometric
 import algebra.quadratic_discriminant
 import analysis.normed_space.add_torsor
 import data.matrix.notation

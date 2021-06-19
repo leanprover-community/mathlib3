@@ -95,7 +95,8 @@ homomorphism `f` between `α` and `β`. -/
 @[simps] protected def ring_hom.comp_left {α β : Type*} [non_assoc_semiring α]
   [non_assoc_semiring β] (f : α →+* β) (I : Type*) :
   (I → α) →+* (I → β) :=
-{ .. f.to_monoid_hom.comp_left I,
+{ to_fun := λ h, f ∘ h,
+  .. f.to_monoid_hom.comp_left I,
   .. f.to_add_monoid_hom.comp_left I }
 
 end ring_hom

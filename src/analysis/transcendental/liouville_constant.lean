@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa, Jujian Zhang
 -/
 import data.real.liouville
-import analysis.transcendental.somewhere_else_lemmas
+import analysis.transcendental.inequalities_and_series
 /-!
 # Liouville constants
 

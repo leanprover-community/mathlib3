@@ -202,6 +202,13 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 theorem numeric_omega : numeric omega :=
 ⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
+theorem zero_lt_one : (0 : pgame) < 1 :=
+begin
+  rw lt_def,
+  left,
+  use ⟨punit.star, by split; rintro ⟨ ⟩⟩,
+end
+
 /-- The pre-game `half` is defined as `{0 | 1}`. -/
 def half : pgame := ⟨punit, punit, 0, 1⟩
 
@@ -214,10 +221,7 @@ theorem numeric_half : numeric half :=
 begin
   split,
   { rintros ⟨ ⟩ ⟨ ⟩,
-    dsimp,
-    rw zero_lt,
-    use punit.star,
-    rintro ⟨ ⟩ },
+    exact zero_lt_one },
   split; rintro ⟨ ⟩,
   { exact numeric_zero },
   { exact numeric_one }
@@ -237,10 +241,7 @@ begin
   right,
   use punit.star,
   split; rintro ⟨ ⟩,
-  dsimp,
-  rw zero_lt,
-  use punit.star,
-  rintro ⟨ ⟩,
+  exact zero_lt_one,
 end
 
 theorem add_half_self_equiv_one : half + half ≈ 1 :=
@@ -254,14 +255,14 @@ begin
             = (half.move_left punit.star + half).move_right (sum.inr punit.star) : by fsplit
         ... = (0 + half).move_right (sum.inr punit.star) : by fsplit
         ... ≈ 1 : zero_add_equiv 1
-        ... ≤ 1 : le_refl 1 },
+        ... ≤ 1 : pgame.le_refl 1 },
       { right,
         use (sum.inl punit.star),
         calc ((half + half).move_left (sum.inr punit.star)).move_right (sum.inl punit.star)
             = (half + half.move_left punit.star).move_right (sum.inl punit.star) : by fsplit
         ... = (half + 0).move_right (sum.inl punit.star) : by fsplit
         ... ≈ 1 : add_zero_equiv 1
-        ... ≤ 1 : le_refl 1 } },
+        ... ≤ 1 : pgame.le_refl 1 } },
     { rintro ⟨ ⟩ } },
   { split,
     { rintro ⟨ ⟩,
@@ -273,10 +274,10 @@ begin
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
       { left,
         use (sum.inr punit.star),
-        calc 1 ≤ 1 : le_refl 1
+        calc 1 ≤ 1 : pgame.le_refl 1
            ... ≈ 1 + 0 : (add_zero_equiv 1).symm },
       { use (sum.inl punit.star),
-        calc 1 ≤ 1 : le_refl 1
+        calc 1 ≤ 1 : pgame.le_refl 1
            ... ≈ 0 + 1 : (zero_add_equiv 1).symm } } }
 end
 
@@ -296,13 +297,35 @@ by { cases n; refl }
 by { cases n; cases i; refl }
 
 @[simp] lemma pow_half_move_right {n i} : (pow_half (n + 1)).move_right i = pow_half n :=
-by { cases n; cases i; refl }
+by cases n; cases i; refl
 
-lemma exists_pow_half_move_left (n) : ∃ i, (pow_half n).move_left i = 0 :=
-by { cases n; use punit.star; refl }
+lemma pow_half_left_moves' {n} : punit ≃ (pow_half n).left_moves :=
+begin
+  simp only [pow_half_left_moves],
+  fsplit, -- apply equiv.cast does not work?
+  { intro, fsplit },
+  { intro, fsplit },
+  { intro x, dec_trivial },
+  { intro x, dec_trivial }
+end
 
-lemma exists_pow_half_move_right (n) : ∃ i, (pow_half (n + 1)).move_right i = pow_half n :=
-by { cases n; use punit.star; refl }
+lemma pow_half_right_moves' {n} : punit ≃ (pow_half (n + 1)).right_moves :=
+begin
+  simp only [pow_half_right_moves],
+  fsplit, -- apply equiv.cast does not work?
+  { intro, fsplit },
+  { intro, fsplit },
+  { intro x, dec_trivial },
+  { intro x, dec_trivial }
+end
+
+@[simp] lemma pow_half_move_left' (n) :
+  (pow_half n).move_left (pow_half_left_moves' punit.star) = 0 :=
+by simp only [eq_self_iff_true, pgame.pow_half_move_left]
+
+@[simp] lemma pow_half_move_right' (n) :
+  (pow_half (n + 1)).move_right (pow_half_right_moves' punit.star) = pow_half n :=
+by simp only [pgame.pow_half_move_right, eq_self_iff_true]
 
 /-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
 theorem numeric_pow_half {n} : (pow_half n).numeric :=
@@ -311,22 +334,16 @@ begin
   { exact numeric_one },
   { split,
     { rintro ⟨ ⟩ ⟨ ⟩,
-      obtain ⟨i, hi⟩ := exists_pow_half_move_left n,
       dsimp,
-      rw [← hi],
-      exact hn.move_left_lt i },
+      rw ← @pow_half_move_left' n,
+      apply hn.move_left_lt },
     { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
 end
 
-theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n :=
-begin
-  obtain ⟨i, hi⟩ := exists_pow_half_move_right n,
-  have := (@numeric_pow_half (n + 1)).lt_move_right i,
-  rwa hi at this,
-end
+theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n := (@numeric_pow_half (n + 1)).lt_move_right punit.star
 
 theorem zero_lt_pow_half {n : ℕ} : 0 < pow_half n :=
-by { cases n; rw lt_def_le; use ⟨punit.star, le_refl 0⟩ }
+by { cases n; rw lt_def_le; use ⟨punit.star, pgame.le_refl 0⟩ }
 
 theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
 begin
@@ -340,7 +357,6 @@ begin
       { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
                                    ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
     { rintro ⟨ ⟩,
-      change pow_half (n.succ + 1) + pow_half (n.succ + 1) < (pow_half n),
       rw lt_def_le,
       right,
       use sum.inl punit.star,
@@ -353,8 +369,8 @@ begin
        ... ≤ pow_half (n.succ + 1) + 0
            : by { refine add_le_add_right _,
                   apply le_of_lt numeric_zero,
-                  { apply numeric_pow_half },
-                  { apply zero_lt_pow_half } }
+                  { exact numeric_pow_half },
+                  { exact zero_lt_pow_half } }
        ... < pow_half (n.succ + 1) + pow_half (n.succ + 1)
            : add_lt_add_left zero_lt_pow_half },
   { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
@@ -468,26 +484,27 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
 lemma nonneg_of_nsmul_pos (m : ℕ) {x : surreal} (hx : 0 < x) : 0 ≤ m • x :=
 begin
   induction m with m hm,
-  { simp }, -- squeeze_simp fails?
+  { simp only [le_refl, zero_smul] },
   { rw [succ_nsmul x m],
-    apply add_nonneg (le_of_lt hx) hm }
+    exact add_nonneg (le_of_lt hx) hm }
 end
 
 lemma pos_of_nsmul_pos {m : ℕ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
 begin
-    induction m with m hm,
+    induction m with m _,
     { exfalso, exact nat.lt_asymm hm hm },
     { rw [succ_nsmul x m],
-      apply lt_add_of_pos_of_le hx (nonneg_of_nsmul_pos _ hx) }
+      exact lt_add_of_pos_of_le hx (nonneg_of_nsmul_pos _ hx) }
 end
 
 lemma lt_of_nsmul_pos_lt {m : ℕ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
 begin
   rw ← sub_pos at *,
   have : m • y - m • x = m • (y - x),
-    by { have := (nsmul_add y (-x) m).symm, rwa [neg_nsmul x m] at this },
+    by { have := (nsmul_add y (-x) m).symm,
+         rwa [neg_nsmul x m] at this },
   rw this,
-  apply pos_of_nsmul_pos hm hxy,
+  exact pos_of_nsmul_pos hm hxy,
 end
 
 lemma lt_of_gsmul_pos_lt {m : ℤ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
@@ -502,11 +519,10 @@ end
 lemma gmul_cancel_of_pos {m : ℤ} {x y : surreal} (hm : 0 < m) (hmxy : m • x  = m • y) : x = y :=
 begin
     contrapose hmxy,
-    cases (@ne_iff_lt_or_gt _ _ x y).1 hmxy with hmxy' hmxy',
-    { apply _root_.ne_of_lt,
+    cases ne_iff_lt_or_gt.mp hmxy with hmxy' hmxy',
+    { apply ne_of_lt,
       exact lt_of_gsmul_pos_lt hm hmxy' },
     { apply ne_of_gt,
-      change y < x at hmxy',
       exact lt_of_gsmul_pos_lt hm hmxy' }
 end
 
@@ -535,7 +551,7 @@ lemma double_pow_half_succ_eq_pow_half (n : ℕ) : 2 • pow_half n.succ = pow_h
 begin
   rw two_nsmul,
   apply quotient.sound,
-  apply pgame.add_pow_half_succ_self_eq_pow_half,
+  exact pgame.add_pow_half_succ_self_eq_pow_half,
 end
 
 /-- Exponentiation map from natural numbers to powers of integers. -/
@@ -547,15 +563,14 @@ nat.find $ (submonoid.mem_powers_iff a p.val).1 p.prop
 
 @[simp] theorem log_pow_eq_self (a : ℤ) (ha : 2 ≤ a) (n : ℕ) : log (pow a n) = n :=
 begin
-  unfold log,
+  rw log,
   generalize_proofs h,
-  exact @int.pow_right_injective a ha (nat.find h) n (nat.find_spec h),
+  exact int.pow_right_injective ha (nat.find_spec h),
 end
 
 @[simp] theorem pow_log_eq_self {a : ℤ} (n : submonoid.powers a) : pow a (log n) = n :=
 begin
-  unfold pow,
-  unfold log,
+  rw [pow, log],
   rcases n with ⟨_, hn⟩,
   congr,
   exact nat.find_spec hn,
@@ -573,11 +588,9 @@ lemma nsmul_pow_two_pow_half' (n k : ℕ) : 2 ^ n • pow_half (n + k) = pow_hal
 begin
   induction k with k hk,
   { simp [nsmul_pow_two_pow_half] },
-  { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k] at hk,
-    have : 2 ^ n • 2 • pow_half (n + k).succ = 2 • 2 ^ n • pow_half (n + k).succ,
-      by { apply smul_algebra_smul_comm },
-    rw this at hk,
-    exact (@gmul_cancel_of_pos 2 (2^n • pow_half (n + k).succ) (pow_half k.succ) (by norm_num)) hk }
+  { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k,
+        smul_algebra_smul_comm] at hk,
+    exact @gmul_cancel_of_pos 2 _ _ (by norm_num) hk }
 end
 
 lemma nsmul_int_pow_two_pow_half (m : ℤ) (n k : ℕ) :
@@ -592,15 +605,14 @@ end
 lemma dyadic_aux {m₁ m₂ : ℤ} {y₁ y₂ : ℕ} (h₂ : m₁ * (2 ^ y₁) = m₂ * (2 ^ y₂)) :
   m₁ • pow_half y₂ = m₂ • pow_half y₁ :=
 begin
-  by_cases y₁ ≤ y₂,
-  { obtain ⟨c, hc⟩ := le_iff_exists_add.1 h,
+  obtain h | h := le_or_lt y₁ y₂,
+  { obtain ⟨c, hc⟩ := le_iff_exists_add.mp h,
     rw [hc, add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
     cases h₂,
     { rw [h₂, hc, add_comm, nsmul_int_pow_two_pow_half m₂ c y₁] },
     { have := nat.one_le_pow y₁ 2 nat.succ_pos',
       linarith } },
-  { push_neg at h,
-    obtain ⟨c, hc⟩ := le_iff_exists_add.1 (le_of_lt h),
+  { obtain ⟨c, hc⟩ := le_iff_exists_add.1 (le_of_lt h),
     rw [hc, add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
     cases h₂,
     { rw [← h₂, hc, add_comm, nsmul_int_pow_two_pow_half m₁ c y₂] },
@@ -609,7 +621,7 @@ begin
 end
 
 /-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
-def dyadic_map : localization (@submonoid.powers ℤ _ 2) → surreal :=
+def dyadic_map : localization (submonoid.powers (2 : ℤ)) → surreal :=
 begin
   apply quotient.lift,
   swap,
@@ -622,8 +634,8 @@ begin
     { simp only,
       obtain ⟨a₁, ha₁⟩ := classical.indefinite_description _ n₁.prop,
       obtain ⟨a₂, ha₂⟩ := classical.indefinite_description _ n₂.prop,
-      have hn₁ : n₁ = pow 2 a₁, by { ext1, solve_by_elim },
-      have hn₂ : n₂ = pow 2 a₂, by { ext1, solve_by_elim },
+      have hn₁ : n₁ = pow 2 a₁, by { ext, exact ha₁.symm },
+      have hn₂ : n₂ = pow 2 a₂, by { ext, exact ha₂.symm },
       rw [hn₁, hn₂, log_pow_eq_self 2 rfl.ge, log_pow_eq_self 2 rfl.ge],
       apply dyadic_aux,
       rwa [ha₁, ha₂] },

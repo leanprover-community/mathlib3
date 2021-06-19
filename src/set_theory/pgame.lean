@@ -359,14 +359,14 @@ end
 theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
 theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
 
-@[refl] theorem le_refl : ∀ x : pgame, x ≤ x
+@[refl, protected] theorem le_refl : ∀ x : pgame, x ≤ x
 | ⟨l, r, L, R⟩ := by rw mk_le_mk; exact
 ⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
 
-theorem lt_irrefl (x : pgame) : ¬ x < x :=
+@[protected] theorem lt_irrefl (x : pgame) : ¬ x < x :=
 not_lt.2 (le_refl _)
 
-theorem ne_of_lt : ∀ {x y : pgame}, x < y → x ≠ y
+@[protected] theorem ne_of_lt : ∀ {x y : pgame}, x < y → x ≠ y
 | x _ h rfl := lt_irrefl x h
 
 theorem le_trans_aux

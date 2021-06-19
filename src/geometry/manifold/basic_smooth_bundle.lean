@@ -500,7 +500,7 @@ them, noting in particular that the tangent bundle is a smooth manifold. -/
 variable (M)
 
 instance : topological_space (tangent_bundle I M) :=
-(tangent_bundle_core I M).to_topological_fiber_bundle_core.to_topological_space
+(tangent_bundle_core I M).to_topological_fiber_bundle_core.to_topological_space (atlas H M)
 
 instance : charted_space (model_prod H E) (tangent_bundle I M) :=
 (tangent_bundle_core I M).to_charted_space

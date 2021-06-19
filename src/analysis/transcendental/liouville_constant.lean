@@ -16,6 +16,7 @@ noncomputable theory
 open_locale nat big_operators
 open set real finset
 
+-- Should this lemma go somewhere else?
 lemma summable_inv_pow_ge {m : ℝ} {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
   summable (λ i, 1 / m ^ f i) :=
 begin

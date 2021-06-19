@@ -536,6 +536,16 @@ end
 --   sorry,
 -- end
 
+lemma zero_le_three : (0 : ℝ) ≤ (3 : ℝ) := by norm_num
+lemma zero_le_log_four : (0 : ℝ) ≤ log 4 := log_nonneg (by norm_num)
+
+lemma zero_lt_three_pow_three : (0 : ℝ) < 3 ^ 3 := by norm_num
+
+lemma intermediate (x : ℝ) : sqrt (8 * x + 8) ^ (3 : ℝ) * (3 ^ (3 : ℝ) * (8 * x + 8)) ≤ x ^ (3 : ℝ) * log 4 ^ (3 : ℝ) :=
+begin
+  sorry
+end
+
 lemma linear_dominates_sqrt_log (x : ℝ) (hx : 249 ≤ x) : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
 begin
   have h1 : 0 < sqrt (8 * x + 8),
@@ -546,11 +556,16 @@ begin
   rw @exp_log (8 * x + 8) (by linarith),
   calc 8 * x + 8 ≤ (x * log 4 / sqrt (8 * x + 8) / 3) ^ (3 : ℝ) :
               begin
-                rw div_rpow,
-                rw div_rpow,
-                rw mul_rpow,
+                have x_nonneg : 0 ≤ x := by linarith,
+                have s: 0 ≤ x * log 4 := mul_nonneg x_nonneg zero_le_log_four,
+                rw div_rpow (div_nonneg s (sqrt_nonneg _)) zero_le_three,
+                rw div_rpow s (sqrt_nonneg _),
+                rw mul_rpow x_nonneg zero_le_log_four,
                 rw le_div_iff',
-                rw le_div_iff',
+                { rw le_div_iff',
+                  { exact intermediate x, },
+                  { sorry, }, },
+                sorry,
                 -- rewrite saldkaoiew (8 * x + 8),
               end
   ...      ≤ exp (3 * (x * log 4 / sqrt (8 * x + 8) / 3)) :
@@ -576,6 +591,7 @@ begin
               end
 end
 
+/-
 lemma pow_beats_pow_2 (n : ℕ) (n_large : 249 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
 begin
   -- suffices : ((8 * n + 8) ^ nat.sqrt (8 * n + 8) : ℝ) ≤ 4 ^ n,
@@ -1067,3 +1083,5 @@ interval_cases n,
 { use 3, norm_num },
 { use 5, norm_num },
 end
+
+-/

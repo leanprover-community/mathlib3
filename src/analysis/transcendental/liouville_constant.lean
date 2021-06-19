@@ -146,7 +146,7 @@ begin
       -- solve all the inequalities `0 < m ^ ??`
       any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ },
       -- `2 ≤ m ^ n!` is a consequence of monotonicity of exponentiation at `2 ≤ m`.
-      exact le_trans (hm.trans (pow_one _).symm.le) (pow_mono (one_le_two.trans hm) n.factorial_pos)
+      exact trans (hm.trans (pow_one _).symm.le) (pow_mono (one_le_two.trans hm) n.factorial_pos)
     end
   ... = 1 / (m ^ n!) ^ n : by rw pow_mul
 end
@@ -255,21 +255,18 @@ begin
   { rcases h with ⟨p_k, h_k⟩,
     use p_k * (m ^ ((k + 1)! - k!)) + 1,
     unfold liouville_number_first_k_terms at h_k ⊢,
-    rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
+    rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
-        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul,
-          one_mul, pow_add],
-      rw [add_comm, mul_comm (m ^ k!)], --ring
-      refine (add_left_inj (m ^ (k * k!) * m ^ k! * m ^ k!)).mpr _,
-      rw [← mul_assoc, ← mul_assoc],
-      rw [mul_comm (p_k * _), mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc] },
+        by rw [nat.mul_sub_right_distrib, one_mul], nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
+      simp [mul_assoc] },
     refine mul_ne_zero_iff.mpr ⟨_, _⟩,
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
 end
 
 lemma add_one_le_two_mul {n : ℕ} (n0 : 0 < n) : n + 1 ≤ 2 * n :=
-by linarith
+calc  n + 1 ≤ n + n : add_le_add rfl.le n0
+        ... = 2 * n : (two_mul _).symm
 
 lemma pre_sum_liouville {f : ℕ → ℕ} {m : ℝ} (hm : 1 < m) (f0 : ∀ n, 0 < f n)
   (fn1 : ∀ n, 2 * (f n) ^ n ≤ f (n + 1)) :
@@ -279,26 +276,18 @@ begin
   intros i,
   induction i with i hi,
   { exact zero_le (f 0) },
-  apply le_trans _ (fn1 _),
-  apply le_trans (nat.succ_le_succ hi) _,
-  refine @summable_of_nonneg_of_le ℕ ((λ j, 1 / m ^ j)) (λ j, 1 / m ^ (f j)) _ _ _,
-  { exact λ b, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _) },
-  { refine λ b, one_div_mono_exp hm.le _,
-    induction b with b hb,
-    { exact (f0 0).le },
-    { by_cases b0 : b = 0,
-      { rw b0,
-        exact nat.succ_le_iff.mpr (f0 1) },
-      { refine (((nat.succ_le_succ hb).trans (add_one_le_two_mul (f0 _))).trans _).trans (fn1 _),
-        nth_rewrite 0 ← pow_one (f b),
-        refine (mul_le_mul_left zero_lt_two).mpr (pow_le_pow (nat.succ_le_iff.mpr (f0 b)) _),
-        exact (nat.succ_le_iff.mpr (zero_lt_iff.mpr b0)) } } },
-  { simp_rw ← one_div_pow,
-    exact (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
-      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (by rwa one_div_one))) }
+  cases i,
+  { exact nat.succ_le_iff.mpr (f0 1) },
+  refine trans _ (fn1 _),
+  refine trans (nat.succ_le_succ hi) _,
+  refine trans (add_one_le_two_mul (f0 _)) _,
+  refine (mul_le_mul_left zero_lt_two).mpr _,
+  calc  f i.succ = f i.succ ^ 1 : (pow_one _).symm
+        ... ≤ f i.succ ^ i.succ : by {refine pow_le_pow _ (nat.succ_le_succ (zero_le i)),
+        exact nat.succ_le_iff.mpr (f0 (nat.succ i)) }
 end
 
-
+/-
 lemma pre_liouville {f : ℕ → ℝ} (hm : 1 < m)
   -- the terms of the series are positive
   (f0 : ∀ n, 0 < f n)
@@ -320,8 +309,7 @@ begin
     --apply summable_inv_pow_ge m1 _,
   },
 end
-
-
+-/
 
 theorem is_liouville (hm : 2 ≤ m) :
   liouville (liouville_number m) :=

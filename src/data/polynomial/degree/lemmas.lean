@@ -28,12 +28,6 @@ variables [semiring R] {p q r : polynomial R}
 
 section degree
 
-lemma le_nat_degree_of_mem_support {n : ℕ} (h : n ∈ p.support) : n ≤ nat_degree p :=
-begin
-  by_contra a, push_neg at a,
-  exact mem_support_iff_coeff_ne_zero.1 h (coeff_eq_zero_of_nat_degree_lt a)
-end
-
 lemma nat_degree_comp_le : nat_degree (p.comp q) ≤ nat_degree p * nat_degree q :=
 if h0 : p.comp q = 0 then by rw [h0, nat_degree_zero]; exact nat.zero_le _
 else with_bot.coe_le_coe.1 $

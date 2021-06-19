@@ -70,7 +70,8 @@ the structure of a group.
 
 section subtype
 
-@[to_additive]
+/-- The `submonoid` of continuous maps `α → β`. -/
+@[to_additive "The `add_submonoid` of continuous maps `α → β`. "]
 def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : submonoid (α → β) :=
 { carrier := { f : α → β | continuous f },
@@ -78,7 +79,8 @@ def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topol
   mul_mem' := λ f g fc gc, continuous.comp
     has_continuous_mul.continuous_mul (continuous.prod_mk fc gc : _) }
 
-@[to_additive]
+/-- The subgroup of continuous maps `α → β`. -/
+@[to_additive "The `add_subgroup` of continuous maps `α → β`. "]
 def continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [group β] [topological_group β] : subgroup (α → β) :=
 { inv_mem' := λ f fc, continuous.comp (@topological_group.continuous_inv β _ _ _) fc,
@@ -219,6 +221,7 @@ the structure of a ring.
 
 section subtype
 
+/-- The subsemiring of continuous maps `α → β`. -/
 def continuous_subsemiring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
   [semiring R] [topological_semiring R] : subsemiring (α → R) :=
 { ..continuous_add_submonoid α R,
@@ -233,6 +236,7 @@ instance continuous_comm_semiring {α : Type*} {R : Type*} [topological_space α
   comm_semiring { f : α → R | continuous f } :=
 (continuous_subsemiring α R).to_comm_semiring
 
+/-- The subring of continuous maps `α → β`. -/
 def continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
   [ring R] [topological_ring R] : subring (α → R) :=
 { ..continuous_subsemiring α R,

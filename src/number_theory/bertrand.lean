@@ -436,50 +436,144 @@ end
 open set
 
 -- Should probably go in rolles theorem file
-lemma le_of_deriv (a b : ℝ) (f f' : ℝ → ℝ) (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfd : differentiable_on ℝ f (Ioo a b)) (h'' : ∀ c ∈ Ioo a b, deriv f c ≥ 0) : (f a ≤ f b)
-   :=
+-- lemma le_of_deriv (a b : ℝ) (f f' : ℝ → ℝ) (hab : a < b) (hfc : continuous_on f (Icc a b)) (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (h'' : ∀ c ∈ Ioo a b, f' c ≥ 0) : (f a ≤ f b)
+--    :=
+-- begin
+--   let g := (λ x : ℝ, f x - (x - a) * (f b - f a) / (b - a)),
+--   have hga : g a = f a,
+--     by simp only [sub_eq_self, zero_div, zero_mul, sub_self],
+--   have hgb : g b = f a,
+--     { have hab' : b - a ≠ 0,
+--       { apply ne_of_gt,
+--         exact sub_pos.mpr hab, },
+--       simp only [g],
+--       rw mul_div_cancel_left (f b - f a) hab',
+--       simp, },
+--   -- Apply rolle's to g
+--   rw ←hgb at hga, clear hgb,
+--   have hgc : continuous_on g (Icc a b),
+--     { apply continuous_on.sub,
+--       exact hfc,
+--       apply continuous_on.mul,
+--       apply continuous_on.mul,
+--       apply continuous_on.sub,
+--       apply continuous_on_id,
+--       apply continuous_on_const,
+--       apply continuous_on_const,
+--       apply continuous_on_const, },
+--   have inter := exists_deriv_eq_zero g hab hgc hga,
+--   cases inter with c hc,
+--   cases hc with cmem hcd,
+--   have hcd' : deriv g c = (deriv f c) - (f b - f a) / (b - a),
+--   {
+--     apply has_deriv_at.deriv,
+--     apply has_deriv_at.sub,
+--     -- apply hff' c cmem,
+--     simp,
+--     {
+--       rw differentiable_at,
+--     },
+--     sorry,
+--   },
+--   sorry,
+
+
+
+-- end
+lemma add_one_cube_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : (x + 1) ^ (3 : ℝ) ≤ exp (3 * x) :=
 begin
-  let g := (λ x : ℝ, f x - (x - a) * (f b - f a) / (b - a)),
-  have hga : g a = f a,
-    by simp only [sub_eq_self, zero_div, zero_mul, sub_self],
-  have hgb : g b = f a,
-    { have hab' : b - a ≠ 0,
-      { apply ne_of_gt,
-        exact sub_pos.mpr hab, },
-      simp only [g],
-      rw mul_div_cancel_left (f b - f a) hab',
-      simp, },
-  -- Apply rolle's to g
-  rw ←hgb at hga, clear hgb,
-  have hgc : continuous_on g (Icc a b),
-    { apply continuous_on.sub,
-      exact hfc,
-      apply continuous_on.mul,
-      apply continuous_on.mul,
-      apply continuous_on.sub,
-      apply continuous_on_id,
-      apply continuous_on_const,
-      apply continuous_on_const,
-      apply continuous_on_const, },
-  have inter := exists_deriv_eq_zero g hab hgc hga,
-  cases inter with c hc,
-  cases hc with cmem hcd,
-  have hcd' : deriv g c = (deriv f c) - (f b - f a) / (b - a),
-  {
-    rw deriv_sub,
-    simp,
-    sorry,
-    sorry,
-  },
-  sorry,
-
-
-
+  rw mul_comm,
+  rw exp_mul,
+  apply @rpow_le_rpow (x + 1) (exp x) 3,
+  linarith,
+  exact add_one_le_exp_of_nonneg hx,
+  linarith,
 end
+
+lemma le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x ≤ exp (x) :=
+begin
+  calc x ≤ x + 1 : by linarith
+  ...    ≤ exp x : add_one_le_exp_of_nonneg hx,
+end
+
+
+lemma cube_le_exp_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x ^ (3 : ℝ) ≤ exp (3 * x) :=
+begin
+  rw mul_comm,
+  rw exp_mul,
+  apply @rpow_le_rpow (x) (exp x) 3,
+  linarith,
+  exact le_exp_of_nonneg hx,
+  linarith,
+end
+
+-- lemma cube_le_exp_of_nonneg2 {x : ℝ} (hx : 0 ≤ x) : (x / 3) ^ (3 : ℝ) ≤ exp (x) :=
+-- begin
+--   have h := cube_le_exp_of_nonneg (x / 3)
+-- end
+
+lemma nat_pow_is_real_pow (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n  :=
+begin
+  sorry
+end
+
+-- set_option pp.notation false
+-- set_option pp.implicit true
+
+-- lemma saldkaoiew (x : ℝ) (hx : 0 ≤ x) : sqrt (x) ^ (4 : ℝ) = x ^ (2 : ℝ) :=
+-- begin
+--   conv
+--   begin
+--     to_rhs,
+--     congr,
+--     rw <-sq_sqrt hx,
+--     -- skip,
+--     -- rw <-pow_one (sqrt x),
+--   end,
+--   simp,
+--   rw <-rpow_mul,
+--   norm_num,
+--   sorry,
+-- end
 
 lemma linear_dominates_sqrt_log (x : ℝ) (hx : 249 ≤ x) : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
 begin
-  sorry
+  have h1 : 0 < sqrt (8 * x + 8),
+    simp only [sqrt_pos],
+    linarith,
+  rw ←(le_div_iff' h1),
+  rw exp_le_exp.symm,
+  rw @exp_log (8 * x + 8) (by linarith),
+  calc 8 * x + 8 ≤ (x * log 4 / sqrt (8 * x + 8) / 3) ^ (3 : ℝ) :
+              begin
+                rw div_rpow,
+                rw div_rpow,
+                rw mul_rpow,
+                rw le_div_iff',
+                rw le_div_iff',
+                -- rewrite saldkaoiew (8 * x + 8),
+              end
+  ...      ≤ exp (3 * (x * log 4 / sqrt (8 * x + 8) / 3)) :
+              begin
+                apply cube_le_exp_of_nonneg,
+                apply mul_nonneg,
+                apply mul_nonneg,
+                apply mul_nonneg,
+                linarith,
+                apply log_nonneg,
+                linarith,
+                rw inv_nonneg,
+                linarith,
+                rw inv_nonneg,
+                linarith,
+              end
+  ...      = exp (x * log 4 / sqrt (8 * x + 8)) :
+              begin
+                simp only [exp_eq_exp],
+                rw mul_div_assoc.symm,
+                apply mul_div_cancel_left,
+                linarith,
+              end
 end
 
 lemma pow_beats_pow_2 (n : ℕ) (n_large : 249 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=

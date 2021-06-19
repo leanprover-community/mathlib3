@@ -18,22 +18,17 @@ open set real
 
 variable {m : ℝ}
 
-section lemmas_about_summability_and_sums
-
-/-- A series whose terms are bounded by the terms of a converging geometric series convergences. -/
-lemma summable_inv_pow_ge {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
-  summable (λ i, 1 / m ^ f i) :=
+/--  An inequality involving `2 : ℝ`. -/
+lemma sub_one_div_inv_le_two (hm : 2 ≤ m) :
+  (1 - 1 / m)⁻¹ ≤ 2 :=
 begin
-  refine summable_of_nonneg_of_le
-    (λ a, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _)) (λ a, _)
-    (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
-      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (by rwa one_div_one))),
-  rw [div_pow, one_pow],
-  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a)),
-  repeat { exact pow_pos (zero_lt_one.trans hm) _ }
+  -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / m`
+  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : ℝ)).le,
+  -- move `1 / m` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / m ≤ ⅟ 2`
+  refine trans one_sub_inv_of_two.symm.le ((sub_le_sub_iff_left 1).mpr _),
+  -- take inverses on both sides and use the assumption `2 ≤ m`.
+  exact (one_div m).le.trans (inv_le_inv_of_le zero_lt_two hm)
 end
-
-end lemmas_about_summability_and_sums
 
 lemma one_div_pow_strict_mono_decr_on : strict_mono_decr_on (λ x : ℝ, 1 / x) (set.Ioi 0) :=
 λ x x1 y y1 xy, (one_div_lt_one_div (mem_Ioi.mp y1) (mem_Ioi.mp x1)).mpr xy
@@ -51,6 +46,23 @@ begin
   refine one_div_pow_strict_mono_decr_on _ _ (pow_lt_pow m1 ab);
   exact pow_pos (zero_lt_one.trans m1) _
 end
+
+section lemmas_about_summability_and_sums
+
+/-- A series whose terms are bounded by the terms of a converging geometric series convergences. -/
+lemma summable_inv_pow_ge {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
+  summable (λ i, 1 / m ^ f i) :=
+begin
+  refine summable_of_nonneg_of_le
+    (λ a, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _)) (λ a, _)
+    (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
+      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (one_div_one.le.trans_lt hm))),
+  rw [div_pow, one_pow],
+  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a));
+  exact pow_pos (zero_lt_one.trans hm) _
+end
+
+end lemmas_about_summability_and_sums
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
 lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
@@ -80,17 +92,6 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
 ... = (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :
     -- the series if the geometric series
     mul_eq_mul_right_iff.mpr (or.inl (tsum_geometric_of_abs_lt_1 mi))
-
-lemma sub_one_div_inv_le_two (hm : 2 ≤ m) :
-  (1 - 1 / m)⁻¹ ≤ 2 :=
-begin
-  -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / m`
-  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : ℝ)).le,
-  -- move `1 / m` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / m ≤ ⅟ 2`
-  refine trans one_sub_inv_of_two.symm.le ((sub_le_sub_iff_left 1).mpr _),
-  -- take inverses on both sides and use the assumption `2 ≤ m`.
-  exact (one_div m).le.trans (inv_le_inv_of_le zero_lt_two hm)
-end
 
 lemma calc_liou_two_zero (n : ℕ) (hm : 2 ≤ m) :
   (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=

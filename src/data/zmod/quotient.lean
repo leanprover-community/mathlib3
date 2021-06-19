@@ -29,8 +29,6 @@ This file relates `zmod n` to the quotient group
 zmod, quotient group, quotient ring, ideal quotient
 -/
 
-section lift
-
 open quotient_add_group
 open zmod
 
@@ -65,33 +63,3 @@ def quotient_span_equiv_zmod (a : ℤ) :
   (quotient_span_nat_equiv_zmod a.nat_abs)
 
 end int
-
-namespace zmod
-
-/-- The map from `zmod n` induced by `f : ℤ →+ A` that maps `n` to `0`. -/
-@[simps]
-def lift (f : ℤ →+ A) (hf : f n = 0) : zmod n →+ A :=
-(int.cast_add_hom (zmod n)).lift_of_right_inverse coe int_cast_zmod_cast ⟨f,
-  by { rw ker_int_cast_add_hom,
-       rintro _ ⟨x, rfl⟩,
-       simp only [f.map_gsmul, hf, gsmul_zero, f.mem_ker] }⟩
-
-@[simp] lemma lift_coe (f : ℤ →+ A) (hf : f n = 0) (x : ℤ) :
-  lift n f hf (x : zmod n) = f x :=
-add_monoid_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
-
-lemma lift_cast_add_hom (f : ℤ →+ A) (hf : f n = 0) (x : ℤ) :
-  lift n f hf (int.cast_add_hom (zmod n) x) = f x :=
-add_monoid_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
-
-@[simp] lemma lift_comp_coe (f : ℤ →+ A) (hf : f n = 0) :
-  zmod.lift n f hf ∘ coe = f :=
-funext $ lift_coe _ _ _
-
-@[simp] lemma lift_comp_cast_add_hom (f : ℤ →+ A) (hf : f n = 0) :
-  (zmod.lift n f hf).comp (int.cast_add_hom (zmod n)) = f :=
-add_monoid_hom.ext $ lift_cast_add_hom _ _ _
-
-end zmod
-
-end lift

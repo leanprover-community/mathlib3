@@ -835,4 +835,40 @@ begin
   rw [←this, ring_hom.ext_zmod (f.lift_of_right_inverse _ _ _) (ring_hom.id _), ring_hom.id_comp],
 end
 
+section lift
+
+variables (n) {A : Type*} [add_group A]
+
+/-- The map from `zmod n` induced by `f : ℤ →+ A` that maps `n` to `0`. -/
+@[simps]
+def lift : {f : ℤ →+ A // f n = 0} ≃ (zmod n →+ A) :=
+(equiv.subtype_equiv_right $ begin
+  intro f,
+  rw ker_int_cast_add_hom,
+  split,
+  { rintro hf _ ⟨x, rfl⟩,
+    simp only [f.map_gsmul, gsmul_zero, f.mem_ker, hf] },
+  { intro h,
+    refine h (add_subgroup.mem_gmultiples _) }
+end).trans $ ((int.cast_add_hom (zmod n)).lift_of_right_inverse coe int_cast_zmod_cast)
+
+variables (f : {f : ℤ →+ A // f n = 0})
+
+@[simp] lemma lift_coe (x : ℤ) :
+  lift n f (x : zmod n) = f x :=
+add_monoid_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
+
+lemma lift_cast_add_hom (x : ℤ) :
+  lift n f (int.cast_add_hom (zmod n) x) = f x :=
+add_monoid_hom.lift_of_right_inverse_comp_apply _ _ _ _ _
+
+@[simp] lemma lift_comp_coe : zmod.lift n f ∘ coe = f :=
+funext $ lift_coe _ _
+
+@[simp] lemma lift_comp_cast_add_hom :
+  (zmod.lift n f).comp (int.cast_add_hom (zmod n)) = f :=
+add_monoid_hom.ext $ lift_cast_add_hom _ _
+
+end lift
+
 end zmod

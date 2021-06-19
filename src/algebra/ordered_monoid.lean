@@ -275,7 +275,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
 /-
 Note 1 : the below is not an instance because it requires `zero_le`. It seems
 like a rather pathological definition because α already has a zero.
-
 Note 2 : there is no multiplicative analogue because it does not seem necessary.
 Mathematicians might be more likely to use the order-dual version, where all
 elements are ≤ 1 and then 1 is the top element.
@@ -539,7 +538,8 @@ le_iff_exists_mul.mpr ⟨b, rfl⟩
 lemma self_le_mul_left (a b : α) : a ≤ b * a :=
 by { rw [mul_comm], exact self_le_mul_right a b }
 
-@[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
+@[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a :=
+le_iff_exists_mul.mpr ⟨a, (one_mul _).symm⟩
 
 @[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)
@@ -780,9 +780,8 @@ in which multiplication is cancellative and monotone. -/
 class linear_ordered_cancel_comm_monoid (α : Type u)
   extends ordered_cancel_comm_monoid α, linear_ordered_comm_monoid α
 
-section linear_ordered_cancel_comm_monoid
-
-variables [linear_ordered_cancel_comm_monoid α]
+section covariant_class_mul_le
+variables [cancel_comm_monoid α] [linear_order α] [covariant_class α α (*) (≤)]
 
 @[to_additive] lemma min_mul_mul_left (a b c : α) : min (a * b) (a * c) = a * min b c :=
 (monotone_id.const_mul' a).map_min.symm
@@ -810,6 +809,11 @@ min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 @[to_additive]
 lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
+
+end covariant_class_mul_le
+
+section linear_ordered_cancel_comm_monoid
+variables [linear_ordered_cancel_comm_monoid α]
 
 /-- Pullback a `linear_ordered_cancel_comm_monoid` under an injective map.
 See note [reducible non-instances]. -/

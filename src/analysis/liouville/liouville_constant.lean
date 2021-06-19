@@ -9,7 +9,8 @@ import analysis.liouville.liouville
 
 This file contains a construction of a family of Liouville numbers.
 The most important property is that they are examples of transcendental real numbers.
-This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant`.
+This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant` (a result in
+a subsequent PR).
 -/
 
 noncomputable theory
@@ -96,7 +97,7 @@ lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
     (one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) (0 + (k + 1))!)) $
     -- 4. our series converges -- it does since it is the tail of a converging series, though
     -- this is not the argument here.
-    summable_inv_pow_ge hm (λ i, trans (le_self_add) (nat.self_le_factorial _))
+    summable_inv_pow_ge hm (λ i, trans le_self_add (nat.self_le_factorial _))
 
 /--  Split the sum definining a Liouville number into the first `k` term and the rest. -/
 lemma liouville_number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ) :

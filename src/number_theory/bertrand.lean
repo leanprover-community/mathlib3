@@ -14,6 +14,7 @@ import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial
 import analysis.special_functions.pow
+import analysis.special_functions.sqrt
 import analysis.calculus.local_extr
 import data.real.sqrt
 import data.real.nnreal
@@ -435,54 +436,142 @@ end
 
 open set
 
--- Should probably go in rolles theorem file
-lemma le_of_deriv (a b : ℝ) (f f' : ℝ → ℝ) (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfd : differentiable_on ℝ f (Ioo a b)) (h'' : ∀ c ∈ Ioo a b, deriv f c ≥ 0) : (f a ≤ f b)
-   :=
+noncomputable def fff (x : ℝ) := x * log 4 - sqrt (8 * x + 8) * log (8 * x + 8)
+
+noncomputable def fff' (x : ℝ) := log 4 - (((8 / (2 * (sqrt (8 * x + 8)))) * log (8 * x + 8)) + (sqrt (8 * x + 8) * (8 / (8 * x + 8))))
+
+lemma derivative_fff {x : ℝ} (h : 0 < x) : has_deriv_at (λ x, fff x) (fff' x) x :=
 begin
-  let g := (λ x : ℝ, f x - (x - a) * (f b - f a) / (b - a)),
-  have hga : g a = f a,
-    by simp only [sub_eq_self, zero_div, zero_mul, sub_self],
-  have hgb : g b = f a,
-    { have hab' : b - a ≠ 0,
-      { apply ne_of_gt,
-        exact sub_pos.mpr hab, },
-      simp only [g],
-      rw mul_div_cancel_left (f b - f a) hab',
-      simp, },
-  -- Apply rolle's to g
-  rw ←hgb at hga, clear hgb,
-  have hgc : continuous_on g (Icc a b),
-    { apply continuous_on.sub,
-      exact hfc,
-      apply continuous_on.mul,
-      apply continuous_on.mul,
-      apply continuous_on.sub,
-      apply continuous_on_id,
-      apply continuous_on_const,
-      apply continuous_on_const,
-      apply continuous_on_const, },
-  have inter := exists_deriv_eq_zero g hab hgc hga,
-  cases inter with c hc,
-  cases hc with cmem hcd,
-  have hcd' : deriv g c = (deriv f c) - (f b - f a) / (b - a),
-  {
-    rw deriv_sub,
-    simp,
-    sorry,
-    sorry,
-  },
-  sorry,
-
-
-
+  have linear_deriv: has_deriv_at (λ (x : ℝ), 8 * x + 8) 8 x,
+    { refine has_deriv_at.add_const _ _,
+      simpa using has_deriv_at.const_mul (8 : ℝ) (has_deriv_at_id x), },
+  unfold fff,
+  refine has_deriv_at.sub _ _,
+  { suffices: has_deriv_at (λ x, x * log 4) (1 * log 4) x, by simpa using this,
+    refine has_deriv_at.mul_const _ _,
+    exact has_deriv_at_id _, },
+  { refine @has_deriv_at.mul _ _ x (λ x, sqrt (8 * x + 8)) (λ x, log (8 * x + 8)) _ _ _ _,
+    { refine has_deriv_at.sqrt _ _,
+      { exact linear_deriv, },
+      { linarith, }, },
+    { refine has_deriv_at.log _ _,
+      { exact linear_deriv, },
+      { linarith, }, }, },
 end
 
-lemma linear_dominates_sqrt_log (x : ℝ) (hx : 249 ≤ x) : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
+lemma foobar {x : ℝ} (h : 0 < x) : sqrt x * (1 / x) = 1 / sqrt x :=
 begin
+  have g : x = sqrt x * sqrt x, by rw mul_self_sqrt (le_of_lt h),
+  calc sqrt x * (1 / x) = 1 * (sqrt x / x) : mul_div_comm _ _ _
+  ... = (sqrt x / x) : one_mul _
+  ... = sqrt x / (sqrt x * sqrt x) : by rw <- g
+  ... = 1 / sqrt x : div_mul_right _ (ne_of_gt (sqrt_pos.2 h)),
+end
+
+lemma deriv_nonneg {x : ℝ} (h : 72 ≤ x) : 0 ≤ fff' x :=
+begin
+  unfold fff',
+  have r : 8 * x + 8 = 8 * (x + 1), by ring,
+  rw r,
+  simp only [zero_le_one, sqrt_mul, zero_le_bit0],
+  have eight_not_zero : (8 : ℝ) ≠ 0 := by norm_num,
+  have frac_simp: 8 / (8 * (x + 1)) = 1 / (x + 1), by rw div_mul_right _ eight_not_zero,
+  rw frac_simp,
+  rw mul_assoc (sqrt 8) (sqrt (x + 1)) (1 / (x + 1)),
+  have g : sqrt 8 = 2 * sqrt 2,
+    { have g : sqrt 8 = sqrt ((2 * 2) * 2), by norm_num,
+      rw g,
+      simp, },
+  have eight_simp : 8 / (2 * (sqrt 8 * sqrt (x + 1))) = (2 / sqrt 2) * (1 / sqrt (x + 1)),
+    { rw <- mul_assoc 2 (sqrt 8) (sqrt (x + 1)),
+      rw div_mul_eq_div_mul_one_div,
+      suffices : 8 / (2 * sqrt 8) = 2 / sqrt 2, by rw this,
+      rw g,
+      rw div_mul_eq_div_mul_one_div,
+      norm_num,
+      rw div_mul_eq_div_mul_one_div,
+      rw <- mul_assoc,
+      norm_num,
+      rw mul_div_comm,
+      norm_num, },
+
+  rw eight_simp,
+  rw g,
+  rw @foobar (x + 1) (by linarith),
+  sorry,
+
+  -- Clear denominators, simplify the log and the sqrts, you get:
+  -- Sqrt[2] Log[2] Sqrt[x + 1] - ((3 Log[2] + Log[x + 1]) + 2)
+  -- Then easy to show it's positive, by taking the derivative.
+end
+
+lemma fff_continuous {i : ℝ} (pr : 0 < i) : continuous_on fff (Ici (i : ℝ)) :=
+begin
+  -- Should be easy: we already know it's differentiable, from derivative_fff
   sorry
 end
 
-lemma pow_beats_pow_2 (n : ℕ) (n_large : 249 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
+lemma fff_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ fff (interior (Ici i)) :=
+begin
+  -- Should be easy: we already know its derivative, from derivative_fff
+  sorry
+end
+
+lemma fff_one : fff 1 < 0 :=
+begin
+  unfold fff,
+  norm_num,
+  calc log 4 < log 16 : log_lt_log (by linarith) (by linarith)
+  ... = log 16 + 0 : by ring
+  ... ≤ log 16 + (3 * log 16) :
+    add_le_add_left (mul_nonneg (by linarith) ((log_nonneg_iff (by linarith)).2 (by linarith))) _
+  ... = 4 * log 16 : by ring
+  ... = sqrt (4 * 4) * log 16 : congr_arg (λ i, i * log 16) (by rw @sqrt_mul_self 4 (by linarith))
+  ... = sqrt 16 * log 16 : by norm_num,
+end
+
+lemma fff_250 : fff 250 > 0 :=
+begin
+  unfold fff,
+  norm_num,
+  have r : 11 * sqrt 502 < 250,
+    { sorry, },
+  calc sqrt 2008 * log 2008 = sqrt (4 * 502) * log 2008 : by norm_num
+  ... = (sqrt 4 * sqrt 502) * log 2008 : by sorry
+  ... = (2 * sqrt 502) * log 2008 : by sorry
+  ... = (2 * sqrt 502) * (log (8 * 251)) : by norm_num
+  ... = (2 * sqrt 502) * (log 8 + log 251) : by sorry
+  ... < (2 * sqrt 502) * (log 8 + log 256) : by sorry
+  ... = (2 * sqrt 502) * (log (2 ^ 3) + log (2 ^ 8)) : by sorry
+  ... = (2 * sqrt 502) * (3 * log 2 + log (2 ^ 8)) : by sorry
+  ... = (2 * sqrt 502) * (3 * log 2 + 8 * log 2) : by sorry
+  ... = (2 * sqrt 502) * (11 * log 2) : by ring
+  ... = (11 * sqrt 502) * (2 * log 2) : by ring
+  ... < 250 * (2 * log 2) : by sorry -- use r here
+  ... = 250 * (log (2 ^ 2)) : by sorry
+  ... = 250 * log 4 : by norm_num
+end
+
+lemma fff_has_root : ∃ (x : ℝ), 1 < x ∧ x < 250 ∧ fff x = 0 :=
+begin
+  -- Direct application of intermediate value theorem
+  sorry
+end
+
+lemma linear_dominates_sqrt_log (x : ℝ) (hx : 250 ≤ x) : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
+begin
+  suffices: 0 ≤ fff x, by sorry,
+  have conv : convex (Ici (250 : ℝ)), by sorry,
+  have t : ∀ (x : ℝ), x ∈ interior (Ici (250 : ℝ)) → 0 ≤ deriv fff x, by sorry,
+  have x_in_ici : x ∈ Ici (250 : ℝ) := by simpa using hx,
+  rcases fff_has_root with ⟨c, ⟨c_big, c_small, c_is_root⟩⟩,
+  have c_in_ici : c ∈ Ici (250 : ℝ),
+    { sorry, },
+  have e : fff c ≤ fff x := convex.mono_of_deriv_nonneg conv (fff_continuous (by linarith)) (fff_differentiable (by linarith)) t c x c_in_ici x_in_ici (by linarith),
+  linarith,
+end
+
+lemma pow_beats_pow_2 (n : ℕ) (n_large : 250 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
 begin
   -- suffices : ((8 * n + 8) ^ nat.sqrt (8 * n + 8) : ℝ) ≤ 4 ^ n,
   apply (@nat.cast_le ℝ _ _ _ _).1,
@@ -535,17 +624,17 @@ end
 --   sorry
 -- end
 
-lemma power_conversion_2 (n : ℕ) (n_large : 999 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
+lemma power_conversion_2 (n : ℕ) (n_large : 1003 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
 begin
-  have : 249 ≤ n / 4,
-    { cases le_or_gt 249 (n / 4),
+  have : 250 ≤ n / 4,
+    { cases le_or_gt 250 (n / 4),
       { exact h, },
       { have r : n < n :=
           calc n = 4 * (n / 4) + (n % 4) : (nat.div_add_mod n 4).symm
-            ... < 4 * 249 + (n % 4) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 3)).2 h) _
-            ... < 4 * 249 + 4 : add_lt_add_left (nat.mod_lt n (by linarith)) (4 * 249)
-            ... = 1000 : by norm_num
-            ... ≤ n : n_large,
+            ... < 4 * 250 + (n % 4) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 3)).2 h) _
+            ... < 4 * 250 + 4 : add_lt_add_left (nat.mod_lt n (by linarith)) _
+            ... = 1004 : by norm_num
+            ... ≤ n : by linarith,
         exfalso,
         exact lt_irrefl _ r, }, },
   have rem_small : (n % 4) < 4 := nat.mod_lt n (nat.succ_pos 3),
@@ -607,7 +696,7 @@ begin
 end
 
 
-lemma false_inequality_is_false {n : ℕ} (n_large : 999 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+lemma false_inequality_is_false {n : ℕ} (n_large : 1003 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 begin
   rw imp_false,
   rw not_lt,
@@ -734,7 +823,7 @@ begin
 
 end
 
-lemma bertrand_eventually (n : nat) (n_big : 1000 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_eventually (n : nat) (n_big : 1003 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   by_contradiction no_prime,
 
@@ -929,12 +1018,12 @@ begin
         ...      = (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) : by ring,
 
     exfalso,
-    exact false_inequality_is_false (by linarith) false_inequality,
+    exact false_inequality_is_false n_big false_inequality,
 end
 
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
-cases le_or_lt 1000 n,
+cases lt_or_le 1003 n,
 {exact bertrand_eventually n h},
 
 cases le_or_lt 505 n,

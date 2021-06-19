@@ -85,14 +85,6 @@ class codirected_order (α : Type u) extends preorder α :=
 (codirected : ∀ i j : α, ∃ k, k ≤ i ∧ k ≤ j)
 
 @[priority 100]  -- see Note [lower instance priority]
-instance linear_order.to_directed_order (α) [linear_order α] : directed_order α :=
-⟨λ i j, or.cases_on (le_total i j) (λ hij, ⟨j, hij, le_refl j⟩) (λ hji, ⟨i, le_refl i, hji⟩)⟩
-
-@[priority 100]  -- see Note [lower instance priority]
-instance linear_order.to_codirected_order (α) [linear_order α] : codirected_order α :=
-⟨λ i j, or.cases_on (le_total i j) (λ hij, ⟨i, le_refl _, hij⟩) (λ hij, ⟨j, hij, le_refl _⟩)⟩
-
-@[priority 100]  -- see Note [lower instance priority]
 instance semilattice_sup.to_directed_order (α) [semilattice_sup α] : directed_order α :=
 ⟨λ i j, ⟨i ⊔ j, le_sup_left, le_sup_right⟩⟩
 

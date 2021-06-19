@@ -246,43 +246,43 @@ end
 
 theorem add_half_self_equiv_one : half + half ≈ 1 :=
 begin
-  split; rw le_def,
-  { split,
-    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-      { right,
-        use (sum.inr punit.star),
-        calc ((half + half).move_left (sum.inl punit.star)).move_right (sum.inr punit.star)
-            = (half.move_left punit.star + half).move_right (sum.inr punit.star) : by fsplit
-        ... = (0 + half).move_right (sum.inr punit.star) : by fsplit
-        ... ≈ 1 : zero_add_equiv 1
-        ... ≤ 1 : pgame.le_refl 1 },
-      { right,
-        use (sum.inl punit.star),
-        calc ((half + half).move_left (sum.inr punit.star)).move_right (sum.inl punit.star)
-            = (half + half.move_left punit.star).move_right (sum.inl punit.star) : by fsplit
-        ... = (half + 0).move_right (sum.inl punit.star) : by fsplit
-        ... ≈ 1 : add_zero_equiv 1
-        ... ≤ 1 : pgame.le_refl 1 } },
-    { rintro ⟨ ⟩ } },
-  { split,
-    { rintro ⟨ ⟩,
-      left,
+  split; rw le_def; split,
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+    { right,
+      use (sum.inr punit.star),
+      calc ((half + half).move_left (sum.inl punit.star)).move_right (sum.inr punit.star)
+          = (half.move_left punit.star + half).move_right (sum.inr punit.star) : by fsplit
+      ... = (0 + half).move_right (sum.inr punit.star) : by fsplit
+      ... ≈ 1 : zero_add_equiv 1
+      ... ≤ 1 : pgame.le_refl 1 },
+    { right,
       use (sum.inl punit.star),
-      calc 0 ≤ half : le_of_lt numeric_zero numeric_half zero_lt_half
-      ... ≈ 0 + half : (zero_add_equiv half).symm
-      ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
-    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-      { left,
-        use (sum.inr punit.star),
-        calc 1 ≤ 1 : pgame.le_refl 1
-           ... ≈ 1 + 0 : (add_zero_equiv 1).symm },
-      { use (sum.inl punit.star),
-        calc 1 ≤ 1 : pgame.le_refl 1
-           ... ≈ 0 + 1 : (zero_add_equiv 1).symm } } }
+      calc ((half + half).move_left (sum.inr punit.star)).move_right (sum.inl punit.star)
+          = (half + half.move_left punit.star).move_right (sum.inl punit.star) : by fsplit
+      ... = (half + 0).move_right (sum.inl punit.star) : by fsplit
+      ... ≈ 1 : add_zero_equiv 1
+      ... ≤ 1 : pgame.le_refl 1 } },
+  { rintro ⟨ ⟩ },
+  { rintro ⟨ ⟩,
+    left,
+    use (sum.inl punit.star),
+    calc 0 ≤ half : le_of_lt numeric_zero numeric_half zero_lt_half
+    ... ≈ 0 + half : (zero_add_equiv half).symm
+    ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+    { left,
+      use (sum.inr punit.star),
+      calc 1 ≤ 1 : pgame.le_refl 1
+          ... ≈ 1 + 0 : (add_zero_equiv 1).symm },
+    { use (sum.inl punit.star),
+      calc 1 ≤ 1 : pgame.le_refl 1
+          ... ≈ 0 + 1 : (zero_add_equiv 1).symm } }
 end
 
 /-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as
-`{ 0 | pow_half n }`. -/
+`{ 0 | pow_half n }`. These are the explicit expressions of powers of `half`. By definition, we have
+ `pow_half 0 = 0` and `pow_half 1 = half` and we prove later on that
+`pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n`.-/
 def pow_half : ℕ → pgame
 | 0       := mk punit pempty 0 pempty.elim
 | (n + 1) := mk punit punit 0 (λ _, pow_half n)
@@ -302,21 +302,13 @@ by cases n; cases i; refl
 lemma pow_half_left_moves' {n} : punit ≃ (pow_half n).left_moves :=
 begin
   simp only [pow_half_left_moves],
-  fsplit, -- apply equiv.cast does not work?
-  { intro, fsplit },
-  { intro, fsplit },
-  { intro x, dec_trivial },
-  { intro x, dec_trivial }
+  exact equiv.punit_equiv_punit
 end
 
 lemma pow_half_right_moves' {n} : punit ≃ (pow_half (n + 1)).right_moves :=
 begin
   simp only [pow_half_right_moves],
-  fsplit, -- apply equiv.cast does not work?
-  { intro, fsplit },
-  { intro, fsplit },
-  { intro x, dec_trivial },
-  { intro x, dec_trivial }
+  exact equiv.punit_equiv_punit
 end
 
 @[simp] lemma pow_half_move_left' (n) :
@@ -350,21 +342,19 @@ theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n 
 begin
   induction n with n hn,
   { exact add_half_self_equiv_one },
-  split; rw le_def_lt,
-  { split,
-    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-      { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
-                                   ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
-      { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
-                                   ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
-    { rintro ⟨ ⟩,
-      rw lt_def_le,
-      right,
-      use sum.inl punit.star,
-      calc pow_half (n.succ) + pow_half (n.succ + 1) ≤ pow_half (n.succ) + pow_half (n.succ)
-          : add_le_add_left $ le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
-      ... ≈ pow_half n : hn } },
-  split,
+  split; rw le_def_lt; split,
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+    { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
+                                  ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
+    { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
+                                  ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
+  { rintro ⟨ ⟩,
+    rw lt_def_le,
+    right,
+    use sum.inl punit.star,
+    calc pow_half (n.succ) + pow_half (n.succ + 1) ≤ pow_half (n.succ) + pow_half (n.succ)
+        : add_le_add_left $ le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
+    ... ≈ pow_half n : hn },
   { rintro ⟨ ⟩,
     calc 0 ≈ 0 + 0 : (add_zero_equiv _).symm
        ... ≤ pow_half (n.succ + 1) + 0

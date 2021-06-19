@@ -87,6 +87,23 @@ begin
   exact (nhds a).sets_of_superset ((nhds a).inter_sets Hw h1) hw,
 end
 
+lemma preimage_nhds_within_coinduced {π : α → β} {s : set β} {t : set α} {a : α}
+  (h : a ∈ t) (ht : is_open t)
+  (hs : s ∈ @nhds β (topological_space.coinduced (λ x : t, π x) subtype.topological_space) (π a)) :
+  π ⁻¹' s ∈ 𝓝[t] a :=
+begin
+  letI := topological_space.coinduced (λ x : t, π x) subtype.topological_space,
+  rcases mem_nhds_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
+  refine mem_nhds_within_iff_exists_mem_nhds_inter.mpr ⟨π ⁻¹' V, mem_nhds_iff.mpr ⟨t ∩ π ⁻¹' V,
+    inter_subset_right t (π ⁻¹' V), _, mem_sep h mem_V⟩, subset.trans (inter_subset_left _ _)
+    (preimage_mono hVs)⟩,
+  obtain ⟨u, hu1, hu2⟩ := is_open_induced_iff.mp (is_open_coinduced.1 V_op),
+  rw [preimage_comp] at hu2,
+  rw [set.inter_comm, ←(subtype.preimage_coe_eq_preimage_coe_iff.mp hu2)],
+  exact hu1.inter ht,
+end
+
+
 lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
   s ∈ 𝓝[t] a :=
 mem_inf_sets_of_left h

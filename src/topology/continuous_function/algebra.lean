@@ -228,8 +228,9 @@ instance continuous_semiring {α : Type*} {R : Type*} [topological_space α] [to
   [semiring R] [topological_semiring R] : semiring { f : α → R | continuous f } :=
 (continuous_subsemiring α R).to_semiring
 
-instance continuous_comm_semiring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
-  [comm_semiring R] [topological_semiring R] : comm_semiring { f : α → R | continuous f } :=
+instance continuous_comm_semiring {α : Type*} {R : Type*} [topological_space α]
+  [topological_space R] [comm_semiring R] [topological_semiring R] :
+  comm_semiring { f : α → R | continuous f } :=
 (continuous_subsemiring α R).to_comm_semiring
 
 def continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]

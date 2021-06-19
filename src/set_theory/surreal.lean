@@ -340,7 +340,8 @@ begin
     { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
 end
 
-theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n := (@numeric_pow_half (n + 1)).lt_move_right punit.star
+theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n :=
+(@numeric_pow_half (n + 1)).lt_move_right punit.star
 
 theorem zero_lt_pow_half {n : ℕ} : 0 < pow_half n :=
 by { cases n; rw lt_def_le; use ⟨punit.star, pgame.le_refl 0⟩ }

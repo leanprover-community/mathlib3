@@ -264,10 +264,6 @@ begin
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
 end
 
-lemma add_one_le_two_mul {n : ℕ} (n0 : 0 < n) : n + 1 ≤ 2 * n :=
-calc  n + 1 ≤ n + n : add_le_add rfl.le n0
-        ... = 2 * n : (two_mul _).symm
-
 lemma pre_sum_liouville {f : ℕ → ℕ} {m : ℝ} (hm : 1 < m) (f0 : ∀ n, 0 < f n)
   (fn1 : ∀ n, 2 * (f n) ^ n ≤ f (n + 1)) :
   summable (λ i, 1 / m ^ f i) :=

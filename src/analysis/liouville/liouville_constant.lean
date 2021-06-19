@@ -71,7 +71,7 @@ calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
   -- to show that a series with non-negative terms has strictly positive sum it suffices
   -- to prove that
   tsum_lt_tsum_of_nonneg
-    -- 1. the terms are the zero series are indeed non-negative
+    -- 1. the terms of the zero series are indeed non-negative
     (λ _, rfl.le)
     -- 2. the terms of our series are non-negative
     (λ i, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))

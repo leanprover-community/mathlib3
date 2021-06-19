@@ -3,18 +3,17 @@ Copyright (c) 2020 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa, Jujian Zhang
 -/
-import data.real.liouville
+import algebra.char_p.invertible
+import analysis.specific_limits
 /-!
-# Liouville constants
+# Lemmas on inequalities and series for Liouville constants
 
-This file contains a construction of a family of Liouville numbers.
-The most important property is that they are examples of transcendental real numbers.
-This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant`.
+This file contains lemmas about inequalities and series that are used in the proof to show that
+transcendental Liouville numbers exist.
 -/
 
-noncomputable theory
 open_locale nat big_operators
-open set real finset
+open set real
 
 variable {m : ℝ}
 
@@ -32,13 +31,6 @@ begin
   refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a)),
   repeat { exact pow_pos (zero_lt_one.trans hm) _ }
 end
-
-/-
-/-- This series is explicitly proven, since it simplifies remaining lemmas. -/
-lemma summable_inv_pow_n_add_fact (n : ℕ) (hm : 1 < m) :
-  summable (λ i, 1 / m ^ (i + (n + 1))!) :=
-summable_inv_pow_ge hm (λ i, (nat.self_le_factorial _).trans (nat.factorial_le (nat.le.intro rfl)))
--/
 
 end lemmas_about_summability_and_sums
 
@@ -58,26 +50,6 @@ begin
   refine one_div_pow_strict_mono_decr_on _ _ (pow_lt_pow m1 ab);
   exact pow_pos (zero_lt_one.trans m1) _
 end
-
-/-
-lemma one_div_mono_base {x y : ℝ} (x0 : 0 < x) (xy : x < y) (n : ℕ) : 1 / x ^ n < 1 / y ^ n :=
-sorry
-begin
-  apply (one_div_lt_one_div _ _).mpr _,
-  apply pow_pos x0,
-  apply pow_pos (x0.trans xy),
-  apply pow_lt_pow,
-  refine (one_div_lt_one_div (pow_pos x0 _) _).mpr _,
-end
-
-lemma pre_calc_liou_one_le (m1 : 1 ≤ m) (n : ℕ) (i : ℕ) :
-  1 / m ^ (i + (n + 1))! ≤ 1 / m ^ (i + (n + 1)!) :=
-one_div_mono_exp m1 (i.add_factorial_succ_le_factorial_add_succ n)
-
-lemma pre_calc_liou_one (m1 : 1 < m) (n : ℕ) {i : ℕ} (i2 : 2 ≤ i) :
-  1 / m ^ (i + (n + 1))! < 1 / m ^ (i + (n + 1)!) :=
-one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ i2)
--/
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
 lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
@@ -112,39 +84,37 @@ lemma sub_one_div_inv_le_two (hm : 2 ≤ m) :
   (1 - 1 / m)⁻¹ ≤ 2 :=
 begin
   -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / m`
-  refine le_trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : ℝ)).le,
+  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : ℝ)).le,
   -- move `1 / m` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / m ≤ ⅟ 2`
-  refine (one_sub_inv_of_two.symm.le).trans ((sub_le_sub_iff_left 1).mpr _),
+  refine trans one_sub_inv_of_two.symm.le ((sub_le_sub_iff_left 1).mpr _),
   -- take inverses on both sides and use the assumption `2 ≤ m`.
   exact (one_div m).le.trans (inv_le_inv_of_le zero_lt_two hm)
 end
 
 lemma calc_liou_two_zero (n : ℕ) (hm : 2 ≤ m) :
   (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
-begin
-  calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
-    -- the second factors coincide (and are non-negative),
-    -- the first factors, satisfy the inequality `sub_one_div_inv_le_two`
-    mul_mono_nonneg (one_div_nonneg.mpr (pow_nonneg (zero_le_two.trans hm) _))
-      (sub_one_div_inv_le_two hm)
-  ... = 2 / m ^ (n + 1)! : mul_one_div 2 _
-  ... = 2 / m ^ (n! * (n + 1)) : by rw [nat.factorial_succ, mul_comm]
-  ... ≤ 1 / m ^ (n! * n) :
-    begin
-      -- [ NB: in this block, I did not follow the brace convention for subgoals.  The
-      --   reason is that all extraneous goals are solved by
-      --   `exact pow_pos (zero_lt_two.trans_le hm) _` and are created also by later tactics.
-      --   Thus, I waited until the last tactic producing a repeated goal and then solve them
-      --   all at once using `any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ }`. ]
-      -- Clear denominators and massage*
-      apply (div_le_div_iff _ _).mpr,
-      conv_rhs { rw [one_mul, mul_add, pow_add, mul_one, pow_mul, mul_comm, ← pow_mul] },
-      -- the second factors coincide, so we prove the inequality of the first factors*
-      apply (mul_le_mul_right _).mpr,
-      -- solve all the inequalities `0 < m ^ ??`
-      any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ },
-      -- `2 ≤ m ^ n!` is a consequence of monotonicity of exponentiation at `2 ≤ m`.
-      exact trans (hm.trans (pow_one _).symm.le) (pow_mono (one_le_two.trans hm) n.factorial_pos)
-    end
-  ... = 1 / (m ^ n!) ^ n : by rw pow_mul
-end
+calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
+  -- the second factors coincide (and are non-negative),
+  -- the first factors, satisfy the inequality `sub_one_div_inv_le_two`
+  mul_mono_nonneg (one_div_nonneg.mpr (pow_nonneg (zero_le_two.trans hm) _))
+    (sub_one_div_inv_le_two hm)
+... = 2 / m ^ (n + 1)! : mul_one_div 2 _
+... = 2 / m ^ (n! * (n + 1)) : congr_arg ((/) 2) (congr_arg (pow m) (mul_comm _ _))
+... ≤ 1 / m ^ (n! * n) :
+  begin
+    -- [ NB: in this block, I did not follow the brace convention for subgoals.  The
+    --   reason is that all extraneous goals are solved by
+    --   `exact pow_pos (zero_lt_two.trans_le hm) _` and are created also by later tactics.
+    --   Thus, I waited until the last tactic producing a repeated goal and then solve them
+    --   all at once using `any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ }`. ]
+    -- Clear denominators and massage*
+    apply (div_le_div_iff _ _).mpr,
+    conv_rhs { rw [one_mul, mul_add, pow_add, mul_one, pow_mul, mul_comm, ← pow_mul] },
+    -- the second factors coincide, so we prove the inequality of the first factors*
+    apply (mul_le_mul_right _).mpr,
+    -- solve all the inequalities `0 < m ^ ??`
+    any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ },
+    -- `2 ≤ m ^ n!` is a consequence of monotonicity of exponentiation at `2 ≤ m`.
+    exact trans (trans hm (pow_one _).symm.le) (pow_mono (one_le_two.trans hm) n.factorial_pos)
+  end
+... = 1 / (m ^ n!) ^ n : congr_arg ((/) 1) (pow_mul m n! n)

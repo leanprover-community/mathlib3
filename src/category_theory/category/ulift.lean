@@ -28,8 +28,8 @@ The forward direction of the equivalence, `C ⥤ as_small C`, is denoted `as_sma
 and the backward direction is `as_small.down`. The equivalence itself is `as_small.equiv`.
 
 # Projects:
-1. Generalize `as_small` to provide a small category in an arbitrary universe,
-  as opposed to just `max u v`.
+1. Generalize `as_small` to provide a small category in an arbitrary sufficiently large
+  universe, as opposed to just `max u v`.
 2. Provide a `ulift_hom` construction which increases the universe level on morphisms
   while leaving objects as is.
 -/
@@ -80,7 +80,7 @@ is_cofiltered.of_equivalence ulift.equivalence
 variable (C)
 /-- `as_small C` is a small category equivalent to `C`.
   More specifically, if `C : Type u` is endowed with `category.{v} C`, then
-  `as_small C : Type (max u v)` is endowed with aan instance of a small category.
+  `as_small C : Type (max u v)` is endowed with an instance of a small category.
 
   The objects and morphisms of `as_small C` are defined by applying `ulift` to the
   objects and morphisms of `C`.

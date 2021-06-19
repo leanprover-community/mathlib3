@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov.
+Authors: Mario Carneiro, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Yury Kudryashov
 -/
 import data.real.sqrt
 import data.rat.sqrt
@@ -9,6 +9,7 @@ import ring_theory.int.basic
 import data.polynomial.eval
 import data.polynomial.degree
 import tactic.interval_cases
+import ring_theory.algebraic
 /-!
 # Irrational real numbers
 
@@ -28,14 +29,10 @@ lemma irrational_iff_ne_rational (x : ℝ) : irrational x ↔ ∀ a b : ℤ, x �
 by simp only [irrational, rat.forall, cast_mk, not_exists, set.mem_range, cast_coe_int, cast_div,
   eq_comm]
 
-lemma irrational_of_ne_int_div_pos_nat (x : ℝ):
-  (∀ a : ℤ, ∀ b : ℕ, 0 < b -> x ≠ a/b) → irrational x :=
-begin
-  rintros h ⟨⟨a, b, b0, cop⟩, rfl⟩,
-  change (∀ (c : ℤ) (d : ℕ), 0 < d → (↑a / ↑b) ≠ ↑c / ↑d) at h,
-  contrapose! h,
-  exact ⟨_, _, b0, rfl⟩,
-end
+/-- A transcendental real number is irrational. -/
+lemma transcendental.irrational {r : ℝ} (tr : transcendental ℚ r) :
+  irrational r :=
+by { rintro ⟨a, rfl⟩, exact tr (is_algebraic_algebra_map a) }
 
 /-!
 ### Irrationality of roots of integer and rational numbers
@@ -67,32 +64,33 @@ end
 is irrational. -/
 theorem irrational_nrt_of_n_not_dvd_multiplicity {x : ℝ} (n : ℕ) {m : ℤ} (hm : m ≠ 0) (p : ℕ)
   [hp : fact p.prime] (hxr : x ^ n = m)
-  (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, hm⟩) % n ≠ 0) :
+  (hv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.1.ne_one, hm⟩) % n ≠ 0) :
   irrational x :=
 begin
   rcases nat.eq_zero_or_pos n with rfl | hnpos,
   { rw [eq_comm, pow_zero, ← int.cast_one, int.cast_inj] at hxr,
     simpa [hxr, multiplicity.one_right (mt is_unit_iff_dvd_one.1
-      (mt int.coe_nat_dvd.1 hp.not_dvd_one)), nat.zero_mod] using hv },
+      (mt int.coe_nat_dvd.1 hp.1.not_dvd_one)), nat.zero_mod] using hv },
   refine irrational_nrt_of_notint_nrt _ _ hxr _ hnpos,
   rintro ⟨y, rfl⟩,
   rw [← int.cast_pow, int.cast_inj] at hxr, subst m,
   have : y ≠ 0, { rintro rfl, rw zero_pow hnpos at hm, exact hm rfl },
-  erw [multiplicity.pow' (nat.prime_iff_prime_int.1 hp)
-    (finite_int_iff.2 ⟨hp.ne_one, this⟩), nat.mul_mod_right] at hv,
+  erw [multiplicity.pow' (nat.prime_iff_prime_int.1 hp.1)
+    (finite_int_iff.2 ⟨hp.1.ne_one, this⟩), nat.mul_mod_right] at hv,
   exact hv rfl
 end
 
 theorem irrational_sqrt_of_multiplicity_odd (m : ℤ) (hm : 0 < m)
   (p : ℕ) [hp : fact p.prime]
-  (Hpv : (multiplicity (p : ℤ) m).get (finite_int_iff.2 ⟨hp.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
+  (Hpv : (multiplicity (p : ℤ) m).get
+    (finite_int_iff.2 ⟨hp.1.ne_one, (ne_of_lt hm).symm⟩) % 2 = 1) :
   irrational (sqrt m) :=
 @irrational_nrt_of_n_not_dvd_multiplicity _ 2 _ (ne.symm (ne_of_lt hm)) p hp
-  (sqr_sqrt (int.cast_nonneg.2 $ le_of_lt hm))
+  (sq_sqrt (int.cast_nonneg.2 $ le_of_lt hm))
   (by rw Hpv; exact one_ne_zero)
 
 theorem nat.prime.irrational_sqrt {p : ℕ} (hp : nat.prime p) : irrational (sqrt p) :=
-@irrational_sqrt_of_multiplicity_odd p (int.coe_nat_pos.2 hp.pos) p hp $
+@irrational_sqrt_of_multiplicity_odd p (int.coe_nat_pos.2 hp.pos) p ⟨hp⟩ $
 by simp [multiplicity_self (mt is_unit_iff_dvd_one.1 (mt int.coe_nat_dvd.1 hp.not_dvd_one) : _)];
   refl
 
@@ -107,7 +105,7 @@ then iff_of_false (not_not_intro ⟨rat.sqrt q,
          sqrt_eq, abs_of_nonneg (rat.sqrt_nonneg q)]⟩) (λ h, h.1 H1)
 else if H2 : 0 ≤ q
 then iff_of_true (λ ⟨r, hr⟩, H1 $ (exists_mul_self _).1 ⟨r,
-  by rwa [eq_comm, sqrt_eq_iff_mul_self_eq (cast_nonneg.2 H2), ← cast_mul, cast_inj] at hr;
+  by rwa [eq_comm, sqrt_eq_iff_mul_self_eq (cast_nonneg.2 H2), ← cast_mul, rat.cast_inj] at hr;
   rw [← hr]; exact real.sqrt_nonneg _⟩) ⟨H1, H2⟩
 else iff_of_false (not_not_intro ⟨0,
   by rw cast_zero; exact (sqrt_eq_zero_of_nonpos (rat.cast_nonpos.2 $ le_of_not_le H2)).symm⟩)
@@ -205,12 +203,12 @@ theorem of_one_div (h : irrational (1 / x)) : irrational x :=
 of_rat_div 1 $ by rwa [cast_one]
 
 theorem of_pow : ∀ n : ℕ, irrational (x^n) → irrational x
-| 0 := λ h, (h ⟨1, cast_one⟩).elim
-| (n+1) := λ h, h.mul_cases.elim id (of_pow n)
+| 0 := λ h, by { rw pow_zero at h, exact (h ⟨1, cast_one⟩).elim }
+| (n+1) := λ h, by { rw pow_succ at h, exact h.mul_cases.elim id (of_pow n) }
 
 theorem of_fpow : ∀ m : ℤ, irrational (x^m) → irrational x
 | (n:ℕ) := of_pow n
-| -[1+n] := λ h, by { rw fpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
+| -[1+n] := λ h, by { rw gpow_neg_succ_of_nat at h, exact h.of_inv.of_pow _ }
 
 end irrational
 

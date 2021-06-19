@@ -139,6 +139,7 @@ instance {X : Compactum} : topological_space X :=
 theorem is_closed_iff {X : Compactum} (S : set X) : is_closed S ↔
   (∀ F : ultrafilter X, S ∈ F → X.str F ∈ S) :=
 begin
+  rw ← is_open_compl_iff,
   split,
   { intros cond F h,
     by_contradiction c,
@@ -154,7 +155,7 @@ end
 instance {X : Compactum} : compact_space X :=
 begin
   constructor,
-  rw compact_iff_ultrafilter_le_nhds,
+  rw is_compact_iff_ultrafilter_le_nhds,
   intros F h,
   refine ⟨X.str F, by tauto, _⟩,
   rw le_nhds_iff,
@@ -267,7 +268,7 @@ begin
   { intros A hA h,
     by_contradiction H,
     rw le_nhds_iff at cond,
-    specialize cond Aᶜ H hA,
+    specialize cond Aᶜ H hA.is_open_compl,
     rw [ultrafilter.mem_coe, ultrafilter.compl_mem_iff_not_mem] at cond,
     contradiction },
   -- If A ∈ F, then x ∈ cl A.
@@ -385,7 +386,7 @@ noncomputable def of_topological_space (X : Type*) [topological_space X]
       { apply mem_sets_of_superset this,
         intros P hP,
         exact c2 U P hP hU },
-      exact @c3 U (mem_nhds_sets hU hx) },
+      exact @c3 U (is_open.mem_nhds hU hx) },
     apply Lim_eq,
     rw le_nhds_iff,
     exact c4,

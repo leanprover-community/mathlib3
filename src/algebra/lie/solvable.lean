@@ -33,11 +33,11 @@ lie algebra, derived series, derived length, solvable, radical
 
 universes u v w w₁ w₂
 
-namespace lie_algebra
+variables (R : Type u) (L : Type v) (M : Type w) {L' : Type w₁}
+variables [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
+variables (I J : lie_ideal R L) {f : L' →ₗ⁅R⁆ L}
 
-variables (R : Type u) (L : Type v) (M : Type w)
-variables [comm_ring R] [lie_ring L] [lie_algebra R L]
-variables (I : lie_ideal R L)
+namespace lie_algebra
 
 /-- A generalisation of the derived series of a Lie algebra, whose zeroth term is a specified ideal.
 
@@ -105,7 +105,7 @@ begin
   { to_fun    := λ I, ⁅I, I⁆,
     monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
   have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,
-  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_right_of_le], },
+  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_of_le_right], },
   rw ← D₁.iterate_sup_le_sup_iff at h₁,
   exact h₁ k l I J,
 end
@@ -127,9 +127,7 @@ namespace lie_ideal
 
 open lie_algebra
 
-variables {R : Type u} {L : Type v}
-variables [comm_ring R] [lie_ring L] [lie_algebra R L]
-variables (I J : lie_ideal R L)
+variables {R L}
 
 lemma derived_series_eq_derived_series_of_ideal_comap (k : ℕ) :
   derived_series R I k = (derived_series_of_ideal R L k I).comap I.incl :=
@@ -148,7 +146,7 @@ by { rw [derived_series_eq_derived_series_of_ideal_comap, map_comap_incl, inf_eq
 
 lemma derived_series_eq_bot_iff (k : ℕ) :
   derived_series R I k = ⊥ ↔ derived_series_of_ideal R L k I = ⊥ :=
-by rw [← derived_series_eq_derived_series_of_ideal_map, I.incl.map_bot_iff, ker_incl, eq_bot_iff]
+by rw [← derived_series_eq_derived_series_of_ideal_map, map_eq_bot_iff, ker_incl, eq_bot_iff]
 
 lemma derived_series_add_eq_bot {k l : ℕ} {I J : lie_ideal R L}
   (hI : derived_series R I k = ⊥) (hJ : derived_series R J l = ⊥) :
@@ -161,8 +159,8 @@ begin
                      ... ≤ ⊥ : by { rw [hI, hJ], simp, },
 end
 
-lemma derived_series_map_le_derived_series {L' : Type w} [lie_ring L'] [lie_algebra R L']
-  {f : L' →ₗ⁅R⁆ L} (k : ℕ) : (derived_series R L' k).map f ≤ derived_series R L k :=
+lemma derived_series_map_le (k : ℕ) :
+  (derived_series R L' k).map f ≤ derived_series R L k :=
 begin
   induction k with k ih,
   { simp only [derived_series_def, derived_series_of_ideal_zero, le_top], },
@@ -170,12 +168,19 @@ begin
     exact le_trans (map_bracket_le f) (lie_submodule.mono_lie _ _ _ _ ih ih), },
 end
 
+lemma derived_series_map_eq (k : ℕ) (h : function.surjective f) :
+  (derived_series R L' k).map f = derived_series R L k :=
+begin
+  induction k with k ih,
+  { change (⊤ : lie_ideal R L').map f = ⊤,
+    rw ←f.ideal_range_eq_map,
+    exact f.ideal_range_eq_top_of_surjective h, },
+  { simp only [derived_series_def, map_bracket_eq f h, ih, derived_series_of_ideal_succ], },
+end
+
 end lie_ideal
 
 namespace lie_algebra
-
-variables (R : Type u) (L : Type v)
-variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 
 /-- A Lie algebra is solvable if its derived series reaches 0 (in a finite number of steps). -/
 class is_solvable : Prop :=
@@ -193,20 +198,50 @@ begin
   exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot hk hl⟩⟩,
 end
 
+end lie_algebra
+
 variables {R L}
 
-lemma is_solvable_of_injective {L' : Type w} [lie_ring L'] [lie_algebra R L']
-  [h₁ : is_solvable R L] {f : L' →ₗ⁅R⁆ L} (h₂ : function.injective f) : is_solvable R L' :=
+namespace function
+
+open lie_algebra
+
+lemma injective.lie_algebra_is_solvable [h₁ : is_solvable R L] (h₂ : injective f) :
+  is_solvable R L' :=
 begin
   tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
   use k,
   apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
-  apply lie_ideal.derived_series_map_le_derived_series,
+  apply lie_ideal.derived_series_map_le,
+end
+
+lemma surjective.lie_algebra_is_solvable [h₁ : is_solvable R L'] (h₂ : surjective f) :
+  is_solvable R L :=
+begin
+  tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+  use k,
+  rw [← lie_ideal.derived_series_map_eq k h₂, hk],
+  simp only [lie_ideal.map_eq_bot_iff, bot_le],
+end
+
+end function
+
+lemma lie_hom.is_solvable_range (f : L' →ₗ⁅R⁆ L) [h : lie_algebra.is_solvable R L'] :
+  lie_algebra.is_solvable R f.range :=
+f.surjective_range_restrict.lie_algebra_is_solvable
+
+namespace lie_algebra
+
+lemma solvable_iff_equiv_solvable (e : L' ≃ₗ⁅R⁆ L) : is_solvable R L' ↔ is_solvable R L :=
+begin
+  split; introsI h,
+  { exact e.symm.injective.lie_algebra_is_solvable, },
+  { exact e.injective.lie_algebra_is_solvable, },
 end
 
 lemma le_solvable_ideal_solvable {I J : lie_ideal R L} (h₁ : I ≤ J) (h₂ : is_solvable R J) :
   is_solvable R I :=
-lie_algebra.is_solvable_of_injective (lie_ideal.hom_of_le_injective h₁)
+(lie_ideal.hom_of_le_injective h₁).lie_algebra_is_solvable
 
 variables (R L)
 

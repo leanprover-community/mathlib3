@@ -19,7 +19,11 @@ In this file, we provide definitions of the "standard" special shapes of limits 
 giving the expected definitional implementation:
 * the terminal object is `punit`
 * the binary product of `X` and `Y` is `X × Y`
-* the product of a family `f : J → Type` is `Π j, f j`.
+* the product of a family `f : J → Type` is `Π j, f j`
+* the binary coproduct of `X` and `Y` is the sum type `X ⊕ Y`
+* the equalizer of a pair of maps `(g, h)` is the subtype `{x : Y // g x = h x}`
+* the pullback of `f : X ⟶ Z` and `g : Y ⟶ Z` is the subtype `{ p : X × Y // f p.1 = g p.2 }`
+  of the product
 
 Because these are not intended for use with the `has_limit` API,
 we instead construct terms of `limit_data`.
@@ -37,7 +41,8 @@ namespace category_theory.limits.types
 
 /-- A restatement of `types.lift_π_apply` that uses `pi.π` and `pi.lift`. -/
 @[simp]
-lemma pi_lift_π_apply {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
+lemma pi_lift_π_apply
+  {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
   (pi.π f b : (∏ f) → f b) (@pi.lift β _ _ f _ P s x) = s b x :=
 congr_fun (limit.lift_π (fan.mk P s) b) x
 
@@ -221,5 +226,77 @@ def equalizer_limit : limits.limit_cone (parallel_pair g h) :=
      λ m hm, funext $ λ x, subtype.ext (congr_fun hm x)⟩ }
 
 end fork
+
+section pullback
+open category_theory.limits.walking_pair
+open category_theory.limits.walking_cospan
+open category_theory.limits.walking_cospan.hom
+
+variables {W X Y Z : Type u}
+variables (f : X ⟶ Z) (g : Y ⟶ Z)
+
+/--
+The usual explicit pullback in the category of types, as a subtype of the product.
+The full `limit_cone` data is bundled as `pullback_limit_cone f g`.
+-/
+@[nolint has_inhabited_instance]
+abbreviation pullback_obj : Type u := { p : X × Y // f p.1 = g p.2 }
+
+-- `pullback_obj f g` comes with a coercion to the product type `X × Y`.
+example (p : pullback_obj f g) : X × Y := p
+
+/--
+The explicit pullback cone on `pullback_obj f g`.
+This is bundled with the `is_limit` data as `pullback_limit_cone f g`.
+-/
+abbreviation pullback_cone : limits.pullback_cone f g :=
+pullback_cone.mk (λ p : pullback_obj f g, p.1.1) (λ p, p.1.2) (funext (λ p, p.2))
+
+/--
+The explicit pullback in the category of types, bundled up as a `limit_cone`
+for given `f` and `g`.
+-/
+@[simps]
+def pullback_limit_cone (f : X ⟶ Z) (g : Y ⟶ Z) : limits.limit_cone (cospan f g) :=
+{ cone := pullback_cone f g,
+  is_limit := pullback_cone.is_limit_aux _
+    (λ s x, ⟨⟨s.fst x, s.snd x⟩, congr_fun s.condition x⟩)
+    (by tidy)
+    (by tidy)
+    (λ s m w, funext $ λ x, subtype.ext $
+     prod.ext (congr_fun (w walking_cospan.left) x)
+              (congr_fun (w walking_cospan.right) x)) }
+
+/--
+The pullback cone given by the instance `has_pullbacks (Type u)` is isomorphic to the
+explicit pullback cone given by `pullback_limit_cone`.
+-/
+noncomputable def pullback_cone_iso_pullback : limit.cone (cospan f g) ≅ pullback_cone f g :=
+(limit.is_limit _).unique_up_to_iso (pullback_limit_cone f g).is_limit
+
+/--
+The pullback given by the instance `has_pullbacks (Type u)` is isomorphic to the
+explicit pullback object given by `pullback_limit_obj`.
+-/
+noncomputable def pullback_iso_pullback : pullback f g ≅ pullback_obj f g :=
+(cones.forget _).map_iso $ pullback_cone_iso_pullback f g
+
+@[simp] lemma pullback_iso_pullback_hom_fst (p : pullback f g) :
+  ((pullback_iso_pullback f g).hom p : X × Y).fst = (pullback.fst : _ ⟶ X) p :=
+congr_fun ((pullback_cone_iso_pullback f g).hom.w left) p
+
+@[simp] lemma pullback_iso_pullback_hom_snd (p : pullback f g) :
+  ((pullback_iso_pullback f g).hom p : X × Y).snd = (pullback.snd : _ ⟶ Y) p :=
+congr_fun ((pullback_cone_iso_pullback f g).hom.w right) p
+
+@[simp] lemma pullback_iso_pullback_inv_fst :
+  (pullback_iso_pullback f g).inv ≫ pullback.fst = (λ p, (p : X × Y).fst) :=
+(pullback_cone_iso_pullback f g).inv.w left
+
+@[simp] lemma pullback_iso_pullback_inv_snd :
+  (pullback_iso_pullback f g).inv ≫ pullback.snd = (λ p, (p : X × Y).snd) :=
+(pullback_cone_iso_pullback f g).inv.w right
+
+end pullback
 
 end category_theory.limits.types

@@ -423,6 +423,10 @@ begin
 end
 
 /-! ### Summability properties of the composition of formal power series-/
+section
+
+-- this speeds up the proof below a lot, related to leanprover-community/lean#521
+local attribute [-instance] unique.subsingleton
 
 /-- If two formal multilinear series have positive radius of convergence, then the terms appearing
 in the definition of their composition are also summable (when multiplied by a suitable positive
@@ -474,7 +478,9 @@ begin
         field_simp [mul_pow, (zero_lt_one.trans_le hCp1).ne'],
         ac_refl
       end },
-  refine ⟨r, r_pos, nnreal.summable_of_le I (summable.mul_left _ _)⟩,
+  refine ⟨r, r_pos, nnreal.summable_of_le I _⟩,
+  simp_rw div_eq_mul_inv,
+  refine summable.mul_left _ _,
   have h4 : ∀ n : ℕ, 0 < (4 ^ n : ℝ≥0)⁻¹ := λ n, nnreal.inv_pos.2 (pow_pos zero_lt_four _),
   have : ∀ n : ℕ, has_sum (λ c : composition n, (4 ^ n : ℝ≥0)⁻¹) (2 ^ (n - 1) / 4 ^ n),
   { intro n,
@@ -486,6 +492,8 @@ begin
   rw [(this _).tsum_eq, nat.add_sub_cancel],
   field_simp [← mul_assoc, pow_succ', mul_pow, show (4 : ℝ≥0) = 2 * 2, from (two_mul 2).symm,
     mul_right_comm]
+end
+
 end
 
 /-- Bounding below the radius of the composition of two formal multilinear series assuming
@@ -590,8 +598,8 @@ end
 power series, here given a a finset.
 See also `comp_partial_sum`. -/
 def comp_partial_sum_target (m M N : ℕ) : finset (Σ n, composition n) :=
-set.finite.to_finset $ (finset.finite_to_set _).dependent_image
-  (comp_partial_sum_target_subset_image_comp_partial_sum_source m M N)
+set.finite.to_finset $ ((finset.finite_to_set _).dependent_image _).subset $
+  comp_partial_sum_target_subset_image_comp_partial_sum_source m M N
 
 @[simp] lemma mem_comp_partial_sum_target_iff {m M N : ℕ} {a : Σ n, composition n} :
   a ∈ comp_partial_sum_target m M N ↔
@@ -605,7 +613,8 @@ that it is a bijection is not directly possible, but the consequence on sums can
 more easily. -/
 lemma comp_change_of_variables_sum {α : Type*} [add_comm_monoid α] (m M N : ℕ)
   (f : (Σ (n : ℕ), fin n → ℕ) → α) (g : (Σ n, composition n) → α)
-  (h : ∀ e (he : e ∈ comp_partial_sum_source m M N), f e = g (comp_change_of_variables m M N e he)) :
+  (h : ∀ e (he : e ∈ comp_partial_sum_source m M N),
+    f e = g (comp_change_of_variables m M N e he)) :
   ∑ e in comp_partial_sum_source m M N, f e = ∑ e in comp_partial_sum_target m M N, g e :=
 begin
   apply finset.sum_bij (comp_change_of_variables m M N),
@@ -758,7 +767,7 @@ begin
     have B₁ : continuous_at (λ (z : F), g (f x + z)) (f (x + y) - f x),
     { refine continuous_at.comp _ (continuous_const.add continuous_id).continuous_at,
       simp only [add_sub_cancel'_right, id.def],
-      exact Hg.continuous_on.continuous_at (mem_nhds_sets (emetric.is_open_ball) fy_mem) },
+      exact Hg.continuous_on.continuous_at (is_open.mem_nhds (emetric.is_open_ball) fy_mem) },
     have B₂ : f (x + y) - f x ∈ emetric.ball (0 : F) rg,
       by simpa [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] using fy_mem,
     rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,

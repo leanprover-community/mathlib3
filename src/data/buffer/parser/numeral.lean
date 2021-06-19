@@ -44,7 +44,8 @@ variables (α : Type) [has_zero α] [has_one α] [has_add α]
 /--
 Parse a string of digits as a numeral while casting it to target type `α`.
 -/
-@[derive mono] def numeral : parser α :=
+@[derive [mono, bounded, prog]]
+def numeral : parser α :=
 nat.bin_cast <$> nat
 
 /--
@@ -52,7 +53,8 @@ Parse a string of digits as a numeral while casting it to target type `α`,
 which has a `[fintype α]` constraint. The parser ensures that the numeral parsed in
 is within the cardinality of the type `α`.
 -/
-@[derive mono] def numeral.of_fintype [fintype α] : parser α :=
+@[derive [mono, bounded, prog]]
+def numeral.of_fintype [fintype α] : parser α :=
 do
   c ← nat,
   decorate_error (sformat!"<numeral less than {to_string (fintype.card α)}>")
@@ -63,7 +65,8 @@ do
 Parse a string of digits as a numeral while casting it to target type `α`. The parsing starts
 at "1", so `"1"` is parsed in as `nat.cast 0`. Providing `"0"` to the parser causes a failure.
 -/
-@[derive mono] def numeral.from_one : parser α :=
+@[derive [mono, bounded, prog]]
+def numeral.from_one : parser α :=
 do
   c ← nat,
   decorate_error ("<positive numeral>")
@@ -76,7 +79,8 @@ which has a `[fintype α]` constraint. The parser ensures that the numeral parse
 is within the cardinality of the type `α`. The parsing starts
 at "1", so `"1"` is parsed in as `nat.cast 0`. Providing `"0"` to the parser causes a failure.
 -/
-@[derive mono] def numeral.from_one.of_fintype [fintype α] : parser α :=
+@[derive [mono, bounded, prog]]
+def numeral.from_one.of_fintype [fintype α] : parser α :=
 do
   c ← nat,
   decorate_error (sformat!"<positive numeral less than or equal to {to_string (fintype.card α)}>")
@@ -88,7 +92,8 @@ Parse a character as a numeral while casting it to target type `α`,
 The parser ensures that the character parsed in is within the bounds set by `fromc` and `toc`,
 and subtracts the value of `fromc` from the parsed in character.
 -/
-@[derive mono] def numeral.char (fromc toc : char) : parser α :=
+@[derive [mono, bounded, err_static, step]]
+def numeral.char (fromc toc : char) : parser α :=
 do
   c ← decorate_error
     (sformat!"<char between '{fromc.to_string}' to '{toc.to_string}' inclusively>")
@@ -102,7 +107,8 @@ The parser ensures that the character parsed in is greater or equal to `fromc` a
 and subtracts the value of `fromc` from the parsed in character. There is also a check
 that the resulting value is within the cardinality of the type `α`.
 -/
-@[derive mono] def numeral.char.of_fintype [fintype α] (fromc : char) : parser α :=
+@[derive [mono, bounded, err_static, step]]
+def numeral.char.of_fintype [fintype α] (fromc : char) : parser α :=
 do
   c ← decorate_error
     (sformat!"<char from '{fromc.to_string}' to '{

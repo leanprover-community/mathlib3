@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.fully_faithful
+import category_theory.full_subcategory
 import category_theory.whiskering
 import category_theory.essential_image
 import tactic.slice
@@ -355,13 +356,16 @@ section
 -- but let's not encourage using it.
 -- The power structure is nevertheless useful.
 
-/-- Powers of an auto-equivalence. -/
+/-- Natural number powers of an auto-equivalence.  Use `(^)` instead. -/
+def pow_nat (e : C ≌ C) : ℕ → (C ≌ C)
+| 0 := equivalence.refl
+| 1 := e
+| (n+2) := e.trans (pow_nat (n+1))
+
+/-- Powers of an auto-equivalence.  Use `(^)` instead. -/
 def pow (e : C ≌ C) : ℤ → (C ≌ C)
-| (int.of_nat 0) := equivalence.refl
-| (int.of_nat 1) := e
-| (int.of_nat (n+2)) := e.trans (pow (int.of_nat (n+1)))
-| (int.neg_succ_of_nat 0) := e.symm
-| (int.neg_succ_of_nat (n+1)) := e.symm.trans (pow (int.neg_succ_of_nat n))
+| (int.of_nat n) := e.pow_nat n
+| (int.neg_succ_of_nat n) := e.symm.pow_nat (n+1)
 
 instance : has_pow (C ≌ C) ℤ := ⟨pow⟩
 
@@ -432,16 +436,6 @@ is_equivalence.of_equivalence F.as_equivalence.symm
 @[simp] lemma inv_inv (F : C ⥤ D) [is_equivalence F] :
   inv (inv F) = F := rfl
 
-/-- The composition of functor that is an equivalence with its inverse is naturally isomorphic to
-    the identity functor. -/
-def fun_inv_id (F : C ⥤ D) [is_equivalence F] : F ⋙ F.inv ≅ 𝟭 C :=
-is_equivalence.unit_iso.symm
-
-/-- The composition of functor that is an equivalence with its inverse is naturally isomorphic to
-    the identity functor. -/
-def inv_fun_id (F : C ⥤ D) [is_equivalence F] : F.inv ⋙ F ≅ 𝟭 D :=
-is_equivalence.counit_iso
-
 variables {E : Type u₃} [category.{v₃} E]
 
 instance is_equivalence_trans (F : C ⥤ D) (G : D ⥤ E) [is_equivalence F] [is_equivalence G] :
@@ -471,27 +465,17 @@ end equivalence
 namespace is_equivalence
 
 @[simp] lemma fun_inv_map (F : C ⥤ D) [is_equivalence F] (X Y : D) (f : X ⟶ Y) :
-  F.map (F.inv.map f) = F.inv_fun_id.hom.app X ≫ f ≫ F.inv_fun_id.inv.app Y :=
+  F.map (F.inv.map f) = F.as_equivalence.counit.app X ≫ f ≫ F.as_equivalence.counit_inv.app Y :=
 begin
   erw [nat_iso.naturality_2],
   refl
 end
 @[simp] lemma inv_fun_map (F : C ⥤ D) [is_equivalence F] (X Y : C) (f : X ⟶ Y) :
-  F.inv.map (F.map f) = F.fun_inv_id.hom.app X ≫ f ≫ F.fun_inv_id.inv.app Y :=
+  F.inv.map (F.map f) = F.as_equivalence.unit_inv.app X ≫ f ≫ F.as_equivalence.unit.app Y :=
 begin
-  erw [nat_iso.naturality_2],
+  erw [nat_iso.naturality_1],
   refl
 end
-
--- We should probably restate many of the lemmas about `equivalence` for `is_equivalence`,
--- but these are the only ones I need for now.
-@[simp] lemma functor_unit_comp (E : C ⥤ D) [is_equivalence E] (Y) :
-  E.map (E.fun_inv_id.inv.app Y) ≫ E.inv_fun_id.hom.app (E.obj Y) = 𝟙 _ :=
-equivalence.functor_unit_comp E.as_equivalence Y
-
-@[simp] lemma inv_fun_id_inv_comp (E : C ⥤ D) [is_equivalence E] (Y) :
-  E.inv_fun_id.inv.app (E.obj Y) ≫ E.map (E.fun_inv_id.hom.app Y) = 𝟙 _ :=
-eq_of_inv_eq_inv (functor_unit_comp _ _)
 
 end is_equivalence
 
@@ -503,7 +487,7 @@ An equivalence is essentially surjective.
 See https://stacks.math.columbia.edu/tag/02C3.
 -/
 lemma ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
-⟨λ Y, ⟨F.inv.obj Y, ⟨F.inv_fun_id.app Y⟩⟩⟩
+⟨λ Y, ⟨F.inv.obj Y, ⟨F.as_equivalence.counit_iso.app Y⟩⟩⟩
 
 /--
 An equivalence is faithful.
@@ -525,9 +509,9 @@ See https://stacks.math.columbia.edu/tag/02C3.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
-{ preimage := λ X Y f, F.fun_inv_id.inv.app X ≫ F.inv.map f ≫ F.fun_inv_id.hom.app Y,
+{ preimage := λ X Y f, F.as_equivalence.unit.app X ≫ F.inv.map f ≫ F.as_equivalence.unit_inv.app Y,
   witness' := λ X Y f, F.inv.map_injective $
-  by simpa only [is_equivalence.inv_fun_map, assoc, iso.hom_inv_id_app_assoc, iso.hom_inv_id_app]
+  by simpa only [is_equivalence.inv_fun_map, assoc, iso.inv_hom_id_app_assoc, iso.inv_hom_id_app]
     using comp_id _ }
 
 @[simps] private noncomputable def equivalence_inverse (F : C ⥤ D) [full F] [faithful F]
@@ -558,6 +542,40 @@ is_equivalence.mk (equivalence_inverse F)
   e.inverse.map f = e.inverse.map g ↔ f = g :=
 functor_map_inj_iff e.symm f g
 
+instance ess_surj_induced_functor {C' : Type*} (e : C' ≃ D) : ess_surj (induced_functor e) :=
+{ mem_ess_image := λ Y, ⟨e.symm Y, by simp⟩, }
+
+noncomputable
+instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
+equivalence_of_fully_faithfully_ess_surj _
+
 end equivalence
+
+section partial_order
+variables {α β : Type*} [partial_order α] [partial_order β]
+
+/--
+A categorical equivalence between partial orders is just an order isomorphism.
+-/
+def equivalence.to_order_iso (e : α ≌ β) : α ≃o β :=
+{ to_fun := e.functor.obj,
+  inv_fun := e.inverse.obj,
+  left_inv := λ a, (e.unit_iso.app a).to_eq.symm,
+  right_inv := λ b, (e.counit_iso.app b).to_eq,
+  map_rel_iff' := λ a a',
+    ⟨λ h, ((equivalence.unit e).app a ≫ e.inverse.map h.hom ≫ (equivalence.unit_inv e).app a').le,
+     λ (h : a ≤ a'), (e.functor.map h.hom).le⟩, }
+
+-- `@[simps]` on `equivalence.to_order_iso` produces lemmas that fail the `simp_nf` linter,
+-- so we provide them by hand:
+@[simp]
+lemma equivalence.to_order_iso_apply (e : α ≌ β) (a : α) :
+  e.to_order_iso a = e.functor.obj a := rfl
+
+@[simp]
+lemma equivalence.to_order_iso_symm_apply (e : α ≌ β) (b : β) :
+  e.to_order_iso.symm b = e.inverse.obj b := rfl
+
+end partial_order
 
 end category_theory

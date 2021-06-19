@@ -106,9 +106,10 @@ instance : has_mul ℂ := ⟨λ z w, ⟨z.re * w.re - z.im * w.im, z.re * w.im +
 @[simp] lemma mul_im (z w : ℂ) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 @[simp, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : ℂ) = r * s := ext_iff.2 $ by simp
 
-lemma smul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
-lemma smul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
-lemma of_real_smul (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ := ext (smul_re _ _) (smul_im _ _)
+lemma of_real_mul_re (r : ℝ) (z : ℂ) : (↑r * z).re = r * z.re := by simp
+lemma of_real_mul_im (r : ℝ) (z : ℂ) : (↑r * z).im = r * z.im := by simp
+lemma of_real_mul' (r : ℝ) (z : ℂ) : (↑r * z) = ⟨r * z.re, r * z.im⟩ :=
+ext (of_real_mul_re _ _) (of_real_mul_im _ _)
 
 /-! ### The imaginary unit, `I` -/
 
@@ -133,9 +134,10 @@ ext_iff.2 $ by simp
 /-! ### Commutative ring instance and lemmas -/
 
 instance : comm_ring ℂ :=
-by refine { zero := 0, add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1, mul := (*),
-            sub_eq_add_neg := _, ..};
-   { intros, apply ext_iff.2; split; simp; ring }
+by refine_struct { zero := (0 : ℂ), add := (+), neg := has_neg.neg, sub := has_sub.sub, one := 1,
+  mul := (*), nsmul := @nsmul_rec _ ⟨(0)⟩ ⟨(+)⟩, npow := @npow_rec _ ⟨(1)⟩ ⟨(*)⟩,
+  gsmul := @gsmul_rec _ ⟨(0)⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
 { map_add := complex.add_re }
@@ -189,6 +191,15 @@ lemma eq_conj_iff_real {z : ℂ} : conj z = z ↔ ∃ r : ℝ, z = r :=
 
 lemma eq_conj_iff_re {z : ℂ} : conj z = z ↔ (z.re : ℂ) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
+
+
+lemma conj_sub (z z': ℂ) : conj (z - z') = conj z - conj z' := conj.map_sub z z'
+
+lemma conj_one : conj 1 = 1 := by rw conj.map_one
+
+lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
+⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
+  λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
 
 instance : star_ring ℂ :=
 { star := λ z, conj z,
@@ -259,7 +270,7 @@ def of_real : ℝ →+* ℂ := ⟨coe, of_real_one, of_real_mul, of_real_zero, o
 
 @[simp] lemma of_real_eq_coe (r : ℝ) : of_real r = r := rfl
 
-@[simp] lemma I_sq : I ^ 2 = -1 := by rw [pow_two, I_mul_I]
+@[simp] lemma I_sq : I ^ 2 = -1 := by rw [sq, I_mul_I]
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl
 @[simp] lemma sub_im (z w : ℂ) : (z - w).im = z.im - w.im := rfl
@@ -456,7 +467,7 @@ _root_.abs_of_nonneg (abs_nonneg _)
 
 @[simp] lemma abs_pos {z : ℂ} : 0 < abs z ↔ z ≠ 0 := abv_pos abs
 @[simp] lemma abs_neg : ∀ z, abs (-z) = abs z := abv_neg abs
-lemma abs_sub : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
+lemma abs_sub_comm : ∀ z w, abs (z - w) = abs (w - z) := abv_sub abs
 lemma abs_sub_le : ∀ a b c, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
 @[simp] theorem abs_inv : ∀ z, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w, abs (z / w) = abs z / abs w := abv_div abs
@@ -482,7 +493,7 @@ by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 by rw [← of_real_int_cast, abs_of_real, int.cast_abs]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=
-by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
+by rw [abs, sq, real.mul_self_sqrt (norm_sq_nonneg _)]
 
 /--
 We put a partial order on ℂ so that `z ≤ w` exactly if `w - z` is real and nonnegative.
@@ -525,7 +536,7 @@ begin
   fsplit,
   { rintro ⟨⟨x, l, rfl⟩, h⟩,
     by_cases hx : x = 0,
-    { simp [hx] at h, exfalso, exact h (le_refl _), },
+    { simpa [hx] using h },
     { replace l : 0 < x := l.lt_of_ne (ne.symm hx),
       exact ⟨x, l, rfl⟩, } },
   { rintro ⟨x, l, rfl⟩,
@@ -614,8 +625,8 @@ With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring
 (That is, an ordered ring in which every element of the form `star z * z` is nonnegative.)
 
 In fact, the nonnegative elements are precisely those of this form.
-This hold in any C*-algebra, e.g. `ℂ`,
-but we don't yet have C*-algebras in mathlib.
+This hold in any `C^*`-algebra, e.g. `ℂ`,
+but we don't yet have `C^*`-algebras in mathlib.
 -/
 def complex_star_ordered_ring : star_ordered_ring ℂ :=
 { star_mul_self_nonneg := λ z,

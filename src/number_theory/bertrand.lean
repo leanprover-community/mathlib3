@@ -512,10 +512,16 @@ end
 --   have h := cube_le_exp_of_nonneg (x / 3)
 -- end
 
-lemma nat_pow_is_real_pow (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n  :=
-begin
-  sorry
-end
+-- lemma nat_pow_is_real_pow (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n  :=
+-- begin
+--   induction n,
+--   simp,
+--   rw pow_succ,
+--   rw <-nat.add_one,
+--   rw pow_cast,
+--   rw pow_add,
+
+-- end
 
 -- set_option pp.notation false
 -- set_option pp.implicit true
@@ -539,11 +545,49 @@ end
 lemma zero_le_three : (0 : ℝ) ≤ (3 : ℝ) := by norm_num
 lemma zero_le_log_four : (0 : ℝ) ≤ log 4 := log_nonneg (by norm_num)
 
-lemma zero_lt_three_pow_three : (0 : ℝ) < 3 ^ 3 := by norm_num
+lemma zero_lt_three_pow_nat_three : (0 : ℝ) < 3 ^ 3 :=
+begin
+  norm_num
+end
+
+lemma pow_real_three (x : ℝ) (hx : 0 < x) : x ^ (3 : ℝ) = x * x * x :=
+begin
+  have h1 : x ^ (3 : ℝ) = x ^ (1 + 1 + 1 : ℝ),
+    norm_num,
+  rw h1,
+  rw rpow_add,
+  rw rpow_add,
+  rw rpow_one,
+  -- norm_num,
+  linarith,
+  linarith,
+
+  -- rw pow_succ,
+  -- rw pow_one,
+  -- norm_num,
+end
+
+lemma zero_lt_three_pow_real_three : (0 : ℝ) < 3 ^ (3 : ℝ) :=
+begin
+  rw pow_real_three,
+  norm_num,
+  linarith,
+end
 
 lemma intermediate (x : ℝ) : sqrt (8 * x + 8) ^ (3 : ℝ) * (3 ^ (3 : ℝ) * (8 * x + 8)) ≤ x ^ (3 : ℝ) * log 4 ^ (3 : ℝ) :=
 begin
-  sorry
+  rw pow_real_three,
+  rw pow_real_three,
+  rw pow_real_three,
+  rw ←sqrt_mul,
+  rw <-sq,
+  rw sqrt_sq,
+  calc (8 * x + 8) * sqrt (8 * x + 8) * (3 * 3 * 3 * (8 * x + 8))
+      ≤ 9 * x * sqrt (8 * x + 8) * (3 * 3 * 3 * (8 * x + 8)) : sorry
+  ... ≤ 9 * x * sqrt (8 * x + 8) * (3 * 3 * 3 * 9 * x) : sorry
+  ... ≤ 9 * x * (x / 2187) * (3 * 3 * 3 * 9 * x) : sorry
+  ... = x * x * x : sorry
+  ... ≤ x * x * x * log 4 ^ 3 : sorry
 end
 
 lemma linear_dominates_sqrt_log (x : ℝ) (hx : 249 ≤ x) : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
@@ -564,8 +608,8 @@ begin
                 rw le_div_iff',
                 { rw le_div_iff',
                   { exact intermediate x, },
-                  { sorry, }, },
-                sorry,
+                  { exact rpow_pos_of_pos h1 3, }, },
+                exact zero_lt_three_pow_real_three,
                 -- rewrite saldkaoiew (8 * x + 8),
               end
   ...      ≤ exp (3 * (x * log 4 / sqrt (8 * x + 8) / 3)) :

@@ -30,7 +30,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (G : Type*) [topological_space G] [charted_space H G] [monoid G] [has_smooth_mul I G] (g h : G)
 
 -- Generate trivial has_sizeof instance. It prevents weird type class inference timeout problems
-local attribute [instance, priority 10000]
+local attribute [nolint instance_priority, instance, priority 10000]
 private def disable_has_sizeof {α} : has_sizeof α := ⟨λ _, 0⟩
 
 /--
@@ -40,7 +40,7 @@ A global derivation is left-invariant if it is equal to its pullback along left 
 an arbitrary element of `G`.
 -/
 structure left_invariant_derivation extends derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯ :=
-(left_invariant'' : ∀ f g, 𝒅(𝑳 I g) 1 (derivation.eval_at 1 to_derivation) f =
+(left_invariant'' : ∀ f : C^∞⟮I, G; 𝕜⟯, ∀ g, 𝒅(𝑳 I g) 1 (derivation.eval_at 1 to_derivation) f =
   derivation.eval_at g to_derivation f)
 
 variables {I G}
@@ -53,11 +53,11 @@ instance : has_coe (left_invariant_derivation I G) (derivation 𝕜 C^∞⟮I, G
 instance : has_coe_to_fun (left_invariant_derivation I G) := ⟨_, λ X, X.to_derivation.to_fun⟩
 
 variables
-{M : Type*} [topological_space M] [charted_space H M] {x : M}
-{X Y : left_invariant_derivation I G} {f f' : C^∞⟮I, G; 𝕜⟯} {r : 𝕜}
+{M : Type*} [topological_space M] [charted_space H M] {x : M} {r : 𝕜}
+{X Y : left_invariant_derivation I G} {f f' : C^∞⟮I, G; 𝕜⟯}
 
-@[simp] lemma to_fun_eq_coe : X.to_fun = ⇑X := rfl
-@[simp] lemma coe_fn_coe : ⇑(X : C^∞⟮I, G; 𝕜⟯ →ₗ[𝕜] C^∞⟮I, G; 𝕜⟯) = X := rfl
+lemma to_fun_eq_coe : X.to_fun = ⇑X := rfl
+lemma coe_fn_coe : ⇑(X : C^∞⟮I, G; 𝕜⟯ →ₗ[𝕜] C^∞⟮I, G; 𝕜⟯) = X := rfl
 @[simp] lemma to_derivation_eq_coe : X.to_derivation = X := rfl
 
 lemma coe_injective :
@@ -113,19 +113,20 @@ instance : has_sub (left_invariant_derivation I G) :=
 instance : add_comm_group (left_invariant_derivation I G) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
 
-instance : module 𝕜 (left_invariant_derivation I G) :=
-module.of_core $
+instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ f g, by { simp only [derivation.Rsmul_apply, algebra.id.smul_eq_mul,
-            mul_eq_mul_left_iff, linear_map.map_smul, left_invariant'], left, refl }⟩,
-  mul_smul := λ r s X, ext $ λ b, mul_smul _ _ _,
-  one_smul := λ X, ext $ λ b, one_smul 𝕜 _,
-  smul_add := λ r X Y, ext $ λ b, smul_add _ _ _,
-  add_smul := λ r s X, ext $ λ b, add_smul _ _ _ }
+            mul_eq_mul_left_iff, linear_map.map_smul, left_invariant'], left, refl }⟩ }
+
+variables (r X)
 
 @[simp] lemma coe_smul : ⇑(r • X) = r • X := rfl
 @[simp] lemma map_smul : X (r • f) = r • X f := linear_map.map_smul X r f
 @[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 @[simp] lemma lift_smul (k : 𝕜) : (↑(k • X) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = k • X := rfl
+
+instance : module 𝕜 (left_invariant_derivation I G) :=
+coe_injective.module _ ⟨(λ X : (left_invariant_derivation I G), X.to_derivation.to_fun), coe_zero,
+  coe_add⟩ coe_smul
 
 /-- Evaluation at a point for left invariant derivation. Same thing as for generic global
 derivations (`derivation.eval_at`). -/

@@ -33,40 +33,46 @@ namespace point_derivation
 instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
 instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
+variables (𝕜 M) (n : with_top ℕ)
+
+/-- Type synonim to avoid metavariables. -/
+@[reducible, nolint unused_arguments] def pointed_smooth_map (x : M) := C^n⟮I, M; 𝕜⟯
+
+localized "notation `C^` n`⟮` I`,` M`;` 𝕜`⟯[` x`]` :=
+  point_derivation.pointed_smooth_map 𝕜 I M n x" in derivation
+
+variables {𝕜 M}
+
 /-- Evaluation at a point is a ring homomorphism. Same thing as writing manually
 `to_fun := λ f, f x`.-/
-def smooth_function.eval' (x : M) : C^∞⟮I, M; 𝕜⟯ →+* 𝕜 :=
+def smooth_function.eval' (x : M) : C^∞⟮I, M; 𝕜⟯[x] →+* 𝕜 :=
 (pi.eval_ring_hom _ x : (M → 𝕜) →+* 𝕜).comp smooth_map.coe_fn_ring_hom
 
 variable {I}
 
 /-- The above evaluation gives rise to an algebra structure of `C^∞⟮I, M; 𝕜⟯` on `𝕜`. -/
-def algebra (x : M) : algebra C^∞⟮I, M; 𝕜⟯ 𝕜 := (smooth_function.eval' I x).to_algebra
+instance {x : M} : algebra C^∞⟮I, M; 𝕜⟯[x] 𝕜 := (smooth_function.eval' I x).to_algebra
 
 /-- With the above algebra structure evaluation is actually an algebra morphism. -/
-def smooth_function.eval (x : M) :
-  @alg_hom C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ 𝕜 _ _ _ _ (point_derivation.algebra x) :=
+def smooth_function.eval (x : M) : C^∞⟮I, M; 𝕜⟯ →ₐ[C^∞⟮I, M; 𝕜⟯[x]] 𝕜 :=
 { commutes' := λ k, rfl, ..smooth_function.eval' I x }
 
 /-- The scalar multiplication defined above gives rise to a module structure. -/
-def module (x : M) : module C^∞⟮I, M; 𝕜⟯ 𝕜 :=
-@algebra.to_module _ _ _ _ (point_derivation.algebra x)
+instance {x : M} : module C^∞⟮I, M; 𝕜⟯[x] 𝕜 := algebra.to_module
 
-lemma scalar_def (x : M) (f : C^∞⟮I, M; 𝕜⟯) (k : 𝕜) :
-  @has_scalar.smul C^∞⟮I, M; 𝕜⟯ 𝕜 (point_derivation.algebra x).to_has_scalar f k = f x * k := rfl
+lemma scalar_def (x : M) (f : C^∞⟮I, M; 𝕜⟯[x]) (k : 𝕜) : f • k = f x * k := rfl
 
-lemma is_scalar_tower (x : M) :
-  @is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ 𝕜 _ (point_derivation.algebra x).to_has_scalar _ :=
+instance (x : M) : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯[x] 𝕜 :=
 { smul_assoc := λ k f h, by { simp only [scalar_def, algebra.id.smul_eq_mul, smooth_map.coe_smul,
   pi.smul_apply, mul_assoc]} }
 
 end point_derivation
 
+open_locale derivation
+
 /-- The derivations at a point of a manifold. Some regard this as a possible definition of the
 tangent space -/
-@[reducible] def point_derivation (x : M) :=
-  @derivation 𝕜 C^∞⟮I, M; 𝕜⟯ _ _ _ 𝕜 _ (point_derivation.module x) _
-    (point_derivation.is_scalar_tower x)
+@[reducible] def point_derivation (x : M) := derivation 𝕜 (C^∞⟮I, M; 𝕜⟯[x]) 𝕜
 
 variable (M)
 
@@ -84,15 +90,12 @@ instance [inhabited M] : inhabited (derivation_bundle I M) :=
 
 section
 
-variables (I) {M} (X Y : derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯)
-  (f g : C^∞⟮I, M; 𝕜⟯) (r : 𝕜)
+variables (I) {M} (X Y : derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯) (f g : C^∞⟮I, M; 𝕜⟯) (r : 𝕜)
 
 /-- Evaluation at a point gives rise to a `C^∞⟮I, M; 𝕜⟯`-linear map between `C^∞⟮I, M; 𝕜⟯` and `𝕜`.
  -/
-def smooth_function.eval_at (x : M) :
-  @linear_map C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ 𝕜 _ _ _ _ (point_derivation.module x) :=
-@alg_hom.to_linear_map C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ 𝕜 _ _ _ _ (point_derivation.algebra x)
-  (point_derivation.smooth_function.eval x)
+def smooth_function.eval_at (x : M) : C^∞⟮I, M; 𝕜⟯ →ₗ[C^∞⟮I, M; 𝕜⟯[x]] 𝕜 :=
+(point_derivation.smooth_function.eval x).to_linear_map
 
 namespace derivation
 
@@ -100,8 +103,7 @@ variable {I}
 
 /-- The evaluation at a point as a linear map. -/
 def eval_at (x : M) : (derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯) →ₗ[𝕜] point_derivation I x :=
-@linear_map.comp_der 𝕜 _ C^∞⟮I, M; 𝕜⟯ _ _ C^∞⟮I, M; 𝕜⟯ _ _ _ _ 𝕜 _ (point_derivation.module x) _
-  (point_derivation.is_scalar_tower x) (smooth_function.eval_at I x)
+(smooth_function.eval_at I x).comp_der
 
 lemma eval_apply (x : M) : eval_at x X f = (X f) x := rfl
 

@@ -63,29 +63,11 @@ $$
 -/
 def liouville_number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
 
-lemma liouville_number_terms_after_pos_ (hm : 1 < m) (k : ℕ) :
-  0 < liouville_number_terms_after_k m k :=
--- replace `0` with the series `∑ i : ℕ, 0` all of whose terms vanish
-(@tsum_zero _ ℕ _ _ _).symm.le.trans_lt (
-  -- to show that a series with non-negative terms has strictly positive sum it suffices
-  -- to prove that:
-  tsum_lt_tsum_of_nonneg
-    -- 1. the terms of the zero series are indeed non-negative [sic];
-    (λ _, rfl.le)
-    -- 2. the terms of our series are non-negative;
-    (λ i, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
-    -- 3. one term of our series is strictly positive -- they all are, we use the `0`th term;
-    (one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) (0 + (k + 1))!))
-    -- 4. our series converges -- it does since it is the tail ...
-    ((@summable_nat_add_iff ℝ _ _ _ (λ (i : ℕ), 1 / m ^ i!) (k+1)).mpr
-      -- ... of the converging series `∑ 1 / n!`.
-      (summable_inv_pow_ge hm (λ i, i.self_le_factorial))))
-
---/-
 lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
   0 < liouville_number_terms_after_k m k :=
 -- replace `0` with the constantly zero series `∑ i : ℕ, 0`
-(@tsum_zero _ ℕ _ _ _).symm.le.trans_lt $
+calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
+          ... < liouville_number_terms_after_k m k :
   -- to show that a series with non-negative terms has strictly positive sum it suffices
   -- to prove that
   tsum_lt_tsum_of_nonneg

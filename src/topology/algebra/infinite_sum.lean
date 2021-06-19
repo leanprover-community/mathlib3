@@ -615,7 +615,7 @@ begin
     rw ← ite_not,
     congr,
     simp },
-  { simp }
+  { exact sum_singleton.symm }
 end
 
 section tsum
@@ -638,7 +638,7 @@ lemma tsum_ite_eq_extract [decidable_eq β] (hf : summable f) (b : β) :
   ∑' n, f n = f b + ∑' n, ite (n = b) 0 (f n) :=
 begin
   rw (has_sum_ite_eq_extract hf.has_sum b).tsum_eq,
-  abel,
+  exact (add_sub_cancel'_right _ _).symm,
 end
 
 end tsum

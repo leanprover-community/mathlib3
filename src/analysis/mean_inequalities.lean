@@ -7,7 +7,6 @@ import analysis.convex.specific_functions
 import analysis.special_functions.pow
 import data.real.conjugate_exponents
 import tactic.nth_rewrite
-import measure_theory.integration
 
 /-!
 # Mean value inequalities

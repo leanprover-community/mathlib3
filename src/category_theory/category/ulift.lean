@@ -17,6 +17,21 @@ instance on `ulift C` where `C` is a type with a category instance.
 2. `category_theory.ulift.down` is the functorial version of the usual `ulift.down`.
 3. `category_theory.ulift.equivalence` is the categorical equivalence between
   `C` and `ulift C`.
+
+# as_small
+
+This file also contains a construction which takes a type `C : Type u` with a
+category instance `category.{v} C` and makes a small category `as_small C : Type (max u v)`
+equivalent to `C`.
+
+The forward direction of the equivalence, `C ⥤ as_small C`, is denoted `as_small.up`
+and the backward direction is `as_small.down`. The equivalence itself is `as_small.equiv`.
+
+# Projects:
+1. Generalize `as_small` to provide a small category in an arbitrary universe,
+  as opposed to just `max u v`.
+2. Provide a `ulift_hom` construction which increases the universe level on morphisms
+  while leaving objects as is.
 -/
 
 universes v u1 u2
@@ -63,7 +78,13 @@ instance [is_cofiltered C] : is_cofiltered (ulift.{u2} C) :=
 is_cofiltered.of_equivalence ulift.equivalence
 
 variable (C)
-/-- `as_small C` is a small category equivalent to `C`.-/
+/-- `as_small C` is a small category equivalent to `C`.
+  More specifically, if `C : Type u` is endowed with `category.{v} C`, then
+  `as_small C : Type (max u v)` is endowed with aan instance of a small category.
+
+  The objects and morphisms of `as_small C` are defined by applying `ulift` to the
+  objects and morphisms of `C`.
+-/
 @[nolint unused_arguments]
 def as_small := ulift.{v} C
 variable {C}

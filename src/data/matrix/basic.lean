@@ -849,20 +849,20 @@ end star_ring
 def minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) : matrix l o α :=
 λ i j, A (r_reindex i) (c_reindex j)
 
-@[simp] lemma minor_apply (A : matrix m n α) (row : l → m) (col : o → n) (i j) :
-  A.minor row col i j = A (row i) (col j) := rfl
+@[simp] lemma minor_apply (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) (i j) :
+  A.minor r_reindex c_reindex i j = A (r_reindex i) (c_reindex j) := rfl
 
 @[simp] lemma minor_id_id (A : matrix m n α) :
   A.minor id id = A :=
 ext $ λ _ _, rfl
 
 @[simp] lemma minor_minor {l₂ o₂ : Type*} [fintype l₂] [fintype o₂] (A : matrix m n α)
-  (row₁ : l → m) (col₁ : o → n) (row₂ : l₂ → l) (col₂ : o₂ → o) :
-  (A.minor row₁ col₁).minor row₂ col₂ = A.minor (row₁ ∘ row₂) (col₁ ∘ col₂) :=
+  (r₁ : l → m) (c₁ : o → n) (r₂ : l₂ → l) (c₂ : o₂ → o) :
+  (A.minor r₁ c₁).minor r₂ c₂ = A.minor (r₁ ∘ r₂) (c₁ ∘ c₂) :=
 ext $ λ _ _, rfl
 
-@[simp] lemma transpose_minor (A : matrix m n α) (row : l → m) (col : o → n) :
-  (A.minor row col)ᵀ = Aᵀ.minor col row :=
+@[simp] lemma transpose_minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
+  (A.minor r_reindex c_reindex)ᵀ = Aᵀ.minor c_reindex r_reindex :=
 ext $ λ _ _, rfl
 
 lemma minor_add [has_add α] (A B : matrix m n α) :
@@ -882,7 +882,7 @@ lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α] (r 
   (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
 
-/-- Given a `(m × m)` diagonal matrix defined by a map `d : m → α`, if the reindexing arrow `e` is
+/-- Given a `(m × m)` diagonal matrix defined by a map `d : m → α`, if the reindexing map `e` is
   injective, then the resulting matrix is again diagonal. -/
 lemma minor_diagonal [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α) (e : l → m)
   (he : function.injective e) :
@@ -939,6 +939,10 @@ minor_mul M N e₁ e₂ e₃ e₂.bijective
 lemma mul_minor_one {n' o' : Type*} [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l ≃ o)
   (M : matrix m n α) : M.mul ((1 : matrix o o α).minor e₁ e₂) = minor M id (e₁.symm ∘ e₂) :=
 begin
+  -- ext,
+  rw ← (minor_id_id M),
+  rw ← (minor_mul M (1 : matrix o o α) id e₁.symm e₂.to_fun _),
+  dsimp [minor],
   sorry,
 end
 

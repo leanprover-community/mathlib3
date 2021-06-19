@@ -22,7 +22,7 @@ implementing one of the possible definitions of Lie algebra.
 
 noncomputable theory
 
-open_locale lie_group manifold
+open_locale lie_group manifold derivation
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -77,8 +77,9 @@ lemma coe_derivation_injective : function.injective
 λ X Y h, by { cases X, cases Y, congr, exact h }
 
 /-- Premature version of the lemma. Prefer using `left_invariant` instead. -/
-lemma left_invariant' : (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f =
-  derivation.eval_at g ↑X f := by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
+lemma left_invariant' : (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X)
+  (f : C^∞⟮I, G; 𝕜⟯[(𝑳 I g) 1]) = derivation.eval_at g ↑X (f : C^∞⟮I, G; 𝕜⟯[g]) :=
+by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
 
 instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,
   by simp only [linear_map.map_zero, derivation.coe_zero]⟩⟩

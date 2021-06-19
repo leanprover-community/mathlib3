@@ -238,7 +238,7 @@ lemma norm [opens_measurable_space E] (h : interval_integrable f μ a b) :
 
 lemma abs {f : α → ℝ} (h : interval_integrable f μ a b) :
   interval_integrable (λ x, abs (f x)) μ a b  :=
-by simpa only [real.norm_eq_abs] using h.norm
+h.norm
 
 lemma mono
   (hf : interval_integrable f ν a b) (h1 : interval c d ⊆ interval a b) (h2 : μ ≤ ν) :
@@ -977,10 +977,23 @@ lemma integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae_restrict hab $ ae_restrict_of_ae hf
 
+lemma integral_nonneg_of_forall (hf : ∀ u, 0 ≤ f u) :
+  0 ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae hab $ eventually_of_forall hf
+
 lemma integral_nonneg [topological_space α] [opens_measurable_space α] [order_closed_topology α]
   (hf : ∀ u, u ∈ Icc a b → 0 ≤ f u) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae_restrict hab $ (ae_restrict_iff' measurable_set_Icc).mpr $ ae_of_all μ hf
+
+lemma norm_integral_le_integral_norm :
+  ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in a..b, ∥f x∥ ∂μ :=
+norm_integral_le_abs_integral_norm.trans_eq $
+  abs_of_nonneg $ integral_nonneg_of_forall hab $ λ x, norm_nonneg _
+
+lemma abs_integral_le_integral_abs :
+  abs (∫ x in a..b, f x ∂μ) ≤ ∫ x in a..b, abs (f x) ∂μ :=
+norm_integral_le_integral_norm hab
 
 section mono
 
@@ -1008,14 +1021,6 @@ lemma integral_mono (h : f ≤ g) :
 integral_mono_ae hab hf hg $ ae_of_all _ h
 
 end mono
-
-lemma abs_integral_le_integral_abs (h : interval_integrable f μ a b) :
-  abs (∫ x in a..b, f x ∂μ) ≤ ∫ x in a..b, abs (f x) ∂μ :=
-begin
-  rw [abs_le, ← integral_neg],
-  exact ⟨integral_mono hab h.abs.neg h (λ x, neg_abs_le_self _),
-         integral_mono hab h h.abs (λ x, le_abs_self _)⟩,
-end
 
 end
 

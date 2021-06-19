@@ -24,10 +24,10 @@ begin
   refine summable_of_nonneg_of_le
     (λ a, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _)) (λ a, _)
     (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
-      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (by rwa one_div_one))),
+      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (one_div_one.le.trans_lt hm))),
   rw [div_pow, one_pow],
-  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a)),
-  repeat { exact pow_pos (zero_lt_one.trans hm) _ }
+  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a));
+  exact pow_pos (zero_lt_one.trans hm) _
 end
 
 section m_is_real

@@ -104,9 +104,9 @@ calc 1 = ∥im_clm I∥ : by simp
    ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
 
 /-- The complex-conjugation function from `ℂ` to itself is an isometric linear map. -/
-def conj_li : ℂ →ₗᵢ[ℝ] ℂ := ⟨conj_lm, λ x, by simp⟩
+def conj_li : ℂ →ₗᵢ[ℝ] ℂ := ⟨conj_alg_equiv.to_linear_map, λ x, by simp⟩
 
-@[simp] lemma conj_li_apply (z : ℂ) : conj_li z = conj_lm z := rfl
+@[simp] lemma conj_li_apply (z : ℂ) : conj_li z = conj z := rfl
 
 /-- Continuous linear map version of the conj function, from `ℂ` to `ℂ`. -/
 def conj_clm : ℂ →L[ℝ] ℂ := conj_li.to_continuous_linear_map
@@ -115,14 +115,14 @@ lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_li.isometry
 
 @[continuity] lemma continuous_conj : continuous conj := conj_clm.continuous
 
-@[simp] lemma conj_clm_coe : (coe (conj_clm) : ℂ →ₗ[ℝ] ℂ) = conj_lm := rfl
+@[simp] lemma conj_clm_coe : (coe (conj_clm) : ℂ →ₗ[ℝ] ℂ) = conj_alg_equiv.to_linear_map := rfl
 
 @[simp] lemma conj_clm_apply (z : ℂ) : (conj_clm : ℂ → ℂ) z = z.conj := rfl
 
 @[simp] lemma conj_clm_norm : ∥conj_clm∥ = 1 := conj_li.norm_to_continuous_linear_map
 
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
-def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_lm, λ x, by simp⟩
+def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_lm.to_linear_map, λ x, by simp⟩
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
@@ -131,11 +131,13 @@ lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := isometry_of_real.continuous
 
-@[simp] lemma of_real_clm_coe : (coe (of_real_clm) : ℝ →ₗ[ℝ] ℂ) = of_real_lm := rfl
+@[simp] lemma of_real_clm_coe : (coe (of_real_clm) : ℝ →ₗ[ℝ] ℂ) = of_real_lm.to_linear_map := rfl
 
 @[simp] lemma of_real_clm_apply (x : ℝ) : (of_real_clm : ℝ → ℂ) x = x := rfl
 
 @[simp] lemma of_real_clm_norm : ∥of_real_clm∥ = 1 := of_real_li.norm_to_continuous_linear_map
+
+@[simp] lemma of_real_clm_to_linear : of_real_clm.to_linear_map = of_real_lm.to_linear_map := rfl
 
 noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,

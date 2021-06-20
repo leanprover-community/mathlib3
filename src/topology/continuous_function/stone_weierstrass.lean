@@ -403,7 +403,7 @@ begin
     convert A.smul_mem A.one_mem (f x₂),
     ext1,
     simp },
-  -- Consider now the function `λ x, |f - f x₂| ^ 2`
+  -- Consider now the function `λ x, |f x - f x₂| ^ 2`
   refine ⟨_, ⟨(⟨complex.norm_sq, continuous_norm_sq⟩ : C(ℂ, ℝ)).comp F, _, rfl⟩, _⟩,
   { -- This is also an element of the subalgebra, and takes only real values
     rw [set_like.mem_coe, subalgebra.mem_comap],
@@ -434,8 +434,7 @@ begin
   -- The main point of the proof is that its range (i.e., every real-valued function) is contained
   -- in the closure of `A`
   have key : I.range ≤ (A.to_submodule.restrict_scalars ℝ).topological_closure,
-  { rw ← submodule.map_top,
-    -- Let `A₀` be the subalgebra of `C(X, ℝ)` consisting of `A`'s purely real elements; it is the
+  { -- Let `A₀` be the subalgebra of `C(X, ℝ)` consisting of `A`'s purely real elements; it is the
     -- preimage of `A` under `I`.  In this argument we only need its submodule structure.
     let A₀ : submodule ℝ C(X, ℝ) := (A.to_submodule.restrict_scalars ℝ).comap I,
     -- By `subalgebra.separates_points.complex_to_real`, this subalgebra also separates points, so
@@ -443,7 +442,7 @@ begin
     have SW : A₀.topological_closure = ⊤,
     { have := subalgebra_topological_closure_eq_top_of_separates_points _ (hA.complex_to_real hA'),
       exact congr_arg subalgebra.to_submodule this },
-    rw ← SW,
+    rw [← submodule.map_top, ← SW],
     -- So it suffices to prove that the image under `I` of the closure of `A₀` is contained in the
     -- closure of `A`, which follows by abstract nonsense
     have h₁ := A₀.topological_closure_map (of_real_clm.comp_left_continuous_compact X),

@@ -745,15 +745,13 @@ linear_map.mk_continuous im_lm 1 $ by
 
 @[continuity] lemma continuous_im : continuous (im : K → ℝ) := im_clm.continuous
 
-/-- Conjugate as an `ℝ`-algebra homomorphism -/
+/-- Conjugate as an `ℝ`-algebra equivalence -/
 noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
 { inv_fun := conj,
   left_inv := conj_conj,
   right_inv := conj_conj,
   commutes' := conj_of_real,
   .. conj }
-
--- { to_fun := λ x, conj x, map_add' := by simp, map_smul' := conj_smul, }
 
 @[simp] lemma conj_ae_coe : (conj_ae : K → K) = conj := rfl
 
@@ -762,7 +760,7 @@ noncomputable def conj_li : K ≃ₗᵢ[ℝ] K := ⟨conj_ae.to_linear_equiv, λ
 
 @[simp] lemma conj_li_apply : (conj_li : K → K) = conj := rfl
 
-/-- Conjugate as a continuous linear map -/
+/-- Conjugate as a continuous linear equivalence -/
 noncomputable def conj_cle : K ≃L[ℝ] K := @conj_li K _
 
 @[simp] lemma conj_cle_coe : (@conj_cle K _).to_linear_equiv = conj_ae.to_linear_equiv := rfl

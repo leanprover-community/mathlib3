@@ -36,11 +36,8 @@ variables {α : Type*} {β : Type*}
 /-- A version of `setoid.r` that takes the equivalence relation as an explicit argument. -/
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
 
-/-- A version of `quotient.eq` compatible with `setoid.rel`, to make rewriting possible. -/
-lemma quotient.eq_rel [r : setoid α] {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y := quotient.eq
-
 /-- A version of `quotient.eq'` compatible with `setoid.rel`, to make rewriting possible. -/
-lemma quotient.eq_rel' {r : setoid α} {x y} :
+lemma quotient.eq_rel {r : setoid α} {x y} :
   (quotient.mk' x : quotient r) = quotient.mk' y ↔ r.rel x y := quotient.eq
 
 namespace setoid

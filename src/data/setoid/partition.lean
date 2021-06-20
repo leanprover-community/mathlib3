@@ -242,6 +242,18 @@ namespace indexed_partition
 open set
 
 variables {ι α : Type*} {s : ι → set α} (hs : indexed_partition s)
+
+/-- On a unique index set there is the obvious trivial partition -/
+instance [unique ι] [inhabited α] :
+  inhabited (indexed_partition (λ i : ι, (set.univ : set α))) :=
+⟨{ eq_of_mem := λ x i j hi hj, subsingleton.elim _ _,
+   some := λ i, default α,
+   some_mem := set.mem_univ,
+   index := λ a, default ι,
+   mem_index := set.mem_univ }⟩
+
+attribute [simp] some_mem mem_index
+
 include hs
 
 lemma exists_mem (x : α) : ∃ i, x ∈ s i := ⟨hs.index x, hs.mem_index x⟩
@@ -277,7 +289,7 @@ protected def quotient := quotient hs.setoid
 def proj : α → hs.quotient := quotient.mk'
 
 lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.index x = hs.index y :=
-quotient.eq_rel'
+quotient.eq_rel
 
 @[simp] lemma proj_some_index (x : α) : hs.proj (hs.some (hs.index x)) = hs.proj x :=
 quotient.eq'.2 (hs.some_index x)
@@ -307,9 +319,6 @@ hs.equiv_quotient.symm.to_embedding.trans ⟨hs.some, function.left_inverse.inje
 lemma out_proj (x : α) : hs.out (hs.proj x) = hs.some (hs.index x) :=
 rfl
 
-lemma index_out_proj (x : α) : hs.index (hs.out (hs.proj x)) = hs.index x :=
-hs.some_index x
-
 /-- The indices of `quotient.out'` and `indexed_partition.out` are equal. -/
 lemma index_out' (x : hs.quotient) : hs.index (x.out') = hs.index (hs.out x) :=
 quotient.induction_on' x $ λ x, (setoid.ker_apply_mk_out' x).trans (hs.index_some _).symm
@@ -317,9 +326,6 @@ quotient.induction_on' x $ λ x, (setoid.ker_apply_mk_out' x).trans (hs.index_so
 /-- This lemma is analogous to `quotient.out_eq'`. -/
 @[simp] lemma proj_out (x : hs.quotient) : hs.proj (hs.out x) = x :=
 quotient.induction_on' x $ λ x, quotient.sound' $ hs.some_index x
-
-@[simp] lemma out_proj_some (i : ι) : hs.out (hs.proj (hs.some i)) ∈ s i :=
-hs.mem_iff_index_eq.2 $ by rw [index_out_proj, index_some]
 
 lemma class_of {x : α} : set_of (hs.setoid.rel x) = s (hs.index x) :=
 set.ext $ λ y, eq_comm.trans hs.mem_iff_index_eq.symm

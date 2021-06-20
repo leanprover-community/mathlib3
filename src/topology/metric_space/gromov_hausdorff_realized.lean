@@ -260,7 +260,7 @@ end
 /-- Compactness of candidates (in bounded_continuous_functions) follows. -/
 private lemma compact_candidates_b : is_compact (candidates_b X Y) :=
 begin
-  refine arzela_ascoli₂ (Icc 0 (max_var X Y)) compact_Icc (candidates_b X Y)
+  refine arzela_ascoli₂ (Icc 0 (max_var X Y)) is_compact_Icc (candidates_b X Y)
   closed_candidates_b _ _,
   { rintros f ⟨x1, x2⟩ hf,
     simp only [set.mem_Icc],

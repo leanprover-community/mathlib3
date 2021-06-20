@@ -201,11 +201,11 @@ def of_real_lm : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 
 /-- `ℝ`-algebra isomorphism version of the complex conjugation function from `ℂ` to `ℂ` -/
 def conj_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
-{ inv_fun := complex.conj,
-  left_inv := complex.conj_conj,
-  right_inv := complex.conj_conj,
-  commutes' := complex.conj_of_real,
-  .. complex.conj }
+{ inv_fun := conj,
+  left_inv := conj_conj,
+  right_inv := conj_conj,
+  commutes' := conj_of_real,
+  .. conj }
 
 @[simp] lemma conj_alg_equiv_coe : ⇑conj_alg_equiv = conj := rfl
 

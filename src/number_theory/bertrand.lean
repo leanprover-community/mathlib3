@@ -709,9 +709,58 @@ begin
   sorry,
 end
 
+lemma aux_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ aux (interior (Ici i)) :=
+begin
+  simp only [interior_Ici],
+  refine differentiable_on.sub _ _,
+  { refine differentiable_on.mul_const _ _,
+    refine differentiable_on.const_mul _ _,
+    refine differentiable_on.sqrt _ _,
+    { refine differentiable_on.add_const _ _,
+      refine differentiable_on_id, },
+    { intros x x_big,
+      simp at x_big,
+      linarith, },
+  },
+  { refine differentiable_on.add_const _ _,
+    refine differentiable_on.log _ _,
+    { refine differentiable_on.const_mul _ _,
+      refine differentiable_on.add_const _ _,
+      refine differentiable_on_id, },
+    { intros x x_big,
+      simp at x_big,
+      linarith, }, },
+end
+
+lemma aux_continuous {i : ℝ} (pr : 0 < i) : continuous_on aux (Ici (i : ℝ)) :=
+begin
+  have e := differentiable_on.continuous_on (@aux_differentiable (i / 2) (by linarith)),
+  have s : Ici i ⊆ interior (Ici (i / 2)),
+    { simp only [interior_Ici],
+      intro a,
+      simp,
+      intro a_in,
+      linarith, },
+  exact continuous_on.mono e s,
+end
+
+lemma aux'_is_deriv (x : ℝ) (h : x ≠ -1) : deriv aux x = aux' x :=
+by refine has_deriv_at.deriv (derivative_aux h)
+
 lemma aux_pos (x : ℝ) (x_big : 72 ≤ x) : 0 ≤ aux x :=
 begin
-  sorry,
+  have conv : convex (Ici (72 : ℝ)) := convex_Ici _,
+  have deriv_nonneg : ∀ (x : ℝ), x ∈ interior (Ici (72 : ℝ)) → 0 ≤ deriv aux x,
+    { intros x x_big,
+      simp at x_big,
+      rw aux'_is_deriv x (by linarith),
+      exact aux_derivative_ge_zero x (by linarith), },
+  calc 0 ≤ aux 72 : aux_zero
+  ... ≤ aux x :
+    convex.mono_of_deriv_nonneg conv
+      (aux_continuous (by norm_num)) (aux_differentiable (by norm_num))
+      deriv_nonneg
+      72 x (by simp) (by simpa using x_big) x_big,
 end
 
 lemma deriv_nonneg {x : ℝ} (x_big : 72 ≤ x) : 0 ≤ fff' x :=
@@ -808,26 +857,13 @@ begin
   exact continuous_on.mono e s,
 end
 
-lemma fff_one : fff 1 < 0 :=
-begin
-  unfold fff,
-  norm_num,
-  calc log 4 < log 16 : log_lt_log (by linarith) (by linarith)
-  ... = log 16 + 0 : by ring
-  ... ≤ log 16 + (3 * log 16) :
-    add_le_add_left (mul_nonneg (by linarith) ((log_nonneg_iff (by linarith)).2 (by linarith))) _
-  ... = 4 * log 16 : by ring
-  ... = sqrt (4 * 4) * log 16 : congr_arg (λ i, i * log 16) (by rw @sqrt_mul_self 4 (by linarith))
-  ... = sqrt 16 * log 16 : by norm_num,
-end
-
 lemma sqrt_four : sqrt 4 = 2 :=
 begin
   calc sqrt 4 = sqrt (2 * 2) : by norm_num
   ... = 2 : sqrt_mul_self (by linarith)
 end
 
-lemma fff_250 : fff 250 > 0 :=
+lemma fff_250 : 0 ≤ fff 250 :=
 begin
   unfold fff,
   norm_num,
@@ -865,28 +901,11 @@ begin
   ... = (2 * sqrt 502) * (3 * log 2 + 8 * log 2) : sorry
   ... = (2 * sqrt 502) * (11 * log 2) : by ring
   ... = (11 * sqrt 502) * (2 * log 2) : by ring
-  ... < 250 * (2 * log 2) : by sorry -- use r here
+  ... ≤ 250 * (2 * log 2) : by sorry -- use r here
   ... = 250 * (log (2 ^ (2 : ℝ))) : congr_arg (λ i, 250 * i) (log_pow (by norm_num)).symm
   ... = 250 * (log (2 ^ ↑(2 : ℕ))) : sorry
-  ... = 250 * (log (2 ^ (2 : ℕ))) : by simp
+  ... = 250 * (log (2 ^ (2 : ℕ))) : sorry
   ... = 250 * log 4 : by norm_num
-end
-
-lemma fff_has_root : ∃ (x : ℝ), (1 ≤ x ∧ x ≤ 250) ∧ fff x = 0 :=
-begin
-  have r : (1 : ℝ) ≤ 250 := by norm_num,
-  have fff_continuous' : continuous_on fff (Icc 1 250),
-    {
-      -- This is trivial: Icc 1 250 is a subset of Ici 1
-      sorry,
-    },
-  have intermediate := intermediate_value_Icc r fff_continuous',
-  have t : (0 : ℝ) ∈ Icc (fff 1) (fff 250),
-    { simp only [mem_Icc],
-      split,
-      { exact (le_of_lt fff_one), },
-      { exact (le_of_lt fff_250), }, },
-  simpa using (intermediate t),
 end
 
 lemma linear_dominates_sqrt_log (x : ℝ) (hx : 250 ≤ x)
@@ -901,13 +920,13 @@ begin
       have x_big : 250 < x, by simpa using x_in_interior,
       rw @fff'_is_deriv x (by linarith),
       exact deriv_nonneg (by linarith), },
-  have x_in_ici : x ∈ Ici (250 : ℝ) := by simpa using hx,
-  rcases fff_has_root with ⟨c, ⟨⟨c_big, c_small⟩, c_is_root⟩⟩,
-  have c_in_ici : c ∈ Ici (250 : ℝ),
-    { sorry, },
-  have: fff c ≤ fff x :=
-    convex.mono_of_deriv_nonneg conv (fff_continuous (by linarith)) (fff_differentiable (by linarith)) t c x c_in_ici x_in_ici (by linarith),
-  linarith,
+  calc 0 ≤ fff 250 : fff_250
+  ... ≤ fff x :
+    convex.mono_of_deriv_nonneg conv
+      (fff_continuous (by linarith)) (fff_differentiable (by linarith))
+      t
+      250 x (by simp) (by simpa using hx)
+      hx,
 end
 
 lemma pow_beats_pow_2 (n : ℕ) (n_large : 250 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=

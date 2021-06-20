@@ -863,6 +863,22 @@ begin
   ... = 2 : sqrt_mul_self (by linarith)
 end
 
+lemma eleven_sqrt_five_hundred_two : (11 : ℝ) * sqrt 502 ≤ 250 :=
+begin
+  have eleven_nonneg : (0 : ℝ) ≤ 11 := by norm_num,
+  have t : (11 : ℝ) * sqrt 502 = sqrt (121 * 502),
+    { calc (11 : ℝ) * sqrt 502 = sqrt (11 ^ 2) * sqrt 502 : by rw sqrt_sq eleven_nonneg
+      ... = sqrt 121 * sqrt 502 : by norm_num
+      ... = sqrt (121 * 502) : (sqrt_mul (by norm_num) _).symm, },
+  have two_fifty_pos : (0 : ℝ) ≤ 250 := by norm_num,
+  have u : 250 = sqrt 62500,
+    calc 250 = sqrt (250 ^ 2) : by rw sqrt_sq two_fifty_pos
+      ... = sqrt 62500 : by norm_num,
+  rw [t, u],
+  apply sqrt_le_sqrt,
+  norm_num,
+end
+
 lemma fff_250 : 0 ≤ fff 250 :=
 begin
   unfold fff,
@@ -894,18 +910,25 @@ begin
   ... = (2 * sqrt 502) * log 2008 : by rw sqrt_four
   ... = (2 * sqrt 502) * (log (8 * 251)) : by norm_num
   ... = (2 * sqrt 502) * (log 8 + log 251) : by rw @log_mul 8 251 (by norm_num) (by norm_num)
-  ... ≤ (2 * sqrt 502) * (log 8 + log 256) : by sorry
+  ... ≤ (2 * sqrt 502) * (log 8 + log 256) :
+    begin
+      refine mul_le_mul_of_nonneg_left _ _,
+      { exact add_le_add_left r _, },
+      { exact mul_nonneg (le_of_lt two_pos) (sqrt_nonneg _), },
+    end
   ... ≤ (2 * sqrt 502) * (log (2 ^ 3) + log 256) : by rw eight_pow
   ... = (2 * sqrt 502) * (log (2 ^ 3) + log (2 ^ 8)) : by rw two_fifty_six_pow
   ... = (2 * sqrt 502) * (3 * log 2 + log (2 ^ 8)) : by sorry
   ... = (2 * sqrt 502) * (3 * log 2 + 8 * log 2) : sorry
   ... = (2 * sqrt 502) * (11 * log 2) : by ring
   ... = (11 * sqrt 502) * (2 * log 2) : by ring
-  ... ≤ 250 * (2 * log 2) : by sorry -- use r here
-  ... = 250 * (log (2 ^ (2 : ℝ))) : congr_arg (λ i, 250 * i) (log_pow (by norm_num)).symm
-  ... = 250 * (log (2 ^ ↑(2 : ℕ))) : sorry
-  ... = 250 * (log (2 ^ (2 : ℕ))) : sorry
-  ... = 250 * log 4 : by norm_num
+  ... ≤ 250 * (2 * log 2) :
+    begin
+      refine mul_le_mul_of_nonneg_right eleven_sqrt_five_hundred_two _,
+      { exact mul_nonneg (le_of_lt two_pos) (log_nonneg (by norm_num)), },
+    end
+  ... = 250 * (log (2 ^ 2)) : sorry
+  ... = 250 * log 4 : by norm_num,
 end
 
 lemma linear_dominates_sqrt_log (x : ℝ) (hx : 250 ≤ x)

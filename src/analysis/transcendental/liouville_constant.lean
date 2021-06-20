@@ -3,8 +3,8 @@ Copyright (c) 2020 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa, Jujian Zhang
 -/
-import analysis.liouville.liouville_constant
-import analysis.liouville.prelims
+--import analysis.liouville.liouville_constant
+import analysis.liouville.basic
 /-!
 # Liouville constants
 
@@ -12,7 +12,7 @@ This file contains a construction of a family of Liouville numbers.
 The most important property is that they are examples of transcendental real numbers.
 This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant`.
 -/
-
+/-
 noncomputable theory
 open_locale nat big_operators
 open set real finset
@@ -254,4 +254,5 @@ ext1,
      → ((∑ (i : ℕ) in range (k + 1), m ^ (k! - i!)) : ℝ) = 0,
 
 end
+-/
 -/

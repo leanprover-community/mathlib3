@@ -48,6 +48,7 @@ def kronecker : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n)
   right_inv := sorry }
 
 
+
 -- def matrix_tensor_equiv : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
 -- { to_fun :=
 --         begin

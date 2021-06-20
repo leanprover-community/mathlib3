@@ -806,8 +806,6 @@ def comap_fun (f : R →+* S) (U : opens (prime_spectrum.Top R))
 localization.local_ring_hom (prime_spectrum.comap f y.1).as_ideal _ f rfl
   (s ⟨(prime_spectrum.comap f y.1), hUV y.2⟩ : _)
 
-#check prime_spectrum.comap
-
 lemma comap_fun_is_locally_fraction (f : R →+* S)
   (U : opens (prime_spectrum.Top R)) (V : opens (prime_spectrum.Top S))
   (hUV : V.1 ⊆ (prime_spectrum.comap f) ⁻¹' U.1) (s : Π x : U, localizations R x)

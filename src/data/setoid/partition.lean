@@ -213,8 +213,14 @@ end partition
 
 end setoid
 
-/-- A partition of a type `α` indexed by another type `ι`. -/
-@[nolint has_inhabited_instance]
+/-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,
+`s : ι → set α`.
+
+`indexed_partition.index` sends an element to its index, while `indexed_partition.some` sends
+an index to an element of the corresponding set.
+
+This type is primarily useful for definitional control of `s` - if this is not needed, then
+`setoid.ker index` by itself may be sufficient. -/
 structure indexed_partition {ι α : Type*} (s : ι → set α) :=
 (eq_of_mem : ∀ {x i j}, x ∈ s i → x ∈ s j → i = j)
 (some : ι → α)
@@ -225,15 +231,10 @@ structure indexed_partition {ι α : Type*} (s : ι → set α) :=
 /-- The non-constructive constructor for `indexed_partition`. -/
 noncomputable
 def indexed_partition.mk' {ι α : Type*} (s : ι → set α) (dis : ∀ i j, i ≠ j → disjoint (s i) (s j))
-(empty : ∀ i, (s i).nonempty) (ex : ∀ x, ∃ i, x ∈ s i) : indexed_partition s :=
-{ eq_of_mem := begin
-    classical,
-    intros x i j hxi hxj,
-    by_contra h,
-    exact dis _ _ h ⟨hxi, hxj⟩
-  end,
-  some := λ i, (empty i).some,
-  some_mem := λ i, (empty i).some_spec,
+  (nonempty : ∀ i, (s i).nonempty) (ex : ∀ x, ∃ i, x ∈ s i) : indexed_partition s :=
+{ eq_of_mem := λ x i j hxi hxj, classical.by_contradiction $ λ h, dis _ _ h ⟨hxi, hxj⟩,
+  some := λ i, (nonempty i).some,
+  some_mem := λ i, (nonempty i).some_spec,
   index := λ x, (ex x).some,
   mem_index := λ x, (ex x).some_spec }
 
@@ -282,11 +283,12 @@ lemma some_index (x : α) : hs.setoid.rel (hs.some (hs.index x)) x :=
 hs.index_some (hs.index x)
 
 /-- The quotient associated to an indexed partition. -/
-@[nolint has_inhabited_instance]
 protected def quotient := quotient hs.setoid
 
 /-- The projection onto the quotient associated to an indexed partition. -/
 def proj : α → hs.quotient := quotient.mk'
+
+instance [inhabited α] : inhabited (hs.quotient) := ⟨hs.proj (default α)⟩
 
 lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.index x = hs.index y :=
 quotient.eq_rel

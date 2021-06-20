@@ -449,6 +449,12 @@ begin
   ... = 1 / sqrt x : div_mul_right _ (ne_of_gt (sqrt_pos.2 h)),
 end
 
+lemma foobar' {x : ℝ} (h : 0 < x) : sqrt x / x = 1 / sqrt x :=
+begin
+  calc sqrt x / x = sqrt x * (1 / x) : by ring
+  ... = 1 / sqrt x : foobar h
+end
+
 private noncomputable def aux (x : ℝ) :=
   sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2)
 
@@ -471,44 +477,90 @@ begin
     refine has_deriv_at.log _ _,
     { ring_nf,
       refine has_deriv_at.add_const _ _,
-      sorry,
-    },
+      simpa using has_deriv_at.const_mul 8 (has_deriv_at_id x), },
     { intros bad,
       have t : x = -1, by linarith,
       exact hyp t, }, },
 end
 
+lemma sqrt_log_bound : 0 < sqrt 2 * log 2 / 2 :=
+begin
+  refine div_pos _ (by norm_num),
+    { refine mul_pos _ _,
+      { exact sqrt_pos.2 (by norm_num), },
+      { exact log_pos (by norm_num), },
+    },
+end
+
+lemma aux_bound : 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 ≤ (4 : ℝ) :=
+begin
+  suffices : 1 / (sqrt 2 * log 2 / 2) ^ 2 ≤ 5, by linarith,
+  suffices : 1 ≤ (sqrt 2 * log 2 / 2) ^ 2 * 5,
+    { have pos : 0 < (sqrt 2 * log 2 / 2) ^ 2,
+      { refine sq_pos_of_ne_zero _ _,
+        linarith [sqrt_log_bound], },
+      rw div_le_iff' pos,
+      exact this, },
+  suffices : 1 ≤ (sqrt 2 * (log 2 / 2)) ^ 2 * 5,
+    { rw mul_div_assoc, exact this, },
+  suffices : 1 ≤ (sqrt 2) ^ 2 * (log 2 / 2) ^ 2 * 5,
+    { rw mul_pow, exact this, },
+  suffices : 1 ≤ 2 * (log 2 / 2) ^ 2 * 5,
+    { rw sq_sqrt, exact this, norm_num, },
+  suffices : 1 ≤ 5 / 2 * (log 2) ^ 2,
+    { ring_nf, exact this, },
+  suffices : 2 / 5 ≤ (log 2) ^ 2,
+    { sorry, },
+  sorry,
+end
+
 lemma aux_derivative_ge_zero (x : ℝ) (x_big : 4 ≤ x) : 0 ≤ aux' x :=
 begin
   unfold aux',
+
   -- Multiply through by (x + 1)
   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) / 2 * log 2 - 1,
-    { sorry, },
+    { have h : 0 / (x + 1) ≤ (sqrt 2 * sqrt (x + 1) / 2 * log 2 - 1) / (x + 1),
+      { have t : 0 < x + 1, by linarith,
+        rw (div_le_div_iff t t),
+        simpa using mul_nonneg this (le_of_lt t), },
+      rw [zero_div, sub_div] at h,
+      have eight_not_zero : (8 : ℝ) ≠ 0 := by norm_num,
+      rw (div_mul_right _ eight_not_zero),
+      rw mul_div_right_comm at h,
+      rw [div_div_eq_div_mul, mul_comm 2 (x + 1), ←div_div_eq_div_mul, mul_div_assoc] at h,
+      rw @foobar' (x + 1) (by linarith) at h,
+      rw [mul_div_assoc, div_div_eq_div_mul, mul_comm (sqrt (x + 1)) 2] at h,
+      exact h, },
 
-  suffices: 1 ≤ sqrt 2 * log 2 / 2 * sqrt (x + 1),
-    { sorry, },
+  suffices: 1 ≤ sqrt 2 * log 2 / 2 * sqrt (x + 1), by linarith,
 
   suffices: 1 / (sqrt 2 * log 2 / 2) ≤ sqrt (x + 1),
-    { sorry, },
+    { refine (div_le_iff' _).mp this,
+      exact sqrt_log_bound, },
 
   suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 ≤ x + 1,
-    { sorry, },
+    { refine (le_sqrt _ (by linarith)).2 this,
+      exact one_div_nonneg.2 (le_of_lt sqrt_log_bound), },
 
-  suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1 ≤ x,
-    { sorry, },
+  suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1 ≤ x, by linarith,
 
-  sorry,
+  calc (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1
+      = 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 : sorry
+  ... ≤ (4 : ℝ) : aux_bound
+  ... ≤ x : x_big,
 end
 
 lemma aux_zero : 0 ≤ aux 72 :=
 begin
   unfold aux,
+  norm_num,
   sorry,
 end
 
 lemma aux_pos (x : ℝ) (x_big : 72 ≤ x) : 0 ≤ aux x :=
 begin
-  sorry
+  sorry,
 end
 
 lemma deriv_nonneg {x : ℝ} (x_big : 72 ≤ x) : 0 ≤ fff' x :=
@@ -800,7 +852,8 @@ begin
   rcases fff_has_root with ⟨c, ⟨⟨c_big, c_small⟩, c_is_root⟩⟩,
   have c_in_ici : c ∈ Ici (250 : ℝ),
     { sorry, },
-  have: fff c ≤ fff x := convex.mono_of_deriv_nonneg conv (fff_continuous (by linarith)) (fff_differentiable (by linarith)) t c x c_in_ici x_in_ici (by linarith),
+  have: fff c ≤ fff x :=
+    convex.mono_of_deriv_nonneg conv (fff_continuous (by linarith)) (fff_differentiable (by linarith)) t c x c_in_ici x_in_ici (by linarith),
   linarith,
 end
 

@@ -32,7 +32,7 @@ $$
 The series converges only for `1 < m`.  However, there is no restriction on `m`, since,
 if the series does not converge, then the sum of the series is defined to be zero.
 -/
-def liouville_number (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
+def liouville_number (m : ℝ) : ℝ := ∑' (i : ℕ), 1 / m ^ i!
 
 /--
 `liouville_constant_first_k_terms` is the sum of the first `k` terms of Liouville's constant, i.e.
@@ -40,7 +40,7 @@ $$
 \sum_{i=0}^k\frac{1}{m^{i!}}.
 $$
 -/
-def liouville_number_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
+def liouville_number_first_k_terms (m : ℝ) (k : ℕ) : ℝ := ∑ i in range (k+1), 1 / m ^ i!
 
 /--
 `liouville_constant_terms_after_k` is the sum of the series of the terms in `liouville_constant m`
@@ -49,7 +49,7 @@ $$
 \sum_{i=k+1}^\infty\frac{1}{m^{i!}}.
 $$
 -/
-def liouville_number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
+def liouville_number_terms_after_k (m : ℝ) (k : ℕ) : ℝ := ∑' i, 1 / m ^ (i + (k+1))!
 
 end liouville
 

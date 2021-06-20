@@ -170,6 +170,9 @@ variables
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 
+-- make the coercion the preferred form
+@[simp] lemma to_linear_map_eq_coe (f : M →L[R] M₂) : f.to_linear_map = f := rfl
+
 /-- Coerce continuous linear maps to functions. -/
 -- see Note [function coercion]
 instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, f⟩

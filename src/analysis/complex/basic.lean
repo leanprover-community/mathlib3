@@ -138,8 +138,6 @@ def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 
 @[simp] lemma of_real_clm_norm : ∥of_real_clm∥ = 1 := of_real_li.norm_to_continuous_linear_map
 
-@[simp] lemma of_real_clm_to_linear : of_real_clm.to_linear_map = of_real_lm.to_linear_map := rfl
-
 noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
   im := ⟨complex.im, complex.zero_im, complex.add_im⟩,

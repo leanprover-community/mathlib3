@@ -936,7 +936,7 @@ lemma minor_mul_equiv [semiring α] {p q : Type*} [fintype p] [fintype q]
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
 minor_mul M N e₁ e₂ e₃ e₂.bijective
 
-lemma mul_minor_one {n' o' : Type*} [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l ≃ o)
+lemma mul_minor_one [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l ≃ o)
   (M : matrix m n α) : M.mul ((1 : matrix o o α).minor e₁ e₂) = minor M id (e₁.symm ∘ e₂) :=
 begin
   let A := M.minor id e₁.symm,

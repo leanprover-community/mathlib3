@@ -310,6 +310,9 @@ by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 def comap (f : α → β) (r : setoid β) : setoid α :=
 ⟨λ x y, r.rel (f x) (f y), ⟨λ _, r.refl' _, λ _ _ h, r.symm' h, λ _ _ _ h1, r.trans' h1⟩⟩
 
+lemma comap_rel (f : α → β) (r : setoid β) (x y : α) : (comap f r).rel x y ↔ r.rel (f x) (f y) :=
+iff.rfl
+
 /-- Given a map `f : N → M` and an equivalence relation `r` on `β`, the equivalence relation
     induced on `α` by `f` equals the kernel of `r`'s quotient map composed with `f`. -/
 lemma comap_eq {f : α → β} {r : setoid β} : comap f r = ker (@quotient.mk _ r ∘ f) :=
@@ -343,13 +346,13 @@ open quotient
 equivalence relations containing `r` and the equivalence relations on the quotient of `α` by `r`. -/
 def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
 { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
-  inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
+  inv_fun := λ s, ⟨comap quotient.mk' s, λ x y h, by rw [comap_rel, eq_rel.2 h]⟩,
   left_inv := λ s, subtype.ext_iff_val.2 $ ext' $ λ _ _,
     ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
       s.1.trans' (s.1.symm' $ s.2 $ eq_rel.1 hx) $ s.1.trans' H $ s.2 $ eq_rel.1 hy,
      λ h, ⟨_, _, rfl, rfl, h⟩⟩,
-  right_inv := λ s, let Hm : ker quotient.mk ≤ comap quotient.mk s :=
-      λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
+  right_inv := λ s, let Hm : ker quotient.mk' ≤ comap quotient.mk' s :=
+      λ x y h, by rw [comap_rel, (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h)] in
     ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
   map_rel_iff' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in

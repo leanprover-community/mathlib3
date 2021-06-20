@@ -31,7 +31,8 @@ open_locale manifold
 instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
 instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 
-/-- Type synonim to avoid metavariables. -/
+/-- Type synonym, introduced to put a different `has_scalar` action on `C^n⟮I, M; 𝕜⟯`
+which is defined as `f • r = f(x) * r`. -/
 @[nolint unused_arguments] def pointed_smooth_map (x : M) := C^n⟮I, M; 𝕜⟯
 
 localized "notation `C^` n `⟮` I `,` M `;` 𝕜 `⟯[` x `]` :=

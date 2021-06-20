@@ -44,16 +44,20 @@ begin
     calc 2 * n - n = n + n - n: by rw two_mul n
     ... = n: nat.add_sub_cancel n n,
   simp [r, ←two_mul],
-  have bar : (finset.filter (λ (i : ℕ), p ^ i ≤ 2 * (n % p ^ i)) (finset.Ico 1 (nat.log p (2 * n) + 1))).card ≤ nat.log p (2 * n),
-    calc (finset.filter (λ (i : ℕ), p ^ i ≤ 2 * (n % p ^ i)) (finset.Ico 1 (nat.log p (2 * n) + 1))).card ≤ (finset.Ico 1 (nat.log p (2 * n) + 1)).card : by apply finset.card_filter_le
+  have prime_powers_sparse :
+    (finset.filter (λ (i : ℕ), p ^ i ≤ 2 * (n % p ^ i)) (finset.Ico 1 (nat.log p (2 * n) + 1))).card
+    ≤ nat.log p (2 * n),
+    calc
+      (finset.filter (λ (i : ℕ), p ^ i ≤ 2 * (n % p ^ i)) (finset.Ico 1 (nat.log p (2 * n) + 1))).card
+        ≤ (finset.Ico 1 (nat.log p (2 * n) + 1)).card : by apply finset.card_filter_le
     ... = (nat.log p (2 * n) + 1) - 1 : by simp,
-  have baz : p ^ (nat.log p (2 * n)) ≤ 2 * n,
+  have p_pow_small : p ^ (nat.log p (2 * n)) ≤ 2 * n,
   { apply nat.pow_log_le_self,
     apply hp.out.one_lt,
     calc 1 ≤ 3 : dec_trivial
     ...    ≤ n : n_big
     ...    ≤ 2 * n : by linarith, },
-  apply trans (pow_le_pow (trans one_le_two hp.out.two_le) bar) baz,
+  apply trans (pow_le_pow (trans one_le_two hp.out.two_le) prime_powers_sparse) p_pow_small,
 end
 
 lemma claim_2
@@ -158,11 +162,12 @@ begin
   unfold α at multiplicity_pos,
   rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n) at multiplicity_pos,
   simp only [@nat.prime.multiplicity_choose p (2 * n) n (nat.log p (2 * n) + 1)
-                        (hp.out) (by linarith) (lt_add_one (nat.log p (2 * n)))] at multiplicity_pos,
+                        hp.out (by linarith) (lt_add_one (nat.log p (2 * n)))] at multiplicity_pos,
   have r : 2 * n - n = n, by
     calc 2 * n - n = n + n - n: by rw two_mul n
     ... = n: nat.add_sub_cancel n n,
-  simp only [r, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable] at multiplicity_pos,
+  simp only [r, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
+    at multiplicity_pos,
   clear r,
   rw finset.card_pos at multiplicity_pos,
   cases multiplicity_pos with m hm,
@@ -176,17 +181,24 @@ end
 /-
 Then:
 4^n ≤ 2nCn * (2 * n + 1) (by choose_halfway_is_big)
-= prod (primes <= 2n) p^(α n p) * (2n+1) ---- need to prove this
-= prod (primes <= n) p^(α n p) * prod (primes n < p <= 2n) p^α * (2n+1)
-= prod (primes <= 2n/3) p^α * prod (primes 2n/3 to n) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
-= prod (primes <= 2n/3) p^α * prod (primes 2n/3 to n) 1 * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by claim 3
-= prod (primes <= 2n/3) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
-= prod (primes <= sqrt(2n)) p^α * prod(primes sqrt(2n) to 2n/3) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
-≤ prod (primes <= sqrt(2n)) p^α * prod(primes sqrt(2n) to 2n/3) p * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by claim 2
-≤ prod (primes <= sqrt(2n)) p^α * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by primorial bound, proved in different PR
-≤ prod (primes <= sqrt(2n)) (2n) * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by claim 1
+= prod (primes ≤ 2n) p^(α n p) * (2n+1)
+= prod (primes ≤ n) p^(α n p) * prod (primes n < p <= 2n) p^α * (2n+1)
+= prod (primes ≤ 2n/3) p^α * prod (primes 2n/3 to n) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
+= prod (primes ≤ 2n/3) p^α * prod (primes 2n/3 to n) 1 * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by claim 3)
+= prod (primes ≤ 2n/3) p^α * prod (primes n < p ≤ 2n) p^α * (2n+1)
+= prod (primes ≤ sqrt(2n)) p^α * prod(primes sqrt(2n)..2n/3) p^α
+  * prod (primes n < p ≤ 2n) p^α * (2n+1)
+≤ prod (primes ≤ sqrt(2n)) p^α * prod(primes sqrt(2n)..2n/3) p
+  * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by claim 2)
+≤ prod (primes ≤ sqrt(2n)) p^α * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by a general bound on the primorial)
+≤ prod (primes ≤ sqrt(2n)) (2n) * 4 ^ (2n / 3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by claim 1)
 = (2n)^π (sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
-≤ (2n)^(sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1) -- by "prime count of x is less than x", need to prove
+≤ (2n)^(sqrt 2n) * 4 ^ (2n/3) * prod (primes n < p ≤ 2n) p^α * (2n+1)
+  (by "prime count of x is less than x")
 
 For sufficiently large n, that last product term is > 1.
 Indeed, suppose for contradiction it's equal to 1.
@@ -282,7 +294,7 @@ begin
     exact nat.lt_asymm bad bad, },
   { refl, },
   { exfalso,
-    have r: n < a ^ 2 :=
+    have: n < a ^ 2 :=
       calc n < a * a: nat.sqrt_lt.1 H
       ... = a ^ 2: by ring,
     linarith, },
@@ -330,43 +342,6 @@ begin
     subst a_two,
     linarith, },
 end
-
--- lemma pow_sub_lt (a b c d : ℕ) (d_le_b : d ≤ b) (h : a ^ b < c * a ^ d) : a ^ (b-d) < c :=
--- begin
---   sorry,
--- end
-
-lemma le_iff_mul_le_mul (a b c : ℕ) (c_pos : 0 < c) : a ≤ b ↔ a * c ≤ b * c :=
-begin
-  exact (mul_le_mul_right c_pos).symm
-end
-
-lemma three_pos : 0 < 3 := by dec_trivial
-
-lemma ge_of_le (a b : ℕ) : a ≤ b → b ≥ a := ge.le
-
--- lemma false_inequality_is_false_alternate {n : ℕ} (n_large : 999 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
--- begin
---   intro h,
---   have h1 : 4 ^ (n - (2 * n / 3 + 1)) < (2 * n + 1) * (2 * n) ^ nat.sqrt (2 * n),
---     apply pow_sub_lt,
---   -- apply ge_of_le,
-
---   apply (mul_le_mul_right three_pos).1,
---   -- rw add_mul,
---   -- simp only [one_mul],
---   -- linarith,
---   linarith [nat.div_mul_le_self (2 * n) 3],
---   exact h,
-
-
--- end
-
--- lemma le_of_pow_le_pow (a b c : nat) (c_pos : 0 < c) : a ^ c ≤ b ^ c → a ≤ b :=
--- begin
---   -- library_search,
---   sorry,
--- end
 
 lemma pow_beats_mul (n : ℕ) (big : 3 < n) : 32 * n ≤ 4 ^ n :=
 begin
@@ -423,12 +398,15 @@ end
 
 lemma nat_sqrt_le_real_sqrt (a : ℕ) : (nat.sqrt a : ℝ) ≤ real.sqrt a :=
 begin
-  have r : (0 : ℝ) ≤ ((nat.sqrt a) : ℝ) := (@nat.cast_le ℝ _ _ 0 (nat.sqrt a)).2 (zero_le (nat.sqrt a)),
+  have sqrt_pos : (0 : ℝ) ≤ ((nat.sqrt a) : ℝ) :=
+    (@nat.cast_le ℝ _ _ 0 (nat.sqrt a)).2 (zero_le (nat.sqrt a)),
+
   apply (le_sqrt (nat.sqrt a).cast_nonneg (nat.cast_nonneg a)).2,
   calc ↑(nat.sqrt a) ^ 2 = (nat.sqrt a : ℝ) ^ (1 + 1) : rfl
   ... = (nat.sqrt a : ℝ) ^ ↑(1 + 1) : (rpow_nat_cast (nat.sqrt a : ℝ) (1 + 1)).symm
   ... = (nat.sqrt a : ℝ) ^ ((1 : ℝ) + 1) : by simp only [nat.cast_add, nat.cast_one]
-  ... = ((nat.sqrt a) : ℝ) ^ (1 : ℝ) * ((nat.sqrt a) : ℝ) ^ (1 : ℝ) : by rw rpow_add' r two_ne_zero
+  ... = ((nat.sqrt a) : ℝ) ^ (1 : ℝ) * ((nat.sqrt a) : ℝ) ^ (1 : ℝ) :
+        by rw rpow_add' sqrt_pos two_ne_zero
   ... = ↑(nat.sqrt a) * ↑(nat.sqrt a) : by rw rpow_one
   ... = ↑(nat.sqrt a * nat.sqrt a) : by norm_num
   ... ≤ ↑a : nat.cast_le.mpr (nat.sqrt_le a),
@@ -471,9 +449,11 @@ begin
   ... = 1 / sqrt x : div_mul_right _ (ne_of_gt (sqrt_pos.2 h)),
 end
 
-private noncomputable def aux (x : ℝ) := sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2)
+private noncomputable def aux (x : ℝ) :=
+  sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2)
 
-private noncomputable def aux' (x : ℝ) := sqrt 2 * (1 / (2 * sqrt (x + 1))) * log 2 - 8 / (8 * (x + 1))
+private noncomputable def aux' (x : ℝ) :=
+  sqrt 2 * (1 / (2 * sqrt (x + 1))) * log 2 - 8 / (8 * (x + 1))
 
 lemma derivative_aux {x : ℝ} (hyp : x ≠ -1) : has_deriv_at (λ x, aux x) (aux' x) x :=
 begin
@@ -804,7 +784,8 @@ begin
   simpa using (intermediate t),
 end
 
-lemma linear_dominates_sqrt_log (x : ℝ) (hx : 250 ≤ x) : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
+lemma linear_dominates_sqrt_log (x : ℝ) (hx : 250 ≤ x)
+  : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
 begin
   suffices: 0 ≤ fff x,
     { unfold fff at this,
@@ -825,14 +806,10 @@ end
 
 lemma pow_beats_pow_2 (n : ℕ) (n_large : 250 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
 begin
-  -- suffices : ((8 * n + 8) ^ nat.sqrt (8 * n + 8) : ℝ) ≤ 4 ^ n,
   apply (@nat.cast_le ℝ _ _ _ _).1,
-  -- rw pow_coe 4 n,
-  -- rw pow_coe (8 * n + 8) (nat.sqrt (8 * n + 8)),
   calc ↑((8 * n + 8) ^ nat.sqrt (8 * n + 8))
       ≤ (↑(8 * n + 8) ^ real.sqrt (↑(8 * n + 8))) :
           begin
-            -- unfold_coes,
             rw pow_coe,
             apply real.rpow_le_rpow_of_exponent_le,
               {
@@ -857,11 +834,6 @@ begin
               },
               { norm_cast,
                 linarith,},
-              --rw pow_coe,
-              --rw real.log_rpow,
-              --{ sorry, },
-              --{ norm_num, },
-              --{ norm_num, sorry, },
             },
             { norm_num,
               refine rpow_pos_of_pos _ _,
@@ -870,11 +842,6 @@ begin
             },
           end,
 end
-
--- lemma sdhfal (n : ℕ) (n_large : 999 < n) : nat.sqrt (n / 8) * nat.sqrt (2 * n) ≤ n / 4 :=
--- begin
---   sorry
--- end
 
 lemma power_conversion_2 (n : ℕ) (n_large : 1003 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
 begin
@@ -915,17 +882,7 @@ begin
                 rw ←mul_assoc,
                 norm_num,
                 linarith,
-                -- rw mul_add,
-                -- rw ←mul_assoc,
-                -- norm_num,
-                -- suffices : 1 ≤ 8 * (n / 4),
-                --   exact le_add_right this,
-                -- linarith,
-                -- apply nat.sqrt_le_sqrt,
-                -- simp only [nat.succ_pos', mul_le_mul_left, add_le_add_iff_left],
-                -- linarith,
                 apply nat.le_sqrt.2,
-                -- rw mul_add,
                 suffices : 1 * 1 ≤ 8,
                   exact le_add_left this,
                 norm_num,

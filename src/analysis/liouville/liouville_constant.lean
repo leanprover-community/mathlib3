@@ -35,7 +35,7 @@ if the series does not converge, then the sum of the series is defined to be zer
 def liouville_number (m : ℝ) : ℝ := ∑' (i : ℕ), 1 / m ^ i!
 
 /--
-`liouville_constant_initial_terms` is the sum of the first `k + 1` terms of Liouville's constant,
+`liouville_number_initial_terms` is the sum of the first `k + 1` terms of Liouville's constant,
 i.e.
 $$
 \sum_{i=0}^k\frac{1}{m^{i!}}.
@@ -44,13 +44,13 @@ $$
 def liouville_number_initial_terms (m : ℝ) (k : ℕ) : ℝ := ∑ i in range (k+1), 1 / m ^ i!
 
 /--
-`liouville_constant_terms_after_k` is the sum of the series of the terms in `liouville_constant m`
+`liouville_number_tail` is the sum of the series of the terms in `liouville_number m`
 starting from `k+1`, i.e
 $$
 \sum_{i=k+1}^\infty\frac{1}{m^{i!}}.
 $$
 -/
-def liouville_number_terms_after_k (m : ℝ) (k : ℕ) : ℝ := ∑' i, 1 / m ^ (i + (k+1))!
+def liouville_number_tail (m : ℝ) (k : ℕ) : ℝ := ∑' i, 1 / m ^ (i + (k+1))!
 
 end liouville
 

@@ -16,6 +16,10 @@ variables [algebra α R] [algebra α S] [algebra α T]
 variables {l m n o p q: Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype o] [fintype p] [fintype q]
 
+def kronecker_bilinear : (matrix l m R) →ₗ[α] matrix (n o S) →ₗ[α]
+  matrix (l × n) (m × o) (R ⊗[α] S) :=
+
+
 def matrix_tensor_equiv : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
 { to_fun :=
         begin

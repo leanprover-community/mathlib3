@@ -21,15 +21,14 @@ This file contains the following instances:
 * the space of `ℝ`-linear maps from a real vector space to a complex vector space is a complex
   vector space.
 
-It also defines three linear maps:
+It also defines bundled versions of four standard maps (respectively, the real part, the imaginary
+part, the embedding of `ℝ` in `ℂ`, and the complex conjugate):
 
-* `complex.re_lm`;
-* `complex.im_lm`;
-* `complex.of_real_lm`;
-* `complex.conj_lm`.
+* `complex.re_lm` (`ℝ`-linear map);
+* `complex.im_lm` (`ℝ`-linear map);
+* `complex.of_real_am` (`ℝ`-algebra homomorphism);
+* `complex.conj_ae` (`ℝ`-algebra equivalence).
 
-They are bundled versions of the real part, the imaginary part, the embedding of `ℝ` in `ℂ`, and
-the complex conjugate as `ℝ`-linear maps.
 -/
 noncomputable theory
 
@@ -195,18 +194,18 @@ def im_lm : ℂ →ₗ[ℝ] ℝ :=
 @[simp] lemma im_lm_coe : ⇑im_lm = im := rfl
 
 /-- `ℝ`-algebra homomorphism version of the canonical embedding of `ℝ` in `ℂ`. -/
-def of_real_lm : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
+def of_real_am : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 
-@[simp] lemma of_real_lm_coe : ⇑of_real_lm = coe := rfl
+@[simp] lemma of_real_am_coe : ⇑of_real_am = coe := rfl
 
 /-- `ℝ`-algebra isomorphism version of the complex conjugation function from `ℂ` to `ℂ` -/
-def conj_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
+def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
 { inv_fun := conj,
   left_inv := conj_conj,
   right_inv := conj_conj,
   commutes' := conj_of_real,
   .. conj }
 
-@[simp] lemma conj_alg_equiv_coe : ⇑conj_alg_equiv = conj := rfl
+@[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
 
 end complex

@@ -148,11 +148,6 @@ lemma has_fderiv_at_cpow {p : ℂ × ℂ} (hp : 0 < p.1.re ∨ p.1.im ≠ 0) :
       (p.1 ^ p.2 * log p.1) • continuous_linear_map.snd ℂ ℂ ℂ) p :=
 (has_strict_fderiv_at_cpow hp).has_fderiv_at
 
-instance : has_measurable_pow ℂ ℂ :=
-⟨measurable.ite (measurable_fst (measurable_set_singleton 0))
-  (measurable.ite (measurable_snd (measurable_set_singleton 0)) measurable_one measurable_zero)
-  (measurable_fst.clog.mul measurable_snd).cexp⟩
-
 end complex
 
 section lim
@@ -858,10 +853,6 @@ end
 
 end sqrt
 
-instance : has_measurable_pow ℝ ℝ :=
-⟨complex.measurable_re.comp $ ((complex.measurable_of_real.comp measurable_fst).pow
-  (complex.measurable_of_real.comp measurable_snd))⟩
-
 end real
 
 section differentiability
@@ -1150,9 +1141,6 @@ begin
   nth_rewrite 0 ← real.coe_to_nnreal x hx,
   rw [←nnreal.coe_rpow, real.to_nnreal_coe],
 end
-
-instance : has_measurable_pow ℝ≥0 ℝ :=
-⟨(measurable_fst.coe_nnreal_real.pow measurable_snd).subtype_mk⟩
 
 end nnreal
 
@@ -1685,18 +1673,5 @@ lemma rpow_left_monotone_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : �
 
 lemma rpow_left_strict_mono_of_pos {x : ℝ} (hx : 0 < x) : strict_mono (λ y : ℝ≥0∞, y^x) :=
 λ y z hyz, rpow_lt_rpow hyz hx
-
-instance : has_measurable_pow ℝ≥0∞ ℝ :=
-begin
-  refine ⟨ennreal.measurable_of_measurable_nnreal_prod _ _⟩,
-  { simp_rw ennreal.coe_rpow_def,
-    refine measurable.ite _ measurable_const
-      (measurable_fst.pow measurable_snd).coe_nnreal_ennreal,
-    exact measurable_set.inter (measurable_fst (measurable_set_singleton 0))
-      (measurable_snd measurable_set_Iio), },
-  { simp_rw ennreal.top_rpow_def,
-    refine measurable.ite measurable_set_Ioi measurable_const _,
-    exact measurable.ite (measurable_set_singleton 0) measurable_const measurable_const, },
-end
 
 end ennreal

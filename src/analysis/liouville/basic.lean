@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang
+Authors: Damiano Testa, Jujian Zhang
 -/
 import analysis.calculus.mean_value
 import data.polynomial.denoms_clearable
@@ -9,7 +9,9 @@ import data.real.irrational
 import ring_theory.algebraic
 import topology.algebra.polynomial
 /-!
+
 # Liouville's theorem
+
 This file contains a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 

@@ -81,7 +81,6 @@ src/data/seq/computation.lean : line 11 : ERR_MOD : Module docstring missing, or
 src/data/seq/parallel.lean : line 14 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/seq.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/data/seq/wseq.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/data/set/enumerate.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/data/set/lattice.lean : line 13 : ERR_MOD : Module docstring missing, or too late
 src/data/sigma/basic.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/data/string/basic.lean : line 11 : ERR_MOD : Module docstring missing, or too late

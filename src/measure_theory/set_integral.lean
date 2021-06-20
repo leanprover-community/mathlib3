@@ -141,7 +141,7 @@ lemma integral_indicator (hs : measurable_set s) :
 begin
   by_cases hf : ae_measurable f (μ.restrict s), swap,
   { rw integral_non_ae_measurable hf,
-    rw [ae_measurable_indicator_iff hs] at hf,
+    rw [← ae_measurable_indicator_iff hs] at hf,
     exact integral_non_ae_measurable hf },
   by_cases hfi : integrable_on f s μ, swap,
   { rwa [integral_undef, integral_undef],

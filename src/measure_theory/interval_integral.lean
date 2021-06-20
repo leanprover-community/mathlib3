@@ -212,10 +212,6 @@ lemma measure_theory.integrable.interval_integrable {f : α → E} {a b : α} {�
   interval_integrable f μ a b :=
 ⟨hf.integrable_on, hf.integrable_on⟩
 
-lemma interval_integrable.norm [opens_measurable_space E] {f : α → E} {a b : α} {μ : measure α}
-  (h : interval_integrable f μ a b) : interval_integrable (λ x, ∥f x∥) μ a b  :=
-⟨h.1.norm, h.2.norm⟩
-
 namespace interval_integrable
 
 section
@@ -235,6 +231,14 @@ by split; simp
 
 lemma neg [borel_space E] (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
+
+lemma norm [opens_measurable_space E] (h : interval_integrable f μ a b) :
+  interval_integrable (λ x, ∥f x∥) μ a b  :=
+⟨h.1.norm, h.2.norm⟩
+
+lemma abs {f : α → ℝ} (h : interval_integrable f μ a b) :
+  interval_integrable (λ x, abs (f x)) μ a b  :=
+h.norm
 
 lemma mono
   (hf : interval_integrable f ν a b) (h1 : interval c d ⊆ interval a b) (h2 : μ ≤ ν) :
@@ -294,7 +298,7 @@ begin
   split,
   all_goals
   { refine measure_theory.integrable_on.mono_set _ Ioc_subset_Icc_self,
-    refine continuous_on.integrable_on_compact compact_Icc (hu.mono _) },
+    refine continuous_on.integrable_on_compact is_compact_Icc (hu.mono _) },
   exacts [Icc_subset_interval, Icc_subset_interval']
 end
 
@@ -833,12 +837,12 @@ begin
     refine continuous_within_at_of_dominated_interval _ _ _ this _ ; clear this,
     { apply eventually.mono (self_mem_nhds_within),
       intros x hx,
-      erw [← ae_measurable_indicator_iff, measure.restrict_restrict, Iic_inter_Ioc_of_le],
+      erw [ae_measurable_indicator_iff, measure.restrict_restrict, Iic_inter_Ioc_of_le],
       { rw min₁₂,
         exact (h_int' hx).1.ae_measurable },
       { exact le_max_of_le_right hx.2 },
       exacts [measurable_set_Iic, measurable_set_Iic] },
-    { erw [← ae_measurable_indicator_iff, measure.restrict_restrict, Iic_inter_Ioc_of_le],
+    { erw [ae_measurable_indicator_iff, measure.restrict_restrict, Iic_inter_Ioc_of_le],
       { rw min₁₂,
         exact (h_int' h₀).1.ae_measurable },
       { exact le_max_of_le_right h₀.2 },
@@ -973,10 +977,23 @@ lemma integral_nonneg_of_ae (hf : 0 ≤ᵐ[μ] f) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae_restrict hab $ ae_restrict_of_ae hf
 
+lemma integral_nonneg_of_forall (hf : ∀ u, 0 ≤ f u) :
+  0 ≤ (∫ u in a..b, f u ∂μ) :=
+integral_nonneg_of_ae hab $ eventually_of_forall hf
+
 lemma integral_nonneg [topological_space α] [opens_measurable_space α] [order_closed_topology α]
   (hf : ∀ u, u ∈ Icc a b → 0 ≤ f u) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=
 integral_nonneg_of_ae_restrict hab $ (ae_restrict_iff' measurable_set_Icc).mpr $ ae_of_all μ hf
+
+lemma norm_integral_le_integral_norm :
+  ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in a..b, ∥f x∥ ∂μ :=
+norm_integral_le_abs_integral_norm.trans_eq $
+  abs_of_nonneg $ integral_nonneg_of_forall hab $ λ x, norm_nonneg _
+
+lemma abs_integral_le_integral_abs :
+  abs (∫ x in a..b, f x ∂μ) ≤ ∫ x in a..b, abs (f x) ∂μ :=
+norm_integral_le_integral_norm hab
 
 section mono
 

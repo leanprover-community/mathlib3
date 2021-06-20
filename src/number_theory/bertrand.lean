@@ -806,7 +806,14 @@ begin
     { sorry, },
 
   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2),
-    { sorry, },
+    { rw <-mul_assoc,
+      rw mul_comm _ (2 : ℝ),
+      rw mul_assoc,
+      rw <-mul_sub,
+      apply mul_nonneg,
+      norm_num,
+      exact this,
+    },
 
   -- Then easy to show it's positive, by taking the derivative.
   exact aux_pos x x_big,

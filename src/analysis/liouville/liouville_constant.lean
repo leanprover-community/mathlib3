@@ -3,17 +3,16 @@ Copyright (c) 2020 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa, Jujian Zhang
 -/
+--import analysis.liouville.liouville_constant
 import analysis.liouville.basic
-import analysis.liouville.inequalities_and_series
 /-!
-
 # Liouville constants
 
 This file contains a construction of a family of Liouville numbers.
 The most important property is that they are examples of transcendental real numbers.
 This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant`.
 -/
-
+/-
 noncomputable theory
 open_locale nat big_operators
 open set real finset
@@ -24,32 +23,32 @@ variable {m : ℝ}
 
 namespace liouville
 
-/--
+/-
 For a real number `m`, Liouville's constant is
 $$
 \sum_{i=0}^\infty\frac{1}{m^{i!}}.
 $$
 The series converges only for `1 < m`.  However, there is no restriction on `m`, since,
 if the series does not converge, then the sum of the series is defined to be zero.
--/
 def liouville_number (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
+-/
 
-/--
+/-
 `liouville_constant_first_k_terms` is the sum of the first `k` terms of Liouville's constant, i.e.
 $$
 \sum_{i=0}^k\frac{1}{m^{i!}}.
 $$
--/
 def liouville_number_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
+-/
 
-/--
+/-
 `liouville_constant_terms_after_k` is the sum of the series of the terms in `liouville_constant m`
 starting from `k+1`, i.e
 $$
 \sum_{i=k+1}^\infty\frac{1}{m^{i!}}.
 $$
--/
 def liouville_number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
+-/
 
 lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
   0 < liouville_number_terms_after_k m k :=
@@ -255,4 +254,5 @@ ext1,
      → ((∑ (i : ℕ) in range (k + 1), m ^ (k! - i!)) : ℝ) = 0,
 
 end
+-/
 -/

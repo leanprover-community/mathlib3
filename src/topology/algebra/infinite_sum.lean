@@ -610,12 +610,9 @@ lemma set.finite.summable_compl_iff {s : set β} (hs : s.finite) :
 lemma has_sum_ite_eq_extract [decidable_eq β] (hf : has_sum f a) (b : β) :
   has_sum (λ n, ite (n = b) 0 (f n)) (a - f b) :=
 begin
-  convert has_sum_subtype_iff_indicator.mp (({b} : finset β).has_sum_iff_compl.mp hf),
-  { ext,
-    rw ← ite_not,
-    congr,
-    simp },
-  { exact sum_singleton.symm }
+  convert hf.update b 0 using 1,
+  { ext n, rw function.update_apply, },
+  { rw [sub_add_eq_add_sub, zero_add], },
 end
 
 section tsum

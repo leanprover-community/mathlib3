@@ -863,6 +863,24 @@ begin
   ... = 2 : sqrt_mul_self (by linarith)
 end
 
+
+lemma pow_inequality_2008' : (2008 : ℝ) ^ (9 : ℝ) ≤ (4 : ℝ) ^ (50 : ℝ) :=
+begin
+  calc  (2008 : ℝ) ^ (9 : ℝ)
+      = (2008 : ℝ) ^ ((9 : ℕ) : ℝ) : by simp
+  ... = (2008 : ℝ) ^ (9 : ℕ) : by rw rpow_nat_cast _ 9
+  ... = (530729681093308751060012105728 : ℝ) :
+        begin
+          norm_num,
+        end
+  ... ≤ (1267650600228229401496703205376 : ℝ) : by norm_num
+  ... = (4 : ℝ) ^ (50 : ℕ) : by norm_num
+  ... = (4 : ℝ) ^ ((50 : ℕ) : ℝ) : by rw rpow_nat_cast _ 50
+  ... = (4 : ℝ) ^ (50 : ℝ) : by simp,
+end
+
+
+
 lemma fff_250 : 0 ≤ fff 250 :=
 begin
   unfold fff,
@@ -889,23 +907,49 @@ begin
 
   have two_pos: 0 < (2 : ℝ) := by norm_num,
 
-  calc sqrt 2008 * log 2008 = sqrt (4 * 502) * log 2008 : by norm_num
-  ... = (sqrt 4 * sqrt 502) * log 2008 : by rw @sqrt_mul 4 (by linarith) 502
-  ... = (2 * sqrt 502) * log 2008 : by rw sqrt_four
-  ... = (2 * sqrt 502) * (log (8 * 251)) : by norm_num
-  ... = (2 * sqrt 502) * (log 8 + log 251) : by rw @log_mul 8 251 (by norm_num) (by norm_num)
-  ... ≤ (2 * sqrt 502) * (log 8 + log 256) : by sorry
-  ... ≤ (2 * sqrt 502) * (log (2 ^ 3) + log 256) : by rw eight_pow
-  ... = (2 * sqrt 502) * (log (2 ^ 3) + log (2 ^ 8)) : by rw two_fifty_six_pow
-  ... = (2 * sqrt 502) * (3 * log 2 + log (2 ^ 8)) : by sorry
-  ... = (2 * sqrt 502) * (3 * log 2 + 8 * log 2) : sorry
-  ... = (2 * sqrt 502) * (11 * log 2) : by ring
-  ... = (11 * sqrt 502) * (2 * log 2) : by ring
-  ... ≤ 250 * (2 * log 2) : by sorry -- use r here
-  ... = 250 * (log (2 ^ (2 : ℝ))) : congr_arg (λ i, 250 * i) (log_pow (by norm_num)).symm
-  ... = 250 * (log (2 ^ ↑(2 : ℕ))) : sorry
-  ... = 250 * (log (2 ^ (2 : ℕ))) : sorry
-  ... = 250 * log 4 : by norm_num
+    calc sqrt 2008 * log 2008
+      ≤ 45 * log 2008 :
+            begin
+              apply (mul_le_mul_right _).2,
+              apply (sqrt_le_left _).2,
+              norm_num,
+              norm_num,
+              apply log_pos,
+              norm_num,
+            end
+  ... = log (2008 ^ (45 : ℝ)) :
+            begin
+              rw log_rpow,
+              norm_num,
+            end
+  ... ≤ log (4 ^ (250 : ℝ)) :
+            begin
+              apply (log_le_log _ _).2,
+              -- apply rpow_pos_of_pos,
+              -- norm_num,
+              apply (@rpow_le_rpow_iff _ _ (1/5) _ _ _).1,
+              rw <-rpow_mul,
+              rw <-rpow_mul,
+              norm_num,
+              -- norm_num,
+              exact pow_inequality_2008',
+              norm_num,
+              norm_num,
+              apply rpow_nonneg_of_nonneg,
+              norm_num,
+              apply rpow_nonneg_of_nonneg,
+              norm_num,
+              norm_num,
+              apply rpow_pos_of_pos,
+              norm_num,
+              apply rpow_pos_of_pos,
+              norm_num,
+            end
+  ... = 250 * log 4 :
+            begin
+              rw log_rpow,
+              norm_num,
+            end
 end
 
 lemma linear_dominates_sqrt_log (x : ℝ) (hx : 250 ≤ x)

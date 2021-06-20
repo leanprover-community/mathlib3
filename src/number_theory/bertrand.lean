@@ -835,7 +835,8 @@ begin
     { have s : (11 * sqrt 502) ^ 2 < 250 ^ 2,
       { calc (11 * sqrt 502) ^ 2 = 11 ^ 2 * (sqrt 502) ^ 2 : by rw mul_pow
         ... = 121 * (sqrt 502) ^ 2 : by norm_num
-        ... = 121 * ((sqrt 502) * (sqrt 502)) : by sorry
+        ... = 121 * (sqrt 502) ^ (2 : ℕ) : by simp
+        ... = 121 * ((sqrt 502) * (sqrt 502)) : by ring_exp
         ... = 121 * 502 : by rw @mul_self_sqrt 502 (by norm_num)
         ... = 60742 : by norm_num
         ... < 250 ^ 2 : by norm_num, },
@@ -850,6 +851,8 @@ begin
 
   have r : log 251 ≤ log 256 := (@log_le_log 251 256 (by norm_num) (by norm_num)).2 (by norm_num),
 
+  have two_pos: 0 < (2 : ℝ) := by norm_num,
+
   calc sqrt 2008 * log 2008 = sqrt (4 * 502) * log 2008 : by norm_num
   ... = (sqrt 4 * sqrt 502) * log 2008 : by rw @sqrt_mul 4 (by linarith) 502
   ... = (2 * sqrt 502) * log 2008 : by rw sqrt_four
@@ -859,11 +862,13 @@ begin
   ... ≤ (2 * sqrt 502) * (log (2 ^ 3) + log 256) : by rw eight_pow
   ... = (2 * sqrt 502) * (log (2 ^ 3) + log (2 ^ 8)) : by rw two_fifty_six_pow
   ... = (2 * sqrt 502) * (3 * log 2 + log (2 ^ 8)) : by sorry
-  ... = (2 * sqrt 502) * (3 * log 2 + 8 * log 2) : by sorry
+  ... = (2 * sqrt 502) * (3 * log 2 + 8 * log 2) : sorry
   ... = (2 * sqrt 502) * (11 * log 2) : by ring
   ... = (11 * sqrt 502) * (2 * log 2) : by ring
   ... < 250 * (2 * log 2) : by sorry -- use r here
-  ... = 250 * (log (2 ^ 2)) : by sorry
+  ... = 250 * (log (2 ^ (2 : ℝ))) : congr_arg (λ i, 250 * i) (log_pow (by norm_num)).symm
+  ... = 250 * (log (2 ^ ↑(2 : ℕ))) : sorry
+  ... = 250 * (log (2 ^ (2 : ℕ))) : by simp
   ... = 250 * log 4 : by norm_num
 end
 

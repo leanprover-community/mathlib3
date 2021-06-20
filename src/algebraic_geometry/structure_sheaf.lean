@@ -863,7 +863,7 @@ lemma comap_apply (f : R →+* S) (U : opens (prime_spectrum.Top R))
     (s.1 ⟨(prime_spectrum.comap f p.1), hUV p.2⟩ : _) :=
 rfl
 
-lemma structure_sheaf.comap_const (f : R →+* S) (U : opens (prime_spectrum.Top R))
+lemma comap_const (f : R →+* S) (U : opens (prime_spectrum.Top R))
   (V : opens (prime_spectrum.Top S)) (hUV : V.1 ⊆ (prime_spectrum.comap f) ⁻¹' U.1)
   (a b : R) (hb : ∀ x : prime_spectrum R, x ∈ U → b ∈ x.as_ideal.prime_compl) :
   comap f U V hUV (const R a b U hb) =

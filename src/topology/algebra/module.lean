@@ -122,7 +122,7 @@ lemma submodule.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
-lemma topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
+lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
   s.topological_closure ≤ t.topological_closure :=
 s.topological_closure_minimal (h.trans t.submodule_topological_closure)
   t.is_closed_topological_closure

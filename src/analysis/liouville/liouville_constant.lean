@@ -72,7 +72,7 @@ calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
     summable_inv_pow_ge hm (λ i, trans le_self_add (nat.self_le_factorial _))
 
 /--  Split the sum definining a Liouville number into the first `k` term and the rest. -/
-lemma liouville_number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ) :
+lemma liouville_number_eq_initial_terms_add_tail (hm : 1 < m) (k : ℕ) :
   liouville_number m = liouville_number_initial_terms m k +
   liouville_number_tail m k :=
 (sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, i.self_le_factorial))).symm

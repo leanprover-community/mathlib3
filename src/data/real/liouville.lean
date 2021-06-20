@@ -136,7 +136,7 @@ begin
   -- Since `fR` is continuous, it is bounded on the interval above.
   obtain ⟨xm, -, hM⟩ : ∃ (xm : ℝ) (H : xm ∈ Icc (α - ζ) (α + ζ)), ∀ (y : ℝ),
     y ∈ Icc (α - ζ) (α + ζ) → abs (fR.derivative.eval y) ≤ abs (fR.derivative.eval xm) :=
-    is_compact.exists_forall_ge compact_Icc
+    is_compact.exists_forall_ge is_compact_Icc
     ⟨α, (sub_lt_self α z0).le, (lt_add_of_pos_right α z0).le⟩
     (continuous_abs.comp fR.derivative.continuous_aeval).continuous_on,
   -- Use the key lemma `exists_one_le_pow_mul_dist`: we are left to show that ...

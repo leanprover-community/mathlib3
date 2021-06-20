@@ -213,6 +213,12 @@ begin
   exact ⟨n, f, hf.1⟩
 end
 
+instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A × B) :=
+⟨begin
+  rw ← subalgebra.prod_top,
+  exact subalgebra.fg_prod hA.1 hB.1
+end⟩
+
 end finite_type
 
 namespace finite_presentation

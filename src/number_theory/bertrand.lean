@@ -881,6 +881,22 @@ end
 
 
 
+lemma eleven_sqrt_five_hundred_two : (11 : ℝ) * sqrt 502 ≤ 250 :=
+begin
+  have eleven_nonneg : (0 : ℝ) ≤ 11 := by norm_num,
+  have t : (11 : ℝ) * sqrt 502 = sqrt (121 * 502),
+    { calc (11 : ℝ) * sqrt 502 = sqrt (11 ^ 2) * sqrt 502 : by rw sqrt_sq eleven_nonneg
+      ... = sqrt 121 * sqrt 502 : by norm_num
+      ... = sqrt (121 * 502) : (sqrt_mul (by norm_num) _).symm, },
+  have two_fifty_pos : (0 : ℝ) ≤ 250 := by norm_num,
+  have u : 250 = sqrt 62500,
+    calc 250 = sqrt (250 ^ 2) : by rw sqrt_sq two_fifty_pos
+      ... = sqrt 62500 : by norm_num,
+  rw [t, u],
+  apply sqrt_le_sqrt,
+  norm_num,
+end
+
 lemma fff_250 : 0 ≤ fff 250 :=
 begin
   unfold fff,

@@ -288,35 +288,29 @@ def pow_half : ℕ → pgame
 | (n + 1) := mk punit punit 0 (λ _, pow_half n)
 
 @[simp] lemma pow_half_left_moves {n} : (pow_half n).left_moves = punit :=
-by { cases n; refl }
+by cases n; refl
 
 @[simp] lemma pow_half_right_moves {n} : (pow_half (n + 1)).right_moves = punit :=
-by { cases n; refl }
+by cases n; refl
 
 @[simp] lemma pow_half_move_left {n i} : (pow_half n).move_left i = 0 :=
-by { cases n; cases i; refl }
+by cases n; cases i; refl
 
 @[simp] lemma pow_half_move_right {n i} : (pow_half (n + 1)).move_right i = pow_half n :=
 by cases n; cases i; refl
 
-lemma pow_half_left_moves' {n} : punit ≃ (pow_half n).left_moves :=
-begin
-  simp only [pow_half_left_moves],
-  exact equiv.punit_equiv_punit
-end
+def pow_half_left_moves' {n} : (pow_half n).left_moves ≃ punit :=
+by simp only [pow_half_left_moves]
 
-lemma pow_half_right_moves' {n} : punit ≃ (pow_half (n + 1)).right_moves :=
-begin
-  simp only [pow_half_right_moves],
-  exact equiv.punit_equiv_punit
-end
+def pow_half_right_moves' {n} : (pow_half (n + 1)).right_moves ≃ punit :=
+by simp only [pow_half_right_moves]
 
-@[simp] lemma pow_half_move_left' (n) :
-  (pow_half n).move_left (pow_half_left_moves' punit.star) = 0 :=
+lemma pow_half_move_left' {n} :
+  (pow_half n).move_left (pow_half_left_moves'.inv_fun punit.star) = 0 :=
 by simp only [eq_self_iff_true, pgame.pow_half_move_left]
 
-@[simp] lemma pow_half_move_right' (n) :
-  (pow_half (n + 1)).move_right (pow_half_right_moves' punit.star) = pow_half n :=
+lemma pow_half_move_right' {n} :
+  (pow_half (n + 1)).move_right (pow_half_right_moves'.inv_fun punit.star) = pow_half n :=
 by simp only [pgame.pow_half_move_right, eq_self_iff_true]
 
 /-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
@@ -336,7 +330,7 @@ theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n :=
 (@numeric_pow_half (n + 1)).lt_move_right punit.star
 
 theorem zero_lt_pow_half {n : ℕ} : 0 < pow_half n :=
-by { cases n; rw lt_def_le; use ⟨punit.star, pgame.le_refl 0⟩ }
+by cases n; rw lt_def_le; use ⟨punit.star, pgame.le_refl 0⟩
 
 theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
 begin
@@ -345,9 +339,9 @@ begin
   split; rw le_def_lt; split,
   { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
     { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
-                                  ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
+                                 ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
     { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
-                                  ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
+                                 ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
   { rintro ⟨ ⟩,
     rw lt_def_le,
     right,

@@ -214,6 +214,24 @@ by { ext, exact mem_closure_singleton.symm }
 lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.pow_mem h i end
 
+/-- Exponentiation map from natural numbers to powers. -/
+def pow (n : M) (m : ℕ) : powers n := ⟨n ^ m, m, rfl⟩
+
+/-- Logarithms from powers to natural numbers. -/
+noncomputable def log {n : M} (p : powers n) : ℕ :=
+classical.some $ (mem_powers_iff n p).1 p.prop
+
+@[simp] theorem pow_log_eq_self {n : M} (p : powers n) : pow n (log p) = p :=
+begin
+  rw [pow, log],
+  rcases p with ⟨_, hp⟩,
+  congr,
+  exact classical.some_spec hp,
+end
+
+theorem log_pow_eq_self {n : M} (hn : (function.injective (λ m, pow n m))) (m : ℕ) :
+  log (pow n m) = m := hn $ pow_log_eq_self _
+
 end submonoid
 
 namespace submonoid

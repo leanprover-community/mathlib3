@@ -10,11 +10,13 @@ import algebra.algebra.subalgebra
 /-!
 # Algebraic structures over continuous functions
 
-In this file we define instances of algebraic structures over continuous functions. Instances are
-present both in the case of the subtype of continuous functions and the type of continuous bundled
-functions. Both implementations have advantages and disadvantages, but many experienced people in
-Zulip have expressed a preference towards continuous bundled maps, so when there is no particular
-reason to use the subtype, continuous bundled functions should be used for the sake of uniformity.
+In this file we define instances of algebraic structures over the type `continuous_map α β`
+(denoted `C(α, β)`) of **bundled** continuous maps from `α` to `β`. Note that we don't provide
+instances about `{ f : α → β | continuous f }` anymore, because `C(α, β)` should be used instead.
+
+However, we also define subobject of `α → β` with carrier `{ f : α → β | continuous f }` because
+we need a subset of `α → β` to define a subobject of it (see for example `continuous_subring`,
+`continuous_subalgebra`, ...).
 -/
 
 local attribute [elab_simple] continuous.comp
@@ -85,21 +87,6 @@ def continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topolo
   [group β] [topological_group β] : subgroup (α → β) :=
 { inv_mem' := λ f fc, continuous.comp (@topological_group.continuous_inv β _ _ _) fc,
   ..continuous_submonoid α β, }.
-
-@[to_additive]
-instance continuous_monoid {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [monoid β] [has_continuous_mul β] : monoid { f : α → β | continuous f } :=
-(continuous_submonoid α β).to_monoid
-
-@[to_additive]
-instance continuous_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [group β] [topological_group β] : group { f : α → β | continuous f } :=
-(continuous_subgroup α β).to_group
-
-@[to_additive]
-instance continuous_comm_group {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [comm_group β] [topological_group β] : comm_group { f : α → β | continuous f } :=
-(continuous_subgroup α β).to_comm_group
 
 end subtype
 
@@ -227,28 +214,11 @@ def continuous_subsemiring (α : Type*) (R : Type*) [topological_space α] [topo
 { ..continuous_add_submonoid α R,
   ..continuous_submonoid α R }.
 
-instance continuous_semiring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
-  [semiring R] [topological_semiring R] : semiring { f : α → R | continuous f } :=
-(continuous_subsemiring α R).to_semiring
-
-instance continuous_comm_semiring {α : Type*} {R : Type*} [topological_space α]
-  [topological_space R] [comm_semiring R] [topological_semiring R] :
-  comm_semiring { f : α → R | continuous f } :=
-(continuous_subsemiring α R).to_comm_semiring
-
 /-- The subring of continuous maps `α → β`. -/
 def continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
   [ring R] [topological_ring R] : subring (α → R) :=
 { ..continuous_subsemiring α R,
   ..continuous_add_subgroup α R }.
-
-instance continuous_ring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
-  [ring R] [topological_ring R] : ring { f : α → R | continuous f } :=
-(continuous_subring α R).to_ring
-
-instance continuous_comm_ring {α : Type*} {R : Type*} [topological_space α] [topological_space R]
-  [comm_ring R] [topological_ring R] : comm_ring { f : α → R | continuous f } :=
-(continuous_subring α R).to_comm_ring
 
 end subtype
 
@@ -299,39 +269,17 @@ topological semiring `R` inherit the structure of a module.
 
 section subtype
 
-section add_comm_monoid
+variables (α : Type*) [topological_space α]
+variables (R : Type*) [semiring R] [topological_space R]
+variables (M : Type*) [topological_space M] [add_comm_group M]
+variables [module R M] [has_continuous_smul R M] [topological_add_group M]
 
-variables {α : Type*} [topological_space α]
-variables {R : Type*} [semiring R] [topological_space R]
-variables {M : Type*} [topological_space M] [add_comm_monoid M]
-variables [module R M] [has_continuous_smul R M]
-
-instance continuous_has_scalar : has_scalar R { f : α → M | continuous f } :=
-⟨λ r f, ⟨r • f, f.property.const_smul r⟩⟩
-
-@[simp, norm_cast]
-lemma continuous_functions.coe_smul (f : { f : α → M | continuous f }) (r : R) :
-  ⇑(r • f) = r • f := rfl
-
-end add_comm_monoid
-
-section add_comm_group
-
-variables {α : Type*} [topological_space α]
-variables {R : Type*} [semiring R] [topological_space R]
-variables {M : Type*} [topological_space M] [add_comm_group M]
-variables [module R M] [has_continuous_smul R M]
-
-instance continuous_module [topological_add_group M] :
-  module R { f : α → M | continuous f } :=
-  module.of_core $
-{ smul     := (•),
-  smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
-  add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
-  one_smul := λ f, by ext x; exact one_smul R (f x) }
-
-end add_comm_group
+/-- The `R`-submodule of continuous maps `α → M`. -/
+def continuous_submodule : submodule R (α → M) :=
+{ carrier := { f : α → M | continuous f },
+  smul_mem' := λ c f hf, continuous_smul.comp
+    (continuous.prod_mk (continuous_const : continuous (λ x, c)) hf),
+  ..continuous_add_subgroup α M }
 
 end subtype
 
@@ -390,30 +338,20 @@ section algebra_structure
 
 In this section we show that continuous functions valued in a topological algebra `A` over a ring
 `R` inherit the structure of an algebra. Note that the hypothesis that `A` is a topological algebra
-is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_semiring`
-(by now we require `topological_ring`: see TODO below).-/
+is obtained by requiring that `A` be both a `has_continuous_smul` and a `topological_semiring`.-/
 
 section subtype
 
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
 {A : Type*} [topological_space A] [semiring A]
-[algebra R A] [topological_semiring A]
+[algebra R A] [topological_semiring A] [topological_space R] [has_continuous_smul R A]
 
-/-- Continuous constant functions as a `ring_hom`. -/
-def continuous.C : R →+* { f : α → A | continuous f } :=
-{ to_fun    := λ c : R, ⟨λ x: α, ((algebra_map R A) c), continuous_const⟩,
-  map_one'  := by ext x; exact (algebra_map R A).map_one,
-  map_mul'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_mul _ _,
-  map_zero' := by ext x; exact (algebra_map R A).map_zero,
-  map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
-
-variables [topological_space R] [has_continuous_smul R A]
-
-instance : algebra R { f : α → A | continuous f } :=
-{ to_ring_hom := continuous.C,
-  commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
-  smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _, }
+/-- The `R`-subalgebra of continuous maps `α → A`. -/
+def continuous_subalgebra : subalgebra R (α → A) :=
+{ carrier := { f : α → A | continuous f },
+  algebra_map_mem' := λ r, (continuous_const : continuous $ λ (x : α), algebra_map R A r),
+  ..continuous_subsemiring α A }
 
 end subtype
 
@@ -562,30 +500,7 @@ section module_over_continuous_functions
 ### Structure as module over scalar functions
 
 If `M` is a module over `R`, then we show that the space of continuous functions from `α` to `M`
-is naturally a module over the ring of continuous functions from `α` to `M`. -/
-
-section subtype
-
-instance continuous_has_scalar' {α : Type*} [topological_space α]
-  {R : Type*} [semiring R] [topological_space R]
-  {M : Type*} [topological_space M] [add_comm_group M]
-  [module R M] [has_continuous_smul R M] :
-  has_scalar { f : α → R | continuous f } { f : α → M | continuous f } :=
-⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
-
-instance continuous_module' {α : Type*} [topological_space α]
-  (R : Type*) [ring R] [topological_space R] [topological_ring R]
-  (M : Type*) [topological_space M] [add_comm_group M] [topological_add_group M]
-  [module R M] [has_continuous_smul R M]
-  : module { f : α → R | continuous f } { f : α → M | continuous f } :=
-  module.of_core $
-{ smul     := (•),
-  smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
-  add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),
-  mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul (c₁ x) (c₂ x) (f x),
-  one_smul := λ f, by ext x; exact one_smul R (f x) }
-
-end subtype
+is naturally a module over the ring of continuous functions from `α` to `R`. -/
 
 namespace continuous_map
 

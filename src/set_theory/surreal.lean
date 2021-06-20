@@ -299,18 +299,12 @@ by cases n; cases i; refl
 @[simp] lemma pow_half_move_right {n i} : (pow_half (n + 1)).move_right i = pow_half n :=
 by cases n; cases i; refl
 
-def pow_half_left_moves' {n} : (pow_half n).left_moves ≃ punit :=
-by simp only [pow_half_left_moves]
-
-def pow_half_right_moves' {n} : (pow_half (n + 1)).right_moves ≃ punit :=
-by simp only [pow_half_right_moves]
-
-lemma pow_half_move_left' {n} :
-  (pow_half n).move_left (pow_half_left_moves'.inv_fun punit.star) = 0 :=
+lemma pow_half_move_left' (n) :
+  (pow_half n).move_left (equiv.cast (pow_half_left_moves.symm) punit.star) = 0 :=
 by simp only [eq_self_iff_true, pgame.pow_half_move_left]
 
-lemma pow_half_move_right' {n} :
-  (pow_half (n + 1)).move_right (pow_half_right_moves'.inv_fun punit.star) = pow_half n :=
+lemma pow_half_move_right' (n) :
+  (pow_half (n + 1)).move_right (equiv.cast (pow_half_right_moves.symm) punit.star) = pow_half n :=
 by simp only [pgame.pow_half_move_right, eq_self_iff_true]
 
 /-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
@@ -321,7 +315,7 @@ begin
   { split,
     { rintro ⟨ ⟩ ⟨ ⟩,
       dsimp,
-      rw ← @pow_half_move_left' n,
+      rw ← pow_half_move_left' n,
       apply hn.move_left_lt },
     { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
 end

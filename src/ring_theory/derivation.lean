@@ -87,7 +87,8 @@ by rw [←mul_one r, ring_hom.map_mul, map_one, ←smul_def, map_smul, map_one_e
 /- Data typeclasses -/
 
 instance : has_zero (derivation R A M) :=
-⟨{ leibniz' := λ a b, by simp only [add_zero, linear_map.zero_apply, linear_map.to_fun_eq_coe, smul_zero],
+⟨{ leibniz' := λ a b, by simp only [add_zero, linear_map.zero_apply, linear_map.to_fun_eq_coe,
+     smul_zero],
    ..(0 : A →ₗ[R] M) }⟩
 
 @[simp] lemma coe_zero : ⇑(0 : derivation R A M) = 0 := rfl

@@ -8,6 +8,7 @@ import linear_algebra.matrix
 
 namespace matrix
 
+open tensor_product
 open_locale tensor_product
 
 variables {α : Type*} [comm_semiring α]
@@ -16,21 +17,48 @@ variables [algebra α R] [algebra α S] [algebra α T]
 variables {l m n o p q: Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype o] [fintype p] [fintype q]
 
-def kronecker_bilinear : (matrix l m R) →ₗ[α] matrix (n o S) →ₗ[α]
-  matrix (l × n) (m × o) (R ⊗[α] S) :=
-
-
-def matrix_tensor_equiv : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
+def kronecker_bil : (matrix l m R) →ₗ[α] (matrix n o S) →ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
 { to_fun :=
-        begin
-          intro A,
-          -- λ i j, A i.1 j.1 * f' i.2 j.2
-        end,
-  map_add' := sorry,
-  map_smul' := sorry,
+  begin
+    intro A,
+    use λ B, λ i j, A i.1 j.1 ⊗ₜ[α] B i.2 j.2,
+    all_goals {intros _ _, ext},
+    apply tmul_add,
+    apply tmul_smul,
+  end,
+  map_add' := begin
+                intros _ _,
+                simp only [linear_map.coe_mk, dmatrix.add_apply],
+                simp_rw add_tmul,
+                refl,
+              end,
+  map_smul' := begin
+                intros a A,
+                simp only [pi.smul_apply],
+                simp_rw [smul_tmul, tmul_smul],
+                refl,
+              end, }
+
+def kronecker : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
+{ to_fun := tensor_product.lift kronecker_bil,
+  map_add' := by simp only [forall_const, eq_self_iff_true, linear_map.map_add],
+  map_smul' := by simp only [forall_const, eq_self_iff_true, linear_map.map_smul],
   inv_fun := sorry,
   left_inv := sorry,
   right_inv := sorry }
+
+
+-- def matrix_tensor_equiv : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
+-- { to_fun :=
+--         begin
+--           intro A,
+--           -- λ i j, A i.1 j.1 * f' i.2 j.2
+--         end,
+--   map_add' := sorry,
+--   map_smul' := sorry,
+--   inv_fun := sorry,
+--   left_inv := sorry,
+--   right_inv := sorry }
 
 -- def matrix_tensor_equiv_coe : (matrix l m A) ⊗[R] (matrix n o B) →ₗ[R] matrix (l × n) (m × o) (A ⊗[R] B) :=
 -- matrix_tensor_equiv

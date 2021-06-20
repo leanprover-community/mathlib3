@@ -315,10 +315,14 @@ instance [has_mul α] [add_comm_monoid α] : has_mul (matrix n n α) := ⟨matri
 theorem mul_apply' [has_mul α] [add_comm_monoid α] {M N : matrix n n α} {i k} :
   (M ⬝ N) i k = dot_product (λ j, M i j) (λ j, N j k) := rfl
 
-
 @[simp] theorem diagonal_neg [decidable_eq n] [add_group α] (d : n → α) :
   -diagonal d = diagonal (λ i, -d i) :=
 by ext i j; by_cases i = j; simp [h]
+
+lemma sum_apply [add_comm_monoid α] (i : m) (j : n)
+  (s : finset β) (g : β → matrix m n α) :
+  (∑ c in s, g c) i j = ∑ c in s, g c i j :=
+(congr_fun (s.sum_apply i g) j).trans (s.sum_apply j _)
 
 section non_unital_non_assoc_semiring
 variables [non_unital_non_assoc_semiring α]

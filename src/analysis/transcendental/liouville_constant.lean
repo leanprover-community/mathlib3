@@ -33,13 +33,13 @@ if the series does not converge, then the sum of the series is defined to be zer
 -/
 def liouville_number (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
 
-/--
+/-
 `liouville_constant_first_k_terms` is the sum of the first `k` terms of Liouville's constant, i.e.
 $$
 \sum_{i=0}^k\frac{1}{m^{i!}}.
 $$
--/
 def liouville_number_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
+-/
 
 /--
 `liouville_constant_terms_after_k` is the sum of the series of the terms in `liouville_constant m`

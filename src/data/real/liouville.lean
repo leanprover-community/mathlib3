@@ -8,8 +8,11 @@ import data.polynomial.denoms_clearable
 import data.real.irrational
 import ring_theory.algebraic
 import topology.algebra.polynomial
+
 /-!
+
 # Liouville's theorem
+
 This file contains a proof of Liouville's theorem stating that all Liouville numbers are
 transcendental.
 

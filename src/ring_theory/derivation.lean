@@ -94,6 +94,7 @@ instance : add_comm_monoid (derivation R A M) :=
   ..derivation.has_zero }
 
 @[simp] lemma coe_add : ⇑(D1 + D2) = D1 + D2 := rfl
+lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
 @[simp] lemma coe_zero : ⇑(0 : derivation R A M) = 0 := rfl
 
 @[priority 100]
@@ -200,9 +201,9 @@ instance : has_bracket (derivation R A A) (derivation R A A) := ⟨derivation.co
 lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 
 instance : lie_ring (derivation R A A) :=
-{ add_lie := λ d e f, by ext; simp only [commutator_apply, coe_add, map_add, pi.add_apply]; ring,
-  lie_add := λ d e f, by ext; simp only [commutator_apply, coe_add, map_add, pi.add_apply]; ring,
-  lie_self := λ d, by { ext a, simp only [commutator_apply, coe_add, map_add], ring_nf, },
+{ add_lie     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring_nf, },
   leibniz_lie := λ d e f,
     by { ext a, simp only [commutator_apply, coe_add, coe_sub, map_sub, pi.add_apply], ring, } }
 

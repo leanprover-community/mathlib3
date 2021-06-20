@@ -471,7 +471,67 @@ begin
   ... = 1 / sqrt x : div_mul_right _ (ne_of_gt (sqrt_pos.2 h)),
 end
 
-lemma deriv_nonneg {x : ℝ} (h : 72 ≤ x) : 0 ≤ fff' x :=
+private noncomputable def aux (x : ℝ) := sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2)
+
+private noncomputable def aux' (x : ℝ) := sqrt 2 * (1 / (2 * sqrt (x + 1))) * log 2 - 8 / (8 * (x + 1))
+
+lemma derivative_aux {x : ℝ} (hyp : x ≠ -1) : has_deriv_at (λ x, aux x) (aux' x) x :=
+begin
+  unfold aux,
+  refine has_deriv_at.sub _ _,
+  { refine has_deriv_at.mul_const _ _,
+    refine has_deriv_at.const_mul _ _,
+    refine has_deriv_at.sqrt _ _,
+    { refine has_deriv_at.add_const _ _,
+      exact has_deriv_at_id x, },
+    { intro bad,
+      have t : x = -1, by linarith,
+      exact hyp t, }, },
+  { refine has_deriv_at.add_const _ _,
+    refine has_deriv_at.log _ _,
+    { ring_nf,
+      refine has_deriv_at.add_const _ _,
+      sorry,
+    },
+    { intros bad,
+      have t : x = -1, by linarith,
+      exact hyp t, }, },
+end
+
+lemma aux_derivative_ge_zero (x : ℝ) (x_big : 4 ≤ x) : 0 ≤ aux' x :=
+begin
+  unfold aux',
+  -- Multiply through by (x + 1)
+  suffices: 0 ≤ sqrt 2 * sqrt (x + 1) / 2 * log 2 - 1,
+    { sorry, },
+
+  suffices: 1 ≤ sqrt 2 * log 2 / 2 * sqrt (x + 1),
+    { sorry, },
+
+  suffices: 1 / (sqrt 2 * log 2 / 2) ≤ sqrt (x + 1),
+    { sorry, },
+
+  suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 ≤ x + 1,
+    { sorry, },
+
+  suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1 ≤ x,
+    { sorry, },
+
+  sorry,
+end
+
+lemma aux_zero : 0 ≤ aux 72 :=
+begin
+  unfold aux,
+  sorry,
+end
+
+lemma aux_pos (x : ℝ) (x_big : 72 ≤ x) : 0 ≤ aux x :=
+begin
+  sorry
+end
+
+lemma deriv_nonneg {x : ℝ} (x_big : 72 ≤ x) : 0 ≤ fff' x :=
 begin
   unfold fff',
   have r : 8 * x + 8 = 8 * (x + 1), by ring,
@@ -498,16 +558,26 @@ begin
       rw mul_div_comm,
       norm_num, },
 
-  rw eight_simp,
+  rw eight_simp, clear eight_simp,
   rw g,
   rw @foobar (x + 1) (by linarith),
 
   -- Multiply through by sqrt (x + 1)
-  sorry,
+  suffices: 0 ≤ sqrt (x + 1) * log 4 - (2 / sqrt 2 * log (8 * (x + 1)) + 2 * sqrt 2),
+    { sorry, },
 
-  -- Clear denominators, simplify the log and the sqrts, you get:
-  -- Sqrt[2] Log[2] Sqrt[x + 1] - ((3 Log[2] + Log[x + 1]) + 2)
+  -- Multiply through by sqrt 2
+  suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 4 - (2 * log (8 * (x + 1)) + 4),
+    { sorry, },
+
+  suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * (2 * log 2) - 2 * (log (8 * (x + 1)) + 2),
+    { sorry, },
+
+  suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2),
+    { sorry, },
+
   -- Then easy to show it's positive, by taking the derivative.
+  exact aux_pos x x_big,
 end
 
 lemma fff_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ fff (interior (Ici i)) :=
@@ -603,7 +673,36 @@ begin
     { exact or.inr (or.inl (log_pos_eq_zero h hyp)), }, },
 end
 
-lemma log_pow {x y : ℝ} : (x = 0 → y = 0) ↔ log (x ^ y) = y * log x :=
+lemma zero_pow_complex {a : ℂ} {x : ℂ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
+begin
+  unfold pow at hyp,
+  unfold complex.cpow at hyp,
+  simp at hyp,
+  by_cases x = 0,
+  { right,
+    subst h,
+    simp at hyp,
+    cc, },
+  { left,
+    cc, },
+end
+
+lemma zero_pow_real {a : ℝ} {x : ℝ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
+begin
+  unfold pow at hyp,
+  unfold rpow at hyp,
+  simp at hyp,
+  cases @zero_pow_complex _ x rfl with k_zero k_one,
+  { left,
+    simp [k_zero] at hyp,
+    exact hyp.symm, },
+  { cases k_one with x_zero a_one,
+    simp [a_one] at hyp,
+    right,
+    exact ⟨complex.of_real_eq_zero.1 x_zero, hyp.symm⟩, },
+end
+
+lemma log_pow {x y : ℝ} : (x ≠ 0 ∨ y = 0) ↔ log (x ^ y) = y * log x :=
 begin
   split,
   { intros hyp,
@@ -615,7 +714,12 @@ begin
         subst hyp,
         simp, },
       { unfold exp, unfold log,
-        have r : ¬ ((x : ℂ) = 0) := sorry,
+        have r : ¬ ((x : ℂ) = 0),
+          { rename h x_nonzero,
+            by_contradiction,
+            apply x_nonzero,
+            simp at h,
+            exact h, },
         rw if_neg r,
         rw dif_neg h,
         unfold complex.log,
@@ -625,14 +729,21 @@ begin
     rw [r, log_exp],
     exact mul_comm _ _,
   },
-  { intros hyp x_zero,
-    subst x_zero,
-    simp at hyp,
-    cases log_eq_zero hyp,
-    { sorry, },
-    { cases h,
+  { intros hyp,
+    by_cases x = 0,
+    { subst h,
+      simp at hyp,
+      cases log_eq_zero hyp,
       { sorry, },
-      { sorry, }, }
+      { cases h,
+        { cases zero_pow_real h,
+          { norm_num at h_1, },
+          { right, exact h_1.1 }, },
+        { cases zero_pow_real h,
+          { norm_num at h_1, },
+          { cases h_1 with _ bad,
+            norm_num at bad, }, }, }, },
+    { exact or.inl h, },
   },
 end
 

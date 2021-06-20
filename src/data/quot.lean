@@ -225,6 +225,13 @@ begin
   rw quotient.out_eq y,
 end
 
+lemma quotient.eq_mk_iff_out [s : setoid α] {x : quotient s} {y : α} :
+  x = ⟦y⟧ ↔ quotient.out x ≈ y  :=
+begin
+  refine iff.trans _ quotient.eq,
+  rw quotient.out_eq x,
+end
+
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,
   iseqv := ⟨
@@ -488,4 +495,5 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
+
 end quotient

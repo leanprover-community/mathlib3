@@ -506,7 +506,7 @@ begin
 end
 
 -- TODO: move this to a better location
-lemma int.pow_right_injective {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
+lemma int.pow_right_injective' {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
 λ n m hnm, begin
   lift x to ℕ using (zero_le_two).trans h,
   norm_cast at h hnm,
@@ -544,7 +544,7 @@ nat.find $ (submonoid.mem_powers_iff a p.val).1 p.prop
 begin
   rw log,
   generalize_proofs h,
-  exact int.pow_right_injective ha (nat.find_spec h),
+  exact int.pow_right_injective' ha (nat.find_spec h),
 end
 
 @[simp] theorem pow_log_eq_self {a : ℤ} (n : submonoid.powers a) : pow a (log n) = n :=

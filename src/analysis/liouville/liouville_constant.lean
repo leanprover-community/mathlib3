@@ -13,7 +13,6 @@ This file contains a construction of a family of Liouville numbers.
 The most important property is that they are examples of transcendental real numbers.
 This fact is recorded in `is_liouville.is_transcendental_of_liouville_constant`.
 -/
-/-
 noncomputable theory
 open_locale nat big_operators
 open set real finset
@@ -71,7 +70,7 @@ calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
     summable_inv_pow_ge hm (λ i, i.self_le_factorial.trans (nat.factorial_le (nat.le.intro rfl)))
 
 /-
-lemma liouville_number_terms_after_pos_1 (hm : 1 < m) :
+lemma liouville_number_terms_tail_pos_1 (hm : 1 < m) :
   ∀ k, 0 < liouville_number_terms_after_k m k := λ n,
 calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
   ... = 1 / m ^ (0 + (n + 1))! : by rw zero_add
@@ -101,14 +100,14 @@ namespace liouville
 
 /--  The sum of the `k` initial terms of the Liouville number to base `m` is a ratio of natural
 numbers where the denominator is `m ^ k!`. -/
-lemma liouville_number_rat_first_k_terms (hm : 0 < m) (k : ℕ) :
-∃ p : ℕ, liouville_number_first_k_terms m k = p / m ^ k! :=
+lemma liouville_number_rat_initial_terms (hm : 0 < m) (k : ℕ) :
+∃ p : ℕ, liouville_number_initial_terms m k = p / m ^ k! :=
 begin
   induction k with k h,
-  { exact ⟨1, by rw [liouville_number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
+  { exact ⟨1, by rw [liouville_number_initial_terms, range_one, sum_singleton, nat.cast_one]⟩ },
   { rcases h with ⟨p_k, h_k⟩,
     use p_k * (m ^ ((k + 1)! - k!)) + 1,
-    unfold liouville_number_first_k_terms at h_k ⊢,
+    unfold liouville_number_initial_terms at h_k ⊢,
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ,
@@ -172,13 +171,13 @@ begin
     one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
   intro n,
   -- the first `n` terms sum to `p / m ^ k!`
-  rcases liouville_number_rat_first_k_terms (zero_lt_two.trans_le hm) n with ⟨p, hp⟩,
+  rcases liouville_number_rat_initial_terms (zero_lt_two.trans_le hm) n with ⟨p, hp⟩,
   refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
   push_cast,
   -- separate out the sum of the first `n` terms and the rest
-  rw liouville_number_eq_first_k_terms_add_rest m1 n,
-  rw [← hp, add_sub_cancel', abs_of_nonneg (liouville_number_terms_after_pos m1 _).le],
-  exact ⟨((lt_add_iff_pos_right _).mpr (liouville_number_terms_after_pos m1 n)).ne.symm,
+  rw liouville_number_eq_initial_terms_add_tail m1 n,
+  rw [← hp, add_sub_cancel', abs_of_nonneg (liouville_number_tail m1 _).le],
+  exact ⟨((lt_add_iff_pos_right _).mpr (liouville_number_tail m1 n)).ne.symm,
     (calc_liou_one m1 n).trans_le
     (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
@@ -194,14 +193,14 @@ end m_is_natural
 /-
 #exit
 
-lemma liouville_number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
-∃ p : ℕ, liouville_number_first_k_terms m k = p / (m ^ k!) :=
+lemma liouville_number_rat_initial_terms (hm : 1 < m) (k : ℕ) :
+∃ p : ℕ, liouville_number_initial_terms m k = p / (m ^ k!) :=
 begin
   induction k with k h,
-  { exact ⟨1, by rw [liouville_number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
+  { exact ⟨1, by rw [liouville_number_initial_terms, range_one, sum_singleton, nat.cast_one]⟩ },
   { rcases h with ⟨p_k, h_k⟩,
     use p_k * (m ^ ((k + 1)! - k!)) + 1,
-    unfold liouville_number_first_k_terms at h_k ⊢,
+    unfold liouville_number_initial_terms at h_k ⊢,
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
@@ -217,7 +216,7 @@ begin
   refine ⟨∑ i in range (k+1), m ^ (k! - i!), _⟩,
   refine (div_eq_iff _).mp _,
   exact inv_ne_zero (pow_ne_zero _ (ne_of_gt (zero_lt_one.trans (nat.one_lt_cast.mpr hm)))),
-  unfold liouville_number_first_k_terms,
+  unfold liouville_number_initial_terms,
   rw [div_eq_mul_inv, inv_inv', sum_mul],
 --  have : ∑ (x : ℕ) in range (k + 1), 1 / (m : ℝ) ^ x! * (m : ℝ) ^ k! =
 --    ∑ (i : ℕ) in range (k + 1), (↑m) ^ (k! - i!),
@@ -238,5 +237,4 @@ ext1,
      → ((∑ (i : ℕ) in range (k + 1), m ^ (k! - i!)) : ℝ) = 0,
 
 end
--/
 -/

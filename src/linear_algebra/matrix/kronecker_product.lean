@@ -8,6 +8,7 @@ import linear_algebra.matrix
 
 namespace matrix
 
+open tensor_product
 open_locale tensor_product
 
 variables {α : Type*} [comm_semiring α]
@@ -16,21 +17,41 @@ variables [algebra α R] [algebra α S] [algebra α T]
 variables {l m n o p q: Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype o] [fintype p] [fintype q]
 
-def kronecker_bilinear : (matrix l m R) →ₗ[α] matrix (n o S) →ₗ[α]
-  matrix (l × n) (m × o) (R ⊗[α] S) :=
-
-
-def matrix_tensor_equiv : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
+def kronecker_bil : (matrix l m R) →ₗ[α] (matrix n o S) →ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
 { to_fun :=
-        begin
-          intro A,
-          -- λ i j, A i.1 j.1 * f' i.2 j.2
-        end,
+  begin
+    intro A,
+    let f : matrix n o S → matrix (l × n) (m × o) (R ⊗ S) := λ B : (matrix n o S),
+      λ i j, A i.1 j.1 ⊗ₜ[α] B i.2 j.2,
+    use f,
+    all_goals {intros _ _,
+      ext,
+      dsimp only [f]},
+    apply tmul_add,
+    sorry,
+    -- apply smul_tmul,
+    -- },
+    -- { intros _ _,
+    --   ext,
+    --   dsimp only [f],
+    --   -- apply tmul_add,
+    -- },
+  end,
   map_add' := sorry,
-  map_smul' := sorry,
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry }
+  map_smul' := sorry }
+
+
+-- def matrix_tensor_equiv : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
+-- { to_fun :=
+--         begin
+--           intro A,
+--           -- λ i j, A i.1 j.1 * f' i.2 j.2
+--         end,
+--   map_add' := sorry,
+--   map_smul' := sorry,
+--   inv_fun := sorry,
+--   left_inv := sorry,
+--   right_inv := sorry }
 
 -- def matrix_tensor_equiv_coe : (matrix l m A) ⊗[R] (matrix n o B) →ₗ[R] matrix (l × n) (m × o) (A ⊗[R] B) :=
 -- matrix_tensor_equiv

@@ -17,7 +17,7 @@ variables [algebra α R] [algebra α S] [algebra α T]
 variables {l m n o p q: Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype o] [fintype p] [fintype q]
 
-def kronecker_bil : (matrix l m R) →ₗ[α] (matrix n o S) →ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
+def matrix_tensor_bil : (matrix l m R) →ₗ[α] (matrix n o S) →ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
 { to_fun :=
   begin
     intro A,
@@ -39,13 +39,14 @@ def kronecker_bil : (matrix l m R) →ₗ[α] (matrix n o S) →ₗ[α] matrix (
                 refl,
               end, }
 
-def kronecker : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
-{ to_fun := tensor_product.lift kronecker_bil,
+def matrix_tensor_equiv : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=
+{ to_fun := tensor_product.lift matrix_tensor_bil,
   map_add' := by simp only [forall_const, eq_self_iff_true, linear_map.map_add],
   map_smul' := by simp only [forall_const, eq_self_iff_true, linear_map.map_smul],
   inv_fun := sorry,
   left_inv := sorry,
   right_inv := sorry }
+
 
 
 -- def matrix_tensor_equiv : (matrix l m R) ⊗[α] (matrix n o S) ≃ₗ[α] matrix (l × n) (m × o) (R ⊗[α] S) :=

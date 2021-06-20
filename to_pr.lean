@@ -2,6 +2,7 @@ import algebra.big_operators
 open int
 open euclidean_domain
 --https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there.20code.20for.20X.3F/topic/B.C3.A9zout's.20identity/near/222324467
+-- this is at https://github.com/AdrianDoM/IMOinLEAN/blob/main/src/imo/bezout.lean
 
 lemma map_mul_sum (r : ℤ) (l : list ℤ) : (l.map ((*) (r : ℤ))).sum = r * l.sum :=
 by convert list.sum_hom l ⟨((*) r), mul_zero r, λ x y, mul_add r x y⟩

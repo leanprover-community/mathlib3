@@ -260,6 +260,48 @@ def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
+section actions
+
+/-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/
+instance {M : Type*} [mul_action ℝ≥0∞ M] : mul_action ℝ≥0 M :=
+mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
+
+lemma smul_def {M : Type*} [mul_action ℝ≥0∞ M] (c : ℝ≥0) (x : M) :
+  c • x = (c : ℝ≥0∞) • x := rfl
+
+instance {M N : Type*} [mul_action ℝ≥0∞ M] [mul_action ℝ≥0∞ N] [has_scalar M N]
+  [is_scalar_tower ℝ≥0∞ M N] : is_scalar_tower ℝ≥0 M N :=
+{ smul_assoc := λ r, (smul_assoc (r : ℝ≥0∞) : _)}
+
+instance smul_comm_class_left {M N : Type*} [mul_action ℝ≥0∞ N] [has_scalar M N]
+  [smul_comm_class ℝ≥0∞ M N] : smul_comm_class ℝ≥0 M N :=
+{ smul_comm := λ r, (smul_comm (r : ℝ≥0∞) : _)}
+
+instance smul_comm_class_right {M N : Type*} [mul_action ℝ≥0∞ N] [has_scalar M N]
+  [smul_comm_class M ℝ≥0∞ N] : smul_comm_class M ℝ≥0 N :=
+{ smul_comm := λ m r, (smul_comm m (r : ℝ≥0∞) : _)}
+
+/-- A `distrib_mul_action` over `ℝ≥0∞` restricts to a `distrib_mul_action` over `ℝ≥0`. -/
+instance {M : Type*} [add_monoid M] [distrib_mul_action ℝ≥0∞ M] : distrib_mul_action ℝ≥0 M :=
+distrib_mul_action.comp_hom M of_nnreal_hom.to_monoid_hom
+
+/-- A `module` over `ℝ≥0∞` restricts to a `module` over `ℝ≥0`. -/
+instance {M : Type*} [add_comm_monoid M] [module ℝ≥0∞ M] : module ℝ≥0 M :=
+module.comp_hom M of_nnreal_hom
+
+/-- An `algebra` over `ℝ≥0∞` restricts to an `algebra` over `ℝ≥0`. -/
+instance {A : Type*} [semiring A] [algebra ℝ≥0∞ A] : algebra ℝ≥0 A :=
+{ smul := (•),
+  commutes' := λ r x, by simp [algebra.commutes],
+  smul_def' := λ r x, by simp [←algebra.smul_def (r : ℝ≥0∞) x, smul_def],
+  to_ring_hom := ((algebra_map ℝ≥0∞ A).comp (of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞)) }
+
+-- verify that the above produces instances we might care about
+example : algebra ℝ≥0 ℝ≥0∞ := by apply_instance
+example : distrib_mul_action (units ℝ≥0) ℝ≥0∞ := by apply_instance
+
+end actions
+
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ≥0∞) = s.indicator (λ x, f x) a :=
 (of_nnreal_hom : ℝ≥0 →+ ℝ≥0∞).map_indicator _ _ _

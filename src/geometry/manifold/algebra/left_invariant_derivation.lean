@@ -124,9 +124,16 @@ variables (r X)
 @[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 @[simp] lemma lift_smul (k : 𝕜) : (↑(k • X) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = k • X := rfl
 
+variables (I G)
+
+/-- The coercion to function is a monoid homomorphism. -/
+def coe_fn_add_monoid_hom : (left_invariant_derivation I G) →+ _ :=
+⟨λ X, X.to_derivation.to_fun, coe_zero, coe_add⟩
+
+variables {I G}
+
 instance : module 𝕜 (left_invariant_derivation I G) :=
-coe_injective.module _ ⟨(λ X : (left_invariant_derivation I G), X.to_derivation.to_fun), coe_zero,
-  coe_add⟩ coe_smul
+coe_injective.module _ (coe_fn_add_monoid_hom I G) coe_smul
 
 /-- Evaluation at a point for left invariant derivation. Same thing as for generic global
 derivations (`derivation.eval_at`). -/

@@ -9,6 +9,7 @@ import algebra.category.CommRing.limits
 import algebra.category.CommRing.colimits
 import algebraic_geometry.stalks
 import ring_theory.ideal.basic
+import data.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces
@@ -124,21 +125,53 @@ instance : faithful forget_to_SheafedSpace := {}
 
 -- PROJECT: once we have `PresheafedSpace.restrict_stalk_iso`
 -- (that restriction doesn't change stalks) we can uncomment this.
-/-
-def restrict {U : Top} (X : LocallyRingedSpace)
+
+noncomputable def restrict {U : Top} (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=
   begin
     intro x,
     dsimp at *,
     -- We show that the stalk of the restriction is isomorphic to the original stalk,
-    have := X.to_SheafedSpace.to_PresheafedSpace.restrict_stalk_iso f h x,
-    -- and then transfer `local_ring` across the ring equivalence.
-    apply (this.CommRing_iso_to_ring_equiv).local_ring, -- import data.equiv.transfer_instance
-    apply X.local_ring,
+    apply @ring_equiv.local_ring _ _ _ (X.local_ring (f x)),
+    exact (X.to_PresheafedSpace.restrict_stalk_iso f h x).symm.CommRing_iso_to_ring_equiv,
   end,
-  .. X.to_SheafedSpace.restrict _ f h }
+  .. X.to_SheafedSpace.restrict f h }
+
+/--
+The map from the restriction of a presheafed space.
 -/
+def of_restrict (U : Top) (X : LocallyRingedSpace)
+  (f : U ⟶ X.to_Top) (h : open_embedding f) :
+  X.restrict f h ⟶ X :=
+begin
+  refine ⟨X.to_PresheafedSpace.of_restrict U f h, _⟩,
+  sorry,
+end
+
+/--
+The map to the restriction of a presheafed space along the canonical inclusion from the top
+subspace.
+-/
+@[simps]
+def to_restrict_top (X : LocallyRingedSpace) :
+  X ⟶ X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) :=
+begin
+  refine ⟨X.to_PresheafedSpace.to_restrict_top, _⟩,
+  sorry
+end
+
+/--
+The isomorphism from the restriction to the top subspace.
+-/
+@[simps]
+noncomputable def restrict_top_iso (X : LocallyRingedSpace) :
+  X.restrict (opens.inclusion ⊤) (opens.open_embedding ⊤) ≅ X :=
+{ hom := X.of_restrict _ _ _,
+  inv := X.to_restrict_top,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry }
+
 
 /--
 The global sections, notated Gamma.

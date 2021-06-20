@@ -39,6 +39,9 @@ structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
   extends A →ₗ[R] M :=
 (leibniz' (a b : A) : to_fun (a * b) = a • to_fun b + b • to_fun a)
 
+/-- The `linear_map` underlying a `derivation`. -/
+add_decl_doc derivation.to_linear_map
+
 namespace derivation
 
 section

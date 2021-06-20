@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa, Jujian Zhang
 -/
 import analysis.liouville.basic
-import analysis.liouville.inequalities_and_series
 /-!
-
 # Liouville constants
 
 This file contains a construction of a family of Liouville numbers.
@@ -31,32 +29,49 @@ $$
 $$
 The series converges only for `1 < m`.  However, there is no restriction on `m`, since,
 if the series does not converge, then the sum of the series is defined to be zero.
+def liouville_number (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
 -/
-def liouville_number (m : ℝ) : ℝ := ∑' (i : ℕ), 1 / m ^ i!
 
-/--
-`liouville_number_initial_terms` is the sum of the first `k + 1` terms of Liouville's constant,
-i.e.
+/-
+`liouville_constant_first_k_terms` is the sum of the first `k` terms of Liouville's constant, i.e.
 $$
 \sum_{i=0}^k\frac{1}{m^{i!}}.
 $$
+def liouville_number_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
 -/
-def liouville_number_initial_terms (m : ℝ) (k : ℕ) : ℝ := ∑ i in range (k+1), 1 / m ^ i!
 
-/--
-`liouville_number_tail` is the sum of the series of the terms in `liouville_number m`
+/-
+`liouville_constant_terms_after_k` is the sum of the series of the terms in `liouville_constant m`
 starting from `k+1`, i.e
 $$
 \sum_{i=k+1}^\infty\frac{1}{m^{i!}}.
 $$
+def liouville_number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
 -/
-def liouville_number_tail (m : ℝ) (k : ℕ) : ℝ := ∑' i, 1 / m ^ (i + (k+1))!
 
-lemma liouville_number_tail_pos (hm : 1 < m) (k : ℕ) :
-  0 < liouville_number_tail m k :=
+lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
+  0 < liouville_number_terms_after_k m k :=
+-- replace `0` with the series `∑ i : ℕ, 0` all of whose terms vanish
+(@tsum_zero _ ℕ _ _ _).symm.le.trans_lt (
+  -- to show that a series with non-negative terms has strictly positive sum it suffices
+  -- to prove that:
+  tsum_lt_tsum_of_nonneg
+    -- 1. the terms of the zero series are indeed non-negative [sic];
+    (λ _, rfl.le)
+    -- 2. the terms of our series are non-negative;
+    (λ i, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
+    -- 3. one term of our series is strictly positive -- they all are, we use the `0`th term;
+    (one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) (0 + (k + 1))!))
+    -- 4. our series converges -- it does since it is the tail ...
+    ((@summable_nat_add_iff ℝ _ _ _ (λ (i : ℕ), 1 / m ^ i!) (k+1)).mpr
+      -- ... of the converging series `∑ 1 / n!`.
+      (summable_inv_pow_ge hm (λ i, i.self_le_factorial))))
+
+/-
+lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
+  0 < liouville_number_terms_after_k m k :=
 -- replace `0` with the constantly zero series `∑ i : ℕ, 0`
-calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
-          ... < liouville_number_tail m k :
+(@tsum_zero _ ℕ _ _ _).symm.le.trans_lt $
   -- to show that a series with non-negative terms has strictly positive sum it suffices
   -- to prove that
   tsum_lt_tsum_of_nonneg
@@ -83,9 +98,9 @@ calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
 -/
 
 /--  Split the sum definining a Liouville number into the first `k` term and the rest. -/
-lemma liouville_number_eq_initial_terms_add_tail (hm : 1 < m) (k : ℕ) :
-  liouville_number m = liouville_number_initial_terms m k +
-  liouville_number_tail m k :=
+lemma liouville_number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
+  liouville_number m = liouville_number_first_k_terms m k +
+  liouville_number_terms_after_k m k :=
 (sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, i.self_le_factorial))).symm
 
 end liouville

@@ -272,8 +272,7 @@ attribute [simp, mfld_simps] topological_vector_bundle_core.mem_base_set_at
 
 namespace topological_vector_bundle_core
 
-variables {R B F} {ι : Type*} [topological_space B] [topological_space F]
-(Z : topological_vector_bundle_core R B F ι)
+variables {R B F} {ι : Type*} (Z : topological_vector_bundle_core R B F ι)
 
 /-- Natural identification to a `topological_fiber_bundle_core`. -/
 def to_topological_vector_bundle_core : topological_fiber_bundle_core ι B F :=

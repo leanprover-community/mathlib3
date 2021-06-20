@@ -7,6 +7,7 @@ import analysis.special_functions.exp_log
 import analysis.special_functions.pow
 import combinatorics.simple_graph.basic
 import order.iterate
+import tactic.slim_check
 
 /-!
 # Szemerédi's Regularity Lemma
@@ -148,6 +149,14 @@ begin
   simp only [mem_bUnion, exists_prop] at hi,
   obtain ⟨a, ha₁, ha₂⟩ := hi,
   exact h _ ha₁ ha₂,
+end
+
+lemma sdiff_ssubset {α : Type*} [decidable_eq α] {x y : finset α} (hx : y ⊆ x) (hy : y.nonempty) :
+  x \ y ⊂ x :=
+begin
+  obtain ⟨i, hi⟩ := hy,
+  rw ssubset_iff_of_subset (sdiff_subset _ _),
+  exact ⟨i, hx hi, λ t, (mem_sdiff.1 t).2 hi⟩,
 end
 
 /-! ### Prerequisites for SRL -/.
@@ -456,34 +465,23 @@ begin
     refine mul_le_mul_of_nonneg_right (hδ₁.le.trans _) hδ₀,
     norm_num },
   rw ←sub_pos at hδ₁,
-  obtain hA' | hA' := nat.eq_zero_or_pos A'.card,
-  { have hA : A.card = 0,
-    { rw [hA', nat.cast_zero] at hAcard,
-      apply nat.eq_zero_of_le_zero,
-      exact_mod_cast nonpos_of_mul_nonpos_left hAcard hδ₁ },
-    rw [pairs_density, pairs_density, hA, hA', nat.cast_zero, zero_mul, zero_mul, div_zero,
-      div_zero, sub_zero, abs_zero],
-    exact hδ' },
-  obtain hB' | hB' := nat.eq_zero_or_pos B'.card,
-  { have hB : B.card = 0,
-    { rw [hB', nat.cast_zero] at hBcard,
-      apply nat.eq_zero_of_le_zero,
-      exact_mod_cast nonpos_of_mul_nonpos_left hBcard hδ₁ },
-    rw [pairs_density, pairs_density, hB, hB', nat.cast_zero, mul_zero, mul_zero, div_zero,
-      div_zero, sub_zero, abs_zero],
-    exact hδ' },
-  have hApos : 0 < A.card := hA'.trans_le (finset.card_le_of_subset hA),
-  have hBpos : 0 < B.card := hB'.trans_le (finset.card_le_of_subset hB),
+  obtain hA' | hA'pos := (nat.cast_nonneg A'.card).eq_or_lt,
+  { rw ←hA' at hAcard,
+    rwa [pairs_density, pairs_density, ←hA', (nonpos_of_mul_nonpos_left hAcard hδ₁).antisymm
+      (nat.cast_nonneg _), zero_mul, zero_mul, div_zero, div_zero, sub_zero, abs_zero] },
+  obtain hB' | hB'pos := (nat.cast_nonneg B'.card).eq_or_lt,
+  { rw ←hB' at hBcard,
+    rwa [pairs_density, pairs_density, ←hB', (nonpos_of_mul_nonpos_left hBcard hδ₁).antisymm
+      (nat.cast_nonneg _), mul_zero, mul_zero, div_zero, div_zero, sub_zero, abs_zero] },
+  have hApos : (0 : ℝ) < A.card := hA'pos.trans_le (nat.cast_le.2 (finset.card_le_of_subset hA)),
+  have hBpos : (0 : ℝ) < B.card := hB'pos.trans_le (nat.cast_le.2 (finset.card_le_of_subset hB)),
   calc
     abs (pairs_density r A' B' - pairs_density r A B)
         ≤ 1 - A'.card/A.card * (B'.card/B.card)
         : aux₂ r hA hB
     ... ≤ 1 - (1 - δ) * (1 - δ)
-        : begin
-            refine sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hAcard) ((le_div_iff _).2 hBcard)
-              hδ₁.le (div_nonneg (nat.cast_nonneg _) (nat.cast_nonneg _))) 1;
-            rwa [←nat.cast_zero, nat.cast_lt],
-          end
+        : sub_le_sub_left (mul_le_mul ((le_div_iff hApos).2 hAcard) ((le_div_iff hBpos).2
+            hBcard) hδ₁.le (div_nonneg hA'pos.le hApos.le)) 1
     ... = 2*δ - δ^2
         : by ring,
 end
@@ -497,7 +495,7 @@ begin
     rw [abs_of_nonneg (pairs_density_nonneg r _ _), abs_of_nonneg (pairs_density_nonneg r A B),
       two_mul],
     exact add_le_add ((pairs_density_le_one r _ _).trans h)
-      ((pairs_density_le_one r A B).trans h)},
+      ((pairs_density_le_one r A B).trans h) },
   exact (aux₃ r hA hB hδ h hAcard hBcard).trans ((sub_le_self_iff _).2 (sq_nonneg δ)),
 end
 
@@ -629,13 +627,28 @@ variables {V : Type u} {s : finset V} [decidable_eq V] (P : finpartition_on s)
 /-- The size of a finpartition_on is its number of parts. -/
 protected def size : ℕ := P.parts.card
 
-lemma union_eq : P.parts.bUnion id = s :=
+lemma disjoint' (a₁ : finset V) (ha₁ : a₁ ∈ P.parts) (a₂ : finset V) (ha₂ : a₂ ∈ P.parts)
+  (h : a₁ ≠ a₂) :
+  _root_.disjoint a₁ a₂ :=
+begin
+  rintro x hx,
+  rw [inf_eq_inter, mem_inter] at hx,
+  exact h (P.disjoint a₁ a₂ ha₁ ha₂ x hx.1 hx.2),
+end
+
+lemma bUnion_eq : P.parts.bUnion id = s :=
 begin
   apply subset.antisymm,
   { refine bUnion_subset_of_forall_subset _ _ (λ i, P.subset _) },
   intros x hx,
   rw mem_bUnion,
   exact P.covering _ hx,
+end
+
+lemma sum_card_parts : ∑ i in P.parts, i.card = s.card :=
+begin
+  rw ←card_bUnion P.disjoint',
+  exact congr_arg finset.card P.bUnion_eq,
 end
 
 def bind (P : finpartition_on s) (Q : Π i ∈ P.parts, finpartition_on i) : finpartition_on s :=
@@ -667,6 +680,15 @@ def bind (P : finpartition_on s) (Q : Π i ∈ P.parts, finpartition_on i) : fin
 
 def is_equipartition : Prop :=
 equitable_on (P.parts : set (finset V)) card
+
+lemma is_equipartition_iff_card_parts_eq_average :
+  P.is_equipartition ↔
+  ∀ a : finset V, a ∈ P.parts → a.card = s.card/P.size ∨ a.card = s.card/P.size + 1 :=
+begin
+  simp_rw [is_equipartition, equitable_on_finset_iff_eq_average _ _, ←card_bUnion P.disjoint',
+    ←P.bUnion_eq],
+  refl,
+end
 
 /-- `sym2` variant of `equipartition.parts`. We exclude the diagonal, as these do not make sense nor
 behave well in the context of Szemerédi's Regularity Lemma. -/
@@ -754,6 +776,12 @@ end
 
 end finpartition_on
 
+lemma finpartition.is_equipartition_iff_card_parts_eq_average {V : Type u} [decidable_eq V]
+  [fintype V] (P : finpartition V) :
+  P.is_equipartition ↔
+  ∀ a : finset V, a ∈ P.parts → a.card = card V/P.size ∨ a.card = card V/P.size + 1 :=
+by rw [P.is_equipartition_iff_card_parts_eq_average, card_univ]
+
 open finpartition_on
 
 /-! ### Simple equipartitions -/
@@ -806,8 +834,8 @@ begin
   intro z,
   apply quotient.induction_on z,
   rintro ⟨U, W⟩,
-  simp only [finpartition_on.mem_non_uniform_parts, discrete_finpartition_on_parts, mem_image, and_imp,
-    exists_prop, not_and, not_not, ne.def, exists_imp_distrib],
+  simp only [finpartition_on.mem_non_uniform_parts, discrete_finpartition_on_parts, mem_image,
+    and_imp, exists_prop, not_and, not_not, ne.def, exists_imp_distrib],
   rintro x hx rfl y hy rfl h U' hU' W' hW' hU hW,
   rw [card_singleton, nat.cast_one, mul_one] at hU hW,
   obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
@@ -831,13 +859,6 @@ end discrete_finpartition_on
 
 section
 variables {α : Type*} [decidable_eq α] {s : finset α}
-
-lemma sdiff_ssubset {x y : finset α} (hx : y ⊆ x) (hy : y.nonempty) : x \ y ⊂ x :=
-begin
-  rcases hy with ⟨i, hi⟩,
-  rw ssubset_iff_of_subset (sdiff_subset _ _),
-  refine ⟨i, hx hi, λ t, (mem_sdiff.1 t).2 hi⟩,
-end
 
 lemma mk_equitable_aux1 {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (A : finset (finset α))
   (subs : ∀ i ∈ A, i ⊆ s) (h : s = ∅) :
@@ -897,22 +918,22 @@ lemma mk_equitable_aux (m a b : ℕ) (hs : a*m + b*(m+1) = s.card) (A : finset (
 begin
   induction s using finset.strong_induction with s ih generalizing A a b,
   cases s.eq_empty_or_nonempty with h hs_ne,
-  { refine mk_equitable_aux1 hs A subs h },
+  { exact mk_equitable_aux1 hs A subs h },
   cases (nat.eq_zero_or_pos m) with h m_pos,
-  { refine mk_equitable_aux2 hs A subs h },
+  { exact mk_equitable_aux2 hs A subs h },
   have : 0 < a ∨ 0 < b,
   { by_contra,
     push_neg at h,
     simp only [le_zero_iff] at h,
     rw [h.1, h.2] at hs,
     simp only [add_zero, zero_mul, eq_comm, card_eq_zero] at hs,
-    apply hs_ne.ne_empty hs },
+    exact hs_ne.ne_empty hs },
   set p'_size := if 0 < a then m else m+1 with h',
   have : 0 < p'_size,
   { rw h',
     split_ifs,
     { apply m_pos },
-    { apply nat.succ_pos' } },
+    exact nat.succ_pos' },
   by_cases ∃ p ∈ A, m+1 ≤ finset.card p,
   { rcases h with ⟨p, hp₁, hp₂⟩,
     have : p'_size ≤ p.card,
@@ -920,7 +941,7 @@ begin
       rw h',
       split_ifs,
       { apply nat.le_succ },
-      { refl } },
+      refl },
     obtain ⟨p', hp'₁, hp'₂⟩ := exists_smaller_set _ _ this,
     have : p'.nonempty,
     { rwa [←card_pos, hp'₂] },
@@ -942,24 +963,23 @@ begin
       intros x hx₁ hx₂,
       by_cases x ∈ p,
       { refine ⟨p \ p', or.inl rfl, by simp only [hx₂, h, mem_sdiff, not_false_iff, and_self]⟩ },
-      { obtain ⟨y, hy₁, hy₂⟩ := all x hx₁,
-        refine ⟨y, or.inr ⟨λ t, _, hy₁⟩, hy₂⟩,
-        apply h,
-        rw ←t,
-        apply hy₂ } },
+    obtain ⟨y, hy₁, hy₂⟩ := all x hx₁,
+      refine ⟨y, or.inr ⟨λ t, _, hy₁⟩, hy₂⟩,
+      apply h,
+      rw ←t,
+      exact hy₂ },
     { simp only [mem_insert, mem_erase, ne.def],
       rintro x₁ x₂ (rfl | hx₁) (rfl | hx₂) i hi₁ hi₂,
       { refl },
       { apply (hx₂.1 (disj _ _ hx₂.2 hp₁ i hi₂ (sdiff_subset _ _ hi₁))).elim },
       { apply (hx₁.1 (disj _ _ hx₁.2 hp₁ i hi₁ (sdiff_subset _ _ hi₂))).elim },
-      { apply disj _ _ hx₁.2 hx₂.2 _ hi₁ hi₂ } },
+      exact disj _ _ hx₁.2 hx₂.2 _ hi₁ hi₂ },
     { simp only [and_imp, mem_insert, forall_eq_or_imp, mem_erase, ne.def],
       split,
       { apply sdiff_subset_sdiff (subs _ hp₁) (refl _) },
       intros i hi₁ hi₂ x hx,
       simp only [mem_sdiff, subs i hi₂ hx, true_and],
-      intro q,
-      apply hi₁ (disj _ _ hi₂ hp₁ _ hx (hp'₁ q)) },
+      exact λ q, hi₁ (disj _ _ hi₂ hp₁ _ hx (hp'₁ q)) },
     refine ⟨insert p' P', _, _, _, _, _, _⟩,
     { simp only [mem_insert, forall_eq_or_imp, and_iff_left hP'₁, hp'₂, h'],
       split_ifs,
@@ -975,10 +995,10 @@ begin
           not_or_distrib],
         intros hi₁ hi₂ hi₃,
         refine ⟨⟨hi₁, hi₂⟩, λ x hx hx', hi₃ _ hx (finset.subset.trans hx' (sdiff_subset _ _))⟩ },
-      { intros x hx,
-        apply (card_le_of_subset _).trans (hP'₂ x (mem_insert_of_mem hx)),
-        apply sdiff_subset_sdiff (finset.subset.refl _) (bUnion_subset_bUnion_of_subset_left _ _),
-        refine filter_subset_filter _ (subset_insert _ _) } },
+      intros x hx,
+      apply (card_le_of_subset _).trans (hP'₂ x (mem_insert_of_mem hx)),
+      apply sdiff_subset_sdiff (finset.subset.refl _) (bUnion_subset_bUnion_of_subset_left _ _),
+      refine filter_subset_filter _ (subset_insert _ _) },
     { simp only [and_imp, exists_prop, mem_sdiff] at hP'₃,
       simp only [exists_prop, mem_insert, or_and_distrib_right, exists_or_distrib],
       intros x hx,
@@ -990,88 +1010,88 @@ begin
         apply ((mem_sdiff.1 (hP'₅ _ hx₂ hi₂)).2 hi₁).elim },
       { intros i hi₁ hi₂,
         apply ((mem_sdiff.1 (hP'₅ _ hx₁ hi₁)).2 hi₂).elim },
-      { apply hP'₄ _ _ hx₁ hx₂ } },
+      exact hP'₄ _ _ hx₁ hx₂ },
     { simp only [mem_insert, forall_eq_or_imp],
       refine ⟨finset.subset.trans hp'₁ (subs _ hp₁),
         λ x hx i hi, (mem_sdiff.1 (hP'₅ x hx hi)).1⟩ },
-    { rw [filter_insert, hp'₂, h'],
-      by_cases 0 < a,
-      { rw [if_pos h, if_neg, hP'₆, if_pos h],
-        simp only [nat.one_ne_zero, self_eq_add_right, not_false_iff] },
-      { rw [if_neg h, if_pos rfl, card_insert_of_not_mem, hP'₆, if_neg h, nat.sub_add_cancel],
-        apply ‹0 < a ∨ 0 < b›.resolve_left h,
-        simp only [mem_filter, hp'₂, h', if_neg h, eq_self_iff_true, and_true],
-        intro t,
-        obtain ⟨i, hi⟩ := ‹p'.nonempty›,
-        apply (mem_sdiff.1 (hP'₅ _ t hi)).2 hi } } },
-  { push_neg at h,
-    have : p'_size ≤ s.card,
-    { rw [←hs, h'],
-      split_ifs,
-      { apply le_add_right (nat.le_mul_of_pos_left ‹0 < a›) },
-      { apply le_add_left (nat.le_mul_of_pos_left (‹0 < a ∨ 0 < b›.resolve_left ‹¬0 < a›)) } },
-    obtain ⟨s', hs'₁, hs'₂⟩ := exists_smaller_set _ _ this,
-    have : s'.nonempty,
-    { rwa [←card_pos, hs'₂] },
-    obtain ⟨P', hP'₁, hP'₂, hP'₃, hP'₄, hP'₅, hP'₆⟩ :=
-      ih (s \ s')
-      (sdiff_ssubset hs'₁ ‹s'.nonempty›)
-      (A.image (λ t, t \ s'))
-      (if 0 < a then a-1 else a)
-      (if 0 < a then b else b-1)
-      _ _ _ _,
-    rotate,
-    { rw [card_sdiff ‹s' ⊆ s›, hs'₂, h', ←hs],
-      split_ifs,
-      { rw [nat.mul_sub_right_distrib, one_mul,
-          nat.sub_add_eq_add_sub (nat.le_mul_of_pos_left ‹0 < a›)] },
-      { rw [nat.mul_sub_right_distrib, one_mul, ←nat.add_sub_assoc],
-        apply nat.le_mul_of_pos_left (‹0 < a ∨ 0 < b›.resolve_left ‹¬0 < a›) } },
-    { intros x hx,
-      simp only [mem_sdiff] at hx,
-      obtain ⟨y, hy, hy'⟩ := all x hx.1,
-      simp only [mem_image, exists_prop, mem_sdiff, exists_exists_and_eq_and],
-      refine ⟨_, hy, hy', hx.2⟩ },
-    { simp only [mem_image, and_imp, exists_prop, exists_imp_distrib],
-      rintro x₁ x₂ x hx rfl x' hx' rfl i hi₁ hi₂,
-      simp only [mem_sdiff] at hi₁ hi₂,
-      rw disj _ _ hx hx' i hi₁.1 hi₂.1 },
-    { simp only [mem_image, and_imp, forall_apply_eq_imp_iff₂, exists_imp_distrib],
-      intros a ha,
-      apply sdiff_subset_sdiff (subs a ha) (refl _) },
-    refine ⟨insert s' P', _, _, _, _, _, _⟩,
-    { simp only [mem_insert, forall_eq_or_imp, and_iff_left hP'₁, hs'₂, h'],
-      split_ifs,
-      { left, refl },
-      { right, refl } },
-    { intros x hx,
-      refine le_trans (card_le_of_subset (sdiff_subset _ _)) _,
-      rw ←nat.lt_succ_iff,
-      apply h _ hx },
-    { intros x hx,
-      by_cases x ∈ s',
-      { refine ⟨_, by simp only [mem_insert, true_or, eq_self_iff_true], h⟩ },
-      { obtain ⟨w, hw, hw'⟩ := hP'₃ x (by simp only [hx, h, mem_sdiff, not_false_iff, and_self]),
-        refine ⟨w, by simp only [hw, mem_insert, or_true], hw'⟩ } },
-    { simp only [mem_insert],
-      rintro _ _ (rfl | hx₁) (rfl | hx₂) i hi₁ hi₂,
-      { refl },
-      { apply ((mem_sdiff.1 (hP'₅ _ hx₂ hi₂)).2 hi₁).elim },
-      { apply ((mem_sdiff.1 (hP'₅ _ hx₁ hi₁)).2 hi₂).elim },
-      { apply hP'₄ _ _ hx₁ hx₂ _ hi₁ hi₂ } },
-    { simp only [hs'₁, true_and, mem_insert, forall_eq_or_imp],
-      intros x hx,
-      apply finset.subset.trans (hP'₅ x hx) (sdiff_subset _ _) },
-    { rw [filter_insert, hs'₂, h'],
-      by_cases 0 < a,
-      { rw [if_pos h, if_neg, hP'₆, if_pos h],
-        simp only [nat.one_ne_zero, self_eq_add_right, not_false_iff] },
-      { rw [if_neg h, if_pos rfl, card_insert_of_not_mem, hP'₆, if_neg h, nat.sub_add_cancel],
-        apply ‹0 < a ∨ 0 < b›.resolve_left h,
-        simp only [mem_filter, hs'₂, h', if_neg h, eq_self_iff_true, and_true],
-        intro t,
-        obtain ⟨i, hi⟩ := ‹s'.nonempty›,
-        apply (mem_sdiff.1 (hP'₅ _ t hi)).2 hi } } }
+    rw [filter_insert, hp'₂, h'],
+    by_cases 0 < a,
+    { rw [if_pos h, if_neg, hP'₆, if_pos h],
+      simp only [nat.one_ne_zero, self_eq_add_right, not_false_iff] },
+    rw [if_neg h, if_pos rfl, card_insert_of_not_mem, hP'₆, if_neg h, nat.sub_add_cancel],
+    apply ‹0 < a ∨ 0 < b›.resolve_left h,
+    simp only [mem_filter, hp'₂, h', if_neg h, eq_self_iff_true, and_true],
+    intro t,
+    obtain ⟨i, hi⟩ := ‹p'.nonempty›,
+    apply (mem_sdiff.1 (hP'₅ _ t hi)).2 hi },
+  push_neg at h,
+  have : p'_size ≤ s.card,
+  { rw [←hs, h'],
+    split_ifs,
+    { apply le_add_right (nat.le_mul_of_pos_left ‹0 < a›) },
+    exact le_add_left (nat.le_mul_of_pos_left (‹0 < a ∨ 0 < b›.resolve_left ‹¬0 < a›)) },
+  obtain ⟨s', hs'₁, hs'₂⟩ := exists_smaller_set _ _ this,
+  have : s'.nonempty,
+  { rwa [←card_pos, hs'₂] },
+  obtain ⟨P', hP'₁, hP'₂, hP'₃, hP'₄, hP'₅, hP'₆⟩ :=
+    ih (s \ s')
+    (sdiff_ssubset hs'₁ ‹s'.nonempty›)
+    (A.image (λ t, t \ s'))
+    (if 0 < a then a-1 else a)
+    (if 0 < a then b else b-1)
+    _ _ _ _,
+  rotate,
+  { rw [card_sdiff ‹s' ⊆ s›, hs'₂, h', ←hs],
+    split_ifs,
+    { rw [nat.mul_sub_right_distrib, one_mul,
+        nat.sub_add_eq_add_sub (nat.le_mul_of_pos_left ‹0 < a›)] },
+    rw [nat.mul_sub_right_distrib, one_mul, ←nat.add_sub_assoc],
+    exact nat.le_mul_of_pos_left (‹0 < a ∨ 0 < b›.resolve_left ‹¬0 < a›) },
+  { intros x hx,
+    simp only [mem_sdiff] at hx,
+    obtain ⟨y, hy, hy'⟩ := all x hx.1,
+    simp only [mem_image, exists_prop, mem_sdiff, exists_exists_and_eq_and],
+    refine ⟨_, hy, hy', hx.2⟩ },
+  { simp only [mem_image, and_imp, exists_prop, exists_imp_distrib],
+    rintro x₁ x₂ x hx rfl x' hx' rfl i hi₁ hi₂,
+    simp only [mem_sdiff] at hi₁ hi₂,
+    rw disj _ _ hx hx' i hi₁.1 hi₂.1 },
+  { simp only [mem_image, and_imp, forall_apply_eq_imp_iff₂, exists_imp_distrib],
+    intros a ha,
+    apply sdiff_subset_sdiff (subs a ha) (refl _) },
+  refine ⟨insert s' P', _, _, _, _, _, _⟩,
+  { simp only [mem_insert, forall_eq_or_imp, and_iff_left hP'₁, hs'₂, h'],
+    split_ifs,
+    { left, refl },
+    right, refl },
+  { intros x hx,
+    refine le_trans (card_le_of_subset (sdiff_subset _ _)) _,
+    rw ←nat.lt_succ_iff,
+    exact h _ hx },
+  { intros x hx,
+    by_cases x ∈ s',
+    { refine ⟨_, by simp only [mem_insert, true_or, eq_self_iff_true], h⟩ },
+    obtain ⟨w, hw, hw'⟩ := hP'₃ x (by simp only [hx, h, mem_sdiff, not_false_iff, and_self]),
+    exact ⟨w, by simp only [hw, mem_insert, or_true], hw'⟩ },
+  { simp only [mem_insert],
+    rintro _ _ (rfl | hx₁) (rfl | hx₂) i hi₁ hi₂,
+    { refl },
+    { apply ((mem_sdiff.1 (hP'₅ _ hx₂ hi₂)).2 hi₁).elim },
+    { apply ((mem_sdiff.1 (hP'₅ _ hx₁ hi₁)).2 hi₂).elim },
+    exact hP'₄ _ _ hx₁ hx₂ _ hi₁ hi₂ },
+  { simp only [hs'₁, true_and, mem_insert, forall_eq_or_imp],
+    intros x hx,
+    apply finset.subset.trans (hP'₅ x hx) (sdiff_subset _ _) },
+  rw [filter_insert, hs'₂, h'],
+  by_cases 0 < a,
+  { rw [if_pos h, if_neg, hP'₆, if_pos h],
+    simp only [nat.one_ne_zero, self_eq_add_right, not_false_iff] },
+  rw [if_neg h, if_pos rfl, card_insert_of_not_mem, hP'₆, if_neg h, nat.sub_add_cancel],
+  apply ‹0 < a ∨ 0 < b›.resolve_left h,
+  simp only [mem_filter, hs'₂, h', if_neg h, eq_self_iff_true, and_true],
+  intro t,
+  obtain ⟨i, hi⟩ := ‹s'.nonempty›,
+  apply (mem_sdiff.1 (hP'₅ _ t hi)).2 hi,
 end.
 
 /--
@@ -1093,14 +1113,6 @@ begin
   obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅, hP₆⟩ :=
     mk_equitable_aux m a b hs Q.parts Q.covering Q.disjoint Q.subset,
   let P' : finpartition_on s := ⟨P, hP₄, hP₃, hP₅⟩,
-  have h₁ : ∑ i in P'.parts, i.card = s.card,
-  { rw [←card_bUnion],
-    { apply congr_arg finset.card P'.union_eq },
-    intros x hx y hy t,
-    rw disjoint_left,
-    intros i hix hiy,
-    apply t,
-    apply hP₄ _ _ hx hy _ hix hiy },
   have h₂ :
     P'.parts.filter (λ i, i.card = m) ∪ P'.parts.filter (λ i, i.card = m+1) = P,
   { rw [←filter_or, filter_true_of_mem hP₁] },
@@ -1113,7 +1125,7 @@ begin
     ∑ i in P'.parts.filter (λ i, finset.card i = m), i.card +
       ∑ i in P'.parts.filter (λ i, finset.card i = m+1), i.card =
         s.card,
-  { rw [←sum_union h₃, h₂, h₁] },
+  { rw [←sum_union h₃, h₂, P'.sum_card_parts] },
   have hm : ∀ (x : finset α), x ∈ filter (λ (i : finset α), i.card = m) P'.parts → x.card = m,
   { simp },
   have hm' : ∀ (x : finset α), x ∈ filter (λ (i : finset α), i.card = m+1) P'.parts → x.card = m+1,
@@ -1325,6 +1337,11 @@ lemma exp_bound_mono :
 open_locale classical
 variables {V : Type u} [fintype V] {G : simple_graph V} {P : finpartition V} {ε : ℝ}
 
+lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
+begin
+  rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
+  exact nat.lt_succ_self _,
+end
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
 we can make a (much bigger) equipartition with a slightly higher index. This is helpful since the
 index is bounded by a constant (see `index_le_half`), so this process eventually terminates and
@@ -1336,30 +1353,37 @@ begin
   let m := card V/exp_bound P.size,
   let a := card V/P.size - m * 4^P.size,
   let b := card V - m * exp_bound P.size - a * P.size,
-  rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
+  have ha : a + 1 ≤ 4 ^ P.size,
+  { change a with card V / P.size - card V/(P.size * 4^P.size) * 4 ^ P.size,
+    have h : 1 ≤ 4^P.size := one_le_pow_of_one_le (by norm_num) _,
+    rw [←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h],
+    apply nat.sub_le_left_of_le_add,
+    rw ←nat.add_sub_assoc h,
+    exact nat.le_pred_of_lt (lt_div_mul_add h) },
+  rw P.is_equipartition_iff_card_parts_eq_average at hP,
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   refine P.bind (λ U hU, _),
   apply dite (U.card = m * 4^P.size + a),
   { intro hUcard,
-    have : (4^P.size - a) * m + a * (m + 1) = U.card,
-    { rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel],
-      sorry
-    },
-    exact classical.some (mk_equitable this (R U hU)) },
+    suffices h : (4^P.size - a) * m + a * (m + 1) = U.card,
+    { exact classical.some (mk_equitable h (R U hU)) },
+    rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
+      ((nat.le_succ _).trans ha)] },
   intro hUcard,
-  have aux1 :
-    (∑ (i : finset V) in P.parts, i.card) / P.parts.card = m * 4 ^ finpartition_on.size P + a,
-  { sorry },
-  have aux2 := hP U hU,
-  rw aux1 at aux2,
-  replace hUcard := aux2.resolve_left hUcard,
-  have : (4^P.size - (a + 1)) * m + (a + 1) * (m + 1) = U.card,
-  {  rw [hUcard, mul_comm m, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel,
-      add_assoc],
-    sorry
-  },
-  exact classical.some (mk_equitable this (R U hU)),
+  suffices h : (4^P.size - (a + 1)) * m + (a + 1) * (m + 1) = U.card,
+  { exact classical.some (mk_equitable h (R U hU)) },
+  have aux :
+    m * 4^finpartition_on.size P + a = card V/P.size,
+  { apply nat.add_sub_cancel',
+    change m with card V/(P.size * 4^P.size),
+    rw ←nat.div_div_eq_div_mul,
+    exact nat.div_mul_le_self _ _ },
+  rw aux at hUcard,
+  rw [(hP U hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel ha,
+    ←add_assoc, mul_comm, nat.add_sub_cancel'],
+  rw ←aux,
+  exact nat.le_add_right _ _,
 end
 
 namespace increment

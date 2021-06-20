@@ -706,7 +706,27 @@ lemma aux_zero : 0 ≤ aux 72 :=
 begin
   unfold aux,
   norm_num,
-  sorry,
+  rw <-sqrt_mul,
+  norm_num,
+  calc log 584 + 2 ≤ 8 :
+        begin
+          apply le_sub_iff_add_le.1,
+          norm_num,
+          rw ←log_exp 6,
+          apply (log_le_log _ _).2,
+          have h1 := @add_one_le_exp_of_nonneg (1 / 10 : ℝ) _,
+          sorry,
+          linarith,
+          linarith,
+          sorry,
+
+
+        end
+  ... ≤ sqrt 146 * log 2 :
+        begin
+          sorry,
+        end,
+  linarith,
 end
 
 lemma aux_differentiable {i : ℝ} (pr : 0 < i) : differentiable_on ℝ aux (interior (Ici i)) :=
@@ -794,16 +814,90 @@ begin
   rw g,
   rw @foobar (x + 1) (by linarith),
 
+  have h132 : 0 ≤ 1 / sqrt (x + 1),
+    {
+      apply div_nonneg,
+      linarith,
+      apply sqrt_nonneg,
+    },
+
+  have h133 : sqrt (x + 1) ≠ 0,
+    {
+      apply ne_of_gt,
+      apply sqrt_pos.2,
+      linarith,
+    },
+
+  have h134 : 0 ≤ 1 / sqrt 2,
+    apply div_nonneg,
+    linarith,
+    apply sqrt_nonneg,
+
   -- Multiply through by sqrt (x + 1)
   suffices: 0 ≤ sqrt (x + 1) * log 4 - (2 / sqrt 2 * log (8 * (x + 1)) + 2 * sqrt 2),
-    { sorry, },
+    { have h1322 := mul_nonneg h132 this ,
+      rw mul_sub at h1322,
+      convert h1322,
+      simp only [one_div],
+      rw <-mul_assoc,
+      rw inv_mul_cancel h133,
+      simp,
+      rw mul_add (1 / sqrt (x+1)),
+      ring,
+    },
 
   -- Multiply through by sqrt 2
   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 4 - (2 * log (8 * (x + 1)) + 4),
-    { sorry, },
+    {
+      have h1342 := mul_nonneg h134 this ,
+      convert h1342,
+      rw mul_sub,
+      apply congr_arg2,
+      rw <-mul_assoc,
+      rw <-mul_assoc,
+      simp,
+      rw mul_add (1 / sqrt 2),
+      apply congr_arg2,
+      rw <-mul_assoc,
+      rw mul_comm,
+      simp,
+      rw mul_comm,
+      simp,
+      left,
+      rw mul_comm,
+      rw <-division_def,
+      -- simp,
+      exact (@div_sqrt 2).symm,
+      have h21312 : (4 : ℝ) = 2 * 2,
+        norm_num,
+      rw h21312,
+      conv
+      begin
+        to_rhs,
+        rw mul_comm,
+        rw mul_assoc,
+        congr,
+        skip,
+        simp,
+        rw <-division_def,
+        rw (@div_sqrt 2),
+      end,
+
+
+    },
 
   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * (2 * log 2) - 2 * (log (8 * (x + 1)) + 2),
-    { sorry, },
+    { convert this,
+      rw <-log_rpow,
+      congr,
+      apply symm,
+      calc (2 : ℝ) ^ (2 : ℝ) = (2 : ℝ) ^ ((2 : ℕ) : ℝ) : by simp
+      ... = (2 : ℝ) ^ (2 : ℕ) : by rw rpow_nat_cast _ 2
+      ... = 4 : by norm_num,
+      linarith,
+      rw mul_add 2 (log (8 * (x + 1))) 2,
+      norm_num,
+    },
 
   suffices: 0 ≤ sqrt 2 * sqrt (x + 1) * log 2 - (log (8 * (x + 1)) + 2),
     { rw <-mul_assoc,

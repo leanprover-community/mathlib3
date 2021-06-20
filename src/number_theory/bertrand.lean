@@ -9,11 +9,13 @@ import data.finset.intervals
 import data.nat.multiplicity
 import data.nat.choose.sum
 import number_theory.padics.padic_norm
+import data.complex.exponential_bounds
 import tactic
 import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial
 import analysis.special_functions.pow
+import analysis.special_functions.trigonometric
 import analysis.special_functions.sqrt
 import analysis.calculus.local_extr
 import data.real.sqrt
@@ -492,6 +494,140 @@ begin
     },
 end
 
+lemma log_pos_eq_zero {x : ℝ} (h : 0 < x) (hyp : log x = 0) : x = 1 :=
+begin
+  let e := log_inj_on_pos,
+  have r : log 1 = 0 := log_one,
+  have t : log x = log 1,
+    { rw log_one,
+      exact hyp, },
+  have x_one := log_inj_on_pos,
+  unfold inj_on at x_one,
+  have x_pos : x ∈ Ioi (0 : ℝ) := by simpa using h,
+  have one_pos : (1 : ℝ) ∈ Ioi (0 : ℝ) := by simp,
+  specialize x_one x_pos one_pos t,
+  exact x_one,
+end
+
+lemma log_eq_zero {x : ℝ} (hyp : log x = 0) : x = 0 ∨ x = 1 ∨ x = -1 :=
+begin
+  cases lt_trichotomy x 0,
+  { let e := log_abs x,
+    rw (abs_of_neg h) at e,
+    have t : 0 < -x := neg_pos.mpr h,
+    have minus_x_is_one : -x = 1 := log_pos_eq_zero t (by linarith),
+    exact or.inr (or.inr (eq_neg_of_eq_neg (eq.symm minus_x_is_one)))
+  },
+  { cases h,
+    { exact or.inl h, },
+    { exact or.inr (or.inl (log_pos_eq_zero h hyp)), }, },
+end
+
+lemma zero_pow_complex {a : ℂ} {x : ℂ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
+begin
+  unfold pow at hyp,
+  unfold complex.cpow at hyp,
+  simp at hyp,
+  by_cases x = 0,
+  { right,
+    subst h,
+    simp at hyp,
+    cc, },
+  { left,
+    cc, },
+end
+
+lemma zero_pow_real {a : ℝ} {x : ℝ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
+begin
+  unfold pow at hyp,
+  unfold rpow at hyp,
+  simp at hyp,
+  cases @zero_pow_complex _ x rfl with k_zero k_one,
+  { left,
+    simp [k_zero] at hyp,
+    exact hyp.symm, },
+  { cases k_one with x_zero a_one,
+    simp [a_one] at hyp,
+    right,
+    exact ⟨complex.of_real_eq_zero.1 x_zero, hyp.symm⟩, },
+end
+
+lemma log_pow {x y : ℝ} (hyp : 0 < x) : log (x ^ y) = y * log x :=
+begin
+  have r : x ^ y = exp (log x * y),
+  { unfold pow, unfold rpow, unfold pow, unfold complex.cpow,
+    by_cases x = 0,
+    { subst h,
+      simp at hyp,
+      cc, },
+    { unfold exp, unfold log,
+      have r : ¬ ((x : ℂ) = 0),
+        { rename h x_nonzero,
+          by_contradiction,
+          apply x_nonzero,
+          simp at h,
+          exact h, },
+      rw if_neg r,
+      rw dif_neg h,
+      simp,
+      apply congr_arg complex.re,
+      apply congr_arg (λ i, complex.exp i),
+      unfold complex.log,
+      simp,
+      have arg_zero: (x : ℂ).arg = 0 := complex.arg_of_real_of_nonneg (le_of_lt hyp),
+      rw arg_zero,
+      simp,
+      left,
+      exact log_of_ne_zero (by linarith),
+    },
+  },
+  rw [r, log_exp],
+  exact mul_comm _ _,
+end
+
+lemma two_pow_three : (2 : ℝ) ^ (3 : ℝ) = 8 :=
+begin
+  calc (2 : ℝ) ^ (3 : ℝ) = (2 : ℝ) ^ ((3 : ℕ) : ℝ) : by simp
+  ... = (2 : ℝ) ^ (3 : ℕ) : by rw rpow_nat_cast _ 3
+  ... = 8 : by norm_num
+end
+
+lemma two_div_three_lt_log_two : (2 : ℝ) / 3 ≤ log 2 :=
+begin
+  rw div_le_iff,
+  { suffices: 2 ≤ log 8,
+      { calc (2 : ℝ) ≤ log 8 : this
+        ... = log (2 ^ (3 : ℝ)) : congr_arg log two_pow_three.symm
+        ... = 3 * log 2 : log_pow (by norm_num)
+        ... = log 2 * 3 : mul_comm _ _, },
+    suffices: exp 2 ≤ 8,
+      { calc 2 = log (exp 2) : by rw log_exp
+             ... ≤ log 8 : (log_le_log (exp_pos _) (by norm_num)).2 this, },
+    calc exp (2 : ℝ) = exp ((1 : ℝ) * (2 : ℝ)) : by norm_num
+    ... = (exp 1) ^ (2 : ℝ) : exp_mul 1 2
+    ... = (exp 1) ^ (↑(2 : ℕ)) : congr_arg (λ i, (exp 1) ^ i) (by simp)
+    ... = (exp 1) ^ (2 : ℕ) : by rw rpow_nat_cast (exp 1) 2
+    ... ≤ (2.7182818286 : ℝ) ^ 2 : begin
+      refine sq_le_sq _,
+      have: 0 ≤ (13591409143 : ℝ) / 5000000000, by norm_num,
+      have t: abs ((13591409143 : ℝ) / 5000000000) = (13591409143 : ℝ) / 5000000000 :=
+        abs_of_nonneg this,
+      rw t,
+      norm_num,
+      exact le_of_lt exp_one_lt_d9,
+    end
+    ... ≤ 8 : by norm_num, },
+  { norm_num, }
+end
+
+lemma blaaahh {n : ℝ} {m : ℝ} {x : ℝ} (g : 0 < n) (u : 0 < m) (h : n / m ≤ x) : 1 ≤ m / n * x :=
+begin
+  rw div_mul_eq_mul_div,
+  rw one_le_div g,
+  rw [div_le_iff u, mul_comm] at h,
+  exact h,
+end
+
 lemma aux_bound : 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 ≤ (4 : ℝ) :=
 begin
   suffices : 1 / (sqrt 2 * log 2 / 2) ^ 2 ≤ 5, by linarith,
@@ -510,8 +646,22 @@ begin
   suffices : 1 ≤ 5 / 2 * (log 2) ^ 2,
     { ring_nf, exact this, },
   suffices : 2 / 5 ≤ (log 2) ^ 2,
-    { sorry, },
-  sorry,
+    { exact blaaahh (by norm_num) (by norm_num) this, },
+
+  have: (2 : ℝ) / 3 ≤ log 2 := two_div_three_lt_log_two,
+  have t: ((2 : ℝ) / 3) ^ 2 ≤ (log 2) ^ 2,
+    { rw sq_le,
+      { split,
+        { linarith [sqrt_nonneg (log 2 ^ 2)], },
+        { rw sqrt_sq,
+          exact this,
+          exact log_nonneg (by norm_num), }, },
+      exact sq_nonneg _, },
+
+  calc (2 : ℝ) / 5 = 4 / 10 : by norm_num
+    ... ≤ 4 / 9 : div_le_div_of_le_left (by norm_num) (by norm_num) (by norm_num)
+    ... = (2 / 3) ^ 2 : by norm_num
+    ... ≤ (log 2) ^ 2 : t,
 end
 
 lemma aux_derivative_ge_zero (x : ℝ) (x_big : 4 ≤ x) : 0 ≤ aux' x :=
@@ -546,7 +696,8 @@ begin
   suffices: (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1 ≤ x, by linarith,
 
   calc (1 / (sqrt 2 * log 2 / 2)) ^ 2 - 1
-      = 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 : sorry
+      = (1 ^ 2) / (sqrt 2 * log 2 / 2) ^ 2 - 1 : by rw div_pow
+  ... = 1 / (sqrt 2 * log 2 / 2) ^ 2 - 1 : by norm_num
   ... ≤ (4 : ℝ) : aux_bound
   ... ≤ x : x_big,
 end
@@ -674,109 +825,6 @@ lemma sqrt_four : sqrt 4 = 2 :=
 begin
   calc sqrt 4 = sqrt (2 * 2) : by norm_num
   ... = 2 : sqrt_mul_self (by linarith)
-end
-
-lemma log_pos_eq_zero {x : ℝ} (h : 0 < x) (hyp : log x = 0) : x = 1 :=
-begin
-  let e := log_inj_on_pos,
-  have r : log 1 = 0 := log_one,
-  have t : log x = log 1,
-    { rw log_one,
-      exact hyp, },
-  have x_one := log_inj_on_pos,
-  unfold inj_on at x_one,
-  have x_pos : x ∈ Ioi (0 : ℝ) := by simpa using h,
-  have one_pos : (1 : ℝ) ∈ Ioi (0 : ℝ) := by simp,
-  specialize x_one x_pos one_pos t,
-  exact x_one,
-end
-
-lemma log_eq_zero {x : ℝ} (hyp : log x = 0) : x = 0 ∨ x = 1 ∨ x = -1 :=
-begin
-  cases lt_trichotomy x 0,
-  { let e := log_abs x,
-    rw (abs_of_neg h) at e,
-    have t : 0 < -x := neg_pos.mpr h,
-    have minus_x_is_one : -x = 1 := log_pos_eq_zero t (by linarith),
-    exact or.inr (or.inr (eq_neg_of_eq_neg (eq.symm minus_x_is_one)))
-  },
-  { cases h,
-    { exact or.inl h, },
-    { exact or.inr (or.inl (log_pos_eq_zero h hyp)), }, },
-end
-
-lemma zero_pow_complex {a : ℂ} {x : ℂ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
-begin
-  unfold pow at hyp,
-  unfold complex.cpow at hyp,
-  simp at hyp,
-  by_cases x = 0,
-  { right,
-    subst h,
-    simp at hyp,
-    cc, },
-  { left,
-    cc, },
-end
-
-lemma zero_pow_real {a : ℝ} {x : ℝ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=
-begin
-  unfold pow at hyp,
-  unfold rpow at hyp,
-  simp at hyp,
-  cases @zero_pow_complex _ x rfl with k_zero k_one,
-  { left,
-    simp [k_zero] at hyp,
-    exact hyp.symm, },
-  { cases k_one with x_zero a_one,
-    simp [a_one] at hyp,
-    right,
-    exact ⟨complex.of_real_eq_zero.1 x_zero, hyp.symm⟩, },
-end
-
-lemma log_pow {x y : ℝ} : (x ≠ 0 ∨ y = 0) ↔ log (x ^ y) = y * log x :=
-begin
-  split,
-  { intros hyp,
-    have r : x ^ y = exp (log x * y),
-    { unfold pow, unfold rpow, unfold pow, unfold complex.cpow,
-      by_cases x = 0,
-      { subst h,
-        simp at hyp,
-        subst hyp,
-        simp, },
-      { unfold exp, unfold log,
-        have r : ¬ ((x : ℂ) = 0),
-          { rename h x_nonzero,
-            by_contradiction,
-            apply x_nonzero,
-            simp at h,
-            exact h, },
-        rw if_neg r,
-        rw dif_neg h,
-        unfold complex.log,
-        sorry,
-      },
-    },
-    rw [r, log_exp],
-    exact mul_comm _ _,
-  },
-  { intros hyp,
-    by_cases x = 0,
-    { subst h,
-      simp at hyp,
-      cases log_eq_zero hyp,
-      { sorry, },
-      { cases h,
-        { cases zero_pow_real h,
-          { norm_num at h_1, },
-          { right, exact h_1.1 }, },
-        { cases zero_pow_real h,
-          { norm_num at h_1, },
-          { cases h_1 with _ bad,
-            norm_num at bad, }, }, }, },
-    { exact or.inl h, },
-  },
 end
 
 lemma fff_250 : fff 250 > 0 :=

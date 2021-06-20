@@ -29,20 +29,6 @@ open_locale big_operators
 
 namespace subgroup
 
--- this has already been PRed
-def pow_coprime {G : Type*} [group G] [fintype G] {k : ℕ}
-  (h : nat.coprime (fintype.card G) k) : G ≃ G :=
-{ to_fun := λ g, g ^ k,
-  inv_fun := λ g, g ^ (nat.gcd_b (fintype.card G) k),
-  left_inv := λ g, by
-  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) k),
-    rwa [gpow_add, gpow_mul, gpow_mul, gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
-      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key },
-  right_inv := λ g, by
-  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) k),
-    rwa [gpow_add, gpow_mul, gpow_mul', gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
-      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key } }
-
 --todo: find nicer proof
 lemma inf_eq_bot_of_coprime {G : Type*} [group G] {H K : subgroup G} [fintype H] [fintype K]
   (h : nat.coprime (fintype.card H) (fintype.card K)) : H ⊓ K = ⊥ :=

@@ -1,8 +1,10 @@
 import data.fintype.basic
 import data.pnat.basic
+import algebra.big_operators.basic
 
 noncomputable theory
 open_locale classical
+open_locale big_operators
 
 def option_fin (n : ℕ) : fin (n+1) ≃ option (fin n) :=
 begin
@@ -93,6 +95,8 @@ begin
     use sum.inr i,
     dsimp, exact hi, },
 end
+
+variables (m k)
 
 theorem hales_jewett [fintype m] [nonempty m] : ∀ [fintype k], ∃ n [fintype n], ∀ c : (n → m) → k,
   ∃ l : line m n, is_proper l ∧ is_mono c l :=
@@ -230,4 +234,43 @@ begin
           { rw function.comp, simp_rw function.comp_app, exact sndp, } },
         { simp only [multiset.card_map, multiset.card_cons, cr], } }, },
     { right, apply claim, exact foo, }, },
+end
+
+theorem gallai (M) (k S : Type) [add_comm_monoid M] [fintype k] [fintype S] (f : S → M)
+  (c : M → k) : ∃ (a : pnat) (b : M) (C : k), ∀ s, c ((a : ℕ) • (f s) + b) = C :=
+begin
+  by_cases h : nonempty S,
+  { resetI,
+    obtain ⟨n, inst, hn⟩ := hales_jewett S k,
+    resetI,
+    specialize hn (λ v, c $ ∑ i : n, f (v i)),
+    obtain ⟨l, lp, C, lC⟩ := hn,
+    set s : finset n := { i ∈ finset.univ | ∀ x, l.val x i = x } with hs,
+    use s.card,
+    { refine finset.card_pos.mpr _, obtain ⟨i, hi⟩ := lp, use i,
+      rw [hs, finset.sep_def, finset.mem_filter],
+      exact ⟨finset.mem_univ i, hi⟩, },
+    use ∑ i in sᶜ, f (l.val (classical.arbitrary S) i),
+    use C,
+    intro x,
+    specialize lC x,
+    rw ←lC,
+    dsimp,
+    congr,
+    rw ←finset.sum_add_sum_compl s,
+    congr' 1,
+    { rw ←finset.sum_const,
+      apply finset.sum_congr rfl,
+      intros i hi,
+      rw [hs, finset.sep_def, finset.mem_filter] at hi,
+      congr,
+      exact (hi.right x).symm, },
+    { apply finset.sum_congr rfl,
+      intros i hi, congr' 1,
+      obtain ⟨y, hy⟩ := (l.property i).resolve_left _,
+      { change l.val _ i = l.val _ i, rw [hy, hy], },
+      rw [hs, finset.sep_def, finset.compl_filter, finset.mem_filter] at hi,
+      exact hi.right, } },
+  refine ⟨1, 0, (c 0), _⟩,
+  intro s, exfalso, apply h, use s,
 end

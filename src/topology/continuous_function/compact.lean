@@ -268,6 +268,39 @@ classical.some_spec (classical.some_spec (uniform_continuity f ε h)) w
 
 end uniform_continuity
 
+end continuous_map
+
+section comp_left
+variables (X : Type*) {𝕜 β γ : Type*} [topological_space X] [compact_space X] [nondiscrete_normed_field 𝕜]
+variables [normed_group β] [normed_space 𝕜 β] [normed_group γ] [normed_space 𝕜 γ]
+
+open continuous_map
+
+/--
+Postcomposition of continuous functions into a normed module by a continuous linear map is a
+continuous linear map.
+Transferred version of `continuous_linear_map.comp_left_continuous_bounded`,
+upgraded version of `continuous_linear_map.comp_left_continuous`,
+similar to `linear_map.comp_left`. -/
+protected def continuous_linear_map.comp_left_continuous_compact (g : β →L[𝕜] γ) :
+  C(X, β) →L[𝕜] C(X, γ) :=
+(linear_isometry_bounded_of_compact X γ 𝕜).symm.to_linear_isometry.to_continuous_linear_map.comp $
+(g.comp_left_continuous_bounded X).comp $
+(linear_isometry_bounded_of_compact X β 𝕜).to_linear_isometry.to_continuous_linear_map
+
+@[simp] lemma continuous_linear_map.to_linear_comp_left_continuous_compact (g : β →L[𝕜] γ) :
+  (g.comp_left_continuous_compact X).to_linear_map = g.comp_left_continuous 𝕜 X :=
+begin
+  ext f,
+  simp only [add_monoid_hom.comp_left_continuous_apply, add_monoid_hom.to_fun_eq_coe,
+    function.comp_app, continuous_linear_map.comp_left_continuous_apply, coe_mk,
+    linear_map.to_add_monoid_hom_coe, comp_coe],
+  refl,
+end
+
+end comp_left
+
+namespace continuous_map
 /-!
 We now setup variations on `comp_right_* f`, where `f : C(X, Y)`
 (that is, precomposition by a continuous map),

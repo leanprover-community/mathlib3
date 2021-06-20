@@ -79,14 +79,6 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
-/-- Complex conjugation as an `ℝ`-algebra isomorphism  -/
-def conj_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
-{ inv_fun := complex.conj,
-  left_inv := complex.conj_conj,
-  right_inv := complex.conj_conj,
-  commutes' := complex.conj_of_real,
-  .. complex.conj }
-
 section
 open_locale complex_order
 
@@ -202,19 +194,19 @@ def im_lm : ℂ →ₗ[ℝ] ℝ :=
 
 @[simp] lemma im_lm_coe : ⇑im_lm = im := rfl
 
-/-- Linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def of_real_lm : ℝ →ₗ[ℝ] ℂ :=
-{ to_fun := coe,
-  map_add' := of_real_add,
-  map_smul' := λc x, by simp [algebra.smul_def] }
+/-- `ℝ`-algebra homomorphism version of the canonical embedding of `ℝ` in `ℂ`. -/
+def of_real_lm : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 
 @[simp] lemma of_real_lm_coe : ⇑of_real_lm = coe := rfl
 
-/-- `ℝ`-linear map version of the complex conjugation function from `ℂ` to `ℂ`. -/
-def conj_lm : ℂ →ₗ[ℝ] ℂ :=
-{ map_smul' := by simp [restrict_scalars_smul_def],
-  ..conj }
+/-- `ℝ`-algebra isomorphism version of the complex conjugation function from `ℂ` to `ℂ` -/
+def conj_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
+{ inv_fun := complex.conj,
+  left_inv := complex.conj_conj,
+  right_inv := complex.conj_conj,
+  commutes' := complex.conj_of_real,
+  .. complex.conj }
 
-@[simp] lemma conj_lm_coe : ⇑conj_lm = conj := rfl
+@[simp] lemma conj_alg_equiv_coe : ⇑conj_alg_equiv = conj := rfl
 
 end complex

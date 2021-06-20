@@ -44,6 +44,7 @@ localized "notation `C^` n`⟮` I`,` M`;` 𝕜`⟯[` x`]` :=
 instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯[x] := by { rw pointed_smooth_map, apply_instance }
 instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯[x] := by { rw pointed_smooth_map, apply_instance }
 instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯[x] := by { dunfold pointed_smooth_map, apply_instance }
+instance {x : M} : inhabited C^∞⟮I, M; 𝕜⟯[x] := ⟨0⟩
 
 instance {x : M} : algebra C^∞⟮I, M; 𝕜⟯[x] C^∞⟮I, M; 𝕜⟯ :=
 by { dunfold pointed_smooth_map, apply_instance }

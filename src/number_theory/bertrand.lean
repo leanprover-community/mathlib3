@@ -9,7 +9,6 @@ import data.finset.intervals
 import data.nat.multiplicity
 import data.nat.choose.sum
 import number_theory.padics.padic_norm
--- import tactic
 import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial

@@ -8,22 +8,26 @@ import data.list.sublists
 /-!
 # Pairwise relations on a list
 
-This file provides basic results about `list.pairwise`. `pairwise r [a 0, ..., a n]` means
-`∀ i j, i < j → r (a i) (a j)`. For example, `pairwise (≠) l` means that all elements of `l` are
-distinct, and `pairwise (<) l` means that `l` is strictly increasing.
+This file provides basic results about `list.pairwise` and `list.pw_filter` (definitions are in
+`data.list.defs`).
+`pairwise r [a 0, ..., a (n - 1)]` means `∀ i j, i < j → r (a i) (a j)`. For example,
+`pairwise (≠) l` means that all elements of `l` are distinct, and `pairwise (<) l` means that `l`
+is strictly increasing.
+`pw_filter r l` is the list obtained by iteratively adding each element of `l` that doesn't break
+the pairwiseness of the list we have so far. It thus yields `l'` a maximal sublist of `l` such that
+`pairwise r l'`.
+
+## Tags
+
+sorted, nodup
 -/
 
 open nat function
 
-universes u v
-
-variables {α : Type u} {β : Type v}
-
 namespace list
+variables {α β : Type*} {R : α → α → Prop}
 
 mk_iff_of_inductive_prop list.pairwise list.pairwise_iff
-
-variable {R : α → α → Prop}
 
 theorem rel_of_pairwise_cons {a : α} {l : list α}
   (p : pairwise R (a::l)) : ∀ {a'}, a' ∈ l → R a a' :=

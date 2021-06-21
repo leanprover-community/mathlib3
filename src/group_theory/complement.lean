@@ -122,9 +122,7 @@ mem_right_transverals_iff_exists_unique_quotient_mk'_eq.trans
 @[to_additive] instance : inhabited (left_transversals (H : set G)) :=
 ⟨⟨set.range quotient.out', mem_left_transverals_iff_bijective.mpr ⟨by
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
-  rw [set.restrict_apply, set.restrict_apply, subtype.coe_mk, subtype.coe_mk,
-      quotient.out_eq', quotient.out_eq'] at hg,
-  rw hg }, λ q, ⟨⟨f q, q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
+  rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
 
 @[to_additive] instance : inhabited (right_transversals (H : set G)) :=
 let hf  : function.has_right_inverse (quotient.mk' : G → quotient (quotient_group.right_rel H)) :=

@@ -1,6 +1,8 @@
 import number_theory.L_functions
+import ring_theory.witt_vector.teichmuller
+import ring_theory.witt_vector.compare
 
-variables (A : Type*) [normed_comm_ring A] (p : ℕ) [fact p.prime] (d : ℕ) (hd : gcd d p = 1)
+--variables (A : Type*) [normed_comm_ring A] (p : ℕ) [fact p.prime] (d : ℕ) (hd : gcd d p = 1)
 
 def zmod.topological_space (d : ℕ) : topological_space (zmod d) := ⊥
 
@@ -8,15 +10,17 @@ local attribute [instance] zmod.topological_space
 
 --instance is_this_needed : topological_space (units (zmod d) × units ℤ_[p]) := infer_instance
 
+variables (A : Type*) [topological_space A] [mul_one_class A] (p : ℕ) [fact p.prime] (d : ℕ)
+
 set_option old_structure_cmd true
 /-- A-valued points of weight space -/ --shouldn't this be a category theory statement?
 @[ancestor continuous_map monoid_hom]
-structure weight_space (A : Type*) [topological_space A] [mul_one_class A]
-  extends monoid_hom ((units (zmod d)) × (units ℤ_[p])) A, C((units (zmod d)) × (units ℤ_[p]), A)
+structure weight_space extends monoid_hom ((units (zmod d)) × (units ℤ_[p])) A, C((units (zmod d)) × (units ℤ_[p]), A)
 --generalize domain to a compact space?
 
 attribute [nolint doc_blame] weight_space.to_continuous_map
 attribute [nolint doc_blame] weight_space.to_monoid_hom
+attribute [nolint doc_blame] weight_space.to_fun
 
 /-lemma weight_space_continuous_to_fun {A : Type*} [topological_space A] [mul_one_class A]
   (f : weight_space p d A) : continuous f.to_fun :=
@@ -28,8 +32,14 @@ begin
   refine mul_assoc f g h,
 end
 
-@[ext]
-lemma ext (A : Type*) [topological_space A] [mul_one_class A]
+namespace weight_space
+
+instance : has_coe_to_fun (weight_space A p d) :=
+{
+  F := _,
+  coe := to_fun, }
+
+/-lemma ext_iff (A : Type*) [topological_space A] [mul_one_class A]
   (a b : (units (zmod d)) × (units ℤ_[p]) →* A) [ha : continuous a] [hb : continuous b] :
   (⟨a.to_fun, monoid_hom.map_one' a, monoid_hom.map_mul' a, ha⟩ : weight_space p d A) =
   (⟨b.to_fun, monoid_hom.map_one' b, monoid_hom.map_mul' b, hb⟩ : weight_space p d A) ↔
@@ -38,14 +48,24 @@ begin
   split,
   { rintros h, simp only [monoid_hom.to_fun_eq_coe] at h, simp [h], },
   { rintros h, simp only [monoid_hom.to_fun_eq_coe], simp at h, simp [h], },
+end-/
+
+variables {A} {p} {d}
+
+@[ext] lemma ext (w₁ w₂ : weight_space A p d)
+  (h : ∀ u : (units (zmod d)) × (units ℤ_[p]), w₁ u = w₂ u) : w₁ = w₂ :=
+begin
+  cases w₁, cases w₂,
+  simp, ext u,
+  apply h u,
 end
 
-noncomputable instance (A : Type*) [topological_space A] [comm_group A] [topological_group A] :
-  has_one (weight_space p d A) :=
+noncomputable instance (A : Type*) [topological_space A] [group A] [topological_group A] :
+  has_one (weight_space A p d) :=
 { one := ⟨monoid_hom.has_one.one, rfl, is_mul_hom.map_mul 1, continuous_const ⟩ }
 
 instance (A : Type*) [topological_space A] [comm_group A] [topological_group A] :
-  has_mul (weight_space p d A) :=
+  has_mul (weight_space A p d) :=
 { mul := λ f g, ⟨f.to_fun * g.to_fun,
     begin simp only [pi.mul_apply], repeat {rw weight_space.map_one',}, rw one_mul, end,
     λ x y, begin simp only [pi.mul_apply], repeat {rw weight_space.map_mul',},
@@ -54,29 +74,29 @@ instance (A : Type*) [topological_space A] [comm_group A] [topological_group A] 
     continuous.mul (weight_space.continuous_to_fun f) (weight_space.continuous_to_fun g)⟩, }
 
 noncomputable instance (A : Type*) [topological_space A] [comm_group A] [topological_group A] :
-  monoid (weight_space p d A) := --is group really needed
+  monoid (weight_space A p d) := --is group really needed
 {
-  mul := has_mul.mul,
-  mul_assoc := λ f g h, begin sorry, --simp, refine mul_assoc f.to_fun g.to_fun h.to_fun,
+  mul := (*),
+  mul_assoc := λ f g h, begin ext, apply mul_assoc,
   end,
   --what is simp only doing
   one := has_one.one,
   one_mul := λ a,
   begin
-    --have f : (1 * a).to_fun = a.to_fun, sorry,
-    --have := (ext p d A _ _).2 f, sorry,
-    sorry,
+    ext, apply one_mul,
   end,
   --have := one_mul a.to_fun, have h : (1 : weight_space p d A).to_fun = 1, simp only,
   --apply weight_space.mk.inj, refine one_mul a.to_fun, sorry, end,
-  mul_one := begin sorry, end,
+  mul_one := λ a, begin ext, apply mul_one, end,
 --  inv := λ f, ⟨λ x, (f.to_fun x)⁻¹, begin sorry end, _, _⟩,
 --  mul_left_inv := sorry,
 }
 
+end weight_space
+
 --instance : has_mod ℤ_[p] := sorry
 
-lemma padic_units_modp_units (b : units ℤ_[p]) :
+/-lemma padic_units_modp_units (b : units ℤ_[p]) :
   is_unit ((padic_int.appr (b : ℤ_[p]) 1) : (zmod p)) :=
 begin
   rw padic_int.appr,
@@ -107,26 +127,58 @@ lemma blahs (a : units ℤ_[p]) : ∃ (b : units ℤ_[p]),
   (a - b : ℤ_[p]) ∈ (ideal.span {p} : ideal ℤ_[p]) :=
 begin
   obtain ⟨b, hb⟩ := blahs' p a, refine ⟨(b : units ℤ_[p]), hb⟩,
-end
+end-/
 
 /-lemma inj' {B : Type*} [monoid B] (inj : B → A) [hinj : (function.injective inj)] :
   ∃ inj' : (units B) → (units A), ∀ (x : (units B)), inj' x = inj (x : B) -/
 
-variables [complete_space A] (inj : units ℤ_[p] → A) [fact (function.injective inj)]
+variables (R : Type*) [normed_comm_ring R] [complete_space R] (inj : ℤ_[p] → R) --[fact (function.injective inj)]
 
-variables (m : ℕ) (χ : mul_hom (units (zmod (d*(p^m)))) A) (w : weight_space p d A)
+variables (m : ℕ) (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space R p d)
 --variables (d : ℕ) (hd : gcd d p = 1) (χ : dirichlet_char_space A p d) (w : weight_space A p)
 --need χ to be primitive
 
 /-- Extending the primitive dirichlet character χ with conductor (d* p^m) -/
-def pri_dir_char_extend : mul_hom ((units (zmod d)) × (units ℤ_[p])) A := sorry
+def pri_dir_char_extend : mul_hom ((units (zmod d)) × (units ℤ_[p])) R := sorry
 --should this be def or lemma? ; units A instead of A ; use monoid_hom instead of mul_hom
 -- so use def not lemma, because def gives Type, lemma gives Prop
 
 --variables (ψ : pri_dir_char_extend A p d)
 
 /-- The Teichmuller character defined on `p`-adic units -/
-noncomputable def teichmuller_character (a : units ℤ_[p]) : A := inj (classical.some (blahs p a))
+--noncomputable def teichmuller_character (a : units ℤ_[p]) : R := inj (classical.some (blahs p a))
+noncomputable def teichmuller_character : monoid_hom (units ℤ_[p]) ℤ_[p] :=
+{
+  to_fun := λ a,
+    witt_vector.equiv p (witt_vector.teichmuller_fun p (padic_int.to_zmod (a : ℤ_[p]))),
+  ..monoid_hom.comp (witt_vector.equiv p).to_monoid_hom
+  (monoid_hom.comp (witt_vector.teichmuller p)
+    (monoid_hom.comp (padic_int.to_zmod).to_monoid_hom
+      ⟨(coe : units ℤ_[p] → ℤ_[p]), units.coe_one, units.coe_mul⟩)),
+}
+
+lemma unit_to_zmod_nonzero (a : units ℤ_[p]) :
+  (padic_int.to_zmod (a : ℤ_[p]))^(p - 1) = (1 : (zmod p)) :=
+begin
+  apply zmod.pow_card_sub_one_eq_one,
+  by_contra, push_neg at h,
+  have h' : (a : ℤ_[p]) ∈ padic_int.to_zmod.ker,
+  { exact padic_int.to_zmod.mem_ker.mpr h, },
+  rw [padic_int.ker_to_zmod, local_ring.mem_maximal_ideal, mem_nonunits_iff] at h',
+  apply h', simp,
+end
+
+lemma teichmuller_character_root_of_unity (a : units ℤ_[p]) :
+  (teichmuller_character p a)^(p - 1) = 1 :=
+begin
+  have : (padic_int.to_zmod (a : ℤ_[p]))^(p - 1) = (1 : (zmod p)),
+  exact unit_to_zmod_nonzero p a, --rw witt_vector.from_padic_int,
+  rw [←monoid_hom.map_pow, teichmuller_character, monoid_hom.coe_mk, units.coe_pow],
+  simp only [this, ring_hom.map_pow, ring_equiv.map_eq_one_iff],
+  have f := monoid_hom.map_one (witt_vector.teichmuller p), refine f,
+end
+
+variables (p)
 
 def clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ) (a : zmod (p^n)),
   x = set.preimage (padic_int.to_zmod_pow n) a }
@@ -178,11 +230,13 @@ instance : compact_space (zmod d) := sorry
 instance pls_work : compact_space (zmod d × ℤ_[p]) := sorry
 instance sigh : totally_disconnected_space (zmod d × ℤ_[p]) := sorry
 
-def bernoulli_measure (hc : gcd c p = 1) := {x : locally_constant (zmod d × ℤ_[p]) A →ₗ[A] A |
+def bernoulli_measure (hc : gcd c p = 1) := {x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
   ∀ U : (clopen_basis' p d), x (char_fn (zmod d × ℤ_[p]) U.val) =
     E_c p d hc (classical.some U.prop) (classical.some (classical.some_spec U.prop)) }
 
-lemma bernoulli_measure_nonempty (hc : gcd c p = 1) : nonempty (bernoulli_measure A p d hc) :=
+variables (d)
+
+lemma bernoulli_measure_nonempty (hc : gcd c p = 1) : nonempty (@bernoulli_measure p _ d R _ _ _ hc) :=
   sorry
 
 /-instance (c : ℤ) (hc : gcd c p = 1) : distribution' (ℤ_[p]) :=
@@ -207,13 +261,13 @@ instance why_is_it_not_recognized : t2_space (units (zmod d) × units ℤ_[p]) :
 instance so_many_times : totally_disconnected_space (units (zmod d) × units ℤ_[p]) := sorry
 
 noncomputable lemma bernoulli_measure_of_measure (hc : gcd c p = 1) :
-  measures'' (units (zmod d) × units ℤ_[p]) A :=
+  measures'' (units (zmod d) × units ℤ_[p]) R :=
 begin
   constructor, swap,
   constructor,
   constructor, swap 3, rintros f,
-  choose g hg using subspace_induces_locally_constant A p d f, --cases does not work as no prop
-  exact (classical.choice (bernoulli_measure_nonempty A p d hc)).val g,
+  choose g hg using subspace_induces_locally_constant R p d f, --cases does not work as no prop
+  exact (classical.choice (bernoulli_measure_nonempty p d R hc)).val g,
   { sorry, },
   { sorry, },
   { sorry, },
@@ -224,13 +278,13 @@ end
 instance : nonempty (units ℤ_[p]) := sorry
 
 lemma cont_paLf : continuous (λ (a : (units (zmod d) × units ℤ_[p])),
-  ((pri_dir_char_extend A p d) a) * ((teichmuller_character A p inj (a.snd)) : A)^(p - 2)
-  * (w.to_fun a : A)) :=
+  ((pri_dir_char_extend p d R) a) * (inj (teichmuller_character p (a.snd)))^(p - 2)
+  * (w.to_fun a : R)) :=
 sorry
 
 instance is_an_import_missing : nonempty (units (zmod d) × units ℤ_[p]) := sorry
 
 noncomputable def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) := --h wont go in the system if you put it in [], is this independent of c?
-  integral (units (zmod d) × units ℤ_[p]) A _ (bernoulli_measure_of_measure A p d hc)
-⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend A p d) a) *
-  ((teichmuller_character A p inj a.snd))^(p - 2) * (w.to_fun a : A)), cont_paLf A p d inj w ⟩
+  integral (units (zmod d) × units ℤ_[p]) R _ (bernoulli_measure_of_measure p d R hc)
+⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R) a) *
+  (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj w ⟩

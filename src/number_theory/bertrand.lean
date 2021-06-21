@@ -474,16 +474,11 @@ log_inj_on_pos h (mem_Ioi.mpr zero_lt_one) (trans hyp log_one.symm)
 
 lemma log_eq_zero {x : ℝ} (hyp : log x = 0) : x = 0 ∨ x = 1 ∨ x = -1 :=
 begin
-  cases lt_trichotomy x 0,
-  { let e := log_abs x,
-    rw (abs_of_neg h) at e,
-    have t : 0 < -x := neg_pos.mpr h,
-    have minus_x_is_one : -x = 1 := log_pos_eq_zero t (by linarith),
-    exact or.inr (or.inr (eq_neg_of_eq_neg (eq.symm minus_x_is_one)))
-  },
-  { cases h,
-    { exact or.inl h, },
-    { exact or.inr (or.inl (log_pos_eq_zero h hyp)), }, },
+  rcases lt_trichotomy x 0 with h | rfl | h,
+  { refine or.inr (or.inr (eq_neg_iff_eq_neg.mp _)),
+    exact (log_pos_eq_zero (neg_pos.mpr h) (trans (log_neg_eq_log x) hyp)).symm },
+  { exact or.inl rfl },
+  { exact or.inr (or.inl (log_pos_eq_zero h hyp)) }
 end
 
 lemma zero_pow_complex {a : ℂ} {x : ℂ} (hyp : 0 ^ x = a) : a = 0 ∨ (x = 0 ∧ a = 1) :=

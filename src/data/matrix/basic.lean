@@ -843,9 +843,9 @@ lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := sta
 end star_ring
 
 /-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of
-  a matrix `M : matrix m n α`, the matrix `M.minor r_reindex c_reindex : matrix l o α` is defined
-  by `(M.minor r_reindex c_reindex) i j = M (r_reindex i) (c_reindex j)` for `(i,j) : l × o`.
-  Note that the total number of row and columns does not have to be preserved. -/
+a matrix `M : matrix m n α`, the matrix `M.minor r_reindex c_reindex : matrix l o α` is defined
+by `(M.minor r_reindex c_reindex) i j = M (r_reindex i) (c_reindex j)` for `(i,j) : l × o`.
+Note that the total number of row and columns does not have to be preserved. -/
 def minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) : matrix l o α :=
 λ i j, A (r_reindex i) (c_reindex j)
 

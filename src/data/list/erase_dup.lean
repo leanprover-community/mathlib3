@@ -8,8 +8,9 @@ import data.list.nodup
 /-!
 # Erasure of duplicates in a list
 
-This file proves basic results about `list.erase_dup`. `erase_dup l` returns `l` without its
-duplicates. It keeps the earliest (that is, rightmost) occurrence of each.
+This file proves basic results about `list.erase_dup` (definition in `data.list.defs`).
+`erase_dup l` returns `l` without its duplicates. It keeps the earliest (that is, rightmost)
+occurrence of each.
 -/
 
 namespace list

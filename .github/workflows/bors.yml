@@ -175,3 +175,4 @@ jobs:
           python scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
+

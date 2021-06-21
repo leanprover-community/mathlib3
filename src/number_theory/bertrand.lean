@@ -630,25 +630,114 @@ begin
   ... ≤ x : x_big,
 end
 
+lemma pow_eq_rpow (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
+begin
+  apply rpow_nat_cast,
+end
+
+lemma a_534_pow_100 : (584 : ℝ) ^ (100 : ℝ) = (584 : ℝ) ^ (100 : ℕ) :=
+begin
+  calc (584 : ℝ) ^ (100 : ℝ) = (584 : ℝ) ^ ((100 : ℕ) : ℝ) : by simp
+  ... = (584 : ℝ) ^ (100 : ℕ) : by rw rpow_nat_cast _ 100,
+end
+
+lemma a_e_pow_637 : (2.71828 : ℝ) ^ (637 : ℝ) = (2.71828 : ℝ) ^ (637 : ℕ) :=
+begin
+  calc (2.71828) ^ (637 : ℝ) = (2.71828 : ℝ) ^ ((637 : ℕ) : ℝ) : by simp
+  ... = (2.71828) ^ (637 : ℕ) : by rw rpow_nat_cast _ 637,
+end
+
+-- #eval 584 ^ 100
+-- #eval 25000 ^ 637
+-- #eval 67957 ^ 637
+
+lemma pow_real_to_nat (n m : ℕ) : (n : ℝ) ^ m = (((n : ℕ) ^ m) : ℝ) :=
+begin
+  simp,
+end
+
+lemma pow_real_to_nat1 : ((584 : ℕ) : ℝ) ^ 100 = (((584 : ℕ) ^ 100) : ℝ) :=
+begin
+  simp,
+end
+
+lemma pow_real_to_nat2 : (25000 : ℝ) ^ 637 = (((25000 : ℕ) ^ 637) : ℝ) :=
+begin
+  simp,
+end
+
+lemma pow_real_to_nat3 : (67957 : ℝ) ^ 637 = (((67957 : ℕ) ^ 637) : ℝ) :=
+begin
+  simp,
+end
+
+lemma asdiuhwih : (584 : ℝ) ^ 100 * (25000 : ℝ) ^ 637 ≤ (67957 : ℝ) ^ 637
+:=
+begin
+  rw pow_real_to_nat1,
+  rw pow_real_to_nat2,
+  rw pow_real_to_nat3,
+  -- norm_num, -- fails due to timeout
+  sorry
+end
+
+lemma a_584_le_exp_6 : (584 : ℝ) ≤ exp (6.37 : ℝ) :=
+begin
+  apply le_of_lt,
+  calc (584 : ℝ) ≤ 2.71828 ^ (6.37 : ℝ) :
+    begin
+      -- raise both sides to 100
+      apply (@rpow_le_rpow_iff 584 _ 100 _ _ _).1,
+      rw <-rpow_mul,
+      norm_num,
+      rw [a_534_pow_100, a_e_pow_637],
+      rw div_pow,
+      apply (le_div_iff _).2,
+      exact asdiuhwih,
+      apply pow_pos,
+      linarith,
+      linarith,
+      linarith,
+      apply rpow_nonneg_of_nonneg,
+      linarith,
+      linarith,
+    end
+  ... < 2.7182818283 ^ (6.37 : ℝ) :
+    begin
+      apply rpow_lt_rpow,
+      linarith,
+      linarith,
+      linarith,
+    end
+  ... < (exp 1) ^ (6.37 : ℝ) :
+    begin
+      apply rpow_lt_rpow,
+      linarith,
+      apply exp_one_gt_d9,
+      linarith,
+    end
+  ... ≤ exp (6.37) :
+    begin
+      rw <-exp_mul,
+      rw one_mul,
+    end,
+end
+
 lemma aux_zero : 0 ≤ aux 72 :=
 begin
   unfold aux,
   norm_num,
   rw <-sqrt_mul,
   norm_num,
-  calc log 584 + 2 ≤ 8 :
+  calc log 584 + 2 ≤ 8.37 :
         begin
           apply le_sub_iff_add_le.1,
           norm_num,
-          rw ←log_exp 6,
+          rw ←log_exp 6.37,
           apply (log_le_log _ _).2,
-          have h1 := @add_one_le_exp_of_nonneg (1 / 10 : ℝ) _,
-          sorry,
+          exact a_584_le_exp_6,
           linarith,
-          linarith,
-          sorry,
-
-
+          apply exp_pos,
         end
   ... ≤ sqrt 146 * log 2 :
         begin

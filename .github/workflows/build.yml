@@ -20,6 +20,17 @@ name: continuous integration
 
 jobs:
 
+  # Cancels previous runs of jobs in this file
+  cancel:
+    name: 'Cancel Previous Runs (CI)'
+    runs-on: ubuntu-latest
+    # timeout-minutes: 3
+    steps:
+      - uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          all_but_latest: true
+          access_token: ${{ github.token }}
+
   style_lint:
     name: Lint style
     runs-on: ubuntu-latest

@@ -328,9 +328,6 @@ noncomputable instance Prop.linear_order : linear_order Prop :=
 @[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
 @[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 
-@[simp] lemma sup_Prop_eq (p q : Prop) : p ⊔ q = (p ∨ q) := rfl
-@[simp] lemma inf_Prop_eq (p q : Prop) : p ⊓ q = (p ∧ q) := rfl
-
 section logic
 variable [preorder α]
 

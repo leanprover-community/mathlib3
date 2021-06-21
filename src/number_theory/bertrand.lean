@@ -9,7 +9,7 @@ import data.finset.intervals
 import data.nat.multiplicity
 import data.nat.choose.sum
 import number_theory.padics.padic_norm
-import tactic
+-- import tactic
 import ring_theory.multiplicity
 import algebra.module
 import number_theory.primorial
@@ -18,6 +18,15 @@ import analysis.calculus.local_extr
 import data.real.sqrt
 import data.real.nnreal
 import data.complex.exponential_bounds
+
+/-!
+# Bertrand's postulate
+
+In this file we prove Bertrand's postulate: That there is a prime between any positive integer and
+its double.
+
+We follow roughly, the proof from "Proofs from the BOOK" by Aigner and Ziegler (TODO cite).
+-/
 
 open_locale big_operators
 
@@ -209,7 +218,9 @@ begin
     { apply x_ih,
       cases lt_or_ge (2 * n / 3) x_n,
       { exact h_2, },
-      { have r : 2 * n / 3 = x_n, by omega,
+      { have r : 2 * n / 3 = x_n,
+          have h1298 := nat.le_of_lt_succ h,
+          linarith,
         exfalso,
         subst r,
         exact nat.lt_le_antisymm (nat.lt_mul_div_succ (2 * n) (by norm_num)) h_1, },
@@ -1086,7 +1097,9 @@ begin
                     { refine prod_of_pos_is_pos _,
                       intros p hyp,
                       simp only [finset.mem_filter, finset.mem_range] at hyp,
-                      exact pow_pos (nat.prime.pos hyp.1.2) (padic_val_nat p ((2 * n).choose n)), },
+                      exact pow_pos
+                              (nat.prime.pos hyp.1.2)
+                              (padic_val_nat p ((2 * n).choose n)), },
                     { refine congr_arg (λ i, (2 * n) ^ i) _,
                       refine congr_arg (λ s, finset.card s) _,
                       ext1,
@@ -1135,7 +1148,8 @@ begin
                    p ^ 1)
                      : begin
                        refine nat.mul_le_mul_left _ _,
-                       refine finset.prod_le_prod_of_subset_of_one_le' (finset.filter_subset _ _) _,
+                       refine finset.prod_le_prod_of_subset_of_one_le'
+                                (finset.filter_subset _ _) _,
                         { intros i hyp1 hyp2,
                         cases le_or_gt 1 i,
                         { ring_nf, exact h, },

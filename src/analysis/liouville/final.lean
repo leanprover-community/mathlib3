@@ -34,7 +34,8 @@ begin
   conv {
     congr,
     funext,
-    rw [normed_field.norm_div, normed_field.norm_div, norm_one, div_div_eq_mul_div, div_one, div_mul_comm', mul_one, ← normed_field.norm_div, div_eq_mul_inv],
+    rw [normed_field.norm_div, normed_field.norm_div, norm_one, div_div_eq_mul_div, div_one,
+      div_mul_comm', mul_one, ← normed_field.norm_div, div_eq_mul_inv],
   },
   simp,
   intros U U2,

@@ -290,7 +290,8 @@ lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop
 [_inst : decidable_pred f][_inst : decidable_pred g] :
 ((S.filter g).filter f).card ≤ (S.filter f).card :=
 begin
-  calc ((S.filter g).filter f).card = (S.filter (λ i, g i ∧ f i)).card: congr_arg finset.card interchange_filters
+  calc ((S.filter g).filter f).card = (S.filter (λ i, g i ∧ f i)).card :
+                  congr_arg finset.card interchange_filters
   ... = (S.filter (λ i, f i ∧ g i)).card: congr_arg finset.card interchange_and_in_filter
   ... = ((S.filter f).filter g).card: congr_arg finset.card interchange_filters.symm
   ... ≤ (S.filter f).card: (finset.filter f S).card_filter_le g,

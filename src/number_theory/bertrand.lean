@@ -214,12 +214,7 @@ begin
   ... = (2 * (n + 1)).choose(n + 1): by simp only [nat.succ_pos', nat.mul_div_right]
 end
 
-lemma not_pos_iff_zero (n : ℕ) : ¬ 0 < n ↔ n = 0 :=
-begin
-  split,
-  { intros h, induction n, refl, simp only [nat.succ_pos', not_true] at h, cc, },
-  { intros h, rw h, exact irrefl 0, },
-end
+lemma not_pos_iff_zero (n : ℕ) : ¬ 0 < n ↔ n = 0 := trans not_lt le_zero_iff
 
 lemma alskjhads_no_two (n x : ℕ) (h : n / 3 + 1 ≤ x) : n < 3 * x :=
 lt_of_lt_of_le ((nat.div_lt_iff_lt_mul' zero_lt_three).mp (nat.succ_le_iff.mp h)) (mul_comm _ _).le
@@ -235,20 +230,6 @@ lemma central_binom_factorization (n : ℕ) :
 
 def central_binom_lower_bound := nat.four_pow_le_two_mul_add_one_mul_central_binom
 
-lemma prod_of_pos_is_pos {S: finset ℕ} {f: ℕ → ℕ} (p_pos: ∀ p, p ∈ S → 0 < f p): 0 < ∏ p in S, f p :=
-begin
-  have prop : ∀ p, p ∈ S → f p ≠ 0, by
-    { intros p p_in_s,
-      specialize p_pos p p_in_s,
-      linarith, },
-  let e := finset.prod_ne_zero_iff.2 prop,
-  cases lt_or_ge 0 (∏ p in S, f p),
-  { exact h, },
-  { exfalso,
-    simp only [ge_iff_le, le_zero_iff] at h,
-    exact e h, },
-end
-
 lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=
 by { ext1, simp only [finset.mem_filter, and_assoc] }
 
@@ -258,19 +239,16 @@ by { ext1, simp only [finset.mem_filter, and.comm, iff_self] }
 lemma intervening_sqrt {a n : ℕ} (small : (nat.sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n) : a = nat.sqrt n :=
 begin
   rcases lt_trichotomy a (nat.sqrt n) with H|rfl|H,
-  { exfalso,
-    have bad : a ^ 2 < a ^ 2, by
-      calc a ^ 2 = a * a: by ring
-      ... < (nat.sqrt n) * nat.sqrt n : nat.mul_self_lt_mul_self H
-      ... = (nat.sqrt n) ^ 2: by ring
-      ... ≤ a ^ 2 : small,
-    exact nat.lt_asymm bad bad, },
+  { refine (lt_irrefl (a ^ 2) _).elim,
+    calc  _ = a * a             : sq _
+         ... < n.sqrt * n.sqrt  : nat.mul_self_lt_mul_self H
+         ... = (nat.sqrt n) ^ 2 : (sq _).symm
+         ... ≤ a ^ 2            : small, },
   { refl, },
-  { exfalso,
-    have: n < a ^ 2 :=
-      calc n < a * a: nat.sqrt_lt.1 H
-      ... = a ^ 2: by ring,
-    linarith, },
+  { refine (lt_irrefl (a ^ 2) _).elim,
+    calc  _ ≤ n     : big
+        ... < a * a : nat.sqrt_lt.1 H
+        ... = a ^ 2 : (sq _).symm, },
 end
 
 lemma filter_filter_card_le_filter_card {α: _} {S: finset α} {f g: α → Prop} [_inst : decidable_pred f][_inst : decidable_pred g] : ((S.filter g).filter f).card ≤ (S.filter f).card :=
@@ -288,45 +266,36 @@ have s: (S.filter (λ p, p < a)).card ≤ (finset.range(a)).card := finset.card_
 by simpa only [finset.card_range] using s
 
 lemma even_prime_is_two {p : ℕ} (pr: nat.prime p) (div: 2 ∣ p) : p = 2 :=
-begin
-  rcases pr with ⟨_, divs⟩,
-  specialize divs 2 div,
-  cc,
-end
+((nat.prime_dvd_prime_iff_eq nat.prime_two pr).mp div).symm
 
 lemma even_prime_is_small {a n : ℕ} (a_prime : nat.prime a) (n_big : 2 < n) (small : a ^ 2 ≤ 2 * n): a ^ 2 < 2 * n :=
 begin
   cases lt_or_ge (a ^ 2) (2 * n),
   { exact h, },
-  { have t : a * a = 2 * n, by
-      calc a * a = a ^ 2: by ring
-      ... = 2 * n: by linarith,
-
-    have two_prime : nat.prime 2, by norm_num,
-    have a_even : 2 ∣ a := (or_self _).mp ((nat.prime.dvd_mul two_prime).mp ⟨n, t⟩),
+  { have t : a * a = 2 * n := (sq _).symm.trans (small.antisymm h),
+    have a_even : 2 ∣ a := (or_self _).mp ((nat.prime.dvd_mul nat.prime_two).mp ⟨n, t⟩),
     have a_two : a = 2 := even_prime_is_two a_prime a_even,
-    subst a_two,
-    linarith, },
+    rw [a_two, sq],
+    exact (mul_lt_mul_left zero_lt_two).mpr n_big },
 end
 
 lemma pow_beats_mul (n : ℕ) (big : 3 < n) : 32 * n ≤ 4 ^ n :=
 begin
   induction n with n hyp,
-  { linarith, },
+  { exact zero_le_one, },
   { cases le_or_gt n 3,
-    { have r : 2 < n := nat.succ_lt_succ_iff.mp big,
-      have s : n = 3 := by linarith,
+    { have s : n = 3 := h.antisymm (nat.lt_succ_iff.mp big),
       rw s,
       norm_num, },
-    { specialize hyp h,
-      have s : 0 < 4 ^ n := pow_pos (by norm_num) _,
-      have r : 32 ≤ 4 ^ n := by linarith,
-      calc 32 * (n + 1) = 32 * n + 32 : by ring
-      ... ≤ 4 ^ n + 32 : by linarith
-      ... ≤ 4 ^ n + 4 ^ n : by linarith
-      ... = (4 ^ n) * 2 : by ring
-      ... ≤ (4 ^ n) * 4 : by linarith
-      ... ≤ 4 ^ (n + 1) : by ring_exp, }, },
+  { specialize hyp h,
+    have r : 32 ≤ 4 ^ n := trans
+        (trans (nat.self_le_mul (trans zero_lt_three h)) (mul_comm _ _ ).le) hyp,
+    calc 32 * (n + 1) = 32 * n + 32 : mul_add _ _ _
+    ... ≤ 4 ^ n + 32 : add_le_add_right hyp _
+    ... ≤ 4 ^ n + 4 ^ n : add_le_add_left r _
+    ... = (4 ^ n) * 2 : (mul_two _).symm
+    ... ≤ (4 ^ n) * 4 : (mul_le_mul_left (pow_pos zero_lt_four _)).mpr (nat.le_of_sub_eq_zero rfl)
+    ... = 4 ^ (n + 1) : (pow_succ' _ _).symm, }, },
 end
 
 lemma six_le_three_mul_four_pow_succ : ∀ (k : ℕ), 6 ≤ 3 * 4 ^ (k + 1)
@@ -374,20 +343,7 @@ lemma pow_coe (a b : ℕ) : (↑(a ^ b) : ℝ) = (↑a) ^ (↑b : ℝ) :=
 by simp only [rpow_nat_cast, nat.cast_pow]
 
 lemma nat_sqrt_le_real_sqrt (a : ℕ) : (nat.sqrt a : ℝ) ≤ real.sqrt a :=
-begin
-  have sqrt_pos : (0 : ℝ) ≤ ((nat.sqrt a) : ℝ) :=
-    (@nat.cast_le ℝ _ _ 0 (nat.sqrt a)).2 (zero_le (nat.sqrt a)),
-
-  apply (le_sqrt (nat.sqrt a).cast_nonneg (nat.cast_nonneg a)).2,
-  calc ↑(nat.sqrt a) ^ 2 = (nat.sqrt a : ℝ) ^ (1 + 1) : rfl
-  ... = (nat.sqrt a : ℝ) ^ ↑(1 + 1) : (rpow_nat_cast (nat.sqrt a : ℝ) (1 + 1)).symm
-  ... = (nat.sqrt a : ℝ) ^ ((1 : ℝ) + 1) : by simp only [nat.cast_add, nat.cast_one]
-  ... = ((nat.sqrt a) : ℝ) ^ (1 : ℝ) * ((nat.sqrt a) : ℝ) ^ (1 : ℝ) :
-        by rw rpow_add' sqrt_pos two_ne_zero
-  ... = ↑(nat.sqrt a) * ↑(nat.sqrt a) : by rw rpow_one
-  ... = ↑(nat.sqrt a * nat.sqrt a) : by norm_num
-  ... ≤ ↑a : nat.cast_le.mpr (nat.sqrt_le a),
-end
+le_sqrt_of_sq_le (by simpa using (nat.cast_le.mpr a.sqrt_le' : ((id nat.sqrt a ^ 2 : ℕ) : ℝ) ≤ a))
 
 open set
 
@@ -1447,7 +1403,7 @@ begin
                    p ^ (padic_val_nat p ((2 * n).choose n)))
                    : begin
                     refine (nat.mul_left_inj _).2 _,
-                    { refine prod_of_pos_is_pos _,
+                    { refine finset.prod_pos _,
                       intros p hyp,
                       simp only [finset.mem_filter, finset.mem_range] at hyp,
                       exact pow_pos (nat.prime.pos hyp.1.2) (padic_val_nat p ((2 * n).choose n)), },

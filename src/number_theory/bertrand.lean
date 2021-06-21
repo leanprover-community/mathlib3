@@ -470,19 +470,7 @@ begin
 end
 
 lemma log_pos_eq_zero {x : ℝ} (h : 0 < x) (hyp : log x = 0) : x = 1 :=
-begin
-  let e := log_inj_on_pos,
-  have r : log 1 = 0 := log_one,
-  have t : log x = log 1,
-    { rw log_one,
-      exact hyp, },
-  have x_one := log_inj_on_pos,
-  unfold inj_on at x_one,
-  have x_pos : x ∈ Ioi (0 : ℝ) := by simpa using h,
-  have one_pos : (1 : ℝ) ∈ Ioi (0 : ℝ) := by simp,
-  specialize x_one x_pos one_pos t,
-  exact x_one,
-end
+log_inj_on_pos h (mem_Ioi.mpr zero_lt_one) (trans hyp log_one.symm)
 
 lemma log_eq_zero {x : ℝ} (hyp : log x = 0) : x = 0 ∨ x = 1 ∨ x = -1 :=
 begin

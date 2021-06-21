@@ -250,11 +250,7 @@ begin
 end
 
 lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=
-begin
-  ext1,
-  simp only [finset.mem_filter],
-  exact and_assoc (a ∈ S) (g a),
-end
+by { ext1, simp only [finset.mem_filter, and_assoc] }
 
 lemma interchange_and_in_filter {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : S.filter (λ i, g i ∧ f i) = S.filter (λ i, f i ∧ g i) :=
 begin

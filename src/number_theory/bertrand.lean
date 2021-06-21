@@ -282,17 +282,10 @@ begin
 end
 
 lemma filter_size {S : finset ℕ} {a : ℕ} : (finset.filter (λ p, p < a) S).card ≤ a :=
-begin
-  have t : ∀ i, i ∈ (S.filter (λ p, p < a)) → i ∈ finset.range(a),
-    { intros i hyp,
-      simp only [finset.mem_filter] at hyp,
-      simp only [finset.mem_range],
-      exact hyp.2, },
-  have r: S.filter (λ p, p < a) ⊆ finset.range(a) := finset.subset_iff.mpr t,
-  have s: (S.filter (λ p, p < a)).card ≤ (finset.range(a)).card := finset.card_le_of_subset r,
-  simp only [finset.card_range] at s,
-  exact s,
-end
+have t : ∀ i, i ∈ (S.filter (λ p, p < a)) → i ∈ finset.range(a), by simp,
+have r: S.filter (λ p, p < a) ⊆ finset.range(a) := finset.subset_iff.mpr t,
+have s: (S.filter (λ p, p < a)).card ≤ (finset.range(a)).card := finset.card_le_of_subset r,
+by simpa only [finset.card_range] using s
 
 lemma even_prime_is_two {p : ℕ} (pr: nat.prime p) (div: 2 ∣ p) : p = 2 :=
 begin

@@ -90,7 +90,7 @@ jobs:
     if: false
 
     # skip on master branch
-    if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/master'
+    # if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/master'
 
     steps:
       - name: retrieve build

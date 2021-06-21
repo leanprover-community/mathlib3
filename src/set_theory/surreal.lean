@@ -359,7 +359,7 @@ begin
         ... < pow_half (n.succ) + pow_half (n.succ + 1)     : add_lt_add_left zero_lt_pow_half },
       { calc pow_half n.succ
             ≈ 0 + pow_half n.succ                           : (zero_add_equiv _).symm
-        ... < pow_half (n.succ + 1) + pow_half (n.succ)     : add_lt_add_right zero_lt_pow_half } } }
+        ... < pow_half (n.succ + 1) + pow_half (n.succ)     : add_lt_add_right zero_lt_pow_half }}}
 end
 
 end pgame

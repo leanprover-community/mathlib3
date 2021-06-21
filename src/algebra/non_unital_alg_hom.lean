@@ -29,6 +29,8 @@ functions on a non-compact topological space. A proper map between a pair of suc
 (contravariantly) induces a morphism between their algebras of compactly-supported functions which
 will be a `non_unital_alg_hom`.
 
+TODO: add `non_unital_alg_equiv` when needed.
+
 ## Main definitions
 
   * `non_unital_alg_hom`

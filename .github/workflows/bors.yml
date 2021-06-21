@@ -6,7 +6,7 @@
 on:
   push:
     branches:
-      - staging
+      - nael
 
 name: continuous integration
 

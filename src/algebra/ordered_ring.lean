@@ -16,6 +16,12 @@ set_option old_structure_cmd true
 universe u
 variable {α : Type u}
 
+lemma add_one_le_two_mul [preorder α] [semiring α] [covariant_class α α (+) (≤)]
+  {a : α} (a1 : 1 ≤ a) :
+  a + 1 ≤ 2 * a :=
+calc  a + 1 ≤ a + a : add_le_add_left a1 a
+        ... = 2 * a : (two_mul _).symm
+
 /-- An `ordered_semiring α` is a semiring `α` with a partial order such that
 multiplication with a positive number and addition are monotone. -/
 @[protect_proj]

@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes, Floris van Doorn
 -/
 import data.nat.basic
+import algebra.group_power.basic
+
 /-!
 # The factorial function
 
 -/
 
 namespace nat
-variables {m n : ℕ}
 
 /-- `nat.factorial n` is the factorial of `n`. -/
 @[simp] def factorial : nat → nat
@@ -19,7 +20,11 @@ variables {m n : ℕ}
 
 localized "notation n `!`:10000 := nat.factorial n" in nat
 
-@[simp] theorem factorial_zero : 0! = 1! := rfl
+section factorial
+
+variables {m n : ℕ}
+
+@[simp] theorem factorial_zero : 0! = 1 := rfl
 
 @[simp] theorem factorial_succ (n : ℕ) : n.succ! = succ n * n! := rfl
 
@@ -142,5 +147,53 @@ begin
   { exact self_le_factorial _ },
   { exact add_factorial_succ_le_factorial_add_succ i h }
 end
+
+end factorial
+
+section desc_fac
+
+/-- desc_fac n k = (n + k)! / n! (as seen in `nat.desc_fac_eq_div`), but implemented recursively.
+This is closely related to `pochhammer`, but much less general. -/
+def desc_fac (n : ℕ) : ℕ → ℕ
+| 0 := 1
+| (k + 1) := (n + k + 1) * desc_fac k
+
+@[simp] lemma desc_fac_zero (n : ℕ) : desc_fac n 0 = 1 := rfl
+
+@[simp] lemma zero_desc_fac (k : ℕ) : desc_fac 0 k = k! :=
+begin
+  induction k with t ht, refl,
+  unfold desc_fac, rw [ht, zero_add, nat.factorial_succ]
+end
+
+lemma desc_fac_succ {n k : ℕ} : desc_fac n k.succ = (n + k + 1) * desc_fac n k := rfl
+
+lemma succ_desc_fac (n : ℕ) : ∀ k, (n + 1) * desc_fac n.succ k = (n + k + 1) * desc_fac n k
+| 0 := by rw [add_zero, desc_fac_zero, desc_fac_zero]
+| (k + 1) := by rw [desc_fac, mul_left_comm, succ_desc_fac, desc_fac, succ_add, ← add_assoc]
+
+/-- `desc_fac n k = (n + k)! / n!`. However, this lemma states a reformulation to avoid ℕ-division.
+See `nat.desc_fac_eq_div` if you really need the version that uses ℕ-division. -/
+theorem factorial_mul_desc_fac (n : ℕ) : ∀ k, n! * desc_fac n k = (n + k)!
+| 0 := by rw [desc_fac, add_zero, mul_one]
+| (k + 1) := by rw [desc_fac_succ, mul_left_comm, factorial_mul_desc_fac, ← add_assoc, factorial]
+
+/-- Avoid in favour of `nat.factorial_mul_desc_fac` if you can. ℕ-division isn't worth it. -/
+lemma desc_fac_eq_div (n k : ℕ) : desc_fac n k = (n + k)! / n! :=
+begin
+  apply mul_left_cancel' (factorial_ne_zero n),
+  rw factorial_mul_desc_fac,
+  exact (nat.mul_div_cancel' $ factorial_dvd_factorial $ le.intro rfl).symm
+end
+
+lemma desc_fac_of_sub {n k : ℕ} (h : n < k) :
+  (k - n) * (k - n).desc_fac n = (k - (n + 1)).desc_fac (n + 1) :=
+begin
+  set t := k - n.succ with ht,
+  suffices h' : k - n = t.succ, by rw [←ht, h', succ_desc_fac, desc_fac_succ],
+  rw [ht, succ_eq_add_one, ←sub_sub_assoc h (succ_pos _), succ_sub_one],
+end
+
+end desc_fac
 
 end nat

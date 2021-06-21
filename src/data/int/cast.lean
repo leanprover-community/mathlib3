@@ -6,11 +6,26 @@ Authors: Mario Carneiro
 import data.int.basic
 import data.nat.cast
 
+/-!
+# Cast of integers
+
+This file defines the *canonical* homomorphism from the integers into a type `α` with `0`,
+`1`, `+` and `-` (typically a `ring`).
+
+## Main declarations
+
+* `cast`: Canonical homomorphism `ℤ → α` where `α` has a `0`, `1`, `+` and `-`.
+* `cast_add_hom`: `cast` bundled as an `add_monoid_hom`.
+* `cast_ring_hom`: `cast` bundled as a `ring_hom`.
+
+## Implementation note
+
+Setting up the coercions priorities is tricky. See Note [coercion into rings].
+-/
+
 open nat
 
 namespace int
-
-/- cast (injection into groups with one) -/
 
 @[simp, push_cast] theorem nat_cast_eq_coe_nat : ∀ n,
   @coe ℕ ℤ (@coe_to_lift _ _ nat.cast_coe) n =
@@ -270,3 +285,19 @@ end ring_hom
 
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
+
+namespace pi
+
+variables {α β : Type*}
+
+lemma int_apply [has_zero β] [has_one β] [has_add β] [has_neg β] :
+  ∀ (n : ℤ) (a : α), (n : α → β) a = n
+| (n:ℕ)  a := pi.nat_apply n a
+| -[1+n] a :=
+by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, neg_apply, add_apply, one_apply, nat_apply]
+
+@[simp] lemma coe_int [has_zero β] [has_one β] [has_add β] [has_neg β] (n : ℤ) :
+  (n : α → β) = λ _, n :=
+by { ext, rw pi.int_apply }
+
+end pi

@@ -524,8 +524,11 @@ theorem size_eq_nat_size : ∀ n, (size n : ℕ) = nat_size n
 theorem nat_size_to_nat (n) : nat_size n = nat.size n :=
 by rw [← size_eq_nat_size, size_to_nat]
 
-@[simp] theorem of_nat'_eq : ∀ n, num.of_nat' n = n :=
-nat.binary_rec rfl $ λ b n IH, begin
+@[simp] theorem of_nat'_zero : num.of_nat' 0 = 0 :=
+by simp [num.of_nat']
+
+@[simp, priority 999] theorem of_nat'_eq : ∀ n, num.of_nat' n = n :=
+nat.binary_rec (by simp) $ λ b n IH, begin
   rw of_nat' at IH ⊢,
   rw [nat.binary_rec_eq, IH],
   { cases b; simp [nat.bit, bit0_of_bit0, bit1_of_bit1] },
@@ -1172,14 +1175,20 @@ end pos_num
 
 namespace num
 
+@[simp] protected lemma div_zero (n : num) : n / 0 = 0 :=
+show n.div 0 = 0, by { cases n, refl, simp [num.div] }
+
 @[simp, norm_cast] theorem div_to_nat : ∀ n d, ((n / d : num) : ℕ) = n / d
-| 0       0       := rfl
+| 0       0       := by simp
 | 0       (pos d) := (nat.zero_div _).symm
 | (pos n) 0       := (nat.div_zero _).symm
 | (pos n) (pos d) := pos_num.div'_to_nat _ _
 
+@[simp] protected lemma mod_zero (n : num) : n % 0 = n :=
+show n.mod 0 = n, by { cases n, refl, simp [num.mod] }
+
 @[simp, norm_cast] theorem mod_to_nat : ∀ n d, ((n % d : num) : ℕ) = n % d
-| 0       0       := rfl
+| 0       0       := by simp
 | 0       (pos d) := (nat.zero_mod _).symm
 | (pos n) 0       := (nat.mod_zero _).symm
 | (pos n) (pos d) := pos_num.mod'_to_nat _ _
@@ -1238,8 +1247,11 @@ instance pos_num.decidable_dvd : decidable_rel ((∣) : pos_num → pos_num → 
 
 namespace znum
 
+@[simp] protected lemma div_zero (n : znum) : n / 0 = 0 :=
+show n.div 0 = 0, by cases n; refl <|> simp [znum.div]
+
 @[simp, norm_cast] theorem div_to_int : ∀ n d, ((n / d : znum) : ℤ) = n / d
-| 0       0       := rfl
+| 0       0       := by simp [int.div_zero]
 | 0       (pos d) := (int.zero_div _).symm
 | 0       (neg d) := (int.zero_div _).symm
 | (pos n) 0       := (int.div_zero _).symm

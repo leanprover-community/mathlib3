@@ -27,6 +27,9 @@ of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.  This p
 `to_dual_map` to be upgraded to an (isometric) continuous linear equivalence, `to_dual`, between a
 Hilbert space and its dual.
 
+Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
+theory for `semi_normed_space` and we specialize to `normed_space` when needed.
+
 ## References
 
 * [M. Einsiedler and T. Ward, *Functional Analysis, Spectral Theory, and Applications*]
@@ -45,12 +48,17 @@ namespace normed_space
 
 section general
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables (E : Type*) [normed_group E] [normed_space 𝕜 E]
+variables (E : Type*) [semi_normed_group E] [semi_normed_space 𝕜 E]
+variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
-/-- The topological dual of a normed space `E`. -/
-@[derive [has_coe_to_fun, normed_group, normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
+/-- The topological dual of a seminormed space `E`. -/
+@[derive [has_coe_to_fun, semi_normed_group, semi_normed_space 𝕜]] def dual := E →L[𝕜] 𝕜
 
 instance : inhabited (dual 𝕜 E) := ⟨0⟩
+
+instance : normed_group (dual 𝕜 F) := continuous_linear_map.to_normed_group
+
+instance : normed_space 𝕜 (dual 𝕜 F) := continuous_linear_map.to_normed_space
 
 /-- The inclusion of a normed space in its double (topological) dual. -/
 def inclusion_in_double_dual' (x : E) : (dual 𝕜 (dual 𝕜 E)) :=
@@ -85,8 +93,8 @@ end general
 
 section bidual_isometry
 
-variables {𝕜 : Type v} [is_R_or_C 𝕜]
-{E : Type u} [normed_group E] [normed_space 𝕜 E]
+variables (𝕜 : Type v) [is_R_or_C 𝕜]
+  {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.
     Compare `continuous_linear_map.op_norm_le_bound`. -/
@@ -96,11 +104,24 @@ begin
   classical,
   by_cases h : x = 0,
   { simp only [h, hMp, norm_zero] },
-  { obtain ⟨f, hf⟩ : ∃ g : E →L[𝕜] 𝕜, _ := exists_dual_vector x h,
+  { obtain ⟨f, hf⟩ : ∃ g : E →L[𝕜] 𝕜, _ := exists_dual_vector 𝕜 x h,
     calc ∥x∥ = ∥norm' 𝕜 x∥ : (norm_norm' _ _ _).symm
     ... = ∥f x∥ : by rw hf.2
     ... ≤ M * ∥f∥ : hM f
     ... = M : by rw [hf.1, mul_one] }
+end
+
+lemma eq_zero_of_forall_dual_eq_zero {x : E} (h : ∀ f : dual 𝕜 E, f x = (0 : 𝕜)) : x = 0 :=
+norm_eq_zero.mp (le_antisymm (norm_le_dual_bound 𝕜 x le_rfl (λ f, by simp [h f])) (norm_nonneg _))
+
+lemma eq_zero_iff_forall_dual_eq_zero (x : E) : x = 0 ↔ ∀ g : dual 𝕜 E, g x = 0 :=
+⟨λ hx, by simp [hx], λ h, eq_zero_of_forall_dual_eq_zero 𝕜 h⟩
+
+lemma eq_iff_forall_dual_eq {x y : E} :
+  x = y ↔ ∀ g : dual 𝕜 E, g x = g y :=
+begin
+  rw [← sub_eq_zero, eq_zero_iff_forall_dual_eq_zero 𝕜 (x - y)],
+  simp [sub_eq_zero],
 end
 
 /-- The inclusion of a normed space in its double dual is an isometry onto its image.-/
@@ -111,7 +132,7 @@ begin
   { rw continuous_linear_map.norm_def,
     apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
     rintros c ⟨hc1, hc2⟩,
-    exact norm_le_dual_bound x hc1 hc2 },
+    exact norm_le_dual_bound 𝕜 x hc1 hc2 },
 end
 
 end bidual_isometry

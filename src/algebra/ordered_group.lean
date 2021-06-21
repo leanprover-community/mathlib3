@@ -36,6 +36,17 @@ class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :
 
 attribute [to_additive] ordered_comm_group
 
+@[to_additive]
+instance units.covariant_class [ordered_comm_monoid α] :
+  covariant_class (units α) (units α) (*) (≤) :=
+{ elim := λ a b c bc, by {
+  rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
+  { exact rfl.le },
+  refine le_iff_eq_or_lt.mpr (or.inr _),
+  refine units.coe_lt_coe.mp _,
+  cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
+  exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
+
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=
@@ -395,7 +406,7 @@ lemma inv_mul_lt_iff_lt_mul_right : c⁻¹ * a < b ↔ a < b * c :=
 by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 
 @[to_additive add_neg_le_add_neg_iff]
-lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
+lemma mul_inv_le_mul_inv_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
   have := mul_le_mul_right' (mul_le_mul_right' h b) d,
@@ -412,8 +423,9 @@ by simp [div_eq_mul_inv]
 @[simp, to_additive] lemma div_lt_self_iff (a : α) {b : α} : a / b < a ↔ 1 < b :=
 by simp [div_eq_mul_inv]
 
-/-- Pullback an `ordered_comm_group` under an injective map. -/
-@[to_additive function.injective.ordered_add_comm_group
+/-- Pullback an `ordered_comm_group` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.ordered_add_comm_group
 "Pullback an `ordered_add_comm_group` under an injective map."]
 def function.injective.ordered_comm_group {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β]
@@ -567,6 +579,14 @@ addition is monotone. -/
 class linear_ordered_add_comm_group (α : Type u) extends add_comm_group α, linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
+/-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
+  Instances should include number systems with an infinite element adjoined.` -/
+@[protect_proj, ancestor linear_ordered_add_comm_monoid_with_top sub_neg_monoid nontrivial]
+class linear_ordered_add_comm_group_with_top (α : Type*)
+  extends linear_ordered_add_comm_monoid_with_top α, sub_neg_monoid α, nontrivial α :=
+(neg_top : - (⊤ : α) = ⊤)
+(add_neg_cancel : ∀ a:α, a ≠ ⊤ → a + (- a) = 0)
+
 /-- A linearly ordered commutative group is a
 commutative group with a linear order in which
 multiplication is monotone. -/
@@ -588,8 +608,9 @@ instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   mul_left_cancel := λ x y z, mul_left_cancel,
   ..‹linear_ordered_comm_group α› }
 
-/-- Pullback a `linear_ordered_comm_group` under an injective map. -/
-@[to_additive function.injective.linear_ordered_add_comm_group
+/-- Pullback a `linear_ordered_comm_group` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.linear_ordered_add_comm_group
 "Pullback a `linear_ordered_add_comm_group` under an injective map."]
 def function.injective.linear_ordered_comm_group {β : Type*}
   [has_one β] [has_mul β] [has_inv β] [has_div β]
@@ -654,7 +675,7 @@ end
 @[to_additive exists_zero_lt]
 lemma exists_one_lt' [nontrivial α] : ∃ (a:α), 1 < a :=
 begin
-  obtain ⟨y, hy⟩ := exists_ne (1 : α),
+  obtain ⟨y, hy⟩ := decidable.exists_ne (1 : α),
   cases hy.lt_or_lt,
   { exact ⟨y⁻¹, one_lt_inv'.mpr h⟩ },
   { exact ⟨y, h⟩ }
@@ -695,16 +716,28 @@ begin
     exact add_le_add h h, }
 end
 
+@[simp] lemma max_zero_sub_max_neg_zero_eq_self (a : α) :
+  max a 0 - max (-a) 0 = a :=
+by { rcases le_total a 0 with h|h; simp [h] }
+
 lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,
 calc a ≤ b + (c - b) : h _ (sub_pos_of_lt hc)
    ... = c           : add_sub_cancel'_right _ _
 
+lemma le_iff_forall_pos_le_add [densely_ordered α] : a ≤ b ↔ ∀ ε, 0 < ε → a ≤ b + ε :=
+⟨λ h ε ε_pos, le_add_of_le_of_nonneg h ε_pos.le, le_of_forall_pos_le_add⟩
+
 lemma le_of_forall_pos_lt_add (h : ∀ ε : α, 0 < ε → a < b + ε) : a ≤ b :=
 le_of_not_lt $ λ h₁, by simpa using h _ (sub_pos_of_lt h₁)
 
+lemma le_iff_forall_pos_lt_add : a ≤ b ↔ ∀ ε, 0 < ε → a < b + ε :=
+⟨λ h ε, lt_add_of_le_of_pos h, le_of_forall_pos_lt_add⟩
+
 /-- `abs a` is the absolute value of `a`. -/
 def abs (a : α) : α := max a (-a)
+
+lemma abs_choice (x : α) : abs x = x ∨ abs x = -x := max_choice _ _
 
 lemma abs_of_nonneg (h : 0 ≤ a) : abs a = a :=
 max_eq_left $ (neg_nonpos.2 h).trans h
@@ -736,7 +769,7 @@ lemma abs_pos_of_pos (h : 0 < a) : 0 < abs a := abs_pos.2 h.ne.symm
 
 lemma abs_pos_of_neg (h : a < 0) : 0 < abs a := abs_pos.2 h.ne
 
-lemma abs_sub (a b : α) : abs (a - b) = abs (b - a) :=
+lemma abs_sub_comm (a b : α) : abs (a - b) = abs (b - a) :=
 by rw [← neg_sub, abs_neg]
 
 lemma abs_le' : abs a ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
@@ -754,6 +787,9 @@ lemma le_abs_self (a : α) : a ≤ abs a := le_max_left _ _
 
 lemma neg_le_abs_self (a : α) : -a ≤ abs a := le_max_right _ _
 
+lemma neg_abs_le_self (a : α) : -abs a ≤ a :=
+neg_le.mpr $ neg_le_abs_self a
+
 lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 
@@ -761,7 +797,7 @@ lemma abs_nonneg (a : α) : 0 ≤ abs a :=
 abs_of_nonneg $ abs_nonneg a
 
 @[simp] lemma abs_eq_zero : abs a = 0 ↔ a = 0 :=
-not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
+decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans abs_pos
 
 @[simp] lemma abs_nonpos_iff {a : α} : abs a ≤ 0 ↔ a = 0 :=
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
@@ -783,12 +819,16 @@ begin
 end
 
 lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
-by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
+by { rw abs_sub_comm, exact max_sub_min_eq_abs' _ _ }
 
 lemma abs_add (a b : α) : abs (a + b) ≤ abs a + abs b :=
 abs_le.2 ⟨(neg_add (abs a) (abs b)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),
   add_le_add (le_abs_self _) (le_abs_self _)⟩
+
+theorem abs_sub (a b : α) :
+  abs (a - b) ≤ abs a + abs b :=
+by { rw [sub_eq_add_neg, ←abs_neg b], exact abs_add a _ }
 
 lemma abs_sub_le_iff : abs (a - b) ≤ c ↔ a - b ≤ c ∧ b - a ≤ c :=
 by rw [abs_le, neg_le_sub_iff_le_add, @sub_le_iff_le_add' _ _ b, and_comm]
@@ -800,13 +840,13 @@ lemma sub_le_of_abs_sub_le_left (h : abs (a - b) ≤ c) : b - c ≤ a :=
 sub_le.1 $ (abs_sub_le_iff.1 h).2
 
 lemma sub_le_of_abs_sub_le_right (h : abs (a - b) ≤ c) : a - c ≤ b :=
-sub_le_of_abs_sub_le_left (abs_sub a b ▸ h)
+sub_le_of_abs_sub_le_left (abs_sub_comm a b ▸ h)
 
 lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
 sub_lt.1 $ (abs_sub_lt_iff.1 h).2
 
 lemma sub_lt_of_abs_sub_lt_right (h : abs (a - b) < c) : a - c < b :=
-sub_lt_of_abs_sub_lt_left (abs_sub a b ▸ h)
+sub_lt_of_abs_sub_lt_left (abs_sub_comm a b ▸ h)
 
 lemma abs_sub_abs_le_abs_sub (a b : α) : abs a - abs b ≤ abs (a - b) :=
 sub_le_iff_le_add.2 $
@@ -814,16 +854,24 @@ calc abs a = abs (a - b + b)     : by rw [sub_add_cancel]
        ... ≤ abs (a - b) + abs b : abs_add _ _
 
 lemma abs_abs_sub_abs_le_abs_sub (a b : α) : abs (abs a - abs b) ≤ abs (a - b) :=
-abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub; apply abs_sub_abs_le_abs_sub⟩
+abs_sub_le_iff.2 ⟨abs_sub_abs_le_abs_sub _ _, by rw abs_sub_comm; apply abs_sub_abs_le_abs_sub⟩
+
+lemma eq_or_eq_neg_of_abs_eq (h : abs a = b) : a = b ∨ a = -b :=
+by simpa only [← h, eq_comm, eq_neg_iff_eq_neg] using abs_choice a
 
 lemma abs_eq (hb : 0 ≤ b) : abs a = b ↔ a = b ∨ a = -b :=
-iff.intro
-  begin
-    cases le_total a 0 with a_nonpos a_nonneg,
-    { rw [abs_of_nonpos a_nonpos, neg_eq_iff_neg_eq, eq_comm], exact or.inr },
-    { rw [abs_of_nonneg a_nonneg, eq_comm], exact or.inl }
-  end
-  (by intro h; cases h; subst h; try { rw abs_neg }; exact abs_of_nonneg hb)
+begin
+  refine ⟨eq_or_eq_neg_of_abs_eq, _⟩,
+  rintro (rfl|rfl); simp only [abs_neg, abs_of_nonneg hb]
+end
+
+lemma abs_eq_abs : abs a = abs b ↔ a = b ∨ a = -b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { obtain rfl | rfl := eq_or_eq_neg_of_abs_eq h;
+    simpa only [neg_eq_iff_neg_eq, neg_inj, or.comm, @eq_comm _ (-b)] using abs_choice b },
+  { cases h; simp only [h, abs_neg] },
+end
 
 lemma abs_le_max_abs_abs (hab : a ≤ b)  (hbc : b ≤ c) : abs b ≤ max (abs a) (abs c) :=
 abs_le'.2
@@ -860,6 +908,18 @@ abs_sub_le_iff.2 ⟨sub_le_sub hau hbl, sub_le_sub hbu hal⟩
 
 lemma eq_of_abs_sub_nonpos (h : abs (a - b) ≤ 0) : a = b :=
 eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
+
+instance with_top.linear_ordered_add_comm_group_with_top :
+  linear_ordered_add_comm_group_with_top (with_top α) :=
+{ neg := option.map (λ a : α, -a),
+  neg_top := @option.map_none _ _ (λ a : α, -a),
+  add_neg_cancel := begin
+    rintro (a | a) ha,
+    { exact (ha rfl).elim },
+    exact with_top.coe_add.symm.trans (with_top.coe_eq_coe.2 (add_neg_self a)),
+  end,
+  .. with_top.linear_ordered_add_comm_monoid_with_top,
+  .. option.nontrivial }
 
 end linear_ordered_add_comm_group
 
@@ -936,7 +996,7 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 
 instance [linear_ordered_add_comm_group α] :
   linear_ordered_add_comm_group (order_dual α) :=
-{ add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
+{ add_le_add_left := λ a b h c, by exact add_le_add_left h _,
   ..order_dual.linear_order α,
   ..show add_comm_group α, by apply_instance }
 

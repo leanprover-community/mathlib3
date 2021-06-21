@@ -107,6 +107,48 @@ supr_congr_Prop pq f
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : Inter f₁ = Inter f₂ :=
 infi_congr_Prop pq f
 
+lemma Union_prop (f : ι → set α) (p : ι → Prop) (i : ι) [decidable $ p i] :
+  (⋃ (h : p i), f i) = if p i then f i else ∅ :=
+begin
+  ext x,
+  rw mem_Union,
+  split_ifs ; tauto,
+end
+
+@[simp]
+lemma Union_prop_pos {p : ι → Prop} {i : ι} (hi : p i) (f : ι → set α)  :
+  (⋃ (h : p i), f i) = f i :=
+begin
+  classical,
+  ext x,
+  rw [Union_prop, if_pos hi]
+end
+
+@[simp]
+lemma Union_prop_neg {p : ι → Prop} {i : ι} (hi : ¬ p i) (f : ι → set α)  :
+  (⋃ (h : p i), f i) = ∅ :=
+begin
+  classical,
+  ext x,
+  rw [Union_prop, if_neg hi]
+end
+
+lemma exists_set_mem_of_union_eq_top {ι : Type*} (t : set ι) (s : ι → set β)
+  (w : (⋃ i ∈ t, s i) = ⊤) (x : β) :
+  ∃ (i ∈ t), x ∈ s i :=
+begin
+  have p : x ∈ ⊤ := set.mem_univ x,
+  simpa only [←w, set.mem_Union] using p,
+end
+
+lemma nonempty_of_union_eq_top_of_nonempty
+  {ι : Type*} (t : set ι) (s : ι → set α) (H : nonempty α) (w : (⋃ i ∈ t, s i) = ⊤) :
+  t.nonempty :=
+begin
+  obtain ⟨x, m, -⟩ := exists_set_mem_of_union_eq_top t s w H.some,
+  exact ⟨x, m⟩,
+end
+
 theorem set_of_exists (p : ι → β → Prop) : {x | ∃ i, p i x} = ⋃ i, {x | p i x} :=
 ext $ λ i, mem_Union.symm
 
@@ -368,6 +410,10 @@ by simp only [Inter_or, Inter_inter_distrib, Inter_Inter_eq_left]
 theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x := by simp
 
+lemma mem_bUnion_iff' {p : α → Prop} {t : α → set β} {y : β} :
+  y ∈ (⋃ i (h : p i), t i) ↔ ∃ i (h : p i), y ∈ t i :=
+mem_bUnion_iff
+
 theorem mem_bInter_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋂ x ∈ s, t x) ↔ ∀ x ∈ s, y ∈ t x := by simp
 
@@ -474,6 +520,20 @@ by simp
 theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
 by rw [bInter_insert, bInter_singleton]
+
+lemma bInter_inter {ι α : Type*} {s : set ι} (hs : s.nonempty) (f : ι → set α) (t : set α) :
+  (⋂ i ∈ s, f i ∩ t) = (⋂ i ∈ s, f i) ∩ t :=
+begin
+  haveI : nonempty s := hs.to_subtype,
+  simp [bInter_eq_Inter, ← Inter_inter]
+end
+
+lemma inter_bInter {ι α : Type*} {s : set ι} (hs : s.nonempty) (f : ι → set α) (t : set α) :
+  (⋂ i ∈ s, t ∩ f i) = t ∩ ⋂ i ∈ s, f i :=
+begin
+  rw [inter_comm, ← bInter_inter hs],
+  simp [inter_comm]
+end
 
 theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset

@@ -47,6 +47,10 @@ from exists_congr (λ _, h.mem_to_finset)
 @[simp] lemma finite.coe_to_finset {s : set α} (h : finite s) : ↑h.to_finset = s :=
 @set.coe_to_finset _ s h.fintype
 
+@[simp] lemma finite.coe_sort_to_finset {s : set α} (h : finite s) :
+  (h.to_finset : Type*) = s :=
+by rw [← finset.coe_sort_coe _, h.coe_to_finset]
+
 @[simp] lemma finite_empty_to_finset (h : finite (∅ : set α)) : h.to_finset = ∅ :=
 by rw [← finset.coe_inj, h.coe_to_finset, finset.coe_empty]
 
@@ -84,11 +88,7 @@ theorem exists_finite_iff_finset {p : set α → Prop} :
   λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
 
 lemma finite.fin_embedding {s : set α} (h : finite s) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
-begin
-  classical,
-  obtain ⟨f⟩ := (fintype.equiv_fin (h.to_finset : set α)).nonempty,
-  exact ⟨_, f.symm.as_embedding, by simp⟩
-end
+⟨_, (fintype.equiv_fin (h.to_finset : set α)).symm.as_embedding, by simp⟩
 
 lemma finite.fin_param {s : set α} (h : finite s) :
   ∃ (n : ℕ) (f : fin n → α), injective f ∧ range f = s :=
@@ -789,3 +789,22 @@ protected lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) :
 s.finite_to_set.bdd_below
 
 end finset
+
+namespace fintype
+variables [fintype α] {p q : α → Prop} [decidable_pred p] [decidable_pred q]
+
+@[simp]
+lemma card_subtype_compl : fintype.card {x // ¬ p x} = fintype.card α - fintype.card {x // p x} :=
+begin
+  classical,
+  rw [fintype.card_of_subtype (set.to_finset pᶜ), set.to_finset_compl p, finset.card_compl,
+      fintype.card_of_subtype (set.to_finset p)];
+    intros; simp; refl
+end
+
+/-- If two subtypes of a fintype have equal cardinality, so do their complements. -/
+lemma card_compl_eq_card_compl (h : fintype.card {x // p x} = fintype.card {x // q x}) :
+  fintype.card {x // ¬ p x} = fintype.card {x // ¬ q x} :=
+by simp only [card_subtype_compl, h]
+
+end fintype

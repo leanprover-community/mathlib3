@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.big_operators.order
+import data.nat.totient
 import group_theory.order_of_element
 
 /-!
@@ -141,9 +143,9 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
   ⟨⟨⟨g ^ nat.find hex, (nat.find_spec hex).2⟩,
     λ ⟨x, hx⟩, let ⟨k, hk⟩ := hg x in
       have hk₁ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ gpowers (g ^ nat.find hex),
-        from ⟨k / nat.find hex, eq.symm $ gpow_mul _ _ _⟩,
+        from ⟨k / nat.find hex, by rw [← gpow_coe_nat, gpow_mul]⟩,
       have hk₂ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ H,
-        by rw gpow_mul; exact H.gpow_mem (nat.find_spec hex).2 _,
+        by { rw gpow_mul, apply H.gpow_mem, exact_mod_cast (nat.find_spec hex).2 },
       have hk₃ : g ^ (k % nat.find hex) ∈ H,
         from (subgroup.mul_mem_cancel_right H hk₂).1 $
           by rw [← gpow_add, int.mod_add_div, hk]; exact hx,
@@ -192,8 +194,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
       end⟩)
 ... ≤ n :
   let ⟨m, hm⟩ := gcd_dvd_right n (fintype.card α) in
-  have hm0 : 0 < m, from nat.pos_of_ne_zero
-    (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
+  have hm0 : 0 < m, from nat.pos_of_ne_zero $
+    λ hm0, by { rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm, exact hm.elim' 1 },
   begin
     rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
         order_of_pow g, order_of_eq_card_of_forall_mem_gpowers hg],

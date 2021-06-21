@@ -208,6 +208,17 @@ lemma vanishing_ideal_anti_mono {s t : set (prime_spectrum R)} (h : s ⊆ t) :
   vanishing_ideal t ≤ vanishing_ideal s :=
 (gc R).monotone_u h
 
+lemma zero_locus_subset_zero_locus_iff (I J : ideal R) :
+  zero_locus (I : set R) ⊆ zero_locus (J : set R) ↔ J ≤ I.radical :=
+⟨λ h, ideal.radical_le_radical_iff.mp (vanishing_ideal_zero_locus_eq_radical I ▸
+  vanishing_ideal_zero_locus_eq_radical J ▸ vanishing_ideal_anti_mono h),
+λ h, zero_locus_radical I ▸ zero_locus_anti_mono_ideal h⟩
+
+lemma zero_locus_subset_zero_locus_singleton_iff (f g : R) :
+  zero_locus ({f} : set R) ⊆ zero_locus {g} ↔ g ∈ (ideal.span ({f} : set R)).radical :=
+by rw [← zero_locus_span {f}, ← zero_locus_span {g}, zero_locus_subset_zero_locus_iff,
+    ideal.span_le, set.singleton_subset_iff, set_like.mem_coe]
+
 lemma zero_locus_bot :
   zero_locus ((⊥ : ideal R) : set R) = set.univ :=
 (gc R).l_bot
@@ -372,7 +383,7 @@ variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
 /-- The function between prime spectra of commutative rings induced by a ring homomorphism.
 This function is continuous. -/
 def comap (f : R →+* S) : prime_spectrum S → prime_spectrum R :=
-λ y, ⟨ideal.comap f y.as_ideal, by exact ideal.is_prime.comap _⟩
+λ y, ⟨ideal.comap f y.as_ideal, infer_instance⟩
 
 variables (f : R →+* S)
 
@@ -405,27 +416,6 @@ end
 
 end comap
 
-/-- The prime spectrum of a commutative ring is a compact topological space. -/
-instance : compact_space (prime_spectrum R) :=
-begin
-  apply compact_space_of_finite_subfamily_closed,
-  intros ι Z hZc hZ,
-  let I : ι → ideal R := λ i, vanishing_ideal (Z i),
-  have hI : ∀ i, Z i = zero_locus (I i),
-  { intro i,
-    rw [zero_locus_vanishing_ideal_eq_closure, is_closed.closure_eq],
-    exact hZc i },
-  have one_mem : (1:R) ∈ ⨆ (i : ι), I i,
-  { rw [← ideal.eq_top_iff_one, ← zero_locus_empty_iff_eq_top, zero_locus_supr],
-    simpa only [hI] using hZ },
-  obtain ⟨s, hs⟩ : ∃ s : finset ι, (1:R) ∈ ⨆ i ∈ s, I i :=
-    submodule.exists_finset_of_mem_supr I one_mem,
-  show ∃ t : finset ι, (⋂ i ∈ t, Z i) = ∅,
-  use s,
-  rw [← ideal.eq_top_iff_one, ←zero_locus_empty_iff_eq_top] at hs,
-  simpa only [zero_locus_supr, hI] using hs
-end
-
 section basic_open
 
 /-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
@@ -449,8 +439,20 @@ topological_space.opens.ext $ by {simp, refl}
 @[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
 topological_space.opens.ext $ by {simp, refl}
 
+lemma basic_open_le_basic_open_iff (f g : R) :
+  basic_open f ≤ basic_open g ↔ f ∈ (ideal.span ({g} : set R)).radical :=
+by rw [topological_space.opens.le_def, basic_open_eq_zero_locus_compl,
+    basic_open_eq_zero_locus_compl, set.le_eq_subset, set.compl_subset_compl,
+    zero_locus_subset_zero_locus_singleton_iff]
+
 lemma basic_open_mul (f g : R) : basic_open (f * g) = basic_open f ⊓ basic_open g :=
 topological_space.opens.ext $ by {simp [zero_locus_singleton_mul]}
+
+lemma basic_open_mul_le_left (f g : R) : basic_open (f * g) ≤ basic_open f :=
+by { rw basic_open_mul f g, exact inf_le_left }
+
+lemma basic_open_mul_le_right (f g : R) : basic_open (f * g) ≤ basic_open g :=
+by { rw basic_open_mul f g, exact inf_le_right }
 
 @[simp] lemma basic_open_pow (f : R) (n : ℕ) (hn : 0 < n) : basic_open (f ^ n) = basic_open f :=
 topological_space.opens.ext $ by simpa using zero_locus_singleton_pow f n hn
@@ -469,7 +471,34 @@ begin
     exact zero_locus_anti_mono (set.singleton_subset_iff.mpr hfs) }
 end
 
+lemma is_compact_basic_open (f : R) : is_compact (basic_open f : set (prime_spectrum R)) :=
+is_compact_of_finite_subfamily_closed $ λ ι Z hZc hZ,
+begin
+  let I : ι → ideal R := λ i, vanishing_ideal (Z i),
+  have hI : ∀ i, Z i = zero_locus (I i) := λ i,
+    by simpa only [zero_locus_vanishing_ideal_eq_closure] using (hZc i).closure_eq.symm,
+  rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.diff_eq,
+      set.diff_eq_empty, funext hI, ← zero_locus_supr] at hZ,
+  obtain ⟨n, hn⟩ : f ∈ (⨆ (i : ι), I i).radical,
+  { rw ← vanishing_ideal_zero_locus_eq_radical,
+    apply vanishing_ideal_anti_mono hZ,
+    exact (subset_vanishing_ideal_zero_locus {f} (set.mem_singleton f)) },
+  rcases submodule.exists_finset_of_mem_supr I hn with ⟨s, hs⟩,
+  use s,
+  -- Using simp_rw here, because `hI` and `zero_locus_supr` need to be applied underneath binders
+  simp_rw [basic_open_eq_zero_locus_compl f, set.inter_comm, ← set.diff_eq,
+           set.diff_eq_empty, hI, ← zero_locus_supr],
+  rw ← zero_locus_radical, -- this one can't be in `simp_rw` because it would loop
+  apply zero_locus_anti_mono,
+  rw set.singleton_subset_iff,
+  exact ⟨n, hs⟩
+end
+
 end basic_open
+
+/-- The prime spectrum of a commutative ring is a compact topological space. -/
+instance : compact_space (prime_spectrum R) :=
+{ compact_univ := by { convert is_compact_basic_open (1 : R), rw basic_open_one, refl } }
 
 section order
 

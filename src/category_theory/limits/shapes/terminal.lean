@@ -178,22 +178,22 @@ is_initial.epi_to initial_is_initial _
 /-- An initial object is terminal in the opposite category. -/
 def terminal_op_of_initial {X : C} (t : is_initial X) : is_terminal (opposite.op X) :=
 { lift := λ s, (t.to s.X.unop).op,
-  uniq' := λ s m w, has_hom.hom.unop_inj (t.hom_ext _ _) }
+  uniq' := λ s m w, quiver.hom.unop_inj (t.hom_ext _ _) }
 
 /-- An initial object in the opposite category is terminal in the original category. -/
 def terminal_unop_of_initial {X : Cᵒᵖ} (t : is_initial X) : is_terminal X.unop :=
 { lift := λ s, (t.to (opposite.op s.X)).unop,
-  uniq' := λ s m w, has_hom.hom.op_inj (t.hom_ext _ _) }
+  uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
 /-- A terminal object is initial in the opposite category. -/
 def initial_op_of_terminal {X : C} (t : is_terminal X) : is_initial (opposite.op X) :=
 { desc := λ s, (t.from s.X.unop).op,
-  uniq' := λ s m w, has_hom.hom.unop_inj (t.hom_ext _ _) }
+  uniq' := λ s m w, quiver.hom.unop_inj (t.hom_ext _ _) }
 
 /-- A terminal object in the opposite category is initial in the original category. -/
 def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.unop :=
 { desc := λ s, (t.from (opposite.op s.X)).unop,
-  uniq' := λ s m w, has_hom.hom.op_inj (t.hom_ext _ _) }
+  uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
 /-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
 In `limit_of_diagram_initial` we show it is a limit cone. -/

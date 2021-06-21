@@ -329,29 +329,43 @@ begin
       ... ≤ 4 ^ (n + 1) : by ring_exp, }, },
 end
 
-lemma power_conversion_1 (n : ℕ) (n_large : 480 < n) : 2 * n + 1 ≤ 4 ^ (n / 15) :=
+lemma six_le_three_mul_four_pow_succ : ∀ (k : ℕ), 6 ≤ 3 * 4 ^ (k + 1)
+| 0       := by norm_num
+| (k + 1) := calc  6 ≤ 3 * 4 ^ (k + 1) : six_le_three_mul_four_pow_succ k
+                 ... ≤ 3 * 4 ^ (k + 2) : (mul_le_mul_left zero_lt_three).mpr $
+                   pow_le_pow (nat.succ_pos 3) (nat.le_succ _)
+
+lemma thirty_mul_succ_le_four_pow {n : ℕ} (n4 : 4 ≤ n) :
+  30 * (n + 1) ≤ 4 ^ n :=
 begin
-  have : 31 ≤ n / 15,
-    { cases le_or_gt 31 (n / 15),
-      { exact h, },
-      { have r : n < n :=
-          calc n = 15 * (n / 15) + (n % 15) : (nat.div_add_mod n 15).symm
-            ... < 15 * 31 + (n % 15) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 14)).2 h) _
-            ... < 15 * 31 + 15 : add_lt_add_left (nat.mod_lt n (by linarith)) (15 * 31)
-            ... = 480 : by norm_num
-            ... < n : n_large,
-        exfalso,
-        exact lt_irrefl _ r, }, },
-  have rem_small : (n % 15) < 15 := nat.mod_lt n (nat.succ_pos 14),
-  calc 2 * n + 1 = 2 * (15 * (n / 15) + (n % 15)) + 1 : by rw nat.div_add_mod n 15
-  ... = 30 * (n / 15) + 2 * (n % 15) + 1 : by ring
-  ... ≤ 30 * (n / 15) + 2 * 15 + 1 : by linarith
-  ... = 30 * (n / 15) + 31 : by norm_num
-  ... ≤ 31 * (n / 15) + 31 : by linarith
-  ... ≤ 31 * (n / 15) + (n / 15) : by linarith
-  ... = 32 * (n / 15) : by ring
-  ... ≤ 4 ^ (n / 15) : pow_beats_mul (n / 15) (by linarith),
+  rcases le_iff_exists_add.mp n4 with ⟨k, rfl⟩,
+  -- Case k = 0: easy
+  cases k, { norm_num },
+  -- Case k = 1: easy
+  cases k, { norm_num },
+  rw pow_add,
+  refine mul_le_mul _ _ (zero_le _) (zero_le _),
+  { norm_num },
+  { obtain F : k + 1 < 4 ^ (k + 1) := (k + 1).lt_pow_self (nat.succ_lt_succ (2 : ℕ).succ_pos),
+    calc  _ = k + 1 + 6 : (congr_arg nat.succ (add_comm 4 _) : _)
+        ... ≤ 4 ^ (k + 1) + 6                : add_le_add_right F.le _
+        ... ≤ 4 ^ (k + 1) +  3 * 4 ^ (k + 1) : add_le_add_left (six_le_three_mul_four_pow_succ k) _
+        ... = 3 * 4 ^ (k + 1) + 4 ^ (k + 1)  : add_comm _ _
+        ... = 4 * 4 ^ (k + 1)                : (nat.succ_mul _ _).symm }
 end
+
+lemma succ_two_mul_le_four_pow_div_fifteen {n : ℕ} (n_large : 60 ≤ n) :
+  2 * n + 1 ≤ 4 ^ (n / 15) :=
+begin
+  obtain F : 30 * (n / 15 + 1) ≤ 4 ^ (n / 15) := thirty_mul_succ_le_four_pow
+    ((nat.le_div_iff_mul_le _ _ (nat.succ_pos 14)).mpr n_large : 4 ≤ n / 15),
+  refine trans (nat.succ_le_of_lt _ : 2 * n < 2 * 15 * (n / 15 + 1)) F,
+  rw mul_assoc,
+  exact (mul_lt_mul_left zero_lt_two).mpr (nat.lt_mul_div_succ _ (nat.succ_pos 14)),
+end
+
+lemma power_conversion_1 (n : ℕ) (n_large : 480 < n) : 2 * n + 1 ≤ 4 ^ (n / 15) :=
+succ_two_mul_le_four_pow_div_fifteen (trans (nat.le_of_sub_eq_zero rfl : 60 ≤ 481) n_large)
 
 open real
 open_locale nnreal

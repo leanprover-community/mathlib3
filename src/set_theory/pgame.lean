@@ -364,10 +364,10 @@ theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
 ⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
 
 protected theorem lt_irrefl (x : pgame) : ¬ x < x :=
-not_lt.2 (le_refl _)
+not_lt.2 (pgame.le_refl _)
 
 protected theorem ne_of_lt : ∀ {x y : pgame}, x < y → x ≠ y
-| x _ h rfl := lt_irrefl x h
+| x _ h rfl := pgame.lt_irrefl x h
 
 theorem le_trans_aux
   {xl xr} {xL : xl → pgame} {xR : xr → pgame}

@@ -59,7 +59,7 @@ linear_equiv.ext $ λ _, rfl
 
 lemma reindex_linear_equiv_trans [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')
   (e₂' : n' ≃ n'') : (reindex_linear_equiv e₁ e₂).trans (reindex_linear_equiv e₁' e₂') =
-   @reindex_linear_equiv _ _ _ _ _ _ _ _ R _ (e₁.trans e₁') (e₂.trans e₂') :=
+   (reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') : _ ≃ₗ[R] _) :=
 by { ext, refl }
 
 lemma reindex_linear_equiv_comp [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')

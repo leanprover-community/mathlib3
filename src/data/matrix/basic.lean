@@ -947,6 +947,17 @@ begin
     equiv.symm_comp_self],
 end
 
+lemma mul_one_minor [semiring α] [decidable_eq o] (e₁ : l → o) (e₂ : m ≃ o) (M : matrix m n α) :
+  ((1 : matrix o o α).minor e₁ e₂).mul M = minor M (e₂.symm ∘ e₁) id :=
+begin
+  let A := M.minor e₂.symm id,
+  have : M = A.minor e₂ id,
+  { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
+  rw [this, ←minor_mul_equiv],
+  simp only [matrix.one_mul, minor_minor, function.comp.right_id, minor_id_id,
+    equiv.symm_comp_self],
+end
+
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
 equivalence. -/
 def reindex (eₘ : m ≃ l) (eₙ : n ≃ o) : matrix m n α ≃ matrix l o α :=

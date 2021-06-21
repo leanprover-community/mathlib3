@@ -607,6 +607,14 @@ lemma set.finite.summable_compl_iff {s : set β} (hs : s.finite) :
   summable (f ∘ coe : sᶜ → α) ↔ summable f :=
 (hs.summable f).summable_compl_iff
 
+lemma has_sum_ite_eq_extract [decidable_eq β] (hf : has_sum f a) (b : β) :
+  has_sum (λ n, ite (n = b) 0 (f n)) (a - f b) :=
+begin
+  convert hf.update b 0 using 1,
+  { ext n, rw function.update_apply, },
+  { rw [sub_add_eq_add_sub, zero_add], },
+end
+
 section tsum
 variables [t2_space α]
 
@@ -619,6 +627,16 @@ lemma tsum_sub (hf : summable f) (hg : summable g) : ∑'b, (f b - g b) = ∑'b,
 lemma sum_add_tsum_compl {s : finset β} (hf : summable f) :
   (∑ x in s, f x) + (∑' x : (↑s : set β)ᶜ, f x) = ∑' x, f x :=
 ((s.has_sum f).add_compl (s.summable_compl_iff.2 hf).has_sum).tsum_eq.symm
+
+/-- Let `f : β → α` be a sequence with summable series and let `b ∈ β` be an index.
+Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f b` plus the series of the
+remaining terms. -/
+lemma tsum_ite_eq_extract [decidable_eq β] (hf : summable f) (b : β) :
+  ∑' n, f n = f b + ∑' n, ite (n = b) 0 (f n) :=
+begin
+  rw (has_sum_ite_eq_extract hf.has_sum b).tsum_eq,
+  exact (add_sub_cancel'_right _ _).symm,
+end
 
 end tsum
 
@@ -1029,20 +1047,6 @@ tsum_prod' h h.prod_factor
 lemma tsum_comm [regular_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
-
-/-- Let `f : ℕ → ℝ` be a sequence with summable series and let `i ∈ ℕ` be an index.
-Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f i` plus the series of the
-remaining terms.
-
-TODO: generalize this to `f : β → α` with appropriate typeclass assumptions
--/
-lemma tsum_ite_eq_extract {f : ℕ → ℝ} (hf : summable f) (i : ℕ) :
-  ∑' n, f n = f i + ∑' n, ite (n = i) 0 (f n) :=
-begin
-  refine ((tsum_congr _).trans $ tsum_add (hf.summable_of_eq_zero_or_self _) $
-    hf.summable_of_eq_zero_or_self _).trans (add_right_cancel_iff.mpr (tsum_ite_eq i (f i)));
-  exact λ j, by { by_cases ji : j = i; simp [ji] }
-end
 
 end uniform_group
 

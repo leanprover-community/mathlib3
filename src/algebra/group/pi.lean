@@ -165,6 +165,17 @@ def monoid_hom.coe_fn (α β : Type*) [mul_one_class α] [comm_monoid β] : (α 
   map_one' := rfl,
   map_mul' := λ x y, rfl, }
 
+/-- Monoid homomorphism between the function spaces `I → α` and `I → β`, induced by a monoid
+homomorphism `f` between `α` and `β`. -/
+@[to_additive "Additive monoid homomorphism between the function spaces `I → α` and `I → β`,
+induced by an additive monoid homomorphism `f` between `α` and `β`", simps]
+protected def monoid_hom.comp_left {α β : Type*} [mul_one_class α] [mul_one_class β] (f : α →* β)
+  (I : Type*) :
+  (I → α) →* (I → β) :=
+{ to_fun := λ h, f ∘ h,
+  map_one' := by ext; simp,
+  map_mul' := λ _ _, by ext; simp }
+
 end monoid_hom
 
 section single

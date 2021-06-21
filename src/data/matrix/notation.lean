@@ -71,6 +71,26 @@ v 0
 def vec_tail {n : ℕ} (v : fin n.succ → α) : fin n → α :=
 v ∘ fin.succ
 
+variables {m n : ℕ}
+
+/-- Use `![...]` notation for displaying a vector `fin n → α`, for example:
+
+```
+#eval ![1, 2] + ![3, 4] -- ![4, 6]
+```
+-/
+instance [has_repr α] : has_repr (fin n → α) :=
+{ repr := λ f, "![" ++ (string.intercalate ", " ((list.fin_range n).map (λ n, repr (f n)))) ++ "]" }
+
+/-- Use `![...]` notation for displaying a `fin`-indexed matrix, for example:
+
+```
+#eval ![![1, 2], ![3, 4]] + ![![3, 4], ![5, 6]] -- ![![4, 6], ![8, 10]]
+```
+-/
+instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) :=
+(by apply_instance : has_repr (fin m → fin n → α))
+
 end matrix_notation
 
 variables {m n o : ℕ} {m' n' o' : Type*} [fintype m'] [fintype n'] [fintype o']

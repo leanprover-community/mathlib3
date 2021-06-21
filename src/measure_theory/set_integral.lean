@@ -141,7 +141,7 @@ lemma integral_indicator (hs : measurable_set s) :
 begin
   by_cases hf : ae_measurable f (μ.restrict s), swap,
   { rw integral_non_ae_measurable hf,
-    rw [ae_measurable_indicator_iff hs] at hf,
+    rw [← ae_measurable_indicator_iff hs] at hf,
     exact integral_non_ae_measurable hf },
   by_cases hfi : integrable_on f s μ, swap,
   { rwa [integral_undef, integral_undef],
@@ -228,6 +228,11 @@ begin
   rw [integral_pos_iff_support_of_nonneg_ae hf hfi, restrict_apply_of_null_measurable_set],
   exact hfi.ae_measurable.null_measurable_set (measurable_set_singleton 0).compl
 end
+
+lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}
+  (hf_meas : @measurable _ _ m _ f) {s : set α} (hs : @measurable_set α m s) :
+  ∫ x in s, f x ∂μ = @integral α E m _ _ _ _ _ _ (@measure.restrict _ m (μ.trim hm) s) f :=
+by rwa [integral_trim hm hf_meas, restrict_trim hm μ]
 
 end normed_group
 

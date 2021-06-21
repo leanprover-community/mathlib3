@@ -251,10 +251,23 @@ equiv.of_bijective (@quotient.lift _ (set.range f) (ker f)
   ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
    λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_mk; exact subtype.ext_iff_val.2 hz⟩⟩
 
-/-- The quotient of α by the kernel of a surjective function f bijects with f's codomain. -/
+/-- If `f` has a computable right-inverse, then the quotient by its kernel is equivalent to its
+domain. -/
+@[simps]
+def quotient_ker_equiv_of_right_inverse (g : β → α) (hf : function.right_inverse g f) :
+  quotient (ker f) ≃ β :=
+{ to_fun := λ a, quotient.lift_on' a f $ λ _ _, id,
+  inv_fun := λ b, quotient.mk' (g b),
+  left_inv := λ a, quotient.induction_on' a $ λ a, quotient.sound' $ by exact hf (f a),
+  right_inv := hf }
+
+/-- The quotient of α by the kernel of a surjective function f bijects with f's codomain.
+
+If a specific right-inverse of `f` is known, `setoid.quotient_ker_equiv_of_right_inverse` can be
+definitionally more useful. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
   quotient (ker f) ≃ β :=
-(quotient_ker_equiv_range f).trans $ equiv.subtype_univ_equiv hf
+quotient_ker_equiv_of_right_inverse _ (function.surj_inv hf) (right_inverse_surj_inv hf)
 
 variables {r f}
 

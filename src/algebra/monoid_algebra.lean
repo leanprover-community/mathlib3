@@ -1042,24 +1042,33 @@ end add_monoid_algebra
 /-!
 #### Conversions between `add_monoid_algebra` and `monoid_algebra`
 
-While we were not able to define `add_monoid_algebra k G = monoid_algebra k (multiplicative G)` due
-to definitional inconveniences, we can still show the types are isomorphic.
-
-TODO: with the new definitional `nsmul`, there is a direct equality here, so this paragraph could be
-improved.
+We have not defined `add_monoid_algebra k G = monoid_algebra k (multiplicative G)`
+because historically this caused problems;
+since the changes that have made `nsmul` definitional, this would be possible,
+but for now we just contruct the ring isomorphisms using `ring_equiv.refl _`.
 -/
 
 /-- The equivalence between `add_monoid_algebra` and `monoid_algebra` in terms of
 `multiplicative` -/
 protected def add_monoid_algebra.to_multiplicative [semiring k] [has_add G] :
   add_monoid_algebra k G ≃+* monoid_algebra k (multiplicative G) :=
-{ map_mul' := λ x y, by convert add_monoid_algebra.map_domain_mul (add_hom.id G),
+{ to_fun := equiv_map_domain multiplicative.of_add,
+  map_mul' := λ x y, begin
+    repeat {rw equiv_map_domain_eq_map_domain},
+    dsimp [multiplicative.of_add],
+    convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)),
+  end,
   ..finsupp.dom_congr multiplicative.of_add }
 
 /-- The equivalence between `monoid_algebra` and `add_monoid_algebra` in terms of `additive` -/
 protected def monoid_algebra.to_additive [semiring k] [has_mul G] :
   monoid_algebra k G ≃+* add_monoid_algebra k (additive G) :=
-{ map_mul' := λ x y, by convert monoid_algebra.map_domain_mul (mul_hom.id G),
+{ to_fun := equiv_map_domain additive.of_mul,
+  map_mul' := λ x y, begin
+    repeat {rw equiv_map_domain_eq_map_domain},
+    dsimp [additive.of_mul],
+    convert monoid_algebra.map_domain_mul (mul_hom.id G),
+  end,
   ..finsupp.dom_congr additive.of_mul }
 
 namespace add_monoid_algebra

@@ -17,6 +17,7 @@ import analysis.special_functions.pow
 import analysis.calculus.local_extr
 import data.real.sqrt
 import data.real.nnreal
+import data.complex.exponential_bounds
 
 open_locale big_operators
 
@@ -574,7 +575,7 @@ begin
   linarith,
 end
 
-lemma intermediate (x : ℝ) : sqrt (8 * x + 8) ^ (3 : ℝ) * (3 ^ (3 : ℝ) * (8 * x + 8)) ≤ x ^ (3 : ℝ) * log 4 ^ (3 : ℝ) :=
+lemma intermediate (x : ℝ) (x_big : 43046721 ≤ x) : sqrt (8 * x + 8) ^ (3 : ℝ) * (3 ^ (3 : ℝ) * (8 * x + 8)) ≤ x ^ (3 : ℝ) * log 4 ^ (3 : ℝ) :=
 begin
   rw pow_real_three,
   rw pow_real_three,
@@ -583,14 +584,117 @@ begin
   rw <-sq,
   rw sqrt_sq,
   calc (8 * x + 8) * sqrt (8 * x + 8) * (3 * 3 * 3 * (8 * x + 8))
-      ≤ 9 * x * sqrt (8 * x + 8) * (3 * 3 * 3 * (8 * x + 8)) : sorry
-  ... ≤ 9 * x * sqrt (8 * x + 8) * (3 * 3 * 3 * 9 * x) : sorry
-  ... ≤ 9 * x * (x / 2187) * (3 * 3 * 3 * 9 * x) : sorry
-  ... = x * x * x : sorry
-  ... ≤ x * x * x * log 4 ^ 3 : sorry
+      ≤ 9 * x * sqrt (8 * x + 8) * (3 * 3 * 3 * (8 * x + 8)) :
+        begin
+          apply mul_le_mul,
+          apply mul_le_mul,
+          linarith,
+          apply le_refl,
+          apply sqrt_nonneg,
+          linarith,
+          apply le_refl,
+          linarith,
+          apply mul_nonneg,
+          linarith,
+          apply sqrt_nonneg,
+        end
+  ... ≤ 9 * x * sqrt (8 * x + 8) * (3 * 3 * 3 * 9 * x) :
+        begin
+          apply mul_le_mul,
+          apply le_refl,
+          linarith,
+          linarith,
+          apply mul_nonneg,
+          linarith,
+          apply sqrt_nonneg,
+        end
+  ... ≤ 9 * x * sqrt (9 * x) * (3 * 3 * 3 * 9 * x) :
+        begin
+          apply mul_le_mul,
+          apply mul_le_mul,
+          apply le_refl,
+          apply sqrt_le_sqrt,
+          linarith,
+          apply sqrt_nonneg,
+          linarith,
+          apply le_refl,
+          linarith,
+          apply mul_nonneg,
+          linarith,
+          apply sqrt_nonneg,
+        end
+  ... ≤ 9 * x * (x / 2187) * (3 * 3 * 3 * 9 * x) :
+        begin
+          apply mul_le_mul,
+          apply mul_le_mul,
+          apply le_refl,
+          rw sqrt_mul,
+          apply (le_div_iff _).2,
+          rw mul_assoc,
+          rw mul_comm,
+          rw mul_assoc,
+          rw mul_comm,
+          apply (le_div_iff _).1,
+          rw div_sqrt,
+          apply (le_sqrt _ _).2,
+          rw mul_pow,
+          rw sq_sqrt,
+          norm_num,
+          linarith,
+          linarith,
+          apply mul_nonneg,
+          linarith,
+          apply sqrt_nonneg,
+          linarith,
+          apply sqrt_pos.2,
+          linarith,
+          linarith,
+          linarith,
+          apply sqrt_nonneg,
+          linarith,
+          linarith,
+          linarith,
+          apply mul_nonneg,
+          linarith,
+          linarith,
+        end
+  ... = x * x * x : by linarith
+  ... ≤ x * x * x * log 4 ^ (3 : ℝ) :
+        begin
+          rw <-(mul_one (x * x * x)),
+          apply mul_le_mul,
+          simp only [le_refl, mul_one],
+          apply one_le_rpow,
+          conv
+          begin
+            to_lhs,
+            rw <-log_exp 1,
+          end,
+          apply (log_le_log _ _).2,
+          apply le_of_lt,
+          apply trans exp_one_lt_d9,
+          linarith,
+          apply exp_pos,
+          linarith,
+          linarith,
+          linarith,
+          apply mul_nonneg,
+          apply mul_nonneg,
+          apply mul_nonneg,
+          linarith,
+          linarith,
+          linarith,
+          linarith,
+        end,
+  linarith,
+  linarith,
+  linarith,
+  linarith,
+  apply sqrt_pos.2,
+  linarith,
 end
 
-lemma linear_dominates_sqrt_log (x : ℝ) (hx : 249 ≤ x) : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
+lemma linear_dominates_sqrt_log (x : ℝ) (hx : 43046721 ≤ x) : sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
 begin
   have h1 : 0 < sqrt (8 * x + 8),
     simp only [sqrt_pos],
@@ -607,7 +711,7 @@ begin
                 rw mul_rpow x_nonneg zero_le_log_four,
                 rw le_div_iff',
                 { rw le_div_iff',
-                  { exact intermediate x, },
+                  { exact intermediate x hx, },
                   { exact rpow_pos_of_pos h1 3, }, },
                 exact zero_lt_three_pow_real_three,
                 -- rewrite saldkaoiew (8 * x + 8),
@@ -635,8 +739,8 @@ begin
               end
 end
 
-/-
-lemma pow_beats_pow_2 (n : ℕ) (n_large : 249 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
+
+lemma pow_beats_pow_2 (n : ℕ) (n_large : 43046721 ≤ n) : (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
 begin
   -- suffices : ((8 * n + 8) ^ nat.sqrt (8 * n + 8) : ℝ) ≤ 4 ^ n,
   apply (@nat.cast_le ℝ _ _ _ _).1,
@@ -689,20 +793,9 @@ end
 --   sorry
 -- end
 
-lemma power_conversion_2 (n : ℕ) (n_large : 999 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
+lemma sqrt_pow_le_linear_pow (n : ℕ) (hn : 1 ≤ 8 * (n / 4)) (hn2 : n % 4 < 4) (hn3 : 43046721 ≤ n / 4)
+: (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
 begin
-  have : 249 ≤ n / 4,
-    { cases le_or_gt 249 (n / 4),
-      { exact h, },
-      { have r : n < n :=
-          calc n = 4 * (n / 4) + (n % 4) : (nat.div_add_mod n 4).symm
-            ... < 4 * 249 + (n % 4) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 3)).2 h) _
-            ... < 4 * 249 + 4 : add_lt_add_left (nat.mod_lt n (by linarith)) (4 * 249)
-            ... = 1000 : by norm_num
-            ... ≤ n : n_large,
-        exfalso,
-        exact lt_irrefl _ r, }, },
-  have rem_small : (n % 4) < 4 := nat.mod_lt n (nat.succ_pos 3),
   calc (2 * n) ^ nat.sqrt (2 * n) = (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (2 * (4 * (n / 4) + (n % 4))) : by rw nat.div_add_mod n 4
   ... ≤ (2 * (4 * (n / 4) + (n % 4))) ^ nat.sqrt (8 * (n / 4) + 8) :
               begin
@@ -744,6 +837,50 @@ begin
                 norm_num,
               end
   ... ≤ 4 ^ (n / 4) : pow_beats_pow_2 (n / 4) (by linarith),
+
+end
+
+lemma n_div_4_big (n : ℕ) (hn : 172186888 < n): 43046721 ≤ n / 4 :=
+begin
+  cases le_or_gt 43046721 (n / 4),
+      { exact h, },
+      {
+        -- linarith,
+        have r : n < n :=
+          calc n = 4 * (n / 4) + (n % 4) : (nat.div_add_mod n 4).symm
+            ... < 4 * 43046721 + (n % 4) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 3)).2 h) _
+            ... < 4 * 43046721 + 4 : add_lt_add_left (nat.mod_lt n (by linarith)) (4 * 43046721)
+            ... = 172186888 : by norm_num
+            ... < n : hn,
+        exfalso,
+        exact lt_irrefl _ r,
+      },
+end
+
+lemma power_conversion_2 (n : ℕ) (n_large : 172186888 < n) : (2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
+begin
+  -- have : 43046721 ≤ n / 4,
+  --   { cases le_or_gt 43046721 (n / 4),
+  --     { exact h, },
+  --     {
+  --       -- linarith,
+  --       have r : n < n :=
+  --         calc n = 4 * (n / 4) + (n % 4) : (nat.div_add_mod n 4).symm
+  --           ... < 4 * 43046721 + (n % 4) : add_lt_add_right ((mul_lt_mul_left (nat.succ_pos 3)).2 h) _
+  --           ... < 4 * 43046721 + 4 : add_lt_add_left (nat.mod_lt n (by linarith)) (4 * 43046721)
+  --           ... = 172186888 : by norm_num
+  --           ... < n : n_large,
+  --       exfalso,
+  --       exact lt_irrefl _ r,
+  --     }, },
+  have rem_small : (n % 4) < 4 := nat.mod_lt n (nat.succ_pos 3),
+  apply sqrt_pow_le_linear_pow n,
+  have fsadoi := n_div_4_big n n_large,
+  linarith,
+  exact rem_small,
+  have fsadoi := n_div_4_big n n_large,
+  exact fsadoi,
+  -- (by linarith) rem_small this,
 end
 
 
@@ -761,7 +898,7 @@ begin
 end
 
 
-lemma false_inequality_is_false {n : ℕ} (n_large : 999 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
+lemma false_inequality_is_false {n : ℕ} (n_large : 172186888 < n) : 4 ^ n < (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) → false :=
 begin
   rw imp_false,
   rw not_lt,
@@ -888,7 +1025,7 @@ begin
 
 end
 
-lemma bertrand_eventually (n : nat) (n_big : 1000 ≤ n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_eventually (n : nat) (n_big : 172186888 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   by_contradiction no_prime,
 
@@ -1088,15 +1225,91 @@ end
 
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
-cases le_or_lt 1000 n,
+cases lt_or_le 172186888 n,
 {exact bertrand_eventually n h},
 
-cases le_or_lt 505 n,
-{ use 1009, norm_num, split, linarith, linarith, },
+cases le_or_lt 100000000 n,
+{ use 199999991, norm_num, split, linarith, linarith, },
 clear h,
 
-cases le_or_lt 376 n,
-{ use 751, norm_num, split, linarith, linarith, },
+cases le_or_lt 60000000 n,
+{ use 119999987, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 40000000 n,
+{ use 79999987, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 25000000 n,
+{ use 49999991, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 13000000 n,
+{ use 25999949, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 7000000 n,
+{ use 13999981, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 3600000 n,
+{ use 7199957, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 1900000 n,
+{ use 3799973, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 1000000 n,
+{ use 999983, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 510000 n,
+{ use 1019971, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 260000 n,
+{ use 519997, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 140000 n,
+{ use 139999, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 71000 n,
+{ use 70999, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 36000 n,
+{ use 35999, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 19000 n,
+{ use 18979, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 10000 n,
+{ use 9973, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 5100 n,
+{ use 5099, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 2600 n,
+{ use 2593, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 1400 n,
+{ use 1399, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 710 n,
+{ use TODO, norm_num, split, linarith, linarith, },
+clear h1,
+
+cases le_or_lt 360 n,
+{ use 719, norm_num, split, linarith, linarith, },
 clear h,
 cases le_or_lt 274 n,
 { use 547, norm_num, split, linarith, linarith, },
@@ -1127,5 +1340,3 @@ interval_cases n,
 { use 3, norm_num },
 { use 5, norm_num },
 end
-
--/

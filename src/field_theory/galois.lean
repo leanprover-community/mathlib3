@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Thomas Browning and Patrick Lutz. All rights reserved.
+Copyright (c) 2020 Thomas Browning, Patrick Lutz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Thomas Browning and Patrick Lutz
+Authors: Thomas Browning, Patrick Lutz
 -/
 
 import field_theory.normal
@@ -85,20 +85,20 @@ instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G
   is_galois (mul_action.fixed_points G E) E :=
 ⟨fixed_points.separable G E, fixed_points.normal G E⟩
 
-lemma intermediate_field.adjoin_simple.card_aut_eq_findim
+lemma intermediate_field.adjoin_simple.card_aut_eq_finrank
   [finite_dimensional F E] {α : E} (hα : is_integral F α)
   (h_sep : (minpoly F α).separable)
   (h_splits : (minpoly F α).splits (algebra_map F F⟮α⟯)) :
-  fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = findim F F⟮α⟯ :=
+  fintype.card (F⟮α⟯ ≃ₐ[F] F⟮α⟯) = finrank F F⟮α⟯ :=
 begin
   letI : fintype (F⟮α⟯ →ₐ[F] F⟮α⟯) := intermediate_field.fintype_of_alg_hom_adjoin_integral F hα,
-  rw intermediate_field.adjoin.findim hα,
+  rw intermediate_field.adjoin.finrank hα,
   rw ← intermediate_field.card_alg_hom_adjoin_integral F hα h_sep h_splits,
   exact fintype.card_congr (alg_equiv_equiv_alg_hom F F⟮α⟯)
 end
 
-lemma card_aut_eq_findim [finite_dimensional F E] [h : is_galois F E] :
-  fintype.card (E ≃ₐ[F] E) = findim F E :=
+lemma card_aut_eq_finrank [finite_dimensional F E] [h : is_galois F E] :
+  fintype.card (E ≃ₐ[F] E) = finrank F E :=
 begin
   cases field.exists_primitive_element h.1 with α hα,
   let iso : F⟮α⟯ ≃ₐ[F] E := {
@@ -115,8 +115,8 @@ begin
   replace h_splits : polynomial.splits (algebra_map F F⟮α⟯) (minpoly F α),
   { convert polynomial.splits_comp_of_splits
     (algebra_map F E) iso.symm.to_alg_hom.to_ring_hom h_splits },
-  rw ← linear_equiv.findim_eq iso.to_linear_equiv,
-  rw ← intermediate_field.adjoin_simple.card_aut_eq_findim F E H h_sep h_splits,
+  rw ← linear_equiv.finrank_eq iso.to_linear_equiv,
+  rw ← intermediate_field.adjoin_simple.card_aut_eq_finrank F E H h_sep h_splits,
   apply fintype.card_congr,
   apply equiv.mk (λ ϕ, iso.trans (trans ϕ iso.symm)) (λ ϕ, iso.symm.trans (trans ϕ iso)),
   { intro ϕ, ext1, simp only [trans_apply, apply_symm_apply] },
@@ -159,7 +159,7 @@ lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) �
 (intermediate_field.top_equiv).transfer_galois
 
 instance is_galois_bot : is_galois F (⊥ : intermediate_field F E) :=
-intermediate_field.bot_equiv.transfer_galois.mpr (is_galois.self F)
+(intermediate_field.bot_equiv F E).transfer_galois.mpr (is_galois.self F)
 
 end is_galois_tower
 
@@ -188,12 +188,12 @@ def fixed_field : intermediate_field F E :=
   neg_mem' := λ a hx g, by rw [smul_neg g a, hx],
   one_mem' := λ g, smul_one g,
   mul_mem' := λ a b hx hy g, by rw [smul_mul' g a b, hx, hy],
-  inv_mem' := λ a hx g, by rw [smul_inv _ g a, hx],
+  inv_mem' := λ a hx g, by rw [smul_inv' _ g a, hx],
   algebra_map_mem' := λ a g, commutes g a }
 
-lemma findim_fixed_field_eq_card [finite_dimensional F E] :
-  findim (fixed_field H) E = fintype.card H :=
-fixed_points.findim_eq_card H E
+lemma finrank_fixed_field_eq_card [finite_dimensional F E] :
+  finrank (fixed_field H) E = fintype.card H :=
+fixed_points.finrank_eq_card H E
 
 /-- The subgroup fixing an intermediate_field -/
 def fixing_subgroup : subgroup (E ≃ₐ[F] E) :=
@@ -221,8 +221,9 @@ theorem fixing_subgroup_fixed_field [finite_dimensional F E] :
 begin
   have H_le : H ≤ (fixing_subgroup (fixed_field H)) := (le_iff_le _ _).mp (le_refl _),
   suffices : fintype.card H = fintype.card (fixing_subgroup (fixed_field H)),
-  { exact subgroup.ext' (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
-    (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
+  { exact set_like.coe_injective
+      (set.eq_of_inclusion_surjective ((fintype.bijective_iff_injective_and_card
+        (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
   apply fintype.card_congr,
   refine (fixed_points.to_alg_hom_equiv H E).trans _,
   refine (alg_equiv_equiv_alg_hom (fixed_field H) E).symm.trans _,
@@ -251,18 +252,18 @@ theorem fixed_field_fixing_subgroup [finite_dimensional F E] [h : is_galois F E]
 begin
   have K_le : K ≤ intermediate_field.fixed_field (intermediate_field.fixing_subgroup K) :=
     (intermediate_field.le_iff_le _ _).mpr (le_refl _),
-  suffices : findim K E =
-    findim (intermediate_field.fixed_field (intermediate_field.fixing_subgroup K)) E,
-  { exact (intermediate_field.eq_of_le_of_findim_eq' K_le this).symm },
-  rw [intermediate_field.findim_fixed_field_eq_card,
+  suffices : finrank K E =
+    finrank (intermediate_field.fixed_field (intermediate_field.fixing_subgroup K)) E,
+  { exact (intermediate_field.eq_of_le_of_finrank_eq' K_le this).symm },
+  rw [intermediate_field.finrank_fixed_field_eq_card,
     fintype.card_congr (intermediate_field.fixing_subgroup_equiv K).to_equiv],
-  exact (card_aut_eq_findim K E).symm,
+  exact (card_aut_eq_finrank K E).symm,
 end
 
-lemma card_fixing_subgroup_eq_findim [finite_dimensional F E] [is_galois F E] :
-  fintype.card (intermediate_field.fixing_subgroup K) = findim K E :=
+lemma card_fixing_subgroup_eq_finrank [finite_dimensional F E] [is_galois F E] :
+  fintype.card (intermediate_field.fixing_subgroup K) = finrank K E :=
 by conv { to_rhs, rw [←fixed_field_fixing_subgroup K,
-  intermediate_field.findim_fixed_field_eq_card] }
+  intermediate_field.finrank_fixed_field_eq_card] }
 
 /-- The Galois correspondence from intermediate fields to subgroups -/
 def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
@@ -328,13 +329,13 @@ begin
   exact is_galois.of_fixed_field E (⊤ : subgroup (E ≃ₐ[F] E)),
 end
 
-lemma of_card_aut_eq_findim [finite_dimensional F E]
-  (h : fintype.card (E ≃ₐ[F] E) = findim F E) : is_galois F E :=
+lemma of_card_aut_eq_finrank [finite_dimensional F E]
+  (h : fintype.card (E ≃ₐ[F] E) = finrank F E) : is_galois F E :=
 begin
   apply of_fixed_field_eq_bot,
-  have p : 0 < findim (intermediate_field.fixed_field (⊤ : subgroup (E ≃ₐ[F] E))) E := findim_pos,
-  rw [←intermediate_field.findim_eq_one_iff, ←mul_left_inj' (ne_of_lt p).symm, findim_mul_findim,
-      ←h, one_mul, intermediate_field.findim_fixed_field_eq_card],
+  have p : 0 < finrank (intermediate_field.fixed_field (⊤ : subgroup (E ≃ₐ[F] E))) E := finrank_pos,
+  rw [←intermediate_field.finrank_eq_one_iff, ←mul_left_inj' (ne_of_lt p).symm, finrank_mul_finrank,
+      ←h, one_mul, intermediate_field.finrank_fixed_field_eq_card],
   apply fintype.card_congr,
   exact { to_fun := λ g, ⟨g, subgroup.mem_top g⟩, inv_fun := coe,
           left_inv := λ g, rfl, right_inv := λ _, by { ext, refl } },
@@ -346,7 +347,7 @@ lemma of_separable_splitting_field_aux [hFE : finite_dimensional F E]
   [sp : p.is_splitting_field F E] (hp : p.separable) (K : intermediate_field F E) {x : E}
   (hx : x ∈ (p.map (algebra_map F E)).roots) :
   fintype.card ((↑K⟮x⟯ : intermediate_field F E) →ₐ[F] E) =
-    fintype.card (K →ₐ[F] E) * findim K K⟮x⟯ :=
+    fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
   have h : is_integral K x := is_integral_of_is_scalar_tower x (is_integral_of_noetherian hFE x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
@@ -361,7 +362,7 @@ begin
   haveI : Π (f : K →ₐ[F] E), fintype (@alg_hom K K⟮x⟯ E _ _ _ _ (ring_hom.to_algebra f)) := λ f, by
   { apply fintype.of_injective (sigma.mk f) (λ _ _ H, eq_of_heq ((sigma.mk.inj H).2)),
     exact fintype.of_equiv _ key_equiv },
-  rw [fintype.card_congr key_equiv, fintype.card_sigma, intermediate_field.adjoin.findim h],
+  rw [fintype.card_congr key_equiv, fintype.card_sigma, intermediate_field.adjoin.finrank h],
   apply finset.sum_const_nat,
   intros f hf,
   rw ← @intermediate_field.card_alg_hom_adjoin_integral K _ E _ _ x E _ (ring_hom.to_algebra f) h,
@@ -377,14 +378,15 @@ lemma of_separable_splitting_field [sp : p.is_splitting_field F E] (hp : p.separ
 begin
   haveI hFE : finite_dimensional F E := polynomial.is_splitting_field.finite_dimensional E p,
   let s := (p.map (algebra_map F E)).roots.to_finset,
-  have adjoin_root := intermediate_field.ext (subalgebra.ext_iff.mp (eq.trans (top_le_iff.mp
-    (eq.trans_le sp.adjoin_roots.symm (intermediate_field.algebra_adjoin_le_adjoin F ↑s)))
-    intermediate_field.top_to_subalgebra.symm)),
-  let P : intermediate_field F E → Prop := λ K, fintype.card (K →ₐ[F] E) = findim F K,
+  have adjoin_root : intermediate_field.adjoin F ↑s = ⊤,
+  { apply intermediate_field.to_subalgebra_injective,
+    rw [intermediate_field.top_to_subalgebra, ←top_le_iff, ←sp.adjoin_roots],
+    apply intermediate_field.algebra_adjoin_le_adjoin, },
+  let P : intermediate_field F E → Prop := λ K, fintype.card (K →ₐ[F] E) = finrank F K,
   suffices : P (intermediate_field.adjoin F ↑s),
   { rw adjoin_root at this,
-    apply of_card_aut_eq_findim,
-    rw ← eq.trans this (linear_equiv.findim_eq intermediate_field.top_equiv.to_linear_equiv),
+    apply of_card_aut_eq_finrank,
+    rw ← eq.trans this (linear_equiv.finrank_eq intermediate_field.top_equiv.to_linear_equiv),
     exact fintype.card_congr (equiv.trans (alg_equiv_equiv_alg_hom F E)
       (alg_equiv.arrow_congr intermediate_field.top_equiv.symm alg_equiv.refl)) },
   apply intermediate_field.induction_on_adjoin_finset s P,
@@ -392,34 +394,34 @@ begin
       (show is_integral F (0 : E), by exact is_integral_zero),
     rw [minpoly.zero, polynomial.nat_degree_X] at key,
     specialize key polynomial.separable_X (polynomial.splits_X (algebra_map F E)),
-    rw [←@subalgebra.findim_bot F E _ _ _, ←intermediate_field.bot_to_subalgebra] at key,
+    rw [←@subalgebra.finrank_bot F E _ _ _, ←intermediate_field.bot_to_subalgebra] at key,
     refine eq.trans _ key,
     apply fintype.card_congr,
     rw intermediate_field.adjoin_zero },
   intros K x hx hK,
   simp only [P] at *,
   rw [of_separable_splitting_field_aux hp K (multiset.mem_to_finset.mp hx),
-    hK, findim_mul_findim],
-  exact (linear_equiv.findim_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
+    hK, finrank_mul_finrank],
+  exact (linear_equiv.finrank_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
 end
 
 /--Equivalent characterizations of a Galois extension of finite degree-/
 theorem tfae [finite_dimensional F E] :
   tfae [is_galois F E,
     intermediate_field.fixed_field (⊤ : subgroup (E ≃ₐ[F] E)) = ⊥,
-    fintype.card (E ≃ₐ[F] E) = findim F E,
+    fintype.card (E ≃ₐ[F] E) = finrank F E,
     ∃ p : polynomial F, p.separable ∧ p.is_splitting_field F E] :=
 begin
   tfae_have : 1 → 2,
   { exact λ h, order_iso.map_bot (@intermediate_field_equiv_subgroup F _ E _ _ _ h).symm },
   tfae_have : 1 → 3,
-  { introI _, exact card_aut_eq_findim F E },
+  { introI _, exact card_aut_eq_finrank F E },
   tfae_have : 1 → 4,
   { introI _, exact is_separable_splitting_field F E },
   tfae_have : 2 → 1,
   { exact of_fixed_field_eq_bot F E },
   tfae_have : 3 → 1,
-  { exact of_card_aut_eq_findim F E },
+  { exact of_card_aut_eq_finrank F E },
   tfae_have : 4 → 1,
   { rintros ⟨h, hp1, _⟩, exactI of_separable_splitting_field hp1 },
   tfae_finish,

@@ -109,7 +109,7 @@ local attribute [instance] strong_epi_of_epi
 
 /-- In a `non_preadditive_abelian` category, a monomorphism which is also an epimorphism is an
     isomorphism. -/
-def is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
+lemma is_iso_of_mono_of_epi [mono f] [epi f] : is_iso f :=
 is_iso_of_mono_of_strong_epi _
 
 end mono_epi_iso
@@ -321,7 +321,7 @@ lemma epi_of_zero_cokernel {X Y : C} (f : X ⟶ Y) (Z : C)
   exact equalizer.condition _ _
  end⟩
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- If `g ≫ f = 0` implies `g = 0` for all `g`, then `0 : 0 ⟶ X` is a kernel of `f`. -/
 def zero_kernel_of_cancel_zero {X Y : C} (f : X ⟶ Y)
@@ -556,7 +556,7 @@ is_iso_of_mono_of_epi _
     followed by the inverse of `r`. In the category of modules, using the normal kernels and
     cokernels, this map is equal to the map `(a, b) ↦ a - b`, hence the name `σ` for
     "subtraction". -/
-abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ is_iso.inv (r A)
+abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (diag A) ≫ inv (r A)
 
 end
 

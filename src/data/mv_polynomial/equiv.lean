@@ -252,12 +252,17 @@ def sum_alg_equiv : mv_polynomial (S₁ ⊕ S₂) R ≃ₐ[R]
   mv_polynomial S₁ (mv_polynomial S₂ R) :=
 { commutes' := begin
     intro r,
-    change algebra_map R (mv_polynomial S₁ (mv_polynomial S₂ R)) r with C (C r),
-    change algebra_map R (mv_polynomial (S₁ ⊕ S₂) R) r with C r,
+    have A : algebra_map R (mv_polynomial S₁ (mv_polynomial S₂ R)) r = (C (C r) : _), by refl,
+    have B : algebra_map R (mv_polynomial (S₁ ⊕ S₂) R) r = C r, by refl,
     simp only [sum_ring_equiv, sum_to_iter_C, mv_polynomial_equiv_mv_polynomial_apply,
-      ring_equiv.to_fun_eq_coe],
+      ring_equiv.to_fun_eq_coe, A, B],
   end,
   ..sum_ring_equiv R S₁ S₂ }
+
+section
+
+-- this speeds up typeclass search in the lemma below
+local attribute [instance, priority 2000] is_scalar_tower.right
 
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and
@@ -268,6 +273,8 @@ def option_equiv_left : mv_polynomial (option S₁) R ≃ₐ[R] polynomial (mv_p
   .trans $
 (sum_alg_equiv R _ _).trans $
 (punit_alg_equiv (mv_polynomial S₁ R)).restrict_scalars R
+
+end
 
 /--
 The algebra isomorphism between multivariable polynomials in `option S₁` and

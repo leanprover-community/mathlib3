@@ -194,7 +194,7 @@ end
 
 lemma mem_jacobson_bot {x : R} : x ∈ jacobson (⊥ : ideal R) ↔ ∀ y, is_unit (x * y + 1) :=
 ⟨λ hx y, let ⟨z, hz⟩ := (mem_jacobson_iff.1 hx) y in
-  is_unit_iff_exists_inv.2 ⟨z, by rwa [add_mul, one_mul, ← sub_eq_zero_iff_eq]⟩,
+  is_unit_iff_exists_inv.2 ⟨z, by rwa [add_mul, one_mul, ← sub_eq_zero]⟩,
 λ h, mem_jacobson_iff.mpr (λ y, (let ⟨b, hb⟩ := is_unit_iff_exists_inv.1 (h y) in
   ⟨b, (submodule.mem_bot R).2 (hb ▸ (by ring))⟩))⟩
 

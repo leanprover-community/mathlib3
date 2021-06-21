@@ -276,3 +276,19 @@ end
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by { classical, rw [not_iff_comm, not_bounded_iff] }
+
+namespace prod
+
+instance is_refl_preimage_fst {r : α → α → Prop} [h : is_refl α r] :
+  is_refl (α × α) (prod.fst ⁻¹'o r) := ⟨λ a, refl_of r a.1⟩
+
+instance is_refl_preimage_snd {r : α → α → Prop} [h : is_refl α r] :
+  is_refl (α × α) (prod.snd ⁻¹'o r) := ⟨λ a, refl_of r a.2⟩
+
+instance is_trans_preimage_fst {r : α → α → Prop} [h : is_trans α r] :
+  is_trans (α × α) (prod.fst ⁻¹'o r) := ⟨λ _ _ _, trans_of r⟩
+
+instance is_trans_preimage_snd {r : α → α → Prop} [h : is_trans α r] :
+  is_trans (α × α) (prod.snd ⁻¹'o r) := ⟨λ _ _ _, trans_of r⟩
+
+end prod

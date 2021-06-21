@@ -150,7 +150,7 @@ lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : 
   (y : G) : μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
 begin
   rw [← measure_inv_null hμ hE, ← hμ y⁻¹ (measurable_inv hE),
-    ← measure_inv_null hμ (measurable_mul_right y hE)],
+    ← measure_inv_null hμ (measurable_mul_const y hE)],
   convert iff.rfl using 3, ext x, simp,
 end
 
@@ -168,29 +168,29 @@ lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE
   additionally assume that `ν` is a regular measure (we only need that it is finite on compact
   sets). -/
 lemma measure_lintegral_div_measure [t2_space G] (hμ : is_mul_left_invariant μ)
-  (hν : is_mul_left_invariant ν) (h2ν : regular ν) {E : set G} (hE : is_compact E) (h2E : ν E ≠ 0)
+  (hν : is_mul_left_invariant ν) [regular ν] {E : set G} (hE : is_compact E) (h2E : ν E ≠ 0)
   (f : G → ℝ≥0∞) (hf : measurable f) :
   μ E * ∫⁻ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E) ∂ν = ∫⁻ x, f x ∂μ :=
 begin
   have Em := hE.measurable_set,
   symmetry,
   set g := λ y, f y⁻¹ / ν ((λ h, h * y⁻¹) ⁻¹' E),
-  have hg : measurable g := (hf.comp measurable_inv).ennreal_div
+  have hg : measurable g := (hf.comp measurable_inv).div
     ((measurable_measure_mul_right Em).comp measurable_inv),
   rw [← set_lintegral_one, ← lintegral_indicator _ Em,
     ← lintegral_lintegral_mul (measurable_const.indicator Em).ae_measurable hg.ae_measurable,
     ← lintegral_lintegral_mul_inv hμ hν],
-  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).ennreal_mul
+  swap, { exact (((measurable_const.indicator Em).comp measurable_fst).mul
       (hg.comp measurable_snd)).ae_measurable },
   have mE : ∀ x : G, measurable (λ y, ((λ z, z * x) ⁻¹' E).indicator (λ z, (1 : ℝ≥0∞)) y) :=
-  λ x, measurable_const.indicator (measurable_mul_right _ Em),
+  λ x, measurable_const.indicator (measurable_mul_const _ Em),
   have : ∀ x y, E.indicator (λ (z : G), (1 : ℝ≥0∞)) (y * x) =
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
   { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, simp },
   have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
-  λ y, ennreal.lt_top_iff_ne_top.mp (h2ν.lt_top_of_is_compact $
+  λ y, ennreal.lt_top_iff_ne_top.mp (regular.lt_top_of_is_compact $
     (homeomorph.mul_right _).compact_preimage.mpr hE),
-  simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_right _ Em),
+  simp_rw [this, lintegral_mul_const _ (mE _), lintegral_indicator _ (measurable_mul_const _ Em),
     set_lintegral_one, g, inv_inv,
     ennreal.mul_div_cancel' (measure_mul_right_ne_zero hν Em h2E _) (h3E _)]
 end
@@ -199,12 +199,12 @@ end
   countable locally compact group. The uniqueness of Haar measure is proven from this in
   `measure_theory.measure.haar_measure_unique` -/
 lemma measure_mul_measure_eq [t2_space G] (hμ : is_mul_left_invariant μ)
-  (hν : is_mul_left_invariant ν) (h2ν : regular ν) {E F : set G}
+  (hν : is_mul_left_invariant ν) [regular ν] {E F : set G}
   (hE : is_compact E) (hF : measurable_set F) (h2E : ν E ≠ 0) : μ E * ν F = ν E * μ F :=
 begin
-  have h1 := measure_lintegral_div_measure hν hν h2ν hE h2E (F.indicator (λ x, 1))
+  have h1 := measure_lintegral_div_measure hν hν hE h2E (F.indicator (λ x, 1))
     (measurable_const.indicator hF),
-  have h2 := measure_lintegral_div_measure hμ hν h2ν hE h2E (F.indicator (λ x, 1))
+  have h2 := measure_lintegral_div_measure hμ hν hE h2E (F.indicator (λ x, 1))
     (measurable_const.indicator hF),
   rw [lintegral_indicator _ hF, set_lintegral_one] at h1 h2,
   rw [← h1, mul_left_comm, h2],

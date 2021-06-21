@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 import linear_algebra.basic
 
 /-!
-# Pi types of semimodules
+# Pi types of modules
 
 This file defines constructors for linear maps whose domains or codomains are pi types.
 
@@ -33,8 +33,8 @@ open_locale big_operators
 namespace linear_map
 
 universe i
-variables [semiring R] [add_comm_monoid M₂] [semimodule R M₂] [add_comm_monoid M₃] [semimodule R M₃]
-{φ : ι → Type i} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
+variables [semiring R] [add_comm_monoid M₂] [module R M₂] [add_comm_monoid M₃] [module R M₃]
+{φ : ι → Type i} [∀i, add_comm_monoid (φ i)] [∀i, module R (φ i)]
 
 /-- `pi` construction for linear functions. From a family of linear functions it produces a linear
 function into a family of modules. -/
@@ -60,19 +60,21 @@ rfl
 def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
 ⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
-@[simp] lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i) b = b i := rfl
+@[simp] lemma coe_proj (i : ι) : ⇑(proj i : (Πi, φ i) →ₗ[R] φ i) = function.eval i := rfl
+
+lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i) b = b i := rfl
 
 lemma proj_pi (f : Πi, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
 ext $ assume c, rfl
 
 lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
-bot_unique $ submodule.le_def'.2 $ assume a h,
+bot_unique $ set_like.le_def.2 $ assume a h,
 begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
 
-lemma apply_single [add_comm_monoid M] [semimodule R M] [decidable_eq ι]
+lemma apply_single [add_comm_monoid M] [module R M] [decidable_eq ι]
   (f : Π i, φ i →ₗ[R] M) (i j : ι) (x : φ i) :
   f j (pi.single i x j) = pi.single i (f i x) j :=
 pi.apply_single (λ i, f i) (λ i, (f i).map_zero) _ _ _
@@ -90,8 +92,8 @@ variables (R φ)
 
 /-- The linear equivalence between linear functions on a finite product of modules and
 families of functions on these modules. See note [bundled maps over different rings]. -/
-def lsum (S) [add_comm_monoid M] [semimodule R M] [fintype ι] [decidable_eq ι]
-  [semiring S] [semimodule S M]  [smul_comm_class R S M] :
+@[simps] def lsum (S) [add_comm_monoid M] [module R M] [fintype ι] [decidable_eq ι]
+  [semiring S] [module S M]  [smul_comm_class R S M] :
   (Π i, φ i →ₗ[R] M) ≃ₗ[S] ((Π i, φ i) →ₗ[R] M) :=
 { to_fun := λ f, ∑ i : ι, (f i).comp (proj i),
   inv_fun := λ f i, f.comp (single i),
@@ -109,7 +111,7 @@ variables {R φ}
 
 section ext
 
-variables [fintype ι] [decidable_eq ι] [add_comm_monoid M] [semimodule R M]
+variables [fintype ι] [decidable_eq ι] [add_comm_monoid M] [module R M]
   {f g : (Π i, φ i) →ₗ[R] M}
 
 lemma pi_ext (h : ∀ i x, f (pi.single i x) = g (pi.single i x)) :
@@ -184,7 +186,7 @@ end linear_map
 
 namespace submodule
 
-variables [semiring R] {φ : ι → Type*} [∀ i, add_comm_monoid (φ i)] [∀ i, semimodule R (φ i)]
+variables [semiring R] {φ : ι → Type*} [∀ i, add_comm_monoid (φ i)] [∀ i, module R (φ i)]
 
 open linear_map
 
@@ -224,8 +226,8 @@ end submodule
 
 namespace linear_equiv
 
-variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [∀i, semimodule R (φ i)]
-  [∀i, add_comm_monoid (ψ i)] [∀i, semimodule R (ψ i)]
+variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [∀i, module R (φ i)]
+  [∀i, add_comm_monoid (ψ i)] [∀i, module R (ψ i)]
 
 /-- Combine a family of linear equivalences into a linear equivalence of `pi`-types. -/
 @[simps] def pi (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
@@ -237,7 +239,7 @@ variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [�
   right_inv := λ f, by { ext, simp } }
 
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
-  [add_comm_monoid M] [semimodule R M] [semimodule S M] [smul_comm_class R S M]
+  [add_comm_monoid M] [module R M] [module S M] [smul_comm_class R S M]
 
 /-- Linear equivalence between linear functions `Rⁿ → M` and `Mⁿ`. The spaces `Rⁿ` and `Mⁿ`
 are represented as `ι → R` and `ι → M`, respectively, where `ι` is a finite type.
@@ -259,5 +261,24 @@ rfl
 @[simp] lemma pi_ring_symm_apply (f : ι → M) (g : ι → R) :
   (pi_ring R M ι S).symm f g = ∑ i, g i • f i :=
 by simp [pi_ring, linear_map.lsum]
+
+/--
+`equiv.sum_arrow_equiv_prod_arrow` as a linear equivalence.
+-/
+-- TODO additive version?
+def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoid M] [module R M] :
+  ((α ⊕ β) → M) ≃ₗ[R] (α → M) × (β → M) :=
+{ map_add' := by { intros f g, ext; refl },
+  map_smul' := by { intros r f, ext; refl, },
+  .. equiv.sum_arrow_equiv_prod_arrow α β M, }
+
+@[simp] lemma sum_arrow_lequiv_prod_arrow_apply_fst {α β} (f : (α ⊕ β) → M) (a : α) :
+  (sum_arrow_lequiv_prod_arrow α β R M f).1 a = f (sum.inl a) := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_apply_snd {α β} (f : (α ⊕ β) → M) (b : β) :
+  (sum_arrow_lequiv_prod_arrow α β R M f).2 b = f (sum.inr b) := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inl {α β} (f : α → M) (g : β → M) (a : α) :
+  ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inl a) = f a := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inr {α β} (f : α → M) (g : β → M) (b : β) :
+  ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
 
 end linear_equiv

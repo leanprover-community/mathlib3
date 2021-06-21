@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity.interactive
 
@@ -80,11 +80,23 @@ do test_pp "test1"
            "([3] ++ [2], ([5] ++ [4], ([], append (some [1]) _ (some [2]))))"
            (parse_mono_function' ``([1] ++ [3] ++ [2] ++ [2]) ``([1] ++ [5] ++ ([4] ++ [2])))
 
+def my_id {α : Type*} : α → α := id
+
 @[mono]
-lemma test {α : Type*} [preorder α] : monotone (id : α → α) :=
+lemma test_monotone {α : Type*} [preorder α] : monotone (my_id : α → α) :=
 λ x y h, h
 
-example : id 0 ≤ id 1 :=
+example : my_id 0 ≤ my_id 1 :=
+begin
+  mono,
+  simp,
+end
+
+@[mono]
+lemma test_strict_mono {α : Type*} [preorder α] : strict_mono (my_id : α → α) :=
+λ x y h, h
+
+example : my_id 0 < my_id 1 :=
 begin
   mono,
   simp,

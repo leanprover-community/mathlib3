@@ -253,12 +253,7 @@ lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop} [decidable_p
 by { ext1, simp only [finset.mem_filter, and_assoc] }
 
 lemma interchange_and_in_filter {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : S.filter (λ i, g i ∧ f i) = S.filter (λ i, f i ∧ g i) :=
-begin
-  ext1,
-  simp only [finset.mem_filter, and.congr_right_iff],
-  intros _,
-  exact and.comm,
-end
+by { ext1, simp only [finset.mem_filter, and.comm, iff_self] }
 
 lemma intervening_sqrt {a n : ℕ} (small : (nat.sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n) : a = nat.sqrt n :=
 begin

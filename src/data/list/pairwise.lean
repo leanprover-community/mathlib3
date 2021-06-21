@@ -5,6 +5,14 @@ Authors: Mario Carneiro
 -/
 import data.list.sublists
 
+/-!
+# Pairwise relations on a list
+
+This file provides basic results about `list.pairwise`. `pairwise r [a 0, ..., a n]` means
+`∀ i j, i < j → r (a i) (a j)`. For example, `pairwise (≠) l` means that all elements of `l` are
+distinct, and `pairwise (<) l` means that `l` is strictly increasing.
+-/
+
 open nat function
 
 universes u v
@@ -12,8 +20,6 @@ universes u v
 variables {α : Type u} {β : Type v}
 
 namespace list
-
-/- pairwise relation (generalized no duplicate) -/
 
 mk_iff_of_inductive_prop list.pairwise list.pairwise_iff
 

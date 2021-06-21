@@ -323,44 +323,43 @@ end
 theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n :=
 (@numeric_pow_half (n + 1)).lt_move_right punit.star
 
+theorem pow_half_succ_le_pow_half {n : ℕ} : pow_half (n + 1) ≤ pow_half n :=
+le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
+
 theorem zero_lt_pow_half {n : ℕ} : 0 < pow_half n :=
 by cases n; rw lt_def_le; use ⟨punit.star, pgame.le_refl 0⟩
+
+theorem zero_le_pow_half {n : ℕ} : 0 ≤ pow_half n :=
+le_of_lt numeric_zero numeric_pow_half zero_lt_pow_half
 
 theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
 begin
   induction n with n hn,
   { exact add_half_self_equiv_one },
-  split; rw le_def_lt; split,
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
-                                 ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
-    { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
-                                 ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
-  { rintro ⟨ ⟩,
-    rw lt_def_le,
-    right,
-    use sum.inl punit.star,
-    calc pow_half (n.succ) + pow_half (n.succ + 1) ≤ pow_half (n.succ) + pow_half (n.succ)
-        : add_le_add_left $ le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
-    ... ≈ pow_half n : hn },
-  { rintro ⟨ ⟩,
-    calc 0 ≈ 0 + 0 : (add_zero_equiv _).symm
-       ... ≤ pow_half (n.succ + 1) + 0
-           : by { refine add_le_add_right _,
-                  apply le_of_lt numeric_zero,
-                  { exact numeric_pow_half },
-                  { exact zero_lt_pow_half } }
-       ... < pow_half (n.succ + 1) + pow_half (n.succ + 1)
-           : add_lt_add_left zero_lt_pow_half },
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { calc pow_half n.succ ≈ pow_half n.succ + 0
-                           : (add_zero_equiv _).symm
-                       ... < pow_half (n.succ) + pow_half (n.succ + 1)
-                           : add_lt_add_left zero_lt_pow_half },
-    { calc pow_half n.succ ≈ 0 + pow_half n.succ
-                           : (zero_add_equiv _).symm
-                       ... < pow_half (n.succ + 1) + pow_half (n.succ)
-                           : add_lt_add_right zero_lt_pow_half } }
+  { split; rw le_def_lt; split,
+    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+      { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
+                                   ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
+      { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
+                                   ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
+    { rintro ⟨ ⟩,
+      rw lt_def_le,
+      right,
+      use sum.inl punit.star,
+      calc pow_half (n.succ) + pow_half (n.succ + 1)
+          ≤ pow_half (n.succ) + pow_half (n.succ) : add_le_add_left pow_half_succ_le_pow_half
+      ... ≈ pow_half n                            : hn },
+    { rintro ⟨ ⟩,
+      calc 0 ≈ 0 + 0                                        : (add_zero_equiv _).symm
+        ... ≤ pow_half (n.succ + 1) + 0                     : add_le_add_right zero_le_pow_half
+        ... < pow_half (n.succ + 1) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half },
+    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+      { calc pow_half n.succ
+            ≈ pow_half n.succ + 0                           : (add_zero_equiv _).symm
+        ... < pow_half (n.succ) + pow_half (n.succ + 1)     : add_lt_add_left zero_lt_pow_half },
+      { calc pow_half n.succ
+            ≈ 0 + pow_half n.succ                           : (zero_add_equiv _).symm
+        ... < pow_half (n.succ + 1) + pow_half (n.succ)     : add_lt_add_right zero_lt_pow_half } } }
 end
 
 end pgame
@@ -533,28 +532,6 @@ begin
   exact pgame.add_pow_half_succ_self_eq_pow_half,
 end
 
-/-- Exponentiation map from natural numbers to powers of integers. -/
-def pow (a : ℤ) (n : ℕ) : submonoid.powers a := ⟨a ^ n, n, rfl⟩
-
-/-- Logarithms from powers of integers to natural numbers. -/
-def log {a : ℤ} (p : submonoid.powers a) : ℕ :=
-nat.find $ (submonoid.mem_powers_iff a p.val).1 p.prop
-
-@[simp] theorem log_pow_eq_self (a : ℤ) (ha : 2 ≤ a) (n : ℕ) : log (pow a n) = n :=
-begin
-  rw log,
-  generalize_proofs h,
-  exact int.pow_right_injective' ha (nat.find_spec h),
-end
-
-@[simp] theorem pow_log_eq_self {a : ℤ} (n : submonoid.powers a) : pow a (log n) = n :=
-begin
-  rw [pow, log],
-  rcases n with ⟨_, hn⟩,
-  congr,
-  exact nat.find_spec hn,
-end
-
 lemma nsmul_pow_two_pow_half (n : ℕ) : 2 ^ n • pow_half n = 1 :=
 begin
   induction n with n hn,
@@ -600,12 +577,12 @@ begin
 end
 
 /-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
-def dyadic_map : localization (submonoid.powers (2 : ℤ)) → surreal :=
+noncomputable def dyadic_map : localization (submonoid.powers (2 : ℤ)) → surreal :=
 begin
   apply quotient.lift,
   swap,
   { rintro ⟨m, n⟩,
-    exact m • pow_half (log n) },
+    exact m • pow_half (submonoid.log n) },
   { rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
     obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.1 h₁,
     simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
@@ -613,10 +590,10 @@ begin
     { simp only,
       obtain ⟨a₁, ha₁⟩ := classical.indefinite_description _ n₁.prop,
       obtain ⟨a₂, ha₂⟩ := classical.indefinite_description _ n₂.prop,
-      have hn₁ : n₁ = pow 2 a₁, by { ext, exact ha₁.symm },
-      have hn₂ : n₂ = pow 2 a₂, by { ext, exact ha₂.symm },
-      rw [hn₁, hn₂, log_pow_eq_self 2 rfl.ge, log_pow_eq_self 2 rfl.ge],
-      apply dyadic_aux,
+      have hn₁ : n₁ = submonoid.pow 2 a₁, by { ext, exact ha₁.symm },
+      have hn₂ : n₂ = submonoid.pow 2 a₂, by { ext, exact ha₂.symm },
+      have h₂ : 2 ≤ (2 : ℤ).nat_abs, from rfl.ge,
+      rw [hn₁, hn₂, submonoid.int.log_pow_eq_self h₂, dyadic_aux, submonoid.int.log_pow_eq_self h₂],
       rwa [ha₁, ha₂] },
     { have := nat.one_le_pow y₃ 2 nat.succ_pos',
       linarith } }

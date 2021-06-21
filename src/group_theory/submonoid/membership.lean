@@ -273,6 +273,9 @@ lemma int.pow_right_injective {x : ℤ} (h : 2 ≤ x.nat_abs) : function.injecti
               exact nat.succ_le_iff.mp h }
 end
 
+theorem int.log_pow_eq_self {x : ℤ} (h : 2 ≤ x.nat_abs) (m : ℕ) : log (pow x m) = m :=
+log_pow_eq_self (int.pow_right_injective h) _
+
 end submonoid
 
 namespace submonoid

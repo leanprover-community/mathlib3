@@ -89,15 +89,7 @@ minor_mul_equiv M N _ _ _
 lemma mul_reindex_linear_equiv_one [semiring R] [decidable_eq o] (e₁ : o ≃ n) (e₂ : o ≃ n')
   (M : matrix m n R) : M.mul (reindex_linear_equiv e₁ e₂ 1) =
     reindex_linear_equiv (equiv.refl m) (e₁.symm.trans e₂) M :=
-begin
-  have : M = reindex_linear_equiv (equiv.refl m) e₁ (reindex_linear_equiv (equiv.refl m) e₁.symm M),
-  { rw [reindex_linear_equiv_comp_apply, equiv.symm_trans, equiv.refl_trans,
-      reindex_linear_equiv_refl_refl],
-    refl },
-  conv_lhs { rw this },
-  rw [← reindex_linear_equiv_mul, matrix.mul_one, reindex_linear_equiv_comp_apply,
-    equiv.refl_trans]
-end
+mul_minor_one _ _ _
 
 /--
 For square matrices with coefficients in commutative semirings, the natural map that reindexes

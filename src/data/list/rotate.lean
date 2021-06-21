@@ -6,6 +6,16 @@ Authors: Chris Hughes, Yakov Pechersky
 import data.list.perm
 import data.list.range
 
+/-!
+# List rotation
+
+This file proves basic results about `list.rotate`, the list rotation.
+
+## Main declarations
+
+* `is_rotated l₁ l₂`: States that `l₁` is a rotated version of `l₂`.
+-/
+
 universe u
 variables {α : Type u}
 

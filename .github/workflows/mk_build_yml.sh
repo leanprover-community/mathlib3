@@ -26,7 +26,7 @@ on:
       # do not build lean-x.y.z branch used by leanpkg
       - 'lean-3.*'
       # ignore staging branch used by bors, this is handled by bors.yml
-      - 'nael'
+      - 'staging'
 EOF
   include 0 ubuntu-latest
 }
@@ -37,7 +37,7 @@ bors_yml() {
 on:
   push:
     branches:
-      - nael
+      - staging
 EOF
   include 1 self-hosted
 }

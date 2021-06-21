@@ -470,7 +470,8 @@ end
 lemma pos_of_nsmul_pos {m : ℕ} {x : surreal} (hm : 0 < m) (hx : 0 < x) : 0 < m • x :=
 begin
     induction m with m _,
-    { exfalso, exact nat.lt_asymm hm hm },
+    { exfalso,
+      exact nat.lt_asymm hm hm },
     { rw [succ_nsmul x m],
       exact lt_add_of_pos_of_le hx (nonneg_of_nsmul_pos _ hx) }
 end
@@ -568,7 +569,7 @@ begin
     { rw [h₂, hc, add_comm, nsmul_int_pow_two_pow_half m₂ c y₁] },
     { have := nat.one_le_pow y₁ 2 nat.succ_pos',
       linarith } },
-  { obtain ⟨c, hc⟩ := le_iff_exists_add.1 (le_of_lt h),
+  { obtain ⟨c, hc⟩ := le_iff_exists_add.mp (le_of_lt h),
     rw [hc, add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
     cases h₂,
     { rw [← h₂, hc, add_comm, nsmul_int_pow_two_pow_half m₁ c y₂] },
@@ -584,7 +585,7 @@ begin
   { rintro ⟨m, n⟩,
     exact m • pow_half (submonoid.log n) },
   { rintros ⟨m₁, n₁⟩ ⟨m₂, n₂⟩ h₁,
-    obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.1 h₁,
+    obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
     simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
     cases h₂,
     { simp only,

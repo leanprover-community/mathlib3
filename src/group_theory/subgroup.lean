@@ -1619,7 +1619,7 @@ lemma gpowers_subset {a : G} {K : subgroup G} (h : a ∈ K) : gpowers a ≤ K :=
 
 lemma mem_gpowers_iff {g h : G} :
   h ∈ gpowers g ↔ ∃ (k : ℤ), g ^ k = h :=
-iff.refl _
+iff.rfl
 
 end subgroup
 
@@ -1641,7 +1641,7 @@ lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples 
 
 lemma mem_gmultiples_iff {a b : A} :
   b ∈ add_subgroup.gmultiples a ↔ ∃ (k : ℤ), k • a = b :=
-iff.refl _
+iff.rfl
 
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers

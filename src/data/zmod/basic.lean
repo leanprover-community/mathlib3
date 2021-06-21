@@ -243,6 +243,18 @@ congr_fun (nat_cast_comp_val R) i
 @[simp] lemma int_cast_cast (i : zmod n) : ((i : ℤ) : R) = i :=
 congr_fun (int_cast_comp_cast R) i
 
+lemma coe_add_eq_ite {n : ℕ} (a b : zmod n) :
+  (↑(a + b) : ℤ) = if (n : ℤ) ≤ a + b then a + b - n else a + b :=
+begin
+  cases n,
+  { simp },
+  simp only [coe_coe, fin.coe_add_eq_ite, int.nat_cast_eq_coe_nat,
+             ← int.coe_nat_add, ← int.coe_nat_succ, int.coe_nat_le],
+  split_ifs with h,
+  { exact int.coe_nat_sub h },
+  { refl }
+end
+
 section char_dvd
 /-! If the characteristic of `R` divides `n`, then `cast` is a homomorphism. -/
 

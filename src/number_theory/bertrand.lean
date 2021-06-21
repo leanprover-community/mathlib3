@@ -681,6 +681,68 @@ begin
               end
 end
 
+lemma sqrt_9 : sqrt 9 = 3 :=
+begin
+  apply (sqrt_eq_iff_mul_self_eq _ _).2,
+  norm_num,
+  linarith,
+  linarith,
+end
+
+-- lemma linear_dominates_sqrt_log_v2 (x : ℝ) (hx : 1000 ≤ x) :
+-- sqrt (8 * x + 8) * log (8 * x + 8) ≤ x * log 4 :=
+-- begin
+--   calc sqrt (8 * x + 8) * log (8 * x + 8)
+--       ≤ sqrt x * sqrt 9 * log (8 * x + 8) :
+--         begin
+--           apply mul_le_mul,
+--           rw <-sqrt_mul,
+--           apply (sqrt_le _).2,
+--           linarith,
+--           linarith,
+--           linarith,
+--           apply le_refl,
+--           apply log_nonneg,
+--           linarith,
+--           apply mul_nonneg,
+--           apply sqrt_nonneg,
+--           apply sqrt_nonneg,
+--         end
+--   ... ≤ sqrt x * sqrt 9 * log (9 * x) :
+--         begin
+--           apply mul_le_mul,
+--           apply le_refl,
+--           apply (log_le_log _ _).2,
+--           linarith,
+--           linarith,
+--           linarith,
+--           apply log_nonneg,
+--           linarith,
+--           apply mul_nonneg,
+--           apply sqrt_nonneg,
+--           apply sqrt_nonneg,
+--         end
+--   ... ≤ x * log 4 :
+--         begin
+--           rw mul_assoc,
+--           apply (le_div_iff' _).1,
+--           rw mul_div_right_comm,
+--           rw div_sqrt,
+--           rw sqrt_9,
+--           apply exp_le_exp.1,
+--           rw mul_comm,
+--           rw <-rpow_def_of_pos,
+--           conv
+--           begin
+--             to_rhs,
+--             rw mul_comm,
+--           end,
+--           rw <-rpow_def_of_pos,
+
+--         end,
+
+-- end
+
 
 lemma pow_beats_pow_2 (n : ℕ) (n_large : 43046721 ≤ n) :
 (8 * n + 8) ^ nat.sqrt (8 * n + 8) ≤ 4 ^ n :=
@@ -805,7 +867,7 @@ begin
 end
 
 lemma power_conversion_2 (n : ℕ) (n_large : 172186888 < n) :
-(2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) :=
+(2 * n) ^ nat.sqrt (2 * n) ≤ 4 ^ (n / 4) := -- 1000 < n should be sufficient
 begin
   have rem_small : (n % 4) < 4 := nat.mod_lt n (nat.succ_pos 3),
   apply sqrt_pow_le_linear_pow n,
@@ -842,7 +904,7 @@ begin
           begin
             apply (nat.mul_le_mul_right (4 ^ (2 * n / 3 + 1))),
             apply (nat.mul_le_mul_right ((2 * n) ^ nat.sqrt (2 * n))),
-            apply power_conversion_1,
+            apply power_conversion_1, -- needs 480 < n currently
             linarith,
           end
   ...  ≤ (4 ^ (n / 15)) * (4 ^ (n / 4)) * 4 ^ (2 * n / 3 + 1) :
@@ -1186,7 +1248,7 @@ begin
       ...      = (2 * n + 1) * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3 + 1) : by ring,
 
   exfalso,
-  exact false_inequality_is_false (by linarith) false_inequality,
+  exact false_inequality_is_false n_big false_inequality,
 end
 
 lemma prime_199999991 : nat.prime 199999991 :=

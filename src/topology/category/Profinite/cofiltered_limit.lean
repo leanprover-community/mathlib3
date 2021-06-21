@@ -227,9 +227,9 @@ begin
     apply hα,
     haveI : ∀ j : J, nonempty ((F ⋙ Profinite_to_Top).obj j) := h,
     haveI : ∀ j : J, t2_space ((F ⋙ Profinite_to_Top).obj j) := λ j,
-      (infer_instance : t2_space (Profinite_to_Top.obj _)),
+      (infer_instance : t2_space (F.obj j)),
     haveI : ∀ j : J, compact_space ((F ⋙ Profinite_to_Top).obj j) := λ j,
-      (infer_instance : compact_space (Profinite_to_Top.obj _)),
+      (infer_instance : compact_space (F.obj j)),
     have cond := Top.nonempty_limit_cone_of_compact_t2_cofiltered_system
       (F ⋙ Profinite_to_Top),
     suffices : nonempty C.X, by exact nonempty.map S.proj this,

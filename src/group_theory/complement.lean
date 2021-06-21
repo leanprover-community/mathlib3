@@ -31,22 +31,25 @@ namespace subgroup
 
 variables {G : Type*} [group G] (H K : subgroup G) (S T : set G)
 
-/-- `S` and `T` are compelements if `(*) : S × T → G` is a bijection -/
+/-- `S` and `T` are complements if `(*) : S × T → G` is a bijection -/
+@[to_additive "`S` and `T` are complements if `(*) : S × T → G` is a bijection"]
 def is_complement : Prop := ∀ g : G, ∃! x : S × T, x.1.1 * x.2.1 = g
 
 /-- The set of left-complements of `T : set G` -/
+@[to_additive "The set of left-complements of `T : set G`"]
 def left_transversals : set (set G) := {S : set G | is_complement S T}
 
 /-- The set of right-complements of `S : set G` -/
+@[to_additive "The set of right-complements of `S : set G`"]
 def right_transversals : set (set G) := {T : set G | is_complement S T}
 
 variables {H K S T}
 
-lemma is_complement_iff_bijective :
+@[to_additive] lemma is_complement_iff_bijective :
   is_complement S T ↔ function.bijective (λ x : S × T, x.1.1 * x.2.1) :=
 (function.bijective_iff_exists_unique _).symm
 
-lemma is_complement.symm (h : is_complement (H : set G) (K : set G)) :
+@[to_additive] lemma is_complement.symm (h : is_complement (H : set G) (K : set G)) :
   is_complement (K : set G) (H : set G) :=
 begin
   let ϕ : H × K ≃ K × H := equiv.mk (λ x, ⟨x.2⁻¹, x.1⁻¹⟩) (λ x, ⟨x.2⁻¹, x.1⁻¹⟩)
@@ -56,11 +59,11 @@ begin
   exact eq_comm,
 end
 
-lemma is_complement_comm :
+@[to_additive] lemma is_complement_comm :
   is_complement (H : set G) (K : set G) ↔ is_complement (K : set G) (H : set G) :=
 ⟨is_complement.symm, is_complement.symm⟩
 
-lemma mem_left_transversals_iff_exists_unique_inv_mul_mem :
+@[to_additive] lemma mem_left_transversals_iff_exists_unique_inv_mul_mem :
   S ∈ left_transversals T ↔ ∀ g : G, ∃! s : S, (s : G)⁻¹ * g ∈ T :=
 begin
   refine ⟨λ h g, _, λ h g, _⟩,
@@ -73,7 +76,7 @@ begin
     exact prod.ext this (subtype.ext (eq_inv_mul_of_mul_eq ((congr_arg _ this).mp hy))) },
 end
 
-lemma mem_right_transversals_iff_exists_unique_mul_inv_mem :
+@[to_additive] lemma mem_right_transversals_iff_exists_unique_mul_inv_mem :
   S ∈ right_transversals T ↔ ∀ g : G, ∃! s : S, g * (s : G)⁻¹ ∈ T :=
 begin
   refine ⟨λ h g, _, λ h g, _⟩,
@@ -86,7 +89,8 @@ begin
     exact prod.ext (subtype.ext (eq_mul_inv_of_mul_eq ((congr_arg _ this).mp hy))) this },
 end
 
-lemma mem_left_transverals_iff_exists_unique_quotient_mk'_eq : S ∈ left_transversals (H : set G) ↔
+@[to_additive] lemma mem_left_transverals_iff_exists_unique_quotient_mk'_eq :
+  S ∈ left_transversals (H : set G) ↔
   ∀ q : quotient (quotient_group.left_rel H), ∃! s : S, quotient.mk' s.1 = q :=
 begin
   have key : ∀ g h, quotient.mk' g = quotient.mk' h ↔ g⁻¹ * h ∈ H :=
@@ -95,8 +99,9 @@ begin
   exact ⟨λ h q, quotient.induction_on' q h, λ h g, h (quotient.mk' g)⟩,
 end
 
-lemma mem_right_transverals_iff_exists_unique_quotient_mk'_eq : S ∈ right_transversals (H : set G)
-  ↔ ∀ q : quotient (quotient_group.right_rel H), ∃! s : S, quotient.mk' s.1 = q :=
+@[to_additive] lemma mem_right_transverals_iff_exists_unique_quotient_mk'_eq :
+  S ∈ right_transversals (H : set G) ↔
+  ∀ q : quotient (quotient_group.right_rel H), ∃! s : S, quotient.mk' s.1 = q :=
 begin
   have key : ∀ g h, quotient.mk' g = quotient.mk' h ↔ h * g⁻¹ ∈ H :=
   @quotient.eq' G (quotient_group.right_rel H),
@@ -104,17 +109,17 @@ begin
   exact ⟨λ h q, quotient.induction_on' q h, λ h g, h (quotient.mk' g)⟩,
 end
 
-lemma mem_left_transverals_iff_bijective : S ∈ left_transversals (H : set G) ↔
+@[to_additive] lemma mem_left_transverals_iff_bijective : S ∈ left_transversals (H : set G) ↔
   function.bijective (S.restrict (quotient.mk' : G → quotient (quotient_group.left_rel H))) :=
 mem_left_transverals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
-lemma mem_right_transverals_iff_bijective : S ∈ right_transversals (H : set G) ↔
+@[to_additive] lemma mem_right_transverals_iff_bijective : S ∈ right_transversals (H : set G) ↔
   function.bijective (set.restrict (quotient.mk' : G → quotient (quotient_group.right_rel H)) S) :=
 mem_right_transverals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
-instance : inhabited (left_transversals (H : set G)) :=
+@[to_additive] instance : inhabited (left_transversals (H : set G)) :=
 let hf  : function.has_right_inverse (quotient.mk' : G → quotient (quotient_group.left_rel H)) :=
 function.surjective.has_right_inverse quotient.surjective_quotient_mk', f := classical.some hf in
 ⟨⟨set.range f, mem_left_transverals_iff_bijective.mpr ⟨by
@@ -123,7 +128,7 @@ function.surjective.has_right_inverse quotient.surjective_quotient_mk', f := cla
       ←classical.some_spec hf q₁, ←classical.some_spec hf q₂],
   exact congr_arg f hg }, λ q, ⟨⟨f q, q, rfl⟩, classical.some_spec hf q⟩⟩⟩⟩
 
-instance : inhabited (right_transversals (H : set G)) :=
+@[to_additive] instance : inhabited (right_transversals (H : set G)) :=
 let hf  : function.has_right_inverse (quotient.mk' : G → quotient (quotient_group.right_rel H)) :=
 function.surjective.has_right_inverse quotient.surjective_quotient_mk', f := classical.some hf in
 ⟨⟨set.range f, mem_right_transverals_iff_bijective.mpr ⟨by
@@ -154,7 +159,7 @@ is_complement_of_disjoint h1 (inf_eq_bot_of_coprime h2)
 
 section schur_zassenhaus
 
-instance : mul_action G (left_transversals (H : set G)) :=
+@[to_additive] instance : mul_action G (left_transversals (H : set G)) :=
 { smul := λ g T, ⟨left_coset g T, mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g', by
   { obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (g⁻¹ * g'),
     simp_rw [←mul_assoc, ←mul_inv_rev] at ht1 ht2,
@@ -164,8 +169,8 @@ instance : mul_action G (left_transversals (H : set G)) :=
   one_smul := λ T, subtype.ext (one_left_coset T),
   mul_smul := λ g g' T, subtype.ext (left_coset_assoc ↑T g g').symm }
 
-lemma smul_symm_apply_eq_mul_symm_apply_inv_smul (g : G) (α : left_transversals (H : set G))
-  (q : quotient_group.quotient H) :
+lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
+  (g : G) (α : left_transversals (H : set G)) (q : quotient_group.quotient H) :
   ↑((equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp (g • α).2)).symm q) =
     g * ((equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp α.2)).symm
       (g⁻¹ • q : quotient_group.quotient H)) :=
@@ -178,7 +183,7 @@ begin
   rw [equiv.apply_symm_apply, ←mul_smul, mul_inv_self, one_smul],
 end
 
-instance [h : is_commutative H (*)] : comm_group H :=
+@[to_additive] instance [h : is_commutative H (*)] : comm_group H :=
 { mul_comm := h.comm, .. H.to_group }
 
 variables [is_commutative H (*)] [fintype (quotient_group.quotient H)]
@@ -186,20 +191,21 @@ variables [is_commutative H (*)] [fintype (quotient_group.quotient H)]
 variables (α β γ : left_transversals (H : set G))
 
 /-- The difference of two left transversals -/
+@[to_additive "The difference of two left transversals"]
 noncomputable def diff [hH : normal H] : H :=
 let α' := (equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp α.2)).symm,
     β' := (equiv.of_bijective _ (mem_left_transverals_iff_bijective.mp β.2)).symm in
 ∏ (q : quotient_group.quotient H), ⟨(α' q) * (β' q)⁻¹,
   hH.mem_comm (quotient.exact' ((β'.symm_apply_apply q).trans (α'.symm_apply_apply q).symm))⟩
 
-lemma diff_mul_diff [normal H] : diff α β * diff β γ = diff α γ :=
+@[to_additive] lemma diff_mul_diff [normal H] : diff α β * diff β γ = diff α γ :=
 finset.prod_mul_distrib.symm.trans (finset.prod_congr rfl (λ x hx, subtype.ext
   (by rw [coe_mul, coe_mk, coe_mk, coe_mk, mul_assoc, inv_mul_cancel_left])))
 
-lemma diff_self [normal H] : diff α α = 1 :=
+@[to_additive] lemma diff_self [normal H] : diff α α = 1 :=
 mul_right_eq_self.mp (diff_mul_diff α α α)
 
-lemma diff_inv [normal H]: (diff α β)⁻¹ = diff β α :=
+@[to_additive] lemma diff_inv [normal H]: (diff α β)⁻¹ = diff β α :=
 inv_eq_of_mul_eq_one ((diff_mul_diff α β α).trans (diff_self α))
 
 lemma smul_diff_smul [hH : normal H] (g : G) :

@@ -845,6 +845,19 @@ begin
   rwa ← le_div_iff (lt_of_le_of_ne (norm_nonneg _) h₁.symm)
 end
 
+/-- A series whose terms are bounded by the terms of a converging geometric series convergences. -/
+lemma summable_inv_pow_ge {m : ℝ} {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
+  summable (λ i, 1 / m ^ f i) :=
+begin
+  refine summable_of_nonneg_of_le
+    (λ a, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _)) (λ a, _)
+    (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
+      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (one_div_one.le.trans_lt hm))),
+  rw [div_pow, one_pow],
+  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a));
+  exact pow_pos (zero_lt_one.trans hm) _
+end
+
 /-! ### Positive sequences with small sums on encodable types -/
 
 /-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/

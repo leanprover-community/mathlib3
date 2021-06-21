@@ -20,7 +20,7 @@ in spheres in real inner product spaces and Euclidean affine spaces.
 TODO: The current statement of Ptolemy’s theorem works around the lack of a "cyclic polygon" concept
 in mathlib, which is what the theorem statement would naturally use (or two such concepts, since
 both a strict version, where all vertices must be distinct, and a weak version, where consecutive
-vertices may be  equal, would be useful; Ptolemy's theorem should then use the weak one).
+vertices may be equal, would be useful; Ptolemy's theorem should then use the weak one).
 
 An API needs to be built around that concept, which would include:
 - strict cyclic implies weak cyclic,

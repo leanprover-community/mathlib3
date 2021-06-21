@@ -8,13 +8,20 @@ import data.list.nodup
 import data.list.of_fn
 import data.list.zip
 
-open nat
+/-!
+# Ranges of naturals
 
-namespace list
-/- iota and range(') -/
+This file shows basic results about `list.iota`, `list.range`, `list.range'`.
+`iota n = [1, ..., n]` and `range n = [0, ..., n - 1]` are basic list constructions used for
+tactics. `range' a b = [a, ..., a + b - 1]` is there to help prove properties about them.
+Actual maths should use `list.Ico` instead.
+-/
 
 universe u
 
+open nat
+
+namespace list
 variables {α : Type u}
 
 @[simp] theorem length_range' : ∀ (s n : ℕ), length (range' s n) = n

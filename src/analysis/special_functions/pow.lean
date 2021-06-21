@@ -820,24 +820,6 @@ lemma filter.tendsto.rpow_const {l : filter α} {f : α → ℝ} {x p : ℝ}
 if h0 : 0 = p then h0 ▸ by simp [tendsto_const_nhds]
 else hf.rpow tendsto_const_nhds (h.imp id $ λ h', h'.lt_of_ne h0)
 
-section
-
-variables [measurable_space α] {f g : α → ℝ}
-open complex
-
-lemma measurable.rpow (hf : measurable f) (hg : measurable g) :
-  measurable (λ a : α, (f a) ^ (g a)) :=
-measurable_re.comp $ ((measurable_of_real.comp hf).cpow (measurable_of_real.comp hg))
-
-lemma measurable.rpow_const (hf : measurable f) {y : ℝ} :
-  measurable (λ a : α, (f a) ^ y) :=
-hf.rpow measurable_const
-
-lemma real.measurable_rpow_const {y : ℝ} : measurable (λ x : ℝ, x ^ y) :=
-measurable_id.rpow_const
-
-end
-
 variables [topological_space α] {f g : α → ℝ} {s : set α} {x : α} {p : ℝ}
 
 lemma continuous_at.rpow (hf : continuous_at f x) (hg : continuous_at g x) (h : f x ≠ 0 ∨ 0 < g x) :
@@ -953,14 +935,17 @@ open real
 section fderiv
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ}
-  {x : E} {s : set E} {c : ℝ}
+  {x : E} {s : set E} {c p : ℝ}
 
 lemma has_fderiv_within_at.rpow (hf : has_fderiv_within_at f f' s x)
   (hg : has_fderiv_within_at g g' s x) :
   has_fderiv_within_at (λ x, f x ^ g x)
     ((g x * f x ^ (g x - 1)) • f' + (f x ^ g x * log (f x)) • g') s x :=
+begin
+  convert (has_fderiv_at_rpow hx p).comp_has_fderiv_within_at x hf using 1,
+  ring
+end
   
-
 lemma has_deriv_within_at.rpow (hf : has_deriv_within_at f f' s x) (hx : f x ≠ 0) :
   has_deriv_within_at (λ y, (f y)^p) (f' * p * (f x)^(p-1)) s x :=
 begin

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa, Jujian Zhang
 -/
 import analysis.liouville.liouville_constant
+import analysis.liouville.inequalities_and_series
 /-!
+
 # Liouville constants
 
 This file contains a construction of a family of Liouville numbers.
@@ -23,71 +25,28 @@ variable {m : ℝ}
 namespace liouville
 
 /-
-For a real number `m`, Liouville's constant is
-$$
-\sum_{i=0}^\infty\frac{1}{m^{i!}}.
-$$
-The series converges only for `1 < m`.  However, there is no restriction on `m`, since,
-if the series does not converge, then the sum of the series is defined to be zero.
-def liouville_number (m : ℝ) := ∑' (i : ℕ), 1 / m ^ i!
--/
+lemma summable_harm (m0 : m ≠ 0) {f : ℕ → ℕ} (k : ℕ) (hf : ∀ {n : ℕ}, k ≤ n → 2 ≤ f n) :
+  summable (λ (i : ℕ), 1 / m ^ f i) :=
+begin
+  apply summable_of_ratio_test_tendsto_lt_one,
+  exact half_lt_self zero_lt_one,
+  exact filter.eventually_at_top.mpr ⟨0, λ b _, one_div_ne_zero (pow_ne_zero _ m0)⟩,
+  conv {
+    congr,
+    funext,
+    rw [normed_field.norm_div, normed_field.norm_div, norm_one, div_div_eq_mul_div, div_one, div_mul_comm', mul_one, ← normed_field.norm_div, div_eq_mul_inv],
+  },
+  simp,
+  intros U U2,
 
-/-
-`liouville_constant_first_k_terms` is the sum of the first `k` terms of Liouville's constant, i.e.
-$$
-\sum_{i=0}^k\frac{1}{m^{i!}}.
-$$
-def liouville_number_first_k_terms (m : ℝ) (k : ℕ) := ∑ i in range (k+1), 1 / m ^ i!
--/
 
-/-
-`liouville_constant_terms_after_k` is the sum of the series of the terms in `liouville_constant m`
-starting from `k+1`, i.e
-$$
-\sum_{i=k+1}^\infty\frac{1}{m^{i!}}.
-$$
-def liouville_number_terms_after_k (m : ℝ) (k : ℕ) :=  ∑' i, 1 / m ^ (i + (k+1))!
--/
+  simp,
 
-lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
-  0 < liouville_number_terms_after_k m k :=
--- replace `0` with the series `∑ i : ℕ, 0` all of whose terms vanish
-(@tsum_zero _ ℕ _ _ _).symm.le.trans_lt (
-  -- to show that a series with non-negative terms has strictly positive sum it suffices
-  -- to prove that:
-  tsum_lt_tsum_of_nonneg
-    -- 1. the terms of the zero series are indeed non-negative [sic];
-    (λ _, rfl.le)
-    -- 2. the terms of our series are non-negative;
-    (λ i, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
-    -- 3. one term of our series is strictly positive -- they all are, we use the `0`th term;
-    (one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) (0 + (k + 1))!))
-    -- 4. our series converges -- it does since it is the tail ...
-    ((@summable_nat_add_iff ℝ _ _ _ (λ (i : ℕ), 1 / m ^ i!) (k+1)).mpr
-      -- ... of the converging series `∑ 1 / n!`.
-      (summable_inv_pow_ge hm (λ i, i.self_le_factorial))))
+end
+#exit
 
-/-
-lemma liouville_number_terms_after_pos (hm : 1 < m) (k : ℕ) :
-  0 < liouville_number_terms_after_k m k :=
--- replace `0` with the constantly zero series `∑ i : ℕ, 0`
-(@tsum_zero _ ℕ _ _ _).symm.le.trans_lt $
-  -- to show that a series with non-negative terms has strictly positive sum it suffices
-  -- to prove that
-  tsum_lt_tsum_of_nonneg
-    -- 1. the terms are the zero series are indeed non-negative
-    (λ _, rfl.le)
-    -- 2. the terms of our series are non-negative
-    (λ i, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
-    -- 3. one term of our series is strictly positive -- they all are, we use the first term
-    (one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) (0 + (k + 1))!)) $
-    -- 4. our series converges -- it does since it is the tail of a converging series, though
-    -- this is not the argument here.
-    summable_inv_pow_ge hm (λ i, i.self_le_factorial.trans (nat.factorial_le (nat.le.intro rfl)))
-
-/-
 lemma liouville_number_terms_after_pos_1 (hm : 1 < m) :
-  ∀ k, 0 < liouville_number_terms_after_k m k := λ n,
+  ∀ k, 0 < liouville_number_tail m k := λ n,
 calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
   ... = 1 / m ^ (0 + (n + 1))! : by rw zero_add
   ... ≤ ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! : le_tsum
@@ -95,12 +54,11 @@ calc 0 < 1 / m ^ (n + 1)! : one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) _)
       0
       (λ i i0, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _))
 -/
--/
 
 /--  Split the sum definining a Liouville number into the first `k` term and the rest. -/
-lemma liouville_number_eq_first_k_terms_add_rest (hm : 1 < m) (k : ℕ):
-  liouville_number m = liouville_number_first_k_terms m k +
-  liouville_number_terms_after_k m k :=
+lemma liouville_number_eq_initial_terms_add_rest (hm : 1 < m) (k : ℕ):
+  liouville_number m = liouville_number_initial_terms m k +
+  liouville_number_tail m k :=
 (sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, i.self_le_factorial))).symm
 
 end liouville
@@ -116,14 +74,14 @@ namespace liouville
 
 /--  The sum of the `k` initial terms of the Liouville number to base `m` is a ratio of natural
 numbers where the denominator is `m ^ k!`. -/
-lemma liouville_number_rat_first_k_terms (hm : 0 < m) (k : ℕ) :
-∃ p : ℕ, liouville_number_first_k_terms m k = p / m ^ k! :=
+lemma liouville_number_rat_initial_terms_1 (hm : 0 < m) (k : ℕ) :
+∃ p : ℕ, liouville_number_initial_terms m k = p / m ^ k! :=
 begin
   induction k with k h,
-  { exact ⟨1, by rw [liouville_number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
+  { exact ⟨1, by rw [liouville_number_initial_terms, range_one, sum_singleton, nat.cast_one]⟩ },
   { rcases h with ⟨p_k, h_k⟩,
     use p_k * (m ^ ((k + 1)! - k!)) + 1,
-    unfold liouville_number_first_k_terms at h_k ⊢,
+    unfold liouville_number_initial_terms at h_k ⊢,
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ,
@@ -134,7 +92,7 @@ begin
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
 end
 
-lemma pre_sum_liouville {f : ℕ → ℕ} {m : ℝ} (hm : 1 < m) (f0 : ∀ n, 0 < f n)
+lemma pre_sum_liouville_1 {f : ℕ → ℕ} {m : ℝ} (hm : 1 < m) (f0 : ∀ n, 0 < f n)
   (fn1 : ∀ n, 2 * (f n) ^ n ≤ f (n + 1)) :
   summable (λ i, 1 / m ^ f i) :=
 begin
@@ -177,7 +135,8 @@ begin
 end
 -/
 
-theorem is_liouville (hm : 2 ≤ m) :
+
+theorem is_liouville_1 (hm : 2 ≤ m) :
   liouville (liouville_number m) :=
 begin
   -- two useful inequalities
@@ -187,18 +146,18 @@ begin
     one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
   intro n,
   -- the first `n` terms sum to `p / m ^ k!`
-  rcases liouville_number_rat_first_k_terms (zero_lt_two.trans_le hm) n with ⟨p, hp⟩,
+  rcases liouville_number_rat_initial_terms (zero_lt_two.trans_le hm) n with ⟨p, hp⟩,
   refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
   push_cast,
   -- separate out the sum of the first `n` terms and the rest
-  rw liouville_number_eq_first_k_terms_add_rest m1 n,
-  rw [← hp, add_sub_cancel', abs_of_nonneg (liouville_number_terms_after_pos m1 _).le],
-  exact ⟨((lt_add_iff_pos_right _).mpr (liouville_number_terms_after_pos m1 n)).ne.symm,
+  rw liouville_number_eq_initial_terms_add_rest m1 n,
+  rw [← hp, add_sub_cancel', abs_of_nonneg (liouville_number_tail_pos m1 _).le],
+  exact ⟨((lt_add_iff_pos_right _).mpr (liouville_number_tail_pos m1 n)).ne.symm,
     (calc_liou_one m1 n).trans_le
     (calc_liou_two_zero _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
 
-lemma is_transcendental (hm : 2 ≤ m) :
+lemma is_transcendental_1 (hm : 2 ≤ m) :
   _root_.transcendental ℤ (liouville_number m) :=
 liouville.transcendental (is_liouville hm)
 
@@ -209,14 +168,14 @@ end m_is_natural
 /-
 #exit
 
-lemma liouville_number_rat_first_k_terms (hm : 1 < m) (k : ℕ) :
-∃ p : ℕ, liouville_number_first_k_terms m k = p / (m ^ k!) :=
+lemma liouville_number_rat_initial_terms (hm : 1 < m) (k : ℕ) :
+∃ p : ℕ, liouville_number_initial_terms m k = p / (m ^ k!) :=
 begin
   induction k with k h,
-  { exact ⟨1, by rw [liouville_number_first_k_terms, range_one, sum_singleton, nat.cast_one]⟩ },
+  { exact ⟨1, by rw [liouville_number_initial_terms, range_one, sum_singleton, nat.cast_one]⟩ },
   { rcases h with ⟨p_k, h_k⟩,
     use p_k * (m ^ ((k + 1)! - k!)) + 1,
-    unfold liouville_number_first_k_terms at h_k ⊢,
+    unfold liouville_number_initial_terms at h_k ⊢,
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, one_mul, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ, show k.succ * k! - k! = (k.succ - 1) * k!,
@@ -232,7 +191,7 @@ begin
   refine ⟨∑ i in range (k+1), m ^ (k! - i!), _⟩,
   refine (div_eq_iff _).mp _,
   exact inv_ne_zero (pow_ne_zero _ (ne_of_gt (zero_lt_one.trans (nat.one_lt_cast.mpr hm)))),
-  unfold liouville_number_first_k_terms,
+  unfold liouville_number_initial_terms,
   rw [div_eq_mul_inv, inv_inv', sum_mul],
 --  have : ∑ (x : ℕ) in range (k + 1), 1 / (m : ℝ) ^ x! * (m : ℝ) ^ k! =
 --    ∑ (i : ℕ) in range (k + 1), (↑m) ^ (k! - i!),

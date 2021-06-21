@@ -360,7 +360,7 @@ variables {𝕜}
 lemma continuous_set_integral [normed_space ℝ E] [complete_space E] (s : set α) :
   continuous (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ) :=
 begin
-  haveI : fact((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩,
+  haveI : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩,
   have h_comp : (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ)
     = (integral (μ.restrict s)) ∘ (λ f, Lp_to_Lp_restrict_clm α E ℝ μ 1 s f),
   { ext1 f,

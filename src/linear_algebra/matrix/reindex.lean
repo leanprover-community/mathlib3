@@ -63,9 +63,9 @@ lemma reindex_linear_equiv_trans [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n'
 by { ext, refl }
 
 lemma reindex_linear_equiv_comp [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')
-  (e₂' : n' ≃ n'') : (@reindex_linear_equiv _ _ _ _ _ _ _ _ R _ e₁' e₂') ∘
-   (@reindex_linear_equiv _ _ _ _ _ _ _ _ R _ e₁ e₂)
-  = (reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂')) :=
+  (e₂' : n' ≃ n'') :
+  (reindex_linear_equiv e₁' e₂' : _ ≃ₗ[R] _) ∘ (reindex_linear_equiv e₁ e₂ : _ ≃ₗ[R] _)
+  = reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') :=
 by { rw [← reindex_linear_equiv_trans], refl }
 
 lemma reindex_linear_equiv_comp_apply [semiring R] (e₁ : m ≃ m') (e₂ : n ≃ n') (e₁' : m' ≃ m'')

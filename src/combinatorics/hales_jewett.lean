@@ -14,6 +14,13 @@ noncomputable theory
 open_locale classical
 open_locale big_operators
 
+@[simp] lemma option.get_or_else_none {α} (x : α) : option.get_or_else none x = x := rfl
+
+@[simp] lemma option.get_or_else_map {α β} (f : α → β) (x : α) (o : option α) :
+  option.get_or_else (option.map f o) (f x) = f (option.get_or_else o x) :=
+by { cases o; refl }
+
+
 def option_fin_equiv_fin_succ (n : ℕ) : option (fin n) ≃ fin (n+1) :=
 { to_fun := λ o, o.elim 0 fin.succ,
   inv_fun := λ i, fin.cases none some i,

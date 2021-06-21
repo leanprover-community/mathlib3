@@ -24,11 +24,19 @@ import data.real.nnreal
 open_locale big_operators
 
 /-- The multiplicity of p in the nth central binomial coefficient-/
-private def α (n : nat) (p : nat) [hp : fact p.prime] : nat :=
-padic_val_nat p (nat.choose (2 * n) n)
+private def α (n p : nat) [hp : fact p.prime] : nat :=
+padic_val_nat p ((2 * n).choose n)
 
-lemma central_binom_nonzero (n : ℕ) : nat.choose (2 * n) n ≠ 0 :=
-ne_of_gt (nat.choose_pos (by linarith))
+lemma nat.self_le_mul {m : ℕ} : ∀ {n : ℕ} (n0 : 0 < n), m ≤ n * m
+| 0     h := (lt_irrefl _ h).elim
+| 1     h := (one_mul m).symm.le
+| (n+2) h := trans (nat.self_le_mul n.succ_pos) $ mul_le_mul_right' n.succ.le_succ _
+
+lemma nat.le_two_mul_self (n : ℕ) : n ≤ 2 * n :=
+nat.self_le_mul zero_lt_two
+
+lemma central_binom_nonzero (n : ℕ) : (2 * n).choose n ≠ 0 :=
+(nat.choose_pos n.le_two_mul_self).ne'
 
 lemma claim_1
   (p : nat)
@@ -39,27 +47,20 @@ lemma claim_1
   :=
 begin
   unfold α,
-  rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n),
-  simp only [@nat.prime.multiplicity_choose p (2 * n) n (nat.log p (2 * n) + 1)
-                        (hp.out) (by linarith) (lt_add_one (nat.log p (2 * n)))],
-  have r : 2 * n - n = n, by
-    calc 2 * n - n = n + n - n: by rw two_mul n
+  rw @padic_val_nat_def p hp ((2 * n).choose n) (central_binom_nonzero n),
+  simp only [@nat.prime.multiplicity_choose p (2 * n) n (p.log (2 * n) + 1)
+                        (hp.out) n.le_two_mul_self (lt_add_one (p.log (2 * n)))],
+  have r : 2 * n - n = n,
+    calc 2 * n - n = n + n - n: congr_arg (flip (has_sub.sub) n) (two_mul n)
     ... = n: nat.add_sub_cancel n n,
   simp [r, ←two_mul],
-  have prime_powers_sparse :
-    (finset.filter (λ (i : ℕ), p ^ i ≤ 2 * (n % p ^ i)) (finset.Ico 1 (nat.log p (2 * n) + 1))).card
-    ≤ nat.log p (2 * n),
-    calc
-      (finset.filter (λ (i : ℕ), p ^ i ≤ 2 * (n % p ^ i)) (finset.Ico 1 (nat.log p (2 * n) + 1))).card
-        ≤ (finset.Ico 1 (nat.log p (2 * n) + 1)).card : by apply finset.card_filter_le
-    ... = (nat.log p (2 * n) + 1) - 1 : by simp,
-  have p_pow_small : p ^ (nat.log p (2 * n)) ≤ 2 * n,
-  { apply nat.pow_log_le_self,
-    apply hp.out.one_lt,
-    calc 1 ≤ 3 : dec_trivial
-    ...    ≤ n : n_big
-    ...    ≤ 2 * n : by linarith, },
-  apply trans (pow_le_pow (trans one_le_two hp.out.two_le) prime_powers_sparse) p_pow_small,
+  apply trans (pow_le_pow (trans one_le_two hp.out.two_le) _) (_ : p ^ p.log (2 * n) ≤ 2 * n),
+  { calc _  ≤ (finset.Ico 1 (nat.log p (2 * n) + 1)).card : finset.card_filter_le _ _
+        ... = (p.log (2 * n) + 1) - 1                     : finset.Ico.card _ _ },
+  { refine nat.pow_log_le_self _ _ hp.out.one_lt _,
+    calc 1 ≤ 3     : nat.one_le_bit1 1
+       ... ≤ n     : n_big
+       ... ≤ 2 * n : n.le_two_mul_self }
 end
 
 lemma claim_2
@@ -70,18 +71,13 @@ lemma claim_2
   (smallish : (2 * n) < p ^ 2)
   : (α n p) ≤ 1
   :=
-begin
-  have h1 : p ^ α n p < p ^ 2,
-    calc p ^ α n p ≤ 2 * n : claim_1 p n n_big
-    ...            < p ^ 2 : smallish,
+nat.le_of_lt_succ $ (pow_lt_pow_iff hp.out.one_lt).1 $
+  calc p ^ α n p ≤ 2 * n : claim_1 p n n_big
+             ... < p ^ 2 : smallish
 
-  let h2 : α n p < 2 := (pow_lt_pow_iff hp.out.one_lt).1 h1,
-  linarith,
-end
-
-lemma twice_nat_small : ∀ (n : nat) (h : 2 * n < 2), n = 0
-| 0 := λ _, rfl
-| (n + 1) := λ pr, by linarith
+lemma twice_nat_small (n : nat) (h : 2 * n < 2) : n = 0 :=
+nat.le_zero_iff.mp $ nat.le_of_lt_succ $
+  lt_of_mul_lt_mul_left (h.trans_le (mul_one _).symm.le) (nat.zero_le _)
 
 lemma claim_3
   (p : nat)
@@ -94,12 +90,12 @@ lemma claim_3
   :=
 begin
   unfold α,
-  rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n),
-  simp only [@nat.prime.multiplicity_choose p (2 * n) n (nat.log p (2 * n) + 1)
-                        (hp.out) (by linarith) (lt_add_one (nat.log p (2 * n)))],
-  have r : 2 * n - n = n, by
-    calc 2 * n - n = n + n - n: by rw two_mul n
-    ... = n: nat.add_sub_cancel n n,
+  rw @padic_val_nat_def p hp ((2 * n).choose n) (central_binom_nonzero n),
+  simp only [@nat.prime.multiplicity_choose p (2 * n) n (p.log (2 * n) + 1)
+                        (hp.out) n.le_two_mul_self (lt_add_one (p.log (2 * n)))],
+  have r : 2 * n - n = n,
+    calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
+               ... = n         : nat.add_sub_cancel n n,
   simp only [r, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable],
   clear r,
 
@@ -109,47 +105,45 @@ begin
   intros i i_in_interval,
   rw finset.Ico.mem at i_in_interval,
   have three_lt_p : 3 ≤ p ,
-    { rcases le_or_lt 3 p with H|H,
-      { exact H, },
-      { have bad: 12 < 9, by
-          calc 12 = 2 * 6: by ring
-            ... <  2 * n: (mul_lt_mul_left (by linarith)).2 n_big
-            ... < 3 * p: big
-            ... < 3 * 3: (mul_lt_mul_left (by linarith)).2 H
-            ... = 9: by ring,
-        linarith, }, },
+  { rcases le_or_lt 3 p with H|H,
+    { exact H, },
+    { refine (lt_irrefl 12 _).elim,
+      calc 12 = 2 * 6 : rfl
+        ... < 2 * n   : (mul_lt_mul_left zero_lt_two).2 n_big
+        ... < 3 * p   : big
+        ... < 3 * 3   : (mul_lt_mul_left zero_lt_three).2 H
+        ... = 9       : rfl
+        ... < 12      : nat.lt_of_sub_eq_succ rfl } },
 
-  simp only [not_le],
+  refine not_le.mpr _,
 
   rcases lt_trichotomy 1 i with H|rfl|H,
-    { have two_le_i : 2 ≤ i, by linarith,
-      have two_n_lt_pow_p_i : 2 * n < p ^ i,
-        { calc 2 * n < 3 * p: big
-            ... ≤ p * p: (mul_le_mul_right p_pos).2 three_lt_p
-            ... = p ^ 2: by ring
-            ... ≤ p ^ i: nat.pow_le_pow_of_le_right p_pos two_le_i, },
-      have n_mod : n % p ^ i = n,
-        { apply nat.mod_eq_of_lt,
-          calc n ≤ n + n: nat.le.intro rfl
-              ... = 2 * n: (two_mul n).symm
-              ... < p ^ i: two_n_lt_pow_p_i, },
-      rw n_mod,
-      exact two_n_lt_pow_p_i, },
+  { have two_le_i : 2 ≤ i := nat.succ_le_of_lt H,
+    have two_n_lt_pow_p_i : 2 * n < p ^ i,
+    { calc 2 * n < 3 * p : big
+             ... ≤ p * p : (mul_le_mul_right p_pos).2 three_lt_p
+             ... = p ^ 2 : (sq _).symm
+             ... ≤ p ^ i : nat.pow_le_pow_of_le_right p_pos two_le_i, },
+    have n_mod : n % p ^ i = n,
+    { apply nat.mod_eq_of_lt,
+      calc n ≤ n + n : nat.le.intro rfl
+         ... = 2 * n : (two_mul n).symm
+         ... < p ^ i : two_n_lt_pow_p_i, },
+    rw n_mod,
+    exact two_n_lt_pow_p_i, },
 
     { rw [pow_one],
       suffices h23 : 2 * (p * (n / p)) + 2 * (n % p) < 2 * (p * (n / p)) + p,
       { exact (add_lt_add_iff_left (2 * (p * (n / p)))).mp h23, },
-
-      have n_big : 1 ≤ (n / p),
-        { apply (nat.le_div_iff_mul_le' p_pos).2,
-          simp only [one_mul],
-          exact small, },
-
+      have n_big : 1 ≤ (n / p) := (nat.le_div_iff_mul_le' p_pos).2 (trans (one_mul _).le small),
       rw [←mul_add, nat.div_add_mod],
-      let h5 : p * 1 ≤ p * (n / p) := nat.mul_le_mul_left p n_big,
-
-      linarith, },
-    { linarith, },
+      calc  2 * n < 3 * p : big
+              ... = 2 * p + p : nat.succ_mul _ _
+              ... ≤ 2 * (p * (n / p)) + p : add_le_add_right ((mul_le_mul_left zero_lt_two).mpr $
+                ((le_mul_iff_one_le_right p_pos).mpr n_big)) _ },
+    { have : i = 0 := nat.le_zero_iff.mp (nat.le_of_lt_succ H),
+      rw [this, pow_zero, nat.mod_one, mul_zero],
+      exact zero_lt_one }
 end
 
 

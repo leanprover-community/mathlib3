@@ -48,8 +48,8 @@ begin
   { refine λ x, le_trans (h x) _,
     rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
     swap, { exact add_nonneg (by simp) (by simp), },
-    refine le_trans _ (half_le_self (add_nonneg (pow_two_nonneg _) (pow_two_nonneg _))),
-    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr ((le_of_eq _).trans (two_mul_le_add_pow_two _ _)),
+    refine le_trans _ (half_le_self (add_nonneg (sq_nonneg _) (sq_nonneg _))),
+    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
     ring, },
   simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
   refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
@@ -75,7 +75,7 @@ begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,
   rw integral_eq_lintegral_of_nonneg_ae,
-  swap, { exact filter.eventually_of_forall (λ x, pow_two_nonneg _), },
+  swap, { exact filter.eventually_of_forall (λ x, sq_nonneg _), },
   swap, { exact (Lp.ae_measurable f).norm.pow_const _ },
   congr,
   ext1 x,
@@ -135,4 +135,51 @@ instance inner_product_space : inner_product_space 𝕜 (α →₂[μ] E) :=
 end inner_product_space
 
 end L2
+
+section inner_continuous
+
+variables {α : Type*} [topological_space α] [measure_space α] [borel_space α] {𝕜 : Type*}
+  [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜]
+variables (μ : measure α) [finite_measure μ]
+
+open_locale bounded_continuous_function
+
+local attribute [instance] fact_one_le_two_ennreal
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 (α →₂[μ] 𝕜) _ x y
+
+/-- For bounded continuous functions `f`, `g` on a finite-measure topological space `α`, the L^2
+inner product is the integral of their pointwise inner product. -/
+lemma bounded_continuous_function.inner_to_Lp (f g : α →ᵇ 𝕜) :
+  ⟪bounded_continuous_function.to_Lp 2 μ 𝕜 f, bounded_continuous_function.to_Lp 2 μ 𝕜 g⟫
+  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+begin
+  apply integral_congr_ae,
+  have hf_ae := f.coe_fn_to_Lp μ,
+  have hg_ae := g.coe_fn_to_Lp μ,
+  filter_upwards [hf_ae, hg_ae],
+  intros x hf hg,
+  rw [hf, hg],
+  simp
+end
+
+variables [compact_space α]
+
+/-- For continuous functions `f`, `g` on a compact, finite-measure topological space `α`, the L^2
+inner product is the integral of their pointwise inner product. -/
+lemma continuous_map.inner_to_Lp (f g : C(α, 𝕜)) :
+  ⟪continuous_map.to_Lp 2 μ 𝕜 f, continuous_map.to_Lp 2 μ 𝕜 g⟫
+  = ∫ x, is_R_or_C.conj (f x) * g x ∂μ :=
+begin
+  apply integral_congr_ae,
+  have hf_ae := f.coe_fn_to_Lp μ,
+  have hg_ae := g.coe_fn_to_Lp μ,
+  filter_upwards [hf_ae, hg_ae],
+  intros x hf hg,
+  rw [hf, hg],
+  simp
+end
+
+end inner_continuous
+
 end measure_theory

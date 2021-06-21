@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.normed_space.inner_product
+import analysis.normed_space.pi_Lp
 
 /-!
 # Euclidean distance on a finite dimensional space
@@ -25,8 +25,8 @@ noncomputable theory
 
 /-- If `E` is a finite dimensional space over `ℝ`, then `to_euclidean` is a continuous `ℝ`-linear
 equivalence between `E` and the Euclidean space of the same dimension. -/
-def to_euclidean : E ≃L[ℝ] euclidean_space ℝ (fin $ finite_dimensional.findim ℝ E) :=
-continuous_linear_equiv.of_findim_eq findim_euclidean_space_fin.symm
+def to_euclidean : E ≃L[ℝ] euclidean_space ℝ (fin $ finite_dimensional.finrank ℝ E) :=
+continuous_linear_equiv.of_finrank_eq finrank_euclidean_space_fin.symm
 
 namespace euclidean
 

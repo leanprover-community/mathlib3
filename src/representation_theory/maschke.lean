@@ -5,8 +5,8 @@ Authors: Scott Morrison
 -/
 import algebra.monoid_algebra
 import algebra.char_p.invertible
+import algebra.regular
 import linear_algebra.basis
-import ring_theory.simple_module
 
 /-!
 # Maschke's theorem
@@ -35,7 +35,7 @@ of a finite group is semisimple (i.e. a direct sum of irreducibles).
 universes u
 
 noncomputable theory
-open semimodule
+open module
 open monoid_algebra
 open_locale big_operators
 

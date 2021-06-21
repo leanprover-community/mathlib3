@@ -95,7 +95,7 @@ begin
     by_cases h : coeff d φ = 0;
     simp only [*, ne.def, not_false_iff, zero_mul, mul_zero] at * },
   specialize hφ aux.1, specialize hψ aux.2,
-  rw finsupp.mem_antidiagonal_support at hde,
+  rw finsupp.mem_antidiagonal at hde,
   classical,
   have hd' : d.support ⊆ d.support ∪ e.support := finset.subset_union_left _ _,
   have he' : e.support ⊆ d.support ∪ e.support := finset.subset_union_right _ _,
@@ -114,6 +114,7 @@ lemma is_homogeneous_monomial (d : σ →₀ ℕ) (r : R) (n : ℕ) (hn : ∑ i 
   is_homogeneous (monomial d r) n :=
 begin
   intros c hc,
+  classical,
   rw coeff_monomial at hc,
   split_ifs at hc with h,
   { subst c, exact hn },

@@ -313,6 +313,17 @@ begin
     have mul_one := S.mul_one,
     equiv_rw e at mul_one,
     solve_by_elim, },
+  { have npow := S.npow, equiv_rw e at npow, exact npow, },
+  { try { unfold_projs },
+    simp only with transport_simps,
+    have npow_zero' := S.npow_zero',
+    equiv_rw e at npow_zero',
+    solve_by_elim, },
+  { try { unfold_projs },
+    simp only with transport_simps,
+    have npow_succ' := S.npow_succ',
+    equiv_rw e at npow_succ',
+    solve_by_elim, },
 end
 
 example {α β : Type} (e : α ≃ β) (S : monoid α) :

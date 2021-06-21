@@ -369,13 +369,13 @@ namespace continuous_map
 /-- A real subalgebra of `C(X, ℂ)` is `conj_invariant`, if its image under conjugation is itself.
 -/
 def conj_invariant_subalgebra (A : subalgebra ℝ C(X, ℂ)) : Prop :=
-A.map (conj_alg_equiv.to_alg_hom.comp_left_continuous ℝ conj_clm.continuous) = A
+A.map (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) = A
 
 lemma mem_conj_invariant {A : subalgebra ℝ C(X, ℂ)} (hA : conj_invariant_subalgebra A)
   {f : C(X, ℂ)} (hf : f ∈ A) :
-  (conj_alg_equiv.to_alg_hom.comp_left_continuous ℝ conj_clm.continuous) f ∈ A :=
+  (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ A :=
 begin
-  suffices : _ ∈ A.map (conj_alg_equiv.to_alg_hom.comp_left_continuous ℝ conj_clm.continuous),
+  suffices : _ ∈ A.map (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous),
   { convert this,
     exact hA.symm },
   rw subalgebra.mem_map,

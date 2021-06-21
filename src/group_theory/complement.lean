@@ -147,7 +147,7 @@ begin
   rw [←eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_inv_eq_iff_eq_mul] at h,
   change ↑(x.2 * y.2⁻¹) = ↑(x.1⁻¹ * y.1) at h,
   rw [prod.ext_iff, ←@inv_mul_eq_one H _ x.1 y.1, ←@mul_inv_eq_one K _ x.2 y.2, subtype.ext_iff,
-      subtype.ext_iff, coe_one, coe_one, h, and_self, ←mem_bot, ←h2, mem_inf],
+      subtype.ext_iff, coe_one, coe_one, h, and_self, ←mem_bot, ←h2.eq_bot, mem_inf],
   exact ⟨subtype.mem ((x.1)⁻¹ * (y.1)), (congr_arg (∈ K) h).mp (subtype.mem (x.2 * (y.2)⁻¹))⟩,
 end
 
@@ -155,7 +155,7 @@ lemma is_complement_of_coprime [fintype G] [fintype H] [fintype K]
   (h1 : fintype.card H * fintype.card K = fintype.card G)
   (h2 : nat.coprime (fintype.card H) (fintype.card K)) :
   is_complement (H : set G) (K : set G) :=
-is_complement_of_disjoint h1 (inf_eq_bot_of_coprime h2)
+is_complement_of_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
 
 section schur_zassenhaus
 

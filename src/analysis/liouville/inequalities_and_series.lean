@@ -65,8 +65,8 @@ end
 end lemmas_about_summability_and_sums
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
-lemma calc_liou_one (m1 : 1 < m) (n : ℕ) :
-∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :=
+lemma tsum_one_div_pow_factorial_lt (m1 : 1 < m) (n : ℕ) :
+  ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :=
 -- two useful inequalities
 have m0 : 0 < m := (zero_lt_one.trans m1),
 have mi : abs (1 / m) < 1 :=
@@ -93,7 +93,7 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
     -- the series if the geometric series
     mul_eq_mul_right_iff.mpr (or.inl (tsum_geometric_of_abs_lt_1 mi))
 
-lemma calc_liou_two_zero (n : ℕ) (hm : 2 ≤ m) :
+lemma liouville.aux_calc (n : ℕ) (hm : 2 ≤ m) :
   (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
 calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
   -- the second factors coincide (and are non-negative),

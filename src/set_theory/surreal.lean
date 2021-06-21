@@ -578,7 +578,7 @@ begin
 end
 
 /-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
-noncomputable def dyadic_map : localization (submonoid.powers (2 : ℤ)) → surreal :=
+def dyadic_map : localization (submonoid.powers (2 : ℤ)) → surreal :=
 begin
   apply quotient.lift,
   swap,

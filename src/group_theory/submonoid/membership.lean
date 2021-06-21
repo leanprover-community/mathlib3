@@ -218,15 +218,15 @@ lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 def pow (n : M) (m : ℕ) : powers n := ⟨n ^ m, m, rfl⟩
 
 /-- Logarithms from powers to natural numbers. -/
-noncomputable def log {n : M} (p : powers n) : ℕ :=
-classical.some $ (mem_powers_iff n p).1 p.prop
+def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=
+nat.find $ (mem_powers_iff n p).mp p.prop
 
-@[simp] theorem pow_log_eq_self {n : M} (p : powers n) : pow n (log p) = p :=
+@[simp] theorem pow_log_eq_self [decidable_eq M] {n : M} (p : powers n) : pow n (log p) = p :=
 begin
   rw [pow, log],
   rcases p with ⟨_, hp⟩,
   congr,
-  exact classical.some_spec hp,
+  exact nat.find_spec hp,
 end
 
 lemma pow_right_injective_iff_pow_injective {n : M} :
@@ -241,7 +241,7 @@ begin
     exact h₂ }
 end
 
-theorem log_pow_eq_self {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
+theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
   log (pow n m) = m := pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
 
 -- TODO: Move this to data.int.basic

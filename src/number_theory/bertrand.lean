@@ -371,10 +371,7 @@ open real
 open_locale nnreal
 
 lemma pow_coe (a b : ℕ) : (↑(a ^ b) : ℝ) = (↑a) ^ (↑b : ℝ) :=
-begin
-  rw real.rpow_nat_cast,
-  simp only [nat.cast_pow],
-end
+by simp only [rpow_nat_cast, nat.cast_pow]
 
 lemma nat_sqrt_le_real_sqrt (a : ℕ) : (nat.sqrt a : ℝ) ≤ real.sqrt a :=
 begin

@@ -8,8 +8,8 @@ import data.list.basic
 /-!
 # Double universal quantification on a list
 
-This file provides an API for `list.forall₂`. `forall₂ r l₁ l₂` means that
-`∀ a ∈ l₁, ∀ b ∈ l₂, r a b`, where `l₁`, `l₂` are lists.
+This file provides an API for `list.forall₂` (definition in `data.list.defs`).
+`forall₂ r l₁ l₂` means that `∀ a ∈ l₁, ∀ b ∈ l₂, r a b`, where `l₁`, `l₂` are lists.
 -/
 
 open nat function

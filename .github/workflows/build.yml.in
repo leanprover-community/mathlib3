@@ -87,6 +87,8 @@ jobs:
     runs-on: RUNS_ON
     needs: build
 
+    if: false
+
     # skip on master branch
     if: github.repository != 'leanprover-community/mathlib' || github.ref != 'refs/heads/master'
 
@@ -158,12 +160,10 @@ jobs:
 
       - name: install trepplein
         run: |
-          pushd ..
           trepplein_version=1.0
           wget https://github.com/gebner/trepplein/releases/download/v$trepplein_version/trepplein-$trepplein_version.zip
           unzip trepplein-$trepplein_version.zip
           echo $PWD/trepplein-$trepplein_version/bin >>$GITHUB_PATH
-          popd
 
       - name: export as low-level text file
         run: lean --recursive --export=mathlib.txt src/

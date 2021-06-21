@@ -221,26 +221,11 @@ begin
   { intros h, rw h, exact irrefl 0, },
 end
 
+lemma alskjhads_no_two (n x : ℕ) (h : n / 3 + 1 ≤ x) : n < 3 * x :=
+lt_of_lt_of_le ((nat.div_lt_iff_lt_mul' zero_lt_three).mp (nat.succ_le_iff.mp h)) (mul_comm _ _).le
+
 lemma alskjhads (n x : ℕ): 2 * n / 3 + 1 ≤ x -> 2 * n < 3 * x :=
-begin
-  intro h,
-  rw nat.add_one_le_iff at h,
-  cases lt_or_ge (2 * n) (3 * x),
-  { exact h_1, },
-  { exfalso,
-    simp only [ge_iff_le] at h_1,
-    induction x,
-    { simp at h, exact h, },
-    { apply x_ih,
-      cases lt_or_ge (2 * n / 3) x_n,
-      { exact h_2, },
-      { have r : 2 * n / 3 = x_n, by omega,
-        exfalso,
-        subst r,
-        exact nat.lt_le_antisymm (nat.lt_mul_div_succ (2 * n) (by norm_num)) h_1, },
-      { calc 3 * x_n ≤ 3 * (x_n + 1): by norm_num
-        ... ≤ 2 * n: h_1, }, }, },
-end
+alskjhads_no_two (2 * n) x
 
 lemma central_binom_factorization (n : ℕ) :
       ∏ p in finset.filter nat.prime (finset.range ((2 * n).choose n + 1)),

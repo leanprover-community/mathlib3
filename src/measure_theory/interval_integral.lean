@@ -372,7 +372,7 @@ namespace interval_integral
 
 section basic
 
-variables {a b c d : α} {f g : α → E} {μ : measure α}
+variables {a b : α} {f g : α → E} {μ : measure α}
 
 @[simp] lemma integral_zero : ∫ x in a..b, (0 : E) ∂μ = 0 :=
 by simp [interval_integral]
@@ -394,12 +394,19 @@ lemma integral_cases (f : α → E) (a b) :
     -∫ x in Ioc (min a b) (max a b), f x ∂μ} : set E) :=
 (le_total a b).imp (λ h, by simp [h, integral_of_le]) (λ h, by simp [h, integral_of_ge])
 
-lemma integral_non_ae_measurable {f : α → E} {a b}
+lemma integral_undef (h : ¬ interval_integrable f μ a b) :
+  ∫ x in a..b, f x ∂μ = 0 :=
+by cases le_total a b with hab hab;
+  simp only [integral_of_le, integral_of_ge, hab, neg_eq_zero];
+    refine integral_undef (not_imp_not.mpr integrable.integrable_on' _);
+      simpa [hab] using not_and_distrib.mp h
+
+lemma integral_non_ae_measurable
   (hf : ¬ ae_measurable f (μ.restrict (Ioc (min a b) (max a b)))) :
   ∫ x in a..b, f x ∂μ = 0 :=
 by cases le_total a b; simpa [integral_of_le, integral_of_ge, h] using integral_non_ae_measurable hf
 
-lemma integral_non_ae_measurable_of_le {f : α → E} {a b} (h : a ≤ b)
+lemma integral_non_ae_measurable_of_le (h : a ≤ b)
   (hf : ¬ ae_measurable f (μ.restrict (Ioc a b))) :
   ∫ x in a..b, f x ∂μ = 0 :=
 integral_non_ae_measurable $ by simpa [h] using hf

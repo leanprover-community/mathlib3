@@ -139,7 +139,7 @@ function.surjective.has_right_inverse quotient.surjective_quotient_mk', f := cla
 
 lemma is_complement_of_disjoint [fintype G] [fintype H] [fintype K]
   (h1 : fintype.card H * fintype.card K = fintype.card G)
-  (h2 : H ⊓ K = ⊥) :
+  (h2 : disjoint H K) :
   is_complement (H : set G) (K : set G) :=
 begin
   refine function.bijective.exists_unique ((fintype.bijective_iff_injective_and_card _).mpr

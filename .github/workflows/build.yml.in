@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: install Python
-        if: ! IS_SELF_HOSTED
+        if: ${{ ! IS_SELF_HOSTED }}
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
@@ -33,7 +33,7 @@ jobs:
           fetch-depth: ${{ env.GIT_HISTORY_DEPTH }}
 
       - name: install elan
-        if: ! IS_SELF_HOSTED
+        if: ${{ ! IS_SELF_HOSTED }}
         run: |
           set -o pipefail
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -42,7 +42,7 @@ jobs:
           echo "short_lean_version=$(~/.elan/bin/lean --run scripts/lean_version.lean)" >> $GITHUB_ENV
 
       - name: install Python
-        if: ! IS_SELF_HOSTED
+        if: ${{ ! IS_SELF_HOSTED }}
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
@@ -101,7 +101,7 @@ jobs:
         run: tar -xf workspace.tar
 
       - name: install elan
-        if: ! IS_SELF_HOSTED
+        if: ${{ ! IS_SELF_HOSTED }}
         run: |
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -131,7 +131,7 @@ jobs:
         run: tar -xf workspace.tar
 
       - name: install elan
-        if: ! IS_SELF_HOSTED
+        if: ${{ ! IS_SELF_HOSTED }}
         run: |
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -139,13 +139,13 @@ jobs:
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: install Python
-        if: ! IS_SELF_HOSTED
+        if: ${{ ! IS_SELF_HOSTED }}
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
 
       - name: install Python dependencies
-        if: ! IS_SELF_HOSTED
+        if: ${{ ! IS_SELF_HOSTED }}
         run: python -m pip install --upgrade pip pyyaml
 
       - name: tests
@@ -154,7 +154,7 @@ jobs:
           lean --json -T100000 --make docs archive roadmap test counterexamples | python scripts/detect_errors.py
 
       - uses: actions/setup-java@v2
-        if: ! IS_SELF_HOSTED
+        if: ${{ ! IS_SELF_HOSTED }}
         with:
           distribution: 'adopt'
           java-version: '16'

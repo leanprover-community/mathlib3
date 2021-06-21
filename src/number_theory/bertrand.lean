@@ -511,37 +511,7 @@ begin
 end
 
 lemma log_pow {x y : ℝ} (hyp : 0 < x) : log (x ^ y) = y * log x :=
-begin
-  have r : x ^ y = exp (log x * y),
-  { unfold pow, unfold rpow, unfold pow, unfold complex.cpow,
-    by_cases x = 0,
-    { subst h,
-      simp at hyp,
-      cc, },
-    { unfold exp, unfold log,
-      have r : ¬ ((x : ℂ) = 0),
-        { rename h x_nonzero,
-          by_contradiction,
-          apply x_nonzero,
-          simp at h,
-          exact h, },
-      rw if_neg r,
-      rw dif_neg h,
-      simp,
-      apply congr_arg complex.re,
-      apply congr_arg (λ i, complex.exp i),
-      unfold complex.log,
-      simp,
-      have arg_zero: (x : ℂ).arg = 0 := complex.arg_of_real_of_nonneg (le_of_lt hyp),
-      rw arg_zero,
-      simp,
-      left,
-      exact log_of_ne_zero (by linarith),
-    },
-  },
-  rw [r, log_exp],
-  exact mul_comm _ _,
-end
+log_rpow hyp y
 
 lemma two_pow_three : (2 : ℝ) ^ (3 : ℝ) = 8 :=
 begin

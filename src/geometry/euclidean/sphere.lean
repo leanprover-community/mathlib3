@@ -17,10 +17,10 @@ in spheres in real inner product spaces and Euclidean affine spaces.
 * `mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_zero`: Intersecting Secants Theorem.
 * `mul_dist_add_mul_dist_eq_mul_dist_of_cospherical`: Ptolemy’s Theorem (Freek No. 95).
 
-TODO: The current statement of Ptolemy’s theorem works around the lack of a proper "cyclic polygon"
-concept in mathlib. (Or two such concepts, since both a strict version, where all vertices must be
-distinct, and a weak version, where consecutive vertices may be equal, would be useful in mathlib.
-Ptolemy should then use the weak one.) A natural statement would then use cyclic_polygon.
+TODO: The current statement of Ptolemy’s theorem works around the lack of a "cyclic polygon" concept
+in mathlib, which is what the theorem statement would naturally use (or two such concepts, since
+both a strict version, where all vertices must be distinct, and a weak version, where consecutive
+vertices may be  equal, would be useful; Ptolemy's theorem should then use the weak one).
 
 An API needs to be built around that concept, which would include:
 - strict cyclic implies weak cyclic,
@@ -32,8 +32,8 @@ An API needs to be built around that concept, which would include:
 - a list of points is cyclic if and only if its reversal is,
 - a list of points is cyclic if and only if any cyclic permutation is, while other permutations
   are not when the points are distinct,
-- a point P as in the statement exists (and is unique) with weak/strict betweenness depending on
-  weak/strict cyclicity,
+- a point P where the diagonals of a cyclic polygon cross exists (and is unique) with weak/strict
+  betweenness depending on weak/strict cyclicity,
 - four points on a sphere with such a point P are cyclic in the appropriate order,
 and so on.
 -/

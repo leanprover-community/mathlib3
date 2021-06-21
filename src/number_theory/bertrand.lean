@@ -1223,120 +1223,280 @@ begin
     exact false_inequality_is_false (by linarith) false_inequality,
 end
 
+lemma prime_199999991 : nat.prime 199999991 :=
+begin
+  norm_num,
+end
+
+lemma prime_119999987 : nat.prime 119999987 :=
+begin
+  norm_num,
+end
+
+lemma prime_79999987 : nat.prime 79999987 :=
+begin
+  norm_num,
+end
+
+lemma prime_49999991 : nat.prime 49999991 :=
+begin
+  norm_num,
+end
+
+lemma prime_25999949 : nat.prime 25999949 :=
+begin
+  norm_num,
+end
+
+lemma prime_13999981 : nat.prime 13999981 :=
+begin
+  norm_num,
+end
+
+lemma prime_7199957 : nat.prime 7199957 :=
+begin
+  norm_num,
+end
+
+lemma prime_3799973 : nat.prime 3799973 :=
+begin
+  norm_num,
+end
+
+lemma prime_1999993 : nat.prime 1999993 :=
+begin
+  norm_num,
+end
+
+lemma prime_1019971 : nat.prime 1019971 :=
+begin
+  norm_num,
+end
+
+lemma prime_519997 : nat.prime 519997 :=
+begin
+  norm_num,
+end
+
+lemma prime_279991 : nat.prime 279991 :=
+begin
+  norm_num,
+end
+
+lemma prime_141991 : nat.prime 141991 :=
+begin
+  norm_num,
+end
+
+lemma prime_71999 : nat.prime 71999 :=
+begin
+  norm_num,
+end
+
+lemma prime_37997 : nat.prime 37997 :=
+begin
+  norm_num,
+end
+
+lemma prime_19997 : nat.prime 19997 :=
+begin
+  norm_num,
+end
+
+lemma prime_10193 : nat.prime 10193 :=
+begin
+  norm_num,
+end
+
+lemma prime_5197 : nat.prime 5197 :=
+begin
+  norm_num,
+end
+
+lemma prime_2797 : nat.prime 2797 :=
+begin
+  norm_num,
+end
+
+lemma prime_1409 : nat.prime 1409 :=
+begin
+  norm_num,
+end
+
+lemma prime_719 : nat.prime 719 :=
+begin
+  norm_num,
+end
+
+lemma prime_547 : nat.prime 547 :=
+begin
+  norm_num,
+end
+
+lemma prime_277 : nat.prime 277 :=
+begin
+  norm_num,
+end
+
+lemma prime_139 : nat.prime 139 :=
+begin
+  norm_num,
+end
+
+lemma prime_73 : nat.prime 73 :=
+begin
+  norm_num,
+end
+
+lemma prime_37 : nat.prime 37 :=
+begin
+  norm_num,
+end
+lemma prime_19 : nat.prime 19 :=
+begin
+  norm_num,
+end
+lemma prime_11 : nat.prime 11 :=
+begin
+  norm_num,
+end
+lemma prime_7 : nat.prime 7 :=
+begin
+  norm_num,
+end
+
+lemma bertrand_initially (n : nat) (n_pos : 0 < n) (n_small : n ≤ 172186888) :
+∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n
+:=
+begin
+
+  cases le_or_lt 100000000 n,
+  { use 199999991, split, exact prime_199999991, split, linarith, linarith, },
+  clear n_small,
+
+  cases le_or_lt 60000000 n,
+  { use 119999987, split, exact prime_119999987, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 40000000 n,
+  { use 79999987, split, exact prime_79999987, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 25000000 n,
+  { use 49999991, split, exact prime_49999991, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 13000000 n,
+  { use 25999949, split, exact prime_25999949, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 7000000 n,
+  { use 13999981, split, exact prime_13999981, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 3600000 n,
+  { use 7199957, split, exact prime_7199957, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 1900000 n,
+  { use 3799973, split, exact prime_3799973, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 1000000 n,
+  { use 1999993, split, exact prime_1999993, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 510000 n,
+  { use 1019971, split, exact prime_1019971, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 260000 n,
+  { use 519997, split, exact prime_519997, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 140000 n,
+  { use 279991, split, exact prime_279991, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 71000 n,
+  { use 141991, split, exact prime_141991, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 36000 n,
+  { use 71999, split, exact prime_71999, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 19000 n,
+  { use 37997, split, exact prime_37997, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 10000 n,
+  { use 19997, split, exact prime_19997, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 5100 n,
+  { use 10193, split, exact prime_10193, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 2600 n,
+  { use 5197, split, exact prime_5197, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 1400 n,
+  { use 2797, split, exact prime_2797, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 710 n,
+  { use 1409, split, exact prime_1409, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 360 n,
+  { use 719, split, exact prime_719, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 274 n,
+  { use 547, split, exact prime_547, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 139 n,
+  { use 277, split, exact prime_277, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 70 n,
+  { use 139, split, exact prime_139, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 37 n,
+  { use 73, split, exact prime_73, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 19 n,
+  { use 37, split, exact prime_37, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 11 n,
+  { use 19, split, exact prime_19, split, linarith, linarith, },
+  clear h_1,
+
+  cases le_or_lt 6 n,
+  { use 11, split, exact prime_11, split, linarith, linarith, },
+  clear h,
+
+  cases le_or_lt 4 n,
+  { use 7, split, exact prime_7, split, linarith, linarith, },
+  clear h_1,
+
+  interval_cases n,
+  { use 2, norm_num },
+  { use 3, norm_num },
+  { use 5, norm_num },
+end
+
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
+
 cases lt_or_le 172186888 n,
 {exact bertrand_eventually n h},
+{exact bertrand_initially n n_pos h},
 
-cases le_or_lt 100000000 n,
-{ use 199999991, norm_num, split, linarith, linarith, },
-clear h,
-
-cases le_or_lt 60000000 n,
-{ use 119999987, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 40000000 n,
-{ use 79999987, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 25000000 n,
-{ use 49999991, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 13000000 n,
-{ use 25999949, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 7000000 n,
-{ use 13999981, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 3600000 n,
-{ use 7199957, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 1900000 n,
-{ use 3799973, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 1000000 n,
-{ use 999983, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 510000 n,
-{ use 1019971, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 260000 n,
-{ use 519997, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 140000 n,
-{ use 139999, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 71000 n,
-{ use 70999, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 36000 n,
-{ use 35999, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 19000 n,
-{ use 18979, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 10000 n,
-{ use 9973, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 5100 n,
-{ use 5099, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 2600 n,
-{ use 2593, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 1400 n,
-{ use 1399, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 710 n,
-{ use TODO, norm_num, split, linarith, linarith, },
-clear h1,
-
-cases le_or_lt 360 n,
-{ use 719, norm_num, split, linarith, linarith, },
-clear h,
-cases le_or_lt 274 n,
-{ use 547, norm_num, split, linarith, linarith, },
-clear h_1,
-cases le_or_lt 139 n,
-{ use 277, norm_num, split, linarith, linarith, },
-clear h,
-cases le_or_lt 70 n,
-{ use 139, norm_num, split, linarith, linarith, },
-clear h_1,
-cases le_or_lt 37 n,
-{ use 73, norm_num, split, linarith, linarith, },
-clear h,
-cases le_or_lt 19 n,
-{ use 37, norm_num, split, linarith, linarith, },
-clear h_1,
-cases le_or_lt 11 n,
-{ use 19, norm_num, split, linarith, linarith, },
-clear h,
-cases le_or_lt 6 n,
-{ use 11, norm_num, split, linarith, linarith, },
-clear h_1,
-cases le_or_lt 4 n,
-{ use 7, norm_num, split, linarith, linarith, },
-clear h,
-interval_cases n,
-{ use 2, norm_num },
-{ use 3, norm_num },
-{ use 5, norm_num },
 end

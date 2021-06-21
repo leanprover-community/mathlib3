@@ -33,7 +33,6 @@ jobs:
           fetch-depth: ${{ env.GIT_HISTORY_DEPTH }}
 
       - name: install elan
-        if: ${{ ! IS_SELF_HOSTED }}
         run: |
           set -o pipefail
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -101,7 +100,6 @@ jobs:
         run: tar -xf workspace.tar
 
       - name: install elan
-        if: ${{ ! IS_SELF_HOSTED }}
         run: |
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
@@ -131,7 +129,6 @@ jobs:
         run: tar -xf workspace.tar
 
       - name: install elan
-        if: ${{ ! IS_SELF_HOSTED }}
         run: |
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y

@@ -378,17 +378,17 @@ theorem nonempty_sections_of_fintype_cofiltered_system
   F.sections.nonempty :=
 begin
   -- Step 1: lift everything to the `max u v w` universe.
-  let J' : Type (max u v w) := as_small (ulift.{v} J),
-  let down : J' ⥤ J := as_small.down ⋙ category_theory.ulift.down,
+  let J' : Type (max w v u) := as_small.{max w v} J,
+  let down : J' ⥤ J := as_small.down,
   let F' : J' ⥤ Type (max u v w) := down ⋙ F ⋙ ulift_functor.{(max u w) v},
   haveI : ∀ i, nonempty (F'.obj i) := λ i, ⟨⟨classical.arbitrary (F.obj (down.obj i))⟩⟩,
   haveI : ∀ i, fintype (F'.obj i) := λ i, fintype.of_equiv (F.obj (down.obj i)) equiv.ulift.symm,
   -- Step 2: apply the bootstrap theorem
   obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_cofiltered_system.init F',
   -- Step 3: interpret the results
-  use λ j, (u ⟨⟨j⟩⟩).down,
+  use λ j, (u ⟨j⟩).down,
   intros j j' f,
-  have h := @hu (⟨⟨j⟩⟩ : J') (⟨⟨j'⟩⟩ : J') (ulift.up f),
+  have h := @hu (⟨j⟩ : J') (⟨j'⟩ : J') (ulift.up f),
   simp only [as_small.down, functor.comp_map, ulift_functor_map, functor.op_map] at h,
   simp_rw [←h],
   refl,

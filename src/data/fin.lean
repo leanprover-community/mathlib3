@@ -359,6 +359,11 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+lemma coe_add_eq_ite {n : ℕ} (a b : fin n) :
+  (↑(a + b) : ℕ) = if n ≤ a + b then a + b - n else a + b :=
+by rw [fin.coe_add, nat.add_mod_eq_ite,
+       nat.mod_eq_of_lt (show ↑a < n, from a.2), nat.mod_eq_of_lt (show ↑b < n, from b.2)]
+
 lemma coe_bit0 {n : ℕ} (k : fin n) : ((bit0 k : fin n) : ℕ) = bit0 (k : ℕ) % n :=
 by { cases k, refl }
 

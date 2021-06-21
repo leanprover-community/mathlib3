@@ -7,28 +7,35 @@ import data.finset.basic
 import data.multiset.nat_antidiagonal
 
 /-!
-# The "antidiagonal" {(0,n), (1,n-1), ..., (n,0)} as a finset.
+# Antidiagonals in ℕ × ℕ as finsets
+
+This file defines the antidiagonals of ℕ × ℕ as finsets: the `n`-th antidiagonal is the finset of
+pairs `(i, j)` such that `i + j = n`. This is useful for polynomial multiplication and more
+generally for sums going from `0` to `n`.
+
+## Notes
+
+This refines files `data.list.nat_antidiagonal` and `data.multiset.nat_antidiagonal`.
 -/
 
 namespace finset
-
 namespace nat
 
 /-- The antidiagonal of a natural number `n` is
-    the finset of pairs `(i,j)` such that `i+j = n`. -/
+    the finset of pairs `(i, j)` such that `i + j = n`. -/
 def antidiagonal (n : ℕ) : finset (ℕ × ℕ) :=
 ⟨multiset.nat.antidiagonal n, multiset.nat.nodup_antidiagonal n⟩
 
-/-- A pair (i,j) is contained in the antidiagonal of `n` if and only if `i+j=n`. -/
+/-- A pair (i, j) is contained in the antidiagonal of `n` if and only if `i + j = n`. -/
 @[simp] lemma mem_antidiagonal {n : ℕ} {x : ℕ × ℕ} :
   x ∈ antidiagonal n ↔ x.1 + x.2 = n :=
 by rw [antidiagonal, mem_def, multiset.nat.mem_antidiagonal]
 
-/-- The cardinality of the antidiagonal of `n` is `n+1`. -/
+/-- The cardinality of the antidiagonal of `n` is `n + 1`. -/
 @[simp] lemma card_antidiagonal (n : ℕ) : (antidiagonal n).card = n+1 :=
 by simp [antidiagonal]
 
-/-- The antidiagonal of `0` is the list `[(0,0)]` -/
+/-- The antidiagonal of `0` is the list `[(0, 0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
 rfl
 

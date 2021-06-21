@@ -7,7 +7,6 @@ import data.equiv.encodable.basic
 import data.sigma
 import data.fintype.basic
 import data.list.min_max
-open nat
 
 /-!
 # Denumerable types
@@ -25,6 +24,8 @@ typeclass.
 /-- A denumerable type is (constructively) bijective with `ℕ`. Typeclass equivalent of `α ≃ ℕ`. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
+
+open nat
 
 namespace denumerable
 

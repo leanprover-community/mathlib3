@@ -4,14 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import data.int.basic
+
 /-!
 # Square root of natural numbers
 
-An efficient binary implementation of a (`sqrt n`) function that
-returns `s` such that
-```
-s*s ≤ n ≤ s*s + s + s
-```
+This file defines an efficient binary implementation of the square root function that returns the
+unique `r` such that `r * r ≤ n < (r + 1) * (r + 1)`. It takes advantage of the binary
+representation by replacing the multiplication by 2 appearing in
+`(a + b)^2 = a^2 + 2 * a * b + b^2` by a bitmask manipulation.
+
+## Reference
+
+See [Wikipedia, *Methods of computing square roots*]
+[https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)].
 -/
 namespace nat
 

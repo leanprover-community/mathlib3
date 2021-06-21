@@ -899,7 +899,7 @@ section metric_ordered
 variables [conditionally_complete_linear_order α] [order_topology α]
 
 lemma totally_bounded_Icc (a b : α) : totally_bounded (Icc a b) :=
-compact_Icc.totally_bounded
+is_compact_Icc.totally_bounded
 
 lemma totally_bounded_Ico (a b : α) : totally_bounded (Ico a b) :=
 totally_bounded_subset Ico_subset_Icc_self (totally_bounded_Icc a b)

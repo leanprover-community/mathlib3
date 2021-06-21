@@ -661,7 +661,7 @@ Postcomposition of bounded continuous functions into a normed module by a contin
 a continuous linear map.
 Upgraded version of `continuous_linear_map.comp_left_continuous`, similar to
 `linear_map.comp_left`. -/
-@[simps] protected def _root_.continuous_linear_map.comp_left_continuous_bounded (g : β →L[𝕜] γ) :
+protected def _root_.continuous_linear_map.comp_left_continuous_bounded (g : β →L[𝕜] γ) :
   (α →ᵇ β) →L[𝕜] (α →ᵇ γ) :=
 linear_map.mk_continuous
   { to_fun := λ f, of_normed_group
@@ -673,6 +673,11 @@ linear_map.mk_continuous
     map_smul' := λ c f, by ext; simp }
   ∥g∥
   (λ f, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg g) (norm_nonneg f)) _)
+
+@[simp] lemma _root_.continuous_linear_map.comp_left_continuous_bounded_apply (g : β →L[𝕜] γ)
+  (f : α →ᵇ β) (x : α) :
+  (g.comp_left_continuous_bounded α f) x = g (f x) :=
+rfl
 
 end normed_space
 

@@ -72,7 +72,7 @@ lemma reindex_linear_equiv_comp_apply [semiring R] (e₁ : m ≃ m') (e₂ : n �
   (e₂' : n' ≃ n'') (M : matrix m n R) :
   (reindex_linear_equiv e₁' e₂') (reindex_linear_equiv e₁ e₂ M) =
     reindex_linear_equiv (e₁.trans e₁') (e₂.trans e₂') M :=
-by rw [← reindex_linear_equiv_comp e₁ e₂ e₁' e₂']
+minor_minor _ _ _ _ _
 
 lemma reindex_linear_equiv_one [semiring R] [decidable_eq m] [decidable_eq m']
   (e : m ≃ m') : (reindex_linear_equiv e e (1 : matrix m m R)) = 1 :=

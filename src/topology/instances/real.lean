@@ -291,7 +291,7 @@ lemma periodic.compact_of_continuous' [topological_space α] {f : ℝ → α} {c
   (hp : periodic f c) (hc : 0 < c) (hf : continuous f) :
   is_compact (range f) :=
 begin
-  convert compact_Icc.image hf,
+  convert is_compact_Icc.image hf,
   ext x,
   refine ⟨_, mem_range_of_mem_image f (Icc 0 c)⟩,
   rintros ⟨y, h1⟩,

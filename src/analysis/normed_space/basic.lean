@@ -29,7 +29,7 @@ class has_norm (α : Type*) := (norm : α → ℝ)
 
 export has_norm (norm)
 
-notation `∥`:1024 e:1 `∥`:1 := norm e
+notation `∥` e `∥` := norm e
 
 /-- A seminormed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥`
 defines a pseudometric space structure. -/

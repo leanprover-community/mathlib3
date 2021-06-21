@@ -156,20 +156,21 @@ lemma claim_4
   :=
 begin
   unfold α at multiplicity_pos,
-  rw @padic_val_nat_def p hp (nat.choose (2 * n) n) (central_binom_nonzero n) at multiplicity_pos,
-  simp only [@nat.prime.multiplicity_choose p (2 * n) n (nat.log p (2 * n) + 1)
-                        hp.out (by linarith) (lt_add_one (nat.log p (2 * n)))] at multiplicity_pos,
-  have r : 2 * n - n = n, by
-    calc 2 * n - n = n + n - n: by rw two_mul n
-    ... = n: nat.add_sub_cancel n n,
+  rw @padic_val_nat_def p hp ((2 * n).choose n) (central_binom_nonzero n) at multiplicity_pos,
+  simp only [@nat.prime.multiplicity_choose p (2 * n) n (p.log (2 * n) + 1) hp.out
+    n.le_two_mul_self (lt_add_one (p.log (2 * n)))] at multiplicity_pos,
+  have r : 2 * n - n = n,
+    calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
+               ... = n         : nat.add_sub_cancel n n,
   simp only [r, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
     at multiplicity_pos,
   clear r,
   rw finset.card_pos at multiplicity_pos,
   cases multiplicity_pos with m hm,
   simp only [finset.Ico.mem, finset.mem_filter] at hm,
-  calc p = p ^ 1 : tactic.ring_exp.base_to_exp_pf rfl
-  ...    ≤ p ^ m : nat.pow_le_pow_of_le_right (by linarith [hp.out.one_lt]) hm.left.left
+  calc p = p ^ 1 : (pow_one _).symm
+  ...    ≤ p ^ m : nat.pow_le_pow_of_le_right
+                    (show 0 < p, from trans zero_lt_one hp.out.one_lt) hm.left.left
   ...    ≤ 2 * (n % p ^ m) : hm.right
   ...    ≤ 2 * n : nat.mul_le_mul_left _ (nat.mod_le n _),
 end

@@ -936,16 +936,15 @@ lemma minor_mul_equiv [semiring α] {p q : Type*} [fintype p] [fintype q]
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
 minor_mul M N e₁ e₂ e₃ e₂.bijective
 
-lemma mul_minor_one [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l ≃ o)
-  (M : matrix m n α) : M.mul ((1 : matrix o o α).minor e₁ e₂) = minor M id (e₁.symm ∘ e₂) :=
+lemma mul_minor_one [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l → o) (M : matrix m n α) :
+  M.mul ((1 : matrix o o α).minor e₁ e₂) = minor M id (e₁.symm ∘ e₂) :=
 begin
   let A := M.minor id e₁.symm,
   have : M = A.minor id e₁,
-  simp only [equiv.to_fun_as_coe, minor_minor, function.comp.right_id,
-    minor_id_id, equiv.symm_comp_self],
-  rw [this, ← minor_mul _ _ _ _ _ (equiv.bijective _)],
-  simp only [matrix.mul_one, equiv.to_fun_as_coe, minor_minor, function.comp.right_id,
-    minor_id_id, equiv.symm_comp_self],
+  { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
+  rw [this, ←minor_mul_equiv],
+  simp only [matrix.mul_one, minor_minor, function.comp.right_id, minor_id_id,
+    equiv.symm_comp_self],
 end
 
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is an

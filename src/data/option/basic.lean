@@ -60,8 +60,6 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 @[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
 
-@[simp] lemma get_or_else_none (x : α) : option.get_or_else none x = x := rfl
-
 @[simp] lemma get_or_else_coe (x y : α) : option.get_or_else ↑x y = x := rfl
 
 lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
@@ -443,9 +441,5 @@ begin
 end
 
 end
-
-@[simp] lemma get_or_else_map {α β} (f : α → β) (x : α) (o : option α) :
-  option.get_or_else (option.map f o) (f x) = f (option.get_or_else o x) :=
-by { cases o; refl }
 
 end option

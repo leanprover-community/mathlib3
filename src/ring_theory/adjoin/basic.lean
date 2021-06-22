@@ -98,18 +98,13 @@ begin
 end
 
 lemma span_le_adjoin (s : set A) : span R s ≤ (adjoin R s).to_submodule :=
-by { rw submodule.span_le, exact algebra.subset_adjoin }
+span_le.mpr subset_adjoin
 
-lemma adjoin_le_of_submonoid_closure_le {s : set A} {t : submodule R A}
-  (hs : ↑(submonoid.closure s) ⊆ (t : set A)) :
-  (adjoin R s).to_submodule ≤ t :=
-begin
-  intros _ h,
-  apply span_le.mpr hs,
-  simpa [adjoin_eq_span] using h
-end
+lemma adjoin_to_submodule_le {s : set A} {t : submodule R A} :
+  (adjoin R s).to_submodule ≤ t ↔ ↑(submonoid.closure s) ⊆ (t : set A) :=
+by rw [adjoin_eq_span, span_le]
 
-lemma adjoin_eq_span' {s : set A} (hs : ↑(submonoid.closure s) ⊆ (span R s : set A)) :
+lemma adjoin_eq_span_of_subset {s : set A} (hs : ↑(submonoid.closure s) ⊆ (span R s : set A)) :
   (adjoin R s).to_submodule = span R s :=
 le_antisymm (adjoin_le_of_submonoid_closure_le R hs) (span_le_adjoin R s)
 

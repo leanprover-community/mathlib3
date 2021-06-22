@@ -29,8 +29,11 @@ include s_conv xs hx hf
 /-- Assume that `f` is differentiable inside a convex set `s`, and that its derivative `f'` is
 differentiable at a point `x`. Then, given two vectors `v` and `w` pointing inside `s`, one can
 Taylor-expand to order two the function `f` on the segment `[x + h v, x + h (v + w)]`, giving a
-bilinear estimate for `f (x + hv + hw) - f (x + hv)` in terms of `f'` and of `f'' ⬝ w`, up to
-`o(h^2)`. -/
+bilinear estimate for `f (x + hv + hw) - f (x + hv)` in terms of `f' w` and of `f'' ⬝ w`, up to
+`o(h^2)`.
+
+This is a technical statement used to show that the second derivative is symmetric.
+-/
 lemma taylor_approx_two_segment (v w : E) (hv : x + v ∈ interior s) (hw : x + v + w ∈ interior s) :
   is_o (λ (h : ℝ), f (x + h • v + h • w) - f (x + h • v) - h • f' x w
     - h^2 • f'' v w - (h^2/2) • f'' w w) (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0) :=
@@ -120,14 +123,14 @@ begin
     ... ≤ (ε * ∥h • v + (t * h) • w∥) * (∥h • w∥) :
     begin
       apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
-      suffices H : x + h • v + (t * h) • w ∈ metric.ball x δ ∩ interior s,
-      { have := sδ H,
-        simp only [mem_set_of_eq] at this,
-        convert this;
-        abel },
-      refine ⟨_, xt_mem t ⟨ht.1, ht.2.le⟩⟩,
-      rw [add_assoc, add_mem_ball_iff_norm],
-      exact I.trans_lt hδ
+      have H : x + h • v + (t * h) • w ∈ metric.ball x δ ∩ interior s,
+      { refine ⟨_, xt_mem t ⟨ht.1, ht.2.le⟩⟩,
+        rw [add_assoc, add_mem_ball_iff_norm],
+        exact I.trans_lt hδ },
+      have := sδ H,
+      simp only [mem_set_of_eq] at this,
+      convert this;
+      abel
     end
     ... ≤ (ε * (∥h • v∥ + ∥h • w∥)) * (∥h • w∥) :
     begin

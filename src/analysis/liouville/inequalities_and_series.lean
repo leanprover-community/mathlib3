@@ -35,23 +35,6 @@ begin
   exact pow_pos (zero_lt_one.trans m1) _
 end
 
-section lemmas_about_summability_and_sums
-
-/-- A series whose terms are bounded by the terms of a converging geometric series converges. -/
-lemma summable_one_div_pow_of_le {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
-  summable (λ i, 1 / m ^ f i) :=
-begin
-  refine summable_of_nonneg_of_le
-    (λ a, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _)) (λ a, _)
-    (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
-      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (one_div_one.le.trans_lt hm))),
-  rw [div_pow, one_pow],
-  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a));
-  exact pow_pos (zero_lt_one.trans hm) _
-end
-
-end lemmas_about_summability_and_sums
-
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
 lemma tsum_one_div_pow_factorial_lt (m1 : 1 < m) (n : ℕ) :
   ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :=

@@ -126,13 +126,9 @@ begin
   simp only [h, gsmul_int_int, false_or, ne.def, mul_eq_zero]
 end
 
-@[simp] lemma support_smul (k : ℤ) (h : k ≠ 0) (a : free_abelian_group X) :
+@[simp] lemma support_nsmul (k : ℕ) (h : k ≠ 0) (a : free_abelian_group X) :
   support (k • a) = support a :=
-by rw [support_gsmul k h]
-
-@[simp] lemma support_smul_nat (k : ℕ) (h : k ≠ 0) (a : free_abelian_group X) :
-  support (k • a) = support a :=
-by { apply support_smul k _ a, exact_mod_cast h }
+by { apply support_gsmul k _ a, exact_mod_cast h }
 
 open_locale classical
 

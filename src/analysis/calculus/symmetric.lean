@@ -7,6 +7,11 @@ import analysis.calculus.deriv
 import analysis.convex.topology
 import analysis.calculus.mean_value
 
+/-!
+# Symmetry of the second derivative
+
+-/
+
 open asymptotics set
 open_locale topological_space
 
@@ -138,5 +143,3 @@ end
 
 
 end
-
-#exit

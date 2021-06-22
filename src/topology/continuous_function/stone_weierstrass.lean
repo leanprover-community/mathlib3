@@ -366,21 +366,14 @@ variables {X : Type*} [topological_space X]
 
 namespace continuous_map
 
-/-- A real subalgebra of `C(X, ℂ)` is `conj_invariant`, if its image under conjugation is itself.
--/
+/-- A real subalgebra of `C(X, ℂ)` is `conj_invariant`, if it contains all its conjugates. -/
 def conj_invariant_subalgebra (A : subalgebra ℝ C(X, ℂ)) : Prop :=
-A.map (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) = A
+A.map (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) ≤ A
 
-lemma mem_conj_invariant {A : subalgebra ℝ C(X, ℂ)} (hA : conj_invariant_subalgebra A)
+lemma mem_conj_invariant_subalgebra {A : subalgebra ℝ C(X, ℂ)} (hA : conj_invariant_subalgebra A)
   {f : C(X, ℂ)} (hf : f ∈ A) :
   (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ A :=
-begin
-  suffices : _ ∈ A.map (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous),
-  { convert this,
-    exact hA.symm },
-  rw subalgebra.mem_map,
-  exact ⟨f, hf, rfl⟩,
-end
+hA ⟨f, hf, rfl⟩
 
 end continuous_map
 
@@ -407,7 +400,7 @@ begin
   refine ⟨_, ⟨(⟨complex.norm_sq, continuous_norm_sq⟩ : C(ℂ, ℝ)).comp F, _, rfl⟩, _⟩,
   { -- This is also an element of the subalgebra, and takes only real values
     rw [set_like.mem_coe, subalgebra.mem_comap],
-    convert (A.restrict_scalars ℝ).mul_mem (mem_conj_invariant hA' hFA) hFA,
+    convert (A.restrict_scalars ℝ).mul_mem (mem_conj_invariant_subalgebra hA' hFA) hFA,
     ext1,
     exact complex.norm_sq_eq_conj_mul_self },
   { -- And it also separates the points `x₁`, `x_₂`

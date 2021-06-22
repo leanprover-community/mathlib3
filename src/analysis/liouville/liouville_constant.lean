@@ -75,7 +75,7 @@ calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
 lemma liouville_number_eq_initial_terms_add_tail (hm : 1 < m) (k : ℕ) :
   liouville_number m = liouville_number_initial_terms m k +
   liouville_number_tail m k :=
-(sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, i.self_le_factorial))).symm
+(sum_add_tsum_nat_add _ (summable_one_div_pow_of_le hm (λ i, i.self_le_factorial))).symm
 
 end liouville
 

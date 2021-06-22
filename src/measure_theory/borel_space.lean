@@ -860,7 +860,17 @@ end complete_linear_order
 
 section conditionally_complete_linear_order
 
-variables [conditionally_complete_linear_order α] [second_countable_topology α] [order_topology α]
+variables [conditionally_complete_linear_order α] [order_topology α]
+
+lemma is_preconnected.measurable_set (h : is_preconnected s) : measurable_set s :=
+begin
+  rcases h.mem_intervals with hs|hs|hs|hs|hs|hs|hs|hs|hs|hs;
+  try {rw mem_singleton_iff at hs};
+  rw hs;
+  simp
+end
+
+variable [second_countable_topology α]
 
 lemma measurable_cSup {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above ((λ i, f i x) '' s)) :

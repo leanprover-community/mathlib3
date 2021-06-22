@@ -5,19 +5,22 @@ import linear_algebra.matrix
 
 -/
 
-open tensor_product
+open tensor_product matrix
 open_locale tensor_product
 
-namespace matrix
+namespace tensor_matrix
 
-variables {α : Type*} [comm_semiring α]
-variables {R S : Type*} [semiring R] [semiring S]
-variables [algebra α R] [algebra α S]
-variables {l m n p : Type*}
+universes u v u'
+
+variables {α R S : Type u} [comm_semiring α]
+-- variables {R S : Type u} [semiring R] [semiring S]
+-- variables [algebra α R] [algebra α S]
+variables {l m n p : Type v}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 
 @[simps]
-def mat_tensor_bil : (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) (R ⊗[α] S) :=
+def mat_tensor_bil [semiring R] [semiring S] [algebra α R] [algebra α S] :
+  (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix (l × n) (m × p) (R ⊗[α] S) :=
 { to_fun :=
   begin
     intro A,
@@ -30,23 +33,25 @@ def mat_tensor_bil : (matrix l m R) →ₗ[α] (matrix n p S) →ₗ[α] matrix 
   map_smul' := λ _ _, by {simp only [pi.smul_apply], simp_rw [smul_tmul, tmul_smul], refl},
   }
 
-def mat_tensor_equiv : (matrix l m R) ⊗[α] (matrix n p S) ≃ₗ[α] matrix (l × n) (m × p) (R ⊗[α] S) :=
-{ to_fun := tensor_product.lift mat_tensor_bil,
-  map_add' := by simp only [forall_const, eq_self_iff_true, linear_map.map_add],
-  map_smul' := by simp only [forall_const, eq_self_iff_true, linear_map.map_smul],
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry }
 
-def kronecker_prod (A : matrix l m R) (B : matrix n p S) :
-  matrix (l × n) (m × p) (R ⊗[α] S) := mat_tensor_bil A B
+-- def mat_tensor_equiv : (matrix l m R) ⊗[α] (matrix n p S) ≃ₗ[α] matrix (l × n) (m × p) (R ⊗[α] S) :=
+-- { to_fun := tensor_product.lift mat_tensor_bil,
+--   map_add' := by simp only [forall_const, eq_self_iff_true, linear_map.map_add],
+--   map_smul' := by simp only [forall_const, eq_self_iff_true, linear_map.map_smul],
+--   inv_fun := sorry,
+--   left_inv := sorry,
+--   right_inv := sorry }
+
+def kronecker_prod [semiring R] [semiring S] [algebra α R] [algebra α S] (A : matrix l m R)
+  (B : matrix n p S) : matrix (l × n) (m × p) (R ⊗[α] S) := mat_tensor_bil A B
 
 variables {α}
 infix ` ⊗ₖ `:100 := kronecker_prod _
 notation x ` ⊗ₖ[`:100 α `] `:0 y:100 := kronecker_prod x y
 
-@[simp] lemma kronecker_prod_one_one [decidable_eq m] [decidable_eq n] :
-  (1 : matrix m m R) ⊗ₖ[α] (1 : matrix n n S) =  (1 : matrix (m × n) (m × n) (R ⊗[α] S)) :=
+@[simp] lemma kronecker_prod_one_one [semiring R] [semiring S] [algebra α R] [algebra α S]
+  [decidable_eq m] [decidable_eq n] : (1 : matrix m m R) ⊗ₖ[α] (1 : matrix n n S) =
+    (1 : matrix (m × n) (m × n) (R ⊗[α] S)) :=
 begin
   ext ⟨i, i'⟩ ⟨j, j'⟩,
   simp only [kronecker_prod, boole_mul, prod.mk.inj_iff],
@@ -55,12 +60,13 @@ begin
   refl,
 end
 
-variables {l' m' n' p': Type*}
+variables {l' m' n' p': Type v}
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
-lemma kronecker_prod_mul [comm_semiring R] [comm_semiring S] (A A': matrix l m R) (B B': matrix m n R) (A' : matrix l' m' R)
-  (B' : matrix m' n' R) : (A.mul B) ⊗ₖ[α] (A'.mul B') =
-    ((A ⊗ₖ[α] A').mul (B ⊗ₖ[α] B') : matrix (l × l') (n × n') (R ⊗[α] R)) :=
+lemma kronecker_prod_mul [comm_semiring R] [comm_semiring S] [algebra α R] [algebra α S]
+  (A A': matrix l m R) (B B': matrix m n R) (A' : matrix l' m' R) (B' : matrix m' n' R) :
+  (A.mul B) ⊗ₖ[α] (A'.mul B') =
+   ((A ⊗ₖ[α] A').mul (B ⊗ₖ[α] B') : matrix (l × l') (n × n') (R ⊗[α] R)) :=
 begin
   ext ⟨i, i'⟩ ⟨j, j'⟩,
   dsimp [mul_apply, kronecker_prod, mat_tensor_bil],
@@ -68,38 +74,48 @@ begin
   rw [← finset.univ_product_univ, finset.sum_product, finset.sum_comm],
 end
 
-lemma kronecker_prod_reindex_left (el : l ≃ l') (em : m ≃ m') (A : matrix l m R) (B : matrix n p S) :
+lemma kronecker_prod_reindex_left [semiring R] [semiring S] [algebra α R] [algebra α S]
+  (el : l ≃ l') (em : m ≃ m') (A : matrix l m R) (B : matrix n p S) :
   ((reindex_linear_equiv el em A) ⊗ₖ[α] B : matrix (l' × n) (m' × p) (R ⊗[α] S)) =
   reindex_linear_equiv (el.prod_congr (equiv.refl _)) (em.prod_congr (equiv.refl _))
   ((A ⊗ₖ[α] B) : matrix (l × n) (m × p) (R ⊗[α] S)) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
-lemma kronecker_prod_reindex_right (en : n ≃ n') (ep : p ≃ p') (A : matrix l m R) (B : matrix n p S) :
+lemma kronecker_prod_reindex_right [semiring R] [semiring S] [algebra α R] [algebra α S]
+  (en : n ≃ n') (ep : p ≃ p') (A : matrix l m R) (B : matrix n p S) :
   (A ⊗ₖ[α] (reindex_linear_equiv en ep B) : matrix (l × n') (m × p') (R ⊗[α] S)) =
   reindex_linear_equiv ((equiv.refl _).prod_congr en) ((equiv.refl _).prod_congr ep)
   ((A ⊗ₖ[α] B) : matrix (l × n) (m × p) (R ⊗[α] S)) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
-protected def mat_tensor_assoc [T : Type*] [comm_semiring T] [algebra α T] :
-  matrix (m × (n × p)) (m' × (n' × p')) (R ⊗[α] (S ⊗[α] T)) ≃ₗ[α]
-  matrix ((m × n) × p) ((m' × n') × p') (R ⊗[α] S ⊗[α] T) :=
-begin
-  sorry,
-  -- refine linear_equiv.of_linear
-  --   (lift $ lift $ comp (lcurry R _ _ _) $ mk _ _ _)
-  --   (lift $ comp (uncurry R _ _ _) $ curry $ mk _ _ _)
-  --   (mk_compr₂_inj $ linear_map.ext $ λ m, ext $ λ n p, _)
-  --   (mk_compr₂_inj $ flip_inj $ linear_map.ext $ λ p, ext $ λ m n, _);
-  -- repeat { rw lift.tmul <|> rw compr₂_apply <|> rw comp_apply <|>
-  --   rw mk_apply <|> rw flip_apply <|> rw lcurry_apply <|>
-  --   rw uncurry_apply <|> rw curry_apply <|> rw id_apply }
-end
+protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [algebra α S]
+  [semiring T] [algebra α T] :
+  matrix (m × n × p) (m' × n' × p') (R ⊗[α] S ⊗[α] T) ≃ₗ[α]
+  matrix ((m × n) × p) ((m' × n') × p') (R ⊗[α] (S ⊗[α] T)) :=
+{ to_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm
+      (map A (tensor_product.assoc _ _ _ _)),
+  map_add' :=
+  begin
+      intros A₁ A₂,
+      have e := (equiv.prod_assoc m n p).symm,
+      let e' := (equiv.prod_assoc m' n' p').symm,
+      -- simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
+      have h := (add_monoid_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_add_monoid_hom).3 A₁ A₂,
+      rw [(reindex_linear_equiv e e').map_add'],
+      -- ext i j,
+  end,
 
-variables {T : Type*} [comm_semiring T] [algebra α T]
-#check matrix.mat_tensor_assoc
+  --add_monoid_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_add_monoid_hom,
+  map_smul' := _,
+  inv_fun := _,
+  left_inv := _,
+  right_inv := _ }
 
-lemma kronecker_prod_assoc' [T : Type*] [comm_semiring T] [algebra α T] (A : matrix m m' R)
- (B : matrix n n' S) (C : matrix p p' T) :
- matrix.assoc ((A ⊗ₖ[α] (B ⊗ₖ[α] C)) : matrix (m × (n × p)) (m' × (n' × p')) (R ⊗[α] (S ⊗[α] T))) =
- (((A ⊗ₖ[α] B) ⊗ₖ[α] C) : matrix ((m × n) × p) ((m' × n') × p') ((R ⊗[α] S) ⊗[α] T)) :=
+
+#check tensor_matrix.assoc
+
+lemma kronecker_prod_assoc' {T : Type*} [comm_semiring T] [algebra α T] [semiring R] [semiring S]
+  [algebra α R] [algebra α S] (A : matrix m m' R) (B : matrix n n' S) (C : matrix p p' T) :
+  matrix.mat_tensor_assoc ((A ⊗ₖ[α] (B ⊗ₖ[α] C)) : matrix (m × (n × p)) (m' × (n' × p'))(R ⊗[α] (S ⊗[α] T))) =
+  (((A ⊗ₖ[α] B) ⊗ₖ[α] C) : matrix ((m × n) × p) ((m' × n') × p') ((R ⊗[α] S) ⊗[α] T)) := sorry
 --   A.kronecker (kronecker B C) =
 --   reindex_linear_equiv
 --     (equiv.prod_assoc _ _ _)
@@ -139,4 +155,4 @@ lemma kronecker_prod_assoc' [T : Type*] [comm_semiring T] [algebra α T] (A : ma
 
 
 
-end matrix
+end tensor_matrix

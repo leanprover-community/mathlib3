@@ -19,9 +19,9 @@ variables {E F : Type*} [normed_group E] [normed_space ℝ E]
 (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
 {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x)
 
-include s_conv xs hx
+include s_conv xs hx hf
 
-lemma sub_segment_is_o_sq (v w : E) (hv : x + v ∈ interior s) (hw : x + v + w ∈ interior s) :
+lemma taylor_approx_two_segment (v w : E) (hv : x + v ∈ interior s) (hw : x + v + w ∈ interior s) :
   is_o (λ (h : ℝ), f (x + h • v + h • w) - f (x + h • v) - h • f' x w
     - h^2 • f'' v w - (h^2/2) • f'' w w) (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0) :=
 begin
@@ -48,17 +48,45 @@ begin
     - ((t * h)^2/2) • f'' w w,
   set g' := λ t, f' (x + h • v + (t * h) • w) (h • w) - h • f' x w
     - h^2 • f'' v w - (t * h^2) • f'' w w with hg',
-  have g_deriv : ∀ t ∈ Icc (0 : ℝ) 1, has_deriv_within_at g (g' t) (Icc 0 1) t, sorry,
-
-end
-
-#exit
+  have xt_mem : ∀ t ∈ Icc (0 : ℝ) 1, x + h • v + (t * h) • w ∈ interior s,
+  { assume t ht,
+    have : x + h • v ∈ interior s :=
+      s_conv.add_smul_mem_interior xs hv ⟨hpos, h_lt_1.le⟩,
+    rw [← smul_smul],
+    apply s_conv.interior.add_smul_mem this _ ht,
+    rw add_assoc at hw,
+    convert s_conv.add_smul_mem_interior xs hw ⟨hpos, h_lt_1.le⟩ using 1,
+    simp only [add_assoc, smul_add] },
+  have g_deriv : ∀ t ∈ Icc (0 : ℝ) 1, has_deriv_within_at g (g' t) (Icc 0 1) t,
+  { assume t ht,
+    apply_rules [has_deriv_within_at.sub, has_deriv_within_at.add],
+    { refine (hf _ _).comp_has_deriv_within_at _ _,
+      { exact xt_mem t ht },
+      apply has_deriv_at.has_deriv_within_at,
+      suffices : has_deriv_at (λ u, x + h • v + (u * h) • w) (0 + 0 + (1 * h) • w) t,
+        by simpa only [one_mul, zero_add],
+      apply_rules [has_deriv_at.add, has_deriv_at_const, has_deriv_at.smul_const,
+        has_deriv_at_id'] },
+    { suffices : has_deriv_within_at (λ u, (u * h) • f' x w) ((1 * h) • f' x w) (Icc 0 1) t,
+        by simpa only [one_mul],
+      apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id'] },
+    { suffices : has_deriv_within_at (λ u, (u * h ^ 2) • f'' v w) ((1 * h^2) • f'' v w) (Icc 0 1) t,
+        by simpa only [one_mul],
+      apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id'] },
+    { suffices H : has_deriv_within_at (λ u, ((u * h) ^ 2 / 2) • f'' w w)
+        (((((2 : ℕ) : ℝ) * (t * h) ^ (2  - 1) * (1 * h))/2) • f'' w w) (Icc 0 1) t,
+      { convert H using 2,
+        simp only [one_mul, nat.cast_bit0, pow_one, nat.cast_one],
+        ring },
+      apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id',
+        has_deriv_at.pow] } },
   have g'_bound : ∀ t ∈ Ico (0 : ℝ) 1, ∥g' t∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2,
   { assume t ht,
     have I : ∥h • v + (t * h) • w∥ ≤ h * (∥v∥ + ∥w∥) := calc
       ∥h • v + (t * h) • w∥ ≤ ∥h • v∥ + ∥(t * h) • w∥ : norm_add_le _ _
       ... = h * ∥v∥ + t * (h * ∥w∥) :
-        by simp [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.1, mul_assoc]
+        by simp only [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.left,
+                      mul_assoc]
       ... ≤ h * ∥v∥ + 1 * (h * ∥w∥) :
         add_le_add (le_refl _) (mul_le_mul_of_nonneg_right ht.2.le
           (mul_nonneg hpos.le (norm_nonneg _)))
@@ -81,16 +109,9 @@ end
         simp only [mem_set_of_eq] at this,
         convert this;
         abel },
-      split,
-      { rw [add_assoc, add_mem_ball_iff_norm],
-        exact I.trans_lt hδ },
-      { have : x + h • v ∈ interior s :=
-          s_conv.add_smul_mem_interior xs hv ⟨hpos, h_lt_1.le⟩,
-        rw [← smul_smul],
-        apply s_conv.interior.add_smul_mem this _ ⟨ht.1, ht.2.le⟩,
-        rw add_assoc at hw,
-        convert s_conv.add_smul_mem_interior xs hw ⟨hpos, h_lt_1.le⟩ using 1,
-        simp only [add_assoc, smul_add] }
+      refine ⟨_, xt_mem t ⟨ht.1, ht.2.le⟩⟩,
+      rw [add_assoc, add_mem_ball_iff_norm],
+      exact I.trans_lt hδ
     end
     ... ≤ (ε * (∥h • v∥ + ∥h • w∥)) * (∥h • w∥) :
     begin

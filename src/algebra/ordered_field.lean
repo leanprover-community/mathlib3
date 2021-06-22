@@ -556,6 +556,19 @@ begin
     ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
+/--  An inequality involving `2`. -/
+lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) :
+  (1 - 1 / a)⁻¹ ≤ 2 :=
+begin
+  -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / a`
+  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : α)).le,
+  -- move `1 / a` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / a ≤ ⅟ 2`
+  refine trans ((le_sub_iff_add_le.mpr ((_ : _ + 2⁻¹ = _ ).le))) ((sub_le_sub_iff_left 1).mpr _),
+  { -- show 2⁻¹ + 2⁻¹ = 1
+    exact trans (two_mul _).symm (mul_inv_cancel two_ne_zero) },
+  { -- take inverses on both sides and use the assumption `2 ≤ a`.
+    exact (one_div a).le.trans (inv_le_inv_of_le zero_lt_two a2) }
+end
 
 /-!
 ### Miscellaneous lemmas

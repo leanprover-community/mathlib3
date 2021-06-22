@@ -13,7 +13,6 @@ src/category_theory/functor.lean : line 18 : ERR_MOD : Module docstring missing,
 src/category_theory/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/groupoid.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/cones.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/category_theory/limits/creates.lean : line 338 : ERR_LIN : Line has more than 100 characters
 src/category_theory/limits/creates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/functor_category.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/category_theory/limits/lattice.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -145,10 +144,10 @@ src/tactic/lean_core_docs.lean : line 733 : ERR_LIN : Line has more than 100 cha
 src/tactic/lean_core_docs.lean : line 766 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/elimination.lean : line 121 : ERR_LIN : Line has more than 100 characters
 src/tactic/linarith/parsing.lean : line 19 : ERR_LIN : Line has more than 100 characters
-src/tactic/linarith/preprocessing.lean : line 223 : ERR_LIN : Line has more than 100 characters
-src/tactic/linarith/preprocessing.lean : line 254 : ERR_LIN : Line has more than 100 characters
-src/tactic/linarith/preprocessing.lean : line 255 : ERR_LIN : Line has more than 100 characters
-src/tactic/linarith/preprocessing.lean : line 300 : ERR_LIN : Line has more than 100 characters
+src/tactic/linarith/preprocessing.lean : line 228 : ERR_LIN : Line has more than 100 characters
+src/tactic/linarith/preprocessing.lean : line 259 : ERR_LIN : Line has more than 100 characters
+src/tactic/linarith/preprocessing.lean : line 260 : ERR_LIN : Line has more than 100 characters
+src/tactic/linarith/preprocessing.lean : line 305 : ERR_LIN : Line has more than 100 characters
 src/tactic/lint/default.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late

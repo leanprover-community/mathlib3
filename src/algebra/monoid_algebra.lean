@@ -416,13 +416,6 @@ non-associative algebras over `k` is adjoint to the forgetful functor in the oth
   mul_hom G A ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
 { to_fun    := λ f,
     { to_fun    := λ a, a.sum (λ m t, t • f m),
-      map_zero' := sum_zero_index,
-      map_add'  := λ a₁ a₂,
-        begin
-          rw sum_add_index,
-          { intros m, exact zero_smul k (f m), },
-          { intros m t₁ t₂, exact add_smul t₁ t₂ (f m), },
-        end,
       map_smul' :=  λ t' a,
         begin
           rw [finsupp.smul_sum, sum_smul_index'],

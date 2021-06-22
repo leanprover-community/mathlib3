@@ -661,7 +661,7 @@ lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
 lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : α, 1 / x) (set.Ioi 0) :=
 λ x x1 y y1 xy, (one_div_lt_one_div (set.mem_Ioi.mp y1) (set.mem_Ioi.mp x1)).mpr xy
 
-lemma one_div_mono_exp (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
+lemma one_div_pow_mono (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
 λ m n mn, by refine (one_div_le_one_div _ _).mpr (pow_le_pow a1 mn);
   exact pow_pos (lt_of_lt_of_le zero_lt_one a1) _
 

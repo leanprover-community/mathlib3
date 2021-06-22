@@ -75,17 +75,28 @@ protected def ring_hom
   pi.ring_hom f g a = f a g :=
 rfl
 
+end pi
+
 section ring_hom
 
-variables [Π i, non_assoc_semiring (f i)] (f)
+universes u v
+variable {I : Type u}
 
 /-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
 homomorphism. This is `function.eval` as a `ring_hom`. -/
 @[simps]
-def eval_ring_hom (i : I) : (Π i, f i) →+* f i :=
-{ ..(eval_monoid_hom f i),
-  ..(eval_add_monoid_hom f i) }
+def pi.eval_ring_hom (f : I → Type v) [Π i, non_assoc_semiring (f i)] (i : I) :
+  (Π i, f i) →+* f i :=
+{ ..(pi.eval_monoid_hom f i),
+  ..(pi.eval_add_monoid_hom f i) }
+
+/-- Ring homomorphism between the function spaces `I → α` and `I → β`, induced by a ring
+homomorphism `f` between `α` and `β`. -/
+@[simps] protected def ring_hom.comp_left {α β : Type*} [non_assoc_semiring α]
+  [non_assoc_semiring β] (f : α →+* β) (I : Type*) :
+  (I → α) →+* (I → β) :=
+{ to_fun := λ h, f ∘ h,
+  .. f.to_monoid_hom.comp_left I,
+  .. f.to_add_monoid_hom.comp_left I }
 
 end ring_hom
-
-end pi

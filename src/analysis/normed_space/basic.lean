@@ -7,7 +7,8 @@ import algebra.punit_instances
 import topology.instances.nnreal
 import topology.algebra.module
 import topology.algebra.algebra
-import topology.metric_space.antilipschitz
+import topology.algebra.group_completion
+import topology.metric_space.completion
 import topology.algebra.ordered.liminf_limsup
 
 /-!
@@ -295,6 +296,55 @@ instance {r : ℝ} : has_neg (sphere (0:α) r) :=
   (((-v) : sphere _ _) : α) = - (v:α) :=
 rfl
 
+namespace isometric
+
+/-- Addition `y ↦ y + x` as an `isometry`. -/
+protected def add_right (x : α) : α ≃ᵢ α :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
+  .. equiv.add_right x }
+
+@[simp] lemma add_right_to_equiv (x : α) :
+  (isometric.add_right x).to_equiv = equiv.add_right x := rfl
+
+@[simp] lemma coe_add_right (x : α) : (isometric.add_right x : α → α) = λ y, y + x := rfl
+
+lemma add_right_apply (x y : α) : (isometric.add_right x : α → α) y = y + x := rfl
+
+@[simp] lemma add_right_symm (x : α) :
+  (isometric.add_right x).symm = isometric.add_right (-x) :=
+ext $ λ y, rfl
+
+/-- Addition `y ↦ x + y` as an `isometry`. -/
+protected def add_left (x : α) : α ≃ᵢ α :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
+  to_equiv := equiv.add_left x }
+
+@[simp] lemma add_left_to_equiv (x : α) :
+  (isometric.add_left x).to_equiv = equiv.add_left x := rfl
+
+@[simp] lemma coe_add_left (x : α) : ⇑(isometric.add_left x) = (+) x := rfl
+
+@[simp] lemma add_left_symm (x : α) :
+  (isometric.add_left x).symm = isometric.add_left (-x) :=
+ext $ λ y, rfl
+
+variable (α)
+
+/-- Negation `x ↦ -x` as an `isometry`. -/
+protected def neg : α ≃ᵢ α :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
+  to_equiv := equiv.neg α }
+
+variable {α}
+
+@[simp] lemma neg_symm : (isometric.neg α).symm = isometric.neg α := rfl
+
+@[simp] lemma neg_to_equiv : (isometric.neg α).to_equiv = equiv.neg α := rfl
+
+@[simp] lemma coe_neg : ⇑(isometric.neg α) = has_neg.neg := rfl
+
+end isometric
+
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
@@ -371,6 +421,16 @@ begin
   rcases bounded_iff_forall_norm_le.1 this with ⟨C, hC⟩,
   exact ⟨C, λ x hx, hC _ (set.mem_image_of_mem _ hx)⟩,
 end
+
+lemma add_monoid_hom.isometry_iff_norm (f : α →+ β) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+begin
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  refine ⟨λ h x, _, λ h x y, h _⟩,
+  simpa using h x 0
+end
+
+lemma add_monoid_hom.isometry_of_norm (f : α →+ β) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+f.isometry_iff_norm.2 hf
 
 section nnnorm
 
@@ -1578,6 +1638,14 @@ instance normed_algebra.to_semi_normed_algebra (𝕜 : Type*) (𝕜' : Type*) [n
   [h : semi_normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
 semi_normed_algebra.norm_algebra_map_eq _
 
+/-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
+lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
+  [semi_normed_algebra 𝕜 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
+begin
+  refine isometry_emetric_iff_metric.2 (λx y, _),
+  rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map_eq],
+end
+
 variables (𝕜 : Type*) [normed_field 𝕜]
 variables (𝕜' : Type*) [semi_normed_ring 𝕜']
 
@@ -1781,3 +1849,32 @@ lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λa, nnnorm (f
 summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable
+
+namespace uniform_space
+namespace completion
+
+variables (V : Type*)
+
+instance [uniform_space V] [has_norm V] :
+  has_norm (completion V) :=
+{ norm := completion.extension has_norm.norm }
+
+@[simp] lemma norm_coe {V} [semi_normed_group V] (v : V) :
+  ∥(v : completion V)∥ = ∥v∥ :=
+completion.extension_coe uniform_continuous_norm v
+
+instance [semi_normed_group V] : normed_group (completion V) :=
+{ dist_eq :=
+  begin
+    intros x y,
+    apply completion.induction_on₂ x y; clear x y,
+    { refine is_closed_eq (completion.uniform_continuous_extension₂ _).continuous _,
+      exact continuous.comp completion.continuous_extension continuous_sub },
+    { intros x y,
+      rw [← completion.coe_sub, norm_coe, metric.completion.dist_eq, dist_eq_norm] }
+  end,
+  .. (show add_comm_group (completion V), by apply_instance),
+  .. (show metric_space (completion V), by apply_instance) }
+
+end completion
+end uniform_space

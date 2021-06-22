@@ -106,7 +106,7 @@ by rw [adjoin_eq_span, span_le]
 
 lemma adjoin_eq_span_of_subset {s : set A} (hs : ↑(submonoid.closure s) ⊆ (span R s : set A)) :
   (adjoin R s).to_submodule = span R s :=
-le_antisymm (adjoin_le_of_submonoid_closure_le R hs) (span_le_adjoin R s)
+le_antisymm ((adjoin_to_submodule_le R).mpr hs) (span_le_adjoin R s)
 
 lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
   adjoin R (f '' s) = (adjoin R s).map f :=

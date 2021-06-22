@@ -26,6 +26,11 @@ variables {E F : Type*} [normed_group E] [normed_space ℝ E]
 
 include s_conv xs hx hf
 
+/-- Assume that `f` is differentiable inside a convex set `s`, and that its derivative `f'` is
+differentiable at a point `x`. Then, given two vectors `v` and `w` pointing inside `s`, one can
+Taylor-expand to order two the function `f` on the segment `[x + h v, x + h (v + w)]`, giving a
+bilinear estimate for `f (x + hv + hw) - f (x + hv)` in terms of `f'` and of `f'' ⬝ w`, up to
+`o(h^2)`. -/
 lemma taylor_approx_two_segment (v w : E) (hv : x + v ∈ interior s) (hw : x + v + w ∈ interior s) :
   is_o (λ (h : ℝ), f (x + h • v + h • w) - f (x + h • v) - h • f' x w
     - h^2 • f'' v w - (h^2/2) • f'' w w) (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0) :=
@@ -49,10 +54,6 @@ begin
   -- and also with `0 < h < 1`.
   assume h hδ h_lt_1 hpos,
   replace hpos : 0 < h := hpos,
-  let g := λ t, f (x + h • v + (t * h) • w) - (t * h) • f' x w  - (t * h^2) • f'' v w
-    - ((t * h)^2/2) • f'' w w,
-  set g' := λ t, f' (x + h • v + (t * h) • w) (h • w) - h • f' x w
-    - h^2 • f'' v w - (t * h^2) • f'' w w with hg',
   have xt_mem : ∀ t ∈ Icc (0 : ℝ) 1, x + h • v + (t * h) • w ∈ interior s,
   { assume t ht,
     have : x + h • v ∈ interior s :=
@@ -62,6 +63,15 @@ begin
     rw add_assoc at hw,
     convert s_conv.add_smul_mem_interior xs hw ⟨hpos, h_lt_1.le⟩ using 1,
     simp only [add_assoc, smul_add] },
+  -- define a function `g` on `[0,1]` (identified with `[v, v + w]`) such that `g 1 - g 0` is the
+  -- quantity to be estimated. We will check that its derivative is given by an explicit
+  -- expression `g'`, that we can bound. Then the desired bound for `g 1 - g 0` follows from the
+  -- mean value inequality.
+  let g := λ t, f (x + h • v + (t * h) • w) - (t * h) • f' x w  - (t * h^2) • f'' v w
+    - ((t * h)^2/2) • f'' w w,
+  set g' := λ t, f' (x + h • v + (t * h) • w) (h • w) - h • f' x w
+    - h^2 • f'' v w - (t * h^2) • f'' w w with hg',
+  -- check that `g'` is the derivative of `g`, by a straightforward computation
   have g_deriv : ∀ t ∈ Icc (0 : ℝ) 1, has_deriv_within_at g (g' t) (Icc 0 1) t,
   { assume t ht,
     apply_rules [has_deriv_within_at.sub, has_deriv_within_at.add],
@@ -85,6 +95,7 @@ begin
         ring },
       apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id',
         has_deriv_at.pow] } },
+  -- check that `g'` is uniformly bounded, with a suitable bound `ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2`.
   have g'_bound : ∀ t ∈ Ico (0 : ℝ) 1, ∥g' t∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2,
   { assume t ht,
     have I : ∥h • v + (t * h) • w∥ ≤ h * (∥v∥ + ∥w∥) := calc
@@ -129,6 +140,7 @@ begin
     end
     ... = ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2 :
       by { simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, hpos.le], ring } },
+  -- conclude using the mean value inequality
   have I : ∥g 1 - g 0∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2, by simpa using
     norm_image_sub_le_of_norm_deriv_le_segment' g_deriv g'_bound 1 (right_mem_Icc.2 zero_le_one),
   convert I using 1,

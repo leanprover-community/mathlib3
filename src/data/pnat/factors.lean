@@ -11,7 +11,7 @@ import algebra.group
 /-!
 # Prime factors of nonzero naturals
 
-This file defines the p-adic valuations of a nonzero natural number `n` as a multiset of primes,
+This file defines the factorization of a nonzero natural number `n` as a multiset of primes,
 the multiplicity of `p` in this factors multiset being the p-adic valuation of `n`.
 
 ## Main declarations

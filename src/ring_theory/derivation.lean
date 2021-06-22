@@ -236,7 +236,7 @@ instance : lie_ring (derivation R A A) :=
   lie_add     := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring, },
   lie_self    := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring_nf, },
   leibniz_lie := λ d e f,
-    by { ext a, simp only [commutator_apply, coe_add, coe_sub, map_sub, pi.add_apply], ring, } }
+    by { ext a, simp only [commutator_apply, add_apply, sub_apply, map_sub], ring, } }
 
 instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, Rsmul_apply]},

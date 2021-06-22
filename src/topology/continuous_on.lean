@@ -87,7 +87,7 @@ begin
   exact (nhds a).sets_of_superset ((nhds a).inter_sets Hw h1) hw,
 end
 
-lemma preimage_nhds_within_coinduced {π : α → β} {s : set β} {t : set α} {a : α}
+lemma preimage_nhds_within_coinduced' {π : α → β} {s : set β} {t : set α} {a : α}
   (h : a ∈ t) (ht : is_open t)
   (hs : s ∈ @nhds β (topological_space.coinduced (λ x : t, π x) subtype.topological_space) (π a)) :
   π ⁻¹' s ∈ 𝓝[t] a :=
@@ -102,7 +102,6 @@ begin
   rw [set.inter_comm, ←(subtype.preimage_coe_eq_preimage_coe_iff.mp hu2)],
   exact hu1.inter ht,
 end
-
 
 lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
   s ∈ 𝓝[t] a :=
@@ -167,6 +166,12 @@ by rw [nhds_within_restrict t h₀ h₁, nhds_within_restrict u h₀ h₁, h₂]
 theorem nhds_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is_open s) :
   𝓝[s] a = 𝓝 a :=
 inf_eq_left.2 $ le_principal_iff.2 $ is_open.mem_nhds h₁ h₀
+
+lemma preimage_nhds_within_coinduced {π : α → β} {s : set β} {t : set α} {a : α}
+  (h : a ∈ t) (ht : is_open t)
+  (hs : s ∈ @nhds β (topological_space.coinduced (λ x : t, π x) subtype.topological_space) (π a)) :
+  π ⁻¹' s ∈ 𝓝 a :=
+by { rw ←nhds_within_eq_of_open h ht, exact preimage_nhds_within_coinduced' h ht hs }
 
 @[simp] theorem nhds_within_empty (a : α) : 𝓝[∅] a = ⊥ :=
 by rw [nhds_within, principal_empty, inf_bot_eq]

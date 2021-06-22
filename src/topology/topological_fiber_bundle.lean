@@ -1077,7 +1077,7 @@ lemma topological_fiber_prebundle.continuous_inv_triv_at (a : topological_fiber_
   (x : B) : @continuous_on _ _ _ a.total_space_topology (a.trivialization_at x).to_local_equiv.symm
   (a.trivialization_at x).target :=
 begin
-  refine id (λ z H, id (λ U h, preimage_nhds_within_coinduced H (a.trivialization_at x).open_target
+  refine id (λ z H, id (λ U h, preimage_nhds_within_coinduced' H (a.trivialization_at x).open_target
   (le_def.1 (nhds_mono _) U h))),
   exact le_supr _ x,
 end

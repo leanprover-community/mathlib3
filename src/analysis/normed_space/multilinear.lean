@@ -387,7 +387,7 @@ by simpa only [prod_const] using f.le_op_norm_mul_prod_of_le m hm
 
 theorem le_op_norm_mul_pow_of_le {Ei : fin n → Type*} [Π i, normed_group (Ei i)]
   [Π i, normed_space 𝕜 (Ei i)] (f : continuous_multilinear_map 𝕜 Ei G) (m : Π i, Ei i)
-  {b : ℝ} (hm :  ∥m∥ ≤ b) :
+  {b : ℝ} (hm : ∥m∥ ≤ b) :
   ∥f m∥ ≤ ∥f∥ * b ^ n :=
 by simpa only [fintype.card_fin]
   using f.le_op_norm_mul_pow_card_of_le m (λ i, (norm_le_pi_norm m i).trans hm)

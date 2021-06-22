@@ -49,8 +49,8 @@ end
 
 section lemmas_about_summability_and_sums
 
-/-- A series whose terms are bounded by the terms of a converging geometric series convergences. -/
-lemma summable_inv_pow_ge {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
+/-- A series whose terms are bounded by the terms of a converging geometric series converges. -/
+lemma summable_one_div_pow_of_le {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
   summable (λ i, 1 / m ^ f i) :=
 begin
   refine summable_of_nonneg_of_le
@@ -83,7 +83,7 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
       -- the corresponding term of the second series
       (one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ rfl.le))
       -- 4. the second series is summable, since its terms grow quickly
-      (summable_inv_pow_ge m1 (λ j, nat.le.intro rfl))
+      (summable_one_div_pow_of_le m1 (λ j, nat.le.intro rfl))
 ... = ∑' i, (1 / m) ^ i * (1 / m ^ (n + 1)!) :
     -- split the sum in the exponent and massage
     by { congr, ext i, rw [pow_add, ← div_div_eq_div_mul, div_eq_mul_one_div, ← one_div_pow i] }

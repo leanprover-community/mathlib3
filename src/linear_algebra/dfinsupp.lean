@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Kenny Lau
 -/
 import data.dfinsupp
 import linear_algebra.basis
-import data.finsupp.to_dfinsupp
 
 /-!
 # Properties of the module `Π₀ i, M i`

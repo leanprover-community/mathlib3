@@ -345,7 +345,7 @@ section subtype
 variables {α : Type*} [topological_space α]
 {R : Type*} [comm_semiring R]
 {A : Type*} [topological_space A] [semiring A]
-[algebra R A] [topological_semiring A] [topological_space R] [has_continuous_smul R A]
+[algebra R A] [topological_semiring A]
 
 /-- The `R`-subalgebra of continuous maps `α → A`. -/
 def continuous_subalgebra : subalgebra R (α → A) :=

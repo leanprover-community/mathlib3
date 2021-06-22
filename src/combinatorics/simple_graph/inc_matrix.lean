@@ -238,6 +238,18 @@ noncomputable instance (G : simple_graph V) : inhabited (orientation G) :=
 
 variables {o : orientation G}
 
+lemma head_tail (o : orientation G) (i : V) (e : G.edge_set) :
+  i = o.head e ∨ i = o.tail e ∨ (i ≠ o.head e ∧ i ≠ o.tail e) :=
+by tauto
+
+lemma edge_not_incident [decidable_eq V] [decidable_rel G.adj] {i j : V} {e : G.edge_set}
+  (H_e : ¬↑e = ⟦(i, j)⟧) (H_adj : G.adj i j) : ↑e ∉ G.incidence_set i ∨ ↑e ∉ G.incidence_set j :=
+begin
+  by_contradiction h,
+  rw [decidable.not_or_iff_and_not, not_not, not_not] at h,
+  exact H_e (G.edge_in_two_incidence_sets (G.ne_of_adj H_adj) h),
+end
+
 lemma head_neq_tail {e : G.edge_set} : o.head(e) ≠ o.tail(e) := G.edge_set_ne (o.consistent e)
 
 lemma incidence_set_orientation_head {e : G.edge_set} : ↑e ∈ G.incidence_set (o.head e) :=
@@ -288,10 +300,6 @@ lemma oriented_inc_matrix_tail {i : V} {e : G.edge_set} (H_tail : i = o.tail e) 
 by simp only [H_tail, oriented_inc_matrix, (G.head_neq_tail).symm,
               if_false, if_true, eq_self_iff_true]
 
-lemma head_tail (o : orientation G) (i : V) (e : G.edge_set) :
-  i = o.head e ∨ i = o.tail e ∨ (i ≠ o.head e ∧ i ≠ o.tail e) :=
-by tauto
-
 lemma oriented_inc_matrix_zero {i : V} {e : G.edge_set} [char_zero R] :
   G.oriented_inc_matrix R o i e = 0 ↔ i ≠ o.head e ∧ i ≠ o.tail e :=
 begin
@@ -302,14 +310,6 @@ begin
                  ne.def, neg_eq_zero, one_ne_zero, and_false] },
   { simp only [H_not_head, H_not_tail, eq_self_iff_true, if_false, ne.def,
                  not_false_iff, and_self, oriented_inc_matrix_apply] }
-end
-
-lemma edge_not_incident {i j : V} {e : G.edge_set} (H_e : ¬↑e = ⟦(i, j)⟧) (H_adj : G.adj i j) :
-  ↑e ∉ G.incidence_set i ∨ ↑e ∉ G.incidence_set j :=
-begin
-  by_contradiction h,
-  rw [decidable.not_or_iff_and_not, not_not, not_not] at h,
-  exact H_e (G.edge_in_two_incidence_sets (G.ne_of_adj H_adj) h),
 end
 
 lemma oriented_inc_matrix_zero' {i : V} {e : G.edge_set} [char_zero R] :

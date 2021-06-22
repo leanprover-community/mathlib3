@@ -1,6 +1,7 @@
 import number_theory.L_functions
 import ring_theory.witt_vector.teichmuller
 import ring_theory.witt_vector.compare
+import data.nat.modeq
 
 --variables (A : Type*) [normed_comm_ring A] (p : ℕ) [fact p.prime] (d : ℕ) (hd : gcd d p = 1)
 
@@ -183,8 +184,141 @@ variables (p)
 def clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ) (a : zmod (p^n)),
   x = set.preimage (padic_int.to_zmod_pow n) a }
 
+lemma span_eq_closed_ball (n : ℕ) :
+  metric.closed_ball 0 (1/p^n) = (@ideal.span ℤ_[p] _ {(p^n : ℤ_[p])} : set ℤ_[p]) :=
+begin
+  ext, simp, rw ←padic_int.norm_le_pow_iff_mem_span_pow, simp,
+end
+
+lemma is_closed_span (n : ℕ) : is_closed (@ideal.span ℤ_[p] _ {(p^n : ℤ_[p])} : set ℤ_[p]) :=
+begin
+  rw ←span_eq_closed_ball, exact metric.is_closed_ball,
+end
+
+lemma span_eq_open_ball (n : ℕ) :
+  metric.ball 0 ((p : ℝ) ^ (1 - (n : ℤ))) = (@ideal.span ℤ_[p] _ {(p^n : ℤ_[p])} : set ℤ_[p]) :=
+begin
+  ext, simp only [mem_ball_0_iff, set_like.mem_coe],
+  rw [←padic_int.norm_le_pow_iff_mem_span_pow, padic_int.norm_le_pow_iff_norm_lt_pow_add_one],
+  have : 1 - (n : ℤ) = -(n : ℤ) + 1 := sub_eq_neg_add 1 ↑n,
+  rw this,
+end
+
+lemma is_open_span (n : ℕ) : is_open ((ideal.span {p ^ n} : ideal ℤ_[p]) : set ℤ_[p]) :=
+begin
+  rw ←span_eq_open_ball,
+  exact metric.is_open_ball,
+end
+
+lemma continuous_of_topological_basis {α β : Type*} {B : set (set β)} [topological_space α]
+  [topological_space β] (f : α → β) (hB : topological_space.is_topological_basis B)
+  (h : ∀ s ∈ B, is_open (f⁻¹' s)) : continuous f :=
+begin
+  refine {is_open_preimage := _}, rintros t ht,
+  obtain ⟨S, hS, tsUnion⟩ := topological_space.is_topological_basis.open_eq_sUnion hB ht,
+  rw tsUnion, simp, apply is_open_Union, rintros i, apply is_open_Union, intro memi,
+  exact h i (hS memi),
+end
+
+lemma discrete_topology.is_topological_basis {α : Type*} [topological_space α] [discrete_topology α] [monoid α] :
+  @topological_space.is_topological_basis α _ (set.range set.singleton_hom) :=
+begin
+  refine topological_space.is_topological_basis_of_open_of_nhds _ _,
+  { simp, },
+  rintros a u mema openu,
+  refine ⟨({a} : set α), _, _, _⟩,
+  { simp, use a, rw set.singleton_hom, simp, },
+  { simp, },
+  simp [mema],
+end
+
+open padic_int
+
+/-example (a b n : ℕ) (h : b ≤ a) : (a : zmod n) - (b : zmod n) = (((a - b) : ℕ) : zmod n) :=
+begin
+  norm_cast at *,
+end
+
+lemma eq_zero_of_dvd_of_lt' {a b c : ℕ} (w : a ∣ (b - c)) (h : b < a) : b - c = 0 :=
+begin
+  have f := nat.eq_zero_of_dvd_of_div_eq_zero w, apply f,
+  have h' : b - c < a, sorry,
+  rw nat.div_eq_zero_iff _, { exact h', },
+  apply lt_of_le_of_lt _ h', simp,
+end
+
+lemma preimage_to_zmod_pow_eq_ball (n : ℕ) (x : ℕ) :
+  (padic_int.to_zmod_pow n) ⁻¹' {(x : zmod (p^n))} = metric.ball (x : ℤ_[p]) ((p : ℝ) ^ (1 - (n : ℤ))) :=
+begin
+  ext y,
+  simp only [set.mem_preimage, metric.mem_ball, set.mem_singleton_iff],
+  rw [dist_eq_norm, sub_eq_neg_add 1 (n : ℤ), ←norm_le_pow_iff_norm_lt_pow_add_one,
+    padic_int.norm_le_pow_iff_mem_span_pow], dsimp [to_zmod_pow, to_zmod_hom],
+  split,
+  { intro h, convert appr_spec n y,
+    have := le_total x (appr y n), cases this,
+    { rw ←sub_eq_zero at h,
+      have h' : ((((y.appr n) - x) : ℕ) : zmod (p^n)) = 0,
+      { norm_cast at *, exact h, },
+      rw zmod.nat_coe_zmod_eq_zero_iff_dvd at h',
+      have h'' := eq_zero_of_dvd_of_lt' h' (appr_lt _ _),
+      rw nat.sub_eq_zero_iff_le at h'', refine antisymm this h'', },
+    { symmetry' at h, rw ←sub_eq_zero at h,
+      have h' : (((x - (y.appr n)) : ℕ) : zmod (p^n)) = 0,
+      { norm_cast at *, exact h, },
+      rw zmod.nat_coe_zmod_eq_zero_iff_dvd at h',
+      have h'' := eq_zero_of_dvd_of_lt' h' (appr_lt _ _),
+      rw nat.sub_eq_zero_iff_le at h'', refine antisymm this h'', },
+    rw zmod.nat_coe_eq_nat_coe_iff at h, rw nat.modeq.modeq_iff_dvd at h,
+    --apply int.eq_zero_of_dvd_of_nat_abs_lt_nat_abs,
+    sorry, },
+  { intro h, apply zmod_congr_of_sub_mem_span n y _ _ _ h, apply appr_spec n y, },
+end
+--is there a nicer way of doing this using translation properties and x = 0?
+-/
+
+lemma preimage_to_zmod_pow (n : ℕ) (x : zmod (p^n)) : (to_zmod_pow n) ⁻¹' {x} =
+  {(x : ℤ_[p])} + (((to_zmod_pow n).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
+begin
+ ext y,
+    simp only [set.image_add_left, set.mem_preimage, set.singleton_add,
+      set.mem_singleton_iff, set_like.mem_coe],
+    split,
+    { intro h, rw ring_hom.mem_ker, simp [h], },
+    { intro h, rw ring_hom.mem_ker at h, simp at *, rw neg_add_eq_zero at h, exact h.symm, },
+end
+
+lemma continuous_to_zmod_pow (n : ℕ) : continuous (@padic_int.to_zmod_pow p _ n) :=
+begin
+  refine continuous_of_topological_basis _ discrete_topology.is_topological_basis _,
+  rintros s hs, simp only [set.mem_range] at hs, cases hs with x hx,
+  change {x} = s at hx, rw ←hx,
+  rw [preimage_to_zmod_pow, ker_to_zmod_pow], refine is_open.add_left _, exact is_open_span p n,
+end
+
 lemma proj_lim_preimage_clopen (n : ℕ) (a : zmod (d*(p^n))) :
-  is_clopen (set.preimage (padic_int.to_zmod_pow n) a : set ℤ_[p]) := sorry
+  is_clopen (set.preimage (padic_int.to_zmod_pow n) a : set ℤ_[p]) :=
+begin
+  split,
+  { refine continuous_def.mp (continuous_to_zmod_pow p n) ↑a trivial, },
+  { refine continuous_iff_is_closed.mp (continuous_to_zmod_pow p n) ↑a _, simp, },
+end
+
+lemma add_ball (x y : ℤ_[p]) (r : ℝ) : ({x} : set ℤ_[p]) + metric.ball y r = metric.ball (x + y) r :=
+begin
+  ext z, simp,
+  have : dist (-x + z) y = dist z (x + y),
+  { rw dist_eq_norm, rw dist_eq_norm, apply congr_arg, ring, },
+  rw this,
+end
+
+lemma preimage_to_zmod_pow_eq_ball (n : ℕ) (x : zmod (p^n)) :
+  (padic_int.to_zmod_pow n) ⁻¹' {(x : zmod (p^n))} =
+  metric.ball (x : ℤ_[p]) ((p : ℝ) ^ (1 - (n : ℤ))) :=
+begin
+  rw preimage_to_zmod_pow, rw ker_to_zmod_pow, rw ←span_eq_open_ball, rw add_ball,
+  rw add_zero,
+end
 
 lemma is_clopen_prod {α β : Type*} [topological_space α] [topological_space β] {s : set α}
   {t : set β} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s.prod t) :=
@@ -209,8 +343,32 @@ def clopen_basis' : set (clopen_sets ((zmod d) × ℤ_[p])) :=
   x = ⟨({b} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) a),
     is_clopen_prod (is_clopen_discrete b) (proj_lim_preimage_clopen p n a) ⟩ }-/
 
+lemma find_this_out (ε : ℝ) (h : 0 < ε) : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
+begin
+  sorry
+end
+
 lemma clopen_basis_clopen : topological_space.is_topological_basis (clopen_basis p) ∧
-  ∀ x ∈ (clopen_basis p), is_clopen x := sorry
+  ∀ x ∈ (clopen_basis p), is_clopen x :=
+begin
+  split,
+  { refine topological_space.is_topological_basis_of_open_of_nhds _ _,
+    { rintros u hu, rw clopen_basis at hu, simp at hu, rcases hu with ⟨n, a, hu⟩,
+      have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, rw hu, refine (this a).1, },
+    rintros a u mema hu, rw metric.is_open_iff at hu,
+    obtain ⟨ε, hε, h⟩ := hu a mema,
+    obtain ⟨m, fm⟩ := find_this_out p (ε/2) (half_pos hε),
+    set b := ((to_zmod_pow m.succ a) : ℤ_[p]) with hb,
+    refine ⟨metric.ball b (p^(-(m : ℤ))), _, _, _⟩,
+    { have arith : -(m : ℤ) = 1 - (m.succ : ℤ), simp, linarith,
+      rw [arith],
+      rw ←preimage_to_zmod_pow_eq_ball p (m.succ) (to_zmod_pow m.succ b),  },
+    sorry,
+    sorry, },
+  { rintros x hx,
+    rw clopen_basis at hx, simp at hx, rcases hx with ⟨n, a, hx⟩, rw hx,
+    have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, refine this a, },
+end
 
 --lemma char_fn_basis_of_loc_const : is_basis A (@char_fn ℤ_[p] _ _ _ _ A _ _ _) := sorry
 
@@ -288,3 +446,4 @@ noncomputable def p_adic_L_function [h : function.injective inj] (hc : gcd c p =
   integral (units (zmod d) × units ℤ_[p]) R _ (bernoulli_measure_of_measure p d R hc)
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R) a) *
   (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj w ⟩
+--is it accurate to say that ω⁻¹ = ω^(p - 2)? I think so

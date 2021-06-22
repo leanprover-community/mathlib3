@@ -846,7 +846,7 @@ begin
 end
 
 /-- A series whose terms are bounded by the terms of a converging geometric series converges. -/
-lemma summable_inv_pow_ge {m : ℝ} {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
+lemma summable_one_div_pow_of_le {m : ℝ} {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
   summable (λ i, 1 / m ^ f i) :=
 begin
   refine summable_of_nonneg_of_le

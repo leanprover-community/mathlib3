@@ -11,6 +11,10 @@ import data.list.nodup
 This file proves basic results about `list.erase_dup` (definition in `data.list.defs`).
 `erase_dup l` returns `l` without its duplicates. It keeps the earliest (that is, rightmost)
 occurrence of each.
+
+## Tags
+
+duplicate, multiplicity, nodup, `nub`
 -/
 
 universes u

@@ -242,9 +242,10 @@ lemma head_tail (o : orientation G) (i : V) (e : G.edge_set) :
   i = o.head e ∨ i = o.tail e ∨ (i ≠ o.head e ∧ i ≠ o.tail e) :=
 by tauto
 
-lemma edge_not_incident [decidable_eq V] [decidable_rel G.adj] {i j : V} {e : G.edge_set}
+lemma edge_not_incident {i j : V} {e : G.edge_set}
   (H_e : ¬↑e = ⟦(i, j)⟧) (H_adj : G.adj i j) : ↑e ∉ G.incidence_set i ∨ ↑e ∉ G.incidence_set j :=
 begin
+  classical,
   by_contradiction h,
   rw [decidable.not_or_iff_and_not, not_not, not_not] at h,
   exact H_e (G.edge_in_two_incidence_sets (G.ne_of_adj H_adj) h),

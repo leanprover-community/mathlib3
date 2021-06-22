@@ -314,3 +314,27 @@ begin
 end
 
 end polynomial
+
+section alg_hom
+
+open polynomial
+
+variables {R A A' : Type*}
+
+section comm_semiring
+
+variables [comm_semiring R] [comm_semiring A] [algebra R A] [comm_semiring A'] [algebra R A']
+
+@[simp]
+lemma alg_hom.map_aeval (e : A →ₐ[R] A') (x : A) (f : polynomial R) :
+  e (aeval x f) = aeval (e x) f :=
+by simp [aeval_eq_sum_range, e.map_sum]
+
+@[simp]
+lemma alg_equiv.map_aeval (e : A ≃ₐ[R] A') (x : A) (f : polynomial R) :
+  e (aeval x f) = aeval (e x) f :=
+alg_hom.map_aeval e.to_alg_hom x f
+
+end comm_semiring
+
+end alg_hom

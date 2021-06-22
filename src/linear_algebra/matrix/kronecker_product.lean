@@ -95,16 +95,25 @@ protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [alge
   map_add' :=
   begin
       intros A₁ A₂,
-      have e := (equiv.prod_assoc m n p).symm,
-      let e' := (equiv.prod_assoc m' n' p').symm,
-      -- simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
-      have h := (add_monoid_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_add_monoid_hom).3 A₁ A₂,
-      rw [(reindex_linear_equiv e e').map_add'],
-      -- ext i j,
+      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
+      have := (add_monoid_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_add_monoid_hom).3
+        A₁ A₂,
+      simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
+        linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
+      rw [this, minor_add],
+      refl,
   end,
-
-  --add_monoid_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_add_monoid_hom,
-  map_smul' := _,
+  map_smul' :=
+  begin
+      intros a A,
+      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
+      have := (mul_action_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_mul_action_hom).3
+        a A,
+      simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
+        linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
+      rw [this, minor_add],
+      refl,
+  end,
   inv_fun := _,
   left_inv := _,
   right_inv := _ }

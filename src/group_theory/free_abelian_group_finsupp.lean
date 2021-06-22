@@ -13,7 +13,7 @@ import data.finsupp.basic
 In this file we construct the canonical isomorphism between `free_abelian_group X` and `X →₀ ℤ`.
 We use this to transport the notion of `support` from `finsupp` to `free_abelian_group`.
 
-## Main declerations
+## Main declarations
 
 - `free_abelian_group.equiv_finsupp`: group isomorphism between `free_abelian_group X` and `X →₀ ℤ`
 - `free_abelian_group.coeff`: the multiplicity of `x : X` in `a : free_abelian_group X`

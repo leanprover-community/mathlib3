@@ -86,6 +86,25 @@ lemma kronecker_prod_reindex_right [semiring R] [semiring S] [algebra α R] [alg
   reindex_linear_equiv ((equiv.refl _).prod_congr en) ((equiv.refl _).prod_congr ep)
   ((A ⊗ₖ[α] B) : matrix (l × n) (m × p) (R ⊗[α] S)) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
+
+/--
+For mathlib
+-/
+variables {β M N: Type*} [comm_ring β]
+
+lemma map_mul [has_scalar β M] [has_scalar β N] (f : M →[β] N) (b : β)
+  (A : matrix m n M) : (b • A).map f = b • (A.map f) :=
+by { ext, simp, }
+
+def move_this  [add_comm_monoid M] [add_comm_monoid N] [module β M] [module β N] (f : M →[β] N) :
+  matrix m n M →[β] matrix m n N :=
+{ to_fun := λ M, M.map f,
+  map_smul' := map_mul f, }
+
+
+
+
+
 protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [algebra α S]
   [semiring T] [algebra α T] :
   matrix (m × n × p) (m' × n' × p') (R ⊗[α] S ⊗[α] T) ≃ₗ[α]
@@ -106,16 +125,21 @@ protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [alge
   map_smul' :=
   begin
       intros a A,
-      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
-      have := (mul_action_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_mul_action_hom).3
-        a A,
-      simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
-        linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
-      rw [this, minor_add],
-      refl,
+      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe], sorry,
+      -- have := (mul_action_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_mul_action_hom).3
+      --   a A,
+      -- simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
+      --   linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
+      -- rw [this, minor_add],
+      -- refl,
   end,
-  inv_fun := _,
-  left_inv := _,
+  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
+      (map A (tensor_product.assoc _ _ _ _).symm),
+  left_inv :=
+  begin
+    intros A,
+    simp,
+  end,
   right_inv := _ }
 
 

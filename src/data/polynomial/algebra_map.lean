@@ -222,6 +222,22 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
 
+section comm_semiring
+
+variables [comm_semiring S]
+
+lemma aeval_eq_sum_range [algebra R S] {p : polynomial R} (x : S) :
+  aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
+by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
+
+lemma aeval_eq_sum_range' [algebra R S] {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
+aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
+by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
+
+end comm_semiring
+
+section comm_ring
+
 variables [comm_ring S] {f : R →+* S}
 
 lemma is_root_of_eval₂_map_eq_zero
@@ -259,13 +275,7 @@ lemma dvd_term_of_is_root_of_dvd_terms {r p : S} {f : polynomial S} (i : ℕ)
   (hr : f.is_root r) (h : ∀ (j ≠ i), p ∣ f.coeff j * r ^ j) : p ∣ f.coeff i * r ^ i :=
 dvd_term_of_dvd_eval_of_dvd_terms i (eq.symm hr ▸ dvd_zero p) h
 
-lemma aeval_eq_sum_range [algebra R S] {p : polynomial R} (x : S) :
-  aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
-by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
-
-lemma aeval_eq_sum_range' [algebra R S] {p : polynomial R} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
-  aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
-by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
+end comm_ring
 
 end aeval
 

@@ -1030,7 +1030,7 @@ lemma locally_finite.is_closed_Union {f : β → set α}
 begin
   simp only [← is_open_compl_iff, compl_Union, is_open_iff_mem_nhds, mem_Inter],
   intros a ha,
-  replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, mem_nhds_sets (h₂ i).is_open_compl (ha i),
+  replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, (h₂ i).is_open_compl.mem_nhds (ha i),
   rcases h₁ a with ⟨t, h_nhds, h_fin⟩,
   have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
     from inter_mem_sets h_nhds ((bInter_mem_sets h_fin).2 (λ i _, ha i)),

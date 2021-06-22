@@ -112,7 +112,8 @@ lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : 
   f l.prod = (l.map f).prod :=
 f.to_monoid_hom.map_list_prod l
 
-lemma ring_hom.map_list_sum [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
+lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+  (f : β →+* γ) (l : list β) :
   f l.sum = (l.map f).sum :=
 f.to_add_monoid_hom.map_list_sum l
 
@@ -121,7 +122,8 @@ lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β �
   f s.prod = (s.map f).prod :=
 f.to_monoid_hom.map_multiset_prod s
 
-lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s : multiset β) :
+lemma ring_hom.map_multiset_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+  (f : β →+* γ) (s : multiset β) :
   f s.sum = (s.map f).sum :=
 f.to_add_monoid_hom.map_multiset_sum s
 
@@ -130,7 +132,7 @@ lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) 
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 g.to_monoid_hom.map_prod f s
 
-lemma ring_hom.map_sum [semiring β] [semiring γ]
+lemma ring_hom.map_sum [non_assoc_semiring β] [non_assoc_semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
@@ -1175,7 +1177,7 @@ begin
 end
 
 @[simp]
-lemma sum_boole {s : finset α} {p : α → Prop} [semiring β] {hp : decidable_pred p} :
+lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
 

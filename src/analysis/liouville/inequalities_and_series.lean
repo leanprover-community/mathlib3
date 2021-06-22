@@ -18,19 +18,7 @@ open set real
 
 variable {m : ℝ}
 
-/--  An inequality involving `2 : ℝ`. -/
-lemma sub_one_div_inv_le_two (hm : 2 ≤ m) :
-  (1 - 1 / m)⁻¹ ≤ 2 :=
-begin
-  -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / m`
-  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : ℝ)).le,
-  -- move `1 / m` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / m ≤ ⅟ 2`
-  refine trans one_sub_inv_of_two.symm.le ((sub_le_sub_iff_left 1).mpr _),
-  -- take inverses on both sides and use the assumption `2 ≤ m`.
-  exact (one_div m).le.trans (inv_le_inv_of_le zero_lt_two hm)
-end
-
-lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : ℝ, 1 / x) (set.Ioi 0) :=
+lemma one_div_pow_strict_mono_decr_on : strict_mono_decr_on (λ x : ℝ, 1 / x) (set.Ioi 0) :=
 λ x x1 y y1 xy, (one_div_lt_one_div (mem_Ioi.mp y1) (mem_Ioi.mp x1)).mpr xy
 
 lemma one_div_mono_exp (m1 : 1 ≤ m) {a b : ℕ} (ab : a ≤ b) :

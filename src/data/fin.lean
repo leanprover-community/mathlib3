@@ -654,6 +654,11 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
 by simpa [lt_iff_coe_lt_coe] using h
 
+@[simp] lemma cast_succ_eq_zero_iff {n : ℕ} (a : fin (n + 1)) : a.cast_succ = 0 ↔ a = 0 := by tidy
+
+lemma cast_succ_ne_zero_iff {n : ℕ} (a : fin (n + 1)) : a.cast_succ ≠ 0 ↔ a ≠ 0 :=
+not_iff_not.mpr $ cast_succ_eq_zero_iff a
+
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by simp [fin.ext_iff]
@@ -906,6 +911,17 @@ embeds `i` by `cast_succ` when the resulting `i.cast_succ < p`. -/
 lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.cast_succ < p) :
   p.succ_above i = i.cast_succ :=
 by { rw [succ_above], exact if_pos h }
+
+@[simp] lemma zero_succ_above_eq_zero {a : fin (n + 2)} (ha : a ≠ 0) : 0 = a.succ_above 0 :=
+begin
+    rw fin.succ_above_below,
+    { refl },
+    { exact bot_lt_iff_ne_bot.mpr ha }
+end
+
+lemma succ_above_eq_zero_iff (a : fin (n + 2)) (b : fin (n + 1)) (ha : a ≠ 0) :
+  a.succ_above b = 0 ↔ b = 0 :=
+by simp [zero_succ_above_eq_zero ha]
 
 /-- Embedding `fin n` into `fin (n + 1)` with a hole around zero embeds by `succ`. -/
 @[simp] lemma succ_above_zero : ⇑(succ_above (0 : fin (n + 1))) = fin.succ := rfl
@@ -1175,6 +1191,22 @@ begin
     { refl, },
     { simp_rw [if_neg h],
       exact lt_succ_iff.mpr (not_lt.mp h), }, },
+end
+
+/-- `pred` commutes with `succ_above`. -/
+lemma pred_succ_above_pred (a : fin (n + 2)) (b : fin (n + 1)) (ha : a ≠ 0) (hb : b ≠ 0) {hk} :
+  (a.pred ha).succ_above (b.pred hb) = (a.succ_above b).pred hk :=
+begin
+  have hbc : (b.pred hb).cast_succ = b.cast_succ.pred _, by {cases b, refl},
+  obtain hbelow | habove := lt_or_le b.cast_succ a, -- `rwa` uses them
+  { rw fin.succ_above_below,
+    { rwa [hbc, fin.pred_inj, fin.succ_above_below] },
+    { rwa [hbc, pred_lt_pred_iff] } },
+  { rw fin.succ_above_above,
+    have : (b.pred hb).succ = b.succ.pred (fin.succ_ne_zero _), by rw [succ_pred, pred_succ],
+    { rwa [this, fin.pred_inj, fin.succ_above_above] },
+    { rwa [hbc, fin.pred_le_pred_iff] } },
+  simpa
 end
 
 @[simp] theorem cast_pred_cast_succ (i : fin (n + 1)) :

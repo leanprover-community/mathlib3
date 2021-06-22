@@ -1,8 +1,14 @@
+/-
+Copyright (c) 2021 Filippo A. E. Nuccio. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Filippo A. E. Nuccio
+-/
+
 import linear_algebra.matrix
 
 /-!
 # Kronecker product of matrices, see https://en.wikipedia.org/wiki/Kronecker_product
-
+I (FAE) wonder if this should be in `linear_algebra/matrix` or in `data/matrix`.
 -/
 
 open tensor_product matrix
@@ -90,18 +96,44 @@ lemma kronecker_prod_reindex_right [semiring R] [semiring S] [algebra α R] [alg
 /--
 For mathlib
 -/
-variables {β M N: Type*} [comm_ring β]
+-- variables {β M N: Type*} [comm_ring β]
 
-lemma map_mul [has_scalar β M] [has_scalar β N] (f : M →[β] N) (b : β)
-  (A : matrix m n M) : (b • A).map f = b • (A.map f) :=
+-- lemma map_mul [has_scalar β M] [has_scalar β N] (f : M →[β] N) (b : β)
+--   (A : matrix m n M) : (b • A).map f = b • (A.map f) :=
+-- by { ext, simp, }
+
+-- def move_this  [add_comm_monoid M] [add_comm_monoid N] [module β M] [module β N] (f : M →[β] N) :
+--   matrix m n M →[β] matrix m n N :=
+-- { to_fun := λ M, M.map f,
+--   map_smul' := map_mul f, }
+
+
+lemma map_scalar [has_scalar α R] [has_scalar α S] (f : R →[α] S) (r : α)
+  (A : matrix m n R) : (r • A).map f = r • (A.map f) :=
 by { ext, simp, }
 
-def move_this  [add_comm_monoid M] [add_comm_monoid N] [module β M] [module β N] (f : M →[β] N) :
-  matrix m n M →[β] matrix m n N :=
+open linear_map
+/-- The `linear_map` between spaces of matrices induced by a `linear_map` between their
+coefficients. -/
+def linear_map.map_matrix
+-- [semiring R] [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β]
+  [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
+  (f : R →ₗ[α] S) : matrix m n R →ₗ[α] matrix m n S :=
 { to_fun := λ M, M.map f,
-  map_smul' := map_mul f, }
+  map_add' := matrix.map_add f.to_add_monoid_hom,
+  map_smul' := map_scalar f.to_mul_action_hom, }
 
+variables [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
+variables (f : R →ₗ[α] S) (g : R →+ S)
 
+#check g.map_matrix
+
+lemma linear_map.map_matrix_apply [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
+  (f : R →ₗ[α] S) (A : matrix m n R) : f.map_matrix A = A.map f := sorry
+
+/--
+end for mathlib
+-/
 
 
 
@@ -125,9 +157,8 @@ protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [alge
   map_smul' :=
   begin
       intros a A,
-      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe], sorry,
-      -- have := (mul_action_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_mul_action_hom).3
-      --   a A,
+      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
+      have := linear_map.map_matrix (tensor_product.assoc α R S T).to_linear_map a A,
       -- simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
       --   linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
       -- rw [this, minor_add],

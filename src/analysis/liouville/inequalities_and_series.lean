@@ -18,7 +18,7 @@ open set real
 
 variable {m : ℝ}
 
-lemma one_div_pow_strict_mono_decr_on : strict_mono_decr_on (λ x : ℝ, 1 / x) (set.Ioi 0) :=
+lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : ℝ, 1 / x) (set.Ioi 0) :=
 λ x x1 y y1 xy, (one_div_lt_one_div (mem_Ioi.mp y1) (mem_Ioi.mp x1)).mpr xy
 
 lemma one_div_mono_exp (m1 : 1 ≤ m) {a b : ℕ} (ab : a ≤ b) :

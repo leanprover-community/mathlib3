@@ -7,6 +7,7 @@ import algebra.ordered_ring
 import algebra.field
 import tactic.monotonicity.basic
 import algebra.group_power.order
+import order.order_dual
 
 /-!
 # Linear ordered fields

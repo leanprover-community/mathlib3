@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
+import linear_algebra.direct_sum.finsupp
 import linear_algebra.std_basis
 import logic.small
-import linear_algebra.direct_sum.finsupp
 
 /-!
 

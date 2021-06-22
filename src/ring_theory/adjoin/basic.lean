@@ -97,6 +97,22 @@ begin
   exact submonoid.closure_le.2 subset_adjoin
 end
 
+lemma span_le_adjoin (s : set A) : span R s ≤ (adjoin R s).to_submodule :=
+by { rw submodule.span_le, exact algebra.subset_adjoin }
+
+lemma adjoin_le_of_submonoid_closure_le {s : set A} {t : submodule R A}
+  (hs : ↑(submonoid.closure s) ⊆ (t : set A)) :
+  (adjoin R s).to_submodule ≤ t :=
+begin
+  intros _ h,
+  apply span_le.mpr hs,
+  simpa [adjoin_eq_span] using h
+end
+
+lemma adjoin_eq_span' {s : set A} (hs : ↑(submonoid.closure s) ⊆ (span R s : set A)) :
+  (adjoin R s).to_submodule = span R s :=
+le_antisymm (adjoin_le_of_submonoid_closure_le R hs) (span_le_adjoin R s)
+
 lemma adjoin_image (f : A →ₐ[R] B) (s : set A) :
   adjoin R (f '' s) = (adjoin R s).map f :=
 le_antisymm (adjoin_le $ set.image_subset _ subset_adjoin) $

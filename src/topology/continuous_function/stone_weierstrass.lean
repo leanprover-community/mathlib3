@@ -375,27 +375,6 @@ lemma mem_conj_invariant {A : subalgebra ℝ C(X, ℂ)} (hA : conj_invariant_sub
   (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ A :=
 hA ⟨f, hf, rfl⟩
 
-@[simp] lemma to_ring_hom_apply {R A B : Type*} [comm_ring R] [ring A] [algebra R A]
-   [ring B] [algebra R B] (f : A →ₐ[R] B) (x : A) :
-  f.to_ring_hom x = f x :=
-rfl
-
--- lemma conj_invariant_of_forall {A : subalgebra ℝ C(X, ℂ)}
---   (hA : ∀ f ∈ A, (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ A) :
---   conj_invariant_subalgebra A:=
--- begin
---   rintros _ ⟨f, hf, rfl⟩,
---   exact hA f hf,
--- end
--- lemma mem_of_mem_conj_invariant {A : subalgebra ℝ C(X, ℂ)} (hA : conj_invariant_subalgebra A)
---   {f : C(X, ℂ)} (hf : (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ A) :
---   f ∈ A :=
--- begin
---   convert mem_conj_invariant hA hf,
---   ext1 x,
---   simp,
--- end
-
 end continuous_map
 
 open continuous_map

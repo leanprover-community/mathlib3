@@ -947,7 +947,7 @@ begin
     equiv.symm_comp_self],
 end
 
-lemma mul_one_minor [semiring α] [decidable_eq o] (e₁ : l → o) (e₂ : m ≃ o) (M : matrix m n α) :
+lemma one_minor_mul [semiring α] [decidable_eq o] (e₁ : l → o) (e₂ : m ≃ o) (M : matrix m n α) :
   ((1 : matrix o o α).minor e₁ e₂).mul M = minor M (e₂.symm ∘ e₁) id :=
 begin
   let A := M.minor e₂.symm id,

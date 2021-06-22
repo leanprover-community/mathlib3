@@ -380,30 +380,34 @@ end misc_theorems
 /-! #### Non-unital, non-associative algebra structure -/
 section non_unital_non_assoc_algebra
 
-variables (k) [semiring k] [has_mul G]
+variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_mul G]
 
-instance is_scalar_tower_self : is_scalar_tower k (monoid_algebra k G) (monoid_algebra k G) :=
+instance is_scalar_tower_self [is_scalar_tower R k k] :
+  is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
 ⟨λ t a b,
 begin
   ext m,
-  simp only [mul_apply, finsupp.mul_sum, smul_apply, sum_smul_index, implies_true_iff,
-    eq_self_iff_true, smul_eq_mul, sum_zero, zero_mul, mul_assoc, mul_ite, mul_zero, if_t_t],
+  simp only [mul_apply, finsupp.smul_sum, smul_ite, smul_mul_assoc, sum_smul_index', zero_mul,
+     if_t_t, implies_true_iff, eq_self_iff_true, sum_zero, coe_smul, smul_eq_mul, pi.smul_apply,
+     smul_zero],
 end⟩
 
-/-- If the coefficients are commutative amongst themselves, the also commute with the algebra
-multiplication. -/
-instance smul_comm_class_self {k : Type u₁} [comm_semiring k] :
-  smul_comm_class k (monoid_algebra k G) (monoid_algebra k G) :=
+/-- Note that if `k` is a `comm_semiring` then we have `smul_comm_class k k k` and so we can take
+`R = k` in the below. In other words, if the coefficients are commutative amongst themselves, they
+also commute with the algebra multiplication. -/
+instance smul_comm_class_self [smul_comm_class R k k] :
+  smul_comm_class R (monoid_algebra k G) (monoid_algebra k G) :=
 ⟨λ t a b,
 begin
   ext m,
-  simp only [mul_apply, finsupp.mul_sum, smul_apply, sum_smul_index, implies_true_iff,
-    eq_self_iff_true, smul_eq_mul, mul_ite, mul_zero, mul_left_comm, ite_eq_right_iff],
+  simp only [mul_apply, finsupp.sum, finset.smul_sum, smul_ite, mul_smul_comm, sum_smul_index',
+    implies_true_iff, eq_self_iff_true, coe_smul, ite_eq_right_iff, smul_eq_mul, pi.smul_apply,
+    mul_zero, smul_zero],
 end⟩
 
-instance smul_comm_class_symm_self {k : Type u₁} [comm_semiring k] :
-  smul_comm_class (monoid_algebra k G) k (monoid_algebra k G) :=
-smul_comm_class.symm k (monoid_algebra k G) (monoid_algebra k G)
+instance smul_comm_class_symm_self [smul_comm_class k R k] :
+  smul_comm_class (monoid_algebra k G) R (monoid_algebra k G) :=
+⟨λ t a b, by { haveI := smul_comm_class.symm k R k, rw ← smul_comm, } ⟩
 
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/

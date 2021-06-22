@@ -13,8 +13,11 @@ This file proves basic results about `list.erase_dup` (definition in `data.list.
 occurrence of each.
 -/
 
+universes u
+
 namespace list
-variables {α : Type*} [decidable_eq α]
+
+variables {α : Type u} [decidable_eq α]
 
 @[simp] theorem erase_dup_nil : erase_dup [] = ([] : list α) := rfl
 

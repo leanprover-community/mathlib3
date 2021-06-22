@@ -664,7 +664,7 @@ lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : α, 1 / x) (set.
 lemma one_div_pow_le_one_div_pow_of_le (a1 : 1 ≤ a) {m n : ℕ} (mn : m ≤ n) :
   1 / a ^ n ≤ 1 / a ^ m :=
 by refine (one_div_le_one_div _ _).mpr (pow_le_pow a1 mn);
-  exact pow_pos (lt_of_lt_of_le zero_lt_one a1) _
+  exact pow_pos (zero_lt_one.trans_le a1) _
 
 lemma one_div_pow_lt_one_div_pow_of_lt (a1 : 1 < a) {m n : ℕ} (mn : m < n) :
   1 / a ^ n < 1 / a ^ m :=
@@ -672,9 +672,9 @@ by refine (one_div_lt_one_div _ _).mpr (pow_lt_pow a1 mn);
   exact pow_pos (trans zero_lt_one a1) _
 
 lemma one_div_pow_mono (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
-λ m n mn, one_div_pow_le_one_div_pow_of_le a1 mn
+λ m n, one_div_pow_le_one_div_pow_of_le a1
 
 lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
-λ m n mn, one_div_pow_lt_one_div_pow_of_lt a1 mn
+λ m n, one_div_pow_lt_one_div_pow_of_lt a1
 
 end linear_ordered_field

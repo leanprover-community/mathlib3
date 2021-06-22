@@ -11,12 +11,16 @@ import algebra.algebra.subalgebra
 # Algebraic structures over continuous functions
 
 In this file we define instances of algebraic structures over the type `continuous_map α β`
-(denoted `C(α, β)`) of **bundled** continuous maps from `α` to `β`. Note that we don't provide
-instances about `{ f : α → β | continuous f }` anymore, because `C(α, β)` should be used instead.
+(denoted `C(α, β)`) of **bundled** continuous maps from `α` to `β`. For example, `C(α, β)`
+is a group when `β` is a group, a ring when `β` is a ring, etc.
 
-However, we also define subobject of `α → β` with carrier `{ f : α → β | continuous f }` because
-we need a subset of `α → β` to define a subobject of it (see for example `continuous_subring`,
-`continuous_subalgebra`, ...).
+For each type of algebraic structure, we also define an appropriate subobject of `α → β`
+with carrier `{ f : α → β | continuous f }`. For example, when `β` is a group, a subgroup
+`continuous_subgroup α β` of `α → β` is constructed with carrier `{ f : α → β | continuous f }`.
+
+Note that, rather than using the derived algebraic structures on these subobjects
+(for example, when `β` is a group, the derived group structure on `continuous_subgroup α β`),
+one should use `C(α, β)` with the appropriate instance of the structure.
 -/
 
 local attribute [elab_simple] continuous.comp

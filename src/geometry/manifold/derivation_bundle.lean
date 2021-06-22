@@ -28,6 +28,7 @@ variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 
 open_locale manifold
 
+-- the following two instances prevent poorly understood type class inference timeout problems
 instance smooth_functions_algebra : algebra 𝕜 C^∞⟮I, M; 𝕜⟯ := by apply_instance
 instance smooth_functions_tower : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯ := by apply_instance
 

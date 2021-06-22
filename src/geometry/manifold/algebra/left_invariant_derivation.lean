@@ -159,10 +159,15 @@ by ext h; rw [times_cont_mdiff_map.comp_apply, L_apply, ←eval_at_apply, eval_a
 
 instance : has_bracket (left_invariant_derivation I G) (left_invariant_derivation I G) :=
 { bracket := λ X Y, ⟨⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆, λ f g, begin
-    have hX := left_invariant' g X (Y f), have hY := left_invariant' g Y (X f),
-    rw [apply_fdifferential, derivation.eval_apply] at hX hY ⊢, rw [comp_L] at hX hY,
+    have hX := left_invariant' g X (Y f),
+    have hY := left_invariant' g Y (X f),
+    rw [apply_fdifferential, derivation.eval_apply] at hX hY ⊢,
+    rw comp_L at hX hY,
     rw [derivation.commutator_apply, smooth_map.coe_sub, pi.sub_apply, coe_derivation],
-    rw [coe_derivation] at hX hY ⊢, rw [hX, hY], refl end⟩ }
+    rw coe_derivation at hX hY ⊢,
+    rw [hX, hY],
+    refl
+  end⟩ }
 
 @[simp] lemma commutator_coe_derivation :
   ⇑⁅X, Y⁆ = (⁅(X : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯), Y⁆ :

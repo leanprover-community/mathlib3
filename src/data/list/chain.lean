@@ -59,8 +59,8 @@ theorem chain.iff_mem {a : α} {l : list α} :
 theorem chain_singleton {a b : α} : chain R a [b] ↔ R a b :=
 by simp only [chain_cons, chain.nil, and_true]
 
-theorem chain_split {a b : α} {l₁ l₂ : list α} : chain R a (l₁++b :: l₂) ↔
-  chain R a (l₁++[b]) ∧ chain R b l₂ :=
+theorem chain_split {a b : α} {l₁ l₂ : list α} : chain R a (l₁ ++ b :: l₂) ↔
+  chain R a (l₁ ++ [b]) ∧ chain R b l₂ :=
 by induction l₁ with x l₁ IH generalizing a;
 simp only [*, nil_append, cons_append, chain.nil, chain_cons, and_true, and_assoc]
 
@@ -160,8 +160,8 @@ theorem chain'.iff_mem : ∀ {l : list α}, chain' R l ↔ chain' (λ x y, x ∈
 
 @[simp] theorem chain'_singleton (a : α) : chain' R [a] := chain.nil
 
-theorem chain'_split {a : α} : ∀ {l₁ l₂ : list α}, chain' R (l₁++a :: l₂) ↔
-  chain' R (l₁++[a]) ∧ chain' R (a :: l₂)
+theorem chain'_split {a : α} : ∀ {l₁ l₂ : list α}, chain' R (l₁ ++ a :: l₂) ↔
+  chain' R (l₁ ++ [a]) ∧ chain' R (a :: l₂)
 | []        l₂ := (and_iff_right (chain'_singleton a)).symm
 | (b :: l₁) l₂ := chain_split
 
@@ -216,7 +216,7 @@ theorem chain'_cons' {x l} : chain' R (x :: l) ↔ (∀ y ∈ head' l, R x y) �
 
 theorem chain'.append : ∀ {l₁ l₂ : list α} (h₁ : chain' R l₁) (h₂ : chain' R l₂)
   (h : ∀ (x ∈ l₁.last') (y ∈ l₂.head'), R x y),
-  chain' R (l₁++l₂)
+  chain' R (l₁ ++ l₂)
 | []            l₂ h₁ h₂ h := h₂
 | [a]           l₂ h₁ h₂ h := h₂.cons' $ h _ rfl
 | (a :: b :: l) l₂ h₁ h₂ h :=
@@ -263,11 +263,11 @@ begin
     },
 end
 
-/-- If `l₁ l₂` and `l₃` are lists and `l₁++l₂` and `l₂++l₃` both satisfy
-  `chain' R`, then so does `l₁++l₂++l₃` provided `l₂ ≠ []` -/
+/-- If `l₁ l₂` and `l₃` are lists and `l₁ ++ l₂` and `l₂ ++ l₃` both satisfy
+  `chain' R`, then so does `l₁ ++ l₂ ++ l₃` provided `l₂ ≠ []` -/
 lemma chain'.append_overlap : ∀ {l₁ l₂ l₃ : list α}
-  (h₁ : chain' R (l₁++l₂)) (h₂ : chain' R (l₂++l₃)) (hn : l₂ ≠ []),
-  chain' R (l₁++l₂++l₃)
+  (h₁ : chain' R (l₁ ++ l₂)) (h₂ : chain' R (l₂ ++ l₃)) (hn : l₂ ≠ []),
+  chain' R (l₁ ++ l₂ ++ l₃)
 | []             l₂        l₃ h₁ h₂ hn := h₂
 | l₁             []        l₃ h₁ h₂ hn := (hn rfl).elim
 | [a]            (b :: l₂) l₃ h₁ h₂ hn := by { simp at *, tauto }

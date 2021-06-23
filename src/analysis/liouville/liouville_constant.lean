@@ -94,11 +94,8 @@ calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
 ... = 2 / m ^ (n! * (n + 1)) : congr_arg ((/) 2) (congr_arg (pow m) (mul_comm _ _))
 ... ≤ 1 / m ^ (n! * n) :
   begin
-    -- [ NB: in this block, I did not follow the brace convention for subgoals.  The
-    --   reason is that all extraneous goals are solved by
-    --   `exact pow_pos (zero_lt_two.trans_le hm) _` and are created also by later tactics.
-    --   Thus, I waited until the last tactic producing a repeated goal and then solve them
-    --   all at once using `any_goals { exact pow_pos (zero_lt_two.trans_le hm) _ }`. ]
+    -- [ NB: in this block, I do not follow the brace convention for subgoals -- I wait until
+    --   I solve all extraneous goals at once with `exact pow_pos (zero_lt_two.trans_le hm) _`. ]
     -- Clear denominators and massage*
     apply (div_le_div_iff _ _).mpr,
     conv_rhs { rw [one_mul, mul_add, pow_add, mul_one, pow_mul, mul_comm, ← pow_mul] },

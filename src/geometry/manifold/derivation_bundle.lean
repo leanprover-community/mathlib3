@@ -43,35 +43,27 @@ variables {𝕜 M}
 
 namespace pointed_smooth_map
 
-instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯⟨x⟩ := by { rw pointed_smooth_map, apply_instance }
-instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯⟨x⟩ := by { rw pointed_smooth_map, apply_instance }
-instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := by { dunfold pointed_smooth_map, apply_instance }
+instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯⟨x⟩ := times_cont_mdiff_map.has_coe_to_fun
+instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.comm_ring
+instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.algebra
 instance {x : M} : inhabited C^∞⟮I, M; 𝕜⟯⟨x⟩ := ⟨0⟩
-
-instance {x : M} : algebra C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ :=
-by { dunfold pointed_smooth_map, apply_instance }
-
-instance {x : M} : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ :=
-by { dunfold pointed_smooth_map, apply_instance }
-
-/-- Evaluation at a point is a ring homomorphism. Same thing as writing manually
-`to_fun := λ f, f x`.-/
-def eval' (x : M) : C^∞⟮I, M; 𝕜⟯⟨x⟩ →+* 𝕜 :=
-(pi.eval_ring_hom _ x : (M → 𝕜) →+* 𝕜).comp smooth_map.coe_fn_ring_hom
+instance {x : M} : algebra C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ := algebra.id C^∞⟮I, M; 𝕜⟯
+instance {x : M} : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, M; 𝕜⟯ := is_scalar_tower.right
 
 variable {I}
 
 /-- The above evaluation gives rise to an algebra structure of `C^∞⟮I, M; 𝕜⟯` on `𝕜`. -/
-instance eval_algebra {x : M} : algebra C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜 := (eval' I x).to_algebra
+instance eval_algebra {x : M} : algebra C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜 :=
+(smooth_map.eval_ring_hom x : C^∞⟮I, M; 𝕜⟯⟨x⟩ →+* 𝕜).to_algebra
 
 /-- With the above algebra structure evaluation is actually an algebra morphism. -/
 def eval (x : M) : C^∞⟮I, M; 𝕜⟯ →ₐ[C^∞⟮I, M; 𝕜⟯⟨x⟩] 𝕜 :=
-{ commutes' := λ k, rfl, ..eval' I x }
+algebra.of_id C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜
 
-lemma scalar_def (x : M) (f : C^∞⟮I, M; 𝕜⟯⟨x⟩) (k : 𝕜) : f • k = f x * k := rfl
+lemma smul_def (x : M) (f : C^∞⟮I, M; 𝕜⟯⟨x⟩) (k : 𝕜) : f • k = f x * k := rfl
 
 instance (x : M) : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜 :=
-{ smul_assoc := λ k f h, by { simp only [scalar_def, algebra.id.smul_eq_mul, smooth_map.coe_smul,
+{ smul_assoc := λ k f h, by { simp only [smul_def, algebra.id.smul_eq_mul, smooth_map.coe_smul,
   pi.smul_apply, mul_assoc]} }
 
 end pointed_smooth_map
@@ -81,20 +73,6 @@ open_locale derivation
 /-- The derivations at a point of a manifold. Some regard this as a possible definition of the
 tangent space -/
 @[reducible] def point_derivation (x : M) := derivation 𝕜 (C^∞⟮I, M; 𝕜⟯⟨x⟩) 𝕜
-
-variable (M)
-
-/-- The total bundle of point derivations. -/
-def derivation_bundle := Σ x : M, point_derivation I x
-
-variables {I M}
-
-/-- The inclusion map of derivations at a point into the total bundle. -/
-def derivation_inclusion {x : M} (v : point_derivation I x) : derivation_bundle I M :=
-sigma.mk x v
-
-instance [inhabited M] : inhabited (derivation_bundle I M) :=
-⟨derivation_inclusion (0 : point_derivation I (default M))⟩
 
 section
 
@@ -113,7 +91,7 @@ variable {I}
 def eval_at (x : M) : (derivation 𝕜 C^∞⟮I, M; 𝕜⟯ C^∞⟮I, M; 𝕜⟯) →ₗ[𝕜] point_derivation I x :=
 (smooth_function.eval_at I x).comp_der
 
-lemma eval_apply (x : M) : eval_at x X f = (X f) x := rfl
+lemma eval_at_apply (x : M) : eval_at x X f = (X f) x := rfl
 
 end derivation
 
@@ -130,8 +108,8 @@ def fdifferential_map (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivatio
   leibniz' := λ g h, by { simp only [derivation.leibniz, smooth_map.mul_comp], refl} }
 
 /-- The differential is a linear map. -/
-def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) : (point_derivation I x) →ₗ[𝕜]
-  (point_derivation I' (f x)) :=
+def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) :
+  point_derivation I x →ₗ[𝕜] point_derivation I' (f x) :=
 { to_fun := fdifferential_map f x,
   map_smul' := λ k v, rfl,
   map_add' := λ v w, rfl }

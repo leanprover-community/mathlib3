@@ -1207,15 +1207,14 @@ lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (h
   (hk := succ_above_ne_zero ha hb) :
   (a.pred ha).succ_above (b.pred hb) = (a.succ_above b).pred hk :=
 begin
-  have hbc := pred_cast_succ_eq_cast_succ_pred hb (by simpa),
   obtain hbelow | habove := lt_or_le b.cast_succ a, -- `rwa` uses them
   { rw fin.succ_above_below,
-    { rwa [hbc, fin.pred_inj, fin.succ_above_below] },
-    { rwa [hbc, pred_lt_pred_iff] } },
+    { rwa [pred_cast_succ_eq_cast_succ_pred, fin.pred_inj, fin.succ_above_below] },
+    { rwa [pred_cast_succ_eq_cast_succ_pred, pred_lt_pred_iff] } },
   { rw fin.succ_above_above,
     have : (b.pred hb).succ = b.succ.pred (fin.succ_ne_zero _), by rw [succ_pred, pred_succ],
     { rwa [this, fin.pred_inj, fin.succ_above_above] },
-    { rwa [hbc, fin.pred_le_pred_iff] } }
+    { rwa [pred_cast_succ_eq_cast_succ_pred, fin.pred_le_pred_iff] } }
 end
 
 @[simp] theorem cast_pred_cast_succ (i : fin (n + 1)) :

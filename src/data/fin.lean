@@ -1198,8 +1198,8 @@ begin
       exact lt_succ_iff.mpr (not_lt.mp h), }, },
 end
 
-lemma pred_cast_succ_eq_cast_succ_pred {a : fin (n + 1)} (ha : a ≠ 0)
-(ha' := a.cast_succ_ne_zero_iff.mpr ha) : (a.pred ha).cast_succ = a.cast_succ.pred ha' :=
+lemma cast_succ_pred_eq_pred_cast_succ  {a : fin (n + 1)} (ha : a ≠ 0)
+  (ha' := a.cast_succ_ne_zero_iff.mpr ha) : (a.pred ha).cast_succ = a.cast_succ.pred ha' :=
 by { cases a, refl }
 
 /-- `pred` commutes with `succ_above`. -/
@@ -1209,12 +1209,12 @@ lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (h
 begin
   obtain hbelow | habove := lt_or_le b.cast_succ a, -- `rwa` uses them
   { rw fin.succ_above_below,
-    { rwa [pred_cast_succ_eq_cast_succ_pred, fin.pred_inj, fin.succ_above_below] },
-    { rwa [pred_cast_succ_eq_cast_succ_pred, pred_lt_pred_iff] } },
+    { rwa [cast_succ_pred_eq_pred_cast_succ , fin.pred_inj, fin.succ_above_below] },
+    { rwa [cast_succ_pred_eq_pred_cast_succ , pred_lt_pred_iff] } },
   { rw fin.succ_above_above,
     have : (b.pred hb).succ = b.succ.pred (fin.succ_ne_zero _), by rw [succ_pred, pred_succ],
     { rwa [this, fin.pred_inj, fin.succ_above_above] },
-    { rwa [pred_cast_succ_eq_cast_succ_pred, fin.pred_le_pred_iff] } }
+    { rwa [cast_succ_pred_eq_pred_cast_succ , fin.pred_le_pred_iff] } }
 end
 
 @[simp] theorem cast_pred_cast_succ (i : fin (n + 1)) :

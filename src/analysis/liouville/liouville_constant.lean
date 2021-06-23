@@ -17,11 +17,10 @@ noncomputable theory
 open_locale nat big_operators
 open set real finset
 
-section m_is_real
-
-variable {m : ℝ}
-
 namespace liouville
+
+section m_is_real
+variable {m : ℝ}
 
 /--
 For a real number `m`, Liouville's constant is
@@ -133,15 +132,10 @@ calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
 
 end two_useful_inequalities
 
-end liouville
-
 end m_is_real
 
 section m_is_natural
-
 variable {m : ℕ}
-
-namespace liouville
 
 /--  The sum of the `k` initial terms of the Liouville number to base `m` is a ratio of natural
 numbers where the denominator is `m ^ k!`. -/
@@ -203,12 +197,16 @@ begin
     (aux_calc _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
 
+end m_is_natural
+
 end liouville
 
 open liouville
 
-lemma liouville.is_transcendental (hm : 2 ≤ m) :
+/- The reason for placing this lemma *after* `end liouville`, but still in the `liouville`
+namespace is to avoid having to write `_root_.transcendental ℤ (liouville_number m)`
+as its statement.
+-/
+lemma liouville.is_transcendental {m : ℕ} (hm : 2 ≤ m) :
   transcendental ℤ (liouville_number m) :=
 transcendental (is_liouville hm)
-
-end m_is_natural

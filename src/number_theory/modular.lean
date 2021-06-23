@@ -290,27 +290,35 @@ begin
   sorry }
 end
 
--- ALEX HOMEWORK? (but might be hard): how to relate the above lemma to the `SL(2, ℤ)`-action
--- probably figure out what the `w` is and write it explicitly, eliminating the existential
+
+lemma something2 (p : coprime_ints) (z : ℍ) :
+  ∃ (w : ℂ), ∀ g : bottom_row ⁻¹' {p},
+  ↑((g : SL(2, ℤ)) • z) = ((acbd p ↑g) : ℂ ) / (p.c ^ 2 + p.d ^ 2) + w :=
+begin
+  use (((p.d:ℂ )* z - p.c)*(p.c * (z:ℂ).conj + p.d) ) /
+    ((p.c ^ 2 + p.d ^ 2) * (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))),
+  have nonZ1 : (((p.c : ℂ) * z + p.d) * ((p.c : ℂ) * (z:ℂ).conj + p.d))  ≠ 0 := sorry,
+  have nonZ2 : (p.c : ℂ) ^ 2 + (p.d) ^ 2 ≠ 0 := sorry,
+  intro g,
+  field_simp [nonZ1,nonZ2],
+  simp [acbd, smul_aux, smul_aux'],
+  change ((top _ _) / (bottom _ _) * _) = _,
+  field_simp [bottom_ne_zero],
+  simp [top, bottom, matrix.coord],
+  -- Heather homework :)
+  sorry,
+end
+
+-- ALEX HOMEWORK
 lemma something1 (p : coprime_ints) (z : ℍ) :
   ∃ w, ∀ g : bottom_row ⁻¹' {p},
   ((g : SL(2, ℤ)) • z).re = (acbd p ↑g) / (p.c ^ 2 + p.d ^ 2) + w :=
 begin
-  -- obtain ⟨c, d⟩ := cd,
---  let z:=z.val,
-  have := ((p.c : ℝ) * p.d * norm_sq ↑z - (p.c^2 - p.d^2) * z.re - p.c * p.d) /
-    ((p.c ^ 2 + p.d ^ 2) * norm_sq ((p.c : ℂ) * z + p.d)),
-  use this,
-  intro g,
-  simp [acbd, g.1.2, matrix.coord, norm_sq],
-  have nonZ1 :  ((g 1 0 : ℂ) * z + (g 1 1)) ≠ 0,
-  {
-
-    sorry,
-  },
- -- field_simp,
+  obtain ⟨w, hw⟩ := something2 p z,
   sorry,
 end
+
+
 
 /-- Add simp lemma to topology.algebra.group -/
 @[simp] lemma homeomorph.add_right_apply {G : Type*} [topological_space G] [add_group G]
@@ -351,7 +359,7 @@ begin
 end
 
 /- the upshot of all the filter stuff -/
-lemma something (z:ℍ) (cd : coprime_ints) :
+lemma exists_g_with_given_cd_and_min_re (z:ℍ) (cd : coprime_ints) :
   ∃ g : SL(2,ℤ), bottom_row g = cd ∧ (∀ g' : SL(2,ℤ), bottom_row g = bottom_row g' →
   _root_.abs ((g • z).re) ≤ _root_.abs ((g' • z).re)) :=
 begin
@@ -496,13 +504,71 @@ end
 
 lemma fun_dom_lemma₁ (z:ℍ) : ∃ (g: SL(2,ℤ)), (g • z) ∈ 𝒟 :=
 begin
+/-
+  human argument:
+
+  filtery stuff tells us that we maximize im,
+  implies |gz|>=1
+  -- argument is: if |gz|<1, then S increases im.
+  -- contrapos: if S does not increase im, then |gz|>=1
+
+   then among those, minimize re
+  -- contrapos: if neither T nor T' decrease |re|, then |re|<=1/2
+
+-/
+  obtain ⟨g₀, hg₀ ⟩ := exists_g_with_max_Im z,
+  obtain ⟨g, hg, hg'⟩ := exists_g_with_given_cd_and_min_re z (bottom_row g₀),
+  use g,
+  have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
+  {
+    have hg'' : (g • z).im = (g₀ • z).im := sorry, --have := matrix.special_linear_group.im_smul_int,
+    sorry,
+  },
+  split,
+  {
+    contrapose! hg₀',
+    have := im_lt_im_S hg₀',
+    use S * g,
+    convert this using 2,
+    -- ALEX HOMEWORK
+--    have := mul_smul S g z,
+    sorry,
+  },
+  {
+    rw abs_le,
+    split,
+    {
+      contrapose! hg',
+      use T*g,
+      split,
+      {
+        simp [bottom_row],
+        -- ALEX HOEMWORK
+        sorry,
+      },
+      {
+        sorry,
+      },
+      sorry,
+    },
+    {
+      sorry,
+    },
+    sorry,
+  },
+
+
 
   sorry,
 end
 
 lemma fun_dom_lemma₂ {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
 begin
+/-
+  either c=0 in which case, translation, in which case translation by 0
+  or im (y) > Sqrt(3)/2 -> c=±1 and compute...
 
+-/
   sorry,
 end
 

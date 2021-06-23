@@ -126,7 +126,7 @@ begin
   ring,
 end
 
-lemma smul_mul (x y : SL(2, ℝ)) (z : ℍ) :
+lemma mul_smul' (x y : SL(2, ℝ)) (z : ℍ) :
   smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
 begin
   ext1,
@@ -141,7 +141,7 @@ end
 instance SL2R_action : mul_action SL(2, ℝ) ℍ :=
 { smul := smul_aux,
   one_smul := λ z, by { ext1, change _ / _ = _, simp [top, bottom] },
-  mul_smul := smul_mul }
+  mul_smul := mul_smul' }
 
 lemma matrix.special_linear_group.im_smul (g : SL(2, ℝ)) (z : ℍ) :
   (g • z).im = z.im / (complex.norm_sq (g 1 0 * z + g 1 1)) :=

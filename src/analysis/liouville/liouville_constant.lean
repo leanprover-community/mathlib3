@@ -197,16 +197,12 @@ begin
     (aux_calc _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
 
+/- Placing this lemma outside of the `open/closed liouville`-namespace would allow to remove
+`_root_.`, at the cost of some other small weirdness. -/
+lemma is_transcendental (hm : 2 ≤ m) :
+  _root_.transcendental ℤ (liouville_number m) :=
+transcendental (is_liouville hm)
+
 end m_is_natural
 
 end liouville
-
-open liouville
-
-/- The reason for placing this lemma *after* `end liouville`, but still in the `liouville`
-namespace is to avoid having to write `_root_.transcendental ℤ (liouville_number m)`
-as its statement.
--/
-lemma liouville.is_transcendental {m : ℕ} (hm : 2 ≤ m) :
-  transcendental ℤ (liouville_number m) :=
-transcendental (is_liouville hm)

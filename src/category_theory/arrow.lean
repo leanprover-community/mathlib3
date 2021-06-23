@@ -83,6 +83,14 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
   sq.left ≫ g = f.hom ≫ sq.right :=
 sq.w
 
+/-- Create an isomorphism between arrows,
+by providing isomorphisms between the domains and codomains,
+and a proof that the square commutes. -/
+@[simps] def iso_mk {f g : arrow T}
+  (l : f.left ≅ g.left) (r : f.right ≅ g.right) (h : l.hom ≫ g.hom = f.hom ≫ r.hom) :
+  f ≅ g :=
+comma.iso_mk l r h
+
 /-- Given a square from an arrow `i` to an isomorphism `p`, express the source part of `sq`
 in terms of the inverse of `p`. -/
 @[simp] lemma square_to_iso_invert (i : arrow T) {X Y : T} (p : X ≅ Y) (sq : i ⟶ arrow.mk p.hom) :

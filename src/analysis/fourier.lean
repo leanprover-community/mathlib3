@@ -90,7 +90,7 @@ def fourier_subalgebra : subalgebra ℂ C(circle, ℂ) := algebra.adjoin ℂ (ra
 these functions. -/
 lemma fourier_subalgebra_coe : fourier_subalgebra.to_submodule = span ℂ (range fourier) :=
 begin
-  apply adjoin_eq_span',
+  apply adjoin_eq_span_of_subset,
   refine subset.trans _ submodule.subset_span,
   intros x hx,
   apply submonoid.closure_induction hx (λ _, id) ⟨0, rfl⟩,

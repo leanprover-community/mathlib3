@@ -15,7 +15,7 @@ This fact is recorded in `liouville.is_transcendental`.
 
 noncomputable theory
 open_locale nat big_operators
-open set real finset
+open real finset
 
 namespace liouville
 

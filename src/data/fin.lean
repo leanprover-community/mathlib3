@@ -913,7 +913,7 @@ lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.cast_succ < p) :
   p.succ_above i = i.cast_succ :=
 by { rw [succ_above], exact if_pos h }
 
-@[simp] lemma zero_succ_above_eq_zero {a : fin (n + 2)} (ha : a ≠ 0) : a.succ_above 0 = 0 :=
+@[simp] lemma succ_above_ne_zero_zero {a : fin (n + 2)} (ha : a ≠ 0) : a.succ_above 0 = 0 :=
 begin
   rw fin.succ_above_below,
   { refl },
@@ -922,7 +922,7 @@ end
 
 lemma succ_above_eq_zero_iff {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) :
   a.succ_above b = 0 ↔ b = 0 :=
-by simp only [←zero_succ_above_eq_zero ha, order_embedding.eq_iff_eq]
+by simp only [←succ_above_ne_zero_zero ha, order_embedding.eq_iff_eq]
 
 /-- Embedding `fin n` into `fin (n + 1)` with a hole around zero embeds by `succ`. -/
 @[simp] lemma succ_above_zero : ⇑(succ_above (0 : fin (n + 1))) = fin.succ := rfl

@@ -135,7 +135,7 @@ lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_to
 
 @[simp]
 lemma add_top (a : α) : a + ⊤ = ⊤ :=
-by rw [add_comm, top_add]
+trans (add_comm _ _) (top_add _)
 
 end linear_ordered_add_comm_monoid_with_top
 
@@ -834,6 +834,11 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
     apply lt_of_mul_lt_mul_left' (by convert h : (id a : α) * c < a * b),
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
+
+@[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
+instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
+  contravariant_class (order_dual α) (order_dual α) has_mul.mul has_le.le :=
+{ elim := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=

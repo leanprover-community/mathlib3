@@ -236,8 +236,9 @@ end submodule
 
 namespace linear_equiv
 
-variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [∀i, module R (φ i)]
-  [∀i, add_comm_monoid (ψ i)] [∀i, module R (ψ i)]
+variables [semiring R] {φ ψ χ : ι → Type*} [∀ i, add_comm_monoid (φ i)] [∀ i, module R (φ i)]
+variables [∀ i, add_comm_monoid (ψ i)] [∀ i, module R (ψ i)]
+variables [∀ i, add_comm_monoid (χ i)] [∀ i, module R (χ i)]
 
 /-- Combine a family of linear equivalences into a linear equivalence of `pi`-types. -/
 @[simps apply] def Pi_congr_right (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
@@ -255,9 +256,7 @@ lemma Pi_congr_right_symm (e : Π i, φ i ≃ₗ[R] ψ i) :
   (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
 
 @[simp]
-lemma Pi_congr_right_trans {χ : ι → Type*}
-  [Π j, add_comm_monoid (χ j)] [Π j, module R (χ j)]
-  (e : Π i, φ i ≃ₗ[R] ψ i) (f : Π i, ψ i ≃ₗ[R] χ i) :
+lemma Pi_congr_right_trans (e : Π i, φ i ≃ₗ[R] ψ i) (f : Π i, ψ i ≃ₗ[R] χ i) :
   (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) :=
 rfl
 

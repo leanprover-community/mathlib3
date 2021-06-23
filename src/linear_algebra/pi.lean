@@ -240,13 +240,33 @@ variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [�
   [∀i, add_comm_monoid (ψ i)] [∀i, module R (ψ i)]
 
 /-- Combine a family of linear equivalences into a linear equivalence of `pi`-types. -/
-@[simps] def pi (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
+@[simps apply] def Pi_congr_right (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
 { to_fun := λ f i, e i (f i),
   inv_fun := λ f i, (e i).symm (f i),
-  map_add' := λ f g, by { ext, simp },
   map_smul' := λ c f, by { ext, simp },
   left_inv := λ f, by { ext, simp },
-  right_inv := λ f, by { ext, simp } }
+  .. add_equiv.Pi_congr_right (λ j, (e j).to_add_equiv) }
+
+@[simp]
+lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)] :
+  Pi_congr_right (λ j, refl R (Ms j)) = refl _ _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {η : Type*} {Ms Ns : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
+  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
+  (es : ∀ j, Ms j ≃ₗ[R] Ns j) :
+(Pi_congr_right es).symm = (Pi_congr_right $ λ i, (es i).symm) := rfl
+
+@[simp]
+lemma Pi_congr_right_trans {η : Type*} {Ms Ns Ps : η → Type*}
+  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
+  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
+  [Π j, add_comm_monoid (Ps j)] [Π j, module R (Ps j)]
+  (es : ∀ j, Ms j ≃ₗ[R] Ns j) (fs : ∀ j, Ns j ≃ₗ[R] Ps j) :
+  (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) :=
+rfl
 
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
   [add_comm_monoid M] [module R M] [module S M] [smul_comm_class R S M]
@@ -260,7 +280,7 @@ Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings]. -/
 def pi_ring : ((ι → R) →ₗ[R] M) ≃ₗ[S] (ι → M) :=
 (linear_map.lsum R (λ i : ι, R) S).symm.trans
-  (pi $ λ i, linear_map.ring_lmap_equiv_self R M S)
+  (Pi_congr_right $ λ i, linear_map.ring_lmap_equiv_self R M S)
 
 variables {ι R M}
 

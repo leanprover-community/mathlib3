@@ -432,7 +432,7 @@ end
 
 /-- Extending the domain of Hahn series is a linear map. -/
 @[simps] def emb_domain_linear_map (f : Γ ↪o Γ') : hahn_series Γ R →ₗ[R] hahn_series Γ' R :=
-⟨emb_domain f, emb_domain_add f, emb_domain_smul f⟩
+{ to_fun := emb_domain f, map_add' := emb_domain_add f, map_smul' := emb_domain_smul f }
 
 end domain
 

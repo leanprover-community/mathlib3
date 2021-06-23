@@ -832,3 +832,12 @@ lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[
   (φ_int : integrable φ μ) (v : H) : integrable (λ a, φ a v) μ :=
 (φ_int.norm.mul_const ∥v∥).mono' (φ_int.ae_measurable.apply_continuous_linear_map v)
   (eventually_of_forall $ λ a, (φ a).le_op_norm v)
+
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
+  {G : Type*} [normed_group G] [normed_space 𝕜 G] [measurable_space G] [borel_space G]
+  {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [opens_measurable_space F]
+
+lemma continuous_linear_map.integrable_comp {φ : α → F} (L : F →L[𝕜] G)
+  (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
+((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp_ae_measurable φ_int.ae_measurable)
+  (eventually_of_forall $ λ a, L.le_op_norm (φ a))

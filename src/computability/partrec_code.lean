@@ -661,14 +661,14 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
     rcases h with ⟨x, hx, y, hy, rfl⟩,
     rcases hf hx with ⟨k₁, hk₁⟩, rcases hg hy with ⟨k₂, hk₂⟩,
     refine ⟨max k₁ k₂, _⟩,
-    refine ⟨le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁,
+    refine ⟨le_max_of_le_left $ nat.le_of_lt_succ $ evaln_bound hk₁,
       _, evaln_mono (nat.succ_le_succ $ le_max_left _ _) hk₁,
       _, evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂, rfl⟩ },
   case nat.partrec.code.comp : cf cg hf hg {
     rcases h with ⟨y, hy, hx⟩,
     rcases hg hy with ⟨k₁, hk₁⟩, rcases hf hx with ⟨k₂, hk₂⟩,
     refine ⟨max k₁ k₂, _⟩,
-    exact ⟨le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁, _,
+    exact ⟨le_max_of_le_left $ nat.le_of_lt_succ $ evaln_bound hk₁, _,
       evaln_mono (nat.succ_le_succ $ le_max_left _ _) hk₁,
       evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂⟩ },
   case nat.partrec.code.prec : cf cg hf hg {
@@ -680,7 +680,7 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
         evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk⟩ },
     { intros y hy hx,
       rcases IH hy with ⟨k₁, nk₁, hk₁⟩, rcases hg hx with ⟨k₂, hk₂⟩,
-      refine ⟨(max k₁ k₂).succ, nat.le_succ_of_le $ le_max_left_of_le $
+      refine ⟨(max k₁ k₂).succ, nat.le_succ_of_le $ le_max_of_le_left $
         le_trans (le_max_left _ (mkpair n₁ m)) nk₁, y,
         evaln_mono (nat.succ_le_succ $ le_max_left _ _) _,
         evaln_mono (nat.succ_le_succ $ nat.le_succ_of_le $ le_max_right _ _) hk₂⟩,
@@ -703,7 +703,7 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
         with ⟨k₂, hk₂⟩,
       use (max k₁ k₂).succ,
       rw [zero_add] at hk₁,
-      use (nat.le_succ_of_le $ le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁),
+      use (nat.le_succ_of_le $ le_max_of_le_left $ nat.le_of_lt_succ $ evaln_bound hk₁),
       use a,
       use evaln_mono (nat.succ_le_succ $ nat.le_succ_of_le $ le_max_left _ _) hk₁,
       simpa [nat.succ_eq_add_one, a0, -max_eq_left, -max_eq_right, add_comm, add_left_comm] using

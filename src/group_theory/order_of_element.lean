@@ -771,6 +771,26 @@ end
 
 attribute [to_additive card_nsmul_eq_zero] pow_card_eq_one
 
+/-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
+@[simps] def pow_coprime (h : nat.coprime (fintype.card G) n) : G ≃ G :=
+{ to_fun := λ g, g ^ n,
+  inv_fun := λ g, g ^ (nat.gcd_b (fintype.card G) n),
+  left_inv := λ g, by
+  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
+    rwa [gpow_add, gpow_mul, gpow_mul, gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key },
+  right_inv := λ g, by
+  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
+    rwa [gpow_add, gpow_mul, gpow_mul', gpow_coe_nat, gpow_coe_nat, gpow_coe_nat,
+      h.gcd_eq_one, pow_one, pow_card_eq_one, one_gpow, one_mul, eq_comm] at key } }
+
+@[simp] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) : pow_coprime h 1 = 1 :=
+one_pow n
+
+@[simp] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) {g : G} :
+  pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ :=
+inv_pow g n
+
 variable (a)
 
 lemma image_range_add_order_of [decidable_eq A] :

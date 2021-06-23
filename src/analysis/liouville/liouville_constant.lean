@@ -68,13 +68,13 @@ calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
     (one_div_pos.mpr (pow_pos (zero_lt_one.trans hm) (0 + (k + 1))!)) $
     -- 4. our series converges -- it does since it is the tail of a converging series, though
     -- this is not the argument here.
-    summable_inv_pow_ge hm (λ i, trans le_self_add (nat.self_le_factorial _))
+    summable_one_div_pow_of_le hm (λ i, trans le_self_add (nat.self_le_factorial _))
 
 /--  Split the sum definining a Liouville number into the first `k` term and the rest. -/
 lemma liouville_number_eq_initial_terms_add_tail (hm : 1 < m) (k : ℕ) :
   liouville_number m = liouville_number_initial_terms m k +
   liouville_number_tail m k :=
-(sum_add_tsum_nat_add _ (summable_inv_pow_ge hm (λ i, i.self_le_factorial))).symm
+(sum_add_tsum_nat_add _ (summable_one_div_pow_of_le hm (λ i, i.self_le_factorial))).symm
 
 end liouville
 

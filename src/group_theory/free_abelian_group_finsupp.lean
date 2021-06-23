@@ -25,44 +25,53 @@ noncomputable theory
 
 open_locale big_operators
 
-namespace free_abelian_group
 variables (X : Type*)
 
 /-- The group homomorphism `free_abelian_group X →+ (X →₀ ℤ)`. -/
-def to_finsupp : free_abelian_group X →+ (X →₀ ℤ) :=
+def free_abelian_group.to_finsupp : free_abelian_group X →+ (X →₀ ℤ) :=
 free_abelian_group.lift $ λ x, finsupp.single x (1 : ℤ)
 
 /-- The group homomorphism `(X →₀ ℤ) →+ free_abelian_group X`. -/
-def from_finsupp : (X →₀ ℤ) →+ free_abelian_group X :=
-finsupp.lift_add_hom $ λ x, (smul_add_hom ℤ (free_abelian_group X)).flip (of x)
+def finsupp.to_free_abelian_group : (X →₀ ℤ) →+ free_abelian_group X :=
+finsupp.lift_add_hom $ λ x, (smul_add_hom ℤ (free_abelian_group X)).flip (free_abelian_group.of x)
 
-@[simp] lemma from_finsupp_comp_single_add_hom (x : X) :
-  (from_finsupp X).comp (finsupp.single_add_hom x) =
+open finsupp free_abelian_group
+
+@[simp] lemma finsupp.to_free_abelian_group_comp_single_add_hom (x : X) :
+  (finsupp.to_free_abelian_group X).comp (finsupp.single_add_hom x) =
     (smul_add_hom ℤ (free_abelian_group X)).flip (of x) :=
 begin
   ext,
   simp only [add_monoid_hom.coe_comp, finsupp.single_add_hom_apply, function.comp_app,
-    one_smul, from_finsupp, finsupp.lift_add_hom_apply_single]
+    one_smul, to_free_abelian_group, finsupp.lift_add_hom_apply_single]
 end
 
-@[simp] lemma to_finsupp_comp_from_finsupp :
-  (to_finsupp X).comp (from_finsupp X) = add_monoid_hom.id _ :=
+@[simp] lemma free_abelian_group.to_finsupp_comp_to_free_abelian_group :
+  (to_finsupp X).comp (to_free_abelian_group X) = add_monoid_hom.id _ :=
 begin
   ext x y, simp only [add_monoid_hom.id_comp],
-  rw [add_monoid_hom.comp_assoc, from_finsupp_comp_single_add_hom],
+  rw [add_monoid_hom.comp_assoc, finsupp.to_free_abelian_group_comp_single_add_hom],
   simp only [to_finsupp, add_monoid_hom.coe_comp, finsupp.single_add_hom_apply,
     function.comp_app, one_smul, lift.of, add_monoid_hom.flip_apply,
     smul_add_hom_one, add_monoid_hom.id_apply],
 end
 
-@[simp] lemma from_finsupp_comp_to_finsupp :
-  (from_finsupp X).comp (to_finsupp X) = add_monoid_hom.id _ :=
+@[simp] lemma finsupp.to_free_abelian_group_comp_to_finsupp :
+  (to_free_abelian_group X).comp (to_finsupp X) = add_monoid_hom.id _ :=
 begin
   ext,
-  simp only [from_finsupp, to_finsupp, finsupp.lift_add_hom_apply_single, add_monoid_hom.coe_comp,
-    function.comp_app, one_smul, add_monoid_hom.id_apply, lift.of, add_monoid_hom.flip_apply,
-    smul_add_hom_one],
+  simp only [to_free_abelian_group, to_finsupp, finsupp.lift_add_hom_apply_single,
+    add_monoid_hom.coe_comp, function.comp_app, one_smul, add_monoid_hom.id_apply, lift.of,
+    add_monoid_hom.flip_apply, smul_add_hom_one],
 end
+
+@[simp] lemma finsupp.to_free_abelian_group_to_finsupp {X} (x : free_abelian_group X) :
+  (to_free_abelian_group X) (to_finsupp X x) = x :=
+by rw [← add_monoid_hom.comp_apply, finsupp.to_free_abelian_group_comp_to_finsupp,
+  add_monoid_hom.id_apply]
+
+namespace free_abelian_group
+open finsupp
 
 variable {X}
 
@@ -70,13 +79,9 @@ variable {X}
   to_finsupp X (of x) = finsupp.single x 1 :=
 by simp only [to_finsupp, lift.of]
 
-@[simp] lemma to_finsupp_from_finsupp (f) :
-  (to_finsupp X) (from_finsupp X f) = f :=
-by rw [← add_monoid_hom.comp_apply, to_finsupp_comp_from_finsupp, add_monoid_hom.id_apply]
-
-@[simp] lemma from_finsupp_to_finsupp (x) :
-  (from_finsupp X) (to_finsupp X x) = x :=
-by rw [← add_monoid_hom.comp_apply, from_finsupp_comp_to_finsupp, add_monoid_hom.id_apply]
+@[simp] lemma to_finsupp_to_free_abelian_group (f) :
+  (to_finsupp X) (to_free_abelian_group X f) = f :=
+by rw [← add_monoid_hom.comp_apply, to_finsupp_comp_to_free_abelian_group, add_monoid_hom.id_apply]
 
 variable (X)
 
@@ -84,9 +89,9 @@ variable (X)
 @[simps]
 def equiv_finsupp : free_abelian_group X ≃+ (X →₀ ℤ) :=
 { to_fun := to_finsupp X,
-  inv_fun := from_finsupp X,
-  left_inv := from_finsupp_to_finsupp,
-  right_inv := to_finsupp_from_finsupp,
+  inv_fun := to_free_abelian_group X,
+  left_inv := to_free_abelian_group_to_finsupp,
+  right_inv := to_finsupp_to_free_abelian_group,
   map_add' := (to_finsupp X).map_add }
 
 variable {X}

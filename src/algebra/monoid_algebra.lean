@@ -409,11 +409,26 @@ instance smul_comm_class_symm_self [smul_comm_class k R k] :
   smul_comm_class (monoid_algebra k G) R (monoid_algebra k G) :=
 ⟨λ t a b, by { haveI := smul_comm_class.symm k R k, rw ← smul_comm, } ⟩
 
+variables {A : Type u₃} [non_unital_non_assoc_semiring A] [module k A]
+variables [is_scalar_tower k A A] [smul_comm_class k A A]
+
+/-- A non_unital `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
+values on the functions `single a 1`. -/
+lemma non_unital_alg_hom_ext ⦃φ₁ φ₂ : non_unital_alg_hom k (monoid_algebra k G) A⦄
+  (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
+non_unital_alg_hom.to_distrib_mul_action_hom_injective $
+distrib_mul_action_hom.to_linear_map_injective $
+finsupp.lhom_ext' $
+λ a, linear_map.ext_ring (h a)
+
+/-- See note [partially-applied ext lemmas]. -/
+@[ext] lemma non_unital_alg_hom_ext' ⦃φ₁ φ₂ : non_unital_alg_hom k (monoid_algebra k G) A⦄
+  (h : φ₁.to_mul_hom.comp (of_magma k G) = φ₂.to_mul_hom.comp (of_magma k G)) : φ₁ = φ₂ :=
+non_unital_alg_hom_ext k $ mul_hom.congr_fun h
+
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/
-@[simps] def lift_magma {A : Type u₃}
-  [non_unital_non_assoc_semiring A] [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
-  mul_hom G A ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
+@[simps] def lift_magma : mul_hom G A ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
 { to_fun    := λ f,
     { to_fun    := λ a, a.sum (λ m t, t • f m),
       map_smul' :=  λ t' a,
@@ -435,18 +450,9 @@ non-associative algebras over `k` is adjoint to the forgetful functor in the oth
   left_inv  := λ f, by { ext m, simp only [non_unital_alg_hom.coe_mk, of_magma_apply,
     non_unital_alg_hom.to_mul_hom_eq_coe, sum_single_index, function.comp_app, one_smul, zero_smul,
     mul_hom.coe_comp, non_unital_alg_hom.coe_to_mul_hom], },
-  right_inv := λ F,
-    begin
-      ext a,
-      suffices : a.sum (λ m t, F (finsupp.single m t)) = F a,
-      { simp only [of_magma_apply, non_unital_alg_hom.coe_mk, mul_hom.coe_mk,
-          non_unital_alg_hom.to_mul_hom_eq_coe, linear_map.coe_mk, function.comp_app,
-          mul_hom.coe_comp, non_unital_alg_hom.coe_to_mul_hom, ← F.map_smul, smul_single,
-          smul_eq_mul, mul_one, this], },
-      let F' := (F : monoid_algebra k G →+[k] A).to_add_monoid_hom,
-      change a.sum (λ m t, F' (finsupp.single m t)) = F' a,
-      rw [← add_monoid_hom.map_finsupp_sum F', sum_single],
-    end, }
+  right_inv := λ F, by { ext m, simp only [non_unital_alg_hom.coe_mk, of_magma_apply,
+    non_unital_alg_hom.to_mul_hom_eq_coe, sum_single_index, function.comp_app, one_smul, zero_smul,
+    mul_hom.coe_comp, non_unital_alg_hom.coe_to_mul_hom], }, }
 
 end non_unital_non_assoc_algebra
 

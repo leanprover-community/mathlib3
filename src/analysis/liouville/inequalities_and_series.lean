@@ -9,31 +9,16 @@ import analysis.specific_limits
 
 # Lemmas on inequalities and series for Liouville constants
 
-This file contains lemmas about inequalities and series that are used in the proof to show that
-transcendental Liouville numbers exist.
+This file proves two inequalities that is used in the proof to show that transcendental Liouville
+numbers exist.
 -/
 
+--  TODO: merge this file into `analysis/liouville/liouville_constant`?
+
 open_locale nat big_operators
-open set real
+open real
 
 variable {m : ℝ}
-
-lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : ℝ, 1 / x) (set.Ioi 0) :=
-λ x x1 y y1 xy, (one_div_lt_one_div (mem_Ioi.mp y1) (mem_Ioi.mp x1)).mpr xy
-
-lemma one_div_mono_exp (m1 : 1 ≤ m) {a b : ℕ} (ab : a ≤ b) :
-  1 / m ^ b ≤ 1 / m ^ a :=
-begin
-  refine (one_div_le_one_div _ _).mpr (pow_le_pow m1 ab);
-  exact pow_pos (lt_of_lt_of_le zero_lt_one m1) _
-end
-
-lemma one_div_pow_strict_mono (m1 : 1 < m) {a b : ℕ} (ab : a < b) :
-  1 / m ^ b < 1 / m ^ a :=
-begin
-  refine one_div_strict_mono_decr_on _ _ (pow_lt_pow m1 ab);
-  exact pow_pos (zero_lt_one.trans m1) _
-end
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
 lemma tsum_one_div_pow_factorial_lt (m1 : 1 < m) (n : ℕ) :
@@ -49,7 +34,7 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
       -- 1. the first series has non-negative terms
       (λ b, one_div_nonneg.mpr (pow_nonneg m0.le _))
       -- 2. the second series dominates the first
-      (λ b, one_div_mono_exp m1.le (b.add_factorial_succ_le_factorial_add_succ n))
+      (λ b, one_div_pow_le_one_div_pow_of_le m1.le (b.add_factorial_succ_le_factorial_add_succ n))
       -- 3. the term with index `i = 2` of the first series is strictly smaller than
       -- the corresponding term of the second series
       (one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ rfl.le))

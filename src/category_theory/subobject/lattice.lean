@@ -69,7 +69,7 @@ end has_top
 
 section has_bot
 variables [has_zero_morphisms C] [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance {X : C} : has_bot (mono_over X) :=
 { bot := mk' (0 : 0 ⟶ X) }
@@ -195,16 +195,16 @@ instance {X : C} : inhabited (subobject X) := ⟨⊤⟩
 
 lemma top_eq_id (B : C) : (⊤ : subobject B) = subobject.mk (𝟙 B) := rfl
 
-/-- The object underlying `⊤ : subobject B` is (up to isomorphism) `B`. -/
-def top_coe_iso_self {B : C} : ((⊤ : subobject B) : C) ≅ B := underlying_iso _
+lemma underlying_iso_top_hom {B : C} :
+  (underlying_iso (𝟙 B)).hom = (⊤ : subobject B).arrow :=
+by { convert underlying_iso_hom_comp_eq_mk (𝟙 B), simp only [comp_id], }
 
-@[simp]
-lemma underlying_iso_id_eq_top_coe_iso_self {B : C} : underlying_iso (𝟙 B) = top_coe_iso_self :=
-rfl
+instance top_arrow_is_iso {B : C} : is_iso ((⊤ : subobject B).arrow) :=
+by { rw ←underlying_iso_top_hom, apply_instance, }
 
 @[simp, reassoc]
 lemma underlying_iso_inv_top_arrow {B : C} :
-  top_coe_iso_self.inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
+  (underlying_iso _).inv ≫ (⊤ : subobject B).arrow = 𝟙 B :=
 underlying_iso_arrow _
 
 @[simp]
@@ -246,7 +246,7 @@ end order_top
 
 section order_bot
 variables [has_zero_morphisms C] [has_zero_object C]
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 instance order_bot {X : C} : order_bot (subobject X) :=
 { bot := quotient.mk' ⊥,
@@ -386,13 +386,8 @@ inf_eq_map_pullback' f₁ f₂
 lemma prod_eq_inf {A : C} {f₁ f₂ : subobject A} [has_binary_product f₁ f₂] :
   (f₁ ⨯ f₂) = f₁ ⊓ f₂ :=
 le_antisymm
-  (_root_.le_inf
-    (le_of_hom limits.prod.fst)
-    (le_of_hom limits.prod.snd))
-  (le_of_hom
-    (prod.lift
-      (hom_of_le _root_.inf_le_left)
-      (hom_of_le _root_.inf_le_right)))
+  (_root_.le_inf (limits.prod.fst).le (limits.prod.snd).le)
+  ((prod.lift (_root_.inf_le_left.hom) (_root_.inf_le_right.hom))).le
 
 lemma inf_def {B : C} (m m' : subobject B) :
   m ⊓ m' = (inf.obj m).obj m' := rfl
@@ -516,7 +511,7 @@ wide_pullback_shape.wide_cospan A
     ((equiv_shrink (subobject A)).symm j).arrow :=
 rfl
 
-/-- Auxilliary construction of a cone for `le_Inf`. -/
+/-- Auxiliary construction of a cone for `le_Inf`. -/
 def le_Inf_cone {A : C} (s : set (subobject A)) (f : subobject A) (k : Π (g ∈ s), f ≤ g) :
   cone (wide_cospan s) :=
 wide_pullback_shape.mk_cone f.arrow

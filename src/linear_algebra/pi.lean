@@ -56,7 +56,10 @@ by ext; refl
 lemma pi_comp (f : Πi, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).comp g = pi (λi, (f i).comp g) :=
 rfl
 
-/-- The projections from a family of modules are linear maps. -/
+/-- The projections from a family of modules are linear maps.
+
+Note:  known here as `linear_map.proj`, this construction is in other categories called `eval`, for
+example `pi.eval_monoid_hom`, `pi.eval_ring_hom`. -/
 def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
 ⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
@@ -73,6 +76,13 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
+
+/-- Linear map between the function spaces `I → M₂` and `I → M₃`, induced by a linear map `f`
+between `M₂` and `M₃`. -/
+@[simps] protected def comp_left (f : M₂ →ₗ[R] M₃) (I : Type*) : (I → M₂) →ₗ[R] (I → M₃) :=
+{ to_fun := λ h, f ∘ h,
+  map_smul' := λ c h, by { ext x, exact f.map_smul' c (h x) },
+  .. f.to_add_monoid_hom.comp_left I }
 
 lemma apply_single [add_comm_monoid M] [module R M] [decidable_eq ι]
   (f : Π i, φ i →ₗ[R] M) (i j : ι) (x : φ i) :
@@ -261,5 +271,24 @@ rfl
 @[simp] lemma pi_ring_symm_apply (f : ι → M) (g : ι → R) :
   (pi_ring R M ι S).symm f g = ∑ i, g i • f i :=
 by simp [pi_ring, linear_map.lsum]
+
+/--
+`equiv.sum_arrow_equiv_prod_arrow` as a linear equivalence.
+-/
+-- TODO additive version?
+def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoid M] [module R M] :
+  ((α ⊕ β) → M) ≃ₗ[R] (α → M) × (β → M) :=
+{ map_add' := by { intros f g, ext; refl },
+  map_smul' := by { intros r f, ext; refl, },
+  .. equiv.sum_arrow_equiv_prod_arrow α β M, }
+
+@[simp] lemma sum_arrow_lequiv_prod_arrow_apply_fst {α β} (f : (α ⊕ β) → M) (a : α) :
+  (sum_arrow_lequiv_prod_arrow α β R M f).1 a = f (sum.inl a) := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_apply_snd {α β} (f : (α ⊕ β) → M) (b : β) :
+  (sum_arrow_lequiv_prod_arrow α β R M f).2 b = f (sum.inr b) := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inl {α β} (f : α → M) (g : β → M) (a : α) :
+  ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inl a) = f a := rfl
+@[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inr {α β} (f : α → M) (g : β → M) (b : β) :
+  ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
 
 end linear_equiv

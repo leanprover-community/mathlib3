@@ -51,9 +51,12 @@ def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
   right := Y,
   hom := f }
 
-theorem mk_inj {T} [category T] (A B : T) (f g : A ⟶ B) : arrow.mk f = arrow.mk g → f = g :=
-by rintro ⟨⟩; refl
+theorem mk_injective (A B : T) :
+  function.injective (arrow.mk : (A ⟶ B) → arrow T) :=
+λ f g h, by { cases h, refl }
 
+theorem mk_inj (A B : T) {f g : A ⟶ B} : arrow.mk f = arrow.mk g ↔ f = g :=
+(mk_injective A B).eq_iff
 instance {X Y : T} : has_coe (X ⟶ Y) (arrow T) := ⟨mk⟩
 
 /-- A morphism in the arrow category is a commutative square connecting two objects of the arrow
@@ -182,12 +185,13 @@ B  → Z                 B → Z
   right := sq.right }
 
 /-- The functor sending an arrow to its source. -/
-abbreviation left_func : arrow C ⥤ C := comma.fst _ _
+@[simps] def left_func : arrow C ⥤ C := comma.fst _ _
 
 /-- The functor sending an arrow to its target. -/
-abbreviation right_func : arrow C ⥤ C := comma.snd _ _
+@[simps] def right_func : arrow C ⥤ C := comma.snd _ _
 
 /-- The natural transformation from `left_func` to `right_func`, given by the arrow itself. -/
+@[simps]
 def left_to_right : (left_func : arrow C ⥤ C) ⟶ right_func :=
 { app := λ f, f.hom }
 

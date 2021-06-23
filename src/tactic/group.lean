@@ -39,7 +39,7 @@ by rw [mul_assoc, ← gpow_add] ; refl
 
 namespace tactic
 open tactic.simp_arg_type tactic.interactive interactive tactic.group.
-/-- Auxilliary tactic for the `group` tactic. Calls the simplifier only. -/
+/-- Auxiliary tactic for the `group` tactic. Calls the simplifier only. -/
 meta def aux_group₁ (locat : loc) : tactic unit :=
   simp_core {} skip tt [
   expr ``(mul_one),
@@ -76,7 +76,7 @@ meta def aux_group₁ (locat : loc) : tactic unit :=
   expr ``(tactic.ring.horner)]
   [] locat >> skip
 
-/-- Auxilliary tactic for the `group` tactic. Calls `ring_nf` to normalize exponents. -/
+/-- Auxiliary tactic for the `group` tactic. Calls `ring_nf` to normalize exponents. -/
 meta def aux_group₂ (locat : loc) : tactic unit :=
 ring_nf none tactic.ring.normalize_mode.raw locat
 end tactic

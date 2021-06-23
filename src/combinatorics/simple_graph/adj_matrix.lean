@@ -3,9 +3,9 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
-import linear_algebra.matrix
-import data.rel
 import combinatorics.simple_graph.basic
+import data.rel
+import linear_algebra.matrix.trace
 
 /-!
 # Adjacency Matrices
@@ -52,7 +52,7 @@ by simp [neighbor_finset_eq_filter, dot_product, sum_filter]
 @[simp]
 lemma dot_product_adj_matrix (v : α) (vec : α → R) :
   dot_product vec (G.adj_matrix R v) = ∑ u in G.neighbor_finset v, vec u :=
-by simp [neighbor_finset_eq_filter, dot_product, sum_filter, sum_apply]
+by simp [neighbor_finset_eq_filter, dot_product, sum_filter, finset.sum_apply]
 
 @[simp]
 lemma adj_matrix_mul_vec_apply (v : α) (vec : α → R) :

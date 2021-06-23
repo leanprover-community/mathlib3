@@ -423,6 +423,10 @@ begin
 end
 
 /-! ### Summability properties of the composition of formal power series-/
+section
+
+-- this speeds up the proof below a lot, related to leanprover-community/lean#521
+local attribute [-instance] unique.subsingleton
 
 /-- If two formal multilinear series have positive radius of convergence, then the terms appearing
 in the definition of their composition are also summable (when multiplied by a suitable positive
@@ -488,6 +492,8 @@ begin
   rw [(this _).tsum_eq, nat.add_sub_cancel],
   field_simp [← mul_assoc, pow_succ', mul_pow, show (4 : ℝ≥0) = 2 * 2, from (two_mul 2).symm,
     mul_right_comm]
+end
+
 end
 
 /-- Bounding below the radius of the composition of two formal multilinear series assuming
@@ -761,7 +767,7 @@ begin
     have B₁ : continuous_at (λ (z : F), g (f x + z)) (f (x + y) - f x),
     { refine continuous_at.comp _ (continuous_const.add continuous_id).continuous_at,
       simp only [add_sub_cancel'_right, id.def],
-      exact Hg.continuous_on.continuous_at (mem_nhds_sets (emetric.is_open_ball) fy_mem) },
+      exact Hg.continuous_on.continuous_at (is_open.mem_nhds (emetric.is_open_ball) fy_mem) },
     have B₂ : f (x + y) - f x ∈ emetric.ball (0 : F) rg,
       by simpa [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] using fy_mem,
     rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,

@@ -73,7 +73,7 @@ begin
   refine quotient_map_injective' (le_of_eq _),
   rw comap_map_of_surjective
     (map_ring_hom (quotient.mk (P.comap C))) (map_surjective _ quotient.mk_surjective),
-  refine le_antisymm (sup_le le_rfl _) (le_sup_left_of_le le_rfl),
+  refine le_antisymm (sup_le le_rfl _) (le_sup_of_le_left le_rfl),
   refine λ p hp, polynomial_mem_ideal_of_coeff_mem_ideal P p (λ n, quotient.eq_zero_iff_mem.mp _),
   simpa only [coeff_map, coe_map_ring_hom] using ext_iff.mp (ideal.mem_bot.mp (mem_comap.mp hp)) n,
 end
@@ -134,7 +134,7 @@ lemma exists_coeff_mem_comap_sdiff_comap_of_root_mem_sdiff
 begin
   obtain ⟨hrJ, hrI⟩ := hr,
   have rbar_ne_zero : quotient.mk I r ≠ 0 := mt (quotient.mk_eq_zero I).mp hrI,
-  have rbar_mem_J : quotient.mk I r ∈ J.map (quotient.mk I) := mem_map_of_mem hrJ,
+  have rbar_mem_J : quotient.mk I r ∈ J.map (quotient.mk I) := mem_map_of_mem _ hrJ,
   have quotient_f : ∀ x ∈ I.comap f, (quotient.mk I).comp f x = 0,
   { simp [quotient.eq_zero_iff_mem] },
   have rbar_root : (p.map (quotient.mk (I.comap f))).eval₂

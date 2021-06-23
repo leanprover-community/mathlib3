@@ -359,6 +359,11 @@ lemma val_add {n : ℕ} : ∀ a b : fin n, (a + b).val = (a.val + b.val) % n
 lemma coe_add {n : ℕ} : ∀ a b : fin n, ((a + b : fin n) : ℕ) = (a + b) % n
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
+lemma coe_add_eq_ite {n : ℕ} (a b : fin n) :
+  (↑(a + b) : ℕ) = if n ≤ a + b then a + b - n else a + b :=
+by rw [fin.coe_add, nat.add_mod_eq_ite,
+       nat.mod_eq_of_lt (show ↑a < n, from a.2), nat.mod_eq_of_lt (show ↑b < n, from b.2)]
+
 lemma coe_bit0 {n : ℕ} (k : fin n) : ((bit0 k : fin n) : ℕ) = bit0 (k : ℕ) % n :=
 by { cases k, refl }
 
@@ -1246,8 +1251,8 @@ operations, first about adding or removing elements at the beginning of a tuple.
 -/
 
 /-- There is exactly one tuple of size zero. -/
-instance tuple0_unique (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
-pi.unique_of_empty fin.elim0 α
+example (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
+by apply_instance
 
 @[simp] lemma tuple0_le {α : Π i : fin 0, Type*} [Π i, preorder (α i)] (f g : Π i, α i) : f ≤ g :=
 fin_zero_elim

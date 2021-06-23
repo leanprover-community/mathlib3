@@ -112,7 +112,8 @@ lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : 
   f l.prod = (l.map f).prod :=
 f.to_monoid_hom.map_list_prod l
 
-lemma ring_hom.map_list_sum [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
+lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+  (f : β →+* γ) (l : list β) :
   f l.sum = (l.map f).sum :=
 f.to_add_monoid_hom.map_list_sum l
 
@@ -121,7 +122,8 @@ lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β �
   f s.prod = (s.map f).prod :=
 f.to_monoid_hom.map_multiset_prod s
 
-lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s : multiset β) :
+lemma ring_hom.map_multiset_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+  (f : β →+* γ) (s : multiset β) :
   f s.sum = (s.map f).sum :=
 f.to_add_monoid_hom.map_multiset_sum s
 
@@ -130,7 +132,7 @@ lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) 
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 g.to_monoid_hom.map_prod f s
 
-lemma ring_hom.map_sum [semiring β] [semiring γ]
+lemma ring_hom.map_sum [non_assoc_semiring β] [non_assoc_semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
@@ -761,6 +763,24 @@ lemma prod_range_succ' (f : ℕ → β) :
 | 0       := prod_range_succ _ _
 | (n + 1) := by rw [prod_range_succ _ n, mul_right_comm, ← prod_range_succ', prod_range_succ]
 
+lemma eventually_constant_prod {u : ℕ → β} {N : ℕ} (hu : ∀ n ≥ N, u n = 1) {n : ℕ} (hn : N ≤ n) :
+  ∏ k in range (n + 1), u k = ∏ k in range (N + 1), u k :=
+begin
+  obtain ⟨m, rfl : n = N + m⟩ := le_iff_exists_add.mp hn,
+  clear hn,
+  induction m with m hm,
+  { simp },
+  erw [prod_range_succ, hm],
+  simp [hu]
+end
+
+lemma eventually_constant_sum {β} [add_comm_monoid β] {u : ℕ → β} {N : ℕ}
+  (hu : ∀ n ≥ N, u n = 0) {n : ℕ} (hn : N ≤ n) :
+  ∑ k in range (n + 1), u k = ∑ k in range (N + 1), u k :=
+@eventually_constant_prod (multiplicative β) _ _ _ hu _ hn
+
+attribute [to_additive] eventually_constant_prod
+
 lemma prod_range_add (f : ℕ → β) (n m : ℕ) :
   ∏ x in range (n + m), f x =
   (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
@@ -1157,7 +1177,7 @@ begin
 end
 
 @[simp]
-lemma sum_boole {s : finset α} {p : α → Prop} [semiring β] {hp : decidable_pred p} :
+lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
 
@@ -1181,6 +1201,17 @@ lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive] prod_range_succ'
+
+lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
+  f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
+by { rw finset.sum_range_sub, abel }
+
+lemma eq_sum_range_sub' [add_comm_group β] (f : ℕ → β) (n : ℕ) :
+  f n = ∑ i in range (n + 1), if i = 0 then f 0 else f i - f (i - 1) :=
+begin
+  conv_lhs { rw [finset.eq_sum_range_sub f] },
+  simp [finset.sum_range_succ', add_comm]
+end
 
 lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
   (∑ x in range (n + m), f x) =
@@ -1366,6 +1397,11 @@ namespace list
 end list
 
 namespace multiset
+
+lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
+  abs s.sum ≤ (s.map abs).sum :=
+le_sum_of_subadditive _ abs_zero abs_add s
+
 variables [decidable_eq α]
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :

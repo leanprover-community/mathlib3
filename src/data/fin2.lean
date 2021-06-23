@@ -21,7 +21,7 @@ equalities.
 * `left`: Embeds `fin2 n` into `fin2 (n + k)`.
 * `insert_perm a`: Permutation of `fin2 n` which cycles `0, ..., a - 1` and leaves `a, ..., n - 1`
   unchanged.
-* `remap_left f`: Function `fin2 (m + k) → fin2 (n + k` by applying `f : fin m → fin n` to
+* `remap_left f`: Function `fin2 (m + k) → fin2 (n + k)` by applying `f : fin m → fin n` to
   `0, ..., m - 1` and sending `m + i` to `n + i`.
 -/
 
@@ -53,7 +53,7 @@ def to_nat : Π {n}, fin2 n → ℕ
 | ._ (@fz n)   := 0
 | ._ (@fs n i) := succ (to_nat i)
 
-/-- Converts a naturals into a `fin2` if it is in range -/
+/-- Converts a natural into a `fin2` if it is in range -/
 def opt_of_nat : Π {n} (k : ℕ), option (fin2 n)
 | 0 _ := none
 | (succ n) 0 := some fz

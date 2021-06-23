@@ -43,7 +43,7 @@ calc multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 �
     else mt (le_of_dvd hn0) (not_le_of_lt $ pow_succ_log_gt_self m n
         (hm1.symm.le_iff_lt.mp (zero_lt_iff.mpr hm0.intro)) hn0),
   ⟨λ hi, begin
-      simp only [Ico.mem, mem_filter, lt_succ_iff] at *,
+      simp only [mem_Ico, mem_filter, lt_succ_iff] at *,
       exact ⟨⟨hi.1, lt_of_le_of_lt hi.2 $
         lt_of_lt_of_le (by rw [← enat.coe_lt_coe, enat.coe_get,
             multiplicity_lt_iff_neg_dvd]; exact hmn)
@@ -52,7 +52,7 @@ calc multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 �
           rw [← @enat.coe_le_coe i, enat.coe_get] at hi; exact hi.2⟩
     end,
   begin
-    simp only [Ico.mem, mem_filter, lt_succ_iff, and_imp, true_and] { contextual := tt },
+    simp only [mem_Ico, mem_filter, lt_succ_iff, and_imp, true_and] { contextual := tt },
     assume h1i hib hmin,
     rwa [← enat.coe_le_coe, enat.coe_get, ← pow_dvd_iff_le_multiplicity]
   end⟩
@@ -108,7 +108,7 @@ begin
   revert hm,
   have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
   { intros m hm, apply multiplicity_eq_zero_of_not_dvd,
-    rw [← exists_lt_and_lt_iff_not_dvd _ (pos_iff_ne_zero.mpr hp.ne_zero)], rw [Ico.mem] at hm,
+    rw [← exists_lt_and_lt_iff_not_dvd _ (pos_iff_ne_zero.mpr hp.ne_zero)], rw [mem_Ico] at hm,
     exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
   simp_rw [← prod_Ico_id_eq_factorial, multiplicity.finset.prod hp', ← sum_Ico_consecutive _ h1 h3,
     add_assoc], intro h,
@@ -211,7 +211,7 @@ le_antisymm
       ← enat.coe_add, enat.coe_le_coe, log_pow _ _ hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],
     have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,
-    rwa Ico.card 1 n.succ at filter_le_Ico,
+    rwa card_Ico 1 n.succ at filter_le_Ico,
   end)
   (by rw [← hp.multiplicity_pow_self];
     exact multiplicity_le_multiplicity_choose_add hp _ _)

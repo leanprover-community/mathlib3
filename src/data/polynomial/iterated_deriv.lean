@@ -138,7 +138,7 @@ begin
       apply congr_arg2,
       { refl },
       { simp only [prod_singleton], norm_cast },
-      { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, Ico.mem],
+      { simp only [succ_pos', disjoint_singleton, and_true, lt_add_iff_pos_right, not_le, mem_Ico],
         exact lt_add_one (m + 1) } },
     { exact congr_arg _ (succ_add m k) } },
 end

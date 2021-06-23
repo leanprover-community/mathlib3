@@ -11,7 +11,7 @@ import data.pnat.intervals
 # fintype instances for intervals
 
 We provide `fintype` instances for `Ico l u`, for `l u : ℕ`, and for `l u : ℤ`.
--/
+-/a < b ↔ a + 1 ≤ b
 
 namespace set
 

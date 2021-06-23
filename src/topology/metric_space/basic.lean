@@ -165,7 +165,7 @@ lemma dist_le_Ico_sum_of_dist_le {f : ℕ → α} {m n} (hmn : m ≤ n)
   {d : ℕ → ℝ} (hd : ∀ {k}, m ≤ k → k < n → dist (f k) (f (k + 1)) ≤ d k) :
   dist (f m) (f n) ≤ ∑ i in finset.Ico m n, d i :=
 le_trans (dist_le_Ico_sum_dist f hmn) $
-finset.sum_le_sum $ λ k hk, hd (finset.Ico.mem.1 hk).1 (finset.Ico.mem.1 hk).2
+finset.sum_le_sum $ λ k hk, hd (finset.mem_Ico.1 hk).1 (finset.mem_Ico.1 hk).2
 
 /-- A version of `dist_le_range_sum_dist` with each intermediate distance replaced
 with an upper estimate. -/

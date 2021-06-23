@@ -153,7 +153,7 @@ lemma edist_le_Ico_sum_of_edist_le {f : ℕ → α} {m n} (hmn : m ≤ n)
   {d : ℕ → ℝ≥0∞} (hd : ∀ {k}, m ≤ k → k < n → edist (f k) (f (k + 1)) ≤ d k) :
   edist (f m) (f n) ≤ ∑ i in finset.Ico m n, d i :=
 le_trans (edist_le_Ico_sum_edist f hmn) $
-finset.sum_le_sum $ λ k hk, hd (finset.Ico.mem.1 hk).1 (finset.Ico.mem.1 hk).2
+finset.sum_le_sum $ λ k hk, hd (finset.mem_Ico.1 hk).1 (finset.mem_Ico.1 hk).2
 
 /-- A version of `edist_le_range_sum_edist` with each intermediate distance replaced
 with an upper estimate. -/

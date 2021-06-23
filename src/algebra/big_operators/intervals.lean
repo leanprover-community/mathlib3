@@ -25,7 +25,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a
 
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
   (∑ l in Ico m n, f (k + l)) = (∑ l in Ico (m + k) (n + k), f l) :=
-Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
+image_add_const_Ico m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
 
 @[to_additive]
 lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
@@ -34,7 +34,7 @@ lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
-by rw [Ico.succ_top hab, sum_insert Ico.not_mem_top, add_comm]
+by rw [Ico.succ_top hab, sum_insert right_not_mem_Ico, add_comm]
 
 @[to_additive]
 lemma prod_Ico_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
@@ -54,7 +54,7 @@ lemma prod_eq_prod_Ico_succ_bot {a b : ℕ} (hab : a < b) (f : ℕ → β) :
 @[to_additive]
 lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
   (∏ i in Ico m n, f i) * (∏ i in Ico n k, f i) = (∏ i in Ico m k, f i) :=
-Ico.union_consecutive hmn hnk ▸ eq.symm $ prod_union $ Ico.disjoint_consecutive m n k
+Ico_union_Ico_consecutive hmn hnk ▸ eq.symm $ prod_union $ Ico.disjoint_consecutive m n k
 
 @[to_additive]
 lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :

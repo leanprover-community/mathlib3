@@ -654,7 +654,8 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.
 lemma cast_succ_pos {i : fin (n + 1)} (h : 0 < i) : 0 < cast_succ i :=
 by simpa [lt_iff_coe_lt_coe] using h
 
-@[simp] lemma cast_succ_eq_zero_iff {n : ℕ} (a : fin (n + 1)) : a.cast_succ = 0 ↔ a = 0 := by tidy
+@[simp] lemma cast_succ_eq_zero_iff {n : ℕ} (a : fin (n + 1)) : a.cast_succ = 0 ↔ a = 0 :=
+subtype.ext_iff.trans $ (subtype.ext_iff.trans $ by exact iff.rfl).symm
 
 lemma cast_succ_ne_zero_iff {n : ℕ} (a : fin (n + 1)) : a.cast_succ ≠ 0 ↔ a ≠ 0 :=
 not_iff_not.mpr $ cast_succ_eq_zero_iff a

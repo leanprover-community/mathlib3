@@ -252,7 +252,7 @@ theorem or_not {p : Prop} : p ∨ ¬p := em _
 
 section eq_or_ne
 
-variables {α : Sort*} {x y : α}
+variables {α : Sort*} (x y : α)
 
 theorem decidable.eq_or_ne [decidable (x = y)] : x = y ∨ x ≠ y := dec_em $ x = y
 

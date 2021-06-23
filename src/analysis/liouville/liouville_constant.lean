@@ -110,7 +110,7 @@ lemma pre_sum_liouville {f : ℕ → ℕ} {m : ℝ} (hm : 1 < m) (f0 : ∀ n, 0 
   (fn1 : ∀ n, 2 * (f n) ^ n ≤ f (n + 1)) :
   summable (λ i, 1 / m ^ f i) :=
 begin
-  apply summable_inv_pow_ge hm,
+  apply summable_one_div_pow_of_le hm,
   intros i,
   induction i with i hi,
   { exact zero_le (f 0) },
@@ -121,8 +121,8 @@ begin
   refine trans (add_one_le_two_mul (f0 _)) _,
   refine (mul_le_mul_left zero_lt_two).mpr _,
   calc  f i.succ = f i.succ ^ 1 : (pow_one _).symm
-        ... ≤ f i.succ ^ i.succ : by {refine pow_le_pow _ (nat.succ_le_succ (zero_le i)),
-        exact nat.succ_le_iff.mpr (f0 (nat.succ i)) }
+        ... ≤ f i.succ ^ i.succ :
+          pow_le_pow (nat.succ_le_iff.mpr (f0 i.succ)) (nat.succ_le_succ i.zero_le)
 end
 
 theorem is_liouville (hm : 2 ≤ m) :

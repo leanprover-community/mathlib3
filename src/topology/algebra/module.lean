@@ -235,7 +235,7 @@ lemma ext_on [t2_space M₂] {s : set M} (hs : dense (submodule.span R s : set M
 ext $ λ x, eq_on_closure_span h (hs x)
 
 /-- The continuous map that is constantly zero. -/
-instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_const⟩⟩
+instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_zero⟩⟩
 instance : inhabited (M →L[R] M₂) := ⟨0⟩
 
 @[simp] lemma default_def : default (M →L[R] M₂) = 0 := rfl
@@ -615,7 +615,7 @@ def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
     exact this
   end),
   continuous_subtype_mk _ (continuous_pi (λ i, begin
-    dsimp, split_ifs; [apply continuous_apply, exact continuous_const]
+    dsimp, split_ifs; [apply continuous_apply, exact continuous_zero]
   end)) ⟩
 
 end pi

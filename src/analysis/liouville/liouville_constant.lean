@@ -8,26 +8,25 @@ import analysis.liouville.basic
 
 # Liouville constants
 
-This file contains a construction of a family of Liouville numbers, indexed by a natural number `m`.
+This file contains a construction of a family of Liouville numbers, indexed by a natural number $m$.
 The most important property is that they are examples of transcendental real numbers.
 This fact is recorded in `liouville.is_transcendental`.
 
-More precisely, for a real number `m`, Liouville's constant is
+More precisely, for a real number $m$, Liouville's constant is
 $$
 \sum_{i=0}^\infty\frac{1}{m^{i!}}.
 $$
-The series converges only for `1 < m`.  However, there is no restriction on `m`, since,
+The series converges only for $1 < m$.  However, there is no restriction on $m$, since,
 if the series does not converge, then the sum of the series is defined to be zero.
 
-We prove that, for $$m \in \ mathbb{N}$$ satisfying $$2 \le m$$, the Liouville constant is an
-example of a transcendental number.  Classically, the Liouville number for $$m = 2$$ is the one
-called "Liouville's constant".
+We prove that, for $m \in \mathbb{N}$ satisfying $2 \le m$, Liouville's constant associated to $m$
+is a transcendental number.  Classically, the Liouville number for $m = 2$ is the one called
+``Liouville's constant''.
 
 # Implementation notes
 
-The indexing `m` is eventually a natural number satisfying `2 ≤ m`.  However, we prove the first few
-lemmas for `m : ℝ`, satisfying usually some inequality.
-
+The indexing $m$ is eventually a natural number satisfying $2 ≤ m$.  However, we prove the first few
+lemmas for $m \in \mathbb{R}$.
 -/
 
 noncomputable theory

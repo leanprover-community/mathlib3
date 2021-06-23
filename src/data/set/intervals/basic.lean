@@ -347,19 +347,16 @@ lemma mem_Ici_of_Ioi (h : x ∈ Ioi a) : x ∈ Ici a := Ioi_subset_Ici_self h
 lemma mem_Iic_of_Iio (h : x ∈ Iio a) : x ∈ Iic a := Iio_subset_Iic_self h
 
 lemma Icc_eq_empty_iff : Icc a b = ∅ ↔ ¬a ≤ b :=
-⟨λ eq h, eq_empty_iff_forall_not_mem.1 eq a ⟨le_rfl, h⟩, Icc_eq_empty⟩
+by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Icc]
 
 lemma Ico_eq_empty_iff : Ico a b = ∅ ↔ ¬a < b :=
-⟨λ eq h, eq_empty_iff_forall_not_mem.1 eq a ⟨le_rfl, h⟩, Ico_eq_empty⟩
+by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ico]
 
 lemma Ioc_eq_empty_iff : Ioc a b = ∅ ↔ ¬a < b :=
-⟨λ eq h, eq_empty_iff_forall_not_mem.1 eq b ⟨h, le_rfl⟩, Ioc_eq_empty⟩
+by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioc]
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
-⟨λ eq h,
-  let ⟨x, h₁, h₂⟩ := exists_between h in
-  eq_empty_iff_forall_not_mem.1 eq x ⟨h₁, h₂⟩,
-Ioo_eq_empty⟩
+by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioo]
 
 end intervals
 

@@ -919,7 +919,7 @@ begin
   { exact bot_lt_iff_ne_bot.mpr ha }
 end
 
-lemma succ_above_eq_zero_iff (a : fin (n + 2)) (b : fin (n + 1)) (ha : a ≠ 0) :
+lemma succ_above_eq_zero_iff {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) :
   a.succ_above b = 0 ↔ b = 0 :=
 by simp only [←zero_succ_above_eq_zero ha, order_embedding.eq_iff_eq]
 
@@ -1194,7 +1194,7 @@ begin
 end
 
 /-- `pred` commutes with `succ_above`. -/
-lemma pred_succ_above_pred (a : fin (n + 2)) (b : fin (n + 1)) (ha : a ≠ 0) (hb : b ≠ 0) {hk} :
+lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0) {hk} :
   (a.pred ha).succ_above (b.pred hb) = (a.succ_above b).pred hk :=
 begin
   have hbc : (b.pred hb).cast_succ = b.cast_succ.pred _, by {cases b, refl},

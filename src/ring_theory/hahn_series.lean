@@ -1297,7 +1297,7 @@ end
 
 /-- The summation of a `summable_family` as a `linear_map`. -/
 @[simps] def lsum : (summable_family Γ R α) →ₗ[hahn_series Γ R] (hahn_series Γ R) :=
-⟨hsum, λ _ _, hsum_add, λ _ _, hsum_smul⟩
+{ to_fun := hsum, map_add' := λ _ _, hsum_add, map_smul' := λ _ _, hsum_smul }
 
 @[simp]
 lemma hsum_sub {R : Type*} [ring R] {s t : summable_family Γ R α} :

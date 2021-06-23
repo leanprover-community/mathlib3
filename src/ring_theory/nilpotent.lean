@@ -33,8 +33,8 @@ Note that we require only the bare minimum assumptions for the definition to mak
 power-associative. -/
 def is_nilpotent [has_zero R] [has_pow R ℕ] (x : R) : Prop := ∃ (n : ℕ), x^n = 0
 
-lemma monoid_with_zero.pow_zero_of_le [monoid_with_zero R] {n m : ℕ} (hn : n ≤ m) (hx : x^n = 0) :
-  x^m = 0 :=
+lemma monoid_with_zero.pow_eq_zero_of_le
+  [monoid_with_zero R] {n m : ℕ} (hn : n ≤ m) (hx : x^n = 0) : x^m = 0 :=
 by rw [← nat.sub_add_cancel hn, pow_add, hx, mul_zero]
 
 lemma is_nilpotent.zero [monoid_with_zero R] : is_nilpotent (0 : R) := ⟨1, pow_one 0⟩
@@ -67,8 +67,8 @@ begin
   rintros ⟨i, j⟩ hij,
   suffices : x^i * y^j = 0, { simp only [this, nsmul_eq_mul, mul_zero], },
   cases nat.le_or_le_of_add_eq_add_pred (finset.nat.mem_antidiagonal.mp hij) with hi hj,
-  { rw [monoid_with_zero.pow_zero_of_le hi hn, zero_mul], },
-  { rw [monoid_with_zero.pow_zero_of_le hj hm, mul_zero], },
+  { rw [monoid_with_zero.pow_eq_zero_of_le hi hn, zero_mul], },
+  { rw [monoid_with_zero.pow_eq_zero_of_le hj hm, mul_zero], },
 end
 
 lemma is_nilpotent_mul_left (h : is_nilpotent x) : is_nilpotent (x * y) :=

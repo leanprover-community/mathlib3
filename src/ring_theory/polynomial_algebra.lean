@@ -46,16 +46,14 @@ namespace poly_equiv_tensor
 The function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`,
 as a bilinear function of two arguments.
 -/
-@[simps apply]
-def to_fun_bilinear : A →ₗ[R] polynomial R →ₗ[R] polynomial A :=
-{ to_fun := λ a, a • (aeval (polynomial.X : polynomial A)).to_linear_map,
-  map_smul' := λ r x, smul_assoc _ _ _,
-  map_add' := λ x y, add_smul _ _ _ }
+@[simps]
+def to_fun_bilinear : A →ₗ[A] polynomial R →ₗ[R] polynomial A :=
+linear_map.to_span_singleton A _ (aeval (polynomial.X : polynomial A)).to_linear_map
 
 lemma to_fun_bilinear_apply_eq_sum (a : A) (p : polynomial R) :
   to_fun_bilinear R A a p = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
 begin
-  dsimp [to_fun_bilinear, aeval_def, eval₂_eq_sum, polynomial.sum],
+  dsimp [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum],
   rw finset.smul_sum,
   congr' with i : 1,
   rw [←algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
@@ -109,9 +107,8 @@ end
 
 lemma to_fun_linear_algebra_map_tmul_one (r : R) :
   (to_fun_linear R A) ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R (polynomial A)) r :=
-by rw [to_fun_linear_tmul_apply, to_fun_bilinear_apply, linear_map.smul_apply,
-  alg_hom.to_linear_map_apply, polynomial.aeval_one, algebra_map_smul,
-  algebra.algebra_map_eq_smul_one]
+by rw [to_fun_linear_tmul_apply, to_fun_bilinear_apply_apply, polynomial.aeval_one,
+  algebra_map_smul, algebra.algebra_map_eq_smul_one]
 
 /--
 (Implementation detail).

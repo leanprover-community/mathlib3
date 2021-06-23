@@ -176,10 +176,8 @@ theorem is_liouville (hm : 2 ≤ m) :
   liouville (liouville_number m) :=
 begin
   -- two useful inequalities
-  have mZ1 : 1 < (m : ℤ) := nat.cast_one.symm.le.trans_lt
-    (one_lt_two.trans_le (nat.cast_two.symm.le.trans (int.to_nat_le.mp hm))),
-  have m1 : 1 < (m : ℝ) :=
-    one_lt_two.trans_le (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)),
+  have mZ1 : 1 < (m : ℤ) := by { norm_cast, exact one_lt_two.trans_le hm },
+  have m1 : 1 < (m : ℝ) := by { norm_cast, exact one_lt_two.trans_le hm },
   intro n,
   -- the first `n` terms sum to `p / m ^ k!`
   rcases liouville_number_rat_initial_terms (zero_lt_two.trans_le hm) n with ⟨p, hp⟩,

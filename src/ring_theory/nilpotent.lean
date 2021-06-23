@@ -46,6 +46,10 @@ end
 lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
+lemma eq_zero_of_is_nilpotent [monoid_with_zero R] [no_zero_divisors R]
+  (h : is_nilpotent x) : x = 0 :=
+by { obtain ⟨n, hn⟩ := h, exact pow_eq_zero hn, }
+
 namespace commute
 
 section semiring

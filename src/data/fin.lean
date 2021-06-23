@@ -1195,7 +1195,7 @@ begin
 end
 
 /-- `pred` commutes with `succ_above`. -/
-lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0) {hk} :
+lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0) (hk) :
   (a.pred ha).succ_above (b.pred hb) = (a.succ_above b).pred hk :=
 begin
   have hbc : (b.pred hb).cast_succ = b.cast_succ.pred _, by { cases b, refl },

@@ -924,6 +924,10 @@ lemma succ_above_eq_zero_iff {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) 
   a.succ_above b = 0 ↔ b = 0 :=
 by simp only [←succ_above_ne_zero_zero ha, order_embedding.eq_iff_eq]
 
+lemma succ_above_ne_zero {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0) :
+  a.succ_above b ≠ 0 :=
+mt (succ_above_eq_zero_iff ha).mp hb
+
 /-- Embedding `fin n` into `fin (n + 1)` with a hole around zero embeds by `succ`. -/
 @[simp] lemma succ_above_zero : ⇑(succ_above (0 : fin (n + 1))) = fin.succ := rfl
 
@@ -1195,7 +1199,8 @@ begin
 end
 
 /-- `pred` commutes with `succ_above`. -/
-lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0) (hk) :
+lemma pred_succ_above_pred {a : fin (n + 2)} {b : fin (n + 1)} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hk := succ_above_ne_zero ha hb) :
   (a.pred ha).succ_above (b.pred hb) = (a.succ_above b).pred hk :=
 begin
   have hbc : (b.pred hb).cast_succ = b.cast_succ.pred _, by { cases b, refl },

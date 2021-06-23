@@ -8,9 +8,26 @@ import analysis.liouville.basic
 
 # Liouville constants
 
-This file contains a construction of a family of Liouville numbers.
+This file contains a construction of a family of Liouville numbers, indexed by a natural number `m`.
 The most important property is that they are examples of transcendental real numbers.
 This fact is recorded in `liouville.is_transcendental`.
+
+More precisely, for a real number `m`, Liouville's constant is
+$$
+\sum_{i=0}^\infty\frac{1}{m^{i!}}.
+$$
+The series converges only for `1 < m`.  However, there is no restriction on `m`, since,
+if the series does not converge, then the sum of the series is defined to be zero.
+
+We prove that, for $$m \in \ mathbb{N}$$ satisfying $$2 \le m$$, the Liouville constant is an
+example of a transcendental number.  Classically, the Liouville number for $$m = 2$$ is the one
+called "Liouville's constant".
+
+# Implementation notes
+
+The indexing `m` is eventually a natural number satisfying `2 ≤ m`.  However, we prove the first few
+lemmas for `m : ℝ`, satisfying usually some inequality.
+
 -/
 
 noncomputable theory
@@ -18,9 +35,6 @@ open_locale nat big_operators
 open real finset
 
 namespace liouville
-
-section m_is_real
-variable {m : ℝ}
 
 /--
 For a real number `m`, Liouville's constant is
@@ -50,7 +64,7 @@ $$
 -/
 def liouville_number_tail (m : ℝ) (k : ℕ) : ℝ := ∑' i, 1 / m ^ (i + (k+1))!
 
-lemma liouville_number_tail_pos (hm : 1 < m) (k : ℕ) :
+lemma liouville_number_tail_pos {m : ℝ} (hm : 1 < m) (k : ℕ) :
   0 < liouville_number_tail m k :=
 -- replace `0` with the constantly zero series `∑ i : ℕ, 0`
 calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
@@ -69,15 +83,16 @@ calc  (0 : ℝ) = ∑' i : ℕ, 0 : tsum_zero.symm
     summable_one_div_pow_of_le hm (λ i, trans le_self_add (nat.self_le_factorial _))
 
 /--  Split the sum definining a Liouville number into the first `k` term and the rest. -/
-lemma liouville_number_eq_initial_terms_add_tail (hm : 1 < m) (k : ℕ) :
+lemma liouville_number_eq_initial_terms_add_tail {m : ℝ} (hm : 1 < m) (k : ℕ) :
   liouville_number m = liouville_number_initial_terms m k +
   liouville_number_tail m k :=
 (sum_add_tsum_nat_add _ (summable_one_div_pow_of_le hm (λ i, i.self_le_factorial))).symm
 
 section two_useful_inequalities
+variable {m : ℝ}
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
-lemma tsum_one_div_pow_factorial_lt (m1 : 1 < m) (n : ℕ) :
+lemma tsum_one_div_pow_factorial_lt (n : ℕ) (m1 : 1 < m) :
   ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :=
 -- two useful inequalities
 have m0 : 0 < m := (zero_lt_one.trans m1),
@@ -132,9 +147,9 @@ calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
 
 end two_useful_inequalities
 
-end m_is_real
 
-section m_is_natural
+/-!  Starting from here, we specialize to the case in which `m` is a natural number. -/
+
 variable {m : ℕ}
 
 /--  The sum of the `k` initial terms of the Liouville number to base `m` is a ratio of natural
@@ -174,7 +189,7 @@ begin
   rw [liouville_number_eq_initial_terms_add_tail m1 n,
     ← hp, add_sub_cancel', abs_of_nonneg (liouville_number_tail_pos m1 _).le],
   exact ⟨((lt_add_iff_pos_right _).mpr (liouville_number_tail_pos m1 n)).ne.symm,
-    (tsum_one_div_pow_factorial_lt m1 n).trans_le
+    (tsum_one_div_pow_factorial_lt n m1).trans_le
     (aux_calc _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩
 end
 
@@ -183,7 +198,5 @@ end
 lemma is_transcendental (hm : 2 ≤ m) :
   _root_.transcendental ℤ (liouville_number m) :=
 transcendental (is_liouville hm)
-
-end m_is_natural
 
 end liouville

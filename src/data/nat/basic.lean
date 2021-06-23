@@ -16,7 +16,6 @@ This file contains:
   * `decreasing_induction`: recursion growing downwards
   * `strong_rec'`: recursion based on strong inequalities
 - decidability instances on predicates about the natural numbers
-
 -/
 
 universes u v
@@ -104,6 +103,8 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : n
   bot_le := λ x, nat.find_min' _ x.2,
   ..subtype.linear_order s,
   ..lattice_of_linear_order }
+
+instance has_lt_iff_add_one_le := { lt_iff_add_one_le := ⟨succ_le_of_lt, lt_of_succ_le⟩}
 
 theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
 rfl

@@ -31,6 +31,7 @@ import data.prod
 - `no_top_order`, `no_bot_order`: an order without a maximal/minimal element.
 - `densely_ordered`: an order with no gaps, i.e. for any two elements `a<b` there exists
   `c`, `a<c<b`.
+- `has_lt_iff_add_one_le`:
 
 ## Main theorems
 
@@ -611,6 +612,14 @@ lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
 or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
+
+class has_lt_iff_add_one_le (α : Type u) [preorder α] [has_add α] [has_one α] : Prop :=
+(lt_iff_add_one_le : ∀ a b : α, a < b ↔ a + 1 ≤ b)
+
+lemma lt_iff_add_one_le {α : Type u} [preorder α] [has_add α] [has_one α]
+  [has_lt_iff_add_one_le α] :
+  ∀ a b : α, a < b ↔ a + 1 ≤ b :=
+has_lt_iff_add_one_le.lt_iff_add_one_le
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

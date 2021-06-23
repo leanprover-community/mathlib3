@@ -157,25 +157,6 @@ begin
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
 end
 
-lemma pre_sum_liouville {f : ℕ → ℕ} {m : ℝ} (hm : 1 < m) (f0 : ∀ n, 0 < f n)
-  (fn1 : ∀ n, 2 * (f n) ^ n ≤ f (n + 1)) :
-  summable (λ i, 1 / m ^ f i) :=
-begin
-  apply summable_one_div_pow_of_le hm,
-  intros i,
-  induction i with i hi,
-  { exact zero_le (f 0) },
-  cases i,
-  { exact nat.succ_le_iff.mpr (f0 1) },
-  refine trans _ (fn1 _),
-  refine trans (nat.succ_le_succ hi) _,
-  refine trans (add_one_le_two_mul (f0 _)) _,
-  refine (mul_le_mul_left zero_lt_two).mpr _,
-  calc  f i.succ = f i.succ ^ 1 : (pow_one _).symm
-        ... ≤ f i.succ ^ i.succ :
-          pow_le_pow (nat.succ_le_iff.mpr (f0 i.succ)) (nat.succ_le_succ i.zero_le)
-end
-
 theorem is_liouville (hm : 2 ≤ m) :
   liouville (liouville_number m) :=
 begin
@@ -190,8 +171,8 @@ begin
   refine ⟨p, m ^ n!, one_lt_pow mZ1 (nat.factorial_pos n), _⟩,
   push_cast,
   -- separate out the sum of the first `n` terms and the rest
-  rw liouville_number_eq_initial_terms_add_tail m1 n,
-  rw [← hp, add_sub_cancel', abs_of_nonneg (liouville_number_tail_pos m1 _).le],
+  rw [liouville_number_eq_initial_terms_add_tail m1 n,
+    ← hp, add_sub_cancel', abs_of_nonneg (liouville_number_tail_pos m1 _).le],
   exact ⟨((lt_add_iff_pos_right _).mpr (liouville_number_tail_pos m1 n)).ne.symm,
     (tsum_one_div_pow_factorial_lt m1 n).trans_le
     (aux_calc _ (nat.cast_two.symm.le.trans (nat.cast_le.mpr hm)))⟩

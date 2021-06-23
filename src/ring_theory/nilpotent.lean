@@ -17,9 +17,6 @@ import data.nat.choose.sum
   * `commute.is_nilpotent_mul_right`
   * `commute.is_nilpotent_sub`
 
-## Tags
-
-nilpotent, subhas_mul, subhas_add
 -/
 
 universes u

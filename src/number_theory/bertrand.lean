@@ -274,6 +274,7 @@ begin
                 -- rw nat.choose_eq_factorial_div_factorial,
                 -- rw nat.choose_eq_factorial_div_factorial,
                 -- simp [nat.factorial],
+                sorry
               end,
 
 
@@ -662,80 +663,19 @@ begin
   ... = (2.71828) ^ (637 : ℕ) : by rw rpow_nat_cast _ 637,
 end
 
--- #eval 584 ^ 100
--- #eval 25000 ^ 637
--- #eval 67957 ^ 637
 
-lemma pow_real_to_nat (n m : ℕ) : (n : ℝ) ^ m = (((n : ℕ) ^ m) : ℝ) :=
-begin
-  simp,
-end
-
-lemma pow_real_to_nat1 : ((584 : ℕ) : ℝ) ^ 100 = (((584 : ℕ) ^ 100) : ℝ) :=
-begin
-  simp,
-end
-
-lemma pow_real_to_nat2 : (25000 : ℝ) ^ 637 = (((25000 : ℕ) ^ 637) : ℝ) :=
-begin
-  simp,
-end
-
-lemma pow_real_to_nat3 : (67957 : ℝ) ^ 637 = (((67957 : ℕ) ^ 637) : ℝ) :=
-begin
-  simp,
-end
-
-lemma asdiuhwih : (584 : ℝ) ^ 100 * (25000 : ℝ) ^ 637 ≤ (67957 : ℝ) ^ 637
+lemma power_series_le_exp (x : ℝ) (n : ℕ) (hx : 0 ≤ x): ∑ i in finset.range n, x ^ i / i.factorial ≤ exp x
 :=
 begin
-  rw pow_real_to_nat1,
-  rw pow_real_to_nat2,
-  rw pow_real_to_nat3,
-  -- norm_num, -- fails due to timeout
   sorry
 end
 
 lemma a_584_le_exp_6 : (584 : ℝ) ≤ exp (6.37 : ℝ) :=
 begin
-  apply le_of_lt,
-  calc (584 : ℝ) ≤ 2.71828 ^ (6.37 : ℝ) :
-    begin
-      -- raise both sides to 100
-      apply (@rpow_le_rpow_iff 584 _ 100 _ _ _).1,
-      rw <-rpow_mul,
-      norm_num,
-      rw [a_534_pow_100, a_e_pow_637],
-      rw div_pow,
-      apply (le_div_iff _).2,
-      exact asdiuhwih,
-      apply pow_pos,
-      linarith,
-      linarith,
-      linarith,
-      apply rpow_nonneg_of_nonneg,
-      linarith,
-      linarith,
-    end
-  ... < 2.7182818283 ^ (6.37 : ℝ) :
-    begin
-      apply rpow_lt_rpow,
-      linarith,
-      linarith,
-      linarith,
-    end
-  ... < (exp 1) ^ (6.37 : ℝ) :
-    begin
-      apply rpow_lt_rpow,
-      linarith,
-      apply exp_one_gt_d9,
-      linarith,
-    end
-  ... ≤ exp (6.37) :
-    begin
-      rw <-exp_mul,
-      rw one_mul,
-    end,
+  apply trans _ (power_series_le_exp 6.37 19 (by linarith)),
+  simp_rw [finset.sum_range_succ],
+  simp_rw [nat.factorial],
+  norm_num,
 end
 
 lemma aux_zero : 0 ≤ aux 72 :=

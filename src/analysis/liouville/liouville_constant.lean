@@ -88,11 +88,10 @@ lemma liouville_number_eq_initial_terms_add_tail {m : ℝ} (hm : 1 < m) (k : ℕ
   liouville_number_tail m k :=
 (sum_add_tsum_nat_add _ (summable_one_div_pow_of_le hm (λ i, i.self_le_factorial))).symm
 
-section two_useful_inequalities
-variable {m : ℝ}
+/-! We now prove two useful inequalities, before collecting everything together. -/
 
 /--  Partial inequality, works with `m ∈ ℝ` satisfying `1 < m`. -/
-lemma tsum_one_div_pow_factorial_lt (n : ℕ) (m1 : 1 < m) :
+lemma tsum_one_div_pow_factorial_lt (n : ℕ) {m : ℝ} (m1 : 1 < m) :
   ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :=
 -- two useful inequalities
 have m0 : 0 < m := (zero_lt_one.trans m1),
@@ -120,7 +119,7 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
     -- the series if the geometric series
     mul_eq_mul_right_iff.mpr (or.inl (tsum_geometric_of_abs_lt_1 mi))
 
-lemma aux_calc (n : ℕ) (hm : 2 ≤ m) :
+lemma aux_calc (n : ℕ) {m : ℝ} (hm : 2 ≤ m) :
   (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 1 / (m ^ n!) ^ n :=
 calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
   -- the second factors coincide (and are non-negative),
@@ -145,16 +144,11 @@ calc (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) ≤ 2 * (1 / m ^ (n + 1)!) :
   end
 ... = 1 / (m ^ n!) ^ n : congr_arg ((/) 1) (pow_mul m n! n)
 
-end two_useful_inequalities
-
-
 /-!  Starting from here, we specialize to the case in which `m` is a natural number. -/
-
-variable {m : ℕ}
 
 /--  The sum of the `k` initial terms of the Liouville number to base `m` is a ratio of natural
 numbers where the denominator is `m ^ k!`. -/
-lemma liouville_number_rat_initial_terms (hm : 0 < m) (k : ℕ) :
+lemma liouville_number_rat_initial_terms {m : ℕ} (hm : 0 < m) (k : ℕ) :
 ∃ p : ℕ, liouville_number_initial_terms m k = p / m ^ k! :=
 begin
   induction k with k h,
@@ -172,7 +166,7 @@ begin
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
 end
 
-theorem is_liouville (hm : 2 ≤ m) :
+theorem is_liouville {m : ℕ} (hm : 2 ≤ m) :
   liouville (liouville_number m) :=
 begin
   -- two useful inequalities
@@ -193,7 +187,7 @@ end
 
 /- Placing this lemma outside of the `open/closed liouville`-namespace would allow to remove
 `_root_.`, at the cost of some other small weirdness. -/
-lemma is_transcendental (hm : 2 ≤ m) :
+lemma is_transcendental {m : ℕ} (hm : 2 ≤ m) :
   _root_.transcendental ℤ (liouville_number m) :=
 transcendental (is_liouville hm)
 

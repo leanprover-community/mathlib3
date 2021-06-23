@@ -228,6 +228,65 @@ lemma central_binom_factorization (n : ℕ) :
       = (2 * n).choose n :=
   prod_pow_prime_padic_val_nat _ (central_binom_nonzero n) _ (lt_add_one _)
 
+
+-- lemma two_mul (n : ℕ) : 2 * n = n + n := by linarith
+
+lemma stronger_central_binom_lower_bound (n : ℕ) (n_big : 4 ≤ n) :
+  4 ^ n ≤ n * (2 * n).choose n :=
+begin
+  induction n,
+  linarith,
+  rw <-nat.add_one at *,
+
+  by_cases n_n = 3,
+    {
+      rw h, norm_num,
+      simp [nat.choose],
+      norm_num,
+    },
+    {
+      have hdsf : 4 ≤ n_n,
+        have aeiauh := lt_or_eq_of_le n_big,
+        cases aeiauh,
+        linarith,
+        by_contra asoi,
+        rw add_comm at aeiauh,
+        have adojf := nat.sub_eq_of_eq_add aeiauh,
+        rw adojf.symm at h,
+        simp at h,
+        exact h,
+      have dsapo := n_ih hdsf,
+      rw pow_succ,
+      rw mul_add,
+      norm_num,
+      -- rw nat.choose,
+      calc 4 * 4 ^ n_n ≤ 4 * (n_n * (2 * n_n).choose n_n) :
+              begin
+                apply mul_le_mul,
+                exact rfl.ge,
+                exact dsapo,
+                exact zero_le (4 ^ n_n),
+                apply zero_le,
+              end
+      ... ≤ (n_n + 1) * ((2 * n_n + 2).choose (n_n + 1)) :
+              begin
+                simp [nat.choose, nat.choose_symm_half, <-two_mul],
+                -- rw nat.choose_eq_factorial_div_factorial,
+                -- rw nat.choose_eq_factorial_div_factorial,
+                -- simp [nat.factorial],
+              end,
+
+
+
+    }
+    -- calc 4 ^ n = (1 + 1) ^ (2 * n) : by norm_num [pow_mul]
+    -- ...        = ∑ m in range (2 * n + 1), choose (2 * n) m : by simp [add_pow]
+    -- ...        ≤ ∑ m in range (2 * n + 1), choose (2 * n) (2 * n / 2) :
+    --   sum_le_sum (λ i hi, choose_le_middle i (2 * n))
+    -- ...        = (2 * n + 1) * choose (2 * n) n : by simp
+end
+
+
 def central_binom_lower_bound := nat.four_pow_le_two_mul_add_one_mul_central_binom
 
 lemma interchange_filters {α: _} {S: finset α} {f g: α → Prop} [decidable_pred f] [decidable_pred g] : (S.filter g).filter f = S.filter (λ i, g i ∧ f i) :=

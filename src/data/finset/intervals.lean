@@ -171,7 +171,7 @@ lemma image_const_sub {k m n : ℕ} (hkn : k ≤ n) :
 begin
   rw [nat.sub_add_comm hkn],
   ext j,
-  simp only [mem, mem_image, exists_prop, nat.lt_iff_add_one_le, add_le_add_iff_right],
+  simp only [mem, mem_image, exists_prop, lt_iff_add_one_le, add_le_add_iff_right],
   split,
   { rintros ⟨j, ⟨hjk, hjm⟩, rfl⟩,
     split,

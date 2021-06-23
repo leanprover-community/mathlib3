@@ -37,14 +37,15 @@ lemma monoid_with_zero.pow_zero_of_le [monoid_with_zero R] {n m : ℕ} (hn : n �
   x^m = 0 :=
 by rw [← nat.sub_add_cancel hn, pow_add, hx, mul_zero]
 
-lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
+lemma is_nilpotent.neg [ring R] (h : is_nilpotent x) : is_nilpotent (-x) :=
 begin
-  suffices : ∀ (y : R), is_nilpotent y → is_nilpotent (-y),
-  { refine ⟨_, this x⟩, intros h, rw ← neg_neg x, exact this (-x) h, },
-  rintros y ⟨n, hn⟩,
+  obtain ⟨n, hn⟩ := h,
   use n,
   rw [neg_pow, hn, mul_zero],
 end
+
+lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
+⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
 namespace commute
 

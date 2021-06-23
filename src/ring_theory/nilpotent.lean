@@ -46,9 +46,13 @@ end
 lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
-lemma eq_zero_of_is_nilpotent [monoid_with_zero R] [no_zero_divisors R]
+lemma is_nilpotent.eq_zero [monoid_with_zero R] [no_zero_divisors R]
   (h : is_nilpotent x) : x = 0 :=
 by { obtain ⟨n, hn⟩ := h, exact pow_eq_zero hn, }
+
+@[simp] lemma is_nilpotent_iff_eq_zero [monoid_with_zero R] [no_zero_divisors R] :
+  is_nilpotent x ↔ x = 0 :=
+⟨λ h, h.eq_zero, λ h, h.symm ▸ is_nilpotent.zero⟩
 
 namespace commute
 

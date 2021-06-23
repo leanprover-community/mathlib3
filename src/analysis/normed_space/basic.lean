@@ -7,7 +7,8 @@ import algebra.punit_instances
 import topology.instances.nnreal
 import topology.algebra.module
 import topology.algebra.algebra
-import topology.metric_space.antilipschitz
+import topology.algebra.group_completion
+import topology.metric_space.completion
 import topology.algebra.ordered.liminf_limsup
 
 /-!
@@ -255,6 +256,12 @@ lemma norm_lt_norm_add_const_of_dist_lt {a b : α} {c : ℝ} (h : dist a b < c) 
   ∥a∥ < ∥b∥ + c :=
 norm_lt_of_mem_ball h
 
+lemma bounded_iff_forall_norm_le {s : set α} : bounded s ↔ ∃ C, ∀ x ∈ s, ∥x∥ ≤ C :=
+begin
+  rw bounded_iff_subset_ball (0 : α),
+  exact exists_congr (λ r, by simp [(⊆), set.subset]),
+end
+
 @[simp] lemma mem_sphere_iff_norm (v w : α) (r : ℝ) : w ∈ sphere v r ↔ ∥w - v∥ = r :=
 by simp [dist_eq_norm]
 
@@ -288,6 +295,55 @@ instance {r : ℝ} : has_neg (sphere (0:α) r) :=
 @[simp] lemma coe_neg_sphere {r : ℝ} (v : sphere (0:α) r) :
   (((-v) : sphere _ _) : α) = - (v:α) :=
 rfl
+
+namespace isometric
+
+/-- Addition `y ↦ y + x` as an `isometry`. -/
+protected def add_right (x : α) : α ≃ᵢ α :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
+  .. equiv.add_right x }
+
+@[simp] lemma add_right_to_equiv (x : α) :
+  (isometric.add_right x).to_equiv = equiv.add_right x := rfl
+
+@[simp] lemma coe_add_right (x : α) : (isometric.add_right x : α → α) = λ y, y + x := rfl
+
+lemma add_right_apply (x y : α) : (isometric.add_right x : α → α) y = y + x := rfl
+
+@[simp] lemma add_right_symm (x : α) :
+  (isometric.add_right x).symm = isometric.add_right (-x) :=
+ext $ λ y, rfl
+
+/-- Addition `y ↦ x + y` as an `isometry`. -/
+protected def add_left (x : α) : α ≃ᵢ α :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
+  to_equiv := equiv.add_left x }
+
+@[simp] lemma add_left_to_equiv (x : α) :
+  (isometric.add_left x).to_equiv = equiv.add_left x := rfl
+
+@[simp] lemma coe_add_left (x : α) : ⇑(isometric.add_left x) = (+) x := rfl
+
+@[simp] lemma add_left_symm (x : α) :
+  (isometric.add_left x).symm = isometric.add_left (-x) :=
+ext $ λ y, rfl
+
+variable (α)
+
+/-- Negation `x ↦ -x` as an `isometry`. -/
+protected def neg : α ≃ᵢ α :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
+  to_equiv := equiv.neg α }
+
+variable {α}
+
+@[simp] lemma neg_symm : (isometric.neg α).symm = isometric.neg α := rfl
+
+@[simp] lemma neg_to_equiv : (isometric.neg α).to_equiv = equiv.neg α := rfl
+
+@[simp] lemma coe_neg : ⇑(isometric.neg α) = has_neg.neg := rfl
+
+end isometric
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
@@ -356,6 +412,25 @@ The analogous condition for a linear map of normed spaces is in `normed_space.op
 lemma add_monoid_hom.continuous_of_bound (f : α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
 (f.lipschitz_of_bound C h).continuous
+
+lemma is_compact.exists_bound_of_continuous_on {γ : Type*} [topological_space γ]
+  {s : set γ} (hs : is_compact s) {f : γ → α} (hf : continuous_on f s) :
+  ∃ C, ∀ x ∈ s, ∥f x∥ ≤ C :=
+begin
+  have : bounded (f '' s) := (hs.image_of_continuous_on hf).bounded,
+  rcases bounded_iff_forall_norm_le.1 this with ⟨C, hC⟩,
+  exact ⟨C, λ x hx, hC _ (set.mem_image_of_mem _ hx)⟩,
+end
+
+lemma add_monoid_hom.isometry_iff_norm (f : α →+ β) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+begin
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  refine ⟨λ h x, _, λ h x y, h _⟩,
+  simpa using h x 0
+end
+
+lemma add_monoid_hom.isometry_of_norm (f : α →+ β) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+f.isometry_iff_norm.2 hf
 
 section nnnorm
 
@@ -1563,6 +1638,14 @@ instance normed_algebra.to_semi_normed_algebra (𝕜 : Type*) (𝕜' : Type*) [n
   [h : semi_normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
 semi_normed_algebra.norm_algebra_map_eq _
 
+/-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
+lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
+  [semi_normed_algebra 𝕜 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
+begin
+  refine isometry_emetric_iff_metric.2 (λx y, _),
+  rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map_eq],
+end
+
 variables (𝕜 : Type*) [normed_field 𝕜]
 variables (𝕜' : Type*) [semi_normed_ring 𝕜']
 
@@ -1738,8 +1821,27 @@ end
 /-- If `∑' i, ∥f i∥` is summable, then `∥∑' i, f i∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
 that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) :
-  ∥∑'i, f i∥ ≤ ∑' i, ∥f i∥ :=
+  ∥∑' i, f i∥ ≤ ∑' i, ∥f i∥ :=
 tsum_of_norm_bounded hf.has_sum $ λ i, le_rfl
+
+/-- Quantitative result associated to the direct comparison test for series: If `∑' i, g i` is
+summable, and for all `i`, `nnnorm (f i) ≤ g i`, then `nnnorm (∑' i, f i) ≤ ∑' i, g i`. Note that we
+do not assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete
+space. -/
+lemma tsum_of_nnnorm_bounded {f : ι → α} {g : ι → ℝ≥0} {a : ℝ≥0} (hg : has_sum g a)
+  (h : ∀ i, nnnorm (f i) ≤ g i) :
+  nnnorm (∑' i : ι, f i) ≤ a :=
+begin
+  simp only [← nnreal.coe_le_coe, ← nnreal.has_sum_coe, coe_nnnorm] at *,
+  exact tsum_of_norm_bounded hg h
+end
+
+/-- If `∑' i, nnnorm (f i)` is summable, then `nnnorm (∑' i, f i) ≤ ∑' i, nnnorm (f i)`. Note that
+we do not assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete
+space. -/
+lemma nnnorm_tsum_le {f : ι → α} (hf : summable (λi, nnnorm (f i))) :
+  nnnorm (∑' i, f i) ≤ ∑' i, nnnorm (f i) :=
+tsum_of_nnnorm_bounded hf.has_sum (λ i, le_rfl)
 
 variable [complete_space α]
 
@@ -1766,3 +1868,32 @@ lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λa, nnnorm (f
 summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable
+
+namespace uniform_space
+namespace completion
+
+variables (V : Type*)
+
+instance [uniform_space V] [has_norm V] :
+  has_norm (completion V) :=
+{ norm := completion.extension has_norm.norm }
+
+@[simp] lemma norm_coe {V} [semi_normed_group V] (v : V) :
+  ∥(v : completion V)∥ = ∥v∥ :=
+completion.extension_coe uniform_continuous_norm v
+
+instance [semi_normed_group V] : normed_group (completion V) :=
+{ dist_eq :=
+  begin
+    intros x y,
+    apply completion.induction_on₂ x y; clear x y,
+    { refine is_closed_eq (completion.uniform_continuous_extension₂ _).continuous _,
+      exact continuous.comp completion.continuous_extension continuous_sub },
+    { intros x y,
+      rw [← completion.coe_sub, norm_coe, metric.completion.dist_eq, dist_eq_norm] }
+  end,
+  .. (show add_comm_group (completion V), by apply_instance),
+  .. (show metric_space (completion V), by apply_instance) }
+
+end completion
+end uniform_space

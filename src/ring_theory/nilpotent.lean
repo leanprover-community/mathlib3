@@ -37,6 +37,8 @@ lemma monoid_with_zero.pow_zero_of_le [monoid_with_zero R] {n m : ℕ} (hn : n �
   x^m = 0 :=
 by rw [← nat.sub_add_cancel hn, pow_add, hx, mul_zero]
 
+lemma is_nilpotent.zero [monoid_with_zero R] : is_nilpotent (0 : R) := ⟨1, pow_one 0⟩
+
 lemma is_nilpotent.neg [ring R] (h : is_nilpotent x) : is_nilpotent (-x) :=
 begin
   obtain ⟨n, hn⟩ := h,

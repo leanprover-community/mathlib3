@@ -71,24 +71,25 @@ f.to_fun.map_smul c x
 over rings, and requires a proof of `∀ c, c • x = 0 → c • y = 0`. -/
 noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   linear_pmap R E F :=
-begin
-  replace H : ∀ c₁ c₂ : R, c₁ • x = c₂ • x → c₁ • y = c₂ • y,
+{ domain := R ∙ x,
+  to_fun :=
+  have H : ∀ c₁ c₂ : R, c₁ • x = c₂ • x → c₁ • y = c₂ • y,
   { intros c₁ c₂ h,
     rw [← sub_eq_zero, ← sub_smul] at h ⊢,
     exact H _ h },
-  refine ⟨R ∙ x, λ z, _, _, _⟩,
-  { exact (classical.some (mem_span_singleton.1 z.prop) • y) },
-  { intros z₁ z₂,
-    rw [← add_smul],
-    apply H,
-    simp only [add_smul, sub_smul, classical.some_spec (mem_span_singleton.1 _)],
-    apply coe_add },
-  { intros c z,
-    rw [smul_smul],
-    apply H,
-    simp only [mul_smul, classical.some_spec (mem_span_singleton.1 _)],
-    apply coe_smul }
-end
+  { to_fun := λ z, (classical.some (mem_span_singleton.1 z.prop) • y),
+    map_add' := λ y z, begin
+      rw [← add_smul],
+      apply H,
+      simp only [add_smul, sub_smul, classical.some_spec (mem_span_singleton.1 _)],
+      apply coe_add
+    end,
+    map_smul' := λ c z, begin
+      rw [smul_smul],
+      apply H,
+      simp only [mul_smul, classical.some_spec (mem_span_singleton.1 _)],
+      apply coe_smul
+    end } }
 
 @[simp] lemma domain_mk_span_singleton (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   (mk_span_singleton' x y H).domain = R ∙ x := rfl
@@ -213,16 +214,20 @@ begin
     simp only [← eq_sub_iff_add_eq] at hxy,
     simp only [coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self, zero_sub, ← H],
     apply neg_add_eq_sub },
-  refine ⟨⟨fg, _, _⟩, fg_eq⟩,
-  { rintros ⟨z₁, hz₁⟩ ⟨z₂, hz₂⟩,
-    rw [← add_assoc, add_right_comm (f _), ← map_add, add_assoc, ← map_add],
-    apply fg_eq,
-    simp only [coe_add, coe_mk, ← add_assoc],
-    rw [add_right_comm (x _), hxy, add_assoc, hxy, coe_mk, coe_mk] },
-  { intros c z,
-    rw [smul_add, ← map_smul, ← map_smul],
-    apply fg_eq,
-    simp only [coe_smul, coe_mk, ← smul_add, hxy] },
+  exact ⟨{
+    to_fun := fg,
+    map_add' := begin
+      rintros ⟨z₁, hz₁⟩ ⟨z₂, hz₂⟩,
+      rw [← add_assoc, add_right_comm (f _), ← map_add, add_assoc, ← map_add],
+      apply fg_eq,
+      simp only [coe_add, coe_mk, ← add_assoc],
+      rw [add_right_comm (x _), hxy, add_assoc, hxy, coe_mk, coe_mk]
+    end,
+    map_smul' := λ c z, begin
+      rw [smul_add, ← map_smul, ← map_smul],
+      apply fg_eq,
+      simp only [coe_smul, coe_mk, ← smul_add, hxy]
+    end }, fg_eq⟩,
 end
 
 /-- Given two partial linear maps that agree on the intersection of their domains,
@@ -326,15 +331,19 @@ begin
     rcases hc (P x).1.1 (P x).1.2 p.1 p.2 with ⟨q, hqc, hxq, hpq⟩,
     refine (hxq.2 _).trans (hpq.2 _).symm,
     exacts [of_le hpq.1 y, hxy, rfl] },
-  refine ⟨⟨f, _, _⟩, _⟩,
-  { intros x y,
-    rcases hc (P x).1.1 (P x).1.2 (P y).1.1 (P y).1.2 with ⟨p, hpc, hpx, hpy⟩,
-    set x' := of_le hpx.1 ⟨x, (P x).2⟩,
-    set y' := of_le hpy.1 ⟨y, (P y).2⟩,
-    rw [f_eq ⟨p, hpc⟩ x x' rfl, f_eq ⟨p, hpc⟩ y y' rfl, f_eq ⟨p, hpc⟩ (x + y) (x' + y') rfl,
-      map_add] },
-  { intros c x,
-    rw [f_eq (P x).1 (c • x) (c • ⟨x, (P x).2⟩) rfl, ← map_smul] },
+  refine ⟨_, _⟩,
+  exact {
+    to_fun := f,
+    map_add' := λ x y, begin
+      rcases hc (P x).1.1 (P x).1.2 (P y).1.1 (P y).1.2 with ⟨p, hpc, hpx, hpy⟩,
+      set x' := of_le hpx.1 ⟨x, (P x).2⟩,
+      set y' := of_le hpy.1 ⟨y, (P y).2⟩,
+      rw [f_eq ⟨p, hpc⟩ x x' rfl, f_eq ⟨p, hpc⟩ y y' rfl, f_eq ⟨p, hpc⟩ (x + y) (x' + y') rfl,
+        map_add]
+    end,
+    map_smul' := λ c x, begin
+      rw [f_eq (P x).1 (c • x) (c • ⟨x, (P x).2⟩) rfl, ← map_smul]
+    end },
   { intros p hpc,
     refine ⟨le_Sup $ mem_image_of_mem domain hpc, λ x y hxy, eq.symm _⟩,
     exact f_eq ⟨p, hpc⟩ _ _ hxy.symm }

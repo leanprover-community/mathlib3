@@ -838,6 +838,11 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
 
+@[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
+instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
+  contravariant_class (order_dual α) (order_dual α) has_mul.mul has_le.le :=
+{ elim := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
+
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
 { le_of_mul_le_mul_left := λ a b c : α, le_of_mul_le_mul_left',

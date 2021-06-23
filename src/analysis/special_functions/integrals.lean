@@ -338,15 +338,9 @@ begin
   linarith,
 end
 
-lemma integral_sin_pow_antimono :
-  ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
-begin
-  refine integral_mono_on _ _ pi_pos.le (λ x hx, _),
-  { exact (continuous_sin.pow (n + 1)).interval_integrable 0 π },
-  { exact (continuous_sin.pow n).interval_integrable 0 π },
-  { refine pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc _) (sin_le_one x) (nat.le_add_right n 1),
-    rwa interval_of_le pi_pos.le at hx },
-end
+lemma integral_sin_pow_antimono : ∫ x in 0..π, sin x ^ (n + 1) ≤ ∫ x in 0..π, sin x ^ n :=
+let H := λ x h, pow_le_pow_of_le_one (sin_nonneg_of_mem_Icc h) (sin_le_one x) (n.le_add_right 1) in
+by refine integral_mono_on pi_pos.le _ _ H; exact (continuous_sin.pow _).interval_integrable 0 π
 
 /-! ### Integral of `cos x ^ n` -/
 

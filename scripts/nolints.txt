@@ -382,9 +382,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/set/enumerate.lean
-apply_nolint set.enumerate doc_blame
-
 -- data/string/basic.lean
 apply_nolint string.ltb doc_blame
 
@@ -1071,21 +1068,6 @@ apply_nolint continuous_map.induced doc_blame
 
 -- topology/maps.lean
 apply_nolint inducing doc_blame
-
--- topology/metric_space/gluing.lean
-apply_nolint metric.glue_premetric doc_blame
-apply_nolint metric.glue_space doc_blame
-apply_nolint metric.sum.dist doc_blame
-apply_nolint metric.to_glue_l doc_blame
-apply_nolint metric.to_glue_r doc_blame
-
--- topology/metric_space/gromov_hausdorff.lean
-apply_nolint Gromov_Hausdorff.GH_space.rep has_inhabited_instance
-apply_nolint Gromov_Hausdorff.aux_gluing_struct has_inhabited_instance
-
--- topology/metric_space/gromov_hausdorff_realized.lean
-apply_nolint Gromov_Hausdorff.candidates_b_dist doc_blame
-apply_nolint Gromov_Hausdorff.optimal_GH_coupling has_inhabited_instance
 
 -- topology/opens.lean
 apply_nolint topological_space.opens.is_basis doc_blame

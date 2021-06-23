@@ -650,7 +650,7 @@ begin
   obtain ⟨z, ⟨x, hx⟩⟩ := g.exists_integer_multiple y,
   refine ⟨x, _, _⟩,
   { rw [ne.def, ← g.to_map_eq_zero_iff, hx],
-    exact mul_ne_zero (g.to_map_ne_zero_of_mem_non_zero_divisors _) y_ne_zero },
+    exact mul_ne_zero (g.to_map_ne_zero_of_mem_non_zero_divisors z.2) y_ne_zero },
   { rw hx,
     exact smul_mem _ _ y_mem }
 end

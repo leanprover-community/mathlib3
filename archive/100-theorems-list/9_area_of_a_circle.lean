@@ -110,6 +110,6 @@ begin
   have hcont := (by continuity : continuous F).continuous_on,
   calc  ∫ x in -r..r, 2 * f x
       = F r - F (-r) : integral_eq_sub_of_has_deriv_at_of_le (neg_le_self r.2)
-                         hcont hderiv (continuous_const.mul hf).continuous_on.integrable_on_Icc
+                         hcont hderiv (continuous_const.mul hf).continuous_on.interval_integrable
   ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end

@@ -85,16 +85,12 @@ as a bilinear function of two arguments.
 -/
 def to_fun_bilinear : A →ₗ[R] polynomial R →ₗ[R] polynomial A :=
 { to_fun := to_fun_linear_right R A,
-  map_smul' := by {
-    intros, unfold to_fun_linear_right,
-    congr, simp only [linear_map.coe_mk],
-    simp_rw [to_fun, sum_def, finset.smul_sum, smul_monomial,  ← algebra.smul_mul_assoc],
-    refl },
-  map_add' := by {
-    intros, unfold to_fun_linear_right,
-    congr, simp only [linear_map.coe_mk],
-    simp_rw [to_fun, sum_def, ← finset.sum_add_distrib, ← monomial_add, ← add_mul],
-    refl } }
+  map_smul' := λ c x, linear_map.ext $ λ y, by {
+    dsimp only [to_fun_linear_right, linear_map.coe_mk, linear_map.smul_apply],
+    simp_rw [to_fun, sum_def, finset.smul_sum, smul_monomial, ←smul_mul_assoc], },
+  map_add' := λ x₁ x₂, linear_map.ext $ λ y, by {
+    dsimp only [to_fun_linear_right, linear_map.coe_mk, linear_map.add_apply],
+    simp_rw [to_fun, sum_def, ← finset.sum_add_distrib, ← monomial_add, ← add_mul], } }
 
 /--
 (Implementation detail).

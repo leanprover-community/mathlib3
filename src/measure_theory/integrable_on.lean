@@ -416,7 +416,7 @@ begin
 end
 
 section
-variables [topological_space α] [opens_measurable_space α] [t2_space α]
+variables [topological_space α] [opens_measurable_space α]
   {μ : measure α} {s t : set α} {f g : α → ℝ}
 
 lemma measure_theory.integrable_on.mul_continuous_on_of_subset
@@ -434,7 +434,7 @@ begin
   exact mem_ℒp.of_le_mul hf (hf.ae_measurable.mul ((hg.mono hst).ae_measurable hs)) this,
 end
 
-lemma measure_theory.integrable_on.mul_continuous_on
+lemma measure_theory.integrable_on.mul_continuous_on [t2_space α]
   (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
   integrable_on (λ x, f x * g x) s μ :=
 hf.mul_continuous_on_of_subset hg hs.measurable_set hs (subset.refl _)
@@ -445,7 +445,7 @@ lemma measure_theory.integrable_on.continuous_on_mul_of_subset
   integrable_on (λ x, g x * f x) s μ :=
 by simpa [mul_comm] using hf.mul_continuous_on_of_subset hg hs ht hst
 
-lemma measure_theory.integrable_on.continuous_on_mul
+lemma measure_theory.integrable_on.continuous_on_mul [t2_space α]
   (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
   integrable_on (λ x, g x * f x) s μ :=
 hf.continuous_on_mul_of_subset hg hs.measurable_set hs (subset.refl _)

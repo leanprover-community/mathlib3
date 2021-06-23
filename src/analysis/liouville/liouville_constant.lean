@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa, Jujian Zhang
 -/
 import analysis.liouville.basic
-import analysis.liouville.inequalities_and_series
 /-!
 
 # Liouville constants

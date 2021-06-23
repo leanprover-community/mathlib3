@@ -297,6 +297,10 @@ instance : has_coe (M →+[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
   f.to_linear_map = ↑f :=
 rfl
 
+@[simp, norm_cast] lemma coe_to_linear_map (f : M →+[R] M₂) :
+  ((f : M →ₗ[R] M₂) : M → M₂) = f :=
+rfl
+
 lemma to_linear_map_injective {f g : M →+[R] M₂} (h : (f : M →ₗ[R] M₂) = (g : M →ₗ[R] M₂)) :
   f = g :=
 by { ext m, exact linear_map.congr_fun h m, }

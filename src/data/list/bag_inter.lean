@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Scott Morrison
 import data.list.basic
 
 /-!
-# Lists intersection
+# List intersection
 
 This file provides basic results about `list.bag_inter` (definition in `data.list.defs`).
 `bag_inter l₁ l₂` is the list of elements that are in both `l₁` and `l₂`, counted with multiplicity

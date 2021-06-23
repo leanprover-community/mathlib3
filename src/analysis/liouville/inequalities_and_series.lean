@@ -9,12 +9,14 @@ import analysis.specific_limits
 
 # Lemmas on inequalities and series for Liouville constants
 
-This file contains an inequality that is used in the proof to show that transcendental Liouville
+This file proves two inequalities that is used in the proof to show that transcendental Liouville
 numbers exist.
 -/
 
+--  TODO: merge this file into `analysis/liouville/liouville_constant`?
+
 open_locale nat big_operators
-open set real
+open real
 
 variable {m : ℝ}
 

@@ -248,24 +248,17 @@ variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [�
   .. add_equiv.Pi_congr_right (λ j, (e j).to_add_equiv) }
 
 @[simp]
-lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*}
-  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)] :
-  Pi_congr_right (λ j, refl R (Ms j)) = refl _ _ := rfl
+lemma Pi_congr_right_refl : Pi_congr_right (λ j, refl R (φ j)) = refl _ _ := rfl
 
 @[simp]
-lemma Pi_congr_right_symm {η : Type*} {Ms Ns : η → Type*}
-  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
-  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
-  (es : ∀ j, Ms j ≃ₗ[R] Ns j) :
-(Pi_congr_right es).symm = (Pi_congr_right $ λ i, (es i).symm) := rfl
+lemma Pi_congr_right_symm (e : Π i, φ i ≃ₗ[R] ψ i) :
+  (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
 
 @[simp]
-lemma Pi_congr_right_trans {η : Type*} {Ms Ns Ps : η → Type*}
-  [Π j, add_comm_monoid (Ms j)] [Π j, module R (Ms j)]
-  [Π j, add_comm_monoid (Ns j)] [Π j, module R (Ns j)]
-  [Π j, add_comm_monoid (Ps j)] [Π j, module R (Ps j)]
-  (es : ∀ j, Ms j ≃ₗ[R] Ns j) (fs : ∀ j, Ns j ≃ₗ[R] Ps j) :
-  (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) :=
+lemma Pi_congr_right_trans {χ : ι → Type*}
+  [Π j, add_comm_monoid (χ j)] [Π j, module R (χ j)]
+  (e : Π i, φ i ≃ₗ[R] ψ i) (f : Π i, ψ i ≃ₗ[R] χ i) :
+  (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) :=
 rfl
 
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]

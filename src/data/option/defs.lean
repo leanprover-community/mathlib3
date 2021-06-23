@@ -9,6 +9,7 @@ Authors: Mario Carneiro
 
 This file defines more operations involving `option α`. Lemmas about them are located in other
 files under `data.option.`.
+Other basic operations on `option` are defined in the core library.
 -/
 
 

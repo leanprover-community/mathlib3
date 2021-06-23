@@ -13,13 +13,14 @@ import analysis.convex.topology
 This file defines extreme sets and extreme points for sets in a real vector space.
 
 An extreme set of `A` is a subset of `A` that is as far as it can get in any outward direction: If
-points `x` is in it and `y ∈ A`, then the line passing through `x` and `y` leaves `A` at `x`.
+point `x` is in it and point `y ∈ A`, then the line passing through `x` and `y` leaves `A` at `x`.
 This is an analytic notion of "being on the side of". It is weaker than being exposed (see
 `is_exposed.is_extreme`).
 
 ## Main declarations
 
-* `is_extreme A B`: States that `B` is extreme with respect to `A`.
+* `is_extreme A B`: States that `B` is an extreme set of `A` (in the literature, `A` is often
+  implicit).
 * `set.extreme_points A`: Set of extreme points of `A` (corresponding to extreme singletons).
 * `convex.mem_extreme_points_iff_convex_remove`: A useful equivalent condition to being an extreme
   point: `x` is an extreme point iff `A \ {x}` is convex.
@@ -47,8 +48,8 @@ open set
 
 variables {E : Type*} [add_comm_group E] [module ℝ E] {x : E} {A B C : set E}
 
-/-- A set B is extreme to a set A if B ⊆ A and all points of B only belong to open segments whose
-ends are in B. -/
+/-- A set `B` is an extreme subset of `A` if `B ⊆ A` and all points of `B` only belong to open
+segments whose ends are in `B`. -/
 def is_extreme (A B : set E) : Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
@@ -143,8 +144,8 @@ lemma extreme_points_def :
   x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x :=
 iff.rfl
 
-/-- A useful restatement using `segment`: `x` is an extreme point iff the only segments that
-contain it are those with `x` as one of their ends. -/
+/-- A useful restatement using `segment`: `x` is an extreme point iff the only (closed) segments
+that contain it are those with `x` as one of their endpoints. -/
 lemma mem_extreme_points_iff_forall_segment :
   x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x :=
 begin

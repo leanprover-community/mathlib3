@@ -10,8 +10,10 @@ import analysis.convex.extreme
 
 This file defines exposed sets and exposed points for sets in a real vector space.
 
-An exposed set of `A` is a subset of `A` that maximizes a functional (a continuous linear map
-`E → ℝ`) over `A`. By convention, `∅` is exposed to all sets.
+An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional
+(a continuous linear map `E → ℝ`) over `A`. By convention, `∅` is an exposed subset of all sets.
+This allows for better functioriality of the definition (intersection of two exposed sets is a
+subset, faces of a polytope form a bounded lattice).
 This is an analytic notion of "being on the side of". It is stronger than being extreme (see
 `is_exposed.is_extreme`), but weaker (for exposed points) than being a vertex.
 
@@ -21,7 +23,8 @@ on mathlib!).
 
 ## Main declarations
 
-* `is_exposed A B`: States that `B` is exposed with respect to `A`.
+* `is_exposed A B`: States that `B` is an exposed set of `A` (in the literature, `A` is often
+  implicit).
 * `is_exposed.is_extreme`: An exposed set is also extreme.
 
 ## References
@@ -43,12 +46,14 @@ open set
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
   {X : finset E} {l : E →L[ℝ] ℝ}
 
-/-- A set is exposed with respect to `A` iff it maximizes some functional over `A`. -/
+/-- A set is exposed with respect to `A` iff it maximizes some functional over `A` (and contains
+all points maximizing it). Written `is_exposed A B`. -/
 def is_exposed (A B : set E) : Prop :=
 B.nonempty → ∃ l : E →L[ℝ] ℝ, B = {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
 
-/-- A useful way to build exposed sets from intersecting `A` with halfspaces. -/
+/-- A useful way to build exposed sets from intersecting `A` with halfspaces (modelled by an
+inequality with a functional). -/
 def continuous_linear_map.to_exposed (l : E →L[ℝ] ℝ) (A : set E) : set E :=
 {x ∈ A | ∀ y ∈ A, l y ≤ l x}
 
@@ -74,8 +79,9 @@ lemma antisymm (hB : is_exposed A B) (hA : is_exposed B A) :
 hA.subset.antisymm hB.subset
 
 /- `is_exposed` is *not* transitive: Consider a (topologically) open cube with vertices
-`A₀₀₀, ..., A₁₁₁` and add to it the triangle `A₀₀₀A₀₀₁A₀₁₀`. Then `A₀₀₁A₀₁₀` is exposed to
-`A₀₀₀A₀₀₁A₀₁₀` which is exposed to the cube, but `A₀₀₁A₀₁₀` is not itself exposed to the cube. -/
+`A₀₀₀, ..., A₁₁₁` and add to it the triangle `A₀₀₀A₀₀₁A₀₁₀`. Then `A₀₀₁A₀₁₀` is an exposed subset
+of `A₀₀₀A₀₀₁A₀₁₀` which is an exposed subset of the cube, but `A₀₀₁A₀₁₀` is not itself an exposed
+subset of the cube. -/
 
 protected lemma mono (hC : is_exposed A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
   is_exposed B C :=
@@ -86,9 +92,9 @@ begin
     (λ x hx, ⟨hBA hx.1, λ y hy, (hw.2 y hy).trans (hx.2 w (hCB hw))⟩)⟩,
 end
 
-/-- If `B` is exposed to `A`, then `B` is the intersection of `A` with some closed halfspace. The
-converse is *not* true. It would require that the corresponding open halfspace doesn't intersect
-`A`. -/
+/-- If `B` is an exposed subset of `A`, then `B` is the intersection of `A` with some closed
+halfspace. The converse is *not* true. It would require that the corresponding open halfspace
+doesn't intersect `A`. -/
 lemma eq_inter_halfspace (hAB : is_exposed A B) :
   ∃ l : E →L[ℝ] ℝ, ∃ a, B = {x ∈ A | a ≤ l x} :=
 begin
@@ -117,8 +123,8 @@ begin
   refine ⟨⟨hxA, λ y hy, _⟩, hxA, λ y hy, _⟩,
   { exact (add_le_add_iff_right (l₂ x)).1 ((add_le_add (hwB.2 y hy) (hwC.2 x hxA)).trans
       (hx w hwB.1)) },
-  exact (add_le_add_iff_left (l₁ x)).1 (le_trans (add_le_add (hwB.2 x hxA) (hwC.2 y hy))
-    (hx w hwB.1)),
+  { exact (add_le_add_iff_left (l₁ x)).1 (le_trans (add_le_add (hwB.2 x hxA) (hwC.2 y hy))
+    (hx w hwB.1)) }
 end
 
 lemma sInter {F : finset (set E)} (hF : F.nonempty)
@@ -166,8 +172,8 @@ begin
   refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
   { rw hlx₁.antisymm (hl.le_left_of_right_le (mem_univ _) (mem_univ _) hx hlx₂),
     exact hxB.2 y hy },
-  rw hlx₂.antisymm (hl.le_right_of_left_le (mem_univ _) (mem_univ _) hx hlx₁),
-  exact hxB.2 y hy,
+  { rw hlx₂.antisymm (hl.le_right_of_left_le (mem_univ _) (mem_univ _) hx hlx₁),
+    exact hxB.2 y hy }
 end
 
 protected lemma is_convex (hAB : is_exposed A B) (hA : convex A) :

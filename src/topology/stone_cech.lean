@@ -48,7 +48,7 @@ lemma ultrafilter_basis_is_basis :
 /-- The basic open sets for the topology on ultrafilters are open. -/
 lemma ultrafilter_is_open_basic (s : set α) :
   is_open {u : ultrafilter α | s ∈ u} :=
-topological_space.is_open_of_is_topological_basis ultrafilter_basis_is_basis ⟨s, rfl⟩
+ultrafilter_basis_is_basis.is_open ⟨s, rfl⟩
 
 /-- The basic open sets for the topology on ultrafilters are also closed. -/
 lemma ultrafilter_is_closed_basic (s : set α) :
@@ -75,7 +75,7 @@ begin
 end
 
 instance ultrafilter_compact : compact_space (ultrafilter α) :=
-⟨compact_iff_ultrafilter_le_nhds.mpr $ assume f _,
+⟨is_compact_iff_ultrafilter_le_nhds.mpr $ assume f _,
    ⟨mjoin f, trivial, ultrafilter_converges_iff.mpr rfl⟩⟩
 
 instance ultrafilter.t2_space : t2_space (ultrafilter α) :=

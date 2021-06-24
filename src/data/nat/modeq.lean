@@ -6,7 +6,8 @@ Authors: Mario Carneiro
 import data.int.gcd
 import tactic.abel
 import data.list.rotate
-/-
+
+/-!
 # Congruences modulo a natural number
 
 This file defines the equivalence relation `a ≡ b [MOD n]` on the natural numbers,
@@ -21,6 +22,7 @@ and proves basic properties about it such as the Chinese Remainder Theorem
 
 modeq, congruence, mod, MOD, modulo
 -/
+
 namespace nat
 
 /-- Modular equality. `modeq n a b`, or `a ≡ b [MOD n]`, means
@@ -211,7 +213,8 @@ lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
 begin
   rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
-    a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) + (a + b) % c,
+    a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) +
+      (a + b) % c,
   { simpa only [mul_add, add_comm, add_left_comm, add_assoc] },
   rw [mod_add_div, mod_add_div, mod_add_div, mul_ite, add_assoc, add_assoc],
   conv_lhs { rw ← add_mod_add_ite },
@@ -248,8 +251,8 @@ by_contradiction $ λ hc,
   have (a + b) % c = a % c + b % c, from add_mod_of_add_mod_lt (lt_of_not_ge hc),
   by simp [dvd_iff_mod_eq_zero, *] at *
 
-lemma odd_mul_odd {n m : ℕ} (hn1 : n % 2 = 1) (hm1 : m % 2 = 1) : (n * m) % 2 = 1 :=
-show (n * m) % 2 = (1 * 1) % 2, from nat.modeq.modeq_mul hn1 hm1
+lemma odd_mul_odd {n m : ℕ} : n % 2 = 1 → m % 2 = 1 → (n * m) % 2 = 1 :=
+by simpa [nat.modeq] using @nat.modeq.modeq_mul 2 n 1 m 1
 
 lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
@@ -260,11 +263,12 @@ by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
   ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_one_le_right (nat.zero_le _) hn0)]
 
-lemma odd_of_mod_four_eq_one {n : ℕ} (h : n % 4 = 1) : n % 2 = 1 :=
-@modeq.modeq_of_modeq_mul_left 2 n 1 2 h
+lemma odd_of_mod_four_eq_one {n : ℕ} : n % 4 = 1 → n % 2 = 1 :=
+by simpa [modeq, show 2 * 2 = 4, by norm_num] using @modeq.modeq_of_modeq_mul_left 2 n 1 2
 
-lemma odd_of_mod_four_eq_three {n : ℕ} (h : n % 4 = 3) : n % 2 = 1 :=
-@modeq.modeq_of_modeq_mul_left 2 n 3 2 h
+lemma odd_of_mod_four_eq_three {n : ℕ} : n % 4 = 3 → n % 2 = 1 :=
+by simpa [modeq, show 2 * 2 = 4, by norm_num, show 3 % 4 = 3, by norm_num]
+  using @modeq.modeq_of_modeq_mul_left 2 n 3 2
 
 end nat
 

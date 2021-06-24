@@ -105,7 +105,7 @@ begin
   { to_fun    := λ I, ⁅I, I⁆,
     monotone' := λ I J h, lie_submodule.mono_lie I J I J h h, },
   have h₁ : ∀ (I J : lie_ideal R L), D₁ (I ⊔ J) ≤ (D₁ I) ⊔ J,
-  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_right_of_le], },
+  { simp [lie_submodule.lie_le_right, lie_submodule.lie_le_left, le_sup_of_le_right], },
   rw ← D₁.iterate_sup_le_sup_iff at h₁,
   exact h₁ k l I J,
 end
@@ -171,9 +171,10 @@ end
 lemma derived_series_map_eq (k : ℕ) (h : function.surjective f) :
   (derived_series R L' k).map f = derived_series R L k :=
 begin
-  have h' : (⊤ : lie_ideal R L').map f = ⊤, { exact f.ideal_range_eq_top_of_surjective h, },
   induction k with k ih,
-  { exact h', },
+  { change (⊤ : lie_ideal R L').map f = ⊤,
+    rw ←f.ideal_range_eq_map,
+    exact f.ideal_range_eq_top_of_surjective h, },
   { simp only [derived_series_def, map_bracket_eq f h, ih, derived_series_of_ideal_succ], },
 end
 

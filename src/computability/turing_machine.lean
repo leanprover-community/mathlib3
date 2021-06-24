@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import algebra.order
 import data.fintype.basic
@@ -101,7 +101,7 @@ begin
   rw [list.append_assoc, ← list.repeat_add, nat.sub_add_cancel],
   apply_fun list.length at e,
   simp only [list.length_append, list.length_repeat] at e,
-  rwa [ge, ← add_le_add_iff_left, e, add_le_add_iff_right]
+  rwa [← add_le_add_iff_left, e, add_le_add_iff_right]
 end
 
 /-- `blank_rel` is the symmetric closure of `blank_extends`, turning it into an equivalence
@@ -1366,7 +1366,9 @@ theorem exists_enc_dec [fintype Γ] :
   ∃ n (enc : Γ → vector bool n) (dec : vector bool n → Γ),
     enc (default _) = vector.repeat ff n ∧ ∀ a, dec (enc a) = a :=
 begin
-  rcases fintype.exists_equiv_fin Γ with ⟨n, ⟨F⟩⟩,
+  letI := classical.dec_eq Γ,
+  let n := fintype.card Γ,
+  obtain ⟨F⟩ := fintype.trunc_equiv_fin Γ,
   let G : fin n ↪ fin n → bool := ⟨λ a b, a = b,
     λ a b h, of_to_bool_true $ (congr_fun h b).trans $ to_bool_tt rfl⟩,
   let H := (F.to_embedding.trans G).trans
@@ -2213,9 +2215,10 @@ begin
         simp only [h, list.nth_le_singleton, list.length_map, list.length_reverse, nat.succ_pos',
           list.length_append, lt_add_iff_pos_right, list.length] },
       rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth],
-      cases decidable.lt_or_gt_of_ne h with h h,
+      cases lt_or_gt_of_ne h with h h,
       { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
-      { rw [list.nth_len_le, list.nth_len_le];
+      { rw gt_iff_lt at h,
+        rw [list.nth_len_le, list.nth_len_le];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],
@@ -2248,9 +2251,9 @@ begin
         function.update_same, list_blank.nth_mk, list.tail, list.inth],
       { rw [list.nth_len_le], {refl}, rw [h, list.length_reverse, list.length_map] },
       rw [← proj_map_nth, hL, list_blank.nth_mk, list.inth, e, list.map, list.reverse_cons],
-      cases decidable.lt_or_gt_of_ne h with h h,
+      cases lt_or_gt_of_ne h with h h,
       { rw list.nth_append, simpa only [list.length_map, list.length_reverse] using h },
-      { rw [list.nth_len_le, list.nth_len_le];
+      { rw gt_iff_lt at h, rw [list.nth_len_le, list.nth_len_le];
         simp only [nat.add_one_le_iff, h, list.length, le_of_lt,
           list.length_reverse, list.length_append, list.length_map] } },
     { split_ifs; rw [function.update_noteq h', ← proj_map_nth, hL],

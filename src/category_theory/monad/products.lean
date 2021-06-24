@@ -24,7 +24,7 @@ is a monadic right adjoint.
 
 noncomputable theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 open category limits

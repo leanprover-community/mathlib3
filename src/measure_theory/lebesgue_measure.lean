@@ -33,9 +33,9 @@ begin
   refine le_antisymm (infi_le_of_le a $ binfi_le b (subset.refl _))
     (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, ennreal.coe_le_coe.2 _),
   cases le_or_lt b a with ab ab,
-  { rw nnreal.of_real_of_nonpos (sub_nonpos.2 ab), apply zero_le },
+  { rw real.to_nnreal_of_nonpos (sub_nonpos.2 ab), apply zero_le },
   cases (Ico_subset_Ico_iff ab).1 h with h₁ h₂,
-  exact nnreal.of_real_le_of_real (sub_le_sub h₂ h₁)
+  exact real.to_nnreal_le_to_nnreal (sub_le_sub h₂ h₁)
 end
 
 lemma lebesgue_length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
@@ -108,7 +108,7 @@ begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),
     (of_real (b - a) : ℝ≥0∞) ≤ ∑ i in s, of_real (d i - c i),
-  { rcases compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
+  { rcases is_compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
       @is_open_Ioo _ _ _ _ (c i) (d i)) (by simpa using ss) with ⟨s, su, hf, hs⟩,
     have e : (⋃ i ∈ (↑hf.to_finset:set ℕ),
       Ioo (c i) (d i)) = (⋃ i ∈ s, Ioo (c i) (d i)), {simp [set.ext_iff]},
@@ -282,8 +282,20 @@ by simp [← measure_congr Iio_ae_eq_Iic]
 
 instance locally_finite_volume : locally_finite_measure (volume : measure ℝ) :=
 ⟨λ x, ⟨Ioo (x - 1) (x + 1),
-  mem_nhds_sets is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
+  is_open.mem_nhds is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
   by simp only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
+
+instance finite_measure_restrict_Icc (x y : ℝ) : finite_measure (volume.restrict (Icc x y)) :=
+⟨by simp⟩
+
+instance finite_measure_restrict_Ico (x y : ℝ) : finite_measure (volume.restrict (Ico x y)) :=
+⟨by simp⟩
+
+instance finite_measure_restrict_Ioc (x y : ℝ) : finite_measure (volume.restrict (Ioc x y)) :=
+ ⟨by simp⟩
+
+instance finite_measure_restrict_Ioo (x y : ℝ) : finite_measure (volume.restrict (Ioo x y)) :=
+⟨by simp⟩
 
 /-!
 ### Volume of a box in `ℝⁿ`
@@ -330,7 +342,7 @@ by simp only [volume_pi_Ico, ennreal.to_real_prod, ennreal.to_real_of_real (sub_
 
 lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_add_left a) measurable_set_Ioo, sub_sub_sub_cancel_right]
+  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]
 
 lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
 by simpa only [add_comm] using real.map_volume_add_left a
@@ -341,11 +353,11 @@ begin
   refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
   cases lt_or_gt_of_ne h with h h,
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
-      measure.map_apply (measurable_mul_left a) measurable_set_Ioo, neg_sub_neg,
+      measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
       ← neg_mul_eq_neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
       mul_div_cancel' _ (ne_of_lt h)] },
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
-      measure.map_apply (measurable_mul_left a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
+      measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
       abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h)] }
 end
 
@@ -464,9 +476,9 @@ theorem volume_region_between_eq_integral' [sigma_finite μ]
   (hs : measurable_set s) (hfg : f ≤ᵐ[μ.restrict s] g ) :
   μ.prod volume (region_between f g s) = ennreal.of_real (∫ y in s, (g - f) y ∂μ) :=
 begin
-  have h : g - f =ᵐ[μ.restrict s] (λ x, nnreal.of_real (g x - f x)),
+  have h : g - f =ᵐ[μ.restrict s] (λ x, real.to_nnreal (g x - f x)),
   { apply hfg.mono,
-    simp only [nnreal.of_real, max, sub_nonneg, pi.sub_apply],
+    simp only [real.to_nnreal, max, sub_nonneg, pi.sub_apply],
     intros x hx,
     split_ifs,
     refl },

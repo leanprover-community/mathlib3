@@ -152,8 +152,8 @@ To do this, we proceed bottom-up, showing the correspondence between the basic f
 the computation first and then lift the results step-by-step.
 -/
 
-/- The lifting works for arbitrary linear ordered, archimedean fields with a floor function. -/
-variables [archimedean K] {v : K} {q : ℚ} (v_eq_q : v = (↑q : K)) (n : ℕ)
+/- The lifting works for arbitrary linear ordered fields with a floor function. -/
+variables {v : K} {q : ℚ} (v_eq_q : v = (↑q : K)) (n : ℕ)
 include v_eq_q
 
 /-! First, we show the correspondence for the very basic functions in
@@ -162,8 +162,7 @@ namespace int_fract_pair
 
 lemma coe_of_rat_eq :
   ((int_fract_pair.of q).mapFr coe : int_fract_pair K) = int_fract_pair.of v :=
-suffices ⌊q⌋ = ⌊(↑q : K)⌋, by simpa [int_fract_pair.of, v_eq_q, fract],
-by rw [←(@rat.cast_floor K _ _ q), floor_ring_unique]
+by simp [int_fract_pair.of, v_eq_q, fract]
 
 lemma coe_stream_nth_rat_eq :
     ((int_fract_pair.stream q n).map (mapFr coe) : option $ int_fract_pair K)
@@ -341,7 +340,7 @@ end terminates_of_rat
 /--
 The continued fraction `generalized_continued_fraction.of v` terminates if and only if `v ∈ ℚ`.
 -/
-theorem terminates_iff_rat [archimedean K] (v : K) :
+theorem terminates_iff_rat (v : K) :
   (gcf.of v).terminates ↔ ∃ (q : ℚ), v = (q : K) :=
 iff.intro
 ( assume terminates_v : (gcf.of v).terminates,

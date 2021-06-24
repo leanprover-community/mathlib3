@@ -179,6 +179,11 @@ instance [topological_space H] [group H] [topological_group H] :
   topological_group (G × H) :=
 { continuous_inv := continuous_inv.prod_map continuous_inv }
 
+@[to_additive]
+instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)]
+  [∀ b, group (C b)] [∀ b, topological_group (C b)] : topological_group (Π b, C b) :=
+{ continuous_inv := continuous_pi (λ i, (continuous_apply i).inv) }
+
 variable (G)
 
 /-- Inversion in a topological group as a homeomorphism. -/
@@ -216,6 +221,39 @@ variable {G}
 lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
 (homeomorph.inv G).preimage_closure s
 
+/-- The (topological-space) closure of a subgroup of a space `M` with `has_continuous_mul` is
+itself a subgroup. -/
+@[to_additive "The (topological-space) closure of an additive subgroup of a space `M` with
+`has_continuous_add` is itself an additive subgroup."]
+def subgroup.topological_closure (s : subgroup G) : subgroup G :=
+{ carrier := closure (s : set G),
+  inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
+  ..s.to_submonoid.topological_closure }
+
+@[to_additive]
+instance subgroup.topological_closure_topological_group (s : subgroup G) :
+  topological_group (s.topological_closure) :=
+{ continuous_inv :=
+  begin
+    apply continuous_induced_rng,
+    change continuous (λ p : s.topological_closure, (p : G)⁻¹),
+    continuity,
+  end
+  ..s.to_submonoid.topological_closure_has_continuous_mul}
+
+lemma subgroup.subgroup_topological_closure (s : subgroup G) :
+  s ≤ s.topological_closure :=
+subset_closure
+
+lemma subgroup.is_closed_topological_closure (s : subgroup G) :
+  is_closed (s.topological_closure : set G) :=
+by convert is_closed_closure
+
+lemma subgroup.topological_closure_minimal
+  (s : subgroup G) {t : subgroup G} (h : s ≤ t) (ht : is_closed (t : set G)) :
+  s.topological_closure ≤ t :=
+closure_minimal h ht
+
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv {s : set G} (hs : s ∈ 𝓝 (1 : G)) :
   ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v / w ∈ s :=
@@ -239,18 +277,6 @@ lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
 eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
-
-/-- The topological closure of a subgroup as a subgroup. -/
-@[to_additive "The topological closure of an additive subgroup as an additive subgroup."]
-def subgroup.topological_closure (H : subgroup G) : subgroup G :=
-{ carrier := closure H,
-  one_mem' := subset_closure H.one_mem,
-  mul_mem' := λ a b ha hb, H.to_submonoid.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩,
-  inv_mem' := begin
-    change closure (H : set G) ⊆ (λ x : G, x⁻¹) ⁻¹' (closure H),
-    conv_rhs { rw show (H : set G) = (λ x : G, x⁻¹) '' H, by ext ; simp },
-    exact closure_subset_preimage_closure_image (continuous_inv : continuous (λ x : G, _)),
-  end }
 
 @[to_additive]
 lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]
@@ -346,7 +372,7 @@ begin
   intros s s_op,
   change is_open ((coe : G →  quotient N) ⁻¹' (coe '' s)),
   rw quotient_group.preimage_image_coe N s,
-  exact is_open_Union (λ n, is_open_map_mul_right n s s_op)
+  exact is_open_Union (λ n, (continuous_mul_right _).is_open_preimage s s_op)
 end
 
 @[to_additive]
@@ -534,7 +560,7 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
  begin
    use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
-   rw [nhds_within, inf_principal_eq_bot, mem_nhds_sets_iff],
+   rw [nhds_within, inf_principal_eq_bot, mem_nhds_iff],
    refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
    rintros x hx ⟨y, z, hy, hz, yz⟩,
    have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
@@ -564,7 +590,7 @@ begin
   let W : G → set G := λ x, (λ y, x * y) ⁻¹' U,
   have h1W : ∀ x, is_open (W x) := λ x, hU.preimage (continuous_mul_left x),
   have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
-  choose V hV using λ x : K, exists_open_nhds_one_mul_subset (mem_nhds_sets (h1W x) (h2W x.1 x.2)),
+  choose V hV using λ x : K, exists_open_nhds_one_mul_subset ((h1W x).mem_nhds (h2W x.1 x.2)),
   let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
   obtain ⟨t, ht⟩ : ∃ t : finset ↥K, K ⊆ ⋃ i ∈ t, X i,
   { refine hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _,
@@ -634,7 +660,7 @@ begin
     rintros ⟨vb, vd⟩,
     refine ac ⟨v * y⁻¹, y, _, _, _⟩,
     { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },
-    { apply dc y, rw mul_right_inv, exact mem_of_nhds hd },
+    { apply dc y, rw mul_right_inv, exact mem_of_mem_nhds hd },
     { simp only [inv_mul_cancel_right] } }
 end
 
@@ -652,3 +678,13 @@ instance additive.topological_add_group {G} [h : topological_space G]
 instance multiplicative.topological_group {G} [h : topological_space G]
   [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
 { continuous_inv := @continuous_neg G _ _ _ }
+
+namespace units
+
+variables [monoid α] [topological_space α] [has_continuous_mul α]
+
+instance : topological_group (units α) :=
+{ continuous_inv := continuous_induced_rng ((continuous_unop.comp (continuous_snd.comp
+    (@continuous_embed_product α _ _))).prod_mk (continuous_op.comp continuous_coe)) }
+
+end units

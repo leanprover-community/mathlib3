@@ -54,11 +54,11 @@ approach, it turns out that direct proofs are easier and more efficient.
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale classical big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
-add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_semimodule
+add_comm_group.to_add_comm_monoid normed_group.to_add_comm_group normed_space.to_module
 
 -- hack to speed up simp when dealing with complicated types
 local attribute [-instance] unique.subsingleton pi.subsingleton
@@ -377,6 +377,29 @@ normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E G) :=
 ⟨λ c f, f.op_norm_smul_le c⟩
 
+theorem le_op_norm_mul_prod_of_le {b : ι → ℝ} (hm : ∀ i, ∥m i∥ ≤ b i) : ∥f m∥ ≤ ∥f∥ * ∏ i, b i :=
+(f.le_op_norm m).trans $ mul_le_mul_of_nonneg_left
+  (prod_le_prod (λ _ _, norm_nonneg _) (λ i _, hm i)) (norm_nonneg f)
+
+theorem le_op_norm_mul_pow_card_of_le {b : ℝ} (hm : ∀ i, ∥m i∥ ≤ b) :
+  ∥f m∥ ≤ ∥f∥ * b ^ fintype.card ι :=
+by simpa only [prod_const] using f.le_op_norm_mul_prod_of_le m hm
+
+theorem le_op_norm_mul_pow_of_le {Ei : fin n → Type*} [Π i, normed_group (Ei i)]
+  [Π i, normed_space 𝕜 (Ei i)] (f : continuous_multilinear_map 𝕜 Ei G) (m : Π i, Ei i)
+  {b : ℝ} (hm : ∥m∥ ≤ b) :
+  ∥f m∥ ≤ ∥f∥ * b ^ n :=
+by simpa only [fintype.card_fin]
+  using f.le_op_norm_mul_pow_card_of_le m (λ i, (norm_le_pi_norm m i).trans hm)
+
+/-- The fundamental property of the operator norm of a continuous multilinear map:
+`∥f m∥` is bounded by `∥f∥` times the product of the `∥m i∥`, `nnnorm` version. -/
+theorem le_op_nnnorm : nnnorm (f m) ≤ nnnorm f * ∏ i, nnnorm (m i) :=
+nnreal.coe_le_coe.1 $ by { push_cast, exact f.le_op_norm m }
+
+theorem le_of_op_nnnorm_le {C : ℝ≥0} (h : nnnorm f ≤ C) : nnnorm (f m) ≤ C * ∏ i, nnnorm (m i) :=
+(f.le_op_nnnorm m).trans $ mul_le_mul' h le_rfl
+
 lemma op_norm_prod (f : continuous_multilinear_map 𝕜 E G) (g : continuous_multilinear_map 𝕜 E G') :
   ∥f.prod g∥ = max (∥f∥) (∥g∥) :=
 le_antisymm
@@ -387,6 +410,26 @@ le_antisymm
   max_le
     (f.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_left _ _).trans ((f.prod g).le_op_norm _))
     (g.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_right _ _).trans ((f.prod g).le_op_norm _))
+
+lemma norm_pi {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
+  [Π i', normed_space 𝕜 (E' i')] (f : Π i', continuous_multilinear_map 𝕜 E (E' i')) :
+  ∥pi f∥ = ∥f∥ :=
+begin
+  apply le_antisymm,
+  { refine (op_norm_le_bound _ (norm_nonneg f) (λ m, _)),
+    dsimp,
+    rw pi_norm_le_iff,
+    exacts [λ i, (f i).le_of_op_norm_le m (norm_le_pi_norm f i),
+      mul_nonneg (norm_nonneg f) (prod_nonneg $ λ _ _, norm_nonneg _)] },
+  { refine (pi_norm_le_iff (norm_nonneg _)).2 (λ i, _),
+    refine (op_norm_le_bound _ (norm_nonneg _) (λ m, _)),
+    refine le_trans _ ((pi f).le_op_norm m),
+    convert norm_le_pi_norm (λ j, f j m) i }
+end
+
+section
+
+variables (𝕜 E E' G G')
 
 /-- `continuous_multilinear_map.prod` as a `linear_isometry_equiv`. -/
 def prodL :
@@ -400,6 +443,23 @@ def prodL :
   left_inv := λ f, by ext; refl,
   right_inv := λ f, by ext; refl,
   norm_map' := λ f, op_norm_prod f.1 f.2 }
+
+/-- `continuous_multilinear_map.pi` as a `linear_isometry_equiv`. -/
+def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
+  [Π i', normed_space 𝕜 (E' i')] :
+  @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
+    (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
+      (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
+{ to_fun := pi,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  inv_fun := λ f i,
+    (@continuous_linear_map.proj 𝕜 _ _ E' _ _ _ i).comp_continuous_multilinear_map f,
+  left_inv := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, refl },
+  norm_map' := norm_pi }
+
+end
 
 section restrict_scalars
 
@@ -486,6 +546,10 @@ begin
   ext s,
   simp
 end
+
+lemma tsum_eval {α : Type*} {p : α → continuous_multilinear_map 𝕜 E G} (hp : summable p)
+  (m : Π i, E i) : (∑' a, p a) m = ∑' a, p a m :=
+(has_sum_eval hp.has_sum m).tsum_eq.symm
 
 open_locale topological_space
 open filter

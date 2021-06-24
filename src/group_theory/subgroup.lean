@@ -1502,7 +1502,7 @@ lemma map_eq_comap_of_inverse {f : G →* N} {g : N →* G} (hl : function.left_
 set_like.ext' $ by rw [coe_map, coe_comap, set.image_eq_preimage_of_inverse hl hr]
 
 /-- Given `f(A) = f(B)`, `ker f ≤ A`, and `ker f ≤ B`, deduce that `A = B`  -/
-@[to_additive] lemma map_injective_of_le_ker
+@[to_additive] lemma map_injective_of_ker_le
   {H K : subgroup G} (hH : f.ker ≤ H) (hK : f.ker ≤ K) (hf : map f H = map f K) :
   H = K :=
 begin

@@ -110,7 +110,7 @@ lemma map_sub [add_group α] [add_group β] (f : α →+ β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 by { ext, simp }
 
-lemma map_scalar [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
+lemma map_smul [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
   (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 by { ext, simp, }
 

@@ -1516,7 +1516,7 @@ end
 begin
   have : map f (comap f H ⊔ comap f K) = map f (comap f (H ⊔ K)),
   { simp [subgroup.map_comap_eq, map_sup, f.range_top_of_surjective hf], },
-  refine map_injective_of_le_ker f _ _ this,
+  refine map_injective_of_ker_le f _ _ this,
   { calc f.ker ≤ comap f H : ker_le_comap f _
            ... ≤ comap f H ⊔ comap f K : le_sup_left, },
   exact ker_le_comap _ _,

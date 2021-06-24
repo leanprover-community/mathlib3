@@ -50,7 +50,7 @@ universe u
 variables {K : Type u}
 
 /-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements -/
-@[protect_proj, ancestor ring has_inv]
+@[protect_proj, ancestor ring div_inv_monoid nontrivial]
 class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
@@ -168,8 +168,8 @@ instance division_ring.to_domain : domain K :=
 end division_ring
 
 /-- A `field` is a `comm_ring` with multiplicative inverses for nonzero elements -/
-@[protect_proj, ancestor division_ring comm_ring]
-class field (K : Type u) extends comm_ring K, has_inv K, nontrivial K :=
+@[protect_proj, ancestor comm_ring div_inv_monoid nontrivial]
+class field (K : Type u) extends comm_ring K, div_inv_monoid K, nontrivial K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
 
@@ -187,20 +187,19 @@ instance field.to_comm_group_with_zero :
   comm_group_with_zero K :=
 { .. (_ : group_with_zero K), .. ‹field K› }
 
-lemma one_div_add_one_div {a b : K} (ha : a ≠ 0) (hb : b ≠ 0) : 1 / a + 1 / b = (a + b) / (a * b) :=
-by rw [add_comm, ← div_mul_left ha, ← div_mul_right _ hb,
-       division_def, division_def, division_def, ← right_distrib, mul_comm a]
-
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 lemma div_add_div (a : K) {b : K} (c : K) {d : K} (hb : b ≠ 0) (hd : d ≠ 0) :
       (a / b) + (c / d) = ((a * d) + (b * c)) / (b * d) :=
 by rw [← mul_div_mul_right _ b hd, ← mul_div_mul_left c d hb, div_add_div_same]
 
+lemma one_div_add_one_div {a b : K} (ha : a ≠ 0) (hb : b ≠ 0) : 1 / a + 1 / b = (a + b) / (a * b) :=
+by rw [div_add_div _ _ ha hb, one_mul, mul_one, add_comm]
+
 @[field_simps] lemma div_sub_div (a : K) {b : K} (c : K) {d : K} (hb : b ≠ 0) (hd : d ≠ 0) :
   (a / b) - (c / d) = ((a * d) - (b * c)) / (b * d) :=
 begin
-  simp [sub_eq_add_neg],
+  simp only [sub_eq_add_neg],
   rw [neg_eq_neg_one_mul, ← mul_div_assoc, div_add_div _ _ hb hd,
       ← mul_assoc, mul_comm b, mul_assoc, ← neg_eq_neg_one_mul]
 end
@@ -326,3 +325,31 @@ noncomputable def field_of_is_unit_or_eq_zero [hR : comm_ring R]
 { .. (group_with_zero_of_is_unit_or_eq_zero h), .. hR }
 
 end noncomputable_defs
+
+/-- Pullback a `division_ring` along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.division_ring [division_ring K] {K'}
+  [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
+  [has_div K']
+  (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  division_ring K' :=
+{ .. hf.group_with_zero f zero one mul inv div,
+  .. hf.ring f zero one add mul neg sub }
+
+/-- Pullback a `field` along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.field [field K] {K'}
+  [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
+  [has_div K']
+  (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  field K' :=
+{ .. hf.comm_group_with_zero f zero one mul inv div,
+  .. hf.comm_ring f zero one add mul neg sub }

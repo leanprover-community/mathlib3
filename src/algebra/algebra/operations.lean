@@ -207,7 +207,9 @@ variables (M)
 lemma pow_subset_pow {n : ℕ} : (↑M : set A)^n ⊆ ↑(M^n : submodule R A) :=
 begin
   induction n with n ih,
-  { erw [pow_zero, pow_zero, set.singleton_subset_iff], rw [mem_coe, ← one_le], exact le_refl _ },
+  { erw [pow_zero, pow_zero, set.singleton_subset_iff],
+    rw [set_like.mem_coe, ← one_le],
+    exact le_refl _ },
   { rw [pow_succ, pow_succ],
     refine set.subset.trans (set.mul_subset_mul (subset.refl _) ih) _,
     apply mul_subset_mul }
@@ -246,7 +248,7 @@ instance : comm_semiring (submodule R A) :=
 variables (R A)
 
 /-- R-submodules of the R-algebra A are a module over `set A`. -/
-instance semimodule_set : semimodule (set_semiring A) (submodule R A) :=
+instance module_set : module (set_semiring A) (submodule R A) :=
 { smul := λ s P, span R s * P,
   smul_add := λ _ _ _, mul_add _ _ _,
   add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
@@ -275,7 +277,7 @@ begin
   apply le_antisymm,
   { rw span_le,
     rintros _ ⟨b, m, hb, hm, rfl⟩,
-    rw [mem_coe, mem_map, set.mem_singleton_iff.mp hb],
+    rw [set_like.mem_coe, mem_map, set.mem_singleton_iff.mp hb],
     exact ⟨m, hm, rfl⟩ },
   { rintros _ ⟨m, hm, rfl⟩, exact subset_span ⟨a, m, set.mem_singleton a, hm, rfl⟩ }
 end

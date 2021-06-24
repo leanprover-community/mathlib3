@@ -14,3 +14,5 @@ using the following format:
 - [ ] depends on: #abc [optional extra text]
 - [ ] depends on: #xyz [optional extra text]
 -->
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/from-referrer/)

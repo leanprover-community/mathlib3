@@ -144,8 +144,9 @@ begin
     -- we have our desired conclusion.
     exact t₄, },
   { intros S ι U,
-    -- Let `f` be the universal morphism from `F.obj U` to the equalizer of the sheaf condition fork,
-    -- whatever it is. Our goal is to show that this is an isomorphism.
+    -- Let `f` be the universal morphism from `F.obj U` to the equalizer
+    -- of the sheaf condition fork, whatever it is.
+    -- Our goal is to show that this is an isomorphism.
     let f := equalizer.lift _ (w F U),
     -- If we can do that,
     suffices : is_iso (G.map f),
@@ -192,7 +193,7 @@ begin
       haveI : is_iso f' := is_limit.hom_is_iso hc hd' f',
       -- A cone morphism is an isomorphism exactly if the morphism between the cone points is,
       -- so we're done!
-      exact { ..((cones.forget _).map_iso (as_iso f')) }, }, },
+      exact is_iso.of_iso ((cones.forget _).map_iso (as_iso f')) }, },
 end
 
 /-!

@@ -104,11 +104,11 @@ begin
   refine le_antisymm (assume s hs, _) (assume s hs, _),
   { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
     have h₁ : {b | s ∈ n b} ∈ 𝓝 a,
-    { refine mem_nhds_sets (assume b (hb : s ∈ n b), _) hs,
+    { refine is_open.mem_nhds (assume b (hb : s ∈ n b), _) hs,
       rcases h₁ hb with ⟨t, ht, hts, h⟩,
       exact mem_sets_of_superset ht h },
     exact mem_sets_of_superset h₁ h₀ },
-  { rcases (@mem_nhds_sets_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
+  { rcases (@mem_nhds_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
     exact (n a).sets_of_superset (ht _ hat) hts },
 end
 
@@ -204,7 +204,7 @@ instance discrete_topology_bot (α : Type*) : @discrete_topology α ⊥ :=
 
 @[simp] lemma is_closed_discrete [topological_space α] [discrete_topology α] (s : set α) :
   is_closed s :=
-(discrete_topology.eq_bot α).symm ▸ trivial
+is_open_compl_iff.1 $ (discrete_topology.eq_bot α).symm ▸ trivial
 
 lemma continuous_of_discrete_topology [topological_space α] [discrete_topology α]
   [topological_space β] {f : α → β} : continuous f :=
@@ -214,7 +214,7 @@ lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
 begin
   refine le_antisymm _ (@pure_le_nhds α ⊥),
   assume a s hs,
-  exact @mem_nhds_sets α ⊥ a s trivial hs
+  exact @is_open.mem_nhds α ⊥ a s trivial hs
 end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
@@ -272,9 +272,11 @@ iff.rfl
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
-⟨assume ⟨t, ht, heq⟩, ⟨tᶜ, is_closed_compl_iff.2 ht,
-    by simp only [preimage_compl, heq, compl_compl]⟩,
-  assume ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+begin
+  simp only [← is_open_compl_iff, is_open_induced_iff],
+  exact ⟨λ ⟨t, ht, heq⟩, ⟨tᶜ, by rwa compl_compl, by simp [preimage_compl, heq, compl_compl]⟩,
+         λ ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+end
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
   such that `s:set β` is open if the preimage of `s` is open. This is the finest topology that
@@ -291,6 +293,14 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
 lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} :
   @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
 iff.rfl
+
+lemma preimage_nhds_coinduced [topological_space α] {π : α → β} {s : set β}
+  {a : α} (hs : s ∈ @nhds β (topological_space.coinduced π ‹_›) (π a)) : π ⁻¹' s ∈ 𝓝 a :=
+begin
+  letI := topological_space.coinduced π ‹_›,
+  rcases mem_nhds_iff.mp hs with ⟨V, hVs, V_op, mem_V⟩,
+  exact mem_nhds_iff.mpr ⟨π ⁻¹' V, set.preimage_mono hVs, V_op, mem_V⟩
+end
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
@@ -348,6 +358,10 @@ lemma induced_compose [tγ : topological_space γ]
 topological_space_eq $ funext $ assume s, propext $
   ⟨assume ⟨s', ⟨s, hs, h₂⟩, h₁⟩, h₁ ▸ h₂ ▸ ⟨s, hs, rfl⟩,
     assume ⟨s, hs, h⟩, ⟨preimage g s, ⟨s, hs, rfl⟩, h ▸ rfl⟩⟩
+
+lemma induced_const [t : topological_space α] {x : α} :
+  t.induced (λ y : β, x) = ⊤ :=
+le_antisymm le_top (@continuous_const β α ⊤ t x).le_induced
 
 lemma coinduced_id [t : topological_space α] : t.coinduced id = t :=
 topological_space_eq rfl
@@ -451,6 +465,7 @@ theorem continuous_generated_from {t : tspace α} {b : set (set β)}
   (h : ∀s∈b, is_open (f ⁻¹' s)) : cont t (generate_from b) f :=
 continuous_iff_coinduced_le.2 $ le_generate_from h
 
+@[continuity]
 lemma continuous_induced_dom {t : tspace β} : cont (induced f t) t f :=
 by { rw continuous_def, assume s h, exact ⟨_, h, rfl⟩ }
 
@@ -567,7 +582,7 @@ continuous_iff_coinduced_le.2 $ le_top
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
   s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [mem_nhds_sets_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simp only [mem_nhds_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },
@@ -647,6 +662,6 @@ begin
 end
 
 lemma is_closed_infi_iff {s : set α} : @is_closed _ (⨆ i, t i) s ↔ ∀ i, @is_closed _ (t i) s :=
-is_open_supr_iff
+by simp [← is_open_compl_iff, is_open_supr_iff]
 
 end infi

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
+import data.list.indexes
 import tactic.interval_cases
 import tactic.linarith
 
@@ -37,7 +38,7 @@ def digits_aux (b : ℕ) (h : 2 ≤ b) : ℕ → list ℕ
   have (n+1)/b < n+1 := nat.div_lt_self (nat.succ_pos _) h,
   (n+1) % b :: digits_aux ((n+1)/b)
 
-@[simp] lemma digits_aux_zero (b : ℕ) (h : 2 ≤ b) : digits_aux b h 0 = [] := rfl
+@[simp] lemma digits_aux_zero (b : ℕ) (h : 2 ≤ b) : digits_aux b h 0 = [] := by rw digits_aux
 
 lemma digits_aux_def (b : ℕ) (h : 2 ≤ b) (n : ℕ) (w : 0 < n) :
   digits_aux b h n = n % b :: digits_aux b h (n/b) :=
@@ -67,11 +68,7 @@ def digits : ℕ → ℕ → list ℕ
 | (b+2) := digits_aux (b+2) (by norm_num)
 
 @[simp] lemma digits_zero (b : ℕ) : digits b 0 = [] :=
-begin
-  cases b,
-  { refl, },
-  { cases b; refl, },
-end
+by rcases b with _|⟨_|⟨_⟩⟩; simp [digits, digits_aux_0, digits_aux_1]
 
 @[simp] lemma digits_zero_zero : digits 0 0 = [] := rfl
 
@@ -86,7 +83,8 @@ theorem digits_zero_succ' : ∀ {n : ℕ} (w : 0 < n), digits 0 n = [n]
 @[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n := rfl
 
 @[simp] lemma digits_add_two_add_one (b n : ℕ) :
-  digits (b+2) (n+1) = (((n+1) % (b+2)) :: digits (b+2) ((n+1) / (b+2))) := rfl
+  digits (b+2) (n+1) = (((n+1) % (b+2)) :: digits (b+2) ((n+1) / (b+2))) :=
+by { rw [digits, digits_aux_def], exact succ_pos n }
 
 theorem digits_def' : ∀ {b : ℕ} (h : 2 ≤ b) {n : ℕ} (w : 0 < n),
   digits b n = n % b :: digits b (n/b)
@@ -103,11 +101,7 @@ begin
     { interval_cases x, },
     { cases x,
       { cases w₁, },
-      { dsimp [digits],
-        rw digits_aux,
-        rw nat.div_eq_of_lt w₂,
-        dsimp only [digits_aux_zero],
-        rw nat.mod_eq_of_lt w₂, } } }
+      { rw [digits_add_two_add_one, nat.div_eq_of_lt w₂, digits_zero, nat.mod_eq_of_lt w₂] } } }
 end
 
 lemma digits_add (b : ℕ) (h : 2 ≤ b) (x y : ℕ) (w : x < b) (w' : 0 < x ∨ 0 < y) :
@@ -146,6 +140,30 @@ begin
   induction L with d L ih,
   { refl, },
   { dsimp [of_digits], rw ih, },
+end
+
+lemma of_digits_eq_sum_map_with_index_aux (b : ℕ) (l : list ℕ) :
+  ((list.range l.length).zip_with ((λ (i a : ℕ), a * b ^ i) ∘ succ) l).sum =
+  b * ((list.range l.length).zip_with (λ i a, a * b ^ i) l).sum :=
+begin
+  suffices : (list.range l.length).zip_with (((λ (i a : ℕ), a * b ^ i) ∘ succ)) l =
+      (list.range l.length).zip_with (λ i a, b * (a * b ^ i)) l,
+    { simp [this] },
+  congr,
+  ext,
+  simp [pow_succ],
+  ring
+end
+
+lemma of_digits_eq_sum_map_with_index (b : ℕ) (L : list ℕ):
+  of_digits b L = (L.map_with_index (λ i a, a * b ^ i)).sum :=
+begin
+  rw [list.map_with_index_eq_enum_map, list.enum_eq_zip_range,
+      list.map_uncurry_zip_eq_zip_with, of_digits_eq_foldr],
+  induction L with hd tl hl,
+  { simp },
+  { simpa [list.range_succ_eq_map, list.zip_with_map_left, of_digits_eq_sum_map_with_index_aux]
+      using or.inl hl }
 end
 
 @[simp] lemma of_digits_singleton {b n : ℕ} : of_digits b [n] = n := by simp [of_digits]
@@ -239,7 +257,7 @@ begin
     { apply nat.strong_induction_on n _, clear n,
       intros n h,
       cases n,
-      { refl, },
+      { rw digits_zero, refl, },
       { simp only [nat.succ_eq_add_one, digits_add_two_add_one],
         dsimp [of_digits],
         rw h _ (nat.div_lt_self' n b),
@@ -321,10 +339,9 @@ lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=
 begin
   apply nat.strong_induction_on m,
   intros n IH d hd,
-  unfold digits at hd IH,
   cases n with n,
-  { cases hd }, -- base b+2 expansion of 0 has no digits
-  rw digits_aux_def (b+2) (by linarith) n.succ (nat.zero_lt_succ n) at hd,
+  { rw digits_zero at hd, cases hd }, -- base b+2 expansion of 0 has no digits
+  rw digits_add_two_add_one at hd,
   cases hd,
   { rw hd, exact n.succ.mod_lt (by linarith) },
   { exact IH _ (nat.div_lt_self (nat.succ_pos _) (by linarith)) hd }
@@ -525,9 +542,8 @@ lemma of_digits_neg_one : Π (L : list ℕ),
 lemma modeq_eleven_digits_sum (n : ℕ) :
   n ≡ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum [ZMOD 11] :=
 begin
-  have t := zmodeq_of_digits_digits 11 10 (-1 : ℤ) dec_trivial n,
-  rw of_digits_neg_one at t,
-  exact t,
+  have t := zmodeq_of_digits_digits 11 10 (-1 : ℤ) (by unfold int.modeq; norm_num) n,
+  rwa of_digits_neg_one at t
 end
 
 /-! ## Divisibility  -/

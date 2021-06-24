@@ -41,7 +41,8 @@ Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp
 
 For example, neither `simp` nor `rw` can solve the following, but `simp_rw` can:
 ```lean
-example {α β : Type} {f : α → β} {t : set β} : (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+example {α β : Type} {f : α → β} {t : set β} :
+  (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
 by simp_rw [set.image_subset_iff, set.subset_def]
 ```
 -/

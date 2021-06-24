@@ -160,8 +160,8 @@ begin
   have := X_in_terms_of_W_aux p ℚ n,
   replace := congr_arg (bind₁ (λ k : ℕ, bind₁ (λ i, rename (prod.mk i) (W_ ℚ k)) Φ)) this,
   rw [alg_hom.map_mul, bind₁_C_right] at this,
-  convert this, clear this,
-  conv_rhs { simp only [alg_hom.map_sub, bind₁_X_right] },
+  rw [witt_structure_rat, this], clear this,
+  conv_lhs { simp only [alg_hom.map_sub, bind₁_X_right] },
   rw sub_right_inj,
   simp only [alg_hom.map_sum, alg_hom.map_mul, bind₁_C_right, alg_hom.map_pow],
   refl
@@ -177,7 +177,7 @@ begin
       = C (1 / p ^ n : ℚ) * (witt_structure_rat p Φ n * C (p ^ n : ℚ)) : _
   ... = _ : by rw witt_structure_rat_rec_aux,
   rw [mul_left_comm, ← C_mul, div_mul_cancel, C_1, mul_one],
-  exact pow_ne_zero _ (nat.cast_ne_zero.2 $ ne_of_gt (nat.prime.pos ‹_›)),
+  exact pow_ne_zero _ (nat.cast_ne_zero.2 hp.1.ne_zero),
 end
 
 /-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
@@ -241,15 +241,15 @@ begin
   rw key, clear key IH,
   rw [bind₁, aeval_witt_polynomial, ring_hom.map_sum, ring_hom.map_sum, finset.sum_congr rfl],
   intros k hk,
-  rw finset.mem_range at hk,
+  rw [finset.mem_range, nat.lt_succ_iff] at hk,
   simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
     ← int.nat_cast_eq_coe_nat, ← nat.cast_pow],
   rw show p ^ (n + 1) = p ^ k * p ^ (n - k + 1),
-  { rw ← pow_add, congr' 1, omega },
+  { rw [← pow_add, ←add_assoc], congr' 2, rw [add_comm, ←nat.sub_eq_iff_eq_add hk] },
   rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
   apply mul_dvd_mul_left,
   rw show p ^ (n + 1 - k) = p * p ^ (n - k),
-  { rw ← pow_succ, congr' 1, omega },
+  { rw [← pow_succ, nat.sub_add_comm hk] },
   rw [pow_mul],
   -- the machine!
   apply dvd_sub_pow_of_dvd_sub,
@@ -283,7 +283,7 @@ begin
     ← map_rename, ← map_bind₁, ← ring_hom.map_sub, coeff_map],
   rw show (p : ℚ)^n = ((p^n : ℕ) : ℤ), by norm_cast,
   rw [← rat.denom_eq_one_iff, ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
-  swap, { exact_mod_cast pow_ne_zero n hp.ne_zero },
+  swap, { exact_mod_cast pow_ne_zero n hp.1.ne_zero },
   revert c, rw [← C_dvd_iff_dvd_coeff],
   exact C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum Φ n IH,
 end

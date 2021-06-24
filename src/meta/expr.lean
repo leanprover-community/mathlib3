@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
 import data.string.defs
+import data.option.defs
 import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
@@ -61,7 +62,7 @@ meta def get_nth_prefix : name → ℕ → name
 | nm 0 := nm
 | nm (n + 1) := get_nth_prefix nm.get_prefix n
 
-/-- Auxilliary definition for `pop_nth_prefix` -/
+/-- Auxiliary definition for `pop_nth_prefix` -/
 private meta def pop_nth_prefix_aux : name → ℕ → name × ℕ
 | anonymous n := (anonymous, 1)
 | nm n := let (pfx, height) := pop_nth_prefix_aux nm.get_prefix n in
@@ -76,7 +77,7 @@ prod.fst $ pop_nth_prefix_aux nm n
 meta def pop_prefix (n : name) : name :=
 pop_nth_prefix n 1
 
-/-- Auxilliary definition for `from_components` -/
+/-- Auxiliary definition for `from_components` -/
 private def from_components_aux : name → list string → name
 | n [] := n
 | n (s :: rest) := from_components_aux (name.mk_string s n) rest
@@ -94,10 +95,21 @@ meta def sanitize_name : name → name
 | (name.mk_string s p) := name.mk_string s $ sanitize_name p
 | (name.mk_numeral s p) := name.mk_string sformat!"n{s}" $ sanitize_name p
 
-/-- Append a string to the last component of a name -/
+/-- Append a string to the last component of a name. -/
 def append_suffix : name → string → name
 | (mk_string s n) s' := mk_string (s ++ s') n
 | n _ := n
+
+/-- Update the last component of a name. -/
+def update_last (f : string → string) : name → name
+| (mk_string s n) := mk_string (f s) n
+| n := n
+
+/-- `append_to_last nm s is_prefix` adds `s` to the last component of `nm`,
+  either as prefix or as suffix (specified by `is_prefix`), separated by `_`.
+  Used by `simps_add_projections`. -/
+def append_to_last (nm : name) (s : string) (is_prefix : bool) : name :=
+nm.update_last $ λ s', if is_prefix then s ++ "_" ++ s' else s' ++ "_" ++ s
 
 /-- The first component of a name, turning a number to a string -/
 meta def head : name → string
@@ -372,6 +384,42 @@ e.replace $ λ e d,
   | _ := none
   end
 
+/-- Implementation of `expr.mreplace`. -/
+meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) :
+  expr → ℕ → m expr
+| (app f x) n := option.mget_or_else (R (app f x) n)
+  (do Rf ← mreplace_aux f n, Rx ← mreplace_aux x n, return $ app Rf Rx)
+| (lam nm bi ty bd) n := option.mget_or_else (R (lam nm bi ty bd) n)
+  (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ lam nm bi Rty Rbd)
+| (pi nm bi ty bd) n := option.mget_or_else (R (pi nm bi ty bd) n)
+  (do Rty ← mreplace_aux ty n, Rbd ← mreplace_aux bd (n+1), return $ pi nm bi Rty Rbd)
+| (elet nm ty a b) n := option.mget_or_else (R (elet nm ty a b) n)
+  (do Rty ← mreplace_aux ty n,
+    Ra ← mreplace_aux a n,
+    Rb ← mreplace_aux b n,
+    return $ elet nm Rty Ra Rb)
+| (macro c es) n := option.mget_or_else (R (macro c es) n) $
+    macro c <$> es.mmap (λ e, mreplace_aux e n)
+| e n := option.mget_or_else (R e n) (return e)
+
+/--
+Monadic analogue of `expr.replace`.
+
+The `mreplace R e` visits each subexpression `s` of `e`, and is called with `R s n`, where
+`n` is the number of binders above `e`.
+If `R s n` fails, the whole replacement fails.
+If `R s n` returns `some t`, `s` is replaced with `t` (and `mreplace` does not visit
+its subexpressions).
+If `R s n` return `none`, then `mreplace` continues visiting subexpressions of `s`.
+
+WARNING: This function performs exponentially worse on large terms than `expr.replace`,
+if a subexpression occurs more than once in an expression, `expr.replace` visits them only once,
+but this function will visit every occurence of it. Do not use this on large expressions.
+-/
+meta def mreplace {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) (e : expr) :
+  m expr :=
+mreplace_aux R e 0
+
 /-- Match a variable. -/
 meta def match_var {elab} : expr elab → option ℕ
 | (var n) := some n
@@ -462,7 +510,8 @@ meta def to_implicit_local_const : expr → expr
 | e := e
 
 /-- If `e` is a local constant, lamda, or pi expression, `to_implicit_binder e` changes the binder
-info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants. -/
+info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants.
+-/
 meta def to_implicit_binder : expr → expr
 | (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
 | (lam n _ d b) := lam n binder_info.implicit d b
@@ -628,7 +677,7 @@ meta def lambda_body : expr → expr
 | (lam n bi d b) := lambda_body b
 | e             := e
 
-/-- Auxilliary defintion for `pi_binders`.
+/-- Auxiliary defintion for `pi_binders`.
   See note [open expressions]. -/
 meta def pi_binders_aux : list binder → expr → list binder × expr
 | es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
@@ -642,7 +691,7 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 meta def pi_binders (e : expr) : list binder × expr :=
 let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
-/-- Auxilliary defintion for `get_app_fn_args`. -/
+/-- Auxiliary defintion for `get_app_fn_args`. -/
 meta def get_app_fn_args_aux : list expr → expr → expr × list expr
 | r (app f a) := get_app_fn_args_aux (a::r) f
 | r e         := (e, r)
@@ -717,7 +766,8 @@ meta def unsafe_cast {elab₁ elab₂ : bool} : expr elab₁ → expr elab₂ :=
 /-- `replace_subexprs e mappings` takes an `e : expr` and interprets a `list (expr × expr)` as
 a collection of rules for variable replacements. A pair `(f, t)` encodes a rule which says "whenever
 `f` is encountered in `e` verbatim, replace it with `t`". -/
-meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) : expr elab :=
+meta def replace_subexprs {elab : bool} (e : expr elab) (mappings : list (expr × expr)) :
+  expr elab :=
 unsafe_cast $ e.unsafe_cast.replace $ λ e n,
   (mappings.filter $ λ ent : expr × expr, ent.1 = e).head'.map prod.snd
 
@@ -752,7 +802,8 @@ private meta def all_implicitly_included_variables_aux
 | []          vs rs tt := all_implicitly_included_variables_aux rs vs [] ff
 | []          vs rs ff := vs
 | (e :: rest) vs rs b :=
-  let (vs, rs, b) := if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
+  let (vs, rs, b) :=
+    if e.is_implicitly_included_variable vs then (e :: vs, rs, tt) else (vs, e :: rs, b) in
   all_implicitly_included_variables_aux rest vs rs b
 
 /-- `all_implicitly_included_variables es vs` accepts `es`, a list of `expr.local_const`, and `vs`,
@@ -973,8 +1024,8 @@ do tp ← pp tp, body ← pp body.get,
 private meta def print_defn (nm : name) (tp : expr) (body : expr) (is_trusted : bool) :
   tactic format :=
 do tp ← pp tp, body ← pp body,
-   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++ " := "
-     ++ body ++ ">"
+   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++
+     " := " ++ body ++ ">"
 
 /-- formats the arguments of a `declaration.cnst` -/
 private meta def print_cnst (nm : name) (tp : expr) (is_trusted : bool) : tactic format :=

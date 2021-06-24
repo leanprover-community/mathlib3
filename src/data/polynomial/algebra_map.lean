@@ -203,6 +203,13 @@ theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : polynomial R) :
   aeval (f x) p = f (aeval x p) :=
 alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 
+theorem aeval_alg_equiv (f : A ≃ₐ[R] B) (x : A) : aeval (f x) = (f : A →ₐ[R] B).comp (aeval x) :=
+aeval_alg_hom (f : A →ₐ[R] B) x
+
+theorem aeval_alg_equiv_apply (f : A ≃ₐ[R] B) (x : A) (p : polynomial R) :
+  aeval (f x) p = f (aeval x p) :=
+aeval_alg_hom_apply (f : A →ₐ[R] B) x p
+
 lemma aeval_algebra_map_apply (x : R) (p : polynomial R) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p

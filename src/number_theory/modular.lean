@@ -309,13 +309,21 @@ begin
   sorry,
 end
 
--- ALEX HOMEWORK
+
+lemma junk11 (z w u :ℂ) (h: z=w+u) : z.re=w.re+u.re :=
+begin
+  sorry,
+end
+
 lemma something1 (p : coprime_ints) (z : ℍ) :
   ∃ w, ∀ g : bottom_row ⁻¹' {p},
   ((g : SL(2, ℤ)) • z).re = (acbd p ↑g) / (p.c ^ 2 + p.d ^ 2) + w :=
 begin
   obtain ⟨w, hw⟩ := something2 p z,
-  sorry,
+  use w.re,
+  intros g,
+  convert junk11 _ _ _ (hw g),
+  norm_cast,
 end
 
 
@@ -330,15 +338,6 @@ homeomorph.add_right a g = g + a := rfl
 @[simp] theorem homeomorph.trans_apply {α : Type*} {β : Type*} {γ : Type*} [topological_space α]
 [topological_space β] [topological_space γ] (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) (a : α) :
 h₁.trans h₂ a = h₂ (h₁ a) := rfl
-
--- lemma coprime_nonzero (p : coprime_ints) : (p.c : ℝ) ^ 2 + (p.d : ℝ) ^ 2 ≠ 0 :=
--- begin
---   norm_cast,
---   intros h,
---   have c_eq_zero : p.c = 0 := by nlinarith,
---   have d_eq_zero : p.d = 0 := by nlinarith,
---   cases p.ne_zero with hc hd; contradiction
--- end
 
 
 /- final filter lemma, deduce from previous two results -/
@@ -375,7 +374,7 @@ begin
     simp,
 --    split,
  --   intros,
-    sorry, -- COME ON!!!
+    sorry, -- COME ON!!! -- HEATHER HELP
   end,
   obtain ⟨g, hg⟩  := filter.tendsto.exists_forall_le (something' z cd),
   use g,
@@ -391,11 +390,6 @@ begin
 end
 
 
-
-
-
-
-
 lemma exists_g_with_min_bottom (z : ℍ) :
   ∃ g : SL(2,ℤ), ∀ g' : SL(2,ℤ), (bottom g z).norm_sq ≤ (bottom g' z).norm_sq  :=
 begin
@@ -406,9 +400,9 @@ begin
   convert hp (bottom_row g'),
   { simp [bottom_row] at hg,
     simp [bottom, ← hg],
-    sorry,
+    sorry, -- HEATHER HELP
   },
-  simp [bottom_row, bottom],
+  simp [bottom_row, bottom], -- HEATHER HELP
   sorry,-- classic explicit-matrix-in-SL casting problem
 end
 
@@ -422,8 +416,8 @@ begin
     div_le_div_left],
   { exact hg g' },
   { exact z.im_pos },
-  { exact norm_sq_pos.mpr (bottom_ne_zero_int g' z) },
-  { exact norm_sq_pos.mpr (bottom_ne_zero_int g z) },
+  { exact normsq_bottom_pos g' z },
+  { exact normsq_bottom_pos g z },
 end
 
 
@@ -457,28 +451,51 @@ begin
   sorry,
 end
 
+lemma S_bottom (z : ℍ) : bottom S z = (z:ℂ) :=
+begin
+  rw [bottom, S],
+  simp,
+  sorry, --- HEATHER HELP?
+end
 
+lemma S_action_im (z : ℍ) : (S • z).im = z.im / norm_sq z :=
+begin
+  rw matrix.special_linear_group.im_smul_int,
+  have nonZ1 : norm_sq (bottom S z) ≠ 0 := normsq_bottom_ne_zero S z,
+  have nonZ2 : norm_sq z ≠ 0 := norm_sq_nonzero z,
 
-
-variables {g : SL(2,ℤ)} {z : ℍ}
+  field_simp [nonZ1, nonZ2],
+  left,
+  rw ← S_bottom z,
+  congr,
+end
 
 lemma im_lt_im_S {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
 begin
   have : z.im < z.im / norm_sq (z:ℂ),
-  {
-    have imz : 0 < z.im := im_pos z,
+  { have imz : 0 < z.im := im_pos z,
     apply (lt_div_iff z.norm_sq_pos).mpr,
-    nlinarith,
-  },
+    nlinarith },
   convert this,
-  rw [matrix.special_linear_group.im_smul_int, bottom, S],
-  congr,
-  simp,
-  sorry,
+  exact S_action_im z,
 end
 
-/- TODO : prove directly instead of by contradiction
--/
+
+lemma T_action_re (z : ℍ) : (T • z).re = z.re + 1 :=
+begin
+  sorry, --- HEATHER HELP?
+--  convert @smul_sound T z, -- WHat is `smul_sound`???
+  simp only [smul_aux_def, top, bottom, T, has_coe_SL_apply, subtype.coe_mk, map_cons],
+  simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
+end
+
+lemma T'_action_re (z : ℍ) : (T' • z).re = z.re - 1 :=
+begin
+  sorry, --- HEATHER HELP?
+--  convert @smul_sound T z, -- WHat is `smul_sound`???
+  simp only [smul_aux_def, top, bottom, T, has_coe_SL_apply, subtype.coe_mk, map_cons],
+  simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
+end
 
 lemma half_ge_x_T_inv (z : ℍ) (h : 1/2 < z.re) : |(T' • z).re| < |z.re| :=
 begin
@@ -486,9 +503,7 @@ begin
   { rw [(abs_eq_self.mpr (by linarith : 0 ≤ z.re)), abs_lt],
     split; linarith, },
   convert this,
-
-  sorry,
-
+  exact T'_action_re z,
 end
 
 lemma half_le_neg_x_T (z : ℍ) (h : 1/2 < - z.re) : |(T • z).re| < |z.re| :=
@@ -497,10 +512,60 @@ begin
   { rw [(abs_eq_neg_self.mpr (by linarith : z.re ≤ 0)), abs_lt],
     split; linarith, },
   convert this,
-
-  sorry,
-
+  exact T_action_re z,
 end
+
+lemma bottom_row_eq_bottom_eq_int (g h : SL(2,ℤ)) (z : ℍ) (bot_eq : bottom_row g = bottom_row h) :
+  (bottom g z) = (bottom h z) :=
+begin
+  rw bottom,
+  rw bottom,
+  rw bottom_row at bot_eq,
+  sorry, --- HEATHER HELP?
+end
+
+lemma bottom_row_T (g : SL(2,ℤ)) : bottom_row g = bottom_row (T * g) :=
+begin
+  rw bottom_row,
+  rw T,
+  sorry, --- HEATHER HELP?
+end
+
+lemma bottom_row_T' (g : SL(2,ℤ)) : bottom_row g = bottom_row (T' * g) :=
+begin
+  rw bottom_row,
+  rw T', --- HEATHER HELP?
+  sorry,
+end
+
+lemma trivial_ineq1 (x:ℝ) (h₁ : x < -((1:ℝ) / 2)) : |x+1| < |x| :=
+begin
+  have : x < 0 := by linarith,
+  rw abs_of_neg this,
+  by_cases (x < -1),
+  { have : x+1 <0 := by linarith,
+    rw abs_of_neg this,
+    linarith },
+  { push_neg at h,
+    have : 0 ≤ x+1  := by linarith,
+    rw _root_.abs_of_nonneg this,
+    linarith },
+end
+
+lemma trivial_ineq2 (x:ℝ) (h₁ : ((1:ℝ) / 2)< x ) : |x-1| < |x| :=
+begin
+  have : 0 < x := by linarith,
+  rw abs_of_pos this,
+  by_cases (1 < x),
+  { have : 0 < x-1 := by linarith,
+    rw abs_of_pos this,
+    linarith },
+  { push_neg at h,
+    have : x-1 ≤ 0 := by linarith,
+    rw _root_.abs_of_nonpos this,
+    linarith },
+end
+
 
 lemma fun_dom_lemma₁ (z:ℍ) : ∃ (g: SL(2,ℤ)), (g • z) ∈ 𝒟 :=
 begin
@@ -521,8 +586,19 @@ begin
   use g,
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   {
-    have hg'' : (g • z).im = (g₀ • z).im := sorry, --have := matrix.special_linear_group.im_smul_int,
-    sorry,
+    have hg'' : (g • z).im = (g₀ • z).im,
+    {
+      rw matrix.special_linear_group.im_smul_int g z,
+      rw matrix.special_linear_group.im_smul_int g₀ z,
+      have nonZ1 : norm_sq (bottom g z) ≠ 0 := normsq_bottom_ne_zero g z,
+      have nonZ2 : norm_sq (bottom g₀ z) ≠ 0 := normsq_bottom_ne_zero g₀ z,
+      field_simp [nonZ1, nonZ2],
+      left,
+      exact congr_arg norm_sq (bottom_row_eq_bottom_eq_int g₀ g z hg.symm),
+    },
+    intros g',
+    have := hg₀ g',
+    linarith,
   },
   split,
   {
@@ -530,9 +606,7 @@ begin
     have := im_lt_im_S hg₀',
     use S * g,
     convert this using 2,
-    -- ALEX HOMEWORK
---    have := mul_smul S g z,
-    sorry,
+    exact mul_smul S g z,
   },
   {
     rw abs_le,
@@ -542,27 +616,31 @@ begin
       use T*g,
       split,
       {
-        simp [bottom_row],
-        -- ALEX HOEMWORK
-        sorry,
+        exact bottom_row_T g,
       },
       {
-        sorry,
+        convert trivial_ineq1 ((g • z).re) hg',
+        convert T_action_re (g • z) using 1,
+        simp [mul_action.mul_smul],
       },
-      sorry,
     },
     {
-      sorry,
+      contrapose! hg',
+      use T'*g,
+      split,
+      {
+        exact bottom_row_T' g,
+      },
+      {
+        convert trivial_ineq2 ((g • z).re) hg',
+        convert T'_action_re (g • z) using 1,
+        simp [mul_action.mul_smul],
+      },
     },
-    sorry,
   },
-
-
-
-  sorry,
 end
 
-lemma fun_dom_lemma₂ {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
+lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
 begin
 /-
   either c=0 in which case, translation, in which case translation by 0

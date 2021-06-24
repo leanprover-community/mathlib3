@@ -62,6 +62,7 @@ begin
   exact nonzero z,
 end
 
+lemma norm_sq_nonzero (z: ℍ) : complex.norm_sq (z:ℂ) ≠ 0 := ne_of_gt (norm_sq_pos z)
 
 end upper_half_plane
 
@@ -94,6 +95,12 @@ begin
   have this1 : (bottom g z).re = 0 := by simp [h],
   simpa [bottom, this] using this1,
 end
+
+lemma normsq_bottom_ne_zero (g : SL(2, ℝ)) (z : ℍ) : complex.norm_sq (bottom g z) ≠ 0 :=
+  ne_of_gt (complex.norm_sq_pos.mpr (bottom_ne_zero g z))
+
+lemma normsq_bottom_pos (g : SL(2, ℝ)) (z : ℍ) : 0 < complex.norm_sq (bottom g z) :=
+  complex.norm_sq_pos.mpr (bottom_ne_zero g z)
 
 def smul_aux' (g : SL(2, ℝ)) (z : ℍ) : ℂ := top g z / bottom g z
 

@@ -92,50 +92,28 @@ lemma kronecker_prod_reindex_right [semiring R] [semiring S] [algebra α R] [alg
   reindex_linear_equiv ((equiv.refl _).prod_congr en) ((equiv.refl _).prod_congr ep)
   ((A ⊗ₖ[α] B) : matrix (l × n) (m × p) (R ⊗[α] S)) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
+-- for mathlib
 
-/--
-For mathlib
--/
--- variables {β M N: Type*} [comm_ring β]
+lemma minor_map (f : R → S) (eₘ : m' → m) (eₙ : n' → n) (A : matrix m n R) :
+  (A.map f).minor eₘ eₙ = (A.minor eₘ eₙ).map f := rfl
 
--- lemma map_mul [has_scalar β M] [has_scalar β N] (f : M →[β] N) (b : β)
---   (A : matrix m n M) : (b • A).map f = b • (A.map f) :=
--- by { ext, simp, }
+--end
 
--- def move_this  [add_comm_monoid M] [add_comm_monoid N] [module β M] [module β N] (f : M →[β] N) :
---   matrix m n M →[β] matrix m n N :=
--- { to_fun := λ M, M.map f,
---   map_smul' := map_mul f, }
+example {M N : Type*} [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N]
+  [module R N] (f : M ≃ₗ[R] N) : f.to_fun ∘ (f.inv_fun) = id :=
+begin
+  ext,
+  simp only [id.def, function.comp_app, linear_equiv.to_fun_eq_coe,
+    linear_equiv.apply_symm_apply, linear_equiv.inv_fun_eq_symm],
+end
 
-
--- lemma uno [has_scalar α R] [has_scalar α S] (f : R →[α] S) (r : α)
---   (A : matrix m n R) : (r • A).map f = r • (A.map f) :=
--- by { ext, simp, }
-
--- open linear_map
--- /-- The `linear_map` between spaces of matrices induced by a `linear_map` between their
--- coefficients. -/
--- def linear_map.due
--- -- [semiring R] [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β]
---   [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
---   (f : R →ₗ[α] S) : matrix m n R →ₗ[α] matrix m n S :=
--- { to_fun := λ M, M.map f,
---   map_add' := matrix.map_add f.to_add_monoid_hom,
---   map_smul' := uno f.to_mul_action_hom, }
-
--- variables [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
--- variables (f : R →ₗ[α] S) (g : R →+ S)
-
--- #check g.map_matrix
-
--- lemma linear_map.map_matrix_apply [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
---   (f : R →ₗ[α] S) (A : matrix m n R) : f.map_matrix A = A.map f := sorry
-
-/--
-end for mathlib
--/
-
-
+example {M N : Type*} [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N]
+  [module R N] (f : M ≃ₗ[R] N) : f.to_fun ∘ (f.symm).to_fun = id :=
+begin
+  ext,
+  simp only [id.def, function.comp_app, linear_equiv.to_fun_eq_coe,
+    linear_equiv.apply_symm_apply],
+end
 
 protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [algebra α S]
   [semiring T] [algebra α T] :
@@ -147,8 +125,8 @@ protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [alge
   begin
       intros A₁ A₂,
       simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
-      have := (add_monoid_hom.map_matrix ((tensor_product.assoc α R S T).to_linear_map).to_add_monoid_hom).3
-        A₁ A₂,
+      have := (add_monoid_hom.map_matrix
+        ((tensor_product.assoc α R S T).to_linear_map).to_add_monoid_hom).3 A₁ A₂,
       simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
         linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
       rw [this, minor_add],
@@ -158,24 +136,36 @@ protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [alge
   begin
       intros a A,
       simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
-      have h := (tensor_product.assoc α R S T).to_linear_map,-- a A,
-      -- have := linear_map.map_smul (tensor_product.assoc α R S T).to_linear_map a A,
-      -- simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
-      --   linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
-      -- rw [this, minor_add],
-      -- refl,
+      have := (linear_map.map_matrix (tensor_product.assoc α R S T).to_linear_map).3 a A,
+      simp only [linear_map.to_fun_eq_coe, linear_map.map_matrix_apply,
+      linear_equiv.coe_to_linear_map] at this,
+      rw [this, minor_smul, pi.smul_apply],
+      refl,
   end,
   inv_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
       (map A (tensor_product.assoc _ _ _ _).symm),
   left_inv :=
   begin
     intros A,
-    simp,
+    simp only [equiv.symm_symm, reindex_apply, minor_map, minor_minor, equiv.self_comp_symm,
+      minor_id_id, map_map],
+    have : ⇑((tensor_product.assoc α R S T).symm) ∘ ⇑(tensor_product.assoc α R S T) = id,
+    { ext, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
+    rw this,
+    refl,
   end,
-  right_inv := _ }
+  right_inv :=
+    begin
+      intros A,
+      simp only [equiv.symm_symm, reindex_apply, minor_map, minor_minor, equiv.symm_comp_self,
+        minor_id_id, map_map],
+      have : ⇑(tensor_product.assoc α R S T) ∘ ⇑((tensor_product.assoc α R S T).symm) = id,
+      { ext, simp only [id.def, function.comp_app, linear_equiv.apply_symm_apply] },
+      rw this,
+      refl,
+    end,
+  }
 
-
-#check tensor_matrix.assoc
 
 lemma kronecker_prod_assoc' {T : Type*} [comm_semiring T] [algebra α T] [semiring R] [semiring S]
   [algebra α R] [algebra α S] (A : matrix m m' R) (B : matrix n n' S) (C : matrix p p' T) :

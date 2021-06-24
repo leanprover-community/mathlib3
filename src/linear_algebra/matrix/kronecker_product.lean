@@ -99,22 +99,6 @@ lemma minor_map (f : R → S) (eₘ : m' → m) (eₙ : n' → n) (A : matrix m 
 
 --end
 
-example {M N : Type*} [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N]
-  [module R N] (f : M ≃ₗ[R] N) : f.to_fun ∘ (f.inv_fun) = id :=
-begin
-  ext,
-  simp only [id.def, function.comp_app, linear_equiv.to_fun_eq_coe,
-    linear_equiv.apply_symm_apply, linear_equiv.inv_fun_eq_symm],
-end
-
-example {M N : Type*} [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N]
-  [module R N] (f : M ≃ₗ[R] N) : f.to_fun ∘ (f.symm).to_fun = id :=
-begin
-  ext,
-  simp only [id.def, function.comp_app, linear_equiv.to_fun_eq_coe,
-    linear_equiv.apply_symm_apply],
-end
-
 protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [algebra α S]
   [semiring T] [algebra α T] :
   matrix (m × n × p) (m' × n' × p') (R ⊗[α] S ⊗[α] T) ≃ₗ[α]

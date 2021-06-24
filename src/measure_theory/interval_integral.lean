@@ -684,6 +684,7 @@ lemma integrable_on_Icc_iff_integrable_on_Ioc
 integrable_on_Icc_iff_integrable_on_Ioc' (by simp)
 
 lemma interval_integrable_iff_integrable_Icc_of_le
+  {E : Type*} [measurable_space E] [normed_group E]
   {f : α → E} {a b : α} (hab : a ≤ b) {μ : measure α} [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]

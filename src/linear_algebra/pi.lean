@@ -39,7 +39,9 @@ variables [semiring R] [add_comm_monoid M₂] [module R M₂] [add_comm_monoid M
 /-- `pi` construction for linear functions. From a family of linear functions it produces a linear
 function into a family of modules. -/
 def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
-⟨λc i, f i c, λ c d, funext $ λ i, (f i).map_add _ _, λ c d, funext $ λ i, (f i).map_smul _ _⟩
+{ to_fun := λ c i, f i c,
+  map_add' := λ c d, funext $ λ i, (f i).map_add _ _,
+  map_smul' := λ c d, funext $ λ i, (f i).map_smul _ _ }
 
 @[simp] lemma pi_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i : ι) :
   pi f c i = f i c := rfl
@@ -61,7 +63,7 @@ rfl
 Note:  known here as `linear_map.proj`, this construction is in other categories called `eval`, for
 example `pi.eval_monoid_hom`, `pi.eval_ring_hom`. -/
 def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
-⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
+{ to_fun := function.eval i, map_add' := λ f g, rfl, map_smul' := λ c f, rfl }
 
 @[simp] lemma coe_proj (i : ι) : ⇑(proj i : (Πi, φ i) →ₗ[R] φ i) = function.eval i := rfl
 

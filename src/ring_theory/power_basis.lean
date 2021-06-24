@@ -408,7 +408,7 @@ by { dsimp only [minpoly_gen, map_dim], -- Turn `fin (pb.map e).dim` into `fin p
 lemma equiv_map [nontrivial S] [nontrivial S'] (pb : power_basis A S) (e : S ≃ₐ[A] S')
   (h : minpoly A pb.gen = minpoly A (pb.map e).gen) :
   pb.equiv (pb.map e) h = e :=
-by { ext x, obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x, simp }
+by { ext x, obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x, simp [aeval_alg_equiv] }
 
 end map
 

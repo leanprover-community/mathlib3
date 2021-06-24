@@ -56,6 +56,7 @@ instance covariant_class_comm_semigroup.to_covariant_class_right (M : Type*) [co
   covariant_class M M (function.swap (*)) (≤) :=
 covariant_swap_mul_le_of_covariant_mul_le M
 
+@[to_additive contravariant_class_add_comm_semigroup.to_contravariant_class_right]
 instance contravariant_class_comm_semigroup.to_contravariant_class_right (M : Type*)
   [comm_semigroup M] [has_le M] [contravariant_class M M (*) (≤)] :
   contravariant_class M M (function.swap (*)) (≤) :=

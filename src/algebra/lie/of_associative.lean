@@ -120,6 +120,22 @@ def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endomorphis
 
 @[simp] lemma lie_algebra.ad_apply (x y : L) : lie_algebra.ad R L x y = ⁅x, y⁆ := rfl
 
+open lie_algebra
+
+lemma lie_algebra.ad_eq_lmul_left_sub_lmul_right (A : Type v) [ring A] [algebra R A] :
+  (ad R A : A → module.End R A) = algebra.lmul_left R - algebra.lmul_right R :=
+by { ext a b, simp [lie_ring.of_associative_ring_bracket], }
+
+variables {R L}
+
+lemma lie_subalgebra.ad_comp_incl_eq (K : lie_subalgebra R L) (x : K) :
+  (ad R L ↑x).comp (K.incl : K →ₗ[R] L) = (K.incl : K →ₗ[R] L).comp (ad R K x) :=
+begin
+  ext y,
+  simp only [ad_apply, lie_hom.coe_to_linear_map, lie_subalgebra.coe_incl, linear_map.coe_comp,
+    lie_subalgebra.coe_bracket, function.comp_app],
+end
+
 end adjoint_action
 
 /-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/

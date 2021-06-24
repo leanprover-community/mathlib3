@@ -310,6 +310,17 @@ begin
       ← linear_map.comp_assoc, h, linear_map.comp_assoc, linear_map.mul_eq_comp], },
 end
 
+lemma submodule_pow_eq_zero_of_pow_eq_zero {N : submodule R M}
+  {g : module.End R N} {G : module.End R M} (h : G.comp N.subtype = N.subtype.comp g)
+  {k : ℕ} (hG : G^k = 0) : g^k = 0 :=
+begin
+  ext m,
+  have hg : N.subtype.comp (g^k) m = 0,
+  { rw [← commute_pow_left_of_commute h, hG, zero_comp, zero_apply], },
+  simp only [submodule.subtype_apply, comp_app, submodule.coe_eq_zero, coe_comp] at hg,
+  rw [hg, linear_map.zero_apply],
+end
+
 lemma coe_pow (f : M →ₗ[R] M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 by { ext m, apply pow_apply, }
 

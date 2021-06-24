@@ -80,11 +80,23 @@ instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group 
 section ordered_comm_group
 variables [ordered_comm_group α] {a b c d : α}
 
+@[to_additive ordered_add_comm_group.add_lt_add_left]
+lemma ordered_comm_group.mul_lt_mul_left' (a b : α) (h : a < b) (c : α) : c * a < c * b :=
+mul_lt_mul_left' h c
+
+@[to_additive ordered_add_comm_group.le_of_add_le_add_left]
+lemma ordered_comm_group.le_of_mul_le_mul_left (h : a * b ≤ a * c) : b ≤ c :=
+(mul_le_mul_iff_left a).mp h
+
+@[to_additive]
+lemma ordered_comm_group.lt_of_mul_lt_mul_left (h : a * b < a * c) : b < c :=
+(mul_lt_mul_iff_left a).mp h
+
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] :
   ordered_cancel_comm_monoid α :=
-{ mul_left_cancel       := @mul_left_cancel α _,
+{ mul_left_cancel       := λ a b c, (mul_right_inj a).mp,
   le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
 

@@ -1050,8 +1050,6 @@ end
 
 end topological_fiber_bundle_core
 
-section topological_fiber_prebundle
-
 variables (F) {Z : Type*} [topological_space B] [topological_space F] {proj : Z → B}
 
 /-- This structure permits to define a fiber bundle when trivializations are given as local
@@ -1066,24 +1064,24 @@ structure topological_fiber_prebundle (proj : Z → B) :=
   (trivialization_at y).to_local_equiv.symm) ((trivialization_at y).target ∩
   ((trivialization_at y).to_local_equiv.symm ⁻¹' (trivialization_at x).source)))
 
-variable {F}
+namespace topological_fiber_prebundle
+
+variables {F} (a : topological_fiber_prebundle F proj) (x : B)
 
 /-- Topology on the total space that will make the prebundle into a bundle. -/
-def topological_fiber_prebundle.total_space_topology (a : topological_fiber_prebundle F proj) :
-  topological_space Z :=
+def total_space_topology (a : topological_fiber_prebundle F proj) : topological_space Z :=
 ⨆ x : B, coinduced (a.trivialization_at x).set_symm (subtype.topological_space)
 
-lemma topological_fiber_prebundle.continuous_inv_triv_at (a : topological_fiber_prebundle F proj)
-  (x : B) : @continuous_on _ _ _ a.total_space_topology (a.trivialization_at x).to_local_equiv.symm
-  (a.trivialization_at x).target :=
+lemma continuous_symm_trivialization_at : @continuous_on _ _ _ a.total_space_topology
+  (a.trivialization_at x).to_local_equiv.symm (a.trivialization_at x).target :=
 begin
   refine id (λ z H, id (λ U h, preimage_nhds_within_coinduced' H (a.trivialization_at x).open_target
   (le_def.1 (nhds_mono _) U h))),
   exact le_supr _ x,
 end
 
-lemma topological_fiber_prebundle.triv_at_open_source (a : topological_fiber_prebundle F proj)
-  (x : B) : @is_open _ a.total_space_topology (a.trivialization_at x).source :=
+lemma is_open_source_trivialization_at :
+  @is_open _ a.total_space_topology (a.trivialization_at x).source :=
 begin
   letI := a.total_space_topology,
   refine is_open_supr_iff.mpr (λ y, is_open_coinduced.mpr (is_open_induced_iff.mpr
@@ -1094,21 +1092,21 @@ begin
     prebundle_trivialization.preimage_symm_proj_inter],
 end
 
-lemma topological_fiber_prebundle.triv_at_open_inter (a : topological_fiber_prebundle F proj)
-  (x y : B) : is_open ((a.trivialization_at y).to_local_equiv.target ∩
+lemma is_open_target_trivialization_at_inter (x y : B) :
+  is_open ((a.trivialization_at y).to_local_equiv.target ∩
   (a.trivialization_at y).to_local_equiv.symm ⁻¹' (a.trivialization_at x).source) :=
 begin
   letI := a.total_space_topology,
-  obtain ⟨u, hu1, hu2⟩ := continuous_on_iff'.mp (a.continuous_inv_triv_at y)
-    (a.trivialization_at x).source (a.triv_at_open_source x),
+  obtain ⟨u, hu1, hu2⟩ := continuous_on_iff'.mp (a.continuous_symm_trivialization_at y)
+    (a.trivialization_at x).source (a.is_open_source_trivialization_at x),
   rw [inter_comm, hu2],
   exact hu1.inter (a.trivialization_at y).open_target,
 end
 
 /-- Promotion from a `prebundle_trivialization` to a `bundle_trivialization`. -/
-def topological_fiber_prebundle.bundle_trivialization_at (a : topological_fiber_prebundle F proj)
-  (x : B) : @bundle_trivialization B F Z _ _ a.total_space_topology proj :=
-{ open_source := a.triv_at_open_source x,
+def bundle_trivialization_at (a : topological_fiber_prebundle F proj) (x : B) :
+  @bundle_trivialization B F Z _ _ a.total_space_topology proj :=
+{ open_source := a.is_open_source_trivialization_at x,
   continuous_to_fun := begin
     letI := a.total_space_topology,
     refine continuous_on_iff'.mpr (λ s hs, ⟨(a.trivialization_at x) ⁻¹' s ∩
@@ -1122,18 +1120,16 @@ def topological_fiber_prebundle.bundle_trivialization_at (a : topological_fiber_
       ((a.trivialization_at y).to_local_equiv.symm ⁻¹' (a.trivialization_at x).source), _, by
       { simp only [preimage_inter, inter_univ, subtype.coe_preimage_self, hu3.symm], refl }⟩,
     rw inter_assoc,
-    exact hu1.inter (a.triv_at_open_inter x y),
+    exact hu1.inter (a.is_open_target_trivialization_at_inter x y),
   end,
-  continuous_inv_fun := a.continuous_inv_triv_at x,
+  continuous_inv_fun := a.continuous_symm_trivialization_at x,
   ..(a.trivialization_at x) }
 
-lemma topological_fiber_prebundle.is_topological_fiber_bundle
-  (a : topological_fiber_prebundle F proj) :
+lemma is_topological_fiber_bundle :
   @is_topological_fiber_bundle B F Z _ _ a.total_space_topology proj :=
 λ x, ⟨a.bundle_trivialization_at x, a.mem_base_trivialization_at x ⟩
 
-lemma topological_fiber_prebundle.continuous_proj (a : topological_fiber_prebundle F proj) :
-  @continuous _ _ a.total_space_topology _ proj :=
+lemma continuous_proj : @continuous _ _ a.total_space_topology _ proj :=
 by { letI := a.total_space_topology, exact a.is_topological_fiber_bundle.continuous_proj, }
 
 end topological_fiber_prebundle

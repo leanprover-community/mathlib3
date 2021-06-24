@@ -22,6 +22,30 @@ set_option old_structure_cmd true
 universe u
 variable {α : Type u}
 
+@[to_additive]
+instance group.covariant_class_le.to_contravariant_class_le
+  [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
+{ elim := λ a b c bc, by { convert covariant_class.elim (a⁻¹) bc;
+    exact eq_inv_mul_of_mul_eq rfl <|> assumption } }
+
+@[to_additive]
+instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
+  [covariant_class α α (function.swap (*)) (≤)] : contravariant_class α α (function.swap (*)) (≤) :=
+{ elim := λ a b c bc, by { convert @covariant_class.elim α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
+    exact eq_mul_inv_of_mul_eq rfl } }
+
+@[to_additive]
+instance group.covariant_class_lt.to_contravariant_class_lt
+  [group α] [has_lt α] [covariant_class α α (*) (<)] : contravariant_class α α (*) (<) :=
+{ elim := λ a b c bc, by { convert covariant_class.elim (a⁻¹) bc;
+    exact eq_inv_mul_of_mul_eq rfl <|> assumption } }
+
+@[to_additive]
+instance group.swap.covariant_class_lt.to_contravariant_class_lt [group α] [has_lt α]
+  [covariant_class α α (function.swap (*)) (<)] : contravariant_class α α (function.swap (*)) (<) :=
+{ elim := λ a b c bc, by { convert @covariant_class.elim α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
+    exact eq_mul_inv_of_mul_eq rfl } }
+
 /-- An ordered additive commutative group is an additive commutative group
 with a partial order in which addition is strictly monotone. -/
 @[protect_proj, ancestor add_comm_group partial_order]

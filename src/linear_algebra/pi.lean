@@ -261,6 +261,8 @@ lemma Pi_congr_right_trans (e : Π i, φ i ≃ₗ[R] ψ i) (f : Π i, ψ i ≃�
   (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) :=
 rfl
 
+variables (R φ)
+
 /-- Transport dependent functions through an equivalence of the base space.
 
 This is `equiv.Pi_congr_left'` as a `linear_equiv`. -/
@@ -273,7 +275,7 @@ expressed as a "simplification".
 
 This is `equiv.Pi_congr_left` as a `linear_equiv` -/
 def Pi_congr_left (e : ι' ≃ ι) : (Π i', φ (e i')) ≃ₗ[R] (Π i, φ i) :=
-(Pi_congr_left' e.symm : (Π i, φ i) ≃ₗ[R] _).symm
+(Pi_congr_left' R φ e.symm).symm
 
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
   [add_comm_monoid M] [module R M] [module S M] [smul_comm_class R S M]

@@ -2036,7 +2036,7 @@ le_antisymm
 
 /-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`: real version, not
 requiring differentiability as the left endpoint of the interval. Follows from
-`integral_eq_sub_of_has_deriv_right_of_le` together with a continuity argument. -/
+`integral_eq_sub_of_has_deriv_right_of_le_real` together with a continuity argument. -/
 private lemma integral_eq_sub_of_has_deriv_right_of_le_real' (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)

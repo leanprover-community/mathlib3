@@ -37,26 +37,26 @@ Let us explain the meaning of each part of the name:
   endpoint.
 
 We also reformulate these theorems in terms of `(f?)deriv(_within?)`. These theorems are named
-`(f?)deriv(_within?)_integral(_of_tendsto_ae?)(_right|_left?)` with the same meaning of parts of the
-name.
+`(f?)deriv(_within?)_integral(_of_tendsto_ae?)(_right|_left?)` with the same meaning of parts of
+the name.
 
 ### One-sided derivatives
 
 Theorem `integral_has_fderiv_within_at_of_tendsto_ae` states that `(u, v) ↦ ∫ x in u..v, f x` has a
-derivative `(δu, δv) ↦ δv • cb - δu • ca` within the set `s × t` at `(a, b)` provided that `f` tends
-to `ca` (resp., `cb`) almost surely at `la` (resp., `lb`), where possible values of `s`, `t`, and
-corresponding filters `la`, `lb` are given in the following table.
+derivative `(δu, δv) ↦ δv • cb - δu • ca` within the set `s × t` at `(a, b)` provided that `f`
+tends to `ca` (resp., `cb`) almost surely at `la` (resp., `lb`), where possible values of `s`, `t`,
+and corresponding filters `la`, `lb` are given in the following table.
 
-| `s`     | `la`         | `t`     | `lb`         |
-| ------- | ----         | ---     | ----         |
+| `s`     | `la`          | `t`     | `lb`          |
+| ------- | ----          | ---     | ----          |
 | `Iic a` | `𝓝[Iic a] a` | `Iic b` | `𝓝[Iic b] b` |
 | `Ici a` | `𝓝[Ioi a] a` | `Ici b` | `𝓝[Ioi b] b` |
-| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
+| `{a}`   | `⊥`           | `{b}`   | `⊥`          |
 | `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
 
-We use a typeclass `FTC_filter` to make Lean automatically find `la`/`lb` based on `s`/`t`. This way
-we can formulate one theorem instead of `16` (or `8` if we leave only non-trivial ones not covered
-by `integral_has_deriv_within_at_of_tendsto_ae_(left|right)` and
+We use a typeclass `FTC_filter` to make Lean automatically find `la`/`lb` based on `s`/`t`. This
+way we can formulate one theorem instead of `16` (or `8` if we leave only non-trivial ones not
+covered by `integral_has_deriv_within_at_of_tendsto_ae_(left|right)` and
 `integral_has_fderiv_at_of_tendsto_ae`). Similarly,
 `integral_has_deriv_within_at_of_tendsto_ae_right` works for both one-sided derivatives using the
 same typeclass to find an appropriate filter.
@@ -77,8 +77,8 @@ an `FTC_filter` pair of filters around `b`. If `f` has finite limits `ca` and `c
 
 We use FTC-1 to prove several versions of FTC-2 for the Lebesgue measure, using a similar naming
 scheme as for the versions of FTC-1. They include:
-* `interval_integral.integral_eq_sub_of_has_deriv_right_of_le` - most general version, for functions
-  with a right derivative
+* `interval_integral.integral_eq_sub_of_has_deriv_right_of_le` - most general version, for
+  functions with a right derivative
 * `interval_integral.integral_eq_sub_of_has_deriv_at'` - version for functions with a derivative on
   an open set
 * `interval_integral.integral_deriv_eq_sub'` - version that is easiest to use when computing the
@@ -130,11 +130,11 @@ assumptions:
   in `s`.
 
 This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`,
-`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances that are equal to the first and
-last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`. While the difference
-between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure, it becomes important
-in the versions of FTC about any locally finite measure if this measure has an atom at one of the
-endpoints.
+`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances that are equal to the first
+and last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`. While the
+difference between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure, it
+becomes important in the versions of FTC about any locally finite measure if this measure has an
+atom at one of the endpoints.
 
 ## Tags
 
@@ -887,18 +887,18 @@ lemma continuous_on_primitive {f : α → E} {a b : α} [has_no_atoms μ]
   (h_int : integrable_on f (Icc a b) μ) :
   continuous_on (λ x, ∫ t in Ioc a x, f t ∂ μ) (Icc a b) :=
 begin
-  by_cases h : a ≤ b,
-  { have : ∀ x ∈ Icc a b, ∫ (t : α) in Ioc a x, f t ∂μ = ∫ (t : α) in a..x, f t ∂μ,
-    { intros x x_in,
-      simp_rw [← interval_oc_of_le h, integral_of_le x_in.1] },
-    rw continuous_on_congr this,
-    intros x₀ hx₀,
-    refine continuous_within_at_primitive (measure_singleton x₀) _,
-    rw interval_integrable_iff,
-    simp only [h, max_eq_right, min_eq_left],
-    exact h_int.mono Ioc_subset_Icc_self le_rfl },
+  by_cases h : a ≤ b, swap,
   { rw Icc_eq_empty h,
-    exact continuous_on_empty _ _ },
+    exact continuous_on_empty _ },
+  have : ∀ x ∈ Icc a b, ∫ (t : α) in Ioc a x, f t ∂μ = ∫ (t : α) in a..x, f t ∂μ,
+  { intros x x_in,
+    simp_rw [← interval_oc_of_le h, integral_of_le x_in.1] },
+  rw continuous_on_congr this,
+  intros x₀ hx₀,
+  refine continuous_within_at_primitive (measure_singleton x₀) _,
+  rw interval_integrable_iff,
+  simp only [h, max_eq_right, min_eq_left],
+  exact h_int.mono Ioc_subset_Icc_self le_rfl,
 end
 
 lemma continuous_on_primitive' {f : α → E} {a b : α} [has_no_atoms μ]
@@ -957,13 +957,16 @@ lemma integral_pos_iff_support_of_nonneg_ae'
   (hf : 0 ≤ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (function.support f ∩ Ioc a b) :=
 begin
-  cases le_total a b with hab hab;
-    simp only [integral_of_le, integral_of_ge, Ioc_eq_empty, hab, union_empty, empty_union] at hf ⊢,
-  { rw [set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, iff.comm, and_iff_right_iff_imp],
-    contrapose!,
-    intro h,
-    rw [Ioc_eq_empty h.not_lt, inter_empty, measure_empty, nonpos_iff_eq_zero] },
-  { simp [integral_nonneg_of_ae hf] }
+  obtain hab | hab := le_total b a;
+    simp only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
+  { rw [←not_iff_not, not_and_distrib, not_lt, not_lt, integral_of_ge hab, neg_nonpos],
+    exact iff_of_true (integral_nonneg_of_ae hf) (or.intro_left _ hab) },
+  rw [integral_of_le hab, set_integral_pos_iff_support_of_nonneg_ae hf hfi.1, iff.comm,
+    and_iff_right_iff_imp],
+  contrapose!,
+  intro h,
+  rw [Ioc_eq_empty h.not_lt, inter_empty, measure_empty],
+  exact le_refl 0,
 end
 
 lemma integral_pos_iff_support_of_nonneg_ae

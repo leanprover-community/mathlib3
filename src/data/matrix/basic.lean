@@ -110,6 +110,10 @@ lemma map_sub [add_group α] [add_group β] (f : α →+ β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 by { ext, simp }
 
+lemma map_smul [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
+  (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
+by { ext, simp, }
+
 lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, contrapose! hm, use i }⟩
 
@@ -128,6 +132,15 @@ def add_monoid_hom.map_matrix [add_monoid α] [add_monoid β] (f : α →+ β) :
 
 @[simp] lemma add_monoid_hom.map_matrix_apply [add_monoid α] [add_monoid β]
   (f : α →+ β) (M : matrix m n α) : f.map_matrix M = M.map f := rfl
+
+/-- The `linear_map` between spaces of matrices induced by a `linear_map` between their
+coefficients. -/
+@[simps]
+def linear_map.map_matrix [semiring R] [add_comm_monoid α] [add_comm_monoid β]
+  [module R α] [module R β] (f : α →ₗ[R] β) : matrix m n α →ₗ[R] matrix m n β :=
+{ to_fun := λ M, M.map f,
+  map_add' := matrix.map_add f.to_add_monoid_hom,
+  map_smul' := matrix.map_smul f.to_mul_action_hom, }
 
 open_locale matrix
 

@@ -358,7 +358,7 @@ the corresponding multilinear map. -/
   map_smul' := λ c f, rfl }
 
 /-- `continuous_multilinear_map.pi` as a `linear_equiv`. -/
-@[simps? {simp_rhs := tt}]
+@[simps {simp_rhs := tt}]
 def pi_linear_equiv {ι' : Type*} {M' : ι' → Type*}
   [Π i, add_comm_monoid (M' i)] [Π i, topological_space (M' i)] [∀ i, has_continuous_add (M' i)]
   [Π i, module R' (M' i)] [Π i, module A (M' i)] [∀ i, is_scalar_tower R' A (M' i)]

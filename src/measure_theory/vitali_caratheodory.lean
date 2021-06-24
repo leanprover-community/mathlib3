@@ -21,6 +21,13 @@ Symmetrically, there exists `g < f` which is upper semicontinuous, with integral
 to that of `f`. It follows from the previous statement applied to `-f`. It is formalized under
 the name `exists_upper_semicontinuous_lt_integral_gt`.
 
+The most classical version of Vitali-Carathéodory theorem only ensures a large inequality
+`f x ≤ g x`. For applications to the fundamental theorem of calculus, though, the strict inequality
+`f x < g x` is important. Therefore, we prove the stronger version with strict inequalities in this
+file. There is a price to pay: we require that the measure is `σ`-finite, which is not necessary for
+the classical Vitali-Carathéodory theorem. Since this is satisfied in all applications, this is
+not a real problem.
+
 ## Sketch of proof
 
 Decomposing `f` as the difference of its positive and negative parts, it suffices to show that a

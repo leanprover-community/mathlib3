@@ -359,22 +359,18 @@ the corresponding multilinear map. -/
 
 /-- `continuous_multilinear_map.pi` as a `linear_equiv`. -/
 @[simps? {simp_rhs := tt}]
-def pi_linear_equiv
-  {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
-  [Π i, topological_space (M' i)]
-  [Π i, has_continuous_add (M' i)]
-  [Π i, module R' (M' i)]
-  [Π i, module A (M' i)]
-  [∀ i, is_scalar_tower R' A (M' i)]
+def pi_linear_equiv {ι' : Type*} {M' : ι' → Type*}
+  [Π i, add_comm_monoid (M' i)] [Π i, topological_space (M' i)] [∀ i, has_continuous_add (M' i)]
+  [Π i, module R' (M' i)] [Π i, module A (M' i)] [∀ i, is_scalar_tower R' A (M' i)]
   [Π i, has_continuous_smul R' (M' i)] :
   -- typeclass search doesn't find this instance, presumably due to struggles converting
-  -- `[Π i, module R (M' i)]` to `[Π i, has_scalar R (M' i)]` in dependent arguments.
+  -- `Π i, module R (M' i)` to `Π i, has_scalar R (M' i)` in dependent arguments.
   let inst : has_continuous_smul R' (Π i, M' i) := pi.has_continuous_smul in
   (Π i, continuous_multilinear_map A M₁ (M' i)) ≃ₗ[R']
     continuous_multilinear_map A M₁ (Π i, M' i) :=
-{ map_add' := λ x y, by { ext, refl },
-  map_smul' := λ c x, by { ext, refl },
-  ..pi_equiv }
+{ map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl,
+  .. pi_equiv }
 
 end comm_semiring
 

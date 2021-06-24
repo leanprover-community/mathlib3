@@ -275,9 +275,9 @@ begin
   have ne : (Icc a b).nonempty, from nonempty_Icc.2 (le_of_lt hab),
   -- Consider absolute min and max points
   obtain ⟨c, cmem, cle⟩ : ∃ c ∈ Icc a b, ∀ x ∈ Icc a b, f c ≤ f x,
-    from compact_Icc.exists_forall_le ne hfc,
+    from is_compact_Icc.exists_forall_le ne hfc,
   obtain ⟨C, Cmem, Cge⟩ : ∃ C ∈ Icc a b, ∀ x ∈ Icc a b, f x ≤ f C,
-    from compact_Icc.exists_forall_ge ne hfc,
+    from is_compact_Icc.exists_forall_ge ne hfc,
   by_cases hc : f c = f a,
   { by_cases hC : f C = f a,
     { have : ∀ x ∈ Icc a b, f x = f a,

@@ -809,14 +809,30 @@ noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃
         ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
-/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
+/-- The first isomorphism theorem for monoids in the case of a homomorphism with right inverse. -/
+@[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a homomorphism
+with right inverse.", simps]
+def quotient_ker_equiv_of_right_inverse (f : M →* P) (g : P → M)
+  (hf : function.right_inverse g f) :
+  (ker f).quotient ≃* P :=
+{ to_fun := ker_lift f,
+  inv_fun := coe ∘ g,
+  left_inv := λ x, ker_lift_injective _ (by rw [function.comp_app, ker_lift_mk, hf]),
+  right_inv := hf,
+  .. ker_lift f }
+
+/-- The first isomorphism theorem for monoids in the case of a surjective homomorphism.
+
+For a `computable` version, see `con.quotient_ker_equiv_of_right_inverse`.
+-/
 @[to_additive "The first isomorphism theorem for `add_monoid`s in the case of a surjective
-homomorphism."]
+homomorphism.
+
+For a `computable` version, see `add_con.quotient_ker_equiv_of_right_inverse`.
+"]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
   (ker f).quotient ≃* P :=
-{ map_mul' := monoid_hom.map_mul _,
-  ..equiv.of_bijective (ker_lift f)
-      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+quotient_ker_equiv_of_right_inverse _ _ hf.has_right_inverse.some_spec
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]

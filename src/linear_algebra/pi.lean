@@ -56,7 +56,10 @@ by ext; refl
 lemma pi_comp (f : Πi, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).comp g = pi (λi, (f i).comp g) :=
 rfl
 
-/-- The projections from a family of modules are linear maps. -/
+/-- The projections from a family of modules are linear maps.
+
+Note:  known here as `linear_map.proj`, this construction is in other categories called `eval`, for
+example `pi.eval_monoid_hom`, `pi.eval_ring_hom`. -/
 def proj (i : ι) : (Πi, φ i) →ₗ[R] φ i :=
 ⟨ λa, a i, assume f g, rfl, assume c f, rfl ⟩
 
@@ -73,6 +76,13 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
   exact (mem_bot _).2 (funext $ assume i, h i)
 end
+
+/-- Linear map between the function spaces `I → M₂` and `I → M₃`, induced by a linear map `f`
+between `M₂` and `M₃`. -/
+@[simps] protected def comp_left (f : M₂ →ₗ[R] M₃) (I : Type*) : (I → M₂) →ₗ[R] (I → M₃) :=
+{ to_fun := λ h, f ∘ h,
+  map_smul' := λ c h, by { ext x, exact f.map_smul' c (h x) },
+  .. f.to_add_monoid_hom.comp_left I }
 
 lemma apply_single [add_comm_monoid M] [module R M] [decidable_eq ι]
   (f : Π i, φ i →ₗ[R] M) (i j : ι) (x : φ i) :
@@ -226,17 +236,29 @@ end submodule
 
 namespace linear_equiv
 
-variables [semiring R] {φ ψ : ι → Type*} [∀i, add_comm_monoid (φ i)] [∀i, module R (φ i)]
-  [∀i, add_comm_monoid (ψ i)] [∀i, module R (ψ i)]
+variables [semiring R] {φ ψ χ : ι → Type*} [∀ i, add_comm_monoid (φ i)] [∀ i, module R (φ i)]
+variables [∀ i, add_comm_monoid (ψ i)] [∀ i, module R (ψ i)]
+variables [∀ i, add_comm_monoid (χ i)] [∀ i, module R (χ i)]
 
 /-- Combine a family of linear equivalences into a linear equivalence of `pi`-types. -/
-@[simps] def pi (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
+@[simps apply] def Pi_congr_right (e : Π i, φ i ≃ₗ[R] ψ i) : (Π i, φ i) ≃ₗ[R] (Π i, ψ i) :=
 { to_fun := λ f i, e i (f i),
   inv_fun := λ f i, (e i).symm (f i),
-  map_add' := λ f g, by { ext, simp },
   map_smul' := λ c f, by { ext, simp },
   left_inv := λ f, by { ext, simp },
-  right_inv := λ f, by { ext, simp } }
+  .. add_equiv.Pi_congr_right (λ j, (e j).to_add_equiv) }
+
+@[simp]
+lemma Pi_congr_right_refl : Pi_congr_right (λ j, refl R (φ j)) = refl _ _ := rfl
+
+@[simp]
+lemma Pi_congr_right_symm (e : Π i, φ i ≃ₗ[R] ψ i) :
+  (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
+
+@[simp]
+lemma Pi_congr_right_trans (e : Π i, φ i ≃ₗ[R] ψ i) (f : Π i, ψ i ≃ₗ[R] χ i) :
+  (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) :=
+rfl
 
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
   [add_comm_monoid M] [module R M] [module S M] [smul_comm_class R S M]
@@ -250,7 +272,7 @@ Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings]. -/
 def pi_ring : ((ι → R) →ₗ[R] M) ≃ₗ[S] (ι → M) :=
 (linear_map.lsum R (λ i : ι, R) S).symm.trans
-  (pi $ λ i, linear_map.ring_lmap_equiv_self R M S)
+  (Pi_congr_right $ λ i, linear_map.ring_lmap_equiv_self R M S)
 
 variables {ι R M}
 

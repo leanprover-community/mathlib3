@@ -50,18 +50,6 @@ attribute [to_additive] ordered_comm_monoid
 
 section ordered_instances
 
-@[to_additive covariant_class_add_comm_semigroup.to_covariant_class_right]
-instance covariant_class_comm_semigroup.to_covariant_class_right (M : Type*) [comm_semigroup M]
-  [has_le M] [covariant_class M M (*) (≤)] :
-  covariant_class M M (function.swap (*)) (≤) :=
-covariant_swap_mul_le_of_covariant_mul_le M
-
-@[to_additive contravariant_class_add_comm_semigroup.to_contravariant_class_right]
-instance contravariant_class_comm_semigroup.to_contravariant_class_right (M : Type*)
-  [comm_semigroup M] [has_le M] [contravariant_class M M (*) (≤)] :
-  contravariant_class M M (function.swap (*)) (≤) :=
-contravariant_swap_mul_le_of_contravariant_mul_le M
-
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (*) (≤) :=

@@ -614,7 +614,7 @@ or_iff_not_imp_left.2 $ λ h,
     λ a ha₂, le_of_not_gt $ λ ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
 /-- Class stating that `∀ a b, a < b ↔ a + 1 ≤ b`. This is a way to say that the order is sparse.
-If we have a cast `ℕ → α`, this then roughly says that the cast is surjective. -/
+If we have a cast `ℕ → α` or `ℤ → α`, this then roughly says that the cast is surjective. -/
 class has_lt_iff_add_one_le (α : Type u) [preorder α] [has_add α] [has_one α] : Prop :=
 (lt_iff_add_one_le : ∀ a b : α, a < b ↔ a + 1 ≤ b)
 

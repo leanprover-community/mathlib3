@@ -327,10 +327,10 @@ that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space (total_space Z.fiber) :=
 topological_fiber_bundle_core.to_topological_space ι ↑Z
 
-variables {ι}
+variables {ι} (b : B) (a : F)
 
-@[simp] lemma coe_cord_change (i j : ι) (x : B) :
-  topological_fiber_bundle_core.coord_change ↑Z i j x = Z.coord_change i j x := rfl
+@[simp, mfld_simps] lemma coe_cord_change (i j : ι) :
+  topological_fiber_bundle_core.coord_change ↑Z i j b = Z.coord_change i j b := rfl
 
 /-- Extended version of the local trivialization of a fiber bundle constructed from core,
 registering additionally in its type that it is a local bundle trivialization. -/
@@ -352,11 +352,10 @@ a bundle trivialization -/
 def local_triv_at (b : B) : topological_vector_bundle.trivialization R F Z.fiber :=
 Z.local_triv (Z.index_at b)
 
-lemma mem_source_at (b : B) (a : F) :
-  (⟨b, a⟩ : total_space Z.fiber) ∈ (Z.local_triv_at b).source :=
+lemma mem_source_at : (⟨b, a⟩ : total_space Z.fiber) ∈ (Z.local_triv_at b).source :=
 by { rw [local_triv_at, mem_local_triv_source], exact Z.mem_base_set_at b }
 
-@[simp] lemma local_triv_at_apply (b : B) (a : F): ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
+@[simp, mfld_simps] lemma local_triv_at_apply : ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
 topological_fiber_bundle_core.local_triv_at_apply Z b a
 
 instance : topological_vector_bundle R F Z.fiber :=
@@ -367,14 +366,13 @@ instance : topological_vector_bundle R F Z.fiber :=
       (Z.local_triv_at b).base_set.prod s, (continuous_on_open_iff
       (Z.local_triv_at b).open_source).mp (Z.local_triv_at b).continuous_to_fun _
       (is_open.prod (Z.local_triv_at b).open_base_set h), _⟩,
-    rw [preimage_inter, ←preimage_comp],
-    simp only [function.comp, id.def],
+    rw [preimage_inter, ←preimage_comp, function.comp],
+    simp only [id.def],
     refine ext_iff.mpr (λ a, ⟨λ ha, _, λ ha, ⟨Z.mem_base_set_at b, _⟩⟩),
     { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply] at ha,
       exact ha.2.2, },
-    { simp only [mem_prod, mem_preimage, mem_inter_eq,
-        (Z.local_triv_at b).coe_fst (Z.mem_source_at b a), local_triv_at_apply],
-        exact ⟨Z.mem_base_set_at b, ha⟩, }} end⟩,
+    { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply],
+      exact ⟨Z.mem_base_set_at b, ha⟩, }} end⟩,
   locally_trivial := λ b, ⟨Z.local_triv_at b, Z.mem_base_set_at b⟩, }
 
 /-- The projection on the base of a topological vector bundle created from core is continuous -/

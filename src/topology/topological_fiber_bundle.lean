@@ -738,7 +738,7 @@ instance [inhabited B] [inhabited (E (default B))] :
 
 instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
 
-@[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
+@[simp, mfld_simps] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
 
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 
@@ -761,12 +761,12 @@ topological_space.induced (proj (trivial B F)) t₁ ⊓
 
 variable [∀ x, add_comm_monoid (E x)]
 
-@[simp] lemma coe_snd_map_apply (x : B) (v w : E x) :
+@[simp, mfld_simps] lemma coe_snd_map_apply (x : B) (v w : E x) :
   (↑(v + w) : total_space E).snd = (v : total_space E).snd + (w : total_space E).snd := rfl
 
 variables (R : Type*) [semiring R] [∀ x, module R (E x)]
 
-@[simp] lemma coe_snd_map_smul (x : B) (r : R) (v : E x) :
+@[simp, mfld_simps] lemma coe_snd_map_smul (x : B) (r : R) (v : E x) :
   (↑(r • v) : total_space E).snd = r • (v : total_space E).snd := rfl
 
 end bundle
@@ -892,18 +892,19 @@ def local_triv' (i : ι) : local_equiv Z.total_space (B × F) :=
     { simp only [hx, mem_inter_eq, and_self, mem_base_set_at]}
   end }
 
-lemma mem_local_triv'_source (i : ι) (p : Z.total_space) :
+variable (i : ι)
+
+lemma mem_local_triv'_source (p : Z.total_space) :
   p ∈ (Z.local_triv' i).source ↔ p.1 ∈ Z.base_set i :=
 iff.rfl
 
-lemma mem_local_triv'_target (i : ι) (p : B × F) :
-  p ∈ (Z.local_triv' i).target ↔ p.1 ∈ Z.base_set i :=
+lemma mem_local_triv'_target (p : B × F) : p ∈ (Z.local_triv' i).target ↔ p.1 ∈ Z.base_set i :=
 by { erw [mem_prod], simp }
 
-lemma local_triv'_apply (i : ι) (p : Z.total_space) :
+lemma local_triv'_apply (p : Z.total_space) :
   (Z.local_triv' i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
 
-lemma local_triv'_symm_apply (i : ι) (p : B × F) :
+lemma local_triv'_symm_apply (p : B × F) :
   (Z.local_triv' i).symm p = ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
 
 /-- The composition of two local trivializations is the trivialization change Z.triv_change i j. -/
@@ -975,29 +976,28 @@ def local_triv (i : ι) : local_homeomorph Z.total_space (B × F) :=
   end,
   to_local_equiv := Z.local_triv' i }
 
-@[simp, mfld_simps] lemma local_triv'_coe (i : ι) : ⇑(Z.local_triv' i) = Z.local_triv i := rfl
+@[simp, mfld_simps] lemma local_triv'_coe : ⇑(Z.local_triv' i) = Z.local_triv i := rfl
 
-@[simp, mfld_simps] lemma local_triv'_source (i : ι) :
+@[simp, mfld_simps] lemma local_triv'_source :
   (Z.local_triv' i).source = (Z.local_triv i).source := rfl
 
-@[simp, mfld_simps] lemma local_triv'_target (i : ι) :
+@[simp, mfld_simps] lemma local_triv'_target :
   (Z.local_triv' i).target = (Z.local_triv i).target := rfl
 
 /- We will now state again the basic properties of the local trivializations, but without primes,
 i.e., for the local homeomorphism instead of the local equiv. -/
 
-lemma mem_local_triv_source (i : ι) (p : Z.total_space) :
+lemma mem_local_triv_source (p : Z.total_space) :
   p ∈ (Z.local_triv i).source ↔ p.1 ∈ Z.base_set i :=
 iff.rfl
 
-lemma mem_local_triv_target (i : ι) (p : B × F) :
-  p ∈ (Z.local_triv i).target ↔ p.1 ∈ Z.base_set i :=
+lemma mem_local_triv_target (p : B × F) : p ∈ (Z.local_triv i).target ↔ p.1 ∈ Z.base_set i :=
 by { erw [mem_prod], simp }
 
-lemma local_triv_apply (i : ι) (p : Z.total_space) :
+lemma local_triv_apply (p : Z.total_space) :
   (Z.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
 
-lemma local_triv_symm_fst (i : ι) (p : B × F) :
+lemma local_triv_symm_fst (p : B × F) :
   (Z.local_triv i).symm p = ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
 
 /-- The composition of two local trivializations is the trivialization change Z.triv_change i j. -/
@@ -1057,8 +1057,6 @@ begin
   { exact A }
 end
 
-variable (i : ι)
-
 @[simp, mfld_simps] lemma local_triv_coe : ⇑(Z.local_triv i) = Z.local_triv_ext i := rfl
 
 @[simp, mfld_simps] lemma local_triv_source :
@@ -1093,9 +1091,9 @@ bundle_trivialization.mem_target _
   ((Z.local_triv_at_ext b) ⟨b, a⟩) = ⟨b, a⟩ :=
 by { rw [local_triv_at_ext, local_triv_ext_apply, coord_change_self], exact Z.mem_base_set_at b }
 
-@[simp, mfld_simps] lemma mem_local_triv_at_ext_base_set (x : B) :
-  x ∈ (Z.local_triv_at_ext x).base_set :=
-by { rw [local_triv_at_ext, ←base_set_at], exact Z.mem_base_set_at x, }
+@[simp, mfld_simps] lemma mem_local_triv_at_ext_base_set (b : B) :
+  b ∈ (Z.local_triv_at_ext b).base_set :=
+by { rw [local_triv_at_ext, ←base_set_at], exact Z.mem_base_set_at b, }
 
 /-- The inclusion of a fiber into the total space is a continuous map.
 

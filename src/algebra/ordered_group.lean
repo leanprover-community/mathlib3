@@ -61,6 +61,11 @@ class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :
 attribute [to_additive] ordered_comm_group
 
 @[to_additive]
+instance units.covariant_class [ordered_comm_monoid α] :
+  covariant_class (units α) (units α) (*) (≤) :=
+{ elim := λ a b c bc, show (a : α) * b ≤ a * c, from mul_le_mul_left' bc _ }
+
+@[to_additive]
 instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_comm_group α] :
   covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }

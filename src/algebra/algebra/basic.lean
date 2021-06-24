@@ -897,6 +897,9 @@ noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijectiv
   inv_fun   := e.symm,
   .. e }
 
+@[simp] lemma to_linear_equiv_refl :
+  (alg_equiv.refl : A₁ ≃ₐ[R] A₁).to_linear_equiv = linear_equiv.refl R A₁ := rfl
+
 @[simp] lemma to_linear_equiv_symm (e : A₁ ≃ₐ[R] A₂) :
   e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
 

@@ -108,28 +108,28 @@ For mathlib
 --   map_smul' := map_mul f, }
 
 
-lemma map_scalar [has_scalar α R] [has_scalar α S] (f : R →[α] S) (r : α)
+lemma uno [has_scalar α R] [has_scalar α S] (f : R →[α] S) (r : α)
   (A : matrix m n R) : (r • A).map f = r • (A.map f) :=
 by { ext, simp, }
 
 open linear_map
 /-- The `linear_map` between spaces of matrices induced by a `linear_map` between their
 coefficients. -/
-def linear_map.map_matrix
+def linear_map.due
 -- [semiring R] [add_comm_monoid α] [add_comm_monoid β] [module R α] [module R β]
   [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
   (f : R →ₗ[α] S) : matrix m n R →ₗ[α] matrix m n S :=
 { to_fun := λ M, M.map f,
   map_add' := matrix.map_add f.to_add_monoid_hom,
-  map_smul' := map_scalar f.to_mul_action_hom, }
+  map_smul' := uno f.to_mul_action_hom, }
 
 variables [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
 variables (f : R →ₗ[α] S) (g : R →+ S)
 
-#check g.map_matrix
+-- #check g.map_matrix
 
-lemma linear_map.map_matrix_apply [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
-  (f : R →ₗ[α] S) (A : matrix m n R) : f.map_matrix A = A.map f := sorry
+-- lemma linear_map.map_matrix_apply [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S]
+--   (f : R →ₗ[α] S) (A : matrix m n R) : f.map_matrix A = A.map f := sorry
 
 /--
 end for mathlib
@@ -158,7 +158,7 @@ protected def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [alge
   begin
       intros a A,
       simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
-      have := linear_map.map_matrix (tensor_product.assoc α R S T).to_linear_map a A,
+      have := linear_map.due (tensor_product.assoc α R S T).to_linear_map a A,
       -- simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
       --   linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
       -- rw [this, minor_add],

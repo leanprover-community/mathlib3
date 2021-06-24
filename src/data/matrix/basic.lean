@@ -114,10 +114,12 @@ lemma map_smul [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
   (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 by { ext, simp, }
 
-instance subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_left [is_empty m] : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim i }⟩
 
-instance subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_right [is_empty n] : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
 end matrix

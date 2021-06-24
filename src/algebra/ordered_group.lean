@@ -421,7 +421,7 @@ alias inv_lt_inv_iff ↔ lt_of_inv_lt_inv _
 attribute [to_additive] lt_of_inv_lt_inv
 
 alias left.inv_lt_one_iff ↔ one_lt_of_inv_lt_one _
-attribute [to_additive pos_of_neg_neg] one_lt_of_inv_lt_one
+attribute [to_additive] one_lt_of_inv_lt_one
 
 alias left.inv_lt_one_iff ← inv_lt_one_iff_one_lt
 attribute [to_additive] inv_lt_one_iff_one_lt

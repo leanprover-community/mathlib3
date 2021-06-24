@@ -1321,7 +1321,7 @@ begin
   apply lintegral_congr_ae,
   filter_upwards [Lp.coe_fn_pos_part f₁, hf.coe_fn_to_L1],
   assume a h₁ h₂,
-  rw [h₁, h₂, ennreal.of_real, nnnorm],
+  rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
   simp [real.norm_of_nonneg, le_max_right, real.coe_to_nnreal]
@@ -1334,12 +1334,11 @@ begin
   apply lintegral_congr_ae,
   filter_upwards [Lp.coe_fn_neg_part f₁, hf.coe_fn_to_L1],
   assume a h₁ h₂,
-  rw [h₁, h₂, ennreal.of_real, nnnorm],
+  rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
   simp only [real.norm_of_nonneg, min_le_right, neg_nonneg, real.coe_to_nnreal', subtype.coe_mk],
-  rw ← max_neg_neg,
-  simp,
+  rw [← max_neg_neg, coe_nnnorm, neg_zero, real.norm_of_nonneg (le_max_right (-f a) 0)]
 end,
 begin
   rw [eq₁, eq₂, integral, dif_pos],

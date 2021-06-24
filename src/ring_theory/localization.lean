@@ -1138,8 +1138,8 @@ begin
 end
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R] (f : localization_map M S)
-  (hM : M ≤ non_zero_divisors R) (x : non_zero_divisors R) : f.to_map x ≠ 0 :=
-map_ne_zero_of_mem_non_zero_divisors (f.injective hM)
+  (hM : M ≤ non_zero_divisors R) {x : R} (hx : x ∈ non_zero_divisors R) : f.to_map x ≠ 0 :=
+map_ne_zero_of_mem_non_zero_divisors (f.injective hM) hx
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain. -/
@@ -1321,8 +1321,8 @@ protected theorem injective [comm_ring K] (φ : fraction_map R K) :
 φ.injective (le_of_eq rfl)
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R] [comm_ring K]
-  (φ : fraction_map R K) (x : non_zero_divisors R) : φ.to_map x ≠ 0 :=
-φ.to_map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) x
+  (φ : fraction_map R K) {x : R} (hx : x ∈ non_zero_divisors R) : φ.to_map x ≠ 0 :=
+φ.to_map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) hx
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
 integral domain. -/
@@ -1356,18 +1356,18 @@ variables {B : Type*} [integral_domain B] [field K] {L : Type*} [field L]
 
 lemma mk'_eq_div {r s} : f.mk' r s = f.to_map r / f.to_map s :=
 f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _
-    (f.to_map_ne_zero_of_mem_non_zero_divisors _)).symm
+    (f.to_map_ne_zero_of_mem_non_zero_divisors s.2)).symm
 
 lemma is_unit_map_of_injective (hg : function.injective g)
-  (y : non_zero_divisors A) : is_unit (g y) :=
-is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg
+  {y : A} (hy : y ∈ non_zero_divisors A) : is_unit (g y) :=
+is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg hy
 
 /-- Given an integral domain `A`, a localization map to its fields of fractions
 `f : A →+* K`, and an injective ring hom `g : A →+* L` where `L` is a field, we get a
 field hom sending `z : K` to `g x * (g y)⁻¹`, where `(x, y) : A × (non_zero_divisors A)` are
 such that `z = f x * (f y)⁻¹`. -/
 noncomputable def lift (hg : injective g) : K →+* L :=
-f.lift $ is_unit_map_of_injective hg
+f.lift $ λ y, is_unit_map_of_injective hg y.2
 
 /-- Given an integral domain `A`, a localization map to its fields of fractions
 `f : A →+* K`, and an injective ring hom `g : A →+* L` where `L` is a field,
@@ -1376,11 +1376,11 @@ field hom induced from `K` to `L` maps `f x / f y` to `g x / g y` for all
 @[simp] lemma lift_mk' (hg : injective g) (x y) :
   f.lift hg (f.mk' x y) = g x / g y :=
 begin
-  erw f.lift_mk' (is_unit_map_of_injective hg),
+  erw f.lift_mk' (λ y, is_unit_map_of_injective hg y.2),
   erw submonoid.localization_map.mul_inv_left
   (λ y : non_zero_divisors A, show is_unit (g.to_monoid_hom y), from
-    is_unit_map_of_injective hg y),
-  exact (mul_div_cancel' _ (map_ne_zero_of_mem_non_zero_divisors hg)).symm,
+    is_unit_map_of_injective hg y.2),
+  exact (mul_div_cancel' _ (map_ne_zero_of_mem_non_zero_divisors hg y.2)).symm,
 end
 
 /-- Given integral domains `A, B` and localization maps to their fields of fractions
@@ -1390,7 +1390,7 @@ such that `z = f x * (f y)⁻¹`. -/
 noncomputable def map (g : fraction_map B L) {j : A →+* B} (hj : injective j) :
   K →+* L :=
 f.map (λ y, mem_non_zero_divisors_iff_ne_zero.2 $
-  map_ne_zero_of_mem_non_zero_divisors hj) g
+  map_ne_zero_of_mem_non_zero_divisors hj y.2) g
 
 /-- Given integral domains `A, B` and localization maps to their fields of fractions
 `f : A →+* K, g : B →+* L`, an isomorphism `j : A ≃+* B` induces an isomorphism of
@@ -1477,7 +1477,7 @@ begin
       (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
   obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
-  apply mul_left_cancel' (φ.to_map_ne_zero_of_mem_non_zero_divisors ⟨c' * b', b_nonzero⟩),
+  apply mul_left_cancel' (φ.to_map_ne_zero_of_mem_non_zero_divisors b_nonzero),
   simp only [subtype.coe_mk, φ.to_map.map_mul] at *,
   erw [←hab, mul_assoc, φ.mk'_spec' a' ⟨b', b'_nonzero⟩],
 end
@@ -1519,7 +1519,7 @@ lemma is_integer_of_is_unit_denom {x : φ.codomain} (h : is_unit (φ.denom x : A
 begin
   cases h with d hd,
   have d_ne_zero : φ.to_map (φ.denom x) ≠ 0 :=
-    φ.to_map_ne_zero_of_mem_non_zero_divisors (φ.denom x),
+    φ.to_map_ne_zero_of_mem_non_zero_divisors (φ.denom x).2,
   use ↑d⁻¹ * φ.num x,
   refine trans _ (φ.mk'_num_denom x),
   rw [φ.to_map.map_mul, φ.to_map.map_units_inv, hd],

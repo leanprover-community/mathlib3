@@ -1251,11 +1251,11 @@ expected signatures.  -/
 variables [ordered_comm_group α] {a b : α}
 
 @[to_additive neg_le_neg]
-theorem inv_le_inv' : a ≤ b → b⁻¹ ≤ a⁻¹ :=
+lemma inv_le_inv' : a ≤ b → b⁻¹ ≤ a⁻¹ :=
 inv_le_inv_iff.mpr
 
 @[to_additive neg_lt_neg]
-theorem inv_lt_inv' : a < b → b⁻¹ < a⁻¹ :=
+lemma inv_lt_inv' : a < b → b⁻¹ < a⁻¹ :=
 inv_lt_inv_iff.mpr
 
 /-  The additive version is also a `linarith` lemma. -/
@@ -1265,11 +1265,11 @@ inv_lt_one_iff_one_lt.mpr
 
 /-  The additive version is also a `linarith` lemma. -/
 @[to_additive]
-theorem inv_le_one_of_one_le : 1 ≤ a → a⁻¹ ≤ 1 :=
+lemma inv_le_one_of_one_le : 1 ≤ a → a⁻¹ ≤ 1 :=
 inv_le_one'.mpr
 
 @[to_additive neg_nonneg_of_nonpos]
-theorem one_le_inv_of_le_one :  a ≤ 1 → 1 ≤ a⁻¹ :=
+lemma one_le_inv_of_le_one :  a ≤ 1 → 1 ≤ a⁻¹ :=
 one_le_inv'.mpr
 
 end norm_num_lemmas

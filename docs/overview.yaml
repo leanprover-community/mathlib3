@@ -245,6 +245,8 @@ Analysis:
     Fréchet-Riesz representation of the dual of a Hilbert space: 'inner_product_space.to_dual'
     isometric inclusion in double dual: 'normed_space.inclusion_in_double_dual_isometry'
     completeness of spaces of bounded continuous functions: 'bounded_continuous_function.complete_space'
+  Transcendental numbers:
+    Liouville's theorem on existence of transcendental numbers: liouville.is_transcendental
 
   Differentiability:
     differentiable function between normed vector spaces: 'has_fderiv_at'

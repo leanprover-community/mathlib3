@@ -182,7 +182,7 @@ end
 variables (p)
 
 def clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ) (a : zmod (p^n)),
-  x = set.preimage (padic_int.to_zmod_pow n) a }
+  x = set.preimage (padic_int.to_zmod_pow n) {a} }
 
 lemma span_eq_closed_ball (n : ℕ) :
   metric.closed_ball 0 (1/p^n) = (@ideal.span ℤ_[p] _ {(p^n : ℤ_[p])} : set ℤ_[p]) :=
@@ -297,11 +297,11 @@ begin
 end
 
 lemma proj_lim_preimage_clopen (n : ℕ) (a : zmod (d*(p^n))) :
-  is_clopen (set.preimage (padic_int.to_zmod_pow n) a : set ℤ_[p]) :=
+  is_clopen (set.preimage (padic_int.to_zmod_pow n) {a} : set ℤ_[p]) :=
 begin
   split,
-  { refine continuous_def.mp (continuous_to_zmod_pow p n) ↑a trivial, },
-  { refine continuous_iff_is_closed.mp (continuous_to_zmod_pow p n) ↑a _, simp, },
+  { refine continuous_def.mp (continuous_to_zmod_pow p n) {a} trivial, },
+  { refine continuous_iff_is_closed.mp (continuous_to_zmod_pow p n) {a} _, simp, },
 end
 
 lemma add_ball (x y : ℤ_[p]) (r : ℝ) : ({x} : set ℤ_[p]) + metric.ball y r = metric.ball (x + y) r :=
@@ -334,7 +334,7 @@ lemma is_clopen_discrete {α : Type*} [topological_space α] [discrete_topology 
 
 def clopen_basis' : set (clopen_sets ((zmod d) × ℤ_[p])) :=
 {x : clopen_sets ((zmod d) × ℤ_[p]) | ∃ (n : ℕ) (a : zmod (d * (p^n))),
-  x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) (a : set (zmod (p^n)))),
+  x = ⟨({a} : set (zmod d)).prod (set.preimage (padic_int.to_zmod_pow n) {(a : zmod (p^n))}),
     is_clopen_prod (is_clopen_discrete (a : zmod d))
       (proj_lim_preimage_clopen p d n a) ⟩ }
 
@@ -348,26 +348,69 @@ begin
   sorry
 end
 
-lemma clopen_basis_clopen : topological_space.is_topological_basis (clopen_basis p) ∧
+lemma mem_clopen_basis (n : ℕ) (a : zmod (p^n)) :
+  (padic_int.to_zmod_pow n)⁻¹' {a} ∈ (clopen_basis p) := ⟨n, a, rfl⟩
+
+--example {α : Type*} (x : α) : x ∈ (x : set α) :=
+
+--lemma mem_clopen_basis'
+--∃ (n : ℕ) (a : zmod (p^n)), x = set.preimage (padic_int.to_zmod_pow n) a
+
+lemma has_coe_t_eq_coe (a : ℤ_[p]) (n : ℕ) : ((to_zmod_pow n a) : ℤ_[p]) = a.appr n :=
+begin
+  dsimp [to_zmod_pow, to_zmod_hom], rw ←zmod.nat_cast_comp_val ℤ_[p],
+  { simp, apply zmod.val_cast_of_lt (appr_lt _ _), },
+  exact fact.pow.pos,
+end
+
+lemma dist_appr_spec (a : ℤ_[p]) (n : ℕ) : dist a ((a.appr n) : ℤ_[p]) ≤ (p : ℝ)^(-n : ℤ) :=
+begin
+  rw dist_eq_norm,
+  have := appr_spec n a,
+  rw ←norm_le_pow_iff_mem_span_pow at this, exact this,
+end
+
+example (a b c : ℤ) (h1 : a < c) (h2 : b ≤ d) : a + b < c + d := add_lt_add_of_lt_of_le h1 h2
+
+example (m : ℕ) : 1/((p : ℝ)^m) = ((p^m) : ℝ)⁻¹ := one_div (↑p ^ m)
+
+theorem clopen_basis_clopen : topological_space.is_topological_basis (clopen_basis p) ∧
   ∀ x ∈ (clopen_basis p), is_clopen x :=
 begin
   split,
   { refine topological_space.is_topological_basis_of_open_of_nhds _ _,
-    { rintros u hu, rw clopen_basis at hu, simp at hu, rcases hu with ⟨n, a, hu⟩,
-      have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, rw hu, refine (this a).1, },
+    { rintros u hu, rcases hu with ⟨n, a, hu⟩,
+      have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, rw hu, convert (this a).1, simp, },
     rintros a u mema hu, rw metric.is_open_iff at hu,
     obtain ⟨ε, hε, h⟩ := hu a mema,
     obtain ⟨m, fm⟩ := find_this_out p (ε/2) (half_pos hε),
     set b := ((to_zmod_pow m.succ a) : ℤ_[p]) with hb,
     refine ⟨metric.ball b (p^(-(m : ℤ))), _, _, _⟩,
+    dsimp [to_zmod_pow, to_zmod_hom] at hb,
     { have arith : -(m : ℤ) = 1 - (m.succ : ℤ), simp, linarith,
       rw [arith],
-      rw ←preimage_to_zmod_pow_eq_ball p (m.succ) (to_zmod_pow m.succ b),  },
-    sorry,
-    sorry, },
+      rw ←preimage_to_zmod_pow_eq_ball p (m.succ) (to_zmod_pow m.succ a),
+      convert mem_clopen_basis p m.succ ((to_zmod_pow m.succ) a), },
+    { simp only [metric.mem_ball], rw dist_eq_norm, rw hb,
+      rw has_coe_t_eq_coe p a m.succ,
+      have := appr_spec m.succ a, rw ←norm_le_pow_iff_mem_span_pow _ m.succ at this,
+      refine gt_of_gt_of_ge _ this,
+      repeat{rw fpow_neg, rw ←one_div,},
+      apply one_div_lt_one_div_of_lt, norm_num, convert pow_pos _ m, simp, sorry, sorry, },
+    { rintros c hc, apply h, simp at hc, simp,
+      suffices f1 : dist c a < 2 / (p^m),
+      { refine lt_trans f1 _, simp [fm], refine (lt_div_iff' _).mp _, exact zero_lt_two,
+        rw ←one_div, exact fm, },
+      have := dist_triangle c b a, rw dist_comm b a at this, refine gt_of_gt_of_ge _ this,
+      have ha : dist a b ≤ (↑p ^ m)⁻¹,
+      { rw hb, rw has_coe_t_eq_coe p a m.succ,
+        have : (↑p ^ m)⁻¹ = (p : ℝ)^(-m : ℤ), sorry,
+        rw this, refine le_trans (dist_appr_spec p a m.succ) _, sorry, },
+      convert add_lt_add_of_lt_of_le hc ha,
+      rw [←one_div, div_add_div_same, one_add_one_eq_two], }, },
   { rintros x hx,
     rw clopen_basis at hx, simp at hx, rcases hx with ⟨n, a, hx⟩, rw hx,
-    have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, refine this a, },
+    have := proj_lim_preimage_clopen p 1 n, rw one_mul at this, convert this a, simp, },
 end
 
 --lemma char_fn_basis_of_loc_const : is_basis A (@char_fn ℤ_[p] _ _ _ _ A _ _ _) := sorry
@@ -384,18 +427,86 @@ def E_c (hc : gcd c p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a :
 
 --instance {α : Type*} [topological_space α] : semimodule A (locally_constant α A) := sorry
 
-instance : compact_space (zmod d) := sorry
-instance pls_work : compact_space (zmod d × ℤ_[p]) := sorry
-instance sigh : totally_disconnected_space (zmod d × ℤ_[p]) := sorry
+example (x : ℕ) : ((x : ℤ_[p]) : ℚ_[p]) = (x : ℚ_[p]) :=
+coe_coe x
 
-def bernoulli_measure (hc : gcd c p = 1) := {x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
+instance [fact (0 < d)] : compact_space (zmod d) := fintype.compact_space
+--instance : totally_bounded (set.univ ℤ_[p]) :=
+instance : compact_space ℤ_[p] :=
+begin
+  refine is_compact_iff_compact_space.mp _,
+  rw compact_iff_totally_bounded_complete,
+  split,
+  {
+    refine metric.totally_bounded_of_finite_discretization _,
+    rintros ε hε,
+    obtain ⟨m, fm⟩ := find_this_out p (ε/2) (half_pos hε),
+    have fm' : (2 : ℝ)/(p^m) < ε, sorry,
+    refine ⟨zmod (p^m.succ), _, to_zmod_pow m.succ, λ x y h, _ ⟩,
+    { have : fact (0 < (p^(m.succ))), { exact fact.pow.pos, },
+      apply zmod.fintype _, assumption, },
+    apply lt_trans _ fm',
+    rw ←set.mem_singleton_iff at h, rw ←set.mem_preimage at h,
+    rw preimage_to_zmod_pow_eq_ball at h, rw metric.mem_ball at h,
+    rw has_coe_t_eq_coe at h,
+    refine gt_of_gt_of_ge _ (dist_triangle x (appr y m.succ) y),
+    have f : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m), sorry,
+    rw f, rw dist_comm _ ↑y,
+    have f' : ↑p ^ (1 - (m.succ : ℤ)) = (1 : ℝ) / (p^m), sorry, rw f' at h,
+    rw add_comm (dist _ _) _,
+    have f'' : ↑p ^ -(m.succ : ℤ) < (1 : ℝ) / (p^m), sorry,
+    have := add_lt_add (gt_of_gt_of_ge f'' (ge_iff_le.2 (dist_appr_spec p y (m.succ)))) h,
+    rw [subtype.dist_eq y _, subtype.dist_eq x _, padic_int.coe_coe] at this,
+    exact this, },
+  { refine complete_space_coe_iff_is_complete.mp _,
+    show complete_space ℤ_[p],
+    apply_instance, },
+end
+--better way to do it? maybe without showing totally bounded (should that be a separate lemma?)?
+-- better stick to either div or inv. which is easier to work with?
+
+--instance [fact (0 < d)] : compact_space (zmod d × ℤ_[p]) := infer_instance
+instance : totally_disconnected_space ℤ_[p] :=
+begin
+  refine (compact_t2_tot_disc_iff_tot_sep ℤ_[p]).mpr _,
+  refine {is_totally_separated_univ := _},
+  rintros x hx y hx ne,
+  obtain ⟨n,hn⟩ : ∃ (n : ℕ), to_zmod_pow n x ≠ to_zmod_pow n y,
+  { contrapose ne, push_neg at ne, rw ext_of_to_zmod_pow at ne, simp [ne], },
+  have f : is_totally_separated (set.univ : set (zmod (p^n))),
+  { exact totally_separated_space.is_totally_separated_univ (zmod (p ^ n)), },
+  obtain ⟨u, v, hu, hv, memu, memv, univ, disj⟩ :=
+    f (to_zmod_pow n x) (set.mem_univ _) (to_zmod_pow n y) (set.mem_univ _) hn,
+  refine ⟨(to_zmod_pow n)⁻¹' u, (to_zmod_pow n)⁻¹' v,
+    continuous_def.mp (continuous_to_zmod_pow p n) u hu,
+    continuous_def.mp (continuous_to_zmod_pow p n) v hv,
+    set.mem_preimage.mpr memu, set.mem_preimage.mpr memv,
+    λ z hz, _, _⟩,
+  { rw set.mem_union,
+    have univ' := univ (set.mem_univ (to_zmod_pow n z)),
+    cases univ',
+    { left, apply set.mem_preimage.mpr univ', },
+    { right, apply set.mem_preimage.mpr univ', }, },
+  { ext z, rw ←@set.preimage_empty _ _ (to_zmod_pow n), rw set.mem_preimage,
+    rw set.ext_iff at disj, specialize disj (to_zmod_pow n z), simp [disj], simp at disj,
+    assumption, },
+end
+--ℤ_[p] is now profinite!
+--instance sigh : totally_disconnected_space (zmod d × ℤ_[p]) := infer_instance
+
+variables [fact (0 < d)]
+def bernoulli_measure (hc : gcd c p = 1) :=
+{x : locally_constant (zmod d × ℤ_[p]) R →ₗ[R] R |
   ∀ U : (clopen_basis' p d), x (char_fn (zmod d × ℤ_[p]) U.val) =
     E_c p d hc (classical.some U.prop) (classical.some (classical.some_spec U.prop)) }
 
 variables (d)
 
-lemma bernoulli_measure_nonempty (hc : gcd c p = 1) : nonempty (@bernoulli_measure p _ d R _ _ _ hc) :=
-  sorry
+lemma bernoulli_measure_nonempty (hc : gcd c p = 1) :
+  nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
+begin
+
+end
 
 /-instance (c : ℤ) (hc : gcd c p = 1) : distribution' (ℤ_[p]) :=
 {
@@ -433,14 +544,10 @@ end
 --function on clopen subsets of Z/dZ* x Z_p* or work in Z_p and restrict
 --(i,a + p^nZ_p) (i,d) = 1
 
-instance : nonempty (units ℤ_[p]) := sorry
-
 lemma cont_paLf : continuous (λ (a : (units (zmod d) × units ℤ_[p])),
   ((pri_dir_char_extend p d R) a) * (inj (teichmuller_character p (a.snd)))^(p - 2)
   * (w.to_fun a : R)) :=
 sorry
-
-instance is_an_import_missing : nonempty (units (zmod d) × units ℤ_[p]) := sorry
 
 noncomputable def p_adic_L_function [h : function.injective inj] (hc : gcd c p = 1) := --h wont go in the system if you put it in [], is this independent of c?
   integral (units (zmod d) × units ℤ_[p]) R _ (bernoulli_measure_of_measure p d R hc)

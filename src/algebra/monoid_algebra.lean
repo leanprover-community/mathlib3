@@ -409,25 +409,26 @@ instance smul_comm_class_symm_self [smul_comm_class k R k] :
   smul_comm_class (monoid_algebra k G) R (monoid_algebra k G) :=
 ⟨λ t a b, by { haveI := smul_comm_class.symm k R k, rw ← smul_comm, } ⟩
 
-variables {A : Type u₃} [non_unital_non_assoc_semiring A] [module k A]
+variables {A : Type u₃} [non_unital_non_assoc_semiring A]
 
 /-- A non_unital `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
-lemma non_unital_alg_hom_ext ⦃φ₁ φ₂ : non_unital_alg_hom k (monoid_algebra k G) A⦄
+lemma non_unital_alg_hom_ext [distrib_mul_action k A]
+  {φ₁ φ₂ : non_unital_alg_hom k (monoid_algebra k G) A}
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 non_unital_alg_hom.to_distrib_mul_action_hom_injective $
-distrib_mul_action_hom.to_linear_map_injective $
-finsupp.lhom_ext' $
-λ a, linear_map.ext_ring (h a)
+  finsupp.distrib_mul_action_hom_ext' $
+  λ a, distrib_mul_action_hom.ext_ring (h a)
 
 /-- See note [partially-applied ext lemmas]. -/
-@[ext] lemma non_unital_alg_hom_ext' ⦃φ₁ φ₂ : non_unital_alg_hom k (monoid_algebra k G) A⦄
+@[ext] lemma non_unital_alg_hom_ext' [distrib_mul_action k A]
+  {φ₁ φ₂ : non_unital_alg_hom k (monoid_algebra k G) A}
   (h : φ₁.to_mul_hom.comp (of_magma k G) = φ₂.to_mul_hom.comp (of_magma k G)) : φ₁ = φ₂ :=
 non_unital_alg_hom_ext k $ mul_hom.congr_fun h
 
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/
-@[simps] def lift_magma [is_scalar_tower k A A] [smul_comm_class k A A] :
+@[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
   mul_hom G A ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
 { to_fun    := λ f,
     { to_fun    := λ a, a.sum (λ m t, t • f m),

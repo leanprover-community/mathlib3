@@ -179,10 +179,7 @@ begin
   rw [equiv.apply_symm_apply, ←mul_smul, mul_inv_self, one_smul],
 end
 
-@[to_additive] instance [h : is_commutative H (*)] : comm_group H :=
-{ mul_comm := h.comm, .. H.to_group }
-
-variables [is_commutative H (*)] [fintype (quotient_group.quotient H)]
+variables [is_commutative H] [fintype (quotient_group.quotient H)]
 
 variables (α β γ : left_transversals (H : set G))
 

@@ -1015,6 +1015,18 @@ lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) :
   λ yH, by simpa [mem_comap, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
 
+variable (H)
+
+/-- Commutivity of a subgroup -/
+@[class, to_additive] def is_commutative := is_commutative H (*)
+
+/-- A commutative subgroup is commutative -/
+@[to_additive] instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
+{ mul_comm := h.comm, .. H.to_group }
+
+instance center.is_commutative : (center G).is_commutative :=
+⟨λ a b, subtype.ext (b.2 a)⟩
+
 end subgroup
 
 namespace group

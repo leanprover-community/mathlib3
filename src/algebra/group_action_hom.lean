@@ -93,6 +93,18 @@ ext $ λ x, by rw [comp_apply, id_apply]
 @[simp] lemma comp_id (f : X →[M'] Y) : f.comp (mul_action_hom.id M') = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
 
+variables {A B}
+
+/-- The inverse of a bijective equivariant map is equivariant. -/
+@[simps] def inverse (f : A →[M] B) (g : B → A)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  B →[M] A :=
+{ to_fun    := g,
+  map_smul' := λ m x,
+    calc g (m • x) = g (m • (f (g x))) : by rw h₂
+               ... = g (f (m • (g x))) : by rw f.map_smul
+               ... = m • g x : by rw h₁, }
+
 variables {G} (H)
 
 /-- The canonical map to the left cosets. -/
@@ -104,7 +116,6 @@ def to_quotient : G →[G] quotient_group.quotient H :=
 end mul_action_hom
 
 /-- Equivariant additive monoid homomorphisms. -/
-@[nolint has_inhabited_instance]
 structure distrib_mul_action_hom extends A →[M] B, A →+ B.
 
 /-- Reinterpret an equivariant additive monoid homomorphism as an additive monoid homomorphism. -/
@@ -124,9 +135,11 @@ instance has_coe' : has_coe (A →+[M] B) (A →[M] B) :=
 ⟨to_mul_action_hom⟩
 
 instance : has_coe_to_fun (A →+[M] B) :=
-⟨_, λ c, c.to_fun⟩
+⟨_, to_fun⟩
 
 variables {M A B}
+
+@[simp] lemma to_fun_eq_coe (f : A →+[M] B) : f.to_fun = ⇑f := rfl
 
 @[norm_cast] lemma coe_fn_coe (f : A →+[M] B) : ((f : A →+ B) : A → B) = f := rfl
 @[norm_cast] lemma coe_fn_coe' (f : A →+[M] B) : ((f : A →[M] B) : A → B) = f := rfl
@@ -162,6 +175,22 @@ protected def id : A →+[M] A :=
 
 variables {M A B C}
 
+instance : has_zero (A →+[M] B) :=
+⟨{ map_smul' := by simp,
+   .. (0 : A →+ B) }⟩
+
+instance : has_one (A →+[M] A) := ⟨distrib_mul_action_hom.id M⟩
+
+@[simp] lemma coe_zero : ((0 : A →+[M] B) : A → B) = 0 := rfl
+
+@[simp] lemma coe_one : ((1 : A →+[M] A) : A → A) = id := rfl
+
+lemma zero_apply (a : A) : (0 : A →+[M] B) a = 0 := rfl
+
+lemma one_apply (a : A) : (1 : A →+[M] A) a = a := rfl
+
+instance : inhabited (A →+[M] B) := ⟨0⟩
+
 /-- Composition of two equivariant additive monoid homomorphisms. -/
 def comp (g : B →+[M] C) (f : A →+[M] B) : A →+[M] C :=
 { .. mul_action_hom.comp (g : B →[M] C) (f : A →[M] B),
@@ -174,6 +203,14 @@ ext $ λ x, by rw [comp_apply, id_apply]
 
 @[simp] lemma comp_id (f : A →+[M] B) : f.comp (distrib_mul_action_hom.id M) = f :=
 ext $ λ x, by rw [comp_apply, id_apply]
+
+/-- The inverse of a bijective `distrib_mul_action_hom` is a `distrib_mul_action_hom`. -/
+@[simps] def inverse (f : A →+[M] B) (g : B → A)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  B →+[M] A :=
+{ to_fun := g,
+  .. (f : A →+ B).inverse g h₁ h₂,
+  .. (f : A →[M] B).inverse g h₁ h₂ }
 
 end distrib_mul_action_hom
 

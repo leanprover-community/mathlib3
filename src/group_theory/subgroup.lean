@@ -1238,6 +1238,11 @@ def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →*
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
+@[simp, to_additive]
+lemma cod_restrict_apply {G : Type*} [group G] {N : Type*} [group N] (f : G →* N)
+  (S : subgroup N) (h : ∀ (x : G), f x ∈ S) {x : G} :
+    f.cod_restrict S h x = ⟨f x, h x⟩ := rfl
+
 /-- Computable alternative to `monoid_hom.of_injective`. -/
 def of_left_inverse {f : G →* N} {g : N →* G} (h : function.left_inverse g f) : G ≃* f.range :=
 { to_fun := f.range_restrict,
@@ -1612,6 +1617,10 @@ by { ext, exact mem_closure_singleton.symm }
 lemma gpowers_subset {a : G} {K : subgroup G} (h : a ∈ K) : gpowers a ≤ K :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := K.gpow_mem h i end
 
+lemma mem_gpowers_iff {g h : G} :
+  h ∈ gpowers g ↔ ∃ (k : ℤ), g ^ k = h :=
+iff.rfl
+
 end subgroup
 
 namespace add_subgroup
@@ -1630,13 +1639,22 @@ by { ext, exact mem_closure_singleton.symm }
 lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples a ≤ B :=
 @subgroup.gpowers_subset (multiplicative A) _ _ (B.to_subgroup) h
 
+lemma mem_gmultiples_iff {a b : A} :
+  b ∈ add_subgroup.gmultiples a ↔ ∃ (k : ℤ), k • a = b :=
+iff.rfl
+
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers
 attribute [to_additive add_subgroup.gmultiples_eq_closure] subgroup.gpowers_eq_closure
 attribute [to_additive add_subgroup.range_gmultiples_hom] subgroup.range_gpowers_hom
 attribute [to_additive add_subgroup.gmultiples_subset] subgroup.gpowers_subset
+attribute [to_additive add_subgroup.mem_gmultiples_iff] subgroup.mem_gpowers_iff
 
 end add_subgroup
+
+lemma int.mem_gmultiples_iff {a b : ℤ} :
+  b ∈ add_subgroup.gmultiples a ↔ a ∣ b :=
+exists_congr (λ k, by rw [mul_comm, eq_comm, ← smul_eq_mul])
 
 lemma of_mul_image_gpowers_eq_gmultiples_of_mul { x : G } :
   additive.of_mul '' ((subgroup.gpowers x) : set G) = add_subgroup.gmultiples (additive.of_mul x) :=
@@ -1822,6 +1840,37 @@ set.subset.antisymm
 end subgroup
 
 end pointwise
+
+namespace is_conj
+open subgroup
+
+lemma normal_closure_eq_top_of {N : subgroup G} [hn : N.normal]
+  {g g' : G} {hg : g ∈ N} {hg' : g' ∈ N} (hc : is_conj g g')
+  (ht : normal_closure ({⟨g, hg⟩} : set N) = ⊤) :
+  normal_closure ({⟨g', hg'⟩} : set N) = ⊤ :=
+begin
+  obtain ⟨c, rfl⟩ := is_conj_iff.1 hc,
+  have h : ∀ x : N, (mul_aut.conj c) x ∈ N,
+  { rintro ⟨x, hx⟩,
+    exact hn.conj_mem _ hx c },
+  have hs : function.surjective (((mul_aut.conj c).to_monoid_hom.restrict N).cod_restrict _ h),
+  { rintro ⟨x, hx⟩,
+    refine ⟨⟨c⁻¹ * x * c, _⟩, _⟩,
+    { have h := hn.conj_mem _ hx c⁻¹,
+      rwa [inv_inv] at h },
+    simp only [monoid_hom.cod_restrict_apply, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply,
+      coe_mk, monoid_hom.restrict_apply, subtype.mk_eq_mk, ← mul_assoc, mul_inv_self, one_mul],
+    rw [mul_assoc, mul_inv_self, mul_one] },
+  have ht' := map_mono (eq_top_iff.1 ht),
+  rw [← monoid_hom.range_eq_map, monoid_hom.range_top_of_surjective _ hs] at ht',
+  refine eq_top_iff.2 (le_trans ht' (map_le_iff_le_comap.2 (normal_closure_le_normal _))),
+  rw [set.singleton_subset_iff, set_like.mem_coe],
+  simp only [monoid_hom.cod_restrict_apply, mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, coe_mk,
+    monoid_hom.restrict_apply, mem_comap],
+  exact subset_normal_closure (set.mem_singleton _),
+end
+
+end is_conj
 
 /-! ### Actions by `subgroup`s
 

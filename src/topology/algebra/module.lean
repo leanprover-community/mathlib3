@@ -235,7 +235,7 @@ lemma ext_on [t2_space M₂] {s : set M} (hs : dense (submodule.span R s : set M
 ext $ λ x, eq_on_closure_span h (hs x)
 
 /-- The continuous map that is constantly zero. -/
-instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_const⟩⟩
+instance: has_zero (M →L[R] M₂) := ⟨⟨0, continuous_zero⟩⟩
 instance : inhabited (M →L[R] M₂) := ⟨0⟩
 
 @[simp] lemma default_def : default (M →L[R] M₂) = 0 := rfl
@@ -615,7 +615,7 @@ def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
     exact this
   end),
   continuous_subtype_mk _ (continuous_pi (λ i, begin
-    dsimp, split_ifs; [apply continuous_apply, exact continuous_const]
+    dsimp, split_ifs; [apply continuous_apply, exact continuous_zero]
   end)) ⟩
 
 end pi
@@ -749,7 +749,7 @@ variables {R S : Type*} [ring R] [ring S] [topological_space S]
   [module S M₃] [smul_comm_class R S M₃] [has_continuous_smul S M₃]
 
 instance : has_scalar S (M →L[R] M₃) :=
-⟨λ c f, ⟨c • f, continuous_const.smul f.2⟩⟩
+⟨λ c f, ⟨c • f, (continuous_const.smul f.2 : continuous (λ x, c • f x))⟩⟩
 
 variables (c : S) (h : M₂ →L[R] M₃) (f g : M →L[R] M₂) (x y z : M)
 
@@ -878,7 +878,9 @@ variables (A M M₂ R S) [topological_add_group M₂]
 /-- `continuous_linear_map.restrict_scalars` as a `linear_map`. See also
 `continuous_linear_map.restrict_scalarsL`. -/
 def restrict_scalarsₗ : (M →L[A] M₂) →ₗ[S] (M →L[R] M₂) :=
-⟨restrict_scalars R, λ _ _, rfl, λ _ _, rfl⟩
+{ to_fun := restrict_scalars R,
+  map_add' := restrict_scalars_add,
+  map_smul' := restrict_scalars_smul }
 
 variables {A M M₂ R S}
 
@@ -1047,8 +1049,8 @@ theorem surjective (e : M ≃L[R] M₂) : function.surjective e := e.to_linear_e
 @[simp] theorem trans_apply (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) (c : M) :
   (e₁.trans e₂) c = e₂ (e₁ c) :=
 rfl
-@[simp] theorem apply_symm_apply (e : M ≃L[R] M₂) (c : M₂) : e (e.symm c) = c := e.1.6 c
-@[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.5 b
+@[simp] theorem apply_symm_apply (e : M ≃L[R] M₂) (c : M₂) : e (e.symm c) = c := e.1.right_inv c
+@[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.left_inv b
 @[simp] theorem symm_trans_apply (e₁ : M₂ ≃L[R] M) (e₂ : M₃ ≃L[R] M₂) (c : M) :
   (e₂.trans e₁).symm c = e₂.symm (e₁.symm c) :=
 rfl

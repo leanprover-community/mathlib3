@@ -83,7 +83,7 @@ by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
 
 /--  Construct an algebra isomorphism from an equality of intermediate fields -/
-@[simps]
+@[simps apply]
 def equiv_of_eq {S T : intermediate_field F E} (h : S = T) : S ≃ₐ[F] T :=
 by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
 

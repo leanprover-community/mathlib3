@@ -7,11 +7,8 @@ import algebra.ordered_monoid
 
 /-!
 # Ordered groups
-
 This file develops the basics of ordered groups.
-
 ## Implementation details
-
 Unfortunately, the number of `'` appended to lemmas in this file
 may differ between the multiplicative and the additive version of a lemma.
 The reason is that we did not want to change existing names in the library.
@@ -228,6 +225,7 @@ lemma mul_inv_lt_iff_lt_mul : a * b⁻¹ < c ↔ a < c * b :=
 by rw [← mul_lt_mul_iff_right b, inv_mul_cancel_right]
 
 @[simp, to_additive]
+
 lemma inv_mul_lt_one_iff_lt : a * b⁻¹ < 1 ↔ a < b :=
 by rw [← mul_lt_mul_iff_right b, inv_mul_cancel_right, one_mul]
 
@@ -423,11 +421,14 @@ attribute [to_additive nonpos_of_neg_nonneg] le_one_of_one_le_inv
 alias inv_lt_inv_iff ↔ lt_of_inv_lt_inv _
 attribute [to_additive] lt_of_inv_lt_inv
 
-alias left.inv_lt_one_iff ↔ one_lt_of_inv_inv _
-attribute [to_additive] one_lt_of_inv_inv
+alias left.inv_lt_one_iff ↔ one_lt_of_inv_lt_one _
+attribute [to_additive] one_lt_of_inv_lt_one
 
 alias left.inv_lt_one_iff ← inv_lt_one_iff_one_lt
 attribute [to_additive] inv_lt_one_iff_one_lt
+
+alias left.inv_lt_one_iff ← inv_lt_one'
+attribute [to_additive neg_lt_zero] inv_lt_one'
 
 alias left.one_lt_inv_iff ↔  inv_of_one_lt_inv _
 attribute [to_additive neg_of_neg_pos] inv_of_one_lt_inv
@@ -441,17 +442,8 @@ attribute [to_additive] mul_le_of_le_inv_mul
 alias le_inv_mul_iff_mul_le ↔ _ le_inv_mul_of_mul_le
 attribute [to_additive] le_inv_mul_of_mul_le
 
-alias inv_mul_iff_le_mul ↔ le_mul_of_inv_mul_le _
-attribute [to_additive] le_mul_of_inv_mul_le
-
 alias inv_mul_iff_le_mul ↔ _ inv_mul_le_of_le_mul
 attribute [to_additive] inv_mul_le_of_le_mul
-
-alias le_mul_of_inv_mul_le ← le_mul_of_inv_mul_le_left
-attribute [to_additive] le_mul_of_inv_mul_le_left
-
-alias inv_mul_le_of_le_mul ← inv_mul_le_left_of_le_mul
-attribute [to_additive] inv_mul_le_left_of_le_mul
 
 alias lt_inv_mul_iff_mul_lt ↔ mul_lt_of_lt_inv_mul _
 attribute [to_additive] mul_lt_of_lt_inv_mul
@@ -459,26 +451,18 @@ attribute [to_additive] mul_lt_of_lt_inv_mul
 alias lt_inv_mul_iff_mul_lt ↔ _ lt_inv_mul_of_mul_lt
 attribute [to_additive] lt_inv_mul_of_mul_lt
 
-alias inv_mul_lt_iff_lt_mul ↔ lt_mul_of_inv_mul_lt _
+alias inv_mul_lt_iff_lt_mul ↔ lt_mul_of_inv_mul_lt inv_mul_lt_of_lt_mul
 attribute [to_additive] lt_mul_of_inv_mul_lt
-
-alias inv_mul_lt_iff_lt_mul ↔ _ inv_mul_lt_of_lt_mul
 attribute [to_additive] inv_mul_lt_of_lt_mul
 
 alias lt_mul_of_inv_mul_lt ← lt_mul_of_inv_mul_lt_left
 attribute [to_additive] lt_mul_of_inv_mul_lt_left
-
-alias inv_mul_lt_of_lt_mul ← inv_mul_lt_left_of_lt_mul
-attribute [to_additive] inv_mul_lt_left_of_lt_mul
 
 alias left.inv_le_one_iff ← inv_le_one'
 attribute [to_additive neg_nonpos] inv_le_one'
 
 alias left.one_le_inv_iff ← one_le_inv'
 attribute [to_additive neg_nonneg] one_le_inv'
-
-alias left.inv_lt_one_iff ← inv_lt_one'
-attribute [to_additive neg_lt_zero] inv_lt_one'
 
 alias left.one_lt_inv_iff ← one_lt_inv'
 attribute [to_additive neg_pos] one_lt_inv'
@@ -795,9 +779,7 @@ end densely_ordered
 end linear_order
 
 /-!
-
 ### Linearly ordered commutative groups
-
 -/
 
 /-- A linearly ordered additive commutative group is an
@@ -1256,11 +1238,11 @@ expected signatures.  -/
 variables [ordered_comm_group α] {a b : α}
 
 @[to_additive neg_le_neg]
-theorem inv_le_inv' : a ≤ b → b⁻¹ ≤ a⁻¹ :=
+lemma inv_le_inv' : a ≤ b → b⁻¹ ≤ a⁻¹ :=
 inv_le_inv_iff.mpr
 
 @[to_additive neg_lt_neg]
-theorem inv_lt_inv' : a < b → b⁻¹ < a⁻¹ :=
+lemma inv_lt_inv' : a < b → b⁻¹ < a⁻¹ :=
 inv_lt_inv_iff.mpr
 
 /-  The additive version is also a `linarith` lemma. -/
@@ -1270,11 +1252,11 @@ inv_lt_one_iff_one_lt.mpr
 
 /-  The additive version is also a `linarith` lemma. -/
 @[to_additive]
-theorem inv_le_one_of_one_le : 1 ≤ a → a⁻¹ ≤ 1 :=
+lemma inv_le_one_of_one_le : 1 ≤ a → a⁻¹ ≤ 1 :=
 inv_le_one'.mpr
 
 @[to_additive neg_nonneg_of_nonpos]
-theorem one_le_inv_of_le_one :  a ≤ 1 → 1 ≤ a⁻¹ :=
+lemma one_le_inv_of_le_one :  a ≤ 1 → 1 ≤ a⁻¹ :=
 one_le_inv'.mpr
 
 end norm_num_lemmas

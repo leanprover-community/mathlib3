@@ -83,6 +83,12 @@ def hom_mk' {X Y : T} {f : X ⟶ Y} {P Q : T} {g : P ⟶ Q} {u : X ⟶ P} {v : Y
   sq.left ≫ g = f.hom ≫ sq.right :=
 sq.w
 
+instance {f g : arrow T} (ff : f ⟶ g) [is_iso ff.left] [is_iso ff.right] :
+  is_iso ff :=
+{ out := ⟨⟨inv ff.left, inv ff.right⟩,
+          by { ext; dsimp; simp only [is_iso.hom_inv_id] },
+          by { ext; dsimp; simp only [is_iso.inv_hom_id] }⟩ }
+
 /-- Create an isomorphism between arrows,
 by providing isomorphisms between the domains and codomains,
 and a proof that the square commutes. -/

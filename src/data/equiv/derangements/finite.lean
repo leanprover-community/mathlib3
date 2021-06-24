@@ -109,14 +109,12 @@ begin
   { rw [finset.sum_range_succ, num_derangements, hn, finset.mul_sum, sub_eq_add_neg],
     congr' 1,
     -- show that (n + 1) * (-1)^x * desc_fac x (n - x) = (-1)^x * desc_fac x (n.succ - x)
-    {
-      refine finset.sum_congr (refl _) _,
+    { refine finset.sum_congr (refl _) _,
       intros x hx,
       have h_le : x ≤ n := finset.mem_range_succ_iff.mp hx,
       rw [nat.succ_sub h_le, nat.desc_fac_succ, nat.add_sub_cancel' h_le],
       push_cast,
-      ring,
-    },
+      ring },
     -- show that -(-1)^n = (-1)^n.succ * desc_fac n.succ (n.succ - n.succ)
-    { simp [pow_succ] }}
+    { simp [pow_succ] } }
 end

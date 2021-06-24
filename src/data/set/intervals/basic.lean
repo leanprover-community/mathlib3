@@ -188,30 +188,30 @@ lemma Ioo_subset_Ioo (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
 λ x ⟨hx₁, hx₂⟩, ⟨lt_of_le_of_lt h₁ hx₁, lt_of_lt_of_le hx₂ h₂⟩
 
 lemma Ioo_subset_Ioo_left (h : a₁ ≤ a₂) : Ioo a₂ b ⊆ Ioo a₁ b :=
-Ioo_subset_Ioo h (le_rfl)
+Ioo_subset_Ioo h le_rfl
 
 lemma Ioo_subset_Ioo_right (h : b₁ ≤ b₂) : Ioo a b₁ ⊆ Ioo a b₂ :=
-Ioo_subset_Ioo (le_rfl) h
+Ioo_subset_Ioo le_rfl h
 
 lemma Ico_subset_Ico (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
   Ico a₁ b₁ ⊆ Ico a₂ b₂ :=
 λ x ⟨hx₁, hx₂⟩, ⟨le_trans h₁ hx₁, lt_of_lt_of_le hx₂ h₂⟩
 
 lemma Ico_subset_Ico_left (h : a₁ ≤ a₂) : Ico a₂ b ⊆ Ico a₁ b :=
-Ico_subset_Ico h (le_rfl)
+Ico_subset_Ico h le_rfl
 
 lemma Ico_subset_Ico_right (h : b₁ ≤ b₂) : Ico a b₁ ⊆ Ico a b₂ :=
-Ico_subset_Ico (le_rfl) h
+Ico_subset_Ico le_rfl h
 
 lemma Icc_subset_Icc (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
   Icc a₁ b₁ ⊆ Icc a₂ b₂ :=
 λ x ⟨hx₁, hx₂⟩, ⟨le_trans h₁ hx₁, le_trans hx₂ h₂⟩
 
 lemma Icc_subset_Icc_left (h : a₁ ≤ a₂) : Icc a₂ b ⊆ Icc a₁ b :=
-Icc_subset_Icc h (le_rfl)
+Icc_subset_Icc h le_rfl
 
 lemma Icc_subset_Icc_right (h : b₁ ≤ b₂) : Icc a b₁ ⊆ Icc a b₂ :=
-Icc_subset_Icc (le_rfl) h
+Icc_subset_Icc le_rfl h
 
 lemma Icc_subset_Ioo (ha : a₂ < a₁) (hb : b₁ < b₂) :
   Icc a₁ b₁ ⊆ Ioo a₂ b₂ :=
@@ -228,10 +228,10 @@ lemma Ioc_subset_Ioc (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
 λ x ⟨hx₁, hx₂⟩, ⟨lt_of_le_of_lt h₁ hx₁, le_trans hx₂ h₂⟩
 
 lemma Ioc_subset_Ioc_left (h : a₁ ≤ a₂) : Ioc a₂ b ⊆ Ioc a₁ b :=
-Ioc_subset_Ioc h (le_rfl)
+Ioc_subset_Ioc h le_rfl
 
 lemma Ioc_subset_Ioc_right (h : b₁ ≤ b₂) : Ioc a b₁ ⊆ Ioc a b₂ :=
-Ioc_subset_Ioc (le_rfl) h
+Ioc_subset_Ioc le_rfl h
 
 lemma Ico_subset_Ioo_left (h₁ : a₁ < a₂) : Ico a₂ b ⊆ Ioo a₁ b :=
 λ x, and.imp_left $ lt_of_lt_of_le h₁

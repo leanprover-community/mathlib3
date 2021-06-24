@@ -50,6 +50,12 @@ attribute [to_additive] ordered_comm_monoid
 
 section ordered_instances
 
+@[to_additive covariant_class_add_comm_semigroup.to_covariant_class_right]
+instance covariant_class_comm_semigroup.to_covariant_class_right (M : Type*) [comm_semigroup M]
+  [has_le M] [covariant_class M M (*) (≤)] :
+  covariant_class M M (function.swap (*)) (≤) :=
+covariant_swap_mul_le_of_covariant_mul_le M
+
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (*) (≤) :=
@@ -58,10 +64,10 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (*) (<) :=
-{ elim := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
+{ elim := λ a b c, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ }
 
 -- This instance can be proven with `by apply_instance`.  However, `with_bot ℕ` does not
--- pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it.
+-- pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it (see PR #7940).
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
   covariant_class M M (function.swap (*)) (≤) :=

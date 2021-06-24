@@ -420,11 +420,14 @@ attribute [to_additive nonpos_of_neg_nonneg] le_one_of_one_le_inv
 alias inv_lt_inv_iff ↔ lt_of_inv_lt_inv _
 attribute [to_additive] lt_of_inv_lt_inv
 
-alias left.inv_lt_one_iff ↔ one_lt_of_inv_inv _
-attribute [to_additive] one_lt_of_inv_inv
+alias left.inv_lt_one_iff ↔ one_lt_of_inv_lt_one _
+attribute [to_additive pos_of_neg_neg] one_lt_of_inv_lt_one
 
 alias left.inv_lt_one_iff ← inv_lt_one_iff_one_lt
 attribute [to_additive] inv_lt_one_iff_one_lt
+
+alias left.inv_lt_one_iff ← inv_lt_one'
+attribute [to_additive neg_lt_zero] inv_lt_one'
 
 alias left.one_lt_inv_iff ↔  inv_of_one_lt_inv _
 attribute [to_additive neg_of_neg_pos] inv_of_one_lt_inv
@@ -438,17 +441,8 @@ attribute [to_additive] mul_le_of_le_inv_mul
 alias le_inv_mul_iff_mul_le ↔ _ le_inv_mul_of_mul_le
 attribute [to_additive] le_inv_mul_of_mul_le
 
-alias inv_mul_iff_le_mul ↔ le_mul_of_inv_mul_le _
-attribute [to_additive] le_mul_of_inv_mul_le
-
 alias inv_mul_iff_le_mul ↔ _ inv_mul_le_of_le_mul
 attribute [to_additive] inv_mul_le_of_le_mul
-
-alias le_mul_of_inv_mul_le ← le_mul_of_inv_mul_le_left
-attribute [to_additive] le_mul_of_inv_mul_le_left
-
-alias inv_mul_le_of_le_mul ← inv_mul_le_left_of_le_mul
-attribute [to_additive] inv_mul_le_left_of_le_mul
 
 alias lt_inv_mul_iff_mul_lt ↔ mul_lt_of_lt_inv_mul _
 attribute [to_additive] mul_lt_of_lt_inv_mul
@@ -456,26 +450,18 @@ attribute [to_additive] mul_lt_of_lt_inv_mul
 alias lt_inv_mul_iff_mul_lt ↔ _ lt_inv_mul_of_mul_lt
 attribute [to_additive] lt_inv_mul_of_mul_lt
 
-alias inv_mul_lt_iff_lt_mul ↔ lt_mul_of_inv_mul_lt _
+alias inv_mul_lt_iff_lt_mul ↔ lt_mul_of_inv_mul_lt inv_mul_lt_of_lt_mul
 attribute [to_additive] lt_mul_of_inv_mul_lt
-
-alias inv_mul_lt_iff_lt_mul ↔ _ inv_mul_lt_of_lt_mul
 attribute [to_additive] inv_mul_lt_of_lt_mul
 
 alias lt_mul_of_inv_mul_lt ← lt_mul_of_inv_mul_lt_left
 attribute [to_additive] lt_mul_of_inv_mul_lt_left
-
-alias inv_mul_lt_of_lt_mul ← inv_mul_lt_left_of_lt_mul
-attribute [to_additive] inv_mul_lt_left_of_lt_mul
 
 alias left.inv_le_one_iff ← inv_le_one'
 attribute [to_additive neg_nonpos] inv_le_one'
 
 alias left.one_le_inv_iff ← one_le_inv'
 attribute [to_additive neg_nonneg] one_le_inv'
-
-alias left.inv_lt_one_iff ← inv_lt_one'
-attribute [to_additive neg_lt_zero] inv_lt_one'
 
 alias left.one_lt_inv_iff ← one_lt_inv'
 attribute [to_additive neg_pos] one_lt_inv'

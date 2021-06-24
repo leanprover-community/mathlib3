@@ -384,6 +384,8 @@ have s ⊓ linear_map.ker (linear_map.snd R M P) ≤ linear_map.range (linear_ma
 from λ x ⟨hx1, hx2⟩, ⟨x.1, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 hx2⟩,
 linear_map.map_comap_eq_self this ▸ submodule.fg_map (noetherian _)⟩
 
+#exit
+
 instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
   [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]
   [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=

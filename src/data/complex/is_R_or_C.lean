@@ -756,21 +756,21 @@ noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
 @[simp] lemma conj_ae_coe : (conj_ae : K → K) = conj := rfl
 
 /-- Conjugate as a linear isometry -/
-noncomputable def conj_li : K ≃ₗᵢ[ℝ] K := ⟨conj_ae.to_linear_equiv, λ z, by simp [norm_eq_abs]⟩
+noncomputable def conj_lie : K ≃ₗᵢ[ℝ] K := ⟨conj_ae.to_linear_equiv, λ z, by simp [norm_eq_abs]⟩
 
-@[simp] lemma conj_li_apply : (conj_li : K → K) = conj := rfl
+@[simp] lemma conj_lie_apply : (conj_lie : K → K) = conj := rfl
 
 /-- Conjugate as a continuous linear equivalence -/
-noncomputable def conj_cle : K ≃L[ℝ] K := @conj_li K _
+noncomputable def conj_cle : K ≃L[ℝ] K := @conj_lie K _
 
 @[simp] lemma conj_cle_coe : (@conj_cle K _).to_linear_equiv = conj_ae.to_linear_equiv := rfl
 
 @[simp] lemma conj_cle_apply : (conj_cle : K → K) = conj := rfl
 
 @[simp] lemma conj_cle_norm : ∥(@conj_cle K _ : K →L[ℝ] K)∥ = 1 :=
-(@conj_li K _).to_linear_isometry.norm_to_continuous_linear_map
+(@conj_lie K _).to_linear_isometry.norm_to_continuous_linear_map
 
-@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_li.continuous
+@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_lie.continuous
 
 /-- The `ℝ → K` coercion, as a linear map -/
 noncomputable def of_real_am : ℝ →ₐ[ℝ] K := algebra.of_id ℝ K

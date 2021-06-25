@@ -894,15 +894,20 @@ noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijectiv
 { .. ring_equiv.of_bijective (f : A₁ →+* A₂) hf, .. f }
 
 /-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
-def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
-{ to_fun    := e.to_fun,
-  map_add'  := λ x y, by simp,
+@[simps apply] def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
+{ to_fun    := e,
   map_smul' := λ r x, by simp [algebra.smul_def''],
-  inv_fun   := e.symm.to_fun,
-  left_inv  := e.left_inv,
-  right_inv := e.right_inv, }
+  inv_fun   := e.symm,
+  .. e }
 
-@[simp] lemma to_linear_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : A₁) : e.to_linear_equiv x = e x := rfl
+@[simp] lemma to_linear_equiv_refl :
+  (alg_equiv.refl : A₁ ≃ₐ[R] A₁).to_linear_equiv = linear_equiv.refl R A₁ := rfl
+
+@[simp] lemma to_linear_equiv_symm (e : A₁ ≃ₐ[R] A₂) :
+  e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
+
+@[simp] lemma to_linear_equiv_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
+  (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv := rfl
 
 theorem to_linear_equiv_inj {e₁ e₂ : A₁ ≃ₐ[R] A₂} (H : e₁.to_linear_equiv = e₂.to_linear_equiv) :
   e₁ = e₂ :=

@@ -51,6 +51,15 @@ begin
   { exact (or.inr $ or.inr $ sign_of_pos hp) },
 end
 
+/-- This lemma is useful for working with `units ℝ` -/
+lemma sign_apply_eq_of_ne_zero (r : ℝ) (h : r ≠ 0) : sign r = -1 ∨ sign r = 1 :=
+begin
+  obtain hn | rfl | hp := lt_trichotomy r (0 : ℝ),
+  { exact (or.inl $ sign_of_neg hn) },
+  { exact (h rfl).elim },
+  { exact (or.inr $ sign_of_pos hp) },
+end
+
 @[simp]
 lemma sign_eq_zero_iff {r : ℝ} : sign r = 0 ↔ r = 0 :=
 begin

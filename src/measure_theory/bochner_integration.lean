@@ -308,6 +308,27 @@ lemma measure_preimage_lt_top_of_integrable (f : α →ₛ E) (hf : integrable f
   μ (f ⁻¹' {x}) < ∞ :=
 integrable_iff.mp hf x hx
 
+lemma mem_ℒp_piecewise_of_finite_measure {s : set α} (hs : measurable_set s) (hs' : μ s < ∞)
+  (f : α →ₛ E) :
+  mem_ℒp (f.piecewise s hs 0) p μ :=
+begin
+  apply simple_func.mem_ℒp_of_finite_measure_preimage,
+  intros c hc,
+  have : (f.piecewise s hs 0) ⁻¹' {c} = f ⁻¹' {c} ∩ s := sorry,
+  sorry
+end
+
+lemma finite_measure_of_mem_ℒp_piecewise {s : set α} (hs : measurable_set s) (c : E) (hp₀ : 0 < p)
+  (hp : p ≠ ⊤) (hs : mem_ℒp ((simple_func.const α c).piecewise s hs 0) p μ) :
+  c = 0 ∨ μ s < ∞ :=
+begin
+  by_cases hc : c = 0,
+  { exact or.inl hc },
+  right,
+  convert simple_func.measure_preimage_lt_top_of_mem_ℒp hp₀ hp _ hs c hc,
+  sorry,
+end
+
 variables [normed_space ℝ F]
 
 /-- Bochner integral of simple functions whose codomain is a real `normed_space`. -/

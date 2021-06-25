@@ -9,11 +9,13 @@ import data.real.basic
 # Real sign function
 
 This file introduces and contains some results about `real.sign` which maps negative
-real numbers to -1 and nonnegative numbers to 1.
+real numbers to -1, positive real numbers to 1, and 0 to 0.
 
 ## Main definitions
 
- * `real.sign r` is -1 if `r < 0` and 1 otherwise
+ * `real.sign r` is $\begin{cases} -1 & \text{if } r < 0, \\
+                               ~~\, 0 & \text{if } r = 0, \\
+                               ~~\, 1 & \text{if } r > 0. \end{cases}$
 
 ## Tags
 
@@ -22,7 +24,7 @@ sign function
 
 namespace real
 
-/-- The sign function that maps negative real numbers to -1 and nonnegative numbers to 1. -/
+/-- The sign function that maps negative real numbers to -1 and positive numbers to 1. -/
 noncomputable
 def sign (r : ℝ) : ℝ :=
 if r < 0 then -1 else

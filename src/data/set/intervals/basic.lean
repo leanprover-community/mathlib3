@@ -586,7 +586,7 @@ lemma Icc_eq_empty_iff : Icc a b = ∅ ↔ b < a :=
 lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
   Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
 ⟨λ h, have a₂ ≤ a₁ ∧ a₁ < b₂ := h ⟨le_rfl, h₁⟩,
-  ⟨this.1, le_of_not_lt $ λ h', lt_irrefl b₂ (h ⟨le_of_lt this.2, h'⟩).2⟩,
+  ⟨this.1, le_of_not_lt $ λ h', lt_irrefl b₂ (h ⟨this.2.le, h'⟩).2⟩,
  λ ⟨h₁, h₂⟩, Ico_subset_Ico h₁ h₂⟩
 
 lemma Ioo_subset_Ioo_iff [densely_ordered α] (h₁ : a₁ < b₁) :
@@ -1031,11 +1031,11 @@ begin
   simp_rw [mem_union, mem_Icc, min_le_iff, le_max_iff],
   by_cases hc : c ≤ x; by_cases hd : x ≤ d,
   { tauto },
-  { have hax : a ≤ x :=.trans h₂ (le_of_not_ge hd),
+  { have hax : a ≤ x := h₂.trans (le_of_not_ge hd),
     tauto },
-  { have hxb : x ≤ b :=.trans (le_of_not_ge hc) h₁,
+  { have hxb : x ≤ b := (le_of_not_ge hc).trans h₁,
     tauto },
-  { tauto },
+  { tauto }
 end
 
 /--
@@ -1066,13 +1066,13 @@ lemma Ioo_union_Ioo' (h₁ : c < b) (h₂ : a < d) :
 begin
   ext1 x,
   simp_rw [mem_union, mem_Ioo, min_lt_iff, lt_max_iff],
-  obtain hc | hc := le_or_lt x c; obtain hd | hd := le_or_lt x d,
-  { have hax : a < x := h₂.trans_le hd,
-    tauto },
+  by_cases hc : c < x; by_cases hd : x < d,
   { tauto },
-  { have hxb : x < b := hc.trans_lt h₁,
+  { have hax : a < x := h₂.trans_le (le_of_not_lt hd),
     tauto },
-  { tauto },
+  { have hxb : x < b := (le_of_not_lt hc).trans_lt h₁,
+    tauto },
+  { tauto }
 end
 
 lemma Ioo_union_Ioo (h₁ : min a b < max c d) (h₂ : min c d < max a b) :
@@ -1147,11 +1147,11 @@ variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
 lemma Ioc_inter_Ioo_of_left_lt (h : b₁ < b₂) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioc (max a₁ a₂) b₁ :=
 ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
-  and_iff_left_iff_imp.2 (λ h',.trans_lt h' h)]
+  and_iff_left_iff_imp.2 (λ h', lt_of_le_of_lt h' h)]
 
 lemma Ioc_inter_Ioo_of_right_le (h : b₂ ≤ b₁) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioo (max a₁ a₂) b₂ :=
 ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
-  and_iff_right_iff_imp.2 (λ h', (.trans (le_of_lt h') h))]
+  and_iff_right_iff_imp.2 (λ h', ((le_of_lt h').trans h))]
 
 lemma Ioo_inter_Ioc_of_left_le (h : b₁ ≤ b₂) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioo (max a₁ a₂) b₁ :=
 by rw [inter_comm, Ioc_inter_Ioo_of_right_le h, max_comm]

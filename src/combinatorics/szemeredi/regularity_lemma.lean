@@ -69,7 +69,7 @@ begin
   rw [this, card_insert_of_not_mem, card_singleton],
   simp only [not_and, prod.mk.inj_iff, mem_singleton],
   rintro rfl,
-  apply hxy.2
+  exact hxy.2
 end
 
 lemma card_sym2_not_diag {α : Type u} [decidable_eq α] [fintype α] :
@@ -691,7 +691,7 @@ begin
 end
 
 lemma bind_size (Q : Π i ∈ P.parts, finpartition_on i) :
-  (P.bind Q).size = ∑ A in P.parts, 0 :=
+  (P.bind Q).size = ∑ A in P.parts, (Q A).size :=
 begin
   sorry
 end

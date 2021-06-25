@@ -15,8 +15,8 @@ import data.prod
 
 - `monotone f`: A function between two types equipped with `≤` is monotone if `a ≤ b` implies
   `f a ≤ f b`.
-- `strict_mono f` : A function between two types equipped with ` < ` is strictly monotone  if `a < b`
-  implies `f a < f b`.
+- `strict_mono f` : A function between two types equipped with ` < ` is strictly monotone  if
+  `a < b` implies `f a < f b`.
 - `order_dual α` : A type tag reversing the meaning of all inequalities.
 
 ### Transfering orders

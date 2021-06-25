@@ -8,6 +8,7 @@ import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 import data.complex.is_R_or_C
 import analysis.special_functions.sqrt
+import analysis.complex.basic
 
 /-!
 # Inner Product Space
@@ -1668,7 +1669,7 @@ end deriv
 section continuous
 
 /-!
-### Continuity and measurability of the inner product
+### Continuity of the inner product
 
 Since the inner product is `ℝ`-smooth, it is continuous. We do not need a `[normed_space ℝ E]`
 structure to *state* this fact and its corollaries, so we introduce them in the proof instead.
@@ -1687,25 +1688,6 @@ lemma filter.tendsto.inner {f g : α → E} {l : filter α} {x y : E} (hf : tend
   (hg : tendsto g l (𝓝 y)) :
   tendsto (λ t, ⟪f t, g t⟫) l (𝓝 ⟪x, y⟫) :=
 (continuous_inner.tendsto _).comp (hf.prod_mk_nhds hg)
-
-lemma measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
-  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
-  {f g : α → E} (hf : measurable f) (hg : measurable g) :
-  measurable (λ t, ⟪f t, g t⟫) :=
-continuous.measurable2 continuous_inner hf hg
-
-lemma ae_measurable.inner [measurable_space α] [measurable_space E] [opens_measurable_space E]
-  [topological_space.second_countable_topology E] [measurable_space 𝕜] [borel_space 𝕜]
-  {μ : measure_theory.measure α} {f g : α → E} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
-  ae_measurable (λ x, ⟪f x, g x⟫) μ :=
-begin
-  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫, hf.measurable_mk.inner hg.measurable_mk, _⟩,
-  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
-  dsimp only,
-  congr,
-  { exact hxf, },
-  { exact hxg, },
-end
 
 variables [topological_space α] {f g : α → E} {x : α} {s : set α}
 

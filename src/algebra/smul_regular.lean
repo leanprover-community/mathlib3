@@ -16,7 +16,7 @@ is a commutative ring `R` acting an a module `M`. Since the properties are "mult
 is no actual requirement of having an addition, but there is a zero in both `R` and `M`.
 Smultiplications involving `0` are, of course, all trivial.
 
-The defining property is that an element `a ∈ R` is `M`-regular if the smultiplication map
+The defining property is that an element `a ∈ R` is `M`-regular if the multiplication map
 `M → M`, defined by `m ↦ a • m`, is injective.
 
 This property is the direct generalization to modules of the property `is_left_regular` defined in
@@ -37,6 +37,9 @@ variables {M}
 section has_scalar
 
 variables [has_scalar R M] [has_scalar R S] [has_scalar S M] [is_scalar_tower R S M]
+
+lemma eq_of_smul_eq {x y : M} (ra : is_smul_regular M a) (h : a • x = a • y) : x = y :=
+ra h
 
 /-- The product of `M`-regular elements is `M`-regular. -/
 lemma smul (ra : is_smul_regular M a) (rs : is_smul_regular M s) :
@@ -173,6 +176,7 @@ end comm_monoid
 
 end is_smul_regular
 
+section
 variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
 
 /-- Any element in `units R` is `M`-regular. -/
@@ -186,3 +190,13 @@ begin
   rcases ua with ⟨a, rfl⟩,
   exact a.is_smul_regular M
 end
+
+end
+
+section field
+variables [group_with_zero R] [has_zero M] [mul_action_with_zero R M]
+
+lemma is_smul_regular_of_ne_zero {a : R} (ha : a ≠ 0) : is_smul_regular M a :=
+(units.mk0 a ha).is_smul_regular M
+
+end field

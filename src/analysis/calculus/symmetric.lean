@@ -15,11 +15,9 @@ import analysis.calculus.mean_value
 open asymptotics set
 open_locale topological_space
 
-section
 variables {E F : Type*} [normed_group E] [normed_space ℝ E]
 [normed_group F] [normed_space ℝ F]
-{s : set E}
-(s_conv : convex s)
+{s : set E} (s_conv : convex s)
 {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
 (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
 {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x)
@@ -34,7 +32,8 @@ bilinear estimate for `f (x + hv + hw) - f (x + hv)` in terms of `f' w` and of `
 
 This is a technical statement used to show that the second derivative is symmetric.
 -/
-lemma taylor_approx_two_segment (v w : E) (hv : x + v ∈ interior s) (hw : x + v + w ∈ interior s) :
+lemma convex.taylor_approx_two_segment
+  {v w : E} (hv : x + v ∈ interior s) (hw : x + v + w ∈ interior s) :
   is_o (λ (h : ℝ), f (x + h • v + h • w) - f (x + h • v) - h • f' x w
     - h^2 • f'' v w - (h^2/2) • f'' w w) (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0) :=
 begin
@@ -156,5 +155,145 @@ begin
       abs_of_nonneg, mul_assoc, pow_bit0_abs, norm_nonneg, abs_pow] }
 end
 
+/-- One can get `f'' v w` as the limit of `h ^ (-2)` times the alternate sum of the values of `f`
+along the vertices of a quadrilateral with sides `h v` and `h w` based at `x`.
+In a setting where `f` is not guaranteed to be continuous at `f`, we can still
+get this if we use a quadrilateral based at `h v + h w`. -/
+lemma convex.is_o_alternate_sum_square
+  {v w : E} (h4v : x + (4 : ℝ) • v ∈ interior s) (h4w : x + (4 : ℝ) • w ∈ interior s) :
+  is_o (λ (h : ℝ), f (x + h • (2 • v + 2 • w)) + f (x + h • (v + w))
+    - f (x + h • (2 • v + w)) - f (x + h • (v + 2 • w)) - h^2 • f'' v w)
+    (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0) :=
+begin
+  have A : (1 : ℝ)/2 ∈ Ioc (0 : ℝ) 1 := ⟨by norm_num, by norm_num⟩,
+  have B : (1 : ℝ)/2 ∈ Icc (0 : ℝ) 1 := ⟨by norm_num, by norm_num⟩,
+  have C : ∀ (w : E), (2 : ℝ) • w = 2 • w := λ w, by simp only [two_smul],
+  have h2v2w : x + (2 : ℝ) • v + (2 : ℝ) • w ∈ interior s,
+  { convert s_conv.interior.add_smul_sub_mem h4v h4w B using 1,
+    simp only [smul_sub, smul_smul, one_div, add_sub_add_left_eq_sub, mul_add, add_smul],
+    norm_num,
+    simp only [show (4 : ℝ) = (2 : ℝ) + (2 : ℝ), by norm_num, add_smul],
+    abel },
+  have h2vww : x + (2 • v + w) + w ∈ interior s,
+  { convert h2v2w using 1,
+    simp only [two_smul],
+    abel },
+  have h2v : x + (2 : ℝ) • v ∈ interior s,
+  { convert s_conv.add_smul_sub_mem_interior xs h4v A using 1,
+    simp only [smul_smul, one_div, add_sub_cancel', add_right_inj],
+    norm_num },
+  have h2w : x + (2 : ℝ) • w ∈ interior s,
+  { convert s_conv.add_smul_sub_mem_interior xs h4w A using 1,
+    simp only [smul_smul, one_div, add_sub_cancel', add_right_inj],
+    norm_num },
+  have hvw : x + (v + w) ∈ interior s,
+  { convert s_conv.add_smul_sub_mem_interior xs h2v2w A using 1,
+    simp only [smul_smul, one_div, add_sub_cancel', add_right_inj, smul_add, smul_sub],
+    norm_num,
+    abel },
+  have h2vw : x + (2 • v + w) ∈ interior s,
+  { convert s_conv.interior.add_smul_sub_mem h2v h2v2w B using 1,
+    simp only [smul_add, smul_sub, smul_smul, ← C],
+    norm_num,
+    abel },
+  have hvww : x + (v + w) + w ∈ interior s,
+  { convert s_conv.interior.add_smul_sub_mem h2w h2v2w B using 1,
+    simp only [one_div, add_sub_cancel', inv_smul_smul', add_sub_add_right_eq_sub, ne.def,
+      not_false_iff, bit0_eq_zero, one_ne_zero],
+    rw two_smul,
+    abel },
+  have TA1 := s_conv.taylor_approx_two_segment hf xs hx h2vw h2vww,
+  have TA2 := s_conv.taylor_approx_two_segment hf xs hx hvw hvww,
+  convert TA1.sub TA2,
+  ext h,
+  simp only [two_smul, smul_add, ← add_assoc, continuous_linear_map.map_add,
+    continuous_linear_map.add_apply, pi.smul_apply,
+    continuous_linear_map.coe_smul', continuous_linear_map.map_smul],
+  abel,
+end
 
+/-- Assume that `f` is differentiable inside a convex set `s`, and that its derivative `f'` is
+differentiable at a point `x`. Then, given two vectors `v` and `w` pointing inside `s`, one
+has `f'' v w = f'' w v`. Superseded by `convex.second_derivative_symmetric`, which removes the
+assumption that `v` and `w` point inside `s`.
+-/
+lemma convex.second_derivative_within_at_comm_of_mem_interior
+  {v w : E} (h4v : x + (4 : ℝ) • v ∈ interior s) (h4w : x + (4 : ℝ) • w ∈ interior s) :
+  f'' w v = f'' v w :=
+begin
+  have A : is_o (λ (h : ℝ), h^2 • (f'' w v- f'' v w)) (λ h, h^2) (𝓝[Ioi (0 : ℝ)] 0),
+  { convert (s_conv.is_o_alternate_sum_square hf xs hx h4v h4w).sub
+            (s_conv.is_o_alternate_sum_square hf xs hx h4w h4v),
+    ext h,
+    simp only [add_comm, smul_add, smul_sub],
+    abel },
+  have B : is_o (λ (h : ℝ), f'' w v - f'' v w) (λ h, (1 : ℝ)) (𝓝[Ioi (0 : ℝ)] 0),
+  { have : is_O (λ (h : ℝ), 1/h^2) (λ h, 1/h^2) (𝓝[Ioi (0 : ℝ)] 0) := is_O_refl _ _,
+    have C := this.smul_is_o A,
+    apply C.congr' _ _,
+    { filter_upwards [self_mem_nhds_within],
+      assume h hpos,
+      rw [← one_smul ℝ (f'' w v - f'' v w), smul_smul, smul_smul],
+      congr' 1,
+      field_simp [has_lt.lt.ne' hpos] },
+    { filter_upwards [self_mem_nhds_within],
+      assume h hpos,
+      field_simp [has_lt.lt.ne' hpos, has_scalar.smul] } },
+  simpa only [sub_eq_zero] using (is_o_const_const_iff (@one_ne_zero ℝ _ _)).1 B,
+end
+
+/-- If a function is differentiable inside a convex set with nonempty interior, and has a second
+derivative at a point of this convex set, then this second derivative is symmetric. -/
+theorem convex.second_derivative_within_at_symmetric
+  {s : set E} (s_conv : convex s) (hne : (interior s).nonempty)
+  {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
+  (hf : ∀ x ∈ interior s, has_fderiv_at f (f' x) x)
+  {x : E} (xs : x ∈ s) (hx : has_fderiv_within_at f' f'' (interior s) x) (v w : E) :
+  f'' v w = f'' w v :=
+begin
+  /- we work around a point `x + 4 z` in the interior of `s`. For any vector `m`,
+  then `x + 4 (z + t m)` also belongs to the interior of `s` for small enough `t`. This means that
+  we will be able to apply `second_derivative_eq_of_mem_interior` to show that `f''` is symmetric,
+  after cancelling all the contributions due to `z`. -/
+  rcases hne with ⟨y, hy⟩,
+  obtain ⟨z, hz⟩ : ∃ z, z = ((1:ℝ) / 4) • (y - x) := ⟨((1:ℝ) / 4) • (y - x), rfl⟩,
+  have A : ∀ (m : E), filter.tendsto (λ (t : ℝ), x + (4 : ℝ) • (z + t • m)) (𝓝 0) (𝓝 y),
+  { assume m,
+    have : x + (4 : ℝ) • (z + (0 : ℝ) • m) = y, by simp [hz],
+    rw ← this,
+    refine tendsto_const_nhds.add _,
+    refine tendsto_const_nhds.smul _,
+    refine tendsto_const_nhds.add _,
+    exact continuous_at_id.smul continuous_at_const },
+  have B : ∀ (m : E), ∀ᶠ t in 𝓝[Ioi (0 : ℝ)] (0 : ℝ), x + (4 : ℝ) • (z + t • m) ∈ interior s,
+  { assume m,
+    apply nhds_within_le_nhds,
+    apply A m,
+    rw [mem_interior_iff_mem_nhds] at hy,
+    exact interior_mem_nhds.2 hy },
+  -- we choose `t m > 0` such that `x + 4 (z + (t m) m)` belongs to the interior of `s`, for any
+  -- vector `m`.
+  choose t ts tpos using λ m, ((B m).and self_mem_nhds_within).exists,
+  -- applying `second_derivative_eq_of_mem_interior` to the vectors `z` and `z + (t m) m`, we
+  -- deduce that `f'' m z = f'' z m` for all `m`.
+  have C : ∀ (m : E), f'' m z = f'' z m,
+  { assume m,
+    have : f'' (z + t m • m) (z + t 0 • 0) = f'' (z + t 0 • 0) (z + t m • m) :=
+      s_conv.second_derivative_within_at_comm_of_mem_interior hf xs hx (ts 0) (ts m),
+    simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, add_right_inj,
+      continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', add_zero,
+      continuous_linear_map.zero_apply, smul_zero, continuous_linear_map.map_zero] at this,
+    exact smul_left_injective F (tpos m).ne' this },
+  -- applying `second_derivative_eq_of_mem_interior` to the vectors `z + (t v) v` and `z + (t w) w`,
+  -- we deduce that `f'' v w = f'' w v`. Cross terms involving `z` can be eliminated thanks to
+  -- the fact proved above that `f'' m z = f'' z m`.
+  have : f'' (z + t v • v) (z + t w • w) = f'' (z + t w • w) (z + t v • v) :=
+    s_conv.second_derivative_within_at_comm_of_mem_interior hf xs hx (ts w) (ts v),
+  simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, smul_add, smul_smul,
+    continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', C] at this,
+  rw ← sub_eq_zero at this,
+  abel at this,
+  simp only [one_gsmul, neg_smul, sub_eq_zero, mul_comm, ← sub_eq_add_neg] at this,
+  apply smul_left_injective F _ this,
+  simp [(tpos v).ne', (tpos w).ne']
 end

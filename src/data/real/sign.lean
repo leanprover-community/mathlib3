@@ -24,7 +24,8 @@ sign function
 
 namespace real
 
-/-- The sign function that maps negative real numbers to -1, positive numbers to 1, and 0 otherwise. -/
+/-- The sign function that maps negative real numbers to -1, positive numbers to 1, and 0
+otherwise. -/
 noncomputable
 def sign (r : ℝ) : ℝ :=
 if r < 0 then -1 else

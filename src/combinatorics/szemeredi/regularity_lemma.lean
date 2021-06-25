@@ -691,9 +691,20 @@ begin
 end
 
 lemma bind_size (Q : Π i ∈ P.parts, finpartition_on i) :
-  (P.bind Q).size = ∑ A in P.parts, (Q A).size :=
+  (P.bind Q).size = ∑ A in P.parts.attach, (Q _ A.2).size :=
 begin
-  sorry
+  apply card_bUnion,
+  rintro ⟨A, hA⟩ - ⟨B, hB⟩ - hAB c,
+  obtain rfl | ⟨x, hx⟩ := c.eq_empty_or_nonempty,
+  {
+    sorry --wrong?
+  },
+  rw [inf_eq_inter, mem_inter],
+  rintro ⟨hcA, hcB⟩,
+  apply hAB,
+  rw subtype.mk_eq_mk,
+  exact P.disjoint _ _ hA hB x (finpartition_on.subset _ _ hcA hx)
+    (finpartition_on.subset _ _ hcB hx),
 end
 
 /-- An equipartition is a partition whose parts are all the same size, up to a difference of 1. -/
@@ -1316,8 +1327,7 @@ begin
   refine ⟨P.erase A, erase_subset_erase _ PQ, _⟩,
   have : A ∈ P,
   { rw hy₂ _ ‹A ∈ Q›,
-    apply hA,
-    exact mem_filter.2 ⟨hy₁, hy₂⟩ },
+    exact hA (mem_filter.2 ⟨hy₁, hy₂⟩) },
   simp only [insert_erase this, filter_congr_decidable],
 end
 
@@ -1418,9 +1428,10 @@ begin
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
+  rw [increment, bind_size],
   sorry
 end
-
+set_option trace.app_builder true
 protected lemma is_equipartition (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
   (hP.increment G ε).is_equipartition :=
@@ -1429,11 +1440,13 @@ begin
   let a := card V/P.size - m * 4^P.size,
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
-  rw finpartition.is_equipartition_iff_card_parts_eq_average at ⊢ hP,
-  rintro s hs,
-  rw [increment, mem_bind_parts] at hs,
-  obtain ⟨A, hA, hs⟩ := hs,
-  split_ifs at hs,
+  rw finpartition.is_equipartition_iff_card_parts_eq_average at hP,
+  rw [is_equipartition, equitable_iff_almost_eq_constant],
+  refine ⟨a, λ A hA, _⟩,
+  rw [mem_coe, increment, mem_bind_parts] at hA,
+  obtain ⟨B, hB, hA⟩ := hA,
+  split_ifs at hA,
+  --bind_size
 end
 
 protected lemma index (hP : P.is_equipartition)

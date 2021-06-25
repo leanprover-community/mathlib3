@@ -171,18 +171,7 @@ end
 
 /-- The special case of the first simplicial identity -/
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : δ i ≫ δ i.cast_succ = δ i ≫ δ i.succ :=
-begin
-  ext j,
-  dsimp [δ, fin.succ_above],
-  simp only [order_embedding.to_preorder_hom_coe,
-    order_embedding.coe_of_strict_mono,
-    function.comp_app,
-    simplex_category.hom.to_preorder_hom_mk,
-    preorder_hom.comp_coe],
-  rcases i with ⟨i, _⟩,
-  rcases j with ⟨j, _⟩,
-  split_ifs; { simp at *; linarith },
-end
+(δ_comp_δ (le_refl i)).symm
 
 /-- The second simplicial identity -/
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :

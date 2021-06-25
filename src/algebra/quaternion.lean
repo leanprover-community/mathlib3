@@ -496,8 +496,7 @@ variables [linear_ordered_comm_ring R] {a : ℍ[R]}
 @[simp] lemma norm_sq_eq_zero : norm_sq a = 0 ↔ a = 0 :=
 begin
   refine ⟨λ h, _, λ h, h.symm ▸ norm_sq.map_zero⟩,
-  rw [norm_sq_def', add_eq_zero_iff_eq_zero_of_nonneg, add_eq_zero_iff_eq_zero_of_nonneg,
-    add_eq_zero_iff_eq_zero_of_nonneg] at h,
+  rw [norm_sq_def', add_eq_zero_iff', add_eq_zero_iff', add_eq_zero_iff'] at h,
   exact ext a 0 (pow_eq_zero h.1.1.1) (pow_eq_zero h.1.1.2) (pow_eq_zero h.1.2) (pow_eq_zero h.2),
   all_goals { apply_rules [sq_nonneg, add_nonneg] }
 end

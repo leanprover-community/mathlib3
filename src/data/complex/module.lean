@@ -26,7 +26,7 @@ part, the embedding of `ℝ` in `ℂ`, and the complex conjugate):
 
 * `complex.re_lm` (`ℝ`-linear map);
 * `complex.im_lm` (`ℝ`-linear map);
-* `complex.of_real_am` (`ℝ`-algebra homomorphism);
+* `complex.of_real_am` (`ℝ`-algebra (homo)morphism);
 * `complex.conj_ae` (`ℝ`-algebra equivalence).
 
 -/
@@ -193,7 +193,7 @@ def im_lm : ℂ →ₗ[ℝ] ℝ :=
 
 @[simp] lemma im_lm_coe : ⇑im_lm = im := rfl
 
-/-- `ℝ`-algebra homomorphism version of the canonical embedding of `ℝ` in `ℂ`. -/
+/-- `ℝ`-algebra morphism version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_am : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 
 @[simp] lemma of_real_am_coe : ⇑of_real_am = coe := rfl

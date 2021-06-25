@@ -253,6 +253,11 @@ end
 noncomputable theory
 variables {E : Type*} [add_comm_group E] [module ℝ E]
 
+/--
+Given a subset `K` of a real vector space, we have a functional (sometimes called the Minkowski
+functional) which sends `x : E` to `Inf {y ∈ set.Ioi 0 | x ∈ y • K}`, essentially the smallest
+`y` such that `x` is in `K` expanded by `y`.
+-/
 def gauge (K : set E) (x : E) : ℝ :=
 Inf {y ∈ set.Ioi 0 | x ∈ y • K}
 
@@ -274,11 +279,7 @@ end
 which is useful for proving many properties about the gauge.  -/
 lemma gauge_set_nonempty_of_absorbent (absorbs : absorbent ℝ K) :
   {y ∈ set.Ioi (0:ℝ) | x ∈ y • K}.nonempty :=
-let ⟨θ, hθ₁, hθ₂⟩ := absorbs x in ⟨θ, hθ₁,
-begin
-  apply hθ₂ θ,
-  rw real.norm_of_nonneg (le_of_lt hθ₁),
-end⟩
+let ⟨θ, hθ₁, hθ₂⟩ := absorbs x in ⟨θ, hθ₁, hθ₂ θ (real.norm_of_nonneg (le_of_lt hθ₁)).ge⟩
 
 lemma gauge_set_bdd_below :
   bdd_below {y ∈ set.Ioi (0:ℝ) | x ∈ y • K} :=
@@ -344,8 +345,7 @@ begin
     exact ⟨by { simp, linarith }, h _ (by linarith)⟩ }
 end
 
-lemma gauge_lt_one_eq (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbs : absorbent ℝ K) :
+lemma gauge_lt_one_eq (absorbs : absorbent ℝ K) :
   {x | gauge K x < 1} = ⋃ (θ ∈ set.Ioo 0 (1:ℝ)), θ • K :=
 begin
   ext,
@@ -358,11 +358,10 @@ begin
     apply cInf_lt_of_lt gauge_set_bdd_below ⟨‹0 < θ›, ‹_›⟩ ‹θ < 1› }
 end
 
-lemma gauge_lt_one_subset_self (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbs : absorbent ℝ K) :
+lemma gauge_lt_one_subset_self (hK : convex K) (zero_mem : (0:E) ∈ K) (absorbs : absorbent ℝ K) :
   {x | gauge K x < 1} ⊆ K :=
 begin
-  rw gauge_lt_one_eq hK zero_mem absorbs,
+  rw gauge_lt_one_eq absorbs,
   apply set.bUnion_subset,
   intros θ hθ,
   rintro _ ⟨y, hy, rfl⟩,
@@ -372,46 +371,35 @@ begin
   simp,
 end
 
-lemma self_subset_gauge_le_one (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbs : absorbent ℝ K) :
-  K ⊆ {x | gauge K x ≤ 1} :=
-begin
-  rw gauge_le_one_eq hK zero_mem absorbs,
-  apply set.subset_bInter,
-  intros θ hθ k hk,
-  apply mem_smul_of_convex hK zero_mem (le_of_lt hθ) hk,
-end
+lemma gauge_le_one_of_mem (x : E) (hx : x ∈ K) : gauge K x ≤ 1 :=
+real.Inf_le _ ⟨0, λ y hy, le_of_lt hy.1⟩ ⟨by norm_num, by simpa⟩
 
-lemma gauge_le_one_convex (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (absorbs : absorbent ℝ K) :
+lemma self_subset_gauge_le_one : K ⊆ {x | gauge K x ≤ 1} :=
+λ x, gauge_le_one_of_mem _
+
+lemma gauge_le_one_convex (hK : convex K) (zero_mem : (0:E) ∈ K) (absorbs : absorbent ℝ K) :
   convex {x | gauge K x ≤ 1} :=
 begin
   rw gauge_le_one_eq hK zero_mem absorbs,
   refine convex_Inter (λ i, convex_Inter (λ (hi : _ < _), convex.smul _ hK)),
 end
 
-lemma gauge_le_one_of_mem (x : E) (hx : x ∈ K) : gauge K x ≤ 1 :=
-real.Inf_le _ ⟨0, λ y hy, le_of_lt hy.1⟩ ⟨by norm_num, by simpa⟩
-
 lemma gauge_le_of_mem (x : E) {θ : ℝ} (hθ : 0 < θ) (hx : x ∈ θ • K) :
   gauge K x ≤ θ :=
 cInf_le gauge_set_bdd_below ⟨hθ, hx⟩
 
-lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul ℝ E]
-  (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (hC₂ : is_open K) :
-  {x | gauge K x < 1} = K :=
+lemma interior_subset_gauge_lt_one [topological_space E] [has_continuous_smul ℝ E]
+  (hK : convex K) (zero_mem : (0:E) ∈ K) :
+  interior K ⊆ {x | gauge K x < 1} :=
 begin
-  apply set.subset.antisymm,
-  { apply gauge_lt_one_subset_self hK ‹_› (absorbent_nhds_zero (hC₂.mem_nhds zero_mem)) },
   intros x hx,
   let f : ℝ → E := λ t, t • x,
   have : continuous f,
   { continuity },
-  let K' := f ⁻¹' K,
-  have : is_open K' := this.is_open_preimage _ hC₂,
+  let K' := f ⁻¹' (interior K),
+  have : is_open K' := this.is_open_preimage _ is_open_interior,
   have one_mem : (1:ℝ) ∈ K',
-  { change _ • _ ∈ K,
+  { change _ • _ ∈ interior K,
     simpa },
   obtain ⟨ε, _, hε₂⟩ := (metric.nhds_basis_closed_ball.1 _).1 (is_open_iff_mem_nhds.1 this 1 ‹_›),
   rw closed_ball_Icc at hε₂,
@@ -425,15 +413,24 @@ begin
     linarith },
   change _ ∈ _,
   rw mem_inv_smul_set_iff (show 1 + ε ≠ 0, by linarith),
-  change _ ∈ K',
+  apply interior_subset,
   apply hε₂,
   simp,
   linarith
 end
 
+lemma gauge_lt_one_eq_self_of_open [topological_space E] [has_continuous_smul ℝ E]
+  (hK : convex K) (zero_mem : (0:E) ∈ K) (hK₂ : is_open K) :
+  {x | gauge K x < 1} = K :=
+begin
+  apply set.subset.antisymm,
+  { apply gauge_lt_one_subset_self hK ‹_› (absorbent_nhds_zero (hK₂.mem_nhds zero_mem)) },
+  convert interior_subset_gauge_lt_one hK zero_mem,
+  rw hK₂.interior_eq,
+end
+
 lemma gauge_lt_one_of_mem_of_open [topological_space E] [has_continuous_smul ℝ E]
-  (hK : convex K) (zero_mem : (0:E) ∈ K)
-  (hK₂ : is_open K) (x : E) (hx : x ∈ K) :
+  (hK : convex K) (zero_mem : (0:E) ∈ K) (hK₂ : is_open K) (x : E) (hx : x ∈ K) :
   gauge K x < 1 :=
 by rwa ←gauge_lt_one_eq_self_of_open hK zero_mem hK₂ at hx
 

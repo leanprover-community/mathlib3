@@ -88,7 +88,7 @@ begin
 end
 
 lemma linear_isometry_complex_aux {f : ℂ ≃ₗᵢ[ℝ] ℂ} (h : f 1 = 1) :
-  f = linear_isometry_equiv.refl ℝ ℂ ∨ f = conj_li :=
+  f = linear_isometry_equiv.refl ℝ ℂ ∨ f = conj_lie :=
 begin
   have h0 : f I = I ∨ f I = -I,
   { have : |f I| = 1 := by simpa using f.norm_map complex.I,
@@ -106,7 +106,7 @@ begin
 end
 
 lemma linear_isometry_complex (f : ℂ ≃ₗᵢ[ℝ] ℂ) :
-  ∃ a : circle, f = rotation a ∨ f = conj_li.trans (rotation a) :=
+  ∃ a : circle, f = rotation a ∨ f = conj_lie.trans (rotation a) :=
 begin
   let a : circle := ⟨f 1, by simpa using f.norm_map 1⟩,
   use a,

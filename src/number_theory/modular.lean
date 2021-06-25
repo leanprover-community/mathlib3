@@ -453,9 +453,9 @@ end
 
 lemma S_bottom (z : ℍ) : bottom S z = (z:ℂ) :=
 begin
-  rw [bottom, S],
-  simp,
-  sorry, --- HEATHER HELP?
+  have h₁ := λ n v M, @map_cons ℤ n ℝ (fin 2) _ v M,
+  have h₂ := λ n x v, @comp_cons ℤ n ℝ x v,
+  simp [S, bottom, h₁, h₂, cons_apply_one, cons_apply_zero]
 end
 
 lemma S_action_im (z : ℍ) : (S • z).im = z.im / norm_sq z :=
@@ -483,18 +483,18 @@ end
 
 lemma T_action_re (z : ℍ) : (T • z).re = z.re + 1 :=
 begin
-  sorry, --- HEATHER HELP?
---  convert @smul_sound T z, -- WHat is `smul_sound`???
-  simp only [smul_aux_def, top, bottom, T, has_coe_SL_apply, subtype.coe_mk, map_cons],
-  simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
+  have h₁ := λ n v M, @map_cons ℤ n ℝ (fin 2) _ v M,
+  have h₂ := λ n x v, @comp_cons ℤ n ℝ x v,
+  simp [T, smul_aux, smul_aux', top, bottom, h₁, h₂, cons_apply_one, cons_apply_zero],
+  refl,
 end
 
 lemma T'_action_re (z : ℍ) : (T' • z).re = z.re - 1 :=
 begin
-  sorry, --- HEATHER HELP?
---  convert @smul_sound T z, -- WHat is `smul_sound`???
-  simp only [smul_aux_def, top, bottom, T, has_coe_SL_apply, subtype.coe_mk, map_cons],
-  simp [special_linear_group.cons_apply_zero, special_linear_group.cons_apply_one],
+  have h₁ := λ n v M, @map_cons ℤ n ℝ (fin 2) _ v M,
+  have h₂ := λ n x v, @comp_cons ℤ n ℝ x v,
+  simp [T', smul_aux, smul_aux', top, bottom, h₁, h₂, cons_apply_one, cons_apply_zero],
+  refl,
 end
 
 lemma half_ge_x_T_inv (z : ℍ) (h : 1/2 < z.re) : |(T' • z).re| < |z.re| :=

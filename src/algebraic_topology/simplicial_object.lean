@@ -234,6 +234,7 @@ end augmented
 
 open_locale simplicial
 
+/-- Aaugment a simplicial object with an object. -/
 @[simps]
 def augment (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀)
   (w : ∀ (i : simplex_category) (g₁ g₂ : [0] ⟶ i),
@@ -459,6 +460,7 @@ end augmented
 
 open_locale simplicial
 
+/-- Augment a cosimplicial object with an object. -/
 @[simps]
 def augment (X : cosimplicial_object C) (X₀ : C) (f : X₀ ⟶ X.obj [0])
   (w : ∀ (i : simplex_category) (g₁ g₂ : [0] ⟶ i),

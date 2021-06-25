@@ -6,6 +6,8 @@ Authors: Mario Carneiro
 import data.multiset.basic
 import data.list.range
 
+/-! # `multiset.range n` gives `{0, 1, ..., n-1}` as a multiset. -/
+
 open list nat
 
 namespace multiset

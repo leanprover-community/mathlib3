@@ -63,7 +63,8 @@ lemma derived_series_le_lower_central_series (k : ℕ) :
   derived_series R L k ≤ lower_central_series R L L k :=
 begin
   induction k with k h,
-  { exact le_refl _, },
+  { rw [derived_series_def, derived_series_of_ideal_zero, lower_central_series_zero],
+    exact le_refl _, },
   { have h' : derived_series R L k ≤ ⊤, { by simp only [le_top], },
     rw [derived_series_def, derived_series_of_ideal_succ, lower_central_series_succ],
     exact lie_submodule.mono_lie _ _ _ _ h' h, },
@@ -133,6 +134,7 @@ lemma lie_algebra.nilpotent_ad_of_nilpotent_algebra [is_nilpotent R L] :
   ∃ (k : ℕ), ∀ (x : L), (ad R L x)^k = 0 :=
 lie_module.nilpotent_endo_of_nilpotent_module R L L
 
+/-- See also `lie_algebra.zero_root_space_eq_top_of_nilpotent`. -/
 lemma lie_algebra.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent [is_nilpotent R L] :
   (⨅ (x : L), (ad R L x).maximal_generalized_eigenspace 0) = ⊤ :=
 lie_module.infi_max_gen_zero_eigenspace_eq_top_of_nilpotent R L L
@@ -185,12 +187,15 @@ lemma function.surjective.lie_algebra_is_nilpotent [h₁ : is_nilpotent R L] {f 
     simp only [lie_ideal.map_eq_bot_iff, bot_le],
   end, }
 
-lemma lie_algebra.nilpotent_iff_equiv_nilpotent (e : L ≃ₗ⁅R⁆ L') :
+lemma lie_equiv.nilpotent_iff_equiv_nilpotent (e : L ≃ₗ⁅R⁆ L') :
   is_nilpotent R L ↔ is_nilpotent R L' :=
 begin
   split; introsI h,
   { exact e.symm.injective.lie_algebra_is_nilpotent, },
   { exact e.injective.lie_algebra_is_nilpotent, },
 end
+
+instance [h : lie_algebra.is_nilpotent R L] : lie_algebra.is_nilpotent R (⊤ : lie_subalgebra R L) :=
+lie_subalgebra.top_equiv_self.nilpotent_iff_equiv_nilpotent.mpr h
 
 end nilpotent_algebras

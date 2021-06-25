@@ -71,6 +71,16 @@ begin
   { apply fold_insert h },
 end
 
+theorem fold_image_idem [decidable_eq α] {g : γ → α} {s : finset γ}
+  [hi : is_idempotent β op] :
+  (image g s).fold op b f = s.fold op b (f ∘ g) :=
+begin
+  induction s using finset.cons_induction with x xs hx ih,
+  { rw [fold_empty, image_empty, fold_empty] },
+  { haveI := classical.dec_eq γ,
+    rw [fold_cons, cons_eq_insert, image_insert, fold_insert_idem, ih], }
+end
+
 lemma fold_op_rel_iff_and
   {r : β → β → Prop} (hr : ∀ {x y z}, r x (op y z) ↔ (r x y ∧ r x z)) {c : β} :
   r c (s.fold op b f) ↔ (r c b ∧ ∀ x∈s, r c (f x)) :=

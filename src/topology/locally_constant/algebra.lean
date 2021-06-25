@@ -59,6 +59,10 @@ instance [mul_zero_one_class Y] : mul_zero_one_class (locally_constant X Y) :=
 { mul_assoc := by { intros, ext, simp only [mul_apply, mul_assoc] },
   .. locally_constant.has_mul }
 
+instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
+{ .. locally_constant.mul_zero_class,
+  .. locally_constant.semigroup }
+
 @[to_additive] instance [comm_semigroup Y] : comm_semigroup (locally_constant X Y) :=
 { mul_comm := by { intros, ext, simp only [mul_apply, mul_comm] },
   .. locally_constant.semigroup }
@@ -83,6 +87,15 @@ instance [distrib Y] : distrib (locally_constant X Y) :=
   right_distrib := by { intros, ext, simp only [mul_apply, add_apply, add_mul] },
   .. locally_constant.has_add, .. locally_constant.has_mul }
 
+instance [non_unital_non_assoc_semiring Y] : non_unital_non_assoc_semiring (locally_constant X Y) :=
+{ .. locally_constant.add_comm_monoid, .. locally_constant.has_mul,
+  .. locally_constant.distrib, .. locally_constant.mul_zero_class }
+
+instance [non_unital_semiring Y] : non_unital_semiring (locally_constant X Y) :=
+{ .. locally_constant.semigroup, .. locally_constant.non_unital_non_assoc_semiring }
+
+instance [non_assoc_semiring Y] : non_assoc_semiring (locally_constant X Y) :=
+{ .. locally_constant.mul_one_class, .. locally_constant.non_unital_non_assoc_semiring }
 
 instance [semiring Y] : semiring (locally_constant X Y) :=
 { .. locally_constant.add_comm_monoid, .. locally_constant.monoid,

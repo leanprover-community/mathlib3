@@ -28,6 +28,11 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 * `submonoid.to_monoid`, `submonoid.to_comm_monoid`: a submonoid inherits a (commutative) monoid
   structure.
 
+### Group actions by submonoids
+
+* `submonoid.mul_action`, `submonoid.distrib_mul_action`: a submonoid inherits (distributive)
+  multiplicative actions.
+
 ### Operations on submonoids
 
 * `submonoid.comap`: preimage of a submonoid under a monoid homomorphism as a submonoid of the
@@ -191,8 +196,12 @@ lemma mem_map {f : M →* N} {S : submonoid M} {y : N} :
 mem_image_iff_bex
 
 @[to_additive]
-lemma mem_map_of_mem (f : M →* N) (x : S) : f x ∈ S.map f :=
-mem_image_of_mem f x.2
+lemma mem_map_of_mem (f : M →* N) {S : submonoid M} {x : M} (hx : x ∈ S) : f x ∈ S.map f :=
+mem_image_of_mem f hx
+
+@[to_additive]
+lemma apply_coe_mem_map (f : M →* N) (S : submonoid M) (x : S) : f x ∈ S.map f :=
+mem_map_of_mem f x.prop
 
 @[to_additive]
 lemma map_map (g : N →* P) (f : M →* N) : (S.map f).map g = S.map (g.comp f) :=
@@ -512,23 +521,46 @@ namespace monoid_hom
 
 open submonoid
 
-/-- The range of a monoid homomorphism is a submonoid. -/
+/-- For many categories (monoids, modules, rings, ...) the set-theoretic image of a morphism `f` is
+a subobject of the codomain. When this is the case, it is useful to define the range of a morphism
+in such a way that the underlying carrier set of the range subobject is definitionally
+`set.range f`. In particular this means that the types `↥(set.range f)` and `↥f.range` are
+interchangeable without proof obligations.
+
+A convenient candidate definition for range which is mathematically correct is `map ⊤ f`, just as
+`set.range` could have been defined as `f '' set.univ`. However, this lacks the desired definitional
+convenience, in that it both does not match `set.range`, and that it introduces a redudant `x ∈ ⊤`
+term which clutters proofs. In such a case one may resort to the `copy`
+pattern. A `copy` function converts the definitional problem for the carrier set of a subobject
+into a one-off propositional proof obligation which one discharges while writing the definition of
+the definitionally convenient range (the parameter `hs` in the example below).
+
+A good example is the case of a morphism of monoids. A convenient definition for
+`monoid_hom.mrange` would be `(⊤ : submonoid M).map f`. However since this lacks the required
+definitional convenience, we first define `submonoid.copy` as follows:
+```lean
+protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
+{ carrier  := s,
+  one_mem' := hs.symm ▸ S.one_mem',
+  mul_mem' := hs.symm ▸ S.mul_mem' }
+```
+and then finally define:
+```lean
+def mrange (f : M →* N) : submonoid N :=
+((⊤ : submonoid M).map f).copy (set.range f) set.image_univ.symm
+```
+-/
+library_note "range copy pattern"
+
+/-- The range of a monoid homomorphism is a submonoid. See Note [range copy pattern]. -/
 @[to_additive "The range of an `add_monoid_hom` is an `add_submonoid`."]
 def mrange (f : M →* N) : submonoid N :=
 ((⊤ : submonoid M).map f).copy (set.range f) set.image_univ.symm
 
-/-- Note that `monoid_hom.mrange` is deliberately defined in a way that makes this true by `rfl`,
-as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
-obligations. -/
 @[simp, to_additive]
 lemma coe_mrange (f : M →* N) :
   (f.mrange : set N) = set.range f :=
 rfl
-
-/-- Note that `add_monoid_hom.mrange` is deliberately defined in a way that makes this true by
-`rfl`, as this means the types `↥(set.range f)` and `↥f.mrange` are interchangeable without proof
-obligations. -/
-add_decl_doc add_monoid_hom.coe_mrange
 
 @[simp, to_additive] lemma mem_mrange {f : M →* N} {y : N} :
   y ∈ f.mrange ↔ ∃ x, f x = y :=
@@ -698,3 +730,54 @@ def submonoid_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 end mul_equiv
+
+/-! ### Actions by `submonoid`s
+
+These instances tranfer the action by an element `m : M` of a monoid `M` written as `m • a` onto the
+action by an element `s : S` of a submonoid `S : submonoid M` such that `s • a = (s : M) • a`.
+
+These instances work particularly well in conjunction with `monoid.to_mul_action`, enabling
+`s • m` as an alias for `↑s * m`.
+-/
+section actions
+
+namespace submonoid
+
+variables {M' : Type*} {α β : Type*} [monoid M']
+
+/-- The action by a submonoid is the action by the underlying monoid. -/
+@[to_additive /-"The additive action by an add_submonoid is the action by the underlying
+add_monoid. "-/]
+instance [mul_action M' α] (S : submonoid M') : mul_action S α :=
+mul_action.comp_hom _ S.subtype
+
+@[to_additive]
+lemma smul_def [mul_action M' α] {S : submonoid M'} (g : S) (m : α) : g • m = (g : M') • m := rfl
+
+/-- The action by a submonoid is the action by the underlying monoid. -/
+instance [add_monoid α] [distrib_mul_action M' α] (S : submonoid M') : distrib_mul_action S α :=
+distrib_mul_action.comp_hom _ S.subtype
+
+@[to_additive]
+instance smul_comm_class_left
+  [mul_action M' β] [has_scalar α β] [smul_comm_class M' α β] (S : submonoid M') :
+  smul_comm_class S α β :=
+⟨λ a, (smul_comm (a : M') : _)⟩
+
+@[to_additive]
+instance smul_comm_class_right
+  [has_scalar α β] [mul_action M' β] [smul_comm_class α M' β] (S : submonoid M') :
+  smul_comm_class α S β :=
+⟨λ a s, (smul_comm a (s : M') : _)⟩
+
+/-- Note that this provides `is_scalar_tower S M' M'` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [mul_action M' α] [mul_action M' β] [is_scalar_tower M' α β] (S : submonoid M') :
+  is_scalar_tower S α β :=
+⟨λ a, (smul_assoc (a : M') : _)⟩
+
+example {S : submonoid M'} : is_scalar_tower S M' M' := by apply_instance
+
+end submonoid
+
+end actions

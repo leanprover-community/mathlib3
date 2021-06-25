@@ -505,7 +505,7 @@ variables (d)
 lemma bernoulli_measure_nonempty (hc : gcd c p = 1) :
   nonempty (@bernoulli_measure p _ d R _ _ _ _ hc) :=
 begin
-
+sorry,
 end
 
 /-instance (c : ℤ) (hc : gcd c p = 1) : distribution' (ℤ_[p]) :=

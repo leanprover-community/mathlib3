@@ -22,14 +22,13 @@ This file defines a typeclass to state that a type is finite.
   that all terms of type `α` are in it.
 * `finset.univ`: The finset of all elements of a fintype.
 * `fintype.card α`: Cardinality of a fintype. Also `univ.card`.
+* `perms_of_finset s`: The finset of permutations of the finset `s`.
 * `fintype.trunc_equiv_of_card_eq` `fintype.equiv_of_card_eq`
 * `fintype.trunc_equiv_fin`: A fintype `α` is computably equivalent to `fin (card α)`. The
   `trunc`-free, noncomputable version is `fintype.equiv_fin`.
 * `fin.equiv_iff_eq`: `fin m ≃ fin n` iff `m = n`.
 * `infinite α`: Typeclass saying that a type is infinite. Defined as `fintype α → false`.
 * `not_fintype`: No `fintype` is infinite.
-* `infinite.of_injective` `infinite.of_surjective`: If `infinite α` and we have either an injection
-  `α → β` or a surjection `β → α`, then `β` is `infinite` as well.
 * `infinite.nat_embedding`: An embedding of `ℕ` into an infinite type.
 
 We also provide the following versions of the pigeonholes principle.
@@ -41,18 +40,22 @@ We also provide the following versions of the pigeonholes principle.
   formulation.
 Some more is to be found in `data.fintype.card_embedding`.
 
-## Instance
+## Instances
 
 Among others, we provide `fintype` instances for
-* A subtype of a fintype. See `fintype.subtype`.
+* A `subtype` of a fintype. See `fintype.subtype`.
 * The `option` of a fintype.
 * The product of two fintypes.
 * The sum of two fintypes.
 * `Prop`.
+* Types which have a surjection from/an injection to a fintype. See `fintype.of_injective` and
+  `fintype.of_surjective`.
 
 and `infinite` instances for
 * `ℕ`
 * `ℤ`
+* Types which have an injection from/a surjection to an `infinite` type. See
+  `infinite.of_injective` and `infinite.of_surjective`.
 -/
 
 open_locale nat
@@ -667,27 +670,26 @@ around a specified pivot `p : fin (n + 1)` into the `univ` -/
 lemma fin.univ_succ_above (n : ℕ) (p : fin (n + 1)) :
   (univ : finset (fin (n + 1))) = insert p (univ.image (fin.succ_above p)) :=
 begin
-  rcases lt_or_eq_of_le (fin.le_last p) with hl|rfl,
+  obtain hl | rfl := (fin.le_last p).lt_or_eq,
   { ext m,
     simp only [finset.mem_univ, finset.mem_insert, true_iff, finset.mem_image, exists_prop],
-    refine or_iff_not_imp_left.mpr _,
-    { intro h,
-      cases n,
-      { have : m = p := by simp,
-        exact absurd this h },
-      use p.cast_pred.pred_above m,
-      { rw fin.pred_above,
-        split_ifs with H,
-        { simp only [fin.coe_cast_succ, true_and, fin.coe_coe_eq_self, coe_coe],
-          rw fin.lt_last_iff_coe_cast_pred at hl,
-          rw fin.succ_above_above,
-          { simp },
-          { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ] at H,
-            simpa [fin.le_iff_coe_le_coe, ←hl] using nat.le_pred_of_lt H } },
-        { rw fin.succ_above_below,
-          { simp },
-          { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
-            simpa using lt_of_le_of_ne H h, } } } } },
+    refine or_iff_not_imp_left.mpr (λ h, _),
+    cases n,
+    { have : m = p := by simp,
+      exact absurd this h },
+    use p.cast_pred.pred_above m,
+    rw fin.pred_above,
+    split_ifs with H,
+    { simp only [fin.coe_cast_succ, true_and, fin.coe_coe_eq_self, coe_coe],
+      rw fin.lt_last_iff_coe_cast_pred at hl,
+      rw fin.succ_above_above,
+      { simp },
+      { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ] at H,
+        simpa [fin.le_iff_coe_le_coe, ←hl] using nat.le_pred_of_lt H } },
+    { rw fin.succ_above_below,
+      { simp },
+      { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
+        simpa using lt_of_le_of_ne H h, } } } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end

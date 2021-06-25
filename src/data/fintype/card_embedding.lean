@@ -28,7 +28,7 @@ lemma card_embedding_eq_of_unique
   {α β : Type*} [unique α] [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]:
 ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
-private lemma card_embedding_aux (n : ℕ) (β) [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
+private lemma card_embedding_aux {n : ℕ} {β} [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = ‖β‖.desc_factorial n :=
 begin
   induction n with n hn,
@@ -62,13 +62,12 @@ end
 @[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
 ‖α ↪ β‖ = (‖β‖.desc_factorial ‖α‖) :=
 begin
-  by_cases h : ‖α‖ ≤ ‖β‖,
+  obtain h | h := lt_or_ge (‖β‖) (‖α‖),
+  { rw [card_eq_zero_iff.mpr (function.embedding.is_empty_of_card_lt h),
+        nat.desc_factorial_eq_zero_iff_lt.mpr h] },
   { trunc_cases fintype.trunc_equiv_fin α with eq,
     rw fintype.card_congr (equiv.embedding_congr eq (equiv.refl β)),
-    exact card_embedding_aux _ _ h },
-  rw ←lt_iff_not_ge at h,
-  rw [card_eq_zero_iff.mpr (function.embedding.is_empty_of_card_lt h),
-    nat.desc_factorial_eq_zero_iff_lt.mpr h],
+    exact card_embedding_aux h }
 end
 
 /- The cardinality of embeddings from an infinite type to a finite type is zero.

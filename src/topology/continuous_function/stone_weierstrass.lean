@@ -403,7 +403,7 @@ begin
     convert (A.restrict_scalars ℝ).mul_mem (mem_conj_invariant_subalgebra hA' hFA) hFA,
     ext1,
     exact complex.norm_sq_eq_conj_mul_self },
-  { -- And it also separates the points `x₁`, `x_₂`
+  { -- And it also separates the points `x₁`, `x₂`
     have : f x₁ - f x₂ ≠ 0 := sub_ne_zero.mpr hf,
     simpa using this },
 end

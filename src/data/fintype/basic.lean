@@ -689,7 +689,7 @@ begin
     { rw fin.succ_above_below,
       { simp },
       { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
-        simpa using lt_of_le_of_ne H h, } } } },
+        simpa using lt_of_le_of_ne H h } } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end
@@ -791,7 +791,7 @@ instance (α : Type*) [fintype α] : fintype (ulift α) :=
 fintype.of_equiv _ equiv.ulift.symm
 
 @[simp] theorem fintype.card_ulift (α : Type*) [fintype α] :
-  fintype.card (ulift α) = fintype.card α :=≤ ₀
+  fintype.card (ulift α) = fintype.card α :=
 fintype.of_equiv_card _
 
 lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :

@@ -96,12 +96,14 @@ begin
     { exact eq_of_test_bit_eq (λ i, by convert hnm (i + 1) dec_trivial using 1; rw test_bit_succ) },
     rw [hn, hm, this, bit_ff, bit_tt, bit0_val, bit1_val],
     exact lt_add_one _ },
-  { obtain ⟨i', rfl⟩ := exists_eq_succ_of_ne_zero hi,
-    simp only [test_bit_succ] at hn hm,
-    have := hn' _ hn hm (λ j hj, by convert hnm j.succ (succ_lt_succ hj) using 1; rw test_bit_succ),
-    cases b; cases b';
-    simp only [bit_ff, bit_tt, bit0_val n, bit1_val n, bit0_val m, bit1_val m];
-    linarith }
+  obtain ⟨i', rfl⟩ := exists_eq_succ_of_ne_zero hi,
+  simp only [test_bit_succ] at hn hm,
+  have h := hn' _ hn hm (λ j hj, by convert hnm j.succ (succ_lt_succ hj) using 1;
+    rw test_bit_succ),
+  rw lt_iff_add_one_le at h,
+  cases b; cases b';
+  simp only [bit_ff, bit_tt, bit0_val n, bit1_val n, bit0_val m, bit1_val m, lt_iff_add_one_le];
+  linarith,
 end
 
 @[simp]

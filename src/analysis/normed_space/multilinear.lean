@@ -54,7 +54,7 @@ approach, it turns out that direct proofs are easier and more efficient.
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale classical big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
@@ -377,6 +377,29 @@ normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E G) :=
 ⟨λ c f, f.op_norm_smul_le c⟩
 
+theorem le_op_norm_mul_prod_of_le {b : ι → ℝ} (hm : ∀ i, ∥m i∥ ≤ b i) : ∥f m∥ ≤ ∥f∥ * ∏ i, b i :=
+(f.le_op_norm m).trans $ mul_le_mul_of_nonneg_left
+  (prod_le_prod (λ _ _, norm_nonneg _) (λ i _, hm i)) (norm_nonneg f)
+
+theorem le_op_norm_mul_pow_card_of_le {b : ℝ} (hm : ∀ i, ∥m i∥ ≤ b) :
+  ∥f m∥ ≤ ∥f∥ * b ^ fintype.card ι :=
+by simpa only [prod_const] using f.le_op_norm_mul_prod_of_le m hm
+
+theorem le_op_norm_mul_pow_of_le {Ei : fin n → Type*} [Π i, normed_group (Ei i)]
+  [Π i, normed_space 𝕜 (Ei i)] (f : continuous_multilinear_map 𝕜 Ei G) (m : Π i, Ei i)
+  {b : ℝ} (hm : ∥m∥ ≤ b) :
+  ∥f m∥ ≤ ∥f∥ * b ^ n :=
+by simpa only [fintype.card_fin]
+  using f.le_op_norm_mul_pow_card_of_le m (λ i, (norm_le_pi_norm m i).trans hm)
+
+/-- The fundamental property of the operator norm of a continuous multilinear map:
+`∥f m∥` is bounded by `∥f∥` times the product of the `∥m i∥`, `nnnorm` version. -/
+theorem le_op_nnnorm : nnnorm (f m) ≤ nnnorm f * ∏ i, nnnorm (m i) :=
+nnreal.coe_le_coe.1 $ by { push_cast, exact f.le_op_norm m }
+
+theorem le_of_op_nnnorm_le {C : ℝ≥0} (h : nnnorm f ≤ C) : nnnorm (f m) ≤ C * ∏ i, nnnorm (m i) :=
+(f.le_op_nnnorm m).trans $ mul_le_mul' h le_rfl
+
 lemma op_norm_prod (f : continuous_multilinear_map 𝕜 E G) (g : continuous_multilinear_map 𝕜 E G') :
   ∥f.prod g∥ = max (∥f∥) (∥g∥) :=
 le_antisymm
@@ -523,6 +546,10 @@ begin
   ext s,
   simp
 end
+
+lemma tsum_eval {α : Type*} {p : α → continuous_multilinear_map 𝕜 E G} (hp : summable p)
+  (m : Π i, E i) : (∑' a, p a) m = ∑' a, p a m :=
+(has_sum_eval hp.has_sum m).tsum_eq.symm
 
 open_locale topological_space
 open filter

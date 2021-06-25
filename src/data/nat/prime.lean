@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.nat.sqrt
 import data.nat.gcd
+import data.list.sort
 import algebra.group_power
 import tactic.wlog
 import tactic.norm_num
@@ -224,6 +225,18 @@ section min_fac
   theorem min_fac_le {n : ℕ} (H : 0 < n) : min_fac n ≤ n :=
   le_of_dvd H (min_fac_dvd n)
 
+  theorem le_min_fac {m n : ℕ} : n = 1 ∨ m ≤ min_fac n ↔ ∀ p, prime p → p ∣ n → m ≤ p :=
+  ⟨λ h p pp d, h.elim
+    (by rintro rfl; cases pp.not_dvd_one d)
+    (λ h, le_trans h $ min_fac_le_of_dvd pp.two_le d),
+   λ H, or_iff_not_imp_left.2 $ λ n1, H _ (min_fac_prime n1) (min_fac_dvd _)⟩
+
+  theorem le_min_fac' {m n : ℕ} : n = 1 ∨ m ≤ min_fac n ↔ ∀ p, 2 ≤ p → p ∣ n → m ≤ p :=
+  ⟨λ h p (pp:1<p) d, h.elim
+    (by rintro rfl; cases not_le_of_lt pp (le_of_dvd dec_trivial d))
+    (λ h, le_trans h $ min_fac_le_of_dvd pp d),
+   λ H, le_min_fac.2 (λ p pp d, H p pp.two_le d)⟩
+
   theorem prime_def_min_fac {p : ℕ} : prime p ↔ 2 ≤ p ∧ min_fac p = p :=
   ⟨λ pp, ⟨pp.two_le,
     let ⟨f2, fd, a⟩ := min_fac_has_prop $ ne_of_gt pp.one_lt in
@@ -406,9 +419,28 @@ begin
   { simp only [this, nat.factors, nat.div_self (nat.prime.pos hp)], },
 end
 
+lemma factors_chain : ∀ {n a}, (∀ p, prime p → p ∣ n → a ≤ p) → list.chain (≤) a (factors n)
+| 0       := λ a h, by simp
+| 1       := λ a h, by simp
+| n@(k+2) := λ a h,
+  let m := min_fac n in have n / m < n := factors_lemma,
+  begin
+    rw factors,
+    refine list.chain.cons ((le_min_fac.2 h).resolve_left dec_trivial) (factors_chain _),
+    exact λ p pp d, min_fac_le_of_dvd pp.two_le (dvd_trans d $ div_dvd_of_dvd $ min_fac_dvd _),
+  end
+
+lemma factors_chain_2 (n) : list.chain (≤) 2 (factors n) := factors_chain $ λ p pp _, pp.two_le
+
+lemma factors_chain' (n) : list.chain' (≤) (factors n) :=
+@list.chain'.tail _ _ (_::_) (factors_chain_2 _)
+
+lemma factors_sorted (n : ℕ) : list.sorted (≤) (factors n) :=
+(list.chain'_iff_pairwise (@le_trans _ _)).1 (factors_chain' _)
+
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
-  factors (n+2) = (min_fac (n+2)) :: (factors ((n+2) / (min_fac (n+2)))) :=
+  factors (n+2) = min_fac (n+2) :: factors ((n+2) / min_fac (n+2)) :=
 by rw factors
 
 @[simp]
@@ -766,6 +798,70 @@ match match_numeral e with
 | _ := failed
 end
 
+/-- A partial proof of `factors`. Asserts that `l` is a sorted list of primes, lower bounded by a
+prime `p`, which multiplies to `n`. -/
+def factors_helper (n p : ℕ) (l : list ℕ) : Prop :=
+p.prime → list.chain (≤) p l ∧ (∀ a ∈ l, nat.prime a) ∧ list.prod l = n
+
+lemma factors_helper_nil (a : ℕ) : factors_helper 1 a [] :=
+λ pa, ⟨list.chain.nil, by rintro _ ⟨⟩, list.prod_nil⟩
+
+lemma factors_helper_cons' (n m a b : ℕ) (l : list ℕ)
+  (h₁ : b * m = n) (h₂ : a ≤ b) (h₃ : nat.min_fac b = b)
+  (H : factors_helper m b l) : factors_helper n a (b :: l) :=
+λ pa,
+  have pb : b.prime, from nat.prime_def_min_fac.2 ⟨le_trans pa.two_le h₂, h₃⟩,
+  let ⟨f₁, f₂, f₃⟩ := H pb in
+  ⟨list.chain.cons h₂ f₁, λ c h, h.elim (λ e, e.symm ▸ pb) (f₂ _),
+   by rw [list.prod_cons, f₃, h₁]⟩
+
+lemma factors_helper_cons (n m a b : ℕ) (l : list ℕ)
+  (h₁ : b * m = n) (h₂ : a < b) (h₃ : nat.min_fac b = b)
+  (H : factors_helper m b l) : factors_helper n a (b :: l) :=
+factors_helper_cons' _ _ _ _ _ h₁ h₂.le h₃ H
+
+lemma factors_helper_sn (n a : ℕ) (h₁ : a < n) (h₂ : nat.min_fac n = n) : factors_helper n a [n] :=
+factors_helper_cons _ _ _ _ _ (mul_one _) h₁ h₂ (factors_helper_nil _)
+
+lemma factors_helper_same (n m a : ℕ) (l : list ℕ) (h : a * m = n)
+  (H : factors_helper m a l) : factors_helper n a (a :: l) :=
+λ pa, factors_helper_cons' _ _ _ _ _ h (le_refl _) (nat.prime_def_min_fac.1 pa).2 H pa
+
+lemma factors_helper_same_sn (a : ℕ) : factors_helper a a [a] :=
+factors_helper_same _ _ _ _ (mul_one _) (factors_helper_nil _)
+
+lemma factors_helper_end (n : ℕ) (l : list ℕ) (H : factors_helper n 2 l) : nat.factors n = l :=
+let ⟨h₁, h₂, h₃⟩ := H nat.prime_two in
+have _, from (list.chain'_iff_pairwise (@le_trans _ _)).1 (@list.chain'.tail _ _ (_::_) h₁),
+(list.eq_of_perm_of_sorted (nat.factors_unique h₃ h₂) this (nat.factors_sorted _)).symm
+
+/-- Given `n` and `a` natural numerals, returns `(l, ⊢ factors_helper n a l)`. -/
+meta def prove_factors_aux :
+  instance_cache → expr → expr → ℕ → ℕ → tactic (instance_cache × expr × expr)
+| c en ea n a :=
+  let b := n.min_fac in
+  if b < n then do
+    let m := n / b,
+    (c, em) ← c.of_nat m,
+    if b = a then do
+      (c, _, p₁) ← prove_mul_nat c ea em,
+      (c, l, p₂) ← prove_factors_aux c em ea m a,
+      pure (c, `(%%ea::%%l:list ℕ), `(factors_helper_same).mk_app [en, em, ea, l, p₁, p₂])
+    else do
+      (c, eb) ← c.of_nat b,
+      (c, _, p₁) ← prove_mul_nat c eb em,
+      (c, p₂) ← prove_lt_nat c ea eb,
+      (c, _, p₃) ← prove_min_fac c eb,
+      (c, l, p₄) ← prove_factors_aux c em eb m b,
+      pure (c, `(%%eb::%%l : list ℕ),
+        `(factors_helper_cons).mk_app [en, em, ea, eb, l, p₁, p₂, p₃, p₄])
+  else if b = a then
+    pure (c, `([%%ea] : list ℕ), `(factors_helper_same_sn).mk_app [ea])
+  else do
+    (c, p₁) ← prove_lt_nat c ea en,
+    (c, _, p₂) ← prove_min_fac c en,
+    pure (c, `([%%en] : list ℕ), `(factors_helper_sn).mk_app [en, ea, p₁, p₂])
+
 /-- Evaluates the `prime` and `min_fac` functions. -/
 @[norm_num] meta def eval_prime : expr → tactic (expr × expr)
 | `(nat.prime %%e) := do
@@ -777,7 +873,7 @@ end
     if d₁ < n then prove_non_prime e n d₁ >>= false_intro
     else do
       let e₁ := reflect d₁,
-      c ← mk_instance_cache `(nat),
+      c ← mk_instance_cache `(ℕ),
       (c, p₁) ← prove_lt_nat c `(1) e₁,
       (c, e₁, p) ← prove_min_fac c e,
       true_intro $ `(is_prime_helper).mk_app [e, p₁, p]
@@ -785,6 +881,16 @@ end
 | `(nat.min_fac %%e) := do
   ic ← mk_instance_cache `(ℕ),
   prod.snd <$> prove_min_fac ic e
+| `(nat.factors %%e) := do
+  n ← e.to_nat,
+  match n with
+  | 0 := pure (`(@list.nil ℕ), `(nat.factors_zero))
+  | 1 := pure (`(@list.nil ℕ), `(nat.factors_one))
+  | _ := do
+    c ← mk_instance_cache `(ℕ),
+    (c, l, p) ← prove_factors_aux c e `(2) n 2,
+    pure (l, `(factors_helper_end).mk_app [e, l, p])
+  end
 | _ := failed
 
 end norm_num

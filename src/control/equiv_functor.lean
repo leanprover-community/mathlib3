@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison
+Authors: Scott Morrison
 -/
 import category_theory.category
 import data.equiv.functor
@@ -46,8 +46,8 @@ def map_equiv :
   f α ≃ f β :=
 { to_fun := equiv_functor.map e,
   inv_fun := equiv_functor.map e.symm,
-  left_inv := λ x, begin convert (congr_fun (equiv_functor.map_trans e e.symm) x).symm, simp, end,
-  right_inv := λ y, begin convert (congr_fun (equiv_functor.map_trans e.symm e) y).symm, simp, end, }
+  left_inv := λ x, by { convert (congr_fun (equiv_functor.map_trans e e.symm) x).symm, simp, },
+  right_inv := λ y, by { convert (congr_fun (equiv_functor.map_trans e.symm e) y).symm, simp, }, }
 
 @[simp] lemma map_equiv_apply (x : f α) :
   map_equiv f e x = equiv_functor.map e x := rfl

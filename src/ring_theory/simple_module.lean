@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors : Aaron Anderson
+Authors: Aaron Anderson
 -/
 
 import linear_algebra.basic
@@ -143,14 +143,14 @@ noncomputable instance [decidable_eq (module.End R M)] [is_simple_module R M] :
     have h := exists_pair_ne M,
     contrapose! h,
     intros x y,
-    simp_rw [ext_iff, one_app, zero_apply] at h,
+    simp_rw [ext_iff, one_apply, zero_apply] at h,
     rw [← h x, h y],
   end⟩,
   mul_inv_cancel := begin
     intros a a0,
     change (a * (dite _ _ _)) = 1,
     ext,
-    rw [dif_neg a0, mul_eq_comp, one_app, comp_apply],
+    rw [dif_neg a0, mul_eq_comp, one_apply, comp_apply],
     exact (equiv.of_bijective _ (bijective_of_ne_zero a0)).right_inv x,
   end,
   inv_zero := dif_pos rfl,

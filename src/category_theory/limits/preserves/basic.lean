@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton, Bhavik Mehta
 -/
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # Preservation and reflection of (co)limits.
@@ -38,7 +38,7 @@ noncomputable theory
 
 namespace category_theory.limits
 
-universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u₁ u₂ u₃ -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u₁} [category.{v} C]
 variables {D : Type u₂} [category.{v} D]
@@ -61,22 +61,22 @@ class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 /-- We say that `F` preserves limits of shape `J` if `F` preserves limits for every diagram
     `K : J ⥤ C`, i.e., `F` maps limit cones over `K` to limit cones. -/
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
-(preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
+(preserves_limit : Π {K : J ⥤ C}, preserves_limit K F . tactic.apply_instance)
 /-- We say that `F` preserves colimits of shape `J` if `F` preserves colimits for every diagram
     `K : J ⥤ C`, i.e., `F` maps colimit cocones over `K` to colimit cocones. -/
 class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) :
   Type (max u₁ u₂ v) :=
-(preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F)
+(preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F . tactic.apply_instance)
 
 /-- We say that `F` preserves limits if it sends limit cones over any diagram to limit cones. -/
 class preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(preserves_limits_of_shape : Π {J : Type v} [𝒥 : small_category J],
-  by exactI preserves_limits_of_shape J F)
+(preserves_limits_of_shape : Π {J : Type v} [small_category J],
+  preserves_limits_of_shape J F . tactic.apply_instance)
 /-- We say that `F` preserves colimits if it sends colimit cocones over any diagram to colimit
     cocones.-/
 class preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(preserves_colimits_of_shape : Π {J : Type v} [𝒥 : small_category J],
-  by exactI preserves_colimits_of_shape J F)
+(preserves_colimits_of_shape : Π {J : Type v} [small_category J],
+  preserves_colimits_of_shape J F . tactic.apply_instance)
 
 attribute [instance, priority 100] -- see Note [lower instance priority]
   preserves_limits_of_shape.preserves_limit preserves_limits.preserves_limits_of_shape
@@ -147,11 +147,11 @@ instance comp_preserves_limit [preserves_limit K F] [preserves_limit (K ⋙ F) G
 instance comp_preserves_limits_of_shape
   [preserves_limits_of_shape J F] [preserves_limits_of_shape J G] :
   preserves_limits_of_shape J (F ⋙ G) :=
-{ preserves_limit := λ K, infer_instance }
+{}
 
 instance comp_preserves_limits [preserves_limits F] [preserves_limits G] :
   preserves_limits (F ⋙ G) :=
-{ preserves_limits_of_shape := λ J 𝒥₁, infer_instance }
+{}
 
 instance comp_preserves_colimit [preserves_colimit K F] [preserves_colimit (K ⋙ F) G] :
   preserves_colimit K (F ⋙ G) :=
@@ -160,11 +160,11 @@ instance comp_preserves_colimit [preserves_colimit K F] [preserves_colimit (K �
 instance comp_preserves_colimits_of_shape
   [preserves_colimits_of_shape J F] [preserves_colimits_of_shape J G] :
   preserves_colimits_of_shape J (F ⋙ G) :=
-{ preserves_colimit := λ K, infer_instance }
+{}
 
 instance comp_preserves_colimits [preserves_colimits F] [preserves_colimits G] :
   preserves_colimits (F ⋙ G) :=
-{ preserves_colimits_of_shape := λ J 𝒥₁, infer_instance }
+{}
 
 end
 
@@ -284,7 +284,7 @@ the cone was already a limit cone in `C`.
 Note that we do not assume a priori that `D` actually has any limits.
 -/
 class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
-(reflects_limit : Π {K : J ⥤ C}, reflects_limit K F)
+(reflects_limit : Π {K : J ⥤ C}, reflects_limit K F . tactic.apply_instance)
 /--
 A functor `F : C ⥤ D` reflects colimits of shape `J` if
 whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
@@ -292,7 +292,7 @@ the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.
 -/
 class reflects_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
-(reflects_colimit : Π {K : J ⥤ C}, reflects_colimit K F)
+(reflects_colimit : Π {K : J ⥤ C}, reflects_colimit K F . tactic.apply_instance)
 
 /--
 A functor `F : C ⥤ D` reflects limits if
@@ -301,8 +301,8 @@ the cone was already a limit cone in `C`.
 Note that we do not assume a priori that `D` actually has any limits.
 -/
 class reflects_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(reflects_limits_of_shape : Π {J : Type v} {𝒥 : small_category J},
-  by exactI reflects_limits_of_shape J F)
+(reflects_limits_of_shape : Π {J : Type v} [small_category J],
+  reflects_limits_of_shape J F . tactic.apply_instance)
 /--
 A functor `F : C ⥤ D` reflects colimits if
 whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
@@ -310,8 +310,8 @@ the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.
 -/
 class reflects_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(reflects_colimits_of_shape : Π {J : Type v} {𝒥 : small_category J},
-  by exactI reflects_colimits_of_shape J F)
+(reflects_colimits_of_shape : Π {J : Type v} [small_category J],
+  reflects_colimits_of_shape J F . tactic.apply_instance)
 
 /--
 A convenience function for `reflects_limit`, which takes the functor as an explicit argument to
@@ -393,11 +393,11 @@ instance comp_reflects_limit [reflects_limit K F] [reflects_limit (K ⋙ F) G] :
 instance comp_reflects_limits_of_shape
   [reflects_limits_of_shape J F] [reflects_limits_of_shape J G] :
   reflects_limits_of_shape J (F ⋙ G) :=
-{ reflects_limit := λ K, infer_instance }
+{}
 
 instance comp_reflects_limits [reflects_limits F] [reflects_limits G] :
   reflects_limits (F ⋙ G) :=
-{ reflects_limits_of_shape := λ J 𝒥₁, infer_instance }
+{}
 
 instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F) G] :
   reflects_colimit K (F ⋙ G) :=
@@ -406,11 +406,11 @@ instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F
 instance comp_reflects_colimits_of_shape
   [reflects_colimits_of_shape J F] [reflects_colimits_of_shape J G] :
   reflects_colimits_of_shape J (F ⋙ G) :=
-{ reflects_colimit := λ K, infer_instance }
+{}
 
 instance comp_reflects_colimits [reflects_colimits F] [reflects_colimits G] :
   reflects_colimits (F ⋙ G) :=
-{ reflects_colimits_of_shape := λ J 𝒥₁, infer_instance }
+{}
 
 /-- If `F ⋙ G` preserves limits for `K`, and `G` reflects limits for `K ⋙ F`,
 then `F` preserves limits for `K`. -/
@@ -435,6 +435,16 @@ def preserves_limits_of_reflects_of_preserves [preserves_limits (F ⋙ G)] [refl
   preserves_limits F :=
 { preserves_limits_of_shape := λ J 𝒥₁,
     by exactI preserves_limits_of_shape_of_reflects_of_preserves F G }
+
+/-- Transfer reflection of limits along a natural isomorphism in the diagram. -/
+def reflects_limit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [reflects_limit K₁ F] : reflects_limit K₂ F :=
+{ reflects := λ c t,
+  begin
+    apply is_limit.postcompose_inv_equiv h c (is_limit_of_reflects F _),
+    apply ((is_limit.postcompose_inv_equiv (iso_whisker_right h F : _) _).symm t).of_iso_limit _,
+    exact cones.ext (iso.refl _) (by tidy),
+  end }
 
 /-- Transfer reflection of a limit along a natural isomorphism in the functor. -/
 def reflects_limit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_limit K F] :
@@ -509,6 +519,16 @@ def preserves_colimits_of_reflects_of_preserves [preserves_colimits (F ⋙ G)]
   [reflects_colimits G] : preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥₁,
     by exactI preserves_colimits_of_shape_of_reflects_of_preserves F G }
+
+/-- Transfer reflection of colimits along a natural isomorphism in the diagram. -/
+def reflects_colimit_of_iso_diagram {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂)
+  [reflects_colimit K₁ F] : reflects_colimit K₂ F :=
+{ reflects := λ c t,
+  begin
+    apply is_colimit.precompose_hom_equiv h c (is_colimit_of_reflects F _),
+    apply ((is_colimit.precompose_hom_equiv (iso_whisker_right h F : _) _).symm t).of_iso_colimit _,
+    exact cocones.ext (iso.refl _) (by tidy),
+  end }
 
 /-- Transfer reflection of a colimit along a natural isomorphism in the functor. -/
 def reflects_colimit_of_nat_iso (K : J ⥤ C) {F G : C ⥤ D} (h : F ≅ G) [reflects_colimit K F] :

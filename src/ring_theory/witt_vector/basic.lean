@@ -51,8 +51,6 @@ open mv_polynomial function
 
 open_locale big_operators
 
-local attribute [semireducible] witt_vector
-
 variables {p : ℕ} {R S T : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S] [comm_ring T]
 variables {α : Type*} {β : Type*}
 
@@ -63,22 +61,23 @@ namespace witt_vector
 
 /-- `f : α → β` induces a map from `𝕎 α` to `𝕎 β` by applying `f` componentwise.
 If `f` is a ring homomorphism, then so is `f`, see `witt_vector.map f`. -/
-def map_fun (f : α → β) : 𝕎 α → 𝕎 β := λ x, f ∘ x
+def map_fun (f : α → β) : 𝕎 α → 𝕎 β :=
+λ x, mk _ (f ∘ x.coeff)
 
 namespace map_fun
 
 lemma injective (f : α → β) (hf : injective f) : injective (map_fun f : 𝕎 α → 𝕎 β) :=
-λ x y h, funext $ λ n, hf $ by exact congr_fun h n
+λ x y h, ext $ λ n, hf (congr_arg (λ x, coeff x n) h : _)
 
 lemma surjective (f : α → β) (hf : surjective f) : surjective (map_fun f : 𝕎 α → 𝕎 β) :=
-λ x, ⟨λ n, classical.some $ hf $ x n,
-by { funext n, dsimp [map_fun], rw classical.some_spec (hf (x n)) }⟩
+λ x, ⟨mk _ (λ n, classical.some $ hf $ x.coeff n),
+by { ext n, dsimp [map_fun], rw classical.some_spec (hf (x.coeff n)) }⟩
 
 variables (f : R →+* S) (x y : 𝕎 R)
 
 /-- Auxiliary tactic for showing that `map_fun` respects the ring operations. -/
 meta def map_fun_tac : tactic unit :=
-`[funext n,
+`[ext n,
   show f (aeval _ _) = aeval _ _,
   rw map_aeval,
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
@@ -110,19 +109,22 @@ setup_tactic_parser
 open tactic
 
 /-- An auxiliary tactic for proving that `ghost_fun` respects the ring operations. -/
-meta def tactic.interactive.ghost_fun_tac (φ fn : parse parser.pexpr) : tactic unit :=
-do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
-  `(fin %%k → _ → _) ← infer_type fn,
-  `[ext n],
-  to_expr ```(witt_structure_int_prop p (%%φ : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
-     apply_fun_to_hyp ```(aeval (uncurry %%fn)) none,
-`[simp only [aeval_bind₁] at aux,
-  simp only [pi.zero_apply, pi.one_apply, pi.add_apply, pi.sub_apply, pi.mul_apply, pi.neg_apply,
-    ghost_fun],
-  convert aux using 1; clear aux;
-  simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add,
-    alg_hom.map_sub, alg_hom.map_mul, alg_hom.map_neg,
-    aeval_X, aeval_rename]; refl]
+meta def tactic.interactive.ghost_fun_tac (φ fn : parse parser.pexpr) : tactic unit := do
+fn ← to_expr ```(%%fn : fin _ → ℕ → R),
+`(fin %%k → _ → _) ← infer_type fn,
+`[ext n],
+`[dunfold
+  witt_vector.has_zero witt_zero
+  witt_vector.has_one witt_one
+  witt_vector.has_neg witt_neg
+  witt_vector.has_mul witt_mul
+  witt_vector.has_sub witt_sub
+  witt_vector.has_add witt_add
+  ],
+to_expr ```(congr_fun (congr_arg (@peval R _ %%k) (witt_structure_int_prop p %%φ n)) %%fn) >>=
+  note `this none,
+`[simpa [ghost_fun, aeval_rename, aeval_bind₁, (∘), uncurry, peval, eval] using this]
+
 end tactic
 
 namespace witt_vector
@@ -141,6 +143,13 @@ include hp
 
 variables (x y : 𝕎 R)
 
+omit hp
+local attribute [simp]
+lemma matrix_vec_empty_coeff {R} (i j) :
+  @coeff p R (matrix.vec_empty i) j = (matrix.vec_empty i : ℕ → R) j :=
+by rcases i with ⟨_ | _ | _ | _ | i_val, ⟨⟩⟩
+include hp
+
 private lemma ghost_fun_zero : ghost_fun (0 : 𝕎 R) = 0 := by ghost_fun_tac 0 ![]
 
 private lemma ghost_fun_one : ghost_fun (1 : 𝕎 R) = 1 := by ghost_fun_tac 1 ![]
@@ -154,7 +163,8 @@ by ghost_fun_tac (X 0 - X 1) ![x.coeff, y.coeff]
 private lemma ghost_fun_mul : ghost_fun (x * y) = ghost_fun x * ghost_fun y :=
 by ghost_fun_tac (X 0 * X 1) ![x.coeff, y.coeff]
 
-private lemma ghost_fun_neg : ghost_fun (-x) = - ghost_fun x := by ghost_fun_tac (-X 0) ![x.coeff]
+private lemma ghost_fun_neg : ghost_fun (-x) = - ghost_fun x :=
+by ghost_fun_tac (-X 0) ![x.coeff]
 
 end ghost_fun
 
@@ -186,17 +196,17 @@ include hp
 
 local attribute [instance]
 private def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=
-(ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring_sub (ghost_fun)
+(ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring (ghost_fun)
   ghost_fun_zero ghost_fun_one ghost_fun_add ghost_fun_mul ghost_fun_neg ghost_fun_sub
 
 local attribute [instance]
 private def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
-(map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring_sub _
+(map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring _
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
 
 /-- The commutative ring structure on `𝕎 R`. -/
 instance : comm_ring (𝕎 R) :=
-(map_fun.surjective _ $ counit_surjective _).comm_ring_sub (map_fun $ mv_polynomial.counit _)
+(map_fun.surjective _ $ counit_surjective _).comm_ring (map_fun $ mv_polynomial.counit _)
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
 
 variables {p R}
@@ -230,7 +240,7 @@ def ghost_map : 𝕎 R →+* ℕ → R :=
 
 /-- Evaluates the `n`th Witt polynomial on the first `n` coefficients of `x`,
 producing a value in `R`. -/
-def ghost_component (n : ℕ) : 𝕎 R →+* R := (ring_hom.apply _ n).comp ghost_map
+def ghost_component (n : ℕ) : 𝕎 R →+* R := (pi.eval_ring_hom _ n).comp ghost_map
 
 lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) : ghost_component n x = aeval x.coeff (W_ ℤ n) := rfl
 
@@ -248,5 +258,3 @@ lemma ghost_map.bijective_of_invertible : function.bijective (ghost_map : 𝕎 R
 (ghost_equiv p R).bijective
 
 end witt_vector
-
-attribute [irreducible] witt_vector

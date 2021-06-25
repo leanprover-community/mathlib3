@@ -90,6 +90,32 @@ lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
 | ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩
 
+lemma not_is_bounded_under_of_tendsto_at_top [nonempty α] [semilattice_sup α]
+  [preorder β] [no_top_order β] {f : α → β} (hf : tendsto f at_top at_top) :
+  ¬ is_bounded_under (≤) at_top f :=
+begin
+  rintro ⟨b, hb⟩,
+  rw eventually_map at hb,
+  obtain ⟨b', h⟩ := no_top b,
+  have hb' := (tendsto_at_top.mp hf) b',
+  have : {x : α | f x ≤ b} ∩ {x : α | b' ≤ f x} = ∅ :=
+    eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.2 hx.1)),
+  exact at_top.empty_nmem_sets (this ▸ filter.inter_mem_sets hb hb' : ∅ ∈ (at_top : filter α)),
+end
+
+lemma not_is_bounded_under_of_tendsto_at_bot [nonempty α] [semilattice_sup α]
+  [preorder β] [no_bot_order β] {f : α → β} (hf : tendsto f at_top at_bot) :
+  ¬ is_bounded_under (≥) at_top f :=
+begin
+  rintro ⟨b, hb⟩,
+  rw eventually_map at hb,
+  obtain ⟨b', h⟩ := no_bot b,
+  have hb' := (tendsto_at_bot.mp hf) b',
+  have : {x : α | b ≤ f x} ∩ {x : α | f x ≤ b'} = ∅ :=
+    eq_empty_of_subset_empty (λ x hx, (not_le_of_lt h) (le_trans hx.1 hx.2)),
+  exact at_top.empty_nmem_sets (this ▸ filter.inter_mem_sets hb hb' : ∅ ∈ (at_top : filter α)),
+end
+
 /-- `is_cobounded (≺) f` states that the filter `f` does not tend to infinity w.r.t. `≺`. This is
 also called frequently bounded. Will be usually instantiated with `≤` or `≥`.
 
@@ -254,6 +280,18 @@ lemma liminf_le_liminf {α : Type*} [conditionally_complete_lattice β] {f : fil
   (hv : f.is_cobounded_under (≥) v . is_bounded_default) :
   f.liminf u ≤ f.liminf v :=
 @limsup_le_limsup (order_dual β) α _ _ _ _ h hv hu
+
+lemma limsup_le_limsup_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : f ≤ g)
+  {u : α → β} (hf : f.is_cobounded_under (≤) u . is_bounded_default)
+  (hg : g.is_bounded_under (≤) u . is_bounded_default) :
+  f.limsup u ≤ g.limsup u :=
+Limsup_le_Limsup_of_le (map_mono h) hf hg
+
+lemma liminf_le_liminf_of_le {α β} [conditionally_complete_lattice β] {f g : filter α} (h : g ≤ f)
+  {u : α → β} (hf : f.is_bounded_under (≥) u . is_bounded_default)
+  (hg : g.is_cobounded_under (≥) u . is_bounded_default) :
+  f.liminf u ≤ g.liminf u :=
+Liminf_le_Liminf_of_le (map_mono h) hf hg
 
 theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s.nonempty) :
   (𝓟 s).Limsup = Sup s :=

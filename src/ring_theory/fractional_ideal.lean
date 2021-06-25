@@ -323,7 +323,7 @@ lemma coe_add (I J : fractional_ideal f) : (↑(I + J) : submodule R f.codomain)
 lemma fractional_mul (I J : fractional_ideal f) : is_fractional f (I.1 * J.1) :=
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
-  rcases J with ⟨I, aJ, haJ, hJ⟩,
+  rcases J with ⟨J, aJ, haJ, hJ⟩,
   use aI * aJ,
   use S.mul_mem haI haJ,
   intros b hb,
@@ -645,12 +645,12 @@ variables {I J : fractional_ideal g} (h : g.codomain →ₐ[R] g'.codomain)
 lemma exists_ne_zero_mem_is_integer [nontrivial R] (hI : I ≠ 0) :
   ∃ x ≠ (0 : R), g.to_map x ∈ I :=
 begin
-  obtain ⟨y, y_mem, y_not_mem⟩ := submodule.exists_of_lt (bot_lt_iff_ne_bot.mpr hI),
+  obtain ⟨y, y_mem, y_not_mem⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr hI),
   have y_ne_zero : y ≠ 0 := by simpa using y_not_mem,
   obtain ⟨z, ⟨x, hx⟩⟩ := g.exists_integer_multiple y,
   refine ⟨x, _, _⟩,
   { rw [ne.def, ← g.to_map_eq_zero_iff, hx],
-    exact mul_ne_zero (g.to_map_ne_zero_of_mem_non_zero_divisors _) y_ne_zero },
+    exact mul_ne_zero (g.to_map_ne_zero_of_mem_non_zero_divisors z.2) y_ne_zero },
   { rw hx,
     exact smul_mem _ _ y_mem }
 end
@@ -697,7 +697,7 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨J, aJ, haJ, hJ⟩,
-  obtain ⟨y, mem_J, not_mem_zero⟩ := exists_of_lt (bot_lt_iff_ne_bot.mpr h),
+  obtain ⟨y, mem_J, not_mem_zero⟩ := set_like.exists_of_lt (bot_lt_iff_ne_bot.mpr h),
   obtain ⟨y', hy'⟩ := hJ y mem_J,
   use (aI * y'),
   split,

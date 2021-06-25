@@ -175,6 +175,14 @@ end interval_integral
 
 open interval_integral
 
+lemma function.periodic.interval_integral {f : ℝ → ℝ} {c : ℝ} (h : function.periodic f c) :
+  ∫ x in a+c..b+c, f x = ∫ x in a..b, f x :=
+by simp_rw [← integral_comp_add_right, h _]
+
+lemma function.antiperiodic.interval_integral {f : ℝ → ℝ} {c : ℝ} (h : function.antiperiodic f c) :
+  ∫ x in a+c..b+c, f x = -∫ x in a..b, f x :=
+by simp_rw [← integral_comp_add_right, h _, integral_neg]
+
 /-! ### Integrals of simple functions -/
 
 @[simp]
@@ -250,9 +258,37 @@ integral_log $ not_mem_interval_of_gt ha hb
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
 by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
 
+lemma integral_sin_add_pi : ∫ x in a+π..b+π, sin x = cos b - cos a :=
+(sin_antiperiodic.interval_integral.trans $ congr_arg _ integral_sin).trans $ neg_sub _ _
+
+lemma integral_sin_add_two_pi : ∫ x in a+2*π..b+2*π, sin x = cos a - cos b :=
+sin_periodic.interval_integral.trans integral_sin
+
+lemma integral_sin_add_nat_mul_two_pi (n : ℕ) :
+  ∫ x in a+n*(2*π)..b+n*(2*π), sin x = cos a - cos b :=
+(sin_periodic.nat_mul n).interval_integral.trans integral_sin
+
+lemma integral_sin_add_int_mul_two_pi (n : ℤ) :
+  ∫ x in a+n*(2*π)..b+n*(2*π), sin x = cos a - cos b :=
+(sin_periodic.int_mul n).interval_integral.trans integral_sin
+
 @[simp]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
+
+lemma integral_cos_add_pi : ∫ x in a+π..b+π, cos x = sin a - sin b :=
+(cos_antiperiodic.interval_integral.trans $ congr_arg _ integral_cos).trans $ neg_sub _ _
+
+lemma integral_cos_add_two_pi : ∫ x in a+2*π..b+2*π, cos x = sin b - sin a :=
+cos_periodic.interval_integral.trans integral_cos
+
+lemma integral_cos_add_nat_mul_two_pi (n : ℕ) :
+  ∫ x in a+n*(2*π)..b+n*(2*π), cos x = sin b - sin a :=
+(cos_periodic.nat_mul n).interval_integral.trans integral_cos
+
+lemma integral_cos_add_int_mul_two_pi (n : ℤ) :
+  ∫ x in a+n*(2*π)..b+n*(2*π), cos x = sin b - sin a :=
+(cos_periodic.int_mul n).interval_integral.trans integral_cos
 
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=

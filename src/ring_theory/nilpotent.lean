@@ -39,7 +39,7 @@ begin
   rw [neg_pow, hn, mul_zero],
 end
 
-lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
+@[simp] lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
 lemma is_nilpotent.eq_zero [monoid_with_zero R] [no_zero_divisors R]

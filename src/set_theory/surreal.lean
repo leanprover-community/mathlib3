@@ -536,7 +536,8 @@ end
 lemma nsmul_pow_two_pow_half' (n k : ℕ) : 2 ^ n • pow_half (n + k) = pow_half k :=
 begin
   induction k with k hk,
-  { simp only [nsmul_pow_two_pow_half] },
+  { simp only [add_zero, surreal.nsmul_pow_two_pow_half, nat.nat_zero_eq_zero, eq_self_iff_true,
+               surreal.pow_half_zero] },
   { rw [← double_pow_half_succ_eq_pow_half (n + k), ← double_pow_half_succ_eq_pow_half k,
         smul_algebra_smul_comm] at hk,
     exact @gmul_cancel_of_pos 2 _ _ (by norm_num) hk }

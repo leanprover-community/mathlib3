@@ -14,11 +14,12 @@ We denote homeomorphisms with the notation `≃ₜ`.
 # Main definitions
 
 * `homeomorph α β`: The type of homeomorphisms from `α` to `β`.
+  This type can be denoted using the following notation: `α ≃ₜ β`.
 
 # Main results
 
-* Pretty much everything is preserved under homeomorphisms.
-* `homeomorph.homeomorph_of_continuous_open`: A bijection that is an open map is a homeomorphism.
+* Pretty much every topological property is preserved under homeomorphisms.
+* `homeomorph.homeomorph_of_continuous_open`: A continuous bijection that is an open map is a homeomorphism.
 
 -/
 

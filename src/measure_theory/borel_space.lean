@@ -351,15 +351,13 @@ instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
 
-variables [second_countable_topology α]
-
 @[measurability]
-lemma measurable_set_lt' : measurable_set {p : α × α | p.1 < p.2} :=
+lemma measurable_set_lt' [second_countable_topology α] : measurable_set {p : α × α | p.1 < p.2} :=
 (is_open_lt continuous_fst continuous_snd).measurable_set
 
 @[measurability]
-lemma measurable_set_lt {f g : δ → α} (hf : measurable f) (hg : measurable g) :
-  measurable_set {a | f a < g a} :=
+lemma measurable_set_lt [second_countable_topology α] {f g : δ → α} (hf : measurable f)
+  (hg : measurable g) : measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
 
 private lemma ord_connected_measurable_set_aux {α : Type*} [linear_order α] (s : set α)
@@ -402,22 +400,6 @@ end
 lemma is_preconnected.measurable_set [densely_ordered α] [order_topology α]
   (h : is_preconnected s) : measurable_set s :=
 h.ord_connected.measurable_set
-
-lemma measurable_of_monotone [densely_ordered α] [linear_order β] [order_topology β]
-  [second_countable_topology β] {f : α → β} (hf : monotone f) :
-  measurable f :=
-suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
-  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
-λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
-
-alias measurable_of_monotone ← monotone.measurable
-
-lemma measurable_of_antimono [densely_ordered α] [linear_order β] [order_topology β]
-  [second_countable_topology β] {f : α → β} (hf : ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x) :
-  measurable f :=
-suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
-  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
-λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le hb (hf hc.2))
 
 end linear_order
 
@@ -917,7 +899,25 @@ end complete_linear_order
 
 section conditionally_complete_linear_order
 
-variables [conditionally_complete_linear_order α] [second_countable_topology α] [order_topology α]
+variables [conditionally_complete_linear_order α] [order_topology α]
+
+lemma measurable_of_monotone [densely_ordered α] [linear_order β] [order_topology β]
+  [second_countable_topology β] {f : α → β} (hf : monotone f) :
+  measurable f :=
+suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
+  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
+λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
+
+alias measurable_of_monotone ← monotone.measurable
+
+lemma measurable_of_antimono [densely_ordered α] [linear_order β] [order_topology β]
+  [second_countable_topology β] {f : α → β} (hf : ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x) :
+  measurable f :=
+suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
+  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
+λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le hb (hf hc.2))
+
+variable [second_countable_topology α]
 
 lemma measurable_cSup {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above ((λ i, f i x) '' s)) :

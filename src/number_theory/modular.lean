@@ -72,7 +72,7 @@ bottom_ne_zero g z
 /-! It is useful to develop basic theory for an object `coprime_ints`, consisting of two integers
 and a proof that they satisfy `is_coprime`. -/
 
-@[ext] class coprime_ints :=
+class coprime_ints :=
 (c' : ℤ)
 (d' : ℤ)
 (is_coprime' : is_coprime c' d')
@@ -91,26 +91,22 @@ instance : nonempty coprime_ints := ⟨⟨1, 1, is_coprime_one_left⟩⟩
 @[simp] lemma fst_coe (p : coprime_ints) : (p : ℤ × ℤ).1 = p.c := rfl
 @[simp] lemma snd_coe (p : coprime_ints) : (p : ℤ × ℤ).2 = p.d := rfl
 
-/-
-@[ext] lemma ext {p q : coprime_ints} (h : (p : ℤ × ℤ) = q) : p = q :=
+@[ext] lemma ext {p q : coprime_ints} (h : p.c = q.c) (h' : p.d = q.d) : p = q :=
 begin
   tactic.unfreeze_local_instances,
   cases p,
   cases q,
   cases h,
+  cases h',
   refl,
 end
--/
+
+@[ext] lemma ext_iff {p q : coprime_ints} : p = q ↔ p.c = q.c ∧ p.d = q.d :=
+⟨λ h, by { rw h; split; refl }, λ h, ext h.1 h.2⟩
 
 
-lemma coe_injective : function.injective (coe : coprime_ints → (ℤ × ℤ)) :=
---λ p q, ext
-begin
-  intros p q hpq,
-  sorry, -- Heather homework? :)
-  --rw prod.inj
---  library_search,
-end
+-- lemma coe_injective : function.injective (coe : coprime_ints → (ℤ × ℤ)) :=
+-- λ p q, ((coprime_ints.ext_iff _ _).mpr ∘ prod.mk.inj_iff.mp)
 
 lemma ne_zero (p : coprime_ints) : p.c ≠ 0 ∨ p.d ≠ 0 :=
 begin
@@ -215,7 +211,9 @@ begin
   have h₂ : tendsto (λ p : ℤ × ℤ, ((p.1 : ℝ), (p.2 : ℝ))) cofinite (cocompact _),
   { convert int.tendsto_coe_cofinite.prod_map_coprod int.tendsto_coe_cofinite;
     simp [coprod_cocompact, coprod_cofinite] },
-  convert tendsto_at_top_norm_sq.comp (h₁.comp (h₂.comp coprime_ints.coe_injective.tendsto_cofinite)),
+  have h₃ : function.injective (coe : coprime_ints → ℤ × ℤ) :=
+    λ p q, (coprime_ints.ext_iff.mpr ∘ prod.mk.inj_iff.mp),
+  convert tendsto_at_top_norm_sq.comp (h₁.comp (h₂.comp h₃.tendsto_cofinite)),
   ext,
   simp [f],
 end
@@ -486,51 +484,6 @@ begin
 end
 
 
-
-lemma half_ge_x_T_inv (z : ℍ) (h : 1/2 < z.re) : |(T' • z).re| < |z.re| :=
-begin
-  have : |z.re - 1| < |z.re|,
-  { rw [(abs_eq_self.mpr (by linarith : 0 ≤ z.re)), abs_lt],
-    split; linarith, },
-  convert this,
-  simp [T', smul_aux, smul_aux', top, bottom, map_cons, comp_cons, cons_apply_one, cons_apply_zero],
-  refl,
-end
-
-lemma half_le_neg_x_T (z : ℍ) (h : 1/2 < - z.re) : |(T • z).re| < |z.re| :=
-begin
-  have : |z.re + 1| < |z.re|,
-  { rw [(abs_eq_neg_self.mpr (by linarith : z.re ≤ 0)), abs_lt],
-    split; linarith, },
-  convert this,
-  simp [T, smul_aux, smul_aux', top, bottom, map_cons, comp_cons, cons_apply_one, cons_apply_zero],
-  refl,
-end
-
-
-lemma bottom_row_T (g : SL(2,ℤ)) : bottom_row g = bottom_row (T * g) :=
-begin
-  ext,
-  {
-    change g 1 0 = (T * g) 1 0,
-  --  simp [T, matrix.mul, dot_product, fin.cases], -- Heather homework
-
-    sorry,
-  },
-  {
-    change g 1 1 = (T * g) 1 1,
-
-    sorry,
-  },
-end
-
-lemma bottom_row_T' (g : SL(2,ℤ)) : bottom_row g = bottom_row (T' * g) :=
-begin
-  rw bottom_row,
-  rw T', --- HEATHER HELP?
-  sorry,
-end
-
 /-- Use cases on this lemma to automate linarith in inequalities -/
 lemma abs_cases (a : ℝ) : (|a| = a ∧ a ≥ 0) ∨ (|a| = -a ∧ a < 0) :=
 begin
@@ -540,48 +493,65 @@ begin
   repeat {sorry}, -- ALEX homework + PR
 end
 
-lemma fun_dom_lemma₁ (z:ℍ) : ∃ (g: SL(2,ℤ)), (g • z) ∈ 𝒟 :=
+lemma fun_dom_lemma₁ (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
 begin
---  filtery stuff tells us that we maximize im,
-  obtain ⟨g₀, hg₀ ⟩ := exists_g_with_max_Im z,
---   then among those, minimize re
+  -- filtery stuff tells us that we maximize im,
+  obtain ⟨g₀, hg₀⟩ := exists_g_with_max_Im z,
+  -- then among those, minimize re
   obtain ⟨g, hg, hg'⟩ := exists_g_with_given_cd_and_min_re z (bottom_row g₀),
   use g,
--- g has same max im property as g₀
+  -- `g` has same max im property as `g₀`
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   { have hg'' : (g • z).im = (g₀ • z).im,
     { rw [matrix.special_linear_group.im_smul_int, matrix.special_linear_group.im_smul_int,
         bottom_eq_of_bottom_row_eq _ hg] },
     simpa only [hg''] using hg₀ },
   split,
-  { -- Claim: |g•z|>1. If not, then S•g•z has larger imaginary part
+  { -- Claim: `|g•z| > 1`. If not, then `S•g•z` has larger imaginary part
     contrapose! hg₀',
     use S * g,
     rw mul_action.mul_smul,
     exact im_lt_im_S hg₀' },
-  { -- Claim: |Re(g•z)|<1/2; if not, then either T or T' decrease |Re|.
+  { -- Claim: `|Re(g•z)| < 1/2`; if not, then either `T` or `T'` decrease |Re|.
     rw abs_le,
     split,
     { contrapose! hg',
-      refine ⟨T*g, bottom_row_T g, _⟩,
+      refine ⟨T * g, _, _⟩,
+      { -- `bottom_row (T • g) = bottom_row T`.  Prove by a big (slow) `simp`
+        rw bottom_row,
+        simp only [T, vec_head, vec_tail, special_linear_group.mul_apply, mul_apply',
+        cons_apply_one, cons_val_fin_one, cons_dot_product, dot_product_empty, function.comp_app,
+        fin.succ_zero_eq_one, zero_mul, one_mul, add_zero, zero_add], },
       rw mul_action.mul_smul,
-      change (g • z).re < -(1 / 2) at hg',
+      change (g • z).re < _ at hg',
       have : |(g • z).re + 1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re + 1); cases abs_cases ((g • z).re); linarith,
+        by cases abs_cases ((g • z).re + 1); cases abs_cases (g • z).re; linarith,
       convert this,
-      simp [T, smul_aux, smul_aux', top, bottom, map_cons, comp_cons, cons_apply_one, cons_apply_zero],
---      convert T_action_re (g • z) using 1,
+      -- `(T • g • z).re = (g • z).re + 1`.  Prove by a big (slow) `simp`
+      simp only [T, smul_def_int, smul_aux, smul_aux', top, bottom, subtype.coe_mk,
+        int.coe_cast_ring_hom, int.cast_one, int.cast_zero, complex.of_real_one,
+        complex.of_real_zero, has_coe_SL_apply, cons_apply_zero, cons_apply_one, map_cons,
+        comp_cons, cons_val_zero, cons_val_one, head_cons, one_mul, cons_val_fin_one, zero_mul,
+        zero_add, one_mul, div_one],
       refl },
     { contrapose! hg',
-      refine ⟨T'*g, bottom_row_T' g, _⟩,
+      refine ⟨T' * g, _, _⟩,
+      { -- `bottom_row (T' • g) = bottom_row T'`.  Prove by a big (slow) `simp`
+        rw bottom_row,
+        simp only [T', vec_head, vec_tail, special_linear_group.mul_apply, mul_apply',
+        cons_apply_one, cons_val_fin_one, cons_dot_product, dot_product_empty, function.comp_app,
+        fin.succ_zero_eq_one, zero_mul, one_mul, add_zero, zero_add], },
       rw mul_action.mul_smul,
       change _ < (g • z).re at hg',
-      have : |(g • z).re-1| < |(g • z).re| :=
-        by cases abs_cases ((g • z).re-1); cases abs_cases ((g • z).re); linarith,
+      have : |(g • z).re - 1| < |(g • z).re| :=
+        by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,
       convert this,
---      convert T'_action_re (g • z) using 1,
---      simp [mul_action.mul_smul],
-      simp [T', smul_aux, smul_aux', top, bottom, map_cons, comp_cons, cons_apply_one, cons_apply_zero],
+      -- `(T' • g • z).re = (g • z).re - 1`.  Prove by a big (slow) `simp`
+      simp only [T', smul_def_int, smul_aux, smul_aux', top, bottom, subtype.coe_mk,
+        int.coe_cast_ring_hom, int.cast_one, int.cast_zero, int.cast_neg, complex.of_real_one,
+        complex.of_real_zero, complex.of_real_neg, has_coe_SL_apply, cons_apply_zero,
+        cons_apply_one, map_cons, comp_cons, cons_val_zero, cons_val_one, head_cons, one_mul,
+        cons_val_fin_one, zero_mul, zero_add, div_one],
       refl } },
 end
 
@@ -1409,3 +1379,24 @@ end
 
 
 -/
+
+
+-- lemma half_ge_x_T_inv (z : ℍ) (h : 1/2 < z.re) : |(T' • z).re| < |z.re| :=
+-- begin
+--   have : |z.re - 1| < |z.re|,
+--   { rw [(abs_eq_self.mpr (by linarith : 0 ≤ z.re)), abs_lt],
+--     split; linarith, },
+--   convert this,
+--   simp [T', smul_aux, smul_aux', top, bottom, map_cons, comp_cons, cons_apply_one, cons_apply_zero],
+--   refl,
+-- end
+
+-- lemma half_le_neg_x_T (z : ℍ) (h : 1/2 < - z.re) : |(T • z).re| < |z.re| :=
+-- begin
+--   have : |z.re + 1| < |z.re|,
+--   { rw [(abs_eq_neg_self.mpr (by linarith : z.re ≤ 0)), abs_lt],
+--     split; linarith, },
+--   convert this,
+--   simp [T, smul_aux, smul_aux', top, bottom, map_cons, comp_cons, cons_apply_one, cons_apply_zero],
+--   refl,
+-- end

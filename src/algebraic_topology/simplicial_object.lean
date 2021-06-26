@@ -246,7 +246,7 @@ def augment (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀)
     naturality' := begin
       intros i j g,
       dsimp,
-      rw (show g = g.unop.op, by simp),
+      rw ← (quiver.hom.op_unop : g.unop.op = g),
       simpa only [← X.map_comp, ← category.assoc, category.comp_id, ← op_comp] using w _ _ _,
     end } }
 

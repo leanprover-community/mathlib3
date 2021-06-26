@@ -19,7 +19,8 @@ We denote homeomorphisms with the notation `≃ₜ`.
 # Main results
 
 * Pretty much every topological property is preserved under homeomorphisms.
-* `homeomorph.homeomorph_of_continuous_open`: A continuous bijection that is an open map is a homeomorphism.
+* `homeomorph.homeomorph_of_continuous_open`: A continuous bijection that is
+  an open map is a homeomorphism.
 
 -/
 

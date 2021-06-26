@@ -1363,44 +1363,39 @@ lemma exp_bound_mono :
 open_locale classical
 variables {V : Type u} [fintype V] {G : simple_graph V} {P : finpartition V} {ε : ℝ}
 
+local notation `m` := card V/exp_bound P.size
+local notation `a` := card V/P.size - m * 4^P.size
+
 private lemma card_aux₀ :
-  card V/P.size - 4^P.size * (card V/exp_bound P.size) + 1 ≤ 4^P.size :=
+  a + 1 ≤ 4^P.size :=
 begin
   have h : 1 ≤ 4^P.size := one_le_pow_of_one_le (by norm_num) _,
-  rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, mul_comm],
+  rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h],
   apply nat.sub_le_left_of_le_add,
   rw ←nat.add_sub_assoc h,
   exact nat.le_pred_of_lt (lt_div_mul_add h),
 end
 
 private lemma card_aux₁ :
-  card V/exp_bound P.size * 4^P.size + (card V/P.size - card V/exp_bound P.size * 4^P.size) =
-  (4^P.size - (card V/P.size - card V/exp_bound P.size * 4^P.size)) * (card V/exp_bound P.size) +
-  (card V/P.size - card V/exp_bound P.size * 4^P.size) * ((card V/exp_bound P.size) + 1) :=
-by rw [mul_comm, mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
-      ((nat.le_succ _).trans card_aux₀)]
+  m * 4^P.size + a = (4^P.size - a) * m + a * (m + 1) :=
+by rw [mul_add, mul_one, ←add_assoc, ←add_mul, nat.sub_add_cancel
+  ((nat.le_succ _).trans card_aux₀), mul_comm]
 
 private lemma card_aux₂ (hP : P.is_equipartition) {U : finset V} (hU : U ∈ P.parts)
-  (hUcard : ¬U.card = card V/exp_bound P.size * 4^P.size + (card V/P.size - card V/exp_bound P.size
-    * 4^P.size)) :
-  (4^P.size - (card V/P.size - card V/exp_bound P.size * 4^P.size + 1)) * (card V/exp_bound P.size)
-  + (card V/P.size - card V/exp_bound P.size * 4^P.size + 1) * (card V/exp_bound P.size + 1) =
-  U.card :=
+  (hUcard : ¬U.card = m * 4^P.size + a) :
+  (4^P.size - (a + 1)) * m + (a + 1) * (m + 1) = U.card :=
 begin
   have aux :
-    card V/exp_bound P.size * 4^finpartition_on.size P + (card V/P.size - card V/exp_bound P.size *
-    4^P.size) = card V/P.size,
+    m * 4^finpartition_on.size P + a = card V/P.size,
   { apply nat.add_sub_cancel',
     rw [exp_bound, ←nat.div_div_eq_div_mul],
     exact nat.div_mul_le_self _ _ },
   rw aux at hUcard,
   rw P.is_equipartition_iff_card_parts_eq_average at hP,
   rw [(hP U hU).resolve_left hUcard, mul_add, mul_one, ←add_assoc, ←add_mul,
-    nat.sub_add_cancel, ←add_assoc, mul_comm, nat.add_sub_cancel', ←aux],
-  { rw ←aux,
-    exact nat.le_add_right _ _ },
-  rw mul_comm,
-  exact card_aux₀,
+    nat.sub_add_cancel card_aux₀, ←add_assoc, mul_comm, nat.add_sub_cancel', ←aux],
+  rw ←aux,
+  exact nat.le_add_right _ _,
 end
 
 /-- The work-horse of SRL. This says that if we have an equipartition which is *not* uniform, then
@@ -1411,15 +1406,6 @@ noncomputable def finpartition_on.is_equipartition.increment (hP : P.is_equipart
   (G : simple_graph V) (ε : ℝ) :
   finpartition V :=
 begin
-  let m := card V/exp_bound P.size,
-  let a := card V/P.size - m * 4^P.size,
-  have ha : a + 1 ≤ 4 ^ P.size,
-  { change a with card V / P.size - card V/(P.size * 4^P.size) * 4 ^ P.size,
-    have h : 1 ≤ 4^P.size := one_le_pow_of_one_le (by norm_num) _,
-    rw [←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h],
-    apply nat.sub_le_left_of_le_add,
-    rw ←nat.add_sub_assoc h,
-    exact nat.le_pred_of_lt (lt_div_mul_add h) },
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   refine P.bind (λ U hU, _),
@@ -1438,20 +1424,18 @@ protected lemma size (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
   (hP.increment G ε).size = exp_bound P.size :=
 begin
-  let m := card V/exp_bound P.size,
-  let a := card V/P.size - m * 4^P.size,
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
   rw [increment, bind_size],
+  simp_rw [apply_dite finpartition_on.size],
+  rw sum_dite,
   sorry
 end
 
 protected lemma is_equipartition (hP : P.is_equipartition) (G : simple_graph V) (ε : ℝ) :
   (hP.increment G ε).is_equipartition :=
 begin
-  let m := card V/exp_bound P.size,
-  let a := card V/P.size - m * 4^P.size,
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   rw [is_equipartition, equitable_iff_almost_eq_constant],
@@ -1470,10 +1454,6 @@ protected lemma index (hP : P.is_equipartition)
   (hε : 100 < ε^5 * 4^P.size) (hPV : P.size * 16^P.size ≤ card V) (hPG : ¬P.is_uniform G ε) :
   P.index G + ε^5 / 8 ≤ (hP.increment G ε).index G :=
 begin
-  let m := card V/exp_bound P.size,
-  let a := card V/P.size - m * 4^P.size,
-  let b := card V - m * exp_bound P.size - a * P.size,
-  rw [is_equipartition, equitable_on_finset_iff_eq_average] at hP,
   let R : ∀ U, U ∈ P.parts → finpartition_on U := λ U hU, atomise U (finset.image
     (λ W, (G.witness ε U W).1) (P.parts.filter (λ W, ¬G.is_uniform ε U W))),
   sorry

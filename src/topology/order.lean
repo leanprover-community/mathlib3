@@ -424,7 +424,7 @@ le_antisymm
   (coinduced_le_iff_le_induced.1 $ le_generate_from $ assume s hs,
     generate_open.basic _ $ mem_image_of_mem _ hs)
 
-lemma le_induced_generate {α β} [t : topological_space α] {b : set (set β)}
+lemma le_induced_generate_from {α β} [t : topological_space α] {b : set (set β)}
   {f : α → β} (h : ∀ (a : set β), a ∈ b → is_open (f ⁻¹' a)) : t ≤ induced f (generate_from b) :=
 begin
   rw induced_generate_from_eq,

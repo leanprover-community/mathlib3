@@ -912,8 +912,10 @@ lemma local_triv'_trans (i j : ι) :
   (Z.local_triv' i).symm.trans (Z.local_triv' j) ≈ (Z.triv_change i j).to_local_equiv :=
 begin
   split,
-  { ext x, erw [mem_prod], simp only [mem_local_triv'_source, mem_local_triv'_target,
-    local_triv'_symm_apply] with mfld_simps},
+  { ext x,
+    erw [mem_prod],
+    simp only [mem_local_triv'_source, mem_local_triv'_target, local_triv'_symm_apply]
+      with mfld_simps, },
   { rintros ⟨x, v⟩ hx,
     simp only [triv_change, local_triv', local_equiv.symm, true_and, prod_mk_mem_set_prod_eq,
       local_equiv.trans_source, mem_inter_eq, and_true, mem_univ, prod.mk.inj_iff, mem_preimage,
@@ -1102,7 +1104,7 @@ lemma continuous_sigma_mk (b : B) : @continuous _ _ _ (Z.to_topological_space ι
   (λ a, (⟨b, a⟩ : (bundle.total_space Z.fiber))) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],
-  apply le_induced_generate,
+  apply le_induced_generate_from,
   simp only [mem_Union, mem_singleton_iff, local_triv'_source, local_triv'_coe, mem_image],
   rintros s ⟨i, t, ht, rfl⟩,
   rw [←(local_homeomorph.source_inter_preimage_target_inter (Z.local_triv i) t),

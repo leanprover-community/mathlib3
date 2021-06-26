@@ -211,12 +211,7 @@ e.symm.source_inter_preimage_inv_preimage _
 
 lemma source_inter_preimage_target_inter (s : set β) :
   e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
-begin
-  refine ext_iff.mpr (λ x, ⟨λ hx, _, λ hx, _⟩),
-  simp only [mem_inter_eq, mem_preimage] at *;
-  exact ⟨hx.1, hx.2.2⟩,
-  exact ⟨hx.1, e.to_local_equiv.map_source hx.1, hx.2⟩, --exacts?
-end
+e.to_local_equiv.source_inter_preimage_target_inter s
 
 /-- Two local homeomorphisms are equal when they have equal `to_fun`, `inv_fun` and `source`.
 It is not sufficient to have equal `to_fun` and `source`, as this only determines `inv_fun` on

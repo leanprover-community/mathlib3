@@ -94,80 +94,54 @@ lemma kronecker_prod_reindex_right [semiring R] [semiring S] [algebra α R] [alg
   reindex_linear_equiv ((equiv.refl _).prod_congr en) ((equiv.refl _).prod_congr ep)
   ((A ⊗ₖ[α] B) : matrix (l × n) (m × p) (R ⊗[α] S)) := by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
--- for mathlib
+lemma aux {T : Type u'} [semiring T] [algebra α T] [semiring R] [semiring S] [algebra α R]
+  [algebra α S] : ⇑((tensor_product.assoc α R S T).symm) ∘ ⇑(tensor_product.assoc α R S T) = id ∧
+  ⇑(tensor_product.assoc α R S T) ∘ ⇑((tensor_product.assoc α R S T).symm) = id :=
+  begin
+    split;
+    all_goals {ext, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply,
+      linear_equiv.apply_symm_apply]},
+  end
 
-lemma minor_map (f : R → S) (eₘ : m' → m) (eₙ : n' → n) (A : matrix m n R) :
-  (A.map f).minor eₘ eₙ = (A.minor eₘ eₙ).map f := rfl
-
---end
 
 protected
-def assoc {T : Type u'} [semiring R] [semiring S] [algebra α R] [algebra α S]
-  [semiring T] [algebra α T] :
-  matrix (m × n × p) (m' × n' × p') (R ⊗[α] S ⊗[α] T) ≃ₗ[α]
-  matrix ((m × n) × p) ((m' × n') × p') (R ⊗[α] (S ⊗[α] T)) :=
-{ to_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm
+def assoc {T : Type u'} [semiring T] [algebra α T] [semiring R] [semiring S] [algebra α R]
+  [algebra α S] : matrix ((m × n) × p) ((m' × n') × p') (R ⊗[α] S ⊗[α] T) ≃ₗ[α]
+  matrix (m × n × p) (m' × n' × p') (R ⊗[α] (S ⊗[α] T)) :=
+{ to_fun :=λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
       (map A (tensor_product.assoc _ _ _ _)),
   map_add' :=
   begin
       intros A₁ A₂,
-      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
       have := (add_monoid_hom.map_matrix
         ((tensor_product.assoc α R S T).to_linear_map).to_add_monoid_hom).3 A₁ A₂,
       simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.map_matrix_apply,
         linear_map.to_add_monoid_hom_coe, linear_equiv.coe_to_linear_map] at this,
-      rw [this, minor_add],
-      refl,
+      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe, this, minor_add,
+        pi.add_apply],
   end,
   map_smul' :=
   begin
       intros a A,
-      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe],
       have := (linear_map.map_matrix (tensor_product.assoc α R S T).to_linear_map).3 a A,
       simp only [linear_map.to_fun_eq_coe, linear_map.map_matrix_apply,
       linear_equiv.coe_to_linear_map] at this,
-      rw [this, minor_smul, pi.smul_apply],
-      refl,
+      simp only [equiv.symm_symm, reindex_apply, linear_equiv.to_fun_eq_coe, this, minor_smul,
+        pi.smul_apply],
   end,
-  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
+  inv_fun := λ A, reindex (equiv.prod_assoc _ _ _).symm (equiv.prod_assoc _ _ _).symm
       (map A (tensor_product.assoc _ _ _ _).symm),
-  left_inv :=
-  begin
-    intros A,
-    simp only [equiv.symm_symm, reindex_apply, minor_map, minor_minor, equiv.self_comp_symm,
-      minor_id_id, map_map],
-    have : ⇑((tensor_product.assoc α R S T).symm) ∘ ⇑(tensor_product.assoc α R S T) = id,
-    { ext, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-    rw this,
-    refl,
-  end,
-  right_inv :=
-    begin
-      intros A,
-      simp only [equiv.symm_symm, reindex_apply, minor_map, minor_minor, equiv.symm_comp_self,
-        minor_id_id, map_map],
-      have : ⇑(tensor_product.assoc α R S T) ∘ ⇑((tensor_product.assoc α R S T).symm) = id,
-      { ext, simp only [id.def, function.comp_app, linear_equiv.apply_symm_apply] },
-      rw this,
-      refl,
-    end,
+  left_inv := λ _, by {simp only [equiv.symm_symm, reindex_apply, minor_map, minor_minor, map_map,
+    aux, minor_id_id, equiv.symm_comp_self], refl},
+  right_inv := λ _, by {simp only [equiv.symm_symm, reindex_apply, minor_map, minor_minor, map_map,
+    aux, minor_id_id, equiv.self_comp_symm], refl},
   }
 
 
 lemma kronecker_prod_assoc {T : Type*} [comm_semiring T] [algebra α T] [semiring R] [semiring S]
   [algebra α R] [algebra α S] (A : matrix m m' R) (B : matrix n n' S) (C : matrix p p' T) :
-  tensor_matrix.assoc ((A ⊗ₖ[α] B ⊗ₖ[α] C) : matrix (m × (n × p)) (m' × (n' × p'))(R ⊗[α] S ⊗[α] T)) =
-  ((A ⊗ₖ[α] (B) ⊗ₖ[α] C) : matrix ((m × n) × p) ((m' × n') × p') ((R ⊗[α] S) ⊗[α] T)) := sorry
---   A.kronecker (kronecker B C) =
---   reindex_linear_equiv
---     (equiv.prod_assoc _ _ _)
---     (equiv.prod_assoc _ _ _)
---     ((A.kronecker B).kronecker C) :=
--- by { ext ⟨i, ⟨j, k⟩⟩ ⟨i', ⟨j', k'⟩⟩, symmetry, apply mul_assoc }
--- .
-
-
-
+  tensor_matrix.assoc ((A ⊗ₖ[α] B : matrix (m × n) (m' × n') (R ⊗[α] S)) ⊗ₖ[α] C) =
+    (A ⊗ₖ[α] (B ⊗ₖ[α] C)) := rfl
 
 -- lemma kronecker_assoc [semiring R] (A : matrix m m' R) (B : matrix n n' R) (C : matrix o o' R) :
 --   (A.kronecker B).kronecker C =

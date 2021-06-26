@@ -42,14 +42,6 @@ def matrix_tensor_bil [semiring R] [semiring S] [algebra α R] [algebra α S] :
   }
 
 
--- def mat_tensor_equiv : (matrix l m R) ⊗[α] (matrix n p S) ≃ₗ[α] matrix (l × n) (m × p) (R ⊗[α] S) :=
--- { to_fun := tensor_product.lift mat_tensor_bil,
---   map_add' := by simp only [forall_const, eq_self_iff_true, linear_map.map_add],
---   map_smul' := by simp only [forall_const, eq_self_iff_true, linear_map.map_smul],
---   inv_fun := sorry,
---   left_inv := sorry,
---   right_inv := sorry }
-
 def kronecker_prod [semiring R] [semiring S] [algebra α R] [algebra α S] (A : matrix l m R)
   (B : matrix n p S) : matrix (l × n) (m × p) (R ⊗[α] S) := matrix_tensor_bil A B
 

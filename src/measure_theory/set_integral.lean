@@ -591,7 +591,7 @@ linear_isometry.integral_comp_comm (@is_R_or_C.of_real_li 𝕜 _) f
 
 lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜] {f : α → 𝕜} :
   ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm (@is_R_or_C.conj_li 𝕜 _) f
+(@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

@@ -935,6 +935,9 @@ lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α] (r 
   (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
 
+lemma minor_map (f : α → β) (e₁ : l → m) (e₂ : o → n) (A : matrix m n α) :
+  (A.map f).minor e₁ e₂ = (A.minor e₁ e₂).map f := rfl
+
 /-- Given a `(m × m)` diagonal matrix defined by a map `d : m → α`, if the reindexing map `e` is
   injective, then the resulting matrix is again diagonal. -/
 lemma minor_diagonal [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α) (e : l → m)

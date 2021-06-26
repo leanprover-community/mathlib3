@@ -621,6 +621,7 @@ structure finpartition_on {V : Type u} (s : finset V) :=
 (disjoint : ∀ (a₁ a₂ ∈ parts) x, x ∈ a₁ → x ∈ a₂ → a₁ = a₂)
 (covering : ∀ u ∈ s, ∃ (a ∈ parts), u ∈ a)
 (subset : ∀ u ∈ parts, u ⊆ s)
+(not_empty_mem : ∅ ∉ parts)
 
 /-- A `finpartition V` is a partition of the entire finite type `V` -/
 abbreviation finpartition (V : Type u) [fintype V] := finpartition_on (univ : finset V)
@@ -638,6 +639,13 @@ begin
   rintro x hx,
   rw [inf_eq_inter, mem_inter] at hx,
   exact h (P.disjoint a₁ a₂ ha₁ ha₂ x hx.1 hx.2),
+end
+
+lemma nonempty_of_mem_parts {a : finset V} (ha : a ∈ P.parts) : a.nonempty :=
+begin
+  rw nonempty_iff_ne_empty,
+  rintro rfl,
+  exact P.not_empty_mem ha,
 end
 
 lemma bUnion_eq : P.parts.bUnion id = s :=
@@ -658,8 +666,7 @@ end
 /-- Given a finpartition `P` of `s` and finpartitions of each part of `P`, this yields the fin,-/
 def bind (Q : Π i ∈ P.parts, finpartition_on i) : finpartition_on s :=
 { parts := P.parts.attach.bUnion (λ i, (Q i.1 i.2).parts),
-  disjoint := begin
-    rintro a b ha hb x hxa hxb,
+  disjoint := λ a b ha hb x hxa hxb, begin
     rw finset.mem_bUnion at ha hb,
     obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
     obtain ⟨⟨B, hB⟩, -, hb⟩ := hb,
@@ -681,6 +688,11 @@ def bind (Q : Π i ∈ P.parts, finpartition_on i) : finpartition_on s :=
     rw finset.mem_bUnion at ha,
     obtain ⟨⟨A, hA⟩, -, ha⟩ := ha,
     exact ((Q A hA).subset a ha).trans (P.subset A hA),
+  end,
+  not_empty_mem := λ h, begin
+    rw finset.mem_bUnion at h,
+    obtain ⟨⟨A, hA⟩, -, h⟩ := h,
+    exact (Q A hA).not_empty_mem h,
   end }
 
 lemma mem_bind_parts {Q : Π i ∈ P.parts, finpartition_on i} {a : finset V} :
@@ -699,14 +711,11 @@ lemma bind_size (Q : Π i ∈ P.parts, finpartition_on i) :
 begin
   apply card_bUnion,
   rintro ⟨A, hA⟩ - ⟨B, hB⟩ - hAB c,
-  obtain rfl | ⟨x, hx⟩ := c.eq_empty_or_nonempty,
-  {
-    sorry --wrong?
-  },
   rw [inf_eq_inter, mem_inter],
   rintro ⟨hcA, hcB⟩,
   apply hAB,
   rw subtype.mk_eq_mk,
+  obtain ⟨x, hx⟩ := nonempty_of_mem_parts _ hcA,
   exact P.disjoint _ _ hA hB x (finpartition_on.subset _ _ hcA hx)
     (finpartition_on.subset _ _ hcB hx),
 end
@@ -837,10 +846,15 @@ def discrete_finpartition_on {V : Type*} [decidable_eq V] (s : finset V) : finpa
     refl
   end,
   covering := λ v hv, ⟨{v}, mem_image.2 ⟨v, hv, rfl⟩, finset.mem_singleton_self v⟩,
-  subset := by simp }
+  subset := by simp,
+  not_empty_mem := λ h, begin
+    obtain ⟨x, _, hx⟩ := mem_image.1 h,
+    exact singleton_ne_empty _ hx,
+  end }
 
 @[simps]
-def indiscrete_finpartition_on {V : Type*} [decidable_eq V] (s : finset V) : finpartition_on s :=
+def indiscrete_finpartition_on {V : Type*} [decidable_eq V] {s : finset V} (hs : s.nonempty) :
+  finpartition_on s :=
 { parts := {s},
   disjoint :=
   begin
@@ -849,7 +863,8 @@ def indiscrete_finpartition_on {V : Type*} [decidable_eq V] (s : finset V) : fin
     refl
   end,
   covering := λ u hu, ⟨s, mem_singleton_self _, hu⟩,
-  subset := by simp }
+  subset := by simp,
+  not_empty_mem := λ h, hs.ne_empty (mem_singleton.1 h).symm }
 
 namespace discrete_finpartition_on
 variables {V : Type u} [decidable_eq V] (s : finset V) (G : simple_graph V)
@@ -1129,7 +1144,7 @@ begin
   simp only [mem_filter, hs'₂, h', if_neg h, eq_self_iff_true, and_true],
   intro t,
   obtain ⟨i, hi⟩ := ‹s'.nonempty›,
-  apply (mem_sdiff.1 (hP'₅ _ t hi)).2 hi,
+  exact (mem_sdiff.1 (hP'₅ _ t hi)).2 hi,
 end.
 
 /--
@@ -1150,7 +1165,7 @@ lemma mk_equitable {m a b : ℕ} (hs : a*m + b*(m+1) = s.card) (Q : finpartition
 begin
   obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅, hP₆⟩ :=
     mk_equitable_aux m a b hs Q.parts Q.covering Q.disjoint Q.subset,
-  let P' : finpartition_on s := ⟨P, hP₄, hP₃, hP₅⟩,
+  let P' : finpartition_on s := ⟨P, hP₄, hP₃, hP₅, sorry⟩,
   have h₂ :
     P'.parts.filter (λ i, i.card = m) ∪ P'.parts.filter (λ i, i.card = m+1) = P,
   { rw [←filter_or, filter_true_of_mem hP₁] },
@@ -1184,7 +1199,7 @@ end
 section atomise
 variables {α : Type*} [decidable_eq α] {s : finset α}
 
-def atomise (s : finset α) (Q : finset (finset α)) :
+def atomise {s : finset α} (hs : s.nonempty) (Q : finset (finset α)) :
   finpartition_on s :=
 { parts := Q.powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x)),
   disjoint := begin
@@ -1212,6 +1227,15 @@ def atomise (s : finset α) (Q : finset (finset α)) :
     simp only [mem_powerset, mem_image, exists_prop] at hx,
     obtain ⟨P, hP, rfl⟩ := hx,
     exact filter_subset _ s,
+  end,
+  not_empty_mem := λ h, begin
+    obtain ⟨A, hAQ, hA⟩ := mem_image.1 h,
+    rw eq_empty_iff_forall_not_mem at hA,
+    simp at hA,
+    obtain ⟨x, hx⟩ := hs,
+    obtain ⟨t, ht⟩ := hA x hx,
+    apply ht.2,
+    sorry
   end }
 
 lemma mem_atomise {s : finset α} {Q : finset (finset α)} {A : finset α} :
@@ -1248,8 +1272,7 @@ begin
   simp only [mem_atomise, exists_prop, mem_filter, exists_exists_and_eq_and],
   refine ⟨Q.filter (λ t, x ∈ t), filter_subset _ _, hx, λ y hy, _⟩,
   simp only [mem_filter, and_iff_right_iff_imp],
-  intro,
-  apply hy
+  exact λ _, hy,
 end
 
 lemma atomise_unique_covers {s : finset α} {Q : finset (finset α)} {x : α} (hx : x ∈ s) :
@@ -1265,7 +1288,7 @@ end
 lemma card_atomise {s : finset α} {Q : finset (finset α)} :
   ((atomise s Q).parts).card ≤ 2^Q.card :=
 begin
-  apply le_trans finset.card_image_le,
+  apply finset.card_image_le.trans,
   simp,
 end
 
@@ -1341,7 +1364,8 @@ begin
   { rw [nat.mul_sub_right_distrib, mul_add, ←add_assoc, nat.sub_add_cancel, mul_one, add_comm,
       nat.mod_add_div],
     exact nat.mul_le_mul_right _ ((nat.mod_lt _ ht).le) },
-  obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅⟩ := mk_equitable this (indiscrete_finpartition_on s),
+  obtain ⟨P, hP₁, hP₂, hP₃, hP₄, hP₅⟩ := mk_equitable this (indiscrete_finpartition_on
+    (finset.card_pos.1 (ht.trans_le hs))),
   refine ⟨P, hP₂, _⟩,
   rw [(hP₅ (nat.div_pos hs ht)).2, nat.sub_add_cancel (nat.mod_lt _ ht).le],
 end

@@ -12,7 +12,7 @@ import topology.connected
 This file defines the predicate `separated`, and common separation axioms
 (under the Kolmogorov classification).
 
-NOTE TO REVIEWERS: not sure how to deal with the last few lemmata after 995 and where to fit them in
+NOTE TO REVIEWERS: not sure how to deal with the last few lemmata after line 1033
 
 ## Main definitions
 

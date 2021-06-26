@@ -421,7 +421,6 @@ theorem continuous_map.subalgebra_complex_topological_closure_eq_top_of_separate
   A.topological_closure = ⊤ :=
 begin
   rw algebra.eq_top_iff,
-  intros f,
   -- Let `I` be the natural inclusion of `C(X, ℝ)` into `C(X, ℂ)`
   let I : C(X, ℝ) →ₗ[ℝ] C(X, ℂ) := of_real_clm.comp_left_continuous ℝ X,
   -- The main point of the proof is that its range (i.e., every real-valued function) is contained
@@ -441,7 +440,9 @@ begin
     have h₁ := A₀.topological_closure_map (of_real_clm.comp_left_continuous_compact X),
     have h₂ := (A.to_submodule.restrict_scalars ℝ).map_comap_le I,
     exact h₁.trans (submodule.topological_closure_mono h₂) },
-  -- In particular, the real and imaginary parts of the function `f` are in the closure of `A`
+  -- In particular, for a function `f` in `C(X, ℂ)`, the real and imaginary parts of `f` are in the
+  -- closure of `A`
+  intros f,
   let f_re : C(X, ℝ) := (⟨complex.re, complex.re_clm.continuous⟩ : C(ℂ, ℝ)).comp f,
   let f_im : C(X, ℝ) := (⟨complex.im, complex.im_clm.continuous⟩ : C(ℂ, ℝ)).comp f,
   have h_f_re : I f_re ∈ A.topological_closure := key ⟨f_re, rfl⟩,

@@ -147,7 +147,7 @@ end tensor_matrix
 
 section homogeneous_kronecker_product
 
-open tensor_product matrix tensor_matrix algebra.tensor_product
+open tensor_product matrix tensor_matrix --algebra.tensor_product
 open_locale tensor_product
 
 variables {R : Type*} [comm_semiring R]
@@ -166,8 +166,7 @@ lemma kronecker_prod₂_prod (A : matrix l m R) (B : matrix n p R) :
   (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map (algebra.tensor_product.lid R R) = A ⊗ₖ B :=
 rfl
 
--- @[simp]
-lemma kronecker_prod_prod₂ (A : matrix l m R) (B : matrix n p R) :
+@[simp] lemma kronecker_prod_prod₂ (A : matrix l m R) (B : matrix n p R) :
   A ⊗ₖ B = (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map (algebra.tensor_product.lid R R) :=
 rfl
 
@@ -181,30 +180,30 @@ lemma kronecker_prod_reindex_right (eₙ : n ≃ n') (eₚ : p ≃ p') (A : matr
     reindex_linear_equiv ((equiv.refl _).prod_congr eₙ) ((equiv.refl _).prod_congr eₚ) (A ⊗ₖ B)) :=
 by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
---@[simp]
-lemma kronecker_prod_one_one [decidable_eq m] [decidable_eq n] :
+@[simp] lemma kronecker_prod_one_one [decidable_eq m] [decidable_eq n] :
   (1 : matrix m m R) ⊗ₖ (1 : matrix n n R) = 1 := by simp only [kronecker_prod₂_one_one,
     alg_equiv_map_one, kronecker_prod_prod₂]
 
-theorem kronecker_prod_mul (A : matrix l m R) (B : matrix m n R) (A' : matrix l' m' R)
-  (B' : matrix m' n' R) : (A.mul B) ⊗ₖ (A'.mul B') = (A ⊗ₖ A').mul (B ⊗ₖ B') :=
---rename to theorem
-begin
-  simp only [kronecker_prod_prod₂, kronecker_prod_prod₂, kronecker_prod_prod₂,
-    kronecker_prod₂_mul, matrix.map_mul],
-  sorry,
-  -- rw kronecker_prod₂_mul A B A' B',
-  -- simp,
-  -- erw [← matrix.map_mul],
-  -- apply kronecker_prod₂_mul,
-  -- simp,
---   simp,
+-- theorem kronecker_prod_mul (A : matrix l m R) (B : matrix m n R) (A' : matrix l' m' R)
+--   (B' : matrix m' n' R) : (A.mul B) ⊗ₖ (A'.mul B') = (A ⊗ₖ A').mul (B ⊗ₖ B') :=
+-- --rename to theorem
+-- begin
+-- --   simp only [kronecker_prod_prod₂, kronecker_prod_prod₂, kronecker_prod_prod₂,
+-- --     kronecker_prod₂_mul, matrix.map_mul],
+-- --   sorry,
+-- --   -- rw kronecker_prod₂_mul A B A' B',
+-- --   -- simp,
+-- --   -- erw [← matrix.map_mul],
+-- --   -- apply kronecker_prod₂_mul,
+-- --   -- simp,
+-- -- --   simp,
 --   ext ⟨i, i'⟩ ⟨j, j'⟩,
---   simp only [kronecker_prod₂_prod, kronecker_prod_prod₂],
---   dsimp [mul_apply, kronecker_prod, matrix_tensor_bil],
+--   -- simp only [kronecker_prod₂_prod, kronecker_prod_prod₂],
+--   dsimp [matrix.mul_apply, kronecker_prod, matrix_tensor_bil],
 --   simp only [sum_tmul, tmul_sum],
 --   rw [← finset.univ_product_univ, finset.sum_product, finset.sum_comm],
-end
+--   simp only [algebra.id.smul_eq_mul, algebra.tensor_product.lid_tmul],
+-- end
 
 -- theorem kronecker_prod₂_assoc {T : Type*} [comm_semiring T] [algebra α T] [semiring R] [semiring S]
 --   [algebra α R] [algebra α S] (A : matrix m m' R) (B : matrix n n' S) (C : matrix p p' T) :

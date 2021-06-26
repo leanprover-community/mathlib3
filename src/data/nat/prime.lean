@@ -601,18 +601,15 @@ begin
   cases n,
   { rw factors_one, apply list.nil_subset },
   intros p hp,
-  rw mem_factors at ⊢ hp,
+  rw mem_factors succ_pos' at hp,
+  rw mem_factors (nat.mul_pos succ_pos' (nat.pos_of_ne_zero h)),
   exact ⟨hp.1, dvd_mul_of_dvd_left hp.2 k⟩,
-  exact nat.mul_pos succ_pos' (nat.pos_of_ne_zero h),
-  exact succ_pos'
 end
 
 lemma factors_subset_of_dvd {n k : ℕ} (h : n ∣ k) (h' : k ≠ 0) : n.factors ⊆ k.factors :=
 begin
-  obtain ⟨a, ha⟩ := h,
-  rw ha,
-  rw [ha, mul_ne_zero_iff] at h',
-  exact factors_subset h'.2,
+  obtain ⟨a, rfl⟩ := h,
+  exact factors_subset (right_ne_zero_of_mul h'),
 end
 
 lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list ℕ}, prod l₁ = prod l₂ →

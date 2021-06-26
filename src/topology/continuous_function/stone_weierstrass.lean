@@ -384,7 +384,7 @@ of its purely real-valued elements also separates points. -/
 lemma subalgebra.separates_points.complex_to_real {A : subalgebra ℂ C(X, ℂ)}
   (hA : A.separates_points) (hA' : conj_invariant_subalgebra (A.restrict_scalars ℝ)) :
   ((A.restrict_scalars ℝ).comap'
-    ((algebra.of_id ℝ ℂ).comp_left_continuous ℝ of_real_clm.continuous)).separates_points :=
+    (of_real_am.comp_left_continuous ℝ continuous_of_real)).separates_points :=
 begin
   intros x₁ x₂ hx,
   -- Let `f` in the subalgebra `A` separate the points `x₁`, `x₂`

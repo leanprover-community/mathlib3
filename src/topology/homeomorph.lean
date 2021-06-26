@@ -8,8 +8,8 @@ import topology.dense_embedding
 /-!
 # Homeomorphisms
 
-This file defines homeomorphisms (continuous bijections) between two topological spaces.
-We denote homeomorphisms with the notation `≃ₜ`.
+This file defines homeomorphisms between two topological spaces. They are bijections with both
+directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
 
 # Main definitions
 

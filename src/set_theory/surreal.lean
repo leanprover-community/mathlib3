@@ -314,7 +314,7 @@ begin
   { exact numeric_one },
   { split,
     { rintro ⟨ ⟩ ⟨ ⟩,
-      dsimp,
+      dsimp only [pi.zero_apply],
       rw ← pow_half_move_left' n,
       apply hn.move_left_lt },
     { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
@@ -489,7 +489,7 @@ end
 lemma lt_of_gsmul_pos_lt {m : ℤ} {x y : surreal} (hm : 0 < m) (hxy : x < y) : m • x < m • y :=
 begin
   cases m with m m,
-  { simp at *,
+  { simp only [int.coe_nat_pos, int.of_nat_eq_coe, gsmul_coe_nat] at *,
     exact lt_of_nsmul_pos_lt hm hxy },
   { exfalso,
     rwa [← int.neg_succ_not_pos m] }
@@ -503,14 +503,6 @@ begin
       exact lt_of_gsmul_pos_lt hm hmxy' },
     { apply ne_of_gt,
       exact lt_of_gsmul_pos_lt hm hmxy' }
-end
-
--- TODO: move this to a better location
-lemma int.pow_right_injective' {x : ℤ} (h : 2 ≤ x) : function.injective (λ (n : ℕ), x ^ n) :=
-λ n m hnm, begin
-  lift x to ℕ using (zero_le_two).trans h,
-  norm_cast at h hnm,
-  exact nat.pow_right_injective h hnm
 end
 
 /-- The surreal number `half`. -/

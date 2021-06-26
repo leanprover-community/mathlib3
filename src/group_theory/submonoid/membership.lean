@@ -206,7 +206,7 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
 
-lemma mem_powers_iff (z x : M) : x ∈ submonoid.powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
+lemma mem_powers_iff (z x : M) : x ∈ powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
 
 lemma powers_eq_closure (n : M) : powers n = closure {n} :=
 by { ext, exact mem_closure_singleton.symm }
@@ -232,7 +232,7 @@ end
 lemma pow_right_injective_iff_pow_injective {n : M} :
   function.injective (λ m : ℕ, n ^ m) ↔ function.injective (pow n) :=
 begin
-  split; simp; intros h₁ _ _ h₂,
+  split; simp only []; intros h₁ _ _ h₂,
   { simp only [pow, subtype.mk_eq_mk] at h₂,
     exact h₁ h₂ },
   { dsimp only [function.injective, pow] at h₁,

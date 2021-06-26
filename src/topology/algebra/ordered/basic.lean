@@ -2374,6 +2374,10 @@ by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[Iio a] a) :=
 by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
 
+lemma is_preconnected.ord_connected (h : is_preconnected s) :
+  ord_connected s :=
+⟨λ x hx y hy, h.Icc_subset hx hy⟩
+
 end linear_order
 
 section complete_linear_order
@@ -2688,14 +2692,14 @@ end
 
 lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
 
+lemma set.ord_connected.is_preconnected {s : set α} (h : s.ord_connected) :
+  is_preconnected s :=
+is_preconnected_of_forall_pair $ λ x y hx hy, ⟨interval x y, h.interval_subset hx hy,
+  left_mem_interval, right_mem_interval, is_preconnected_interval⟩
+
 lemma is_preconnected_iff_ord_connected {s : set α} :
   is_preconnected s ↔ ord_connected s :=
-⟨λ h, ⟨λ x hx y hy, h.Icc_subset hx hy⟩, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
-  ⟨interval x y, h.interval_subset hx hy, left_mem_interval, right_mem_interval,
-    is_preconnected_interval⟩⟩
-
-alias is_preconnected_iff_ord_connected ↔
-  is_preconnected.ord_connected set.ord_connected.is_preconnected
+⟨is_preconnected.ord_connected, set.ord_connected.is_preconnected⟩
 
 lemma is_preconnected_Ici : is_preconnected (Ici a) := ord_connected_Ici.is_preconnected
 lemma is_preconnected_Iic : is_preconnected (Iic a) := ord_connected_Iic.is_preconnected

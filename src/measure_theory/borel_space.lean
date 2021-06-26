@@ -362,6 +362,63 @@ lemma measurable_set_lt {f g : δ → α} (hf : measurable f) (hg : measurable g
   measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
 
+private lemma ord_connected_measurable_set_aux {α : Type*} [linear_order α] (s : set α)
+  (h : ∀ (x ∈ s) (y ∈ s) (z ∈ s), x ≤ y → y ≤ z → x = y ∨ y = z) :
+  s.finite :=
+begin
+  by_contra hinf,
+  change s.infinite at hinf,
+  rcases hinf.exists_subset_card_eq 3 with ⟨t, hts, ht⟩,
+  let f := t.order_iso_of_fin ht,
+  let x := f 0,
+  let y := f 1,
+  let z := f 2,
+  have := h x (hts x.2) y (hts y.2) z (hts z.2)
+    (f.monotone $ by dec_trivial) (f.monotone $ by dec_trivial),
+  have key₁ : (0 : fin 3) ≠ 1 := by dec_trivial,
+  have key₂ : (1 : fin 3) ≠ 2 := by dec_trivial,
+  cases this,
+  { dsimp only [x, y] at this, exact key₁ (f.injective $ subtype.coe_injective this) },
+  { dsimp only [y, z] at this, exact key₂ (f.injective $ subtype.coe_injective this) }
+end
+
+lemma set.ord_connected.measurable_set (h : ord_connected s) : measurable_set s :=
+begin
+  let u := ⋃ (x ∈ s) (y ∈ s), Ioo x y,
+  have huopen : is_open u := is_open_bUnion (λ x hx, is_open_bUnion (λ y hy, is_open_Ioo)),
+  have humeas : measurable_set u := huopen.measurable_set,
+  have hfinite : (s \ u).finite,
+  { refine ord_connected_measurable_set_aux (s \ u) (λ x hx y hy z hz hxy hyz, _),
+    by_contra h,
+    push_neg at h,
+    exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,
+      mem_bUnion_iff.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+  have : u ⊆ s :=
+    bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
+  rw ← union_diff_cancel this,
+  exact humeas.union hfinite.measurable_set
+end
+
+lemma is_preconnected.measurable_set [densely_ordered α] [order_topology α]
+  (h : is_preconnected s) : measurable_set s :=
+h.ord_connected.measurable_set
+
+lemma measurable_of_monotone [densely_ordered α] [linear_order β] [order_topology β]
+  [second_countable_topology β] {f : α → β} (hf : monotone f) :
+  measurable f :=
+suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
+  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
+λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
+
+alias measurable_of_monotone ← monotone.measurable
+
+lemma measurable_of_antimono [densely_ordered α] [linear_order β] [order_topology β]
+  [second_countable_topology β] {f : α → β} (hf : ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x) :
+  measurable f :=
+suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
+  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
+λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le hb (hf hc.2))
+
 end linear_order
 
 section linear_order
@@ -860,33 +917,7 @@ end complete_linear_order
 
 section conditionally_complete_linear_order
 
-variables [conditionally_complete_linear_order α] [order_topology α]
-
-lemma is_preconnected.measurable_set (h : is_preconnected s) : measurable_set s :=
-begin
-  rcases h.mem_intervals with hs|hs|hs|hs|hs|hs|hs|hs|hs|hs;
-  try {rw mem_singleton_iff at hs};
-  rw hs;
-  simp
-end
-
-lemma measurable_of_monotone [densely_ordered α] [linear_order β] [order_topology β]
-  [second_countable_topology β] {f : α → β} (hf : monotone f) :
-  measurable f :=
-suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
-  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
-λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
-
-alias measurable_of_monotone ← monotone.measurable
-
-lemma measurable_of_antimono [densely_ordered α] [linear_order β] [order_topology β]
-  [second_countable_topology β] {f : α → β} (hf : ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x) :
-  measurable f :=
-suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
-  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
-λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le hb (hf hc.2))
-
-variable [second_countable_topology α]
+variables [conditionally_complete_linear_order α] [second_countable_topology α] [order_topology α]
 
 lemma measurable_cSup {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above ((λ i, f i x) '' s)) :

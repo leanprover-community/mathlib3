@@ -131,6 +131,9 @@ without identifying `n` with `[n].len`.
 def mk_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) : [n] ⟶ [m] :=
 simplex_category.hom.mk f
 
+lemma hom_zero_zero (f : [0] ⟶ [0]) : f = 𝟙 _ :=
+by { ext : 2, dsimp, apply subsingleton.elim }
+
 end
 
 open_locale simplicial

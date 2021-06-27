@@ -234,7 +234,6 @@ category.
 This is an isomorphism iff `G` preserves terminal objects, see
 `category_theory.limits.preserves_terminal.of_iso_comparison`.
 -/
--- TODO: Show this is an isomorphism if and only if `G` preserves terminal objects.
 def terminal_comparison [has_terminal C] [has_terminal D] :
   G.obj (⊤_ C) ⟶ ⊤_ D :=
 terminal.from _

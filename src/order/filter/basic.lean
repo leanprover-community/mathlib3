@@ -539,6 +539,7 @@ empty_in_sets_eq_bot.mp $ univ_mem_sets' is_empty_elim
 lemma filter_eq_bot_of_not_nonempty (f : filter α) (ne : ¬ nonempty α) : f = ⊥ :=
 empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
 
+/-- There is exactly one filter on an empty type. --/
 -- TODO[gh-6025]: make this globally an instance once safe to do so
 local attribute [instance]
 protected def unique [is_empty α] : unique (filter α) :=

@@ -931,12 +931,7 @@ lemma Ico_union_Ico (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
 begin
   cases le_total a b with hab hab; cases le_total c d with hcd hcd; simp [hab, hcd] at h₁ h₂,
   { exact Ico_union_Ico' h₂ h₁ },
-  { simp * },
-  { simp * },
-  have : ¬min a c < max b d,
-  { simp only [min_lt_iff, lt_max_iff, not_or_distrib, not_lt],
-    exact ⟨⟨hab, h₁⟩, h₂, hcd⟩ },
-  simp [*],
+  all_goals { simp [*] },
 end
 
 lemma Icc_subset_Ico_union_Icc : Icc a c ⊆ Ico a b ∪ Icc b c :=
@@ -1064,11 +1059,8 @@ begin
     simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, min_eq_left_of_lt,
     min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt, hab, hcd] at h₁ h₂,
   { exact Icc_union_Icc' h₂.le h₁.le },
-  { rw [Icc_eq_empty hcd.not_le, union_empty, min_eq_left_of_lt h₁, max_eq_left_of_lt h₂] },
-  { rw [Icc_eq_empty hab.not_le, empty_union, min_eq_right_of_lt h₂, max_eq_right_of_lt h₁] },
-  rw [Icc_eq_empty hab.not_le, Icc_eq_empty hcd.not_le, Icc_eq_empty, empty_union],
-  simp_rw [min_le_iff, le_max_iff, not_or_distrib, not_le],
-  exact ⟨⟨hab, h₂⟩, h₁, hcd⟩,
+  all_goals { simp [*, min_eq_left_of_lt, max_eq_left_of_lt, min_eq_right_of_lt,
+    max_eq_right_of_lt] },
 end
 
 lemma Ioc_subset_Ioc_union_Icc : Ioc a c ⊆ Ioc a b ∪ Icc b c :=
@@ -1099,11 +1091,9 @@ begin
   cases le_total a b with hab hab; cases le_total c d with hcd hcd;
     simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, hab, hcd] at h₁ h₂,
   { exact Ioo_union_Ioo' h₂ h₁ },
-  { rw [Ioo_eq_empty hcd.not_lt, union_empty, min_eq_left_of_lt h₁, max_eq_left_of_lt h₂] },
-  { rw [Ioo_eq_empty hab.not_lt, empty_union, min_eq_right_of_lt h₂, max_eq_right_of_lt h₁] },
-  rw [Ioo_eq_empty hab.not_lt, Ioo_eq_empty hcd.not_lt, Ioo_eq_empty, empty_union],
-  simp_rw [min_lt_iff, lt_max_iff, not_or_distrib, not_lt],
-  exact ⟨⟨hab, h₂.le⟩, h₁.le, hcd⟩,
+  all_goals {
+    simp [*, min_eq_left_of_lt, min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt,
+      le_of_lt h₂, le_of_lt h₁] },
 end
 
 end linear_order

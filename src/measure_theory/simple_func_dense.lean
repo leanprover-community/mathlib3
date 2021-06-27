@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhouhang Zhou, Yury Kudryashov
+Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
 import measure_theory.l1_space
 
@@ -29,7 +29,7 @@ both pointwise and in `L¹` norm, by a sequence of simple functions.
 -/
 
 open set filter topological_space
-open_locale classical topological_space ennreal
+open_locale classical topological_space nnreal ennreal
 variables {α β ι E : Type*}
 
 namespace measure_theory
@@ -157,7 +157,7 @@ calc edist y₀ (approx_on f hf s y₀ h₀ n x) ≤
   edist y₀ (f x) + edist (approx_on f hf s y₀ h₀ n x) (f x) : edist_triangle_right _ _ _
 ... ≤ edist y₀ (f x) + edist y₀ (f x) : add_le_add_left (edist_approx_on_le hf h₀ x n) _
 
-variables [measurable_space E] [normed_group E]
+variables [measurable_space E] [normed_group E] {p : ℝ}
 
 lemma norm_approx_on_zero_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (x : β) (n : ℕ) :
@@ -168,20 +168,60 @@ begin
   exact_mod_cast this,
 end
 
+lemma tendsto_approx_on_Lp_edist  [opens_measurable_space E]
+  {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
+  (hp : 0 < p)
+  {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : snorm' (λ x, f x - y₀) p μ < ∞) :
+  tendsto (λ n, ∫⁻ x, edist (approx_on f hf s y₀ h₀ n x) (f x) ^ p ∂μ) at_top (𝓝 0) :=
+begin
+  -- We simply check the conditions of the Dominated Convergence Theorem:
+  -- (1) The function "`p`-th power of distance between `f` and the approximation" is measurable
+  have hF_meas : ∀ n, measurable (λ x, (edist (approx_on f hf s y₀ h₀ n x) (f x)) ^ p) :=
+    λ n, (approx_on f hf s y₀ h₀ n).measurable_bind (λ y x, (edist y (f x)) ^  p)
+      (λ y, (measurable_edist_right.comp hf).pow_const p),
+  -- (2) The functions "`p`-th power of distance between `f` and the approximation" are uniformly
+  -- bounded, at any given point, by `λ x, ∥f x∥ ^ p`
+  have h_bound : ∀ n,
+    (λ x, edist ((approx_on f hf s y₀ h₀ n) x) (f x) ^ p) ≤ᵐ[μ] (λ x, edist y₀ (f x) ^ p),
+  { exact λ n, eventually_of_forall (λ x, rpow_le_rpow (edist_approx_on_le hf h₀ x n) hp.le) },
+  -- (3) The bounding function `λ x, ∥f x∥ ^ p` has finite integral
+  have h_fin :  ∫⁻ (a : β), edist y₀ (f a) ^ p ∂μ < ⊤,
+  { simpa [nndist_eq_nnnorm, edist_nndist, edist_comm y₀]
+      using lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hp hi },
+  -- (4) The functions "`p`-th power of distance between `f` and the approximation" tend pointwise
+  -- to zero
+  have h_lim : ∀ᵐ (a : β) ∂μ,
+    tendsto (λ n, edist (approx_on f hf s y₀ h₀ n a) (f a) ^ p) at_top (𝓝 0),
+  { filter_upwards [hμ],
+    intros a ha,
+    have : tendsto (λ n, (approx_on f hf s y₀ h₀ n) a - f a) at_top (𝓝 (f a - f a)),
+    { exact (tendsto_approx_on hf h₀ ha).sub tendsto_const_nhds },
+    convert ennreal.tendsto_coe.mpr (this.nnnorm.nnrpow tendsto_const_nhds (or.inr hp)),
+    { ext1 n,
+      rw [← ennreal.coe_rpow_of_nonneg _ hp.le, edist_eq_coe_nnnorm_sub] },
+    simp [nnreal.zero_rpow hp.ne'] },
+  -- Then we apply the Dominated Convergence Theorem
+  simpa using tendsto_lintegral_of_dominated_convergence _ hF_meas h_bound h_fin h_lim,
+end
+
 lemma tendsto_approx_on_L1_edist  [opens_measurable_space E]
- {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
+  {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
   tendsto (λ n, ∫⁻ x, edist (approx_on f hf s y₀ h₀ n x) (f x) ∂μ) at_top (𝓝 0) :=
+by simpa using tendsto_approx_on_Lp_edist hf h₀ zero_lt_one hμ (by simpa [snorm'] using hi)
+
+lemma mem_ℒp_approx_on [borel_space E]
+  {f : β → E} (hp : 1 ≤ p) {μ : measure β} (fmeas : measurable f) (hf : snorm' f p μ < ∞)
+  {s : set E} {y₀ : E} (h₀ : y₀ ∈ s)
+  [separable_space s] (hi₀ : snorm' (λ x, y₀) p μ < ∞) (n : ℕ) :
+  snorm' (approx_on f fmeas s y₀ h₀ n) p μ < ∞ :=
 begin
-  simp only [has_finite_integral, ← nndist_eq_nnnorm, ← edist_nndist, ← edist_comm y₀] at hi,
-  have : ∀ n, measurable (λ x, edist (approx_on f hf s y₀ h₀ n x) (f x)) :=
-    λ n, (approx_on f hf s y₀ h₀ n).measurable_bind (λ y x, edist y (f x))
-      (λ y, measurable_edist_right.comp hf),
-  convert tendsto_lintegral_of_dominated_convergence _ this
-    (λ n, eventually_of_forall $ λ x, edist_approx_on_le hf h₀ x n) hi (hμ.mono $ λ x hx, _),
-  show tendsto (λ n, edist _ (f x)) at_top (𝓝 $ edist (f x) (f x)),
-    from (tendsto_approx_on hf h₀ hx).edist tendsto_const_nhds,
-  simp
+  suffices : snorm' (λ x, approx_on f fmeas s y₀ h₀ n x - y₀) p μ < ⊤,
+  { convert lt_of_le_of_lt (snorm'_add_le _ _ hp) (ennreal.add_lt_top.mpr ⟨this, hi₀⟩),
+    { ext1 x, simp },
+    { exact (approx_on f fmeas s y₀ h₀ n - const β y₀).ae_measurable },
+    { exact ae_measurable_const } },
+  sorry
 end
 
 lemma integrable_approx_on [borel_space E]
@@ -207,10 +247,15 @@ begin
     add_lt_top.2 ⟨hi, hi⟩
 end
 
+lemma tendsto_approx_on_univ_Lp_edist [opens_measurable_space E] [second_countable_topology E]
+  {f : β → E} (hp : 0 < p) {μ : measure β} (fmeas : measurable f) (hf : snorm' f p μ < ∞) :
+  tendsto (λ n, ∫⁻ x, edist (approx_on f fmeas univ 0 trivial n x) (f x) ^ p ∂μ) at_top (𝓝 0) :=
+tendsto_approx_on_Lp_edist fmeas trivial hp (by simp) (by simpa using hf)
+
 lemma tendsto_approx_on_univ_L1_edist [opens_measurable_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
   tendsto (λ n, ∫⁻ x, edist (approx_on f fmeas univ 0 trivial n x) (f x) ∂μ) at_top (𝓝 0) :=
-tendsto_approx_on_L1_edist fmeas trivial (by simp) (by simpa using hf.2)
+by simpa using tendsto_approx_on_univ_Lp_edist zero_lt_one fmeas (by simpa [snorm'] using hf.2)
 
 lemma integrable_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) (n : ℕ) :
@@ -221,7 +266,8 @@ lemma tendsto_approx_on_univ_L1 [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
   tendsto (λ n, integrable.to_L1 (approx_on f fmeas univ 0 trivial n)
     (integrable_approx_on_univ fmeas hf n)) at_top (𝓝 $ hf.to_L1 f) :=
-tendsto_iff_edist_tendsto_0.2 $  by simpa using tendsto_approx_on_univ_L1_edist fmeas hf
+tendsto_iff_edist_tendsto_0.2 $
+  by simpa using tendsto_approx_on_univ_Lp_edist zero_lt_one fmeas (by simpa [snorm'] using hf.2)
 
 end simple_func
 

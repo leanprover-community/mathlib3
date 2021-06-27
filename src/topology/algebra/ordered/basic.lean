@@ -679,6 +679,10 @@ lemma filter.tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (�
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 (continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
+lemma is_preconnected.ord_connected {s : set α} (h : is_preconnected s) :
+  ord_connected s :=
+⟨λ x hx y hy, h.Icc_subset hx hy⟩
+
 end linear_order
 
 end order_closed_topology
@@ -2373,10 +2377,6 @@ by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
 @[simp] lemma tendsto_Iio_at_top {f : β → Iio a} :
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[Iio a] a) :=
 by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
-
-lemma is_preconnected.ord_connected (h : is_preconnected s) :
-  ord_connected s :=
-⟨λ x hx y hy, h.Icc_subset hx hy⟩
 
 end linear_order
 

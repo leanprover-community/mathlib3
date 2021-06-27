@@ -397,7 +397,7 @@ begin
   exact humeas.union hfinite.measurable_set
 end
 
-lemma is_preconnected.measurable_set [densely_ordered α] [order_topology α]
+lemma is_preconnected.measurable_set
   (h : is_preconnected s) : measurable_set s :=
 h.ord_connected.measurable_set
 

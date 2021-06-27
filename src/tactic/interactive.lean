@@ -1,10 +1,10 @@
-
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
+Authors: Mario Carneiro, Simon Hudon, Sébastien Gouëzel, Scott Morrison
 -/
 import tactic.lint
+import tactic.dependencies
 
 open lean
 open lean.parser
@@ -36,7 +36,7 @@ do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
 
 /-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=
-l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
+propagate_tags $ l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
 
 add_tactic_doc
 { name       := "substs",
@@ -56,6 +56,11 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.unfold_coes],
   tags       := ["simplification"] }
+
+
+/-- Unfold `has_well_founded.r`, `sizeof` and other such definitions. -/
+meta def unfold_wf :=
+propagate_tags (well_founded_tactics.unfold_wf_rel; well_founded_tactics.unfold_sizeof)
 
 /-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=
@@ -116,6 +121,8 @@ meta def work_on_goal : parse small_nat → itactic → tactic unit
 /--
 `swap n` will move the `n`th goal to the front.
 `swap` defaults to `swap 2`, and so interchanges the first and second goals.
+
+See also `tactic.interactive.rotate`, which moves the first `n` goals to the back.
 -/
 meta def swap (n := 2) : tactic unit :=
 do gs ← get_goals,
@@ -130,7 +137,11 @@ add_tactic_doc
   decl_names := [`tactic.interactive.swap],
   tags       := ["goal management"] }
 
-/-- `rotate` moves the first goal to the back. `rotate n` will do this `n` times. -/
+/--
+`rotate` moves the first goal to the back. `rotate n` will do this `n` times.
+
+See also `tactic.interactive.swap`, which moves the `n`th goal to the front.
+-/
 meta def rotate (n := 1) : tactic unit := tactic.rotate n
 
 add_tactic_doc
@@ -153,36 +164,6 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.clear_],
   tags       := ["context management"] }
-
-meta def apply_iff_congr_core : tactic unit :=
-applyc ``iff_of_eq
-
-meta def congr_core' : tactic unit :=
-do tgt ← target,
-   apply_eq_congr_core tgt
-   <|> apply_heq_congr_core
-   <|> apply_iff_congr_core
-   <|> fail "congr tactic failed"
-
-/--
-Same as the `congr` tactic, but takes an optional argument which gives
-the depth of recursive applications. This is useful when `congr`
-is too aggressive in breaking down the goal. For example, given
-`⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
-and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
-If, at any point, a subgoal matches a hypothesis then the subgoal will be closed. -/
-meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
-| (some 0) := failed
-| o        := focus1 (assumption <|> (congr_core' >>
-  all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
-             `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
-
-add_tactic_doc
-{ name       := "congr'",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.congr', `tactic.interactive.congr],
-  tags       := ["congruence"],
-  inherit_description_from := `tactic.interactive.congr' }
 
 /--
 Acts like `have`, but removes a hypothesis with the same name as
@@ -260,54 +241,6 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.generalize_hyp],
   tags       := ["context management"] }
-
-/--
-The `exact e` and `refine e` tactics require a term `e` whose type is
-definitionally equal to the goal. `convert e` is similar to `refine
-e`, but the type of `e` is not required to exactly match the
-goal. Instead, new goals are created for differences between the type
-of `e` and the goal. For example, in the proof state
-
-```lean
-n : ℕ,
-e : prime (2 * n + 1)
-⊢ prime (n + n + 1)
-```
-
-the tactic `convert e` will change the goal to
-
-```lean
-⊢ n + n = 2 * n
-```
-
-In this example, the new goal can be solved using `ring`.
-
-The syntax `convert ← e` will reverse the direction of the new goals
-(producing `⊢ 2 * n = n + n` in this example).
-
-Internally, `convert e` works by creating a new goal asserting that
-the goal equals the type of `e`, then simplifying it using
-`congr'`. The syntax `convert e using n` can be used to control the
-depth of matching (like `congr' n`). In the example, `convert e using
-1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
--/
-meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr)
-  (n : parse (tk "using" *> small_nat)?) : tactic unit :=
-do v ← mk_mvar,
-   if sym.is_some
-     then refine ``(eq.mp %%v %%r)
-     else refine ``(eq.mpr %%v %%r),
-   gs ← get_goals,
-   set_goals [v],
-   try (congr' n),
-   gs' ← get_goals,
-   set_goals $ gs' ++ gs
-
-add_tactic_doc
-{ name       := "convert",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.convert],
-  tags       := ["congruence"] }
 
 meta def compact_decl_aux : list name → binder_info → expr → list expr →
   tactic (list (list name × binder_info × expr))
@@ -401,7 +334,7 @@ literals. It creates a goal for each missing field and tags it with the name of 
 field so that `have_field` can be used to generically refer to the field currently
 being refined.
 
-As an example, we can use `refine_struct` to automate the construction semigroup
+As an example, we can use `refine_struct` to automate the construction of semigroup
 instances:
 
 ```lean
@@ -438,18 +371,18 @@ do (x,xs) ← collect_struct e,
    set_goals (xs'.join ++ gs)
 
 /--
-`guard_hyp h := t` fails if the hypothesis `h` does not have type `t`.
+`guard_hyp' h : t` fails if the hypothesis `h` does not have type `t`.
 We use this tactic for writing tests.
 Fixes `guard_hyp` by instantiating meta variables
 -/
-meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+meta def guard_hyp' (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
 
 /--
-`match_hyp h := t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
+`match_hyp h : t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
 We use this tactic for writing tests.
 -/
-meta def match_hyp (n : parse ident) (p : parse $ tk ":=" *> texpr) (m := reducible) : tactic (list expr) :=
+meta def match_hyp (n : parse ident) (p : parse $ tk ":" *> texpr) (m := reducible) : tactic (list expr) :=
 do
   h ← get_local n >>= infer_type >>= instantiate_mvars,
   match_expr p h m
@@ -469,28 +402,40 @@ We use this tactic for writing tests.
 meta def guard_target_strict (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_strict t p
 
-
 /--
-`guard_hyp_strict h := t` fails if the hypothesis `h` does not have type syntactically equal
+`guard_hyp_strict h : t` fails if the hypothesis `h` does not have type syntactically equal
 to `t`.
 We use this tactic for writing tests.
 -/
-meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
 
+/-- Tests that there are `n` hypotheses in the current context. -/
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
 
+/-- Test that `t` is the tag of the main goal. -/
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
    guard (t = tags)
+
+/-- `guard_proof_term { t } e` applies tactic `t` and tests whether the resulting proof term
+  unifies with `p`. -/
+meta def guard_proof_term (t : itactic) (p : parse texpr) : itactic :=
+do
+  g :: _ ← get_goals,
+  e ← to_expr p,
+  t,
+  g ← instantiate_mvars g,
+  unify e g
 
 /-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
 error message `msg` (for test writing purposes). -/
 meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
 tactic.success_if_fail_with_msg tac
 
+/-- Get the field of the current goal. -/
 meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,
    expr.const_name <$> resolve_name (field.update_prefix str)
@@ -656,7 +601,7 @@ do let (e,n) := arg,
         tactic.clear h' ),
    when h.is_some (do
      (to_expr ``(heq_of_eq_rec_left %%eq_h %%asm)
-       <|> to_expr ``(heq_of_eq_mp %%eq_h %%asm))
+       <|> to_expr ``(heq_of_cast_eq %%eq_h %%asm))
      >>= note h' none >> pure ()),
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
@@ -667,72 +612,16 @@ add_tactic_doc
   decl_names := [`tactic.interactive.h_generalize],
   tags       := ["context management"] }
 
-/--
-The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
-where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
-crafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by
-iterating the following steps:
-
-- write an inverse as a division
-- in any product, move the division to the right
-- if there are several divisions in a product, group them together at the end and write them as a
-  single division
-- reduce a sum to a common denominator
-
-If the goal is an equality, this simpset will also clear the denominators, so that the proof
-can normally be concluded by an application of `ring` or `ring_exp`.
-
-`field_simp [hx, hy]` is a short form for `simp [-one_div, hx, hy] with field_simps`
-
-Note that this naive algorithm will not try to detect common factors in denominators to reduce the
-complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
-complicated expressions in the next step.
-
-As always with the simplifier, reduction steps will only be applied if the preconditions of the
-lemmas can be checked. This means that proofs that denominators are nonzero should be included. The
-fact that a product is nonzero when all factors are, and that a power of a nonzero number is
-nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)
-should be given explicitly. If your expression is not completely reduced by the simplifier
-invocation, check the denominators of the resulting expression and provide proofs that they are
-nonzero to enable further progress.
-
-The invocation of `field_simp` removes the lemma `one_div` (which is marked as a simp lemma
-in core) from the simpset, as this lemma works against the algorithm explained above.
-
-For example,
-```lean
-example (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :
-  a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
-begin
-  field_simp [hx, hy],
-  ring
-end
-
-See also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions
-that have numerals in denominators.
-The tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to
-entirely remove (numeric) division from the expression by multiplying by a factor.
-```
--/
-meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
-  (attr_names : parse with_ident_list)
-  (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
-let attr_names := `field_simps :: attr_names,
-    hs := simp_arg_type.except `one_div :: hs in
-propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
-
-add_tactic_doc
-{ name       := "field_simp",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.field_simp],
-  tags       := ["simplification", "arithmetic"] }
-
+/-- Tests whether `t` is definitionally equal to `p`. The difference with `guard_expr_eq` is that
+  this uses definitional equality instead of alpha-equivalence. -/
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do e ← to_expr p, is_def_eq t e
 
 /--
-`guard_target t` fails if the target of the main goal is not `t`.
+`guard_target' t` fails if the target of the main goal is not definitionally equal to `t`.
 We use this tactic for writing tests.
+The difference with `guard_target` is that this uses definitional equality instead of
+alpha-equivalence.
 -/
 meta def guard_target' (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_eq' t p
@@ -869,45 +758,6 @@ add_tactic_doc
   decl_names := [`tactic.interactive.change', `tactic.interactive.change],
   tags       := ["renaming"],
   inherit_description_from := `tactic.interactive.change' }
-
-meta def convert_to_core (r : pexpr) : tactic unit :=
-do tgt ← target,
-   h   ← to_expr ``(_ : %%tgt = %%r),
-   rewrite_target h,
-   swap
-
-/--
-`convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
-it will generate equality proof obligations using `congr' n` to resolve discrepancies.
-`convert_to g` defaults to using `congr' 1`.
-
-`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
-e.g. sums:
-```lean
-example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
-begin
-  ac_change a + d + e + f + c + g + b ≤ _,
--- ⊢ a + d + e + f + c + g + b ≤ N
-end
-```
--/
-meta def convert_to (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
-match n with
-  | none     := convert_to_core r >> `[congr' 1]
-  | (some 0) := convert_to_core r
-  | (some o) := convert_to_core r >> congr' o
-end
-
-/-- `ac_change g using n` is `convert_to g using n; try {ac_refl}`. -/
-meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
-convert_to r n; try ac_refl
-
-add_tactic_doc
-{ name       := "convert_to",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.convert_to, `tactic.interactive.ac_change],
-  tags       := ["congruence"],
-  inherit_description_from := `tactic.interactive.convert_to }
 
 private meta def opt_dir_with : parser (option (bool × name)) :=
 (do tk "with",
@@ -1160,7 +1010,8 @@ add_tactic_doc
 /-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
 It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
 meta def revert_deps (ns : parse ident*) : tactic unit :=
-propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.revert_deps
+propagate_tags $
+  ns.mmap get_local >>= revert_reverse_dependencies_of_hyps >> skip
 
 add_tactic_doc
 { name       := "revert_deps",
@@ -1176,6 +1027,16 @@ add_tactic_doc
 { name       := "revert_after",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.revert_after],
+  tags       := ["context management", "goal management"] }
+
+/-- Reverts all local constants on which the target depends (recursively). -/
+meta def revert_target_deps : tactic unit :=
+propagate_tags $ tactic.revert_target_deps >> skip
+
+add_tactic_doc
+{ name       := "revert_target_deps",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.revert_target_deps],
   tags       := ["context management", "goal management"] }
 
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them

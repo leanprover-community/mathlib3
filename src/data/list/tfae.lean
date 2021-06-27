@@ -5,9 +5,21 @@ Authors: Johan Commelin, Simon Hudon
 -/
 import data.list.basic
 
+/-!
+# The Following Are Equivalent
+
+This file allows to state that all propositions in a list are equivalent. It is used by
+`tactic.tfae`.
+`tfae l` means `∀ x ∈ l, ∀ y ∈ l, x ↔ y`. This is equivalent to `pairwise (↔) l`.
+-/
+
 namespace list
 
-/- tfae: The Following (propositions) Are Equivalent -/
+/--
+tfae: The Following (propositions) Are Equivalent.
+
+The `tfae_have` and `tfae_finish` tactics can be useful in proofs with `tfae` goals.
+-/
 def tfae (l : list Prop) : Prop := ∀ x ∈ l, ∀ y ∈ l, x ↔ y
 
 theorem tfae_nil : tfae [] := forall_mem_nil _

@@ -5,6 +5,7 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
 import data.set.finite
+import group_theory.submonoid.basic
 
 /-!
 # Pointwise addition, multiplication, and scalar multiplication of sets.
@@ -40,11 +41,11 @@ open function
 
 variables {α : Type*} {β : Type*} {s s₁ s₂ t t₁ t₂ u : set α} {a b : α} {x y : β}
 
-/-! Properties about 1 -/
+/-! ### Properties about 1 -/
 @[to_additive]
 instance [has_one α] : has_one (set α) := ⟨{1}⟩
 
-@[simp, to_additive]
+@[to_additive]
 lemma singleton_one [has_one α] : ({1} : set α) = 1 := rfl
 
 @[simp, to_additive]
@@ -62,7 +63,8 @@ theorem one_nonempty [has_one α] : (1 : set α).nonempty := ⟨1, rfl⟩
 @[simp, to_additive]
 theorem image_one [has_one α] {f : α → β} : f '' 1 = {f 1} := image_singleton
 
-/-! Properties about multiplication -/
+/-! ### Properties about multiplication -/
+
 @[to_additive]
 instance [has_mul α] : has_mul (set α) := ⟨image2 has_mul.mul⟩
 
@@ -93,6 +95,14 @@ lemma image_mul_left' [group α] : (λ b, a⁻¹ * b) '' t = (λ b, a * b) ⁻¹
 lemma image_mul_right' [group α] : (λ a, a * b⁻¹) '' t = (λ a, a * b) ⁻¹' t := by simp
 
 @[simp, to_additive]
+lemma preimage_mul_left_singleton [group α] : ((*) a) ⁻¹' {b} = {a⁻¹ * b} :=
+by rw [← image_mul_left', image_singleton]
+
+@[simp, to_additive]
+lemma preimage_mul_right_singleton [group α] : (* a) ⁻¹' {b} = {b * a⁻¹} :=
+by rw [← image_mul_right', image_singleton]
+
+@[simp, to_additive]
 lemma preimage_mul_left_one [group α] : (λ b, a * b) ⁻¹' 1 = {a⁻¹} :=
 by rw [← image_mul_left', image_one, mul_one]
 
@@ -115,18 +125,31 @@ lemma singleton_mul [has_mul α] : {a} * t = (λ b, a * b) '' t := image2_single
 @[simp, to_additive]
 lemma singleton_mul_singleton [has_mul α] : ({a} : set α) * {b} = {a * b} := image2_singleton
 
+@[to_additive set.add_zero_class]
+instance [mul_one_class α] : mul_one_class (set α) :=
+{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
+  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
+  ..set.has_one, ..set.has_mul }
+
 @[to_additive set.add_semigroup]
 instance [semigroup α] : semigroup (set α) :=
-{ mul_assoc :=
-    by { intros, simp only [← image2_mul, image2_image2_left, image2_image2_right, mul_assoc] },
+{ mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
 @[to_additive set.add_monoid]
 instance [monoid α] : monoid (set α) :=
-{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
-  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
-  ..set.semigroup,
-  ..set.has_one }
+{ ..set.semigroup,
+  ..set.mul_one_class }
+
+lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
+  a ^ n ∈ s ^ n :=
+begin
+  induction n with n ih,
+  { rw pow_zero,
+    exact set.mem_singleton 1 },
+  { rw pow_succ,
+    exact set.mul_mem_mul ha ih },
+end
 
 @[to_additive]
 protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=
@@ -146,9 +169,36 @@ lemma empty_mul [has_mul α] : ∅ * s = ∅ := image2_empty_left
 @[simp, to_additive]
 lemma mul_empty [has_mul α] : s * ∅ = ∅ := image2_empty_right
 
+lemma empty_pow [monoid α] (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
+by rw [←nat.sub_add_cancel (nat.pos_of_ne_zero hn), pow_succ, empty_mul]
+
+instance decidable_mem_mul [monoid α] [fintype α] [decidable_eq α]
+  [decidable_pred (∈ s)] [decidable_pred (∈ t)] :
+  decidable_pred (∈ s * t) :=
+λ _, decidable_of_iff _ mem_mul.symm
+
+instance decidable_mem_pow [monoid α] [fintype α] [decidable_eq α]
+  [decidable_pred (∈ s)] (n : ℕ) :
+  decidable_pred (∈ (s ^ n)) :=
+begin
+  induction n with n ih,
+  { simp_rw [pow_zero, mem_one], apply_instance },
+  { letI := ih, rw pow_succ, apply_instance }
+end
+
 @[to_additive]
 lemma mul_subset_mul [has_mul α] (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ :=
 image2_subset h₁ h₂
+
+lemma pow_subset_pow [monoid α] (hst : s ⊆ t) (n : ℕ) :
+  s ^ n ⊆ t ^ n :=
+begin
+  induction n with n ih,
+  { rw pow_zero,
+    exact subset.rfl },
+  { rw [pow_succ, pow_succ],
+    exact mul_subset_mul hst ih },
+end
 
 @[to_additive]
 lemma union_mul [has_mul α] : (s ∪ t) * u = (s * u) ∪ (t * u) := image2_union_left
@@ -189,8 +239,18 @@ def fintype_mul [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [
   fintype (s * t : set α) :=
 set.fintype_image2 _ s t
 
-/-! Properties about inversion -/
-@[to_additive set.has_neg'] -- todo: remove prime once name becomes available
+@[to_additive]
+lemma bdd_above_mul [ordered_comm_monoid α] {A B : set α} :
+  bdd_above A → bdd_above B → bdd_above (A * B) :=
+begin
+  rintros ⟨bA, hbA⟩ ⟨bB, hbB⟩,
+  use bA * bB,
+  rintros x ⟨xa, xb, hxa, hxb, rfl⟩,
+  exact mul_le_mul' (hbA hxa) (hbB hxb),
+end
+
+/-! ### Properties about inversion -/
+@[to_additive set.has_neg]
 instance [has_inv α] : has_inv (set α) :=
 ⟨preimage has_inv.inv⟩
 
@@ -231,7 +291,10 @@ lemma inv_subset_inv [group α] {s t : set α} : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :
 @[to_additive] lemma inv_subset [group α] {s t : set α} : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ :=
 by { rw [← inv_subset_inv, set.inv_inv] }
 
-/-! Properties about scalar multiplication -/
+@[to_additive] lemma finite.inv [group α] {s : set α} (hs : finite s) : finite s⁻¹ :=
+hs.preimage $ inv_injective.inj_on _
+
+/-! ### Properties about scalar multiplication -/
 
 /-- Scaling a set: multiplying every element by a scalar. -/
 instance has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
@@ -279,7 +342,7 @@ image2_singleton_left
 
 section monoid
 
-/-! `set α` as a `(∪,*)`-semiring -/
+/-! ### `set α` as a `(∪,*)`-semiring -/
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/
@@ -292,18 +355,30 @@ protected def set_semiring.down (s : set_semiring α) : set α := s
 @[simp] protected lemma down_up {s : set α} : s.up.down = s := rfl
 @[simp] protected lemma up_down {s : set_semiring α} : s.down.up = s := rfl
 
-instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
+instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
 { add := λ s t, (s ∪ t : set α),
   zero := (∅ : set α),
   add_assoc := union_assoc,
   zero_add := empty_union,
   add_zero := union_empty,
-  add_comm := union_comm,
-  zero_mul := λ s, empty_mul,
+  add_comm := union_comm, }
+
+instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
+  non_unital_non_assoc_semiring (set_semiring α) :=
+{ zero_mul := λ s, empty_mul,
   mul_zero := λ s, mul_empty,
   left_distrib := λ _ _ _, mul_union,
   right_distrib := λ _ _ _, union_mul,
-  ..set.monoid }
+  ..set.has_mul, ..set_semiring.add_comm_monoid }
+
+instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
+
+instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
+{ ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
+
+instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
+{ ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
 
 instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
 { ..set.comm_monoid, ..set_semiring.semiring }
@@ -343,21 +418,21 @@ end monoid
 
 end set
 
-section
-
 open set
+
+section
 
 variables {α : Type*} {β : Type*}
 
-/-- A nonempty set in a semimodule is scaled by zero to the singleton
-containing 0 in the semimodule. -/
-lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β] {s : set β} (h : s.nonempty) :
+/-- A nonempty set in a module is scaled by zero to the singleton
+containing 0 in the module. -/
+lemma zero_smul_set [semiring α] [add_comm_monoid β] [module α β] {s : set β} (h : s.nonempty) :
   (0 : α) • s = (0 : set β) :=
 by simp only [← image_smul, image_eta, zero_smul, h.image_const, singleton_zero]
 
 lemma mem_inv_smul_set_iff [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β) (x : β) :
   x ∈ a⁻¹ • A ↔ a • x ∈ A :=
-by simp only [← image_smul, mem_image, inv_smul_eq_iff ha, exists_eq_right]
+by simp only [← image_smul, mem_image, inv_smul_eq_iff' ha, exists_eq_right]
 
 lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β] {a : α} (ha : a ≠ 0) (A : set β)
   (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
@@ -376,21 +451,148 @@ variables {α : Type*} [decidable_eq α]
 instance [has_mul α] : has_mul (finset α) :=
 ⟨λ s t, (s.product t).image (λ p : α × α, p.1 * p.2)⟩
 
+@[to_additive]
 lemma mul_def [has_mul α] {s t : finset α} :
   s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
 
+@[to_additive]
 lemma mem_mul [has_mul α] {s t : finset α} {x : α} :
   x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x :=
 by { simp only [finset.mul_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product] }
 
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] {s t : finset α} : (↑(s * t) : set α) = ↑s * ↑t :=
 by { ext, simp only [mem_mul, set.mem_mul, mem_coe] }
 
+@[to_additive]
 lemma mul_mem_mul [has_mul α] {s t : finset α} {x y : α} (hx : x ∈ s) (hy : y ∈ t) :
   x * y ∈ s * t :=
 by { simp only [finset.mem_mul], exact ⟨x, y, hx, hy, rfl⟩ }
 
+lemma add_card_le [has_add α] {s t : finset α} : (s + t).card ≤ s.card * t.card :=
+by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
+
+@[to_additive]
 lemma mul_card_le [has_mul α] {s t : finset α} : (s * t).card ≤ s.card * t.card :=
 by { convert finset.card_image_le, rw [finset.card_product, mul_comm] }
 
+open_locale classical
+
+/-- A finite set `U` contained in the product of two sets `S * S'` is also contained in the product
+of two finite sets `T * T' ⊆ S * S'`. -/
+@[to_additive]
+lemma subset_mul {M : Type*} [monoid M] {S : set M} {S' : set M} {U : finset M} (f : ↑U ⊆ S * S') :
+  ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ U ⊆ T * T' :=
+begin
+  apply finset.induction_on' U,
+  { use [∅, ∅], simp only [finset.empty_subset, finset.coe_empty, set.empty_subset, and_self], },
+  rintros a s haU hs has ⟨T, T', hS, hS', h⟩,
+  obtain ⟨x, y, hx, hy, ha⟩ := set.mem_mul.1 (f haU),
+  use [insert x T, insert y T'],
+  simp only [finset.coe_insert],
+  repeat { rw [set.insert_subset], },
+  use [hx, hS, hy, hS'],
+  refine finset.insert_subset.mpr ⟨_, _⟩,
+  { rw finset.mem_mul,
+    use [x,y],
+    simpa only [true_and, true_or, eq_self_iff_true, finset.mem_insert], },
+  { suffices g : (s : set M) ⊆ insert x T * insert y T', { norm_cast at g, assumption, },
+    transitivity ↑(T * T'),
+    apply h,
+    rw finset.coe_mul,
+    apply set.mul_subset_mul (set.subset_insert x T) (set.subset_insert y T'), },
+end
+
 end finset
+
+/-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
+  `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/
+namespace submonoid
+
+variables {M : Type*} [monoid M]
+
+@[to_additive]
+lemma mul_subset {s t : set M} {S : submonoid M} (hs : s ⊆ S) (ht : t ⊆ S) : s * t ⊆ S :=
+by { rintro _ ⟨p, q, hp, hq, rfl⟩, exact submonoid.mul_mem _ (hs hp) (ht hq) }
+
+@[to_additive]
+lemma mul_subset_closure {s t u : set M} (hs : s ⊆ u) (ht : t ⊆ u) :
+  s * t ⊆ submonoid.closure u :=
+mul_subset (subset.trans hs submonoid.subset_closure) (subset.trans ht submonoid.subset_closure)
+
+@[to_additive]
+lemma coe_mul_self_eq (s : submonoid M) : (s : set M) * s = s :=
+begin
+  ext x,
+  refine ⟨_, λ h, ⟨x, 1, h, s.one_mem, mul_one x⟩⟩,
+  rintros ⟨a, b, ha, hb, rfl⟩,
+  exact s.mul_mem ha hb
+end
+
+@[to_additive]
+lemma closure_mul_le (S T : set M) : closure (S * T) ≤ closure S ⊔ closure T :=
+Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
+    (set_like.le_def.mp le_sup_left $ subset_closure hs)
+    (set_like.le_def.mp le_sup_right $ subset_closure ht)
+
+@[to_additive]
+lemma sup_eq_closure (H K : submonoid M) : H ⊔ K = closure (H * K) :=
+le_antisymm
+  (sup_le
+    (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)
+    (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
+  (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
+
+end submonoid
+
+namespace group
+
+lemma card_pow_eq_card_pow_card_univ_aux {f : ℕ → ℕ} (h1 : monotone f)
+  {B : ℕ} (h2 : ∀ n, f n ≤ B) (h3 : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
+  ∀ k, B ≤ k → f k = f B :=
+begin
+  have key : ∃ n : ℕ, n ≤ B ∧ f n = f (n + 1),
+  { contrapose! h2,
+    suffices : ∀ n : ℕ, n ≤ B + 1 → n ≤ f n,
+    { exact ⟨B + 1, this (B + 1) (le_refl (B + 1))⟩ },
+    exact λ n, nat.rec (λ h, nat.zero_le (f 0)) (λ n ih h, lt_of_le_of_lt (ih (n.le_succ.trans h))
+      (lt_of_le_of_ne (h1 n.le_succ) (h2 n (nat.succ_le_succ_iff.mp h)))) n },
+  { obtain ⟨n, hn1, hn2⟩ := key,
+    replace key : ∀ k : ℕ, f (n + k) = f (n + k + 1) ∧ f (n + k) = f n :=
+    λ k, nat.rec ⟨hn2, rfl⟩ (λ k ih, ⟨h3 _ ih.1, ih.1.symm.trans ih.2⟩) k,
+    replace key : ∀ k : ℕ, n ≤ k → f k = f n :=
+    λ k hk, (congr_arg f (nat.add_sub_cancel' hk)).symm.trans (key (k - n)).2,
+    exact λ k hk, (key k (hn1.trans hk)).trans (key B hn1).symm },
+end
+
+variables {G : Type*} [group G] [fintype G] (S : set G)
+
+lemma card_pow_eq_card_pow_card_univ [∀ (k : ℕ), decidable_pred (∈ (S ^ k))] :
+  ∀ k, fintype.card G ≤ k → fintype.card ↥(S ^ k) = fintype.card ↥(S ^ (fintype.card G)) :=
+begin
+  have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr ⟨1⟩,
+  by_cases hS : S = ∅,
+  { intros k hk,
+    congr' 2,
+    rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
+  obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
+  classical,
+  have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
+  { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
+    rintros ⟨b, hb⟩ ⟨c, hc⟩ hbc,
+    exact subtype.ext (mul_left_cancel (subtype.ext_iff.mp hbc)) },
+  have mono : monotone (λ n, fintype.card ↥(S ^ n) : ℕ → ℕ) :=
+  monotone_of_monotone_nat (λ n, key a _ _ (λ b hb, set.mul_mem_mul ha hb)),
+  convert card_pow_eq_card_pow_card_univ_aux mono (λ n, set_fintype_card_le_univ (S ^ n))
+    (λ n h, le_antisymm (mono (n + 1).le_succ) (key a⁻¹ _ _ _)),
+  { simp only [finset.filter_congr_decidable, fintype.card_of_finset] },
+  replace h : {a} * S ^ n = S ^ (n + 1),
+  { refine set.eq_of_subset_of_card_le _ (le_trans (ge_of_eq h) _),
+    { exact mul_subset_mul (set.singleton_subset_iff.mpr ha) set.subset.rfl },
+    { convert key a (S ^ n) ({a} * S ^ n) (λ b hb, set.mul_mem_mul (set.mem_singleton a) hb) } },
+  rw [pow_succ', ←h, mul_assoc, ←pow_succ', h],
+  rintros _ ⟨b, c, hb, hc, rfl⟩,
+  rwa [set.mem_singleton_iff.mp hb, inv_mul_cancel_left],
+end
+
+end group

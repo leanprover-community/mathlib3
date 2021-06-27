@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard
 -/
 import group_theory.submonoid.basic
-import algebra.big_operators
+import algebra.big_operators.basic
 
 /-!
 # Submonoids
@@ -96,7 +96,7 @@ section powers
 /-- The set of natural number powers `1, x, x², ...` of an element `x` of a monoid. -/
 def powers (x : M) : set M := {y | ∃ n:ℕ, x^n = y}
 /-- The set of natural number multiples `0, x, 2x, ...` of an element `x` of an `add_monoid`. -/
-def multiples (x : A) : set A := {y | ∃ n:ℕ, n •ℕ x = y}
+def multiples (x : A) : set A := {y | ∃ n:ℕ, n • x = y}
 attribute [to_additive multiples] powers
 
 /-- 1 is in the set of natural number powers of an element of a monoid. -/
@@ -162,12 +162,12 @@ by rw ← set.image_univ; apply_instance
 
 /-- Submonoids are closed under natural powers. -/
 lemma is_submonoid.pow_mem {a : M} [is_submonoid s] (h : a ∈ s) : ∀ {n : ℕ}, a ^ n ∈ s
-| 0 := is_submonoid.one_mem
-| (n + 1) := is_submonoid.mul_mem h is_submonoid.pow_mem
+| 0 := by { rw pow_zero, exact is_submonoid.one_mem }
+| (n + 1) := by { rw pow_succ, exact is_submonoid.mul_mem h is_submonoid.pow_mem }
 
 /-- An `add_submonoid` is closed under multiplication by naturals. -/
 lemma is_add_submonoid.smul_mem {a : A} [is_add_submonoid t] :
-  ∀ (h : a ∈ t) {n : ℕ}, n •ℕ a ∈ t :=
+  ∀ (h : a ∈ t) {n : ℕ}, n • a ∈ t :=
 @is_submonoid.pow_mem (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
 attribute [to_additive smul_mem] is_submonoid.pow_mem
 
@@ -214,13 +214,7 @@ of the submonoid. -/
 a `finset` is an element of the `add_submonoid`."]
 lemma finset_prod_mem {M A} [comm_monoid M] (s : set M) [is_submonoid s] (f : A → M) :
   ∀(t : finset A), (∀b∈t, f b ∈ s) → ∏ b in t, f b ∈ s
-| ⟨m, hm⟩ hs :=
-  begin
-    refine multiset_prod_mem s _ _,
-    simp,
-    rintros a b hb rfl,
-    exact hs _ hb
-  end
+| ⟨m, hm⟩ hs := multiset_prod_mem s _ (by simpa)
 
 end is_submonoid
 
@@ -229,7 +223,7 @@ end is_submonoid
 
 /-- Submonoids are themselves monoids. -/
 @[to_additive "An `add_submonoid` is itself an `add_monoid`."]
-instance subtype.monoid {s : set M} [is_submonoid s] : monoid s :=
+def subtype.monoid {s : set M} [is_submonoid s] : monoid s :=
 { one := ⟨1, is_submonoid.one_mem⟩,
   mul := λ x y, ⟨x * y, is_submonoid.mul_mem x.2 y.2⟩,
   mul_one := λ x, subtype.eq $ mul_one x.1,
@@ -239,9 +233,12 @@ instance subtype.monoid {s : set M} [is_submonoid s] : monoid s :=
 /-- Submonoids of commutative monoids are themselves commutative monoids. -/
 @[to_additive "An `add_submonoid` of a commutative `add_monoid` is itself
 a commutative `add_monoid`. "]
-instance subtype.comm_monoid {M} [comm_monoid M] {s : set M} [is_submonoid s] : comm_monoid s :=
+def subtype.comm_monoid {M} [comm_monoid M] {s : set M} [is_submonoid s] : comm_monoid s :=
 { mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
   .. subtype.monoid }
+
+section
+local attribute [instance] subtype.monoid subtype.add_monoid
 
 /-- Submonoids inherit the 1 of the monoid. -/
 @[simp, norm_cast, to_additive "An `add_submonoid` inherits the 0 of the `add_monoid`. "]
@@ -260,8 +257,8 @@ by induction n; simp [*, pow_succ]
 
 /-- An `add_submonoid` inherits the multiplication by naturals of the `add_monoid`. -/
 @[simp, norm_cast] lemma is_add_submonoid.smul_coe {A : Type*} [add_monoid A] {s : set A}
-  [is_add_submonoid s] (a : s) (n : ℕ) : ((n •ℕ a : s) : A) = n •ℕ a :=
-by {induction n, refl, simp [*, succ_nsmul]}
+  [is_add_submonoid s] (a : s) (n : ℕ) : ((n • a : s) : A) = n • a :=
+by induction n; simp [*, succ_nsmul, zero_nsmul]
 
 attribute [to_additive smul_coe] is_submonoid.coe_pow
 
@@ -293,6 +290,8 @@ natural injection from `s` into `t` is an `add_monoid` hom."]
 instance set_inclusion.is_monoid_hom (t : set M) [is_submonoid s] [is_submonoid t] (h : s ⊆ t) :
   is_monoid_hom (set.inclusion h) :=
 subtype_mk.is_monoid_hom _ _
+
+end
 
 namespace add_monoid
 

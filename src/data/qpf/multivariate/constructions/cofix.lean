@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Simon Hudon
+Authors: Jeremy Avigad, Simon Hudon
 -/
 
 import control.functor.multivariate
@@ -139,7 +139,8 @@ cofix.corec (λ x, g id) x
 
 /-- More flexible corecursor for `cofix F`. Allows the return of a fully formed
 value instead of making a recursive call -/
-def cofix.corec' {α : typevec n} {β : Type u} (g : β → F (α.append1 (cofix F α ⊕ β))) (x : β) : cofix F α :=
+def cofix.corec' {α : typevec n} {β : Type u} (g : β → F (α.append1 (cofix F α ⊕ β))) (x : β) :
+  cofix F α :=
 let f : α ::: cofix F α ⟹ α ::: (cofix F α ⊕ β) := id ::: sum.inl in
 cofix.corec
 (sum.elim (mvfunctor.map f ∘ cofix.dest) g)
@@ -244,7 +245,7 @@ begin
   rw [←split_drop_fun_last_fun f₀, ←split_drop_fun_last_fun f₁],
   rw [append_fun_comp_split_fun, append_fun_comp_split_fun],
   rw [id_comp, id_comp],
-  congr' 2, ext i j, cases i with _ i; dsimp,
+  congr' 2 with i j, cases i with _ i; dsimp,
   { apply quot.sound, apply h' _ j },
   { change f₀ _ j = f₁ _ j, apply h' _ j },
 end
@@ -290,20 +291,21 @@ begin
   conv { to_lhs, congr, skip, rw [cofix.mk], rw cofix.dest_corec},
   rw [←comp_map, ←append_fun_comp, id_comp],
   rw [←comp_map, ←append_fun_comp, id_comp, ←cofix.mk],
-  congr' 2,
-  ext u, apply quot.sound, refl
+  congr' 2 with u, apply quot.sound, refl
 end
 
 lemma cofix.dest_mk {α : typevec n} (x : F (α.append1 $ cofix F α)) : cofix.dest (cofix.mk x) = x :=
 begin
   have : cofix.mk ∘ cofix.dest = @_root_.id (cofix F α) := funext cofix.mk_dest,
-  rw [cofix.mk, cofix.dest_corec, ←comp_map, ←cofix.mk, ← append_fun_comp, this, id_comp, append_fun_id_id, mvfunctor.id_map]
+  rw [cofix.mk, cofix.dest_corec, ←comp_map, ←cofix.mk, ← append_fun_comp, this, id_comp,
+    append_fun_id_id, mvfunctor.id_map]
 end
 
 lemma cofix.ext {α : typevec n} (x y : cofix F α) (h : x.dest = y.dest) : x = y :=
 by rw [← cofix.mk_dest x,h,cofix.mk_dest]
 
-lemma cofix.ext_mk {α : typevec n} (x y : F (α ::: cofix F α)) (h : cofix.mk x = cofix.mk  y) : x = y :=
+lemma cofix.ext_mk {α : typevec n} (x y : F (α ::: cofix F α)) (h : cofix.mk x = cofix.mk  y) :
+  x = y :=
 by rw [← cofix.dest_mk x,h,cofix.dest_mk]
 
 /-!
@@ -449,12 +451,12 @@ theorem cofix.dest_corec' {α : typevec n} {β : Type u}
   cofix.dest (cofix.corec' g x) = append_fun id (sum.elim id (cofix.corec' g)) <$$> g x :=
 begin
   rw [cofix.corec',cofix.dest_corec], dsimp,
-  congr, ext (i|i); rw corec_roll; dsimp [cofix.corec'],
+  congr' with (i|i); rw corec_roll; dsimp [cofix.corec'],
   { mv_bisim i,
     rw [Ha,Hb,cofix.dest_corec], dsimp [(∘)],
     repeat { rw [mvfunctor.map_map,← append_fun_comp_id] },
     apply liftr_map_last', dsimp [(∘),R], intros, exact ⟨_,rfl,rfl⟩ },
-  { congr, ext, erw [append_fun_id_id], simp [mvfunctor.id_map] },
+  { congr' with y, erw [append_fun_id_id], simp [mvfunctor.id_map] },
 end
 
 theorem cofix.dest_corec₁ {α : typevec n} {β : Type u}

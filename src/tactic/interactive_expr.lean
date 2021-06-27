@@ -2,7 +2,7 @@
 Copyright (c) 2020 E.W.Ayers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 
-Author: E.W.Ayers
+Authors: E.W.Ayers
 -/
 
 /-!
@@ -39,6 +39,8 @@ meta inductive sf : Type
 | tag_expr : expr.address → expr → sf → sf
 | compose : sf →  sf →  sf
 | of_string : string →  sf
+| highlight : format.color → sf → sf
+| block : ℕ → sf → sf
 
 /-- Prints a debugging representation of an `sf` object. -/
 meta def sf.repr : sf → format
@@ -47,6 +49,8 @@ meta def sf.repr : sf → format
     "`(" ++ to_fmt e ++ ")" ++ format.line ++ a.repr ++ ")"
 | (sf.compose a b) := a.repr ++ format.line ++ b.repr
 | (sf.of_string s) := repr s
+| (sf.block i a) := "(block " ++ to_fmt i ++ format.line ++ a.repr ++ ")"
+| (sf.highlight c a) := "(highlight " ++ c.to_string ++ a.repr ++ ")"
 
 meta instance : has_to_format sf := ⟨sf.repr⟩
 meta instance : has_to_string sf := ⟨λ s, s.repr.to_string⟩
@@ -55,15 +59,15 @@ meta instance : has_repr sf := ⟨λ s, s.repr.to_string⟩
 /-- Constructs an `sf` from an `eformat` by forgetting grouping, nesting, etc. -/
 meta def sf.of_eformat : eformat → sf
 | (tag ⟨ea,e⟩ m) := sf.tag_expr ea e $ sf.of_eformat m
-| (group m) := sf.of_eformat m
-| (nest i m) := sf.of_eformat m
-| (highlight i m) := sf.of_eformat m
+| (group m) := sf.block 0 $ sf.of_eformat m
+| (nest i m) := sf.block i $ sf.of_eformat m
+| (highlight c m) := sf.highlight c $ sf.of_eformat m
 | (of_format f) := sf.of_string $ format.to_string f
 | (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
 meta def sf.flatten : sf → sf
-| (sf.tag_expr e ea m) := (sf.tag_expr e ea $ sf.flatten m)
+| (sf.tag_expr ea e m) := (sf.tag_expr ea e $ sf.flatten m)
 | (sf.compose x y) :=
   match (sf.flatten x), (sf.flatten y) with
   | (sf.of_string sx), (sf.of_string sy) := sf.of_string (sx ++ sy)
@@ -72,7 +76,11 @@ meta def sf.flatten : sf → sf
   | (sf.compose x (sf.of_string sy1)), (sf.compose (sf.of_string sy2) z) := sf.compose x (sf.compose (sf.of_string (sy1 ++ sy2)) z)
   | x, y := sf.compose x y
   end
-| (sf.of_string s) := sf.of_string s
+| (sf.of_string s) := -- replace newline by space
+  sf.of_string (s.to_list.map (λ c, if c = '\n' then ' ' else c)).as_string
+| (sf.block i (sf.block j a)) := (sf.block (i+j) a).flatten
+| (sf.block i a) := sf.block i a.flatten
+| (sf.highlight i a) := sf.highlight i a.flatten
 
 private meta def elim_part_apps : sf → expr.address → sf
 | (sf.tag_expr ea e m) acc :=
@@ -82,6 +90,8 @@ private meta def elim_part_apps : sf → expr.address → sf
     sf.tag_expr (acc ++ ea) e (elim_part_apps m [])
 | (sf.compose a b) acc := (elim_part_apps a acc).compose (elim_part_apps b acc)
 | (sf.of_string s) _ := sf.of_string s
+| (sf.block i a) acc := sf.block i $ elim_part_apps a acc
+| (sf.highlight c a) acc := sf.highlight c $ elim_part_apps a acc
 
 /--
 Post-process an `sf` object to eliminate tags for partial applications by
@@ -121,7 +131,41 @@ meta inductive action (γ : Type)
 | on_click : subexpr → action
 | on_tooltip_action : γ → action
 | on_close_tooltip : action
-| copy : string → action
+| effect : widget.effect → action
+
+/--
+Render a 'go to definition' button for a given expression.
+If there is no definition available, then returns an empty list.
+-/
+meta def goto_def_button {γ} : expr → tactic (list (html (action γ)))
+| e := (do
+    (expr.const n _) ← pure $ expr.get_app_fn e,
+    env ← tactic.get_env,
+    let file := environment.decl_olean env n,
+    pos ← environment.decl_pos env n,
+    pure $ [h "button" [
+      cn "pointer ba br3 mr1",
+      on_click (λ _, action.effect $ widget.effect.reveal_position file pos),
+      attr.val "title" "go to definition"] ["↪"]]
+  ) <|> pure []
+
+/-- Due to a bug in the webview browser, we have to reduce the number of spans in the expression.
+To do this, we collect the attributes from `sf.block` and `sf.highlight` after an expression boundary. -/
+meta def get_block_attrs {γ}: sf → tactic (sf × list (attr γ))
+| (sf.block i a) := do
+  let s : attr (γ) := style [
+    ("display", "inline-block"),
+    ("padding-left", "1ch"),
+    ("text-indent", "-1ch"),
+    ("white-space", "pre-wrap"),
+    ("vertical-align", "top")
+  ],
+  (a,rest) ← get_block_attrs a,
+  pure (a, s :: rest)
+| (sf.highlight c a) := do
+  (a, rest) ← get_block_attrs a,
+  pure (a, (cn c.to_string) :: rest)
+| a := pure (a,[])
 
 /--
 Renders a subexpression as a list of html elements.
@@ -135,15 +179,17 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
     if some new_address = click_address then do
       content ← tc.to_html tooltip_component (e, new_address),
       efmt : string ← format.to_string <$> tactic.pp e,
+      gd_btn ← goto_def_button e,
       pure [tooltip $ h "div" [] [
-          h "div" [cn "fr"] [
-            h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.copy efmt), attr.val "title" "copy expression to clipboard"] ["📋"],
+          h "div" [cn "fr"] (gd_btn ++ [
+            h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.effect $ widget.effect.copy_text efmt), attr.val "title" "copy expression to clipboard"] ["📋"],
             h "button" [cn "pointer ba br3", on_click (λ _, action.on_close_tooltip), attr.val "title" "close"] ["×"]
-          ],
+          ]),
           content
       ]]
     else pure [],
-  let as := [className "expr-boundary", key (ea)] ++ select_attrs ++ click_attrs,
+  (m, block_attrs) ← get_block_attrs m,
+  let as := [className "expr-boundary", key (ea)] ++ select_attrs ++ click_attrs ++ block_attrs,
   inner ← view (e,new_address) m,
   pure [h "span" as inner]
 | ca (sf.compose x y) := pure (++) <*> view ca x <*> view ca y
@@ -153,7 +199,14 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
     on_click (λ _, action.on_click ca),
     key s
   ] [html.of_string s]]
-
+| ca b@(sf.block _ _) := do
+  (a, attrs) ← get_block_attrs b,
+  inner ← view ca a,
+  pure [h "span" attrs inner]
+| ca b@(sf.highlight _ _) := do
+  (a, attrs) ← get_block_attrs b,
+  inner ← view ca a,
+  pure [h "span" attrs inner]
 
 /-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=
@@ -161,11 +214,11 @@ let tooltip_comp :=
    component.with_should_update (λ (x y : tactic_state × expr × expr.address), x.2.2 ≠ y.2.2)
    $ component.map_action (action.on_tooltip_action) tooltip in
 component.filter_map_action
-  (λ _ (a : γ ⊕ string), sum.cases_on a some (λ _, none))
-$ component.with_effects (λ _ (a : γ ⊕ string),
+  (λ _ (a : γ ⊕ widget.effect), sum.cases_on a some (λ _, none))
+$ component.with_effects (λ _ (a : γ ⊕ widget.effect),
   match a with
   | (sum.inl g) := []
-  | (sum.inr s) := [effect.copy_text s]
+  | (sum.inr s) := [s]
   end
 )
 $ tc.mk_simple
@@ -179,7 +232,7 @@ $ tc.mk_simple
     | (action.on_click ⟨e, ea⟩)       := if some (e,ea) = ca then ((none, sa), none) else ((some (e, ea), sa), none)
     | (action.on_tooltip_action g)    := ((none, sa), some $ sum.inl g)
     | (action.on_close_tooltip)       := ((none, sa), none)
-    | (action.copy s)                 := ((ca,sa), some $ sum.inr s)
+    | (action.effect e)               := ((ca,sa), some $ sum.inr $ e)
     end
   )
   (λ e ⟨ca, sa⟩, do
@@ -200,7 +253,7 @@ $ tc.mk_simple
 meta def implicit_arg_list (tooltip : tc subexpr empty) (e : expr) : tactic $ html empty := do
   fn ← (mk tooltip) $ expr.get_app_fn e,
   args ← list.mmap (mk tooltip) $ expr.get_app_args e,
-  pure $ h "div" []
+  pure $ h "div" [style [("display", "flex"), ("flexWrap", "wrap"), ("alignItems", "baseline")]]
     ( (h "span" [className "bg-blue br3 ma1 ph2 white"] [fn]) ::
       list.map (λ a, h "span" [className "bg-gray br3 ma1 ph2 white"] [a]) args
     )
@@ -214,8 +267,13 @@ tc.stateless (λ ⟨e,ea⟩, do
     y_comp ← mk type_tooltip y,
     implicit_args ← implicit_arg_list type_tooltip e,
     pure [
-        h "div" [style [("minWidth", "8rem")]] [
-          h "div" [] [y_comp],
+        h "div" [style [
+            ("minWidth", "8rem"),
+            -- [note]: textIndent is inherited, and we might
+            -- be in an expression here where textIndent is set
+            ("textIndent", "0")]
+          ] [
+          h "div" [cn "pl1"] [y_comp],
           h "hr" [] [],
           implicit_args
         ]

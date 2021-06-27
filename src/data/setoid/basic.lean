@@ -166,8 +166,7 @@ end
 lemma Sup_def {s : set (setoid α)} : Sup s = eqv_gen.setoid (Sup (rel '' s)) :=
 begin
   rw [Sup_eq_eqv_gen, Sup_image],
-  congr,
-  ext x y,
+  congr' with x y,
   simp only [supr_apply, supr_Prop_eq, exists_prop]
 end
 
@@ -224,7 +223,7 @@ theorem lift_unique {r : setoid α} {f : α → β} (H : r ≤ ker f) (g : quoti
   (Hg : f = g ∘ quotient.mk) : quotient.lift f H = g :=
 begin
   ext ⟨x⟩,
-  erw [quotient.lift_beta f H, Hg],
+  erw [quotient.lift_mk f H, Hg],
   refl
 end
 
@@ -250,12 +249,25 @@ noncomputable def quotient_ker_equiv_range :
 equiv.of_bijective (@quotient.lift _ (set.range f) (ker f)
   (λ x, ⟨f x, set.mem_range_self x⟩) $ λ _ _ h, subtype.ext_val h)
   ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
-   λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_beta; exact subtype.ext_iff_val.2 hz⟩⟩
+   λ ⟨w, z, hz⟩, ⟨@quotient.mk _ (ker f) z, by rw quotient.lift_mk; exact subtype.ext_iff_val.2 hz⟩⟩
 
-/-- The quotient of α by the kernel of a surjective function f bijects with f's codomain. -/
+/-- If `f` has a computable right-inverse, then the quotient by its kernel is equivalent to its
+domain. -/
+@[simps]
+def quotient_ker_equiv_of_right_inverse (g : β → α) (hf : function.right_inverse g f) :
+  quotient (ker f) ≃ β :=
+{ to_fun := λ a, quotient.lift_on' a f $ λ _ _, id,
+  inv_fun := λ b, quotient.mk' (g b),
+  left_inv := λ a, quotient.induction_on' a $ λ a, quotient.sound' $ by exact hf (f a),
+  right_inv := hf }
+
+/-- The quotient of α by the kernel of a surjective function f bijects with f's codomain.
+
+If a specific right-inverse of `f` is known, `setoid.quotient_ker_equiv_of_right_inverse` can be
+definitionally more useful. -/
 noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
   quotient (ker f) ≃ β :=
-(quotient_ker_equiv_range f).trans $ equiv.subtype_univ_equiv hf
+quotient_ker_equiv_of_right_inverse _ (function.surj_inv hf) (right_inverse_surj_inv hf)
 
 variables {r f}
 
@@ -315,10 +327,9 @@ variables {r f}
 
 open quotient
 
-/-- Given an equivalence relation r on α, the order-preserving bijection between the set of
-    equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
-def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃r
-  ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
+/-- Given an equivalence relation `r` on `α`, the order-preserving bijection between the set of
+equivalence relations containing `r` and the equivalence relations on the quotient of `α` by `r`. -/
+def correspondence (r : setoid α) : {s // r ≤ s} ≃o setoid (quotient r) :=
 { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
   inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
   left_inv := λ s, subtype.ext_iff_val.2 $ ext' $ λ _ _,
@@ -329,8 +340,8 @@ def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} 
       λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
     ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  map_rel_iff' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
-    λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
-      t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy⟩ }
+  map_rel_iff' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
+      t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy,
+      λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩⟩ }
 
 end setoid

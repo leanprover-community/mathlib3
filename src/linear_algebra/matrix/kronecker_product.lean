@@ -225,23 +225,20 @@ have f₁ := ((algebra.tensor_product.lid R (R ⊗ R)).to_linear_equiv).trans
   (algebra.tensor_product.lid R R).to_linear_equiv,
 have f₂ := ((algebra.tensor_product.rid R (R ⊗ R)).to_linear_equiv).trans
   ((algebra.tensor_product.lid R R).to_linear_equiv),
-have g₁ := linear_equiv.map_matrix f₁,
-have g₂ := linear_equiv.map_matrix f₂,
-rotate, use (( m × n) × p), use ((m' × n') × p'), sorry, sorry,
-use (m × n × p), use (m' × n' × p'), sorry, sorry,
--- have h := @linear_equiv.map_matrix R (R ⊗ (R ⊗ R)) R _ (m × n × p) (m' × n' × p') _ _ _ _ _ _ _
---   ((algebra.tensor_product.lid R (R ⊗ R)).to_linear_equiv),
-have h2 := (@tensor_matrix.assoc R R R _ m n p m' n' p' _ _ _ _ _ _ R _ _ _ _ _ _),
--- ((algebra.tensor_product.lid R R).to_linear_equiv),
--- exact (@tensor_matrix.assoc R R R _ m n p m' n' p' _ _ _ _ _ _ R _ _ _ _ _ _),
+have g₁ := @linear_equiv.map_matrix _ _ _ _ (m × n × p) (m' × n' × p') _ _ _ _ _ _ _ f₁,
+have g₂ := @linear_equiv.map_matrix _ _ _ _ ((m × n) × p) ((m' × n') × p') _ _ _ _ _ _ _ f₂,
+have h := (@tensor_matrix.assoc R R R _ m n p m' n' p' _ _ _ _ _ _ R _ _ _ _ _ _),
+use g₂.symm.trans (h.trans g₁),
 end
 
--- theorem prod_assoc (A : matrix m m' R) (B : matrix n n' R) (C : matrix p p' R) :
---   --tensor_matrix.assoc
---   (A ⊗ₖ B) ⊗ₖ C = A ⊗ₖ (B ⊗ₖ C) :=
---     begin
---       refl,
---     end
+theorem prod_assoc (A : matrix m m' R) (B : matrix n n' R) (C : matrix p p' R) :
+  kronecker_product.assoc (A ⊗ₖ B ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C) :=
+    begin
+      -- simp,
+      -- ext,/
+      ext ⟨i, j, k⟩ ⟨i', j', k'⟩,
+      simp,
+    end
 --     --rfl
 
 -- theorem prod_assoc

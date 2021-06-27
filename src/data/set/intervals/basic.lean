@@ -168,16 +168,16 @@ eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩, h (ha.trans_le hb)
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩,  h (ha.trans hb)
 
 @[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans h₂).not_lt h
+Icc_eq_empty h.not_le
 
 @[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans_lt h₂).not_le h
+Ico_eq_empty h.not_lt
 
 @[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₂.trans h).not_lt h₁
+Ioc_eq_empty h.not_lt
 
 @[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ :=
-eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans h₂).not_le h
+Ioo_eq_empty h.not_lt
 
 @[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ lt_irrefl _
 @[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ lt_irrefl _
@@ -1010,12 +1010,7 @@ lemma Ioc_union_Ioc (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
 begin
   cases le_total a b with hab hab; cases le_total c d with hcd hcd; simp [hab, hcd] at h₁ h₂,
   { exact Ioc_union_Ioc' h₂ h₁ },
-  { simp * },
-  { simp * },
-  have : ¬min a c < max b d,
-  { simp only [min_lt_iff, lt_max_iff, not_or_distrib, not_lt],
-    exact ⟨⟨hab, h₁⟩, h₂, hcd⟩ },
-  simp *,
+  all_goals { simp [*] },
 end
 
 /-! #### Two finite intervals with a common point -/

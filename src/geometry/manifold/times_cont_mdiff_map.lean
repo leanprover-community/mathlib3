@@ -34,6 +34,12 @@ structure times_cont_mdiff_map :=
 (to_fun                  : M → M')
 (times_cont_mdiff_to_fun : times_cont_mdiff I I' n to_fun)
 
+@[protect_proj]
+structure times_cont_mdiff_on_map :=
+(to_fun                     : M → M')
+(source                     : set M )
+(times_cont_mdiff_on_to_fun : times_cont_mdiff_on I I' n to_fun source)
+
 /-- Bundled smooth maps. -/
 @[reducible] def smooth_map := times_cont_mdiff_map I I' M M' ⊤
 
@@ -41,6 +47,11 @@ localized "notation `C^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
   times_cont_mdiff_map I I' M M' n" in manifold
 localized "notation `C^` n `⟮` I `, ` M `; ` k `⟯` :=
   times_cont_mdiff_map I (model_with_corners_self k k) M k n" in manifold
+
+localized "notation `Cₗ^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
+  times_cont_mdiff_on_map I I' M M' n" in manifold
+localized "notation `Cₗ^` n `⟮` I `, ` M `; ` k `⟯` :=
+  times_cont_mdiff_on_map I (model_with_corners_self k k) M k n" in manifold
 
 open_locale manifold
 
@@ -100,3 +111,21 @@ end times_cont_mdiff_map
 instance continuous_linear_map.has_coe_to_times_cont_mdiff_map :
   has_coe (E →L[𝕜] E') C^n⟮𝓘(𝕜, E), E; 𝓘(𝕜, E'), E'⟯ :=
 ⟨λ f, ⟨f.to_fun, f.times_cont_mdiff⟩⟩
+
+namespace times_cont_mdiff_on_map
+
+instance : has_coe_to_fun Cₗ^n⟮I, M; I', M'⟯ := ⟨_, times_cont_mdiff_on_map.to_fun⟩
+
+protected lemma times_cont_mdiff_on (f : Cₗ^n⟮I, M; I', M'⟯) :
+  times_cont_mdiff_on I I' n f f.source := f.times_cont_mdiff_on_to_fun
+
+protected lemma smooth (f : Cₗ^∞⟮I, M; I', M'⟯) :
+  smooth_on I I' f f.source := f.times_cont_mdiff_on_to_fun
+
+@[ext] theorem ext {f g : Cₗ^n⟮I, M; I', M'⟯}
+  (h_src : f.source = g.source) (h : ∀ x, f x = g x) : f = g :=
+by cases f; cases g; congr'; exact funext h
+
+@[simp] lemma to_fun_eq_coe {f : Cₗ^n⟮I, M; I', M'⟯} : f.to_fun = ⇑f := rfl
+
+end times_cont_mdiff_on_map

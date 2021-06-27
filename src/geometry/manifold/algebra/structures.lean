@@ -68,3 +68,4 @@ see note [Design choices about smooth algebraic structures]. -/
 lemma topological_ring_of_smooth [ring R] [smooth_ring I R] :
   topological_ring R :=
 { .. has_continuous_mul_of_smooth I, .. topological_add_group_of_lie_add_group I }
+

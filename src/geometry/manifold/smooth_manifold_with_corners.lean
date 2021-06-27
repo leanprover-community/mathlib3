@@ -145,7 +145,7 @@ def model_with_corners_self (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   continuous_to_fun  := continuous_id,
   continuous_inv_fun := continuous_id }
 
-localized "notation `(` 𝕜 `, ` E `)` := model_with_corners_self 𝕜 E" in manifold
+localized "notation `𝓘(` 𝕜 `, ` E `)` := model_with_corners_self 𝕜 E" in manifold
 
 localized "notation `𝓘(` 𝕜 `)` := model_with_corners_self 𝕜 𝕜" in manifold
 

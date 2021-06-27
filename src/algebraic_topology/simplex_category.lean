@@ -532,7 +532,7 @@ by { refine @mono_le_length [n] [m] f}
 
 /-- An epimorphism in `simplex_category` must decrease lengths-/
 lemma epi_ge_length {x y : simplex_category} {f : x ⟶ y} :
-  (category_theory.epi f) → (x.len ≥ y.len) :=
+  epi f → y.len ≤ x.len :=
 begin
   intro hyp_f_epi,
   have f_surj : function.surjective f.to_preorder_hom.to_fun,
@@ -542,7 +542,7 @@ begin
   exact card_geq,
 end
 
-lemma epi_ge_card {n m : ℕ} {f : [n] ⟶ [m]} : (category_theory.epi f) → (n ≥ m) :=
+lemma epi_ge_card {n m : ℕ} {f : [n] ⟶ [m]} : epi f → (m ≤ n) :=
 by {refine @epi_ge_length [n] [m] f}
 
 end epi_mono

@@ -402,4 +402,137 @@ full_subcategory_inclusion _
 
 end truncated
 
+section epi_mono
+
+/-- A morphism in `simplex_category` is a monomorphism precisely when it is an injective function
+-/
+theorem mono_iff_injective {n m : simplex_category} {f: n ⟶ m} :
+  (category_theory.mono f) ↔ (function.injective ⇑f.to_preorder_hom) :=
+begin
+  split,
+  { intros m x y h,
+  set cx : [0] ⟶ n := const n x with def_cx,
+  set cy : [0] ⟶ n := const n y with def_cy,
+  have H : (cx ≫ f = cy ≫ f) := by {dsimp, rw h},
+  resetI, rw (cancel_mono f) at H,
+  have from_constant_function :
+    (∀ (z : fin(n.len + 1)), (z = (const n z).to_preorder_hom.to_fun 0)),
+  { intro z, simp, refl},
+  rw [from_constant_function x, from_constant_function y, ←def_cx, ←def_cy, H] },
+  { intro H,
+  split,
+  intros Z g h hyp_eq,
+  dsimp,
+  ext,
+  apply_fun hom.to_preorder_hom at hyp_eq,
+  simp at hyp_eq,
+  apply_fun preorder_hom.to_fun at hyp_eq,
+  replace hyp_eq := (congr_fun hyp_eq x),
+  rw [preorder_hom.to_fun_eq_coe, preorder_hom.to_fun_eq_coe] at hyp_eq,
+  rw [preorder_hom.comp_coe, preorder_hom.comp_coe] at hyp_eq,
+  dsimp at hyp_eq,
+  rw H hyp_eq }
+end
+
+/-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
+-/
+lemma epi_iff_surjective {n m : simplex_category} {f: n ⟶ m} :
+  (category_theory.epi f) ↔ (function.surjective ⇑f.to_preorder_hom) :=
+begin
+  split,
+  { intro hyp_f_epi,
+  intro x,
+  by_contradiction h_ab,
+  rw not_exists at h_ab,
+  -- The proof is by contradiction: assume f in not surjective,
+  -- then introduce two non-equal auxiliary functions equalizing f, and get a contradiction.
+  -- First we define the two auxiliary functions.
+  set chi_1 : m ⟶ [1] := hom.mk
+  ⟨λ u, if u ≤ x then 0 else 1,
+   by { intros a b a_leq_b,
+        by_cases a ≤ x,
+        { simp [h], obviously },
+        { simp [h],
+          have b_ge_x : ¬(b ≤ x),
+          { by_contra b_leq_x,
+            have a_leq_x : a ≤ x,
+            { transitivity b,
+              exact a_leq_b,
+              exact b_leq_x },
+            exact h a_leq_x },
+        simp [b_ge_x]}}⟩ with def_chi_1,
+  set chi_2 : m ⟶ [1] := hom.mk
+  ⟨λ u, if u < x then 0 else 1,
+   by { intros a b a_leq_b,
+        by_cases (a = b),
+        { rw h },
+        rename h a_neq_b,
+        have a_lt_b : a < b,
+        { cases nat.eq_or_lt_of_le a_leq_b,
+          { exfalso, exact a_neq_b (subtype.eq h) },
+          { exact h }},
+        by_cases a < x,
+        { simp [h], obviously },
+        { simp [h],
+          have b_geq_x : ¬(b < x),
+          { by_contra b_leq_x,
+            have a_lt_x : a < x,
+            { transitivity b,
+              exact a_lt_b,
+              exact b_leq_x },
+            exact h a_lt_x },
+          simp [b_geq_x] }}⟩ with def_chi_2,
+  -- The two auxiliary functions equalize f
+  have f_comp_chi_i : f ≫ chi_1 = f ≫ chi_2,
+  { dsimp,
+    ext,
+    rw [hom.to_preorder_hom_mk, hom.to_preorder_hom_mk, preorder_hom.comp_coe],
+    rw [hom.to_preorder_hom_mk, hom.to_preorder_hom_mk, preorder_hom.comp_coe],
+    rw [function.comp_app, function.comp_app],
+    have f_x_1_ne_x : ¬((f.to_preorder_hom) x_1 = x) := h_ab x_1,
+    by_cases ((f.to_preorder_hom) x_1) ≤ x,
+    { have f_x_1_lt_x : ((f.to_preorder_hom) x_1) < x,
+      { cases nat.eq_or_lt_of_le h,
+        exfalso,
+        replace h_1 := subtype.eq h_1,
+        exact f_x_1_ne_x h_1,
+        exact h_1 },
+      simp [f_x_1_lt_x, h] },
+    { have n_f_x_1_lt_x : ¬(((f.to_preorder_hom) x_1) < x),
+    { erw not_iff_not_of_iff nat.lt_iff_le_not_le,
+      rw not_and,
+      intro h3, exfalso,
+      refine h h3 },
+      simp [n_f_x_1_lt_x, h] }},
+  resetI,
+  -- We now just have to show the two auxiliary functions are not equal.
+  rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
+  apply_fun hom.to_preorder_hom at eq_chi_i,
+  apply_fun preorder_hom.to_fun at eq_chi_i,
+  replace eq_chi_i := congr_fun eq_chi_i x,
+  dsimp at eq_chi_i,
+  have chi_1_x : (hom.to_preorder_hom chi_1) x = 0 := by { simp },
+  have chi_2_x : (hom.to_preorder_hom chi_2) x = 1 := by { simp },
+  rw [chi_1_x, chi_2_x] at eq_chi_i,
+  refine nat.zero_ne_one (fin.veq_of_eq eq_chi_i) },
+  { intro hyp_surj,
+    refine ⟨ by { intros l g h h_eq_comp,
+      dsimp at *,
+      ext,
+      set y := Exists.some (hyp_surj x) with d_y,
+      have y_eq_f_x : x = f.to_preorder_hom y,
+       { rw d_y,
+        exact (Exists.some_spec (hyp_surj x)).symm },
+      apply_fun hom.to_preorder_hom at h_eq_comp,
+      apply_fun preorder_hom.to_fun at h_eq_comp,
+      replace h_eq_comp := congr_fun h_eq_comp y,
+      dsimp at h_eq_comp,
+      rw [hom.to_preorder_hom_mk, preorder_hom.comp_coe, function.comp_app] at h_eq_comp,
+      rw [hom.to_preorder_hom_mk, preorder_hom.comp_coe, function.comp_app] at h_eq_comp,
+      rw ←y_eq_f_x at h_eq_comp,
+      refine fin.veq_of_eq h_eq_comp }⟩}
+end
+
+end epi_mono
+
 end simplex_category

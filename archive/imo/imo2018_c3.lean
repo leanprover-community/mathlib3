@@ -6,6 +6,7 @@ Authors: Yaël Dillies
 import algebra.big_operators.basic
 import algebra.floor
 import data.finset.intervals
+import data.list.sort
 import data.real.basic
 
 open_locale big_operators
@@ -23,10 +24,31 @@ squares (the stone should stay within the board). Sisyphus' aim is to move all `
 Prove that Sisyphus cannot reach the aim in less than `⌈n/1⌉ + ... + ⌈n/n⌉` turns.
 -/
 
-theorem imo2018_c3 {n : ℕ} {move : (fin n → ℕ) → fin n → ℕ} (hf : ∀ pos, ∃ i,
-  move pos i ≤ pos i + ((univ : finset (fin n)).filter (λ j, pos j = pos i)).card ∧
-  ∀ j, i ≠ j → move pos j = pos j) {m : ℕ} (h : move^[m] (λ i, 0) = λ i, n) :
+variable {n : ℕ}
+
+def energy (pos : vector ℕ n) : ℕ :=
+list.sum (list.map₂ (λ a b, (a + b - 1)/b) (list.merge_sort (≤) pos.1) (list.range n))
+
+variables {move : vector ℕ n → vector ℕ n} (hf : ∀ pos, ∃ i, (move pos).nth i ≤ pos.nth i +
+  ((univ : finset (fin n)).filter (λ j, pos.nth j = pos.nth i)).card ∧
+  ∀ j, i ≠ j → (move pos).nth j = pos.nth j)
+
+lemma energy_move {pos : vector ℕ n} :
+  energy (move pos) ≤ energy pos + 1 :=
+begin
+  sorry
+end
+
+theorem imo2018_c3 {m : ℕ} (h : move^[m] (λ i, 0) = λ i, n) :
   (∑ k in Ico 0 n, nat_ceil (n/k : ℝ)) ≤ m :=
 begin
+  suffices ∀ k, energy (move^[k] (λ i, 0)) ≤ k,
+  {
+    sorry
+  },
+  induction k with k hk,
+  {
+    sorry
+  },
   sorry
 end

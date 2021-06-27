@@ -402,6 +402,16 @@ full_subcategory_inclusion _
 
 end truncated
 
+section concrete
+
+instance : concrete_category.{0} simplex_category.{u} :=
+{ forget :=
+  { obj := λ i, fin (i.len + 1),
+    map := λ i j f, f.to_preorder_hom },
+  forget_faithful := {} }
+
+end concrete
+
 section epi_mono
 
 /-- A morphism in `simplex_category` is a monomorphism precisely when it is an injective function
@@ -416,19 +426,8 @@ begin
     change (n.const x).to_preorder_hom 0 = (n.const y).to_preorder_hom 0,
     rw cancel_mono f at H,
     rw H },
-  { intro H,
-    split,
-    intros Z g h hyp_eq,
-    dsimp,
-    ext,
-    apply_fun hom.to_preorder_hom at hyp_eq,
-    simp at hyp_eq,
-    apply_fun preorder_hom.to_fun at hyp_eq,
-    replace hyp_eq := (congr_fun hyp_eq x),
-    rw [preorder_hom.to_fun_eq_coe, preorder_hom.to_fun_eq_coe] at hyp_eq,
-    rw [preorder_hom.comp_coe, preorder_hom.comp_coe] at hyp_eq,
-    dsimp at hyp_eq,
-    rw H hyp_eq }
+    { intro hyp_inj,
+      exact concrete_category.mono_of_injective _ hyp_inj }
 end
 
 /-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
@@ -441,7 +440,7 @@ begin
     intro x,
     by_contradiction h_ab,
     rw not_exists at h_ab,
-    -- The proof is by contradiction: assume f in not surjective,
+    -- The proof is by contradiction: assume f is not surjective,
     -- then introduce two non-equal auxiliary functions equalizing f, and get a contradiction.
     -- First we define the two auxiliary functions.
     set chi_1 : m ⟶ [1] := hom.mk
@@ -513,21 +512,7 @@ begin
     rw [chi_1_x, chi_2_x] at eq_chi_i,
     refine nat.zero_ne_one (fin.veq_of_eq eq_chi_i) },
   { intro hyp_surj,
-    refine ⟨ by { intros l g h h_eq_comp,
-      dsimp at *,
-      ext,
-      set y := Exists.some (hyp_surj x) with d_y,
-      have y_eq_f_x : x = f.to_preorder_hom y,
-       { rw d_y,
-        exact (Exists.some_spec (hyp_surj x)).symm },
-      apply_fun hom.to_preorder_hom at h_eq_comp,
-      apply_fun preorder_hom.to_fun at h_eq_comp,
-      replace h_eq_comp := congr_fun h_eq_comp y,
-      dsimp at h_eq_comp,
-      rw [hom.to_preorder_hom_mk, preorder_hom.comp_coe, function.comp_app] at h_eq_comp,
-      rw [hom.to_preorder_hom_mk, preorder_hom.comp_coe, function.comp_app] at h_eq_comp,
-      rw ←y_eq_f_x at h_eq_comp,
-      refine fin.veq_of_eq h_eq_comp }⟩}
+    exact concrete_category.epi_of_surjective _ hyp_surj }
 end
 
 /-- A monomorphism in `simplex_category` must increase lengths-/

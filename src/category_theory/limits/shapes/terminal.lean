@@ -226,7 +226,7 @@ instance initial.mono_from [has_initial C] [zero_le_category C] (X : C) (f : ⊥
 initial_is_initial.mono_from f
 
 section comparison
-variables {C} {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
 
 /--
 The comparison morphism from the image of a terminal object to the terminal object in the target
@@ -250,7 +250,7 @@ initial.to _
 
 end comparison
 
-variables {C} {J : Type v} [small_category J]
+variables {J : Type v} [small_category J]
 
 /-- From a functor `F : J ⥤ C`, given an initial object of `J`, construct a cone for `J`.
 In `limit_of_diagram_initial` we show it is a limit cone. -/

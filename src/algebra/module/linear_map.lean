@@ -106,7 +106,7 @@ theorem is_linear : is_linear_map R f := ⟨f.map_add', f.map_smul'⟩
 
 variables {f g}
 
-theorem coe_injective : injective (λ f : M →ₗ[R] M₂, show M → M₂, from f) :=
+theorem coe_injective : @injective (M →ₗ[R] M₂) (M → M₂) coe_fn :=
 by rintro ⟨f, _⟩ ⟨g, _⟩ ⟨h⟩; congr
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=

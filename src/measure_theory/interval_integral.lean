@@ -130,11 +130,11 @@ assumptions:
   in `s`.
 
 This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`,
-`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances that are equal to the first
-and last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`. While the
-difference between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure, it
-becomes important in the versions of FTC about any locally finite measure if this measure has an
-atom at one of the endpoints.
+`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances that are equal to the first and
+last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`. While the difference
+between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure, it becomes important
+in the versions of FTC about any locally finite measure if this measure has an atom at one of the
+endpoints.
 
 ## Tags
 

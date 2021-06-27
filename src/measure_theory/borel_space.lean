@@ -351,15 +351,13 @@ instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
 
-variables [second_countable_topology α]
-
 @[measurability]
-lemma measurable_set_lt' : measurable_set {p : α × α | p.1 < p.2} :=
+lemma measurable_set_lt' [second_countable_topology α] : measurable_set {p : α × α | p.1 < p.2} :=
 (is_open_lt continuous_fst continuous_snd).measurable_set
 
 @[measurability]
-lemma measurable_set_lt {f g : δ → α} (hf : measurable f) (hg : measurable g) :
-  measurable_set {a | f a < g a} :=
+lemma measurable_set_lt [second_countable_topology α] {f g : δ → α} (hf : measurable f)
+  (hg : measurable g) : measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
 
 private lemma ord_connected_measurable_set_aux {α : Type*} [linear_order α] (s : set α)
@@ -399,7 +397,7 @@ begin
   exact humeas.union hfinite.measurable_set
 end
 
-lemma is_preconnected.measurable_set [densely_ordered α] [order_topology α]
+lemma is_preconnected.measurable_set
   (h : is_preconnected s) : measurable_set s :=
 h.ord_connected.measurable_set
 

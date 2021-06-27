@@ -533,6 +533,36 @@ begin
       refine fin.veq_of_eq h_eq_comp }⟩}
 end
 
+/-- A monomorphism in `simplex_category` must increase lengths-/
+lemma mono_le_length {x y : simplex_category} {f : x ⟶ y} :
+  (category_theory.mono f) → (x.len ≤ y.len) :=
+begin
+  intro hyp_f_mono,
+  have f_inj : function.injective f.to_preorder_hom.to_fun,
+  { exact mono_iff_injective.elim_left (hyp_f_mono) },
+  have card_leq := fintype.card_le_of_injective f.to_preorder_hom.to_fun f_inj,
+  simp at card_leq,
+  exact card_leq,
+end
+
+lemma mono_le_card {n m : ℕ} {f : [n] ⟶ [m]} : (category_theory.mono f) → (n ≤ m) :=
+by { refine @mono_le_length [n] [m] f}
+
+/-- An epimorphism in `simplex_category` must decrease lengths-/
+lemma epi_ge_length {x y : simplex_category} {f : x ⟶ y} :
+  (category_theory.epi f) → (x.len ≥ y.len) :=
+begin
+  intro hyp_f_epi,
+  have f_surj : function.surjective f.to_preorder_hom.to_fun,
+  { exact epi_iff_surjective.elim_left (hyp_f_epi) },
+  have card_geq := fintype.card_le_of_surjective f.to_preorder_hom.to_fun f_surj,
+  simp at card_geq,
+  exact card_geq,
+end
+
+lemma epi_ge_card {n m : ℕ} {f : [n] ⟶ [m]} : (category_theory.epi f) → (n ≥ m) :=
+by {refine @epi_ge_length [n] [m] f}
+
 end epi_mono
 
 end simplex_category

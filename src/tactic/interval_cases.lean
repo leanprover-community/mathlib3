@@ -86,7 +86,7 @@ do t ← infer_type e,
       tn ← infer_type n,
       match tn with
       | `(ℕ) := to_expr ``(lt_iff_add_one_le.mp %%e)
-      | `(ℕ+) := to_expr ``(plt_iff_add_one_le.mp %%e)
+      | `(ℕ+) := to_expr ``(lt_iff_add_one_le.mp %%e)
       | `(ℤ) := to_expr ``(lt_iff_add_one_le.mp %%e)
       | _ := failed
       end
@@ -96,7 +96,7 @@ do t ← infer_type e,
       tn ← infer_type n,
       match tn with
       | `(ℕ) := to_expr ``(lt_iff_add_one_le.mp %%e)
-      | `(ℕ+) := to_expr ``(plt_iff_add_one_le.mp %%e)
+      | `(ℕ+) := to_expr ``(lt_iff_add_one_le.mp %%e)
       | `(ℤ) := to_expr ``(lt_iff_add_one_le.mp %%e)
       | _ := failed
       end
@@ -149,7 +149,7 @@ do e ← to_expr ``(@le_top _ _ %%n),
      tn ← infer_type n,
      e ← match tn with
      | `(ℕ) := to_expr ``(lt_iff_add_one_le.mp %%e)
-     | `(ℕ+) := to_expr ``(plt_iff_add_one_le.mp %%e)
+     | `(ℕ+) := to_expr ``(lt_iff_add_one_le.mp %%e)
      | `(ℤ) := to_expr ``(lt_iff_add_one_le.mp %%e)
      | _ := failed
      end,

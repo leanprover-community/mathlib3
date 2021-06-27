@@ -426,8 +426,7 @@ begin
     change (n.const x).to_preorder_hom 0 = (n.const y).to_preorder_hom 0,
     rw cancel_mono f at H,
     rw H },
-    { intro hyp_inj,
-      exact concrete_category.mono_of_injective _ hyp_inj }
+  { exact concrete_category.mono_of_injective f }
 end
 
 /-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
@@ -436,8 +435,7 @@ lemma epi_iff_surjective {n m : simplex_category} {f: n ⟶ m} :
   epi f ↔ function.surjective f.to_preorder_hom :=
 begin
   split,
-  { intro hyp_f_epi,
-    intro x,
+  { intros hyp_f_epi x,
     by_contradiction h_ab,
     rw not_exists at h_ab,
     -- The proof is by contradiction: assume f is not surjective,
@@ -446,38 +444,23 @@ begin
     set chi_1 : m ⟶ [1] := hom.mk
     ⟨λ u, if u ≤ x then 0 else 1,
      by { intros a b a_leq_b,
-          by_cases a ≤ x,
-          { simp [h], obviously },
-          { simp [h],
-            have b_ge_x : ¬(b ≤ x),
-            { by_contra b_leq_x,
-              have a_leq_x : a ≤ x,
-              { transitivity b,
-                exact a_leq_b,
-                exact b_leq_x },
-                exact h a_leq_x },
-          simp [b_ge_x]}}⟩ with def_chi_1,
+          by_cases h : a ≤ x,
+          { simp [h, fin.zero_le] },
+          { have b_ge_x : ¬(b ≤ x),
+            { contrapose! h,
+              exact a_leq_b.trans h },
+            simp [h, b_ge_x] }}⟩ with def_chi_1,
     set chi_2 : m ⟶ [1] := hom.mk
     ⟨λ u, if u < x then 0 else 1,
      by { intros a b a_leq_b,
-          by_cases (a = b),
-          { rw h },
-          rename h a_neq_b,
-          have a_lt_b : a < b,
-          { cases nat.eq_or_lt_of_le a_leq_b,
-            { exfalso, exact a_neq_b (subtype.eq h) },
-            { exact h }},
-          by_cases a < x,
-          { simp [h], obviously },
-          { simp [h],
-            have b_geq_x : ¬(b < x),
-            { by_contra b_leq_x,
-              have a_lt_x : a < x,
-              { transitivity b,
-                exact a_lt_b,
-                exact b_leq_x },
-                exact h a_lt_x },
-            simp [b_geq_x] }}⟩ with def_chi_2,
+          obtain rfl|a_lt_b := a_leq_b.eq_or_lt,
+          { refl },
+          by_cases h : a < x,
+          { simp [h, fin.zero_le] },
+          { have b_geq_x : ¬(b < x),
+            { contrapose! h,
+              exact a_lt_b.trans h },
+            simp [h, b_geq_x] }}⟩ with def_chi_2,
     -- The two auxiliary functions equalize f
     have f_comp_chi_i : f ≫ chi_1 = f ≫ chi_2,
     { dsimp,
@@ -493,9 +476,8 @@ begin
     have chi_1_x : (hom.to_preorder_hom chi_1) x = 0 := by { simp },
     have chi_2_x : (hom.to_preorder_hom chi_2) x = 1 := by { simp },
     rw [chi_1_x, chi_2_x] at eq_chi_i,
-    refine nat.zero_ne_one (fin.veq_of_eq eq_chi_i) },
-  { intro hyp_surj,
-    exact concrete_category.epi_of_surjective _ hyp_surj }
+    exact nat.zero_ne_one (fin.veq_of_eq eq_chi_i) },
+  { exact concrete_category.epi_of_surjective f }
 end
 
 /-- A monomorphism in `simplex_category` must increase lengths-/
@@ -505,9 +487,7 @@ begin
   intro hyp_f_mono,
   have f_inj : function.injective f.to_preorder_hom.to_fun,
   { exact mono_iff_injective.elim_left (hyp_f_mono) },
-  have card_leq := fintype.card_le_of_injective f.to_preorder_hom.to_fun f_inj,
-  simp at card_leq,
-  exact card_leq,
+  simpa using fintype.card_le_of_injective f.to_preorder_hom.to_fun f_inj,
 end
 
 lemma mono_le_card {n m : ℕ} {f : [n] ⟶ [m]} : (category_theory.mono f) → (n ≤ m) :=

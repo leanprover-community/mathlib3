@@ -37,8 +37,8 @@ Let us explain the meaning of each part of the name:
   endpoint.
 
 We also reformulate these theorems in terms of `(f?)deriv(_within?)`. These theorems are named
-`(f?)deriv(_within?)_integral(_of_tendsto_ae?)(_right|_left?)` with the same meaning of parts of
-the name.
+`(f?)deriv(_within?)_integral(_of_tendsto_ae?)(_right|_left?)` with the same meaning of parts of the
+name.
 
 ### One-sided derivatives
 
@@ -907,18 +907,18 @@ lemma continuous_on_primitive {f : α → E} {a b : α} [has_no_atoms μ]
   (h_int : integrable_on f (Icc a b) μ) :
   continuous_on (λ x, ∫ t in Ioc a x, f t ∂ μ) (Icc a b) :=
 begin
-  by_cases h : a ≤ b, swap,
+  by_cases h : a ≤ b,
+  { have : ∀ x ∈ Icc a b, ∫ (t : α) in Ioc a x, f t ∂μ = ∫ (t : α) in a..x, f t ∂μ,
+    { intros x x_in,
+      simp_rw [← interval_oc_of_le h, integral_of_le x_in.1] },
+    rw continuous_on_congr this,
+    intros x₀ hx₀,
+    refine continuous_within_at_primitive (measure_singleton x₀) _,
+    rw interval_integrable_iff,
+    simp only [h, max_eq_right, min_eq_left],
+    exact h_int.mono Ioc_subset_Icc_self le_rfl },
   { rw Icc_eq_empty h,
     exact continuous_on_empty _ },
-  have : ∀ x ∈ Icc a b, ∫ (t : α) in Ioc a x, f t ∂μ = ∫ (t : α) in a..x, f t ∂μ,
-  { intros x x_in,
-    simp_rw [← interval_oc_of_le h, integral_of_le x_in.1] },
-  rw continuous_on_congr this,
-  intros x₀ hx₀,
-  refine continuous_within_at_primitive (measure_singleton x₀) _,
-  rw interval_integrable_iff,
-  simp only [h, max_eq_right, min_eq_left],
-  exact h_int.mono Ioc_subset_Icc_self le_rfl,
 end
 
 lemma continuous_on_primitive' {f : α → E} {a b : α} [has_no_atoms μ]

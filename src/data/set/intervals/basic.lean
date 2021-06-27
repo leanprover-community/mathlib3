@@ -167,6 +167,18 @@ eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩, h (ha.trans_le hb)
 @[simp] lemma Ioo_eq_empty (h : ¬a < b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩,  h (ha.trans hb)
 
+@[simp] lemma Icc_eq_empty_of_lt (h : b < a) : Icc a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans h₂).not_lt h
+
+@[simp] lemma Ico_eq_empty_of_le (h : b ≤ a) : Ico a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans_lt h₂).not_le h
+
+@[simp] lemma Ioc_eq_empty_of_le (h : b ≤ a) : Ioc a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₂.trans h).not_lt h₁
+
+@[simp] lemma Ioo_eq_empty_of_le (h : b ≤ a) : Ioo a b = ∅ :=
+eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, (h₁.trans h₂).not_le h
+
 @[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ lt_irrefl _
 @[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ lt_irrefl _
 @[simp] lemma Ioo_self (a : α) : Ioo a a = ∅ := Ioo_eq_empty $ lt_irrefl _

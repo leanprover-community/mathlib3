@@ -161,7 +161,7 @@ end tensor_matrix
 
 namespace kronecker_product
 
-open tensor_product matrix tensor_matrix algebra.tensor_product
+open tensor_product matrix tensor_matrix --algebra.tensor_product
 open_locale tensor_product
 
 variables {R : Type*} [comm_semiring R]

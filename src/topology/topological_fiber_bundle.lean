@@ -821,6 +821,10 @@ different name for typeclass inference. -/
 @[nolint unused_arguments, reducible]
 def total_space := bundle.total_space Z.fiber
 
+/-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
+@[simp, mfld_simps, reducible] def to_total_space (b : B) (a : Z.fiber b) :
+  bundle.total_space Z.fiber := ⟨b, a⟩
+
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : Z.total_space → B := bundle.proj Z.fiber
 
@@ -1035,7 +1039,7 @@ a bundle trivialization -/
 def local_triv_at_ext (b : B) : bundle_trivialization F Z.proj :=
 Z.local_triv_ext (Z.index_at b)
 
-lemma local_triv_at_ext_def (b : B) :
+@[simp, mfld_simps] lemma local_triv_at_ext_def (b : B) :
   Z.local_triv_ext (Z.index_at b) = Z.local_triv_at_ext b := rfl
 
 /-- If an element of `F` is invariant under all coordinate changes, then one can define a
@@ -1097,15 +1101,12 @@ by { rw [local_triv_at_ext, local_triv_ext_apply, coord_change_self], exact Z.me
   b ∈ (Z.local_triv_at_ext b).base_set :=
 by { rw [local_triv_at_ext, ←base_set_at], exact Z.mem_base_set_at b, }
 
-/-- The inclusion of a fiber into the total space is a continuous map.
-
-why does it find the sigma topology instead!? -/
-lemma continuous_sigma_mk (b : B) : @continuous _ _ _ (Z.to_topological_space ι)
-  (λ a, (⟨b, a⟩ : (bundle.total_space Z.fiber))) :=
+/-- The inclusion of a fiber into the total space is a continuous map. -/
+lemma continuous_sigma_mk (b : B) : continuous (λ a, Z.to_total_space b a) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],
   apply le_induced_generate_from,
-  simp only [mem_Union, mem_singleton_iff, local_triv'_source, local_triv'_coe, mem_image],
+  simp only [to_total_space, mem_Union, mem_singleton_iff, local_triv'_source, local_triv'_coe],
   rintros s ⟨i, t, ht, rfl⟩,
   rw [←(local_homeomorph.source_inter_preimage_target_inter (Z.local_triv i) t),
     preimage_inter, ←preimage_comp, local_triv_source, bundle_trivialization.source_eq],

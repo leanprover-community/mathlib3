@@ -620,9 +620,9 @@ class has_lt_iff_add_one_le (α : Type u) [preorder α] [has_add α] [has_one α
 (lt_iff_add_one_le : ∀ a b : α, a < b ↔ a + 1 ≤ b)
 
 lemma lt_iff_add_one_le {α : Type u} [preorder α] [has_add α] [has_one α]
-  [has_lt_iff_add_one_le α] :
-  ∀ a b : α, a < b ↔ a + 1 ≤ b :=
-has_lt_iff_add_one_le.lt_iff_add_one_le
+  [has_lt_iff_add_one_le α] {a b : α} :
+  a < b ↔ a + 1 ≤ b :=
+has_lt_iff_add_one_le.lt_iff_add_one_le a b
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

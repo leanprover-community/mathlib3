@@ -81,7 +81,7 @@ lemma exists_iff_exists_finsupp (P : polynomial R → Prop) :
 | ⟨a⟩ := ⟨-a⟩
 @[irreducible] private def mul : polynomial R → polynomial R → polynomial R
 | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
-@[irreducible] private def smul {S : Type*} [semiring S] [module S R] :
+@[irreducible] private def smul {S : Type*} [monoid S] [distrib_mul_action S R] :
   S → polynomial R → polynomial R
 | a ⟨b⟩ := ⟨a • b⟩
 
@@ -90,7 +90,7 @@ instance : has_one (polynomial R) := ⟨monomial_fun 0 (1 : R)⟩
 instance : has_add (polynomial R) := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg (polynomial R) := ⟨neg⟩
 instance : has_mul (polynomial R) := ⟨mul⟩
-instance {S : Type*} [semiring S] [module S R] : has_scalar S (polynomial R) := ⟨smul⟩
+instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_scalar S (polynomial R) := ⟨smul⟩
 
 lemma zero_to_finsupp : (⟨0⟩ : polynomial R) = 0 :=
 rfl
@@ -106,7 +106,7 @@ lemma add_to_finsupp {a b} : (⟨a⟩ + ⟨b⟩ : polynomial R) = ⟨a + b⟩ :=
 lemma neg_to_finsupp {R : Type u} [ring R] {a} : (-⟨a⟩ : polynomial R) = ⟨-a⟩ :=
 show neg _ = _, by rw neg
 lemma mul_to_finsupp {a b} : (⟨a⟩ * ⟨b⟩ : polynomial R) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
-lemma smul_to_finsupp {S : Type*} [semiring S] [module S R] {a : S} {b} :
+lemma smul_to_finsupp {S : Type*} [monoid S] [distrib_mul_action S R] {a : S} {b} :
   (a • ⟨b⟩ : polynomial R) = ⟨a • b⟩ := show smul _ _ = _, by rw smul
 
 instance : inhabited (polynomial R) := ⟨0⟩
@@ -125,21 +125,25 @@ by refine_struct
   simp [← zero_to_finsupp, ← one_to_finsupp, add_to_finsupp, mul_to_finsupp, mul_assoc, mul_add,
     add_mul, smul_to_finsupp, nat.succ_eq_one_add]; abel }
 
-instance {S} [semiring S] [module S R] : module S (polynomial R) :=
+instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S (polynomial R) :=
 { smul := (•),
   one_smul := by { rintros ⟨⟩, simp [smul_to_finsupp] },
   mul_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, mul_smul], },
   smul_add := by { rintros _ ⟨⟩ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp] },
-  smul_zero := by { rintros _, simp [← zero_to_finsupp, smul_to_finsupp] },
-  add_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul] },
-  zero_smul := by { rintros ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] } }
+  smul_zero := by { rintros _, simp [← zero_to_finsupp, smul_to_finsupp] } }
 
-instance {S₁ S₂} [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
+instance {S} [semiring S] [module S R] : module S (polynomial R) :=
+{ smul := (•),
+  add_smul := by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, add_to_finsupp, add_smul] },
+  zero_smul := by { rintros ⟨⟩, simp [smul_to_finsupp, ← zero_to_finsupp] },
+  ..polynomial.distrib_mul_action }
+
+instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [distrib_mul_action S₂ R]
   [smul_comm_class S₁ S₂ R] : smul_comm_class S₁ S₂ (polynomial R) :=
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_finsupp, smul_comm] }⟩
 
-instance {S₁ S₂} [has_scalar S₁ S₂] [semiring S₁] [semiring S₂] [module S₁ R] [module S₂ R]
-  [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
+instance {S₁ S₂} [has_scalar S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
+  [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ (polynomial R) :=
 ⟨by { rintros _ _ ⟨⟩, simp [smul_to_finsupp] }⟩
 
 instance [subsingleton R] : unique (polynomial R) :=
@@ -212,7 +216,7 @@ begin
   { simp [pow_succ, ih, monomial_mul_monomial, nat.succ_eq_add_one, mul_add, add_comm] },
 end
 
-lemma smul_monomial {S} [semiring S] [module S R] (a : S) (n : ℕ) (b : R) :
+lemma smul_monomial {S} [monoid S] [distrib_mul_action S R] (a : S) (n : ℕ) (b : R) :
   a • monomial n b = monomial n (a • b) :=
 by simp [monomial, monomial_fun, smul_to_finsupp]
 
@@ -248,6 +252,10 @@ lemma C_1 : C (1 : R) = 1 := rfl
 lemma C_mul : C (a * b) = C a * C b := C.map_mul a b
 
 lemma C_add : C (a + b) = C a + C b := C.map_add a b
+
+@[simp] lemma smul_C {S} [monoid S] [distrib_mul_action S R] (s : S) (r : R) :
+  s • C r = C (s • r) :=
+smul_monomial _ _ r
 
 @[simp] lemma C_bit0 : C (bit0 a) = bit0 (C a) := C_add
 

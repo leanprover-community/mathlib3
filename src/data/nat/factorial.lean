@@ -143,13 +143,12 @@ end
 lemma add_factorial_succ_le_factorial_add_succ (i : ℕ) (n : ℕ) :
   i + (n + 1)! ≤ (i + (n + 1))! :=
 begin
-  by_cases i2 : 2 ≤ i,
+  obtain i2 | (_ | ⟨_, i0⟩) := le_or_lt 2 i,
   { exact (n.add_factorial_succ_lt_factorial_add_succ i2).le },
-  cases (not_le.mp i2) with _ i0,
   { change 1 + (n + 1)! ≤ (1 + n + 1) * (1 + n)!,
     rw [add_mul, one_mul, add_comm 1 n],
     exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
-  rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add],
+  rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add]
 end
 
 lemma add_factorial_le_factorial_add (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :

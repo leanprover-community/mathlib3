@@ -286,13 +286,9 @@ begin
   have a_mem : generator (N.map ϕ) ∈ N.map ϕ := generator_mem _,
 
   -- If `a` is zero, then the submodule is trivial. So let's assume `a ≠ 0`, `N ≠ ⊥`
-  by_cases N_bot : N = ⊥,
-  { rw N_bot,
-    refine ⟨0, basis.empty _ _⟩,
-    rintro ⟨i, ⟨⟩⟩ },
   by_cases a_zero : generator (N.map ϕ) = 0,
-  { have := eq_bot_of_generator_maximal_map_eq_zero b ϕ_max a_zero,
-    contradiction },
+  { rw eq_bot_of_generator_maximal_map_eq_zero b ϕ_max a_zero,
+    exact ⟨0, basis.empty _⟩ },
 
   -- We claim that `ϕ⁻¹ a = y` can be taken as basis element of `N`.
   let y := a_mem.some,

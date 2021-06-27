@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
 import linear_algebra.basic
+import linear_algebra.pi
 
 /-!
 # Properties of the module `α →₀ M`
@@ -90,7 +91,9 @@ variables (s : set α)
 
 /-- Interpret `finsupp.subtype_domain s` as a linear map. -/
 def lsubtype_domain : (α →₀ M) →ₗ[R] (s →₀ M) :=
-⟨subtype_domain (λx, x ∈ s), assume a b, subtype_domain_add, assume c a, ext $ assume a, rfl⟩
+{ to_fun := subtype_domain (λx, x ∈ s),
+  map_add' := λ a b, subtype_domain_add,
+  map_smul' := λ c a, ext $ λ a, rfl }
 
 lemma lsubtype_domain_apply (f : α →₀ M) :
   (lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)) f = subtype_domain (λx, x ∈ s) f := rfl
@@ -140,8 +143,8 @@ begin
   by_cases his : i ∈ s,
   { by_cases hit : i ∈ t,
     { exact (hs ⟨his, hit⟩).elim },
-    exact inf_le_right_of_le (infi_le_of_le i $ infi_le _ hit) },
-  exact inf_le_left_of_le (infi_le_of_le i $ infi_le _ his)
+    exact inf_le_of_right_le (infi_le_of_le i $ infi_le _ hit) },
+  exact inf_le_of_left_le (infi_le_of_le i $ infi_le _ his)
 end
 
 lemma span_single_image (s : set M) (a : α) :
@@ -348,7 +351,7 @@ variables {α' : Type*} {α'' : Type*} (M R)
 
 /-- Interpret `finsupp.map_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
-⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
+{ to_fun := map_domain f, map_add' := λ a b, map_domain_add, map_smul' := map_domain_smul }
 
 @[simp] theorem lmap_domain_apply (f : α → α') (l : α →₀ M) :
   (lmap_domain M R f : (α →₀ M) →ₗ[R] (α' →₀ M)) l = map_domain f l := rfl
@@ -500,6 +503,10 @@ theorem mem_span_image_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
 by { rw span_image_eq_map_total, simp, }
 
+@[simp] lemma total_fin_zero (f : fin 0 → M) :
+  finsupp.total (fin 0) M R f = 0 :=
+by { ext i, apply fin_zero_elim i }
+
 variables (α) (M) (v)
 
 /-- `finsupp.total_on M v s` interprets `p : α →₀ R` as a linear combination of a
@@ -549,7 +556,9 @@ end total
 This is `finsupp.dom_congr` as a `linear_equiv`.-/
 protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
-(finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv (lmap_domain M R e).map_smul
+(finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv $
+by simpa only [equiv_map_domain_eq_map_domain, dom_congr_apply]
+  using (lmap_domain M R e).map_smul
 
 @[simp]
 lemma dom_lcongr_apply {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (v : α₁ →₀ M) :
@@ -558,12 +567,12 @@ rfl
 
 @[simp]
 lemma dom_lcongr_refl : finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
-linear_equiv.ext $ λ _, map_domain_id
+linear_equiv.ext $ λ _, equiv_map_domain_refl _
 
 lemma dom_lcongr_trans {α₁ α₂ α₃ : Type*} (f : α₁ ≃ α₂) (f₂ : α₂ ≃ α₃) :
   (finsupp.dom_lcongr f).trans (finsupp.dom_lcongr f₂) =
     (finsupp.dom_lcongr (f.trans f₂) : (_ →₀ M) ≃ₗ[R] _) :=
-linear_equiv.ext $ λ _, map_domain_comp.symm
+linear_equiv.ext $ λ _, (equiv_map_domain_trans _ _ _).symm
 
 @[simp]
 lemma dom_lcongr_symm {α₁ α₂ : Type*} (f : α₁ ≃ α₂) :
@@ -572,7 +581,7 @@ linear_equiv.ext $ λ x, rfl
 
 @[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
-by simp [finsupp.dom_lcongr, finsupp.dom_congr, map_domain_single]
+by simp [finsupp.dom_lcongr, finsupp.dom_congr, equiv_map_domain_single]
 
 /-- An equivalence of sets induces a linear equivalence of `finsupp`s supported on those sets. -/
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
@@ -821,3 +830,63 @@ def module.subsingleton_equiv (R M ι: Type*) [semiring R] [subsingleton R] [add
   right_inv := λ f, by simp only [eq_iff_true_of_subsingleton],
   map_add' := λ m n, (add_zero 0).symm,
   map_smul' := λ r m, (smul_zero r).symm }
+
+namespace linear_map
+
+variables {R M} {α : Type*}
+open finsupp function
+
+/-- A surjective linear map to finitely supported functions has a splitting. -/
+-- See also `linear_map.splitting_of_fun_on_fintype_surjective`
+def splitting_of_finsupp_surjective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) : (α →₀ R) →ₗ[R] M :=
+finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)
+
+lemma splitting_of_finsupp_surjective_splits (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+  f.comp (splitting_of_finsupp_surjective f s) = linear_map.id :=
+begin
+  ext x y,
+  dsimp [splitting_of_finsupp_surjective],
+  congr,
+  rw [sum_single_index, one_smul],
+  { exact (s (finsupp.single x 1)).some_spec, },
+  { rw zero_smul, },
+end
+
+lemma left_inverse_splitting_of_finsupp_surjective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+  left_inverse f (splitting_of_finsupp_surjective f s) :=
+λ g, linear_map.congr_fun (splitting_of_finsupp_surjective_splits f s) g
+
+lemma splitting_of_finsupp_surjective_injective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+  injective (splitting_of_finsupp_surjective f s) :=
+(left_inverse_splitting_of_finsupp_surjective f s).injective
+
+/-- A surjective linear map to functions on a finite type has a splitting. -/
+-- See also `linear_map.splitting_of_finsupp_surjective`
+def splitting_of_fun_on_fintype_surjective [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
+  (α → R) →ₗ[R] M :=
+(finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)).comp
+  (@linear_equiv_fun_on_fintype R R α _ _ _ _).symm.to_linear_map
+
+lemma splitting_of_fun_on_fintype_surjective_splits
+  [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
+  f.comp (splitting_of_fun_on_fintype_surjective f s) = linear_map.id :=
+begin
+  ext x y,
+  dsimp [splitting_of_fun_on_fintype_surjective],
+  rw [linear_equiv_fun_on_fintype_symm_single, finsupp.sum_single_index, one_smul,
+    linear_map.id_coe, id_def,
+    (s (finsupp.single x 1)).some_spec, finsupp.single_eq_pi_single],
+  rw [zero_smul],
+end
+
+lemma left_inverse_splitting_of_fun_on_fintype_surjective
+  [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
+  left_inverse f (splitting_of_fun_on_fintype_surjective f s) :=
+λ g, linear_map.congr_fun (splitting_of_fun_on_fintype_surjective_splits f s) g
+
+lemma splitting_of_fun_on_fintype_surjective_injective
+  [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
+  injective (splitting_of_fun_on_fintype_surjective f s) :=
+(left_inverse_splitting_of_fun_on_fintype_surjective f s).injective
+
+end linear_map

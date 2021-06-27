@@ -99,7 +99,7 @@ begin
   have sub_le := abs_sub_le (∑ k in range j, g k) (∑ k in range i, g k)
     (∑ k in range (max n i), g k),
   have := add_lt_add hi₁ hi₂,
-  rw [abs_sub (∑ k in range (max n i), g k), add_halves ε] at this,
+  rw [abs_sub_comm (∑ k in range (max n i), g k), add_halves ε] at this,
   refine lt_of_le_of_lt (le_trans (le_trans _ (le_abs_self _)) sub_le) this,
   generalize hk : j - max n i = k,
   clear this hi₂ hi₁ hi ε0 ε hg sub_le,
@@ -1470,18 +1470,15 @@ calc cos 1 ≤ abs' (1 : ℝ) ^ 4 * (5 / 96) + (1 - 1 ^ 2 / 2) :
   sub_le_iff_le_add.1 (abs_sub_le_iff.1 (cos_bound (by simp))).1
 ... ≤ 2 / 3 : by norm_num
 
-lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (by simp)
+lemma cos_one_pos : 0 < cos 1 := cos_pos_of_le_one (le_of_eq abs_one)
 
 lemma cos_two_neg : cos 2 < 0 :=
 calc cos 2 = cos (2 * 1) : congr_arg cos (mul_one _).symm
-... = _ : real.cos_two_mul 1
-... ≤ 2 * (2 / 3) ^ 2 - 1 :
-  sub_le_sub_right (mul_le_mul_of_nonneg_left
-    (by rw [sq, sq]; exact
-      mul_self_le_mul_self (le_of_lt cos_one_pos)
-        cos_one_le)
-    (by norm_num)) _
-... < 0 : by norm_num
+  ... = _ : real.cos_two_mul 1
+  ... ≤ 2 * (2 / 3) ^ 2 - 1 : sub_le_sub_right (mul_le_mul_of_nonneg_left
+          (by { rw [sq, sq], exact mul_self_le_mul_self (le_of_lt cos_one_pos) cos_one_le })
+          zero_le_two) _
+  ... < 0 : by norm_num
 
 end real
 

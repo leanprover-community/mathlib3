@@ -500,9 +500,7 @@ begin
   intro hyp_f_epi,
   have f_surj : function.surjective f.to_preorder_hom.to_fun,
   { exact epi_iff_surjective.elim_left (hyp_f_epi) },
-  have card_geq := fintype.card_le_of_surjective f.to_preorder_hom.to_fun f_surj,
-  simp at card_geq,
-  exact card_geq,
+  simpa using fintype.card_le_of_surjective f.to_preorder_hom.to_fun f_surj,
 end
 
 lemma epi_ge_card {n m : ℕ} {f : [n] ⟶ [m]} : epi f → (m ≤ n) :=

@@ -10,6 +10,41 @@ import analysis.calculus.mean_value
 /-!
 # Symmetry of the second derivative
 
+We show that, over the reals, the second derivative is symmetric.
+
+The most precise result is `convex.second_derivative_within_at_symmetric`. It asserts that,
+if a function is differentiable inside a convex set `s` with nonempty interior, and has a second
+derivative within `s` at a point `x`, then this second derivative at `x` is symmetric. Note that
+this result does not require continuity of the first derivative.
+
+The following particular cases of this statement are especially relevant :
+
+`second_derivative_symmetric_of_eventually` asserts that, if a function is differentiable on a
+neighborhood of `x`, and has a second derivative at `x`, then this second derivative is symmetric.
+
+`second_derivative_symmetric` asserts that, if a function is differentiable, and has a second
+derivative at `x`, then this second derivative is symmetric.
+
+## Implementation note
+
+For the proof, we obtain an asymptotic expansion to order two of `f (x + v + w) - f (x + v)`, by
+using the mean value inequality applied to a suitable function along the
+segment `[x + v, x + v + w]`. This expansion involves `f'' ⬝ w` as we move along a segment directed
+by `w` (see `convex.taylor_approx_two_segment`).
+
+Consider the alternate sum `f (x + v + w) + f x - f (x + v) - f (x + w)`, corresponding to the
+values of `f` along a rectangle based at `x` with sides `v` and `w`. One can write it using the two
+sides directed by `w`, as `(f (x + v + w) - f (x + v)) - (f (x + w) - f x)`. Together with the
+previous asymptotic expansion, one deduces that it equals `f'' v w + o(1)` when `v, w` tends to `0`.
+Exchanging the roles of `v` and `w`, one instead gets an asymptotic expansion `f'' w v`, from which
+the equality `f'' v w = f'' w v` follows.
+
+In our most general statement, we only assume that `f` is differentiable inside a convex set `s`, so
+a few modifications have to be made. Since we don't assume continuity of `f` at `x`, we consider
+instead the rectangle based at `x + v + w` with sides `v` and `w`,
+in `convex.is_o_alternate_sum_square`, but the argument is essentially the same. It only works
+when `v` and `w` both point towards the interior of `s`, to make sure that all the sides of the
+rectangle are contained in `s` by convexity. The general case follows by linearity, though.
 -/
 
 open asymptotics set
@@ -214,10 +249,10 @@ end
 
 /-- Assume that `f` is differentiable inside a convex set `s`, and that its derivative `f'` is
 differentiable at a point `x`. Then, given two vectors `v` and `w` pointing inside `s`, one
-has `f'' v w = f'' w v`. Superseded by `convex.second_derivative_symmetric`, which removes the
-assumption that `v` and `w` point inside `s`.
+has `f'' v w = f'' w v`. Superseded by `convex.second_derivative_within_at_symmetric`, which
+removes the assumption that `v` and `w` point inside `s`.
 -/
-lemma convex.second_derivative_within_at_comm_of_mem_interior
+lemma convex.second_derivative_within_at_symmetric_of_mem_interior
   {v w : E} (h4v : x + (4 : ℝ) • v ∈ interior s) (h4w : x + (4 : ℝ) • w ∈ interior s) :
   f'' w v = f'' v w :=
 begin
@@ -241,6 +276,8 @@ begin
       field_simp [has_lt.lt.ne' hpos, has_scalar.smul] } },
   simpa only [sub_eq_zero] using (is_o_const_const_iff (@one_ne_zero ℝ _ _)).1 B,
 end
+
+omit s_conv xs hx hf
 
 /-- If a function is differentiable inside a convex set with nonempty interior, and has a second
 derivative at a point of this convex set, then this second derivative is symmetric. -/
@@ -279,7 +316,7 @@ begin
   have C : ∀ (m : E), f'' m z = f'' z m,
   { assume m,
     have : f'' (z + t m • m) (z + t 0 • 0) = f'' (z + t 0 • 0) (z + t m • m) :=
-      s_conv.second_derivative_within_at_comm_of_mem_interior hf xs hx (ts 0) (ts m),
+      s_conv.second_derivative_within_at_symmetric_of_mem_interior hf xs hx (ts 0) (ts m),
     simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, add_right_inj,
       continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', add_zero,
       continuous_linear_map.zero_apply, smul_zero, continuous_linear_map.map_zero] at this,
@@ -288,7 +325,7 @@ begin
   -- we deduce that `f'' v w = f'' w v`. Cross terms involving `z` can be eliminated thanks to
   -- the fact proved above that `f'' m z = f'' z m`.
   have : f'' (z + t v • v) (z + t w • w) = f'' (z + t w • w) (z + t v • v) :=
-    s_conv.second_derivative_within_at_comm_of_mem_interior hf xs hx (ts w) (ts v),
+    s_conv.second_derivative_within_at_symmetric_of_mem_interior hf xs hx (ts w) (ts v),
   simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, smul_add, smul_smul,
     continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', C] at this,
   rw ← sub_eq_zero at this,
@@ -297,3 +334,27 @@ begin
   apply smul_left_injective F _ this,
   simp [(tpos v).ne', (tpos w).ne']
 end
+
+/-- If a function is differentiable around `x`, and has two derivatives at `x`, then the second
+derivative is symmetric. -/
+theorem second_derivative_symmetric_of_eventually
+  {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
+  (hf : ∀ᶠ y in 𝓝 x, has_fderiv_at f (f' y) y)
+  (hx : has_fderiv_at f' f'' x) (v w : E) :
+  f'' v w = f'' w v :=
+begin
+  rcases metric.mem_nhds_iff.1 hf with ⟨ε, εpos, hε⟩,
+  have A : (interior (metric.ball x ε)).nonempty,
+    by { rw metric.is_open_ball.interior_eq, exact metric.nonempty_ball εpos },
+  exact convex.second_derivative_within_at_symmetric (convex_ball x ε) A
+    (λ y hy, hε (interior_subset hy)) (metric.mem_ball_self εpos) hx.has_fderiv_within_at v w,
+end
+
+/-- If a function is differentiable, and has two derivatives at `x`, then the second
+derivative is symmetric. -/
+theorem second_derivative_symmetric
+  {f : E → F} {f' : E → (E →L[ℝ] F)} {f'' : E →L[ℝ] (E →L[ℝ] F)}
+  (hf : ∀ y, has_fderiv_at f (f' y) y)
+  (hx : has_fderiv_at f' f'' x) (v w : E) :
+  f'' v w = f'' w v :=
+second_derivative_symmetric_of_eventually (filter.eventually_of_forall hf) hx v w

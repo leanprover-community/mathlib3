@@ -43,20 +43,20 @@ name.
 ### One-sided derivatives
 
 Theorem `integral_has_fderiv_within_at_of_tendsto_ae` states that `(u, v) ↦ ∫ x in u..v, f x` has a
-derivative `(δu, δv) ↦ δv • cb - δu • ca` within the set `s × t` at `(a, b)` provided that `f`
-tends to `ca` (resp., `cb`) almost surely at `la` (resp., `lb`), where possible values of `s`, `t`,
-and corresponding filters `la`, `lb` are given in the following table.
+derivative `(δu, δv) ↦ δv • cb - δu • ca` within the set `s × t` at `(a, b)` provided that `f` tends
+to `ca` (resp., `cb`) almost surely at `la` (resp., `lb`), where possible values of `s`, `t`, and
+corresponding filters `la`, `lb` are given in the following table.
 
-| `s`     | `la`          | `t`     | `lb`          |
-| ------- | ----          | ---     | ----          |
+| `s`     | `la`         | `t`     | `lb`         |
+| ------- | ----         | ---     | ----         |
 | `Iic a` | `𝓝[Iic a] a` | `Iic b` | `𝓝[Iic b] b` |
 | `Ici a` | `𝓝[Ioi a] a` | `Ici b` | `𝓝[Ioi b] b` |
-| `{a}`   | `⊥`           | `{b}`   | `⊥`          |
+| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
 | `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
 
-We use a typeclass `FTC_filter` to make Lean automatically find `la`/`lb` based on `s`/`t`. This
-way we can formulate one theorem instead of `16` (or `8` if we leave only non-trivial ones not
-covered by `integral_has_deriv_within_at_of_tendsto_ae_(left|right)` and
+We use a typeclass `FTC_filter` to make Lean automatically find `la`/`lb` based on `s`/`t`. This way
+we can formulate one theorem instead of `16` (or `8` if we leave only non-trivial ones not covered
+by `integral_has_deriv_within_at_of_tendsto_ae_(left|right)` and
 `integral_has_fderiv_at_of_tendsto_ae`). Similarly,
 `integral_has_deriv_within_at_of_tendsto_ae_right` works for both one-sided derivatives using the
 same typeclass to find an appropriate filter.
@@ -77,8 +77,8 @@ an `FTC_filter` pair of filters around `b`. If `f` has finite limits `ca` and `c
 
 We use FTC-1 to prove several versions of FTC-2 for the Lebesgue measure, using a similar naming
 scheme as for the versions of FTC-1. They include:
-* `interval_integral.integral_eq_sub_of_has_deriv_right_of_le` - most general version, for
-  functions with a right derivative
+* `interval_integral.integral_eq_sub_of_has_deriv_right_of_le` - most general version, for functions
+  with a right derivative
 * `interval_integral.integral_eq_sub_of_has_deriv_at'` - version for functions with a derivative on
   an open set
 * `interval_integral.integral_deriv_eq_sub'` - version that is easiest to use when computing the

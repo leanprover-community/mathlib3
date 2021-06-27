@@ -406,19 +406,16 @@ section epi_mono
 
 /-- A morphism in `simplex_category` is a monomorphism precisely when it is an injective function
 -/
-theorem mono_iff_injective {n m : simplex_category} {f: n ⟶ m} :
-  (category_theory.mono f) ↔ (function.injective ⇑f.to_preorder_hom) :=
+theorem mono_iff_injective {n m : simplex_category} {f : n ⟶ m} :
+  mono f ↔ function.injective f.to_preorder_hom :=
 begin
   split,
-  { intros m x y h,
-  set cx : [0] ⟶ n := const n x with def_cx,
-  set cy : [0] ⟶ n := const n y with def_cy,
-  have H : (cx ≫ f = cy ≫ f) := by {dsimp, rw h},
-  resetI, rw (cancel_mono f) at H,
-  have from_constant_function :
-    (∀ (z : fin(n.len + 1)), (z = (const n z).to_preorder_hom.to_fun 0)),
-  { intro z, simp, refl},
-  rw [from_constant_function x, from_constant_function y, ←def_cx, ←def_cy, H] },
+  { introsI m x y h,
+    have H : const n x ≫ f = const n y ≫ f,
+    { dsimp, rw h },
+    change (n.const x).to_preorder_hom 0 = (n.const y).to_preorder_hom 0,
+    rw cancel_mono f at H,
+    rw H },
   { intro H,
   split,
   intros Z g h hyp_eq,
@@ -437,7 +434,7 @@ end
 /-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
 -/
 lemma epi_iff_surjective {n m : simplex_category} {f: n ⟶ m} :
-  (category_theory.epi f) ↔ (function.surjective ⇑f.to_preorder_hom) :=
+  epi f ↔ function.surjective f.to_preorder_hom :=
 begin
   split,
   { intro hyp_f_epi,
@@ -535,7 +532,7 @@ end
 
 /-- A monomorphism in `simplex_category` must increase lengths-/
 lemma mono_le_length {x y : simplex_category} {f : x ⟶ y} :
-  (category_theory.mono f) → (x.len ≤ y.len) :=
+  mono f → (x.len ≤ y.len) :=
 begin
   intro hyp_f_mono,
   have f_inj : function.injective f.to_preorder_hom.to_fun,

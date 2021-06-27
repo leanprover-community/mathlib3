@@ -7,7 +7,7 @@ import data.subtype
 import data.prod
 
 /-!
-# Basic definitions about `≤` and ` < `
+# Basic definitions about `≤` and `<`
 
 ## Definitions
 
@@ -15,7 +15,7 @@ import data.prod
 
 - `monotone f`: A function between two types equipped with `≤` is monotone if `a ≤ b` implies
   `f a ≤ f b`.
-- `strict_mono f` : A function between two types equipped with ` < ` is strictly monotone  if
+- `strict_mono f` : A function between two types equipped with `<` is strictly monotone  if
   `a < b` implies `f a < f b`.
 - `order_dual α` : A type tag reversing the meaning of all inequalities.
 
@@ -36,9 +36,10 @@ import data.prod
 
 ## Main theorems
 
-- `monotone_of_monotone_nat`: if `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then
-  `f` is monotone;
-- `strict_mono.nat`: if `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then f is strictly monotone.
+- `monotone_of_monotone_nat`: if `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
+  monotone.
+- `strict_mono.nat`: if `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is strictly
+  monotone.
 
 ## TODO
 
@@ -171,7 +172,7 @@ def strict_mono_incr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : P
 def strict_mono_decr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=
 ∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), x < y → f y < f x
 
-/-- Type tag for a set with dual order: `≤` means `≥` and ` < ` means `>`. -/
+/-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
 def order_dual (α : Type*) := α
 
 namespace order_dual
@@ -543,7 +544,7 @@ instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [part
 ### Additional order classes
 -/
 
-/-- order without a top element; somtimes called cofinal -/
+/-- order without a top element; sometimes called cofinal -/
 class no_top_order (α : Type u) [preorder α] : Prop :=
 (no_top : ∀ a : α, ∃ a', a < a')
 

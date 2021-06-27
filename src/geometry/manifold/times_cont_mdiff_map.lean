@@ -34,6 +34,7 @@ structure times_cont_mdiff_map :=
 (to_fun                  : M → M')
 (times_cont_mdiff_to_fun : times_cont_mdiff I I' n to_fun)
 
+/-- Bundled local `n` times continuously differentiable maps. -/
 @[protect_proj]
 structure times_cont_mdiff_on_map :=
 (to_fun                     : M → M')
@@ -106,6 +107,14 @@ instance [inhabited M'] : inhabited C^n⟮I, M; I', M'⟯ :=
 /-- Constant map as a smooth map -/
 def const (y : M') : C^n⟮I, M; I', M'⟯ := ⟨λ x, y, times_cont_mdiff_const⟩
 
+/-- Natural identification as a local smooth function. -/
+def to_times_cont_mdiff_map_on (f : C^n⟮I, M; I', M'⟯) : Cₗ^n⟮I, M; I', M'⟯ :=
+{ source := set.univ,
+  times_cont_mdiff_on_to_fun := f.times_cont_mdiff_to_fun.times_cont_mdiff_on,
+  ..f }
+
+instance : has_coe C^n⟮I, M; I', M'⟯ Cₗ^n⟮I, M; I', M'⟯ := ⟨to_times_cont_mdiff_map_on⟩
+
 end times_cont_mdiff_map
 
 instance continuous_linear_map.has_coe_to_times_cont_mdiff_map :
@@ -127,5 +136,15 @@ protected lemma smooth (f : Cₗ^∞⟮I, M; I', M'⟯) :
 by cases f; cases g; congr'; exact funext h
 
 @[simp] lemma to_fun_eq_coe {f : Cₗ^n⟮I, M; I', M'⟯} : f.to_fun = ⇑f := rfl
+
+variables {I I' M M' n}
+
+/-- Constant map as a smooth local map. -/
+def const (y : M') : Cₗ^n⟮I, M; I', M'⟯ := (times_cont_mdiff_map.const y).to_times_cont_mdiff_map_on
+
+@[simp] lemma times_cont_mdiff_on_map_const_source {x : M'} :
+  (times_cont_mdiff_on_map.const x : Cₗ^n⟮I, M; I', M'⟯).source = set.univ := rfl
+
+instance [inhabited M'] : inhabited Cₗ^n⟮I, M; I', M'⟯ := ⟨const (default M')⟩
 
 end times_cont_mdiff_on_map

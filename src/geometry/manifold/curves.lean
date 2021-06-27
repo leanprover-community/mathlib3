@@ -1,16 +1,30 @@
+/-
+Copyright © 2020 Nicolò Cavalleri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Nicolò Cavalleri
+-/
+
 import geometry.manifold.times_cont_mdiff_map
 import geometry.manifold.instances.real
+
+/-!
+# Smooth curves
+
+In this file we define the type `curve` of `n` times continuously differentiable bundled curves.
+-/
 
 noncomputable theory
 
 open set
 
+/-- where should this go? -/
 def is_maximal {α : Type*} [partial_order α] (a : α) : Prop := ∀ b : α, b ≥ a → b = a
 
 open_locale manifold
 
 section
 
+/-- Smooth curve. -/
 structure curve {E : Type*} [normed_group E] [normed_space ℝ E]
   {H : Type*} [topological_space H] (I : model_with_corners ℝ E H)
   (M : Type*) [inhabited M] [topological_space M] [charted_space H M]
@@ -50,8 +64,18 @@ begin
       rw [h2, h3], } }
 end
 
-variables {I} {M} {n}
+variables {M n}
 
+/-- Constant curve of value `x`. -/
+def const_curve (x : M) : curve I M n :=
+{ connected_source := connected_space.is_connected_univ,
+  default_value := λ t, by simp only [forall_false_left, mem_univ, not_true,
+    times_cont_mdiff_on_map.times_cont_mdiff_on_map_const_source],
+  ..times_cont_mdiff_on_map.const x }
+
+instance : inhabited (curve I M n) := ⟨const_curve (default M)⟩
+
+/-- Speed of a curve at time `t` as a tangent vector. -/
 def speed (γ : curve I M n) (t : ℝ) : tangent_space I (γ t) :=
 (deriv_within ((ext_chart_at I (γ t)) ∘ γ) γ.source t : E)
 

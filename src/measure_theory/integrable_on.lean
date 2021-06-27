@@ -440,10 +440,10 @@ by simpa [mul_comm] using hf.mul_continuous_on hg hs
 
 lemma integrable_on_compact_of_monotone_on
   [topological_space α] [opens_measurable_space α] [t2_space α]
-  [borel_space E] {μ : measure α} [locally_finite_measure μ]
+  [borel_space α] {μ : measure α} [locally_finite_measure μ]
   [conditionally_complete_linear_order α] [order_topology α] [densely_ordered α]
   [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
-  {s : set α} (hs : is_compact s) {f : α → E}
+  [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
   (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f x ≤ f y) :
   integrable_on f s μ :=
 begin
@@ -457,9 +457,66 @@ begin
     refine integrable.mono' (continuous_const.integrable_on_compact hs) _
       ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
         λ y hy, hC (f y) (mem_image_of_mem f hy)),
-    let f' := λ x, if
-  },
-  sorry
+    let g := λ x, if ∃ y ∈ s, y ≤ x then f (Sup (s ∩ Iic x)) else f (Inf s),
+    have : monotone g,
+    { intros x y hxy,
+      dsimp only [g],
+      by_cases h' : ∃ a ∈ s, a ≤ x,
+      { rcases (id h') with ⟨a, has, hax⟩,
+        have : ∃ a ∈ s, a ≤ y := ⟨a, has, hax.trans hxy⟩,
+        rw [if_pos h', if_pos this],
+        exact hmono ((hs.inter_right is_closed_Iic).Sup_mem ⟨a, has, hax⟩).1
+          ((hs.inter_right is_closed_Iic).Sup_mem ⟨a, has, hax.trans hxy⟩).1
+          (cSup_le_cSup hs.bdd_above.inter_of_left ⟨a, has, hax⟩
+            (inter_subset_inter_right _ (Iic_subset_Iic.mpr hxy))) },
+      { rw [if_neg h'],
+        by_cases h'' : ∃ a ∈ s, a ≤ y,
+        { rcases (id h'') with ⟨a, has, hay⟩,
+          rw if_pos h'',
+          have : Sup (s ∩ Iic y) ∈ s := ((hs.inter_right is_closed_Iic).Sup_mem ⟨a, has, hay⟩).1,
+          exact hmono (hs.Inf_mem h) this (cInf_le hs.bdd_below this), },
+        { rw if_neg h'' } } },
+    refine ⟨g, this.measurable, (ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $ λ a ha, _⟩,
+    dsimp only [g],
+    rw if_pos (⟨a, ha, le_refl a⟩ : ∃ y ∈ s, y ≤ a),
+    symmetry,
+    exact congr_arg f (cSup_eq_of_forall_le_of_forall_lt_exists_gt ⟨a, ha, le_refl a⟩
+      (λ b hb, hb.2) (λ b hb, ⟨a, ⟨ha, le_refl a⟩, hb⟩)) },
+  { rw set.not_nonempty_iff_eq_empty at h,
+    rw h,
+    exact integrable_on_empty }
 end
 
-#lint
+lemma integrable_on_compact_of_antimono_on
+  [topological_space α] [opens_measurable_space α] [t2_space α]
+  [borel_space α] {μ : measure α} [locally_finite_measure μ]
+  [conditionally_complete_linear_order α] [order_topology α] [densely_ordered α]
+  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
+  [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
+  (hmono : ∀ ⦃x y⦄, x ∈ s → y ∈ s → x ≤ y → f y ≤ f x) :
+  integrable_on f s μ :=
+@integrable_on_compact_of_monotone_on α (order_dual E) _ _ ‹_› _ _ _ _ _ _ _ _ _ _ _ ‹_› ‹_› _ hs _
+  hmono
+
+lemma integrable_on_compact_of_monotone
+  [topological_space α] [opens_measurable_space α] [t2_space α]
+  [borel_space α] {μ : measure α} [locally_finite_measure μ]
+  [conditionally_complete_linear_order α] [order_topology α] [densely_ordered α]
+  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
+  [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
+  (hmono : monotone f) :
+  integrable_on f s μ :=
+integrable_on_compact_of_monotone_on hs (λ x y _ _ hxy, hmono hxy)
+
+alias integrable_on_compact_of_monotone ← monotone.integrable_on_compact
+
+lemma integrable_on_compact_of_antimono
+  [topological_space α] [opens_measurable_space α] [t2_space α]
+  [borel_space α] {μ : measure α} [locally_finite_measure μ]
+  [conditionally_complete_linear_order α] [order_topology α] [densely_ordered α]
+  [conditionally_complete_linear_order E] [order_topology E] [second_countable_topology E]
+  [borel_space E] {s : set α} (hs : is_compact s) {f : α → E}
+  (hmono : ∀ ⦃x y⦄, x ≤ y → f y ≤ f x) :
+  integrable_on f s μ :=
+@integrable_on_compact_of_monotone α (order_dual E) _ _ ‹_› _ _ _ _ _ _ _ _ _ _ _ ‹_› ‹_› _ hs _
+  hmono

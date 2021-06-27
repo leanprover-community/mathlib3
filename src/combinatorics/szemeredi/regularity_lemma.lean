@@ -1199,14 +1199,15 @@ end
 section atomise
 variables {α : Type*} [decidable_eq α] {s : finset α}
 
-def atomise {s : finset α} (hs : s.nonempty) (Q : finset (finset α)) :
+/-- Cuts `s` along the finsets in `Q`: Two elements of `s` will be in the same -/
+def atomise (s : finset α) (Q : finset (finset α)) :
   finpartition_on s :=
-{ parts := Q.powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x)),
+{ parts := Q.powerset.image (λ P, s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x)) \ {∅},
   disjoint := begin
     rintro x y hx hy i hi₁ hi₂,
-    simp only [mem_powerset, mem_image, exists_prop] at hx hy,
-    obtain ⟨P, hP, rfl⟩ := hx,
-    obtain ⟨P', hP', rfl⟩ := hy,
+    simp only [mem_sdiff, mem_powerset, mem_image, exists_prop] at hx hy,
+    obtain ⟨P, hP, rfl⟩ := hx.1,
+    obtain ⟨P', hP', rfl⟩ := hy.1,
     suffices h : P = P',
     { subst h },
     rw mem_filter at hi₁ hi₂,
@@ -1217,35 +1218,34 @@ def atomise {s : finset α} (hs : s.nonempty) (Q : finset (finset α)) :
   end,
   covering := begin
     rintro x hx,
-    simp only [mem_powerset, mem_image, exists_prop, mem_filter, exists_exists_and_eq_and],
-    refine ⟨Q.filter (λ t, x ∈ t), filter_subset _ _, hx, λ y hy, _⟩,
-    simp only [mem_filter, and_iff_right_iff_imp],
-    exact λ _, hy,
+    simp only [mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc],
+    rw exists_exists_and_eq_and,
+    have h : x ∈ s.filter (λ i, ∀ y ∈ Q, (y ∈ Q.filter (λ t, x ∈ t) ↔ i ∈ y)),
+    { simp only [mem_filter, and_iff_right_iff_imp],
+      exact ⟨hx, λ y hy _, hy⟩ },
+    refine ⟨Q.filter (λ t, x ∈ t), filter_subset _ _, _, h⟩,
+    rw [mem_singleton, ←ne.def, ←nonempty_iff_ne_empty],
+    exact ⟨x, h⟩,
   end,
   subset := begin
     rintro x hx,
-    simp only [mem_powerset, mem_image, exists_prop] at hx,
-    obtain ⟨P, hP, rfl⟩ := hx,
+    simp only [mem_sdiff, mem_powerset, mem_image, exists_prop] at hx,
+    obtain ⟨P, hP, rfl⟩ := hx.1,
     exact filter_subset _ s,
   end,
-  not_empty_mem := λ h, begin
-    obtain ⟨A, hAQ, hA⟩ := mem_image.1 h,
-    rw eq_empty_iff_forall_not_mem at hA,
-    simp at hA,
-    obtain ⟨x, hx⟩ := hs,
-    obtain ⟨t, ht⟩ := hA x hx,
-    apply ht.2,
-    sorry
-  end }
+  not_empty_mem := λ h, (mem_sdiff.1 h).2 (mem_singleton_self _) }
 
 lemma mem_atomise {s : finset α} {Q : finset (finset α)} {A : finset α} :
-  A ∈ (atomise s Q).parts ↔ ∃ (P ⊆ Q), s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x) = A :=
-by simp only [atomise, mem_powerset, mem_image, exists_prop]
+  A ∈ (atomise s Q).parts ↔ A.nonempty ∧ ∃ (P ⊆ Q), s.filter (λ i, ∀ x ∈ Q, x ∈ P ↔ i ∈ x) = A :=
+by { simp only [atomise, mem_sdiff, nonempty_iff_ne_empty, mem_singleton, and_comm, mem_image,
+  mem_powerset, exists_prop] }
 
-lemma atomise_empty : (atomise s ∅).parts = {s} :=
+lemma atomise_empty (hs : s.nonempty) : (atomise s ∅).parts = {s} :=
 begin
   rw [atomise],
   simp,
+  apply disjoint.sdiff_eq_left,
+  rwa [disjoint_singleton, mem_singleton, ←ne.def, ne_comm, ←nonempty_iff_ne_empty],
 end
 
 lemma atomise_disjoint {s : finset α} {Q : finset (finset α)} {x y : finset α}
@@ -1255,8 +1255,8 @@ begin
   simp only [disjoint_left, not_forall, and_imp, exists_prop, not_not, exists_imp_distrib],
   intros i hi₁ hi₂,
   simp only [mem_atomise] at hx hy,
-  obtain ⟨P, hP, rfl⟩ := hx,
-  obtain ⟨P', hP', rfl⟩ := hy,
+  obtain ⟨P, hP, rfl⟩ := hx.2,
+  obtain ⟨P', hP', rfl⟩ := hy.2,
   simp only [mem_filter] at hi₁ hi₂,
   suffices h : P = P',
   { subst h },
@@ -1268,12 +1268,7 @@ end
 
 lemma atomise_covers {s : finset α} (Q : finset (finset α)) {x : α} (hx : x ∈ s) :
   ∃ Y ∈ (atomise s Q).parts, x ∈ Y :=
-begin
-  simp only [mem_atomise, exists_prop, mem_filter, exists_exists_and_eq_and],
-  refine ⟨Q.filter (λ t, x ∈ t), filter_subset _ _, hx, λ y hy, _⟩,
-  simp only [mem_filter, and_iff_right_iff_imp],
-  exact λ _, hy,
-end
+(atomise s Q).covering x hx
 
 lemma atomise_unique_covers {s : finset α} {Q : finset (finset α)} {x : α} (hx : x ∈ s) :
   ∃! Y ∈ (atomise s Q).parts, x ∈ Y :=
@@ -1288,6 +1283,7 @@ end
 lemma card_atomise {s : finset α} {Q : finset (finset α)} :
   ((atomise s Q).parts).card ≤ 2^Q.card :=
 begin
+  apply (card_le_of_subset (sdiff_subset _ _)).trans,
   apply finset.card_image_le.trans,
   simp,
 end
@@ -1302,7 +1298,7 @@ begin
   intro hi,
   obtain ⟨B, hB₁, hB₂⟩ := atomise_covers Q (hs hi),
   refine ⟨B, hB₁, λ j hj, _, hB₂⟩,
-  obtain ⟨P, hP, rfl⟩ := mem_atomise.1 hB₁,
+  obtain ⟨P, hP, rfl⟩ := (mem_atomise.1 hB₁).2,
   simp only [mem_filter] at hB₂ hj,
   rwa [←hj.2 _ hA, hB₂.2 _ hA]
 end
@@ -1343,7 +1339,7 @@ begin
     rw [card_powerset, card_erase_of_mem hA],
     refl },
   rw subset_iff,
-  simp only [mem_erase, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
+  simp only [mem_erase, mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,
     finset.nonempty, exists_imp_distrib, and_imp, mem_atomise, forall_apply_eq_imp_iff₂],
   intros P PQ hA y hy₁ hy₂,
   refine ⟨P.erase A, erase_subset_erase _ PQ, _⟩,

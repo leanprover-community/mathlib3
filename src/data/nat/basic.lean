@@ -279,7 +279,7 @@ theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 succ_le_succ_iff
 
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
-(lt_iff_add_one_le m n).symm
+lt_iff_add_one_le.symm
 
 -- Just a restatement of `nat.lt_succ_iff` using `+1`.
 lemma lt_add_one_iff {a b : ℕ} : a < b + 1 ↔ a ≤ b :=

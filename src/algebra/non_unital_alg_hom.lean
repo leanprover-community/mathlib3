@@ -57,8 +57,6 @@ structure non_unital_alg_hom [monoid R]
 attribute [nolint doc_blame] non_unital_alg_hom.to_distrib_mul_action_hom
 attribute [nolint doc_blame] non_unital_alg_hom.to_mul_hom
 
-initialize_simps_projections non_unital_alg_hom (to_fun → apply)
-
 namespace non_unital_alg_hom
 
 variables {R A B C} [semiring R]
@@ -70,6 +68,8 @@ variables [non_unital_non_assoc_semiring C] [distrib_mul_action R C]
 instance : has_coe_to_fun (non_unital_alg_hom R A B) := ⟨_, to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : non_unital_alg_hom R A B) : f.to_fun = ⇑f := rfl
+
+initialize_simps_projections non_unital_alg_hom (to_fun → apply)
 
 lemma coe_injective :
   @function.injective (non_unital_alg_hom R A B) (A → B) coe_fn :=

@@ -16,6 +16,12 @@ a convolution product. To mathematicians this structure is known as the "monoid 
 i.e. the finite formal linear combinations over a given semiring of elements of the monoid.
 The "group ring" ℤ[G] or the "group algebra" k[G] are typical uses.
 
+In fact the construction of the "monoid algebra" makes sense when `G` is not even a monoid, but
+merely a magma, i.e., when `G` carries a multiplication which is not required to satisfy any
+conditions at all. In this case the construction yields a not-necessarily-unital,
+not-necessarily-associative algebra but it is still adjoint to the forgetful functor from such
+algebras to magmas, and we prove this as `monoid_algebra.lift_magma`.
+
 In this file we define `monoid_algebra k G := G →₀ k`, and `add_monoid_algebra k G`
 in the same way, and then define the convolution product on these.
 

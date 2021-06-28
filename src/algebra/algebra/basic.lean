@@ -10,6 +10,7 @@ import linear_algebra.tensor_product
 import ring_theory.subring
 import deprecated.subring
 import algebra.opposites
+import algebra.iterate_hom
 
 /-!
 # Algebra over Commutative Semiring
@@ -1201,11 +1202,11 @@ by { ext, simp only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
 
 @[simp] lemma lmul_left_zero_eq_zero :
   lmul_left R (0 : A) = 0 :=
-by { ext, simp, }
+(lmul R A).map_zero
 
 @[simp] lemma lmul_right_zero_eq_zero :
   lmul_right R (0 : A) = 0 :=
-by { ext, simp, }
+(lmul R A).to_linear_map.flip.map_zero
 
 @[simp] lemma lmul_left_eq_zero_iff (a : A) :
   lmul_left R a = 0 ↔ a = 0 :=
@@ -1224,24 +1225,15 @@ begin
 end
 
 @[simp] lemma pow_lmul_left (a : A) (n : ℕ) :
-  (lmul_left R a)^n = lmul_left R (a ^n) :=
-begin
-  ext b,
-  induction n with n ih,
-  { simp only [linear_map.id_coe, linear_map.one_apply, lmul_left_one, id.def, pow_zero], },
-  { simp only [lmul_left_apply] at ih,
-    simp only [lmul_left_apply, pow_succ, linear_map.mul_apply, ih, mul_assoc], },
-end
+  (lmul_left R a) ^ n = lmul_left R (a ^ n) :=
+((lmul R A).map_pow a n).symm
 
 @[simp] lemma pow_lmul_right (a : A) (n : ℕ) :
-  (lmul_right R a)^n = lmul_right R (a ^n) :=
+  (lmul_right R a) ^ n = lmul_right R (a ^ n) :=
 begin
-  ext b,
-  induction n with n ih,
-  { simp only [linear_map.id_coe, linear_map.one_apply, lmul_right_one, id.def, pow_zero], },
-  { rw lmul_right_apply at ih,
-    rw [pow_succ, pow_succ, linear_map.mul_apply, ih, lmul_right_apply, lmul_right_apply,
-      mul_assoc, ← pow_succ, ← pow_succ'], },
+  apply linear_map.coe_injective,
+  dsimp only, -- TODO[gh-8102]: remove this once `coe_injective` does not introduce junk
+  exact ((lmul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n),
 end
 
 @[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=

@@ -805,15 +805,8 @@ by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
   edist (hf.to_L1 f) 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
 by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
-  [opens_measurable_space 𝕜]
-
-lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
-  to_L1 (λa, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
-
-lemma tendsto_L1_iff_tendsto_lintegral_zero [borel_space E] [second_countable_topology E] {ι}
-  {l : filter ι} {μ : measure β} (F : ι → β → E) (hF : ∀ n, integrable (F n) μ) (f : β → E)
-  (hf : integrable f μ) :
+lemma tendsto_to_L1_iff_tendsto_lintegral_zero {ι} {l : filter ι} (F : ι → α → β)
+  (hF : ∀ n, integrable (F n) μ) (f : α → β) (hf : integrable f μ) :
   tendsto (λ n, (hF n).to_L1 (F n)) l (𝓝 (hf.to_L1 f))
     ↔ tendsto (λ n, ∫⁻ x, ∥F n x - f x∥₊ ∂μ) l (𝓝 0) :=
 begin
@@ -828,6 +821,12 @@ begin
   rw ← hx₂,
   exact hx₁.symm,
 end
+
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_space 𝕜]
+  [opens_measurable_space 𝕜]
+
+lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
+  to_L1 (λa, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
 
 end integrable
 

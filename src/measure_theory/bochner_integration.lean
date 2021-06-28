@@ -1224,7 +1224,7 @@ begin
   simp only [norm_norm, ← integral_sub hFi hfi],
   convert norm_integral_le_lintegral_norm (λ x, F i x - f x),
   ext1 x,
-  sorry
+  exact coe_nnreal_eq _
 end
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost

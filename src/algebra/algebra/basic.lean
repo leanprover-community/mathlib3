@@ -10,6 +10,7 @@ import linear_algebra.tensor_product
 import ring_theory.subring
 import deprecated.subring
 import algebra.opposites
+import algebra.iterate_hom
 
 /-!
 # Algebra over Commutative Semiring
@@ -1173,6 +1174,10 @@ def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
 def lmul' : A ⊗[R] A →ₗ[R] A :=
 tensor_product.lift (lmul R A).to_linear_map
 
+lemma commute_lmul_left_right (a b : A) :
+  commute (lmul_left R a) (lmul_right R b) :=
+by { ext c, exact (mul_assoc a c b).symm, }
+
 variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
@@ -1194,6 +1199,38 @@ by { ext, simp only [linear_map.id_coe, mul_one, id.def, lmul_right_apply] }
 @[simp] lemma lmul_right_mul (a b : A) :
   lmul_right R (a * b) = (lmul_right R b).comp (lmul_right R a) :=
 by { ext, simp only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
+
+@[simp] lemma lmul_left_zero_eq_zero :
+  lmul_left R (0 : A) = 0 :=
+(lmul R A).map_zero
+
+@[simp] lemma lmul_right_zero_eq_zero :
+  lmul_right R (0 : A) = 0 :=
+(lmul R A).to_linear_map.flip.map_zero
+
+@[simp] lemma lmul_left_eq_zero_iff (a : A) :
+  lmul_left R a = 0 ↔ a = 0 :=
+begin
+  split; intros h,
+  { rw [← mul_one a, ← lmul_left_apply a 1, h, linear_map.zero_apply], },
+  { rw h, exact lmul_left_zero_eq_zero, },
+end
+
+@[simp] lemma lmul_right_eq_zero_iff (a : A) :
+  lmul_right R a = 0 ↔ a = 0 :=
+begin
+  split; intros h,
+  { rw [← one_mul a, ← lmul_right_apply a 1, h, linear_map.zero_apply], },
+  { rw h, exact lmul_right_zero_eq_zero, },
+end
+
+@[simp] lemma pow_lmul_left (a : A) (n : ℕ) :
+  (lmul_left R a) ^ n = lmul_left R (a ^ n) :=
+((lmul R A).map_pow a n).symm
+
+@[simp] lemma pow_lmul_right (a : A) (n : ℕ) :
+  (lmul_right R a) ^ n = lmul_right R (a ^ n) :=
+linear_map.coe_injective $ ((lmul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n)
 
 @[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
 by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]

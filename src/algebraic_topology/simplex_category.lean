@@ -491,7 +491,7 @@ begin
 end
 
 lemma mono_le_card {n m : ℕ} {f : [n] ⟶ [m]} : (category_theory.mono f) → (n ≤ m) :=
-by { refine @mono_le_length [n] [m] f}
+mono_le_length
 
 /-- An epimorphism in `simplex_category` must decrease lengths-/
 lemma epi_ge_length {x y : simplex_category} {f : x ⟶ y} :
@@ -504,7 +504,7 @@ begin
 end
 
 lemma epi_ge_card {n m : ℕ} {f : [n] ⟶ [m]} : epi f → (m ≤ n) :=
-by {refine @epi_ge_length [n] [m] f}
+epi_ge_length
 
 end epi_mono
 

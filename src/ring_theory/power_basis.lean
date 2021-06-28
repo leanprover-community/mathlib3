@@ -123,7 +123,7 @@ lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
 
 lemma alg_hom_ext [nontrivial S] {S' : Type*} [semiring S'] [algebra R S']
   (pb : power_basis R S) ⦃f g : S →ₐ[R] S'⦄ (h : f pb.gen = g pb.gen) :
-f = g :=
+  f = g :=
 begin
   ext x,
   obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x,

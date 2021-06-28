@@ -1214,15 +1214,17 @@ hf.2.tendsto_set_integral_nhds_zero hs
 /-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
 lemma tendsto_integral_of_L1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)
-  (hF : tendsto (λ i, ∫⁻ x, edist (F i x) (f x) ∂μ) l (𝓝 0)) :
+  (hF : tendsto (λ i, ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0)) :
   tendsto (λ i, ∫ x, F i x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
 begin
   rw [tendsto_iff_norm_tendsto_zero],
-  replace hF : tendsto (λ i, ennreal.to_real $ ∫⁻ x, edist (F i x) (f x) ∂μ) l (𝓝 0) :=
+  replace hF : tendsto (λ i, ennreal.to_real $ ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0) :=
     (ennreal.tendsto_to_real zero_ne_top).comp hF,
   refine squeeze_zero_norm' (hFi.mp $ hFi.mono $ λ i hFi hFm, _) hF,
-  simp only [norm_norm, ← integral_sub hFi hfi, edist_dist, dist_eq_norm],
-  apply norm_integral_le_lintegral_norm
+  simp only [norm_norm, ← integral_sub hFi hfi],
+  convert norm_integral_le_lintegral_norm (λ x, F i x - f x),
+  ext1 x,
+  sorry
 end
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
@@ -1554,7 +1556,7 @@ begin
     at_top (𝓝 $ ∫ x, f x ∂μ) :=
     tendsto_integral_of_L1 _ hf
       (eventually_of_forall $ simple_func.integrable_approx_on_univ fmeas hf)
-      (simple_func.tendsto_approx_on_univ_L1_edist fmeas hf),
+      (simple_func.tendsto_approx_on_univ_L1_nnnorm fmeas hf),
   simpa only [simple_func.integral_eq_integral, simple_func.integrable_approx_on_univ fmeas hf]
 end
 
@@ -1822,13 +1824,13 @@ begin
     from λ n, integral_trim_simple_func hm (f_seq n) (hf_seq_int n),
   have h_lim_1 : at_top.tendsto (λ n, ∫ x, f_seq n x ∂μ) (𝓝 (∫ x, f x ∂μ)),
   { refine tendsto_integral_of_L1 f hf_int (eventually_of_forall hf_seq_int) _,
-    exact simple_func.tendsto_approx_on_univ_L1_edist (hf.mono hm le_rfl) hf_int, },
+    exact simple_func.tendsto_approx_on_univ_L1_nnnorm (hf.mono hm le_rfl) hf_int, },
   have h_lim_2 :  at_top.tendsto (λ n, ∫ x, f_seq n x ∂μ)
     (𝓝 (@integral β F m _ _ _ _ _ _ (μ.trim hm) f)),
   { simp_rw hf_seq_eq,
     refine @tendsto_integral_of_L1 β F m _ _ _ _ _ _ (μ.trim hm) _ f
       (hf_int.trim hm hf) _ _ (eventually_of_forall hf_seq_int_m) _,
-    exact @simple_func.tendsto_approx_on_univ_L1_edist β F m _ _ _ _ f _ hf (hf_int.trim hm hf), },
+    exact @simple_func.tendsto_approx_on_univ_L1_nnnorm β F m _ _ _ _ f _ hf (hf_int.trim hm hf), },
   exact tendsto_nhds_unique h_lim_1 h_lim_2,
 end
 

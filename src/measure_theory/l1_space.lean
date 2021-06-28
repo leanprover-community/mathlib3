@@ -811,6 +811,24 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β] [measurable_
 lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
   to_L1 (λa, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
 
+lemma tendsto_L1_iff_tendsto_lintegral_zero [borel_space E] [second_countable_topology E] {ι}
+  {l : filter ι} {μ : measure β} (F : ι → β → E) (hF : ∀ n, integrable (F n) μ) (f : β → E)
+  (hf : integrable f μ) :
+  tendsto (λ n, (hF n).to_L1 (F n)) l (𝓝 (hf.to_L1 f))
+    ↔ tendsto (λ n, ∫⁻ x, ∥F n x - f x∥₊ ∂μ) l (𝓝 0) :=
+begin
+  convert Lp.tendsto_Lp_iff_tendsto_ℒp' _ _,
+  ext1 n,
+  simp only [snorm_eq_snorm' one_ne_zero one_ne_top, snorm', one_to_real, one_div, rpow_one,
+    _root_.inv_one],
+  apply lintegral_congr_ae,
+  filter_upwards [((hF n).sub hf).coe_fn_to_L1, Lp.coe_fn_sub ((hF n).to_L1 (F n)) (hf.to_L1 f)],
+  intros x hx₁ hx₂,
+  congr' 2,
+  rw ← hx₂,
+  exact hx₁.symm,
+end
+
 end integrable
 
 end measure_theory

@@ -158,6 +158,14 @@ begin
   exact ennreal.rpow_lt_top_of_nonneg (le_of_lt hq0_lt) (ne_of_lt hfq),
 end
 
+lemma lintegral_rpow_nnnorm_lt_top_iff_snorm'_lt_top {f : α → F} (hq0_lt : 0 < q) :
+  snorm' f q μ < ∞ ↔ ∫⁻ a, (nnnorm (f a)) ^ q ∂μ < ∞ :=
+⟨lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hq0_lt, begin
+  intros h,
+  have : 0 < 1 / q := div_pos zero_lt_one hq0_lt,
+  exact ennreal.rpow_lt_top_of_nonneg (le_of_lt this) (ne_of_lt h)
+end⟩
+
 end top
 
 section zero

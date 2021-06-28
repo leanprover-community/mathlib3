@@ -524,15 +524,16 @@ corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
     refine (structure_sheaf R).presheaf.germ_ext V hxV (hom_of_le hg) iVU _,
     erw [← hs, res_const']
   end,
-  inv_hom_id' := is_localization.epic_of_localization_map x.as_ideal.prime_compl
+  inv_hom_id' := @is_localization.epic_of_localization_map R _ x.as_ideal.prime_compl
+      (localization.at_prime x.as_ideal) _ _ (localization.at_prime x.as_ideal) _ _
       (ring_hom.comp (stalk_to_fiber_ring_hom R x) (localization_to_stalk R x))
       (ring_hom.id (localization.at_prime _)) $
-    λ f, by simp only [ring_hom.comp_apply, comp_apply, id_apply, localization_to_stalk_of,
-         algebra_map_of, stalk_to_fiber_ring_hom_to_stalk] }
+    λ f, by simp only [ring_hom.comp_apply, ring_hom.id_apply, localization_to_stalk_of,
+        stalk_to_fiber_ring_hom_to_stalk] }
 
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
-def to_basic_open (f : R) : CommRing.of (localization.away f) ⟶
+def to_basic_open (f : R) : localization.away f →+*
   (structure_sheaf R).presheaf.obj (op $ basic_open f) :=
 is_localization.away.lift f (is_unit_to_basic_open_self R f)
 
@@ -543,13 +544,10 @@ is_localization.away.lift f (is_unit_to_basic_open_self R f)
 by rw [to_open_eq_const, to_open_eq_const, const_mul_cancel']
 
 @[simp] lemma localization_to_basic_open (f : R) :
-  @category_theory.category_struct.comp _ _ (CommRing.of R)
-    (CommRing.of (localization.away f)) _
-    (algebra_map R (localization.away.of f))
-    (to_basic_open R f) =
-  to_open R (basic_open f) :=
+  ring_hom.comp (to_basic_open R f) (algebra_map R (localization.away f)) =
+    to_open R (basic_open f) :=
 ring_hom.ext $ λ g,
-by erw [to_basic_open, is_localization.away.lift, comp_apply, is_localization.lift_eq]
+by rw [to_basic_open, is_localization.away.lift, ring_hom.comp_apply, is_localization.lift_eq]
 
 @[simp] lemma to_basic_open_to_map (s f : R) : to_basic_open R s (algebra_map R (localization.away s) f) =
   const R f 1 (basic_open s) (λ _ _, submonoid.one_mem _) :=
@@ -562,7 +560,7 @@ begin
   obtain ⟨a, ⟨b, hb⟩, rfl⟩ := is_localization.mk'_surjective (submonoid.powers f) s,
   obtain ⟨c, ⟨d, hd⟩, rfl⟩ := is_localization.mk'_surjective (submonoid.powers f) t,
   simp only [to_basic_open_mk'] at h_eq,
-  rw localization_map.eq,
+  rw is_localization.eq,
   -- We know that the fractions `a/b` and `c/d` are equal as sections of the structure sheaf on
   -- `basic_open f`. We need to show that they agree as elements in the localization of `R` at `f`.
   -- This amounts showing that `a * d * r = c * b * r`, for some power `r = f ^ n` of `f`.
@@ -581,7 +579,7 @@ begin
   contrapose hfp,
   rw [mem_zero_locus, set.not_subset],
   have := congr_fun (congr_arg subtype.val h_eq) ⟨p,hfp⟩,
-  rw [const_apply, const_apply, localization_map.eq] at this,
+  rw [const_apply, const_apply, is_localization.eq] at this,
   cases this with r hr,
   exact ⟨r.1, hr, r.2⟩
 end
@@ -645,19 +643,20 @@ begin
   -- First we show that the fractions `(a i * h j) / (h i * h j)` and `(h i * a j) / (h i * h j)`
   -- coincide in the localization of `R` at `h i * h j`
   have fractions_eq : ∀ (i j : ι),
-    (localization.of _).mk' (a i * h j) ⟨h i * h j, submonoid.mem_powers _⟩ =
-    (localization.of _).mk' (h i * a j) ⟨h i * h j, submonoid.mem_powers _⟩,
+    is_localization.mk' (localization.away _) (a i * h j) ⟨h i * h j, submonoid.mem_powers _⟩ =
+    is_localization.mk' _ (h i * a j) ⟨h i * h j, submonoid.mem_powers _⟩,
   { intros i j,
     let D := basic_open (h i * h j),
     let iDi : D ⟶ basic_open (h i) := hom_of_le (basic_open_mul_le_left _ _),
     let iDj : D ⟶ basic_open (h j) := hom_of_le (basic_open_mul_le_right _ _),
     -- Crucially, we need injectivity of `to_basic_open`
     apply to_basic_open_injective R (h i * h j),
-    simp only [set_like.coe_mk, to_basic_open_mk'],
+    rw [to_basic_open_mk', to_basic_open_mk'],
+    simp only [set_like.coe_mk],
     -- Here, both sides of the equation are equal to a restriction of `s`
     transitivity,
-    convert congr_arg ((structure_sheaf R).presheaf.map iDi.op) (hs i) using 1, swap,
     convert congr_arg ((structure_sheaf R).presheaf.map iDj.op) (hs j).symm using 1,
+    convert congr_arg ((structure_sheaf R).presheaf.map iDi.op) (hs i) using 1, swap,
     all_goals { rw res_const, apply const_ext, ring },
     -- The remaining two goals were generated during the rewrite of `res_const`
     -- These can be solved immediately
@@ -668,7 +667,7 @@ begin
   have exists_power : ∀ (i j : ι), ∃ n : ℕ,
     a i * h j * (h i * h j) ^ n = h i * a j * (h i * h j) ^ n,
   { intros i j,
-    obtain ⟨⟨c, n, rfl⟩, hc⟩ := (localization_map.eq _).mp (fractions_eq i j),
+    obtain ⟨⟨c, n, rfl⟩, hc⟩ := is_localization.eq.mp (fractions_eq i j),
     use (n+1),
     rw pow_succ,
     dsimp at hc,
@@ -750,7 +749,8 @@ begin
 
   -- Finally, we have all the ingredients.
   -- We claim that our preimage is given by `(∑ (i : ι) in t, b i * a i) / f ^ (n+1)`
-  use (localization.away.of f).mk' (∑ (i : ι) in t, b i * a i) ⟨f ^ (n+1), n+1, rfl⟩,
+  use is_localization.mk' (localization.away f) (∑ (i : ι) in t, b i * a i)
+    (⟨f ^ (n+1), n+1, rfl⟩ : submonoid.powers _),
   rw to_basic_open_mk',
 
   -- Since the structure sheaf is a sheaf, we can show the desired equality locally.
@@ -791,10 +791,10 @@ begin
   ring
 end
 
-instance is_iso_to_basic_open (f : R) : is_iso (to_basic_open R f) :=
+instance is_iso_to_basic_open (f : R) : is_iso (show CommRing.of _ ⟶ _, from to_basic_open R f) :=
 begin
-  haveI : is_iso ((forget CommRing).map (to_basic_open R f)) := (is_iso_iff_bijective _).mpr
-    ⟨to_basic_open_injective R f, to_basic_open_surjective R f⟩,
+  haveI : is_iso ((forget CommRing).map (show CommRing.of _ ⟶ _, from to_basic_open R f)) :=
+    (is_iso_iff_bijective _).mpr ⟨to_basic_open_injective R f, to_basic_open_surjective R f⟩,
   exact is_iso_of_reflects_iso _ (forget CommRing),
 end
 
@@ -802,7 +802,7 @@ end
 at the submonoid of powers of `f`. -/
 def basic_open_iso (f : R) : (structure_sheaf R).presheaf.obj (op (basic_open f)) ≅
   CommRing.of (localization.away f) :=
-(as_iso (to_basic_open R f)).symm
+(as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
 
 section comap
 
@@ -956,7 +956,7 @@ end
   @category_theory.category_struct.comp _ _ (CommRing.of R) (CommRing.of S) _ f (to_open S ⊤) :=
 ring_hom.ext $ λ s, subtype.eq $ funext $ λ p,
 begin
-  simp_rw [comp_apply, comap_apply, subtype.val_eq_coe, to_open_apply_coe],
+  simp_rw [comp_apply, comap_apply, subtype.val_eq_coe],
   erw localization.local_ring_hom_to_map,
   refl,
 end

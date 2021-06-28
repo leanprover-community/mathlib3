@@ -152,12 +152,12 @@ lemma is_integer_mul {a b : S} (ha : is_integer R a) (hb : is_integer R b) :
   is_integer R (a * b) :=
 subring.mul_mem _ ha hb
 
-lemma is_integer_smul {a : R} {b} (hb : is_integer R b) :
-  is_integer R ((algebra_map R S) a * b) :=
+lemma is_integer_smul {a : R} {b : S} (hb : is_integer R b) :
+  is_integer R (a • b) :=
 begin
   rcases hb with ⟨b', hb⟩,
   use a * b',
-  rw [←hb, (algebra_map R S).map_mul]
+  rw [←hb, (algebra_map R S).map_mul, algebra.smul_def]
 end
 
 variables (M)
@@ -175,8 +175,8 @@ let ⟨⟨num, denom⟩, h⟩ := is_localization.surj _ a in ⟨denom, set.mem_r
 This version multiplies `a` on the left, matching the argument order in the `has_scalar` instance.
 -/
 lemma exists_integer_multiple (a : S) :
-  ∃ (b : M), is_integer R (algebra_map R S b * a) :=
-by { simp_rw mul_comm _ a, apply exists_integer_multiple' }
+  ∃ (b : M), is_integer R ((b : R) • a) :=
+by { simp_rw [algebra.smul_def, mul_comm _ a], apply exists_integer_multiple' }
 
 /-- Given `z : S`, `is_localization.sec z` is defined to be a pair `(x, y) : R × M` such
 that `z * f y = f x` (so this lemma is true by definition). -/
@@ -196,13 +196,13 @@ open_locale big_operators
 
 /-- We can clear the denominators of a finite set of fractions. -/
 lemma exist_integer_multiples_of_finset (s : finset S) :
-  ∃ (b : M), ∀ a ∈ s, is_integer R (algebra_map R S b * a) :=
+  ∃ (b : M), ∀ a ∈ s, is_integer R ((b : R) • a) :=
 begin
   haveI := classical.prop_decidable,
   use ∏ a in s, ((to_localization_map M S).sec a).2,
   intros a ha,
   use (∏ x in s.erase a, ((to_localization_map M S).sec x).2) * ((to_localization_map M S).sec a).1,
-  rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←(algebra_map R S).map_mul],
+  rw [ring_hom.map_mul, sec_spec', ←mul_assoc, ←(algebra_map R S).map_mul, ← algebra.smul_def],
   congr' 2,
   refine trans _ ((submonoid.subtype M).map_prod _ _).symm,
   rw [mul_comm, ←finset.prod_insert (s.not_mem_erase a), finset.insert_erase ha],
@@ -1051,7 +1051,7 @@ by simp [integer_normalization, coeff_monomial, coeff_integer_normalization_of_n
 
 lemma integer_normalization_spec (p : polynomial S) :
   ∃ (b : M), ∀ i,
-    algebra_map R S ((integer_normalization M p).coeff i) = algebra_map R S b * p.coeff i :=
+    algebra_map R S ((integer_normalization M p).coeff i) = (b : R) • p.coeff i :=
 begin
   use classical.some (exist_integer_multiples_of_finset M (p.support.image p.coeff)),
   intro i,
@@ -1061,13 +1061,13 @@ begin
       (exist_integer_multiples_of_finset M (p.support.image p.coeff))
       (p.coeff i)
       (finset.mem_image.mpr ⟨i, hi, rfl⟩)) },
-  { convert (_root_.mul_zero ((algebra_map R S) _)).symm,
+  { convert (smul_zero _).symm,
     { apply ring_hom.map_zero },
     { exact not_mem_support_iff.mp hi } }
 end
 
 lemma integer_normalization_map_to_map (p : polynomial S) :
-  ∃ (b : M), (integer_normalization M p).map (algebra_map R S) = algebra_map R S b • p :=
+  ∃ (b : M), (integer_normalization M p).map (algebra_map R S) = (b : R) • p :=
 let ⟨b, hb⟩ := integer_normalization_spec M p in
 ⟨b, polynomial.ext (λ i, by { rw [coeff_map, coeff_smul], exact hb i })⟩
 
@@ -1077,7 +1077,8 @@ lemma integer_normalization_eval₂_eq_zero (g : S →+* R') (p : polynomial S)
   {x : R'} (hx : eval₂ g x p = 0) :
   eval₂ (g.comp (algebra_map R S)) x (integer_normalization M p) = 0 :=
 let ⟨b, hb⟩ := integer_normalization_map_to_map M p in
-trans (eval₂_map (algebra_map R S) g x).symm (by rw [hb, eval₂_smul, hx, mul_zero])
+trans (eval₂_map (algebra_map R S) g x).symm
+  (by rw [hb, ← is_scalar_tower.algebra_map_smul S (b : R) p, eval₂_smul, hx, mul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra S R'] [is_scalar_tower R S R']
   (p : polynomial S) {x : R'} (hx : aeval x p = 0) :
@@ -1435,10 +1436,10 @@ begin
   split; intros h i,
   { apply to_map_eq_zero_iff.mp,
     rw [hb i, h i],
-    exact _root_.mul_zero _,
+    apply smul_zero,
     assumption },
   { have hi := h i,
-    rw [polynomial.coeff_zero, ← @to_map_eq_zero_iff A _ K, hb i] at hi,
+    rw [polynomial.coeff_zero, ← @to_map_eq_zero_iff A _ K, hb i, algebra.smul_def] at hi,
     apply or.resolve_left (eq_zero_or_eq_zero_of_mul_eq_zero hi),
     intro h,
     apply mem_non_zero_divisors_iff_ne_zero.mp nonzero,
@@ -1476,7 +1477,7 @@ begin
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
   refine mul_left_cancel'
     (is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors b_nonzero) _,
-  simp only [subtype.coe_mk, ring_hom.map_mul] at *,
+  simp only [subtype.coe_mk, ring_hom.map_mul, algebra.smul_def] at *,
   erw [←hab, mul_assoc, mk'_spec' _ a' ⟨b', b'_nonzero⟩],
 end
 

@@ -77,7 +77,7 @@ lemma is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part
 begin
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   obtain ⟨⟨c, c0⟩, hc⟩ := integer_normalization_map_to_map R⁰ p,
-  rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hc,
+  rw [subtype.coe_mk, algebra.smul_def, algebra_map_apply] at hc,
   apply is_unit_of_mul_is_unit_right,
   rw [← hc, (integer_normalization R⁰ p).eq_C_content_mul_prim_part, ← hu,
     ← ring_hom.map_mul, is_unit_iff],
@@ -100,7 +100,7 @@ begin
     hp.irreducible_of_irreducible_map_of_injective (is_fraction_ring.injective _ _)⟩,
   obtain ⟨⟨c, c0⟩, hc⟩ := integer_normalization_map_to_map R⁰ a,
   obtain ⟨⟨d, d0⟩, hd⟩ := integer_normalization_map_to_map R⁰ b,
-  rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hc hd,
+  rw [algebra.smul_def, algebra_map_apply, subtype.coe_mk] at hc hd,
   rw mem_non_zero_divisors_iff_ne_zero at c0 d0,
   have hcd0 : c * d ≠ 0 := mul_ne_zero c0 d0,
   rw [ne.def, ← C_eq_zero] at hcd0,
@@ -139,7 +139,7 @@ lemma is_primitive.dvd_of_fraction_map_dvd_fraction_map {p q : polynomial R}
 begin
   rcases h_dvd with ⟨r, hr⟩,
   obtain ⟨⟨s, s0⟩, hs⟩ := integer_normalization_map_to_map R⁰ r,
-  rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hs,
+  rw [subtype.coe_mk, algebra.smul_def, algebra_map_apply] at hs,
   have h : p ∣ q * C s,
   { use (integer_normalization R⁰ r),
     apply map_injective (algebra_map R K) (is_fraction_ring.injective _ _),

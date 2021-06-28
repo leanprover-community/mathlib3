@@ -361,7 +361,7 @@ topological_fiber_bundle_core.local_triv_at_apply Z b a
 instance : topological_vector_bundle R F Z.fiber :=
 { inducing := λ b, ⟨ begin refine le_antisymm _ (λ s h, _),
   { rw ←continuous_iff_le_induced,
-    exact topological_fiber_bundle_core.continuous_sigma_mk ↑Z b, },
+    exact topological_fiber_bundle_core.continuous_total_space_mk ↑Z b, },
   { refine is_open_induced_iff.mpr ⟨(Z.local_triv_at b).source ∩ (Z.local_triv_at b) ⁻¹'
       (Z.local_triv_at b).base_set.prod s, (continuous_on_open_iff
       (Z.local_triv_at b).open_source).mp (Z.local_triv_at b).continuous_to_fun _

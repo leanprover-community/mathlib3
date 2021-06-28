@@ -78,15 +78,26 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
+/-- Note that when applied the RHS is further simplified by `complex.of_real_eq_coe`. -/
+@[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
+
+section
+variables {A : Type*} [semiring A] [algebra ℝ A]
+
+/-- We need this lemma since `complex.coe_algebra_map` diverts the simp-normal form away from
+`alg_hom.commutes`. -/
+@[simp] lemma _root_.alg_hom.map_coe_real_complex (f : ℂ →ₐ[ℝ] A) (x : ℝ) :
+  f x = algebra_map ℝ A x :=
+f.commutes x
+
 /-- Two `ℝ`-algebra homomorphisms from ℂ are equal if they agree on `complex.I`. -/
 @[ext]
-lemma alg_hom_ext {A : Type*} [semiring A] [algebra ℝ A] ⦃f g : ℂ →ₐ[ℝ] A⦄ (h : f I = g I) :
-  f = g :=
+lemma alg_hom_ext ⦃f g : ℂ →ₐ[ℝ] A⦄ (h : f I = g I) : f = g :=
 begin
   ext ⟨x, y⟩,
-  have : (coe : ℝ → ℂ) = algebra_map ℝ ℂ := rfl,
-  rw [mk_eq_add_mul_I, ←smul_coe, this],
-  simp only [alg_hom.map_add, alg_hom.commutes, alg_hom.map_smul, h],
+  simp only [mk_eq_add_mul_I, alg_hom.map_add, alg_hom.map_coe_real_complex, alg_hom.map_mul, h]
+end
+
 end
 
 section
@@ -120,8 +131,6 @@ localized "attribute [instance] complex_ordered_module" in complex_order
 
 end
 
-
-@[simp] lemma coe_algebra_map : ⇑(algebra_map ℝ ℂ) = complex.of_real := rfl
 
 open submodule finite_dimensional
 

@@ -473,8 +473,8 @@ begin
     apply_fun preorder_hom.to_fun at eq_chi_i,
     replace eq_chi_i := congr_fun eq_chi_i x,
     dsimp at eq_chi_i,
-    have chi_1_x : (hom.to_preorder_hom chi_1) x = 0 := by { simp },
-    have chi_2_x : (hom.to_preorder_hom chi_2) x = 1 := by { simp },
+    have chi_1_x : (hom.to_preorder_hom chi_1) x = 0, { simp },
+    have chi_2_x : (hom.to_preorder_hom chi_2) x = 1, { simp },
     rw [chi_1_x, chi_2_x] at eq_chi_i,
     exact nat.zero_ne_one (fin.veq_of_eq eq_chi_i) },
   { exact concrete_category.epi_of_surjective f }

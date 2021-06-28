@@ -19,10 +19,30 @@ This file talks about decompositions of modules.
 -/
 
 section setup
-variables {ι : Type u} {R : Type v} {M : Type w}
+variables (ι : Type u) (R : Type v) (M : Type w)
 variables [semiring R] [add_comm_monoid M] [module R M]
 
-def submodule.of (N P : submodule R M) := N.comap P.subtype
+/-- A `decomposition ι R M` for a module `M` is the type of `ι`-indexed decompositions of `M`.
+
+The factors are available as `factors : ι → submodule R M`.
+To create a decomposition of `M`, one furthermore must provide data that the
+factors satisfy `∀ i : ι, disjoint (factors i) (⨆ (j ≠ i), factors j)` and
+that their union is the whole module `M`.
+
+Note: Why not say `set (submodule R M)`? Then one could get rid of explicitly
+identifying `ι`. But I think it's better to follow the `basis` design,
+which was phased out of exactly the `set` design because of problems with it.
+-/
+structure decomposition : Type (max u v w) :=
+(factors : ι → submodule R M)
+(factors_ind : complete_lattice.independent factors)
+(factors_supr : supr factors = ⊤)
+
+variables {ι R M}
+
+/--
+
+-/
 
 def submodule.inclusion (N P : submodule R M) (h : N ≤ P) : N →ₗ[R] P :=
 { to_fun := λ x, ⟨x.1, h x.2⟩, map_add' := λ ⟨x, hx⟩ ⟨y, hy⟩, rfl, map_smul' := λ r ⟨x, hx⟩, rfl }
@@ -82,27 +102,6 @@ begin
   rw finset.mem_erase at hc,
   have almost : p' c hc.1 ≤ ⨆ i (H : i ≠ j), p' i H := le_bsupr _ _,
   exact almost (hx c),
-end
-
-lemma finsupp.sum_def {α M N : Type*}
-  [has_zero M] [add_comm_monoid N] (f : α →₀ M) (g : α → M → N) :
-f.sum g = ∑ a in f.support, g a (f a) := rfl
-
-lemma finsupp.sum_add_add {α M : Type*}
-  [add_comm_monoid M] (f g : α →₀ M) :
-  ∑ a in (f + g).support, (f a + g a) = ∑ a in f.support, f a + ∑ a in g.support, g a :=
-begin
-  have : ∑ a in (f + g).support, (f a + g a) = ∑ a in f.support ∪ g.support, (f a + g a),
-  refine finset.sum_subset finsupp.support_add (λ a ha han, finsupp.not_mem_support_iff.mp han),
-  rw this,
-  rw finset.sum_add_distrib,
-  congr' 1,
-  symmetry,
-  refine finset.sum_subset (f.support.subset_union_left g.support)
-    (λ a ha han, finsupp.not_mem_support_iff.mp han),
-  symmetry,
-  refine finset.sum_subset (f.support.subset_union_right g.support)
-    (λ a ha han, finsupp.not_mem_support_iff.mp han),
 end
 
 lemma is_atomistic.exist_set_independent_Sup_eq_top {α : Type*}
@@ -349,14 +348,12 @@ begin
   simp [hb],
 end
 
-def is_decomposition.equiv
-  (p : ι → submodule R M) (h : complete_lattice.independent p)  (hsupr : supr p = ⊤) :
-  (⨁ i, p i) ≃ₗ[R] M :=
-((submodule.prod_equiv_of_independent p h).trans (dumb_map hsupr)).trans (submodule.top_equiv R M)
+def is_decomposition.equiv (D : decomposition ι R M) : (⨁ i, D.factors i) ≃ₗ[R] M :=
+((submodule.prod_equiv_of_independent D.factors D.factors_ind).trans
+  (dumb_map D.factors_supr)).trans (submodule.top_equiv R M)
 
-lemma is_decomposition.equiv_apply
-  (p : ι → submodule R M) (h : complete_lattice.independent p)  (hsupr : supr p = ⊤) (x : ⨁ i, p i) :
-  (is_decomposition.equiv p h hsupr) x = ∑ i in x.support, x i :=
+lemma is_decomposition.equiv_apply (D : decomposition ι R M) (x : ⨁ i, D.factors i) :
+  (is_decomposition.equiv D) x = ∑ i in x.support, x i :=
 begin
   rw [is_decomposition.equiv],
   rw linear_equiv.trans_apply,
@@ -364,12 +361,11 @@ begin
   simp [submodule.top_equiv],
 end
 
-lemma is_decomposition.equiv_symm_single_apply {ι : Type*} [nontrivial R]
-  (p : ι → submodule R M) (hp : complete_lattice.independent p)  (hsupr : supr p = ⊤)
-  (i : ι) (x : M) (hx : x ∈ p i) :
-  (is_decomposition.equiv p hp hsupr).symm x = dfinsupp.single i ⟨x, hx⟩ :=
+lemma is_decomposition.equiv_symm_single_apply
+  (D : decomposition ι R M) (i : ι) (x : M) (hx : x ∈ D.factors i) :
+  (is_decomposition.equiv D).symm x = dfinsupp.single i ⟨x, hx⟩ :=
 begin
-  apply_fun (is_decomposition.equiv p hp hsupr),
+  apply_fun (is_decomposition.equiv D),
   rw [linear_equiv.apply_symm_apply],
   rw is_decomposition.equiv_apply,
   by_cases h : x = 0,

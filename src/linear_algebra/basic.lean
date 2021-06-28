@@ -628,25 +628,6 @@ variables (p p' : submodule R M) (q q' : submodule R M₂)
 variables {r : R} {x y : M}
 open set
 
-variables {p p'}
-
-/-- If two submodules `p` and `p'` satisfy `p ⊆ p'`, then `of_le p p'` is the linear map version of
-this inclusion. -/
-def of_le (h : p ≤ p') : p →ₗ[R] p' :=
-p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
-
-@[simp] theorem coe_of_le (h : p ≤ p') (x : p) :
-  (of_le h x : M) = x := rfl
-
-theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
-
-variables (p p')
-
-lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
-  q.subtype.comp (of_le h) = p.subtype :=
-by { ext ⟨b, hb⟩, refl }
-
-
 instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 { add := (⊔),
   add_assoc := λ _ _ _, sup_assoc,
@@ -849,6 +830,32 @@ ext $ λ x, ⟨by rintro ⟨⟨_, h₁⟩, h₂, rfl⟩; exact ⟨h₁, h₂⟩,
 lemma eq_zero_of_bot_submodule : ∀(b : (⊥ : submodule R M)), b = 0
 | ⟨b', hb⟩ := subtype.eq $ show b' = 0, from (mem_bot R).1 hb
 
+
+variables (p p')
+/-- For any submodules `p` and `p'`, view `p ⊓ p'` as a submodule of `p'`.
+Note: There's a really really unfortunate naming conflict here with `subgroup_of` and `of_le`. :-(-/
+def of := p.comap p'.subtype
+
+lemma coe_of : (p.of p' : set p') = p'.subtype ⁻¹' p := rfl
+
+lemma mem_of {m : p'} : m ∈ p.of p' ↔ (m : M) ∈ p := iff.rfl
+
+variables {p p'}
+/-- If two submodules `p` and `p'` satisfy `p ⊆ p'`, then `of_le p p'` is the linear map version of
+this inclusion. -/
+def of_le (h : p ≤ p') : p →ₗ[R] p' :=
+p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
+
+@[simp] theorem coe_of_le (h : p ≤ p') (x : p) :
+  (of_le h x : M) = x := rfl
+
+theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
+
+lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
+  q.subtype.comp (of_le h) = p.subtype :=
+by { ext ⟨b, hb⟩, refl }
+
+variables (p p')
 section
 variables (R)
 
@@ -1202,6 +1209,55 @@ lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
 begin
   rw [← span_singleton_le_iff_mem, le_supr_iff],
   simp only [span_singleton_le_iff_mem],
+end
+
+lemma submodule.mem_supr'
+  {ι : Type w} (p : ι → submodule R M) {x : M} :
+  x ∈ supr p ↔ ∃ v : ι →₀ M, (∀ i, v i ∈ p i) ∧ ∑ i in v.support, v i = x :=
+begin
+  classical,
+  rw submodule.supr_eq_span,
+  refine ⟨λ h, _, λ h, _⟩,
+  refine submodule.span_induction h _ _ _ _,
+  { intros y hy,
+    rw set.mem_Union at hy,
+    cases hy with i hy,
+    use finsupp.single i y,
+    split,
+    { intro j, by_cases h : j = i,
+      simp only [h, finsupp.single_eq_same], exact hy,
+      rw ← ne.def at h,
+      simp only [finsupp.single_eq_of_ne h.symm, submodule.zero_mem], },
+    by_cases hy : y = 0,
+    rw hy,
+    simp only [finsupp.coe_zero, pi.zero_apply, finsupp.single_zero, finset.sum_const_zero],
+    rw [finsupp.support_single_ne_zero hy],
+    rw finset.sum_singleton,
+    exact finsupp.single_eq_same, },
+  { use 0,
+    simp only [finsupp.coe_zero, pi.zero_apply, implies_true_iff, eq_self_iff_true, and_self,
+      finset.sum_const_zero, submodule.zero_mem], },
+  { intros x y hx hy,
+    rcases hx with ⟨v, hv, hvs⟩,
+    rcases hy with ⟨w, hw, hws⟩,
+    use v + w,
+    refine ⟨λ i, submodule.add_mem _ (hv i) (hw i), _⟩,
+    rw ← hvs,
+    rw ← hws,
+    simp only [finsupp.add_apply],
+    convert finsupp.sum_add_add v w, },
+  { intros r x hx,
+    rcases hx with ⟨v, hv, hvs⟩,
+    use r • v,
+    refine ⟨λ i, submodule.smul_mem _ _ (hv i), _⟩,
+    rw ← hvs,
+    rw finset.smul_sum,
+    simp only [finsupp.smul_apply],
+    refine finset.sum_subset finsupp.support_smul (λ a ha han, finsupp.not_mem_support_iff.mp han) },
+  rcases h with ⟨v, hv, hvs⟩,
+  have := submodule.sum_mem (supr p) (λ i _, (le_supr p i : p i ≤ supr p) (hv i)),
+  rw ← submodule.supr_eq_span,
+  rwa hvs at this,
 end
 
 section

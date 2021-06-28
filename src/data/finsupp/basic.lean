@@ -632,7 +632,7 @@ def prod [has_zero M] [comm_monoid N] (f : α →₀ M) (g : α → M → N) : N
 variables [has_zero M] [has_zero M'] [comm_monoid N]
 
 @[to_additive]
-lemma finsupp.prod_def (f : α →₀ M) (g : α → M → N) :
+lemma prod_def (f : α →₀ M) (g : α → M → N) :
 f.prod g = ∏ a in f.support, g a (f a) := rfl
 
 @[to_additive]
@@ -1067,7 +1067,7 @@ lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
 prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
 
-lemma finsupp.sum_add_add
+lemma sum_add_add
   [add_comm_monoid M] (f g : α →₀ M) :
   ∑ a in (f + g).support, (f a + g a) = ∑ a in f.support, f a + ∑ a in g.support, g a :=
 begin

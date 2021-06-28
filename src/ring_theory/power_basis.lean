@@ -121,6 +121,15 @@ lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
   ∃ f : polynomial R, f.nat_degree < pb.dim ∧ y = aeval pb.gen f :=
 (mem_span_pow pb.dim_ne_zero).mp (by simpa using pb.basis.mem_span y)
 
+lemma alg_hom_ext [nontrivial S] {S' : Type*} [semiring S'] [algebra R S']
+  (pb : power_basis R S) ⦃f g : S →ₐ[R] S'⦄ (h : f pb.gen = g pb.gen) :
+f = g :=
+begin
+  ext x,
+  obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x,
+  rw [← polynomial.aeval_alg_hom_apply, ← polynomial.aeval_alg_hom_apply, h]
+end
+
 section minpoly
 
 open_locale big_operators

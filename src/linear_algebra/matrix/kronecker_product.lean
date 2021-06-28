@@ -10,12 +10,12 @@ import ring_theory.tensor_product
 /-!
 # Kronecker product of matrices, see https://en.wikipedia.org/wiki/Kronecker_product
 Two main definitions:
-- Given a commutative semiring α and two α algebras we define kronecker_prod₂, denoted ⊗₂[α], as
-the bilinear Kronecker product
+* Given a commutative semiring α and two α algebras we define kronecker_prod₂, denoted ⊗₂[α], as
+  the bilinear Kronecker product
 ⊗₂[α] : matrix (l n R) →ₗ[α] (matrix m p S) →ₗ[α] (matrix (l × m) (n × p) (R ⊗[α] S).
-- In the special case when α=R=S, we compose ⊗₂[α] with the canoical equivalence α ⊗[α] α ≃ α to
-define kronecker_prod, denoted by ⊗ₖ as the α-linear map
-⊗ₖ  : matrix (l n α) →ₗ[α] (matrix m p α) →ₗ[α] (matrix (l × m) (n × p) (α).
+* In the special case when α=R=S, we compose ⊗₂[α] with the canoical equivalence α ⊗[α] α ≃ α to
+  define kronecker_prod, denoted by ⊗ₖ as the α-linear map
+  ⊗ₖ  : matrix (l n α) →ₗ[α] (matrix m p α) →ₗ[α] (matrix (l × m) (n × p) (α).
 
 For both products, we prove that it is associative (in theorems `kronecker_prod₂_assoc` and
 `prod_assoc`, respectively) as well as the so-called `mixed-product property (in theorems
@@ -157,6 +157,20 @@ def linear_equiv.map_matrix [semiring α] [add_comm_monoid R] [add_comm_monoid S
   right_inv := λ M, by {ext, simp only [function.comp_app,
     linear_equiv.apply_symm_apply, map_apply]}, }
 
+lemma linear_equiv.map_matrix_symm [add_comm_monoid R] [add_comm_monoid S]
+  [module α R] [module α S] (f : R ≃ₗ[α] S) : linear_equiv.map_matrix f.symm =
+  ((linear_equiv.map_matrix f).symm : matrix m n S ≃ₗ[α] matrix m n R) := rfl
+
+lemma linear_equiv.map_matrix_trans {T : Type u} [add_comm_monoid T] [module α T]
+  [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S] (f : R ≃ₗ[α] S) (g : S ≃ₗ[α] T) :
+  (linear_equiv.map_matrix (f.trans g) : matrix m n R ≃ₗ[α] matrix m n T) =
+    (linear_equiv.map_matrix f).trans (linear_equiv.map_matrix g) := rfl
+
+lemma foo1 {T : Type u} [add_comm_monoid T] [module α T] [add_comm_monoid R] [add_comm_monoid S]
+  [add_comm_monoid T] [module α R] [module α S] [module α T] (f : R ≃ₗ[α] S) (g : S ≃ₗ[α] T) :
+  (f.trans g).symm = g.symm.trans f.symm := rfl
+
+--end for mathlib
 end tensor_matrix
 
 namespace kronecker_product
@@ -170,42 +184,56 @@ variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
 def prod (A : matrix l m R) (B : matrix n p R) : matrix (l × n) (m × p) R :=
-(matrix_tensor_bil A B).map (algebra.tensor_product.lid R R).to_alg_hom.to_ring_hom
+(matrix_tensor_bil A B).map (tensor_product.lid R R)--.to_alg_hom.to_ring_hom
 
-infix ` ⊗ₖ  `:100 := prod _
-notation x ` ⊗ₖ ` y:100 := prod x y
+-- infix ` ⊗ₖ  `:100 := prod _
+-- notation x ` ⊗ₖ ` y:100 := prod x y
 
-@[simp] lemma kronecker_prod₂_prod (A : matrix l m R) (B : matrix n p R) :
-  (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map
-    (algebra.tensor_product.lid R R).to_alg_hom.to_ring_hom = A ⊗ₖ B :=
-rfl
+@[simp] lemma prod_ext (A : matrix l m R) (B : matrix n p R) (i : l × n) (j: m × p) :
+  (prod A B) i j = A i.1 j.1 * B i.2 j.2 := by simp only [prod, matrix_tensor_bil,
+    tensor_product.lid_tmul, algebra.id.smul_eq_mul, linear_map.coe_mk, map_apply, lid_tmul]
+
+-- @[simp] lemma prod_ext (A : matrix l m R) (B : matrix n p R) (i : l × n) (j: m × p) :
+--   (A ⊗ₖ B) i j = A i.1 j.1 * B i.2 j.2 := by simp only [prod, matrix_tensor_bil,
+--     tensor_product.lid_tmul, algebra.id.smul_eq_mul, linear_map.coe_mk, map_apply, lid_tmul]
+
+
+-- @[simp] lemma kronecker_prod₂_prod (A : matrix l m R) (B : matrix n p R) :
+--   (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map
+--     (algebra.tensor_product.lid R R).to_alg_hom.to_ring_hom = A ⊗ₖ B :=
+-- rfl
+
+-- @[simp] lemma prod_kronecker_prod₂ (A : matrix l m R) (B : matrix n p R) :
+--   A ⊗ₖ B = (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map
+--   (algebra.tensor_product.lid R R).to_alg_hom.to_ring_hom :=
+-- rfl
 
 @[simp] lemma prod_kronecker_prod₂ (A : matrix l m R) (B : matrix n p R) :
-  A ⊗ₖ B = (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map
-  (algebra.tensor_product.lid R R).to_alg_hom.to_ring_hom :=
+  prod A B = (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map
+  (algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map :=
 rfl
 
-lemma prod_reindex_left (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R) (B : matrix n p R)
-  : (reindex_linear_equiv eₗ eₘ A) ⊗ₖ B =
-    reindex_linear_equiv (eₗ.prod_congr (equiv.refl _)) (eₘ.prod_congr (equiv.refl _)) ((A ⊗ₖ B)) :=
-by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
+-- lemma prod_reindex_left (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R) (B : matrix n p R)
+--   : (reindex_linear_equiv eₗ eₘ A) ⊗ₖ B =
+--     reindex_linear_equiv (eₗ.prod_congr (equiv.refl _)) (eₘ.prod_congr (equiv.refl _)) ((A ⊗ₖ B)) :=
+-- by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
-lemma prod_reindex_right (eₙ : n ≃ n') (eₚ : p ≃ p') (A : matrix l m R) (B : matrix n p R)
-  : (A ⊗ₖ (reindex_linear_equiv eₙ eₚ B) =
-    reindex_linear_equiv ((equiv.refl _).prod_congr eₙ) ((equiv.refl _).prod_congr eₚ) (A ⊗ₖ B)) :=
-by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
+-- lemma prod_reindex_right (eₙ : n ≃ n') (eₚ : p ≃ p') (A : matrix l m R) (B : matrix n p R)
+--   : (A ⊗ₖ (reindex_linear_equiv eₙ eₚ B) =
+--     reindex_linear_equiv ((equiv.refl _).prod_congr eₙ) ((equiv.refl _).prod_congr eₚ) (A ⊗ₖ B)) :=
+-- by { ext ⟨i, i'⟩ ⟨j, j'⟩, refl }
 
-@[simp] lemma prod_one_one [decidable_eq m] [decidable_eq n] :
-  (1 : matrix m m R) ⊗ₖ (1 : matrix n n R) = 1 := by simp only [kronecker_prod₂_one_one,
-    ring_hom_map_one, prod_kronecker_prod₂]
+-- @[simp] lemma prod_one_one [decidable_eq m] [decidable_eq n] :
+--   (1 : matrix m m R) ⊗ₖ (1 : matrix n n R) = 1 := by simp only [kronecker_prod₂_one_one,
+--     ring_hom_map_one, prod_kronecker_prod₂]
 
-theorem prod_mul (A : matrix l m R) (B : matrix m n R) (A' : matrix l' m' R)
-  (B' : matrix m' n' R) : (A.mul B) ⊗ₖ (A'.mul B') = (A ⊗ₖ A').mul (B ⊗ₖ B') :=
-begin
-  simp only [prod_kronecker_prod₂],
-  rw [← @matrix.map_mul _ _ _ _ _ _ (R ⊗ R) R _ (A ⊗₂[R] A') (B ⊗₂[R] B') _
-    (algebra.tensor_product.lid R R).to_alg_hom.to_ring_hom, kronecker_prod₂_mul],
-end
+-- theorem prod_mul (A : matrix l m R) (B : matrix m n R) (A' : matrix l' m' R)
+--   (B' : matrix m' n' R) : (A.mul B) ⊗ₖ (A'.mul B') = (A ⊗ₖ A').mul (B ⊗ₖ B') :=
+-- begin
+--   simp only [prod_kronecker_prod₂],
+--   rw [← @matrix.map_mul _ _ _ _ _ _ (R ⊗ R) R _ (A ⊗₂[R] A') (B ⊗₂[R] B') _
+--     (algebra.tensor_product.lid R R).to_alg_hom.to_ring_hom, kronecker_prod₂_mul],
+-- end
 
 
 
@@ -231,13 +259,83 @@ have h := (@tensor_matrix.assoc R R R _ m n p m' n' p' _ _ _ _ _ _ R _ _ _ _ _ _
 use g₂.symm.trans (h.trans g₁),
 end
 
+-- [prod, matrix_tensor_bil,
+--     tensor_product.lid_tmul, algebra.id.smul_eq_mul,
+--linear_map.coe_mk, map_apply, lid_tmul]
+
+
+
 theorem prod_assoc (A : matrix m m' R) (B : matrix n n' R) (C : matrix p p' R) :
-  kronecker_product.assoc (A ⊗ₖ B ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C) :=
+  -- kronecker_product.assoc (A ⊗ₖ B ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C) :=
+  kronecker_product.assoc (prod (prod A B) C) = prod A (prod B C) :=
+  -- by { ext ⟨i, ⟨j, k⟩⟩ ⟨i', ⟨j', k'⟩⟩, symmetry, apply mul_assoc }
     begin
+      rw kronecker_product.assoc,
+      rw prod_kronecker_prod₂,
+      rw prod_kronecker_prod₂,
+      rw prod_kronecker_prod₂,
+      rw prod_kronecker_prod₂,
+      simp [equiv.trans_apply],
+      rw ← linear_equiv.map_matrix_symm,
+      rw foo1,
+      rw linear_equiv.map_matrix_trans,
+      rw linear_equiv.map_matrix_trans,--inutile?
+      rw linear_equiv.map_matrix_symm,
+      simp only [linear_equiv.trans_apply, alg_equiv.to_linear_equiv_symm],
+      -- ext ⟨i, ⟨j, k⟩⟩ ⟨i', ⟨j', k'⟩⟩,
+--     convert_to kronecker_product.assoc ((kronecker_prod₂ ((kronecker_prod₂ A B).map
+-- ((algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map)) C).map
+--     ((algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map))
+--   = (kronecker_prod₂ A (prod B C)).map
+--   ((algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map),
+      convert_to kronecker_product.assoc (
+        linear_map.map_matrix (algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map (
+          kronecker_prod₂
+(linear_map.map_matrix ((algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map) ( kronecker_prod₂ A B))
+                          C) )
+          =
+          linear_map.map_matrix
+        ((algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map )
+         (kronecker_prod₂ A (prod B C)),
+      have hc := congr_arg (linear_map.map_matrix
+        (algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map),
+        rotate, use (m × n) × p, use (m' × n') × p', apply_instance, apply_instance,
+        -- use kronecker_prod₂ A (prod B C),
+        use kronecker_prod₂ (prod A B) C, sorry,
+        -- have w:= (kronecker_prod₂ A (prod B C)),
+        have t:= kronecker_prod₂_assoc A B C,
+      apply hc,
+      -- rw ← kronecker_prod₂_assoc,
+      have hj : function.injective (algebra.tensor_product.lid R R).to_alg_hom.to_ring_hom, sorry,
+
+      ext ⟨i, ⟨j, k⟩⟩ ⟨i', ⟨j', k'⟩⟩,
+      -- rw prod_ext,
+      -- rw prod_ext,
+      -- rw kronecker_product.assoc,
+      -- rw linear_equiv.trans,
+      -- rw linear_equiv.map_matrix,
+      -- -- simp,
+      -- rw algebra.tensor_product.lid,
+      --   -- ((algebra.tensor_product.lid R (R ⊗ R)).to_linear_equiv.trans (algebra.tensor_product.lid R R).to_linear_equiv),
+      -- symmetry,
+      -- simp [prod,
+      --   kronecker_product.assoc,
+      --   matrix_tensor_bil,
+      --   tensor_product.lid_tmul,
+      --   algebra.id.smul_eq_mul,
+      --   linear_map.coe_mk,
+      --   map_apply,
+      --   lid_tmul, rid_tmul,
+      --   mul_assoc],
+      -- apply
+-- refl,
+
+
       -- simp,
-      -- ext,/
-      ext ⟨i, j, k⟩ ⟨i', j', k'⟩,
-      simp,
+      -- apply mul_assoc,
+    --   simp [alg_equiv.to_alg_hom_eq_coe, prod_ext],-- prod_kronecker_prod₂,
+    --     -- ← kronecker_prod₂_assoc],
+    --   -- rw kronecker_prod₂_assoc,
     end
 --     --rfl
 

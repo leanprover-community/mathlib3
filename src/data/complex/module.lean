@@ -21,15 +21,14 @@ This file contains the following instances:
 * the space of `ℝ`-linear maps from a real vector space to a complex vector space is a complex
   vector space.
 
-It also defines three linear maps:
+It also defines bundled versions of four standard maps (respectively, the real part, the imaginary
+part, the embedding of `ℝ` in `ℂ`, and the complex conjugate):
 
-* `complex.re_lm`;
-* `complex.im_lm`;
-* `complex.of_real_lm`;
-* `complex.conj_lm`.
+* `complex.re_lm` (`ℝ`-linear map);
+* `complex.im_lm` (`ℝ`-linear map);
+* `complex.of_real_am` (`ℝ`-algebra (homo)morphism);
+* `complex.conj_ae` (`ℝ`-algebra equivalence).
 
-They are bundled versions of the real part, the imaginary part, the embedding of `ℝ` in `ℂ`, and
-the complex conjugate as `ℝ`-linear maps.
 -/
 noncomputable theory
 
@@ -78,14 +77,6 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
-
-/-- Complex conjugation as an `ℝ`-algebra isomorphism  -/
-def conj_alg_equiv : ℂ ≃ₐ[ℝ] ℂ :=
-{ inv_fun := complex.conj,
-  left_inv := complex.conj_conj,
-  right_inv := complex.conj_conj,
-  commutes' := complex.conj_of_real,
-  .. complex.conj }
 
 section
 open_locale complex_order
@@ -202,19 +193,19 @@ def im_lm : ℂ →ₗ[ℝ] ℝ :=
 
 @[simp] lemma im_lm_coe : ⇑im_lm = im := rfl
 
-/-- Linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def of_real_lm : ℝ →ₗ[ℝ] ℂ :=
-{ to_fun := coe,
-  map_add' := of_real_add,
-  map_smul' := λc x, by simp [algebra.smul_def] }
+/-- `ℝ`-algebra morphism version of the canonical embedding of `ℝ` in `ℂ`. -/
+def of_real_am : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 
-@[simp] lemma of_real_lm_coe : ⇑of_real_lm = coe := rfl
+@[simp] lemma of_real_am_coe : ⇑of_real_am = coe := rfl
 
-/-- `ℝ`-linear map version of the complex conjugation function from `ℂ` to `ℂ`. -/
-def conj_lm : ℂ →ₗ[ℝ] ℂ :=
-{ map_smul' := by simp [restrict_scalars_smul_def],
-  ..conj }
+/-- `ℝ`-algebra isomorphism version of the complex conjugation function from `ℂ` to `ℂ` -/
+def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
+{ inv_fun := conj,
+  left_inv := conj_conj,
+  right_inv := conj_conj,
+  commutes' := conj_of_real,
+  .. conj }
 
-@[simp] lemma conj_lm_coe : ⇑conj_lm = conj := rfl
+@[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
 
 end complex

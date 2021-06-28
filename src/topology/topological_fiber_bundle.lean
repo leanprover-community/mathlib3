@@ -736,6 +736,10 @@ instance [inhabited B] [inhabited (E (default B))] :
 @[simp, mfld_simps] def proj : total_space E → B :=
 λ (y : total_space E), y.1
 
+/-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
+@[simp, mfld_simps, reducible] def total_space_mk (E : B → Type*) (b : B) (a : E b) :
+  bundle.total_space E := ⟨b, a⟩
+
 instance {x : B} : has_coe_t (E x) (total_space E) := ⟨λ y, (⟨x, y⟩ : total_space E)⟩
 
 @[simp, mfld_simps] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
@@ -820,10 +824,6 @@ It is by definition equal to `bundle.total_space Z.fiber`, a.k.a. `Σ x, Z.fiber
 different name for typeclass inference. -/
 @[nolint unused_arguments, reducible]
 def total_space := bundle.total_space Z.fiber
-
-/-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
-@[simp, mfld_simps, reducible] def total_space_mk (b : B) (a : Z.fiber b) :
-  bundle.total_space Z.fiber := ⟨b, a⟩
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : Z.total_space → B := bundle.proj Z.fiber
@@ -1101,8 +1101,10 @@ by { rw [local_triv_at_ext, local_triv_ext_apply, coord_change_self], exact Z.me
   b ∈ (Z.local_triv_at_ext b).base_set :=
 by { rw [local_triv_at_ext, ←base_set_at], exact Z.mem_base_set_at b, }
 
+open bundle
+
 /-- The inclusion of a fiber into the total space is a continuous map. -/
-lemma continuous_sigma_mk (b : B) : continuous (λ a, Z.total_space_mk b a) :=
+lemma continuous_total_space_mk (b : B) : continuous (λ a, total_space_mk Z.fiber b a) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],
   apply le_induced_generate_from,

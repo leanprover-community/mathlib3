@@ -301,8 +301,8 @@ noncomputable def lift_equiv [nontrivial S] (pb : power_basis A S) :
   {y : S' // aeval y (minpoly A pb.gen) = 0} ≃ (S →ₐ[A] S') :=
 { to_fun := λ y, pb.lift y y.2,
   inv_fun := λ f, ⟨f pb.gen, by rw [aeval_alg_hom_apply, minpoly.aeval, f.map_zero]⟩,
-  left_inv := λ y, by simp only [subtype.ext_iff, lift_gen, subtype.coe_mk],
-  right_inv := λ f, pb.alg_hom_ext (by simp only [lift_gen, subtype.coe_mk]) }
+  left_inv := λ y, subtype.ext $ lift_gen _ _ y.prop,
+  right_inv := λ f, pb.alg_hom_ext $ lift_gen _ _ _  }
 
 /-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis. -/
 noncomputable def equiv [nontrivial S] [nontrivial S']

@@ -78,6 +78,17 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
+/-- Two algebra homomorphisms from ℂ are equal if they agree on `complex.I`. -/
+@[ext]
+lemma alg_hom_ext {A : Type*} [semiring A] [algebra ℝ A] ⦃f g : ℂ →ₐ[ℝ] A⦄ (h : f I = g I) :
+  f = g :=
+begin
+  ext ⟨x, y⟩,
+  have : (coe : ℝ → ℂ) = algebra_map ℝ ℂ := rfl,
+  rw [mk_eq_add_mul_I, ←smul_coe, this],
+  simp only [alg_hom.map_add, alg_hom.commutes, alg_hom.map_smul, h],
+end
+
 section
 open_locale complex_order
 

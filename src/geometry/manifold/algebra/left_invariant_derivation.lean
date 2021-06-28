@@ -56,7 +56,7 @@ variables
 {X Y : left_invariant_derivation I G} {f f' : C^∞⟮I, G; 𝕜⟯}
 
 lemma to_fun_eq_coe : X.to_fun = ⇑X := rfl
-lemma coe_fn_coe : ⇑(X : C^∞⟮I, G; 𝕜⟯ →ₗ[𝕜] C^∞⟮I, G; 𝕜⟯) = X := rfl
+lemma coe_to_linear_map : ⇑(X : C^∞⟮I, G; 𝕜⟯ →ₗ[𝕜] C^∞⟮I, G; 𝕜⟯) = X := rfl
 @[simp] lemma to_derivation_eq_coe : X.to_derivation = X := rfl
 
 lemma coe_injective :
@@ -79,6 +79,12 @@ lemma coe_derivation_injective : function.injective
 lemma left_invariant' :
   (𝒅(𝑳 I g)) (1 : G) (derivation.eval_at (1 : G) ↑X) f = derivation.eval_at g ↑X f :=
 by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
+
+@[simp] lemma map_add : X (f + f') = X f + X f' := derivation.map_add X f f'
+@[simp] lemma map_zero : X 0 = 0 := derivation.map_zero X
+@[simp] lemma map_neg : X (-f) = -X f := derivation.map_neg X f
+@[simp] lemma map_sub : X (f - f') = X f - X f' := derivation.map_sub X f f'
+@[simp] lemma map_smul : X (r • f) = r • X f := derivation.map_smul X r f
 
 instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,
   by simp only [linear_map.map_zero, derivation.coe_zero]⟩⟩
@@ -105,10 +111,6 @@ instance : has_sub (left_invariant_derivation I G) :=
   (↑(X + Y) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = X + Y := rfl
 @[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
-@[simp] lemma map_add : X (f + f') = X f + X f' := derivation.map_add X f f'
-@[simp] lemma map_zero : X 0 = 0 := derivation.map_zero X
-@[simp] lemma map_neg : X (-f) = -X f := derivation.map_neg X f
-@[simp] lemma map_sub : X (f - f') = X f - X f' := derivation.map_sub X f f'
 
 instance : add_comm_group (left_invariant_derivation I G) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
@@ -120,14 +122,13 @@ instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
 variables (r X)
 
 @[simp] lemma coe_smul : ⇑(r • X) = r • X := rfl
-@[simp] lemma map_smul : X (r • f) = r • X f := derivation.map_smul X r f
 @[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 @[simp] lemma lift_smul (k : 𝕜) : (↑(k • X) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = k • X := rfl
 
 variables (I G)
 
 /-- The coercion to function is a monoid homomorphism. -/
-def coe_fn_add_monoid_hom : (left_invariant_derivation I G) →+ _ :=
+@[simps] def coe_fn_add_monoid_hom : (left_invariant_derivation I G) →+ _ :=
 ⟨λ X, X.to_derivation.to_fun, coe_zero, coe_add⟩
 
 variables {I G}
@@ -189,3 +190,5 @@ instance : lie_algebra 𝕜 (left_invariant_derivation I G) :=
               pi.smul_apply] } }
 
 end left_invariant_derivation
+
+#lint

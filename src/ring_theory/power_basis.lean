@@ -265,7 +265,10 @@ begin
 end
 
 /-- `pb.lift y hy` is the algebra map sending `pb.gen` to `y`,
-where `hy` states the higher powers of `y` are the same as the higher powers of `pb.gen`. -/
+where `hy` states the higher powers of `y` are the same as the higher powers of `pb.gen`.
+
+See `power_basis.lift_equiv` for a bundled equiv sending `⟨y, hy⟩` to the algebra map.
+-/
 noncomputable def lift [nontrivial S] (pb : power_basis A S) (y : S')
   (hy : aeval y (minpoly A pb.gen) = 0) :
   S →ₐ[A] S' :=
@@ -284,6 +287,19 @@ pb.constr_pow_gen hy
   (hy : aeval y (minpoly A pb.gen) = 0) (f : polynomial A) :
   pb.lift y hy (aeval pb.gen f) = aeval y f :=
 pb.constr_pow_aeval hy f
+
+/-- `pb.lift_equiv` states that roots of the minimal polynomial of `pb.gen` correspond to
+maps sending `pb.gen` to that root.
+
+This is the bundled equiv version of `power_basis.lift`.
+-/
+@[simps]
+noncomputable def lift_equiv [nontrivial S] (pb : power_basis A S) :
+  {y : S' // aeval y (minpoly A pb.gen) = 0} ≃ (S →ₐ[A] S') :=
+{ to_fun := λ y, pb.lift y y.2,
+  inv_fun := λ f, ⟨f pb.gen, by rw [aeval_alg_hom_apply, minpoly.aeval, f.map_zero]⟩,
+  left_inv := λ y, by simp only [subtype.ext_iff, lift_gen, subtype.coe_mk],
+  right_inv := λ f, pb.alg_hom_ext (by simp only [lift_gen, subtype.coe_mk]) }
 
 /-- `pb.equiv pb' h` is an equivalence of algebras with the same power basis. -/
 noncomputable def equiv [nontrivial S] [nontrivial S']

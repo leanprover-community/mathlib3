@@ -24,7 +24,7 @@ For both products, we prove that it is associative (in theorems `kronecker_prod�
 I (FAE) wonder if this file should be in `linear_algebra/matrix` or rather in `data/matrix`.
 -/
 
-universes u v u'
+-- universes u v u'
 
 namespace tensor_matrix
 
@@ -32,8 +32,8 @@ open tensor_product matrix
 open_locale tensor_product
 
 
-variables {α R S : Type u} [comm_semiring α]
-variables {l m n p l' m' n' p' : Type v}
+variables {α R S : Type*} [comm_semiring α]
+variables {l m n p l' m' n' p' : Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
@@ -51,7 +51,7 @@ def matrix_tensor_bil [add_comm_monoid R] [add_comm_monoid S] [module α R] [mod
   map_smul' := λ _ _, by {simp only [pi.smul_apply], simp_rw [smul_tmul, tmul_smul], refl},
   }
 
-lemma assoc_aux {T : Type u'} [add_comm_monoid T] [module α T] [add_comm_monoid R]
+lemma assoc_aux {T : Type*} [add_comm_monoid T] [module α T] [add_comm_monoid R]
   [add_comm_monoid S] [module α R] [module α S] :
   ⇑((tensor_product.assoc α R S T).symm) ∘ ⇑(tensor_product.assoc α R S T) = id ∧
     ⇑(tensor_product.assoc α R S T) ∘ ⇑((tensor_product.assoc α R S T).symm) = id :=
@@ -62,7 +62,7 @@ lemma assoc_aux {T : Type u'} [add_comm_monoid T] [module α T] [add_comm_monoid
   end
 
 protected
-def assoc {T : Type u'} [add_comm_monoid T] [module α T] [add_comm_monoid R] [add_comm_monoid S]
+def assoc {T : Type*} [add_comm_monoid T] [module α T] [add_comm_monoid R] [add_comm_monoid S]
   [module α R] [module α S] : matrix ((m × n) × p) ((m' × n') × p') (R ⊗[α] S ⊗[α] T) ≃ₗ[α]
     matrix (m × n × p) (m' × n' × p') (R ⊗[α] (S ⊗[α] T)) :=
 { to_fun := λ A, reindex (equiv.prod_assoc _ _ _) (equiv.prod_assoc _ _ _)
@@ -161,12 +161,12 @@ lemma linear_equiv.map_matrix_symm [add_comm_monoid R] [add_comm_monoid S]
   [module α R] [module α S] (f : R ≃ₗ[α] S) : linear_equiv.map_matrix f.symm =
   ((linear_equiv.map_matrix f).symm : matrix m n S ≃ₗ[α] matrix m n R) := rfl
 
-lemma linear_equiv.map_matrix_trans {T : Type u} [add_comm_monoid T] [module α T]
+lemma linear_equiv.map_matrix_trans {T : Type*} [add_comm_monoid T] [module α T]
   [add_comm_monoid R] [add_comm_monoid S] [module α R] [module α S] (f : R ≃ₗ[α] S) (g : S ≃ₗ[α] T) :
   (linear_equiv.map_matrix (f.trans g) : matrix m n R ≃ₗ[α] matrix m n T) =
     (linear_equiv.map_matrix f).trans (linear_equiv.map_matrix g) := rfl
 
-lemma foo1 {T : Type u} [add_comm_monoid T] [module α T] [add_comm_monoid R] [add_comm_monoid S]
+lemma foo1 {T : Type*} [add_comm_monoid T] [module α T] [add_comm_monoid R] [add_comm_monoid S]
   [add_comm_monoid T] [module α R] [module α S] [module α T] (f : R ≃ₗ[α] S) (g : S ≃ₗ[α] T) :
   (f.trans g).symm = g.symm.trans f.symm := rfl
 
@@ -179,7 +179,7 @@ open tensor_product matrix tensor_matrix --algebra.tensor_product
 open_locale tensor_product
 
 variables {R : Type*} [comm_semiring R]
-variables {l m n p l' m' n' p' : Type v}
+variables {l m n p l' m' n' p' : Type*}
 variables [fintype l] [fintype m] [fintype n] [fintype p]
 variables [fintype l'] [fintype m'] [fintype n'] [fintype p']
 
@@ -294,14 +294,16 @@ theorem prod_assoc' (A : matrix m m' R) (B : matrix n n' R) (C : matrix p p' R) 
       rw linear_equiv.map_matrix_trans,--inutile?
       rw linear_equiv.map_matrix_symm,
       simp only [linear_equiv.trans_apply, alg_equiv.to_linear_equiv_symm],
-      let φₘₙ : matrix ((m × n) × p) ((m' × n') × p') R ≃ₗ matrix ((m × n) × p) ((m' × n') × p') (R ⊗ R)
-       := (linear_equiv.map_matrix (algebra.tensor_product.lid R R).to_linear_equiv).symm,
-      have tt := --(linear_equiv.map_matrix (tensor_product.lid R R)).symm
-      (kronecker_prod₂ ((kronecker_prod₂ A B).map (tensor_product.lid R R)) C).map (tensor_product.lid R R),
-      have w := --(linear_equiv.map_matrix (tensor_product.lid R R)).symm
-        (kronecker_prod₂ ((kronecker_prod₂ A B).map tensor_product.lid R R) C).map (tensor_product.lid R R),
-        --   = 0,
-        --  kronecker_prod₂ ((kronecker_prod₂ A B).map ⇑(tensor_product.lid R R) C), sorry,
+      -- let φₘₙ : matrix ((m × n) × p) ((m' × n') × p') R ≃ₗ matrix ((m × n) × p) ((m' × n') × p') (R ⊗ R)
+      --  := (linear_equiv.map_matrix (algebra.tensor_product.lid R R).to_linear_equiv).symm,
+      -- have tt := --(linear_equiv.map_matrix (tensor_product.lid R R)).symm
+      -- (kronecker_prod₂ ((kronecker_prod₂ A B).map (tensor_product.lid R R)) C).map (tensor_product.lid R R),
+      -- have : (linear_equiv.map_matrix (algebra.tensor_product.lid R R).to_linear_equiv).symm
+      have : (linear_equiv.map_matrix (tensor_product.lid R R)).symm
+        ((kronecker_prod₂ ((kronecker_prod₂ A B).map (tensor_product.lid R R)) C).map (tensor_product.lid R R)) =
+         kronecker_prod₂ ((kronecker_prod₂ A B).map ⇑(tensor_product.lid R R)) C,
+        --  kronecker_prod₂ ((kronecker_prod₂ A B).map ⇑((algebra.tensor_product.lid R R).to_linear_equiv)) C,
+         sorry,
       rw this,
       rw lid_symm_apply,
     end

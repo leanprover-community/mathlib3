@@ -1,34 +1,46 @@
 /-
-Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Bhavik Mehta
+Authors: Yaël Dillies
 -/
 import analysis.convex.exposed
-import order.zorn
 
 /-!
 # The Krein-Milman theorem
 
-This file proves the Krein-Milman theorem and the Krein-Milman lemma.
+This file proves the Krein-Milman theorem and the Krein-Milman lemma in locally convex topological
+vector spaces (LCTVS for short).
 
-The theorem states a
+## The lemma
 
-An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional
-(a continuous linear map `E → ℝ`) over `A`. By convention, `∅` is an exposed subset of all sets.
-This allows for better functioriality of the definition (the intersection of two exposed subsets is
-exposed, faces of a polytope form a bounded lattice).
-This is an analytic notion of "being on the side of". It is stronger than being extreme (see
-`is_exposed.is_extreme`), but weaker (for exposed points) than being a vertex.
+The lemma states that a nonempty compact set `A` has an extreme point. The proof goes:
+1. Using Zorn's lemma, find a minimal nonempty closed `B` that is an extreme subset of `A`. We will
+  show that `B` is a singleton, thus corresponding to an extreme point.
+2. By contradiction, `B` contains two distinct points `x` and `y`.
+3. With the (geometric) Hahn-Banach theorem, find an hyperplane that separates `x` and `y`.
+4. Look at the extreme (actually exposed) subset of `B` obtained by going the furthest away from
+  the separating hyperplane in the direction of `x`. It is nonempty, closed and an extreme subset
+  of `A`.
+5. It is a strict subset of `B` (`y` isn't in it), so `B` isn't minimal. Absurd.
 
-An exposed set of `A` is sometimes called a "face of `A`", but we decided to reserve this
-terminology to the more specific notion of a face of a polytope (sometimes hopefully soon out
-on mathlib!).
+## The theorem
 
-## Main declarations
+The theorem states that a compact convex set `A` is the closure of the convex hull of its extreme
+points. It is an almost immediate strengthening of the lemma. The proof goes:
+1. By contradiction, `A \ closure (convex_hull A.extreme_points)` is nonempty, say with `x`.
+2. With the (geometric) Hahn-Banach theorem, find an hyperplane that separates `x` from
+  `closure (convex_hull A.extreme_points)`.
+3. Look at the extreme (actually exposed) subset of `A \ closure (convex_hull A.extreme_points)`
+  obtained by going the furthest away from the separating hyperplane. It is nonempty by assumption
+  of nonemptiness and compactness, so by the lemma it has an extreme point.
+4. This point is also an extreme point of `A`. Absurd.
 
-* `is_exposed A B`: States that `B` is an exposed set of `A` (in the literature, `A` is often
-  implicit).
-* `is_exposed.is_extreme`: An exposed set is also extreme.
+## Related theorems
+
+When the space is finite dimensional, the `closure` can be dropped to strengthen the result of the
+Krein-Milman theorem. This leads to the Minkowski-Carathéodory theorem (currently not in mathlib).
+Birkhoff's theorem is the Minkowski-Carathéodory theorem applied to the set of bistochastic
+matrices, permutation matrices being the extreme points.
 
 ## References
 
@@ -36,11 +48,8 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
 ## TODO
 
-* define convex independence, intrinsic frontier/interior and prove the lemmas related to exposed
-  sets and points.
-* generalise to Locally Convex Topological Vector Spaces™
-
-More not-yet-PRed stuff is available on the branch `sperner_again`.
+*  Both theorems are currently stated for normed `ℝ`-spaces due to the definition of convexity.
+  They are more generally true in a LCTVS without changes to the current proofs.
 -/
 
 open_locale classical affine big_operators
@@ -49,92 +58,71 @@ open set
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
   {X : finset E} {l : E →L[ℝ] ℝ}
 
---to move to mathlib
-theorem zorn.subset_reverse {α : Type*} (S : set (set α))
-  (h : ∀c ⊆ S, zorn.chain (⊆) c → ∃lb ∈ S, ∀ s ∈ c, lb ⊆ s) :
-  ∃ m ∈ S, ∀ a ∈ S, a ⊆ m → a = m :=
-begin
-  let rev : S → S → Prop := λ X Y, Y.1 ⊆ X.1,
-  have hS : ∀ (c : set S), zorn.chain rev c → ∃ ub, ∀ a ∈ c, rev a ub,
-  { intros c hc,
-    obtain ⟨t, ht₁, ht₂⟩ := h (coe '' c) (by simp)
-      (by { rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ ne,
-            apply (hc _ hx _ hy (λ t, ne (congr_arg coe t))).symm }),
-    exact ⟨⟨_, ht₁⟩, λ a ha, ht₂ a ⟨_, ha, rfl⟩⟩ },
-  obtain ⟨m, hm₁⟩ := zorn.exists_maximal_of_chains_bounded hS _,
-  { refine ⟨m, m.prop, λ a ha ha₂, set.subset.antisymm ha₂ (hm₁ ⟨a, ha⟩ ha₂)⟩ },
-  intros x y z xy yz,
-  apply set.subset.trans yz xy
-end
+theorem geometric_hahn_banach_closed_point {A : set E} {x : E}
+  (hA₁ : convex A) (hA₂ : is_closed A)
+  (disj : x ∉ A) :
+  ∃ (f : E →L[ℝ] ℝ) (s : ℝ), (∀ a ∈ A, f a < s) ∧ s < f x := sorry
 
-/--
-The Krein-Milman lemma
--/
-lemma has_extreme_point_of_convex_of_compact_of_nonempty (hAnemp : A.nonempty)
-  (hAcomp : is_compact A) (hAconv : convex A) :
+theorem geometric_hahn_banach_point_point {x y : E} (hxy : x ≠ y) :
+  ∃ (f : E →L[ℝ] ℝ), f x < f y :=
+sorry
+
+/-- The Krein-Milman lemma
+
+In a LCTVS (currently only in normed `ℝ`-spaces), any nonempty compact set has an extreme point. -/
+lemma is_compact.has_extreme_point (hAnemp : A.nonempty) (hAcomp : is_compact A) :
   A.extreme_points.nonempty :=
 begin
   let S : set (set E) := {B | B.nonempty ∧ is_closed B ∧ is_extreme A B},
   suffices h : ∃ B ∈ S, ∀ C ∈ S, C ⊆ B → C = B,
-  { obtain ⟨B, ⟨hBnemp, hBclos, hAB⟩, hBmin⟩ := h,
-    obtain ⟨x, hxB⟩ := hBnemp,
+  { obtain ⟨B, ⟨⟨x, hxB⟩, hBclos, hAB⟩, hBmin⟩ := h,
     refine ⟨x, mem_extreme_points_iff_extreme_singleton.2 _⟩,
-    suffices h : B = {x},
-    { rw ←h,
-      exact hAB },
+    convert hAB,
+    rw eq_comm,
     refine eq_singleton_iff_unique_mem.2 ⟨hxB, λ y hyB, _⟩,
     by_contra hyx,
     obtain ⟨l, hl⟩ := geometric_hahn_banach_point_point hyx,
-    obtain ⟨z, hzB, hz⟩ := is_compact.exists_forall_ge (compact_of_is_closed_subset hAcomp hBclos
-      hAB.1) ⟨x, hxB⟩ (continuous.continuous_on l.continuous),
-    rw ←hBmin {z ∈ B | ∀ w ∈ B, l w ≤ l z} ⟨⟨z, hzB, hz⟩, is_exposed.is_closed ⟨l, rfl⟩ hBclos,
-      hAB.trans (is_exposed.is_extreme ⟨l, rfl⟩)⟩ (λ z hz, hz.1) at hyB,
-    exact not_le.2 hl (hyB.2 x hxB) },
-  apply zorn.subset_reverse,
+    obtain ⟨z, hzB, hz⟩ := (compact_of_is_closed_subset hAcomp hBclos hAB.1).exists_forall_ge
+      ⟨x, hxB⟩ l.continuous.continuous_on,
+    have h : is_exposed B {z ∈ B | ∀ w ∈ B, l w ≤ l z} := λ h, ⟨l, rfl⟩,
+    rw ←hBmin {z ∈ B | ∀ w ∈ B, l w ≤ l z} ⟨⟨z, hzB, hz⟩, h.is_closed hBclos, hAB.trans
+      h.is_extreme⟩ (λ z hz, hz.1) at hyB,
+    exact hl.not_le (hyB.2 x hxB) },
+  apply zorn.zorn_superset,
   rintro F hFS hF,
-  cases F.eq_empty_or_nonempty with hFemp hFnemp,
-  { rw hFemp,
-    refine ⟨A, ⟨hAnemp, is_compact.is_closed hAcomp, is_extreme.refl _⟩, λ B hB, _⟩,
-    exfalso,
-    exact hB },
+  obtain rfl | hFnemp := F.eq_empty_or_nonempty,
+  { exact ⟨A, ⟨hAnemp, hAcomp.is_closed, is_extreme.refl _⟩, λ B hB, false.elim hB⟩ },
   refine ⟨⋂₀ F, ⟨_, is_closed_sInter (λ B hB, (hFS hB).2.1), is_extreme.sInter hFnemp
     (λ B hB, (hFS hB).2.2)⟩, λ B hB, sInter_subset_of_mem hB⟩,
+  haveI : nonempty ↥F := hFnemp.to_subtype,
   rw sInter_eq_Inter,
-  apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _,
-  { rintro B C,
-    cases zorn.chain.total_of_refl hF (subtype.mem _) (subtype.mem _) with hBC hCB,
-    exacts [⟨B, subset.refl _, hBC⟩, ⟨C, hCB, subset.refl _⟩] },
-  exacts [λ B, (hFS (subtype.mem _)).1, λ B, compact_of_is_closed_subset hAcomp
-    (hFS (subtype.mem _)).2.1 (hFS (subtype.mem _)).2.2.1, λ B, (hFS (subtype.mem _)).2.1,
-   nonempty_subtype.2 hFnemp],
+  refine is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ (λ B C, _)
+    (λ B, (hFS (subtype.mem _)).1)
+    (λ B, compact_of_is_closed_subset hAcomp (hFS (subtype.mem _)).2.1 (hFS (subtype.mem _)).2.2.1)
+    (λ B, (hFS (subtype.mem _)).2.1),
+  obtain hBC | hCB := zorn.chain.total_of_refl hF (subtype.mem B) (subtype.mem C),
+  exacts [⟨B, subset.refl _, hBC⟩, ⟨C, hCB, subset.refl _⟩],
 end
 
-/--
-The Krein-Milman theorem
--/
-lemma eq_closure_convex_hull_extreme_points_of_compact_of_convex (hAcomp : is_compact A)
+/-- The Krein-Milman theorem
+
+In a LCTVS (currently only in normed `ℝ`-spaces), any compact convex set is the closure of the
+convex hull of its extreme points. -/
+lemma eq_closure_convex_hull_extreme_points (hAcomp : is_compact A)
   (hAconv : convex A) :
   A = closure (convex_hull A.extreme_points) :=
 begin
   let B := closure (convex_hull A.extreme_points),
-  have hBA : B ⊆ A :=
-    closure_minimal (convex_hull_min (λ x hx, hx.1) hAconv) (is_compact.is_closed hAcomp),
-  refine subset.antisymm _ hBA,
+  refine subset.antisymm _ (closure_minimal (convex_hull_min (λ x hx, hx.1) hAconv)
+    (is_compact.is_closed hAcomp)),
   by_contra hAB,
   have hABdiff : (A \ B).nonempty := nonempty_diff.2 hAB,
   obtain ⟨x, hxA, hxB⟩ := id hABdiff,
   obtain ⟨l, s, hls, hsx⟩ := geometric_hahn_banach_closed_point
-    (convex.closure (convex_convex_hull _)) is_closed_closure hxB,
-  let C := {y ∈ A | ∀ z ∈ A, l z ≤ l y},
-  have hCexp : is_exposed A C := ⟨l, rfl⟩,
-  obtain ⟨y, hyC⟩ := has_extreme_point_of_convex_of_compact_of_nonempty
-    begin
-      obtain ⟨z, hzA, hz⟩ := is_compact.exists_forall_ge hAcomp ⟨x, hxA⟩
-        (continuous.continuous_on l.continuous),
-      exact ⟨z, hzA, hz⟩,
-    end
-    (hCexp.is_compact hAcomp) (hCexp.is_convex hAconv),
+    (convex_convex_hull _).closure is_closed_closure hxB,
+  have h : is_exposed A {y ∈ A | ∀ z ∈ A, l z ≤ l y} := λ _, ⟨l, rfl⟩,
+  obtain ⟨z, hzA, hz⟩ := hAcomp.exists_forall_ge ⟨x, hxA⟩ l.continuous.continuous_on,
+  obtain ⟨y, hy⟩ := (h.is_compact hAcomp).has_extreme_point (by exact ⟨z, hzA, hz⟩),
   linarith [hls _ (subset_closure (subset_convex_hull _
-    (hCexp.is_extreme.extreme_points_subset_extreme_points hyC))),
-    hyC.1.2 x hxA],
+    (h.is_extreme.extreme_points_subset_extreme_points hy))), hy.1.2 x hxA],
 end

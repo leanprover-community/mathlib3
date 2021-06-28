@@ -110,6 +110,10 @@ lemma map_sub [add_group α] [add_group β] (f : α →+ β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 by { ext, simp }
 
+lemma map_smul [has_scalar R α] [has_scalar R β] (f : α →[R] β) (r : R)
+  (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
+by { ext, simp, }
+
 lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
 ⟨λ M N, by { ext, contrapose! hm, use i }⟩
 
@@ -128,6 +132,15 @@ def add_monoid_hom.map_matrix [add_monoid α] [add_monoid β] (f : α →+ β) :
 
 @[simp] lemma add_monoid_hom.map_matrix_apply [add_monoid α] [add_monoid β]
   (f : α →+ β) (M : matrix m n α) : f.map_matrix M = M.map f := rfl
+
+/-- The `linear_map` between spaces of matrices induced by a `linear_map` between their
+coefficients. -/
+@[simps]
+def linear_map.map_matrix [semiring R] [add_comm_monoid α] [add_comm_monoid β]
+  [module R α] [module R β] (f : α →ₗ[R] β) : matrix m n α →ₗ[R] matrix m n β :=
+{ to_fun := λ M, M.map f,
+  map_add' := matrix.map_add f.to_add_monoid_hom,
+  map_smul' := matrix.map_smul f.to_mul_action_hom, }
 
 open_locale matrix
 
@@ -882,26 +895,27 @@ lemma star_mul (M N : matrix n n α) : star (M ⬝ N) = star N ⬝ star M := sta
 
 end star_ring
 
-/-- `M.minor row col` is the matrix obtained by reindexing the rows and the lines of
-    `M`, such that `M.minor row col i j = M (row i) (col j)`. Note that the total number
-    of row/colums doesn't have to be preserved. -/
-def minor (A : matrix m n α) (row : l → m) (col : o → n) : matrix l o α :=
-λ i j, A (row i) (col j)
+/-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of
+a matrix `M : matrix m n α`, the matrix `M.minor r_reindex c_reindex : matrix l o α` is defined
+by `(M.minor r_reindex c_reindex) i j = M (r_reindex i) (c_reindex j)` for `(i,j) : l × o`.
+Note that the total number of row and columns does not have to be preserved. -/
+def minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) : matrix l o α :=
+λ i j, A (r_reindex i) (c_reindex j)
 
-@[simp] lemma minor_apply (A : matrix m n α) (row : l → m) (col : o → n) (i j) :
-  A.minor row col i j = A (row i) (col j) := rfl
+@[simp] lemma minor_apply (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) (i j) :
+  A.minor r_reindex c_reindex i j = A (r_reindex i) (c_reindex j) := rfl
 
 @[simp] lemma minor_id_id (A : matrix m n α) :
   A.minor id id = A :=
 ext $ λ _ _, rfl
 
 @[simp] lemma minor_minor {l₂ o₂ : Type*} [fintype l₂] [fintype o₂] (A : matrix m n α)
-  (row₁ : l → m) (col₁ : o → n) (row₂ : l₂ → l) (col₂ : o₂ → o) :
-  (A.minor row₁ col₁).minor row₂ col₂ = A.minor (row₁ ∘ row₂) (col₁ ∘ col₂) :=
+  (r₁ : l → m) (c₁ : o → n) (r₂ : l₂ → l) (c₂ : o₂ → o) :
+  (A.minor r₁ c₁).minor r₂ c₂ = A.minor (r₁ ∘ r₂) (c₁ ∘ c₂) :=
 ext $ λ _ _, rfl
 
-@[simp] lemma transpose_minor (A : matrix m n α) (row : l → m) (col : o → n) :
-  (A.minor row col)ᵀ = Aᵀ.minor col row :=
+@[simp] lemma transpose_minor (A : matrix m n α) (r_reindex : l → m) (c_reindex : o → n) :
+  (A.minor r_reindex c_reindex)ᵀ = Aᵀ.minor c_reindex r_reindex :=
 ext $ λ _ _, rfl
 
 lemma minor_add [has_add α] (A B : matrix m n α) :
@@ -921,8 +935,11 @@ lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α] (r 
   (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
 
-/-- If the minor doesn't repeat elements, then when applied to a diagonal matrix the result is
-diagonal. -/
+lemma minor_map (f : α → β) (e₁ : l → m) (e₂ : o → n) (A : matrix m n α) :
+  (A.map f).minor e₁ e₂ = (A.minor e₁ e₂).map f := rfl
+
+/-- Given a `(m × m)` diagonal matrix defined by a map `d : m → α`, if the reindexing map `e` is
+  injective, then the resulting matrix is again diagonal. -/
 lemma minor_diagonal [has_zero α] [decidable_eq m] [decidable_eq l] (d : m → α) (e : l → m)
   (he : function.injective e) :
   (diagonal d).minor e e = diagonal (d ∘ e) :=
@@ -943,6 +960,7 @@ lemma minor_mul [semiring α] {p q : Type*} [fintype p] [fintype q]
   (e₁ : l → m) (e₂ : o → n) (e₃ : q → p) (he₂ : function.bijective e₂) :
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
 ext $ λ _ _, (he₂.sum_comp _).symm
+
 
 /-! `simp` lemmas for `matrix.minor`s interaction with `matrix.diagonal`, `1`, and `matrix.mul` for
 when the mappings are bundled. -/
@@ -973,6 +991,28 @@ lemma minor_mul_equiv [semiring α] {p q : Type*} [fintype p] [fintype q]
   (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
 minor_mul M N e₁ e₂ e₃ e₂.bijective
+
+lemma mul_minor_one [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l → o) (M : matrix m n α) :
+  M ⬝ (1 : matrix o o α).minor e₁ e₂ = minor M id (e₁.symm ∘ e₂) :=
+begin
+  let A := M.minor id e₁.symm,
+  have : M = A.minor id e₁,
+  { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
+  rw [this, ←minor_mul_equiv],
+  simp only [matrix.mul_one, minor_minor, function.comp.right_id, minor_id_id,
+    equiv.symm_comp_self],
+end
+
+lemma one_minor_mul [semiring α] [decidable_eq o] (e₁ : l → o) (e₂ : m ≃ o) (M : matrix m n α) :
+  ((1 : matrix o o α).minor e₁ e₂).mul M = minor M (e₂.symm ∘ e₁) id :=
+begin
+  let A := M.minor e₂.symm id,
+  have : M = A.minor e₂ id,
+  { simp only [minor_minor, function.comp.right_id, minor_id_id, equiv.symm_comp_self], },
+  rw [this, ←minor_mul_equiv],
+  simp only [matrix.one_mul, minor_minor, function.comp.right_id, minor_id_id,
+    equiv.symm_comp_self],
+end
 
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is an
 equivalence. -/

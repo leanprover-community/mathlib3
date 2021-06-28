@@ -12,8 +12,7 @@ import ring_theory.derivation
 # Derivation bundle
 
 In this file we define the derivations at a point of a manifold on the algebra of smooth fuctions.
-Moreover we define the total bundle of derivations (although at the moment it has not been given a
-topology). Finally we define the differential of a function in terms of derivations.
+Moreover, we define the differential of a function in terms of derivations.
 
 The content of this file is not meant to be regarded as an alternative definition to the current
 tangent bundle but rather as a purely algebraic theory that provides a purely algebraic definition
@@ -52,11 +51,11 @@ instance {x : M} : is_scalar_tower 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ C^∞⟮I, 
 
 variable {I}
 
-/-- The above evaluation gives rise to an algebra structure of `C^∞⟮I, M; 𝕜⟯` on `𝕜`. -/
+/-- `smooth_map.eval_ring_hom` gives rise to an algebra structure of `C^∞⟮I, M; 𝕜⟯` on `𝕜`. -/
 instance eval_algebra {x : M} : algebra C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜 :=
 (smooth_map.eval_ring_hom x : C^∞⟮I, M; 𝕜⟯⟨x⟩ →+* 𝕜).to_algebra
 
-/-- With the above algebra structure evaluation is actually an algebra morphism. -/
+/-- With the `eval_algebra` algebra structure evaluation is actually an algebra morphism. -/
 def eval (x : M) : C^∞⟮I, M; 𝕜⟯ →ₐ[C^∞⟮I, M; 𝕜⟯⟨x⟩] 𝕜 :=
 algebra.of_id C^∞⟮I, M; 𝕜⟯⟨x⟩ 𝕜
 
@@ -114,7 +113,7 @@ def fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) :
   map_smul' := λ k v, rfl,
   map_add' := λ v w, rfl }
 
-/- Standard notion for the differential. The abbreviation is `MId`. -/
+/- Standard notation for the differential. The abbreviation is `MId`. -/
 localized "notation `𝒅` := fdifferential" in manifold
 
 lemma apply_fdifferential (f : C^∞⟮I, M; I', M'⟯) (x : M) (v : point_derivation I x)

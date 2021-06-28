@@ -52,11 +52,10 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011]
   They are more generally true in a LCTVS without changes to the current proofs.
 -/
 
-open_locale classical affine big_operators
+open_locale classical
 open set
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
-  {X : finset E} {l : E →L[ℝ] ℝ}
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {A : set E}
 
 theorem geometric_hahn_banach_closed_point {A : set E} {x : E}
   (hA₁ : convex A) (hA₂ : is_closed A)
@@ -70,7 +69,7 @@ sorry
 /-- The Krein-Milman lemma
 
 In a LCTVS (currently only in normed `ℝ`-spaces), any nonempty compact set has an extreme point. -/
-lemma is_compact.has_extreme_point (hAnemp : A.nonempty) (hAcomp : is_compact A) :
+lemma is_compact.has_extreme_point (hAcomp : is_compact A) (hAnemp : A.nonempty) :
   A.extreme_points.nonempty :=
 begin
   let S : set (set E) := {B | B.nonempty ∧ is_closed B ∧ is_extreme A B},
@@ -108,8 +107,7 @@ end
 
 In a LCTVS (currently only in normed `ℝ`-spaces), any compact convex set is the closure of the
 convex hull of its extreme points. -/
-lemma eq_closure_convex_hull_extreme_points (hAcomp : is_compact A)
-  (hAconv : convex A) :
+lemma eq_closure_convex_hull_extreme_points (hAcomp : is_compact A) (hAconv : convex A) :
   A = closure (convex_hull A.extreme_points) :=
 begin
   let B := closure (convex_hull A.extreme_points),
@@ -122,7 +120,7 @@ begin
     (convex_convex_hull _).closure is_closed_closure hxB,
   have h : is_exposed A {y ∈ A | ∀ z ∈ A, l z ≤ l y} := λ _, ⟨l, rfl⟩,
   obtain ⟨z, hzA, hz⟩ := hAcomp.exists_forall_ge ⟨x, hxA⟩ l.continuous.continuous_on,
-  obtain ⟨y, hy⟩ := (h.is_compact hAcomp).has_extreme_point (by exact ⟨z, hzA, hz⟩),
+  obtain ⟨y, hy⟩ := (h.is_compact hAcomp).has_extreme_point ⟨z, set.mem_sep hzA hz⟩,
   linarith [hls _ (subset_closure (subset_convex_hull _
     (h.is_extreme.extreme_points_subset_extreme_points hy))), hy.1.2 x hxA],
 end

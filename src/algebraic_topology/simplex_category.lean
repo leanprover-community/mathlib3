@@ -435,7 +435,7 @@ lemma epi_iff_surjective {n m : simplex_category} {f: n ⟶ m} :
   epi f ↔ function.surjective f.to_preorder_hom :=
 begin
   split,
-  { intros hyp_f_epi x,
+  { introsI hyp_f_epi x,
     by_contradiction h_ab,
     rw not_exists at h_ab,
     -- The proof is by contradiction: assume f is not surjective,
@@ -466,7 +466,6 @@ begin
     { dsimp,
       ext,
       simp [le_iff_lt_or_eq, h_ab x_1] },
-    resetI,
     -- We now just have to show the two auxiliary functions are not equal.
     rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
     apply_fun hom.to_preorder_hom at eq_chi_i,

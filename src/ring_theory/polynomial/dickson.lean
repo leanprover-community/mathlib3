@@ -188,7 +188,7 @@ begin
     haveI : char_p K p := by { rw ← f.char_p_iff_char_p, apply_instance },
     haveI : infinite K :=
     infinite.of_injective (algebra_map (polynomial (zmod p)) (fraction_ring (polynomial (zmod p))))
-      is_fraction_ring.injective,
+      (is_fraction_ring.injective _ _),
     refine ⟨K, _, _, _⟩; apply_instance },
   resetI,
   apply map_injective (zmod.cast_hom (dvd_refl p) K) (ring_hom.injective _),

@@ -1230,11 +1230,7 @@ end
 
 @[simp] lemma pow_lmul_right (a : A) (n : ℕ) :
   (lmul_right R a) ^ n = lmul_right R (a ^ n) :=
-begin
-  apply linear_map.coe_injective,
-  dsimp only, -- TODO[gh-8102]: remove this once `coe_injective` does not introduce junk
-  exact ((lmul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n),
-end
+linear_map.coe_injective $ ((lmul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n)
 
 @[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
 by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]

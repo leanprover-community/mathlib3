@@ -162,11 +162,19 @@ calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
 lemma algebra_map_eq_smul_one' : ⇑(algebra_map R A) = λ r, r • (1 : A) :=
 funext algebra_map_eq_smul_one
 
+/-- `mul_comm` for `algebra`s when one element is from the base ring. -/
 theorem commutes (r : R) (x : A) : algebra_map R A r * x = x * algebra_map R A r :=
 algebra.commutes' r x
 
-theorem left_comm (r : R) (x y : A) : x * (algebra_map R A r * y) = algebra_map R A r * (x * y) :=
+/-- `mul_left_comm` for `algebra`s when one element is from the base ring. -/
+theorem left_comm (x : A) (r : R) (y : A) :
+  x * (algebra_map R A r * y) = algebra_map R A r * (x * y) :=
 by rw [← mul_assoc, ← commutes, mul_assoc]
+
+/-- `mul_right_comm` for `algebra`s when one element is from the base ring. -/
+theorem right_comm (x : A) (r : R) (y : A) :
+  (x * algebra_map R A r) * y = (x * y) * algebra_map R A r :=
+by rw [mul_assoc, commutes, ←mul_assoc]
 
 instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, smul_def, smul_def, mul_assoc]⟩

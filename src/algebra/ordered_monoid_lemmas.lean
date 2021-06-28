@@ -337,7 +337,7 @@ calc  1 ≤ b     : hb
     ... ≤ a * b : mul_le_mul_right' ha b
 
 /-- Assumes right covariance. -/
-@[to_additive right.pos_add]
+@[to_additive right.add_pos]
 lemma right.one_lt_mul [covariant_class α α (function.swap (*)) (<)]
   {b : α} (hb : 1 < b) {a: α} (ha : 1 < a) : 1 < a * b :=
 calc  1 < b     : hb

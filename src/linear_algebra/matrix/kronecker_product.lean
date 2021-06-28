@@ -210,8 +210,12 @@ def prod (A : matrix l m R) (B : matrix n p R) : matrix (l × n) (m × p) R :=
 
 @[simp] lemma prod_kronecker_prod₂ (A : matrix l m R) (B : matrix n p R) :
   prod A B = (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map
-  (algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map :=
-rfl
+  (algebra.tensor_product.lid R R).to_linear_equiv := rfl
+
+@[simp] lemma prod_kronecker_prod₂' (A : matrix l m R) (B : matrix n p R) :
+  prod A B = (A ⊗₂[R] B : matrix (l × n) (m × p) (R ⊗[R] R)).map
+  (tensor_product.lid R R) := rfl
+
 
 -- lemma prod_reindex_left (eₗ : l ≃ l') (eₘ : m ≃ m') (A : matrix l m R) (B : matrix n p R)
 --   : (reindex_linear_equiv eₗ eₘ A) ⊗ₖ B =
@@ -259,11 +263,48 @@ have h := (@tensor_matrix.assoc R R R _ m n p m' n' p' _ _ _ _ _ _ R _ _ _ _ _ _
 use g₂.symm.trans (h.trans g₁),
 end
 
+protected def assoc' : matrix ((m × n) × p) ((m' × n') × p') R ≃ₗ[R]
+    matrix (m × n × p) (m' × n' × p') R :=
+begin
+have f₁ := (tensor_product.lid R (R ⊗ R)).trans (tensor_product.lid R R),
+have f₂ := (tensor_product.rid R (R ⊗ R)).trans (tensor_product.lid R R),
+have g₁ := @linear_equiv.map_matrix _ _ _ _ (m × n × p) (m' × n' × p') _ _ _ _ _ _ _ f₁,
+have g₂ := @linear_equiv.map_matrix _ _ _ _ ((m × n) × p) ((m' × n') × p') _ _ _ _ _ _ _ f₂,
+have h := (@tensor_matrix.assoc R R R _ m n p m' n' p' _ _ _ _ _ _ R _ _ _ _ _ _),
+use g₂.symm.trans (h.trans g₁),
+end
+
 -- [prod, matrix_tensor_bil,
 --     tensor_product.lid_tmul, algebra.id.smul_eq_mul,
 --linear_map.coe_mk, map_apply, lid_tmul]
-
-
+theorem prod_assoc' (A : matrix m m' R) (B : matrix n n' R) (C : matrix p p' R) :
+  -- kronecker_product.assoc (A ⊗ₖ B ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C) :=
+  kronecker_product.assoc' (prod (prod A B) C) = prod A (prod B C) :=
+  -- by { ext ⟨i, ⟨j, k⟩⟩ ⟨i', ⟨j', k'⟩⟩, symmetry, apply mul_assoc }
+    begin
+      rw kronecker_product.assoc',
+      rw prod_kronecker_prod₂',
+      rw prod_kronecker_prod₂',
+      rw prod_kronecker_prod₂',
+      rw prod_kronecker_prod₂',
+      simp [equiv.trans_apply],
+      rw ← linear_equiv.map_matrix_symm,
+      rw foo1,
+      rw linear_equiv.map_matrix_trans,
+      rw linear_equiv.map_matrix_trans,--inutile?
+      rw linear_equiv.map_matrix_symm,
+      simp only [linear_equiv.trans_apply, alg_equiv.to_linear_equiv_symm],
+      let φₘₙ : matrix ((m × n) × p) ((m' × n') × p') R ≃ₗ matrix ((m × n) × p) ((m' × n') × p') (R ⊗ R)
+       := (linear_equiv.map_matrix (algebra.tensor_product.lid R R).to_linear_equiv).symm,
+      have tt := --(linear_equiv.map_matrix (tensor_product.lid R R)).symm
+      (kronecker_prod₂ ((kronecker_prod₂ A B).map (tensor_product.lid R R)) C).map (tensor_product.lid R R),
+      have w := --(linear_equiv.map_matrix (tensor_product.lid R R)).symm
+        (kronecker_prod₂ ((kronecker_prod₂ A B).map tensor_product.lid R R) C).map (tensor_product.lid R R),
+        --   = 0,
+        --  kronecker_prod₂ ((kronecker_prod₂ A B).map ⇑(tensor_product.lid R R) C), sorry,
+      rw this,
+      rw lid_symm_apply,
+    end
 
 theorem prod_assoc (A : matrix m m' R) (B : matrix n n' R) (C : matrix p p' R) :
   -- kronecker_product.assoc (A ⊗ₖ B ⊗ₖ C) = A ⊗ₖ (B ⊗ₖ C) :=
@@ -282,6 +323,14 @@ theorem prod_assoc (A : matrix m m' R) (B : matrix n n' R) (C : matrix p p' R) :
       rw linear_equiv.map_matrix_trans,--inutile?
       rw linear_equiv.map_matrix_symm,
       simp only [linear_equiv.trans_apply, alg_equiv.to_linear_equiv_symm],
+      have : (linear_equiv.map_matrix (algebra.tensor_product.lid R R).to_linear_equiv).symm
+        ((kronecker_prod₂ ((kronecker_prod₂ A B).map (algebra.tensor_product.lid R R).to_linear_equiv) C).map (algebra.tensor_product.lid R R).to_linear_equiv)
+          =
+         kronecker_prod₂ ((kronecker_prod₂ A B).map ⇑((algebra.tensor_product.lid R R).to_linear_equiv)) C, sorry,
+      rw this,
+      rw lid_symm_apply,
+
+      -- rw [linear_equiv.symm_apply_apply (linear_equiv.map_matrix (algebra.tensor_product.lid R R).to_linear_equiv) (kronecker_prod₂ ((kronecker_prod₂ A B).map ⇑((algebra.tensor_product.lid R R).to_linear_equiv)) C)],
       -- ext ⟨i, ⟨j, k⟩⟩ ⟨i', ⟨j', k'⟩⟩,
 --     convert_to kronecker_product.assoc ((kronecker_prod₂ ((kronecker_prod₂ A B).map
 -- ((algebra.tensor_product.lid R R).to_linear_equiv.to_linear_map)) C).map

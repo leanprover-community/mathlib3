@@ -966,13 +966,18 @@ section
 
 variables (k G)
 
-/-- Embedding of a monoid into its monoid algebra. -/
+/-- The embedding of an additive magma into its additive magma algebra. -/
+@[simps] def of_magma [has_add G] : mul_hom (multiplicative G) (add_monoid_algebra k G) :=
+{ to_fun   := λ a, single a 1,
+  map_mul' := λ a b, by simpa only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
+
+/-- Embedding of a magma with zero into its magma algebra. -/
 def of [add_zero_class G] : multiplicative G →* add_monoid_algebra k G :=
 { to_fun := λ a, single a 1,
   map_one' := rfl,
-  map_mul' := λ a b, by { rw [single_mul_single, one_mul], refl } }
+  .. of_magma k G }
 
-/-- Embedding of a monoid into its monoid algebra, having `G` as source. -/
+/-- Embedding of a magma with zero `G`, into its magma algebra, having `G` as source. -/
 def of' : G → add_monoid_algebra k G := λ a, single a 1
 
 end
@@ -1079,6 +1084,51 @@ protected def monoid_algebra.to_additive [semiring k] [has_mul G] :
 namespace add_monoid_algebra
 
 variables {k G}
+
+/-! #### Non-unital, non-associative algebra structure -/
+
+section non_unital_non_assoc_algebra
+
+variables {R : Type*} (k) [semiring R] [semiring k] [distrib_mul_action R k] [has_add G]
+
+instance is_scalar_tower_self [is_scalar_tower R k k] :
+  is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
+@monoid_algebra.is_scalar_tower_self k (multiplicative G) R _ _ _ _ _
+
+/-- Note that if `k` is a `comm_semiring` then we have `smul_comm_class k k k` and so we can take
+`R = k` in the below. In other words, if the coefficients are commutative amongst themselves, they
+also commute with the algebra multiplication. -/
+instance smul_comm_class_self [smul_comm_class R k k] :
+  smul_comm_class R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
+@monoid_algebra.smul_comm_class_self k (multiplicative G) R _ _ _ _ _
+
+instance smul_comm_class_symm_self [smul_comm_class k R k] :
+  smul_comm_class (add_monoid_algebra k G) R (add_monoid_algebra k G) :=
+@monoid_algebra.smul_comm_class_symm_self k (multiplicative G) R _ _ _ _ _
+
+variables {A : Type u₃} [non_unital_non_assoc_semiring A]
+
+/-- A non_unital `k`-algebra homomorphism from `add_monoid_algebra k G` is uniquely defined by its
+values on the functions `single a 1`. -/
+lemma non_unital_alg_hom_ext [distrib_mul_action k A]
+  {φ₁ φ₂ : non_unital_alg_hom k (add_monoid_algebra k G) A}
+  (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
+@monoid_algebra.non_unital_alg_hom_ext k (multiplicative G) _ _ _ _ _ φ₁ φ₂ h
+
+/-- See note [partially-applied ext lemmas]. -/
+@[ext] lemma non_unital_alg_hom_ext' [distrib_mul_action k A]
+  {φ₁ φ₂ : non_unital_alg_hom k (add_monoid_algebra k G) A}
+  (h : φ₁.to_mul_hom.comp (of_magma k G) = φ₂.to_mul_hom.comp (of_magma k G)) : φ₁ = φ₂ :=
+@monoid_algebra.non_unital_alg_hom_ext' k (multiplicative G) _ _ _ _ _ φ₁ φ₂ h
+
+/-- The functor `G ↦ add_monoid_algebra k G`, from the category of magmas to the category of
+non-unital, non-associative algebras over `k` is adjoint to the forgetful functor in the other
+direction. -/
+@[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
+  mul_hom (multiplicative G) A ≃ non_unital_alg_hom k (add_monoid_algebra k G) A :=
+monoid_algebra.lift_magma k
+
+end non_unital_non_assoc_algebra
 
 /-! #### Algebra structure -/
 section algebra

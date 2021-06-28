@@ -1211,7 +1211,7 @@ begin
   simp only [span_singleton_le_iff_mem],
 end
 
-lemma submodule.mem_supr'
+lemma mem_supr'
   {ι : Type w} (p : ι → submodule R M) {x : M} :
   x ∈ supr p ↔ ∃ v : ι →₀ M, (∀ i, v i ∈ p i) ∧ ∑ i in v.support, v i = x :=
 begin
@@ -1231,8 +1231,7 @@ begin
     by_cases hy : y = 0,
     rw hy,
     simp only [finsupp.coe_zero, pi.zero_apply, finsupp.single_zero, finset.sum_const_zero],
-    rw [finsupp.support_single_ne_zero hy],
-    rw finset.sum_singleton,
+    rw [finsupp.support_single_ne_zero hy, finset.sum_singleton],
     exact finsupp.single_eq_same, },
   { use 0,
     simp only [finsupp.coe_zero, pi.zero_apply, implies_true_iff, eq_self_iff_true, and_self,
@@ -1242,16 +1241,14 @@ begin
     rcases hy with ⟨w, hw, hws⟩,
     use v + w,
     refine ⟨λ i, submodule.add_mem _ (hv i) (hw i), _⟩,
-    rw ← hvs,
-    rw ← hws,
+    rw [← hvs, ← hws],
     simp only [finsupp.add_apply],
     convert finsupp.sum_add_add v w, },
   { intros r x hx,
     rcases hx with ⟨v, hv, hvs⟩,
     use r • v,
     refine ⟨λ i, submodule.smul_mem _ _ (hv i), _⟩,
-    rw ← hvs,
-    rw finset.smul_sum,
+    rw [← hvs, finset.smul_sum],
     simp only [finsupp.smul_apply],
     refine finset.sum_subset finsupp.support_smul (λ a ha han, finsupp.not_mem_support_iff.mp han) },
   rcases h with ⟨v, hv, hvs⟩,

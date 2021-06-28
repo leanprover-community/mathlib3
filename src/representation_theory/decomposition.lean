@@ -108,8 +108,8 @@ lemma is_atomistic.exist_set_independent_Sup_eq_top {α : Type*}
   [complete_lattice α] [is_modular_lattice α] [is_compactly_generated α] [is_atomistic α] :
   ∃ s : set α, complete_lattice.set_independent s ∧ Sup s = ⊤ ∧ ∀ a ∈ s, is_atom a :=
 begin
-  obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn.zorn_subset
-    {s : set α | complete_lattice.set_independent s ∧ ⊥ ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
+  obtain ⟨s, ⟨s_ind, s_atoms⟩, s_max⟩ := zorn.zorn_subset
+    {s : set α | complete_lattice.set_independent s ∧ ∀ a ∈ s, is_atom a} _,
   { refine ⟨s, s_ind, _, s_atoms⟩,
     rw eq_top_iff,
     have h := @Sup_atoms_eq_top α _ _,
@@ -121,7 +121,7 @@ begin
     refine le_inf (le_refl a) ((le_Sup _)),
     rw ← disjoint_iff at *,
     have a_dis_Sup_s : disjoint a (Sup s) := con,
-    rw ← s_max (s ∪ {a}) ⟨λ x hx, _, ⟨_, λ x hx, _⟩⟩ (set.subset_union_left _ _),
+    rw ← s_max (s ∪ {a}) ⟨λ x hx, _, λ x hx, _⟩ (set.subset_union_left _ _),
     { exact set.mem_union_right _ (set.mem_singleton _) },
     { rw [set.mem_union, set.mem_singleton_iff] at hx,
       by_cases xa : x = a,
@@ -137,8 +137,6 @@ begin
           (a_dis_Sup_s.mono_right _).symm,
         rw [← Sup_insert, set.insert_diff_singleton,
           set.insert_eq_of_mem (hx.resolve_right xa)] } },
-    rw inf_comm,
-    exact inf_bot_eq,
     rw [set.mem_union, set.mem_singleton_iff] at hx,
       cases hx,
       { exact s_atoms x hx },
@@ -146,72 +144,15 @@ begin
         exact ha } },
   intros c hc1 hc2,
   refine ⟨⋃₀ c, ⟨complete_lattice.independent_sUnion_of_directed hc2.directed_on
-      (λ s hs, (hc1 hs).1), _, λ a ha, _⟩, λ _, set.subset_sUnion_of_mem⟩,
-  { rw [Sup_sUnion, ← Sup_image, inf_Sup_eq_of_directed_on, supr_eq_bot],
-      { intro i,
-        rw supr_eq_bot,
-        intro hi,
-        obtain ⟨x, xc, rfl⟩ := (set.mem_image _ _ _).1 hi,
-        exact (hc1 xc).2.1 },
-      { rw directed_on_image,
-        refine hc2.directed_on.mono (λ s t, Sup_le_Sup) } },
+      (λ s hs, (hc1 hs).1), λ a ha, _⟩, λ _, set.subset_sUnion_of_mem⟩,
   { rcases set.mem_sUnion.1 ha with ⟨s, sc, as⟩,
-      exact (hc1 sc).2.2 a as }
+    exact (hc1 sc).2 a as }
 end
 
 lemma fintype.supr_eq_sup {α : Type*} [fintype α] {β : Type*} [complete_lattice β]  (f : α → β) :
  finset.univ.sup f = supr f :=
 le_antisymm (finset.sup_le (λ a ha, le_supr f a))
   (supr_le (λ a, finset.le_sup (finset.mem_univ a)))
-
-lemma submodule.mem_supr'
-  (p : ι → submodule R M) {x : M} :
-  x ∈ supr p ↔ ∃ v : ι →₀ M, (∀ i, v i ∈ p i) ∧ ∑ i in v.support, v i = x :=
-begin
-  classical,
-  rw submodule.supr_eq_span,
-  refine ⟨λ h, _, λ h, _⟩,
-  refine submodule.span_induction h _ _ _ _,
-  { intros y hy,
-    rw set.mem_Union at hy,
-    cases hy with i hy,
-    use finsupp.single i y,
-    split,
-    { intro j, by_cases h : j = i,
-      simp only [h, finsupp.single_eq_same], exact hy,
-      rw ← ne.def at h,
-      simp only [finsupp.single_eq_of_ne h.symm, submodule.zero_mem], },
-    by_cases hy : y = 0,
-    rw hy,
-    simp only [finsupp.coe_zero, pi.zero_apply, finsupp.single_zero, finset.sum_const_zero],
-    rw [finsupp.support_single_ne_zero hy],
-    rw finset.sum_singleton,
-    exact finsupp.single_eq_same, },
-  { use 0,
-    simp only [finsupp.coe_zero, pi.zero_apply, implies_true_iff, eq_self_iff_true, and_self,
-      finset.sum_const_zero, submodule.zero_mem], },
-  { intros x y hx hy,
-    rcases hx with ⟨v, hv, hvs⟩,
-    rcases hy with ⟨w, hw, hws⟩,
-    use v + w,
-    refine ⟨λ i, submodule.add_mem _ (hv i) (hw i), _⟩,
-    rw ← hvs,
-    rw ← hws,
-    simp only [finsupp.add_apply],
-    convert finsupp.sum_add_add v w, },
-  { intros r x hx,
-    rcases hx with ⟨v, hv, hvs⟩,
-    use r • v,
-    refine ⟨λ i, submodule.smul_mem _ _ (hv i), _⟩,
-    rw ← hvs,
-    rw finset.smul_sum,
-    simp only [finsupp.smul_apply],
-    refine finset.sum_subset finsupp.support_smul (λ a ha han, finsupp.not_mem_support_iff.mp han) },
-  rcases h with ⟨v, hv, hvs⟩,
-  have := submodule.sum_mem (supr p) (λ i _, (le_supr p i : p i ≤ supr p) (hv i)),
-  rw ← submodule.supr_eq_span,
-  rwa hvs at this,
-end
 
 lemma support_mk_support
   (p : ι → submodule R M) (v: ι →₀ M) (hv: ∀ (i : ι), v i ∈ p i) :

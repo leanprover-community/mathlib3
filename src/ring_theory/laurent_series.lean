@@ -128,18 +128,20 @@ begin
   rw [pow_succ, int.coe_nat_succ, ih, of_power_series_X, mul_comm, single_mul_single, one_mul],
 end
 
+instance [comm_semiring R] : algebra (power_series R) (laurent_series R) :=
+(hahn_series.of_power_series ℤ R).to_algebra
+
 /-- The localization map from power series to Laurent series. -/
-@[simps] def of_power_series_localization [comm_ring R] :
-  localization_map (submonoid.powers (power_series.X : power_series R)) (laurent_series R) :=
-ring_hom.to_localization_map (hahn_series.of_power_series ℤ R)
-  (begin rintro ⟨_, n, rfl⟩,
+@[simps] instance of_power_series_localization [comm_ring R] :
+  is_localization (submonoid.powers (power_series.X : power_series R)) (laurent_series R) :=
+{ surj := (begin rintro ⟨_, n, rfl⟩,
     refine ⟨⟨single (n : ℤ) 1, single (-n : ℤ) 1, _, _⟩, _⟩,
     { simp only [single_mul_single, mul_one, add_right_neg],
       refl },
     { simp only [single_mul_single, mul_one, add_left_neg],
       refl },
-    { simp } end)
-  (begin intro z,
+    { simp } end),
+ bar := (begin intro z,
     by_cases h : 0 ≤ z.order,
     { refine ⟨⟨power_series.X ^ (int.nat_abs z.order) * power_series_part z, 1⟩, _⟩,
       simp only [ring_hom.map_one, mul_one, ring_hom.map_mul,
@@ -150,8 +152,8 @@ ring_hom.to_localization_map (hahn_series.of_power_series ℤ R)
       rw [mul_comm _ z],
       refine congr rfl _,
       rw [subtype.coe_mk, of_power_series_X_pow, int.of_nat_nat_abs_of_nonpos],
-      exact le_of_not_ge h } end)
-  (begin intros x y,
+      exact le_of_not_ge h } end),
+  baz := (begin intros x y,
     rw of_power_series_injective.eq_iff,
     split,
     { rintro rfl,
@@ -164,6 +166,6 @@ ring_hom.to_localization_map (hahn_series.of_power_series ℤ R)
       rw [linear_map.map_zero, subtype.coe_mk, power_series.X_pow_eq, power_series.monomial,
         power_series.coeff, finsupp.single_add, mv_power_series.coeff_add_mul_monomial,
         mul_one] at h,
-      exact h } end)
+      exact h } end) }
 
 end laurent_series

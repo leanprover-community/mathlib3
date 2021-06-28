@@ -85,6 +85,7 @@ by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
 @[simp] lemma map_neg : X (-f) = -X f := derivation.map_neg X f
 @[simp] lemma map_sub : X (f - f') = X f - X f' := derivation.map_sub X f f'
 @[simp] lemma map_smul : X (r • f) = r • X f := derivation.map_smul X r f
+@[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 
 instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,
   by simp only [linear_map.map_zero, derivation.coe_zero]⟩⟩
@@ -122,7 +123,6 @@ instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
 variables (r X)
 
 @[simp] lemma coe_smul : ⇑(r • X) = r • X := rfl
-@[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 @[simp] lemma lift_smul (k : 𝕜) : (↑(k • X) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = k • X := rfl
 
 variables (I G)
@@ -190,5 +190,3 @@ instance : lie_algebra 𝕜 (left_invariant_derivation I G) :=
               pi.smul_apply] } }
 
 end left_invariant_derivation
-
-#lint

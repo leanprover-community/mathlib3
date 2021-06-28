@@ -1126,7 +1126,10 @@ non-unital, non-associative algebras over `k` is adjoint to the forgetful functo
 direction. -/
 @[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
   mul_hom (multiplicative G) A ≃ non_unital_alg_hom k (add_monoid_algebra k G) A :=
-monoid_algebra.lift_magma k
+{ to_fun := λ f, { to_fun := λ a, sum a (λ m t, t • f (multiplicative.of_add m)),
+                   .. (monoid_algebra.lift_magma k f : _)},
+  inv_fun := λ F, F.to_mul_hom.comp (of_magma k G),
+  .. (monoid_algebra.lift_magma k : mul_hom (multiplicative G) A ≃ non_unital_alg_hom k _ A) }
 
 end non_unital_non_assoc_algebra
 

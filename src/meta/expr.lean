@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
 import data.option.defs
@@ -339,6 +339,14 @@ protected meta def to_int : expr → option ℤ
 | e                  := coe <$> e.to_nat
 
 /--
+Turns an expression into a list, assuming it is only built up from `list.nil` and `list.cons`.
+-/
+protected meta def to_list {α} (f : expr → option α) : expr → option (list α)
+| `(list.nil)          := some []
+| `(list.cons %%x %%l) := list.cons <$> f x <*> l.to_list
+| _                    := none
+
+/--
 `is_num_eq n1 n2` returns true if `n1` and `n2` are both numerals with the same numeral structure,
 ignoring differences in type and type class arguments.
 -/
@@ -376,10 +384,17 @@ e.replace (λ e n,
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
 
-/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
-protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
-e.replace $ λ e d,
+/--
+`e.apply_replacement_fun f test` applies `f` to each identifier
+(inductive type, defined function etc) in an expression, unless
+ * The identifier occurs in an application with first argument `arg`; and
+ * `test arg` is false.
+-/
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool) : expr → expr
+| e := e.replace $ λ e _,
   match e with
+  | expr.app (expr.const n ls) arg :=
+    some $ expr.const (if test arg then f n else n) ls $ apply_replacement_fun arg
   | expr.const n ls := some $ expr.const (f n) ls
   | _ := none
   end
@@ -955,15 +970,15 @@ namespace declaration
 open tactic
 
 /--
-`declaration.update_with_fun f tgt decl`
-sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
-of all `expr.const`s which appear in the value or type of `decl`.
+`declaration.update_with_fun f test tgt decl`
+sets the name of the given `decl : declaration` to `tgt`, and applies `apply_replacement_fun f test`
+to the value and type of `decl`.
 -/
-protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
-  declaration :=
+protected meta def update_with_fun (f : name → name) (test : expr → bool) (tgt : name)
+  (decl : declaration) : declaration :=
 let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun f in
-decl.update_value $ decl.value.apply_replacement_fun f
+let decl := decl.update_type $ decl.type.apply_replacement_fun f test in
+decl.update_value $ decl.value.apply_replacement_fun f test
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

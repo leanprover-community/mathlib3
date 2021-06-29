@@ -139,8 +139,9 @@ by rw [add_comm, top_add]
 
 end linear_ordered_add_comm_monoid_with_top
 
-/-- Pullback an `ordered_comm_monoid` under an injective map. -/
-@[to_additive function.injective.ordered_add_comm_monoid
+/-- Pullback an `ordered_comm_monoid` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
 def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   [has_one β] [has_mul β]
@@ -154,8 +155,9 @@ def function.injective.ordered_comm_monoid [ordered_comm_monoid α] {β : Type*}
   ..partial_order.lift f hf,
   ..hf.comm_monoid f one mul }
 
-/-- Pullback a `linear_ordered_comm_monoid` under an injective map. -/
-@[to_additive function.injective.linear_ordered_add_comm_monoid
+/-- Pullback a `linear_ordered_comm_monoid` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.linear_ordered_add_comm_monoid
 "Pullback an `ordered_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α] {β : Type*}
   [has_one β] [has_mul β]
@@ -453,6 +455,10 @@ begin
     exact ⟨_, rfl, add_le_add_left h _⟩, }
 end
 
+instance [linear_ordered_add_comm_monoid α] : linear_ordered_add_comm_monoid (with_bot α) :=
+{ ..with_bot.linear_order,
+  ..with_bot.ordered_add_comm_monoid }
+
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 lemma coe_zero [has_zero α] : ((0 : α) : with_bot α) = 0 := rfl
 
@@ -678,8 +684,9 @@ instance ordered_cancel_comm_monoid.to_ordered_comm_monoid : ordered_comm_monoid
       mt (λ h, ordered_cancel_comm_monoid.mul_le_mul_left _ _ h _) (not_le_of_gt h),
   ..‹ordered_cancel_comm_monoid α› }
 
-/-- Pullback an `ordered_cancel_comm_monoid` under an injective map. -/
-@[to_additive function.injective.ordered_cancel_add_comm_monoid
+/-- Pullback an `ordered_cancel_comm_monoid` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.ordered_cancel_add_comm_monoid
 "Pullback an `ordered_cancel_add_comm_monoid` under an injective map."]
 def function.injective.ordered_cancel_comm_monoid {β : Type*}
   [has_one β] [has_mul β]
@@ -816,8 +823,9 @@ min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
 
-/-- Pullback a `linear_ordered_cancel_comm_monoid` under an injective map. -/
-@[to_additive function.injective.linear_ordered_cancel_add_comm_monoid
+/-- Pullback a `linear_ordered_cancel_comm_monoid` under an injective map.
+See note [reducible non-instances]. -/
+@[reducible, to_additive function.injective.linear_ordered_cancel_add_comm_monoid
 "Pullback a `linear_ordered_cancel_add_comm_monoid` under an injective map."]
 def function.injective.linear_ordered_cancel_comm_monoid {β : Type*}
   [has_one β] [has_mul β]

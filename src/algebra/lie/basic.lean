@@ -176,6 +176,32 @@ instance : lie_module R L (M →ₗ[R] N) :=
 
 end basic_properties
 
+section non_unital_non_assoc_semiring
+
+variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
+
+/-- A `lie_ring` can be regarded as a `non_unital_non_assoc_semiring` by turning its
+`has_bracket` (denoted `⁅, ⁆`) into a `has_mul` (denoted `*`). -/
+def lie_ring.to_non_unital_non_assoc_semiring : non_unital_non_assoc_semiring L :=
+{ mul           := has_bracket.bracket,
+  left_distrib  := lie_add,
+  right_distrib := add_lie,
+  zero_mul      := zero_lie,
+  mul_zero      := lie_zero,
+  .. (infer_instance : add_comm_monoid L) }
+
+local attribute [instance] lie_ring.to_non_unital_non_assoc_semiring
+
+/-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
+reinterpret the `smul_lie` law as an `is_scalar_tower`. -/
+lemma lie_algebra.is_scalar_tower : is_scalar_tower R L L := ⟨smul_lie⟩
+
+/-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
+reinterpret the `lie_smul` law as an `smul_comm_class`. -/
+lemma lie_algebra.smul_comm_class : smul_comm_class R L L := ⟨λ t x y, (lie_smul t x y).symm⟩
+
+end non_unital_non_assoc_semiring
+
 set_option old_structure_cmd true
 /-- A morphism of Lie algebras is a linear map respecting the bracket operations. -/
 structure lie_hom (R : Type u) (L : Type v) (L' : Type w)

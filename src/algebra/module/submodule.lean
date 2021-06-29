@@ -175,14 +175,6 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
   from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
   this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
 
--- This needs the `module'` instance, so it can't go with the other `coe` lemmas up there.
-@[simp] lemma coe_sum (x : ι → p) (s : finset ι) :
-  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
-begin
-  rw ← subtype_apply,
-  simp only [subtype_apply, eq_self_iff_true, map_sum],
-end
-
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
@@ -190,6 +182,14 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 @[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
 lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
+
+-- This needs the `subtype_apply`, so it can't go with the other `coe` lemmas up there.
+@[simp] lemma coe_sum (x : ι → p) (s : finset ι) :
+  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
+begin
+  rw ← subtype_apply,
+  simp only [subtype_apply, eq_self_iff_true, map_sum],
+end
 
 end add_comm_monoid
 

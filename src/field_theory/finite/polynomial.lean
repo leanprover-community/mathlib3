@@ -113,9 +113,9 @@ end
 section
 variables (K σ)
 def evalₗ : mv_polynomial σ K →ₗ[K] (σ → K) → K :=
-⟨ λp e, eval e p,
-  assume p q, (by { ext x, rw ring_hom.map_add, refl, }),
-  assume a p, funext $ assume e, by rw [smul_eq_C_mul, ring_hom.map_mul, eval_C]; refl ⟩
+{ to_fun := λ p e, eval e p,
+  map_add' := λ p q, by { ext x, rw ring_hom.map_add, refl, },
+  map_smul' := λ a p, by { ext e, rw [smul_eq_C_mul, ring_hom.map_mul, eval_C], refl } }
 end
 
 lemma evalₗ_apply (p : mv_polynomial σ K) (e : σ → K) : evalₗ K σ p e = eval e p :=

@@ -44,11 +44,11 @@ include dec_ι
 
 /-- `dfinsupp.mk` as a `linear_map`. -/
 def lmk (s : finset ι) : (Π i : (↑s : set ι), M i) →ₗ[R] Π₀ i, M i :=
-⟨mk s, λ _ _, mk_add, λ c x, by rw [mk_smul R x]⟩
+{ to_fun := mk s, map_add' := λ _ _, mk_add, map_smul' := λ c x, mk_smul R x }
 
 /-- `dfinsupp.single` as a `linear_map` -/
 def lsingle (i) : M i →ₗ[R] Π₀ i, M i :=
-⟨single i, λ _ _, single_add, λ _ _, single_smul _⟩
+{ to_fun := single i, map_smul' := λ r x, single_smul _, .. dfinsupp.single_add_hom _ _ }
 
 /-- Two `R`-linear maps from `Π₀ i, M i` which agree on each `single i x` agree everywhere. -/
 lemma lhom_ext ⦃φ ψ : (Π₀ i, M i) →ₗ[R] N⦄

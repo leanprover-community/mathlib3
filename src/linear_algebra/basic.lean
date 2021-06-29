@@ -283,6 +283,13 @@ rfl
   ⇑(∑ i in t, f i) = ∑ i in t, (f i : M → M₂) :=
 add_monoid_hom.map_sum ⟨@to_fun R M M₂ _ _ _ _ _, rfl, λ x y, rfl⟩ _ _
 
+@[simp] lemma coe_sum {ι : Type*} (x : ι → p) (s : finset ι) :
+  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
+begin
+  rw ← subtype_apply,
+  simp only [subtype_apply, eq_self_iff_true, map_sum],
+end
+
 instance : monoid (M →ₗ[R] M) :=
 by refine_struct { mul := (*), one := (1 : M →ₗ[R] M), npow := @npow_rec _ ⟨1⟩ ⟨(*)⟩ };
 intros; try { refl }; apply linear_map.ext; simp {proj := ff}

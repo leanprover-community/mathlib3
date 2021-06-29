@@ -183,14 +183,6 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
 
--- This needs the `subtype_apply`, so it can't go with the other `coe` lemmas up there.
-@[simp] lemma coe_sum (x : ι → p) (s : finset ι) :
-  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
-begin
-  rw ← subtype_apply,
-  simp only [subtype_apply, eq_self_iff_true, map_sum],
-end
-
 end add_comm_monoid
 
 section add_comm_group

@@ -353,7 +353,8 @@ begin
   apply lt_irrefl (x : ℕ),
   calc (x : ℕ) < c.size_up_to (i₁ : ℕ).succ : (c.mem_range_embedding_iff.1 hx₁).2
   ... ≤ c.size_up_to (i₂ : ℕ) : monotone_sum_take _ A
-  ... ≤ x : (c.mem_range_embedding_iff.1 hx₂).1
+  ... ≤ x : (c.mem_range_embedding_iff.1 hx₂).1,
+  exact (this h.symm).symm
 end
 
 lemma mem_range_embedding (j : fin n) :

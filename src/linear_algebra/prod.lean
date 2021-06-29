@@ -48,10 +48,10 @@ section
 variables (R M M₂)
 
 /-- The first projection of a product is a linear map. -/
-def fst : M × M₂ →ₗ[R] M := ⟨prod.fst, λ x y, rfl, λ x y, rfl⟩
+def fst : M × M₂ →ₗ[R] M := { to_fun := prod.fst, map_add' := λ x y, rfl, map_smul' := λ x y, rfl }
 
 /-- The second projection of a product is a linear map. -/
-def snd : M × M₂ →ₗ[R] M₂ := ⟨prod.snd, λ x y, rfl, λ x y, rfl⟩
+def snd : M × M₂ →ₗ[R] M₂ := { to_fun := prod.snd, map_add' := λ x y, rfl, map_smul' := λ x y, rfl }
 end
 
 @[simp] theorem fst_apply (x : M × M₂) : fst R M M₂ x = x.1 := rfl
@@ -191,6 +191,21 @@ begin
   dsimp only [ker],
   rw [←prod_map_comap_prod, submodule.prod_bot],
 end
+
+section map_mul
+
+variables {A : Type*} [non_unital_non_assoc_semiring A] [module R A]
+variables {B : Type*} [non_unital_non_assoc_semiring B] [module R B]
+
+lemma inl_map_mul (a₁ a₂ : A) : linear_map.inl R A B (a₁ * a₂) =
+  linear_map.inl R A B a₁ * linear_map.inl R A B a₂ :=
+prod.ext rfl (by simp)
+
+lemma inr_map_mul (b₁ b₂ : B) : linear_map.inr R A B (b₁ * b₂) =
+  linear_map.inr R A B b₁ * linear_map.inr R A B b₂ :=
+prod.ext (by simp) rfl
+
+end map_mul
 
 end linear_map
 

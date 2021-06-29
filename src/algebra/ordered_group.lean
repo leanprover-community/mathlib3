@@ -39,7 +39,7 @@ attribute [to_additive] ordered_comm_group
 @[to_additive]
 instance units.covariant_class [ordered_comm_monoid α] :
   covariant_class (units α) (units α) (*) (≤) :=
-{ covc := λ a b c bc, by {
+{ elim := λ a b c bc, by {
   rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
   { exact rfl.le },
   refine le_iff_eq_or_lt.mpr (or.inr _),
@@ -406,7 +406,7 @@ lemma inv_mul_lt_iff_lt_mul_right : c⁻¹ * a < b ↔ a < b * c :=
 by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 
 @[to_additive add_neg_le_add_neg_iff]
-lemma div_le_div_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
+lemma mul_inv_le_mul_inv_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
   split ; intro h,
   have := mul_le_mul_right' (mul_le_mul_right' h b) d,
@@ -575,9 +575,8 @@ end ordered_add_comm_group
 /-- A linearly ordered additive commutative group is an
 additive commutative group with a linear order in which
 addition is monotone. -/
-@[protect_proj, ancestor add_comm_group linear_order]
-class linear_ordered_add_comm_group (α : Type u) extends add_comm_group α, linear_order α :=
-(add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
+@[protect_proj, ancestor ordered_add_comm_group linear_order]
+class linear_ordered_add_comm_group (α : Type u) extends ordered_add_comm_group α, linear_order α
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
@@ -590,16 +589,11 @@ class linear_ordered_add_comm_group_with_top (α : Type*)
 /-- A linearly ordered commutative group is a
 commutative group with a linear order in which
 multiplication is monotone. -/
-@[protect_proj, ancestor comm_group linear_order, to_additive]
-class linear_ordered_comm_group (α : Type u) extends comm_group α, linear_order α :=
-(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
+@[protect_proj, ancestor ordered_comm_group linear_order, to_additive]
+class linear_ordered_comm_group (α : Type u) extends ordered_comm_group α, linear_order α
 
 section linear_ordered_comm_group
 variables [linear_ordered_comm_group α] {a b c : α}
-
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_ordered_comm_group : ordered_comm_group α :=
-{ ..‹linear_ordered_comm_group α› }
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
@@ -715,6 +709,10 @@ begin
   { intro h,
     exact add_le_add h h, }
 end
+
+@[simp] lemma max_zero_sub_max_neg_zero_eq_self (a : α) :
+  max a 0 - max (-a) 0 = a :=
+by { rcases le_total a 0 with h|h; simp [h] }
 
 lemma le_of_forall_pos_le_add [densely_ordered α] (h : ∀ ε : α, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ λ c hc,

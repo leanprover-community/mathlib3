@@ -236,7 +236,7 @@ section map
 variables (f : M ≃ₗ[R] M')
 
 /-- Apply the linear equivalence `f` to the basis vectors. -/
-protected def map : basis ι R M' :=
+@[simps] protected def map : basis ι R M' :=
 of_repr (f.symm.trans b.repr)
 
 @[simp] lemma map_apply (i) : b.map f i = f (b i) := rfl
@@ -332,6 +332,41 @@ end
 @[simp] lemma reindex_range_repr (x : M) (i : ι) (h := set.mem_range_self i) :
   b.reindex_range.repr x ⟨b i, h⟩ = b.repr x i :=
 b.reindex_range_repr' _ rfl
+
+section fintype
+
+variables [fintype ι]
+
+/-- `b.reindex_finset_range` is a basis indexed by `finset.univ.image b`,
+the finite set of basis vectors themselves. -/
+def reindex_finset_range : basis (finset.univ.image b) R M :=
+b.reindex_range.reindex ((equiv.refl M).subtype_equiv (by simp))
+
+lemma reindex_finset_range_self (i : ι) (h := finset.mem_image_of_mem b (finset.mem_univ i)) :
+  b.reindex_finset_range ⟨b i, h⟩ = b i :=
+by { rw [reindex_finset_range, reindex_apply, reindex_range_apply], refl }
+
+@[simp] lemma reindex_finset_range_apply (x : finset.univ.image b) :
+  b.reindex_finset_range x = x :=
+by { rcases x with ⟨bi, hbi⟩, rcases finset.mem_image.mp hbi with ⟨i, -, rfl⟩,
+     exact b.reindex_finset_range_self i }
+
+lemma reindex_finset_range_repr_self (i : ι) :
+  b.reindex_finset_range.repr (b i) =
+    finsupp.single ⟨b i, finset.mem_image_of_mem b (finset.mem_univ i)⟩ 1 :=
+begin
+  ext ⟨bi, hbi⟩,
+  rw [reindex_finset_range, reindex_repr, reindex_range_repr_self],
+  convert finsupp.single_apply_left ((equiv.refl M).subtype_equiv _).symm.injective _ _ _,
+  refl
+end
+
+@[simp] lemma reindex_finset_range_repr (x : M) (i : ι)
+  (h := finset.mem_image_of_mem b (finset.mem_univ i)) :
+  b.reindex_finset_range.repr x ⟨b i, h⟩ = b.repr x i :=
+by simp [reindex_finset_range]
+
+end fintype
 
 end reindex
 

@@ -45,6 +45,15 @@ def mul_hom.inverse [has_mul M] [has_mul N] (f : mul_hom M N) (g : N → M)
                ... = g (f (g x * g y)) : by rw f.map_mul
                ... = g x * g y : h₁ _, }
 
+/-- The inverse of a bijective `monoid_hom` is a `monoid_hom`. -/
+@[to_additive "The inverse of a bijective `add_monoid_hom` is an `add_monoid_hom`.", simps]
+def monoid_hom.inverse {A B : Type*} [monoid A] [monoid B] (f : A →* B) (g : B → A)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  B →* A :=
+{ to_fun   := g,
+  map_one' := by rw [← f.map_one, h₁],
+  .. (f : mul_hom A B).inverse g h₁ h₂, }
+
 set_option old_structure_cmd true
 
 /-- add_equiv α β is the type of an equiv α ≃ β which preserves addition. -/

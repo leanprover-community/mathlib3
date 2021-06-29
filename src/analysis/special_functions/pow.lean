@@ -1703,7 +1703,7 @@ begin
   exact_mod_cast hc a (by exact_mod_cast ha),
 end
 
-lemma continuous_at_rpow_const  {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
+private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
   continuous_at (λ a : ennreal, a ^ y) x :=
 begin
   by_cases hx : x = ⊤,
@@ -1716,6 +1716,19 @@ begin
     (nnreal.continuous_at_rpow_const (or.inr h.le)) using 1,
   ext1 x,
   simp [coe_rpow_of_nonneg _ h.le]
+end
+
+@[continuity]
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+begin
+  apply continuous_iff_continuous_at.2 (λ x, _),
+  rcases lt_trichotomy 0 y with hy|rfl|hy,
+  { exact continuous_at_rpow_const_of_pos hy },
+  { simp, exact continuous_at_const },
+  { obtain ⟨z, hz⟩ : ∃ z, y = -z := ⟨-y, (neg_neg _).symm⟩,
+    have z_pos : 0 < z, by simpa [hz] using hy,
+    simp_rw [hz, rpow_neg],
+    exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
 end
 
 end ennreal

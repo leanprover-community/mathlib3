@@ -25,7 +25,7 @@ noncomputable theory
 
 open_locale big_operators
 
-variables (X : Type*)
+variables {X : Type*}
 
 /-- The group homomorphism `free_abelian_group X →+ (X →₀ ℤ)`. -/
 def free_abelian_group.to_finsupp : free_abelian_group X →+ (X →₀ ℤ) :=
@@ -38,7 +38,7 @@ finsupp.lift_add_hom $ λ x, (smul_add_hom ℤ (free_abelian_group X)).flip (fre
 open finsupp free_abelian_group
 
 @[simp] lemma finsupp.to_free_abelian_group_comp_single_add_hom (x : X) :
-  (finsupp.to_free_abelian_group X).comp (finsupp.single_add_hom x) =
+  finsupp.to_free_abelian_group.comp (finsupp.single_add_hom x) =
     (smul_add_hom ℤ (free_abelian_group X)).flip (of x) :=
 begin
   ext,
@@ -47,7 +47,7 @@ begin
 end
 
 @[simp] lemma free_abelian_group.to_finsupp_comp_to_free_abelian_group :
-  (to_finsupp X).comp (to_free_abelian_group X) = add_monoid_hom.id _ :=
+  to_finsupp.comp to_free_abelian_group = add_monoid_hom.id (X →₀ ℤ) :=
 begin
   ext x y, simp only [add_monoid_hom.id_comp],
   rw [add_monoid_hom.comp_assoc, finsupp.to_free_abelian_group_comp_single_add_hom],
@@ -57,7 +57,7 @@ begin
 end
 
 @[simp] lemma finsupp.to_free_abelian_group_comp_to_finsupp :
-  (to_free_abelian_group X).comp (to_finsupp X) = add_monoid_hom.id _ :=
+  to_free_abelian_group.comp to_finsupp = add_monoid_hom.id (free_abelian_group X) :=
 begin
   ext,
   simp only [to_free_abelian_group, to_finsupp, finsupp.lift_add_hom_apply_single,
@@ -66,7 +66,7 @@ begin
 end
 
 @[simp] lemma finsupp.to_free_abelian_group_to_finsupp {X} (x : free_abelian_group X) :
-  (to_free_abelian_group X) (to_finsupp X x) = x :=
+  x.to_finsupp.to_free_abelian_group = x :=
 by rw [← add_monoid_hom.comp_apply, finsupp.to_free_abelian_group_comp_to_finsupp,
   add_monoid_hom.id_apply]
 
@@ -76,11 +76,11 @@ open finsupp
 variable {X}
 
 @[simp] lemma to_finsupp_of (x : X) :
-  to_finsupp X (of x) = finsupp.single x 1 :=
+  to_finsupp (of x) = finsupp.single x 1 :=
 by simp only [to_finsupp, lift.of]
 
-@[simp] lemma to_finsupp_to_free_abelian_group (f) :
-  (to_finsupp X) (to_free_abelian_group X f) = f :=
+@[simp] lemma to_finsupp_to_free_abelian_group (f : X →₀ ℤ) :
+  f.to_free_abelian_group.to_finsupp = f :=
 by rw [← add_monoid_hom.comp_apply, to_finsupp_comp_to_free_abelian_group, add_monoid_hom.id_apply]
 
 variable (X)
@@ -88,23 +88,23 @@ variable (X)
 /-- The additive equivalence between `free_abelian_group X` and `(X →₀ ℤ)`. -/
 @[simps]
 def equiv_finsupp : free_abelian_group X ≃+ (X →₀ ℤ) :=
-{ to_fun := to_finsupp X,
-  inv_fun := to_free_abelian_group X,
+{ to_fun := to_finsupp,
+  inv_fun := to_free_abelian_group,
   left_inv := to_free_abelian_group_to_finsupp,
   right_inv := to_finsupp_to_free_abelian_group,
-  map_add' := (to_finsupp X).map_add }
+  map_add' := to_finsupp.map_add }
 
 variable {X}
 
 /-- `coeff x` is the additive group homomorphism `free_abelian_group X →+ ℤ`
 that sends `a` to the multiplicity of `x : X` in `a`. -/
 def coeff (x : X) : free_abelian_group X →+ ℤ :=
-(finsupp.apply_add_hom x).comp (to_finsupp X)
+(finsupp.apply_add_hom x).comp to_finsupp
 
 /-- `support a` for `a : free_abelian_group X` is the finite set of `x : X`
 that occur in the formal sum `a`. -/
 def support (a : free_abelian_group X) : finset X :=
-(to_finsupp X a).support
+a.to_finsupp.support
 
 lemma mem_support_iff (x : X) (a : free_abelian_group X) :
   x ∈ a.support ↔ coeff x a ≠ 0 :=

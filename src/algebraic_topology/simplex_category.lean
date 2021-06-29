@@ -131,6 +131,9 @@ without identifying `n` with `[n].len`.
 def mk_hom {n m : ℕ} (f : (fin (n+1)) →ₘ (fin (m+1))) : [n] ⟶ [m] :=
 simplex_category.hom.mk f
 
+lemma hom_zero_zero (f : [0] ⟶ [0]) : f = 𝟙 _ :=
+by { ext : 2, dsimp, apply subsingleton.elim }
+
 end
 
 open_locale simplicial
@@ -162,7 +165,7 @@ begin
     order_embedding.coe_of_strict_mono,
     function.comp_app,
     simplex_category.hom.to_preorder_hom_mk,
-    preorder_hom.comp_to_fun],
+    preorder_hom.comp_coe],
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
@@ -171,18 +174,7 @@ end
 
 /-- The special case of the first simplicial identity -/
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : δ i ≫ δ i.cast_succ = δ i ≫ δ i.succ :=
-begin
-  ext j,
-  dsimp [δ, fin.succ_above],
-  simp only [order_embedding.to_preorder_hom_coe,
-    order_embedding.coe_of_strict_mono,
-    function.comp_app,
-    simplex_category.hom.to_preorder_hom_mk,
-    preorder_hom.comp_to_fun],
-  rcases i with ⟨i, _⟩,
-  rcases j with ⟨j, _⟩,
-  split_ifs; { simp at *; linarith },
-end
+(δ_comp_δ (le_refl i)).symm
 
 /-- The second simplicial identity -/
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
@@ -322,10 +314,13 @@ section skeleton
 
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
+@[simps obj map]
 def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd :=
 { obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
   map := λ a b f,
-    ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩ }
+    ⟨λ i, ulift.up (f.to_preorder_hom i.down), λ i j h, f.to_preorder_hom.monotone h⟩,
+  map_id' := λ a, by { ext, simp, },
+  map_comp' := λ a b c f g, by { ext, simp, }, }
 
 lemma skeletal : skeletal simplex_category :=
 λ X Y ⟨I⟩,
@@ -341,12 +336,12 @@ namespace skeletal_functor
 
 instance : full skeletal_functor :=
 { preimage := λ a b f, simplex_category.hom.mk ⟨λ i, (f (ulift.up i)).down, λ i j h, f.monotone h⟩,
-  witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, refl } }
+  witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, ext1, cases x, simp, } }
 
 instance : faithful skeletal_functor :=
 { map_injective' := λ m n f g h,
   begin
-    ext1, ext1 i, apply ulift.up.inj,
+    ext1, ext1, ext1 i, apply ulift.up.inj,
     change (skeletal_functor.map f) ⟨i⟩ = (skeletal_functor.map g) ⟨i⟩,
     rw h,
   end }
@@ -365,9 +360,9 @@ instance : ess_surj skeletal_functor :=
     { rintro ⟨i⟩ ⟨j⟩ h, show f i ≤ f j, exact hf.monotone h, },
     { intros i j h, show f.symm i ≤ f.symm j, rw ← hf.le_iff_le,
       show f (f.symm i) ≤ f (f.symm j), simpa only [order_iso.apply_symm_apply], },
-    { ext1 ⟨i⟩, ext1, exact f.symm_apply_apply i },
-    { ext1 i, exact f.apply_symm_apply i },
-  end⟩⟩,}
+    { ext1, ext1 ⟨i⟩, ext1, exact f.symm_apply_apply i },
+    { ext1, ext1 i, exact f.apply_symm_apply i },
+  end⟩⟩, }
 
 noncomputable instance is_equivalence : is_equivalence skeletal_functor :=
 equivalence.equivalence_of_fully_faithfully_ess_surj skeletal_functor

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 -/
-import analysis.normed_space.basic
+import topology.metric_space.antilipschitz
 
 /-!
 # Isometries
@@ -134,22 +134,6 @@ lemma isometry.diam_range [pseudo_metric_space α] [pseudo_metric_space β] {f :
   (hf : isometry f) : metric.diam (range f) = metric.diam (univ : set α) :=
 by { rw ← image_univ, exact hf.diam_image univ }
 
-namespace add_monoid_hom
-
-variables {E F : Type*} [semi_normed_group E] [semi_normed_group F]
-
-lemma isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
-begin
-  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
-  refine ⟨λ h x, _, λ h x y, h _⟩,
-  simpa using h x 0
-end
-
-lemma isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
-f.isometry_iff_norm.2 hf
-
-end add_monoid_hom
-
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
 structure isometric (α : Type*) (β : Type*) [pseudo_emetric_space α] [pseudo_emetric_space β]
@@ -159,6 +143,8 @@ structure isometric (α : Type*) (β : Type*) [pseudo_emetric_space α] [pseudo_
 infix ` ≃ᵢ `:25 := isometric
 
 namespace isometric
+
+section pseudo_emetric_space
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 
 instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
@@ -304,60 +290,9 @@ lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e�
 
 @[simp] lemma apply_inv_self (e : α ≃ᵢ α) (x: α) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
-section normed_group
+end pseudo_emetric_space
 
-variables {G : Type*} [semi_normed_group G]
-
-/-- Addition `y ↦ y + x` as an `isometry`. -/
-protected def add_right (x : G) : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
-  .. equiv.add_right x }
-
-@[simp] lemma add_right_to_equiv (x : G) :
-  (isometric.add_right x).to_equiv = equiv.add_right x := rfl
-
-@[simp] lemma coe_add_right (x : G) : (isometric.add_right x : G → G) = λ y, y + x := rfl
-
-lemma add_right_apply (x y : G) : (isometric.add_right x : G → G) y = y + x := rfl
-
-@[simp] lemma add_right_symm (x : G) :
-  (isometric.add_right x).symm = isometric.add_right (-x) :=
-ext $ λ y, rfl
-
-/-- Addition `y ↦ x + y` as an `isometry`. -/
-protected def add_left (x : G) : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
-  to_equiv := equiv.add_left x }
-
-@[simp] lemma add_left_to_equiv (x : G) :
-  (isometric.add_left x).to_equiv = equiv.add_left x := rfl
-
-@[simp] lemma coe_add_left (x : G) : ⇑(isometric.add_left x) = (+) x := rfl
-
-@[simp] lemma add_left_symm (x : G) :
-  (isometric.add_left x).symm = isometric.add_left (-x) :=
-ext $ λ y, rfl
-
-variable (G)
-
-/-- Negation `x ↦ -x` as an `isometry`. -/
-protected def neg : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
-  to_equiv := equiv.neg G }
-
-variable {G}
-
-@[simp] lemma neg_symm : (isometric.neg G).symm = isometric.neg G := rfl
-
-@[simp] lemma neg_to_equiv : (isometric.neg G).to_equiv = equiv.neg G := rfl
-
-@[simp] lemma coe_neg : ⇑(isometric.neg G) = has_neg.neg := rfl
-
-end normed_group
-
-end isometric
-
-namespace isometric
+section pseudo_metric_space
 
 variables [pseudo_metric_space α] [pseudo_metric_space β] (h : α ≃ᵢ β)
 
@@ -369,6 +304,8 @@ by rw [← image_symm, diam_image]
 
 lemma diam_univ : metric.diam (univ : set α) = metric.diam (univ : set β) :=
 congr_arg ennreal.to_real h.ediam_univ
+
+end pseudo_metric_space
 
 end isometric
 
@@ -382,11 +319,3 @@ def isometry.isometric_on_range [emetric_space α] [pseudo_emetric_space β] {f 
 @[simp] lemma isometry.isometric_on_range_apply [emetric_space α] [pseudo_emetric_space β]
   {f : α → β} (h : isometry f) (x : α) : h.isometric_on_range x = ⟨f x, mem_range_self _⟩ :=
 rfl
-
-/-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
-lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
-  [semi_normed_algebra 𝕜 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
-begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
-  rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map_eq],
-end

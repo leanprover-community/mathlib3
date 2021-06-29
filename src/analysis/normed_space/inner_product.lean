@@ -2466,6 +2466,7 @@ lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
   + Kᗮ.subtypeL.comp (orthogonal_projection Kᗮ) :=
 by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
 
+/-- The orthogonal projection is self-adjoint. -/
 lemma inner_orthogonal_projection_left_eq_right [complete_space E]
   [complete_space K] (u v : E) :
   ⟪↑(orthogonal_projection K u), v⟫ = ⟪u, orthogonal_projection K v⟫ :=

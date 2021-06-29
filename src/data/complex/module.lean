@@ -247,12 +247,12 @@ alg_hom.mk'
     map_mul' := λ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩, by {
       change algebra_map ℝ A (x₁ * x₂ - y₁ * y₂) + (x₁ * y₂ + y₁ * x₂) • I' =
              (algebra_map ℝ A x₁ + y₁ • I') * (algebra_map ℝ A x₂ + y₂ • I'),
-      rw [add_mul, mul_add, mul_add, smul_mul_smul, hf, smul_neg, ←algebra.algebra_map_eq_smul_one,
-        ←sub_eq_add_neg],
-      simp only [algebra.smul_def],
-      rw [←algebra.right_comm _ x₂, ←mul_assoc, ←ring_hom.map_mul, ←ring_hom.map_mul,
-        ←ring_hom.map_mul, add_sub, add_assoc, ←add_mul, ←ring_hom.map_add,
-        ←sub_add_eq_add_sub, ring_hom.map_sub], },
+      rw [add_mul, mul_add, mul_add, add_comm _ (y₁ • I' * y₂ • I'), add_add_add_comm],
+      congr' 1, -- equate "real" and "imaginary" parts
+      { rw [smul_mul_smul, hf, smul_neg, ←algebra.algebra_map_eq_smul_one, ←sub_eq_add_neg,
+          ←ring_hom.map_mul, ←ring_hom.map_sub], },
+      { rw [algebra.smul_def, algebra.smul_def, algebra.smul_def, ←algebra.right_comm _ x₂,
+          ←mul_assoc, ←add_mul, ←ring_hom.map_mul, ←ring_hom.map_mul, ←ring_hom.map_add], } },
     map_one' := show algebra_map ℝ A 1 + (0 : ℝ) • I' = 1,
       by rw [ring_hom.map_one, zero_smul, add_zero], }
   (linear_map.map_smul _)

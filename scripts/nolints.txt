@@ -285,9 +285,6 @@ apply_nolint tactic.op_induction doc_blame
 apply_nolint tactic.op_induction' doc_blame
 
 -- data/option/defs.lean
-apply_nolint option.lift_or_get doc_blame
-apply_nolint option.rel doc_blame
-apply_nolint option.to_list doc_blame
 apply_nolint option.traverse doc_blame
 
 -- data/pequiv.lean

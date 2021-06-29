@@ -6,7 +6,6 @@ Authors: Nicolò Cavalleri, Sebastien Gouezel
 
 import topology.topological_fiber_bundle
 import topology.algebra.module
-import linear_algebra.dual
 
 /-!
 # Topological vector bundles
@@ -81,6 +80,14 @@ variables {R F E}
 
 lemma trivialization.mem_source (e : trivialization R F E)
   {x : total_space E} : x ∈ e.source ↔ proj E x ∈ e.base_set := bundle_trivialization.mem_source e
+
+@[simp, mfld_simps] lemma trivialization.coe_coe (e : trivialization R F E) :
+  ⇑e.to_local_homeomorph = e := rfl
+
+@[simp, mfld_simps] lemma trivialization.coe_fst
+  (e : trivialization R F E) {x : total_space E} (ex : x ∈ e.source) :
+  (e x).1 = (proj E) x :=
+e.proj_to_fun x ex
 
 end topological_vector_bundle
 

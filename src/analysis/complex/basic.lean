@@ -73,6 +73,11 @@ by rw [norm_real, real.norm_eq_abs]
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
 by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 
+@[continuity] lemma continuous_abs : continuous abs := continuous_norm
+
+@[continuity] lemma continuous_norm_sq : continuous norm_sq :=
+by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
+
 open continuous_linear_map
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/

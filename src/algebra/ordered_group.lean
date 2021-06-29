@@ -68,6 +68,11 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
   covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
 
+@[to_additive]
+instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_comm_group α] :
+  covariant_class α α (*) (≤) :=
+{ elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
+
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group (units α) :=

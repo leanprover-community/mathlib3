@@ -59,7 +59,7 @@ attribute [nolint doc_blame] non_unital_alg_hom.to_mul_hom
 
 namespace non_unital_alg_hom
 
-variables {R A B C} [semiring R]
+variables {R A B C} [monoid R]
 variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
 variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
 variables [non_unital_non_assoc_semiring C] [distrib_mul_action R C]

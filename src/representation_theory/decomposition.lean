@@ -56,6 +56,15 @@ begin
   simp [submodule.inclusion],
 end
 
+def to_module_apply' (p : ι → submodule R M) (x : ⨁ (i : ι), (p i)) :
+  direct_sum.to_module R ι M (λ i, (p i).subtype) x = ∑ i in x.support, (x i).1 :=
+begin
+  simp only [direct_sum.to_module, dfinsupp.sum_add_hom_apply, coe_mk,
+    to_add_monoid_hom_coe, dfinsupp.lsum_apply, subtype.val_eq_coe],
+  refine finset.sum_congr rfl (λ i hi, _),
+  simp [submodule.inclusion],
+end
+
 def terrible_map (p : ι → submodule R M) :
   (⨁ i, p i) →ₗ[R] (supr p : submodule R M) :=
 (direct_sum.to_module R ι _ (λ i, (p i).inclusion (supr p) (le_supr p i)))
@@ -67,41 +76,6 @@ begin
     to_add_monoid_hom_coe, dfinsupp.lsum_apply, subtype.val_eq_coe],
   refine finset.sum_congr rfl (λ i hi, _),
   simp [submodule.inclusion],
-end
-
--- move
-lemma coe_sum {p : submodule R M} (x : ι → p) (s : finset ι) :
-  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
-begin
-  rw ← submodule.subtype_apply,
-  simp only [submodule.subtype_apply, eq_self_iff_true, map_sum],
-end
-
--- move
-lemma finset.sum_erase' {α : Type*} {β : Type*} [add_comm_monoid β] [decidable_eq α]
-  (s : finset α) {f : α → β} {a : α} (h : a ∈ s) :
-  ∑ (x : α) in s.erase a, f x + f a = ∑ (x : α) in s, f x :=
-begin
-  rw add_comm,
-  rw ← finset.sum_insert,
-  rw finset.insert_erase,
-  exact h,
-  exact finset.not_mem_erase a s,
-end
-
--- move
-lemma submodule.sum_erase_mem_bsupr [fintype ι]
-  (x : ι → M) {p : ι → submodule R M} (j : ι) (hx : ∀ i, x i ∈ p i) :
-  ∑ (i : ι) in finset.univ.erase j, (x i) ∈ ⨆ (k : ι) (H : k ≠ j), p k :=
-begin
-  let p' := λ i (h : i ≠ j), p i,
-  have : (⨆ (k : ι) (H : k ≠ j), p k) = ⨆ (k : ι) (H : k ≠ j), p' k H,
-  { congr, },
-  rw this,
-  refine submodule.sum_mem _ (λ c hc, _),
-  rw finset.mem_erase at hc,
-  have almost : p' c hc.1 ≤ ⨆ i (H : i ≠ j), p' i H := le_bsupr _ _,
-  exact almost (hx c),
 end
 
 lemma is_atomistic.exist_set_independent_Sup_eq_top {α : Type*}
@@ -231,7 +205,7 @@ begin
   exact set_like.coe_mk _ _,
 end
 
-def submodule.prod_equiv_of_independent
+def submodule.direct_sum_equiv_of_independent
   (p : ι → submodule R M) (h : complete_lattice.independent p) :
   (⨁ i, p i) ≃ₗ[R] (supr p : submodule R M) :=
 begin
@@ -244,9 +218,9 @@ begin
   convert terrible_map_range p h,
 end
 
-@[simp] lemma submodule.prod_equiv_of_independent_apply
+@[simp] lemma submodule.direct_sum_equiv_of_independent_apply
   (p : ι → submodule R M) (h : complete_lattice.independent p) (x : ⨁ i, p i) :
-  submodule.prod_equiv_of_independent p h x = terrible_map p x :=
+  submodule.direct_sum_equiv_of_independent p h x = terrible_map p x :=
 rfl
 
 variables (R M)
@@ -290,7 +264,7 @@ begin
 end
 
 def is_decomposition.equiv (D : decomposition ι R M) : (⨁ i, D.factors i) ≃ₗ[R] M :=
-((submodule.prod_equiv_of_independent D.factors D.factors_ind).trans
+((submodule.direct_sum_equiv_of_independent D.factors D.factors_ind).trans
   (dumb_map D.factors_supr)).trans (submodule.top_equiv R M)
 
 lemma is_decomposition.equiv_apply (D : decomposition ι R M) (x : ⨁ i, D.factors i) :

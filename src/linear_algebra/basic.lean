@@ -985,6 +985,21 @@ lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → subm
   ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
 sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
 
+-- this is weirdly hard to prove
+lemma sum_erase_mem_bsupr {ι : Type*} [fintype ι]
+  (x : ι → M) {p : ι → submodule R M} (j : ι) (hx : ∀ i, x i ∈ p i) :
+  ∑ (i : ι) in finset.univ.erase j, (x i) ∈ ⨆ (k : ι) (H : k ≠ j), p k :=
+begin
+  let p' := λ i (h : i ≠ j), p i,
+  have : (⨆ (k : ι) (H : k ≠ j), p k) = ⨆ (k : ι) (H : k ≠ j), p' k H,
+  { congr, },
+  rw this,
+  refine submodule.sum_mem _ (λ c hc, _),
+  rw finset.mem_erase at hc,
+  have almost : p' c hc.1 ≤ ⨆ i (H : i ≠ j), p' i H := le_bsupr _ _,
+  exact almost (hx c),
+end
+
 lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
   (h : ∀ i, f i ∈ p i) :
   ∑ i, f i ∈ ⨆ i, p i :=

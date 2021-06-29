@@ -155,6 +155,12 @@ variables {p}
 @[simp, norm_cast] lemma coe_smul_of_tower (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
+@[simp] lemma coe_sum (x : ι → p) (s : finset ι) :
+  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
+begin
+  rw ← subtype_apply,
+  simp only [subtype_apply, eq_self_iff_true, map_sum],
+end
 
 variables (p)
 

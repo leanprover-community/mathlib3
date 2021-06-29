@@ -122,7 +122,7 @@ lemma exists_eq_aeval [nontrivial S] (pb : power_basis R S) (y : S) :
 (mem_span_pow pb.dim_ne_zero).mp (by simpa using pb.basis.mem_span y)
 
 lemma exists_eq_aeval' (pb : power_basis R S) (y : S) :
-∃ f : polynomial R, y = aeval pb.gen f :=
+  ∃ f : polynomial R, y = aeval pb.gen f :=
 begin
   nontriviality S,
   obtain ⟨f, _, hf⟩ := exists_eq_aeval pb y,

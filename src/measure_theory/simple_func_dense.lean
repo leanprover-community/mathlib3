@@ -204,10 +204,7 @@ begin
   exact_mod_cast this,
 end
 
---  {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
---   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
---   tendsto (λ n, ∫⁻ x, edist (approx_on f hf s y₀ h₀ n x) (f x) ∂μ) at_top (𝓝 0)
-lemma tendsto_approx_on_Lp_nnnorm  [opens_measurable_space E]
+lemma tendsto_approx_on_Lp_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   (hq : 0 < q) {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s)
   (hi : snorm' (λ x, f x - y₀) q μ < ∞) :
@@ -302,7 +299,7 @@ section integrable
 variables [measurable_space β]
 variables [measurable_space E] [normed_group E]
 
-lemma tendsto_approx_on_L1_nnnorm  [opens_measurable_space E]
+lemma tendsto_approx_on_L1_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
   tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
@@ -328,7 +325,7 @@ tendsto_approx_on_L1_nnnorm fmeas trivial (by simp) (by simpa using hf.2)
 lemma integrable_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) (n : ℕ) :
   integrable (approx_on f fmeas univ 0 trivial n) μ :=
-integrable_approx_on fmeas hf _ (integrable_zero _ _ μ) n
+integrable_approx_on fmeas hf _ (integrable_zero _ _ _) n
 
 lemma tendsto_approx_on_univ_L1 [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :

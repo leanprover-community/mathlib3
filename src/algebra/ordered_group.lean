@@ -22,6 +22,34 @@ set_option old_structure_cmd true
 universe u
 variable {α : Type u}
 
+@[to_additive]
+instance group.covariant_class_le.to_contravariant_class_le
+  [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
+{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
+                          ... ≤ a⁻¹ * (a * c) : mul_le_mul_left' bc a⁻¹
+                          ... = c             : inv_mul_cancel_left a c }
+
+@[to_additive]
+instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
+  [covariant_class α α (function.swap (*)) (≤)] : contravariant_class α α (function.swap (*)) (≤) :=
+{ elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
+                          ... ≤ c * a * a⁻¹ : mul_le_mul_right' bc a⁻¹
+                          ... = c           : mul_inv_eq_of_eq_mul rfl }
+
+@[to_additive]
+instance group.covariant_class_lt.to_contravariant_class_lt
+  [group α] [has_lt α] [covariant_class α α (*) (<)] : contravariant_class α α (*) (<) :=
+{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
+                          ... < a⁻¹ * (a * c) : mul_lt_mul_left' bc a⁻¹
+                          ... = c             : inv_mul_cancel_left a c }
+
+@[to_additive]
+instance group.swap.covariant_class_lt.to_contravariant_class_lt [group α] [has_lt α]
+  [covariant_class α α (function.swap (*)) (<)] : contravariant_class α α (function.swap (*)) (<) :=
+{ elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
+                          ... < c * a * a⁻¹ : mul_lt_mul_right' bc a⁻¹
+                          ... = c           : mul_inv_eq_of_eq_mul rfl }
+
 /-- An ordered additive commutative group is an additive commutative group
 with a partial order in which addition is strictly monotone. -/
 @[protect_proj, ancestor add_comm_group partial_order]
@@ -39,13 +67,7 @@ attribute [to_additive] ordered_comm_group
 @[to_additive]
 instance units.covariant_class [ordered_comm_monoid α] :
   covariant_class (units α) (units α) (*) (≤) :=
-{ elim := λ a b c bc, by {
-  rcases le_iff_eq_or_lt.mp bc with ⟨rfl, h⟩,
-  { exact rfl.le },
-  refine le_iff_eq_or_lt.mpr (or.inr _),
-  refine units.coe_lt_coe.mp _,
-  cases lt_iff_le_and_ne.mp (units.coe_lt_coe.mpr h) with lef rig,
-  exact lt_of_le_of_ne (mul_le_mul_left' lef ↑a) (λ hg, rig ((units.mul_right_inj a).mp hg)) } }
+{ elim := λ a b c bc, show (a : α) * b ≤ a * c, from mul_le_mul_left' bc _ }
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]

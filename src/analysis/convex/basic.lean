@@ -10,7 +10,6 @@ import linear_algebra.affine_space.affine_map
 import algebra.module.ordered
 import order.closure
 
-
 /-!
 # Convex sets and functions on real vector spaces
 
@@ -320,7 +319,7 @@ lemma convex_sInter {S : set (set E)} (h : ∀ s ∈ S, convex s) : convex (⋂�
 assume x y hx hy a b ha hb hab s hs,
 h s hs (hx s hs) (hy s hs) ha hb hab
 
-lemma convex_Inter {ι : Sort*} {s: ι → set E} (h: ∀ i : ι, convex (s i)) : convex (⋂ i, s i) :=
+lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex (s i)) : convex (⋂ i, s i) :=
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex s) (ht : convex t) :
@@ -330,6 +329,26 @@ begin
   apply mem_prod.2,
   exact ⟨hs (mem_prod.1 hx).1 (mem_prod.1 hy).1 ha hb hab,
         ht (mem_prod.1 hx).2 (mem_prod.1 hy).2 ha hb hab⟩
+end
+
+lemma directed.convex_Union {ι : Sort*} {s : ι → set E} (hdir : directed has_subset.subset s)
+  (hc : ∀ ⦃i : ι⦄, convex (s i)) :
+  convex (⋃ i, s i) :=
+begin
+  rintro x y hx hy a b ha hb hab,
+  rw mem_Union at ⊢ hx hy,
+  obtain ⟨i, hx⟩ := hx,
+  obtain ⟨j, hy⟩ := hy,
+  obtain ⟨k, hik, hjk⟩ := hdir i j,
+  exact ⟨k, hc (hik hx) (hjk hy) ha hb hab⟩,
+end
+
+lemma directed_on.convex_sUnion {c : set (set E)} (hdir : directed_on has_subset.subset c)
+  (hc : ∀ ⦃A : set E⦄, A ∈ c → convex A) :
+  convex (⋃₀c) :=
+begin
+  rw sUnion_eq_Union,
+  exact (directed_on_iff_directed.1 hdir).convex_Union (λ A, hc A.2),
 end
 
 lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
@@ -437,10 +456,18 @@ lemma convex_interval (r : ℝ) (s : ℝ) : convex (interval r s) := ord_connect
 
 lemma convex_segment (a b : E) : convex [a, b] :=
 begin
-  have : (λ (t : ℝ), a + t • (b - a)) = (λz : E, a + z) ∘ (λt:ℝ, t • (b - a)) := rfl,
+  have : (λ (t : ℝ), a + t • (b - a)) = (λ z : E, a + z) ∘ (λ t : ℝ, t • (b - a)) := rfl,
   rw [segment_eq_image', this, image_comp],
   refine ((convex_Icc _ _).is_linear_image _).translate _,
   exact is_linear_map.is_linear_map_smul' _
+end
+
+lemma convex_open_segment (a b : E) : convex (open_segment a b) :=
+begin
+  have : (λ (t : ℝ), a + t • (b - a)) = (λ z : E, a + z) ∘ (λ t : ℝ, t • (b - a)) := rfl,
+  rw [open_segment_eq_image', this, image_comp],
+  refine ((convex_Ioo _ _).is_linear_image _).translate _,
+  exact is_linear_map.is_linear_map_smul' _,
 end
 
 lemma convex_halfspace_lt {f : E → ℝ} (h : is_linear_map ℝ f) (r : ℝ) :
@@ -1020,6 +1047,14 @@ lemma concave_on_iff_convex_hypograph {γ : Type*} [ordered_add_comm_group γ]
   concave_on s f ↔ convex {p : E × γ | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
 @convex_on_iff_convex_epigraph _ _ _ _ (order_dual γ) _ _ _ f
 
+/- A linear map is convex. -/
+lemma linear_map.convex_on (f : E →ₗ[ℝ] β) {s : set E} (hs : convex s) : convex_on s f :=
+⟨hs, λ _ _ _ _ _ _ _ _ _, by rw [f.map_add, f.map_smul, f.map_smul]⟩
+
+/- A linear map is concave. -/
+lemma linear_map.concave_on (f : E →ₗ[ℝ] β) {s : set E} (hs : convex s) : concave_on s f :=
+⟨hs, λ _ _ _ _ _ _ _ _ _, by rw [f.map_add, f.map_smul, f.map_smul]⟩
+
 /-- If a function is convex on `s`, it remains convex when precomposed by an affine map. -/
 lemma convex_on.comp_affine_map {f : F → β} (g : E →ᵃ[ℝ] F) {s : set F}
   (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
@@ -1306,6 +1341,13 @@ begin
     exact subset_convex_hull _ },
   { rintro rfl,
     exact convex_hull_empty }
+end
+
+@[simp] lemma convex_hull_nonempty_iff :
+  (convex_hull s).nonempty ↔ s.nonempty :=
+begin
+  rw [←ne_empty_iff_nonempty, ←ne_empty_iff_nonempty, ne.def, ne.def],
+  exact not_congr convex_hull_empty_iff,
 end
 
 @[simp]

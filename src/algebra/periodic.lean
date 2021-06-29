@@ -5,6 +5,7 @@ Authors: Benjamin Davidson
 -/
 import data.int.parity
 import algebra.module.opposites
+import algebra.archimedean
 
 /-!
 # Periodicity
@@ -239,6 +240,14 @@ lemma periodic.int_mul_eq [ring α]
   (h : periodic f c) (n : ℤ) :
   f (n * c) = f 0 :=
 (h.int_mul n).eq
+
+/-- If a function `f` is `periodic` with positive period `c`, then for all `x` there exists some
+  `y ∈ Ico 0 c` such that `f x = f y`. -/
+lemma periodic.exists_mem_Ico [linear_ordered_add_comm_group α] [archimedean α]
+  (h : periodic f c) (hc : 0 < c) (x) :
+  ∃ y ∈ set.Ico 0 c, f x = f y :=
+let ⟨n, H⟩ := linear_ordered_add_comm_group.exists_int_smul_near_of_pos' hc x in
+⟨x - n • c, H, (h.sub_gsmul_eq n).symm⟩
 
 lemma periodic_with_period_zero [add_zero_class α]
   (f : α → β) :

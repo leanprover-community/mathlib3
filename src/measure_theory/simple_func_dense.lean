@@ -177,11 +177,12 @@ variables [measurable_space β]
 variables [measurable_space E] [normed_group E] {q : ℝ} {p : ℝ≥0∞}
 
 lemma nnnorm_approx_on_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
-  {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (x : β) (n : ℕ) :
-  ∥approx_on f hf s 0 h₀ n x - f x∥₊ ≤ ∥f x∥₊ :=
+  {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
+  ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ≤ ∥f x - y₀∥₊ :=
 begin
   have := edist_approx_on_le hf h₀ x n,
-  simp [edist_nndist, nndist_eq_nnnorm] at this,
+  rw edist_comm y₀ at this,
+  simp only [edist_nndist, nndist_eq_nnnorm] at this,
   exact_mod_cast this
 end
 
@@ -203,38 +204,42 @@ begin
   exact_mod_cast this,
 end
 
+--  {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
+--   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
+--   tendsto (λ n, ∫⁻ x, edist (approx_on f hf s y₀ h₀ n x) (f x) ∂μ) at_top (𝓝 0)
 lemma tendsto_approx_on_Lp_nnnorm  [opens_measurable_space E]
-  {f : β → E} (hf : measurable f) {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (hq : 0 < q)
-  {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : snorm' f q μ < ∞) :
-  tendsto (λ n, snorm' (approx_on f hf s 0 h₀ n - f) q μ) at_top (𝓝 0) :=
+  {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
+  (hq : 0 < q) {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s)
+  (hi : snorm' (λ x, f x - y₀) q μ < ∞) :
+  tendsto (λ n, snorm' (approx_on f hf s y₀ h₀ n - f) q μ) at_top (𝓝 0) :=
 begin
-  suffices : tendsto (λ n, ∫⁻ x, ∥approx_on f hf s 0 h₀ n x - f x∥₊ ^ q ∂μ) at_top (𝓝 0),
+  suffices : tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ^ q ∂μ) at_top (𝓝 0),
   { simp only [snorm'],
     have hq' : 0 < q⁻¹ := _root_.inv_pos.mpr hq,
     convert (ennreal.continuous_at_rpow_const hq').tendsto.comp this;
     simp [hq'] },
   -- We simply check the conditions of the Dominated Convergence Theorem:
   -- (1) The function "`q`-th power of distance between `f` and the approximation" is measurable
-  have hF_meas : ∀ n, measurable (λ x, (∥approx_on f hf s 0 h₀ n x - f x∥₊ : ℝ≥0∞) ^ q),
+  have hF_meas : ∀ n, measurable (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ q),
   { simpa only [← edist_eq_coe_nnnorm_sub] using
-      λ n, (approx_on f hf s 0 h₀ n).measurable_bind (λ y x, (edist y (f x)) ^ q)
+      λ n, (approx_on f hf s y₀ h₀ n).measurable_bind (λ y x, (edist y (f x)) ^ q)
       (λ y, (measurable_edist_right.comp hf).pow_const q) },
   -- (2) The functions "`q`-th power of distance between `f` and the approximation" are uniformly
-  -- bounded, at any given point, by `λ x, ∥f x∥ ^ q`
+  -- bounded, at any given point, by `λ x, ∥f x - y₀∥ ^ q`
   have h_bound : ∀ n,
-    (λ x, (∥approx_on f hf s 0 h₀ n x - f x∥₊ : ℝ≥0∞) ^ q) ≤ᵐ[μ] (λ x, ∥f x∥₊ ^ q),
+    (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ q) ≤ᵐ[μ] (λ x, ∥f x - y₀∥₊ ^ q),
   { exact λ n, eventually_of_forall
       (λ x, rpow_le_rpow (coe_mono (nnnorm_approx_on_le hf h₀ x n)) hq.le) },
-  -- (3) The bounding function `λ x, ∥f x∥ ^ q` has finite integral
-  have h_fin :  ∫⁻ (a : β), ∥f a∥₊ ^ q ∂μ < ⊤,
+  -- (3) The bounding function `λ x, ∥f x - y₀∥ ^ q` has finite integral
+  have h_fin :  ∫⁻ (a : β), ∥f a - y₀∥₊ ^ q ∂μ < ⊤,
   { exact lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hq hi },
   -- (4) The functions "`q`-th power of distance between `f` and the approximation" tend pointwise
   -- to zero
   have h_lim : ∀ᵐ (a : β) ∂μ,
-    tendsto (λ n, (∥approx_on f hf s 0 h₀ n a - f a∥₊ : ℝ≥0∞) ^ q) at_top (𝓝 0),
+    tendsto (λ n, (∥approx_on f hf s y₀ h₀ n a - f a∥₊ : ℝ≥0∞) ^ q) at_top (𝓝 0),
   { filter_upwards [hμ],
     intros a ha,
-    have : tendsto (λ n, (approx_on f hf s 0 h₀ n) a - f a) at_top (𝓝 (f a - f a)),
+    have : tendsto (λ n, (approx_on f hf s y₀ h₀ n) a - f a) at_top (𝓝 (f a - f a)),
     { exact (tendsto_approx_on hf h₀ ha).sub tendsto_const_nhds },
     convert ennreal.tendsto_coe.mpr (this.nnnorm.nnrpow tendsto_const_nhds (or.inr hq)),
     { ext1 x,
@@ -282,7 +287,7 @@ end
 lemma tendsto_approx_on_univ_Lp_nnnorm [opens_measurable_space E] [second_countable_topology E]
   {f : β → E} (hq : 0 < q) {μ : measure β} (fmeas : measurable f) (hf : snorm' f q μ < ∞) :
   tendsto (λ n, snorm' (approx_on f fmeas univ 0 trivial n - f) q μ) at_top (𝓝 0) :=
-tendsto_approx_on_Lp_nnnorm fmeas trivial hq (by simp) hf
+tendsto_approx_on_Lp_nnnorm fmeas trivial hq (by simp) (by simpa using hf)
 
 lemma mem_ℒp_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : mem_ℒp f p μ) (n : ℕ) :
@@ -298,11 +303,12 @@ variables [measurable_space β]
 variables [measurable_space E] [normed_group E]
 
 lemma tendsto_approx_on_L1_nnnorm  [opens_measurable_space E]
-  {f : β → E} (hf : measurable f) {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s]
-  {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral f μ) :
-  tendsto (λ n, ∫⁻ x, ∥approx_on f hf s 0 h₀ n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
+  {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
+  {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
+  tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
 by simpa [snorm'] using
-  tendsto_approx_on_Lp_nnnorm hf h₀ zero_lt_one hμ (by simpa [snorm'] using hi)
+  tendsto_approx_on_Lp_nnnorm hf h₀ zero_lt_one hμ
+    (by simpa [snorm', has_finite_integral] using hi)
 
 lemma integrable_approx_on [borel_space E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ)
@@ -317,7 +323,7 @@ end
 lemma tendsto_approx_on_univ_L1_nnnorm [opens_measurable_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
   tendsto (λ n, ∫⁻ x, ∥approx_on f fmeas univ 0 trivial n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
-tendsto_approx_on_L1_nnnorm fmeas trivial (by simp) hf.2
+tendsto_approx_on_L1_nnnorm fmeas trivial (by simp) (by simpa using hf.2)
 
 lemma integrable_approx_on_univ [borel_space E] [second_countable_topology E]
   {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) (n : ℕ) :

@@ -22,26 +22,30 @@ variable {α : Type u}
 @[to_additive]
 instance group.covariant_class_le.to_contravariant_class_le
   [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
-{ elim := λ a b c bc, by { convert covariant_class.elim (a⁻¹) bc;
-    exact eq_inv_mul_of_mul_eq rfl <|> assumption } }
+{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
+                          ... ≤ a⁻¹ * (a * c) : mul_le_mul_left' bc a⁻¹
+                          ... = c             : inv_mul_cancel_left a c }
 
 @[to_additive]
 instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
   [covariant_class α α (function.swap (*)) (≤)] : contravariant_class α α (function.swap (*)) (≤) :=
-{ elim := λ a b c bc, by { convert @covariant_class.elim α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
-    exact eq_mul_inv_of_mul_eq rfl } }
+{ elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
+                          ... ≤ c * a * a⁻¹ : mul_le_mul_right' bc a⁻¹
+                          ... = c           : mul_inv_eq_of_eq_mul rfl }
 
 @[to_additive]
 instance group.covariant_class_lt.to_contravariant_class_lt
   [group α] [has_lt α] [covariant_class α α (*) (<)] : contravariant_class α α (*) (<) :=
-{ elim := λ a b c bc, by { convert covariant_class.elim (a⁻¹) bc;
-    exact eq_inv_mul_of_mul_eq rfl <|> assumption } }
+{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
+                          ... < a⁻¹ * (a * c) : mul_lt_mul_left' bc a⁻¹
+                          ... = c             : inv_mul_cancel_left a c }
 
 @[to_additive]
 instance group.swap.covariant_class_lt.to_contravariant_class_lt [group α] [has_lt α]
   [covariant_class α α (function.swap (*)) (<)] : contravariant_class α α (function.swap (*)) (<) :=
-{ elim := λ a b c bc, by { convert @covariant_class.elim α α (function.swap (*)) _ _ a⁻¹ _ _ bc;
-    exact eq_mul_inv_of_mul_eq rfl } }
+{ elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
+                          ... < c * a * a⁻¹ : mul_lt_mul_right' bc a⁻¹
+                          ... = c           : mul_inv_eq_of_eq_mul rfl }
 
 /-- An ordered additive commutative group is an additive commutative group
 with a partial order in which addition is strictly monotone. -/
@@ -77,7 +81,7 @@ by apply_instance
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] :
   ordered_cancel_comm_monoid α :=
-{ mul_left_cancel       := @mul_left_cancel α _,
+{ mul_left_cancel       := λ a b c, (mul_right_inj a).mp,
   le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
 
@@ -784,9 +788,8 @@ end linear_order
 /-- A linearly ordered additive commutative group is an
 additive commutative group with a linear order in which
 addition is monotone. -/
-@[protect_proj, ancestor add_comm_group linear_order]
-class linear_ordered_add_comm_group (α : Type u) extends add_comm_group α, linear_order α :=
-(add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
+@[protect_proj, ancestor ordered_add_comm_group linear_order]
+class linear_ordered_add_comm_group (α : Type u) extends ordered_add_comm_group α, linear_order α
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
@@ -799,16 +802,11 @@ class linear_ordered_add_comm_group_with_top (α : Type*)
 /-- A linearly ordered commutative group is a
 commutative group with a linear order in which
 multiplication is monotone. -/
-@[protect_proj, ancestor comm_group linear_order, to_additive]
-class linear_ordered_comm_group (α : Type u) extends comm_group α, linear_order α :=
-(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
+@[protect_proj, ancestor ordered_comm_group linear_order, to_additive]
+class linear_ordered_comm_group (α : Type u) extends ordered_comm_group α, linear_order α
 
 section linear_ordered_comm_group
 variables [linear_ordered_comm_group α] {a b c : α}
-
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_ordered_comm_group : ordered_comm_group α :=
-{ ..‹linear_ordered_comm_group α› }
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :

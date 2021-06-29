@@ -145,7 +145,7 @@ noncomputable theory
 open topological_space (second_countable_topology)
 open measure_theory set classical filter
 
-open_locale classical topological_space filter ennreal
+open_locale classical topological_space filter ennreal big_operators
 
 variables {α β 𝕜 E F : Type*} [linear_order α] [measurable_space α]
   [measurable_space E] [normed_group E]
@@ -228,6 +228,14 @@ by split; simp
   interval_integrable f μ a c :=
 ⟨(hab.1.union hbc.1).mono_set Ioc_subset_Ioc_union_Ioc,
   (hbc.2.union hab.2).mono_set Ioc_subset_Ioc_union_Ioc⟩
+
+lemma trans_iterate {a : ℕ → α} {n : ℕ} (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
+  interval_integrable f μ (a 0) (a n) :=
+begin
+  induction n with n hn,
+  { simp },
+  { exact (hn (λ k hk, hint k (hk.trans n.lt_succ_self))).trans (hint n n.lt_succ_self) }
+end
 
 lemma neg [borel_space E] (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
@@ -651,6 +659,18 @@ lemma integral_add_adjacent_intervals (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
 by rw [← add_neg_eq_zero, ← integral_symm, integral_add_adjacent_intervals_cancel hab hbc]
+
+lemma sum_integral_adjacent_intervals {a : ℕ → α} {n : ℕ}
+  (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
+  ∑ (k : ℕ) in finset.range n, ∫ x in (a k)..(a $ k+1), f x ∂μ = ∫ x in (a 0)..(a n), f x ∂μ :=
+begin
+  induction n with n hn,
+  { simp },
+  { rw [finset.sum_range_succ, hn (λ k hk, hint k (hk.trans n.lt_succ_self))],
+    exact integral_add_adjacent_intervals
+      (interval_integrable.trans_iterate $ λ k hk, hint k (hk.trans n.lt_succ_self))
+      (hint n n.lt_succ_self) }
+end
 
 lemma integral_interval_sub_left (hab : interval_integrable f μ a b)
   (hac : interval_integrable f μ a c) :

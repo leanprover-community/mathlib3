@@ -305,7 +305,7 @@ by { ext f, simp [continuous_linear_map.comp_left_continuous_compact] }
 
 @[simp] lemma continuous_linear_map.comp_left_continuous_compact_apply (g : β →L[𝕜] γ)
   (f : C(X, β)) (x : X) :
-  (g.comp_left_continuous_compact X) f x = g (f x) :=
+  g.comp_left_continuous_compact X f x = g (f x) :=
 rfl
 
 end comp_left

@@ -39,6 +39,7 @@ lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
   [has_smooth_mul I' G] (f g : C^∞⟮I, N; I', G⟯) :
   ⇑(f * g) = f * g := rfl
 
+attribute [to_additive_ignore_args 3] has_coe_to_fun.F
 @[simp, to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
   [charted_space H' G] [has_smooth_mul I' G] (f g : C^∞⟮I'', N'; I', G⟯) (h : C^∞⟮I, N; I'', N'⟯) :
 (f * g).comp h = (f.comp h) * (g.comp h) :=

@@ -212,9 +212,8 @@ lemma tendsto_approx_on_Lp_nnnorm [opens_measurable_space E]
 begin
   suffices : tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ^ q ∂μ) at_top (𝓝 0),
   { simp only [snorm'],
-    have hq' : 0 < q⁻¹ := _root_.inv_pos.mpr hq,
-    convert (ennreal.continuous_at_rpow_const hq').tendsto.comp this;
-    simp [hq'] },
+    convert continuous_rpow_const.continuous_at.tendsto.comp this;
+    simp [_root_.inv_pos.mpr hq] },
   -- We simply check the conditions of the Dominated Convergence Theorem:
   -- (1) The function "`q`-th power of distance between `f` and the approximation" is measurable
   have hF_meas : ∀ n, measurable (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ q),

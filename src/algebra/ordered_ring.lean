@@ -954,6 +954,11 @@ end
 /-- `abs` as a `monoid_with_zero_hom`. -/
 def abs_hom : monoid_with_zero_hom α α := ⟨abs, abs_zero, abs_one, abs_mul⟩
 
+lemma cast_nat_abs : ∀ (n : ℤ), (n.nat_abs : α) = abs n
+| (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
+| -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
+                           ← nat.cast_succ, nat.abs_cast]
+
 @[simp] lemma abs_mul_abs_self (a : α) : abs a * abs a = a * a :=
 abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
 

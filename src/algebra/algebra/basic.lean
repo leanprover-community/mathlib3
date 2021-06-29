@@ -519,9 +519,7 @@ lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α)
 φ.to_ring_hom.map_bit1 x
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-def subsingleton {R A B} [comm_semiring R] [semiring A] [semiring B]
-  [algebra R A] [algebra R B] [subsingleton A] :
-  subsingleton (A →ₐ[R] B) :=
+lemma subsingleton [subsingleton A] : subsingleton (A →ₐ[R] B) :=
 ⟨λ f g, alg_hom.ext $ λ x, subsingleton.elim 0 x ▸ f.map_zero.trans g.map_zero.symm⟩
 
 /-- If a `ring_hom` is `R`-linear, then it is an `alg_hom`. -/

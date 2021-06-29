@@ -302,14 +302,15 @@ typeclass inference -/
 @[nolint unused_arguments has_inhabited_instance]
 def fiber (x : B) := F
 
-instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
-by { dsimp [fiber], apply_instance }
+section fiber_instances
 
-instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) :=
-λ x, by { dsimp [fiber], apply_instance }
+local attribute [reducible] fiber --just to record instances
 
-instance module_fiber : ∀ (x : B), module R (Z.fiber x) :=
-λ x, by { dsimp [fiber], apply_instance }
+instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := by apply_instance
+instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) := λ x, by apply_instance
+instance module_fiber : ∀ (x : B), module R (Z.fiber x) := λ x, by apply_instance
+
+end fiber_instances
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : total_space Z.fiber → B := bundle.proj Z.fiber
@@ -374,7 +375,7 @@ instance : topological_vector_bundle R F Z.fiber :=
       { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply] at ha,
         exact ha.2.2, },
       { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply],
-      exact ⟨Z.mem_base_set_at b, ha⟩, } } end⟩,
+        exact ⟨Z.mem_base_set_at b, ha⟩, } } end⟩,
   locally_trivial := λ b, ⟨Z.local_triv_at b, Z.mem_base_set_at b⟩, }
 
 /-- The projection on the base of a topological vector bundle created from core is continuous -/

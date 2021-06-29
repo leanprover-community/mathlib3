@@ -49,6 +49,10 @@ begin
 end
 lemma Ioc_ℤ_finite (l u : ℤ) : set.finite (Ioc l u) := Icc_ℤ_finite (l + 1) u
 
+instance (a b : ℤ) : fintype (Icc a b) := nonempty.some (Icc_ℤ_finite a b)
+instance (a b : ℤ) : fintype (Ioc a b) := nonempty.some (Ioc_ℤ_finite a b)
+instance (a b : ℤ) : fintype (Ioo a b) := nonempty.some (Ioo_ℤ_finite a b)
+
 -- TODO other useful instances: fin n, zmod?
 
 end set

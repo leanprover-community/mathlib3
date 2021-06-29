@@ -24,7 +24,7 @@ run_cmd mk_simp_attr `sugar_nat
 
 attribute [sugar_nat]
   ne not_le not_lt
-  lt_iff_add_one_le
+  nat.lt_iff_add_one_le
   nat.succ_eq_add_one
   or_false false_or
   and_true true_and

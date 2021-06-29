@@ -45,15 +45,11 @@ variable {N}
 
 lemma m_le_n {m n : ℤ} (h1 : problem_predicate N m n) : m ≤ n :=
 begin
-  refine le_of_not_lt (λ h2, _),
+  by_contra h2,
   have h3 : 1 = (n * (n - m) - m ^ 2) ^ 2,
   { calc 1 = (n ^ 2 - m * n - m ^ 2) ^ 2 : h1.eq_one.symm
        ... = (n * (n - m) - m ^ 2) ^ 2   : by ring },
-  have h4 : n * (n - m) - m ^ 2 < -1,
-  {
-    rw int.lt_iff_add_one_le at ⊢ h2,
-    nlinarith [h1.n_range.left],
-  },
+  have h4 : n * (n - m) - m ^ 2 < -1, by nlinarith [h1.n_range.left],
   have h5 : 1 < (n * (n - m) - m ^ 2) ^ 2, by nlinarith,
   exact h5.ne h3
 end

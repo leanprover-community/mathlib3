@@ -96,17 +96,14 @@ If `pf` is a proof of a strict inequality `(a : ℤ) < b`,
 and similarly if `pf` proves a negated weak inequality.
 -/
 meta def mk_non_strict_int_pf_of_strict_int_pf (pf : expr) : tactic expr :=
-do
-  tp ← infer_type pf,
-  ic ← mk_instance_cache `(ℤ),
-  (ic, iffe) ← ic.mk_app `lt_iff_add_one_le [],
-  match tp with
-  | `(%%a < %%b) := to_expr ``(iff.mp %%iffe %%pf)
-  | `(%%a > %%b) := to_expr ``(iff.mp %%iffe %%pf)
-  | `(¬ %%a ≤ %%b) := to_expr ``(iff.mp %%iffe (le_of_not_gt %%pf))
-  | `(¬ %%a ≥ %%b) := to_expr ``(iff.mp %%iffe (le_of_not_gt %%pf))
-  | _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
-  end
+do tp ← infer_type pf,
+match tp with
+| `(%%a < %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
+| `(%%a > %%b) := to_expr ``(int.add_one_le_iff.mpr %%pf)
+| `(¬ %%a ≤ %%b) := to_expr ``(int.add_one_le_iff.mpr (le_of_not_gt %%pf))
+| `(¬ %%a ≥ %%b) := to_expr ``(int.add_one_le_iff.mpr (le_of_not_gt %%pf))
+| _ := fail "mk_non_strict_int_pf_of_strict_int_pf failed: proof is not an inequality"
+end
 
 /--
 `is_nat_prop tp` is true iff `tp` is an inequality or equality between natural numbers

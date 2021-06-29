@@ -12,10 +12,10 @@ import geometry.manifold.derivation_bundle
 
 In this file we define the concept of left invariant derivation for a Lie group. The concept is
 analogous to the more classical concept of left invariant vector fields, and it holds that the
-derivation associated to a vector field is left invariant iff the the field is.
+derivation associated to a vector field is left invariant iff the field is.
 
 Moreover we prove that `left_invariant_derivation I G` has the structure of a Lie algebra, hence
-implementing one of the possible definitions of Lie algebra.
+implementing one of the possible definitions of the Lie algebra attached to a Lie group.
 
 -/
 
@@ -87,22 +87,22 @@ by rw [←to_derivation_eq_coe]; exact left_invariant'' X f g
 @[simp] lemma map_smul : X (r • f) = r • X f := derivation.map_smul X r f
 @[simp] lemma leibniz : X (f * f') = f • X f' + f' • X f := X.leibniz' _ _
 
-instance : has_zero (left_invariant_derivation I G) := ⟨⟨0, λ f g,
-  by simp only [linear_map.map_zero, derivation.coe_zero]⟩⟩
+instance : has_zero (left_invariant_derivation I G) :=
+⟨⟨0, λ f g, by simp only [linear_map.map_zero, derivation.coe_zero]⟩⟩
 
 instance : inhabited (left_invariant_derivation I G) := ⟨0⟩
 
 instance : has_add (left_invariant_derivation I G) :=
 { add := λ X Y, ⟨X + Y, λ f g, by simp only [linear_map.map_add, derivation.coe_add,
-  left_invariant', pi.add_apply]⟩ }
+    left_invariant', pi.add_apply]⟩ }
 
 instance : has_neg (left_invariant_derivation I G) :=
 { neg := λ X, ⟨-X, λ f g, by simp only [linear_map.map_neg, derivation.coe_neg, left_invariant',
-  pi.neg_apply]⟩ }
+    pi.neg_apply]⟩ }
 
 instance : has_sub (left_invariant_derivation I G) :=
 { sub := λ X Y, ⟨X - Y, λ f g, by simp only [linear_map.map_sub, derivation.coe_sub,
-  left_invariant', pi.sub_apply]⟩ }
+    left_invariant', pi.sub_apply]⟩ }
 
 @[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
 @[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
@@ -128,7 +128,8 @@ variables (r X)
 variables (I G)
 
 /-- The coercion to function is a monoid homomorphism. -/
-@[simps] def coe_fn_add_monoid_hom : (left_invariant_derivation I G) →+ _ :=
+@[simps] def coe_fn_add_monoid_hom :
+  (left_invariant_derivation I G) →+ (C^∞⟮I, G; 𝕜⟯ → C^∞⟮I, G; 𝕜⟯) :=
 ⟨λ X, X.to_derivation.to_fun, coe_zero, coe_add⟩
 
 variables {I G}

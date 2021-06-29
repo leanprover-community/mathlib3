@@ -21,10 +21,15 @@ both pointwise and in `Lᵖ` norm, by a sequence of simple functions.
 
 ## Main results
 
-* Pointwise convergence: If `f x ∈ s`, then `measure_theory.simple_func.approx_on f hf s y₀ h₀ n x`
+* `tendsto_approx_on` (pointwise convergence): If `f x ∈ s`, then the sequence of simple
+  approximations `measure_theory.simple_func.approx_on f hf s y₀ h₀ n`, evaluated at `x`,
   tends to `f x` as `n` tends to `∞`.
-* If `α` is a `normed_group`, `f x` is `measure_theory.integrable`, and `f x ∈ s` for a.e. `x`,
-  then `simple_func.approx_on f hf s 0 h₀ n` tends to `f` in `Lᵖ`. The main use case is `s = univ`.
+* `tendsto_approx_on_univ_Lp_nnnorm` (Lᵖ convergence): If `E` is a `normed_group` and `f` is
+  measurable and satisfies `mem_ℒp f p μ`, then each of the simple approximations
+  `simple_func.approx_on f hf s 0 h₀ n` is also in Lᵖ, and they tend in Lᵖ to `f`.
+* `tendsto_approx_on_univ_L1` (L¹ convergence): If `E` is a `normed_group` and `f` is measurable
+  and integrable, then the simple functions `simple_func.approx_on f hf s 0 h₀ n` may be considered
+  as elements of `Lp E 1 μ1`, and they tend in L¹ to `f`.
 
 ## Notations
 
@@ -180,25 +185,14 @@ begin
   exact_mod_cast this
 end
 
-lemma nnnorm_approx_on_y0_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
-  {s : set E} {y₀ : E}  (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
-  ∥approx_on f hf s y₀ h₀ n x - y₀∥₊ ≤ ∥f x - y₀∥₊ + ∥f x - y₀∥₊ :=
-begin
-  have := edist_approx_on_y0_le hf h₀ x n,
-  repeat { rw [edist_comm y₀, edist_eq_coe_nnnorm_sub] at this },
-  exact_mod_cast this,
-end
-
 lemma norm_approx_on_y₀_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
   ∥approx_on f hf s y₀ h₀ n x - y₀∥ ≤ ∥f x - y₀∥ + ∥f x - y₀∥ :=
 begin
   have := edist_approx_on_y0_le hf h₀ x n,
   repeat { rw [edist_comm y₀, edist_eq_coe_nnnorm_sub] at this },
-  -- simp [edist_comm y₀, edist_eq_coe_nnnorm] at this,
   exact_mod_cast this,
 end
-
 
 lemma norm_approx_on_zero_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (x : β) (n : ℕ) :

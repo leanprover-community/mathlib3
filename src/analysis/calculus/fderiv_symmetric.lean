@@ -17,7 +17,7 @@ if a function is differentiable inside a convex set `s` with nonempty interior, 
 derivative within `s` at a point `x`, then this second derivative at `x` is symmetric. Note that
 this result does not require continuity of the first derivative.
 
-The following particular cases of this statement are especially relevant :
+The following particular cases of this statement are especially relevant:
 
 `second_derivative_symmetric_of_eventually` asserts that, if a function is differentiable on a
 neighborhood of `x`, and has a second derivative at `x`, then this second derivative is symmetric.
@@ -290,8 +290,8 @@ theorem convex.second_derivative_within_at_symmetric
 begin
   /- we work around a point `x + 4 z` in the interior of `s`. For any vector `m`,
   then `x + 4 (z + t m)` also belongs to the interior of `s` for small enough `t`. This means that
-  we will be able to apply `second_derivative_eq_of_mem_interior` to show that `f''` is symmetric,
-  after cancelling all the contributions due to `z`. -/
+  we will be able to apply `second_derivative_within_at_symmetric_of_mem_interior` to show
+  that `f''` is symmetric, after cancelling all the contributions due to `z`. -/
   rcases hne with ⟨y, hy⟩,
   obtain ⟨z, hz⟩ : ∃ z, z = ((1:ℝ) / 4) • (y - x) := ⟨((1:ℝ) / 4) • (y - x), rfl⟩,
   have A : ∀ (m : E), filter.tendsto (λ (t : ℝ), x + (4 : ℝ) • (z + t • m)) (𝓝 0) (𝓝 y),
@@ -311,8 +311,8 @@ begin
   -- we choose `t m > 0` such that `x + 4 (z + (t m) m)` belongs to the interior of `s`, for any
   -- vector `m`.
   choose t ts tpos using λ m, ((B m).and self_mem_nhds_within).exists,
-  -- applying `second_derivative_eq_of_mem_interior` to the vectors `z` and `z + (t m) m`, we
-  -- deduce that `f'' m z = f'' z m` for all `m`.
+  -- applying `second_derivative_within_at_symmetric_of_mem_interior` to the vectors `z`
+  -- and `z + (t m) m`, we deduce that `f'' m z = f'' z m` for all `m`.
   have C : ∀ (m : E), f'' m z = f'' z m,
   { assume m,
     have : f'' (z + t m • m) (z + t 0 • 0) = f'' (z + t 0 • 0) (z + t m • m) :=
@@ -321,9 +321,9 @@ begin
       continuous_linear_map.add_apply, pi.smul_apply, continuous_linear_map.coe_smul', add_zero,
       continuous_linear_map.zero_apply, smul_zero, continuous_linear_map.map_zero] at this,
     exact smul_left_injective F (tpos m).ne' this },
-  -- applying `second_derivative_eq_of_mem_interior` to the vectors `z + (t v) v` and `z + (t w) w`,
-  -- we deduce that `f'' v w = f'' w v`. Cross terms involving `z` can be eliminated thanks to
-  -- the fact proved above that `f'' m z = f'' z m`.
+  -- applying `second_derivative_within_at_symmetric_of_mem_interior` to the vectors `z + (t v) v`
+  -- and `z + (t w) w`, we deduce that `f'' v w = f'' w v`. Cross terms involving `z` can be
+  -- eliminated thanks to the fact proved above that `f'' m z = f'' z m`.
   have : f'' (z + t v • v) (z + t w • w) = f'' (z + t w • w) (z + t v • v) :=
     s_conv.second_derivative_within_at_symmetric_of_mem_interior hf xs hx (ts w) (ts v),
   simp only [continuous_linear_map.map_add, continuous_linear_map.map_smul, smul_add, smul_smul,

@@ -27,7 +27,7 @@ section limits
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
   {J : Type v} [small_category J] (F : J ⥤ C) [preserves_limit F (forget C)]
 
-lemma concrete.is_limit_to_product_injective {D : cone F} (hD : is_limit D) :
+lemma concrete.to_product_injective_of_is_limit {D : cone F} (hD : is_limit D) :
   function.injective (λ (x : D.X) (j : J), D.π.app j x) :=
 begin
   let E := (forget C).map_cone D,
@@ -48,7 +48,7 @@ end
 
 lemma concrete.is_limit_ext {D : cone F} (hD : is_limit D) (x y : D.X) :
   (∀ j, D.π.app j x = D.π.app j y) → x = y :=
-λ h, concrete.is_limit_to_product_injective _ hD (funext h)
+λ h, concrete.to_product_injective_of_is_limit _ hD (funext h)
 
 lemma concrete.limit_ext [has_limit F] (x y : limit F) :
   (∀ j, limit.π F j x = limit.π F j y) → x = y :=

@@ -338,8 +338,8 @@ begin
   let φ' : Rₘ →+* Sₘ := is_localization.map _ φ (submonoid.powers x).le_comap_map,
   suffices : ∀ I : ideal Sₘ, I.is_maximal → (I.comap (algebra_map S Sₘ)).is_maximal,
   { have hϕ' : comap (algebra_map S Sₘ) (⊥ : ideal Sₘ) = (⊥ : ideal S),
-    { simpa [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_comap_bot]
-        using is_localization.injective _ hM },
+    { rw [← ring_hom.ker_eq_comap_bot, ← ring_hom.injective_iff_ker_eq_bot],
+      exact is_localization.injective Sₘ hM },
     have hSₘ : is_jacobson Sₘ := is_jacobson_of_is_integral' φ' hφ' (is_jacobson_localization x),
     refine eq_bot_iff.mpr (le_trans _ (le_of_eq hϕ')),
     rw [← hSₘ.out radical_bot_of_integral_domain, comap_jacobson],
@@ -374,20 +374,22 @@ private lemma is_jacobson_polynomial_of_domain (R : Type*) [integral_domain R] [
   (P : ideal (polynomial R)) [is_prime P] (hP : ∀ (x : R), C x ∈ P → x = 0) :
   P.jacobson = P :=
 begin
-  by_cases Pb : (P = ⊥),
+  by_cases Pb : P = ⊥,
   { exact Pb.symm ▸ jacobson_bot_polynomial_of_jacobson_bot
       (hR.out radical_bot_of_integral_domain) },
-  { refine jacobson_eq_iff_jacobson_quotient_eq_bot.mpr _,
+  { rw jacobson_eq_iff_jacobson_quotient_eq_bot,
     haveI : (P.comap (C : R →+* polynomial R)).is_prime := comap_is_prime C P,
     obtain ⟨p, pP, p0⟩ := exists_nonzero_mem_of_ne_bot Pb hP,
     let x := (polynomial.map (quotient.mk (comap (C : R →+* _) P)) p).leading_coeff,
     have hx : x ≠ 0 := by rwa [ne.def, leading_coeff_eq_zero],
-    exact jacobson_bot_of_integral_localization
+    refine jacobson_bot_of_integral_localization
       (localization.away x)
       (localization ((submonoid.powers x).map (P.quotient_map C le_rfl) : submonoid P.quotient))
       (quotient_map P C le_rfl) quotient_map_injective
       x hx
-      (is_integral_is_localization_polynomial_quotient P _ pP) }
+      _,
+    -- `convert` is noticeably faster than `exact` here:
+    convert is_integral_is_localization_polynomial_quotient P p pP }
 end
 
 lemma is_jacobson_polynomial_of_is_jacobson (hR : is_jacobson R) :

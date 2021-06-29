@@ -129,8 +129,6 @@ begin
   exact ⟨f, hf⟩
 end
 
-local attribute [instance] alg_hom.subsingleton
-
 lemma alg_hom_ext {S' : Type*} [semiring S'] [algebra R S']
   (pb : power_basis R S) ⦃f g : S →ₐ[R] S'⦄ (h : f pb.gen = g pb.gen) :
   f = g :=

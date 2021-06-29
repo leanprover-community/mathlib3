@@ -580,9 +580,8 @@ end ordered_add_comm_group
 /-- A linearly ordered additive commutative group is an
 additive commutative group with a linear order in which
 addition is monotone. -/
-@[protect_proj, ancestor add_comm_group linear_order]
-class linear_ordered_add_comm_group (α : Type u) extends add_comm_group α, linear_order α :=
-(add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
+@[protect_proj, ancestor ordered_add_comm_group linear_order]
+class linear_ordered_add_comm_group (α : Type u) extends ordered_add_comm_group α, linear_order α
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
@@ -595,16 +594,11 @@ class linear_ordered_add_comm_group_with_top (α : Type*)
 /-- A linearly ordered commutative group is a
 commutative group with a linear order in which
 multiplication is monotone. -/
-@[protect_proj, ancestor comm_group linear_order, to_additive]
-class linear_ordered_comm_group (α : Type u) extends comm_group α, linear_order α :=
-(mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
+@[protect_proj, ancestor ordered_comm_group linear_order, to_additive]
+class linear_ordered_comm_group (α : Type u) extends ordered_comm_group α, linear_order α
 
 section linear_ordered_comm_group
 variables [linear_ordered_comm_group α] {a b c : α}
-
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_ordered_comm_group : ordered_comm_group α :=
-{ ..‹linear_ordered_comm_group α› }
 
 @[priority 100, to_additive] -- see Note [lower instance priority]
 instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :

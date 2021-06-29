@@ -33,7 +33,7 @@ Lemma names carry modifiers:
 
 ## How-to
 
-This file comes accross as confusing to those who haven't yet used it, so here is a detailed
+This file comes across as confusing to those who haven't yet used it, so here is a detailed
 walkthrough:
 1. Know what relation on which type/set you're looking for. See Variants above. You can discharge
   some conditions to Zorn's lemma directly using a `_nonempty` variant.

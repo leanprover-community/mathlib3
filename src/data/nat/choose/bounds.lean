@@ -22,7 +22,7 @@ bounds `n^r/r^r ≤ n.choose r ≤ e^r n^r/r^r` in the future.
 
 open_locale nat
 
-variables {α : Type*} [linear_ordered_field α] [nontrivial α]
+variables {α : Type*} [linear_ordered_field α]
 
 lemma choose_le_pow (r n : ℕ) : (n.choose r : α) ≤ n^r / r! :=
 begin

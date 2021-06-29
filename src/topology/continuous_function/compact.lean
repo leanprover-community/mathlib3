@@ -303,6 +303,11 @@ protected def continuous_linear_map.comp_left_continuous_compact (g : β →L[�
   (g.comp_left_continuous_compact X : C(X, β) →ₗ[𝕜] C(X, γ)) = g.comp_left_continuous 𝕜 X :=
 by { ext f, simp [continuous_linear_map.comp_left_continuous_compact] }
 
+@[simp] lemma continuous_linear_map.comp_left_continuous_compact_apply (g : β →L[𝕜] γ)
+  (f : C(X, β)) (x : X) :
+  (g.comp_left_continuous_compact X) f x = g (f x) :=
+rfl
+
 end comp_left
 
 namespace continuous_map

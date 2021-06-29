@@ -67,7 +67,7 @@ end
 
 def terrible_map (p : ι → submodule R M) :
   (⨁ i, p i) →ₗ[R] (supr p : submodule R M) :=
-(direct_sum.to_module R ι _ (λ i, (p i).inclusion (supr p) (le_supr p i)))
+(direct_sum.to_module R ι _ (λ i, submodule.of_le (le_supr p i : p i ≤ supr p)))
 
 @[simp] lemma terrible_map_apply (p : ι → submodule R M) (x : ⨁ (i : ι), (p i)) :
   terrible_map p x = ∑ i in x.support, ⟨(x i).1, (le_supr p i : p i ≤ supr p) (x i).2⟩ :=
@@ -75,7 +75,7 @@ begin
   simp only [terrible_map, direct_sum.to_module, dfinsupp.sum_add_hom_apply, coe_mk,
     to_add_monoid_hom_coe, dfinsupp.lsum_apply, subtype.val_eq_coe],
   refine finset.sum_congr rfl (λ i hi, _),
-  simp [submodule.inclusion],
+  simp [submodule.of_le],
 end
 
 lemma is_atomistic.exist_set_independent_Sup_eq_top {α : Type*}

@@ -155,12 +155,6 @@ variables {p}
 @[simp, norm_cast] lemma coe_smul_of_tower (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
 @[simp] lemma coe_mem (x : p) : (x : M) ∈ p := x.2
-@[simp] lemma coe_sum (x : ι → p) (s : finset ι) :
-  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
-begin
-  rw ← subtype_apply,
-  simp only [subtype_apply, eq_self_iff_true, map_sum],
-end
 
 variables (p)
 
@@ -180,6 +174,14 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
   have c = 0 ∨ (x : M) = 0,
   from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
   this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
+
+-- This needs the `module'` instance, so it can't go with the other `coe` lemmas up there.
+@[simp] lemma coe_sum (x : ι → p) (s : finset ι) :
+  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
+begin
+  rw ← subtype_apply,
+  simp only [subtype_apply, eq_self_iff_true, map_sum],
+end
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=

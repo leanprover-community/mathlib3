@@ -137,7 +137,8 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
-/-- Given a closed set `S` in a compact T₀ space, there is some `x ∈ S` such that `{x}` is closed. -/
+/-- Given a closed set `S` in a compact T₀ space,
+there is some `x ∈ S` such that `{x}` is closed. -/
 theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
   [t0_space α] [compact_space α] {S : set α} (hS : is_closed S) (hne : S.nonempty) :
   ∃ (x : α), x ∈ S ∧ is_closed ({x} : set α) :=

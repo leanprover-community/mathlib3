@@ -64,28 +64,8 @@ end monotone
 
 namespace function
 
-namespace commute
-
 section preorder
-
-variables [preorder α] {f g : α → α}
-
-lemma iterate_le_of_map_le (h : commute f g) (hf : monotone f)  (hg : monotone g)
-  {x} (hx : f x ≤ g x) (n : ℕ) :
-  f^[n] x ≤ (g^[n]) x :=
-by refine hf.seq_le_seq n _ (λ k hk, _) (λ k hk, _);
-  simp [iterate_succ' f, h.iterate_right _ _, hg.iterate _ hx]
-
-lemma iterate_pos_lt_of_map_lt (h : commute f g) (hf : monotone f) (hg : strict_mono g)
-  {x} (hx : f x < g x) {n} (hn : 0 < n) :
-  f^[n] x < (g^[n]) x :=
-by refine hf.seq_pos_lt_seq_of_le_of_lt hn _ (λ k hk, _) (λ k hk, _);
-  simp [iterate_succ' f, h.iterate_right _ _, hg.iterate _ hx]
-
-lemma iterate_pos_lt_of_map_lt' (h : commute f g) (hf : strict_mono f) (hg : monotone g)
-  {x} (hx : f x < g x) {n} (hn : 0 < n) :
-  f^[n] x < (g^[n]) x :=
-@iterate_pos_lt_of_map_lt (order_dual α) _ g f h.symm hg.order_dual hf.order_dual x hx n hn
+variables [preorder α] {f : α → α}
 
 lemma id_le_iterate_of_id_le (h : id ≤ f) :
   ∀ n, id ≤ (f^[n])
@@ -110,6 +90,30 @@ end
 lemma iterate_le_iterate_of_le_id (h : f ≤ id) {m n : ℕ} (hmn : m ≤ n) :
   f^[n] ≤ (f^[m]) :=
 @iterate_le_iterate_of_id_le (order_dual α) _ f h m n hmn
+
+end preorder
+
+namespace commute
+
+section preorder
+variables [preorder α] {f g : α → α}
+
+lemma iterate_le_of_map_le (h : commute f g) (hf : monotone f)  (hg : monotone g)
+  {x} (hx : f x ≤ g x) (n : ℕ) :
+  f^[n] x ≤ (g^[n]) x :=
+by refine hf.seq_le_seq n _ (λ k hk, _) (λ k hk, _);
+  simp [iterate_succ' f, h.iterate_right _ _, hg.iterate _ hx]
+
+lemma iterate_pos_lt_of_map_lt (h : commute f g) (hf : monotone f) (hg : strict_mono g)
+  {x} (hx : f x < g x) {n} (hn : 0 < n) :
+  f^[n] x < (g^[n]) x :=
+by refine hf.seq_pos_lt_seq_of_le_of_lt hn _ (λ k hk, _) (λ k hk, _);
+  simp [iterate_succ' f, h.iterate_right _ _, hg.iterate _ hx]
+
+lemma iterate_pos_lt_of_map_lt' (h : commute f g) (hf : strict_mono f) (hg : monotone g)
+  {x} (hx : f x < g x) {n} (hn : 0 < n) :
+  f^[n] x < (g^[n]) x :=
+@iterate_pos_lt_of_map_lt (order_dual α) _ g f h.symm hg.order_dual hf.order_dual x hx n hn
 
 end preorder
 

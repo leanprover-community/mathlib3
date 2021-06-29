@@ -1062,6 +1062,18 @@ theorem add_mod_eq_add_mod_left {m n k : ℕ} (i : ℕ) (H : m % n = k % n) :
   (i + m) % n = (i + k) % n :=
 by rw [add_comm, add_mod_eq_add_mod_right _ H, add_comm]
 
+lemma add_mod_eq_ite {a b n : ℕ} :
+  (a + b) % n = if n ≤ a % n + b % n then a % n + b % n - n else a % n + b % n :=
+begin
+  cases n, { simp },
+  rw nat.add_mod,
+  split_ifs with h,
+  { rw [nat.mod_eq_sub_mod h, nat.mod_eq_of_lt],
+    exact (nat.sub_lt_right_iff_lt_add h).mpr
+        (nat.add_lt_add (a.mod_lt n.zero_lt_succ) (b.mod_lt n.zero_lt_succ)) },
+  { exact nat.mod_eq_of_lt (lt_of_not_ge h) }
+end
+
 lemma mul_mod (a b n : ℕ) : (a * b) % n = ((a % n) * (b % n)) % n :=
 begin
   conv_lhs {

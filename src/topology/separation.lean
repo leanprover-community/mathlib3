@@ -39,7 +39,7 @@ NOTE TO REVIEWERS: not sure how to deal with the last few lemmata after line 103
 
 * `is_closed.exists_closed_singleton` Given a closed set `S` in a compact T₀ space,
   there is some `x ∈ S` such that `{x}` is closed.
-* `exists_open_singleton_of_open_finset` Given an open `finset` S in a T₀ space,
+* `exists_open_singleton_of_open_finset` Given an open `finset` `S` in a T₀ space,
   there is some `x ∈ S` such that `{x}` is open.
 
 ### T₁ spaces
@@ -49,7 +49,7 @@ NOTE TO REVIEWERS: not sure how to deal with the last few lemmata after line 103
 
 ### T₂ spaces
 
-* `t2_iff_nhds`: A space is T₂ iff the neighbourhoods of disjoint points generate the bottom filter.
+* `t2_iff_nhds`: A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter.
 * `t2_iff_is_closed_diagonal`: A space is T₂ iff the `diagonal` of `α` (that is, the set of all
   points of the form `(a, a) : α × α`) is closed under the product topology.
 * `finset_disjoing_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
@@ -136,7 +136,7 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
-/--Given a closed set `S` in a compact T₀ space, there is some `x ∈ S` such that `{x}` is closed. -/
+/-- Given a closed set `S` in a compact T₀ space, there is some `x ∈ S` such that `{x}` is closed. -/
 theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
   [t0_space α] [compact_space α] {S : set α} (hS : is_closed S) (hne : S.nonempty) :
   ∃ (x : α), x ∈ S ∧ is_closed ({x} : set α) :=
@@ -169,7 +169,7 @@ begin
     { exact λ hx, hnt x z hx hz, }, },
 end
 
-/-- Given an open `finset` S in a T₀ space, there is some `x ∈ S` such that `{x}` is open. -/
+/-- Given an open `finset` `S` in a T₀ space, there is some `x ∈ S` such that `{x}` is open. -/
 theorem exists_open_singleton_of_open_finset [t0_space α] (s : finset α) (sne : s.nonempty)
   (hso : is_open (s : set α)) :
   ∃ x ∈ s, is_open ({x} : set α):=
@@ -292,7 +292,7 @@ begin
     using @image_mem_map _ _ _ (coe : s → α) _ this
 end
 
-/-- The neighbourhoods within filter of `x` within `s`, under the discrete topology, is equal to
+/-- The neighbourhoods filter of `x` within `s`, under the discrete topology, is equal to
 the pure `x` filter (which is the principal filter at the singleton `{x}`.) -/
 lemma nhds_within_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
   𝓝[s] x = pure x :=
@@ -403,7 +403,7 @@ classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
 absurd huv $ (inf_ne_bot_iff.1 h (is_open.mem_nhds hu hx) (is_open.mem_nhds hv hy)).ne_empty
 
-/-- A space is T₂ iff the neighbourhoods of disjoint points generate the bottom filter. -/
+/-- A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter. -/
 lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) → x = y :=
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
  assume h, ⟨assume x y xy,
@@ -578,7 +578,7 @@ We use two lemmas to prove that various standard constructions generate Hausdorf
 Hausdorff spaces:
 
 * `separated_by_continuous` says that two points `x y : α` can be separated by open neighborhoods
-  provided that there exists a continuous map `f: α → β` with a Hausdorff codomain such that
+  provided that there exists a continuous map `f : α → β` with a Hausdorff codomain such that
   `f x ≠ f y`. We use this lemma to prove that topological spaces defined using `induced` are
   Hausdorff spaces.
 

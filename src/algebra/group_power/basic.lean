@@ -108,7 +108,9 @@ end commute
 section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
-@[simp, to_additive zero_nsmul] theorem pow_zero (a : M) : a^0 = 1 := monoid.npow_zero' _
+-- the attributes are intentionally out of order. `zero_smul` proves `zero_nsmul`.
+@[to_additive zero_nsmul, simp]
+theorem pow_zero (a : M) : a^0 = 1 := monoid.npow_zero' _
 
 @[to_additive succ_nsmul]
 theorem pow_succ (a : M) (n : ℕ) : a^(n+1) = a * a^n :=
@@ -149,7 +151,8 @@ by split_ifs; refl
   a ^ (if P then 1 else 0) = if P then a else 1 :=
 by simp
 
-@[simp, to_additive nsmul_zero] theorem one_pow (n : ℕ) : (1 : M)^n = 1 :=
+-- the attributes are intentionally out of order. `smul_zero` proves `nsmul_zero`.
+@[to_additive nsmul_zero, simp] theorem one_pow (n : ℕ) : (1 : M)^n = 1 :=
 by induction n with n ih; [exact pow_zero _, rw [pow_succ, ih, one_mul]]
 
 @[to_additive mul_nsmul']

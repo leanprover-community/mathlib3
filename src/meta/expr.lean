@@ -860,9 +860,10 @@ protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) :
 * The identifier occurs in an application with first argument `arg`; and
 * `test arg` is false.
 * Reorder contains the information about what arguments to reorder.
-* The penultimate argument is a "cache"
+  We assume that all functions where we want to reorder arguments are fully applied.
+  This can be done by applying `expr.eta_expand` first.
 -/
-protected meta def apply_replacement_fun (env : environment) (f : name → name) (test : expr → bool)
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
   (reorder : name_map $ list ℕ) : expr → expr
 | e := e.replace $ λ e _,
   match e with
@@ -876,14 +877,6 @@ protected meta def apply_replacement_fun (env : environment) (f : name → name)
     -- interchange `x` and the last argument of `g`
     some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
       apply_replacement_fun g.app_arg else
-    -- the following only happens with non-fully applied terms
-    -- if g.get_app_num_args + 1 ∈ l ∧ test (app g x).get_app_args.head then do
-    -- -- check whether we want to replace g at all
-    -- let new_g := if g.is_constant ∧ ¬ test x then g else apply_replacement_fun g,
-    -- -- make a lambda term that is the reordering of the non-fully applied term
-    -- y_type ← (new_g.simple_infer_type env).to_option,
-    -- some $ lam `x binder_info.default y_type.binding_domain $
-    --   new_g.lift_vars 0 1 (var 0) $ (apply_replacement_fun x).lift_vars 0 1 else
     if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
   | _ := none
   end
@@ -1036,8 +1029,8 @@ protected meta def update_with_fun (env : environment) (f : name → name) (test
   (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
 let decl := decl.update_name $ tgt in
 let decl := decl.update_type $
-  (decl.type.eta_expand env reorder).apply_replacement_fun env f test reorder in
-decl.update_value $ (decl.value.eta_expand env reorder).apply_replacement_fun env f test reorder
+  (decl.type.eta_expand env reorder).apply_replacement_fun f test reorder in
+decl.update_value $ (decl.value.eta_expand env reorder).apply_replacement_fun f test reorder
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.preserves.shapes.binary_products
-import category_theory.limits.shapes.constructions.finite_products_of_binary_products
+import category_theory.limits.constructions.finite_products_of_binary_products
 import category_theory.monad.limits
 import category_theory.adjunction.fully_faithful
 import category_theory.adjunction.reflective
